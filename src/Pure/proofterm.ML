@@ -12,17 +12,21 @@ sig
   val proofs: int ref
 
   datatype proof =
-     PBound of int
+     MinProof
+   | PBound of int
    | Abst of string * typ option * proof
    | AbsP of string * term option * proof
-   | % of proof * term option
-   | %% of proof * proof
+   | op % of proof * term option
+   | op %% of proof * proof
    | Hyp of term
-   | PThm of string * proof * term * typ list option
    | PAxm of string * term * typ list option
    | Oracle of string * term * typ list option
    | Promise of serial * term * typ list option
-   | MinProof of ((string * term) * proof) list * (string * term) list * (string * term) list;
+   | PThm of serial * ((string * term * typ list option) * proof_body Lazy.T)
+  and proof_body = PBody of
+    {oracles: (string * term) OrdList.T,
+     thms: (serial * ((string * term * typ list option) * proof_body Lazy.T)) OrdList.T,
+     proof: proof}
 
   val %> : proof * term -> proof
 end;
@@ -31,90 +35,96 @@ signature PROOFTERM =
 sig
   include BASIC_PROOFTERM
 
-  (** primitive operations **)
-  val min_proof : proof
-  val proof_combt : proof * term list -> proof
-  val proof_combt' : proof * term option list -> proof
-  val proof_combP : proof * proof list -> proof
-  val strip_combt : proof -> proof * term option list
-  val strip_combP : proof -> proof * proof list
-  val strip_thm : proof -> proof
-  val map_proof_terms_option : (term -> term option) -> (typ -> typ option) -> proof -> proof
-  val map_proof_terms : (term -> term) -> (typ -> typ) -> proof -> proof
-  val fold_proof_terms : (term -> 'a -> 'a) -> (typ -> 'a -> 'a) -> proof -> 'a -> 'a
-  val maxidx_proof : proof -> int -> int
-  val size_of_proof : proof -> int
-  val change_type : typ list option -> proof -> proof
-  val prf_abstract_over : term -> proof -> proof
-  val prf_incr_bv : int -> int -> int -> int -> proof -> proof
-  val incr_pboundvars : int -> int -> proof -> proof
-  val prf_loose_bvar1 : proof -> int -> bool
-  val prf_loose_Pbvar1 : proof -> int -> bool
-  val prf_add_loose_bnos : int -> int -> proof ->
-    int list * int list -> int list * int list
-  val norm_proof : Envir.env -> proof -> proof
-  val norm_proof' : Envir.env -> proof -> proof
-  val prf_subst_bounds : term list -> proof -> proof
-  val prf_subst_pbounds : proof list -> proof -> proof
-  val freeze_thaw_prf : proof -> proof * (proof -> proof)
-  val proof_of_min_axm : string * term -> proof
-  val proof_of_min_thm : (string * term) * proof -> proof
+  val proof_of: proof_body -> proof
+  val force_body: proof_body Lazy.T ->
+   {oracles: (string * term) OrdList.T,
+    thms: (serial * ((string * term * typ list option) * proof_body Lazy.T)) OrdList.T,
+    proof: proof}
+  val force_proof: proof_body Lazy.T -> proof
+  val fold_body_thms: ((string * term * typ list option) * proof_body -> 'a -> 'a) ->
+    proof_body list -> 'a -> 'a
+  val fold_proof_atoms: bool -> (proof -> 'a -> 'a) -> proof list -> 'a -> 'a
 
-  val thms_of_proof : proof -> (term * proof) list Symtab.table ->
-    (term * proof) list Symtab.table
-  val thms_of_proof' : proof -> (term * proof) list Symtab.table ->
-    (term * proof) list Symtab.table
-  val axms_of_proof : proof -> proof Symtab.table -> proof Symtab.table
-  val mk_min_proof : proof ->
-   ((string * term) * proof) list * (string * term) list * (string * term) list ->
-   ((string * term) * proof) list * (string * term) list * (string * term) list
-  val add_oracles : bool -> proof -> (string * term) list -> (string * term) list
+  type oracle = string * term
+  val oracle_ord: oracle * oracle -> order
+  type pthm = serial * ((string * term * typ list option) * proof_body Lazy.T)
+  val thm_ord: pthm * pthm -> order
+  val make_proof_body: proof -> proof_body
+  val merge_oracles: oracle OrdList.T -> oracle OrdList.T -> oracle OrdList.T
+  val make_oracles: proof -> oracle OrdList.T
+  val merge_thms: pthm OrdList.T -> pthm OrdList.T -> pthm OrdList.T
+  val make_thms: proof -> pthm OrdList.T
+
+  (** primitive operations **)
+  val proof_combt: proof * term list -> proof
+  val proof_combt': proof * term option list -> proof
+  val proof_combP: proof * proof list -> proof
+  val strip_combt: proof -> proof * term option list
+  val strip_combP: proof -> proof * proof list
+  val strip_thm: proof_body -> proof_body
+  val map_proof_terms_option: (term -> term option) -> (typ -> typ option) -> proof -> proof
+  val map_proof_terms: (term -> term) -> (typ -> typ) -> proof -> proof
+  val fold_proof_terms: (term -> 'a -> 'a) -> (typ -> 'a -> 'a) -> proof -> 'a -> 'a
+  val maxidx_proof: proof -> int -> int
+  val size_of_proof: proof -> int
+  val change_type: typ list option -> proof -> proof
+  val prf_abstract_over: term -> proof -> proof
+  val prf_incr_bv: int -> int -> int -> int -> proof -> proof
+  val incr_pboundvars: int -> int -> proof -> proof
+  val prf_loose_bvar1: proof -> int -> bool
+  val prf_loose_Pbvar1: proof -> int -> bool
+  val prf_add_loose_bnos: int -> int -> proof -> int list * int list -> int list * int list
+  val norm_proof: Envir.env -> proof -> proof
+  val norm_proof': Envir.env -> proof -> proof
+  val prf_subst_bounds: term list -> proof -> proof
+  val prf_subst_pbounds: proof list -> proof -> proof
+  val freeze_thaw_prf: proof -> proof * (proof -> proof)
 
   (** proof terms for specific inference rules **)
-  val implies_intr_proof : term -> proof -> proof
-  val forall_intr_proof : term -> string -> proof -> proof
-  val varify_proof : term -> (string * sort) list -> proof -> proof
-  val freezeT : term -> proof -> proof
-  val rotate_proof : term list -> term -> int -> proof -> proof
-  val permute_prems_prf : term list -> int -> int -> proof -> proof
+  val implies_intr_proof: term -> proof -> proof
+  val forall_intr_proof: term -> string -> proof -> proof
+  val varify_proof: term -> (string * sort) list -> proof -> proof
+  val freezeT: term -> proof -> proof
+  val rotate_proof: term list -> term -> int -> proof -> proof
+  val permute_prems_prf: term list -> int -> int -> proof -> proof
   val generalize: string list * string list -> int -> proof -> proof
-  val instantiate : ((indexname * sort) * typ) list * ((indexname * typ) * term) list
+  val instantiate: ((indexname * sort) * typ) list * ((indexname * typ) * term) list
     -> proof -> proof
-  val lift_proof : term -> int -> term -> proof -> proof
-  val assumption_proof : term list -> term -> int -> proof -> proof
-  val bicompose_proof : bool -> term list -> term list -> term list -> term option ->
+  val lift_proof: term -> int -> term -> proof -> proof
+  val assumption_proof: term list -> term -> int -> proof -> proof
+  val bicompose_proof: bool -> term list -> term list -> term list -> term option ->
     int -> int -> proof -> proof -> proof
-  val equality_axms : (string * term) list
-  val reflexive_axm : proof
-  val symmetric_axm : proof
-  val transitive_axm : proof
-  val equal_intr_axm : proof
-  val equal_elim_axm : proof
-  val abstract_rule_axm : proof
-  val combination_axm : proof
-  val reflexive : proof
-  val symmetric : proof -> proof
-  val transitive : term -> typ -> proof -> proof -> proof
-  val abstract_rule : term -> string -> proof -> proof
-  val combination : term -> term -> term -> term -> typ -> proof -> proof -> proof
-  val equal_intr : term -> term -> proof -> proof -> proof
-  val equal_elim : term -> term -> proof -> proof -> proof
-  val axm_proof : string -> term -> proof
-  val oracle_proof : string -> term -> proof
-  val promise_proof : serial -> term -> proof
-  val thm_proof : theory -> string -> term list -> term -> proof -> proof
-  val get_name : term list -> term -> proof -> string
+  val equality_axms: (string * term) list
+  val reflexive_axm: proof
+  val symmetric_axm: proof
+  val transitive_axm: proof
+  val equal_intr_axm: proof
+  val equal_elim_axm: proof
+  val abstract_rule_axm: proof
+  val combination_axm: proof
+  val reflexive: proof
+  val symmetric: proof -> proof
+  val transitive: term -> typ -> proof -> proof -> proof
+  val abstract_rule: term -> string -> proof -> proof
+  val combination: term -> term -> term -> term -> typ -> proof -> proof -> proof
+  val equal_intr: term -> term -> proof -> proof -> proof
+  val equal_elim: term -> term -> proof -> proof -> proof
+  val axm_proof: string -> term -> proof
+  val oracle_proof: string -> term -> proof
+  val promise_proof: serial -> term -> proof
+  val fulfill_proof: (serial * proof Lazy.T) list -> proof_body -> proof_body
+  val thm_proof: theory -> string -> term list -> term ->
+    (serial * proof Lazy.T) list -> proof_body -> pthm * proof
+  val get_name: term list -> term -> proof -> string
 
   (** rewriting on proof terms **)
-  val add_prf_rrule : proof * proof -> theory -> theory
-  val add_prf_rproc : string * (Term.typ list -> proof -> proof option) ->
-    theory -> theory
-  val rewrite_proof : theory -> (proof * proof) list *
-    (string * (typ list -> proof -> proof option)) list -> proof -> proof
-  val rewrite_proof_notypes : (proof * proof) list *
-    (string * (typ list -> proof -> proof option)) list -> proof -> proof
-  val rew_proof : theory -> proof -> proof
-  val fulfill : proof Inttab.table -> proof -> proof
+  val add_prf_rrule: proof * proof -> theory -> theory
+  val add_prf_rproc: (typ list -> proof -> proof option) -> theory -> theory
+  val rewrite_proof: theory -> (proof * proof) list *
+    (typ list -> proof -> proof option) list -> proof -> proof
+  val rewrite_proof_notypes: (proof * proof) list *
+    (typ list -> proof -> proof option) list -> proof -> proof
+  val rew_proof: theory -> proof -> proof
 end
 
 structure Proofterm : PROOFTERM =
@@ -122,99 +132,95 @@ struct
 
 open Envir;
 
+
+(***** datatype proof *****)
+
 datatype proof =
-   PBound of int
+   MinProof
+ | PBound of int
  | Abst of string * typ option * proof
  | AbsP of string * term option * proof
  | op % of proof * term option
  | op %% of proof * proof
  | Hyp of term
- | PThm of string * proof * term * typ list option
  | PAxm of string * term * typ list option
  | Oracle of string * term * typ list option
  | Promise of serial * term * typ list option
- | MinProof of ((string * term) * proof) list * (string * term) list * (string * term) list;
+ | PThm of serial * ((string * term * typ list option) * proof_body Lazy.T)
+and proof_body = PBody of
+  {oracles: (string * term) OrdList.T,
+   thms: (serial * ((string * term * typ list option) * proof_body Lazy.T)) OrdList.T,
+   proof: proof};
 
-fun proof_of_min_axm (s, prop) = PAxm (s, prop, NONE);
-fun proof_of_min_thm ((s, prop), prf) = PThm (s, prf, prop, NONE);
+val force_body = Lazy.force #> (fn PBody args => args);
+val force_proof = #proof o force_body;
 
-val string_term_ord = prod_ord fast_string_ord Term.fast_term_ord;
+fun proof_of (PBody {proof, ...}) = proof;
 
-fun oracles_of_proof prf oras =
+
+(***** proof atoms *****)
+
+fun fold_body_thms f =
   let
-    fun oras_of (Abst (_, _, prf)) = oras_of prf
-      | oras_of (AbsP (_, _, prf)) = oras_of prf
-      | oras_of (prf % _) = oras_of prf
-      | oras_of (prf1 %% prf2) = oras_of prf1 #> oras_of prf2
-      | oras_of (PThm (name, prf, prop, _)) = (fn tabs as (thms, oras) =>
-          if member (op =) (Symtab.lookup_list thms name) prop then tabs
-          else oras_of prf (Symtab.cons_list (name, prop) thms, oras))
-      | oras_of (Oracle (s, prop, _)) =
-          apsnd (OrdList.insert string_term_ord (s, prop))
-      | oras_of (MinProof (thms, _, oras)) =
-          apsnd (OrdList.union string_term_ord oras) #>
-          fold (oras_of o proof_of_min_thm) thms
-      | oras_of _ = I
-  in
-    snd (oras_of prf (Symtab.empty, oras))
-  end;
+    fun app (PBody {thms, ...}) = thms |> fold (fn (i, (stmt, body)) => fn (x, seen) =>
+      if Inttab.defined seen i then (x, seen)
+      else
+        let
+          val body' = Lazy.force body;
+          val (x', seen') = app body' (x, Inttab.update (i, ()) seen);
+        in (f (stmt, body') x', seen') end);
+  in fn bodies => fn x => #1 (fold app bodies (x, Inttab.empty)) end;
 
-fun add_oracles false = K I
-  | add_oracles true = oracles_of_proof;
+fun fold_proof_atoms all f =
+  let
+    fun app (Abst (_, _, prf)) = app prf
+      | app (AbsP (_, _, prf)) = app prf
+      | app (prf % _) = app prf
+      | app (prf1 %% prf2) = app prf1 #> app prf2
+      | app (prf as PThm (i, (_, body))) = (fn (x, seen) =>
+          if Inttab.defined seen i then (x, seen)
+          else
+            let val res = (f prf x, Inttab.update (i, ()) seen)
+            in if all then app (force_proof body) res else res
+          end)
+      | app prf = (fn (x, seen) => (f prf x, seen));
+  in fn prfs => fn x => #1 (fold app prfs (x, Inttab.empty)) end;
 
-fun thms_of_proof (Abst (_, _, prf)) = thms_of_proof prf
-  | thms_of_proof (AbsP (_, _, prf)) = thms_of_proof prf
-  | thms_of_proof (prf1 %% prf2) = thms_of_proof prf1 #> thms_of_proof prf2
-  | thms_of_proof (prf % _) = thms_of_proof prf
-  | thms_of_proof (prf' as PThm (s, prf, prop, _)) = (fn tab =>
-      if exists (fn (p, _) => p = prop) (Symtab.lookup_list tab s) then tab
-      else thms_of_proof prf (Symtab.cons_list (s, (prop, prf')) tab))
-  | thms_of_proof (MinProof (prfs, _, _)) = fold (thms_of_proof o proof_of_min_thm) prfs
-  | thms_of_proof _ = I;
 
-(* this version does not recursively descend into proofs of (named) theorems *)
-fun thms_of_proof' (Abst (_, _, prf)) = thms_of_proof' prf
-  | thms_of_proof' (AbsP (_, _, prf)) = thms_of_proof' prf
-  | thms_of_proof' (prf1 %% prf2) = thms_of_proof' prf1 #> thms_of_proof' prf2
-  | thms_of_proof' (prf % _) = thms_of_proof' prf
-  | thms_of_proof' (PThm ("", prf, prop, _)) = thms_of_proof' prf
-  | thms_of_proof' (prf' as PThm (s, _, prop, _)) =
-      Symtab.insert_list (eq_fst op =) (s, (prop, prf'))
-  | thms_of_proof' (MinProof (prfs, _, _)) = fold (thms_of_proof' o proof_of_min_thm) prfs
-  | thms_of_proof' _ = I;
+(* atom kinds *)
 
-fun axms_of_proof (Abst (_, _, prf)) = axms_of_proof prf
-  | axms_of_proof (AbsP (_, _, prf)) = axms_of_proof prf
-  | axms_of_proof (prf1 %% prf2) = axms_of_proof prf1 #> axms_of_proof prf2
-  | axms_of_proof (prf % _) = axms_of_proof prf
-  | axms_of_proof (prf as PAxm (s, _, _)) = Symtab.update (s, prf)
-  | axms_of_proof (MinProof (_, prfs, _)) = fold (axms_of_proof o proof_of_min_axm) prfs
-  | axms_of_proof _ = I;
+type oracle = string * term;
+val oracle_ord = prod_ord fast_string_ord Term.fast_term_ord;
 
-(** collect all theorems, axioms and oracles **)
+type pthm = serial * ((string * term * typ list option) * proof_body Lazy.T);
+fun thm_ord ((i, _): pthm, (j, _)) = int_ord (j, i);
 
-fun map3 f g h (thms, axms, oras) = (f thms, g axms, h oras);
 
-fun mk_min_proof (Abst (_, _, prf)) = mk_min_proof prf
-  | mk_min_proof (AbsP (_, _, prf)) = mk_min_proof prf
-  | mk_min_proof (prf % _) = mk_min_proof prf
-  | mk_min_proof (prf1 %% prf2) = mk_min_proof prf1 #> mk_min_proof prf2
-  | mk_min_proof (PThm (s, prf, prop, _)) =
-      map3 (OrdList.insert (string_term_ord o pairself fst) ((s, prop), prf)) I I
-  | mk_min_proof (PAxm (s, prop, _)) =
-      map3 I (OrdList.insert string_term_ord (s, prop)) I
-  | mk_min_proof (Oracle (s, prop, _)) =
-      map3 I I (OrdList.insert string_term_ord (s, prop))
-  | mk_min_proof (MinProof (thms, axms, oras)) =
-      map3 (OrdList.union (string_term_ord o pairself fst) thms)
-        (OrdList.union string_term_ord axms) (OrdList.union string_term_ord oras)
-  | mk_min_proof _ = I;
+(* proof body *)
 
-(** proof objects with different levels of detail **)
+fun make_body prf =
+  let
+    val (oracles, thms) = fold_proof_atoms false
+      (fn Oracle (s, prop, _) => apfst (cons (s, prop))
+        | PThm thm => apsnd (cons thm)
+        | _ => I) [prf] ([], []);
+  in (OrdList.make oracle_ord oracles, OrdList.make thm_ord thms) end;
 
-val proofs = ref 2;
+fun make_proof_body prf =
+  let val (oracles, thms) = make_body prf
+  in PBody {oracles = oracles, thms = thms, proof = prf} end;
 
-val min_proof = MinProof ([], [], []);
+val make_oracles = #1 o make_body;
+val make_thms = #2 o make_body;
+
+val merge_oracles = OrdList.union oracle_ord;
+val merge_thms = OrdList.union thm_ord;
+
+fun merge_body (oracles1, thms1) (oracles2, thms2) =
+ (merge_oracles oracles1 oracles2, merge_thms thms1 thms2);
+
+
+(***** proof objects with different levels of detail *****)
 
 fun (prf %> t) = prf % SOME t;
 
@@ -232,9 +238,10 @@ fun strip_combP prf =
           | stripc  x =  x
     in  stripc (prf, [])  end;
 
-fun strip_thm prf = (case strip_combt (fst (strip_combP prf)) of
-      (PThm (_, prf', _, _), _) => prf'
-    | _ => prf);
+fun strip_thm (body as PBody {proof, ...}) =
+  (case strip_combt (fst (strip_combP proof)) of
+    (PThm (_, (_, body')), _) => Lazy.force body'
+  | _ => body);
 
 val mk_Abst = fold_rev (fn (s, T:typ) => fn prf => Abst (s, NONE, prf));
 fun mk_AbsP (i, prf) = funpow i (fn prf => AbsP ("H", NONE, prf)) prf;
@@ -261,10 +268,10 @@ fun map_proof_terms_option f g =
           handle SAME => prf % apsome f t)
       | mapp (prf1 %% prf2) = (mapp prf1 %% mapph prf2
           handle SAME => prf1 %% mapp prf2)
-      | mapp (PThm (a, prf, prop, SOME Ts)) =
-          PThm (a, prf, prop, SOME (map_typs Ts))
       | mapp (PAxm (a, prop, SOME Ts)) =
           PAxm (a, prop, SOME (map_typs Ts))
+      | mapp (PThm (i, ((a, prop, SOME Ts), body))) =
+          PThm (i, ((a, prop, SOME (map_typs Ts)), body))
       | mapp _ = raise SAME
     and mapph prf = (mapp prf handle SAME => prf)
 
@@ -287,22 +294,22 @@ fun fold_proof_terms f g (Abst (_, SOME T, prf)) = g T #> fold_proof_terms f g p
   | fold_proof_terms f g (prf % NONE) = fold_proof_terms f g prf
   | fold_proof_terms f g (prf1 %% prf2) =
       fold_proof_terms f g prf1 #> fold_proof_terms f g prf2
-  | fold_proof_terms _ g (PThm (_, _, _, SOME Ts)) = fold g Ts
   | fold_proof_terms _ g (PAxm (_, _, SOME Ts)) = fold g Ts
+  | fold_proof_terms _ g (PThm (_, ((_, _, SOME Ts), _))) = fold g Ts
   | fold_proof_terms _ _ _ = I;
 
 fun maxidx_proof prf = fold_proof_terms Term.maxidx_term Term.maxidx_typ prf;
 
 fun size_of_proof (Abst (_, _, prf)) = 1 + size_of_proof prf
   | size_of_proof (AbsP (_, t, prf)) = 1 + size_of_proof prf
-  | size_of_proof (prf1 %% prf2) = size_of_proof prf1 + size_of_proof prf2
   | size_of_proof (prf % _) = 1 + size_of_proof prf
+  | size_of_proof (prf1 %% prf2) = size_of_proof prf1 + size_of_proof prf2
   | size_of_proof _ = 1;
 
-fun change_type opTs (PThm (name, prf, prop, _)) = PThm (name, prf, prop, opTs)
-  | change_type opTs (PAxm (name, prop, _)) = PAxm (name, prop, opTs)
+fun change_type opTs (PAxm (name, prop, _)) = PAxm (name, prop, opTs)
   | change_type opTs (Oracle (name, prop, _)) = Oracle (name, prop, opTs)
   | change_type opTs (Promise (i, prop, _)) = Promise (i, prop, opTs)
+  | change_type opTs (PThm (i, ((name, prop, _), body))) = PThm (i, ((name, prop, opTs), body))
   | change_type _ prf = prf;
 
 
@@ -436,11 +443,13 @@ fun norm_proof env =
           handle SAME => prf % apsome' (htype norm_term_same) t)
       | norm (prf1 %% prf2) = (norm prf1 %% normh prf2
           handle SAME => prf1 %% norm prf2)
-      | norm (PThm (s, prf, t, Ts)) = PThm (s, prf, t, apsome' (htypeTs norm_types_same) Ts)
       | norm (PAxm (s, prop, Ts)) = PAxm (s, prop, apsome' (htypeTs norm_types_same) Ts)
+      | norm (PThm (i, ((s, t, Ts), body))) =
+          PThm (i, ((s, t, apsome' (htypeTs norm_types_same) Ts), body))
       | norm _ = raise SAME
     and normh prf = (norm prf handle SAME => prf);
   in normh end;
+
 
 (***** Remove some types in proof term (to save space) *****)
 
@@ -454,6 +463,7 @@ fun remove_types_env (Envir.Envir {iTs, asol, maxidx}) =
     maxidx = maxidx};
 
 fun norm_proof' env prf = norm_proof (remove_types_env env) prf;
+
 
 (**** substitution of bound variables ****)
 
@@ -583,13 +593,12 @@ fun varify_proof t fixed prf =
     val fs = Term.fold_types (Term.fold_atyps
       (fn TFree v => if member (op =) fixed v then I else insert (op =) v | _ => I)) t [];
     val ixns = add_term_tvar_ixns (t, []);
-    val fmap = fs ~~ Name.variant_list (map #1 ixns) (map fst fs)
+    val fmap = fs ~~ Name.variant_list (map #1 ixns) (map fst fs);
     fun thaw (f as (a, S)) =
       (case AList.lookup (op =) fmap f of
         NONE => TFree f
       | SOME b => TVar ((b, 0), S));
-  in map_proof_terms (map_types (map_type_tfree thaw)) (map_type_tfree thaw) prf
-  end;
+  in map_proof_terms (map_types (map_type_tfree thaw)) (map_type_tfree thaw) prf end;
 
 
 local
@@ -677,10 +686,10 @@ fun lift_proof Bi inc prop prf =
           handle SAME => prf % apsome' (same (op =) (lift'' Us Ts)) t)
       | lift' Us Ts (prf1 %% prf2) = (lift' Us Ts prf1 %% lifth' Us Ts prf2
           handle SAME => prf1 %% lift' Us Ts prf2)
-      | lift' _ _ (PThm (s, prf, prop, Ts)) =
-          PThm (s, prf, prop, apsome' (same (op =) (map (Logic.incr_tvar inc))) Ts)
       | lift' _ _ (PAxm (s, prop, Ts)) =
           PAxm (s, prop, apsome' (same (op =) (map (Logic.incr_tvar inc))) Ts)
+      | lift' _ _ (PThm (i, ((s, prop, Ts), body))) =
+          PThm (i, ((s, prop, apsome' (same (op =) (map (Logic.incr_tvar inc))) Ts), body))
       | lift' _ _ _ = raise SAME
     and lifth' Us Ts prf = (lift' Us Ts prf handle SAME => prf);
 
@@ -826,6 +835,8 @@ fun equal_elim A B prf1 prf2 =
 
 (***** axioms and theorems *****)
 
+val proofs = ref 2;
+
 fun vars_of t = rev (fold_aterms (fn v as Var _ => insert (op =) v | _ => I) t []);
 
 fun test_args _ [] = true
@@ -929,12 +940,15 @@ fun shrink_proof thy =
                (Library.foldl (fn (js, SOME (Bound j)) => j :: js | (js, _) => js) ([], ts))
              orelse exists #1 prfs then [i] else [], false, map (pair false) ts, prf)
       | shrink' ls lev ts prfs (Hyp t) = ([], false, map (pair false) ts, Hyp t)
-      | shrink' ls lev ts prfs (prf as MinProof _) =
-          ([], false, map (pair false) ts, prf)
+      | shrink' ls lev ts prfs MinProof = ([], false, map (pair false) ts, MinProof)
       | shrink' ls lev ts prfs prf =
           let
-            val prop = (case prf of PThm (_, _, prop, _) => prop | PAxm (_, prop, _) => prop
-              | Oracle (_, prop, _) => prop | Promise (_, prop, _) => prop
+            val prop =
+              (case prf of
+                PAxm (_, prop, _) => prop
+              | Oracle (_, prop, _) => prop
+              | Promise (_, prop, _) => prop
+              | PThm (_, ((_, prop, _), _)) => prop
               | _ => error "shrink: proof not in normal form");
             val vs = vars_of prop;
             val (ts', ts'') = chop (length vs) ts;
@@ -1015,12 +1029,12 @@ fun match_proof Ts tymatch =
           mtch Ts (i+1) j (optmatch (matcht Ts j) inst (opt, opu)) (prf1, prf2)
       | mtch Ts i j inst (prf1, AbsP (_, _, prf2)) =
           mtch Ts (i+1) j inst (incr_pboundvars 1 0 prf1 %% PBound 0, prf2)
-      | mtch Ts i j inst (PThm (name1, _, prop1, opTs), PThm (name2, _, prop2, opUs)) =
-          if name1=name2 andalso prop1=prop2 then
-            optmatch matchTs inst (opTs, opUs)
-          else raise PMatch
       | mtch Ts i j inst (PAxm (s1, _, opTs), PAxm (s2, _, opUs)) =
-          if s1=s2 then optmatch matchTs inst (opTs, opUs)
+          if s1 = s2 then optmatch matchTs inst (opTs, opUs)
+          else raise PMatch
+      | mtch Ts i j inst (PThm (_, ((name1, prop1, opTs), _)), PThm (_, ((name2, prop2, opUs), _))) =
+          if name1 = name2 andalso prop1 = prop2 then
+            optmatch matchTs inst (opTs, opUs)
           else raise PMatch
       | mtch _ _ _ inst (PBound i, PBound j) = if i = j then inst else raise PMatch
       | mtch _ _ _ _ _ = raise PMatch
@@ -1048,11 +1062,11 @@ fun prf_subst (pinst, (tyinsts, insts)) =
       | subst plev tlev (prf as Hyp (Var (ixn, _))) = (case AList.lookup (op =) pinst ixn of
           NONE => prf
         | SOME prf' => incr_pboundvars plev tlev prf')
-      | subst _ _ (PThm (id, prf, prop, Ts)) =
-          PThm (id, prf, prop, Option.map (map substT) Ts)
       | subst _ _ (PAxm (id, prop, Ts)) =
           PAxm (id, prop, Option.map (map substT) Ts)
-      | subst _ _ t = t
+      | subst _ _ (PThm (i, ((id, prop, Ts), body))) =
+          PThm (i, ((id, prop, Option.map (map substT) Ts), body))
+      | subst _ _ t = t;
   in subst 0 0 end;
 
 (*A fast unification filter: true unless the two terms cannot be unified.
@@ -1073,10 +1087,10 @@ fun could_unify prf1 prf2 =
   in case (head_of prf1, head_of prf2) of
         (_, Hyp (Var _)) => true
       | (Hyp (Var _), _) => true
-      | (PThm (a, _, propa, _), PThm (b, _, propb, _)) =>
-          a = b andalso propa = propb andalso matchrands prf1 prf2
       | (PAxm (a, _, _), PAxm (b, _, _)) => a = b andalso matchrands prf1 prf2
-      | (PBound i, PBound j) =>  i = j andalso matchrands prf1 prf2
+      | (PThm (_, ((a, propa, _), _)), PThm (_, ((b, propb, _), _))) =>
+          a = b andalso propa = propb andalso matchrands prf1 prf2
+      | (PBound i, PBound j) => i = j andalso matchrands prf1 prf2
       | (AbsP _, _) =>  true   (*because of possible eta equality*)
       | (Abst _, _) =>  true
       | (_, AbsP _) =>  true
@@ -1093,11 +1107,11 @@ fun rewrite_prf tymatch (rules, procs) prf =
   let
     fun rew _ (Abst (_, _, body) % SOME t) = SOME (prf_subst_bounds [t] body, skel0)
       | rew _ (AbsP (_, _, body) %% prf) = SOME (prf_subst_pbounds [prf] body, skel0)
-      | rew Ts prf = (case get_first (fn (_, r) => r Ts prf) procs of
+      | rew Ts prf = (case get_first (fn r => r Ts prf) procs of
           SOME prf' => SOME (prf', skel0)
         | NONE => get_first (fn (prf1, prf2) => SOME (prf_subst
             (match_proof Ts tymatch ([], (Vartab.empty, [])) (prf1, prf)) prf2, prf2)
-               handle PMatch => NONE) (List.filter (could_unify prf o fst) rules));
+               handle PMatch => NONE) (filter (could_unify prf o fst) rules));
 
     fun rew0 Ts (prf as AbsP (_, _, prf' %% PBound 0)) =
           if prf_loose_Pbvar1 prf' 0 then rew Ts prf
@@ -1162,58 +1176,76 @@ fun rewrite_proof thy = rewrite_prf (fn (tyenv, f) =>
 
 fun rewrite_proof_notypes rews = rewrite_prf fst rews;
 
-fun fulfill tab = rewrite_proof_notypes
-  ([], [("Pure/fulfill", K (fn Promise (i, _, _) => Inttab.lookup tab i | _ => NONE))]);
-
 
 (**** theory data ****)
 
 structure ProofData = TheoryDataFun
 (
-  type T = (proof * proof) list * (string * (typ list -> proof -> proof option)) list;
+  type T = (stamp * (proof * proof)) list * (stamp * (typ list -> proof -> proof option)) list;
 
   val empty = ([], []);
   val copy = I;
   val extend = I;
-  fun merge _ ((rules1, procs1) : T, (rules2, procs2)) =
-    (Library.merge (op =) (rules1, rules2),
+  fun merge _ ((rules1, procs1), (rules2, procs2)) : T =
+    (AList.merge (op =) (K true) (rules1, rules2),
       AList.merge (op =) (K true) (procs1, procs2));
 );
 
-fun rew_proof thy = rewrite_prf fst (ProofData.get thy);
+fun get_data thy = let val (rules, procs) = ProofData.get thy in (map #2 rules, map #2 procs) end;
+fun rew_proof thy = rewrite_prf fst (get_data thy);
 
-fun add_prf_rrule r = (ProofData.map o apfst) (insert (op =) r);
+fun add_prf_rrule r = (ProofData.map o apfst) (cons (stamp (), r));
+fun add_prf_rproc p = (ProofData.map o apsnd) (cons (stamp (), p));
 
-fun add_prf_rproc p = (ProofData.map o apsnd) (AList.update (op =) p);
 
-fun thm_proof thy name hyps prop prf =
+(***** theorems *****)
+
+fun fulfill_proof promises body0 =
   let
+    val tab = Inttab.make promises;
+    fun fill (Promise (i, _, _)) = Option.map Lazy.force (Inttab.lookup tab i)
+      | fill _ = NONE;
+    val PBody {oracles = oracles0, thms = thms0, proof = proof0} = body0;
+    val proof = proof0 |> rewrite_proof_notypes ([], [K fill]);
+    val (oracles, thms) = (oracles0, thms0)
+      |> fold (merge_body o make_body o Lazy.force o #2) promises;
+  in PBody {oracles = oracles, thms = thms, proof = proof} end;
+
+fun thm_proof thy name hyps prop promises body =
+  let
+    val PBody {oracles = oracles0, thms = thms0, proof = prf} = body;
     val prop = Logic.list_implies (hyps, prop);
     val nvs = needed_vars prop;
     val args = map (fn (v as Var (ixn, _)) =>
         if member (op =) nvs ixn then SOME v else NONE) (vars_of prop) @
       map SOME (sort Term.term_ord (term_frees prop));
-    val opt_prf = if ! proofs = 2 then
-        #4 (shrink_proof thy [] 0 (rewrite_prf fst (ProofData.get thy)
-          (fold_rev implies_intr_proof hyps prf)))
-      else MinProof (mk_min_proof prf ([], [], []));
-    val head = (case strip_combt (fst (strip_combP prf)) of
-        (PThm (old_name, prf', prop', NONE), args') =>
-          if (old_name="" orelse old_name=name) andalso
-             prop = prop' andalso args = args' then
-            PThm (name, prf', prop, NONE)
-          else
-            PThm (name, opt_prf, prop, NONE)
-      | _ => PThm (name, opt_prf, prop, NONE))
+
+    val proof0 =
+      if ! proofs = 2 then
+        #4 (shrink_proof thy [] 0 (rew_proof thy (fold_rev implies_intr_proof hyps prf)))
+      else MinProof;
+
+    fun new_prf () = (serial (), ((name, prop, NONE),
+      Lazy.lazy (fn () =>
+        fulfill_proof promises (PBody {oracles = oracles0, thms = thms0, proof = proof0}))));
+
+    val head =
+      (case strip_combt (fst (strip_combP prf)) of
+        (PThm (i, ((old_name, prop', NONE), body')), args') =>
+          if (old_name = "" orelse old_name = name) andalso
+             prop = prop' andalso args = args'
+          then (i, ((name, prop, NONE), body'))
+          else new_prf ()
+      | _ => new_prf ())
   in
-    proof_combP (proof_combt' (head, args), map Hyp hyps)
+    (head, proof_combP (proof_combt' (PThm head, args), map Hyp hyps))
   end;
 
 fun get_name hyps prop prf =
   let val prop = Logic.list_implies (hyps, prop) in
     (case strip_combt (fst (strip_combP prf)) of
-      (PThm (name, _, prop', _), _) => if prop=prop' then name else ""
-    | (PAxm (name, prop', _), _) => if prop=prop' then name else ""
+      (PAxm (name, prop', _), _) => if prop = prop' then name else ""   (* FIXME !? *)
+    | (PThm (_, ((name, prop', _), _)), _) => if prop = prop' then name else ""
     | _ => "")
   end;
 
