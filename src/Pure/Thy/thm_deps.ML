@@ -7,8 +7,6 @@ Visualize dependencies of theorems.
 
 signature THM_DEPS =
 sig
-  val enable: unit -> unit
-  val disable: unit -> unit
   val thm_deps: thm list -> unit
   val unused_thms: theory list * theory list -> (string * thm) list
 end;
@@ -18,62 +16,36 @@ struct
 
 (* thm_deps *)
 
-fun enable () = CRITICAL (fn () => if ! proofs = 0 then proofs := 1 else ());
-fun disable () = proofs := 0;
-
-local
-
-open Proofterm;
-
-fun dest_thm_axm (PThm (name, prf, _, _)) = (name, prf)
-  | dest_thm_axm (PAxm (name, _, _)) = (name ^ " (Ax)", MinProof ([], [], []))
-  | dest_thm_axm _ = ("", MinProof ([], [], []));
-
-fun make_deps_graph (AbsP (_, _, prf)) = make_deps_graph prf
-  | make_deps_graph (Abst (_, _, prf)) = make_deps_graph prf
-  | make_deps_graph (prf1 %% prf2) = make_deps_graph prf1 #> make_deps_graph prf2
-  | make_deps_graph (prf % _) = make_deps_graph prf
-  | make_deps_graph (MinProof (thms, axms, _)) =
-      fold (make_deps_graph o Proofterm.proof_of_min_thm) thms #>
-      fold (make_deps_graph o Proofterm.proof_of_min_axm) axms
-  | make_deps_graph prf = (fn p as (gra, parents) =>
-      let val (name, prf') = dest_thm_axm prf
-      in
-        if name <> "" then
-          if not (Symtab.defined gra name) then
-            let
-              val (gra', parents') = make_deps_graph prf' (gra, []);
-              val prefx = #1 (Library.split_last (NameSpace.explode name));
-              val session =
-                (case prefx of
-                  (x :: _) =>
-                    (case ThyInfo.lookup_theory x of
-                      SOME thy =>
-                        let val name = Present.session_name thy
-                        in if name = "" then [] else [name] end
-                    | NONE => [])
-                 | _ => ["global"]);
-            in
-              if member (op =) parents' name then (gra', parents union parents')
-              else (Symtab.update (name,
-                {name = Sign.base_name name, ID = name,
-                 dir = space_implode "/" (session @ prefx),
-                 unfold = false, path = "", parents = parents'}) gra',
-               insert (op =) name parents)
-            end
-          else (gra, insert (op =) name parents)
-        else
-          make_deps_graph prf' (gra, parents)
-      end);
-
-in
+fun add_dep ((name, _, _), PBody {thms = thms', ...}) =
+  name <> "" ?
+    Graph.new_node (name, ()) #>
+    fold (fn (_, ((name', _, _), _)) => name <> "" ? Graph.add_edge (name', name)) thms';
 
 fun thm_deps thms =
-  Present.display_graph
-    (map snd (sort_wrt fst (Symtab.dest (fst
-      (fold make_deps_graph (map Thm.proof_of thms) (Symtab.empty, []))))));
-
-end;
+  let
+    val graph = Proofterm.fold_body_thms add_dep (map Thm.proof_of thms) Graph.empty;
+    fun add_entry (name, (_, (preds, _))) =
+      let
+        val prefix = #1 (Library.split_last (NameSpace.explode name));
+        val session =
+          (case prefix of
+            a :: _ =>
+              (case ThyInfo.lookup_theory a of
+                SOME thy =>
+                  (case Present.session_name thy of
+                    "" => []
+                  | session => [session])
+              | NONE => [])
+           | _ => ["global"]);
+        val entry =
+          {name = Sign.base_name name,
+           ID = name,
+           dir = space_implode "/" (session @ prefix),
+           unfold = false,
+           path = "",
+           parents = preds};
+      in cons entry end;
+  in Present.display_graph (sort_wrt #ID (Graph.fold add_entry graph [])) end;
 
 
 (* unused_thms *)
@@ -86,11 +58,13 @@ fun unused_thms (base_thys, thys) =
     val thms =
       fold (Facts.fold_static add_fact o PureThy.facts_of) thys []
       |> sort_distinct (string_ord o pairself #1);
-    val tab = fold Proofterm.thms_of_proof
+
+    val tab = Proofterm.fold_body_thms
+      (fn ((name, prop, _), _) => name <> "" ? Symtab.insert_list (op =) (name, prop))
       (map (Proofterm.strip_thm o Thm.proof_of o snd) thms) Symtab.empty;
-    fun is_unused (name, th) = case Symtab.lookup tab name of
-        NONE => true
-      | SOME ps => not (member (op aconv) (map fst ps) (Thm.prop_of th));
+    fun is_unused (name, th) =
+      not (member (op aconv) (Symtab.lookup_list tab name) (Thm.prop_of th));
+
     (* groups containing at least one used theorem *)
     val grps = fold (fn p as (_, thm) => if is_unused p then I else
       case Thm.get_group thm of
