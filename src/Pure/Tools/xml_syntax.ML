@@ -71,13 +71,13 @@ fun xml_of_proof (PBound i) =
   | xml_of_proof (prf %% prf') =
       XML.Elem ("AppP", [], [xml_of_proof prf, xml_of_proof prf'])
   | xml_of_proof (Hyp t) = XML.Elem ("Hyp", [], [xml_of_term t])
-  | xml_of_proof (PThm (s, _, t, optTs)) =
+  | xml_of_proof (PThm (_, ((s, t, optTs), _))) =
       XML.Elem ("PThm", [("name", s)], xml_of_term t :: xml_of_opttypes optTs)
   | xml_of_proof (PAxm (s, t, optTs)) =
       XML.Elem ("PAxm", [("name", s)], xml_of_term t :: xml_of_opttypes optTs)
   | xml_of_proof (Oracle (s, t, optTs)) =
       XML.Elem ("Oracle", [("name", s)], xml_of_term t :: xml_of_opttypes optTs)
-  | xml_of_proof (MinProof prfs) =
+  | xml_of_proof MinProof =
       XML.Elem ("MinProof", [], []);
 
 (* useful for checking the output against a schema file *)
@@ -157,13 +157,14 @@ fun proof_of_xml (tree as XML.Elem ("PBound", [("index", idx)], [])) =
   | proof_of_xml (XML.Elem ("Hyp", [], [term])) =
       Hyp (term_of_xml term)
   | proof_of_xml (XML.Elem ("PThm", [("name", s)], term :: opttypes)) =
-      PThm (s, MinProof ([], [], []),  (* FIXME? *)
-        term_of_xml term, opttypes_of_xml opttypes)
+      (* FIXME? *)
+      PThm (serial (), ((s, term_of_xml term, opttypes_of_xml opttypes),
+        Lazy.value (Proofterm.make_proof_body MinProof)))
   | proof_of_xml (XML.Elem ("PAxm", [("name", s)], term :: opttypes)) =
       PAxm (s, term_of_xml term, opttypes_of_xml opttypes)
   | proof_of_xml (XML.Elem ("Oracle", [("name", s)], term :: opttypes)) =
       Oracle (s, term_of_xml term, opttypes_of_xml opttypes)
-  | proof_of_xml (XML.Elem ("MinProof", _, _)) = MinProof ([], [], [])
+  | proof_of_xml (XML.Elem ("MinProof", _, _)) = MinProof
   | proof_of_xml tree = raise XML ("proof_of_xml: bad tree", tree);
 
 end;

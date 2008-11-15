@@ -143,13 +143,13 @@ fun xml_of_proof (PBound i) =
   | xml_of_proof (prf %% prf') =
       XML.Elem ("AppP", [], [xml_of_proof prf, xml_of_proof prf'])
   | xml_of_proof (Hyp t) = XML.Elem ("Hyp", [], [xml_of_term t])
-  | xml_of_proof (PThm (s, _, t, optTs)) =
+  | xml_of_proof (PThm (_, ((s, t, optTs), _))) =
       XML.Elem ("PThm", [("name", s)], xml_of_term t :: xml_of_opttypes optTs)
   | xml_of_proof (PAxm (s, t, optTs)) =
       XML.Elem ("PAxm", [("name", s)], xml_of_term t :: xml_of_opttypes optTs)
   | xml_of_proof (Oracle (s, t, optTs)) =
       XML.Elem ("Oracle", [("name", s)], xml_of_term t :: xml_of_opttypes optTs)
-  | xml_of_proof (MinProof _) = XML.Elem ("MinProof", [], []);
+  | xml_of_proof MinProof = XML.Elem ("MinProof", [], []);
 
 fun xml_of_bool b = XML.Elem ("bool", [("value", if b then "true" else "false")], [])
 fun xml_of_int i = XML.Elem ("int", [("value", string_of_int i)], [])
