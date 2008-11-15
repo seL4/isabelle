@@ -8,7 +8,7 @@ Simplification functions for proof terms involving meta level rules.
 signature PROOF_REWRITE_RULES =
 sig
   val rew : bool -> typ list -> Proofterm.proof -> Proofterm.proof option
-  val rprocs : bool -> (string * (typ list -> Proofterm.proof -> Proofterm.proof option)) list
+  val rprocs : bool -> (typ list -> Proofterm.proof -> Proofterm.proof option) list
   val rewrite_terms : (term -> term) -> Proofterm.proof -> Proofterm.proof
   val elim_defs : theory -> bool -> thm list -> Proofterm.proof -> Proofterm.proof
   val elim_vars : (typ -> term) -> Proofterm.proof -> Proofterm.proof
@@ -34,12 +34,12 @@ fun rew b _ =
     val equal_elim_axm = ax equal_elim_axm [];
     val symmetric_axm = ax symmetric_axm [propT];
 
-    fun rew' (PThm ("Pure.protectD", _, _, _) % _ %%
-        (PThm ("Pure.protectI", _, _, _) % _ %% prf)) = SOME prf
-      | rew' (PThm ("Pure.conjunctionD1", _, _, _) % _ % _ %%
-        (PThm ("Pure.conjunctionI", _, _, _) % _ % _ %% prf %% _)) = SOME prf
-      | rew' (PThm ("Pure.conjunctionD2", _, _, _) % _ % _ %%
-        (PThm ("Pure.conjunctionI", _, _, _) % _ % _ %% _ %% prf)) = SOME prf
+    fun rew' (PThm (_, (("Pure.protectD", _, _), _)) % _ %%
+        (PThm (_, (("Pure.protectI", _, _), _)) % _ %% prf)) = SOME prf
+      | rew' (PThm (_, (("Pure.conjunctionD1", _, _), _)) % _ % _ %%
+        (PThm (_, (("Pure.conjunctionI", _, _), _)) % _ % _ %% prf %% _)) = SOME prf
+      | rew' (PThm (_, (("Pure.conjunctionD2", _, _), _)) % _ % _ %%
+        (PThm (_, (("Pure.conjunctionI", _, _), _)) % _ % _ %% _ %% prf)) = SOME prf
       | rew' (PAxm ("Pure.equal_elim", _, _) % _ % _ %%
         (PAxm ("Pure.equal_intr", _, _) % _ % _ %% prf %% _)) = SOME prf
       | rew' (PAxm ("Pure.symmetric", _, _) % _ % _ %%
@@ -49,14 +49,14 @@ fun rew b _ =
       | rew' (PAxm ("Pure.equal_elim", _, _) % SOME (_ $ A) % SOME (_ $ B) %%
         (PAxm ("Pure.combination", _, _) % SOME (Const ("prop", _)) %
           _ % _ % _ %% (PAxm ("Pure.reflexive", _, _) % _) %% prf1) %%
-        ((tg as PThm ("Pure.protectI", _, _, _)) % _ %% prf2)) =
+        ((tg as PThm (_, (("Pure.protectI", _, _), _))) % _ %% prf2)) =
         SOME (tg %> B %% (equal_elim_axm %> A %> B %% prf1 %% prf2))
 
       | rew' (PAxm ("Pure.equal_elim", _, _) % SOME (_ $ A) % SOME (_ $ B) %%
         (PAxm ("Pure.symmetric", _, _) % _ % _ %%
           (PAxm ("Pure.combination", _, _) % SOME (Const ("prop", _)) %
              _ % _ % _ %% (PAxm ("Pure.reflexive", _, _) % _) %% prf1)) %%
-        ((tg as PThm ("Pure.protectI", _, _, _)) % _ %% prf2)) =
+        ((tg as PThm (_, (("Pure.protectI", _, _), _))) % _ %% prf2)) =
         SOME (tg %> B %% (equal_elim_axm %> A %> B %%
           (symmetric_axm % ?? B % ?? A %% prf1) %% prf2))
 
@@ -186,7 +186,7 @@ fun rew b _ =
       | rew' _ = NONE;
   in rew' end;
 
-fun rprocs b = [("Pure/meta_equality", rew b)];
+fun rprocs b = [rew b];
 val _ = Context.>> (Context.map_theory (fold Proofterm.add_prf_rproc (rprocs false)));
 
 
@@ -224,7 +224,7 @@ fun insert_refl defs Ts (prf1 %% prf2) =
   | insert_refl defs Ts (AbsP (s, t, prf)) =
       AbsP (s, t, insert_refl defs Ts prf)
   | insert_refl defs Ts prf = (case strip_combt prf of
-        (PThm (s, _, prop, SOME Ts), ts) =>
+        (PThm (_, ((s, prop, SOME Ts), _)), ts) =>
           if member (op =) defs s then
             let
               val vs = vars_of prop;
@@ -247,12 +247,12 @@ fun elim_defs thy r defs prf =
     val f = if not r then I else
       let
         val cnames = map (fst o dest_Const o fst) defs';
-        val thms = maps (fn (s, ps) =>
-            if member (op =) defnames s then []
-            else map (pair s o SOME o fst) (filter_out (fn (p, _) =>
-              null (term_consts p inter cnames)) ps))
-          (Symtab.dest (thms_of_proof prf Symtab.empty))
-      in Reconstruct.expand_proof thy thms end
+        val thms = fold_proof_atoms true
+          (fn PThm (_, ((name, prop, _), _)) =>
+              if member (op =) defnames name orelse null (term_consts prop inter cnames) then I
+              else cons (name, SOME prop)
+            | _ => I) [prf] [];
+      in Reconstruct.expand_proof thy thms end;
   in
     rewrite_terms (Pattern.rewrite_term thy defs' [])
       (insert_refl defnames [] (f prf))
