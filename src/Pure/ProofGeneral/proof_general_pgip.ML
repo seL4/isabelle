@@ -250,22 +250,25 @@ fun restart () =
 
 local
 
-fun thm_deps th =
-  (case Thm.proof_of th of
-    PThm (name, prf, _, _) =>
-      if Thm.has_name_hint th andalso Thm.get_name_hint th = name then
-        Proofterm.thms_of_proof' prf
+fun add_proof_body (PBody {thms, ...}) =
+  thms |> fold (fn (_, ((name, _, _), _)) => name <> "" ? Symtab.update (name, ()));
+
+fun add_thm th =
+  (case Thm.proof_of th of 
+    PBody {proof = PThm (_, ((name, _, _), body)), ...} =>
+      if Thm.has_name_hint th andalso Thm.get_name_hint th = name
+      then add_proof_body (Lazy.force body)
       else I
-  | prf => Proofterm.thms_of_proof' prf);
+  | body => add_proof_body body);
+
+in
 
 fun thms_deps ths =
   let
     (* FIXME proper derivation names!? *)
     val names = map Thm.get_name_hint (filter Thm.has_name_hint ths);
-    val deps = Symtab.keys (fold thm_deps ths Symtab.empty);
+    val deps = Symtab.keys (fold add_thm ths Symtab.empty);
   in (names, deps) end;
-
-in
 
 fun new_thms_deps thy thy' =
   let
@@ -613,9 +616,7 @@ fun askrefs (Askrefs vs) =
                 val ctx = Toplevel.context_of (Isar.state ()) (* NB: raises UNDEF *)
                 val thy = Context.theory_of_proof ctx
                 val ths = [PureThy.get_thm thy thmname]
-                val deps = filter_out (fn s => s = "")
-                                      (Symtab.keys (fold Proofterm.thms_of_proof
-                                                         (map Thm.proof_of ths) Symtab.empty))
+                val deps = #2 (thms_deps ths);
             in
                 if null deps then ()
                 else issue_pgip (Setrefs {url=url, thyname=thyname, name=name,
