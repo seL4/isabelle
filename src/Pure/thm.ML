@@ -1658,12 +1658,10 @@ fun future make_result ct =
 
 (* fulfilled proof *)
 
-fun deriv_of (Thm (Deriv der, _)) = der;
-val raw_proof_of = Proofterm.proof_of o #body o deriv_of;
+fun raw_proof_of (Thm (Deriv {body, ...}, _)) = Proofterm.proof_of body;
 
-fun proof_body_of thm =
+fun proof_body_of (Thm (Deriv {all_promises, promises, body}, _)) =
   let
-    val {all_promises, promises, body} = deriv_of thm;
     val _ = Exn.release_all (map (Future.join_result o #2) (rev all_promises));
     val ps = map (apsnd (Lazy.value o raw_proof_of o Future.join)) promises;
   in Pt.fulfill_proof ps body end;
@@ -1683,7 +1681,7 @@ fun put_name name (thm as Thm (der, args)) =
     val _ = null tpairs orelse raise THM ("name_thm: unsolved flex-flex constraints", 0, [thm]);
 
     val ps =
-      map (apsnd (fn future => Lazy.lazy (fn () => raw_proof_of (Future.join future)))) promises;
+      map (apsnd (fn future => Lazy.lazy (fn () => proof_of (Future.join future)))) promises;
     val thy = Theory.deref thy_ref;
     val (pthm, proof) = Pt.thm_proof thy name hyps prop ps body;
     val der' = make_deriv [] [] [] [pthm] proof;
