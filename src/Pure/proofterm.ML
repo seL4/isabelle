@@ -837,7 +837,8 @@ fun equal_elim A B prf1 prf2 =
 
 val proofs = ref 2;
 
-fun vars_of t = rev (fold_aterms (fn v as Var _ => insert (op =) v | _ => I) t []);
+fun vars_of t = map Var (rev (Term.add_vars t []));
+fun frees_of t = map Free (rev (Term.add_frees t []));
 
 fun test_args _ [] = true
   | test_args is (Bound i :: ts) =
@@ -895,7 +896,7 @@ fun gen_axm_proof c name prop =
     val nvs = needed_vars prop;
     val args = map (fn (v as Var (ixn, _)) =>
         if member (op =) nvs ixn then SOME v else NONE) (vars_of prop) @
-      map SOME (sort Term.term_ord (term_frees prop));
+      map SOME (frees_of prop);
   in
     proof_combt' (c (name, prop, NONE), args)
   end;
@@ -1218,7 +1219,7 @@ fun thm_proof thy name hyps prop promises body =
     val nvs = needed_vars prop;
     val args = map (fn (v as Var (ixn, _)) =>
         if member (op =) nvs ixn then SOME v else NONE) (vars_of prop) @
-      map SOME (sort Term.term_ord (term_frees prop));
+      map SOME (frees_of prop);
 
     val proof0 =
       if ! proofs = 2 then
