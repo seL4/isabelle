@@ -251,7 +251,7 @@ fun restart () =
 local
 
 fun add_proof_body (PBody {thms, ...}) =
-  thms |> fold (fn (_, ((name, _, _), _)) => name <> "" ? Symtab.update (name, ()));
+  thms |> fold (fn (_, (name, _, _)) => name <> "" ? Symtab.update (name, ()));
 
 fun add_thm th =
   (case Thm.proof_body_of th of 

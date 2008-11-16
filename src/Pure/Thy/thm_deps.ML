@@ -16,10 +16,10 @@ struct
 
 (* thm_deps *)
 
-fun add_dep ((name, _, _), PBody {thms = thms', ...}) =
+fun add_dep (name, _, PBody {thms = thms', ...}) =
   name <> "" ?
     Graph.new_node (name, ()) #>
-    fold (fn (_, ((name', _, _), _)) => name <> "" ? Graph.add_edge (name', name)) thms';
+    fold (fn (_, (name', _, _)) => name <> "" ? Graph.add_edge (name', name)) thms';
 
 fun thm_deps thms =
   let
@@ -60,7 +60,7 @@ fun unused_thms (base_thys, thys) =
       |> sort_distinct (string_ord o pairself #1);
 
     val tab = Proofterm.fold_body_thms
-      (fn ((name, prop, _), _) => name <> "" ? Symtab.insert_list (op =) (name, prop))
+      (fn (name, prop, _) => name <> "" ? Symtab.insert_list (op =) (name, prop))
       (map (Proofterm.strip_thm o Thm.proof_body_of o snd) thms) Symtab.empty;
     fun is_unused (name, th) =
       not (member (op aconv) (Symtab.lookup_list tab name) (Thm.prop_of th));
