@@ -25,7 +25,7 @@ sig
    | PThm of serial * ((string * term * typ list option) * proof_body Lazy.T)
   and proof_body = PBody of
     {oracles: (string * term) OrdList.T,
-     thms: (serial * ((string * term * typ list option) * proof_body Lazy.T)) OrdList.T,
+     thms: (serial * (string * term * proof_body Lazy.T)) OrdList.T,
      proof: proof}
 
   val %> : proof * term -> proof
@@ -35,19 +35,16 @@ signature PROOFTERM =
 sig
   include BASIC_PROOFTERM
 
-  val proof_of: proof_body -> proof
+  type oracle = string * term
+  type pthm = serial * (string * term * proof_body Lazy.T)
   val force_body: proof_body Lazy.T ->
-   {oracles: (string * term) OrdList.T,
-    thms: (serial * ((string * term * typ list option) * proof_body Lazy.T)) OrdList.T,
-    proof: proof}
+    {oracles: oracle OrdList.T, thms: pthm OrdList.T, proof: proof}
   val force_proof: proof_body Lazy.T -> proof
-  val fold_body_thms: ((string * term * typ list option) * proof_body -> 'a -> 'a) ->
-    proof_body list -> 'a -> 'a
+  val proof_of: proof_body -> proof
+  val fold_body_thms: (string * term * proof_body -> 'a -> 'a) -> proof_body list -> 'a -> 'a
   val fold_proof_atoms: bool -> (proof -> 'a -> 'a) -> proof list -> 'a -> 'a
 
-  type oracle = string * term
   val oracle_ord: oracle * oracle -> order
-  type pthm = serial * ((string * term * typ list option) * proof_body Lazy.T)
   val thm_ord: pthm * pthm -> order
   val make_proof_body: proof -> proof_body
   val merge_oracles: oracle OrdList.T -> oracle OrdList.T -> oracle OrdList.T
@@ -149,8 +146,11 @@ datatype proof =
  | PThm of serial * ((string * term * typ list option) * proof_body Lazy.T)
 and proof_body = PBody of
   {oracles: (string * term) OrdList.T,
-   thms: (serial * ((string * term * typ list option) * proof_body Lazy.T)) OrdList.T,
+   thms: (serial * (string * term * proof_body Lazy.T)) OrdList.T,
    proof: proof};
+
+type oracle = string * term;
+type pthm = serial * (string * term * proof_body Lazy.T);
 
 val force_body = Lazy.force #> (fn PBody args => args);
 val force_proof = #proof o force_body;
@@ -162,13 +162,13 @@ fun proof_of (PBody {proof, ...}) = proof;
 
 fun fold_body_thms f =
   let
-    fun app (PBody {thms, ...}) = thms |> fold (fn (i, (stmt, body)) => fn (x, seen) =>
+    fun app (PBody {thms, ...}) = thms |> fold (fn (i, (name, prop, body)) => fn (x, seen) =>
       if Inttab.defined seen i then (x, seen)
       else
         let
           val body' = Lazy.force body;
           val (x', seen') = app body' (x, Inttab.update (i, ()) seen);
-        in (f (stmt, body') x', seen') end);
+        in (f (name, prop, body') x', seen') end);
   in fn bodies => fn x => #1 (fold app bodies (x, Inttab.empty)) end;
 
 fun fold_proof_atoms all f =
@@ -180,29 +180,23 @@ fun fold_proof_atoms all f =
       | app (prf as PThm (i, (_, body))) = (fn (x, seen) =>
           if Inttab.defined seen i then (x, seen)
           else
-            let val res = (f prf x, Inttab.update (i, ()) seen)
-            in if all then app (force_proof body) res else res
-          end)
+            let val (x', seen') =
+              (if all then app (force_proof body) else I) (x, Inttab.update (i, ()) seen)
+            in (f prf x', seen') end)
       | app prf = (fn (x, seen) => (f prf x, seen));
   in fn prfs => fn x => #1 (fold app prfs (x, Inttab.empty)) end;
 
 
-(* atom kinds *)
-
-type oracle = string * term;
-val oracle_ord = prod_ord fast_string_ord Term.fast_term_ord;
-
-type pthm = serial * ((string * term * typ list option) * proof_body Lazy.T);
-fun thm_ord ((i, _): pthm, (j, _)) = int_ord (j, i);
-
-
 (* proof body *)
+
+val oracle_ord = prod_ord fast_string_ord Term.fast_term_ord;
+fun thm_ord ((i, _): pthm, (j, _)) = int_ord (j, i);
 
 fun make_body prf =
   let
     val (oracles, thms) = fold_proof_atoms false
       (fn Oracle (s, prop, _) => apfst (cons (s, prop))
-        | PThm thm => apsnd (cons thm)
+        | PThm (i, ((name, prop, _), body)) => apsnd (cons (i, (name, prop, body)))
         | _ => I) [prf] ([], []);
   in (OrdList.make oracle_ord oracles, OrdList.make thm_ord thms) end;
 
@@ -217,7 +211,7 @@ val merge_oracles = OrdList.union oracle_ord;
 val merge_thms = OrdList.union thm_ord;
 
 fun merge_body (oracles1, thms1) (oracles2, thms2) =
- (merge_oracles oracles1 oracles2, merge_thms thms1 thms2);
+  (merge_oracles oracles1 oracles2, merge_thms thms1 thms2);
 
 
 (***** proof objects with different levels of detail *****)
@@ -1226,20 +1220,19 @@ fun thm_proof thy name hyps prop promises body =
         #4 (shrink_proof thy [] 0 (rew_proof thy (fold_rev implies_intr_proof hyps prf)))
       else MinProof;
 
-    fun new_prf () = (serial (), ((name, prop, NONE),
-      Lazy.lazy (fn () =>
-        fulfill_proof promises (PBody {oracles = oracles0, thms = thms0, proof = proof0}))));
+    fun new_prf () = (serial (), name, prop, Lazy.lazy (fn () =>
+      fulfill_proof promises (PBody {oracles = oracles0, thms = thms0, proof = proof0})));
 
-    val head =
+    val (i, name, prop, body') =
       (case strip_combt (fst (strip_combP prf)) of
         (PThm (i, ((old_name, prop', NONE), body')), args') =>
-          if (old_name = "" orelse old_name = name) andalso
-             prop = prop' andalso args = args'
-          then (i, ((name, prop, NONE), body'))
+          if (old_name = "" orelse old_name = name) andalso prop = prop' andalso args = args'
+          then (i, name, prop, body')
           else new_prf ()
-      | _ => new_prf ())
+      | _ => new_prf ());
+    val head = PThm (i, ((name, prop, NONE), body'));
   in
-    (head, proof_combP (proof_combt' (PThm head, args), map Hyp hyps))
+    ((i, (name, prop, body')), proof_combP (proof_combt' (head, args), map Hyp hyps))
   end;
 
 fun get_name hyps prop prf =
