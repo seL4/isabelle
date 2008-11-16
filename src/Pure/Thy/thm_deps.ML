@@ -23,7 +23,7 @@ fun add_dep ((name, _, _), PBody {thms = thms', ...}) =
 
 fun thm_deps thms =
   let
-    val graph = Proofterm.fold_body_thms add_dep (map Thm.proof_of thms) Graph.empty;
+    val graph = Proofterm.fold_body_thms add_dep (map Thm.proof_body_of thms) Graph.empty;
     fun add_entry (name, (_, (preds, _))) =
       let
         val prefix = #1 (Library.split_last (NameSpace.explode name));
@@ -61,7 +61,7 @@ fun unused_thms (base_thys, thys) =
 
     val tab = Proofterm.fold_body_thms
       (fn ((name, prop, _), _) => name <> "" ? Symtab.insert_list (op =) (name, prop))
-      (map (Proofterm.strip_thm o Thm.proof_of o snd) thms) Symtab.empty;
+      (map (Proofterm.strip_thm o Thm.proof_body_of o snd) thms) Symtab.empty;
     fun is_unused (name, th) =
       not (member (op aconv) (Symtab.lookup_list tab name) (Thm.prop_of th));
 

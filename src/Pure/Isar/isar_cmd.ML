@@ -469,7 +469,7 @@ fun string_of_prfs full state arg =
         let
           val (ctxt, (_, thm)) = Proof.get_goal state;
           val thy = ProofContext.theory_of ctxt;
-          val prf = Proofterm.proof_of (Thm.proof_of thm);
+          val prf = Thm.proof_of thm;
           val prop = Thm.full_prop_of thm;
           val prf' = Proofterm.rewrite_proof_notypes ([], []) prf
         in

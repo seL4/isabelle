@@ -148,7 +148,8 @@ sig
   val freezeT: thm -> thm
   val join_futures: theory -> unit
   val future: (unit -> thm) -> cterm -> thm
-  val proof_of: thm -> proof_body
+  val proof_body_of: thm -> proof_body
+  val proof_of: thm -> proof
   val extern_oracles: theory -> xstring list
   val add_oracle: bstring * ('a -> cterm) -> theory -> (string * ('a -> thm)) * theory
 end;
@@ -393,9 +394,6 @@ fun merge_thys2 (th1 as Thm (_, {thy_ref = r1, ...})) (th2 as Thm (_, {thy_ref =
 
 
 (* basic components *)
-
-fun deriv_of (Thm (Deriv der, _)) = der;
-val proof_term_of = Proofterm.proof_of o #body o deriv_of;
 
 val theory_of_thm = Theory.deref o #thy_ref o rep_thm;
 val maxidx_of = #maxidx o rep_thm;
@@ -1660,18 +1658,23 @@ fun future make_result ct =
 
 (* fulfilled proof *)
 
-fun proof_of thm =
+fun deriv_of (Thm (Deriv der, _)) = der;
+val raw_proof_of = Proofterm.proof_of o #body o deriv_of;
+
+fun proof_body_of thm =
   let
     val {all_promises, promises, body} = deriv_of thm;
     val _ = Exn.release_all (map (Future.join_result o #2) (rev all_promises));
-    val ps = map (apsnd (Lazy.value o proof_term_of o Future.join)) promises;
+    val ps = map (apsnd (Lazy.value o raw_proof_of o Future.join)) promises;
   in Pt.fulfill_proof ps body end;
+
+val proof_of = Proofterm.proof_of o proof_body_of;
 
 
 (* closed derivations with official name *)
 
 fun get_name thm =
-  Pt.get_name (hyps_of thm) (prop_of thm) (proof_term_of thm);
+  Pt.get_name (hyps_of thm) (prop_of thm) (raw_proof_of thm);
 
 fun put_name name (thm as Thm (der, args)) =
   let
@@ -1680,7 +1683,7 @@ fun put_name name (thm as Thm (der, args)) =
     val _ = null tpairs orelse raise THM ("name_thm: unsolved flex-flex constraints", 0, [thm]);
 
     val ps =
-      map (apsnd (fn future => Lazy.lazy (fn () => proof_term_of (Future.join future)))) promises;
+      map (apsnd (fn future => Lazy.lazy (fn () => raw_proof_of (Future.join future)))) promises;
     val thy = Theory.deref thy_ref;
     val (pthm, proof) = Pt.thm_proof thy name hyps prop ps body;
     val der' = make_deriv [] [] [] [pthm] proof;

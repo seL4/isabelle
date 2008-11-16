@@ -254,7 +254,7 @@ fun add_proof_body (PBody {thms, ...}) =
   thms |> fold (fn (_, ((name, _, _), _)) => name <> "" ? Symtab.update (name, ()));
 
 fun add_thm th =
-  (case Thm.proof_of th of 
+  (case Thm.proof_body_of th of 
     PBody {proof = PThm (_, ((name, _, _), body)), ...} =>
       if Thm.has_name_hint th andalso Thm.get_name_hint th = name
       then add_proof_body (Lazy.force body)

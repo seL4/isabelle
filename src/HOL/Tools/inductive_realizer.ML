@@ -18,7 +18,7 @@ struct
 (* FIXME: LocalTheory.note should return theorems with proper names! *)  (* FIXME ?? *)
 fun name_of_thm thm =
   (case Proofterm.fold_proof_atoms false (fn PThm (_, ((name, _, _), _)) => cons name | _ => I)
-      [Proofterm.proof_of (Thm.proof_of thm)] [] of
+      [Thm.proof_of thm] [] of
     [name] => name
   | _ => error ("name_of_thm: bad proof of theorem\n" ^ Display.string_of_thm thm));
 
@@ -27,8 +27,7 @@ val all_simps = map (symmetric o mk_meta_eq) (thms "HOL.all_simps");
 fun prf_of thm =
   let
     val thy = Thm.theory_of_thm thm;
-    val thm' =
-      Reconstruct.reconstruct_proof thy (Thm.prop_of thm) (Proofterm.proof_of (Thm.proof_of thm));
+    val thm' = Reconstruct.reconstruct_proof thy (Thm.prop_of thm) (Thm.proof_of thm);
   in Reconstruct.expand_proof thy [("", NONE)] thm' end; (* FIXME *)
 
 fun forall_intr_prf t prf =

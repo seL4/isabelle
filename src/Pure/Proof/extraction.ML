@@ -714,7 +714,7 @@ fun extract thms thy =
       let
         val thy = Thm.theory_of_thm thm;
         val prop = Thm.prop_of thm;
-        val prf = proof_of (Thm.proof_of thm);
+        val prf = Thm.proof_of thm;
         val name = Thm.get_name thm;
         val _ = name <> "" orelse error "extraction: unnamed theorem";
         val _ = etype_of thy' vs [] prop <> nullT orelse error ("theorem " ^
