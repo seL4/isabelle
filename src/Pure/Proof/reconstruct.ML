@@ -23,18 +23,18 @@ open Proofterm;
 val quiet_mode = ref true;
 fun message s = if !quiet_mode then () else writeln s;
 
-fun vars_of t = rev (fold_aterms
-  (fn v as Var _ => insert (op =) v | _ => I) t []);
+fun vars_of t = map Var (rev (Term.add_vars t []));
+fun frees_of t = map Free (rev (Term.add_frees t []));
 
 fun forall_intr_vfs prop = fold_rev Logic.all
-  (vars_of prop @ sort Term.term_ord (term_frees prop)) prop;
+  (vars_of prop @ frees_of prop) prop;
 
 fun forall_intr_prf t prf =
   let val (a, T) = (case t of Var ((a, _), T) => (a, T) | Free p => p)
   in Abst (a, SOME T, prf_abstract_over t prf) end;
 
 fun forall_intr_vfs_prf prop prf = fold_rev forall_intr_prf
-  (vars_of prop @ sort Term.term_ord (term_frees prop)) prf;
+  (vars_of prop @ frees_of prop) prf;
 
 fun merge_envs (Envir.Envir {asol=asol1, iTs=iTs1, maxidx=maxidx1})
   (Envir.Envir {asol=asol2, iTs=iTs2, maxidx=maxidx2}) =
@@ -141,15 +141,14 @@ fun make_constraints_cprf thy env cprf =
           let
             val tvars = term_tvars prop;
             val tfrees = term_tfrees prop;
-            val (fmap, prop') = Type.varify [] prop;
             val (env', Ts) = (case opTs of
                 NONE => foldl_map mk_tvar (env, map snd tvars @ map snd tfrees)
               | SOME Ts => (env, Ts));
-            val prop'' = subst_TVars (map fst tvars @ map snd fmap ~~ Ts)
-              (forall_intr_vfs prop') handle Library.UnequalLengths =>
+            val prop' = subst_atomic_types (map TVar tvars @ map TFree tfrees ~~ Ts)
+              (forall_intr_vfs prop) handle Library.UnequalLengths =>
                 error ("Wrong number of type arguments for " ^
                   quote (get_name [] prop prf))
-          in (prop'', change_type (SOME Ts) prf, [], env', vTs) end;
+          in (prop', change_type (SOME Ts) prf, [], env', vTs) end;
 
     fun head_norm (prop, prf, cnstrts, env, vTs) =
       (Envir.head_norm env prop, prf, cnstrts, env, vTs);
@@ -303,11 +302,9 @@ fun reconstruct_proof thy prop cprf =
     thawf (norm_proof env' prf)
   end;
 
-fun prop_of_atom prop Ts =
-  let val (fmap, prop') = Type.varify [] prop;
-  in subst_TVars (map fst (term_tvars prop) @ map snd fmap ~~ Ts)
-    (forall_intr_vfs prop')
-  end;
+fun prop_of_atom prop Ts = subst_atomic_types
+  (map TVar (term_tvars prop) @ map TFree (term_tfrees prop) ~~ Ts)
+  (forall_intr_vfs prop);
 
 val head_norm = Envir.head_norm (Envir.empty 0);
 
