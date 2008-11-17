@@ -21,7 +21,7 @@ lemma ex_new_if_finite: -- "does not depend on def of finite at all"
   assumes "\<not> finite (UNIV :: 'a set)" and "finite A"
   shows "\<exists>a::'a. a \<notin> A"
 proof -
-  from prems have "A \<noteq> UNIV" by blast
+  from assms have "A \<noteq> UNIV" by blast
   thus ?thesis by blast
 qed
 
@@ -833,7 +833,7 @@ end
 subsection {* Generalized summation over a set *}
 
 interpretation comm_monoid_add: comm_monoid_mult ["0::'a::comm_monoid_add" "op +"]
-  by unfold_locales (auto intro: add_assoc add_commute)
+  proof qed (auto intro: add_assoc add_commute)
 
 constdefs
   setsum :: "('a => 'b) => 'a set => 'b::comm_monoid_add"
@@ -1727,7 +1727,7 @@ proof (induct rule: finite_induct)
   case empty then show ?case by simp
 next
   interpret ab_semigroup_mult ["op Un"]
-    by unfold_locales auto
+    proof qed auto
   case insert 
   then show ?case by simp
 qed
@@ -2125,11 +2125,7 @@ begin
 
 lemma ab_semigroup_idem_mult_inf:
   "ab_semigroup_idem_mult inf"
-  apply unfold_locales
-  apply (rule inf_assoc)
-  apply (rule inf_commute)
-  apply (rule inf_idem)
-  done
+  proof qed (rule inf_assoc inf_commute inf_idem)+
 
 lemma below_fold1_iff:
   assumes "finite A" "A \<noteq> {}"
@@ -2357,19 +2353,19 @@ begin
 
 lemma ab_semigroup_idem_mult_min:
   "ab_semigroup_idem_mult min"
-  by unfold_locales (auto simp add: min_def)
+  proof qed (auto simp add: min_def)
 
 lemma ab_semigroup_idem_mult_max:
   "ab_semigroup_idem_mult max"
-  by unfold_locales (auto simp add: max_def)
+  proof qed (auto simp add: max_def)
 
 lemma min_lattice:
   "lower_semilattice (op \<le>) (op <) min"
-  by unfold_locales (auto simp add: min_def)
+  proof qed (auto simp add: min_def)
 
 lemma max_lattice:
   "lower_semilattice (op \<ge>) (op >) max"
-  by unfold_locales (auto simp add: max_def)
+  proof qed (auto simp add: max_def)
 
 lemma dual_max:
   "ord.max (op \<ge>) = min"

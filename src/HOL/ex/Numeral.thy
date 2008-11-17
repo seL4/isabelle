@@ -699,7 +699,7 @@ context ring_1
 begin
 
 subclass semiring_1_minus
-  by unfold_locales (simp_all add: ring_simps)
+  proof qed (simp_all add: ring_simps)
 
 lemma Dig_zero_minus_of_num [numeral]:
   "0 - of_num n = - of_num n"

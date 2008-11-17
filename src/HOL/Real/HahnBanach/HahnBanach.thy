@@ -369,8 +369,8 @@ proof -
   interpret subspace [F E] by fact
   interpret linearform [F f] by fact
   interpret continuous [F norm f] by fact
-  have E: "vectorspace E" by unfold_locales
-  have F: "vectorspace F" by rule unfold_locales
+  have E: "vectorspace E" by intro_locales
+  have F: "vectorspace F" by rule intro_locales
   have F_norm: "normed_vectorspace F norm"
     using FE E_norm by (rule subspace_normed_vs)
   have ge_zero: "0 \<le> \<parallel>f\<parallel>\<hyphen>F"

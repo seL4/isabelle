@@ -173,15 +173,15 @@ class recpower_semiring_1 = semiring_1 + recpower
 class recpower_semiring_0 = semiring_0 + recpower
 class recpower_ring = ring + recpower
 class recpower_ring_1 = ring_1 + recpower
-subclass (in recpower_ring_1) recpower_ring by unfold_locales
+subclass (in recpower_ring_1) recpower_ring ..
 class recpower_comm_semiring_1 = recpower + comm_semiring_1
 class recpower_comm_ring_1 = recpower + comm_ring_1
-subclass (in recpower_comm_ring_1) recpower_comm_semiring_1 by unfold_locales
+subclass (in recpower_comm_ring_1) recpower_comm_semiring_1 ..
 class recpower_idom = recpower + idom
-subclass (in recpower_idom) recpower_comm_ring_1 by unfold_locales
+subclass (in recpower_idom) recpower_comm_ring_1 ..
 class idom_char_0 = idom + ring_char_0
 class recpower_idom_char_0 = recpower + idom_char_0
-subclass (in recpower_idom_char_0) recpower_idom by unfold_locales
+subclass (in recpower_idom_char_0) recpower_idom ..
 
 lemma (in recpower_comm_ring_1) poly_exp: "poly (p %^ n) x = (poly p x) ^ n"
 apply (induct "n")
@@ -429,7 +429,7 @@ by (auto simp add: ring_simps poly_add poly_minus_def fun_eq poly_cmult minus_mu
 lemma (in comm_ring_1) poly_add_minus_mult_eq: "poly (p *** q +++ --(p *** r)) = poly (p *** (q +++ -- r))"
 by (auto simp add: poly_add poly_minus_def fun_eq poly_mult poly_cmult right_distrib minus_mult_left[symmetric] minus_mult_right[symmetric])
 
-subclass (in idom_char_0) comm_ring_1 by unfold_locales
+subclass (in idom_char_0) comm_ring_1 ..
 lemma (in idom_char_0) poly_mult_left_cancel: "(poly (p *** q) = poly (p *** r)) = (poly p = poly [] | poly q = poly r)"
 proof-
   have "poly (p *** q) = poly (p *** r) \<longleftrightarrow> poly (p *** q +++ -- (p *** r)) = poly []" by (simp only: poly_add_minus_zero_iff)

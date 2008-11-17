@@ -45,7 +45,7 @@ class semiring_0_cancel = semiring + comm_monoid_add + cancel_ab_semigroup_add
 begin
 
 subclass semiring_0
-proof unfold_locales
+proof
   fix a :: 'a
   have "0 * a + 0 * a = 0 * a + 0"
     by (simp add: left_distrib [symmetric])
@@ -66,7 +66,7 @@ class comm_semiring = ab_semigroup_add + ab_semigroup_mult +
 begin
 
 subclass semiring
-proof unfold_locales
+proof
   fix a b c :: 'a
   show "(a + b) * c = a * c + b * c" by (simp add: distrib)
   have "a * (b + c) = (b + c) * a" by (simp add: mult_ac)
@@ -362,7 +362,7 @@ class division_ring = ring_1 + inverse +
 begin
 
 subclass ring_1_no_zero_divisors
-proof unfold_locales
+proof
   fix a b :: 'a
   assume a: "a \<noteq> 0" and b: "b \<noteq> 0"
   show "a * b \<noteq> 0"
@@ -476,7 +476,7 @@ class field = comm_ring_1 + inverse +
 begin
 
 subclass division_ring
-proof unfold_locales
+proof
   fix a :: 'a
   assume "a \<noteq> 0"
   thus "inverse a * a = 1" by (rule field_inverse)
@@ -595,7 +595,7 @@ begin
 subclass semiring_0_cancel ..
 
 subclass ordered_semiring
-proof unfold_locales
+proof
   fix a b c :: 'a
   assume A: "a \<le> b" "0 \<le> c"
   from A show "c * a \<le> c * b"
@@ -713,7 +713,7 @@ class pordered_comm_semiring = comm_semiring_0
 begin
 
 subclass pordered_semiring
-proof unfold_locales
+proof
   fix a b c :: 'a
   assume "a \<le> b" "0 \<le> c"
   thus "c * a \<le> c * b" by (rule mult_mono1)
@@ -736,7 +736,7 @@ class ordered_comm_semiring_strict = comm_semiring_0 + ordered_cancel_ab_semigro
 begin
 
 subclass ordered_semiring_strict
-proof unfold_locales
+proof
   fix a b c :: 'a
   assume "a < b" "0 < c"
   thus "c * a < c * b" by (rule mult_strict_left_mono_comm)
@@ -744,7 +744,7 @@ proof unfold_locales
 qed
 
 subclass pordered_cancel_comm_semiring
-proof unfold_locales
+proof
   fix a b c :: 'a
   assume "a \<le> b" "0 \<le> c"
   thus "c * a \<le> c * b"
@@ -815,7 +815,7 @@ begin
 subclass pordered_ring ..
 
 subclass pordered_ab_group_add_abs
-proof unfold_locales
+proof
   fix a b
   show "\<bar>a + b\<bar> \<le> \<bar>a\<bar> + \<bar>b\<bar>"
   by (auto simp add: abs_if not_less neg_less_eq_nonneg less_eq_neg_nonpos)
@@ -852,7 +852,7 @@ lemma mult_neg_neg:
   by (drule mult_strict_right_mono_neg, auto)
 
 subclass ring_no_zero_divisors
-proof unfold_locales
+proof
   fix a b
   assume "a \<noteq> 0" then have A: "a < 0 \<or> 0 < a" by (simp add: neq_iff)
   assume "b \<noteq> 0" then have B: "b < 0 \<or> 0 < b" by (simp add: neq_iff)
@@ -1019,7 +1019,7 @@ subclass pordered_comm_ring ..
 subclass idom ..
 
 subclass ordered_semidom
-proof unfold_locales
+proof
   have "0 \<le> 1 * 1" by (rule zero_le_square)
   thus "0 < 1" by (simp add: le_less)
 qed 

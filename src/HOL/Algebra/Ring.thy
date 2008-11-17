@@ -5,7 +5,8 @@
   Copyright: Clemens Ballarin
 *)
 
-theory Ring imports FiniteProduct
+theory Ring
+imports FiniteProduct
 uses ("ringsimp.ML") begin
 
 
@@ -188,7 +189,7 @@ lemma comm_group_abelian_groupI:
 proof -
   interpret comm_group ["\<lparr>carrier = carrier G, mult = add G, one = zero G\<rparr>"]
     by (rule cg)
-  show "abelian_group G" by (unfold_locales)
+  show "abelian_group G" ..
 qed
 
 
@@ -392,7 +393,7 @@ lemma ringI:
 
 lemma (in ring) is_abelian_group:
   "abelian_group R"
-  by unfold_locales
+  ..
 
 lemma (in ring) is_monoid:
   "monoid R"
@@ -670,7 +671,7 @@ text {* Field would not need to be derived from domain, the properties
 lemma (in cring) cring_fieldI:
   assumes field_Units: "Units R = carrier R - {\<zero>}"
   shows "field R"
-proof unfold_locales
+proof
   from field_Units
   have a: "\<zero> \<notin> Units R" by fast
   have "\<one> \<in> Units R" by fast

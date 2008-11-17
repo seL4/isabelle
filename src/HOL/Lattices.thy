@@ -291,7 +291,7 @@ subsection {* @{const min}/@{const max} on linear orders as
 
 lemma (in linorder) distrib_lattice_min_max:
   "distrib_lattice (op \<le>) (op <) min max"
-proof unfold_locales
+proof
   have aux: "\<And>x y \<Colon> 'a. x < y \<Longrightarrow> y \<le> x \<Longrightarrow> x = y"
     by (auto simp add: less_le antisym)
   fix x y z

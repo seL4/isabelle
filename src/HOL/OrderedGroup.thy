@@ -83,7 +83,7 @@ class comm_monoid_add = zero + ab_semigroup_add +
 begin
 
 subclass monoid_add
-  by unfold_locales (insert add_0, simp_all add: add_commute)
+  proof qed (insert add_0, simp_all add: add_commute)
 
 end
 
@@ -99,7 +99,7 @@ class comm_monoid_mult = one + ab_semigroup_mult +
 begin
 
 subclass monoid_mult
-  by unfold_locales (insert mult_1, simp_all add: mult_commute)
+  proof qed (insert mult_1, simp_all add: mult_commute)
 
 end
 
@@ -123,7 +123,7 @@ class cancel_ab_semigroup_add = ab_semigroup_add +
 begin
 
 subclass cancel_semigroup_add
-proof unfold_locales
+proof
   fix a b c :: 'a
   assume "a + b = a + c" 
   then show "b = c" by (rule add_imp_eq)
@@ -248,10 +248,10 @@ class ab_group_add = minus + uminus + comm_monoid_add +
 begin
 
 subclass group_add
-  by unfold_locales (simp_all add: ab_left_minus ab_diff_minus)
+  proof qed (simp_all add: ab_left_minus ab_diff_minus)
 
 subclass cancel_ab_semigroup_add
-proof unfold_locales
+proof
   fix a b c :: 'a
   assume "a + b = a + c"
   then have "- a + a + b = - a + a + c"
@@ -490,7 +490,7 @@ begin
 subclass pordered_cancel_ab_semigroup_add ..
 
 subclass pordered_ab_semigroup_add_imp_le
-proof unfold_locales
+proof
   fix a b c :: 'a
   assume "c + a \<le> c + b"
   hence "(-c) + (c + a) \<le> (-c) + (c + b)" by (rule add_left_mono)
@@ -646,7 +646,7 @@ begin
 subclass ordered_ab_semigroup_add ..
 
 subclass pordered_ab_semigroup_add_imp_le
-proof unfold_locales
+proof
   fix a b c :: 'a
   assume le: "c + a <= c + b"  
   show "a <= b"
@@ -1243,7 +1243,7 @@ proof -
   have abs_leI: "\<And>a b. a \<le> b \<Longrightarrow> - a \<le> b \<Longrightarrow> \<bar>a\<bar> \<le> b"
     by (simp add: abs_lattice le_supI)
   show ?thesis
-  proof unfold_locales
+  proof
     fix a
     show "0 \<le> \<bar>a\<bar>" by simp
   next

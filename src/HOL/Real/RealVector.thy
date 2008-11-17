@@ -62,7 +62,7 @@ lemma scale_zero_left [simp]: "scale 0 x = 0"
   and scale_left_diff_distrib: "scale (a - b) x = scale a x - scale b x"
 proof -
   interpret s: additive ["\<lambda>a. scale a x"]
-    by unfold_locales (rule scale_left_distrib)
+    proof qed (rule scale_left_distrib)
   show "scale 0 x = 0" by (rule s.zero)
   show "scale (- a) x = - (scale a x)" by (rule s.minus)
   show "scale (a - b) x = scale a x - scale b x" by (rule s.diff)
@@ -73,7 +73,7 @@ lemma scale_zero_right [simp]: "scale a 0 = 0"
   and scale_right_diff_distrib: "scale a (x - y) = scale a x - scale a y"
 proof -
   interpret s: additive ["\<lambda>x. scale a x"]
-    by unfold_locales (rule scale_right_distrib)
+    proof qed (rule scale_right_distrib)
   show "scale a 0 = 0" by (rule s.zero)
   show "scale a (- x) = - (scale a x)" by (rule s.minus)
   show "scale a (x - y) = scale a x - scale a y" by (rule s.diff)
@@ -197,10 +197,10 @@ apply (rule mult_left_commute)
 done
 
 interpretation scaleR_left: additive ["(\<lambda>a. scaleR a x::'a::real_vector)"]
-by unfold_locales (rule scaleR_left_distrib)
+proof qed (rule scaleR_left_distrib)
 
 interpretation scaleR_right: additive ["(\<lambda>x. scaleR a x::'a::real_vector)"]
-by unfold_locales (rule scaleR_right_distrib)
+proof qed (rule scaleR_right_distrib)
 
 lemma nonzero_inverse_scaleR_distrib:
   fixes x :: "'a::real_div_algebra" shows

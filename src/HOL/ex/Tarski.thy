@@ -923,6 +923,6 @@ apply (rule CompleteLatticeI_simp)
 apply (rule fixf_po, clarify)
 apply (simp add: P_def A_def r_def)
 apply (rule Tarski.tarski_full_lemma [OF Tarski.intro [OF _ Tarski_axioms.intro]])
-proof - show "CLF cl f" by unfold_locales qed
+proof - show "CLF cl f" .. qed
 
 end

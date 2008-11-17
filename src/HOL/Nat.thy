@@ -1233,7 +1233,7 @@ lemma of_nat_le_iff [simp]: "of_nat m \<le> of_nat n \<longleftrightarrow> m \<l
 text{*Every @{text ordered_semidom} has characteristic zero.*}
 
 subclass semiring_char_0
-  by unfold_locales (simp add: eq_iff order_eq_iff)
+  proof qed (simp add: eq_iff order_eq_iff)
 
 text{*Special cases where either operand is zero*}
 

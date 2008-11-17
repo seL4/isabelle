@@ -31,7 +31,7 @@ by (simp add: fderiv_def)
 
 lemma bounded_linear_zero:
   "bounded_linear (\<lambda>x::'a::real_normed_vector. 0::'b::real_normed_vector)"
-proof (unfold_locales)
+proof
   show "(0::'b) = 0 + 0" by simp
   fix r show "(0::'b) = scaleR r 0" by simp
   have "\<forall>x::'a. norm (0::'b) \<le> norm x * 0" by simp
@@ -43,7 +43,7 @@ by (simp add: fderiv_def bounded_linear_zero)
 
 lemma bounded_linear_ident:
   "bounded_linear (\<lambda>x::'a::real_normed_vector. x)"
-proof (unfold_locales)
+proof
   fix x y :: 'a show "x + y = x + y" by simp
   fix r and x :: 'a show "scaleR r x = scaleR r x" by simp
   have "\<forall>x::'a. norm x \<le> norm x * 1" by simp

@@ -71,7 +71,7 @@ text {* Dual order *}
 
 lemma dual_preorder:
   "preorder (op \<ge>) (op >)"
-by unfold_locales (auto simp add: less_le_not_le intro: order_trans)
+proof qed (auto simp add: less_le_not_le intro: order_trans)
 
 end
 

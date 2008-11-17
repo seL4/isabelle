@@ -77,10 +77,9 @@ apply (subst Un_iff)
 apply (simp add: singleton)
 done
 
-lemma (in freeultrafilter) filter: "filter F" by unfold_locales
+lemma (in freeultrafilter) filter: "filter F" ..
 
-lemma (in freeultrafilter) ultrafilter: "ultrafilter F"
-  by unfold_locales
+lemma (in freeultrafilter) ultrafilter: "ultrafilter F" ..
 
 
 subsection {* Collect properties *}

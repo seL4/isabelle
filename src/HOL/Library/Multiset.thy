@@ -1085,11 +1085,11 @@ proof qed (auto intro: order.intro mset_le_refl mset_le_antisym
   mset_le_trans simp: mset_less_def)
 
 interpretation mset_order_cancel_semigroup:
-    pordered_cancel_ab_semigroup_add ["op +" "op \<le>#" "op <#"]
+  pordered_cancel_ab_semigroup_add ["op +" "op \<le>#" "op <#"]
 proof qed (erule mset_le_mono_add [OF mset_le_refl])
 
 interpretation mset_order_semigroup_cancel:
-    pordered_ab_semigroup_add_imp_le ["op +" "op \<le>#" "op <#"]
+  pordered_ab_semigroup_add_imp_le ["op +" "op \<le>#" "op <#"]
 proof qed simp
 
 
@@ -1437,7 +1437,7 @@ definition [code del]:
  "image_mset f = fold_mset (op + o single o f) {#}"
 
 interpretation image_left_comm: left_commutative ["op + o single o f"]
-by (unfold_locales) (simp add:union_ac)
+  proof qed (simp add:union_ac)
 
 lemma image_mset_empty [simp]: "image_mset f {#} = {#}"
 by (simp add: image_mset_def)

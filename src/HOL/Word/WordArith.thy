@@ -19,9 +19,8 @@ lemma word_less_alt: "(a < b) = (uint a < uint b)"
            simp: word_uint.Rep_inject [symmetric])
 
 lemma signed_linorder: "linorder word_sle word_sless"
-  apply unfold_locales
-      apply (unfold word_sle_def word_sless_def) 
-  by auto 
+proof
+qed (unfold word_sle_def word_sless_def, auto)
 
 interpretation signed: linorder ["word_sle" "word_sless"] 
   by (rule signed_linorder)

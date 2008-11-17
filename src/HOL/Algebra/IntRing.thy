@@ -5,7 +5,7 @@
 *)
 
 theory IntRing
-imports QuotRing Int Primes
+imports QuotRing Lattice Int Primes
 begin
 
 
@@ -104,7 +104,7 @@ interpretation int: monoid ["\<Z>"]
     and "pow \<Z> x n = x^n"
 proof -
   -- "Specification"
-  show "monoid \<Z>" by (unfold_locales) (auto simp: int_ring_def)
+  show "monoid \<Z>" proof qed (auto simp: int_ring_def)
   then interpret int: monoid ["\<Z>"] .
 
   -- "Carrier"
@@ -121,7 +121,7 @@ interpretation int: comm_monoid ["\<Z>"]
   where "finprod \<Z> f A = (if finite A then setprod f A else undefined)"
 proof -
   -- "Specification"
-  show "comm_monoid \<Z>" by (unfold_locales) (auto simp: int_ring_def)
+  show "comm_monoid \<Z>" proof qed (auto simp: int_ring_def)
   then interpret int: comm_monoid ["\<Z>"] .
 
   -- "Operations"
@@ -146,7 +146,7 @@ interpretation int: abelian_monoid ["\<Z>"]
     and "finsum \<Z> f A = (if finite A then setsum f A else undefined)"
 proof -
   -- "Specification"
-  show "abelian_monoid \<Z>" by (unfold_locales) (auto simp: int_ring_def)
+  show "abelian_monoid \<Z>" proof qed (auto simp: int_ring_def)
   then interpret int: abelian_monoid ["\<Z>"] .
 
   -- "Operations"
@@ -189,7 +189,7 @@ proof -
 qed
 
 interpretation int: "domain" ["\<Z>"]
-  by (unfold_locales) (auto simp: int_ring_def left_distrib right_distrib)
+  proof qed (auto simp: int_ring_def left_distrib right_distrib)
 
 
 text {* Removal of occurrences of @{term UNIV} in interpretation result
@@ -211,7 +211,7 @@ interpretation int (* FIXME [unfolded UNIV] *) :
     and "lless (| carrier = UNIV::int set, eq = op =, le = op \<le> |) x y = (x < y)"
 proof -
   show "partial_order (| carrier = UNIV::int set, eq = op =, le = op \<le> |)"
-    by unfold_locales simp_all
+    proof qed simp_all
   show "carrier (| carrier = UNIV::int set, eq = op =, le = op \<le> |) = UNIV"
     by simp
   show "le (| carrier = UNIV::int set, eq = op =, le = op \<le> |) x y = (x \<le> y)"
@@ -248,7 +248,7 @@ qed
 
 interpretation int (* [unfolded UNIV] *) :
   total_order ["(| carrier = UNIV::int set, eq = op =, le = op \<le> |)"]
-  by unfold_locales clarsimp
+  proof qed clarsimp
 
 
 subsection {* Generated Ideals of @{text "\<Z>"} *}

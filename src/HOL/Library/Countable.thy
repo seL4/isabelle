@@ -49,7 +49,7 @@ instance nat :: countable
   by (rule countable_classI [of "id"]) simp 
 
 subclass (in finite) countable
-proof unfold_locales
+proof
   have "finite (UNIV\<Colon>'a set)" by (rule finite_UNIV)
   with finite_conv_nat_seg_image [of UNIV]
   obtain n and f :: "nat \<Rightarrow> 'a" 

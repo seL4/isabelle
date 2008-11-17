@@ -17,7 +17,7 @@ locale ring_hom_ring = ring R + ring S + var h +
     and hom_one [simp] = ring_hom_one [OF homh]
 
 interpretation ring_hom_cring \<subseteq> ring_hom_ring
-  by (unfold_locales, rule homh)
+  proof qed (rule homh)
 
 interpretation ring_hom_ring \<subseteq> abelian_group_hom R S
 apply (rule abelian_group_homI)

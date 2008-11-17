@@ -916,12 +916,12 @@ text {* Introduction rule: the usual definition of total order *}
 lemma (in weak_partial_order) weak_total_orderI:
   assumes total: "!!x y. [| x \<in> carrier L; y \<in> carrier L |] ==> x \<sqsubseteq> y | y \<sqsubseteq> x"
   shows "weak_total_order L"
-  by unfold_locales (rule total)
+  proof qed (rule total)
 
 text {* Total orders are lattices. *}
 
 interpretation weak_total_order < weak_lattice
-proof unfold_locales
+proof
   fix x y
   assume L: "x \<in> carrier L"  "y \<in> carrier L"
   show "EX s. least L s (Upper L {x, y})"
@@ -980,7 +980,7 @@ lemma (in weak_partial_order) weak_complete_latticeI:
     and inf_exists:
     "!!A. [| A \<subseteq> carrier L |] ==> EX i. greatest L i (Lower L A)"
   shows "weak_complete_lattice L"
-  by unfold_locales (auto intro: sup_exists inf_exists)
+  proof qed (auto intro: sup_exists inf_exists)
 
 constdefs (structure L)
   top :: "_ => 'a" ("\<top>\<index>")
@@ -1106,12 +1106,6 @@ lemma lless_asym:
   shows "P"
   using assms unfolding lless_eq by auto
 
-lemma lless_trans [trans]:
-  assumes "a \<sqsubset> b" "b \<sqsubset> c"
-    and carr[simp]: "a \<in> carrier L" "b \<in> carrier L" "c \<in> carrier L"
-  shows "a \<sqsubset> c"
-  using assms unfolding lless_eq by (blast dest: le_trans intro: sym)
-
 end
 
 
@@ -1133,14 +1127,14 @@ locale upper_semilattice = partial_order +
     "[| x \<in> carrier L; y \<in> carrier L |] ==> EX s. least L s (Upper L {x, y})"
 
 interpretation upper_semilattice < weak_upper_semilattice
-  by unfold_locales (rule sup_of_two_exists)
+  proof qed (rule sup_of_two_exists)
 
 locale lower_semilattice = partial_order +
   assumes inf_of_two_exists:
     "[| x \<in> carrier L; y \<in> carrier L |] ==> EX s. greatest L s (Lower L {x, y})"
 
 interpretation lower_semilattice < weak_lower_semilattice
-  by unfold_locales (rule inf_of_two_exists)
+  proof qed (rule inf_of_two_exists)
 
 locale lattice = upper_semilattice + lower_semilattice
 
@@ -1188,22 +1182,22 @@ lemma (in lower_semilattice) meet_assoc:
 text {* Total Orders *}
 
 locale total_order = partial_order +
-  assumes total: "[| x \<in> carrier L; y \<in> carrier L |] ==> x \<sqsubseteq> y | y \<sqsubseteq> x"
+  assumes total_order_total: "[| x \<in> carrier L; y \<in> carrier L |] ==> x \<sqsubseteq> y | y \<sqsubseteq> x"
 
 interpretation total_order < weak_total_order
-  by unfold_locales (rule total)
+  proof qed (rule total_order_total)
 
 text {* Introduction rule: the usual definition of total order *}
 
 lemma (in partial_order) total_orderI:
   assumes total: "!!x y. [| x \<in> carrier L; y \<in> carrier L |] ==> x \<sqsubseteq> y | y \<sqsubseteq> x"
   shows "total_order L"
-  by unfold_locales (rule total)
+  proof qed (rule total)
 
 text {* Total orders are lattices. *}
 
 interpretation total_order < lattice
-  by unfold_locales (auto intro: sup_of_two_exists inf_of_two_exists)
+  proof qed (auto intro: sup_of_two_exists inf_of_two_exists)
 
 
 text {* Complete lattices *}
@@ -1215,7 +1209,7 @@ locale complete_lattice = lattice +
     "[| A \<subseteq> carrier L |] ==> EX i. greatest L i (Lower L A)"
 
 interpretation complete_lattice < weak_complete_lattice
-  by unfold_locales (auto intro: sup_exists inf_exists)
+  proof qed (auto intro: sup_exists inf_exists)
 
 text {* Introduction rule: the usual definition of complete lattice *}
 
@@ -1225,7 +1219,7 @@ lemma (in partial_order) complete_latticeI:
     and inf_exists:
     "!!A. [| A \<subseteq> carrier L |] ==> EX i. greatest L i (Lower L A)"
   shows "complete_lattice L"
-  by unfold_locales (auto intro: sup_exists inf_exists)
+  proof qed (auto intro: sup_exists inf_exists)
 
 theorem (in partial_order) complete_lattice_criterion1:
   assumes top_exists: "EX g. greatest L g (carrier L)"
@@ -1282,7 +1276,7 @@ theorem powerset_is_complete_lattice:
   (is "complete_lattice ?L")
 proof (rule partial_order.complete_latticeI)
   show "partial_order ?L"
-    by unfold_locales auto
+    proof qed auto
 next
   fix B
   assume B: "B \<subseteq> carrier ?L"

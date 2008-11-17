@@ -935,7 +935,7 @@ locale real_Cauchy =
 lemma real_CauchyI:
   assumes "Cauchy X"
   shows "real_Cauchy X"
-by unfold_locales (fact assms)
+  proof qed (fact assms)
 
 lemma (in real_Cauchy) mem_S: "\<forall>n\<ge>N. x < X n \<Longrightarrow> x \<in> S"
 by (unfold S_def, auto)

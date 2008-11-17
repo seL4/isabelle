@@ -26,14 +26,14 @@ lemma (in monoid) monoid_cancelI:
       and r_cancel: 
           "\<And>a b c. \<lbrakk>a \<otimes> c = b \<otimes> c; a \<in> carrier G; b \<in> carrier G; c \<in> carrier G\<rbrakk> \<Longrightarrow> a = b"
   shows "monoid_cancel G"
-by unfold_locales fact+
+  proof qed fact+
 
 lemma (in monoid_cancel) is_monoid_cancel:
   "monoid_cancel G"
-by intro_locales
+  ..
 
 interpretation group \<subseteq> monoid_cancel
-by unfold_locales simp+
+  proof qed simp+
 
 
 locale comm_monoid_cancel = monoid_cancel + comm_monoid
@@ -57,10 +57,10 @@ qed
 
 lemma (in comm_monoid_cancel) is_comm_monoid_cancel:
   "comm_monoid_cancel G"
-by intro_locales
+  by intro_locales
 
 interpretation comm_group \<subseteq> comm_monoid_cancel
-by unfold_locales
+  ..
 
 
 subsection {* Products of Units in Monoids *}
@@ -1839,7 +1839,7 @@ lemma (in comm_monoid_cancel) factorial_monoidI:
           "\<And>a fs fs'. \<lbrakk>a \<in> carrier G; set fs \<subseteq> carrier G; set fs' \<subseteq> carrier G; 
                        wfactors G fs a; wfactors G fs' a\<rbrakk> \<Longrightarrow> essentially_equal G fs fs'"
   shows "factorial_monoid G"
-proof (unfold_locales)
+proof
   fix a
   assume acarr: "a \<in> carrier G" and anunit: "a \<notin> Units G"
 
@@ -3855,19 +3855,19 @@ proof -
 qed
 
 interpretation factorial_monoid \<subseteq> primeness_condition_monoid
-  by (unfold_locales, rule irreducible_is_prime)
+  proof qed (rule irreducible_is_prime)
 
 
 lemma (in factorial_monoid) primeness_condition:
   shows "primeness_condition_monoid G"
-by unfold_locales
+  ..
 
 lemma (in factorial_monoid) gcd_condition [simp]:
   shows "gcd_condition_monoid G"
-by (unfold_locales, rule gcdof_exists)
+  proof qed (rule gcdof_exists)
 
 interpretation factorial_monoid \<subseteq> gcd_condition_monoid
-  by (unfold_locales, rule gcdof_exists)
+  proof qed (rule gcdof_exists)
 
 lemma (in factorial_monoid) division_weak_lattice [simp]:
   shows "weak_lattice (division_rel G)"

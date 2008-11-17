@@ -549,9 +549,9 @@ lemma append_Nil2 [simp]: "xs @ [] = xs"
 by (induct xs) auto
 
 interpretation semigroup_append: semigroup_add ["op @"]
-by unfold_locales simp
+  proof qed simp
 interpretation monoid_append: monoid_add ["[]" "op @"]
-by unfold_locales (simp+)
+  proof qed simp+
 
 lemma append_is_Nil_conv [iff]: "(xs @ ys = []) = (xs = [] \<and> ys = [])"
 by (induct xs) auto
@@ -3834,7 +3834,7 @@ lemma map_filter_conv [simp]:
   "map_filter f P xs = map f (filter P xs)"
 by (induct xs) auto
 
-lemma lenght_remdups_length_unique [code inline]:
+lemma length_remdups_length_unique [code inline]:
   "length (remdups xs) = length_unique xs"
   by (induct xs) simp_all
 

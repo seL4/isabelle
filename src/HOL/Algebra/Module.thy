@@ -91,11 +91,11 @@ done
 
 lemma (in algebra) R_cring:
   "cring R"
-  by unfold_locales
+  ..
 
 lemma (in algebra) M_cring:
   "cring M"
-  by unfold_locales
+  ..
 
 lemma (in algebra) module:
   "module R M"

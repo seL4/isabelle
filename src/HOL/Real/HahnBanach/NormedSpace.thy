@@ -109,7 +109,7 @@ proof -
   proof
     show "vectorspace F" by (rule vectorspace) unfold_locales
   next
-    have "NormedSpace.norm E norm" by unfold_locales
+    have "NormedSpace.norm E norm" ..
     with subset show "NormedSpace.norm F norm"
       by (simp add: norm_def seminorm_def norm_axioms_def)
   qed

@@ -7,7 +7,9 @@
 Contributions, in particular on long division, by Jesus Aransay.
 *)
 
-theory UnivPoly imports Module RingHom begin
+theory UnivPoly
+imports Module RingHom
+begin
 
 
 section {* Univariate Polynomials *}
@@ -500,8 +502,7 @@ text {*
 *}
 
 lemma (in cring) cring:
-  "cring R"
-  by unfold_locales
+  "cring R" ..
 
 lemma (in UP_cring) UP_algebra:
   "algebra R P" by (auto intro!: algebraI R.cring UP_cring UP_smult_l_distr UP_smult_r_distr
@@ -1771,9 +1772,9 @@ lemma eval_monom_expr:
   shows "eval R R id a (monom P \<one>\<^bsub>R\<^esub> 1 \<ominus>\<^bsub>P\<^esub> monom P a 0) = \<zero>"
   (is "eval R R id a ?g = _")
 proof -
-  interpret UP_pre_univ_prop [R R id P] by unfold_locales simp
+  interpret UP_pre_univ_prop [R R id P] proof qed simp
   have eval_ring_hom: "eval R R id a \<in> ring_hom P R" using eval_ring_hom [OF a] by simp
-  interpret ring_hom_cring [P R "eval R R id a"] by unfold_locales (simp add: eval_ring_hom)
+  interpret ring_hom_cring [P R "eval R R id a"] proof qed (simp add: eval_ring_hom)
   have mon1_closed: "monom P \<one>\<^bsub>R\<^esub> 1 \<in> carrier P" 
     and mon0_closed: "monom P a 0 \<in> carrier P" 
     and min_mon0_closed: "\<ominus>\<^bsub>P\<^esub> monom P a 0 \<in> carrier P"
@@ -1818,7 +1819,7 @@ lemma remainder_theorem_expression:
     and deg_r_0: "deg R r = 0"
     shows "r = monom P (eval R R id a f) 0"
 proof -
-  interpret UP_pre_univ_prop [R R id P] by unfold_locales simp
+  interpret UP_pre_univ_prop [R R id P] proof qed simp
   have eval_ring_hom: "eval R R id a \<in> ring_hom P R"
     using eval_ring_hom [OF a] by simp
   have "eval R R id a f = eval R R id a ?gq \<oplus>\<^bsub>R\<^esub> eval R R id a r"
@@ -1884,7 +1885,8 @@ text {*
   "UP INTEG"} globally.
 *}
 
-interpretation INTEG: UP_pre_univ_prop [INTEG INTEG id] using INTEG_id_eval by simp_all
+interpretation INTEG: UP_pre_univ_prop [INTEG INTEG id]
+  using INTEG_id_eval by simp_all
 
 lemma INTEG_closed [intro, simp]:
   "z \<in> carrier INTEG"

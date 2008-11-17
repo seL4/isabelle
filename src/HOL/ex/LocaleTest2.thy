@@ -435,7 +435,7 @@ end
 
 interpretation dlo < dlat
 (* TODO: definition syntax is unavailable *)
-proof unfold_locales
+proof
   fix x y
   from total have "is_inf x y (if x \<sqsubseteq> y then x else y)" by (auto simp: is_inf_def)
   then show "EX inf. is_inf x y inf" by blast
@@ -446,7 +446,7 @@ next
 qed
 
 interpretation dlo < ddlat
-proof unfold_locales
+proof
   fix x y z
   show "x \<sqinter> (y \<squnion> z) = x \<sqinter> y \<squnion> x \<sqinter> z" (is "?l = ?r")
     txt {* Jacobson I, p.\ 462 *}
@@ -475,7 +475,7 @@ interpretation int: dpo ["op <= :: [int, int] => bool"]
   txt {* We give interpretation for less, but not @{text is_inf} and @{text is_sub}. *}
 proof -
   show "dpo (op <= :: [int, int] => bool)"
-    by unfold_locales auto
+    proof qed auto
   then interpret int: dpo ["op <= :: [int, int] => bool"] .
     txt {* Gives interpreted version of @{text less_def} (without condition). *}
   show "(dpo.less (op <=) (x::int) y) = (x < y)"
@@ -514,7 +514,7 @@ proof -
 qed
 
 interpretation int: dlo ["op <= :: [int, int] => bool"]
-  by unfold_locales arith
+  proof qed arith
 
 text {* Interpreted theorems from the locales, involving defined terms. *}
 
@@ -531,7 +531,7 @@ interpretation nat: dpo ["op <= :: [nat, nat] => bool"]
   txt {* We give interpretation for less, but not @{text is_inf} and @{text is_sub}. *}
 proof -
   show "dpo (op <= :: [nat, nat] => bool)"
-    by unfold_locales auto
+    proof qed auto
   then interpret nat: dpo ["op <= :: [nat, nat] => bool"] .
     txt {* Gives interpreted version of @{text less_def} (without condition). *}
   show "dpo.less (op <=) (x::nat) y = (x < y)"
@@ -565,7 +565,7 @@ proof -
 qed
 
 interpretation nat: dlo ["op <= :: [nat, nat] => bool"]
-  by unfold_locales arith
+  proof qed arith
 
 text {* Interpreted theorems from the locales, involving defined terms. *}
 
@@ -582,7 +582,7 @@ interpretation nat_dvd: dpo ["op dvd :: [nat, nat] => bool"]
   txt {* We give interpretation for less, but not @{text is_inf} and @{text is_sub}. *}
 proof -
   show "dpo (op dvd :: [nat, nat] => bool)"
-    by unfold_locales (auto simp: dvd_def)
+    proof qed (auto simp: dvd_def)
   then interpret nat_dvd: dpo ["op dvd :: [nat, nat] => bool"] .
     txt {* Gives interpreted version of @{text less_def} (without condition). *}
   show "dpo.less (op dvd) (x::nat) y = (x dvd y & x ~= y)"
@@ -842,7 +842,7 @@ interpretation Dfun: Dmonoid ["op o" "id :: 'a => 'a"]
   where "Dmonoid.unit (op o) id f = bij (f::'a => 'a)"
 (*    and "Dmonoid.inv (op o) id" = "inv :: ('a => 'a) => ('a => 'a)" *)
 proof -
-  show "Dmonoid op o (id :: 'a => 'a)" by unfold_locales (simp_all add: o_assoc)
+  show "Dmonoid op o (id :: 'a => 'a)" proof qed (simp_all add: o_assoc)
   note Dmonoid = this
 (*
   from this interpret Dmonoid ["op o" "id :: 'a => 'a"] .
@@ -891,7 +891,7 @@ lemma unit_id:
 interpretation Dfun: Dgrp ["op o" "id :: unit => unit"]
   where "Dmonoid.inv (op o) id f = inv (f :: unit => unit)"
 proof -
-  have "Dmonoid op o (id :: 'a => 'a)" by unfold_locales (simp_all add: o_assoc)
+  have "Dmonoid op o (id :: 'a => 'a)" ..
   note Dmonoid = this
 
   show "Dgrp (op o) (id :: unit => unit)"

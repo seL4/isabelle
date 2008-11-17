@@ -168,7 +168,7 @@ end
 
 interpretation class_semiring: gb_semiring
     ["op +" "op *" "op ^" "0::'a::{comm_semiring_1, recpower}" "1"]
-  by unfold_locales (auto simp add: ring_simps power_Suc)
+  proof qed (auto simp add: ring_simps power_Suc)
 
 lemmas nat_arith =
   add_nat_number_of diff_nat_number_of mult_nat_number_of eq_nat_number_of less_nat_number_of
@@ -244,7 +244,7 @@ end
 
 interpretation class_ring: gb_ring ["op +" "op *" "op ^"
     "0::'a::{comm_semiring_1,recpower,number_ring}" 1 "op -" "uminus"]
-  by unfold_locales simp_all
+  proof qed simp_all
 
 
 declaration {* normalizer_funs @{thm class_ring.gb_ring_axioms'} *}

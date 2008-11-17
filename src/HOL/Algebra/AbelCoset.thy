@@ -234,7 +234,7 @@ proof -
   by (rule a_normal)
 
   show "abelian_subgroup H G"
-  by (unfold_locales, simp add: a_comm)
+  proof qed (simp add: a_comm)
 qed
 
 lemma abelian_subgroupI2:
@@ -549,7 +549,7 @@ qed
 
 lemma (in abelian_group_hom) is_abelian_group_hom:
   "abelian_group_hom G H h"
-by (unfold_locales)
+  ..
 
 lemma (in abelian_group_hom) hom_add [simp]:
   "[| x : carrier G; y : carrier G |]
