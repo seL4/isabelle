@@ -713,14 +713,4 @@ DistinctTreeProver.distinct_implProver (!da) cdist';
 
 *)
 
-
-
-
-
-
-
-
-
-
 end
-
