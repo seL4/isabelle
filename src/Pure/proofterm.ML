@@ -1218,7 +1218,7 @@ fun finish_proof thy promises prf =
     val tab = Inttab.make promises;
     fun fill (Promise (i, prop, Ts)) =
         (case Inttab.lookup tab i of
-          NONE => error ("finish_proof: undefined promise " ^ string_of_int i)
+          NONE => NONE
         | SOME p => SOME (instantiate (Term.add_tvars prop [] ~~ Ts, []) (Lazy.force p)))
       | fill _ = NONE;
     val (rules, procs) = get_data thy;
