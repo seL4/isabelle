@@ -186,7 +186,7 @@ fun locale_const (Target {target, is_class, ...}) (prmode as (mode, _)) tags ((c
   let
     val c' = Morphism.name phi c;
     val rhs' = Morphism.term phi rhs;
-    val name' = Name.name_of c';
+    val name' = Name.name_with_prefix c';
     val legacy_arg = (name', Term.close_schematic_term (Logic.legacy_varify rhs'));
     val arg = (name', Term.close_schematic_term rhs');
     val similar_body = Type.similar_types (rhs, rhs');
@@ -197,7 +197,10 @@ fun locale_const (Target {target, is_class, ...}) (prmode as (mode, _)) tags ((c
   in
     not (is_class andalso (similar_body orelse class_global)) ?
       (Context.mapping_result
-        (Sign.add_abbrev PrintMode.internal tags legacy_arg)
+        (fn thy => thy |> 
+          Sign.no_base_names
+          |> Sign.add_abbrev PrintMode.internal tags legacy_arg
+          ||> Sign.restore_naming thy)
         (ProofContext.add_abbrev PrintMode.internal tags arg)
       #-> (fn (lhs' as Const (d, _), _) =>
           similar_body ?

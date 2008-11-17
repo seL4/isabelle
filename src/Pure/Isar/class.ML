@@ -63,7 +63,7 @@ struct
 (** auxiliary **)
 
 fun prove_interpretation tac prfx_atts expr inst =
-  Locale.interpretation_i I prfx_atts expr inst
+  Locale.interpretation I prfx_atts expr inst
   ##> Proof.global_terminal_proof
       (Method.Basic (fn ctxt => Method.SIMPLE_METHOD (tac ctxt), Position.none), NONE)
   ##> ProofContext.theory_of;
@@ -77,8 +77,11 @@ fun prove_interpretation_in tac after_qed (name, expr) =
 
 val class_prefix = Logic.const_of_class o Sign.base_name;
 
+fun class_name_morphism class =
+  Name.map_prefix (K (Name.add_prefix false (class_prefix class)));
+
 fun activate_class_morphism thy class inst morphism =
-  Locale.get_interpret_morph thy class (false, class_prefix class) "" morphism class inst;
+  Locale.get_interpret_morph thy (class_name_morphism class) (class, "") morphism class inst;
 
 fun prove_class_interpretation class inst consts hyp_facts def_facts thy =
   let
@@ -92,7 +95,7 @@ fun prove_class_interpretation class inst consts hyp_facts def_facts thy =
   in
     thy
     |> fold2 add_constraint (map snd consts) no_constraints
-    |> prove_interpretation tac (false, prfx) (Locale.Locale class)
+    |> prove_interpretation tac (class_name_morphism class) (Locale.Locale class)
           (map SOME inst, map (pair (Attrib.no_binding) o Thm.prop_of) def_facts)
     ||> fold2 add_constraint (map snd consts) constraints
   end;
@@ -621,7 +624,7 @@ fun gen_class prep_spec bname raw_supclasses raw_elems thy =
     val supconsts = map (apsnd fst o snd) (these_params thy sups);
   in
     thy
-    |> Locale.add_locale_i "" bname mergeexpr elems
+    |> Locale.add_locale "" bname mergeexpr elems
     |> snd
     |> ProofContext.theory_of
     |> adjungate_axclass bname class base_sort sups supsort supparams global_syntax

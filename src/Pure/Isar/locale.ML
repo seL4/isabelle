@@ -63,10 +63,10 @@ sig
   val declarations_of: theory -> string -> declaration list * declaration list;
 
   (* Processing of locale statements *)
-  val read_context_statement: xstring option -> Element.context list ->
+  val read_context_statement: string option -> Element.context list ->
     (string * string list) list list -> Proof.context ->
     string option * Proof.context * Proof.context * (term * term list) list list
-  val read_context_statement_i: string option -> Element.context list ->
+  val read_context_statement_cmd: xstring option -> Element.context list ->
     (string * string list) list list -> Proof.context ->
     string option * Proof.context * Proof.context * (term * term list) list list
   val cert_context_statement: string option -> Element.context_i list ->
@@ -82,9 +82,9 @@ sig
   val print_locale: theory -> bool -> expr -> Element.context list -> unit
   val print_registrations: bool -> string -> Proof.context -> unit
 
-  val add_locale: string -> bstring -> expr -> Element.context list -> theory
+  val add_locale: string -> bstring -> expr -> Element.context_i list -> theory
     -> string * Proof.context
-  val add_locale_i: string -> bstring -> expr -> Element.context_i list -> theory
+  val add_locale_cmd: bstring -> expr -> Element.context list -> theory
     -> string * Proof.context
 
   (* Tactics *)
@@ -101,31 +101,25 @@ sig
   val add_declaration: string -> declaration -> Proof.context -> Proof.context
 
   (* Interpretation *)
-  val get_interpret_morph: theory -> string -> bool * string -> string ->
+  val get_interpret_morph: theory -> (Name.binding -> Name.binding) -> string * string ->
     (Morphism.morphism * ((typ Vartab.table * typ list) * (term Vartab.table * term list))) ->
     string -> term list -> Morphism.morphism
-  val interpretation_i: (Proof.context -> Proof.context) ->
-    bool * string -> expr ->
+  val interpretation: (Proof.context -> Proof.context) ->
+    (Name.binding -> Name.binding) -> expr ->
     term option list * (Attrib.binding * term) list ->
     theory ->
     (Morphism.morphism * ((typ Vartab.table * typ list) * (term Vartab.table * term list))) * Proof.state
-  val interpretation: (Proof.context -> Proof.context) ->
-    bool * string -> expr ->
-    string option list * (Attrib.binding * string) list ->
-    theory ->
-    (Morphism.morphism * ((typ Vartab.table * typ list) * (term Vartab.table * term list))) * Proof.state
+  val interpretation_cmd: string -> expr -> string option list * (Attrib.binding * string) list ->
+    theory -> Proof.state
   val interpretation_in_locale: (Proof.context -> Proof.context) ->
     xstring * expr -> theory -> Proof.state
-  val interpret_i: (Proof.state -> Proof.state Seq.seq) ->
-    bool * string -> expr ->
+  val interpret: (Proof.state -> Proof.state Seq.seq) ->
+    (Name.binding -> Name.binding) -> expr ->
     term option list * (Attrib.binding * term) list ->
     bool -> Proof.state ->
     (Morphism.morphism * ((typ Vartab.table * typ list) * (term Vartab.table * term list))) * Proof.state
-  val interpret: (Proof.state -> Proof.state Seq.seq) ->
-    bool * string -> expr ->
-    string option list * (Attrib.binding * string) list ->
-    bool -> Proof.state ->
-    (Morphism.morphism * ((typ Vartab.table * typ list) * (term Vartab.table * term list))) * Proof.state
+  val interpret_cmd: string -> expr -> string option list * (Attrib.binding * string) list ->
+    bool -> Proof.state -> Proof.state
 end;
 
 structure Locale: LOCALE =
@@ -237,10 +231,8 @@ fun var_inst_term (envT, env) =
 (** management of registrations in theories and proof contexts **)
 
 type registration =
-  {prfx: (bool * string) * string,
-      (* first component: interpretation prefix;
-           if the Boolean flag is set, only accesses containing the prefix are generated,
-           otherwise the prefix may be omitted when accessing theorems etc.)
+  {prfx: (Name.binding -> Name.binding) * (string * string),
+      (* first component: interpretation name morphism;
          second component: parameter prefix *)
     exp: Morphism.morphism,
       (* maps content to its originating context *)
@@ -261,18 +253,18 @@ structure Registrations :
     val join: T * T -> T
     val dest: theory -> T ->
       (term list *
-        (((bool * string) * string) *
+        (((Name.binding -> Name.binding) * (string * string)) *
          (Morphism.morphism * ((typ Vartab.table * typ list) * (term Vartab.table * term list))) *
          Element.witness list *
          thm Termtab.table)) list
     val test: theory -> T * term list -> bool
     val lookup: theory ->
       T * (term list * ((typ Vartab.table * typ list) * (term Vartab.table * term list))) ->
-      (((bool * string) * string) * Element.witness list * thm Termtab.table) option
-    val insert: theory -> term list -> ((bool * string) * string) ->
+      (((Name.binding -> Name.binding) * (string * string)) * Element.witness list * thm Termtab.table) option
+    val insert: theory -> term list -> ((Name.binding -> Name.binding) * (string * string)) ->
       (Morphism.morphism * ((typ Vartab.table * typ list) * (term Vartab.table * term list))) ->
       T ->
-      T * (term list * (((bool * string) * string) * Element.witness list)) list
+      T * (term list * (((Name.binding -> Name.binding) * (string * string)) * Element.witness list)) list
     val add_witness: term list -> Element.witness -> T -> T
     val add_equation: term list -> thm -> T -> T
 (*
@@ -511,7 +503,7 @@ fun put_registration (name, ps) prfx morphs ctxt =
                 ("Subsumed interpretation(s) of locale " ^
                  quote (extern thy name) ^
                  "\nwith the following prefix(es):" ^
-                  commas_quote (map (fn (_, ((_, s), _)) => s) sups))
+                  commas_quote (map (fn (_, ((_, (_, s)), _)) => s) sups))
               else ();
     in Symtab.update (name, reg') regs end) ctxt;
 
@@ -519,7 +511,6 @@ fun put_global_registration id prfx morphs =
   Context.theory_map (put_registration id prfx morphs);
 fun put_local_registration id prfx morphs =
   Context.proof_map (put_registration id prfx morphs);
-
 
 fun put_registration_in_locale name id =
   change_locale name (fn (axiom, elems, params, decls, regs, intros, dests) =>
@@ -585,16 +576,10 @@ fun print_registrations show_wits loc ctxt =
     fun prt_witns [] = Pretty.str "no witnesses."
       | prt_witns witns = Pretty.block (Pretty.str "witnesses:" :: Pretty.brk 1 ::
           Pretty.breaks (map (Element.pretty_witness ctxt) witns))
-    fun prt_reg (ts, ((_, ""), _, witns, eqns)) =
+    fun prt_reg (ts, (_, _, witns, eqns)) =
         if show_wits
           then Pretty.block (prt_core ts eqns @ [Pretty.fbrk, prt_witns witns])
           else Pretty.block (prt_core ts eqns)
-      | prt_reg (ts, (prfx, _, witns, eqns)) =
-        if show_wits
-          then Pretty.block ((prt_prfx prfx @ [Pretty.str ":", Pretty.brk 1] @
-            prt_core ts eqns @ [Pretty.fbrk, prt_witns witns]))
-          else Pretty.block ((prt_prfx prfx @
-            [Pretty.str ":", Pretty.brk 1] @ prt_core ts eqns));
 
     val loc_int = intern thy loc;
     val regs = RegistrationsData.get (Context.Proof ctxt);
@@ -604,7 +589,7 @@ fun print_registrations show_wits loc ctxt =
         NONE => Pretty.str ("no interpretations")
       | SOME r => let
             val r' = Registrations.dest thy r;
-            val r'' = Library.sort_wrt (fn (_, ((_, prfx), _, _, _)) => prfx) r';
+            val r'' = Library.sort_wrt (fn (_, ((_, (_, prfx)), _, _, _)) => prfx) r';
           in Pretty.big_list ("interpretations:") (map prt_reg r'') end)
     |> Pretty.writeln
   end;
@@ -676,7 +661,7 @@ fun params_of elemss =
 fun params_of' elemss =
   distinct (eq_fst (op = : string * string -> bool)) (maps (snd o fst o fst) elemss);
 
-fun param_prefix params = space_implode "_" params;
+fun param_prefix locale_name params = (NameSpace.base locale_name, space_implode "_" params);
 
 
 (* CB: param_types has the following type:
@@ -969,9 +954,12 @@ fun flatten_expr ctxt ((prev_idents, prev_syntax), expr) =
         val mode' = map_mode (map (Element.map_witness (inst_wit all_params))) mode;
         val ren = map fst ps ~~ map (fn p => (p, lookup_syn p)) params;
         val [env] = unify_parms ctxt all_params [map (apfst (Element.rename ren) o apsnd SOME) ps];
+        val (locale_name, pprfx) = param_prefix name params;
+        val add_prefices = pprfx <> "" ? Name.add_prefix false pprfx
+          #> Name.add_prefix false locale_name;
         val elem_morphism =
           Element.rename_morphism ren $>
-          Morphism.name_morphism (Name.add_prefix false (param_prefix params)) $>
+          Morphism.name_morphism add_prefices $>
           Element.instT_morphism thy env;
         val elems' = map (Element.morph_ctxt elem_morphism) elems;
       in (((name, map (apsnd SOME) locale_params'), mode'), elems') end;
@@ -1044,7 +1032,7 @@ fun activate_elems ax_in_ctxt (((name, ps), mode), elems) ctxt =
               val ps' = map (fn (n, SOME T) => Free (n, T)) ps;
             in if test_local_registration ctxt' (name, ps') then ctxt'
               else let
-                  val ctxt'' = put_local_registration (name, ps') ((true, ""), "")
+                  val ctxt'' = put_local_registration (name, ps') (I, (NameSpace.base name, ""))
                     (Morphism.identity, ((Vartab.empty, []), (Vartab.empty, []) )) ctxt'
                 in case mode of
                     Assumed axs =>
@@ -1582,8 +1570,8 @@ fun cert_context imports body ctxt = #1 (cert_ctxt true [] imports (map Elem bod
 val read_expr = prep_expr read_context;
 val cert_expr = prep_expr cert_context;
 
-fun read_context_statement loc = prep_statement intern read_ctxt loc;
-fun read_context_statement_i loc = prep_statement (K I) read_ctxt loc;
+fun read_context_statement loc = prep_statement (K I) read_ctxt loc;
+fun read_context_statement_cmd loc = prep_statement intern read_ctxt loc;
 fun cert_context_statement loc = prep_statement (K I) cert_ctxt loc;
 
 end;
@@ -1652,14 +1640,15 @@ fun collect_witnesses ctxt (imprt as ((impT, _), (imp, _))) parms ids ext_ts = l
 
 (* compute and apply morphism *)
 
-fun add_prefixes loc (sticky, interp_prfx) param_prfx binding =
+fun name_morph phi_name (locale_name, pprfx) binding =
   binding
-  |> (if sticky andalso not (Name.is_nothing binding) andalso param_prfx <> ""
-        then Name.add_prefix false param_prfx else I)
-  |> Name.add_prefix sticky interp_prfx
-  |> Name.add_prefix false (NameSpace.base loc ^ "_locale");
+  |> (if not (Name.is_nothing binding) andalso pprfx <> ""
+        then Name.add_prefix false pprfx else I)
+  |> (if not (Name.is_nothing binding)
+        then Name.add_prefix false (locale_name ^ "_locale") else I)
+  |> phi_name;
 
-fun inst_morph thy loc (sticky, interp_prfx) param_prfx insts prems eqns export =
+fun inst_morph thy phi_name param_prfx insts prems eqns export =
   let
     (* standardise export morphism *)
     val exp_fact = Drule.zero_var_indexes_list o map Thm.strip_shyps o Morphism.fact export;
@@ -1669,29 +1658,30 @@ fun inst_morph thy loc (sticky, interp_prfx) param_prfx insts prems eqns export 
     val export' =
       Morphism.morphism {name = I, var = I, typ = exp_typ, term = exp_term, fact = exp_fact};
   in
-    Morphism.name_morphism (add_prefixes loc (sticky, interp_prfx) param_prfx) $>
-      Element.inst_morphism thy insts $> Element.satisfy_morphism prems $>
+    Morphism.name_morphism (name_morph phi_name param_prfx) $>
+      Element.inst_morphism thy insts $>
+      Element.satisfy_morphism prems $>
       Morphism.term_morphism (MetaSimplifier.rewrite_term thy eqns []) $>
       Morphism.thm_morphism (MetaSimplifier.rewrite_rule eqns) $>
       export'
   end;
 
-fun activate_note thy loc (sticky, interp_prfx) param_prfx attrib insts prems eqns exp =
+fun activate_note thy phi_name param_prfx attrib insts prems eqns exp =
   (Element.facts_map o Element.morph_ctxt)
-      (inst_morph thy loc (sticky, interp_prfx) param_prfx insts prems eqns exp)
+      (inst_morph thy phi_name param_prfx insts prems eqns exp)
   #> Attrib.map_facts attrib;
 
 
 (* public interface to interpretation morphism *)
 
-fun get_interpret_morph thy loc (sticky, interp_prfx) param_prfx (exp, imp) target ext_ts =
+fun get_interpret_morph thy phi_name param_prfx (exp, imp) target ext_ts =
   let
     val parms = the_locale thy target |> #params |> map fst;
     val ids = flatten (ProofContext.init thy, intern_expr thy)
       (([], Symtab.empty), Expr (Locale target)) |> fst |> fst;
     val (insts, prems, eqns) = collect_witnesses (ProofContext.init thy) imp parms ids ext_ts;
   in
-    inst_morph thy loc (sticky, interp_prfx) param_prfx insts prems eqns exp
+    inst_morph thy phi_name param_prfx insts prems eqns exp
   end;
 
 (* store instantiations of args for all registered interpretations
@@ -1706,11 +1696,11 @@ fun note_thmss_registrations target (kind, args) thy =
     val regs = get_global_registrations thy target;
     (* add args to thy for all registrations *)
 
-    fun activate (ext_ts, (((sticky, interp_prfx), param_prfx), (exp, imp), _, _)) thy =
+    fun activate (ext_ts, ((phi_name, param_prfx), (exp, imp), _, _)) thy =
       let
         val (insts, prems, eqns) = collect_witnesses (ProofContext.init thy) imp parms ids ext_ts;
         val args' = args
-          |> activate_note thy target (sticky, interp_prfx) param_prfx
+          |> activate_note thy phi_name param_prfx
                (Attrib.attribute_i thy) insts prems eqns exp;
       in
         thy
@@ -2015,15 +2005,15 @@ fun gen_add_locale prep_ctxt prep_expr
 
 in
 
-val add_locale = gen_add_locale read_context intern_expr;
-val add_locale_i = gen_add_locale cert_context (K I);
+val add_locale = gen_add_locale cert_context (K I);
+val add_locale_cmd = gen_add_locale read_context intern_expr "";
 
 end;
 
 val _ = Context.>> (Context.map_theory
- (add_locale_i "" "var" empty [Fixes [(Name.binding (Name.internal "x"), NONE, NoSyn)]] #>
+ (add_locale "" "var" empty [Fixes [(Name.binding (Name.internal "x"), NONE, NoSyn)]] #>
   snd #> ProofContext.theory_of #>
-  add_locale_i "" "struct" empty [Fixes [(Name.binding (Name.internal "S"), NONE, Structure)]] #>
+  add_locale "" "struct" empty [Fixes [(Name.binding (Name.internal "S"), NONE, Structure)]] #>
   snd #> ProofContext.theory_of));
 
 
@@ -2032,7 +2022,7 @@ val _ = Context.>> (Context.map_theory
 (** Normalisation of locale statements ---
     discharges goals implied by interpretations **)
 
-local
+                                    local
 
 fun locale_assm_intros thy =
   Symtab.fold (fn (_, {intros = (a, _), ...}) => fn intros => (a @ intros))
@@ -2086,7 +2076,7 @@ fun extract_asms_elems ((id, Assumed _), elems) = (id, maps Element.prems_of ele
 (* activate instantiated facts in theory or context *)
 
 fun gen_activate_facts_elemss mk_ctxt note attrib put_reg add_wit add_eqn
-        prfx all_elemss pss propss eq_attns (exp, imp) thmss thy_ctxt =
+        phi_name all_elemss pss propss eq_attns (exp, imp) thmss thy_ctxt =
   let
     val ctxt = mk_ctxt thy_ctxt;
     fun get_reg thy_ctxt = get_local_registration (mk_ctxt thy_ctxt);
@@ -2104,12 +2094,13 @@ fun gen_activate_facts_elemss mk_ctxt note attrib put_reg add_wit add_eqn
 
     val thy_ctxt' = thy_ctxt
       (* add registrations *)
-      |> fold (fn (((id, _), _), ps) => put_reg id (prfx, param_prefix ps) (exp, imp)) (new_elemss ~~ new_pss)
+      |> fold2 (fn ((id as (loc, _), _), _) => fn ps => put_reg id (phi_name, param_prefix loc ps) (exp, imp))
+           new_elemss new_pss
       (* add witnesses of Assumed elements (only those generate proof obligations) *)
-      |> fold (fn (id, thms) => fold (add_wit id) thms) (map fst new_propss ~~ new_thmss)
+      |> fold2 (fn (id, _) => fold (add_wit id)) new_propss new_thmss
       (* add equations *)
-      |> fold (fn (id, thms) => fold (add_eqn id) thms) (map fst eq_props ~~
-          (map o map) (Drule.abs_def o LocalDefs.meta_rewrite_rule ctxt o
+      |> fold2 (fn (id, _) => fold (add_eqn id)) eq_props
+          ((map o map) (Drule.abs_def o LocalDefs.meta_rewrite_rule ctxt o
             Element.conclude_witness) eq_thms);
 
     val prems = flat (map_filter
@@ -2118,22 +2109,23 @@ fun gen_activate_facts_elemss mk_ctxt note attrib put_reg add_wit add_eqn
 
     val thy_ctxt'' = thy_ctxt'
       (* add witnesses of Derived elements *)
-      |> fold (fn (id, thms) => fold (add_wit id o Element.morph_witness (Element.satisfy_morphism prems)) thms)
+      |> fold (fn (id, thms) => fold
+           (add_wit id o Element.morph_witness (Element.satisfy_morphism prems)) thms)
          (map_filter (fn ((_, Assumed _), _) => NONE
             | ((id, Derived thms), _) => SOME (id, thms)) new_elemss)
 
-    fun activate_elem loc (sticky, interp_prfx) param_prfx insts prems eqns exp (Notes (kind, facts)) thy_ctxt =
+    fun activate_elem phi_name param_prfx insts prems eqns exp (Notes (kind, facts)) thy_ctxt =
         let
           val ctxt = mk_ctxt thy_ctxt;
           val thy = ProofContext.theory_of ctxt;
           val facts' = facts
-            |> activate_note thy loc (sticky, interp_prfx) param_prfx
+            |> activate_note thy phi_name param_prfx
                  (attrib thy_ctxt) insts prems eqns exp;
         in 
           thy_ctxt
           |> fold (snd oo note kind) facts'
         end
-      | activate_elem _ _ _ _ _ _ _ _ thy_ctxt = thy_ctxt;
+      | activate_elem _ _ _ _ _ _ _ thy_ctxt = thy_ctxt;
 
     fun activate_elems (((loc, ext_ts), _), _) ps thy_ctxt =
       let
@@ -2141,13 +2133,13 @@ fun gen_activate_facts_elemss mk_ctxt note attrib put_reg add_wit add_eqn
         val thy = ProofContext.theory_of ctxt;
         val {params, elems, ...} = the_locale thy loc;
         val parms = map fst params;
-        val param_prfx = param_prefix ps;
+        val param_prfx = param_prefix loc ps;
         val ids = flatten (ProofContext.init thy, intern_expr thy)
           (([], Symtab.empty), Expr (Locale loc)) |> fst |> fst;
         val (insts, prems, eqns) = collect_witnesses ctxt imp parms ids ext_ts;
       in
         thy_ctxt
-        |> fold (activate_elem loc prfx param_prfx insts prems eqns exp o fst) elems
+        |> fold (activate_elem phi_name param_prfx insts prems eqns exp o fst) elems
       end;
 
   in
@@ -2236,7 +2228,7 @@ val check_instantiations = prep_instantiations (K I) (K I);
 
 fun gen_prep_registration mk_ctxt test_reg activate
     prep_attr prep_expr prep_insts
-    thy_ctxt prfx raw_expr raw_insts =
+    thy_ctxt phi_name raw_expr raw_insts =
   let
     val ctxt = mk_ctxt thy_ctxt;
     val thy = ProofContext.theory_of ctxt;
@@ -2301,7 +2293,7 @@ fun gen_prep_registration mk_ctxt test_reg activate
     val propss = map extract_asms_elems inst_elemss @ eqn_elems;
 
   in
-    (propss, activate prfx inst_elemss (map (snd o fst) ids) propss eq_attns morphs, morphs)
+    (propss, activate phi_name inst_elemss (map (snd o fst) ids) propss eq_attns morphs, morphs)
   end;
 
 fun gen_prep_global_registration mk_ctxt = gen_prep_registration ProofContext.init
@@ -2313,14 +2305,14 @@ fun gen_prep_local_registration mk_ctxt = gen_prep_registration I
   local_activate_facts_elemss mk_ctxt;
 
 val prep_global_registration = gen_prep_global_registration
-  Attrib.intern_src intern_expr read_instantiations;
-val prep_global_registration_i = gen_prep_global_registration
   (K I) (K I) check_instantiations;
+val prep_global_registration_cmd = gen_prep_global_registration
+  Attrib.intern_src intern_expr read_instantiations;
 
 val prep_local_registration = gen_prep_local_registration
-  Attrib.intern_src intern_expr read_instantiations;
-val prep_local_registration_i = gen_prep_local_registration
   (K I) (K I) check_instantiations;
+val prep_local_registration_cmd = gen_prep_local_registration
+  Attrib.intern_src intern_expr read_instantiations;
 
 fun prep_registration_in_locale target expr thy =
   (* target already in internal form *)
@@ -2362,7 +2354,7 @@ fun prep_registration_in_locale target expr thy =
                 |> fold (add_witness_in_locale target id) thms
           | activate_id _ thy = thy;
 
-        fun activate_reg (ext_ts, (((sticky, interp_prfx), param_prfx), (exp, imp), _, _)) thy =
+        fun activate_reg (ext_ts, ((phi_name, param_prfx), (exp, imp), _, _)) thy =
           let
             val (insts, wits, _) = collect_witnesses (ProofContext.init thy) imp fixed target_ids ext_ts;
             val inst_parms = map (the o AList.lookup (op =) (map #1 fixed ~~ ext_ts));
@@ -2376,7 +2368,7 @@ fun prep_registration_in_locale target expr thy =
                 if test_global_registration thy (name, ps')
                 then thy
                 else thy
-                  |> put_global_registration (name, ps') ((sticky, interp_prfx), param_prefix ps) (exp, imp)
+                  |> put_global_registration (name, ps') (phi_name, param_prefix name ps) (exp, imp)
                   |> fold (fn witn => fn thy => add_global_witness (name, ps')
                      (Element.morph_witness (Element.inst_morphism thy insts) witn) thy) thms
               end;
@@ -2388,7 +2380,7 @@ fun prep_registration_in_locale target expr thy =
                 if test_global_registration thy (name, ps')
                 then thy
                 else thy
-                  |> put_global_registration (name, ps') ((sticky, interp_prfx), param_prefix ps) (exp, imp)
+                  |> put_global_registration (name, ps') (phi_name, param_prefix name ps) (exp, imp)
                   |> fold (fn witn => fn thy => add_global_witness (name, ps')
                        (witn |> Element.map_witness (fn (t, th) =>  (* FIXME *)
                        (Element.inst_term insts t,
@@ -2398,14 +2390,14 @@ fun prep_registration_in_locale target expr thy =
             fun activate_elem (loc, ps) (Notes (kind, facts)) thy =
                 let
                   val att_morphism =
-                    Morphism.name_morphism (add_prefixes loc (sticky, interp_prfx) param_prfx) $>
+                    Morphism.name_morphism (name_morph phi_name param_prfx) $>
                     Morphism.thm_morphism satisfy $>
                     Element.inst_morphism thy insts $>
                     Morphism.thm_morphism disch;
                   val facts' = facts
                     |> Attrib.map_facts (Attrib.attribute_i thy o Args.morph_values att_morphism)
                     |> (map o apsnd o map o apfst o map) (disch o Element.inst_thm thy insts o satisfy)
-                    |> (map o apfst o apfst) (add_prefixes loc (sticky, interp_prfx) param_prfx);
+                    |> (map o apfst o apfst) (name_morph phi_name param_prfx);
                 in
                   thy
                   |> fold (snd oo global_note_prefix kind) facts'
@@ -2446,12 +2438,11 @@ fun gen_interpretation prep_registration after_qed prfx raw_expr raw_insts thy =
     |> pair morphs
   end;
 
-fun gen_interpret prep_registration after_qed prfx expr insts int state =
-  (* prfx = (flag indicating full qualification, name prefix) *)
+fun gen_interpret prep_registration after_qed name_morph expr insts int state =
   let
     val _ = Proof.assert_forward_or_chain state;
     val ctxt = Proof.context_of state;
-    val (propss, activate, morphs) = prep_registration ctxt prfx expr insts;
+    val (propss, activate, morphs) = prep_registration ctxt name_morph expr insts;
     fun after_qed' results =
       Proof.map_context (K (ctxt |> activate (prep_result propss results)))
       #> Proof.put_facts NONE
@@ -2464,11 +2455,19 @@ fun gen_interpret prep_registration after_qed prfx expr insts int state =
     |> pair morphs
   end;
 
+fun standard_name_morph interp_prfx binding =
+  if Name.is_nothing binding then binding
+  else Name.map_prefix (fn ((locale_name, _) :: pprfx) =>
+    fold (Name.add_prefix false o fst) pprfx
+    #> interp_prfx <> "" ? Name.add_prefix true interp_prfx
+    #> Name.add_prefix false locale_name
+  ) binding;
+
 in
 
-val interpretation_i = gen_interpretation prep_global_registration_i;
 val interpretation = gen_interpretation prep_global_registration;
-
+fun interpretation_cmd interp_prfx = snd ooo gen_interpretation prep_global_registration_cmd
+  I (standard_name_morph interp_prfx);
 
 fun interpretation_in_locale after_qed (raw_target, expr) thy =
   let
@@ -2489,8 +2488,9 @@ fun interpretation_in_locale after_qed (raw_target, expr) thy =
     |> Element.refine_witness |> Seq.hd
   end;
 
-val interpret_i = gen_interpret prep_local_registration_i;
 val interpret = gen_interpret prep_local_registration;
+fun interpret_cmd interp_prfx = snd oooo gen_interpret prep_local_registration_cmd
+  Seq.single (standard_name_morph interp_prfx);
 
 end;
 
