@@ -25,7 +25,18 @@ sig
   val params_of: theory -> string -> (Name.binding * typ option * mixfix) list
   val declarations_of: theory -> string -> declaration list * declaration list;
 
-  (* Evaluate locales *)
+  (* Storing results *)
+(*
+val add_thmss: string -> string -> (Attrib.binding * (thm list * Attrib.src list) list) list ->
+    Proof.context -> Proof.context
+*)
+  val add_type_syntax: string -> declaration -> Proof.context -> Proof.context
+  val add_term_syntax: string -> declaration -> Proof.context -> Proof.context
+  val add_declaration: string -> declaration -> Proof.context -> Proof.context
+
+  (* Activate locales *)
+  val activate_declarations: string -> theory -> Proof.context -> Proof.context
+  val activate: string -> theory -> (Element.context_i -> 'a -> 'a) -> 'a -> 'a
   val init: string -> theory -> Proof.context
 
   (* Diagnostic *)
@@ -136,9 +147,9 @@ fun declarations_of thy loc =
   end;
 
 
-(*** Target context ***)
+(*** Activate context elements of locale ***)
 
-(* round up locale dependencies in a depth-first fashion *)
+(* Resolve locale dependencies in a depth-first fashion *)
 
 local
 
@@ -172,63 +183,122 @@ fun roundup thy deps =
 end;
 
 
-(* full context *)
-
-fun make_asms NONE = []
-  | make_asms (SOME asm) = [((Name.no_binding, []), [(asm, [])])];
-
-fun make_defs [] = []
-  | make_defs defs = [((Name.no_binding, []), map (fn def => (def, [])) defs)];
-
-fun note_notes (name, morph) ctxt =
+fun activate_decls thy (name, morph) ctxt =
   let
-    val thy = ProofContext.theory_of ctxt;
-    val Loc {notes, ...} = the_locale (ProofContext.theory_of ctxt) name;
-    fun activate ((kind, facts), _) ctxt =
-      let
-        val facts' = facts |> Element.facts_map (Element.morph_ctxt morph) |>
-          Attrib.map_facts (Attrib.attribute_i thy);
-      in fold (fn args => Locale.local_note_prefix kind args #> snd) facts' ctxt end;
+    val Loc {decls = (typ_decls, term_decls), ...} = the_locale thy name;
   in
-    fold_rev activate notes ctxt
+    ctxt |> fold_rev (fn (decl, _) => Context.proof_map (decl morph)) typ_decls |>
+      fold_rev (fn (decl, _) => Context.proof_map (decl morph)) term_decls
   end;
 
-fun init name thy =
+fun activate_declarations name thy ctxt =
   let
-    val Loc {parameters = (_, params), spec = (asm, defs), dependencies, ...} =
-      the_locale thy name;
+    val name' = intern thy name;
+    val Loc {parameters = (_, params), dependencies, ...} = the_locale thy name';
     val dependencies' =
-      (intern thy name, Morphism.identity) :: roundup thy (map fst dependencies);
+      (name', Morphism.identity) :: roundup thy (map fst dependencies);
   in
-    thy |> ProofContext.init |>
-      ProofContext.add_fixes_i params |> snd |>
+    ctxt |>
+      not (null params) ? (ProofContext.add_fixes_i params #> snd) |>
       (* FIXME type parameters *)
-      fold Variable.auto_fixes (the_list asm) |>
-      ProofContext.add_assms_i Assumption.assume_export (make_asms asm) |> snd |>
-      fold Variable.auto_fixes defs |>
-      ProofContext.add_assms_i LocalDefs.def_export (make_defs defs) |> snd |>
-      fold_rev note_notes dependencies'
+      fold_rev (activate_decls thy) dependencies'
   end;
+
+fun activate_notes activ_elem thy (name, morph) input =
+  let
+    val Loc {notes, ...} = the_locale thy name;
+    fun activate ((kind, facts), _) input =
+      let
+        val facts' = facts |> Element.facts_map (Element.morph_ctxt morph)
+      in activ_elem (Notes (kind, facts')) input end;
+  in
+    fold_rev activate notes input
+  end;
+
+fun activate name thy activ_elem input =
+  let
+    val name' = intern thy name;
+    val Loc {parameters = (_, params), spec = (asm, defs), dependencies, ...} =
+      the_locale thy name';
+    val dependencies' =
+      (name', Morphism.identity) :: roundup thy (map fst dependencies);
+  in
+    input |>
+      not (null params) ? activ_elem (Fixes params) |>
+      (* FIXME type parameters *)
+      is_some asm ? activ_elem (Assumes [(Attrib.no_binding, [(the asm, [])])]) |>
+      not (null defs) ?
+        activ_elem (Defines (map (fn def => (Attrib.no_binding, (def, []))) defs)) |>
+      fold_rev (activate_notes activ_elem thy) dependencies'
+  end;
+
+local
+
+fun init_elem (Fixes fixes) ctxt = ctxt |>
+      ProofContext.add_fixes_i fixes |> snd
+  | init_elem (Assumes assms) ctxt =
+      let
+        val assms' = Attrib.map_specs (Attrib.attribute_i (ProofContext.theory_of ctxt)) assms
+      in
+        ctxt |> fold Variable.auto_fixes (maps (map fst o snd) assms') |>
+          ProofContext.add_assms_i Assumption.assume_export assms' |> snd
+     end 
+  | init_elem (Defines defs) ctxt =
+      let
+        val defs' = Attrib.map_specs (Attrib.attribute_i (ProofContext.theory_of ctxt)) defs
+      in
+        ctxt |> fold Variable.auto_fixes (map (fst o snd) defs') |>
+          ProofContext.add_assms_i LocalDefs.def_export (map (fn (attn, t) => (attn, [t])) defs') |>
+          snd
+      end
+  | init_elem (Notes (kind, facts)) ctxt =
+      let
+        val facts' = Attrib.map_facts (Attrib.attribute_i (ProofContext.theory_of ctxt)) facts
+      in fold (fn args => Locale.local_note_prefix kind args #> snd) facts' ctxt end
+
+fun cons_elem false (Notes notes) elems = elems
+  | cons_elem _ elem elems = elem :: elems
+
+in
+
+fun init name thy = activate name thy init_elem (ProofContext.init thy);
 
 fun print_locale thy show_facts name =
-  let
-    val Loc {parameters = (tparams, params), spec = (asm, defs), notes, ...} =
-      the_locale thy (intern thy name);
-
-    val fixes = [Fixes params];
-    val assumes = case asm of NONE => [] |
-      SOME spec => [Assumes [(Attrib.no_binding, [(spec, [])])]];
-    val defines = case defs of [] => [] |
-      defs => [Defines (map (fn def => (Attrib.no_binding, (def, []))) defs)];
-    val notes = if show_facts then map (Notes o fst) notes else [];
-    val ctxt = ProofContext.init thy;
+  let val ctxt = init name thy
   in
     Pretty.big_list "locale elements:"
-      (fixes @ assumes @ defines @ notes |> map (Element.pretty_ctxt ctxt) |>
-        map Pretty.chunks) |> Pretty.writeln
-  end;
-
+      (activate name thy (cons_elem show_facts) [] |> rev |> 
+        map (Element.pretty_ctxt ctxt) |> map Pretty.chunks) |> Pretty.writeln
+  end
 
 end;
 
+
+(*** Storing results ***)
+
+(* Declarations *)
+
+local
+
+fun decl_attrib decl phi = Thm.declaration_attribute (K (decl phi));
+
+fun add_decls add loc decl =
+  ProofContext.theory (change_locale loc
+    (fn (parameters, spec, decls, notes, dependencies) =>
+      (parameters, spec, add (decl, stamp ()) decls, notes, dependencies)))
+(*
+  #>
+  add_thmss loc Thm.internalK
+    [((Name.no_binding, [Attrib.internal (decl_attrib decl)]), [([Drule.dummy_thm], [])])];
+*)
+
+in
+
+val add_type_syntax = add_decls (apfst o cons);
+val add_term_syntax = add_decls (apsnd o cons);
+val add_declaration = add_decls (K I);
+
+end;
+
+end;
 
