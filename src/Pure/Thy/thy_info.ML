@@ -587,6 +587,12 @@ fun register_theory theory =
 
 (* finish all theories *)
 
-fun finish () = change_thys (Graph.map_nodes (fn (_, entry) => (NONE, entry)));
+fun force_proofs thy =
+  Facts.dest_static (map PureThy.facts_of (Theory.parents_of thy)) (PureThy.facts_of thy)
+  |> maps #2 |> ParList.map Thm.proof_of;
+
+fun finish () = change_thys (Graph.map_nodes
+  (fn (SOME _, SOME thy) => (NONE, (force_proofs thy; SOME thy))
+    | (_, entry) => (NONE, entry)));
 
 end;
