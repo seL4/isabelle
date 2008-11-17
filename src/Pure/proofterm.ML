@@ -21,7 +21,7 @@ sig
    | Hyp of term
    | PAxm of string * term * typ list option
    | Oracle of string * term * typ list option
-   | Promise of serial * term * typ list option
+   | Promise of serial * term * typ list
    | PThm of serial * ((string * term * typ list option) * proof_body Lazy.T)
   and proof_body = PBody of
     {oracles: (string * term) OrdList.T,
@@ -108,8 +108,8 @@ sig
   val equal_elim: term -> term -> proof -> proof -> proof
   val axm_proof: string -> term -> proof
   val oracle_proof: string -> term -> proof
-  val promise_proof: serial -> term -> proof
-  val fulfill_proof: (serial * proof Lazy.T) list -> proof_body -> proof_body
+  val promise_proof: theory -> serial -> term -> proof
+  val fulfill_proof: theory -> (serial * proof Lazy.T) list -> proof_body -> proof_body
   val thm_proof: theory -> string -> term list -> term ->
     (serial * proof Lazy.T) list -> proof_body -> pthm * proof
   val get_name: term list -> term -> proof -> string
@@ -142,7 +142,7 @@ datatype proof =
  | Hyp of term
  | PAxm of string * term * typ list option
  | Oracle of string * term * typ list option
- | Promise of serial * term * typ list option
+ | Promise of serial * term * typ list
  | PThm of serial * ((string * term * typ list option) * proof_body Lazy.T)
 and proof_body = PBody of
   {oracles: (string * term) OrdList.T,
@@ -262,8 +262,9 @@ fun map_proof_terms_option f g =
           handle SAME => prf % apsome f t)
       | mapp (prf1 %% prf2) = (mapp prf1 %% mapph prf2
           handle SAME => prf1 %% mapp prf2)
-      | mapp (PAxm (a, prop, SOME Ts)) =
-          PAxm (a, prop, SOME (map_typs Ts))
+      | mapp (PAxm (a, prop, SOME Ts)) = PAxm (a, prop, SOME (map_typs Ts))
+      | mapp (Oracle (a, prop, SOME Ts)) = Oracle (a, prop, SOME (map_typs Ts))
+      | mapp (Promise (i, prop, Ts)) = Promise (i, prop, map_typs Ts)
       | mapp (PThm (i, ((a, prop, SOME Ts), body))) =
           PThm (i, ((a, prop, SOME (map_typs Ts)), body))
       | mapp _ = raise SAME
@@ -289,6 +290,8 @@ fun fold_proof_terms f g (Abst (_, SOME T, prf)) = g T #> fold_proof_terms f g p
   | fold_proof_terms f g (prf1 %% prf2) =
       fold_proof_terms f g prf1 #> fold_proof_terms f g prf2
   | fold_proof_terms _ g (PAxm (_, _, SOME Ts)) = fold g Ts
+  | fold_proof_terms _ g (Oracle (_, _, SOME Ts)) = fold g Ts
+  | fold_proof_terms _ g (Promise (_, _, Ts)) = fold g Ts
   | fold_proof_terms _ g (PThm (_, ((_, _, SOME Ts), _))) = fold g Ts
   | fold_proof_terms _ _ _ = I;
 
@@ -302,7 +305,7 @@ fun size_of_proof (Abst (_, _, prf)) = 1 + size_of_proof prf
 
 fun change_type opTs (PAxm (name, prop, _)) = PAxm (name, prop, opTs)
   | change_type opTs (Oracle (name, prop, _)) = Oracle (name, prop, opTs)
-  | change_type opTs (Promise (i, prop, _)) = Promise (i, prop, opTs)
+  | change_type opTs (Promise _) = error "change_type: unexpected promise"
   | change_type opTs (PThm (i, ((name, prop, _), body))) = PThm (i, ((name, prop, opTs), body))
   | change_type _ prf = prf;
 
@@ -438,6 +441,8 @@ fun norm_proof env =
       | norm (prf1 %% prf2) = (norm prf1 %% normh prf2
           handle SAME => prf1 %% norm prf2)
       | norm (PAxm (s, prop, Ts)) = PAxm (s, prop, apsome' (htypeTs norm_types_same) Ts)
+      | norm (Oracle (s, prop, Ts)) = Oracle (s, prop, apsome' (htypeTs norm_types_same) Ts)
+      | norm (Promise (i, prop, Ts)) = Promise (i, prop, htypeTs norm_types_same Ts)
       | norm (PThm (i, ((s, t, Ts), body))) =
           PThm (i, ((s, t, apsome' (htypeTs norm_types_same) Ts), body))
       | norm _ = raise SAME
@@ -682,6 +687,10 @@ fun lift_proof Bi inc prop prf =
           handle SAME => prf1 %% lift' Us Ts prf2)
       | lift' _ _ (PAxm (s, prop, Ts)) =
           PAxm (s, prop, apsome' (same (op =) (map (Logic.incr_tvar inc))) Ts)
+      | lift' _ _ (Oracle (s, prop, Ts)) =
+          Oracle (s, prop, apsome' (same (op =) (map (Logic.incr_tvar inc))) Ts)
+      | lift' _ _ (Promise (i, prop, Ts)) =
+          Promise (i, prop, same (op =) (map (Logic.incr_tvar inc)) Ts)
       | lift' _ _ (PThm (i, ((s, prop, Ts), body))) =
           PThm (i, ((s, prop, apsome' (same (op =) (map (Logic.incr_tvar inc))) Ts), body))
       | lift' _ _ _ = raise SAME
@@ -903,8 +912,6 @@ fun oracle_proof name prop =
   if !proofs = 0 then Oracle (name, dummy, NONE)
   else gen_axm_proof Oracle name prop;
 
-fun promise_proof i prop = gen_axm_proof Promise i prop;
-
 fun shrink_proof thy =
   let
     fun shrink ls lev (prf as Abst (a, T, body)) =
@@ -1057,8 +1064,9 @@ fun prf_subst (pinst, (tyinsts, insts)) =
       | subst plev tlev (prf as Hyp (Var (ixn, _))) = (case AList.lookup (op =) pinst ixn of
           NONE => prf
         | SOME prf' => incr_pboundvars plev tlev prf')
-      | subst _ _ (PAxm (id, prop, Ts)) =
-          PAxm (id, prop, Option.map (map substT) Ts)
+      | subst _ _ (PAxm (id, prop, Ts)) = PAxm (id, prop, Option.map (map substT) Ts)
+      | subst _ _ (Oracle (id, prop, Ts)) = Oracle (id, prop, Option.map (map substT) Ts)
+      | subst _ _ (Promise (i, prop, Ts)) = Promise (i, prop, (map substT) Ts)
       | subst _ _ (PThm (i, ((id, prop, Ts), body))) =
           PThm (i, ((id, prop, Option.map (map substT) Ts), body))
       | subst _ _ t = t;
@@ -1193,18 +1201,40 @@ fun add_prf_rrule r = (ProofData.map o apfst) (cons (stamp (), r));
 fun add_prf_rproc p = (ProofData.map o apsnd) (cons (stamp (), p));
 
 
-(***** theorems *****)
+(***** promises *****)
 
-fun fulfill_proof promises body0 =
+fun promise_proof thy i prop =
+  let
+    val _ = prop |> Term.exists_subterm (fn t =>
+      (Term.is_Free t orelse Term.is_Var t) andalso
+        error ("promise_proof: illegal variable " ^ Syntax.string_of_term_global thy t));
+    val _ = prop |> Term.exists_type (Term.exists_subtype
+      (fn TFree (a, _) => error ("promise_proof: illegal type variable " ^ quote a)
+        | _ => false));
+  in Promise (i, prop, map TVar (Term.add_tvars prop [])) end;
+
+fun finish_proof thy promises prf =
   let
     val tab = Inttab.make promises;
-    fun fill (Promise (i, _, _)) = Option.map Lazy.force (Inttab.lookup tab i)
+    fun fill (Promise (i, prop, Ts)) =
+        (case Inttab.lookup tab i of
+          NONE => error ("finish_proof: undefined promise " ^ string_of_int i)
+        | SOME p => SOME (instantiate (Term.add_tvars prop [] ~~ Ts, []) (Lazy.force p)))
       | fill _ = NONE;
-    val PBody {oracles = oracles0, thms = thms0, proof = proof0} = body0;
-    val proof = proof0 |> rewrite_proof_notypes ([], [K fill]);
-    val (oracles, thms) = (oracles0, thms0)
-      |> fold (merge_body o make_body o Lazy.force o #2) promises;
-  in PBody {oracles = oracles, thms = thms, proof = proof} end;
+    val (rules, procs) = get_data thy;
+  in #4 (shrink_proof thy [] 0 (rewrite_prf fst (rules, K fill :: procs) prf)) end;
+
+fun fulfill_proof _ [] body0 = body0
+  | fulfill_proof thy promises body0 =
+      let
+        val PBody {oracles = oracles0, thms = thms0, proof = proof0} = body0;
+        val (oracles, thms) =
+          fold (merge_body o make_body o Lazy.force o #2) promises (oracles0, thms0);
+        val proof = finish_proof thy promises proof0;
+      in PBody {oracles = oracles, thms = thms, proof = proof} end;
+
+
+(***** theorems *****)
 
 fun thm_proof thy name hyps prop promises body =
   let
@@ -1216,12 +1246,10 @@ fun thm_proof thy name hyps prop promises body =
       map SOME (frees_of prop);
 
     val proof0 =
-      if ! proofs = 2 then
-        #4 (shrink_proof thy [] 0 (rew_proof thy (fold_rev implies_intr_proof hyps prf)))
-      else MinProof;
+      finish_proof thy [] (if ! proofs = 2 then fold_rev implies_intr_proof hyps prf else MinProof);
 
     fun new_prf () = (serial (), name, prop, Lazy.lazy (fn () =>
-      fulfill_proof promises (PBody {oracles = oracles0, thms = thms0, proof = proof0})));
+      fulfill_proof thy promises (PBody {oracles = oracles0, thms = thms0, proof = proof0})));
 
     val (i, name, prop, body') =
       (case strip_combt (fst (strip_combP prf)) of
