@@ -394,7 +394,7 @@ val _ =
     (P.name -- Scan.optional (P.$$$ "=" |-- P.!!! locale_val) (Locale.empty, []) -- P.opt_begin
       >> (fn ((name, (expr, elems)), begin) =>
           (begin ? Toplevel.print) o Toplevel.begin_local_theory begin
-            (Locale.add_locale "" name expr elems #-> TheoryTarget.begin)));
+            (Locale.add_locale_cmd name expr elems #-> TheoryTarget.begin)));
 
 val opt_prefix = Scan.optional (P.binding --| P.$$$ ":") Name.no_binding;
 
@@ -406,7 +406,7 @@ val _ =
       opt_prefix  -- SpecParse.locale_expr -- SpecParse.locale_insts
         >> (fn ((name, expr), insts) => Toplevel.print o
             Toplevel.theory_to_proof
-              (Locale.interpretation I (true, Name.name_of name) expr insts #> snd)));
+              (Locale.interpretation_cmd (Name.name_of name) expr insts)));
 
 val _ =
   OuterSyntax.command "interpret"
@@ -415,7 +415,7 @@ val _ =
     (opt_prefix -- SpecParse.locale_expr -- SpecParse.locale_insts
       >> (fn ((name, expr), insts) => Toplevel.print o
           Toplevel.proof'
-            (fn int => Locale.interpret Seq.single (true, Name.name_of name) expr insts int #> snd)));
+            (fn int => Locale.interpret_cmd (Name.name_of name) expr insts int)));
 
 
 (* classes *)

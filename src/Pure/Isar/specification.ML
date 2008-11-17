@@ -368,7 +368,7 @@ fun gen_theorem prep_att prep_stmt
 in
 
 val theorem = gen_theorem (K I) Locale.cert_context_statement;
-val theorem_cmd = gen_theorem Attrib.intern_src Locale.read_context_statement_i;
+val theorem_cmd = gen_theorem Attrib.intern_src Locale.read_context_statement;
 
 fun add_theorem_hook f = TheoremHook.map (cons (f, stamp ()));
 
