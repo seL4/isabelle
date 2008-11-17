@@ -31,14 +31,14 @@ class ScrollerDockable(view : View, position : String) extends JPanel with Adjus
   var message_offset = 0 //how many pixels of the lowest message are hidden
   var message_no = -1  //index of the lowest message
   // absolute positioning for messages
-  val message_view = new JPanel
-  message_view.setLayout(null)
+  val message_panel = new JPanel
+  message_panel.setLayout(null)
   // setting up view
   setLayout(new BorderLayout())
   val vscroll = new JScrollBar(Adjustable.VERTICAL, 0, 1, 0, 1)
   vscroll.addAdjustmentListener(this)
   add (vscroll, BorderLayout.EAST)
-  add (message_view, BorderLayout.CENTER)
+  add (message_panel, BorderLayout.CENTER)
   addComponentListener(this)
   //automated scrolling, new message ind
   val infopanel = new JPanel
@@ -51,7 +51,7 @@ class ScrollerDockable(view : View, position : String) extends JPanel with Adjus
 
   // DoubleBuffering for smoother updates
   this.setDoubleBuffered(true)
-  message_view.setDoubleBuffered(true)
+  message_panel.setDoubleBuffered(true)
 
   //Render a message to a Panel
   def render (message: Document): XHTMLPanel = {
@@ -75,12 +75,12 @@ class ScrollerDockable(view : View, position : String) extends JPanel with Adjus
   // panel has to be displayable in container message_view for doLayout to have
   // an effect, especially returning correct preferredSize
   def calculate_preferred_size(panel: XHTMLPanel){
-    message_view.add (panel)
-    panel.setBounds (0, 0, message_view.getWidth, 1) // document has to fit into width
+    message_panel.add (panel)
+    panel.setBounds (0, 0, message_panel.getWidth, 1) // document has to fit into width
     panel.doDocumentLayout (panel.getGraphics) //lay out, preferred size is set then
     // if there are thousands of empty panels, all have to be rendered -
     // but this takes time (even for empty panels); therefore minimum size
-    panel.setPreferredSize(new java.awt.Dimension(message_view.getWidth,Math.max(50, panel.getPreferredSize.getHeight.toInt)))
+    panel.setPreferredSize(new java.awt.Dimension(message_panel.getWidth,Math.max(50, panel.getPreferredSize.getHeight.toInt)))
   }
    
   //render and load a message into cache, place its bottom at y-coordinate;
@@ -92,13 +92,13 @@ class ScrollerDockable(view : View, position : String) extends JPanel with Adjus
     val result = message_cache.get(message_no) match {
       case Some(panel) => {
         // recalculate preferred size after resizing the message_view
-        if(panel.getPreferredSize.getWidth.toInt != message_view.getWidth)
+        if(panel.getPreferredSize.getWidth.toInt != message_panel.getWidth)
           calculate_preferred_size (panel)
         //place message on view
         val width = panel.getPreferredSize.getWidth.toInt
         val height = panel.getPreferredSize.getHeight.toInt
         panel.setBounds(0, y - height, width, height)
-        message_view.add(panel)
+        message_panel.add(panel)
         panel
       }
       case None => null
@@ -111,12 +111,12 @@ class ScrollerDockable(view : View, position : String) extends JPanel with Adjus
   // (no knowledge on height of messages)
   def move_view (y : Int) = {
     var update = false
-    if(message_view.getComponentCount >= 1){
+    if(message_panel.getComponentCount >= 1){
       message_offset += y
       //remove bottommost panels
-      while (message_offset >= message_view.getComponent(0).getHeight)
+      while (message_offset >= message_panel.getComponent(0).getHeight)
       {
-        message_offset -= message_view.getComponent(0).getHeight
+        message_offset -= message_panel.getComponent(0).getHeight
         message_no -= 1
         update_view
         update = true
@@ -130,13 +130,13 @@ class ScrollerDockable(view : View, position : String) extends JPanel with Adjus
         update = true
      }
       //insert panel at the top
-      if (message_view.getComponent(message_view.getComponentCount - 1).getY + y > 0){
+      if (message_panel.getComponent(message_panel.getComponentCount - 1).getY + y > 0){
         update_view
         update = true
       }
       //simply move panels
       if(!update){
-        message_view.getComponents map (c => {
+        message_panel.getComponents map (c => {
             val newrect = c.getBounds
             newrect.y = newrect.y + y
             c.setBounds(newrect)
@@ -149,9 +149,9 @@ class ScrollerDockable(view : View, position : String) extends JPanel with Adjus
   }
   
   def update_view = {
-    message_view.removeAll()
+    message_panel.removeAll()
     var n = message_no
-    var y:Int = message_view.getHeight + message_offset
+    var y:Int = message_panel.getHeight + message_offset
     while (y >= 0 && n >= 0){
       val panel = set_message (n, y)
       panel.setBorder(javax.swing.border.LineBorder.createBlackLineBorder)
@@ -161,8 +161,8 @@ class ScrollerDockable(view : View, position : String) extends JPanel with Adjus
     repaint()
   }
 
-  //indicate new messages in a maximum frequency of 1/300 ms
-  val message_ind_timer : Timer = new Timer(300, new ActionListener {
+  // do not show every new message, wait a certain amount of time
+  val message_ind_timer : Timer = new Timer(250, new ActionListener {
       // this method is called to indicate a new message
       override def actionPerformed(e:ActionEvent){
         //fire scroll-event if necessary and wanted
@@ -173,7 +173,6 @@ class ScrollerDockable(view : View, position : String) extends JPanel with Adjus
         message_ind.setBackground(java.awt.Color.white)
       }
     })
-
 
   def add_message (message: Document) = {
     message_buffer += message
