@@ -16,36 +16,33 @@ struct
 
 (* thm_deps *)
 
-fun add_dep (name, _, PBody {thms = thms', ...}) =
-  name <> "" ?
-    Graph.new_node (name, ()) #>
-    fold (fn (_, (name', _, _)) => name <> "" ? Graph.add_edge (name', name)) thms';
-
 fun thm_deps thms =
   let
-    val graph = Proofterm.fold_body_thms add_dep (map Thm.proof_body_of thms) Graph.empty;
-    fun add_entry (name, (_, (preds, _))) =
-      let
-        val prefix = #1 (Library.split_last (NameSpace.explode name));
-        val session =
-          (case prefix of
-            a :: _ =>
-              (case ThyInfo.lookup_theory a of
-                SOME thy =>
-                  (case Present.session_name thy of
-                    "" => []
-                  | session => [session])
-              | NONE => [])
-           | _ => ["global"]);
-        val entry =
-          {name = Sign.base_name name,
-           ID = name,
-           dir = space_implode "/" (session @ prefix),
-           unfold = false,
-           path = "",
-           parents = preds};
-      in cons entry end;
-  in Present.display_graph (sort_wrt #ID (Graph.fold add_entry graph [])) end;
+    fun add_dep ("", _, _) = I
+      | add_dep (name, _, PBody {thms = thms', ...}) =
+          let
+            val prefix = #1 (Library.split_last (NameSpace.explode name));
+            val session =
+              (case prefix of
+                a :: _ =>
+                  (case ThyInfo.lookup_theory a of
+                    SOME thy =>
+                      (case Present.session_name thy of
+                        "" => []
+                      | session => [session])
+                  | NONE => [])
+               | _ => ["global"]);
+            val parents = filter_out (fn s => s = "") (map (#1 o #2) thms');
+            val entry =
+              {name = Sign.base_name name,
+               ID = name,
+               dir = space_implode "/" (session @ prefix),
+               unfold = false,
+               path = "",
+               parents = parents};
+          in cons entry end;
+    val deps = Proofterm.fold_body_thms add_dep (map Thm.proof_body_of thms) [];
+  in Present.display_graph (sort_wrt #ID deps) end;
 
 
 (* unused_thms *)
