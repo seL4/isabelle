@@ -1643,9 +1643,9 @@ fun future make_result ct =
     val i = serial ();
     val future = Future.fork_background (future_result i thy sorts prop o make_result);
     val _ = add_future thy future;
-    val promises = [(i, future)];
+    val promise = (i, future);
   in
-    Thm (make_deriv promises promises [] [] (Pt.promise_proof i prop),
+    Thm (make_deriv [promise] [promise] [] [] (Pt.promise_proof thy i prop),
      {thy_ref = thy_ref,
       tags = [],
       maxidx = maxidx,
@@ -1660,11 +1660,11 @@ fun future make_result ct =
 
 fun raw_proof_of (Thm (Deriv {body, ...}, _)) = Proofterm.proof_of body;
 
-fun proof_body_of (Thm (Deriv {all_promises, promises, body}, _)) =
+fun proof_body_of (Thm (Deriv {all_promises, promises, body}, {thy_ref, ...})) =
   let
     val _ = Exn.release_all (map (Future.join_result o #2) (rev all_promises));
     val ps = map (apsnd (Lazy.value o raw_proof_of o Future.join)) promises;
-  in Pt.fulfill_proof ps body end;
+  in Pt.fulfill_proof (Theory.deref thy_ref) ps body end;
 
 val proof_of = Proofterm.proof_of o proof_body_of;
 
@@ -1676,7 +1676,7 @@ fun get_name thm =
 
 fun put_name name (thm as Thm (der, args)) =
   let
-    val Deriv {all_promises, promises, body} = der;
+    val Deriv {promises, body, ...} = der;
     val {thy_ref, hyps, prop, tpairs, ...} = args;
     val _ = null tpairs orelse raise THM ("name_thm: unsolved flex-flex constraints", 0, [thm]);
 
