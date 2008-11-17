@@ -34,9 +34,11 @@ sig
   val no_binding: binding
   val prefix_of: binding -> (string * bool) list
   val name_of: binding -> string
+  val name_with_prefix: binding -> string (*FIXME*)
   val is_nothing: binding -> bool
   val pos_of: binding -> Position.T
   val add_prefix: bool -> string -> binding -> binding
+  val map_prefix: ((string * bool) list -> binding -> binding) -> binding -> binding
   val map_name: (string -> string) -> binding -> binding
   val qualified: string -> binding -> binding
   val namify: NameSpace.naming -> binding -> NameSpace.naming * string
@@ -168,13 +170,20 @@ val no_binding = binding "";
 
 fun map_binding f (Binding bnd) = Binding (f bnd);
 
-fun add_prefix sticky prfx = (map_binding o apfst o apfst)
-  (cons (prfx, sticky));
+fun add_prefix sticky prfx binding = if prfx = "" then error "empty name prefix"
+  else (map_binding o apfst o apfst) (cons (prfx, sticky)) binding;
+
+fun map_prefix f (Binding ((prefix, name), pos)) =
+  f prefix (binding_pos (name, pos));
 
 val map_name = map_binding o apfst o apsnd;
 val qualified = map_name o NameSpace.qualified;
 
 fun is_nothing (Binding ((_, name), _)) = name = "";
+
+fun name_with_prefix (Binding ((prefix, name), _)) =
+  NameSpace.implode (map_filter
+    (fn (prfx, sticky) => if sticky then SOME prfx else NONE) prefix @ [name]);
 
 fun namify naming (Binding ((prefix, name), _)) =
   let
