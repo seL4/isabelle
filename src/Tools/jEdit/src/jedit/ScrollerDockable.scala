@@ -5,6 +5,8 @@
 
 package isabelle.jedit
 
+import isabelle.utils.EventSource
+
 import scala.collection.mutable.{ArrayBuffer, HashMap}
 
 import java.awt.{ BorderLayout, Adjustable }
@@ -96,8 +98,10 @@ class MessagePanel(cache: Rendered[XHTMLPanel]) extends JPanel {
     var y:Int = getHeight + pixeloffset
     while (y >= 0 && n >= 0){
       val panel = place_message (n, y)
-      panel.setBorder(javax.swing.border.LineBorder.createBlackLineBorder)
-      y = y - panel.getHeight
+      if(panel != null) {
+        panel.setBorder(javax.swing.border.LineBorder.createBlackLineBorder)
+        y = y - panel.getHeight
+      }
       n = n - 1
     }
   }  
@@ -181,21 +185,8 @@ class ScrollerDockable(view : View, position : String) extends JPanel with Adjus
   }
 
   
-  // TODO: register somewhere
-  // here only 'emulation of message stream'
-  Plugin.plugin.stateUpdate.add(state => {
-    var i = 0
-    if(state != null) new Thread{
-      override def run() {
-        while (i < 10000) {
-          add_message(state.document)
-          i += 1
-          /*try {Thread.sleep(3)}
-          catch{case _ =>}*/
-        }
-      }
-    }.start
-  })
+  // TODO: register
+  Plugin.plugin.prover.allInfo.add(add_message(_))
 }
 
 
