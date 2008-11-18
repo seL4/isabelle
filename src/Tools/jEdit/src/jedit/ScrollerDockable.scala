@@ -31,6 +31,7 @@ trait Rendered[T] {
 }
 
 object Renderer {
+  
   def render (message: Document): XHTMLPanel = {
     val panel = new XHTMLPanel(new UserAgent())
     val fontResolver =
@@ -44,6 +45,8 @@ object Renderer {
       panel.relayout()
     })
     panel.setDocument(message, UserAgent.baseURL)
+    val sa = new SelectionActions
+    sa.install(panel)
     panel
   }
   
