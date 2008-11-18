@@ -150,6 +150,7 @@ sig
   val future: (unit -> thm) -> cterm -> thm
   val proof_body_of: thm -> proof_body
   val proof_of: thm -> proof
+  val force_proof: thm -> unit
   val extern_oracles: theory -> xstring list
   val add_oracle: bstring * ('a -> cterm) -> theory -> (string * ('a -> thm)) * theory
 end;
@@ -1594,7 +1595,7 @@ structure Futures = TheoryDataFun
 (
   type T = thm Future.T list ref;
   val empty : T = ref [];
-  val copy = I;  (*shared ref within whole theory body*)
+  val copy = I;  (*shared ref within all versions of whole theory body*)
   fun extend _ : T = ref [];
   fun merge _ _ : T = ref [];
 );
@@ -1613,7 +1614,7 @@ fun join_futures thy =
           val (finished, unfinished) = List.partition Future.is_finished (! futures);
           val _ = futures := unfinished;
         in finished end)
-      |> Future.join_results |> Exn.release_all |> null);
+      |> Future.join_results |> null);
   in while not (joined ()) do () end;
 
 
@@ -1667,6 +1668,7 @@ fun proof_body_of (Thm (Deriv {all_promises, promises, body}, {thy_ref, ...})) =
   in Pt.fulfill_proof (Theory.deref thy_ref) ps body end;
 
 val proof_of = Proofterm.proof_of o proof_body_of;
+val force_proof = ignore o proof_body_of;
 
 
 (* closed derivations with official name *)
