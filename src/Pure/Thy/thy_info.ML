@@ -326,7 +326,9 @@ fun future_schedule task_graph =
         val deps = map_filter (Symtab.lookup tab) (Graph.imm_preds task_graph name);
         val x = Future.future (SOME group) deps true body;
       in (x, Symtab.update (name, Future.task_of x) tab) end;
-  in ignore (Exn.release_all (Future.join_results (#1 (fold_map future tasks Symtab.empty)))) end;
+    val _ = ignore (Exn.release_all (Future.join_results (#1 (fold_map future tasks Symtab.empty))));
+    val _ = List.app (PureThy.force_proofs o get_theory o #1) tasks;
+  in () end;
 
 local
 
@@ -587,12 +589,8 @@ fun register_theory theory =
 
 (* finish all theories *)
 
-fun force_proofs thy =
-  Facts.dest_static (map PureThy.facts_of (Theory.parents_of thy)) (PureThy.facts_of thy)
-  |> maps #2 |> ParList.map Thm.proof_of;
-
 fun finish () = change_thys (Graph.map_nodes
-  (fn (SOME _, SOME thy) => (NONE, (force_proofs thy; SOME thy))
+  (fn (SOME _, SOME thy) => (NONE, (PureThy.force_proofs thy; SOME thy))
     | (_, entry) => (NONE, entry)));
 
 end;
