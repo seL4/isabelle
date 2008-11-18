@@ -195,9 +195,9 @@ class ScrollerDockable(view : View, position : String) extends JPanel with Adjus
 
 
 //containing the unrendered messages
-class MessageBuffer extends HashMap[Int,Document] with Unrendered[Document]{
+class MessageBuffer extends ArrayBuffer[Document] with Unrendered[Document]{
   override def addUnrendered (id: Int, m: Document) {
-    update(id, m)
+    append(m)
   }
   override def getUnrendered (id: Int): Option[Document] = {
     if(id < size && id >= 0 && apply(id) != null) Some (apply(id))
