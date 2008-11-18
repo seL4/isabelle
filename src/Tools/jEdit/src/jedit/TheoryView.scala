@@ -208,7 +208,6 @@ class TheoryView(prover : Prover, buffer : JEditBuffer)
       val MAX_XSYMB_LENGTH = 20
       var beginning = offset - 2
       var length = 2
-      System.err.println("found end of xsymbol")
       while(length < MAX_XSYMB_LENGTH && beginning > 0 && !buffer.getText(beginning, 1).equals("\\")){
         beginning -= 1
         length += 1
@@ -216,13 +215,8 @@ class TheoryView(prover : Prover, buffer : JEditBuffer)
       if(beginning >= 0 && buffer.getText(beginning, 2).equals("\\<")){
         val candidate = buffer.getText(beginning, length)
         val decoded = VFS.converter.decode(candidate)
-        System.err.println("found potential xsymbol: " + candidate
-                           + " decoded: " + decoded)
         buffer.remove(beginning, length)
         buffer.insert(beginning, decoded)
-        
-      } else {
-        System.err.println ("could not find beginning")
       }
     }
     if (col == null)
