@@ -217,9 +217,6 @@ class ScrollerDockable(view : View, position : String) extends JPanel with Adjus
         message_panel.no = e.getValue
         message_panel.offset = 0
         message_panel.invalidate
-        System.err.println("event: "+message_panel.no)
-        vscroll.setModel(new javax.swing.DefaultBoundedRangeModel(99,1,0,1000))
-        System.err.println("hello"+e.getValue)
     }
   }
 
