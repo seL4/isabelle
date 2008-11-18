@@ -1,8 +1,6 @@
 /*
  * ScrollerDockable.scala
  *
- * TODO: 
- * + scrolling *one* panel 
  */
 
 package isabelle.jedit
