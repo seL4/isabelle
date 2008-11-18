@@ -291,7 +291,7 @@ fun add_datatype_i (dom_sum, rec_tms) con_ty_lists (monos, type_intrs, type_elim
       (Ind_Syntax.traceIt "next case equation = " thy1 (mk_case_eqn arg))
       (*Proves a single case equation.  Could use simp_tac, but it's slower!*)
       (fn _ => EVERY
-        [rewtac con_def,
+        [rewrite_goals_tac [con_def],
          rtac case_trans 1,
          REPEAT (resolve_tac [refl, split_trans, Su.case_inl RS trans, Su.case_inr RS trans] 1)]);
 

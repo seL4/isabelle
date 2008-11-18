@@ -214,7 +214,7 @@ fun prove_primrec_thms flat_names new_type_names descr sorts
           (map cert insts)) induct;
         val (tac, _) = Library.foldl mk_unique_tac
           (((rtac induct' THEN_ALL_NEW ObjectLogic.atomize_prems_tac) 1
-              THEN rewtac (mk_meta_eq choice_eq), rec_intrs),
+              THEN rewrite_goals_tac [mk_meta_eq choice_eq], rec_intrs),
             descr' ~~ rec_elims ~~ recTs ~~ rec_result_Ts);
 
       in split_conj_thm (SkipProof.prove_global thy1 [] []

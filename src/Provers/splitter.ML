@@ -105,7 +105,7 @@ val meta_iffD = Data.meta_eq_to_iff RS Data.iffD;  (* (P == Q) ==> Q ==> P *)
 val lift = Goal.prove_global Pure.thy ["P", "Q", "R"]
   [Syntax.read_prop_global Pure.thy "!!x :: 'b. Q(x) == R(x) :: 'c"]
   (Syntax.read_prop_global Pure.thy "P(%x. Q(x)) == P(%x. R(x))")
-  (fn {prems = [prem], ...} => rewtac prem THEN rtac reflexive_thm 1)
+  (fn {prems, ...} => rewrite_goals_tac prems THEN rtac reflexive_thm 1)
 
 val trlift = lift RS transitive_thm;
 val _ $ (P $ _) $ _ = concl_of trlift;

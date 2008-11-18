@@ -262,7 +262,7 @@ let
                 ORELSE' bound_hyp_subst_tac))
       THEN prune_params_tac
           (*Mutual recursion: collapse references to Part(D,h)*)
-      THEN fold_tac part_rec_defs;
+      THEN (PRIMITIVE (fold_rule part_rec_defs));
 
   (*Elimination*)
   val elim = rule_by_tactic basic_elim_tac

@@ -33,9 +33,9 @@ sig
   val inductive_forall_name: string
   val inductive_forall_def: thm
   val rulify: thm -> thm
-  val inductive_cases: (Attrib.binding * string list) list -> Proof.context ->
+  val inductive_cases: (Attrib.binding * string list) list -> local_theory ->
     thm list list * local_theory
-  val inductive_cases_i: (Attrib.binding * term list) list -> Proof.context ->
+  val inductive_cases_i: (Attrib.binding * term list) list -> local_theory ->
     thm list list * local_theory
   type inductive_flags
   val add_inductive_i:
@@ -753,9 +753,10 @@ fun add_ind_def {quiet_mode, verbose, kind, alt_name, coind, no_elim, no_ind, sk
        if coind then
          singleton (ProofContext.export
            (snd (Variable.add_fixes (map (fst o dest_Free) params) ctxt1)) ctxt1)
-           (rotate_prems ~1 (ObjectLogic.rulify (rule_by_tactic
-             (rewrite_tac [le_fun_def, le_bool_def, sup_fun_eq, sup_bool_eq] THEN
-               fold_tac rec_preds_defs) (mono RS (fp_def RS def_coinduct)))))
+           (rotate_prems ~1 (ObjectLogic.rulify
+             (fold_rule rec_preds_defs
+               (rewrite_rule [le_fun_def, le_bool_def, sup_fun_eq, sup_bool_eq]
+                (mono RS (fp_def RS def_coinduct))))))
        else
          prove_indrule quiet_mode cs argTs bs xs rec_const params intr_ts mono fp_def
            rec_preds_defs ctxt1);

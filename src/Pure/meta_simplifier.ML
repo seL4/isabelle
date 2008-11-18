@@ -79,12 +79,10 @@ sig
   val rewrite_rule: thm list -> thm -> thm
   val rewrite_goals_rule: thm list -> thm -> thm
   val rewrite_goals_tac: thm list -> tactic
-  val rewrite_tac: thm list -> tactic
   val rewrite_goal_tac: thm list -> int -> tactic
   val rewtac: thm -> tactic
   val prune_params_tac: tactic
   val fold_rule: thm list -> thm -> thm
-  val fold_tac: thm list -> tactic
   val fold_goals_tac: thm list -> tactic
 end;
 
@@ -1285,14 +1283,11 @@ fun rewrite_goal_rule mode prover ss i thm =
 
 (** meta-rewriting tactics **)
 
-(*Rewrite throughout proof state. *)
-fun rewrite_tac defs = PRIMITIVE (rewrite_rule defs);
-
-(*Rewrite subgoals only, not main goal. *)
+(*Rewrite all subgoals*)
 fun rewrite_goals_tac defs = PRIMITIVE (rewrite_goals_rule defs);
 fun rewtac def = rewrite_goals_tac [def];
 
-(*Rewrite subgoal i only.*)
+(*Rewrite one subgoal*)
 fun asm_rewrite_goal_tac mode prover_tac ss i thm =
   if 0 < i andalso i <= Thm.nprems_of thm then
     Seq.single (Conv.gconv_rule (rewrite_cterm mode (SINGLE o prover_tac) ss) i thm)
@@ -1329,7 +1324,6 @@ fun sort_lhs_depths defs =
 val rev_defs = sort_lhs_depths o map symmetric;
 
 fun fold_rule defs = fold rewrite_rule (rev_defs defs);
-fun fold_tac defs = EVERY (map rewrite_tac (rev_defs defs));
 fun fold_goals_tac defs = EVERY (map rewrite_goals_tac (rev_defs defs));
 
 
