@@ -908,29 +908,30 @@ subsection{*Weakly decreasing sequences (w.r.t. some well-founded order)
 
 text{*This material does not appear to be used any longer.*}
 
-lemma lemma1: "[| ALL i. (f (Suc i), f i) : r^* |] ==> (f (i+k), f i) : r^*"
-apply (induct_tac "k", simp_all)
-apply (blast intro: rtrancl_trans)
-done
+lemma sequence_trans: "[| ALL i. (f (Suc i), f i) : r^* |] ==> (f (i+k), f i) : r^*"
+by (induct k) (auto intro: rtrancl_trans)
 
-lemma lemma2: "[| ALL i. (f (Suc i), f i) : r^*; wf (r^+) |]  
+lemma wf_weak_decr_stable: 
+  assumes as: "ALL i. (f (Suc i), f i) : r^*" "wf (r^+)"
+  shows "EX i. ALL k. f (i+k) = f i"
+proof -
+  have lem: "!!x. [| ALL i. (f (Suc i), f i) : r^*; wf (r^+) |]  
       ==> ALL m. f m = x --> (EX i. ALL k. f (m+i+k) = f (m+i))"
-apply (erule wf_induct, clarify)
-apply (case_tac "EX j. (f (m+j), f m) : r^+")
- apply clarify
- apply (subgoal_tac "EX i. ALL k. f ((m+j) +i+k) = f ( (m+j) +i) ")
-  apply clarify
-  apply (rule_tac x = "j+i" in exI)
-  apply (simp add: add_ac, blast)
-apply (rule_tac x = 0 in exI, clarsimp)
-apply (drule_tac i = m and k = k in lemma1)
-apply (blast elim: rtranclE dest: rtrancl_into_trancl1)
-done
+  apply (erule wf_induct, clarify)
+  apply (case_tac "EX j. (f (m+j), f m) : r^+")
+   apply clarify
+   apply (subgoal_tac "EX i. ALL k. f ((m+j) +i+k) = f ( (m+j) +i) ")
+    apply clarify
+    apply (rule_tac x = "j+i" in exI)
+    apply (simp add: add_ac, blast)
+  apply (rule_tac x = 0 in exI, clarsimp)
+  apply (drule_tac i = m and k = k in sequence_trans)
+  apply (blast elim: rtranclE dest: rtrancl_into_trancl1)
+  done
 
-lemma wf_weak_decr_stable: "[| ALL i. (f (Suc i), f i) : r^*; wf (r^+) |]  
-      ==> EX i. ALL k. f (i+k) = f i"
-apply (drule_tac x = 0 in lemma2 [THEN spec], auto)
-done
+  from lem[OF as, THEN spec, of 0, simplified] 
+  show ?thesis by auto
+qed
 
 (* special case of the theorem above: <= *)
 lemma weak_decr_stable:
