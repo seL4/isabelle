@@ -499,83 +499,11 @@ fun cert_elems x = prep_elems ProofContext.cert_vars ProofContext.cert_propp_sch
 end;
 
 
-(* facts and attributes *)
-
-local
-
-fun check_name name =
-  if NameSpace.is_qualified name then error ("Illegal qualified name: " ^ quote name)
-  else name;
-
-fun prep_facts prep_name get intern ctxt elem = elem |> Element.map_ctxt
-     {var = I, typ = I, term = I,
-      name = Name.map_name prep_name,
-      fact = get ctxt,
-      attrib = Args.assignable o intern (ProofContext.theory_of ctxt)};
-
-in
-
-fun read_facts x = prep_facts check_name ProofContext.get_fact Attrib.intern_src x;
-fun cert_facts x = prep_facts I (K I) (K I) x;
-
-end;
-
-
-(* activate elements in context, return elements and facts *)
-
-local
-
-fun axioms_export axs _ As =
-  (Element.satisfy_thm axs #> Drule.implies_intr_list (Library.drop (length axs, As)), fn t => t);
-
-
-(* NB: derived ids contain only facts at this stage *)
-
-fun activate_elem (Fixes fixes) ctxt =
-      ([], ctxt |> ProofContext.add_fixes_i fixes |> snd)
-  | activate_elem (Constrains _) ctxt =
-      ([], ctxt)
-  | activate_elem (Assumes asms) ctxt =
-      let
-        val asms' = Attrib.map_specs (Attrib.attribute_i (ProofContext.theory_of ctxt)) asms;
-        val ts = maps (map #1 o #2) asms';
-        val (_, ctxt') =
-          ctxt |> fold Variable.auto_fixes ts
-          |> ProofContext.add_assms_i (axioms_export []) asms';
-      in ([], ctxt') end
-  | activate_elem (Defines defs) ctxt =
-      let
-        val defs' = Attrib.map_specs (Attrib.attribute_i (ProofContext.theory_of ctxt)) defs;
-        val asms = defs' |> map (fn ((name, atts), (t, ps)) =>
-            let val ((c, _), t') = LocalDefs.cert_def ctxt t
-            in (t', ((Name.map_name (Thm.def_name_optional c) name, atts), [(t', ps)])) end);
-        val (_, ctxt') =
-          ctxt |> fold (Variable.auto_fixes o #1) asms
-          |> ProofContext.add_assms_i LocalDefs.def_export (map #2 asms);
-      in ([], ctxt') end
-  | activate_elem (Notes (kind, facts)) ctxt =
-      let
-        val facts' = Attrib.map_facts (Attrib.attribute_i (ProofContext.theory_of ctxt)) facts;
-        val (res, ctxt') = ctxt |> ProofContext.note_thmss_i kind facts';
-      in ((map (#1 o #1) facts' ~~ map #2 res), ctxt') end;
-
-in
-
-fun activate_elems prep_facts raw_elems ctxt =
-  let
-    val elems = map (prep_facts ctxt) raw_elems;
-    val (res, ctxt') = fold_map activate_elem elems (ProofContext.qualified_names ctxt);
-    val elems' = elems |> map (Element.map_ctxt_attrib Args.closure);
-  in ((elems', flat res), ProofContext.restore_naming ctxt ctxt') end;
-
-end;
-
-
 (* full context statements: import + elements + conclusion *)
 
 local
 
-fun prep_context_statement prep_expr prep_elems prep_facts
+fun prep_context_statement prep_expr prep_elems
     do_close imprt elements raw_concl context =
   let
     val thy = ProofContext.theory_of context;
@@ -590,7 +518,7 @@ fun prep_context_statement prep_expr prep_elems prep_facts
           val ((parms, elems, concl), (spec, (_, _, defs))) = prep_elems do_close
             context elements raw_concl;
           val ((elems', _), ctxt') =
-            activate_elems prep_facts elems (ProofContext.set_stmt true ctxt);
+            Element.activate elems (ProofContext.set_stmt true ctxt);
         in
           (((ctxt', elems'), (parms, spec, defs)), concl)
         end
@@ -607,10 +535,10 @@ end
 in
 
 fun read_context imprt body ctxt =
-  #1 (prep_context_statement intern_expr read_elems read_facts true imprt body [] ctxt);
+  #1 (prep_context_statement intern_expr read_elems true imprt body [] ctxt);
 (*
 fun cert_context imprt body ctxt =
-  #1 (prep_context_statement (K I) cert_elems cert_facts true imprt body [] ctxt);
+  #1 (prep_context_statement (K I) cert_elems true imprt body [] ctxt);
 *)
 end;
 
