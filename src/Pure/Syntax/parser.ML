@@ -397,12 +397,13 @@ fun pretty_gram (Gram {tags, prods, chains, ...}) =
 
     fun pretty_symb (Terminal (Token (Literal, s, _))) = Pretty.quote (Pretty.str s)
       | pretty_symb (Terminal tok) = Pretty.str (str_of_token tok)
-      | pretty_symb (Nonterminal (tag, p)) = Pretty.str (nt_name tag ^ "[" ^ string_of_int p ^ "]");
+      | pretty_symb (Nonterminal (tag, p)) =
+          Pretty.str (nt_name tag ^ "[" ^ signed_string_of_int p ^ "]");
 
     fun pretty_const "" = []
-      | pretty_const c = [Pretty.str ("=> " ^ Library.quote c)];
+      | pretty_const c = [Pretty.str ("=> " ^ quote c)];
 
-    fun pretty_pri p = [Pretty.str ("(" ^ string_of_int p ^ ")")];
+    fun pretty_pri p = [Pretty.str ("(" ^ signed_string_of_int p ^ ")")];
 
     fun pretty_prod name (symbs, const, pri) =
       Pretty.block (Pretty.breaks (pretty_name name @
