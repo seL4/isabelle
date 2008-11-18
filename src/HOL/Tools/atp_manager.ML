@@ -287,6 +287,10 @@ fun start_prover name birthtime deadtime i proof_state =
           let
             val _ = register birthtime deadtime (Thread.self (), desc)
             val result = prover i proof_state
+              handle ResHolClause.TOO_TRIVIAL
+                => (true, "Empty clause: Try this command: " ^ Markup.markup Markup.sendback "apply metis")
+              | ERROR msg
+                => (false, "Error: " ^ msg)
             val _ = priority (unregister result (Thread.self ()))
           in () end handle Interrupt => ())
       in () end);

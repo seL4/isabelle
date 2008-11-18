@@ -25,6 +25,7 @@ sig
   datatype literal = Literal of polarity * combterm
   val strip_comb: combterm -> combterm * combterm list
   val literals_of_term: theory -> term -> literal list * typ list
+  exception TOO_TRIVIAL
   val tptp_write_file: theory -> bool -> thm list -> string ->
     (thm * (axiom_name * clause_id)) list * ResClause.classrelClause list *
       ResClause.arityClause list -> string list -> axiom_name list
@@ -164,12 +165,15 @@ fun literals_of_term1 thy args (Const("Trueprop",_) $ P) = literals_of_term1 thy
 
 fun literals_of_term thy P = literals_of_term1 thy ([],[]) P;
 
+(* Problem too trivial for resolution (empty clause) *)
+exception TOO_TRIVIAL;
+
 (* making axiom and conjecture clauses *)
 fun make_clause thy (clause_id,axiom_name,kind,th) =
     let val (lits,ctypes_sorts) = literals_of_term thy (prop_of th)
     in
         if forall isFalse lits
-        then error "Problem too trivial for resolution (empty clause)"
+        then raise TOO_TRIVIAL
         else
             Clause {clause_id = clause_id, axiom_name = axiom_name, th = th, kind = kind,
                     literals = lits, ctypes_sorts = ctypes_sorts}
