@@ -62,7 +62,7 @@ object Renderer {
 
 class MessagePanel(cache: Rendered[XHTMLPanel]) extends JPanel {
   // defining the current view
-  var offset = 0 //how many pixels of the lowest message are hidden
+  var offset = 0 //what percentage of the lowest message is hidden
   var no = -1  //index of the lowest message
 
   // preferences
@@ -88,55 +88,14 @@ class MessagePanel(cache: Rendered[XHTMLPanel]) extends JPanel {
       case None => null
     }
   }
-
-  //move view a given amount of pixels
-  // attention: y should be small, because messages are rendered incremental
-  // (no knowledge on height of messages)
-  def move_view (y : Int) = {
-    var update = false
-    if(getComponentCount >= 1){
-      offset += y
-      //remove bottommost panels
-      while (offset >= getComponent(0).getHeight)
-      {
-        offset -= getComponent(0).getHeight
-        no -= 1
-        invalidate
-        update = true
-      }
-      //insert panels at the bottom
-      while (offset < 0) {
-        no += 1
-        val panel = place_message (no, 0)
-        offset += panel.getHeight
-        invalidate
-        update = true
-     }
-      //insert panel at the top
-      if (getComponent(getComponentCount - 1).getY + y > 0){
-        invalidate
-        update = true
-      }
-      //simply move panels
-      if(!update){
-        getComponents map (c => {
-            val newrect = c.getBounds
-            newrect.y = newrect.y + y
-            c.setBounds(newrect)
-          })
-        repaint()
-      } else {
-        //vscroll.setValue(no)
-        //TODO: create method to update vscroll
-        System.err.println("lookatme2")
-      }
-    }
-  }
   
   override def doLayout = {
     removeAll()
+    //calculate offset in pixel
+    val panel = place_message(no, 0)
+    val pixeloffset = if(panel != null) panel.getHeight*offset/100 else 0
     var n = no
-    var y:Int = getHeight + offset
+    var y:Int = getHeight + pixeloffset
     while (y >= 0 && n >= 0){
       val panel = place_message (n, y)
       panel.setBorder(javax.swing.border.LineBorder.createBlackLineBorder)
@@ -166,11 +125,14 @@ class ScrollerDockable(view : View, position : String) extends JPanel with Adjus
 
   val buffer:Unrendered[Document] = new MessageBuffer()
   val cache:Rendered[XHTMLPanel] = new PanelCache(buffer)
-  
+
+  val subunits = 100
   // set up view
   val message_panel = new MessagePanel(cache)
   val infopanel = new InfoPanel
   val vscroll = new JScrollBar(Adjustable.VERTICAL, 0, 1, 0, 1)
+  vscroll.setUnitIncrement(subunits / 5)
+  vscroll.setBlockIncrement(subunits / 2)
   vscroll.addAdjustmentListener(this)
   
   setLayout(new BorderLayout())
@@ -183,8 +145,8 @@ class ScrollerDockable(view : View, position : String) extends JPanel with Adjus
       // this method is called to indicate a new message
       override def actionPerformed(e:ActionEvent){
         //fire scroll-event if necessary and wanted
-        if(message_panel.no != buffer.size && infopanel.isAutoScroll) {
-          vscroll.setValue(buffer.size - 1)
+        if(message_panel.no != buffer.size*subunits - 1 && infopanel.isAutoScroll) {
+          vscroll.setValue(buffer.size*subunits - 1)
         }
         infopanel.setIndicator(false)
       }
@@ -192,13 +154,13 @@ class ScrollerDockable(view : View, position : String) extends JPanel with Adjus
 
   def add_message (message: Document) = {
     buffer.addUnrendered(buffer.size, message)
-    vscroll.setMaximum (Math.max(1, buffer.size))
+    vscroll.setMaximum (Math.max(1, buffer.size * subunits))
     infopanel.setIndicator(true)
     infopanel.setText(buffer.size.toString)
 
     if (! message_ind_timer.isRunning()){
       if(infopanel.isAutoScroll){
-        vscroll.setValue(buffer.size - 1)
+        vscroll.setValue(buffer.size*subunits - 1)
       }
       message_ind_timer.setRepeats(false)
       message_ind_timer.start()
@@ -214,9 +176,9 @@ class ScrollerDockable(view : View, position : String) extends JPanel with Adjus
     //event-handling has to be so general (without UNIT_INCR,...)
     // because all events could be sent as TRACK e.g. on my mac
     if (e.getSource == vscroll){
-        message_panel.no = e.getValue
-        message_panel.offset = 0
-        message_panel.invalidate
+      message_panel.no = e.getValue / subunits
+      message_panel.offset = 100 - 100 * (e.getValue % subunits) / subunits
+      message_panel.invalidate
     }
   }
 
@@ -227,11 +189,11 @@ class ScrollerDockable(view : View, position : String) extends JPanel with Adjus
     var i = 0
     if(state != null) new Thread{
       override def run() {
-        while (i < 1) {
+        while (i < 10000) {
           add_message(state.document)
           i += 1
-          try {Thread.sleep(3)}
-          catch{case _ =>}
+          /*try {Thread.sleep(3)}
+          catch{case _ =>}*/
         }
       }
     }.start
