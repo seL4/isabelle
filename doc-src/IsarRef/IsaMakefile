@@ -25,7 +25,7 @@ $(LOG)/HOL-IsarRef.gz: Thy/ROOT.ML ../antiquote_setup.ML		\
   Thy/Inner_Syntax.thy Thy/Introduction.thy Thy/Outer_Syntax.thy	\
   Thy/Spec.thy Thy/Proof.thy Thy/Misc.thy Thy/Document_Preparation.thy	\
   Thy/Generic.thy Thy/HOL_Specific.thy Thy/Quick_Reference.thy		\
-  Thy/ML_Tactic.thy
+  Thy/Symbols.thy Thy/ML_Tactic.thy
 	@$(USEDIR) -s IsarRef HOL Thy
 
 

@@ -2,13 +2,7 @@
 %% $Id$
 
 \documentclass[12pt,a4paper]{report}
-\usepackage{amssymb}
-\usepackage[greek,english]{babel}
-\usepackage[latin1]{inputenc}
-\usepackage[only,bigsqcap]{stmaryrd}
-\usepackage{textcomp}
 \usepackage{supertabular}
-\let\intorig=\int  %iman.sty redefines \int
 \usepackage{graphicx}
 \usepackage{../iman,../extra,../isar,../ttbox}
 \usepackage[nohyphen,strings]{../underscore}
@@ -36,13 +30,9 @@
 \maketitle 
 \pagenumbering{roman} \tableofcontents \clearfirst
 
-\input{Thy/document/Basics}
-\input{Thy/document/Presentation}
-\input{Thy/document/Misc}
-
-\appendix
-\let\int\intorig
-\input{Thy/document/Symbols}
+\input{Thy/document/Basics.tex}
+\input{Thy/document/Presentation.tex}
+\input{Thy/document/Misc.tex}
 
 \begingroup
   \bibliographystyle{plain} \small\raggedright\frenchspacing

@@ -37,7 +37,7 @@ text {*
   \emph{not} be combined with sub- or superscripts for single symbols.
 
   Further details of Isabelle document preparation are covered in
-  \chref{ch:present}.
+  \chref{ch:document-prep}.
 
   \begin{center}
   \begin{isabellebody}

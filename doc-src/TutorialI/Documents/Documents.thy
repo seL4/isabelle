@@ -107,7 +107,7 @@ text {*
   \verb,\,\verb,<forall>, symbol as~@{text \<forall>}.
 
   A list of standard Isabelle symbols is given in
-  \cite[appendix~A]{isabelle-sys}.  You may introduce your own
+  \cite{isabelle-isar-ref}.  You may introduce your own
   interpretation of further symbols by configuring the appropriate
   front-end tool accordingly, e.g.\ by defining certain {\LaTeX}
   macros (see also \S\ref{sec:doc-prep-symbols}).  There are also a
@@ -666,7 +666,7 @@ text {*
   straightforward generalization of ASCII characters.  While Isabelle
   does not impose any interpretation of the infinite collection of
   named symbols, {\LaTeX} documents use canonical glyphs for certain
-  standard symbols \cite[appendix~A]{isabelle-sys}.
+  standard symbols \cite{isabelle-isar-ref}.
 
   The {\LaTeX} code produced from Isabelle text follows a simple
   scheme.  You can tune the final appearance by redefining certain

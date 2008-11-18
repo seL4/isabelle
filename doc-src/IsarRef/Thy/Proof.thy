@@ -105,7 +105,7 @@ text {*
 
   A typical application of @{command "oops"} is to explain Isar proofs
   \emph{within} the system itself, in conjunction with the document
-  preparation tools of Isabelle described in \cite{isabelle-sys}.
+  preparation tools of Isabelle described in \chref{ch:document-prep}.
   Thus partial or even wrong proof attempts can be discussed in a
   logically sound manner.  Note that the Isabelle {\LaTeX} macros can
   be easily adapted to print something like ``@{text "\<dots>"}'' instead of

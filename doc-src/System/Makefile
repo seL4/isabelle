@@ -13,16 +13,12 @@ include ../Makefile.in
 
 NAME = system
 FILES = system.tex Thy/document/Basics.tex Thy/document/Misc.tex	\
-	Thy/document/Presentation.tex Thy/document/Symbols.tex		\
-	../iman.sty ../extra.sty ../ttbox.sty ../manual.bib
-OUTPUT = syms.tex
-
-syms.tex: showsymbols ../isabellesym.sty
-	@./showsymbols <../isabellesym.sty >syms.tex
+	Thy/document/Presentation.tex ../iman.sty ../extra.sty		\
+	../ttbox.sty ../manual.bib
 
 dvi: $(NAME).dvi
 
-$(NAME).dvi: $(FILES) isabelle.eps syms.tex
+$(NAME).dvi: $(FILES) isabelle.eps
 	$(LATEX) $(NAME)
 	$(BIBTEX) $(NAME)
 	$(LATEX) $(NAME)
@@ -32,7 +28,7 @@ $(NAME).dvi: $(FILES) isabelle.eps syms.tex
 
 pdf: $(NAME).pdf
 
-$(NAME).pdf: $(FILES) isabelle.pdf syms.tex
+$(NAME).pdf: $(FILES) isabelle.pdf
 	$(PDFLATEX) $(NAME)
 	$(BIBTEX) $(NAME)
 	$(PDFLATEX) $(NAME)

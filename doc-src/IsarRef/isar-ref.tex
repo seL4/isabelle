@@ -2,7 +2,14 @@
 %% $Id$
 
 \documentclass[12pt,a4paper,fleqn]{report}
-\usepackage{latexsym,graphicx}
+\usepackage{amssymb}
+\usepackage[greek,english]{babel}
+\usepackage[latin1]{inputenc}
+\usepackage[only,bigsqcap]{stmaryrd}
+\usepackage{textcomp}
+\usepackage{latexsym}
+\usepackage{graphicx}
+\let\intorig=\int  %iman.sty redefines \int
 \usepackage{../iman,../extra,../isar,../proof}
 \usepackage[nohyphen,strings]{../underscore}
 \usepackage{../isabelle,../isabellesym}
@@ -89,6 +96,8 @@
 
 \appendix
 \input{Thy/document/Quick_Reference.tex}
+\let\int\intorig
+\input{Thy/document/Symbols.tex}
 \input{Thy/document/ML_Tactic.tex}
 
 \begingroup
