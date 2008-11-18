@@ -109,9 +109,9 @@ sig
   val axm_proof: string -> term -> proof
   val oracle_proof: string -> term -> proof
   val promise_proof: theory -> serial -> term -> proof
-  val fulfill_proof: theory -> (serial * proof Lazy.T) list -> proof_body -> proof_body
+  val fulfill_proof: theory -> (serial * proof) list -> proof_body -> proof_body
   val thm_proof: theory -> string -> term list -> term ->
-    (serial * proof Lazy.T) list -> proof_body -> pthm * proof
+    (serial * proof) list Lazy.T -> proof_body -> pthm * proof
   val get_name: term list -> term -> proof -> string
 
   (** rewriting on proof terms **)
@@ -1219,7 +1219,7 @@ fun finish_proof thy promises prf =
     fun fill (Promise (i, prop, Ts)) =
         (case Inttab.lookup tab i of
           NONE => NONE
-        | SOME p => SOME (instantiate (Term.add_tvars prop [] ~~ Ts, []) (Lazy.force p)))
+        | SOME p => SOME (instantiate (Term.add_tvars prop [] ~~ Ts, []) p))
       | fill _ = NONE;
     val (rules, procs) = get_data thy;
   in #4 (shrink_proof thy [] 0 (rewrite_prf fst (rules, K fill :: procs) prf)) end;
@@ -1228,8 +1228,7 @@ fun fulfill_proof _ [] body0 = body0
   | fulfill_proof thy promises body0 =
       let
         val PBody {oracles = oracles0, thms = thms0, proof = proof0} = body0;
-        val (oracles, thms) =
-          fold (merge_body o make_body o Lazy.force o #2) promises (oracles0, thms0);
+        val (oracles, thms) = fold (merge_body o make_body o #2) promises (oracles0, thms0);
         val proof = finish_proof thy promises proof0;
       in PBody {oracles = oracles, thms = thms, proof = proof} end;
 
@@ -1248,8 +1247,9 @@ fun thm_proof thy name hyps prop promises body =
     val proof0 =
       finish_proof thy [] (if ! proofs = 2 then fold_rev implies_intr_proof hyps prf else MinProof);
 
-    fun new_prf () = (serial (), name, prop, Lazy.lazy (fn () =>
-      fulfill_proof thy promises (PBody {oracles = oracles0, thms = thms0, proof = proof0})));
+    fun new_prf () = (serial (), name, prop,
+      Lazy.lazy (fn () => fulfill_proof thy (Lazy.force promises)
+        (PBody {oracles = oracles0, thms = thms0, proof = proof0})));
 
     val (i, name, prop, body') =
       (case strip_combt (fst (strip_combP prf)) of
