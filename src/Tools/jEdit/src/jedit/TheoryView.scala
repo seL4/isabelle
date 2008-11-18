@@ -204,7 +204,7 @@ class TheoryView(prover : Prover, buffer : JEditBuffer)
   override def preContentInserted(buffer : JEditBuffer, startLine : Int,
 			offset : Int, numLines : Int, length : Int) {
     //simple xsymbol detection: entering whitespace after '>' checks for xsymbol
-    if(offset - 1 > 0 && buffer.getText(offset - 1, 2).equals("> ")){
+    if(length == 1 && offset - 1 > 0 && buffer.getText(offset - 1, 2).equals("> ")){
       val MAX_XSYMB_LENGTH = 20
       var beginning = offset - 2
       var length = 2
@@ -218,7 +218,16 @@ class TheoryView(prover : Prover, buffer : JEditBuffer)
         buffer.remove(beginning, length)
         buffer.insert(beginning, decoded)
       }
+    } else {
+      //longer text inserted -> convert it
+      val text = buffer.getText(offset, length)
+      val decoded = VFS.converter.decode(text)
+      if(!text.equals(decoded)){
+        buffer.remove(offset, length)
+        buffer.insert(offset, decoded)
+      }
     }
+
     if (col == null)
       col = new Changed(offset, length, 0)
     else if (col.start <= offset && offset <= col.start + col.added) 
