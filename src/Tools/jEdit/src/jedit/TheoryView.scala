@@ -197,7 +197,18 @@ class TheoryView(prover : Prover, buffer : JEditBuffer)
   }
 	
   override def contentInserted(buffer : JEditBuffer, startLine : Int, 
-                               offset : Int, numLines : Int, length : Int) { }
+                               offset : Int, numLines : Int, length : Int) {
+    
+     if(length > 1) {
+      //longer text inserted -> convert it
+      val text = buffer.getText(offset, length)
+      val decoded = VFS.converter.decode(text)
+      if(!text.equals(decoded)){
+        buffer.remove(offset, length)
+        buffer.insert(offset, decoded)
+      }
+    }
+  }
   override def contentRemoved(buffer : JEditBuffer, startLine : Int, 
                               offset : Int, numLines : Int, length : Int) { }
 
@@ -217,14 +228,6 @@ class TheoryView(prover : Prover, buffer : JEditBuffer)
         val decoded = VFS.converter.decode(candidate)
         buffer.remove(beginning, length)
         buffer.insert(beginning, decoded)
-      }
-    } else {
-      //longer text inserted -> convert it
-      val text = buffer.getText(offset, length)
-      val decoded = VFS.converter.decode(text)
-      if(!text.equals(decoded)){
-        buffer.remove(offset, length)
-        buffer.insert(offset, decoded)
       }
     }
 
