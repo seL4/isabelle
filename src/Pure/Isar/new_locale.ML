@@ -26,10 +26,8 @@ sig
   val declarations_of: theory -> string -> declaration list * declaration list;
 
   (* Storing results *)
-(*
-val add_thmss: string -> string -> (Attrib.binding * (thm list * Attrib.src list) list) list ->
+  val add_thmss: string -> string -> (Attrib.binding * (thm list * Attrib.src list) list) list ->
     Proof.context -> Proof.context
-*)
   val add_type_syntax: string -> declaration -> Proof.context -> Proof.context
   val add_term_syntax: string -> declaration -> Proof.context -> Proof.context
   val add_declaration: string -> declaration -> Proof.context -> Proof.context
@@ -276,6 +274,19 @@ end;
 
 (*** Storing results ***)
 
+(* Theorems *)
+
+fun add_thmss loc kind args ctxt =
+  let
+    val (([Notes args'], _), ctxt') = Element.activate_i [Notes (kind, args)] ctxt;
+    val ctxt'' = ctxt' |> ProofContext.theory
+      (change_locale loc
+        (fn (parameters, spec, decls, notes, dependencies) =>
+          (parameters, spec, decls, (args', stamp ()) :: notes, dependencies)))
+      (* FIXME registrations *)
+  in ctxt'' end;
+
+
 (* Declarations *)
 
 local
@@ -285,12 +296,9 @@ fun decl_attrib decl phi = Thm.declaration_attribute (K (decl phi));
 fun add_decls add loc decl =
   ProofContext.theory (change_locale loc
     (fn (parameters, spec, decls, notes, dependencies) =>
-      (parameters, spec, add (decl, stamp ()) decls, notes, dependencies)))
-(*
-  #>
+      (parameters, spec, add (decl, stamp ()) decls, notes, dependencies))) #>
   add_thmss loc Thm.internalK
     [((Name.no_binding, [Attrib.internal (decl_attrib decl)]), [([Drule.dummy_thm], [])])];
-*)
 
 in
 
