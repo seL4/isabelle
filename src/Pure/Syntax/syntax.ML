@@ -400,7 +400,7 @@ val basic_nonterms =
 local
 
 fun pretty_strs_qs name strs =
-  Pretty.strs (name :: map Library.quote (sort_strings strs));
+  Pretty.strs (name :: map quote (sort_strings strs));
 
 fun pretty_gram (Syntax (tabs, _)) =
   let
@@ -420,7 +420,7 @@ fun pretty_trans (Syntax (tabs, _)) =
     fun pretty_ruletab name tab =
       Pretty.big_list name (map Ast.pretty_rule (dest_ruletab tab));
 
-    fun pretty_tokentr (mode, trs) = Pretty.strs (Library.quote mode ^ ":" :: map fst trs);
+    fun pretty_tokentr (mode, trs) = Pretty.strs (quote mode ^ ":" :: map fst trs);
 
     val {consts, parse_ast_trtab, parse_ruletab, parse_trtab, print_trtab,
       print_ruletab, print_ast_trtab, tokentrtab, ...} = tabs;

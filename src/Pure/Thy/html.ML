@@ -232,7 +232,7 @@ end;
 
 (* common markup *)
 
-fun span s = ("<span class=" ^ Library.quote (XML.text s) ^ ">", "</span>");
+fun span s = ("<span class=" ^ quote (XML.text s) ^ ">", "</span>");
 
 val _ = Markup.add_mode htmlN (fn (name, _) => span name);
 
@@ -255,7 +255,7 @@ val file_path = file_name o Url.implode;
 
 (* misc *)
 
-fun href_name s txt = "<a href=" ^ Library.quote s ^ ">" ^ txt ^ "</a>";
+fun href_name s txt = "<a href=" ^ quote s ^ ">" ^ txt ^ "</a>";
 fun href_path path txt = href_name (Url.implode path) txt;
 
 fun href_opt_path NONE txt = txt
