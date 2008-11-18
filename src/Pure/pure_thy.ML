@@ -11,6 +11,7 @@ sig
   val intern_fact: theory -> xstring -> string
   val defined_fact: theory -> string -> bool
   val hide_fact: bool -> string -> theory -> theory
+  val force_proofs: theory -> unit
   val get_fact: Context.generic -> theory -> Facts.ref -> thm list
   val get_thms: theory -> xstring -> thm list
   val get_thm: theory -> xstring -> thm
@@ -58,19 +59,28 @@ struct
 
 structure FactsData = TheoryDataFun
 (
-  type T = Facts.T;
-  val empty = Facts.empty;
+  type T = Facts.T * unit Lazy.T list;
+  val empty = (Facts.empty, []);
   val copy = I;
-  val extend = I;
-  fun merge _ = Facts.merge;
+  fun extend (facts, _) = (facts, []);
+  fun merge _ ((facts1, _), (facts2, _)) = (Facts.merge (facts1, facts2), []);
 );
 
-val facts_of = FactsData.get;
+
+(* facts *)
+
+val facts_of = #1 o FactsData.get;
 
 val intern_fact = Facts.intern o facts_of;
 val defined_fact = Facts.defined o facts_of;
 
-fun hide_fact fully name = FactsData.map (Facts.hide fully name);
+fun hide_fact fully name = FactsData.map (apfst (Facts.hide fully name));
+
+
+(* proofs *)
+
+fun lazy_proof thm = Lazy.lazy (fn () => Thm.force_proof thm);
+val force_proofs = List.app Lazy.force o #2 o FactsData.get;
 
 
 
@@ -130,14 +140,18 @@ fun name_thmss official pos name fact =
 
 (* enter_thms *)
 
-fun enter_thms _ _ app_att ("", thms) thy = app_att (thy, thms) |> swap
+fun enter_proofs (thy, thms) =
+  (FactsData.map (apsnd (fold (cons o lazy_proof) thms)) thy, thms);
+
+fun enter_thms _ _ app_att ("", thms) thy = swap (enter_proofs (app_att (thy, thms)))
   | enter_thms pre_name post_name app_att (bname, thms) thy =
       let
         val naming = Sign.naming_of thy;
         val name = NameSpace.full naming bname;
-        val (thy', thms') = apsnd (post_name name) (app_att (thy, pre_name name thms));
+        val (thy', thms') =
+          enter_proofs (apsnd (post_name name) (app_att (thy, pre_name name thms)));
         val thms'' = map (Thm.transfer thy') thms';
-        val thy'' = thy' |> FactsData.map (Facts.add_global naming (name, thms''));
+        val thy'' = thy' |> FactsData.map (apfst (Facts.add_global naming (name, thms'')));
       in (thms'', thy'') end;
 
 
@@ -174,7 +188,7 @@ val add_thm = yield_singleton add_thms;
 
 fun add_thms_dynamic (bname, f) thy =
   let val name = Sign.full_name thy bname
-  in thy |> FactsData.map (Facts.add_dynamic (Sign.naming_of thy) (name, f)) end;
+  in thy |> FactsData.map (apfst (Facts.add_dynamic (Sign.naming_of thy) (name, f))) end;
 
 
 (* note_thmss *)
