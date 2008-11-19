@@ -319,24 +319,16 @@ structure TheoremHook = GenericDataFun
 );
 
 fun gen_theorem prep_att prep_stmt
-    kind before_qed after_qed (name, raw_atts) raw_elems raw_concl int lthy0 =
+    kind before_qed after_qed (name, raw_atts) raw_elems raw_concl int lthy =
   let
-    val _ = LocalTheory.affirm lthy0;
-    val thy = ProofContext.theory_of lthy0;
-
-    val (loc, ctxt, lthy) =
-      (case (TheoryTarget.peek lthy0, false (* exists (fn Locale.Expr _ => true | _ => false) raw_elems *)) of
-        ({target, is_locale = true, ...}, true) =>
-          (*temporary workaround for non-modularity of in/includes*)  (* FIXME *)
-          (SOME target, ProofContext.init thy, LocalTheory.restore lthy0)
-      | _ => (NONE, lthy0, lthy0));
+    val _ = LocalTheory.affirm lthy;
+    val thy = ProofContext.theory_of lthy;
 
     val attrib = prep_att thy;
     val atts = map attrib raw_atts;
-
     val elems = raw_elems |> map (Element.map_ctxt_attrib attrib);
     val ((prems, stmt, facts), goal_ctxt) =
-      prep_statement attrib (prep_stmt loc) elems raw_concl ctxt;
+      prep_statement attrib (prep_stmt NONE) elems raw_concl lthy;
 
     fun after_qed' results goal_ctxt' =
       let val results' =
