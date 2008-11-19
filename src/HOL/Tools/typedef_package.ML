@@ -10,7 +10,7 @@ signature TYPEDEF_PACKAGE =
 sig
   type info =
    {rep_type: typ, abs_type: typ, Rep_name: string, Abs_name: string,
-    type_definition: thm, set_def: thm option, Rep: thm, Rep_inverse: thm,
+    inhabited: thm, type_definition: thm, set_def: thm option, Rep: thm, Rep_inverse: thm,
     Abs_inverse: thm, Rep_inject: thm, Abs_inject: thm, Rep_cases: thm,
     Abs_cases: thm, Rep_induct: thm, Abs_induct: thm};
   val get_info: theory -> string -> info option
@@ -49,7 +49,7 @@ val Abs_induct = @{thm "type_definition.Abs_induct"};
 
 type info =
  {rep_type: typ, abs_type: typ, Rep_name: string, Abs_name: string,
-  type_definition: thm, set_def: thm option, Rep: thm, Rep_inverse: thm,
+  inhabited: thm, type_definition: thm, set_def: thm option, Rep: thm, Rep_inverse: thm,
   Abs_inverse: thm, Rep_inject: thm, Abs_inject: thm, Rep_cases: thm,
   Abs_cases: thm, Rep_induct: thm, Abs_induct: thm};
 
@@ -90,10 +90,10 @@ fun prepare_typedef prep_term def name (t, vs, mx) raw_set opt_morphs thy =
     val rhs_tfreesT = Term.add_tfreesT setT [];
     val oldT = HOLogic.dest_setT setT handle TYPE _ =>
       error ("Not a set type: " ^ quote (Syntax.string_of_typ ctxt setT));
-    fun mk_nonempty A =
+    fun mk_inhabited A =
       HOLogic.mk_Trueprop (HOLogic.mk_exists ("x", oldT, HOLogic.mk_mem (Free ("x", oldT), A)));
-    val goal = mk_nonempty set;
-    val goal_pat = mk_nonempty (Var (the_default (name, 0) (Syntax.read_variable name), setT));
+    val goal = mk_inhabited set;
+    val goal_pat = mk_inhabited (Var (the_default (name, 0) (Syntax.read_variable name), setT));
 
     (*lhs*)
     val defS = Sign.defaultS thy;
@@ -130,7 +130,7 @@ fun prepare_typedef prep_term def name (t, vs, mx) raw_set opt_morphs thy =
         |-> (fn [th] => pair (SOME th))
       else (NONE, thy);
 
-    fun typedef_result nonempty =
+    fun typedef_result inhabited =
       ObjectLogic.typedecl (t, vs, mx)
       #> snd
       #> Sign.add_consts_i
@@ -139,7 +139,7 @@ fun prepare_typedef prep_term def name (t, vs, mx) raw_set opt_morphs thy =
          (Abs_name, oldT --> newT, NoSyn)])
       #> add_def (PrimitiveDefs.mk_defpair (setC, set))
       ##>> PureThy.add_axioms [((typedef_name, typedef_prop),
-          [apsnd (fn cond_axm => nonempty RS cond_axm)])]
+          [apsnd (fn cond_axm => inhabited RS cond_axm)])]
       ##> Theory.add_deps "" (dest_Const RepC) typedef_deps
       ##> Theory.add_deps "" (dest_Const AbsC) typedef_deps
       #-> (fn (set_def, [type_definition]) => fn thy1 =>
@@ -168,7 +168,7 @@ fun prepare_typedef prep_term def name (t, vs, mx) raw_set opt_morphs thy =
             ||> Sign.parent_path;
           val info = {rep_type = oldT, abs_type = newT,
             Rep_name = full Rep_name, Abs_name = full Abs_name,
-              type_definition = type_definition, set_def = set_def,
+              inhabited = inhabited, type_definition = type_definition, set_def = set_def,
               Rep = Rep, Rep_inverse = Rep_inverse, Abs_inverse = Abs_inverse,
               Rep_inject = Rep_inject, Abs_inject = Abs_inject, Rep_cases = Rep_cases,
             Abs_cases = Abs_cases, Rep_induct = Rep_induct, Abs_induct = Abs_induct};
