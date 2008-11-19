@@ -554,11 +554,11 @@ qed
 
 (* Fermat's Little theorem / Fermat-Euler theorem.                           *)
 
-lemma (in comm_monoid_mult) fold_related: 
+lemma (in comm_monoid_mult) fold_image_related: 
   assumes Re: "R e e" 
   and Rop: "\<forall>x1 y1 x2 y2. R x1 x2 \<and> R y1 y2 \<longrightarrow> R (x1 * y1) (x2 * y2)" 
   and fS: "finite S" and Rfg: "\<forall>x\<in>S. R (h x) (g x)"
-  shows "R (fold (op *) h e S) (fold (op *) g e S)"
+  shows "R (fold_image (op *) h e S) (fold_image (op *) g e S)"
   using fS by (rule finite_subset_induct) (insert assms, auto)
 
 lemma nproduct_mod:
@@ -571,7 +571,7 @@ proof-
     [x1 = x2] (mod n) \<and> [y1 = y2] (mod n) \<longrightarrow> [x1 * y1 = x2 * y2] (mod n)"
     by blast
   have th4:"\<forall>x\<in>S. [a x mod n = a x] (mod n)" by (simp add: modeq_def)
-  from fold_related[where h="(\<lambda>m. a(m) mod n)" and g=a, OF th1 th3 fS, OF th4] show ?thesis unfolding setprod_def by (simp add: fS)
+  from fold_image_related[where h="(\<lambda>m. a(m) mod n)" and g=a, OF th1 th3 fS, OF th4] show ?thesis unfolding setprod_def by (simp add: fS)
 qed
 
 lemma nproduct_cmul:
@@ -586,21 +586,21 @@ lemma coprime_nproduct:
     (insert Sn, auto simp add: coprime_mul)
 
 lemma (in comm_monoid_mult) 
-  fold_eq_general:
+  fold_image_eq_general:
   assumes fS: "finite S"
   and h: "\<forall>y\<in>S'. \<exists>!x. x\<in> S \<and> h(x) = y" 
   and f12:  "\<forall>x\<in>S. h x \<in> S' \<and> f2(h x) = f1 x"
-  shows "fold (op *) f1 e S = fold (op *) f2 e S'"
+  shows "fold_image (op *) f1 e S = fold_image (op *) f2 e S'"
 proof-
   from h f12 have hS: "h ` S = S'" by auto
   {fix x y assume H: "x \<in> S" "y \<in> S" "h x = h y"
     from f12 h H  have "x = y" by auto }
   hence hinj: "inj_on h S" unfolding inj_on_def Ex1_def by blast
   from f12 have th: "\<And>x. x \<in> S \<Longrightarrow> (f2 \<circ> h) x = f1 x" by auto 
-  from hS have "fold (op *) f2 e S' = fold (op *) f2 e (h ` S)" by simp
-  also have "\<dots> = fold (op *) (f2 o h) e S" 
-    using fold_reindex[OF fS hinj, of f2 e] .
-  also have "\<dots> = fold (op *) f1 e S " using th fold_cong[OF fS, of "f2 o h" f1 e]
+  from hS have "fold_image (op *) f2 e S' = fold_image (op *) f2 e (h ` S)" by simp
+  also have "\<dots> = fold_image (op *) (f2 o h) e S" 
+    using fold_image_reindex[OF fS hinj, of f2 e] .
+  also have "\<dots> = fold_image (op *) f1 e S " using th fold_image_cong[OF fS, of "f2 o h" f1 e]
     by blast
   finally show ?thesis ..
 qed
@@ -633,9 +633,9 @@ proof-
       have "a\<noteq>0" using an n1 nz apply- apply (rule ccontr) by simp
       hence inj: "inj_on (op * a) ?S" unfolding inj_on_def by simp
       
-      have eq0: "fold op * (?h \<circ> op * a) 1 {m. coprime m n \<and> m < n} =
-     fold op * (\<lambda>m. m) 1 {m. coprime m n \<and> m < n}"
-      proof (rule fold_eq_general[where h="?h o (op * a)"])
+      have eq0: "fold_image op * (?h \<circ> op * a) 1 {m. coprime m n \<and> m < n} =
+     fold_image op * (\<lambda>m. m) 1 {m. coprime m n \<and> m < n}"
+      proof (rule fold_image_eq_general[where h="?h o (op * a)"])
 	show "finite ?S" using fS .
       next
 	{fix y assume yS: "y \<in> ?S" hence y: "coprime y n" "y < n" by simp_all
