@@ -312,26 +312,61 @@ fun debug_context (raw_expr, fixed) ctxt =
 
 (*** Locale processing ***)
 
-(** Prepare locale elements **)
+(** Parsing **)
 
-local
+fun parse_elem prep_typ prep_term ctxt elem =
+  Element.map_ctxt {name = I, var = I, typ = prep_typ ctxt,
+    term = prep_term ctxt, fact = I, attrib = I} elem;
+
+fun parse_concl prep_term ctxt concl =
+  (map o map) (fn (t, ps) =>
+    (prep_term ctxt, map (prep_term ctxt) ps)) concl;
+
+
+(** Type checking **)
+
+fun extract_elem (Fixes fixes) = map (#2 #> the_list #> map (Logic.mk_type #> rpair [])) fixes
+  | extract_elem (Constrains csts) = map (#2 #> single #> map (Logic.mk_type #> rpair [])) csts
+  | extract_elem (Assumes asms) = map #2 asms
+  | extract_elem (Defines defs) = map (fn (_, (t, ps)) => [(t, ps)]) defs
+  | extract_elem (Notes _) = [];
+
+fun restore_elem (Fixes fixes, propps) =
+      (fixes ~~ propps) |> map (fn ((x, _, mx), propp) =>
+        (x, propp |> map (fst #> Logic.dest_type) |> try hd, mx)) |> Fixes
+  | restore_elem (Constrains csts, propps) =
+      (csts ~~ propps) |> map (fn ((x, _), propp) =>
+        (x, propp |> map (fst #> Logic.dest_type) |> hd)) |> Constrains
+  | restore_elem (Assumes asms, propps) =
+      (asms ~~ propps) |> map (fn ((b, _), propp) => (b, propp)) |> Assumes
+  | restore_elem (Defines defs, propps) =
+      (defs ~~ propps) |> map (fn ((b, _), [propp]) => (b, propp)) |> Defines
+  | restore_elem (Notes notes, _) = Notes notes;
+
+fun check_autofix_elems elems concl ctxt =
+  let
+    val termss = elems |> map extract_elem;
+    val all_terms' = (burrow o burrow_fst) (Syntax.check_terms ctxt) (concl @ flat termss); 
+(*    val (ctxt', all_props') = ProofContext.check_propp_schematic (ctxt, concl @ flat propss); *)
+val _ = "check" |> warning;
+val _ = PolyML.makestring all_terms' |> warning;
+    val (concl', terms') = chop (length concl) all_terms';
+    val ctxt'' = (fold o fold) (fn (t, _) => Variable.auto_fixes t) terms' ctxt;
+  in (terms' |> unflat termss |> curry (op ~~) elems |> map restore_elem, concl', ctxt'') end;
+
+
+(** Prepare locale elements **)
 
 fun declare_elem prep_vars (Fixes fixes) ctxt =
       let val (vars, _) = prep_vars fixes ctxt
-      in ([], ctxt |> ProofContext.add_fixes_i vars |> snd) end
+      in ctxt |> ProofContext.add_fixes_i vars |> snd end
   | declare_elem prep_vars (Constrains csts) ctxt =
-      let val (_, ctxt') = prep_vars (map (fn (x, T) => (Name.binding x, SOME T, NoSyn)) csts) ctxt
-      in ([], ctxt') end
-  | declare_elem _ (Assumes asms) ctxt = (map #2 asms, ctxt)
-  | declare_elem _ (Defines defs) ctxt = (map (fn (_, (t, ps)) => [(t, ps)]) defs, ctxt)
-  | declare_elem _ (Notes _) ctxt = ([], ctxt);
+      ctxt |> prep_vars (map (fn (x, T) => (Name.binding x, SOME T, NoSyn)) csts) |> snd
+  | declare_elem _ (Assumes asms) ctxt = ctxt
+  | declare_elem _ (Defines defs) ctxt = ctxt
+  | declare_elem _ (Notes _) ctxt = ctxt;
 
-in
-
-fun declare_elems prep_vars raw_elems ctxt =
-  fold_map (declare_elem prep_vars) raw_elems ctxt;
-
-end;
+(** Finish locale elements, extract specification text **)
 
 local
 
@@ -367,18 +402,18 @@ fun eval_text _ (Fixes _) text = text
       (spec, fold (bind_def ctxt o #1 o #2) defs binds)
   | eval_text _ (Notes _) text = text;
 
-fun closeup _ false elem = elem
-  | closeup ctxt true elem =
+fun closeup _ _ false elem = elem
+  | closeup ctxt parms true elem =
       let
         fun close_frees t =
           let
             val rev_frees =
               Term.fold_aterms (fn Free (x, T) =>
-                if Variable.is_fixed ctxt x then I else insert (op =) (x, T) | _ => I) t [];
+                if AList.defined (op =) parms x then I else insert (op =) (x, T) | _ => I) t [];
           in Term.list_all_free (rev rev_frees, t) end;
 
         fun no_binds [] = []
-          | no_binds _ = error "Illegal term bindings in locale element";
+          | no_binds _ = error "Illegal term bindings in context element";
       in
         (case elem of
           Assumes asms => Assumes (asms |> map (fn (a, propps) =>
@@ -388,19 +423,17 @@ fun closeup _ false elem = elem
         | e => e)
       end;
 
-fun finish_ext_elem parms _ (Fixes fixes, _) = Fixes (map (fn (binding, _, mx) =>
+fun finish_ext_elem parms _ (Fixes fixes) = Fixes (map (fn (binding, _, mx) =>
       let val x = Name.name_of binding
       in (binding, AList.lookup (op =) parms x, mx) end) fixes)
-  | finish_ext_elem _ _ (Constrains _, _) = Constrains []
-  | finish_ext_elem _ close (Assumes asms, propp) =
-      close (Assumes (map #1 asms ~~ propp))
-  | finish_ext_elem _ close (Defines defs, propp) =
-      close (Defines (map #1 defs ~~ map (fn [(t, ps)] => (t, ps)) propp))
-  | finish_ext_elem _ _ (Notes facts, _) = Notes facts;
+  | finish_ext_elem _ _ (Constrains _) = Constrains []
+  | finish_ext_elem _ close (Assumes asms) = close (Assumes asms)
+  | finish_ext_elem _ close (Defines defs) = close (Defines defs)
+  | finish_ext_elem _ _ (Notes facts) = Notes facts;
 
-fun finish_elem ctxt parms do_close (elem, propp) text =
+fun finish_elem ctxt parms do_close elem text =
   let
-    val elem' = finish_ext_elem parms (closeup ctxt do_close) (elem, propp);
+    val elem' = finish_ext_elem parms (closeup ctxt parms do_close) elem;
     val text' = eval_text ctxt elem' text;
   in (elem', text') end
   
@@ -414,62 +447,40 @@ end;
 
 local
 
-fun param_types ps = map_filter (fn (_, NONE) => NONE | (x, SOME T) => SOME (x, T)) ps;
+(* nice, but for now not needed
+fun fold_suffixes f [] y = f [] y
+  | fold_suffixes f (x :: xs) y = f (x :: xs) (f xs y);
 
-fun frozen_tvars ctxt Ts =
-  #1 (Variable.importT_inst (map Logic.mk_type Ts) ctxt)
-  |> map (fn ((xi, S), T) => (xi, (S, T)));
+fun fold_prefixes f xs y = fold_suffixes (f o rev) (rev xs) y;
+*)
 
-fun unify_frozen ctxt maxidx Ts Us =
+fun prep_elems parse_typ parse_prop prep_vars do_close context raw_elems raw_concl =
   let
-    fun paramify NONE i = (NONE, i)
-      | paramify (SOME T) i = apfst SOME (TypeInfer.paramify_dummies T i);
-
-    val (Ts', maxidx') = fold_map paramify Ts maxidx;
-    val (Us', maxidx'') = fold_map paramify Us maxidx';
-    val thy = ProofContext.theory_of ctxt;
-
-    fun unify (SOME T, SOME U) env = (Sign.typ_unify thy (U, T) env
-          handle Type.TUNIFY => raise TYPE ("unify_frozen: failed to unify types", [U, T], []))
-      | unify _ env = env;
-    val (unifier, _) = fold unify (Ts' ~~ Us') (Vartab.empty, maxidx'');
-    val Vs = map (Option.map (Envir.norm_type unifier)) Us';
-    val unifier' = Vartab.extend (unifier, frozen_tvars ctxt (map_filter I Vs));
-  in map (Option.map (Envir.norm_type unifier')) Vs end;
-
-fun prep_elems prep_vars prepp do_close context raw_elems raw_concl =
-  let
-    val (raw_propps, raw_ctxt) = declare_elems prep_vars raw_elems context;
-      (* raw_ctxt is context enriched by syntax from raw_elems *)
-
-    fun prep_prop raw_propp (raw_ctxt, raw_concl) =
+    fun prep_elem raw_elem (elems, ctxt) =
       let
-        (* process patterns (conclusion and external elements) *)
-        val (ctxt, all_propp) = prepp (raw_ctxt, raw_concl @ raw_propp);
-        (* add type information from conclusion and external elements to context *)
-        val ctxt = fold Variable.declare_term (maps (map fst) all_propp) ctxt;
-        (* resolve schematic variables (patterns) in conclusion and external elements. *)
-        val all_propp' = map2 (curry (op ~~))
-          (#1 (#2 (ProofContext.bind_propp_schematic_i (ctxt, all_propp)))) (map (map snd) all_propp);
-        val (concl, propp) = chop (length raw_concl) all_propp';
-      in (propp, (ctxt, concl)) end
+        val ctxt' = declare_elem prep_vars raw_elem ctxt;
+        val elems' = elems @ [parse_elem parse_typ parse_prop ctxt' raw_elem];
+        (* FIXME term bindings *)
+        val (_, _, ctxt'') = check_autofix_elems elems' [] ctxt';
+      in (elems', ctxt'') end;
 
-    val (propps, (ctxt, concl)) = fold_burrow prep_prop raw_propps (raw_ctxt, raw_concl);
+    fun prep_concl raw_concl (elems, ctxt) =
+      let
+        val concl = (map o map) (fn (t, ps) =>
+          (parse_prop ctxt t, map (parse_prop ctxt) ps)) raw_concl;
+      in check_autofix_elems elems concl ctxt end;
 
-    (* Infer parameter types *) 
+    val (elems, concl, ctxt) = fold prep_elem raw_elems ([], context) |>
+      prep_concl raw_concl;
+
+    (* Retrieve parameter types *) 
     val xs = fold (fn Fixes fixes => (fn ps => ps @ map (Name.name_of o #1) fixes) |
-      _ => fn ps => ps) raw_elems [];
-    val typing = unify_frozen ctxt 0
-      (map (Variable.default_type raw_ctxt) xs)
-      (map (Variable.default_type ctxt) xs);
-    val parms = param_types (xs ~~ typing);
+      _ => fn ps => ps) elems [];
+    val (Ts, _) = fold_map ProofContext.inferred_param xs ctxt; 
+    val parms = xs ~~ Ts;
 
-    (* CB: extract information from assumes and defines elements
-       (fixes, constrains and notes in raw_elemss don't have an effect on
-       text and elemss), compute final form of context elements. *)
-   val (elems, text) = finish_elems ctxt parms do_close
-      (raw_elems ~~ propps) ((([], []), ([], [])), ([], [], []));
-    (* CB: text has the following structure:
+    val (elems', text) = finish_elems ctxt parms do_close elems ((([], []), ([], [])), ([], [], []));
+    (* text has the following structure:
            (((exts, exts'), (ints, ints')), (xs, env, defs))
        where
          exts: external assumptions (terms in external assumes elements)
@@ -489,12 +500,13 @@ fun prep_elems prep_vars prepp do_close context raw_elems raw_concl =
            from proppss in Assumes and Defines
          - Facts unchanged
        *)
-   in ((parms, elems, concl), text) end
+
+  in ((parms, elems', concl), text) end
 
 in
 
-fun read_elems x = prep_elems ProofContext.read_vars ProofContext.read_propp_schematic x;
-fun cert_elems x = prep_elems ProofContext.cert_vars ProofContext.cert_propp_schematic x;
+fun read_elems x = prep_elems Syntax.parse_typ Syntax.parse_prop ProofContext.read_vars x;
+fun cert_elems x = prep_elems (K I) (K I) ProofContext.cert_vars x;
 
 end;
 
@@ -536,10 +548,9 @@ in
 
 fun read_context imprt body ctxt =
   #1 (prep_context_statement intern_expr read_elems true imprt body [] ctxt);
-(*
 fun cert_context imprt body ctxt =
   #1 (prep_context_statement (K I) cert_elems true imprt body [] ctxt);
-*)
+
 end;
 
 
