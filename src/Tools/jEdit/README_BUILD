@@ -2,13 +2,14 @@
 Requirements to build from sources
 ==================================
 
-* Proper Java JRE/JDK from Sun
+* Proper Java JRE/JDK from Sun, e.g. 1.6.0_07
   http://java.sun.com/javase/downloads/index.jsp
 
-* Netbeans 6.5beta
-  http://download.netbeans.org/netbeans/6.5/beta/
+* Netbeans 6.5
+  http://www.netbeans.org/downloads/index.html
 
 * Scala for Netbeans
+  http://blogtrader.net/page/dcaoyuan/entry/new_scala_plugin_for_netbeans
   http://wiki.netbeans.org/Scala
   http://plugins.netbeans.org/PluginPortal/faces/PluginDetailPage.jsp?pluginid=11854
 
