@@ -113,8 +113,8 @@ class ScrollerDockable(view : View, position : String) extends JPanel with Adjus
   val message_panel = new MessagePanel(cache)
   val infopanel = new InfoPanel
   val vscroll = new JScrollBar(Adjustable.VERTICAL, 0, 1, 0, 1)
-  vscroll.setUnitIncrement(subunits / 5)
-  vscroll.setBlockIncrement(subunits / 2)
+  vscroll.setUnitIncrement(subunits / 3)
+  vscroll.setBlockIncrement(subunits)
   vscroll.addAdjustmentListener(this)
   
   setLayout(new BorderLayout())
