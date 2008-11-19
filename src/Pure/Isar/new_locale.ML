@@ -222,11 +222,12 @@ fun activate name thy activ_elem input =
       (name', Morphism.identity) :: roundup thy (map fst dependencies);
   in
     input |>
-      not (null params) ? activ_elem (Fixes params) |>
+      (if not (null params) then activ_elem (Fixes params) else I) |>
       (* FIXME type parameters *)
-      is_some asm ? activ_elem (Assumes [(Attrib.no_binding, [(the asm, [])])]) |>
-      not (null defs) ?
-        activ_elem (Defines (map (fn def => (Attrib.no_binding, (def, []))) defs)) |>
+      (if is_some asm then activ_elem (Assumes [(Attrib.no_binding, [(the asm, [])])]) else I) |>
+      (if not (null defs)
+        then activ_elem (Defines (map (fn def => (Attrib.no_binding, (def, []))) defs))
+        else I) |>
       fold_rev (activate_notes activ_elem thy) dependencies'
   end;
 
