@@ -22,52 +22,24 @@ import org.xhtmlrenderer.context.AWTFontResolver
 
 import org.gjt.sp.jedit.View
 
-trait Unrendered[T] {
-  def addUnrendered (id: Int, u: T) : Unit
-  def getUnrendered (id: Int) : Option[T]
+trait Renderer[U, R] {
+  def render (u: U): R
+  //relayout a rendered element using argument a
+  def relayout (r: R, a: Int)
+}
+
+trait Unrendered[U] {
+  def addUnrendered (id: Int, u: U) : Unit
+  def getUnrendered (id: Int) : Option[U]
   def size : Int
 }
 
-trait Rendered[T] {
-  def getRendered (id: Int) : Option[T]
+trait Rendered[U, R] {
+  def getRendered (id: Int) : Option[R]
+  val renderer : Renderer[U, R]
 }
 
-object Renderer {
-  
-  def render (r: Result): XHTMLPanel = {
-    val panel = new XHTMLPanel(new UserAgent())
-    val fontResolver =
-      panel.getSharedContext.getFontResolver.asInstanceOf[AWTFontResolver]
-    if (Plugin.plugin.viewFont != null)
-      fontResolver.setFontMapping("Isabelle", Plugin.plugin.viewFont)
-
-    Plugin.plugin.viewFontChanged.add(font => {
-      if (Plugin.plugin.viewFont != null)
-        fontResolver.setFontMapping("Isabelle", Plugin.plugin.viewFont)
-      panel.relayout()
-    })
-    val tree = parse_failsafe(VFS.converter.decode(r.result))
-    val document = XML.document(tree)
-    panel.setDocument(document, UserAgent.baseURL)
-    val sa = new SelectionActions
-    sa.install(panel)
-    panel
-  }
-  
-  def relayout_panel (panel: XHTMLPanel, width : Int) {
-    // ATTENTION:
-    // panel has to be displayable in a frame/container message_view for doDocumentLayout to have
-    // an effect, especially returning correct preferredSize
-    panel.setBounds (0, 0, width, 1) // document has to fit into width
-    panel.doDocumentLayout (panel.getGraphics) //lay out, preferred size is set then
-    // if there are thousands of empty panels, all have to be rendered -
-    // but this takes time (even for empty panels); therefore minimum size
-    panel.setPreferredSize(new java.awt.Dimension(width,Math.max(25, panel.getPreferredSize.getHeight.toInt)))
-  }
-
-}
-
-class MessagePanel(cache: Rendered[XHTMLPanel]) extends JPanel {
+class MessagePanel(cache: Rendered[_, XHTMLPanel]) extends JPanel {
   // defining the current view
   var offset = 0 //what percentage of the lowest message is hidden
   var no = -1  //index of the lowest message
@@ -85,7 +57,7 @@ class MessagePanel(cache: Rendered[XHTMLPanel]) extends JPanel {
         add(panel)
         // recalculate preferred size after resizing the message_view
         if(panel.getPreferredSize.getWidth.toInt != getWidth){
-          Renderer.relayout_panel (panel, getWidth)
+          cache.renderer.relayout (panel, getWidth)
         }
         val width = panel.getPreferredSize.getWidth.toInt
         val height = panel.getPreferredSize.getHeight.toInt
@@ -132,8 +104,9 @@ class InfoPanel extends JPanel {
 
 class ScrollerDockable(view : View, position : String) extends JPanel with AdjustmentListener {
 
-  val buffer:Unrendered[Result] = new MessageBuffer()
-  val cache:Rendered[XHTMLPanel] = new PanelCache(buffer)
+  val renderer:Renderer[Result, XHTMLPanel] = new ResultToPanelRenderer
+  val buffer:Unrendered[Result] = new MessageBuffer
+  val cache:Rendered[Result, XHTMLPanel] = new PanelCache(buffer, renderer)
 
   val subunits = 100
   // set up view
@@ -196,7 +169,7 @@ class ScrollerDockable(view : View, position : String) extends JPanel with Adjus
   Plugin.plugin.prover.allInfo.add(add_result(_))
 }
 
-
+//Concrete Implementations
 
 //containing the unrendered messages
 class MessageBuffer extends HashMap[Int,Result] with Unrendered[Result]{
@@ -211,13 +184,15 @@ class MessageBuffer extends HashMap[Int,Result] with Unrendered[Result]{
 }
 
 //containing the rendered messages
-class PanelCache (buffer: Unrendered[Result]) extends HashMap[Int, XHTMLPanel] with Rendered[XHTMLPanel]{
+class PanelCache (buffer: Unrendered[Result], val renderer: Renderer[Result, XHTMLPanel])
+  extends HashMap[Int, XHTMLPanel] with Rendered[Result, XHTMLPanel]{
+
   override def getRendered (id: Int): Option[XHTMLPanel] = {
     //get message from buffer and render it if necessary
     if(!isDefinedAt(id)){
       buffer.getUnrendered(id) match {
         case Some (message) =>
-          update (id, Renderer.render (message))
+          update (id, renderer.render (message))
         case None =>
       }
     }
@@ -230,4 +205,39 @@ class PanelCache (buffer: Unrendered[Result]) extends HashMap[Int, XHTMLPanel] w
     }
     return result
   }
+}
+
+class ResultToPanelRenderer extends Renderer[Result, XHTMLPanel]{
+  
+  def render (r: Result): XHTMLPanel = {
+    val panel = new XHTMLPanel(new UserAgent())
+    val fontResolver =
+      panel.getSharedContext.getFontResolver.asInstanceOf[AWTFontResolver]
+    if (Plugin.plugin.viewFont != null)
+      fontResolver.setFontMapping("Isabelle", Plugin.plugin.viewFont)
+
+    Plugin.plugin.viewFontChanged.add(font => {
+      if (Plugin.plugin.viewFont != null)
+        fontResolver.setFontMapping("Isabelle", Plugin.plugin.viewFont)
+      panel.relayout()
+    })
+    val tree = parse_failsafe(VFS.converter.decode(r.result))
+    val document = XML.document(tree)
+    panel.setDocument(document, UserAgent.baseURL)
+    val sa = new SelectionActions
+    sa.install(panel)
+    panel
+  }
+  
+  def relayout (panel: XHTMLPanel, width : Int) {
+    // ATTENTION:
+    // panel has to be displayable in a frame/container message_view for doDocumentLayout to have
+    // an effect, especially returning correct preferredSize
+    panel.setBounds (0, 0, width, 1) // document has to fit into width
+    panel.doDocumentLayout (panel.getGraphics) //lay out, preferred size is set then
+    // if there are thousands of empty panels, all have to be rendered -
+    // but this takes time (even for empty panels); therefore minimum size
+    panel.setPreferredSize(new java.awt.Dimension(width,Math.max(25, panel.getPreferredSize.getHeight.toInt)))
+  }
+
 }
