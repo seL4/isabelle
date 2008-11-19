@@ -724,10 +724,10 @@ syntax (latex_sum output)
  ("(3\<^raw:$\sum_{>_ \<le> _\<^raw:}$> _)" [0,0,10] 10)
 
 translations
-  "\<Sum>x=a..b. t" == "setsum (%x. t) {a..b}"
-  "\<Sum>x=a..<b. t" == "setsum (%x. t) {a..<b}"
-  "\<Sum>i\<le>n. t" == "setsum (\<lambda>i. t) {..n}"
-  "\<Sum>i<n. t" == "setsum (\<lambda>i. t) {..<n}"
+  "\<Sum>x=a..b. t" == "CONST setsum (%x. t) {a..b}"
+  "\<Sum>x=a..<b. t" == "CONST setsum (%x. t) {a..<b}"
+  "\<Sum>i\<le>n. t" == "CONST setsum (\<lambda>i. t) {..n}"
+  "\<Sum>i<n. t" == "CONST setsum (\<lambda>i. t) {..<n}"
 
 text{* The above introduces some pretty alternative syntaxes for
 summation over intervals:

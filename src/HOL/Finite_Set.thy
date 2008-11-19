@@ -479,47 +479,52 @@ instance option :: (finite) finite
 subsection {* A fold functional for finite sets *}
 
 text {* The intended behaviour is
-@{text "fold f g z {x\<^isub>1, ..., x\<^isub>n} = f (g x\<^isub>1) (\<dots> (f (g x\<^isub>n) z)\<dots>)"}
-if @{text f} is associative-commutative. For an application of @{text fold}
-se the definitions of sums and products over finite sets.
+@{text "fold f z {x\<^isub>1, ..., x\<^isub>n} = f x\<^isub>1 (\<dots> (f x\<^isub>n z)\<dots>)"}
+if @{text f} is ``left-commutative'':
 *}
 
-inductive
-  foldSet :: "('a => 'a => 'a) => ('b => 'a) => 'a => 'b set => 'a => bool"
-  for f ::  "'a => 'a => 'a"
-  and g :: "'b => 'a"
-  and z :: 'a
-where
-  emptyI [intro]: "foldSet f g z {} z"
-| insertI [intro]:
-     "\<lbrakk> x \<notin> A; foldSet f g z A y \<rbrakk>
-      \<Longrightarrow> foldSet f g z (insert x A) (f (g x) y)"
+locale fun_left_comm =
+  fixes f :: "'a \<Rightarrow> 'b \<Rightarrow> 'b"
+  assumes fun_left_comm: "f x (f y z) = f y (f x z)"
+begin
 
-inductive_cases empty_foldSetE [elim!]: "foldSet f g z {} x"
+text{* On a functional level it looks much nicer: *}
 
-constdefs
-  fold :: "('a => 'a => 'a) => ('b => 'a) => 'a => 'b set => 'a"
-  "fold f g z A == THE x. foldSet f g z A x"
+lemma fun_comp_comm:  "f x \<circ> f y = f y \<circ> f x"
+by (simp add: fun_left_comm expand_fun_eq)
+
+end
+
+inductive fold_graph :: "('a \<Rightarrow> 'b \<Rightarrow> 'b) \<Rightarrow> 'b \<Rightarrow> 'a set \<Rightarrow> 'b \<Rightarrow> bool"
+for f :: "'a \<Rightarrow> 'b \<Rightarrow> 'b" and z :: 'b where
+  emptyI [intro]: "fold_graph f z {} z" |
+  insertI [intro]: "x \<notin> A \<Longrightarrow> fold_graph f z A y
+      \<Longrightarrow> fold_graph f z (insert x A) (f x y)"
+
+inductive_cases empty_fold_graphE [elim!]: "fold_graph f z {} x"
+
+definition fold :: "('a \<Rightarrow> 'b \<Rightarrow> 'b) \<Rightarrow> 'b \<Rightarrow> 'a set \<Rightarrow> 'b" where
+[code del]: "fold f z A = (THE y. fold_graph f z A y)"
 
 text{*A tempting alternative for the definiens is
-@{term "if finite A then THE x. foldSet f g e A x else e"}.
+@{term "if finite A then THE y. fold_graph f z A y else e"}.
 It allows the removal of finiteness assumptions from the theorems
-@{text fold_commute}, @{text fold_reindex} and @{text fold_distrib}.
-The proofs become ugly, with @{text rule_format}. It is not worth the effort.*}
+@{text fold_comm}, @{text fold_reindex} and @{text fold_distrib}.
+The proofs become ugly. It is not worth the effort. (???) *}
 
 
-lemma Diff1_foldSet:
-  "foldSet f g z (A - {x}) y ==> x: A ==> foldSet f g z A (f (g x) y)"
-by (erule insert_Diff [THEN subst], rule foldSet.intros, auto)
+lemma Diff1_fold_graph:
+  "fold_graph f z (A - {x}) y \<Longrightarrow> x \<in> A \<Longrightarrow> fold_graph f z A (f x y)"
+by (erule insert_Diff [THEN subst], rule fold_graph.intros, auto)
 
-lemma foldSet_imp_finite: "foldSet f g z A x==> finite A"
-  by (induct set: foldSet) auto
+lemma fold_graph_imp_finite: "fold_graph f z A x \<Longrightarrow> finite A"
+by (induct set: fold_graph) auto
 
-lemma finite_imp_foldSet: "finite A ==> EX x. foldSet f g z A x"
-  by (induct set: finite) auto
+lemma finite_imp_fold_graph: "finite A \<Longrightarrow> \<exists>x. fold_graph f z A x"
+by (induct set: finite) auto
 
 
-subsubsection{*From @{term foldSet} to @{term fold}*}
+subsubsection{*From @{const fold_graph} to @{term fold}*}
 
 lemma image_less_Suc: "h ` {i. i < Suc m} = insert (h m) (h ` {i. i < m})"
   by (auto simp add: less_Suc_eq) 
@@ -563,164 +568,194 @@ next
   qed
 qed
 
-context ab_semigroup_mult
+context fun_left_comm
 begin
 
-lemma foldSet_determ_aux:
-  "!!A x x' h. \<lbrakk> A = h`{i::nat. i<n}; inj_on h {i. i<n}; 
-                foldSet times g z A x; foldSet times g z A x' \<rbrakk>
+lemma fold_graph_determ_aux:
+  "A = h`{i::nat. i<n} \<Longrightarrow> inj_on h {i. i<n}
+   \<Longrightarrow> fold_graph f z A x \<Longrightarrow> fold_graph f z A x'
    \<Longrightarrow> x' = x"
-proof (induct n rule: less_induct)
+proof (induct n arbitrary: A x x' h rule: less_induct)
   case (less n)
-    have IH: "!!m h A x x'. 
-               \<lbrakk>m<n; A = h ` {i. i<m}; inj_on h {i. i<m}; 
-                foldSet times g z A x; foldSet times g z A x'\<rbrakk> \<Longrightarrow> x' = x" by fact
-    have Afoldx: "foldSet times g z A x" and Afoldx': "foldSet times g z A x'"
-     and A: "A = h`{i. i<n}" and injh: "inj_on h {i. i<n}" by fact+
-    show ?case
-    proof (rule foldSet.cases [OF Afoldx])
-      assume "A = {}" and "x = z"
-      with Afoldx' show "x' = x" by blast
+  have IH: "\<And>m h A x x'. m < n \<Longrightarrow> A = h ` {i. i<m}
+      \<Longrightarrow> inj_on h {i. i<m} \<Longrightarrow> fold_graph f z A x
+      \<Longrightarrow> fold_graph f z A x' \<Longrightarrow> x' = x" by fact
+  have Afoldx: "fold_graph f z A x" and Afoldx': "fold_graph f z A x'"
+    and A: "A = h`{i. i<n}" and injh: "inj_on h {i. i<n}" by fact+
+  show ?case
+  proof (rule fold_graph.cases [OF Afoldx])
+    assume "A = {}" and "x = z"
+    with Afoldx' show "x' = x" by auto
+  next
+    fix B b u
+    assume AbB: "A = insert b B" and x: "x = f b u"
+      and notinB: "b \<notin> B" and Bu: "fold_graph f z B u"
+    show "x'=x" 
+    proof (rule fold_graph.cases [OF Afoldx'])
+      assume "A = {}" and "x' = z"
+      with AbB show "x' = x" by blast
     next
-      fix B b u
-      assume AbB: "A = insert b B" and x: "x = g b * u"
-         and notinB: "b \<notin> B" and Bu: "foldSet times g z B u"
-      show "x'=x" 
-      proof (rule foldSet.cases [OF Afoldx'])
-        assume "A = {}" and "x' = z"
-        with AbB show "x' = x" by blast
+      fix C c v
+      assume AcC: "A = insert c C" and x': "x' = f c v"
+        and notinC: "c \<notin> C" and Cv: "fold_graph f z C v"
+      from A AbB have Beq: "insert b B = h`{i. i<n}" by simp
+      from insert_inj_onE [OF Beq notinB injh]
+      obtain hB mB where inj_onB: "inj_on hB {i. i < mB}" 
+        and Beq: "B = hB ` {i. i < mB}" and lessB: "mB < n" by auto 
+      from A AcC have Ceq: "insert c C = h`{i. i<n}" by simp
+      from insert_inj_onE [OF Ceq notinC injh]
+      obtain hC mC where inj_onC: "inj_on hC {i. i < mC}"
+        and Ceq: "C = hC ` {i. i < mC}" and lessC: "mC < n" by auto 
+      show "x'=x"
+      proof cases
+        assume "b=c"
+	then moreover have "B = C" using AbB AcC notinB notinC by auto
+	ultimately show ?thesis  using Bu Cv x x' IH [OF lessC Ceq inj_onC]
+          by auto
       next
-	fix C c v
-	assume AcC: "A = insert c C" and x': "x' = g c * v"
-           and notinC: "c \<notin> C" and Cv: "foldSet times g z C v"
-	from A AbB have Beq: "insert b B = h`{i. i<n}" by simp
-        from insert_inj_onE [OF Beq notinB injh]
-        obtain hB mB where inj_onB: "inj_on hB {i. i < mB}" 
-                     and Beq: "B = hB ` {i. i < mB}"
-                     and lessB: "mB < n" by auto 
-	from A AcC have Ceq: "insert c C = h`{i. i<n}" by simp
-        from insert_inj_onE [OF Ceq notinC injh]
-        obtain hC mC where inj_onC: "inj_on hC {i. i < mC}"
-                       and Ceq: "C = hC ` {i. i < mC}"
-                       and lessC: "mC < n" by auto 
-	show "x'=x"
-	proof cases
-          assume "b=c"
-	  then moreover have "B = C" using AbB AcC notinB notinC by auto
-	  ultimately show ?thesis  using Bu Cv x x' IH[OF lessC Ceq inj_onC]
-            by auto
-	next
-	  assume diff: "b \<noteq> c"
-	  let ?D = "B - {c}"
-	  have B: "B = insert c ?D" and C: "C = insert b ?D"
-	    using AbB AcC notinB notinC diff by(blast elim!:equalityE)+
-	  have "finite A" by(rule foldSet_imp_finite[OF Afoldx])
-	  with AbB have "finite ?D" by simp
-	  then obtain d where Dfoldd: "foldSet times g z ?D d"
-	    using finite_imp_foldSet by iprover
-	  moreover have cinB: "c \<in> B" using B by auto
-	  ultimately have "foldSet times g z B (g c * d)"
-	    by(rule Diff1_foldSet)
-	  then have "g c * d = u" by (rule IH [OF lessB Beq inj_onB Bu]) 
-          then have "u = g c * d" ..
-          moreover have "v = g b * d"
-	  proof (rule sym, rule IH [OF lessC Ceq inj_onC Cv])
-	    show "foldSet times g z C (g b * d)" using C notinB Dfoldd
-	      by fastsimp
-	  qed
-	  ultimately show ?thesis using x x'
-	    by (simp add: mult_left_commute)
+	assume diff: "b \<noteq> c"
+	let ?D = "B - {c}"
+	have B: "B = insert c ?D" and C: "C = insert b ?D"
+	  using AbB AcC notinB notinC diff by(blast elim!:equalityE)+
+	have "finite A" by(rule fold_graph_imp_finite [OF Afoldx])
+	with AbB have "finite ?D" by simp
+	then obtain d where Dfoldd: "fold_graph f z ?D d"
+	  using finite_imp_fold_graph by iprover
+	moreover have cinB: "c \<in> B" using B by auto
+	ultimately have "fold_graph f z B (f c d)" by(rule Diff1_fold_graph)
+	hence "f c d = u" by (rule IH [OF lessB Beq inj_onB Bu]) 
+        moreover have "f b d = v"
+	proof (rule IH[OF lessC Ceq inj_onC Cv])
+	  show "fold_graph f z C (f b d)" using C notinB Dfoldd by fastsimp
 	qed
+	ultimately show ?thesis
+          using fun_left_comm [of c b] x x' by (auto simp add: o_def)
       qed
     qed
   qed
+qed
 
-lemma foldSet_determ:
-  "foldSet times g z A x ==> foldSet times g z A y ==> y = x"
-apply (frule foldSet_imp_finite [THEN finite_imp_nat_seg_image_inj_on]) 
-apply (blast intro: foldSet_determ_aux [rule_format])
+lemma fold_graph_determ:
+  "fold_graph f z A x \<Longrightarrow> fold_graph f z A y \<Longrightarrow> y = x"
+apply (frule fold_graph_imp_finite [THEN finite_imp_nat_seg_image_inj_on]) 
+apply (blast intro: fold_graph_determ_aux [rule_format])
 done
 
-lemma fold_equality: "foldSet times g z A y ==> fold times g z A = y"
-  by (unfold fold_def) (blast intro: foldSet_determ)
+lemma fold_equality:
+  "fold_graph f z A y \<Longrightarrow> fold f z A = y"
+by (unfold fold_def) (blast intro: fold_graph_determ)
 
 text{* The base case for @{text fold}: *}
 
-lemma (in -) fold_empty [simp]: "fold f g z {} = z"
-  by (unfold fold_def) blast
+lemma (in -) fold_empty [simp]: "fold f z {} = z"
+by (unfold fold_def) blast
 
-lemma fold_insert_aux: "x \<notin> A ==>
-    (foldSet times g z (insert x A) v) =
-    (EX y. foldSet times g z A y & v = g x * y)"
-  apply auto
-  apply (rule_tac A1 = A and f1 = times in finite_imp_foldSet [THEN exE])
-   apply (fastsimp dest: foldSet_imp_finite)
-  apply (blast intro: foldSet_determ)
-  done
+text{* The various recursion equations for @{const fold}: *}
 
-text{* The recursion equation for @{text fold}: *}
+lemma fold_insert_aux: "x \<notin> A
+  \<Longrightarrow> fold_graph f z (insert x A) v \<longleftrightarrow>
+      (\<exists>y. fold_graph f z A y \<and> v = f x y)"
+apply auto
+apply (rule_tac A1 = A and f1 = f in finite_imp_fold_graph [THEN exE])
+ apply (fastsimp dest: fold_graph_imp_finite)
+apply (blast intro: fold_graph_determ)
+done
 
 lemma fold_insert [simp]:
-    "finite A ==> x \<notin> A ==> fold times g z (insert x A) = g x * fold times g z A"
-  apply (unfold fold_def)
-  apply (simp add: fold_insert_aux)
-  apply (rule the_equality)
-  apply (auto intro: finite_imp_foldSet
-    cong add: conj_cong simp add: fold_def [symmetric] fold_equality)
-  done
+  "finite A ==> x \<notin> A ==> fold f z (insert x A) = f x (fold f z A)"
+apply (simp add: fold_def fold_insert_aux)
+apply (rule the_equality)
+ apply (auto intro: finite_imp_fold_graph
+        cong add: conj_cong simp add: fold_def[symmetric] fold_equality)
+done
+
+lemma fold_fun_comm:
+  "finite A \<Longrightarrow> f x (fold f z A) = fold f (f x z) A"
+proof (induct rule: finite_induct)
+  case empty then show ?case by simp
+next
+  case (insert y A) then show ?case
+    by (simp add: fun_left_comm[of x])
+qed
+
+lemma fold_insert2:
+  "finite A \<Longrightarrow> x \<notin> A \<Longrightarrow> fold f z (insert x A) = fold f (f x z) A"
+by (simp add: fold_insert fold_fun_comm)
 
 lemma fold_rec:
-assumes fin: "finite A" and a: "a:A"
-shows "fold times g z A = g a * fold times g z (A - {a})"
-proof-
-  have A: "A = insert a (A - {a})" using a by blast
-  hence "fold times g z A = fold times g z (insert a (A - {a}))" by simp
-  also have "\<dots> = g a * fold times g z (A - {a})"
-    by(rule fold_insert) (simp add:fin)+
+assumes "finite A" and "x \<in> A"
+shows "fold f z A = f x (fold f z (A - {x}))"
+proof -
+  have A: "A = insert x (A - {x})" using `x \<in> A` by blast
+  then have "fold f z A = fold f z (insert x (A - {x}))" by simp
+  also have "\<dots> = f x (fold f z (A - {x}))"
+    by (rule fold_insert) (simp add: `finite A`)+
   finally show ?thesis .
+qed
+
+lemma fold_insert_remove:
+  assumes "finite A"
+  shows "fold f z (insert x A) = f x (fold f z (A - {x}))"
+proof -
+  from `finite A` have "finite (insert x A)" by auto
+  moreover have "x \<in> insert x A" by auto
+  ultimately have "fold f z (insert x A) = f x (fold f z (insert x A - {x}))"
+    by (rule fold_rec)
+  then show ?thesis by simp
 qed
 
 end
 
 text{* A simplified version for idempotent functions: *}
 
-context ab_semigroup_idem_mult
+locale fun_left_comm_idem = fun_left_comm +
+  assumes fun_left_idem: "f x (f x z) = f x z"
 begin
 
+text{* The nice version: *}
+lemma fun_comp_idem : "f x o f x = f x"
+by (simp add: fun_left_idem expand_fun_eq)
+
 lemma fold_insert_idem:
-assumes finA: "finite A"
-shows "fold times g z (insert a A) = g a * fold times g z A"
+  assumes fin: "finite A"
+  shows "fold f z (insert x A) = f x (fold f z A)"
 proof cases
-  assume "a \<in> A"
-  then obtain B where A: "A = insert a B" and disj: "a \<notin> B"
-    by(blast dest: mk_disjoint_insert)
-  show ?thesis
-  proof -
-    from finA A have finB: "finite B" by(blast intro: finite_subset)
-    have "fold times g z (insert a A) = fold times g z (insert a B)" using A by simp
-    also have "\<dots> = g a * fold times g z B"
-      using finB disj by simp
-    also have "\<dots> = g a * fold times g z A"
-      using A finB disj
-	by (simp add: mult_idem mult_assoc [symmetric])
-    finally show ?thesis .
-  qed
+  assume "x \<in> A"
+  then obtain B where "A = insert x B" and "x \<notin> B" by (rule set_insert)
+  then show ?thesis using assms by (simp add:fun_left_idem)
 next
-  assume "a \<notin> A"
-  with finA show ?thesis by simp
+  assume "x \<notin> A" then show ?thesis using assms by simp
 qed
 
-lemma foldI_conv_id:
-  "finite A \<Longrightarrow> fold times g z A = fold times id z (g ` A)"
-by(erule finite_induct)(simp_all add: fold_insert_idem del: fold_insert)
+declare fold_insert[simp del] fold_insert_idem[simp]
+
+lemma fold_insert_idem2:
+  "finite A \<Longrightarrow> fold f z (insert x A) = fold f (f x z) A"
+by(simp add:fold_fun_comm)
 
 end
 
-subsubsection{*Lemmas about @{text fold}*}
+subsubsection{* The derived combinator @{text fold_image} *}
+
+definition fold_image :: "('b \<Rightarrow> 'b \<Rightarrow> 'b) \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> 'b \<Rightarrow> 'a set \<Rightarrow> 'b"
+where "fold_image f g = fold (%x y. f (g x) y)"
+
+lemma fold_image_empty[simp]: "fold_image f g z {} = z"
+by(simp add:fold_image_def)
 
 context ab_semigroup_mult
 begin
 
+lemma fold_image_insert[simp]:
+assumes "finite A" and "a \<notin> A"
+shows "fold_image times g z (insert a A) = g a * (fold_image times g z A)"
+proof -
+  interpret I: fun_left_comm ["%x y. (g x) * y"]
+    by unfold_locales (simp add: mult_ac)
+  show ?thesis using assms by(simp add:fold_image_def I.fold_insert)
+qed
+
+(*
 lemma fold_commute:
   "finite A ==> (!!z. x * (fold times g z A) = fold times g (x * z) A)"
   apply (induct set: finite)
@@ -740,15 +775,17 @@ lemma fold_nest_Un_disjoint:
   "finite A ==> finite B ==> A Int B = {}
     ==> fold times g z (A Un B) = fold times g (fold times g z B) A"
   by (simp add: fold_nest_Un_Int)
+*)
 
-lemma fold_reindex:
+lemma fold_image_reindex:
 assumes fin: "finite A"
-shows "inj_on h A \<Longrightarrow> fold times g z (h ` A) = fold times (g \<circ> h) z A"
+shows "inj_on h A \<Longrightarrow> fold_image times g z (h`A) = fold_image times (g\<circ>h) z A"
 using fin apply induct
  apply simp
 apply simp
 done
 
+(*
 text{*
   Fusion theorem, as described in Graham Hutton's paper,
   A Tutorial on the Universality and Expressiveness of Fold,
@@ -764,68 +801,72 @@ proof -
   interpret ab_semigroup_mult [g] by fact
   show ?thesis using fin hyp by (induct set: finite) simp_all
 qed
+*)
 
-lemma fold_cong:
-  "finite A \<Longrightarrow> (!!x. x:A ==> g x = h x) ==> fold times g z A = fold times h z A"
-  apply (subgoal_tac "ALL C. C <= A --> (ALL x:C. g x = h x) --> fold times g z C = fold times h z C")
-   apply simp
-  apply (erule finite_induct, simp)
-  apply (simp add: subset_insert_iff, clarify)
-  apply (subgoal_tac "finite C")
-   prefer 2 apply (blast dest: finite_subset [COMP swap_prems_rl])
-  apply (subgoal_tac "C = insert x (C - {x})")
-   prefer 2 apply blast
-  apply (erule ssubst)
-  apply (drule spec)
-  apply (erule (1) notE impE)
-  apply (simp add: Ball_def del: insert_Diff_single)
-  done
+lemma fold_image_cong:
+  "finite A \<Longrightarrow>
+  (!!x. x:A ==> g x = h x) ==> fold_image times g z A = fold_image times h z A"
+apply (subgoal_tac "ALL C. C <= A --> (ALL x:C. g x = h x) --> fold_image times g z C = fold_image times h z C")
+ apply simp
+apply (erule finite_induct, simp)
+apply (simp add: subset_insert_iff, clarify)
+apply (subgoal_tac "finite C")
+ prefer 2 apply (blast dest: finite_subset [COMP swap_prems_rl])
+apply (subgoal_tac "C = insert x (C - {x})")
+ prefer 2 apply blast
+apply (erule ssubst)
+apply (drule spec)
+apply (erule (1) notE impE)
+apply (simp add: Ball_def del: insert_Diff_single)
+done
 
 end
 
 context comm_monoid_mult
 begin
 
-lemma fold_Un_Int:
+lemma fold_image_Un_Int:
   "finite A ==> finite B ==>
-    fold times g 1 A * fold times g 1 B =
-    fold times g 1 (A Un B) * fold times g 1 (A Int B)"
-  by (induct set: finite) 
-    (auto simp add: mult_ac insert_absorb Int_insert_left)
+    fold_image times g 1 A * fold_image times g 1 B =
+    fold_image times g 1 (A Un B) * fold_image times g 1 (A Int B)"
+by (induct set: finite) 
+   (auto simp add: mult_ac insert_absorb Int_insert_left)
 
 corollary fold_Un_disjoint:
   "finite A ==> finite B ==> A Int B = {} ==>
-    fold times g 1 (A Un B) = fold times g 1 A * fold times g 1 B"
-  by (simp add: fold_Un_Int)
+   fold_image times g 1 (A Un B) =
+   fold_image times g 1 A * fold_image times g 1 B"
+by (simp add: fold_image_Un_Int)
 
-lemma fold_UN_disjoint:
+lemma fold_image_UN_disjoint:
   "\<lbrakk> finite I; ALL i:I. finite (A i);
      ALL i:I. ALL j:I. i \<noteq> j --> A i Int A j = {} \<rbrakk>
-   \<Longrightarrow> fold times g 1 (UNION I A) =
-       fold times (%i. fold times g 1 (A i)) 1 I"
-  apply (induct set: finite, simp, atomize)
-  apply (subgoal_tac "ALL i:F. x \<noteq> i")
-   prefer 2 apply blast
-  apply (subgoal_tac "A x Int UNION F A = {}")
-   prefer 2 apply blast
-  apply (simp add: fold_Un_disjoint)
-  done
+   \<Longrightarrow> fold_image times g 1 (UNION I A) =
+       fold_image times (%i. fold_image times g 1 (A i)) 1 I"
+apply (induct set: finite, simp, atomize)
+apply (subgoal_tac "ALL i:F. x \<noteq> i")
+ prefer 2 apply blast
+apply (subgoal_tac "A x Int UNION F A = {}")
+ prefer 2 apply blast
+apply (simp add: fold_Un_disjoint)
+done
 
-lemma fold_Sigma: "finite A ==> ALL x:A. finite (B x) ==>
-  fold times (%x. fold times (g x) 1 (B x)) 1 A =
-  fold times (split g) 1 (SIGMA x:A. B x)"
+lemma fold_image_Sigma: "finite A ==> ALL x:A. finite (B x) ==>
+  fold_image times (%x. fold_image times (g x) 1 (B x)) 1 A =
+  fold_image times (split g) 1 (SIGMA x:A. B x)"
 apply (subst Sigma_def)
-apply (subst fold_UN_disjoint, assumption, simp)
+apply (subst fold_image_UN_disjoint, assumption, simp)
  apply blast
-apply (erule fold_cong)
-apply (subst fold_UN_disjoint, simp, simp)
+apply (erule fold_image_cong)
+apply (subst fold_image_UN_disjoint, simp, simp)
  apply blast
 apply simp
 done
 
-lemma fold_distrib: "finite A \<Longrightarrow>
-   fold times (%x. g x * h x) 1 A = fold times g 1 A *  fold times h 1 A"
-  by (erule finite_induct) (simp_all add: mult_ac)
+lemma fold_image_distrib: "finite A \<Longrightarrow>
+   fold_image times (%x. g x * h x) 1 A =
+   fold_image times g 1 A *  fold_image times h 1 A"
+by (erule finite_induct) (simp_all add: mult_ac)
 
 end
 
@@ -835,9 +876,8 @@ subsection {* Generalized summation over a set *}
 interpretation comm_monoid_add: comm_monoid_mult ["0::'a::comm_monoid_add" "op +"]
   proof qed (auto intro: add_assoc add_commute)
 
-constdefs
-  setsum :: "('a => 'b) => 'a set => 'b::comm_monoid_add"
-  "setsum f A == if finite A then fold (op +) f 0 A else 0"
+definition setsum :: "('a => 'b) => 'a set => 'b::comm_monoid_add"
+where "setsum f A == if finite A then fold_image (op +) f 0 A else 0"
 
 abbreviation
   Setsum  ("\<Sum>_" [1000] 999) where
@@ -854,8 +894,8 @@ syntax (HTML output)
   "_setsum" :: "pttrn => 'a set => 'b => 'b::comm_monoid_add"    ("(3\<Sum>_\<in>_. _)" [0, 51, 10] 10)
 
 translations -- {* Beware of argument permutation! *}
-  "SUM i:A. b" == "setsum (%i. b) A"
-  "\<Sum>i\<in>A. b" == "setsum (%i. b) A"
+  "SUM i:A. b" == "CONST setsum (%i. b) A"
+  "\<Sum>i\<in>A. b" == "CONST setsum (%i. b) A"
 
 text{* Instead of @{term"\<Sum>x\<in>{x. P}. e"} we introduce the shorter
  @{text"\<Sum>x|P. e"}. *}
@@ -868,8 +908,8 @@ syntax (HTML output)
   "_qsetsum" :: "pttrn \<Rightarrow> bool \<Rightarrow> 'a \<Rightarrow> 'a" ("(3\<Sum>_ | (_)./ _)" [0,0,10] 10)
 
 translations
-  "SUM x|P. t" => "setsum (%x. t) {x. P}"
-  "\<Sum>x|P. t" => "setsum (%x. t) {x. P}"
+  "SUM x|P. t" => "CONST setsum (%x. t) {x. P}"
+  "\<Sum>x|P. t" => "CONST setsum (%x. t) {x. P}"
 
 print_translation {*
 let
@@ -884,18 +924,18 @@ in [("setsum", setsum_tr')] end
 
 
 lemma setsum_empty [simp]: "setsum f {} = 0"
-  by (simp add: setsum_def)
+by (simp add: setsum_def)
 
 lemma setsum_insert [simp]:
-    "finite F ==> a \<notin> F ==> setsum f (insert a F) = f a + setsum f F"
-  by (simp add: setsum_def)
+  "finite F ==> a \<notin> F ==> setsum f (insert a F) = f a + setsum f F"
+by (simp add: setsum_def)
 
 lemma setsum_infinite [simp]: "~ finite A ==> setsum f A = 0"
-  by (simp add: setsum_def)
+by (simp add: setsum_def)
 
 lemma setsum_reindex:
      "inj_on f B ==> setsum h (f ` B) = setsum (h \<circ> f) B"
-by(auto simp add: setsum_def comm_monoid_add.fold_reindex dest!:finite_imageD)
+by(auto simp add: setsum_def comm_monoid_add.fold_image_reindex dest!:finite_imageD)
 
 lemma setsum_reindex_id:
      "inj_on f B ==> setsum f B = setsum id (f ` B)"
@@ -903,20 +943,20 @@ by (auto simp add: setsum_reindex)
 
 lemma setsum_cong:
   "A = B ==> (!!x. x:B ==> f x = g x) ==> setsum f A = setsum g B"
-by(fastsimp simp: setsum_def intro: comm_monoid_add.fold_cong)
+by(fastsimp simp: setsum_def intro: comm_monoid_add.fold_image_cong)
 
 lemma strong_setsum_cong[cong]:
   "A = B ==> (!!x. x:B =simp=> f x = g x)
    ==> setsum (%x. f x) A = setsum (%x. g x) B"
-by(fastsimp simp: simp_implies_def setsum_def intro: comm_monoid_add.fold_cong)
+by(fastsimp simp: simp_implies_def setsum_def intro: comm_monoid_add.fold_image_cong)
 
 lemma setsum_cong2: "\<lbrakk>\<And>x. x \<in> A \<Longrightarrow> f x = g x\<rbrakk> \<Longrightarrow> setsum f A = setsum g A";
-  by (rule setsum_cong[OF refl], auto);
+by (rule setsum_cong[OF refl], auto);
 
 lemma setsum_reindex_cong:
-     "[|inj_on f A; B = f ` A; !!a. a:A \<Longrightarrow> g a = h (f a)|] 
-      ==> setsum h B = setsum g A"
-  by (simp add: setsum_reindex cong: setsum_cong)
+   "[|inj_on f A; B = f ` A; !!a. a:A \<Longrightarrow> g a = h (f a)|] 
+    ==> setsum h B = setsum g A"
+by (simp add: setsum_reindex cong: setsum_cong)
 
 lemma setsum_0[simp]: "setsum (%i. 0) A = 0"
 apply (clarsimp simp: setsum_def)
@@ -929,7 +969,7 @@ by(simp add:setsum_cong)
 lemma setsum_Un_Int: "finite A ==> finite B ==>
   setsum g (A Un B) + setsum g (A Int B) = setsum g A + setsum g B"
   -- {* The reversed orientation looks more natural, but LOOPS as a simprule! *}
-by(simp add: setsum_def comm_monoid_add.fold_Un_Int [symmetric])
+by(simp add: setsum_def comm_monoid_add.fold_image_Un_Int [symmetric])
 
 lemma setsum_Un_disjoint: "finite A ==> finite B
   ==> A Int B = {} ==> setsum g (A Un B) = setsum g A + setsum g B"
@@ -941,7 +981,7 @@ lemma setsum_UN_disjoint:
     "finite I ==> (ALL i:I. finite (A i)) ==>
         (ALL i:I. ALL j:I. i \<noteq> j --> A i Int A j = {}) ==>
       setsum f (UNION I A) = (\<Sum>i\<in>I. setsum f (A i))"
-by(simp add: setsum_def comm_monoid_add.fold_UN_disjoint cong: setsum_cong)
+by(simp add: setsum_def comm_monoid_add.fold_image_UN_disjoint cong: setsum_cong)
 
 text{*No need to assume that @{term C} is finite.  If infinite, the rhs is
 directly 0, and @{term "Union C"} is also infinite, hence the lhs is also 0.*}
@@ -959,7 +999,7 @@ done
   the rhs need not be, since SIGMA A B could still be finite.*)
 lemma setsum_Sigma: "finite A ==> ALL x:A. finite (B x) ==>
     (\<Sum>x\<in>A. (\<Sum>y\<in>B x. f x y)) = (\<Sum>(x,y)\<in>(SIGMA x:A. B x). f x y)"
-by(simp add:setsum_def comm_monoid_add.fold_Sigma split_def cong:setsum_cong)
+by(simp add:setsum_def comm_monoid_add.fold_image_Sigma split_def cong:setsum_cong)
 
 text{*Here we can eliminate the finiteness assumptions, by cases.*}
 lemma setsum_cartesian_product: 
@@ -974,58 +1014,58 @@ apply (auto simp add: setsum_def
 done
 
 lemma setsum_addf: "setsum (%x. f x + g x) A = (setsum f A + setsum g A)"
-by(simp add:setsum_def comm_monoid_add.fold_distrib)
+by(simp add:setsum_def comm_monoid_add.fold_image_distrib)
 
 
 subsubsection {* Properties in more restricted classes of structures *}
 
 lemma setsum_SucD: "setsum f A = Suc n ==> EX a:A. 0 < f a"
-  apply (case_tac "finite A")
-   prefer 2 apply (simp add: setsum_def)
-  apply (erule rev_mp)
-  apply (erule finite_induct, auto)
-  done
+apply (case_tac "finite A")
+ prefer 2 apply (simp add: setsum_def)
+apply (erule rev_mp)
+apply (erule finite_induct, auto)
+done
 
 lemma setsum_eq_0_iff [simp]:
     "finite F ==> (setsum f F = 0) = (ALL a:F. f a = (0::nat))"
-  by (induct set: finite) auto
+by (induct set: finite) auto
 
 lemma setsum_Un_nat: "finite A ==> finite B ==>
-    (setsum f (A Un B) :: nat) = setsum f A + setsum f B - setsum f (A Int B)"
+  (setsum f (A Un B) :: nat) = setsum f A + setsum f B - setsum f (A Int B)"
   -- {* For the natural numbers, we have subtraction. *}
-  by (subst setsum_Un_Int [symmetric], auto simp add: ring_simps)
+by (subst setsum_Un_Int [symmetric], auto simp add: ring_simps)
 
 lemma setsum_Un: "finite A ==> finite B ==>
-    (setsum f (A Un B) :: 'a :: ab_group_add) =
-      setsum f A + setsum f B - setsum f (A Int B)"
-  by (subst setsum_Un_Int [symmetric], auto simp add: ring_simps)
+  (setsum f (A Un B) :: 'a :: ab_group_add) =
+   setsum f A + setsum f B - setsum f (A Int B)"
+by (subst setsum_Un_Int [symmetric], auto simp add: ring_simps)
 
 lemma setsum_diff1_nat: "(setsum f (A - {a}) :: nat) =
-    (if a:A then setsum f A - f a else setsum f A)"
-  apply (case_tac "finite A")
-   prefer 2 apply (simp add: setsum_def)
-  apply (erule finite_induct)
-   apply (auto simp add: insert_Diff_if)
-  apply (drule_tac a = a in mk_disjoint_insert, auto)
-  done
+  (if a:A then setsum f A - f a else setsum f A)"
+apply (case_tac "finite A")
+ prefer 2 apply (simp add: setsum_def)
+apply (erule finite_induct)
+ apply (auto simp add: insert_Diff_if)
+apply (drule_tac a = a in mk_disjoint_insert, auto)
+done
 
 lemma setsum_diff1: "finite A \<Longrightarrow>
   (setsum f (A - {a}) :: ('a::ab_group_add)) =
   (if a:A then setsum f A - f a else setsum f A)"
-  by (erule finite_induct) (auto simp add: insert_Diff_if)
+by (erule finite_induct) (auto simp add: insert_Diff_if)
 
-lemma setsum_diff1'[rule_format]: "finite A \<Longrightarrow> a \<in> A \<longrightarrow> (\<Sum> x \<in> A. f x) = f a + (\<Sum> x \<in> (A - {a}). f x)"
-  apply (erule finite_induct[where F=A and P="% A. (a \<in> A \<longrightarrow> (\<Sum> x \<in> A. f x) = f a + (\<Sum> x \<in> (A - {a}). f x))"])
-  apply (auto simp add: insert_Diff_if add_ac)
-  done
+lemma setsum_diff1'[rule_format]:
+  "finite A \<Longrightarrow> a \<in> A \<longrightarrow> (\<Sum> x \<in> A. f x) = f a + (\<Sum> x \<in> (A - {a}). f x)"
+apply (erule finite_induct[where F=A and P="% A. (a \<in> A \<longrightarrow> (\<Sum> x \<in> A. f x) = f a + (\<Sum> x \<in> (A - {a}). f x))"])
+apply (auto simp add: insert_Diff_if add_ac)
+done
 
 (* By Jeremy Siek: *)
 
 lemma setsum_diff_nat: 
-  assumes "finite B"
-    and "B \<subseteq> A"
-  shows "(setsum f (A - B) :: nat) = (setsum f A) - (setsum f B)"
-  using prems
+assumes "finite B" and "B \<subseteq> A"
+shows "(setsum f (A - B) :: nat) = (setsum f A) - (setsum f B)"
+using assms
 proof induct
   show "setsum f (A - {}) = (setsum f A) - (setsum f {})" by simp
 next
@@ -1307,9 +1347,8 @@ lemma setsum_product:
 
 subsection {* Generalized product over a set *}
 
-constdefs
-  setprod :: "('a => 'b) => 'a set => 'b::comm_monoid_mult"
-  "setprod f A == if finite A then fold (op *) f 1 A else 1"
+definition setprod :: "('a => 'b) => 'a set => 'b::comm_monoid_mult"
+where "setprod f A == if finite A then fold_image (op *) f 1 A else 1"
 
 abbreviation
   Setprod  ("\<Prod>_" [1000] 999) where
@@ -1323,8 +1362,8 @@ syntax (HTML output)
   "_setprod" :: "pttrn => 'a set => 'b => 'b::comm_monoid_mult"  ("(3\<Prod>_\<in>_. _)" [0, 51, 10] 10)
 
 translations -- {* Beware of argument permutation! *}
-  "PROD i:A. b" == "setprod (%i. b) A" 
-  "\<Prod>i\<in>A. b" == "setprod (%i. b) A" 
+  "PROD i:A. b" == "CONST setprod (%i. b) A" 
+  "\<Prod>i\<in>A. b" == "CONST setprod (%i. b) A" 
 
 text{* Instead of @{term"\<Prod>x\<in>{x. P}. e"} we introduce the shorter
  @{text"\<Prod>x|P. e"}. *}
@@ -1337,54 +1376,54 @@ syntax (HTML output)
   "_qsetprod" :: "pttrn \<Rightarrow> bool \<Rightarrow> 'a \<Rightarrow> 'a" ("(3\<Prod>_ | (_)./ _)" [0,0,10] 10)
 
 translations
-  "PROD x|P. t" => "setprod (%x. t) {x. P}"
-  "\<Prod>x|P. t" => "setprod (%x. t) {x. P}"
+  "PROD x|P. t" => "CONST setprod (%x. t) {x. P}"
+  "\<Prod>x|P. t" => "CONST setprod (%x. t) {x. P}"
 
 
 lemma setprod_empty [simp]: "setprod f {} = 1"
-  by (auto simp add: setprod_def)
+by (auto simp add: setprod_def)
 
 lemma setprod_insert [simp]: "[| finite A; a \<notin> A |] ==>
     setprod f (insert a A) = f a * setprod f A"
-  by (simp add: setprod_def)
+by (simp add: setprod_def)
 
 lemma setprod_infinite [simp]: "~ finite A ==> setprod f A = 1"
-  by (simp add: setprod_def)
+by (simp add: setprod_def)
 
 lemma setprod_reindex:
-     "inj_on f B ==> setprod h (f ` B) = setprod (h \<circ> f) B"
-by(auto simp: setprod_def fold_reindex dest!:finite_imageD)
+   "inj_on f B ==> setprod h (f ` B) = setprod (h \<circ> f) B"
+by(auto simp: setprod_def fold_image_reindex dest!:finite_imageD)
 
 lemma setprod_reindex_id: "inj_on f B ==> setprod f B = setprod id (f ` B)"
 by (auto simp add: setprod_reindex)
 
 lemma setprod_cong:
   "A = B ==> (!!x. x:B ==> f x = g x) ==> setprod f A = setprod g B"
-by(fastsimp simp: setprod_def intro: fold_cong)
+by(fastsimp simp: setprod_def intro: fold_image_cong)
 
 lemma strong_setprod_cong:
   "A = B ==> (!!x. x:B =simp=> f x = g x) ==> setprod f A = setprod g B"
-by(fastsimp simp: simp_implies_def setprod_def intro: fold_cong)
+by(fastsimp simp: simp_implies_def setprod_def intro: fold_image_cong)
 
 lemma setprod_reindex_cong: "inj_on f A ==>
     B = f ` A ==> g = h \<circ> f ==> setprod h B = setprod g A"
-  by (frule setprod_reindex, simp)
+by (frule setprod_reindex, simp)
 
 
 lemma setprod_1: "setprod (%i. 1) A = 1"
-  apply (case_tac "finite A")
-  apply (erule finite_induct, auto simp add: mult_ac)
-  done
+apply (case_tac "finite A")
+apply (erule finite_induct, auto simp add: mult_ac)
+done
 
 lemma setprod_1': "ALL a:F. f a = 1 ==> setprod f F = 1"
-  apply (subgoal_tac "setprod f F = setprod (%x. 1) F")
-  apply (erule ssubst, rule setprod_1)
-  apply (rule setprod_cong, auto)
-  done
+apply (subgoal_tac "setprod f F = setprod (%x. 1) F")
+apply (erule ssubst, rule setprod_1)
+apply (rule setprod_cong, auto)
+done
 
 lemma setprod_Un_Int: "finite A ==> finite B
     ==> setprod g (A Un B) * setprod g (A Int B) = setprod g A * setprod g B"
-by(simp add: setprod_def fold_Un_Int[symmetric])
+by(simp add: setprod_def fold_image_Un_Int[symmetric])
 
 lemma setprod_Un_disjoint: "finite A ==> finite B
   ==> A Int B = {} ==> setprod g (A Un B) = setprod g A * setprod g B"
@@ -1394,7 +1433,7 @@ lemma setprod_UN_disjoint:
     "finite I ==> (ALL i:I. finite (A i)) ==>
         (ALL i:I. ALL j:I. i \<noteq> j --> A i Int A j = {}) ==>
       setprod f (UNION I A) = setprod (%i. setprod f (A i)) I"
-by(simp add: setprod_def fold_UN_disjoint cong: setprod_cong)
+by(simp add: setprod_def fold_image_UN_disjoint cong: setprod_cong)
 
 lemma setprod_Union_disjoint:
   "[| (ALL A:C. finite A);
@@ -1409,7 +1448,7 @@ done
 lemma setprod_Sigma: "finite A ==> ALL x:A. finite (B x) ==>
     (\<Prod>x\<in>A. (\<Prod>y\<in> B x. f x y)) =
     (\<Prod>(x,y)\<in>(SIGMA x:A. B x). f x y)"
-by(simp add:setprod_def fold_Sigma split_def cong:setprod_cong)
+by(simp add:setprod_def fold_image_Sigma split_def cong:setprod_cong)
 
 text{*Here we can eliminate the finiteness assumptions, by cases.*}
 lemma setprod_cartesian_product: 
@@ -1425,95 +1464,90 @@ done
 
 lemma setprod_timesf:
      "setprod (%x. f x * g x) A = (setprod f A * setprod g A)"
-by(simp add:setprod_def fold_distrib)
+by(simp add:setprod_def fold_image_distrib)
 
 
 subsubsection {* Properties in more restricted classes of structures *}
 
 lemma setprod_eq_1_iff [simp]:
-    "finite F ==> (setprod f F = 1) = (ALL a:F. f a = (1::nat))"
-  by (induct set: finite) auto
+  "finite F ==> (setprod f F = 1) = (ALL a:F. f a = (1::nat))"
+by (induct set: finite) auto
 
 lemma setprod_zero:
      "finite A ==> EX x: A. f x = (0::'a::comm_semiring_1) ==> setprod f A = 0"
-  apply (induct set: finite, force, clarsimp)
-  apply (erule disjE, auto)
-  done
+apply (induct set: finite, force, clarsimp)
+apply (erule disjE, auto)
+done
 
 lemma setprod_nonneg [rule_format]:
-     "(ALL x: A. (0::'a::ordered_idom) \<le> f x) --> 0 \<le> setprod f A"
-  apply (case_tac "finite A")
-  apply (induct set: finite, force, clarsimp)
-  apply (subgoal_tac "0 * 0 \<le> f x * setprod f F", force)
-  apply (rule mult_mono, assumption+)
-  apply (auto simp add: setprod_def)
-  done
+   "(ALL x: A. (0::'a::ordered_idom) \<le> f x) --> 0 \<le> setprod f A"
+apply (case_tac "finite A")
+apply (induct set: finite, force, clarsimp)
+apply (subgoal_tac "0 * 0 \<le> f x * setprod f F", force)
+apply (rule mult_mono, assumption+)
+apply (auto simp add: setprod_def)
+done
 
 lemma setprod_pos [rule_format]: "(ALL x: A. (0::'a::ordered_idom) < f x)
-     --> 0 < setprod f A"
-  apply (case_tac "finite A")
-  apply (induct set: finite, force, clarsimp)
-  apply (subgoal_tac "0 * 0 < f x * setprod f F", force)
-  apply (rule mult_strict_mono, assumption+)
-  apply (auto simp add: setprod_def)
-  done
+  --> 0 < setprod f A"
+apply (case_tac "finite A")
+apply (induct set: finite, force, clarsimp)
+apply (subgoal_tac "0 * 0 < f x * setprod f F", force)
+apply (rule mult_strict_mono, assumption+)
+apply (auto simp add: setprod_def)
+done
 
 lemma setprod_nonzero [rule_format]:
-    "(ALL x y. (x::'a::comm_semiring_1) * y = 0 --> x = 0 | y = 0) ==>
-      finite A ==> (ALL x: A. f x \<noteq> (0::'a)) --> setprod f A \<noteq> 0"
-  apply (erule finite_induct, auto)
-  done
+  "(ALL x y. (x::'a::comm_semiring_1) * y = 0 --> x = 0 | y = 0) ==>
+    finite A ==> (ALL x: A. f x \<noteq> (0::'a)) --> setprod f A \<noteq> 0"
+by (erule finite_induct, auto)
 
 lemma setprod_zero_eq:
     "(ALL x y. (x::'a::comm_semiring_1) * y = 0 --> x = 0 | y = 0) ==>
      finite A ==> (setprod f A = (0::'a)) = (EX x: A. f x = 0)"
-  apply (insert setprod_zero [of A f] setprod_nonzero [of A f], blast)
-  done
+by (insert setprod_zero [of A f] setprod_nonzero [of A f], blast)
 
 lemma setprod_nonzero_field:
     "finite A ==> (ALL x: A. f x \<noteq> (0::'a::idom)) ==> setprod f A \<noteq> 0"
-  apply (rule setprod_nonzero, auto)
-  done
+by (rule setprod_nonzero, auto)
 
 lemma setprod_zero_eq_field:
     "finite A ==> (setprod f A = (0::'a::idom)) = (EX x: A. f x = 0)"
-  apply (rule setprod_zero_eq, auto)
-  done
+by (rule setprod_zero_eq, auto)
 
 lemma setprod_Un: "finite A ==> finite B ==> (ALL x: A Int B. f x \<noteq> 0) ==>
-    (setprod f (A Un B) :: 'a ::{field})
-      = setprod f A * setprod f B / setprod f (A Int B)"
-  apply (subst setprod_Un_Int [symmetric], auto)
-  apply (subgoal_tac "finite (A Int B)")
-  apply (frule setprod_nonzero_field [of "A Int B" f], assumption)
-  apply (subst times_divide_eq_right [THEN sym], auto)
-  done
+  (setprod f (A Un B) :: 'a ::{field})
+   = setprod f A * setprod f B / setprod f (A Int B)"
+apply (subst setprod_Un_Int [symmetric], auto)
+apply (subgoal_tac "finite (A Int B)")
+apply (frule setprod_nonzero_field [of "A Int B" f], assumption)
+apply (subst times_divide_eq_right [THEN sym], auto)
+done
 
 lemma setprod_diff1: "finite A ==> f a \<noteq> 0 ==>
-    (setprod f (A - {a}) :: 'a :: {field}) =
-      (if a:A then setprod f A / f a else setprod f A)"
+  (setprod f (A - {a}) :: 'a :: {field}) =
+  (if a:A then setprod f A / f a else setprod f A)"
 by (erule finite_induct) (auto simp add: insert_Diff_if)
 
 lemma setprod_inversef: "finite A ==>
-    ALL x: A. f x \<noteq> (0::'a::{field,division_by_zero}) ==>
-      setprod (inverse \<circ> f) A = inverse (setprod f A)"
-  apply (erule finite_induct)
-  apply (simp, simp)
-  done
+  ALL x: A. f x \<noteq> (0::'a::{field,division_by_zero}) ==>
+  setprod (inverse \<circ> f) A = inverse (setprod f A)"
+by (erule finite_induct) auto
 
 lemma setprod_dividef:
-     "[|finite A;
-        \<forall>x \<in> A. g x \<noteq> (0::'a::{field,division_by_zero})|]
-      ==> setprod (%x. f x / g x) A = setprod f A / setprod g A"
-  apply (subgoal_tac
+   "[|finite A;
+      \<forall>x \<in> A. g x \<noteq> (0::'a::{field,division_by_zero})|]
+    ==> setprod (%x. f x / g x) A = setprod f A / setprod g A"
+apply (subgoal_tac
          "setprod (%x. f x / g x) A = setprod (%x. f x * (inverse \<circ> g) x) A")
-  apply (erule ssubst)
-  apply (subst divide_inverse)
-  apply (subst setprod_timesf)
-  apply (subst setprod_inversef, assumption+, rule refl)
-  apply (rule setprod_cong, rule refl)
-  apply (subst divide_inverse, auto)
-  done
+apply (erule ssubst)
+apply (subst divide_inverse)
+apply (subst setprod_timesf)
+apply (subst setprod_inversef, assumption+, rule refl)
+apply (rule setprod_cong, rule refl)
+apply (subst divide_inverse, auto)
+done
+
 
 subsection {* Finite cardinality *}
 
@@ -1522,10 +1556,8 @@ text {* This definition, although traditional, is ugly to work with:
 But now that we have @{text setsum} things are easy:
 *}
 
-definition
-  card :: "'a set \<Rightarrow> nat"
-where
-  "card A = setsum (\<lambda>x. 1) A"
+definition card :: "'a set \<Rightarrow> nat"
+where "card A = setsum (\<lambda>x. 1) A"
 
 lemma card_empty [simp]: "card {} = 0"
 by (simp add: card_def)
@@ -1541,13 +1573,13 @@ lemma card_insert_disjoint [simp]:
 by(simp add: card_def)
 
 lemma card_insert_if:
-    "finite A ==> card (insert x A) = (if x:A then card A else Suc(card(A)))"
-  by (simp add: insert_absorb)
+  "finite A ==> card (insert x A) = (if x:A then card A else Suc(card(A)))"
+by (simp add: insert_absorb)
 
 lemma card_0_eq [simp,noatp]: "finite A ==> (card A = 0) = (A = {})"
-  apply auto
-  apply (drule_tac a = x in mk_disjoint_insert, clarify, auto)
-  done
+apply auto
+apply (drule_tac a = x in mk_disjoint_insert, clarify, auto)
+done
 
 lemma card_eq_0_iff: "(card A = 0) = (A = {} | ~ finite A)"
 by auto
@@ -1584,13 +1616,13 @@ lemma card_mono: "\<lbrakk> finite B; A \<subseteq> B \<rbrakk> \<Longrightarrow
 by (simp add: card_def setsum_mono2)
 
 lemma card_seteq: "finite B ==> (!!A. A <= B ==> card B <= card A ==> A = B)"
-  apply (induct set: finite, simp, clarify)
-  apply (subgoal_tac "finite A & A - {x} <= F")
-   prefer 2 apply (blast intro: finite_subset, atomize)
-  apply (drule_tac x = "A - {x}" in spec)
-  apply (simp add: card_Diff_singleton_if split add: split_if_asm)
-  apply (case_tac "card A", auto)
-  done
+apply (induct set: finite, simp, clarify)
+apply (subgoal_tac "finite A & A - {x} <= F")
+ prefer 2 apply (blast intro: finite_subset, atomize)
+apply (drule_tac x = "A - {x}" in spec)
+apply (simp add: card_Diff_singleton_if split add: split_if_asm)
+apply (case_tac "card A", auto)
+done
 
 lemma psubset_card_mono: "finite B ==> A < B ==> card A < card B"
 apply (simp add: psubset_eq linorder_not_le [symmetric])
@@ -1610,22 +1642,22 @@ lemma card_Diff_subset:
 by(simp add:card_def setsum_diff_nat)
 
 lemma card_Diff1_less: "finite A ==> x: A ==> card (A - {x}) < card A"
-  apply (rule Suc_less_SucD)
-  apply (simp add: card_Suc_Diff1 del:card_Diff_insert)
-  done
+apply (rule Suc_less_SucD)
+apply (simp add: card_Suc_Diff1 del:card_Diff_insert)
+done
 
 lemma card_Diff2_less:
-    "finite A ==> x: A ==> y: A ==> card (A - {x} - {y}) < card A"
-  apply (case_tac "x = y")
-   apply (simp add: card_Diff1_less del:card_Diff_insert)
-  apply (rule less_trans)
-   prefer 2 apply (auto intro!: card_Diff1_less simp del:card_Diff_insert)
-  done
+  "finite A ==> x: A ==> y: A ==> card (A - {x} - {y}) < card A"
+apply (case_tac "x = y")
+ apply (simp add: card_Diff1_less del:card_Diff_insert)
+apply (rule less_trans)
+ prefer 2 apply (auto intro!: card_Diff1_less simp del:card_Diff_insert)
+done
 
 lemma card_Diff1_le: "finite A ==> card (A - {x}) <= card A"
-  apply (case_tac "x : A")
-   apply (simp_all add: card_Diff1_less less_imp_le)
-  done
+apply (case_tac "x : A")
+ apply (simp_all add: card_Diff1_less less_imp_le)
+done
 
 lemma card_psubset: "finite B ==> A \<subseteq> B ==> card A < card B ==> A < B"
 by (erule psubsetI, blast)
@@ -1637,11 +1669,11 @@ by auto
 
 text{* main cardinality theorem *}
 lemma card_partition [rule_format]:
-     "finite C ==>  
-        finite (\<Union> C) -->  
-        (\<forall>c\<in>C. card c = k) -->   
-        (\<forall>c1 \<in> C. \<forall>c2 \<in> C. c1 \<noteq> c2 --> c1 \<inter> c2 = {}) -->  
-        k * card(C) = card (\<Union> C)"
+  "finite C ==>
+     finite (\<Union> C) -->
+     (\<forall>c\<in>C. card c = k) -->
+     (\<forall>c1 \<in> C. \<forall>c2 \<in> C. c1 \<noteq> c2 --> c1 \<inter> c2 = {}) -->
+     k * card(C) = card (\<Union> C)"
 apply (erule finite_induct, simp)
 apply (simp add: card_insert_disjoint card_Un_disjoint insert_partition 
        finite_subset [of _ "\<Union> (insert x F)"])
@@ -1683,9 +1715,9 @@ apply (auto simp add: ring_simps)
 done
 
 lemma setprod_constant: "finite A ==> (\<Prod>x\<in> A. (y::'a::{recpower, comm_monoid_mult})) = y^(card A)"
-  apply (erule finite_induct)
-  apply (auto simp add: power_Suc)
-  done
+apply (erule finite_induct)
+apply (auto simp add: power_Suc)
+done
 
 lemma setsum_bounded:
   assumes le: "\<And>i. i\<in>A \<Longrightarrow> f i \<le> (K::'a::{semiring_1, pordered_ab_semigroup_add})"
@@ -1701,28 +1733,30 @@ qed
 subsubsection {* Cardinality of unions *}
 
 lemma card_UN_disjoint:
-    "finite I ==> (ALL i:I. finite (A i)) ==>
-        (ALL i:I. ALL j:I. i \<noteq> j --> A i Int A j = {}) ==>
-      card (UNION I A) = (\<Sum>i\<in>I. card(A i))"
-  apply (simp add: card_def del: setsum_constant)
-  apply (subgoal_tac
-           "setsum (%i. card (A i)) I = setsum (%i. (setsum (%x. 1) (A i))) I")
-  apply (simp add: setsum_UN_disjoint del: setsum_constant)
-  apply (simp cong: setsum_cong)
-  done
+  "finite I ==> (ALL i:I. finite (A i)) ==>
+   (ALL i:I. ALL j:I. i \<noteq> j --> A i Int A j = {})
+   ==> card (UNION I A) = (\<Sum>i\<in>I. card(A i))"
+apply (simp add: card_def del: setsum_constant)
+apply (subgoal_tac
+         "setsum (%i. card (A i)) I = setsum (%i. (setsum (%x. 1) (A i))) I")
+apply (simp add: setsum_UN_disjoint del: setsum_constant)
+apply (simp cong: setsum_cong)
+done
 
 lemma card_Union_disjoint:
   "finite C ==> (ALL A:C. finite A) ==>
-        (ALL A:C. ALL B:C. A \<noteq> B --> A Int B = {}) ==>
-      card (Union C) = setsum card C"
-  apply (frule card_UN_disjoint [of C id])
-  apply (unfold Union_def id_def, assumption+)
-  done
+   (ALL A:C. ALL B:C. A \<noteq> B --> A Int B = {})
+   ==> card (Union C) = setsum card C"
+apply (frule card_UN_disjoint [of C id])
+apply (unfold Union_def id_def, assumption+)
+done
+
 
 subsubsection {* Cardinality of image *}
 
-text{*The image of a finite set can be expressed using @{term fold}.*}
-lemma image_eq_fold: "finite A ==> f ` A = fold (op Un) (%x. {f x}) {} A"
+text{*The image of a finite set can be expressed using @{term fold_image}.*}
+lemma image_eq_fold_image:
+  "finite A ==> f ` A = fold_image (op Un) (%x. {f x}) {} A"
 proof (induct rule: finite_induct)
   case empty then show ?case by simp
 next
@@ -1733,10 +1767,10 @@ next
 qed
 
 lemma card_image_le: "finite A ==> card (f ` A) <= card A"
-  apply (induct set: finite)
-   apply simp
-  apply (simp add: le_SucI finite_imageI card_insert_if)
-  done
+apply (induct set: finite)
+ apply simp
+apply (simp add: le_SucI finite_imageI card_insert_if)
+done
 
 lemma card_image: "inj_on f A ==> card (f ` A) = card A"
 by(simp add:card_def setsum_reindex o_def del:setsum_constant)
@@ -1758,16 +1792,16 @@ by(blast intro: card_image eq_card_imp_inj_on)
 
 
 lemma card_inj_on_le:
-    "[|inj_on f A; f ` A \<subseteq> B; finite B |] ==> card A \<le> card B"
+  "[|inj_on f A; f ` A \<subseteq> B; finite B |] ==> card A \<le> card B"
 apply (subgoal_tac "finite A") 
  apply (force intro: card_mono simp add: card_image [symmetric])
 apply (blast intro: finite_imageD dest: finite_subset) 
 done
 
 lemma card_bij_eq:
-    "[|inj_on f A; f ` A \<subseteq> B; inj_on g B; g ` B \<subseteq> A;
-       finite A; finite B |] ==> card A = card B"
-  by (auto intro: le_anti_sym card_inj_on_le)
+  "[|inj_on f A; f ` A \<subseteq> B; inj_on g B; g ` B \<subseteq> A;
+     finite A; finite B |] ==> card A = card B"
+by (auto intro: le_anti_sym card_inj_on_le)
 
 
 subsubsection {* Cardinality of products *}
@@ -1798,15 +1832,15 @@ by (simp add: card_cartesian_product)
 subsubsection {* Cardinality of the Powerset *}
 
 lemma card_Pow: "finite A ==> card (Pow A) = Suc (Suc 0) ^ card A"  (* FIXME numeral 2 (!?) *)
-  apply (induct set: finite)
-   apply (simp_all add: Pow_insert)
-  apply (subst card_Un_disjoint, blast)
-    apply (blast intro: finite_imageI, blast)
-  apply (subgoal_tac "inj_on (insert x) (Pow F)")
-   apply (simp add: card_image Pow_insert)
-  apply (unfold inj_on_def)
-  apply (blast elim!: equalityE)
-  done
+apply (induct set: finite)
+ apply (simp_all add: Pow_insert)
+apply (subst card_Un_disjoint, blast)
+  apply (blast intro: finite_imageI, blast)
+apply (subgoal_tac "inj_on (insert x) (Pow F)")
+ apply (simp add: card_image Pow_insert)
+apply (unfold inj_on_def)
+apply (blast elim!: equalityE)
+done
 
 text {* Relates to equivalence classes.  Based on a theorem of F. Kammüller.  *}
 
@@ -1817,10 +1851,10 @@ lemma dvd_partition:
   k dvd card (Union C)"
 apply(frule finite_UnionD)
 apply(rotate_tac -1)
-  apply (induct set: finite, simp_all, clarify)
-  apply (subst card_Un_disjoint)
-  apply (auto simp add: dvd_add disjoint_eq_subset_Compl)
-  done
+apply (induct set: finite, simp_all, clarify)
+apply (subst card_Un_disjoint)
+   apply (auto simp add: dvd_add disjoint_eq_subset_Compl)
+done
 
 
 subsubsection {* Relating injectivity and surjectivity *}
@@ -1829,7 +1863,7 @@ lemma finite_surj_inj: "finite(A) \<Longrightarrow> A <= f`A \<Longrightarrow> i
 apply(rule eq_card_imp_inj_on, assumption)
 apply(frule finite_imageI)
 apply(drule (1) card_seteq)
-apply(erule card_image_le)
+ apply(erule card_image_le)
 apply simp
 done
 
@@ -1858,7 +1892,7 @@ inductive
   for f :: "'a => 'a => 'a"
 where
   fold1Set_insertI [intro]:
-   "\<lbrakk> foldSet f id a A x; a \<notin> A \<rbrakk> \<Longrightarrow> fold1Set f (insert a A) x"
+   "\<lbrakk> fold_graph f a A x; a \<notin> A \<rbrakk> \<Longrightarrow> fold1Set f (insert a A) x"
 
 constdefs
   fold1 :: "('a => 'a => 'a) => 'a set => 'a"
@@ -1866,7 +1900,7 @@ constdefs
 
 lemma fold1Set_nonempty:
   "fold1Set f A x \<Longrightarrow> A \<noteq> {}"
-  by(erule fold1Set.cases, simp_all) 
+by(erule fold1Set.cases, simp_all)
 
 inductive_cases empty_fold1SetE [elim!]: "fold1Set f {} x"
 
@@ -1874,40 +1908,46 @@ inductive_cases insert_fold1SetE [elim!]: "fold1Set f (insert a X) x"
 
 
 lemma fold1Set_sing [iff]: "(fold1Set f {a} b) = (a = b)"
-  by (blast intro: foldSet.intros elim: foldSet.cases)
+by (blast intro: fold_graph.intros elim: fold_graph.cases)
 
 lemma fold1_singleton [simp]: "fold1 f {a} = a"
-  by (unfold fold1_def) blast
+by (unfold fold1_def) blast
 
 lemma finite_nonempty_imp_fold1Set:
   "\<lbrakk> finite A; A \<noteq> {} \<rbrakk> \<Longrightarrow> EX x. fold1Set f A x"
 apply (induct A rule: finite_induct)
-apply (auto dest: finite_imp_foldSet [of _ f id])  
+apply (auto dest: finite_imp_fold_graph [of _ f])
 done
 
-text{*First, some lemmas about @{term foldSet}.*}
+text{*First, some lemmas about @{const fold_graph}.*}
 
 context ab_semigroup_mult
 begin
 
-lemma foldSet_insert_swap:
-assumes fold: "foldSet times id b A y"
-shows "b \<notin> A \<Longrightarrow> foldSet times id z (insert b A) (z * y)"
-using fold
-proof (induct rule: foldSet.induct)
+lemma fun_left_comm: "fun_left_comm(op *)"
+by unfold_locales (simp add: mult_ac)
+
+lemma fold_graph_insert_swap:
+assumes fold: "fold_graph times (b::'a) A y" and "b \<notin> A"
+shows "fold_graph times z (insert b A) (z * y)"
+proof -
+  interpret fun_left_comm ["op *::'a \<Rightarrow> 'a \<Rightarrow> 'a"] by (rule fun_left_comm)
+from assms show ?thesis
+proof (induct rule: fold_graph.induct)
   case emptyI thus ?case by (force simp add: fold_insert_aux mult_commute)
 next
   case (insertI x A y)
-    have "foldSet times (\<lambda>u. u) z (insert x (insert b A)) (x * (z * y))"
+    have "fold_graph times z (insert x (insert b A)) (x * (z * y))"
       using insertI by force  --{*how does @{term id} get unfolded?*}
     thus ?case by (simp add: insert_commute mult_ac)
 qed
+qed
 
-lemma foldSet_permute_diff:
-assumes fold: "foldSet times id b A x"
-shows "!!a. \<lbrakk>a \<in> A; b \<notin> A\<rbrakk> \<Longrightarrow> foldSet times id a (insert b (A-{a})) x"
+lemma fold_graph_permute_diff:
+assumes fold: "fold_graph times b A x"
+shows "!!a. \<lbrakk>a \<in> A; b \<notin> A\<rbrakk> \<Longrightarrow> fold_graph times a (insert b (A-{a})) x"
 using fold
-proof (induct rule: foldSet.induct)
+proof (induct rule: fold_graph.induct)
   case emptyI thus ?case by simp
 next
   case (insertI x A y)
@@ -1916,48 +1956,53 @@ next
   proof
     assume "a = x"
     with insertI show ?thesis
-      by (simp add: id_def [symmetric], blast intro: foldSet_insert_swap) 
+      by (simp add: id_def [symmetric], blast intro: fold_graph_insert_swap)
   next
     assume ainA: "a \<in> A"
-    hence "foldSet times id a (insert x (insert b (A - {a}))) (x * y)"
-      using insertI by (force simp: id_def)
+    hence "fold_graph times a (insert x (insert b (A - {a}))) (x * y)"
+      using insertI by force
     moreover
     have "insert x (insert b (A - {a})) = insert b (insert x A - {a})"
       using ainA insertI by blast
-    ultimately show ?thesis by (simp add: id_def)
+    ultimately show ?thesis by simp
   qed
 qed
 
 lemma fold1_eq_fold:
-     "[|finite A; a \<notin> A|] ==> fold1 times (insert a A) = fold times id a A"
-apply (simp add: fold1_def fold_def) 
+assumes "finite A" "a \<notin> A" shows "fold1 times (insert a A) = fold times a A"
+proof -
+  interpret fun_left_comm ["op *::'a \<Rightarrow> 'a \<Rightarrow> 'a"] by (rule fun_left_comm)
+  from assms show ?thesis
+apply (simp add: fold1_def fold_def)
 apply (rule the_equality)
-apply (best intro: foldSet_determ theI dest: finite_imp_foldSet [of _ times id]) 
+apply (best intro: fold_graph_determ theI dest: finite_imp_fold_graph [of _ times])
 apply (rule sym, clarify)
 apply (case_tac "Aa=A")
- apply (best intro: the_equality foldSet_determ)  
-apply (subgoal_tac "foldSet times id a A x")
- apply (best intro: the_equality foldSet_determ)  
-apply (subgoal_tac "insert aa (Aa - {a}) = A") 
- prefer 2 apply (blast elim: equalityE) 
-apply (auto dest: foldSet_permute_diff [where a=a]) 
+ apply (best intro: the_equality fold_graph_determ)
+apply (subgoal_tac "fold_graph times a A x")
+ apply (best intro: the_equality fold_graph_determ)
+apply (subgoal_tac "insert aa (Aa - {a}) = A")
+ prefer 2 apply (blast elim: equalityE)
+apply (auto dest: fold_graph_permute_diff [where a=a])
 done
+qed
 
 lemma nonempty_iff: "(A \<noteq> {}) = (\<exists>x B. A = insert x B & x \<notin> B)"
 apply safe
-apply simp 
-apply (drule_tac x=x in spec)
-apply (drule_tac x="A-{x}" in spec, auto) 
+ apply simp
+ apply (drule_tac x=x in spec)
+ apply (drule_tac x="A-{x}" in spec, auto)
 done
 
 lemma fold1_insert:
   assumes nonempty: "A \<noteq> {}" and A: "finite A" "x \<notin> A"
   shows "fold1 times (insert x A) = x * fold1 times A"
 proof -
-  from nonempty obtain a A' where "A = insert a A' & a ~: A'" 
+  interpret fun_left_comm ["op *::'a \<Rightarrow> 'a \<Rightarrow> 'a"] by (rule fun_left_comm)
+  from nonempty obtain a A' where "A = insert a A' & a ~: A'"
     by (auto simp add: nonempty_iff)
   with A show ?thesis
-    by (simp add: insert_commute [of x] fold1_eq_fold eq_commute) 
+    by (simp add: insert_commute [of x] fold1_eq_fold eq_commute)
 qed
 
 end
@@ -1965,23 +2010,32 @@ end
 context ab_semigroup_idem_mult
 begin
 
+lemma fun_left_comm_idem: "fun_left_comm_idem(op *)"
+apply unfold_locales
+ apply (simp add: mult_ac)
+apply (simp add: mult_idem mult_assoc[symmetric])
+done
+
+
 lemma fold1_insert_idem [simp]:
   assumes nonempty: "A \<noteq> {}" and A: "finite A" 
   shows "fold1 times (insert x A) = x * fold1 times A"
 proof -
-  from nonempty obtain a A' where A': "A = insert a A' & a ~: A'" 
+  interpret fun_left_comm_idem ["op *::'a \<Rightarrow> 'a \<Rightarrow> 'a"]
+    by (rule fun_left_comm_idem)
+  from nonempty obtain a A' where A': "A = insert a A' & a ~: A'"
     by (auto simp add: nonempty_iff)
   show ?thesis
   proof cases
     assume "a = x"
-    thus ?thesis 
+    thus ?thesis
     proof cases
       assume "A' = {}"
-      with prems show ?thesis by (simp add: mult_idem) 
+      with prems show ?thesis by (simp add: mult_idem)
     next
       assume "A' \<noteq> {}"
       with prems show ?thesis
-	by (simp add: fold1_insert mult_assoc [symmetric] mult_idem) 
+	by (simp add: fold1_insert mult_assoc [symmetric] mult_idem)
     qed
   next
     assume "a \<noteq> x"
@@ -2024,24 +2078,24 @@ by simp
 
 subsubsection{* Determinacy for @{term fold1Set} *}
 
-text{*Not actually used!!*}
-
+(*Not actually used!!*)
+(*
 context ab_semigroup_mult
 begin
 
-lemma foldSet_permute:
-  "[|foldSet times id b (insert a A) x; a \<notin> A; b \<notin> A|]
-   ==> foldSet times id a (insert b A) x"
+lemma fold_graph_permute:
+  "[|fold_graph times id b (insert a A) x; a \<notin> A; b \<notin> A|]
+   ==> fold_graph times id a (insert b A) x"
 apply (cases "a=b") 
-apply (auto dest: foldSet_permute_diff) 
+apply (auto dest: fold_graph_permute_diff) 
 done
 
 lemma fold1Set_determ:
   "fold1Set times A x ==> fold1Set times A y ==> y = x"
 proof (clarify elim!: fold1Set.cases)
   fix A x B y a b
-  assume Ax: "foldSet times id a A x"
-  assume By: "foldSet times id b B y"
+  assume Ax: "fold_graph times id a A x"
+  assume By: "fold_graph times id b B y"
   assume anotA:  "a \<notin> A"
   assume bnotB:  "b \<notin> B"
   assume eq: "insert a A = insert b B"
@@ -2049,7 +2103,7 @@ proof (clarify elim!: fold1Set.cases)
   proof cases
     assume same: "a=b"
     hence "A=B" using anotA bnotB eq by (blast elim!: equalityE)
-    thus ?thesis using Ax By same by (blast intro: foldSet_determ)
+    thus ?thesis using Ax By same by (blast intro: fold_graph_determ)
   next
     assume diff: "a\<noteq>b"
     let ?D = "B - {a}"
@@ -2057,12 +2111,12 @@ proof (clarify elim!: fold1Set.cases)
      and aB: "a \<in> B" and bA: "b \<in> A"
       using eq anotA bnotB diff by (blast elim!:equalityE)+
     with aB bnotB By
-    have "foldSet times id a (insert b ?D) y" 
-      by (auto intro: foldSet_permute simp add: insert_absorb)
+    have "fold_graph times id a (insert b ?D) y" 
+      by (auto intro: fold_graph_permute simp add: insert_absorb)
     moreover
-    have "foldSet times id a (insert b ?D) x"
+    have "fold_graph times id a (insert b ?D) x"
       by (simp add: A [symmetric] Ax) 
-    ultimately show ?thesis by (blast intro: foldSet_determ) 
+    ultimately show ?thesis by (blast intro: fold_graph_determ) 
   qed
 qed
 
@@ -2070,9 +2124,10 @@ lemma fold1Set_equality: "fold1Set times A y ==> fold1 times A = y"
   by (unfold fold1_def) (blast intro: fold1Set_determ)
 
 end
+*)
 
 declare
-  empty_foldSetE [rule del]   foldSet.intros [rule del]
+  empty_fold_graphE [rule del]  fold_graph.intros [rule del]
   empty_fold1SetE [rule del]  insert_fold1SetE [rule del]
   -- {* No more proofs involve these relations. *}
 
