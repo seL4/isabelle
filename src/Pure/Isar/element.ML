@@ -75,7 +75,7 @@ sig
   val generalize_facts: Proof.context -> Proof.context ->
     (Attrib.binding * (thm list * Attrib.src list) list) list ->
     (Attrib.binding * (thm list * Attrib.src list) list) list
-  val activate: (Term.typ, Term.term, Facts.ref) ctxt list -> Proof.context ->
+  val activate: (typ, term, Facts.ref) ctxt list -> Proof.context ->
     (context_i list * (Name.binding * Thm.thm list) list) * Proof.context
   val activate_i: context_i list -> Proof.context ->
     (context_i list * (Name.binding * Thm.thm list) list) * Proof.context
