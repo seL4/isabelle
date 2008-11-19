@@ -169,6 +169,11 @@ INCOMPATIBILITY: Instantiation proofs for order, linorder
 etc. slightly changed.  Some theorems named order_class.* now named
 preorder_class.*.
 
+* HOL/Finite_Set: added a new fold combinator of type
+  ('a => 'b => 'b) => 'b => 'a set => 'b
+Occasionally this is more convenient than the old fold combinator which is
+now defined in terms of the new one and renamed to fold_image.
+
 * HOL/Ring_and_Field and HOL/Divides: Definition of "op dvd" has been
 moved to separate class dvd in Ring_and_Field; a couple of lemmas on
 dvd has been generalized to class comm_semiring_1.  Likewise a bunch
