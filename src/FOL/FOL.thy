@@ -346,9 +346,7 @@ lemma induct_implies_eq: "(A ==> B) == Trueprop(induct_implies(A, B))"
 lemma induct_equal_eq: "(x == y) == Trueprop(induct_equal(x, y))"
   unfolding atomize_eq induct_equal_def .
 
-lemma induct_conj_eq:
-  fixes meta_conjunction :: "prop => prop => prop"  (infixr "&&" 2)
-  shows "(A && B) == Trueprop(induct_conj(A, B))"
+lemma induct_conj_eq: "(A &&& B) == Trueprop(induct_conj(A, B))"
   unfolding atomize_conj induct_conj_def .
 
 lemmas induct_atomize = induct_forall_eq induct_implies_eq induct_equal_eq induct_conj_eq

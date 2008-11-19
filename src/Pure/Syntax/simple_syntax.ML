@@ -18,7 +18,7 @@ struct
 (* scanning tokens *)
 
 val lexicon = Scan.make_lexicon
-  (map Symbol.explode ["!!", "%", "(", ")", ".", "::", "==", "==>", "=?=", "=>", "&&", "CONST"]);
+  (map Symbol.explode ["!!", "%", "(", ")", ".", "::", "==", "==>", "=?=", "=>", "&&&", "CONST"]);
 
 fun read scan s =
   (case
@@ -81,7 +81,7 @@ val read_typ = read typ;
         | term2
   term2 = term3 == term2
         | term3 =?= term2
-        | term3 && term2
+        | term3 &&& term2
         | term3
   term3 = ident :: typ
         | var :: typ
@@ -111,7 +111,7 @@ and term1 env T x =
   term2 env T) x
 and term2 env T x =
  (equal env "==" || equal env "=?=" ||
-  term3 env propT -- ($$ "&&" |-- term2 env propT) >> Logic.mk_conjunction ||
+  term3 env propT -- ($$ "&&&" |-- term2 env propT) >> Logic.mk_conjunction ||
   term3 env T) x
 and equal env eq x =
  (term3 env dummyT -- ($$ eq |-- term2 env dummyT) >> (fn (t, u) =>

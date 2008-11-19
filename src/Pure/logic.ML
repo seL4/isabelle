@@ -162,33 +162,33 @@ val true_prop = Term.all propT $ Abs ("dummy", propT, mk_implies (Bound 0, Bound
 val conjunction = Const ("Pure.conjunction", propT --> propT --> propT);
 
 
-(*A && B*)
+(*A &&& B*)
 fun mk_conjunction (A, B) = conjunction $ A $ B;
 
-(*A && B && C -- improper*)
+(*A &&& B &&& C -- improper*)
 fun mk_conjunction_list [] = true_prop
   | mk_conjunction_list ts = foldr1 mk_conjunction ts;
 
-(*(A && B) && (C && D) -- balanced*)
+(*(A &&& B) &&& (C &&& D) -- balanced*)
 fun mk_conjunction_balanced [] = true_prop
   | mk_conjunction_balanced ts = BalancedTree.make mk_conjunction ts;
 
 
-(*A && B*)
+(*A &&& B*)
 fun dest_conjunction (Const ("Pure.conjunction", _) $ A $ B) = (A, B)
   | dest_conjunction t = raise TERM ("dest_conjunction", [t]);
 
-(*A && B && C -- improper*)
+(*A &&& B &&& C -- improper*)
 fun dest_conjunction_list t =
   (case try dest_conjunction t of
     NONE => [t]
   | SOME (A, B) => A :: dest_conjunction_list B);
 
-(*(A && B) && (C && D) -- balanced*)
+(*(A &&& B) &&& (C &&& D) -- balanced*)
 fun dest_conjunction_balanced 0 _ = []
   | dest_conjunction_balanced n t = BalancedTree.dest dest_conjunction n t;
 
-(*((A && B) && C) && D && E -- flat*)
+(*((A &&& B) &&& C) &&& D &&& E -- flat*)
 fun dest_conjunctions t =
   (case try dest_conjunction t of
     NONE => [t]

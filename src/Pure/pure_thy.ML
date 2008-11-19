@@ -244,6 +244,9 @@ val typ = SimpleSyntax.read_typ;
 val term = SimpleSyntax.read_term;
 val prop = SimpleSyntax.read_prop;
 
+val typeT = Syntax.typeT;
+val spropT = Syntax.spropT;
+
 
 (* application syntax variants *)
 
@@ -301,6 +304,7 @@ val _ = Context.>> (Context.map_theory
     ("",            typ "idt => pttrn",                Delimfix "_"),
     ("",            typ "pttrn => pttrns",             Delimfix "_"),
     ("_pttrns",     typ "pttrn => pttrns => pttrns",   Mixfix ("_/ _", [1, 0], 0)),
+    ("",            typ "aprop => aprop",              Delimfix "'(_')"),
     ("",            typ "id => aprop",                 Delimfix "_"),
     ("",            typ "longid => aprop",             Delimfix "_"),
     ("",            typ "var => aprop",                Delimfix "_"),
@@ -324,13 +328,16 @@ val _ = Context.>> (Context.map_theory
     ("_struct",     typ "index => logic",              Mixfix ("\\<struct>_", [1000], 1000)),
     ("==>",         typ "prop => prop => prop",        Delimfix "op ==>"),
     (Term.dummy_patternN, typ "aprop",                 Delimfix "'_"),
-    ("_sort_constraint", typ "type => prop",           Delimfix "(1SORT'_CONSTRAINT/(1'(_')))")]
+    ("_sort_constraint", typ "type => prop",           Delimfix "(1SORT'_CONSTRAINT/(1'(_')))"),
+    ("Pure.term",   typ "logic => prop",               Delimfix "TERM _"),
+    ("Pure.conjunction", typ "prop => prop => prop",   InfixrName ("&&&", 2))]
   #> Sign.add_syntax_i applC_syntax
   #> Sign.add_modesyntax_i (Symbol.xsymbolsN, true)
    [("fun",      typ "type => type => type",   Mixfix ("(_/ \\<Rightarrow> _)", [1, 0], 0)),
     ("_bracket", typ "types => type => type",  Mixfix ("([_]/ \\<Rightarrow> _)", [0, 0], 0)),
     ("_ofsort",  typ "tid => sort => type",    Mixfix ("_\\<Colon>_", [1000, 0], 1000)),
-    ("_constrain", typ "'a => type => 'a",     Mixfix ("_\\<Colon>_", [4, 0], 3)),
+    ("_constrain", typ "logic => type => logic", Mixfix ("_\\<Colon>_", [4, 0], 3)),
+    ("_constrain", [spropT, typeT] ---> spropT, Mixfix ("_\\<Colon>_", [4, 0], 3)),
     ("_idtyp",    typ "id => type => idt",     Mixfix ("_\\<Colon>_", [], 0)),
     ("_idtypdummy", typ "type => idt",         Mixfix ("'_()\\<Colon>_", [], 0)),
     ("_type_constraint_", typ "'a",            NoSyn),
@@ -342,9 +349,7 @@ val _ = Context.>> (Context.map_theory
     ("_bigimpl", typ "asms => prop => prop",   Mixfix ("((1\\<lbrakk>_\\<rbrakk>)/ \\<Longrightarrow> _)", [0, 1], 1)),
     ("_DDDOT",   typ "logic",                  Delimfix "\\<dots>")]
   #> Sign.add_modesyntax_i ("", false)
-   [("prop", typ "prop => prop", Mixfix ("_", [0], 0)),
-    ("Pure.term", typ "'a => prop", Delimfix "TERM _"),
-    ("Pure.conjunction", typ "prop => prop => prop", InfixrName ("&&", 2))]
+   [("prop", typ "prop => prop", Mixfix ("_", [0], 0))]
   #> Sign.add_modesyntax_i ("HTML", false)
    [("_lambda", typ "pttrns => 'a => logic", Mixfix ("(3\\<lambda>_./ _)", [0, 3], 3))]
   #> Sign.add_consts_i
@@ -372,7 +377,7 @@ val _ = Context.>> (Context.map_theory
     ("sort_constraint_def",
       prop "(CONST Pure.sort_constraint :: 'a itself => prop) (CONST TYPE :: 'a itself) ==\
       \ (CONST Pure.term :: 'a itself => prop) (CONST TYPE :: 'a itself)"),
-    ("conjunction_def", prop "(A && B) == (!!C::prop. (A ==> B ==> C) ==> C)")] #> snd
+    ("conjunction_def", prop "(A &&& B) == (!!C::prop. (A ==> B ==> C) ==> C)")] #> snd
   #> Sign.hide_const false "Pure.term"
   #> Sign.hide_const false "Pure.sort_constraint"
   #> Sign.hide_const false "Pure.conjunction"

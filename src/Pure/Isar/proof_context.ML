@@ -1060,10 +1060,14 @@ in
 
 val _ = Context.>> (Context.map_theory
  (Sign.add_syntax
-   [("_context_const", "id => 'a", Delimfix "CONST _"),
-    ("_context_const", "longid => 'a", Delimfix "CONST _"),
-    ("_context_xconst", "id => 'a", Delimfix "XCONST _"),
-    ("_context_xconst", "longid => 'a", Delimfix "XCONST _")] #>
+   [("_context_const", "id => logic", Delimfix "CONST _"),
+    ("_context_const", "id => aprop", Delimfix "CONST _"),
+    ("_context_const", "longid => logic", Delimfix "CONST _"),
+    ("_context_const", "longid => aprop", Delimfix "CONST _"),
+    ("_context_xconst", "id => logic", Delimfix "XCONST _"),
+    ("_context_xconst", "id => aprop", Delimfix "XCONST _"),
+    ("_context_xconst", "longid => logic", Delimfix "XCONST _"),
+    ("_context_xconst", "longid => aprop", Delimfix "XCONST _")] #>
   Sign.add_advanced_trfuns
     ([("_context_const", const_ast_tr true), ("_context_xconst", const_ast_tr false)], [], [], [])));
 

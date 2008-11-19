@@ -47,6 +47,11 @@ interface instead.
 
 *** Pure ***
 
+* Slightly more coherent Pure syntax, with updated documentation in
+isar-ref manual.  Removed locales meta_term_syntax and
+meta_conjunction_syntax: TERM and &&& (formerly &&) are now permanent,
+INCOMPATIBILITY in rare situations.
+
 * Goal-directed proof now enforces strict proof irrelevance wrt. sort
 hypotheses.  Sorts required in the course of reasoning need to be
 covered by the constraints in the initial statement, completed by the

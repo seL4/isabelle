@@ -67,7 +67,7 @@ val A = read_prop "A" and vA = read_prop "?A";
 val B = read_prop "B" and vB = read_prop "?B";
 val C = read_prop "C";
 val ABC = read_prop "A ==> B ==> C";
-val A_B = read_prop "A && B";
+val A_B = read_prop "A &&& B";
 
 val conjunction_def =
   Thm.unvarify (Thm.axiom (Context.the_theory (Context.the_thread_data ())) "Pure.conjunction_def");
@@ -135,7 +135,7 @@ fun comp_rule th rule =
 in
 
 (*
-   A1 && ... && An ==> B
+  A1 &&& ... &&& An ==> B
   -----------------------
   A1 ==> ... ==> An ==> B
 *)
@@ -155,7 +155,7 @@ fun curry_balanced n th =
 (*
   A1 ==> ... ==> An ==> B
   -----------------------
-  A1 && ... && An ==> B
+  A1 &&& ... &&& An ==> B
 *)
 fun uncurry_balanced n th =
   if n < 2 then th

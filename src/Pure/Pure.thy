@@ -24,34 +24,22 @@ lemma swap_params:
   "(!!x y. PROP P x y) == (!!y x. PROP P x y)" ..
 
 
-subsection {* Embedded terms *}
-
-locale meta_term_syntax =
-  fixes meta_term :: "'a => prop"  ("TERM _")
-
-lemmas [intro?] = termI
-
-
 subsection {* Meta-level conjunction *}
 
-locale meta_conjunction_syntax =
-  fixes meta_conjunction :: "prop => prop => prop"  (infixr "&&" 2)
-
 lemma all_conjunction:
-  fixes meta_conjunction :: "prop => prop => prop"  (infixr "&&" 2)
-  shows "(!!x. PROP A x && PROP B x) == ((!!x. PROP A x) && (!!x. PROP B x))"
+  "(!!x. PROP A x &&& PROP B x) == ((!!x. PROP A x) &&& (!!x. PROP B x))"
 proof
-  assume conj: "!!x. PROP A x && PROP B x"
-  show "(!!x. PROP A x) && (!!x. PROP B x)"
+  assume conj: "!!x. PROP A x &&& PROP B x"
+  show "(!!x. PROP A x) &&& (!!x. PROP B x)"
   proof -
     fix x
     from conj show "PROP A x" by (rule conjunctionD1)
     from conj show "PROP B x" by (rule conjunctionD2)
   qed
 next
-  assume conj: "(!!x. PROP A x) && (!!x. PROP B x)"
+  assume conj: "(!!x. PROP A x) &&& (!!x. PROP B x)"
   fix x
-  show "PROP A x && PROP B x"
+  show "PROP A x &&& PROP B x"
   proof -
     show "PROP A x" by (rule conj [THEN conjunctionD1, rule_format])
     show "PROP B x" by (rule conj [THEN conjunctionD2, rule_format])
@@ -59,20 +47,19 @@ next
 qed
 
 lemma imp_conjunction:
-  fixes meta_conjunction :: "prop => prop => prop"  (infixr "&&" 2)
-  shows "(PROP A ==> PROP B && PROP C) == (PROP A ==> PROP B) && (PROP A ==> PROP C)"
+  "(PROP A ==> PROP B &&& PROP C) == (PROP A ==> PROP B) &&& (PROP A ==> PROP C)"
 proof
-  assume conj: "PROP A ==> PROP B && PROP C"
-  show "(PROP A ==> PROP B) && (PROP A ==> PROP C)"
+  assume conj: "PROP A ==> PROP B &&& PROP C"
+  show "(PROP A ==> PROP B) &&& (PROP A ==> PROP C)"
   proof -
     assume "PROP A"
     from conj [OF `PROP A`] show "PROP B" by (rule conjunctionD1)
     from conj [OF `PROP A`] show "PROP C" by (rule conjunctionD2)
   qed
 next
-  assume conj: "(PROP A ==> PROP B) && (PROP A ==> PROP C)"
+  assume conj: "(PROP A ==> PROP B) &&& (PROP A ==> PROP C)"
   assume "PROP A"
-  show "PROP B && PROP C"
+  show "PROP B &&& PROP C"
   proof -
     from `PROP A` show "PROP B" by (rule conj [THEN conjunctionD1])
     from `PROP A` show "PROP C" by (rule conj [THEN conjunctionD2])
@@ -80,18 +67,17 @@ next
 qed
 
 lemma conjunction_imp:
-  fixes meta_conjunction :: "prop => prop => prop"  (infixr "&&" 2)
-  shows "(PROP A && PROP B ==> PROP C) == (PROP A ==> PROP B ==> PROP C)"
+  "(PROP A &&& PROP B ==> PROP C) == (PROP A ==> PROP B ==> PROP C)"
 proof
-  assume r: "PROP A && PROP B ==> PROP C"
+  assume r: "PROP A &&& PROP B ==> PROP C"
   assume ab: "PROP A" "PROP B"
   show "PROP C"
   proof (rule r)
-    from ab show "PROP A && PROP B" .
+    from ab show "PROP A &&& PROP B" .
   qed
 next
   assume r: "PROP A ==> PROP B ==> PROP C"
-  assume conj: "PROP A && PROP B"
+  assume conj: "PROP A &&& PROP B"
   show "PROP C"
   proof (rule r)
     from conj show "PROP A" by (rule conjunctionD1)

@@ -485,6 +485,7 @@ text {*
     & @{text "|"} & @{text "any\<^sup>(\<^sup>3\<^sup>)"} @{verbatim "=?="} @{text "any\<^sup>(\<^sup>2\<^sup>)"} & @{text "(2)"} \\
     & @{text "|"} & @{text "any\<^sup>(\<^sup>3\<^sup>)"} @{verbatim "=="} @{text "any\<^sup>(\<^sup>2\<^sup>)"} & @{text "(2)"} \\
     & @{text "|"} & @{text "any\<^sup>(\<^sup>3\<^sup>)"} @{text "\<equiv>"} @{text "any\<^sup>(\<^sup>2\<^sup>)"} & @{text "(2)"} \\
+    & @{text "|"} & @{text "prop\<^sup>(\<^sup>3\<^sup>)"} @{verbatim "&&&"} @{text "prop\<^sup>(\<^sup>2\<^sup>)"} & @{text "(2)"} \\
     & @{text "|"} & @{text "prop\<^sup>(\<^sup>2\<^sup>)"} @{verbatim "==>"} @{text "prop\<^sup>(\<^sup>1\<^sup>)"} & @{text "(1)"} \\
     & @{text "|"} & @{text "prop\<^sup>(\<^sup>2\<^sup>)"} @{text "\<Longrightarrow>"} @{text "prop\<^sup>(\<^sup>1\<^sup>)"} & @{text "(1)"} \\
     & @{text "|"} & @{verbatim "[|"} @{text prop} @{verbatim ";"} @{text "\<dots>"} @{verbatim ";"} @{text prop} @{verbatim "|]"} @{verbatim "==>"} @{text "prop\<^sup>(\<^sup>1\<^sup>)"} & @{text "(1)"} \\
@@ -493,18 +494,21 @@ text {*
     & @{text "|"} & @{text "\<And>"} @{text idts} @{verbatim "."} @{text prop} & @{text "(0)"} \\
     & @{text "|"} & @{verbatim OFCLASS} @{verbatim "("} @{text type} @{verbatim ","} @{text logic} @{verbatim ")"} \\
     & @{text "|"} & @{verbatim SORT_CONSTRAINT} @{verbatim "("} @{text type} @{verbatim ")"} \\
+    & @{text "|"} & @{verbatim TERM} @{text logic} \\
     & @{text "|"} & @{verbatim PROP} @{text aprop} \\\\
 
-  @{syntax_def (inner) aprop} & = & @{text "id  |  longid  |  var  |  "}@{verbatim "_"}@{text "  |  "}@{verbatim "..."} \\
+  @{syntax_def (inner) aprop} & = & @{verbatim "("} @{text aprop} @{verbatim ")"} \\
+    & @{text "|"} & @{text "id  |  longid  |  var  |  "}@{verbatim "_"}@{text "  |  "}@{verbatim "..."} \\
+    & @{text "|"} & @{verbatim CONST} @{text "id  |  "}@{verbatim CONST} @{text "longid"} \\
     & @{text "|"} & @{text "logic\<^sup>(\<^sup>1\<^sup>0\<^sup>0\<^sup>0\<^sup>)  any\<^sup>(\<^sup>1\<^sup>0\<^sup>0\<^sup>0\<^sup>) \<dots> any\<^sup>(\<^sup>1\<^sup>0\<^sup>0\<^sup>0\<^sup>)"} & @{text "(999)"} \\\\
 
   @{syntax_def (inner) logic} & = & @{verbatim "("} @{text logic} @{verbatim ")"} \\
     & @{text "|"} & @{text "logic\<^sup>(\<^sup>4\<^sup>)"} @{verbatim "::"} @{text type} & @{text "(3)"} \\
     & @{text "|"} & @{text "id  |  longid  |  var  |  "}@{verbatim "_"}@{text "  |  "}@{verbatim "..."} \\
+    & @{text "|"} & @{verbatim CONST} @{text "id  |  "}@{verbatim CONST} @{text "longid"} \\
     & @{text "|"} & @{text "logic\<^sup>(\<^sup>1\<^sup>0\<^sup>0\<^sup>0\<^sup>)  any\<^sup>(\<^sup>1\<^sup>0\<^sup>0\<^sup>0\<^sup>) \<dots> any\<^sup>(\<^sup>1\<^sup>0\<^sup>0\<^sup>0\<^sup>)"} & @{text "(999)"} \\
     & @{text "|"} & @{verbatim "%"} @{text pttrns} @{verbatim "."} @{text "any\<^sup>(\<^sup>3\<^sup>)"} & @{text "(3)"} \\
     & @{text "|"} & @{text \<lambda>} @{text pttrns} @{verbatim "."} @{text "any\<^sup>(\<^sup>3\<^sup>)"} & @{text "(3)"} \\
-    & @{text "|"} & @{verbatim CONST} @{text "id  |  "}@{verbatim CONST} @{text "longid"} \\
     & @{text "|"} & @{verbatim TYPE} @{verbatim "("} @{text type} @{verbatim ")"} \\\\
 
   @{syntax_def (inner) idt} & = & @{verbatim "("} @{text idt} @{verbatim ")"}@{text "  |  id  |  "}@{verbatim "_"} \\
@@ -847,7 +851,7 @@ text {*
   Priority information attached to chain productions is ignored; only
   the dummy value @{text "-1"} is displayed.
 
-  \item @{text "print_modes"} lists the alternative print modes
+  \item @{text "print modes"} lists the alternative print modes
   provided by this grammar; see \secref{sec:print-modes}.
 
   \item @{text "parse_rules"} and @{text "print_rules"} relate to

@@ -845,11 +845,9 @@ next
   then show "x == y" by (rule eq_reflection)
 qed
 
-lemma atomize_conj [atomize]:
-  fixes meta_conjunction :: "prop => prop => prop"  (infixr "&&" 2)
-  shows "(A && B) == Trueprop (A & B)"
+lemma atomize_conj [atomize]: "(A &&& B) == Trueprop (A & B)"
 proof
-  assume conj: "A && B"
+  assume conj: "A &&& B"
   show "A & B"
   proof (rule conjI)
     from conj show A by (rule conjunctionD1)
@@ -857,7 +855,7 @@ proof
   qed
 next
   assume conj: "A & B"
-  show "A && B"
+  show "A &&& B"
   proof -
     from conj show A ..
     from conj show B ..
@@ -1511,9 +1509,7 @@ lemma induct_implies_eq: "(A ==> B) == Trueprop (induct_implies A B)"
 lemma induct_equal_eq: "(x == y) == Trueprop (induct_equal x y)"
   by (unfold atomize_eq induct_equal_def)
 
-lemma induct_conj_eq:
-  fixes meta_conjunction :: "prop => prop => prop"  (infixr "&&" 2)
-  shows "(A && B) == Trueprop (induct_conj A B)"
+lemma induct_conj_eq: "(A &&& B) == Trueprop (induct_conj A B)"
   by (unfold atomize_conj induct_conj_def)
 
 lemmas induct_atomize = induct_forall_eq induct_implies_eq induct_equal_eq induct_conj_eq

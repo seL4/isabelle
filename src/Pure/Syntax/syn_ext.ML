@@ -10,6 +10,7 @@ sig
   val dddot_indexname: indexname
   val constrainC: string
   val typeT: typ
+  val spropT: typ
   val max_pri: int
   val stamp_trfun: stamp -> string * 'a -> string * ('a * stamp)
   val mk_trfun: string * 'a -> string * ('a * stamp)

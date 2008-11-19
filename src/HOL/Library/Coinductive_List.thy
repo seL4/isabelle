@@ -216,9 +216,8 @@ lemma llist_case_LCons [simp, code]: "llist_case c d (LCons M N) = d M N"
     CONS_type Abs_llist_inverse Rep_llist Rep_llist_inverse inj_Leaf)
 
 lemma llist_case_cert:
-  fixes meta_conjunction :: "prop => prop => prop"  (infixr "&&" 2)
   assumes "CASE \<equiv> llist_case c d"
-  shows "(CASE LNil \<equiv> c) && (CASE (LCons M N) \<equiv> d M N)"
+  shows "(CASE LNil \<equiv> c) &&& (CASE (LCons M N) \<equiv> d M N)"
   using assms by simp_all
 
 setup {*

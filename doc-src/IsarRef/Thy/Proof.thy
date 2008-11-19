@@ -381,7 +381,7 @@ text {*
 
   Goals may consist of multiple statements, resulting in a list of
   facts eventually.  A pending multi-goal is internally represented as
-  a meta-level conjunction (printed as @{text "&&"}), which is usually
+  a meta-level conjunction (@{text "&&&"}), which is usually
   split into the corresponding number of sub-goals prior to an initial
   method application, via @{command_ref "proof"}
   (\secref{sec:proof-steps}) or @{command_ref "apply"}

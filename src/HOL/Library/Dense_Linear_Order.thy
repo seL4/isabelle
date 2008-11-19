@@ -268,7 +268,6 @@ lemmas dlo_simps = order_refl less_irrefl not_less not_le exists_neq
 
 lemma axiom: "dense_linear_order (op \<le>) (op <)" by (rule dense_linear_order_axioms)
 lemma atoms:
-  fixes meta_term :: "'a => prop"  ("TERM _")
   shows "TERM (less :: 'a \<Rightarrow> _)"
     and "TERM (less_eq :: 'a \<Rightarrow> _)"
     and "TERM (op = :: 'a \<Rightarrow> _)" .
@@ -505,7 +504,6 @@ lemmas lin_dense_thms = lin_dense_conj lin_dense_disj lin_dense_eq lin_dense_neq
 lemma ferrack_axiom: "constr_dense_linear_order less_eq less between"
   by (rule constr_dense_linear_order_axioms)
 lemma atoms:
-  fixes meta_term :: "'a => prop"  ("TERM _")
   shows "TERM (less :: 'a \<Rightarrow> _)"
     and "TERM (less_eq :: 'a \<Rightarrow> _)"
     and "TERM (op = :: 'a \<Rightarrow> _)" .

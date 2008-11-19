@@ -698,11 +698,9 @@ next
   then show "A == B" by (rule iff_reflection)
 qed
 
-lemma atomize_conj [atomize]:
-  fixes meta_conjunction :: "prop => prop => prop"  (infixr "&&" 2)
-  shows "(A && B) == Trueprop (A & B)"
+lemma atomize_conj [atomize]: "(A &&& B) == Trueprop (A & B)"
 proof
-  assume conj: "A && B"
+  assume conj: "A &&& B"
   show "A & B"
   proof (rule conjI)
     from conj show A by (rule conjunctionD1)
@@ -710,7 +708,7 @@ proof
   qed
 next
   assume conj: "A & B"
-  show "A && B"
+  show "A &&& B"
   proof -
     from conj show A ..
     from conj show B ..
