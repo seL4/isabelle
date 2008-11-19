@@ -30,7 +30,7 @@ class Prover() {
   val activated = new EventSource[Unit]
   val commandInfo = new EventSource[CommandChangeInfo]
   val outputInfo = new EventSource[String]
-  val allInfo = new EventSource[org.w3c.dom.Document]
+  val allInfo = new EventSource[Result]
   var document = null : Document
   
   var workerThread = new Thread("isabelle.Prover: worker") {
@@ -83,7 +83,7 @@ class Prover() {
   def handleResult(st : Command, r : Result, tree : XML.Tree) {
     def fireChange() = 
       inUIThread(() => commandInfo.fire(new CommandChangeInfo(st)))
-    allInfo.fire(st.document)
+    allInfo.fire(r)
     
     r.kind match {
       case IsabelleProcess.Kind.ERROR => 

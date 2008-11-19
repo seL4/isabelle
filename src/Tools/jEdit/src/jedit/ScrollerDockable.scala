@@ -6,6 +6,8 @@
 package isabelle.jedit
 
 import isabelle.utils.EventSource
+import isabelle.IsabelleProcess.Result
+import isabelle.YXML.parse_failsafe
 
 import scala.collection.mutable.{ArrayBuffer, HashMap}
 
@@ -32,7 +34,7 @@ trait Rendered[T] {
 
 object Renderer {
   
-  def render (message: Document): XHTMLPanel = {
+  def render (r: Result): XHTMLPanel = {
     val panel = new XHTMLPanel(new UserAgent())
     val fontResolver =
       panel.getSharedContext.getFontResolver.asInstanceOf[AWTFontResolver]
@@ -44,7 +46,9 @@ object Renderer {
         fontResolver.setFontMapping("Isabelle", Plugin.plugin.viewFont)
       panel.relayout()
     })
-    panel.setDocument(message, UserAgent.baseURL)
+    val tree = parse_failsafe(VFS.converter.decode(r.result))
+    val document = XML.document(tree)
+    panel.setDocument(document, UserAgent.baseURL)
     val sa = new SelectionActions
     sa.install(panel)
     panel
@@ -128,7 +132,7 @@ class InfoPanel extends JPanel {
 
 class ScrollerDockable(view : View, position : String) extends JPanel with AdjustmentListener {
 
-  val buffer:Unrendered[Document] = new MessageBuffer()
+  val buffer:Unrendered[Result] = new MessageBuffer()
   val cache:Rendered[XHTMLPanel] = new PanelCache(buffer)
 
   val subunits = 100
@@ -157,8 +161,8 @@ class ScrollerDockable(view : View, position : String) extends JPanel with Adjus
       }
     })
 
-  def add_message (message: Document) = {
-    buffer.addUnrendered(buffer.size, message)
+  def add_result (result: Result) = {
+    buffer.addUnrendered(buffer.size, result)
     vscroll.setMaximum (Math.max(1, buffer.size * subunits))
     infopanel.setIndicator(true)
     infopanel.setText(buffer.size.toString)
@@ -189,17 +193,17 @@ class ScrollerDockable(view : View, position : String) extends JPanel with Adjus
 
   
   // TODO: register
-  Plugin.plugin.prover.allInfo.add(add_message(_))
+  Plugin.plugin.prover.allInfo.add(add_result(_))
 }
 
 
 
 //containing the unrendered messages
-class MessageBuffer extends HashMap[Int,Document] with Unrendered[Document]{
-  override def addUnrendered (id: Int, m: Document) {
+class MessageBuffer extends HashMap[Int,Result] with Unrendered[Result]{
+  override def addUnrendered (id: Int, m: Result) {
     update(id, m)
   }
-  override def getUnrendered (id: Int): Option[Document] = {
+  override def getUnrendered (id: Int): Option[Result] = {
     if(id < size && id >= 0 && apply(id) != null) Some (apply(id))
     else None
   }
@@ -207,7 +211,7 @@ class MessageBuffer extends HashMap[Int,Document] with Unrendered[Document]{
 }
 
 //containing the rendered messages
-class PanelCache (buffer: Unrendered[Document]) extends HashMap[Int, XHTMLPanel] with Rendered[XHTMLPanel]{
+class PanelCache (buffer: Unrendered[Result]) extends HashMap[Int, XHTMLPanel] with Rendered[XHTMLPanel]{
   override def getRendered (id: Int): Option[XHTMLPanel] = {
     //get message from buffer and render it if necessary
     if(!isDefinedAt(id)){
