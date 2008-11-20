@@ -91,7 +91,7 @@ sig
   val intro_locales_tac: bool -> Proof.context -> thm list -> tactic
 
   (* Storing results *)
-  val local_note_prefix: string ->
+  val local_note_qualified: string ->
     (Name.binding * attribute list) * (thm list * attribute list) list ->
     Proof.context -> (string * thm list) * Proof.context
   val add_thmss: string -> string -> (Attrib.binding * (thm list * Attrib.src list) list) list ->
@@ -136,24 +136,16 @@ fun merge_alists eq xs = merge_lists (eq_fst eq) xs;
 
 (* auxiliary: noting with structured name bindings *)
 
-fun global_note_prefix kind ((b, atts), facts_atts_s) thy =
-  (*FIXME belongs to theory_target.ML ?*)
+fun global_note_qualified kind ((b, atts), facts_atts_s) thy =
   thy
   |> Sign.qualified_names
-  |> Sign.name_decl (fn (bname, (atts, facts_atts_s)) =>
-    yield_singleton (PureThy.note_thmss kind) ((Name.binding bname, atts), facts_atts_s))
-      (b, (atts, facts_atts_s))
-  |>> snd
+  |> yield_singleton (PureThy.note_thmss kind) ((b, atts), facts_atts_s)
   ||> Sign.restore_naming thy;
 
-fun local_note_prefix kind ((b, atts), facts_atts_s) ctxt =
-  (*FIXME belongs to theory_target.ML ?*)
+fun local_note_qualified kind ((b, atts), facts_atts_s) ctxt =
   ctxt
   |> ProofContext.qualified_names
-  |> ProofContext.name_decl (fn (bname, (atts, facts_atts_s)) =>
-    yield_singleton (ProofContext.note_thmss_i kind) ((Name.binding bname, atts), facts_atts_s))
-      (b, (atts, facts_atts_s))
-  |>> snd
+  |> yield_singleton (ProofContext.note_thmss_i kind) ((b, atts), facts_atts_s)
   ||> ProofContext.restore_naming ctxt;
 
 
@@ -1018,7 +1010,7 @@ fun activate_elem _ _ (Fixes fixes) (ctxt, mode) =
   | activate_elem _ is_ext (Notes (kind, facts)) (ctxt, mode) =
       let
         val facts' = Attrib.map_facts (Attrib.attribute_i (ProofContext.theory_of ctxt)) facts;
-        val (res, ctxt') = ctxt |> fold_map (local_note_prefix kind) facts';
+        val (res, ctxt') = ctxt |> fold_map (local_note_qualified kind) facts';
       in (if is_ext then (map (#1 o #1) facts' ~~ map #2 res) else [], (ctxt', mode)) end;
 
 fun activate_elems ax_in_ctxt (((name, ps), mode), elems) ctxt =
@@ -1704,7 +1696,7 @@ fun note_thmss_registrations target (kind, args) thy =
                (Attrib.attribute_i thy) insts prems eqns exp;
       in
         thy
-        |> fold (snd oo global_note_prefix kind) args'
+        |> fold (snd oo global_note_qualified kind) args'
       end;
   in fold activate regs thy end;
 
@@ -2154,7 +2146,7 @@ fun gen_activate_facts_elemss mk_ctxt note attrib put_reg add_wit add_eqn
 
 fun global_activate_facts_elemss x = gen_activate_facts_elemss
   ProofContext.init
-  global_note_prefix
+  global_note_qualified
   Attrib.attribute_i
   put_global_registration
   add_global_witness
@@ -2163,7 +2155,7 @@ fun global_activate_facts_elemss x = gen_activate_facts_elemss
 
 fun local_activate_facts_elemss x = gen_activate_facts_elemss
   I
-  local_note_prefix
+  local_note_qualified
   (Attrib.attribute_i o ProofContext.theory_of)
   put_local_registration
   add_local_witness
@@ -2400,7 +2392,7 @@ fun prep_registration_in_locale target expr thy =
                     |> (map o apfst o apfst) (name_morph phi_name param_prfx);
                 in
                   thy
-                  |> fold (snd oo global_note_prefix kind) facts'
+                  |> fold (snd oo global_note_qualified kind) facts'
                 end
               | activate_elem _ _ thy = thy;
 
