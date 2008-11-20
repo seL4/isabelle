@@ -31,9 +31,9 @@ sig
   val props: T -> thm list
   val could_unify: T -> term -> thm list
   val merge: T * T -> T
-  val add_global: NameSpace.naming -> string * thm list -> T -> T
-  val add_local: bool -> NameSpace.naming -> string * thm list -> T -> T
-  val add_dynamic: NameSpace.naming -> string * (Context.generic -> thm list) -> T -> T
+  val add_global: NameSpace.naming -> Name.binding * thm list -> T -> string * T
+  val add_local: bool -> NameSpace.naming -> Name.binding * thm list -> T -> string * T
+  val add_dynamic: NameSpace.naming -> Name.binding * (Context.generic -> thm list) -> T -> string * T
   val del: string -> T -> T
   val hide: bool -> string -> T -> T
 end;
@@ -190,22 +190,20 @@ fun merge (Facts {facts = facts1, props = props1}, Facts {facts = facts2, props 
 
 (* add static entries *)
 
-fun add permissive do_props naming (name, ths) (Facts {facts, props}) =
+fun add permissive do_props naming (b, ths) (Facts {facts, props}) =
   let
-    val facts' =
-      if name = "" then facts
-      else
-        let
-          val (space, tab) = facts;
-          val space' = NameSpace.declare naming name space;
-          val entry = (name, (Static ths, serial ()));
-          val tab' = (if permissive then Symtab.update else Symtab.update_new) entry tab
-            handle Symtab.DUP dup => err_dup_fact dup;
-        in (space', tab') end;
+    val (name, facts') = if Name.is_nothing b then ("", facts)
+      else let
+        val (space, tab) = facts;
+        val (name, space') = NameSpace.declare_binding naming b space;
+        val entry = (name, (Static ths, serial ()));
+        val tab' = (if permissive then Symtab.update else Symtab.update_new) entry tab
+          handle Symtab.DUP dup => err_dup_fact dup;
+      in (name, (space', tab')) end;
     val props' =
       if do_props then fold (fn th => Net.insert_term (K false) (Thm.full_prop_of th, th)) ths props
       else props;
-  in make_facts facts' props' end;
+  in (name, make_facts facts' props') end;
 
 val add_global = add false false;
 val add_local = add true;
@@ -213,13 +211,13 @@ val add_local = add true;
 
 (* add dynamic entries *)
 
-fun add_dynamic naming (name, f) (Facts {facts = (space, tab), props}) =
+fun add_dynamic naming (b, f) (Facts {facts = (space, tab), props}) =
   let
-    val space' = NameSpace.declare naming name space;
+    val (name, space') = NameSpace.declare_binding naming b space;
     val entry = (name, (Dynamic f, serial ()));
     val tab' = Symtab.update_new entry tab
       handle Symtab.DUP dup => err_dup_fact dup;
-  in make_facts (space', tab') props end;
+  in (name, make_facts (space', tab') props) end;
 
 
 (* remove entries *)

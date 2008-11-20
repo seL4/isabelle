@@ -152,7 +152,7 @@ fun enter_thms pre_name post_name app_att (b, thms) thy =
     val (thy', thms') =
       enter_proofs (apsnd (post_name name) (app_att (thy, pre_name name thms)));
     val thms'' = map (Thm.transfer thy') thms';
-    val thy'' = thy' |> FactsData.map (apfst (Facts.add_global naming (name, thms'')));
+    val thy'' = thy' |> (FactsData.map o apfst) (Facts.add_global naming (b, thms'') #> snd);
   in (thms'', thy'') end;
 
 
@@ -187,9 +187,9 @@ val add_thm = yield_singleton add_thms;
 
 (* add_thms_dynamic *)
 
-fun add_thms_dynamic (bname, f) thy =
-  let val name = Sign.full_name thy bname
-  in thy |> FactsData.map (apfst (Facts.add_dynamic (Sign.naming_of thy) (name, f))) end;
+fun add_thms_dynamic (bname, f) thy = thy
+  |> (FactsData.map o apfst)
+      (Facts.add_dynamic (Sign.naming_of thy) (Name.binding bname, f) #> snd);
 
 
 (* note_thmss *)

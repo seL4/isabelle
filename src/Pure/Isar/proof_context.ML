@@ -23,8 +23,6 @@ sig
   val abbrev_mode: Proof.context -> bool
   val set_stmt: bool -> Proof.context -> Proof.context
   val naming_of: Proof.context -> NameSpace.naming
-  val name_decl: (string * 'a -> Proof.context -> 'b * Proof.context)
-    -> Name.binding * 'a -> Proof.context -> (string * 'b) * Proof.context
   val full_name: Proof.context -> bstring -> string
   val full_binding: Proof.context -> Name.binding -> string
   val consts_of: Proof.context -> Consts.T
@@ -248,18 +246,6 @@ fun set_stmt stmt =
   map_mode (fn (_, pattern, schematic, abbrev) => (stmt, pattern, schematic, abbrev));
 
 val naming_of = #naming o rep_context;
-
-fun name_decl decl (b, x) ctxt =
-  let
-    val naming = naming_of ctxt;
-    val (naming', name) = Name.namify naming b;
-  in
-    ctxt
-    |> map_naming (K naming')
-    |> decl (Name.name_of b, x)
-    |>> pair name
-    ||> map_naming (K naming)
-  end;
 
 val full_name = NameSpace.full o naming_of;
 val full_binding = NameSpace.full_binding o naming_of;
@@ -981,7 +967,7 @@ local
 
 fun update_thms _ (b, NONE) ctxt = ctxt |> map_facts (Facts.del (full_binding ctxt b))
   | update_thms do_props (b, SOME ths) ctxt = ctxt |> map_facts
-      (Facts.add_local do_props (naming_of ctxt) (full_binding ctxt b, ths));
+      (Facts.add_local do_props (naming_of ctxt) (b, ths) #> snd);
 
 fun gen_note_thmss get k = fold_map (fn ((b, more_attrs), raw_facts) => fn ctxt =>
   let
