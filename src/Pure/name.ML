@@ -28,25 +28,21 @@ sig
   val variants: string list -> context -> string list * context
   val variant_list: string list -> string list -> string list
   val variant: string list -> string -> string
-  type binding
-  val binding_pos: string * Position.T -> binding
-  val binding: string -> binding
-  val no_binding: binding
-  val prefix_of: binding -> (string * bool) list
-  val name_of: binding -> string
-  val name_with_prefix: binding -> string (*FIXME*)
-  val is_nothing: binding -> bool
-  val pos_of: binding -> Position.T
+
+  include NAME_BINDING
   val add_prefix: bool -> string -> binding -> binding
   val map_prefix: ((string * bool) list -> binding -> binding) -> binding -> binding
-  val map_name: (string -> string) -> binding -> binding
-  val qualified: string -> binding -> binding
-  val namify: NameSpace.naming -> binding -> NameSpace.naming * string
-  val output: binding -> string
+  val name_of: binding -> string (*FIMXE legacy*)
+  val map_name: (string -> string) -> binding -> binding (*FIMXE legacy*)
+  val qualified: string -> binding -> binding (*FIMXE legacy*)
+  val display: binding -> string
+  val namify: NameSpace.naming -> binding -> NameSpace.naming * string (*FIMXE legacy*)
 end;
 
 structure Name: NAME =
 struct
+
+open NameSpace;
 
 (** common defaults **)
 
@@ -155,45 +151,37 @@ fun variant_list used names = #1 (make_context used |> variants names);
 fun variant used = singleton (variant_list used);
 
 
-
 (** generic name bindings **)
 
-datatype binding = Binding of ((string * bool) list * string) * Position.T;
+fun add_prefix sticky prfx b = if prfx = "" then error "empty name prefix"
+  else (map_binding o apfst) (cons (prfx, sticky)) b;
 
-fun prefix_of (Binding ((prefix, _), _)) = prefix;
-fun name_of (Binding ((_, name), _)) = name;
-fun pos_of (Binding (_, pos)) = pos;
-
-fun binding_pos (name, pos) = Binding (([], name), pos);
-fun binding name = binding_pos (name, Position.none);
-val no_binding = binding "";
-
-fun map_binding f (Binding bnd) = Binding (f bnd);
-
-fun add_prefix sticky prfx binding = if prfx = "" then error "empty name prefix"
-  else (map_binding o apfst o apfst) (cons (prfx, sticky)) binding;
-
-fun map_prefix f (Binding ((prefix, name), pos)) =
-  f prefix (binding_pos (name, pos));
-
-val map_name = map_binding o apfst o apsnd;
+val prefix_of = fst o dest_binding;
+val name_of = snd o dest_binding;
+val map_name = map_binding o apsnd;
 val qualified = map_name o NameSpace.qualified;
 
-fun is_nothing (Binding ((_, name), _)) = name = "";
-
-fun name_with_prefix (Binding ((prefix, name), _)) =
-  NameSpace.implode (map_filter
-    (fn (prfx, sticky) => if sticky then SOME prfx else NONE) prefix @ [name]);
-
-fun namify naming (Binding ((prefix, name), _)) =
+fun map_prefix f b =
   let
-    fun mk_prefix (prfx, true) = NameSpace.sticky_prefix prfx
-      | mk_prefix (prfx, false) = NameSpace.add_path prfx;
-    val naming' = fold mk_prefix prefix naming;
-  in (naming', NameSpace.full naming' name) end;
+    val (prefix, name) = dest_binding b;
+    val pos = pos_of b;
+  in f prefix (binding_pos (name, pos)) end;
 
-fun output (Binding ((prefix, name), _)) =
-  if null prefix orelse name = "" then name
-  else NameSpace.implode (map fst prefix) ^ " / " ^ name;
+fun namify naming b =
+  let
+    val (prefix, name) = dest_binding b
+    fun mk_prefix (prfx, true) = sticky_prefix prfx
+      | mk_prefix (prfx, false) = add_path prfx;
+    val naming' = fold mk_prefix prefix naming;
+  in (naming', full naming' name) end;
+
+fun display b =
+  let
+    val (prefix, name) = dest_binding b
+    fun mk_prefix (prfx, true) = prfx
+      | mk_prefix (prfx, false) = enclose "(" ")" prfx
+  in if not (! NameSpace.long_names) orelse null prefix orelse name = "" then name
+    else NameSpace.implode (map mk_prefix prefix) ^ ":" ^ name
+  end;
 
 end;

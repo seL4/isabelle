@@ -16,6 +16,19 @@ sig
   val unique_names: bool ref
 end;
 
+signature NAME_BINDING =
+sig
+  type binding
+  val binding_pos: string * Position.T -> binding
+  val binding: string -> binding
+  val no_binding: binding
+  val dest_binding: binding -> (string * bool) list * string
+  val is_nothing: binding -> bool
+  val pos_of: binding -> Position.T
+  val map_binding: ((string * bool) list * string -> (string * bool) list * string)
+    -> binding -> binding
+end
+
 signature NAME_SPACE =
 sig
   include BASIC_NAME_SPACE
@@ -46,8 +59,15 @@ sig
   val no_base_names: naming -> naming
   val qualified_names: naming -> naming
   val sticky_prefix: string -> naming -> naming
+  include NAME_BINDING
+  val full_binding: naming -> binding -> string
+  val declare_binding: naming -> binding -> T -> string * T
   type 'a table = T * 'a Symtab.table
   val empty_table: 'a table
+  val table_declare: naming -> binding * 'a
+    -> 'a table -> string * 'a table (*exception Symtab.DUP*)
+  val table_declare_permissive: naming -> binding * 'a
+    -> 'a table -> string * 'a table
   val extend_table: naming -> (bstring * 'a) list -> 'a table -> 'a table
   val merge_tables: ('a * 'a -> bool) -> 'a table * 'a table -> 'a table
   val dest_table: 'a table -> (string * 'a) list
@@ -220,6 +240,23 @@ fun merge (NameSpace (tab1, xtab1), NameSpace (tab2, xtab2)) =
 
 
 
+(** generic name bindings **)
+
+datatype binding = Binding of ((string * bool) list * string) * Position.T;
+
+fun binding_pos (name, pos) = Binding (([], name), pos);
+fun binding name = binding_pos (name, Position.none);
+val no_binding = binding "";
+
+fun pos_of (Binding (_, pos)) = pos;
+fun dest_binding (Binding (prefix_name, _)) = prefix_name;
+
+fun map_binding f (Binding (prefix_name, pos)) = Binding (f prefix_name, pos);
+
+fun is_nothing (Binding ((_, name), _)) = name = "";
+
+
+
 (** naming contexts **)
 
 (* datatype naming *)
@@ -233,23 +270,6 @@ fun path_of (Naming (path, _)) = path;
 fun accesses (Naming (_, (_, accs))) = accs;
 
 fun external_names naming = map implode_name o #2 o accesses naming o explode_name;
-
-
-(* declarations *)
-
-fun full (Naming (path, (qualify, _))) = qualify path;
-
-fun declare naming name space =
-  if is_hidden name then
-    error ("Attempt to declare hidden name " ^ quote name)
-  else
-    let
-      val names = explode_name name;
-      val _ = (null names orelse exists (fn s => s = "") names
-          orelse exists_string (fn s => s = "\"") name) andalso
-        error ("Bad name declaration " ^ quote name);
-      val (accs, accs') = pairself (map implode_name) (accesses naming names);
-    in space |> fold (add_name name) accs |> put_accesses name accs' end;
 
 
 (* manipulate namings *)
@@ -277,6 +297,36 @@ fun sticky_prefix prfx (Naming (path, (qualify, _))) =
   Naming (append path prfx,
     (qualify, suffixes_prefixes_split (length (explode_name path)) (length (explode_name prfx))));
 
+val apply_prefix =
+  let
+    fun mk_prefix (prfx, true) = sticky_prefix prfx
+      | mk_prefix (prfx, false) = add_path prfx;
+  in fold mk_prefix end;
+
+
+(* declarations *)
+
+fun full (Naming (path, (qualify, _))) = qualify path;
+
+fun declare naming name space =
+  if is_hidden name then
+    error ("Attempt to declare hidden name " ^ quote name)
+  else
+    let
+      val names = explode_name name;
+      val _ = (null names orelse exists (fn s => s = "") names
+          orelse exists_string (fn s => s = "\"") name) andalso
+        error ("Bad name declaration " ^ quote name);
+      val (accs, accs') = pairself (map implode_name) (accesses naming names);
+    in space |> fold (add_name name) accs |> put_accesses name accs' end;
+
+fun declare_binding bnaming (Binding ((prefix, bname), _)) =
+  let
+    val naming = apply_prefix prefix bnaming;
+    val dname = full bnaming bname;
+    val name = full naming bname;
+  in declare naming name #> pair name end;
+
 
 
 (** name spaces coupled with symbol tables **)
@@ -284,6 +334,17 @@ fun sticky_prefix prfx (Naming (path, (qualify, _))) =
 type 'a table = T * 'a Symtab.table;
 
 val empty_table = (empty, Symtab.empty);
+
+fun gen_table_declare update naming (binding, x) (space, tab) =
+  let
+    val (name, space') = declare_binding naming binding space;
+  in (name, (space', update (name, x) tab)) end;
+
+fun table_declare naming = gen_table_declare Symtab.update_new naming;
+fun table_declare_permissive naming = gen_table_declare Symtab.update naming;
+
+fun full_binding naming (Binding ((prefix, bname), _)) =
+  full (apply_prefix prefix naming) bname;
 
 fun extend_table naming bentries (space, tab) =
   let val entries = map (apfst (full naming)) bentries
