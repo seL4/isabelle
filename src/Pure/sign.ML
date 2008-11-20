@@ -18,6 +18,7 @@ sig
   val name_decl: (string * 'a -> theory -> 'b * theory)
     -> Name.binding * 'a -> theory -> (string * 'b) * theory
   val full_name: theory -> bstring -> string
+  val full_binding: theory -> Name.binding -> string
   val full_name_path: theory -> string -> bstring -> string
   val declare_name: theory -> string -> NameSpace.T -> NameSpace.T
   val syn_of: theory -> Syntax.syntax
@@ -93,10 +94,10 @@ sig
   val del_modesyntax: Syntax.mode -> (bstring * string * mixfix) list -> theory -> theory
   val del_modesyntax_i: Syntax.mode -> (bstring * typ * mixfix) list -> theory -> theory
   val notation: bool -> Syntax.mode -> (term * mixfix) list -> theory -> theory
+  val declare_const: Properties.T -> (Name.binding * typ) * mixfix -> theory -> term * theory
   val add_consts: (bstring * string * mixfix) list -> theory -> theory
   val add_consts_i: (bstring * typ * mixfix) list -> theory -> theory
-  val declare_const: Properties.T -> (Name.binding * typ) * mixfix -> theory -> term * theory
-  val add_abbrev: string -> Properties.T -> bstring * term -> theory -> (term * term) * theory
+  val add_abbrev: string -> Properties.T -> Name.binding * term -> theory -> (term * term) * theory
   val revert_abbrev: string -> string -> theory -> theory
   val add_const_constraint: string * typ option -> theory -> theory
   val primitive_class: string * class list -> theory -> theory
@@ -190,20 +191,21 @@ fun map_consts f = map_sign (fn (naming, syn, tsig, consts) => (naming, syn, tsi
 val naming_of = #naming o rep_sg;
 val base_name = NameSpace.base;
 
-fun name_decl decl (binding, x) thy =
+fun name_decl decl (b, x) thy =
   let
     val naming = naming_of thy;
-    val (naming', name) = Name.namify naming binding;
+    val (naming', name) = Name.namify naming b;
   in
     thy
     |> map_naming (K naming')
-    |> decl (Name.name_of binding, x)
+    |> decl (Name.name_of b, x)
     |>> pair name
     ||> map_naming (K naming)
   end;
 
 val namify = Name.namify o naming_of;
 val full_name = NameSpace.full o naming_of;
+val full_binding = NameSpace.full_binding o naming_of;
 fun full_name_path thy elems = NameSpace.full (NameSpace.add_path elems (naming_of thy));
 val declare_name = NameSpace.declare o naming_of;
 
@@ -520,15 +522,16 @@ fun gen_add_consts parse_typ authentic tags raw_args thy =
   let
     val ctxt = ProofContext.init thy;
     val prepT = Type.no_tvars o Term.no_dummyT o certify_typ thy o parse_typ ctxt;
-    fun prep (raw_c, raw_T, raw_mx) =
+    fun prep (raw_b, raw_T, raw_mx) =
       let
-        val (c, mx) = Syntax.const_mixfix raw_c raw_mx;
-        val full_c = full_name thy c;
-        val c' = if authentic then Syntax.constN ^ full_c else c;
+        val (mx_name, mx) = Syntax.const_mixfix (Name.name_of raw_b) raw_mx;
+        val b = Name.map_name (K mx_name) raw_b;
+        val c = full_binding thy b;
+        val c_syn = if authentic then Syntax.constN ^ c else Name.name_of b;
         val T = (prepT raw_T handle TYPE (msg, _, _) => error msg) handle ERROR msg =>
-          cat_error msg ("in declaration of constant " ^ quote c);
+          cat_error msg ("in declaration of constant " ^ quote (Name.display b));
         val T' = Logic.varifyT T;
-      in ((c, T'), (c', T', mx), Const (full_c, T)) end;
+      in ((b, T'), (c_syn, T', mx), Const (c, T)) end;
     val args = map prep raw_args;
     val tags' = tags |> Properties.put (Markup.theory_nameN, Context.theory_name thy);
   in
@@ -538,18 +541,19 @@ fun gen_add_consts parse_typ authentic tags raw_args thy =
     |> pair (map #3 args)
   end;
 
+fun bindify (name, T, mx) = (Name.binding name, T, mx);
+
 in
 
-val add_consts = snd oo gen_add_consts Syntax.parse_typ false [];
-val add_consts_i = snd oo gen_add_consts (K I) false [];
+fun add_consts args = snd o gen_add_consts Syntax.parse_typ false [] (map bindify args);
+fun add_consts_i args = snd o gen_add_consts (K I) false [] (map bindify args);
 
 fun declare_const tags ((b, T), mx) thy =
   let
-    val c = Name.name_of b;
     val pos = Name.pos_of b;
     val tags' = Position.default_properties pos tags;
-    val ([const as Const (full_c, _)], thy') = gen_add_consts (K I) true tags' [(c, T, mx)] thy;
-    val _ = Position.report (Markup.const_decl full_c) pos;
+    val ([const as Const (c, _)], thy') = gen_add_consts (K I) true tags' [(b, T, mx)] thy;
+    val _ = Position.report (Markup.const_decl c) pos;
   in (const, thy') end;
 
 end;
@@ -557,14 +561,14 @@ end;
 
 (* abbreviations *)
 
-fun add_abbrev mode tags (c, raw_t) thy =
+fun add_abbrev mode tags (b, raw_t) thy =
   let
     val pp = Syntax.pp_global thy;
     val prep_tm = no_frees pp o Term.no_dummy_patterns o cert_term_abbrev thy;
     val t = (prep_tm raw_t handle TYPE (msg, _, _) => error msg | TERM (msg, _) => error msg)
-      handle ERROR msg => cat_error msg ("in constant abbreviation " ^ quote c);
+      handle ERROR msg => cat_error msg ("in constant abbreviation " ^ quote (Name.display b));
     val (res, consts') = consts_of thy
-      |> Consts.abbreviate pp (tsig_of thy) (naming_of thy) mode tags (c, t);
+      |> Consts.abbreviate pp (tsig_of thy) (naming_of thy) mode tags (b, t);
   in (res, thy |> map_consts (K consts')) end;
 
 fun revert_abbrev mode c = map_consts (Consts.revert_abbrev mode c);

@@ -26,6 +26,7 @@ sig
   val name_decl: (string * 'a -> Proof.context -> 'b * Proof.context)
     -> Name.binding * 'a -> Proof.context -> (string * 'b) * Proof.context
   val full_name: Proof.context -> bstring -> string
+  val full_binding: Proof.context -> Name.binding -> string
   val consts_of: Proof.context -> Consts.T
   val const_syntax_name: Proof.context -> string -> string
   val the_const_constraint: Proof.context -> string -> typ
@@ -136,7 +137,7 @@ sig
     Context.generic -> Context.generic
   val add_const_constraint: string * typ option -> Proof.context -> Proof.context
   val add_abbrev: string -> Properties.T ->
-    bstring * term -> Proof.context -> (term * term) * Proof.context
+    Name.binding * term -> Proof.context -> (term * term) * Proof.context
   val revert_abbrev: string -> string -> Proof.context -> Proof.context
   val verbose: bool ref
   val setmp_verbose: ('a -> 'b) -> 'a -> 'b
@@ -248,19 +249,20 @@ fun set_stmt stmt =
 
 val naming_of = #naming o rep_context;
 
-fun name_decl decl (binding, x) ctxt =
+fun name_decl decl (b, x) ctxt =
   let
     val naming = naming_of ctxt;
-    val (naming', name) = Name.namify naming binding;
+    val (naming', name) = Name.namify naming b;
   in
     ctxt
     |> map_naming (K naming')
-    |> decl (Name.name_of binding, x)
+    |> decl (Name.name_of b, x)
     |>> pair name
     ||> map_naming (K naming)
   end;
 
 val full_name = NameSpace.full o naming_of;
+val full_binding = NameSpace.full_binding o naming_of;
 
 val syntax_of = #syntax o rep_context;
 val syn_of = LocalSyntax.syn_of o syntax_of;
@@ -977,15 +979,14 @@ val reset_naming    = map_naming (K local_naming);
 
 local
 
-fun update_thms _ (bname, NONE) ctxt = ctxt |> map_facts (Facts.del (full_name ctxt bname))
-  | update_thms do_props (bname, SOME ths) ctxt = ctxt |> map_facts
-      (Facts.add_local do_props (naming_of ctxt) (full_name ctxt bname, ths));
+fun update_thms _ (b, NONE) ctxt = ctxt |> map_facts (Facts.del (full_binding ctxt b))
+  | update_thms do_props (b, SOME ths) ctxt = ctxt |> map_facts
+      (Facts.add_local do_props (naming_of ctxt) (full_binding ctxt b, ths));
 
-fun gen_note_thmss get k = fold_map (fn ((binding, more_attrs), raw_facts) => fn ctxt =>
+fun gen_note_thmss get k = fold_map (fn ((b, more_attrs), raw_facts) => fn ctxt =>
   let
-    val bname = Name.name_of binding;
-    val pos = Name.pos_of binding;
-    val name = full_name ctxt bname;
+    val pos = Name.pos_of b;
+    val name = full_binding ctxt b;
     val _ = ContextPosition.report_visible ctxt (Markup.local_fact_decl name) pos;
 
     val facts = PureThy.name_thmss false pos name (map (apfst (get ctxt)) raw_facts);
@@ -994,7 +995,7 @@ fun gen_note_thmss get k = fold_map (fn ((binding, more_attrs), raw_facts) => fn
     val (res, ctxt') = fold_map app facts ctxt;
     val thms = PureThy.name_thms false false pos name (flat res);
     val Mode {stmt, ...} = get_mode ctxt;
-  in ((name, thms), ctxt' |> update_thms stmt (bname, SOME thms)) end);
+  in ((name, thms), ctxt' |> update_thms stmt (b, SOME thms)) end);
 
 in
 
@@ -1004,7 +1005,7 @@ fun note_thmss_i k = gen_note_thmss (K I) k;
 fun put_thms do_props thms ctxt = ctxt
   |> map_naming (K local_naming)
   |> ContextPosition.set_visible false
-  |> update_thms do_props thms
+  |> update_thms do_props (apfst Name.binding thms)
   |> ContextPosition.restore_visible ctxt
   |> restore_naming ctxt;
 
@@ -1023,9 +1024,9 @@ fun declare_var (x, opt_T, mx) ctxt =
 local
 
 fun prep_vars prep_typ internal =
-  fold_map (fn (raw_binding, raw_T, raw_mx) => fn ctxt =>
+  fold_map (fn (raw_b, raw_T, raw_mx) => fn ctxt =>
     let
-      val raw_x = Name.name_of raw_binding;
+      val raw_x = Name.name_of raw_b;
       val (x, mx) = Syntax.const_mixfix raw_x raw_mx;
       val _ = Syntax.is_identifier (no_skolem internal x) orelse
         error ("Illegal variable name: " ^ quote x);
@@ -1034,7 +1035,7 @@ fun prep_vars prep_typ internal =
         if internal then T
         else Type.no_tvars T handle TYPE (msg, _, _) => error msg;
       val opt_T = Option.map (cond_tvars o cert_typ ctxt o prep_typ ctxt) raw_T;
-      val var = (Name.map_name (K x) raw_binding, opt_T, mx);
+      val var = (Name.map_name (K x) raw_b, opt_T, mx);
     in (var, ctxt |> declare_var (x, opt_T, mx) |> #2) end);
 
 in
@@ -1105,13 +1106,13 @@ fun add_const_constraint (c, opt_T) ctxt =
       in cert_term ctxt (Const (c, T)); T end;
   in ctxt |> (map_consts o apfst) (Consts.constrain (c, Option.map prepT opt_T)) end;
 
-fun add_abbrev mode tags (c, raw_t) ctxt =
+fun add_abbrev mode tags (b, raw_t) ctxt =
   let
     val t0 = cert_term (ctxt |> set_mode mode_abbrev) raw_t
-      handle ERROR msg => cat_error msg ("in constant abbreviation " ^ quote c);
+      handle ERROR msg => cat_error msg ("in constant abbreviation " ^ quote (Name.display b));
     val [t] = Variable.exportT_terms (Variable.declare_term t0 ctxt) ctxt [t0];
     val ((lhs, rhs), consts') = consts_of ctxt
-      |> Consts.abbreviate (Syntax.pp ctxt) (tsig_of ctxt) (naming_of ctxt) mode tags (c, t);
+      |> Consts.abbreviate (Syntax.pp ctxt) (tsig_of ctxt) (naming_of ctxt) mode tags (b, t);
   in
     ctxt
     |> (map_consts o apfst) (K consts')
@@ -1140,8 +1141,8 @@ fun gen_fixes prep raw_vars ctxt =
       ctxt'
       |> fold_map declare_var (map2 (fn x' => fn (_, T, mx) => (x', T, mx)) xs' vars)
       |-> (map_syntax o LocalSyntax.add_syntax (theory_of ctxt) o map prep_mixfix);
-    val _ = (vars ~~ xs') |> List.app (fn ((binding, _, _), x') =>
-      ContextPosition.report_visible ctxt (Markup.fixed_decl x') (Name.pos_of binding));
+    val _ = (vars ~~ xs') |> List.app (fn ((b, _, _), x') =>
+      ContextPosition.report_visible ctxt (Markup.fixed_decl x') (Name.pos_of b));
   in (xs', ctxt'') end;
 
 in

@@ -30,10 +30,10 @@ sig
   val certify: Pretty.pp -> Type.tsig -> bool -> T -> term -> term  (*exception TYPE*)
   val typargs: T -> string * typ -> typ list
   val instance: T -> string * typ list -> typ
-  val declare: bool -> NameSpace.naming -> Properties.T -> (bstring * typ) -> T -> T
+  val declare: bool -> NameSpace.naming -> Properties.T -> (Name.binding * typ) -> T -> T
   val constrain: string * typ option -> T -> T
   val abbreviate: Pretty.pp -> Type.tsig -> NameSpace.naming -> string -> Properties.T ->
-    bstring * term -> T -> (term * term) * T
+    Name.binding * term -> T -> (term * term) * T
   val revert_abbrev: string -> string -> T -> T
   val hide: bool -> string -> T -> T
   val empty: T
@@ -211,7 +211,7 @@ fun instance consts (c, Ts) =
 fun err_dup_const c =
   error ("Duplicate declaration of constant " ^ quote c);
 
-fun extend_decls naming decl tab = NameSpace.extend_table naming [decl] tab
+fun extend_decls naming decl tab = NameSpace.table_declare naming decl tab
   handle Symtab.DUP c => err_dup_const c;
 
 
@@ -223,11 +223,11 @@ fun hide fully c = map_consts (fn (decls, constraints, rev_abbrevs) =>
 
 (* declarations *)
 
-fun declare authentic naming tags (c, declT) = map_consts (fn (decls, constraints, rev_abbrevs) =>
+fun declare authentic naming tags (b, declT) = map_consts (fn (decls, constraints, rev_abbrevs) =>
   let
     val tags' = tags |> Position.default_properties (Position.thread_data ());
     val decl = {T = declT, typargs = typargs_of declT, tags = tags', authentic = authentic};
-    val decls' = decls |> extend_decls naming (c, ((decl, NONE), serial ()));
+    val (_, decls') = decls |> extend_decls naming (b, ((decl, NONE), serial ()));
   in (decls', constraints, rev_abbrevs) end);
 
 
@@ -262,7 +262,7 @@ fun rev_abbrev lhs rhs =
 
 in
 
-fun abbreviate pp tsig naming mode tags (c, raw_rhs) consts =
+fun abbreviate pp tsig naming mode tags (b, raw_rhs) consts =
   let
     val cert_term = certify pp tsig false consts;
     val expand_term = certify pp tsig true consts;
@@ -273,7 +273,7 @@ fun abbreviate pp tsig naming mode tags (c, raw_rhs) consts =
       |> cert_term;
     val normal_rhs = expand_term rhs;
     val T = Term.fastype_of rhs;
-    val lhs = Const (NameSpace.full naming c, T);
+    val lhs = Const (NameSpace.full_binding naming b, T);
 
     fun err msg = error (msg ^ " on rhs of abbreviation:\n" ^
       Pretty.string_of_term pp (Logic.mk_equals (lhs, rhs)));
@@ -285,8 +285,8 @@ fun abbreviate pp tsig naming mode tags (c, raw_rhs) consts =
         val tags' = tags |> Position.default_properties (Position.thread_data ());
         val decl = {T = T, typargs = typargs_of T, tags = tags', authentic = true};
         val abbr = {rhs = rhs, normal_rhs = normal_rhs, force_expand = force_expand};
-        val decls' = decls
-          |> extend_decls naming (c, ((decl, SOME abbr), serial ()));
+        val (_, decls') = decls
+          |> extend_decls naming (b, ((decl, SOME abbr), serial ()));
         val rev_abbrevs' = rev_abbrevs
           |> fold (curry Symtab.cons_list mode) (rev_abbrev lhs rhs);
       in (decls', constraints, rev_abbrevs') end)

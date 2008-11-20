@@ -1,5 +1,6 @@
 (*  Title:      Pure/Isar/theory_target.ML
     ID:         $Id$
+    ID:         $Id$
     Author:     Makarius
 
 Common theory/locale/class/instantiation/overloading targets.
@@ -192,18 +193,18 @@ fun fork_mixfix (Target {is_locale, is_class, ...}) mx =
   else if not is_class then (NoSyn, mx, NoSyn)
   else (mx, NoSyn, NoSyn);
 
-fun locale_const (Target {target, is_class, ...}) (prmode as (mode, _)) tags ((c, mx), rhs) phi =
+fun locale_const (Target {target, is_class, ...}) (prmode as (mode, _)) tags ((b, mx), rhs) phi =
   let
-    val c' = Morphism.name phi c;
+    val b' = Morphism.name phi b;
     val rhs' = Morphism.term phi rhs;
-    val name' = Name.name_with_prefix c';
-    val legacy_arg = (name', Term.close_schematic_term (Logic.legacy_varify rhs'));
-    val arg = (name', Term.close_schematic_term rhs');
+    val legacy_arg = (b', Term.close_schematic_term (Logic.legacy_varify rhs'));
+    val arg = (b', Term.close_schematic_term rhs');
     val similar_body = Type.similar_types (rhs, rhs');
     (* FIXME workaround based on educated guess *)
-    val class_global = Name.name_of c = Name.name_of c'
-      andalso not (null (Name.prefix_of c'))
-      andalso (fst o snd o split_last) (Name.prefix_of c') = Class.class_prefix target;
+    val (prefix', _) = Name.dest_binding b';
+    val class_global = Name.name_of b = Name.name_of b'
+      andalso not (null prefix')
+      andalso (fst o snd o split_last) prefix' = Class.class_prefix target;
   in
     not (is_class andalso (similar_body orelse class_global)) ?
       (Context.mapping_result
@@ -267,7 +268,7 @@ fun abbrev (ta as Target {target, is_locale, is_class, ...}) prmode ((b, mx), t)
   in
     lthy |>
      (if is_locale then
-        LocalTheory.theory_result (Sign.add_abbrev PrintMode.internal tags (c, global_rhs))
+        LocalTheory.theory_result (Sign.add_abbrev PrintMode.internal tags (b, global_rhs))
         #-> (fn (lhs, _) =>
           let val lhs' = Term.list_comb (Logic.unvarify lhs, xs) in
             term_syntax ta (locale_const ta prmode tags ((b, mx2), lhs')) #>
@@ -275,9 +276,9 @@ fun abbrev (ta as Target {target, is_locale, is_class, ...}) prmode ((b, mx), t)
           end)
       else
         LocalTheory.theory
-          (Sign.add_abbrev (#1 prmode) tags (c, global_rhs) #-> (fn (lhs, _) =>
+          (Sign.add_abbrev (#1 prmode) tags (b, global_rhs) #-> (fn (lhs, _) =>
            Sign.notation true prmode [(lhs, mx3)])))
-    |> ProofContext.add_abbrev PrintMode.internal tags (c, t) |> snd
+    |> ProofContext.add_abbrev PrintMode.internal tags (b, t) |> snd
     |> LocalDefs.fixed_abbrev ((b, NoSyn), t)
   end;
 

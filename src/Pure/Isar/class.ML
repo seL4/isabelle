@@ -513,7 +513,7 @@ fun abbrev class prmode pos ((c, mx), rhs) thy =
     val ty' = Term.fastype_of rhs';
   in
     thy'
-    |> Sign.add_abbrev (#1 prmode) pos (c, map_types Type.strip_sorts rhs'') |> snd
+    |> Sign.add_abbrev (#1 prmode) pos (Name.binding c, map_types Type.strip_sorts rhs'') |> snd
     |> Sign.add_const_constraint (c', SOME ty')
     |> Sign.notation true prmode [(Const (c', ty'), mx)]
     |> not (#1 prmode = PrintMode.input) ? register_operation class (c', (rhs', NONE))
