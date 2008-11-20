@@ -36,7 +36,6 @@ sig
   val map_name: (string -> string) -> binding -> binding (*FIMXE legacy*)
   val qualified: string -> binding -> binding (*FIMXE legacy*)
   val display: binding -> string
-  val namify: NameSpace.naming -> binding -> NameSpace.naming * string (*FIMXE legacy*)
 end;
 
 structure Name: NAME =
@@ -166,14 +165,6 @@ fun map_prefix f b =
     val (prefix, name) = dest_binding b;
     val pos = pos_of b;
   in f prefix (binding_pos (name, pos)) end;
-
-fun namify naming b =
-  let
-    val (prefix, name) = dest_binding b
-    fun mk_prefix (prfx, true) = sticky_prefix prfx
-      | mk_prefix (prfx, false) = add_path prfx;
-    val naming' = fold mk_prefix prefix naming;
-  in (naming', full naming' name) end;
 
 fun display b =
   let
