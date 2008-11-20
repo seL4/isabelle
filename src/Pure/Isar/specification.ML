@@ -269,8 +269,8 @@ fun prep_statement prep_att prep_stmt elems concl ctxt =
       in ((prems, stmt, []), goal_ctxt) end
   | Element.Obtains obtains =>
       let
-        val case_names = obtains |> map_index (fn (i, (binding, _)) =>
-          let val name = Name.name_of binding
+        val case_names = obtains |> map_index (fn (i, (b, _)) =>
+          let val name = Name.name_of b
           in if name = "" then string_of_int (i + 1) else name end);
         val constraints = obtains |> map (fn (_, (vars, _)) =>
           Element.Constrains

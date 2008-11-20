@@ -165,7 +165,7 @@ fun parameters_of thy (expr, fixed) =
                   (* FIXME: should check for bindings being the same.
                      Instead we check for equal name and syntax. *)
                   if mx1 = mx2 then mx1
-                  else error ("Conflicting syntax for parameter" ^ quote (Name.name_of p) ^
+                  else error ("Conflicting syntax for parameter" ^ quote (Name.display p) ^
                     " in expression.")) (ps, ps')
               in (i', ps'') end) is []
           in

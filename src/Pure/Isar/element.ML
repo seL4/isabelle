@@ -138,7 +138,7 @@ fun morph_ctxt phi = map_ctxt
 
 fun params_of (Fixes fixes) = fixes |> map
     (fn (x, SOME T, _) => (Name.name_of x, T)
-      | (x, _, _) => raise TERM ("Untyped context element parameter " ^ quote (Name.name_of x), []))
+      | (x, _, _) => raise TERM ("Untyped context element parameter " ^ quote (Name.display x), []))
   | params_of _ = [];
 
 fun prems_of (Assumes asms) = maps (map fst o snd) asms
@@ -161,9 +161,9 @@ fun pretty_items _ _ [] = []
       Pretty.block [Pretty.keyword keyword, Pretty.brk 1, x] ::
         map (fn y => Pretty.block [Pretty.str "  ", Pretty.keyword sep, Pretty.brk 1, y]) ys;
 
-fun pretty_name_atts ctxt (binding, atts) sep =
+fun pretty_name_atts ctxt (b, atts) sep =
   let
-    val name = Name.output binding;
+    val name = Name.display b;
   in if name = "" andalso null atts then []
     else [Pretty.block
       (Pretty.breaks (Pretty.str name :: Attrib.pretty_attribs ctxt atts @ [Pretty.str sep]))]
@@ -394,9 +394,9 @@ fun rename_var_name ren (x, mx) =
   | (SOME (x', NONE), _) => (x', NoSyn)
   | (SOME (x', SOME mx'), _) => (x', mx'));
 
-fun rename_var ren (binding, mx) =
+fun rename_var ren (b, mx) =
   let
-    val x = Name.name_of binding;
+    val x = Name.name_of b;
     val (x', mx') = rename_var_name ren (x, mx);
   in (Name.binding x', mx') end;
 

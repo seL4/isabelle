@@ -136,23 +136,23 @@ fun merge_alists eq xs = merge_lists (eq_fst eq) xs;
 
 (* auxiliary: noting with structured name bindings *)
 
-fun global_note_prefix kind ((binding, atts), facts_atts_s) thy =
+fun global_note_prefix kind ((b, atts), facts_atts_s) thy =
   (*FIXME belongs to theory_target.ML ?*)
   thy
   |> Sign.qualified_names
   |> Sign.name_decl (fn (bname, (atts, facts_atts_s)) =>
     yield_singleton (PureThy.note_thmss kind) ((Name.binding bname, atts), facts_atts_s))
-      (binding, (atts, facts_atts_s))
+      (b, (atts, facts_atts_s))
   |>> snd
   ||> Sign.restore_naming thy;
 
-fun local_note_prefix kind ((binding, atts), facts_atts_s) ctxt =
+fun local_note_prefix kind ((b, atts), facts_atts_s) ctxt =
   (*FIXME belongs to theory_target.ML ?*)
   ctxt
   |> ProofContext.qualified_names
   |> ProofContext.name_decl (fn (bname, (atts, facts_atts_s)) =>
     yield_singleton (ProofContext.note_thmss_i kind) ((Name.binding bname, atts), facts_atts_s))
-      (binding, (atts, facts_atts_s))
+      (b, (atts, facts_atts_s))
   |>> snd
   ||> ProofContext.restore_naming ctxt;
 
@@ -661,7 +661,7 @@ fun params_of elemss =
 fun params_of' elemss =
   distinct (eq_fst (op = : string * string -> bool)) (maps (snd o fst o fst) elemss);
 
-fun param_prefix locale_name params = (NameSpace.base locale_name, space_implode "_" params);
+fun param_prefix locale_name params = (NameSpace.base locale_name ^ "_locale", space_implode "_" params);
 
 
 (* CB: param_types has the following type:
@@ -954,9 +954,9 @@ fun flatten_expr ctxt ((prev_idents, prev_syntax), expr) =
         val mode' = map_mode (map (Element.map_witness (inst_wit all_params))) mode;
         val ren = map fst ps ~~ map (fn p => (p, lookup_syn p)) params;
         val [env] = unify_parms ctxt all_params [map (apfst (Element.rename ren) o apsnd SOME) ps];
-        val (locale_name, pprfx) = param_prefix name params;
+        val (lprfx, pprfx) = param_prefix name params;
         val add_prefices = pprfx <> "" ? Name.add_prefix false pprfx
-          #> Name.add_prefix false locale_name;
+          #> Name.add_prefix false lprfx;
         val elem_morphism =
           Element.rename_morphism ren $>
           Morphism.name_morphism add_prefices $>
@@ -1257,9 +1257,9 @@ fun closeup _ false elem = elem
       end;
 
 
-fun finish_ext_elem parms _ (Fixes fixes, _) = Fixes (map (fn (binding, _, mx) =>
-      let val x = Name.name_of binding
-      in (binding, AList.lookup (op =) parms x, mx) end) fixes)
+fun finish_ext_elem parms _ (Fixes fixes, _) = Fixes (map (fn (b, _, mx) =>
+      let val x = Name.name_of b
+      in (b, AList.lookup (op =) parms x, mx) end) fixes)
   | finish_ext_elem parms _ (Constrains _, _) = Constrains []
   | finish_ext_elem _ close (Assumes asms, propp) =
       close (Assumes (map #1 asms ~~ propp))
@@ -1640,12 +1640,12 @@ fun collect_witnesses ctxt (imprt as ((impT, _), (imp, _))) parms ids ext_ts = l
 
 (* compute and apply morphism *)
 
-fun name_morph phi_name (locale_name, pprfx) binding =
-  binding
-  |> (if not (Name.is_nothing binding) andalso pprfx <> ""
+fun name_morph phi_name (lprfx, pprfx) b =
+  b
+  |> (if not (Name.is_nothing b) andalso pprfx <> ""
         then Name.add_prefix false pprfx else I)
-  |> (if not (Name.is_nothing binding)
-        then Name.add_prefix false (locale_name ^ "_locale") else I)
+  |> (if not (Name.is_nothing b)
+        then Name.add_prefix false lprfx else I)
   |> phi_name;
 
 fun inst_morph thy phi_name param_prfx insts prems eqns export =
@@ -2455,13 +2455,13 @@ fun gen_interpret prep_registration after_qed name_morph expr insts int state =
     |> pair morphs
   end;
 
-fun standard_name_morph interp_prfx binding =
-  if Name.is_nothing binding then binding
-  else Name.map_prefix (fn ((locale_name, _) :: pprfx) =>
+fun standard_name_morph interp_prfx b =
+  if Name.is_nothing b then b
+  else Name.map_prefix (fn ((lprfx, _) :: pprfx) =>
     fold (Name.add_prefix false o fst) pprfx
     #> interp_prfx <> "" ? Name.add_prefix true interp_prfx
-    #> Name.add_prefix false locale_name
-  ) binding;
+    #> Name.add_prefix false lprfx
+  ) b;
 
 in
 
