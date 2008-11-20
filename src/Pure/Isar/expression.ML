@@ -108,16 +108,16 @@ fun err_in_expr thy msg (Expr expr) =
   in error err_msg end;
 
 
-(** Internalise locale names **)
+(** Internalise locale names in expr **)
 
-fun intern_expr thy (Expr instances) = Expr (map (apfst (NewLocale.intern thy)) instances);
+fun intern thy (Expr instances) = Expr (map (apfst (NewLocale.intern thy)) instances);
 
 
-(** Parameters of expression (not expression_i).
+(** Parameters of expression.
    Sanity check of instantiations.
    Positional instantiations are extended to match full length of parameter list. **)
 
-fun parameters thy (expr, fixed : (Name.binding * string option * mixfix) list) =
+fun parameters_of thy (expr, fixed) =
   let
     fun reject_dups message xs =
       let val dups = duplicates (op =) xs
@@ -130,8 +130,7 @@ fun parameters thy (expr, fixed : (Name.binding * string option * mixfix) list) 
       (* FIXME: cannot compare bindings for equality. *)
 
     fun params_loc loc =
-          (NewLocale.params_of thy loc |> map (fn (p, _, mx) => (p, mx)), loc)
-            handle ERROR msg => err_in_expr thy msg (Expr [(loc, ("", Named []))]);
+          (NewLocale.params_of thy loc |> map (fn (p, _, mx) => (p, mx)), loc);
     fun params_inst (expr as (loc, (prfx, Positional insts))) =
           let
             val (ps, loc') = params_loc loc;
@@ -148,14 +147,12 @@ fun parameters thy (expr, fixed : (Name.binding * string option * mixfix) list) 
       | params_inst (expr as (loc, (prfx, Named insts))) =
           let
             val _ = reject_dups "Duplicate instantiation of the following parameter(s): "
-              (map fst insts)
-              handle ERROR msg => err_in_expr thy msg (Expr [expr]);
+              (map fst insts);
 
             val (ps, loc') = params_loc loc;
             val ps' = fold (fn (p, _) => fn ps =>
               if AList.defined match_bind ps p then AList.delete match_bind p ps
-              else err_in_expr thy (quote p ^" not a parameter of instantiated expression.")
-                (Expr [expr])) insts ps;
+              else error (quote p ^" not a parameter of instantiated expression.")) insts ps;
           in
             (ps', (loc', (prfx, Named insts)))
           end;
@@ -168,8 +165,8 @@ fun parameters thy (expr, fixed : (Name.binding * string option * mixfix) list) 
                   (* FIXME: should check for bindings being the same.
                      Instead we check for equal name and syntax. *)
                   if mx1 = mx2 then mx1
-                  else err_in_expr thy ("Conflicting syntax for parameter" ^ quote (Name.name_of p) ^ " in expression.")
-                    (Expr is)) (ps, ps')
+                  else error ("Conflicting syntax for parameter" ^ quote (Name.name_of p) ^
+                    " in expression.")) (ps, ps')
               in (i', ps'') end) is []
           in
             (ps', Expr is')
@@ -177,17 +174,19 @@ fun parameters thy (expr, fixed : (Name.binding * string option * mixfix) list) 
 
     val (parms, expr') = params_expr expr;
 
-    val parms' = map (fst #> Name.name_of) parms;
+    val parms' = map (#1 #> Name.name_of) parms;
     val fixed' = map (#1 #> Name.name_of) fixed;
     val _ = reject_dups "Duplicate fixed parameter(s): " fixed';
     val _ = reject_dups "Parameter(s) declared simultaneously in expression and for clause: " (parms' @ fixed');
 
-  in (expr', (parms, fixed)) end;
+  in (expr', (map (fn (b, mx) => (b, NONE, mx)) parms @ fixed)) end;
 
 
 (** Read instantiation **)
 
-fun read_inst parse_term parms (prfx, insts) ctxt =
+local
+
+fun prep_inst parse_term parms (prfx, insts) ctxt =
   let
     (* parameters *)
     val (parm_names, parm_types) = split_list parms;
@@ -221,32 +220,36 @@ fun read_inst parse_term parms (prfx, insts) ctxt =
     (Element.inst_morphism (ProofContext.theory_of ctxt) (instT, inst) $>
       Morphism.name_morphism (Name.qualified prfx), ctxt')
   end;
+
+in
+
+fun read_inst x = prep_inst Syntax.parse_term x;
+(* fun cert_inst x = prep_inst (K I) x; *)
+
+end;
+
         
-        
-(** Debugging **)
+(** Test code **)
   
 fun debug_parameters raw_expr ctxt =
   let
     val thy = ProofContext.theory_of ctxt;
-    val expr = apfst (intern_expr thy) raw_expr;
-    val (expr', (parms, fixed)) = parameters thy expr;
+    val expr = apfst (intern thy) raw_expr;
+    val (expr', fixed) = parameters_of thy expr;
   in ctxt end;
 
 
 fun debug_context (raw_expr, fixed) ctxt =
   let
     val thy = ProofContext.theory_of ctxt;
-    val expr = intern_expr thy raw_expr;
-    val (expr', (parms, fixed)) = parameters thy (expr, fixed);
+    val expr = intern thy raw_expr;
+    val (expr', fixed) = parameters_of thy (expr, fixed);
 
-    fun declare_parameters (parms, fixed) ctxt =
+    fun declare_parameters fixed ctxt =
       let
-      val (parms', ctxt') =
-        ProofContext.add_fixes (map (fn (p, mx) => (p, NONE, mx)) parms) ctxt;
-      val (fixed', ctxt'') =
-        ProofContext.add_fixes fixed ctxt';
+      val (fixed', ctxt') = ProofContext.add_fixes fixed ctxt;
       in
-        (parms' @ fixed', ctxt'')
+        (fixed', ctxt')
       end;
 
     fun rough_inst loc prfx insts ctxt =
@@ -304,7 +307,7 @@ fun debug_context (raw_expr, fixed) ctxt =
 
     val Expr [(loc1, (prfx1, insts1))] = expr';
     val ctxt0 = ProofContext.init thy;
-    val (parms, ctxt') = declare_parameters (parms, fixed) ctxt0;
+    val (parms, ctxt') = declare_parameters fixed ctxt0;
     val (morph1, ctxt'') = rough_inst loc1 prfx1 insts1 ctxt';
     val ctxt'' = add_declarations loc1 morph1 ctxt';
   in ctxt0 end;
@@ -348,8 +351,6 @@ fun check_autofix_elems elems concl ctxt =
     val termss = elems |> map extract_elem;
     val all_terms' = (burrow o burrow_fst) (Syntax.check_terms ctxt) (concl @ flat termss); 
 (*    val (ctxt', all_props') = ProofContext.check_propp_schematic (ctxt, concl @ flat propss); *)
-val _ = "check" |> warning;
-val _ = PolyML.makestring all_terms' |> warning;
     val (concl', terms') = chop (length concl) all_terms';
     val ctxt'' = (fold o fold) (fn (t, _) => Variable.auto_fixes t) terms' ctxt;
   in (terms' |> unflat termss |> curry (op ~~) elems |> map restore_elem, concl', ctxt'') end;
@@ -476,10 +477,10 @@ fun prep_elems parse_typ parse_prop prep_vars do_close context raw_elems raw_con
     (* Retrieve parameter types *) 
     val xs = fold (fn Fixes fixes => (fn ps => ps @ map (Name.name_of o #1) fixes) |
       _ => fn ps => ps) elems [];
-    val (Ts, _) = fold_map ProofContext.inferred_param xs ctxt; 
+    val (Ts, ctxt') = fold_map ProofContext.inferred_param xs ctxt; 
     val parms = xs ~~ Ts;
 
-    val (elems', text) = finish_elems ctxt parms do_close elems ((([], []), ([], [])), ([], [], []));
+    val (elems', text) = finish_elems ctxt' parms do_close elems ((([], []), ([], [])), ([], [], []));
     (* text has the following structure:
            (((exts, exts'), (ints, ints')), (xs, env, defs))
        where
@@ -520,10 +521,8 @@ fun prep_context_statement prep_expr prep_elems
   let
     val thy = ProofContext.theory_of context;
 
-    val (expr, (params, fors)) = parameters thy (apfst (prep_expr thy) imprt);
-    val ctxt = context |>
-      ProofContext.add_fixes (map (fn (b, mx) => (b, NONE, mx)) params) |> snd |>
-      ProofContext.add_fixes fors |> snd;
+    val (expr, fixed) = parameters_of thy (apfst (prep_expr thy) imprt);
+    val ctxt = context |> ProofContext.add_fixes fixed |> snd;
   in
     case expr of
         Expr [] => let
@@ -547,7 +546,7 @@ end
 in
 
 fun read_context imprt body ctxt =
-  #1 (prep_context_statement intern_expr read_elems true imprt body [] ctxt);
+  #1 (prep_context_statement intern read_elems true imprt body [] ctxt);
 fun cert_context imprt body ctxt =
   #1 (prep_context_statement (K I) cert_elems true imprt body [] ctxt);
 
