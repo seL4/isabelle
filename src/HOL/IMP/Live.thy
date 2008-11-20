@@ -92,17 +92,80 @@ next
       have "b t" using WhileTrue by (simp add: ball_Un)(blast dest:dep_on)
       then obtain t'' where "\<langle>c,t\<rangle> \<longrightarrow>\<^sub>c t''" and "\<langle>While b c,t''\<rangle> \<longrightarrow>\<^sub>c t'"
         using WhileTrue(6,7) by auto
-      note IH1 = IH(1)[OF _ `\<langle>c,s\<rangle> \<longrightarrow>\<^sub>c s''` `\<langle>c,t\<rangle> \<longrightarrow>\<^sub>c t''`]
-      have L1: "\<forall>x\<in>A. s'' x = t'' x" using IH1 WhileTrue(6,8)
-	by(simp  add: ball_Un) (metis)
-      have L2: "\<forall>x\<in>Dep b. s'' x = t'' x"
-	using IH1 WhileTrue(6,8) by (auto simp:L_gen_kill)
-      have L3: "\<forall>x\<in>L c A. s'' x = t'' x"
-	using IH1 L_idemp[of c A] WhileTrue(6,8) by auto
-      have "\<forall>x\<in>L (While b c) A. s'' x = t'' x" using L1 L2 L3 by auto
-      then show ?case using WhileTrue(5,6) `\<langle>While b c,t''\<rangle> \<longrightarrow>\<^sub>c t'` by metis
+      have "\<forall>x\<in>Dep b \<union> A \<union> L c A. s'' x = t'' x"
+	using IH(1)[OF _ `\<langle>c,s\<rangle> \<longrightarrow>\<^sub>c s''` `\<langle>c,t\<rangle> \<longrightarrow>\<^sub>c t''`] WhileTrue(6,8)
+	by (auto simp:L_gen_kill)
+      moreover then have "\<forall>x\<in>L (While b c) A. s'' x = t'' x" by auto
+      ultimately show ?case using WhileTrue(5,6) `\<langle>While b c,t''\<rangle> \<longrightarrow>\<^sub>c t'` by metis
     qed auto }
   from this[OF IH(3) _ IH(4,2)] show ?case by metis
 qed
+
+
+primrec bury :: "com \<Rightarrow> loc set \<Rightarrow> com" where
+"bury SKIP _ = SKIP" |
+"bury (x :== e) A = (if x:A then x:== e else SKIP)" |
+"bury (c1; c2) A = (bury c1 (L c2 A); bury c2 A)" |
+"bury (IF b THEN c1 ELSE c2) A = (IF b THEN bury c1 A ELSE bury c2 A)" |
+"bury (WHILE b DO c) A = (WHILE b DO bury c (Dep b \<union> A \<union> L c A))"
+
+theorem bury_sound:
+  "\<forall> x \<in> L c A. s x = t x \<Longrightarrow> \<langle>c,s\<rangle> \<longrightarrow>\<^sub>c s' \<Longrightarrow> \<langle>bury c A,t\<rangle> \<longrightarrow>\<^sub>c t' \<Longrightarrow>
+   \<forall>x\<in>A. s' x = t' x"
+proof (induct c arbitrary: A s t s' t')
+  case SKIP then show ?case by auto
+next
+  case (Assign x e) then show ?case
+    by (auto simp:update_def ball_Un split:split_if_asm dest!: dep_on)
+next
+  case (Semi c1 c2)
+  from Semi(4) obtain s'' where s1: "\<langle>c1,s\<rangle> \<longrightarrow>\<^sub>c s''" and s2: "\<langle>c2,s''\<rangle> \<longrightarrow>\<^sub>c s'"
+    by auto
+  from Semi(5) obtain t'' where t1: "\<langle>bury c1 (L c2 A),t\<rangle> \<longrightarrow>\<^sub>c t''" and t2: "\<langle>bury c2 A,t''\<rangle> \<longrightarrow>\<^sub>c t'"
+    by auto
+  show ?case using Semi(1)[OF _ s1 t1] Semi(2)[OF _ s2 t2] Semi(3) by fastsimp
+next
+  case (Cond b c1 c2)
+  show ?case
+  proof cases
+    assume "b s"
+    hence s: "\<langle>c1,s\<rangle> \<longrightarrow>\<^sub>c s'" using Cond(4) by simp
+    have "b t" using `b s` Cond(3) by (simp add: ball_Un)(blast dest: dep_on)
+    hence t: "\<langle>bury c1 A,t\<rangle> \<longrightarrow>\<^sub>c t'" using Cond(5) by auto
+    show ?thesis using Cond(1)[OF _ s t] Cond(3) by fastsimp
+  next
+    assume "\<not> b s"
+    hence s: "\<langle>c2,s\<rangle> \<longrightarrow>\<^sub>c s'" using Cond(4) by auto
+    have "\<not> b t" using `\<not> b s` Cond(3) by (simp add: ball_Un)(blast dest: dep_on)
+    hence t: "\<langle>bury c2 A,t\<rangle> \<longrightarrow>\<^sub>c t'" using Cond(5) by auto
+    show ?thesis using Cond(2)[OF _ s t] Cond(3) by fastsimp
+  qed
+next
+  case (While b c) note IH = this
+  { fix cw
+    have "\<langle>cw,s\<rangle> \<longrightarrow>\<^sub>c s' \<Longrightarrow> cw = (While b c) \<Longrightarrow> \<langle>bury cw A,t\<rangle> \<longrightarrow>\<^sub>c t' \<Longrightarrow>
+          \<forall> x \<in> L cw A. s x = t x \<Longrightarrow> \<forall>x\<in>A. s' x = t' x"
+    proof (induct arbitrary: t A pred:evalc)
+      case WhileFalse
+      have "\<not> b t" using WhileFalse by (simp add: ball_Un)(blast dest:dep_on)
+      then have "t' = t" using WhileFalse by auto
+      then show ?case using WhileFalse by auto
+    next
+      case (WhileTrue _ s _ s'' s')
+      have "\<langle>c,s\<rangle> \<longrightarrow>\<^sub>c s''" using WhileTrue(2,6) by simp
+      have "b t" using WhileTrue by (simp add: ball_Un)(blast dest:dep_on)
+      then obtain t'' where tt'': "\<langle>bury c (Dep b \<union> A \<union> L c A),t\<rangle> \<longrightarrow>\<^sub>c t''"
+	and "\<langle>bury (While b c) A,t''\<rangle> \<longrightarrow>\<^sub>c t'"
+        using WhileTrue(6,7) by auto
+      have "\<forall>x\<in>Dep b \<union> A \<union> L c A. s'' x = t'' x"
+	using IH(1)[OF _ `\<langle>c,s\<rangle> \<longrightarrow>\<^sub>c s''` tt''] WhileTrue(6,8)
+	by (auto simp:L_gen_kill)
+      moreover then have "\<forall>x\<in>L (While b c) A. s'' x = t'' x" by auto
+      ultimately show ?case
+	using WhileTrue(5,6) `\<langle>bury (While b c) A,t''\<rangle> \<longrightarrow>\<^sub>c t'` by metis
+    qed auto }
+  from this[OF IH(3) _ IH(4,2)] show ?case by metis
+qed
+
 
 end
