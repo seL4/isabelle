@@ -155,13 +155,13 @@ proof -
   have "(\<lambda>h. norm (f (x + h) - f x - F h) / norm h) -- 0 --> 0"
     by (rule FDERIV_D [OF f])
   hence "(\<lambda>h. norm (f (x + h) - f x - F h) / norm h * norm h) -- 0 --> 0"
-    by (intro LIM_mult_zero LIM_norm_zero LIM_self)
+    by (intro LIM_mult_zero LIM_norm_zero LIM_ident)
   hence "(\<lambda>h. norm (f (x + h) - f x - F h)) -- 0 --> 0"
     by (simp cong: LIM_cong)
   hence "(\<lambda>h. f (x + h) - f x - F h) -- 0 --> 0"
     by (rule LIM_norm_zero_cancel)
   hence "(\<lambda>h. f (x + h) - f x - F h + F h) -- 0 --> 0"
-    by (intro LIM_add_zero F.LIM_zero LIM_self)
+    by (intro LIM_add_zero F.LIM_zero LIM_ident)
   hence "(\<lambda>h. f (x + h) - f x) -- 0 --> 0"
     by simp
   thus "isCont f x"
@@ -375,26 +375,31 @@ next
     by (simp only: FDERIV_lemma)
 qed
 
-lemmas FDERIV_mult = bounded_bilinear_mult.FDERIV
+lemmas FDERIV_mult = bounded_bilinear_locale.mult.prod.FDERIV
 
-lemmas FDERIV_scaleR = bounded_bilinear_scaleR.FDERIV
+lemmas FDERIV_scaleR = bounded_bilinear_locale.scaleR.prod.FDERIV
+
 
 subsection {* Powers *}
 
 lemma FDERIV_power_Suc:
   fixes x :: "'a::{real_normed_algebra,recpower,comm_ring_1}"
-  shows "FDERIV (\<lambda>x. x ^ Suc n) x :> (\<lambda>h. (of_nat n + 1) * x ^ n * h)"
+  shows "FDERIV (\<lambda>x. x ^ Suc n) x :> (\<lambda>h. (1 + of_nat n) * x ^ n * h)"
  apply (induct n)
   apply (simp add: power_Suc FDERIV_ident)
  apply (drule FDERIV_mult [OF FDERIV_ident])
- apply (simp only: of_nat_Suc left_distrib mult_left_one)
- apply (simp only: power_Suc right_distrib mult_ac)
+ apply (simp only: of_nat_Suc left_distrib mult_1_left)
+ apply (simp only: power_Suc right_distrib add_ac mult_ac)
 done
 
 lemma FDERIV_power:
   fixes x :: "'a::{real_normed_algebra,recpower,comm_ring_1}"
   shows "FDERIV (\<lambda>x. x ^ n) x :> (\<lambda>h. of_nat n * x ^ (n - 1) * h)"
-by (cases n, simp add: FDERIV_const, simp add: FDERIV_power_Suc)
+  apply (cases n)
+   apply (simp add: FDERIV_const)
+  apply (simp add: FDERIV_power_Suc)
+  done
+
 
 subsection {* Inverse *}
 
@@ -404,10 +409,10 @@ lemma inverse_diff_inverse:
 by (simp add: right_diff_distrib left_diff_distrib mult_assoc)
 
 lemmas bounded_linear_mult_const =
-  bounded_bilinear_mult.bounded_linear_left [THEN bounded_linear_compose]
+  bounded_bilinear_locale.mult.prod.bounded_linear_left [THEN bounded_linear_compose]
 
 lemmas bounded_linear_const_mult =
-  bounded_bilinear_mult.bounded_linear_right [THEN bounded_linear_compose]
+  bounded_bilinear_locale.mult.prod.bounded_linear_right [THEN bounded_linear_compose]
 
 lemma FDERIV_inverse:
   fixes x :: "'a::real_normed_div_algebra"
@@ -454,7 +459,7 @@ next
         apply (rule LIM_zero)
         apply (rule LIM_offset_zero)
         apply (rule LIM_inverse)
-        apply (rule LIM_self)
+        apply (rule LIM_ident)
         apply (rule x)
         done
     next
@@ -487,7 +492,7 @@ lemma field_fderiv_def:
   fixes x :: "'a::real_normed_field" shows
   "FDERIV f x :> (\<lambda>h. h * D) = (\<lambda>h. (f (x + h) - f x) / h) -- 0 --> D"
  apply (unfold fderiv_def)
- apply (simp add: bounded_bilinear_mult.bounded_linear_left)
+ apply (simp add: bounded_bilinear_locale.mult.prod.bounded_linear_left)
  apply (simp cong: LIM_cong add: nonzero_norm_divide [symmetric])
  apply (subst diff_divide_distrib)
  apply (subst times_divide_eq_left [symmetric])

@@ -36,6 +36,7 @@ use_thys [
   "Comp/Priority",
 
   "Comp/TimerArray",
+  "Comp/Progress",
 
   (*obsolete*)
   "ELT"

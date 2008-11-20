@@ -69,7 +69,7 @@ time_use_thy "Dense_Linear_Order_Ex";
 time_use_thy "PresburgerEx";
 time_use_thy "Reflected_Presburger";
 
-time_use_thy "Reflection";
+use_thys ["Reflection", "ReflectionEx"];
 
 time_use_thy "SVC_Oracle";
 

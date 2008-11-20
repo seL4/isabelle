@@ -11,7 +11,7 @@ begin
 text{* This theory presents two methods: reify and reflection *}
 
 text{* 
-Consider an HOL type 'a, the structure of which is not recongnisable on the theory level. This is the case of bool, arithmetical terms such as int, real etc\<dots> 
+Consider an HOL type 'a, the structure of which is not recongnisable on the theory level. This is the case of bool, arithmetical terms such as int, real etc \dots
 In order to implement a simplification on terms of type 'a we often need its structure.
 Traditionnaly such simplifications are written in ML, proofs are synthesized.
 An other strategy is to declare an HOL-datatype tau and an HOL function (the interpretation) that maps elements of tau to elements of 'a. The functionality of @{text reify} is to compute a term s::tau, which is the representant of t. For this it needs equations for the interpretation.
@@ -131,13 +131,13 @@ primrec
   Inum_CN : "Inum (CN n c t) vs = c*(vs!n) + Inum t vs "
 
 
-  text{* Let's reify some nat expressions \<dots> *}
+  text{* Let's reify some nat expressions \dots *}
 lemma "4 * (2*x + (y::nat)) + f a \<noteq> 0"
   apply (reify Inum.simps ("4 * (2*x + (y::nat)) + f a"))
 oops
 text{* We're in a bad situation!! x, y and f a have been recongnized as a constants, which is correct but does not correspond to our intuition of the constructor C. It should encapsulate constants, i.e. numbers, i.e. numerals.*}
 
-  text{* So let's leave the Inum_C equation at the end and see what happens \<dots>*}
+  text{* So let's leave the @{text "Inum_C"} equation at the end and see what happens \dots*}
 lemma "4 * (2*x + (y::nat)) \<noteq> 0"
   apply (reify Inum_Var Inum_Add Inum_Mul Inum_CN Inum_C ("4 * (2*x + (y::nat))"))
 oops
@@ -150,12 +150,12 @@ lemmas Inum_eqs = Inum_Var Inum_Add Inum_Mul Inum_CN Inum_number
 lemma "1 * (2*x + (y::nat)) \<noteq> 0"
   apply (reify Inum_eqs ("1 * (2*x + (y::nat))"))
 oops
-  text{* That was fine, so let's try an other one\<dots> *}
+  text{* That was fine, so let's try another one \dots *}
 
 lemma "1 * (2* x + (y::nat) + 0 + 1) \<noteq> 0"
   apply (reify Inum_eqs ("1 * (2*x + (y::nat) + 0 + 1)"))
 oops
-  text{* Oh!! 0 is not a variable \<dots> Oh! 0 is not a number_of .. thing. The same for 1. So let's add those equations too *}
+  text{* Oh!! 0 is not a variable \dots\ Oh! 0 is not a @{text "number_of"} \dots\ thing. The same for 1. So let's add those equations too *}
 
 lemma Inum_01: "Inum (C 0) vs = 0" "Inum (C 1) vs = 1" "Inum (C(Suc n)) vs = Suc n"
   by simp+
@@ -227,26 +227,26 @@ recdef linaformsize "measure size"
   "linaformsize (Disj p q) = 1 + linaformsize p + linaformsize q"
 
 
-consts aform :: "aform => nat list => bool"
+consts is_aform :: "aform => nat list => bool"
 primrec
-  "aform T vs = True"
-  "aform F vs = False"
-  "aform (Lt a b) vs = (Inum a vs < Inum b vs)"
-  "aform (Eq a b) vs = (Inum a vs = Inum b vs)"
-  "aform (Ge a b) vs = (Inum a vs \<ge> Inum b vs)"
-  "aform (NEq a b) vs = (Inum a vs \<noteq> Inum b vs)"
-  "aform (NEG p) vs = (\<not> (aform p vs))"
-  "aform (Conj p q) vs = (aform p vs \<and> aform q vs)"
-  "aform (Disj p q) vs = (aform p vs \<or> aform q vs)"
+  "is_aform T vs = True"
+  "is_aform F vs = False"
+  "is_aform (Lt a b) vs = (Inum a vs < Inum b vs)"
+  "is_aform (Eq a b) vs = (Inum a vs = Inum b vs)"
+  "is_aform (Ge a b) vs = (Inum a vs \<ge> Inum b vs)"
+  "is_aform (NEq a b) vs = (Inum a vs \<noteq> Inum b vs)"
+  "is_aform (NEG p) vs = (\<not> (is_aform p vs))"
+  "is_aform (Conj p q) vs = (is_aform p vs \<and> is_aform q vs)"
+  "is_aform (Disj p q) vs = (is_aform p vs \<or> is_aform q vs)"
 
   text{* Let's reify and do reflection *}
 lemma "(3::nat)*x + t < 0 \<and> (2 * x + y \<noteq> 17)"
- apply (reify Inum_eqs' aform.simps) 
+ apply (reify Inum_eqs' is_aform.simps) 
 oops
 
 text{* Note that reification handles several interpretations at the same time*}
 lemma "(3::nat)*x + t < 0 & x*x + t*x + 3 + 1 = z*t*4*z | x + x + 1 < 0"
- apply (reflection Inum_eqs' aform.simps only:"x + x + 1") 
+ apply (reflection Inum_eqs' is_aform.simps only:"x + x + 1") 
 oops
 
   text{* For reflection we now define a simple transformation on aform: NNF + linum on atoms *}
@@ -269,16 +269,16 @@ recdef linaform "measure linaformsize"
   "linaform (NEG (Disj p q)) = Conj (linaform (NEG p)) (linaform (NEG q))"
   "linaform p = p"
 
-lemma linaform: "aform (linaform p) vs = aform p vs"
-  by (induct p rule: linaform.induct, auto simp add: linum)
+lemma linaform: "is_aform (linaform p) vs = is_aform p vs"
+  by (induct p rule: linaform.induct) (auto simp add: linum)
 
 lemma "(((Suc(Suc (Suc 0)))*((x::nat) + (Suc (Suc 0)))) + (Suc (Suc (Suc 0))) * ((Suc(Suc (Suc 0)))*((x::nat) + (Suc (Suc 0))))< 0) \<and> (Suc 0  + Suc 0< 0)"
-   apply (reflection Inum_eqs' aform.simps rules: linaform)  
+   apply (reflection Inum_eqs' is_aform.simps rules: linaform)  
 oops
 
 declare linaform[reflection]
 lemma "(((Suc(Suc (Suc 0)))*((x::nat) + (Suc (Suc 0)))) + (Suc (Suc (Suc 0))) * ((Suc(Suc (Suc 0)))*((x::nat) + (Suc (Suc 0))))< 0) \<and> (Suc 0  + Suc 0< 0)"
-   apply (reflection Inum_eqs' aform.simps)
+   apply (reflection Inum_eqs' is_aform.simps)
 oops
 
 text{* We now give an example where Interpretaions have 0 or more than only one envornement of different types and show that automatic reification also deals with binding *}
@@ -333,7 +333,7 @@ consts Irnat :: "rnat \<Rightarrow> int list \<Rightarrow> (int list) list \<Rig
 primrec
 Irnat_Suc: "Irnat (NSuc t) is ls vs = Suc (Irnat t is ls vs)"
 Irnat_Var: "Irnat (NVar n) is ls vs = vs!n"
-Irnat_Neg: "Irnat (NNeg t) is ls vs = - Irnat t is ls vs"
+Irnat_Neg: "Irnat (NNeg t) is ls vs = 0"
 Irnat_Add: "Irnat (NAdd s t) is ls vs = Irnat s is ls vs + Irnat t is ls vs"
 Irnat_Sub: "Irnat (NSub s t) is ls vs = Irnat s is ls vs - Irnat t is ls vs"
 Irnat_Mult: "Irnat (NMult s t) is ls vs = Irnat s is ls vs * Irnat t is ls vs"

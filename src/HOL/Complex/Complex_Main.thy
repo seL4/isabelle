@@ -14,6 +14,7 @@ imports
   "../Hyperreal/Ln"
   "../Hyperreal/Taylor"
   "../Hyperreal/Integration"
+  "../Hyperreal/FrechetDeriv"
 begin
 
 end
