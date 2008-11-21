@@ -47,6 +47,7 @@ FOL-ex: FOL $(LOG)/FOL-ex.gz
 
 $(LOG)/FOL-ex.gz: $(OUT)/FOL ex/First_Order_Logic.thy ex/If.thy		\
   ex/IffOracle.thy ex/LocaleTest.thy ex/Nat.thy ex/Natural_Numbers.thy	\
+  ex/NewLocaleSetup.thy ex/NewLocaleTest.thy    \
   ex/Miniscope.thy ex/Prolog.thy ex/ROOT.ML ex/Classical.thy		\
   ex/document/root.tex ex/Foundation.thy ex/Intuitionistic.thy		\
   ex/Intro.thy ex/Propositional_Int.thy ex/Propositional_Cla.thy	\
