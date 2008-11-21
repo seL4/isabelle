@@ -7,6 +7,9 @@ New locale development --- experimental.
 
 signature NEW_LOCALE =
 sig
+  type identifiers
+  val empty: identifiers
+
   type locale
 
   val test_locale: theory -> string -> bool
@@ -23,7 +26,8 @@ sig
 
   (* Specification *)
   val params_of: theory -> string -> (Name.binding * typ option * mixfix) list
-  val declarations_of: theory -> string -> declaration list * declaration list;
+  val specification_of: theory -> string -> term option * term list
+  val declarations_of: theory -> string -> declaration list * declaration list
 
   (* Storing results *)
   val add_thmss: string -> string -> (Attrib.binding * (thm list * Attrib.src list) list) list ->
@@ -33,7 +37,8 @@ sig
   val add_declaration: string -> declaration -> Proof.context -> Proof.context
 
   (* Activate locales *)
-  val activate_declarations: string -> theory -> Proof.context -> Proof.context
+  val activate_declarations: string -> Morphism.morphism -> theory -> identifiers ->
+    Proof.context -> identifiers * Proof.context
   val activate: string -> theory -> (Element.context_i -> 'a -> 'a) -> 'a -> 'a
   val init: string -> theory -> Proof.context
 
@@ -137,9 +142,14 @@ fun params_of thy name =
     val Loc {parameters = (_, params), ...} = the_locale thy name
   in params end;
 
-fun declarations_of thy loc =
+fun specification_of thy name =
   let
-    val Loc {decls, ...} = the_locale thy loc
+    val Loc {spec, ...} = the_locale thy name
+  in spec end;
+
+fun declarations_of thy name =
+  let
+    val Loc {decls, ...} = the_locale thy name
   in
     decls |> apfst (map fst) |> apsnd (map fst)
   end;
@@ -156,7 +166,12 @@ structure Idtab = TableFun(type key = string * term list
 
 in
 
-fun roundup thy deps =
+type identifiers = unit Idtab.table
+
+val empty = (Idtab.empty : identifiers);
+
+fun roundup thy (deps, marked) =
+(* FIXME simplify code: should probably only get one dep as argument *)
   let
     fun add (name, morph) (deps, marked) =
       let
@@ -176,7 +191,7 @@ fun roundup thy deps =
             (cons (name, morph) deps' @ deps, marked'')
           end
       end
-  in fold_rev add deps ([], Idtab.empty) |> fst end;
+  in fold_rev add deps ([], marked) end;
 
 end;
 
@@ -189,17 +204,14 @@ fun activate_decls thy (name, morph) ctxt =
       fold_rev (fn (decl, _) => Context.proof_map (decl morph)) term_decls
   end;
 
-fun activate_declarations name thy ctxt =
+fun activate_declarations name morph thy marked ctxt =
   let
     val name' = intern thy name;
-    val Loc {parameters = (_, params), dependencies, ...} = the_locale thy name';
-    val dependencies' =
-      (name', Morphism.identity) :: roundup thy (map fst dependencies);
+    val Loc {dependencies, ...} = the_locale thy name';
+    val (dependencies', marked) =
+      roundup thy ((name', morph) :: map fst dependencies, marked);
   in
-    ctxt |>
-      not (null params) ? (ProofContext.add_fixes_i params #> snd) |>
-      (* FIXME type parameters *)
-      fold_rev (activate_decls thy) dependencies'
+    (marked, ctxt |> fold_rev (activate_decls thy) dependencies')
   end;
 
 fun activate_notes activ_elem thy (name, morph) input =
@@ -219,7 +231,7 @@ fun activate name thy activ_elem input =
     val Loc {parameters = (_, params), spec = (asm, defs), dependencies, ...} =
       the_locale thy name';
     val dependencies' =
-      (name', Morphism.identity) :: roundup thy (map fst dependencies);
+      (name', Morphism.identity) :: fst (roundup thy (map fst dependencies, empty));
   in
     input |>
       (if not (null params) then activ_elem (Fixes params) else I) |>
