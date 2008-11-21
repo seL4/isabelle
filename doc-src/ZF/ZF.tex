@@ -1665,6 +1665,7 @@ The datatype \isa{term}, which is defined by
 consts     term :: "i=>i"
 datatype  "term(A)" = Apply ("a \isasymin A", "l \isasymin list(term(A))")
   monos list_mono
+  type_elims list_univ [THEN subsetD, elim_format]
 \end{alltt*}
 is an example of nested recursion.  (The theorem \isa{list_mono} is proved
 in theory \isa{List}, and the \isa{term} example is developed in
