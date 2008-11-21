@@ -1,4 +1,4 @@
-(*  Title:      HOL/UNITY/Transformers
+(*  Title:      HOL/UNITY/Progress
     ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   2003  University of Cambridge
@@ -93,12 +93,9 @@ theorem "FF\<squnion>GG \<in> atLeast 0 leadsTo atLeast (k::int)"
 apply (subgoal_tac "FF\<squnion>GG \<in> (atLeast 0 \<inter> atLeast 0) leadsTo atLeast k")
  apply simp
 apply (rule_tac T = "atLeast 0" in leadsTo_Join)
-oops
-(* FIXME rotten proof
-  apply (simp add: awp_iff_constrains FF_def, safety)
- apply (simp add: awp_iff_constrains GG_def wens_set_FF, safety)
-apply (rule leadsTo_weaken_L [OF FF_leadsTo], simp) 
+  apply (rule leadsTo_weaken_L [OF FF_leadsTo], simp) 
+ apply (simp add: awp_iff_constrains FF_def, safety)
+apply (simp add: awp_iff_constrains GG_def wens_set_FF, safety)
 done
-*)
 
 end
