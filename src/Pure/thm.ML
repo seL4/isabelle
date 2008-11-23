@@ -1642,7 +1642,7 @@ fun future make_result ct =
     val _ = T <> propT andalso raise CTERM ("future: prop expected", [ct]);
 
     val i = serial ();
-    val future = Future.fork_background (future_result i thy sorts prop o make_result);
+    val future = Future.fork_background (future_result i thy sorts prop o norm_proof o make_result);
     val _ = add_future thy future;
     val promise = (i, future);
   in
