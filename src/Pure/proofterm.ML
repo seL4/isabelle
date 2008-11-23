@@ -1213,23 +1213,20 @@ fun promise_proof thy i prop =
         | _ => false));
   in Promise (i, prop, map TVar (Term.add_tvars prop [])) end;
 
-fun finish_proof thy promises prf =
-  let
-    val tab = Inttab.make promises;
-    fun fill (Promise (i, prop, Ts)) =
-        (case Inttab.lookup tab i of
-          NONE => NONE
-        | SOME p => SOME (instantiate (Term.add_tvars prop [] ~~ Ts, []) p))
-      | fill _ = NONE;
-    val (rules, procs) = get_data thy;
-  in #4 (shrink_proof thy [] 0 (rewrite_prf fst (rules, K fill :: procs) prf)) end;
-
 fun fulfill_proof _ [] body0 = body0
   | fulfill_proof thy promises body0 =
       let
         val PBody {oracles = oracles0, thms = thms0, proof = proof0} = body0;
         val (oracles, thms) = fold (merge_body o make_body o #2) promises (oracles0, thms0);
-        val proof = finish_proof thy promises proof0;
+
+        val tab = Inttab.make promises;
+        fun fill (Promise (i, prop, Ts)) =
+            (case Inttab.lookup tab i of
+              NONE => NONE
+            | SOME p => SOME (instantiate (Term.add_tvars prop [] ~~ Ts, []) p))
+          | fill _ = NONE;
+        val (rules, procs) = get_data thy;
+        val proof = rewrite_prf fst (rules, K fill :: procs) proof0;
       in PBody {oracles = oracles, thms = thms, proof = proof} end;
 
 
@@ -1245,7 +1242,9 @@ fun thm_proof thy name hyps prop promises body =
       map SOME (frees_of prop);
 
     val proof0 =
-      finish_proof thy [] (if ! proofs = 2 then fold_rev implies_intr_proof hyps prf else MinProof);
+      (if ! proofs = 2 then fold_rev implies_intr_proof hyps prf else MinProof)
+      |> rew_proof thy
+      |> (#4 o shrink_proof thy [] 0);
 
     fun new_prf () = (serial (), name, prop,
       Lazy.lazy (fn () => fulfill_proof thy (Lazy.force promises)
