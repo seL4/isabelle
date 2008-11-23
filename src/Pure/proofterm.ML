@@ -1242,9 +1242,9 @@ fun thm_proof thy name hyps prop promises body =
       map SOME (frees_of prop);
 
     val proof0 =
-      (if ! proofs = 2 then fold_rev implies_intr_proof hyps prf else MinProof)
-      |> rew_proof thy
-      |> (#4 o shrink_proof thy [] 0);
+      if ! proofs = 2 then
+        #4 (shrink_proof thy [] 0 (rew_proof thy (fold_rev implies_intr_proof hyps prf)))
+      else MinProof;
 
     fun new_prf () = (serial (), name, prop,
       Lazy.lazy (fn () => fulfill_proof thy (Lazy.force promises)
