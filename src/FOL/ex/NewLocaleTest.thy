@@ -25,7 +25,7 @@ text {* Inference of parameter types *}
 locale param1 = fixes p
 print_locale! param1
 
-locale param2 = fixes p :: 'a
+locale param2 = fixes p :: 'b
 print_locale! param2
 
 (*
@@ -54,7 +54,7 @@ locale constraint2 =
 print_locale! constraint2
 
 
-text {* Groups *}
+text {* Inheritance *}
 
 locale semi =
   fixes prod (infixl "**" 65)
@@ -91,7 +91,7 @@ locale pert_hom' = semi f + d1: perturbation f d1 + d2: perturbation f d2 for f 
 print_locale! pert_hom' thm pert_hom'_def
 
 
-text {* Logic *}
+text {* Syntax declarations *}
 
 locale logic =
   fixes land (infixl "&&" 55)
@@ -109,7 +109,9 @@ print_locale! logic
 locale use_decl = logic + semi "op ||"
 print_locale! use_decl thm use_decl_def
 
-(*
+
+text {* Theorem statements *}
+
 lemma (in lgrp) lcancel:
   "x ** y = x ** z <-> y = z"
 proof
@@ -117,15 +119,16 @@ proof
   then have "inv(x) ** x ** y = inv(x) ** x ** z" by (simp add: assoc)
   then show "y = z" by (simp add: lone linv)
 qed simp
-*)
+print_locale! lgrp
+
 
 locale rgrp = semi +
   fixes one and inv
   assumes rone: "x ** one = x"
     and rinv: "x ** inv(x) = one"
+begin
 
-(*
-lemma (in rgrp) rcancel:
+lemma rcancel:
   "y ** x = z ** x <-> y = z"
 proof
   assume "y ** x = z ** x"
@@ -133,7 +136,8 @@ proof
     by (simp add: assoc [symmetric])
   then show "y = z" by (simp add: rone rinv)
 qed simp
-*)
 
+end
+print_locale! rgrp
 
 end
