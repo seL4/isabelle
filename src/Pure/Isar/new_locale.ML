@@ -37,9 +37,11 @@ sig
   val add_declaration: string -> declaration -> Proof.context -> Proof.context
 
   (* Activate locales *)
-  val activate_declarations: string -> Morphism.morphism -> theory -> identifiers ->
-    Proof.context -> identifiers * Proof.context
-  val activate: string -> theory -> (Element.context_i -> 'a -> 'a) -> 'a -> 'a
+  val activate_declarations: theory -> string * Morphism.morphism ->
+    identifiers * Proof.context -> identifiers * Proof.context
+  val activate_facts: theory -> string * Morphism.morphism ->
+    identifiers * Proof.context -> identifiers * Proof.context
+(*  val activate: string -> theory -> (Element.context_i -> 'a -> 'a) -> 'a -> 'a *)
   val init: string -> theory -> Proof.context
 
   (* Diagnostic *)
@@ -204,12 +206,13 @@ fun activate_decls thy (name, morph) ctxt =
       fold_rev (fn (decl, _) => Context.proof_map (decl morph)) term_decls
   end;
 
-fun activate_declarations name morph thy marked ctxt =
+fun activate_declarations thy (name, morph) (marked, ctxt) =
   let
     val name' = intern thy name;
     val Loc {dependencies, ...} = the_locale thy name';
     val (dependencies', marked) =
-      roundup thy ((name', morph) :: map fst dependencies, marked);
+      roundup thy ((name', morph) ::
+        map (fn ((n, morph'), _) => (n, morph' $> morph)) dependencies, marked);
   in
     (marked, ctxt |> fold_rev (activate_decls thy) dependencies')
   end;
@@ -223,6 +226,17 @@ fun activate_notes activ_elem thy (name, morph) input =
       in activ_elem (Notes (kind, facts')) input end;
   in
     fold_rev activate notes input
+  end;
+
+fun activate_facts_intern thy activ_elem (name, morph) (marked, ctxt) =
+  let
+    val name' = intern thy name;
+    val Loc {dependencies, ...} = the_locale thy name';
+    val (dependencies', marked) =
+      roundup thy ((name', morph) ::
+        map (fn ((n, morph'), _) => (n, morph' $> morph)) dependencies, marked);
+  in
+    (marked, ctxt |> fold_rev (activate_notes activ_elem thy) dependencies')
   end;
 
 fun activate name thy activ_elem input =
@@ -240,7 +254,7 @@ fun activate name thy activ_elem input =
       (if not (null defs)
         then activ_elem (Defines (map (fn def => (Attrib.no_binding, (def, []))) defs))
         else I) |>
-      fold_rev (activate_notes activ_elem thy) dependencies'
+      pair empty |> activate_facts_intern thy activ_elem (name', Morphism.identity) |> snd
   end;
 
 local
@@ -271,6 +285,8 @@ fun cons_elem false (Notes notes) elems = elems
   | cons_elem _ elem elems = elem :: elems
 
 in
+
+fun activate_facts thy dep = activate_facts_intern thy init_elem dep;
 
 fun init name thy = activate name thy init_elem (ProofContext.init thy);
 
