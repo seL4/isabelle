@@ -269,6 +269,11 @@ fun check_defs ctxt fixes eqs =
             fqgar
           end
           
+      val _ = mk_arities (map check eqs)
+          handle ArgumentCount fname => 
+                 error ("Function " ^ quote fname ^ 
+                        " has different numbers of arguments in different equations")
+
       fun check_sorts ((fname, fT), _) =
           Sorts.of_sort (Sign.classes_of (ProofContext.theory_of ctxt)) (fT, HOLogic.typeS)
           orelse error (cat_lines 
@@ -276,11 +281,6 @@ fun check_defs ctxt fixes eqs =
            setmp show_sorts true (Syntax.string_of_typ ctxt) fT])
 
       val _ = map check_sorts fixes
-
-      val _ = mk_arities (map check eqs)
-          handle ArgumentCount fname => 
-                 error ("Function " ^ quote fname ^ 
-                        " has different numbers of arguments in different equations")
     in
       ()
     end
