@@ -59,6 +59,17 @@ end;
 structure Specification: SPECIFICATION =
 struct
 
+(* new locales *)
+
+fun cert_stmt body concl ctxt =
+  let val (_, _, ctxt', concl') = Locale.cert_context_statement NONE body concl ctxt
+  in (concl', ctxt') end;
+fun read_stmt body concl ctxt =
+  let val (_, _, ctxt', concl') = Locale.read_context_statement NONE body concl ctxt
+  in (concl', ctxt') end;
+  
+fun cert_context_statement x = if !new_locales then Expression.cert_statement x else cert_stmt x;
+fun read_context_statement x = if !new_locales then Expression.read_statement x else read_stmt x;
 
 (* diagnostics *)
 
@@ -262,7 +273,7 @@ fun prep_statement prep_att prep_stmt elems concl ctxt =
   (case concl of
     Element.Shows shows =>
       let
-        val (_, _, elems_ctxt, propp) = prep_stmt elems (map snd shows) ctxt;
+        val (propp, elems_ctxt) = prep_stmt elems (map snd shows) ctxt;
         val prems = subtract_prems ctxt elems_ctxt;
         val stmt = Attrib.map_specs prep_att (map fst shows ~~ propp);
         val goal_ctxt = fold (fold (Variable.auto_fixes o fst)) propp elems_ctxt;
@@ -277,7 +288,7 @@ fun prep_statement prep_att prep_stmt elems concl ctxt =
             (vars |> map_filter (fn (x, SOME T) => SOME (Name.name_of x, T) | _ => NONE)));
 
         val raw_propp = obtains |> map (fn (_, (_, props)) => map (rpair []) props);
-        val (_, _, elems_ctxt, propp) = prep_stmt (elems @ constraints) raw_propp ctxt;
+        val (propp, elems_ctxt) = prep_stmt (elems @ constraints) raw_propp ctxt;
 
         val thesis = ObjectLogic.fixed_judgment (ProofContext.theory_of ctxt) AutoBind.thesisN;
 
@@ -328,7 +339,7 @@ fun gen_theorem prep_att prep_stmt
     val atts = map attrib raw_atts;
     val elems = raw_elems |> map (Element.map_ctxt_attrib attrib);
     val ((prems, stmt, facts), goal_ctxt) =
-      prep_statement attrib (prep_stmt NONE) elems raw_concl lthy;
+      prep_statement attrib prep_stmt elems raw_concl lthy;
 
     fun after_qed' results goal_ctxt' =
       let val results' =
@@ -359,8 +370,8 @@ fun gen_theorem prep_att prep_stmt
 
 in
 
-val theorem = gen_theorem (K I) Locale.cert_context_statement;
-val theorem_cmd = gen_theorem Attrib.intern_src Locale.read_context_statement;
+val theorem = gen_theorem (K I) cert_context_statement;
+val theorem_cmd = gen_theorem Attrib.intern_src read_context_statement;
 
 fun add_theorem_hook f = TheoremHook.map (cons (f, stamp ()));
 
