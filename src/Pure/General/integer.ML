@@ -16,7 +16,6 @@ sig
   val gcds: int list -> int
   val lcm: int -> int -> int
   val lcms: int list -> int
-  val log: int -> int        (* binary logarithm *)
 end;
 
 structure Integer : INTEGER =
@@ -54,11 +53,6 @@ fun gcds xs = fold gcd xs 0;
 
 fun lcm x y = (x * y) div (gcd x y);
 fun lcms xs = fold lcm xs 1;
-
-fun logr 1 a = a
-  | logr n a = logr (n div 2) (a + 1)
-
-fun log n = if n > 0 then logr n 0 else error "log: <= 0"
 
 end;
 
