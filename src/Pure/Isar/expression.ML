@@ -15,6 +15,12 @@ sig
   type expression = (string * string map) expr * (Name.binding * string option * mixfix) list
 (*  type expression_i = Morphism.morphism expr * (Name.binding * typ option * mixfix) list *)
 
+  (* Processing of locale statements *)
+  val read_statement: Element.context list -> (string * string list) list list ->
+    Proof.context ->  (term * term list) list list * Proof.context;
+  val cert_statement: Element.context_i list -> (term * term list) list list ->
+    Proof.context -> (term * term list) list list * Proof.context;
+
   (* Declaring locales *)
   val add_locale: string -> bstring -> expression -> Element.context list -> theory ->
     string * Proof.context
@@ -27,7 +33,7 @@ sig
 end;
 
 
-structure Expression: EXPRESSION =
+structure Expression (*: EXPRESSION *) =
 struct
 
 datatype ctxt = datatype Element.ctxt;
@@ -131,8 +137,8 @@ fun parameters_of thy (expr, fixed) =
             val (ps, loc') = params_loc loc;
 	    val d = length ps - length insts;
 	    val insts' =
-	      if d < 0 then err_in_expr thy "More arguments than parameters in instantiation."
-                (Expr [expr])
+	      if d < 0 then error ("More arguments than parameters in instantiation of locale " ^
+                quote (NewLocale.extern thy loc))
 	      else insts @ replicate d NONE;
             val ps' = (ps ~~ insts') |>
               map_filter (fn (p, NONE) => SOME p | (_, SOME _) => NONE);
@@ -401,7 +407,7 @@ fun prep_elems parse_typ parse_prop parse_inst prep_vars
   let
     val thy = ProofContext.theory_of context;
 
-    fun prep_inst (loc, (prfx, inst)) (i, ids, insts, ctxt) =
+    fun prep_inst (loc, (prfx, inst)) (i, marked, insts, ctxt) =
       let
         val (parm_names, parm_types) = NewLocale.params_of thy loc |>
           map (fn (b, SOME T, _) => (Name.name_of b, T)) |> split_list;
@@ -412,8 +418,8 @@ fun prep_elems parse_typ parse_prop parse_inst prep_vars
         val (insts'', _, _, ctxt') = check_autofix insts' [] [] ctxt;
         val inst''' = insts'' |> List.last |> snd |> snd;
         val (morph, _) = inst_morph (parm_names, parm_types) (prfx, inst''') ctxt;
-        val (ids', ctxt'') = NewLocale.activate_declarations loc morph thy ids ctxt;
-      in (i+1, ids', insts', ctxt'') end;
+        val (marked', ctxt'') = NewLocale.activate_declarations thy (loc, morph) (marked, ctxt);
+      in (i+1, marked', insts', ctxt'') end;
   
     fun prep_elem raw_elem (insts, elems, ctxt) =
       let
@@ -470,7 +476,7 @@ in
 
 fun read_elems x = prep_elems Syntax.parse_typ Syntax.parse_prop parse_inst
   ProofContext.read_vars x;
-fun cert_elems x = prep_elems (K I) (K I) make_inst
+fun cert_elems x = prep_elems (K I) (K I)  make_inst
   ProofContext.cert_vars x;
 
 end;
@@ -480,31 +486,39 @@ end;
 
 local
 
-fun prep_context_statement prep_expr prep_elems
+fun prep_context_statement prep_expr prep_elems activate_elems
     do_close imprt elements raw_concl context =
   let
     val thy = ProofContext.theory_of context;
 
     val (Expr expr, fixed) = parameters_of thy (apfst (prep_expr thy) imprt);
-    val ctxt = context |> ProofContext.add_fixes fixed |> snd;
-    (* FIXME push inside prep_elems *)
     val ((parms, fors, deps, elems, concl), (spec, (_, _, defs))) =
       prep_elems do_close context fixed expr elements raw_concl;
-    (* FIXME activate deps *)
-    val ((elems', _), ctxt') =
-      Element.activate elems (ProofContext.set_stmt true ctxt);
+
+    val (_, ctxt0) = ProofContext.add_fixes_i fors context;
+    val (_, ctxt) = fold (NewLocale.activate_facts thy) deps (NewLocale.empty, ctxt0);  
+    val ((elems', _), ctxt') = activate_elems elems (ProofContext.set_stmt true ctxt);
   in
     (((fors, deps), (ctxt', elems'), (parms, spec, defs)), concl)
-  end
+  end;
+
+fun prep_statement prep_ctxt elems concl ctxt =
+  let
+    val (((_, (ctxt', _), _)), concl) = prep_ctxt false (Expr [], []) elems concl ctxt
+  in (concl, ctxt') end;
 
 in
 
+fun read_statement body concl ctxt =
+  prep_statement (prep_context_statement intern read_elems Element.activate) body concl ctxt;
+fun cert_statement body concl ctxt =
+  prep_statement (prep_context_statement (K I) cert_elems Element.activate_i) body concl ctxt;
+
 fun read_context imprt body ctxt =
-  #1 (prep_context_statement intern read_elems true imprt body [] ctxt);
-(*
+  #1 (prep_context_statement intern read_elems Element.activate true imprt body [] ctxt);
 fun cert_context imprt body ctxt =
-  #1 (prep_context_statement (K I) cert_elems true imprt body [] ctxt);
-*)
+  #1 (prep_context_statement (K I) cert_elems Element.activate_i true imprt body [] ctxt);
+
 end;
 
 
