@@ -262,8 +262,8 @@ fun prep_statement prep_att prep_stmt elems concl ctxt =
   (case concl of
     Element.Shows shows =>
       let
-        val (_, loc_ctxt, elems_ctxt, propp) = prep_stmt elems (map snd shows) ctxt;
-        val prems = subtract_prems loc_ctxt elems_ctxt;
+        val (_, _, elems_ctxt, propp) = prep_stmt elems (map snd shows) ctxt;
+        val prems = subtract_prems ctxt elems_ctxt;
         val stmt = Attrib.map_specs prep_att (map fst shows ~~ propp);
         val goal_ctxt = fold (fold (Variable.auto_fixes o fst)) propp elems_ctxt;
       in ((prems, stmt, []), goal_ctxt) end
@@ -277,7 +277,7 @@ fun prep_statement prep_att prep_stmt elems concl ctxt =
             (vars |> map_filter (fn (x, SOME T) => SOME (Name.name_of x, T) | _ => NONE)));
 
         val raw_propp = obtains |> map (fn (_, (_, props)) => map (rpair []) props);
-        val (_, loc_ctxt, elems_ctxt, propp) = prep_stmt (elems @ constraints) raw_propp ctxt;
+        val (_, _, elems_ctxt, propp) = prep_stmt (elems @ constraints) raw_propp ctxt;
 
         val thesis = ObjectLogic.fixed_judgment (ProofContext.theory_of ctxt) AutoBind.thesisN;
 
@@ -300,7 +300,7 @@ fun prep_statement prep_att prep_stmt elems concl ctxt =
 
         val atts = map (Attrib.internal o K)
           [RuleCases.consumes (~ (length obtains)), RuleCases.case_names case_names];
-        val prems = subtract_prems loc_ctxt elems_ctxt;
+        val prems = subtract_prems ctxt elems_ctxt;
         val stmt = [((Name.no_binding, atts), [(thesis, [])])];
 
         val (facts, goal_ctxt) = elems_ctxt
