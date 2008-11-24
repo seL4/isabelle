@@ -107,7 +107,8 @@ fun lift_morphism thy f =
     let 
       val term = Drule.term_rule thy f
     in
-      Morphism.thm_morphism f $> Morphism.term_morphism term $> Morphism.typ_morphism (Logic.type_map term)
+      Morphism.thm_morphism f $> Morphism.term_morphism term 
+       $> Morphism.typ_morphism (Logic.type_map term)
     end
 
 fun import_fundef_data t ctxt =
@@ -189,7 +190,8 @@ fun apply_opt Sequential (FundefConfig {sequential, default, domintros,tailrec})
     FundefConfig {sequential=sequential, default=default, domintros=domintros,tailrec=true}
 
 val default_config =
-  FundefConfig { sequential=false, default="%x. undefined" (*FIXME dynamic scoping*), domintros=false, tailrec=false }
+  FundefConfig { sequential=false, default="%x. undefined" (*FIXME dynamic scoping*), 
+                 domintros=false, tailrec=false }
 
 
 (* Analyzing function equations *)
@@ -234,43 +236,51 @@ fun check_defs ctxt fixes eqs =
                                 
       fun check geq = 
           let
-            fun input_error msg = cat_lines [msg, Syntax.string_of_term ctxt geq]
+            fun input_error msg = error (cat_lines [msg, Syntax.string_of_term ctxt geq])
                                   
             val fqgar as (fname, qs, gs, args, rhs) = split_def ctxt geq
                                  
             val _ = fname mem fnames 
-                    orelse error (input_error ("Head symbol of left hand side must be " ^ plural "" "one out of " fnames 
-                                               ^ commas_quote fnames))
+                    orelse input_error 
+                             ("Head symbol of left hand side must be " 
+                              ^ plural "" "one out of " fnames ^ commas_quote fnames)
                                             
             fun add_bvs t is = add_loose_bnos (t, 0, is)
             val rvs = (add_bvs rhs [] \\ fold add_bvs args [])
                         |> map (fst o nth (rev qs))
                       
-            val _ = null rvs orelse error (input_error ("Variable" ^ plural " " "s " rvs ^ commas_quote rvs
-                                                        ^ " occur" ^ plural "s" "" rvs ^ " on right hand side only:"))
+            val _ = null rvs orelse input_error 
+                        ("Variable" ^ plural " " "s " rvs ^ commas_quote rvs
+                         ^ " occur" ^ plural "s" "" rvs ^ " on right hand side only:")
                                     
-            val _ = forall (not o Term.exists_subterm (fn Free (n, _) => n mem fnames | _ => false)) gs 
-                    orelse error (input_error "Recursive Calls not allowed in premises")
+            val _ = forall (not o Term.exists_subterm 
+                             (fn Free (n, _) => n mem fnames | _ => false)) gs 
+                    orelse input_error "Recursive Calls not allowed in premises"
 
             val freeargs = map (fn t => subst_bounds (rev (map Free qs), t)) args
             val funvars = filter (fn q => exists (exists_subterm (fn (Free q') $ _ => q = q' | _ => false)) freeargs) qs
             val _ = null funvars
-                    orelse (warning (cat_lines ["Bound variable" ^ plural " " "s " funvars ^ commas_quote (map fst funvars) ^  
-                                                " occur" ^ plural "s" "" funvars ^ " in function position.",  
-                                                "Misspelled constructor???"]); true)
+                    orelse (warning (cat_lines 
+                    ["Bound variable" ^ plural " " "s " funvars 
+                     ^ commas_quote (map fst funvars) ^  
+                     " occur" ^ plural "s" "" funvars ^ " in function position.",  
+                     "Misspelled constructor???"]); true)
           in
             fqgar
           end
           
       fun check_sorts ((fname, fT), _) =
           Sorts.of_sort (Sign.classes_of (ProofContext.theory_of ctxt)) (fT, HOLogic.typeS)
-          orelse error ("Type of " ^ quote fname ^ " is not of sort " ^ quote "type" ^ ".")
+          orelse error (cat_lines 
+          ["Type of " ^ quote fname ^ " is not of sort " ^ quote "type" ^ ":",
+           setmp show_sorts true (Syntax.string_of_typ ctxt) fT])
 
       val _ = map check_sorts fixes
 
       val _ = mk_arities (map check eqs)
           handle ArgumentCount fname => 
-                 error ("Function " ^ quote fname ^ " has different numbers of arguments in different equations")
+                 error ("Function " ^ quote fname ^ 
+                        " has different numbers of arguments in different equations")
     in
       ()
     end
@@ -282,7 +292,8 @@ type 'a spec = ((bstring * Attrib.src list) * 'a list) list
 type preproc = fundef_config -> bool list -> Proof.context -> fixes -> term spec 
                -> (term list * (thm list -> thm spec) * (thm list -> thm list list) * string list)
 
-val fname_of = fst o dest_Free o fst o strip_comb o fst o HOLogic.dest_eq o HOLogic.dest_Trueprop o Logic.strip_imp_concl o snd o dest_all_all
+val fname_of = fst o dest_Free o fst o strip_comb o fst 
+ o HOLogic.dest_eq o HOLogic.dest_Trueprop o Logic.strip_imp_concl o snd o dest_all_all
 
 fun mk_case_names i "" k = mk_case_names i (string_of_int (i + 1)) k
   | mk_case_names _ n 0 = []
@@ -297,7 +308,8 @@ fun empty_preproc check _ _ ctxt fixes spec =
       val fnames = map (fst o fst) fixes
       val indices = map (fn eq => find_index (curry op = (fname_of eq)) fnames) ts
 
-      fun sort xs = partition_list (fn i => fn (j,_) => i = j) 0 (length fnames - 1) (indices ~~ xs)
+      fun sort xs = partition_list (fn i => fn (j,_) => i = j) 0 (length fnames - 1) 
+                                   (indices ~~ xs)
                         |> map (map snd)
 
       (* using theorem names for case name currently disabled *)
@@ -322,27 +334,32 @@ val set_preproc = Preprocessor.map o K
 local 
   structure P = OuterParse and K = OuterKeyword
 
-  val option_parser = (P.reserved "sequential" >> K Sequential)
-                   || ((P.reserved "default" |-- P.term) >> Default)
-                   || (P.reserved "domintros" >> K DomIntros)
-                   || (P.reserved "tailrec" >> K Tailrec)
+  val option_parser = 
+      P.group "option" ((P.reserved "sequential" >> K Sequential)
+                    || ((P.reserved "default" |-- P.term) >> Default)
+                    || (P.reserved "domintros" >> K DomIntros)
+                    || (P.reserved "tailrec" >> K Tailrec))
 
-  fun config_parser default = (Scan.optional (P.$$$ "(" |-- P.!!! (P.list1 (P.group "option" option_parser)) --| P.$$$ ")") [])
-                              >> (fn opts => fold apply_opt opts default)
+  fun config_parser default = 
+      (Scan.optional (P.$$$ "(" |-- P.!!! (P.list1 option_parser) --| P.$$$ ")") [])
+        >> (fn opts => fold apply_opt opts default)
 
   val otherwise = P.$$$ "(" |-- P.$$$ "otherwise" --| P.$$$ ")"
 
-  fun pipe_error t = P.!!! (Scan.fail_with (K (cat_lines ["Equations must be separated by " ^ quote "|", quote t])))
+  fun pipe_error t = 
+  P.!!! (Scan.fail_with (K (cat_lines ["Equations must be separated by " ^ quote "|", quote t])))
 
-  val statement_ow = SpecParse.opt_thm_name ":" -- (P.prop -- Scan.optional (otherwise >> K true) false)
-                     --| Scan.ahead ((P.term :-- pipe_error) || Scan.succeed ("",""))
+  val statement_ow = 
+   SpecParse.opt_thm_name ":" -- (P.prop -- Scan.optional (otherwise >> K true) false)
+    --| Scan.ahead ((P.term :-- pipe_error) || Scan.succeed ("",""))
 
   val statements_ow = P.enum1 "|" statement_ow
 
   val flags_statements = statements_ow
                          >> (fn sow => (map (snd o snd) sow, map (apsnd fst) sow))
 in
-  fun fundef_parser default_cfg = (config_parser default_cfg -- P.fixes --| P.$$$ "where" -- flags_statements)
+  fun fundef_parser default_cfg = 
+      config_parser default_cfg -- P.fixes --| P.$$$ "where" -- flags_statements
 end
 
 
