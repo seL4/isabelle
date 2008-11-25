@@ -536,9 +536,6 @@ fun generalize_facts inner outer facts =
 
 local
 
-fun axioms_export axs _ As =
-  (satisfy_thm axs #> Drule.implies_intr_list (Library.drop (length axs, As)), fn t => t);
-
 fun activate_elem (Fixes fixes) ctxt =
       ([], ctxt |> ProofContext.add_fixes_i fixes |> snd)
   | activate_elem (Constrains _) ctxt =
@@ -549,7 +546,7 @@ fun activate_elem (Fixes fixes) ctxt =
         val ts = maps (map #1 o #2) asms';
         val (_, ctxt') =
           ctxt |> fold Variable.auto_fixes ts
-          |> ProofContext.add_assms_i (axioms_export []) asms';
+          |> ProofContext.add_assms_i Assumption.presume_export asms';
       in ([], ctxt') end
   | activate_elem (Defines defs) ctxt =
       let
