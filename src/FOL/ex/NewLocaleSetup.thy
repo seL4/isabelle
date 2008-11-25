@@ -19,13 +19,13 @@ val opt_bang = Scan.optional (P.$$$ "!" >> K true) false;
 val locale_val =
   Expression.parse_expression --
     Scan.optional (P.$$$ "+" |-- P.!!! (Scan.repeat1 SpecParse.context_element)) [] ||
-  Scan.repeat1 SpecParse.context_element >> pair (Expression.empty_expr, []);
+  Scan.repeat1 SpecParse.context_element >> pair ([], []);
 
 in
 
 val _ =
   OuterSyntax.command "locale" "define named proof context" K.thy_decl
-    (P.name -- Scan.optional (P.$$$ "=" |-- P.!!! locale_val) ((Expression.empty_expr, []), []) -- P.opt_begin
+    (P.name -- Scan.optional (P.$$$ "=" |-- P.!!! locale_val) (([], []), []) -- P.opt_begin
       >> (fn ((name, (expr, elems)), begin) =>
           (begin ? Toplevel.print) o Toplevel.begin_local_theory begin
             (Expression.add_locale name name expr elems #-> TheoryTarget.begin)));
