@@ -90,25 +90,25 @@ qed
 text {* Ideal completion *}
 
 definition
-  compacts :: "'a \<Rightarrow> 'a compact_basis set" where
-  "compacts = (\<lambda>x. {a. Rep_compact_basis a \<sqsubseteq> x})"
+  approximants :: "'a \<Rightarrow> 'a compact_basis set" where
+  "approximants = (\<lambda>x. {a. Rep_compact_basis a \<sqsubseteq> x})"
 
 interpretation compact_basis:
-  ideal_completion [sq_le compact_take Rep_compact_basis compacts]
+  ideal_completion [sq_le compact_take Rep_compact_basis approximants]
 proof
   fix w :: 'a
-  show "preorder.ideal sq_le (compacts w)"
+  show "preorder.ideal sq_le (approximants w)"
   proof (rule sq_le.idealI)
-    show "\<exists>x. x \<in> compacts w"
-      unfolding compacts_def
+    show "\<exists>x. x \<in> approximants w"
+      unfolding approximants_def
       apply (rule_tac x="Abs_compact_basis (approx 0\<cdot>w)" in exI)
       apply (simp add: Abs_compact_basis_inverse approx_less)
       done
   next
     fix x y :: "'a compact_basis"
-    assume "x \<in> compacts w" "y \<in> compacts w"
-    thus "\<exists>z \<in> compacts w. x \<sqsubseteq> z \<and> y \<sqsubseteq> z"
-      unfolding compacts_def
+    assume "x \<in> approximants w" "y \<in> approximants w"
+    thus "\<exists>z \<in> approximants w. x \<sqsubseteq> z \<and> y \<sqsubseteq> z"
+      unfolding approximants_def
       apply simp
       apply (cut_tac a=x in compact_Rep_compact_basis)
       apply (cut_tac a=y in compact_Rep_compact_basis)
@@ -123,8 +123,8 @@ proof
       done
   next
     fix x y :: "'a compact_basis"
-    assume "x \<sqsubseteq> y" "y \<in> compacts w" thus "x \<in> compacts w"
-      unfolding compacts_def
+    assume "x \<sqsubseteq> y" "y \<in> approximants w" thus "x \<in> approximants w"
+      unfolding approximants_def
       apply simp
       apply (simp add: compact_le_def)
       apply (erule (1) trans_less)
@@ -133,24 +133,24 @@ proof
 next
   fix Y :: "nat \<Rightarrow> 'a"
   assume Y: "chain Y"
-  show "compacts (\<Squnion>i. Y i) = (\<Union>i. compacts (Y i))"
-    unfolding compacts_def
+  show "approximants (\<Squnion>i. Y i) = (\<Union>i. approximants (Y i))"
+    unfolding approximants_def
     apply safe
     apply (simp add: compactD2 [OF compact_Rep_compact_basis Y])
     apply (erule trans_less, rule is_ub_thelub [OF Y])
     done
 next
   fix a :: "'a compact_basis"
-  show "compacts (Rep_compact_basis a) = {b. b \<sqsubseteq> a}"
-    unfolding compacts_def compact_le_def ..
+  show "approximants (Rep_compact_basis a) = {b. b \<sqsubseteq> a}"
+    unfolding approximants_def compact_le_def ..
 next
   fix x y :: "'a"
-  assume "compacts x \<subseteq> compacts y" thus "x \<sqsubseteq> y"
+  assume "approximants x \<subseteq> approximants y" thus "x \<sqsubseteq> y"
     apply (subgoal_tac "(\<Squnion>i. approx i\<cdot>x) \<sqsubseteq> y", simp)
     apply (rule admD, simp, simp)
     apply (drule_tac c="Abs_compact_basis (approx i\<cdot>x)" in subsetD)
-    apply (simp add: compacts_def Abs_compact_basis_inverse approx_less)
-    apply (simp add: compacts_def Abs_compact_basis_inverse)
+    apply (simp add: approximants_def Abs_compact_basis_inverse approx_less)
+    apply (simp add: approximants_def Abs_compact_basis_inverse)
     done
 qed
 
@@ -163,7 +163,7 @@ definition
 lemma Rep_compact_bot: "Rep_compact_basis compact_bot = \<bottom>"
 unfolding compact_bot_def by (simp add: Abs_compact_basis_inverse)
 
-lemma compact_minimal [simp]: "compact_bot \<sqsubseteq> a"
+lemma compact_bot_minimal [simp]: "compact_bot \<sqsubseteq> a"
 unfolding compact_le_def Rep_compact_bot by simp
 
 
