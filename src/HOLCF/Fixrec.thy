@@ -89,7 +89,7 @@ by (rule_tac p=m in maybeE, simp_all)
 subsubsection {* Run operator *}
 
 definition
-  run:: "'a maybe \<rightarrow> 'a::pcpo" where
+  run :: "'a maybe \<rightarrow> 'a::pcpo" where
   "run = maybe_when\<cdot>\<bottom>\<cdot>ID"
 
 text {* rewrite rules for run *}
@@ -177,6 +177,22 @@ by (simp_all add: branch_def)
 lemma branch_return [simp]: "branch return\<cdot>r\<cdot>x = return\<cdot>(r\<cdot>x)"
 by (simp add: branch_def)
 
+subsubsection {* Cases operator *}
+
+definition
+  cases :: "'a maybe \<rightarrow> 'a::pcpo" where
+  "cases = maybe_when\<cdot>\<bottom>\<cdot>ID"
+
+text {* rewrite rules for cases *}
+
+lemma cases_strict [simp]: "cases\<cdot>\<bottom> = \<bottom>"
+by (simp add: cases_def)
+
+lemma cases_fail [simp]: "cases\<cdot>fail = \<bottom>"
+by (simp add: cases_def)
+
+lemma cases_return [simp]: "cases\<cdot>(return\<cdot>x) = x"
+by (simp add: cases_def)
 
 subsection {* Case syntax *}
 
@@ -193,7 +209,7 @@ syntax (xsymbols)
   "_Case1"      :: "['a, 'b] => Case_syn"                ("(2_ \<Rightarrow>/ _)" 10)
 
 translations
-  "_Case_syntax x ms" == "CONST Fixrec.run\<cdot>(ms\<cdot>x)"
+  "_Case_syntax x ms" == "CONST Fixrec.cases\<cdot>(ms\<cdot>x)"
   "_Case2 m ms" == "m \<parallel> ms"
 
 text {* Parsing Case expressions *}
@@ -411,7 +427,7 @@ definition
 
 definition
   lazy_pat :: "('a \<rightarrow> 'b::pcpo maybe) \<Rightarrow> ('a \<rightarrow> 'b maybe)" where
-  "lazy_pat p = (\<Lambda> x. return\<cdot>(run\<cdot>(p\<cdot>x)))"
+  "lazy_pat p = (\<Lambda> x. return\<cdot>(cases\<cdot>(p\<cdot>x)))"
 
 text {* Parse translations (patterns) *}
 translations
@@ -433,7 +449,7 @@ translations
 
 text {* Lazy patterns in lambda abstractions *}
 translations
-  "_cabs (_lazy_pat p) r" == "CONST Fixrec.run oo (_Case1 (_lazy_pat p) r)"
+  "_cabs (_lazy_pat p) r" == "CONST Fixrec.cases oo (_Case1 (_lazy_pat p) r)"
 
 lemma wild_pat [simp]: "branch wild_pat\<cdot>(unit_when\<cdot>r)\<cdot>x = return\<cdot>r"
 by (simp add: branch_def wild_pat_def)
@@ -566,6 +582,6 @@ subsection {* Initializing the fixrec package *}
 
 use "Tools/fixrec_package.ML"
 
-hide (open) const return bind fail run
+hide (open) const return bind fail run cases
 
 end
