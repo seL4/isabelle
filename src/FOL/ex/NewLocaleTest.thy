@@ -140,4 +140,27 @@ qed simp
 end
 print_locale! rgrp
 
+
+text {* Patterns *}
+
+lemma (in rgrp)
+  assumes "y ** x = z ** x" (is ?a)
+  shows "y = z" (is ?t)
+proof -
+  txt {* Weird proof involving patterns from context element and conclusion. *}
+  {
+    assume ?a
+    then have "y ** (x ** inv(x)) = z ** (x ** inv(x))"
+      by (simp add: assoc [symmetric])
+    then have ?t by (simp add: rone rinv)
+  }
+  note x = this
+  show ?t by (rule x [OF `?a`])
+qed
+
+lemma
+  assumes "P <-> P" (is "?p <-> _")
+  shows "?p <-> ?p"
+  .
+
 end
