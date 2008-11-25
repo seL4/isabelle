@@ -6,7 +6,7 @@ HOLCF -- a semantic extension of HOL by the LCF logic.
 *)
 
 theory HOLCF
-imports Sprod Ssum Up Lift Discrete One Tr Domain ConvexPD Main
+imports Sprod Ssum Up Lift Discrete One Tr Domain ConvexPD Algebraic Universal Main
 uses
   "holcf_logic.ML"
   "Tools/cont_consts.ML"
