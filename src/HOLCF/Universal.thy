@@ -666,7 +666,7 @@ proof (induct n arbitrary: x y rule: less_induct)
     assume x_neq [simp]: "x \<noteq> compact_bot"
     with less have y_neq [simp]: "y \<noteq> compact_bot"
       apply clarify
-      apply (drule antisym_less [OF compact_minimal])
+      apply (drule antisym_less [OF compact_bot_minimal])
       apply simp
       done
     show ?case
