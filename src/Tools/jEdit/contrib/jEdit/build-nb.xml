@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="jEdit">
+    <import file="./build.xml"/>
+    <property environment="env"/>
+    
+    <target name="run" depends="compile">
+        <java classname="org.gjt.sp.jedit.jEdit" classpath="./build/jEdit.jar" dir="./" fork="true">
+          <arg value="-noserver"/>
+          <arg value="-nobackground"/>
+          <arg value="-settings=${env.ISABELLE_HOME_USER}/jedit"/>
+        </java>
+    </target>
+    
+    <target name="debug-nb" depends="compile">
+        <path id="cp" location="./build/jEdit.jar" />
+        
+        <nbjpdastart addressproperty="jpda.address" name="jEdit" transport="dt_socket">
+            <classpath refid="cp"/>
+        </nbjpdastart>
+        
+        <java classname="org.gjt.sp.jedit.jEdit" classpathref="cp" fork="true" dir="./">
+            <jvmarg value="-Xdebug"/>
+            <jvmarg value="-Xrunjdwp:transport=dt_socket,address=${jpda.address}"/>
+        </java>
+    </target>
+    
+    <target name="profile-nb" depends="compile">
+        <fail unless="netbeans.home">This target can only run inside the NetBeans IDE.</fail>
+        
+        <path id="cp" location="./build/jEdit.jar" />
+        
+        <nbprofiledirect>
+            <classpath refid="cp"/>
+        </nbprofiledirect>
+        
+        <java classname="org.gjt.sp.jedit.jEdit" fork="true" logError="yes" dir="." classpathref="cp">
+            <classpath refid="cp"/>
+            <jvmarg value="${profiler.info.jvmargs.agent}"/>
+        </java>
+    </target>
+</project>

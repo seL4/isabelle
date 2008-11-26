@@ -10,5 +10,15 @@
             </source-roots>
             <test-roots/>
         </data>
+        <references xmlns="http://www.netbeans.org/ns/ant-project-references/1">
+            <reference>
+                <foreign-project>jEdit</foreign-project>
+                <artifact-type>jar</artifact-type>
+                <script>build-nb.xml</script>
+                <target>build</target>
+                <clean-target>clean</clean-target>
+                <id>build</id>
+            </reference>
+        </references>
     </configuration>
 </project>
