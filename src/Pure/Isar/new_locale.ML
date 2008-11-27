@@ -35,6 +35,7 @@ sig
   val add_type_syntax: string -> declaration -> Proof.context -> Proof.context
   val add_term_syntax: string -> declaration -> Proof.context -> Proof.context
   val add_declaration: string -> declaration -> Proof.context -> Proof.context
+  val add_dependency: string -> (string * Morphism.morphism) -> Proof.context -> Proof.context
 
   (* Activate locales *)
   val activate_declarations: theory -> string * Morphism.morphism ->
@@ -172,28 +173,24 @@ type identifiers = unit Idtab.table
 
 val empty = (Idtab.empty : identifiers);
 
-fun roundup thy (deps, marked) =
-(* FIXME simplify code: should probably only get one dep as argument *)
+fun add thy (name, morph) (deps, marked) =
   let
-    fun add (name, morph) (deps, marked) =
+    val Loc {parameters = (_, params), dependencies, ...} = the_locale thy name;
+    val instance = params |>
+      map ((fn (b, T, _) => Free (Name.name_of b, the T)) #> Morphism.term morph);
+  in
+    if Idtab.defined marked (name, instance)
+    then (deps, marked)
+    else
       let
-        val Loc {parameters = (_, params), dependencies, ...} = the_locale thy name;
-        val instance = params |>
-          map ((fn (b, T, _) => Free (Name.name_of b, the T)) #> Morphism.term morph);
+        val dependencies' =
+          map (fn ((name, morph'), _) => (name, morph' $>  morph)) dependencies;
+        val marked' = Idtab.insert (op =) ((name, instance), ()) marked;
+        val (deps', marked'') = fold_rev (add thy) dependencies' ([], marked');
       in
-        if Idtab.defined marked (name, instance)
-        then (deps, marked)
-        else
-          let
-            val dependencies' =
-              map (fn ((name, morph'), _) => (name, morph' $>  morph)) dependencies;
-            val marked' = Idtab.insert (op =) ((name, instance), ()) marked;
-            val (deps', marked'') = fold_rev add dependencies' ([], marked');
-          in
-            (cons (name, morph) deps' @ deps, marked'')
-          end
+        ((name, morph) :: deps' @ deps, marked'')
       end
-  in fold_rev add deps ([], marked) end;
+  end;
 
 end;
 
@@ -210,11 +207,9 @@ fun activate_declarations thy (name, morph) (marked, ctxt) =
   let
     val name' = intern thy name;
     val Loc {dependencies, ...} = the_locale thy name';
-    val (dependencies', marked) =
-      roundup thy ((name', morph) ::
-        map (fn ((n, morph'), _) => (n, morph' $> morph)) dependencies, marked);
+    val (dependencies', marked') = add thy (name', morph) ([], marked);
   in
-    (marked, ctxt |> fold_rev (activate_decls thy) dependencies')
+    (marked', ctxt |> fold_rev (activate_decls thy) dependencies')
   end;
 
 fun activate_notes activ_elem thy (name, morph) input =
@@ -232,11 +227,9 @@ fun activate_facts_intern thy activ_elem (name, morph) (marked, ctxt) =
   let
     val name' = intern thy name;
     val Loc {dependencies, ...} = the_locale thy name';
-    val (dependencies', marked) =
-      roundup thy ((name', morph) ::
-        map (fn ((n, morph'), _) => (n, morph' $> morph)) dependencies, marked);
+    val (dependencies', marked') = add thy (name', morph) ([], marked);
   in
-    (marked, ctxt |> fold_rev (activate_notes activ_elem thy) dependencies')
+    (marked', ctxt |> fold_rev (activate_notes activ_elem thy) dependencies')
   end;
 
 fun activate name thy activ_elem input =
@@ -244,8 +237,6 @@ fun activate name thy activ_elem input =
     val name' = intern thy name;
     val Loc {parameters = (_, params), spec = (asm, defs), dependencies, ...} =
       the_locale thy name';
-    val dependencies' =
-      (name', Morphism.identity) :: fst (roundup thy (map fst dependencies, empty));
   in
     input |>
       (if not (null params) then activ_elem (Fixes params) else I) |>
@@ -336,6 +327,13 @@ val add_term_syntax = add_decls (apsnd o cons);
 val add_declaration = add_decls (K I);
 
 end;
+
+(* Dependencies *)
+
+fun add_dependency loc dep =
+  ProofContext.theory (change_locale loc
+    (fn (parameters, spec, decls, notes, dependencies) =>
+      (parameters, spec, decls, notes, (dep, stamp ()) :: dependencies)));
 
 end;
 
