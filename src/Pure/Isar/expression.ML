@@ -24,6 +24,12 @@ sig
   val add_locale_i: string -> bstring -> expression_i -> Element.context_i list -> theory ->
     string * Proof.context
 
+  (* Interpretation *)
+  val sublocale: (thm list list -> Proof.context -> Proof.context) ->
+    string -> expression -> theory -> Proof.state;
+  val sublocale_i: (thm list list -> Proof.context -> Proof.context) ->
+    string -> expression_i -> theory -> Proof.state;
+
   (* Debugging and development *)
   val parse_expression: OuterParse.token list -> expression * OuterParse.token list
 end;
@@ -110,10 +116,13 @@ fun intern thy instances =  map (apfst (NewLocale.intern thy)) instances;
 
 
 (** Parameters of expression.
-   Sanity check of instantiations.
-   Positional instantiations are extended to match full length of parameter list. **)
 
-fun parameters_of thy (expr, fixed) =
+   Sanity check of instantiations and extraction of implicit parameters.
+   The latter only occurs iff strict = false.
+   Positional instantiations are extended to match full length of parameter list
+   of instantiated locale. **)
+
+fun parameters_of thy strict (expr, fixed) =
   let
     fun reject_dups message xs =
       let val dups = duplicates (op =) xs
@@ -162,14 +171,17 @@ fun parameters_of thy (expr, fixed) =
               in (i', ps'') end) is []
           in (ps', is') end;
 
-    val (parms, expr') = params_expr expr;
+    val (implicit, expr') = params_expr expr;
 
-    val parms' = map (#1 #> Name.name_of) parms;
+    val implicit' = map (#1 #> Name.name_of) implicit;
     val fixed' = map (#1 #> Name.name_of) fixed;
     val _ = reject_dups "Duplicate fixed parameter(s): " fixed';
-    val _ = reject_dups "Parameter(s) declared simultaneously in expression and for clause: " (parms' @ fixed');
+    val implicit'' = if strict then []
+      else let val _ = reject_dups
+          "Parameter(s) declared simultaneously in expression and for clause: " (implicit' @ fixed')
+        in map (fn (b, mx) => (b, NONE, mx)) implicit end;
 
-  in (expr', (map (fn (b, mx) => (b, NONE, mx)) parms @ fixed)) end;
+  in (expr', implicit'' @ fixed) end;
 
 
 (** Read instantiation **)
@@ -410,19 +422,18 @@ fun finish ctxt parms do_close insts elems text =
   in (deps, elems', text'') end;
 
 
+(** Process full context statement: instantiations + elements + conclusion **)
+
+(* Interleave incremental parsing and type inference over entire parsed stretch. *)
+
 local
 
-(* nice, but for now not needed
-fun fold_suffixes f [] y = f [] y
-  | fold_suffixes f (x :: xs) y = f (x :: xs) (f xs y);
-
-fun fold_prefixes f xs y = fold_suffixes (f o rev) (rev xs) y;
-*)
-
-fun prep_elems parse_typ parse_prop parse_inst prep_vars
-    do_close context fixed raw_insts raw_elems raw_concl =
+fun prep_full_context_statement parse_typ parse_prop parse_inst prep_vars prep_expr
+    strict do_close context raw_import raw_elems raw_concl =
   let
     val thy = ProofContext.theory_of context;
+
+    val (raw_insts, fixed) = parameters_of thy strict (apfst (prep_expr thy) raw_import);
 
     fun prep_inst (loc, (prfx, inst)) (i, marked, insts, ctxt) =
       let
@@ -463,7 +474,7 @@ fun prep_elems parse_typ parse_prop parse_inst prep_vars
     val xs = fold (fn Fixes fixes => (fn ps => ps @ map (Name.name_of o #1) fixes) |
       _ => fn ps => ps) (Fixes fors :: elems) [];
     val (Ts, ctxt') = fold_map ProofContext.inferred_param xs ctxt; 
-    val parms = xs ~~ Ts;
+    val parms = xs ~~ Ts;  (* params from expression and elements *)
 
     val Fixes fors' = finish_primitive parms I (Fixes fors);
     val (deps, elems', text) = finish ctxt' parms do_close insts elems ((([], []), ([], [])), ([], [], []));
@@ -492,10 +503,11 @@ fun prep_elems parse_typ parse_prop parse_inst prep_vars
 
 in
 
-fun read_elems x = prep_elems Syntax.parse_typ Syntax.parse_prop parse_inst
-  ProofContext.read_vars x;
-fun cert_elems x = prep_elems (K I) (K I)  make_inst
-  ProofContext.cert_vars x;
+fun read_full_context_statement x =
+  prep_full_context_statement Syntax.parse_typ Syntax.parse_prop parse_inst
+  ProofContext.read_vars intern x;
+fun cert_full_context_statement x =
+  prep_full_context_statement (K I) (K I) make_inst ProofContext.cert_vars (K I) x;
 
 end;
 
@@ -504,44 +516,39 @@ end;
 
 local
 
-fun prep_context_statement prep_expr prep_elems activate_elems
-    do_close imprt elements raw_concl context =
+fun prep_context_statement prep_full_context_statement activate_elems
+    strict do_close imprt elements raw_concl context =
   let
     val thy = ProofContext.theory_of context;
 
-    val (expr, fixed) = parameters_of thy (apfst (prep_expr thy) imprt);
-    val ((parms, fors, deps, elems, concl), (spec, (_, _, defs))) =
-      prep_elems do_close context fixed expr elements raw_concl;
+    val ((parms, fixed, deps, elems, concl), (spec, (_, _, defs))) =
+      prep_full_context_statement strict do_close context imprt elements raw_concl;
 
-    val (_, ctxt0) = ProofContext.add_fixes_i fors context;
+    val (_, ctxt0) = ProofContext.add_fixes_i fixed context;
     val (_, ctxt) = fold (NewLocale.activate_facts thy) deps (NewLocale.empty, ctxt0);  
     val ((elems', _), ctxt') = activate_elems elems (ProofContext.set_stmt true ctxt);
   in
-    (((fors, deps), (ctxt', elems'), (parms, spec, defs)), concl)
+    (((fixed, deps), (ctxt', elems'), (parms, spec, defs)), concl)
   end;
 
 fun prep_statement prep_ctxt elems concl ctxt =
   let
-    val (((_, (ctxt', _), _)), concl) = prep_ctxt false ([], []) elems concl ctxt
+    val (((_, (ctxt', _), _)), concl) = prep_ctxt true false ([], []) elems concl ctxt
   in (concl, ctxt') end;
 
 in
 
 fun read_statement body concl ctxt =
-  prep_statement (prep_context_statement intern read_elems Element.activate) body concl ctxt;
+  prep_statement (prep_context_statement read_full_context_statement Element.activate) body concl ctxt;
 fun cert_statement body concl ctxt =
-  prep_statement (prep_context_statement (K I) cert_elems Element.activate_i) body concl ctxt;
+  prep_statement (prep_context_statement cert_full_context_statement Element.activate_i) body concl ctxt;
 
-fun read_context imprt body ctxt =
-  #1 (prep_context_statement intern read_elems Element.activate true imprt body [] ctxt);
-fun cert_context imprt body ctxt =
-  #1 (prep_context_statement (K I) cert_elems Element.activate_i true imprt body [] ctxt);
+fun read_context strict imprt body ctxt =
+  #1 (prep_context_statement read_full_context_statement Element.activate strict true imprt body [] ctxt);
+fun cert_context strict imprt body ctxt =
+  #1 (prep_context_statement cert_full_context_statement Element.activate_i strict true imprt body [] ctxt);
 
 end;
-
-
-(** Dependencies **)
-
 
 
 (*** Locale declarations ***)
@@ -695,8 +702,8 @@ fun gen_add_locale prep_context
     val _ = NewLocale.test_locale thy name andalso
       error ("Duplicate definition of locale " ^ quote name);
 
-    val ((fors, deps), (_, body_elems), text as (parms, ((_, exts'), _), defs)) =
-      prep_context raw_imprt raw_body thy_ctxt;
+    val ((fixed, deps), (_, body_elems), text as (parms, ((_, exts'), _), defs)) =
+      prep_context false raw_imprt raw_body thy_ctxt;
     val ((a_statement, a_intro, a_axioms), (b_statement, b_intro, b_axioms), thy') =
       define_preds predicate_name text thy;
 
@@ -705,7 +712,7 @@ fun gen_add_locale prep_context
       else warning ("Additional type variable(s) in locale specification " ^ quote bname);
 
     val satisfy = Element.satisfy_morphism b_axioms;
-    val params = fors @
+    val params = fixed @
       (body_elems |> map_filter (fn Fixes fixes => SOME fixes | _ => NONE) |> flat);
     val (body_elems', defns) = fold_map (defines_to_notes thy) body_elems [];
 
@@ -729,5 +736,60 @@ val add_locale = gen_add_locale read_context;
 val add_locale_i = gen_add_locale cert_context;
 
 end;
+
+
+(*** Interpretation ***)
+
+(** Witnesses and goals **)
+
+fun prep_propp propss = propss |> map (map (rpair [] o Element.mark_witness));
+
+fun prep_result propps thmss =
+  ListPair.map (fn (props, thms) => map2 Element.make_witness props thms) (propps, thmss);
+
+
+(** Interpretation between locales: declaring sublocale relationships **)
+
+local
+
+fun store_dep target ((name, morph), thms) =
+  NewLocale.add_dependency target (name, morph $> Element.satisfy_morphism thms);
+
+fun gen_sublocale prep_expr
+    after_qed target expression thy =
+  let
+    val target_ctxt = NewLocale.init target thy;
+    val target' = NewLocale.intern thy target;
+
+    val ((_, fixed, deps, _, _), _) = prep_expr true true target_ctxt expression [] [];
+    val (_, goal_ctxt) = ProofContext.add_fixes_i fixed target_ctxt;
+
+    (* proof obligations from deps *)
+    fun props_of (name, morph) =
+    let
+      val (asm, defs) = NewLocale.specification_of thy name;
+    in
+      (case asm of NONE => defs | SOME asm => asm :: defs) |> map (Morphism.term morph)
+    end;
+    
+    val propss = map props_of deps;
+    
+    fun after_qed' results =
+      fold (store_dep target') (deps ~~ prep_result propss results) #>
+      after_qed results;
+
+  in
+    goal_ctxt |>
+      Proof.theorem_i NONE after_qed' (prep_propp propss) |>
+      Element.refine_witness |> Seq.hd
+  end;
+
+in
+
+fun sublocale x = gen_sublocale read_full_context_statement x;
+fun sublocale_i x = gen_sublocale cert_full_context_statement x;
+
+end;
+
 
 end;

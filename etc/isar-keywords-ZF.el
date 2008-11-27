@@ -166,6 +166,7 @@
     "simproc_setup"
     "sorry"
     "subclass"
+    "sublocale"
     "subsect"
     "subsection"
     "subsubsect"
@@ -415,6 +416,7 @@
     "interpretation"
     "lemma"
     "subclass"
+    "sublocale"
     "theorem"))
 
 (defconst isar-keywords-qed

@@ -399,6 +399,13 @@ val _ =
 val opt_prefix = Scan.optional (P.binding --| P.$$$ ":") Name.no_binding;
 
 val _ =
+  OuterSyntax.command "sublocale"
+    "prove sublocale relation between a locale and a locale expression" K.thy_goal
+    (P.xname --| (P.$$$ "\\<subseteq>" || P.$$$ "<") -- P.!!! Expression.parse_expression
+      >> (fn (loc, expr) =>
+        Toplevel.print o (Toplevel.theory_to_proof (Expression.sublocale (K I) loc expr))));
+
+val _ =
   OuterSyntax.command "interpretation"
     "prove and register interpretation of locale expression in theory or locale" K.thy_goal
     (P.xname --| (P.$$$ "\\<subseteq>" || P.$$$ "<") -- P.!!! SpecParse.locale_expr

@@ -207,6 +207,7 @@
     "specification"
     "statespace"
     "subclass"
+    "sublocale"
     "subsect"
     "subsection"
     "subsubsect"
@@ -514,6 +515,7 @@
     "rep_datatype"
     "specification"
     "subclass"
+    "sublocale"
     "termination"
     "theorem"
     "typedef"))
