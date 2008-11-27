@@ -2014,7 +2014,7 @@ val _ = Context.>> (Context.map_theory
 (** Normalisation of locale statements ---
     discharges goals implied by interpretations **)
 
-                                    local
+local
 
 fun locale_assm_intros thy =
   Symtab.fold (fn (_, {intros = (a, _), ...}) => fn intros => (a @ intros))
