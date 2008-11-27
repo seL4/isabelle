@@ -150,7 +150,7 @@ class ScrollerDockable(view : View, position : String) extends JPanel with Adjus
 
     if(message_panel.no == -1) {
       message_panel.no = 0
-      message_panel.invalidate
+      message_panel.revalidate
     }
   }
 
@@ -160,7 +160,7 @@ class ScrollerDockable(view : View, position : String) extends JPanel with Adjus
     if (e.getSource == vscroll){
       message_panel.no = e.getValue / subunits
       message_panel.offset = 100 - 100 * (e.getValue % subunits) / subunits
-      message_panel.invalidate
+      message_panel.revalidate
     }
   }
 
