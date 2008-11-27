@@ -59,7 +59,6 @@ text {* Inheritance *}
 locale semi =
   fixes prod (infixl "**" 65)
   assumes assoc: "(x ** y) ** z = x ** (y ** z)"
-    and comm: "x ** y = y ** x"
 print_locale! semi thm semi_def
 
 locale lgrp = semi +
@@ -162,5 +161,59 @@ lemma
   assumes "P <-> P" (is "?p <-> _")
   shows "?p <-> ?p"
   .
+
+
+text {* Interpretation between locales: sublocales *}
+
+sublocale lgrp < right: rgrp
+print_facts
+proof (intro rgrp.intro semi.intro rgrp_axioms.intro)
+  {
+    fix x
+    have "inv(x) ** x ** one = inv(x) ** x" by (simp add: linv lone)
+    then show "x ** one = x" by (simp add: assoc lcancel)
+  }
+  note rone = this
+  {
+    fix x
+    have "inv(x) ** x ** inv(x) = inv(x) ** one"
+      by (simp add: linv lone rone)
+    then show "x ** inv(x) = one" by (simp add: assoc lcancel)
+  }
+qed (simp add: assoc)
+
+(* effect on printed locale *)
+
+print_locale! lgrp
+
+(* use of derived theorem *)
+
+lemma (in lgrp)
+  "y ** x = z ** x <-> y = z"
+  apply (rule rcancel)
+  done
+
+(* circular interpretation *)
+
+sublocale rgrp < left: lgrp
+  proof (intro lgrp.intro semi.intro lgrp_axioms.intro)
+    {
+      fix x
+      have "one ** (x ** inv(x)) = x ** inv(x)" by (simp add: rinv rone)
+      then show "one ** x = x" by (simp add: assoc [symmetric] rcancel)
+    }
+    note lone = this
+    {
+      fix x
+      have "inv(x) ** (x ** inv(x)) = one ** inv(x)"
+	by (simp add: rinv lone rone)
+      then show "inv(x) ** x = one" by (simp add: assoc [symmetric] rcancel)
+    }
+  qed (simp add: assoc)
+
+(* effect on printed locale *)
+
+print_locale! rgrp
+print_locale! lgrp
 
 end
