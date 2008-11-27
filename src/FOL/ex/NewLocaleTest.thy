@@ -216,4 +216,47 @@ sublocale rgrp < left: lgrp
 print_locale! rgrp
 print_locale! lgrp
 
+
+(* locale with many parameters ---
+   interpretations generate alternating group A5 *)
+
+locale A5 =
+  fixes A and B and C and D and E
+  assumes eq: "A <-> B <-> C <-> D <-> E"
+
+sublocale A5 < 1: A5 _ _ D E C
+print_facts
+  using eq apply (blast intro: A5.intro) done
+
+sublocale A5 < 2: A5 C _ E _ A
+print_facts
+  using eq apply (blast intro: A5.intro) done
+
+sublocale A5 < 3: A5 B C A _ _
+print_facts
+  using eq apply (blast intro: A5.intro) done
+
+(* Any even permutation of parameters is subsumed by the above. *)
+
+print_locale! A5
+
+
+(* Free arguments of instance *)
+
+locale trivial =
+  fixes P and Q :: o
+  assumes Q: "P <-> P <-> Q"
+begin
+
+lemma Q_triv: "Q" using Q by fast
+
+end
+
+sublocale trivial < x: trivial x _
+  apply (intro trivial.intro) using Q by fast
+
+print_locale! trivial
+
+context trivial begin thm x.Q [where ?x = True] end
+
 end

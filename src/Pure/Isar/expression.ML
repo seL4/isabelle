@@ -12,7 +12,7 @@ sig
   type expression = string expr * (Name.binding * string option * mixfix) list;
   type expression_i = term expr * (Name.binding * typ option * mixfix) list;
 
-  (* Processing of locale statements *)
+  (* Processing of context statements *)
   val read_statement: Element.context list -> (string * string list) list list ->
     Proof.context ->  (term * term list) list list * Proof.context;
   val cert_statement: Element.context_i list -> (term * term list) list list ->
@@ -499,7 +499,7 @@ fun prep_full_context_statement parse_typ parse_prop parse_inst prep_vars prep_e
          - Facts unchanged
        *)
 
-  in ((parms, fors', deps, elems', concl), text) end
+  in ((fors', deps, elems', concl), (parms, text)) end
 
 in
 
@@ -512,41 +512,85 @@ fun cert_full_context_statement x =
 end;
 
 
-(* full context statements: import + elements + conclusion *)
+(* Context statement: elements + conclusion *)
 
 local
 
-fun prep_context_statement prep_full_context_statement activate_elems
-    strict do_close imprt elements raw_concl context =
+fun prep_statement prep activate raw_elems raw_concl context =
   let
-    val thy = ProofContext.theory_of context;
-
-    val ((parms, fixed, deps, elems, concl), (spec, (_, _, defs))) =
-      prep_full_context_statement strict do_close context imprt elements raw_concl;
-
-    val (_, ctxt0) = ProofContext.add_fixes_i fixed context;
-    val (_, ctxt) = fold (NewLocale.activate_facts thy) deps (NewLocale.empty, ctxt0);  
-    val ((elems', _), ctxt') = activate_elems elems (ProofContext.set_stmt true ctxt);
-  in
-    (((fixed, deps), (ctxt', elems'), (parms, spec, defs)), concl)
-  end;
-
-fun prep_statement prep_ctxt elems concl ctxt =
-  let
-    val (((_, (ctxt', _), _)), concl) = prep_ctxt true false ([], []) elems concl ctxt
-  in (concl, ctxt') end;
+     val ((_, _, elems, concl), _) = prep true false context ([], []) raw_elems raw_concl;
+     val (_, context') = activate elems (ProofContext.set_stmt true context);
+  in (concl, context') end;
 
 in
 
-fun read_statement body concl ctxt =
-  prep_statement (prep_context_statement read_full_context_statement Element.activate) body concl ctxt;
-fun cert_statement body concl ctxt =
-  prep_statement (prep_context_statement cert_full_context_statement Element.activate_i) body concl ctxt;
+fun read_statement x = prep_statement read_full_context_statement Element.activate x;
+fun cert_statement x = prep_statement cert_full_context_statement Element.activate_i x;
 
-fun read_context strict imprt body ctxt =
-  #1 (prep_context_statement read_full_context_statement Element.activate strict true imprt body [] ctxt);
-fun cert_context strict imprt body ctxt =
-  #1 (prep_context_statement cert_full_context_statement Element.activate_i strict true imprt body [] ctxt);
+end;
+
+
+(* Locale declaration: import + elements *)
+
+local
+
+fun prep_declaration prep activate raw_import raw_elems context =
+  let
+    val thy = ProofContext.theory_of context;
+
+    val ((fixed, deps, elems, _), (parms, (spec, (_, _, defs)))) =
+      prep false true context raw_import raw_elems [];
+    (* Declare parameters and imported facts *)
+    val context' = context |>
+      ProofContext.add_fixes_i fixed |> snd |>
+      pair NewLocale.empty |> fold (NewLocale.activate_facts thy) deps |> snd;
+    val ((elems', _), _) = activate elems (ProofContext.set_stmt true context');
+  in ((fixed, deps, elems'), (parms, spec, defs)) end;
+
+in
+
+fun read_declaration x = prep_declaration read_full_context_statement Element.activate x;
+fun cert_declaration x = prep_declaration cert_full_context_statement Element.activate_i x;
+
+end;
+
+
+(* Locale expression to set up a goal *)
+
+local
+
+fun props_of thy (name, morph) =
+  let
+    val (asm, defs) = NewLocale.specification_of thy name;
+  in
+    (case asm of NONE => defs | SOME asm => asm :: defs) |> map (Morphism.term morph)
+  end;
+
+fun prep_goal_expression prep expression context =
+  let
+    val thy = ProofContext.theory_of context;
+
+    val ((fixed, deps, _, _), _) = prep true true context expression [] [];
+    (* proof obligations *)
+    val propss = map (props_of thy) deps;
+
+    val goal_ctxt = context |>
+      ProofContext.add_fixes_i fixed |> snd |>
+      (fold o fold) Variable.auto_fixes propss;
+
+    val export = Variable.export_morphism goal_ctxt context;
+    val exp_fact = Drule.zero_var_indexes_list o map Thm.strip_shyps o Morphism.fact export;
+(*    val exp_term = TermSubst.zero_var_indexes o Morphism.term export; *)
+    val exp_term = Drule.term_rule thy (singleton exp_fact);
+    val exp_typ = Logic.type_map exp_term;
+    val export' =
+      Morphism.morphism {name = I, var = I, typ = exp_typ, term = exp_term, fact = exp_fact};
+  in ((propss, deps, export'), goal_ctxt) end;
+    
+in
+
+fun read_goal_expression x = prep_goal_expression read_full_context_statement x;
+fun cert_goal_expression x = prep_goal_expression cert_full_context_statement x;
 
 end;
 
@@ -581,7 +625,7 @@ fun aprop_tr' n c = (Syntax.constN ^ c, fn ctxt => fn args =>
       Term.list_comb (Syntax.free (Consts.extern (ProofContext.consts_of ctxt) c), args)
   else raise Match);
 
-(* CB: define one predicate including its intro rule and axioms
+(* define one predicate including its intro rule and axioms
    - bname: predicate name
    - parms: locale parameters
    - defs: thms representing substitutions from defines elements
@@ -694,7 +738,7 @@ fun defines_to_notes thy (Defines defs) defns =
     end
   | defines_to_notes _ e defns = (e, defns);
 
-fun gen_add_locale prep_context
+fun gen_add_locale prep_decl
     bname predicate_name raw_imprt raw_body thy =
   let
     val thy_ctxt = ProofContext.init thy;
@@ -702,8 +746,8 @@ fun gen_add_locale prep_context
     val _ = NewLocale.test_locale thy name andalso
       error ("Duplicate definition of locale " ^ quote name);
 
-    val ((fixed, deps), (_, body_elems), text as (parms, ((_, exts'), _), defs)) =
-      prep_context false raw_imprt raw_body thy_ctxt;
+    val ((fixed, deps, body_elems), text as (parms, ((_, exts'), _), defs)) =
+      prep_decl raw_imprt raw_body thy_ctxt;
     val ((a_statement, a_intro, a_axioms), (b_statement, b_intro, b_axioms), thy') =
       define_preds predicate_name text thy;
 
@@ -732,8 +776,8 @@ fun gen_add_locale prep_context
 
 in
 
-val add_locale = gen_add_locale read_context;
-val add_locale_i = gen_add_locale cert_context;
+val add_locale = gen_add_locale read_declaration;
+val add_locale_i = gen_add_locale cert_declaration;
 
 end;
 
@@ -752,28 +796,17 @@ fun prep_result propps thmss =
 
 local
 
-fun store_dep target ((name, morph), thms) =
-  NewLocale.add_dependency target (name, morph $> Element.satisfy_morphism thms);
-
 fun gen_sublocale prep_expr
     after_qed target expression thy =
   let
     val target_ctxt = NewLocale.init target thy;
     val target' = NewLocale.intern thy target;
 
-    val ((_, fixed, deps, _, _), _) = prep_expr true true target_ctxt expression [] [];
-    val (_, goal_ctxt) = ProofContext.add_fixes_i fixed target_ctxt;
+    val ((propss, deps, export'), goal_ctxt) = prep_expr expression target_ctxt;
+    
+    fun store_dep target ((name, morph), thms) =
+      NewLocale.add_dependency target (name, morph $> Element.satisfy_morphism thms $> export');
 
-    (* proof obligations from deps *)
-    fun props_of (name, morph) =
-    let
-      val (asm, defs) = NewLocale.specification_of thy name;
-    in
-      (case asm of NONE => defs | SOME asm => asm :: defs) |> map (Morphism.term morph)
-    end;
-    
-    val propss = map props_of deps;
-    
     fun after_qed' results =
       fold (store_dep target') (deps ~~ prep_result propss results) #>
       after_qed results;
@@ -786,8 +819,8 @@ fun gen_sublocale prep_expr
 
 in
 
-fun sublocale x = gen_sublocale read_full_context_statement x;
-fun sublocale_i x = gen_sublocale cert_full_context_statement x;
+fun sublocale x = gen_sublocale read_goal_expression x;
+fun sublocale_i x = gen_sublocale cert_goal_expression x;
 
 end;
 
