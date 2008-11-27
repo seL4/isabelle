@@ -160,7 +160,7 @@ fun declarations_of thy name =
 
 (*** Activate context elements of locale ***)
 
-(* Resolve locale dependencies in a depth-first fashion *)
+(** Resolve locale dependencies in a depth-first fashion **)
 
 local
 
@@ -173,27 +173,49 @@ type identifiers = unit Idtab.table
 
 val empty = (Idtab.empty : identifiers);
 
-fun add thy (name, morph) (deps, marked) =
+val roundup_bound = 120;
+
+local
+
+fun add thy depth (name, morph) (deps, marked) =
+  if depth > roundup_bound
+  then error "Roundup bound exceeded (sublocale relation probably not terminating)."
+  else
+    let
+      val Loc {parameters = (_, params), dependencies, ...} = the_locale thy name;
+      val instance = params |>
+        map ((fn (b, T, _) => Free (Name.name_of b, the T)) #> Morphism.term morph);
+    in
+      if Idtab.defined marked (name, instance)
+      then (deps, marked)
+      else
+        let
+          val dependencies' =
+            map (fn ((name, morph'), _) => (name, morph' $>  morph)) dependencies;
+          val marked' = Idtab.insert (op =) ((name, instance), ()) marked;
+          val (deps', marked'') = fold_rev (add thy (depth + 1)) dependencies' ([], marked');
+        in
+          ((name, morph) :: deps' @ deps, marked'')
+        end
+    end;
+
+in
+
+fun roundup thy activate_dep (name, morph) (marked, ctxt) =
   let
-    val Loc {parameters = (_, params), dependencies, ...} = the_locale thy name;
-    val instance = params |>
-      map ((fn (b, T, _) => Free (Name.name_of b, the T)) #> Morphism.term morph);
+    val name' = intern thy name;
+    val Loc {dependencies, ...} = the_locale thy name';
+    val (dependencies', marked') = add thy 0 (name', morph) ([], marked);
   in
-    if Idtab.defined marked (name, instance)
-    then (deps, marked)
-    else
-      let
-        val dependencies' =
-          map (fn ((name, morph'), _) => (name, morph' $>  morph)) dependencies;
-        val marked' = Idtab.insert (op =) ((name, instance), ()) marked;
-        val (deps', marked'') = fold_rev (add thy) dependencies' ([], marked');
-      in
-        ((name, morph) :: deps' @ deps, marked'')
-      end
+    (marked', ctxt |> fold_rev (activate_dep thy) dependencies')
   end;
 
 end;
 
+end;
+
+
+(* Declarations and facts *)
 
 fun activate_decls thy (name, morph) ctxt =
   let
@@ -201,15 +223,6 @@ fun activate_decls thy (name, morph) ctxt =
   in
     ctxt |> fold_rev (fn (decl, _) => Context.proof_map (decl morph)) typ_decls |>
       fold_rev (fn (decl, _) => Context.proof_map (decl morph)) term_decls
-  end;
-
-fun activate_declarations thy (name, morph) (marked, ctxt) =
-  let
-    val name' = intern thy name;
-    val Loc {dependencies, ...} = the_locale thy name';
-    val (dependencies', marked') = add thy (name', morph) ([], marked);
-  in
-    (marked', ctxt |> fold_rev (activate_decls thy) dependencies')
   end;
 
 fun activate_notes activ_elem thy (name, morph) input =
@@ -223,14 +236,8 @@ fun activate_notes activ_elem thy (name, morph) input =
     fold_rev activate notes input
   end;
 
-fun activate_facts_intern thy activ_elem (name, morph) (marked, ctxt) =
-  let
-    val name' = intern thy name;
-    val Loc {dependencies, ...} = the_locale thy name';
-    val (dependencies', marked') = add thy (name', morph) ([], marked);
-  in
-    (marked', ctxt |> fold_rev (activate_notes activ_elem thy) dependencies')
-  end;
+
+(* Entire locale content *)
 
 fun activate name thy activ_elem input =
   let
@@ -245,8 +252,11 @@ fun activate name thy activ_elem input =
       (if not (null defs)
         then activ_elem (Defines (map (fn def => (Attrib.no_binding, (def, []))) defs))
         else I) |>
-      pair empty |> activate_facts_intern thy activ_elem (name', Morphism.identity) |> snd
+      pair empty |> roundup thy (activate_notes activ_elem) (name', Morphism.identity) |> snd
   end;
+
+
+(** Public activation functions **)
 
 local
 
@@ -277,7 +287,9 @@ fun cons_elem false (Notes notes) elems = elems
 
 in
 
-fun activate_facts thy dep = activate_facts_intern thy init_elem dep;
+fun activate_declarations thy = roundup thy activate_decls;
+
+fun activate_facts thy = roundup thy (activate_notes init_elem);
 
 fun init name thy = activate name thy init_elem (ProofContext.init thy);
 
