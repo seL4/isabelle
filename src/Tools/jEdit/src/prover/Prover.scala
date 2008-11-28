@@ -105,11 +105,11 @@ class Prover() {
         fireChange()
               
       case IsabelleProcess.Kind.STATUS =>
-        System.err.println("ST: " + tree)
+        st.addStatus(tree)
         val state = tree match { case Elem("message", _,
                                            Elem (name, _, _) :: _) => name
                                  case _ => null }
-
+        
         if (st.phase != Phase.REMOVED && st.phase != Phase.REMOVE) {
           state match {
             case "finished" => 

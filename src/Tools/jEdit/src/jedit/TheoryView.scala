@@ -31,7 +31,23 @@ object TheoryView {
         case _ => Color.red
       }
   }
-  
+
+  def chooseColor(status : String) : Color = {
+    //TODO: as properties!
+    status match {
+      case "ident" => new Color(192, 192, 255)
+      case "literal" => new Color(192, 255, 255)
+      case "fixed_decl" => new Color(192, 192, 192)
+      case "prop" => new Color(255, 192 ,255)
+      case "typ" => new Color(192, 192, 128)
+      case "term" => new Color(192, 128, 192)
+      case "method" => new Color(128, 192, 192)
+      case "doc_source" => new Color(128, 128, 192)
+      case "ML_source" => new Color(128, 192, 128)
+      case "local_fact_decl" => new Color(192, 128, 128)
+      case _ => Color.red
+    }
+  }
   def withView(view : TextArea, f : (TheoryView) => Unit) {
     if (view != null && view.getBuffer() != null)
       view.getBuffer().getProperty(ISABELLE_THEORY_PROPERTY) match {
@@ -147,32 +163,44 @@ class TheoryView(prover : Prover, buffer : JEditBuffer)
       textArea.invalidateLineRange(textArea.getFirstPhysicalLine, 
                                    textArea.getLastPhysicalLine)
   }
-  
-  override def paintValidLine(gfx : Graphics2D, screenLine : Int,
-                              pl : Int, start : Int, end : Int, y : Int)
-  {	
-    var fm = textArea.getPainter().getFontMetrics()
-    var savedColor = gfx.getColor()
-    var e = prover.document.getNextCommandContaining(fromCurrent(start))
-    
-    while (e != null && toCurrent(e.start) < end) {
-      val begin = Math.max(start, toCurrent(e.start))
-      val startP = textArea.offsetToXY(begin)
 
-      val finish = Math.min(end - 1, toCurrent(e.stop))
-      val stopP = if (finish < buffer.getLength()) textArea.offsetToXY(finish) 
-                  else { var p = textArea.offsetToXY(finish - 1) 
-                         p.x = p.x + fm.charWidth(' ') 
+  def encolor(gfx : Graphics2D, y : Int, height : Int, begin : Int, finish : Int, color : Color){
+      val fm = textArea.getPainter.getFontMetrics
+      val startP = textArea.offsetToXY(begin)
+      val stopP = if (finish < buffer.getLength()) textArea.offsetToXY(finish)
+                  else { var p = textArea.offsetToXY(finish - 1)
+                         p.x = p.x + fm.charWidth(' ')
                          p }
 			
       if (startP != null && stopP != null) {
-        gfx.setColor(chooseColor(e))
-        gfx.fillRect(startP.x, y, stopP.x - startP.x, fm.getHeight())
+        gfx.setColor(color)
+        gfx.fillRect(startP.x, y, stopP.x - startP.x, height)
       }
-      
+  }
+
+  override def paintValidLine(gfx : Graphics2D, screenLine : Int,
+                              pl : Int, start : Int, end : Int, y : Int)
+  {	
+    val fm = textArea.getPainter.getFontMetrics
+    var savedColor = gfx.getColor
+    var e = prover.document.getNextCommandContaining(fromCurrent(start))
+
+    //Encolor Phase
+    while (e != null && toCurrent(e.start) < end) {
+      val begin = Math.max(start, toCurrent(e.start))
+      val finish = Math.min(end - 1, toCurrent(e.stop))
+      encolor(gfx, y, fm.getHeight, begin, finish, chooseColor(e))
+      // paint details of command
+      var dy = 0
+      for(status <- e.statuses){
+        dy += 1
+        val begin = Math.max(start, toCurrent(status.start + e.start))
+        val finish = Math.min(end - 1, toCurrent(status.stop + e.start))
+        encolor(gfx, y + dy, fm.getHeight - dy, begin, finish, chooseColor(status.kind))
+      }
       e = e.next
     }
-    
+
     gfx.setColor(savedColor)
   }
 	
