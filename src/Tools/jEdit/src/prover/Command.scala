@@ -58,7 +58,7 @@ class Command(val first : Token[Command], val last : Token[Command]) {
   def properStart = start
   def properStop = {
     var i = last
-    while (i != first && i.isComment)
+    while (i != first && i.kind.equals(Token.Kind.COMMENT))
       i = i.previous
     i.stop
   }  	

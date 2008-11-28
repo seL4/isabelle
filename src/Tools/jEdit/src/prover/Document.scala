@@ -70,7 +70,7 @@ class Document(text : Text, prover : Prover) extends ProofDocument[Command](text
           before = first.previous
       }
       else if (next != null && next != stop) {
-        if (next.isCommandStart) {
+        if (next.kind.equals(Token.Kind.COMMAND_START)) {
           before = start.command
           scan = next
         }
@@ -109,13 +109,13 @@ class Document(text : Text, prover : Prover) extends ProofDocument[Command](text
     var finished = false
     while (scan != null && !finished) {
       if (scan == stopScan)	{
-        if (scan.isCommandStart)
+        if (scan.kind.equals(Token.Kind.COMMAND_START))
           finished = true
         else
           overrun = true
       }
       
-      if (scan.isCommandStart && cmdStart != null && !finished) {
+      if (scan.kind.equals(Token.Kind.COMMAND_START) && cmdStart != null && !finished) {
         if (! overrun) {
           addedCommands = new Command(cmdStart, cmdStop) :: addedCommands
           cmdStart = scan

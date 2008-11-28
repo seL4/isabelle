@@ -1,7 +1,13 @@
 package isabelle.proofdocument
 
-class Token[C](var start : Int, var stop : Int, val isCommandStart : Boolean,
-               val isComment : Boolean) {
+object Token {
+  object Kind {
+    val COMMAND_START = "COMMAND_START"
+    val COMMENT = "COMMENT"
+  }
+}
+
+class Token[C](var start : Int, var stop : Int, var kind : String) {
   var next : Token[C] = null
   var previous : Token[C] = null
   var command : C = null.asInstanceOf[C]

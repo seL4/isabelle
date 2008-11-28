@@ -105,9 +105,14 @@ class Prover() {
         fireChange()
               
       case IsabelleProcess.Kind.STATUS =>
+        System.err.println("ST: " + tree)
         val state = tree match { case Elem("message", _, 
                                            Elem (name, _, _) :: _) => name
                                  case _ => null }
+/*        val markup_type =
+        val markup_begin =
+        val markup_end =*/
+
         if (st.phase != Phase.REMOVED && st.phase != Phase.REMOVE) {
           state match {
             case "finished" => 
@@ -172,7 +177,7 @@ class Prover() {
     
     val props = new Properties()
     props.setProperty("id", cmd.idString)
-    props.setProperty("offset", "1")
+    props.setProperty("offset", Integer.toString(cmd.first.start))
 
     val content = converter.encode(document.getContent(cmd))
     process.output_sync("Isar.command " 
