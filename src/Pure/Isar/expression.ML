@@ -598,15 +598,17 @@ end;
 
 (*** Locale declarations ***)
 
+(* axiomsN: name of theorem set with destruct rules for locale predicates,
+     also name suffix of delta predicates and assumptions. *)
+
+val axiomsN = "axioms";
+
 local
 
 (* introN: name of theorems for introduction rules of locale and
-     delta predicates;
-   axiomsN: name of theorem set with destruct rules for locale predicates,
-     also name suffix of delta predicates. *)
+     delta predicates *)
 
 val introN = "intro";
-val axiomsN = "axioms";
 
 fun atomize_spec thy ts =
   let
@@ -695,7 +697,8 @@ fun define_preds pname (parms, ((exts, exts'), (ints, ints')), defs) thy =
             thy'
             |> Sign.add_path aname
             |> Sign.no_base_names
-            |> PureThy.note_thmss Thm.internalK [((Name.binding introN, []), [([intro], [])])]
+            |> PureThy.note_thmss Thm.internalK
+              [((Name.binding introN, []), [([intro], [NewLocale.unfold_attrib])])]
             ||> Sign.restore_naming thy';
           in (SOME statement, SOME intro, axioms, thy'') end;
     val (b_pred, b_intro, b_axioms, thy'''') =
@@ -710,7 +713,7 @@ fun define_preds pname (parms, ((exts, exts'), (ints, ints')), defs) thy =
             |> Sign.add_path pname
             |> Sign.no_base_names
             |> PureThy.note_thmss Thm.internalK
-                 [((Name.binding introN, []), [([intro], [])]),
+                 [((Name.binding introN, []), [([intro], [NewLocale.intro_attrib])]),
                   ((Name.binding axiomsN, []),
                     [(map (Drule.standard o Element.conclude_witness) axioms, [])])]
             ||> Sign.restore_naming thy''';
@@ -757,20 +760,25 @@ fun gen_add_locale prep_decl
       else warning ("Additional type variable(s) in locale specification " ^ quote bname);
 
     val satisfy = Element.satisfy_morphism b_axioms;
+
     val params = fixed @
       (body_elems |> map_filter (fn Fixes fixes => SOME fixes | _ => NONE) |> flat);
-    val (body_elems', defns) = fold_map (defines_to_notes thy) body_elems [];
-
+    val asm = if is_some b_statement then b_statement else a_statement;
+    val (body_elems', defns) = fold_map (defines_to_notes thy') body_elems [];
     val notes = body_elems' |>
       (fn elems => fold_map assumes_to_notes elems (map Element.conclude_witness a_axioms)) |>
       fst |> map (Element.morph_ctxt satisfy) |>
-      map_filter (fn Notes notes => SOME notes | _ => NONE);
+      map_filter (fn Notes notes => SOME notes | _ => NONE) |>
+      (if is_some asm
+        then cons (Thm.internalK, [((Name.binding (bname ^ "_" ^ axiomsN), []),
+          [([assume (cterm_of thy' (the asm))], [(Attrib.internal o K) NewLocale.witness_attrib])])])
+        else I);
 
     val deps' = map (fn (l, morph) => (l, morph $> satisfy)) deps;
 
     val loc_ctxt = thy' |>
       NewLocale.register_locale name (extraTs, params)
-        (if is_some b_statement then b_statement else a_statement, map prop_of defs) ([], [])
+        (asm, map prop_of defs) ([], [])
         (map (fn n => (n, stamp ())) notes |> rev) (map (fn d => (d, stamp ())) deps' |> rev) |>
       NewLocale.init name
   in (name, loc_ctxt) end;
@@ -803,10 +811,10 @@ fun gen_sublocale prep_expr intern
     val target = intern thy raw_target;
     val target_ctxt = NewLocale.init target thy;
 
-    val ((propss, deps, export'), goal_ctxt) = prep_expr expression target_ctxt;
+    val ((propss, deps, export), goal_ctxt) = prep_expr expression target_ctxt;
     
     fun store_dep ((name, morph), thms) =
-      NewLocale.add_dependency target (name, morph $> Element.satisfy_morphism thms $> export');
+      NewLocale.add_dependency target (name, morph $> Element.satisfy_morphism thms $> export);
 
     fun after_qed' results =
       fold store_dep (deps ~~ prep_result propss results) #>
@@ -827,3 +835,4 @@ end;
 
 
 end;
+

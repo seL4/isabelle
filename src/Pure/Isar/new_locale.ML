@@ -37,7 +37,7 @@ sig
   val add_declaration: string -> declaration -> Proof.context -> Proof.context
   val add_dependency: string -> (string * Morphism.morphism) -> Proof.context -> Proof.context
 
-  (* Activate locales *)
+  (* Activation *)
   val activate_declarations: theory -> string * Morphism.morphism ->
     identifiers * Proof.context -> identifiers * Proof.context
   val activate_facts: theory -> string * Morphism.morphism ->
@@ -45,9 +45,33 @@ sig
 (*  val activate: string -> theory -> (Element.context_i -> 'a -> 'a) -> 'a -> 'a *)
   val init: string -> theory -> Proof.context
 
+  (* Reasoning about locales *)
+  val witness_attrib: attribute
+  val intro_attrib: attribute
+  val unfold_attrib: attribute
+  val intro_locales_tac: bool -> Proof.context -> thm list -> tactic
+
   (* Diagnostic *)
   val print_locales: theory -> unit
   val print_locale: theory -> bool -> bstring -> unit
+end;
+
+
+(* FIXME: consider moving named_thms.ML up in the build hierarchy and using that *)
+functor ThmsFun() =
+struct
+
+structure Data = GenericDataFun
+(
+  type T = thm list;
+  val empty = [];
+  val extend = I;
+  fun merge _ = Thm.merge_thms;
+);
+
+val get = Data.get o Context.Proof;
+val add = Thm.declaration_attribute (Data.map o Thm.add_thm);
+
 end;
 
 
@@ -339,6 +363,35 @@ fun add_dependency loc dep =
   ProofContext.theory (change_locale loc
     (fn (parameters, spec, decls, notes, dependencies) =>
       (parameters, spec, decls, notes, (dep, stamp ()) :: dependencies)));
+
+
+(*** Reasoning about locales ***)
+
+(** Storage for witnesses, intro and unfold rules **)
+
+structure Witnesses = ThmsFun();
+structure Intros = ThmsFun();
+structure Unfolds = ThmsFun();
+
+val witness_attrib = Witnesses.add;
+val intro_attrib = Intros.add;
+val unfold_attrib = Unfolds.add;
+
+(** Tactic **)
+
+fun intro_locales_tac eager ctxt facts st =
+  Method.intros_tac
+    (Witnesses.get ctxt @ Intros.get ctxt @ (if eager then Unfolds.get ctxt else [])) facts st;
+
+val _ = Context.>> (Context.map_theory
+  (Method.add_methods
+    [("new_intro_locales",
+      Method.ctxt_args (fn ctxt => Method.METHOD (intro_locales_tac false ctxt)),
+      "back-chain introduction rules of locales without unfolding predicates"),
+     ("new_unfold_locales",
+      Method.ctxt_args (fn ctxt => Method.METHOD (intro_locales_tac true ctxt)),
+      "back-chain all introduction rules of locales")]));
+
 
 end;
 

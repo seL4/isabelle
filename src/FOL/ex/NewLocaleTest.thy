@@ -167,7 +167,7 @@ text {* Interpretation between locales: sublocales *}
 
 sublocale lgrp < right: rgrp
 print_facts
-proof (intro rgrp.intro semi.intro rgrp_axioms.intro)
+proof new_unfold_locales
   {
     fix x
     have "inv(x) ** x ** one = inv(x) ** x" by (simp add: linv lone)
@@ -180,7 +180,7 @@ proof (intro rgrp.intro semi.intro rgrp_axioms.intro)
       by (simp add: linv lone rone)
     then show "x ** inv(x) = one" by (simp add: assoc lcancel)
   }
-qed (simp add: assoc)
+qed
 
 (* effect on printed locale *)
 
@@ -196,20 +196,20 @@ lemma (in lgrp)
 (* circular interpretation *)
 
 sublocale rgrp < left: lgrp
-  proof (intro lgrp.intro semi.intro lgrp_axioms.intro)
-    {
-      fix x
-      have "one ** (x ** inv(x)) = x ** inv(x)" by (simp add: rinv rone)
-      then show "one ** x = x" by (simp add: assoc [symmetric] rcancel)
-    }
-    note lone = this
-    {
-      fix x
-      have "inv(x) ** (x ** inv(x)) = one ** inv(x)"
-	by (simp add: rinv lone rone)
-      then show "inv(x) ** x = one" by (simp add: assoc [symmetric] rcancel)
-    }
-  qed (simp add: assoc)
+proof new_unfold_locales
+  {
+    fix x
+    have "one ** (x ** inv(x)) = x ** inv(x)" by (simp add: rinv rone)
+    then show "one ** x = x" by (simp add: assoc [symmetric] rcancel)
+  }
+  note lone = this
+  {
+    fix x
+    have "inv(x) ** (x ** inv(x)) = one ** inv(x)"
+      by (simp add: rinv lone rone)
+    then show "inv(x) ** x = one" by (simp add: assoc [symmetric] rcancel)
+  }
+qed
 
 (* effect on printed locale *)
 
@@ -225,7 +225,7 @@ locale order =
     and trans: "[| x << y; y << z |] ==> x << z"
 
 sublocale order < dual: order "%x y. y << x"
-  apply (rule order.intro) apply (rule refl) apply (blast intro: trans)
+  apply new_unfold_locales apply (rule refl) apply (blast intro: trans)
   done
 
 print_locale! order  (* Only two instances of order. *)
@@ -244,7 +244,7 @@ definition greater :: "'a => 'a => o" (infix ">>" 50) where
 end
 
 sublocale order_with_def < dual: order' "op >>"
-  apply (intro order'.intro)
+  apply new_unfold_locales
   unfolding greater_def
   apply (rule refl) apply (blast intro: trans)
   done
@@ -291,14 +291,15 @@ lemma Q_triv: "Q" using Q by fast
 end
 
 sublocale trivial < x: trivial x _
-  apply (intro trivial.intro) using Q by fast
+  apply new_unfold_locales using Q by fast
 
 print_locale! trivial
 
 context trivial begin thm x.Q [where ?x = True] end
 
 sublocale trivial < y: trivial Q Q
-  apply (intro trivial.intro) using Q by fast
+  by new_unfold_locales
+  (* Succeeds since previous interpretation is more general. *)
 
 print_locale! trivial  (* No instance for y created (subsumed). *)
 
