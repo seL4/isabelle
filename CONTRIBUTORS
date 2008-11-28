@@ -7,6 +7,9 @@ distribution.
 Contributions to this Isabelle version
 --------------------------------------
 
+* November 2008: Timothy Bourke, NICTA
+  Performance improvement (factor 50) for find_theorems.
+
 * October 2008: Fabian Immler, TUM
   ATP manager for Sledgehammer, based on ML threads instead of Posix
   processes.  Additional ATP wrappers, including remote SystemOnTPTP
