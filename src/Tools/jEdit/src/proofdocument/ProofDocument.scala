@@ -54,7 +54,9 @@ abstract class ProofDocument[C](text : Text) {
     tokens(firstToken, null)
 
   private def textChanged(start : Int, addedLen : Int, removedLen : Int) {
-    import Token.{checkStart, scan, checkStop}
+    val checkStart = Token.checkStart[C] _
+    val checkStop = Token.checkStop[C] _
+    val scan = Token.scan[C] _
     if (active == false)
       return
         

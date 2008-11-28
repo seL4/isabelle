@@ -6,13 +6,13 @@ object Token {
     val COMMENT = "COMMENT"
   }
 
-  def checkStart(t : Token[_], P : (Int) => Boolean)
+  def checkStart[C](t : Token[C], P : (Int) => Boolean)
     = t != null && P(t.start)
 
-  def checkStop(t : Token[_], P : (Int) => Boolean)
+  def checkStop[C](t : Token[C], P : (Int) => Boolean)
     = t != null && P(t.stop)
 
-  def scan(s : Token[_], f : (Token[_]) => Boolean) : Token[_] = {
+  def scan[C](s : Token[C], f : (Token[C]) => Boolean) : Token[C] = {
     var current = s
     while (current != null) {
       val next = current.next

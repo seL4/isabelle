@@ -6,7 +6,7 @@ import java.util.Properties
 
 import javax.swing.SwingUtilities
 
-import isabelle.proofdocument.{ ProofDocument, Text }
+import isabelle.proofdocument.{ ProofDocument, Text, Token }
 import isabelle.IsabelleProcess.Result
 import isabelle.YXML.parse_failsafe
 import isabelle.XML.{ Elem, Tree }
@@ -106,12 +106,9 @@ class Prover() {
               
       case IsabelleProcess.Kind.STATUS =>
         System.err.println("ST: " + tree)
-        val state = tree match { case Elem("message", _, 
+        val state = tree match { case Elem("message", _,
                                            Elem (name, _, _) :: _) => name
                                  case _ => null }
-/*        val markup_type =
-        val markup_begin =
-        val markup_end =*/
 
         if (st.phase != Phase.REMOVED && st.phase != Phase.REMOVE) {
           state match {
