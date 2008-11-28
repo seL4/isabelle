@@ -53,24 +53,8 @@ abstract class ProofDocument[C](text : Text) {
   protected def tokens() : Iterator[Token[C]] = 
     tokens(firstToken, null)
 
-  private def checkStart(t : Token[C], P : (Int) => Boolean)
-    = t != null && P(t.start)
-
-  private def checkStop(t : Token[C], P : (Int) => Boolean)
-    = t != null && P(t.stop)
-  
-  private def scan(s : Token[C], f : (Token[C]) => Boolean) : Token[C] = {
-    var current = s
-    while (current != null) {
-      val next = current.next
-      if (next == null || f(next))
-        return current
-      current = next
-    }
-    return null
-  }
-
   private def textChanged(start : Int, addedLen : Int, removedLen : Int) {
+    import Token.{checkStart, scan, checkStop}
     if (active == false)
       return
         

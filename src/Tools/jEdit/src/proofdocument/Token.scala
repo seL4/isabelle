@@ -5,6 +5,24 @@ object Token {
     val COMMAND_START = "COMMAND_START"
     val COMMENT = "COMMENT"
   }
+
+  def checkStart(t : Token[_], P : (Int) => Boolean)
+    = t != null && P(t.start)
+
+  def checkStop(t : Token[_], P : (Int) => Boolean)
+    = t != null && P(t.stop)
+
+  def scan(s : Token[_], f : (Token[_]) => Boolean) : Token[_] = {
+    var current = s
+    while (current != null) {
+      val next = current.next
+      if (next == null || f(next))
+        return current
+      current = next
+    }
+    return null
+  }
+
 }
 
 class Token[C](var start : Int, var stop : Int, var kind : String) {
