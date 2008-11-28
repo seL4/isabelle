@@ -19,19 +19,20 @@ sig
     Proof.context -> (term * term list) list list * Proof.context;
 
   (* Declaring locales *)
-  val add_locale: string -> bstring -> expression -> Element.context list -> theory ->
+  val add_locale_cmd: string -> bstring -> expression -> Element.context list -> theory ->
     string * Proof.context
-  val add_locale_i: string -> bstring -> expression_i -> Element.context_i list -> theory ->
+  val add_locale: string -> bstring -> expression_i -> Element.context_i list -> theory ->
     string * Proof.context
 
   (* Interpretation *)
-  val sublocale: (thm list list -> Proof.context -> Proof.context) ->
+  val sublocale_cmd: (thm list list -> Proof.context -> Proof.context) ->
     string -> expression -> theory -> Proof.state;
-  val sublocale_i: (thm list list -> Proof.context -> Proof.context) ->
+  val sublocale: (thm list list -> Proof.context -> Proof.context) ->
     string -> expression_i -> theory -> Proof.state;
 
   (* Debugging and development *)
   val parse_expression: OuterParse.token list -> expression * OuterParse.token list
+    (* FIXME to spec_parse.ML *)
 end;
 
 
@@ -776,8 +777,8 @@ fun gen_add_locale prep_decl
 
 in
 
-val add_locale = gen_add_locale read_declaration;
-val add_locale_i = gen_add_locale cert_declaration;
+val add_locale_cmd = gen_add_locale read_declaration;
+val add_locale = gen_add_locale cert_declaration;
 
 end;
 
@@ -796,19 +797,19 @@ fun prep_result propps thmss =
 
 local
 
-fun gen_sublocale prep_expr
-    after_qed target expression thy =
+fun gen_sublocale prep_expr intern
+    after_qed raw_target expression thy =
   let
+    val target = intern thy raw_target;
     val target_ctxt = NewLocale.init target thy;
-    val target' = NewLocale.intern thy target;
 
     val ((propss, deps, export'), goal_ctxt) = prep_expr expression target_ctxt;
     
-    fun store_dep target ((name, morph), thms) =
+    fun store_dep ((name, morph), thms) =
       NewLocale.add_dependency target (name, morph $> Element.satisfy_morphism thms $> export');
 
     fun after_qed' results =
-      fold (store_dep target') (deps ~~ prep_result propss results) #>
+      fold store_dep (deps ~~ prep_result propss results) #>
       after_qed results;
 
   in
@@ -819,8 +820,8 @@ fun gen_sublocale prep_expr
 
 in
 
-fun sublocale x = gen_sublocale read_goal_expression x;
-fun sublocale_i x = gen_sublocale cert_goal_expression x;
+fun sublocale_cmd x = gen_sublocale read_goal_expression NewLocale.intern x;
+fun sublocale x = gen_sublocale cert_goal_expression (K I) x;
 
 end;
 

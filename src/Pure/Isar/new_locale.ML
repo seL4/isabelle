@@ -198,9 +198,8 @@ in
 
 fun roundup thy activate_dep (name, morph) (marked, ctxt) =
   let
-    val name' = intern thy name;
-    val Loc {dependencies, ...} = the_locale thy name';
-    val (dependencies', marked') = add thy 0 (name', morph) ([], marked);
+    val Loc {dependencies, ...} = the_locale thy name;
+    val (dependencies', marked') = add thy 0 (name, morph) ([], marked);
   in
     (marked', ctxt |> fold_rev (activate_dep thy) dependencies')
   end;
@@ -234,9 +233,8 @@ fun activate_notes activ_elem thy (name, morph) input =
 
 fun activate name thy activ_elem input =
   let
-    val name' = intern thy name;
     val Loc {parameters = (_, params), spec = (asm, defs), dependencies, ...} =
-      the_locale thy name';
+      the_locale thy name;
   in
     input |>
       (if not (null params) then activ_elem (Fixes params) else I) |>
@@ -245,7 +243,7 @@ fun activate name thy activ_elem input =
       (if not (null defs)
         then activ_elem (Defines (map (fn def => (Attrib.no_binding, (def, []))) defs))
         else I) |>
-      pair empty |> roundup thy (activate_notes activ_elem) (name', Morphism.identity) |> snd
+      pair empty |> roundup thy (activate_notes activ_elem) (name, Morphism.identity) |> snd
   end;
 
 
@@ -287,10 +285,12 @@ fun activate_facts thy = roundup thy (activate_notes init_elem);
 fun init name thy = activate name thy init_elem (ProofContext.init thy);
 
 fun print_locale thy show_facts name =
-  let val ctxt = init name thy
+  let
+    val name' = intern thy name;
+    val ctxt = init name' thy
   in
     Pretty.big_list "locale elements:"
-      (activate name thy (cons_elem show_facts) [] |> rev |> 
+      (activate name' thy (cons_elem show_facts) [] |> rev |> 
         map (Element.pretty_ctxt ctxt) |> map Pretty.chunks) |> Pretty.writeln
   end
 

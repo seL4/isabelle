@@ -403,7 +403,7 @@ val _ =
     "prove sublocale relation between a locale and a locale expression" K.thy_goal
     (P.xname --| (P.$$$ "\\<subseteq>" || P.$$$ "<") -- P.!!! Expression.parse_expression
       >> (fn (loc, expr) =>
-        Toplevel.print o (Toplevel.theory_to_proof (Expression.sublocale (K I) loc expr))));
+        Toplevel.print o (Toplevel.theory_to_proof (Expression.sublocale_cmd (K I) loc expr))));
 
 val _ =
   OuterSyntax.command "interpretation"
