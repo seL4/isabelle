@@ -162,20 +162,15 @@ fun declarations_of thy name =
 
 (** Resolve locale dependencies in a depth-first fashion **)
 
+type identifiers = (string * term list) list;
+
+val empty = ([] : identifiers);
+
 local
 
-structure Idtab = TableFun(type key = string * term list
-  val ord = prod_ord string_ord (list_ord Term.fast_term_ord));
-
-in
-
-type identifiers = unit Idtab.table
-
-val empty = (Idtab.empty : identifiers);
+fun ident_eq thy ((n, ts), (m, ss)) = (m = n) andalso Pattern.matchess thy (ss, ts);
 
 val roundup_bound = 120;
-
-local
 
 fun add thy depth (name, morph) (deps, marked) =
   if depth > roundup_bound
@@ -186,13 +181,13 @@ fun add thy depth (name, morph) (deps, marked) =
       val instance = params |>
         map ((fn (b, T, _) => Free (Name.name_of b, the T)) #> Morphism.term morph);
     in
-      if Idtab.defined marked (name, instance)
+      if member (ident_eq thy) marked (name, instance)
       then (deps, marked)
       else
         let
           val dependencies' =
             map (fn ((name, morph'), _) => (name, morph' $>  morph)) dependencies;
-          val marked' = Idtab.insert (op =) ((name, instance), ()) marked;
+          val marked' = (name, instance) :: marked;
           val (deps', marked'') = fold_rev (add thy (depth + 1)) dependencies' ([], marked');
         in
           ((name, morph) :: deps' @ deps, marked'')
@@ -209,8 +204,6 @@ fun roundup thy activate_dep (name, morph) (marked, ctxt) =
   in
     (marked', ctxt |> fold_rev (activate_dep thy) dependencies')
   end;
-
-end;
 
 end;
 

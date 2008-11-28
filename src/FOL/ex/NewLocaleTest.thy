@@ -217,8 +217,46 @@ print_locale! rgrp
 print_locale! lgrp
 
 
+(* Duality *)
+
+locale order =
+  fixes less :: "'a => 'a => o" (infix "<<" 50)
+  assumes refl: "x << x"
+    and trans: "[| x << y; y << z |] ==> x << z"
+
+sublocale order < dual: order "%x y. y << x"
+  apply (rule order.intro) apply (rule refl) apply (blast intro: trans)
+  done
+
+print_locale! order  (* Only two instances of order. *)
+
+locale order' =
+  fixes less :: "'a => 'a => o" (infix "<<" 50)
+  assumes refl: "x << x"
+    and trans: "[| x << y; y << z |] ==> x << z"
+
+locale order_with_def = order'
+begin
+
+definition greater :: "'a => 'a => o" (infix ">>" 50) where
+  "x >> y <-> y << x"
+
+end
+
+sublocale order_with_def < dual: order' "op >>"
+  apply (intro order'.intro)
+  unfolding greater_def
+  apply (rule refl) apply (blast intro: trans)
+  done
+
+print_locale! order_with_def
+(* Note that decls come after theorems that make use of them.
+  Appears to be harmless at least in this example. *)
+
+
 (* locale with many parameters ---
    interpretations generate alternating group A5 *)
+
 
 locale A5 =
   fixes A and B and C and D and E
@@ -258,5 +296,10 @@ sublocale trivial < x: trivial x _
 print_locale! trivial
 
 context trivial begin thm x.Q [where ?x = True] end
+
+sublocale trivial < y: trivial Q Q
+  apply (intro trivial.intro) using Q by fast
+
+print_locale! trivial  (* No instance for y created (subsumed). *)
 
 end
