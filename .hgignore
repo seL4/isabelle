@@ -1,0 +1,11 @@
+syntax: glob
+
+*~
+.DS_Store
+
+
+syntax: regexp
+
+^heaps/
+^browser_info/
+
