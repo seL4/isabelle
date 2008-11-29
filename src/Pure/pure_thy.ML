@@ -321,6 +321,7 @@ val _ = Context.>> (Context.map_theory
     ("",            typ "var => logic",                Delimfix "_"),
     ("_DDDOT",      typ "logic",                       Delimfix "..."),
     ("_constify",   typ "num => num_const",            Delimfix "_"),
+    ("_constify",   typ "float => float_const",        Delimfix "_"),
     ("_indexnum",   typ "num_const => index",          Delimfix "\\<^sub>_"),
     ("_index",      typ "logic => index",              Delimfix "(00\\<^bsub>_\\<^esub>)"),
     ("_indexdefault", typ "index",                     Delimfix ""),

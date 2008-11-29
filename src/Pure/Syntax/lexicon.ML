@@ -30,6 +30,7 @@ sig
   val read_nat: string -> int option
   val read_int: string -> int option
   val read_xnum: string -> {radix: int, leading_zeros: int, value: int}
+  val read_float: string -> {mant: int, exp: int}
   val fixedN: string
   val constN: string
 end;
@@ -40,7 +41,7 @@ sig
   val is_xid: string -> bool
   datatype token_kind =
     Literal | IdentSy | LongIdentSy | VarSy | TFreeSy | TVarSy |
-    NumSy | XNumSy | StrSy | Space | Comment | EOF
+    NumSy | FloatSy | XNumSy | StrSy | Space | Comment | EOF
   datatype token = Token of token_kind * string * Position.range
   val str_of_token: token -> string
   val pos_of_token: token -> Position.T
@@ -98,6 +99,8 @@ val scan_tid = $$$ "'" @@@ scan_id;
 
 val scan_nat = Scan.many1 (Symbol.is_digit o symbol);
 val scan_int = $$$ "-" @@@ scan_nat || scan_nat;
+val scan_natdot = scan_nat @@@ $$$ "." @@@ scan_nat;
+val scan_float = $$$ "-" @@@ scan_natdot || scan_natdot;
 val scan_hex = $$$ "0" @@@ $$$ "x" @@@ Scan.many1 (Symbol.is_ascii_hex o symbol);
 val scan_bin = $$$ "0" @@@ $$$ "b" @@@ Scan.many1 (fn (s, _) => s = "0" orelse s = "1");
 
@@ -111,7 +114,7 @@ val scan_tvar = $$$ "?" @@@ $$$ "'" @@@ scan_id_nat;
 
 datatype token_kind =
   Literal | IdentSy | LongIdentSy | VarSy | TFreeSy | TVarSy |
-  NumSy | XNumSy | StrSy | Space | Comment | EOF;
+  NumSy | FloatSy | XNumSy | StrSy | Space | Comment | EOF;
 
 datatype token = Token of token_kind * string * Position.range;
 
@@ -142,7 +145,8 @@ val varT = Type ("var", []);
 val tidT = Type ("tid", []);
 val tvarT = Type ("tvar", []);
 
-val terminals = ["id", "longid", "var", "tid", "tvar", "num", "xnum", "xstr"];
+val terminals =
+  ["id", "longid", "var", "tid", "tvar", "num", "float", "xnum", "xstr"];
 val is_terminal = member (op =) terminals;
 
 
@@ -156,6 +160,7 @@ val token_kind_markup =
   | TFreeSy     => Markup.tfree
   | TVarSy      => Markup.tvar
   | NumSy       => Markup.num
+  | FloatSy     => Markup.float
   | XNumSy      => Markup.xnum
   | StrSy       => Markup.xstr
   | Space       => Markup.none
@@ -187,6 +192,7 @@ fun predef_term "id" = SOME (Token (IdentSy, "id", Position.no_range))
   | predef_term "tid" = SOME (Token (TFreeSy, "tid", Position.no_range))
   | predef_term "tvar" = SOME (Token (TVarSy, "tvar", Position.no_range))
   | predef_term "num" = SOME (Token (NumSy, "num", Position.no_range))
+  | predef_term "float" = SOME (Token (FloatSy, "float", Position.no_range))
   | predef_term "xnum" = SOME (Token (XNumSy, "xnum", Position.no_range))
   | predef_term "xstr" = SOME (Token (StrSy, "xstr", Position.no_range))
   | predef_term _ = NONE;
@@ -234,6 +240,7 @@ fun tokenize lex xids syms =
       scan_tvar >> token TVarSy ||
       scan_var >> token VarSy ||
       scan_tid >> token TFreeSy ||
+      scan_float >> token FloatSy ||
       scan_num >> token NumSy ||
       $$$ "#" @@@ scan_num >> token XNumSy ||
       scan_longid >> token LongIdentSy ||
@@ -379,5 +386,17 @@ fun read_xnum str =
   in {radix = radix, leading_zeros = leading_zeros digs, value = value} end;
 
 end;
+
+fun read_float str =
+  let
+    val (sign, cs) =
+      (case Symbol.explode str of  "-" :: cs => (~1, cs) | cs => (1, cs));
+    val (intpart,fracpart) =
+      (case take_prefix Symbol.is_digit cs of
+        (intpart, "." :: fracpart) => (intpart,fracpart)
+      | _ =>  sys_error "read_float")
+  in {mant = sign * #1 (Library.read_int (intpart@fracpart)),
+      exp = length fracpart}
+  end
 
 end;

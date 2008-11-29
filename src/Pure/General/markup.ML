@@ -53,6 +53,7 @@ sig
   val boundN: string val bound: T
   val varN: string val var: T
   val numN: string val num: T
+  val floatN: string val float: T
   val xnumN: string val xnum: T
   val xstrN: string val xstr: T
   val literalN: string val literal: T
@@ -203,6 +204,7 @@ val (skolemN, skolem) = markup_elem "skolem";
 val (boundN, bound) = markup_elem "bound";
 val (varN, var) = markup_elem "var";
 val (numN, num) = markup_elem "num";
+val (floatN, float) = markup_elem "float";
 val (xnumN, xnum) = markup_elem "xnum";
 val (xstrN, xstr) = markup_elem "xstr";
 val (literalN, literal) = markup_elem "literal";

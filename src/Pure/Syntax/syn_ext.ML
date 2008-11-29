@@ -387,7 +387,7 @@ fun eq_trfun ((_, s1:stamp), (_, s2)) = s1 = s2;
 fun tokentrans_mode m trs = map (fn (s, f) => (m, s, f)) trs;
 
 val standard_token_classes =
-  ["class", "tfree", "tvar", "free", "bound", "var", "num", "xnum", "xstr"];
+  ["class", "tfree", "tvar", "free", "bound", "var", "num", "float", "xnum", "xstr"];
 
 val standard_token_markers = map (fn s => "_" ^ s) standard_token_classes;
 
