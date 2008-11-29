@@ -998,7 +998,6 @@ It replaces x+-y by x-y.
 declare real_diff_def [symmetric, simp]
 *)
 
-
 subsubsection{*Density of the Reals*}
 
 lemma real_lbound_gt_zero:

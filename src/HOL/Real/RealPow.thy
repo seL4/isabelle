@@ -8,6 +8,7 @@ header {* Natural powers theory *}
 
 theory RealPow
 imports RealDef
+uses ("float_syntax.ML")
 begin
 
 declare abs_mult_self [simp]
@@ -266,5 +267,16 @@ by simp
 
 lemma realpow_num_eq_if: "(m::real) ^ n = (if n=0 then 1 else m * m ^ (n - 1))"
 by (case_tac "n", auto)
+
+subsection{* Float syntax *}
+
+syntax "_Float" :: "float_const \<Rightarrow> 'a"    ("_")
+
+use "float_syntax.ML"
+setup FloatSyntax.setup
+
+text{* Test: *}
+lemma "123.456 = -111.111 + 200 + 30 + 4 + 5/10 + 6/100 + (7/1000::real)"
+by simp
 
 end
