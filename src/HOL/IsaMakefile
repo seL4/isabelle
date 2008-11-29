@@ -272,6 +272,7 @@ $(OUT)/HOL: ROOT.ML $(MAIN_DEPENDENCIES) \
   Library/Parity.thy \
   Library/Univ_Poly.thy \
   Real/ContNotDenum.thy \
+  Real/float_syntax.ML \
   Real/Lubs.thy \
   Real/PReal.thy \
   Real/rat_arith.ML \
