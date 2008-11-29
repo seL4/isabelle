@@ -1,6 +1,9 @@
 syntax: glob
 
 *~
+*.dvi
+*.class
+*.jar
 .DS_Store
 
 
