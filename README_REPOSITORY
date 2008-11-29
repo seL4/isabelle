@@ -177,9 +177,9 @@ changesets that might become public at some point.
 Building Isabelle from the repository version
 =============================================
 
-Compared to a proper distribution (or development snapshot) the a
+Compared to a proper distribution or development snapshot, a
 repository version of Isabelle lacks proper version identifiers in
-various places and some components produced by Admin/build.  After
+various places, and some components produced by Admin/build.  After
 applying that script with suitable options, the regular user
 instructions for building and running Isabelle from sources apply.
 
