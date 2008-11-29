@@ -187,16 +187,17 @@ class TheoryView(prover : Prover, buffer : JEditBuffer)
 
     //Encolor Phase
     while (e != null && toCurrent(e.start) < end) {
-      val begin = Math.max(start, toCurrent(e.start))
-      val finish = Math.min(end - 1, toCurrent(e.stop))
+      val begin =  start max toCurrent(e.start)
+      val finish = end - 1 min  toCurrent(e.stop)
       encolor(gfx, y, fm.getHeight, begin, finish, chooseColor(e))
       // paint details of command
       var dy = 0
       for(status <- e.statuses){
         dy += 1
-        val begin = Math.max(start, toCurrent(status.start + e.start))
-        val finish = Math.min(end - 1, toCurrent(status.stop + e.start))
-        encolor(gfx, y + dy, fm.getHeight - dy, begin, finish, chooseColor(status.kind))
+        val begin = toCurrent(status.start + e.start)
+        val finish = toCurrent(status.stop + e.start)
+        if(finish > start && begin < end)
+          encolor(gfx, y + dy, fm.getHeight - dy, begin max start, finish min end, chooseColor(status.kind))
       }
       e = e.next
     }
