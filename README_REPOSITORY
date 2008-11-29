@@ -116,7 +116,7 @@ using your user name instead of "wenzelm":
   hg clone ssh://wenzelm@atbroy100//home/isabelle-repository/repos/isabelle
 
 In fact, the only difference to the previous clone of
-http://isabelle.in.tum.de/repos/isabelle will be a different default
+http://isabelle.in.tum.de/repos/isabelle is a different default
 pull/push path in isabelle/.hg/hgrc:
 
   [paths]
@@ -162,7 +162,7 @@ changesets that might become public at some point.
     things have been done in a certain way at some point.
 
     Mercurial provides nice web presentation of incoming changes with
-    a digest of log entries; this also includes Atom/RSS news feeds.
+    a digest of log entries; this also includes RSS/Atom news feeds.
     Users should be aware that others will actually read what is
     written into log messages.
 
@@ -172,6 +172,19 @@ changesets that might become public at some point.
     Since some display styles strip newlines from text, it is
     advisable to separate lines via punctuation, and not rely on
     two-dimensional presentation too much.
+
+
+Building Isabelle from the repository version
+=============================================
+
+Compared to a proper distribution (or development snapshot) the a
+repository version of Isabelle lacks proper version identifiers in
+various places and some components produced by Admin/build.  After
+applying that script with suitable options, the regular user
+instructions for building and running Isabelle from sources apply.
+
+Needless to say, the results from the build process must not be
+committed back into the repository!
 
 
 Makarius 29-Nov-2008
