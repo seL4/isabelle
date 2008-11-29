@@ -98,6 +98,8 @@ IDENT=$(echo * | sed 's/isabelle-//')
 
 rm -f "isabelle-$IDENT/.hg_archival.txt"
 rm -f "isabelle-$IDENT/.hgtags"
+rm -f "isabelle-$IDENT/.hgignore"
+rm -f "isabelle-$IDENT/README_REPOSITORY"
 
 
 # dist name
