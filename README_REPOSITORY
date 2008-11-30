@@ -48,6 +48,7 @@ changes is in isabelle/.hg; local configuration for this clone can be
 added to isabelle/.hg/hgrc, but note that hgrc files are never copied
 by another clone operation!
 
+
 There is also $HOME/.hgrc for per-user Mercurial configuration.  The
 initial configuration should include at least an entry to identify
 yourself.  For example, something like this in /home/wenzelm/.hgrc:
@@ -55,9 +56,10 @@ yourself.  For example, something like this in /home/wenzelm/.hgrc:
   [ui]
   username = wenzelm
 
-Failing to configure the username correctly makes the system invent
-funny machine names that may persist indefinitely in the public flow
-of changesets.
+Of course, the user identity can be also configured in
+isabelle/.hg/hgrc on per-repitory basis.  Failing to specify the
+username correctly makes the system invent funny machine names that
+may persist indefinitely in the public flow of changesets.
 
 In principle, user names can be chosen freely, but for longterm
 committers of the Isabelle repository the obvious choice is to keep
