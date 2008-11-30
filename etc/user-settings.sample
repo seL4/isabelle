@@ -1,7 +1,7 @@
 # -*- shell-script -*-
 # $Id$
 #
-# Isabelle user settings sample -- for use in ~/isabelle/etc/settings
+# Isabelle user settings sample -- for use in ~/.isabelle/etc/settings
 
 ISABELLE_USEDIR_OPTIONS="-i true -d pdf"
 HOL_USEDIR_OPTIONS="-p 1"

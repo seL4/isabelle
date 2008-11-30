@@ -100,7 +100,7 @@ text {*
   \item The file @{verbatim "$ISABELLE_HOME_USER/etc/settings"} (if it
   exists) is run in the same way as the site default settings. Note
   that the variable @{setting ISABELLE_HOME_USER} has already been set
-  before --- usually to @{verbatim "~/isabelle"}.
+  before --- usually to @{verbatim "~/.isabelle"}.
   
   Thus individual users may override the site-wide defaults.  See also
   file @{"file" "$ISABELLE_HOME/etc/user-settings.sample"} in the
@@ -161,7 +161,7 @@ text {*
   
   \item[@{setting_def ISABELLE_HOME_USER}] is the user-specific
   counterpart of @{setting ISABELLE_HOME}. The default value is
-  @{verbatim "~/isabelle"}, under rare circumstances this may be
+  @{verbatim "~/.isabelle"}, under rare circumstances this may be
   changed in the global setting file.  Typically, the @{setting
   ISABELLE_HOME_USER} directory mimics @{setting ISABELLE_HOME} to
   some extend. In particular, site-wide defaults may be overridden by

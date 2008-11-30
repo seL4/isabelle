@@ -31,6 +31,16 @@ INCOMPATIBILITY, need to adapt derivative scripts.  Users may need to
 purge installed copies of Isabelle executables and re-run "isabelle
 install -p ...", or use symlinks.
 
+* The default for ISABELLE_HOME_USER is now ~/.isabelle instead of the
+old ~/isabelle, which was slightly non-standard and apt cause
+surprises on case-insensitive file-systems.
+
+INCOMPATIBILITY, need to move existing ~/isabelle/etc,
+~/isabelle/heaps, ~/isabelle/browser_info to the new place.  Special
+care is required when using older releases of Isabelle.  Note that
+ISABELLE_HOME_USER can be changed in Isabelle/etc/settings of any
+Isabelle distribution.
+
 * The Isabelle System Manual (system) has been updated, with formally
 checked references as hyperlinks.
 

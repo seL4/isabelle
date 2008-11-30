@@ -108,7 +108,7 @@ ISABELLE_USEDIR_OPTIONS="-i true"
   and then change into the \hyperlink{file.~~/src/FOL}{\mbox{\isa{\isatt{{\isachartilde}{\isachartilde}{\isacharslash}src{\isacharslash}FOL}}}} directory and run
   \verb|isabelle| \hyperlink{tool.make}{\mbox{\isa{\isatt{make}}}}, or even \verb|isabelle| \hyperlink{tool.make}{\mbox{\isa{\isatt{make}}}}~\verb|all|.  The presentation output will appear in
   \verb|ISABELLE_BROWSER_INFO/FOL|, which usually refers to
-  \verb|~/isabelle/browser_info/FOL|.  Note that option
+  \verb|~/.isabelle/browser_info/FOL|.  Note that option
   \verb|-v true| will make the internal runs of \hyperlink{tool.usedir}{\mbox{\isa{\isatt{usedir}}}}
   more explicit about such details.
 
@@ -764,7 +764,7 @@ Invoking \verb|isabelle| \hyperlink{tool.latex}{\mbox{\isa{\isatt{latex}}}} by h
   This enables users to inspect {\LaTeX} runs in further detail, e.g.\
   like this:
 \begin{ttbox}
-  cd ~/isabelle/browser_info/HOL/Test/document
+  cd ~/.isabelle/browser_info/HOL/Test/document
   isabelle latex -o pdf
 \end{ttbox}%
 \end{isamarkuptext}%
