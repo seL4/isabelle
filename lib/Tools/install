@@ -74,7 +74,7 @@ echo "referring to distribution at $DISTDIR"
 if [ -n "$BINDIR" ]; then
   mkdir -p "$BINDIR" || fail "Bad directory: $BINDIR"
 
-  for NAME in isabelle isabelle-process isabelle-interface
+  for NAME in isabelle isabelle-process
   do
     BIN="$BINDIR/$NAME"
     DIST="$DISTDIR/bin/$NAME"

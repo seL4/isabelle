@@ -15,17 +15,18 @@ case-insensitive file-systems (such as Mac OS).
   - The former "isabelle" alias for "isabelle-process" has been
     removed (should rarely occur to regular users).
 
-  - The "Isabelle" alias for "isabelle-interface" has been removed.
+  - The former "isabelle-interface" and its alias "Isabelle" have been
+    removed (interfaces are now regular Isabelle tools).
 
 Within scripts and make files, the Isabelle environment variables
 ISABELLE_TOOL and ISABELLE_PROCESS replace old ISATOOL and ISABELLE,
 respectively.  (The latter are still available as legacy feature.)
 
-Also note that user interfaces are now better wrapped as regular
-Isabelle tools instead of using the special isabelle-interface wrapper
-(which can be confusing if the interface is uninstalled or changed
-otherwise).  See "isabelle tty" and "isabelle emacs" for contemporary
-examples.
+The old isabelle-interface wrapper could react in confusing ways if
+the interface was uninstalled or changed otherwise.  Individual
+interface tool configuration is now more explicit, see also the
+Isabelle system manual.  In particular, Proof General is now available
+via "isabelle emacs".
 
 INCOMPATIBILITY, need to adapt derivative scripts.  Users may need to
 purge installed copies of Isabelle executables and re-run "isabelle
