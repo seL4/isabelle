@@ -62,7 +62,6 @@ class Command(val first : Token[Command], val last : Token[Command]) {
   val root_node = {
     val content = Plugin.plugin.prover.document.getContent(this)
     val ra = new RelativeAsset(this, 0, stop - start, "command", content)
-    System.err.println(start + "-" + stop + ": " + content)
     new DefaultMutableTreeNode(ra)
   }
 
