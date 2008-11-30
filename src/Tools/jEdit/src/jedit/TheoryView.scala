@@ -66,7 +66,7 @@ object TheoryView {
   }
 }
 
-class TheoryView(prover : Prover, buffer : JEditBuffer) 
+class TheoryView(prover : Prover, val buffer : JEditBuffer)
     extends TextAreaExtension with Text with BufferListener {
   import TheoryView._
   import Text.Changed

@@ -1,7 +1,12 @@
 package isabelle.prover
 
 import isabelle.proofdocument.Token
+import isabelle.jedit.Plugin
 import isabelle.{ YXML, XML }
+import sidekick.{SideKickParsedData}
+import sidekick.enhanced.SourceAsset
+import javax.swing.text.Position
+import javax.swing.tree.DefaultMutableTreeNode
 
 object Command {
   object Phase extends Enumeration {
@@ -53,8 +58,47 @@ class Command(val first : Token[Command], val last : Token[Command]) {
   def addResult(tree : XML.Tree) {
     results = results ::: List(tree)
   }
+  
+  val root_node = {
+    val content = Plugin.plugin.prover.document.getContent(this)
+    val ra = new RelativeAsset(this, 0, stop - start, "command", content)
+    System.err.println(start + "-" + stop + ": " + content)
+    new DefaultMutableTreeNode(ra)
+  }
 
-  def addStatus(tree : XML.Tree) {
+  // does cand fit into node?
+  private def fitting(cand : DefaultMutableTreeNode, node : DefaultMutableTreeNode) : boolean = {
+    val node_asset = node.getUserObject.asInstanceOf[RelativeAsset]
+    val n_start = node_asset.rel_start
+    val n_end = node_asset.rel_end
+    val cand_asset = cand.getUserObject.asInstanceOf[RelativeAsset]
+    val c_start = cand_asset.rel_start
+    val c_end = cand_asset.rel_end
+    return c_start >= n_start && c_end <= n_end
+  }
+
+  def insert_node(new_node : DefaultMutableTreeNode, node : DefaultMutableTreeNode) {
+    assert(fitting(new_node, node))
+    val children = node.children
+    while (children.hasMoreElements){
+      val child = children.nextElement.asInstanceOf[DefaultMutableTreeNode]
+      if(fitting(new_node, child)) {
+        insert_node(new_node, child)
+      }
+    }
+    if(new_node.getParent == null){
+      while(children.hasMoreElements){
+        val child = children.nextElement.asInstanceOf[DefaultMutableTreeNode]
+        if(fitting(child, new_node)) {
+          node.remove(child.asInstanceOf[DefaultMutableTreeNode])
+          new_node.add(child)
+        }
+      }
+      node.add(new_node)
+    }
+  }
+
+ def addStatus(tree : XML.Tree) {
     val (markup_info, attr) = tree match { case XML.Elem("message", _, XML.Elem(kind, attr, _) :: _) => (kind, attr)
                                    case _ => null}
 
@@ -66,7 +110,11 @@ class Command(val first : Token[Command], val last : Token[Command]) {
       if(n.equals("end_offset")) markup_end = Int.unbox(java.lang.Integer.valueOf(a)) - first.start
     }
     if(markup_begin > -1 && markup_end > -1){
-          statuses = new Status(markup_info, markup_begin, markup_end) :: statuses
+      statuses = new Status(markup_info, markup_begin, markup_end) :: statuses
+      val content = Plugin.plugin.prover.document.getContent(this).substring(markup_begin, markup_end)
+      val asset = new RelativeAsset(this, markup_begin, markup_end, markup_info, content)
+      val new_node = new DefaultMutableTreeNode(asset)
+      insert_node(new_node, root_node)
     }
   }
 
