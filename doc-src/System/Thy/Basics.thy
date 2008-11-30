@@ -8,19 +8,18 @@ chapter {* The Isabelle system environment *}
 
 text {*
   This manual describes Isabelle together with related tools and user
-  interfaces as seen from an outside (system oriented) view.  See also
-  the \emph{Isabelle/Isar Reference Manual}~\cite{isabelle-isar-ref}
-  and the \emph{Isabelle Reference Manual}~\cite{isabelle-ref} for the
-  actual Isabelle commands and related functions.
+  interfaces as seen from a system oriented view.  See also the
+  \emph{Isabelle/Isar Reference Manual}~\cite{isabelle-isar-ref} for
+  the actual Isabelle input language and related concepts.
 
-  \medskip The Isabelle system environment emerges from a few general
-  concepts.
+  \medskip The Isabelle system environment provides the following
+  basic infrastructure to integrate tools smoothly.
 
   \begin{enumerate}
 
-  \item The \emph{Isabelle settings} mechanism provides environment
-  variables to all Isabelle programs (including tools and user
-  interfaces).
+  \item The \emph{Isabelle settings} mechanism provides process
+  environment variables to all Isabelle executables (including tools
+  and user interfaces).
 
   \item The \emph{raw Isabelle process} (@{executable_ref
   "isabelle-process"}) runs logic sessions either interactively or in
@@ -32,11 +31,6 @@ text {*
   provides a generic startup environment Isabelle related utilities,
   user interfaces etc.  Such tools automatically benefit from the
   settings mechanism.
-
-  \item The \emph{Isabelle interface wrapper} (@{executable_ref
-  "isabelle-interface"}) provides some abstraction over the actual
-  user interface to be used.  The de-facto standard interface for
-  Isabelle is Proof~General \cite{proofgeneral}.
 
   \end{enumerate}
 *}
@@ -256,11 +250,6 @@ text {*
   derives an individual directory for temporary files.  The default is
   somewhere in @{verbatim "/tmp"}.
   
-  \item[@{setting_def ISABELLE_INTERFACE}] is an identifier that
-  specifies the actual user interface that the capital @{executable
-  Isabelle} or @{executable "isabelle-interface"} should invoke.  See
-  \secref{sec:interface} for more details.
-
   \end{description}
 *}
 
@@ -478,43 +467,6 @@ text {*
   Note that @{verbatim "isabelle mkdir"} is usually only invoked once;
   existing sessions (including document output etc.) are then updated
   by @{verbatim "isabelle make"} alone.
-*}
-
-
-section {* The Isabelle interface wrapper \label{sec:interface} *}
-
-text {*
-  Isabelle is a generic theorem prover, even w.r.t.\ its user
-  interface.  The @{executable_def Isabelle} (or @{executable_def
-  "isabelle-interface"}) executable provides a uniform way for
-  end-users to invoke a certain interface; which one to start is
-  determined by the @{setting_ref ISABELLE_INTERFACE} setting
-  variable, which should give a full path specification to the actual
-  executable.
-
-  Presently, the most prominent Isabelle interface is Proof
-  General~\cite{proofgeneral}\index{user interface!Proof General}.
-  The Proof General distribution includes an interface wrapper script
-  for the regular Isar toplevel, see @{verbatim
-  "ProofGeneral/isar/interface"}.  The canonical settings for
-  Isabelle/Isar are as follows:
-
-\begin{ttbox}
-ISABELLE_INTERFACE=\$ISABELLE_HOME/contrib/ProofGeneral/isar/interface
-PROOFGENERAL_OPTIONS=""
-\end{ttbox}
-
-  Thus @{executable Isabelle} would automatically invoke Emacs with
-  proper setup of the Proof General Lisp packages.  There are some
-  options available, such as @{verbatim "-l"} for passing the logic
-  image to be used by default, or @{verbatim "-m"} to tune the
-  standard print mode.
-  
-  \medskip Note that the world may be also seen the other way round:
-  Emacs may be started first (with proper setup of Proof General
-  mode), and @{executable "isabelle-process"} run from within.  This
-  requires further Emacs Lisp configuration, see the Proof General
-  documentation \cite{proofgeneral} for more information.
 *}
 
 end

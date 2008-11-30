@@ -1,0 +1,115 @@
+%
+\begin{isabellebody}%
+\def\isabellecontext{Interfaces}%
+%
+\isadelimtheory
+\isanewline
+\isanewline
+%
+\endisadelimtheory
+%
+\isatagtheory
+\isacommand{theory}\isamarkupfalse%
+\ Interfaces\isanewline
+\isakeyword{imports}\ Pure\isanewline
+\isakeyword{begin}%
+\endisatagtheory
+{\isafoldtheory}%
+%
+\isadelimtheory
+%
+\endisadelimtheory
+%
+\isamarkupchapter{User interfaces%
+}
+\isamarkuptrue%
+%
+\isamarkupsection{Plain TTY interaction \label{sec:tool-tty}%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+The \indexdef{}{tool}{tty}\hypertarget{tool.tty}{\hyperlink{tool.tty}{\mbox{\isa{\isatt{tty}}}}} tool runs the Isabelle process interactively
+  within a plain terminal session:
+\begin{ttbox}
+Usage: tty [OPTIONS]
+
+  Options are:
+    -l NAME      logic image name (default ISABELLE_LOGIC)
+    -m MODE      add print mode for output
+    -p NAME      line editor program name (default ISABELLE_LINE_EDITOR)
+
+  Run Isabelle process with plain tty interaction, and optional line editor.
+\end{ttbox}
+
+  The \verb|-l| option specifies the logic image.  The
+  \verb|-m| option specifies additional print modes.  The The
+  \verb|-p| option specifies an alternative line editor (such
+  as the \indexdef{}{executable}{rlwrap}\hypertarget{executable.rlwrap}{\hyperlink{executable.rlwrap}{\mbox{\isa{\isatt{rlwrap}}}}} wrapper for GNU readline); the
+  fall-back is to use raw standard input.
+
+  Regular interaction is via the standard Isabelle/Isar toplevel loop.
+  The Isar command \hyperlink{command.exit}{\mbox{\isa{\isacommand{exit}}}} drops out into the raw ML system,
+  which is occasionally useful for low-level debugging.  Invoking \verb|Isar.loop|~\verb|();| in ML will return to the Isar toplevel.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsection{Proof General / Emacs%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+The \indexdef{}{tool}{emacs}\hypertarget{tool.emacs}{\hyperlink{tool.emacs}{\mbox{\isa{\isatt{emacs}}}}} tool invokes a version of Emacs and Proof
+  General within the regular Isabelle settings environment
+  (\secref{sec:settings}).  This is more robust than starting Emacs
+  separately, loading the Proof General lisp files, and then
+  attempting to start Isabelle with dynamic \hyperlink{setting.PATH}{\mbox{\isa{\isatt{PATH}}}} lookup
+  etc.
+
+  The actual interface script is part of the Proof General
+  distribution~\cite{proofgeneral}; its usage depends on the
+  particular version.  There are some options available, such as
+  \verb|-l| for passing the logic image to be used by default,
+  or \verb|-m| to tune the standard print mode.  The following
+  Isabelle settings are particularly important for Proof General:
+
+  \begin{description}
+
+  \item[\indexdef{}{setting}{PROOFGENERAL\_HOME}\hypertarget{setting.PROOFGENERAL-HOME}{\hyperlink{setting.PROOFGENERAL-HOME}{\mbox{\isa{\isatt{PROOFGENERAL{\isacharunderscore}HOME}}}}}] points to the main
+  installation directory of the Proof General distribution.  The
+  default settings try to locate this in a number of standard places,
+  notably \verb|$ISABELLE_HOME/contrib/ProofGeneral|.
+
+  \item[\indexdef{}{setting}{PROOFGENERAL\_OPTIONS}\hypertarget{setting.PROOFGENERAL-OPTIONS}{\hyperlink{setting.PROOFGENERAL-OPTIONS}{\mbox{\isa{\isatt{PROOFGENERAL{\isacharunderscore}OPTIONS}}}}}] is implicitly prefixed to
+  the command line of any invocation of the Proof General \verb|interface| script.
+
+  \item[\indexdef{}{setting}{XSYMBOL\_INSTALLFONTS}\hypertarget{setting.XSYMBOL-INSTALLFONTS}{\hyperlink{setting.XSYMBOL-INSTALLFONTS}{\mbox{\isa{\isatt{XSYMBOL{\isacharunderscore}INSTALLFONTS}}}}}] may contain a small shell
+  script to install the X11 fonts required for the X-Symbols mode of
+  Proof General.  This is only relevant if the X11 display server runs
+  on a different machine than the Emacs application, with a different
+  file-system view on the Proof General installation.  Under most
+  circumstances Proof General is able to refer to the font files that
+  are part of its distribution.
+
+  \end{description}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isadelimtheory
+%
+\endisadelimtheory
+%
+\isatagtheory
+\isacommand{end}\isamarkupfalse%
+%
+\endisatagtheory
+{\isafoldtheory}%
+%
+\isadelimtheory
+%
+\endisadelimtheory
+\end{isabellebody}%
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "root"
+%%% End:
