@@ -21,13 +21,12 @@ individual repositories via non-monotonic actions, but this does not
 yet retrieve any changesets that have escaped into the public by
 accident.
 
-Only global operations like "pull" / "push", "unbundle" / "bundle"
-etc. fall into this critical category.  Note that "incoming" /
-"outgoing" allow to inspect changesets before exchanging them
-globally.  Anything else in Mercurial is local to the user's
-repository clone (including "commit", "update", "merge" etc.) and is
-in fact much simpler and safer to use than the corresponding
-operations of CVS or SVN.
+Only global operations like "pull" and "push" fall into this critical
+category.  Note that "incoming" / "outgoing" allow to inspect
+changesets before exchanging them globally.  Anything else in
+Mercurial is local to the user's repository clone (including "commit",
+"update", "merge" etc.) and is in fact much simpler and safer to use
+than the corresponding operations of CVS or SVN.
 
 
 Initial configuration
@@ -57,7 +56,7 @@ yourself.  For example, something like this in /home/wenzelm/.hgrc:
   username = wenzelm
 
 Of course, the user identity can be also configured in
-isabelle/.hg/hgrc on per-repitory basis.  Failing to specify the
+isabelle/.hg/hgrc on per-repository basis.  Failing to specify the
 username correctly makes the system invent funny machine names that
 may persist indefinitely in the public flow of changesets.
 
