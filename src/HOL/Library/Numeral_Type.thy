@@ -52,13 +52,13 @@ subsection {* Cardinalities of types *}
 
 syntax "_type_card" :: "type => nat" ("(1CARD/(1'(_')))")
 
-translations "CARD(t)" => "CONST card (UNIV \<Colon> t set)"
+translations "CARD(t)" => "CONST card (CONST UNIV \<Colon> t set)"
 
 typed_print_translation {*
 let
-  fun card_univ_tr' show_sorts _ [Const (@{const_name UNIV}, Type(_,[T]))] =
+  fun card_univ_tr' show_sorts _ [Const (@{const_name UNIV}, Type(_,[T,_]))] =
     Syntax.const "_type_card" $ Syntax.term_of_typ show_sorts T;
-in [("card", card_univ_tr')]
+in [(@{const_syntax card}, card_univ_tr')]
 end
 *}
 
@@ -241,5 +241,5 @@ subsection {* Examples *}
 
 lemma "CARD(0) = 0" by simp
 lemma "CARD(17) = 17" by simp
-  
+
 end
