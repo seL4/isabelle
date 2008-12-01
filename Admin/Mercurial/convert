@@ -19,9 +19,9 @@ cvs up -dAP >> "$LOG" 2>&1 || exit 2
 export HGRCPATH="$THIS/cvs/Admin/Mercurial/hgrc"
 
 cd "$THIS"
-/home/isabelle/mercurial/bin/hg convert --filemap cvs/Admin/Mercurial/filemap cvs hg >> "$LOG" 2>&1 || exit 2
+/home/isabelle/mercurial/bin/hg convert --filemap cvs/Admin/Mercurial/filemap cvs isabelle-cvs >> "$LOG" 2>&1 || exit 2
 
-[ -e hg/.hg/hgrc ] || ln -s ../../cvs/Admin/Mercurial/hgrc hg/.hg/hgrc
+[ -e isabelle-cvs/.hg/hgrc ] || ln -s ../../cvs/Admin/Mercurial/hgrc isabelle-cvs/.hg/hgrc
 
 
 ## logrotate
