@@ -489,7 +489,7 @@ fun not_wellsorted thy thm ty sort e =
 
 fun ensure_class thy (algbr as (_, algebra)) funcgr class =
   let
-    val superclasses = (Sorts.certify_sort algebra o Sorts.super_classes algebra) class;
+    val superclasses = (Sorts.minimize_sort algebra o Sorts.super_classes algebra) class;
     val cs = #params (AxClass.get_info thy class);
     val stmt_class =
       fold_map (fn superclass => ensure_class thy algbr funcgr superclass
@@ -538,8 +538,16 @@ and translate_dicts thy (algbr as (proj_sort, algebra)) funcgr thm (ty, sort) =
           Global ((class, tyco), yss)
       | class_relation (Local (classrels, v), subclass) superclass =
           Local ((subclass, superclass) :: classrels, v);
+    fun norm_typargs ys =
+      let
+        val raw_sort = map snd ys;
+        val sort = Sorts.minimize_sort algebra raw_sort;
+      in
+        map_filter (fn (y, class) =>
+          if member (op =) sort class then SOME y else NONE) ys
+      end;
     fun type_constructor tyco yss class =
-      Global ((class, tyco), (map o map) fst yss);
+      Global ((class, tyco), map norm_typargs yss);
     fun type_variable (TFree (v, sort)) =
       let
         val sort' = proj_sort sort;
@@ -567,7 +575,7 @@ and translate_eq thy algbr funcgr (thm, linear) =
   end
 and ensure_inst thy (algbr as (_, algebra)) funcgr (class, tyco) =
   let
-    val superclasses = (Sorts.certify_sort algebra o Sorts.super_classes algebra) class;
+    val superclasses = (Sorts.minimize_sort algebra o Sorts.super_classes algebra) class;
     val classparams = these (try (#params o AxClass.get_info thy) class);
     val vs = Name.names Name.context "'a" (Sorts.mg_domain algebra tyco [class]);
     val sorts' = Sorts.mg_domain (Sign.classes_of thy) tyco [class];
@@ -736,9 +744,9 @@ structure Program = CodeDataFun
 
 val cached_program = Program.get;
 
-fun invoke_generation thy funcgr f name =
+fun invoke_generation thy (algebra, funcgr) f name =
   Program.change_yield thy (fn naming_program => (NONE, naming_program)
-    |> f thy (Code.operational_algebra thy) funcgr name
+    |> f thy algebra funcgr name
     |-> (fn name => fn (_, naming_program) => (name, naming_program)));
 
 
@@ -789,9 +797,10 @@ fun ensure_value thy algbr funcgr t =
 fun eval thy evaluator t =
   let
     val (t', evaluator'') = evaluator t;
-    fun evaluator' funcgr =
+    fun evaluator' algebra funcgr =
       let
-        val (((naming, program), (vs_ty_t, deps)), _) = invoke_generation thy funcgr ensure_value t';
+        val (((naming, program), (vs_ty_t, deps)), _) =
+          invoke_generation thy (algebra, funcgr) ensure_value t';
       in evaluator'' naming program vs_ty_t deps end;
   in (t', evaluator') end
 

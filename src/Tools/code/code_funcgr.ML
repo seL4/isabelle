@@ -13,9 +13,12 @@ sig
   val typ: T -> string -> (string * sort) list * typ
   val all: T -> string list
   val pretty: theory -> T -> Pretty.T
-  val make: theory -> string list -> T
-  val eval_conv: theory -> (term -> term * (T -> thm)) -> cterm -> thm
-  val eval_term: theory -> (term -> term * (T -> 'a)) -> term -> 'a
+  val make: theory -> string list
+    -> ((sort -> sort) * Sorts.algebra) * T
+  val eval_conv: theory
+    -> (term -> term * (((sort -> sort) * Sorts.algebra) -> T -> thm)) -> cterm -> thm
+  val eval_term: theory
+    -> (term -> term * (((sort -> sort) * Sorts.algebra) -> T -> 'a)) -> term -> 'a
   val timing: bool ref
 end
 
@@ -235,7 +238,7 @@ fun proto_eval thy cterm_of evaluator_lift evaluator proto_ct funcgr =
     val consts' = consts_of t'';
     val dicts = instances_of_consts thy algebra funcgr' consts';
     val funcgr'' = ensure_consts thy algebra dicts funcgr';
-  in (evaluator_lift evaluator_funcgr thm funcgr'', funcgr'') end;
+  in (evaluator_lift (evaluator_funcgr (Code.operational_algebra thy)) thm funcgr'', funcgr'') end;
 
 fun proto_eval_conv thy =
   let
@@ -267,7 +270,8 @@ structure Funcgr = CodeDataFun
 );
 
 fun make thy =
-  Funcgr.change thy o ensure_consts thy (Code.coregular_algebra thy);
+  pair (Code.operational_algebra thy)
+  o Funcgr.change thy o ensure_consts thy (Code.coregular_algebra thy);
 
 fun eval_conv thy f =
   fst o Funcgr.change_yield thy o proto_eval_conv thy f;
@@ -280,7 +284,7 @@ fun eval_term thy f =
 
 fun code_depgr thy consts =
   let
-    val gr = make thy consts;
+    val (_, gr) = make thy consts;
     val select = Graph.all_succs gr consts;
   in
     gr
