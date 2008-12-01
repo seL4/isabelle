@@ -22,7 +22,10 @@ fun typewriter s =
     val parse = Scan.repeat
       (Scan.this_string "\n" |-- Scan.succeed "\\\\\n\\hspace*{0pt}"
         || (Scan.this_string " " 
+          || Scan.this_string "."
+          || Scan.this_string ","
           || Scan.this_string ":"
+          || Scan.this_string ";"
           || Scan.this_string "\"" |-- Scan.succeed "{\\char34}"
           || Scan.this_string "#" |-- Scan.succeed "{\\char35}"
           || Scan.this_string "$" |-- Scan.succeed "{\\char36}"
