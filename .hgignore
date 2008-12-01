@@ -1,7 +1,6 @@
 syntax: glob
 
 *~
-*.dvi
 *.class
 *.jar
 .DS_Store
@@ -11,4 +10,15 @@ syntax: regexp
 
 ^heaps/
 ^browser_info/
+^doc-src/.*\.aux
+^doc-src/.*\.bbl
+^doc-src/.*\.blg
+^doc-src/.*\.dvi
+^doc-src/.*\.idx
+^doc-src/.*\.ind
+^doc-src/.*\.log
+^doc-src/.*\.out
+^doc-src/.*\.rai
+^doc-src/.*\.rao
+^doc-src/.*\.toc
 
