@@ -1,0 +1,233 @@
+#!/usr/bin/env bash
+#
+# $Id$
+#
+# makedist -- make Isabelle source distribution
+
+## global settings
+
+REPOS="http://isabelle.in.tum.de/repos/isabelle"
+
+DISTPREFIX=${DISTPREFIX:-~/tmp/isadist}
+
+umask 022
+
+
+## diagnostics
+
+PRG=$(basename "$0")
+THIS=$(cd $(dirname "$0"); echo "$PWD")
+
+function usage()
+{
+  cat <<EOF
+
+Usage: $PRG [OPTIONS] [VERSION]
+
+  Options are:
+    -r RELEASE         proper release with name"
+
+  Make Isabelle distribution from the main Mercurial repository at TUM.
+
+  VERSION identifies the snapshot, using usual Mercurial terminology;
+  the default is RELEASE if given, otherwise "tip".
+
+EOF
+  exit 1
+}
+
+function fail()
+{
+  echo "$1" >&2
+  exit 2
+}
+
+
+## process command line
+
+# options
+
+RELEASE=""
+
+while getopts "r:" OPT
+do
+  case "$OPT" in
+    r)
+      RELEASE="$OPTARG"
+      ;;
+    \?)
+      usage
+      ;;
+  esac
+done
+
+shift $(($OPTIND - 1))
+
+
+# args
+
+VERSION=""
+[ "$#" -gt 0 ] && { VERSION="$1"; shift; }
+[ -z "$VERSION" ] && VERSION="$RELEASE"
+[ -z "$VERSION" ] && VERSION="tip"
+
+[ "$#" -gt 0 ] && usage
+
+
+## main
+
+# tmp
+
+TMP="tmp-$USER$$"
+function purge_tmp () { rm -rf "$DISTPREFIX/$TMP"; }
+
+
+# retrieve archive and resolve version identifier
+
+mkdir "$DISTPREFIX/$TMP" || fail "Failed to create fresh directory"
+cd "$DISTPREFIX/$TMP"
+
+echo "###"
+echo "### Retrieving Mercurial repository $VERSION"
+echo "###"
+
+{ wget -q "$REPOS/archive/${VERSION}.tar.gz" -O- | tar -xzf -; } || \
+  fail "Failed to retrieve $VERSION"
+
+IDENT=$(echo * | sed 's/isabelle-//')
+
+rm -f "isabelle-$IDENT/.hg_archival.txt"
+rm -f "isabelle-$IDENT/.hgtags"
+rm -f "isabelle-$IDENT/.hgignore"
+rm -f "isabelle-$IDENT/README_REPOSITORY"
+
+
+# dist name
+
+DATE=$(env LC_ALL=C date "+%d-%b-%Y")
+DISTDATE=$(env LC_ALL=C date "+%B %Y")
+
+if [ -z "$RELEASE" ]; then
+  DISTNAME="Isabelle_$DATE"
+  DISTVERSION="Isabelle repository snapshot $IDENT ($DATE)"
+else
+  DISTNAME="$RELEASE"
+  DISTVERSION="$DISTNAME: $DISTDATE"
+fi
+
+DISTBASE="$DISTPREFIX/dist-$DISTNAME"
+mkdir -p "$DISTBASE" || { purge_tmp; fail "Unable to create distribution base dir $DISTBASE!"; }
+[ -e "$DISTBASE/$DISTNAME" ] && { purge_tmp; fail "$DISTBASE/$DISTNAME already exists!"; }
+[ -e "$DISTBASE/pdf/$DISTNAME" ] && { purge_tmp; fail "$DISTBASE/pdf/$DISTNAME already exists!"; }
+
+cd "$DISTBASE"
+mv "$DISTPREFIX/$TMP/isabelle-$IDENT" "$DISTNAME"
+purge_tmp
+
+cd "$DISTNAME" || fail "No dist directory: $DISTBASE/$DISTNAME"
+
+
+# website
+
+mkdir -p ../website
+cat > ../website/distinfo.mak <<EOF
+# this is a generated file - do not edit unless you know what you are doing!
+DISTNAME=$DISTNAME
+DISTBASE=$DISTBASE
+EOF
+
+cp lib/html/library_index_content.template ../website/
+
+
+# prepare dist for release
+
+echo "###"
+echo "### Preparing distribution $DISTNAME"
+echo "###"
+
+find . -name .cvsignore -print | xargs rm -rf
+find . "(" -name \*.thy -o -name \*.ML ")" -perm +111 -print | xargs chmod -x
+find . -print | xargs chmod u+rw
+
+./Admin/build all || fail "Failed to build distribution"
+rm -rf Admin
+
+MOVE=$(find doc-src \( -type f -a -not -type l -a -not -name isabelle_isar.pdf -a -not -name pghead.pdf -a \( -name \*.dvi -o -name \*.eps -o -name \*.ps -o -name \*.pdf \) -a -print \) | grep -v 'gfx/.*pdf')
+mv -f $MOVE doc
+rm doc/Isa-logics.eps
+rm doc/codegen_process.pdf
+rm -rf doc-src
+
+mkdir contrib
+
+cp doc/isabelle*.eps lib/logo
+
+
+if [ -z "$RELEASE" ]; then
+  {
+    echo
+    echo "IMPORTANT NOTE"
+    echo "=============="
+    echo
+    echo "This is an unofficial snapshot of Isabelle, created by $LOGNAME $DATE."
+    echo "See $REPOS/log/$IDENT for details."
+    echo
+  } >ANNOUNCE
+else
+  perl -pi -e "s,val is_official = false,val is_official = true,g" src/Pure/ROOT.ML
+fi
+
+perl -pi -e "s,val changelog = \"\",val changelog = \"$REPOS/log/$IDENT\",g" src/Pure/ROOT.ML
+perl -pi -e "s,ISABELLE_IDENTIFIER=\"\",ISABELLE_IDENTIFIER=\"$DISTNAME\",g" lib/scripts/getsettings
+perl -pi -e "s,{ISABELLE},$DISTNAME,g" lib/html/library_index_header.template
+perl -pi -e "s,Isabelle repository version,$DISTVERSION,g" src/Pure/ROOT.ML lib/Tools/version
+perl -pi -e "s,the internal repository version of Isabelle,$DISTVERSION,g" README
+
+
+# create archives
+
+echo "###"
+echo "### Creating archives ..."
+echo "###"
+
+cd "$DISTBASE"
+
+echo "$DISTBASE/$DISTNAME.tar.gz" > ../ISABELLE_DIST
+echo "$IDENT" >../ISABELLE_IDENT
+
+rm -f Isabelle
+ln -s "$DISTNAME" Isabelle
+
+chown -R "$LOGNAME" "$DISTNAME"
+chmod -R u+w "$DISTNAME"
+chmod -R g=o "$DISTNAME"
+chgrp -R isabelle "$DISTNAME" Isabelle
+
+mkdir -p "pdf/$DISTNAME/doc"
+mv "$DISTNAME/doc/"*.pdf "pdf/$DISTNAME/doc"
+
+echo "$DISTNAME.tar.gz"
+tar -czf "$DISTNAME.tar.gz" Isabelle "$DISTNAME"
+
+echo "${DISTNAME}_pdf.tar.gz"
+tar -C pdf -czf "${DISTNAME}_pdf.tar.gz" "$DISTNAME"
+
+mv "pdf/$DISTNAME/doc/"*.pdf "$DISTNAME/doc"
+rmdir "pdf/$DISTNAME/doc" "pdf/$DISTNAME" pdf
+
+
+# cleanup dist
+
+mv "$DISTNAME" "${DISTNAME}-old"
+mkdir "$DISTNAME"
+
+mv "${DISTNAME}-old/README" "${DISTNAME}-old/INSTALL" "${DISTNAME}-old/NEWS" \
+  "${DISTNAME}-old/ANNOUNCE" "${DISTNAME}-old/COPYRIGHT" "${DISTNAME}-old/CONTRIBUTORS" \
+  "$DISTNAME"
+mkdir "$DISTNAME/doc"
+mv "${DISTNAME}-old/doc/"*.pdf "${DISTNAME}-old/doc/Contents" "$DISTNAME/doc"
+
+chgrp -R isabelle "$DISTNAME"
+
+rm -rf "${DISTNAME}-old"
+
