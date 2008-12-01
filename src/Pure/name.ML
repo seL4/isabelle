@@ -29,19 +29,15 @@ sig
   val variant_list: string list -> string list -> string list
   val variant: string list -> string -> string
 
-  include NAME_BINDING
-  val add_prefix: bool -> string -> binding -> binding
-  val map_prefix: ((string * bool) list -> binding -> binding) -> binding -> binding
-  val name_of: binding -> string (*FIMXE legacy*)
-  val map_name: (string -> string) -> binding -> binding (*FIMXE legacy*)
-  val qualified: string -> binding -> binding (*FIMXE legacy*)
-  val display: binding -> string
+  include BINDING
+  type binding = Binding.T
+  val name_of: Binding.T -> string (*FIMXE legacy*)
+  val map_name: (string -> string) -> Binding.T -> Binding.T (*FIMXE legacy*)
+  val qualified: string -> Binding.T -> Binding.T (*FIMXE legacy*)
 end;
 
 structure Name: NAME =
 struct
-
-open NameSpace;
 
 (** common defaults **)
 
@@ -152,27 +148,13 @@ fun variant used = singleton (variant_list used);
 
 (** generic name bindings **)
 
-fun add_prefix sticky prfx b = if prfx = "" then error "empty name prefix"
-  else (map_binding o apfst) (cons (prfx, sticky)) b;
+open Binding;
+
+type binding = Binding.T;
 
 val prefix_of = fst o dest_binding;
 val name_of = snd o dest_binding;
 val map_name = map_binding o apsnd;
 val qualified = map_name o NameSpace.qualified;
-
-fun map_prefix f b =
-  let
-    val (prefix, name) = dest_binding b;
-    val pos = pos_of b;
-  in f prefix (binding_pos (name, pos)) end;
-
-fun display b =
-  let
-    val (prefix, name) = dest_binding b
-    fun mk_prefix (prfx, true) = prfx
-      | mk_prefix (prfx, false) = enclose "(" ")" prfx
-  in if not (! NameSpace.long_names) orelse null prefix orelse name = "" then name
-    else NameSpace.implode (map mk_prefix prefix) ^ ":" ^ name
-  end;
 
 end;

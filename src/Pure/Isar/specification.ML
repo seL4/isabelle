@@ -190,7 +190,7 @@ fun gen_def do_print prep (raw_var, (raw_a, raw_prop)) lthy =
             val y = Name.name_of b;
             val _ = x = y orelse
               error ("Head of definition " ^ quote x ^ " differs from declaration " ^ quote y ^
-                Position.str_of (Name.pos_of b));
+                Position.str_of (Binding.pos_of b));
           in (b, mx) end);
     val ((lhs, (_, th)), lthy2) = lthy |> LocalTheory.define Thm.definitionK
         (var, ((Name.map_name (suffix "_raw") name, []), rhs));
@@ -223,7 +223,7 @@ fun gen_abbrev do_print prep mode (raw_var, raw_prop) lthy =
             val y = Name.name_of b;
             val _ = x = y orelse
               error ("Head of abbreviation " ^ quote x ^ " differs from declaration " ^ quote y ^
-                Position.str_of (Name.pos_of b));
+                Position.str_of (Binding.pos_of b));
           in (b, mx) end);
     val lthy' = lthy
       |> ProofContext.set_syntax_mode mode    (* FIXME ?!? *)
@@ -348,7 +348,7 @@ fun gen_theorem prep_att prep_stmt
         lthy
         |> LocalTheory.notes kind (map2 (fn (a, _) => fn ths => (a, [(ths, [])])) stmt results')
         |> (fn (res, lthy') =>
-          if Name.is_nothing name andalso null atts then
+          if Binding.is_nothing name andalso null atts then
             (ProofDisplay.print_results true lthy' ((kind, ""), res); lthy')
           else
             let

@@ -27,6 +27,7 @@ use "heap.ML";
 use "ord_list.ML";
 use "balanced_tree.ML";
 use "graph.ML";
+use "binding.ML";
 use "name_space.ML";
 use "lazy.ML";
 use "path.ML";

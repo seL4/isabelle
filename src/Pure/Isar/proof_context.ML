@@ -971,7 +971,7 @@ fun update_thms _ (b, NONE) ctxt = ctxt |> map_facts (Facts.del (full_binding ct
 
 fun gen_note_thmss get k = fold_map (fn ((b, more_attrs), raw_facts) => fn ctxt =>
   let
-    val pos = Name.pos_of b;
+    val pos = Binding.pos_of b;
     val name = full_binding ctxt b;
     val _ = ContextPosition.report_visible ctxt (Markup.local_fact_decl name) pos;
 
@@ -1128,7 +1128,7 @@ fun gen_fixes prep raw_vars ctxt =
       |> fold_map declare_var (map2 (fn x' => fn (_, T, mx) => (x', T, mx)) xs' vars)
       |-> (map_syntax o LocalSyntax.add_syntax (theory_of ctxt) o map prep_mixfix);
     val _ = (vars ~~ xs') |> List.app (fn ((b, _, _), x') =>
-      ContextPosition.report_visible ctxt (Markup.fixed_decl x') (Name.pos_of b));
+      ContextPosition.report_visible ctxt (Markup.fixed_decl x') (Binding.pos_of b));
   in (xs', ctxt'') end;
 
 in

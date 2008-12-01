@@ -192,7 +192,7 @@ fun merge (Facts {facts = facts1, props = props1}, Facts {facts = facts2, props 
 
 fun add permissive do_props naming (b, ths) (Facts {facts, props}) =
   let
-    val (name, facts') = if Name.is_nothing b then ("", facts)
+    val (name, facts') = if Binding.is_nothing b then ("", facts)
       else let
         val (space, tab) = facts;
         val (name, space') = NameSpace.declare_binding naming b space;

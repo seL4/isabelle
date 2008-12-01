@@ -1,5 +1,4 @@
 (*  Title:      Pure/General/name_space.ML
-    ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
 
 Generic name spaces with declared and hidden entries.  Unknown names
@@ -9,29 +8,9 @@ are considered global; no support for absolute addressing.
 type bstring = string;    (*names to be bound*)
 type xstring = string;    (*external names*)
 
-signature BASIC_NAME_SPACE =
-sig
-  val long_names: bool ref
-  val short_names: bool ref
-  val unique_names: bool ref
-end;
-
-signature NAME_BINDING =
-sig
-  type binding
-  val binding_pos: string * Position.T -> binding
-  val binding: string -> binding
-  val no_binding: binding
-  val dest_binding: binding -> (string * bool) list * string
-  val is_nothing: binding -> bool
-  val pos_of: binding -> Position.T
-  val map_binding: ((string * bool) list * string -> (string * bool) list * string)
-    -> binding -> binding
-end
-
 signature NAME_SPACE =
 sig
-  include BASIC_NAME_SPACE
+  include BASIC_BINDING
   val hidden: string -> string
   val is_hidden: string -> bool
   val separator: string                 (*single char*)
@@ -60,14 +39,13 @@ sig
   val no_base_names: naming -> naming
   val qualified_names: naming -> naming
   val sticky_prefix: string -> naming -> naming
-  include NAME_BINDING
-  val full_binding: naming -> binding -> string
-  val declare_binding: naming -> binding -> T -> string * T
+  val full_binding: naming -> Binding.T -> string
+  val declare_binding: naming -> Binding.T -> T -> string * T
   type 'a table = T * 'a Symtab.table
   val empty_table: 'a table
-  val table_declare: naming -> binding * 'a
+  val table_declare: naming -> Binding.T * 'a
     -> 'a table -> string * 'a table (*exception Symtab.DUP*)
-  val table_declare_permissive: naming -> binding * 'a
+  val table_declare_permissive: naming -> Binding.T * 'a
     -> 'a table -> string * 'a table
   val extend_table: naming -> (bstring * 'a) list -> 'a table -> 'a table
   val merge_tables: ('a * 'a -> bool) -> 'a table * 'a table -> 'a table
@@ -77,6 +55,9 @@ end;
 
 structure NameSpace: NAME_SPACE =
 struct
+
+open Basic_Binding;
+
 
 (** long identifiers **)
 
@@ -170,10 +151,6 @@ fun valid_accesses (NameSpace (tab, _)) name = Symtab.fold (fn (xname, ((names, 
 
 fun intern space xname = #1 (lookup space xname);
 
-val long_names = ref false;
-val short_names = ref false;
-val unique_names = ref true;
-
 fun extern space name =
   let
     fun valid unique xname =
@@ -241,23 +218,6 @@ fun merge (NameSpace (tab1, xtab1), NameSpace (tab2, xtab2)) =
 
 
 
-(** generic name bindings **)
-
-datatype binding = Binding of ((string * bool) list * string) * Position.T;
-
-fun binding_pos (name, pos) = Binding (([], name), pos);
-fun binding name = binding_pos (name, Position.none);
-val no_binding = binding "";
-
-fun pos_of (Binding (_, pos)) = pos;
-fun dest_binding (Binding (prefix_name, _)) = prefix_name;
-
-fun map_binding f (Binding (prefix_name, pos)) = Binding (f prefix_name, pos);
-
-fun is_nothing (Binding ((_, name), _)) = name = "";
-
-
-
 (** naming contexts **)
 
 (* datatype naming *)
@@ -321,8 +281,9 @@ fun declare naming name space =
       val (accs, accs') = pairself (map implode_name) (accesses naming names);
     in space |> fold (add_name name) accs |> put_accesses name accs' end;
 
-fun declare_binding bnaming (Binding ((prefix, bname), _)) =
+fun declare_binding bnaming b =
   let
+    val (prefix, bname) = Binding.dest_binding b;
     val naming = apply_prefix prefix bnaming;
     val name = full naming bname;
   in declare naming name #> pair name end;
@@ -343,8 +304,9 @@ fun gen_table_declare update naming (binding, x) (space, tab) =
 fun table_declare naming = gen_table_declare Symtab.update_new naming;
 fun table_declare_permissive naming = gen_table_declare Symtab.update naming;
 
-fun full_binding naming (Binding ((prefix, bname), _)) =
-  full (apply_prefix prefix naming) bname;
+fun full_binding naming b =
+  let val (prefix, bname) = Binding.dest_binding b
+  in full (apply_prefix prefix naming) bname end;
 
 fun extend_table naming bentries (space, tab) =
   let val entries = map (apfst (full naming)) bentries
@@ -366,6 +328,3 @@ val implode = implode_name;
 val explode = explode_name;
 
 end;
-
-structure BasicNameSpace: BASIC_NAME_SPACE = NameSpace;
-open BasicNameSpace;

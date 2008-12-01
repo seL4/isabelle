@@ -201,7 +201,7 @@ fun locale_const (Target {target, is_class, ...}) (prmode as (mode, _)) tags ((b
     val arg = (b', Term.close_schematic_term rhs');
     val similar_body = Type.similar_types (rhs, rhs');
     (* FIXME workaround based on educated guess *)
-    val (prefix', _) = Name.dest_binding b';
+    val (prefix', _) = Binding.dest_binding b';
     val class_global = Name.name_of b = Name.name_of b'
       andalso not (null prefix')
       andalso (fst o snd o split_last) prefix' = Class.class_prefix target;

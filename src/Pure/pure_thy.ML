@@ -144,7 +144,7 @@ fun enter_proofs (thy, thms) =
   (FactsData.map (apsnd (fold (cons o lazy_proof) thms)) thy, thms);
 
 fun enter_thms pre_name post_name app_att (b, thms) thy =
-  if Name.is_nothing b
+  if Binding.is_nothing b
   then swap (enter_proofs (app_att (thy, thms)))
   else let
     val naming = Sign.naming_of thy;
@@ -198,7 +198,7 @@ local
 
 fun gen_note_thmss tag = fold_map (fn ((b, more_atts), ths_atts) => fn thy =>
   let
-    val pos = Name.pos_of b;
+    val pos = Binding.pos_of b;
     val name = Sign.full_binding thy b;
     val _ = Position.report (Markup.fact_decl name) pos;
 

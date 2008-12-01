@@ -947,8 +947,8 @@ fun flatten_expr ctxt ((prev_idents, prev_syntax), expr) =
         val ren = map fst ps ~~ map (fn p => (p, lookup_syn p)) params;
         val [env] = unify_parms ctxt all_params [map (apfst (Element.rename ren) o apsnd SOME) ps];
         val (lprfx, pprfx) = param_prefix name params;
-        val add_prefices = pprfx <> "" ? Name.add_prefix false pprfx
-          #> Name.add_prefix false lprfx;
+        val add_prefices = pprfx <> "" ? Binding.add_prefix false pprfx
+          #> Binding.add_prefix false lprfx;
         val elem_morphism =
           Element.rename_morphism ren $>
           Morphism.name_morphism add_prefices $>
@@ -1634,10 +1634,10 @@ fun collect_witnesses ctxt (imprt as ((impT, _), (imp, _))) parms ids ext_ts = l
 
 fun name_morph phi_name (lprfx, pprfx) b =
   b
-  |> (if not (Name.is_nothing b) andalso pprfx <> ""
-        then Name.add_prefix false pprfx else I)
-  |> (if not (Name.is_nothing b)
-        then Name.add_prefix false lprfx else I)
+  |> (if not (Binding.is_nothing b) andalso pprfx <> ""
+        then Binding.add_prefix false pprfx else I)
+  |> (if not (Binding.is_nothing b)
+        then Binding.add_prefix false lprfx else I)
   |> phi_name;
 
 fun inst_morph thy phi_name param_prfx insts prems eqns export =
@@ -2442,11 +2442,11 @@ fun gen_interpret prep_registration after_qed name_morph expr insts int state =
   end;
 
 fun standard_name_morph interp_prfx b =
-  if Name.is_nothing b then b
-  else Name.map_prefix (fn ((lprfx, _) :: pprfx) =>
-    fold (Name.add_prefix false o fst) pprfx
-    #> interp_prfx <> "" ? Name.add_prefix true interp_prfx
-    #> Name.add_prefix false lprfx
+  if Binding.is_nothing b then b
+  else Binding.map_prefix (fn ((lprfx, _) :: pprfx) =>
+    fold (Binding.add_prefix false o fst) pprfx
+    #> interp_prfx <> "" ? Binding.add_prefix true interp_prfx
+    #> Binding.add_prefix false lprfx
   ) b;
 
 in
