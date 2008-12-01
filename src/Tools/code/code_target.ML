@@ -126,7 +126,7 @@ datatype target = Target of {
   serial: serial,
   serializer: serializer_entry,
   reserved: string list,
-  includes: Pretty.T Symtab.table,
+  includes: (Pretty.T * string list) Symtab.table,
   name_syntax_table: name_syntax_table,
   module_alias: string Symtab.table
 };
@@ -310,17 +310,20 @@ fun add_reserved target =
       else insert (op =) sym syms
   in map_reserved target o add end;
 
-fun add_include target =
+fun gen_add_include read_const target args thy =
   let
-    fun add (name, SOME content) incls =
+    fun add (name, SOME (content, raw_cs)) incls =
           let
             val _ = if Symtab.defined incls name
               then warning ("Overwriting existing include " ^ name)
               else ();
-          in Symtab.update (name, str content) incls end
-      | add (name, NONE) incls =
-          Symtab.delete name incls;
-  in map_includes target o add end;
+            val cs = map (read_const thy) raw_cs;
+          in Symtab.update (name, (str content, cs)) incls end
+      | add (name, NONE) incls = Symtab.delete name incls;
+  in map_includes target (add args) thy end;
+
+val add_include = gen_add_include Code_Unit.check_const;
+val add_include_cmd = gen_add_include Code_Unit.read_const;
 
 fun add_module_alias target =
   map_module_alias target o Symtab.update o apsnd Code_Name.check_modulename;
@@ -394,7 +397,7 @@ fun labelled_name thy program name = case Graph.get_node program name
         val Code_Thingol.Datatype (tyco, _) = Graph.get_node program tyco
       in quote (Sign.extern_type thy tyco ^ " :: " ^ Sign.extern_class thy class) end
 
-fun invoke_serializer thy abortable serializer reserved includes 
+fun invoke_serializer thy abortable serializer reserved abs_includes 
     module_alias class instance tyco const module args naming program2 names1 =
   let
     fun distill_names lookup_name src_tab = Symtab.empty
@@ -411,6 +414,7 @@ fun invoke_serializer thy abortable serializer reserved includes
     val names2 = subtract (op =) names_hidden names1;
     val program3 = Graph.subgraph (not o member (op =) names_hidden) program2;
     val names_all = Graph.all_succs program2 names2;
+    val includes = abs_includes names_all;
     val program4 = Graph.subgraph (member (op =) names_all) program3;
     val empty_funs = filter_out (member (op =) abortable)
       (Code_Thingol.empty_funs program3);
@@ -423,7 +427,7 @@ fun invoke_serializer thy abortable serializer reserved includes
       naming program4 names2
   end;
 
-fun mount_serializer thy alt_serializer target module args naming program =
+fun mount_serializer thy alt_serializer target module args naming program names =
   let
     val (targets, abortable) = CodeTargetData.get thy;
     fun collapse_hierarchy target =
@@ -441,20 +445,27 @@ fun mount_serializer thy alt_serializer target module args naming program =
     val (serializer, _) = the_default (case the_serializer data
      of Serializer seri => seri) alt_serializer;
     val reserved = the_reserved data;
-    val includes = Symtab.dest (the_includes data);
+    fun select_include names_all (name, (content, cs)) =
+      if null cs then SOME (name, content)
+      else if exists (fn c => case Code_Thingol.lookup_const naming c
+       of SOME name => member (op =) names_all name
+        | NONE => false) cs
+      then SOME (name, content) else NONE;
+    fun includes names_all = map_filter (select_include names_all)
+      ((Symtab.dest o the_includes) data);
     val module_alias = the_module_alias data;
     val { class, instance, tyco, const } = the_name_syntax data;
   in
     invoke_serializer thy abortable serializer reserved
-      includes module_alias class instance tyco const module args naming (modify program)
+      includes module_alias class instance tyco const module args naming (modify program) names
   end;
 
 in
 
 fun serialize thy = mount_serializer thy NONE;
 
-fun serialize_custom thy (target_name, seri) naming program cs =
-  mount_serializer thy (SOME seri) target_name NONE [] naming program cs (String [])
+fun serialize_custom thy (target_name, seri) naming program names =
+  mount_serializer thy (SOME seri) target_name NONE [] naming program names (String [])
   |> the;
 
 end; (* local *)
@@ -565,9 +576,10 @@ val _ =
 
 val _ =
   OuterSyntax.command "code_include" "declare piece of code to be included in generated code" K.thy_decl (
-    P.name -- P.name -- (P.text >> (fn "-" => NONE | s => SOME s))
-    >> (fn ((target, name), content) => (Toplevel.theory o add_include target)
-      (name, content))
+    P.name -- P.name -- (P.text :|-- (fn "-" => Scan.succeed NONE
+      | s => Scan.optional (P.$$$ "attach" |-- Scan.repeat1 P.term) [] >> pair s >> SOME))
+    >> (fn ((target, name), content_consts) =>
+        (Toplevel.theory o add_include_cmd target) (name, content_consts))
   );
 
 val _ =
