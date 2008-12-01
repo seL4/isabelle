@@ -304,12 +304,10 @@ fun check_autofix insts elems concl ctxt =
     (* Type inference *)
     val (inst_cs' :: css', ctxt') =
       (fold_burrow o fold_burrow) check (inst_cs :: elem_css @ [concl_cs]) ctxt;
-    (* Re-check to resolve bindings, elements and conclusion only *)
-    val (css'', _) = (fold_burrow o fold_burrow) check css' ctxt';
-    val (elem_css'', [concl_cs'']) = chop (length elem_css) css'';
+    val (elem_css', [concl_cs']) = chop (length elem_css) css';
   in
-    (map restore_inst (insts ~~ inst_cs'), map restore_elem (elems ~~ elem_css''),
-      concl_cs'', ctxt')
+    (map restore_inst (insts ~~ inst_cs'), map restore_elem (elems ~~ elem_css'),
+      concl_cs', ctxt')
   end;
 
 end;
