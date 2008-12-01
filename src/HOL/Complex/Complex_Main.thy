@@ -9,6 +9,8 @@ header{*Comprehensive Complex Theory*}
 theory Complex_Main
 imports
   "../Main"
+  "../Real/ContNotDenum"
+  "../Real/Real"
   Fundamental_Theorem_Algebra
   "../Hyperreal/Log"
   "../Hyperreal/Ln"
