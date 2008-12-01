@@ -2,18 +2,13 @@
 #
 # $Id$
 #
-# makedist -- make Isabelle source distribution.
-
+# makedist -- make Isabelle source distribution
 
 ## global settings
 
+REPOS="http://isabelle.in.tum.de/repos/isabelle"
+
 DISTPREFIX=${DISTPREFIX:-~/tmp/isadist}
-SRCS="CCL CTT Cube FOL FOLP HOL HOLCF LCF Provers Pure Sequents Tools ZF"
-
-export CVSROOT=/home/isabelle-repository/archive
-[ ! -d "$CVSROOT" ] && CVSROOT="${ISABELLE_USER:-$USER}@atbroy100.informatik.tu-muenchen.de:$CVSROOT"
-
-[ -z "$CVS2CL" ] && type -path cvs2cl >/dev/null && CVS2CL=cvs2cl
 
 umask 022
 
@@ -27,16 +22,15 @@ function usage()
 {
   cat <<EOF
 
-Usage: $PRG VERSION [NAME]
+Usage: $PRG [OPTIONS] [VERSION]
 
-  Make Isabelle distribution from the master sources at TUM.
+  Options are:
+    -r RELEASE         proper release with name"
 
-  VERSION may be either a tag like "IsabelleXXXX" that specifies the
-  release to be exported from the repository, or "-" to checkout the
-  current sources as an unofficial release.
+  Make Isabelle distribution from the main Mercurial repository at TUM.
 
-  NAME specifies an explicit distribution name, by default it is
-  derived from VERSION.
+  VERSION identifies the snapshot, using usual Mercurial terminology;
+  the default is RELEASE if given, otherwise "tip".
 
 EOF
   exit 1
@@ -51,131 +45,146 @@ function fail()
 
 ## process command line
 
-[ "$#" -ne 1 -a "$#" -ne 2 ] && usage
+# options
 
-VERSION="$1"; shift
+RELEASE=""
 
-if [ "$#" -eq 0 ]; then
-  DISTNAME=""
-else
-  DISTNAME="$1"; shift
-fi
+while getopts "r:" OPT
+do
+  case "$OPT" in
+    r)
+      RELEASE="$OPTARG"
+      ;;
+    \?)
+      usage
+      ;;
+  esac
+done
+
+shift $(($OPTIND - 1))
+
+
+# args
+
+VERSION=""
+[ "$#" -gt 0 ] && { VERSION="$1"; shift; }
+[ -z "$VERSION" ] && VERSION="$RELEASE"
+[ -z "$VERSION" ] && VERSION="tip"
+
+[ "$#" -gt 0 ] && usage
 
 
 ## main
 
-# dist version
+# tmp
+
+TMP="tmp-$USER$$"
+function purge_tmp () { rm -rf "$DISTPREFIX/$TMP"; }
+
+
+# retrieve archive and resolve version identifier
+
+mkdir "$DISTPREFIX/$TMP" || fail "Failed to create fresh directory"
+cd "$DISTPREFIX/$TMP"
+
+echo "###"
+echo "### Retrieving Mercurial repository $VERSION"
+echo "###"
+
+{ wget -q "$REPOS/archive/${VERSION}.tar.gz" -O- | tar -xzf -; } || \
+  fail "Failed to retrieve $VERSION"
+
+IDENT=$(echo * | sed 's/isabelle-//')
+
+rm -f "isabelle-$IDENT/.hg_archival.txt"
+rm -f "isabelle-$IDENT/.hgtags"
+rm -f "isabelle-$IDENT/.hgignore"
+rm -f "isabelle-$IDENT/README_REPOSITORY"
+
+
+# dist name
 
 DATE=$(env LC_ALL=C date "+%d-%b-%Y")
 DISTDATE=$(env LC_ALL=C date "+%B %Y")
 
-if [ "$VERSION" = "-" ]; then
-  DISTIDENT="Isabelle_$DATE"
-  [ -z "$DISTNAME" ] && DISTNAME="$DISTIDENT"
-  DISTVERSION="$DISTNAME"
-  EXPORT="cvs -f -q checkout -P -d $DISTNAME isabelle"
-  UNOFFICIAL=true
+if [ -z "$RELEASE" ]; then
+  DISTNAME="Isabelle_$DATE"
+  DISTVERSION="Isabelle repository snapshot $IDENT ($DATE)"
 else
-  DISTIDENT="$VERSION"
-  [ -z "$DISTNAME" ] && DISTNAME="$DISTIDENT"
+  DISTNAME="$RELEASE"
   DISTVERSION="$DISTNAME: $DISTDATE"
-  EXPORT="cvs -f -q export -r $VERSION -d $DISTNAME isabelle"
-  UNOFFICIAL=""
 fi
 
 DISTBASE="$DISTPREFIX/dist-$DISTNAME"
-mkdir -p "$DISTBASE" || fail "Unable to create distribution base dir $DISTBASE!"
-[ -e "$DISTBASE/$DISTNAME" ] && fail "$DISTBASE/$DISTNAME already exists!"
-[ -e "$DISTBASE/pdf/$DISTNAME" ] && fail "$DISTBASE/pdf/$DISTNAME already exists!"
-
-
-# export repository
-
-echo "###"
-echo "### Exporting $DISTIDENT ..."
-echo "###"
+mkdir -p "$DISTBASE" || { purge_tmp; fail "Unable to create distribution base dir $DISTBASE!"; }
+[ -e "$DISTBASE/$DISTNAME" ] && { purge_tmp; fail "$DISTBASE/$DISTNAME already exists!"; }
+[ -e "$DISTBASE/pdf/$DISTNAME" ] && { purge_tmp; fail "$DISTBASE/pdf/$DISTNAME already exists!"; }
 
 cd "$DISTBASE"
+mv "$DISTPREFIX/$TMP/isabelle-$IDENT" "$DISTNAME"
+purge_tmp
 
-$EXPORT || fail "Export failed!"
-
-if [ -n "$CVS2CL" -a -n "$UNOFFICIAL" ]; then
-  cd $DISTNAME
-  $CVS2CL
-  gzip ChangeLog
-  cp ChangeLog.gz ..
-  cd ..
-fi
-
-find . -name CVS -print | xargs rm -rf
-find . -name .cvsignore -print | xargs rm -rf
-find . "(" -name \*.thy -o -name \*.ML ")" -perm +111 -print | xargs chmod -x
-find . -print | xargs chmod u+rw
+cd "$DISTNAME" || fail "No dist directory: $DISTBASE/$DISTNAME"
 
 
-# build components
-
-"$DISTBASE/$DISTNAME/Admin/build" all || fail "Failed to build distribution"
-
-
-# prepare dist dir for release
-
-echo "###"
-echo "### Preparing distribution ..."
-echo "###"
-
-cd "$DISTBASE/$DISTNAME" || fail "No dist directory: $DISTBASE/$DISTNAME"
+# website
 
 mkdir -p ../website
 cat > ../website/distinfo.mak <<EOF
 # this is a generated file - do not edit unless you know what you are doing!
-
 DISTNAME=$DISTNAME
-DISTIDENT=$DISTIDENT
 DISTBASE=$DISTBASE
 EOF
 
-cp Distribution/lib/html/library_index_content.template ../website/
+cp lib/html/library_index_content.template ../website/
 
-MOVE=$(find Doc \( -type f -a -not -type l -a -not -name isabelle_isar.pdf -a -not -name pghead.pdf -a \( -name \*.dvi -o -name \*.eps -o -name \*.ps -o -name \*.pdf \) -a -print \) | grep -v 'gfx/.*pdf')
-mv -f $MOVE Distribution/doc
-rm Distribution/doc/Isa-logics.eps
-rm Distribution/doc/codegen_process.pdf
-rm -rf Doc
 
-mkdir src contrib
-mv $SRCS src
+# prepare dist for release
 
-mv Distribution/* .
-rmdir Distribution
+echo "###"
+echo "### Preparing distribution $DISTNAME"
+echo "###"
 
+find . -name .cvsignore -print | xargs rm -rf
+find . "(" -name \*.thy -o -name \*.ML ")" -perm +111 -print | xargs chmod -x
+find . -print | xargs chmod u+rw
+
+./Admin/build all || fail "Failed to build distribution"
+rm -rf Admin
+
+MOVE=$(find doc-src \( -type f -a -not -type l -a -not -name isabelle_isar.pdf -a -not -name pghead.pdf -a \( -name \*.dvi -o -name \*.eps -o -name \*.ps -o -name \*.pdf \) -a -print \) | grep -v 'gfx/.*pdf')
+mv -f $MOVE doc
+rm doc/Isa-logics.eps
+rm doc/codegen_process.pdf
+rm -rf doc-src
+
+mkdir contrib
 
 cp doc/isabelle*.eps lib/logo
 
 
-if [ -n "$UNOFFICIAL" ]; then
+if [ -z "$RELEASE" ]; then
   {
     echo
     echo "IMPORTANT NOTE"
     echo "=============="
     echo
     echo "This is an unofficial snapshot of Isabelle, created by $LOGNAME $DATE."
+    echo "See $REPOS/log/$IDENT for details."
     echo
   } >ANNOUNCE
 else
-  perl -pi -e "s/val is_official = false/val is_official = true/" src/Pure/ROOT.ML
+  perl -pi -e "s,val is_official = false,val is_official = true,g" src/Pure/ROOT.ML
 fi
 
-perl -pi -e "s/ISABELLE_IDENTIFIER=\"\"/ISABELLE_IDENTIFIER=\"$DISTNAME\"/g;" lib/scripts/getsettings
-perl -pi -e "s/{ISABELLE}/$DISTNAME/g;" lib/html/library_index_header.template
-perl -pi -e "s/Isabelle repository version/$DISTVERSION/" src/Pure/ROOT.ML lib/Tools/version
-perl -pi -e "s/the internal repository version of Isabelle/$DISTVERSION/" README
+perl -pi -e "s,val changelog = \"\",val changelog = \"$REPOS/log/$IDENT\",g" src/Pure/ROOT.ML
+perl -pi -e "s,ISABELLE_IDENTIFIER=\"\",ISABELLE_IDENTIFIER=\"$DISTNAME\",g" lib/scripts/getsettings
+perl -pi -e "s,{ISABELLE},$DISTNAME,g" lib/html/library_index_header.template
+perl -pi -e "s,Isabelle repository version,$DISTVERSION,g" src/Pure/ROOT.ML lib/Tools/version
+perl -pi -e "s,the internal repository version of Isabelle,$DISTVERSION,g" README
 
 
-rm -rf Admin
-
-
-# create archive
+# create archives
 
 echo "###"
 echo "### Creating archives ..."
@@ -184,6 +193,7 @@ echo "###"
 cd "$DISTBASE"
 
 echo "$DISTBASE/$DISTNAME.tar.gz" > ../ISABELLE_DIST
+echo "$IDENT" >../ISABELLE_IDENT
 
 rm -f Isabelle
 ln -s "$DISTNAME" Isabelle
@@ -197,12 +207,10 @@ mkdir -p "pdf/$DISTNAME/doc"
 mv "$DISTNAME/doc/"*.pdf "pdf/$DISTNAME/doc"
 
 echo "$DISTNAME.tar.gz"
-tar cf "$DISTNAME.tar" Isabelle "$DISTNAME"
-gzip "$DISTNAME.tar"
+tar -czf "$DISTNAME.tar.gz" Isabelle "$DISTNAME"
 
 echo "${DISTNAME}_pdf.tar.gz"
-( cd pdf; tar cf "../${DISTNAME}_pdf.tar" "$DISTNAME"; )
-gzip "${DISTNAME}_pdf.tar"
+tar -C pdf -czf "${DISTNAME}_pdf.tar.gz" "$DISTNAME"
 
 mv "pdf/$DISTNAME/doc/"*.pdf "$DISTNAME/doc"
 rmdir "pdf/$DISTNAME/doc" "pdf/$DISTNAME" pdf
@@ -223,7 +231,3 @@ chgrp -R isabelle "$DISTNAME"
 
 rm -rf "${DISTNAME}-old"
 
-
-echo "###"
-echo "### Finished makedist."
-echo "###"

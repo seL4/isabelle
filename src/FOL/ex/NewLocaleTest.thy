@@ -157,11 +157,6 @@ proof -
   show ?t by (rule x [OF `?a`])
 qed
 
-lemma
-  assumes "P <-> P" (is "?p <-> _")
-  shows "?p <-> ?p"
-  .
-
 
 text {* Interpretation between locales: sublocales *}
 

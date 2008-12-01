@@ -4,7 +4,7 @@
 
 # adjust python path if not a system-wide install:
 import sys
-sys.path.insert(0, "/home/isabelle-repository/repos/mercurial-www4/lib64/python2.4/site-packages")
+sys.path.insert(0, "/home/isabelle-repository/repos/mercurial-www4/lib64/python2.5/site-packages")
 
 # enable importing on demand to reduce startup time
 from mercurial import demandimport; demandimport.enable()
