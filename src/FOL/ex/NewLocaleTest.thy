@@ -167,7 +167,7 @@ text {* Interpretation between locales: sublocales *}
 
 sublocale lgrp < right: rgrp
 print_facts
-proof new_unfold_locales
+proof unfold_locales
   {
     fix x
     have "inv(x) ** x ** one = inv(x) ** x" by (simp add: linv lone)
@@ -196,7 +196,7 @@ lemma (in lgrp)
 (* circular interpretation *)
 
 sublocale rgrp < left: lgrp
-proof new_unfold_locales
+proof unfold_locales
   {
     fix x
     have "one ** (x ** inv(x)) = x ** inv(x)" by (simp add: rinv rone)
@@ -225,7 +225,7 @@ locale order =
     and trans: "[| x << y; y << z |] ==> x << z"
 
 sublocale order < dual: order "%x y. y << x"
-  apply new_unfold_locales apply (rule refl) apply (blast intro: trans)
+  apply unfold_locales apply (rule refl) apply (blast intro: trans)
   done
 
 print_locale! order  (* Only two instances of order. *)
@@ -244,7 +244,7 @@ definition greater :: "'a => 'a => o" (infix ">>" 50) where
 end
 
 sublocale order_with_def < dual: order' "op >>"
-  apply new_unfold_locales
+  apply unfold_locales
   unfolding greater_def
   apply (rule refl) apply (blast intro: trans)
   done
@@ -291,14 +291,14 @@ lemma Q_triv: "Q" using Q by fast
 end
 
 sublocale trivial < x: trivial x _
-  apply new_unfold_locales using Q by fast
+  apply unfold_locales using Q by fast
 
 print_locale! trivial
 
 context trivial begin thm x.Q [where ?x = True] end
 
 sublocale trivial < y: trivial Q Q
-  by new_unfold_locales
+  by unfold_locales
   (* Succeeds since previous interpretation is more general. *)
 
 print_locale! trivial  (* No instance for y created (subsumed). *)
