@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 #
-# $Id$
 # Author: Markus Wenzel, TU Muenchen
 #
 # Isabelle tool wrapper.
@@ -34,14 +33,16 @@ function usage()
     IFS=":"
     for DIR in $ISABELLE_TOOLS
     do
-      cd "$DIR"
-      for T in *
-      do
-        if [ -f "$T" -a -x "$T" ]; then
-          DESCRLINE=$(fgrep DESCRIPTION: "$T" | sed -e 's/^.*DESCRIPTION: *//')
-          echo "    $T - $DESCRLINE"
-        fi
-      done
+      if [ -d "$DIR" ]; then
+        cd "$DIR"
+        for T in *
+        do
+          if [ -f "$T" -a -x "$T" ]; then
+            DESCRLINE=$(fgrep DESCRIPTION: "$T" | sed -e 's/^.*DESCRIPTION: *//')
+            echo "    $T - $DESCRLINE"
+          fi
+        done
+      fi
     done
     IFS="$ORIG_IFS"
   )
