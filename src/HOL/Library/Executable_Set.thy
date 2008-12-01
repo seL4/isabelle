@@ -16,7 +16,7 @@ definition subset :: "'a set \<Rightarrow> 'a set \<Rightarrow> bool" where
 
 declare subset_def [symmetric, code unfold]
 
-lemma "subset A B \<longleftrightarrow> (\<forall>x\<in>A. x \<in> B)"
+lemma [code]: "subset A B \<longleftrightarrow> (\<forall>x\<in>A. x \<in> B)"
   unfolding subset_def subset_eq ..
 
 definition is_empty :: "'a set \<Rightarrow> bool" where
@@ -32,8 +32,7 @@ lemma [code]:
   "a \<in> A \<longleftrightarrow> (\<exists>x\<in>A. x = a)"
   unfolding bex_triv_one_point1 ..
 
-definition
-  filter_set :: "('a \<Rightarrow> bool) \<Rightarrow> 'a set \<Rightarrow> 'a set" where
+definition filter_set :: "('a \<Rightarrow> bool) \<Rightarrow> 'a set \<Rightarrow> 'a set" where
   "filter_set P xs = {x\<in>xs. P x}"
 
 
