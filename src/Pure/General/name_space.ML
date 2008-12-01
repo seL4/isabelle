@@ -48,6 +48,7 @@ sig
   val intern: T -> xstring -> string
   val extern: T -> string -> xstring
   val hide: bool -> string -> T -> T
+  val get_accesses: T -> string -> xstring list
   val merge: T * T -> T
   type naming
   val path_of: naming -> string
@@ -323,7 +324,6 @@ fun declare naming name space =
 fun declare_binding bnaming (Binding ((prefix, bname), _)) =
   let
     val naming = apply_prefix prefix bnaming;
-    val dname = full bnaming bname;
     val name = full naming bname;
   in declare naming name #> pair name end;
 
