@@ -93,6 +93,8 @@ cp -R "$THIS/dist-template/." "$JEDIT/."
 cp jars/Isabelle-jEdit.jar "$JEDIT/jars/isabelle.jar"
 cp jars/lib/Pure.jar "$JEDIT/jars/isabelle-Pure.jar"
 cp jars/lib/core-renderer.jar "$JEDIT/jars/"
+cp jars/lib/ErrorList.jar "$JEDIT/jars/"
+cp jars/lib/SideKick.jar "$JEDIT/jars/"
 
 
 # build archive
