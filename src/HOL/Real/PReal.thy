@@ -1,5 +1,4 @@
 (*  Title       : PReal.thy
-    ID          : $Id$
     Author      : Jacques D. Fleuriot
     Copyright   : 1998  University of Cambridge
     Description : The positive reals as Dedekind sections of positive
@@ -10,7 +9,7 @@
 header {* Positive real numbers *}
 
 theory PReal
-imports Rational Dense_Linear_Order
+imports Rational "~~/src/HOL/Library/Dense_Linear_Order"
 begin
 
 text{*Could be generalized and moved to @{text Ring_and_Field}*}
