@@ -683,8 +683,9 @@ The example above gives an impression how Isar type classes work
 \isacommand{interpretation}\isamarkupfalse%
 \ idem{\isacharunderscore}class{\isacharcolon}\isanewline
 \ \ idem\ {\isacharbrackleft}{\isachardoublequoteopen}f\ {\isasymColon}\ {\isacharparenleft}{\isasymalpha}{\isasymColon}idem{\isacharparenright}\ {\isasymRightarrow}\ {\isasymalpha}{\isachardoublequoteclose}{\isacharbrackright}\isanewline
-\isacommand{by}\isamarkupfalse%
-\ unfold{\isacharunderscore}locales\ {\isacharparenleft}rule\ idem{\isacharparenright}%
+\isacommand{proof}\isamarkupfalse%
+\ \isacommand{qed}\isamarkupfalse%
+\ {\isacharparenleft}rule\ idem{\isacharparenright}%
 \endisatagquote
 {\isafoldquote}%
 %
@@ -844,8 +845,9 @@ We introduced Isar classes by analogy to type classes
 \isatagquote
 \isacommand{interpretation}\isamarkupfalse%
 \ list{\isacharunderscore}monoid{\isacharcolon}\ monoid\ {\isacharbrackleft}append\ {\isachardoublequoteopen}{\isacharbrackleft}{\isacharbrackright}{\isachardoublequoteclose}{\isacharbrackright}\isanewline
-\ \ \isacommand{by}\isamarkupfalse%
-\ unfold{\isacharunderscore}locales\ auto%
+\ \ \isacommand{proof}\isamarkupfalse%
+\ \isacommand{qed}\isamarkupfalse%
+\ auto%
 \endisatagquote
 {\isafoldquote}%
 %
@@ -921,7 +923,7 @@ Any \isa{group} is also a \isa{monoid};  this
 \isacommand{subclass}\isamarkupfalse%
 \ {\isacharparenleft}\isakeyword{in}\ group{\isacharparenright}\ monoid\isanewline
 \isacommand{proof}\isamarkupfalse%
-\ unfold{\isacharunderscore}locales\isanewline
+\isanewline
 \ \ \isacommand{fix}\isamarkupfalse%
 \ x\isanewline
 \ \ \isacommand{from}\isamarkupfalse%
@@ -946,10 +948,8 @@ Any \isa{group} is also a \isa{monoid};  this
 \endisadelimquote
 %
 \begin{isamarkuptext}%
-\noindent The logical proof is carried out on the locale level
-  and thus conveniently is opened using the \isa{unfold{\isacharunderscore}locales}
-  method which only leaves the logical differences still
-  open to proof to the user.  Afterwards it is propagated
+\noindent The logical proof is carried out on the locale level.
+  Afterwards it is propagated
   to the type system, making \isa{group} an instance of
   \isa{monoid} by adding an additional edge
   to the graph of subclass relations
@@ -1166,11 +1166,11 @@ Turning back to the first motivation for type classes,
 \hspace*{0pt} ~inverse = inverse{\char95}int;\\
 \hspace*{0pt}{\char125};\\
 \hspace*{0pt}\\
-\hspace*{0pt}pow{\char95}nat ::~forall a. (Monoid a) => Nat -> a -> a;\\
+\hspace*{0pt}pow{\char95}nat ::~forall a.~(Monoid a) => Nat -> a -> a;\\
 \hspace*{0pt}pow{\char95}nat Zero{\char95}nat x = neutral;\\
 \hspace*{0pt}pow{\char95}nat (Suc n) x = mult x (pow{\char95}nat n x);\\
 \hspace*{0pt}\\
-\hspace*{0pt}pow{\char95}int ::~forall a. (Group a) => Integer -> a -> a;\\
+\hspace*{0pt}pow{\char95}int ::~forall a.~(Group a) => Integer -> a -> a;\\
 \hspace*{0pt}pow{\char95}int k x =\\
 \hspace*{0pt} ~(if 0 <= k then pow{\char95}nat (nat k) x\\
 \hspace*{0pt} ~~~else inverse (pow{\char95}nat (nat (negate k)) x));\\
@@ -1209,8 +1209,8 @@ Turning back to the first motivation for type classes,
 \hspace*{0pt}datatype nat = Suc of nat | Zero{\char95}nat;\\
 \hspace*{0pt}\\
 \hspace*{0pt}fun nat{\char95}aux i n =\\
-\hspace*{0pt} ~(if IntInf.<= (i, (0 :~IntInf.int)) then n\\
-\hspace*{0pt} ~~~else nat{\char95}aux (IntInf.- (i, (1 :~IntInf.int))) (Suc n));\\
+\hspace*{0pt} ~(if IntInf.<= (i,~(0 :~IntInf.int)) then n\\
+\hspace*{0pt} ~~~else nat{\char95}aux (IntInf.- (i,~(1 :~IntInf.int))) (Suc n));\\
 \hspace*{0pt}\\
 \hspace*{0pt}fun nat i = nat{\char95}aux i Zero{\char95}nat;\\
 \hspace*{0pt}\\
@@ -1218,14 +1218,14 @@ Turning back to the first motivation for type classes,
 \hspace*{0pt}fun mult (A{\char95}:'a semigroup) = {\char35}mult A{\char95};\\
 \hspace*{0pt}\\
 \hspace*{0pt}type 'a monoidl =\\
-\hspace*{0pt} ~{\char123}Classes{\char95}{\char95}semigroup{\char95}monoidl :~'a semigroup, neutral :~'a{\char125};\\
+\hspace*{0pt} ~{\char123}Classes{\char95}{\char95}semigroup{\char95}monoidl :~'a semigroup,~neutral :~'a{\char125};\\
 \hspace*{0pt}fun semigroup{\char95}monoidl (A{\char95}:'a monoidl) = {\char35}Classes{\char95}{\char95}semigroup{\char95}monoidl A{\char95};\\
 \hspace*{0pt}fun neutral (A{\char95}:'a monoidl) = {\char35}neutral A{\char95};\\
 \hspace*{0pt}\\
 \hspace*{0pt}type 'a monoid = {\char123}Classes{\char95}{\char95}monoidl{\char95}monoid :~'a monoidl{\char125};\\
 \hspace*{0pt}fun monoidl{\char95}monoid (A{\char95}:'a monoid) = {\char35}Classes{\char95}{\char95}monoidl{\char95}monoid A{\char95};\\
 \hspace*{0pt}\\
-\hspace*{0pt}type 'a group = {\char123}Classes{\char95}{\char95}monoid{\char95}group :~'a monoid, inverse :~'a -> 'a{\char125};\\
+\hspace*{0pt}type 'a group = {\char123}Classes{\char95}{\char95}monoid{\char95}group :~'a monoid,~inverse :~'a -> 'a{\char125};\\
 \hspace*{0pt}fun monoid{\char95}group (A{\char95}:'a group) = {\char35}Classes{\char95}{\char95}monoid{\char95}group A{\char95};\\
 \hspace*{0pt}fun inverse (A{\char95}:'a group) = {\char35}inverse A{\char95};\\
 \hspace*{0pt}\\
@@ -1233,19 +1233,19 @@ Turning back to the first motivation for type classes,
 \hspace*{0pt}\\
 \hspace*{0pt}val neutral{\char95}int :~IntInf.int = (0 :~IntInf.int);\\
 \hspace*{0pt}\\
-\hspace*{0pt}fun mult{\char95}int i j = IntInf.+ (i, j);\\
+\hspace*{0pt}fun mult{\char95}int i j = IntInf.+ (i,~j);\\
 \hspace*{0pt}\\
 \hspace*{0pt}val semigroup{\char95}int = {\char123}mult = mult{\char95}int{\char125}~:~IntInf.int semigroup;\\
 \hspace*{0pt}\\
 \hspace*{0pt}val monoidl{\char95}int =\\
-\hspace*{0pt} ~{\char123}Classes{\char95}{\char95}semigroup{\char95}monoidl = semigroup{\char95}int, neutral = neutral{\char95}int{\char125}~:\\
+\hspace*{0pt} ~{\char123}Classes{\char95}{\char95}semigroup{\char95}monoidl = semigroup{\char95}int,~neutral = neutral{\char95}int{\char125}~:\\
 \hspace*{0pt} ~IntInf.int monoidl;\\
 \hspace*{0pt}\\
 \hspace*{0pt}val monoid{\char95}int = {\char123}Classes{\char95}{\char95}monoidl{\char95}monoid = monoidl{\char95}int{\char125}~:\\
 \hspace*{0pt} ~IntInf.int monoid;\\
 \hspace*{0pt}\\
 \hspace*{0pt}val group{\char95}int =\\
-\hspace*{0pt} ~{\char123}Classes{\char95}{\char95}monoid{\char95}group = monoid{\char95}int, inverse = inverse{\char95}int{\char125}~:\\
+\hspace*{0pt} ~{\char123}Classes{\char95}{\char95}monoid{\char95}group = monoid{\char95}int,~inverse = inverse{\char95}int{\char125}~:\\
 \hspace*{0pt} ~IntInf.int group;\\
 \hspace*{0pt}\\
 \hspace*{0pt}fun pow{\char95}nat A{\char95}~Zero{\char95}nat x = neutral (monoidl{\char95}monoid A{\char95})\\
@@ -1253,14 +1253,14 @@ Turning back to the first motivation for type classes,
 \hspace*{0pt} ~~~mult ((semigroup{\char95}monoidl o monoidl{\char95}monoid) A{\char95}) x (pow{\char95}nat A{\char95}~n x);\\
 \hspace*{0pt}\\
 \hspace*{0pt}fun pow{\char95}int A{\char95}~k x =\\
-\hspace*{0pt} ~(if IntInf.<= ((0 :~IntInf.int), k)\\
+\hspace*{0pt} ~(if IntInf.<= ((0 :~IntInf.int),~k)\\
 \hspace*{0pt} ~~~then pow{\char95}nat (monoid{\char95}group A{\char95}) (nat k) x\\
 \hspace*{0pt} ~~~else inverse A{\char95}~(pow{\char95}nat (monoid{\char95}group A{\char95}) (nat (IntInf.{\char126}~k)) x));\\
 \hspace*{0pt}\\
 \hspace*{0pt}val example :~IntInf.int =\\
 \hspace*{0pt} ~pow{\char95}int group{\char95}int (10 :~IntInf.int) ({\char126}2 :~IntInf.int);\\
 \hspace*{0pt}\\
-\hspace*{0pt}end; (*struct Example*)%
+\hspace*{0pt}end;~(*struct Example*)%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %

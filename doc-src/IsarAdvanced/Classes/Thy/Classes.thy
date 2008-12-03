@@ -377,7 +377,7 @@ text {* \noindent together with a corresponding interpretation: *}
 
 interpretation %quote idem_class:
   idem ["f \<Colon> (\<alpha>\<Colon>idem) \<Rightarrow> \<alpha>"]
-by unfold_locales (rule idem)
+proof qed (rule idem)
 
 text {*
   \noindent This gives you at hand the full power of the Isabelle module system;
@@ -460,7 +460,7 @@ text {*
 *}
 
 interpretation %quote list_monoid: monoid [append "[]"]
-  by unfold_locales auto
+  proof qed auto
 
 text {*
   \noindent This enables us to apply facts on monoids
@@ -497,7 +497,7 @@ text {*
 *}
 
 subclass %quote (in group) monoid
-proof unfold_locales
+proof
   fix x
   from invl have "x\<div> \<otimes> x = \<one>" by simp
   with assoc [symmetric] neutl invl have "x\<div> \<otimes> (x \<otimes> \<one>) = x\<div> \<otimes> x" by simp
@@ -505,10 +505,8 @@ proof unfold_locales
 qed
 
 text {*
-  \noindent The logical proof is carried out on the locale level
-  and thus conveniently is opened using the @{text unfold_locales}
-  method which only leaves the logical differences still
-  open to proof to the user.  Afterwards it is propagated
+  \noindent The logical proof is carried out on the locale level.
+  Afterwards it is propagated
   to the type system, making @{text group} an instance of
   @{text monoid} by adding an additional edge
   to the graph of subclass relations
