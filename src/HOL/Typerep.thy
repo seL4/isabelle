@@ -5,8 +5,8 @@
 
 header {* Reflecting Pure types into HOL *}
 
-theory RType
-imports Plain "~~/src/HOL/List" "~~/src/HOL/Library/Code_Message"
+theory Typerep
+imports Plain List Code_Message
 begin
 
 datatype typerep = Typerep message_string "typerep list"

@@ -1,5 +1,4 @@
 (*  Title       : Lim.thy
-    ID          : $Id$
     Author      : Jacques D. Fleuriot
     Copyright   : 1998  University of Cambridge
     Conversion to Isar and new proofs by Lawrence C Paulson, 2004
@@ -8,7 +7,7 @@
 header{* Limits and Continuity *}
 
 theory Lim
-imports SEQ
+imports "~~/src/HOL/Hyperreal/SEQ"
 begin
 
 text{*Standard Definitions*}

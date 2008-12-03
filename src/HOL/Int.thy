@@ -16,7 +16,7 @@ uses
   ("~~/src/Provers/Arith/assoc_fold.ML")
   "~~/src/Provers/Arith/cancel_numerals.ML"
   "~~/src/Provers/Arith/combine_numerals.ML"
-  ("int_arith1.ML")
+  ("Tools/int_arith.ML")
 begin
 
 subsection {* The equivalence relation underlying the integers *}
@@ -1427,7 +1427,7 @@ lemmas zle_int = of_nat_le_iff [where 'a=int]
 lemmas int_int_eq = of_nat_eq_iff [where 'a=int]
 
 use "~~/src/Provers/Arith/assoc_fold.ML"
-use "int_arith1.ML"
+use "Tools/int_arith.ML"
 declaration {* K int_arith_setup *}
 
 

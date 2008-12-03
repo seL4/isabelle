@@ -1,5 +1,4 @@
 (*  Title:      HOL/Quadratic_Reciprocity/EvenOdd.thy
-    ID:         $Id$
     Authors:    Jeremy Avigad, David Gray, and Adam Kramer
 *)
 

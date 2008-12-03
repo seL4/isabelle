@@ -1,5 +1,4 @@
 (* Title:  ZF/ex/Ring.thy
-  Id:     $Id$
 
 *)
 

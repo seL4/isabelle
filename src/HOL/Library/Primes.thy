@@ -1,5 +1,4 @@
 (*  Title:      HOL/Library/Primes.thy
-    ID:         $Id$
     Author:     Amine Chaieb, Christophe Tabacznyj and Lawrence C Paulson
     Copyright   1996  University of Cambridge
 *)
@@ -7,7 +6,7 @@
 header {* Primality on nat *}
 
 theory Primes
-imports Plain "~~/src/HOL/ATP_Linkup" GCD Parity
+imports Plain "~~/src/HOL/ATP_Linkup" "~~/src/HOL/GCD" "~~/src/HOL/Parity"
 begin
 
 definition

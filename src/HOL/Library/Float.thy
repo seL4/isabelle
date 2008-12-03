@@ -1,13 +1,12 @@
-(*  Title: HOL/Real/Float.thy
-    ID:    $Id$
+(*  Title:  HOL/Real/Float.thy
     Author: Steven Obua
 *)
 
 header {* Floating Point Representation of the Reals *}
 
 theory Float
-imports Real Parity
-uses "~~/src/Tools/float.ML" ("float_arith.ML")
+imports Complex_Main
+uses "~~/src/Tools/float.ML" ("~~/src/HOL/Tools/float_arith.ML")
 begin
 
 definition
@@ -564,6 +563,6 @@ lemmas floatarith[simplified norm_0_1] = float_add float_add_l0 float_add_r0 flo
 (* for use with the compute oracle *)
 lemmas arith = binarith intarith intarithrel natarith powerarith floatarith not_false_eq_true not_true_eq_false
 
-use "float_arith.ML";
+use "~~/src/HOL/Tools/float_arith.ML"
 
 end

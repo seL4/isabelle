@@ -1,12 +1,9 @@
 (*  Title:      HOL/ex/ROOT.ML
-    ID:         $Id$
 
 Miscellaneous examples for Higher-Order Logic.
 *)
 
 no_document use_thys [
-  "Parity",
-  "Code_Eval",
   "State_Monad",
   "Efficient_Nat_examples",
   "ExecutableContent",
@@ -101,15 +98,15 @@ no_document use_thys [
 ];
 
 use_thys [
-  "../Complex/ex/BinEx",
-  "../Complex/ex/Sqrt",
-  "../Complex/ex/Sqrt_Script",
-  "../Complex/ex/BigO_Complex",
+  "BinEx",
+  "Sqrt",
+  "Sqrt_Script",
+  "BigO_Complex",
 
-  "../Complex/ex/Arithmetic_Series_Complex",
-  "../Complex/ex/HarmonicSeries",
+  "Arithmetic_Series_Complex",
+  "HarmonicSeries",
 
-  "../Complex/ex/MIR",
-  "../Complex/ex/ReflectedFerrack"
+  "MIR",
+  "ReflectedFerrack"
 ];
 

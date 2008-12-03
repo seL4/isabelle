@@ -7,7 +7,7 @@
 header {* Nth Roots of Real Numbers *}
 
 theory NthRoot
-imports "~~/src/HOL/Library/Parity" "../Hyperreal/Deriv"
+imports Parity Deriv
 begin
 
 subsection {* Existence of Nth Root *}

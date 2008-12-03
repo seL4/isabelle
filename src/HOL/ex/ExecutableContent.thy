@@ -1,5 +1,4 @@
-(*  ID:         $Id$
-    Author:     Florian Haftmann, TU Muenchen
+(*  Author:     Florian Haftmann, TU Muenchen
 *)
 
 header {* A huge set of executable constants *}

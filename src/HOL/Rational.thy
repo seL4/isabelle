@@ -1,13 +1,12 @@
-(*  Title:  HOL/Library/Rational.thy
-    ID:     $Id$
+(*  Title:  HOL/Rational.thy
     Author: Markus Wenzel, TU Muenchen
 *)
 
 header {* Rational numbers *}
 
 theory Rational
-imports "../Nat_Int_Bij" "~~/src/HOL/Library/GCD"
-uses ("rat_arith.ML")
+imports Nat_Int_Bij GCD
+uses ("Tools/rat_arith.ML")
 begin
 
 subsection {* Rational numbers as quotient *}
@@ -539,7 +538,7 @@ by (simp add: Zero_rat_def order_less_imp_not_eq2 zero_less_mult_iff)
 
 subsection {* Arithmetic setup *}
 
-use "rat_arith.ML"
+use "Tools/rat_arith.ML"
 declaration {* K rat_arith_setup *}
 
 

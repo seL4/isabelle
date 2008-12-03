@@ -1,5 +1,4 @@
-(*  Title:      HOL/Complex/ex/Arithmetic_Series_Complex
-    ID:         $Id$
+(*  Title:      HOL/ex/Arithmetic_Series_Complex
     Author:     Benjamin Porter, 2006
 *)
 

@@ -1,5 +1,4 @@
 (*  Title:      HOL/HOL.thy
-    ID:         $Id$
     Author:     Tobias Nipkow, Markus Wenzel, and Larry Paulson
 *)
 
@@ -8,7 +7,7 @@ header {* The basis of Higher-Order Logic *}
 theory HOL
 imports Pure
 uses
-  ("hologic.ML")
+  ("Tools/hologic.ML")
   "~~/src/Tools/IsaPlanner/zipper.ML"
   "~~/src/Tools/IsaPlanner/isand.ML"
   "~~/src/Tools/IsaPlanner/rw_tools.ML"
@@ -22,7 +21,7 @@ uses
   "~~/src/Provers/coherent.ML"
   "~~/src/Provers/eqsubst.ML"
   "~~/src/Provers/quantifier1.ML"
-  ("simpdata.ML")
+  ("Tools/simpdata.ML")
   "~~/src/Tools/random_word.ML"
   "~~/src/Tools/atomize_elim.ML"
   "~~/src/Tools/induct.ML"
@@ -801,7 +800,7 @@ lemmas [trans] = trans
   and [sym] = sym not_sym
   and [Pure.elim?] = iffD1 iffD2 impE
 
-use "hologic.ML"
+use "Tools/hologic.ML"
 
 
 subsubsection {* Atomizing meta-level connectives *}
@@ -1285,7 +1284,7 @@ lemma ex_comm:
   "(\<exists>x y. P x y) = (\<exists>y x. P x y)"
   by blast
 
-use "simpdata.ML"
+use "Tools/simpdata.ML"
 ML {* open Simpdata *}
 
 setup {*

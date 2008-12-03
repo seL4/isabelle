@@ -1,11 +1,8 @@
 (*  Title:      Pure/Tools/ROOT.ML
-    ID:         $Id$
 
 Miscellaneous tools and packages for Pure Isabelle.
 *)
 
-use "value.ML";
-use "quickcheck.ML";
 use "named_thms.ML";
 use "isabelle_process.ML";
 

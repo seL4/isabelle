@@ -1,6 +1,5 @@
-(*  Title: HOL/ex/NatSum.thy
-    ID:         $Id$
-    Author:     Tobias Nipkow
+(*  Title:  HOL/ex/NatSum.thy
+    Author: Tobias Nipkow
 *)
 
 header {* Summing natural numbers *}

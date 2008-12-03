@@ -1,5 +1,4 @@
-(*  ID          : $Id$
-    Author      : Jacques D. Fleuriot
+(*  Author      : Jacques D. Fleuriot
     Copyright   : 2000  University of Edinburgh
     Conversion to Isar and new proofs by Lawrence C Paulson, 2004
 *)

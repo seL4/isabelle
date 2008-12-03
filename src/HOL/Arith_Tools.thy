@@ -11,8 +11,8 @@ imports NatBin
 uses
   "~~/src/Provers/Arith/cancel_numeral_factor.ML"
   "~~/src/Provers/Arith/extract_common_term.ML"
-  "int_factor_simprocs.ML"
-  "nat_simprocs.ML"
+  "Tools/int_factor_simprocs.ML"
+  "Tools/nat_simprocs.ML"
   "Tools/Qelim/qelim.ML"
 begin
 

@@ -6,7 +6,7 @@
 header {* Term evaluation using the generic code generator *}
 
 theory Code_Eval
-imports Plain "~~/src/HOL/Library/RType"
+imports Plain Typerep
 begin
 
 subsection {* Term representation *}
