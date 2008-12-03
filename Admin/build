@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
 #
-# $Id$
-#
 # Administrative build for Isabelle source distribution.
 
 ## global environment
@@ -14,19 +12,8 @@ PATH="/home/scala/scala/bin:$PATH"
 
 ## directory layout
 
-ISABELLE_DIR="$(cd "$(dirname "$0")"; cd "$(pwd -P)"; cd ..; pwd)"
-
-if [ -d "$ISABELLE_DIR/Distribution" ]; then
-  ISABELLE_TOOL="$ISABELLE_DIR/Distribution/bin/isabelle"
-  ISABELLE_LIB="$ISABELLE_DIR/Distribution/lib"
-  ISABELLE_SRC="$ISABELLE_DIR"
-  ISABELLE_DOC_SRC="$ISABELLE_DIR/Doc"
-else
-  ISABELLE_TOOL="$ISABELLE_DIR/bin/isabelle"
-  ISABELLE_LIB="$ISABELLE_DIR/lib"
-  ISABELLE_SRC="$ISABELLE_DIR/src"
-  ISABELLE_DOC_SRC="$ISABELLE_DIR/doc-src"
-fi
+ISABELLE_HOME="$(cd "$(dirname "$0")"; cd "$(pwd -P)"; cd ..; pwd)"
+ISABELLE_TOOL="$ISABELLE_HOME/bin/isabelle"
 
 
 ## diagnostics
@@ -81,7 +68,7 @@ function build_browser ()
   echo "### Building graph browser ..."
   echo "###"
 
-  cd "$ISABELLE_LIB/browser"
+  cd "$ISABELLE_HOME/lib/browser"
   make clean all || fail "Failed to build graph browser!"
 }
 
@@ -92,7 +79,7 @@ function build_doc ()
   echo "### Building documentation ..."
   echo "###"
 
-  cd "$ISABELLE_DOC_SRC"
+  cd "$ISABELLE_HOME/doc-src"
   for DOC in $(cat Dirs)
   do
     pushd "$DOC" >/dev/null
@@ -111,12 +98,12 @@ function build_jars ()
 
   type -p scalac >/dev/null || fail "Scala compiler unavailable"
 
-  pushd "$ISABELLE_SRC/Pure" >/dev/null
+  pushd "$ISABELLE_HOME/src/Pure" >/dev/null
   "$ISABELLE_TOOL" make jar || fail "Failed to build Pure.jar!"
   popd >/dev/null
 
   if [ -d "$HOME/lib/jedit/current" ]; then
-    pushd "$ISABELLE_LIB/jedit/plugin" >/dev/null
+    pushd "$ISABELLE_HOME/lib/jedit/plugin" >/dev/null
     ./mk
     [ -f ../isabelle.jar ] || fail "Failed to build jEdit plugin!"
     popd >/dev/null

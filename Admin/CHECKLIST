@@ -16,18 +16,17 @@ Checklist for official releases
 - check ANNOUNCE, README, INSTALL, NEWS, COPYRIGHT, CONTRIBUTORS, ~isabelle/website;
 
 - maintain Docs:
-    Doc/Dirs
-    Distribution/doc/Contents
+    doc-src/Dirs
+    doc/Contents
 
 - maintain Logics:
     Admin/makedist
-    Distribution/build
-    Distribution/lib/Tools/makeall
-    Distribution/lib/html/index.html
-    Doc/Logics/intro.tex
-    Doc/Logics/logics.tex
+    build
+    lib/Tools/makeall
+    lib/html/index.html
+    doc-src/Logics/intro.tex
+    doc-src/Logics/logics.tex
 
 - after release: 
     commit new ~isabelle/website/include/documentationdist.include.html to website SVN
 
-$Id$
