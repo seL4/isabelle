@@ -29,7 +29,7 @@ text {*
   \hspace*{2ex}@{text "eq _ 0 = False"} \\
   \hspace*{2ex}@{text "eq (Suc n) (Suc m) = eq n m"}
 
-  \medskip\noindent\@{text "instance (\<alpha>\<Colon>eq, \<beta>\<Colon>eq) pair \<Colon> eq where"} \\
+  \medskip\noindent@{text "instance (\<alpha>\<Colon>eq, \<beta>\<Colon>eq) pair \<Colon> eq where"} \\
   \hspace*{2ex}@{text "eq (x1, y1) (x2, y2) = eq x1 x2 \<and> eq y1 y2"}
 
   \medskip\noindent@{text "class ord extends eq where"} \\

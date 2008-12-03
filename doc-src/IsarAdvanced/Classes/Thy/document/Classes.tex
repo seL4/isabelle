@@ -49,7 +49,7 @@ Type classes were introduces by Wadler and Blott \cite{wadler89how}
   \hspace*{2ex}\isa{eq\ {\isacharunderscore}\ {\isadigit{0}}\ {\isacharequal}\ False} \\
   \hspace*{2ex}\isa{eq\ {\isacharparenleft}Suc\ n{\isacharparenright}\ {\isacharparenleft}Suc\ m{\isacharparenright}\ {\isacharequal}\ eq\ n\ m}
 
-  \medskip\noindent\\isa{instance\ {\isacharparenleft}{\isasymalpha}{\isasymColon}eq{\isacharcomma}\ {\isasymbeta}{\isasymColon}eq{\isacharparenright}\ pair\ {\isasymColon}\ eq\ where} \\
+  \medskip\noindent\isa{instance\ {\isacharparenleft}{\isasymalpha}{\isasymColon}eq{\isacharcomma}\ {\isasymbeta}{\isasymColon}eq{\isacharparenright}\ pair\ {\isasymColon}\ eq\ where} \\
   \hspace*{2ex}\isa{eq\ {\isacharparenleft}x{\isadigit{1}}{\isacharcomma}\ y{\isadigit{1}}{\isacharparenright}\ {\isacharparenleft}x{\isadigit{2}}{\isacharcomma}\ y{\isadigit{2}}{\isacharparenright}\ {\isacharequal}\ eq\ x{\isadigit{1}}\ x{\isadigit{2}}\ {\isasymand}\ eq\ y{\isadigit{1}}\ y{\isadigit{2}}}
 
   \medskip\noindent\isa{class\ ord\ extends\ eq\ where} \\
