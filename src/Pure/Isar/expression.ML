@@ -1,5 +1,4 @@
 (*  Title:      Pure/Isar/expression.ML
-    ID:         $Id$
     Author:     Clemens Ballarin, TU Muenchen
 
 New locale development --- experimental.
@@ -25,10 +24,8 @@ sig
     string * Proof.context
 
   (* Interpretation *)
-  val sublocale_cmd: (thm list list -> Proof.context -> Proof.context) ->
-    string -> expression -> theory -> Proof.state;
-  val sublocale: (thm list list -> Proof.context -> Proof.context) ->
-    string -> expression_i -> theory -> Proof.state;
+  val sublocale_cmd: string -> expression -> theory -> Proof.state;
+  val sublocale: string -> expression_i -> theory -> Proof.state;
 
   (* Debugging and development *)
   val parse_expression: OuterParse.token list -> expression * OuterParse.token list
@@ -434,7 +431,7 @@ fun prep_full_context_statement parse_typ parse_prop parse_inst prep_vars prep_e
 
     val (raw_insts, fixed) = parameters_of thy strict (apfst (prep_expr thy) raw_import);
 
-    fun prep_inst (loc, (prfx, inst)) (i, marked, insts, ctxt) =
+    fun prep_inst (loc, (prfx, inst)) (i, insts, ctxt) =
       let
         val (parm_names, parm_types) = NewLocale.params_of thy loc |>
           map (fn (b, SOME T, _) => (Name.name_of b, T)) |> split_list;
@@ -443,11 +440,11 @@ fun prep_full_context_statement parse_typ parse_prop parse_inst prep_vars prep_e
           Term.map_type_tvar (fn ((x, _), S) => TVar ((x, i), S)) o Logic.varifyT) parm_types;
         val inst'' = map2 TypeInfer.constrain parm_types' inst';
         val insts' = insts @ [(loc, (prfx, inst''))];
-        val (insts'', _, _, ctxt') = check_autofix insts' [] [] ctxt;
+        val (insts'', _, _, ctxt' (* FIXME not used *) ) = check_autofix insts' [] [] ctxt;
         val inst''' = insts'' |> List.last |> snd |> snd;
         val (morph, _) = inst_morph (parm_names, parm_types) (prfx, inst''') ctxt;
-        val (marked', ctxt'') = NewLocale.activate_declarations thy (loc, morph) (marked, ctxt);
-      in (i+1, marked', insts', ctxt'') end;
+        val ctxt'' = NewLocale.activate_declarations thy (loc, morph) ctxt;
+      in (i+1, insts', ctxt'') end;
   
     fun prep_elem raw_elem (insts, elems, ctxt) =
       let
@@ -465,7 +462,7 @@ fun prep_full_context_statement parse_typ parse_prop parse_inst prep_vars prep_e
 
     val fors = prep_vars fixed context |> fst;
     val ctxt = context |> ProofContext.add_fixes_i fors |> snd;
-    val (_, _, insts', ctxt') = fold prep_inst raw_insts (0, NewLocale.empty, [], ctxt);
+    val (_, insts', ctxt') = fold prep_inst raw_insts (0, [], NewLocale.clear_idents ctxt);
     val (_, elems'', ctxt'') = fold prep_elem raw_elems (insts', [], ctxt');
     val (insts, elems, concl, ctxt) = prep_concl raw_concl (insts', elems'', ctxt'');
 
@@ -542,7 +539,7 @@ fun prep_declaration prep activate raw_import raw_elems context =
     (* Declare parameters and imported facts *)
     val context' = context |>
       ProofContext.add_fixes_i fixed |> snd |>
-      pair NewLocale.empty |> fold (NewLocale.activate_facts thy) deps |> snd;
+      NewLocale.clear_idents |> fold (NewLocale.activate_facts thy) deps;
     val ((elems', _), _) = activate elems (ProofContext.set_stmt true context');
   in ((fixed, deps, elems'), (parms, spec, defs)) end;
 
@@ -804,7 +801,7 @@ fun prep_result propps thmss =
 local
 
 fun gen_sublocale prep_expr intern
-    after_qed raw_target expression thy =
+    raw_target expression thy =
   let
     val target = intern thy raw_target;
     val target_ctxt = NewLocale.init target thy;
@@ -814,13 +811,10 @@ fun gen_sublocale prep_expr intern
     fun store_dep ((name, morph), thms) =
       NewLocale.add_dependency target (name, morph $> Element.satisfy_morphism thms $> export);
 
-    fun after_qed' results =
-      fold store_dep (deps ~~ prep_result propss results) #>
-      after_qed results;
-
+    fun after_qed results = fold store_dep (deps ~~ prep_result propss results);
   in
     goal_ctxt |>
-      Proof.theorem_i NONE after_qed' (prep_propp propss) |>
+      Proof.theorem_i NONE after_qed (prep_propp propss) |>
       Element.refine_witness |> Seq.hd
   end;
 
