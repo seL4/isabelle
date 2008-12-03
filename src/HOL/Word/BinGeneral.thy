@@ -371,25 +371,12 @@ lemma bin_rec_Min: "bin_rec f1 f2 f3 Int.Min = f2"
 lemma bin_rec_Bit0:
   "f3 Int.Pls bit.B0 f1 = f1 \<Longrightarrow>
     bin_rec f1 f2 f3 (Int.Bit0 w) = f3 w bit.B0 (bin_rec f1 f2 f3 w)"
-  apply (simp add: bin_rec_Pls bin_rec.simps [of _ _ _ "Int.Bit0 w"])
-  unfolding Pls_def Min_def Bit0_def
-  apply auto
-  apply presburger
-  apply (simp add: bin_rec.simps)
-  done
+  by (simp add: bin_rec_Pls bin_rec.simps [of _ _ _ "Int.Bit0 w"])
 
 lemma bin_rec_Bit1:
   "f3 Int.Min bit.B1 f2 = f2 \<Longrightarrow>
     bin_rec f1 f2 f3 (Int.Bit1 w) = f3 w bit.B1 (bin_rec f1 f2 f3 w)"
-  apply (simp add: bin_rec.simps [of _ _ _ "Int.Bit1 w"])
-  unfolding Pls_def Min_def Bit1_def
-  apply auto
-  apply (cases w)
-  apply auto
-  apply (simp add: bin_rec.simps)
-    unfolding Min_def Pls_def number_of_is_id apply auto
-  unfolding Bit0_def apply presburger
-  done
+  by (simp add: bin_rec_Min bin_rec.simps [of _ _ _ "Int.Bit1 w"])
   
 lemma bin_rec_Bit:
   "f = bin_rec f1 f2 f3  ==> f3 Int.Pls bit.B0 f1 = f1 ==> 
