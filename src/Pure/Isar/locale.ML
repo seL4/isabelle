@@ -91,6 +91,9 @@ sig
   val intro_locales_tac: bool -> Proof.context -> thm list -> tactic
 
   (* Storing results *)
+  val global_note_qualified: string ->
+    ((Name.binding * attribute list) * (thm list * attribute list) list) list ->
+    theory -> (string * thm list) list * theory
   val local_note_qualified: string ->
     ((Name.binding * attribute list) * (thm list * attribute list) list) list ->
     Proof.context -> (string * thm list) list * Proof.context
@@ -2409,7 +2412,6 @@ fun prep_result propps thmss =
   ListPair.map (fn ((_, props), thms) => map2 Element.make_witness props thms) (propps, thmss);
 
 fun gen_interpretation prep_registration after_qed prfx raw_expr raw_insts thy =
-  (* prfx = (flag indicating full qualification, name prefix) *)
   let
     val (propss, activate, morphs) = prep_registration thy prfx raw_expr raw_insts;
     fun after_qed' results =

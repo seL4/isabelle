@@ -1,5 +1,4 @@
-(*  Title:      Pure/Isar/expression.ML
-    ID:         $Id$
+(*  Title:      Pure/Isar/new_locale.ML
     Author:     Clemens Ballarin, TU Muenchen
 
 New locale development --- experimental.
@@ -7,11 +6,9 @@ New locale development --- experimental.
 
 signature NEW_LOCALE =
 sig
-  type identifiers
-  val empty: identifiers
-
   type locale
 
+  val clear_idents: Proof.context -> Proof.context
   val test_locale: theory -> string -> bool
   val register_locale: string ->
     (string * sort) list * (Name.binding * typ option * mixfix) list ->
@@ -39,9 +36,9 @@ sig
 
   (* Activation *)
   val activate_declarations: theory -> string * Morphism.morphism ->
-    identifiers * Proof.context -> identifiers * Proof.context
+    Proof.context -> Proof.context
   val activate_facts: theory -> string * Morphism.morphism ->
-    identifiers * Proof.context -> identifiers * Proof.context
+    Proof.context -> Proof.context
 (*  val activate: string -> theory -> (Element.context_i -> 'a -> 'a) -> 'a -> 'a *)
   val init: string -> theory -> Proof.context
 
@@ -56,6 +53,8 @@ sig
   val print_locale: theory -> bool -> bstring -> unit
 end;
 
+
+(*** Theorem list extensible via attribute --- to control intro_locales_tac ***)
 
 (* FIXME: consider moving named_thms.ML up in the build hierarchy and using that *)
 functor ThmsFun() =
@@ -184,15 +183,36 @@ fun declarations_of thy name =
 
 (*** Activate context elements of locale ***)
 
-(** Resolve locale dependencies in a depth-first fashion **)
+(** Identifiers: activated locales in theory or proof context **)
 
 type identifiers = (string * term list) list;
 
 val empty = ([] : identifiers);
 
+fun ident_eq thy ((n, ts), (m, ss)) = (m = n) andalso Pattern.matchess thy (ss, ts);
+
 local
 
-fun ident_eq thy ((n, ts), (m, ss)) = (m = n) andalso Pattern.matchess thy (ss, ts);
+structure IdentifiersData = GenericDataFun
+(
+  type T = identifiers;
+  val empty = empty;
+  val extend = I;
+  fun merge _ = Library.merge (op =);  (* FIXME cannot do this properly without theory context *)
+);
+
+in
+
+val get_idents = IdentifiersData.get o Context.Proof;
+val put_idents = Context.proof_map o IdentifiersData.put;
+val clear_idents = put_idents empty;
+
+end;
+
+
+(** Resolve locale dependencies in a depth-first fashion **)
+
+local
 
 val roundup_bound = 120;
 
@@ -220,18 +240,17 @@ fun add thy depth (name, morph) (deps, marked) =
 
 in
 
-fun roundup thy activate_dep (name, morph) (marked, ctxt) =
+fun roundup thy activate_dep (name, morph) (marked, input) =
   let
-    val Loc {dependencies, ...} = the_locale thy name;
     val (dependencies', marked') = add thy 0 (name, morph) ([], marked);
   in
-    (marked', ctxt |> fold_rev (activate_dep thy) dependencies')
+    (marked', input |> fold_rev (activate_dep thy) dependencies')
   end;
 
 end;
 
 
-(* Declarations and facts *)
+(* Declarations, facts and entire locale content *)
 
 fun activate_decls thy (name, morph) ctxt =
   let
@@ -252,10 +271,7 @@ fun activate_notes activ_elem thy (name, morph) input =
     fold_rev activate notes input
   end;
 
-
-(* Entire locale content *)
-
-fun activate name thy activ_elem input =
+fun activate_all name thy activ_elem (marked, input) =
   let
     val Loc {parameters = (_, params), spec = (asm, defs), dependencies, ...} =
       the_locale thy name;
@@ -267,7 +283,7 @@ fun activate name thy activ_elem input =
       (if not (null defs)
         then activ_elem (Defines (map (fn def => (Attrib.no_binding, (def, []))) defs))
         else I) |>
-      pair empty |> roundup thy (activate_notes activ_elem) (name, Morphism.identity) |> snd
+      pair marked |> roundup thy (activate_notes activ_elem) (name, Morphism.identity)
   end;
 
 
@@ -302,11 +318,14 @@ fun cons_elem false (Notes notes) elems = elems
 
 in
 
-fun activate_declarations thy = roundup thy activate_decls;
+fun activate_declarations thy dep ctxt =
+  roundup thy activate_decls dep (get_idents ctxt, ctxt) |> uncurry put_idents;
+  
+fun activate_facts thy dep ctxt =
+  roundup thy (activate_notes init_elem) dep (get_idents ctxt, ctxt) |> uncurry put_idents;
 
-fun activate_facts thy = roundup thy (activate_notes init_elem);
-
-fun init name thy = activate name thy init_elem (ProofContext.init thy);
+fun init name thy = activate_all name thy init_elem (empty, ProofContext.init thy) |>
+  uncurry put_idents;
 
 fun print_locale thy show_facts name =
   let
@@ -314,7 +333,7 @@ fun print_locale thy show_facts name =
     val ctxt = init name' thy
   in
     Pretty.big_list "locale elements:"
-      (activate name' thy (cons_elem show_facts) [] |> rev |> 
+      (activate_all name' thy (cons_elem show_facts) (empty, []) |> snd |> rev |> 
         map (Element.pretty_ctxt ctxt) |> map Pretty.chunks) |> Pretty.writeln
   end
 
