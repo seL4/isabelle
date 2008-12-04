@@ -173,12 +173,12 @@ lemmas nat_arith =
 
 lemma not_iszero_Numeral1: "\<not> iszero (Numeral1::'a::number_ring)"
   by (simp add: numeral_1_eq_1)
+
 lemmas comp_arith = Let_def arith_simps nat_arith rel_simps if_False
   if_True add_0 add_Suc add_number_of_left mult_number_of_left
   numeral_1_eq_1[symmetric] Suc_eq_add_numeral_1
-  numeral_0_eq_0[symmetric] numerals[symmetric] not_iszero_1
-  iszero_number_of_Bit1 iszero_number_of_Bit0 nonzero_number_of_Min
-  iszero_number_of_Pls iszero_0 not_iszero_Numeral1
+  numeral_0_eq_0[symmetric] numerals[symmetric]
+  iszero_simps not_iszero_Numeral1
 
 lemmas semiring_norm = comp_arith
 
