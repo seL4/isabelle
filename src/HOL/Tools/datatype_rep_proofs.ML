@@ -77,7 +77,7 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
       (if length descr' = 1 then [big_rec_name] else
         (map ((curry (op ^) (big_rec_name ^ "_")) o string_of_int)
           (1 upto (length descr'))));
-    val rep_set_names = map (Sign.full_name thy1) rep_set_names';
+    val rep_set_names = map (Sign.full_bname thy1) rep_set_names';
 
     val tyvars = map (fn (_, (_, Ts, _)) => map dest_DtTFree Ts) (hd descr);
     val leafTs' = get_nonrec_types descr' sorts;
@@ -184,10 +184,10 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
     val ({raw_induct = rep_induct, intrs = rep_intrs, ...}, thy2) =
         InductivePackage.add_inductive_global (serial_string ())
           {quiet_mode = ! quiet_mode, verbose = false, kind = Thm.internalK,
-           alt_name = Name.binding big_rec_name, coind = false, no_elim = true, no_ind = false,
+           alt_name = Binding.name big_rec_name, coind = false, no_elim = true, no_ind = false,
            skip_mono = true}
-          (map (fn s => ((Name.binding s, UnivT'), NoSyn)) rep_set_names') []
-          (map (fn x => (Attrib.no_binding, x)) intr_ts) [] thy1;
+          (map (fn s => ((Binding.name s, UnivT'), NoSyn)) rep_set_names') []
+          (map (fn x => (Attrib.empty_binding, x)) intr_ts) [] thy1;
 
     (********************************* typedef ********************************)
 
@@ -210,7 +210,7 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
     val rep_names' = map (fn i => big_rep_name ^ (string_of_int i))
       (1 upto (length (flat (tl descr))));
     val all_rep_names = map (Sign.intern_const thy3) rep_names @
-      map (Sign.full_name thy3) rep_names';
+      map (Sign.full_bname thy3) rep_names';
 
     (* isomorphism declarations *)
 

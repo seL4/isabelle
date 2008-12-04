@@ -1762,8 +1762,8 @@ fun record_definition (args, bname) parent (parents: parent_info list) raw_field
     val external_names = NameSpace.external_names (Sign.naming_of thy);
 
     val alphas = map fst args;
-    val name = Sign.full_name thy bname;
-    val full = Sign.full_name_path thy bname;
+    val name = Sign.full_bname thy bname;
+    val full = Sign.full_bname_path thy bname;
     val base = Sign.base_name;
 
     val (bfields, field_syntax) = split_list (map (fn (x, T, mx) => ((x, T), mx)) raw_fields);
@@ -2253,7 +2253,7 @@ fun gen_add_record prep_typ prep_raw_parent quiet_mode (params, bname) raw_paren
 
     (* errors *)
 
-    val name = Sign.full_name thy bname;
+    val name = Sign.full_bname thy bname;
     val err_dup_record =
       if is_none (get_record thy name) then []
       else ["Duplicate definition of record " ^ quote name];

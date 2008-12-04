@@ -3423,7 +3423,7 @@ let
    (fn n => fn m => Drule.instantiate' [] [SOME n, SOME m] @{thm nibble_pair_of_char.simps})
       nibbles nibbles;
 in
-  PureThy.note_thmss Thm.lemmaK [((Name.binding "nibble_pair_of_char_simps", []), [(thms, [])])]
+  PureThy.note_thmss Thm.lemmaK [((Binding.name "nibble_pair_of_char_simps", []), [(thms, [])])]
   #-> (fn [(_, thms)] => fold_rev Code.add_eqn thms)
 end
 *}

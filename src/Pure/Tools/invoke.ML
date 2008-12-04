@@ -1,5 +1,4 @@
 (*  Title:      Pure/Tools/invoke.ML
-    ID:         $Id$
     Author:     Makarius
 
 Schematic invocation of locale expression in proof context.
@@ -8,9 +7,9 @@ Schematic invocation of locale expression in proof context.
 signature INVOKE =
 sig
   val invoke: string * Attrib.src list -> Locale.expr -> string option list ->
-    (Name.binding * string option * mixfix) list -> bool -> Proof.state -> Proof.state
+    (Binding.T * string option * mixfix) list -> bool -> Proof.state -> Proof.state
   val invoke_i: string * attribute list -> Locale.expr -> term option list ->
-    (Name.binding * typ option * mixfix) list -> bool -> Proof.state -> Proof.state
+    (Binding.T * typ option * mixfix) list -> bool -> Proof.state -> Proof.state
 end;
 
 structure Invoke: INVOKE =
@@ -60,9 +59,9 @@ fun gen_invoke prep_att prep_expr parse_term add_fixes
         | NONE => Drule.termI)) params';
 
     val propp =
-      [((Name.no_binding, []), map (rpair [] o Logic.mk_term o Logic.mk_type) types'),
-       ((Name.no_binding, []), map (rpair [] o Logic.mk_term) params'),
-       ((Name.no_binding, []), map (rpair [] o Element.mark_witness) prems')];
+      [((Binding.empty, []), map (rpair [] o Logic.mk_term o Logic.mk_type) types'),
+       ((Binding.empty, []), map (rpair [] o Logic.mk_term) params'),
+       ((Binding.empty, []), map (rpair [] o Element.mark_witness) prems')];
     fun after_qed results =
       Proof.end_block #>
       Proof.map_context (fn ctxt =>

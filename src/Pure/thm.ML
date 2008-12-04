@@ -1732,9 +1732,9 @@ val extern_oracles = map #1 o NameSpace.extern_table o Oracles.get;
 fun add_oracle (bname, oracle) thy =
   let
     val naming = Sign.naming_of thy;
-    val name = NameSpace.full naming bname;
+    val name = NameSpace.full_name naming (Binding.name bname);
     val thy' = thy |> Oracles.map (fn (space, tab) =>
-      (NameSpace.declare naming name space,
+      (NameSpace.declare_base naming name space,
         Symtab.update_new (name, stamp ()) tab handle Symtab.DUP dup => err_dup_ora dup));
   in ((name, invoke_oracle (Theory.check_thy thy') name oracle), thy') end;
 

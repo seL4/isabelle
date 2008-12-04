@@ -54,7 +54,7 @@ fun mk_adm (x, T, P) = adm_const T $ absfree (x, T, P);
 fun prepare_pcpodef prep_term pcpo def name (t, vs, mx) raw_set opt_morphs thy =
   let
     val ctxt = ProofContext.init thy;
-    val full = Sign.full_name thy;
+    val full = Sign.full_bname thy;
 
     (*rhs*)
     val full_name = full name;
@@ -94,7 +94,7 @@ fun prepare_pcpodef prep_term pcpo def name (t, vs, mx) raw_set opt_morphs thy =
           |> TheoryTarget.instantiation ([full_tname], lhs_tfrees, @{sort "Porder.po"});
         val less_def' = Syntax.check_term lthy3 less_def;
         val ((_, (_, less_definition')), lthy4) = lthy3
-          |> Specification.definition (NONE, ((Name.binding ("less_" ^ name ^ "_def"), []), less_def'));
+          |> Specification.definition (NONE, ((Binding.name ("less_" ^ name ^ "_def"), []), less_def'));
         val ctxt_thy = ProofContext.init (ProofContext.theory_of lthy4);
         val less_definition = singleton (ProofContext.export lthy4 ctxt_thy) less_definition';
         val thy5 = lthy4

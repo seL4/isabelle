@@ -1,5 +1,4 @@
 (*  Title:      Tools/induct.ML
-    ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
 
 Proof by cases, induction, and coinduction.
@@ -51,7 +50,7 @@ sig
   val setN: string
   (*proof methods*)
   val fix_tac: Proof.context -> int -> (string * typ) list -> int -> tactic
-  val add_defs: (Name.binding option * term) option list -> Proof.context ->
+  val add_defs: (Binding.T option * term) option list -> Proof.context ->
     (term option list * thm list) * Proof.context
   val atomize_term: theory -> term -> term
   val atomize_tac: int -> tactic
@@ -63,7 +62,7 @@ sig
   val cases_tac: Proof.context -> term option list list -> thm option ->
     thm list -> int -> cases_tactic
   val get_inductT: Proof.context -> term option list list -> thm list list
-  val induct_tac: Proof.context -> (Name.binding option * term) option list list ->
+  val induct_tac: Proof.context -> (Binding.T option * term) option list list ->
     (string * typ) list list -> term option list -> thm list option ->
     thm list -> int -> cases_tactic
   val coinduct_tac: Proof.context -> term option list -> term option list -> thm option ->
@@ -553,7 +552,7 @@ fun add_defs def_insts =
   let
     fun add (SOME (SOME x, t)) ctxt =
           let val ([(lhs, (_, th))], ctxt') =
-            LocalDefs.add_defs [((x, NoSyn), ((Name.no_binding, []), t))] ctxt
+            LocalDefs.add_defs [((x, NoSyn), ((Binding.empty, []), t))] ctxt
           in ((SOME lhs, [th]), ctxt') end
       | add (SOME (NONE, t)) ctxt = ((SOME t, []), ctxt)
       | add NONE ctxt = ((NONE, []), ctxt);

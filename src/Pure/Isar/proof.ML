@@ -45,27 +45,27 @@ sig
   val match_bind_i: (term list * term) list -> state -> state
   val let_bind: (string list * string) list -> state -> state
   val let_bind_i: (term list * term) list -> state -> state
-  val fix: (Name.binding * string option * mixfix) list -> state -> state
-  val fix_i: (Name.binding * typ option * mixfix) list -> state -> state
+  val fix: (Binding.T * string option * mixfix) list -> state -> state
+  val fix_i: (Binding.T * typ option * mixfix) list -> state -> state
   val assm: Assumption.export ->
     (Attrib.binding * (string * string list) list) list -> state -> state
   val assm_i: Assumption.export ->
-    ((Name.binding * attribute list) * (term * term list) list) list -> state -> state
+    ((Binding.T * attribute list) * (term * term list) list) list -> state -> state
   val assume: (Attrib.binding * (string * string list) list) list -> state -> state
-  val assume_i: ((Name.binding * attribute list) * (term * term list) list) list ->
+  val assume_i: ((Binding.T * attribute list) * (term * term list) list) list ->
     state -> state
   val presume: (Attrib.binding * (string * string list) list) list -> state -> state
-  val presume_i: ((Name.binding * attribute list) * (term * term list) list) list ->
+  val presume_i: ((Binding.T * attribute list) * (term * term list) list) list ->
     state -> state
-  val def: (Attrib.binding * ((Name.binding * mixfix) * (string * string list))) list ->
+  val def: (Attrib.binding * ((Binding.T * mixfix) * (string * string list))) list ->
     state -> state
-  val def_i: ((Name.binding * attribute list) *
-    ((Name.binding * mixfix) * (term * term list))) list -> state -> state
+  val def_i: ((Binding.T * attribute list) *
+    ((Binding.T * mixfix) * (term * term list))) list -> state -> state
   val chain: state -> state
   val chain_facts: thm list -> state -> state
   val get_thmss: state -> (Facts.ref * Attrib.src list) list -> thm list
   val note_thmss: (Attrib.binding * (Facts.ref * Attrib.src list) list) list -> state -> state
-  val note_thmss_i: ((Name.binding * attribute list) *
+  val note_thmss_i: ((Binding.T * attribute list) *
     (thm list * attribute list) list) list -> state -> state
   val from_thmss: ((Facts.ref * Attrib.src list) list) list -> state -> state
   val from_thmss_i: ((thm list * attribute list) list) list -> state -> state
@@ -89,7 +89,7 @@ sig
     (theory -> 'a -> attribute) ->
     (context * 'b list -> context * (term list list * (context -> context))) ->
     string -> Method.text option -> (thm list list -> state -> state Seq.seq) ->
-    ((Name.binding * 'a list) * 'b) list -> state -> state
+    ((Binding.T * 'a list) * 'b) list -> state -> state
   val local_qed: Method.text option * bool -> state -> state Seq.seq
   val theorem: Method.text option -> (thm list list -> context -> context) ->
     (string * string list) list list -> context -> state
@@ -109,11 +109,11 @@ sig
   val have: Method.text option -> (thm list list -> state -> state Seq.seq) ->
     (Attrib.binding * (string * string list) list) list -> bool -> state -> state
   val have_i: Method.text option -> (thm list list -> state -> state Seq.seq) ->
-    ((Name.binding * attribute list) * (term * term list) list) list -> bool -> state -> state
+    ((Binding.T * attribute list) * (term * term list) list) list -> bool -> state -> state
   val show: Method.text option -> (thm list list -> state -> state Seq.seq) ->
     (Attrib.binding * (string * string list) list) list -> bool -> state -> state
   val show_i: Method.text option -> (thm list list -> state -> state Seq.seq) ->
-    ((Name.binding * attribute list) * (term * term list) list) list -> bool -> state -> state
+    ((Binding.T * attribute list) * (term * term list) list) list -> bool -> state -> state
   val is_relevant: state -> bool
   val future_proof: (state -> context) -> state -> context
 end;
@@ -617,7 +617,7 @@ fun chain_facts facts =
 
 (* note etc. *)
 
-fun no_binding args = map (pair (Name.no_binding, [])) args;
+fun no_binding args = map (pair (Binding.empty, [])) args;
 
 local
 
@@ -645,7 +645,7 @@ val with_thmss_i = gen_thmss (ProofContext.note_thmss_i "") the_facts chain #2 (
 val local_results =
   gen_thmss (ProofContext.note_thmss_i "") (K []) I I (K I) o map (apsnd Thm.simple_fact);
 
-fun get_thmss state srcs = the_facts (note_thmss [((Name.no_binding, []), srcs)] state);
+fun get_thmss state srcs = the_facts (note_thmss [((Binding.empty, []), srcs)] state);
 
 end;
 
@@ -689,14 +689,14 @@ fun gen_invoke_case prep_att (name, xs, raw_atts) state =
     val atts = map (prep_att (theory_of state)) raw_atts;
     val (asms, state') = state |> map_context_result (fn ctxt =>
       ctxt |> ProofContext.apply_case (ProofContext.get_case ctxt name xs));
-    val assumptions = asms |> map (fn (a, ts) => ((Name.binding a, atts), map (rpair []) ts));
+    val assumptions = asms |> map (fn (a, ts) => ((Binding.name a, atts), map (rpair []) ts));
   in
     state'
     |> map_context (ProofContext.qualified_names #> ProofContext.no_base_names)
     |> assume_i assumptions
     |> add_binds_i AutoBind.no_facts
     |> map_context (ProofContext.restore_naming (context_of state))
-    |> `the_facts |-> (fn thms => note_thmss_i [((Name.binding name, []), [(thms, [])])])
+    |> `the_facts |-> (fn thms => note_thmss_i [((Binding.name name, []), [(thms, [])])])
   end;
 
 in
@@ -1002,7 +1002,7 @@ fun future_proof make_proof state =
     val statement' = (kind, [[], [Thm.term_of cprop_protected]], cprop_protected);
     val goal' = Thm.adjust_maxidx_thm ~1 (Drule.protectI RS Goal.init cprop_protected);
     fun after_qed' [[th]] = ProofContext.put_thms false (AutoBind.thisN, SOME [Goal.conclude th]);
-    val this_name = ProofContext.full_name (ProofContext.reset_naming goal_ctxt) AutoBind.thisN;
+    val this_name = ProofContext.full_bname (ProofContext.reset_naming goal_ctxt) AutoBind.thisN;
 
     fun make_result () = state
       |> map_contexts (Variable.auto_fixes prop)

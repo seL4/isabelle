@@ -1,5 +1,3 @@
-(* $Id$ *)
-
 theory Nominal 
 imports Main Infinite_Set
 uses

@@ -268,7 +268,7 @@ fun namespace_definition name nameT parent_expr parent_comps new_comps thy =
                 (map (fn n => Locale.Rename (Locale.Locale (Locale.intern thy "var")
                                             ,[SOME (n,NONE)])) all_comps);
 
-    val full_name = Sign.full_name thy name;
+    val full_name = Sign.full_bname thy name;
     val dist_thm_name = distinct_compsN;
     val dist_thm_full_name =
         let val prefix = fold1' (fn name => fn prfx => prfx ^ "_" ^ name) all_comps "";
@@ -302,7 +302,7 @@ fun namespace_definition name nameT parent_expr parent_comps new_comps thy =
 
     val attr = Attrib.internal type_attr;
 
-    val assumes = Element.Assumes [((Name.binding dist_thm_name,[attr]),
+    val assumes = Element.Assumes [((Binding.name dist_thm_name,[attr]),
                     [(HOLogic.Trueprop $
                       (Const ("DistinctTreeProver.all_distinct",
                                  Type ("DistinctTreeProver.tree",[nameT]) --> HOLogic.boolT) $
@@ -373,7 +373,7 @@ fun take_upto i xs = List.take(xs,i) handle Subscript => xs;
 
 fun statespace_definition state_type args name parents parent_comps components thy =
   let
-    val full_name = Sign.full_name thy name;
+    val full_name = Sign.full_bname thy name;
     val all_comps = parent_comps @ components;
 
     val components' = map (fn (n,T) => (n,(T,full_name))) components;
@@ -443,7 +443,7 @@ fun statespace_definition state_type args name parents parent_comps components t
          NONE => []
        | SOME s =>
           let
-	    val fx = Element.Fixes [(Name.binding s,SOME (string_of_typ stateT),NoSyn)];
+	    val fx = Element.Fixes [(Binding.name s,SOME (string_of_typ stateT),NoSyn)];
             val cs = Element.Constrains
                        (map (fn (n,T) =>  (n,string_of_typ T))
                          ((map (fn (n,_) => (n,nameT)) all_comps) @
@@ -490,7 +490,7 @@ fun gen_define_statespace prep_typ state_space args name parents comps thy =
 
     fun add_parent (Ts,pname,rs) env =
       let
-        val full_pname = Sign.full_name thy pname;
+        val full_pname = Sign.full_bname thy pname;
         val {args,components,...} =
               (case get_statespace (Context.Theory thy) full_pname of
                 SOME r => r

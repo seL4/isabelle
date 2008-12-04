@@ -143,7 +143,7 @@ fun add_typecopy_default_code tyco thy =
     |> TheoryTarget.instantiation ([tyco], vs, [HOLogic.class_eq])
     |> `(fn lthy => Syntax.check_term lthy def_eq)
     |-> (fn def_eq => Specification.definition
-         (NONE, (Attrib.no_binding, def_eq)))
+         (NONE, (Attrib.empty_binding, def_eq)))
     |-> (fn (_, (_, def_thm)) =>
        Class.prove_instantiation_exit_result Morphism.thm
          (fn _ => fn def_thm => Class.intro_classes_tac []
