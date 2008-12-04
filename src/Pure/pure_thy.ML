@@ -59,7 +59,7 @@ struct
 
 structure FactsData = TheoryDataFun
 (
-  type T = Facts.T * unit Lazy.T list;
+  type T = Facts.T * unit lazy list;
   val empty = (Facts.empty, []);
   val copy = I;
   fun extend (facts, _) = (facts, []);
@@ -80,7 +80,9 @@ fun hide_fact fully name = FactsData.map (apfst (Facts.hide fully name));
 (* proofs *)
 
 fun lazy_proof thm = Lazy.lazy (fn () => Thm.force_proof thm);
-val force_proofs = List.app Lazy.force o #2 o FactsData.get;
+
+fun force_proofs thy =
+  ignore (Exn.release_all (map (Exn.capture Lazy.force) (rev (#2 (FactsData.get thy)))));
 
 
 

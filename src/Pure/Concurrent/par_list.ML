@@ -31,7 +31,7 @@ fun raw_map f xs =
   if Future.enabled () then
     let
       val group = TaskQueue.new_group ();
-      val futures = map (fn x => Future.future (SOME group) [] true (fn () => f x)) xs;
+      val futures = map (fn x => Future.fork_group group (fn () => f x)) xs;
       val _ = List.app (ignore o Future.join_result) futures;
     in Future.join_results futures end
   else map (Exn.capture f) xs;
