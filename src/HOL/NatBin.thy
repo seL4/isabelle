@@ -246,15 +246,11 @@ by (auto elim!: nonneg_eq_int)
 (*"neg" is used in rewrite rules for binary comparisons*)
 lemma eq_nat_number_of [simp]:
      "((number_of v :: nat) = number_of v') =  
-      (if neg (number_of v :: int) then (iszero (number_of v' :: int) | neg (number_of v' :: int))  
-       else if neg (number_of v' :: int) then iszero (number_of v :: int)  
-       else iszero (number_of (v + uminus v') :: int))"
-apply (simp only: simp_thms neg_nat not_neg_eq_ge_0 nat_number_of_def
-                  eq_nat_nat_iff eq_number_of_eq nat_0 iszero_def
-            split add: split_if cong add: imp_cong)
-apply (simp only: nat_eq_iff nat_eq_iff2)
-apply (simp add: not_neg_eq_ge_0 [symmetric])
-done
+      (if neg (number_of v :: int) then (number_of v' :: int) \<le> 0
+       else if neg (number_of v' :: int) then (number_of v :: int) = 0
+       else v = v')"
+  unfolding nat_number_of_def number_of_is_id neg_def
+  by auto
 
 
 subsubsection{*Less-than (<) *}
@@ -454,7 +450,7 @@ by (simp del: nat_numeral_0_eq_0 add: nat_numeral_0_eq_0 [symmetric] Pls_def)
 
 
 lemma neg_imp_number_of_eq_0: "neg (number_of v :: int) ==> number_of v = (0::nat)"
-by (simp del: nat_numeral_0_eq_0 add: nat_numeral_0_eq_0 [symmetric] iszero_0)
+by (simp del: nat_numeral_0_eq_0 add: nat_numeral_0_eq_0 [symmetric])
 
 
 
@@ -641,21 +637,14 @@ lemma nat_number_of_Min: "number_of Int.Min = (0::nat)"
 
 lemma nat_number_of_Bit0:
     "number_of (Int.Bit0 w) = (let n::nat = number_of w in n + n)"
-  apply (simp only: nat_number_of_def Let_def)
-  apply (cases "neg (number_of w :: int)")
-   apply (simp add: neg_nat neg_number_of_Bit0)
-  apply (rule int_int_eq [THEN iffD1])
-  apply (simp only: not_neg_nat neg_number_of_Bit0 int_Suc zadd_int [symmetric] simp_thms)
-  apply (simp only: number_of_Bit0 zadd_assoc)
-  apply simp
-  done
+  unfolding nat_number_of_def number_of_is_id numeral_simps Let_def
+  by auto
 
 lemma nat_number_of_Bit1:
   "number_of (Int.Bit1 w) =
     (if neg (number_of w :: int) then 0
      else let n = number_of w in Suc (n + n))"
-  unfolding nat_number_of_def number_of_Bit1
-  unfolding number_of_is_id neg_def Let_def
+  unfolding nat_number_of_def number_of_is_id numeral_simps neg_def Let_def
   by auto
 
 lemmas nat_number =
