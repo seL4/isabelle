@@ -514,7 +514,7 @@ lemma int_iszero_number_of_Bit1: "\<not> iszero ((number_of (Int.Bit1 w))::int)"
   by simp
 
 lemma int_less_number_of_eq_neg: "(((number_of x)::int) < number_of y) = neg ((number_of (x + (uminus y)))::int)"
-  by simp
+  unfolding neg_def number_of_is_id by simp
 
 lemma int_not_neg_number_of_Pls: "\<not> (neg (Numeral0::int))"
   by simp
@@ -529,7 +529,7 @@ lemma int_neg_number_of_Bit1: "neg ((number_of (Int.Bit1 w))::int) = neg ((numbe
   by simp
 
 lemma int_le_number_of_eq: "(((number_of x)::int) \<le> number_of y) = (\<not> neg ((number_of (y + (uminus x)))::int))"
-  by simp
+  unfolding neg_def number_of_is_id by (simp add: not_less)
 
 lemmas intarithrel =
   int_eq_number_of_eq
