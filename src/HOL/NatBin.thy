@@ -441,13 +441,11 @@ subsection{*Comparisons involving (0::nat) *}
 text{*Simplification already does @{term "n<0"}, @{term "n\<le>0"} and @{term "0\<le>n"}.*}
 
 lemma eq_number_of_0 [simp]:
-     "(number_of v = (0::nat)) =  
-      (if neg (number_of v :: int) then True else iszero (number_of v :: int))"
-by (simp del: nat_numeral_0_eq_0 add: nat_numeral_0_eq_0 [symmetric] iszero_0)
+  "number_of v = (0::nat) \<longleftrightarrow> number_of v \<le> (0::int)"  
+  unfolding nat_number_of_def number_of_is_id by auto
 
 lemma eq_0_number_of [simp]:
-     "((0::nat) = number_of v) =  
-      (if neg (number_of v :: int) then True else iszero (number_of v :: int))"
+  "(0::nat) = number_of v \<longleftrightarrow> number_of v \<le> (0::int)"  
 by (rule trans [OF eq_sym_conv eq_number_of_0])
 
 lemma less_0_number_of [simp]:
@@ -656,13 +654,9 @@ lemma nat_number_of_Bit1:
   "number_of (Int.Bit1 w) =
     (if neg (number_of w :: int) then 0
      else let n = number_of w in Suc (n + n))"
-  apply (simp only: nat_number_of_def Let_def split: split_if)
-  apply (intro conjI impI)
-   apply (simp add: neg_nat neg_number_of_Bit1)
-  apply (rule int_int_eq [THEN iffD1])
-  apply (simp only: not_neg_nat neg_number_of_Bit1 int_Suc zadd_int [symmetric] simp_thms)
-  apply (simp only: number_of_Bit1 zadd_assoc)
-  done
+  unfolding nat_number_of_def number_of_Bit1
+  unfolding number_of_is_id neg_def Let_def
+  by auto
 
 lemmas nat_number =
   nat_number_of_Pls nat_number_of_Min
@@ -708,7 +702,8 @@ lemma nat_number_of_add_left:
          (if neg (number_of v :: int) then number_of v' + k  
           else if neg (number_of v' :: int) then number_of v + k  
           else number_of (v + v') + k)"
-by simp
+  unfolding nat_number_of_def number_of_is_id neg_def
+  by auto
 
 lemma nat_number_of_mult_left:
      "number_of v * (number_of v' * (k::nat)) =  
