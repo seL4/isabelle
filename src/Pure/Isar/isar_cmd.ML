@@ -14,8 +14,8 @@ sig
   val typed_print_translation: bool * (string * Position.T) -> theory -> theory
   val print_ast_translation: bool * (string * Position.T) -> theory -> theory
   val oracle: bstring -> SymbolPos.text * Position.T -> theory -> theory
-  val add_axioms: ((Name.binding * string) * Attrib.src list) list -> theory -> theory
-  val add_defs: (bool * bool) * ((Name.binding * string) * Attrib.src list) list -> theory -> theory
+  val add_axioms: ((Binding.T * string) * Attrib.src list) list -> theory -> theory
+  val add_defs: (bool * bool) * ((Binding.T * string) * Attrib.src list) list -> theory -> theory
   val declaration: string * Position.T -> local_theory -> local_theory
   val simproc_setup: string -> string list -> string * Position.T -> string list ->
     local_theory -> local_theory

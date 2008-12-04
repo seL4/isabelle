@@ -440,7 +440,7 @@ fun add_datatypes_equality vs dtcos thy =
           (mk_side @{const_name eq_class.eq}, mk_side @{const_name "op ="}));
         val def' = Syntax.check_term lthy def;
         val ((_, (_, thm)), lthy') = Specification.definition
-          (NONE, (Attrib.no_binding, def')) lthy;
+          (NONE, (Attrib.empty_binding, def')) lthy;
         val ctxt_thy = ProofContext.init (ProofContext.theory_of lthy);
         val thm' = singleton (ProofContext.export lthy' ctxt_thy) thm;
       in (thm', lthy') end;

@@ -26,9 +26,9 @@ sig
   val target: (Proof.context -> Proof.context) -> local_theory -> local_theory
   val affirm: local_theory -> local_theory
   val pretty: local_theory -> Pretty.T list
-  val abbrev: Syntax.mode -> (Name.binding * mixfix) * term -> local_theory ->
+  val abbrev: Syntax.mode -> (Binding.T * mixfix) * term -> local_theory ->
     (term * term) * local_theory
-  val define: string -> (Name.binding * mixfix) * (Attrib.binding * term) -> local_theory ->
+  val define: string -> (Binding.T * mixfix) * (Attrib.binding * term) -> local_theory ->
     (term * (string * thm)) * local_theory
   val note: string -> Attrib.binding * thm list -> local_theory -> (string * thm list) * local_theory
   val notes: string -> (Attrib.binding * (thm list * Attrib.src list) list) list ->
@@ -56,10 +56,10 @@ struct
 
 type operations =
  {pretty: local_theory -> Pretty.T list,
-  abbrev: Syntax.mode -> (Name.binding * mixfix) * term -> local_theory ->
+  abbrev: Syntax.mode -> (Binding.T * mixfix) * term -> local_theory ->
     (term * term) * local_theory,
   define: string ->
-    (Name.binding * mixfix) * (Attrib.binding * term) -> local_theory ->
+    (Binding.T * mixfix) * (Attrib.binding * term) -> local_theory ->
     (term * (string * thm)) * local_theory,
   notes: string ->
     (Attrib.binding * (thm list * Attrib.src list) list) list ->
@@ -142,7 +142,7 @@ fun full_naming lthy =
   |> NameSpace.sticky_prefix (#theory_prefix (get_lthy lthy))
   |> NameSpace.qualified_names;
 
-val full_name = NameSpace.full o full_naming;
+fun full_name naming = NameSpace.full_name (full_naming naming) o Binding.name;
 
 fun theory_result f lthy = lthy |> raw_theory_result (fn thy => thy
   |> Sign.sticky_prefix (#theory_prefix (get_lthy lthy))

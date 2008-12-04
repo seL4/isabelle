@@ -59,9 +59,9 @@ fun pretty_thy ctxt target is_locale is_class =
   let
     val thy = ProofContext.theory_of ctxt;
     val target_name = (if is_class then "class " else "locale ") ^ locale_extern thy target;
-    val fixes = map (fn (x, T) => (Name.binding x, SOME T, NoSyn))
+    val fixes = map (fn (x, T) => (Binding.name x, SOME T, NoSyn))
       (#1 (ProofContext.inferred_fixes ctxt));
-    val assumes = map (fn A => (Attrib.no_binding, [(Thm.term_of A, [])]))
+    val assumes = map (fn A => (Attrib.empty_binding, [(Thm.term_of A, [])]))
       (Assumption.assms_of ctxt);
     val elems =
       (if null fixes then [] else [Element.Fixes fixes]) @
@@ -195,13 +195,13 @@ fun fork_mixfix (Target {is_locale, is_class, ...}) mx =
 
 fun locale_const (Target {target, is_class, ...}) (prmode as (mode, _)) tags ((b, mx), rhs) phi =
   let
-    val b' = Morphism.name phi b;
+    val b' = Morphism.binding phi b;
     val rhs' = Morphism.term phi rhs;
     val legacy_arg = (b', Term.close_schematic_term (Logic.legacy_varify rhs'));
     val arg = (b', Term.close_schematic_term rhs');
     val similar_body = Type.similar_types (rhs, rhs');
     (* FIXME workaround based on educated guess *)
-    val (prefix', _) = Binding.dest_binding b';
+    val (prefix', _) = Binding.dest b';
     val class_global = Name.name_of b = Name.name_of b'
       andalso not (null prefix')
       andalso (fst o snd o split_last) prefix' = Class.class_prefix target;
@@ -292,7 +292,7 @@ fun define (ta as Target {target, is_locale, is_class, ...})
     val thy_ctxt = ProofContext.init thy;
 
     val c = Name.name_of b;
-    val name' = Name.map_name (Thm.def_name_optional c) name;
+    val name' = Binding.map_base (Thm.def_name_optional c) name;
     val (rhs', rhs_conv) =
       LocalDefs.export_cterm lthy thy_ctxt (Thm.cterm_of thy rhs) |>> Thm.term_of;
     val xs = Variable.add_fixed (LocalTheory.target_of lthy) rhs' [];

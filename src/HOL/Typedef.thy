@@ -145,7 +145,7 @@ let fun add_itself tyco thy =
     thy
     |> TheoryTarget.instantiation ([tyco], vs, @{sort itself})
     |> `(fn lthy => Syntax.check_term lthy eq)
-    |-> (fn eq => Specification.definition (NONE, (Attrib.no_binding, eq)))
+    |-> (fn eq => Specification.definition (NONE, (Attrib.empty_binding, eq)))
     |> snd
     |> Class.prove_instantiation_instance (K (Class.intro_classes_tac []))
     |> LocalTheory.exit_global

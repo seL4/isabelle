@@ -82,7 +82,7 @@ fun morph_fundef_data (FundefCtxData {add_simps, case_names, fs, R,
                                       psimps, pinducts, termination, defname}) phi =
     let
       val term = Morphism.term phi val thm = Morphism.thm phi val fact = Morphism.fact phi
-      val name = Name.name_of o Morphism.name phi o Name.binding
+      val name = Name.name_of o Morphism.binding phi o Binding.name
     in
       FundefCtxData { add_simps = add_simps, case_names = case_names,
                       fs = map term fs, R = term R, psimps = fact psimps, 

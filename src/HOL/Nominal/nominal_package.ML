@@ -227,7 +227,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
       map (fn (cname, cargs, mx) => (cname, mx)) constrs) dts';
 
     val ps = map (fn (_, n, _, _) =>
-      (Sign.full_name tmp_thy n, Sign.full_name tmp_thy (n ^ "_Rep"))) dts;
+      (Sign.full_bname tmp_thy n, Sign.full_bname tmp_thy (n ^ "_Rep"))) dts;
     val rps = map Library.swap ps;
 
     fun replace_types (Type ("Nominal.ABS", [T, U])) =
@@ -241,7 +241,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
         map replace_types cargs, NoSyn)) constrs)) dts';
 
     val new_type_names' = map (fn n => n ^ "_Rep") new_type_names;
-    val full_new_type_names' = map (Sign.full_name thy) new_type_names';
+    val full_new_type_names' = map (Sign.full_bname thy) new_type_names';
 
     val ({induction, ...},thy1) =
       DatatypePackage.add_datatype err flat_names new_type_names' dts'' thy;
@@ -263,7 +263,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
     val perm_names' = DatatypeProp.indexify_names (map (fn (i, _) =>
       "perm_" ^ name_of_typ (nth_dtyp i)) descr);
     val perm_names = replicate (length new_type_names) "Nominal.perm" @
-      map (Sign.full_name thy1) (List.drop (perm_names', length new_type_names));
+      map (Sign.full_bname thy1) (List.drop (perm_names', length new_type_names));
     val perm_names_types = perm_names ~~ perm_types;
     val perm_names_types' = perm_names' ~~ perm_types;
 
@@ -289,7 +289,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
               else Const ("Nominal.perm", permT --> T --> T) $ pi $ x
             end;
         in
-          (Attrib.no_binding, HOLogic.mk_Trueprop (HOLogic.mk_eq
+          (Attrib.empty_binding, HOLogic.mk_Trueprop (HOLogic.mk_eq
             (Free (nth perm_names_types' i) $
                Free ("pi", mk_permT (TFree ("'x", HOLogic.typeS))) $
                list_comb (c, args),
@@ -301,7 +301,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
       PrimrecPackage.add_primrec_overloaded
         (map (fn (s, sT) => (s, sT, false))
            (List.take (perm_names' ~~ perm_names_types, length new_type_names)))
-        (map (fn s => (Name.binding s, NONE, NoSyn)) perm_names') perm_eqs thy1;
+        (map (fn s => (Binding.name s, NONE, NoSyn)) perm_names') perm_eqs thy1;
 
     (**** prove that permutation functions introduced by unfolding are ****)
     (**** equivalent to already existing permutation functions         ****)
@@ -566,16 +566,16 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
                 (rep_set_name, T))
               end)
                 (descr ~~ rep_set_names))));
-    val rep_set_names'' = map (Sign.full_name thy3) rep_set_names';
+    val rep_set_names'' = map (Sign.full_bname thy3) rep_set_names';
 
     val ({raw_induct = rep_induct, intrs = rep_intrs, ...}, thy4) =
         InductivePackage.add_inductive_global (serial_string ())
           {quiet_mode = false, verbose = false, kind = Thm.internalK,
-           alt_name = Name.binding big_rep_name, coind = false, no_elim = true, no_ind = false,
+           alt_name = Binding.name big_rep_name, coind = false, no_elim = true, no_ind = false,
            skip_mono = true}
-          (map (fn (s, T) => ((Name.binding s, T --> HOLogic.boolT), NoSyn))
+          (map (fn (s, T) => ((Binding.name s, T --> HOLogic.boolT), NoSyn))
              (rep_set_names' ~~ recTs'))
-          [] (map (fn x => (Attrib.no_binding, x)) intr_ts) [] thy3;
+          [] (map (fn x => (Attrib.empty_binding, x)) intr_ts) [] thy3;
 
     (**** Prove that representing set is closed under permutation ****)
 
@@ -768,7 +768,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
     val newTs' = Library.take (length new_type_names, recTs');
     val newTs = Library.take (length new_type_names, recTs);
 
-    val full_new_type_names = map (Sign.full_name thy) new_type_names;
+    val full_new_type_names = map (Sign.full_bname thy) new_type_names;
 
     fun make_constr_def tname T T' ((thy, defs, eqns),
         (((cname_rep, _), (cname, cargs)), (cname', mx))) =
@@ -1432,7 +1432,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
       if length descr'' = 1 then [big_rec_name] else
         map ((curry (op ^) (big_rec_name ^ "_")) o string_of_int)
           (1 upto (length descr''));
-    val rec_set_names =  map (Sign.full_name thy10) rec_set_names';
+    val rec_set_names =  map (Sign.full_bname thy10) rec_set_names';
 
     val rec_fns = map (uncurry (mk_Free "f"))
       (rec_fn_Ts ~~ (1 upto (length rec_fn_Ts)));
@@ -1509,12 +1509,12 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
       thy10 |>
         InductivePackage.add_inductive_global (serial_string ())
           {quiet_mode = ! quiet_mode, verbose = false, kind = Thm.internalK,
-           alt_name = Name.binding big_rec_name, coind = false, no_elim = false, no_ind = false,
+           alt_name = Binding.name big_rec_name, coind = false, no_elim = false, no_ind = false,
            skip_mono = true}
-          (map (fn (s, T) => ((Name.binding s, T), NoSyn)) (rec_set_names' ~~ rec_set_Ts))
+          (map (fn (s, T) => ((Binding.name s, T), NoSyn)) (rec_set_names' ~~ rec_set_Ts))
           (map dest_Free rec_fns)
-          (map (fn x => (Attrib.no_binding, x)) rec_intr_ts) [] ||>
-      PureThy.hide_fact true (NameSpace.append (Sign.full_name thy10 big_rec_name) "induct");
+          (map (fn x => (Attrib.empty_binding, x)) rec_intr_ts) [] ||>
+      PureThy.hide_fact true (NameSpace.append (Sign.full_bname thy10 big_rec_name) "induct");
 
     (** equivariance **)
 
@@ -2002,7 +2002,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
     (* define primrec combinators *)
 
     val big_reccomb_name = (space_implode "_" new_type_names) ^ "_rec";
-    val reccomb_names = map (Sign.full_name thy11)
+    val reccomb_names = map (Sign.full_bname thy11)
       (if length descr'' = 1 then [big_reccomb_name] else
         (map ((curry (op ^) (big_reccomb_name ^ "_")) o string_of_int)
           (1 upto (length descr''))));

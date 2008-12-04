@@ -1,5 +1,4 @@
 (*  Title:      Pure/Isar/attrib.ML
-    ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
 
 Symbolic representation of attributes -- with name and syntax.
@@ -8,8 +7,8 @@ Symbolic representation of attributes -- with name and syntax.
 signature ATTRIB =
 sig
   type src = Args.src
-  type binding = Name.binding * src list
-  val no_binding: binding
+  type binding = Binding.T * src list
+  val empty_binding: binding
   val print_attributes: theory -> unit
   val intern: theory -> xstring -> string
   val intern_src: theory -> src -> src
@@ -55,8 +54,8 @@ structure P = OuterParse;
 
 type src = Args.src;
 
-type binding = Name.binding * src list;
-val no_binding: binding = (Name.no_binding, []);
+type binding = Binding.T * src list;
+val empty_binding: binding = (Binding.empty, []);
 
 
 
@@ -119,7 +118,7 @@ fun attribute_i thy =
 fun attribute thy = attribute_i thy o intern_src thy;
 
 fun eval_thms ctxt args = ProofContext.note_thmss Thm.theoremK
-    [((Name.no_binding, []),
+    [((Binding.empty, []),
       map (apsnd (map (attribute (ProofContext.theory_of ctxt)))) args)] ctxt
   |> fst |> maps snd;
 
@@ -373,7 +372,7 @@ in
 fun register_config config thy =
   let
     val bname = Config.name_of config;
-    val name = Sign.full_name thy bname;
+    val name = Sign.full_bname thy bname;
   in
     thy
     |> add_attributes [(bname, syntax (Scan.lift (scan_config thy config) >> Morphism.form),

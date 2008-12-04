@@ -29,10 +29,10 @@ sig
   (*Insert definitions for the recursive sets, which
      must *already* be declared as constants in parent theory!*)
   val add_inductive_i: bool -> term list * term ->
-    ((Name.binding * term) * attribute list) list ->
+    ((Binding.T * term) * attribute list) list ->
     thm list * thm list * thm list * thm list -> theory -> theory * inductive_result
   val add_inductive: string list * string ->
-    ((Name.binding * string) * Attrib.src list) list ->
+    ((Binding.T * string) * Attrib.src list) list ->
     (Facts.ref * Attrib.src list) list * (Facts.ref * Attrib.src list) list *
     (Facts.ref * Attrib.src list) list * (Facts.ref * Attrib.src list) list ->
     theory -> theory * inductive_result

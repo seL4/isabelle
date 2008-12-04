@@ -1,5 +1,4 @@
 (*  Title:      Pure/ROOT.ML
-    ID:         $Id$
 
 Pure Isabelle.
 *)

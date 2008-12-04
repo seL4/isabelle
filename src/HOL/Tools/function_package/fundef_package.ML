@@ -9,14 +9,14 @@ Isar commands.
 
 signature FUNDEF_PACKAGE =
 sig
-    val add_fundef :  (Name.binding * string option * mixfix) list
+    val add_fundef :  (Binding.T * string option * mixfix) list
                       -> (Attrib.binding * string) list 
                       -> FundefCommon.fundef_config
                       -> bool list
                       -> local_theory
                       -> Proof.state
 
-    val add_fundef_i:  (Name.binding * typ option * mixfix) list
+    val add_fundef_i:  (Binding.T * typ option * mixfix) list
                        -> (Attrib.binding * term) list
                        -> FundefCommon.fundef_config
                        -> bool list
@@ -36,7 +36,7 @@ struct
 open FundefLib
 open FundefCommon
 
-fun note_theorem ((name, atts), ths) = LocalTheory.note Thm.theoremK ((Name.binding name, atts), ths)
+fun note_theorem ((name, atts), ths) = LocalTheory.note Thm.theoremK ((Binding.name name, atts), ths)
 
 fun mk_defname fixes = fixes |> map (fst o fst) |> space_implode "_" 
 
@@ -147,10 +147,10 @@ fun setup_termination_proof term_opt lthy =
         val goal = HOLogic.mk_Trueprop (HOLogic.mk_all ("x", domT, mk_acc domT R $ Free ("x", domT)))
     in
       lthy
-        |> ProofContext.note_thmss_i "" [((Name.no_binding, [ContextRules.rule_del]), [([allI], [])])] |> snd
-        |> ProofContext.note_thmss_i "" [((Name.no_binding, [ContextRules.intro_bang (SOME 1)]), [([allI], [])])] |> snd
+        |> ProofContext.note_thmss_i "" [((Binding.empty, [ContextRules.rule_del]), [([allI], [])])] |> snd
+        |> ProofContext.note_thmss_i "" [((Binding.empty, [ContextRules.intro_bang (SOME 1)]), [([allI], [])])] |> snd
         |> ProofContext.note_thmss_i ""
-          [((Name.binding "termination", [ContextRules.intro_bang (SOME 0)]),
+          [((Binding.name "termination", [ContextRules.intro_bang (SOME 0)]),
             [([Goal.norm_result termination], [])])] |> snd
         |> Proof.theorem_i NONE (total_termination_afterqed data) [[(goal, [])]]
     end

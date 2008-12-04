@@ -9,13 +9,13 @@ Taken from HOL/Tools/primrec_package.ML
 signature NOMINAL_PRIMREC =
 sig
   val add_primrec: string -> string list option -> string option ->
-    ((Name.binding * string) * Attrib.src list) list -> theory -> Proof.state
+    ((Binding.T * string) * Attrib.src list) list -> theory -> Proof.state
   val add_primrec_unchecked: string -> string list option -> string option ->
-    ((Name.binding * string) * Attrib.src list) list -> theory -> Proof.state
+    ((Binding.T * string) * Attrib.src list) list -> theory -> Proof.state
   val add_primrec_i: string -> term list option -> term option ->
-    ((Name.binding * term) * attribute list) list -> theory -> Proof.state
+    ((Binding.T * term) * attribute list) list -> theory -> Proof.state
   val add_primrec_unchecked_i: string -> term list option -> term option ->
-    ((Name.binding * term) * attribute list) list -> theory -> Proof.state
+    ((Binding.T * term) * attribute list) list -> theory -> Proof.state
 end;
 
 structure NominalPrimrec : NOMINAL_PRIMREC =

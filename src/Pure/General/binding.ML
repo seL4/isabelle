@@ -15,17 +15,16 @@ signature BINDING =
 sig
   include BASIC_BINDING
   type T
-  val binding_pos: string * Position.T -> T
-  val binding: string -> T
-  val no_binding: T
-  val dest_binding: T -> (string * bool) list * string
-  val is_nothing: T -> bool
-  val pos_of: T -> Position.T
- 
-  val map_binding: ((string * bool) list * string -> (string * bool) list * string)
-    -> T -> T
+  val name_pos: string * Position.T -> T
+  val name: string -> T
+  val empty: T
+  val map_base: (string -> string) -> T -> T
+  val qualify: string -> T -> T
   val add_prefix: bool -> string -> T -> T
   val map_prefix: ((string * bool) list -> T -> T) -> T -> T
+  val is_empty: T -> bool
+  val pos_of: T -> Position.T
+  val dest: T -> (string * bool) list * string
   val display: T -> string
 end
 
@@ -44,22 +43,30 @@ val unique_names = ref true;
 datatype T = Binding of ((string * bool) list * string) * Position.T;
   (* (prefix components (with mandatory flag), base name, position) *)
 
-fun binding_pos (name, pos) = Binding (([], name), pos);
-fun binding name = binding_pos (name, Position.none);
-val no_binding = binding "";
-
-fun pos_of (Binding (_, pos)) = pos;
-fun dest_binding (Binding (prefix_name, _)) = prefix_name;
+fun name_pos (name, pos) = Binding (([], name), pos);
+fun name name = name_pos (name, Position.none);
+val empty = name "";
 
 fun map_binding f (Binding (prefix_name, pos)) = Binding (f prefix_name, pos);
 
-fun is_nothing (Binding ((_, name), _)) = name = "";
+val map_base = map_binding o apsnd;
+
+fun qualify_base path name =
+  if path = "" orelse name = "" then name
+  else path ^ "." ^ name;
+
+val qualify = map_base o qualify_base;
+  (*FIXME should all operations on bare names moved here from name_space.ML ?*)
 
 fun add_prefix sticky prfx b = if prfx = "" then error "empty name prefix"
   else (map_binding o apfst) (cons (prfx, sticky)) b;
 
 fun map_prefix f (Binding ((prefix, name), pos)) =
-  f prefix (binding_pos (name, pos));
+  f prefix (name_pos (name, pos));
+
+fun is_empty (Binding ((_, name), _)) = name = "";
+fun pos_of (Binding (_, pos)) = pos;
+fun dest (Binding (prefix_name, _)) = prefix_name;
 
 fun display (Binding ((prefix, name), _)) =
   let

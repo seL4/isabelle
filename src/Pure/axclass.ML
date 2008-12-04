@@ -9,7 +9,7 @@ parameters.
 signature AX_CLASS =
 sig
   val define_class: bstring * class list -> string list ->
-    ((Name.binding * attribute list) * term list) list -> theory -> class * theory
+    ((Binding.T * attribute list) * term list) list -> theory -> class * theory
   val add_classrel: thm -> theory -> theory
   val add_arity: thm -> theory -> theory
   val prove_classrel: class * class -> tactic -> theory -> theory
@@ -370,7 +370,7 @@ fun declare_overloaded (c, T) thy =
     thy
     |> Sign.sticky_prefix name_inst
     |> Sign.no_base_names
-    |> Sign.declare_const [] ((Name.binding c', T'), NoSyn)
+    |> Sign.declare_const [] ((Binding.name c', T'), NoSyn)
     |-> (fn const' as Const (c'', _) => Thm.add_def false true
           (Thm.def_name c', Logic.mk_equals (Const (c, T'), const'))
     #>> Thm.varifyT
@@ -422,7 +422,7 @@ fun define_class (bclass, raw_super) raw_params raw_specs thy =
     (* class *)
 
     val bconst = Logic.const_of_class bclass;
-    val class = Sign.full_name thy bclass;
+    val class = Sign.full_bname thy bclass;
     val super = Sign.minimize_sort thy (Sign.certify_sort thy raw_super);
 
     fun check_constraint (a, S) =
@@ -482,9 +482,9 @@ fun define_class (bclass, raw_super) raw_params raw_specs thy =
       |> Sign.add_path bconst
       |> Sign.no_base_names
       |> PureThy.note_thmss ""
-        [((Name.binding introN, []), [([Drule.standard raw_intro], [])]),
-         ((Name.binding superN, []), [(map Drule.standard raw_classrel, [])]),
-         ((Name.binding axiomsN, []),
+        [((Binding.name introN, []), [([Drule.standard raw_intro], [])]),
+         ((Binding.name superN, []), [(map Drule.standard raw_classrel, [])]),
+         ((Binding.name axiomsN, []),
            [(map (fn th => Drule.standard (class_triv RS th)) raw_axioms, [])])]
       ||> Sign.restore_naming def_thy;
 
@@ -530,7 +530,7 @@ fun class_const c =
 
 fun ax_class prep_class prep_classrel (bclass, raw_super) thy =
   let
-    val class = Sign.full_name thy bclass;
+    val class = Sign.full_bname thy bclass;
     val super = map (prep_class thy) raw_super |> Sign.minimize_sort thy;
   in
     thy

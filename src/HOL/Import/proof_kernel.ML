@@ -1960,7 +1960,7 @@ fun new_definition thyname constname rhs thy =
         val hth = case Shuffler.set_prop thy22 (HOLogic.mk_Trueprop tm24) [("",th)] of
                       SOME (_,res) => HOLThm(rens_of linfo,res)
                     | NONE => raise ERR "new_definition" "Bad conclusion"
-        val fullname = Sign.full_name thy22 thmname
+        val fullname = Sign.full_bname thy22 thmname
         val thy22' = case opt_get_output_thy thy22 of
                          "" => (ImportRecorder.add_hol_mapping thyname thmname fullname;
                                 add_hol4_mapping thyname thmname fullname thy22)

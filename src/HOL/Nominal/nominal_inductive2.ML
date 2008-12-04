@@ -182,7 +182,7 @@ fun prove_strong_ind s avoids thy =
     fun mk_avoids params name sets =
       let
         val (_, ctxt') = ProofContext.add_fixes_i
-          (map (fn (s, T) => (Name.binding s, SOME T, NoSyn)) params) ctxt;
+          (map (fn (s, T) => (Binding.name s, SOME T, NoSyn)) params) ctxt;
         fun mk s =
           let
             val t = Syntax.read_term ctxt' s;

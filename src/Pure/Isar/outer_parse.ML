@@ -61,12 +61,12 @@ sig
   val list: (token list -> 'a * token list) -> token list -> 'a list * token list
   val list1: (token list -> 'a * token list) -> token list -> 'a list * token list
   val name: token list -> bstring * token list
-  val binding: token list -> Name.binding * token list
+  val binding: token list -> Binding.T * token list
   val xname: token list -> xstring * token list
   val text: token list -> string * token list
   val path: token list -> Path.T * token list
   val parname: token list -> string * token list
-  val parbinding: token list -> Name.binding * token list
+  val parbinding: token list -> Binding.T * token list
   val sort: token list -> string * token list
   val arity: token list -> (string * string list * string) * token list
   val multi_arity: token list -> (string list * string list * string) * token list
@@ -81,11 +81,11 @@ sig
   val opt_mixfix': token list -> mixfix * token list
   val where_: token list -> string * token list
   val const: token list -> (string * string * mixfix) * token list
-  val params: token list -> (Name.binding * string option) list * token list
-  val simple_fixes: token list -> (Name.binding * string option) list * token list
-  val fixes: token list -> (Name.binding * string option * mixfix) list * token list
-  val for_fixes: token list -> (Name.binding * string option * mixfix) list * token list
-  val for_simple_fixes: token list -> (Name.binding * string option) list * token list
+  val params: token list -> (Binding.T * string option) list * token list
+  val simple_fixes: token list -> (Binding.T * string option) list * token list
+  val fixes: token list -> (Binding.T * string option * mixfix) list * token list
+  val for_fixes: token list -> (Binding.T * string option * mixfix) list * token list
+  val for_simple_fixes: token list -> (Binding.T * string option) list * token list
   val ML_source: token list -> (SymbolPos.text * Position.T) * token list
   val doc_source: token list -> (SymbolPos.text * Position.T) * token list
   val properties: token list -> Properties.T * token list
@@ -228,13 +228,13 @@ fun list scan = enum "," scan;
 (* names and text *)
 
 val name = group "name declaration" (short_ident || sym_ident || string || number);
-val binding = position name >> Binding.binding_pos;
+val binding = position name >> Binding.name_pos;
 val xname = group "name reference" (short_ident || long_ident || sym_ident || string || number);
 val text = group "text" (short_ident || long_ident || sym_ident || string || number || verbatim);
 val path = group "file name/path specification" name >> Path.explode;
 
 val parname = Scan.optional ($$$ "(" |-- name --| $$$ ")") "";
-val parbinding = Scan.optional ($$$ "(" |-- binding --| $$$ ")") Name.no_binding;
+val parbinding = Scan.optional ($$$ "(" |-- binding --| $$$ ")") Binding.empty;
 
 
 (* sorts and arities *)
