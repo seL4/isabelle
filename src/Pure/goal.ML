@@ -20,7 +20,7 @@ sig
   val conclude: thm -> thm
   val finish: thm -> thm
   val norm_result: thm -> thm
-  val future_result: Proof.context -> (unit -> thm) -> term -> thm
+  val future_result: Proof.context -> thm future -> term -> thm
   val prove_internal: cterm list -> cterm -> (thm list -> tactic) -> thm
   val prove_multi: Proof.context -> string list -> term list -> term list ->
     ({prems: thm list, context: Proof.context} -> tactic) -> thm list
@@ -116,11 +116,11 @@ fun future_result ctxt result prop =
 
     val global_prop =
       Term.map_types Logic.varifyT (fold_rev Logic.all xs (Logic.list_implies (As, prop)));
-    val global_result =
-      Thm.generalize (map #1 tfrees, []) 0 o
-      Drule.forall_intr_list fixes o
-      Drule.implies_intr_list assms o
-      Thm.adjust_maxidx_thm ~1 o result;
+    val global_result = result |> Future.map
+      (Thm.adjust_maxidx_thm ~1 #>
+        Drule.implies_intr_list assms #>
+        Drule.forall_intr_list fixes #>
+        Thm.generalize (map #1 tfrees, []) 0);
     val local_result =
       Thm.future global_result (cert global_prop)
       |> Thm.instantiate (instT, [])
@@ -178,7 +178,7 @@ fun prove_common immediate ctxt xs asms props tac =
           end);
     val res =
       if immediate orelse #maxidx (Thm.rep_cterm stmt) >= 0 then result ()
-      else future_result ctxt' result (Thm.term_of stmt);
+      else future_result ctxt' (Future.fork_background result) (Thm.term_of stmt);
   in
     Conjunction.elim_balanced (length props) res
     |> map (Assumption.export false ctxt' ctxt)

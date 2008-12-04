@@ -115,7 +115,7 @@ sig
   val show_i: Method.text option -> (thm list list -> state -> state Seq.seq) ->
     ((Name.binding * attribute list) * (term * term list) list) list -> bool -> state -> state
   val is_relevant: state -> bool
-  val future_proof: (state -> context) -> state -> context
+  val future_proof: (state -> ('a * context) future) -> state -> 'a future * context
 end;
 
 structure Proof: PROOF =
@@ -990,7 +990,7 @@ fun is_relevant state =
   not (is_initial state) orelse
   schematic_goal state;
 
-fun future_proof make_proof state =
+fun future_proof proof state =
   let
     val _ = is_relevant state andalso error "Cannot fork relevant proof";
 
@@ -1004,16 +1004,19 @@ fun future_proof make_proof state =
     fun after_qed' [[th]] = ProofContext.put_thms false (AutoBind.thisN, SOME [Goal.conclude th]);
     val this_name = ProofContext.full_name (ProofContext.reset_naming goal_ctxt) AutoBind.thisN;
 
-    fun make_result () = state
+    val result_ctxt =
+      state
       |> map_contexts (Variable.auto_fixes prop)
       |> map_goal I (K (statement', messages, using, goal', before_qed, (#1 after_qed, after_qed')))
-      |> make_proof
-      |> (fn result_ctxt => ProofContext.get_fact_single result_ctxt (Facts.named this_name));
-    val finished_goal = Goal.protect (Goal.future_result goal_ctxt make_result prop);
-  in
-    state
-    |> map_goal I (K (statement, messages, using, finished_goal, NONE, after_qed))
-    |> global_done_proof
-  end;
+      |> proof;
+
+    val thm = result_ctxt |> Future.map (fn (_, ctxt) =>
+      ProofContext.get_fact_single ctxt (Facts.named this_name));
+    val finished_goal = Goal.protect (Goal.future_result goal_ctxt thm prop);
+    val state' =
+      state
+      |> map_goal I (K (statement, messages, using, finished_goal, NONE, after_qed))
+      |> global_done_proof;
+  in (Future.map #1 result_ctxt, state') end;
 
 end;
