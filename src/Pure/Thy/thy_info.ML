@@ -323,8 +323,8 @@ fun future_schedule task_graph =
     fun future (name, body) tab =
       let
         val deps = map_filter (Symtab.lookup tab) (Graph.imm_preds task_graph name);
-        val x = Future.future NONE deps true body;
-      in (x, Symtab.update (name, Future.task_of x) tab) end;
+        val x = Future.fork_deps deps body;
+      in (x, Symtab.update (name, x) tab) end;
     val _ = ignore (Exn.release_all (Future.join_results (#1 (fold_map future tasks Symtab.empty))));
   in () end;
 
