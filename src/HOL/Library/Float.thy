@@ -499,7 +499,7 @@ lemmas binarith =
 
 lemma int_eq_number_of_eq:
   "(((number_of v)::int)=(number_of w)) = iszero ((number_of (v + uminus w))::int)"
-  by simp
+  by (rule eq_number_of_eq)
 
 lemma int_iszero_number_of_Pls: "iszero (Numeral0::int)"
   by (simp only: iszero_number_of_Pls)
@@ -514,7 +514,7 @@ lemma int_iszero_number_of_Bit1: "\<not> iszero ((number_of (Int.Bit1 w))::int)"
   by simp
 
 lemma int_less_number_of_eq_neg: "(((number_of x)::int) < number_of y) = neg ((number_of (x + (uminus y)))::int)"
-  unfolding neg_def number_of_is_id by simp
+  by (rule less_number_of_eq_neg)
 
 lemma int_not_neg_number_of_Pls: "\<not> (neg (Numeral0::int))"
   by simp
