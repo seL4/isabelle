@@ -1581,17 +1581,17 @@ lemmas eq_special =
 
 text{*Allow 0 or 1 on either side with a binary numeral on the other*}
 lemmas less_special =
-  binop_eq [of "op <", OF less_number_of_eq_neg numeral_0_eq_0 refl, standard]
-  binop_eq [of "op <", OF less_number_of_eq_neg numeral_1_eq_1 refl, standard]
-  binop_eq [of "op <", OF less_number_of_eq_neg refl numeral_0_eq_0, standard]
-  binop_eq [of "op <", OF less_number_of_eq_neg refl numeral_1_eq_1, standard]
+  binop_eq [of "op <", OF less_number_of numeral_0_eq_0 refl, standard]
+  binop_eq [of "op <", OF less_number_of numeral_1_eq_1 refl, standard]
+  binop_eq [of "op <", OF less_number_of refl numeral_0_eq_0, standard]
+  binop_eq [of "op <", OF less_number_of refl numeral_1_eq_1, standard]
 
 text{*Allow 0 or 1 on either side with a binary numeral on the other*}
 lemmas le_special =
-    binop_eq [of "op \<le>", OF le_number_of_eq numeral_0_eq_0 refl, standard]
-    binop_eq [of "op \<le>", OF le_number_of_eq numeral_1_eq_1 refl, standard]
-    binop_eq [of "op \<le>", OF le_number_of_eq refl numeral_0_eq_0, standard]
-    binop_eq [of "op \<le>", OF le_number_of_eq refl numeral_1_eq_1, standard]
+    binop_eq [of "op \<le>", OF le_number_of numeral_0_eq_0 refl, standard]
+    binop_eq [of "op \<le>", OF le_number_of numeral_1_eq_1 refl, standard]
+    binop_eq [of "op \<le>", OF le_number_of refl numeral_0_eq_0, standard]
+    binop_eq [of "op \<le>", OF le_number_of refl numeral_1_eq_1, standard]
 
 lemmas arith_special[simp] = 
        add_special diff_special eq_special less_special le_special
