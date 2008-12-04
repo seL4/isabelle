@@ -31,20 +31,21 @@ sig
   type task = TaskQueue.task
   type group = TaskQueue.group
   val thread_data: unit -> (string * task * group) option
-  type 'a T
-  val task_of: 'a T -> task
-  val group_of: 'a T -> group
-  val peek: 'a T -> 'a Exn.result option
-  val is_finished: 'a T -> bool
-  val future: group option -> task list -> bool -> (unit -> 'a) -> 'a T
-  val fork: (unit -> 'a) -> 'a T
-  val fork_background: (unit -> 'a) -> 'a T
-  val join_results: 'a T list -> 'a Exn.result list
-  val join_result: 'a T -> 'a Exn.result
-  val join: 'a T -> 'a
+  type 'a future
+  val task_of: 'a future -> task
+  val group_of: 'a future -> group
+  val peek: 'a future -> 'a Exn.result option
+  val is_finished: 'a future -> bool
+  val future: group option -> task list -> bool -> (unit -> 'a) -> 'a future
+  val fork: (unit -> 'a) -> 'a future
+  val fork_background: (unit -> 'a) -> 'a future
+  val join_results: 'a future list -> 'a Exn.result list
+  val join_result: 'a future -> 'a Exn.result
+  val join: 'a future -> 'a
+  val map: ('a -> 'b) -> 'a future -> 'b future
   val focus: task list -> unit
   val interrupt_task: string -> unit
-  val cancel: 'a T -> unit
+  val cancel: 'a future -> unit
   val shutdown: unit -> unit
 end;
 
@@ -71,7 +72,7 @@ end;
 
 (* datatype future *)
 
-datatype 'a T = Future of
+datatype 'a future = Future of
  {task: task,
   group: group,
   result: 'a Exn.result option ref};
@@ -295,6 +296,9 @@ fun join x = Exn.release (join_result x);
 
 (* misc operations *)
 
+(*map: dependent fork/join*)
+fun map f x = future (SOME (group_of x)) [task_of x] true (fn () => f (join x));
+
 (*focus: collection of high-priority task*)
 fun focus tasks = SYNCHRONIZED "focus" (fn () =>
   change queue (TaskQueue.focus tasks));
@@ -324,3 +328,6 @@ fun shutdown () =
   else ();
 
 end;
+
+type 'a future = 'a Future.future;
+
