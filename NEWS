@@ -55,6 +55,9 @@ makes c inaccessible; consider using ``hide (open) const c'' instead.
 * Removed exotic 'token_translation' command.  INCOMPATIBILITY, use ML
 interface instead.
 
+* There is a new lexical item "float" with syntax ["-"] digit+ "." digit+,
+without spaces.
+
 
 *** Pure ***
 
@@ -268,6 +271,9 @@ recover tupled syntax, use syntax declarations like:
 (analogously for lcm, zgcd, zlcm).
 
 * HOL/Real/Rational: 'Fract k 0' now equals '0'.  INCOMPATIBILITY.
+
+* The real numbers offer decimal input syntax: 12.34 is translated into
+  1234/10^4. This translation is not reversed upon output.
 
 * New ML antiquotation @{code}: takes constant as argument, generates
 corresponding code in background and inserts name of the corresponding
