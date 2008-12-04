@@ -1299,13 +1299,21 @@ lemmas arith_simps =
 
 text {* Simplification of relational operations *}
 
+lemma less_number_of [simp]:
+  "(number_of x::'a::{ordered_idom,number_ring}) < number_of y \<longleftrightarrow> x < y"
+  unfolding number_of_eq by (rule of_int_less_iff)
+
+lemma le_number_of [simp]:
+  "(number_of x::'a::{ordered_idom,number_ring}) \<le> number_of y \<longleftrightarrow> x \<le> y"
+  unfolding number_of_eq by (rule of_int_le_iff)
+
 lemmas rel_simps [simp] = 
+  less_number_of less_bin_simps
+  le_number_of le_bin_simps
   eq_number_of_eq iszero_0 nonzero_number_of_Min
   iszero_number_of_Bit0 iszero_number_of_Bit1
-  less_number_of_eq_neg
   not_neg_number_of_Pls not_neg_0 not_neg_1 not_iszero_1
   neg_number_of_Min neg_number_of_Bit0 neg_number_of_Bit1
-  le_number_of_eq
 (* iszero_number_of_Pls would never be used
    because its lhs simplifies to "iszero 0" *)
 
