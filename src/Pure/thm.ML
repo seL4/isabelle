@@ -146,8 +146,7 @@ sig
   val varifyT: thm -> thm
   val varifyT': (string * sort) list -> thm -> ((string * sort) * indexname) list * thm
   val freezeT: thm -> thm
-  val join_futures: theory -> unit
-  val future: (unit -> thm) -> cterm -> thm
+  val future: thm future -> cterm -> thm
   val proof_body_of: thm -> proof_body
   val proof_of: thm -> proof
   val force_proof: thm -> unit
@@ -347,8 +346,8 @@ datatype thm = Thm of
   tpairs: (term * term) list,                   (*flex-flex pairs*)
   prop: term}                                   (*conclusion*)
 and deriv = Deriv of
- {all_promises: (serial * thm Future.T) OrdList.T,
-  promises: (serial * thm Future.T) OrdList.T,
+ {all_promises: (serial * thm future) OrdList.T,
+  promises: (serial * thm future) OrdList.T,
   body: Pt.proof_body};
 
 type conv = cterm -> thm;
@@ -1587,36 +1586,7 @@ fun biresolution match brules i state =
 
 
 
-(*** Promises ***)
-
-(* pending future derivations *)
-
-structure Futures = TheoryDataFun
-(
-  type T = thm Future.T list ref;
-  val empty : T = ref [];
-  val copy = I;  (*shared ref within all versions of whole theory body*)
-  fun extend _ : T = ref [];
-  fun merge _ _ : T = ref [];
-);
-
-val _ = Context.>> (Context.map_theory Futures.init);
-
-fun add_future thy future = CRITICAL (fn () => change (Futures.get thy) (cons future));
-
-fun join_futures thy =
-  let
-    val futures = Futures.get thy;
-    fun joined () =
-     (List.app (ignore o Future.join_result) (rev (! futures));
-      CRITICAL (fn () =>
-        let
-          val (finished, unfinished) = List.partition Future.is_finished (! futures);
-          val _ = futures := unfinished;
-        in finished end)
-      |> Future.join_results |> Exn.release_all |> null);
-  in while not (joined ()) do () end;
-
+(*** Future theorems -- proofs with promises ***)
 
 (* future rule *)
 
@@ -1635,15 +1605,14 @@ fun future_result i orig_thy orig_shyps orig_prop raw_thm =
     val _ = forall (fn (j, _) => j < i) all_promises orelse err "bad dependencies";
   in thm end;
 
-fun future make_result ct =
+fun future future_thm ct =
   let
     val Cterm {thy_ref = thy_ref, t = prop, T, maxidx, sorts} = ct;
     val thy = Context.reject_draft (Theory.deref thy_ref);
     val _ = T <> propT andalso raise CTERM ("future: prop expected", [ct]);
 
     val i = serial ();
-    val future = Future.fork_background (future_result i thy sorts prop o norm_proof o make_result);
-    val _ = add_future thy future;
+    val future = future_thm |> Future.map (future_result i thy sorts prop o norm_proof);
     val promise = (i, future);
   in
     Thm (make_deriv [promise] [promise] [] [] (Pt.promise_proof thy i prop),
