@@ -264,9 +264,8 @@ lemma less_nat_number_of [simp]:
      "((number_of v :: nat) < number_of v') =  
          (if neg (number_of v :: int) then neg (number_of (uminus v') :: int)  
           else neg (number_of (v + uminus v') :: int))"
-by (simp only: simp_thms neg_nat not_neg_eq_ge_0 nat_number_of_def
-                nat_less_eq_zless less_number_of_eq_neg zless_nat_eq_int_zless
-         cong add: imp_cong, simp add: Pls_def)
+  unfolding neg_def nat_number_of_def number_of_is_id
+  by auto
 
 
 (*Maps #n to n for n = 0, 1, 2*)
