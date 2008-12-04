@@ -15,7 +15,7 @@ sig
   val add_default_eqn_attrib: Attrib.src
   val del_eqn: thm -> theory -> theory
   val del_eqns: string -> theory -> theory
-  val add_eqnl: string * (thm * bool) list Lazy.T -> theory -> theory
+  val add_eqnl: string * (thm * bool) list lazy -> theory -> theory
   val map_pre: (MetaSimplifier.simpset -> MetaSimplifier.simpset) -> theory -> theory
   val map_post: (MetaSimplifier.simpset -> MetaSimplifier.simpset) -> theory -> theory
   val add_inline: thm -> theory -> theory
@@ -114,7 +114,7 @@ val _ =
 
 (* defining equations *)
 
-type eqns = bool * (thm * bool) list Lazy.T;
+type eqns = bool * (thm * bool) list lazy;
   (*default flag, theorems with linear flag (perhaps lazy)*)
 
 fun pretty_lthms ctxt r = case Lazy.peek r

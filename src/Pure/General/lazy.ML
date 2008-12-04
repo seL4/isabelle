@@ -8,13 +8,13 @@ attempts of evaluation -- the first result persists.
 
 signature LAZY =
 sig
-  type 'a T
-  val same: 'a T * 'a T -> bool
-  val lazy: (unit -> 'a) -> 'a T
-  val value: 'a -> 'a T
-  val peek: 'a T -> 'a Exn.result option
-  val force: 'a T -> 'a
-  val map_force: ('a -> 'a) -> 'a T -> 'a T
+  type 'a lazy
+  val same: 'a lazy * 'a lazy -> bool
+  val lazy: (unit -> 'a) -> 'a lazy
+  val value: 'a -> 'a lazy
+  val peek: 'a lazy -> 'a Exn.result option
+  val force: 'a lazy -> 'a
+  val map_force: ('a -> 'a) -> 'a lazy -> 'a lazy
 end
 
 structure Lazy :> LAZY =
@@ -22,13 +22,13 @@ struct
 
 (* datatype *)
 
-datatype 'a lazy =
+datatype 'a T =
   Lazy of unit -> 'a |
   Result of 'a Exn.result;
 
-type 'a T = 'a lazy ref;
+type 'a lazy = 'a T ref;
 
-fun same (r1: 'a T, r2) = r1 = r2;
+fun same (r1: 'a lazy, r2) = r1 = r2;
 
 fun lazy e = ref (Lazy e);
 fun value x = ref (Result (Exn.Result x));
@@ -58,3 +58,6 @@ fun force r =
 fun map_force f = value o f o force;
 
 end;
+
+type 'a lazy = 'a Lazy.lazy;
+
