@@ -485,7 +485,7 @@ fun define_function fdefname (fname, mixfix) domT ranT G default lthy =
               |> Syntax.check_term lthy
 
       val ((f, (_, f_defthm)), lthy) =
-        LocalTheory.define Thm.internalK ((Name.binding (function_name fname), mixfix), ((Name.binding fdefname, []), f_def)) lthy
+        LocalTheory.define Thm.internalK ((Binding.name (function_name fname), mixfix), ((Binding.name fdefname, []), f_def)) lthy
     in
       ((f, f_defthm), lthy)
     end
@@ -898,7 +898,7 @@ fun prepare_fundef config defname [((fname, fT), mixfix)] abstract_qglrs lthy =
           PROFILE "def_rel" (define_recursion_relation (rel_name defname) domT ranT fvar f abstract_qglrs clauses RCss) lthy
 
       val (_, lthy) =
-          LocalTheory.abbrev Syntax.mode_default ((Name.binding (dom_name defname), NoSyn), mk_acc domT R) lthy
+          LocalTheory.abbrev Syntax.mode_default ((Binding.name (dom_name defname), NoSyn), mk_acc domT R) lthy
 
       val newthy = ProofContext.theory_of lthy
       val clauses = map (transfer_clause_ctx newthy) clauses

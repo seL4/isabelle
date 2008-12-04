@@ -30,10 +30,10 @@ sig
   val certify: Pretty.pp -> Type.tsig -> bool -> T -> term -> term  (*exception TYPE*)
   val typargs: T -> string * typ -> typ list
   val instance: T -> string * typ list -> typ
-  val declare: bool -> NameSpace.naming -> Properties.T -> (Name.binding * typ) -> T -> T
+  val declare: bool -> NameSpace.naming -> Properties.T -> (Binding.T * typ) -> T -> T
   val constrain: string * typ option -> T -> T
   val abbreviate: Pretty.pp -> Type.tsig -> NameSpace.naming -> string -> Properties.T ->
-    Name.binding * term -> T -> (term * term) * T
+    Binding.T * term -> T -> (term * term) * T
   val revert_abbrev: string -> string -> T -> T
   val hide: bool -> string -> T -> T
   val empty: T
@@ -211,7 +211,7 @@ fun instance consts (c, Ts) =
 fun err_dup_const c =
   error ("Duplicate declaration of constant " ^ quote c);
 
-fun extend_decls naming decl tab = NameSpace.table_declare naming decl tab
+fun extend_decls naming decl tab = NameSpace.bind naming decl tab
   handle Symtab.DUP c => err_dup_const c;
 
 
@@ -273,7 +273,7 @@ fun abbreviate pp tsig naming mode tags (b, raw_rhs) consts =
       |> cert_term;
     val normal_rhs = expand_term rhs;
     val T = Term.fastype_of rhs;
-    val lhs = Const (NameSpace.full_binding naming b, T);
+    val lhs = Const (NameSpace.full_name naming b, T);
 
     fun err msg = error (msg ^ " on rhs of abbreviation:\n" ^
       Pretty.string_of_term pp (Logic.mk_equals (lhs, rhs)));

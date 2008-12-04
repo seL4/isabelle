@@ -31,9 +31,9 @@ sig
   val add_thm: (bstring * thm) * attribute list -> theory -> thm * theory
   val add_thmss: ((bstring * thm list) * attribute list) list -> theory -> thm list list * theory
   val add_thms_dynamic: bstring * (Context.generic -> thm list) -> theory -> theory
-  val note_thmss: string -> ((Name.binding * attribute list) *
+  val note_thmss: string -> ((Binding.T * attribute list) *
     (thm list * attribute list) list) list -> theory -> (string * thm list) list * theory
-  val note_thmss_grouped: string -> string -> ((Name.binding * attribute list) *
+  val note_thmss_grouped: string -> string -> ((Binding.T * attribute list) *
     (thm list * attribute list) list) list -> theory -> (string * thm list) list * theory
   val add_axioms: ((bstring * term) * attribute list) list -> theory -> thm list * theory
   val add_axioms_cmd: ((bstring * string) * attribute list) list -> theory -> thm list * theory
@@ -144,11 +144,11 @@ fun enter_proofs (thy, thms) =
   (FactsData.map (apsnd (fold (cons o lazy_proof) thms)) thy, thms);
 
 fun enter_thms pre_name post_name app_att (b, thms) thy =
-  if Binding.is_nothing b
+  if Binding.is_empty b
   then swap (enter_proofs (app_att (thy, thms)))
   else let
     val naming = Sign.naming_of thy;
-    val name = NameSpace.full_binding naming b;
+    val name = NameSpace.full_name naming b;
     val (thy', thms') =
       enter_proofs (apsnd (post_name name) (app_att (thy, pre_name name thms)));
     val thms'' = map (Thm.transfer thy') thms';
@@ -159,20 +159,20 @@ fun enter_thms pre_name post_name app_att (b, thms) thy =
 (* store_thm(s) *)
 
 fun store_thms (bname, thms) = enter_thms (name_thms true true Position.none)
-  (name_thms false true Position.none) I (Name.binding bname, thms);
+  (name_thms false true Position.none) I (Binding.name bname, thms);
 
 fun store_thm (bname, th) = store_thms (bname, [th]) #>> the_single;
 
 fun store_thm_open (bname, th) =
   enter_thms (name_thms true false Position.none) (name_thms false false Position.none) I
-    (Name.binding bname, [th]) #>> the_single;
+    (Binding.name bname, [th]) #>> the_single;
 
 
 (* add_thms(s) *)
 
 fun add_thms_atts pre_name ((bname, thms), atts) =
   enter_thms pre_name (name_thms false true Position.none)
-    (foldl_map (Thm.theory_attributes atts)) (Name.binding bname, thms);
+    (foldl_map (Thm.theory_attributes atts)) (Binding.name bname, thms);
 
 fun gen_add_thmss pre_name =
   fold_map (add_thms_atts pre_name);
@@ -189,7 +189,7 @@ val add_thm = yield_singleton add_thms;
 
 fun add_thms_dynamic (bname, f) thy = thy
   |> (FactsData.map o apfst)
-      (Facts.add_dynamic (Sign.naming_of thy) (Name.binding bname, f) #> snd);
+      (Facts.add_dynamic (Sign.naming_of thy) (Binding.name bname, f) #> snd);
 
 
 (* note_thmss *)
@@ -199,7 +199,7 @@ local
 fun gen_note_thmss tag = fold_map (fn ((b, more_atts), ths_atts) => fn thy =>
   let
     val pos = Binding.pos_of b;
-    val name = Sign.full_binding thy b;
+    val name = Sign.full_name thy b;
     val _ = Position.report (Markup.fact_decl name) pos;
 
     fun app (x, (ths, atts)) = foldl_map (Thm.theory_attributes atts) (x, ths);
@@ -219,7 +219,7 @@ end;
 (* store axioms as theorems *)
 
 local
-  fun get_ax thy (name, _) = Thm.axiom thy (Sign.full_name thy name);
+  fun get_ax thy (name, _) = Thm.axiom thy (Sign.full_bname thy name);
   fun get_axs thy named_axs = map (Thm.forall_elim_vars 0 o get_ax thy) named_axs;
   fun add_axm add = fold_map (fn ((name, ax), atts) => fn thy =>
     let

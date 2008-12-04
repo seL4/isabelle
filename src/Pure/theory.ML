@@ -36,7 +36,7 @@ sig
   val add_defs_i: bool -> bool -> (bstring * term) list -> theory -> theory
   val add_finals: bool -> string list -> theory -> theory
   val add_finals_i: bool -> term list -> theory -> theory
-  val specify_const: Properties.T -> (Name.binding * typ) * mixfix -> theory -> term * theory
+  val specify_const: Properties.T -> (Binding.T * typ) * mixfix -> theory -> term * theory
 end
 
 structure Theory: THEORY =
@@ -253,7 +253,7 @@ fun check_overloading thy overloaded (c, T) =
 fun check_def thy unchecked overloaded (bname, tm) defs =
   let
     val ctxt = ProofContext.init thy;
-    val name = Sign.full_name thy bname;
+    val name = Sign.full_bname thy bname;
     val (lhs_const, rhs) = Sign.cert_def ctxt tm;
     val rhs_consts = fold_aterms (fn Const const => insert (op =) const | _ => I) rhs [];
     val _ = check_overloading thy overloaded lhs_const;

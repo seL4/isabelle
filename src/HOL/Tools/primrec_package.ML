@@ -1,5 +1,4 @@
 (*  Title:      HOL/Tools/primrec_package.ML
-    ID:         $Id$
     Author:     Stefan Berghofer, TU Muenchen; Norbert Voelker, FernUni Hagen;
                 Florian Haftmann, TU Muenchen
 
@@ -8,12 +7,12 @@ Package for defining functions on datatypes by primitive recursion.
 
 signature PRIMREC_PACKAGE =
 sig
-  val add_primrec: (Name.binding * typ option * mixfix) list ->
+  val add_primrec: (Binding.T * typ option * mixfix) list ->
     (Attrib.binding * term) list -> local_theory -> thm list * local_theory
-  val add_primrec_global: (Name.binding * typ option * mixfix) list ->
+  val add_primrec_global: (Binding.T * typ option * mixfix) list ->
     (Attrib.binding * term) list -> theory -> thm list * theory
   val add_primrec_overloaded: (string * (string * typ) * bool) list ->
-    (Name.binding * typ option * mixfix) list ->
+    (Binding.T * typ option * mixfix) list ->
     (Attrib.binding * term) list -> theory -> thm list * theory
 end;
 
@@ -196,7 +195,7 @@ fun make_def ctxt fixes fs (fname, ls, rec_name, tname) =
     val rhs = singleton (Syntax.check_terms ctxt) raw_rhs;
     val SOME var = get_first (fn ((b, _), mx) =>
       if Name.name_of b = fname then SOME (b, mx) else NONE) fixes;
-  in (var, ((Name.binding def_name, []), rhs)) end;
+  in (var, ((Binding.name def_name, []), rhs)) end;
 
 
 (* find datatypes which contain all datatypes in tnames' *)
@@ -248,7 +247,7 @@ fun gen_primrec set_group prep_spec raw_fixes raw_spec lthy =
     val _ = if gen_eq_set (op =) (names1, names2) then ()
       else primrec_error ("functions " ^ commas_quote names2 ^
         "\nare not mutually recursive");
-    val qualify = Name.qualified
+    val qualify = Binding.qualify
       (space_implode "_" (map (Sign.base_name o #1) defs));
     val spec' = (map o apfst o apfst) qualify spec;
     val simp_atts = map (Attrib.internal o K)
@@ -260,7 +259,7 @@ fun gen_primrec set_group prep_spec raw_fixes raw_spec lthy =
     |-> (fn defs => `(fn ctxt => prove_spec ctxt names1 rec_rewrites defs spec'))
     |-> (fn simps => fold_map (LocalTheory.note Thm.theoremK) simps)
     |-> (fn simps' => LocalTheory.note Thm.theoremK
-          ((qualify (Name.binding "simps"), simp_atts), maps snd simps'))
+          ((qualify (Binding.name "simps"), simp_atts), maps snd simps'))
     |>> snd
   end handle PrimrecError (msg, some_eqn) =>
     error ("Primrec definition error:\n" ^ msg ^ (case some_eqn

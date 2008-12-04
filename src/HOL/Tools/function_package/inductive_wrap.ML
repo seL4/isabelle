@@ -44,14 +44,14 @@ fun inductive_def defs (((R, T), mixfix), lthy) =
             {quiet_mode = false,
               verbose = ! Toplevel.debug,
               kind = Thm.internalK,
-              alt_name = Name.no_binding,
+              alt_name = Binding.empty,
               coind = false,
               no_elim = false,
               no_ind = false,
               skip_mono = true}
-            [((Name.binding R, T), NoSyn)] (* the relation *)
+            [((Binding.name R, T), NoSyn)] (* the relation *)
             [] (* no parameters *)
-            (map (fn t => (Attrib.no_binding, t)) defs) (* the intros *)
+            (map (fn t => (Attrib.empty_binding, t)) defs) (* the intros *)
             [] (* no special monos *)
             lthy
 

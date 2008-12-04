@@ -23,8 +23,8 @@ sig
   val abbrev_mode: Proof.context -> bool
   val set_stmt: bool -> Proof.context -> Proof.context
   val naming_of: Proof.context -> NameSpace.naming
-  val full_name: Proof.context -> bstring -> string
-  val full_binding: Proof.context -> Name.binding -> string
+  val full_name: Proof.context -> Binding.T -> string
+  val full_bname: Proof.context -> bstring -> string
   val consts_of: Proof.context -> Consts.T
   val const_syntax_name: Proof.context -> string -> string
   val the_const_constraint: Proof.context -> string -> typ
@@ -105,27 +105,27 @@ sig
   val restore_naming: Proof.context -> Proof.context -> Proof.context
   val reset_naming: Proof.context -> Proof.context
   val note_thmss: string ->
-    ((Name.binding * attribute list) * (Facts.ref * attribute list) list) list ->
+    ((Binding.T * attribute list) * (Facts.ref * attribute list) list) list ->
       Proof.context -> (string * thm list) list * Proof.context
   val note_thmss_i: string ->
-    ((Name.binding * attribute list) * (thm list * attribute list) list) list ->
+    ((Binding.T * attribute list) * (thm list * attribute list) list) list ->
       Proof.context -> (string * thm list) list * Proof.context
   val put_thms: bool -> string * thm list option -> Proof.context -> Proof.context
-  val read_vars: (Name.binding * string option * mixfix) list -> Proof.context ->
-    (Name.binding * typ option * mixfix) list * Proof.context
-  val cert_vars: (Name.binding * typ option * mixfix) list -> Proof.context ->
-    (Name.binding * typ option * mixfix) list * Proof.context
-  val add_fixes: (Name.binding * string option * mixfix) list ->
+  val read_vars: (Binding.T * string option * mixfix) list -> Proof.context ->
+    (Binding.T * typ option * mixfix) list * Proof.context
+  val cert_vars: (Binding.T * typ option * mixfix) list -> Proof.context ->
+    (Binding.T * typ option * mixfix) list * Proof.context
+  val add_fixes: (Binding.T * string option * mixfix) list ->
     Proof.context -> string list * Proof.context
-  val add_fixes_i: (Name.binding * typ option * mixfix) list ->
+  val add_fixes_i: (Binding.T * typ option * mixfix) list ->
     Proof.context -> string list * Proof.context
   val auto_fixes: Proof.context * (term list list * 'a) -> Proof.context * (term list list * 'a)
   val bind_fixes: string list -> Proof.context -> (term -> term) * Proof.context
   val add_assms: Assumption.export ->
-    ((Name.binding * attribute list) * (string * string list) list) list ->
+    ((Binding.T * attribute list) * (string * string list) list) list ->
     Proof.context -> (string * thm list) list * Proof.context
   val add_assms_i: Assumption.export ->
-    ((Name.binding * attribute list) * (term * term list) list) list ->
+    ((Binding.T * attribute list) * (term * term list) list) list ->
     Proof.context -> (string * thm list) list * Proof.context
   val add_cases: bool -> (string * RuleCases.T option) list -> Proof.context -> Proof.context
   val apply_case: RuleCases.T -> Proof.context -> (string * term list) list * Proof.context
@@ -135,7 +135,7 @@ sig
     Context.generic -> Context.generic
   val add_const_constraint: string * typ option -> Proof.context -> Proof.context
   val add_abbrev: string -> Properties.T ->
-    Name.binding * term -> Proof.context -> (term * term) * Proof.context
+    Binding.T * term -> Proof.context -> (term * term) * Proof.context
   val revert_abbrev: string -> string -> Proof.context -> Proof.context
   val verbose: bool ref
   val setmp_verbose: ('a -> 'b) -> 'a -> 'b
@@ -247,8 +247,8 @@ fun set_stmt stmt =
 
 val naming_of = #naming o rep_context;
 
-val full_name = NameSpace.full o naming_of;
-val full_binding = NameSpace.full_binding o naming_of;
+val full_name = NameSpace.full_name o naming_of;
+fun full_bname thy = NameSpace.full_name (naming_of thy) o Binding.name;
 
 val syntax_of = #syntax o rep_context;
 val syn_of = LocalSyntax.syn_of o syntax_of;
@@ -965,14 +965,14 @@ val reset_naming    = map_naming (K local_naming);
 
 local
 
-fun update_thms _ (b, NONE) ctxt = ctxt |> map_facts (Facts.del (full_binding ctxt b))
+fun update_thms _ (b, NONE) ctxt = ctxt |> map_facts (Facts.del (full_name ctxt b))
   | update_thms do_props (b, SOME ths) ctxt = ctxt |> map_facts
       (Facts.add_local do_props (naming_of ctxt) (b, ths) #> snd);
 
 fun gen_note_thmss get k = fold_map (fn ((b, more_attrs), raw_facts) => fn ctxt =>
   let
     val pos = Binding.pos_of b;
-    val name = full_binding ctxt b;
+    val name = full_name ctxt b;
     val _ = ContextPosition.report_visible ctxt (Markup.local_fact_decl name) pos;
 
     val facts = PureThy.name_thmss false pos name (map (apfst (get ctxt)) raw_facts);
@@ -991,7 +991,7 @@ fun note_thmss_i k = gen_note_thmss (K I) k;
 fun put_thms do_props thms ctxt = ctxt
   |> map_naming (K local_naming)
   |> ContextPosition.set_visible false
-  |> update_thms do_props (apfst Name.binding thms)
+  |> update_thms do_props (apfst Binding.name thms)
   |> ContextPosition.restore_visible ctxt
   |> restore_naming ctxt;
 
@@ -1021,7 +1021,7 @@ fun prep_vars prep_typ internal =
         if internal then T
         else Type.no_tvars T handle TYPE (msg, _, _) => error msg;
       val opt_T = Option.map (cond_tvars o cert_typ ctxt o prep_typ ctxt) raw_T;
-      val var = (Name.map_name (K x) raw_b, opt_T, mx);
+      val var = (Binding.map_base (K x) raw_b, opt_T, mx);
     in (var, ctxt |> declare_var (x, opt_T, mx) |> #2) end);
 
 in
@@ -1095,7 +1095,7 @@ fun add_const_constraint (c, opt_T) ctxt =
 fun add_abbrev mode tags (b, raw_t) ctxt =
   let
     val t0 = cert_term (ctxt |> set_mode mode_abbrev) raw_t
-      handle ERROR msg => cat_error msg ("in constant abbreviation " ^ quote (Name.display b));
+      handle ERROR msg => cat_error msg ("in constant abbreviation " ^ quote (Binding.display b));
     val [t] = Variable.exportT_terms (Variable.declare_term t0 ctxt) ctxt [t0];
     val ((lhs, rhs), consts') = consts_of ctxt
       |> Consts.abbreviate (Syntax.pp ctxt) (tsig_of ctxt) (naming_of ctxt) mode tags (b, t);
@@ -1146,7 +1146,7 @@ fun auto_fixes (arg as (ctxt, (propss, x))) =
 
 fun bind_fixes xs ctxt =
   let
-    val (_, ctxt') = ctxt |> add_fixes_i (map (fn x => (Name.binding x, NONE, NoSyn)) xs);
+    val (_, ctxt') = ctxt |> add_fixes_i (map (fn x => (Binding.name x, NONE, NoSyn)) xs);
     fun bind (t as Free (x, T)) =
           if member (op =) xs x then
             (case lookup_skolem ctxt' x of SOME x' => Free (x', T) | NONE => t)

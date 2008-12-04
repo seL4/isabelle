@@ -80,7 +80,7 @@ fun prepare_typedef prep_term def name (t, vs, mx) raw_set opt_morphs thy =
   let
     val _ = Theory.requires thy "Typedef" "typedefs";
     val ctxt = ProofContext.init thy;
-    val full = Sign.full_name thy;
+    val full = Sign.full_bname thy;
 
     (*rhs*)
     val full_name = full name;

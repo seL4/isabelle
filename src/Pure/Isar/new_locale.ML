@@ -11,7 +11,7 @@ sig
   val clear_idents: Proof.context -> Proof.context
   val test_locale: theory -> string -> bool
   val register_locale: string ->
-    (string * sort) list * (Name.binding * typ option * mixfix) list ->
+    (string * sort) list * (Binding.T * typ option * mixfix) list ->
     term option * term list ->
     (declaration * stamp) list * (declaration * stamp) list ->
     ((string * (Attrib.binding * (thm list * Attrib.src list) list) list) * stamp) list ->
@@ -22,7 +22,7 @@ sig
   val extern: theory -> string -> xstring
 
   (* Specification *)
-  val params_of: theory -> string -> (Name.binding * typ option * mixfix) list
+  val params_of: theory -> string -> (Binding.T * typ option * mixfix) list
   val specification_of: theory -> string -> term option * term list
   val declarations_of: theory -> string -> declaration list * declaration list
 
@@ -84,7 +84,7 @@ datatype ctxt = datatype Element.ctxt;
 
 datatype locale = Loc of {
   (* extensible lists are in reverse order: decls, notes, dependencies *)
-  parameters: (string * sort) list * (Name.binding * typ option * mixfix) list,
+  parameters: (string * sort) list * (Binding.T * typ option * mixfix) list,
     (* type and term parameters *)
   spec: term option * term list,
     (* assumptions (as a single predicate expression) and defines *)
@@ -138,7 +138,7 @@ fun test_locale thy name = case get_locale thy name
 
 fun register_locale name parameters spec decls notes dependencies thy =
   thy |> LocalesData.map (fn (space, locs) =>
-    (Sign.declare_name thy name space, Symtab.update (name,
+    (NameSpace.declare_base (Sign.naming_of thy) name space, Symtab.update (name,
       Loc {parameters = parameters, spec = spec, decls = decls, notes = notes,
         dependencies = dependencies}) locs));
 
@@ -279,9 +279,9 @@ fun activate_all name thy activ_elem (marked, input) =
     input |>
       (if not (null params) then activ_elem (Fixes params) else I) |>
       (* FIXME type parameters *)
-      (if is_some asm then activ_elem (Assumes [(Attrib.no_binding, [(the asm, [])])]) else I) |>
+      (if is_some asm then activ_elem (Assumes [(Attrib.empty_binding, [(the asm, [])])]) else I) |>
       (if not (null defs)
-        then activ_elem (Defines (map (fn def => (Attrib.no_binding, (def, []))) defs))
+        then activ_elem (Defines (map (fn def => (Attrib.empty_binding, (def, []))) defs))
         else I) |>
       pair marked |> roundup thy (activate_notes activ_elem) (name, Morphism.identity)
   end;
@@ -366,7 +366,7 @@ fun add_decls add loc decl =
     (fn (parameters, spec, decls, notes, dependencies) =>
       (parameters, spec, add (decl, stamp ()) decls, notes, dependencies))) #>
   add_thmss loc Thm.internalK
-    [((Name.no_binding, [Attrib.internal (decl_attrib decl)]), [([Drule.dummy_thm], [])])];
+    [((Binding.empty, [Attrib.internal (decl_attrib decl)]), [([Drule.dummy_thm], [])])];
 
 in
 

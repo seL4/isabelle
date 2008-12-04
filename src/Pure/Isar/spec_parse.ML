@@ -15,14 +15,14 @@ sig
   val opt_thm_name: string -> token list -> Attrib.binding * token list
   val spec: token list -> (Attrib.binding * string list) * token list
   val named_spec: token list -> (Attrib.binding * string list) * token list
-  val spec_name: token list -> ((Name.binding * string) * Attrib.src list) * token list
-  val spec_opt_name: token list -> ((Name.binding * string) * Attrib.src list) * token list
+  val spec_name: token list -> ((Binding.T * string) * Attrib.src list) * token list
+  val spec_opt_name: token list -> ((Binding.T * string) * Attrib.src list) * token list
   val xthm: token list -> (Facts.ref * Attrib.src list) * token list
   val xthms1: token list -> (Facts.ref * Attrib.src list) list * token list
   val name_facts: token list ->
     (Attrib.binding * (Facts.ref * Attrib.src list) list) list * token list
   val locale_mixfix: token list -> mixfix * token list
-  val locale_fixes: token list -> (Name.binding * string option * mixfix) list * token list
+  val locale_fixes: token list -> (Binding.T * string option * mixfix) list * token list
   val locale_insts: token list -> (string option list * (Attrib.binding * string) list) * token list
   val class_expr: token list -> string list * token list
   val locale_expr: token list -> Locale.expr * token list
@@ -33,8 +33,8 @@ sig
     (Element.context list * Element.statement) * OuterLex.token list
   val statement_keyword: token list -> string * token list
   val specification: token list ->
-    (Name.binding *
-      ((Attrib.binding * string list) list * (Name.binding * string option) list)) list * token list
+    (Binding.T *
+      ((Attrib.binding * string list) list * (Binding.T * string option) list)) list * token list
 end;
 
 structure SpecParse: SPEC_PARSE =
@@ -53,8 +53,8 @@ val opt_attribs = Scan.optional attribs [];
 fun thm_name s = P.binding -- opt_attribs --| P.$$$ s;
 
 fun opt_thm_name s =
-  Scan.optional ((P.binding -- opt_attribs || attribs >> pair Name.no_binding) --| P.$$$ s)
-    Attrib.no_binding;
+  Scan.optional ((P.binding -- opt_attribs || attribs >> pair Binding.empty) --| P.$$$ s)
+    Attrib.empty_binding;
 
 val spec = opt_thm_name ":" -- Scan.repeat1 P.prop;
 val named_spec = thm_name ":" -- Scan.repeat1 P.prop;

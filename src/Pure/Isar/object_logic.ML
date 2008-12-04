@@ -89,7 +89,7 @@ fun add_base_sort S = map_data (fn (base_sort, judgment, atomize_rulify) =>
 fun typedecl (raw_name, vs, mx) thy =
   let
     val base_sort = get_base_sort thy;
-    val name = Sign.full_name thy (Syntax.type_name raw_name mx);
+    val name = Sign.full_bname thy (Syntax.type_name raw_name mx);
     val _ = has_duplicates (op =) vs andalso
       error ("Duplicate parameters in type declaration: " ^ quote name);
     val n = length vs;
@@ -107,7 +107,7 @@ fun typedecl (raw_name, vs, mx) thy =
 local
 
 fun gen_add_judgment add_consts (bname, T, mx) thy =
-  let val c = Sign.full_name thy (Syntax.const_name bname mx) in
+  let val c = Sign.full_bname thy (Syntax.const_name bname mx) in
     thy
     |> add_consts [(bname, T, mx)]
     |> (fn thy' => Theory.add_deps c (c, Sign.the_const_type thy' c) [] thy')

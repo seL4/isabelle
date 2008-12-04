@@ -6,7 +6,7 @@ The nominal induct proof method.
 
 structure NominalInduct:
 sig
-  val nominal_induct_tac: Proof.context -> (Name.binding option * term) option list list ->
+  val nominal_induct_tac: Proof.context -> (Binding.T option * term) option list list ->
     (string * typ) list -> (string * typ) list list -> thm list ->
     thm list -> int -> RuleCases.cases_tactic
   val nominal_induct_method: Method.src -> Proof.context -> Method.method

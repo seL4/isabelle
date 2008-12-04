@@ -96,7 +96,7 @@ fun prove_class_interpretation class inst consts hyp_facts def_facts thy =
     thy
     |> fold2 add_constraint (map snd consts) no_constraints
     |> prove_interpretation tac (class_name_morphism class) (Locale.Locale class)
-          (map SOME inst, map (pair (Attrib.no_binding) o Thm.prop_of) def_facts)
+          (map SOME inst, map (pair (Attrib.empty_binding) o Thm.prop_of) def_facts)
     ||> fold2 add_constraint (map snd consts) constraints
   end;
 
@@ -476,7 +476,7 @@ fun declare class pos ((c, mx), dict) thy =
     val inst = the_inst thy' class;
     val params = map (apsnd fst o snd) (these_params thy' [class]);
 
-    val c' = Sign.full_name thy' c;
+    val c' = Sign.full_bname thy' c;
     val dict' = Morphism.term phi dict;
     val dict_def = map_types Logic.unvarifyT dict';
     val ty' = Term.fastype_of dict_def;
@@ -485,7 +485,7 @@ fun declare class pos ((c, mx), dict) thy =
     fun get_axiom thy = ((Thm.varifyT o Thm.axiom thy) c', thy);
   in
     thy'
-    |> Sign.declare_const pos ((Name.binding c, ty''), mx) |> snd
+    |> Sign.declare_const pos ((Binding.name c, ty''), mx) |> snd
     |> Thm.add_def false false (c, def_eq)
     |>> Thm.symmetric
     ||>> get_axiom
@@ -507,13 +507,13 @@ fun abbrev class prmode pos ((c, mx), rhs) thy =
 
     val unchecks = map (fn (c, (_, (ty, t))) => (t, Const (c, ty)))
       (these_operations thy [class]);
-    val c' = Sign.full_name thy' c;
+    val c' = Sign.full_bname thy' c;
     val rhs' = Pattern.rewrite_term thy unchecks [] rhs;
     val rhs'' = map_types Logic.varifyT rhs';
     val ty' = Term.fastype_of rhs';
   in
     thy'
-    |> Sign.add_abbrev (#1 prmode) pos (Name.binding c, map_types Type.strip_sorts rhs'') |> snd
+    |> Sign.add_abbrev (#1 prmode) pos (Binding.name c, map_types Type.strip_sorts rhs'') |> snd
     |> Sign.add_const_constraint (c', SOME ty')
     |> Sign.notation true prmode [(Const (c', ty'), mx)]
     |> not (#1 prmode = PrintMode.input) ? register_operation class (c', (rhs', NONE))
@@ -574,14 +574,14 @@ fun add_consts bname class base_sort sups supparams global_syntax thy =
     val raw_params = (snd o chop (length supparams)) all_params;
     fun add_const (v, raw_ty) thy =
       let
-        val c = Sign.full_name thy v;
+        val c = Sign.full_bname thy v;
         val ty = map_atyps (K (TFree (Name.aT, base_sort))) raw_ty;
         val ty0 = Type.strip_sorts ty;
         val ty' = map_atyps (K (TFree (Name.aT, [class]))) ty0;
         val syn = (the_default NoSyn o AList.lookup (op =) global_syntax) v;
       in
         thy
-        |> Sign.declare_const [] ((Name.binding v, ty0), syn)
+        |> Sign.declare_const [] ((Binding.name v, ty0), syn)
         |> snd
         |> pair ((v, ty), (c, ty'))
       end;
@@ -609,7 +609,7 @@ fun adjungate_axclass bname class base_sort sups supsort supparams global_syntax
     |> add_consts bname class base_sort sups supparams global_syntax
     |-> (fn (param_map, params) => AxClass.define_class (bname, supsort)
           (map (fst o snd) params)
-          [((Name.binding (bname ^ "_" ^ AxClass.axiomsN), []), map (globalize param_map) raw_pred)]
+          [((Binding.name (bname ^ "_" ^ AxClass.axiomsN), []), map (globalize param_map) raw_pred)]
     #> snd
     #> `get_axiom
     #-> (fn assm_axiom => fold (Sign.add_const_constraint o apsnd SOME o snd) params
@@ -618,7 +618,7 @@ fun adjungate_axclass bname class base_sort sups supsort supparams global_syntax
 
 fun gen_class prep_spec bname raw_supclasses raw_elems thy =
   let
-    val class = Sign.full_name thy bname;
+    val class = Sign.full_bname thy bname;
     val (((sups, supparams), (supsort, base_sort, mergeexpr)), (elems, global_syntax)) =
       prep_spec thy raw_supclasses raw_elems;
     val supconsts = map (apsnd fst o snd) (these_params thy sups);

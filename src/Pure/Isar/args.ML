@@ -35,7 +35,7 @@ sig
   val name_source: T list -> string * T list
   val name_source_position: T list -> (SymbolPos.text * Position.T) * T list
   val name: T list -> string * T list
-  val binding: T list -> Name.binding * T list
+  val binding: T list -> Binding.T * T list
   val alt_name: T list -> string * T list
   val symbol: T list -> string * T list
   val liberal_name: T list -> string * T list
@@ -66,8 +66,8 @@ sig
   val parse1: (string -> bool) -> OuterLex.token list -> T list * OuterLex.token list
   val attribs: (string -> string) -> T list -> src list * T list
   val opt_attribs: (string -> string) -> T list -> src list * T list
-  val thm_name: (string -> string) -> string -> T list -> (Name.binding * src list) * T list
-  val opt_thm_name: (string -> string) -> string -> T list -> (Name.binding * src list) * T list
+  val thm_name: (string -> string) -> string -> T list -> (Binding.T * src list) * T list
+  val opt_thm_name: (string -> string) -> string -> T list -> (Binding.T * src list) * T list
   val syntax: string -> ('b * T list -> 'a * ('b * T list)) -> src -> 'b -> 'a * 'b
   val context_syntax: string -> (Context.generic * T list -> 'a * (Context.generic * T list)) ->
     src -> Proof.context -> 'a * Proof.context
@@ -171,7 +171,7 @@ val name_source = named >> T.source_of;
 val name_source_position = named >> T.source_position_of;
 
 val name = named >> T.content_of;
-val binding = P.position name >> Binding.binding_pos;
+val binding = P.position name >> Binding.name_pos;
 val alt_name = alt_string >> T.content_of;
 val symbol = symbolic >> T.content_of;
 val liberal_name = symbol || name;
@@ -280,8 +280,8 @@ fun thm_name intern s = binding -- opt_attribs intern --| $$$ s;
 
 fun opt_thm_name intern s =
   Scan.optional
-    ((binding -- opt_attribs intern || attribs intern >> pair Name.no_binding) --| $$$ s)
-    (Name.no_binding, []);
+    ((binding -- opt_attribs intern || attribs intern >> pair Binding.empty) --| $$$ s)
+    (Binding.empty, []);
 
 
 
