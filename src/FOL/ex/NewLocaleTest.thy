@@ -1,5 +1,4 @@
 (*  Title:      FOL/ex/NewLocaleTest.thy
-    ID:         $Id$
     Author:     Clemens Ballarin, TU Muenchen
 
 Testing environment for locale expressions --- experimental.
@@ -19,6 +18,11 @@ consts plus :: "int => int => int" (infixl "+" 60)
   zero :: int ("0")
   minus :: "int => int" ("- _")
 
+axioms
+  int_assoc: "(x + y::int) + z = x + (y + z)"
+  int_zero: "0 + x = x"
+  int_minus: "(-x) + x = 0"
+  int_minus2: "-(-x) = x"
 
 text {* Inference of parameter types *}
 
@@ -30,7 +34,7 @@ print_locale! param2
 
 (*
 locale param_top = param2 r for r :: "'b :: {}"
-print_locale! param_top
+  Fails, cannot generalise parameter.
 *)
 
 locale param3 = fixes p (infix ".." 50)
@@ -297,5 +301,44 @@ sublocale trivial < y: trivial Q Q
   (* Succeeds since previous interpretation is more general. *)
 
 print_locale! trivial  (* No instance for y created (subsumed). *)
+
+
+text {* Sublocale, then interpretation in theory *}
+
+interpretation int: lgrp "op +" "0" "minus"
+proof unfold_locales
+qed (rule int_assoc int_zero int_minus)+
+
+thm int.assoc int.semi_axioms
+
+interpretation int2: semi "op +"
+  by unfold_locales  (* subsumed, thm int2.assoc not generated *)
+
+thm int.lone int.right.rone
+  (* the latter comes through the sublocale relation *)
+
+
+text {* Interpretation in theory, then sublocale *}
+
+interpretation (* fol: *) logic "op +" "minus"
+(* FIXME declaration of qualified names *)
+  by unfold_locales (rule int_assoc int_minus2)+
+
+locale logic2 =
+  fixes land (infixl "&&" 55)
+    and lnot ("-- _" [60] 60)
+  assumes assoc: "(x && y) && z = x && (y && z)"
+    and notnot: "-- (-- x) = x"
+begin
+(* FIXME
+definition lor (infixl "||" 50) where
+  "x || y = --(-- x && -- y)"
+*)
+end
+
+sublocale logic < two: logic2
+  by unfold_locales (rule assoc notnot)+
+
+thm two.assoc
 
 end

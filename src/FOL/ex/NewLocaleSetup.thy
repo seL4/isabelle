@@ -1,5 +1,4 @@
 (*  Title:      FOL/ex/NewLocaleSetup.thy
-    ID:         $Id$
     Author:     Clemens Ballarin, TU Muenchen
 
 Testing environment for locale expressions --- experimental.
@@ -39,6 +38,13 @@ val _ = OuterSyntax.improper_command "print_locale" "print named locale in this 
   (opt_bang -- P.xname >> (Toplevel.no_timing oo (fn (show_facts, name) =>
    Toplevel.unknown_theory o Toplevel.keep (fn state =>
      NewLocale.print_locale (Toplevel.theory_of state) show_facts name))));
+
+val _ =
+  OuterSyntax.command "interpretation"
+    "prove and register interpretation of locale expression in theory" K.thy_goal
+    (P.!!! Expression.parse_expression
+        >> (fn expr => Toplevel.print o
+            Toplevel.theory_to_proof (Expression.interpretation_cmd expr)));
 
 end
 
