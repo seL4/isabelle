@@ -1324,7 +1324,7 @@ lemma eq_number_of [simp]:
 lemmas rel_simps [simp] = 
   less_number_of less_bin_simps
   le_number_of le_bin_simps
-  eq_number_of eq_bin_simps
+  eq_number_of_eq eq_bin_simps
   iszero_simps neg_simps
 
 
