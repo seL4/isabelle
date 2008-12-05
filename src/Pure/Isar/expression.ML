@@ -134,8 +134,8 @@ fun parameters_of thy strict (expr, fixed) =
         if null dups then () else error (message ^ commas dups)
       end;
 
-    fun match_bind (n, b) = (n = Name.name_of b);
-    fun bind_eq (b1, b2) = (Name.name_of b1 = Name.name_of b2);
+    fun match_bind (n, b) = (n = Binding.base_name b);
+    fun bind_eq (b1, b2) = (Binding.base_name b1 = Binding.base_name b2);
       (* FIXME: cannot compare bindings for equality. *)
 
     fun params_loc loc =
@@ -177,8 +177,8 @@ fun parameters_of thy strict (expr, fixed) =
 
     val (implicit, expr') = params_expr expr;
 
-    val implicit' = map (#1 #> Name.name_of) implicit;
-    val fixed' = map (#1 #> Name.name_of) fixed;
+    val implicit' = map (#1 #> Binding.base_name) implicit;
+    val fixed' = map (#1 #> Binding.base_name) fixed;
     val _ = reject_dups "Duplicate fixed parameter(s): " fixed';
     val implicit'' = if strict then []
       else let val _ = reject_dups
@@ -385,7 +385,7 @@ fun closeup _ _ false elem = elem
       end;
 
 fun finish_primitive parms _ (Fixes fixes) = Fixes (map (fn (binding, _, mx) =>
-      let val x = Name.name_of binding
+      let val x = Binding.base_name binding
       in (binding, AList.lookup (op =) parms x, mx) end) fixes)
   | finish_primitive _ _ (Constrains _) = Constrains []
   | finish_primitive _ close (Assumes asms) = close (Assumes asms)
@@ -396,7 +396,7 @@ fun finish_inst ctxt parms do_close (loc, (prfx, inst)) text =
   let
     val thy = ProofContext.theory_of ctxt;
     val (parm_names, parm_types) = NewLocale.params_of thy loc |>
-      map (fn (b, SOME T, _) => (Name.name_of b, T)) |> split_list;
+      map (fn (b, SOME T, _) => (Binding.base_name b, T)) |> split_list;
     val (asm, defs) = NewLocale.specification_of thy loc;
     val (morph, _) = inst_morph (parm_names, parm_types) (prfx, inst) ctxt;
     val asm' = Option.map (Morphism.term morph) asm;
@@ -440,7 +440,7 @@ fun prep_full_context_statement parse_typ parse_prop parse_inst prep_vars prep_e
     fun prep_inst (loc, (prfx, inst)) (i, insts, ctxt) =
       let
         val (parm_names, parm_types) = NewLocale.params_of thy loc |>
-          map (fn (b, SOME T, _) => (Name.name_of b, T)) |> split_list;
+          map (fn (b, SOME T, _) => (Binding.base_name b, T)) |> split_list;
         val inst' = parse_inst parm_names inst ctxt;
         val parm_types' = map (TypeInfer.paramify_vars o
           Term.map_type_tvar (fn ((x, _), S) => TVar ((x, i), S)) o Logic.varifyT) parm_types;
@@ -473,7 +473,7 @@ fun prep_full_context_statement parse_typ parse_prop parse_inst prep_vars prep_e
     val (insts, elems, concl, ctxt) = prep_concl raw_concl (insts', elems'', ctxt'');
 
     (* Retrieve parameter types *)
-    val xs = fold (fn Fixes fixes => (fn ps => ps @ map (Name.name_of o #1) fixes) |
+    val xs = fold (fn Fixes fixes => (fn ps => ps @ map (Binding.base_name o #1) fixes) |
       _ => fn ps => ps) (Fixes fors :: elems) [];
     val (Ts, ctxt') = fold_map ProofContext.inferred_param xs ctxt; 
     val parms = xs ~~ Ts;  (* params from expression and elements *)

@@ -508,10 +508,10 @@ fun gen_add_consts parse_typ authentic tags raw_args thy =
     val prepT = Type.no_tvars o Term.no_dummyT o certify_typ thy o parse_typ ctxt;
     fun prep (raw_b, raw_T, raw_mx) =
       let
-        val (mx_name, mx) = Syntax.const_mixfix (Name.name_of raw_b) raw_mx;
+        val (mx_name, mx) = Syntax.const_mixfix (Binding.base_name raw_b) raw_mx;
         val b = Binding.map_base (K mx_name) raw_b;
         val c = full_name thy b;
-        val c_syn = if authentic then Syntax.constN ^ c else Name.name_of b;
+        val c_syn = if authentic then Syntax.constN ^ c else Binding.base_name b;
         val T = (prepT raw_T handle TYPE (msg, _, _) => error msg) handle ERROR msg =>
           cat_error msg ("in declaration of constant " ^ quote (Binding.display b));
         val T' = Logic.varifyT T;

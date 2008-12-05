@@ -27,8 +27,6 @@ sig
   val variants: string list -> context -> string list * context
   val variant_list: string list -> string list -> string list
   val variant: string list -> string -> string
-
-  val name_of: Binding.T -> string (*FIMXE legacy*)
 end;
 
 structure Name: NAME =
@@ -139,10 +137,5 @@ val variants = fold_map (fn name => fn ctxt =>
 
 fun variant_list used names = #1 (make_context used |> variants names);
 fun variant used = singleton (variant_list used);
-
-
-(** generic name bindings -- legacy **)
-
-val name_of = snd o Binding.dest;
 
 end;

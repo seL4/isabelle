@@ -226,7 +226,7 @@ fun gen_add_fixrec prep_prop prep_attrib strict blocks thy =
     val lengths = map length blocks;
     
     val ((bindings, srcss), strings) = apfst split_list (split_list eqns);
-    val names = map Name.name_of bindings;
+    val names = map Binding.base_name bindings;
     val atts = map (map (prep_attrib thy)) srcss;
     val eqn_ts = map (prep_prop thy) strings;
     val rec_ts = map (fn eq => chead_of (fst (dest_eqs (Logic.strip_imp_concl eq)))
@@ -278,7 +278,7 @@ fun gen_add_fixpat prep_term prep_attrib ((name, srcs), strings) thy =
     val ts = map (prep_term thy) strings;
     val simps = map (fix_pat thy) ts;
   in
-    (snd o PureThy.add_thmss [((Name.name_of name, simps), atts)]) thy
+    (snd o PureThy.add_thmss [((Binding.base_name name, simps), atts)]) thy
   end;
 
 val add_fixpat = gen_add_fixpat Syntax.read_term_global Attrib.attribute;

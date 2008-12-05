@@ -230,7 +230,7 @@ local
 fun gen_primrec_i note def alt_name invs fctxt eqns_atts thy =
   let
     val (raw_eqns, atts) = split_list eqns_atts;
-    val eqns = map (apfst Name.name_of) raw_eqns;
+    val eqns = map (apfst Binding.base_name) raw_eqns;
     val dt_info = NominalPackage.get_nominal_datatypes thy;
     val rec_eqns = fold_rev (process_eqn thy o snd) eqns [];
     val lsrs :: lsrss = maps (fn (_, (_, _, eqns)) =>

@@ -499,9 +499,9 @@ fun add_ind_set_def {quiet_mode, verbose, kind, alt_name, coind, no_elim, no_ind
     (* convert theorems to set notation *)
     val rec_name =
       if Binding.is_empty alt_name then
-        Binding.name (space_implode "_" (map (Name.name_of o fst) cnames_syn))
+        Binding.name (space_implode "_" (map (Binding.base_name o fst) cnames_syn))
       else alt_name;
-    val cnames = map (Sign.full_bname (ProofContext.theory_of ctxt3) o Name.name_of o #1) cnames_syn;  (* FIXME *)
+    val cnames = map (Sign.full_name (ProofContext.theory_of ctxt3) o #1) cnames_syn;  (* FIXME *)
     val (intr_names, intr_atts) = split_list (map fst intros);
     val raw_induct' = to_set [] (Context.Proof ctxt3) raw_induct;
     val (intrs', elims', induct, ctxt4) =
