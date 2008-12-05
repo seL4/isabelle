@@ -1,5 +1,4 @@
 (*  Title:      Pure/context.ML
-    ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
 
 Generic theory contexts with unique identity, arbitrarily typed data,
@@ -392,14 +391,11 @@ fun checkpoint_thy thy =
 
 fun finish_thy thy = NAMED_CRITICAL "theory" (fn () =>
   let
-    val {name, version, intermediates} = history_of thy;
-    val rs = map ((fn TheoryRef r => r) o check_thy) intermediates;
-    val thy' as Theory ({self, id, ids, ...}, data', ancestry', _) = name_thy name thy;
-    val identity' = make_identity self id ids Inttab.empty;
+    val {name, ...} = history_of thy;
+    val Theory (identity', data', ancestry', _) = name_thy name thy;
     val history' = make_history name 0 [];
-    val thy'' = vitalize (Theory (identity', data', ancestry', history'));
-    val _ = List.app (fn r => r := thy'') rs;
-  in thy'' end);
+    val thy' = vitalize (Theory (identity', data', ancestry', history'));
+  in thy' end);
 
 
 (* theory data *)
