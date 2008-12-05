@@ -19,7 +19,7 @@ sig
   val raw_theory: (theory -> theory) -> local_theory -> local_theory
   val checkpoint: local_theory -> local_theory
   val full_naming: local_theory -> NameSpace.naming
-  val full_name: local_theory -> bstring -> string
+  val full_name: local_theory -> Binding.T -> string
   val theory_result: (theory -> 'a * theory) -> local_theory -> 'a * local_theory
   val theory: (theory -> theory) -> local_theory -> local_theory
   val target_result: (Proof.context -> 'a * Proof.context) -> local_theory -> 'a * local_theory
@@ -142,7 +142,7 @@ fun full_naming lthy =
   |> NameSpace.sticky_prefix (#theory_prefix (get_lthy lthy))
   |> NameSpace.qualified_names;
 
-fun full_name naming = NameSpace.full_name (full_naming naming) o Binding.name;
+fun full_name naming = NameSpace.full_name (full_naming naming);
 
 fun theory_result f lthy = lthy |> raw_theory_result (fn thy => thy
   |> Sign.sticky_prefix (#theory_prefix (get_lthy lthy))

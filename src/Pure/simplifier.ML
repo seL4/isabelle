@@ -177,9 +177,10 @@ local
 
 fun gen_simproc prep {name, lhss, proc, identifier} lthy =
   let
+    val b = Binding.name name;
     val naming = LocalTheory.full_naming lthy;
     val simproc = make_simproc
-      {name = LocalTheory.full_name lthy name,
+      {name = LocalTheory.full_name lthy b,
        lhss =
         let
           val lhss' = prep lthy lhss;
@@ -194,7 +195,7 @@ fun gen_simproc prep {name, lhss, proc, identifier} lthy =
   in
     lthy |> LocalTheory.declaration (fn phi =>
       let
-        val b' = Morphism.binding phi (Binding.name name);
+        val b' = Morphism.binding phi b;
         val simproc' = morph_simproc phi simproc;
       in
         Simprocs.map (fn simprocs =>

@@ -387,7 +387,7 @@ structure LocalesData = TheoryDataFun
     (* 1st entry: locale namespace,
        2nd entry: locales of the theory *)
 
-  val empty = (NameSpace.empty, Symtab.empty);
+  val empty = NameSpace.empty_table;
   val copy = I;
   val extend = I;
 
@@ -403,8 +403,7 @@ structure LocalesData = TheoryDataFun
       regs = merge_alists (op =) regs regs',
       intros = intros,
       dests = dests};
-  fun merge _ ((space1, locs1), (space2, locs2)) =
-    (NameSpace.merge (space1, space2), Symtab.join join_locales (locs1, locs2));
+  fun merge _ = NameSpace.join_tables join_locales;
 );
 
 
@@ -431,10 +430,9 @@ fun the_locale thy name = case get_locale thy name
  of SOME loc => loc
   | NONE => error ("Unknown locale " ^ quote name);
 
-fun register_locale name loc thy =
-  thy |> LocalesData.map (fn (space, locs) =>
-    (NameSpace.declare_base (Sign.naming_of thy) name space,
-      Symtab.update (name, loc) locs));
+fun register_locale bname loc thy =
+  thy |> LocalesData.map (NameSpace.bind (Sign.naming_of thy)
+    (Binding.name bname, loc) #> snd);
 
 fun change_locale name f thy =
   let
@@ -1990,7 +1988,7 @@ fun gen_add_locale prep_ctxt prep_expr
       |> Sign.no_base_names
       |> PureThy.note_thmss Thm.assumptionK facts' |> snd
       |> Sign.restore_naming thy'
-      |> register_locale name {axiom = axs',
+      |> register_locale bname {axiom = axs',
         elems = map (fn e => (e, stamp ())) elems'',
         params = params_of elemss''' |> map (fn (x, SOME T) => ((x, T), the (Symtab.lookup syn x))),
         decls = ([], []),
