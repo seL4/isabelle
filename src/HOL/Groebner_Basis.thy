@@ -169,7 +169,11 @@ interpretation class_semiring: gb_semiring
   proof qed (auto simp add: ring_simps power_Suc)
 
 lemmas nat_arith =
-  add_nat_number_of diff_nat_number_of mult_nat_number_of eq_nat_number_of less_nat_number_of
+  add_nat_number_of
+  diff_nat_number_of
+  mult_nat_number_of
+  eq_nat_number_of
+  less_nat_number_of
 
 lemma not_iszero_Numeral1: "\<not> iszero (Numeral1::'a::number_ring)"
   by (simp add: numeral_1_eq_1)
@@ -458,7 +462,6 @@ declare zdvd1_eq[algebra]
 declare zmod_eq_dvd_iff[algebra]
 declare nat_mod_eq_iff[algebra]
 
-
 subsection{* Groebner Bases for fields *}
 
 interpretation class_fieldgb:
@@ -607,14 +610,6 @@ val ord_frac_simproc =
              @{cpat "((?a::(?'a::{field, ord}))/ ?b) = ?c"}],
              name = "ord_frac_simproc", proc = proc3, identifier = []}
 
-val nat_arith = map thm ["add_nat_number_of", "diff_nat_number_of",
-               "mult_nat_number_of", "eq_nat_number_of", "less_nat_number_of"]
-
-val comp_arith = (map thm ["Let_def", "if_False", "if_True", "add_0",
-                 "add_Suc", "add_number_of_left", "mult_number_of_left",
-                 "Suc_eq_add_numeral_1"])@
-                 (map (fn s => thm s RS sym) ["numeral_1_eq_1", "numeral_0_eq_0"])
-                 @ @{thms arith_simps} @ nat_arith @ @{thms rel_simps}
 val ths = [@{thm "mult_numeral_1"}, @{thm "mult_numeral_1_right"},
            @{thm "divide_Numeral1"},
            @{thm "Ring_and_Field.divide_zero"}, @{thm "divide_Numeral0"},
@@ -630,7 +625,7 @@ open Conv
 in
 val comp_conv = (Simplifier.rewrite
 (HOL_basic_ss addsimps @{thms "Groebner_Basis.comp_arith"}
-              addsimps ths addsimps comp_arith addsimps simp_thms
+              addsimps ths addsimps simp_thms
               addsimprocs field_cancel_numeral_factors
                addsimprocs [add_frac_frac_simproc, add_frac_num_simproc,
                             ord_frac_simproc]
