@@ -133,6 +133,11 @@ for SETTINGS in $@; do
 
     echo ------------------- starting test --- `date` --- $HOSTNAME > $TESTLOG 2>&1
 
+    if [ "${ISABELLE_HOME_USER:0:14}" == "/tmp/isabelle-" ]; then
+        echo "--- cleaning up old $ISABELLE_HOME_USER"
+        rm -rf $ISABELLE_HOME_USER
+    fi
+
     cat $SETTINGS >> $DISTPREFIX/Isabelle/etc/settings
     (ulimit -t $MAXTIME; cd $DIR; $NICE $TOOL >> $TESTLOG 2>&1)
 

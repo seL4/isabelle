@@ -691,45 +691,62 @@ fun command tr st =
 
 (* excursion of units, consisting of commands with proof *)
 
+structure States = ProofDataFun
+(
+  type T = state list future option;
+  fun init _ = NONE;
+);
+
 fun command_result tr st =
   let val st' = command tr st
   in (st', st') end;
 
-fun unit_result immediate (tr, proof_trs) st =
+fun proof_result immediate (tr, proof_trs) st =
   let val st' = command tr st in
     if immediate orelse null proof_trs orelse
       not (can proof_of st') orelse Proof.is_relevant (proof_of st')
     then
       let val (states, st'') = fold_map command_result proof_trs st'
-      in (fn () => (tr, st') :: (proof_trs ~~ states), st'') end
+      in (Lazy.value ((tr, st') :: (proof_trs ~~ states)), st'') end
     else
       let
         val (body_trs, end_tr) = split_last proof_trs;
-        val body_states = ref ([]: state list);
         val finish = Context.Theory o ProofContext.theory_of;
-        fun make_result prf =
-          let val (states, State (result_node, _)) =
-            (case st' of State (SOME (Proof (_, (_, orig_gthy)), exit), prev)
-              => State (SOME (Proof (ProofNode.init prf, (finish, orig_gthy)), exit), prev))
-            |> fold_map command_result body_trs
-            ||> command (end_tr |> set_print false)
-          in body_states := states; presentation_context (Option.map #1 result_node) NONE end;
-        val st'' = st'
-          |> command (end_tr |> reset_trans |> end_proof (K (Proof.future_proof make_result)));
-      in (fn () => (tr, st') :: (body_trs ~~ ! body_states) @ [(end_tr, st'')], st'') end
+
+        val future_proof = Proof.future_proof
+          (fn prf =>
+            Future.fork_background (fn () =>
+              let val (states, State (result_node, _)) =
+                (case st' of State (SOME (Proof (_, (_, orig_gthy)), exit), prev)
+                  => State (SOME (Proof (ProofNode.init prf, (finish, orig_gthy)), exit), prev))
+                |> fold_map command_result body_trs
+                ||> command (end_tr |> set_print false);
+              in (states, presentation_context (Option.map #1 result_node) NONE) end))
+          #> (fn (states, ctxt) => States.put (SOME states) ctxt);
+
+        val st'' = st' |> command (end_tr |> reset_trans |> end_proof (K future_proof));
+
+        val states =
+          (case States.get (presentation_context (SOME (node_of st'')) NONE) of
+            NONE => sys_error ("No future states for " ^ name_of tr ^ Position.str_of (pos_of tr))
+          | SOME states => states);
+        val result = Lazy.lazy
+          (fn () => (tr, st') :: (body_trs ~~ Future.join states) @ [(end_tr, st'')]);
+
+      in (result, st'') end
   end;
 
-fun excursion input =
+fun excursion input = exception_trace (fn () =>
   let
     val end_pos = if null input then error "No input" else pos_of (fst (List.last input));
 
     val immediate = not (Future.enabled ());
-    val (future_results, end_state) = fold_map (unit_result immediate) input toplevel;
+    val (future_results, end_state) = fold_map (proof_result immediate) input toplevel;
     val _ =
       (case end_state of
-        State (NONE, SOME (Theory (Context.Theory thy, _), _)) => Thm.join_futures thy
+        State (NONE, SOME (Theory (Context.Theory thy, _), _)) => PureThy.force_proofs thy
       | _ => error "Unfinished development at end of input");
-    val results = maps (fn res => res ()) future_results;
-  in (results, fn () => ignore (command (commit_exit end_pos) end_state)) end;
+    val results = maps Lazy.force future_results;
+  in (results, fn () => ignore (command (commit_exit end_pos) end_state)) end);
 
 end;
