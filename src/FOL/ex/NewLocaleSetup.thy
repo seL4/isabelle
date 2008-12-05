@@ -41,10 +41,18 @@ val _ = OuterSyntax.improper_command "print_locale" "print named locale in this 
 
 val _ =
   OuterSyntax.command "interpretation"
-    "prove and register interpretation of locale expression in theory" K.thy_goal
+    "prove interpretation of locale expression in theory" K.thy_goal
     (P.!!! Expression.parse_expression
         >> (fn expr => Toplevel.print o
             Toplevel.theory_to_proof (Expression.interpretation_cmd expr)));
+
+val _ =
+  OuterSyntax.command "interpret"
+    "prove interpretation of locale expression in proof context"
+    (K.tag_proof K.prf_goal)
+    (P.!!! Expression.parse_expression
+        >> (fn expr => Toplevel.print o
+            Toplevel.proof' (fn int => Expression.interpret_cmd expr int)));
 
 end
 

@@ -37,10 +37,8 @@ sig
   (* Activation *)
   val activate_declarations: theory -> string * Morphism.morphism ->
     Proof.context -> Proof.context
-  val activate_global_facts: string * Morphism.morphism ->
-    theory -> theory
-  val activate_local_facts: theory -> string * Morphism.morphism ->
-    Proof.context -> Proof.context
+  val activate_global_facts: string * Morphism.morphism -> theory -> theory
+  val activate_local_facts: string * Morphism.morphism -> Proof.context -> Proof.context
 (*  val activate: string -> theory -> (Element.context_i -> 'a -> 'a) -> 'a -> 'a *)
   val init: string -> theory -> Proof.context
 
@@ -360,8 +358,9 @@ fun activate_global_facts dep thy =
   roundup thy (activate_notes init_global_elem) dep (get_global_idents thy, thy) |>
   uncurry put_global_idents;
 
-fun activate_local_facts thy dep ctxt =
-  roundup thy (activate_notes init_local_elem) dep (get_local_idents ctxt, ctxt) |>
+fun activate_local_facts dep ctxt =
+  roundup (ProofContext.theory_of ctxt) (activate_notes init_local_elem) dep
+    (get_local_idents ctxt, ctxt) |>
   uncurry put_local_idents;
 
 fun init name thy = activate_all name thy init_local_elem (empty, ProofContext.init thy) |>
@@ -454,8 +453,9 @@ val _ = Context.>> (Context.map_theory
       "back-chain all introduction rules of locales")]));
 
 
-(*** Registrations: interpretations in theories and proof contexts ***)
+(*** Registrations: interpretations in theories ***)
 
+(* FIXME only global variant needed *)
 structure RegistrationsData = GenericDataFun
 (
   type T = ((string * Morphism.morphism) * stamp) list;
@@ -469,7 +469,6 @@ structure RegistrationsData = GenericDataFun
 val get_global_registrations = map fst o RegistrationsData.get o Context.Theory;
 fun add_global_registration reg =
   (Context.theory_map o RegistrationsData.map) (cons (reg, stamp ()));
-
 
 end;
 

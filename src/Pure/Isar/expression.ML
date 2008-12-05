@@ -28,10 +28,8 @@ sig
   val sublocale: string -> expression_i -> theory -> Proof.state;
   val interpretation_cmd: expression -> theory -> Proof.state;
   val interpretation: expression_i -> theory -> Proof.state;
-(*
-  val interpret_cmd: Morphism.morphism -> expression -> bool -> Proof.state -> Proof.state;
-  val interpret: Morphism.morphism -> expression_i -> bool -> Proof.state -> Proof.state;
-*)
+  val interpret_cmd: expression -> bool -> Proof.state -> Proof.state;
+  val interpret: expression_i -> bool -> Proof.state -> Proof.state;
 
   (* Debugging and development *)
   val parse_expression: OuterParse.token list -> expression * OuterParse.token list
@@ -538,14 +536,12 @@ local
 
 fun prep_declaration prep activate raw_import raw_elems context =
   let
-    val thy = ProofContext.theory_of context;
-
     val ((fixed, deps, elems, _), (parms, (spec, (_, _, defs)))) =
       prep false true context raw_import raw_elems [];
     (* Declare parameters and imported facts *)
     val context' = context |>
       ProofContext.add_fixes_i fixed |> snd |>
-      NewLocale.clear_local_idents |> fold (NewLocale.activate_local_facts thy) deps;
+      NewLocale.clear_local_idents |> fold NewLocale.activate_local_facts deps;
     val ((elems', _), _) = activate elems (ProofContext.set_stmt true context');
   in ((fixed, deps, elems'), (parms, spec, defs)) end;
 
@@ -837,6 +833,7 @@ fun sublocale x = gen_sublocale cert_goal_expression (K I) x;
 
 end;
 
+
 (** Interpretation in theories **)
 
 local
@@ -846,7 +843,7 @@ fun gen_interpretation prep_expr
   let
     val ctxt = ProofContext.init thy;
 
-    val ((propss, deps, export), goal_ctxt) = prep_expr expression ctxt;
+    val ((propss, regs, export), goal_ctxt) = prep_expr expression ctxt;
     
     fun store_reg ((name, morph), thms) =
       let
@@ -857,7 +854,7 @@ fun gen_interpretation prep_expr
       end;
 
     fun after_qed results =
-      ProofContext.theory (fold store_reg (deps ~~ prep_result propss results));
+      ProofContext.theory (fold store_reg (regs ~~ prep_result propss results));
   in
     goal_ctxt |>
       Proof.theorem_i NONE after_qed (prep_propp propss) |>
@@ -868,6 +865,42 @@ in
 
 fun interpretation_cmd x = gen_interpretation read_goal_expression x;
 fun interpretation x = gen_interpretation cert_goal_expression x;
+
+end;
+
+
+(** Interpretation in proof contexts **)
+
+local
+
+fun gen_interpret prep_expr
+    expression int state =
+  let
+    val _ = Proof.assert_forward_or_chain state;
+    val ctxt = Proof.context_of state;
+
+    val ((propss, regs, export), goal_ctxt) = prep_expr expression ctxt;
+    
+    fun store_reg ((name, morph), thms) =
+      let
+        val morph' = morph $> Element.satisfy_morphism thms $> export;
+      in
+        NewLocale.activate_local_facts (name, morph')
+      end;
+
+    fun after_qed results =
+      Proof.map_context (fold store_reg (regs ~~ prep_result propss results)) #> Seq.single;
+  in
+    state |> Proof.map_context (K goal_ctxt) |>
+      Proof.local_goal (ProofDisplay.print_results int) (K I) ProofContext.bind_propp_i
+      "interpret" NONE after_qed (map (pair (Binding.empty, [])) (prep_propp propss)) |>
+      Element.refine_witness |> Seq.hd
+  end;
+
+in
+
+fun interpret_cmd x = gen_interpret read_goal_expression x;
+fun interpret x = gen_interpret cert_goal_expression x;
 
 end;
 

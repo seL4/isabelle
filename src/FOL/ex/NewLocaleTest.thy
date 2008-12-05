@@ -341,4 +341,24 @@ sublocale logic < two: logic2
 
 thm two.assoc
 
+
+text {* Interpretation in proofs *}
+
+lemma True
+proof
+  interpret "local": lgrp "op +" "0" "minus"
+    by unfold_locales  (* subsumed *)
+  {
+    fix zero :: int
+    assume "!!x. zero + x = x" "!!x. (-x) + x = zero"
+    then interpret local_fixed: lgrp "op +" zero "minus"
+      by unfold_locales
+    thm local_fixed.lone
+  }
+  assume "!!x zero. zero + x = x" "!!x zero. (-x) + x = zero"
+  then interpret local_free: lgrp "op +" zero "minus" for zero
+    by unfold_locales
+  thm local_free.lone [where ?zero = 0]
+qed
+
 end
