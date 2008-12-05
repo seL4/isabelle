@@ -116,7 +116,7 @@ constdefs
 lemma nat_norm_number_of: "nat_norm_number_of (number_of w) = (if lezero w then 0 else number_of w)"
   apply (simp add: nat_norm_number_of_def)
   unfolding lezero_def iszero_def neg_def
-  apply (simp add: number_of_is_id)
+  apply (simp add: numeral_simps)
   done
 
 (* Normalization of nat literals *)
@@ -143,6 +143,7 @@ lemma natmul: "(number_of x) * ((number_of y)::nat) =
   apply (auto simp add: number_of_is_id neg_def iszero_def)
   apply (case_tac "x > 0")
   apply auto
+  apply (rule order_less_imp_le)
   apply (simp add: mult_strict_left_mono[where a=y and b=0 and c=x, simplified])
   done
 

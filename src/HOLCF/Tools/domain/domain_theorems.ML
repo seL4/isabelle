@@ -607,7 +607,7 @@ val global_ctxt = ProofContext.init thy;
 
 val dnames = map (fst o fst) eqs;
 val conss  = map  snd        eqs;
-val comp_dname = Sign.full_name thy comp_dnam;
+val comp_dname = Sign.full_bname thy comp_dnam;
 
 val d = writeln("Proving induction properties of domain "^comp_dname^" ...");
 val pg = pg' thy;

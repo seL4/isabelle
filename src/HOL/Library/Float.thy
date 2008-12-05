@@ -1,13 +1,12 @@
-(*  Title: HOL/Real/Float.thy
-    ID:    $Id$
+(*  Title:  HOL/Real/Float.thy
     Author: Steven Obua
 *)
 
 header {* Floating Point Representation of the Reals *}
 
 theory Float
-imports Real Parity
-uses "~~/src/Tools/float.ML" ("float_arith.ML")
+imports Complex_Main
+uses "~~/src/Tools/float.ML" ("~~/src/HOL/Tools/float_arith.ML")
 begin
 
 definition
@@ -500,7 +499,7 @@ lemmas binarith =
 
 lemma int_eq_number_of_eq:
   "(((number_of v)::int)=(number_of w)) = iszero ((number_of (v + uminus w))::int)"
-  by simp
+  by (rule eq_number_of_eq)
 
 lemma int_iszero_number_of_Pls: "iszero (Numeral0::int)"
   by (simp only: iszero_number_of_Pls)
@@ -515,7 +514,7 @@ lemma int_iszero_number_of_Bit1: "\<not> iszero ((number_of (Int.Bit1 w))::int)"
   by simp
 
 lemma int_less_number_of_eq_neg: "(((number_of x)::int) < number_of y) = neg ((number_of (x + (uminus y)))::int)"
-  by simp
+  by (rule less_number_of_eq_neg)
 
 lemma int_not_neg_number_of_Pls: "\<not> (neg (Numeral0::int))"
   by simp
@@ -530,7 +529,7 @@ lemma int_neg_number_of_Bit1: "neg ((number_of (Int.Bit1 w))::int) = neg ((numbe
   by simp
 
 lemma int_le_number_of_eq: "(((number_of x)::int) \<le> number_of y) = (\<not> neg ((number_of (y + (uminus x)))::int))"
-  by simp
+  unfolding neg_def number_of_is_id by (simp add: not_less)
 
 lemmas intarithrel =
   int_eq_number_of_eq
@@ -564,6 +563,6 @@ lemmas floatarith[simplified norm_0_1] = float_add float_add_l0 float_add_r0 flo
 (* for use with the compute oracle *)
 lemmas arith = binarith intarith intarithrel natarith powerarith floatarith not_false_eq_true not_true_eq_false
 
-use "float_arith.ML";
+use "~~/src/HOL/Tools/float_arith.ML"
 
 end

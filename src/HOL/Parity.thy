@@ -1,12 +1,11 @@
 (*  Title:      HOL/Library/Parity.thy
-    ID:         $Id$
     Author:     Jeremy Avigad, Jacques D. Fleuriot
 *)
 
 header {* Even and Odd for int and nat *}
 
 theory Parity
-imports Plain "~~/src/HOL/Presburger"
+imports Plain Presburger
 begin
 
 class even_odd = type + 

@@ -5,7 +5,7 @@
 header {* Small examples for evaluation mechanisms *}
 
 theory Eval_Examples
-imports Code_Eval "~~/src/HOL/Real/Rational"
+imports Code_Eval Rational
 begin
 
 text {* evaluation oracle *}

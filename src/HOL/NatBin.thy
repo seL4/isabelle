@@ -111,8 +111,8 @@ lemma int_nat_number_of [simp]:
      "int (number_of v) =  
          (if neg (number_of v :: int) then 0  
           else (number_of v :: int))"
-by (simp del: nat_number_of
-	 add: neg_nat nat_number_of_def not_neg_nat add_assoc)
+  unfolding nat_number_of_def number_of_is_id neg_def
+  by simp
 
 
 subsubsection{*Successor *}
@@ -124,10 +124,9 @@ done
 
 lemma Suc_nat_number_of_add:
      "Suc (number_of v + n) =  
-        (if neg (number_of v :: int) then 1+n else number_of (Int.succ v) + n)" 
-by (simp del: nat_number_of 
-         add: nat_number_of_def neg_nat
-              Suc_nat_eq_nat_zadd1 number_of_succ) 
+        (if neg (number_of v :: int) then 1+n else number_of (Int.succ v) + n)"
+  unfolding nat_number_of_def number_of_is_id neg_def numeral_simps
+  by (simp add: Suc_nat_eq_nat_zadd1 add_ac)
 
 lemma Suc_nat_number_of [simp]:
      "Suc (number_of v) =  
@@ -145,7 +144,8 @@ lemma add_nat_number_of [simp]:
          (if neg (number_of v :: int) then number_of v'  
           else if neg (number_of v' :: int) then number_of v  
           else number_of (v + v'))"
-by (simp add: neg_nat nat_number_of_def nat_add_distrib [symmetric] del: nat_number_of)
+  unfolding nat_number_of_def number_of_is_id neg_def
+  by (simp add: nat_add_distrib)
 
 
 subsubsection{*Subtraction *}
@@ -172,7 +172,8 @@ subsubsection{*Multiplication *}
 lemma mult_nat_number_of [simp]:
      "(number_of v :: nat) * number_of v' =  
        (if neg (number_of v :: int) then 0 else number_of (v * v'))"
-by (simp add: neg_nat nat_number_of_def nat_mult_distrib [symmetric] del: nat_number_of)
+  unfolding nat_number_of_def number_of_is_id neg_def
+  by (simp add: nat_mult_distrib)
 
 
 subsubsection{*Quotient *}
@@ -181,7 +182,8 @@ lemma div_nat_number_of [simp]:
      "(number_of v :: nat)  div  number_of v' =  
           (if neg (number_of v :: int) then 0  
            else nat (number_of v div number_of v'))"
-by (simp add: neg_nat nat_number_of_def nat_div_distrib [symmetric] del: nat_number_of)
+  unfolding nat_number_of_def number_of_is_id neg_def
+  by (simp add: nat_div_distrib)
 
 lemma one_div_nat_number_of [simp]:
      "Suc 0 div number_of v' = nat (1 div number_of v')" 
@@ -195,7 +197,8 @@ lemma mod_nat_number_of [simp]:
         (if neg (number_of v :: int) then 0  
          else if neg (number_of v' :: int) then number_of v  
          else nat (number_of v mod number_of v'))"
-by (simp add: neg_nat nat_number_of_def nat_mod_distrib [symmetric] del: nat_number_of)
+  unfolding nat_number_of_def number_of_is_id neg_def
+  by (simp add: nat_mod_distrib)
 
 lemma one_mod_nat_number_of [simp]:
      "Suc 0 mod number_of v' =  
@@ -246,15 +249,11 @@ by (auto elim!: nonneg_eq_int)
 (*"neg" is used in rewrite rules for binary comparisons*)
 lemma eq_nat_number_of [simp]:
      "((number_of v :: nat) = number_of v') =  
-      (if neg (number_of v :: int) then (iszero (number_of v' :: int) | neg (number_of v' :: int))  
-       else if neg (number_of v' :: int) then iszero (number_of v :: int)  
-       else iszero (number_of (v + uminus v') :: int))"
-apply (simp only: simp_thms neg_nat not_neg_eq_ge_0 nat_number_of_def
-                  eq_nat_nat_iff eq_number_of_eq nat_0 iszero_def
-            split add: split_if cong add: imp_cong)
-apply (simp only: nat_eq_iff nat_eq_iff2)
-apply (simp add: not_neg_eq_ge_0 [symmetric])
-done
+      (if neg (number_of v :: int) then (number_of v' :: int) \<le> 0
+       else if neg (number_of v' :: int) then (number_of v :: int) = 0
+       else v = v')"
+  unfolding nat_number_of_def number_of_is_id neg_def
+  by auto
 
 
 subsubsection{*Less-than (<) *}
@@ -264,9 +263,8 @@ lemma less_nat_number_of [simp]:
      "((number_of v :: nat) < number_of v') =  
          (if neg (number_of v :: int) then neg (number_of (uminus v') :: int)  
           else neg (number_of (v + uminus v') :: int))"
-by (simp only: simp_thms neg_nat not_neg_eq_ge_0 nat_number_of_def
-                nat_less_eq_zless less_number_of_eq_neg zless_nat_eq_int_zless
-         cong add: imp_cong, simp add: Pls_def)
+  unfolding neg_def nat_number_of_def number_of_is_id
+  by auto
 
 
 (*Maps #n to n for n = 0, 1, 2*)
@@ -442,13 +440,11 @@ subsection{*Comparisons involving (0::nat) *}
 text{*Simplification already does @{term "n<0"}, @{term "n\<le>0"} and @{term "0\<le>n"}.*}
 
 lemma eq_number_of_0 [simp]:
-     "(number_of v = (0::nat)) =  
-      (if neg (number_of v :: int) then True else iszero (number_of v :: int))"
-by (simp del: nat_numeral_0_eq_0 add: nat_numeral_0_eq_0 [symmetric] iszero_0)
+  "number_of v = (0::nat) \<longleftrightarrow> number_of v \<le> (0::int)"  
+  unfolding nat_number_of_def number_of_is_id by auto
 
 lemma eq_0_number_of [simp]:
-     "((0::nat) = number_of v) =  
-      (if neg (number_of v :: int) then True else iszero (number_of v :: int))"
+  "(0::nat) = number_of v \<longleftrightarrow> number_of v \<le> (0::int)"  
 by (rule trans [OF eq_sym_conv eq_number_of_0])
 
 lemma less_0_number_of [simp]:
@@ -457,7 +453,7 @@ by (simp del: nat_numeral_0_eq_0 add: nat_numeral_0_eq_0 [symmetric] Pls_def)
 
 
 lemma neg_imp_number_of_eq_0: "neg (number_of v :: int) ==> number_of v = (0::nat)"
-by (simp del: nat_numeral_0_eq_0 add: nat_numeral_0_eq_0 [symmetric] iszero_0)
+by (simp del: nat_numeral_0_eq_0 add: nat_numeral_0_eq_0 [symmetric])
 
 
 
@@ -644,26 +640,15 @@ lemma nat_number_of_Min: "number_of Int.Min = (0::nat)"
 
 lemma nat_number_of_Bit0:
     "number_of (Int.Bit0 w) = (let n::nat = number_of w in n + n)"
-  apply (simp only: nat_number_of_def Let_def)
-  apply (cases "neg (number_of w :: int)")
-   apply (simp add: neg_nat neg_number_of_Bit0)
-  apply (rule int_int_eq [THEN iffD1])
-  apply (simp only: not_neg_nat neg_number_of_Bit0 int_Suc zadd_int [symmetric] simp_thms)
-  apply (simp only: number_of_Bit0 zadd_assoc)
-  apply simp
-  done
+  unfolding nat_number_of_def number_of_is_id numeral_simps Let_def
+  by auto
 
 lemma nat_number_of_Bit1:
   "number_of (Int.Bit1 w) =
     (if neg (number_of w :: int) then 0
      else let n = number_of w in Suc (n + n))"
-  apply (simp only: nat_number_of_def Let_def split: split_if)
-  apply (intro conjI impI)
-   apply (simp add: neg_nat neg_number_of_Bit1)
-  apply (rule int_int_eq [THEN iffD1])
-  apply (simp only: not_neg_nat neg_number_of_Bit1 int_Suc zadd_int [symmetric] simp_thms)
-  apply (simp only: number_of_Bit1 zadd_assoc)
-  done
+  unfolding nat_number_of_def number_of_is_id numeral_simps neg_def Let_def
+  by auto
 
 lemmas nat_number =
   nat_number_of_Pls nat_number_of_Min
@@ -709,7 +694,8 @@ lemma nat_number_of_add_left:
          (if neg (number_of v :: int) then number_of v' + k  
           else if neg (number_of v' :: int) then number_of v + k  
           else number_of (v + v') + k)"
-by simp
+  unfolding nat_number_of_def number_of_is_id neg_def
+  by auto
 
 lemma nat_number_of_mult_left:
      "number_of v * (number_of v' * (k::nat)) =  

@@ -6,7 +6,7 @@
 header {* A polymorphic heap based on cantor encodings *}
 
 theory Heap
-imports Plain "~~/src/HOL/List" Countable RType
+imports Plain "~~/src/HOL/List" Countable Typerep
 begin
 
 subsection {* Representable types *}
@@ -41,7 +41,7 @@ instantiation typerep :: countable
 begin
 
 fun to_nat_typerep :: "typerep \<Rightarrow> nat" where
-  "to_nat_typerep (RType.Typerep c ts) = to_nat (to_nat c, to_nat (map to_nat_typerep ts))"
+  "to_nat_typerep (Typerep.Typerep c ts) = to_nat (to_nat c, to_nat (map to_nat_typerep ts))"
 
 instance
 proof (rule countable_classI)
@@ -52,11 +52,11 @@ proof (rule countable_classI)
     case (Typerep c ts) show ?case
     proof (rule allI, rule impI)
       fix t'
-      assume hyp: "to_nat_typerep (RType.Typerep c ts) = to_nat_typerep t'"
-      then obtain c' ts' where t': "t' = (RType.Typerep c' ts')"
+      assume hyp: "to_nat_typerep (Typerep.Typerep c ts) = to_nat_typerep t'"
+      then obtain c' ts' where t': "t' = (Typerep.Typerep c' ts')"
         by (cases t') auto
       with Typerep hyp have "c = c'" and "ts = ts'" by simp_all
-      with t' show "RType.Typerep c ts = t'" by simp
+      with t' show "Typerep.Typerep c ts = t'" by simp
     qed
   next
     case Nil_typerep then show ?case by simp

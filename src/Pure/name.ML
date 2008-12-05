@@ -1,8 +1,7 @@
 (*  Title:      Pure/name.ML
-    ID:         $Id$
     Author:     Makarius
 
-Names of basic logical entities (variables etc.).  Generic name bindings.
+Names of basic logical entities (variables etc.).
 *)
 
 signature NAME =
@@ -29,11 +28,7 @@ sig
   val variant_list: string list -> string list -> string list
   val variant: string list -> string -> string
 
-  include BINDING
-  type binding = Binding.T
   val name_of: Binding.T -> string (*FIMXE legacy*)
-  val map_name: (string -> string) -> Binding.T -> Binding.T (*FIMXE legacy*)
-  val qualified: string -> Binding.T -> Binding.T (*FIMXE legacy*)
 end;
 
 structure Name: NAME =
@@ -146,15 +141,8 @@ fun variant_list used names = #1 (make_context used |> variants names);
 fun variant used = singleton (variant_list used);
 
 
-(** generic name bindings **)
+(** generic name bindings -- legacy **)
 
-open Binding;
-
-type binding = Binding.T;
-
-val prefix_of = fst o dest_binding;
-val name_of = snd o dest_binding;
-val map_name = map_binding o apsnd;
-val qualified = map_name o NameSpace.qualified;
+val name_of = snd o Binding.dest;
 
 end;

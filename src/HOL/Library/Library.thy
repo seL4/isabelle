@@ -11,7 +11,6 @@ imports
   Code_Char_chr
   Code_Index
   Code_Integer
-  Code_Message
   Coinductive_List
   Commutative_Ring
   Continuity
@@ -21,7 +20,7 @@ imports
   Enum
   Eval_Witness
   Executable_Set
-  "../Real/Float"
+  Float
   FuncSet
   Imperative_HOL
   Infinite_Set

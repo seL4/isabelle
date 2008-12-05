@@ -395,8 +395,7 @@ lemmas unat_mono = word_less_nat_alt [THEN iffD1, standard]
 
 lemma word_zero_neq_one: "0 < len_of TYPE ('a :: len0) ==> (0 :: 'a word) ~= 1";
   unfolding word_arith_wis
-  apply (auto simp add: word_ubin.norm_eq_iff [symmetric] gr0_conv_Suc)
-  unfolding Bit0_def Bit1_def by simp
+  by (auto simp add: word_ubin.norm_eq_iff [symmetric] gr0_conv_Suc)
 
 lemmas lenw1_zero_neq_one = len_gt_0 [THEN word_zero_neq_one]
 
@@ -1254,4 +1253,3 @@ lemma card_word_size:
 unfolding word_size by (rule card_word)
 
 end 
-

@@ -272,7 +272,7 @@ val _ =
 val _ =
   OuterSyntax.local_theory "declare" "declare theorems (improper)" K.thy_decl
     (P.and_list1 SpecParse.xthms1
-      >> (fn args => #2 o Specification.theorems_cmd "" [(Attrib.no_binding, flat args)]));
+      >> (fn args => #2 o Specification.theorems_cmd "" [(Attrib.empty_binding, flat args)]));
 
 
 (* name space entry path *)
@@ -396,7 +396,7 @@ val _ =
           (begin ? Toplevel.print) o Toplevel.begin_local_theory begin
             (Locale.add_locale_cmd name expr elems #-> TheoryTarget.begin)));
 
-val opt_prefix = Scan.optional (P.binding --| P.$$$ ":") Name.no_binding;
+val opt_prefix = Scan.optional (P.binding --| P.$$$ ":") Binding.empty;
 
 val _ =
   OuterSyntax.command "sublocale"
@@ -483,7 +483,7 @@ val _ =
 fun gen_theorem kind =
   OuterSyntax.local_theory_to_proof' kind ("state " ^ kind) K.thy_goal
     (Scan.optional (SpecParse.opt_thm_name ":" --|
-      Scan.ahead (SpecParse.locale_keyword || SpecParse.statement_keyword)) Attrib.no_binding --
+      Scan.ahead (SpecParse.locale_keyword || SpecParse.statement_keyword)) Attrib.empty_binding --
       SpecParse.general_statement >> (fn (a, (elems, concl)) =>
         (Specification.theorem_cmd kind NONE (K I) a elems concl)));
 

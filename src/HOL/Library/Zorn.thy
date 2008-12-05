@@ -1,5 +1,4 @@
 (*  Title       : HOL/Library/Zorn.thy
-    ID          : $Id$
     Author      : Jacques D. Fleuriot, Tobias Nipkow
     Description : Zorn's Lemma (ported from Larry Paulson's Zorn.thy in ZF)
                   The well-ordering theorem
@@ -8,7 +7,7 @@
 header {* Zorn's Lemma *}
 
 theory Zorn
-imports Order_Relation
+imports "~~/src/HOL/Order_Relation"
 begin
 
 (* Define globally? In Set.thy? *)

@@ -1,12 +1,11 @@
 (*  Title:       Univ_Poly.thy
-    ID:          $Id$
     Author:      Amine Chaieb
 *)
 
 header{*Univariate Polynomials*}
 
 theory Univ_Poly
-imports Plain "~~/src/HOL/List"
+imports Plain List
 begin
 
 text{* Application of polynomial as a function. *}

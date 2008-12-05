@@ -912,7 +912,7 @@ local
 
 structure CodeAntiqData = ProofDataFun
 (
-  type T = string list * (bool * (string * (string * (string * string) list) Lazy.T));
+  type T = string list * (bool * (string * (string * (string * string) list) lazy));
   fun init _ = ([], (true, ("", Lazy.value ("", []))));
 );
 

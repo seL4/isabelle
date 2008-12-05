@@ -85,7 +85,7 @@ fun mk_intr_tms sg (rec_tm, constructs) =
       Logic.list_implies
         (map FOLogic.mk_Trueprop prems,
 	 FOLogic.mk_Trueprop
-	    (@{const mem} $ list_comb (Const (Sign.full_name sg name, T), args)
+	    (@{const mem} $ list_comb (Const (Sign.full_bname sg name, T), args)
 	               $ rec_tm))
   in  map mk_intr constructs  end;
 

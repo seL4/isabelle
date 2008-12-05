@@ -411,7 +411,7 @@ theorem conj_le_cong: "(0 <= x \<Longrightarrow> P = P') \<Longrightarrow> (0 <=
   by (simp cong: conj_cong)
 lemma int_eq_number_of_eq:
   "(((number_of v)::int) = (number_of w)) = iszero ((number_of (v + (uminus w)))::int)"
-  by simp
+  by (rule eq_number_of_eq)
 
 lemma mod_eq0_dvd_iff[presburger]: "(m::nat) mod n = 0 \<longleftrightarrow> n dvd m"
 unfolding dvd_eq_mod_eq_0[symmetric] ..

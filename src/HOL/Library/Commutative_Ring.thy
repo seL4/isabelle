@@ -1,5 +1,4 @@
-(*  ID:         $Id$
-    Author:     Bernhard Haeupler
+(*  Author:     Bernhard Haeupler
 
 Proving equalities in commutative rings done "right" in Isabelle/HOL.
 *)
@@ -7,7 +6,7 @@ Proving equalities in commutative rings done "right" in Isabelle/HOL.
 header {* Proving equalities in commutative rings *}
 
 theory Commutative_Ring
-imports Plain "~~/src/HOL/List" Parity
+imports Plain "~~/src/HOL/List" "~~/src/HOL/Parity"
 uses ("comm_ring.ML")
 begin
 

@@ -10,7 +10,7 @@ imports Code_Eval
 begin
 
 setup {*
-  Sign.declare_const [] ((Name.binding "rterm_of", @{typ "'a \<Rightarrow> 'b"}), NoSyn)
+  Sign.declare_const [] ((Binding.name "rterm_of", @{typ "'a \<Rightarrow> 'b"}), NoSyn)
   #> snd
 *}
 

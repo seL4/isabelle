@@ -89,7 +89,7 @@ fun prove_size_thms (info : datatype_info) new_type_names thy =
       map (fn (T as Type (s, _), optname) =>
         let
           val s' = the_default (Sign.base_name s) optname ^ "_size";
-          val s'' = Sign.full_name thy s'
+          val s'' = Sign.full_bname thy s'
         in
           (s'',
            (list_comb (Const (s'', param_size_fTs @ [T] ---> HOLogic.natT),
@@ -133,7 +133,7 @@ fun prove_size_thms (info : datatype_info) new_type_names thy =
       let
         val (Free (c, _), rhs) = (Logic.dest_equals o Syntax.check_term lthy) eq;
         val ((_, (_, thm)), lthy') = lthy |> LocalTheory.define Thm.definitionK
-          ((Name.binding c, NoSyn), ((Name.binding def_name, []), rhs));
+          ((Binding.name c, NoSyn), ((Binding.name def_name, []), rhs));
         val ctxt_thy = ProofContext.init (ProofContext.theory_of lthy');
         val thm' = singleton (ProofContext.export lthy' ctxt_thy) thm;
       in (thm', lthy') end;

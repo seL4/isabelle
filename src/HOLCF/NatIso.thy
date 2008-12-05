@@ -1,5 +1,4 @@
 (*  Title:      HOLCF/NatIso.thy
-    ID:         $Id$
     Author:     Brian Huffman
 *)
 

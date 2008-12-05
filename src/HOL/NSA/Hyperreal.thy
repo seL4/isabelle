@@ -1,5 +1,4 @@
-(*  Title:      HOL/Hyperreal/Hyperreal.thy
-    ID:         $Id$
+(*  Title:      HOL/NSA/Hyperreal.thy
     Author:     Jacques Fleuriot, Cambridge University Computer Laboratory
     Copyright   1998  University of Cambridge
 

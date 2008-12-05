@@ -108,7 +108,7 @@ fun prove_primrec_thms flat_names new_type_names descr sorts
       if length descr' = 1 then [big_rec_name'] else
         map ((curry (op ^) (big_rec_name' ^ "_")) o string_of_int)
           (1 upto (length descr'));
-    val rec_set_names = map (Sign.full_name thy0) rec_set_names';
+    val rec_set_names = map (Sign.full_bname thy0) rec_set_names';
 
     val (rec_result_Ts, reccomb_fn_Ts) = DatatypeProp.make_primrec_Ts descr sorts used;
 
@@ -156,11 +156,11 @@ fun prove_primrec_thms flat_names new_type_names descr sorts
     val ({intrs = rec_intrs, elims = rec_elims, ...}, thy1) =
         InductivePackage.add_inductive_global (serial_string ())
           {quiet_mode = ! quiet_mode, verbose = false, kind = Thm.internalK,
-            alt_name = Name.binding big_rec_name', coind = false, no_elim = false, no_ind = true,
+            alt_name = Binding.name big_rec_name', coind = false, no_elim = false, no_ind = true,
             skip_mono = true}
-          (map (fn (s, T) => ((Name.binding s, T), NoSyn)) (rec_set_names' ~~ rec_set_Ts))
+          (map (fn (s, T) => ((Binding.name s, T), NoSyn)) (rec_set_names' ~~ rec_set_Ts))
           (map dest_Free rec_fns)
-          (map (fn x => (Attrib.no_binding, x)) rec_intr_ts) [] thy0;
+          (map (fn x => (Attrib.empty_binding, x)) rec_intr_ts) [] thy0;
 
     (* prove uniqueness and termination of primrec combinators *)
 
@@ -226,7 +226,7 @@ fun prove_primrec_thms flat_names new_type_names descr sorts
     (* define primrec combinators *)
 
     val big_reccomb_name = (space_implode "_" new_type_names) ^ "_rec";
-    val reccomb_names = map (Sign.full_name thy1)
+    val reccomb_names = map (Sign.full_bname thy1)
       (if length descr' = 1 then [big_reccomb_name] else
         (map ((curry (op ^) (big_reccomb_name ^ "_")) o string_of_int)
           (1 upto (length descr'))));
@@ -294,7 +294,7 @@ fun prove_case_thms flat_names new_type_names descr sorts reccomb_names primrec_
       in Const (@{const_name undefined}, Ts @ Ts' ---> T')
       end) constrs) descr';
 
-    val case_names = map (fn s => Sign.full_name thy1 (s ^ "_case")) new_type_names;
+    val case_names = map (fn s => Sign.full_bname thy1 (s ^ "_case")) new_type_names;
 
     (* define case combinators via primrec combinators *)
 
@@ -317,7 +317,7 @@ fun prove_case_thms flat_names new_type_names descr sorts reccomb_names primrec_
           val fns = (List.concat (Library.take (i, case_dummy_fns))) @
             fns2 @ (List.concat (Library.drop (i + 1, case_dummy_fns)));
           val reccomb = Const (recname, (map fastype_of fns) @ [T] ---> T');
-          val decl = ((Name.binding (Sign.base_name name), caseT), NoSyn);
+          val decl = ((Binding.name (Sign.base_name name), caseT), NoSyn);
           val def = ((Sign.base_name name) ^ "_def",
             Logic.mk_equals (list_comb (Const (name, caseT), fns1),
               list_comb (reccomb, (List.concat (Library.take (i, case_dummy_fns))) @

@@ -22,10 +22,10 @@ sig
    | PAxm of string * term * typ list option
    | Oracle of string * term * typ list option
    | Promise of serial * term * typ list
-   | PThm of serial * ((string * term * typ list option) * proof_body Lazy.T)
+   | PThm of serial * ((string * term * typ list option) * proof_body lazy)
   and proof_body = PBody of
     {oracles: (string * term) OrdList.T,
-     thms: (serial * (string * term * proof_body Lazy.T)) OrdList.T,
+     thms: (serial * (string * term * proof_body lazy)) OrdList.T,
      proof: proof}
 
   val %> : proof * term -> proof
@@ -36,10 +36,10 @@ sig
   include BASIC_PROOFTERM
 
   type oracle = string * term
-  type pthm = serial * (string * term * proof_body Lazy.T)
-  val force_body: proof_body Lazy.T ->
+  type pthm = serial * (string * term * proof_body lazy)
+  val force_body: proof_body lazy ->
     {oracles: oracle OrdList.T, thms: pthm OrdList.T, proof: proof}
-  val force_proof: proof_body Lazy.T -> proof
+  val force_proof: proof_body lazy -> proof
   val proof_of: proof_body -> proof
   val fold_body_thms: (string * term * proof_body -> 'a -> 'a) -> proof_body list -> 'a -> 'a
   val fold_proof_atoms: bool -> (proof -> 'a -> 'a) -> proof list -> 'a -> 'a
@@ -111,7 +111,7 @@ sig
   val promise_proof: theory -> serial -> term -> proof
   val fulfill_proof: theory -> (serial * proof) list -> proof_body -> proof_body
   val thm_proof: theory -> string -> term list -> term ->
-    (serial * proof) list Lazy.T -> proof_body -> pthm * proof
+    (serial * proof) list lazy -> proof_body -> pthm * proof
   val get_name: term list -> term -> proof -> string
 
   (** rewriting on proof terms **)
@@ -143,14 +143,14 @@ datatype proof =
  | PAxm of string * term * typ list option
  | Oracle of string * term * typ list option
  | Promise of serial * term * typ list
- | PThm of serial * ((string * term * typ list option) * proof_body Lazy.T)
+ | PThm of serial * ((string * term * typ list option) * proof_body lazy)
 and proof_body = PBody of
   {oracles: (string * term) OrdList.T,
-   thms: (serial * (string * term * proof_body Lazy.T)) OrdList.T,
+   thms: (serial * (string * term * proof_body lazy)) OrdList.T,
    proof: proof};
 
 type oracle = string * term;
-type pthm = serial * (string * term * proof_body Lazy.T);
+type pthm = serial * (string * term * proof_body lazy);
 
 val force_body = Lazy.force #> (fn PBody args => args);
 val force_proof = #proof o force_body;

@@ -1,8 +1,7 @@
 (*  Title:      Pure/Tools/value.ML
-    ID:         $Id$
     Author:     Florian Haftmann, TU Muenchen
 
-Value command for different evaluators.
+Generic value command for arbitrary evaluators.
 *)
 
 signature VALUE =

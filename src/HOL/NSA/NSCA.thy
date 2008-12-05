@@ -1,4 +1,4 @@
-(*  Title       : NSCA.thy
+(*  Title       : NSA/NSCA.thy
     Author      : Jacques D. Fleuriot
     Copyright   : 2001,2002 University of Edinburgh
 *)
@@ -6,7 +6,7 @@
 header{*Non-Standard Complex Analysis*}
 
 theory NSCA
-imports NSComplex "../Hyperreal/HTranscendental"
+imports NSComplex HTranscendental
 begin
 
 abbreviation

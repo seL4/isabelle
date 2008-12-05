@@ -1,5 +1,4 @@
-(*  Title       : HOL/Real/RComplete.thy
-    ID          : $Id$
+(*  Title       : HOL/RComplete.thy
     Author      : Jacques D. Fleuriot, University of Edinburgh
     Author      : Larry Paulson, University of Cambridge
     Author      : Jeremy Avigad, Carnegie Mellon University

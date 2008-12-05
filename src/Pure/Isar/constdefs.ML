@@ -1,5 +1,4 @@
 (*  Title:      Pure/Isar/constdefs.ML
-    ID:         $Id$
     Author:     Makarius, Hagia Maria Sion Abbey (Jerusalem)
 
 Old-style constant definitions, with type-inference and optional
@@ -9,12 +8,12 @@ dependencies; no support for overloading.
 
 signature CONSTDEFS =
 sig
-  val add_constdefs: (Name.binding * string option) list *
-    ((Name.binding * string option * mixfix) option *
+  val add_constdefs: (Binding.T * string option) list *
+    ((Binding.T * string option * mixfix) option *
       (Attrib.binding * string)) list -> theory -> theory
-  val add_constdefs_i: (Name.binding * typ option) list *
-    ((Name.binding * typ option * mixfix) option *
-      ((Name.binding * attribute list) * term)) list -> theory -> theory
+  val add_constdefs_i: (Binding.T * typ option) list *
+    ((Binding.T * typ option * mixfix) option *
+      ((Binding.T * attribute list) * term)) list -> theory -> theory
 end;
 
 structure Constdefs: CONSTDEFS =
@@ -46,7 +45,7 @@ fun gen_constdef prep_vars prep_prop prep_att
             err ("Head of definition " ^ quote c ^ " differs from declaration " ^ quote c') []
           else ());
 
-    val def = Term.subst_atomic [(Free (c, T), Const (Sign.full_name thy c, T))] prop;
+    val def = Term.subst_atomic [(Free (c, T), Const (Sign.full_bname thy c, T))] prop;
     val name = Thm.def_name_optional c (Name.name_of raw_name);
     val atts = map (prep_att thy) raw_atts;
 

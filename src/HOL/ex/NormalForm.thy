@@ -1,11 +1,10 @@
-(*  ID:         $Id$
-    Authors:    Klaus Aehlig, Tobias Nipkow
+(*  Authors:    Klaus Aehlig, Tobias Nipkow
 *)
 
 header {* Test of normalization function *}
 
 theory NormalForm
-imports Main "~~/src/HOL/Real/Rational"
+imports Main Rational
 begin
 
 lemma "True" by normalization

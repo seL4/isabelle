@@ -1,5 +1,4 @@
-(*  Title       : HOL/Real/RealPow.thy
-    ID          : $Id$
+(*  Title       : HOL/RealPow.thy
     Author      : Jacques D. Fleuriot  
     Copyright   : 1998  University of Cambridge
 *)
@@ -8,7 +7,7 @@ header {* Natural powers theory *}
 
 theory RealPow
 imports RealDef
-uses ("float_syntax.ML")
+uses ("Tools/float_syntax.ML")
 begin
 
 declare abs_mult_self [simp]
@@ -272,7 +271,7 @@ subsection{* Float syntax *}
 
 syntax "_Float" :: "float_const \<Rightarrow> 'a"    ("_")
 
-use "float_syntax.ML"
+use "Tools/float_syntax.ML"
 setup FloatSyntax.setup
 
 text{* Test: *}

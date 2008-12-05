@@ -1,5 +1,4 @@
-(*  Title:      HOL/Hyperreal/ex/Sqrt.thy
-    ID:         $Id$
+(*  Title:      HOL/ex/Sqrt.thy
     Author:     Markus Wenzel, TU Muenchen
 
 *)
@@ -7,7 +6,7 @@
 header {*  Square roots of primes are irrational *}
 
 theory Sqrt
-imports Primes Complex_Main
+imports Complex_Main Primes
 begin
 
 text {* The definition and the key representation theorem for the set of

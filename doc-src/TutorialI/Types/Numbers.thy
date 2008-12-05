@@ -1,4 +1,3 @@
-(* ID:         $Id$ *)
 theory Numbers
 imports Complex_Main
 begin

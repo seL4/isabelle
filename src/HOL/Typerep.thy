@@ -5,8 +5,8 @@
 
 header {* Reflecting Pure types into HOL *}
 
-theory RType
-imports Plain "~~/src/HOL/List" "~~/src/HOL/Library/Code_Message"
+theory Typerep
+imports Plain List Code_Message
 begin
 
 datatype typerep = Typerep message_string "typerep list"
@@ -67,7 +67,7 @@ fun add_def tyco thy =
     thy
     |> TheoryTarget.instantiation ([tyco], vs, @{sort typerep})
     |> `(fn lthy => Syntax.check_term lthy eq)
-    |-> (fn eq => Specification.definition (NONE, (Attrib.no_binding, eq)))
+    |-> (fn eq => Specification.definition (NONE, (Attrib.empty_binding, eq)))
     |> snd
     |> Class.prove_instantiation_instance (K (Class.intro_classes_tac []))
     |> LocalTheory.exit_global

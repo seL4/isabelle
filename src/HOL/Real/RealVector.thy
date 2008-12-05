@@ -1,12 +1,11 @@
-(*  Title:      RealVector.thy
-    ID:         $Id$
+(*  Title:      HOL/Real/RealVector.thy
     Author:     Brian Huffman
 *)
 
 header {* Vector Spaces and Algebras over the Reals *}
 
 theory RealVector
-imports RealPow
+imports "~~/src/HOL/RealPow"
 begin
 
 subsection {* Locale for additive functions *}

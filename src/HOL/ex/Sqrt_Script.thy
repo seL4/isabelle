@@ -1,5 +1,4 @@
-(*  Title:      HOL/Hyperreal/ex/Sqrt_Script.thy
-    ID:         $Id$
+(*  Title:      HOL/ex/Sqrt_Script.thy
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   2001  University of Cambridge
 *)
@@ -7,7 +6,7 @@
 header {* Square roots of primes are irrational (script version) *}
 
 theory Sqrt_Script
-imports Primes Complex_Main
+imports Complex_Main Primes
 begin
 
 text {*

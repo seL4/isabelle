@@ -349,7 +349,7 @@ lemma int_code' [code]:
 
 lemma nat_code' [code]:
   "nat (number_of l) = (if neg (number_of l \<Colon> int) then 0 else number_of l)"
-  by auto
+  unfolding nat_number_of_def number_of_is_id neg_def by simp
 
 lemma of_nat_int [code unfold]:
   "of_nat = int" by (simp add: int_def)

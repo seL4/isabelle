@@ -567,7 +567,7 @@ fun gen_add_datatype prep_typ err flat_names new_type_names dts thy =
 
     val (tyvars, _, _, _)::_ = dts;
     val (new_dts, types_syntax) = ListPair.unzip (map (fn (tvs, tname, mx, _) =>
-      let val full_tname = Sign.full_name tmp_thy (Syntax.type_name tname mx)
+      let val full_tname = Sign.full_bname tmp_thy (Syntax.type_name tname mx)
       in (case duplicates (op =) tvs of
             [] => if eq_set (tyvars, tvs) then ((full_tname, tvs), (tname, mx))
                   else error ("Mutually recursive datatypes must have same type parameters")
@@ -586,8 +586,8 @@ fun gen_add_datatype prep_typ err flat_names new_type_names dts thy =
             val _ = (case fold (curry add_typ_tfree_names) cargs' [] \\ tvs of
                 [] => ()
               | vs => error ("Extra type variables on rhs: " ^ commas vs))
-          in (constrs @ [((if flat_names then Sign.full_name tmp_thy else
-                Sign.full_name_path tmp_thy tname) (Syntax.const_name cname mx'),
+          in (constrs @ [((if flat_names then Sign.full_bname tmp_thy else
+                Sign.full_bname_path tmp_thy tname) (Syntax.const_name cname mx'),
                    map (dtyp_of_typ new_dts) cargs')],
               constr_syntax' @ [(cname, mx')], sorts'')
           end handle ERROR msg =>
@@ -600,7 +600,7 @@ fun gen_add_datatype prep_typ err flat_names new_type_names dts thy =
       in
         case duplicates (op =) (map fst constrs') of
            [] =>
-             (dts' @ [(i, (Sign.full_name tmp_thy (Syntax.type_name tname mx),
+             (dts' @ [(i, (Sign.full_bname tmp_thy (Syntax.type_name tname mx),
                 map DtTFree tvs, constrs'))],
               constr_syntax @ [constr_syntax'], sorts', i + 1)
          | dups => error ("Duplicate constructors " ^ commas dups ^

@@ -1,5 +1,4 @@
-(*  Title       : HOL/Hyperreal/HyperDef.thy
-    ID          : $Id$
+(*  Title       : HOL/NSA/HyperDef.thy
     Author      : Jacques D. Fleuriot
     Copyright   : 1998  University of Cambridge
     Conversion to Isar and new proofs by Lawrence C Paulson, 2004
@@ -8,7 +7,7 @@
 header{*Construction of Hyperreals Using Ultrafilters*}
 
 theory HyperDef
-imports HyperNat "../Real/Real"
+imports HyperNat Real
 uses ("hypreal_arith.ML")
 begin
 

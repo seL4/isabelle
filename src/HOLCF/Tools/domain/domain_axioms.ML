@@ -120,7 +120,7 @@ fun add_defs_infer defs thy = add_defs_i (infer_props thy defs) thy;
 in (* local *)
 
 fun add_axioms (comp_dnam, eqs : eq list) thy' = let
-  val comp_dname = Sign.full_name thy' comp_dnam;
+  val comp_dname = Sign.full_bname thy' comp_dnam;
   val dnames = map (fst o fst) eqs;
   val x_name = idx_name dnames "x"; 
   fun copy_app dname = %%:(dname^"_copy")`Bound 0;

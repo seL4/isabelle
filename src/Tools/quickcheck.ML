@@ -1,5 +1,4 @@
 (*  Title:      Pure/Tools/quickcheck.ML
-    ID:         $Id$
     Author:     Stefan Berghofer, Florian Haftmann, TU Muenchen
 
 Generic counterexample search engine.

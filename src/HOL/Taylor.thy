@@ -1,5 +1,4 @@
-(*  Title:      HOL/Hyperreal/Taylor.thy
-    ID:         $Id$
+(*  Title:      HOL/Taylor.thy
     Author:     Lukas Bulwahn, Bernhard Haeupler, Technische Universitaet Muenchen
 *)
 

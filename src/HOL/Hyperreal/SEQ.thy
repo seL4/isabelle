@@ -9,7 +9,7 @@
 header {* Sequences and Convergence *}
 
 theory SEQ
-imports "../Real/RealVector" "../Real/RComplete"
+imports "../Real/RealVector" "../RComplete"
 begin
 
 definition

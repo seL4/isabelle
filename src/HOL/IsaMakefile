@@ -99,6 +99,7 @@ PLAIN_DEPENDENCIES = $(OUT)/Pure \
   SAT.thy \
   Set.thy \
   Sum_Type.thy \
+  Tools/arith_data.ML \
   Tools/cnf_funcs.ML \
   Tools/datatype_abs_proofs.ML \
   Tools/datatype_aux.ML \
@@ -124,6 +125,7 @@ PLAIN_DEPENDENCIES = $(OUT)/Pure \
   Tools/function_package/pattern_split.ML \
   Tools/function_package/size.ML \
   Tools/function_package/sum_tree.ML \
+  Tools/hologic.ML \
   Tools/inductive_codegen.ML \
   Tools/inductive_package.ML \
   Tools/inductive_realizer.ML \
@@ -139,6 +141,7 @@ PLAIN_DEPENDENCIES = $(OUT)/Pure \
   Tools/rewrite_hol_proof.ML \
   Tools/sat_funcs.ML \
   Tools/sat_solver.ML \
+  Tools/simpdata.ML \
   Tools/split_rule.ML \
   Tools/typecopy_package.ML \
   Tools/typedef_codegen.ML \
@@ -146,9 +149,6 @@ PLAIN_DEPENDENCIES = $(OUT)/Pure \
   Transitive_Closure.thy \
   Typedef.thy \
   Wellfounded.thy \
-  arith_data.ML \
-  hologic.ML \
-  simpdata.ML \
   $(SRC)/Provers/Arith/abel_cancel.ML \
   $(SRC)/Provers/Arith/cancel_div_mod.ML \
   $(SRC)/Provers/Arith/cancel_sums.ML \
@@ -170,6 +170,7 @@ PLAIN_DEPENDENCIES = $(OUT)/Pure \
   $(SRC)/Tools/IsaPlanner/zipper.ML \
   $(SRC)/Tools/atomize_elim.ML \
   $(SRC)/Tools/code/code_funcgr.ML \
+  $(SRC)/Tools/code/code_funcgr.ML \
   $(SRC)/Tools/code/code_name.ML \
   $(SRC)/Tools/code/code_printer.ML \
   $(SRC)/Tools/code/code_target.ML \
@@ -189,20 +190,18 @@ MAIN_DEPENDENCIES = $(PLAIN_DEPENDENCIES) \
   Arith_Tools.thy \
   ATP_Linkup.thy \
   Code_Eval.thy \
+  Code_Message.thy \
   Equiv_Relations.thy \
   Groebner_Basis.thy \
   Hilbert_Choice.thy \
-  int_arith1.ML \
   IntDiv.thy \
-  int_factor_simprocs.ML \
   Int.thy \
-  Library/RType.thy \
+  Typerep.thy \
   List.thy \
   Main.thy \
   Map.thy \
   NatBin.thy \
   Nat_Int_Bij.thy \
-  nat_simprocs.ML \
   Presburger.thy \
   Recdef.thy \
   Relation_Power.thy \
@@ -213,6 +212,9 @@ MAIN_DEPENDENCIES = $(PLAIN_DEPENDENCIES) \
   $(SRC)/Provers/Arith/combine_numerals.ML \
   $(SRC)/Provers/Arith/extract_common_term.ML \
   $(SRC)/Tools/Metis/metis.ML \
+  Tools/int_arith.ML \
+  Tools/int_factor_simprocs.ML \
+  Tools/nat_simprocs.ML \
   Tools/Groebner_Basis/groebner.ML \
   Tools/Groebner_Basis/misc.ML \
   Tools/Groebner_Basis/normalizer_data.ML \
@@ -251,38 +253,39 @@ $(OUT)/HOL-Main: main.ML $(MAIN_DEPENDENCIES)
 	@$(ISABELLE_TOOL) usedir -b -f main.ML -g true $(OUT)/Pure HOL-Main
 
 $(OUT)/HOL: ROOT.ML $(MAIN_DEPENDENCIES) \
-  Complex/Complex_Main.thy \
-  Complex/Complex.thy \
+  Complex_Main.thy \
+  Complex.thy \
   Complex/Fundamental_Theorem_Algebra.thy \
-  Hyperreal/Deriv.thy \
-  Hyperreal/Fact.thy \
-  Hyperreal/Integration.thy \
-  Hyperreal/Lim.thy \
-  Hyperreal/Ln.thy \
-  Hyperreal/Log.thy \
-  Hyperreal/MacLaurin.thy \
-  Hyperreal/NthRoot.thy \
+  Deriv.thy \
+  Fact.thy \
+  FrechetDeriv.thy \
+  Integration.thy \
+  Lim.thy \
+  Ln.thy \
+  Log.thy \
+  MacLaurin.thy \
+  NthRoot.thy \
   Hyperreal/SEQ.thy \
-  Hyperreal/Series.thy \
-  Hyperreal/Taylor.thy \
-  Hyperreal/Transcendental.thy \
+  Series.thy \
+  Taylor.thy \
+  Transcendental.thy \
   Library/Dense_Linear_Order.thy \
-  Library/GCD.thy \
-  Library/Order_Relation.thy \
-  Library/Parity.thy \
-  Library/Univ_Poly.thy \
-  Real/ContNotDenum.thy \
-  Real/float_syntax.ML \
-  Real/Lubs.thy \
-  Real/PReal.thy \
-  Real/rat_arith.ML \
-  Real/Rational.thy \
-  Real/RComplete.thy \
-  Real/real_arith.ML \
-  Real/RealDef.thy \
-  Real/RealPow.thy \
-  Real/Real.thy \
+  GCD.thy \
+  Order_Relation.thy \
+  Parity.thy \
+  Univ_Poly.thy \
+  ContNotDenum.thy \
+  Lubs.thy \
+  PReal.thy \
+  Rational.thy \
+  RComplete.thy \
+  RealDef.thy \
+  RealPow.thy \
+  Real.thy \
   Real/RealVector.thy \
+  Tools/float_syntax.ML \
+  Tools/rat_arith.ML \
+  Tools/real_arith.ML \
   Tools/Qelim/ferrante_rackoff_data.ML \
   Tools/Qelim/ferrante_rackoff.ML \
   Tools/Qelim/langford_data.ML \
@@ -315,13 +318,12 @@ $(LOG)/HOL-Library.gz: $(OUT)/HOL Library/SetsAndFunctions.thy		\
   Library/Binomial.thy Library/Eval_Witness.thy	\
   Library/Code_Index.thy Library/Code_Char.thy				\
   Library/Code_Char_chr.thy Library/Code_Integer.thy			\
-  Library/Code_Message.thy			\
   Library/Numeral_Type.thy			\
-  Library/Boolean_Algebra.thy Library/Countable.thy Library/RType.thy	\
+  Library/Boolean_Algebra.thy Library/Countable.thy	\
   Library/Heap.thy Library/Heap_Monad.thy Library/Array.thy		\
   Library/Relational.thy Library/Sublist.thy Library/Subarray.thy	\
   Library/Ref.thy Library/Imperative_HOL.thy Library/RBT.thy		\
-  Library/Enum.thy Real/Float.thy $(SRC)/Tools/float.ML
+  Library/Enum.thy Library/Float.thy $(SRC)/Tools/float.ML $(SRC)/HOL/Tools/float_arith.ML
 	@cd Library; $(ISABELLE_TOOL) usedir $(OUT)/HOL Library
 
 
@@ -793,11 +795,12 @@ $(LOG)/HOL-ex.gz: $(OUT)/HOL Library/Commutative_Ring.thy		\
   ex/document/root.tex ex/Meson_Test.thy ex/reflection.ML ex/set.thy	\
   ex/svc_funcs.ML ex/svc_test.thy	\
   ex/ImperativeQuicksort.thy	\
-  Complex/ex/BigO_Complex.thy Complex/ex/BinEx.thy			\
-  Complex/ex/Sqrt.thy							\
-  Complex/ex/Sqrt_Script.thy Complex/ex/MIR.thy Complex/ex/mirtac.ML	\
-  Complex/ex/ReflectedFerrack.thy					\
-  Complex/ex/linrtac.ML
+  ex/BigO_Complex.thy			\
+  ex/Arithmetic_Series_Complex.thy ex/HarmonicSeries.thy	\
+  ex/Sqrt.thy							\
+  ex/Sqrt_Script.thy ex/MIR.thy ex/mirtac.ML	\
+  ex/ReflectedFerrack.thy					\
+  ex/linrtac.ML
 	@$(ISABELLE_TOOL) usedir $(OUT)/HOL ex
 
 
@@ -942,7 +945,7 @@ $(LOG)/HOL-Nominal-Examples.gz: $(OUT)/HOL-Nominal 	\
 HOL-Word: HOL $(OUT)/HOL-Word
 
 $(OUT)/HOL-Word: $(OUT)/HOL Word/ROOT.ML Library/Infinite_Set.thy	\
-  Library/Parity.thy Library/Boolean_Algebra.thy			\
+  Library/Boolean_Algebra.thy			\
   Library/Numeral_Type.thy Word/Num_Lemmas.thy Word/TdThs.thy		\
   Word/Size.thy Word/BinGeneral.thy Word/BinOperations.thy		\
   Word/BinBoolList.thy Word/BitSyntax.thy Word/WordDefinition.thy	\

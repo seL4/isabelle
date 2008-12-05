@@ -101,7 +101,7 @@ fun add_datatype_i (dom_sum, rec_tms) con_ty_lists (monos, type_intrs, type_elim
   val npart = length rec_names;  (*number of mutually recursive parts*)
 
 
-  val full_name = Sign.full_name thy_path;
+  val full_name = Sign.full_bname thy_path;
 
   (*Make constructor definition;
     kpart is the number of this mutually recursive part*)
@@ -262,7 +262,7 @@ fun add_datatype_i (dom_sum, rec_tms) con_ty_lists (monos, type_intrs, type_elim
              ||> add_recursor
              ||> Sign.parent_path
 
-  val intr_names = map (Name.binding o #2) (List.concat con_ty_lists);
+  val intr_names = map (Binding.name o #2) (List.concat con_ty_lists);
   val (thy1, ind_result) =
     thy0 |> Ind_Package.add_inductive_i
       false (rec_tms, dom_sum) (map Thm.no_attributes (intr_names ~~ intr_tms))

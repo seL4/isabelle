@@ -1,5 +1,4 @@
-(*  Title:      HOL/Library/HarmonicSeries.thy
-    ID:         $Id$
+(*  Title:      HOL/ex/HarmonicSeries.thy
     Author:     Benjamin Porter, 2006
 *)
 

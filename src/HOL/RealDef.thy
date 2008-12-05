@@ -1,5 +1,4 @@
-(*  Title       : Real/RealDef.thy
-    ID          : $Id$
+(*  Title       : HOL/RealDef.thy
     Author      : Jacques D. Fleuriot
     Copyright   : 1998  University of Cambridge
     Conversion to Isar and new proofs by Lawrence C Paulson, 2003/4
@@ -10,7 +9,7 @@ header{*Defining the Reals from the Positive Reals*}
 
 theory RealDef
 imports PReal
-uses ("real_arith.ML")
+uses ("Tools/real_arith.ML")
 begin
 
 definition
@@ -962,7 +961,7 @@ lemma real_of_nat_number_of [simp]:
 by (simp add: real_of_int_real_of_nat [symmetric] int_nat_number_of)
  
 
-use "real_arith.ML"
+use "Tools/real_arith.ML"
 declaration {* K real_arith_setup *}
 
 

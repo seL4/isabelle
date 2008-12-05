@@ -1,5 +1,4 @@
 (*  Title:      HOLCF/FOCUS/Buffer.thy
-    ID:         $Id$
     Author:     David von Oheimb, TU Muenchen
 
 Formalization of section 4 of

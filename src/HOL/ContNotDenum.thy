@@ -1,12 +1,11 @@
-(*  Title       : HOL/Real/ContNonDenum
-    ID          : $Id$
+(*  Title       : HOL/ContNonDenum
     Author      : Benjamin Porter, Monash University, NICTA, 2005
 *)
 
 header {* Non-denumerability of the Continuum. *}
 
 theory ContNotDenum
-imports RComplete "../Hilbert_Choice"
+imports RComplete Hilbert_Choice
 begin
 
 subsection {* Abstract *}

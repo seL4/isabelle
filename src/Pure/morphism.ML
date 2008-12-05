@@ -1,5 +1,4 @@
 (*  Title:      Pure/morphism.ML
-    ID:         $Id$
     Author:     Makarius
 
 Abstract morphisms on formal entities.
@@ -17,21 +16,21 @@ end
 signature MORPHISM =
 sig
   include BASIC_MORPHISM
-  val var: morphism -> Name.binding * mixfix -> Name.binding * mixfix
-  val name: morphism -> Name.binding -> Name.binding
+  val var: morphism -> Binding.T * mixfix -> Binding.T * mixfix
+  val binding: morphism -> Binding.T -> Binding.T
   val typ: morphism -> typ -> typ
   val term: morphism -> term -> term
   val fact: morphism -> thm list -> thm list
   val thm: morphism -> thm -> thm
   val cterm: morphism -> cterm -> cterm
   val morphism:
-   {name: Name.binding -> Name.binding,
-    var: Name.binding * mixfix -> Name.binding * mixfix,
+   {binding: Binding.T -> Binding.T,
+    var: Binding.T * mixfix -> Binding.T * mixfix,
     typ: typ -> typ,
     term: term -> term,
     fact: thm list -> thm list} -> morphism
-  val name_morphism: (Name.binding -> Name.binding) -> morphism
-  val var_morphism: (Name.binding * mixfix -> Name.binding * mixfix) -> morphism
+  val binding_morphism: (Binding.T -> Binding.T) -> morphism
+  val var_morphism: (Binding.T * mixfix -> Binding.T * mixfix) -> morphism
   val typ_morphism: (typ -> typ) -> morphism
   val term_morphism: (term -> term) -> morphism
   val fact_morphism: (thm list -> thm list) -> morphism
@@ -46,15 +45,15 @@ structure Morphism: MORPHISM =
 struct
 
 datatype morphism = Morphism of
- {name: Name.binding -> Name.binding,
-  var: Name.binding * mixfix -> Name.binding * mixfix,
+ {binding: Binding.T -> Binding.T,
+  var: Binding.T * mixfix -> Binding.T * mixfix,
   typ: typ -> typ,
   term: term -> term,
   fact: thm list -> thm list};
 
 type declaration = morphism -> Context.generic -> Context.generic;
 
-fun name (Morphism {name, ...}) = name;
+fun binding (Morphism {binding, ...}) = binding;
 fun var (Morphism {var, ...}) = var;
 fun typ (Morphism {typ, ...}) = typ;
 fun term (Morphism {term, ...}) = term;
@@ -64,19 +63,19 @@ val cterm = Drule.cterm_rule o thm;
 
 val morphism = Morphism;
 
-fun name_morphism name = morphism {name = name, var = I, typ = I, term = I, fact = I};
-fun var_morphism var = morphism {name = I, var = var, typ = I, term = I, fact = I};
-fun typ_morphism typ = morphism {name = I, var = I, typ = typ, term = I, fact = I};
-fun term_morphism term = morphism {name = I, var = I, typ = I, term = term, fact = I};
-fun fact_morphism fact = morphism {name = I, var = I, typ = I, term = I, fact = fact};
-fun thm_morphism thm = morphism {name = I, var = I, typ = I, term = I, fact = map thm};
+fun binding_morphism binding = morphism {binding = binding, var = I, typ = I, term = I, fact = I};
+fun var_morphism var = morphism {binding = I, var = var, typ = I, term = I, fact = I};
+fun typ_morphism typ = morphism {binding = I, var = I, typ = typ, term = I, fact = I};
+fun term_morphism term = morphism {binding = I, var = I, typ = I, term = term, fact = I};
+fun fact_morphism fact = morphism {binding = I, var = I, typ = I, term = I, fact = fact};
+fun thm_morphism thm = morphism {binding = I, var = I, typ = I, term = I, fact = map thm};
 
-val identity = morphism {name = I, var = I, typ = I, term = I, fact = I};
+val identity = morphism {binding = I, var = I, typ = I, term = I, fact = I};
 
 fun compose
-    (Morphism {name = name1, var = var1, typ = typ1, term = term1, fact = fact1})
-    (Morphism {name = name2, var = var2, typ = typ2, term = term2, fact = fact2}) =
-  morphism {name = name1 o name2, var = var1 o var2,
+    (Morphism {binding = binding1, var = var1, typ = typ1, term = term1, fact = fact1})
+    (Morphism {binding = binding2, var = var2, typ = typ2, term = term2, fact = fact2}) =
+  morphism {binding = binding1 o binding2, var = var1 o var2,
     typ = typ1 o typ2, term = term1 o term2, fact = fact1 o fact2};
 
 fun phi1 $> phi2 = compose phi2 phi1;

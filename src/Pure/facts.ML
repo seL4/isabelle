@@ -31,9 +31,9 @@ sig
   val props: T -> thm list
   val could_unify: T -> term -> thm list
   val merge: T * T -> T
-  val add_global: NameSpace.naming -> Name.binding * thm list -> T -> string * T
-  val add_local: bool -> NameSpace.naming -> Name.binding * thm list -> T -> string * T
-  val add_dynamic: NameSpace.naming -> Name.binding * (Context.generic -> thm list) -> T -> string * T
+  val add_global: NameSpace.naming -> Binding.T * thm list -> T -> string * T
+  val add_local: bool -> NameSpace.naming -> Binding.T * thm list -> T -> string * T
+  val add_dynamic: NameSpace.naming -> Binding.T * (Context.generic -> thm list) -> T -> string * T
   val del: string -> T -> T
   val hide: bool -> string -> T -> T
 end;
@@ -192,10 +192,10 @@ fun merge (Facts {facts = facts1, props = props1}, Facts {facts = facts2, props 
 
 fun add permissive do_props naming (b, ths) (Facts {facts, props}) =
   let
-    val (name, facts') = if Binding.is_nothing b then ("", facts)
+    val (name, facts') = if Binding.is_empty b then ("", facts)
       else let
         val (space, tab) = facts;
-        val (name, space') = NameSpace.declare_binding naming b space;
+        val (name, space') = NameSpace.declare naming b space;
         val entry = (name, (Static ths, serial ()));
         val tab' = (if permissive then Symtab.update else Symtab.update_new) entry tab
           handle Symtab.DUP dup => err_dup_fact dup;
@@ -213,7 +213,7 @@ val add_local = add true;
 
 fun add_dynamic naming (b, f) (Facts {facts = (space, tab), props}) =
   let
-    val (name, space') = NameSpace.declare_binding naming b space;
+    val (name, space') = NameSpace.declare naming b space;
     val entry = (name, (Dynamic f, serial ()));
     val tab' = Symtab.update_new entry tab
       handle Symtab.DUP dup => err_dup_fact dup;
