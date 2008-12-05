@@ -30,21 +30,23 @@ sig
   val enabled: unit -> bool
   type task = TaskQueue.task
   type group = TaskQueue.group
-  val thread_data: unit -> (string * task * group) option
-  type 'a T
-  val task_of: 'a T -> task
-  val group_of: 'a T -> group
-  val peek: 'a T -> 'a Exn.result option
-  val is_finished: 'a T -> bool
-  val future: group option -> task list -> bool -> (unit -> 'a) -> 'a T
-  val fork: (unit -> 'a) -> 'a T
-  val fork_background: (unit -> 'a) -> 'a T
-  val join_results: 'a T list -> 'a Exn.result list
-  val join_result: 'a T -> 'a Exn.result
-  val join: 'a T -> 'a
+  val thread_data: unit -> (string * task) option
+  type 'a future
+  val task_of: 'a future -> task
+  val group_of: 'a future -> group
+  val peek: 'a future -> 'a Exn.result option
+  val is_finished: 'a future -> bool
+  val fork: (unit -> 'a) -> 'a future
+  val fork_group: group -> (unit -> 'a) -> 'a future
+  val fork_deps: 'b future list -> (unit -> 'a) -> 'a future
+  val fork_background: (unit -> 'a) -> 'a future
+  val join_results: 'a future list -> 'a Exn.result list
+  val join_result: 'a future -> 'a Exn.result
+  val join: 'a future -> 'a
+  val map: ('a -> 'b) -> 'a future -> 'b future
   val focus: task list -> unit
   val interrupt_task: string -> unit
-  val cancel: 'a T -> unit
+  val cancel: 'a future -> unit
   val shutdown: unit -> unit
 end;
 
@@ -63,7 +65,7 @@ fun enabled () =
 type task = TaskQueue.task;
 type group = TaskQueue.group;
 
-local val tag = Universal.tag () : (string * task * group) option Universal.tag in
+local val tag = Universal.tag () : (string * task) option Universal.tag in
   fun thread_data () = the_default NONE (Thread.getLocal tag);
   fun setmp_thread_data data f x = Library.setmp_thread_data tag (thread_data ()) (SOME data) f x;
 end;
@@ -71,7 +73,7 @@ end;
 
 (* datatype future *)
 
-datatype 'a T = Future of
+datatype 'a future = Future of
  {task: task,
   group: group,
   result: 'a Exn.result option ref};
@@ -140,7 +142,7 @@ fun change_active active = (*requires SYNCHRONIZED*)
 fun execute name (task, group, run) =
   let
     val _ = trace_active ();
-    val ok = setmp_thread_data (name, task, group) run ();
+    val ok = setmp_thread_data (name, task) run ();
     val _ = SYNCHRONIZED "execute" (fn () =>
      (change queue (TaskQueue.finish task);
       if ok then ()
@@ -246,10 +248,10 @@ fun future opt_group deps pri (e: unit -> 'a) =
       change_result queue (TaskQueue.enqueue group deps pri run) before notify_all ());
   in Future {task = task, group = group, result = result} end;
 
-fun fork_common pri = future (Option.map #3 (thread_data ())) [] pri;
-
-fun fork e = fork_common true e;
-fun fork_background e = fork_common false e;
+fun fork e = future NONE [] true e;
+fun fork_group group e = future (SOME group) [] true e;
+fun fork_deps deps e = future NONE (map task_of deps) true e;
+fun fork_background e = future NONE [] false e;
 
 
 (* join: retrieve results *)
@@ -274,7 +276,7 @@ fun join_results [] = []
               (*alien thread -- refrain from contending for resources*)
               while exists (not o is_finished) xs
               do SYNCHRONIZED "join_thread" (fn () => wait "join_thread")
-          | SOME (name, task, _) =>
+          | SOME (name, task) =>
               (*proper task -- actively work towards results*)
               let
                 val unfinished = xs |> map_filter
@@ -291,6 +293,8 @@ fun join_results [] = []
 
 fun join_result x = singleton join_results x;
 fun join x = Exn.release (join_result x);
+
+fun map f x = fork_deps [x] (fn () => f (join x));
 
 
 (* misc operations *)
@@ -324,3 +328,6 @@ fun shutdown () =
   else ();
 
 end;
+
+type 'a future = 'a Future.future;
+

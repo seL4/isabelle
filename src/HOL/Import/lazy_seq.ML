@@ -80,7 +80,7 @@ end
 structure LazySeq :> LAZY_SEQ =
 struct
 
-datatype 'a seq = Seq of ('a * 'a seq) option Lazy.T
+datatype 'a seq = Seq of ('a * 'a seq) option lazy
 
 exception Empty
 
