@@ -48,7 +48,6 @@ sig
     -> 'a table * 'a table -> 'a table
   val dest_table: 'a table -> (string * 'a) list
   val extern_table: 'a table -> (xstring * 'a) list
-  val extend_table: naming -> (bstring * 'a) list -> 'a table -> 'a table
 end;
 
 structure NameSpace: NAME_SPACE =
@@ -302,10 +301,6 @@ fun bind naming (b, x) (space, tab) =
   let
     val (name, space') = declare naming b space;
   in (name, (space', Symtab.update_new (name, x) tab)) end;
-
-fun extend_table naming bentries (space, tab) =
-  let val entries = map (apfst (full_internal naming)) bentries
-  in (fold (declare_internal naming o #1) entries space, Symtab.extend (tab, entries)) end;
 
 fun merge_tables eq ((space1, tab1), (space2, tab2)) =
   (merge (space1, space2), Symtab.merge eq (tab1, tab2));
