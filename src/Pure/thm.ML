@@ -1734,7 +1734,7 @@ fun add_oracle (bname, oracle) thy =
     val naming = Sign.naming_of thy;
     val name = NameSpace.full_name naming (Binding.name bname);
     val thy' = thy |> Oracles.map (fn (space, tab) =>
-      (NameSpace.declare_base naming name space,
+      (NameSpace.declare naming (Binding.name bname) space |> snd,
         Symtab.update_new (name, stamp ()) tab handle Symtab.DUP dup => err_dup_ora dup));
   in ((name, invoke_oracle (Theory.check_thy thy') name oracle), thy') end;
 

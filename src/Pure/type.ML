@@ -509,10 +509,9 @@ fun eq_type tye (T, T') =
 fun add_class pp naming (c, cs) tsig =
   tsig |> map_tsig (fn ((space, classes), default, types) =>
     let
-      val c' = NameSpace.full_name naming (Binding.name c);
       val cs' = map (cert_class tsig) cs
         handle TYPE (msg, _, _) => error msg;
-      val space' = space |> NameSpace.declare_base naming c';
+      val (c', space') = space |> NameSpace.declare naming (Binding.name c);
       val classes' = classes |> Sorts.add_class pp (c', cs');
     in ((space', classes'), default, types) end);
 
@@ -568,8 +567,7 @@ fun err_in_decls c decl decl' =
 fun new_decl naming tags (c, decl) (space, types) =
   let
     val tags' = tags |> Position.default_properties (Position.thread_data ());
-    val c' = NameSpace.full_name naming (Binding.name c);
-    val space' = NameSpace.declare_base naming c' space;
+    val (c', space') = NameSpace.declare naming (Binding.name c) space;
     val types' =
       (case Symtab.lookup types c' of
         SOME ((decl', _), _) => err_in_decls c' decl decl'

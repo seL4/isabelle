@@ -10,7 +10,7 @@ sig
 
   val clear_idents: Proof.context -> Proof.context
   val test_locale: theory -> string -> bool
-  val register_locale: string ->
+  val register_locale: bstring ->
     (string * sort) list * (Binding.T * typ option * mixfix) list ->
     term option * term list ->
     (declaration * stamp) list * (declaration * stamp) list ->
@@ -104,7 +104,7 @@ structure LocalesData = TheoryDataFun
   type T = NameSpace.T * locale Symtab.table;
     (* locale namespace and locales of the theory *)
 
-  val empty = (NameSpace.empty, Symtab.empty);
+  val empty = NameSpace.empty_table;
   val copy = I;
   val extend = I;
 
@@ -120,8 +120,7 @@ structure LocalesData = TheoryDataFun
             dependencies = s_merge (dependencies, dependencies')
           }          
         end;
-  fun merge _ ((space1, locs1), (space2, locs2)) =
-    (NameSpace.merge (space1, space2), Symtab.join join_locales (locs1, locs2));
+  fun merge _ = NameSpace.join_tables join_locales;
 );
 
 val intern = NameSpace.intern o #1 o LocalesData.get;
@@ -136,11 +135,10 @@ fun the_locale thy name = case get_locale thy name
 fun test_locale thy name = case get_locale thy name
  of SOME _ => true | NONE => false;
 
-fun register_locale name parameters spec decls notes dependencies thy =
-  thy |> LocalesData.map (fn (space, locs) =>
-    (NameSpace.declare_base (Sign.naming_of thy) name space, Symtab.update (name,
-      Loc {parameters = parameters, spec = spec, decls = decls, notes = notes,
-        dependencies = dependencies}) locs));
+fun register_locale bname parameters spec decls notes dependencies thy =
+  thy |> LocalesData.map (NameSpace.bind (Sign.naming_of thy) (Binding.name bname,
+    Loc {parameters = parameters, spec = spec, decls = decls, notes = notes,
+      dependencies = dependencies}) #> snd);
 
 fun change_locale name f thy =
   let

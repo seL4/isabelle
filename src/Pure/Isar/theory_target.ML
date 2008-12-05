@@ -163,11 +163,9 @@ fun note_local kind facts ctxt =
 fun notes (Target {target, is_locale, is_class, ...}) kind facts lthy =
   let
     val thy = ProofContext.theory_of lthy;
-    val full = LocalTheory.full_name lthy;
-
     val facts' = facts
-      |> map (fn (a, bs) =>
-        (a, PureThy.burrow_fact (PureThy.name_multi (full (Name.name_of (fst a)))) bs))
+      |> map (fn (a, bs) => (a, PureThy.burrow_fact (PureThy.name_multi
+          (LocalTheory.full_name lthy (fst a))) bs))
       |> PureThy.map_facts (import_export_proof lthy);
     val local_facts = PureThy.map_facts #1 facts'
       |> Attrib.map_facts (Attrib.attribute_i thy);
