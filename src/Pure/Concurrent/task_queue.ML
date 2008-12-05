@@ -8,6 +8,7 @@ Ordered queue of grouped tasks.
 signature TASK_QUEUE =
 sig
   eqtype task
+  val new_task: unit -> task
   val str_of_task: task -> string
   eqtype group
   val new_group: unit -> group
@@ -34,7 +35,10 @@ struct
 (* identifiers *)
 
 datatype task = Task of serial;
+fun new_task () = Task (serial ());
+
 fun str_of_task (Task i) = string_of_int i;
+
 
 datatype group = Group of serial * bool ref;
 
@@ -81,8 +85,7 @@ fun is_empty (Queue {jobs, ...}) = IntGraph.is_empty jobs;
 
 fun enqueue (group as Group (gid, _)) deps pri job (Queue {groups, jobs, focus}) =
   let
-    val id = serial ();
-    val task = Task id;
+    val task as Task id = new_task ();
     val groups' = Inttab.cons_list (gid, task) groups;
     val jobs' = jobs
       |> IntGraph.new_node (id, (group, Job (pri, job))) |> fold (add_job task) deps;
