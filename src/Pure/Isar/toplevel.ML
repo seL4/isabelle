@@ -744,7 +744,7 @@ fun excursion input = exception_trace (fn () =>
     val (future_results, end_state) = fold_map (proof_result immediate) input toplevel;
     val _ =
       (case end_state of
-        State (NONE, SOME (Theory (Context.Theory thy, _), _)) => PureThy.force_proofs thy
+        State (NONE, SOME (Theory (Context.Theory _, _), _)) => ()
       | _ => error "Unfinished development at end of input");
     val results = maps Lazy.force future_results;
   in (results, fn () => ignore (command (commit_exit end_pos) end_state)) end);
