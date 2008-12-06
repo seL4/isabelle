@@ -322,11 +322,22 @@ fun future_schedule task_graph =
 
     fun future (name, body) tab =
       let
-        val deps = map_filter (Symtab.lookup tab) (Graph.imm_preds task_graph name);
-        val x = Future.fork_deps deps body;
+        val deps = Graph.imm_preds task_graph name
+          |> map_filter (fn parent =>
+            (case Symtab.lookup tab parent of SOME future => SOME (parent, future) | NONE => NONE));
+        fun failed (parent, future) = if can Future.join future then NONE else SOME parent;
+
+        val x = Future.fork_deps (map #2 deps) (fn () =>
+          (case map_filter failed deps of
+            [] => body ()
+          | bad => error (loader_msg
+              ("failed to load " ^ quote name ^ " (unresolved " ^ commas_quote bad ^ ")") [])));
+
       in (x, Symtab.update (name, x) tab) end;
-    val _ = ignore (Exn.release_all (Future.join_results (#1 (fold_map future tasks Symtab.empty))));
-  in () end;
+
+    val thy_results = Future.join_results (#1 (fold_map future tasks Symtab.empty));
+    val proof_results = PureThy.join_proofs (map_filter (try get_theory o #1) tasks);
+  in ignore (Exn.release_all (thy_results @ proof_results)) end;
 
 local
 

@@ -11,7 +11,7 @@ sig
   val intern_fact: theory -> xstring -> string
   val defined_fact: theory -> string -> bool
   val hide_fact: bool -> string -> theory -> theory
-  val force_proofs: theory -> unit
+  val join_proofs: theory list -> unit Exn.result list
   val get_fact: Context.generic -> theory -> Facts.ref -> thm list
   val get_thms: theory -> xstring -> thm list
   val get_thm: theory -> xstring -> thm
@@ -79,10 +79,9 @@ fun hide_fact fully name = FactsData.map (apfst (Facts.hide fully name));
 
 (* proofs *)
 
-fun lazy_proof thm = Lazy.lazy (fn () => Thm.force_proof thm);
+fun lazy_proof thm = Lazy.lazy (fn () => Thm.join_proof thm);
 
-fun force_proofs thy =
-  ignore (Exn.release_all (map (Exn.capture Lazy.force) (rev (#2 (FactsData.get thy)))));
+val join_proofs = maps (fn thy => map (Exn.capture Lazy.force) (rev (#2 (FactsData.get thy))));
 
 
 

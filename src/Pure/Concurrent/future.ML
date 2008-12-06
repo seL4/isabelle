@@ -36,6 +36,7 @@ sig
   val group_of: 'a future -> group
   val peek: 'a future -> 'a Exn.result option
   val is_finished: 'a future -> bool
+  val value: 'a -> 'a future
   val fork: (unit -> 'a) -> 'a future
   val fork_group: group -> (unit -> 'a) -> 'a future
   val fork_deps: 'b future list -> (unit -> 'a) -> 'a future
@@ -83,6 +84,11 @@ fun group_of (Future {group, ...}) = group;
 
 fun peek (Future {result, ...}) = ! result;
 fun is_finished x = is_some (peek x);
+
+fun value x = Future
+ {task = TaskQueue.new_task (),
+  group = TaskQueue.new_group (),
+  result = ref (SOME (Exn.Result x))};
 
 
 

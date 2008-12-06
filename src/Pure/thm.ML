@@ -149,7 +149,7 @@ sig
   val future: thm future -> cterm -> thm
   val proof_body_of: thm -> proof_body
   val proof_of: thm -> proof
-  val force_proof: thm -> unit
+  val join_proof: thm -> unit
   val extern_oracles: theory -> xstring list
   val add_oracle: bstring * ('a -> cterm) -> theory -> (string * ('a -> thm)) * theory
 end;
@@ -1638,7 +1638,7 @@ fun proof_body_of (Thm (Deriv {open_promises, promises, body, ...}, {thy_ref, ..
   in Pt.fulfill_proof (Theory.deref thy_ref) ps body end;
 
 val proof_of = Proofterm.proof_of o proof_body_of;
-val force_proof = ignore o proof_body_of;
+val join_proof = ignore o proof_body_of;
 
 
 (* closed derivations with official name *)
