@@ -267,6 +267,14 @@ lemma less_nat_number_of [simp]:
   by auto
 
 
+subsubsection{*Less-than-or-equal *}
+
+lemma le_nat_number_of [simp]:
+  "(number_of v :: nat) \<le> number_of v' \<longleftrightarrow>
+    (if v \<le> v' then True else v \<le> Int.Pls)"
+  unfolding nat_number_of_def number_of_is_id numeral_simps
+  by auto
+
 (*Maps #n to n for n = 0, 1, 2*)
 lemmas numerals = nat_numeral_0_eq_0 nat_numeral_1_eq_1 numeral_2_eq_2
 
