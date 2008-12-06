@@ -545,7 +545,7 @@ fun gen_class_spec prep_class process_expr thy raw_supclasses raw_elems =
     val constrain = Element.Constrains ((map o apsnd o map_atyps)
       (K (TFree (Name.aT, base_sort))) supparams);
     fun fork_syn (Element.Fixes xs) =
-          fold_map (fn (c, ty, syn) => cons (Name.name_of c, syn) #> pair (c, ty, NoSyn)) xs
+          fold_map (fn (c, ty, syn) => cons (Binding.base_name c, syn) #> pair (c, ty, NoSyn)) xs
           #>> Element.Fixes
       | fork_syn x = pair x;
     fun fork_syntax elems =

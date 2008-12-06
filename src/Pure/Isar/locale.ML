@@ -646,7 +646,7 @@ fun unify_frozen ctxt maxidx Ts Us =
       | unify _ env = env;
     val (unifier, _) = fold unify (Ts' ~~ Us') (Vartab.empty, maxidx'');
     val Vs = map (Option.map (Envir.norm_type unifier)) Us';
-    val unifier' = Vartab.extend (unifier, frozen_tvars ctxt (map_filter I Vs));
+    val unifier' = fold Vartab.update_new (frozen_tvars ctxt (map_filter I Vs)) unifier;
   in map (Option.map (Envir.norm_type unifier')) Vs end;
 
 fun params_of elemss =
@@ -711,7 +711,7 @@ fun unify_parms ctxt fixed_parms raw_parmss =
       (Vartab.empty, maxidx);
 
     val parms' = map (apsnd (Envir.norm_type unifier)) (distinct (eq_fst (op =)) parms);
-    val unifier' = Vartab.extend (unifier, frozen_tvars ctxt (map #2 parms'));
+    val unifier' = fold Vartab.update_new (frozen_tvars ctxt (map #2 parms')) unifier;
 
     fun inst_parms (i, ps) =
       List.foldr Term.add_typ_tfrees [] (map_filter snd ps)
@@ -1100,15 +1100,15 @@ fun intern_expr thy (Locale xname) = Locale (intern thy xname)
 *)
 
 fun flatten (ctxt, _) ((ids, syn), Elem (Fixes fixes)) = let
-        val ids' = ids @ [(("", map (Name.name_of o #1) fixes), ([], Assumed []))]
+        val ids' = ids @ [(("", map (Binding.base_name o #1) fixes), ([], Assumed []))]
       in
         ((ids',
          merge_syntax ctxt ids'
-           (syn, Symtab.make (map (fn fx => (Name.name_of (#1 fx), #3 fx)) fixes))
+           (syn, Symtab.make (map (fn fx => (Binding.base_name (#1 fx), #3 fx)) fixes))
            handle Symtab.DUP x => err_in_locale ctxt
              ("Conflicting syntax for parameter: " ^ quote x)
              (map #1 ids')),
-         [((("", map (rpair NONE o Name.name_of o #1) fixes), Assumed []), Ext (Fixes fixes))])
+         [((("", map (rpair NONE o Binding.base_name o #1) fixes), Assumed []), Ext (Fixes fixes))])
       end
   | flatten _ ((ids, syn), Elem elem) =
       ((ids @ [(("", []), ([], Assumed []))], syn), [((("", []), Assumed []), Ext elem)])
@@ -1252,7 +1252,7 @@ fun closeup _ false elem = elem
 
 
 fun finish_ext_elem parms _ (Fixes fixes, _) = Fixes (map (fn (b, _, mx) =>
-      let val x = Name.name_of b
+      let val x = Binding.base_name b
       in (b, AList.lookup (op =) parms x, mx) end) fixes)
   | finish_ext_elem parms _ (Constrains _, _) = Constrains []
   | finish_ext_elem _ close (Assumes asms, propp) =

@@ -346,19 +346,14 @@ val is_selector = Symtab.defined o #selectors o get_sel_upd;
 val get_updates = Symtab.lookup o #updates o get_sel_upd;
 fun get_simpset thy = Simplifier.theory_context thy (#simpset (get_sel_upd thy));
 
-fun put_sel_upd names simps thy =
-  let
-    val sels = map (rpair ()) names;
-    val upds = map (suffix updateN) names ~~ names;
-
-    val {records, sel_upd = {selectors, updates, simpset},
-      equalities, extinjects, extsplit, splits, extfields,fieldext} = RecordsData.get thy;
-    val data = make_record_data records
-      {selectors = Symtab.extend (selectors, sels),
-        updates = Symtab.extend (updates, upds),
-        simpset = Simplifier.addsimps (simpset, simps)}
-       equalities extinjects extsplit splits extfields fieldext;
-  in RecordsData.put data thy end;
+fun put_sel_upd names simps = RecordsData.map (fn {records,
+  sel_upd = {selectors, updates, simpset},
+    equalities, extinjects, extsplit, splits, extfields, fieldext} =>
+  make_record_data records
+    {selectors = fold (fn name => Symtab.update (name, ())) names selectors,
+      updates = fold (fn name => Symtab.update ((suffix updateN) name, name)) names updates,
+      simpset = Simplifier.addsimps (simpset, simps)}
+      equalities extinjects extsplit splits extfields fieldext);
 
 
 (* access 'equalities' *)

@@ -96,8 +96,8 @@ fun fundef_afterqed do_print fixes post defname cont sort_cont cnames [[proof]] 
 fun gen_add_fundef is_external prep fixspec eqnss config flags lthy =
     let
       val ((fixes0, spec0), ctxt') = prep fixspec (map (fn (n_a, eq) => [(n_a, [eq])]) eqnss) lthy
-      val fixes = map (apfst (apfst Name.name_of)) fixes0;
-      val spec = map (apfst (apfst Name.name_of)) spec0;
+      val fixes = map (apfst (apfst Binding.base_name)) fixes0;
+      val spec = map (apfst (apfst Binding.base_name)) spec0;
       val (eqs, post, sort_cont, cnames) = FundefCommon.get_preproc lthy config flags ctxt' fixes spec
 
       val defname = mk_defname fixes

@@ -413,7 +413,7 @@ val _ =
       opt_prefix  -- SpecParse.locale_expr -- SpecParse.locale_insts
         >> (fn ((name, expr), insts) => Toplevel.print o
             Toplevel.theory_to_proof
-              (Locale.interpretation_cmd (Name.name_of name) expr insts)));
+              (Locale.interpretation_cmd (Binding.base_name name) expr insts)));
 
 val _ =
   OuterSyntax.command "interpret"
@@ -422,7 +422,7 @@ val _ =
     (opt_prefix -- SpecParse.locale_expr -- SpecParse.locale_insts
       >> (fn ((name, expr), insts) => Toplevel.print o
           Toplevel.proof'
-            (fn int => Locale.interpret_cmd (Name.name_of name) expr insts int)));
+            (fn int => Locale.interpret_cmd (Binding.base_name name) expr insts int)));
 
 
 (* classes *)

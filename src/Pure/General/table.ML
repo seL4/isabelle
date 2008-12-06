@@ -41,7 +41,6 @@ sig
   val map_entry: key -> ('a -> 'a) -> 'a table -> 'a table
   val map_default: (key * 'a) -> ('a -> 'a) -> 'a table -> 'a table
   val make: (key * 'a) list -> 'a table                                (*exception DUP*)
-  val extend: 'a table * (key * 'a) list -> 'a table                   (*exception DUP*)
   val join: (key -> 'a * 'a -> 'a) (*exception DUP/SAME*) ->
     'a table * 'a table -> 'a table                                    (*exception DUP*)
   val merge: ('a * 'a -> bool) -> 'a table * 'a table -> 'a table      (*exception DUP*)
@@ -364,9 +363,7 @@ fun remove eq (key, x) tab =
 
 (* simultaneous modifications *)
 
-fun extend (table, args) = fold update_new args table;
-
-fun make entries = extend (empty, entries);
+fun make entries = fold update_new entries empty;
 
 fun join f (table1, table2) =
   let fun add (key, y) tab = modify key (fn NONE => y | SOME x => f key (x, y)) tab;

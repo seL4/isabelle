@@ -448,9 +448,9 @@ fun method thy = method_i thy o Args.map_name (NameSpace.intern (#1 (Methods.get
 fun add_methods raw_meths thy =
   let
     val new_meths = raw_meths |> map (fn (name, f, comment) =>
-      (name, ((f, comment), stamp ())));
+      (Binding.name name, ((f, comment), stamp ())));
 
-    fun add meths = NameSpace.extend_table (Sign.naming_of thy) new_meths meths
+    fun add meths = fold (snd oo NameSpace.bind (Sign.naming_of thy)) new_meths meths
       handle Symtab.DUP dup => error ("Duplicate declaration of method " ^ quote dup);
   in Methods.map add thy end;
 

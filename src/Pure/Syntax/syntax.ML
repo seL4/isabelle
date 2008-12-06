@@ -173,7 +173,7 @@ fun err_dup_trfun name c =
 
 fun remove_trtab trfuns = fold (Symtab.remove SynExt.eq_trfun) trfuns;
 
-fun update_trtab name trfuns tab = Symtab.extend (remove_trtab trfuns tab, trfuns)
+fun update_trtab name trfuns tab = fold Symtab.update_new trfuns (remove_trtab trfuns tab)
   handle Symtab.DUP c => err_dup_trfun name c;
 
 fun merge_trtabs name tab1 tab2 = Symtab.merge SynExt.eq_trfun (tab1, tab2)
