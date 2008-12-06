@@ -258,12 +258,10 @@ lemma eq_nat_number_of [simp]:
 
 subsubsection{*Less-than (<) *}
 
-(*"neg" is used in rewrite rules for binary comparisons*)
 lemma less_nat_number_of [simp]:
-     "((number_of v :: nat) < number_of v') =  
-         (if neg (number_of v :: int) then neg (number_of (uminus v') :: int)  
-          else neg (number_of (v + uminus v') :: int))"
-  unfolding neg_def nat_number_of_def number_of_is_id
+  "(number_of v :: nat) < number_of v' \<longleftrightarrow>
+    (if v < v' then Int.Pls < v' else False)"
+  unfolding nat_number_of_def number_of_is_id numeral_simps
   by auto
 
 
