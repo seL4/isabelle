@@ -816,13 +816,13 @@ A \emph{qualified name} consists of a non-empty sequence of basic
   \indexmltype{NameSpace.naming}\verb|type NameSpace.naming| \\
   \indexml{NameSpace.default\_naming}\verb|NameSpace.default_naming: NameSpace.naming| \\
   \indexml{NameSpace.add\_path}\verb|NameSpace.add_path: string -> NameSpace.naming -> NameSpace.naming| \\
-  \indexml{NameSpace.full}\verb|NameSpace.full: NameSpace.naming -> string -> string| \\
+  \indexml{NameSpace.full\_name}\verb|NameSpace.full_name: NameSpace.naming -> Binding.T -> string| \\
   \end{mldecls}
   \begin{mldecls}
   \indexmltype{NameSpace.T}\verb|type NameSpace.T| \\
   \indexml{NameSpace.empty}\verb|NameSpace.empty: NameSpace.T| \\
   \indexml{NameSpace.merge}\verb|NameSpace.merge: NameSpace.T * NameSpace.T -> NameSpace.T| \\
-  \indexml{NameSpace.declare}\verb|NameSpace.declare: NameSpace.naming -> string -> NameSpace.T -> NameSpace.T| \\
+  \indexml{NameSpace.declare}\verb|NameSpace.declare: NameSpace.naming -> Binding.T -> NameSpace.T -> string * NameSpace.T| \\
   \indexml{NameSpace.intern}\verb|NameSpace.intern: NameSpace.T -> string -> string| \\
   \indexml{NameSpace.extern}\verb|NameSpace.extern: NameSpace.T -> string -> string| \\
   \end{mldecls}
@@ -851,9 +851,9 @@ A \emph{qualified name} consists of a non-empty sequence of basic
   \item \verb|NameSpace.add_path|~\isa{path\ naming} augments the
   naming policy by extending its path component.
 
-  \item \verb|NameSpace.full|\isa{naming\ name} turns a name
-  specification (usually a basic name) into the fully qualified
-  internal version, according to the given naming policy.
+  \item \verb|NameSpace.full_name|\isa{naming\ binding} turns a name
+  binding (usually a basic name) into the fully qualified
+  internal name, according to the given naming policy.
 
   \item \verb|NameSpace.T| represents name spaces.
 
@@ -861,15 +861,16 @@ A \emph{qualified name} consists of a non-empty sequence of basic
   maintaining name spaces according to theory data management
   (\secref{sec:context-data}).
 
-  \item \verb|NameSpace.declare|~\isa{naming\ name\ space} enters a
-  fully qualified name into the name space, with external accesses
-  determined by the naming policy.
+  \item \verb|NameSpace.declare|~\isa{naming\ bindings\ space} enters a
+  name binding as fully qualified internal name into the name space,
+  with external accesses determined by the naming policy.
 
   \item \verb|NameSpace.intern|~\isa{space\ name} internalizes a
   (partially qualified) external name.
 
   This operation is mostly for parsing!  Note that fully qualified
-  names stemming from declarations are produced via \verb|NameSpace.full| (or its derivatives for \verb|theory| and
+  names stemming from declarations are produced via \verb|NameSpace.full_name| and \verb|NameSpace.declare|
+  (or their derivatives for \verb|theory| and
   \verb|Proof.context|).
 
   \item \verb|NameSpace.extern|~\isa{space\ name} externalizes a
