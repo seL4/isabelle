@@ -175,7 +175,7 @@ fun params_of thy name =
 
 fun instance_of thy name morph =
   params_of thy name |>
-    map ((fn (b, T, _) => Free (Name.name_of b, the T)) #> Morphism.term morph);
+    map ((fn (b, T, _) => Free (Binding.base_name b, the T)) #> Morphism.term morph);
 
 fun specification_of thy name =
   let

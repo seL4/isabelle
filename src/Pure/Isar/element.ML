@@ -113,7 +113,7 @@ fun map_ctxt {binding, var, typ, term, fact, attrib} =
   fn Fixes fixes => Fixes (fixes |> map (fn (x, T, mx) =>
        let val (x', mx') = var (x, mx) in (x', Option.map typ T, mx') end))
    | Constrains xs => Constrains (xs |> map (fn (x, T) =>
-       let val x' = Name.name_of (#1 (var (Binding.name x, NoSyn))) in (x', typ T) end))
+       let val x' = Binding.base_name (#1 (var (Binding.name x, NoSyn))) in (x', typ T) end))
    | Assumes asms => Assumes (asms |> map (fn ((a, atts), propps) =>
       ((binding a, map attrib atts), propps |> map (fn (t, ps) => (term t, map term ps)))))
    | Defines defs => Defines (defs |> map (fn ((a, atts), (t, ps)) =>
@@ -136,7 +136,7 @@ fun morph_ctxt phi = map_ctxt
 (* logical content *)
 
 fun params_of (Fixes fixes) = fixes |> map
-    (fn (x, SOME T, _) => (Name.name_of x, T)
+    (fn (x, SOME T, _) => (Binding.base_name x, T)
       | (x, _, _) => raise TERM ("Untyped context element parameter " ^ quote (Binding.display x), []))
   | params_of _ = [];
 
@@ -182,8 +182,8 @@ fun pretty_stmt ctxt =
       Pretty.block (Pretty.breaks (prt_name_atts a ":" @ prt_terms (map fst ts)));
 
     fun prt_var (x, SOME T) = Pretty.block
-          [Pretty.str (Name.name_of x ^ " ::"), Pretty.brk 1, prt_typ T]
-      | prt_var (x, NONE) = Pretty.str (Name.name_of x);
+          [Pretty.str (Binding.base_name x ^ " ::"), Pretty.brk 1, prt_typ T]
+      | prt_var (x, NONE) = Pretty.str (Binding.base_name x);
     val prt_vars = separate (Pretty.keyword "and") o map prt_var;
 
     fun prt_obtain (_, ([], ts)) = Pretty.block (Pretty.breaks (prt_terms ts))
@@ -207,9 +207,9 @@ fun pretty_ctxt ctxt =
     fun prt_mixfix NoSyn = []
       | prt_mixfix mx = [Pretty.brk 2, Syntax.pretty_mixfix mx];
 
-    fun prt_fix (x, SOME T, mx) = Pretty.block (Pretty.str (Name.name_of x ^ " ::") ::
+    fun prt_fix (x, SOME T, mx) = Pretty.block (Pretty.str (Binding.base_name x ^ " ::") ::
           Pretty.brk 1 :: prt_typ T :: Pretty.brk 1 :: prt_mixfix mx)
-      | prt_fix (x, NONE, mx) = Pretty.block (Pretty.str (Name.name_of x) ::
+      | prt_fix (x, NONE, mx) = Pretty.block (Pretty.str (Binding.base_name x) ::
           Pretty.brk 1 :: prt_mixfix mx);
     fun prt_constrain (x, T) = prt_fix (Binding.name x, SOME T, NoSyn);
 
@@ -395,7 +395,7 @@ fun rename_var_name ren (x, mx) =
 
 fun rename_var ren (b, mx) =
   let
-    val x = Name.name_of b;
+    val x = Binding.base_name b;
     val (x', mx') = rename_var_name ren (x, mx);
   in (Binding.name x', mx') end;
 

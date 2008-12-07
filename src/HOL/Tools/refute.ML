@@ -313,18 +313,10 @@ struct
 
   (* (string * string) -> theory -> theory *)
 
-  fun set_default_param (name, value) thy =
-  let
-    val {interpreters, printers, parameters} = RefuteData.get thy
-  in
-    RefuteData.put (case Symtab.lookup parameters name of
-      NONE   =>
+  fun set_default_param (name, value) = RefuteData.map 
+    (fn {interpreters, printers, parameters} =>
       {interpreters = interpreters, printers = printers,
-        parameters = Symtab.extend (parameters, [(name, value)])}
-    | SOME _ =>
-      {interpreters = interpreters, printers = printers,
-        parameters = Symtab.update (name, value) parameters}) thy
-  end;
+        parameters = Symtab.update (name, value) parameters});
 
 (* ------------------------------------------------------------------------- *)
 (* get_default_param: retrieves the value associated with 'name' from        *)

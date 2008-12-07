@@ -120,7 +120,7 @@ val _ =
     (K.tag_proof K.prf_goal)
     (SpecParse.opt_thm_name ":" -- SpecParse.locale_expr -- SpecParse.locale_insts -- P.for_fixes
       >> (fn ((((name, atts), expr), (insts, _)), fixes) =>
-          Toplevel.print o Toplevel.proof' (invoke (Name.name_of name, atts) expr insts fixes)));
+          Toplevel.print o Toplevel.proof' (invoke (Binding.base_name name, atts) expr insts fixes)));
 
 end;
 

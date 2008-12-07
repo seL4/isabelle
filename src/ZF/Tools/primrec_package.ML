@@ -180,7 +180,7 @@ fun add_primrec_i args thy =
 
     val (eqn_thms', thy2) =
       thy1
-      |> PureThy.add_thms ((map Name.name_of eqn_names ~~ eqn_thms) ~~ eqn_atts);
+      |> PureThy.add_thms ((map Binding.base_name eqn_names ~~ eqn_thms) ~~ eqn_atts);
     val (_, thy3) =
       thy2
       |> PureThy.add_thmss [(("simps", eqn_thms'), [Simplifier.simp_add])]

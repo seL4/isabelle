@@ -707,13 +707,13 @@ text %mlref {*
   @{index_ML_type NameSpace.naming} \\
   @{index_ML NameSpace.default_naming: NameSpace.naming} \\
   @{index_ML NameSpace.add_path: "string -> NameSpace.naming -> NameSpace.naming"} \\
-  @{index_ML NameSpace.full: "NameSpace.naming -> string -> string"} \\
+  @{index_ML NameSpace.full_name: "NameSpace.naming -> Binding.T -> string"} \\
   \end{mldecls}
   \begin{mldecls}
   @{index_ML_type NameSpace.T} \\
   @{index_ML NameSpace.empty: NameSpace.T} \\
   @{index_ML NameSpace.merge: "NameSpace.T * NameSpace.T -> NameSpace.T"} \\
-  @{index_ML NameSpace.declare: "NameSpace.naming -> string -> NameSpace.T -> NameSpace.T"} \\
+  @{index_ML NameSpace.declare: "NameSpace.naming -> Binding.T -> NameSpace.T -> string * NameSpace.T"} \\
   @{index_ML NameSpace.intern: "NameSpace.T -> string -> string"} \\
   @{index_ML NameSpace.extern: "NameSpace.T -> string -> string"} \\
   \end{mldecls}
@@ -743,9 +743,9 @@ text %mlref {*
   \item @{ML NameSpace.add_path}~@{text "path naming"} augments the
   naming policy by extending its path component.
 
-  \item @{ML NameSpace.full}@{text "naming name"} turns a name
-  specification (usually a basic name) into the fully qualified
-  internal version, according to the given naming policy.
+  \item @{ML NameSpace.full_name}@{text "naming binding"} turns a name
+  binding (usually a basic name) into the fully qualified
+  internal name, according to the given naming policy.
 
   \item @{ML_type NameSpace.T} represents name spaces.
 
@@ -754,16 +754,17 @@ text %mlref {*
   maintaining name spaces according to theory data management
   (\secref{sec:context-data}).
 
-  \item @{ML NameSpace.declare}~@{text "naming name space"} enters a
-  fully qualified name into the name space, with external accesses
-  determined by the naming policy.
+  \item @{ML NameSpace.declare}~@{text "naming bindings space"} enters a
+  name binding as fully qualified internal name into the name space,
+  with external accesses determined by the naming policy.
 
   \item @{ML NameSpace.intern}~@{text "space name"} internalizes a
   (partially qualified) external name.
 
   This operation is mostly for parsing!  Note that fully qualified
   names stemming from declarations are produced via @{ML
-  "NameSpace.full"} (or its derivatives for @{ML_type theory} and
+  "NameSpace.full_name"} and @{ML "NameSpace.declare"}
+  (or their derivatives for @{ML_type theory} and
   @{ML_type Proof.context}).
 
   \item @{ML NameSpace.extern}~@{text "space name"} externalizes a
