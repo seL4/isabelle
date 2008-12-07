@@ -73,7 +73,6 @@ class Command(val document : Document, val first : Token[Command], val last : To
     val cand_asset = cand.getUserObject.asInstanceOf[RelativeAsset]
     val c_start = cand_asset.rel_start
     val c_end = cand_asset.rel_end
-    System.err.println(c_start - n_start + " " + (c_end - n_end))
     return c_start >= n_start && c_end <= n_end
   }
 
