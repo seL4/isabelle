@@ -40,7 +40,7 @@ done
 text{*No longer required as a simprule because of the @{text inverse_fold}
    simproc*}
 lemma Suc_diff_number_of:
-     "neg (number_of (uminus v)::int) ==>
+     "Int.Pls < v ==>
       Suc m - (number_of v) = m - (number_of (Int.pred v))"
 apply (subst Suc_diff_eq_diff_pred)
 apply simp

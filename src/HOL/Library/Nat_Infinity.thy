@@ -146,8 +146,8 @@ lemma plus_inat_0 [simp]:
   by (simp_all add: plus_inat_def zero_inat_def split: inat.splits)
 
 lemma plus_inat_number [simp]:
-  "(number_of k \<Colon> inat) + number_of l = (if neg (number_of k \<Colon> int) then number_of l
-    else if neg (number_of l \<Colon> int) then number_of k else number_of (k + l))"
+  "(number_of k \<Colon> inat) + number_of l = (if k < Int.Pls then number_of l
+    else if l < Int.Pls then number_of k else number_of (k + l))"
   unfolding number_of_inat_def plus_inat_simps nat_arith(1) if_distrib [symmetric, of _ Fin] ..
 
 lemma iSuc_number [simp]:
