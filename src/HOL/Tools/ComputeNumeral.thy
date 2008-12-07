@@ -129,7 +129,8 @@ lemma natsuc: "Suc (number_of x) = (if neg x then 1 else number_of (Int.succ x))
 
 (* Addition for nat *)
 lemma natadd: "number_of x + ((number_of y)::nat) = (if neg x then (number_of y) else (if neg y then number_of x else (number_of (x + y))))"
-  by (auto simp add: number_of_is_id)
+  unfolding nat_number_of_def number_of_is_id neg_def
+  by auto
 
 (* Subtraction for nat *)
 lemma natsub: "(number_of x) - ((number_of y)::nat) = 
@@ -140,18 +141,14 @@ lemma natsub: "(number_of x) - ((number_of y)::nat) =
 (* Multiplication for nat *)
 lemma natmul: "(number_of x) * ((number_of y)::nat) = 
   (if neg x then 0 else (if neg y then 0 else number_of (x * y)))"
-  apply (auto simp add: number_of_is_id neg_def iszero_def)
-  apply (case_tac "x > 0")
-  apply auto
-  apply (rule order_less_imp_le)
-  apply (simp add: mult_strict_left_mono[where a=y and b=0 and c=x, simplified])
-  done
+  unfolding nat_number_of_def number_of_is_id neg_def
+  by (simp add: nat_mult_distrib)
 
 lemma nateq: "(((number_of x)::nat) = (number_of y)) = ((lezero x \<and> lezero y) \<or> (x = y))"
   by (auto simp add: iszero_def lezero_def neg_def number_of_is_id)
 
 lemma natless: "(((number_of x)::nat) < (number_of y)) = ((x < y) \<and> (\<not> (lezero y)))"
-  by (auto simp add: number_of_is_id neg_def lezero_def)
+  by (simp add: lezero_def numeral_simps not_le)
 
 lemma natle: "(((number_of x)::nat) \<le> (number_of y)) = (y < x \<longrightarrow> lezero x)"
   by (auto simp add: number_of_is_id lezero_def nat_number_of_def)
