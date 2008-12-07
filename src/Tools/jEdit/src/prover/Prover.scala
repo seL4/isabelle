@@ -174,7 +174,7 @@ class Prover() {
     
     val props = new Properties()
     props.setProperty("id", cmd.idString)
-    props.setProperty("offset", Integer.toString(cmd.first.start))
+    props.setProperty("offset", Integer.toString(1))
 
     val content = converter.encode(document.getContent(cmd))
     process.output_sync("Isar.command " 

@@ -73,6 +73,7 @@ class Command(val first : Token[Command], val last : Token[Command]) {
     val cand_asset = cand.getUserObject.asInstanceOf[RelativeAsset]
     val c_start = cand_asset.rel_start
     val c_end = cand_asset.rel_end
+    System.err.println(c_start - n_start + " " + (c_end - n_end))
     return c_start >= n_start && c_end <= n_end
   }
 
@@ -105,17 +106,19 @@ class Command(val first : Token[Command], val last : Token[Command]) {
     var markup_begin = -1
     var markup_end = -1
     for((n, a) <- attr) {
-      if(n.equals("offset")) markup_begin = Int.unbox(java.lang.Integer.valueOf(a)) - first.start
-      if(n.equals("end_offset")) markup_end = Int.unbox(java.lang.Integer.valueOf(a)) - first.start
+      if(n.equals("offset")) markup_begin = Int.unbox(java.lang.Integer.valueOf(a)) - 1
+      if(n.equals("end_offset")) markup_end = Int.unbox(java.lang.Integer.valueOf(a)) - 1
     }
     if(markup_begin > -1 && markup_end > -1){
       statuses = new Status(markup_info, markup_begin, markup_end) :: statuses
-      val content = Plugin.plugin.prover.document.getContent(this).substring(markup_begin, markup_end)
-      val asset = new RelativeAsset(this, markup_begin, markup_end, markup_info, content)
+      val markup_content = content.substring(markup_begin, markup_end)
+      val asset = new RelativeAsset(this, markup_begin, markup_end, markup_info, markup_content)
       val new_node = new DefaultMutableTreeNode(asset)
       insert_node(new_node, root_node)
     }
   }
+
+  def content = Plugin.plugin.prover.document.getContent(this)
 
   def next = if (last.next != null) last.next.command else null
   def previous = if (first.previous != null) first.previous.command else null
