@@ -106,32 +106,7 @@ class Prover() {
               
       case IsabelleProcess.Kind.STATUS =>
         st.addStatus(tree)
-        val state = tree match { case Elem("message", _,
-                                           Elem (name, _, _) :: _) => name
-                                 case _ => null }
-        
-        if (st.phase != Phase.REMOVED && st.phase != Phase.REMOVE) {
-          state match {
-            case "finished" => 
-              st.phase = Phase.FINISHED
-              fireChange()
-              
-            case "unprocessed" => 
-              st.phase = Phase.UNPROCESSED
-              fireChange()
-                    
-            case "failed" => 
-              st.phase = Phase.FAILED
-              fireChange()
-                    
-            case "removed" =>
-              commands.removeKey(st.idString)
-              st.phase = Phase.REMOVED
-              fireChange()
-              
-            case _ =>
-          }
-        }
+        fireChange()
       case _ =>
     }
   }

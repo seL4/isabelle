@@ -40,7 +40,7 @@ class StateViewDockable(view : View, position : String) extends JPanel {
       if (state == null)
         panel.setDocument(null : Document)
       else
-        panel.setDocument(state.document, UserAgent.baseURL)
+        panel.setDocument(state.results_xml, UserAgent.baseURL)
     })
   }
 }

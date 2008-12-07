@@ -26,7 +26,7 @@ object Command {
   def idFromString(id : String) = Long.unbox(java.lang.Long.valueOf(id, 36))
 }
 
-class Command(val first : Token[Command], val last : Token[Command]) {
+class Command(val document : Document, val first : Token[Command], val last : Token[Command]) {
   import Command._
   
   {
@@ -45,10 +45,10 @@ class Command(val first : Token[Command], val last : Token[Command]) {
   //offsets relative to first.start!
   class Status(val kind : String,val start : Int, val stop : Int ) { }
   var statuses = Nil : List[Status]
-  def statusesxml = XML.Elem("statuses", List(), statuses.map (s => XML.Text(s.kind + ": " + s.start + "-" + s.stop + "\n")))
+  def statuses_xml = XML.Elem("statuses", List(), statuses.map (s => XML.Text(s.kind + ": " + s.start + "-" + s.stop + "\n")))
 
   def idString = java.lang.Long.toString(id, 36)
-  def document = XML.document(results match {
+  def results_xml = XML.document(results match {
                                 case Nil => XML.Elem("message", List(), List())
                                 case List(elem) => elem
                                 case _ =>
@@ -60,7 +60,7 @@ class Command(val first : Token[Command], val last : Token[Command]) {
   }
   
   val root_node = {
-    val content = Plugin.plugin.prover.document.getContent(this)
+    val content = document.getContent(this)
     val ra = new RelativeAsset(this, 0, stop - start, "command", content)
     new DefaultMutableTreeNode(ra)
   }
@@ -99,26 +99,42 @@ class Command(val first : Token[Command], val last : Token[Command]) {
   }
 
  def addStatus(tree : XML.Tree) {
-    val (markup_info, attr) = tree match { case XML.Elem("message", _, XML.Elem(kind, attr, _) :: _) => (kind, attr)
+    val (state, attr) = tree match { case XML.Elem("message", _, XML.Elem(kind, attr, _) :: _) => (kind, attr)
                                    case _ => null}
-
-    //process attributes:
-    var markup_begin = -1
-    var markup_end = -1
-    for((n, a) <- attr) {
-      if(n.equals("offset")) markup_begin = Int.unbox(java.lang.Integer.valueOf(a)) - 1
-      if(n.equals("end_offset")) markup_end = Int.unbox(java.lang.Integer.valueOf(a)) - 1
-    }
-    if(markup_begin > -1 && markup_end > -1){
-      statuses = new Status(markup_info, markup_begin, markup_end) :: statuses
-      val markup_content = content.substring(markup_begin, markup_end)
-      val asset = new RelativeAsset(this, markup_begin, markup_end, markup_info, markup_content)
-      val new_node = new DefaultMutableTreeNode(asset)
-      insert_node(new_node, root_node)
+    if (phase != Phase.REMOVED && phase != Phase.REMOVE) {
+      state match {
+        case "finished" =>
+          phase = Phase.FINISHED
+        case "unprocessed" =>
+          phase = Phase.UNPROCESSED
+        case "failed" =>
+          phase = Phase.FAILED
+        case "removed" =>
+          // TODO: never lose information on command + id ??
+          //document.prover.commands.removeKey(st.idString)
+          phase = Phase.REMOVED
+        case _ =>
+          //process attributes:
+          var markup_begin = -1
+          var markup_end = -1
+          for((n, a) <- attr) {
+            if(n.equals("offset")) markup_begin = Int.unbox(java.lang.Integer.valueOf(a)) - 1
+            if(n.equals("end_offset")) markup_end = Int.unbox(java.lang.Integer.valueOf(a)) - 1
+          }
+          if(markup_begin > -1 && markup_end > -1){
+            statuses = new Status(state, markup_begin, markup_end) :: statuses
+            val markup_content = content.substring(markup_begin, markup_end)
+            val asset = new RelativeAsset(this, markup_begin, markup_end, state, markup_content)
+            val new_node = new DefaultMutableTreeNode(asset)
+            insert_node(new_node, root_node)
+          } else {
+            System.err.println("addStatus - ignored: " + tree)
+          }
+      }
     }
   }
 
-  def content = Plugin.plugin.prover.document.getContent(this)
+  def content = document.getContent(this)
 
   def next = if (last.next != null) last.next.command else null
   def previous = if (first.previous != null) first.previous.command else null

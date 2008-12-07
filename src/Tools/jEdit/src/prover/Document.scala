@@ -10,7 +10,7 @@ object Document {
                         val removedCommands : List[Command])
 }
 
-class Document(text : Text, prover : Prover) extends ProofDocument[Command](text) 
+class Document(text : Text, val prover : Prover) extends ProofDocument[Command](text)
 { 
   val structuralChanges = new EventSource[Document.StructureChange]() 
   
@@ -117,7 +117,7 @@ class Document(text : Text, prover : Prover) extends ProofDocument[Command](text
       
       if (scan.kind.equals(Token.Kind.COMMAND_START) && cmdStart != null && !finished) {
         if (! overrun) {
-          addedCommands = new Command(cmdStart, cmdStop) :: addedCommands
+          addedCommands = new Command(this, cmdStart, cmdStop) :: addedCommands
           cmdStart = scan
           cmdStop = scan
         }
@@ -140,7 +140,7 @@ class Document(text : Text, prover : Prover) extends ProofDocument[Command](text
     }
     
     if (cmdStart != null)
-      addedCommands = new Command(cmdStart, cmdStop) :: addedCommands
+      addedCommands = new Command(this, cmdStart, cmdStop) :: addedCommands
     
     // relink commands
     addedCommands = addedCommands.reverse
