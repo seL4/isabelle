@@ -35,17 +35,27 @@ object TheoryView {
   def chooseColor(status : String) : Color = {
     //TODO: as properties!
     status match {
-      case "ident" => new Color(192, 192, 255)
-      case "literal" => new Color(192, 255, 255)
-      case "fixed_decl" => new Color(192, 192, 192)
-      case "prop" => new Color(255, 192 ,255)
-      case "typ" => new Color(192, 192, 128)
-      case "term" => new Color(192, 128, 192)
-      case "method" => new Color(128, 192, 192)
-      case "doc_source" => new Color(128, 128, 192)
-      case "ML_source" => new Color(128, 192, 128)
-      case "local_fact_decl" => new Color(192, 128, 128)
-      case _ => Color.red
+      //outer
+      case "ident" | "command" | "keyword" => Color.blue
+      case "verbatim"=> Color.green
+      case "comment" => Color.gray
+      case "control" => Color.white
+      case "malformed" => Color.red
+      case "string" | "altstring" => Color.orange
+      //logical
+      case "tclass" | "tycon" | "fixed_decl"  | "fixed"
+        | "const_decl" | "const" | "fact_decl" | "fact"
+        |"dynamic_fact" |"local_fact_decl" | "local_fact"
+        => new Color(255, 0, 255)
+      //inner syntax
+      case "tfree" | "free" => Color.blue
+      case "tvar" | "skolem" | "bound" | "var" => Color.green
+      case "num" | "xnum" | "xstr" | "literal" | "inner_comment" => new Color(255, 128, 128)
+      case "sort" | "typ" | "term" | "prop" | "attribute" | "method"  => Color.yellow
+        // embedded source
+      case "doc_source"  | "ML_source" | "ML_antic" | "doc_antiq" | "antiq"
+        => new Color(0, 192, 0)
+      case _ => Color.white
     }
   }
   def withView(view : TextArea, f : (TheoryView) => Unit) {
@@ -164,7 +174,7 @@ class TheoryView(prover : Prover, val buffer : JEditBuffer)
                                    textArea.getLastPhysicalLine)
   }
 
-  def encolor(gfx : Graphics2D, y : Int, height : Int, begin : Int, finish : Int, color : Color){
+  def encolor(gfx : Graphics2D, y : Int, height : Int, begin : Int, finish : Int, color : Color, fill : Boolean){
       val fm = textArea.getPainter.getFontMetrics
       val startP = textArea.offsetToXY(begin)
       val stopP = if (finish < buffer.getLength()) textArea.offsetToXY(finish)
@@ -174,7 +184,8 @@ class TheoryView(prover : Prover, val buffer : JEditBuffer)
 			
       if (startP != null && stopP != null) {
         gfx.setColor(color)
-        gfx.fillRect(startP.x, y, stopP.x - startP.x, height)
+        if(fill){gfx.fillRect(startP.x, y, stopP.x - startP.x, height)}
+        else {gfx.drawRect(startP.x, y, stopP.x - startP.x, height)}
       }
   }
 
@@ -189,15 +200,16 @@ class TheoryView(prover : Prover, val buffer : JEditBuffer)
     while (e != null && toCurrent(e.start) < end) {
       val begin =  start max toCurrent(e.start)
       val finish = end - 1 min  toCurrent(e.stop)
-      encolor(gfx, y, fm.getHeight, begin, finish, chooseColor(e))
+      encolor(gfx, y, fm.getHeight, begin, finish, chooseColor(e), true)
       // paint details of command
-      var dy = 0
-      for(status <- e.statuses){
-        dy += 1
-        val begin = toCurrent(status.start + e.start)
-        val finish = toCurrent(status.stop + e.start)
+      var nodes = e.root_node.breadthFirstEnumeration
+      while(nodes.hasMoreElements){
+        val node = nodes.nextElement.asInstanceOf[javax.swing.tree.DefaultMutableTreeNode]
+        val node_asset = node.getUserObject.asInstanceOf[isabelle.prover.RelativeAsset]
+        val begin = toCurrent(node_asset.rel_start + e.start)
+        val finish = toCurrent(node_asset.rel_end + e.start)
         if(finish > start && begin < end)
-          encolor(gfx, y + dy, fm.getHeight - dy, begin max start, finish min end, chooseColor(status.kind))
+        encolor(gfx, y + fm.getHeight - 4, 2, begin max start, finish min end, chooseColor(node_asset.getShortDescription), true)
       }
       e = e.next
     }

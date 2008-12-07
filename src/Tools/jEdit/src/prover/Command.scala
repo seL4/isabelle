@@ -38,14 +38,22 @@ class Command(val document : Document, val first : Token[Command], val last : To
   }
   
   val id : Long = generateId
-  var phase = Phase.UNPROCESSED
+
+  private var p = Phase.UNPROCESSED
+  def phase = p
+  def phase_=(p_new : Phase.Value) = {
+    if(p_new == Phase.UNPROCESSED){
+      //delete inner syntax
+      val children = root_node.children
+      while (children.hasMoreElements){
+        val child = children.nextElement.asInstanceOf[DefaultMutableTreeNode]
+        child.removeAllChildren
+      }
+    }
+    p = p_new
+  }
 	
   var results = Nil : List[XML.Tree]
-
-  //offsets relative to first.start!
-  class Status(val kind : String,val start : Int, val stop : Int ) { }
-  var statuses = Nil : List[Status]
-  def statuses_xml = XML.Elem("statuses", List(), statuses.map (s => XML.Text(s.kind + ": " + s.start + "-" + s.stop + "\n")))
 
   def idString = java.lang.Long.toString(id, 36)
   def results_xml = XML.document(results match {
@@ -61,7 +69,7 @@ class Command(val document : Document, val first : Token[Command], val last : To
   
   val root_node = {
     val content = document.getContent(this)
-    val ra = new RelativeAsset(this, 0, stop - start, "command", content)
+    val ra = new RelativeAsset(this, 0, stop - start, "Command", content)
     new DefaultMutableTreeNode(ra)
   }
 
@@ -76,7 +84,7 @@ class Command(val document : Document, val first : Token[Command], val last : To
     return c_start >= n_start && c_end <= n_end
   }
 
-  def insert_node(new_node : DefaultMutableTreeNode, node : DefaultMutableTreeNode) {
+  private def insert_node(new_node : DefaultMutableTreeNode, node : DefaultMutableTreeNode) {
     assert(fitting(new_node, node))
     val children = node.children
     while (children.hasMoreElements){
@@ -97,40 +105,13 @@ class Command(val document : Document, val first : Token[Command], val last : To
     }
   }
 
- def addStatus(tree : XML.Tree) {
-    val (state, attr) = tree match { case XML.Elem("message", _, XML.Elem(kind, attr, _) :: _) => (kind, attr)
-                                   case _ => null}
-    if (phase != Phase.REMOVED && phase != Phase.REMOVE) {
-      state match {
-        case "finished" =>
-          phase = Phase.FINISHED
-        case "unprocessed" =>
-          phase = Phase.UNPROCESSED
-        case "failed" =>
-          phase = Phase.FAILED
-        case "removed" =>
-          // TODO: never lose information on command + id ??
-          //document.prover.commands.removeKey(st.idString)
-          phase = Phase.REMOVED
-        case _ =>
-          //process attributes:
-          var markup_begin = -1
-          var markup_end = -1
-          for((n, a) <- attr) {
-            if(n.equals("offset")) markup_begin = Int.unbox(java.lang.Integer.valueOf(a)) - 1
-            if(n.equals("end_offset")) markup_end = Int.unbox(java.lang.Integer.valueOf(a)) - 1
-          }
-          if(markup_begin > -1 && markup_end > -1){
-            statuses = new Status(state, markup_begin, markup_end) :: statuses
-            val markup_content = content.substring(markup_begin, markup_end)
-            val asset = new RelativeAsset(this, markup_begin, markup_end, state, markup_content)
-            val new_node = new DefaultMutableTreeNode(asset)
-            insert_node(new_node, root_node)
-          } else {
-            System.err.println("addStatus - ignored: " + tree)
-          }
-      }
-    }
+  def add_node(node : DefaultMutableTreeNode) = insert_node(node, root_node)
+
+  def node_from(kind : String, begin : Int, end : Int) : DefaultMutableTreeNode = {
+    val markup_content = /*content.substring(begin, end)*/
+    ""
+    val asset = new RelativeAsset(this, begin, end, kind, markup_content)
+    new DefaultMutableTreeNode(asset)
   }
 
   def content = document.getContent(this)

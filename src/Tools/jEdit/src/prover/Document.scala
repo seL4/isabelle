@@ -14,7 +14,7 @@ class Document(text : Text, val prover : Prover) extends ProofDocument[Command](
 { 
   val structuralChanges = new EventSource[Document.StructureChange]() 
   
-  def isStartKeyword(s : String) = prover.commandKeywords.contains(s) 
+  def isStartKeyword(s : String) = prover.command_decls.contains(s)
   
   def commands() = new Iterator[Command] {
     var current = firstToken

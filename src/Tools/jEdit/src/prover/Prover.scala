@@ -24,7 +24,8 @@ class Prover() {
   private var process = null : IsabelleProcess
   private var commands = new HashMap[String, Command]
   
-  val commandKeywords = new HashSet[String]
+  val command_decls = new HashSet[String]
+  val keyword_decls = new HashSet[String]
   private var initialized = false
     
   val activated = new EventSource[Unit]
@@ -32,7 +33,10 @@ class Prover() {
   val outputInfo = new EventSource[String]
   val allInfo = new EventSource[Result]
   var document = null : Document
-  
+
+  def fireChange(c : Command) =
+    inUIThread(() => commandInfo.fire(new CommandChangeInfo(c)))
+
   var workerThread = new Thread("isabelle.Prover: worker") {
     override def run() : Unit = {
       while (true) {
@@ -58,16 +62,43 @@ class Prover() {
         else {
           val tree = parse_failsafe(converter.decode(r.result))
           tree match {
-            case Elem("message", List(("class","status")), decls) =>
-              decls map (decl => decl match{
+            //handle all kinds of status messages here
+            case Elem("message", List(("class","status")), elems) =>
+              elems map (elem => elem match{
+                  // catch command_start and keyword declarations
                   case Elem("command_decl", List(("name", name), ("kind", _)), _) =>
-                    commandKeywords.addEntry(name)
-                  case Elem("keyword_decl", List(("name", keyw)), _) => 
-                    () //TODO: with these keywords simplify the token-regex in ProofDocument
-                  case _ => 
-                    //TODO: can there be other decls?
-                    if (st != null)
-                    handleResult(st, r, tree)
+                    command_decls.addEntry(name)
+                  case Elem("keyword_decl", List(("name", name)), _) =>
+                    keyword_decls.addEntry(name)
+                  // expecting markups here
+                  case Elem(kind, List(("offset", offset),
+                                       ("end_offset", end_offset),
+                                       ("id", id)), List()) =>
+                    val begin = Int.unbox(java.lang.Integer.valueOf(offset)) - 1
+                    val end = Int.unbox(java.lang.Integer.valueOf(end_offset)) - 1
+
+                    val command =
+                      // outer syntax: no id in props
+                      if(st == null) commands.getOrElse(id, null)
+                      // inner syntax: id from props
+                      else st
+                    command.add_node(command.node_from(kind, begin, end))
+                  // Phase changed
+                  case Elem("finished", _, _) =>
+                    st.phase = Phase.FINISHED
+                    fireChange(st)
+                  case Elem("unprocessed", _, _) =>
+                    st.phase = Phase.UNPROCESSED
+                    fireChange(st)
+                  case Elem("failed", _, _) =>
+                    st.phase = Phase.FAILED
+                    fireChange(st)
+                  case Elem("removed", _, _) =>
+                    // TODO: never lose information on command + id ??
+                    //document.prover.commands.removeKey(st.idString)
+                    st.phase = Phase.REMOVED
+                    fireChange(st)
+                  case _ =>
                 }) 
             case _ =>
               //TODO
@@ -81,8 +112,7 @@ class Prover() {
   }
   
   def handleResult(st : Command, r : Result, tree : XML.Tree) {
-    def fireChange() = 
-      inUIThread(() => commandInfo.fire(new CommandChangeInfo(st)))
+    //TODO: this is just for testing
     allInfo.fire(r)
     
     r.kind match {
@@ -90,23 +120,23 @@ class Prover() {
         if (st.phase != Phase.REMOVED && st.phase != Phase.REMOVE)
           st.phase = Phase.FAILED
         st.addResult(tree)
-        fireChange()
+        fireChange(st)
         
       case IsabelleProcess.Kind.WRITELN =>
         st.addResult(tree)
-        fireChange()
+        fireChange(st)
         
       case IsabelleProcess.Kind.PRIORITY =>
         st.addResult(tree)
-        fireChange()
+        fireChange(st)
 
       case IsabelleProcess.Kind.WARNING =>
         st.addResult(tree)
-        fireChange()
+        fireChange(st)
               
       case IsabelleProcess.Kind.STATUS =>
-        st.addStatus(tree)
-        fireChange()
+        System.err.println("handleResult - Ignored: " + tree)
+
       case _ =>
     }
   }
@@ -126,7 +156,7 @@ class Prover() {
   
   private def inUIThread(runnable : () => Unit) {
     SwingUtilities invokeAndWait new Runnable() {
-      override def run() { runnable() }
+      override def run() { runnable () }
     }
   }
   
