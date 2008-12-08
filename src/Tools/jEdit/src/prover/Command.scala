@@ -3,8 +3,7 @@ package isabelle.prover
 import isabelle.proofdocument.Token
 import isabelle.jedit.Plugin
 import isabelle.{ YXML, XML }
-import sidekick.{SideKickParsedData}
-import sidekick.enhanced.SourceAsset
+import sidekick.{SideKickParsedData, IAsset}
 import javax.swing.text.Position
 import javax.swing.tree.DefaultMutableTreeNode
 
@@ -67,51 +66,12 @@ class Command(val document : Document, val first : Token[Command], val last : To
     results = results ::: List(tree)
   }
   
-  val root_node = {
-    val content = document.getContent(this)
-    val ra = new RelativeAsset(this, 0, stop - start, "Command", content)
-    new DefaultMutableTreeNode(ra)
-  }
+  val root_node = 
+    new MarkupNode(this, 0, stop - start, idString, "Command", document.getContent(this))
 
-  // does cand fit into node?
-  private def fitting(cand : DefaultMutableTreeNode, node : DefaultMutableTreeNode) : boolean = {
-    val node_asset = node.getUserObject.asInstanceOf[RelativeAsset]
-    val n_start = node_asset.rel_start
-    val n_end = node_asset.rel_end
-    val cand_asset = cand.getUserObject.asInstanceOf[RelativeAsset]
-    val c_start = cand_asset.rel_start
-    val c_end = cand_asset.rel_end
-    return c_start >= n_start && c_end <= n_end
-  }
-
-  private def insert_node(new_node : DefaultMutableTreeNode, node : DefaultMutableTreeNode) {
-    assert(fitting(new_node, node))
-    val children = node.children
-    while (children.hasMoreElements){
-      val child = children.nextElement.asInstanceOf[DefaultMutableTreeNode]
-      if(fitting(new_node, child)) {
-        insert_node(new_node, child)
-      }
-    }
-    if(new_node.getParent == null){
-      while(children.hasMoreElements){
-        val child = children.nextElement.asInstanceOf[DefaultMutableTreeNode]
-        if(fitting(child, new_node)) {
-          node.remove(child.asInstanceOf[DefaultMutableTreeNode])
-          new_node.add(child)
-        }
-      }
-      node.add(new_node)
-    }
-  }
-
-  def add_node(node : DefaultMutableTreeNode) = insert_node(node, root_node)
-
-  def node_from(kind : String, begin : Int, end : Int) : DefaultMutableTreeNode = {
-    val markup_content = /*content.substring(begin, end)*/
-    ""
-    val asset = new RelativeAsset(this, begin, end, kind, markup_content)
-    new DefaultMutableTreeNode(asset)
+  def node_from(kind : String, begin : Int, end : Int) : MarkupNode = {
+    val markup_content = /*content.substring(begin, end)*/ ""
+    new MarkupNode(this, begin, end, idString, kind, markup_content)
   }
 
   def content = document.getContent(this)

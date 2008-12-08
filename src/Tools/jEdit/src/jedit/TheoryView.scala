@@ -204,12 +204,11 @@ class TheoryView(prover : Prover, val buffer : JEditBuffer)
       // paint details of command
       var nodes = e.root_node.breadthFirstEnumeration
       while(nodes.hasMoreElements){
-        val node = nodes.nextElement.asInstanceOf[javax.swing.tree.DefaultMutableTreeNode]
-        val node_asset = node.getUserObject.asInstanceOf[isabelle.prover.RelativeAsset]
-        val begin = toCurrent(node_asset.rel_start + e.start)
-        val finish = toCurrent(node_asset.rel_end + e.start)
+        val node = nodes.nextElement.asInstanceOf[isabelle.prover.MarkupNode]
+        val begin = toCurrent(node.rel_start + e.start)
+        val finish = toCurrent(node.rel_end + e.start)
         if(finish > start && begin < end)
-        encolor(gfx, y + fm.getHeight - 4, 2, begin max start, finish min end, chooseColor(node_asset.getShortDescription), true)
+        encolor(gfx, y + fm.getHeight - 4, 2, begin max start, finish min end, chooseColor(node.short), true)
       }
       e = e.next
     }
