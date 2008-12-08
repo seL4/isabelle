@@ -1,6 +1,4 @@
 
-%% $Id$
-
 \documentclass[12pt,a4paper,fleqn]{report}
 \usepackage{latexsym,graphicx}
 \usepackage[refpage]{nomencl}
@@ -12,42 +10,9 @@
 \usepackage{tikz}
 \usepackage{../../pdfsetup}
 
-%% setup
-
-% hyphenation
 \hyphenation{Isabelle}
 \hyphenation{Isar}
-
-% logical markup
-\newcommand{\strong}[1]{{\bfseries {#1}}}
-\newcommand{\qn}[1]{\emph{#1}}
-
-% typographic conventions
-\newcommand{\qt}[1]{``{#1}''}
-
-% verbatim text
-\newcommand{\isatypewriter}{\fontsize{9pt}{0pt}\tt\renewcommand{\baselinestretch}{1}\setlength{\baselineskip}{9pt}}
-
-% invisibility
 \isadroptag{theory}
-
-% quoted segments
-\makeatletter
-\isakeeptag{quote}
-\newenvironment{quotesegment}{\begin{quote}\isa@parindent\parindent\parindent0pt\isa@parskip\parskip\parskip0pt}{\end{quote}}
-\renewcommand{\isatagquote}{\begin{quotesegment}}
-\renewcommand{\endisatagquote}{\end{quotesegment}}
-\makeatother
-
-\isakeeptag{quotett}
-\renewcommand{\isatagquotett}{\begin{quotesegment}\isabellestyle{tt}\isastyle}
-\renewcommand{\endisatagquotett}{\end{quotesegment}\isabellestyle{it}\isastyle}
-
-% hack
-\newcommand{\isasymSML}{SML}
-
-
-%% contents
 
 \title{\includegraphics[scale=0.5]{isabelle_isar}
   \\[4ex] Code generation from Isabelle/HOL theories}
@@ -75,7 +40,6 @@
 \input{Thy/document/ML.tex}
 
 \begingroup
-%\tocentry{\bibname}
 \bibliographystyle{plain} \small\raggedright\frenchspacing
 \bibliography{../../manual}
 \endgroup
