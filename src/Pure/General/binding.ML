@@ -23,6 +23,7 @@ sig
   val add_prefix: bool -> string -> T -> T
   val map_prefix: ((string * bool) list -> T -> T) -> T -> T
   val is_empty: T -> bool
+  val base_name: T -> string
   val pos_of: T -> Position.T
   val dest: T -> (string * bool) list * string
   val display: T -> string
@@ -56,7 +57,7 @@ fun qualify_base path name =
   else path ^ "." ^ name;
 
 val qualify = map_base o qualify_base;
-  (*FIXME should all operations on bare names moved here from name_space.ML ?*)
+  (*FIXME should all operations on bare names move here from name_space.ML ?*)
 
 fun add_prefix sticky prfx b = if prfx = "" then error "empty name prefix"
   else (map_binding o apfst) (cons (prfx, sticky)) b;
@@ -65,6 +66,7 @@ fun map_prefix f (Binding ((prefix, name), pos)) =
   f prefix (name_pos (name, pos));
 
 fun is_empty (Binding ((_, name), _)) = name = "";
+fun base_name (Binding ((_, name), _)) = name;
 fun pos_of (Binding (_, pos)) = pos;
 fun dest (Binding (prefix_name, _)) = prefix_name;
 

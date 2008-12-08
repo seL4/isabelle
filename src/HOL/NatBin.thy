@@ -141,10 +141,10 @@ subsubsection{*Addition *}
 (*"neg" is used in rewrite rules for binary comparisons*)
 lemma add_nat_number_of [simp]:
      "(number_of v :: nat) + number_of v' =  
-         (if neg (number_of v :: int) then number_of v'  
-          else if neg (number_of v' :: int) then number_of v  
+         (if v < Int.Pls then number_of v'  
+          else if v' < Int.Pls then number_of v  
           else number_of (v + v'))"
-  unfolding nat_number_of_def number_of_is_id neg_def
+  unfolding nat_number_of_def number_of_is_id numeral_simps
   by (simp add: nat_add_distrib)
 
 
@@ -160,19 +160,19 @@ by (simp add: Let_def nat_diff_distrib [symmetric] neg_eq_less_0 not_neg_eq_ge_0
 
 lemma diff_nat_number_of [simp]: 
      "(number_of v :: nat) - number_of v' =  
-        (if neg (number_of v' :: int) then number_of v  
+        (if v' < Int.Pls then number_of v  
          else let d = number_of (v + uminus v') in     
               if neg d then 0 else nat d)"
-by (simp del: nat_number_of add: diff_nat_eq_if nat_number_of_def) 
-
+  unfolding nat_number_of_def number_of_is_id numeral_simps neg_def
+  by auto
 
 
 subsubsection{*Multiplication *}
 
 lemma mult_nat_number_of [simp]:
      "(number_of v :: nat) * number_of v' =  
-       (if neg (number_of v :: int) then 0 else number_of (v * v'))"
-  unfolding nat_number_of_def number_of_is_id neg_def
+       (if v < Int.Pls then 0 else number_of (v * v'))"
+  unfolding nat_number_of_def number_of_is_id numeral_simps
   by (simp add: nat_mult_distrib)
 
 
@@ -258,14 +258,20 @@ lemma eq_nat_number_of [simp]:
 
 subsubsection{*Less-than (<) *}
 
-(*"neg" is used in rewrite rules for binary comparisons*)
 lemma less_nat_number_of [simp]:
-     "((number_of v :: nat) < number_of v') =  
-         (if neg (number_of v :: int) then neg (number_of (uminus v') :: int)  
-          else neg (number_of (v + uminus v') :: int))"
-  unfolding neg_def nat_number_of_def number_of_is_id
+  "(number_of v :: nat) < number_of v' \<longleftrightarrow>
+    (if v < v' then Int.Pls < v' else False)"
+  unfolding nat_number_of_def number_of_is_id numeral_simps
   by auto
 
+
+subsubsection{*Less-than-or-equal *}
+
+lemma le_nat_number_of [simp]:
+  "(number_of v :: nat) \<le> number_of v' \<longleftrightarrow>
+    (if v \<le> v' then True else v \<le> Int.Pls)"
+  unfolding nat_number_of_def number_of_is_id numeral_simps
+  by auto
 
 (*Maps #n to n for n = 0, 1, 2*)
 lemmas numerals = nat_numeral_0_eq_0 nat_numeral_1_eq_1 numeral_2_eq_2
@@ -440,17 +446,18 @@ subsection{*Comparisons involving (0::nat) *}
 text{*Simplification already does @{term "n<0"}, @{term "n\<le>0"} and @{term "0\<le>n"}.*}
 
 lemma eq_number_of_0 [simp]:
-  "number_of v = (0::nat) \<longleftrightarrow> number_of v \<le> (0::int)"  
-  unfolding nat_number_of_def number_of_is_id by auto
+  "number_of v = (0::nat) \<longleftrightarrow> v \<le> Int.Pls"
+  unfolding nat_number_of_def number_of_is_id numeral_simps
+  by auto
 
 lemma eq_0_number_of [simp]:
-  "(0::nat) = number_of v \<longleftrightarrow> number_of v \<le> (0::int)"  
+  "(0::nat) = number_of v \<longleftrightarrow> v \<le> Int.Pls"
 by (rule trans [OF eq_sym_conv eq_number_of_0])
 
 lemma less_0_number_of [simp]:
-     "((0::nat) < number_of v) = neg (number_of (uminus v) :: int)"
-by (simp del: nat_numeral_0_eq_0 add: nat_numeral_0_eq_0 [symmetric] Pls_def)
-
+   "(0::nat) < number_of v \<longleftrightarrow> Int.Pls < v"
+  unfolding nat_number_of_def number_of_is_id numeral_simps
+  by simp
 
 lemma neg_imp_number_of_eq_0: "neg (number_of v :: int) ==> number_of v = (0::nat)"
 by (simp del: nat_numeral_0_eq_0 add: nat_numeral_0_eq_0 [symmetric])
@@ -699,7 +706,7 @@ lemma nat_number_of_add_left:
 
 lemma nat_number_of_mult_left:
      "number_of v * (number_of v' * (k::nat)) =  
-         (if neg (number_of v :: int) then 0
+         (if v < Int.Pls then 0
           else number_of (v * v') * k)"
 by simp
 

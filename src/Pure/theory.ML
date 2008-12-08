@@ -178,8 +178,8 @@ local
 
 fun gen_add_axioms prep_axm raw_axms thy = thy |> map_axioms (fn axioms =>
   let
-    val axms = map (apsnd Logic.varify o prep_axm thy) raw_axms;
-    val axioms' = NameSpace.extend_table (Sign.naming_of thy) axms axioms
+    val axms = map (apfst Binding.name o apsnd Logic.varify o prep_axm thy) raw_axms;
+    val axioms' = fold (snd oo NameSpace.bind (Sign.naming_of thy)) axms axioms
       handle Symtab.DUP dup => err_dup_axm dup;
   in axioms' end);
 

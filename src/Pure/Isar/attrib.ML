@@ -146,8 +146,8 @@ fun crude_closure ctxt src =
 fun add_attributes raw_attrs thy =
   let
     val new_attrs =
-      raw_attrs |> map (fn (name, att, comment) => (name, ((att, comment), stamp ())));
-    fun add attrs = NameSpace.extend_table (Sign.naming_of thy) new_attrs attrs
+      raw_attrs |> map (fn (name, att, comment) => (Binding.name name, ((att, comment), stamp ())));
+    fun add attrs = fold (snd oo NameSpace.bind (Sign.naming_of thy)) new_attrs attrs
       handle Symtab.DUP dup => error ("Duplicate declaration of attributes " ^ quote dup);
   in Attributes.map add thy end;
 
