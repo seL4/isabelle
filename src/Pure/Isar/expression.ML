@@ -378,8 +378,11 @@ fun closeup _ _ false elem = elem
         (case elem of
           Assumes asms => Assumes (asms |> map (fn (a, propps) =>
             (a, map (fn (t, ps) => (close_frees t, no_binds ps)) propps)))
-        | Defines defs => Defines (defs |> map (fn (a, (t, ps)) =>
-            (a, (#2 (LocalDefs.cert_def ctxt (close_frees t)), no_binds ps))))
+        | Defines defs => Defines (defs |> map (fn ((name, atts), (t, ps)) =>
+            let val ((c, _), t') = LocalDefs.cert_def ctxt (close_frees t)
+            in
+              ((Binding.map_base (Thm.def_name_optional c) name, atts), (t', no_binds ps))
+            end))
         | e => e)
       end;
 
