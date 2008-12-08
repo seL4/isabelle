@@ -90,10 +90,6 @@ fun prepare_typedef prep_term def name (t, vs, mx) raw_set opt_morphs thy =
     val rhs_tfreesT = Term.add_tfreesT setT [];
     val oldT = HOLogic.dest_setT setT handle TYPE _ =>
       error ("Not a set type: " ^ quote (Syntax.string_of_typ ctxt setT));
-    fun mk_inhabited A =
-      HOLogic.mk_Trueprop (HOLogic.mk_exists ("x", oldT, HOLogic.mk_mem (Free ("x", oldT), A)));
-    val goal = mk_inhabited set;
-    val goal_pat = mk_inhabited (Var (the_default (name, 0) (Syntax.read_variable name), setT));
 
     (*lhs*)
     val defS = Sign.defaultS thy;
@@ -113,6 +109,10 @@ fun prepare_typedef prep_term def name (t, vs, mx) raw_set opt_morphs thy =
     val AbsC = Const (full Abs_name, oldT --> newT);
 
     val set' = if def then setC else set;
+    fun mk_inhabited A =
+      HOLogic.mk_Trueprop (HOLogic.mk_exists ("x", oldT, HOLogic.mk_mem (Free ("x", oldT), A)));
+    val goal = mk_inhabited set';
+    val term_binding = (the_default (name, 0) (Syntax.read_variable name), SOME set)
 
     val typedef_name = "type_definition_" ^ name;
     val typedefC =
@@ -203,7 +203,7 @@ fun prepare_typedef prep_term def name (t, vs, mx) raw_set opt_morphs thy =
     val _ = test_thy
       |> typedef_result (setmp quick_and_dirty true (SkipProof.make_thm test_thy) goal);
 
-  in ((set, goal, goal_pat, typedef_result), thy') end
+  in ((set, goal, term_binding, set_def, typedef_result), thy') end
   handle ERROR msg => err_in_typedef msg name;
 
 
@@ -212,7 +212,7 @@ fun prepare_typedef prep_term def name (t, vs, mx) raw_set opt_morphs thy =
 fun add_typedef def opt_name typ set opt_morphs tac thy =
   let
     val name = the_default (#1 typ) opt_name;
-    val ((set, goal, _, typedef_result), thy') =
+    val ((set, goal, _, set_def, typedef_result), thy') =
       prepare_typedef Syntax.check_term def name typ set opt_morphs thy;
     val non_empty = Goal.prove_global thy' [] [] goal (K tac)
       handle ERROR msg => cat_error msg
@@ -226,10 +226,16 @@ local
 
 fun gen_typedef prep_term ((def, name), typ, set, opt_morphs) thy =
   let
-    val ((_, goal, goal_pat, typedef_result), thy') =
+    val ((_, goal, term_binding, set_def, typedef_result), thy') =
       prepare_typedef prep_term def name typ set opt_morphs thy;
     fun after_qed [[th]] = ProofContext.theory (snd o typedef_result th);
-  in Proof.theorem_i NONE after_qed [[(goal, [goal_pat])]] (ProofContext.init thy') end;
+  in 
+    Proof.theorem_i NONE after_qed [[(goal, [])]] (ProofContext.init thy')
+    |> Proof.add_binds_i [term_binding] 
+    |> (if def 
+        then Seq.hd o Proof.refine (Method.Basic (Method.unfold [the set_def], Position.none))
+        else I)
+  end;
 
 in
 
