@@ -121,26 +121,24 @@ fun prepare_typedef prep_term def name (t, vs, mx) raw_set opt_morphs thy =
       Logic.mk_implies (goal, HOLogic.mk_Trueprop (typedefC $ RepC $ AbsC $ set'));
     val typedef_deps = Term.fold_aterms (fn Const c => insert (op =) c | _ => I) set' [];
 
-    fun add_def eq thy =
-      if def then
+    val (set_def, thy') = if def then
         thy
-        |> PureThy.add_defs false [Thm.no_attributes eq]
+        |> Sign.add_consts_i [(name, setT', NoSyn)]
+        |> PureThy.add_defs false [Thm.no_attributes (PrimitiveDefs.mk_defpair (setC, set))]
         |-> (fn [th] => pair (SOME th))
       else (NONE, thy);
 
-    fun typedef_result inhabited =
+    fun typedef_result inhabited = 
       ObjectLogic.typedecl (t, vs, mx)
       #> snd
       #> Sign.add_consts_i
-       ((if def then [(name, setT', NoSyn)] else []) @
         [(Rep_name, newT --> oldT, NoSyn),
-         (Abs_name, oldT --> newT, NoSyn)])
-      #> add_def (PrimitiveDefs.mk_defpair (setC, set))
-      ##>> PureThy.add_axioms [((typedef_name, typedef_prop),
+         (Abs_name, oldT --> newT, NoSyn)]
+      #> PureThy.add_axioms [((typedef_name, typedef_prop),
           [apsnd (fn cond_axm => inhabited RS cond_axm)])]
       ##> Theory.add_deps "" (dest_Const RepC) typedef_deps
       ##> Theory.add_deps "" (dest_Const AbsC) typedef_deps
-      #-> (fn (set_def, [type_definition]) => fn thy1 =>
+      #-> (fn [type_definition] => fn thy1 =>
         let
           fun make th = Drule.standard (th OF [type_definition]);
           val abs_inject = make Abs_inject;
@@ -177,7 +175,6 @@ fun prepare_typedef prep_term def name (t, vs, mx) raw_set opt_morphs thy =
           |> pair (full_tname, info)
         end);
 
-
     (* errors *)
 
     fun show_names pairs = commas_quote (map fst pairs);
@@ -202,11 +199,11 @@ fun prepare_typedef prep_term def name (t, vs, mx) raw_set opt_morphs thy =
     val _ = if null errs then () else error (cat_lines errs);
 
     (*test theory errors now!*)
-    val test_thy = Theory.copy thy;
+    val test_thy = Theory.copy thy';
     val _ = test_thy
       |> typedef_result (setmp quick_and_dirty true (SkipProof.make_thm test_thy) goal);
 
-  in (set, goal, goal_pat, typedef_result) end
+  in ((set, goal, goal_pat, typedef_result), thy') end
   handle ERROR msg => err_in_typedef msg name;
 
 
@@ -215,12 +212,12 @@ fun prepare_typedef prep_term def name (t, vs, mx) raw_set opt_morphs thy =
 fun add_typedef def opt_name typ set opt_morphs tac thy =
   let
     val name = the_default (#1 typ) opt_name;
-    val (set, goal, _, typedef_result) =
+    val ((set, goal, _, typedef_result), thy') =
       prepare_typedef Syntax.check_term def name typ set opt_morphs thy;
-    val non_empty = Goal.prove_global thy [] [] goal (K tac)
+    val non_empty = Goal.prove_global thy' [] [] goal (K tac)
       handle ERROR msg => cat_error msg
         ("Failed to prove non-emptiness of " ^ quote (Syntax.string_of_term_global thy set));
-  in typedef_result non_empty thy end;
+  in typedef_result non_empty thy' end;
 
 
 (* Isar typedef interface *)
@@ -229,10 +226,10 @@ local
 
 fun gen_typedef prep_term ((def, name), typ, set, opt_morphs) thy =
   let
-    val (_, goal, goal_pat, typedef_result) =
+    val ((_, goal, goal_pat, typedef_result), thy') =
       prepare_typedef prep_term def name typ set opt_morphs thy;
     fun after_qed [[th]] = ProofContext.theory (snd o typedef_result th);
-  in Proof.theorem_i NONE after_qed [[(goal, [goal_pat])]] (ProofContext.init thy) end;
+  in Proof.theorem_i NONE after_qed [[(goal, [goal_pat])]] (ProofContext.init thy') end;
 
 in
 
