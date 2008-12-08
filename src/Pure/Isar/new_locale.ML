@@ -353,7 +353,7 @@ in
 
 fun activate_declarations thy dep ctxt =
   roundup thy activate_decls dep (get_local_idents ctxt, ctxt) |> uncurry put_local_idents;
-  
+
 fun activate_global_facts dep thy =
   roundup thy (activate_notes init_global_elem) dep (get_global_idents thy, thy) |>
   uncurry put_global_idents;

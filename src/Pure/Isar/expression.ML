@@ -370,6 +370,7 @@ fun closeup _ _ false elem = elem
               Term.fold_aterms (fn Free (x, T) =>
                 if AList.defined (op =) parms x then I else insert (op =) (x, T) | _ => I) t [];
           in Term.list_all_free (rev rev_frees, t) end;
+  (* FIXME consider closing in syntactic phase *)
 
         fun no_binds [] = []
           | no_binds _ = error "Illegal term bindings in context element";
@@ -378,7 +379,7 @@ fun closeup _ _ false elem = elem
           Assumes asms => Assumes (asms |> map (fn (a, propps) =>
             (a, map (fn (t, ps) => (close_frees t, no_binds ps)) propps)))
         | Defines defs => Defines (defs |> map (fn (a, (t, ps)) =>
-            (a, (close_frees (#2 (LocalDefs.cert_def ctxt t)), no_binds ps))))
+            (a, (close_frees (#2 (LocalDefs.cert_def ctxt (close_frees t))), no_binds ps))))
         | e => e)
       end;
 

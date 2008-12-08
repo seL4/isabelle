@@ -113,6 +113,18 @@ locale use_decl = logic + semi "op ||"
 print_locale! use_decl thm use_decl_def
 
 
+text {* Defines *}
+
+locale logic_def =
+  fixes land (infixl "&&" 55)
+    and lor (infixl "||" 50)
+    and lnot ("-- _" [60] 60)
+  assumes assoc: "(x && y) && z = x && (y && z)"
+    and notnot: "-- (-- x) = x"
+  defines "x || y == --(-- x && -- y)"
+
+print_locale! logic_def
+
 text {* Theorem statements *}
 
 lemma (in lgrp) lcancel:
