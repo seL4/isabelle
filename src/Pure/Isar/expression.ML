@@ -369,7 +369,7 @@ fun closeup _ _ false elem = elem
             val rev_frees =
               Term.fold_aterms (fn Free (x, T) =>
                 if AList.defined (op =) parms x then I else insert (op =) (x, T) | _ => I) t [];
-          in Term.list_all_free (rev rev_frees, t) end;
+          in Term.list_all_free (rev rev_frees, t) end; (* FIXME use fold Logic.all *)
   (* FIXME consider closing in syntactic phase *)
 
         fun no_binds [] = []
@@ -379,7 +379,7 @@ fun closeup _ _ false elem = elem
           Assumes asms => Assumes (asms |> map (fn (a, propps) =>
             (a, map (fn (t, ps) => (close_frees t, no_binds ps)) propps)))
         | Defines defs => Defines (defs |> map (fn (a, (t, ps)) =>
-            (a, (close_frees (#2 (LocalDefs.cert_def ctxt (close_frees t))), no_binds ps))))
+            (a, (#2 (LocalDefs.cert_def ctxt (close_frees t)), no_binds ps))))
         | e => e)
       end;
 
@@ -545,6 +545,7 @@ fun prep_declaration prep activate raw_import raw_elems context =
       NewLocale.clear_local_idents |> fold NewLocale.activate_local_facts deps;
     val ((elems', _), _) = activate elems (ProofContext.set_stmt true context');
   in ((fixed, deps, elems'), (parms, spec, defs)) end;
+  (* FIXME check if defs used somewhere *)
 
 in
 
@@ -734,7 +735,7 @@ fun defines_to_notes thy (Defines defs) defns =
     let
       val defs' = map (fn (_, (def, _)) => def) defs
       val notes = map (fn (a, (def, _)) =>
-        (a, [([assume (cterm_of thy def)], [])])) defs
+        (a, [([Assumption.assume (cterm_of thy def)], [])])) defs
     in
       (Notes (Thm.definitionK, notes), defns @ defs')
     end
@@ -743,13 +744,12 @@ fun defines_to_notes thy (Defines defs) defns =
 fun gen_add_locale prep_decl
     bname predicate_name raw_imprt raw_body thy =
   let
-    val thy_ctxt = ProofContext.init thy;
     val name = Sign.full_bname thy bname;
     val _ = NewLocale.test_locale thy name andalso
       error ("Duplicate definition of locale " ^ quote name);
 
-    val ((fixed, deps, body_elems), text as (parms, ((_, exts'), _), defs)) =
-      prep_decl raw_imprt raw_body thy_ctxt;
+    val ((fixed, deps, body_elems), text as (parms, ((_, exts'), _), _)) =
+      prep_decl raw_imprt raw_body (ProofContext.init thy);
     val ((a_statement, a_intro, a_axioms), (b_statement, b_intro, b_axioms), thy') =
       define_preds predicate_name text thy;
 
@@ -776,7 +776,7 @@ fun gen_add_locale prep_decl
 
     val loc_ctxt = thy' |>
       NewLocale.register_locale bname (extraTs, params)
-        (asm, map prop_of defs) ([], [])
+        (asm, defns) ([], [])
         (map (fn n => (n, stamp ())) notes |> rev) (map (fn d => (d, stamp ())) deps' |> rev) |>
       NewLocale.init name
   in (name, loc_ctxt) end;

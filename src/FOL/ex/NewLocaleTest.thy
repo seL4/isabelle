@@ -121,9 +121,14 @@ locale logic_def =
     and lnot ("-- _" [60] 60)
   assumes assoc: "(x && y) && z = x && (y && z)"
     and notnot: "-- (-- x) = x"
-  defines "x || y == --(-- x && -- y)"
+  defines lor_def: (* FIXME *) "x || y == --(-- x && -- y)"
+begin
 
-print_locale! logic_def
+lemma "x || y = --(-- x && --y)"
+  by (unfold lor_def) (rule refl)
+
+end
+
 
 text {* Theorem statements *}
 
