@@ -113,6 +113,12 @@ locale use_decl = logic + semi "op ||"
 print_locale! use_decl thm use_decl_def
 
 
+text {* Foundational versions of theorems *}
+
+thm logic.assoc
+thm logic.lor_def
+
+
 text {* Defines *}
 
 locale logic_def =

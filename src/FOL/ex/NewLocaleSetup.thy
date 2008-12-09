@@ -27,7 +27,9 @@ val _ =
     (P.name -- Scan.optional (P.$$$ "=" |-- P.!!! locale_val) (([], []), []) -- P.opt_begin
       >> (fn ((name, (expr, elems)), begin) =>
           (begin ? Toplevel.print) o Toplevel.begin_local_theory begin
-            (Expression.add_locale_cmd name name expr elems #-> TheoryTarget.begin)));
+            (Expression.add_locale_cmd name name expr elems #>
+              (fn ((target, notes), ctxt) => TheoryTarget.begin target ctxt |>
+                fold (fn (kind, facts) => LocalTheory.notes kind facts #> snd) notes))));
 
 val _ =
   OuterSyntax.improper_command "print_locales" "print locales of this theory" K.diag
