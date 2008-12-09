@@ -333,21 +333,18 @@ fun declare_elem prep_vars (Fixes fixes) ctxt =
 
 val norm_term = Envir.beta_norm oo Term.subst_atomic;
 
-fun abstract_thm thy eq =
-  Thm.assume (Thm.cterm_of thy eq) |> Drule.gen_all |> Drule.abs_def;
-
-fun bind_def ctxt eq (xs, env, ths) =
+fun bind_def ctxt eq (xs, env, eqs) =
   let
+    val _ = LocalDefs.cert_def ctxt eq;
     val ((y, T), b) = LocalDefs.abs_def eq;
     val b' = norm_term env b;
-    val th = abstract_thm (ProofContext.theory_of ctxt) eq;
     fun err msg = error (msg ^ ": " ^ quote y);
   in
     exists (fn (x, _) => x = y) xs andalso
       err "Attempt to define previously specified variable";
     exists (fn (Free (y', _), _) => y = y' | _ => false) env andalso
       err "Attempt to redefine variable";
-    (Term.add_frees b' xs, (Free (y, T), b') :: env, th :: ths)
+    (Term.add_frees b' xs, (Free (y, T), b') :: env, eq :: eqs)
   end;
 
 fun eval_text _ _ (Fixes _) text = text
@@ -498,8 +495,7 @@ fun prep_full_context_statement parse_typ parse_prop parse_inst prep_vars prep_e
          env: list of term pairs encoding substitutions, where the first term
            is a free variable; substitutions represent defines elements and
            the rhs is normalised wrt. the previous env
-         defs: theorems representing the substitutions from defines elements
-           (thms are normalised wrt. env).
+         defs: the equations from the defines elements
        elems is an updated version of raw_elems:
          - type info added to Fixes and modified in Constrains
          - axiom and definition statement replaced by corresponding one
@@ -587,7 +583,6 @@ fun prep_goal_expression prep expression context =
 
     val export = Variable.export_morphism goal_ctxt context;
     val exp_fact = Drule.zero_var_indexes_list o map Thm.strip_shyps o Morphism.fact export;
-(*    val exp_term = TermSubst.zero_var_indexes o Morphism.term export; *)
     val exp_term = Drule.term_rule thy (singleton exp_fact);
     val exp_typ = Logic.type_map exp_term;
     val export' =
@@ -691,6 +686,8 @@ in
 
 fun define_preds pname (parms, ((exts, exts'), (ints, ints')), defs) thy =
   let
+    val defs' = map (cterm_of thy #> Assumption.assume #> Drule.gen_all #> Drule.abs_def) defs;
+
     val (a_pred, a_intro, a_axioms, thy'') =
       if null exts then (NONE, NONE, [], thy)
       else
@@ -698,7 +695,7 @@ fun define_preds pname (parms, ((exts, exts'), (ints, ints')), defs) thy =
           val aname = if null ints then pname else pname ^ "_" ^ axiomsN;
           val ((statement, intro, axioms), thy') =
             thy
-            |> def_pred aname parms defs exts exts';
+            |> def_pred aname parms defs' exts exts';
           val (_, thy'') =
             thy'
             |> Sign.add_path aname
@@ -713,7 +710,7 @@ fun define_preds pname (parms, ((exts, exts'), (ints, ints')), defs) thy =
         let
           val ((statement, intro, axioms), thy''') =
             thy''
-            |> def_pred pname parms defs (ints @ the_list a_pred) (ints' @ the_list a_pred);
+            |> def_pred pname parms defs' (ints @ the_list a_pred) (ints' @ the_list a_pred);
           val (_, thy'''') =
             thy'''
             |> Sign.add_path pname
@@ -738,15 +735,10 @@ fun assumes_to_notes (Assumes asms) axms =
       |> apfst (curry Notes Thm.assumptionK)
   | assumes_to_notes e axms = (e, axms);
 
-fun defines_to_notes thy (Defines defs) defns =
-    let
-      val defs' = map (fn (_, (def, _)) => def) defs
-      val notes = map (fn (a, (def, _)) =>
-        (a, [([Assumption.assume (cterm_of thy def)], [])])) defs
-    in
-      (Notes (Thm.definitionK, notes), defns @ defs')
-    end
-  | defines_to_notes _ e defns = (e, defns);
+fun defines_to_notes thy (Defines defs) =
+      Notes (Thm.definitionK, map (fn (a, (def, _)) =>
+        (a, [([Assumption.assume (cterm_of thy def)], [])])) defs)
+  | defines_to_notes _ e = e;
 
 fun gen_add_locale prep_decl
     bname predicate_name raw_imprt raw_body thy =
@@ -755,7 +747,7 @@ fun gen_add_locale prep_decl
     val _ = NewLocale.test_locale thy name andalso
       error ("Duplicate definition of locale " ^ quote name);
 
-    val ((fixed, deps, body_elems), text as (parms, ((_, exts'), _), _)) =
+    val ((fixed, deps, body_elems), text as (parms, ((_, exts'), _), defs)) =
       prep_decl raw_imprt raw_body (ProofContext.init thy);
     val ((a_statement, a_intro, a_axioms), (b_statement, b_intro, b_axioms), thy') =
       define_preds predicate_name text thy;
@@ -769,7 +761,7 @@ fun gen_add_locale prep_decl
     val params = fixed @
       (body_elems |> map_filter (fn Fixes fixes => SOME fixes | _ => NONE) |> flat);
     val asm = if is_some b_statement then b_statement else a_statement;
-    val (body_elems', defns) = fold_map (defines_to_notes thy') body_elems [];
+    val body_elems' = map (defines_to_notes thy') body_elems;
 
     val notes =
         if is_some asm
@@ -782,7 +774,7 @@ fun gen_add_locale prep_decl
 
     val loc_ctxt = thy' |>
       NewLocale.register_locale bname (extraTs, params)
-        (asm, defns) ([], [])
+        (asm, defs) ([], [])
         (map (fn n => (n, stamp ())) notes |> rev) (map (fn d => (d, stamp ())) deps' |> rev) |>
       NewLocale.init name;
 

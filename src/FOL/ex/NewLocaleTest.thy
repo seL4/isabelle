@@ -130,11 +130,23 @@ locale logic_def =
   defines "x || y == --(-- x && -- y)"
 begin
 
+thm lor_def
+(* Can we get rid the the additional hypothesis, caused by LocalTheory.notes? *)
+
 lemma "x || y = --(-- x && --y)"
   by (unfold lor_def) (rule refl)
 
 end
 
+(* Inheritance of defines *)
+
+locale logic_def2 = logic_def
+begin
+
+lemma "x || y = --(-- x && --y)"
+  by (unfold lor_def) (rule refl)
+
+end
 
 text {* Theorem statements *}
 
