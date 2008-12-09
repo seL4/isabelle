@@ -605,6 +605,9 @@ lemma option_caseE:
 lemma insert_None_conv_UNIV: "insert None (range Some) = UNIV"
   by (rule set_ext, case_tac x) auto
 
+lemma inj_Some [simp]: "inj_on Some A"
+  by (rule inj_onI) simp
+
 
 subsubsection {* Operations *}
 
