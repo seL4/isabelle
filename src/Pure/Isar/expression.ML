@@ -135,6 +135,13 @@ fun parameters_of thy strict (expr, fixed) =
       end;
 
     fun match_bind (n, b) = (n = Binding.base_name b);
+    fun parm_eq ((b1, mx1), (b2, mx2)) =
+      (* FIXME: cannot compare bindings for equality, instead check for equal name and syntax *)
+      (Binding.base_name b1 = Binding.base_name b2) andalso
+      (if mx1 = mx2 then true
+      else error ("Conflicting syntax for parameter" ^ quote (Binding.display b1) ^
+                    " in expression."));
+      
     fun bind_eq (b1, b2) = (Binding.base_name b1 = Binding.base_name b2);
       (* FIXME: cannot compare bindings for equality. *)
 
@@ -166,12 +173,7 @@ fun parameters_of thy strict (expr, fixed) =
             val (is', ps') = fold_map (fn i => fn ps =>
               let
                 val (ps', i') = params_inst i;
-                val ps'' = AList.join bind_eq (fn p => fn (mx1, mx2) =>
-                  (* FIXME: should check for bindings being the same.
-                     Instead we check for equal name and syntax. *)
-                  if mx1 = mx2 then mx1
-                  else error ("Conflicting syntax for parameter" ^ quote (Binding.display p) ^
-                    " in expression.")) (ps, ps')
+                val ps'' = distinct parm_eq (ps @ ps');
               in (i', ps'') end) is []
           in (ps', is') end;
 
