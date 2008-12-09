@@ -774,7 +774,7 @@ fun gen_add_locale prep_decl
 
     val loc_ctxt = thy' |>
       NewLocale.register_locale bname (extraTs, params)
-        (asm, defs) ([], [])
+        (asm, rev defs) ([], [])
         (map (fn n => (n, stamp ())) notes |> rev) (map (fn d => (d, stamp ())) deps' |> rev) |>
       NewLocale.init name;
 
