@@ -66,7 +66,12 @@ class MarkupNode (val base : Command, val start : Int, val end : Int,
   private def remove(nodes : List[MarkupNode]) {
     children_cell = children diff nodes
 
-    for(node <- nodes) swing_node remove node.swing_node
+      for(node <- nodes) try {
+        swing_node remove node.swing_node
+      } catch { case e : IllegalArgumentException =>
+        System.err.println(e.toString)
+        case e => throw e
+      }
   }
 
   def dfs : List[MarkupNode] = {

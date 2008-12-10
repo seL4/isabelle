@@ -14,7 +14,7 @@ import java.awt.event.{ ActionEvent, ActionListener }
 import java.awt.Color;
 
 import org.gjt.sp.jedit.buffer.{ BufferListener, JEditBuffer }
-import org.gjt.sp.jedit.textarea.{ TextArea, TextAreaExtension, TextAreaPainter }
+import org.gjt.sp.jedit.textarea.{ JEditTextArea, TextAreaExtension, TextAreaPainter }
 import org.gjt.sp.jedit.syntax.SyntaxStyle
 
 object TheoryView {
@@ -58,7 +58,8 @@ object TheoryView {
       case _ => Color.white
     }
   }
-  def withView(view : TextArea, f : (TheoryView) => Unit) {
+  
+  def withView(view : JEditTextArea, f : (TheoryView) => Unit) {
     if (view != null && view.getBuffer() != null)
       view.getBuffer().getProperty(ISABELLE_THEORY_PROPERTY) match {
         case null => null
@@ -67,11 +68,11 @@ object TheoryView {
       }
   }
 	
-  def activateTextArea(textArea : TextArea) {
+  def activateTextArea(textArea : JEditTextArea) {
     withView(textArea, _.activate(textArea))
   }	
 	
-  def deactivateTextArea(textArea : TextArea) {
+  def deactivateTextArea(textArea : JEditTextArea) {
     withView(textArea, _.deactivate(textArea))
   }
 }
@@ -81,7 +82,7 @@ class TheoryView(prover : Prover, val buffer : JEditBuffer)
   import TheoryView._
   import Text.Changed
   
-  var textArea : TextArea = null;
+  var textArea : JEditTextArea = null;
   var col : Changed = null;
   
   val colTimer = new Timer(300, new ActionListener() {
@@ -103,10 +104,10 @@ class TheoryView(prover : Prover, val buffer : JEditBuffer)
     colTimer.setRepeats(true)
   }
 
-  def activate(area : TextArea) {
+  def activate(area : JEditTextArea) {
     textArea = area
     textArea.addCaretListener(selectedStateController)
-    
+    textArea.addLeftOfScrollBar(new PhaseOverviewPanel(textArea))
     val painter = textArea.getPainter()
     painter.addExtension(TextAreaPainter.LINE_BACKGROUND_LAYER + 1, this)
     updateFont()
@@ -127,7 +128,7 @@ class TheoryView(prover : Prover, val buffer : JEditBuffer)
     }
   }
   
-  def deactivate(area : TextArea) {
+  def deactivate(area : JEditTextArea) {
     textArea.getPainter().removeExtension(this)
     textArea.removeCaretListener(selectedStateController)
     textArea = null
