@@ -82,7 +82,7 @@ class Prover() {
                       if(st == null) commands.getOrElse(id, null)
                       // inner syntax: id from props
                       else st
-                    command.root_node.add(command.node_from(kind, begin, end))
+                    command.root_node.insert(command.node_from(kind, begin, end))
                   // Phase changed
                   case Elem("finished", _, _) =>
                     st.phase = Phase.FINISHED

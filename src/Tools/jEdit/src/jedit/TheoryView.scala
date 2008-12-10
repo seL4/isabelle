@@ -202,11 +202,9 @@ class TheoryView(prover : Prover, val buffer : JEditBuffer)
       val finish = end - 1 min  toCurrent(e.stop)
       encolor(gfx, y, fm.getHeight, begin, finish, chooseColor(e), true)
       // paint details of command
-      var nodes = e.root_node.breadthFirstEnumeration
-      while(nodes.hasMoreElements){
-        val node = nodes.nextElement.asInstanceOf[isabelle.prover.MarkupNode]
-        val begin = toCurrent(node.rel_start + e.start)
-        val finish = toCurrent(node.rel_end + e.start)
+      for(node <- e.root_node.dfs){
+        val begin = toCurrent(node.start + e.start)
+        val finish = toCurrent(node.end + e.start)
         if(finish > start && begin < end)
         encolor(gfx, y + fm.getHeight - 4, 2, begin max start, finish min end, chooseColor(node.short), true)
       }

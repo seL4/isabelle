@@ -12,65 +12,96 @@ import javax.swing._
 import javax.swing.text.Position
 import javax.swing.tree._
 
-class MarkupNode (base : Command, val rel_start : Int, val rel_end : Int,
-                    val name : String, val short : String, val long : String)
-      extends DefaultMutableTreeNode{
+object MarkupNode {
 
-  private class MyPos(val o : Int) extends Position {
-    override def getOffset = o
+  def markup2default_node(node : MarkupNode) : DefaultMutableTreeNode = {
+
+    class MyPos(val o : Int) extends Position {
+      override def getOffset = o
+    }
+
+    implicit def int2pos(x : Int) : MyPos = new MyPos(x)
+
+    object RelativeAsset extends IAsset{
+      override def getIcon : Icon = null
+      override def getShortString : String = node.short
+      override def getLongString : String = node.long
+      override def getName : String = node.name
+      override def setName (name : String) = ()
+      override def setStart(start : Position) = ()
+      override def getStart : Position = node.base.start + node.start
+      override def setEnd(end : Position) = ()
+      override def getEnd : Position = node.base.start + node.end
+      override def toString = node.name + ": " + node.short
+    }
+
+    new DefaultMutableTreeNode(RelativeAsset)
+  }
+}
+
+class MarkupNode (val base : Command, val start : Int, val end : Int,
+                    val name : String, val short : String, val long : String) {
+
+  val swing_node : DefaultMutableTreeNode = MarkupNode.markup2default_node (this)
+
+  var parent : MarkupNode = null
+  def orphan = parent == null
+
+  private var children_cell : List[MarkupNode] = Nil
+  //track changes in swing_node
+  def children = children_cell
+  def children_= (cs : List[MarkupNode]) = {
+    swing_node.removeAllChildren
+    for(c <- cs) swing_node add c.swing_node
+    children_cell = cs
+  }
+  
+  private def add(child : MarkupNode) {
+    child parent = this
+    children_cell = (child :: children) sort ((a, b) => a.start < b.end)
+
+    swing_node add child.swing_node
   }
 
-  private def pos(x : Int) : MyPos = new MyPos(x)
+  private def remove(nodes : List[MarkupNode]) {
+    children_cell = children diff nodes
 
-  private object RelativeAsset extends IAsset{
-    override def getIcon : Icon = null
-    override def getShortString : String = short
-    override def getLongString : String = long
-    override def getName : String = name
-    override def setName (name : String) = ()
-    override def setStart(start : Position) = ()
-    override def getStart : Position = pos(base.start + rel_start)
-    override def setEnd(end : Position) = ()
-    override def getEnd : Position = pos(base.start + rel_end)
-    override def toString = name + ": " + short
+    for(node <- nodes) swing_node remove node.swing_node
   }
 
-  super.setUserObject(RelativeAsset)
+  def dfs : List[MarkupNode] = {
+    var all = Nil : List[MarkupNode]
+    for(child <- children)
+      all = child.dfs ::: all
+    all = this :: all
+    all
+  }
 
-  override def add(new_child : MutableTreeNode) = {
-    if(new_child.isInstanceOf[MarkupNode]){
-      val new_node = new_child.asInstanceOf[MarkupNode]
-      if(!equals(new_node) && fitting(new_node)){
-        val cs = children()
-        while (cs.hasMoreElements){
-          val child = cs.nextElement.asInstanceOf[MarkupNode]
-          if(child.fitting(new_node)) {
-            child.add(new_node)
+  def insert(new_child : MarkupNode) : Unit = {
+    if(new_child fitting_into this){
+      for(child <- children){
+        if(new_child fitting_into child)
+          child insert new_child
+      }
+      if(new_child orphan){
+        // new_child did not fit into children of this
+        // -> insert new_child between this and its children
+        for(child <- children){
+          if(child fitting_into new_child) {
+            new_child add child
           }
         }
-        if(new_node.getParent == null){
-          val cs = children()
-          while(cs.hasMoreElements){
-            val child = cs.nextElement.asInstanceOf[MarkupNode]
-            if(new_node.fitting(child)) {
-              remove(child)
-              new_node.add(child)
-            }
-          }
-          super.add(new_node)
-        }
-      } else {
-        System.err.println("ignored nonfitting markup " + new_node.name + new_node.short + new_node.long
-                           + "(" +new_node.rel_start + ", "+ new_node.rel_end + ")")
+        this add new_child
+        this remove new_child.children
       }
     } else {
-      super.add(new_child)
+      System.err.println("ignored nonfitting markup " + new_child.name + new_child.short + new_child.long
+                         + "(" +new_child.start + ", "+ new_child.end + ")")
     }
   }
 
-  // does node fit into this?
-  def fitting(node : MarkupNode) : boolean = {
-    return node.rel_start >= this.rel_start && node.rel_end <= this.rel_end
-  }
+  // does this fit into node?
+  def fitting_into(node : MarkupNode) = node.start <= this.start &&
+    node.end >= this.end
   
 }

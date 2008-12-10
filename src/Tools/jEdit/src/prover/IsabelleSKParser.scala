@@ -31,9 +31,9 @@ class IsabelleSKParser() extends SideKickParser("isabelle") {
         val buffer = Plugin.plugin.theoryView.buffer.asInstanceOf[Buffer]
         val document = prover.document
         val data = new SideKickParsedData(buffer.getPath)
-        //TODO: catch npe s
+
         for(command <- document.commands){
-          data.root.add(command.root_node)
+          data.root.add(command.root_node.swing_node)
         }
         data
       }

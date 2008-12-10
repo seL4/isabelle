@@ -43,10 +43,8 @@ class Command(val document : Document, val first : Token[Command], val last : To
   def phase_=(p_new : Phase.Value) = {
     if(p_new == Phase.UNPROCESSED){
       //delete inner syntax
-      val children = root_node.children
-      while (children.hasMoreElements){
-        val child = children.nextElement.asInstanceOf[DefaultMutableTreeNode]
-        child.removeAllChildren
+      for(child <- root_node.children){
+        child.children = Nil
       }
     }
     p = p_new
