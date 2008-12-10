@@ -39,6 +39,63 @@ notation (HTML output)
   square  ("(_\<twosuperior>)" [1000] 999)
 
 
+subsection {* Predicate for negative binary numbers *}
+
+definition
+  neg  :: "int \<Rightarrow> bool"
+where
+  "neg Z \<longleftrightarrow> Z < 0"
+
+lemma not_neg_int [simp]: "~ neg (of_nat n)"
+by (simp add: neg_def)
+
+lemma neg_zminus_int [simp]: "neg (- (of_nat (Suc n)))"
+by (simp add: neg_def neg_less_0_iff_less del: of_nat_Suc)
+
+lemmas neg_eq_less_0 = neg_def
+
+lemma not_neg_eq_ge_0: "(~neg x) = (0 \<le> x)"
+by (simp add: neg_def linorder_not_less)
+
+text{*To simplify inequalities when Numeral1 can get simplified to 1*}
+
+lemma not_neg_0: "~ neg 0"
+by (simp add: One_int_def neg_def)
+
+lemma not_neg_1: "~ neg 1"
+by (simp add: neg_def linorder_not_less zero_le_one)
+
+lemma neg_nat: "neg z ==> nat z = 0"
+by (simp add: neg_def order_less_imp_le) 
+
+lemma not_neg_nat: "~ neg z ==> of_nat (nat z) = z"
+by (simp add: linorder_not_less neg_def)
+
+text {*
+  If @{term Numeral0} is rewritten to 0 then this rule can't be applied:
+  @{term Numeral0} IS @{term "number_of Pls"}
+*}
+
+lemma not_neg_number_of_Pls: "~ neg (number_of Int.Pls)"
+  by (simp add: neg_def)
+
+lemma neg_number_of_Min: "neg (number_of Int.Min)"
+  by (simp add: neg_def)
+
+lemma neg_number_of_Bit0:
+  "neg (number_of (Int.Bit0 w)) = neg (number_of w)"
+  by (simp add: neg_def)
+
+lemma neg_number_of_Bit1:
+  "neg (number_of (Int.Bit1 w)) = neg (number_of w)"
+  by (simp add: neg_def)
+
+lemmas neg_simps [simp] =
+  not_neg_0 not_neg_1
+  not_neg_number_of_Pls neg_number_of_Min
+  neg_number_of_Bit0 neg_number_of_Bit1
+
+
 subsection{*Function @{term nat}: Coercion from Type @{typ int} to @{typ nat}*}
 
 declare nat_0 [simp] nat_1 [simp]
