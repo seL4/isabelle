@@ -47,8 +47,7 @@ sig
   val unfold_attrib: attribute
   val intro_locales_tac: bool -> Proof.context -> thm list -> tactic
 
-  (* Identifiers and registrations *)
-  val clear_local_idents: Proof.context -> Proof.context
+  (* Registrations *)
   val add_global_registration: (string * Morphism.morphism) -> theory -> theory
   val get_global_registrations: theory -> (string * Morphism.morphism) list
 
@@ -223,12 +222,10 @@ val _ = Context.>> (Context.map_theory (Theory.at_begin (fn thy =>
 fun get_global_idents thy =
   let val (Ready ids) = (IdentifiersData.get o Context.Theory) thy in ids end;
 val put_global_idents = Context.theory_map o IdentifiersData.put o Ready;
-val clear_global_idents = put_global_idents empty;
 
 fun get_local_idents ctxt =
   let val (Ready ids) = (IdentifiersData.get o Context.Proof) ctxt in ids end;
 val put_local_idents = Context.proof_map o IdentifiersData.put o Ready;
-val clear_local_idents = put_local_idents empty;
 
 end;
 

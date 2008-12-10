@@ -410,7 +410,7 @@ fun prep_full_context_statement parse_typ parse_prop parse_inst prep_vars prep_e
 
     val fors = prep_vars fixed context |> fst;
     val ctxt = context |> ProofContext.add_fixes_i fors |> snd;
-    val (_, insts', ctxt') = fold prep_inst raw_insts (0, [], NewLocale.clear_local_idents ctxt);
+    val (_, insts', ctxt') = fold prep_inst raw_insts (0, [], ctxt);
     val (_, elems'', ctxt'') = fold prep_elem raw_elems (insts', [], ctxt');
     val (insts, elems, concl, ctxt) = prep_concl raw_concl (insts', elems'', ctxt'');
 
@@ -484,7 +484,7 @@ fun prep_declaration prep activate raw_import raw_elems context =
     (* Declare parameters and imported facts *)
     val context' = context |>
       ProofContext.add_fixes_i fixed |> snd |>
-      NewLocale.clear_local_idents |> fold NewLocale.activate_local_facts deps;
+      fold NewLocale.activate_local_facts deps;
     val ((elems', _), _) = activate elems (ProofContext.set_stmt true context');
   in ((fixed, deps, elems'), (parms, spec, defs)) end;
 

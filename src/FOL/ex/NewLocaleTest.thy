@@ -10,7 +10,6 @@ begin
 
 ML_val {* set new_locales *}
 ML_val {* set Toplevel.debug *}
-ML_val {* set show_hyps *}
 
 
 typedecl int arities int :: "term"
@@ -24,7 +23,7 @@ axioms
   int_minus: "(-x) + x = 0"
   int_minus2: "-(-x) = x"
 
-text {* Inference of parameter types *}
+section {* Inference of parameter types *}
 
 locale param1 = fixes p
 print_locale! param1
@@ -44,7 +43,7 @@ locale param4 = fixes p :: "'a => 'a => 'a" (infix ".." 50)
 print_locale! param4
 
 
-text {* Incremental type constraints *}
+subsection {* Incremental type constraints *}
 
 locale constraint1 =
   fixes  prod (infixl "**" 65)
@@ -58,7 +57,7 @@ locale constraint2 =
 print_locale! constraint2
 
 
-text {* Inheritance *}
+section {* Inheritance *}
 
 locale semi =
   fixes prod (infixl "**" 65)
@@ -94,7 +93,7 @@ locale pert_hom' = semi f + d1: perturbation f d1 + d2: perturbation f d2 for f 
 print_locale! pert_hom' thm pert_hom'_def
 
 
-text {* Syntax declarations *}
+section {* Syntax declarations *}
 
 locale logic =
   fixes land (infixl "&&" 55)
@@ -113,13 +112,13 @@ locale use_decl = logic + semi "op ||"
 print_locale! use_decl thm use_decl_def
 
 
-text {* Foundational versions of theorems *}
+section {* Foundational versions of theorems *}
 
 thm logic.assoc
 thm logic.lor_def
 
 
-text {* Defines *}
+section {* Defines *}
 
 locale logic_def =
   fixes land (infixl "&&" 55)
@@ -149,7 +148,7 @@ lemma "x || y = --(-- x && --y)"
 end
 
 
-text {* Notes *}
+section {* Notes *}
 
 (* A somewhat arcane homomorphism example *)
 
@@ -169,7 +168,7 @@ lemma (in semi_hom_loc) "h(prod(x, y)) = sum(h(x), h(y))"
   by (rule semi_hom_mult)
 
 
-text {* Theorem statements *}
+section {* Theorem statements *}
 
 lemma (in lgrp) lcancel:
   "x ** y = x ** z <-> y = z"
@@ -200,7 +199,7 @@ end
 print_locale! rgrp
 
 
-text {* Patterns *}
+subsection {* Patterns *}
 
 lemma (in rgrp)
   assumes "y ** x = z ** x" (is ?a)
@@ -218,7 +217,7 @@ proof -
 qed
 
 
-text {* Interpretation between locales: sublocales *}
+section {* Interpretation between locales: sublocales *}
 
 sublocale lgrp < right: rgrp
 print_facts
@@ -359,7 +358,7 @@ sublocale trivial < y: trivial Q Q
 print_locale! trivial  (* No instance for y created (subsumed). *)
 
 
-text {* Sublocale, then interpretation in theory *}
+subsection {* Sublocale, then interpretation in theory *}
 
 interpretation int: lgrp "op +" "0" "minus"
 proof unfold_locales
@@ -374,7 +373,7 @@ thm int.lone int.right.rone
   (* the latter comes through the sublocale relation *)
 
 
-text {* Interpretation in theory, then sublocale *}
+subsection {* Interpretation in theory, then sublocale *}
 
 interpretation (* fol: *) logic "op +" "minus"
 (* FIXME declaration of qualified names *)
@@ -386,10 +385,12 @@ locale logic2 =
   assumes assoc: "(x && y) && z = x && (y && z)"
     and notnot: "-- (-- x) = x"
 begin
-(* FIXME
+
+(* FIXME interpretation below fails
 definition lor (infixl "||" 50) where
   "x || y = --(-- x && -- y)"
 *)
+
 end
 
 sublocale logic < two: logic2
@@ -398,7 +399,16 @@ sublocale logic < two: logic2
 thm two.assoc
 
 
-text {* Interpretation in proofs *}
+subsection {* Declarations and sublocale *}
+
+locale logic_a = logic
+locale logic_b = logic
+
+sublocale logic_a < logic_b
+  by unfold_locales
+
+
+section {* Interpretation in proofs *}
 
 lemma True
 proof
