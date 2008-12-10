@@ -148,6 +148,27 @@ lemma "x || y = --(-- x && --y)"
 
 end
 
+
+text {* Notes *}
+
+(* A somewhat arcane homomorphism example *)
+
+definition semi_hom where
+  "semi_hom(prod, sum, h) <-> (ALL x y. h(prod(x, y)) = sum(h(x), h(y)))"
+
+lemma semi_hom_mult:
+  "semi_hom(prod, sum, h) ==> h(prod(x, y)) = sum(h(x), h(y))"
+  by (simp add: semi_hom_def)
+
+locale semi_hom_loc = prod: semi prod + sum: semi sum
+  for prod and sum and h +
+  assumes semi_homh: "semi_hom(prod, sum, h)"
+  notes semi_hom_mult = semi_hom_mult [OF semi_homh]
+
+lemma (in semi_hom_loc) "h(prod(x, y)) = sum(h(x), h(y))"
+  by (rule semi_hom_mult)
+
+
 text {* Theorem statements *}
 
 lemma (in lgrp) lcancel:

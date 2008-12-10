@@ -487,7 +487,6 @@ fun prep_declaration prep activate raw_import raw_elems context =
       NewLocale.clear_local_idents |> fold NewLocale.activate_local_facts deps;
     val ((elems', _), _) = activate elems (ProofContext.set_stmt true context');
   in ((fixed, deps, elems'), (parms, spec, defs)) end;
-  (* FIXME check if defs used somewhere *)
 
 in
 
@@ -695,13 +694,14 @@ fun gen_add_locale prep_decl
     val _ = if null extraTs then ()
       else warning ("Additional type variable(s) in locale specification " ^ quote bname);
 
-    val satisfy = Element.satisfy_morphism b_axioms;
+    val a_satisfy = Element.satisfy_morphism a_axioms;
+    val b_satisfy = Element.satisfy_morphism b_axioms;
 
     val params = fixed @
       (body_elems |> map_filter (fn Fixes fixes => SOME fixes | _ => NONE) |> flat);
     val asm = if is_some b_statement then b_statement else a_statement;
-    val body_elems' = map (defines_to_notes thy') body_elems;
 
+    (* These are added immediately. *)
     val notes =
         if is_some asm
         then [(Thm.internalK, [((Binding.name (bname ^ "_" ^ axiomsN), []),
@@ -709,19 +709,22 @@ fun gen_add_locale prep_decl
             [(Attrib.internal o K) NewLocale.witness_attrib])])])]
         else [];
 
-    val deps' = map (fn (l, morph) => (l, morph $> satisfy)) deps;
+    (* These will be added in the local theory. *)
+    val notes' = body_elems |>
+      map (defines_to_notes thy') |>
+      map (Element.morph_ctxt a_satisfy) |>
+      (fn elems => fold_map assumes_to_notes elems (map Element.conclude_witness a_axioms)) |>
+      fst |>
+      map (Element.morph_ctxt b_satisfy) |>
+      map_filter (fn Notes notes => SOME notes | _ => NONE);
+
+    val deps' = map (fn (l, morph) => (l, morph $> b_satisfy)) deps;
 
     val loc_ctxt = thy' |>
       NewLocale.register_locale bname (extraTs, params)
         (asm, rev defs) ([], [])
         (map (fn n => (n, stamp ())) notes |> rev) (map (fn d => (d, stamp ())) deps' |> rev) |>
       NewLocale.init name;
-
-    (* These will be added in the local theory. *)
-    val notes' = body_elems' |>
-      (fn elems => fold_map assumes_to_notes elems (map Element.conclude_witness a_axioms)) |>
-      fst |> map (Element.morph_ctxt satisfy) |>
-      map_filter (fn Notes notes => SOME notes | _ => NONE);
 
   in ((name, notes'), loc_ctxt) end;
 
