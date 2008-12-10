@@ -627,9 +627,8 @@ val nat_bin_arith_setup =
      {add_mono_thms = add_mono_thms, mult_mono_thms = mult_mono_thms,
       inj_thms = inj_thms,
       lessD = lessD, neqE = neqE,
-      simpset = simpset addsimps [Suc_nat_number_of, int_nat_number_of,
-        @{thm not_neg_number_of_Pls}, @{thm neg_number_of_Min},
-        @{thm neg_number_of_Bit0}, @{thm neg_number_of_Bit1}]})
+      simpset = simpset addsimps @{thms neg_simps} @
+        [@{thm Suc_nat_number_of}, @{thm int_nat_number_of}]})
 *}
 
 declaration {* K nat_bin_arith_setup *}

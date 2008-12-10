@@ -53,7 +53,7 @@ val bin_simps =
       @{thm mult_nat_number_of}, @{thm nat_number_of_mult_left}, 
       @{thm less_nat_number_of}, 
       @{thm Let_number_of}, @{thm nat_number_of}] @
-     @{thms arith_simps} @ @{thms rel_simps};
+     @{thms arith_simps} @ @{thms rel_simps} @ @{thms neg_simps};
 
 fun prep_simproc (name, pats, proc) =
   Simplifier.simproc (the_context ()) name pats proc;

@@ -1254,7 +1254,7 @@ proof -
   by (simp add: neg_def number_of_eq numeral_simps)
 qed
 
-lemmas neg_simps =
+lemmas neg_simps [simp] =
   not_neg_0 not_neg_1
   not_neg_number_of_Pls neg_number_of_Min
   neg_number_of_Bit0 neg_number_of_Bit1
@@ -1325,7 +1325,7 @@ lemmas rel_simps [simp] =
   less_number_of less_bin_simps
   le_number_of le_bin_simps
   eq_number_of_eq eq_bin_simps
-  iszero_simps neg_simps
+  iszero_simps
 
 
 subsubsection {* Simplification of arithmetic when nested to the right. *}
