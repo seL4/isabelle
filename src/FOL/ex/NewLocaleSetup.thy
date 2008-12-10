@@ -16,7 +16,7 @@ structure P = OuterParse and K = OuterKeyword;
 val opt_bang = Scan.optional (P.$$$ "!" >> K true) false;
 
 val locale_val =
-  Expression.parse_expression --
+  SpecParse.locale_expression --
     Scan.optional (P.$$$ "+" |-- P.!!! (Scan.repeat1 SpecParse.context_element)) [] ||
   Scan.repeat1 SpecParse.context_element >> pair ([], []);
 
@@ -42,7 +42,7 @@ val _ = OuterSyntax.improper_command "print_locale" "print named locale in this 
 val _ =
   OuterSyntax.command "interpretation"
     "prove interpretation of locale expression in theory" K.thy_goal
-    (P.!!! Expression.parse_expression
+    (P.!!! SpecParse.locale_expression
         >> (fn expr => Toplevel.print o
             Toplevel.theory_to_proof (Expression.interpretation_cmd expr)));
 
@@ -50,7 +50,7 @@ val _ =
   OuterSyntax.command "interpret"
     "prove interpretation of locale expression in proof context"
     (K.tag_proof K.prf_goal)
-    (P.!!! Expression.parse_expression
+    (P.!!! SpecParse.locale_expression
         >> (fn expr => Toplevel.print o
             Toplevel.proof' (fn int => Expression.interpret_cmd expr int)));
 

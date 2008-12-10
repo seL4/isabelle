@@ -30,10 +30,6 @@ sig
   val interpretation: expression_i -> theory -> Proof.state;
   val interpret_cmd: expression -> bool -> Proof.state -> Proof.state;
   val interpret: expression_i -> bool -> Proof.state -> Proof.state;
-
-  (* Debugging and development *)
-  val parse_expression: OuterParse.token list -> expression * OuterParse.token list
-    (* FIXME to spec_parse.ML *)
 end;
 
 
@@ -53,63 +49,6 @@ type 'term expr = (string * (string * 'term map)) list;
 
 type expression = string expr * (Binding.T * string option * mixfix) list;
 type expression_i = term expr * (Binding.T * typ option * mixfix) list;
-
-
-(** Parsing and printing **)
-
-local
-
-structure P = OuterParse;
-
-val loc_keyword = P.$$$ "fixes" || P.$$$ "constrains" || P.$$$ "assumes" ||
-   P.$$$ "defines" || P.$$$ "notes";
-fun plus1_unless test scan =
-  scan ::: Scan.repeat (P.$$$ "+" |-- Scan.unless test (P.!!! scan));
-
-val prefix = P.name --| P.$$$ ":";
-val named = P.name -- (P.$$$ "=" |-- P.term);
-val position = P.maybe P.term;
-val instance = P.$$$ "where" |-- P.and_list1 named >> Named ||
-  Scan.repeat1 position >> Positional;
-
-in
-
-val parse_expression =
-  let
-    fun expr2 x = P.xname x;
-    fun expr1 x = (Scan.optional prefix "" -- expr2 --
-      Scan.optional instance (Named []) >> (fn ((p, l), i) => (l, (p, i)))) x;
-    fun expr0 x = (plus1_unless loc_keyword expr1) x;
-  in expr0 -- P.for_fixes end;
-
-end;
-
-fun pretty_expr thy expr =
-  let
-    fun pretty_pos NONE = Pretty.str "_"
-      | pretty_pos (SOME x) = Pretty.str x;
-    fun pretty_named (x, y) = [Pretty.str x, Pretty.brk 1, Pretty.str "=",
-          Pretty.brk 1, Pretty.str y] |> Pretty.block;
-    fun pretty_ren (Positional ps) = take_suffix is_none ps |> snd |>
-          map pretty_pos |> Pretty.breaks
-      | pretty_ren (Named []) = []
-      | pretty_ren (Named ps) = Pretty.str "where" :: Pretty.brk 1 ::
-          (ps |> map pretty_named |> Pretty.separate "and");
-    fun pretty_rename (loc, ("", ren)) =
-          Pretty.block (Pretty.str (NewLocale.extern thy loc) :: Pretty.brk 1 :: pretty_ren ren) 
-      | pretty_rename (loc, (prfx, ren)) =
-          Pretty.block (Pretty.str prfx :: Pretty.brk 1 :: Pretty.str (NewLocale.extern thy loc) ::
-            Pretty.brk 1 :: pretty_ren ren);
-  in Pretty.separate "+" (map pretty_rename expr) |> Pretty.block end;
-
-fun err_in_expr thy msg expr =
-  let
-    val err_msg =
-      if null expr then msg
-      else msg ^ "\n" ^ Pretty.string_of (Pretty.block
-        [Pretty.str "The above error(s) occurred in expression:", Pretty.brk 1,
-          pretty_expr thy expr])
-  in error err_msg end;
 
 
 (** Internalise locale names in expr **)
