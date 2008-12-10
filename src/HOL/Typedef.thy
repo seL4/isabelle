@@ -1,5 +1,4 @@
 (*  Title:      HOL/Typedef.thy
-    ID:         $Id$
     Author:     Markus Wenzel, TU Munich
 *)
 
@@ -116,15 +115,10 @@ qed
 
 end
 
-use "Tools/typedef_package.ML"
-use "Tools/typecopy_package.ML"
-use "Tools/typedef_codegen.ML"
+use "Tools/typedef_package.ML" setup TypedefPackage.setup
+use "Tools/typecopy_package.ML" setup TypecopyPackage.setup
+use "Tools/typedef_codegen.ML" setup TypedefCodegen.setup
 
-setup {*
-  TypedefPackage.setup
-  #> TypecopyPackage.setup
-  #> TypedefCodegen.setup
-*}
 
 text {* This class is just a workaround for classes without parameters;
   it shall disappear as soon as possible. *}
