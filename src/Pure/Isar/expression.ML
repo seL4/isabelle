@@ -175,7 +175,7 @@ fun inst_morph (parm_names, parm_types) (prfx, insts') ctxt =
     val inst = Symtab.make insts'';
   in
     (Element.inst_morphism (ProofContext.theory_of ctxt) (instT, inst) $>
-      Morphism.binding_morphism (Binding.qualify prfx), ctxt')
+      Morphism.binding_morphism (Binding.add_prefix false prfx), ctxt')
   end;
 
 
