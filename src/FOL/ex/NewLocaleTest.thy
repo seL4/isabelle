@@ -113,6 +113,12 @@ locale use_decl = logic + semi "op ||"
 print_locale! use_decl thm use_decl_def
 
 
+text {* Foundational versions of theorems *}
+
+thm logic.assoc
+thm logic.lor_def
+
+
 text {* Defines *}
 
 locale logic_def =
@@ -121,14 +127,26 @@ locale logic_def =
     and lnot ("-- _" [60] 60)
   assumes assoc: "(x && y) && z = x && (y && z)"
     and notnot: "-- (-- x) = x"
-  defines lor_def: (* FIXME *) "x || y == --(-- x && -- y)"
+  defines "x || y == --(-- x && -- y)"
 begin
+
+thm lor_def
+(* Can we get rid the the additional hypothesis, caused by LocalTheory.notes? *)
 
 lemma "x || y = --(-- x && --y)"
   by (unfold lor_def) (rule refl)
 
 end
 
+(* Inheritance of defines *)
+
+locale logic_def2 = logic_def
+begin
+
+lemma "x || y = --(-- x && --y)"
+  by (unfold lor_def) (rule refl)
+
+end
 
 text {* Theorem statements *}
 
