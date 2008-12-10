@@ -39,7 +39,6 @@ sig
     Proof.context -> Proof.context
   val activate_global_facts: string * Morphism.morphism -> theory -> theory
   val activate_local_facts: string * Morphism.morphism -> Proof.context -> Proof.context
-(*  val activate: string -> theory -> (Element.context_i -> 'a -> 'a) -> 'a -> 'a *)
   val init: string -> theory -> Proof.context
 
   (* Reasoning about locales *)
