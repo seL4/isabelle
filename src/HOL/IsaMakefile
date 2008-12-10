@@ -274,7 +274,6 @@ $(OUT)/HOL: ROOT.ML $(MAIN_DEPENDENCIES) \
   Order_Relation.thy \
   Parity.thy \
   Univ_Poly.thy \
-  ContNotDenum.thy \
   Lubs.thy \
   PReal.thy \
   Rational.thy \
@@ -299,7 +298,7 @@ HOL-Library: HOL $(LOG)/HOL-Library.gz
 
 $(LOG)/HOL-Library.gz: $(OUT)/HOL Library/SetsAndFunctions.thy		\
   Library/Abstract_Rat.thy \
-  Library/BigO.thy Library/Ramsey.thy Library/Efficient_Nat.thy		\
+  Library/BigO.thy Library/ContNotDenum.thy Library/Efficient_Nat.thy	\
   Library/Executable_Set.thy Library/Infinite_Set.thy			\
   Library/FuncSet.thy			\
   Library/Library.thy Library/List_Prefix.thy Library/State_Monad.thy	\
@@ -307,7 +306,7 @@ $(LOG)/HOL-Library.gz: $(OUT)/HOL Library/SetsAndFunctions.thy		\
   Library/Primes.thy Library/Pocklington.thy Library/Quotient.thy	\
   Library/Quicksort.thy Library/Nat_Infinity.thy Library/Word.thy	\
   Library/README.html Library/Continuity.thy				\
-  Library/Nested_Environment.thy Library/Zorn.thy			\
+  Library/Nested_Environment.thy Library/Ramsey.thy Library/Zorn.thy	\
   Library/Library/ROOT.ML Library/Library/document/root.tex		\
   Library/Library/document/root.bib Library/While_Combinator.thy	\
   Library/Product_ord.thy Library/Char_nat.thy Library/Char_ord.thy	\

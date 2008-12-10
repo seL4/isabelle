@@ -14,23 +14,6 @@ begin
 subsection {* Preliminary lemmas *}
 (* These should be moved elsewhere *)
 
-lemma inj_Inl [simp]: "inj_on Inl A"
-  by (rule inj_onI, simp)
-
-lemma inj_Inr [simp]: "inj_on Inr A"
-  by (rule inj_onI, simp)
-
-lemma inj_Some [simp]: "inj_on Some A"
-  by (rule inj_onI, simp)
-
-lemma card_Plus:
-  "[| finite A; finite B |] ==> card (A <+> B) = card A + card B"
-  unfolding Plus_def
-  apply (subgoal_tac "Inl ` A \<inter> Inr ` B = {}")
-  apply (simp add: card_Un_disjoint card_image)
-  apply fast
-  done
-
 lemma (in type_definition) univ:
   "UNIV = Abs ` A"
 proof

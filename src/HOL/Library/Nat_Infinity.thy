@@ -216,6 +216,15 @@ lemma mult_iSuc: "iSuc m * n = n + m * n"
 lemma mult_iSuc_right: "m * iSuc n = m + m * n"
   unfolding iSuc_plus_1 by (simp add: ring_simps)
 
+lemma of_nat_eq_Fin: "of_nat n = Fin n"
+  apply (induct n)
+  apply (simp add: Fin_0)
+  apply (simp add: plus_1_iSuc iSuc_Fin)
+  done
+
+instance inat :: semiring_char_0
+  by default (simp add: of_nat_eq_Fin)
+
 
 subsection {* Ordering *}
 

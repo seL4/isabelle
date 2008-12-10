@@ -14,6 +14,7 @@ imports
   Coinductive_List
   Commutative_Ring
   Continuity
+  ContNotDenum
   Countable
   Dense_Linear_Order
   Efficient_Nat
