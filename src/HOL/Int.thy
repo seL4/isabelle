@@ -1076,46 +1076,16 @@ subsubsection {* Equality of Binary Numbers *}
 
 text {* First version by Norbert Voelker *}
 
-definition
-  neg  :: "'a\<Colon>ordered_idom \<Rightarrow> bool"
-where
-  "neg Z \<longleftrightarrow> Z < 0"
-
 definition (*for simplifying equalities*)
   iszero :: "'a\<Colon>semiring_1 \<Rightarrow> bool"
 where
   "iszero z \<longleftrightarrow> z = 0"
-
-lemma not_neg_int [simp]: "~ neg (of_nat n)"
-by (simp add: neg_def)
-
-lemma neg_zminus_int [simp]: "neg (- (of_nat (Suc n)))"
-by (simp add: neg_def neg_less_0_iff_less del: of_nat_Suc)
-
-lemmas neg_eq_less_0 = neg_def
-
-lemma not_neg_eq_ge_0: "(~neg x) = (0 \<le> x)"
-by (simp add: neg_def linorder_not_less)
-
-text{*To simplify inequalities when Numeral1 can get simplified to 1*}
-
-lemma not_neg_0: "~ neg 0"
-by (simp add: One_int_def neg_def)
-
-lemma not_neg_1: "~ neg 1"
-by (simp add: neg_def linorder_not_less zero_le_one)
 
 lemma iszero_0: "iszero 0"
 by (simp add: iszero_def)
 
 lemma not_iszero_1: "~ iszero 1"
 by (simp add: iszero_def eq_commute)
-
-lemma neg_nat: "neg z ==> nat z = 0"
-by (simp add: neg_def order_less_imp_le) 
-
-lemma not_neg_nat: "~ neg z ==> of_nat (nat z) = z"
-by (simp add: linorder_not_less neg_def)
 
 lemma eq_number_of_eq:
   "((number_of x::'a::number_ring) = number_of y) =
@@ -1196,26 +1166,6 @@ lemmas iszero_simps =
 
 subsubsection {* The Less-Than Relation *}
 
-lemma less_number_of_eq_neg:
-  "((number_of x::'a::{ordered_idom,number_ring}) < number_of y)
-  = neg (number_of (x + uminus y) :: 'a)"
-apply (subst less_iff_diff_less_0) 
-apply (simp add: neg_def diff_minus number_of_add number_of_minus)
-done
-
-text {*
-  If @{term Numeral0} is rewritten to 0 then this rule can't be applied:
-  @{term Numeral0} IS @{term "number_of Pls"}
-*}
-
-lemma not_neg_number_of_Pls:
-  "~ neg (number_of Pls ::'a::{ordered_idom,number_ring})"
-  by (simp add: neg_def numeral_0_eq_0)
-
-lemma neg_number_of_Min:
-  "neg (number_of Min ::'a::{ordered_idom,number_ring})"
-  by (simp add: neg_def zero_less_one numeral_m1_eq_minus_1)
-
 lemma double_less_0_iff:
   "(a + a < 0) = (a < (0::'a::ordered_idom))"
 proof -
@@ -1238,27 +1188,6 @@ next
     add: compare_rls of_nat_1 [symmetric] of_nat_add [symmetric])
 qed
 
-lemma neg_number_of_Bit0:
-  "neg (number_of (Bit0 w)::'a) = 
-  neg (number_of w :: 'a::{ordered_idom,number_ring})"
-by (simp add: neg_def number_of_eq numeral_simps double_less_0_iff)
-
-lemma neg_number_of_Bit1:
-  "neg (number_of (Bit1 w)::'a) = 
-  neg (number_of w :: 'a::{ordered_idom,number_ring})"
-proof -
-  have "((1::'a) + of_int w + of_int w < 0) = (of_int (1 + w + w) < (of_int 0 :: 'a))"
-    by simp
-  also have "... = (w < 0)" by (simp only: of_int_less_iff odd_less_0)
-  finally show ?thesis
-  by (simp add: neg_def number_of_eq numeral_simps)
-qed
-
-lemmas neg_simps =
-  not_neg_0 not_neg_1
-  not_neg_number_of_Pls neg_number_of_Min
-  neg_number_of_Bit0 neg_number_of_Bit1
-
 text {* Less-Than or Equals *}
 
 text {* Reduces @{term "a\<le>b"} to @{term "~ (b<a)"} for ALL numerals. *}
@@ -1266,11 +1195,6 @@ text {* Reduces @{term "a\<le>b"} to @{term "~ (b<a)"} for ALL numerals. *}
 lemmas le_number_of_eq_not_less =
   linorder_not_less [of "number_of w" "number_of v", symmetric, 
   standard]
-
-lemma le_number_of_eq:
-    "((number_of x::'a::{ordered_idom,number_ring}) \<le> number_of y)
-     = (~ (neg (number_of (y + uminus x) :: 'a)))"
-by (simp add: le_number_of_eq_not_less less_number_of_eq_neg)
 
 
 text {* Absolute value (@{term abs}) *}
@@ -1325,7 +1249,7 @@ lemmas rel_simps [simp] =
   less_number_of less_bin_simps
   le_number_of le_bin_simps
   eq_number_of_eq eq_bin_simps
-  iszero_simps neg_simps
+  iszero_simps
 
 
 subsubsection {* Simplification of arithmetic when nested to the right. *}

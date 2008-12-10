@@ -19,7 +19,7 @@ where ~~ is an appropriate balancing operation (e.g. =, <=, <, div, /)
 and d = gcd(m,m') and n=m/d and n'=m'/d.
 *)
 
-val rel_number_of = [@{thm eq_number_of_eq}, @{thm less_number_of_eq_neg}, @{thm le_number_of_eq}];
+val rel_number_of = [@{thm eq_number_of_eq}, @{thm less_number_of}, @{thm le_number_of}];
 
 local
   open Int_Numeral_Simprocs

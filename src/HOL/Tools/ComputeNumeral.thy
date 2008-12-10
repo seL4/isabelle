@@ -29,63 +29,13 @@ lemma lezero4: "lezero (Int.Bit1 x) = neg x" unfolding Int.Bit1_def lezero_def n
 lemmas bitlezero = lezero1 lezero2 lezero3 lezero4
 
 (* equality for bit strings *)
-lemma biteq1: "(Int.Pls = Int.Pls) = True" unfolding Pls_def Min_def Bit0_def Bit1_def by presburger
-lemma biteq2: "(Int.Min = Int.Min) = True" unfolding Pls_def Min_def Bit0_def Bit1_def by presburger
-lemma biteq3: "(Int.Pls = Int.Min) = False" unfolding Pls_def Min_def Bit0_def Bit1_def by presburger
-lemma biteq4: "(Int.Min = Int.Pls) = False" unfolding Pls_def Min_def Bit0_def Bit1_def by presburger
-lemma biteq5: "(Int.Bit0 x = Int.Bit0 y) = (x = y)" unfolding Pls_def Min_def Bit0_def Bit1_def by presburger
-lemma biteq6: "(Int.Bit1 x = Int.Bit1 y) = (x = y)" unfolding Pls_def Min_def Bit0_def Bit1_def by presburger
-lemma biteq7: "(Int.Bit0 x = Int.Bit1 y) = False" unfolding Pls_def Min_def Bit0_def Bit1_def by presburger
-lemma biteq8: "(Int.Bit1 x = Int.Bit0 y) = False" unfolding Pls_def Min_def Bit0_def Bit1_def by presburger
-lemma biteq9: "(Int.Pls = Int.Bit0 x) = (Int.Pls = x)" unfolding Pls_def Min_def Bit0_def Bit1_def by presburger
-lemma biteq10: "(Int.Pls = Int.Bit1 x) = False" unfolding Pls_def Min_def Bit0_def Bit1_def by presburger
-lemma biteq11: "(Int.Min = Int.Bit0 x) = False" unfolding Pls_def Min_def Bit0_def Bit1_def by presburger
-lemma biteq12: "(Int.Min = Int.Bit1 x) = (Int.Min = x)" unfolding Pls_def Min_def Bit0_def Bit1_def by presburger
-lemma biteq13: "(Int.Bit0 x = Int.Pls) = (x = Int.Pls)" unfolding Pls_def Min_def Bit0_def Bit1_def by presburger
-lemma biteq14: "(Int.Bit1 x = Int.Pls) = False" unfolding Pls_def Min_def Bit0_def Bit1_def by presburger
-lemma biteq15: "(Int.Bit0 x = Int.Min) = False" unfolding Pls_def Min_def Bit0_def Bit1_def by presburger
-lemma biteq16: "(Int.Bit1 x = Int.Min) = (x = Int.Min)" unfolding Pls_def Min_def Bit0_def Bit1_def by presburger
-lemmas biteq = biteq1 biteq2 biteq3 biteq4 biteq5 biteq6 biteq7 biteq8 biteq9 biteq10 biteq11 biteq12 biteq13 biteq14 biteq15 biteq16
+lemmas biteq = eq_bin_simps
 
 (* x < y for bit strings *)
-lemma bitless1: "(Int.Pls < Int.Min) = False" by (simp add: less_int_code)
-lemma bitless2: "(Int.Pls < Int.Pls) = False" by (simp add: less_int_code)
-lemma bitless3: "(Int.Min < Int.Pls) = True" by (simp add: less_int_code)
-lemma bitless4: "(Int.Min < Int.Min) = False" by (simp add: less_int_code)
-lemma bitless5: "(Int.Bit0 x < Int.Bit0 y) = (x < y)" by (simp add: less_int_code)
-lemma bitless6: "(Int.Bit1 x < Int.Bit1 y) = (x < y)" by (simp add: less_int_code)
-lemma bitless7: "(Int.Bit0 x < Int.Bit1 y) = (x \<le> y)" by (simp add: less_int_code)
-lemma bitless8: "(Int.Bit1 x < Int.Bit0 y) = (x < y)" by (simp add: less_int_code)
-lemma bitless9: "(Int.Pls < Int.Bit0 x) = (Int.Pls < x)" by (simp add: less_int_code)
-lemma bitless10: "(Int.Pls < Int.Bit1 x) = (Int.Pls \<le> x)" by (simp add: less_int_code)
-lemma bitless11: "(Int.Min < Int.Bit0 x) = (Int.Pls \<le> x)" unfolding Pls_def Min_def Bit0_def Bit1_def by presburger
-lemma bitless12: "(Int.Min < Int.Bit1 x) = (Int.Min < x)" by (simp add: less_int_code)
-lemma bitless13: "(Int.Bit0 x < Int.Pls) = (x < Int.Pls)" by (simp add: less_int_code)
-lemma bitless14: "(Int.Bit1 x < Int.Pls) = (x < Int.Pls)" by (simp add: less_int_code)
-lemma bitless15: "(Int.Bit0 x < Int.Min) = (x < Int.Pls)" unfolding Pls_def Min_def Bit0_def Bit1_def by presburger
-lemma bitless16: "(Int.Bit1 x < Int.Min) = (x < Int.Min)" by (simp add: less_int_code)
-lemmas bitless = bitless1 bitless2 bitless3 bitless4 bitless5 bitless6 bitless7 bitless8 
-                 bitless9 bitless10 bitless11 bitless12 bitless13 bitless14 bitless15 bitless16
+lemmas bitless = less_bin_simps
 
 (* x \<le> y for bit strings *)
-lemma bitle1: "(Int.Pls \<le> Int.Min) = False" by (simp add: less_eq_int_code)
-lemma bitle2: "(Int.Pls \<le> Int.Pls) = True" by (simp add: less_eq_int_code)
-lemma bitle3: "(Int.Min \<le> Int.Pls) = True" by (simp add: less_eq_int_code)
-lemma bitle4: "(Int.Min \<le> Int.Min) = True" by (simp add: less_eq_int_code)
-lemma bitle5: "(Int.Bit0 x \<le> Int.Bit0 y) = (x \<le> y)" by (simp add: less_eq_int_code)
-lemma bitle6: "(Int.Bit1 x \<le> Int.Bit1 y) = (x \<le> y)" by (simp add: less_eq_int_code)
-lemma bitle7: "(Int.Bit0 x \<le> Int.Bit1 y) = (x \<le> y)" by (simp add: less_eq_int_code)
-lemma bitle8: "(Int.Bit1 x \<le> Int.Bit0 y) = (x < y)" by (simp add: less_eq_int_code)
-lemma bitle9: "(Int.Pls \<le> Int.Bit0 x) = (Int.Pls \<le> x)" by (simp add: less_eq_int_code)
-lemma bitle10: "(Int.Pls \<le> Int.Bit1 x) = (Int.Pls \<le> x)" by (simp add: less_eq_int_code)
-lemma bitle11: "(Int.Min \<le> Int.Bit0 x) = (Int.Pls \<le> x)" unfolding Pls_def Min_def Bit0_def Bit1_def by presburger
-lemma bitle12: "(Int.Min \<le> Int.Bit1 x) = (Int.Min \<le> x)" by (simp add: less_eq_int_code)
-lemma bitle13: "(Int.Bit0 x \<le> Int.Pls) = (x \<le> Int.Pls)" by (simp add: less_eq_int_code)
-lemma bitle14: "(Int.Bit1 x \<le> Int.Pls) = (x < Int.Pls)" by (simp add: less_eq_int_code)
-lemma bitle15: "(Int.Bit0 x \<le> Int.Min) = (x < Int.Pls)" unfolding Pls_def Min_def Bit0_def Bit1_def by presburger
-lemma bitle16: "(Int.Bit1 x \<le> Int.Min) = (x \<le> Int.Min)" by (simp add: less_eq_int_code)
-lemmas bitle = bitle1 bitle2 bitle3 bitle4 bitle5 bitle6 bitle7 bitle8 
-                 bitle9 bitle10 bitle11 bitle12 bitle13 bitle14 bitle15 bitle16
+lemmas bitle = le_bin_simps
 
 (* succ for bit strings *)
 lemmas bitsucc = succ_bin_simps
@@ -129,7 +79,8 @@ lemma natsuc: "Suc (number_of x) = (if neg x then 1 else number_of (Int.succ x))
 
 (* Addition for nat *)
 lemma natadd: "number_of x + ((number_of y)::nat) = (if neg x then (number_of y) else (if neg y then number_of x else (number_of (x + y))))"
-  by (auto simp add: number_of_is_id)
+  unfolding nat_number_of_def number_of_is_id neg_def
+  by auto
 
 (* Subtraction for nat *)
 lemma natsub: "(number_of x) - ((number_of y)::nat) = 
@@ -140,18 +91,14 @@ lemma natsub: "(number_of x) - ((number_of y)::nat) =
 (* Multiplication for nat *)
 lemma natmul: "(number_of x) * ((number_of y)::nat) = 
   (if neg x then 0 else (if neg y then 0 else number_of (x * y)))"
-  apply (auto simp add: number_of_is_id neg_def iszero_def)
-  apply (case_tac "x > 0")
-  apply auto
-  apply (rule order_less_imp_le)
-  apply (simp add: mult_strict_left_mono[where a=y and b=0 and c=x, simplified])
-  done
+  unfolding nat_number_of_def number_of_is_id neg_def
+  by (simp add: nat_mult_distrib)
 
 lemma nateq: "(((number_of x)::nat) = (number_of y)) = ((lezero x \<and> lezero y) \<or> (x = y))"
   by (auto simp add: iszero_def lezero_def neg_def number_of_is_id)
 
 lemma natless: "(((number_of x)::nat) < (number_of y)) = ((x < y) \<and> (\<not> (lezero y)))"
-  by (auto simp add: number_of_is_id neg_def lezero_def)
+  by (simp add: lezero_def numeral_simps not_le)
 
 lemma natle: "(((number_of x)::nat) \<le> (number_of y)) = (y < x \<longrightarrow> lezero x)"
   by (auto simp add: number_of_is_id lezero_def nat_number_of_def)

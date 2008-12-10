@@ -93,16 +93,17 @@ by (auto simp add: Inl_Rep_def expand_fun_eq)
 lemma Inr_Rep_inject: "Inr_Rep(b) = Inr_Rep(d) ==> b=d"
 by (auto simp add: Inr_Rep_def expand_fun_eq)
 
-lemma inj_Inl: "inj(Inl)"
+lemma inj_Inl [simp]: "inj_on Inl A"
 apply (simp add: Inl_def)
 apply (rule inj_onI)
 apply (erule inj_on_Abs_Sum [THEN inj_onD, THEN Inl_Rep_inject])
 apply (rule Inl_RepI)
 apply (rule Inl_RepI)
 done
+
 lemmas Inl_inject = inj_Inl [THEN injD, standard]
 
-lemma inj_Inr: "inj(Inr)"
+lemma inj_Inr [simp]: "inj_on Inr A"
 apply (simp add: Inr_def)
 apply (rule inj_onI)
 apply (erule inj_on_Abs_Sum [THEN inj_onD, THEN Inr_Rep_inject])

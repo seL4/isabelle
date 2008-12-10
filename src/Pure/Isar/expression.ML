@@ -19,23 +19,19 @@ sig
 
   (* Declaring locales *)
   val add_locale_cmd: string -> bstring -> expression -> Element.context list -> theory ->
-    string * Proof.context
+    (string * (string * (Attrib.binding * (thm list * Attrib.src list) list) list) list) *
+    Proof.context
   val add_locale: string -> bstring -> expression_i -> Element.context_i list -> theory ->
-    string * Proof.context
+    (string * (string * (Attrib.binding * (thm list * Attrib.src list) list) list) list) *
+    Proof.context
 
   (* Interpretation *)
   val sublocale_cmd: string -> expression -> theory -> Proof.state;
   val sublocale: string -> expression_i -> theory -> Proof.state;
   val interpretation_cmd: expression -> theory -> Proof.state;
   val interpretation: expression_i -> theory -> Proof.state;
-(*
-  val interpret_cmd: Morphism.morphism -> expression -> bool -> Proof.state -> Proof.state;
-  val interpret: Morphism.morphism -> expression_i -> bool -> Proof.state -> Proof.state;
-*)
-
-  (* Debugging and development *)
-  val parse_expression: OuterParse.token list -> expression * OuterParse.token list
-    (* FIXME to spec_parse.ML *)
+  val interpret_cmd: expression -> bool -> Proof.state -> Proof.state;
+  val interpret: expression_i -> bool -> Proof.state -> Proof.state;
 end;
 
 
@@ -55,63 +51,6 @@ type 'term expr = (string * (string * 'term map)) list;
 
 type expression = string expr * (Binding.T * string option * mixfix) list;
 type expression_i = term expr * (Binding.T * typ option * mixfix) list;
-
-
-(** Parsing and printing **)
-
-local
-
-structure P = OuterParse;
-
-val loc_keyword = P.$$$ "fixes" || P.$$$ "constrains" || P.$$$ "assumes" ||
-   P.$$$ "defines" || P.$$$ "notes";
-fun plus1_unless test scan =
-  scan ::: Scan.repeat (P.$$$ "+" |-- Scan.unless test (P.!!! scan));
-
-val prefix = P.name --| P.$$$ ":";
-val named = P.name -- (P.$$$ "=" |-- P.term);
-val position = P.maybe P.term;
-val instance = P.$$$ "where" |-- P.and_list1 named >> Named ||
-  Scan.repeat1 position >> Positional;
-
-in
-
-val parse_expression =
-  let
-    fun expr2 x = P.xname x;
-    fun expr1 x = (Scan.optional prefix "" -- expr2 --
-      Scan.optional instance (Named []) >> (fn ((p, l), i) => (l, (p, i)))) x;
-    fun expr0 x = (plus1_unless loc_keyword expr1) x;
-  in expr0 -- P.for_fixes end;
-
-end;
-
-fun pretty_expr thy expr =
-  let
-    fun pretty_pos NONE = Pretty.str "_"
-      | pretty_pos (SOME x) = Pretty.str x;
-    fun pretty_named (x, y) = [Pretty.str x, Pretty.brk 1, Pretty.str "=",
-          Pretty.brk 1, Pretty.str y] |> Pretty.block;
-    fun pretty_ren (Positional ps) = take_suffix is_none ps |> snd |>
-          map pretty_pos |> Pretty.breaks
-      | pretty_ren (Named []) = []
-      | pretty_ren (Named ps) = Pretty.str "where" :: Pretty.brk 1 ::
-          (ps |> map pretty_named |> Pretty.separate "and");
-    fun pretty_rename (loc, ("", ren)) =
-          Pretty.block (Pretty.str (NewLocale.extern thy loc) :: Pretty.brk 1 :: pretty_ren ren) 
-      | pretty_rename (loc, (prfx, ren)) =
-          Pretty.block (Pretty.str prfx :: Pretty.brk 1 :: Pretty.str (NewLocale.extern thy loc) ::
-            Pretty.brk 1 :: pretty_ren ren);
-  in Pretty.separate "+" (map pretty_rename expr) |> Pretty.block end;
-
-fun err_in_expr thy msg expr =
-  let
-    val err_msg =
-      if null expr then msg
-      else msg ^ "\n" ^ Pretty.string_of (Pretty.block
-        [Pretty.str "The above error(s) occurred in expression:", Pretty.brk 1,
-          pretty_expr thy expr])
-  in error err_msg end;
 
 
 (** Internalise locale names in expr **)
@@ -135,6 +74,13 @@ fun parameters_of thy strict (expr, fixed) =
       end;
 
     fun match_bind (n, b) = (n = Binding.base_name b);
+    fun parm_eq ((b1, mx1), (b2, mx2)) =
+      (* FIXME: cannot compare bindings for equality, instead check for equal name and syntax *)
+      (Binding.base_name b1 = Binding.base_name b2) andalso
+      (if mx1 = mx2 then true
+      else error ("Conflicting syntax for parameter" ^ quote (Binding.display b1) ^
+                    " in expression."));
+      
     fun bind_eq (b1, b2) = (Binding.base_name b1 = Binding.base_name b2);
       (* FIXME: cannot compare bindings for equality. *)
 
@@ -166,12 +112,7 @@ fun parameters_of thy strict (expr, fixed) =
             val (is', ps') = fold_map (fn i => fn ps =>
               let
                 val (ps', i') = params_inst i;
-                val ps'' = AList.join bind_eq (fn p => fn (mx1, mx2) =>
-                  (* FIXME: should check for bindings being the same.
-                     Instead we check for equal name and syntax. *)
-                  if mx1 = mx2 then mx1
-                  else error ("Conflicting syntax for parameter" ^ quote (Binding.display p) ^
-                    " in expression.")) (ps, ps')
+                val ps'' = distinct parm_eq (ps @ ps');
               in (i', ps'') end) is []
           in (ps', is') end;
 
@@ -331,21 +272,18 @@ fun declare_elem prep_vars (Fixes fixes) ctxt =
 
 val norm_term = Envir.beta_norm oo Term.subst_atomic;
 
-fun abstract_thm thy eq =
-  Thm.assume (Thm.cterm_of thy eq) |> Drule.gen_all |> Drule.abs_def;
-
-fun bind_def ctxt eq (xs, env, ths) =
+fun bind_def ctxt eq (xs, env, eqs) =
   let
+    val _ = LocalDefs.cert_def ctxt eq;
     val ((y, T), b) = LocalDefs.abs_def eq;
     val b' = norm_term env b;
-    val th = abstract_thm (ProofContext.theory_of ctxt) eq;
     fun err msg = error (msg ^ ": " ^ quote y);
   in
     exists (fn (x, _) => x = y) xs andalso
       err "Attempt to define previously specified variable";
     exists (fn (Free (y', _), _) => y = y' | _ => false) env andalso
       err "Attempt to redefine variable";
-    (Term.add_frees b' xs, (Free (y, T), b') :: env, th :: ths)
+    (Term.add_frees b' xs, (Free (y, T), b') :: env, eq :: eqs)
   end;
 
 fun eval_text _ _ (Fixes _) text = text
@@ -371,7 +309,8 @@ fun closeup _ _ false elem = elem
             val rev_frees =
               Term.fold_aterms (fn Free (x, T) =>
                 if AList.defined (op =) parms x then I else insert (op =) (x, T) | _ => I) t [];
-          in Term.list_all_free (rev rev_frees, t) end;
+          in Term.list_all_free (rev rev_frees, t) end; (* FIXME use fold Logic.all *)
+  (* FIXME consider closing in syntactic phase *)
 
         fun no_binds [] = []
           | no_binds _ = error "Illegal term bindings in context element";
@@ -379,8 +318,11 @@ fun closeup _ _ false elem = elem
         (case elem of
           Assumes asms => Assumes (asms |> map (fn (a, propps) =>
             (a, map (fn (t, ps) => (close_frees t, no_binds ps)) propps)))
-        | Defines defs => Defines (defs |> map (fn (a, (t, ps)) =>
-            (a, (close_frees (#2 (LocalDefs.cert_def ctxt t)), no_binds ps))))
+        | Defines defs => Defines (defs |> map (fn ((name, atts), (t, ps)) =>
+            let val ((c, _), t') = LocalDefs.cert_def ctxt (close_frees t)
+            in
+              ((Binding.map_base (Thm.def_name_optional c) name, atts), (t', no_binds ps))
+            end))
         | e => e)
       end;
 
@@ -492,8 +434,7 @@ fun prep_full_context_statement parse_typ parse_prop parse_inst prep_vars prep_e
          env: list of term pairs encoding substitutions, where the first term
            is a free variable; substitutions represent defines elements and
            the rhs is normalised wrt. the previous env
-         defs: theorems representing the substitutions from defines elements
-           (thms are normalised wrt. env).
+         defs: the equations from the defines elements
        elems is an updated version of raw_elems:
          - type info added to Fixes and modified in Constrains
          - axiom and definition statement replaced by corresponding one
@@ -538,14 +479,12 @@ local
 
 fun prep_declaration prep activate raw_import raw_elems context =
   let
-    val thy = ProofContext.theory_of context;
-
     val ((fixed, deps, elems, _), (parms, (spec, (_, _, defs)))) =
       prep false true context raw_import raw_elems [];
     (* Declare parameters and imported facts *)
     val context' = context |>
       ProofContext.add_fixes_i fixed |> snd |>
-      NewLocale.clear_local_idents |> fold (NewLocale.activate_local_facts thy) deps;
+      NewLocale.clear_local_idents |> fold NewLocale.activate_local_facts deps;
     val ((elems', _), _) = activate elems (ProofContext.set_stmt true context');
   in ((fixed, deps, elems'), (parms, spec, defs)) end;
 
@@ -582,7 +521,6 @@ fun prep_goal_expression prep expression context =
 
     val export = Variable.export_morphism goal_ctxt context;
     val exp_fact = Drule.zero_var_indexes_list o map Thm.strip_shyps o Morphism.fact export;
-(*    val exp_term = TermSubst.zero_var_indexes o Morphism.term export; *)
     val exp_term = Drule.term_rule thy (singleton exp_fact);
     val exp_typ = Logic.type_map exp_term;
     val export' =
@@ -686,6 +624,8 @@ in
 
 fun define_preds pname (parms, ((exts, exts'), (ints, ints')), defs) thy =
   let
+    val defs' = map (cterm_of thy #> Assumption.assume #> Drule.gen_all #> Drule.abs_def) defs;
+
     val (a_pred, a_intro, a_axioms, thy'') =
       if null exts then (NONE, NONE, [], thy)
       else
@@ -693,7 +633,7 @@ fun define_preds pname (parms, ((exts, exts'), (ints, ints')), defs) thy =
           val aname = if null ints then pname else pname ^ "_" ^ axiomsN;
           val ((statement, intro, axioms), thy') =
             thy
-            |> def_pred aname parms defs exts exts';
+            |> def_pred aname parms defs' exts exts';
           val (_, thy'') =
             thy'
             |> Sign.add_path aname
@@ -708,7 +648,7 @@ fun define_preds pname (parms, ((exts, exts'), (ints, ints')), defs) thy =
         let
           val ((statement, intro, axioms), thy''') =
             thy''
-            |> def_pred pname parms defs (ints @ the_list a_pred) (ints' @ the_list a_pred);
+            |> def_pred pname parms defs' (ints @ the_list a_pred) (ints' @ the_list a_pred);
           val (_, thy'''') =
             thy'''
             |> Sign.add_path pname
@@ -733,26 +673,20 @@ fun assumes_to_notes (Assumes asms) axms =
       |> apfst (curry Notes Thm.assumptionK)
   | assumes_to_notes e axms = (e, axms);
 
-fun defines_to_notes thy (Defines defs) defns =
-    let
-      val defs' = map (fn (_, (def, _)) => def) defs
-      val notes = map (fn (a, (def, _)) =>
-        (a, [([assume (cterm_of thy def)], [])])) defs
-    in
-      (Notes (Thm.definitionK, notes), defns @ defs')
-    end
-  | defines_to_notes _ e defns = (e, defns);
+fun defines_to_notes thy (Defines defs) =
+      Notes (Thm.definitionK, map (fn (a, (def, _)) =>
+        (a, [([Assumption.assume (cterm_of thy def)], [])])) defs)
+  | defines_to_notes _ e = e;
 
 fun gen_add_locale prep_decl
     bname predicate_name raw_imprt raw_body thy =
   let
-    val thy_ctxt = ProofContext.init thy;
     val name = Sign.full_bname thy bname;
     val _ = NewLocale.test_locale thy name andalso
       error ("Duplicate definition of locale " ^ quote name);
 
     val ((fixed, deps, body_elems), text as (parms, ((_, exts'), _), defs)) =
-      prep_decl raw_imprt raw_body thy_ctxt;
+      prep_decl raw_imprt raw_body (ProofContext.init thy);
     val ((a_statement, a_intro, a_axioms), (b_statement, b_intro, b_axioms), thy') =
       define_preds predicate_name text thy;
 
@@ -760,29 +694,39 @@ fun gen_add_locale prep_decl
     val _ = if null extraTs then ()
       else warning ("Additional type variable(s) in locale specification " ^ quote bname);
 
-    val satisfy = Element.satisfy_morphism b_axioms;
+    val a_satisfy = Element.satisfy_morphism a_axioms;
+    val b_satisfy = Element.satisfy_morphism b_axioms;
 
     val params = fixed @
       (body_elems |> map_filter (fn Fixes fixes => SOME fixes | _ => NONE) |> flat);
     val asm = if is_some b_statement then b_statement else a_statement;
-    val (body_elems', defns) = fold_map (defines_to_notes thy') body_elems [];
-    val notes = body_elems' |>
-      (fn elems => fold_map assumes_to_notes elems (map Element.conclude_witness a_axioms)) |>
-      fst |> map (Element.morph_ctxt satisfy) |>
-      map_filter (fn Notes notes => SOME notes | _ => NONE) |>
-      (if is_some asm
-        then cons (Thm.internalK, [((Binding.name (bname ^ "_" ^ axiomsN), []),
-          [([assume (cterm_of thy' (the asm))], [(Attrib.internal o K) NewLocale.witness_attrib])])])
-        else I);
 
-    val deps' = map (fn (l, morph) => (l, morph $> satisfy)) deps;
+    (* These are added immediately. *)
+    val notes =
+        if is_some asm
+        then [(Thm.internalK, [((Binding.name (bname ^ "_" ^ axiomsN), []),
+          [([Assumption.assume (cterm_of thy' (the asm))],
+            [(Attrib.internal o K) NewLocale.witness_attrib])])])]
+        else [];
+
+    (* These will be added in the local theory. *)
+    val notes' = body_elems |>
+      map (defines_to_notes thy') |>
+      map (Element.morph_ctxt a_satisfy) |>
+      (fn elems => fold_map assumes_to_notes elems (map Element.conclude_witness a_axioms)) |>
+      fst |>
+      map (Element.morph_ctxt b_satisfy) |>
+      map_filter (fn Notes notes => SOME notes | _ => NONE);
+
+    val deps' = map (fn (l, morph) => (l, morph $> b_satisfy)) deps;
 
     val loc_ctxt = thy' |>
       NewLocale.register_locale bname (extraTs, params)
-        (asm, map prop_of defs) ([], [])
+        (asm, rev defs) ([], [])
         (map (fn n => (n, stamp ())) notes |> rev) (map (fn d => (d, stamp ())) deps' |> rev) |>
-      NewLocale.init name
-  in (name, loc_ctxt) end;
+      NewLocale.init name;
+
+  in ((name, notes'), loc_ctxt) end;
 
 in
 
@@ -837,6 +781,7 @@ fun sublocale x = gen_sublocale cert_goal_expression (K I) x;
 
 end;
 
+
 (** Interpretation in theories **)
 
 local
@@ -846,7 +791,7 @@ fun gen_interpretation prep_expr
   let
     val ctxt = ProofContext.init thy;
 
-    val ((propss, deps, export), goal_ctxt) = prep_expr expression ctxt;
+    val ((propss, regs, export), goal_ctxt) = prep_expr expression ctxt;
     
     fun store_reg ((name, morph), thms) =
       let
@@ -857,7 +802,7 @@ fun gen_interpretation prep_expr
       end;
 
     fun after_qed results =
-      ProofContext.theory (fold store_reg (deps ~~ prep_result propss results));
+      ProofContext.theory (fold store_reg (regs ~~ prep_result propss results));
   in
     goal_ctxt |>
       Proof.theorem_i NONE after_qed (prep_propp propss) |>
@@ -868,6 +813,42 @@ in
 
 fun interpretation_cmd x = gen_interpretation read_goal_expression x;
 fun interpretation x = gen_interpretation cert_goal_expression x;
+
+end;
+
+
+(** Interpretation in proof contexts **)
+
+local
+
+fun gen_interpret prep_expr
+    expression int state =
+  let
+    val _ = Proof.assert_forward_or_chain state;
+    val ctxt = Proof.context_of state;
+
+    val ((propss, regs, export), goal_ctxt) = prep_expr expression ctxt;
+    
+    fun store_reg ((name, morph), thms) =
+      let
+        val morph' = morph $> Element.satisfy_morphism thms $> export;
+      in
+        NewLocale.activate_local_facts (name, morph')
+      end;
+
+    fun after_qed results =
+      Proof.map_context (fold store_reg (regs ~~ prep_result propss results)) #> Seq.single;
+  in
+    state |> Proof.map_context (K goal_ctxt) |>
+      Proof.local_goal (ProofDisplay.print_results int) (K I) ProofContext.bind_propp_i
+      "interpret" NONE after_qed (map (pair (Binding.empty, [])) (prep_propp propss)) |>
+      Element.refine_witness |> Seq.hd
+  end;
+
+in
+
+fun interpret_cmd x = gen_interpret read_goal_expression x;
+fun interpret x = gen_interpret cert_goal_expression x;
 
 end;
 

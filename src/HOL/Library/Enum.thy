@@ -365,4 +365,15 @@ instance by default
 
 end
 
+instantiation option :: (enum) enum
+begin
+
+definition
+  "enum = None # map Some enum"
+
+instance by default
+  (auto simp add: enum_all enum_option_def, case_tac x, auto intro: inj_onI simp add: distinct_map enum_distinct)
+
+end
+
 end

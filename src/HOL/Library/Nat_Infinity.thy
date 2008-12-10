@@ -146,8 +146,8 @@ lemma plus_inat_0 [simp]:
   by (simp_all add: plus_inat_def zero_inat_def split: inat.splits)
 
 lemma plus_inat_number [simp]:
-  "(number_of k \<Colon> inat) + number_of l = (if neg (number_of k \<Colon> int) then number_of l
-    else if neg (number_of l \<Colon> int) then number_of k else number_of (k + l))"
+  "(number_of k \<Colon> inat) + number_of l = (if k < Int.Pls then number_of l
+    else if l < Int.Pls then number_of k else number_of (k + l))"
   unfolding number_of_inat_def plus_inat_simps nat_arith(1) if_distrib [symmetric, of _ Fin] ..
 
 lemma iSuc_number [simp]:
@@ -163,6 +163,67 @@ lemma plus_1_iSuc:
   "1 + q = iSuc q"
   "q + 1 = iSuc q"
   unfolding iSuc_plus_1 by (simp_all add: add_ac)
+
+
+subsection {* Multiplication *}
+
+instantiation inat :: comm_semiring_1
+begin
+
+definition
+  times_inat_def [code del]:
+  "m * n = (case m of \<infinity> \<Rightarrow> if n = 0 then 0 else \<infinity> | Fin m \<Rightarrow>
+    (case n of \<infinity> \<Rightarrow> if m = 0 then 0 else \<infinity> | Fin n \<Rightarrow> Fin (m * n)))"
+
+lemma times_inat_simps [simp, code]:
+  "Fin m * Fin n = Fin (m * n)"
+  "\<infinity> * \<infinity> = \<infinity>"
+  "\<infinity> * Fin n = (if n = 0 then 0 else \<infinity>)"
+  "Fin m * \<infinity> = (if m = 0 then 0 else \<infinity>)"
+  unfolding times_inat_def zero_inat_def
+  by (simp_all split: inat.split)
+
+instance proof
+  fix a b c :: inat
+  show "(a * b) * c = a * (b * c)"
+    unfolding times_inat_def zero_inat_def
+    by (simp split: inat.split)
+  show "a * b = b * a"
+    unfolding times_inat_def zero_inat_def
+    by (simp split: inat.split)
+  show "1 * a = a"
+    unfolding times_inat_def zero_inat_def one_inat_def
+    by (simp split: inat.split)
+  show "(a + b) * c = a * c + b * c"
+    unfolding times_inat_def zero_inat_def
+    by (simp split: inat.split add: left_distrib)
+  show "0 * a = 0"
+    unfolding times_inat_def zero_inat_def
+    by (simp split: inat.split)
+  show "a * 0 = 0"
+    unfolding times_inat_def zero_inat_def
+    by (simp split: inat.split)
+  show "(0::inat) \<noteq> 1"
+    unfolding zero_inat_def one_inat_def
+    by simp
+qed
+
+end
+
+lemma mult_iSuc: "iSuc m * n = n + m * n"
+  unfolding iSuc_plus_1 by (simp add: ring_simps)
+
+lemma mult_iSuc_right: "m * iSuc n = m + m * n"
+  unfolding iSuc_plus_1 by (simp add: ring_simps)
+
+lemma of_nat_eq_Fin: "of_nat n = Fin n"
+  apply (induct n)
+  apply (simp add: Fin_0)
+  apply (simp add: plus_1_iSuc iSuc_Fin)
+  done
+
+instance inat :: semiring_char_0
+  by default (simp add: of_nat_eq_Fin)
 
 
 subsection {* Ordering *}
@@ -200,6 +261,15 @@ instance by default
   (auto simp add: less_eq_inat_def less_inat_def plus_inat_def split: inat.splits)
 
 end
+
+instance inat :: pordered_comm_semiring
+proof
+  fix a b c :: inat
+  assume "a \<le> b" and "0 \<le> c"
+  thus "c * a \<le> c * b"
+    unfolding times_inat_def less_eq_inat_def zero_inat_def
+    by (simp split: inat.splits)
+qed
 
 lemma inat_ord_number [simp]:
   "(number_of m \<Colon> inat) \<le> number_of n \<longleftrightarrow> (number_of m \<Colon> nat) \<le> number_of n"

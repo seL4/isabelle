@@ -394,7 +394,8 @@ fun intro_classes_tac facts st =
   end;
 
 fun default_intro_tac ctxt [] =
-      intro_classes_tac [] ORELSE Locale.intro_locales_tac true ctxt []
+      intro_classes_tac [] ORELSE NewLocale.intro_locales_tac true ctxt [] ORELSE
+      Locale.intro_locales_tac true ctxt []
   | default_intro_tac _ _ = no_tac;
 
 fun default_tac rules ctxt facts =

@@ -26,6 +26,7 @@ sig
   val locale_insts: token list -> (string option list * (Attrib.binding * string) list) * token list
   val class_expr: token list -> string list * token list
   val locale_expr: token list -> Locale.expr * token list
+  val locale_expression: OuterParse.token list -> Expression.expression * OuterParse.token list
   val locale_keyword: token list -> string * token list
   val context_element: token list -> Element.context * token list
   val statement: token list -> (Attrib.binding * (string * string list) list) list * token list
@@ -103,6 +104,12 @@ fun plus1_unless test scan =
 
 val rename = P.name -- Scan.option P.mixfix;
 
+val prefix = P.name --| P.$$$ ":";
+val named = P.name -- (P.$$$ "=" |-- P.term);
+val position = P.maybe P.term;
+val instance = P.$$$ "where" |-- P.and_list1 named >> Expression.Named ||
+  Scan.repeat1 position >> Expression.Positional;
+
 in
 
 val locale_keyword = P.$$$ "fixes" || P.$$$ "constrains" || P.$$$ "assumes" ||
@@ -116,6 +123,14 @@ val locale_expr =
     and expr1 x = (expr2 -- Scan.repeat1 (P.maybe rename) >> Locale.Rename || expr2) x
     and expr0 x = (plus1_unless locale_keyword expr1 >> (fn [e] => e | es => Locale.Merge es)) x;
   in expr0 end;
+
+val locale_expression =
+  let
+    fun expr2 x = P.xname x;
+    fun expr1 x = (Scan.optional prefix "" -- expr2 --
+      Scan.optional instance (Expression.Named []) >> (fn ((p, l), i) => (l, (p, i)))) x;
+    fun expr0 x = (plus1_unless locale_keyword expr1) x;
+  in expr0 -- Scan.optional (P.$$$ "for" |-- P.!!! locale_fixes) [] end;
 
 val context_element = P.group "context element" loc_element;
 

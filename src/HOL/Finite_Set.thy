@@ -1828,6 +1828,18 @@ lemma card_cartesian_product_singleton:  "card({x} <*> A) = card(A)"
 by (simp add: card_cartesian_product)
 
 
+subsubsection {* Cardinality of sums *}
+
+lemma card_Plus:
+  assumes "finite A" and "finite B"
+  shows "card (A <+> B) = card A + card B"
+proof -
+  have "Inl`A \<inter> Inr`B = {}" by fast
+  with assms show ?thesis
+    unfolding Plus_def
+    by (simp add: card_Un_disjoint card_image)
+qed
+
 
 subsubsection {* Cardinality of the Powerset *}
 
