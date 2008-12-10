@@ -6,7 +6,7 @@
 header {* Bounds *}
 
 theory Bounds
-imports Main Real
+imports Main ContNotDenum
 begin
 
 locale lub =
