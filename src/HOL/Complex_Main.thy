@@ -8,7 +8,6 @@ header{*Comprehensive Complex Theory*}
 theory Complex_Main
 imports
   Main
-  ContNotDenum
   Real
   "~~/src/HOL/Complex/Fundamental_Theorem_Algebra"
   Log
