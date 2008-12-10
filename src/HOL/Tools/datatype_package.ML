@@ -275,7 +275,7 @@ fun distinct_proc thy ss (t as Const ("op =", _) $ t1 $ t2) =
   | distinct_proc _ _ _ = NONE;
 
 val distinct_simproc =
-  Simplifier.simproc HOL.thy distinctN ["s = t"] distinct_proc;
+  Simplifier.simproc @{theory HOL} distinctN ["s = t"] distinct_proc;
 
 val dist_ss = HOL_ss addsimprocs [distinct_simproc];
 

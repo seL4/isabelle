@@ -97,7 +97,7 @@ val inductive_rulify_fallback = thms "induct_rulify_fallback";
 val notTrueE = TrueI RSN (2, notE);
 val notFalseI = Seq.hd (atac 1 notI);
 val simp_thms' = map (fn s => mk_meta_eq (the (find_first
-  (equal (OldGoals.read_prop HOL.thy s) o prop_of) simp_thms)))
+  (equal (OldGoals.read_prop @{theory HOL} s) o prop_of) simp_thms)))
   ["(~True) = False", "(~False) = True",
    "(True --> ?P) = ?P", "(False --> ?P) = True",
    "(?P & True) = ?P", "(True & ?P) = ?P"];
@@ -410,7 +410,7 @@ fun prove_elims quiet_mode cs params intr_ts intr_names unfold rec_preds_defs ct
 local
 
 (*delete needless equality assumptions*)
-val refl_thin = Goal.prove_global HOL.thy [] [] @{prop "!!P. a = a ==> P ==> P"}
+val refl_thin = Goal.prove_global @{theory HOL} [] [] @{prop "!!P. a = a ==> P ==> P"}
   (fn _ => assume_tac 1);
 val elim_rls = [asm_rl, FalseE, refl_thin, conjE, exE];
 val elim_tac = REPEAT o Tactic.eresolve_tac elim_rls;
