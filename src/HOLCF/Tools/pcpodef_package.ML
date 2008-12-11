@@ -1,43 +1,24 @@
 (*  Title:      HOLCF/Tools/pcpodef_package.ML
-    ID:         $Id$
     Author:     Brian Huffman
 
 Primitive domain definitions for HOLCF, similar to Gordon/HOL-style
-typedef.
+typedef (see also ~~/src/HOL/Tools/typedef_package.ML).
 *)
 
 signature PCPODEF_PACKAGE =
 sig
-  val pcpodef_proof: (bool * string) * (bstring * string list * mixfix) * string
+  val pcpodef_proof: (bool * string) * (bstring * string list * mixfix) * term
     * (string * string) option -> theory -> Proof.state
-  val pcpodef_proof_i: (bool * string) * (bstring * string list * mixfix) * term
+  val pcpodef_proof_cmd: (bool * string) * (bstring * string list * mixfix) * string
     * (string * string) option -> theory -> Proof.state
-  val cpodef_proof: (bool * string) * (bstring * string list * mixfix) * string
+  val cpodef_proof: (bool * string) * (bstring * string list * mixfix) * term
     * (string * string) option -> theory -> Proof.state
-  val cpodef_proof_i: (bool * string) * (bstring * string list * mixfix) * term
+  val cpodef_proof_cmd: (bool * string) * (bstring * string list * mixfix) * string
     * (string * string) option -> theory -> Proof.state
 end;
 
 structure PcpodefPackage: PCPODEF_PACKAGE =
 struct
-
-(** theory context references **)
-
-val typedef_po = thm "typedef_po";
-val typedef_cpo = thm "typedef_cpo";
-val typedef_pcpo = thm "typedef_pcpo";
-val typedef_lub = thm "typedef_lub";
-val typedef_thelub = thm "typedef_thelub";
-val typedef_compact = thm "typedef_compact";
-val cont_Rep = thm "typedef_cont_Rep";
-val cont_Abs = thm "typedef_cont_Abs";
-val Rep_strict = thm "typedef_Rep_strict";
-val Abs_strict = thm "typedef_Abs_strict";
-val Rep_strict_iff = thm "typedef_Rep_strict_iff";
-val Abs_strict_iff = thm "typedef_Abs_strict_iff";
-val Rep_defined = thm "typedef_Rep_defined";
-val Abs_defined = thm "typedef_Abs_defined";
-
 
 (** type definitions **)
 
@@ -48,11 +29,12 @@ fun err_in_cpodef msg name =
 
 fun declare_type_name a = Variable.declare_constraints (Logic.mk_type (TFree (a, dummyS)));
 
-fun adm_const T = Const ("Adm.adm", (T --> HOLogic.boolT) --> HOLogic.boolT);
+fun adm_const T = Const (@{const_name adm}, (T --> HOLogic.boolT) --> HOLogic.boolT);
 fun mk_adm (x, T, P) = adm_const T $ absfree (x, T, P);
 
 fun prepare_pcpodef prep_term pcpo def name (t, vs, mx) raw_set opt_morphs thy =
   let
+    val _ = Theory.requires thy "Pcpodef" "pcpodefs";
     val ctxt = ProofContext.init thy;
     val full = Sign.full_bname thy;
 
@@ -60,29 +42,29 @@ fun prepare_pcpodef prep_term pcpo def name (t, vs, mx) raw_set opt_morphs thy =
     val full_name = full name;
     val set = prep_term (ctxt |> fold declare_type_name vs) raw_set;
     val setT = Term.fastype_of set;
-    val rhs_tfrees = term_tfrees set;
+    val rhs_tfrees = Term.add_tfrees set [];
     val oldT = HOLogic.dest_setT setT handle TYPE _ =>
       error ("Not a set type: " ^ quote (Syntax.string_of_typ ctxt setT));
-    fun mk_nonempty A =
-      HOLogic.mk_exists ("x", oldT, HOLogic.mk_mem (Free ("x", oldT), A));
-    fun mk_admissible A =
-      mk_adm ("x", oldT, HOLogic.mk_mem (Free ("x", oldT), A));
-    fun mk_UU_mem A = HOLogic.mk_mem (Const ("Pcpo.UU", oldT), A);
-    val goal = if pcpo
-      then HOLogic.mk_Trueprop (HOLogic.mk_conj (mk_UU_mem set, mk_admissible set))
-      else HOLogic.mk_Trueprop (HOLogic.mk_conj (mk_nonempty set, mk_admissible set));
+
+    (*goal*)
+    val goal_UU_mem = HOLogic.mk_mem (Const (@{const_name UU}, oldT), set);
+    val goal_nonempty = HOLogic.mk_exists ("x", oldT, HOLogic.mk_mem (Free ("x", oldT), set));
+    val goal_admissible = mk_adm ("x", oldT, HOLogic.mk_mem (Free ("x", oldT), set));
+    val goal = HOLogic.mk_Trueprop
+      (HOLogic.mk_conj (if pcpo then goal_UU_mem else goal_nonempty, goal_admissible));
 
     (*lhs*)
     val defS = Sign.defaultS thy;
     val lhs_tfrees = map (fn v => (v, the_default defS (AList.lookup (op =) rhs_tfrees v))) vs;
     val lhs_sorts = map snd lhs_tfrees;
+
     val tname = Syntax.type_name t mx;
     val full_tname = full tname;
     val newT = Type (full_tname, map TFree lhs_tfrees);
 
     val (Rep_name, Abs_name) = the_default ("Rep_" ^ name, "Abs_" ^ name) opt_morphs;
     val RepC = Const (full Rep_name, newT --> oldT);
-    fun lessC T = Const (@{const_name Porder.sq_le}, T --> T --> HOLogic.boolT);
+    fun lessC T = Const (@{const_name sq_le}, T --> T --> HOLogic.boolT);
     val less_def = Logic.mk_equals (lessC newT,
       Abs ("x", newT, Abs ("y", newT, lessC oldT $ (RepC $ Bound 1) $ (RepC $ Bound 0))));
 
@@ -91,7 +73,7 @@ fun prepare_pcpodef prep_term pcpo def name (t, vs, mx) raw_set opt_morphs thy =
         val ((_, {type_definition, set_def, ...}), thy2) = thy1
           |> TypedefPackage.add_typedef def (SOME name) (t, vs, mx) set opt_morphs tac;
         val lthy3 = thy2
-          |> TheoryTarget.instantiation ([full_tname], lhs_tfrees, @{sort "Porder.po"});
+          |> TheoryTarget.instantiation ([full_tname], lhs_tfrees, @{sort po});
         val less_def' = Syntax.check_term lthy3 less_def;
         val ((_, (_, less_definition')), lthy4) = lthy3
           |> Specification.definition (NONE, ((Binding.name ("less_" ^ name ^ "_def"), []), less_def'));
@@ -99,7 +81,7 @@ fun prepare_pcpodef prep_term pcpo def name (t, vs, mx) raw_set opt_morphs thy =
         val less_definition = singleton (ProofContext.export lthy4 ctxt_thy) less_definition';
         val thy5 = lthy4
           |> Class.prove_instantiation_instance
-              (K (Tactic.rtac (typedef_po OF [type_definition, less_definition]) 1))
+              (K (Tactic.rtac (@{thm typedef_po} OF [type_definition, less_definition]) 1))
           |> LocalTheory.exit_global;
       in ((type_definition, less_definition, set_def), thy5) end;
 
@@ -108,19 +90,19 @@ fun prepare_pcpodef prep_term pcpo def name (t, vs, mx) raw_set opt_morphs thy =
         val admissible' = fold_rule (the_list set_def) admissible;
         val cpo_thms = map (Thm.transfer theory) [type_def, less_def, admissible'];
         val theory' = theory
-          |> AxClass.prove_arity (full_tname, lhs_sorts, ["Pcpo.cpo"])
-            (Tactic.rtac (typedef_cpo OF cpo_thms) 1);
+          |> AxClass.prove_arity (full_tname, lhs_sorts, @{sort cpo})
+            (Tactic.rtac (@{thm typedef_cpo} OF cpo_thms) 1);
         val cpo_thms' = map (Thm.transfer theory') cpo_thms;
       in
         theory'
         |> Sign.add_path name
         |> PureThy.add_thms
-            ([(("adm_" ^ name, admissible'), []),
-              (("cont_" ^ Rep_name, cont_Rep OF cpo_thms'), []),
-              (("cont_" ^ Abs_name, cont_Abs OF cpo_thms'), []),
-              (("lub_"     ^ name, typedef_lub     OF cpo_thms'), []),
-              (("thelub_"  ^ name, typedef_thelub  OF cpo_thms'), []),
-              (("compact_" ^ name, typedef_compact OF cpo_thms'), [])])
+          ([(("adm_" ^ name, admissible'), []),
+            (("cont_" ^ Rep_name, @{thm typedef_cont_Rep} OF cpo_thms'), []),
+            (("cont_" ^ Abs_name, @{thm typedef_cont_Abs} OF cpo_thms'), []),
+            (("lub_" ^ name, @{thm typedef_lub} OF cpo_thms'), []),
+            (("thelub_" ^ name, @{thm typedef_thelub} OF cpo_thms'), []),
+            (("compact_" ^ name, @{thm typedef_compact} OF cpo_thms'), [])])
         |> snd
         |> Sign.parent_path
       end;
@@ -130,19 +112,19 @@ fun prepare_pcpodef prep_term pcpo def name (t, vs, mx) raw_set opt_morphs thy =
         val UUmem' = fold_rule (the_list set_def) UUmem;
         val pcpo_thms = map (Thm.transfer theory) [type_def, less_def, UUmem'];
         val theory' = theory
-          |> AxClass.prove_arity (full_tname, lhs_sorts, ["Pcpo.pcpo"])
-            (Tactic.rtac (typedef_pcpo OF pcpo_thms) 1);
+          |> AxClass.prove_arity (full_tname, lhs_sorts, @{sort pcpo})
+            (Tactic.rtac (@{thm typedef_pcpo} OF pcpo_thms) 1);
         val pcpo_thms' = map (Thm.transfer theory') pcpo_thms;
       in
         theory'
         |> Sign.add_path name
         |> PureThy.add_thms
-            ([((Rep_name ^ "_strict", Rep_strict OF pcpo_thms'), []),
-              ((Abs_name ^ "_strict", Abs_strict OF pcpo_thms'), []),
-              ((Rep_name ^ "_strict_iff", Rep_strict_iff OF pcpo_thms'), []),
-              ((Abs_name ^ "_strict_iff", Abs_strict_iff OF pcpo_thms'), []),
-              ((Rep_name ^ "_defined", Rep_defined OF pcpo_thms'), []),
-              ((Abs_name ^ "_defined", Abs_defined OF pcpo_thms'), [])
+            ([((Rep_name ^ "_strict", @{thm typedef_Rep_strict} OF pcpo_thms'), []),
+              ((Abs_name ^ "_strict", @{thm typedef_Abs_strict} OF pcpo_thms'), []),
+              ((Rep_name ^ "_strict_iff", @{thm typedef_Rep_strict_iff} OF pcpo_thms'), []),
+              ((Abs_name ^ "_strict_iff", @{thm typedef_Abs_strict_iff} OF pcpo_thms'), []),
+              ((Rep_name ^ "_defined", @{thm typedef_Rep_defined} OF pcpo_thms'), []),
+              ((Abs_name ^ "_defined", @{thm typedef_Abs_defined} OF pcpo_thms'), [])
               ])
         |> snd
         |> Sign.parent_path
@@ -172,7 +154,9 @@ fun prepare_pcpodef prep_term pcpo def name (t, vs, mx) raw_set opt_morphs thy =
   handle ERROR msg => err_in_cpodef msg name;
 
 
-(* cpodef_proof interface *)
+(* proof interface *)
+
+local
 
 fun gen_pcpodef_proof prep_term pcpo ((def, name), typ, set, opt_morphs) thy =
   let
@@ -181,18 +165,22 @@ fun gen_pcpodef_proof prep_term pcpo ((def, name), typ, set, opt_morphs) thy =
     fun after_qed [[th]] = ProofContext.theory (pcpodef_result th);
   in Proof.theorem_i NONE after_qed [[(goal, [])]] (ProofContext.init thy) end;
 
-fun pcpodef_proof x = gen_pcpodef_proof Syntax.read_term true x;
-fun pcpodef_proof_i x = gen_pcpodef_proof Syntax.check_term true x;
+in
 
-fun cpodef_proof x = gen_pcpodef_proof Syntax.read_term false x;
-fun cpodef_proof_i x = gen_pcpodef_proof Syntax.check_term false x;
+fun pcpodef_proof x = gen_pcpodef_proof Syntax.check_term true x;
+fun pcpodef_proof_cmd x = gen_pcpodef_proof Syntax.read_term true x;
+
+fun cpodef_proof x = gen_pcpodef_proof Syntax.check_term false x;
+fun cpodef_proof_cmd x = gen_pcpodef_proof Syntax.read_term false x;
+
+end;
+
 
 
 (** outer syntax **)
 
 local structure P = OuterParse and K = OuterKeyword in
 
-(* cf. HOL/Tools/typedef_package.ML *)
 val typedef_proof_decl =
   Scan.optional (P.$$$ "(" |--
       ((P.$$$ "open" >> K false) -- Scan.option P.name || P.name >> (fn s => (true, SOME s)))
@@ -201,7 +189,7 @@ val typedef_proof_decl =
     Scan.option (P.$$$ "morphisms" |-- P.!!! (P.name -- P.name));
 
 fun mk_pcpodef_proof pcpo ((((((def, opt_name), (vs, t)), mx), A), morphs)) =
-  (if pcpo then pcpodef_proof else cpodef_proof)
+  (if pcpo then pcpodef_proof_cmd else cpodef_proof_cmd)
     ((def, the_default (Syntax.type_name t mx) opt_name), (t, vs, mx), A, morphs);
 
 val _ =
