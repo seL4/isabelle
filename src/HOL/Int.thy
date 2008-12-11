@@ -761,41 +761,18 @@ lemmas minus_bin_simps [simp] =
 
 text {* Subtraction *}
 
-lemma diff_Pls:
-  "Pls - k = - k"
-  unfolding numeral_simps by simp
-
-lemma diff_Min:
-  "Min - k = pred (- k)"
-  unfolding numeral_simps by simp
-
-lemma diff_Bit0_Bit0:
-  "(Bit0 k) - (Bit0 l) = Bit0 (k - l)"
-  unfolding numeral_simps by simp
-
-lemma diff_Bit0_Bit1:
-  "(Bit0 k) - (Bit1 l) = Bit1 (pred k - l)"
-  unfolding numeral_simps by simp
-
-lemma diff_Bit1_Bit0:
-  "(Bit1 k) - (Bit0 l) = Bit1 (k - l)"
-  unfolding numeral_simps by simp
-
-lemma diff_Bit1_Bit1:
-  "(Bit1 k) - (Bit1 l) = Bit0 (k - l)"
-  unfolding numeral_simps by simp
-
-lemma diff_Pls_right:
+lemma diff_bin_simps [simp]:
   "k - Pls = k"
-  unfolding numeral_simps by simp
-
-lemma diff_Min_right:
   "k - Min = succ k"
-  unfolding numeral_simps by simp
-
-lemmas diff_bin_simps [simp] =
-  diff_Pls diff_Min diff_Pls_right diff_Min_right
-  diff_Bit0_Bit0 diff_Bit0_Bit1 diff_Bit1_Bit0 diff_Bit1_Bit1
+  "Pls - (Bit0 l) = Bit0 (Pls - l)"
+  "Pls - (Bit1 l) = Bit1 (Min - l)"
+  "Min - (Bit0 l) = Bit1 (Min - l)"
+  "Min - (Bit1 l) = Bit0 (Min - l)"
+  "(Bit0 k) - (Bit0 l) = Bit0 (k - l)"
+  "(Bit0 k) - (Bit1 l) = Bit1 (pred k - l)"
+  "(Bit1 k) - (Bit0 l) = Bit1 (k - l)"
+  "(Bit1 k) - (Bit1 l) = Bit0 (k - l)"
+  unfolding numeral_simps by simp_all
 
 text {* Multiplication *}
 
