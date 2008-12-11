@@ -62,9 +62,9 @@ by (metis SigmaD1 SigmaD2)
 
 ML{*AtpWrapper.problem_name := "Abstraction__Sigma_Collect"*}
 lemma "(a,b) \<in> (SIGMA x: A. {y. x = f y}) ==> a \<in> A & a = f b"
-(*???metis cannot prove this
-by (metis CollectD SigmaD1 SigmaD2 UN_eq)
-Also, UN_eq is unnecessary*)
+(*???metis says this is satisfiable!
+by (metis CollectD SigmaD1 SigmaD2)
+*)
 by (meson CollectD SigmaD1 SigmaD2)
 
 
