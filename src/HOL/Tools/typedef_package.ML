@@ -95,9 +95,9 @@ fun prepare_typedef prep_term def name (t, vs, mx) raw_set opt_morphs thy =
     fun mk_inhabited A =
       HOLogic.mk_Trueprop (HOLogic.mk_exists ("x", oldT, HOLogic.mk_mem (Free ("x", oldT), A)));
     val set' = if def then setC else set;
-    val goal = mk_inhabited set;
     val goal' = mk_inhabited set';
-    val term_binding = (the_default (name, 0) (Syntax.read_variable name), SOME set);
+    val goal = mk_inhabited set;
+    val goal_pat = mk_inhabited (Var (the_default (name, 0) (Syntax.read_variable name), setT));
 
     (*axiomatization*)
     val typedef_name = "type_definition_" ^ name;
@@ -199,7 +199,7 @@ fun prepare_typedef prep_term def name (t, vs, mx) raw_set opt_morphs thy =
     val _ = test_thy
       |> typedef_result (setmp quick_and_dirty true (SkipProof.make_thm test_thy) goal);
 
-  in (set, goal, term_binding, typedef_result) end
+  in (set, goal, goal_pat, typedef_result) end
   handle ERROR msg => err_in_typedef msg name;
 
 
@@ -222,14 +222,10 @@ local
 
 fun gen_typedef prep_term ((def, name), typ, set, opt_morphs) thy =
   let
-    val (_, goal, term_binding, typedef_result) =
+    val (_, goal, goal_pat, typedef_result) =
       prepare_typedef prep_term def name typ set opt_morphs thy;
     fun after_qed [[th]] = ProofContext.theory (snd o typedef_result th);
-  in
-    ProofContext.init thy
-    |> Proof.theorem_i NONE after_qed [[(goal, [])]]
-    |> Proof.add_binds_i [term_binding]
-  end;
+  in Proof.theorem_i NONE after_qed [[(goal, [goal_pat])]] (ProofContext.init thy) end;
 
 in
 
