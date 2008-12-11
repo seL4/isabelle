@@ -4,7 +4,7 @@
 Concurrency within the ML runtime.
 *)
 
-val future_scheduler = ref false;
+val future_scheduler = ref true;
 
 use "simple_thread.ML";
 use "synchronized.ML";
