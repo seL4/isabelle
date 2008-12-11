@@ -108,6 +108,7 @@ fun prepare_typedef prep_term def name (t, vs, mx) raw_set opt_morphs thy =
         thy
         |> Sign.add_consts_i [(name, setT', NoSyn)]
         |> PureThy.add_defs false [Thm.no_attributes (PrimitiveDefs.mk_defpair (setC, set))]
+        ||> Theory.checkpoint
         |-> (fn [th] => pair (SOME th))
       else (NONE, thy);
 
