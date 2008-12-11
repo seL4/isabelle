@@ -45,7 +45,7 @@ definition
   minus :: "[i,i,i] => i" (infixl "\<ominus>\<index>" 65) where
   "\<lbrakk>x \<in> carrier(R); y \<in> carrier(R)\<rbrakk> \<Longrightarrow> x \<ominus>\<^bsub>R\<^esub> y = x \<oplus>\<^bsub>R\<^esub> (\<ominus>\<^bsub>R\<^esub> y)"
 
-locale abelian_monoid = struct G +
+locale abelian_monoid = fixes G (structure)
   assumes a_comm_monoid: 
     "comm_monoid (<carrier(G), add_field(G), zero(G), 0>)"
 
@@ -57,7 +57,7 @@ locale abelian_group = abelian_monoid +
   assumes a_comm_group: 
     "comm_group (<carrier(G), add_field(G), zero(G), 0>)"
 
-locale ring = abelian_group R + monoid R +
+locale ring = abelian_group R + monoid R for R (structure) +
   assumes l_distr: "\<lbrakk>x \<in> carrier(R); y \<in> carrier(R); z \<in> carrier(R)\<rbrakk>
       \<Longrightarrow> (x \<oplus> y) \<cdot> z = x \<cdot> z \<oplus> y \<cdot> z"
     and r_distr: "\<lbrakk>x \<in> carrier(R); y \<in> carrier(R); z \<in> carrier(R)\<rbrakk>
@@ -262,7 +262,8 @@ by (simp add: ring_hom_def)
 lemma ring_hom_one: "h \<in> ring_hom(R,S) \<Longrightarrow> h ` \<one>\<^bsub>R\<^esub> = \<one>\<^bsub>S\<^esub>"
 by (simp add: ring_hom_def)
 
-locale ring_hom_cring = cring R + cring S + var h +
+locale ring_hom_cring = R: cring R + S: cring S
+  for R (structure) and S (structure) and h +
   assumes homh [simp, intro]: "h \<in> ring_hom(R,S)"
   notes hom_closed [simp, intro] = ring_hom_closed [OF homh]
     and hom_mult [simp] = ring_hom_mult [OF homh]

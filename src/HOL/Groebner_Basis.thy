@@ -1,5 +1,4 @@
 (*  Title:      HOL/Groebner_Basis.thy
-    ID:         $Id$
     Author:     Amine Chaieb, TU Muenchen
 *)
 
@@ -165,7 +164,7 @@ lemmas gb_semiring_axioms' =
 end
 
 interpretation class_semiring: gb_semiring
-    ["op +" "op *" "op ^" "0::'a::{comm_semiring_1, recpower}" "1"]
+    "op +" "op *" "op ^" "0::'a::{comm_semiring_1, recpower}" "1"
   proof qed (auto simp add: ring_simps power_Suc)
 
 lemmas nat_arith =
@@ -242,8 +241,8 @@ lemmas gb_ring_axioms' =
 end
 
 
-interpretation class_ring: gb_ring ["op +" "op *" "op ^"
-    "0::'a::{comm_semiring_1,recpower,number_ring}" 1 "op -" "uminus"]
+interpretation class_ring: gb_ring "op +" "op *" "op ^"
+    "0::'a::{comm_semiring_1,recpower,number_ring}" 1 "op -" "uminus"
   proof qed simp_all
 
 
@@ -344,7 +343,7 @@ proof -
 qed
 
 interpretation class_ringb: ringb
-  ["op +" "op *" "op ^" "0::'a::{idom,recpower,number_ring}" "1" "op -" "uminus"]
+  "op +" "op *" "op ^" "0::'a::{idom,recpower,number_ring}" "1" "op -" "uminus"
 proof(unfold_locales, simp add: ring_simps power_Suc, auto)
   fix w x y z ::"'a::{idom,recpower,number_ring}"
   assume p: "w * y + x * z = w * z + x * y" and ynz: "y \<noteq> z"
@@ -360,7 +359,7 @@ qed
 declaration {* normalizer_funs @{thm class_ringb.ringb_axioms'} *}
 
 interpretation natgb: semiringb
-  ["op +" "op *" "op ^" "0::nat" "1"]
+  "op +" "op *" "op ^" "0::nat" "1"
 proof (unfold_locales, simp add: ring_simps power_Suc)
   fix w x y z ::"nat"
   { assume p: "w * y + x * z = w * z + x * y" and ynz: "y \<noteq> z"
@@ -465,7 +464,7 @@ declare nat_mod_eq_iff[algebra]
 subsection{* Groebner Bases for fields *}
 
 interpretation class_fieldgb:
-  fieldgb["op +" "op *" "op ^" "0::'a::{field,recpower,number_ring}" "1" "op -" "uminus" "op /" "inverse"] apply (unfold_locales) by (simp_all add: divide_inverse)
+  fieldgb "op +" "op *" "op ^" "0::'a::{field,recpower,number_ring}" "1" "op -" "uminus" "op /" "inverse" apply (unfold_locales) by (simp_all add: divide_inverse)
 
 lemma divide_Numeral1: "(x::'a::{field,number_ring}) / Numeral1 = x" by simp
 lemma divide_Numeral0: "(x::'a::{field,number_ring, division_by_zero}) / Numeral0 = 0"
