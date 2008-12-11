@@ -304,8 +304,7 @@ sublocale order_with_def < dual: order' "op >>"
   done
 
 print_locale! order_with_def
-(* Note that decls come after theorems that make use of them.
-  Appears to be harmless at least in this example. *)
+(* Note that decls come after theorems that make use of them. *)
 
 
 (* locale with many parameters ---
@@ -408,7 +407,37 @@ sublocale logic_a < logic_b
   by unfold_locales
 
 
-section {* Interpretation in proofs *}
+subsection {* Equations *}
+
+locale logic_o =
+  fixes land (infixl "&&" 55)
+    and lnot ("-- _" [60] 60)
+  assumes assoc_o: "(x && y) && z <-> x && (y && z)"
+    and notnot_o: "-- (-- x) <-> x"
+begin
+
+definition lor_o (infixl "||" 50) where
+  "x || y <-> --(-- x && -- y)"
+
+end
+
+lemma bool_logic_o: "PROP logic_o(op &, Not)"
+  by unfold_locales fast+
+
+lemma bool_lor_eq: "logic_o.lor_o(op &, Not, x, y) <-> x | y"
+  by (unfold logic_o.lor_o_def [OF bool_logic_o]) fast
+
+interpretation x: logic_o "op &" "Not" where bool_lor_eq
+  by (rule bool_logic_o)
+
+thm x.lor_o_def
+
+lemma (in logic_o) lor_triv: "x || y <-> x || y" by fast
+
+(* thm x.lor_triv *)
+
+
+subsection {* Interpretation in proofs *}
 
 lemma True
 proof

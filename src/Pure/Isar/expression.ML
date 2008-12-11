@@ -28,8 +28,8 @@ sig
   (* Interpretation *)
   val sublocale_cmd: string -> expression -> theory -> Proof.state;
   val sublocale: string -> expression_i -> theory -> Proof.state;
-  val interpretation_cmd: expression -> theory -> Proof.state;
-  val interpretation: expression_i -> theory -> Proof.state;
+  val interpretation_cmd: expression -> Facts.ref list -> theory -> Proof.state;
+  val interpretation: expression_i -> thm list -> theory -> Proof.state;
   val interpret_cmd: expression -> bool -> Proof.state -> Proof.state;
   val interpret: expression_i -> bool -> Proof.state -> Proof.state;
 end;
@@ -786,19 +786,26 @@ end;
 
 local
 
-fun gen_interpretation prep_expr
-    expression thy =
+fun gen_interpretation prep_expr prep_thms
+    expression equations thy =
   let
     val ctxt = ProofContext.init thy;
 
+    val eqns = equations |> prep_thms ctxt |>
+      map (Drule.abs_def o LocalDefs.meta_rewrite_rule ctxt);
+    val eq_morph =
+      Morphism.term_morphism (MetaSimplifier.rewrite_term thy eqns []) $>
+      Morphism.thm_morphism (MetaSimplifier.rewrite_rule eqns);
+
     val ((propss, regs, export), goal_ctxt) = prep_expr expression ctxt;
-    
+
     fun store_reg ((name, morph), thms) =
       let
-        val morph' = morph $> Element.satisfy_morphism thms $> export;
+        val morph' = morph $> Element.satisfy_morphism thms;
       in
-        NewLocale.add_global_registration (name, morph') #>
-        NewLocale.activate_global_facts (name, morph')
+        NewLocale.add_global_registration (name, (morph', export)) #>
+        NewLocale.amend_global_registration (name, morph') eq_morph #>
+        NewLocale.activate_global_facts (name, morph' $> eq_morph $> export)
       end;
 
     fun after_qed results =
@@ -811,8 +818,9 @@ fun gen_interpretation prep_expr
 
 in
 
-fun interpretation_cmd x = gen_interpretation read_goal_expression x;
-fun interpretation x = gen_interpretation cert_goal_expression x;
+fun interpretation_cmd x = gen_interpretation read_goal_expression
+  (fn ctxt => map (ProofContext.get_fact ctxt) #> flat) x;
+fun interpretation x = gen_interpretation cert_goal_expression (K I) x;
 
 end;
 

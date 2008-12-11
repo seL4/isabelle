@@ -48,7 +48,10 @@ sig
   val intro_locales_tac: bool -> Proof.context -> thm list -> tactic
 
   (* Registrations *)
-  val add_global_registration: (string * Morphism.morphism) -> theory -> theory
+  val add_global_registration: (string * (Morphism.morphism * Morphism.morphism)) ->
+    theory -> theory
+  val amend_global_registration: (string * Morphism.morphism) -> Morphism.morphism ->
+    theory -> theory
   val get_global_registrations: theory -> (string * Morphism.morphism) list
 
   (* Diagnostic *)
@@ -454,7 +457,8 @@ val _ = Context.>> (Context.map_theory
 (* FIXME only global variant needed *)
 structure RegistrationsData = GenericDataFun
 (
-  type T = ((string * Morphism.morphism) * stamp) list;
+  type T = ((string * (Morphism.morphism * Morphism.morphism)) * stamp) list;
+(* FIXME mixins need to be stamped *)
     (* registrations, in reverse order of declaration *)
   val empty = [];
   val extend = I;
@@ -462,9 +466,26 @@ structure RegistrationsData = GenericDataFun
     (* FIXME consolidate with dependencies, consider one data slot only *)
 );
 
-val get_global_registrations = map fst o RegistrationsData.get o Context.Theory;
+val get_global_registrations =
+  Context.Theory #> RegistrationsData.get #> map fst #> map (apsnd op $>);
 fun add_global_registration reg =
   (Context.theory_map o RegistrationsData.map) (cons (reg, stamp ()));
+
+fun amend_global_registration (name, base_morph) morph thy =
+  let
+    val regs = (Context.Theory #> RegistrationsData.get #> map fst) thy;
+    val base = instance_of thy name base_morph;
+    fun match (name', (morph', _)) =
+      name = name' andalso eq_list (op aconv) (base, instance_of thy name' morph');
+    val i = find_index match (rev regs);
+    val _ = if i = ~1 then error ("No interpretation of locale " ^
+        quote (extern thy name) ^ " and parameter instantiation " ^
+        space_implode " " (map (quote o Syntax.string_of_term_global thy) base) ^ " available.")
+      else ();
+  in
+    (Context.theory_map o RegistrationsData.map) (nth_map (length regs - 1 - i)
+      (fn ((name, (base, export)), stamp) => ((name, (base $> morph, export)), stamp))) thy
+  end;
 
 end;
 
