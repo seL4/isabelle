@@ -197,9 +197,10 @@ fun add_typedef def opt_name typ set opt_morphs tac thy =
     val name = the_default (#1 typ) opt_name;
     val ((set, goal, _, set_def, typedef_result), thy') =
       prepare_typedef Syntax.check_term def name typ set opt_morphs thy;
-    val non_empty = Goal.prove_global thy' [] [] goal (K tac)
-      handle ERROR msg => cat_error msg
-        ("Failed to prove non-emptiness of " ^ quote (Syntax.string_of_term_global thy set));
+    val non_empty =
+      Goal.prove_global thy' [] [] goal (fn _ => rewrite_goals_tac (the_list set_def) THEN tac)
+        handle ERROR msg => cat_error msg
+          ("Failed to prove non-emptiness of " ^ quote (Syntax.string_of_term_global thy set));
   in typedef_result non_empty thy' end;
 
 
