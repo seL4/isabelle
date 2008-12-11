@@ -739,7 +739,7 @@ fun proof_result immediate (tr, proof_trs) st =
       in (result, st'') end
   end;
 
-fun excursion input = exception_trace (fn () =>
+fun excursion input =
   let
     val end_pos = if null input then error "No input" else pos_of (fst (List.last input));
 
@@ -750,6 +750,6 @@ fun excursion input = exception_trace (fn () =>
         State (NONE, SOME (Theory (Context.Theory _, _), _)) => ()
       | _ => error "Unfinished development at end of input");
     val results = maps Lazy.force future_results;
-  in (results, fn () => ignore (command (commit_exit end_pos) end_state)) end);
+  in (results, fn () => ignore (command (commit_exit end_pos) end_state)) end;
 
 end;
