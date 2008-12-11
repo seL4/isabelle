@@ -28,12 +28,18 @@ definition eq_set :: "'a set \<Rightarrow> 'a set \<Rightarrow> bool" where
 lemma [code]: "eq_set A B \<longleftrightarrow> A \<subseteq> B \<and> B \<subseteq> A"
   unfolding eq_set_def by auto
 
+(* FIXME allow for Stefan's code generator:
+declare set_eq_subset[code unfold]
+*)
+
 lemma [code]:
   "a \<in> A \<longleftrightarrow> (\<exists>x\<in>A. x = a)"
   unfolding bex_triv_one_point1 ..
 
 definition filter_set :: "('a \<Rightarrow> bool) \<Rightarrow> 'a set \<Rightarrow> 'a set" where
   "filter_set P xs = {x\<in>xs. P x}"
+
+declare filter_set_def[symmetric, code unfold] 
 
 
 subsection {* Operations on lists *}
@@ -269,5 +275,7 @@ consts_code
   Ball ("{*Blall*}")
   Bex ("{*Blex*}")
   filter_set ("{*filter*}")
+  fold ("{* foldl *}")
+
 
 end
