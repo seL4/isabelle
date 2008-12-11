@@ -776,6 +776,7 @@ $(LOG)/HOL-ex.gz: $(OUT)/HOL Library/Commutative_Ring.thy		\
   ex/Coherent.thy ex/Dense_Linear_Order_Ex.thy ex/Eval_Examples.thy	\
   ex/Groebner_Examples.thy ex/Random.thy ex/Quickcheck.thy		\
   ex/Codegenerator.thy ex/Codegenerator_Pretty.thy			\
+  ex/CodegenSML_Test.thy 						\
   ex/Commutative_RingEx.thy ex/Efficient_Nat_examples.thy		\
   ex/Hex_Bin_Examples.thy ex/Commutative_Ring_Complete.thy		\
   ex/ExecutableContent.thy ex/Fundefs.thy ex/Guess.thy ex/Hebrew.thy	\
