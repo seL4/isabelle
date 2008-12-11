@@ -8,10 +8,10 @@ represented by a non-empty subset.
 signature TYPEDEF_PACKAGE =
 sig
   type info =
-   {rep_type: typ, abs_type: typ, Rep_name: string, Abs_name: string,
-    inhabited: thm, type_definition: thm, set_def: thm option, Rep: thm, Rep_inverse: thm,
-    Abs_inverse: thm, Rep_inject: thm, Abs_inject: thm, Rep_cases: thm,
-    Abs_cases: thm, Rep_induct: thm, Abs_induct: thm};
+   {rep_type: typ, abs_type: typ, Rep_name: string, Abs_name: string, inhabited: thm,
+    type_definition: thm, set_def: thm option, Rep: thm, Rep_inverse: thm,
+    Abs_inverse: thm, Rep_inject: thm, Abs_inject: thm, Rep_cases: thm, Abs_cases: thm,
+    Rep_induct: thm, Abs_induct: thm}
   val get_info: theory -> string -> info option
   val add_typedef: bool -> string option -> bstring * string list * mixfix ->
     term -> (bstring * bstring) option -> tactic -> theory -> (string * info) * theory
@@ -31,10 +31,10 @@ struct
 (* theory data *)
 
 type info =
- {rep_type: typ, abs_type: typ, Rep_name: string, Abs_name: string,
-  inhabited: thm, type_definition: thm, set_def: thm option, Rep: thm, Rep_inverse: thm,
-  Abs_inverse: thm, Rep_inject: thm, Abs_inject: thm, Rep_cases: thm,
-  Abs_cases: thm, Rep_induct: thm, Abs_induct: thm};
+ {rep_type: typ, abs_type: typ, Rep_name: string, Abs_name: string, inhabited: thm,
+  type_definition: thm, set_def: thm option, Rep: thm, Rep_inverse: thm,
+  Abs_inverse: thm, Rep_inject: thm, Abs_inject: thm, Rep_cases: thm, Abs_cases: thm,
+  Rep_induct: thm, Abs_induct: thm};
 
 structure TypedefData = TheoryDataFun
 (
@@ -91,26 +91,36 @@ fun prepare_typedef prep_term def name (t, vs, mx) raw_set opt_morphs thy =
     val RepC = Const (full Rep_name, newT --> oldT);
     val AbsC = Const (full Abs_name, oldT --> newT);
 
-    val A = if def then setC else set;
-    val goal =
+    (*inhabitance*)
+    fun mk_inhabited A =
       HOLogic.mk_Trueprop (HOLogic.mk_exists ("x", oldT, HOLogic.mk_mem (Free ("x", oldT), A)));
+    val set' = if def then setC else set;
+    val goal = mk_inhabited set;
+    val goal' = mk_inhabited set';
     val term_binding = (the_default (name, 0) (Syntax.read_variable name), SOME set);
 
+    (*axiomatization*)
     val typedef_name = "type_definition_" ^ name;
     val typedefC =
       Const (@{const_name type_definition},
         (newT --> oldT) --> (oldT --> newT) --> setT --> HOLogic.boolT);
-    val typedef_prop = Logic.mk_implies (goal, HOLogic.mk_Trueprop (typedefC $ RepC $ AbsC $ A));
-    val typedef_deps = Term.fold_aterms (fn Const c => insert (op =) c | _ => I) A [];
+    val typedef_prop = Logic.mk_implies (goal', HOLogic.mk_Trueprop (typedefC $ RepC $ AbsC $ set'));
+    val typedef_deps = Term.fold_aterms (fn Const c => insert (op =) c | _ => I) set' [];
 
-    val (set_def, thy') =
+    (*set definition*)
+    fun add_def theory =
       if def then
-        thy
+        theory
         |> Sign.add_consts_i [(name, setT', NoSyn)]
-        |> PureThy.add_defs false [Thm.no_attributes (PrimitiveDefs.mk_defpair (setC, set))]
-        ||> Theory.checkpoint
+        |> PureThy.add_defs false [Thm.no_attributes ((PrimitiveDefs.mk_defpair (setC, set)))]
         |-> (fn [th] => pair (SOME th))
-      else (NONE, thy);
+      else (NONE, theory);
+    fun contract_def NONE th = th
+      | contract_def (SOME def_eq) th =
+          let
+            val cert = Thm.cterm_of (Thm.theory_of_thm def_eq);
+            val goal_eq = MetaSimplifier.rewrite true [def_eq] (cert goal');
+          in Drule.standard (Drule.equal_elim_rule2 OF [goal_eq, th]) end;
 
     fun typedef_result inhabited =
       ObjectLogic.typedecl (t, vs, mx)
@@ -118,11 +128,14 @@ fun prepare_typedef prep_term def name (t, vs, mx) raw_set opt_morphs thy =
       #> Sign.add_consts_i
         [(Rep_name, newT --> oldT, NoSyn),
          (Abs_name, oldT --> newT, NoSyn)]
-      #> PureThy.add_axioms [((typedef_name, typedef_prop),
-          [Thm.rule_attribute (fn _ => fn cond_axm => inhabited RS cond_axm)])]
+      #> add_def
+      #-> (fn set_def =>
+        PureThy.add_axioms [((typedef_name, typedef_prop),
+          [Thm.rule_attribute (K (fn cond_axm => contract_def set_def inhabited RS cond_axm))])]
+        ##>> pair set_def)
       ##> Theory.add_deps "" (dest_Const RepC) typedef_deps
       ##> Theory.add_deps "" (dest_Const AbsC) typedef_deps
-      #-> (fn [type_definition] => fn thy1 =>
+      #-> (fn ([type_definition], set_def) => fn thy1 =>
         let
           fun make th = Drule.standard (th OF [type_definition]);
           val ([Rep, Rep_inverse, Abs_inverse, Rep_inject, Abs_inject,
@@ -182,11 +195,11 @@ fun prepare_typedef prep_term def name (t, vs, mx) raw_set opt_morphs thy =
     val _ = if null errs then () else error (cat_lines errs);
 
     (*test theory errors now!*)
-    val test_thy = Theory.copy thy';
+    val test_thy = Theory.copy thy;
     val _ = test_thy
       |> typedef_result (setmp quick_and_dirty true (SkipProof.make_thm test_thy) goal);
 
-  in ((set, goal, term_binding, set_def, typedef_result), thy') end
+  in (set, goal, term_binding, typedef_result) end
   handle ERROR msg => err_in_typedef msg name;
 
 
@@ -195,13 +208,12 @@ fun prepare_typedef prep_term def name (t, vs, mx) raw_set opt_morphs thy =
 fun add_typedef def opt_name typ set opt_morphs tac thy =
   let
     val name = the_default (#1 typ) opt_name;
-    val ((set, goal, _, set_def, typedef_result), thy') =
+    val (set, goal, _, typedef_result) =
       prepare_typedef Syntax.check_term def name typ set opt_morphs thy;
-    val non_empty =
-      Goal.prove_global thy' [] [] goal (fn _ => rewrite_goals_tac (the_list set_def) THEN tac)
-        handle ERROR msg => cat_error msg
-          ("Failed to prove non-emptiness of " ^ quote (Syntax.string_of_term_global thy set));
-  in typedef_result non_empty thy' end;
+    val inhabited = Goal.prove_global thy [] [] goal (K tac)
+      handle ERROR msg => cat_error msg
+        ("Failed to prove non-emptiness of " ^ quote (Syntax.string_of_term_global thy set));
+  in typedef_result inhabited thy end;
 
 
 (* typedef: proof interface *)
@@ -210,14 +222,13 @@ local
 
 fun gen_typedef prep_term ((def, name), typ, set, opt_morphs) thy =
   let
-    val ((_, goal, term_binding, set_def, typedef_result), thy') =
+    val (_, goal, term_binding, typedef_result) =
       prepare_typedef prep_term def name typ set opt_morphs thy;
     fun after_qed [[th]] = ProofContext.theory (snd o typedef_result th);
   in
-    ProofContext.init thy'
+    ProofContext.init thy
     |> Proof.theorem_i NONE after_qed [[(goal, [])]]
     |> Proof.add_binds_i [term_binding]
-    |> Proof.unfolding_i [[(the_list set_def, [])]]
   end;
 
 in
