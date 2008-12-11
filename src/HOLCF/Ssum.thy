@@ -19,7 +19,7 @@ pcpodef (Ssum)  ('a, 'b) "++" (infixr "++" 10) =
   "{p :: tr \<times> ('a \<times> 'b).
     (cfst\<cdot>p \<sqsubseteq> TT \<longleftrightarrow> csnd\<cdot>(csnd\<cdot>p) = \<bottom>) \<and>
     (cfst\<cdot>p \<sqsubseteq> FF \<longleftrightarrow> cfst\<cdot>(csnd\<cdot>p) = \<bottom>)}"
-by simp
+by simp_all
 
 instance "++" :: ("{finite_po,pcpo}", "{finite_po,pcpo}") finite_po
 by (rule typedef_finite_po [OF type_definition_Ssum])

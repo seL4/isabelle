@@ -15,7 +15,7 @@ subsection {* Maybe monad type *}
 defaultsort cpo
 
 pcpodef (open) 'a maybe = "UNIV::(one ++ 'a u) set"
-by simp
+by simp_all
 
 constdefs
   fail :: "'a maybe"

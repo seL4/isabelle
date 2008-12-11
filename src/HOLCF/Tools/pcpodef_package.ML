@@ -47,11 +47,11 @@ fun prepare_pcpodef prep_term pcpo def name (t, vs, mx) raw_set opt_morphs thy =
       error ("Not a set type: " ^ quote (Syntax.string_of_typ ctxt setT));
 
     (*goal*)
-    val goal_UU_mem = HOLogic.mk_mem (Const (@{const_name UU}, oldT), set);
-    val goal_nonempty = HOLogic.mk_exists ("x", oldT, HOLogic.mk_mem (Free ("x", oldT), set));
-    val goal_admissible = mk_adm ("x", oldT, HOLogic.mk_mem (Free ("x", oldT), set));
-    val goal = HOLogic.mk_Trueprop
-      (HOLogic.mk_conj (if pcpo then goal_UU_mem else goal_nonempty, goal_admissible));
+    val goal_UU_mem = HOLogic.mk_Trueprop (HOLogic.mk_mem (Const (@{const_name UU}, oldT), set));
+    val goal_nonempty =
+      HOLogic.mk_Trueprop (HOLogic.mk_exists ("x", oldT, HOLogic.mk_mem (Free ("x", oldT), set)));
+    val goal_admissible =
+      HOLogic.mk_Trueprop (mk_adm ("x", oldT, HOLogic.mk_mem (Free ("x", oldT), set)));
 
     (*lhs*)
     val defS = Sign.defaultS thy;
@@ -107,10 +107,10 @@ fun prepare_pcpodef prep_term pcpo def name (t, vs, mx) raw_set opt_morphs thy =
         |> Sign.parent_path
       end;
 
-    fun make_pcpo UUmem (type_def, less_def, set_def) theory =
+    fun make_pcpo UU_mem (type_def, less_def, set_def) theory =
       let
-        val UUmem' = fold_rule (the_list set_def) UUmem;
-        val pcpo_thms = map (Thm.transfer theory) [type_def, less_def, UUmem'];
+        val UU_mem' = fold_rule (the_list set_def) UU_mem;
+        val pcpo_thms = map (Thm.transfer theory) [type_def, less_def, UU_mem'];
         val theory' = theory
           |> AxClass.prove_arity (full_tname, lhs_sorts, @{sort pcpo})
             (Tactic.rtac (@{thm typedef_pcpo} OF pcpo_thms) 1);
@@ -130,27 +130,18 @@ fun prepare_pcpodef prep_term pcpo def name (t, vs, mx) raw_set opt_morphs thy =
         |> Sign.parent_path
       end;
 
-    fun pcpodef_result UUmem_admissible theory =
-      let
-        val UUmem = UUmem_admissible RS conjunct1;
-        val admissible = UUmem_admissible RS conjunct2;
-      in
-        theory
-        |> make_po (Tactic.rtac exI 1 THEN Tactic.rtac UUmem 1)
-        |-> (fn defs => make_cpo admissible defs #> make_pcpo UUmem defs)
-      end;
+    fun pcpodef_result UU_mem admissible =
+      make_po (Tactic.rtac exI 1 THEN Tactic.rtac UU_mem 1)
+      #-> (fn defs => make_cpo admissible defs #> make_pcpo UU_mem defs);
 
-    fun cpodef_result nonempty_admissible theory =
-      let
-        val nonempty = nonempty_admissible RS conjunct1;
-        val admissible = nonempty_admissible RS conjunct2;
-      in
-        theory
-        |> make_po (Tactic.rtac nonempty 1)
-        |-> make_cpo admissible
-      end;
-
-  in (goal, if pcpo then pcpodef_result else cpodef_result) end
+    fun cpodef_result nonempty admissible =
+      make_po (Tactic.rtac nonempty 1)
+      #-> make_cpo admissible;
+  in
+    if pcpo
+    then (goal_UU_mem, goal_admissible, pcpodef_result)
+    else (goal_nonempty, goal_admissible, cpodef_result)
+  end
   handle ERROR msg => err_in_cpodef msg name;
 
 
@@ -160,10 +151,10 @@ local
 
 fun gen_pcpodef_proof prep_term pcpo ((def, name), typ, set, opt_morphs) thy =
   let
-    val (goal, pcpodef_result) =
+    val (goal1, goal2, make_result) =
       prepare_pcpodef prep_term pcpo def name typ set opt_morphs thy;
-    fun after_qed [[th]] = ProofContext.theory (pcpodef_result th);
-  in Proof.theorem_i NONE after_qed [[(goal, [])]] (ProofContext.init thy) end;
+    fun after_qed [[th1, th2]] = ProofContext.theory (make_result th1 th2);
+  in Proof.theorem_i NONE after_qed [[(goal1, []), (goal2, [])]] (ProofContext.init thy) end;
 
 in
 

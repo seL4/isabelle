@@ -12,7 +12,7 @@ begin
 defaultsort type
 
 pcpodef 'a lift = "UNIV :: 'a discr u set"
-by simp
+by simp_all
 
 instance lift :: (finite) finite_po
 by (rule typedef_finite_po [OF type_definition_lift])
