@@ -639,7 +639,7 @@ lemma dvd_anti_sym: "[| m dvd n; n dvd m |] ==> m = (n::nat)"
 
 text {* @{term "op dvd"} is a partial order *}
 
-interpretation dvd: order ["op dvd" "\<lambda>n m \<Colon> nat. n dvd m \<and> \<not> m dvd n"]
+class_interpretation dvd: order ["op dvd" "\<lambda>n m \<Colon> nat. n dvd m \<and> \<not> m dvd n"]
   proof qed (auto intro: dvd_refl dvd_trans dvd_anti_sym)
 
 lemma dvd_diff: "[| k dvd m; k dvd n |] ==> k dvd (m-n :: nat)"

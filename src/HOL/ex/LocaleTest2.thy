@@ -433,8 +433,7 @@ lemma less_total: "x \<sqsubset> y | x = y | y \<sqsubset> x"
 end
 
 
-interpretation dlo < dlat
-(* TODO: definition syntax is unavailable *)
+sublocale dlo < dlat
 proof
   fix x y
   from total have "is_inf x y (if x \<sqsubseteq> y then x else y)" by (auto simp: is_inf_def)
@@ -445,7 +444,7 @@ next
   then show "EX sup. is_sup x y sup" by blast
 qed
 
-interpretation dlo < ddlat
+sublocale dlo < ddlat
 proof
   fix x y z
   show "x \<sqinter> (y \<squnion> z) = x \<sqinter> y \<squnion> x \<sqinter> z" (is "?l = ?r")
