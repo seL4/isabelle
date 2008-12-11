@@ -1,9 +1,9 @@
-(*  Title:      Complex/ex/MIR.thy
+(*  Title:      HOL/ex/MIR.thy
     Author:     Amine Chaieb
 *)
 
 theory MIR
-imports List Real Code_Integer Efficient_Nat
+imports Main RComplete Code_Integer Efficient_Nat
 uses ("mirtac.ML")
 begin
 
