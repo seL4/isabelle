@@ -81,7 +81,7 @@ fun id_thm th =
    handle U.ERR _ => false;
    
 
-fun prover s = prove_goal HOL.thy s (fn _ => [fast_tac HOL_cs 1]);
+fun prover s = prove_goal @{theory HOL} s (fn _ => [fast_tac HOL_cs 1]);
 val P_imp_P_iff_True = prover "P --> (P= True)" RS mp;
 val P_imp_P_eq_True = P_imp_P_iff_True RS eq_reflection;
 fun mk_meta_eq r = case concl_of r of

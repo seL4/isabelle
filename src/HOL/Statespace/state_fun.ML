@@ -49,7 +49,7 @@ fun isTrue (Const ("True",_)) = true
 
 in
 val lazy_conj_simproc =
-  Simplifier.simproc HOL.thy "lazy_conj_simp" ["P & Q"]
+  Simplifier.simproc @{theory HOL} "lazy_conj_simp" ["P & Q"]
     (fn thy => fn ss => fn t =>
       (case t of (Const ("op &",_)$P$Q) => 
          let
@@ -273,7 +273,7 @@ fun is_selector thy T sel =
      end;
 in
 val ex_lookup_eq_simproc =
-  Simplifier.simproc HOL.thy "ex_lookup_eq_simproc" ["Ex t"]
+  Simplifier.simproc @{theory HOL} "ex_lookup_eq_simproc" ["Ex t"]
     (fn thy => fn ss => fn t =>
        let
          val ctxt = Simplifier.the_context ss |>

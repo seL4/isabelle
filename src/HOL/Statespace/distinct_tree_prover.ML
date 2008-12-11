@@ -361,7 +361,7 @@ fun distinctFieldSolver names = mk_solver' "distinctFieldSolver"
                 | NONE => fn i => no_tac)
 
 fun distinct_simproc names =
-  Simplifier.simproc HOL.thy "DistinctTreeProver.distinct_simproc" ["x = y"]
+  Simplifier.simproc @{theory HOL} "DistinctTreeProver.distinct_simproc" ["x = y"]
     (fn thy => fn ss => fn (Const ("op =",_)$x$y) =>
         case #context (#1 (rep_ss ss)) of
         SOME ctxt => Option.map (fn neq => neq_to_eq_False OF [neq]) 

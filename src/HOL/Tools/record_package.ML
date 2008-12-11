@@ -858,7 +858,7 @@ fun quick_and_dirty_prove stndrd thy asms prop tac =
   if !record_quick_and_dirty_sensitive andalso !quick_and_dirty
   then Goal.prove (ProofContext.init thy) [] []
         (Logic.list_implies (map Logic.varify asms,Logic.varify prop))
-        (K (SkipProof.cheat_tac HOL.thy))
+        (K (SkipProof.cheat_tac @{theory HOL}))
         (* standard can take quite a while for large records, thats why
          * we varify the proposition manually here.*)
   else let val prf = Goal.prove (ProofContext.init thy) [] asms prop tac;
@@ -924,7 +924,7 @@ in
  * usual split rules for extensions can apply.
  *)
 val record_split_f_more_simproc =
-  Simplifier.simproc HOL.thy "record_split_f_more_simp" ["x"]
+  Simplifier.simproc @{theory HOL} "record_split_f_more_simp" ["x"]
     (fn thy => fn _ => fn t =>
       (case t of (Const ("all", Type (_, [Type (_, [Type("fun",[T,T']), _]), _])))$
                   (trm as Abs _) =>
@@ -1000,7 +1000,7 @@ in
  *   subrecord.
  *)
 val record_simproc =
-  Simplifier.simproc HOL.thy "record_simp" ["x"]
+  Simplifier.simproc @{theory HOL} "record_simp" ["x"]
     (fn thy => fn ss => fn t =>
       (case t of (sel as Const (s, Type (_,[domS,rangeS])))$
                    ((upd as Const (u,Type(_,[_,Type (_,[rT,_])]))) $ k $ r)=>
@@ -1063,7 +1063,7 @@ val record_simproc =
  * (But r(|more := r; A := A (r(|more := r|))|) = r(|more := r|)
 *)
 val record_upd_simproc =
-  Simplifier.simproc HOL.thy "record_upd_simp" ["x"]
+  Simplifier.simproc @{theory HOL} "record_upd_simp" ["x"]
     (fn thy => fn ss => fn t =>
       (case t of ((upd as Const (u, Type(_,[_,Type(_,[rT,_])]))) $ k $ r) =>
          let datatype ('a,'b) calc = Init of 'b | Inter of 'a
@@ -1202,7 +1202,7 @@ end
  *
  *)
 val record_eq_simproc =
-  Simplifier.simproc HOL.thy "record_eq_simp" ["r = s"]
+  Simplifier.simproc @{theory HOL} "record_eq_simp" ["r = s"]
     (fn thy => fn _ => fn t =>
       (case t of Const ("op =", Type (_, [T, _])) $ _ $ _ =>
         (case rec_id (~1) T of
@@ -1220,7 +1220,7 @@ val record_eq_simproc =
  * P t > 0: split up to given bound of record extensions
  *)
 fun record_split_simproc P =
-  Simplifier.simproc HOL.thy "record_split_simp" ["x"]
+  Simplifier.simproc @{theory HOL} "record_split_simp" ["x"]
     (fn thy => fn _ => fn t =>
       (case t of (Const (quantifier, Type (_, [Type (_, [T, _]), _])))$trm =>
          if quantifier = "All" orelse quantifier = "all" orelse quantifier = "Ex"
@@ -1243,7 +1243,7 @@ fun record_split_simproc P =
        | _ => NONE))
 
 val record_ex_sel_eq_simproc =
-  Simplifier.simproc HOL.thy "record_ex_sel_eq_simproc" ["Ex t"]
+  Simplifier.simproc @{theory HOL} "record_ex_sel_eq_simproc" ["Ex t"]
     (fn thy => fn ss => fn t =>
        let
          fun prove prop =
