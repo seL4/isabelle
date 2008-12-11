@@ -93,9 +93,11 @@ fun fundef_afterqed do_print fixes post defname cont sort_cont cnames [[proof]] 
     end
 
 
-fun gen_add_fundef is_external prep fixspec eqnss config flags lthy =
+fun gen_add_fundef is_external prep default_constraint fixspec eqnss config flags lthy =
     let
-      val ((fixes0, spec0), ctxt') = prep fixspec (map (fn (n_a, eq) => [(n_a, [eq])]) eqnss) lthy
+      val constrn_fxs = map (fn (b, T, mx) => (b, SOME (the_default default_constraint T), mx))
+      val ((fixes0, spec0), ctxt') = 
+        prep (constrn_fxs fixspec) (map (single o apsnd single) eqnss) lthy
       val fixes = map (apfst (apfst Binding.base_name)) fixes0;
       val spec = map (apfst (apfst Binding.base_name)) spec0;
       val (eqs, post, sort_cont, cnames) = FundefCommon.get_preproc lthy config flags ctxt' fixes spec
@@ -160,8 +162,9 @@ fun termination_cmd term_opt lthy =
   |> LocalTheory.set_group (serial_string ())
   |> setup_termination_proof term_opt;
 
-val add_fundef = gen_add_fundef true Specification.read_specification
-val add_fundef_i = gen_add_fundef false Specification.check_specification
+val add_fundef = gen_add_fundef true Specification.read_specification "_::type"
+val add_fundef_i = 
+  gen_add_fundef false Specification.check_specification (TypeInfer.anyT HOLogic.typeS)
 
 
 (* Datatype hook to declare datatype congs as "fundef_congs" *)
