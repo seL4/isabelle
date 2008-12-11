@@ -303,31 +303,34 @@ subsection {* Continuity simplification procedure *}
 text {* cont2cont lemma for @{term Rep_CFun} *}
 
 lemma cont2cont_Rep_CFun:
-  "\<lbrakk>cont f; cont t\<rbrakk> \<Longrightarrow> cont (\<lambda>x. (f x)\<cdot>(t x))"
-by (best intro: cont2cont_app2 cont_const cont_Rep_CFun cont_Rep_CFun2)
+  assumes f: "cont (\<lambda>x. f x)"
+  assumes t: "cont (\<lambda>x. t x)"
+  shows "cont (\<lambda>x. (f x)\<cdot>(t x))"
+proof -
+  have "cont (\<lambda>x. Rep_CFun (f x))"
+    using cont_Rep_CFun f by (rule cont2cont_app3)
+  thus "cont (\<lambda>x. (f x)\<cdot>(t x))"
+    using cont_Rep_CFun2 t by (rule cont2cont_app2)
+qed
 
 text {* cont2mono Lemma for @{term "%x. LAM y. c1(x)(y)"} *}
 
 lemma cont2mono_LAM:
-assumes p1: "!!x. cont(c1 x)"
-assumes p2: "!!y. monofun(%x. c1 x y)"
-shows "monofun(%x. LAM y. c1 x y)"
-apply (rule monofunI)
-apply (rule less_cfun_ext)
-apply (simp add: p1)
-apply (erule p2 [THEN monofunE])
-done
+  "\<lbrakk>\<And>x. cont (\<lambda>y. f x y); \<And>y. monofun (\<lambda>x. f x y)\<rbrakk>
+    \<Longrightarrow> monofun (\<lambda>x. \<Lambda> y. f x y)"
+  unfolding monofun_def expand_cfun_less by simp
 
-text {* cont2cont Lemma for @{term "%x. LAM y. c1 x y"} *}
+text {* cont2cont Lemma for @{term "%x. LAM y. f x y"} *}
 
 lemma cont2cont_LAM:
-assumes p1: "!!x. cont(c1 x)"
-assumes p2: "!!y. cont(%x. c1 x y)"
-shows "cont(%x. LAM y. c1 x y)"
-apply (rule cont_Abs_CFun)
-apply (simp add: p1 CFun_def)
-apply (simp add: p2 cont2cont_lambda)
-done
+  assumes f1: "\<And>x. cont (\<lambda>y. f x y)"
+  assumes f2: "\<And>y. cont (\<lambda>x. f x y)"
+  shows "cont (\<lambda>x. \<Lambda> y. f x y)"
+proof (rule cont_Abs_CFun)
+  fix x
+  from f1 show "f x \<in> CFun" by (simp add: CFun_def)
+  from f2 show "cont f" by (rule cont2cont_lambda)
+qed
 
 text {* continuity simplification procedure *}
 
