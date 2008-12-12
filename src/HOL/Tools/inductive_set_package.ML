@@ -66,7 +66,7 @@ val collect_mem_simproc =
 val anyt = Free ("t", TFree ("'t", []));
 
 fun strong_ind_simproc tab =
-  Simplifier.simproc_i HOL.thy "strong_ind" [anyt] (fn thy => fn ss => fn t =>
+  Simplifier.simproc_i @{theory HOL} "strong_ind" [anyt] (fn thy => fn ss => fn t =>
     let
       fun close p t f =
         let val vs = Term.add_vars t []
@@ -317,7 +317,7 @@ fun is_pred tab t =
 fun to_pred_simproc rules =
   let val rules' = map mk_meta_eq rules
   in
-    Simplifier.simproc_i HOL.thy "to_pred" [anyt]
+    Simplifier.simproc_i @{theory HOL} "to_pred" [anyt]
       (fn thy => K (lookup_rule thy (prop_of #> Logic.dest_equals) rules'))
   end;
 

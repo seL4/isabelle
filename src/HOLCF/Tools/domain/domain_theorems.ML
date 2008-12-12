@@ -106,15 +106,9 @@ val chain_tac =
 
 (* ----- general proofs ----------------------------------------------------- *)
 
-val all2E = prove_goal HOL.thy "[| !x y . P x y; P x y ==> R |] ==> R"
-  (fn prems =>[
-    resolve_tac prems 1,
-    cut_facts_tac prems 1,
-    fast_tac HOL_cs 1]);
+val all2E = @{lemma "!x y . P x y ==> (P x y ==> R) ==> R" by simp}
 
-val dist_eqI = prove_goal (the_context ()) "!!x::'a::po. ~ x << y ==> x ~= y" 
-  (fn prems =>
-    [blast_tac (@{claset} addDs [antisym_less_inverse]) 1]);
+val dist_eqI = @{lemma "!!x::'a::po. ~ x << y ==> x ~= y" by (blast dest!: antisym_less_inverse)}
 
 in
 

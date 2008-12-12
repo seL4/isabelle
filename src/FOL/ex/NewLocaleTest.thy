@@ -433,7 +433,7 @@ thm x.lor_o_def bool_logic_o
 
 lemma (in logic_o) lor_triv: "x || y <-> x || y" by fast
 
-(* thm x.lor_triv *)
+thm x.lor_triv
 
 
 subsection {* Interpretation in proofs *}

@@ -1472,6 +1472,29 @@ lemmas zmod_simps =
   IntDiv.zpower_zmod
   zminus_zmod zdiff_zmod_left zdiff_zmod_right
 
+text {* Distributive laws for function @{text nat}. *}
+
+lemma nat_div_distrib: "0 \<le> x \<Longrightarrow> nat (x div y) = nat x div nat y"
+apply (rule linorder_cases [of y 0])
+apply (simp add: div_nonneg_neg_le0)
+apply simp
+apply (simp add: nat_eq_iff pos_imp_zdiv_nonneg_iff zdiv_int)
+done
+
+(*Fails if y<0: the LHS collapses to (nat z) but the RHS doesn't*)
+lemma nat_mod_distrib:
+  "\<lbrakk>0 \<le> x; 0 \<le> y\<rbrakk> \<Longrightarrow> nat (x mod y) = nat x mod nat y"
+apply (case_tac "y = 0", simp add: DIVISION_BY_ZERO)
+apply (simp add: nat_eq_iff zmod_int)
+done
+
+text{*Suggested by Matthias Daum*}
+lemma int_div_less_self: "\<lbrakk>0 < x; 1 < k\<rbrakk> \<Longrightarrow> x div k < (x::int)"
+apply (subgoal_tac "nat x div nat k < nat x")
+ apply (simp (asm_lr) add: nat_div_distrib [symmetric])
+apply (rule Divides.div_less_dividend, simp_all)
+done
+
 text {* code generator setup *}
 
 context ring_1

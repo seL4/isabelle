@@ -74,7 +74,7 @@ fun cabs a t = Thm.cabs a t
  * Some simple constructor functions.
  *---------------------------------------------------------------------------*)
 
-val mk_hol_const = Thm.cterm_of HOL.thy o Const;
+val mk_hol_const = Thm.cterm_of @{theory HOL} o Const;
 
 fun mk_exists (r as (Bvar, Body)) =
   let val ty = #T(rep_cterm Bvar)

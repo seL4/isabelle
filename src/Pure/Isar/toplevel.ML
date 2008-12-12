@@ -13,6 +13,7 @@ sig
   val theory_node: node -> generic_theory option
   val proof_node: node -> ProofNode.T option
   val cases_node: (generic_theory -> 'a) -> (Proof.state -> 'a) -> node -> 'a
+  val context_node: node -> Proof.context
   val presentation_context: node option -> xstring option -> Proof.context
   type state
   val toplevel: state
@@ -140,8 +141,10 @@ fun cases_node f _ (Theory (gthy, _)) = f gthy
   | cases_node _ g (Proof (prf, _)) = g (ProofNode.current prf)
   | cases_node f _ (SkipProof (_, (gthy, _))) = f gthy;
 
+val context_node = cases_node Context.proof_of Proof.context_of;
+
 fun presentation_context (SOME (Theory (_, SOME ctxt))) NONE = ctxt
-  | presentation_context (SOME node) NONE = cases_node Context.proof_of Proof.context_of node
+  | presentation_context (SOME node) NONE = context_node node
   | presentation_context (SOME node) (SOME loc) =
       loc_init loc (cases_node Context.theory_of Proof.theory_of node)
   | presentation_context NONE _ = raise UNDEF;
@@ -736,7 +739,7 @@ fun proof_result immediate (tr, proof_trs) st =
       in (result, st'') end
   end;
 
-fun excursion input = exception_trace (fn () =>
+fun excursion input =
   let
     val end_pos = if null input then error "No input" else pos_of (fst (List.last input));
 
@@ -747,6 +750,6 @@ fun excursion input = exception_trace (fn () =>
         State (NONE, SOME (Theory (Context.Theory _, _), _)) => ()
       | _ => error "Unfinished development at end of input");
     val results = maps Lazy.force future_results;
-  in (results, fn () => ignore (command (commit_exit end_pos) end_state)) end);
+  in (results, fn () => ignore (command (commit_exit end_pos) end_state)) end;
 
 end;

@@ -38,8 +38,8 @@ fun type_has_empty_sort (TFree (_, [])) = true
 
 (**** Transformation of Elimination Rules into First-Order Formulas****)
 
-val cfalse = cterm_of HOL.thy HOLogic.false_const;
-val ctp_false = cterm_of HOL.thy (HOLogic.mk_Trueprop HOLogic.false_const);
+val cfalse = cterm_of @{theory HOL} HOLogic.false_const;
+val ctp_false = cterm_of @{theory HOL} (HOLogic.mk_Trueprop HOLogic.false_const);
 
 (*Converts an elim-rule into an equivalent theorem that does not have the
   predicate variable.  Leaves other theorems unchanged.  We simply instantiate the
@@ -47,9 +47,9 @@ val ctp_false = cterm_of HOL.thy (HOLogic.mk_Trueprop HOLogic.false_const);
 fun transform_elim th =
   case concl_of th of    (*conclusion variable*)
        Const("Trueprop",_) $ (v as Var(_,Type("bool",[]))) =>
-           Thm.instantiate ([], [(cterm_of HOL.thy v, cfalse)]) th
+           Thm.instantiate ([], [(cterm_of @{theory HOL} v, cfalse)]) th
     | v as Var(_, Type("prop",[])) =>
-           Thm.instantiate ([], [(cterm_of HOL.thy v, ctp_false)]) th
+           Thm.instantiate ([], [(cterm_of @{theory HOL} v, ctp_false)]) th
     | _ => th;
 
 (*To enforce single-threading*)
@@ -236,7 +236,7 @@ fun combinators th =
        TrueI);  (*A type variable of sort {} will cause make abstraction fail.*)
 
 (*cterms are used throughout for efficiency*)
-val cTrueprop = Thm.cterm_of HOL.thy HOLogic.Trueprop;
+val cTrueprop = Thm.cterm_of @{theory HOL} HOLogic.Trueprop;
 
 (*cterm version of mk_cTrueprop*)
 fun c_mkTrueprop A = Thm.capply cTrueprop A;

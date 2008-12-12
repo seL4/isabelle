@@ -17,7 +17,7 @@ subsection {* Definition of strict product type *}
 
 pcpodef (Sprod)  ('a, 'b) "**" (infixr "**" 20) =
         "{p::'a \<times> 'b. p = \<bottom> \<or> (cfst\<cdot>p \<noteq> \<bottom> \<and> csnd\<cdot>p \<noteq> \<bottom>)}"
-by simp
+by simp_all
 
 instance "**" :: ("{finite_po,pcpo}", "{finite_po,pcpo}") finite_po
 by (rule typedef_finite_po [OF type_definition_Sprod])

@@ -1,23 +1,23 @@
 SplineFontDB: 2.0
-FontName: Isabelle
-FullName: Isabelle
-FamilyName: Isabelle
+FontName: IsabelleItalic
+FullName: IsabelleItalic
+FamilyName: IsabelleItalic
 Weight: Medium
 Copyright: 
-Version: 001.000
+Version: 
 ItalicAngle: 0
 UnderlinePosition: -100
 UnderlineWidth: 50
 Ascent: 800
 Descent: 200
 NeedsXUIDChange: 1
-XUID: [1021 151 411138958 16034613]
+XUID: [1021 151 411138958 7473182]
 FSType: 8
 OS2Version: 0
 OS2_WeightWidthSlopeOnly: 0
 OS2_UseTypoMetrics: 0
 CreationTime: 1092579958
-ModificationTime: 1218806294
+ModificationTime: 1219581787
 PfmFamily: 17
 TTFWeight: 500
 TTFWidth: 5
@@ -47,7 +47,7 @@ NameList: Adobe Glyph List
 DisplaySize: -48
 AntiAlias: 1
 FitToEm: 1
-WinInfo: 120736 16 14
+WinInfo: 8848 16 14
 BeginPrivate: 8
 BlueValues 31 [-22 0 683 705 431 448 666 677]
 OtherBlues 11 [-206 -194]
@@ -5089,17 +5089,24 @@ EndSplineSet
 EndChar
 StartChar: angleright
 Encoding: 9002 9002 172
-Width: 329
+Width: 388
 Flags: W
-DStem: 21 733 73 757 236 303 302 303 236 303 302 303 21 -127 73 -152
+HStem: -250 21<70.5 82.5> 730 20<70.5 83>
+VStem: 56 222
 Fore
-73 757 m 1
- 302 303 l 1
- 73 -152 l 1
- 21 -127 l 1
- 236 303 l 1
- 21 733 l 1
- 73 757 l 1
+273 232 m 2
+ 97 -230 l 2
+ 93 -241 89 -250 76 -250 c 0
+ 65 -250 56 -241 56 -230 c 0
+ 56 -229 56 -224 61 -212 c 2
+ 237 250 l 1
+ 61 712 l 2
+ 56 724 56 729 56 730 c 0
+ 56 741 65 750 76 750 c 0
+ 90 750 93 740 98 728 c 2
+ 273 268 l 2
+ 278 256 278 251 278 250 c 0
+ 278 249 278 244 273 232 c 2
 EndSplineSet
 EndChar
 StartChar: integral
@@ -6917,17 +6924,24 @@ EndSplineSet
 EndChar
 StartChar: uni27E9
 Encoding: 10217 10217 234
-Width: 329
+Width: 388
 Flags: W
-VStem: 21 281<-127 303 -127 -127>
+HStem: -250 21<70.5 82.5> 730 20<70.5 83>
+VStem: 56 222
 Fore
-73 757 m 1
- 302 303 l 1
- 73 -152 l 1
- 21 -127 l 1
- 236 303 l 1
- 21 733 l 1
- 73 757 l 1
+273 232 m 2
+ 97 -230 l 2
+ 93 -241 89 -250 76 -250 c 0
+ 65 -250 56 -241 56 -230 c 0
+ 56 -229 56 -224 61 -212 c 2
+ 237 250 l 1
+ 61 712 l 2
+ 56 724 56 729 56 730 c 0
+ 56 741 65 750 76 750 c 0
+ 90 750 93 740 98 728 c 2
+ 273 268 l 2
+ 278 256 278 251 278 250 c 0
+ 278 249 278 244 273 232 c 2
 EndSplineSet
 EndChar
 StartChar: uni22A4
