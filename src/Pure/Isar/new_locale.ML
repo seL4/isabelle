@@ -378,6 +378,42 @@ fun print_locale thy show_facts name =
 end;
 
 
+(*** Registrations: interpretations in theories ***)
+
+(* FIXME only global variant needed *)
+structure RegistrationsData = GenericDataFun
+(
+  type T = ((string * (Morphism.morphism * Morphism.morphism)) * stamp) list;
+(* FIXME mixins need to be stamped *)
+    (* registrations, in reverse order of declaration *)
+  val empty = [];
+  val extend = I;
+  fun merge _ = Library.merge (eq_snd (op =));
+    (* FIXME consolidate with dependencies, consider one data slot only *)
+);
+
+val get_global_registrations =
+  Context.Theory #> RegistrationsData.get #> map fst #> map (apsnd op $>);
+fun add_global_registration reg =
+  (Context.theory_map o RegistrationsData.map) (cons (reg, stamp ()));
+
+fun amend_global_registration morph (name, base_morph) thy =
+  let
+    val regs = (Context.Theory #> RegistrationsData.get #> map fst) thy;
+    val base = instance_of thy name base_morph;
+    fun match (name', (morph', _)) =
+      name = name' andalso eq_list (op aconv) (base, instance_of thy name' morph');
+    val i = find_index match (rev regs);
+    val _ = if i = ~1 then error ("No interpretation of locale " ^
+        quote (extern thy name) ^ " and parameter instantiation " ^
+        space_implode " " (map (quote o Syntax.string_of_term_global thy) base) ^ " available.")
+      else ();
+  in
+    (Context.theory_map o RegistrationsData.map) (nth_map (length regs - 1 - i)
+      (fn ((name, (base, export)), stamp) => ((name, (base $> morph, export)), stamp))) thy
+  end;
+
+
 (*** Storing results ***)
 
 (* Theorems *)
@@ -385,11 +421,17 @@ end;
 fun add_thmss loc kind args ctxt =
   let
     val (([Notes args'], _), ctxt') = Element.activate_i [Notes (kind, args)] ctxt;
-    val ctxt'' = ctxt' |> ProofContext.theory
-      (change_locale loc
+    val ctxt'' = ctxt' |> ProofContext.theory (
+      change_locale loc
         (fn (parameters, spec, decls, notes, dependencies) =>
-          (parameters, spec, decls, (args', stamp ()) :: notes, dependencies)))
-      (* FIXME registrations *)
+          (parameters, spec, decls, (args', stamp ()) :: notes, dependencies)) #>
+      (* Registrations *)
+      (fn thy => fold_rev (fn (name, morph) =>
+            let
+              val args'' = snd args' |> Element.facts_map (Element.morph_ctxt morph) |>
+                Attrib.map_facts (Attrib.attribute_i thy)
+            in Locale.global_note_qualified kind args'' #> snd end)
+        (get_global_registrations thy |> filter (fn (name, _) => name = loc)) thy))
   in ctxt'' end;
 
 
@@ -450,42 +492,6 @@ val _ = Context.>> (Context.map_theory
       Method.ctxt_args (fn ctxt => Method.METHOD (intro_locales_tac true ctxt ORELSE'
         Locale.intro_locales_tac true ctxt)),
       "back-chain all introduction rules of locales")]));
-
-
-(*** Registrations: interpretations in theories ***)
-
-(* FIXME only global variant needed *)
-structure RegistrationsData = GenericDataFun
-(
-  type T = ((string * (Morphism.morphism * Morphism.morphism)) * stamp) list;
-(* FIXME mixins need to be stamped *)
-    (* registrations, in reverse order of declaration *)
-  val empty = [];
-  val extend = I;
-  fun merge _ = Library.merge (eq_snd (op =));
-    (* FIXME consolidate with dependencies, consider one data slot only *)
-);
-
-val get_global_registrations =
-  Context.Theory #> RegistrationsData.get #> map fst #> map (apsnd op $>);
-fun add_global_registration reg =
-  (Context.theory_map o RegistrationsData.map) (cons (reg, stamp ()));
-
-fun amend_global_registration morph (name, base_morph) thy =
-  let
-    val regs = (Context.Theory #> RegistrationsData.get #> map fst) thy;
-    val base = instance_of thy name base_morph;
-    fun match (name', (morph', _)) =
-      name = name' andalso eq_list (op aconv) (base, instance_of thy name' morph');
-    val i = find_index match (rev regs);
-    val _ = if i = ~1 then error ("No interpretation of locale " ^
-        quote (extern thy name) ^ " and parameter instantiation " ^
-        space_implode " " (map (quote o Syntax.string_of_term_global thy) base) ^ " available.")
-      else ();
-  in
-    (Context.theory_map o RegistrationsData.map) (nth_map (length regs - 1 - i)
-      (fn ((name, (base, export)), stamp) => ((name, (base $> morph, export)), stamp))) thy
-  end;
 
 end;
 
