@@ -8,7 +8,7 @@ Common theory/locale/class/instantiation/overloading targets.
 
 signature THEORY_TARGET =
 sig
-  val peek: local_theory -> {target: string, is_locale: bool,
+  val peek: local_theory -> {target: string, new_locale: bool, is_locale: bool,
     is_class: bool, instantiation: string list * (string * sort) list * sort,
     overloading: (string * (string * typ) * bool) list}
   val init: string option -> theory -> local_theory
@@ -24,32 +24,32 @@ struct
 
 (* new locales *)
 
-fun locale_extern is_class x = 
-  if !new_locales andalso not is_class then NewLocale.extern x else Locale.extern x;
-fun locale_add_type_syntax is_class x =
-  if !new_locales andalso not is_class then NewLocale.add_type_syntax x else Locale.add_type_syntax x;
-fun locale_add_term_syntax is_class x =
-  if !new_locales andalso not is_class then NewLocale.add_term_syntax x else Locale.add_term_syntax x;
-fun locale_add_declaration is_class x =
-  if !new_locales andalso not is_class then NewLocale.add_declaration x else Locale.add_declaration x;
-fun locale_add_thmss is_class x =
-  if !new_locales andalso not is_class then NewLocale.add_thmss x else Locale.add_thmss x;
-fun locale_init x =
-  if !new_locales then NewLocale.init x else Locale.init x;
-fun locale_intern is_class x =
-  if !new_locales andalso not is_class then NewLocale.intern x else Locale.intern x;
+fun locale_extern new_locale x = 
+  if !new_locales andalso new_locale then NewLocale.extern x else Locale.extern x;
+fun locale_add_type_syntax new_locale x =
+  if !new_locales andalso new_locale then NewLocale.add_type_syntax x else Locale.add_type_syntax x;
+fun locale_add_term_syntax new_locale x =
+  if !new_locales andalso new_locale then NewLocale.add_term_syntax x else Locale.add_term_syntax x;
+fun locale_add_declaration new_locale x =
+  if !new_locales andalso new_locale then NewLocale.add_declaration x else Locale.add_declaration x;
+fun locale_add_thmss new_locale x =
+  if !new_locales andalso new_locale then NewLocale.add_thmss x else Locale.add_thmss x;
+fun locale_init new_locale x =
+  if !new_locales andalso new_locale then NewLocale.init x else Locale.init x;
+fun locale_intern new_locale x =
+  if !new_locales andalso new_locale then NewLocale.intern x else Locale.intern x;
 
 (* context data *)
 
-datatype target = Target of {target: string, is_locale: bool,
+datatype target = Target of {target: string, new_locale: bool, is_locale: bool,
   is_class: bool, instantiation: string list * (string * sort) list * sort,
   overloading: (string * (string * typ) * bool) list};
 
-fun make_target target is_locale is_class instantiation overloading =
-  Target {target = target, is_locale = is_locale,
+fun make_target target new_locale is_locale is_class instantiation overloading =
+  Target {target = target, new_locale = new_locale, is_locale = is_locale,
     is_class = is_class, instantiation = instantiation, overloading = overloading};
 
-val global_target = make_target "" false false ([], [], []) [];
+val global_target = make_target "" false false false ([], [], []) [];
 
 structure Data = ProofDataFun
 (
@@ -80,7 +80,7 @@ fun pretty_thy ctxt target is_locale is_class =
       (map (Pretty.chunks o Element.pretty_ctxt ctxt) elems)]
   end;
 
-fun pretty (Target {target, is_locale, is_class, instantiation, overloading}) ctxt =
+fun pretty (Target {target, is_locale, is_class, instantiation, overloading, ...}) ctxt =
   Pretty.block [Pretty.str "theory", Pretty.brk 1,
       Pretty.str (Context.theory_name (ProofContext.theory_of ctxt))] ::
     (if not (null overloading) then [Overloading.pretty ctxt]
@@ -90,7 +90,7 @@ fun pretty (Target {target, is_locale, is_class, instantiation, overloading}) ct
 
 (* target declarations *)
 
-fun target_decl add (Target {target, is_class, ...}) d lthy =
+fun target_decl add (Target {target, new_locale, ...}) d lthy =
   let
     val d' = Morphism.transform (LocalTheory.target_morphism lthy) d;
     val d0 = Morphism.form d';
@@ -101,7 +101,7 @@ fun target_decl add (Target {target, is_class, ...}) d lthy =
       |> LocalTheory.target (Context.proof_map d0)
     else
       lthy
-      |> LocalTheory.target (add is_class target d')
+      |> LocalTheory.target (add new_locale target d')
   end;
 
 val type_syntax = target_decl locale_add_type_syntax;
@@ -167,7 +167,7 @@ fun note_local kind facts ctxt =
   |> ProofContext.note_thmss_i kind facts
   ||> ProofContext.restore_naming ctxt;
 
-fun notes (Target {target, is_locale, is_class, ...}) kind facts lthy =
+fun notes (Target {target, is_locale, new_locale, ...}) kind facts lthy =
   let
     val thy = ProofContext.theory_of lthy;
     val facts' = facts
@@ -186,7 +186,7 @@ fun notes (Target {target, is_locale, is_class, ...}) kind facts lthy =
         #> PureThy.note_thmss_grouped kind (LocalTheory.group_of lthy) global_facts #> snd
         #> Sign.restore_naming thy)
     |> not is_locale ? LocalTheory.target (note_local kind global_facts #> snd)
-    |> is_locale ? LocalTheory.target (locale_add_thmss is_class target kind target_facts)
+    |> is_locale ? LocalTheory.target (locale_add_thmss new_locale target kind target_facts)
     |> note_local kind local_facts
   end;
 
@@ -335,13 +335,14 @@ local
 
 fun init_target _ NONE = global_target
   | init_target thy (SOME target) =
-      make_target target true (Class.is_class thy target) ([], [], []) [];
+      make_target target (NewLocale.test_locale thy (NewLocale.intern thy target))
+      true (Class.is_class thy target) ([], [], []) [];
 
-fun init_ctxt (Target {target, is_locale, is_class, instantiation, overloading}) =
+fun init_ctxt (Target {target, new_locale, is_locale, is_class, instantiation, overloading}) =
   if not (null (#1 instantiation)) then Class.init_instantiation instantiation
   else if not (null overloading) then Overloading.init overloading
   else if not is_locale then ProofContext.init
-  else if not is_class then locale_init target
+  else if not is_class then locale_init new_locale target
   else Class.init target;
 
 fun init_lthy (ta as Target {target, instantiation, overloading, ...}) =
@@ -366,7 +367,7 @@ fun gen_overloading prep_const raw_ops thy =
     val ctxt = ProofContext.init thy;
     val ops = raw_ops |> map (fn (name, const, checked) =>
       (name, Term.dest_Const (prep_const ctxt const), checked));
-  in thy |> init_lthy_ctxt (make_target "" false false ([], [], []) ops) end;
+  in thy |> init_lthy_ctxt (make_target "" false false false ([], [], []) ops) end;
 
 in
 
@@ -375,9 +376,9 @@ fun begin target ctxt = init_lthy (init_target (ProofContext.theory_of ctxt) (SO
 
 fun context "-" thy = init NONE thy
   | context target thy = init (SOME (locale_intern
-      (not (NewLocale.test_locale thy (NewLocale.intern thy target))) thy target)) thy;
+      (NewLocale.test_locale thy (NewLocale.intern thy target)) thy target)) thy;
 
-fun instantiation arities = init_lthy_ctxt (make_target "" false false arities []);
+fun instantiation arities = init_lthy_ctxt (make_target "" false false false arities []);
 
 val overloading = gen_overloading (fn ctxt => Syntax.check_term ctxt o Const);
 val overloading_cmd = gen_overloading Syntax.read_term;
