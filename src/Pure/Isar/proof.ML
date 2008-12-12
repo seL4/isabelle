@@ -1,5 +1,4 @@
 (*  Title:      Pure/Isar/proof.ML
-    ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
 
 The Isar/VM proof language interpreter: maintains a structured flow of
@@ -826,7 +825,7 @@ fun generic_goal prepp kind before_qed after_qed raw_propp state =
     |> null props ? (refine (Method.Basic (Method.assumption, Position.none)) #> Seq.hd)
   end;
 
-fun generic_qed state =
+fun generic_qed after_ctxt state =
   let
     val (goal_ctxt, {statement, goal, after_qed, ...}) = current_goal state;
     val outer_state = state |> close_block;
@@ -845,7 +844,7 @@ fun generic_qed state =
     fun after_global' x y = Position.setmp_thread_data pos (fn () => after_global x y) ();
   in
     outer_state
-    |> map_context (ProofContext.auto_bind_facts props)
+    |> map_context (after_ctxt props)
     |> pair ((after_local', after_global'), results)
   end;
 
@@ -872,7 +871,8 @@ fun local_goal print_results prep_att prepp kind before_qed after_qed stmt state
 
 fun local_qed txt =
   end_proof false txt #>
-  Seq.maps (generic_qed #-> (fn ((after_qed, _), results) => after_qed results));
+  Seq.maps (generic_qed ProofContext.auto_bind_facts #->
+    (fn ((after_qed, _), results) => after_qed results));
 
 
 (* global goals *)
@@ -892,7 +892,7 @@ fun check_result msg sq =
 
 fun global_qeds txt =
   end_proof true txt
-  #> Seq.map (generic_qed #> (fn (((_, after_qed), results), state) =>
+  #> Seq.map (generic_qed (K I) #> (fn (((_, after_qed), results), state) =>
     after_qed results (context_of state)))
   |> Seq.DETERM;   (*backtracking may destroy theory!*)
 
