@@ -375,7 +375,7 @@ fun schedule_tasks tasks n =
     else if Multithreading.self_critical () then
      (warning (loader_msg "no multithreading within critical section" []);
       schedule_seq tasks)
-    else if ! future_scheduler then future_schedule tasks
+    else if Future.enabled () then future_schedule tasks
     else ignore (Exn.release_all (map Exn.Exn (Schedule.schedule (Int.min (m, n)) next_task tasks)))
   end;
 

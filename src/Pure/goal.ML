@@ -177,7 +177,8 @@ fun prove_common immediate ctxt xs asms props tac =
             else err ("Proved a different theorem: " ^ string_of_term (Thm.prop_of res))
           end);
     val res =
-      if immediate orelse #maxidx (Thm.rep_cterm stmt) >= 0 then result ()
+      if immediate orelse #maxidx (Thm.rep_cterm stmt) >= 0 orelse not (Future.enabled ())
+      then result ()
       else future_result ctxt' (Future.fork_background result) (Thm.term_of stmt);
   in
     Conjunction.elim_balanced (length props) res
