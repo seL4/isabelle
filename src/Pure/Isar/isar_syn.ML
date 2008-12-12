@@ -385,18 +385,18 @@ val _ =
 (* locales *)
 
 val locale_val =
-  SpecParse.locale_expr --
+  SpecParse.locale_expression --
     Scan.optional (P.$$$ "+" |-- P.!!! (Scan.repeat1 SpecParse.context_element)) [] ||
-  Scan.repeat1 SpecParse.context_element >> pair Locale.empty;
+  Scan.repeat1 SpecParse.context_element >> pair ([], []);
 
 val _ =
   OuterSyntax.command "locale" "define named proof context" K.thy_decl
-    (P.name -- Scan.optional (P.$$$ "=" |-- P.!!! locale_val) (Locale.empty, []) -- P.opt_begin
+    (P.name -- Scan.optional (P.$$$ "=" |-- P.!!! locale_val) (([], []), []) -- P.opt_begin
       >> (fn ((name, (expr, elems)), begin) =>
           (begin ? Toplevel.print) o Toplevel.begin_local_theory begin
-            (Locale.add_locale_cmd name expr elems #-> TheoryTarget.begin)));
-
-val opt_prefix = Scan.optional (P.binding --| P.$$$ ":") Binding.empty;
+            (Expression.add_locale_cmd name name expr elems #>
+              (fn ((target, notes), ctxt) => TheoryTarget.begin target ctxt |>
+                fold (fn (kind, facts) => LocalTheory.notes kind facts #> snd) notes))));
 
 val _ =
   OuterSyntax.command "sublocale"
@@ -407,6 +407,40 @@ val _ =
 
 val _ =
   OuterSyntax.command "interpretation"
+    "prove interpretation of locale expression in theory" K.thy_goal
+    (P.!!! SpecParse.locale_expression --
+      Scan.optional (P.$$$ "where" |-- P.and_list1 (SpecParse.opt_thm_name ":" -- P.prop)) []
+        >> (fn (expr, equations) => Toplevel.print o
+            Toplevel.theory_to_proof (Expression.interpretation_cmd expr equations)));
+
+val _ =
+  OuterSyntax.command "interpret"
+    "prove interpretation of locale expression in proof context"
+    (K.tag_proof K.prf_goal)
+    (P.!!! SpecParse.locale_expression
+        >> (fn expr => Toplevel.print o
+            Toplevel.proof' (fn int => Expression.interpret_cmd expr int)));
+
+local
+
+val opt_prefix = Scan.optional (P.binding --| P.$$$ ":") Binding.empty;
+
+in
+
+val locale_val =
+  SpecParse.locale_expr --
+    Scan.optional (P.$$$ "+" |-- P.!!! (Scan.repeat1 SpecParse.context_element)) [] ||
+  Scan.repeat1 SpecParse.context_element >> pair Locale.empty;
+
+val _ =
+  OuterSyntax.command "class_locale" "define named proof context based on classes" K.thy_decl
+    (P.name -- Scan.optional (P.$$$ "=" |-- P.!!! locale_val) (Locale.empty, []) -- P.opt_begin
+      >> (fn ((name, (expr, elems)), begin) =>
+          (begin ? Toplevel.print) o Toplevel.begin_local_theory begin
+            (Locale.add_locale_cmd name expr elems #-> TheoryTarget.begin)));
+
+val _ =
+  OuterSyntax.command "class_interpretation"
     "prove and register interpretation of locale expression in theory or locale" K.thy_goal
     (P.xname --| (P.$$$ "\\<subseteq>" || P.$$$ "<") -- P.!!! SpecParse.locale_expr
       >> (Toplevel.print oo (Toplevel.theory_to_proof o Locale.interpretation_in_locale I)) ||
@@ -416,13 +450,15 @@ val _ =
               (Locale.interpretation_cmd (Binding.base_name name) expr insts)));
 
 val _ =
-  OuterSyntax.command "interpret"
+  OuterSyntax.command "class_interpret"
     "prove and register interpretation of locale expression in proof context"
     (K.tag_proof K.prf_goal)
     (opt_prefix -- SpecParse.locale_expr -- SpecParse.locale_insts
       >> (fn ((name, expr), insts) => Toplevel.print o
           Toplevel.proof'
             (fn int => Locale.interpret_cmd (Binding.base_name name) expr insts int)));
+
+end;
 
 
 (* classes *)
@@ -817,7 +853,7 @@ val _ =
 
 val _ =
   OuterSyntax.improper_command "print_locale" "print locale expression in this theory" K.diag
-    (opt_bang -- locale_val >> (Toplevel.no_timing oo IsarCmd.print_locale));
+    (opt_bang -- P.xname >> (Toplevel.no_timing oo IsarCmd.print_locale));
 
 val _ =
   OuterSyntax.improper_command "print_interps"

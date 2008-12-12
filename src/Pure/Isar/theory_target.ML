@@ -24,13 +24,20 @@ struct
 
 (* new locales *)
 
-fun locale_extern x = if !new_locales then NewLocale.extern x else Locale.extern x;
-fun locale_add_type_syntax x = if !new_locales then NewLocale.add_type_syntax x else Locale.add_type_syntax x;
-fun locale_add_term_syntax x = if !new_locales then NewLocale.add_term_syntax x else Locale.add_term_syntax x;
-fun locale_add_declaration x = if !new_locales then NewLocale.add_declaration x else Locale.add_declaration x;
-fun locale_add_thmss x = if !new_locales then NewLocale.add_thmss x else Locale.add_thmss x;
-fun locale_init x = if !new_locales then NewLocale.init x else Locale.init x;
-fun locale_intern x = if !new_locales then NewLocale.intern x else Locale.intern x;
+fun locale_extern is_class x = 
+  if !new_locales andalso not is_class then NewLocale.extern x else Locale.extern x;
+fun locale_add_type_syntax is_class x =
+  if !new_locales andalso not is_class then NewLocale.add_type_syntax x else Locale.add_type_syntax x;
+fun locale_add_term_syntax is_class x =
+  if !new_locales andalso not is_class then NewLocale.add_term_syntax x else Locale.add_term_syntax x;
+fun locale_add_declaration is_class x =
+  if !new_locales andalso not is_class then NewLocale.add_declaration x else Locale.add_declaration x;
+fun locale_add_thmss is_class x =
+  if !new_locales andalso not is_class then NewLocale.add_thmss x else Locale.add_thmss x;
+fun locale_init x =
+  if !new_locales then NewLocale.init x else Locale.init x;
+fun locale_intern is_class x =
+  if !new_locales andalso not is_class then NewLocale.intern x else Locale.intern x;
 
 (* context data *)
 
@@ -58,7 +65,7 @@ val peek = (fn Target args => args) o Data.get;
 fun pretty_thy ctxt target is_locale is_class =
   let
     val thy = ProofContext.theory_of ctxt;
-    val target_name = (if is_class then "class " else "locale ") ^ locale_extern thy target;
+    val target_name = (if is_class then "class " else "locale ") ^ locale_extern is_class thy target;
     val fixes = map (fn (x, T) => (Binding.name x, SOME T, NoSyn))
       (#1 (ProofContext.inferred_fixes ctxt));
     val assumes = map (fn A => (Attrib.empty_binding, [(Thm.term_of A, [])]))
@@ -94,7 +101,7 @@ fun target_decl add (Target {target, is_class, ...}) d lthy =
       |> LocalTheory.target (Context.proof_map d0)
     else
       lthy
-      |> LocalTheory.target (add target d')
+      |> LocalTheory.target (add is_class target d')
   end;
 
 val type_syntax = target_decl locale_add_type_syntax;
@@ -179,7 +186,7 @@ fun notes (Target {target, is_locale, is_class, ...}) kind facts lthy =
         #> PureThy.note_thmss_grouped kind (LocalTheory.group_of lthy) global_facts #> snd
         #> Sign.restore_naming thy)
     |> not is_locale ? LocalTheory.target (note_local kind global_facts #> snd)
-    |> is_locale ? LocalTheory.target (locale_add_thmss target kind target_facts)
+    |> is_locale ? LocalTheory.target (locale_add_thmss is_class target kind target_facts)
     |> note_local kind local_facts
   end;
 
@@ -367,7 +374,8 @@ fun init target thy = init_lthy_ctxt (init_target thy target) thy;
 fun begin target ctxt = init_lthy (init_target (ProofContext.theory_of ctxt) (SOME target)) ctxt;
 
 fun context "-" thy = init NONE thy
-  | context target thy = init (SOME (locale_intern thy target)) thy;
+  | context target thy = init (SOME (locale_intern
+      (not (NewLocale.test_locale thy (NewLocale.intern thy target))) thy target)) thy;
 
 fun instantiation arities = init_lthy_ctxt (make_target "" false false arities []);
 

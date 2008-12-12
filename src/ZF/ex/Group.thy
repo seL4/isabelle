@@ -1,5 +1,4 @@
 (* Title:  ZF/ex/Group.thy
-  Id:     $Id$
 
 *)
 
@@ -40,7 +39,7 @@ definition
   m_inv :: "i => i => i" ("inv\<index> _" [81] 80) where
   "inv\<^bsub>G\<^esub> x == (THE y. y \<in> carrier(G) & y \<cdot>\<^bsub>G\<^esub> x = \<one>\<^bsub>G\<^esub> & x \<cdot>\<^bsub>G\<^esub> y = \<one>\<^bsub>G\<^esub>)"
 
-locale monoid = struct G +
+locale monoid = fixes G (structure)
   assumes m_closed [intro, simp]:
          "\<lbrakk>x \<in> carrier(G); y \<in> carrier(G)\<rbrakk> \<Longrightarrow> x \<cdot> y \<in> carrier(G)"
       and m_assoc:
@@ -242,7 +241,7 @@ qed
 
 subsection {* Substructures *}
 
-locale subgroup = var H + struct G + 
+locale subgroup = fixes H and G (structure)
   assumes subset: "H \<subseteq> carrier(G)"
     and m_closed [intro, simp]: "\<lbrakk>x \<in> H; y \<in> H\<rbrakk> \<Longrightarrow> x \<cdot> y \<in> H"
     and  one_closed [simp]: "\<one> \<in> H"
@@ -262,7 +261,7 @@ lemma (in subgroup) group_axiomsI [intro]:
   assumes "group(G)"
   shows "group_axioms (update_carrier(G,H))"
 proof -
-  interpret group [G] by fact
+  interpret group G by fact
   show ?thesis by (force intro: group_axioms.intro l_inv r_inv)
 qed
 
@@ -270,7 +269,7 @@ lemma (in subgroup) is_group [intro]:
   assumes "group(G)"
   shows "group (update_carrier(G,H))"
 proof -
-  interpret group [G] by fact
+  interpret group G by fact
   show ?thesis
   by (rule groupI) (auto intro: m_assoc l_inv mem_carrier)
 qed
@@ -316,8 +315,8 @@ lemma DirProdGroup_group:
   assumes "group(G)" and "group(H)"
   shows "group (G \<Otimes> H)"
 proof -
-  interpret G: group [G] by fact
-  interpret H: group [H] by fact
+  interpret G: group G by fact
+  interpret H: group H by fact
   show ?thesis by (force intro!: groupI G.m_assoc H.m_assoc G.l_inv H.l_inv
           simp add: DirProdGroup_def)
 qed
@@ -397,8 +396,8 @@ lemma DirProdGroup_commute_iso:
   assumes "group(G)" and "group(H)"
   shows "(\<lambda><x,y> \<in> carrier(G \<Otimes> H). <y,x>) \<in> (G \<Otimes> H) \<cong> (H \<Otimes> G)"
 proof -
-  interpret group [G] by fact
-  interpret group [H] by fact
+  interpret group G by fact
+  interpret group H by fact
   show ?thesis by (auto simp add: iso_def hom_def inj_def surj_def bij_def)
 qed
 
@@ -407,16 +406,17 @@ lemma DirProdGroup_assoc_iso:
   shows "(\<lambda><<x,y>,z> \<in> carrier((G \<Otimes> H) \<Otimes> I). <x,<y,z>>)
           \<in> ((G \<Otimes> H) \<Otimes> I) \<cong> (G \<Otimes> (H \<Otimes> I))"
 proof -
-  interpret group [G] by fact
-  interpret group [H] by fact
-  interpret group [I] by fact
+  interpret group G by fact
+  interpret group H by fact
+  interpret group I by fact
   show ?thesis
     by (auto intro: lam_type simp add: iso_def hom_def inj_def surj_def bij_def) 
 qed
 
 text{*Basis for homomorphism proofs: we assume two groups @{term G} and
   @term{H}, with a homomorphism @{term h} between them*}
-locale group_hom = group G + group H + var h +
+locale group_hom = G: group G + H: group H
+  for G (structure) and H (structure) and h +
   assumes homh: "h \<in> hom(G,H)"
   notes hom_mult [simp] = hom_mult [OF homh]
     and hom_closed [simp] = hom_closed [OF homh]
@@ -870,7 +870,7 @@ lemma (in subgroup) equiv_rcong:
    assumes "group(G)"
    shows "equiv (carrier(G), rcong H)"
 proof -
-  interpret group [G] by fact
+  interpret group G by fact
   show ?thesis proof (simp add: equiv_def, intro conjI)
     show "rcong H \<subseteq> carrier(G) \<times> carrier(G)"
       by (auto simp add: r_congruent_def) 
@@ -907,7 +907,7 @@ lemma (in subgroup) l_coset_eq_rcong:
   assumes a: "a \<in> carrier(G)"
   shows "a <# H = (rcong H) `` {a}" 
 proof -
-  interpret group [G] by fact
+  interpret group G by fact
   show ?thesis
     by (force simp add: r_congruent_def l_coset_def m_assoc [symmetric] a
       Collect_image_eq) 
@@ -920,7 +920,7 @@ lemma (in group) rcos_equation:
         h \<in> H;  ha \<in> H;  hb \<in> H\<rbrakk>
       \<Longrightarrow> hb \<cdot> a \<in> (\<Union>h\<in>H. {h \<cdot> b})" (is "PROP ?P")
 proof -
-  interpret subgroup [H G] by fact
+  interpret subgroup H G by fact
   show "PROP ?P"
     apply (rule UN_I [of "hb \<cdot> ((inv ha) \<cdot> h)"], simp)
     apply (simp add: m_assoc transpose_inv)
@@ -931,7 +931,7 @@ lemma (in group) rcos_disjoint:
   assumes "subgroup(H, G)"
   shows "\<lbrakk>a \<in> rcosets H; b \<in> rcosets H; a\<noteq>b\<rbrakk> \<Longrightarrow> a \<inter> b = 0" (is "PROP ?P")
 proof -
-  interpret subgroup [H G] by fact
+  interpret subgroup H G by fact
   show "PROP ?P"
     apply (simp add: RCOSETS_def r_coset_def)
     apply (blast intro: rcos_equation prems sym)
@@ -949,7 +949,7 @@ lemma (in group) rcos_self:
   assumes "subgroup(H, G)"
   shows "x \<in> carrier(G) \<Longrightarrow> x \<in> H #> x" (is "PROP ?P")
 proof -
-  interpret subgroup [H G] by fact
+  interpret subgroup H G by fact
   show "PROP ?P"
     apply (simp add: r_coset_def)
     apply (rule_tac x="\<one>" in bexI) apply (auto)
@@ -960,7 +960,7 @@ lemma (in group) rcosets_part_G:
   assumes "subgroup(H, G)"
   shows "\<Union>(rcosets H) = carrier(G)"
 proof -
-  interpret subgroup [H G] by fact
+  interpret subgroup H G by fact
   show ?thesis
     apply (rule equalityI)
     apply (force simp add: RCOSETS_def r_coset_def)
@@ -1044,7 +1044,7 @@ lemma (in subgroup) subgroup_in_rcosets:
   assumes "group(G)"
   shows "H \<in> rcosets H"
 proof -
-  interpret group [G] by fact
+  interpret group G by fact
   have "H #> \<one> = H"
     using _ subgroup_axioms by (rule coset_join2) simp_all
   then show ?thesis
