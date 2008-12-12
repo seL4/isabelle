@@ -1,5 +1,4 @@
 (*  Title:      HOL/ex/LocaleTest2.thy
-    ID:         $Id$
     Author:     Clemens Ballarin
     Copyright (c) 2007 by Clemens Ballarin
 
