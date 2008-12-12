@@ -28,8 +28,8 @@ sig
   (* Interpretation *)
   val sublocale_cmd: string -> expression -> theory -> Proof.state;
   val sublocale: string -> expression_i -> theory -> Proof.state;
-  val interpretation_cmd: expression -> theory -> Proof.state;
-  val interpretation: expression_i -> theory -> Proof.state;
+  val interpretation_cmd: expression -> (Attrib.binding * string) list -> theory -> Proof.state;
+  val interpretation: expression_i -> (Attrib.binding * term) list -> theory -> Proof.state;
   val interpret_cmd: expression -> bool -> Proof.state -> Proof.state;
   val interpret: expression_i -> bool -> Proof.state -> Proof.state;
 end;
@@ -175,7 +175,7 @@ fun inst_morph (parm_names, parm_types) (prfx, insts') ctxt =
     val inst = Symtab.make insts'';
   in
     (Element.inst_morphism (ProofContext.theory_of ctxt) (instT, inst) $>
-      Morphism.binding_morphism (Binding.qualify prfx), ctxt')
+      Morphism.binding_morphism (Binding.add_prefix false prfx), ctxt')
   end;
 
 
@@ -410,7 +410,7 @@ fun prep_full_context_statement parse_typ parse_prop parse_inst prep_vars prep_e
 
     val fors = prep_vars fixed context |> fst;
     val ctxt = context |> ProofContext.add_fixes_i fors |> snd;
-    val (_, insts', ctxt') = fold prep_inst raw_insts (0, [], NewLocale.clear_local_idents ctxt);
+    val (_, insts', ctxt') = fold prep_inst raw_insts (0, [], ctxt);
     val (_, elems'', ctxt'') = fold prep_elem raw_elems (insts', [], ctxt');
     val (insts, elems, concl, ctxt) = prep_concl raw_concl (insts', elems'', ctxt'');
 
@@ -484,7 +484,7 @@ fun prep_declaration prep activate raw_import raw_elems context =
     (* Declare parameters and imported facts *)
     val context' = context |>
       ProofContext.add_fixes_i fixed |> snd |>
-      NewLocale.clear_local_idents |> fold NewLocale.activate_local_facts deps;
+      fold NewLocale.activate_local_facts deps;
     val ((elems', _), _) = activate elems (ProofContext.set_stmt true context');
   in ((fixed, deps, elems'), (parms, spec, defs)) end;
 
@@ -786,33 +786,63 @@ end;
 
 local
 
-fun gen_interpretation prep_expr
-    expression thy =
+datatype goal = Reg of string * Morphism.morphism | Eqns of Attrib.binding list;
+
+fun gen_interpretation prep_expr parse_prop prep_attr
+    expression equations thy =
   let
     val ctxt = ProofContext.init thy;
 
-    val ((propss, regs, export), goal_ctxt) = prep_expr expression ctxt;
+    val ((propss, regs, export), expr_ctxt) = prep_expr expression ctxt;
     
-    fun store_reg ((name, morph), thms) =
-      let
-        val morph' = morph $> Element.satisfy_morphism thms $> export;
-      in
-        NewLocale.add_global_registration (name, morph') #>
-        NewLocale.activate_global_facts (name, morph')
-      end;
+    val eqns = map (parse_prop expr_ctxt o snd) equations |> Syntax.check_terms expr_ctxt;
+    val eq_attns = map ((apsnd o map) (prep_attr thy) o fst) equations;
+    val goal_ctxt = fold Variable.auto_fixes eqns expr_ctxt;
+    val export' = Variable.export_morphism goal_ctxt expr_ctxt;
+
+    fun store (Reg (name, morph), thms) (regs, thy) =
+        let
+          val thms' = map (Element.morph_witness export') thms;
+          val morph' = morph $> Element.satisfy_morphism thms';
+          val add = NewLocale.add_global_registration (name, (morph', export));
+        in ((name, morph') :: regs, add thy) end
+      | store (Eqns [], []) (regs, thy) =
+        let val add = fold_rev (fn (name, morph) =>
+              NewLocale.activate_global_facts (name, morph $> export)) regs;
+        in (regs, add thy) end
+      | store (Eqns attns, thms) (regs, thy) =
+        let
+          val thms' = thms |> map (Element.conclude_witness #>
+            Morphism.thm (export' $> export) #>
+            LocalDefs.meta_rewrite_rule (ProofContext.init thy) #>
+            Drule.abs_def);
+          val eq_morph =
+            Morphism.term_morphism (MetaSimplifier.rewrite_term thy thms' []) $>
+            Morphism.thm_morphism (MetaSimplifier.rewrite_rule thms');
+          val attns' = map ((apsnd o map) (Attrib.attribute_i thy)) attns;
+          val add =
+            fold_rev (fn (name, morph) =>
+              NewLocale.amend_global_registration eq_morph (name, morph) #>
+              NewLocale.activate_global_facts (name, morph $> eq_morph $> export)) regs #>
+            PureThy.note_thmss Thm.lemmaK (attns' ~~ map (fn th => [([th], [])]) thms') #>
+            snd
+        in (regs, add thy) end;
 
     fun after_qed results =
-      ProofContext.theory (fold store_reg (regs ~~ prep_result propss results));
+      ProofContext.theory (fn thy =>
+        fold store (map Reg regs @ [Eqns eq_attns] ~~
+          prep_result (propss @ [eqns]) results) ([], thy) |> snd);
   in
     goal_ctxt |>
-      Proof.theorem_i NONE after_qed (prep_propp propss) |>
+      Proof.theorem_i NONE after_qed (prep_propp (propss @ [eqns])) |>
       Element.refine_witness |> Seq.hd
   end;
 
 in
 
-fun interpretation_cmd x = gen_interpretation read_goal_expression x;
-fun interpretation x = gen_interpretation cert_goal_expression x;
+fun interpretation_cmd x = gen_interpretation read_goal_expression
+  Syntax.parse_prop Attrib.intern_src x;
+fun interpretation x = gen_interpretation cert_goal_expression (K I) (K I) x;
 
 end;
 

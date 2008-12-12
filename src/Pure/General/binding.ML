@@ -59,8 +59,8 @@ fun qualify_base path name =
 val qualify = map_base o qualify_base;
   (*FIXME should all operations on bare names move here from name_space.ML ?*)
 
-fun add_prefix sticky prfx b = if prfx = "" then error "empty name prefix"
-  else (map_binding o apfst) (cons (prfx, sticky)) b;
+fun add_prefix sticky "" b = b
+  | add_prefix sticky prfx b = (map_binding o apfst) (cons (prfx, sticky)) b;
 
 fun map_prefix f (Binding ((prefix, name), pos)) =
   f prefix (name_pos (name, pos));

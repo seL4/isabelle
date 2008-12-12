@@ -44,9 +44,10 @@ val _ = OuterSyntax.improper_command "print_locale" "print named locale in this 
 val _ =
   OuterSyntax.command "interpretation"
     "prove interpretation of locale expression in theory" K.thy_goal
-    (P.!!! SpecParse.locale_expression
-        >> (fn expr => Toplevel.print o
-            Toplevel.theory_to_proof (Expression.interpretation_cmd expr)));
+    (P.!!! SpecParse.locale_expression --
+      Scan.optional (P.$$$ "where" |-- P.and_list1 (SpecParse.opt_thm_name ":" -- P.prop)) []
+        >> (fn (expr, mixin) => Toplevel.print o
+            Toplevel.theory_to_proof (Expression.interpretation_cmd expr mixin)));
 
 val _ =
   OuterSyntax.command "interpret"
