@@ -40,6 +40,9 @@
     "chapter"
     "class"
     "class_deps"
+    "class_interpret"
+    "class_interpretation"
+    "class_locale"
     "classes"
     "classrel"
     "codatatype"
@@ -349,6 +352,7 @@
     "axiomatization"
     "axioms"
     "class"
+    "class_locale"
     "classes"
     "classrel"
     "codatatype"
@@ -411,7 +415,8 @@
   '("inductive_cases"))
 
 (defconst isar-keywords-theory-goal
-  '("corollary"
+  '("class_interpretation"
+    "corollary"
     "instance"
     "interpretation"
     "lemma"
@@ -438,7 +443,8 @@
     "subsubsect"))
 
 (defconst isar-keywords-proof-goal
-  '("have"
+  '("class_interpret"
+    "have"
     "hence"
     "interpret"
     "invoke"))
