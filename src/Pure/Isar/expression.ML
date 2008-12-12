@@ -28,8 +28,8 @@ sig
   (* Interpretation *)
   val sublocale_cmd: string -> expression -> theory -> Proof.state;
   val sublocale: string -> expression_i -> theory -> Proof.state;
-  val interpretation_cmd: expression -> Facts.ref list -> theory -> Proof.state;
-  val interpretation: expression_i -> thm list -> theory -> Proof.state;
+  val interpretation_cmd: expression -> (Attrib.binding * string) list -> theory -> Proof.state;
+  val interpretation: expression_i -> (Attrib.binding * term) list -> theory -> Proof.state;
   val interpret_cmd: expression -> bool -> Proof.state -> Proof.state;
   val interpret: expression_i -> bool -> Proof.state -> Proof.state;
 end;
@@ -786,41 +786,63 @@ end;
 
 local
 
-fun gen_interpretation prep_expr prep_thms
+datatype goal = Reg of string * Morphism.morphism | Eqns of Attrib.binding list;
+
+fun gen_interpretation prep_expr parse_prop prep_attr
     expression equations thy =
   let
     val ctxt = ProofContext.init thy;
 
-    val eqns = equations |> prep_thms ctxt |>
-      map (Drule.abs_def o LocalDefs.meta_rewrite_rule ctxt);
-    val eq_morph =
-      Morphism.term_morphism (MetaSimplifier.rewrite_term thy eqns []) $>
-      Morphism.thm_morphism (MetaSimplifier.rewrite_rule eqns);
+    val ((propss, regs, export), expr_ctxt) = prep_expr expression ctxt;
+    
+    val eqns = map (parse_prop expr_ctxt o snd) equations |> Syntax.check_terms expr_ctxt;
+    val eq_attns = map ((apsnd o map) (prep_attr thy) o fst) equations;
+    val goal_ctxt = fold Variable.auto_fixes eqns expr_ctxt;
+    val export' = Variable.export_morphism goal_ctxt expr_ctxt;
 
-    val ((propss, regs, export), goal_ctxt) = prep_expr expression ctxt;
-
-    fun store_reg ((name, morph), thms) =
-      let
-        val morph' = morph $> Element.satisfy_morphism thms;
-      in
-        NewLocale.add_global_registration (name, (morph', export)) #>
-        NewLocale.amend_global_registration (name, morph') eq_morph #>
-        NewLocale.activate_global_facts (name, morph' $> eq_morph $> export)
-      end;
+    fun store (Reg (name, morph), thms) (regs, thy) =
+        let
+          val thms' = map (Element.morph_witness export') thms;
+          val morph' = morph $> Element.satisfy_morphism thms';
+          val add = NewLocale.add_global_registration (name, (morph', export));
+        in ((name, morph') :: regs, add thy) end
+      | store (Eqns [], []) (regs, thy) =
+        let val add = fold_rev (fn (name, morph) =>
+              NewLocale.activate_global_facts (name, morph $> export)) regs;
+        in (regs, add thy) end
+      | store (Eqns attns, thms) (regs, thy) =
+        let
+          val thms' = thms |> map (Element.conclude_witness #>
+            Morphism.thm (export' $> export) #>
+            LocalDefs.meta_rewrite_rule (ProofContext.init thy) #>
+            Drule.abs_def);
+          val eq_morph =
+            Morphism.term_morphism (MetaSimplifier.rewrite_term thy thms' []) $>
+            Morphism.thm_morphism (MetaSimplifier.rewrite_rule thms');
+          val attns' = map ((apsnd o map) (Attrib.attribute_i thy)) attns;
+          val add =
+            fold_rev (fn (name, morph) =>
+              NewLocale.amend_global_registration eq_morph (name, morph) #>
+              NewLocale.activate_global_facts (name, morph $> eq_morph $> export)) regs #>
+            PureThy.note_thmss Thm.lemmaK (attns' ~~ map (fn th => [([th], [])]) thms') #>
+            snd
+        in (regs, add thy) end;
 
     fun after_qed results =
-      ProofContext.theory (fold store_reg (regs ~~ prep_result propss results));
+      ProofContext.theory (fn thy =>
+        fold store (map Reg regs @ [Eqns eq_attns] ~~
+          prep_result (propss @ [eqns]) results) ([], thy) |> snd);
   in
     goal_ctxt |>
-      Proof.theorem_i NONE after_qed (prep_propp propss) |>
+      Proof.theorem_i NONE after_qed (prep_propp (propss @ [eqns])) |>
       Element.refine_witness |> Seq.hd
   end;
 
 in
 
 fun interpretation_cmd x = gen_interpretation read_goal_expression
-  (fn ctxt => map (ProofContext.get_fact ctxt) #> flat) x;
-fun interpretation x = gen_interpretation cert_goal_expression (K I) x;
+  Syntax.parse_prop Attrib.intern_src x;
+fun interpretation x = gen_interpretation cert_goal_expression (K I) (K I) x;
 
 end;
 

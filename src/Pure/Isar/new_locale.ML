@@ -50,7 +50,7 @@ sig
   (* Registrations *)
   val add_global_registration: (string * (Morphism.morphism * Morphism.morphism)) ->
     theory -> theory
-  val amend_global_registration: (string * Morphism.morphism) -> Morphism.morphism ->
+  val amend_global_registration: Morphism.morphism -> (string * Morphism.morphism) ->
     theory -> theory
   val get_global_registrations: theory -> (string * Morphism.morphism) list
 
@@ -471,7 +471,7 @@ val get_global_registrations =
 fun add_global_registration reg =
   (Context.theory_map o RegistrationsData.map) (cons (reg, stamp ()));
 
-fun amend_global_registration (name, base_morph) morph thy =
+fun amend_global_registration morph (name, base_morph) thy =
   let
     val regs = (Context.Theory #> RegistrationsData.get #> map fst) thy;
     val base = instance_of thy name base_morph;

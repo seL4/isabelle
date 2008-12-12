@@ -421,16 +421,15 @@ definition lor_o (infixl "||" 50) where
 
 end
 
-lemma bool_logic_o: "PROP logic_o(op &, Not)"
-  by unfold_locales fast+
+interpretation x: logic_o "op &" "Not"
+  where bool_logic_o: "logic_o.lor_o(op &, Not, x, y) <-> x | y"
+proof -
+  show bool_logic_o: "PROP logic_o(op &, Not)" by unfold_locales fast+
+  show "logic_o.lor_o(op &, Not, x, y) <-> x | y"
+    by (unfold logic_o.lor_o_def [OF bool_logic_o]) fast
+qed
 
-lemma bool_lor_eq: "logic_o.lor_o(op &, Not, x, y) <-> x | y"
-  by (unfold logic_o.lor_o_def [OF bool_logic_o]) fast
-
-interpretation x: logic_o "op &" "Not" where bool_lor_eq
-  by (rule bool_logic_o)
-
-thm x.lor_o_def
+thm x.lor_o_def bool_logic_o
 
 lemma (in logic_o) lor_triv: "x || y <-> x || y" by fast
 
