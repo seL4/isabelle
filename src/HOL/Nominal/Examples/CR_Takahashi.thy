@@ -1,5 +1,3 @@
-(* $Id$ *)
-
 (* Authors: Christian Urban and Mathilde Arnaud                   *)
 (*                                                                *)
 (* A formalisation of the Church-Rosser proof by Masako Takahashi.*)
@@ -20,12 +18,12 @@ nominal_datatype lam =
   | App "lam" "lam"
   | Lam "\<guillemotleft>name\<guillemotright>lam" ("Lam [_]._" [100,100] 100)
 
-consts subst :: "lam \<Rightarrow> name \<Rightarrow> lam \<Rightarrow> lam"  ("_[_::=_]" [100,100,100] 100)
-
 nominal_primrec
+  subst :: "lam \<Rightarrow> name \<Rightarrow> lam \<Rightarrow> lam"  ("_[_::=_]" [100,100,100] 100)
+where
   "(Var x)[y::=s] = (if x=y then s else (Var x))"
-  "(App t\<^isub>1 t\<^isub>2)[y::=s] = App (t\<^isub>1[y::=s]) (t\<^isub>2[y::=s])"
-  "x\<sharp>(y,s) \<Longrightarrow> (Lam [x].t)[y::=s] = Lam [x].(t[y::=s])"
+| "(App t\<^isub>1 t\<^isub>2)[y::=s] = App (t\<^isub>1[y::=s]) (t\<^isub>2[y::=s])"
+| "x\<sharp>(y,s) \<Longrightarrow> (Lam [x].t)[y::=s] = Lam [x].(t[y::=s])"
 apply(finite_guess)+
 apply(rule TrueI)+
 apply(simp add: abs_fresh)
