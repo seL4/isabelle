@@ -1,5 +1,3 @@
-(* $Id$ *)
-
 (* The definitions for a challenge suggested by Adam Chlipala *)
 
 theory Compile
@@ -92,20 +90,24 @@ where
 
 text {* capture-avoiding substitution *}
 
-consts
-  subst :: "'a \<Rightarrow> name \<Rightarrow> 'a \<Rightarrow> 'a"  ("_[_::=_]" [100,100,100] 100)
+class subst =
+  fixes subst :: "'a \<Rightarrow> name \<Rightarrow> 'a \<Rightarrow> 'a"  ("_[_::=_]" [100,100,100] 100)
 
-nominal_primrec
+instantiation trm :: subst
+begin
+
+nominal_primrec subst_trm
+where
   "(Var x)[y::=t'] = (if x=y then t' else (Var x))"
-  "(App t1 t2)[y::=t'] = App (t1[y::=t']) (t2[y::=t'])"
-  "\<lbrakk>x\<sharp>y; x\<sharp>t'\<rbrakk> \<Longrightarrow> (Lam [x].t)[y::=t'] = Lam [x].(t[y::=t'])"
-  "(Const n)[y::=t'] = Const n"
-  "(Pr e1 e2)[y::=t'] = Pr (e1[y::=t']) (e2[y::=t'])"
-  "(Fst e)[y::=t'] = Fst (e[y::=t'])"
-  "(Snd e)[y::=t'] = Snd (e[y::=t'])"
-  "(InL e)[y::=t'] = InL (e[y::=t'])"
-  "(InR e)[y::=t'] = InR (e[y::=t'])"
-  "\<lbrakk>z\<noteq>x; x\<sharp>y; x\<sharp>e; x\<sharp>e2; z\<sharp>y; z\<sharp>e; z\<sharp>e1; x\<sharp>t'; z\<sharp>t'\<rbrakk> \<Longrightarrow>
+| "(App t1 t2)[y::=t'] = App (t1[y::=t']) (t2[y::=t'])"
+| "\<lbrakk>x\<sharp>y; x\<sharp>t'\<rbrakk> \<Longrightarrow> (Lam [x].t)[y::=t'] = Lam [x].(t[y::=t'])"
+| "(Const n)[y::=t'] = Const n"
+| "(Pr e1 e2)[y::=t'] = Pr (e1[y::=t']) (e2[y::=t'])"
+| "(Fst e)[y::=t'] = Fst (e[y::=t'])"
+| "(Snd e)[y::=t'] = Snd (e[y::=t'])"
+| "(InL e)[y::=t'] = InL (e[y::=t'])"
+| "(InR e)[y::=t'] = InR (e[y::=t'])"
+| "\<lbrakk>z\<noteq>x; x\<sharp>y; x\<sharp>e; x\<sharp>e2; z\<sharp>y; z\<sharp>e; z\<sharp>e1; x\<sharp>t'; z\<sharp>t'\<rbrakk> \<Longrightarrow>
      (Case e of inl x \<rightarrow> e1 | inr z \<rightarrow> e2)[y::=t'] =
        (Case (e[y::=t']) of inl x \<rightarrow> (e1[y::=t']) | inr z \<rightarrow> (e2[y::=t']))"
   apply(finite_guess)+
@@ -114,22 +116,34 @@ nominal_primrec
   apply(fresh_guess)+
   done
 
-nominal_primrec (Isubst)
+instance ..
+
+end
+
+instantiation trmI :: subst
+begin
+
+nominal_primrec subst_trmI
+where
   "(IVar x)[y::=t'] = (if x=y then t' else (IVar x))"
-  "(IApp t1 t2)[y::=t'] = IApp (t1[y::=t']) (t2[y::=t'])"
-  "\<lbrakk>x\<sharp>y; x\<sharp>t'\<rbrakk> \<Longrightarrow> (ILam [x].t)[y::=t'] = ILam [x].(t[y::=t'])"
-  "(INat n)[y::=t'] = INat n"
-  "(IUnit)[y::=t'] = IUnit"
-  "(ISucc e)[y::=t'] = ISucc (e[y::=t'])"
-  "(IAss e1 e2)[y::=t'] = IAss (e1[y::=t']) (e2[y::=t'])"
-  "(IRef e)[y::=t'] = IRef (e[y::=t'])"
-  "(ISeq e1 e2)[y::=t'] = ISeq (e1[y::=t']) (e2[y::=t'])"
-  "(Iif e e1 e2)[y::=t'] = Iif (e[y::=t']) (e1[y::=t']) (e2[y::=t'])"
+| "(IApp t1 t2)[y::=t'] = IApp (t1[y::=t']) (t2[y::=t'])"
+| "\<lbrakk>x\<sharp>y; x\<sharp>t'\<rbrakk> \<Longrightarrow> (ILam [x].t)[y::=t'] = ILam [x].(t[y::=t'])"
+| "(INat n)[y::=t'] = INat n"
+| "(IUnit)[y::=t'] = IUnit"
+| "(ISucc e)[y::=t'] = ISucc (e[y::=t'])"
+| "(IAss e1 e2)[y::=t'] = IAss (e1[y::=t']) (e2[y::=t'])"
+| "(IRef e)[y::=t'] = IRef (e[y::=t'])"
+| "(ISeq e1 e2)[y::=t'] = ISeq (e1[y::=t']) (e2[y::=t'])"
+| "(Iif e e1 e2)[y::=t'] = Iif (e[y::=t']) (e1[y::=t']) (e2[y::=t'])"
   apply(finite_guess)+
   apply(rule TrueI)+
   apply(simp add: abs_fresh)+
   apply(fresh_guess)+
   done
+
+instance ..
+
+end
 
 lemma Isubst_eqvt[eqvt]:
   fixes pi::"name prm"
@@ -138,7 +152,7 @@ lemma Isubst_eqvt[eqvt]:
   and   x::"name"
   shows "pi\<bullet>(t1[x::=t2]) = ((pi\<bullet>t1)[(pi\<bullet>x)::=(pi\<bullet>t2)])"
   apply (nominal_induct t1 avoiding: x t2 rule: trmI.strong_induct)
-  apply (simp_all add: Isubst.simps eqvts fresh_bij)
+  apply (simp_all add: subst_trmI.simps eqvts fresh_bij)
   done
 
 lemma Isubst_supp:
@@ -147,7 +161,7 @@ lemma Isubst_supp:
   and   x::"name"
   shows "((supp (t1[x::=t2]))::name set) \<subseteq> (supp t2)\<union>((supp t1)-{x})"
   apply (nominal_induct t1 avoiding: x t2 rule: trmI.strong_induct)
-  apply (auto simp add: Isubst.simps trmI.supp supp_atm abs_supp supp_nat)
+  apply (auto simp add: subst_trmI.simps trmI.supp supp_atm abs_supp supp_nat)
   apply blast+
   done
 
@@ -198,29 +212,29 @@ where
 
 text {* Translation functions *}
 
-consts trans :: "trm \<Rightarrow> trmI" 
-
 nominal_primrec
+  trans :: "trm \<Rightarrow> trmI"
+where
   "trans (Var x) = (IVar x)"
-  "trans (App e1 e2) = IApp (trans e1) (trans e2)"
-  "trans (Lam [x].e) = ILam [x].(trans e)"
-  "trans (Const n) = INat n"
-  "trans (Pr e1 e2) = 
+| "trans (App e1 e2) = IApp (trans e1) (trans e2)"
+| "trans (Lam [x].e) = ILam [x].(trans e)"
+| "trans (Const n) = INat n"
+| "trans (Pr e1 e2) = 
        (let limit = IRef(INat 0) in 
         let v1 = (trans e1) in 
         let v2 = (trans e2) in 
         (((ISucc limit)\<mapsto>v1);;(ISucc(ISucc limit)\<mapsto>v2));;(INat 0 \<mapsto> ISucc(ISucc(limit))))"
-  "trans (Fst e) = IRef (ISucc (trans e))"
-  "trans (Snd e) = IRef (ISucc (ISucc (trans e)))"
-  "trans (InL e) = 
+| "trans (Fst e) = IRef (ISucc (trans e))"
+| "trans (Snd e) = IRef (ISucc (ISucc (trans e)))"
+| "trans (InL e) = 
         (let limit = IRef(INat 0) in 
          let v = (trans e) in 
          (((ISucc limit)\<mapsto>INat(0));;(ISucc(ISucc limit)\<mapsto>v));;(INat 0 \<mapsto> ISucc(ISucc(limit))))"
-  "trans (InR e) = 
+| "trans (InR e) = 
         (let limit = IRef(INat 0) in 
          let v = (trans e) in 
          (((ISucc limit)\<mapsto>INat(1));;(ISucc(ISucc limit)\<mapsto>v));;(INat 0 \<mapsto> ISucc(ISucc(limit))))"
-  "\<lbrakk>x2\<noteq>x1; x1\<sharp>e; x1\<sharp>e2; x2\<sharp>e; x2\<sharp>e1\<rbrakk> \<Longrightarrow> 
+| "\<lbrakk>x2\<noteq>x1; x1\<sharp>e; x1\<sharp>e2; x2\<sharp>e; x2\<sharp>e1\<rbrakk> \<Longrightarrow> 
    trans (Case e of inl x1 \<rightarrow> e1 | inr x2 \<rightarrow> e2) =
        (let v = (trans e) in
         let v1 = (trans e1) in
@@ -232,11 +246,11 @@ nominal_primrec
   apply(fresh_guess add: Let_def)+
   done
 
-consts trans_type :: "ty \<Rightarrow> tyI"
-
 nominal_primrec
+  trans_type :: "ty \<Rightarrow> tyI"
+where
   "trans_type (Data \<sigma>) = DataI(NatI)"
-  "trans_type (\<tau>1\<rightarrow>\<tau>2) = (trans_type \<tau>1)\<rightarrow>(trans_type \<tau>2)"
+| "trans_type (\<tau>1\<rightarrow>\<tau>2) = (trans_type \<tau>1)\<rightarrow>(trans_type \<tau>2)"
   by (rule TrueI)+
 
 end

@@ -1,4 +1,3 @@
-(* "$Id$" *)
 (*                                                        *)
 (* Formalisation of some typical SOS-proofs.              *)
 (*                                                        *) 
@@ -62,13 +61,12 @@ by (induct rule: lookup.induct)
 
 (* parallel substitution *)
 
-consts
-  psubst :: "(name\<times>trm) list \<Rightarrow> trm \<Rightarrow> trm"  ("_<_>" [95,95] 105)
- 
 nominal_primrec
+  psubst :: "(name\<times>trm) list \<Rightarrow> trm \<Rightarrow> trm"  ("_<_>" [95,95] 105)
+where
   "\<theta><(Var x)> = (lookup \<theta> x)"
-  "\<theta><(App e\<^isub>1 e\<^isub>2)> = App (\<theta><e\<^isub>1>) (\<theta><e\<^isub>2>)"
-  "x\<sharp>\<theta> \<Longrightarrow> \<theta><(Lam [x].e)> = Lam [x].(\<theta><e>)"
+| "\<theta><(App e\<^isub>1 e\<^isub>2)> = App (\<theta><e\<^isub>1>) (\<theta><e\<^isub>2>)"
+| "x\<sharp>\<theta> \<Longrightarrow> \<theta><(Lam [x].e)> = Lam [x].(\<theta><e>)"
 apply(finite_guess)+
 apply(rule TrueI)+
 apply(simp add: abs_fresh)+
@@ -349,12 +347,12 @@ lemma reduces_evaluates_to_values:
 using h by (induct) (auto)
 
 (* Valuation *)
-consts
-  V :: "ty \<Rightarrow> trm set" 
 
 nominal_primrec
+  V :: "ty \<Rightarrow> trm set" 
+where
   "V (TVar x) = {e. val e}"
-  "V (T\<^isub>1 \<rightarrow> T\<^isub>2) = {Lam [x].e | x e. \<forall> v \<in> (V T\<^isub>1). \<exists> v'. e[x::=v] \<Down> v' \<and> v' \<in> V T\<^isub>2}"
+| "V (T\<^isub>1 \<rightarrow> T\<^isub>2) = {Lam [x].e | x e. \<forall> v \<in> (V T\<^isub>1). \<exists> v'. e[x::=v] \<Down> v' \<and> v' \<in> V T\<^isub>2}"
   by (rule TrueI)+ 
 
 lemma V_eqvt:

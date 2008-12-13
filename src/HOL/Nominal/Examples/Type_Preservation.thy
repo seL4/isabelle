@@ -1,5 +1,3 @@
-(* $Id$ *)
-
 theory Type_Preservation
   imports Nominal
 begin
@@ -21,13 +19,12 @@ nominal_datatype lam =
 
 text {* Capture-Avoiding Substitution *}
 
-consts 
-  subst :: "lam \<Rightarrow> name \<Rightarrow> lam \<Rightarrow> lam"  ("_[_::=_]")
-
 nominal_primrec
+  subst :: "lam \<Rightarrow> name \<Rightarrow> lam \<Rightarrow> lam"  ("_[_::=_]")
+where
   "(Var x)[y::=s] = (if x=y then s else (Var x))"
-  "(App t\<^isub>1 t\<^isub>2)[y::=s] = App (t\<^isub>1[y::=s]) (t\<^isub>2[y::=s])"
-  "x\<sharp>(y,s) \<Longrightarrow> (Lam [x].t)[y::=s] = Lam [x].(t[y::=s])"
+| "(App t\<^isub>1 t\<^isub>2)[y::=s] = App (t\<^isub>1[y::=s]) (t\<^isub>2[y::=s])"
+| "x\<sharp>(y,s) \<Longrightarrow> (Lam [x].t)[y::=s] = Lam [x].(t[y::=s])"
 apply(finite_guess)+
 apply(rule TrueI)+
 apply(simp add: abs_fresh)

@@ -1,5 +1,3 @@
-(* $Id$ *)
-
 (* Formalisation of weakening using locally nameless    *)
 (* terms; the nominal infrastructure can also derive    *)
 (* strong induction principles for such representations *)
@@ -29,13 +27,13 @@ lemma llam_cases:
 by (induct t rule: llam.induct)
    (auto simp add: llam.inject)
 
-consts llam_size :: "llam \<Rightarrow> nat"
-
 nominal_primrec
- "llam_size (lPar a) = 1"
- "llam_size (lVar n) = 1"
- "llam_size (lApp t1 t2) = 1 + (llam_size t1) + (llam_size t2)"
- "llam_size (lLam t) = 1 + (llam_size t)"
+  llam_size :: "llam \<Rightarrow> nat"
+where
+  "llam_size (lPar a) = 1"
+| "llam_size (lVar n) = 1"
+| "llam_size (lApp t1 t2) = 1 + (llam_size t1) + (llam_size t2)"
+| "llam_size (lLam t) = 1 + (llam_size t)"
 by (rule TrueI)+
 
 function  

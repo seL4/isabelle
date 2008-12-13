@@ -1,5 +1,3 @@
-(* $Id$ *)
-
 theory SN
   imports Lam_Funs
 begin
@@ -228,12 +226,11 @@ done
 
 section {* Candidates *}
 
-consts
-  RED :: "ty \<Rightarrow> lam set"
-
 nominal_primrec
+  RED :: "ty \<Rightarrow> lam set"
+where
   "RED (TVar X) = {t. SN(t)}"
-  "RED (\<tau>\<rightarrow>\<sigma>) =   {t. \<forall>u. (u\<in>RED \<tau> \<longrightarrow> (App t u)\<in>RED \<sigma>)}"
+| "RED (\<tau>\<rightarrow>\<sigma>) =   {t. \<forall>u. (u\<in>RED \<tau> \<longrightarrow> (App t u)\<in>RED \<sigma>)}"
 by (rule TrueI)+
 
 text {* neutral terms *}
@@ -248,13 +245,12 @@ inductive
 where
   fst[intro!]:  "(App t s) \<guillemotright> t"
 
-consts
-  fst_app_aux::"lam\<Rightarrow>lam option"
-
 nominal_primrec
+  fst_app_aux::"lam\<Rightarrow>lam option"
+where
   "fst_app_aux (Var a)     = None"
-  "fst_app_aux (App t1 t2) = Some t1"
-  "fst_app_aux (Lam [x].t) = None"
+| "fst_app_aux (App t1 t2) = Some t1"
+| "fst_app_aux (Lam [x].t) = None"
 apply(finite_guess)+
 apply(rule TrueI)+
 apply(simp add: fresh_none)

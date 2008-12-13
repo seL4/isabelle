@@ -1,5 +1,3 @@
-(* $Id$ *)
-
 theory Lam_Funs
   imports "../Nominal"
 begin
@@ -18,13 +16,12 @@ nominal_datatype lam =
 
 text {* The depth of a lambda-term. *}
 
-consts 
-  depth :: "lam \<Rightarrow> nat"
-
 nominal_primrec
+  depth :: "lam \<Rightarrow> nat"
+where
   "depth (Var x) = 1"
-  "depth (App t1 t2) = (max (depth t1) (depth t2)) + 1"
-  "depth (Lam [a].t) = (depth t) + 1"
+| "depth (App t1 t2) = (max (depth t1) (depth t2)) + 1"
+| "depth (Lam [a].t) = (depth t) + 1"
   apply(finite_guess)+
   apply(rule TrueI)+
   apply(simp add: fresh_nat)
@@ -38,13 +35,12 @@ text {*
   the invariant that frees always returns a finite set of names. 
 *}
 
-consts 
-  frees :: "lam \<Rightarrow> name set"
-
 nominal_primrec (invariant: "\<lambda>s::name set. finite s")
+  frees :: "lam \<Rightarrow> name set"
+where
   "frees (Var a) = {a}"
-  "frees (App t1 t2) = (frees t1) \<union> (frees t2)"
-  "frees (Lam [a].t) = (frees t) - {a}"
+| "frees (App t1 t2) = (frees t1) \<union> (frees t2)"
+| "frees (Lam [a].t) = (frees t) - {a}"
 apply(finite_guess)+
 apply(simp)+ 
 apply(simp add: fresh_def)
@@ -78,14 +74,13 @@ lemma lookup_eqvt[eqvt]:
   and   X::"name"
   shows "pi\<bullet>(lookup \<theta> X) = lookup (pi\<bullet>\<theta>) (pi\<bullet>X)"
 by (induct \<theta>) (auto simp add: eqvts)
-
-consts
-  psubst :: "(name\<times>lam) list \<Rightarrow> lam \<Rightarrow> lam"  ("_<_>" [95,95] 105)
  
 nominal_primrec
+  psubst :: "(name\<times>lam) list \<Rightarrow> lam \<Rightarrow> lam"  ("_<_>" [95,95] 105)
+where
   "\<theta><(Var x)> = (lookup \<theta> x)"
-  "\<theta><(App e\<^isub>1 e\<^isub>2)> = App (\<theta><e\<^isub>1>) (\<theta><e\<^isub>2>)"
-  "x\<sharp>\<theta> \<Longrightarrow> \<theta><(Lam [x].e)> = Lam [x].(\<theta><e>)"
+| "\<theta><(App e\<^isub>1 e\<^isub>2)> = App (\<theta><e\<^isub>1>) (\<theta><e\<^isub>2>)"
+| "x\<sharp>\<theta> \<Longrightarrow> \<theta><(Lam [x].e)> = Lam [x].(\<theta><e>)"
 apply(finite_guess)+
 apply(rule TrueI)+
 apply(simp add: abs_fresh)+
@@ -130,26 +125,24 @@ nominal_datatype clam =
 
 text {* Filling a lambda-term into a context. *}
 
-consts 
-  filling :: "clam \<Rightarrow> lam \<Rightarrow> lam" ("_\<lbrakk>_\<rbrakk>" [100,100] 100)
-
 nominal_primrec
+  filling :: "clam \<Rightarrow> lam \<Rightarrow> lam" ("_\<lbrakk>_\<rbrakk>" [100,100] 100)
+where
   "\<box>\<lbrakk>t\<rbrakk> = t"
-  "(CAppL E t')\<lbrakk>t\<rbrakk> = App (E\<lbrakk>t\<rbrakk>) t'"
-  "(CAppR t' E)\<lbrakk>t\<rbrakk> = App t' (E\<lbrakk>t\<rbrakk>)"
-  "(CLam [x].E)\<lbrakk>t\<rbrakk> = Lam [x].(E\<lbrakk>t\<rbrakk>)" 
+| "(CAppL E t')\<lbrakk>t\<rbrakk> = App (E\<lbrakk>t\<rbrakk>) t'"
+| "(CAppR t' E)\<lbrakk>t\<rbrakk> = App t' (E\<lbrakk>t\<rbrakk>)"
+| "(CLam [x].E)\<lbrakk>t\<rbrakk> = Lam [x].(E\<lbrakk>t\<rbrakk>)" 
 by (rule TrueI)+
 
 text {* Composition od two contexts *}
 
-consts 
- clam_compose :: "clam \<Rightarrow> clam \<Rightarrow> clam" ("_ \<circ> _" [100,100] 100)
-
 nominal_primrec
+ clam_compose :: "clam \<Rightarrow> clam \<Rightarrow> clam" ("_ \<circ> _" [100,100] 100)
+where
   "\<box> \<circ> E' = E'"
-  "(CAppL E t') \<circ> E' = CAppL (E \<circ> E') t'"
-  "(CAppR t' E) \<circ> E' = CAppR t' (E \<circ> E')"
-  "(CLam [x].E) \<circ> E' = CLam [x].(E \<circ> E')"
+| "(CAppL E t') \<circ> E' = CAppL (E \<circ> E') t'"
+| "(CAppR t' E) \<circ> E' = CAppR t' (E \<circ> E')"
+| "(CLam [x].E) \<circ> E' = CLam [x].(E \<circ> E')"
 by (rule TrueI)+
   
 lemma clam_compose:

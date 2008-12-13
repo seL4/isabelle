@@ -1,5 +1,3 @@
-(* $Id$ *)
-
 theory Contexts
 imports "../Nominal"
 begin
@@ -42,12 +40,12 @@ nominal_datatype ctx =
 
 text {* Capture-Avoiding Substitution *}
 
-consts subst :: "lam \<Rightarrow> name \<Rightarrow> lam \<Rightarrow> lam"  ("_[_::=_]" [100,100,100] 100)
-
 nominal_primrec
+  subst :: "lam \<Rightarrow> name \<Rightarrow> lam \<Rightarrow> lam"  ("_[_::=_]" [100,100,100] 100)
+where
   "(Var x)[y::=s] = (if x=y then s else (Var x))"
-  "(App t\<^isub>1 t\<^isub>2)[y::=s] = App (t\<^isub>1[y::=s]) (t\<^isub>2[y::=s])"
-  "x\<sharp>(y,s) \<Longrightarrow> (Lam [x].t)[y::=s] = Lam [x].(t[y::=s])"
+| "(App t\<^isub>1 t\<^isub>2)[y::=s] = App (t\<^isub>1[y::=s]) (t\<^isub>2[y::=s])"
+| "x\<sharp>(y,s) \<Longrightarrow> (Lam [x].t)[y::=s] = Lam [x].(t[y::=s])"
 apply(finite_guess)+
 apply(rule TrueI)+
 apply(simp add: abs_fresh)
@@ -59,14 +57,13 @@ text {*
   This operation is possibly capturing.
 *}
 
-consts 
-  filling :: "ctx \<Rightarrow> lam \<Rightarrow> lam" ("_\<lbrakk>_\<rbrakk>" [100,100] 100)
-
 nominal_primrec
+  filling :: "ctx \<Rightarrow> lam \<Rightarrow> lam" ("_\<lbrakk>_\<rbrakk>" [100,100] 100)
+where
   "\<box>\<lbrakk>t\<rbrakk> = t"
-  "(CAppL E t')\<lbrakk>t\<rbrakk> = App (E\<lbrakk>t\<rbrakk>) t'"
-  "(CAppR t' E)\<lbrakk>t\<rbrakk> = App t' (E\<lbrakk>t\<rbrakk>)"
-  "(CLam [x].E)\<lbrakk>t\<rbrakk> = Lam [x].(E\<lbrakk>t\<rbrakk>)" 
+| "(CAppL E t')\<lbrakk>t\<rbrakk> = App (E\<lbrakk>t\<rbrakk>) t'"
+| "(CAppR t' E)\<lbrakk>t\<rbrakk> = App t' (E\<lbrakk>t\<rbrakk>)"
+| "(CLam [x].E)\<lbrakk>t\<rbrakk> = Lam [x].(E\<lbrakk>t\<rbrakk>)" 
 by (rule TrueI)+
 
 text {* 
@@ -81,14 +78,13 @@ by (auto simp add: alpha ctx.inject lam.inject calc_atm fresh_atm)
 
 text {* The composition of two contexts. *}
 
-consts 
- ctx_compose :: "ctx \<Rightarrow> ctx \<Rightarrow> ctx" ("_ \<circ> _" [100,100] 100)
-
 nominal_primrec
+ ctx_compose :: "ctx \<Rightarrow> ctx \<Rightarrow> ctx" ("_ \<circ> _" [100,100] 100)
+where
   "\<box> \<circ> E' = E'"
-  "(CAppL E t') \<circ> E' = CAppL (E \<circ> E') t'"
-  "(CAppR t' E) \<circ> E' = CAppR t' (E \<circ> E')"
-  "(CLam [x].E) \<circ> E' = CLam [x].(E \<circ> E')"
+| "(CAppL E t') \<circ> E' = CAppL (E \<circ> E') t'"
+| "(CAppR t' E) \<circ> E' = CAppR t' (E \<circ> E')"
+| "(CLam [x].E) \<circ> E' = CLam [x].(E \<circ> E')"
 by (rule TrueI)+
   
 lemma ctx_compose:

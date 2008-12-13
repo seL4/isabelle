@@ -1,5 +1,3 @@
-(* $Id$ *)
-
 theory Height
   imports "../Nominal"
 begin
@@ -17,13 +15,13 @@ nominal_datatype lam =
   | Lam "\<guillemotleft>name\<guillemotright>lam" ("Lam [_]._" [100,100] 100)
 
 text {* Definition of the height-function on lambda-terms. *} 
-consts 
-  height :: "lam \<Rightarrow> int"
 
 nominal_primrec
+  height :: "lam \<Rightarrow> int"
+where
   "height (Var x) = 1"
-  "height (App t1 t2) = (max (height t1) (height t2)) + 1"
-  "height (Lam [a].t) = (height t) + 1"
+| "height (App t1 t2) = (max (height t1) (height t2)) + 1"
+| "height (Lam [a].t) = (height t) + 1"
   apply(finite_guess add: perm_int_def)+
   apply(rule TrueI)+
   apply(simp add: fresh_int)
@@ -32,13 +30,12 @@ nominal_primrec
 
 text {* Definition of capture-avoiding substitution. *}
 
-consts
-  subst :: "lam \<Rightarrow> name \<Rightarrow> lam \<Rightarrow> lam"  ("_[_::=_]" [100,100,100] 100)
-
 nominal_primrec
+  subst :: "lam \<Rightarrow> name \<Rightarrow> lam \<Rightarrow> lam"  ("_[_::=_]" [100,100,100] 100)
+where
   "(Var x)[y::=t'] = (if x=y then t' else (Var x))"
-  "(App t1 t2)[y::=t'] = App (t1[y::=t']) (t2[y::=t'])"
-  "\<lbrakk>x\<sharp>y; x\<sharp>t'\<rbrakk> \<Longrightarrow> (Lam [x].t)[y::=t'] = Lam [x].(t[y::=t'])"
+| "(App t1 t2)[y::=t'] = App (t1[y::=t']) (t2[y::=t'])"
+| "\<lbrakk>x\<sharp>y; x\<sharp>t'\<rbrakk> \<Longrightarrow> (Lam [x].t)[y::=t'] = Lam [x].(t[y::=t'])"
 apply(finite_guess)+
 apply(rule TrueI)+
 apply(simp add: abs_fresh)

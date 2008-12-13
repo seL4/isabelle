@@ -1,4 +1,3 @@
-(* "$Id$" *)
 (*                                                    *)
 (* Formalisation of the chapter on Logical Relations  *)
 (* and a Case Study in Equivalence Checking           *)
@@ -47,13 +46,19 @@ lemma ty_cases:
   shows "(\<exists> T\<^isub>1 T\<^isub>2. T=T\<^isub>1\<rightarrow>T\<^isub>2) \<or> T=TUnit \<or> T=TBase"
 by (induct T rule:ty.induct) (auto)
 
-instance ty :: size ..
+instantiation ty :: size
+begin
 
-nominal_primrec
+nominal_primrec size_ty
+where
   "size (TBase) = 1"
-  "size (TUnit) = 1"
-  "size (T\<^isub>1\<rightarrow>T\<^isub>2) = size T\<^isub>1 + size T\<^isub>2"
+| "size (TUnit) = 1"
+| "size (T\<^isub>1\<rightarrow>T\<^isub>2) = size T\<^isub>1 + size T\<^isub>2"
 by (rule TrueI)+
+
+instance ..
+
+end
 
 lemma ty_size_greater_zero[simp]:
   fixes T::"ty"
@@ -87,16 +92,15 @@ lemma lookup_fresh':
 using a
 by (induct rule: lookup.induct)
    (auto simp add: fresh_list_cons fresh_prod fresh_atm)
-
-consts
-  psubst :: "Subst \<Rightarrow> trm \<Rightarrow> trm"  ("_<_>" [100,100] 130)
  
 nominal_primrec
+  psubst :: "Subst \<Rightarrow> trm \<Rightarrow> trm"  ("_<_>" [100,100] 130)
+where
   "\<theta><(Var x)> = (lookup \<theta> x)"
-  "\<theta><(App t\<^isub>1 t\<^isub>2)> = App \<theta><t\<^isub>1> \<theta><t\<^isub>2>"
-  "x\<sharp>\<theta> \<Longrightarrow> \<theta><(Lam [x].t)> = Lam [x].(\<theta><t>)"
-  "\<theta><(Const n)> = Const n"
-  "\<theta><(Unit)> = Unit"
+| "\<theta><(App t\<^isub>1 t\<^isub>2)> = App \<theta><t\<^isub>1> \<theta><t\<^isub>2>"
+| "x\<sharp>\<theta> \<Longrightarrow> \<theta><(Lam [x].t)> = Lam [x].(\<theta><t>)"
+| "\<theta><(Const n)> = Const n"
+| "\<theta><(Unit)> = Unit"
 apply(finite_guess)+
 apply(rule TrueI)+
 apply(simp add: abs_fresh)+
