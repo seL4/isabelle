@@ -68,7 +68,7 @@ val checkpoint = Context.checkpoint_thy;
 val copy = Context.copy_thy;
 
 fun requires thy name what =
-  if Context.exists_name name thy then ()
+  if exists (fn thy' => Context.theory_name thy' = name) (thy :: ancestors_of thy) then ()
   else error ("Require theory " ^ quote name ^ " as an ancestor for " ^ what);
 
 

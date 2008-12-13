@@ -4,7 +4,7 @@
   ML_SYSTEM="polyml-5.2.1"
   ML_PLATFORM="x86-darwin"
   ML_HOME="$POLYML_HOME/$ML_PLATFORM"
-  ML_OPTIONS="-H 2000"
+  ML_OPTIONS="--immutable 800 --mutable 1200"
 
 
 ISABELLE_HOME_USER=~/isabelle-at-mac-poly-e
