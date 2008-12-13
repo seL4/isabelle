@@ -1,6 +1,4 @@
 (*  Title:      Pure/Isar/theory_target.ML
-    ID:         $Id$
-    ID:         $Id$
     Author:     Makarius
 
 Common theory/locale/class/instantiation/overloading targets.
