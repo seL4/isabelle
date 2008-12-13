@@ -144,15 +144,15 @@ datatype theory =
   Theory of
    (*identity*)
    {self: theory ref option,      (*dynamic self reference -- follows theory changes*)
-    draft: bool,                  (*draft mode -- linear changes*)
+    draft: bool,                  (*draft mode -- linear destructive changes*)
     id: serial,                   (*identifier*)
     ids: unit Inttab.table} *     (*cumulative identifiers of non-drafts -- symbolic body content*)
-   (*data*)                      
-   Object.T Datatab.table *      
-   (*ancestry*)                  
+   (*data*)
+   Object.T Datatab.table *       (*body content*)
+   (*ancestry*)
    {parents: theory list,         (*immediate predecessors*)
     ancestors: theory list} *     (*all predecessors -- canonical reverse order*)
-   (*history*)                   
+   (*history*)
    {name: string,                 (*official theory name*)
     stage: int};                  (*checkpoint counter*)
 
@@ -205,14 +205,15 @@ fun reject_draft thy =
 
 val PureN = "Pure";
 val draftN = "#";
+val finished = ~1;
 
 fun display_names thy =
   let
     val draft = if is_draft thy then [draftN] else [];
+    val {stage, ...} = history_of thy;
     val name =
-      (case #stage (history_of thy) of
-        ~1 => theory_name thy
-      | n => theory_name thy ^ ":" ^ string_of_int n);
+      if stage = finished then theory_name thy
+      else theory_name thy ^ ":" ^ string_of_int stage;
     val ancestor_names = map theory_name (ancestors_of thy);
     val stale = if is_stale thy then ["!"] else [];
   in rev (stale @ draft @ [name] @ ancestor_names) end;
@@ -386,7 +387,7 @@ fun begin_thy pp name imports =
 fun history_stage f thy =
   let
     val {name, stage} = history_of thy;
-    val _ = stage = ~1 andalso raise THEORY ("Theory already finished", [thy]);
+    val _ = stage = finished andalso raise THEORY ("Theory already finished", [thy]);
     val history' = make_history name (f stage);
     val thy' as Theory (identity', data', ancestry', _) = name_thy thy;
     val thy'' = NAMED_CRITICAL "theory" (fn () =>
@@ -397,7 +398,7 @@ fun checkpoint_thy thy =
   if is_draft thy then history_stage (fn stage => stage + 1) thy
   else thy;
 
-val finish_thy = history_stage (fn _ => ~1);
+val finish_thy = history_stage (fn _ => finished);
 
 
 (* theory data *)
