@@ -7,7 +7,7 @@ New locale development --- experimental.
 signature EXPRESSION =
 sig
   datatype 'term map = Positional of 'term option list | Named of (string * 'term) list;
-  type 'term expr = (string * (string * 'term map)) list;
+  type 'term expr = (string * ((string * bool) * 'term map)) list;
   type expression = string expr * (Binding.T * string option * mixfix) list;
   type expression_i = term expr * (Binding.T * typ option * mixfix) list;
 
@@ -47,7 +47,7 @@ datatype 'term map =
   Positional of 'term option list |
   Named of (string * 'term) list;
 
-type 'term expr = (string * (string * 'term map)) list;
+type 'term expr = (string * ((string * bool) * 'term map)) list;
 
 type expression = string expr * (Binding.T * string option * mixfix) list;
 type expression_i = term expr * (Binding.T * typ option * mixfix) list;
@@ -154,7 +154,7 @@ end;
 
 (* Instantiation morphism *)
 
-fun inst_morph (parm_names, parm_types) (prfx, insts') ctxt =
+fun inst_morph (parm_names, parm_types) ((prfx, strict), insts') ctxt =
   let
     (* parameters *)
     val type_parm_names = fold Term.add_tfreesT parm_types [] |> map fst;
@@ -175,7 +175,7 @@ fun inst_morph (parm_names, parm_types) (prfx, insts') ctxt =
     val inst = Symtab.make insts'';
   in
     (Element.inst_morphism (ProofContext.theory_of ctxt) (instT, inst) $>
-      Morphism.binding_morphism (Binding.add_prefix false prfx), ctxt')
+      Morphism.binding_morphism (Binding.add_prefix strict prfx), ctxt')
   end;
 
 
