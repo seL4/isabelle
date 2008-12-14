@@ -104,7 +104,7 @@ fun plus1_unless test scan =
 
 val rename = P.name -- Scan.option P.mixfix;
 
-val prefix = P.name --| P.$$$ ":";
+val prefix = P.name -- Scan.optional (P.$$$ "!" >> K true) false --| P.$$$ ":";
 val named = P.name -- (P.$$$ "=" |-- P.term);
 val position = P.maybe P.term;
 val instance = P.$$$ "where" |-- P.and_list1 named >> Expression.Named ||
@@ -127,7 +127,7 @@ val locale_expr =
 val locale_expression =
   let
     fun expr2 x = P.xname x;
-    fun expr1 x = (Scan.optional prefix "" -- expr2 --
+    fun expr1 x = (Scan.optional prefix ("", false) -- expr2 --
       Scan.optional instance (Expression.Named []) >> (fn ((p, l), i) => (l, (p, i)))) x;
     fun expr0 x = (plus1_unless locale_keyword expr1) x;
   in expr0 -- Scan.optional (P.$$$ "for" |-- P.!!! locale_fixes) [] end;

@@ -421,7 +421,7 @@ definition lor_o (infixl "||" 50) where
 
 end
 
-interpretation x: logic_o "op &" "Not"
+interpretation x!: logic_o "op &" "Not"
   where bool_logic_o: "logic_o.lor_o(op &, Not, x, y) <-> x | y"
 proof -
   show bool_logic_o: "PROP logic_o(op &, Not)" by unfold_locales fast+
@@ -431,9 +431,12 @@ qed
 
 thm x.lor_o_def bool_logic_o
 
+lemma lor_triv: "z <-> z" ..
+
 lemma (in logic_o) lor_triv: "x || y <-> x || y" by fast
 
-thm x.lor_triv
+thm lor_triv [where z = True] (* Check strict prefix. *)
+  x.lor_triv
 
 
 subsection {* Interpretation in proofs *}
