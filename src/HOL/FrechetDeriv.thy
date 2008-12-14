@@ -65,8 +65,8 @@ lemma bounded_linear_add:
   assumes "bounded_linear g"
   shows "bounded_linear (\<lambda>x. f x + g x)"
 proof -
-  interpret f: bounded_linear [f] by fact
-  interpret g: bounded_linear [g] by fact
+  interpret f: bounded_linear f by fact
+  interpret g: bounded_linear g by fact
   show ?thesis apply (unfold_locales)
     apply (simp only: f.add g.add add_ac)
     apply (simp only: f.scaleR g.scaleR scaleR_right_distrib)
@@ -124,7 +124,7 @@ lemma bounded_linear_minus:
   assumes "bounded_linear f"
   shows "bounded_linear (\<lambda>x. - f x)"
 proof -
-  interpret f: bounded_linear [f] by fact
+  interpret f: bounded_linear f by fact
   show ?thesis apply (unfold_locales)
     apply (simp add: f.add)
     apply (simp add: f.scaleR)
@@ -151,7 +151,7 @@ lemma FDERIV_isCont:
   assumes f: "FDERIV f x :> F"
   shows "isCont f x"
 proof -
-  from f interpret F: bounded_linear ["F"] by (rule FDERIV_bounded_linear)
+  from f interpret F: bounded_linear "F" by (rule FDERIV_bounded_linear)
   have "(\<lambda>h. norm (f (x + h) - f x - F h) / norm h) -- 0 --> 0"
     by (rule FDERIV_D [OF f])
   hence "(\<lambda>h. norm (f (x + h) - f x - F h) / norm h * norm h) -- 0 --> 0"
@@ -180,8 +180,8 @@ lemma bounded_linear_compose:
   assumes "bounded_linear g"
   shows "bounded_linear (\<lambda>x. f (g x))"
 proof -
-  interpret f: bounded_linear [f] by fact
-  interpret g: bounded_linear [g] by fact
+  interpret f: bounded_linear f by fact
+  interpret g: bounded_linear g by fact
   show ?thesis proof (unfold_locales)
     fix x y show "f (g (x + y)) = f (g x) + f (g y)"
       by (simp only: f.add g.add)
@@ -223,8 +223,8 @@ next
   let ?k = "\<lambda>h. f (x + h) - f x"
   let ?Nf = "\<lambda>h. norm (?Rf h) / norm h"
   let ?Ng = "\<lambda>h. norm (?Rg (?k h)) / norm (?k h)"
-  from f interpret F: bounded_linear ["F"] by (rule FDERIV_bounded_linear)
-  from g interpret G: bounded_linear ["G"] by (rule FDERIV_bounded_linear)
+  from f interpret F!: bounded_linear "F" by (rule FDERIV_bounded_linear)
+  from g interpret G!: bounded_linear "G" by (rule FDERIV_bounded_linear)
   from F.bounded obtain kF where kF: "\<And>x. norm (F x) \<le> norm x * kF" by fast
   from G.bounded obtain kG where kG: "\<And>x. norm (G x) \<le> norm x * kG" by fast
 
@@ -375,9 +375,9 @@ next
     by (simp only: FDERIV_lemma)
 qed
 
-lemmas FDERIV_mult = bounded_bilinear_locale.mult.prod.FDERIV
+lemmas FDERIV_mult = mult.FDERIV
 
-lemmas FDERIV_scaleR = bounded_bilinear_locale.scaleR.prod.FDERIV
+lemmas FDERIV_scaleR = scaleR.FDERIV
 
 
 subsection {* Powers *}
@@ -409,10 +409,10 @@ lemma inverse_diff_inverse:
 by (simp add: right_diff_distrib left_diff_distrib mult_assoc)
 
 lemmas bounded_linear_mult_const =
-  bounded_bilinear_locale.mult.prod.bounded_linear_left [THEN bounded_linear_compose]
+  mult.bounded_linear_left [THEN bounded_linear_compose]
 
 lemmas bounded_linear_const_mult =
-  bounded_bilinear_locale.mult.prod.bounded_linear_right [THEN bounded_linear_compose]
+  mult.bounded_linear_right [THEN bounded_linear_compose]
 
 lemma FDERIV_inverse:
   fixes x :: "'a::real_normed_div_algebra"
@@ -492,7 +492,7 @@ lemma field_fderiv_def:
   fixes x :: "'a::real_normed_field" shows
   "FDERIV f x :> (\<lambda>h. h * D) = (\<lambda>h. (f (x + h) - f x) / h) -- 0 --> D"
  apply (unfold fderiv_def)
- apply (simp add: bounded_bilinear_locale.mult.prod.bounded_linear_left)
+ apply (simp add: mult.bounded_linear_left)
  apply (simp cong: LIM_cong add: nonzero_norm_divide [symmetric])
  apply (subst diff_divide_distrib)
  apply (subst times_divide_eq_left [symmetric])
