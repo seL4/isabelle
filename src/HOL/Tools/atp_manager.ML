@@ -132,9 +132,10 @@ fun unregister (success, message) thread = Synchronized.change_result state
           (if null group_threads then ""
            else "\nInterrupted " ^ string_of_int (length group_threads - 1) ^ " other group members")
 
-      val messages' = message ::
-       (if length messages < message_store_limit then messages
-        else #1 (chop message_store_limit messages));
+      val messages' = case info of NONE => messages
+        | SOME (_, _, desc) => desc ^ "\n" ^ message ::
+           (if length messages <= message_store_limit then messages
+            else #1 (chop message_store_limit messages))
     in (message', make_state timeout_heap oldest_heap active'' cancelling'' messages') end);
 
 
@@ -263,7 +264,7 @@ fun messages opt_limit =
     val State {messages = msgs, ...} = Synchronized.value state
     val header = "Recent ATP messages" ^
       (if length msgs <= limit then ":" else " (" ^ string_of_int limit ^ " displayed):");
-  in writeln (cat_lines (header :: "" :: #1 (chop limit msgs))) end;
+  in writeln (space_implode "\n\n" (header :: #1 (chop limit msgs))) end;
 
 
 
