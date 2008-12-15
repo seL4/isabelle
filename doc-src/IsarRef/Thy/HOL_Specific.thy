@@ -812,6 +812,7 @@ text {*
   'sledgehammer' (nameref *)
   ;
   'atp\_messages' ('(' nat ')')?
+  ;
 
   'metis' thmrefs
   ;
