@@ -822,6 +822,7 @@ Isabelle/HOL includes a generic \emph{ATP manager} that allows
   'sledgehammer' (nameref *)
   ;
   'atp\_messages' ('(' nat ')')?
+  ;
 
   'metis' thmrefs
   ;
@@ -855,7 +856,8 @@ Isabelle/HOL includes a generic \emph{ATP manager} that allows
   \item \hyperlink{command.HOL.atp-messages}{\mbox{\isa{\isacommand{atp{\isacharunderscore}messages}}}} displays recent messages issued
   by automated theorem provers.  This allows to examine results that
   might have got lost due to the asynchronous nature of default
-  \hyperlink{command.HOL.sledgehammer}{\mbox{\isa{\isacommand{sledgehammer}}}} output.
+  \hyperlink{command.HOL.sledgehammer}{\mbox{\isa{\isacommand{sledgehammer}}}} output.  An optional message limit may
+  be specified (default 5).
 
   \item \hyperlink{method.HOL.metis}{\mbox{\isa{metis}}}~\isa{{\isachardoublequote}facts{\isachardoublequote}} invokes the Metis prover
   with the given facts.  Metis is an automated proof tool of medium
