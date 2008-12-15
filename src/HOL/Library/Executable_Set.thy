@@ -275,7 +275,6 @@ consts_code
   Ball ("{*Blall*}")
   Bex ("{*Blex*}")
   filter_set ("{*filter*}")
-  fold ("{* foldl *}")
-
+  fold ("{* foldl o flip *}")
 
 end
