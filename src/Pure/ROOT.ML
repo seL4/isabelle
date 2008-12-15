@@ -87,8 +87,6 @@ use "Proof/extraction.ML";
 
 cd "Tools"; use "ROOT.ML"; cd "..";
 
-use "../Tools/value.ML";
-use "../Tools/quickcheck.ML";
 use "codegen.ML";
 
 (*configuration for Proof General*)
