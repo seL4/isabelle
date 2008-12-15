@@ -62,6 +62,9 @@ fun get_job (jobs: jobs) (Task id) = #2 (IntGraph.get_node jobs id);
 fun map_job (Task id) f (jobs: jobs) = IntGraph.map_node id (apsnd f) jobs;
 
 fun add_job (Task id) (Task dep) (jobs: jobs) =
+  IntGraph.add_edge (dep, id) jobs handle IntGraph.UNDEF _ => jobs;
+
+fun add_job_acyclic (Task id) (Task dep) (jobs: jobs) =
   IntGraph.add_edge_acyclic (dep, id) jobs handle IntGraph.UNDEF _ => jobs;
 
 fun check_job (jobs: jobs) (task as Task id) =
@@ -92,7 +95,7 @@ fun enqueue (group as Group (gid, _)) deps pri job (Queue {groups, jobs, focus})
   in (task, make_queue groups' jobs' focus) end;
 
 fun depend deps task (Queue {groups, jobs, focus}) =
-  make_queue groups (fold (add_job task) deps jobs) focus;
+  make_queue groups (fold (add_job_acyclic task) deps jobs) focus;
 
 fun focus tasks (Queue {groups, jobs, ...}) =
   make_queue groups jobs (map_filter (check_job jobs) tasks);
