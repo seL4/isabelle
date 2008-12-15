@@ -96,8 +96,9 @@ class TheoryView(prover : Prover, val buffer : JEditBuffer)
     buffer.setProperty(ISABELLE_THEORY_PROPERTY, this)
 
     val repaint_delay = new isabelle.utils.Delay(100, () => repaintAll())
-    prover.commandInfo.add(_ => repaint_delay.delay())
-    
+    prover.commandInfo.add(_ => repaint_delay.delay_or_ignore())
+    // could also use this:
+    // prover.commandInfo.add(c => repaint(c.command))
     Plugin.plugin.viewFontChanged.add(font => updateFont())
     
     colTimer.stop

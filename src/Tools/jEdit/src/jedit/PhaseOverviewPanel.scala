@@ -39,9 +39,7 @@ class PhaseOverviewPanel(textarea : JEditTextArea) extends JPanel(new BorderLayo
 	private val HILITE_HEIGHT = 2
 
   Plugin.plugin.prover.commandInfo.add(cc => {
-      System.err.println(cc.command.idString + ": " + cc.command.phase)
       paintCommand(cc.command,textarea.getBuffer, getGraphics)
-      System.err.println(cc.command.idString + ": " + cc.command.phase)
     })
   setRequestFocusEnabled(false);
 
