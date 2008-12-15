@@ -23,12 +23,14 @@
 package isabelle.jedit
 
 import isabelle.prover.Command
+import isabelle.utils.Delay
 
 import javax.swing._
 import java.awt.event._
 import java.awt._
 import org.gjt.sp.jedit.gui.RolloverButton;
 import org.gjt.sp.jedit.textarea.JEditTextArea;
+import org.gjt.sp.jedit.buffer.JEditBuffer;
 import org.gjt.sp.jedit._
 
 class PhaseOverviewPanel(textarea : JEditTextArea) extends JPanel(new BorderLayout) {
@@ -36,7 +38,11 @@ class PhaseOverviewPanel(textarea : JEditTextArea) extends JPanel(new BorderLayo
   private val WIDTH = 10
 	private val HILITE_HEIGHT = 2
 
-  Plugin.plugin.prover.commandInfo.add(_ => repaint())
+  Plugin.plugin.prover.commandInfo.add(cc => {
+      System.err.println(cc.command.idString + ": " + cc.command.phase)
+      paintCommand(cc.command,textarea.getBuffer, getGraphics)
+      System.err.println(cc.command.idString + ": " + cc.command.phase)
+    })
   setRequestFocusEnabled(false);
 
   addMouseListener(new MouseAdapter {
@@ -69,32 +75,33 @@ class PhaseOverviewPanel(textarea : JEditTextArea) extends JPanel(new BorderLayo
     } else ""
 	}
 
+  private def paintCommand(command : Command, buffer : JEditBuffer, gfx : Graphics) {
+      val line1 = buffer.getLineOfOffset(command.start)
+      val line2 = buffer.getLineOfOffset(command.stop - 1) + 1
+      val y = lineToY(line1)
+      val height = lineToY(line2) - y - 1
+      val (light, dark) = command.phase match {
+        case Command.Phase.UNPROCESSED => (Color.yellow, new Color(128,128,0))
+        case Command.Phase.FINISHED => (Color.green, new Color(0, 128, 0))
+        case Command.Phase.FAILED => (Color.red, new Color(128,0,0))
+      }
+
+      gfx.setColor(light)
+      gfx.fillRect(0, y, getWidth - 1, 1 max height)
+      if(height > 2){
+        gfx.setColor(dark)
+        gfx.drawRect(0, y, getWidth - 1, height)
+      }
+
+  }
+
 	override def paintComponent(gfx : Graphics) {
 		super.paintComponent(gfx)
 
-
 		val buffer = textarea.getBuffer
 
-		val line_count = buffer.getLineCount
-
-    for(command <- Plugin.plugin.prover.document.commands) {
-      val line1 = buffer.getLineOfOffset(command.start)
-      val line2 = buffer.getLineOfOffset(command.stop - 1) + 1
-      if(line1 < 0 || line2 > line_count){
-        System.err.println("invalid line numbers: " + line1 + " - " + line2)
-      } else {
-        val y1 = lineToY(line1)
-        val y2 = lineToY(line2) - 1
-        val linelength = buffer.getLineLength(line1)
-        val color = command.phase match {
-          case Command.Phase.UNPROCESSED => Color.yellow
-          case Command.Phase.FINISHED => Color.green
-          case Command.Phase.FAILED => Color.red
-        }
-				gfx.setColor(color)
-				gfx.fillRect(0, y1, getWidth, 1 max y2 - y1)
-			}
-		}
+    for(c <- Plugin.plugin.prover.document.commands)
+      paintCommand(c, buffer, gfx)
 	}
 
 	override def getPreferredSize : Dimension =

@@ -94,10 +94,10 @@ class TheoryView(prover : Prover, val buffer : JEditBuffer)
   {
     buffer.addBufferListener(this)
     buffer.setProperty(ISABELLE_THEORY_PROPERTY, this)
+
+    val repaint_delay = new isabelle.utils.Delay(100, () => repaintAll())
+    prover.commandInfo.add(_ => repaint_delay.delay())
     
-    prover.commandInfo.add(e => repaint(e.command))
-    prover.commandInfo.add(e => repaintAll())
-	
     Plugin.plugin.viewFontChanged.add(font => updateFont())
     
     colTimer.stop
@@ -157,7 +157,7 @@ class TheoryView(prover : Prover, val buffer : JEditBuffer)
   
   def repaint(cmd : Command)
   {
-    var ph = cmd.phase
+    val ph = cmd.phase
     if (textArea != null && ph != Phase.REMOVE && ph != Phase.REMOVED) {
       var start = textArea.getLineOfOffset(toCurrent(cmd.start))
       var stop = textArea.getLineOfOffset(toCurrent(cmd.stop) - 1)

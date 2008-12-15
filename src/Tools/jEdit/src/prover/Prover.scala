@@ -61,15 +61,18 @@ class Prover() {
         }
         else {
           val tree = parse_failsafe(converter.decode(r.result))
+          if (st == null || (st.phase != Phase.REMOVED && st.phase != Phase.REMOVE))
           tree match {
             //handle all kinds of status messages here
             case Elem("message", List(("class","status")), elems) =>
               elems map (elem => elem match{
+
                   // catch command_start and keyword declarations
                   case Elem("command_decl", List(("name", name), ("kind", _)), _) =>
                     command_decls.addEntry(name)
                   case Elem("keyword_decl", List(("name", name)), _) =>
                     keyword_decls.addEntry(name)
+
                   // expecting markups here
                   case Elem(kind, List(("offset", offset),
                                        ("end_offset", end_offset),
@@ -83,6 +86,7 @@ class Prover() {
                       // inner syntax: id from props
                       else st
                     command.root_node.insert(command.node_from(kind, begin, end))
+
                   // Phase changed
                   case Elem("finished", _, _) =>
                     st.phase = Phase.FINISHED
@@ -94,14 +98,12 @@ class Prover() {
                     st.phase = Phase.FAILED
                     fireChange(st)
                   case Elem("removed", _, _) =>
-                    // TODO: never lose information on command + id ??
-                    //document.prover.commands.removeKey(st.idString)
+                    document.prover.commands.removeKey(st.idString)
                     st.phase = Phase.REMOVED
                     fireChange(st)
                   case _ =>
                 }) 
             case _ =>
-              //TODO
               if (st != null)
               handleResult(st, r, tree)
           }
