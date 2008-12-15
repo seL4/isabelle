@@ -120,7 +120,7 @@ locale PO = S +
 locale CL = S +
   assumes cl_co:  "cl : CompleteLattice"
 
-interpretation CL < PO
+sublocale CL < PO
 apply (simp_all add: A_def r_def)
 apply unfold_locales
 using cl_co unfolding CompleteLattice_def by auto
@@ -131,7 +131,7 @@ locale CLF = S +
   assumes f_cl:  "(cl,f) : CLF_set" (*was the equivalent "f : CLF_set``{cl}"*)
   defines P_def: "P == fix f A"
 
-interpretation CLF < CL
+sublocale CLF < CL
 apply (simp_all add: A_def r_def)
 apply unfold_locales
 using f_cl unfolding CLF_set_def by auto

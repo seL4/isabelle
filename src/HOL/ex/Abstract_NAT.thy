@@ -1,5 +1,4 @@
 (*
-    ID:         $Id$
     Author:     Makarius
 *)
 
@@ -131,7 +130,7 @@ end
 
 text {* \medskip Just see that our abstract specification makes sense \dots *}
 
-interpretation NAT [0 Suc]
+interpretation NAT 0 Suc
 proof (rule NAT.intro)
   fix m n
   show "(Suc m = Suc n) = (m = n)" by simp

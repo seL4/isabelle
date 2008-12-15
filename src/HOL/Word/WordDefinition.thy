@@ -356,11 +356,11 @@ lemma td_ext_uint:
 
 lemmas int_word_uint = td_ext_uint [THEN td_ext.eq_norm, standard]
 
-interpretation word_uint: 
-  td_ext ["uint::'a::len0 word \<Rightarrow> int" 
-          word_of_int 
-          "uints (len_of TYPE('a::len0))"
-          "\<lambda>w. w mod 2 ^ len_of TYPE('a::len0)"]
+interpretation word_uint!:
+  td_ext "uint::'a::len0 word \<Rightarrow> int" 
+         word_of_int 
+         "uints (len_of TYPE('a::len0))"
+         "\<lambda>w. w mod 2 ^ len_of TYPE('a::len0)"
   by (rule td_ext_uint)
   
 lemmas td_uint = word_uint.td_thm
@@ -368,11 +368,11 @@ lemmas td_uint = word_uint.td_thm
 lemmas td_ext_ubin = td_ext_uint 
   [simplified len_gt_0 no_bintr_alt1 [symmetric]]
 
-interpretation word_ubin:
-  td_ext ["uint::'a::len0 word \<Rightarrow> int" 
-          word_of_int 
-          "uints (len_of TYPE('a::len0))"
-          "bintrunc (len_of TYPE('a::len0))"]
+interpretation word_ubin!:
+  td_ext "uint::'a::len0 word \<Rightarrow> int" 
+         word_of_int 
+         "uints (len_of TYPE('a::len0))"
+         "bintrunc (len_of TYPE('a::len0))"
   by (rule td_ext_ubin)
 
 lemma sint_sbintrunc': 

@@ -1,5 +1,4 @@
 (*  Title:      HOL/Real/HahnBanach/HahnBanach.thy
-    ID:         $Id$
     Author:     Gertrud Bauer, TU Munich
 *)
 
@@ -63,10 +62,10 @@ theorem HahnBanach:
     -- {* and @{text f} a linear form on @{text F} such that @{text f} is bounded by @{text p}, *}
     -- {* then @{text f} can be extended to a linear form @{text h} on @{text E} in a norm-preserving way. \skp *}
 proof -
-  interpret vectorspace [E] by fact
-  interpret subspace [F E] by fact
-  interpret seminorm [E p] by fact
-  interpret linearform [F f] by fact
+  interpret vectorspace E by fact
+  interpret subspace F E by fact
+  interpret seminorm E p by fact
+  interpret linearform F f by fact
   def M \<equiv> "norm_pres_extensions E p F f"
   then have M: "M = \<dots>" by (simp only:)
   from E have F: "vectorspace F" ..
@@ -322,10 +321,10 @@ theorem abs_HahnBanach:
     \<and> (\<forall>x \<in> F. g x = f x)
     \<and> (\<forall>x \<in> E. \<bar>g x\<bar> \<le> p x)"
 proof -
-  interpret vectorspace [E] by fact
-  interpret subspace [F E] by fact
-  interpret linearform [F f] by fact
-  interpret seminorm [E p] by fact
+  interpret vectorspace E by fact
+  interpret subspace F E by fact
+  interpret linearform F f by fact
+  interpret seminorm E p by fact
   have "\<exists>g. linearform E g \<and> (\<forall>x \<in> F. g x = f x) \<and> (\<forall>x \<in> E. g x \<le> p x)"
     using E FE sn lf
   proof (rule HahnBanach)
@@ -363,12 +362,12 @@ theorem norm_HahnBanach:
      \<and> (\<forall>x \<in> F. g x = f x)
      \<and> \<parallel>g\<parallel>\<hyphen>E = \<parallel>f\<parallel>\<hyphen>F"
 proof -
-  interpret normed_vectorspace [E norm] by fact
-  interpret normed_vectorspace_with_fn_norm [E norm B fn_norm]
+  interpret normed_vectorspace E norm by fact
+  interpret normed_vectorspace_with_fn_norm E norm B fn_norm
     by (auto simp: B_def fn_norm_def) intro_locales
-  interpret subspace [F E] by fact
-  interpret linearform [F f] by fact
-  interpret continuous [F norm f] by fact
+  interpret subspace F E by fact
+  interpret linearform F f by fact
+  interpret continuous F norm f by fact
   have E: "vectorspace E" by intro_locales
   have F: "vectorspace F" by rule intro_locales
   have F_norm: "normed_vectorspace F norm"

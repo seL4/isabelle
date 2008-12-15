@@ -1,5 +1,4 @@
 (*  Title:      HOL/Real/HahnBanach/HahnBanachExtLemmas.thy
-    ID:         $Id$
     Author:     Gertrud Bauer, TU Munich
 *)
 
@@ -46,7 +45,7 @@ lemma ex_xi:
   assumes r: "\<And>u v. u \<in> F \<Longrightarrow> v \<in> F \<Longrightarrow> a u \<le> b v"
   shows "\<exists>xi::real. \<forall>y \<in> F. a y \<le> xi \<and> xi \<le> b y"
 proof -
-  interpret vectorspace [F] by fact
+  interpret vectorspace F by fact
   txt {* From the completeness of the reals follows:
     The set @{text "S = {a u. u \<in> F}"} has a supremum, if it is
     non-empty and has an upper bound. *}
@@ -98,8 +97,8 @@ lemma h'_lf:
   assumes E: "vectorspace E"
   shows "linearform H' h'"
 proof -
-  interpret linearform [H h] by fact
-  interpret vectorspace [E] by fact
+  interpret linearform H h by fact
+  interpret vectorspace E by fact
   show ?thesis
   proof
     note E = `vectorspace E`
@@ -203,10 +202,10 @@ lemma h'_norm_pres:
     and a': "\<forall>y \<in> H. - p (y + x0) - h y \<le> xi \<and> xi \<le> p (y + x0) - h y"
   shows "\<forall>x \<in> H'. h' x \<le> p x"
 proof -
-  interpret vectorspace [E] by fact
-  interpret subspace [H E] by fact
-  interpret seminorm [E p] by fact
-  interpret linearform [H h] by fact
+  interpret vectorspace E by fact
+  interpret subspace H E by fact
+  interpret seminorm E p by fact
+  interpret linearform H h by fact
   show ?thesis
   proof
     fix x assume x': "x \<in> H'"
