@@ -804,12 +804,14 @@ text {*
     @{command_def (HOL) "print_atps"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow>"} \\
     @{command_def (HOL) "atp_info"}@{text "\<^sup>*"} & : & @{text "any \<rightarrow>"} \\
     @{command_def (HOL) "atp_kill"}@{text "\<^sup>*"} & : & @{text "any \<rightarrow>"} \\
+    @{command_def (HOL) "atp_messages"}@{text "\<^sup>*"} & : & @{text "any \<rightarrow>"} \\
     @{method_def (HOL) metis} & : & @{text method} \\
   \end{matharray}
 
   \begin{rail}
   'sledgehammer' (nameref *)
   ;
+  'atp\_messages' ('(' nat ')')?
 
   'metis' thmrefs
   ;
@@ -841,6 +843,12 @@ text {*
 
   \item @{command (HOL) atp_kill} terminates all presently running
   provers.
+
+  \item @{command (HOL) atp_messages} displays recent messages issued
+  by automated theorem provers.  This allows to examine results that
+  might have got lost due to the asynchronous nature of default
+  @{command (HOL) sledgehammer} output.  An optional message limit may
+  be specified (default 5).
 
   \item @{method (HOL) metis}~@{text "facts"} invokes the Metis prover
   with the given facts.  Metis is an automated proof tool of medium
