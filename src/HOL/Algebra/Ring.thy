@@ -1,6 +1,5 @@
 (*
   Title:     The algebraic hierarchy of rings
-  Id:        $Id$
   Author:    Clemens Ballarin, started 9 December 1996
   Copyright: Clemens Ballarin
 *)
@@ -187,7 +186,7 @@ lemma comm_group_abelian_groupI:
   assumes cg: "comm_group \<lparr>carrier = carrier G, mult = add G, one = zero G\<rparr>"
   shows "abelian_group G"
 proof -
-  interpret comm_group ["\<lparr>carrier = carrier G, mult = add G, one = zero G\<rparr>"]
+  interpret comm_group "\<lparr>carrier = carrier G, mult = add G, one = zero G\<rparr>"
     by (rule cg)
   show "abelian_group G" ..
 qed
@@ -360,7 +359,7 @@ end
 
 subsection {* Rings: Basic Definitions *}
 
-locale ring = abelian_group R + monoid R +
+locale ring = abelian_group R + monoid R for R (structure) +
   assumes l_distr: "[| x \<in> carrier R; y \<in> carrier R; z \<in> carrier R |]
       ==> (x \<oplus> y) \<otimes> z = x \<otimes> z \<oplus> y \<otimes> z"
     and r_distr: "[| x \<in> carrier R; y \<in> carrier R; z \<in> carrier R |]
@@ -585,8 +584,8 @@ lemma
   assumes RS: "a \<in> carrier R" "b \<in> carrier R" "c \<in> carrier S" "d \<in> carrier S"
   shows "a \<oplus> \<ominus> (a \<oplus> \<ominus> b) = b & c \<otimes>\<^bsub>S\<^esub> d = d \<otimes>\<^bsub>S\<^esub> c"
 proof -
-  interpret ring [R] by fact
-  interpret cring [S] by fact
+  interpret ring R by fact
+  interpret cring S by fact
 ML_val {* Algebra.print_structures @{context} *}
   from RS show ?thesis by algebra
 qed
@@ -597,7 +596,7 @@ lemma
   assumes R: "a \<in> carrier R" "b \<in> carrier R"
   shows "a \<ominus> (a \<ominus> b) = b"
 proof -
-  interpret ring [R] by fact
+  interpret ring R by fact
   from R show ?thesis by algebra
 qed
 
@@ -771,7 +770,8 @@ lemma ring_hom_one:
   shows "h \<in> ring_hom R S ==> h \<one> = \<one>\<^bsub>S\<^esub>"
   by (simp add: ring_hom_def)
 
-locale ring_hom_cring = cring R + cring S +
+locale ring_hom_cring = R: cring R + S: cring S
+    for R (structure) and S (structure) +
   fixes h
   assumes homh [simp, intro]: "h \<in> ring_hom R S"
   notes hom_closed [simp, intro] = ring_hom_closed [OF homh]

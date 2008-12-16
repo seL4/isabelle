@@ -1,5 +1,4 @@
 (*  Title:      HOLCF/Algebraic.thy
-    ID:         $Id$
     Author:     Brian Huffman
 *)
 
@@ -161,7 +160,7 @@ lemma pre_deflation_d_f:
   assumes f: "\<And>x. f\<cdot>x \<sqsubseteq> x"
   shows "pre_deflation (d oo f)"
 proof
-  interpret d: finite_deflation [d] by fact
+  interpret d: finite_deflation d by fact
   fix x
   show "\<And>x. (d oo f)\<cdot>x \<sqsubseteq> x"
     by (simp, rule trans_less [OF d.less f])
@@ -174,9 +173,9 @@ lemma eventual_iterate_oo_fixed_iff:
   assumes f: "\<And>x. f\<cdot>x \<sqsubseteq> x"
   shows "eventual (\<lambda>n. iterate n\<cdot>(d oo f))\<cdot>x = x \<longleftrightarrow> d\<cdot>x = x \<and> f\<cdot>x = x"
 proof -
-  interpret d: finite_deflation [d] by fact
+  interpret d: finite_deflation d by fact
   let ?e = "d oo f"
-  interpret e: pre_deflation ["d oo f"]
+  interpret e: pre_deflation "d oo f"
     using `finite_deflation d` f
     by (rule pre_deflation_d_f)
   let ?g = "eventual (\<lambda>n. iterate n\<cdot>?e)"
@@ -216,7 +215,7 @@ by (rule typedef_po [OF type_definition_fin_defl sq_le_fin_defl_def])
 lemma finite_deflation_Rep_fin_defl: "finite_deflation (Rep_fin_defl d)"
 using Rep_fin_defl by simp
 
-interpretation Rep_fin_defl: finite_deflation ["Rep_fin_defl d"]
+interpretation Rep_fin_defl!: finite_deflation "Rep_fin_defl d"
 by (rule finite_deflation_Rep_fin_defl)
 
 lemma fin_defl_lessI:
@@ -321,7 +320,7 @@ apply (erule subst)
 apply (rule Rep_fin_defl.compact)
 done
 
-interpretation fin_defl: basis_take [sq_le fd_take]
+interpretation fin_defl!: basis_take sq_le fd_take
 apply default
 apply (rule fd_take_less)
 apply (rule fd_take_idem)
@@ -371,8 +370,8 @@ lemma Rep_alg_defl_principal:
 unfolding alg_defl_principal_def
 by (simp add: Abs_alg_defl_inverse sq_le.ideal_principal)
 
-interpretation alg_defl:
-  ideal_completion [sq_le fd_take alg_defl_principal Rep_alg_defl]
+interpretation alg_defl!:
+  ideal_completion sq_le fd_take alg_defl_principal Rep_alg_defl
 apply default
 apply (rule ideal_Rep_alg_defl)
 apply (erule Rep_alg_defl_lub)
@@ -462,7 +461,7 @@ apply (simp add: cast_alg_defl_principal)
 apply (rule finite_deflation_Rep_fin_defl)
 done
 
-interpretation cast: deflation ["cast\<cdot>d"]
+interpretation cast!: deflation "cast\<cdot>d"
 by (rule deflation_cast)
 
 lemma "cast\<cdot>(\<Squnion>i. alg_defl_principal (Abs_fin_defl (approx i)))\<cdot>x = x"
@@ -486,7 +485,7 @@ lemma
   constrains e :: "'a::profinite \<rightarrow> 'b::profinite"
   shows "\<exists>d. cast\<cdot>d = e oo p"
 proof
-  interpret ep_pair [e p] by fact
+  interpret ep_pair e p by fact
   let ?a = "\<lambda>i. e oo approx i oo p"
   have a: "\<And>i. finite_deflation (?a i)"
     apply (rule finite_deflation_e_d_p)
@@ -517,7 +516,7 @@ lemma
     "\<And>i. finite_deflation (a i)"
     "(\<Squnion>i. a i) = ID"
 proof
-  interpret ep_pair [e p] by fact
+  interpret ep_pair e p by fact
   let ?a = "\<lambda>i. p oo cast\<cdot>(approx i\<cdot>d) oo e"
   show "\<And>i. finite_deflation (?a i)"
     apply (rule finite_deflation_p_d_e)

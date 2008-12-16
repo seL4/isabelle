@@ -1,6 +1,5 @@
 (*
   Title:     HOL/Algebra/QuotRing.thy
-  Id:        $Id$
   Author:    Stephan Hohe
 *)
 
@@ -158,7 +157,7 @@ lemma (in ideal) quotient_is_cring:
   assumes "cring R"
   shows "cring (R Quot I)"
 proof -
-  interpret cring [R] by fact
+  interpret cring R by fact
   show ?thesis apply (intro cring.intro comm_monoid.intro comm_monoid_axioms.intro)
   apply (rule quotient_is_ring)
  apply (rule ring.axioms[OF quotient_is_ring])
@@ -173,7 +172,7 @@ lemma (in ideal) rcos_ring_hom_cring:
   assumes "cring R"
   shows "ring_hom_cring R (R Quot I) (op +> I)"
 proof -
-  interpret cring [R] by fact
+  interpret cring R by fact
   show ?thesis apply (rule ring_hom_cringI)
   apply (rule rcos_ring_hom_ring)
  apply (rule R.is_cring)
@@ -244,7 +243,7 @@ lemma (in maximalideal) quotient_is_field:
   assumes "cring R"
   shows "field (R Quot I)"
 proof -
-  interpret cring [R] by fact
+  interpret cring R by fact
   show ?thesis apply (intro cring.cring_fieldI2)
   apply (rule quotient_is_cring, rule is_cring)
  defer 1

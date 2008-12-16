@@ -1,5 +1,4 @@
 (*  Title:      HOLCF/Deflation.thy
-    ID:         $Id$
     Author:     Brian Huffman
 *)
 
@@ -82,10 +81,10 @@ lemma deflation_less_comp1:
   assumes "deflation g"
   shows "f \<sqsubseteq> g \<Longrightarrow> f\<cdot>(g\<cdot>x) = f\<cdot>x"
 proof (rule antisym_less)
-  interpret g: deflation [g] by fact
+  interpret g: deflation g by fact
   from g.less show "f\<cdot>(g\<cdot>x) \<sqsubseteq> f\<cdot>x" by (rule monofun_cfun_arg)
 next
-  interpret f: deflation [f] by fact
+  interpret f: deflation f by fact
   assume "f \<sqsubseteq> g" hence "f\<cdot>x \<sqsubseteq> g\<cdot>x" by (rule monofun_cfun_fun)
   hence "f\<cdot>(f\<cdot>x) \<sqsubseteq> f\<cdot>(g\<cdot>x)" by (rule monofun_cfun_arg)
   also have "f\<cdot>(f\<cdot>x) = f\<cdot>x" by (rule f.idem)
@@ -220,7 +219,7 @@ lemma deflation_e_d_p:
   assumes "deflation d"
   shows "deflation (e oo d oo p)"
 proof
-  interpret deflation [d] by fact
+  interpret deflation d by fact
   fix x :: 'b
   show "(e oo d oo p)\<cdot>((e oo d oo p)\<cdot>x) = (e oo d oo p)\<cdot>x"
     by (simp add: idem)
@@ -232,7 +231,7 @@ lemma finite_deflation_e_d_p:
   assumes "finite_deflation d"
   shows "finite_deflation (e oo d oo p)"
 proof
-  interpret finite_deflation [d] by fact
+  interpret finite_deflation d by fact
   fix x :: 'b
   show "(e oo d oo p)\<cdot>((e oo d oo p)\<cdot>x) = (e oo d oo p)\<cdot>x"
     by (simp add: idem)
@@ -251,7 +250,7 @@ lemma deflation_p_d_e:
   assumes d: "\<And>x. d\<cdot>x \<sqsubseteq> e\<cdot>(p\<cdot>x)"
   shows "deflation (p oo d oo e)"
 proof -
-  interpret d: deflation [d] by fact
+  interpret d: deflation d by fact
   {
     fix x
     have "d\<cdot>(e\<cdot>x) \<sqsubseteq> e\<cdot>x"
@@ -288,7 +287,7 @@ lemma finite_deflation_p_d_e:
   assumes d: "\<And>x. d\<cdot>x \<sqsubseteq> e\<cdot>(p\<cdot>x)"
   shows "finite_deflation (p oo d oo e)"
 proof -
-  interpret d: finite_deflation [d] by fact
+  interpret d: finite_deflation d by fact
   show ?thesis
   proof (intro_locales)
     have "deflation d" ..
@@ -317,8 +316,8 @@ lemma ep_pair_unique_e_lemma:
   assumes "ep_pair e1 p" and "ep_pair e2 p"
   shows "e1 \<sqsubseteq> e2"
 proof (rule less_cfun_ext)
-  interpret e1: ep_pair [e1 p] by fact
-  interpret e2: ep_pair [e2 p] by fact
+  interpret e1: ep_pair e1 p by fact
+  interpret e2: ep_pair e2 p by fact
   fix x
   have "e1\<cdot>(p\<cdot>(e2\<cdot>x)) \<sqsubseteq> e2\<cdot>x"
     by (rule e1.e_p_less)
@@ -334,8 +333,8 @@ lemma ep_pair_unique_p_lemma:
   assumes "ep_pair e p1" and "ep_pair e p2"
   shows "p1 \<sqsubseteq> p2"
 proof (rule less_cfun_ext)
-  interpret p1: ep_pair [e p1] by fact
-  interpret p2: ep_pair [e p2] by fact
+  interpret p1: ep_pair e p1 by fact
+  interpret p2: ep_pair e p2 by fact
   fix x
   have "e\<cdot>(p1\<cdot>x) \<sqsubseteq> x"
     by (rule p1.e_p_less)
@@ -358,8 +357,8 @@ lemma ep_pair_comp:
   assumes "ep_pair e1 p1" and "ep_pair e2 p2"
   shows "ep_pair (e2 oo e1) (p1 oo p2)"
 proof
-  interpret ep1: ep_pair [e1 p1] by fact
-  interpret ep2: ep_pair [e2 p2] by fact
+  interpret ep1: ep_pair e1 p1 by fact
+  interpret ep2: ep_pair e2 p2 by fact
   fix x y
   show "(p1 oo p2)\<cdot>((e2 oo e1)\<cdot>x) = x"
     by simp

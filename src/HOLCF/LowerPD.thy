@@ -1,5 +1,4 @@
 (*  Title:      HOLCF/LowerPD.thy
-    ID:         $Id$
     Author:     Brian Huffman
 *)
 
@@ -27,7 +26,7 @@ apply (erule rev_bexI)
 apply (erule (1) trans_less)
 done
 
-interpretation lower_le: preorder [lower_le]
+interpretation lower_le!: preorder lower_le
 by (rule preorder.intro, rule lower_le_refl, rule lower_le_trans)
 
 lemma lower_le_minimal [simp]: "PDUnit compact_bot \<le>\<flat> t"
@@ -134,8 +133,8 @@ lemma Rep_lower_principal:
 unfolding lower_principal_def
 by (simp add: Abs_lower_pd_inverse lower_le.ideal_principal)
 
-interpretation lower_pd:
-  ideal_completion [lower_le pd_take lower_principal Rep_lower_pd]
+interpretation lower_pd!:
+  ideal_completion lower_le pd_take lower_principal Rep_lower_pd
 apply unfold_locales
 apply (rule pd_take_lower_le)
 apply (rule pd_take_idem)
@@ -251,7 +250,7 @@ apply (induct xs rule: lower_pd.principal_induct, simp)
 apply (simp add: PDPlus_absorb)
 done
 
-interpretation aci_lower_plus: ab_semigroup_idem_mult ["op +\<flat>"]
+interpretation aci_lower_plus!: ab_semigroup_idem_mult "op +\<flat>"
   by unfold_locales
     (rule lower_plus_assoc lower_plus_commute lower_plus_absorb)+
 

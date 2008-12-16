@@ -1,6 +1,5 @@
 (*
   Title:     HOL/Algebra/RingHom.thy
-  Id:        $Id$
   Author:    Stephan Hohe, TU Muenchen
 *)
 
@@ -11,15 +10,16 @@ begin
 section {* Homomorphisms of Non-Commutative Rings *}
 
 text {* Lifting existing lemmas in a @{text ring_hom_ring} locale *}
-locale ring_hom_ring = ring R + ring S + var h +
+locale ring_hom_ring = R: ring R + S: ring S +
+  fixes h
   assumes homh: "h \<in> ring_hom R S"
   notes hom_mult [simp] = ring_hom_mult [OF homh]
     and hom_one [simp] = ring_hom_one [OF homh]
 
-interpretation ring_hom_cring \<subseteq> ring_hom_ring
+sublocale ring_hom_cring \<subseteq> ring_hom_ring
   proof qed (rule homh)
 
-interpretation ring_hom_ring \<subseteq> abelian_group_hom R S
+sublocale ring_hom_ring \<subseteq> abelian_group_hom R S
 apply (rule abelian_group_homI)
   apply (rule R.is_abelian_group)
  apply (rule S.is_abelian_group)
@@ -44,8 +44,8 @@ lemma ring_hom_ringI:
       and compatible_one: "h \<one> = \<one>\<^bsub>S\<^esub>"
   shows "ring_hom_ring R S h"
 proof -
-  interpret ring [R] by fact
-  interpret ring [S] by fact
+  interpret ring R by fact
+  interpret ring S by fact
   show ?thesis apply unfold_locales
 apply (unfold ring_hom_def, safe)
    apply (simp add: hom_closed Pi_def)
@@ -60,8 +60,8 @@ lemma ring_hom_ringI2:
   assumes h: "h \<in> ring_hom R S"
   shows "ring_hom_ring R S h"
 proof -
-  interpret R: ring [R] by fact
-  interpret S: ring [S] by fact
+  interpret R!: ring R by fact
+  interpret S!: ring S by fact
   show ?thesis apply (intro ring_hom_ring.intro ring_hom_ring_axioms.intro)
     apply (rule R.is_ring)
     apply (rule S.is_ring)
@@ -76,9 +76,9 @@ lemma ring_hom_ringI3:
       and compatible_one: "h \<one> = \<one>\<^bsub>S\<^esub>"
   shows "ring_hom_ring R S h"
 proof -
-  interpret abelian_group_hom [R S h] by fact
-  interpret R: ring [R] by fact
-  interpret S: ring [S] by fact
+  interpret abelian_group_hom R S h by fact
+  interpret R!: ring R by fact
+  interpret S!: ring S by fact
   show ?thesis apply (intro ring_hom_ring.intro ring_hom_ring_axioms.intro, rule R.is_ring, rule S.is_ring)
     apply (insert group_hom.homh[OF a_group_hom])
     apply (unfold hom_def ring_hom_def, simp)
@@ -92,9 +92,9 @@ lemma ring_hom_cringI:
   assumes "ring_hom_ring R S h" "cring R" "cring S"
   shows "ring_hom_cring R S h"
 proof -
-  interpret ring_hom_ring [R S h] by fact
-  interpret R: cring [R] by fact
-  interpret S: cring [S] by fact
+  interpret ring_hom_ring R S h by fact
+  interpret R!: cring R by fact
+  interpret S!: cring S by fact
   show ?thesis by (intro ring_hom_cring.intro ring_hom_cring_axioms.intro)
     (rule R.is_cring, rule S.is_cring, rule homh)
 qed
@@ -124,7 +124,7 @@ lemma (in ring_hom_ring) rcos_imp_homeq:
       and xrcos: "x \<in> a_kernel R S h +> a"
   shows "h x = h a"
 proof -
-  interpret ideal ["a_kernel R S h" "R"] by (rule kernel_is_ideal)
+  interpret ideal "a_kernel R S h" "R" by (rule kernel_is_ideal)
 
   from xrcos
       have "\<exists>i \<in> a_kernel R S h. x = i \<oplus> a" by (simp add: a_r_coset_defs)
@@ -152,7 +152,7 @@ lemma (in ring_hom_ring) homeq_imp_rcos:
       and hx: "h x = h a"
   shows "x \<in> a_kernel R S h +> a"
 proof -
-  interpret ideal ["a_kernel R S h" "R"] by (rule kernel_is_ideal)
+  interpret ideal "a_kernel R S h" "R" by (rule kernel_is_ideal)
  
   note carr = acarr xcarr
   note hcarr = acarr[THEN hom_closed] xcarr[THEN hom_closed]
@@ -180,7 +180,7 @@ corollary (in ring_hom_ring) rcos_eq_homeq:
 apply rule defer 1
 apply clarsimp defer 1
 proof
-  interpret ideal ["a_kernel R S h" "R"] by (rule kernel_is_ideal)
+  interpret ideal "a_kernel R S h" "R" by (rule kernel_is_ideal)
 
   fix x
   assume xrcos: "x \<in> a_kernel R S h +> a"
@@ -193,7 +193,7 @@ proof
   from xcarr and this
       show "x \<in> {x \<in> carrier R. h x = h a}" by fast
 next
-  interpret ideal ["a_kernel R S h" "R"] by (rule kernel_is_ideal)
+  interpret ideal "a_kernel R S h" "R" by (rule kernel_is_ideal)
 
   fix x
   assume xcarr: "x \<in> carrier R"

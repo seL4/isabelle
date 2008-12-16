@@ -1,6 +1,5 @@
 (*
   Title:     HOL/Algebra/CIdeal.thy
-  Id:        $Id$
   Author:    Stephan Hohe, TU Muenchen
 *)
 
@@ -18,7 +17,7 @@ locale ideal = additive_subgroup I R + ring R +
   assumes I_l_closed: "\<lbrakk>a \<in> I; x \<in> carrier R\<rbrakk> \<Longrightarrow> x \<otimes> a \<in> I"
       and I_r_closed: "\<lbrakk>a \<in> I; x \<in> carrier R\<rbrakk> \<Longrightarrow> a \<otimes> x \<in> I"
 
-interpretation ideal \<subseteq> abelian_subgroup I R
+sublocale ideal \<subseteq> abelian_subgroup I R
 apply (intro abelian_subgroupI3 abelian_group.intro)
   apply (rule ideal.axioms, rule ideal_axioms)
  apply (rule abelian_group.axioms, rule ring.axioms, rule ideal.axioms, rule ideal_axioms)
@@ -37,7 +36,7 @@ lemma idealI:
       and I_r_closed: "\<And>a x. \<lbrakk>a \<in> I; x \<in> carrier R\<rbrakk> \<Longrightarrow> a \<otimes> x \<in> I"
   shows "ideal I R"
 proof -
-  interpret ring [R] by fact
+  interpret ring R by fact
   show ?thesis  apply (intro ideal.intro ideal_axioms.intro additive_subgroupI)
      apply (rule a_subgroup)
     apply (rule is_ring)
@@ -68,7 +67,7 @@ lemma principalidealI:
   assumes generate: "\<exists>i \<in> carrier R. I = Idl {i}"
   shows "principalideal I R"
 proof -
-  interpret ideal [I R] by fact
+  interpret ideal I R by fact
   show ?thesis  by (intro principalideal.intro principalideal_axioms.intro) (rule is_ideal, rule generate)
 qed
 
@@ -89,7 +88,7 @@ lemma maximalidealI:
      and I_maximal: "\<And>J. \<lbrakk>ideal J R; I \<subseteq> J; J \<subseteq> carrier R\<rbrakk> \<Longrightarrow> J = I \<or> J = carrier R"
   shows "maximalideal I R"
 proof -
-  interpret ideal [I R] by fact
+  interpret ideal I R by fact
   show ?thesis by (intro maximalideal.intro maximalideal_axioms.intro)
     (rule is_ideal, rule I_notcarr, rule I_maximal)
 qed
@@ -112,8 +111,8 @@ lemma primeidealI:
       and I_prime: "\<And>a b. \<lbrakk>a \<in> carrier R; b \<in> carrier R; a \<otimes> b \<in> I\<rbrakk> \<Longrightarrow> a \<in> I \<or> b \<in> I"
   shows "primeideal I R"
 proof -
-  interpret ideal [I R] by fact
-  interpret cring [R] by fact
+  interpret ideal I R by fact
+  interpret cring R by fact
   show ?thesis by (intro primeideal.intro primeideal_axioms.intro)
     (rule is_ideal, rule is_cring, rule I_notcarr, rule I_prime)
 qed
@@ -129,7 +128,7 @@ lemma primeidealI2:
   shows "primeideal I R"
 proof -
   interpret additive_subgroup [I R] by fact
-  interpret cring [R] by fact
+  interpret cring R by fact
   show ?thesis apply (intro_locales)
     apply (intro ideal_axioms.intro)
     apply (erule (1) I_l_closed)
@@ -207,7 +206,7 @@ lemma (in ring) i_intersect:
   assumes "ideal J R"
   shows "ideal (I \<inter> J) R"
 proof -
-  interpret ideal [I R] by fact
+  interpret ideal I R by fact
   interpret ideal [J R] by fact
   show ?thesis
 apply (intro idealI subgroup.intro)
@@ -245,7 +244,7 @@ proof -
   from notempty have "\<exists>I0. I0 \<in> S" by blast
   from this obtain I0 where I0S: "I0 \<in> S" by auto
 
-  interpret ideal ["I0" "R"] by (rule Sideals[OF I0S])
+  interpret ideal I0 R by (rule Sideals[OF I0S])
 
   from xI[OF I0S] have "x \<in> I0" .
   from this and a_subset show "x \<in> carrier R" by fast
@@ -258,13 +257,13 @@ next
 
   fix J
   assume JS: "J \<in> S"
-  interpret ideal ["J" "R"] by (rule Sideals[OF JS])
+  interpret ideal J R by (rule Sideals[OF JS])
   from xI[OF JS] and yI[OF JS]
       show "x \<oplus> y \<in> J" by (rule a_closed)
 next
   fix J
   assume JS: "J \<in> S"
-  interpret ideal ["J" "R"] by (rule Sideals[OF JS])
+  interpret ideal J R by (rule Sideals[OF JS])
   show "\<zero> \<in> J" by simp
 next
   fix x
@@ -273,7 +272,7 @@ next
 
   fix J
   assume JS: "J \<in> S"
-  interpret ideal ["J" "R"] by (rule Sideals[OF JS])
+  interpret ideal J R by (rule Sideals[OF JS])
 
   from xI[OF JS]
       show "\<ominus> x \<in> J" by (rule a_inv_closed)
@@ -285,7 +284,7 @@ next
 
   fix J
   assume JS: "J \<in> S"
-  interpret ideal ["J" "R"] by (rule Sideals[OF JS])
+  interpret ideal J R by (rule Sideals[OF JS])
 
   from xI[OF JS] and ycarr
       show "y \<otimes> x \<in> J" by (rule I_l_closed)
@@ -297,7 +296,7 @@ next
 
   fix J
   assume JS: "J \<in> S"
-  interpret ideal ["J" "R"] by (rule Sideals[OF JS])
+  interpret ideal J R by (rule Sideals[OF JS])
 
   from xI[OF JS] and ycarr
       show "x \<otimes> y \<in> J" by (rule I_r_closed)
@@ -443,7 +442,7 @@ done
 lemma (in ring) genideal_one:
   "Idl {\<one>} = carrier R"
 proof -
-  interpret ideal ["Idl {\<one>}" "R"] by (rule genideal_ideal, fast intro: one_closed)
+  interpret ideal "Idl {\<one>}" "R" by (rule genideal_ideal, fast intro: one_closed)
   show "Idl {\<one>} = carrier R"
   apply (rule, rule a_subset)
   apply (simp add: one_imp_carrier genideal_self')
@@ -660,7 +659,7 @@ lemma (in principalideal) rcos_generate:
   assumes "cring R"
   shows "\<exists>x\<in>I. I = carrier R #> x"
 proof -
-  interpret cring [R] by fact
+  interpret cring R by fact
   from generate
       obtain i
         where icarr: "i \<in> carrier R"
@@ -693,7 +692,7 @@ lemma (in ideal) primeidealCD:
   assumes notprime: "\<not> primeideal I R"
   shows "carrier R = I \<or> (\<exists>a b. a \<in> carrier R \<and> b \<in> carrier R \<and> a \<otimes> b \<in> I \<and> a \<notin> I \<and> b \<notin> I)"
 proof (rule ccontr, clarsimp)
-  interpret cring [R] by fact
+  interpret cring R by fact
   assume InR: "carrier R \<noteq> I"
      and "\<forall>a. a \<in> carrier R \<longrightarrow> (\<forall>b. a \<otimes> b \<in> I \<longrightarrow> b \<in> carrier R \<longrightarrow> a \<in> I \<or> b \<in> I)"
   hence I_prime: "\<And> a b. \<lbrakk>a \<in> carrier R; b \<in> carrier R; a \<otimes> b \<in> I\<rbrakk> \<Longrightarrow> a \<in> I \<or> b \<in> I" by simp
@@ -713,7 +712,7 @@ lemma (in ideal) primeidealCE:
   obtains "carrier R = I"
     | "\<exists>a b. a \<in> carrier R \<and> b \<in> carrier R \<and> a \<otimes> b \<in> I \<and> a \<notin> I \<and> b \<notin> I"
 proof -
-  interpret R: cring [R] by fact
+  interpret R!: cring R by fact
   assume "carrier R = I ==> thesis"
     and "\<exists>a b. a \<in> carrier R \<and> b \<in> carrier R \<and> a \<otimes> b \<in> I \<and> a \<notin> I \<and> b \<notin> I \<Longrightarrow> thesis"
   then show thesis using primeidealCD [OF R.is_cring notprime] by blast
@@ -726,13 +725,13 @@ lemma (in cring) zeroprimeideal_domainI:
 apply (rule domain.intro, rule is_cring)
 apply (rule domain_axioms.intro)
 proof (rule ccontr, simp)
-  interpret primeideal ["{\<zero>}" "R"] by (rule pi)
+  interpret primeideal "{\<zero>}" "R" by (rule pi)
   assume "\<one> = \<zero>"
   hence "carrier R = {\<zero>}" by (rule one_zeroD)
   from this[symmetric] and I_notcarr
       show "False" by simp
 next
-  interpret primeideal ["{\<zero>}" "R"] by (rule pi)
+  interpret primeideal "{\<zero>}" "R" by (rule pi)
   fix a b
   assume ab: "a \<otimes> b = \<zero>"
      and carr: "a \<in> carrier R" "b \<in> carrier R"
@@ -771,7 +770,7 @@ lemma (in ideal) helper_max_prime:
   assumes acarr: "a \<in> carrier R"
   shows "ideal {x\<in>carrier R. a \<otimes> x \<in> I} R"
 proof -
-  interpret cring [R] by fact
+  interpret cring R by fact
   show ?thesis apply (rule idealI)
     apply (rule cring.axioms[OF is_cring])
     apply (rule subgroup.intro)
@@ -812,7 +811,7 @@ lemma (in cring) maximalideal_is_prime:
   assumes "maximalideal I R"
   shows "primeideal I R"
 proof -
-  interpret maximalideal [I R] by fact
+  interpret maximalideal I R by fact
   show ?thesis apply (rule ccontr)
     apply (rule primeidealCE)
     apply (rule is_cring)
@@ -855,7 +854,7 @@ proof -
     have "\<one> \<notin> J" unfolding J_def by fast
     hence Jncarr: "J \<noteq> carrier R" by fast
     
-    interpret ideal ["J" "R"] by (rule idealJ)
+    interpret ideal J R by (rule idealJ)
     
     have "J = I \<or> J = carrier R"
       apply (intro I_maximal)
@@ -932,7 +931,7 @@ proof -
   fix I
   assume a: "I \<in> {I. ideal I R}"
   with this
-      interpret ideal ["I" "R"] by simp
+      interpret ideal I R by simp
 
   show "I \<in> {{\<zero>}, carrier R}"
   proof (cases "\<exists>a. a \<in> I - {\<zero>}")
@@ -1019,7 +1018,7 @@ proof -
   fix J
   assume Jn0: "J \<noteq> {\<zero>}"
      and idealJ: "ideal J R"
-  interpret ideal ["J" "R"] by (rule idealJ)
+  interpret ideal J R by (rule idealJ)
   have "{\<zero>} \<subseteq> J" by (rule ccontr, simp)
   from zeromax and idealJ and this and a_subset
       have "J = {\<zero>} \<or> J = carrier R" by (rule maximalideal.I_maximal)
