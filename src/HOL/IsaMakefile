@@ -112,6 +112,8 @@ PLAIN_DEPENDENCIES = $(OUT)/Pure \
   Tools/dseq.ML \
   Tools/function_package/auto_term.ML \
   Tools/function_package/context_tree.ML \
+  Tools/function_package/decompose.ML \
+  Tools/function_package/descent.ML \
   Tools/function_package/fundef_common.ML \
   Tools/function_package/fundef_core.ML \
   Tools/function_package/fundef_datatype.ML \
@@ -123,8 +125,11 @@ PLAIN_DEPENDENCIES = $(OUT)/Pure \
   Tools/function_package/measure_functions.ML \
   Tools/function_package/mutual.ML \
   Tools/function_package/pattern_split.ML \
+  Tools/function_package/scnp_reconstruct.ML \
+  Tools/function_package/scnp_solve.ML \
   Tools/function_package/size.ML \
   Tools/function_package/sum_tree.ML \
+  Tools/function_package/termination.ML \
   Tools/hologic.ML \
   Tools/inductive_codegen.ML \
   Tools/inductive_package.ML \
