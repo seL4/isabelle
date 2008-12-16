@@ -167,6 +167,13 @@ locale semi_hom_loc = prod: semi prod + sum: semi sum
 lemma (in semi_hom_loc) "h(prod(x, y)) = sum(h(x), h(y))"
   by (rule semi_hom_mult)
 
+(* Referring to facts from within a context specification *)
+
+lemma
+  assumes x: "P <-> P"
+  notes y = x
+  shows True ..
+
 
 section {* Theorem statements *}
 
