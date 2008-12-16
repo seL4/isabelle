@@ -67,7 +67,7 @@ lemma list_update_le_listI [rule_format]:
 lemma plusplus_closed: assumes "semilat (A, r, f)" shows
   "\<And>y. \<lbrakk> set x \<subseteq> A; y \<in> A\<rbrakk> \<Longrightarrow> x ++_f y \<in> A" (is "PROP ?P")
 proof -
-  interpret Semilat [A r f] using assms by (rule Semilat.intro)
+  interpret Semilat A r f using assms by (rule Semilat.intro)
   show "PROP ?P" proof (induct x)
     show "\<And>y. y \<in> A \<Longrightarrow> [] ++_f y \<in> A" by simp
     fix y x xs
@@ -164,7 +164,7 @@ lemma ub1':
   shows "\<lbrakk>\<forall>(p,s) \<in> set S. s \<in> A; y \<in> A; (a,b) \<in> set S\<rbrakk> 
   \<Longrightarrow> b <=_r map snd [(p', t')\<leftarrow>S. p' = a] ++_f y" 
 proof -
-  interpret Semilat [A r f] using assms by (rule Semilat.intro)
+  interpret Semilat A r f using assms by (rule Semilat.intro)
 
   let "b <=_r ?map ++_f y" = ?thesis
 

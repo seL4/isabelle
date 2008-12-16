@@ -37,7 +37,7 @@ postulates two distinct names @{term "n"} and @{term "b"} and
 projection~/ injection functions that convert from abstract values to
 @{typ "nat"} and @{text "bool"}. The logical content of the locale is: *}
 
-locale vars' =
+class_locale vars' =
   fixes n::'name and b::'name
   assumes "distinct [n, b]" 
 
@@ -204,7 +204,7 @@ lemma
   assumes "foo f a b c p1 i1 p2 i2 p3 i3 p4 i4"
   shows True
 proof
-  interpret foo [f a b c p1 i1 p2 i2 p3 i3 p4 i4] by fact
+  class_interpret foo [f a b c p1 i1 p2 i2 p3 i3 p4 i4] by fact
   term "s<a := i>\<cdot>a = i"
 qed
 
