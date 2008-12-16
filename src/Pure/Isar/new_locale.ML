@@ -287,18 +287,19 @@ fun activate_decls thy (name, morph) ctxt =
       fold_rev (fn (decl, _) => Context.proof_map (decl morph)) term_decls
   end;
 
-fun activate_notes activ_elem thy (name, morph) input =
+fun activate_notes activ_elem transfer thy (name, morph) input =
   let
     val Loc {notes, ...} = the_locale thy name;
     fun activate ((kind, facts), _) input =
       let
-        val facts' = facts |> Element.facts_map (Element.morph_ctxt morph)
+        val facts' = facts |> Element.facts_map (Element.morph_ctxt
+          (Morphism.thm_morphism (transfer input) $> morph))
       in activ_elem (Notes (kind, facts')) input end;
   in
     fold_rev activate notes input
   end;
 
-fun activate_all name thy activ_elem (marked, input) =
+fun activate_all name thy activ_elem transfer (marked, input) =
   let
     val Loc {parameters = (_, params), spec = (asm, defs), ...} =
       the_locale thy name;
@@ -310,7 +311,7 @@ fun activate_all name thy activ_elem (marked, input) =
       (if not (null defs)
         then activ_elem (Defines (map (fn def => (Attrib.empty_binding, (def, []))) defs))
         else I) |>
-      pair marked |> roundup thy (activate_notes activ_elem) (name, Morphism.identity)
+      pair marked |> roundup thy (activate_notes activ_elem transfer) (name, Morphism.identity)
   end;
 
 
@@ -354,15 +355,18 @@ fun activate_declarations thy dep ctxt =
   roundup thy activate_decls dep (get_local_idents ctxt, ctxt) |> uncurry put_local_idents;
 
 fun activate_global_facts dep thy =
-  roundup thy (activate_notes init_global_elem) dep (get_global_idents thy, thy) |>
+  roundup thy (activate_notes init_global_elem transfer) dep (get_global_idents thy, thy) |>
   uncurry put_global_idents;
 
 fun activate_local_facts dep ctxt =
-  roundup (ProofContext.theory_of ctxt) (activate_notes init_local_elem) dep
+  roundup (ProofContext.theory_of ctxt) (activate_notes init_local_elem
+      (transfer o ProofContext.theory_of)) dep
     (get_local_idents ctxt, ctxt) |>
   uncurry put_local_idents;
 
-fun init name thy = activate_all name thy init_local_elem (empty, ProofContext.init thy) |>
+fun init name thy =
+  activate_all name thy init_local_elem (transfer o ProofContext.theory_of)
+    (empty, ProofContext.init thy) |>
   uncurry put_local_idents;
 
 fun print_locale thy show_facts name =
@@ -371,7 +375,7 @@ fun print_locale thy show_facts name =
     val ctxt = init name' thy
   in
     Pretty.big_list "locale elements:"
-      (activate_all name' thy (cons_elem show_facts) (empty, []) |> snd |> rev |> 
+      (activate_all name' thy (cons_elem show_facts) (K I) (empty, []) |> snd |> rev |> 
         map (Element.pretty_ctxt ctxt) |> map Pretty.chunks) |> Pretty.writeln
   end
 
