@@ -57,7 +57,7 @@ struct
 (** future values **)
 
 fun enabled () =
-  ! future_scheduler andalso Multithreading.enabled () andalso
+  Multithreading.enabled () andalso
     not (Multithreading.self_critical ());
 
 
