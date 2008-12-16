@@ -184,12 +184,15 @@ fun inst_morph (parm_names, parm_types) ((prfx, strict), insts') ctxt =
 (** Parsing **)
 
 fun parse_elem prep_typ prep_term ctxt elem =
-  Element.map_ctxt {binding = I, var = I, typ = prep_typ ctxt,
-    term = prep_term ctxt, fact = I, attrib = I} elem;
+  Element.map_ctxt' {binding = I, var = I, typ = prep_typ ctxt,
+  term = prep_term (ProofContext.set_mode ProofContext.mode_schematic ctxt), (* FIXME ?? *)
+  pat = prep_term (ProofContext.set_mode ProofContext.mode_pattern ctxt),
+  fact = I, attrib = I} elem;
 
 fun parse_concl prep_term ctxt concl =
   (map o map) (fn (t, ps) =>
-    (prep_term ctxt, map (prep_term ctxt) ps)) concl;
+    (prep_term (ProofContext.set_mode ProofContext.mode_schematic ctxt) t, (* FIXME ?? *)
+      map (prep_term (ProofContext.set_mode ProofContext.mode_pattern ctxt)) ps)) concl;
 
 
 (** Simultaneous type inference: instantiations + elements + conclusion **)
@@ -398,14 +401,12 @@ fun prep_full_context_statement parse_typ parse_prop parse_inst prep_vars prep_e
       let
         val ctxt' = declare_elem prep_vars raw_elem ctxt;
         val elems' = elems @ [parse_elem parse_typ parse_prop ctxt' raw_elem];
-        (* FIXME term bindings *)
         val (_, _, _, ctxt'') = check_autofix insts elems' [] ctxt';
       in (insts, elems', ctxt') end;
 
     fun prep_concl raw_concl (insts, elems, ctxt) =
       let
-        val concl = (map o map) (fn (t, ps) =>
-          (parse_prop ctxt t, map (parse_prop ctxt) ps)) raw_concl;
+        val concl = parse_concl parse_prop ctxt raw_concl;
       in check_autofix insts elems concl ctxt end;
 
     val fors = prep_vars fixed context |> fst;

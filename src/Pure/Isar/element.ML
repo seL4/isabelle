@@ -23,6 +23,10 @@ sig
   val facts_map: (('typ, 'term, 'fact) ctxt -> ('a, 'b, 'c) ctxt) ->
    (Attrib.binding * ('fact * Attrib.src list) list) list ->
    (Attrib.binding * ('c * Attrib.src list) list) list
+  val map_ctxt': {binding: Binding.T -> Binding.T,
+    var: Binding.T * mixfix -> Binding.T * mixfix,
+    typ: 'typ -> 'a, term: 'term -> 'b, pat: 'term -> 'b, fact: 'fact -> 'c,
+    attrib: Attrib.src -> Attrib.src} -> ('typ, 'term, 'fact) ctxt -> ('a, 'b, 'c) ctxt
   val map_ctxt: {binding: Binding.T -> Binding.T,
     var: Binding.T * mixfix -> Binding.T * mixfix,
     typ: 'typ -> 'a, term: 'term -> 'b, fact: 'fact -> 'c,
@@ -109,17 +113,21 @@ type context_i = (typ, term, thm list) ctxt;
 
 fun facts_map f facts = Notes ("", facts) |> f |> (fn Notes (_, facts') => facts');
 
-fun map_ctxt {binding, var, typ, term, fact, attrib} =
+fun map_ctxt' {binding, var, typ, term, pat, fact, attrib} =
   fn Fixes fixes => Fixes (fixes |> map (fn (x, T, mx) =>
        let val (x', mx') = var (x, mx) in (x', Option.map typ T, mx') end))
    | Constrains xs => Constrains (xs |> map (fn (x, T) =>
        let val x' = Binding.base_name (#1 (var (Binding.name x, NoSyn))) in (x', typ T) end))
    | Assumes asms => Assumes (asms |> map (fn ((a, atts), propps) =>
-      ((binding a, map attrib atts), propps |> map (fn (t, ps) => (term t, map term ps)))))
+      ((binding a, map attrib atts), propps |> map (fn (t, ps) => (term t, map pat ps)))))
    | Defines defs => Defines (defs |> map (fn ((a, atts), (t, ps)) =>
-      ((binding a, map attrib atts), (term t, map term ps))))
+      ((binding a, map attrib atts), (term t, map pat ps))))
    | Notes (kind, facts) => Notes (kind, facts |> map (fn ((a, atts), bs) =>
       ((binding a, map attrib atts), bs |> map (fn (ths, btts) => (fact ths, map attrib btts)))));
+
+fun map_ctxt {binding, var, typ, term, fact, attrib} =
+  map_ctxt' {binding = binding, var = var, typ = typ, term = term, pat = term,
+    fact = fact, attrib = attrib}
 
 fun map_ctxt_attrib attrib =
   map_ctxt {binding = I, var = I, typ = I, term = I, fact = I, attrib = attrib};
