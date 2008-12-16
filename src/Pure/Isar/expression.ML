@@ -486,7 +486,7 @@ fun prep_declaration prep activate raw_import raw_elems context =
     val context' = context |>
       ProofContext.add_fixes_i fixed |> snd |>
       fold NewLocale.activate_local_facts deps;
-    val ((elems', _), _) = activate elems (ProofContext.set_stmt true context');
+    val (elems', _) = activate elems (ProofContext.set_stmt true context');
   in ((fixed, deps, elems'), (parms, spec, defs)) end;
 
 in

@@ -78,10 +78,8 @@ sig
   val generalize_facts: Proof.context -> Proof.context ->
     (Attrib.binding * (thm list * Attrib.src list) list) list ->
     (Attrib.binding * (thm list * Attrib.src list) list) list
-  val activate: (typ, term, Facts.ref) ctxt list -> Proof.context ->
-    (context_i list * (Binding.T * Thm.thm list) list) * Proof.context
-  val activate_i: context_i list -> Proof.context ->
-    (context_i list * (Binding.T * Thm.thm list) list) * Proof.context
+  val activate: (typ, term, Facts.ref) ctxt list -> Proof.context -> context_i list * Proof.context
+  val activate_i: context_i list -> Proof.context -> context_i list * Proof.context
 end;
 
 structure Element: ELEMENT =
@@ -544,9 +542,9 @@ fun generalize_facts inner outer facts =
 local
 
 fun activate_elem (Fixes fixes) ctxt =
-      ([], ctxt |> ProofContext.add_fixes_i fixes |> snd)
+      ctxt |> ProofContext.add_fixes_i fixes |> snd
   | activate_elem (Constrains _) ctxt =
-      ([], ctxt)
+      ctxt
   | activate_elem (Assumes asms) ctxt =
       let
         val asms' = Attrib.map_specs (Attrib.attribute_i (ProofContext.theory_of ctxt)) asms;
@@ -554,7 +552,7 @@ fun activate_elem (Fixes fixes) ctxt =
         val (_, ctxt') =
           ctxt |> fold Variable.auto_fixes ts
           |> ProofContext.add_assms_i Assumption.presume_export asms';
-      in ([], ctxt') end
+      in ctxt' end
   | activate_elem (Defines defs) ctxt =
       let
         val defs' = Attrib.map_specs (Attrib.attribute_i (ProofContext.theory_of ctxt)) defs;
@@ -564,19 +562,20 @@ fun activate_elem (Fixes fixes) ctxt =
         val (_, ctxt') =
           ctxt |> fold (Variable.auto_fixes o #1) asms
           |> ProofContext.add_assms_i LocalDefs.def_export (map #2 asms);
-      in ([], ctxt') end
+      in ctxt' end
   | activate_elem (Notes (kind, facts)) ctxt =
       let
         val facts' = Attrib.map_facts (Attrib.attribute_i (ProofContext.theory_of ctxt)) facts;
         val (res, ctxt') = ctxt |> ProofContext.note_thmss_i kind facts';
-      in ((map (#1 o #1) facts' ~~ map #2 res), ctxt') end;
+      in ctxt' end;
 
 fun gen_activate prep_facts raw_elems ctxt =
   let
-    val elems = map (map_ctxt_attrib Args.assignable o prep_facts ctxt) raw_elems;
-    val (res, ctxt') = fold_map activate_elem elems (ProofContext.qualified_names ctxt);
-    val elems' = elems |> map (map_ctxt_attrib Args.closure);
-  in ((elems', flat res), ProofContext.restore_naming ctxt ctxt') end;
+    fun activate elem ctxt =
+      let val elem' = (map_ctxt_attrib Args.assignable o prep_facts ctxt) elem
+      in (elem', activate_elem elem' ctxt) end
+    val (elems, ctxt') = fold_map activate raw_elems (ProofContext.qualified_names ctxt);
+  in (elems |> map (map_ctxt_attrib Args.closure), ProofContext.restore_naming ctxt ctxt') end;
 
 fun check_name name =
   if NameSpace.is_qualified name then error ("Illegal qualified name: " ^ quote name)
