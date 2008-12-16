@@ -718,7 +718,7 @@ fun proof_result immediate (tr, proof_trs) st =
 
         val future_proof = Proof.future_proof
           (fn prf =>
-            Future.fork_background (fn () =>
+            Future.fork_pri 1 (fn () =>
               let val (states, State (result_node, _)) =
                 (case st' of State (SOME (Proof (_, (_, orig_gthy)), exit), prev)
                   => State (SOME (Proof (ProofNode.init prf, (finish, orig_gthy)), exit), prev))
