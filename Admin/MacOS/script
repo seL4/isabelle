@@ -1,0 +1,59 @@
+#!/bin/bash
+#
+# Author: Makarius
+#
+# Isabelle application wrapper
+
+THIS="$(cd "$(dirname "$0")"; pwd)"
+
+
+# global defaults
+ISABELLE_TOOL=""
+ISABELLE_INTERFACE="emacs"
+#ISABELLE_INTERFACE="jedit"
+
+
+# sane environment defaults
+PATH="$PATH:/opt/local/bin"
+cd "$HOME"
+
+
+# Isabelle location
+
+if [ -z "$ISABELLE_TOOL" ]; then
+  if [ -e "$THIS/Isabelle/bin/isabelle" ]; then
+    ISABELLE_TOOL="$THIS/Isabelle/bin/isabelle"
+  elif [ -e "$HOME/bin/isabelle" ]; then
+    ISABELLE_TOOL="$HOME/bin/isabelle"
+  else
+    ISABELLE_TOOL=isabelle
+  fi
+fi
+
+
+# run interface
+
+OUTPUT="/tmp/isabelle$$.out"
+
+( "$HOME/bin/isabelle" "$ISABELLE_INTERFACE" "$@" ) > "$OUTPUT" 2>&1
+RC=$?
+
+if [ "$RC" != 0 ]; then
+  echo >> "$OUTPUT"
+  echo "Return code: $RC" >> "$OUTPUT"
+fi
+
+
+# error feedback
+
+if [ -n "$OUTPUT" ]; then
+  "$THIS/CocoaDialog.app/Contents/MacOS/CocoaDialog" textbox \
+    --title "Isabelle" \
+    --informative-text "Isabelle output" \
+    --text-from-file "$OUTPUT" \
+    --button1 "OK"
+fi
+
+rm -f "$OUTPUT"
+
+exit "$RC"

@@ -1,0 +1,8 @@
+Isabelle application bundle for MacOS
+=====================================
+
+Requirements:
+
+* CocoaDialog http://cocoadialog.sourceforge.net/
+
+* Platypus http://www.sveinbjorn.org/platypus
