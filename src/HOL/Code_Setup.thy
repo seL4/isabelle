@@ -198,6 +198,10 @@ end
 
 subsection {* Evaluation and normalization by evaluation *}
 
+setup {*
+  Value.add_evaluator ("SML", Codegen.eval_term o ProofContext.theory_of)
+*}
+
 ML {*
 structure Eval_Method =
 struct
@@ -239,6 +243,10 @@ method_setup normalization = {* (Method.no_args o Method.SIMPLE_METHOD')
 
 
 subsection {* Quickcheck *}
+
+setup {*
+  Quickcheck.add_generator ("SML", Codegen.test_term)
+*}
 
 quickcheck_params [size = 5, iterations = 50]
 

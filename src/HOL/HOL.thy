@@ -26,6 +26,7 @@ uses
   "~~/src/Tools/atomize_elim.ML"
   "~~/src/Tools/induct.ML"
   ("~~/src/Tools/induct_tacs.ML")
+  "~~/src/Tools/value.ML"
   "~~/src/Tools/code/code_name.ML"
   "~~/src/Tools/code/code_funcgr.ML"
   "~~/src/Tools/code/code_thingol.ML"

@@ -315,7 +315,13 @@ fun load_thy time upd_time initiators name =
 datatype task = Task of (unit -> unit) | Finished | Running;
 fun task_finished Finished = true | task_finished _ = false;
 
-fun future_schedule task_graph =
+local
+
+fun schedule_seq tasks =
+  Graph.topological_order tasks
+  |> List.app (fn name => (case Graph.get_node tasks name of Task body => body () | _ => ()));
+
+fun schedule_futures task_graph =
   let
     val tasks = Graph.topological_order task_graph |> map_filter (fn name =>
       (case Graph.get_node task_graph name of Task body => SOME (name, body) | _ => NONE));
@@ -339,45 +345,14 @@ fun future_schedule task_graph =
     val proof_results = PureThy.join_proofs (map_filter (try get_theory o #1) tasks);
   in ignore (Exn.release_all (thy_results @ proof_results)) end;
 
-local
-
-fun max_task (name, (Task body, m)) NONE = SOME (name: string, (body, m))
-  | max_task (name, (Task body, m)) (task' as SOME (name', (_, m'))) =
-      if m > m' orelse m = m' andalso name < name' then SOME (name, (body, m)) else task'
-  | max_task _ task' = task';
-
-fun next_task G =
-  let
-    val tasks = Graph.minimals G |> map (fn name =>
-      (name, (Graph.get_node G name, length (Graph.imm_succs G name))));
-    val finished = filter (task_finished o fst o snd) tasks;
-  in
-    if not (null finished) then next_task (Graph.del_nodes (map fst finished) G)
-    else if null tasks then (Schedule.Terminate, G)
-    else
-      (case fold max_task tasks NONE of
-        NONE => (Schedule.Wait, G)
-      | SOME (name, (body, _)) =>
-         (Schedule.Task {body = PrintMode.closure body,
-           cont = Graph.del_nodes [name], fail = K Graph.empty},
-          Graph.map_node name (K Running) G))
-  end;
-
-fun schedule_seq tasks =
-  Graph.topological_order tasks
-  |> List.app (fn name => (case Graph.get_node tasks name of Task body => body () | _ => ()));
-
 in
 
 fun schedule_tasks tasks n =
-  let val m = Multithreading.max_threads_value () in
-    if m <= 1 then schedule_seq tasks
-    else if Multithreading.self_critical () then
+  if not (Multithreading.enabled ()) then schedule_seq tasks
+  else if Multithreading.self_critical () then
      (warning (loader_msg "no multithreading within critical section" []);
       schedule_seq tasks)
-    else if Future.enabled () then future_schedule tasks
-    else ignore (Exn.release_all (map Exn.Exn (Schedule.schedule (Int.min (m, n)) next_task tasks)))
-  end;
+  else schedule_futures tasks;
 
 end;
 

@@ -213,7 +213,7 @@ fun pretty_full_theory verbose thy =
       ||> List.partition (Defs.plain_args o #2 o #1);
     val rests = restricts |> map (apfst (apfst extern_const)) |> sort_wrt (#1 o #1);
   in
-    [Pretty.strs ("names:" :: Context.names_of thy)] @
+    [Pretty.strs ("names:" :: Context.display_names thy)] @
     [Pretty.strs ["name prefix:", NameSpace.path_of naming],
       Pretty.big_list "classes:" (map pretty_classrel clsses),
       pretty_default default,

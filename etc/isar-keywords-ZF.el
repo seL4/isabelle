@@ -200,7 +200,6 @@
     "use"
     "use_thy"
     "using"
-    "value"
     "welcome"
     "with"
     "{"
@@ -323,7 +322,6 @@
     "typ"
     "unused_thms"
     "use_thy"
-    "value"
     "welcome"))
 
 (defconst isar-keywords-theory-begin

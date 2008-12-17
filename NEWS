@@ -239,6 +239,9 @@ is printed.  In square brackets a particular named evaluation
 mechanisms may be specified (currently, [SML], [code] or [nbe]).  See
 further src/HOL/ex/Eval_Examples.thy.
 
+* New method "sizechange" to automate termination proofs using (a
+modification of) the size-change principle. Requires SAT solver.
+
 * HOL/Orderings: class "wellorder" moved here, with explicit induction
 rule "less_induct" as assumption.  For instantiation of "wellorder" by
 means of predicate "wf", use rule wf_wellorderI.  INCOMPATIBILITY.

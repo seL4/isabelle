@@ -1,5 +1,3 @@
-(* $Id$ *)
-
 theory CK_Machine 
   imports "../Nominal" 
 begin
@@ -41,21 +39,21 @@ nominal_datatype lam =
 
 section {* Capture-Avoiding Substitution *}
 
-consts subst :: "lam \<Rightarrow> name \<Rightarrow> lam \<Rightarrow> lam"  ("_[_::=_]" [100,100,100] 100)
-
 nominal_primrec
+  subst :: "lam \<Rightarrow> name \<Rightarrow> lam \<Rightarrow> lam"  ("_[_::=_]" [100,100,100] 100)
+where
   "(VAR x)[y::=s] = (if x=y then s else (VAR x))"
-  "(APP t\<^isub>1 t\<^isub>2)[y::=s] = APP (t\<^isub>1[y::=s]) (t\<^isub>2[y::=s])"
-  "x\<sharp>(y,s) \<Longrightarrow> (LAM [x].t)[y::=s] = LAM [x].(t[y::=s])"
-  "(NUM n)[y::=s] = NUM n"
-  "(t\<^isub>1 -- t\<^isub>2)[y::=s] = (t\<^isub>1[y::=s]) -- (t\<^isub>2[y::=s])"
-  "(t\<^isub>1 ++ t\<^isub>2)[y::=s] = (t\<^isub>1[y::=s]) ++ (t\<^isub>2[y::=s])"
-  "x\<sharp>(y,s) \<Longrightarrow> (FIX [x].t)[y::=s] = FIX [x].(t[y::=s])"
-  "TRUE[y::=s] = TRUE"
-  "FALSE[y::=s] = FALSE"
-  "(IF t1 t2 t3)[y::=s] = IF (t1[y::=s]) (t2[y::=s]) (t3[y::=s])"
-  "(ZET t)[y::=s] = ZET (t[y::=s])"
-  "(EQI t1 t2)[y::=s] = EQI (t1[y::=s]) (t2[y::=s])"
+| "(APP t\<^isub>1 t\<^isub>2)[y::=s] = APP (t\<^isub>1[y::=s]) (t\<^isub>2[y::=s])"
+| "x\<sharp>(y,s) \<Longrightarrow> (LAM [x].t)[y::=s] = LAM [x].(t[y::=s])"
+| "(NUM n)[y::=s] = NUM n"
+| "(t\<^isub>1 -- t\<^isub>2)[y::=s] = (t\<^isub>1[y::=s]) -- (t\<^isub>2[y::=s])"
+| "(t\<^isub>1 ++ t\<^isub>2)[y::=s] = (t\<^isub>1[y::=s]) ++ (t\<^isub>2[y::=s])"
+| "x\<sharp>(y,s) \<Longrightarrow> (FIX [x].t)[y::=s] = FIX [x].(t[y::=s])"
+| "TRUE[y::=s] = TRUE"
+| "FALSE[y::=s] = FALSE"
+| "(IF t1 t2 t3)[y::=s] = IF (t1[y::=s]) (t2[y::=s]) (t3[y::=s])"
+| "(ZET t)[y::=s] = ZET (t[y::=s])"
+| "(EQI t1 t2)[y::=s] = EQI (t1[y::=s]) (t2[y::=s])"
 apply(finite_guess)+
 apply(rule TrueI)+
 apply(simp add: abs_fresh)+

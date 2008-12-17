@@ -1025,8 +1025,6 @@ fun parse_code lib =
 
 val setup = add_codegen "default" default_codegen
   #> add_tycodegen "default" default_tycodegen
-  #> Value.add_evaluator ("SML", eval_term o ProofContext.theory_of)
-  #> Quickcheck.add_generator ("SML", test_term)
   #> Code.add_attribute ("unfold", Scan.succeed (Thm.declaration_attribute
        (fn thm => Context.mapping (add_unfold thm #> Code.add_inline thm) I)))
   #> add_preprocessor unfold_preprocessor;

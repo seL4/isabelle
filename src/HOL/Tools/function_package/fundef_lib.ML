@@ -130,4 +130,50 @@ fun try_proof cgoal tac =
     | SOME st => if Thm.no_prems st then Solved (Goal.finish st) else Stuck st
 
 
+fun dest_binop_list cn (t as (Const (n, _) $ a $ b)) = 
+    if cn = n then dest_binop_list cn a @ dest_binop_list cn b else [ t ]
+  | dest_binop_list _ t = [ t ]
+
+
+(* separate two parts in a +-expression:
+   "a + b + c + d + e" --> "(a + b + d) + (c + e)"
+
+   Here, + can be any binary operation that is AC.
+
+   cn - The name of the binop-constructor (e.g. @{const_name "op Un"})
+   ac - the AC rewrite rules for cn
+   is - the list of indices of the expressions that should become the first part
+        (e.g. [0,1,3] in the above example)
+*)
+
+fun regroup_conv neu cn ac is ct =
+ let
+   val mk = HOLogic.mk_binop cn
+   val t = term_of ct
+   val xs = dest_binop_list cn t
+   val js = 0 upto (length xs) - 1 \\ is
+   val ty = fastype_of t
+   val thy = theory_of_cterm ct
+ in
+   Goal.prove_internal []
+     (cterm_of thy
+       (Logic.mk_equals (t,
+          if is = []
+          then mk (Const (neu, ty), foldr1 mk (map (nth xs) js))
+          else if js = []
+            then mk (foldr1 mk (map (nth xs) is), Const (neu, ty))
+            else mk (foldr1 mk (map (nth xs) is), foldr1 mk (map (nth xs) js)))))
+     (K (MetaSimplifier.rewrite_goals_tac ac
+         THEN rtac Drule.reflexive_thm 1))
+ end
+
+(* instance for unions *)
+fun regroup_union_conv t =
+    regroup_conv (@{const_name "{}"})
+                  @{const_name "op Un"}
+       (map (fn t => t RS eq_reflection) (@{thms "Un_ac"} @
+                                          @{thms "Un_empty_right"} @
+                                          @{thms "Un_empty_left"})) t
+
+
 end
