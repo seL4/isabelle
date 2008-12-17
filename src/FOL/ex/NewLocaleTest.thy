@@ -164,6 +164,9 @@ locale semi_hom_loc = prod: semi prod + sum: semi sum
   assumes semi_homh: "semi_hom(prod, sum, h)"
   notes semi_hom_mult = semi_hom_mult [OF semi_homh]
 
+thm semi_hom_loc.semi_hom_mult
+(* unspecified, attribute not applied in backgroud theory !!! *)
+
 lemma (in semi_hom_loc) "h(prod(x, y)) = sum(h(x), h(y))"
   by (rule semi_hom_mult)
 
