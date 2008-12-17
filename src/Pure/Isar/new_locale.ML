@@ -375,8 +375,8 @@ fun print_locale thy show_facts name =
     val ctxt = init name' thy
   in
     Pretty.big_list "locale elements:"
-      (activate_all name' thy (cons_elem show_facts) (K Morphism.identity) (empty, []) |>
-        snd |> rev |> 
+      (activate_all name' thy (cons_elem show_facts) (K (Element.transfer_morphism thy))
+        (empty, []) |> snd |> rev |> 
         map (Element.pretty_ctxt ctxt) |> map Pretty.chunks) |> Pretty.writeln
   end
 
