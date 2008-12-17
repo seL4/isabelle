@@ -1,5 +1,4 @@
 (*  Title:      HOLCF/HOLCF.thy
-    ID:         $Id$
     Author:     Franz Regensburger
 
 HOLCF -- a semantic extension of HOL by the LCF logic.

@@ -1,5 +1,4 @@
 (*  Title:      HOLCF/Algebraic.thy
-    ID:         $Id$
     Author:     Brian Huffman
 *)
 

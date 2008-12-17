@@ -1,5 +1,4 @@
 (*  Title:      HOLCF/ConvexPD.thy
-    ID:         $Id$
     Author:     Brian Huffman
 *)
 

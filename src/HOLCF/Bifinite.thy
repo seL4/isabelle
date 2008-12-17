@@ -1,5 +1,4 @@
 (*  Title:      HOLCF/Bifinite.thy
-    ID:         $Id$
     Author:     Brian Huffman
 *)
 

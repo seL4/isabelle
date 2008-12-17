@@ -1,5 +1,4 @@
 (*  Title:      HOLCF/Pcpodef.thy
-    ID:         $Id$
     Author:     Brian Huffman
 *)
 

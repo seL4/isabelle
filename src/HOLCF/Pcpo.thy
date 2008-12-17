@@ -1,5 +1,4 @@
 (*  Title:      HOLCF/Pcpo.thy
-    ID:         $Id$
     Author:     Franz Regensburger
 *)
 

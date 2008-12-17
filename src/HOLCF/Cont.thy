@@ -1,8 +1,5 @@
 (*  Title:      HOLCF/Cont.thy
-    ID:         $Id$
     Author:     Franz Regensburger
-
-Results about continuity and monotonicity.
 *)
 
 header {* Continuity and monotonicity *}

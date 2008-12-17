@@ -1,5 +1,4 @@
 (*  Title:      HOLCF/Adm.thy
-    ID:         $Id$
     Author:     Franz Regensburger and Brian Huffman
 *)
 

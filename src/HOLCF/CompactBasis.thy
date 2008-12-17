@@ -1,5 +1,4 @@
 (*  Title:      HOLCF/CompactBasis.thy
-    ID:         $Id$
     Author:     Brian Huffman
 *)
 

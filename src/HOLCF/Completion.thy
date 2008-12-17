@@ -1,5 +1,4 @@
 (*  Title:      HOLCF/Completion.thy
-    ID:         $Id$
     Author:     Brian Huffman
 *)
 

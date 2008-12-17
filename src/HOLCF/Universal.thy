@@ -1,5 +1,4 @@
 (*  Title:      HOLCF/Universal.thy
-    ID:         $Id$
     Author:     Brian Huffman
 *)
 

@@ -1,5 +1,4 @@
 (*  Title:      HOLCF/Fixrec.thy
-    ID:         $Id$
     Author:     Amber Telfer and Brian Huffman
 *)
 

@@ -1,8 +1,5 @@
 (*  Title:      HOLCF/Ssum.thy
-    ID:         $Id$
     Author:     Franz Regensburger and Brian Huffman
-
-Strict sum with typedef.
 *)
 
 header {* The type of strict sums *}

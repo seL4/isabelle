@@ -1,5 +1,4 @@
 (*  Title:      HOLCF/Lift.thy
-    ID:         $Id$
     Author:     Olaf Mueller
 *)
 

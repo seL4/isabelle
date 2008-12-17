@@ -1,8 +1,5 @@
 (*  Title:      HOLCF/One.thy
-    ID:         $Id$
     Author:     Oscar Slotosch
-
-The unit domain.
 *)
 
 header {* The unit domain *}

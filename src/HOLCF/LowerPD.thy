@@ -1,5 +1,4 @@
 (*  Title:      HOLCF/LowerPD.thy
-    ID:         $Id$
     Author:     Brian Huffman
 *)
 

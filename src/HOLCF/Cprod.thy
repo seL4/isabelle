@@ -1,8 +1,5 @@
 (*  Title:      HOLCF/Cprod.thy
-    ID:         $Id$
     Author:     Franz Regensburger
-
-Partial ordering for cartesian product of HOL products.
 *)
 
 header {* The cpo of cartesian products *}

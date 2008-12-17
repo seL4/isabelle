@@ -1,5 +1,4 @@
 (*  Title:      HOLCF/Cfun.thy
-    ID:         $Id$
     Author:     Franz Regensburger
 
 Definition of the type ->  of continuous functions.
