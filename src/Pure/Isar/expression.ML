@@ -275,23 +275,26 @@ fun declare_elem prep_vars (Fixes fixes) ctxt =
 
 val norm_term = Envir.beta_norm oo Term.subst_atomic;
 
-fun bind_def ctxt eq (xs, env, eqs) =
-  let
-    val _ = LocalDefs.cert_def ctxt eq;
-    val ((y, T), b) = LocalDefs.abs_def eq;
-    val b' = norm_term env b;
-    fun err msg = error (msg ^ ": " ^ quote y);
-  in
-    exists (fn (x, _) => x = y) xs andalso
-      err "Attempt to define previously specified variable";
-    exists (fn (Free (y', _), _) => y = y' | _ => false) env andalso
-      err "Attempt to redefine variable";
-    (Term.add_frees b' xs, (Free (y, T), b') :: env, eq :: eqs)
-  end;
+fun bind_def false ctxt eq (xs, env, eqs) =
+      let val b' = norm_term env eq;
+      in (Term.add_frees b' xs, env, eqs) end
+  | bind_def true ctxt eq (xs, env, eqs) =
+      let
+        val _ = LocalDefs.cert_def ctxt eq;
+        val ((y, T), b) = LocalDefs.abs_def eq;
+        val b' = norm_term env b;
+        fun err msg = error (msg ^ ": " ^ quote y);
+      in
+        exists (fn (x, _) => x = y) xs andalso
+          err "Attempt to define previously specified variable";
+        exists (fn (Free (y', _), _) => y = y' | _ => false) env andalso
+          err "Attempt to redefine variable";
+        (Term.add_frees b' xs, (Free (y, T), b') :: env, eq :: eqs)
+      end;
 
-fun eval_text _ _ (Fixes _) text = text
-  | eval_text _ _ (Constrains _) text = text
-  | eval_text _ is_ext (Assumes asms)
+fun eval_text _ _ _ (Fixes _) text = text
+  | eval_text _ _ _ (Constrains _) text = text
+  | eval_text _ _ is_ext (Assumes asms)
         (((exts, exts'), (ints, ints')), (xs, env, defs)) =
       let
         val ts = maps (map #1 o #2) asms;
@@ -300,9 +303,9 @@ fun eval_text _ _ (Fixes _) text = text
           if is_ext then ((exts @ ts, exts' @ ts'), (ints, ints'))
           else ((exts, exts'), (ints @ ts, ints' @ ts'));
       in (spec', (fold Term.add_frees ts' xs, env, defs)) end
-  | eval_text ctxt _ (Defines defs) (spec, binds) =
-      (spec, fold (bind_def ctxt o #1 o #2) defs binds)
-  | eval_text _ _ (Notes _) text = text;
+  | eval_text ctxt check _ (Defines defs) (spec, binds) =
+      (spec, fold (bind_def check ctxt o #1 o #2) defs binds)
+  | eval_text _ _ _ (Notes _) text = text;
 
 fun closeup _ _ false elem = elem
   | closeup ctxt parms true elem =
@@ -337,7 +340,7 @@ fun finish_primitive parms _ (Fixes fixes) = Fixes (map (fn (binding, _, mx) =>
   | finish_primitive _ close (Defines defs) = close (Defines defs)
   | finish_primitive _ _ (Notes facts) = Notes facts;
 
-fun finish_inst ctxt parms do_close (loc, (prfx, inst)) text =
+fun finish_inst ctxt parms check_defs do_close (loc, (prfx, inst)) text =
   let
     val thy = ProofContext.theory_of ctxt;
     val (parm_names, parm_types) = NewLocale.params_of thy loc |>
@@ -348,24 +351,24 @@ fun finish_inst ctxt parms do_close (loc, (prfx, inst)) text =
     val defs' = map (Morphism.term morph) defs;
     val text' = text |>
       (if is_some asm
-        then eval_text ctxt false (Assumes [(Attrib.empty_binding, [(the asm', [])])])
+        then eval_text ctxt check_defs false (Assumes [(Attrib.empty_binding, [(the asm', [])])])
         else I) |>
       (if not (null defs)
-        then eval_text ctxt false (Defines (map (fn def => (Attrib.empty_binding, (def, []))) defs'))
+        then eval_text ctxt check_defs false (Defines (map (fn def => (Attrib.empty_binding, (def, []))) defs'))
         else I)
 (* FIXME clone from new_locale.ML *)
   in ((loc, morph), text') end;
 
-fun finish_elem ctxt parms do_close elem text =
+fun finish_elem ctxt parms check_defs do_close elem text =
   let
     val elem' = finish_primitive parms (closeup ctxt parms do_close) elem;
-    val text' = eval_text ctxt true elem' text;
+    val text' = eval_text ctxt check_defs true elem' text;
   in (elem', text') end
   
-fun finish ctxt parms do_close insts elems text =
+fun finish ctxt parms check_defs do_close insts elems text =
   let
-    val (deps, text') = fold_map (finish_inst ctxt parms do_close) insts text;
-    val (elems', text'') = fold_map (finish_elem ctxt parms do_close) elems text';
+    val (deps, text') = fold_map (finish_inst ctxt parms check_defs do_close) insts text;
+    val (elems', text'') = fold_map (finish_elem ctxt parms check_defs do_close) elems text';
   in (deps, elems', text'') end;
 
 
@@ -422,7 +425,8 @@ fun prep_full_context_statement parse_typ parse_prop parse_inst prep_vars prep_e
     val parms = xs ~~ Ts;  (* params from expression and elements *)
 
     val Fixes fors' = finish_primitive parms I (Fixes fors);
-    val (deps, elems', text) = finish ctxt' parms do_close insts elems ((([], []), ([], [])), ([], [], []));
+    val (deps, elems', text) =
+      finish ctxt' parms (not strict) do_close insts elems ((([], []), ([], [])), ([], [], []));
     (* text has the following structure:
            (((exts, exts'), (ints, ints')), (xs, env, defs))
        where
