@@ -10,7 +10,8 @@ begin
 section {* Homomorphisms of Non-Commutative Rings *}
 
 text {* Lifting existing lemmas in a @{text ring_hom_ring} locale *}
-locale ring_hom_ring = R: ring R + S: ring S +
+locale ring_hom_ring = R: ring R + S: ring S
+    for R (structure) and S (structure) +
   fixes h
   assumes homh: "h \<in> ring_hom R S"
   notes hom_mult [simp] = ring_hom_mult [OF homh]

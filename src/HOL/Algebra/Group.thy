@@ -541,15 +541,6 @@ constdefs (structure G and H)
     {h. h \<in> carrier G -> carrier H &
       (\<forall>x \<in> carrier G. \<forall>y \<in> carrier G. h (x \<otimes>\<^bsub>G\<^esub> y) = h x \<otimes>\<^bsub>H\<^esub> h y)}"
 
-lemma hom_mult:
-  "[| h \<in> hom G H; x \<in> carrier G; y \<in> carrier G |]
-   ==> h (x \<otimes>\<^bsub>G\<^esub> y) = h x \<otimes>\<^bsub>H\<^esub> h y"
-  by (simp add: hom_def)
-
-lemma hom_closed:
-  "[| h \<in> hom G H; x \<in> carrier G |] ==> h x \<in> carrier H"
-  by (auto simp add: hom_def funcset_mem)
-
 lemma (in group) hom_compose:
      "[|h \<in> hom G H; i \<in> hom H I|] ==> compose (carrier G) i h \<in> hom G I"
 apply (auto simp add: hom_def funcset_compose) 
@@ -589,8 +580,20 @@ text{*Basis for homomorphism proofs: we assume two groups @{term G} and
 locale group_hom = G: group G + H: group H for G (structure) and H (structure) +
   fixes h
   assumes homh: "h \<in> hom G H"
-  notes hom_mult [simp] = hom_mult [OF homh]
-    and hom_closed [simp] = hom_closed [OF homh]
+
+lemma (in group_hom) hom_mult [simp]:
+  "[| x \<in> carrier G; y \<in> carrier G |] ==> h (x \<otimes>\<^bsub>G\<^esub> y) = h x \<otimes>\<^bsub>H\<^esub> h y"
+proof -
+  assume "x \<in> carrier G" "y \<in> carrier G"
+  with homh [unfolded hom_def] show ?thesis by simp
+qed
+
+lemma (in group_hom) hom_closed [simp]:
+  "x \<in> carrier G ==> h x \<in> carrier H"
+proof -
+  assume "x \<in> carrier G"
+  with homh [unfolded hom_def] show ?thesis by (auto simp add: funcset_mem)
+qed
 
 lemma (in group_hom) one_closed [simp]:
   "h \<one> \<in> carrier H"

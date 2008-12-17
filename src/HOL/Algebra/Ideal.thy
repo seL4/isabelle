@@ -13,7 +13,7 @@ subsection {* Definitions *}
 
 subsubsection {* General definition *}
 
-locale ideal = additive_subgroup I R + ring R +
+locale ideal = additive_subgroup I R + ring R for I and R (structure) +
   assumes I_l_closed: "\<lbrakk>a \<in> I; x \<in> carrier R\<rbrakk> \<Longrightarrow> x \<otimes> a \<in> I"
       and I_r_closed: "\<lbrakk>a \<in> I; x \<in> carrier R\<rbrakk> \<Longrightarrow> a \<otimes> x \<in> I"
 
@@ -127,7 +127,7 @@ lemma primeidealI2:
       and I_prime: "\<And>a b. \<lbrakk>a \<in> carrier R; b \<in> carrier R; a \<otimes> b \<in> I\<rbrakk> \<Longrightarrow> a \<in> I \<or> b \<in> I"
   shows "primeideal I R"
 proof -
-  interpret additive_subgroup [I R] by fact
+  interpret additive_subgroup I R by fact
   interpret cring R by fact
   show ?thesis apply (intro_locales)
     apply (intro ideal_axioms.intro)
@@ -207,7 +207,7 @@ lemma (in ring) i_intersect:
   shows "ideal (I \<inter> J) R"
 proof -
   interpret ideal I R by fact
-  interpret ideal [J R] by fact
+  interpret ideal J R by fact
   show ?thesis
 apply (intro idealI subgroup.intro)
       apply (rule is_ring)
@@ -532,7 +532,7 @@ lemma (in ring) cgenideal_minimal:
   assumes aJ: "a \<in> J"
   shows "PIdl a \<subseteq> J"
 proof -
-  interpret ideal [J R] by fact
+  interpret ideal J R by fact
   show ?thesis unfolding cgenideal_def
     apply rule
     apply clarify
@@ -579,7 +579,7 @@ lemma (in ring) union_genideal:
   shows "Idl (I \<union> J) = I <+> J"
 apply rule
  apply (rule ring.genideal_minimal)
-   apply (rule R.is_ring)
+   apply (rule is_ring)
   apply (rule add_ideals[OF idealI idealJ])
  apply (rule)
  apply (simp add: set_add_defs) apply (elim disjE) defer 1 defer 1
@@ -829,7 +829,7 @@ proof -
       by fast
     def J \<equiv> "{x\<in>carrier R. a \<otimes> x \<in> I}"
     
-    from R.is_cring and acarr
+    from is_cring and acarr
     have idealJ: "ideal J R" unfolding J_def by (rule helper_max_prime)
     
     have IsubJ: "I \<subseteq> J"

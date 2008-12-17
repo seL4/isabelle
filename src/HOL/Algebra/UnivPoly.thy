@@ -175,17 +175,17 @@ locale UP =
   fixes R (structure) and P (structure)
   defines P_def: "P == UP R"
 
-locale UP_ring = UP + ring R
+locale UP_ring = UP + R: ring R
 
-locale UP_cring = UP + cring R
+locale UP_cring = UP + R: cring R
 
 sublocale UP_cring < UP_ring
-  by (rule P_def) intro_locales
+  by intro_locales [1] (rule P_def)
 
-locale UP_domain = UP + "domain" R
+locale UP_domain = UP + R: "domain" R
 
 sublocale UP_domain < UP_cring
-  by (rule P_def) intro_locales
+  by intro_locales [1] (rule P_def)
 
 context UP
 begin
@@ -457,8 +457,8 @@ qed
 
 end
 
-sublocale UP_ring < ring P using UP_ring .
-sublocale UP_cring < cring P using UP_cring .
+sublocale UP_ring < P: ring P using UP_ring .
+sublocale UP_cring < P: cring P using UP_cring .
 
 
 subsection {* Polynomials Form an Algebra *}
@@ -1203,7 +1203,9 @@ end
 
 text {* The universal property of the polynomial ring *}
 
-locale UP_pre_univ_prop = ring_hom_cring R S h + UP_cring R P
+locale UP_pre_univ_prop = ring_hom_cring + UP_cring
+
+(* FIXME print_locale ring_hom_cring fails *)
 
 locale UP_univ_prop = UP_pre_univ_prop +
   fixes s and Eval
