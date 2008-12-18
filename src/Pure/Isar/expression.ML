@@ -271,38 +271,7 @@ fun declare_elem prep_vars (Fixes fixes) ctxt =
   | declare_elem _ (Defines _) ctxt = ctxt
   | declare_elem _ (Notes _) ctxt = ctxt;
 
-(** Finish locale elements, extract specification text **)
-
-val norm_term = Envir.beta_norm oo Term.subst_atomic;
-
-fun bind_def ctxt eq (xs, env, eqs) =
-  let
-    val _ = LocalDefs.cert_def ctxt eq;
-    val ((y, T), b) = LocalDefs.abs_def eq;
-    val b' = norm_term env b;
-    fun err msg = error (msg ^ ": " ^ quote y);
-  in
-    exists (fn (x, _) => x = y) xs andalso
-      err "Attempt to define previously specified variable";
-    exists (fn (Free (y', _), _) => y = y' | _ => false) env andalso
-      err "Attempt to redefine variable";
-    (Term.add_frees b' xs, (Free (y, T), b') :: env, eq :: eqs)
-  end;
-
-fun eval_text _ _ (Fixes _) text = text
-  | eval_text _ _ (Constrains _) text = text
-  | eval_text _ is_ext (Assumes asms)
-        (((exts, exts'), (ints, ints')), (xs, env, defs)) =
-      let
-        val ts = maps (map #1 o #2) asms;
-        val ts' = map (norm_term env) ts;
-        val spec' =
-          if is_ext then ((exts @ ts, exts' @ ts'), (ints, ints'))
-          else ((exts, exts'), (ints @ ts, ints' @ ts'));
-      in (spec', (fold Term.add_frees ts' xs, env, defs)) end
-  | eval_text ctxt _ (Defines defs) (spec, binds) =
-      (spec, fold (bind_def ctxt o #1 o #2) defs binds)
-  | eval_text _ _ (Notes _) text = text;
+(** Finish locale elements **)
 
 fun closeup _ _ false elem = elem
   | closeup ctxt parms true elem =
@@ -337,36 +306,24 @@ fun finish_primitive parms _ (Fixes fixes) = Fixes (map (fn (binding, _, mx) =>
   | finish_primitive _ close (Defines defs) = close (Defines defs)
   | finish_primitive _ _ (Notes facts) = Notes facts;
 
-fun finish_inst ctxt parms do_close (loc, (prfx, inst)) text =
+fun finish_inst ctxt parms do_close (loc, (prfx, inst)) =
   let
     val thy = ProofContext.theory_of ctxt;
     val (parm_names, parm_types) = NewLocale.params_of thy loc |>
       map (fn (b, SOME T, _) => (Binding.base_name b, T)) |> split_list;
-    val (asm, defs) = NewLocale.specification_of thy loc;
     val (morph, _) = inst_morph (parm_names, parm_types) (prfx, inst) ctxt;
-    val asm' = Option.map (Morphism.term morph) asm;
-    val defs' = map (Morphism.term morph) defs;
-    val text' = text |>
-      (if is_some asm
-        then eval_text ctxt false (Assumes [(Attrib.empty_binding, [(the asm', [])])])
-        else I) |>
-      (if not (null defs)
-        then eval_text ctxt false (Defines (map (fn def => (Attrib.empty_binding, (def, []))) defs'))
-        else I)
-(* FIXME clone from new_locale.ML *)
-  in ((loc, morph), text') end;
+  in (loc, morph) end;
 
-fun finish_elem ctxt parms do_close elem text =
+fun finish_elem ctxt parms do_close elem =
   let
     val elem' = finish_primitive parms (closeup ctxt parms do_close) elem;
-    val text' = eval_text ctxt true elem' text;
-  in (elem', text') end
+  in elem' end
   
-fun finish ctxt parms do_close insts elems text =
+fun finish ctxt parms do_close insts elems =
   let
-    val (deps, text') = fold_map (finish_inst ctxt parms do_close) insts text;
-    val (elems', text'') = fold_map (finish_elem ctxt parms do_close) elems text';
-  in (deps, elems', text'') end;
+    val deps = map (finish_inst ctxt parms do_close) insts;
+    val elems' = map (finish_elem ctxt parms do_close) elems;
+  in (deps, elems') end;
 
 
 (** Process full context statement: instantiations + elements + conclusion **)
@@ -422,28 +379,9 @@ fun prep_full_context_statement parse_typ parse_prop parse_inst prep_vars prep_e
     val parms = xs ~~ Ts;  (* params from expression and elements *)
 
     val Fixes fors' = finish_primitive parms I (Fixes fors);
-    val (deps, elems', text) = finish ctxt' parms do_close insts elems ((([], []), ([], [])), ([], [], []));
-    (* text has the following structure:
-           (((exts, exts'), (ints, ints')), (xs, env, defs))
-       where
-         exts: external assumptions (terms in assumes elements)
-         exts': dito, normalised wrt. env
-         ints: internal assumptions (terms in assumptions from insts)
-         ints': dito, normalised wrt. env
-         xs: the free variables in exts' and ints' and rhss of definitions,
-           this includes parameters except defined parameters
-         env: list of term pairs encoding substitutions, where the first term
-           is a free variable; substitutions represent defines elements and
-           the rhs is normalised wrt. the previous env
-         defs: the equations from the defines elements
-       elems is an updated version of raw_elems:
-         - type info added to Fixes and modified in Constrains
-         - axiom and definition statement replaced by corresponding one
-           from proppss in Assumes and Defines
-         - Facts unchanged
-       *)
+    val (deps, elems') = finish ctxt' parms do_close insts elems;
 
-  in ((fors', deps, elems', concl), (parms, text)) end
+  in ((fors', deps, elems', concl), (parms, ctxt')) end
 
 in
 
@@ -480,14 +418,13 @@ local
 
 fun prep_declaration prep activate raw_import raw_elems context =
   let
-    val ((fixed, deps, elems, _), (parms, (spec, (_, _, defs)))) =
-      prep false true context raw_import raw_elems [];
+    val ((fixed, deps, elems, _), (parms, ctxt')) = prep false true context raw_import raw_elems [];
     (* Declare parameters and imported facts *)
     val context' = context |>
       ProofContext.add_fixes_i fixed |> snd |>
       fold NewLocale.activate_local_facts deps;
     val (elems', _) = activate elems (ProofContext.set_stmt true context');
-  in ((fixed, deps, elems'), (parms, spec, defs)) end;
+  in ((fixed, deps, elems'), (parms, ctxt')) end;
 
 in
 
@@ -537,6 +474,81 @@ end;
 
 
 (*** Locale declarations ***)
+
+(* extract specification text *)
+
+val norm_term = Envir.beta_norm oo Term.subst_atomic;
+
+fun bind_def ctxt eq (xs, env, eqs) =
+  let
+    val _ = LocalDefs.cert_def ctxt eq;
+    val ((y, T), b) = LocalDefs.abs_def eq;
+    val b' = norm_term env b;
+    fun err msg = error (msg ^ ": " ^ quote y);
+  in
+    exists (fn (x, _) => x = y) xs andalso
+      err "Attempt to define previously specified variable";
+    exists (fn (Free (y', _), _) => y = y' | _ => false) env andalso
+      err "Attempt to redefine variable";
+    (Term.add_frees b' xs, (Free (y, T), b') :: env, eq :: eqs)
+  end;
+
+(* text has the following structure:
+       (((exts, exts'), (ints, ints')), (xs, env, defs))
+   where
+     exts: external assumptions (terms in assumes elements)
+     exts': dito, normalised wrt. env
+     ints: internal assumptions (terms in assumptions from insts)
+     ints': dito, normalised wrt. env
+     xs: the free variables in exts' and ints' and rhss of definitions,
+       this includes parameters except defined parameters
+     env: list of term pairs encoding substitutions, where the first term
+       is a free variable; substitutions represent defines elements and
+       the rhs is normalised wrt. the previous env
+     defs: the equations from the defines elements
+   *)
+
+fun eval_text _ _ (Fixes _) text = text
+  | eval_text _ _ (Constrains _) text = text
+  | eval_text _ is_ext (Assumes asms)
+        (((exts, exts'), (ints, ints')), (xs, env, defs)) =
+      let
+        val ts = maps (map #1 o #2) asms;
+        val ts' = map (norm_term env) ts;
+        val spec' =
+          if is_ext then ((exts @ ts, exts' @ ts'), (ints, ints'))
+          else ((exts, exts'), (ints @ ts, ints' @ ts'));
+      in (spec', (fold Term.add_frees ts' xs, env, defs)) end
+  | eval_text ctxt _ (Defines defs) (spec, binds) =
+      (spec, fold (bind_def ctxt o #1 o #2) defs binds)
+  | eval_text _ _ (Notes _) text = text;
+
+fun eval_inst ctxt (loc, morph) text =
+  let
+    val thy = ProofContext.theory_of ctxt;
+    val (asm, defs) = NewLocale.specification_of thy loc;
+    val asm' = Option.map (Morphism.term morph) asm;
+    val defs' = map (Morphism.term morph) defs;
+    val text' = text |>
+      (if is_some asm
+        then eval_text ctxt false (Assumes [(Attrib.empty_binding, [(the asm', [])])])
+        else I) |>
+      (if not (null defs)
+        then eval_text ctxt false (Defines (map (fn def => (Attrib.empty_binding, (def, []))) defs'))
+        else I)
+(* FIXME clone from new_locale.ML *)
+  in text' end;
+
+fun eval_elem ctxt elem text =
+  let
+    val text' = eval_text ctxt true elem text;
+  in text' end;
+
+fun eval ctxt deps elems =
+  let
+    val text' = fold (eval_inst ctxt) deps ((([], []), ([], [])), ([], [], []));
+    val ((spec, (_, _, defs))) = fold (eval_elem ctxt) elems text';
+  in (spec, defs) end;
 
 (* axiomsN: name of theorem set with destruct rules for locale predicates,
      also name suffix of delta predicates and assumptions. *)
@@ -623,7 +635,7 @@ in
 
 (* CB: main predicate definition function *)
 
-fun define_preds pname (parms, ((exts, exts'), (ints, ints')), defs) thy =
+fun define_preds pname parms (((exts, exts'), (ints, ints')), defs) thy =
   let
     val defs' = map (cterm_of thy #> Assumption.assume #> Drule.gen_all #> Drule.abs_def) defs;
 
@@ -686,10 +698,12 @@ fun gen_add_locale prep_decl
     val _ = NewLocale.test_locale thy name andalso
       error ("Duplicate definition of locale " ^ quote name);
 
-    val ((fixed, deps, body_elems), text as (parms, ((_, exts'), _), defs)) =
+    val ((fixed, deps, body_elems), (parms, ctxt')) =
       prep_decl raw_imprt raw_body (ProofContext.init thy);
+    val text as (((_, exts'), _), defs) = eval ctxt' deps body_elems;
+
     val ((a_statement, a_intro, a_axioms), (b_statement, b_intro, b_axioms), thy') =
-      define_preds predicate_name text thy;
+      define_preds predicate_name parms text thy;
 
     val extraTs = fold Term.add_tfrees exts' [] \\ fold Term.add_tfreesT (map snd parms) [];
     val _ = if null extraTs then ()
