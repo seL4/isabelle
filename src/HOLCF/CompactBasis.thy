@@ -1,5 +1,4 @@
 (*  Title:      HOLCF/CompactBasis.thy
-    ID:         $Id$
     Author:     Brian Huffman
 *)
 
@@ -47,8 +46,8 @@ by (simp add: Abs_compact_basis_inverse)
 
 lemmas approx_Rep_compact_basis = Rep_compact_take [symmetric]
 
-interpretation compact_basis:
-  basis_take [sq_le compact_take]
+interpretation compact_basis!:
+  basis_take sq_le compact_take
 proof
   fix n :: nat and a :: "'a compact_basis"
   show "compact_take n a \<sqsubseteq> a"
@@ -93,8 +92,8 @@ definition
   approximants :: "'a \<Rightarrow> 'a compact_basis set" where
   "approximants = (\<lambda>x. {a. Rep_compact_basis a \<sqsubseteq> x})"
 
-interpretation compact_basis:
-  ideal_completion [sq_le compact_take Rep_compact_basis approximants]
+interpretation compact_basis!:
+  ideal_completion sq_le compact_take Rep_compact_basis approximants
 proof
   fix w :: 'a
   show "preorder.ideal sq_le (approximants w)"
@@ -245,7 +244,7 @@ lemma fold_pd_PDPlus:
   assumes "ab_semigroup_idem_mult f"
   shows "fold_pd g f (PDPlus t u) = f (fold_pd g f t) (fold_pd g f u)"
 proof -
-  interpret ab_semigroup_idem_mult [f] by fact
+  interpret ab_semigroup_idem_mult f by fact
   show ?thesis unfolding fold_pd_def Rep_PDPlus by (simp add: image_Un fold1_Un2)
 qed
 

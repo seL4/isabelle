@@ -1,6 +1,5 @@
 (*
   Title:  Algebra/Congruence.thy
-  Id:     $Id$
   Author: Clemens Ballarin, started 3 January 2008
   Copyright: Clemens Ballarin
 *)

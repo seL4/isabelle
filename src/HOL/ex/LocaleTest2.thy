@@ -1,5 +1,4 @@
 (*  Title:      HOL/ex/LocaleTest2.thy
-    ID:         $Id$
     Author:     Clemens Ballarin
     Copyright (c) 2007 by Clemens Ballarin
 
@@ -433,8 +432,7 @@ lemma less_total: "x \<sqsubset> y | x = y | y \<sqsubset> x"
 end
 
 
-interpretation dlo < dlat
-(* TODO: definition syntax is unavailable *)
+sublocale dlo < dlat
 proof
   fix x y
   from total have "is_inf x y (if x \<sqsubseteq> y then x else y)" by (auto simp: is_inf_def)
@@ -445,7 +443,7 @@ next
   then show "EX sup. is_sup x y sup" by blast
 qed
 
-interpretation dlo < ddlat
+sublocale dlo < ddlat
 proof
   fix x y z
   show "x \<sqinter> (y \<squnion> z) = x \<sqinter> y \<squnion> x \<sqinter> z" (is "?l = ?r")
@@ -470,13 +468,13 @@ qed
 
 subsubsection {* Total order @{text "<="} on @{typ int} *}
 
-interpretation int: dpo ["op <= :: [int, int] => bool"]
+interpretation int!: dpo "op <= :: [int, int] => bool"
   where "(dpo.less (op <=) (x::int) y) = (x < y)"
   txt {* We give interpretation for less, but not @{text is_inf} and @{text is_sub}. *}
 proof -
   show "dpo (op <= :: [int, int] => bool)"
     proof qed auto
-  then interpret int: dpo ["op <= :: [int, int] => bool"] .
+  then interpret int: dpo "op <= :: [int, int] => bool" .
     txt {* Gives interpreted version of @{text less_def} (without condition). *}
   show "(dpo.less (op <=) (x::int) y) = (x < y)"
     by (unfold int.less_def) auto
@@ -489,7 +487,7 @@ thm int.abs_test
 lemma "(op < :: [int, int] => bool) = op <"
   apply (rule int.abs_test) done
 
-interpretation int: dlat ["op <= :: [int, int] => bool"]
+interpretation int!: dlat "op <= :: [int, int] => bool"
   where meet_eq: "dlat.meet (op <=) (x::int) y = min x y"
     and join_eq: "dlat.join (op <=) (x::int) y = max x y"
 proof -
@@ -498,7 +496,7 @@ proof -
     apply (unfold int.is_inf_def int.is_sup_def)
     apply arith+
     done
-  then interpret int: dlat ["op <= :: [int, int] => bool"] .
+  then interpret int: dlat "op <= :: [int, int] => bool" .
   txt {* Interpretation to ease use of definitions, which are
     conditional in general but unconditional after interpretation. *}
   show "dlat.meet (op <=) (x::int) y = min x y"
@@ -513,7 +511,7 @@ proof -
     by auto
 qed
 
-interpretation int: dlo ["op <= :: [int, int] => bool"]
+interpretation int!: dlo "op <= :: [int, int] => bool"
   proof qed arith
 
 text {* Interpreted theorems from the locales, involving defined terms. *}
@@ -526,13 +524,13 @@ thm int.less_total text {* from dlo *}
 
 subsubsection {* Total order @{text "<="} on @{typ nat} *}
 
-interpretation nat: dpo ["op <= :: [nat, nat] => bool"]
+interpretation nat!: dpo "op <= :: [nat, nat] => bool"
   where "dpo.less (op <=) (x::nat) y = (x < y)"
   txt {* We give interpretation for less, but not @{text is_inf} and @{text is_sub}. *}
 proof -
   show "dpo (op <= :: [nat, nat] => bool)"
     proof qed auto
-  then interpret nat: dpo ["op <= :: [nat, nat] => bool"] .
+  then interpret nat: dpo "op <= :: [nat, nat] => bool" .
     txt {* Gives interpreted version of @{text less_def} (without condition). *}
   show "dpo.less (op <=) (x::nat) y = (x < y)"
     apply (unfold nat.less_def)
@@ -540,7 +538,7 @@ proof -
     done
 qed
 
-interpretation nat: dlat ["op <= :: [nat, nat] => bool"]
+interpretation nat!: dlat "op <= :: [nat, nat] => bool"
   where "dlat.meet (op <=) (x::nat) y = min x y"
     and "dlat.join (op <=) (x::nat) y = max x y"
 proof -
@@ -549,7 +547,7 @@ proof -
     apply (unfold nat.is_inf_def nat.is_sup_def)
     apply arith+
     done
-  then interpret nat: dlat ["op <= :: [nat, nat] => bool"] .
+  then interpret nat: dlat "op <= :: [nat, nat] => bool" .
   txt {* Interpretation to ease use of definitions, which are
     conditional in general but unconditional after interpretation. *}
   show "dlat.meet (op <=) (x::nat) y = min x y"
@@ -564,7 +562,7 @@ proof -
     by auto
 qed
 
-interpretation nat: dlo ["op <= :: [nat, nat] => bool"]
+interpretation nat!: dlo "op <= :: [nat, nat] => bool"
   proof qed arith
 
 text {* Interpreted theorems from the locales, involving defined terms. *}
@@ -577,13 +575,13 @@ thm nat.less_total text {* from ldo *}
 
 subsubsection {* Lattice @{text "dvd"} on @{typ nat} *}
 
-interpretation nat_dvd: dpo ["op dvd :: [nat, nat] => bool"]
+interpretation nat_dvd!: dpo "op dvd :: [nat, nat] => bool"
   where "dpo.less (op dvd) (x::nat) y = (x dvd y & x ~= y)"
   txt {* We give interpretation for less, but not @{text is_inf} and @{text is_sub}. *}
 proof -
   show "dpo (op dvd :: [nat, nat] => bool)"
     proof qed (auto simp: dvd_def)
-  then interpret nat_dvd: dpo ["op dvd :: [nat, nat] => bool"] .
+  then interpret nat_dvd: dpo "op dvd :: [nat, nat] => bool" .
     txt {* Gives interpreted version of @{text less_def} (without condition). *}
   show "dpo.less (op dvd) (x::nat) y = (x dvd y & x ~= y)"
     apply (unfold nat_dvd.less_def)
@@ -591,7 +589,7 @@ proof -
     done
 qed
 
-interpretation nat_dvd: dlat ["op dvd :: [nat, nat] => bool"]
+interpretation nat_dvd!: dlat "op dvd :: [nat, nat] => bool"
   where "dlat.meet (op dvd) (x::nat) y = gcd x y"
     and "dlat.join (op dvd) (x::nat) y = lcm x y"
 proof -
@@ -603,7 +601,7 @@ proof -
     apply (rule_tac x = "lcm x y" in exI)
     apply (auto intro: lcm_dvd1 lcm_dvd2 lcm_least)
     done
-  then interpret nat_dvd: dlat ["op dvd :: [nat, nat] => bool"] .
+  then interpret nat_dvd: dlat "op dvd :: [nat, nat] => bool" .
   txt {* Interpretation to ease use of definitions, which are
     conditional in general but unconditional after interpretation. *}
   show "dlat.meet (op dvd) (x::nat) y = gcd x y"
@@ -819,7 +817,8 @@ lemma inv_equality:
 end
 
 
-locale Dhom = Dgrp prod (infixl "**" 65) one + Dgrp sum (infixl "+++" 60) zero +
+locale Dhom = prod: Dgrp prod one + sum: Dgrp sum zero
+    for prod (infixl "**" 65) and one and sum (infixl "+++" 60) and zero +
   fixes hom
   assumes hom_mult [simp]: "hom (x ** y) = hom x +++ hom y"
 
@@ -838,14 +837,14 @@ end
 
 subsubsection {* Interpretation of Functions *}
 
-interpretation Dfun: Dmonoid ["op o" "id :: 'a => 'a"]
+interpretation Dfun!: Dmonoid "op o" "id :: 'a => 'a"
   where "Dmonoid.unit (op o) id f = bij (f::'a => 'a)"
 (*    and "Dmonoid.inv (op o) id" = "inv :: ('a => 'a) => ('a => 'a)" *)
 proof -
   show "Dmonoid op o (id :: 'a => 'a)" proof qed (simp_all add: o_assoc)
   note Dmonoid = this
 (*
-  from this interpret Dmonoid ["op o" "id :: 'a => 'a"] .
+  from this interpret Dmonoid "op o" "id :: 'a => 'a" .
 *)
   show "Dmonoid.unit (op o) (id :: 'a => 'a) f = bij f"
     apply (unfold Dmonoid.unit_def [OF Dmonoid])
@@ -888,7 +887,7 @@ lemma unit_id:
   "(f :: unit => unit) = id"
   by rule simp
 
-interpretation Dfun: Dgrp ["op o" "id :: unit => unit"]
+interpretation Dfun!: Dgrp "op o" "id :: unit => unit"
   where "Dmonoid.inv (op o) id f = inv (f :: unit => unit)"
 proof -
   have "Dmonoid op o (id :: 'a => 'a)" ..

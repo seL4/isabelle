@@ -1,5 +1,4 @@
 (*  Title:      HOL/Real/HahnBanach/FunctionNorm.thy
-    ID:         $Id$
     Author:     Gertrud Bauer, TU Munich
 *)
 
@@ -22,7 +21,7 @@ text {*
   linear forms:
 *}
 
-locale continuous = var V + norm_syntax + linearform +
+locale continuous = var_V + norm_syntax + linearform +
   assumes bounded: "\<exists>c. \<forall>x \<in> V. \<bar>f x\<bar> \<le> c * \<parallel>x\<parallel>"
 
 declare continuous.intro [intro?] continuous_axioms.intro [intro?]
@@ -91,7 +90,7 @@ lemma (in normed_vectorspace_with_fn_norm) fn_norm_works:
   assumes "continuous V norm f"
   shows "lub (B V f) (\<parallel>f\<parallel>\<hyphen>V)"
 proof -
-  interpret continuous [V norm f] by fact
+  interpret continuous V norm f by fact
   txt {* The existence of the supremum is shown using the
     completeness of the reals. Completeness means, that every
     non-empty bounded set of reals has a supremum. *}
@@ -159,7 +158,7 @@ lemma (in normed_vectorspace_with_fn_norm) fn_norm_ub [iff?]:
   assumes b: "b \<in> B V f"
   shows "b \<le> \<parallel>f\<parallel>\<hyphen>V"
 proof -
-  interpret continuous [V norm f] by fact
+  interpret continuous V norm f by fact
   have "lub (B V f) (\<parallel>f\<parallel>\<hyphen>V)"
     using `continuous V norm f` by (rule fn_norm_works)
   from this and b show ?thesis ..
@@ -170,7 +169,7 @@ lemma (in normed_vectorspace_with_fn_norm) fn_norm_leastB:
   assumes b: "\<And>b. b \<in> B V f \<Longrightarrow> b \<le> y"
   shows "\<parallel>f\<parallel>\<hyphen>V \<le> y"
 proof -
-  interpret continuous [V norm f] by fact
+  interpret continuous V norm f by fact
   have "lub (B V f) (\<parallel>f\<parallel>\<hyphen>V)"
     using `continuous V norm f` by (rule fn_norm_works)
   from this and b show ?thesis ..
@@ -182,7 +181,7 @@ lemma (in normed_vectorspace_with_fn_norm) fn_norm_ge_zero [iff]:
   assumes "continuous V norm f"
   shows "0 \<le> \<parallel>f\<parallel>\<hyphen>V"
 proof -
-  interpret continuous [V norm f] by fact
+  interpret continuous V norm f by fact
   txt {* The function norm is defined as the supremum of @{text B}.
     So it is @{text "\<ge> 0"} if all elements in @{text B} are @{text "\<ge>
     0"}, provided the supremum exists and @{text B} is not empty. *}
@@ -204,8 +203,8 @@ lemma (in normed_vectorspace_with_fn_norm) fn_norm_le_cong:
   assumes x: "x \<in> V"
   shows "\<bar>f x\<bar> \<le> \<parallel>f\<parallel>\<hyphen>V * \<parallel>x\<parallel>"
 proof -
-  interpret continuous [V norm f] by fact
-  interpret linearform [V f] .
+  interpret continuous V norm f by fact
+  interpret linearform V f .
   show ?thesis
   proof cases
     assume "x = 0"
@@ -246,7 +245,7 @@ lemma (in normed_vectorspace_with_fn_norm) fn_norm_least [intro?]:
   assumes ineq: "\<forall>x \<in> V. \<bar>f x\<bar> \<le> c * \<parallel>x\<parallel>" and ge: "0 \<le> c"
   shows "\<parallel>f\<parallel>\<hyphen>V \<le> c"
 proof -
-  interpret continuous [V norm f] by fact
+  interpret continuous V norm f by fact
   show ?thesis
   proof (rule fn_norm_leastB [folded B_def fn_norm_def])
     fix b assume b: "b \<in> B V f"

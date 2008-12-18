@@ -1,5 +1,4 @@
 (*  Title:      HOL/Algebra/FiniteProduct.thy
-    ID:         $Id$
     Author:     Clemens Ballarin, started 19 November 2002
 
 This file is largely based on HOL/Finite_Set.thy.
@@ -519,9 +518,9 @@ done
 lemma finprod_singleton:
   assumes i_in_A: "i \<in> A" and fin_A: "finite A" and f_Pi: "f \<in> A \<rightarrow> carrier G"
   shows "(\<Otimes>j\<in>A. if i = j then f j else \<one>) = f i"
-  using i_in_A G.finprod_insert [of "A - {i}" i "(\<lambda>j. if i = j then f j else \<one>)"]
-    fin_A f_Pi G.finprod_one [of "A - {i}"]
-    G.finprod_cong [of "A - {i}" "A - {i}" "(\<lambda>j. if i = j then f j else \<one>)" "(\<lambda>i. \<one>)"] 
+  using i_in_A finprod_insert [of "A - {i}" i "(\<lambda>j. if i = j then f j else \<one>)"]
+    fin_A f_Pi finprod_one [of "A - {i}"]
+    finprod_cong [of "A - {i}" "A - {i}" "(\<lambda>j. if i = j then f j else \<one>)" "(\<lambda>i. \<one>)"] 
   unfolding Pi_def simp_implies_def by (force simp add: insert_absorb)
 
 end

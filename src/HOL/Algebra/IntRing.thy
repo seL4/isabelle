@@ -1,6 +1,5 @@
 (*
   Title:     HOL/Algebra/IntRing.thy
-  Id:        $Id$
   Author:    Stephan Hohe, TU Muenchen
 *)
 
@@ -97,7 +96,7 @@ text {* Since definitions of derived operations are global, their
   interpretation needs to be done as early as possible --- that is,
   with as few assumptions as possible. *}
 
-interpretation int: monoid ["\<Z>"]
+interpretation int!: monoid \<Z>
   where "carrier \<Z> = UNIV"
     and "mult \<Z> x y = x * y"
     and "one \<Z> = 1"
@@ -105,7 +104,7 @@ interpretation int: monoid ["\<Z>"]
 proof -
   -- "Specification"
   show "monoid \<Z>" proof qed (auto simp: int_ring_def)
-  then interpret int: monoid ["\<Z>"] .
+  then interpret int!: monoid \<Z> .
 
   -- "Carrier"
   show "carrier \<Z> = UNIV" by (simp add: int_ring_def)
@@ -117,12 +116,12 @@ proof -
   show "pow \<Z> x n = x^n" by (induct n) (simp, simp add: int_ring_def)+
 qed
 
-interpretation int: comm_monoid ["\<Z>"]
+interpretation int!: comm_monoid \<Z>
   where "finprod \<Z> f A = (if finite A then setprod f A else undefined)"
 proof -
   -- "Specification"
   show "comm_monoid \<Z>" proof qed (auto simp: int_ring_def)
-  then interpret int: comm_monoid ["\<Z>"] .
+  then interpret int!: comm_monoid \<Z> .
 
   -- "Operations"
   { fix x y have "mult \<Z> x y = x * y" by (simp add: int_ring_def) }
@@ -140,14 +139,14 @@ proof -
   qed
 qed
 
-interpretation int: abelian_monoid ["\<Z>"]
+interpretation int!: abelian_monoid \<Z>
   where "zero \<Z> = 0"
     and "add \<Z> x y = x + y"
     and "finsum \<Z> f A = (if finite A then setsum f A else undefined)"
 proof -
   -- "Specification"
   show "abelian_monoid \<Z>" proof qed (auto simp: int_ring_def)
-  then interpret int: abelian_monoid ["\<Z>"] .
+  then interpret int!: abelian_monoid \<Z> .
 
   -- "Operations"
   { fix x y show "add \<Z> x y = x + y" by (simp add: int_ring_def) }
@@ -165,7 +164,7 @@ proof -
   qed
 qed
 
-interpretation int: abelian_group ["\<Z>"]
+interpretation int!: abelian_group \<Z>
   where "a_inv \<Z> x = - x"
     and "a_minus \<Z> x y = x - y"
 proof -
@@ -175,7 +174,7 @@ proof -
     show "!!x. x \<in> carrier \<Z> ==> EX y : carrier \<Z>. y \<oplus>\<^bsub>\<Z>\<^esub> x = \<zero>\<^bsub>\<Z>\<^esub>"
       by (simp add: int_ring_def) arith
   qed (auto simp: int_ring_def)
-  then interpret int: abelian_group ["\<Z>"] .
+  then interpret int!: abelian_group \<Z> .
 
   -- "Operations"
   { fix x y have "add \<Z> x y = x + y" by (simp add: int_ring_def) }
@@ -188,7 +187,7 @@ proof -
   show "a_minus \<Z> x y = x - y" by (simp add: int.minus_eq add a_inv)
 qed
 
-interpretation int: "domain" ["\<Z>"]
+interpretation int!: "domain" \<Z>
   proof qed (auto simp: int_ring_def left_distrib right_distrib)
 
 
@@ -204,8 +203,8 @@ lemma UNIV:
   "(True ==> PROP R) == PROP R"
   by simp_all
 
-interpretation int (* FIXME [unfolded UNIV] *) :
-  partial_order ["(| carrier = UNIV::int set, eq = op =, le = op \<le> |)"]
+interpretation int! (* FIXME [unfolded UNIV] *) :
+  partial_order "(| carrier = UNIV::int set, eq = op =, le = op \<le> |)"
   where "carrier (| carrier = UNIV::int set, eq = op =, le = op \<le> |) = UNIV"
     and "le (| carrier = UNIV::int set, eq = op =, le = op \<le> |) x y = (x \<le> y)"
     and "lless (| carrier = UNIV::int set, eq = op =, le = op \<le> |) x y = (x < y)"
@@ -220,8 +219,8 @@ proof -
     by (simp add: lless_def) auto
 qed
 
-interpretation int (* FIXME [unfolded UNIV] *) :
-  lattice ["(| carrier = UNIV::int set, eq = op =, le = op \<le> |)"]
+interpretation int! (* FIXME [unfolded UNIV] *) :
+  lattice "(| carrier = UNIV::int set, eq = op =, le = op \<le> |)"
   where "join (| carrier = UNIV::int set, eq = op =, le = op \<le> |) x y = max x y"
     and "meet (| carrier = UNIV::int set, eq = op =, le = op \<le> |) x y = min x y"
 proof -
@@ -233,7 +232,7 @@ proof -
     apply (simp add: greatest_def Lower_def)
     apply arith
     done
-  then interpret int: lattice ["?Z"] .
+  then interpret int!: lattice "?Z" .
   show "join ?Z x y = max x y"
     apply (rule int.joinI)
     apply (simp_all add: least_def Upper_def)
@@ -246,8 +245,8 @@ proof -
     done
 qed
 
-interpretation int (* [unfolded UNIV] *) :
-  total_order ["(| carrier = UNIV::int set, eq = op =, le = op \<le> |)"]
+interpretation int! (* [unfolded UNIV] *) :
+  total_order "(| carrier = UNIV::int set, eq = op =, le = op \<le> |)"
   proof qed clarsimp
 
 
@@ -404,7 +403,7 @@ lemma ZMod_imp_zmod:
   assumes zmods: "ZMod m a = ZMod m b"
   shows "a mod m = b mod m"
 proof -
-  interpret ideal ["Idl\<^bsub>\<Z>\<^esub> {m}" \<Z>] by (rule int.genideal_ideal, fast)
+  interpret ideal "Idl\<^bsub>\<Z>\<^esub> {m}" \<Z> by (rule int.genideal_ideal, fast)
   from zmods
       have "b \<in> ZMod m a"
       unfolding ZMod_def
@@ -428,7 +427,7 @@ qed
 lemma ZMod_mod:
   shows "ZMod m a = ZMod m (a mod m)"
 proof -
-  interpret ideal ["Idl\<^bsub>\<Z>\<^esub> {m}" \<Z>] by (rule int.genideal_ideal, fast)
+  interpret ideal "Idl\<^bsub>\<Z>\<^esub> {m}" \<Z> by (rule int.genideal_ideal, fast)
   show ?thesis
       unfolding ZMod_def
   apply (rule a_repr_independence'[symmetric])

@@ -1,5 +1,4 @@
 (*  Title:      ZF/Constructible/L_axioms.thy
-    ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
 *)
 
@@ -100,7 +99,7 @@ theorem M_trivial_L: "PROP M_trivial(L)"
   apply (rule L_nat)
   done
 
-interpretation M_trivial ["L"] by (rule M_trivial_L)
+interpretation L: M_trivial L by (rule M_trivial_L)
 
 (* Replaces the following declarations...
 lemmas rall_abs = M_trivial.rall_abs [OF M_trivial_L]

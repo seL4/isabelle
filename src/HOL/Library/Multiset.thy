@@ -1080,15 +1080,15 @@ apply (subst elem_imp_eq_diff_union[symmetric])
 apply simp
 done
 
-interpretation mset_order: order ["op \<le>#" "op <#"]
+class_interpretation mset_order: order ["op \<le>#" "op <#"]
 proof qed (auto intro: order.intro mset_le_refl mset_le_antisym
   mset_le_trans simp: mset_less_def)
 
-interpretation mset_order_cancel_semigroup:
+class_interpretation mset_order_cancel_semigroup:
   pordered_cancel_ab_semigroup_add ["op +" "op \<le>#" "op <#"]
 proof qed (erule mset_le_mono_add [OF mset_le_refl])
 
-interpretation mset_order_semigroup_cancel:
+class_interpretation mset_order_semigroup_cancel:
   pordered_ab_semigroup_add_imp_le ["op +" "op \<le>#" "op <#"]
 proof qed simp
 
@@ -1404,7 +1404,7 @@ lemma fold_mset_fusion:
   assumes "left_commutative g"
   shows "(\<And>x y. h (g x y) = f x (h y)) \<Longrightarrow> h (fold_mset g w A) = fold_mset f (h w) A" (is "PROP ?P")
 proof -
-  interpret left_commutative [g] by fact
+  interpret left_commutative g by fact
   show "PROP ?P" by (induct A) auto
 qed
 
@@ -1436,7 +1436,7 @@ subsection {* Image *}
 definition [code del]:
  "image_mset f = fold_mset (op + o single o f) {#}"
 
-interpretation image_left_comm: left_commutative ["op + o single o f"]
+interpretation image_left_comm!: left_commutative "op + o single o f"
   proof qed (simp add:union_ac)
 
 lemma image_mset_empty [simp]: "image_mset f {#} = {#}"

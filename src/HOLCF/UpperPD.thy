@@ -1,5 +1,4 @@
 (*  Title:      HOLCF/UpperPD.thy
-    ID:         $Id$
     Author:     Brian Huffman
 *)
 
@@ -27,7 +26,7 @@ apply (erule rev_bexI)
 apply (erule (1) trans_less)
 done
 
-interpretation upper_le: preorder [upper_le]
+interpretation upper_le!: preorder upper_le
 by (rule preorder.intro, rule upper_le_refl, rule upper_le_trans)
 
 lemma upper_le_minimal [simp]: "PDUnit compact_bot \<le>\<sharp> t"
@@ -132,8 +131,8 @@ lemma Rep_upper_principal:
 unfolding upper_principal_def
 by (simp add: Abs_upper_pd_inverse upper_le.ideal_principal)
 
-interpretation upper_pd:
-  ideal_completion [upper_le pd_take upper_principal Rep_upper_pd]
+interpretation upper_pd!:
+  ideal_completion upper_le pd_take upper_principal Rep_upper_pd
 apply unfold_locales
 apply (rule pd_take_upper_le)
 apply (rule pd_take_idem)
@@ -249,7 +248,7 @@ apply (induct xs rule: upper_pd.principal_induct, simp)
 apply (simp add: PDPlus_absorb)
 done
 
-interpretation aci_upper_plus: ab_semigroup_idem_mult ["op +\<sharp>"]
+interpretation aci_upper_plus!: ab_semigroup_idem_mult "op +\<sharp>"
   by unfold_locales
     (rule upper_plus_assoc upper_plus_commute upper_plus_absorb)+
 

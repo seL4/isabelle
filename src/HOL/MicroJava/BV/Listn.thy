@@ -380,7 +380,7 @@ done
 lemma Listn_sl_aux:
 assumes "semilat (A, r, f)" shows "semilat (Listn.sl n (A,r,f))"
 proof -
-  interpret Semilat [A r f] using assms by (rule Semilat.intro)
+  interpret Semilat A r f using assms by (rule Semilat.intro)
 show ?thesis
 apply (unfold Listn.sl_def)
 apply (simp (no_asm) only: semilat_Def split_conv)

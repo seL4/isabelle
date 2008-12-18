@@ -1,5 +1,4 @@
 (*  Title:      HOL/Algebra/Module.thy
-    ID:         $Id$
     Author:     Clemens Ballarin, started 15 April 2003
     Copyright:  Clemens Ballarin
 *)
@@ -14,7 +13,7 @@ subsection {* Definitions *}
 record ('a, 'b) module = "'b ring" +
   smult :: "['a, 'b] => 'b" (infixl "\<odot>\<index>" 70)
 
-locale module = cring R + abelian_group M +
+locale module = R: cring + M: abelian_group M for M (structure) +
   assumes smult_closed [simp, intro]:
       "[| a \<in> carrier R; x \<in> carrier M |] ==> a \<odot>\<^bsub>M\<^esub> x \<in> carrier M"
     and smult_l_distr:
@@ -29,7 +28,7 @@ locale module = cring R + abelian_group M +
     and smult_one [simp]:
       "x \<in> carrier M ==> \<one> \<odot>\<^bsub>M\<^esub> x = x"
 
-locale algebra = module R M + cring M +
+locale algebra = module + cring M +
   assumes smult_assoc2:
       "[| a \<in> carrier R; x \<in> carrier M; y \<in> carrier M |] ==>
       (a \<odot>\<^bsub>M\<^esub> x) \<otimes>\<^bsub>M\<^esub> y = a \<odot>\<^bsub>M\<^esub> (x \<otimes>\<^bsub>M\<^esub> y)"

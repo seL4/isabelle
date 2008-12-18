@@ -60,7 +60,7 @@ lemma scale_zero_left [simp]: "scale 0 x = 0"
   and scale_minus_left [simp]: "scale (- a) x = - (scale a x)"
   and scale_left_diff_distrib: "scale (a - b) x = scale a x - scale b x"
 proof -
-  interpret s: additive ["\<lambda>a. scale a x"]
+  interpret s: additive "\<lambda>a. scale a x"
     proof qed (rule scale_left_distrib)
   show "scale 0 x = 0" by (rule s.zero)
   show "scale (- a) x = - (scale a x)" by (rule s.minus)
@@ -71,7 +71,7 @@ lemma scale_zero_right [simp]: "scale a 0 = 0"
   and scale_minus_right [simp]: "scale a (- x) = - (scale a x)"
   and scale_right_diff_distrib: "scale a (x - y) = scale a x - scale a y"
 proof -
-  interpret s: additive ["\<lambda>x. scale a x"]
+  interpret s: additive "\<lambda>x. scale a x"
     proof qed (rule scale_right_distrib)
   show "scale a 0 = 0" by (rule s.zero)
   show "scale a (- x) = - (scale a x)" by (rule s.minus)
@@ -151,8 +151,8 @@ class real_vector = scaleR + ab_group_add +
   and scaleR_scaleR [simp]: "scaleR a (scaleR b x) = scaleR (a * b) x"
   and scaleR_one [simp]: "scaleR 1 x = x"
 
-interpretation real_vector:
-  vector_space ["scaleR :: real \<Rightarrow> 'a \<Rightarrow> 'a::real_vector"]
+interpretation real_vector!:
+  vector_space "scaleR :: real \<Rightarrow> 'a \<Rightarrow> 'a::real_vector"
 apply unfold_locales
 apply (rule scaleR_right_distrib)
 apply (rule scaleR_left_distrib)
@@ -195,10 +195,10 @@ apply (rule mult_assoc)
 apply (rule mult_left_commute)
 done
 
-interpretation scaleR_left: additive ["(\<lambda>a. scaleR a x::'a::real_vector)"]
+interpretation scaleR_left!: additive "(\<lambda>a. scaleR a x::'a::real_vector)"
 proof qed (rule scaleR_left_distrib)
 
-interpretation scaleR_right: additive ["(\<lambda>x. scaleR a x::'a::real_vector)"]
+interpretation scaleR_right!: additive "(\<lambda>x. scaleR a x::'a::real_vector)"
 proof qed (rule scaleR_right_distrib)
 
 lemma nonzero_inverse_scaleR_distrib:
@@ -796,8 +796,8 @@ by (simp add: diff_left diff_right)
 
 end
 
-interpretation mult:
-  bounded_bilinear ["op * :: 'a \<Rightarrow> 'a \<Rightarrow> 'a::real_normed_algebra"]
+interpretation mult!:
+  bounded_bilinear "op * :: 'a \<Rightarrow> 'a \<Rightarrow> 'a::real_normed_algebra"
 apply (rule bounded_bilinear.intro)
 apply (rule left_distrib)
 apply (rule right_distrib)
@@ -807,19 +807,19 @@ apply (rule_tac x="1" in exI)
 apply (simp add: norm_mult_ineq)
 done
 
-interpretation mult_left:
-  bounded_linear ["(\<lambda>x::'a::real_normed_algebra. x * y)"]
+interpretation mult_left!:
+  bounded_linear "(\<lambda>x::'a::real_normed_algebra. x * y)"
 by (rule mult.bounded_linear_left)
 
-interpretation mult_right:
-  bounded_linear ["(\<lambda>y::'a::real_normed_algebra. x * y)"]
+interpretation mult_right!:
+  bounded_linear "(\<lambda>y::'a::real_normed_algebra. x * y)"
 by (rule mult.bounded_linear_right)
 
-interpretation divide:
-  bounded_linear ["(\<lambda>x::'a::real_normed_field. x / y)"]
+interpretation divide!:
+  bounded_linear "(\<lambda>x::'a::real_normed_field. x / y)"
 unfolding divide_inverse by (rule mult.bounded_linear_left)
 
-interpretation scaleR: bounded_bilinear ["scaleR"]
+interpretation scaleR!: bounded_bilinear "scaleR"
 apply (rule bounded_bilinear.intro)
 apply (rule scaleR_left_distrib)
 apply (rule scaleR_right_distrib)
@@ -829,13 +829,13 @@ apply (rule_tac x="1" in exI)
 apply (simp add: norm_scaleR)
 done
 
-interpretation scaleR_left: bounded_linear ["\<lambda>r. scaleR r x"]
+interpretation scaleR_left!: bounded_linear "\<lambda>r. scaleR r x"
 by (rule scaleR.bounded_linear_left)
 
-interpretation scaleR_right: bounded_linear ["\<lambda>x. scaleR r x"]
+interpretation scaleR_right!: bounded_linear "\<lambda>x. scaleR r x"
 by (rule scaleR.bounded_linear_right)
 
-interpretation of_real: bounded_linear ["\<lambda>r. of_real r"]
+interpretation of_real!: bounded_linear "\<lambda>r. of_real r"
 unfolding of_real_def by (rule scaleR.bounded_linear_left)
 
 end

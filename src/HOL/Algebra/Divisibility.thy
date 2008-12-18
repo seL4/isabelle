@@ -1,6 +1,5 @@
 (*
   Title:     Divisibility in monoids and rings
-  Id:        $Id$
   Author:    Clemens Ballarin, started 18 July 2008
 
 Based on work by Stephan Hohe.
@@ -32,7 +31,7 @@ lemma (in monoid_cancel) is_monoid_cancel:
   "monoid_cancel G"
   ..
 
-interpretation group \<subseteq> monoid_cancel
+sublocale group \<subseteq> monoid_cancel
   proof qed simp+
 
 
@@ -45,7 +44,7 @@ lemma comm_monoid_cancelI:
           "\<And>a b c. \<lbrakk>a \<otimes> c = b \<otimes> c; a \<in> carrier G; b \<in> carrier G; c \<in> carrier G\<rbrakk> \<Longrightarrow> a = b"
   shows "comm_monoid_cancel G"
 proof -
-  interpret comm_monoid [G] by fact
+  interpret comm_monoid G by fact
   show "comm_monoid_cancel G"
     apply unfold_locales
     apply (subgoal_tac "a \<otimes> c = b \<otimes> c")
@@ -59,7 +58,7 @@ lemma (in comm_monoid_cancel) is_comm_monoid_cancel:
   "comm_monoid_cancel G"
   by intro_locales
 
-interpretation comm_group \<subseteq> comm_monoid_cancel
+sublocale comm_group \<subseteq> comm_monoid_cancel
   ..
 
 
@@ -755,7 +754,7 @@ lemma (in monoid) properfactor_cong_l [trans]:
 using pf
 unfolding properfactor_lless
 proof -
-  interpret weak_partial_order ["division_rel G"] ..
+  interpret weak_partial_order "division_rel G" ..
   from x'x
        have "x' .=\<^bsub>division_rel G\<^esub> x" by simp
   also assume "x \<sqsubset>\<^bsub>division_rel G\<^esub> y"
@@ -771,7 +770,7 @@ lemma (in monoid) properfactor_cong_r [trans]:
 using pf
 unfolding properfactor_lless
 proof -
-  interpret weak_partial_order ["division_rel G"] ..
+  interpret weak_partial_order "division_rel G" ..
   assume "x \<sqsubset>\<^bsub>division_rel G\<^esub> y"
   also from yy'
        have "y .=\<^bsub>division_rel G\<^esub> y'" by simp
@@ -2916,7 +2915,7 @@ subsubsection {* Gcd condition *}
 lemma (in gcd_condition_monoid) division_weak_lower_semilattice [simp]:
   shows "weak_lower_semilattice (division_rel G)"
 proof -
-  interpret weak_partial_order ["division_rel G"] ..
+  interpret weak_partial_order "division_rel G" ..
   show ?thesis
   apply (unfold_locales, simp_all)
   proof -
@@ -2941,7 +2940,7 @@ lemma (in gcd_condition_monoid) gcdof_cong_l:
   shows "a' gcdof b c"
 proof -
   note carr = a'carr carr'
-  interpret weak_lower_semilattice ["division_rel G"] by simp
+  interpret weak_lower_semilattice "division_rel G" by simp
   have "a' \<in> carrier G \<and> a' gcdof b c"
     apply (simp add: gcdof_greatestLower carr')
     apply (subst greatest_Lower_cong_l[of _ a])
@@ -2958,7 +2957,7 @@ lemma (in gcd_condition_monoid) gcd_closed [simp]:
   assumes carr: "a \<in> carrier G"  "b \<in> carrier G"
   shows "somegcd G a b \<in> carrier G"
 proof -
-  interpret weak_lower_semilattice ["division_rel G"] by simp
+  interpret weak_lower_semilattice "division_rel G" by simp
   show ?thesis
     apply (simp add: somegcd_meet[OF carr])
     apply (rule meet_closed[simplified], fact+)
@@ -2969,7 +2968,7 @@ lemma (in gcd_condition_monoid) gcd_isgcd:
   assumes carr: "a \<in> carrier G"  "b \<in> carrier G"
   shows "(somegcd G a b) gcdof a b"
 proof -
-  interpret weak_lower_semilattice ["division_rel G"] by simp
+  interpret weak_lower_semilattice "division_rel G" by simp
   from carr
   have "somegcd G a b \<in> carrier G \<and> (somegcd G a b) gcdof a b"
     apply (subst gcdof_greatestLower, simp, simp)
@@ -2983,7 +2982,7 @@ lemma (in gcd_condition_monoid) gcd_exists:
   assumes carr: "a \<in> carrier G"  "b \<in> carrier G"
   shows "\<exists>x\<in>carrier G. x = somegcd G a b"
 proof -
-  interpret weak_lower_semilattice ["division_rel G"] by simp
+  interpret weak_lower_semilattice "division_rel G" by simp
   show ?thesis
     apply (simp add: somegcd_meet[OF carr])
     apply (rule meet_closed[simplified], fact+)
@@ -2994,7 +2993,7 @@ lemma (in gcd_condition_monoid) gcd_divides_l:
   assumes carr: "a \<in> carrier G"  "b \<in> carrier G"
   shows "(somegcd G a b) divides a"
 proof -
-  interpret weak_lower_semilattice ["division_rel G"] by simp
+  interpret weak_lower_semilattice "division_rel G" by simp
   show ?thesis
     apply (simp add: somegcd_meet[OF carr])
     apply (rule meet_left[simplified], fact+)
@@ -3005,7 +3004,7 @@ lemma (in gcd_condition_monoid) gcd_divides_r:
   assumes carr: "a \<in> carrier G"  "b \<in> carrier G"
   shows "(somegcd G a b) divides b"
 proof -
-  interpret weak_lower_semilattice ["division_rel G"] by simp
+  interpret weak_lower_semilattice "division_rel G" by simp
   show ?thesis
     apply (simp add: somegcd_meet[OF carr])
     apply (rule meet_right[simplified], fact+)
@@ -3017,7 +3016,7 @@ lemma (in gcd_condition_monoid) gcd_divides:
     and L: "x \<in> carrier G"  "y \<in> carrier G"  "z \<in> carrier G"
   shows "z divides (somegcd G x y)"
 proof -
-  interpret weak_lower_semilattice ["division_rel G"] by simp
+  interpret weak_lower_semilattice "division_rel G" by simp
   show ?thesis
     apply (simp add: somegcd_meet L)
     apply (rule meet_le[simplified], fact+)
@@ -3029,7 +3028,7 @@ lemma (in gcd_condition_monoid) gcd_cong_l:
     and carr: "x \<in> carrier G"  "x' \<in> carrier G"  "y \<in> carrier G"
   shows "somegcd G x y \<sim> somegcd G x' y"
 proof -
-  interpret weak_lower_semilattice ["division_rel G"] by simp
+  interpret weak_lower_semilattice "division_rel G" by simp
   show ?thesis
     apply (simp add: somegcd_meet carr)
     apply (rule meet_cong_l[simplified], fact+)
@@ -3041,7 +3040,7 @@ lemma (in gcd_condition_monoid) gcd_cong_r:
     and yy': "y \<sim> y'"
   shows "somegcd G x y \<sim> somegcd G x y'"
 proof -
-  interpret weak_lower_semilattice ["division_rel G"] by simp
+  interpret weak_lower_semilattice "division_rel G" by simp
   show ?thesis
     apply (simp add: somegcd_meet carr)
     apply (rule meet_cong_r[simplified], fact+)
@@ -3092,7 +3091,7 @@ lemma (in gcd_condition_monoid) SomeGcd_ex:
   assumes "finite A"  "A \<subseteq> carrier G"  "A \<noteq> {}"
   shows "\<exists>x\<in> carrier G. x = SomeGcd G A"
 proof -
-  interpret weak_lower_semilattice ["division_rel G"] by simp
+  interpret weak_lower_semilattice "division_rel G" by simp
   show ?thesis
     apply (simp add: SomeGcd_def)
     apply (rule finite_inf_closed[simplified], fact+)
@@ -3103,7 +3102,7 @@ lemma (in gcd_condition_monoid) gcd_assoc:
   assumes carr: "a \<in> carrier G"  "b \<in> carrier G"  "c \<in> carrier G"
   shows "somegcd G (somegcd G a b) c \<sim> somegcd G a (somegcd G b c)"
 proof -
-  interpret weak_lower_semilattice ["division_rel G"] by simp
+  interpret weak_lower_semilattice "division_rel G" by simp
   show ?thesis
     apply (subst (2 3) somegcd_meet, (simp add: carr)+)
     apply (simp add: somegcd_meet carr)
@@ -3313,7 +3312,7 @@ proof -
   qed
 qed
 
-interpretation gcd_condition_monoid \<subseteq> primeness_condition_monoid
+sublocale gcd_condition_monoid \<subseteq> primeness_condition_monoid
   by (rule primeness_condition)
 
 
@@ -3832,7 +3831,7 @@ proof -
   with fca fcb show ?thesis by simp
 qed
 
-interpretation factorial_monoid \<subseteq> divisor_chain_condition_monoid
+sublocale factorial_monoid \<subseteq> divisor_chain_condition_monoid
 apply unfold_locales
 apply (rule wfUNIVI)
 apply (rule measure_induct[of "factorcount G"])
@@ -3854,7 +3853,7 @@ proof -
   done
 qed
 
-interpretation factorial_monoid \<subseteq> primeness_condition_monoid
+sublocale factorial_monoid \<subseteq> primeness_condition_monoid
   proof qed (rule irreducible_is_prime)
 
 
@@ -3866,13 +3865,13 @@ lemma (in factorial_monoid) gcd_condition [simp]:
   shows "gcd_condition_monoid G"
   proof qed (rule gcdof_exists)
 
-interpretation factorial_monoid \<subseteq> gcd_condition_monoid
+sublocale factorial_monoid \<subseteq> gcd_condition_monoid
   proof qed (rule gcdof_exists)
 
 lemma (in factorial_monoid) division_weak_lattice [simp]:
   shows "weak_lattice (division_rel G)"
 proof -
-  interpret weak_lower_semilattice ["division_rel G"] by simp
+  interpret weak_lower_semilattice "division_rel G" by simp
 
   show "weak_lattice (division_rel G)"
   apply (unfold_locales, simp_all)
@@ -3902,14 +3901,14 @@ apply rule
 proof clarify
   assume dcc: "divisor_chain_condition_monoid G"
      and pc: "primeness_condition_monoid G"
-  interpret divisor_chain_condition_monoid ["G"] by (rule dcc)
-  interpret primeness_condition_monoid ["G"] by (rule pc)
+  interpret divisor_chain_condition_monoid "G" by (rule dcc)
+  interpret primeness_condition_monoid "G" by (rule pc)
 
   show "factorial_monoid G"
       by (fast intro: factorial_monoidI wfactors_exist wfactors_unique)
 next
   assume fm: "factorial_monoid G"
-  interpret factorial_monoid ["G"] by (rule fm)
+  interpret factorial_monoid "G" by (rule fm)
   show "divisor_chain_condition_monoid G \<and> primeness_condition_monoid G"
       by rule unfold_locales
 qed
@@ -3920,13 +3919,13 @@ apply rule
 proof clarify
     assume dcc: "divisor_chain_condition_monoid G"
      and gc: "gcd_condition_monoid G"
-  interpret divisor_chain_condition_monoid ["G"] by (rule dcc)
-  interpret gcd_condition_monoid ["G"] by (rule gc)
+  interpret divisor_chain_condition_monoid "G" by (rule dcc)
+  interpret gcd_condition_monoid "G" by (rule gc)
   show "factorial_monoid G"
       by (simp add: factorial_condition_one[symmetric], rule, unfold_locales)
 next
   assume fm: "factorial_monoid G"
-  interpret factorial_monoid ["G"] by (rule fm)
+  interpret factorial_monoid "G" by (rule fm)
   show "divisor_chain_condition_monoid G \<and> gcd_condition_monoid G"
       by rule unfold_locales
 qed

@@ -1,5 +1,4 @@
 (*  Title:      HOL/Real/HahnBanach/Bounds.thy
-    ID:         $Id$
     Author:     Gertrud Bauer, TU Munich
 *)
 
@@ -27,7 +26,7 @@ lemma the_lub_equality [elim?]:
   assumes "lub A x"
   shows "\<Squnion>A = (x::'a::order)"
 proof -
-  interpret lub [A x] by fact
+  interpret lub A x by fact
   show ?thesis
   proof (unfold the_lub_def)
     from `lub A x` show "The (lub A) = x"

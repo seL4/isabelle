@@ -321,7 +321,7 @@ lemma termination_lemma:
   ss <[r] merges f qs ss \<or> 
   merges f qs ss = ss \<and> {q. \<exists>t. (q,t)\<in>set qs \<and> t +_f ss!q \<noteq> ss!q} Un (w-{p}) < w" (is "PROP ?P")
 proof -
-  interpret Semilat [A r f] using assms by (rule Semilat.intro)
+  interpret Semilat A r f using assms by (rule Semilat.intro)
   show "PROP ?P" apply(insert semilat)
     apply (unfold lesssub_def)
     apply (simp (no_asm_simp) add: merges_incr)
@@ -351,7 +351,7 @@ lemma iter_properties[rule_format]:
    (\<forall>ts\<in>list n A. ss0 <=[r] ts \<and> stables r step ts \<longrightarrow> ss' <=[r] ts)"
   (is "PROP ?P")
 proof -
-  interpret Semilat [A r f] using assms by (rule Semilat.intro)
+  interpret Semilat A r f using assms by (rule Semilat.intro)
   show "PROP ?P" apply(insert semilat)
 apply (unfold iter_def stables_def)
 apply (rule_tac P = "%(ss,w).
@@ -457,7 +457,7 @@ shows "\<lbrakk> acc r; pres_type step n A; mono r step n A;
                  kildall r f step ss0 <=[r] ts)"
   (is "PROP ?P")
 proof -
-  interpret Semilat [A r f] using assms by (rule Semilat.intro)
+  interpret Semilat A r f using assms by (rule Semilat.intro)
   show "PROP ?P"
 apply (unfold kildall_def)
 apply(case_tac "iter f step ss0 (unstables r step ss0)")
@@ -474,7 +474,7 @@ shows "\<lbrakk> acc r; top r T; pres_type step n A; bounded step n; mono r step
   \<Longrightarrow> is_bcv r T step n A (kildall r f step)"
   (is "PROP ?P")
 proof -
-  interpret Semilat [A r f] using assms by (rule Semilat.intro)
+  interpret Semilat A r f using assms by (rule Semilat.intro)
   show "PROP ?P"
 apply(unfold is_bcv_def wt_step_def)
 apply(insert semilat kildall_properties[of A])

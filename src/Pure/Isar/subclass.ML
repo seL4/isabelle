@@ -1,5 +1,4 @@
 (*  Title:      Pure/Isar/subclass.ML
-    ID:         $Id$
     Author:     Florian Haftmann, TU Muenchen
 
 User interface for proving subclass relationship between type classes.
@@ -22,7 +21,7 @@ fun gen_subclass prep_class do_proof raw_sup lthy =
     val thy = ProofContext.theory_of lthy;
     val sup = prep_class thy raw_sup;
     val sub = case TheoryTarget.peek lthy
-     of {is_class = false, ...} => error "No class context"
+     of {is_class = false, ...} => error "Not a class context"
       | {target, ...} => target;
     val _ = if Sign.subsort thy ([sup], [sub])
       then error ("Class " ^ Syntax.string_of_sort lthy [sup]
