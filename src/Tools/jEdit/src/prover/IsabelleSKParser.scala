@@ -7,35 +7,31 @@
 
 package isabelle.prover
 
-import isabelle.jedit.Plugin
+import isabelle.jedit.{Plugin}
 import sidekick.{SideKickParser, SideKickParsedData, IAsset}
-import org.gjt.sp.jedit.Buffer
+import org.gjt.sp.jedit.{Buffer, ServiceManager}
 import javax.swing.tree.DefaultMutableTreeNode
 import errorlist.DefaultErrorSource;
 
-class IsabelleSKParser() extends SideKickParser("isabelle") {
+class IsabelleSKParser extends SideKickParser("isabelle") {
   
   override def parse(b : Buffer,
                      errorSource : DefaultErrorSource)
     : SideKickParsedData = {
-      if(Plugin.plugin == null || Plugin.plugin.theoryView == null
-         || Plugin.plugin.theoryView.buffer == null
-         || !Plugin.plugin.theoryView.buffer.equals(b))
-      {
-        val data = new SideKickParsedData("WARNING:")
-        data.root.add(new DefaultMutableTreeNode("can only parse buffer which is activated via IsabellePlugin -> activate"))
-        data
-      } else{
-        val plugin = Plugin.plugin
-        val prover = plugin.prover
-        val buffer = Plugin.plugin.theoryView.buffer.asInstanceOf[Buffer]
-        val document = prover.document
-        val data = new SideKickParsedData(buffer.getPath)
+      Plugin.plugin.prover_setup(b) match {
+        case None =>
+          val data = new SideKickParsedData("WARNING:")
+          data.root.add(new DefaultMutableTreeNode("can only parse buffer which is activated via IsabellePlugin -> activate"))
+          data
+        case Some(prover_setup) =>
+          val prover = prover_setup.prover
+          val document = prover.document
+          val data = new SideKickParsedData(b.getPath)
 
-        for(command <- document.commands){
-          data.root.add(command.root_node.swing_node)
-        }
-        data
+          for(command <- document.commands){
+            data.root.add(command.root_node.swing_node)
+          }
+          data
       }
     }
 

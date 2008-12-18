@@ -18,7 +18,6 @@ import org.gjt.sp.jedit.textarea.{ JEditTextArea, TextAreaExtension, TextAreaPai
 import org.gjt.sp.jedit.syntax.SyntaxStyle
 
 object TheoryView {
-  val ISABELLE_THEORY_PROPERTY = "de.tum.in.isabelle.jedit.Theory";
 
   def chooseColor(state : Command) : Color = {
     if (state == null)
@@ -58,65 +57,44 @@ object TheoryView {
       case _ => Color.white
     }
   }
-  
-  def withView(view : JEditTextArea, f : (TheoryView) => Unit) {
-    if (view != null && view.getBuffer() != null)
-      view.getBuffer().getProperty(ISABELLE_THEORY_PROPERTY) match {
-        case null => null
-        case view: TheoryView => f(view)
-        case _ => null
-      }
-  }
-	
-  def activateTextArea(textArea : JEditTextArea) {
-    withView(textArea, _.activate(textArea))
-  }	
-	
-  def deactivateTextArea(textArea : JEditTextArea) {
-    withView(textArea, _.deactivate(textArea))
-  }
 }
 
-class TheoryView(prover : Prover, val buffer : JEditBuffer)
+class TheoryView (text_area : JEditTextArea)
     extends TextAreaExtension with Text with BufferListener {
   import TheoryView._
   import Text.Changed
-  
-  var textArea : JEditTextArea = null;
-  var col : Changed = null;
+
+  var col : Changed = null
+
+  val buffer = text_area.getBuffer
+  buffer.addBufferListener(this)
   
   val colTimer = new Timer(300, new ActionListener() {
     override def actionPerformed(e : ActionEvent) { commit() }
   })
   
   val changesSource = new EventSource[Changed]
-
-  {
-    buffer.addBufferListener(this)
-    buffer.setProperty(ISABELLE_THEORY_PROPERTY, this)
+  val phase_overview = new PhaseOverviewPanel(Plugin.prover(buffer))
 
     val repaint_delay = new isabelle.utils.Delay(100, () => repaintAll())
-    prover.commandInfo.add(_ => repaint_delay.delay_or_ignore())
-    // could also use this:
-    // prover.commandInfo.add(c => repaint(c.command))
+    Plugin.prover(buffer).commandInfo.add(_ => repaint_delay.delay_or_ignore())
     Plugin.plugin.viewFontChanged.add(font => updateFont())
-    
+
     colTimer.stop
     colTimer.setRepeats(true)
-  }
 
-  def activate(area : JEditTextArea) {
-    textArea = area
-    textArea.addCaretListener(selectedStateController)
-    textArea.addLeftOfScrollBar(new PhaseOverviewPanel(textArea))
-    val painter = textArea.getPainter()
+  def activate() {
+    text_area.addCaretListener(selectedStateController)
+    phase_overview.textarea = text_area
+    text_area.addLeftOfScrollBar(phase_overview)
+    val painter = text_area.getPainter()
     painter.addExtension(TextAreaPainter.LINE_BACKGROUND_LAYER + 1, this)
     updateFont()
   }
   
   private def updateFont() {
-    if (textArea != null) {
-      val painter = textArea.getPainter()
+    if (text_area != null) {
+      val painter = text_area.getPainter()
       if (Plugin.plugin.viewFont != null) {
         painter.setStyles(painter.getStyles().map(style =>
           new SyntaxStyle(style.getForegroundColor, 
@@ -129,18 +107,18 @@ class TheoryView(prover : Prover, val buffer : JEditBuffer)
     }
   }
   
-  def deactivate(area : JEditTextArea) {
-    textArea.getPainter().removeExtension(this)
-    textArea.removeCaretListener(selectedStateController)
-    textArea = null
+  def deactivate() {
+    text_area.getPainter().removeExtension(this)
+    text_area.removeCaretListener(selectedStateController)
+    text_area.removeLeftOfScrollBar(phase_overview)
   }
   
   val selectedStateController = new CaretListener() {
     override def caretUpdate(e : CaretEvent) {
-      val cmd = prover.document.getNextCommandContaining(e.getDot())
+      val cmd = Plugin.prover(buffer).document.getNextCommandContaining(e.getDot())
       if (cmd != null && cmd.start <= e.getDot() && 
-            Plugin.plugin.selectedState != cmd)
-        Plugin.plugin.selectedState = cmd
+            Plugin.prover_setup(buffer).selectedState != cmd)
+        Plugin.prover_setup(buffer).selectedState = cmd
     }
   }
 
@@ -159,28 +137,28 @@ class TheoryView(prover : Prover, val buffer : JEditBuffer)
   def repaint(cmd : Command)
   {
     val ph = cmd.phase
-    if (textArea != null && ph != Phase.REMOVE && ph != Phase.REMOVED) {
-      var start = textArea.getLineOfOffset(toCurrent(cmd.start))
-      var stop = textArea.getLineOfOffset(toCurrent(cmd.stop) - 1)
-      textArea.invalidateLineRange(start, stop)
+    if (text_area != null && ph != Phase.REMOVE && ph != Phase.REMOVED) {
+      var start = text_area.getLineOfOffset(toCurrent(cmd.start))
+      var stop = text_area.getLineOfOffset(toCurrent(cmd.stop) - 1)
+      text_area.invalidateLineRange(start, stop)
       
-      if (Plugin.plugin.selectedState == cmd)
-        Plugin.plugin.selectedState = cmd // update State view 
+      if (Plugin.prover_setup(buffer).selectedState == cmd)
+        Plugin.prover_setup(buffer).selectedState = cmd // update State view
     }
   }
   
   def repaintAll()
   {
-    if (textArea != null)
-      textArea.invalidateLineRange(textArea.getFirstPhysicalLine, 
-                                   textArea.getLastPhysicalLine)
+    if (text_area != null)
+      text_area.invalidateLineRange(text_area.getFirstPhysicalLine,
+                                   text_area.getLastPhysicalLine)
   }
 
   def encolor(gfx : Graphics2D, y : Int, height : Int, begin : Int, finish : Int, color : Color, fill : Boolean){
-      val fm = textArea.getPainter.getFontMetrics
-      val startP = textArea.offsetToXY(begin)
-      val stopP = if (finish < buffer.getLength()) textArea.offsetToXY(finish)
-                  else { var p = textArea.offsetToXY(finish - 1)
+      val fm = text_area.getPainter.getFontMetrics
+      val startP = text_area.offsetToXY(begin)
+      val stopP = if (finish < buffer.getLength()) text_area.offsetToXY(finish)
+                  else { var p = text_area.offsetToXY(finish - 1)
                          p.x = p.x + fm.charWidth(' ')
                          p }
 			
@@ -194,9 +172,9 @@ class TheoryView(prover : Prover, val buffer : JEditBuffer)
   override def paintValidLine(gfx : Graphics2D, screenLine : Int,
                               pl : Int, start : Int, end : Int, y : Int)
   {	
-    val fm = textArea.getPainter.getFontMetrics
+    val fm = text_area.getPainter.getFontMetrics
     var savedColor = gfx.getColor
-    var e = prover.document.getNextCommandContaining(fromCurrent(start))
+    var e = Plugin.prover(buffer).document.getNextCommandContaining(fromCurrent(start))
 
     //Encolor Phase
     while (e != null && toCurrent(e.start) < end) {
@@ -217,7 +195,7 @@ class TheoryView(prover : Prover, val buffer : JEditBuffer)
   }
 	
   def content(start : Int, stop : Int) = buffer.getText(start, stop - start)
-  def length = buffer.getLength()
+  override def length = buffer.getLength
 
   def changes = changesSource
 

@@ -1,25 +1,3 @@
-/*
- * ErrorOverview.java - Error overview component
- * :tabSize=8:indentSize=8:noTabs=false:
- * :folding=explicit:collapseFolds=1:
- *
- * Copyright (C) 2003 Slava Pestov
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
- */
-
 package isabelle.jedit
 
 import isabelle.prover.Command
@@ -33,14 +11,15 @@ import org.gjt.sp.jedit.textarea.JEditTextArea;
 import org.gjt.sp.jedit.buffer.JEditBuffer;
 import org.gjt.sp.jedit._
 
-class PhaseOverviewPanel(textarea : JEditTextArea) extends JPanel(new BorderLayout) {
+class PhaseOverviewPanel(prover : isabelle.prover.Prover) extends JPanel(new BorderLayout) {
 
   private val WIDTH = 10
 	private val HILITE_HEIGHT = 2
+  var textarea : JEditTextArea = null
 
-  Plugin.plugin.prover.commandInfo.add(cc => {
-      paintCommand(cc.command,textarea.getBuffer, getGraphics)
-    })
+  val repaint_delay = new isabelle.utils.Delay(100, () => repaint())
+    prover.commandInfo.add(cc => repaint_delay.delay_or_ignore())
+    
   setRequestFocusEnabled(false);
 
   addMouseListener(new MouseAdapter {
@@ -97,9 +76,9 @@ class PhaseOverviewPanel(textarea : JEditTextArea) extends JPanel(new BorderLayo
 		super.paintComponent(gfx)
 
 		val buffer = textarea.getBuffer
-
-    for(c <- Plugin.plugin.prover.document.commands)
+    for(c <- prover.document.commands)
       paintCommand(c, buffer, gfx)
+    
 	}
 
 	override def getPreferredSize : Dimension =

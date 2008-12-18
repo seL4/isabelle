@@ -166,7 +166,7 @@ class ScrollerDockable(view : View, position : String) extends JPanel with Adjus
 
   
   // TODO: register
-  Plugin.plugin.prover.allInfo.add(add_result(_))
+  //Plugin.plugin.prover.allInfo.add(add_result(_))
 }
 
 //Concrete Implementations

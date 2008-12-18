@@ -16,10 +16,10 @@
 	</ACTION>
 	<ACTION NAME="Isabelle.activate">
 		<CODE>
-			isabelle.jedit.Plugin$.MODULE$.plugin().activate(view);
+			isabelle.jedit.Plugin$.MODULE$.plugin().install(view);
 		</CODE>
 		<IS_SELECTED>
-			return view.getBuffer().getMode().getName() == "isabelle";
+			return isabelle.jedit.Plugin$.MODULE$.plugin().is_active(view.getBuffer());
 		</IS_SELECTED>
 	</ACTION>
 </ACTIONS>

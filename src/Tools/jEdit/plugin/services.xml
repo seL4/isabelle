@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <!DOCTYPE SERVICES SYSTEM "services.dtd">
 <SERVICES>
-	<SERVICE CLASS="sidekick.SideKickParser" NAME="isabelle">
+	<SERVICE NAME="isabelle" CLASS="sidekick.SideKickParser">
 		new isabelle.prover.IsabelleSKParser();
 	</SERVICE>
 	<SERVICE NAME="isabelle" CLASS="org.gjt.sp.jedit.io.VFS">
