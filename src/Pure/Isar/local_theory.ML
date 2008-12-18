@@ -1,5 +1,4 @@
 (*  Title:      Pure/Isar/local_theory.ML
-    ID:         $Id$
     Author:     Makarius
 
 Local theory operations, with abstract target context.

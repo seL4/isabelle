@@ -60,6 +60,59 @@ end;
 structure Class : CLASS =
 struct
 
+(*temporary adaption code to mediate between old and new locale code*)
+
+structure Old_Locale =
+struct
+
+val intro_locales_tac = Locale.intro_locales_tac; (*already forked!*)
+
+val interpretation = Locale.interpretation;
+val interpretation_in_locale = Locale.interpretation_in_locale;
+val get_interpret_morph = Locale.get_interpret_morph;
+val Locale = Locale.Locale;
+val extern = Locale.extern;
+val intros = Locale.intros;
+val dests = Locale.dests;
+val init = Locale.init;
+val Merge = Locale.Merge;
+val parameters_of_expr = Locale.parameters_of_expr;
+val empty = Locale.empty;
+val cert_expr = Locale.cert_expr;
+val read_expr = Locale.read_expr;
+val parameters_of = Locale.parameters_of;
+val add_locale = Locale.add_locale;
+
+end;
+
+structure New_Locale =
+struct
+
+val intro_locales_tac = Locale.intro_locales_tac; (*already forked!*)
+
+val interpretation = Locale.interpretation; (*!*)
+val interpretation_in_locale = Locale.interpretation_in_locale; (*!*)
+val get_interpret_morph = Locale.get_interpret_morph; (*!*)
+fun Locale loc = ([(loc, ("", Expression.Positional []))], []);
+val extern = NewLocale.extern;
+val intros = Locale.intros; (*!*)
+val dests = Locale.dests; (*!*)
+val init = NewLocale.init;
+fun Merge locs = (map (fn loc => (loc, ("", Expression.Positional []))) locs, []);
+val parameters_of_expr = Locale.parameters_of_expr; (*!*)
+val empty = ([], []);
+val cert_expr = Locale.cert_expr; (*!"*)
+val read_expr = Locale.read_expr; (*!"*)
+val parameters_of = NewLocale.params_of; (*why typ option?*)
+val add_locale = Expression.add_locale;
+
+end;
+
+structure Locale = Old_Locale;
+
+(*proper code again*)
+
+
 (** auxiliary **)
 
 fun prove_interpretation tac prfx_atts expr inst =
@@ -542,7 +595,7 @@ fun gen_class_spec prep_class process_expr thy raw_supclasses raw_elems =
     val suplocales = map Locale.Locale sups;
     val supexpr = Locale.Merge suplocales;
     val supparams = (map fst o Locale.parameters_of_expr thy) supexpr;
-    val mergeexpr = Locale.Merge (suplocales);
+    val mergeexpr = Locale.Merge suplocales;
     val constrain = Element.Constrains ((map o apsnd o map_atyps)
       (K (TFree (Name.aT, base_sort))) supparams);
     fun fork_syn (Element.Fixes xs) =

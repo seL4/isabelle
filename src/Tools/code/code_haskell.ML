@@ -414,7 +414,10 @@ fun serialize_haskell module_prefix raw_module_name string_classes labelled_name
                 o NameSpace.explode) modlname;
         val pathname = Path.append destination filename;
         val _ = File.mkdir (Path.dir pathname);
-      in File.write pathname (Code_Target.code_of_pretty content) end
+      in File.write pathname
+        ("{-# OPTIONS_GHC -fglasgow-exts #-}\n\n"
+          ^ Code_Target.code_of_pretty content)
+      end
   in
     Code_Target.mk_serialization target NONE
       (fn NONE => K () o map (Code_Target.code_writeln o snd) | SOME file => K () o map (write_module file))

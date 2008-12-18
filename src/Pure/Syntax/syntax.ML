@@ -1,5 +1,4 @@
 (*  Title:      Pure/Syntax/syntax.ML
-    ID:         $Id$
     Author:     Tobias Nipkow and Markus Wenzel, TU Muenchen
 
 Standard Isabelle syntax, based on arbitrary context-free grammars
