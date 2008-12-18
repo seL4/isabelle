@@ -522,7 +522,8 @@ fun prep_goal_expression prep expression context =
 
     val export = Variable.export_morphism goal_ctxt context;
     val exp_fact = Drule.zero_var_indexes_list o map Thm.strip_shyps o Morphism.fact export;
-    val exp_term = Drule.term_rule thy (singleton exp_fact);
+    val thy_ref = Theory.check_thy thy; (* FIXME!!*)
+    val exp_term = (fn t => Drule.term_rule (Theory.deref thy_ref) (singleton exp_fact) t);
     val exp_typ = Logic.type_map exp_term;
     val export' =
       Morphism.morphism {binding = I, var = I, typ = exp_typ, term = exp_term, fact = exp_fact};

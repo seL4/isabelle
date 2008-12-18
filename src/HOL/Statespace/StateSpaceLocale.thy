@@ -16,7 +16,7 @@ instance of this locale is imported in order convert the abstract and
 concrete values.*}
 
 
-class_locale project_inject =
+locale project_inject =
  fixes project :: "'value \<Rightarrow> 'a"
  and   "inject":: "'a \<Rightarrow> 'value"
  assumes project_inject_cancel [statefun_simp]: "project (inject x) = x"

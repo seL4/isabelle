@@ -17,7 +17,7 @@ signature STATE_SPACE =
     val namespace_definition :
        bstring ->
        typ ->
-       Locale.expr ->
+       Expression.expression ->
        string list -> string list -> theory -> theory
 
     val define_statespace :
@@ -61,7 +61,7 @@ signature STATE_SPACE =
     val update_tr' : Proof.context -> term list -> term
   end;
 
-structure StateSpace: STATE_SPACE =
+structure StateSpace : STATE_SPACE =
 struct
 
 (* Theorems *)
@@ -148,10 +148,24 @@ val get_silent = #silent o NameSpaceData.get;
 
 fun prove_interpretation_in ctxt_tac (name, expr) thy =
    thy
-   |> Locale.interpretation_in_locale I (name, expr)
+   |> Expression.sublocale_cmd name expr
    |> Proof.global_terminal_proof
          (Method.Basic (fn ctxt => Method.SIMPLE_METHOD (ctxt_tac ctxt),Position.none), NONE)
    |> ProofContext.theory_of
+
+fun add_locale name expr elems thy =
+  thy 
+  |> Expression.add_locale name name expr elems
+  |> (fn ((target, notes), ctxt) => TheoryTarget.begin target ctxt |>
+           fold (fn (kind, facts) => LocalTheory.notes kind facts #> snd) notes)
+  |> LocalTheory.exit;
+
+fun add_locale_cmd name expr elems thy =
+  thy 
+  |> Expression.add_locale_cmd name name expr elems
+  |> (fn ((target, notes), ctxt) => TheoryTarget.begin target ctxt |>
+           fold (fn (kind, facts) => LocalTheory.notes kind facts #> snd) notes)
+  |> LocalTheory.exit;
 
 type statespace_info =
  {args: (string * sort) list, (* type arguments *)
@@ -252,7 +266,7 @@ fun interprete_parent name dist_thm_name parent_expr thy =
       in EVERY [rtac rule i] st
       end
 
-    fun tac ctxt = EVERY [Locale.intro_locales_tac true ctxt [],
+    fun tac ctxt = EVERY [NewLocale.intro_locales_tac true ctxt [],
                           ALLGOALS (SUBGOAL (solve_tac ctxt))]
 
   in thy
@@ -264,16 +278,11 @@ end;
 fun namespace_definition name nameT parent_expr parent_comps new_comps thy =
   let
     val all_comps = parent_comps @ new_comps;
-    val vars = Locale.Merge
-                (map (fn n => Locale.Rename (Locale.Locale (Locale.intern thy "var")
-                                            ,[SOME (n,NONE)])) all_comps);
-
+    val vars = (map (fn n => (Binding.name n, NONE, NoSyn)) all_comps);
     val full_name = Sign.full_bname thy name;
     val dist_thm_name = distinct_compsN;
-    val dist_thm_full_name =
-        let val prefix = fold1' (fn name => fn prfx => prfx ^ "_" ^ name) all_comps "";
-        in if prefix = "" then dist_thm_name else prefix ^ "." ^ dist_thm_name end;
 
+    val dist_thm_full_name = dist_thm_name;
     fun comps_of_thm thm = prop_of thm
              |> (fn (_$(_$t)) => DistinctTreeProver.dest_tree t) |> map (fst o dest_Free);
 
@@ -309,12 +318,10 @@ fun namespace_definition name nameT parent_expr parent_comps new_comps thy =
                       DistinctTreeProver.mk_tree (fn n => Free (n,nameT)) nameT
                                 (sort fast_string_ord all_comps)),
                       ([]))])];
-
   in thy
-     |> Locale.add_locale "" name vars [assumes]
-     ||> ProofContext.theory_of
-     ||> interprete_parent name dist_thm_full_name parent_expr
-     |> #2
+     |> add_locale name ([],vars) [assumes]
+     |> ProofContext.theory_of
+     |> interprete_parent name dist_thm_full_name parent_expr
   end;
 
 fun encode_dot x = if x= #"." then #"_" else x;
@@ -378,11 +385,10 @@ fun statespace_definition state_type args name parents parent_comps components t
 
     val components' = map (fn (n,T) => (n,(T,full_name))) components;
     val all_comps' = map (fn (n,T) => (n,(T,full_name))) all_comps;
-    fun parent_expr (_,n,rs) = Locale.Rename
-                                (Locale.Locale (suffix namespaceN n),
-                                 map (Option.map (fn s => (s,NONE))) rs);
-    val parents_expr = Locale.Merge (fold (fn p => fn es => parent_expr p::es) parents []);
 
+    fun parent_expr (_,n,rs) = (suffix namespaceN n,((n,false),Expression.Positional rs));
+        (* FIXME: a more specific renaming-prefix (including parameter names) may be nicer *)
+    val parents_expr = map parent_expr parents;
     fun distinct_types Ts =
       let val tab = fold (fn T => fn tab => Typtab.update (T,()) tab) Ts Typtab.empty;
       in map fst (Typtab.dest tab) end;
@@ -396,30 +402,32 @@ fun statespace_definition state_type args name parents parent_comps components t
     val stateT = nameT --> valueT;
     fun projectT T = valueT --> T;
     fun injectT T = T --> valueT;
-
-    val locs = map (fn T => Locale.Rename (Locale.Locale project_injectL,
-                             [SOME (project_name T,NONE),
-                              SOME (inject_name T ,NONE)])) Ts;
+    val locinsts = map (fn T => (project_injectL,
+                    (("",false),Expression.Positional 
+                             [SOME (Free (project_name T,projectT T)), 
+                              SOME (Free ((inject_name T,injectT T)))]))) Ts;
+    val locs = flat (map (fn T => [(Binding.name (project_name T),NONE,NoSyn),
+                                     (Binding.name (inject_name T),NONE,NoSyn)]) Ts);
     val constrains = List.concat
          (map (fn T => [(project_name T,projectT T),(inject_name T,injectT T)]) Ts);
 
-    fun interprete_parent_valuetypes (Ts, pname, _) =
+    fun interprete_parent_valuetypes (Ts, pname, _) thy =
       let
         val {args,types,...} =
              the (Symtab.lookup (StateSpaceData.get (Context.Theory thy)) pname);
         val inst = map fst args ~~ Ts;
         val subst = Term.map_type_tfree (the o AList.lookup (op =) inst o fst);
         val pars = List.concat (map ((fn T => [project_name T,inject_name T]) o subst) types);
-        val expr = Locale.Rename (Locale.Locale (suffix valuetypesN name),
-                                  map (fn n => SOME (n,NONE)) pars);
-      in prove_interpretation_in (K all_tac)
-           (suffix valuetypesN name, expr) end;
+
+        val expr = ([(suffix valuetypesN name, 
+                     (("",false),Expression.Positional (map SOME pars)))],[]);
+      in prove_interpretation_in (K all_tac) (suffix valuetypesN name, expr) thy end;
 
     fun interprete_parent (_, pname, rs) =
       let
-        val expr = Locale.Rename (Locale.Locale pname, map (Option.map (fn n => (n,NONE))) rs)
+        val expr = ([(pname, (("",false), Expression.Positional rs))],[])
       in prove_interpretation_in
-           (fn ctxt => Locale.intro_locales_tac false ctxt [])
+           (fn ctxt => NewLocale.intro_locales_tac false ctxt [])
            (full_name, expr) end;
 
     fun declare_declinfo updates lthy phi ctxt =
@@ -454,17 +462,16 @@ fun statespace_definition state_type args name parents parent_comps components t
 
   in thy
      |> namespace_definition
-           (suffix namespaceN name) nameT parents_expr
+           (suffix namespaceN name) nameT (parents_expr,[])
            (map fst parent_comps) (map fst components)
      |> Context.theory_map (add_statespace full_name args parents components [])
-     |> Locale.add_locale "" (suffix valuetypesN name) (Locale.Merge locs)
-            [Element.Constrains constrains]
-     |> ProofContext.theory_of o #2
+     |> add_locale (suffix valuetypesN name) (locinsts,locs) []
+     |> ProofContext.theory_of 
      |> fold interprete_parent_valuetypes parents
-     |> Locale.add_locale_cmd name
-              (Locale.Merge [Locale.Locale (suffix namespaceN full_name)
-                            ,Locale.Locale (suffix valuetypesN full_name)]) fixestate
-     |> ProofContext.theory_of o #2
+     |> add_locale_cmd name
+              ([(suffix namespaceN full_name ,(("",false),Expression.Named [])),
+                (suffix valuetypesN full_name,(("",false),Expression.Named  []))],[]) fixestate
+     |> ProofContext.theory_of 
      |> fold interprete_parent parents
      |> add_declaration (SOME full_name) (declare_declinfo components')
   end;
@@ -572,7 +579,6 @@ fun gen_define_statespace prep_typ state_space args name parents comps thy =
              | xs => ["Components already defined in parents: " ^ commas xs]);
     val errs = err_dup_args @ err_dup_components @ err_extra_frees @
                err_dup_types @ err_comp_in_parent;
-
   in if null errs
      then thy |> statespace_definition state_space args' name parents' parent_comps comps'
      else error (cat_lines errs)
