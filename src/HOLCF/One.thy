@@ -12,8 +12,9 @@ types one = "unit lift"
 translations
   "one" <= (type) "unit lift" 
 
-constdefs
+definition
   ONE :: "one"
+where
   "ONE == Def ()"
 
 text {* Exhaustion and Elimination for type @{typ one} *}
