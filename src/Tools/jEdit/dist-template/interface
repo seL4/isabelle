@@ -2,8 +2,6 @@
 #
 # Isabelle/jEdit interface wrapper
 
-set -x
-
 ## diagnostics
 
 usage()
