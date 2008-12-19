@@ -459,7 +459,7 @@ fun prep_goal_expression prep expression context =
 
     val export = Variable.export_morphism goal_ctxt context;
     val exp_fact = Drule.zero_var_indexes_list o map Thm.strip_shyps o Morphism.fact export;
-    val exp_term = Drule.term_rule thy (singleton exp_fact);
+    val exp_term = TermSubst.zero_var_indexes o Morphism.term export;
     val exp_typ = Logic.type_map exp_term;
     val export' =
       Morphism.morphism {binding = I, var = I, typ = exp_typ, term = exp_term, fact = exp_fact};
@@ -688,7 +688,8 @@ fun assumes_to_notes (Assumes asms) axms =
 
 fun defines_to_notes thy (Defines defs) =
       Notes (Thm.definitionK, map (fn (a, (def, _)) =>
-        (a, [([Assumption.assume (cterm_of thy def)], [])])) defs)
+        (a, [([Assumption.assume (cterm_of thy def)],
+          [(Attrib.internal o K) NewLocale.witness_attrib])])) defs)
   | defines_to_notes _ e = e;
 
 fun gen_add_locale prep_decl
