@@ -1773,7 +1773,7 @@ lemma eval_monom_expr:
   shows "eval R R id a (monom P \<one>\<^bsub>R\<^esub> 1 \<ominus>\<^bsub>P\<^esub> monom P a 0) = \<zero>"
   (is "eval R R id a ?g = _")
 proof -
-  interpret UP_pre_univ_prop R R id P proof qed simp
+  interpret UP_pre_univ_prop R R id proof qed simp
   have eval_ring_hom: "eval R R id a \<in> ring_hom P R" using eval_ring_hom [OF a] by simp
   interpret ring_hom_cring P R "eval R R id a" proof qed (simp add: eval_ring_hom)
   have mon1_closed: "monom P \<one>\<^bsub>R\<^esub> 1 \<in> carrier P" 
@@ -1782,8 +1782,8 @@ proof -
     using a R.a_inv_closed by auto
   have "eval R R id a ?g = eval R R id a (monom P \<one> 1) \<ominus> eval R R id a (monom P a 0)"
     unfolding P.minus_eq [OF mon1_closed mon0_closed]
-    unfolding R_S_h.hom_add [OF mon1_closed min_mon0_closed]
-    unfolding R_S_h.hom_a_inv [OF mon0_closed] 
+    unfolding hom_add [OF mon1_closed min_mon0_closed]
+    unfolding hom_a_inv [OF mon0_closed] 
     using R.minus_eq [symmetric] mon1_closed mon0_closed by auto
   also have "\<dots> = a \<ominus> a"
     using eval_monom [OF R.one_closed a, of 1] using eval_monom [OF a a, of 0] using a by simp
@@ -1886,7 +1886,7 @@ text {*
   "UP INTEG"} globally.
 *}
 
-interpretation INTEG!: UP_pre_univ_prop INTEG INTEG id
+interpretation INTEG!: UP_pre_univ_prop INTEG INTEG id "UP INTEG"
   using INTEG_id_eval by simp_all
 
 lemma INTEG_closed [intro, simp]:
