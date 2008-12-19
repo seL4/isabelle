@@ -250,7 +250,7 @@ apply (induct xs rule: lower_pd.principal_induct, simp)
 apply (simp add: PDPlus_absorb)
 done
 
-interpretation aci_lower_plus!: ab_semigroup_idem_mult "op +\<flat>"
+class_interpretation aci_lower_plus: ab_semigroup_idem_mult ["op +\<flat>"]
   by unfold_locales
     (rule lower_plus_assoc lower_plus_commute lower_plus_absorb)+
 

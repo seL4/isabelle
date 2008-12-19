@@ -375,8 +375,8 @@ fun print_locale thy show_facts name =
     val ctxt = init name' thy
   in
     Pretty.big_list "locale elements:"
-      (activate_all name' thy (cons_elem show_facts) (K Morphism.identity) (empty, []) |>
-        snd |> rev |> 
+      (activate_all name' thy (cons_elem show_facts) (K (Element.transfer_morphism thy))
+        (empty, []) |> snd |> rev |> 
         map (Element.pretty_ctxt ctxt) |> map Pretty.chunks) |> Pretty.writeln
   end
 
@@ -399,8 +399,14 @@ structure RegistrationsData = GenericDataFun
 
 val get_global_registrations =
   Context.Theory #> RegistrationsData.get #> map fst #> map (apsnd op $>);
-fun add_global_registration reg =
+
+fun add_global reg =
   (Context.theory_map o RegistrationsData.map) (cons (reg, stamp ()));
+
+fun add_global_registration (name, (base_morph, export)) thy =
+  roundup thy (fn _ => fn (name', morph') => fn thy => add_global (name', (morph', export)) thy)
+    (name, base_morph) (get_global_idents thy, thy) |>
+    snd (* FIXME ?? uncurry put_global_idents *);
 
 fun amend_global_registration morph (name, base_morph) thy =
   let

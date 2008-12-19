@@ -10,16 +10,17 @@ begin
 section {* Homomorphisms of Non-Commutative Rings *}
 
 text {* Lifting existing lemmas in a @{text ring_hom_ring} locale *}
-locale ring_hom_ring = R: ring R + S: ring S +
+locale ring_hom_ring = R: ring R + S: ring S
+    for R (structure) and S (structure) +
   fixes h
   assumes homh: "h \<in> ring_hom R S"
   notes hom_mult [simp] = ring_hom_mult [OF homh]
     and hom_one [simp] = ring_hom_one [OF homh]
 
-sublocale ring_hom_cring \<subseteq> ring_hom_ring
+sublocale ring_hom_cring \<subseteq> ring: ring_hom_ring
   proof qed (rule homh)
 
-sublocale ring_hom_ring \<subseteq> abelian_group_hom R S
+sublocale ring_hom_ring \<subseteq> abelian_group: abelian_group_hom R S
 apply (rule abelian_group_homI)
   apply (rule R.is_abelian_group)
  apply (rule S.is_abelian_group)

@@ -328,7 +328,7 @@ proof -
 next
   assume "UNIV = {uu. EX x. uu = x * p}"
   from this obtain x 
-      where "1 = x * p" by fast
+      where "1 = x * p" by best
   from this [symmetric]
       have "p * x = 1" by (subst zmult_commute)
   hence "\<bar>p * x\<bar> = 1" by simp

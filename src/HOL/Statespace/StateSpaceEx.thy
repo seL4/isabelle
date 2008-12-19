@@ -202,8 +202,10 @@ lemma (in dup)
 
 text {* Hmm, I hoped this would work now...*}
 
+(*
 locale fooX = foo +
  assumes "s<a:=i>\<cdot>b = k"
+*)
 
 (* ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ *)
 text {* There are known problems with syntax-declarations. They currently
