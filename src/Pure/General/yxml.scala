@@ -1,5 +1,4 @@
 /*  Title:      Pure/General/yxml.scala
-    ID:         $Id$
     Author:     Makarius
 
 Efficient text representation of XML trees.

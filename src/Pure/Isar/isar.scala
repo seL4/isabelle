@@ -1,7 +1,5 @@
 /*  Title:      Pure/Isar/isar.scala
-    ID:         $Id$
     Author:     Makarius
-    Options:    :folding=explicit:collapseFolds=1:
 
 Isar toplevel editor model.
 */

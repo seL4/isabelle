@@ -1,5 +1,4 @@
 /*  Title:      Pure/General/xml.scala
-    ID:         $Id$
     Author:     Makarius
 
 Simple XML tree values.

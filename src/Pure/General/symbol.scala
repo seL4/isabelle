@@ -1,5 +1,4 @@
 /*  Title:      Pure/General/symbol.scala
-    ID:         $Id$
     Author:     Makarius
 
 Detecting and recoding Isabelle symbols.
