@@ -248,7 +248,7 @@ apply (induct xs rule: upper_pd.principal_induct, simp)
 apply (simp add: PDPlus_absorb)
 done
 
-interpretation aci_upper_plus!: ab_semigroup_idem_mult "op +\<sharp>"
+class_interpretation aci_upper_plus: ab_semigroup_idem_mult ["op +\<sharp>"]
   by unfold_locales
     (rule upper_plus_assoc upper_plus_commute upper_plus_absorb)+
 

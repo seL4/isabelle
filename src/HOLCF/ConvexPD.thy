@@ -296,7 +296,7 @@ apply (induct xs rule: convex_pd.principal_induct, simp)
 apply (simp add: PDPlus_absorb)
 done
 
-interpretation aci_convex_plus!: ab_semigroup_idem_mult "op +\<natural>"
+class_interpretation aci_convex_plus: ab_semigroup_idem_mult ["op +\<natural>"]
   by unfold_locales
     (rule convex_plus_assoc convex_plus_commute convex_plus_absorb)+
 
