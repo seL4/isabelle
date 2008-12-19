@@ -1,3 +1,10 @@
+/*
+ * Dockable window for raw process output
+ *
+ * @author Fabian Immler, TU Munich
+ * @author Johannes Hölzl, TU Munich
+ */
+
 package isabelle.jedit
 
 import java.awt.GridLayout

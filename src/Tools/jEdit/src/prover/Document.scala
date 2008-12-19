@@ -1,5 +1,5 @@
 /*
- * Document -- list of commands
+ * Document as list of commands
  *
  * @author Johannes Hölzl, TU Munich
  */

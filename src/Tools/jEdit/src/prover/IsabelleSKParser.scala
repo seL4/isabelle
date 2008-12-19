@@ -1,5 +1,5 @@
 /*
- * Sidekick parser for proof document
+ * SideKick parser for proof document
  *
  * @author Fabian Immler, TU Munich
  */

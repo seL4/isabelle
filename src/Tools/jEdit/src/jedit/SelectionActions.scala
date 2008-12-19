@@ -1,8 +1,7 @@
 /*
- * SelectionActions.scala
+ * Text selection for XHTML renderer
  *
- * To change this template, choose Tools | Template Manager
- * and open the template in the editor.
+ * @author Fabian Immler, TU Munich
  */
 
 package isabelle.jedit

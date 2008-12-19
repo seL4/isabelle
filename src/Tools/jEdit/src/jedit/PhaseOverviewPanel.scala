@@ -1,3 +1,9 @@
+/*
+ * Information on command-phase left of scrollbar (with panel)
+ *
+ * @author Fabian Immler, TU Munich
+ */
+
 package isabelle.jedit
 
 import isabelle.prover.Command

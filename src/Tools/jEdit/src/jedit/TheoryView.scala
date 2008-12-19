@@ -1,5 +1,5 @@
 /*
- * XML/CSS rendering -- user agent
+ * jEdit text area as document text source
  *
  * @author Fabian Immler, TU Munich
  * @author Johannes Hölzl, TU Munich

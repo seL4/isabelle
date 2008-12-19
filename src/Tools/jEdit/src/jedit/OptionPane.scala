@@ -1,5 +1,5 @@
 /*
- * Isabelle/jEdit plugin options
+ * Editor pane for plugin options
  *
  * @author Johannes Hölzl, TU Munich
  */

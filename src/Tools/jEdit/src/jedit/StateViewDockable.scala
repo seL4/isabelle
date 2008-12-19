@@ -1,3 +1,10 @@
+/*
+ * Dockable window with rendered state output
+ *
+ * @author Fabian Immler, TU Munich
+ * @author Johannes Hölzl, TU Munich
+ */
+
 package isabelle.jedit
 
 

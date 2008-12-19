@@ -1,5 +1,5 @@
 /*
- * Document -- list of tokens
+ * Document as list of tokens
  *
  * @author Johannes Hölzl, TU Munich
  */

@@ -1,6 +1,7 @@
 /*
- * ScrollerDockable.scala
+ * Dockable window with scrollable messages
  *
+ * @author Fabian Immler, TU Munich
  */
 
 package isabelle.jedit

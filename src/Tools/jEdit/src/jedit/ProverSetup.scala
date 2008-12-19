@@ -1,7 +1,7 @@
 /*
- * 
+ * Independent prover sessions
  *
- * 
+ * @author Fabian Immler, TU Munich
  */
 
 package isabelle.jedit
