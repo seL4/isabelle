@@ -16,7 +16,7 @@
 	</ACTION>
 	<ACTION NAME="Isabelle.activate">
 		<CODE>
-			isabelle.jedit.Plugin$.MODULE$.plugin().install(view);
+			isabelle.jedit.Plugin$.MODULE$.plugin().switch_active(view);
 		</CODE>
 		<IS_SELECTED>
 			return isabelle.jedit.Plugin$.MODULE$.plugin().is_active(view.getBuffer());

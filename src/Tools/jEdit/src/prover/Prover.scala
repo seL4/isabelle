@@ -37,7 +37,7 @@ class Prover() {
   def fireChange(c : Command) =
     inUIThread(() => commandInfo.fire(new CommandChangeInfo(c)))
 
-  var workerThread = new Thread("isabelle.Prover: worker") {
+  val worker_thread = new Thread("isabelle.Prover: worker") {
     override def run() : Unit = {
       while (true) {
         val r = process.get_result
@@ -114,9 +114,7 @@ class Prover() {
   }
   
   def handleResult(st : Command, r : Result, tree : XML.Tree) {
-    //TODO: this is just for testing
-    allInfo.fire(r)
-    
+
     r.kind match {
       case IsabelleProcess.Kind.ERROR => 
         if (st.phase != Phase.REMOVED && st.phase != Phase.REMOVE)
@@ -149,7 +147,7 @@ class Prover() {
     if (logic != null)
       _logic = logic
     process = new IsabelleProcess("-m", "xsymbols", _logic)
-    workerThread.start
+    worker_thread.start
   }
 
   def stop() {
@@ -200,6 +198,7 @@ class Prover() {
   
   def remove(cmd : Command) {
     cmd.phase = Phase.REMOVE
-    process.output_sync("Isar.remove " + encode_string(cmd.idString))
+      process.output_sync("Isar.remove " + encode_string(cmd.idString))
+
   }
 }

@@ -63,6 +63,9 @@ class Plugin extends EBPlugin {
 
   def prover_setup (buffer : JEditBuffer) : Option[ProverSetup] = mapping.get(buffer)
   def is_active (buffer : JEditBuffer) = mapping.get(buffer) match { case None => false case _ => true}
+  def switch_active (view : View) = mapping.get(view.getBuffer) match {
+    case None => install(view)
+    case _ => uninstall(view)}
   
   override def handleMessage(msg : EBMessage) = msg match {
     case epu : EditPaneUpdate => epu.getWhat() match {

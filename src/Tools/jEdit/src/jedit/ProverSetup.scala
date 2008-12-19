@@ -81,7 +81,8 @@ class ProverSetup(buffer : JEditBuffer) {
   }
 
   def deactivate {
-    //TODO: clean up!
+    theory_view.deactivate
+    prover.stop
   }
 
 }
