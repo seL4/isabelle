@@ -67,12 +67,13 @@ shift $(($OPTIND - 1))
 
 # args
 
-FILES=""
+unset FILES; declare -a FILES
+
 if [ "$#" -eq 0 ]; then
-  FILES="isabelle:$HOME/Scratch.thy"
+  FILES[0]="isabelle:$HOME/Scratch.thy"
 else
   while [ "$#" -gt 0 ]; do
-    FILES="$FILES isabelle:$1"
+    FILES[${#FILES[@]}]="isabelle:$1"
     shift
   done
 fi
@@ -92,4 +93,4 @@ export JEDIT_LOGIC JEDIT_PRINT_MODE
 
 exec "$ISABELLE_TOOL" java $JEDIT_JAVA_OPTIONS \
   -jar "$(jvmpath "$JEDIT_HOME/jedit.jar")" \
-  "-settings=$(jvmpath "$ISABELLE_HOME_USER/jedit")" $JEDIT_OPTIONS $FILES
+  "-settings=$(jvmpath "$ISABELLE_HOME_USER/jedit")" $JEDIT_OPTIONS "${FILES[@]}"
