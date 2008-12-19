@@ -9,7 +9,7 @@ package isabelle.proofdocument
 import isabelle.utils.EventSource
 
 object Text {
-  class Changed(val start : Int, val added : Int, val removed : Int) { }
+  class Changed(val start : Int, val added : Int, val removed : Int)
 }
 
 trait Text {

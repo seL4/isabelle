@@ -60,15 +60,15 @@ class Command(val document : Document, val first : Token[Command], val last : To
   var results = Nil : List[XML.Tree]
 
   def idString = java.lang.Long.toString(id, 36)
-  def results_xml = XML.document(results match {
-                                case Nil => XML.Elem("message", List(), List())
-                                case List(elem) => elem
-                                case _ =>
-                                  XML.Elem("messages", List(), List(results.first,
-                                                                    results.last))
-                              }, "style")
+  def results_xml = XML.document(
+    results match {
+      case Nil => XML.Elem("message", Nil, Nil)
+      case List(elem) => elem
+      case _ =>
+        XML.Elem("messages", List(), List(results.first, results.last))
+    }, "style")
   def addResult(tree : XML.Tree) {
-    results = results ::: List(tree)
+    results = results ::: List(tree)    // FIXME canonical reverse order
   }
   
   val root_node = 

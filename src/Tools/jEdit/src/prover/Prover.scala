@@ -83,7 +83,7 @@ class Prover() {
                   // expecting markups here
                   case Elem(kind, List(("offset", offset),
                                        ("end_offset", end_offset),
-                                       ("id", id)), List()) =>
+                                       ("id", id)), Nil) =>
                     val begin = Int.unbox(java.lang.Integer.valueOf(offset)) - 1
                     val end = Int.unbox(java.lang.Integer.valueOf(end_offset)) - 1
 
