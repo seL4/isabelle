@@ -2,6 +2,8 @@
 #
 # Isabelle/jEdit interface wrapper
 
+set -x
+
 ## diagnostics
 
 usage()
@@ -11,7 +13,7 @@ usage()
   echo
   echo "  Options are:"
   echo "    -J OPTION    add JVM runtime option"
-  echo "                 (default JEDIT_JAVE_OPTIONS=$JEDIT_JAVE_OPTIONS)"
+  echo "                 (default JEDIT_JAVA_OPTIONS=$JEDIT_JAVA_OPTIONS)"
   echo "    -j OPTION    add jEdit runtime option"
   echo "                 (default JEDIT_OPTIONS=$JEDIT_OPTIONS)"
   echo "    -l NAME      logic image name (default ISABELLE_LOGIC=$ISABELLE_LOGIC)"
@@ -72,7 +74,7 @@ if [ "$#" -eq 0 ]; then
   FILES="isabelle:$HOME/Scratch.thy"
 else
   while [ "$#" -gt 0 ]; do
-    FILES="$FILES 'isabelle:$1'"
+    FILES="$FILES isabelle:$1"
     shift
   done
 fi
