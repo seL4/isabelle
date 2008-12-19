@@ -175,9 +175,9 @@ proof -
   interpret cring R by fact
   show ?thesis apply (rule ring_hom_cringI)
   apply (rule rcos_ring_hom_ring)
- apply (rule R.is_cring)
+ apply (rule is_cring)
 apply (rule quotient_is_cring)
-apply (rule R.is_cring)
+apply (rule is_cring)
 done
 qed
 

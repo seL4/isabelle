@@ -919,7 +919,7 @@ lemma (in weak_partial_order) weak_total_orderI:
 
 text {* Total orders are lattices. *}
 
-sublocale weak_total_order < weak_lattice
+sublocale weak_total_order < weak: weak_lattice
 proof
   fix x y
   assume L: "x \<in> carrier L"  "y \<in> carrier L"
@@ -1125,14 +1125,14 @@ locale upper_semilattice = partial_order +
   assumes sup_of_two_exists:
     "[| x \<in> carrier L; y \<in> carrier L |] ==> EX s. least L s (Upper L {x, y})"
 
-sublocale upper_semilattice < weak_upper_semilattice
+sublocale upper_semilattice < weak: weak_upper_semilattice
   proof qed (rule sup_of_two_exists)
 
 locale lower_semilattice = partial_order +
   assumes inf_of_two_exists:
     "[| x \<in> carrier L; y \<in> carrier L |] ==> EX s. greatest L s (Lower L {x, y})"
 
-sublocale lower_semilattice < weak_lower_semilattice
+sublocale lower_semilattice < weak: weak_lower_semilattice
   proof qed (rule inf_of_two_exists)
 
 locale lattice = upper_semilattice + lower_semilattice
@@ -1183,7 +1183,7 @@ text {* Total Orders *}
 locale total_order = partial_order +
   assumes total_order_total: "[| x \<in> carrier L; y \<in> carrier L |] ==> x \<sqsubseteq> y | y \<sqsubseteq> x"
 
-sublocale total_order < weak_total_order
+sublocale total_order < weak: weak_total_order
   proof qed (rule total_order_total)
 
 text {* Introduction rule: the usual definition of total order *}
@@ -1195,7 +1195,7 @@ lemma (in partial_order) total_orderI:
 
 text {* Total orders are lattices. *}
 
-sublocale total_order < lattice
+sublocale total_order < weak: lattice
   proof qed (auto intro: sup_of_two_exists inf_of_two_exists)
 
 
@@ -1207,7 +1207,7 @@ locale complete_lattice = lattice +
     and inf_exists:
     "[| A \<subseteq> carrier L |] ==> EX i. greatest L i (Lower L A)"
 
-sublocale complete_lattice < weak_complete_lattice
+sublocale complete_lattice < weak: weak_complete_lattice
   proof qed (auto intro: sup_exists inf_exists)
 
 text {* Introduction rule: the usual definition of complete lattice *}
