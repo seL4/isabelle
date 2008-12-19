@@ -25,19 +25,19 @@ struct
 (* new locales *)
 
 fun locale_extern new_locale x = 
-  if !new_locales andalso new_locale then NewLocale.extern x else Locale.extern x;
+  if new_locale then NewLocale.extern x else Locale.extern x;
 fun locale_add_type_syntax new_locale x =
-  if !new_locales andalso new_locale then NewLocale.add_type_syntax x else Locale.add_type_syntax x;
+  if new_locale then NewLocale.add_type_syntax x else Locale.add_type_syntax x;
 fun locale_add_term_syntax new_locale x =
-  if !new_locales andalso new_locale then NewLocale.add_term_syntax x else Locale.add_term_syntax x;
+  if new_locale then NewLocale.add_term_syntax x else Locale.add_term_syntax x;
 fun locale_add_declaration new_locale x =
-  if !new_locales andalso new_locale then NewLocale.add_declaration x else Locale.add_declaration x;
+  if new_locale then NewLocale.add_declaration x else Locale.add_declaration x;
 fun locale_add_thmss new_locale x =
-  if !new_locales andalso new_locale then NewLocale.add_thmss x else Locale.add_thmss x;
+  if new_locale then NewLocale.add_thmss x else Locale.add_thmss x;
 fun locale_init new_locale x =
-  if !new_locales andalso new_locale then NewLocale.init x else Locale.init x;
+  if new_locale then NewLocale.init x else Locale.init x;
 fun locale_intern new_locale x =
-  if !new_locales andalso new_locale then NewLocale.intern x else Locale.intern x;
+  if new_locale then NewLocale.intern x else Locale.intern x;
 
 (* context data *)
 

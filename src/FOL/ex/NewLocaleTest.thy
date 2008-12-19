@@ -8,7 +8,6 @@ theory NewLocaleTest
 imports NewLocaleSetup
 begin
 
-ML_val {* set new_locales *}
 ML_val {* set Toplevel.debug *}
 
 

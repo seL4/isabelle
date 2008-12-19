@@ -8,6 +8,5 @@ This theory is the work of Martin Coen, Philippe Noel and Lawrence
 Paulson.
 *)
 
-set new_locales;
 use_thys ["Main", "Main_ZFC"];
 

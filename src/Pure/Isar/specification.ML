@@ -59,18 +59,6 @@ end;
 structure Specification: SPECIFICATION =
 struct
 
-(* new locales *)
-
-fun cert_stmt body concl ctxt =
-  let val (_, _, ctxt', concl') = Locale.cert_context_statement NONE body concl ctxt
-  in (concl', ctxt') end;
-fun read_stmt body concl ctxt =
-  let val (_, _, ctxt', concl') = Locale.read_context_statement NONE body concl ctxt
-  in (concl', ctxt') end;
-  
-fun cert_context_statement x = if !new_locales then Expression.cert_statement x else cert_stmt x;
-fun read_context_statement x = if !new_locales then Expression.read_statement x else read_stmt x;
-
 (* diagnostics *)
 
 fun print_consts _ _ [] = ()
@@ -370,8 +358,8 @@ fun gen_theorem prep_att prep_stmt
 
 in
 
-val theorem = gen_theorem (K I) cert_context_statement;
-val theorem_cmd = gen_theorem Attrib.intern_src read_context_statement;
+val theorem = gen_theorem (K I) Expression.cert_statement;
+val theorem_cmd = gen_theorem Attrib.intern_src Expression.read_statement;
 
 fun add_theorem_hook f = TheoremHook.map (cons (f, stamp ()));
 

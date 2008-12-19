@@ -51,7 +51,6 @@ use "calculation.ML";
 use "obtain.ML";
 
 (*local theories and targets*)
-val new_locales = ref false;
 use "local_theory.ML";
 use "overloading.ML";
 use "locale.ML";
