@@ -1,3 +1,9 @@
+/*
+ * Document -- list of tokens
+ *
+ * @author Johannes Hölzl, TU Munich
+ */
+
 package isabelle.proofdocument
 
 import java.util.regex.Pattern

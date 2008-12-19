@@ -1,3 +1,13 @@
+/*
+ * Isabelle virtual file system for jEdit.
+ *
+ * This filesystem passes every operation on to FileVFS. Just the read and write
+ * operations are overwritten to convert Isabelle symbols to unicode on read and
+ * unicode to Isabelle symbols on write.
+ *
+ * @author Johannes Hölzl, TU Munich
+ */
+
 package isabelle.jedit
 
 import java.io.InputStream
@@ -122,15 +132,6 @@ object VFS {
   
 }
 
-/**
- * The Isabelle virtual file system for jEdit.
- * 
- * This filesystem passes every operation on to FileVFS. Just the read and write
- * operations are overwritten to convert the xsymbols to unicode on read and
- * unicode to xsymbols on write.
- * 
- * @author Johannes Hölzl <hoelzl@in.tum.de>
- */
 class VFS extends io.VFS("isabelle", VFSManager.getVFSForProtocol("file").getCapabilities()) {
   private var baseVFS = VFSManager.getVFSForProtocol("file") 
 

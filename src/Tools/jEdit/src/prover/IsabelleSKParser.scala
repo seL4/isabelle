@@ -1,8 +1,7 @@
 /*
- * IsabelleSKParser.scala
+ * Sidekick parser for proof document
  *
- * To change this template, choose Tools | Template Manager
- * and open the template in the editor.
+ * @author Fabian Immler, TU Munich
  */
 
 package isabelle.prover

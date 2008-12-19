@@ -1,3 +1,10 @@
+/*
+ * Main Isabelle/jEdit plugin setup
+ *
+ * @author Johannes Hölzl, TU Munich
+ * @author Fabian Immler, TU Munich
+ */
+
 package isabelle.jedit
 
 import java.awt.Font

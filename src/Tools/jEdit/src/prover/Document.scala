@@ -1,3 +1,9 @@
+/*
+ * Document -- list of commands
+ *
+ * @author Johannes Hölzl, TU Munich
+ */
+
 package isabelle.prover
 
 import isabelle.proofdocument.{ ProofDocument, Token, Text }

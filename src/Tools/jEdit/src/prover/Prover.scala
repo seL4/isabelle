@@ -1,3 +1,10 @@
+/*
+ * Higher-level prover communication
+ *
+ * @author Johannes Hölzl, TU Munich
+ * @author Fabian Immler, TU Munich
+ */
+
 package isabelle.prover
 
 import scala.collection.mutable.{ HashMap, HashSet }

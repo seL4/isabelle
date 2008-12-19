@@ -1,3 +1,9 @@
+/*
+ * Event sources with multiple handlers
+ *
+ * @author Johannes Hölzl, TU Munich
+ */
+
 package isabelle.utils
 
 import scala.collection.mutable.HashSet

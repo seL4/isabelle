@@ -1,3 +1,9 @@
+/*
+ * Text as event source
+ *
+ * @author Johannes Hölzl, TU Munich
+ */
+
 package isabelle.proofdocument
 
 import isabelle.utils.EventSource

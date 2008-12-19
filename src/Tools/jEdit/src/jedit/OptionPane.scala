@@ -1,3 +1,9 @@
+/*
+ * Isabelle/jEdit plugin options
+ *
+ * @author Johannes Hölzl, TU Munich
+ */
+
 package isabelle.jedit
 
 import java.lang.Integer

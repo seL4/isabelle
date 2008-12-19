@@ -1,3 +1,10 @@
+/*
+ * Prover commands with semantic state
+ *
+ * @author Johannes Hölzl, TU Munich
+ * @author Fabian Immler, TU Munich
+ */
+
 package isabelle.prover
 
 import isabelle.proofdocument.Token

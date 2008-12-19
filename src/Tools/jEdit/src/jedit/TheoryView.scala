@@ -1,3 +1,10 @@
+/*
+ * XML/CSS rendering -- user agent
+ *
+ * @author Fabian Immler, TU Munich
+ * @author Johannes Hölzl, TU Munich
+ */
+
 package isabelle.jedit
 
 import isabelle.utils.EventSource
