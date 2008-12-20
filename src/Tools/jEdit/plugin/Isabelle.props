@@ -27,11 +27,11 @@ options.isabelle.font-size=14
 
 #menu actions
 plugin.isabelle.jedit.Plugin.menu.label=Isabelle
-plugin.isabelle.jedit.Plugin.menu=isabelle.show-output isabelle.show-state isabelle.activate isabelle.show-scroller
-isabelle.show-output.label=Show Output
-isabelle.show-state.label=Show State
-isabelle.show-scroller.label=Show Scroller
+plugin.isabelle.jedit.Plugin.menu=isabelle.activate isabelle.show-state isabelle.show-output isabelle.show-scroller
 isabelle.activate.label=Activate current buffer
+isabelle.show-state.label=Show State
+isabelle.show-output.label=Show Output
+isabelle.show-scroller.label=Show Scroller
 
 #dockables
 isabelle-output.title=Isabelle Output
