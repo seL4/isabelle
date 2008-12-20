@@ -11,7 +11,7 @@ SUPER=$(cd "$THIS/.."; pwd)
 
 ## diagnostics
 
-JEDIT_HOME="/home/isajedit/jedit-orig/4.3pre15"
+JEDIT_HOME="/home/isajedit/jedit-orig/4.3pre16"
 SCALA_HOME="/home/scala/current"
 
 function usage()
