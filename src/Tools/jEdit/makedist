@@ -91,6 +91,10 @@ cp "$SCALA_HOME/lib/scala-library.jar" "$JEDIT/jars/"
 
 cp -R "$THIS/dist-template/." "$JEDIT/."
 
+perl -i -e 'while (<>) { if (m/NAME="javacc"/) {
+  print qq,<MODE NAME="isabelle" FILE="isabelle.xml" FILE_NAME_GLOB="*.thy"/>\n\n,; }
+  print; }' "$JEDIT/modes/catalog"
+
 cp jars/Isabelle-jEdit.jar "$JEDIT/jars/isabelle.jar"
 cp jars/lib/Pure.jar "$JEDIT/jars/isabelle-Pure.jar"
 cp jars/lib/core-renderer.jar "$JEDIT/jars/"
