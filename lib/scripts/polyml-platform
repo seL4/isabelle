@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
 #
-# $Id$
-#
 # polyml-platform --- determine Poly/ML's idea of current hardware and
 # operating system type
 #

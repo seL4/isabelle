@@ -85,6 +85,3 @@ executables as follows:
 Note that the site-wide Isabelle installation may already provide
 Isabelle executables in some global bin directory (such as
 /usr/local/bin).
-
-
-$Id$

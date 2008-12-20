@@ -1,6 +1,4 @@
 #
-# $Id$
-#
 # dimacs2hol.pl - convert files in DIMACS CNF format [1] into Isabelle/HOL
 #                 theories
 #

@@ -204,5 +204,3 @@ Contributions to Isabelle2005
 * 2004/2005: Tjark Weber, TUM
   SAT solver method using zChaff.
   Improved version of HOL/refute.
-
-$Id$

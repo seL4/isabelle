@@ -1,5 +1,4 @@
 #
-# $Id$
 # Author: Makarius
 #
 # yxml.pl - simple XML to YXML converter

@@ -1,5 +1,5 @@
 # -*- shell-script -*-
-# $Id$
+#
 # Author: Makarius
 #
 # timestop - report timing based on environment (cf. timestart.bash)

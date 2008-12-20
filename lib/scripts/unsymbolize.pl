@@ -1,5 +1,4 @@
 #
-# $Id$
 # Author: Markus Wenzel, TU Muenchen
 #
 # unsymbolize.pl - remove unreadable symbol names from sources

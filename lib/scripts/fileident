@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
 #
-# $Id$
-#
 # fileident --- produce file identification based
 
 FILE="$1"

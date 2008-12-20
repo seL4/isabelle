@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 #
-# $Id$
 # Author: Makarius
 #
 # Poly/ML 5.0 startup script.
