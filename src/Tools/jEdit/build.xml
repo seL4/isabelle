@@ -70,6 +70,6 @@
       <copy file="plugin/services.xml" todir="${build.classes.dir}" />
       <copy file="plugin/dockables.xml" todir="${build.classes.dir}" />
       <copy file="plugin/actions.xml" todir="${build.classes.dir}" />
-      <copy file="plugin/IsabellePlugin.props" todir="${build.classes.dir}" />
+      <copy file="plugin/Isabelle.props" todir="${build.classes.dir}" />
     </target>
 </project>
