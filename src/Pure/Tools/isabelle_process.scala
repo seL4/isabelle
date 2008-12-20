@@ -1,5 +1,4 @@
 /*  Title:      Pure/Tools/isabelle_process.ML
-    ID:         $Id$
     Author:     Makarius
     Options:    :folding=explicit:collapseFolds=1:
 

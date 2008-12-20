@@ -1,5 +1,4 @@
 /*  Title:      Pure/Tools/isabelle_system.scala
-    ID:         $Id$
     Author:     Makarius
 
 Isabelle system support -- basic Cygwin/Posix compatibility.

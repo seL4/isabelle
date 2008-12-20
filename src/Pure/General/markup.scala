@@ -1,5 +1,4 @@
 /*  Title:      Pure/General/markup.scala
-    ID:         $Id$
     Author:     Makarius
 
 Common markup elements.
