@@ -6,8 +6,7 @@ plugin.isabelle.jedit.Plugin.version=0.0.1
 plugin.isabelle.jedit.Plugin.description=Isabelle/Isar proof document support
 
 #system parameters
-plugin.isabelle.jedit.Plugin.activate=startup
-plugin.isabelle.jedit.Plugin.option-pane=isabelle
+plugin.isabelle.jedit.Plugin.activate=defer
 plugin.isabelle.jedit.Plugin.usePluginHome=false
 plugin.isabelle.jedit.Plugin.jars=isabelle-Pure.jar core-renderer.jar scala-library.jar
 
@@ -16,6 +15,14 @@ plugin.isabelle.jedit.Plugin.depend.0=jdk 1.5
 plugin.isabelle.jedit.Plugin.depend.1=jedit 04.03.14.00
 plugin.isabelle.jedit.Plugin.depend.2=plugin errorlist.ErrorListPlugin 1.7
 plugin.isabelle.jedit.Plugin.depend.3=plugin sidekick.SideKickPlugin 0.7.6
+
+#options
+plugin.isabelle.jedit.Plugin.option-pane=isabelle
+options.isabelle.label=Isabelle
+options.isabelle.code=new isabelle.jedit.OptionPane();
+options.isabelle.font-path.title=Font Path
+options.isabelle.font-size.title=Font Size
+options.isabelle.font-size=14
 
 #menu
 plugin.isabelle.jedit.Plugin.menu.label=Isabelle
@@ -30,12 +37,6 @@ Isabelle_output.title=Isabelle Output
 Isabelle_state.title=Isabelle State
 Isabelle_scroller.title=Isabelle Scroller
 
-#options
-options.isabelle.label=Isabelle
-options.isabelle.code=new isabelle.jedit.OptionPane();
-options.isabelle.font-path.title=Font Path
-options.isabelle.font-size.title=Font Size
-options.isabelle.font-size=14
-
 sidekick.parser.isabelle.label=Isabelle
-mode.text.sidekick.parser=isabelle
+mode.isabelle.sidekick.parser=isabelle
+mode.ml.sidekick.parser=isabelle
