@@ -3,27 +3,19 @@
  *
  * @author Fabian Immler, TU Munich
  * @author Makarius
- *
- * TODO:
- *   - locking of buffer and/or document model (!?)
- *   - check treatment of assets
- *   - completion support
- *   - rename to isabelle.jedit.IsabelleSideKickParser
  */
 
-package isabelle.prover
+package isabelle.jedit
 
 
 import javax.swing.tree.DefaultMutableTreeNode
-
-import isabelle.jedit.Plugin
 
 import org.gjt.sp.jedit.{Buffer, EditPane}
 import errorlist.DefaultErrorSource
 import sidekick.{SideKickParser, SideKickParsedData, SideKickCompletion}
 
 
-class IsabelleSKParser extends SideKickParser("isabelle") {
+class IsabelleSideKickParser extends SideKickParser("isabelle") {
 
   /* parsing */
 
@@ -56,5 +48,5 @@ class IsabelleSKParser extends SideKickParser("isabelle") {
   override def supportsCompletion = true
   override def canCompleteAnywhere = true
 
-  override def complete(pane: EditPane, caret: Int): SideKickCompletion = null
+  override def complete(pane: EditPane, caret: Int): SideKickCompletion = null  // TODO
 }
