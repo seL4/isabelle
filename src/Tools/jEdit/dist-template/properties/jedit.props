@@ -21,5 +21,7 @@ view.fracFontMetrics=true
 view.gutter.fontsize=12
 view.middleMousePaste=true
 view.showToolbar=false
+buffer.sidekick.keystroke-parse=true
+sidekick.buffer-save-parse=true
 sidekick-tree.dock-position=right
 isabelle-state.dock-position=bottom
