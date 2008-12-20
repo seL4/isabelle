@@ -84,6 +84,7 @@ ln -s "$JEDIT" jedit
 
 [ "$JEDIT_HOME/jedit.jar" ] || fail "Bad original jEdit directory: $JEDIT_HOME"
 cp -R "$JEDIT_HOME/." "$JEDIT/."
+rm -rf "$JEDIT/jEdit"
 
 [ "$SCALA_HOME/lib/scala-library.jar" ] || fail "Bad Scala directory: $SCALA_HOME"
 cp "$SCALA_HOME/lib/scala-library.jar" "$JEDIT/jars/"
