@@ -2,8 +2,9 @@
 
 #identification
 plugin.isabelle.jedit.Plugin.name=Isabelle
+plugin.isabelle.jedit.Plugin.author=Johannes Hölzl, Fabian Immler, Makarius Wenzel
 plugin.isabelle.jedit.Plugin.version=0.0.1
-plugin.isabelle.jedit.Plugin.description=Isabelle/Isar proof document support
+plugin.isabelle.jedit.Plugin.description=Isabelle/Isar live document editing
 
 #system parameters
 plugin.isabelle.jedit.Plugin.activate=defer
@@ -24,19 +25,20 @@ options.isabelle.font-path.title=Font Path
 options.isabelle.font-size.title=Font Size
 options.isabelle.font-size=14
 
-#menu
+#menu actions
 plugin.isabelle.jedit.Plugin.menu.label=Isabelle
-plugin.isabelle.jedit.Plugin.menu=Isabelle.show-output Isabelle.show-state Isabelle.activate Isabelle.show-scroller
+plugin.isabelle.jedit.Plugin.menu=isabelle.show-output isabelle.show-state isabelle.activate isabelle.show-scroller
+isabelle.show-output.label=Show Output
+isabelle.show-state.label=Show State
+isabelle.show-scroller.label=Show Scroller
+isabelle.activate.label=Activate current buffer
 
-Isabelle.show-output.label=Show Output
-Isabelle.show-state.label=Show State
-Isabelle.show-scroller.label=Show Scroller
-Isabelle.activate.label=Activate current buffer
+#dockables
+isabelle-output.title=Isabelle Output
+isabelle-state.title=Isabelle State
+isabelle-scroller.title=Isabelle Scroller
 
-Isabelle_output.title=Isabelle Output
-Isabelle_state.title=Isabelle State
-Isabelle_scroller.title=Isabelle Scroller
-
+#SideKick
 sidekick.parser.isabelle.label=Isabelle
 mode.isabelle.sidekick.parser=isabelle
 mode.ml.sidekick.parser=isabelle
