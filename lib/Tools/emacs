@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 #
-# $Id$
 # Author: Makarius
 #
 # DESCRIPTION: Proof General / Emacs interface wrapper

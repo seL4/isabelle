@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 #
-# $Id$
 # Author: Florian Haftmann, TUM
 #
 # DESCRIPTION: issue code generation from shell

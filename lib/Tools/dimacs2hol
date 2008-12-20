@@ -1,8 +1,6 @@
 #!/usr/bin/env bash
 #
-# $Id$
 # Author: Tjark Weber
-# Copyright 2004
 #
 # DESCRIPTION: convert DIMACS CNF files into Isabelle/HOL theories
 
