@@ -3,13 +3,13 @@
 <!DOCTYPE DOCKABLES SYSTEM "dockables.dtd">
 
 <DOCKABLES>
-	<DOCKABLE NAME="Isabelle_output" MOVABLE="TRUE">
+	<DOCKABLE NAME="isabelle-output" MOVABLE="TRUE">
 		new isabelle.jedit.OutputDockable(view, position);
 	</DOCKABLE>
-	<DOCKABLE NAME="Isabelle_state" MOVABLE="TRUE">
+	<DOCKABLE NAME="isabelle-state" MOVABLE="TRUE">
 		new isabelle.jedit.StateViewDockable(view, position);
 	</DOCKABLE>
-	<DOCKABLE NAME="Isabelle_scroller" MOVABLE="TRUE">
+	<DOCKABLE NAME="isabelle-scroller" MOVABLE="TRUE">
 		new isabelle.jedit.ScrollerDockable(view, position);
 	</DOCKABLE>
 </DOCKABLES>

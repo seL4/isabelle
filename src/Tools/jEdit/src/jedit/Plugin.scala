@@ -79,7 +79,7 @@ class Plugin extends EBPlugin {
           case None =>
           case Some(prover_setup) => 
             prover_setup.theory_view.activate
-            val dockable = epu.getEditPane.getView.getDockableWindowManager.getDockable("Isabelle_output")
+            val dockable = epu.getEditPane.getView.getDockableWindowManager.getDockable("isabelle-output")
             if(dockable != null) {
               val output_dockable = dockable.asInstanceOf[OutputDockable]
               if(output_dockable.getComponent(0) != prover_setup.output_text_view ) {

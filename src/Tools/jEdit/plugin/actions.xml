@@ -1,20 +1,20 @@
 <ACTIONS>
-	<ACTION NAME="Isabelle.show-output">
+	<ACTION NAME="isabelle.show-output">
 		<CODE>
-			wm.addDockableWindow("Isabelle_output");
+			wm.addDockableWindow("isabelle-output");
 		</CODE>
 	</ACTION>
-	<ACTION NAME="Isabelle.show-state">
+	<ACTION NAME="isabelle.show-state">
 		<CODE>
-			wm.addDockableWindow("Isabelle_state");
+			wm.addDockableWindow("isabelle-state");
 		</CODE>
 	</ACTION>
-    <ACTION NAME="Isabelle.show-scroller">
+    <ACTION NAME="isabelle.show-scroller">
 		<CODE>
-			wm.addDockableWindow("Isabelle_scroller");
+			wm.addDockableWindow("isabelle-scroller");
 		</CODE>
 	</ACTION>
-	<ACTION NAME="Isabelle.activate">
+	<ACTION NAME="isabelle.activate">
 		<CODE>
 			isabelle.jedit.Plugin$.MODULE$.plugin().install(view);
 		</CODE>

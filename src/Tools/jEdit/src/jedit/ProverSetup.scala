@@ -48,7 +48,7 @@ class ProverSetup(buffer : JEditBuffer) {
     theory_view.activate
     prover.outputInfo.add( text => {
         output_text_view.append(text)
-        val dockable = view.getDockableWindowManager.getDockable("Isabelle_output")
+        val dockable = view.getDockableWindowManager.getDockable("isabelle-output")
         //link process output if dockable is active
         if(dockable != null) {
           val output_dockable = dockable.asInstanceOf[OutputDockable]
@@ -62,7 +62,7 @@ class ProverSetup(buffer : JEditBuffer) {
     
     //register for state-view
     stateUpdate.add(state => {
-      val state_view = view.getDockableWindowManager.getDockable("Isabelle_state")
+      val state_view = view.getDockableWindowManager.getDockable("isabelle-state")
       val state_panel = if(state_view != null) state_view.asInstanceOf[StateViewDockable].panel else null
       if(state_panel != null){
         if (state == null)
