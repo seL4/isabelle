@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 #
-# $Id$
 # Author: Makarius
 #
 # DESCRIPTION: invoke Java within the Isabelle environment

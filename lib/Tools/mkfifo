@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 #
-# $Id$
 # Author: Makarius
 #
 # DESCRIPTION: create named pipe
