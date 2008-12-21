@@ -79,7 +79,7 @@ class OptionPane extends AbstractOptionPane("isabelle") {
       property("font-size", size.toString)
       SwingUtilities invokeLater new Runnable() {
         override def run() = 
-          Plugin.plugin.setFont(name, size.asInstanceOf[Integer].intValue)
+          Plugin.self.set_font(name, size.asInstanceOf[Integer].intValue)
       }
     }
     
