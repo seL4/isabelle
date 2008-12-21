@@ -25,24 +25,22 @@ class SelectionActions extends SelectionHighlighter with KeyListener{
 
   def copyaction {
       val selected_string = getSelectionRange.toString
-      val encoded = VFS.converter.encode (selected_string)
+      val encoded = Plugin.self.symbols.encode(selected_string)
       val clipboard = java.awt.Toolkit.getDefaultToolkit().getSystemClipboard;
       val transferable = new java.awt.datatransfer.StringSelection(selected_string)
       clipboard.setContents(transferable, null)
   }
   
-  override def keyPressed (e: KeyEvent) {
+  override def keyPressed(e: KeyEvent) {
     if(e.getKeyCode == KeyEvent.VK_ENTER) {
       copyaction
       e.consume
     }
   }
-  override def keyReleased (e: KeyEvent) {
-    
-  }
-  override def keyTyped (e: KeyEvent) {
-    
+  
+  override def keyReleased(e: KeyEvent) {
   }
 
-
+  override def keyTyped(e: KeyEvent) {
+  }
 }
