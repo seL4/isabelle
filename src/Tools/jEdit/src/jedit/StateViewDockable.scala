@@ -12,6 +12,7 @@ import java.awt.{BorderLayout, Dimension}
 import javax.swing.{JButton, JPanel, JScrollPane}
 
 import isabelle.IsabelleSystem.getenv
+import isabelle.renderer.UserAgent
 
 import org.xhtmlrenderer.simple.{XHTMLPanel, FSScrollPane}
 import org.xhtmlrenderer.context.AWTFontResolver

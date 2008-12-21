@@ -10,6 +10,8 @@ package isabelle.jedit
 import isabelle.IsabelleSystem
 import isabelle.utils.EventSource
 import isabelle.prover.{Prover, Command}
+import isabelle.renderer.UserAgent
+
 
 import org.w3c.dom.Document
 

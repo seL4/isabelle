@@ -10,6 +10,8 @@ package isabelle.jedit
 import isabelle.IsabelleProcess.Result
 import isabelle.YXML.parse_failsafe
 import isabelle.utils.EventSource
+import isabelle.renderer.UserAgent
+
 
 import scala.collection.mutable.{ArrayBuffer, HashMap}
 
