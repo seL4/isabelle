@@ -5,12 +5,14 @@
  * @author Johannes Hölzl, TU Munich
  */
 
-package isabelle.jedit
+package isabelle.renderer
+
 
 import java.io.ByteArrayInputStream
 import org.xhtmlrenderer.swing.NaiveUserAgent
 import org.xhtmlrenderer.resource.CSSResource
 import isabelle.IsabelleSystem.getenv
+
 
 object UserAgent {
   // FIXME avoid static getenv
