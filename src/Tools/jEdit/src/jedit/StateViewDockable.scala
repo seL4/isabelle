@@ -52,6 +52,7 @@ class StateViewDockable(view : View, position : String) extends JPanel {
     }
   }
 
+  
   // copy & paste
   (new SelectionActions).install(panel)
 
@@ -62,12 +63,12 @@ class StateViewDockable(view : View, position : String) extends JPanel {
 
   private val fontResolver =
     panel.getSharedContext.getFontResolver.asInstanceOf[AWTFontResolver]
-  if (Plugin.plugin.viewFont != null)
-    fontResolver.setFontMapping("Isabelle", Plugin.plugin.viewFont)
+  if (Plugin.self.font != null)
+    fontResolver.setFontMapping("Isabelle", Plugin.self.font)
 
-  Plugin.plugin.viewFontChanged.add(font => {
-    if (Plugin.plugin.viewFont != null)
-      fontResolver.setFontMapping("Isabelle", Plugin.plugin.viewFont)
+  Plugin.self.font_changed.add(font => {
+    if (Plugin.self.font != null)
+      fontResolver.setFontMapping("Isabelle", Plugin.self.font)
 
     panel.relayout()
   })

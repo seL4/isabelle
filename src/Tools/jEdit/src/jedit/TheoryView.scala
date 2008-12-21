@@ -85,7 +85,7 @@ class TheoryView (text_area : JEditTextArea)
 
     val repaint_delay = new isabelle.utils.Delay(100, () => repaintAll())
     Plugin.prover(buffer).commandInfo.add(_ => repaint_delay.delay_or_ignore())
-    Plugin.plugin.viewFontChanged.add(font => updateFont())
+    Plugin.self.font_changed.add(font => updateFont())
 
     colTimer.stop
     colTimer.setRepeats(true)
@@ -102,13 +102,13 @@ class TheoryView (text_area : JEditTextArea)
   private def updateFont() {
     if (text_area != null) {
       val painter = text_area.getPainter()
-      if (Plugin.plugin.viewFont != null) {
-        painter.setStyles(painter.getStyles().map(style =>
+      if (Plugin.self.font != null) {
+        painter.setStyles(painter.getStyles.map(style =>
           new SyntaxStyle(style.getForegroundColor, 
                           style.getBackgroundColor, 
-                          Plugin.plugin.viewFont)
+                          Plugin.self.font)
         ))
-        painter.setFont(Plugin.plugin.viewFont)
+        painter.setFont(Plugin.self.font)
         repaintAll()
       }
     }
