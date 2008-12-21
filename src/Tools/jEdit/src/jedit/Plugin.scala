@@ -16,7 +16,7 @@ import scala.collection.mutable.HashMap
 
 import isabelle.utils.EventSource
 import isabelle.prover.{Prover, Command}
-import isabelle.IsabelleSystem
+import isabelle.{IsabelleSystem, Symbol}
 
 import org.gjt.sp.jedit.{jEdit, EBMessage, EBPlugin, Buffer, EditPane, ServiceManager, View}
 import org.gjt.sp.jedit.buffer.JEditBuffer
@@ -25,26 +25,51 @@ import org.gjt.sp.jedit.msg.{EditPaneUpdate, PropertiesChanged}
 
 
 object Plugin {
+  // name
   val NAME = "Isabelle"
   val OPTION_PREFIX = "options.isabelle."
   val VFS_PREFIX = "isabelle:"
-  
+
+  // properties
   def property(name: String) = jEdit.getProperty(OPTION_PREFIX + name)
   def property(name: String, value: String) = 
     jEdit.setProperty(OPTION_PREFIX + name, value)
-  
-  var plugin: Plugin = null
-  def prover(buffer: JEditBuffer) = plugin.prover_setup(buffer).get.prover
-  def prover_setup(buffer: JEditBuffer) = plugin.prover_setup(buffer).get
+
+  // dynamic instance
+  var self: Plugin = null
+
+  // provers
+  def prover(buffer: JEditBuffer) = self.prover_setup(buffer).get.prover
+  def prover_setup(buffer: JEditBuffer) = self.prover_setup(buffer).get
 }
 
 
 class Plugin extends EBPlugin {
-  
-  private val mapping = new HashMap[JEditBuffer, ProverSetup]
 
-  var viewFont: Font = null
-  val viewFontChanged = new EventSource[Font]
+  // Isabelle symbols
+  val symbols = new Symbol.Interpretation
+
+
+  // Isabelle font
+
+  var font: Font = null
+  val font_changed = new EventSource[Font]
+
+  def set_font(path: String, size: Float) {
+    try {
+      font = Font.createFont(Font.TRUETYPE_FONT, new FileInputStream(path)).
+        deriveFont(Font.PLAIN, size)
+      font_changed.fire(font)
+    }
+    catch {
+      case e: IOException =>
+    }
+  }
+
+
+  // mapping buffer <-> prover
+
+  private val mapping = new HashMap[JEditBuffer, ProverSetup]
 
   def install(view: View) {
     val buffer = view.getBuffer
@@ -68,11 +93,13 @@ class Plugin extends EBPlugin {
   }
 
   def prover_setup(buffer: JEditBuffer): Option[ProverSetup] = mapping.get(buffer)
-  def is_active(buffer: JEditBuffer) =
-    mapping.get(buffer) match { case None => false case _ => true }
+  def is_active(buffer: JEditBuffer) = mapping.isDefinedAt(buffer)
+
   
+  // main plugin plumbing
+
   override def handleMessage(msg: EBMessage) = msg match {
-    case epu: EditPaneUpdate => epu.getWhat() match {
+    case epu: EditPaneUpdate => epu.getWhat match {
       case EditPaneUpdate.BUFFER_CHANGED =>
         mapping get epu.getEditPane.getBuffer match {
           //only activate 'isabelle'-buffers!
@@ -101,25 +128,12 @@ class Plugin extends EBPlugin {
     case _ =>
   }
 
-  def setFont(path: String, size: Float) {
-    try {
-      val fontStream = new FileInputStream(path)
-      val font = Font.createFont(Font.TRUETYPE_FONT, fontStream)
-      viewFont = font.deriveFont(Font.PLAIN, size)
-
-      viewFontChanged.fire(viewFont)
-    }
-    catch {
-      case e: IOException =>
-    }
-  }
-  
   override def start() {
-    Plugin.plugin = this
+    Plugin.self = this
     
     if (Plugin.property("font-path") != null && Plugin.property("font-size") != null)
       try {
-        setFont(Plugin.property("font-path"), Plugin.property("font-size").toFloat)
+        set_font(Plugin.property("font-path"), Plugin.property("font-size").toFloat)
       }
       catch {
         case e: NumberFormatException =>
@@ -128,6 +142,6 @@ class Plugin extends EBPlugin {
   
   override def stop() {
     // TODO: proper cleanup
-    Plugin.plugin = null
+    Plugin.self = null
   }
 }
