@@ -6,18 +6,19 @@
 
 package isabelle.jedit
 
-import isabelle.utils.EventSource
-
-import isabelle.prover.{ Prover, Command }
-import org.w3c.dom.Document
 
 import isabelle.IsabelleSystem
+import isabelle.utils.EventSource
+import isabelle.prover.{Prover, Command}
 
-import org.gjt.sp.jedit.{ jEdit, EBMessage, EBPlugin, Buffer, EditPane, View }
+import org.w3c.dom.Document
+
+import org.gjt.sp.jedit.{jEdit, EBMessage, EBPlugin, Buffer, EditPane, View}
 import org.gjt.sp.jedit.buffer.JEditBuffer
-import org.gjt.sp.jedit.msg.{ EditPaneUpdate, PropertiesChanged }
+import org.gjt.sp.jedit.msg.{EditPaneUpdate, PropertiesChanged}
 
 import javax.swing.{JTextArea, JScrollPane}
+
 
 class ProverSetup(buffer : JEditBuffer) {
 
