@@ -7,47 +7,46 @@
 
 package isabelle.jedit
 
+
+import java.io.{FileInputStream, IOException}
 import java.awt.Font
-import java.io.{ FileInputStream, IOException }
 import javax.swing.JScrollPane
-
-import isabelle.utils.EventSource
-
-import isabelle.prover.{ Prover, Command }
-
-import isabelle.IsabelleSystem
 
 import scala.collection.mutable.HashMap
 
-import org.gjt.sp.jedit.{ jEdit, EBMessage, EBPlugin, Buffer, EditPane, ServiceManager, View }
+import isabelle.utils.EventSource
+import isabelle.prover.{Prover, Command}
+import isabelle.IsabelleSystem
+
+import org.gjt.sp.jedit.{jEdit, EBMessage, EBPlugin, Buffer, EditPane, ServiceManager, View}
 import org.gjt.sp.jedit.buffer.JEditBuffer
 import org.gjt.sp.jedit.textarea.JEditTextArea
-import org.gjt.sp.jedit.msg.{ EditPaneUpdate, PropertiesChanged }
+import org.gjt.sp.jedit.msg.{EditPaneUpdate, PropertiesChanged}
+
 
 object Plugin {
   val NAME = "Isabelle"
   val OPTION_PREFIX = "options.isabelle."
   val VFS_PREFIX = "isabelle:"
   
-  def property(name : String) = jEdit.getProperty(OPTION_PREFIX + name)
-  def property(name : String, value : String) = 
+  def property(name: String) = jEdit.getProperty(OPTION_PREFIX + name)
+  def property(name: String, value: String) = 
     jEdit.setProperty(OPTION_PREFIX + name, value)
   
-  var plugin : Plugin = null
-  def prover(buffer : JEditBuffer) = plugin.prover_setup(buffer).get.prover
-  def prover_setup(buffer : JEditBuffer) = plugin.prover_setup(buffer).get
-
+  var plugin: Plugin = null
+  def prover(buffer: JEditBuffer) = plugin.prover_setup(buffer).get.prover
+  def prover_setup(buffer: JEditBuffer) = plugin.prover_setup(buffer).get
 }
 
-class Plugin extends EBPlugin {
-  import Plugin._
 
+class Plugin extends EBPlugin {
+  
   private val mapping = new HashMap[JEditBuffer, ProverSetup]
 
-  var viewFont : Font = null
+  var viewFont: Font = null
   val viewFontChanged = new EventSource[Font]
 
-  def install(view : View) {
+  def install(view: View) {
     val buffer = view.getBuffer
     mapping.get(buffer) match{
       case None =>{
@@ -59,7 +58,7 @@ class Plugin extends EBPlugin {
     }
   }
 
-  def uninstall(view : View) {
+  def uninstall(view: View) {
     val buffer = view.getBuffer
     mapping.removeKey(buffer) match{
       case None => System.err.println("No Plugin installed on this Buffer")
@@ -68,11 +67,12 @@ class Plugin extends EBPlugin {
     }
   }
 
-  def prover_setup (buffer : JEditBuffer) : Option[ProverSetup] = mapping.get(buffer)
-  def is_active (buffer : JEditBuffer) = mapping.get(buffer) match { case None => false case _ => true}
+  def prover_setup(buffer: JEditBuffer): Option[ProverSetup] = mapping.get(buffer)
+  def is_active(buffer: JEditBuffer) =
+    mapping.get(buffer) match { case None => false case _ => true }
   
-  override def handleMessage(msg : EBMessage) = msg match {
-    case epu : EditPaneUpdate => epu.getWhat() match {
+  override def handleMessage(msg: EBMessage) = msg match {
+    case epu: EditPaneUpdate => epu.getWhat() match {
       case EditPaneUpdate.BUFFER_CHANGED =>
         mapping get epu.getEditPane.getBuffer match {
           //only activate 'isabelle'-buffers!
@@ -98,11 +98,10 @@ class Plugin extends EBPlugin {
         }
       case _ =>
     }
-      
     case _ =>
   }
 
-  def setFont(path : String, size : Float) {
+  def setFont(path: String, size: Float) {
     try {
       val fontStream = new FileInputStream(path)
       val font = Font.createFont(Font.TRUETYPE_FONT, fontStream)
@@ -111,23 +110,24 @@ class Plugin extends EBPlugin {
       viewFontChanged.fire(viewFont)
     }
     catch {
-      case e : IOException =>
+      case e: IOException =>
     }
   }
   
   override def start() {
-    plugin = this
+    Plugin.plugin = this
     
-    if (property("font-path") != null && property("font-size") != null)
+    if (Plugin.property("font-path") != null && Plugin.property("font-size") != null)
       try {
-        setFont(property("font-path"), property("font-size").toFloat)
+        setFont(Plugin.property("font-path"), Plugin.property("font-size").toFloat)
       }
       catch {
-        case e : NumberFormatException =>
+        case e: NumberFormatException =>
       }
   }
   
   override def stop() {
-    // TODO: implement cleanup
+    // TODO: proper cleanup
+    Plugin.plugin = null
   }
 }
