@@ -13,7 +13,16 @@ diff -r gitweb/changelogentry.tmpl isabelle/changelogentry.tmpl
 > <div class="files">
 > #files#
 > </div>
+diff -r gitweb/changeset.tmpl isabelle/changeset.tmpl
+19c19
+< <a class="title" href="{url}raw-rev/#node|short#">#desc|strip|escape|firstline# <span class="logtags">{inbranch%inbranchtag}{branches%branchtag}{tags%tagtag}</span></a>
+---
+> <a class="title" href="{url}raw-rev/#node|short#">#desc|strip|escape# <span class="logtags">{inbranch%inbranchtag}{branches%branchtag}{tags%tagtag}</span></a>
 diff -r gitweb/map isabelle/map
+29c29
+< annotateline = '<tr style="font-family:monospace" class="parity#parity#"><td class="linenr" style="text-align: right;"><a href="#url#annotate/#node|short#/#file|urlescape#{sessionvars%urlparameter}#l{targetline}" title="{node|short}: {desc|escape|firstline}">#author|user#@#rev#</a></td><td><pre><a class="linenr" href="##lineid#" id="#lineid#">#linenumber#</a></pre></td><td><pre>#line|escape#</pre></td></tr>'
+---
+> annotateline = '<tr style="font-family:monospace" class="parity#parity#"><td class="linenr" style="text-align: right;"><a href="#url#annotate/#node|short#/#file|urlescape#{sessionvars%urlparameter}#l{targetline}" title="{node|short}: {desc|escape}">#author|user#@#rev#</a></td><td><pre><a class="linenr" href="##lineid#" id="#lineid#">#linenumber#</a></pre></td><td><pre>#line|escape#</pre></td></tr>'
 59,60c59,60
 < shortlogentry = '<tr class="parity#parity#"><td class="age"><i>#date|age# ago</i></td><td><i>#author|person#</i></td><td><a class="list" href="{url}rev/#node|short#{sessionvars%urlparameter}"><b>#desc|strip|firstline|escape#</b> <span class="logtags">{inbranch%inbranchtag}{branches%branchtag}{tags%tagtag}</span></a></td><td class="link" nowrap><a href="{url}rev/#node|short#{sessionvars%urlparameter}">changeset</a> | <a href="{url}file/#node|short#{sessionvars%urlparameter}">files</a></td></tr>'
 < filelogentry = '<tr class="parity#parity#"><td class="age"><i>#date|age# ago</i></td><td><a class="list" href="{url}rev/#node|short#{sessionvars%urlparameter}"><b>#desc|strip|firstline|escape#</b></a></td><td class="link"><a href="{url}file/#node|short#/#file|urlescape#{sessionvars%urlparameter}">file</a>&nbsp;|&nbsp;<a href="{url}diff/#node|short#/#file|urlescape#{sessionvars%urlparameter}">diff</a>&nbsp;|&nbsp;<a href="{url}annotate/#node|short#/#file|urlescape#{sessionvars%urlparameter}">annotate</a> #rename%filelogrename#</td></tr>'
