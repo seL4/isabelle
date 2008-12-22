@@ -5,37 +5,56 @@
 # Isabelle application wrapper
 
 THIS="$(cd "$(dirname "$0")"; pwd)"
+THIS_APP="$(cd "$THIS/../.."; pwd)"
+SUPER_APP="$(cd "$THIS/../../.."; pwd)"
 
-
-# global defaults
-ISABELLE_TOOL=""
-ISABELLE_INTERFACE="emacs"
-#ISABELLE_INTERFACE="jedit"
-
-
-# sane environment defaults
-PATH="$PATH:/opt/local/bin"
 cd "$HOME"
 
 
-# Isabelle location
+# settings support
 
-if [ -z "$ISABELLE_TOOL" ]; then
-  if [ -e "$THIS/Isabelle/bin/isabelle" ]; then
-    ISABELLE_TOOL="$THIS/Isabelle/bin/isabelle"
-  elif [ -e "$HOME/bin/isabelle" ]; then
-    ISABELLE_TOOL="$HOME/bin/isabelle"
-  else
-    ISABELLE_TOOL=isabelle
-  fi
+function choosefrom ()
+{
+  local RESULT=""
+  local FILE=""
+
+  for FILE in "$@"
+  do
+    [ -z "$RESULT" -a -e "$FILE" ] && RESULT="$FILE"
+  done
+
+  [ -z "$RESULT" ] && RESULT="$FILE"
+  echo "$RESULT"
+}
+
+
+# Isabelle
+
+ISABELLE_TOOL="$(choosefrom \
+  "$THIS/Isabelle/bin/isabelle" \
+  "$SUPER_APP/Isabelle/bin/isabelle" \
+  "$HOME/bin/isabelle" \
+  isabelle)"
+
+
+# Proof General / Emacs
+
+PROOFGENERAL_EMACS="$(choosefrom \
+  "$THIS/Emacs.app/Contents/MacOS/Emacs" \
+  "$SUPER_APP/Emacs.app/Contents/MacOS/Emacs" \
+  /Applications/Emacs.app/Contents/MacOS/Emacs \
+  "")"
+
+if [ -n "$PROOFGENERAL_EMACS" ]; then
+  PROOFGENERAL_OPTIONS="-p $PROOFGENERAL_EMACS $PROOFGENERAL_OPTIONS"
 fi
 
 
-# run interface
+# run interface with error feedback
 
 OUTPUT="/tmp/isabelle$$.out"
 
-( "$HOME/bin/isabelle" "$ISABELLE_INTERFACE" "$@" ) > "$OUTPUT" 2>&1
+( "$HOME/bin/isabelle" emacs "$@" ) > "$OUTPUT" 2>&1
 RC=$?
 
 if [ "$RC" != 0 ]; then
@@ -43,10 +62,7 @@ if [ "$RC" != 0 ]; then
   echo "Return code: $RC" >> "$OUTPUT"
 fi
 
-
-# error feedback
-
-if [ -n "$OUTPUT" ]; then
+if [ $(stat -f "%z" "$OUTPUT") != 0 ]; then
   "$THIS/CocoaDialog.app/Contents/MacOS/CocoaDialog" textbox \
     --title "Isabelle" \
     --informative-text "Isabelle output" \
