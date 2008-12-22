@@ -74,6 +74,9 @@ object IsabelleSystem {
     result_path.toString
   }
 
+  def platform_file(path: String) =
+    new File(platform_path(path))
+
 
   /* processes */
 
@@ -119,4 +122,18 @@ object IsabelleSystem {
       Array(platform_path("/bin/cat"), fifo)).getInputStream, charset))
     else new BufferedReader(new InputStreamReader(new FileInputStream(fifo), charset))
 
+
+  /* find logics */
+
+  def find_logics() = {
+    val ml_ident = getenv_strict("ML_IDENTIFIER")
+    var logics: Set[String] = Set()
+    for (dir <- getenv_strict("ISABELLE_PATH").split(":")) {
+      val files = platform_file(dir + "/" + ml_ident).listFiles()
+      if (files != null) {
+        for (file <- files if file.isFile) logics += file.getName
+      }
+    }
+    logics.toList.sort(_ < _)
+  }
 }
