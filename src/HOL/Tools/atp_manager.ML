@@ -104,39 +104,31 @@ val state = Synchronized.var "atp_manager" (make_state ThreadHeap.empty ThreadHe
 val managing_thread = ref (NONE: Thread.thread option);
 
 
-(* unregister thread from thread manager -- move to cancelling *)
+(* unregister thread *)
 
 fun unregister (success, message) thread = Synchronized.change_result state
-  (fn State {timeout_heap, oldest_heap, active, cancelling, messages} =>
-    let
-      val info = lookup_thread active thread
+  (fn state as State {timeout_heap, oldest_heap, active, cancelling, messages} =>
+    (case lookup_thread active thread of
+      SOME (birthtime, _, description) =>
+        let
+          val (group, active') =
+            if success then List.partition (fn (_, (tb, _, _)) => tb = birthtime) active
+            else List.partition (fn (th, _) => Thread.equal (th, thread)) active
+          val others = delete_thread thread group
 
-      (* get birthtime of unregistering thread if successful - for group-killing*)
-      val birthtime = case info of NONE => Time.zeroTime
-        | SOME (tb, _, _) => if success then tb else Time.zeroTime
+          val now = Time.now ()
+          val cancelling' =
+            fold (fn (th, (tb, _, desc)) => update_thread (th, (tb, now, desc))) others cancelling
 
-      (* move unregistering thread to cancelling *)
-      val active' = delete_thread thread active
-      val cancelling' = case info of NONE => cancelling
-        | SOME (tb, _, desc) => update_thread (thread, (tb, Time.now (), desc)) cancelling
-
-      (* move all threads of the same group to cancelling *)
-      val group_threads = active |> map_filter (fn (th, (tb, _, desc)) =>
-          if tb = birthtime then SOME (th, (tb, Time.now (), desc)) else NONE)
-      val active'' = filter_out (fn (_, (tb, _, _)) => tb = birthtime) active'
-      val cancelling'' = append group_threads cancelling'
-
-      (* message for user *)
-      val message' = case info of NONE => ""
-        | SOME (_, _, desc) => "Sledgehammer: " ^ desc ^ "\n" ^ message ^
-          (if null group_threads then ""
-           else "\nInterrupted " ^ string_of_int (length group_threads - 1) ^ " other group members")
-
-      val messages' = case info of NONE => messages
-        | SOME (_, _, desc) => desc ^ "\n" ^ message ::
-           (if length messages <= message_store_limit then messages
-            else #1 (chop message_store_limit messages))
-    in (message', make_state timeout_heap oldest_heap active'' cancelling'' messages') end);
+          val msg = description ^ "\n" ^ message
+          val message' = "Sledgehammer: " ^ msg ^
+            (if null others then ""
+             else "\nInterrupted " ^ string_of_int (length others) ^ " other group members")
+          val messages' = msg ::
+            (if length messages <= message_store_limit then messages
+             else #1 (chop message_store_limit messages))
+        in (message', make_state timeout_heap oldest_heap active' cancelling' messages') end
+    | NONE => ("", state)));
 
 
 (* kill excessive atp threads *)
