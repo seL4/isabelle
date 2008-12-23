@@ -42,6 +42,11 @@ care is required when using older releases of Isabelle.  Note that
 ISABELLE_HOME_USER can be changed in Isabelle/etc/settings of any
 Isabelle distribution.
 
+* Proofs of fully specified statements are run in parallel on
+multi-core systems.  A speedup factor of 2-3 can be expected on a
+regular 4-core machine, if the initial heap space is made reasonably
+large (cf. Poly/ML option -H).
+
 * The Isabelle System Manual (system) has been updated, with formally
 checked references as hyperlinks.
 
@@ -55,8 +60,8 @@ makes c inaccessible; consider using ``hide (open) const c'' instead.
 * Removed exotic 'token_translation' command.  INCOMPATIBILITY, use ML
 interface instead.
 
-* There is a new lexical item "float" with syntax ["-"] digit+ "." digit+,
-without spaces.
+* There is a new syntactic category "float_const" for signed decimal
+fractions (e.g. 123.45 or -123.45).
 
 
 *** Pure ***
@@ -390,6 +395,13 @@ Complex_Main.thy should now use new entry point Hypercomplex.thy.
 
 
 *** ML ***
+
+* High-level support for concurrent ML programming, see
+src/Pure/Cuncurrent.  The data-oriented model of "future values" is
+particularly convenient to organize independent functional
+computations.  The concept of "synchronized variables" provides a
+higher-order interface for components with shared state, avoiding the
+delicate details of internal mutexes and condition variables.
 
 * Simplified ML oracle interface Thm.add_oracle promotes 'a -> cterm
 to 'a -> thm, while results are always tagged with an authentic oracle
@@ -860,8 +872,8 @@ management only; user-code should use print_mode_value,
 print_mode_active, PrintMode.setmp etc.  INCOMPATIBILITY.
 
 * Functions system/system_out provide a robust way to invoke external
-shell commands, with propagation of interrupts (requires Poly/ML 5.2).
-Do not use OS.Process.system etc. from the basis library!
+shell commands, with propagation of interrupts (requires Poly/ML
+5.2.1).  Do not use OS.Process.system etc. from the basis library!
 
 
 *** System ***
