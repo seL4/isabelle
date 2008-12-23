@@ -45,7 +45,7 @@ Isabelle distribution.
 * Proofs of fully specified statements are run in parallel on
 multi-core systems.  A speedup factor of 2-3 can be expected on a
 regular 4-core machine, if the initial heap space is made reasonably
-large (cf. Poly/ML option -H).
+large (cf. Poly/ML option -H).  [Poly/ML 5.2.1 or later]
 
 * The Isabelle System Manual (system) has been updated, with formally
 checked references as hyperlinks.
@@ -401,7 +401,8 @@ src/Pure/Cuncurrent.  The data-oriented model of "future values" is
 particularly convenient to organize independent functional
 computations.  The concept of "synchronized variables" provides a
 higher-order interface for components with shared state, avoiding the
-delicate details of internal mutexes and condition variables.
+delicate details of mutexes and condition variables.  [Poly/ML 5.2.1
+or later]
 
 * Simplified ML oracle interface Thm.add_oracle promotes 'a -> cterm
 to 'a -> thm, while results are always tagged with an authentic oracle
