@@ -26,8 +26,8 @@ lemma lemma_realpow_diff_sumr:
   fixes y :: "'a::{recpower,comm_semiring_0}" shows
      "(\<Sum>p=0..<Suc n. (x ^ p) * y ^ (Suc n - p)) =  
       y * (\<Sum>p=0..<Suc n. (x ^ p) * y ^ (n - p))"
-by (auto simp add: setsum_right_distrib lemma_realpow_diff mult_ac
-  simp del: setsum_op_ivl_Suc cong: strong_setsum_cong)
+by (simp add: setsum_right_distrib lemma_realpow_diff mult_ac
+         del: setsum_op_ivl_Suc cong: strong_setsum_cong)
 
 lemma lemma_realpow_diff_sumr2:
   fixes y :: "'a::{recpower,comm_ring}" shows
@@ -124,33 +124,22 @@ text{*Lemma about distributing negation over it*}
 lemma diffs_minus: "diffs (%n. - c n) = (%n. - diffs c n)"
 by (simp add: diffs_def)
 
-text{*Show that we can shift the terms down one*}
-lemma lemma_diffs:
-     "(\<Sum>n=0..<n. (diffs c)(n) * (x ^ n)) =  
-      (\<Sum>n=0..<n. of_nat n * c(n) * (x ^ (n - Suc 0))) +  
-      (of_nat n * c(n) * x ^ (n - Suc 0))"
-apply (induct "n")
-apply (auto simp add: mult_assoc add_assoc [symmetric] diffs_def)
+lemma sums_Suc_imp:
+  assumes f: "f 0 = 0"
+  shows "(\<lambda>n. f (Suc n)) sums s \<Longrightarrow> (\<lambda>n. f n) sums s"
+unfolding sums_def
+apply (rule LIMSEQ_imp_Suc)
+apply (subst setsum_shift_lb_Suc0_0_upt [where f=f, OF f, symmetric])
+apply (simp only: setsum_shift_bounds_Suc_ivl)
 done
-
-lemma lemma_diffs2:
-     "(\<Sum>n=0..<n. of_nat n * c(n) * (x ^ (n - Suc 0))) =  
-      (\<Sum>n=0..<n. (diffs c)(n) * (x ^ n)) -  
-      (of_nat n * c(n) * x ^ (n - Suc 0))"
-by (auto simp add: lemma_diffs)
-
 
 lemma diffs_equiv:
      "summable (%n. (diffs c)(n) * (x ^ n)) ==>  
       (%n. of_nat n * c(n) * (x ^ (n - Suc 0))) sums  
          (\<Sum>n. (diffs c)(n) * (x ^ n))"
-apply (subgoal_tac " (%n. of_nat n * c (n) * (x ^ (n - Suc 0))) ----> 0")
-apply (rule_tac [2] LIMSEQ_imp_Suc)
-apply (drule summable_sums) 
-apply (auto simp add: sums_def)
-apply (drule_tac X="(\<lambda>n. \<Sum>n = 0..<n. diffs c n * x ^ n)" in LIMSEQ_diff)
-apply (auto simp add: lemma_diffs2 [symmetric] diffs_def [symmetric])
-apply (simp add: diffs_def summable_LIMSEQ_zero)
+unfolding diffs_def
+apply (drule summable_sums)
+apply (rule sums_Suc_imp, simp_all)
 done
 
 lemma lemma_termdiff1:
@@ -159,12 +148,6 @@ lemma lemma_termdiff1:
    (\<Sum>p=0..<m. (z ^ p) * (((z + h) ^ (m - p)) - (z ^ (m - p))))"
 by (auto simp add: right_distrib diff_minus power_add [symmetric] mult_ac
   cong: strong_setsum_cong)
-
-lemma less_add_one: "m < n ==> (\<exists>d. n = m + d + Suc 0)"
-by (simp add: less_iff_Suc_add)
-
-lemma sumdiff: "a + b - (c + d) = a - c + b - (d::real)"
-by arith
 
 lemma sumr_diff_mult_const2:
   "setsum f {0..<n} - of_nat n * (r::'a::ring_1) = (\<Sum>i = 0..<n. f i - r)"
@@ -252,15 +235,15 @@ lemma lemma_termdiff4:
   assumes k: "0 < (k::real)"
   assumes le: "\<And>h. \<lbrakk>h \<noteq> 0; norm h < k\<rbrakk> \<Longrightarrow> norm (f h) \<le> K * norm h"
   shows "f -- 0 --> 0"
-proof (simp add: LIM_def, safe)
+unfolding LIM_def diff_0_right
+proof (safe)
+  let ?h = "of_real (k / 2)::'a"
+  have "?h \<noteq> 0" and "norm ?h < k" using k by simp_all
+  hence "norm (f ?h) \<le> K * norm ?h" by (rule le)
+  hence "0 \<le> K * norm ?h" by (rule order_trans [OF norm_ge_zero])
+  hence zero_le_K: "0 \<le> K" using k by (simp add: zero_le_mult_iff)
+
   fix r::real assume r: "0 < r"
-  have zero_le_K: "0 \<le> K"
-    apply (cut_tac k)
-    apply (cut_tac h="of_real (k/2)" in le, simp)
-    apply (simp del: of_real_divide)
-    apply (drule order_trans [OF norm_ge_zero])
-    apply (simp add: zero_le_mult_iff)
-    done
   show "\<exists>s. 0 < s \<and> (\<forall>x. x \<noteq> 0 \<and> norm x < s \<longrightarrow> norm (f x) < r)"
   proof (cases)
     assume "K = 0"
@@ -392,11 +375,12 @@ lemma termdiffs:
   assumes 3: "summable (\<lambda>n. (diffs (diffs c)) n * K ^ n)"
   assumes 4: "norm x < norm K"
   shows "DERIV (\<lambda>x. \<Sum>n. c n * x ^ n) x :> (\<Sum>n. (diffs c) n * x ^ n)"
-proof (simp add: deriv_def, rule LIM_zero_cancel)
+unfolding deriv_def
+proof (rule LIM_zero_cancel)
   show "(\<lambda>h. (suminf (\<lambda>n. c n * (x + h) ^ n) - suminf (\<lambda>n. c n * x ^ n)) / h
             - suminf (\<lambda>n. diffs c n * x ^ n)) -- 0 --> 0"
   proof (rule LIM_equal2)
-    show "0 < norm K - norm x" by (simp add: less_diff_eq 4)
+    show "0 < norm K - norm x" using 4 by (simp add: less_diff_eq)
   next
     fix h :: 'a
     assume "h \<noteq> 0"
@@ -421,8 +405,7 @@ proof (simp add: deriv_def, rule LIM_zero_cancel)
       apply (rule summable_divide)
       apply (rule summable_diff [OF B A])
       apply (rule sums_summable [OF diffs_equiv [OF C]])
-      apply (rule_tac f="suminf" in arg_cong)
-      apply (rule ext)
+      apply (rule arg_cong [where f="suminf"], rule ext)
       apply (simp add: ring_simps)
       done
   next
