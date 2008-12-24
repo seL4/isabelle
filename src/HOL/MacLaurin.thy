@@ -77,7 +77,7 @@ apply (rule_tac [3] DERIV_const)
 apply (rule_tac [2] DERIV_pow)
   prefer 3 apply (simp add: fact_diff_Suc)
  prefer 2 apply simp
-apply (frule_tac m = m in less_add_one, clarify)
+apply (frule less_iff_Suc_add [THEN iffD1], clarify)
 apply (simp del: setsum_op_ivl_Suc)
 apply (insert sumr_offset4 [of 1])
 apply (simp del: setsum_op_ivl_Suc fact_Suc realpow_Suc)
@@ -150,7 +150,7 @@ apply (subgoal_tac "\<forall>m. m < n --> difg m 0 = 0")
  prefer 2
  apply clarify
  apply simp
- apply (frule_tac m = ma in less_add_one, clarify)
+ apply (frule less_iff_Suc_add [THEN iffD1], clarify)
  apply (simp del: setsum_op_ivl_Suc)
 apply (insert sumr_offset4 [of 1])
 apply (simp del: setsum_op_ivl_Suc fact_Suc realpow_Suc)
