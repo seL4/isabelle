@@ -640,11 +640,11 @@ done
 lemma exp_gt_zero [simp]: "0 < exp (x::real)"
 by (simp add: order_less_le)
 
-lemma inv_exp_gt_zero [simp]: "0 < inverse(exp x::real)"
-by (auto intro: positive_imp_inverse_positive)
+lemma inv_exp_gt_zero: "0 < inverse(exp x::real)"
+by simp
 
 lemma abs_exp_cancel [simp]: "\<bar>exp x::real\<bar> = exp x"
-by auto
+by simp
 
 lemma exp_real_of_nat_mult: "exp(real n * x) = exp(x) ^ n"
 apply (induct "n")
@@ -653,21 +653,17 @@ done
 
 lemma exp_diff: "exp(x - y) = exp(x)/(exp y)"
 apply (simp add: diff_minus divide_inverse)
-apply (simp (no_asm) add: exp_add exp_minus)
+apply (simp add: exp_add exp_minus)
 done
-
 
 lemma exp_less_mono:
   fixes x y :: real
-  assumes xy: "x < y" shows "exp x < exp y"
+  assumes "x < y" shows "exp x < exp y"
 proof -
-  from xy have "1 < exp (y + - x)"
-    by (rule real_less_sum_gt_zero [THEN exp_gt_one])
-  hence "exp x * inverse (exp x) < exp y * inverse (exp x)"
-    by (auto simp add: exp_add exp_minus)
-  thus ?thesis
-    by (simp add: divide_inverse [symmetric] pos_less_divide_eq
-             del: divide_self_if)
+  from `x < y` have "0 < y - x" by simp
+  hence "1 < exp (y - x)" by (rule exp_gt_one)
+  hence "1 < exp y / exp x" by (simp only: exp_diff)
+  thus "exp x < exp y" by simp
 qed
 
 lemma exp_less_cancel: "exp (x::real) < exp y ==> x < y"
@@ -688,7 +684,7 @@ lemma lemma_exp_total: "1 \<le> y ==> \<exists>x. 0 \<le> x & x \<le> y - 1 & ex
 apply (rule IVT)
 apply (auto intro: isCont_exp simp add: le_diff_eq)
 apply (subgoal_tac "1 + (y - 1) \<le> exp (y - 1)") 
-apply simp 
+apply simp
 apply (rule exp_ge_add_one_self_aux, simp)
 done
 
@@ -1074,9 +1070,6 @@ apply (rule_tac a1 = "(sin x)\<twosuperior>" in add_right_cancel [THEN iffD1])
 apply (simp del: realpow_Suc)
 done
 
-lemma real_gt_one_ge_zero_add_less: "[| 1 < x; 0 \<le> y |] ==> 1 < x + (y::real)"
-by arith
-
 lemma abs_sin_le_one [simp]: "\<bar>sin x\<bar> \<le> 1"
 by (rule power2_le_imp_le, simp_all add: sin_squared_eq)
 
@@ -1173,7 +1166,7 @@ apply (best intro!: DERIV_intros intro: DERIV_chain2)
 apply (auto simp add: diff_minus left_distrib right_distrib mult_ac add_ac)
 done
 
-lemma sin_cos_minus [simp]: 
+lemma sin_cos_minus: 
     "(sin(-x) + (sin x)) ^ 2 + (cos(-x) - (cos x)) ^ 2 = 0"
 apply (cut_tac y = 0 and x = x 
        in lemma_DERIV_sin_cos_minus [THEN DERIV_isconst_all])
@@ -1181,14 +1174,10 @@ apply simp
 done
 
 lemma sin_minus [simp]: "sin (-x) = -sin(x)"
-apply (cut_tac x = x in sin_cos_minus)
-apply (simp del: sin_cos_minus)
-done
+  using sin_cos_minus [where x=x] by simp
 
 lemma cos_minus [simp]: "cos (-x) = cos(x)"
-apply (cut_tac x = x in sin_cos_minus)
-apply (simp del: sin_cos_minus)
-done
+  using sin_cos_minus [where x=x] by simp
 
 lemma sin_diff: "sin (x - y) = sin x * cos y - cos x * sin y"
 by (simp add: diff_minus sin_add)
@@ -1203,13 +1192,11 @@ lemma cos_diff2: "cos (x - y) = cos y * cos x + sin y * sin x"
 by (simp add: cos_diff mult_commute)
 
 lemma sin_double [simp]: "sin(2 * x) = 2* sin x * cos x"
-by (cut_tac x = x and y = x in sin_add, auto)
-
+  using sin_add [where x=x and y=x] by simp
 
 lemma cos_double: "cos(2* x) = ((cos x)\<twosuperior>) - ((sin x)\<twosuperior>)"
-apply (cut_tac x = x and y = x in cos_add)
-apply (simp add: power2_eq_square)
-done
+  using cos_add [where x=x and y=x]
+  by (simp add: power2_eq_square)
 
 
 subsection {* The Constant Pi *}
@@ -1387,8 +1374,8 @@ by (rule pi_gt_zero [THEN less_imp_neq, THEN not_sym])
 lemma pi_not_less_zero [simp]: "\<not> pi < 0"
 by (simp add: linorder_not_less)
 
-lemma minus_pi_half_less_zero [simp]: "-(pi/2) < 0"
-by auto
+lemma minus_pi_half_less_zero: "-(pi/2) < 0"
+by simp
 
 lemma sin_pi_half [simp]: "sin(pi/2) = 1"
 apply (cut_tac x = "pi/2" in sin_cos_squared_add2)
