@@ -564,6 +564,9 @@ lemma exp_add: "exp (x + y) = exp x * exp y"
 unfolding exp_def
 by (simp only: Cauchy_product summable_norm_exp exp_series_add)
 
+lemma mult_exp_exp: "exp x * exp y = exp (x + y)"
+by (rule exp_add [symmetric])
+
 lemma exp_of_real: "exp (of_real x) = of_real (exp x)"
 unfolding exp_def
 apply (subst of_real.suminf)
@@ -571,65 +574,24 @@ apply (rule summable_exp_generic)
 apply (simp add: scaleR_conv_of_real)
 done
 
-lemma DERIV_exp_add_const: "DERIV (%x. exp (x + y)) x :> exp(x + y)"
-proof -
-  have "DERIV (exp \<circ> (\<lambda>x. x + y)) x :> exp (x + y) * (1+0)"
-    by (fast intro: DERIV_chain DERIV_add DERIV_exp DERIV_ident DERIV_const) 
-  thus ?thesis by (simp add: o_def)
-qed
-
-lemma DERIV_exp_minus [simp]: "DERIV (%x. exp (-x)) x :> - exp(-x)"
-proof -
-  have "DERIV (exp \<circ> uminus) x :> exp (- x) * - 1"
-    by (fast intro: DERIV_chain DERIV_minus DERIV_exp DERIV_ident)
-  thus ?thesis by (simp add: o_def)
-qed
-
-lemma DERIV_exp_exp_zero [simp]: "DERIV (%x. exp (x + y) * exp (- x)) x :> 0"
-proof -
-  have "DERIV (\<lambda>x. exp (x + y) * exp (- x)) x
-       :> exp (x + y) * exp (- x) + - exp (- x) * exp (x + y)"
-    by (fast intro: DERIV_exp_add_const DERIV_exp_minus DERIV_mult) 
-  thus ?thesis by (simp add: mult_commute)
-qed
-
-lemma exp_mult_minus [simp]: "exp x * exp(-x) = 1"
-by (simp add: exp_add [symmetric])
-
-lemma exp_mult_minus2 [simp]: "exp(-x)*exp(x) = 1"
-by (simp add: mult_commute)
-
-lemma exp_minus: "exp(-x) = inverse(exp(x))"
-by (auto intro: inverse_unique [symmetric])
-
-lemma exp_diff: "exp(x - y) = exp(x)/(exp y)"
-apply (simp add: diff_minus divide_inverse)
-apply (simp add: exp_add exp_minus)
-done
-
 lemma exp_not_eq_zero [simp]: "exp x \<noteq> 0"
-apply (cut_tac x = x in exp_mult_minus2)
-apply (auto simp del: exp_mult_minus2)
-done
+proof
+  have "exp x * exp (- x) = 1" by (simp add: mult_exp_exp)
+  also assume "exp x = 0"
+  finally show "False" by simp
+qed
+
+lemma exp_minus: "exp (- x) = inverse (exp x)"
+by (rule inverse_unique [symmetric], simp add: mult_exp_exp)
+
+lemma exp_diff: "exp (x - y) = exp x / exp y"
+  unfolding diff_minus divide_inverse
+  by (simp add: exp_add exp_minus)
 
 
 subsubsection {* Properties of the Exponential Function on Reals *}
 
-lemma exp_ge_add_one_self_aux: "0 \<le> (x::real) ==> (1 + x) \<le> exp(x)"
-apply (drule order_le_imp_less_or_eq, auto)
-apply (simp add: exp_def)
-apply (rule real_le_trans)
-apply (rule_tac [2] n = 2 and f = "(%n. inverse (real (fact n)) * x ^ n)" in series_pos_le)
-apply (auto intro: summable_exp simp add: numeral_2_eq_2 zero_le_mult_iff)
-done
-
-lemma exp_gt_one [simp]: "0 < (x::real) ==> 1 < exp x"
-apply (rule order_less_le_trans)
-apply (rule_tac [2] exp_ge_add_one_self_aux, auto)
-done
-
-lemma exp_add_mult_minus [simp]: "exp(x + y)*exp(-x) = exp(y::real)"
-by (simp add: exp_add [symmetric])
+text {* Comparisons of @{term "exp x"} with zero. *}
 
 text{*Proof: because every exponential can be seen as a square.*}
 lemma exp_ge_zero [simp]: "0 \<le> exp (x::real)"
@@ -641,8 +603,11 @@ qed
 lemma exp_gt_zero [simp]: "0 < exp (x::real)"
 by (simp add: order_less_le)
 
-lemma inv_exp_gt_zero: "0 < inverse(exp x::real)"
-by simp
+lemma not_exp_less_zero [simp]: "\<not> exp (x::real) < 0"
+by (simp add: not_less)
+
+lemma not_exp_le_zero [simp]: "\<not> exp (x::real) \<le> 0"
+by (simp add: not_le)
 
 lemma abs_exp_cancel [simp]: "\<bar>exp x::real\<bar> = exp x"
 by simp
@@ -651,6 +616,25 @@ lemma exp_real_of_nat_mult: "exp(real n * x) = exp(x) ^ n"
 apply (induct "n")
 apply (auto simp add: real_of_nat_Suc right_distrib exp_add mult_commute)
 done
+
+text {* Strict monotonicity of exponential. *}
+
+lemma exp_ge_add_one_self_aux: "0 \<le> (x::real) ==> (1 + x) \<le> exp(x)"
+apply (drule order_le_imp_less_or_eq, auto)
+apply (simp add: exp_def)
+apply (rule real_le_trans)
+apply (rule_tac [2] n = 2 and f = "(%n. inverse (real (fact n)) * x ^ n)" in series_pos_le)
+apply (auto intro: summable_exp simp add: numeral_2_eq_2 zero_le_mult_iff)
+done
+
+lemma exp_gt_one: "0 < (x::real) \<Longrightarrow> 1 < exp x"
+proof -
+  assume x: "0 < x"
+  hence "1 < 1 + x" by simp
+  also from x have "1 + x \<le> exp x"
+    by (simp add: exp_ge_add_one_self_aux)
+  finally show ?thesis .
+qed
 
 lemma exp_less_mono:
   fixes x y :: real
@@ -663,18 +647,35 @@ proof -
 qed
 
 lemma exp_less_cancel: "exp (x::real) < exp y ==> x < y"
-apply (simp add: linorder_not_le [symmetric]) 
-apply (auto simp add: order_le_less exp_less_mono) 
+apply (simp add: linorder_not_le [symmetric])
+apply (auto simp add: order_le_less exp_less_mono)
 done
 
-lemma exp_less_cancel_iff [iff]: "(exp(x::real) < exp(y)) = (x < y)"
+lemma exp_less_cancel_iff [iff]: "exp (x::real) < exp y \<longleftrightarrow> x < y"
 by (auto intro: exp_less_mono exp_less_cancel)
 
-lemma exp_le_cancel_iff [iff]: "(exp(x::real) \<le> exp(y)) = (x \<le> y)"
+lemma exp_le_cancel_iff [iff]: "exp (x::real) \<le> exp y \<longleftrightarrow> x \<le> y"
 by (auto simp add: linorder_not_less [symmetric])
 
-lemma exp_inj_iff [iff]: "(exp (x::real) = exp y) = (x = y)"
+lemma exp_inj_iff [iff]: "exp (x::real) = exp y \<longleftrightarrow> x = y"
 by (simp add: order_eq_iff)
+
+text {* Comparisons of @{term "exp x"} with one. *}
+
+lemma one_less_exp_iff [simp]: "1 < exp (x::real) \<longleftrightarrow> 0 < x"
+  using exp_less_cancel_iff [where x=0 and y=x] by simp
+
+lemma exp_less_one_iff [simp]: "exp (x::real) < 1 \<longleftrightarrow> x < 0"
+  using exp_less_cancel_iff [where x=x and y=0] by simp
+
+lemma one_le_exp_iff [simp]: "1 \<le> exp (x::real) \<longleftrightarrow> 0 \<le> x"
+  using exp_le_cancel_iff [where x=0 and y=x] by simp
+
+lemma exp_le_one_iff [simp]: "exp (x::real) \<le> 1 \<longleftrightarrow> x \<le> 0"
+  using exp_le_cancel_iff [where x=x and y=0] by simp
+
+lemma exp_eq_one_iff [simp]: "exp (x::real) = 1 \<longleftrightarrow> x = 0"
+  using exp_inj_iff [where x=x and y=0] by simp
 
 lemma lemma_exp_total: "1 \<le> y ==> \<exists>x. 0 \<le> x & x \<le> y - 1 & exp(x::real) = y"
 apply (rule IVT)
@@ -2107,11 +2108,6 @@ done
 
 lemma sin_zero_abs_cos_one: "sin x = 0 ==> \<bar>cos x\<bar> = 1"
 by (auto simp add: sin_zero_iff even_mult_two_ex)
-
-lemma exp_eq_one_iff [simp]: "(exp (x::real) = 1) = (x = 0)"
-apply auto
-apply (drule_tac f = ln in arg_cong, auto)
-done
 
 lemma cos_one_sin_zero: "cos x = 1 ==> sin x = 0"
 by (cut_tac x = x in sin_cos_squared_add3, auto)
