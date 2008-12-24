@@ -6,3 +6,12 @@ Requirements:
 * CocoaDialog http://cocoadialog.sourceforge.net/
 
 * Platypus http://www.sveinbjorn.org/platypus
+
+* AppHack 1.1 http://www.sveinbjorn.org/apphack
+
+  Manual setup:
+    File type: "Isabelle theory"
+    Icon: "theory.icns"
+    "Editor"
+    Suffixes: "thy"
+

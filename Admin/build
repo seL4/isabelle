@@ -7,7 +7,7 @@
 #paranoia setting for sunbroy
 PATH="/usr/local/dist/DIR/j2sdk1.5.0/bin:$PATH"
 
-PATH="/home/scala/scala/bin:$PATH"
+PATH="/home/scala/current/bin:$PATH"
 
 
 ## directory layout

@@ -16,4 +16,4 @@ COCOADIALOG_APP="/Applications/CocoaDialog.app"
   -c "$THIS/script" \
   -o None \
   -f "$COCOADIALOG_APP" \
-  Isabelle.app
+  "$PWD/Isabelle.app"
