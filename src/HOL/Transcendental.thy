@@ -470,8 +470,6 @@ lemma exp_converges: "(\<lambda>n. x ^ n /\<^sub>R real (fact n)) sums exp x"
 unfolding exp_def by (rule summable_exp_generic [THEN summable_sums])
 
 
-subsection {* Formal Derivatives of Exp, Sin, and Cos Series *}
-
 lemma exp_fdiffs: 
       "diffs (%n. inverse(real (fact n))) = (%n. inverse(real (fact n)))"
 by (simp add: diffs_def mult_assoc [symmetric] real_of_nat_def of_nat_mult
@@ -497,7 +495,7 @@ lemma isCont_exp [simp]: "isCont exp x"
 by (rule DERIV_exp [THEN DERIV_isCont])
 
 
-subsection {* Properties of the Exponential Function *}
+subsubsection {* Properties of the Exponential Function *}
 
 lemma powser_zero:
   fixes f :: "nat \<Rightarrow> 'a::{real_normed_algebra_1,recpower}"
@@ -573,19 +571,6 @@ apply (rule summable_exp_generic)
 apply (simp add: scaleR_conv_of_real)
 done
 
-lemma exp_ge_add_one_self_aux: "0 \<le> (x::real) ==> (1 + x) \<le> exp(x)"
-apply (drule order_le_imp_less_or_eq, auto)
-apply (simp add: exp_def)
-apply (rule real_le_trans)
-apply (rule_tac [2] n = 2 and f = "(%n. inverse (real (fact n)) * x ^ n)" in series_pos_le)
-apply (auto intro: summable_exp simp add: numeral_2_eq_2 zero_le_mult_iff)
-done
-
-lemma exp_gt_one [simp]: "0 < (x::real) ==> 1 < exp x"
-apply (rule order_less_le_trans)
-apply (rule_tac [2] exp_ge_add_one_self_aux, auto)
-done
-
 lemma DERIV_exp_add_const: "DERIV (%x. exp (x + y)) x :> exp(x + y)"
 proof -
   have "DERIV (exp \<circ> (\<lambda>x. x + y)) x :> exp (x + y) * (1+0)"
@@ -608,34 +593,50 @@ proof -
   thus ?thesis by (simp add: mult_commute)
 qed
 
-lemma exp_add_mult_minus [simp]: "exp(x + y)*exp(-x) = exp(y::real)"
-proof -
-  have "\<forall>x. DERIV (%x. exp (x + y) * exp (- x)) x :> 0" by simp
-  hence "exp (x + y) * exp (- x) = exp (0 + y) * exp (- 0)" 
-    by (rule DERIV_isconst_all) 
-  thus ?thesis by simp
-qed
-
 lemma exp_mult_minus [simp]: "exp x * exp(-x) = 1"
 by (simp add: exp_add [symmetric])
 
 lemma exp_mult_minus2 [simp]: "exp(-x)*exp(x) = 1"
 by (simp add: mult_commute)
 
-
 lemma exp_minus: "exp(-x) = inverse(exp(x))"
 by (auto intro: inverse_unique [symmetric])
 
-text{*Proof: because every exponential can be seen as a square.*}
-lemma exp_ge_zero [simp]: "0 \<le> exp (x::real)"
-apply (rule_tac t = x in real_sum_of_halves [THEN subst])
-apply (subst exp_add, auto)
+lemma exp_diff: "exp(x - y) = exp(x)/(exp y)"
+apply (simp add: diff_minus divide_inverse)
+apply (simp add: exp_add exp_minus)
 done
 
 lemma exp_not_eq_zero [simp]: "exp x \<noteq> 0"
 apply (cut_tac x = x in exp_mult_minus2)
 apply (auto simp del: exp_mult_minus2)
 done
+
+
+subsubsection {* Properties of the Exponential Function on Reals *}
+
+lemma exp_ge_add_one_self_aux: "0 \<le> (x::real) ==> (1 + x) \<le> exp(x)"
+apply (drule order_le_imp_less_or_eq, auto)
+apply (simp add: exp_def)
+apply (rule real_le_trans)
+apply (rule_tac [2] n = 2 and f = "(%n. inverse (real (fact n)) * x ^ n)" in series_pos_le)
+apply (auto intro: summable_exp simp add: numeral_2_eq_2 zero_le_mult_iff)
+done
+
+lemma exp_gt_one [simp]: "0 < (x::real) ==> 1 < exp x"
+apply (rule order_less_le_trans)
+apply (rule_tac [2] exp_ge_add_one_self_aux, auto)
+done
+
+lemma exp_add_mult_minus [simp]: "exp(x + y)*exp(-x) = exp(y::real)"
+by (simp add: exp_add [symmetric])
+
+text{*Proof: because every exponential can be seen as a square.*}
+lemma exp_ge_zero [simp]: "0 \<le> exp (x::real)"
+proof -
+  have "0 \<le> exp (x/2) * exp (x/2)" by simp
+  thus ?thesis by (simp add: exp_add [symmetric])
+qed
 
 lemma exp_gt_zero [simp]: "0 < exp (x::real)"
 by (simp add: order_less_le)
@@ -649,11 +650,6 @@ by simp
 lemma exp_real_of_nat_mult: "exp(real n * x) = exp(x) ^ n"
 apply (induct "n")
 apply (auto simp add: real_of_nat_Suc right_distrib exp_add mult_commute)
-done
-
-lemma exp_diff: "exp(x - y) = exp(x)/(exp y)"
-apply (simp add: diff_minus divide_inverse)
-apply (simp add: exp_add exp_minus)
 done
 
 lemma exp_less_mono:
