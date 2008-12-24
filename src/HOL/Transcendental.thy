@@ -708,59 +708,46 @@ by (simp add: ln_def)
 lemma exp_ln [simp]: "0 < x \<Longrightarrow> exp (ln x) = x"
 by (auto dest: exp_total)
 
-lemma exp_ln_iff [simp]: "(exp (ln x) = x) = (0 < x)"
-apply (auto dest: exp_total)
-apply (erule subst, simp) 
+lemma exp_ln_iff [simp]: "exp (ln x) = x \<longleftrightarrow> 0 < x"
+apply (rule iffI)
+apply (erule subst, rule exp_gt_zero)
+apply (erule exp_ln)
 done
 
-lemma ln_mult: "[| 0 < x; 0 < y |] ==> ln(x * y) = ln(x) + ln(y)"
-apply (rule exp_inj_iff [THEN iffD1])
-apply (simp add: exp_add exp_ln mult_pos_pos)
+lemma ln_unique: "exp y = x \<Longrightarrow> ln x = y"
+by (erule subst, rule ln_exp)
+
+lemma ln_one [simp]: "ln 1 = 0"
+by (rule ln_unique, simp)
+
+lemma ln_mult: "\<lbrakk>0 < x; 0 < y\<rbrakk> \<Longrightarrow> ln (x * y) = ln x + ln y"
+by (rule ln_unique, simp add: exp_add)
+
+lemma ln_inverse: "0 < x \<Longrightarrow> ln (inverse x) = - ln x"
+by (rule ln_unique, simp add: exp_minus)
+
+lemma ln_div: "\<lbrakk>0 < x; 0 < y\<rbrakk> \<Longrightarrow> ln (x / y) = ln x - ln y"
+by (rule ln_unique, simp add: exp_diff)
+
+lemma ln_realpow: "0 < x \<Longrightarrow> ln (x ^ n) = real n * ln x"
+by (rule ln_unique, simp add: exp_real_of_nat_mult)
+
+lemma ln_less_cancel_iff [simp]: "\<lbrakk>0 < x; 0 < y\<rbrakk> \<Longrightarrow> ln x < ln y \<longleftrightarrow> x < y"
+by (subst exp_less_cancel_iff [symmetric], simp)
+
+lemma ln_le_cancel_iff [simp]: "\<lbrakk>0 < x; 0 < y\<rbrakk> \<Longrightarrow> ln x \<le> ln y \<longleftrightarrow> x \<le> y"
+by (simp add: linorder_not_less [symmetric])
+
+lemma ln_inj_iff [simp]: "\<lbrakk>0 < x; 0 < y\<rbrakk> \<Longrightarrow> ln x = ln y \<longleftrightarrow> x = y"
+by (simp add: order_eq_iff)
+
+lemma ln_add_one_self_le_self [simp]: "0 \<le> x \<Longrightarrow> ln (1 + x) \<le> x"
+apply (rule exp_le_cancel_iff [THEN iffD1])
+apply (simp add: exp_ge_add_one_self_aux)
 done
 
-lemma ln_inj_iff[simp]: "[| 0 < x; 0 < y |] ==> (ln x = ln y) = (x = y)"
-apply (simp only: exp_ln_iff [symmetric])
-apply (erule subst)+
-apply simp 
-done
-
-lemma ln_one[simp]: "ln 1 = 0"
-by (rule exp_inj_iff [THEN iffD1], auto)
-
-lemma ln_inverse: "0 < x ==> ln(inverse x) = - ln x"
-apply (rule_tac a1 = "ln x" in add_left_cancel [THEN iffD1])
-apply (auto simp add: positive_imp_inverse_positive ln_mult [symmetric])
-done
-
-lemma ln_div: 
-    "[|0 < x; 0 < y|] ==> ln(x/y) = ln x - ln y"
-apply (simp add: divide_inverse)
-apply (auto simp add: positive_imp_inverse_positive ln_mult ln_inverse)
-done
-
-lemma ln_less_cancel_iff[simp]: "[| 0 < x; 0 < y|] ==> (ln x < ln y) = (x < y)"
-apply (simp only: exp_ln_iff [symmetric])
-apply (erule subst)+
-apply simp 
-done
-
-lemma ln_le_cancel_iff[simp]: "[| 0 < x; 0 < y|] ==> (ln x \<le> ln y) = (x \<le> y)"
-by (auto simp add: linorder_not_less [symmetric])
-
-lemma ln_realpow: "0 < x ==> ln(x ^ n) = real n * ln(x)"
-by (auto dest!: exp_total simp add: exp_real_of_nat_mult [symmetric])
-
-lemma ln_add_one_self_le_self [simp]: "0 \<le> x ==> ln(1 + x) \<le> x"
-apply (rule ln_exp [THEN subst])
-apply (rule ln_le_cancel_iff [THEN iffD2]) 
-apply (auto simp add: exp_ge_add_one_self_aux)
-done
-
-lemma ln_less_self [simp]: "0 < x ==> ln x < x"
-apply (rule order_less_le_trans)
-apply (rule_tac [2] ln_add_one_self_le_self)
-apply (rule ln_less_cancel_iff [THEN iffD2], auto)
-done
+lemma ln_less_self [simp]: "0 < x \<Longrightarrow> ln x < x"
+by (rule order_less_le_trans [where y="ln (1 + x)"]) simp_all
 
 lemma ln_ge_zero [simp]:
   assumes x: "1 \<le> x" shows "0 \<le> ln x"
