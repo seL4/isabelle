@@ -1722,4 +1722,60 @@ apply (simp (no_asm) add: rsquarefree_def order_root del: pmult_Cons)
 apply (simp add: poly_entire del: pmult_Cons)
 done
 
+
+subsection {* Theorems about Limits *}
+
+(* need to rename second isCont_inverse *)
+
+lemma isCont_inv_fun:
+  fixes f g :: "real \<Rightarrow> real"
+  shows "[| 0 < d; \<forall>z. \<bar>z - x\<bar> \<le> d --> g(f(z)) = z;  
+         \<forall>z. \<bar>z - x\<bar> \<le> d --> isCont f z |]  
+      ==> isCont g (f x)"
+by (rule isCont_inverse_function)
+
+lemma isCont_inv_fun_inv:
+  fixes f g :: "real \<Rightarrow> real"
+  shows "[| 0 < d;  
+         \<forall>z. \<bar>z - x\<bar> \<le> d --> g(f(z)) = z;  
+         \<forall>z. \<bar>z - x\<bar> \<le> d --> isCont f z |]  
+       ==> \<exists>e. 0 < e &  
+             (\<forall>y. 0 < \<bar>y - f(x)\<bar> & \<bar>y - f(x)\<bar> < e --> f(g(y)) = y)"
+apply (drule isCont_inj_range)
+prefer 2 apply (assumption, assumption, auto)
+apply (rule_tac x = e in exI, auto)
+apply (rotate_tac 2)
+apply (drule_tac x = y in spec, auto)
+done
+
+
+text{*Bartle/Sherbert: Introduction to Real Analysis, Theorem 4.2.9, p. 110*}
+lemma LIM_fun_gt_zero:
+     "[| f -- c --> (l::real); 0 < l |]  
+         ==> \<exists>r. 0 < r & (\<forall>x::real. x \<noteq> c & \<bar>c - x\<bar> < r --> 0 < f x)"
+apply (auto simp add: LIM_def)
+apply (drule_tac x = "l/2" in spec, safe, force)
+apply (rule_tac x = s in exI)
+apply (auto simp only: abs_less_iff)
+done
+
+lemma LIM_fun_less_zero:
+     "[| f -- c --> (l::real); l < 0 |]  
+      ==> \<exists>r. 0 < r & (\<forall>x::real. x \<noteq> c & \<bar>c - x\<bar> < r --> f x < 0)"
+apply (auto simp add: LIM_def)
+apply (drule_tac x = "-l/2" in spec, safe, force)
+apply (rule_tac x = s in exI)
+apply (auto simp only: abs_less_iff)
+done
+
+
+lemma LIM_fun_not_zero:
+     "[| f -- c --> (l::real); l \<noteq> 0 |] 
+      ==> \<exists>r. 0 < r & (\<forall>x::real. x \<noteq> c & \<bar>c - x\<bar> < r --> f x \<noteq> 0)"
+apply (cut_tac x = l and y = 0 in linorder_less_linear, auto)
+apply (drule LIM_fun_less_zero)
+apply (drule_tac [3] LIM_fun_gt_zero)
+apply force+
+done
+
 end
