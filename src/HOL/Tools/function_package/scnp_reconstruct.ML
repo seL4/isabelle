@@ -133,7 +133,7 @@ fun rem_inv_img ctxt =
     THEN etac @{thm conjE} 1
     THEN etac @{thm ssubst} 1
     THEN unfold_tac (@{thms split_conv} @ @{thms triv_forall_equality}
-                     @ @{thms Sum_Type.sum_cases})
+                     @ @{thms sum.cases})
   end
 
 (* Sets *)

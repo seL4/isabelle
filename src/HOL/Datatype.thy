@@ -578,7 +578,13 @@ lemma Suml_inject: "Suml f = Suml g ==> f = g"
 lemma Sumr_inject: "Sumr f = Sumr g ==> f = g"
   by (unfold Sumr_def) (erule sum_case_inject)
 
-hide (open) const Suml Sumr
+primrec Projl :: "'a + 'b => 'a"
+where Projl_Inl: "Projl (Inl x) = x"
+
+primrec Projr :: "'a + 'b => 'b"
+where Projr_Inr: "Projr (Inr x) = x"
+
+hide (open) const Suml Sumr Projl Projr
 
 
 subsection {* The option datatype *}
