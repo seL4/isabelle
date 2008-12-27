@@ -59,14 +59,12 @@ class OptionPane extends AbstractOptionPane("isabelle") {
     })
 
     addComponent(property("logic.title"), {
-      val logics : Array[Object] = 
-        (IsabelleSystem.isabelle_tool("findlogics") _1).split("\\s").asInstanceOf[Array[Object]]
-      for (name <- logics) {
+      for (name <- IsabelleSystem.find_logics()) {
         logicName.addItem(name)
         if (name == property("logic"))
           logicName.setSelectedItem(name)
       }
-      
+
       logicName
     })
   }
