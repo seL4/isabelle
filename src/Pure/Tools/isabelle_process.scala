@@ -12,8 +12,6 @@ import java.util.concurrent.LinkedBlockingQueue
 import java.io.{BufferedReader, BufferedWriter, InputStreamReader, OutputStreamWriter,
   InputStream, OutputStream, IOException}
 
-import isabelle.{Symbol, XML}
-
 
 object IsabelleProcess {
 
@@ -69,7 +67,7 @@ object IsabelleProcess {
 
   class Result(val kind: Kind.Value, val props: Properties, val result: String) {
     override def toString = {
-      val res = XML.content(YXML.parse_failsafe(result)).mkString("")
+      val res = XML.content(YXML.parse_failsafe(result)).mkString
       if (props == null) kind.toString + " [[" + res + "]]"
       else kind.toString + " " + props.toString + " [[" + res + "]]"
     }
@@ -81,9 +79,14 @@ object IsabelleProcess {
 }
 
 
-class IsabelleProcess(args: String*) {
+class IsabelleProcess(isabelle_system: IsabelleSystem, args: String*) {
 
   import IsabelleProcess._
+
+
+  /* alternative constructors */
+
+  def this(args: String*) = this(new IsabelleSystem, args: _*)
 
 
   /* process information */
@@ -122,7 +125,7 @@ class IsabelleProcess(args: String*) {
     if (pid == null) put_result(Kind.SYSTEM, null, "Cannot interrupt: unknown pid")
     else {
       try {
-        if (IsabelleSystem.exec("kill", "-INT", pid).waitFor == 0)
+        if (isabelle_system.exec("kill", "-INT", pid).waitFor == 0)
           put_result(Kind.SIGNAL, null, "INT")
         else
           put_result(Kind.SYSTEM, null, "Cannot interrupt: kill command failed")
@@ -185,7 +188,7 @@ class IsabelleProcess(args: String*) {
 
   private class StdinThread(out_stream: OutputStream) extends Thread("isabelle: stdin") {
     override def run() = {
-      val writer = new BufferedWriter(new OutputStreamWriter(out_stream, IsabelleSystem.charset))
+      val writer = new BufferedWriter(new OutputStreamWriter(out_stream, isabelle_system.charset))
       var finished = false
       while (!finished) {
         try {
@@ -215,7 +218,7 @@ class IsabelleProcess(args: String*) {
 
   private class StdoutThread(in_stream: InputStream) extends Thread("isabelle: stdout") {
     override def run() = {
-      val reader = new BufferedReader(new InputStreamReader(in_stream, IsabelleSystem.charset))
+      val reader = new BufferedReader(new InputStreamReader(in_stream, isabelle_system.charset))
       var result = new StringBuilder(100)
 
       var finished = false
@@ -253,7 +256,7 @@ class IsabelleProcess(args: String*) {
 
   private class MessageThread(fifo: String) extends Thread("isabelle: messages") {
     override def run() = {
-      val reader = IsabelleSystem.fifo_reader(fifo)
+      val reader = isabelle_system.fifo_reader(fifo)
       var kind: Kind.Value = null
       var props: Properties = null
       var result = new StringBuilder
@@ -337,7 +340,7 @@ class IsabelleProcess(args: String*) {
     /* isabelle version */
 
     {
-      val (msg, rc) = IsabelleSystem.isabelle_tool("version")
+      val (msg, rc) = isabelle_system.isabelle_tool("version")
       if (rc != 0) error("Version check failed -- bad Isabelle installation:\n" + msg)
       put_result(Kind.SYSTEM, null, msg)
     }
@@ -345,8 +348,8 @@ class IsabelleProcess(args: String*) {
 
     /* message fifo */
 
-    val message_fifo = IsabelleSystem.mk_fifo()
-    def rm_fifo() = IsabelleSystem.rm_fifo(message_fifo)
+    val message_fifo = isabelle_system.mk_fifo()
+    def rm_fifo() = isabelle_system.rm_fifo(message_fifo)
 
     val message_thread = new MessageThread(message_fifo)
     message_thread.start
@@ -356,8 +359,8 @@ class IsabelleProcess(args: String*) {
 
     try {
       val cmdline =
-        List(IsabelleSystem.getenv_strict("ISABELLE_PROCESS"), "-W", message_fifo) ++ args
-      proc = IsabelleSystem.exec2(cmdline: _*)
+        List(isabelle_system.getenv_strict("ISABELLE_PROCESS"), "-W", message_fifo) ++ args
+      proc = isabelle_system.exec2(cmdline: _*)
     }
     catch {
       case e: IOException =>

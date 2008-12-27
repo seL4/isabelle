@@ -12,7 +12,7 @@ import java.io.{BufferedReader, InputStreamReader, FileInputStream, File, IOExce
 import scala.io.Source
 
 
-object IsabelleSystem {
+class IsabelleSystem {
 
   val charset = "UTF-8"
 
@@ -98,7 +98,7 @@ object IsabelleSystem {
       try { exec2((List(getenv_strict("ISABELLE_TOOL")) ++ args): _*) }
       catch { case e: IOException => error(e.getMessage) }
     proc.getOutputStream.close
-    val output = Source.fromInputStream(proc.getInputStream, charset).mkString("")
+    val output = Source.fromInputStream(proc.getInputStream, charset).mkString
     val rc = proc.waitFor
     (output, rc)
   }

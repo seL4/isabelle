@@ -9,7 +9,8 @@ package isabelle
 import java.util.Properties
 
 
-class Isar(args: String*) extends IsabelleProcess(args: _*) {
+class Isar(isabelle_system: IsabelleSystem, args: String*) extends
+    IsabelleProcess(isabelle_system, args: _*) {
 
   /* basic editor commands */
 
