@@ -19,17 +19,19 @@ class IsabelleSystem {
 
   /* Isabelle environment settings */
 
+  private val environment = System.getenv
+
   def getenv(name: String) = {
-    val value = System.getenv(if (name == "HOME") "HOME_JVM" else name)
+    val value = environment.get(if (name == "HOME") "HOME_JVM" else name)
     if (value != null) value else ""
   }
 
   def getenv_strict(name: String) = {
-    val value = getenv(name)
+    val value = environment.get(name)
     if (value != "") value else error("Undefined environment variable: " + name)
   }
 
-  def is_cygwin() = Pattern.matches(".*-cygwin", getenv_strict("ML_PLATFORM"))
+  val is_cygwin = Pattern.matches(".*-cygwin", getenv_strict("ML_PLATFORM"))
 
 
   /* file path specifications */
@@ -80,14 +82,14 @@ class IsabelleSystem {
 
   /* processes */
 
-  private def posix_prefix() = if (is_cygwin()) List(platform_path("/bin/env")) else Nil
-
-  def exec(args: String*): Process = Runtime.getRuntime.exec((posix_prefix() ++ args).toArray)
-
-  def exec2(args: String*): Process = {
+  def execute(redirect: Boolean, args: String*): Process = {
     val cmdline = new java.util.LinkedList[String]
-    for (s <- posix_prefix() ++ args) cmdline.add(s)
-    new ProcessBuilder(cmdline).redirectErrorStream(true).start
+    if (is_cygwin) cmdline.add(platform_path("/bin/env"))
+    for (s <- args) cmdline.add(s)
+
+    val proc = new ProcessBuilder(cmdline)
+    val env = proc.environment; env.clear; env.putAll(environment)
+    proc.redirectErrorStream(redirect).start
   }
 
 
@@ -95,7 +97,7 @@ class IsabelleSystem {
 
   def isabelle_tool(args: String*) = {
     val proc =
-      try { exec2((List(getenv_strict("ISABELLE_TOOL")) ++ args): _*) }
+      try { execute(true, (List(getenv_strict("ISABELLE_TOOL")) ++ args): _*) }
       catch { case e: IOException => error(e.getMessage) }
     proc.getOutputStream.close
     val output = Source.fromInputStream(proc.getInputStream, charset).mkString
@@ -117,10 +119,13 @@ class IsabelleSystem {
     if (rc != 0) error(result)
   }
 
-  def fifo_reader(fifo: String) =  // blocks until writer is ready
-    if (is_cygwin()) new BufferedReader(new InputStreamReader(Runtime.getRuntime.exec(
-      Array(platform_path("/bin/cat"), fifo)).getInputStream, charset))
-    else new BufferedReader(new InputStreamReader(new FileInputStream(fifo), charset))
+  def fifo_reader(fifo: String) = {
+    // blocks until writer is ready
+    val stream =
+      if (is_cygwin) execute(false, "cat", fifo).getInputStream
+      else new FileInputStream(fifo)
+    new BufferedReader(new InputStreamReader(stream, charset))
+  }
 
 
   /* find logics */
