@@ -132,7 +132,7 @@ class Plugin extends EBPlugin {
 
   override def start() {
     Isabelle.system = new IsabelleSystem
-    Isabelle.symbols = new Symbol.Interpretation(system)
+    Isabelle.symbols = new Symbol.Interpretation(Isabelle.system)
     Isabelle.plugin = this
     
     if (Isabelle.property("font-path") != null && Isabelle.property("font-size") != null)

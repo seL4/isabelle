@@ -7,28 +7,26 @@
 
 package isabelle.prover
 
-import scala.collection.mutable.{ HashMap, HashSet }
+import scala.collection.mutable.{HashMap, HashSet}
 
 import java.util.Properties
 
 import javax.swing.SwingUtilities
 
-import isabelle.proofdocument.{ ProofDocument, Text, Token }
+import isabelle.proofdocument.{ProofDocument, Text, Token}
 import isabelle.IsabelleProcess.Result
 import isabelle.YXML.parse_failsafe
-import isabelle.XML.{ Elem, Tree }
-import isabelle.Symbol.Interpretation
-import isabelle.IsabelleSyntax.{ encode_properties, encode_string }
+import isabelle.XML.{Elem, Tree}
+import isabelle.Symbol
+import isabelle.IsabelleSyntax.{encode_properties, encode_string}
 
 import isabelle.utils.EventSource
 
 import Command.Phase
 
-class Prover() {
-  val converter = new Interpretation()
-
-  private var _logic = "HOL"
-  private var process = null : IsabelleProcess
+class Prover(isabelle_system: IsabelleSystem, isabelle_symbols: Symbol.Interpretation) {
+  private var _logic = "HOL"   // FIXME avoid hardwired settings
+  private var process = null: IsabelleProcess
   private var commands = new HashMap[String, Command]
   
   val command_decls = new HashSet[String]
@@ -67,7 +65,7 @@ class Prover() {
           )
         }
         else {
-          val tree = parse_failsafe(converter.decode(r.result))
+          val tree = parse_failsafe(isabelle_symbols.decode(r.result))
           if (st == null || (st.phase != Phase.REMOVED && st.phase != Phase.REMOVE))
           tree match {
             //handle all kinds of status messages here
@@ -155,7 +153,7 @@ class Prover() {
   def start(logic : String) {
     if (logic != null)
       _logic = logic
-    process = new IsabelleProcess("-m", "xsymbols", _logic)
+    process = new IsabelleProcess(isabelle_system, "-m", "xsymbols", _logic)
     workerThread.start
   }
 
@@ -190,7 +188,7 @@ class Prover() {
     props.setProperty("id", cmd.idString)
     props.setProperty("offset", Integer.toString(1))
 
-    val content = converter.encode(document.getContent(cmd))
+    val content = isabelle_symbols.encode(document.getContent(cmd))
     process.output_sync("Isar.command " 
                         + encode_properties(props)
                         + " "

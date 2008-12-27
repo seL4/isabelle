@@ -23,7 +23,7 @@ import javax.swing.{JTextArea, JScrollPane}
 
 class ProverSetup(buffer : JEditBuffer) {
 
-  val prover = new Prover()
+  val prover = new Prover(Isabelle.system, Isabelle.symbols)
   var theory_view : TheoryView = null
   
   private var _selectedState : Command = null

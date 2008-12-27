@@ -163,7 +163,7 @@ class VFS extends io.VFS("isabelle", VFSManager.getVFSForProtocol("file").getCap
   
   override def _createInputStream(session: Object, path: String,
       ignoreErrors: Boolean, comp: Component) =
-    VFS.input_converter(baseVFS._createInputStream(session, cutPath(path), ignoreErrors, comp))
+    VFS.input_converter(Isabelle.system, baseVFS._createInputStream(session, cutPath(path), ignoreErrors, comp))
   
   override def _createOutputStream(session: Object, path: String, comp: Component) =
     new VFS.OutputConverter(baseVFS._createOutputStream(session, cutPath(path), comp))
