@@ -24,8 +24,8 @@ import org.gjt.sp.jedit.io.VFSManager
 object VFS {  
   val BUFFER_SIZE = 1024
   
-  def input_converter(in: InputStream) = {
-    val reader = new InputStreamReader(in, IsabelleSystem.charset)
+  def input_converter(isabelle_system: IsabelleSystem, in: InputStream) = {
+    val reader = new InputStreamReader(in, Isabelle.system.charset)
     val buffer = new StringBuilder
     val array = new Array[Char](BUFFER_SIZE)
     
@@ -39,7 +39,7 @@ object VFS {
     }
 
     val str = Isabelle.symbols.decode(buffer.toString)
-    new ByteArrayInputStream(str.getBytes(IsabelleSystem.charset))
+    new ByteArrayInputStream(str.getBytes(isabelle_system.charset))
   }
   
   class OutputConverter(out: OutputStream) extends ByteArrayOutputStream {

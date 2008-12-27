@@ -15,8 +15,6 @@ import java.awt.event.{ ActionListener, ActionEvent }
 import javax.swing.{ JTextField, JButton, JPanel, JLabel, JFileChooser, 
                      JSpinner, SwingUtilities, JComboBox }
 
-import isabelle.IsabelleSystem
-
 import org.gjt.sp.jedit.AbstractOptionPane
 
 class OptionPane extends AbstractOptionPane("isabelle") {
@@ -59,7 +57,7 @@ class OptionPane extends AbstractOptionPane("isabelle") {
     })
 
     addComponent(property("logic.title"), {
-      for (name <- IsabelleSystem.find_logics()) {
+      for (name <- Isabelle.system.find_logics()) {
         logicName.addItem(name)
         if (name == property("logic"))
           logicName.setSelectedItem(name)

@@ -36,7 +36,8 @@ object Isabelle {
     jEdit.setProperty(OPTION_PREFIX + name, value)
 
 
-  // Isabelle symbols
+  // Isabelle system
+  var system: IsabelleSystem = null
   var symbols: Symbol.Interpretation = null
 
 
@@ -130,7 +131,8 @@ class Plugin extends EBPlugin {
   }
 
   override def start() {
-    Isabelle.symbols = new Symbol.Interpretation
+    Isabelle.system = new IsabelleSystem
+    Isabelle.symbols = new Symbol.Interpretation(system)
     Isabelle.plugin = this
     
     if (Isabelle.property("font-path") != null && Isabelle.property("font-size") != null)
@@ -144,7 +146,8 @@ class Plugin extends EBPlugin {
   
   override def stop() {
     // TODO: proper cleanup
-    Isabelle.plugin = null
     Isabelle.symbols = null
+    Isabelle.system = null
+    Isabelle.plugin = null
   }
 }
