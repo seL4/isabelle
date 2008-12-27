@@ -88,8 +88,10 @@ class IsabelleSystem {
     for (s <- args) cmdline.add(s)
 
     val proc = new ProcessBuilder(cmdline)
-    val env = proc.environment; env.clear; env.putAll(environment)
-    proc.redirectErrorStream(redirect).start
+    proc.environment.clear
+    proc.environment.putAll(environment)
+    proc.redirectErrorStream(redirect)
+    proc.start
   }
 
 
