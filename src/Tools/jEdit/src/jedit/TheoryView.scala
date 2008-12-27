@@ -81,11 +81,11 @@ class TheoryView (text_area : JEditTextArea)
   })
   
   val changesSource = new EventSource[Changed]
-  val phase_overview = new PhaseOverviewPanel(Plugin.prover(buffer))
+  val phase_overview = new PhaseOverviewPanel(Isabelle.prover(buffer))
 
     val repaint_delay = new isabelle.utils.Delay(100, () => repaintAll())
-    Plugin.prover(buffer).commandInfo.add(_ => repaint_delay.delay_or_ignore())
-    Plugin.self.font_changed.add(font => updateFont())
+    Isabelle.prover(buffer).commandInfo.add(_ => repaint_delay.delay_or_ignore())
+    Isabelle.plugin.font_changed.add(font => updateFont())
 
     colTimer.stop
     colTimer.setRepeats(true)
@@ -102,13 +102,13 @@ class TheoryView (text_area : JEditTextArea)
   private def updateFont() {
     if (text_area != null) {
       val painter = text_area.getPainter()
-      if (Plugin.self.font != null) {
+      if (Isabelle.plugin.font != null) {
         painter.setStyles(painter.getStyles.map(style =>
           new SyntaxStyle(style.getForegroundColor, 
                           style.getBackgroundColor, 
-                          Plugin.self.font)
+                          Isabelle.plugin.font)
         ))
-        painter.setFont(Plugin.self.font)
+        painter.setFont(Isabelle.plugin.font)
         repaintAll()
       }
     }
@@ -122,10 +122,10 @@ class TheoryView (text_area : JEditTextArea)
   
   val selectedStateController = new CaretListener() {
     override def caretUpdate(e : CaretEvent) {
-      val cmd = Plugin.prover(buffer).document.getNextCommandContaining(e.getDot())
+      val cmd = Isabelle.prover(buffer).document.getNextCommandContaining(e.getDot())
       if (cmd != null && cmd.start <= e.getDot() && 
-            Plugin.prover_setup(buffer).selectedState != cmd)
-        Plugin.prover_setup(buffer).selectedState = cmd
+            Isabelle.prover_setup(buffer).selectedState != cmd)
+        Isabelle.prover_setup(buffer).selectedState = cmd
     }
   }
 
@@ -149,8 +149,8 @@ class TheoryView (text_area : JEditTextArea)
       var stop = text_area.getLineOfOffset(toCurrent(cmd.stop) - 1)
       text_area.invalidateLineRange(start, stop)
       
-      if (Plugin.prover_setup(buffer).selectedState == cmd)
-        Plugin.prover_setup(buffer).selectedState = cmd // update State view
+      if (Isabelle.prover_setup(buffer).selectedState == cmd)
+        Isabelle.prover_setup(buffer).selectedState = cmd // update State view
     }
   }
   
@@ -181,7 +181,7 @@ class TheoryView (text_area : JEditTextArea)
   {	
     val fm = text_area.getPainter.getFontMetrics
     var savedColor = gfx.getColor
-    var e = Plugin.prover(buffer).document.getNextCommandContaining(fromCurrent(start))
+    var e = Isabelle.prover(buffer).document.getNextCommandContaining(fromCurrent(start))
 
     //Encolor Phase
     while (e != null && toCurrent(e.start) < end) {

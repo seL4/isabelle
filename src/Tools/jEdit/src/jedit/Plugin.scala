@@ -24,7 +24,7 @@ import org.gjt.sp.jedit.textarea.JEditTextArea
 import org.gjt.sp.jedit.msg.{EditPaneUpdate, PropertiesChanged}
 
 
-object Plugin {
+object Isabelle {
   // name
   val NAME = "Isabelle"
   val OPTION_PREFIX = "options.isabelle."
@@ -35,20 +35,21 @@ object Plugin {
   def property(name: String, value: String) = 
     jEdit.setProperty(OPTION_PREFIX + name, value)
 
-  // dynamic instance
-  var self: Plugin = null
+
+  // Isabelle symbols
+  var symbols: Symbol.Interpretation = null
+
+
+  // plugin instance
+  var plugin: Plugin = null
 
   // provers
-  def prover(buffer: JEditBuffer) = self.prover_setup(buffer).get.prover
-  def prover_setup(buffer: JEditBuffer) = self.prover_setup(buffer).get
+  def prover(buffer: JEditBuffer) = plugin.prover_setup(buffer).get.prover
+  def prover_setup(buffer: JEditBuffer) = plugin.prover_setup(buffer).get
 }
 
 
 class Plugin extends EBPlugin {
-
-  // Isabelle symbols
-  val symbols = new Symbol.Interpretation
-
 
   // Isabelle font
 
@@ -129,11 +130,12 @@ class Plugin extends EBPlugin {
   }
 
   override def start() {
-    Plugin.self = this
+    Isabelle.symbols = new Symbol.Interpretation
+    Isabelle.plugin = this
     
-    if (Plugin.property("font-path") != null && Plugin.property("font-size") != null)
+    if (Isabelle.property("font-path") != null && Isabelle.property("font-size") != null)
       try {
-        set_font(Plugin.property("font-path"), Plugin.property("font-size").toFloat)
+        set_font(Isabelle.property("font-path"), Isabelle.property("font-size").toFloat)
       }
       catch {
         case e: NumberFormatException =>
@@ -142,6 +144,7 @@ class Plugin extends EBPlugin {
   
   override def stop() {
     // TODO: proper cleanup
-    Plugin.self = null
+    Isabelle.plugin = null
+    Isabelle.symbols = null
   }
 }

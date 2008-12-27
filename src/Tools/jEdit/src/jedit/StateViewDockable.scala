@@ -64,12 +64,12 @@ class StateViewDockable(view : View, position : String) extends JPanel {
 
   private val fontResolver =
     panel.getSharedContext.getFontResolver.asInstanceOf[AWTFontResolver]
-  if (Plugin.self.font != null)
-    fontResolver.setFontMapping("Isabelle", Plugin.self.font)
+  if (Isabelle.plugin.font != null)
+    fontResolver.setFontMapping("Isabelle", Isabelle.plugin.font)
 
-  Plugin.self.font_changed.add(font => {
-    if (Plugin.self.font != null)
-      fontResolver.setFontMapping("Isabelle", Plugin.self.font)
+  Isabelle.plugin.font_changed.add(font => {
+    if (Isabelle.plugin.font != null)
+      fontResolver.setFontMapping("Isabelle", Isabelle.plugin.font)
 
     panel.relayout()
   })

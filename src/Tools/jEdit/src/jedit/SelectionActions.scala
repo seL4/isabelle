@@ -25,7 +25,7 @@ class SelectionActions extends SelectionHighlighter with KeyListener{
 
   def copyaction {
       val selected_string = getSelectionRange.toString
-      val encoded = Plugin.self.symbols.encode(selected_string)
+      val encoded = Isabelle.symbols.encode(selected_string)
       val clipboard = java.awt.Toolkit.getDefaultToolkit().getSystemClipboard;
       val transferable = new java.awt.datatransfer.StringSelection(selected_string)
       clipboard.setContents(transferable, null)

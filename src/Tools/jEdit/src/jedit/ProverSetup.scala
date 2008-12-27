@@ -40,14 +40,14 @@ class ProverSetup(buffer : JEditBuffer) {
   val output_text_view = new JTextArea("== Isabelle output ==\n")
   
   def activate(view : View) {
-    val logic = Plugin.property("logic")
-    prover.start(if (logic == null) logic else "HOL")
+    val logic = Isabelle.property("logic")
+    prover.start(if (logic == null) logic else "HOL")  // FIXME avoid hardwired logic
     val buffer = view.getBuffer
     val dir = buffer.getDirectory()
 
     theory_view = new TheoryView(view.getTextArea)
     prover.setDocument(theory_view ,
-                       if (dir.startsWith(Plugin.VFS_PREFIX)) dir.substring(Plugin.VFS_PREFIX.length) else dir)
+                       if (dir.startsWith(Isabelle.VFS_PREFIX)) dir.substring(Isabelle.VFS_PREFIX.length) else dir)
     theory_view.activate
     prover.outputInfo.add( text => {
         output_text_view.append(text)
@@ -78,7 +78,7 @@ class ProverSetup(buffer : JEditBuffer) {
     //register for theory-view
 
     // could also use this:
-    // prover.commandInfo.add(c => Plugin.theory_view.repaint(c.command))
+    // prover.commandInfo.add(c => Isabelle.theory_view.repaint(c.command))
 
   }
 

@@ -27,7 +27,7 @@ class IsabelleSideKickParser extends SideKickParser("isabelle") {
     
     val data = new SideKickParsedData(buffer.getName)
     
-    Plugin.self.prover_setup(buffer) match {
+    Isabelle.plugin.prover_setup(buffer) match {
       case None =>
         data.root.add(new DefaultMutableTreeNode("<buffer inactive>"))
       case Some(prover_setup) =>

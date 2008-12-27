@@ -38,13 +38,13 @@ object VFS {
         buffer.append(array, 0, length)
     }
 
-    val str = Plugin.self.symbols.decode(buffer.toString)
+    val str = Isabelle.symbols.decode(buffer.toString)
     new ByteArrayInputStream(str.getBytes(IsabelleSystem.charset))
   }
   
   class OutputConverter(out: OutputStream) extends ByteArrayOutputStream {
     override def close() {
-      out.write(Plugin.self.symbols.encode(new String(buf, 0, count)).getBytes)
+      out.write(Isabelle.symbols.encode(new String(buf, 0, count)).getBytes)
       out.close()
     }
   }
@@ -74,7 +74,7 @@ object VFS {
       base.getName()
 
     override def getPath() =
-      Plugin.VFS_PREFIX + base.getPath()
+      Isabelle.VFS_PREFIX + base.getPath()
 
     override def getSymlinkPath() =
       base.getSymlinkPath()
@@ -131,7 +131,7 @@ class VFS extends io.VFS("isabelle", VFSManager.getVFSForProtocol("file").getCap
   private var baseVFS = VFSManager.getVFSForProtocol("file")
 
   private def cutPath(path: String) = 
-    if (path.startsWith(Plugin.VFS_PREFIX)) path.substring(Plugin.VFS_PREFIX.length)
+    if (path.startsWith(Isabelle.VFS_PREFIX)) path.substring(Isabelle.VFS_PREFIX.length)
     else path
   
   override def createVFSSession(path: String, comp: Component) = 
@@ -144,10 +144,10 @@ class VFS extends io.VFS("isabelle", VFSManager.getVFSForProtocol("file").getCap
     baseVFS.getExtendedAttributes()
   
   override def getParentOfPath(path: String) = 
-    Plugin.VFS_PREFIX + baseVFS.getParentOfPath(cutPath(path))
+    Isabelle.VFS_PREFIX + baseVFS.getParentOfPath(cutPath(path))
   
   override def constructPath(parent: String, path: String) = 
-    Plugin.VFS_PREFIX + baseVFS.constructPath(cutPath(parent), path)
+    Isabelle.VFS_PREFIX + baseVFS.constructPath(cutPath(parent), path)
   
   override def getFileName(path: String) = 
     baseVFS.getFileName(path)
@@ -156,10 +156,10 @@ class VFS extends io.VFS("isabelle", VFSManager.getVFSForProtocol("file").getCap
     baseVFS.getFileSeparator()
   
   override def getTwoStageSaveName(path: String) = 
-    Plugin.VFS_PREFIX + baseVFS.getTwoStageSaveName(cutPath(path))
+    Isabelle.VFS_PREFIX + baseVFS.getTwoStageSaveName(cutPath(path))
   
   override def _canonPath(session: Object, path: String, comp: Component) =
-    Plugin.VFS_PREFIX + baseVFS._canonPath(session, cutPath(path), comp)
+    Isabelle.VFS_PREFIX + baseVFS._canonPath(session, cutPath(path), comp)
   
   override def _createInputStream(session: Object, path: String,
       ignoreErrors: Boolean, comp: Component) =

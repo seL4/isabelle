@@ -175,7 +175,7 @@ class ScrollerDockable(view : View, position : String) extends JPanel with Adjus
 
   
   // TODO: register
-  //Plugin.self.prover.allInfo.add(add_result(_))
+  //Isabelle.plugin.prover.allInfo.add(add_result(_))
 }
 
 //Concrete Implementations
@@ -222,15 +222,15 @@ class ResultToPanelRenderer extends Renderer[Result, XHTMLPanel]{
     val panel = new XHTMLPanel(new UserAgent())
     val fontResolver =
       panel.getSharedContext.getFontResolver.asInstanceOf[AWTFontResolver]
-    if (Plugin.self.font != null)
-      fontResolver.setFontMapping("Isabelle", Plugin.self.font)
+    if (Isabelle.plugin.font != null)
+      fontResolver.setFontMapping("Isabelle", Isabelle.plugin.font)
 
-    Plugin.self.font_changed.add(font => {
-      if (Plugin.self.font != null)
-        fontResolver.setFontMapping("Isabelle", Plugin.self.font)
+    Isabelle.plugin.font_changed.add(font => {
+      if (Isabelle.plugin.font != null)
+        fontResolver.setFontMapping("Isabelle", Isabelle.plugin.font)
       panel.relayout()
     })
-    val tree = parse_failsafe(Plugin.self.symbols.decode(r.result))
+    val tree = parse_failsafe(Isabelle.symbols.decode(r.result))
     val document = XML.document(tree)
     panel.setDocument(document, UserAgent.baseURL)
     val sa = new SelectionActions

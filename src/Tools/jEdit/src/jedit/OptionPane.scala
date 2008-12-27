@@ -20,7 +20,7 @@ import isabelle.IsabelleSystem
 import org.gjt.sp.jedit.AbstractOptionPane
 
 class OptionPane extends AbstractOptionPane("isabelle") {
-  import Plugin.property
+  import Isabelle.property
   
   var pathName = new JTextField()
   var fontSize = new JSpinner()
@@ -77,7 +77,7 @@ class OptionPane extends AbstractOptionPane("isabelle") {
       property("font-size", size.toString)
       SwingUtilities invokeLater new Runnable() {
         override def run() = 
-          Plugin.self.set_font(name, size.asInstanceOf[Integer].intValue)
+          Isabelle.plugin.set_font(name, size.asInstanceOf[Integer].intValue)
       }
     }
     
