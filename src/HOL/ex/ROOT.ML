@@ -56,7 +56,7 @@ use_thys [
   "set",
   "Meson_Test",
   "Code_Antiq",
-  "LexOrds",
+  "Termination",
   "Coherent"
 ];
 
