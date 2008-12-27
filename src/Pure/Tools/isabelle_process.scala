@@ -125,7 +125,7 @@ class IsabelleProcess(isabelle_system: IsabelleSystem, args: String*) {
     if (pid == null) put_result(Kind.SYSTEM, null, "Cannot interrupt: unknown pid")
     else {
       try {
-        if (isabelle_system.exec("kill", "-INT", pid).waitFor == 0)
+        if (isabelle_system.execute(true, "kill", "-INT", pid).waitFor == 0)
           put_result(Kind.SIGNAL, null, "INT")
         else
           put_result(Kind.SYSTEM, null, "Cannot interrupt: kill command failed")
@@ -360,7 +360,7 @@ class IsabelleProcess(isabelle_system: IsabelleSystem, args: String*) {
     try {
       val cmdline =
         List(isabelle_system.getenv_strict("ISABELLE_PROCESS"), "-W", message_fifo) ++ args
-      proc = isabelle_system.exec2(cmdline: _*)
+      proc = isabelle_system.execute(true, cmdline: _*)
     }
     catch {
       case e: IOException =>
