@@ -190,7 +190,7 @@ class TheoryView (text_area: JEditTextArea)
   /* TextAreaExtension methods */
 
   override def paintValidLine(gfx: Graphics2D,
-    screen_line: Int, pl: Int, start: Int, end: Int, y: Int) =
+    screen_line: Int, physical_line: Int, start: Int, end: Int, y: Int) =
   {
     val saved_color = gfx.getColor
 
