@@ -11,7 +11,7 @@ package isabelle.jedit
 
 import isabelle.utils.EventSource
 import isabelle.proofdocument.Text
-import isabelle.prover.{Prover, Command, CommandChangeInfo}
+import isabelle.prover.{Prover, Command}
 import isabelle.prover.Command.Phase
 
 import java.awt.Graphics2D

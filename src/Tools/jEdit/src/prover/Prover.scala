@@ -34,7 +34,7 @@ class Prover(isabelle_system: IsabelleSystem, isabelle_symbols: Symbol.Interpret
   private var initialized = false
     
   val activated = new EventSource[Unit]
-  val commandInfo = new EventSource[CommandChangeInfo]
+  val commandInfo = new EventSource[Command]
   val outputInfo = new EventSource[String]
   val allInfo = new EventSource[Result]
   var document = null : Document
@@ -47,8 +47,7 @@ class Prover(isabelle_system: IsabelleSystem, isabelle_symbols: Symbol.Interpret
     SwingUtilities.invokeLater(new Runnable { def run = body })
 
 
-  def fireChange(c : Command) =
-    swing { commandInfo.fire(new CommandChangeInfo(c)) }
+  def fireChange(c: Command) = swing { commandInfo.fire(c) }
 
   var workerThread = new Thread("isabelle.Prover: worker") {
     override def run() : Unit = {
