@@ -39,8 +39,16 @@ class Prover(isabelle_system: IsabelleSystem, isabelle_symbols: Symbol.Interpret
   val allInfo = new EventSource[Result]
   var document = null : Document
 
+
+  def swing(body: => Unit) =
+    SwingUtilities.invokeAndWait(new Runnable { def run = body })
+
+  def swing_async(body: => Unit) =
+    SwingUtilities.invokeLater(new Runnable { def run = body })
+
+
   def fireChange(c : Command) =
-    inUIThread(() => commandInfo.fire(new CommandChangeInfo(c)))
+    swing { commandInfo.fire(new CommandChangeInfo(c)) }
 
   var workerThread = new Thread("isabelle.Prover: worker") {
     override def run() : Unit = {
@@ -54,15 +62,15 @@ class Prover(isabelle_system: IsabelleSystem, isabelle_symbols: Symbol.Interpret
           return
         else if (r.kind == IsabelleProcess.Kind.STDOUT 
                  || r.kind == IsabelleProcess.Kind.STDIN)
-          inUIThread(() => outputInfo.fire(r.result))
+          swing { outputInfo.fire(r.result) }
         else if (r.kind == IsabelleProcess.Kind.WRITELN && !initialized) {
           initialized = true
-          inUIThread(() => 
+          swing {
             if (document != null) {
               document.activate()
               activated.fire(())
             }
-          )
+          }
         }
         else {
           val tree = parse_failsafe(isabelle_symbols.decode(r.result))
@@ -159,12 +167,6 @@ class Prover(isabelle_system: IsabelleSystem, isabelle_symbols: Symbol.Interpret
 
   def stop() {
     process.kill
-  }
-  
-  private def inUIThread(runnable : () => Unit) {
-    SwingUtilities invokeAndWait new Runnable() {
-      override def run() { runnable () }
-    }
   }
   
   def setDocument(text : Text, path : String) {
