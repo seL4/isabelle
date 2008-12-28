@@ -93,6 +93,10 @@ object Markup {
   val CONTROL = "control"
   val MALFORMED = "malformed"
 
+  val COMMAND_SPAN = "command_span"
+  val IGNORED_SPAN = "ignored_span"
+  val MALFORMED_SPAN = "malformed_span"
+
 
   /* toplevel */
 
