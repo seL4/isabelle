@@ -111,7 +111,7 @@ class Prover(isabelle_system: IsabelleSystem, isabelle_symbols: Symbol.Interpret
                     st.phase = Phase.FAILED
                     fireChange(st)
                   case Elem("removed", _, _) =>
-                    document.prover.commands.removeKey(st.idString)
+                    document.prover.commands.removeKey(st.id)
                     st.phase = Phase.REMOVED
                     fireChange(st)
                   case _ =>
@@ -134,19 +134,19 @@ class Prover(isabelle_system: IsabelleSystem, isabelle_symbols: Symbol.Interpret
       case IsabelleProcess.Kind.ERROR => 
         if (st.phase != Phase.REMOVED && st.phase != Phase.REMOVE)
           st.phase = Phase.FAILED
-        st.addResult(tree)
+        st.add_result(tree)
         fireChange(st)
         
       case IsabelleProcess.Kind.WRITELN =>
-        st.addResult(tree)
+        st.add_result(tree)
         fireChange(st)
         
       case IsabelleProcess.Kind.PRIORITY =>
-        st.addResult(tree)
+        st.add_result(tree)
         fireChange(st)
 
       case IsabelleProcess.Kind.WARNING =>
-        st.addResult(tree)
+        st.add_result(tree)
         fireChange(st)
               
       case IsabelleProcess.Kind.STATUS =>
@@ -184,11 +184,11 @@ class Prover(isabelle_system: IsabelleSystem, isabelle_symbols: Symbol.Interpret
   }
   
   private def send(cmd : Command) {
-    commands.put(cmd.idString, cmd)
+    commands.put(cmd.id, cmd)
     
-    val props = new Properties()
-    props.setProperty("id", cmd.idString)
-    props.setProperty("offset", Integer.toString(1))
+    val props = new Properties
+    props.setProperty("id", cmd.id)
+    props.setProperty("offset", "1")
 
     val content = isabelle_symbols.encode(document.getContent(cmd))
     process.output_sync("Isar.command " 
@@ -198,15 +198,15 @@ class Prover(isabelle_system: IsabelleSystem, isabelle_symbols: Symbol.Interpret
     
     process.output_sync("Isar.insert "
                         + encode_string(if (cmd.previous == null) "" 
-                                        else cmd.previous.idString)
+                                        else cmd.previous.id)
                         + " "
-                        + encode_string(cmd.idString))
+                        + encode_string(cmd.id))
     
     cmd.phase = Phase.UNPROCESSED
   }
   
   def remove(cmd : Command) {
     cmd.phase = Phase.REMOVE
-    process.output_sync("Isar.remove " + encode_string(cmd.idString))
+    process.output_sync("Isar.remove " + encode_string(cmd.id))
   }
 }

@@ -33,7 +33,7 @@ class Document(text : Text, val prover : Prover) extends ProofDocument[Command](
     }
   }
 
-  def getContent(cmd : Command) = text.content(cmd.properStart, cmd.properStop)
+  def getContent(cmd : Command) = text.content(cmd.proper_start, cmd.proper_stop)
 
   def getNextCommandContaining(pos : Int) : Command = {
     for( cmd <- commands()) { if (pos < cmd.stop) return cmd }
