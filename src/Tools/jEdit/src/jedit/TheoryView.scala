@@ -3,6 +3,7 @@
  *
  * @author Fabian Immler, TU Munich
  * @author Johannes Hölzl, TU Munich
+ * @author Makarius
  */
 
 package isabelle.jedit
@@ -13,11 +14,11 @@ import isabelle.proofdocument.Text
 import isabelle.prover.{Prover, Command, CommandChangeInfo}
 import isabelle.prover.Command.Phase
 
-import javax.swing.Timer
-import javax.swing.event.{CaretListener, CaretEvent}
 import java.awt.Graphics2D
 import java.awt.event.{ActionEvent, ActionListener}
 import java.awt.Color
+import javax.swing.Timer
+import javax.swing.event.{CaretListener, CaretEvent}
 
 import org.gjt.sp.jedit.buffer.{BufferListener, JEditBuffer}
 import org.gjt.sp.jedit.textarea.{JEditTextArea, TextAreaExtension, TextAreaPainter}
