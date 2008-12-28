@@ -38,29 +38,31 @@ object TheoryView {
       }
   }
 
-  def chooseColor(status : String) : Color = {
+  def chooseColor(status : String): Color = {
     //TODO: as properties!
     status match {
-      //outer
-      case "ident" | "command" | "keyword" => Color.blue
-      case "verbatim"=> Color.green
-      case "comment" => Color.gray
-      case "control" => Color.white
-      case "malformed" => Color.red
-      case "string" | "altstring" => Color.orange
-      //logical
-      case "tclass" | "tycon" | "fixed_decl"  | "fixed"
-        | "const_decl" | "const" | "fact_decl" | "fact"
-        |"dynamic_fact" |"local_fact_decl" | "local_fact"
-        => new Color(255, 0, 255)
-      //inner syntax
-      case "tfree" | "free" => Color.blue
-      case "tvar" | "skolem" | "bound" | "var" => Color.green
-      case "num" | "xnum" | "xstr" | "literal" | "inner_comment" => new Color(255, 128, 128)
-      case "sort" | "typ" | "term" | "prop" | "attribute" | "method"  => Color.yellow
-        // embedded source
-      case "doc_source"  | "ML_source" | "ML_antic" | "doc_antiq" | "antiq"
-        => new Color(0, 192, 0)
+      // logical entities
+      case Markup.TCLASS | Markup.TYCON | Markup.FIXED_DECL | Markup.FIXED | Markup.CONST_DECL
+        | Markup.CONST | Markup.FACT_DECL | Markup.FACT | Markup.DYNAMIC_FACT
+        | Markup.LOCAL_FACT_DECL | Markup.LOCAL_FACT => new Color(255, 0, 255)
+      // inner syntax
+      case Markup.TFREE | Markup.FREE => Color.blue
+      case Markup.TVAR | Markup.SKOLEM | Markup.BOUND | Markup.VAR => Color.green
+      case Markup.NUM | Markup.FLOAT | Markup.XNUM | Markup.XSTR | Markup.LITERAL
+        | Markup.INNER_COMMENT => new Color(255, 128, 128)
+      case Markup.SORT | Markup.TYP | Markup.TERM | Markup.PROP
+        | Markup.ATTRIBUTE | Markup.METHOD  => Color.yellow
+      // embedded source text
+      case Markup.ML_SOURCE | Markup.DOC_SOURCE | Markup.ANTIQ | Markup.ML_ANTIQ
+        | Markup.DOC_ANTIQ => new Color(0, 192, 0)
+      // outer syntax
+      case Markup.IDENT | Markup.COMMAND | Markup.KEYWORD => Color.blue
+      case Markup.VERBATIM => Color.green
+      case Markup.COMMENT => Color.gray
+      case Markup.CONTROL => Color.white
+      case Markup.MALFORMED => Color.red
+      case Markup.STRING | Markup.ALTSTRING => Color.orange
+      // other
       case _ => Color.white
     }
   }
