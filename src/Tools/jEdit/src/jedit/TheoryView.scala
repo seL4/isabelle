@@ -28,12 +28,11 @@ import org.gjt.sp.jedit.syntax.SyntaxStyle
 object TheoryView {
 
   def choose_color(state: Command): Color = {
-    if (state == null)
-      Color.red
+    if (state == null) Color.red
     else
       state.phase match {
-        case Phase.UNPROCESSED => new Color(255, 255, 192)
-        case Phase.FINISHED => new Color(192, 255, 192)
+        case Phase.UNPROCESSED => new Color(255, 228, 225)
+        case Phase.FINISHED => new Color(234, 248, 255)
         case Phase.FAILED => new Color(255, 192, 192)
         case _ => Color.red
       }
