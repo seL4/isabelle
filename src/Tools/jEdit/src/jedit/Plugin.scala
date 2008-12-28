@@ -69,6 +69,12 @@ class Plugin extends EBPlugin {
   }
 
 
+  /* unique ids */  // FIXME specific to "session" (!??)
+
+  private var id_count: BigInt = 0
+  def id() : String = synchronized { id_count += 1; "editor:" + id_count }
+
+
   // mapping buffer <-> prover
 
   private val mapping = new HashMap[JEditBuffer, ProverSetup]
