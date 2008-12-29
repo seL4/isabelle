@@ -6,7 +6,7 @@
 header{*Theory of Integration*}
 
 theory Integration
-imports MacLaurin
+imports Deriv
 begin
 
 text{*We follow John Harrison in formalizing the Gauge integral.*}
