@@ -16,13 +16,15 @@ object XML
 
   type Attributes = List[(String, String)]
 
-  abstract class Tree
-  case class Elem(name: String, attributes: Attributes, body: List[Tree]) extends Tree {
-    override def toString = append_tree(this, new StringBuilder).toString
+  abstract class Tree {
+    override def toString = {
+      val s = new StringBuilder
+      append_tree(this, s)
+      s.toString
+    }
   }
-  case class Text(content: String) extends Tree {
-    override def toString = append_tree(this, new StringBuilder).toString
-  }
+  case class Elem(name: String, attributes: Attributes, body: List[Tree]) extends Tree
+  case class Text(content: String) extends Tree
 
 
   /* string representation */
@@ -34,7 +36,7 @@ object XML
       case '&' => s.append("&amp;")
       case '"' => s.append("&quot;")
       case '\'' => s.append("&apos;")
-      case _   => s.append(c)
+      case _ => s.append(c)
     }
   }
 
@@ -45,7 +47,7 @@ object XML
     }
   }
 
-  private def append_tree(tree: Tree, s: StringBuilder): StringBuilder = {
+  private def append_tree(tree: Tree, s: StringBuilder) {
     tree match {
       case Elem(name, atts, Nil) =>
         s.append("<"); append_elem(name, atts, s); s.append("/>")
@@ -55,7 +57,6 @@ object XML
         s.append("</"); s.append(name); s.append(">")
       case Text(text) => append_text(text, s)
     }
-    s
   }
 
 
