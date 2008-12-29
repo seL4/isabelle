@@ -24,7 +24,7 @@ class PhaseOverviewPanel(prover : isabelle.prover.Prover) extends JPanel(new Bor
   var textarea : JEditTextArea = null
 
   val repaint_delay = new isabelle.utils.Delay(100, () => repaint())
-    prover.commandInfo.add(cc => repaint_delay.delay_or_ignore())
+  prover.command_info += (_ => repaint_delay.delay_or_ignore())
     
   setRequestFocusEnabled(false);
 

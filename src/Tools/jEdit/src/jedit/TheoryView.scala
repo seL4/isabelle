@@ -9,7 +9,6 @@
 package isabelle.jedit
 
 
-import isabelle.utils.EventSource
 import isabelle.proofdocument.Text
 import isabelle.prover.{Prover, Command}
 import isabelle.prover.Command.Phase
@@ -86,13 +85,13 @@ class TheoryView (text_area: JEditTextArea)
   col_timer.setRepeats(true)
 
 
-  private val changes_source = new EventSource[Text.Changed]
+  private val changes_bus = new EventBus[Text.Changed]
   private val phase_overview = new PhaseOverviewPanel(Isabelle.prover(buffer))
 
 
   /* activation */
 
-  Isabelle.plugin.font_changed.add(font => update_font())
+  Isabelle.plugin.font_changed += (_ => update_font())
 
   private def update_font() = {
     if (text_area != null) {
@@ -111,8 +110,8 @@ class TheoryView (text_area: JEditTextArea)
     override def caretUpdate(e: CaretEvent) = {
       val cmd = Isabelle.prover(buffer).document.getNextCommandContaining(e.getDot)
       if (cmd != null && cmd.start <= e.getDot &&
-          Isabelle.prover_setup(buffer).selectedState != cmd)
-        Isabelle.prover_setup(buffer).selectedState = cmd
+          Isabelle.prover_setup(buffer).selected_state != cmd)
+        Isabelle.prover_setup(buffer).selected_state = cmd
     }
   }
 
@@ -134,7 +133,7 @@ class TheoryView (text_area: JEditTextArea)
   /* painting */
 
   val repaint_delay = new isabelle.utils.Delay(100, () => repaint_all())
-  Isabelle.prover(buffer).commandInfo.add(_ => repaint_delay.delay_or_ignore())
+  Isabelle.prover(buffer).command_info += (_ => repaint_delay.delay_or_ignore())
 
   private def from_current(pos: Int) =
     if (col != null && col.start <= pos)
@@ -156,8 +155,8 @@ class TheoryView (text_area: JEditTextArea)
       val stop = text_area.getLineOfOffset(to_current(cmd.stop) - 1)
       text_area.invalidateLineRange(start, stop)
 
-      if (Isabelle.prover_setup(buffer).selectedState == cmd)
-        Isabelle.prover_setup(buffer).selectedState = cmd  // update State view
+      if (Isabelle.prover_setup(buffer).selected_state == cmd)
+        Isabelle.prover_setup(buffer).selected_state = cmd  // update State view
     }
   }
 
@@ -223,7 +222,7 @@ class TheoryView (text_area: JEditTextArea)
 
   def content(start: Int, stop: Int) = buffer.getText(start, stop - start)
   def length = buffer.getLength
-  def changes = changes_source
+  def changes = changes_bus
 
 
 
@@ -231,7 +230,7 @@ class TheoryView (text_area: JEditTextArea)
 
   private def commit() {
     if (col != null)
-      changes.fire(col)
+      changes.event(col)
     col = null
     if (col_timer.isRunning())
       col_timer.stop()

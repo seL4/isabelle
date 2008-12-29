@@ -10,15 +10,12 @@ package isabelle.prover
 
 
 import java.util.Properties
-import javax.swing.SwingUtilities
 
 import scala.collection.mutable.{HashMap, HashSet}
 
-import isabelle.proofdocument.{ProofDocument, Text, Token}
-import isabelle.{Symbol, IsabelleSyntax}
-import isabelle.utils.EventSource
+import org.gjt.sp.util.Log
 
-import Command.Phase
+import isabelle.proofdocument.{ProofDocument, Text, Token}
 
 
 class Prover(isabelle_system: IsabelleSystem, isabelle_symbols: Symbol.Interpretation)
@@ -31,39 +28,32 @@ class Prover(isabelle_system: IsabelleSystem, isabelle_symbols: Symbol.Interpret
   val keyword_decls = new HashSet[String]
   private var initialized = false
 
-  val activated = new EventSource[Unit]
-  val commandInfo = new EventSource[Command]
-  val outputInfo = new EventSource[String]
+  val activated = new EventBus[Unit]
+  val command_info = new EventBus[Command]
+  val output_info = new EventBus[String]
   var document: Document = null
 
 
-  def swing(body: => Unit) =
-    SwingUtilities.invokeAndWait(new Runnable { def run = body })
-
-  def swing_async(body: => Unit) =
-    SwingUtilities.invokeLater(new Runnable { def run = body })
-
-
-  def fireChange(c: Command) = swing { commandInfo.fire(c) }
+  def command_change(c: Command) = Swing.now { command_info.event(c) }
 
   private def handle_result(r: IsabelleProcess.Result) = {
     val id = if (r.props != null) r.props.getProperty(Markup.ID) else null
     val st = if (id != null) commands.getOrElse(id, null) else null
 
     if (r.kind == IsabelleProcess.Kind.STDOUT || r.kind == IsabelleProcess.Kind.STDIN)
-      swing { outputInfo.fire(r.result) }
+      Swing.now { output_info.event(r.result) }
     else if (r.kind == IsabelleProcess.Kind.WRITELN && !initialized) {
       initialized = true
-      swing {
+      Swing.now {
         if (document != null) {
           document.activate()
-          activated.fire(())
+          activated.event(())
         }
       }
     }
     else {
       val tree = YXML.parse_failsafe(isabelle_symbols.decode(r.result))
-      if (st == null || (st.phase != Phase.REMOVED && st.phase != Phase.REMOVE)) {
+      if (st == null || (st.phase != Command.Phase.REMOVED && st.phase != Command.Phase.REMOVE)) {
         r.kind match {
 
           case IsabelleProcess.Kind.STATUS =>
@@ -75,24 +65,24 @@ class Prover(isabelle_system: IsabelleSystem, isabelle_symbols: Symbol.Interpret
                     //{{{
                     // command status
                     case XML.Elem(Markup.FINISHED, _, _) =>
-                      st.phase = Phase.FINISHED
-                      fireChange(st)
+                      st.phase = Command.Phase.FINISHED
+                      command_change(st)
                     case XML.Elem(Markup.UNPROCESSED, _, _) =>
-                      st.phase = Phase.UNPROCESSED
-                      fireChange(st)
+                      st.phase = Command.Phase.UNPROCESSED
+                      command_change(st)
                     case XML.Elem(Markup.FAILED, _, _) =>
-                      st.phase = Phase.FAILED
-                      fireChange(st)
+                      st.phase = Command.Phase.FAILED
+                      command_change(st)
                     case XML.Elem(Markup.DISPOSED, _, _) =>
                       document.prover.commands.removeKey(st.id)
-                      st.phase = Phase.REMOVED
-                      fireChange(st)
+                      st.phase = Command.Phase.REMOVED
+                      command_change(st)
 
                     // command and keyword declarations
-                    case XML.Elem(Markup.COMMAND_DECL, List((Markup.NAME, name), (Markup.KIND, _)), _) =>
-                      command_decls.addEntry(name)
-                    case XML.Elem(Markup.KEYWORD_DECL, List((Markup.NAME, name)), _) =>
-                      keyword_decls.addEntry(name)
+                    case XML.Elem(Markup.COMMAND_DECL, (Markup.NAME, name) :: _, _) =>
+                      command_decls += name
+                    case XML.Elem(Markup.KEYWORD_DECL, (Markup.NAME, name) :: _, _) =>
+                      keyword_decls += name
 
                     // other markup
                     case XML.Elem(kind,
@@ -117,15 +107,15 @@ class Prover(isabelle_system: IsabelleSystem, isabelle_symbols: Symbol.Interpret
             //}}}
 
           case IsabelleProcess.Kind.ERROR if st != null =>
-            if (st.phase != Phase.REMOVED && st.phase != Phase.REMOVE)
-              st.phase = Phase.FAILED
+            if (st.phase != Command.Phase.REMOVED && st.phase != Command.Phase.REMOVE)
+              st.phase = Command.Phase.FAILED
             st.add_result(tree)
-            fireChange(st)
+            command_change(st)
 
           case IsabelleProcess.Kind.WRITELN | IsabelleProcess.Kind.PRIORITY
             | IsabelleProcess.Kind.WARNING if st != null =>
             st.add_result(tree)
-            fireChange(st)
+            command_change(st)
 
           case _ =>
         }
@@ -135,8 +125,12 @@ class Prover(isabelle_system: IsabelleSystem, isabelle_symbols: Symbol.Interpret
 
 
   def start(logic: String) {
-    val results = new EventBus[IsabelleProcess.Result] + handle_result
     if (logic != null) _logic = logic
+
+    val results = new EventBus[IsabelleProcess.Result]
+    results += handle_result
+    results.logger = Log.log(Log.ERROR, null, _)
+
     process = new Isar(isabelle_system, results, "-m", "xsymbols", _logic)
   }
 
@@ -144,22 +138,22 @@ class Prover(isabelle_system: IsabelleSystem, isabelle_symbols: Symbol.Interpret
     process.kill
   }
 
-  def setDocument(text: Text, path: String) {
+  def set_document(text: Text, path: String) {
     this.document = new Document(text, this)
     process.ML("ThyLoad.add_path " + IsabelleSyntax.encode_string(path))
 
-    document.structuralChanges.add(changes => {
+    document.structural_changes += (changes => {
       for (cmd <- changes.removedCommands) remove(cmd)
       for (cmd <- changes.addedCommands) send(cmd)
     })
     if (initialized) {
       document.activate()
-      activated.fire(())
+      activated.event(())
     }
   }
 
   private def send(cmd: Command) {
-    cmd.phase = Phase.UNPROCESSED
+    cmd.phase = Command.Phase.UNPROCESSED
     commands.put(cmd.id, cmd)
 
     val props = new Properties
@@ -172,7 +166,7 @@ class Prover(isabelle_system: IsabelleSystem, isabelle_symbols: Symbol.Interpret
   }
 
   def remove(cmd: Command) {
-    cmd.phase = Phase.REMOVE
+    cmd.phase = Command.Phase.REMOVE
     process.remove_command(cmd.id)
   }
 }

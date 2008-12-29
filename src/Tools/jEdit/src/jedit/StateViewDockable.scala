@@ -66,7 +66,7 @@ class StateViewDockable(view : View, position : String) extends JPanel {
   if (Isabelle.plugin.font != null)
     fontResolver.setFontMapping("Isabelle", Isabelle.plugin.font)
 
-  Isabelle.plugin.font_changed.add(font => {
+  Isabelle.plugin.font_changed += (font => {
     if (Isabelle.plugin.font != null)
       fontResolver.setFontMapping("Isabelle", Isabelle.plugin.font)
 

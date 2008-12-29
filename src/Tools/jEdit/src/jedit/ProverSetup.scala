@@ -7,7 +7,6 @@
 package isabelle.jedit
 
 
-import isabelle.utils.EventSource
 import isabelle.prover.{Prover, Command}
 import isabelle.renderer.UserAgent
 
@@ -21,34 +20,30 @@ import org.gjt.sp.jedit.msg.{EditPaneUpdate, PropertiesChanged}
 import javax.swing.{JTextArea, JScrollPane}
 
 
-class ProverSetup(buffer : JEditBuffer) {
-
+class ProverSetup(buffer: JEditBuffer)
+{
   val prover = new Prover(Isabelle.system, Isabelle.symbols)
-  var theory_view : TheoryView = null
-  
-  private var _selectedState : Command = null
+  var theory_view: TheoryView = null
 
-  val stateUpdate = new EventSource[Command]
+  val state_update = new EventBus[Command]
 
-  def selectedState = _selectedState
-  def selectedState_=(newState : Command) {
-    _selectedState = newState
-    stateUpdate fire newState
-  }
+  private var _selected_state: Command = null
+  def selected_state = _selected_state
+  def selected_state_=(state: Command) { _selected_state = state; state_update.event(state) }
 
-  val output_text_view = new JTextArea("== Isabelle output ==\n")
-  
-  def activate(view : View) {
-    val logic = Isabelle.property("logic")
-    prover.start(if (logic == null) logic else "HOL")  // FIXME avoid hardwired logic
+  val output_text_view = new JTextArea
+
+  def activate(view: View) {
+    prover.start(Isabelle.property("logic"))
     val buffer = view.getBuffer
-    val dir = buffer.getDirectory()
+    val dir = buffer.getDirectory
 
     theory_view = new TheoryView(view.getTextArea)
-    prover.setDocument(theory_view ,
-                       if (dir.startsWith(Isabelle.VFS_PREFIX)) dir.substring(Isabelle.VFS_PREFIX.length) else dir)
+    prover.set_document(theory_view,
+        if (dir.startsWith(Isabelle.VFS_PREFIX)) dir.substring(Isabelle.VFS_PREFIX.length) else dir)
     theory_view.activate
-    prover.outputInfo.add( text => {
+    prover.output_info += (text =>
+      {
         output_text_view.append(text)
         val dockable = view.getDockableWindowManager.getDockable("isabelle-output")
         //link process output if dockable is active
@@ -61,19 +56,21 @@ class ProverSetup(buffer : JEditBuffer) {
           }
         }
       })
-    
+
     //register for state-view
-    stateUpdate.add(state => {
+    state_update += (state => {
       val state_view = view.getDockableWindowManager.getDockable("isabelle-state")
-      val state_panel = if(state_view != null) state_view.asInstanceOf[StateViewDockable].panel else null
-      if(state_panel != null){
+      val state_panel =
+        if (state_view != null) state_view.asInstanceOf[StateViewDockable].panel
+        else null
+      if (state_panel != null){
         if (state == null)
-          state_panel.setDocument(null : Document)
+          state_panel.setDocument(null: Document)
         else
           state_panel.setDocument(state.results_xml, UserAgent.baseURL)
       }
     })
- 
+
     //register for theory-view
 
     // could also use this:

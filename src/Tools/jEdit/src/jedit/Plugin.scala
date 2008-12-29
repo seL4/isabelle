@@ -14,7 +14,6 @@ import javax.swing.JScrollPane
 
 import scala.collection.mutable.HashMap
 
-import isabelle.utils.EventSource
 import isabelle.prover.{Prover, Command}
 import isabelle.{IsabelleSystem, Symbol}
 
@@ -55,17 +54,12 @@ class Plugin extends EBPlugin {
   // Isabelle font
 
   var font: Font = null
-  val font_changed = new EventSource[Font]
+  val font_changed = new EventBus[Font]
 
   def set_font(path: String, size: Float) {
-    try {
-      font = Font.createFont(Font.TRUETYPE_FONT, new FileInputStream(path)).
-        deriveFont(Font.PLAIN, size)
-      font_changed.fire(font)
-    }
-    catch {
-      case e: IOException =>
-    }
+    font = Font.createFont(Font.TRUETYPE_FONT, new FileInputStream(path)).
+      deriveFont(Font.PLAIN, size)
+    font_changed.event(font)
   }
 
 

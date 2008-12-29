@@ -8,8 +8,6 @@ package isabelle.jedit
 
 
 import isabelle.IsabelleProcess.Result
-import isabelle.YXML.parse_failsafe
-import isabelle.utils.EventSource
 import isabelle.renderer.UserAgent
 
 
@@ -225,12 +223,12 @@ class ResultToPanelRenderer extends Renderer[Result, XHTMLPanel]{
     if (Isabelle.plugin.font != null)
       fontResolver.setFontMapping("Isabelle", Isabelle.plugin.font)
 
-    Isabelle.plugin.font_changed.add(font => {
+    Isabelle.plugin.font_changed += (font => {
       if (Isabelle.plugin.font != null)
         fontResolver.setFontMapping("Isabelle", Isabelle.plugin.font)
       panel.relayout()
     })
-    val tree = parse_failsafe(Isabelle.symbols.decode(r.result))
+    val tree = YXML.parse_failsafe(Isabelle.symbols.decode(r.result))
     val document = XML.document(tree)
     panel.setDocument(document, UserAgent.baseURL)
     val sa = new SelectionActions
