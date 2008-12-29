@@ -1,11 +1,9 @@
-(*  Title:       Fundamental_Theorem_Algebra.thy
-    Author:      Amine Chaieb
-*)
+(* Author: Amine Chaieb, TU Muenchen *)
 
 header{*Fundamental Theorem of Algebra*}
 
 theory Fundamental_Theorem_Algebra
-imports "~~/src/HOL/Univ_Poly" "~~/src/HOL/Library/Dense_Linear_Order" "~~/src/HOL/Complex"
+imports Univ_Poly Dense_Linear_Order Complex
 begin
 
 subsection {* Square root of complex numbers *}

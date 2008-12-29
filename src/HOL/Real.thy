@@ -1,5 +1,5 @@
 theory Real
-imports RComplete "~~/src/HOL/Real/RealVector"
+imports RComplete RealVector
 begin
 
 end

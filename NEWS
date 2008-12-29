@@ -157,11 +157,12 @@ syntax just like the Isar command 'by'.
 
 *** HOL ***
 
-* Made repository layout more coherent with logical
-distribution structure:
+* Made source layout more coherent with logical distribution
+structure:
 
     src/HOL/Library/RType.thy ~> src/HOL/Typerep.thy
     src/HOL/Library/Code_Message.thy ~> src/HOL/
+    src/HOL/Library/Dense_Linear_Order.thy ~> src/HOL/
     src/HOL/Library/GCD.thy ~> src/HOL/
     src/HOL/Library/Order_Relation.thy ~> src/HOL/
     src/HOL/Library/Parity.thy ~> src/HOL/
@@ -177,6 +178,7 @@ distribution structure:
     src/HOL/Complex/Complex_Main.thy ~> src/HOL/
     src/HOL/Complex/Complex.thy ~> src/HOL/
     src/HOL/Complex/FrechetDeriv.thy ~> src/HOL/
+    src/HOL/Complex/Fundamental_Theorem_Algebra.thy ~> src/HOL/
     src/HOL/Hyperreal/Deriv.thy ~> src/HOL/
     src/HOL/Hyperreal/Fact.thy ~> src/HOL/
     src/HOL/Hyperreal/Integration.thy ~> src/HOL/
@@ -186,9 +188,12 @@ distribution structure:
     src/HOL/Hyperreal/MacLaurin.thy ~> src/HOL/
     src/HOL/Hyperreal/NthRoot.thy ~> src/HOL/
     src/HOL/Hyperreal/Series.thy ~> src/HOL/
+    src/HOL/Hyperreal/SEQ.thy ~> src/HOL/
     src/HOL/Hyperreal/Taylor.thy ~> src/HOL/
     src/HOL/Hyperreal/Transcendental.thy ~> src/HOL/
     src/HOL/Real/Float ~> src/HOL/Library/
+    src/HOL/Real/HahnBanach ~> src/HOL/HahnBanach
+    src/HOL/Real/RealVector.thy ~> src/HOL/
 
     src/HOL/arith_data.ML ~> src/HOL/Tools
     src/HOL/hologic.ML ~> src/HOL/Tools

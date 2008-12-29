@@ -7,7 +7,7 @@
 header{* Limits and Continuity *}
 
 theory Lim
-imports "~~/src/HOL/Hyperreal/SEQ"
+imports SEQ
 begin
 
 text{*Standard Definitions*}
