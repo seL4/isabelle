@@ -83,7 +83,7 @@ class IsabelleProcess(isabelle_system: IsabelleSystem,
   results: EventBus[IsabelleProcess.Result], args: String*)
 {
   import IsabelleProcess._
-  
+
 
   /* demo constructor */
 
@@ -359,12 +359,6 @@ class IsabelleProcess(isabelle_system: IsabelleSystem,
     }
 
 
-    /* results */
-
-    val result_thread = new ResultThread
-    result_thread.start
-    
-
     /* messages */
 
     val message_fifo = isabelle_system.mk_fifo()
@@ -372,6 +366,8 @@ class IsabelleProcess(isabelle_system: IsabelleSystem,
 
     val message_thread = new MessageThread(message_fifo)
     message_thread.start
+
+    new ResultThread().start
 
 
     /* exec process */
