@@ -25,6 +25,8 @@ object Markup {
   val FILE = "file"
   val ID = "id"
 
+  val POSITION_PROPERTIES = Set(LINE, COLUMN, OFFSET, END_LINE, END_COLUMN, END_OFFSET, FILE, ID)
+
   val POSITION = "position"
   val LOCATION = "location"
 
