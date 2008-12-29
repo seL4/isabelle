@@ -53,7 +53,7 @@ class Prover(isabelle_system: IsabelleSystem, isabelle_symbols: Symbol.Interpret
     }
     else {
       val tree = YXML.parse_failsafe(isabelle_symbols.decode(r.result))
-      if (st == null || (st.phase != Command.Phase.REMOVED && st.phase != Command.Phase.REMOVE)) {
+      if (st == null || (st.status != Command.Status.REMOVED && st.status != Command.Status.REMOVE)) {
         r.kind match {
 
           case IsabelleProcess.Kind.STATUS =>
@@ -65,17 +65,17 @@ class Prover(isabelle_system: IsabelleSystem, isabelle_symbols: Symbol.Interpret
                     //{{{
                     // command status
                     case XML.Elem(Markup.FINISHED, _, _) =>
-                      st.phase = Command.Phase.FINISHED
+                      st.status = Command.Status.FINISHED
                       command_change(st)
                     case XML.Elem(Markup.UNPROCESSED, _, _) =>
-                      st.phase = Command.Phase.UNPROCESSED
+                      st.status = Command.Status.UNPROCESSED
                       command_change(st)
                     case XML.Elem(Markup.FAILED, _, _) =>
-                      st.phase = Command.Phase.FAILED
+                      st.status = Command.Status.FAILED
                       command_change(st)
                     case XML.Elem(Markup.DISPOSED, _, _) =>
                       document.prover.commands.removeKey(st.id)
-                      st.phase = Command.Phase.REMOVED
+                      st.status = Command.Status.REMOVED
                       command_change(st)
 
                     // command and keyword declarations
@@ -107,8 +107,8 @@ class Prover(isabelle_system: IsabelleSystem, isabelle_symbols: Symbol.Interpret
             //}}}
 
           case IsabelleProcess.Kind.ERROR if st != null =>
-            if (st.phase != Command.Phase.REMOVED && st.phase != Command.Phase.REMOVE)
-              st.phase = Command.Phase.FAILED
+            if (st.status != Command.Status.REMOVED && st.status != Command.Status.REMOVE)
+              st.status = Command.Status.FAILED
             st.add_result(tree)
             command_change(st)
 
@@ -153,7 +153,7 @@ class Prover(isabelle_system: IsabelleSystem, isabelle_symbols: Symbol.Interpret
   }
 
   private def send(cmd: Command) {
-    cmd.phase = Command.Phase.UNPROCESSED
+    cmd.status = Command.Status.UNPROCESSED
     commands.put(cmd.id, cmd)
 
     val props = new Properties
@@ -166,7 +166,7 @@ class Prover(isabelle_system: IsabelleSystem, isabelle_symbols: Symbol.Interpret
   }
 
   def remove(cmd: Command) {
-    cmd.phase = Command.Phase.REMOVE
+    cmd.status = Command.Status.REMOVE
     process.remove_command(cmd.id)
   }
 }

@@ -19,7 +19,7 @@ import sidekick.{SideKickParsedData, IAsset}
 
 
 object Command {
-  object Phase extends Enumeration {
+  object Status extends Enumeration {
     val UNPROCESSED = Value("UNPROCESSED")
     val FINISHED = Value("FINISHED")
     val REMOVE = Value("REMOVE")
@@ -42,18 +42,18 @@ class Command(val document: Document, val first: Token[Command], val last: Token
   }
 
 
-  /* command phase */
+  /* command status */
 
-  private var p = Command.Phase.UNPROCESSED
-  def phase = p
-  def phase_=(p_new: Command.Phase.Value) = {
-    if (p_new == Command.Phase.UNPROCESSED) {
+  private var _status = Command.Status.UNPROCESSED
+  def status = _status
+  def status_=(st: Command.Status.Value) = {
+    if (st == Command.Status.UNPROCESSED) {
       // delete markup
       for (child <- root_node.children) {
         child.children = Nil
       }
     }
-    p = p_new
+    _status = st
   }
 
 

@@ -11,7 +11,6 @@ package isabelle.jedit
 
 import isabelle.proofdocument.Text
 import isabelle.prover.{Prover, Command}
-import isabelle.prover.Command.Phase
 
 import java.awt.Graphics2D
 import java.awt.event.{ActionEvent, ActionListener}
@@ -29,10 +28,10 @@ object TheoryView {
   def choose_color(state: Command): Color = {
     if (state == null) Color.red
     else
-      state.phase match {
-        case Phase.UNPROCESSED => new Color(255, 228, 225)
-        case Phase.FINISHED => new Color(234, 248, 255)
-        case Phase.FAILED => new Color(255, 192, 192)
+      state.status match {
+        case Command.Status.UNPROCESSED => new Color(255, 228, 225)
+        case Command.Status.FINISHED => new Color(234, 248, 255)
+        case Command.Status.FAILED => new Color(255, 192, 192)
         case _ => Color.red
       }
   }
@@ -148,8 +147,8 @@ class TheoryView (text_area: JEditTextArea)
 
   def repaint(cmd: Command) =
   {
-    val phase = cmd.phase
-    if (text_area != null && phase != Phase.REMOVE && phase != Phase.REMOVED) {
+    val status = cmd.status
+    if (text_area != null && status != Command.Status.REMOVE && status != Command.Status.REMOVED) {
       val start = text_area.getLineOfOffset(to_current(cmd.start))
       val stop = text_area.getLineOfOffset(to_current(cmd.stop) - 1)
       text_area.invalidateLineRange(start, stop)
