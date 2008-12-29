@@ -10,14 +10,53 @@ import org.w3c.dom.{Node, Document}
 import javax.xml.parsers.DocumentBuilderFactory
 
 
-object XML {
+object XML
+{
   /* datatype representation */
 
   type Attributes = List[(String, String)]
 
   abstract class Tree
-  case class Elem(name: String, attributes: Attributes, body: List[Tree]) extends Tree
-  case class Text(content: String) extends Tree
+  case class Elem(name: String, attributes: Attributes, body: List[Tree]) extends Tree {
+    override def toString = append_tree(this, new StringBuilder).toString
+  }
+  case class Text(content: String) extends Tree {
+    override def toString = append_tree(this, new StringBuilder).toString
+  }
+
+
+  /* string representation */
+
+  private def append_text(text: String, s: StringBuilder) {
+    for (c <- text.elements) c match {
+      case '<' => s.append("&lt;")
+      case '>' => s.append("&gt;")
+      case '&' => s.append("&amp;")
+      case '"' => s.append("&quot;")
+      case '\'' => s.append("&apos;")
+      case _   => s.append(c)
+    }
+  }
+
+  private def append_elem(name: String, atts: Attributes, s: StringBuilder) {
+    s.append(name)
+    for ((a, x) <- atts) {
+      s.append(" "); s.append(a); s.append("=\""); append_text(x, s); s.append("\"")
+    }
+  }
+
+  private def append_tree(tree: Tree, s: StringBuilder): StringBuilder = {
+    tree match {
+      case Elem(name, atts, Nil) =>
+        s.append("<"); append_elem(name, atts, s); s.append("/>")
+      case Elem(name, atts, ts) =>
+        s.append("<"); append_elem(name, atts, s); s.append(">")
+        for (t <- ts) append_tree(t, s)
+        s.append("</"); s.append(name); s.append(">")
+      case Text(text) => append_text(text, s)
+    }
+    s
+  }
 
 
   /* iterate over content */
