@@ -68,7 +68,6 @@ class Prover(isabelle_system: IsabelleSystem, isabelle_symbols: Symbol.Interpret
 
           case IsabelleProcess.Kind.STATUS =>
             //{{{ handle all kinds of status messages here
-            System.err.println(tree)
             tree match {
               case XML.Elem(Markup.MESSAGE, _, elems) =>
                 for (elem <- elems) {
