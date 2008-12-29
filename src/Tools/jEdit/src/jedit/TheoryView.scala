@@ -85,7 +85,6 @@ class TheoryView (text_area: JEditTextArea)
   col_timer.setRepeats(true)
 
 
-  private val changes_bus = new EventBus[Text.Changed]
   private val phase_overview = new PhaseOverviewPanel(Isabelle.prover(buffer))
 
 
@@ -222,8 +221,7 @@ class TheoryView (text_area: JEditTextArea)
 
   def content(start: Int, stop: Int) = buffer.getText(start, stop - start)
   def length = buffer.getLength
-  def changes = changes_bus
-
+  val changes = new EventBus[Text.Changed]
 
 
   /* BufferListener methods */
