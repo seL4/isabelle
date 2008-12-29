@@ -120,6 +120,8 @@ object Markup {
   val PID = "pid"
   val SESSION = "session"
 
+  val MESSAGE = "message"
+
 
   /* content */
 
