@@ -88,7 +88,7 @@ class IsabelleProcess(isabelle_system: IsabelleSystem,
   /* demo constructor */
 
   def this(args: String*) =
-    this(new IsabelleSystem, new EventBus[IsabelleProcess.Result] + (Console.println(_)), args: _*)
+    this(new IsabelleSystem, new EventBus[IsabelleProcess.Result] + Console.println, args: _*)
 
 
   /* process information */
