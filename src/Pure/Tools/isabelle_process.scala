@@ -71,22 +71,24 @@ object IsabelleProcess {
       if (props == null) kind.toString + " [[" + res + "]]"
       else kind.toString + " " + props.toString + " [[" + res + "]]"
     }
-    def is_raw() = Kind.is_raw(kind)
-    def is_control() = Kind.is_control(kind)
-    def is_system() = Kind.is_system(kind)
+    def is_raw = Kind.is_raw(kind)
+    def is_control = Kind.is_control(kind)
+    def is_system = Kind.is_system(kind)
   }
 
 }
 
 
-class IsabelleProcess(isabelle_system: IsabelleSystem, args: String*) {
-
+class IsabelleProcess(isabelle_system: IsabelleSystem,
+  results: EventBus[IsabelleProcess.Result], args: String*)
+{
   import IsabelleProcess._
+  
 
+  /* demo constructor */
 
-  /* alternative constructors */
-
-  def this(args: String*) = this(new IsabelleSystem, args: _*)
+  def this(args: String*) =
+    this(new IsabelleSystem, new EventBus[IsabelleProcess.Result] + (Console.println(_)), args: _*)
 
 
   /* process information */
@@ -100,21 +102,31 @@ class IsabelleProcess(isabelle_system: IsabelleSystem, args: String*) {
 
   /* results */
 
-  private val results = new LinkedBlockingQueue[Result]
+  private val result_queue = new LinkedBlockingQueue[Result]
 
   private def put_result(kind: Kind.Value, props: Properties, result: String) {
     if (kind == Kind.INIT && props != null) {
       pid = props.getProperty(Markup.PID)
       the_session = props.getProperty(Markup.SESSION)
     }
-    results.put(new Result(kind, props, result))
+    result_queue.put(new Result(kind, props, result))
   }
 
-  def get_result() = results.take
+  private class ResultThread extends Thread("isabelle: results") {
+    override def run() = {
+      var finished = false
+      while (!finished) {
+        val result =
+          try { result_queue.take }
+          catch { case _: NullPointerException => null }
 
-  def try_result() = {
-    val res = results.poll
-    if (res != null) Some(res) else None
+        if (result != null) {
+          results.event(result)  // FIXME try/catch (!??)
+          if (result.kind == Kind.EXIT) finished = true
+        }
+        else finished = true
+      }
+    }
   }
 
 
@@ -334,6 +346,7 @@ class IsabelleProcess(isabelle_system: IsabelleSystem, args: String*) {
   }
 
 
+
   /** main **/
 
   {
@@ -346,7 +359,13 @@ class IsabelleProcess(isabelle_system: IsabelleSystem, args: String*) {
     }
 
 
-    /* message fifo */
+    /* results */
+
+    val result_thread = new ResultThread
+    result_thread.start
+    
+
+    /* messages */
 
     val message_fifo = isabelle_system.mk_fifo()
     def rm_fifo() = isabelle_system.rm_fifo(message_fifo)
@@ -388,5 +407,4 @@ class IsabelleProcess(isabelle_system: IsabelleSystem, args: String*) {
     }.start
 
   }
-
 }
