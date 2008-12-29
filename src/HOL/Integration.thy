@@ -55,14 +55,37 @@ definition
                                          \<bar>rsum(D,p) f - k\<bar> < e)))"
 
 
+lemma psize_unique:
+  assumes 1: "\<forall>n < N. D(n) < D(Suc n)"
+  assumes 2: "\<forall>n \<ge> N. D(n) = D(N)"
+  shows "psize D = N"
+unfolding psize_def
+proof (rule some_equality)
+  show "(\<forall>n<N. D(n) < D(Suc n)) \<and> (\<forall>n\<ge>N. D(n) = D(N))" using prems ..
+next
+  fix M assume "(\<forall>n<M. D(n) < D(Suc n)) \<and> (\<forall>n\<ge>M. D(n) = D(M))"
+  hence 3: "\<forall>n<M. D(n) < D(Suc n)" and 4: "\<forall>n\<ge>M. D(n) = D(M)" by fast+
+  show "M = N"
+  proof (rule linorder_cases)
+    assume "M < N"
+    hence "D(M) < D(Suc M)" by (rule 1 [rule_format])
+    also have "D(Suc M) = D(M)" by (rule 4 [rule_format], simp)
+    finally show "M = N" by simp
+  next
+    assume "N < M"
+    hence "D(N) < D(Suc N)" by (rule 3 [rule_format])
+    also have "D(Suc N) = D(N)" by (rule 2 [rule_format], simp)
+    finally show "M = N" by simp
+  next
+    assume "M = N" thus "M = N" .
+  qed
+qed
+
 lemma partition_zero [simp]: "a = b ==> psize (%n. if n = 0 then a else b) = 0"
-by (auto simp add: psize_def)
+by (rule psize_unique, simp_all)
 
 lemma partition_one [simp]: "a < b ==> psize (%n. if n = 0 then a else b) = 1"
-apply (simp add: psize_def)
-apply (rule some_equality, auto)
-apply (drule_tac x = 1 in spec, auto)
-done
+by (rule psize_unique, simp_all)
 
 lemma partition_single [simp]:
      "a \<le> b ==> partition(a,b)(%n. if n = 0 then a else b)"
@@ -76,20 +99,11 @@ lemma partition:
         ((D 0 = a) &
          (\<forall>n < psize D. D n < D(Suc n)) &
          (\<forall>n \<ge> psize D. D n = b))"
-apply (simp add: partition_def, auto)
-apply (subgoal_tac [!] "psize D = N", auto)
-apply (simp_all (no_asm) add: psize_def)
-apply (rule_tac [!] some_equality, blast)
-  prefer 2 apply blast
-apply (rule_tac [!] ccontr)
-apply (simp_all add: linorder_neq_iff, safe)
-apply (drule_tac x = Na in spec)
-apply (rotate_tac 3)
-apply (drule_tac x = "Suc Na" in spec, simp)
-apply (rotate_tac 2)
-apply (drule_tac x = N in spec, simp)
-apply (drule_tac x = Na in spec)
-apply (drule_tac x = "Suc Na" and P = "%n. Na\<le>n \<longrightarrow> D n = D Na" in spec, auto)
+apply (simp add: partition_def)
+apply (rule iffI, clarify)
+apply (subgoal_tac "psize D = N", simp)
+apply (rule psize_unique, assumption, simp)
+apply (simp, rule_tac x="psize D" in exI, simp)
 done
 
 lemma partition_rhs: "partition(a,b) D ==> (D(psize D) = b)"
@@ -211,26 +225,10 @@ done
 lemma lemma_partition_append2:
      "[| partition (a, b) D1; partition (b, c) D2 |]
       ==> psize (%n. if n < psize D1 then D1 n else D2 (n - psize D1)) =
-          psize D1 + psize D2" 
-apply (unfold psize_def 
-         [of "%n. if n < psize D1 then D1 n else D2 (n - psize D1)"])
-apply (rule some1_equality)
- prefer 2 apply (blast intro!: lemma_partition_append1)
-apply (rule ex1I, rule lemma_partition_append1) 
-apply (simp_all split: split_if_asm)
- txt{*The case @{term "N < psize D1"}*} 
- apply (drule_tac x = "psize D1 + psize D2" and P="%n. ?P n & ?Q n" in spec) 
- apply (force dest: lemma_psize1)
-apply (rule order_antisym);
- txt{*The case @{term "psize D1 \<le> N"}: 
-       proving @{term "N \<le> psize D1 + psize D2"}*}
- apply (drule_tac x = "psize D1 + psize D2" in spec)
- apply (simp add: partition_rhs2)
-apply (case_tac "N - psize D1 < psize D2") 
- prefer 2 apply arith
- txt{*Proving @{term "psize D1 + psize D2 \<le> N"}*}
-apply (drule_tac x = "psize D1 + psize D2" and P="%n. N\<le>n --> ?P n" in spec, simp)
-apply (drule_tac a = b and b = c in partition_gt, assumption, simp)
+          psize D1 + psize D2"
+apply (rule psize_unique)
+apply (erule (1) lemma_partition_append1 [THEN conjunct1])
+apply (erule (1) lemma_partition_append1 [THEN conjunct2])
 done
 
 lemma tpart_eq_lhs_rhs: "[|psize D = 0; tpart(a,b) (D,p)|] ==> a = b"
@@ -566,20 +564,12 @@ done
 lemma lemma_additivity4_psize_eq:
      "[| a \<le> D n; D n < b; partition (a, b) D |]
       ==> psize (%x. if D x < D n then D(x) else D n) = n"
-apply (unfold psize_def)
-apply (frule lemma_additivity1)
-apply (assumption, assumption)
-apply (rule some_equality)
-apply (auto intro: partition_lt_Suc)
-apply (drule_tac n = n in partition_lt_gen, assumption)
-apply (arith, arith)
-apply (cut_tac x = na and y = "psize D" in less_linear)
-apply (auto dest: partition_lt_cancel)
-apply (rule_tac x=N and y=n in linorder_cases)
-apply (drule_tac x = n and P="%m. N \<le> m --> ?f m = ?g m" in spec, simp)
-apply (drule_tac n = n in partition_lt_gen, auto)
-apply (drule_tac x = n in spec)
-apply (simp split: split_if_asm)
+apply (frule (2) lemma_additivity1)
+apply (rule psize_unique, auto)
+apply (erule partition_lt_Suc, erule (1) less_trans)
+apply (erule notE)
+apply (erule (1) partition_lt_gen, erule less_imp_le)
+apply (drule (1) partition_lt_cancel, simp)
 done
 
 lemma lemma_psize_left_less_psize:
