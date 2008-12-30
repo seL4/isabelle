@@ -80,10 +80,11 @@ $(OUT)/Pure: Concurrent/ROOT.ML Concurrent/future.ML			\
   consts.ML context.ML context_position.ML conv.ML defs.ML display.ML	\
   drule.ML envir.ML facts.ML goal.ML interpretation.ML library.ML	\
   logic.ML meta_simplifier.ML more_thm.ML morphism.ML name.ML net.ML	\
-  old_goals.ML pattern.ML primitive_defs.ML proofterm.ML pure_setup.ML	\
-  pure_thy.ML search.ML sign.ML simplifier.ML sorts.ML subgoal.ML	\
-  tactic.ML tctical.ML term.ML term_subst.ML theory.ML thm.ML type.ML	\
-  type_infer.ML unify.ML variable.ML ../Tools/quickcheck.ML
+  old_goals.ML old_term.ML pattern.ML primitive_defs.ML proofterm.ML	\
+  pure_setup.ML pure_thy.ML search.ML sign.ML simplifier.ML sorts.ML	\
+  subgoal.ML tactic.ML tctical.ML term.ML term_subst.ML theory.ML	\
+  thm.ML type.ML type_infer.ML unify.ML variable.ML			\
+  ../Tools/quickcheck.ML
 	@./mk
 
 

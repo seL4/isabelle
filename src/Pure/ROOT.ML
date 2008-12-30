@@ -26,6 +26,7 @@ cd "Concurrent"; use "ROOT.ML"; cd "..";
 use "name.ML";
 use "term.ML";
 use "term_subst.ML";
+use "old_term.ML";
 use "logic.ML";
 use "General/pretty.ML";
 use "context.ML";
