@@ -1,5 +1,4 @@
 (*  Title:      Pure/Proof/reconstruct.ML
-    ID:         $Id$
     Author:     Stefan Berghofer, TU Muenchen
 
 Reconstruction of partial proof terms.
@@ -291,7 +290,7 @@ fun reconstruct_proof thy prop cprf =
     val (t, prf, cs, env, _) = make_constraints_cprf thy
       (Envir.empty (maxidx_proof cprf ~1)) cprf';
     val cs' = map (fn p => (true, p, op union
-        (pairself (map (fst o dest_Var) o term_vars) p)))
+        (pairself (map (fst o dest_Var) o OldTerm.term_vars) p)))
       (map (pairself (Envir.norm_term env)) ((t, prop')::cs));
     val _ = message ("Solving remaining constraints (" ^ string_of_int (length cs') ^ ") ...");
     val env' = solve thy cs' env

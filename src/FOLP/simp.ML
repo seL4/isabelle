@@ -1,5 +1,4 @@
-(*  Title:      FOLP/simp
-    ID:         $Id$
+(*  Title:      FOLP/simp.ML
     Author:     Tobias Nipkow
     Copyright   1993  University of Cambridge
 
@@ -156,21 +155,21 @@ val atomic = null o Logic.strip_assums_hyp;
 (*ccs contains the names of the constants possessing congruence rules*)
 fun add_hidden_vars ccs =
   let fun add_hvars tm hvars = case tm of
-              Abs(_,_,body) => add_term_vars(body,hvars)
+              Abs(_,_,body) => OldTerm.add_term_vars(body,hvars)
             | _$_ => let val (f,args) = strip_comb tm 
                      in case f of
                             Const(c,T) => 
                                 if member (op =) ccs c
                                 then fold_rev add_hvars args hvars
-                                else add_term_vars (tm, hvars)
-                          | _ => add_term_vars (tm, hvars)
+                                else OldTerm.add_term_vars (tm, hvars)
+                          | _ => OldTerm.add_term_vars (tm, hvars)
                      end
             | _ => hvars;
   in add_hvars end;
 
 fun add_new_asm_vars new_asms =
     let fun itf (tm, at) vars =
-                if at then vars else add_term_vars(tm,vars)
+                if at then vars else OldTerm.add_term_vars(tm,vars)
         fun add_list(tm,al,vars) = let val (_,tml) = strip_comb tm
                 in if length(tml)=length(al)
                    then fold_rev itf (tml ~~ al) vars
@@ -198,7 +197,7 @@ let val thm' = mk_trans2 thm;
     val hvars = add_new_asm_vars new_asms (rhs,hvars)
     fun it_asms asm hvars =
         if atomic asm then add_new_asm_vars new_asms (asm,hvars)
-        else add_term_frees(asm,hvars)
+        else OldTerm.add_term_frees(asm,hvars)
     val hvars = fold_rev it_asms asms hvars
     val hvs = map (#1 o dest_Var) hvars
     val refl1_tac = refl_tac 1
@@ -542,7 +541,7 @@ in Abs("", T, Const(eq,[fT,fT]--->eqT) $ lhs $ rhs) end;
 fun find_subst sg T =
 let fun find (thm::thms) =
         let val (Const(_,cT), va, vb) = dest_red(hd(prems_of thm));
-            val [P] = add_term_vars(concl_of thm,[]) \\ [va,vb]
+            val [P] = OldTerm.add_term_vars(concl_of thm,[]) \\ [va,vb]
             val eqT::_ = binder_types cT
         in if Sign.typ_instance sg (T,eqT) then SOME(thm,va,vb,P)
            else find thms

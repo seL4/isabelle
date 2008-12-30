@@ -1,5 +1,4 @@
 (*  Title:      HOL/Tools/inductive_codegen.ML
-    ID:         $Id$
     Author:     Stefan Berghofer, TU Muenchen
 
 Code generator for inductive predicates.
@@ -129,7 +128,7 @@ fun print_modes modes = message ("Inferred modes:\n" ^
   cat_lines (map (fn (s, ms) => s ^ ": " ^ commas (map
     string_of_mode ms)) modes));
 
-val term_vs = map (fst o fst o dest_Var) o term_vars;
+val term_vs = map (fst o fst o dest_Var) o OldTerm.term_vars;
 val terms_vs = distinct (op =) o List.concat o (map term_vs);
 
 (** collect all Vars in a term (with duplicates!) **)

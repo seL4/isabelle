@@ -2039,7 +2039,7 @@ in fn ct =>
   let
     val thy = Thm.theory_of_cterm ct;
     val t = Thm.term_of ct;
-    val fs = term_frees t;
+    val fs = OldTerm.term_frees t;
     val bs = term_bools [] t;
     val vs = fs ~~ (0 upto (length fs - 1))
     val ps = bs ~~ (0 upto (length bs - 1))

@@ -69,7 +69,7 @@ fun process_eqn is_fixed spec rec_fns =
     else
      (check_vars "repeated variable names in pattern: " (duplicates (op =) lfrees);
       check_vars "extra variables on rhs: "
-        (map dest_Free (term_frees rhs) |> subtract (op =) lfrees
+        (map dest_Free (OldTerm.term_frees rhs) |> subtract (op =) lfrees
           |> filter_out (is_fixed o fst));
       case AList.lookup (op =) rec_fns fname of
         NONE =>

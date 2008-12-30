@@ -1,5 +1,4 @@
 (*  Title:      HOL/Nominal/nominal_inductive2.ML
-    ID:         $Id$
     Author:     Stefan Berghofer, TU Muenchen
 
 Infrastructure for proving equivariance and strong induction theorems
@@ -254,7 +253,7 @@ fun prove_strong_ind s avoids thy =
         val prem = Logic.list_implies
           (map mk_fresh sets @
            map (fn prem =>
-             if null (term_frees prem inter ps) then prem
+             if null (OldTerm.term_frees prem inter ps) then prem
              else lift_prem prem) prems,
            HOLogic.mk_Trueprop (lift_pred p ts));
       in abs_params params' prem end) prems);
@@ -277,7 +276,7 @@ fun prove_strong_ind s avoids thy =
     val (vc_compat, vc_compat') = map (fn (params, sets, prems, (p, ts)) =>
       map (fn q => abs_params params (incr_boundvars ~1 (Logic.list_implies
           (List.mapPartial (fn prem =>
-             if null (ps inter term_frees prem) then SOME prem
+             if null (ps inter OldTerm.term_frees prem) then SOME prem
              else map_term (split_conj (K o I) names) prem prem) prems, q))))
         (maps (fn (t, T) => map (fn (u, U) => HOLogic.mk_Trueprop
            (NominalPackage.fresh_star_const U T $ u $ t)) sets)
@@ -364,7 +363,7 @@ fun prove_strong_ind s avoids thy =
                    fold_rev (NominalPackage.mk_perm []) pis t) sets';
                  val (P, ts) = strip_comb (HOLogic.dest_Trueprop (term_of concl));
                  val gprems1 = List.mapPartial (fn (th, t) =>
-                   if null (term_frees t inter ps) then SOME th
+                   if null (OldTerm.term_frees t inter ps) then SOME th
                    else
                      map_thm ctxt' (split_conj (K o I) names)
                        (etac conjunct1 1) monos NONE th)
@@ -406,7 +405,7 @@ fun prove_strong_ind s avoids thy =
                        (fold_rev (mk_perm_bool o cterm_of thy)
                          (pis' @ pis) th));
                  val gprems2 = map (fn (th, t) =>
-                   if null (term_frees t inter ps) then mk_pi th
+                   if null (OldTerm.term_frees t inter ps) then mk_pi th
                    else
                      mk_pi (the (map_thm ctxt (inst_conj_all names ps (rev pis''))
                        (inst_conj_all_tac (length pis'')) monos (SOME t) th)))

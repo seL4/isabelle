@@ -1,5 +1,4 @@
 (*  Title:      HOL/Tools/TFL/casesplit.ML
-    ID:         $Id$
     Author:     Lucas Dixon, University of Edinburgh
 
 A structure that defines a tactic to program case splits.
@@ -104,7 +103,7 @@ fun case_thm_of_ty sgn ty  =
     end;
 
 (*
- val ty = (snd o hd o map Term.dest_Free o Term.term_frees) t;
+ val ty = (snd o hd o map Term.dest_Free o OldTerm.term_frees) t;
 *)
 
 
@@ -122,7 +121,7 @@ fun mk_casesplit_goal_thm sgn (vstr,ty) gt =
       val abs_ct = ctermify abst;
       val free_ct = ctermify x;
 
-      val casethm_vars = rev (Term.term_vars (Thm.concl_of case_thm));
+      val casethm_vars = rev (OldTerm.term_vars (Thm.concl_of case_thm));
 
       val casethm_tvars = Term.term_tvars (Thm.concl_of case_thm);
       val (Pv, Dv, type_insts) =
@@ -170,7 +169,7 @@ fun casesplit_name vstr i th =
       val subgoalth' = atomize_goals subgoalth;
       val gt = Data.dest_Trueprop (Logic.get_goal (Thm.prop_of subgoalth') 1);
 
-      val freets = Term.term_frees gt;
+      val freets = OldTerm.term_frees gt;
       fun getter x =
           let val (n,ty) = Term.dest_Free x in
             (if vstr = n orelse vstr = Name.dest_skolem n

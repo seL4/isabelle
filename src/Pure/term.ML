@@ -1,6 +1,5 @@
 (*  Title:      Pure/term.ML
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
-    Copyright   Cambridge University 1992
 
 Simply typed lambda-calculus: types, terms, and basic operations.
 *)
@@ -132,10 +131,6 @@ sig
   val typ_tvars: typ -> (indexname * sort) list
   val term_tfrees: term -> (string * sort) list
   val term_tvars: term -> (indexname * sort) list
-  val add_term_vars: term * term list -> term list
-  val term_vars: term -> term list
-  val add_term_frees: term * term list -> term list
-  val term_frees: term -> term list
   val rename_wrt_term: term -> (string * 'a) list -> (string * 'a) list
   val show_question_marks: bool ref
 end;
@@ -1148,27 +1143,6 @@ fun typ_tfrees T = add_typ_tfrees(T,[]);
 fun typ_tvars T = add_typ_tvars(T,[]);
 fun term_tfrees t = add_term_tfrees(t,[]);
 fun term_tvars t = add_term_tvars(t,[]);
-
-
-(** Frees and Vars **)
-
-(*Accumulates the Vars in the term, suppressing duplicates*)
-fun add_term_vars (t, vars: term list) = case t of
-    Var   _ => OrdList.insert term_ord t vars
-  | Abs (_,_,body) => add_term_vars(body,vars)
-  | f$t =>  add_term_vars (f, add_term_vars(t, vars))
-  | _ => vars;
-
-fun term_vars t = add_term_vars(t,[]);
-
-(*Accumulates the Frees in the term, suppressing duplicates*)
-fun add_term_frees (t, frees: term list) = case t of
-    Free   _ => OrdList.insert term_ord t frees
-  | Abs (_,_,body) => add_term_frees(body,frees)
-  | f$t =>  add_term_frees (f, add_term_frees(t, frees))
-  | _ => frees;
-
-fun term_frees t = add_term_frees(t,[]);
 
 
 (* dest abstraction *)

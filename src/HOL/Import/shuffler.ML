@@ -1,5 +1,4 @@
 (*  Title:      HOL/Import/shuffler.ML
-    ID:         $Id$
     Author:     Sebastian Skalberg, TU Muenchen
 
 Package for proving two terms equal by normalizing (hence the
@@ -520,7 +519,7 @@ fun close_thm th =
     let
         val thy = Thm.theory_of_thm th
         val c = prop_of th
-        val vars = add_term_frees (c,add_term_vars(c,[]))
+        val vars = OldTerm.add_term_frees (c, OldTerm.add_term_vars(c,[]))
     in
         Drule.forall_intr_list (map (cterm_of thy) vars) th
     end
@@ -585,7 +584,7 @@ succeeds, SOME theorem is returned, otherwise NONE.  *)
 
 fun set_prop thy t =
     let
-        val vars = add_term_frees (t,add_term_vars (t,[]))
+        val vars = OldTerm.add_term_frees (t, OldTerm.add_term_vars (t,[]))
         val closed_t = fold_rev Logic.all vars t
         val rew_th = norm_term thy closed_t
         val rhs = Thm.rhs_of rew_th

@@ -1,5 +1,4 @@
 (*  Title:      Pure/Proof/extraction.ML
-    ID:         $Id$
     Author:     Stefan Berghofer, TU Muenchen
 
 Extraction of programs from proofs.
@@ -739,7 +738,7 @@ fun extract thms thy =
            in
              thy'
              |> PureThy.store_thm (corr_name s vs,
-                  Thm.varifyT (funpow (length (term_vars corr_prop))
+                  Thm.varifyT (funpow (length (OldTerm.term_vars corr_prop))
                     (Thm.forall_elim_var 0) (forall_intr_frees
                       (ProofChecker.thm_of_proof thy'
                        (fst (Proofterm.freeze_thaw_prf prf))))))

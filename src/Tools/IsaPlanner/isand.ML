@@ -1,5 +1,4 @@
 (*  Title:      Tools/IsaPlanner/isand.ML
-    ID:		$Id$
     Author:     Lucas Dixon, University of Edinburgh
 
 Natural Deduction tools.
@@ -220,7 +219,7 @@ fun unfix_tfrees ns th =
    with "names" *)
 fun fix_vars_to_frees_in_terms names ts = 
     let 
-      val vars = map Term.dest_Var (List.foldr Term.add_term_vars [] ts);
+      val vars = map Term.dest_Var (List.foldr OldTerm.add_term_vars [] ts);
       val Ns = List.foldr Term.add_term_names names ts;
       val (_,renamings) = 
           Library.foldl (fn ((Ns,Rs),v as ((n,i),ty)) => 
@@ -259,7 +258,7 @@ fun fix_vars_upto_idx ix th =
       val ctermify = Thm.cterm_of sgn
       val tpairs = Thm.terms_of_tpairs (Thm.tpairs_of th);
       val prop = (Thm.prop_of th);
-      val vars = map Term.dest_Var (List.foldr Term.add_term_vars 
+      val vars = map Term.dest_Var (List.foldr OldTerm.add_term_vars 
                                                [] (prop :: tpairs));
       val cfixes = 
           map_filter 
@@ -360,7 +359,7 @@ fun prepare_goal_export (vs, cterms) th =
       val sgn = Thm.theory_of_thm th;
       val ctermify = Thm.cterm_of sgn;
 
-      val allfrees = map Term.dest_Free (Term.term_frees (Thm.prop_of th))
+      val allfrees = map Term.dest_Free (OldTerm.term_frees (Thm.prop_of th))
       val cfrees = map (ctermify o Free o lookupfree allfrees) vs
 
       val sgs = prems_of th;
@@ -420,7 +419,7 @@ fun fix_alls_in_term alledt =
     let
       val t = Term.strip_all_body alledt;
       val alls = rev (Term.strip_all_vars alledt);
-      val varnames = map (fst o fst o Term.dest_Var) (Term.term_vars t)
+      val varnames = map (fst o fst o Term.dest_Var) (OldTerm.term_vars t)
       val names = Term.add_term_names (t,varnames);
       val fvs = map Free 
                     (Name.variant_list names (map fst alls)
@@ -429,7 +428,7 @@ fun fix_alls_in_term alledt =
 
 fun fix_alls_term i t = 
     let 
-      val varnames = map (fst o fst o Term.dest_Var) (Term.term_vars t)
+      val varnames = map (fst o fst o Term.dest_Var) (OldTerm.term_vars t)
       val names = Term.add_term_names (t,varnames);
       val gt = Logic.get_goal t i;
       val body = Term.strip_all_body gt;

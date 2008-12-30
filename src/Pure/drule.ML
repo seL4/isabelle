@@ -1,7 +1,5 @@
 (*  Title:      Pure/drule.ML
-    ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
-    Copyright   1993  University of Cambridge
 
 Derived rules and other operations on theorems.
 *)
@@ -340,7 +338,7 @@ fun freeze_thaw_robust th =
      val thy = Thm.theory_of_thm fth
      val {prop, tpairs, ...} = rep_thm fth
  in
-   case List.foldr add_term_vars [] (prop :: Thm.terms_of_tpairs tpairs) of
+   case List.foldr OldTerm.add_term_vars [] (prop :: Thm.terms_of_tpairs tpairs) of
        [] => (fth, fn i => fn x => x)   (*No vars: nothing to do!*)
      | vars =>
          let fun newName (Var(ix,_)) = (ix, gensym (string_of_indexname ix))
@@ -363,7 +361,7 @@ fun freeze_thaw th =
      val thy = Thm.theory_of_thm fth
      val {prop, tpairs, ...} = rep_thm fth
  in
-   case List.foldr add_term_vars [] (prop :: Thm.terms_of_tpairs tpairs) of
+   case List.foldr OldTerm.add_term_vars [] (prop :: Thm.terms_of_tpairs tpairs) of
        [] => (fth, fn x => x)
      | vars =>
          let fun newName (Var(ix,_), (pairs,used)) =

@@ -1,5 +1,4 @@
 (*  Title:      Tools/IsaPlanner/rw_inst.ML
-    ID:         $Id$
     Author:     Lucas Dixon, University of Edinburgh
 
 Rewriting using a conditional meta-equality theorem which supports
@@ -143,9 +142,9 @@ fun mk_renamings tgt rule_inst =
                     (Library.union
                        (Term.term_tvars t, tyvs),
                      Library.union 
-                       (map Term.dest_Var (Term.term_vars t), vs))) 
+                       (map Term.dest_Var (OldTerm.term_vars t), vs))) 
                 (([],[]), rule_conds);
-      val termvars = map Term.dest_Var (Term.term_vars tgt); 
+      val termvars = map Term.dest_Var (OldTerm.term_vars tgt); 
       val vars_to_fix = Library.union (termvars, cond_vs);
       val (renamings, names2) = 
           foldr (fn (((n,i),ty), (vs, names')) => 

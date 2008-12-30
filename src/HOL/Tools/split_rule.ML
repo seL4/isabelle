@@ -1,5 +1,4 @@
 (*  Title:      HOL/Tools/split_rule.ML
-    ID:         $Id$
     Author:     Stefan Berghofer, David von Oheimb, and Markus Wenzel, TU Muenchen
 
 Some tools for managing tupled arguments and abstractions in rules.
@@ -105,7 +104,7 @@ val split_rule_var = (Drule.standard o remove_internal_split) oo split_rule_var'
 
 (*curries ALL function variables occurring in a rule's conclusion*)
 fun split_rule rl =
-  fold_rev split_rule_var' (Term.term_vars (concl_of rl)) rl
+  fold_rev split_rule_var' (OldTerm.term_vars (concl_of rl)) rl
   |> remove_internal_split
   |> Drule.standard;
 

@@ -1,6 +1,4 @@
 (*  Author: Jia Meng, Cambridge University Computer Laboratory
-    ID: $Id$
-    Copyright 2004 University of Cambridge
 
 Transformation of axiom rules (elim/intro/etc) into CNF forms.
 *)
@@ -75,7 +73,7 @@ fun declare_skofuns s th =
           (*Existential: declare a Skolem function, then insert into body and continue*)
           let
             val cname = "sko_" ^ s ^ "_" ^ Int.toString (inc nref)
-            val args0 = term_frees xtp  (*get the formal parameter list*)
+            val args0 = OldTerm.term_frees xtp  (*get the formal parameter list*)
             val Ts = map type_of args0
             val extraTs = rhs_extra_types (Ts ---> T) xtp
             val argsx = map (fn T => Free (gensym "vsk", T)) extraTs
@@ -105,7 +103,7 @@ fun assume_skofuns s th =
       fun dec_sko (Const ("Ex",_) $ (xtp as Abs(_,T,p))) defs =
             (*Existential: declare a Skolem function, then insert into body and continue*)
             let val skos = map (#1 o Logic.dest_equals) defs  (*existing sko fns*)
-                val args = term_frees xtp \\ skos  (*the formal parameters*)
+                val args = OldTerm.term_frees xtp \\ skos  (*the formal parameters*)
                 val Ts = map type_of args
                 val cT = Ts ---> T
                 val id = "sko_" ^ s ^ "_" ^ Int.toString (inc sko_count)
@@ -158,9 +156,9 @@ val lambda_free = not o Term.has_abs;
 
 val monomorphic = not o Term.exists_type (Term.exists_subtype Term.is_TVar);
 
-val [f_B,g_B] = map (cterm_of (the_context ())) (term_vars (prop_of @{thm abs_B}));
-val [g_C,f_C] = map (cterm_of (the_context ())) (term_vars (prop_of @{thm abs_C}));
-val [f_S,g_S] = map (cterm_of (the_context ())) (term_vars (prop_of @{thm abs_S}));
+val [f_B,g_B] = map (cterm_of (the_context ())) (OldTerm.term_vars (prop_of @{thm abs_B}));
+val [g_C,f_C] = map (cterm_of (the_context ())) (OldTerm.term_vars (prop_of @{thm abs_C}));
+val [f_S,g_S] = map (cterm_of (the_context ())) (OldTerm.term_vars (prop_of @{thm abs_S}));
 
 (*FIXME: requires more use of cterm constructors*)
 fun abstract ct =
@@ -495,8 +493,8 @@ fun expand_defs_tac st0 st =
       val defs = filter (is_absko o Thm.term_of) newhyps
       val remaining_hyps = filter_out (member (op aconv) (map Thm.term_of defs))
                                       (map Thm.term_of hyps)
-      val fixed = term_frees (concl_of st) @
-                  foldl (gen_union (op aconv)) [] (map term_frees remaining_hyps)
+      val fixed = OldTerm.term_frees (concl_of st) @
+                  foldl (gen_union (op aconv)) [] (map OldTerm.term_frees remaining_hyps)
   in Seq.of_list [LocalDefs.expand (filter (is_okdef fixed o Thm.term_of) defs) st] end;
 
 

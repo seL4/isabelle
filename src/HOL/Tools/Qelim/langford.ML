@@ -114,7 +114,7 @@ fun partition f [] = ([],[])
       let val (yes,no) = partition f xs 
       in if f x then (x::yes,no) else (yes, x::no) end;
 
-fun contains x ct = member (op aconv) (term_frees (term_of ct)) (term_of x);
+fun contains x ct = member (op aconv) (OldTerm.term_frees (term_of ct)) (term_of x);
 
 fun is_eqx x eq = case term_of eq of
    Const("op =",_)$l$r => l aconv term_of x orelse r aconv term_of x

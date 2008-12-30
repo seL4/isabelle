@@ -1,11 +1,9 @@
 (*  Title:      HOL/Tools/function_package/context_tree.ML
-    ID:         $Id$
     Author:     Alexander Krauss, TU Muenchen
 
 A package for general recursive function definitions. 
 Builds and traverses trees of nested contexts along a term.
 *)
-
 
 signature FUNDEF_CTXTREE =
 sig
@@ -82,7 +80,7 @@ fun branch_vars t =
     let 
       val t' = snd (dest_all_all t)
       val (assumes, concl) = Logic.strip_horn t'
-    in (fold (curry add_term_vars) assumes [], term_vars concl)
+    in (fold (curry OldTerm.add_term_vars) assumes [], OldTerm.term_vars concl)
     end
 
 fun cong_deps crule =

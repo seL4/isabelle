@@ -1,9 +1,8 @@
 (*  Title:      HOL/Tools/inductive_realizer.ML
-    ID:         $Id$
     Author:     Stefan Berghofer, TU Muenchen
 
 Porgram extraction from proofs involving inductive predicates:
-Realizers for induction and elimination rules
+Realizers for induction and elimination rules.
 *)
 
 signature INDUCTIVE_REALIZER =
@@ -60,7 +59,7 @@ fun relevant_vars prop = foldr (fn
       (Var ((a, i), T), vs) => (case strip_type T of
         (_, Type (s, _)) => if s mem ["bool"] then (a, T) :: vs else vs
       | _ => vs)
-    | (_, vs) => vs) [] (term_vars prop);
+    | (_, vs) => vs) [] (OldTerm.term_vars prop);
 
 fun dt_of_intrs thy vs nparms intrs =
   let

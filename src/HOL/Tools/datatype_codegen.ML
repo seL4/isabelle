@@ -1,6 +1,5 @@
 (*  Title:      HOL/Tools/datatype_codegen.ML
-    ID:         $Id$
-    Author:     Stefan Berghofer & Florian Haftmann, TU Muenchen
+    Author:     Stefan Berghofer and Florian Haftmann, TU Muenchen
 
 Code generator facilities for inductive datatypes.
 *)
@@ -218,7 +217,7 @@ fun pretty_case thy defs dep module brack constrs (c as Const (_, T)) ts gr =
         val ts1 = Library.take (i, ts);
         val t :: ts2 = Library.drop (i, ts);
         val names = foldr add_term_names
-          (map (fst o fst o dest_Var) (foldr add_term_vars [] ts1)) ts1;
+          (map (fst o fst o dest_Var) (foldr OldTerm.add_term_vars [] ts1)) ts1;
         val (Ts, dT) = split_last (Library.take (i+1, fst (strip_type T)));
 
         fun pcase [] [] [] gr = ([], gr)

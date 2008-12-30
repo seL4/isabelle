@@ -1,5 +1,4 @@
 (*  Title:      Pure/proofterm.ML
-    ID:         $Id$
     Author:     Stefan Berghofer, TU Muenchen
 
 LF style proof terms.
@@ -420,7 +419,7 @@ fun del_conflicting_vars env t = TermSubst.instantiate
         SOME (ixnS, TFree ("'dummy", S))) (term_tvars t),
    map_filter (fn Var (ixnT as (_, T)) =>
      (Envir.lookup (env, ixnT); NONE) handle TYPE _ =>
-        SOME (ixnT, Free ("dummy", T))) (term_vars t)) t;
+        SOME (ixnT, Free ("dummy", T))) (OldTerm.term_vars t)) t;
 
 fun norm_proof env =
   let

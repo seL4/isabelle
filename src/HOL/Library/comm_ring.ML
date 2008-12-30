@@ -1,5 +1,4 @@
-(*  ID:         $Id$
-    Author:     Amine Chaieb
+(*  Author:     Amine Chaieb
 
 Tactic for solving equalities over commutative rings.
 *)
@@ -71,7 +70,7 @@ val TFree (_, cr_sort) = @{typ "'a :: {comm_ring, recpower}"};
 fun reif_eq thy (eq as Const("op =", Type("fun", [T, _])) $ lhs $ rhs) =
       if Sign.of_sort thy (T, cr_sort) then
         let
-          val fs = term_frees eq;
+          val fs = OldTerm.term_frees eq;
           val cvs = cterm_of thy (HOLogic.mk_list T fs);
           val clhs = cterm_of thy (reif_polex T fs lhs);
           val crhs = cterm_of thy (reif_polex T fs rhs);

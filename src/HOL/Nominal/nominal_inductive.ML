@@ -1,5 +1,4 @@
 (*  Title:      HOL/Nominal/nominal_inductive.ML
-    ID:         $Id$
     Author:     Stefan Berghofer, TU Muenchen
 
 Infrastructure for proving equivariance and strong induction theorems
@@ -238,7 +237,7 @@ fun prove_strong_ind s avoids thy =
         val prem = Logic.list_implies
           (map mk_fresh bvars @ mk_distinct bvars @
            map (fn prem =>
-             if null (term_frees prem inter ps) then prem
+             if null (OldTerm.term_frees prem inter ps) then prem
              else lift_prem prem) prems,
            HOLogic.mk_Trueprop (lift_pred p ts));
         val vs = map (Var o apfst (rpair 0)) (rename_wrt_term prem params')
@@ -264,7 +263,7 @@ fun prove_strong_ind s avoids thy =
     val vc_compat = map (fn (params, bvars, prems, (p, ts)) =>
       map (fn q => list_all (params, incr_boundvars ~1 (Logic.list_implies
           (List.mapPartial (fn prem =>
-             if null (ps inter term_frees prem) then SOME prem
+             if null (ps inter OldTerm.term_frees prem) then SOME prem
              else map_term (split_conj (K o I) names) prem prem) prems, q))))
         (mk_distinct bvars @
          maps (fn (t, T) => map (fn (u, U) => HOLogic.mk_Trueprop
@@ -353,7 +352,7 @@ fun prove_strong_ind s avoids thy =
                          (rev pis' @ pis) th));
                  val (gprems1, gprems2) = split_list
                    (map (fn (th, t) =>
-                      if null (term_frees t inter ps) then (SOME th, mk_pi th)
+                      if null (OldTerm.term_frees t inter ps) then (SOME th, mk_pi th)
                       else
                         (map_thm ctxt (split_conj (K o I) names)
                            (etac conjunct1 1) monos NONE th,

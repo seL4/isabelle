@@ -1,5 +1,4 @@
 (*  Title:      HOL/Tools/record_package.ML
-    ID:         $Id$
     Author:     Wolfgang Naraschewski, Norbert Schirmer and Markus Wenzel, TU Muenchen
 
 Extensible records with structural subtyping in HOL.
@@ -934,7 +933,7 @@ val record_split_f_more_simproc =
                  then (let
                         val P=cterm_of thy (abstract_over_fun_app trm);
                         val thm = mk_fun_apply_eq trm thy;
-                        val PV = cterm_of thy (hd (term_vars (prop_of thm)));
+                        val PV = cterm_of thy (hd (OldTerm.term_vars (prop_of thm)));
                         val thm' = cterm_instantiate [(PV,P)] thm;
                        in SOME  thm' end handle TERM _ => NONE)
                 else NONE)
@@ -1305,7 +1304,7 @@ fun record_split_simp_tac thms P i st =
         | _ => false);
 
     val goal = nth (Thm.prems_of st) (i - 1);
-    val frees = List.filter (is_recT o type_of) (term_frees goal);
+    val frees = List.filter (is_recT o type_of) (OldTerm.term_frees goal);
 
     fun mk_split_free_tac free induct_thm i =
         let val cfree = cterm_of thy free;
@@ -1426,7 +1425,7 @@ fun try_param_tac s rule i st =
           (hd (rev (Logic.strip_assums_hyp (hd (prems_of rule')))))))), true)
       | [x] => (head_of x, false));
     val rule'' = cterm_instantiate (map (pairself cert) (case (rev params) of
-        [] => (case AList.lookup (op =) (map dest_Free (term_frees (prop_of st))) s of
+        [] => (case AList.lookup (op =) (map dest_Free (OldTerm.term_frees (prop_of st))) s of
           NONE => sys_error "try_param_tac: no such variable"
         | SOME T => [(P, if ca then concl else lambda (Free (s, T)) concl),
             (x, Free (s, T))])

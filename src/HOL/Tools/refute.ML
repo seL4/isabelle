@@ -1,7 +1,5 @@
 (*  Title:      HOL/Tools/refute.ML
-    ID:         $Id$
-    Author:     Tjark Weber
-    Copyright   2003-2007
+    Author:     Tjark Weber, TU Muenchen
 
 Finite model generation for HOL formulas, using a SAT solver.
 *)
@@ -426,7 +424,7 @@ struct
   fun close_form t =
   let
     (* (Term.indexname * Term.typ) list *)
-    val vars = sort_wrt (fst o fst) (map dest_Var (term_vars t))
+    val vars = sort_wrt (fst o fst) (map dest_Var (OldTerm.term_vars t))
   in
     Library.foldl (fn (t', ((x, i), T)) =>
       (Term.all T) $ Abs (x, T, abstract_over (Var ((x, i), T), t')))
@@ -1294,7 +1292,7 @@ struct
 
     (* existential closure over schematic variables *)
     (* (Term.indexname * Term.typ) list *)
-    val vars = sort_wrt (fst o fst) (map dest_Var (term_vars t))
+    val vars = sort_wrt (fst o fst) (map dest_Var (OldTerm.term_vars t))
     (* Term.term *)
     val ex_closure = Library.foldl (fn (t', ((x, i), T)) =>
       (HOLogic.exists_const T) $

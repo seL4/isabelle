@@ -1,6 +1,5 @@
 (*  Title:      HOL/Import/proof_kernel.ML
-    ID:         $Id$
-    Author:     Sebastian Skalberg (TU Muenchen), Steven Obua
+    Author:     Sebastian Skalberg and Steven Obua, TU Muenchen
 *)
 
 signature ProofKernel =
@@ -1149,7 +1148,7 @@ fun disambiguate_frees thm =
       val ct = cprop_of thm
       val t = term_of ct
       val thy = theory_of_cterm ct
-      val frees = term_frees t
+      val frees = OldTerm.term_frees t
       val freenames = add_term_free_names (t, [])
       fun is_old_name n = n mem_string freenames
       fun name_of (Free (n, _)) = n

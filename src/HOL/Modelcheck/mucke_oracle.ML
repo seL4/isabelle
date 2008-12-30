@@ -1,6 +1,4 @@
 
-(* $Id$ *)
-
 val trace_mc = ref false; 
 
 
@@ -250,7 +248,7 @@ fun etaexp_dest_Abs t = dest_Abs (force_Abs t);
    and thm.instantiate *)
 fun freeze_thaw t =
   let val used = add_term_names (t, [])
-          and vars = term_vars t;
+          and vars = OldTerm.term_vars t;
       fun newName (Var(ix,_), (pairs,used)) = 
           let val v = Name.variant used (string_of_indexname ix)
           in  ((ix,v)::pairs, v::used)  end;
