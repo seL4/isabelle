@@ -758,8 +758,8 @@ end;
 
 fun prep_propp propss = propss |> map (map (rpair [] o Element.mark_witness));
 
-fun prep_result propps thmss =
-  ListPair.map (fn (props, thms) => map2 Element.make_witness props thms) (propps, thmss);
+val prep_result = map2 (fn props => fn thms =>
+  map2 Element.make_witness props (map Thm.close_derivation thms));
 
 
 (** Interpretation between locales: declaring sublocale relationships **)
