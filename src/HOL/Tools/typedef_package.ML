@@ -176,7 +176,7 @@ fun prepare_typedef prep_term def name (t, vs, mx) raw_set opt_morphs thy =
     fun show_names pairs = commas_quote (map fst pairs);
 
     val illegal_vars =
-      if null (term_vars set) andalso null (term_tvars set) then []
+      if null (Term.add_vars set []) andalso null (Term.add_tvars set []) then []
       else ["Illegal schematic variable(s) on rhs"];
 
     val dup_lhs_tfrees =
@@ -188,8 +188,8 @@ fun prepare_typedef prep_term def name (t, vs, mx) raw_set opt_morphs thy =
       | extras => ["Extra type variables on rhs: " ^ show_names extras]);
 
     val illegal_frees =
-      (case term_frees set of [] => []
-      | xs => ["Illegal variables on rhs: " ^ show_names (map dest_Free xs)]);
+      (case Term.add_frees set [] of [] => []
+      | xs => ["Illegal variables on rhs: " ^ show_names xs]);
 
     val errs = illegal_vars @ dup_lhs_tfrees @ extra_rhs_tfrees @ illegal_frees;
     val _ = if null errs then () else error (cat_lines errs);

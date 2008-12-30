@@ -1,5 +1,4 @@
 (*  Title:      HOL/Tools/datatype_abs_proofs.ML
-    ID:         $Id$
     Author:     Stefan Berghofer, TU Muenchen
 
 Proofs and defintions independent of concrete representation
@@ -10,8 +9,7 @@ injectivity / distinctness of constructors and induction)
  - characteristic equations for primrec combinators
  - characteristic equations for case combinators
  - equations for splitting "P (case ...)" expressions
-  - "nchotomy" and "case_cong" theorems for TFL
-
+ - "nchotomy" and "case_cong" theorems for TFL
 *)
 
 signature DATATYPE_ABS_PROOFS =
@@ -425,8 +423,8 @@ fun prove_case_congs new_type_names descr sorts nchotomys case_thms thy =
         val (Const ("Trueprop", _) $ (Const ("op =", _) $ _ $ Ma)) = tm;
         val cert = cterm_of thy;
         val nchotomy' = nchotomy RS spec;
-        val nchotomy'' = cterm_instantiate
-          [(cert (hd (add_term_vars (concl_of nchotomy', []))), cert Ma)] nchotomy'
+        val [v] = Term.add_vars (concl_of nchotomy') [];
+        val nchotomy'' = cterm_instantiate [(cert (Var v), cert Ma)] nchotomy'
       in
         SkipProof.prove_global thy [] (Logic.strip_imp_prems t) (Logic.strip_imp_concl t)
           (fn {prems, ...} => 

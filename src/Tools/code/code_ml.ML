@@ -954,7 +954,7 @@ fun ml_code_of thy = Code_Target.serialize_custom thy (target_SML,
 fun eval eval'' term_of reff thy ct args =
   let
     val ctxt = ProofContext.init thy;
-    val _ = if null (term_frees (term_of ct)) then () else error ("Term "
+    val _ = if null (Term.add_frees (term_of ct) []) then () else error ("Term "
       ^ quote (Syntax.string_of_term_global thy (term_of ct))
       ^ " to be evaluated contains free variables");
     fun eval' naming program ((vs, ty), t) deps =

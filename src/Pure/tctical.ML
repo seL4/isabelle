@@ -1,7 +1,5 @@
 (*  Title:      Pure/tctical.ML
-    ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
-    Copyright   1993  University of Cambridge
 
 Tacticals.
 *)
@@ -404,19 +402,18 @@ local
   (*Left-to-right replacements: ctpairs = [...,(vi,ti),...].
     Instantiates distinct free variables by terms of same type.*)
   fun free_instantiate ctpairs =
-      forall_elim_list (map snd ctpairs) o forall_intr_list (map fst ctpairs);
+    forall_elim_list (map snd ctpairs) o forall_intr_list (map fst ctpairs);
 
-  fun free_of s ((a,i), T) =
-        Free(s ^ (case i of 0 => a | _ => a ^ "_" ^ string_of_int i),
-             T)
+  fun free_of s ((a, i), T) =
+    Free (s ^ (case i of 0 => a | _ => a ^ "_" ^ string_of_int i), T)
 
-  fun mk_inst (var as Var(v,T))  = (var,  free_of "METAHYP1_" (v,T))
+  fun mk_inst v = (Var v, free_of "METAHYP1_" v)
 in
 
 (*Common code for METAHYPS and metahyps_thms*)
 fun metahyps_split_prem prem =
   let (*find all vars in the hyps -- should find tvars also!*)
-      val hyps_vars = List.foldr add_term_vars [] (Logic.strip_assums_hyp prem)
+      val hyps_vars = fold Term.add_vars (Logic.strip_assums_hyp prem) []
       val insts = map mk_inst hyps_vars
       (*replace the hyps_vars by Frees*)
       val prem' = subst_atomic insts prem
@@ -434,20 +431,18 @@ fun metahyps_aux_tac tacf (prem,gno) state =
       val cparams = map cterm fparams
       fun swap_ctpair (t,u) = (cterm u, cterm t)
       (*Subgoal variables: make Free; lift type over params*)
-      fun mk_subgoal_inst concl_vars (var as Var(v,T)) =
-          if member (op =) concl_vars var
-          then (var, true, free_of "METAHYP2_" (v,T))
-          else (var, false,
-                free_of "METAHYP2_" (v, map #2 params --->T))
+      fun mk_subgoal_inst concl_vars (v, T) =
+          if member (op =) concl_vars (v, T)
+          then ((v, T), true, free_of "METAHYP2_" (v, T))
+          else ((v, T), false, free_of "METAHYP2_" (v, map #2 params ---> T))
       (*Instantiate subgoal vars by Free applied to params*)
-      fun mk_ctpair (t,in_concl,u) =
-          if in_concl then (cterm t,  cterm u)
-          else (cterm t,  cterm (list_comb (u,fparams)))
+      fun mk_ctpair (v, in_concl, u) =
+          if in_concl then (cterm (Var v), cterm u)
+          else (cterm (Var v), cterm (list_comb (u, fparams)))
       (*Restore Vars with higher type and index*)
-      fun mk_subgoal_swap_ctpair
-                (t as Var((a,i),_), in_concl, u as Free(_,U)) =
-          if in_concl then (cterm u, cterm t)
-          else (cterm u, cterm(Var((a, i+maxidx), U)))
+      fun mk_subgoal_swap_ctpair (((a, i), T), in_concl, u as Free (_, U)) =
+          if in_concl then (cterm u, cterm (Var ((a, i), T)))
+          else (cterm u, cterm (Var ((a, i + maxidx), U)))
       (*Embed B in the original context of params and hyps*)
       fun embed B = list_all_free (params, Logic.list_implies (hyps, B))
       (*Strip the context using elimination rules*)
@@ -456,8 +451,8 @@ fun metahyps_aux_tac tacf (prem,gno) state =
       fun relift st =
         let val prop = Thm.prop_of st
             val subgoal_vars = (*Vars introduced in the subgoals*)
-                  List.foldr add_term_vars [] (Logic.strip_imp_prems prop)
-            and concl_vars = add_term_vars (Logic.strip_imp_concl prop, [])
+              fold Term.add_vars (Logic.strip_imp_prems prop) []
+            and concl_vars = Term.add_vars (Logic.strip_imp_concl prop) []
             val subgoal_insts = map (mk_subgoal_inst concl_vars) subgoal_vars
             val st' = Thm.instantiate ([], map mk_ctpair subgoal_insts) st
             val emBs = map (cterm o embed) (prems_of st')

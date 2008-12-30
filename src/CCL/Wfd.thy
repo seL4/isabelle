@@ -1,5 +1,4 @@
 (*  Title:      CCL/Wfd.thy
-    ID:         $Id$
     Author:     Martin Coen, Cambridge University Computer Laboratory
     Copyright   1993  University of Cambridge
 *)
@@ -451,7 +450,7 @@ fun IHinst tac rls = SUBGOAL (fn (Bi,i) =>
 
 fun is_rigid_prog t =
      case (Logic.strip_assums_concl t) of
-        (Const("Trueprop",_) $ (Const("mem",_) $ a $ _)) => (term_vars a = [])
+        (Const("Trueprop",_) $ (Const("mem",_) $ a $ _)) => null (Term.add_vars a [])
        | _ => false
 in
 
