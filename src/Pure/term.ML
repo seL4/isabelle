@@ -1,5 +1,4 @@
 (*  Title:      Pure/term.ML
-    ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   Cambridge University 1992
 
@@ -151,7 +150,6 @@ sig
   val a_itselfT: typ
   val all: typ -> term
   val argument_type_of: term -> int -> typ
-  val head_name_of: term -> string
   val add_tvarsT: typ -> (indexname * sort) list -> (indexname * sort) list
   val add_tvars: term -> (indexname * sort) list -> (indexname * sort) list
   val add_vars: term -> (indexname * typ) list -> (indexname * typ) list
@@ -412,16 +410,6 @@ fun strip_comb u : term * term list =
 (* maps   f(t1,...,tn)  to  f , which is never a combination *)
 fun head_of (f$t) = head_of f
   | head_of u = u;
-
-fun head_name_of tm =
-  (case head_of tm of
-    t as Const (c, _) =>
-      if NameSpace.is_qualified c then c
-      else raise TERM ("Malformed constant name", [t])
-  | t as Free (x, _) =>
-      if not (NameSpace.is_qualified x) then x
-      else raise TERM ("Malformed fixed variable name", [t])
-  | t => raise TERM ("No fixed head of term", [t]));
 
 (*number of atoms and abstractions in a term*)
 fun size_of_term tm =
@@ -686,9 +674,8 @@ fun unrecognized (Const (a, T)) = ((1, ((a, 0), T)), 0)
   | unrecognized (Abs (_, T, _)) = ((1, (("", 0), T)), 3);
 
 fun dest_hd f_ord t =
-      let val ord = f_ord t in
-        if ord = ~1 then unrecognized t else ((0, (("", ord), fastype_of t)), 0)
-      end
+  let val ord = f_ord t
+  in if ord = ~1 then unrecognized t else ((0, (("", ord), fastype_of t)), 0) end;
 
 fun term_lpo f_ord (s, t) =
   let val (f, ss) = strip_comb s and (g, ts) = strip_comb t in
@@ -709,7 +696,8 @@ and hd_ord f_ord (f, g) = case (f, g) of
       (case term_lpo f_ord (t, u) of EQUAL => typ_ord (T, U) | ord => ord)
   | (_, _) => prod_ord (prod_ord int_ord
                   (prod_ord indexname_ord typ_ord)) int_ord
-                (dest_hd f_ord f, dest_hd f_ord g)
+                (dest_hd f_ord f, dest_hd f_ord g);
+
 in
 val term_lpo = term_lpo
 end;
@@ -876,22 +864,24 @@ val var_ord = prod_ord indexname_ord typ_ord;
 
 (*A fast unification filter: true unless the two terms cannot be unified.
   Terms must be NORMAL.  Treats all Vars as distinct. *)
-fun could_unify (t,u) =
-  let fun matchrands (f$t, g$u) = could_unify(t,u) andalso  matchrands(f,g)
-        | matchrands _ = true
-  in case (head_of t , head_of u) of
-        (_, Var _) => true
-      | (Var _, _) => true
-      | (Const(a,_), Const(b,_)) =>  a=b andalso matchrands(t,u)
-      | (Free(a,_), Free(b,_)) =>  a=b andalso matchrands(t,u)
-      | (Bound i, Bound j) =>  i=j andalso matchrands(t,u)
-      | (Abs _, _) =>  true   (*because of possible eta equality*)
-      | (_, Abs _) =>  true
-      | _ => false
+fun could_unify (t, u) =
+  let
+    fun matchrands (f $ t) (g $ u) = could_unify (t, u) andalso matchrands f g
+      | matchrands _ _ = true;
+  in
+    case (head_of t, head_of u) of
+      (_, Var _) => true
+    | (Var _, _) => true
+    | (Const (a, _), Const (b, _)) => a = b andalso matchrands t u
+    | (Free (a, _), Free (b, _)) => a = b andalso matchrands t u
+    | (Bound i, Bound j) => i = j andalso matchrands t u
+    | (Abs _, _) => true   (*because of possible eta equality*)
+    | (_, Abs _) => true
+    | _ => false
   end;
 
 (*Substitute new for free occurrences of old in a term*)
-fun subst_free [] = (fn t=>t)
+fun subst_free [] = I
   | subst_free pairs =
       let fun substf u =
             case AList.lookup (op aconv) pairs u of
@@ -1011,11 +1001,11 @@ fun close_schematic_term t =
 (** Identifying first-order terms **)
 
 (*Differs from proofterm/is_fun in its treatment of TVar*)
-fun is_funtype (Type("fun",[_,_])) = true
+fun is_funtype (Type ("fun", [_, _])) = true
   | is_funtype _ = false;
 
 (*Argument Ts is a reverse list of binder types, needed if term t contains Bound vars*)
-fun has_not_funtype Ts t = not (is_funtype (fastype_of1 (Ts,t)));
+fun has_not_funtype Ts t = not (is_funtype (fastype_of1 (Ts, t)));
 
 (*First order means in all terms of the form f(t1,...,tn) no argument has a
   function type. The supplied quantifiers are excluded: their argument always
