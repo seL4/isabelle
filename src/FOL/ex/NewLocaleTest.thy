@@ -110,6 +110,22 @@ print_locale! logic
 locale use_decl = logic + semi "op ||"
 print_locale! use_decl thm use_decl_def
 
+locale extra_type =
+  fixes a :: 'a
+    and P :: "'a => 'b => o"
+begin
+
+definition test :: "'a => o" where
+  "test(x) <-> (ALL b. P(x, b))"
+
+end
+
+term extra_type.test thm extra_type.test_def
+
+interpretation var: extra_type "0" "%x y. x = 0" .
+
+thm var.test_def
+
 
 section {* Foundational versions of theorems *}
 
