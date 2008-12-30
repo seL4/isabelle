@@ -5,7 +5,7 @@
 Simply typed lambda-calculus: types, terms, and basic operations.
 *)
 
-infix 9  $;
+infix 9 $;
 infixr 5 -->;
 infixr --->;
 infix aconv;
@@ -132,8 +132,6 @@ sig
   val typ_tvars: typ -> (indexname * sort) list
   val term_tfrees: term -> (string * sort) list
   val term_tvars: term -> (indexname * sort) list
-  val add_typ_ixns: indexname list * typ -> indexname list
-  val add_term_tvar_ixns: term * indexname list -> indexname list
   val add_term_vars: term * term list -> term list
   val term_vars: term -> term list
   val add_term_frees: term * term list -> term list
@@ -150,12 +148,17 @@ sig
   val a_itselfT: typ
   val all: typ -> term
   val argument_type_of: term -> int -> typ
+  val add_tvar_namesT: typ -> indexname list -> indexname list
+  val add_tvar_names: term -> indexname list -> indexname list
   val add_tvarsT: typ -> (indexname * sort) list -> (indexname * sort) list
   val add_tvars: term -> (indexname * sort) list -> (indexname * sort) list
+  val add_var_names: term -> indexname list -> indexname list
   val add_vars: term -> (indexname * typ) list -> (indexname * typ) list
-  val add_varnames: term -> indexname list -> indexname list
+  val add_tfree_namesT: typ -> string list -> string list
+  val add_tfree_names: term -> string list -> string list
   val add_tfreesT: typ -> (string * sort) list -> (string * sort) list
   val add_tfrees: term -> (string * sort) list -> (string * sort) list
+  val add_free_names: term -> string list -> string list
   val add_frees: term -> (string * typ) list -> (string * typ) list
   val hidden_polymorphism: term -> (indexname * sort) list
   val strip_abs_eta: int -> term -> (string * typ) list * term
@@ -492,12 +495,17 @@ fun burrow_types f ts =
   in ts' end;
 
 (*collect variables*)
+val add_tvar_namesT = fold_atyps (fn TVar (xi, _) => insert (op =) xi | _ => I);
+val add_tvar_names = fold_types add_tvar_namesT;
 val add_tvarsT = fold_atyps (fn TVar v => insert (op =) v | _ => I);
 val add_tvars = fold_types add_tvarsT;
+val add_var_names = fold_aterms (fn Var (xi, _) => insert (op =) xi | _ => I);
 val add_vars = fold_aterms (fn Var v => insert (op =) v | _ => I);
-val add_varnames = fold_aterms (fn Var (xi, _) => insert (op =) xi | _ => I);
+val add_tfree_namesT = fold_atyps (fn TFree (xi, _) => insert (op =) xi | _ => I);
+val add_tfree_names = fold_types add_tfree_namesT;
 val add_tfreesT = fold_atyps (fn TFree v => insert (op =) v | _ => I);
 val add_tfrees = fold_types add_tfreesT;
+val add_free_names = fold_aterms (fn Free (x, _) => insert (op =) x | _ => I);
 val add_frees = fold_aterms (fn Free v => insert (op =) v | _ => I);
 
 (*extra type variables in a term, not covered by its type*)
@@ -1140,22 +1148,6 @@ fun typ_tfrees T = add_typ_tfrees(T,[]);
 fun typ_tvars T = add_typ_tvars(T,[]);
 fun term_tfrees t = add_term_tfrees(t,[]);
 fun term_tvars t = add_term_tvars(t,[]);
-
-(*special code to enforce left-to-right collection of TVar-indexnames*)
-
-fun add_typ_ixns(ixns,Type(_,Ts)) = Library.foldl add_typ_ixns (ixns,Ts)
-  | add_typ_ixns(ixns,TVar(ixn,_)) = if member (op =) ixns ixn then ixns
-                                     else ixns@[ixn]
-  | add_typ_ixns(ixns,TFree(_)) = ixns;
-
-fun add_term_tvar_ixns(Const(_,T),ixns) = add_typ_ixns(ixns,T)
-  | add_term_tvar_ixns(Free(_,T),ixns) = add_typ_ixns(ixns,T)
-  | add_term_tvar_ixns(Var(_,T),ixns) = add_typ_ixns(ixns,T)
-  | add_term_tvar_ixns(Bound _,ixns) = ixns
-  | add_term_tvar_ixns(Abs(_,T,t),ixns) =
-      add_term_tvar_ixns(t,add_typ_ixns(ixns,T))
-  | add_term_tvar_ixns(f$t,ixns) =
-      add_term_tvar_ixns(t,add_term_tvar_ixns(f,ixns));
 
 
 (** Frees and Vars **)
