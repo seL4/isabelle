@@ -232,9 +232,6 @@ fun make_constraints_cprf thy env cprf =
 
 (**** update list of free variables of constraints ****)
 
-val add_term_ixns = fold_aterms (fn Var (xi, _) => insert (op =) xi | _ => I);
-val add_typ_ixns = fold_atyps (fn TVar (ai, _) => insert (op =) ai | _ => I);
-
 fun upd_constrs env cs =
   let
     val Envir.Envir {asol, iTs, ...} = env;
@@ -242,8 +239,8 @@ fun upd_constrs env cs =
       |> Vartab.fold (cons o #1) asol
       |> Vartab.fold (cons o #1) iTs;
     val vran = []
-      |> Vartab.fold (add_term_ixns o #2 o #2) asol
-      |> Vartab.fold (add_typ_ixns o #2 o #2) iTs;
+      |> Vartab.fold (Term.add_var_names o #2 o #2) asol
+      |> Vartab.fold (Term.add_tvar_namesT o #2 o #2) iTs;
     fun check_cs [] = []
       | check_cs ((u, p, vs)::ps) =
           let val vs' = subtract (op =) dom vs;
