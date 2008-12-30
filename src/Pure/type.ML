@@ -277,8 +277,9 @@ fun varify fixed t =
   let
     val fs = Term.fold_types (Term.fold_atyps
       (fn TFree v => if member (op =) fixed v then I else insert (op =) v | _ => I)) t [];
-    val ixns = add_term_tvar_ixns (t, []);
-    val fmap = fs ~~ map (rpair 0) (Name.variant_list (map #1 ixns) (map fst fs))
+    val used = Name.context
+      |> fold_types (fold_atyps (fn TVar ((a, _), _) => Name.declare a | _ => I)) t;
+    val fmap = fs ~~ map (rpair 0) (#1 (Name.variants (map fst fs) used));
     fun thaw (f as (a, S)) =
       (case AList.lookup (op =) fmap f of
         NONE => TFree f
