@@ -2,7 +2,7 @@
     Author:     Kong W. Susanto and Lawrence C. Paulson, CU Computer Laboratory
     Copyright   Cambridge University 2007
 
-HOL setup for the Metis prover (version 2.0 from 2007).
+HOL setup for the Metis prover.
 *)
 
 signature METIS_TOOLS =
@@ -280,9 +280,10 @@ fun infer_types ctxt =
 
   fun cterm_incr_types thy idx = cterm_of thy o (map_types (Logic.incr_tvar idx));
 
-  fun inst_excluded_middle th thy i_atm =
-    let val vx = hd (term_vars (prop_of th))
-        val substs = [(cterm_of thy vx, cterm_of thy i_atm)]
+  fun inst_excluded_middle thy i_atm =
+    let val th = EXCLUDED_MIDDLE
+        val [vx] = Term.add_vars (prop_of th) []
+        val substs = [(cterm_of thy (Var vx), cterm_of thy i_atm)]
     in  cterm_instantiate substs th  end;
 
   (* INFERENCE RULE: AXIOM *)
@@ -291,7 +292,7 @@ fun infer_types ctxt =
 
   (* INFERENCE RULE: ASSUME *)
   fun assume_inf ctxt atm =
-    inst_excluded_middle EXCLUDED_MIDDLE
+    inst_excluded_middle
       (ProofContext.theory_of ctxt)
       (singleton (fol_terms_to_hol ctxt) (Metis.Term.Fn atm));
 
@@ -301,12 +302,12 @@ fun infer_types ctxt =
   fun inst_inf ctxt thpairs fsubst th =    
     let val thy = ProofContext.theory_of ctxt
         val i_th   = lookth thpairs th
-        val i_th_vars = term_vars (prop_of i_th)
-        fun find_var x = valOf (List.find (fn Term.Var((a,_),_) => a=x) i_th_vars)
+        val i_th_vars = Term.add_vars (prop_of i_th) []
+        fun find_var x = valOf (List.find (fn ((a,_),_) => a=x) i_th_vars)
         fun subst_translation (x,y) =
               let val v = find_var x
                   val t = fol_term_to_hol_RAW ctxt y (*we call infer_types below*)
-              in  SOME (cterm_of thy v, t)  end
+              in  SOME (cterm_of thy (Var v), t)  end
               handle Option =>
                   (Output.debug (fn() => "List.find failed for the variable " ^ x ^
                                          " in " ^ Display.string_of_thm i_th);
@@ -370,7 +371,7 @@ fun infer_types ctxt =
     end;
 
   (* INFERENCE RULE: REFL *)
-  val refl_x = cterm_of (the_context ()) (hd (term_vars (prop_of REFL_THM)));
+  val refl_x = cterm_of (the_context ()) (Var (hd (Term.add_vars (prop_of REFL_THM) [])));
   val refl_idx = 1 + Thm.maxidx_of REFL_THM;
 
   fun refl_inf ctxt t =
@@ -429,7 +430,7 @@ fun infer_types ctxt =
         val subst' = incr_indexes (imax+1) (if pos then subst_em else ssubst_em)
         val _ = Output.debug (fn () => "subst' " ^ Display.string_of_thm subst')
         val eq_terms = map (pairself (cterm_of thy))
-                           (ListPair.zip (term_vars (prop_of subst'), [tm_abs, tm_subst, i_tm]))
+                           (ListPair.zip (OldTerm.term_vars (prop_of subst'), [tm_abs, tm_subst, i_tm]))
     in  cterm_instantiate eq_terms subst'  end;
 
   val factor = Seq.hd o distinct_subgoals_tac;

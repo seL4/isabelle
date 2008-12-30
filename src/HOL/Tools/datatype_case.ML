@@ -1,7 +1,6 @@
 (*  Title:      HOL/Tools/datatype_case.ML
-    ID:         $Id$
     Author:     Konrad Slind, Cambridge University Computer Laboratory
-                Stefan Berghofer, TU Muenchen
+    Author:     Stefan Berghofer, TU Muenchen
 
 Nested case expressions on datatypes.
 *)
@@ -426,9 +425,9 @@ val dest_case' = gen_dest_case
 fun strip_case' dest (pat, rhs) =
   case dest (add_term_free_names (pat, [])) rhs of
     SOME (exp as Free _, clauses) =>
-      if member op aconv (term_frees pat) exp andalso
+      if member op aconv (OldTerm.term_frees pat) exp andalso
         not (exists (fn (_, rhs') =>
-          member op aconv (term_frees rhs') exp) clauses)
+          member op aconv (OldTerm.term_frees rhs') exp) clauses)
       then
         maps (strip_case' dest) (map (fn (pat', rhs') =>
           (subst_free [(exp, pat')] pat, rhs')) clauses)
@@ -451,7 +450,7 @@ fun case_tr' tab_of cname ctxt ts =
     val thy = ProofContext.theory_of ctxt;
     val consts = ProofContext.consts_of ctxt;
     fun mk_clause (pat, rhs) =
-      let val xs = term_frees pat
+      let val xs = Term.add_frees pat []
       in
         Syntax.const "_case1" $
           map_aterms
@@ -459,8 +458,8 @@ fun case_tr' tab_of cname ctxt ts =
               | Const (s, _) => Const (Consts.extern_early consts s, dummyT)
               | t => t) pat $
           map_aterms
-            (fn x as Free (s, _) =>
-                  if member op aconv xs x then Syntax.mark_bound s else x
+            (fn x as Free (s, T) =>
+                  if member (op =) xs (s, T) then Syntax.mark_bound s else x
               | t => t) rhs
       end
   in case strip_case' (tab_of thy) true (list_comb (Syntax.const cname, ts)) of

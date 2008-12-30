@@ -1,5 +1,4 @@
 (*  Title:      Pure/codegen.ML
-    ID:         $Id$
     Author:     Stefan Berghofer, TU Muenchen
 
 Generic code generator.
@@ -598,7 +597,7 @@ fun mk_app _ p [] = p
      else Pretty.block (separate (Pretty.brk 1) (p :: ps));
 
 fun new_names t xs = Name.variant_list
-  (map (fst o fst o dest_Var) (term_vars t) union
+  (map (fst o fst o dest_Var) (OldTerm.term_vars t) union
     add_term_names (t, ML_Syntax.reserved_names)) (map mk_id xs);
 
 fun new_name t x = hd (new_names t [x]);
@@ -917,9 +916,9 @@ fun eval_term thy t =
     val ctxt = ProofContext.init thy;
     val e =
       let
-        val _ = (null (term_tvars t) andalso null (term_tfrees t)) orelse
+        val _ = (null (Term.add_tvars t []) andalso null (Term.add_tfrees t [])) orelse
           error "Term to be evaluated contains type variables";
-        val _ = (null (term_vars t) andalso null (term_frees t)) orelse
+        val _ = (null (Term.add_vars t []) andalso null (Term.add_frees t [])) orelse
           error "Term to be evaluated contains variables";
         val (code, gr) = setmp mode ["term_of"]
           (generate_code_i thy [] "Generated")

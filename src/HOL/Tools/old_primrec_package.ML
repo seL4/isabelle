@@ -1,6 +1,6 @@
 (*  Title:      HOL/Tools/old_primrec_package.ML
-    ID:         $Id$
-    Author:     Stefan Berghofer, TU Muenchen and Norbert Voelker, FernUni Hagen
+    Author:     Norbert Voelker, FernUni Hagen
+    Author:     Stefan Berghofer, TU Muenchen
 
 Package for defining functions on datatypes by primitive recursion.
 *)
@@ -58,7 +58,7 @@ fun unify_consts thy cs intr_ts =
 fun process_eqn thy eq rec_fns =
   let
     val (lhs, rhs) =
-      if null (term_vars eq) then
+      if null (Term.add_vars eq []) then
         HOLogic.dest_eq (HOLogic.dest_Trueprop eq)
         handle TERM _ => raise RecError "not a proper equation"
       else raise RecError "illegal schematic variable(s)";
@@ -91,7 +91,7 @@ fun process_eqn thy eq rec_fns =
     else
      (check_vars "repeated variable names in pattern: " (duplicates (op =) lfrees);
       check_vars "extra variables on rhs: "
-        (map dest_Free (term_frees rhs) \\ lfrees);
+        (map dest_Free (OldTerm.term_frees rhs) \\ lfrees);
       case AList.lookup (op =) rec_fns fnameT of
         NONE =>
           (fnameT, (tname, rpos, [(cname, (ls, cargs, rs, rhs, eq))]))::rec_fns
