@@ -1,7 +1,5 @@
 (*  Title:      Provers/classical.ML
-    ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
-    Copyright   1992  University of Cambridge
 
 Theorem prover for classical reasoning, including predicate calculus, set
 theory, etc.
@@ -810,9 +808,7 @@ fun safe_depth_tac cs m =
     (fn (prem,i) =>
       let val deti =
           (*No Vars in the goal?  No need to backtrack between goals.*)
-          case term_vars prem of
-              []        => DETERM
-            | _::_      => I
+          if exists_subterm (fn Var _ => true | _ => false) prem then DETERM else I
       in  SELECT_GOAL (TRY (safe_tac cs) THEN
                        DEPTH_SOLVE (deti (depth_tac cs m 1))) i
       end);
