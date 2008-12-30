@@ -1,12 +1,12 @@
 (*  Title:      HOLCF/HOLCF.thy
-    ID:         $Id$
     Author:     Franz Regensburger
 
 HOLCF -- a semantic extension of HOL by the LCF logic.
 *)
 
 theory HOLCF
-imports Sprod Ssum Up Lift Discrete One Tr Domain ConvexPD Algebraic Universal Main
+imports
+  Domain ConvexPD Algebraic Universal Dsum Main
 uses
   "holcf_logic.ML"
   "Tools/cont_consts.ML"

@@ -1,0 +1,20 @@
+diff -r hgweb/webcommands.py hgweb/webcommands.py
+653c653
+<         desc = templatefilters.firstline(ctx.description())
+---
+>         desc = ctx.description()
+diff -r templates/atom/changelogentry.tmpl templates/atom/changelogentry.tmpl
+2c2
+<   <title>#desc|strip|firstline|strip|escape#</title>
+---
+>   <title>#desc|strip|escape#</title>
+diff -r templates/rss/changelogentry.tmpl templates/rss/changelogentry.tmpl
+2c2
+<     <title>#desc|strip|firstline|strip|escape#</title>
+---
+>     <title>#desc|strip|escape#</title>
+diff -r templates/rss/filelogentry.tmpl templates/rss/filelogentry.tmpl
+2c2
+<     <title>#desc|strip|firstline|strip|escape#</title>
+---
+>     <title>#desc|strip|escape#</title>

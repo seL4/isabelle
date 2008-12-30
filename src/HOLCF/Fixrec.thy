@@ -1,5 +1,4 @@
 (*  Title:      HOLCF/Fixrec.thy
-    ID:         $Id$
     Author:     Amber Telfer and Brian Huffman
 *)
 
@@ -17,13 +16,13 @@ defaultsort cpo
 pcpodef (open) 'a maybe = "UNIV::(one ++ 'a u) set"
 by simp_all
 
-constdefs
-  fail :: "'a maybe"
-  "fail \<equiv> Abs_maybe (sinl\<cdot>ONE)"
+definition
+  fail :: "'a maybe" where
+  "fail = Abs_maybe (sinl\<cdot>ONE)"
 
-constdefs
+definition
   return :: "'a \<rightarrow> 'a maybe" where
-  "return \<equiv> \<Lambda> x. Abs_maybe (sinr\<cdot>(up\<cdot>x))"
+  "return = (\<Lambda> x. Abs_maybe (sinr\<cdot>(up\<cdot>x)))"
 
 definition
   maybe_when :: "'b \<rightarrow> ('a \<rightarrow> 'b) \<rightarrow> 'a maybe \<rightarrow> 'b::pcpo" where
@@ -59,7 +58,8 @@ by (simp_all add: return_def fail_def maybe_when_def cont_Rep_maybe
                   cont_Abs_maybe Abs_maybe_inverse Rep_maybe_strict)
 
 translations
-  "case m of fail \<Rightarrow> t1 | return\<cdot>x \<Rightarrow> t2" == "CONST maybe_when\<cdot>t1\<cdot>(\<Lambda> x. t2)\<cdot>m"
+  "case m of XCONST fail \<Rightarrow> t1 | XCONST return\<cdot>x \<Rightarrow> t2"
+    == "CONST maybe_when\<cdot>t1\<cdot>(\<Lambda> x. t2)\<cdot>m"
 
 
 subsubsection {* Monadic bind operator *}
@@ -164,8 +164,8 @@ lemmas run_fatbar_simps [simp] = run_fatbar1 run_fatbar2 run_fatbar3
 
 subsection {* Case branch combinator *}
 
-constdefs
-  branch :: "('a \<rightarrow> 'b maybe) \<Rightarrow> ('b \<rightarrow> 'c) \<rightarrow> ('a \<rightarrow> 'c maybe)"
+definition
+  branch :: "('a \<rightarrow> 'b maybe) \<Rightarrow> ('b \<rightarrow> 'c) \<rightarrow> ('a \<rightarrow> 'c maybe)" where
   "branch p \<equiv> \<Lambda> r x. bind\<cdot>(p\<cdot>x)\<cdot>(\<Lambda> y. return\<cdot>(r\<cdot>y))"
 
 lemma branch_rews:

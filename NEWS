@@ -42,6 +42,11 @@ care is required when using older releases of Isabelle.  Note that
 ISABELLE_HOME_USER can be changed in Isabelle/etc/settings of any
 Isabelle distribution.
 
+* Proofs of fully specified statements are run in parallel on
+multi-core systems.  A speedup factor of 2-3 can be expected on a
+regular 4-core machine, if the initial heap space is made reasonably
+large (cf. Poly/ML option -H).  [Poly/ML 5.2.1 or later]
+
 * The Isabelle System Manual (system) has been updated, with formally
 checked references as hyperlinks.
 
@@ -55,8 +60,8 @@ makes c inaccessible; consider using ``hide (open) const c'' instead.
 * Removed exotic 'token_translation' command.  INCOMPATIBILITY, use ML
 interface instead.
 
-* There is a new lexical item "float" with syntax ["-"] digit+ "." digit+,
-without spaces.
+* There is a new syntactic category "float_const" for signed decimal
+fractions (e.g. 123.45 or -123.45).
 
 
 *** Pure ***
@@ -152,11 +157,12 @@ syntax just like the Isar command 'by'.
 
 *** HOL ***
 
-* Made repository layout more coherent with logical
-distribution structure:
+* Made source layout more coherent with logical distribution
+structure:
 
     src/HOL/Library/RType.thy ~> src/HOL/Typerep.thy
     src/HOL/Library/Code_Message.thy ~> src/HOL/
+    src/HOL/Library/Dense_Linear_Order.thy ~> src/HOL/
     src/HOL/Library/GCD.thy ~> src/HOL/
     src/HOL/Library/Order_Relation.thy ~> src/HOL/
     src/HOL/Library/Parity.thy ~> src/HOL/
@@ -172,6 +178,7 @@ distribution structure:
     src/HOL/Complex/Complex_Main.thy ~> src/HOL/
     src/HOL/Complex/Complex.thy ~> src/HOL/
     src/HOL/Complex/FrechetDeriv.thy ~> src/HOL/
+    src/HOL/Complex/Fundamental_Theorem_Algebra.thy ~> src/HOL/
     src/HOL/Hyperreal/Deriv.thy ~> src/HOL/
     src/HOL/Hyperreal/Fact.thy ~> src/HOL/
     src/HOL/Hyperreal/Integration.thy ~> src/HOL/
@@ -181,9 +188,12 @@ distribution structure:
     src/HOL/Hyperreal/MacLaurin.thy ~> src/HOL/
     src/HOL/Hyperreal/NthRoot.thy ~> src/HOL/
     src/HOL/Hyperreal/Series.thy ~> src/HOL/
+    src/HOL/Hyperreal/SEQ.thy ~> src/HOL/
     src/HOL/Hyperreal/Taylor.thy ~> src/HOL/
     src/HOL/Hyperreal/Transcendental.thy ~> src/HOL/
     src/HOL/Real/Float ~> src/HOL/Library/
+    src/HOL/Real/HahnBanach ~> src/HOL/HahnBanach
+    src/HOL/Real/RealVector.thy ~> src/HOL/
 
     src/HOL/arith_data.ML ~> src/HOL/Tools
     src/HOL/hologic.ML ~> src/HOL/Tools
@@ -238,6 +248,10 @@ mechanisms.  The result of the first successful evaluation mechanism
 is printed.  In square brackets a particular named evaluation
 mechanisms may be specified (currently, [SML], [code] or [nbe]).  See
 further src/HOL/ex/Eval_Examples.thy.
+
+* New method "sizechange" to automate termination proofs using (a
+modification of) the size-change principle. Requires SAT solver. See
+src/HOL/ex/Termination.thy for examples.
 
 * HOL/Orderings: class "wellorder" moved here, with explicit induction
 rule "less_induct" as assumption.  For instantiation of "wellorder" by
@@ -387,6 +401,14 @@ Complex_Main.thy should now use new entry point Hypercomplex.thy.
 
 
 *** ML ***
+
+* High-level support for concurrent ML programming, see
+src/Pure/Cuncurrent.  The data-oriented model of "future values" is
+particularly convenient to organize independent functional
+computations.  The concept of "synchronized variables" provides a
+higher-order interface for components with shared state, avoiding the
+delicate details of mutexes and condition variables.  [Poly/ML 5.2.1
+or later]
 
 * Simplified ML oracle interface Thm.add_oracle promotes 'a -> cterm
 to 'a -> thm, while results are always tagged with an authentic oracle
@@ -857,8 +879,8 @@ management only; user-code should use print_mode_value,
 print_mode_active, PrintMode.setmp etc.  INCOMPATIBILITY.
 
 * Functions system/system_out provide a robust way to invoke external
-shell commands, with propagation of interrupts (requires Poly/ML 5.2).
-Do not use OS.Process.system etc. from the basis library!
+shell commands, with propagation of interrupts (requires Poly/ML
+5.2.1).  Do not use OS.Process.system etc. from the basis library!
 
 
 *** System ***
@@ -5953,6 +5975,3 @@ have been removed;
 types;
 
 :mode=text:wrap=hard:maxLineLen=72:
-
-
-$Id$

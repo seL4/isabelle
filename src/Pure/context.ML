@@ -21,11 +21,10 @@ sig
   val ancestors_of: theory -> theory list
   val theory_name: theory -> string
   val is_stale: theory -> bool
-  val PureN: string
   val is_draft: theory -> bool
   val reject_draft: theory -> theory
-  val exists_name: string -> theory -> bool
-  val names_of: theory -> string list
+  val PureN: string
+  val display_names: theory -> string list
   val pretty_thy: theory -> Pretty.T
   val string_of_thy: theory -> string
   val pprint_thy: theory -> pprint_args -> unit
@@ -144,17 +143,18 @@ end;
 datatype theory =
   Theory of
    (*identity*)
-   {self: theory ref option,            (*dynamic self reference -- follows theory changes*)
-    id: serial * (string * int),        (*identifier/name of this theory node*)
-    ids: (string * int) Inttab.table} * (*ancestors and checkpoints*)
+   {self: theory ref option,      (*dynamic self reference -- follows theory changes*)
+    draft: bool,                  (*draft mode -- linear destructive changes*)
+    id: serial,                   (*identifier*)
+    ids: unit Inttab.table} *     (*cumulative identifiers of non-drafts -- symbolic body content*)
    (*data*)
-   Object.T Datatab.table *
+   Object.T Datatab.table *       (*body content*)
    (*ancestry*)
-   {parents: theory list,               (*immediate predecessors*)
-    ancestors: theory list} *           (*all predecessors*)
+   {parents: theory list,         (*immediate predecessors*)
+    ancestors: theory list} *     (*all predecessors -- canonical reverse order*)
    (*history*)
-   {name: string,                       (*prospective name of finished theory*)
-    version: int};                      (*checkpoint counter*)
+   {name: string,                 (*official theory name*)
+    stage: int};                  (*checkpoint counter*)
 
 exception THEORY of string * theory list;
 
@@ -165,9 +165,9 @@ val data_of     = #2 o rep_theory;
 val ancestry_of = #3 o rep_theory;
 val history_of  = #4 o rep_theory;
 
-fun make_identity self id ids = {self = self, id = id, ids = ids};
+fun make_identity self draft id ids = {self = self, draft = draft, id = id, ids = ids};
 fun make_ancestry parents ancestors = {parents = parents, ancestors = ancestors};
-fun make_history name version = {name = name, version = version};
+fun make_history name stage = {name = name, stage = stage};
 
 val the_self = the o #self o identity_of;
 val parents_of = #parents o ancestry_of;
@@ -177,7 +177,7 @@ val theory_name = #name o history_of;
 
 (* staleness *)
 
-fun eq_id ((i: int, _), (j, _)) = (i = j);
+fun eq_id (i: int, j) = i = j;
 
 fun is_stale
     (Theory ({self = SOME (ref (Theory ({id = id', ...}, _, _, _))), id, ...}, _, _, _)) =
@@ -185,47 +185,46 @@ fun is_stale
   | is_stale (Theory ({self = NONE, ...}, _, _, _)) = true;
 
 fun vitalize (thy as Theory ({self = SOME r, ...}, _, _, _)) = (r := thy; thy)
-  | vitalize (thy as Theory ({self = NONE, id, ids}, data, ancestry, history)) =
+  | vitalize (thy as Theory ({self = NONE, draft, id, ids}, data, ancestry, history)) =
       let
         val r = ref thy;
-        val thy' = Theory (make_identity (SOME r) id ids, data, ancestry, history);
+        val thy' = Theory (make_identity (SOME r) draft id ids, data, ancestry, history);
       in r := thy'; thy' end;
 
 
-(* names *)
+(* draft mode *)
 
-val PureN = "Pure";
-
-val draftN = "#";
-val draft_name = (draftN, ~1);
-
-fun draft_id (_, (name, _)) = (name = draftN);
-val is_draft = draft_id o #id o identity_of;
+val is_draft = #draft o identity_of;
 
 fun reject_draft thy =
   if is_draft thy then raise THEORY ("Illegal draft theory -- stable checkpoint required", [thy])
   else thy;
 
-fun exists_name name (thy as Theory ({id = (_, (a, _)), ids, ...}, _, _, _)) =
-  name = theory_name thy orelse
-  name = a orelse
-  Inttab.exists (fn (_, (b, _)) => b = name) ids;
 
-fun name_of (a, ~1) = a
-  | name_of (a, i) = a ^ ":" ^ string_of_int i;
+(* names *)
 
-fun names_of (Theory ({id = (_, a), ids, ...}, _, _, _)) =
-  rev (name_of a :: Inttab.fold (fn (_, (b, ~1)) => cons b | _ => I) ids []);
+val PureN = "Pure";
+val draftN = "#";
+val finished = ~1;
 
-fun pretty_thy thy =
-  Pretty.str_list "{" "}" (names_of thy @ (if is_stale thy then ["!"] else []));
+fun display_names thy =
+  let
+    val draft = if is_draft thy then [draftN] else [];
+    val {stage, ...} = history_of thy;
+    val name =
+      if stage = finished then theory_name thy
+      else theory_name thy ^ ":" ^ string_of_int stage;
+    val ancestor_names = map theory_name (ancestors_of thy);
+    val stale = if is_stale thy then ["!"] else [];
+  in rev (stale @ draft @ [name] @ ancestor_names) end;
 
+val pretty_thy = Pretty.str_list "{" "}" o display_names;
 val string_of_thy = Pretty.string_of o pretty_thy;
 val pprint_thy = Pretty.pprint o pretty_thy;
 
 fun pretty_abbrev_thy thy =
   let
-    val names = names_of thy;
+    val names = display_names thy;
     val n = length names;
     val abbrev = if n > 5 then "..." :: List.drop (names, n - 5) else names;
   in Pretty.str_list "{" "}" abbrev end;
@@ -252,20 +251,18 @@ fun check_thy thy =  (*thread-safe version*)
 val pprint_thy_ref = Pretty.pprint o pretty_thy o deref;
 
 
-(* consistency *)
+(* build ids *)
 
-fun check_insert id ids =
-  if draft_id id orelse Inttab.defined ids (#1 id) then ids
-  else if Inttab.exists (fn (_, a) => a = #2 id) ids then
-    error ("Different versions of theory component " ^ quote (name_of (#2 id)))
-  else Inttab.update id ids;
+fun insert_id draft id ids =
+  if draft then ids
+  else Inttab.update (id, ()) ids;
 
-fun check_merge
-    (Theory ({id = id1, ids = ids1, ...}, _, _, _))
-    (Theory ({id = id2, ids = ids2, ...}, _, _, _)) =
-  Inttab.fold check_insert ids2 ids1
-  |> check_insert id1
-  |> check_insert id2;
+fun merge_ids
+    (Theory ({draft = draft1, id = id1, ids = ids1, ...}, _, _, _))
+    (Theory ({draft = draft2, id = id2, ids = ids2, ...}, _, _, _)) =
+  Inttab.merge (K true) (ids1, ids2)
+  |> insert_id draft1 id1
+  |> insert_id draft2 id2;
 
 
 (* equality and inclusion *)
@@ -273,11 +270,25 @@ fun check_merge
 val eq_thy = eq_id o pairself (#id o identity_of);
 
 fun proper_subthy (Theory ({id, ...}, _, _, _), Theory ({ids, ...}, _, _, _)) =
-  Inttab.defined ids (#1 id);
+  Inttab.defined ids id;
 
 fun subthy thys = eq_thy thys orelse proper_subthy thys;
 
 fun joinable (thy1, thy2) = subthy (thy1, thy2) orelse subthy (thy2, thy1);
+
+
+(* consistent ancestors *)
+
+fun extend_ancestors thy thys =
+  if member eq_thy thys thy then raise THEORY ("Duplicate theory node", thy :: thys)
+  else thy :: thys;
+
+fun extend_ancestors_of thy = extend_ancestors thy (ancestors_of thy);
+
+val merge_ancestors = merge (fn (thy1, thy2) =>
+  eq_thy (thy1, thy2) orelse
+    theory_name thy1 = theory_name thy2 andalso
+      raise THEORY ("Inconsistent theory versions", [thy1, thy2]));
 
 
 (* trivial merge *)
@@ -286,9 +297,8 @@ fun merge (thy1, thy2) =
   if eq_thy (thy1, thy2) then thy1
   else if proper_subthy (thy2, thy1) then thy1
   else if proper_subthy (thy1, thy2) then thy2
-  else (check_merge thy1 thy2;
-    error (cat_lines ["Attempt to perform non-trivial merge of theories:",
-      str_of_thy thy1, str_of_thy thy2]));
+  else error (cat_lines ["Attempt to perform non-trivial merge of theories:",
+    str_of_thy thy1, str_of_thy thy2]);
 
 fun merge_refs (ref1, ref2) =
   if ref1 = ref2 then ref1
@@ -300,41 +310,38 @@ fun merge_refs (ref1, ref2) =
 
 (* primitives *)
 
-fun create_thy name self id ids data ancestry history =
-  let
-    val {version, ...} = history;
-    val ids' = check_insert id ids;
-    val id' = (serial (), name);
-    val _ = check_insert id' ids';
-    val identity' = make_identity self id' ids';
-  in vitalize (Theory (identity', data, ancestry, history)) end;
+fun create_thy self draft ids data ancestry history =
+  let val identity = make_identity self draft (serial ()) ids;
+  in vitalize (Theory (identity, data, ancestry, history)) end;
 
-fun change_thy name f thy =
+fun change_thy draft' f thy =
   let
-    val Theory ({self, id, ids}, data, ancestry, history) = thy;
+    val Theory ({self, draft, id, ids}, data, ancestry, history) = thy;
     val (self', data', ancestry') =
-      if is_draft thy then (self, data, ancestry)    (*destructive change!*)
-      else if #version history > 0
+      if draft then (self, data, ancestry)    (*destructive change!*)
+      else if #stage history > 0
       then (NONE, copy_data data, ancestry)
-      else (NONE, extend_data data, make_ancestry [thy] (thy :: #ancestors ancestry));
+      else (NONE, extend_data data, make_ancestry [thy] (extend_ancestors_of thy));
+    val ids' = insert_id draft id ids;
     val data'' = f data';
     val thy' = NAMED_CRITICAL "theory" (fn () =>
-      (check_thy thy; create_thy name self' id ids data'' ancestry' history));
+      (check_thy thy; create_thy self' draft' ids' data'' ancestry' history));
   in thy' end;
 
-fun name_thy name = change_thy name I;
-val modify_thy = change_thy draft_name;
-val extend_thy = modify_thy I;
+val name_thy = change_thy false I;
+val extend_thy = change_thy true I;
+val modify_thy = change_thy true;
 
 fun copy_thy thy =
   let
-    val Theory ({id, ids, ...}, data, ancestry, history) = thy;
+    val Theory ({draft, id, ids, ...}, data, ancestry, history) = thy;
+    val ids' = insert_id draft id ids;
     val data' = copy_data data;
     val thy' = NAMED_CRITICAL "theory" (fn () =>
-      (check_thy thy; create_thy draft_name NONE id ids data' ancestry history));
+      (check_thy thy; create_thy NONE true ids' data' ancestry history));
   in thy' end;
 
-val pre_pure_thy = create_thy draft_name NONE (serial (), draft_name) Inttab.empty
+val pre_pure_thy = create_thy NONE true Inttab.empty
   Datatab.empty (make_ancestry [] []) (make_history PureN 0);
 
 
@@ -342,56 +349,56 @@ val pre_pure_thy = create_thy draft_name NONE (serial (), draft_name) Inttab.emp
 
 fun merge_thys pp (thy1, thy2) =
   let
-    val ids = check_merge thy1 thy2;
+    val ids = merge_ids thy1 thy2;
     val data = merge_data (pp thy1) (data_of thy1, data_of thy2);
     val ancestry = make_ancestry [] [];
     val history = make_history "" 0;
     val thy' = NAMED_CRITICAL "theory" (fn () =>
-     (check_thy thy1; check_thy thy2;
-      create_thy draft_name NONE (serial (), draft_name) ids data ancestry history));
+     (check_thy thy1; check_thy thy2; create_thy NONE true ids data ancestry history));
   in thy' end;
 
 fun maximal_thys thys =
   thys |> filter_out (fn thy => exists (fn thy' => proper_subthy (thy, thy')) thys);
 
 fun begin_thy pp name imports =
-  if name = draftN then error ("Illegal theory name: " ^ quote draftN)
+  if name = "" orelse name = draftN then error ("Bad theory name: " ^ quote name)
   else
     let
       val parents = maximal_thys (distinct eq_thy imports);
-      val ancestors = distinct eq_thy (parents @ maps ancestors_of parents);
-      val Theory ({id, ids, ...}, data, _, _) =
+      val ancestors =
+        Library.foldl merge_ancestors ([], map ancestors_of parents)
+        |> fold extend_ancestors parents;
+
+      val Theory ({ids, ...}, data, _, _) =
         (case parents of
           [] => error "No parent theories"
         | [thy] => extend_thy thy
         | thy :: thys => Library.foldl (merge_thys pp) (thy, thys));
+
       val ancestry = make_ancestry parents ancestors;
       val history = make_history name 0;
       val thy' = NAMED_CRITICAL "theory" (fn () =>
-        (map check_thy imports; create_thy draft_name NONE id ids data ancestry history));
+        (map check_thy imports; create_thy NONE true ids data ancestry history));
     in thy' end;
 
 
-(* persistent checkpoints *)
+(* history stages *)
+
+fun history_stage f thy =
+  let
+    val {name, stage} = history_of thy;
+    val _ = stage = finished andalso raise THEORY ("Theory already finished", [thy]);
+    val history' = make_history name (f stage);
+    val thy' as Theory (identity', data', ancestry', _) = name_thy thy;
+    val thy'' = NAMED_CRITICAL "theory" (fn () =>
+      (check_thy thy'; vitalize (Theory (identity', data', ancestry', history'))));
+  in thy'' end;
 
 fun checkpoint_thy thy =
-  if not (is_draft thy) then thy
-  else
-    let
-      val {name, version} = history_of thy;
-      val thy' as Theory (identity', data', ancestry', _) = name_thy (name, version) thy;
-      val history' = make_history name (version + 1);
-      val thy'' = NAMED_CRITICAL "theory" (fn () =>
-        (check_thy thy'; vitalize (Theory (identity', data', ancestry', history'))));
-    in thy'' end;
+  if is_draft thy then history_stage (fn stage => stage + 1) thy
+  else thy;
 
-fun finish_thy thy = NAMED_CRITICAL "theory" (fn () =>
-  let
-    val name = theory_name thy;
-    val Theory (identity', data', ancestry', _) = name_thy (name, ~1) thy;
-    val history' = make_history name 0;
-    val thy' = vitalize (Theory (identity', data', ancestry', history'));
-  in thy' end);
+val finish_thy = history_stage (fn _ => finished);
 
 
 (* theory data *)

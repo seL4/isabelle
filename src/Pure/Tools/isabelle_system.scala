@@ -1,5 +1,4 @@
 /*  Title:      Pure/Tools/isabelle_system.scala
-    ID:         $Id$
     Author:     Makarius
 
 Isabelle system support -- basic Cygwin/Posix compatibility.
@@ -13,24 +12,26 @@ import java.io.{BufferedReader, InputStreamReader, FileInputStream, File, IOExce
 import scala.io.Source
 
 
-object IsabelleSystem {
+class IsabelleSystem {
 
   val charset = "UTF-8"
 
 
   /* Isabelle environment settings */
 
+  private val environment = System.getenv
+
   def getenv(name: String) = {
-    val value = System.getenv(if (name == "HOME") "HOME_JVM" else name)
+    val value = environment.get(if (name == "HOME") "HOME_JVM" else name)
     if (value != null) value else ""
   }
 
   def getenv_strict(name: String) = {
-    val value = getenv(name)
+    val value = environment.get(name)
     if (value != "") value else error("Undefined environment variable: " + name)
   }
 
-  def is_cygwin() = Pattern.matches(".*-cygwin", getenv_strict("ML_PLATFORM"))
+  val is_cygwin = Pattern.matches(".*-cygwin", getenv_strict("ML_PLATFORM"))
 
 
   /* file path specifications */
@@ -75,17 +76,22 @@ object IsabelleSystem {
     result_path.toString
   }
 
+  def platform_file(path: String) =
+    new File(platform_path(path))
+
 
   /* processes */
 
-  private def posix_prefix() = if (is_cygwin()) List(platform_path("/bin/env")) else Nil
-
-  def exec(args: String*): Process = Runtime.getRuntime.exec((posix_prefix() ++ args).toArray)
-
-  def exec2(args: String*): Process = {
+  def execute(redirect: Boolean, args: String*): Process = {
     val cmdline = new java.util.LinkedList[String]
-    for (s <- posix_prefix() ++ args) cmdline.add(s)
-    new ProcessBuilder(cmdline).redirectErrorStream(true).start
+    if (is_cygwin) cmdline.add(platform_path("/bin/env"))
+    for (s <- args) cmdline.add(s)
+
+    val proc = new ProcessBuilder(cmdline)
+    proc.environment.clear
+    proc.environment.putAll(environment)
+    proc.redirectErrorStream(redirect)
+    proc.start
   }
 
 
@@ -93,10 +99,10 @@ object IsabelleSystem {
 
   def isabelle_tool(args: String*) = {
     val proc =
-      try { exec2((List(getenv_strict("ISABELLE_TOOL")) ++ args): _*) }
+      try { execute(true, (List(getenv_strict("ISABELLE_TOOL")) ++ args): _*) }
       catch { case e: IOException => error(e.getMessage) }
     proc.getOutputStream.close
-    val output = Source.fromInputStream(proc.getInputStream, charset).mkString("")
+    val output = Source.fromInputStream(proc.getInputStream, charset).mkString
     val rc = proc.waitFor
     (output, rc)
   }
@@ -115,9 +121,26 @@ object IsabelleSystem {
     if (rc != 0) error(result)
   }
 
-  def fifo_reader(fifo: String) =  // blocks until writer is ready
-    if (is_cygwin()) new BufferedReader(new InputStreamReader(Runtime.getRuntime.exec(
-      Array(platform_path("/bin/cat"), fifo)).getInputStream, charset))
-    else new BufferedReader(new InputStreamReader(new FileInputStream(fifo), charset))
+  def fifo_reader(fifo: String) = {
+    // blocks until writer is ready
+    val stream =
+      if (is_cygwin) execute(false, "cat", fifo).getInputStream
+      else new FileInputStream(fifo)
+    new BufferedReader(new InputStreamReader(stream, charset))
+  }
 
+
+  /* find logics */
+
+  def find_logics() = {
+    val ml_ident = getenv_strict("ML_IDENTIFIER")
+    var logics: Set[String] = Set()
+    for (dir <- getenv_strict("ISABELLE_PATH").split(":")) {
+      val files = platform_file(dir + "/" + ml_ident).listFiles()
+      if (files != null) {
+        for (file <- files if file.isFile) logics += file.getName
+      }
+    }
+    logics.toList.sort(_ < _)
+  }
 }

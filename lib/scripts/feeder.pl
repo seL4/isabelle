@@ -1,5 +1,4 @@
 #
-# $Id$
 # Author: Markus Wenzel, TU Muenchen
 #
 # feeder.pl - feed isabelle session

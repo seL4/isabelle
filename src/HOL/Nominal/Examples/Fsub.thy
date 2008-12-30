@@ -1,5 +1,3 @@
-(* $Id$ *)
-
 (*<*)
 theory Fsub
 imports "../Nominal" 
@@ -229,32 +227,26 @@ qed
 
 section {* Size and Capture-Avoiding Substitution for Types *}
 
-consts size_ty :: "ty \<Rightarrow> nat"
-
 nominal_primrec
+  size_ty :: "ty \<Rightarrow> nat"
+where
   "size_ty (Tvar X) = 1"
-  "size_ty (Top) = 1"
-  "size_ty (T1 \<rightarrow> T2) = (size_ty T1) + (size_ty T2) + 1"
-  "X\<sharp>T1 \<Longrightarrow> size_ty (\<forall>[X<:T1].T2) = (size_ty T1) + (size_ty T2) + 1"
+| "size_ty (Top) = 1"
+| "size_ty (T1 \<rightarrow> T2) = (size_ty T1) + (size_ty T2) + 1"
+| "X\<sharp>T1 \<Longrightarrow> size_ty (\<forall>[X<:T1].T2) = (size_ty T1) + (size_ty T2) + 1"
   apply (finite_guess)+
   apply (rule TrueI)+
   apply (simp add: fresh_nat)
   apply (fresh_guess)+
   done
 
-consts subst_ty :: "tyvrs \<Rightarrow> ty \<Rightarrow> ty \<Rightarrow> ty"
-
-syntax 
- subst_ty_syn :: "ty \<Rightarrow> tyvrs \<Rightarrow> ty \<Rightarrow> ty" ("_[_:=_]\<^isub>t\<^isub>y" [100,100,100] 100)
-
-translations 
-  "T1[Y:=T2]\<^isub>t\<^isub>y" \<rightleftharpoons> "subst_ty Y T2 T1"
-
 nominal_primrec
+  subst_ty :: "ty \<Rightarrow> tyvrs \<Rightarrow> ty \<Rightarrow> ty" ("_[_:=_]\<^isub>t\<^isub>y" [100,100,100] 100)
+where
   "(Tvar X)[Y:=T]\<^isub>t\<^isub>y= (if X=Y then T else (Tvar X))"
-  "(Top)[Y:=T]\<^isub>t\<^isub>y = Top"
-  "(T\<^isub>1 \<rightarrow> T\<^isub>2)[Y:=T]\<^isub>t\<^isub>y = (T\<^isub>1[Y:=T]\<^isub>t\<^isub>y) \<rightarrow> (T\<^isub>2[Y:=T]\<^isub>t\<^isub>y)"
-  "\<lbrakk>X\<sharp>(Y,T); X\<sharp>T\<^isub>1\<rbrakk> \<Longrightarrow> (\<forall>[X<:T\<^isub>1].T\<^isub>2)[Y:=T]\<^isub>t\<^isub>y = (\<forall>[X<:(T\<^isub>1[Y:=T]\<^isub>t\<^isub>y)].(T\<^isub>2[Y:=T]\<^isub>t\<^isub>y))"
+| "(Top)[Y:=T]\<^isub>t\<^isub>y = Top"
+| "(T\<^isub>1 \<rightarrow> T\<^isub>2)[Y:=T]\<^isub>t\<^isub>y = (T\<^isub>1[Y:=T]\<^isub>t\<^isub>y) \<rightarrow> (T\<^isub>2[Y:=T]\<^isub>t\<^isub>y)"
+| "\<lbrakk>X\<sharp>(Y,T); X\<sharp>T\<^isub>1\<rbrakk> \<Longrightarrow> (\<forall>[X<:T\<^isub>1].T\<^isub>2)[Y:=T]\<^isub>t\<^isub>y = (\<forall>[X<:(T\<^isub>1[Y:=T]\<^isub>t\<^isub>y)].(T\<^isub>2[Y:=T]\<^isub>t\<^isub>y))"
   apply (finite_guess)+
   apply (rule TrueI)+
   apply (simp add: abs_fresh)

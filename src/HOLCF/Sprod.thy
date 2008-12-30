@@ -1,8 +1,5 @@
 (*  Title:      HOLCF/Sprod.thy
-    ID:         $Id$
     Author:     Franz Regensburger and Brian Huffman
-
-Strict product with typedef.
 *)
 
 header {* The type of strict products *}

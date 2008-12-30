@@ -20,12 +20,6 @@ definition
           ("(DERIV (_)/ (_)/ :> (_))" [1000, 1000, 60] 60) where
   "DERIV f x :> D = ((%h. (f(x + h) - f x) / h) -- 0 --> D)"
 
-definition
-  differentiable :: "['a::real_normed_field \<Rightarrow> 'a, 'a] \<Rightarrow> bool"
-    (infixl "differentiable" 60) where
-  "f differentiable x = (\<exists>D. DERIV f x :> D)"
-
-
 consts
   Bolzano_bisect :: "[real*real=>bool, real, real, nat] => (real*real)"
 primrec
@@ -316,62 +310,103 @@ by (drule (2) DERIV_divide) (simp add: mult_commute power_Suc)
 
 subsection {* Differentiability predicate *}
 
+definition
+  differentiable :: "['a::real_normed_field \<Rightarrow> 'a, 'a] \<Rightarrow> bool"
+    (infixl "differentiable" 60) where
+  "f differentiable x = (\<exists>D. DERIV f x :> D)"
+
+lemma differentiableE [elim?]:
+  assumes "f differentiable x"
+  obtains df where "DERIV f x :> df"
+  using prems unfolding differentiable_def ..
+
 lemma differentiableD: "f differentiable x ==> \<exists>D. DERIV f x :> D"
 by (simp add: differentiable_def)
 
 lemma differentiableI: "DERIV f x :> D ==> f differentiable x"
 by (force simp add: differentiable_def)
 
-lemma differentiable_const: "(\<lambda>z. a) differentiable x"
-  apply (unfold differentiable_def)
-  apply (rule_tac x=0 in exI)
-  apply simp
-  done
+lemma differentiable_ident [simp]: "(\<lambda>x. x) differentiable x"
+  by (rule DERIV_ident [THEN differentiableI])
 
-lemma differentiable_sum:
+lemma differentiable_const [simp]: "(\<lambda>z. a) differentiable x"
+  by (rule DERIV_const [THEN differentiableI])
+
+lemma differentiable_compose:
+  assumes f: "f differentiable (g x)"
+  assumes g: "g differentiable x"
+  shows "(\<lambda>x. f (g x)) differentiable x"
+proof -
+  from `f differentiable (g x)` obtain df where "DERIV f (g x) :> df" ..
+  moreover
+  from `g differentiable x` obtain dg where "DERIV g x :> dg" ..
+  ultimately
+  have "DERIV (\<lambda>x. f (g x)) x :> df * dg" by (rule DERIV_chain2)
+  thus ?thesis by (rule differentiableI)
+qed
+
+lemma differentiable_sum [simp]:
   assumes "f differentiable x"
   and "g differentiable x"
   shows "(\<lambda>x. f x + g x) differentiable x"
 proof -
-  from prems have "\<exists>D. DERIV f x :> D" by (unfold differentiable_def)
-  then obtain df where "DERIV f x :> df" ..
-  moreover from prems have "\<exists>D. DERIV g x :> D" by (unfold differentiable_def)
-  then obtain dg where "DERIV g x :> dg" ..
-  ultimately have "DERIV (\<lambda>x. f x + g x) x :> df + dg" by (rule DERIV_add)
-  hence "\<exists>D. DERIV (\<lambda>x. f x + g x) x :> D" by auto
-  thus ?thesis by (fold differentiable_def)
-qed
-
-lemma differentiable_diff:
-  assumes "f differentiable x"
-  and "g differentiable x"
-  shows "(\<lambda>x. f x - g x) differentiable x"
-proof -
-  from prems have "f differentiable x" by simp
+  from `f differentiable x` obtain df where "DERIV f x :> df" ..
   moreover
-  from prems have "\<exists>D. DERIV g x :> D" by (unfold differentiable_def)
-  then obtain dg where "DERIV g x :> dg" ..
-  then have "DERIV (\<lambda>x. - g x) x :> -dg" by (rule DERIV_minus)
-  hence "\<exists>D. DERIV (\<lambda>x. - g x) x :> D" by auto
-  hence "(\<lambda>x. - g x) differentiable x" by (fold differentiable_def)
-  ultimately 
-  show ?thesis
-    by (auto simp: diff_def dest: differentiable_sum)
+  from `g differentiable x` obtain dg where "DERIV g x :> dg" ..
+  ultimately
+  have "DERIV (\<lambda>x. f x + g x) x :> df + dg" by (rule DERIV_add)
+  thus ?thesis by (rule differentiableI)
 qed
 
-lemma differentiable_mult:
+lemma differentiable_minus [simp]:
   assumes "f differentiable x"
-  and "g differentiable x"
+  shows "(\<lambda>x. - f x) differentiable x"
+proof -
+  from `f differentiable x` obtain df where "DERIV f x :> df" ..
+  hence "DERIV (\<lambda>x. - f x) x :> - df" by (rule DERIV_minus)
+  thus ?thesis by (rule differentiableI)
+qed
+
+lemma differentiable_diff [simp]:
+  assumes "f differentiable x"
+  assumes "g differentiable x"
+  shows "(\<lambda>x. f x - g x) differentiable x"
+  unfolding diff_minus using prems by simp
+
+lemma differentiable_mult [simp]:
+  assumes "f differentiable x"
+  assumes "g differentiable x"
   shows "(\<lambda>x. f x * g x) differentiable x"
 proof -
-  from prems have "\<exists>D. DERIV f x :> D" by (unfold differentiable_def)
-  then obtain df where "DERIV f x :> df" ..
-  moreover from prems have "\<exists>D. DERIV g x :> D" by (unfold differentiable_def)
-  then obtain dg where "DERIV g x :> dg" ..
-  ultimately have "DERIV (\<lambda>x. f x * g x) x :> df * g x + dg * f x" by (simp add: DERIV_mult)
-  hence "\<exists>D. DERIV (\<lambda>x. f x * g x) x :> D" by auto
-  thus ?thesis by (fold differentiable_def)
+  from `f differentiable x` obtain df where "DERIV f x :> df" ..
+  moreover
+  from `g differentiable x` obtain dg where "DERIV g x :> dg" ..
+  ultimately
+  have "DERIV (\<lambda>x. f x * g x) x :> df * g x + dg * f x" by (rule DERIV_mult)
+  thus ?thesis by (rule differentiableI)
 qed
+
+lemma differentiable_inverse [simp]:
+  assumes "f differentiable x" and "f x \<noteq> 0"
+  shows "(\<lambda>x. inverse (f x)) differentiable x"
+proof -
+  from `f differentiable x` obtain df where "DERIV f x :> df" ..
+  hence "DERIV (\<lambda>x. inverse (f x)) x :> - (inverse (f x) * df * inverse (f x))"
+    using `f x \<noteq> 0` by (rule DERIV_inverse')
+  thus ?thesis by (rule differentiableI)
+qed
+
+lemma differentiable_divide [simp]:
+  assumes "f differentiable x"
+  assumes "g differentiable x" and "g x \<noteq> 0"
+  shows "(\<lambda>x. f x / g x) differentiable x"
+  unfolding divide_inverse using prems by simp
+
+lemma differentiable_power [simp]:
+  fixes f :: "'a::{recpower,real_normed_field} \<Rightarrow> 'a"
+  assumes "f differentiable x"
+  shows "(\<lambda>x. f x ^ n) differentiable x"
+  by (induct n, simp, simp add: power_Suc prems)
 
 
 subsection {* Nested Intervals and Bisection *}
@@ -1720,6 +1755,62 @@ apply (case_tac "poly p = poly []")
 apply (blast dest: pderiv_zero)
 apply (simp (no_asm) add: rsquarefree_def order_root del: pmult_Cons)
 apply (simp add: poly_entire del: pmult_Cons)
+done
+
+
+subsection {* Theorems about Limits *}
+
+(* need to rename second isCont_inverse *)
+
+lemma isCont_inv_fun:
+  fixes f g :: "real \<Rightarrow> real"
+  shows "[| 0 < d; \<forall>z. \<bar>z - x\<bar> \<le> d --> g(f(z)) = z;  
+         \<forall>z. \<bar>z - x\<bar> \<le> d --> isCont f z |]  
+      ==> isCont g (f x)"
+by (rule isCont_inverse_function)
+
+lemma isCont_inv_fun_inv:
+  fixes f g :: "real \<Rightarrow> real"
+  shows "[| 0 < d;  
+         \<forall>z. \<bar>z - x\<bar> \<le> d --> g(f(z)) = z;  
+         \<forall>z. \<bar>z - x\<bar> \<le> d --> isCont f z |]  
+       ==> \<exists>e. 0 < e &  
+             (\<forall>y. 0 < \<bar>y - f(x)\<bar> & \<bar>y - f(x)\<bar> < e --> f(g(y)) = y)"
+apply (drule isCont_inj_range)
+prefer 2 apply (assumption, assumption, auto)
+apply (rule_tac x = e in exI, auto)
+apply (rotate_tac 2)
+apply (drule_tac x = y in spec, auto)
+done
+
+
+text{*Bartle/Sherbert: Introduction to Real Analysis, Theorem 4.2.9, p. 110*}
+lemma LIM_fun_gt_zero:
+     "[| f -- c --> (l::real); 0 < l |]  
+         ==> \<exists>r. 0 < r & (\<forall>x::real. x \<noteq> c & \<bar>c - x\<bar> < r --> 0 < f x)"
+apply (auto simp add: LIM_def)
+apply (drule_tac x = "l/2" in spec, safe, force)
+apply (rule_tac x = s in exI)
+apply (auto simp only: abs_less_iff)
+done
+
+lemma LIM_fun_less_zero:
+     "[| f -- c --> (l::real); l < 0 |]  
+      ==> \<exists>r. 0 < r & (\<forall>x::real. x \<noteq> c & \<bar>c - x\<bar> < r --> f x < 0)"
+apply (auto simp add: LIM_def)
+apply (drule_tac x = "-l/2" in spec, safe, force)
+apply (rule_tac x = s in exI)
+apply (auto simp only: abs_less_iff)
+done
+
+
+lemma LIM_fun_not_zero:
+     "[| f -- c --> (l::real); l \<noteq> 0 |] 
+      ==> \<exists>r. 0 < r & (\<forall>x::real. x \<noteq> c & \<bar>c - x\<bar> < r --> f x \<noteq> 0)"
+apply (cut_tac x = l and y = 0 in linorder_less_linear, auto)
+apply (drule LIM_fun_less_zero)
+apply (drule_tac [3] LIM_fun_gt_zero)
+apply force+
 done
 
 end

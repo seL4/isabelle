@@ -798,8 +798,8 @@ fun create_nom_typedecls ak_names thy =
        val pt_perm_supp_ineq   = @{thm "Nominal.pt_perm_supp_ineq"};
        val pt_perm_supp        = @{thm "Nominal.pt_perm_supp"};
        val subseteq_eqvt       = @{thm "Nominal.pt_subseteq_eqvt"};
-       val insert_eqvt         = @{thm "Nominal.insert_eqvt"};
-       val set_eqvt            = @{thm "Nominal.set_eqvt"};
+       val insert_eqvt         = @{thm "Nominal.pt_insert_eqvt"};
+       val set_eqvt            = @{thm "Nominal.pt_set_eqvt"};
        val perm_set_eq         = @{thm "Nominal.perm_set_eq"};
 
        (* Now we collect and instantiate some lemmas w.r.t. all atom      *)

@@ -16,7 +16,6 @@ imports
   Continuity
   ContNotDenum
   Countable
-  Dense_Linear_Order
   Efficient_Nat
   Enum
   Eval_Witness

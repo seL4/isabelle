@@ -1,8 +1,5 @@
 (*  Title:      HOLCF/One.thy
-    ID:         $Id$
     Author:     Oscar Slotosch
-
-The unit domain.
 *)
 
 header {* The unit domain *}
@@ -15,8 +12,9 @@ types one = "unit lift"
 translations
   "one" <= (type) "unit lift" 
 
-constdefs
+definition
   ONE :: "one"
+where
   "ONE == Def ()"
 
 text {* Exhaustion and Elimination for type @{typ one} *}

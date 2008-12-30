@@ -7,6 +7,9 @@ distribution.
 Contributions to this Isabelle version
 --------------------------------------
 
+* December 2008: Armin Heller, TUM and Alexander Krauss, TUM
+  Method "sizechange" for advanced termination proofs.
+
 * November 2008: Timothy Bourke, NICTA
   Performance improvement (factor 50) for find_theorems.
 
@@ -204,5 +207,3 @@ Contributions to Isabelle2005
 * 2004/2005: Tjark Weber, TUM
   SAT solver method using zChaff.
   Improved version of HOL/refute.
-
-$Id$

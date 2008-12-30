@@ -1,7 +1,5 @@
 /*  Title:      Pure/Isar/isar.scala
-    ID:         $Id$
     Author:     Makarius
-    Options:    :folding=explicit:collapseFolds=1:
 
 Isar toplevel editor model.
 */
@@ -11,7 +9,9 @@ package isabelle
 import java.util.Properties
 
 
-class Isar(args: String*) extends IsabelleProcess(args: _*) {
+class Isar(isabelle_system: IsabelleSystem, results: EventBus[IsabelleProcess.Result], args: String*)
+  extends IsabelleProcess(isabelle_system, results, args: _*)
+{
 
   /* basic editor commands */
 

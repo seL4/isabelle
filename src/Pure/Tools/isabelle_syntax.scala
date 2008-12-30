@@ -1,5 +1,4 @@
 /*  Title:      Pure/Tools/isabelle_syntax.scala
-    ID:         $Id$
     Author:     Makarius
 
 Isabelle outer syntax.

@@ -3,11 +3,13 @@
     Author:     Alexander Krauss, TU Muenchen
 *)
 
-header {* General recursive function definitions *}
+header {* Function Definitions and Termination Proofs *}
 
 theory FunDef
 imports Wellfounded
 uses
+  "Tools/prop_logic.ML"
+  "Tools/sat_solver.ML"
   ("Tools/function_package/fundef_lib.ML")
   ("Tools/function_package/fundef_common.ML")
   ("Tools/function_package/inductive_wrap.ML")
@@ -22,9 +24,14 @@ uses
   ("Tools/function_package/lexicographic_order.ML")
   ("Tools/function_package/fundef_datatype.ML")
   ("Tools/function_package/induction_scheme.ML")
+  ("Tools/function_package/termination.ML")
+  ("Tools/function_package/decompose.ML")
+  ("Tools/function_package/descent.ML")
+  ("Tools/function_package/scnp_solve.ML")
+  ("Tools/function_package/scnp_reconstruct.ML")
 begin
 
-text {* Definitions with default value. *}
+subsection {* Definitions with default value. *}
 
 definition
   THE_default :: "'a \<Rightarrow> ('a \<Rightarrow> bool) \<Rightarrow> 'a" where
@@ -97,9 +104,6 @@ lemma wf_in_rel:
   "wf R \<Longrightarrow> wfP (in_rel R)"
   by (simp add: wfP_def)
 
-inductive is_measure :: "('a \<Rightarrow> nat) \<Rightarrow> bool"
-where is_measure_trivial: "is_measure f"
-
 use "Tools/function_package/fundef_lib.ML"
 use "Tools/function_package/fundef_common.ML"
 use "Tools/function_package/inductive_wrap.ML"
@@ -110,18 +114,36 @@ use "Tools/function_package/mutual.ML"
 use "Tools/function_package/pattern_split.ML"
 use "Tools/function_package/auto_term.ML"
 use "Tools/function_package/fundef_package.ML"
-use "Tools/function_package/measure_functions.ML"
-use "Tools/function_package/lexicographic_order.ML"
 use "Tools/function_package/fundef_datatype.ML"
 use "Tools/function_package/induction_scheme.ML"
 
 setup {* 
   FundefPackage.setup 
-  #> InductionScheme.setup
-  #> MeasureFunctions.setup
-  #> LexicographicOrder.setup 
   #> FundefDatatype.setup
+  #> InductionScheme.setup
 *}
+
+subsection {* Measure Functions *}
+
+inductive is_measure :: "('a \<Rightarrow> nat) \<Rightarrow> bool"
+where is_measure_trivial: "is_measure f"
+
+use "Tools/function_package/measure_functions.ML"
+setup MeasureFunctions.setup
+
+lemma measure_size[measure_function]: "is_measure size"
+by (rule is_measure_trivial)
+
+lemma measure_fst[measure_function]: "is_measure f \<Longrightarrow> is_measure (\<lambda>p. f (fst p))"
+by (rule is_measure_trivial)
+lemma measure_snd[measure_function]: "is_measure f \<Longrightarrow> is_measure (\<lambda>p. f (snd p))"
+by (rule is_measure_trivial)
+
+use "Tools/function_package/lexicographic_order.ML"
+setup LexicographicOrder.setup 
+
+
+subsection {* Congruence Rules *}
 
 lemma let_cong [fundef_cong]:
   "M = N \<Longrightarrow> (\<And>x. x = N \<Longrightarrow> f x = g x) \<Longrightarrow> Let M f = Let N g"
@@ -140,17 +162,7 @@ lemma comp_cong [fundef_cong]:
   "f (g x) = f' (g' x') \<Longrightarrow> (f o g) x = (f' o g') x'"
   unfolding o_apply .
 
-subsection {* Setup for termination proofs *}
-
-text {* Rules for generating measure functions *}
-
-lemma [measure_function]: "is_measure size"
-by (rule is_measure_trivial)
-
-lemma [measure_function]: "is_measure f \<Longrightarrow> is_measure (\<lambda>p. f (fst p))"
-by (rule is_measure_trivial)
-lemma [measure_function]: "is_measure f \<Longrightarrow> is_measure (\<lambda>p. f (snd p))"
-by (rule is_measure_trivial)
+subsection {* Simp rules for termination proofs *}
 
 lemma termination_basic_simps[termination_simp]:
   "x < (y::nat) \<Longrightarrow> x < y + z" 
@@ -165,6 +177,151 @@ declare le_imp_less_Suc[termination_simp]
 lemma prod_size_simp[termination_simp]:
   "prod_size f g p = f (fst p) + g (snd p) + Suc 0"
 by (induct p) auto
+
+subsection {* Decomposition *}
+
+lemma less_by_empty: 
+  "A = {} \<Longrightarrow> A \<subseteq> B"
+and  union_comp_emptyL:
+  "\<lbrakk> A O C = {}; B O C = {} \<rbrakk> \<Longrightarrow> (A \<union> B) O C = {}"
+and union_comp_emptyR:
+  "\<lbrakk> A O B = {}; A O C = {} \<rbrakk> \<Longrightarrow> A O (B \<union> C) = {}"
+and wf_no_loop: 
+  "R O R = {} \<Longrightarrow> wf R"
+by (auto simp add: wf_comp_self[of R])
+
+
+subsection {* Reduction Pairs *}
+
+definition
+  "reduction_pair P = (wf (fst P) \<and> snd P O fst P \<subseteq> fst P)"
+
+lemma reduction_pairI[intro]: "wf R \<Longrightarrow> S O R \<subseteq> R \<Longrightarrow> reduction_pair (R, S)"
+unfolding reduction_pair_def by auto
+
+lemma reduction_pair_lemma:
+  assumes rp: "reduction_pair P"
+  assumes "R \<subseteq> fst P"
+  assumes "S \<subseteq> snd P"
+  assumes "wf S"
+  shows "wf (R \<union> S)"
+proof -
+  from rp `S \<subseteq> snd P` have "wf (fst P)" "S O fst P \<subseteq> fst P"
+    unfolding reduction_pair_def by auto
+  with `wf S` have "wf (fst P \<union> S)" 
+    by (auto intro: wf_union_compatible)
+  moreover from `R \<subseteq> fst P` have "R \<union> S \<subseteq> fst P \<union> S" by auto
+  ultimately show ?thesis by (rule wf_subset) 
+qed
+
+definition
+  "rp_inv_image = (\<lambda>(R,S) f. (inv_image R f, inv_image S f))"
+
+lemma rp_inv_image_rp:
+  "reduction_pair P \<Longrightarrow> reduction_pair (rp_inv_image P f)"
+  unfolding reduction_pair_def rp_inv_image_def split_def
+  by force
+
+
+subsection {* Concrete orders for SCNP termination proofs *}
+
+definition "pair_less = less_than <*lex*> less_than"
+definition "pair_leq = pair_less^="
+definition "max_strict = max_ext pair_less"
+definition "max_weak = max_ext pair_leq \<union> {({}, {})}"
+definition "min_strict = min_ext pair_less"
+definition "min_weak = min_ext pair_leq \<union> {({}, {})}"
+
+lemma wf_pair_less[simp]: "wf pair_less"
+  by (auto simp: pair_less_def)
+
+text {* Introduction rules for @{text pair_less}/@{text pair_leq} *}
+lemma pair_leqI1: "a < b \<Longrightarrow> ((a, s), (b, t)) \<in> pair_leq"
+  and pair_leqI2: "a \<le> b \<Longrightarrow> s \<le> t \<Longrightarrow> ((a, s), (b, t)) \<in> pair_leq"
+  and pair_lessI1: "a < b  \<Longrightarrow> ((a, s), (b, t)) \<in> pair_less"
+  and pair_lessI2: "a \<le> b \<Longrightarrow> s < t \<Longrightarrow> ((a, s), (b, t)) \<in> pair_less"
+  unfolding pair_leq_def pair_less_def by auto
+
+text {* Introduction rules for max *}
+lemma smax_emptyI: 
+  "finite Y \<Longrightarrow> Y \<noteq> {} \<Longrightarrow> ({}, Y) \<in> max_strict" 
+  and smax_insertI: 
+  "\<lbrakk>y \<in> Y; (x, y) \<in> pair_less; (X, Y) \<in> max_strict\<rbrakk> \<Longrightarrow> (insert x X, Y) \<in> max_strict"
+  and wmax_emptyI: 
+  "finite X \<Longrightarrow> ({}, X) \<in> max_weak" 
+  and wmax_insertI:
+  "\<lbrakk>y \<in> YS; (x, y) \<in> pair_leq; (XS, YS) \<in> max_weak\<rbrakk> \<Longrightarrow> (insert x XS, YS) \<in> max_weak" 
+unfolding max_strict_def max_weak_def by (auto elim!: max_ext.cases)
+
+text {* Introduction rules for min *}
+lemma smin_emptyI: 
+  "X \<noteq> {} \<Longrightarrow> (X, {}) \<in> min_strict" 
+  and smin_insertI: 
+  "\<lbrakk>x \<in> XS; (x, y) \<in> pair_less; (XS, YS) \<in> min_strict\<rbrakk> \<Longrightarrow> (XS, insert y YS) \<in> min_strict"
+  and wmin_emptyI: 
+  "(X, {}) \<in> min_weak" 
+  and wmin_insertI: 
+  "\<lbrakk>x \<in> XS; (x, y) \<in> pair_leq; (XS, YS) \<in> min_weak\<rbrakk> \<Longrightarrow> (XS, insert y YS) \<in> min_weak" 
+by (auto simp: min_strict_def min_weak_def min_ext_def)
+
+text {* Reduction Pairs *}
+
+lemma max_ext_compat: 
+  assumes "S O R \<subseteq> R"
+  shows "(max_ext S \<union> {({},{})}) O max_ext R \<subseteq> max_ext R"
+using assms 
+apply auto
+apply (elim max_ext.cases)
+apply rule
+apply auto[3]
+apply (drule_tac x=xa in meta_spec)
+apply simp
+apply (erule bexE)
+apply (drule_tac x=xb in meta_spec)
+by auto
+
+lemma max_rpair_set: "reduction_pair (max_strict, max_weak)"
+  unfolding max_strict_def max_weak_def 
+apply (intro reduction_pairI max_ext_wf)
+apply simp
+apply (rule max_ext_compat)
+by (auto simp: pair_less_def pair_leq_def)
+
+lemma min_ext_compat: 
+  assumes "S O R \<subseteq> R"
+  shows "(min_ext S \<union> {({},{})}) O min_ext R \<subseteq> min_ext R"
+using assms 
+apply (auto simp: min_ext_def)
+apply (drule_tac x=ya in bspec, assumption)
+apply (erule bexE)
+apply (drule_tac x=xc in bspec)
+apply assumption
+by auto
+
+lemma min_rpair_set: "reduction_pair (min_strict, min_weak)"
+  unfolding min_strict_def min_weak_def 
+apply (intro reduction_pairI min_ext_wf)
+apply simp
+apply (rule min_ext_compat)
+by (auto simp: pair_less_def pair_leq_def)
+
+
+subsection {* Tool setup *}
+
+use "Tools/function_package/termination.ML"
+use "Tools/function_package/decompose.ML"
+use "Tools/function_package/descent.ML"
+use "Tools/function_package/scnp_solve.ML"
+use "Tools/function_package/scnp_reconstruct.ML"
+
+setup {* ScnpReconstruct.setup *}
+(*
+setup {*
+  Context.theory_map (FundefCommon.set_termination_prover (ScnpReconstruct.decomp_scnp 
+  [ScnpSolve.MAX, ScnpSolve.MIN, ScnpSolve.MS])) 
+*}
+*)
+
 
 
 end

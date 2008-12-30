@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 #
-# $Id$
 # Author: Markus Wenzel, TU Muenchen
 #
 # build - compile the Isabelle system and object-logics

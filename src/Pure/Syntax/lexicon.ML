@@ -145,8 +145,18 @@ val varT = Type ("var", []);
 val tidT = Type ("tid", []);
 val tvarT = Type ("tvar", []);
 
-val terminals =
-  ["id", "longid", "var", "tid", "tvar", "num", "float", "xnum", "xstr"];
+val terminal_kinds =
+ [("id", IdentSy),
+  ("longid", LongIdentSy),
+  ("var", VarSy),
+  ("tid", TFreeSy),
+  ("tvar", TVarSy),
+  ("num", NumSy),
+  ("float_token", FloatSy),
+  ("xnum", XNumSy),
+  ("xstr", StrSy)];
+
+val terminals = map #1 terminal_kinds;
 val is_terminal = member (op =) terminals;
 
 
@@ -186,16 +196,10 @@ fun valued_token (Token (Literal, _, _)) = false
 
 (* predef_term *)
 
-fun predef_term "id" = SOME (Token (IdentSy, "id", Position.no_range))
-  | predef_term "longid" = SOME (Token (LongIdentSy, "longid", Position.no_range))
-  | predef_term "var" = SOME (Token (VarSy, "var", Position.no_range))
-  | predef_term "tid" = SOME (Token (TFreeSy, "tid", Position.no_range))
-  | predef_term "tvar" = SOME (Token (TVarSy, "tvar", Position.no_range))
-  | predef_term "num" = SOME (Token (NumSy, "num", Position.no_range))
-  | predef_term "float" = SOME (Token (FloatSy, "float", Position.no_range))
-  | predef_term "xnum" = SOME (Token (XNumSy, "xnum", Position.no_range))
-  | predef_term "xstr" = SOME (Token (StrSy, "xstr", Position.no_range))
-  | predef_term _ = NONE;
+fun predef_term s =
+  (case AList.lookup (op =) terminal_kinds s of
+    SOME sy => SOME (Token (sy, s, Position.no_range))
+  | NONE => NONE);
 
 
 (* xstr tokens *)
@@ -382,21 +386,27 @@ fun read_xnum str =
       | "0" :: "b" :: cs => (1, 2, cs)
       | "-" :: cs => (~1, 10, cs)
       | cs => (1, 10, cs));
-    val value = sign * #1 (Library.read_radix_int radix digs);
-  in {radix = radix, leading_zeros = leading_zeros digs, value = value} end;
+  in
+   {radix = radix,
+    leading_zeros = leading_zeros digs,
+    value = sign * #1 (Library.read_radix_int radix digs)}
+  end;
 
 end;
 
 fun read_float str =
   let
     val (sign, cs) =
-      (case Symbol.explode str of  "-" :: cs => (~1, cs) | cs => (1, cs));
-    val (intpart,fracpart) =
+      (case Symbol.explode str of
+        "-" :: cs => (~1, cs)
+      | cs => (1, cs));
+    val (intpart, fracpart) =
       (case take_prefix Symbol.is_digit cs of
-        (intpart, "." :: fracpart) => (intpart,fracpart)
-      | _ =>  sys_error "read_float")
-  in {mant = sign * #1 (Library.read_int (intpart@fracpart)),
-      exp = length fracpart}
+        (intpart, "." :: fracpart) => (intpart, fracpart)
+      | _ => raise Fail "read_float");
+  in
+   {mant = sign * #1 (Library.read_int (intpart @ fracpart)),
+    exp = length fracpart}
   end
 
 end;

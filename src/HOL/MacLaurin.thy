@@ -58,129 +58,157 @@ end
 *}
 
 lemma Maclaurin_lemma2:
-      "[| \<forall>m t. m < n \<and> 0\<le>t \<and> t\<le>h \<longrightarrow> DERIV (diff m) t :> diff (Suc m) t;
-          n = Suc k;
-        difg =
+  assumes diff: "\<forall>m t. m < n \<and> 0\<le>t \<and> t\<le>h \<longrightarrow> DERIV (diff m) t :> diff (Suc m) t"
+  assumes n: "n = Suc k"
+  assumes difg: "difg =
         (\<lambda>m t. diff m t -
                ((\<Sum>p = 0..<n - m. diff (m + p) 0 / real (fact p) * t ^ p) +
-                B * (t ^ (n - m) / real (fact (n - m)))))|] ==>
-        \<forall>m t. m < n & 0 \<le> t & t \<le> h -->
-                    DERIV (difg m) t :> difg (Suc m) t"
-apply clarify
-apply (rule DERIV_diff)
-apply (simp (no_asm_simp))
-apply (tactic {* DERIV_tac @{context} *})
-apply (tactic {* DERIV_tac @{context} *})
-apply (rule_tac [2] lemma_DERIV_subst)
-apply (rule_tac [2] DERIV_quotient)
-apply (rule_tac [3] DERIV_const)
-apply (rule_tac [2] DERIV_pow)
-  prefer 3 apply (simp add: fact_diff_Suc)
- prefer 2 apply simp
-apply (frule_tac m = m in less_add_one, clarify)
-apply (simp del: setsum_op_ivl_Suc)
-apply (insert sumr_offset4 [of 1])
-apply (simp del: setsum_op_ivl_Suc fact_Suc realpow_Suc)
-apply (rule lemma_DERIV_subst)
-apply (rule DERIV_add)
-apply (rule_tac [2] DERIV_const)
-apply (rule DERIV_sumr, clarify)
- prefer 2 apply simp
-apply (simp (no_asm) add: divide_inverse mult_assoc del: fact_Suc realpow_Suc)
-apply (rule DERIV_cmult)
-apply (rule lemma_DERIV_subst)
-apply (best intro: DERIV_chain2 intro!: DERIV_intros)
-apply (subst fact_Suc)
-apply (subst real_of_nat_mult)
-apply (simp add: mult_ac)
+                B * (t ^ (n - m) / real (fact (n - m)))))"
+  shows
+      "\<forall>m t. m < n & 0 \<le> t & t \<le> h --> DERIV (difg m) t :> difg (Suc m) t"
+unfolding difg
+ apply clarify
+ apply (rule DERIV_diff)
+  apply (simp add: diff)
+ apply (simp only: n)
+ apply (rule DERIV_add)
+  apply (rule_tac [2] DERIV_cmult)
+  apply (rule_tac [2] lemma_DERIV_subst)
+   apply (rule_tac [2] DERIV_quotient)
+     apply (rule_tac [3] DERIV_const)
+    apply (rule_tac [2] DERIV_pow)
+   prefer 3 apply (simp add: fact_diff_Suc)
+  prefer 2 apply simp
+ apply (frule less_iff_Suc_add [THEN iffD1], clarify)
+ apply (simp del: setsum_op_ivl_Suc)
+ apply (insert sumr_offset4 [of 1])
+ apply (simp del: setsum_op_ivl_Suc fact_Suc realpow_Suc)
+ apply (rule lemma_DERIV_subst)
+  apply (rule DERIV_add)
+   apply (rule_tac [2] DERIV_const)
+  apply (rule DERIV_sumr, clarify)
+  prefer 2 apply simp
+ apply (simp (no_asm) add: divide_inverse mult_assoc del: fact_Suc realpow_Suc)
+ apply (rule DERIV_cmult)
+ apply (rule lemma_DERIV_subst)
+  apply (best intro: DERIV_chain2 intro!: DERIV_intros)
+ apply (subst fact_Suc)
+ apply (subst real_of_nat_mult)
+ apply (simp add: mult_ac)
 done
 
-
-lemma Maclaurin_lemma3:
-  fixes difg :: "nat => real => real" shows
-     "[|\<forall>k t. k < Suc m \<and> 0\<le>t & t\<le>h \<longrightarrow> DERIV (difg k) t :> difg (Suc k) t;
-        \<forall>k<Suc m. difg k 0 = 0; DERIV (difg n) t :> 0;  n < m; 0 < t;
-        t < h|]
-     ==> \<exists>ta. 0 < ta & ta < t & DERIV (difg (Suc n)) ta :> 0"
-apply (rule Rolle, assumption, simp)
-apply (drule_tac x = n and P="%k. k<Suc m --> difg k 0 = 0" in spec)
-apply (rule DERIV_unique)
-prefer 2 apply assumption
-apply force
-apply (metis DERIV_isCont dlo_simps(4) dlo_simps(9) less_trans_Suc nat_less_le not_less_eq real_le_trans)
-apply (metis Suc_less_eq differentiableI dlo_simps(7) dlo_simps(8) dlo_simps(9)   real_le_trans xt1(8))
-done
 
 lemma Maclaurin:
-   "[| 0 < h; n > 0; diff 0 = f;
-       \<forall>m t. m < n & 0 \<le> t & t \<le> h --> DERIV (diff m) t :> diff (Suc m) t |]
-    ==> \<exists>t. 0 < t &
-              t < h &
+  assumes h: "0 < h"
+  assumes n: "0 < n"
+  assumes diff_0: "diff 0 = f"
+  assumes diff_Suc:
+    "\<forall>m t. m < n & 0 \<le> t & t \<le> h --> DERIV (diff m) t :> diff (Suc m) t"
+  shows
+    "\<exists>t. 0 < t & t < h &
               f h =
               setsum (%m. (diff m 0 / real (fact m)) * h ^ m) {0..<n} +
               (diff n t / real (fact n)) * h ^ n"
-apply (case_tac "n = 0", force)
-apply (drule not0_implies_Suc)
-apply (erule exE)
-apply (frule_tac f=f and n=n and j="%m. diff m 0" in Maclaurin_lemma)
-apply (erule exE)
-apply (subgoal_tac "\<exists>g.
-     g = (%t. f t - (setsum (%m. (diff m 0 / real(fact m)) * t^m) {0..<n} + (B * (t^n / real(fact n)))))")
- prefer 2 apply blast
-apply (erule exE)
-apply (subgoal_tac "g 0 = 0 & g h =0")
- prefer 2
- apply (simp del: setsum_op_ivl_Suc)
- apply (cut_tac n = m and k = 1 in sumr_offset2)
- apply (simp add: eq_diff_eq' del: setsum_op_ivl_Suc)
-apply (subgoal_tac "\<exists>difg. difg = (%m t. diff m t - (setsum (%p. (diff (m + p) 0 / real (fact p)) * (t ^ p)) {0..<n-m} + (B * ((t ^ (n - m)) / real (fact (n - m))))))")
- prefer 2 apply blast
-apply (erule exE)
-apply (subgoal_tac "difg 0 = g")
- prefer 2 apply simp
-apply (frule Maclaurin_lemma2, assumption+)
-apply (subgoal_tac "\<forall>ma. ma < n --> (\<exists>t. 0 < t & t < h & difg (Suc ma) t = 0) ")
- apply (drule_tac x = m and P="%m. m<n --> (\<exists>t. ?QQ m t)" in spec)
- apply (erule impE)
-  apply (simp (no_asm_simp))
- apply (erule exE)
- apply (rule_tac x = t in exI)
- apply (simp del: realpow_Suc fact_Suc)
-apply (subgoal_tac "\<forall>m. m < n --> difg m 0 = 0")
- prefer 2
- apply clarify
- apply simp
- apply (frule_tac m = ma in less_add_one, clarify)
- apply (simp del: setsum_op_ivl_Suc)
-apply (insert sumr_offset4 [of 1])
-apply (simp del: setsum_op_ivl_Suc fact_Suc realpow_Suc)
-apply (subgoal_tac "\<forall>m. m < n --> (\<exists>t. 0 < t & t < h & DERIV (difg m) t :> 0) ")
-apply (rule allI, rule impI)
-apply (drule_tac x = ma and P="%m. m<n --> (\<exists>t. ?QQ m t)" in spec)
-apply (erule impE, assumption)
-apply (erule exE)
-apply (rule_tac x = t in exI)
-(* do some tidying up *)
-apply (erule_tac [!] V= "difg = (%m t. diff m t - (setsum (%p. diff (m + p) 0 / real (fact p) * t ^ p) {0..<n-m} + B * (t ^ (n - m) / real (fact (n - m)))))"
-       in thin_rl)
-apply (erule_tac [!] V="g = (%t. f t - (setsum (%m. diff m 0 / real (fact m) * t ^ m) {0..<n} + B * (t ^ n / real (fact n))))"
-       in thin_rl)
-apply (erule_tac [!] V="f h = setsum (%m. diff m 0 / real (fact m) * h ^ m) {0..<n} + B * (h ^ n / real (fact n))"
-       in thin_rl)
-(* back to business *)
-apply (simp (no_asm_simp))
-apply (rule DERIV_unique)
-prefer 2 apply blast
-apply force
-apply (rule allI, induct_tac "ma")
-apply (rule impI, rule Rolle, assumption, simp, simp)
-apply (metis DERIV_isCont zero_less_Suc)
-apply (metis One_nat_def differentiableI dlo_simps(7))
-apply safe
-apply force
-apply (frule Maclaurin_lemma3, assumption+, safe)
-apply (rule_tac x = ta in exI, force)
-done
+proof -
+  from n obtain m where m: "n = Suc m"
+    by (cases n, simp add: n)
+
+  obtain B where f_h: "f h =
+        (\<Sum>m = 0..<n. diff m (0\<Colon>real) / real (fact m) * h ^ m) +
+        B * (h ^ n / real (fact n))"
+    using Maclaurin_lemma [OF h] ..
+
+  obtain g where g_def: "g = (%t. f t -
+    (setsum (%m. (diff m 0 / real(fact m)) * t^m) {0..<n}
+      + (B * (t^n / real(fact n)))))" by blast
+
+  have g2: "g 0 = 0 & g h = 0"
+    apply (simp add: m f_h g_def del: setsum_op_ivl_Suc)
+    apply (cut_tac n = m and k = 1 in sumr_offset2)
+    apply (simp add: eq_diff_eq' diff_0 del: setsum_op_ivl_Suc)
+    done
+
+  obtain difg where difg_def: "difg = (%m t. diff m t -
+    (setsum (%p. (diff (m + p) 0 / real (fact p)) * (t ^ p)) {0..<n-m}
+      + (B * ((t ^ (n - m)) / real (fact (n - m))))))" by blast
+
+  have difg_0: "difg 0 = g"
+    unfolding difg_def g_def by (simp add: diff_0)
+
+  have difg_Suc: "\<forall>(m\<Colon>nat) t\<Colon>real.
+        m < n \<and> (0\<Colon>real) \<le> t \<and> t \<le> h \<longrightarrow> DERIV (difg m) t :> difg (Suc m) t"
+    using diff_Suc m difg_def by (rule Maclaurin_lemma2)
+
+  have difg_eq_0: "\<forall>m. m < n --> difg m 0 = 0"
+    apply clarify
+    apply (simp add: m difg_def)
+    apply (frule less_iff_Suc_add [THEN iffD1], clarify)
+    apply (simp del: setsum_op_ivl_Suc)
+    apply (insert sumr_offset4 [of 1])
+    apply (simp del: setsum_op_ivl_Suc fact_Suc realpow_Suc)
+    done
+
+  have isCont_difg: "\<And>m x. \<lbrakk>m < n; 0 \<le> x; x \<le> h\<rbrakk> \<Longrightarrow> isCont (difg m) x"
+    by (rule DERIV_isCont [OF difg_Suc [rule_format]]) simp
+
+  have differentiable_difg:
+    "\<And>m x. \<lbrakk>m < n; 0 \<le> x; x \<le> h\<rbrakk> \<Longrightarrow> difg m differentiable x"
+    by (rule differentiableI [OF difg_Suc [rule_format]]) simp
+
+  have difg_Suc_eq_0: "\<And>m t. \<lbrakk>m < n; 0 \<le> t; t \<le> h; DERIV (difg m) t :> 0\<rbrakk>
+        \<Longrightarrow> difg (Suc m) t = 0"
+    by (rule DERIV_unique [OF difg_Suc [rule_format]]) simp
+
+  have "m < n" using m by simp
+
+  have "\<exists>t. 0 < t \<and> t < h \<and> DERIV (difg m) t :> 0"
+  using `m < n`
+  proof (induct m)
+  case 0
+    show ?case
+    proof (rule Rolle)
+      show "0 < h" by fact
+      show "difg 0 0 = difg 0 h" by (simp add: difg_0 g2)
+      show "\<forall>x. 0 \<le> x \<and> x \<le> h \<longrightarrow> isCont (difg (0\<Colon>nat)) x"
+        by (simp add: isCont_difg n)
+      show "\<forall>x. 0 < x \<and> x < h \<longrightarrow> difg (0\<Colon>nat) differentiable x"
+        by (simp add: differentiable_difg n)
+    qed
+  next
+  case (Suc m')
+    hence "\<exists>t. 0 < t \<and> t < h \<and> DERIV (difg m') t :> 0" by simp
+    then obtain t where t: "0 < t" "t < h" "DERIV (difg m') t :> 0" by fast
+    have "\<exists>t'. 0 < t' \<and> t' < t \<and> DERIV (difg (Suc m')) t' :> 0"
+    proof (rule Rolle)
+      show "0 < t" by fact
+      show "difg (Suc m') 0 = difg (Suc m') t"
+        using t `Suc m' < n` by (simp add: difg_Suc_eq_0 difg_eq_0)
+      show "\<forall>x. 0 \<le> x \<and> x \<le> t \<longrightarrow> isCont (difg (Suc m')) x"
+        using `t < h` `Suc m' < n` by (simp add: isCont_difg)
+      show "\<forall>x. 0 < x \<and> x < t \<longrightarrow> difg (Suc m') differentiable x"
+        using `t < h` `Suc m' < n` by (simp add: differentiable_difg)
+    qed
+    thus ?case
+      using `t < h` by auto
+  qed
+
+  then obtain t where "0 < t" "t < h" "DERIV (difg m) t :> 0" by fast
+
+  hence "difg (Suc m) t = 0"
+    using `m < n` by (simp add: difg_Suc_eq_0)
+
+  show ?thesis
+  proof (intro exI conjI)
+    show "0 < t" by fact
+    show "t < h" by fact
+    show "f h =
+      (\<Sum>m = 0..<n. diff m 0 / real (fact m) * h ^ m) +
+      diff n t / real (fact n) * h ^ n"
+      using `difg (Suc m) t = 0`
+      by (simp add: m f_h difg_def del: realpow_Suc fact_Suc)
+  qed
+
+qed
 
 lemma Maclaurin_objl:
   "0 < h & n>0 & diff 0 = f &

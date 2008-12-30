@@ -1,5 +1,4 @@
 /*  Title:      Pure/General/yxml.scala
-    ID:         $Id$
     Author:     Makarius
 
 Efficient text representation of XML trees.
@@ -70,7 +69,7 @@ object YXML {
 
     var stack: List[((String, XML.Attributes), List[XML.Tree])] = null
 
-    def add(x: XML.Tree) = stack match {
+    def add(x: XML.Tree) = (stack: @unchecked) match {
       case ((elem, body) :: pending) => stack = (elem, x :: body) :: pending
     }
 
@@ -78,7 +77,7 @@ object YXML {
       if (name == "") err_element()
       else stack = ((name, atts), Nil) :: stack
 
-    def pop() = stack match {
+    def pop() = (stack: @unchecked) match {
       case ((("", _), _) :: _) => err_unbalanced("")
       case (((name, atts), body) :: pending) =>
         stack = pending; add(XML.Elem(name, atts, body.reverse))

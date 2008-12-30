@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 #
-# $Id$
 # Author: Markus Wenzel, TU Muenchen
 #
 # DESCRIPTION: build object-logic or run examples
@@ -39,6 +38,11 @@ function usage()
   echo
   echo "  ISABELLE_USEDIR_OPTIONS=$ISABELLE_USEDIR_OPTIONS"
   echo "  HOL_USEDIR_OPTIONS=$HOL_USEDIR_OPTIONS"
+  echo
+  echo "  ML_PLATFORM=$ML_PLATFORM"
+  echo "  ML_HOME=$ML_HOME"
+  echo "  ML_SYSTEM=$ML_SYSTEM"
+  echo "  ML_OPTIONS=$ML_OPTIONS"
   echo
   exit 1
 }

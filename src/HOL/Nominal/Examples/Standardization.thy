@@ -1,5 +1,4 @@
 (*  Title:      HOL/Nominal/Examples/Standardization.thy
-    ID:         $Id$
     Author:     Stefan Berghofer and Tobias Nipkow
     Copyright   2005, 2008 TU Muenchen
 *)
@@ -24,24 +23,30 @@ nominal_datatype lam =
 | App "lam" "lam" (infixl "\<degree>" 200)
 | Lam "\<guillemotleft>name\<guillemotright>lam" ("Lam [_]._" [0, 10] 10)
 
-instance lam :: size ..
+instantiation lam :: size
+begin
 
-nominal_primrec
+nominal_primrec size_lam
+where
   "size (Var n) = 0"
-  "size (t \<degree> u) = size t + size u + 1"
-  "size (Lam [x].t) = size t + 1"
+| "size (t \<degree> u) = size t + size u + 1"
+| "size (Lam [x].t) = size t + 1"
   apply finite_guess+
   apply (rule TrueI)+
   apply (simp add: fresh_nat)
   apply fresh_guess+
   done
 
-consts subst :: "lam \<Rightarrow> name \<Rightarrow> lam \<Rightarrow> lam"  ("_[_::=_]" [300, 0, 0] 300)
+instance ..
+
+end
 
 nominal_primrec
+  subst :: "lam \<Rightarrow> name \<Rightarrow> lam \<Rightarrow> lam"  ("_[_::=_]" [300, 0, 0] 300)
+where
   subst_Var: "(Var x)[y::=s] = (if x=y then s else (Var x))"
-  subst_App: "(t\<^isub>1 \<degree> t\<^isub>2)[y::=s] = t\<^isub>1[y::=s] \<degree> t\<^isub>2[y::=s]"
-  subst_Lam: "x \<sharp> (y, s) \<Longrightarrow> (Lam [x].t)[y::=s] = (Lam [x].(t[y::=s]))"
+| subst_App: "(t\<^isub>1 \<degree> t\<^isub>2)[y::=s] = t\<^isub>1[y::=s] \<degree> t\<^isub>2[y::=s]"
+| subst_Lam: "x \<sharp> (y, s) \<Longrightarrow> (Lam [x].t)[y::=s] = (Lam [x].(t[y::=s]))"
   apply(finite_guess)+
   apply(rule TrueI)+
   apply(simp add: abs_fresh)

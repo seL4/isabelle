@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
 #
-# $Id$
-#
 # polyml-version --- determine Poly/ML runtime system version
 
 echo -n polyml

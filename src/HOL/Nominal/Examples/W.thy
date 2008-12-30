@@ -1,5 +1,3 @@
-(* "$Id$" *)
-
 theory W
 imports Nominal
 begin
@@ -50,25 +48,67 @@ types
   Ctxt  = "(var\<times>tyS) list" 
 
 text {* free type variables *}
-consts
-  ftv    :: "'a \<Rightarrow> tvar list"
 
-primrec (ftv_of_prod)
- "ftv (x,y) = (ftv x)@(ftv y)"
+class ftv = type +
+  fixes ftv :: "'a \<Rightarrow> tvar list"
 
-defs (overloaded)
+instantiation * :: (ftv, ftv) ftv
+begin
+
+primrec ftv_prod
+where
+ "ftv (x::'a::ftv, y::'b::ftv) = (ftv x)@(ftv y)"
+
+instance ..
+
+end
+
+instantiation tvar :: ftv
+begin
+
+definition
   ftv_of_tvar[simp]:  "ftv X \<equiv> [(X::tvar)]"
+
+instance ..
+
+end
+
+instantiation var :: ftv
+begin
+
+definition
   ftv_of_var[simp]:   "ftv (x::var) \<equiv> []" 
 
-primrec (ftv_of_list)
+instance ..
+
+end
+
+instantiation list :: (ftv) ftv
+begin
+
+primrec ftv_list
+where
   "ftv [] = []"
-  "ftv (x#xs) = (ftv x)@(ftv xs)"
+| "ftv (x#xs) = (ftv x)@(ftv xs)"
+
+instance ..
+
+end
 
 (* free type-variables of types *)
-nominal_primrec (ftv_ty)
+
+instantiation ty :: ftv
+begin
+
+nominal_primrec ftv_ty
+where
   "ftv (TVar X) = [X]"
-  "ftv (T\<^isub>1\<rightarrow>T\<^isub>2) = (ftv T\<^isub>1)@(ftv T\<^isub>2)"
+| "ftv (T\<^isub>1\<rightarrow>T\<^isub>2) = (ftv T\<^isub>1)@(ftv T\<^isub>2)"
 by (rule TrueI)+
+
+instance ..
+
+end
 
 lemma ftv_ty_eqvt[eqvt]:
   fixes pi::"tvar prm"
@@ -77,15 +117,23 @@ lemma ftv_ty_eqvt[eqvt]:
 by (nominal_induct T rule: ty.strong_induct)
    (perm_simp add: append_eqvt)+
 
-nominal_primrec (ftv_tyS)
+instantiation tyS :: ftv
+begin
+
+nominal_primrec ftv_tyS
+where
   "ftv (Ty T)    = ftv T"
-  "ftv (\<forall>[X].S) = (ftv S) - [X]"
+| "ftv (\<forall>[X].S) = (ftv S) - [X]"
 apply(finite_guess add: ftv_ty_eqvt fs_tvar1)+
 apply(rule TrueI)+
 apply(rule difference_fresh)
 apply(simp)
 apply(fresh_guess add: ftv_ty_eqvt fs_tvar1)+
 done
+
+instance ..
+
+end
 
 lemma ftv_tyS_eqvt[eqvt]:
   fixes pi::"tvar prm"
@@ -140,11 +188,11 @@ text {* Substitution *}
 
 types Subst = "(tvar\<times>ty) list"
 
-consts
- psubst :: "Subst \<Rightarrow> 'a \<Rightarrow> 'a"       ("_<_>" [100,60] 120)
+class psubst =
+  fixes psubst :: "Subst \<Rightarrow> 'a \<Rightarrow> 'a"       ("_<_>" [100,60] 120)
 
 abbreviation 
-  subst :: "'a \<Rightarrow> tvar \<Rightarrow> ty \<Rightarrow> 'a"  ("_[_::=_]" [100,100,100] 100)
+  subst :: "'a::psubst \<Rightarrow> tvar \<Rightarrow> ty \<Rightarrow> 'a"  ("_[_::=_]" [100,100,100] 100)
 where
   "smth[X::=T] \<equiv> ([(X,T)])<smth>" 
 
@@ -159,10 +207,18 @@ lemma lookup_eqvt[eqvt]:
   shows "pi\<bullet>(lookup \<theta> X) = lookup (pi\<bullet>\<theta>) (pi\<bullet>X)"
 by (induct \<theta>) (auto simp add: eqvts)
 
-nominal_primrec (psubst_ty)
+instantiation ty :: psubst
+begin
+
+nominal_primrec psubst_ty
+where
   "\<theta><TVar X>   = lookup \<theta> X"
-  "\<theta><T\<^isub>1 \<rightarrow> T\<^isub>2> = (\<theta><T\<^isub>1>) \<rightarrow> (\<theta><T\<^isub>2>)"
+| "\<theta><T\<^isub>1 \<rightarrow> T\<^isub>2> = (\<theta><T\<^isub>1>) \<rightarrow> (\<theta><T\<^isub>2>)"
 by (rule TrueI)+
+
+instance ..
+
+end
 
 lemma psubst_ty_eqvt[eqvt]:
   fixes pi1::"tvar prm"

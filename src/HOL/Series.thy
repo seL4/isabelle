@@ -10,7 +10,7 @@ Additional contributions by Jeremy Avigad
 header{*Finite Summation and Infinite Series*}
 
 theory Series
-imports "~~/src/HOL/Hyperreal/SEQ"
+imports SEQ
 begin
 
 definition

@@ -1,8 +1,5 @@
 (*  Title:      HOLCF/Discrete.thy
-    ID:         $Id$
     Author:     Tobias Nipkow
-
-Discrete CPOs.
 *)
 
 header {* Discrete cpo types *}

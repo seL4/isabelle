@@ -1,13 +1,18 @@
-(* Title:       HOL/ex/LexOrds.thy
+(* Title:       HOL/ex/Termination.thy
    ID:          $Id$
    Author:      Lukas Bulwahn, TU Muenchen
+   Author:      Alexander Krauss, TU Muenchen
 *)
 
-header {* Examples and regression tests for method lexicographic order. *}
+header {* Examples and regression tests for automated termination proofs *}
  
-theory LexOrds
-imports Main
+theory Termination
+imports Main Multiset
 begin
+
+text {*
+  The @{text fun} command uses the method @{text lexicographic_order} by default.
+*}
 
 subsection {* Trivial examples *}
 
@@ -126,17 +131,6 @@ where
   "sizechange_f i x = (if i=[] then x else sizechange_g (tl i) x i)"
 | "sizechange_g a b c = sizechange_f a (b @ c)"
 
-
-fun
-  prod :: "nat => nat => nat => nat" and
-  eprod :: "nat => nat => nat => nat" and
-  oprod :: "nat => nat => nat => nat"
-where
-  "prod x y z = (if y mod 2 = 0 then eprod x y z else oprod x y z)"
-| "oprod x y z = eprod x (y - 1) (z+x)"
-| "eprod x y z = (if y=0 then z else prod (2*x) (y div 2) z)"
-
-
 fun
   pedal :: "nat => nat => nat => nat"
 and
@@ -153,30 +147,66 @@ where
                else pedal n m (c + n))"
 
 
-subsection {*Examples for an unprovable termination *}
 
-text {* If termination cannot be proven, the tactic gives further information about unprovable subgoals on the arguments *}
+subsection {* Refined analysis: The @{text sizechange} method *}
 
-function noterm :: "(nat * nat) \<Rightarrow> nat"
+text {* Unsolvable for @{text lexicographic_order} *}
+
+function fun1 :: "nat * nat \<Rightarrow> nat"
 where
-  "noterm (a,b) = noterm(b,a)"
+  "fun1 (0,0) = 1"
+| "fun1 (0, Suc b) = 0"
+| "fun1 (Suc a, 0) = 0"
+| "fun1 (Suc a, Suc b) = fun1 (b, a)"
 by pat_completeness auto
-(* termination by apply lexicographic_order*)
+termination by sizechange
 
-function term_but_no_prove :: "nat * nat \<Rightarrow> nat"
-where
-  "term_but_no_prove (0,0) = 1"
-| "term_but_no_prove (0, Suc b) = 0"
-| "term_but_no_prove (Suc a, 0) = 0"
-| "term_but_no_prove (Suc a, Suc b) = term_but_no_prove (b, a)"
-by pat_completeness auto
-(* termination by lexicographic_order *)
 
-text{* The tactic distinguishes between N = not provable AND F = False *}
-function no_proof :: "nat \<Rightarrow> nat"
+text {* 
+  @{text lexicographic_order} can do the following, but it is much slower. 
+*}
+
+function
+  prod :: "nat => nat => nat => nat" and
+  eprod :: "nat => nat => nat => nat" and
+  oprod :: "nat => nat => nat => nat"
 where
-  "no_proof m = no_proof (Suc m)"
+  "prod x y z = (if y mod 2 = 0 then eprod x y z else oprod x y z)"
+| "oprod x y z = eprod x (y - 1) (z+x)"
+| "eprod x y z = (if y=0 then z else prod (2*x) (y div 2) z)"
 by pat_completeness auto
-(* termination by lexicographic_order *)
+termination by sizechange
+
+text {* 
+  Permutations of arguments:
+*}
+
+function perm :: "nat \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> nat"
+where
+  "perm m n r = (if r > 0 then perm m (r - 1) n
+                  else if n > 0 then perm r (n - 1) m
+                  else m)"
+by auto
+termination by sizechange
+
+text {*
+  Artificial examples and regression tests:
+*}
+
+function
+  fun2 :: "nat \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> nat"
+where
+  "fun2 x y z =
+      (if x > 1000 \<and> z > 0 then
+           fun2 (min x y) y (z - 1)
+       else if y > 0 \<and> x > 100 then
+           fun2 x (y - 1) (2 * z)
+       else if z > 0 then
+           fun2 (min y (z - 1)) x x
+       else
+           0
+      )"
+by pat_completeness auto
+termination by sizechange -- {* requires Multiset *}
 
 end

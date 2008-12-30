@@ -1,5 +1,4 @@
 /*  Title:      Pure/Thy/thy_header.scala
-    ID:         $Id$
     Author:     Makarius
 
 Theory header keywords.

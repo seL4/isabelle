@@ -842,6 +842,11 @@ proof (rule acc_wfI, intro allI)
   qed
 qed
 
+lemma max_ext_additive: 
+ "(A, B) \<in> max_ext R \<Longrightarrow> (C, D) \<in> max_ext R \<Longrightarrow>
+  (A \<union> C, B \<union> D) \<in> max_ext R"
+by (force elim!: max_ext.cases)
+
 
 definition
   min_ext :: "('a \<times> 'a) set \<Rightarrow> ('a set \<times> 'a set) set" 

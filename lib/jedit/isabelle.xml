@@ -56,6 +56,7 @@
       <OPERATOR>atom_decl</OPERATOR>
       <LABEL>atp_info</LABEL>
       <LABEL>atp_kill</LABEL>
+      <LABEL>atp_messages</LABEL>
       <KEYWORD4>attach</KEYWORD4>
       <OPERATOR>automaton</OPERATOR>
       <KEYWORD4>avoids</KEYWORD4>
@@ -154,7 +155,6 @@
       <KEYWORD4>if</KEYWORD4>
       <KEYWORD4>imports</KEYWORD4>
       <KEYWORD4>in</KEYWORD4>
-      <KEYWORD4>includes</KEYWORD4>
       <KEYWORD4>induction</KEYWORD4>
       <OPERATOR>inductive</OPERATOR>
       <KEYWORD1>inductive_cases</KEYWORD1>
@@ -286,6 +286,7 @@
       <OPERATOR>statespace</OPERATOR>
       <KEYWORD4>structure</KEYWORD4>
       <OPERATOR>subclass</OPERATOR>
+      <OPERATOR>sublocale</OPERATOR>
       <OPERATOR>subsect</OPERATOR>
       <OPERATOR>subsection</OPERATOR>
       <OPERATOR>subsubsect</OPERATOR>

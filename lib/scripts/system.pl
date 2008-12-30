@@ -1,5 +1,4 @@
 #
-# $Id$
 # Author: Makarius
 #
 # system.pl - invoke shell command line (with robust signal handling)

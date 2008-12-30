@@ -1,5 +1,4 @@
 (*  Title:      Pure/pure_setup.ML
-    ID:         $Id$
     Author:     Makarius
 
 Pure theory and ML toplevel setup.
@@ -28,12 +27,13 @@ ThyInfo.register_theory Pure.thy;
 
 (* ML toplevel pretty printing *)
 
-install_pp (make_pp ["TaskQueue", "task"] (Pretty.pprint o Pretty.str o TaskQueue.str_of_task));
-install_pp (make_pp ["TaskQueue", "group"] (Pretty.pprint o Pretty.str o TaskQueue.str_of_group));
+install_pp (make_pp ["Task_Queue", "task"] (Pretty.pprint o Pretty.str o Task_Queue.str_of_task));
+install_pp (make_pp ["Task_Queue", "group"] (Pretty.pprint o Pretty.str o Task_Queue.str_of_group));
 install_pp (make_pp ["Position", "T"] (Pretty.pprint o Pretty.enum "," "{" "}" o
   map (fn (x, y) => Pretty.str (x ^ "=" ^ y)) o Position.properties_of));
 install_pp (make_pp ["Thm", "thm"] ProofDisplay.pprint_thm);
 install_pp (make_pp ["Thm", "cterm"] ProofDisplay.pprint_cterm);
+install_pp (make_pp ["Binding", "T"] (Pretty.pprint o Pretty.str o Binding.display));
 install_pp (make_pp ["Thm", "ctyp"] ProofDisplay.pprint_ctyp);
 install_pp (make_pp ["Context", "theory"] Context.pprint_thy);
 install_pp (make_pp ["Context", "theory_ref"] Context.pprint_thy_ref);

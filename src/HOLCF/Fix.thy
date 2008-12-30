@@ -1,8 +1,5 @@
 (*  Title:      HOLCF/Fix.thy
-    ID:         $Id$
     Author:     Franz Regensburger
-
-Definitions for fixed point operator and admissibility.
 *)
 
 header {* Fixed point operator and admissibility *}

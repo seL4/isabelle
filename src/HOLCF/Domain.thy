@@ -1,5 +1,4 @@
 (*  Title:      HOLCF/Domain.thy
-    ID:         $Id$
     Author:     Brian Huffman
 *)
 

@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 #
-# $Id$
 # Author: Markus Wenzel, TU Muenchen
 #
 # DESCRIPTION: run Isabelle process with plain tty interaction

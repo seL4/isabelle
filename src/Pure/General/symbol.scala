@@ -1,5 +1,4 @@
 /*  Title:      Pure/General/symbol.scala
-    ID:         $Id$
     Author:     Makarius
 
 Detecting and recoding Isabelle symbols.
@@ -79,7 +78,7 @@ object Symbol {
 
   /** Symbol interpretation **/
 
-  class Interpretation {
+  class Interpretation(isabelle_system: IsabelleSystem) {
 
     private var symbols = new HashMap[String, HashMap[String, String]]
     private var decoder: Recoder = null
@@ -126,7 +125,7 @@ object Symbol {
     }
 
     private def read_symbols(path: String) = {
-      val file = new File(IsabelleSystem.platform_path(path))
+      val file = new File(isabelle_system.platform_path(path))
       if (file.canRead) {
         for (line <- Source.fromFile(file).getLines) read_line(line)
       }

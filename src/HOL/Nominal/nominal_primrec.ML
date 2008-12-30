@@ -1,5 +1,4 @@
 (*  Title:      HOL/Nominal/nominal_primrec.ML
-    ID:         $Id$
     Author:     Stefan Berghofer, TU Muenchen and Norbert Voelker, FernUni Hagen
 
 Package for defining functions on nominal datatypes by primitive recursion.
@@ -8,14 +7,10 @@ Taken from HOL/Tools/primrec_package.ML
 
 signature NOMINAL_PRIMREC =
 sig
-  val add_primrec: string -> string list option -> string option ->
-    ((Binding.T * string) * Attrib.src list) list -> theory -> Proof.state
-  val add_primrec_unchecked: string -> string list option -> string option ->
-    ((Binding.T * string) * Attrib.src list) list -> theory -> Proof.state
-  val add_primrec_i: string -> term list option -> term option ->
-    ((Binding.T * term) * attribute list) list -> theory -> Proof.state
-  val add_primrec_unchecked_i: string -> term list option -> term option ->
-    ((Binding.T * term) * attribute list) list -> theory -> Proof.state
+  val add_primrec: term list option -> term option ->
+    (Binding.T * typ option * mixfix) list ->
+    (Binding.T * typ option * mixfix) list ->
+    (Attrib.binding * term) list -> local_theory -> Proof.state
 end;
 
 structure NominalPrimrec : NOMINAL_PRIMREC =
@@ -26,23 +21,31 @@ open DatatypeAux;
 exception RecError of string;
 
 fun primrec_err s = error ("Nominal primrec definition error:\n" ^ s);
-fun primrec_eq_err thy s eq =
-  primrec_err (s ^ "\nin\n" ^ quote (Syntax.string_of_term_global thy eq));
+fun primrec_eq_err lthy s eq =
+  primrec_err (s ^ "\nin\n" ^ quote (Syntax.string_of_term lthy eq));
 
 
 (* preprocessing of equations *)
 
-fun process_eqn thy eq rec_fns = 
+fun unquantify t =
   let
+    val (vs, Ts) = split_list (strip_qnt_vars "all" t);
+    val body = strip_qnt_body "all" t;
+    val (vs', _) = Name.variants vs (Name.make_context (fold_aterms
+      (fn Free (v, _) => insert (op =) v | _ => I) body []))
+  in (curry subst_bounds (map2 (curry Free) vs' Ts |> rev) body) end;
+
+fun process_eqn lthy is_fixed spec rec_fns = 
+  let
+    val eq = unquantify spec;
     val (lhs, rhs) = 
-      if null (term_vars eq) then
-        HOLogic.dest_eq (HOLogic.dest_Trueprop (Logic.strip_imp_concl eq))
-        handle TERM _ => raise RecError "not a proper equation"
-      else raise RecError "illegal schematic variable(s)";
+      HOLogic.dest_eq (HOLogic.dest_Trueprop (Logic.strip_imp_concl eq))
+      handle TERM _ => raise RecError "not a proper equation";
 
     val (recfun, args) = strip_comb lhs;
-    val fnameT = dest_Const recfun handle TERM _ => 
-      raise RecError "function is not declared as constant in theory";
+    val fname = case recfun of Free (v, _) => if is_fixed v then v
+          else raise RecError "illegal head of function equation"
+      | _ => raise RecError "illegal head of function equation";
 
     val (ls', rest)  = take_prefix is_Free args;
     val (middle, rs') = take_suffix is_Free rest;
@@ -68,26 +71,28 @@ fun process_eqn thy eq rec_fns =
     else
      (check_vars "repeated variable names in pattern: " (duplicates (op =) lfrees);
       check_vars "extra variables on rhs: "
-        (map dest_Free (term_frees rhs) \\ lfrees);
-      case AList.lookup (op =) rec_fns fnameT of
+        (map dest_Free (term_frees rhs) |> subtract (op =) lfrees
+          |> filter_out (is_fixed o fst));
+      case AList.lookup (op =) rec_fns fname of
         NONE =>
-          (fnameT, (tname, rpos, [(cname, (ls, cargs, rs, rhs, eq))]))::rec_fns
+          (fname, (tname, rpos, [(cname, (ls, cargs, rs, rhs, eq))]))::rec_fns
       | SOME (_, rpos', eqns) =>
           if AList.defined (op =) eqns cname then
             raise RecError "constructor already occurred as pattern"
           else if rpos <> rpos' then
             raise RecError "position of recursive argument inconsistent"
           else
-            AList.update (op =) (fnameT, (tname, rpos, (cname, (ls, cargs, rs, rhs, eq))::eqns))
+            AList.update (op =)
+              (fname, (tname, rpos, (cname, (ls, cargs, rs, rhs, eq))::eqns))
               rec_fns)
   end
-  handle RecError s => primrec_eq_err thy s eq;
+  handle RecError s => primrec_eq_err lthy s spec;
 
 val param_err = "Parameters must be the same for all recursive functions";
 
-fun process_fun thy descr rec_eqns (i, fnameT as (fname, _)) (fnameTs, fnss) =
+fun process_fun lthy descr eqns (i, fname) (fnames, fnss) =
   let
-    val (_, (tname, _, constrs)) = List.nth (descr, i);
+    val (_, (tname, _, constrs)) = nth descr i;
 
     (* substitute "fname ls x rs" by "y" for (x, (_, y)) in subs *)
 
@@ -100,16 +105,17 @@ fun process_fun thy descr rec_eqns (i, fnameT as (fname, _)) (fnameTs, fnss) =
           let
             val (f, ts) = strip_comb t;
           in
-            if is_Const f andalso dest_Const f mem map fst rec_eqns then
+            if is_Free f
+              andalso member (fn ((v, _), (w, _)) => v = w) eqns (dest_Free f) then
               let
-                val fnameT' as (fname', _) = dest_Const f;
-                val (_, rpos, eqns) = the (AList.lookup (op =) rec_eqns fnameT');
-                val ls = Library.take (rpos, ts);
-                val rest = Library.drop (rpos, ts);
-                val (x', rs) = (hd rest, tl rest)
-                  handle Empty => raise RecError ("not enough arguments\
-                   \ in recursive application\nof function " ^ quote fname' ^ " on rhs");
-                val rs' = (case eqns of
+                val (fname', _) = dest_Free f;
+                val (_, rpos, eqns') = the (AList.lookup (op =) eqns fname');
+                val (ls, rs'') = chop rpos ts
+                val (x', rs) = case rs'' of
+                    x' :: rs => (x', rs)
+                  | [] => raise RecError ("not enough arguments in recursive application\n"
+                      ^ "of function " ^ quote fname' ^ " on rhs");
+                val rs' = (case eqns' of
                     (_, (ls', _, rs', _, _)) :: _ =>
                       let val (rs1, rs2) = chop (length rs') rs
                       in
@@ -126,7 +132,7 @@ fun process_fun thy descr rec_eqns (i, fnameT as (fname, _)) (fnameTs, fnss) =
                 | SOME (i', y) =>
                     fs
                     |> fold_map (subst subs) (xs @ rs')
-                    ||> process_fun thy descr rec_eqns (i', fnameT')
+                    ||> process_fun lthy descr eqns (i', fname')
                     |-> (fn ts' => pair (list_comb (y, ts')))
               end
             else
@@ -138,41 +144,39 @@ fun process_fun thy descr rec_eqns (i, fnameT as (fname, _)) (fnameTs, fnss) =
 
     (* translate rec equations into function arguments suitable for rec comb *)
 
-    fun trans eqns (cname, cargs) (fnameTs', fnss', fns) =
+    fun trans eqns (cname, cargs) (fnames', fnss', fns) =
       (case AList.lookup (op =) eqns cname of
           NONE => (warning ("No equation for constructor " ^ quote cname ^
             "\nin definition of function " ^ quote fname);
-              (fnameTs', fnss', (Const (@{const_name undefined}, dummyT))::fns))
+              (fnames', fnss', (Const (@{const_name undefined}, dummyT))::fns))
         | SOME (ls, cargs', rs, rhs, eq) =>
             let
               val recs = filter (is_rec_type o snd) (cargs' ~~ cargs);
               val rargs = map fst recs;
-              val subs = map (rpair dummyT o fst) 
+              val subs = map (rpair dummyT o fst)
                 (rev (rename_wrt_term rhs rargs));
-              val (rhs', (fnameTs'', fnss'')) = 
-                  (subst (map (fn ((x, y), z) =>
-                               (Free x, (body_index y, Free z)))
-                          (recs ~~ subs)) rhs (fnameTs', fnss'))
-                  handle RecError s => primrec_eq_err thy s eq
-            in (fnameTs'', fnss'', 
+              val (rhs', (fnames'', fnss'')) = subst (map2 (fn (x, y) => fn z =>
+                (Free x, (body_index y, Free z))) recs subs) rhs (fnames', fnss')
+                  handle RecError s => primrec_eq_err lthy s eq
+            in (fnames'', fnss'', 
                 (list_abs_free (cargs' @ subs, rhs'))::fns)
             end)
 
-  in (case AList.lookup (op =) fnameTs i of
+  in (case AList.lookup (op =) fnames i of
       NONE =>
-        if exists (equal fnameT o snd) fnameTs then
+        if exists (fn (_, v) => fname = v) fnames then
           raise RecError ("inconsistent functions for datatype " ^ quote tname)
         else
           let
-            val SOME (_, _, eqns as (_, (ls, _, rs, _, _)) :: _) =
-              AList.lookup (op =) rec_eqns fnameT;
-            val (fnameTs', fnss', fns) = fold_rev (trans eqns) constrs
-              ((i, fnameT)::fnameTs, fnss, []) 
+            val SOME (_, _, eqns' as (_, (ls, _, rs, _, _)) :: _) =
+              AList.lookup (op =) eqns fname;
+            val (fnames', fnss', fns) = fold_rev (trans eqns') constrs
+              ((i, fname)::fnames, fnss, []) 
           in
-            (fnameTs', (i, (fname, ls, rs, fns))::fnss')
+            (fnames', (i, (fname, ls, rs, fns))::fnss')
           end
-    | SOME fnameT' =>
-        if fnameT = fnameT' then (fnameTs, fnss)
+    | SOME fname' =>
+        if fname = fname' then (fnames, fnss)
         else raise RecError ("inconsistent functions for datatype " ^ quote tname))
   end;
 
@@ -195,18 +199,21 @@ fun get_fns fns ((i : int, (tname, _, constrs)), rec_name) (fs, defs) =
 
 (* make definition *)
 
-fun make_def thy fs (fname, ls, rs, rec_name, tname) =
+fun make_def ctxt fixes fs (fname, ls, rs, rec_name, tname) =
   let
     val used = map fst (fold Term.add_frees fs []);
     val x = (Name.variant used "x", dummyT);
     val frees = ls @ x :: rs;
-    val rhs = list_abs_free (frees,
+    val raw_rhs = list_abs_free (frees,
       list_comb (Const (rec_name, dummyT), fs @ [Free x]))
-    val def_name = Sign.base_name fname ^ "_" ^ Sign.base_name tname ^ "_def";
-    val def_prop as _ $ _ $ t =
-      singleton (Syntax.check_terms (ProofContext.init thy))
-        (Logic.mk_equals (Const (fname, dummyT), rhs));
-  in ((def_name, def_prop), subst_bounds (rev (map Free frees), strip_abs_body t)) end;
+    val def_name = Thm.def_name (Sign.base_name fname);
+    val rhs = singleton (Syntax.check_terms ctxt) raw_rhs;
+    val SOME var = get_first (fn ((b, _), mx) =>
+      if Binding.base_name b = fname then SOME (b, mx) else NONE) fixes;
+  in
+    ((var, ((Binding.name def_name, []), rhs)),
+     subst_bounds (rev (map Free frees), strip_abs_body rhs))
+  end;
 
 
 (* find datatypes which contain all datatypes in tnames' *)
@@ -227,27 +234,36 @@ fun common_prefix eq ([], _) = []
 
 local
 
-fun gen_primrec_i note def alt_name invs fctxt eqns_atts thy =
+fun prepare_spec prep_spec ctxt raw_fixes raw_spec =
   let
-    val (raw_eqns, atts) = split_list eqns_atts;
-    val eqns = map (apfst Binding.base_name) raw_eqns;
-    val dt_info = NominalPackage.get_nominal_datatypes thy;
-    val rec_eqns = fold_rev (process_eqn thy o snd) eqns [];
+    val ((fixes, spec), _) = prep_spec
+      raw_fixes (map (single o apsnd single) raw_spec) ctxt
+  in (fixes, map (apsnd the_single) spec) end;
+
+fun gen_primrec set_group prep_spec prep_term invs fctxt raw_fixes raw_params raw_spec lthy =
+  let
+    val (fixes', spec) = prepare_spec prep_spec lthy (raw_fixes @ raw_params) raw_spec;
+    val fixes = List.take (fixes', length raw_fixes);
+    val (names_atts, spec') = split_list spec;
+    val eqns' = map unquantify spec'
+    val eqns = fold_rev (process_eqn lthy (fn v => Variable.is_fixed lthy v
+      orelse exists (fn ((w, _), _) => v = Binding.base_name w) fixes)) spec' [];
+    val dt_info = NominalPackage.get_nominal_datatypes (ProofContext.theory_of lthy);
     val lsrs :: lsrss = maps (fn (_, (_, _, eqns)) =>
-      map (fn (_, (ls, _, rs, _, _)) => ls @ rs) eqns) rec_eqns
+      map (fn (_, (ls, _, rs, _, _)) => ls @ rs) eqns) eqns
     val _ =
       (if forall (curry eq_set lsrs) lsrss andalso forall
          (fn (_, (_, _, (_, (ls, _, rs, _, _)) :: eqns)) =>
                forall (fn (_, (ls', _, rs', _, _)) =>
                  ls = ls' andalso rs = rs') eqns
-           | _ => true) rec_eqns
+           | _ => true) eqns
        then () else primrec_err param_err);
-    val tnames = distinct (op =) (map (#1 o snd) rec_eqns);
+    val tnames = distinct (op =) (map (#1 o snd) eqns);
     val dts = find_dts dt_info tnames tnames;
     val main_fns = 
       map (fn (tname, {index, ...}) =>
         (index, 
-          (fst o the o find_first (fn f => (#1 o snd) f = tname)) rec_eqns))
+          (fst o the o find_first (fn (_, x) => #1 x = tname)) eqns))
       dts;
     val {descr, rec_names, rec_rewrites, ...} = 
       if null dts then
@@ -256,32 +272,32 @@ fun gen_primrec_i note def alt_name invs fctxt eqns_atts thy =
     val descr = map (fn (i, (tname, args, constrs)) => (i, (tname, args,
       map (fn (cname, cargs) => (cname, fold (fn (dTs, dT) => fn dTs' =>
         dTs' @ dTs @ [dT]) cargs [])) constrs))) descr;
-    val (fnameTs, fnss) =
-      fold_rev (process_fun thy descr rec_eqns) main_fns ([], []);
+    val (fnames, fnss) = fold_rev (process_fun lthy descr eqns) main_fns ([], []);
     val (fs, defs) = fold_rev (get_fns fnss) (descr ~~ rec_names) ([], []);
-    val defs' = map (make_def thy fs) defs;
-    val nameTs1 = map snd fnameTs;
-    val nameTs2 = map fst rec_eqns;
-    val _ = if gen_eq_set (op =) (nameTs1, nameTs2) then ()
-            else primrec_err ("functions " ^ commas_quote (map fst nameTs2) ^
-              "\nare not mutually recursive");
-    val primrec_name =
-      if alt_name = "" then (space_implode "_" (map (Sign.base_name o #1) defs)) else alt_name;
-    val (defs_thms', thy') =
-      thy
-      |> Sign.add_path primrec_name
-      |> fold_map def (map (fn ((name, t), _) => ((name, []), t)) defs');
-    val cert = cterm_of thy';
+    val defs' = map (make_def lthy fixes fs) defs;
+    val names1 = map snd fnames;
+    val names2 = map fst eqns;
+    val _ = if gen_eq_set (op =) (names1, names2) then ()
+      else primrec_err ("functions " ^ commas_quote names2 ^
+        "\nare not mutually recursive");
+    val (defs_thms, lthy') = lthy |>
+      set_group ? LocalTheory.set_group (serial_string ()) |>
+      fold_map (apfst (snd o snd) oo
+        LocalTheory.define Thm.definitionK o fst) defs';
+    val qualify = Binding.qualify
+      (space_implode "_" (map (Sign.base_name o #1) defs));
+    val names_atts' = map (apfst qualify) names_atts;
+    val cert = cterm_of (ProofContext.theory_of lthy');
 
     fun mk_idx eq =
       let
-        val Const c = head_of (fst (HOLogic.dest_eq (HOLogic.dest_Trueprop
+        val Free (name, _) = head_of (fst (HOLogic.dest_eq (HOLogic.dest_Trueprop
           (Logic.strip_imp_concl eq))));
-        val SOME i = AList.lookup op = (map swap fnameTs) c;
+        val SOME i = AList.lookup op = (map swap fnames) name;
         val SOME (_, _, constrs) = AList.lookup op = descr i;
-        val SOME (_, _, eqns) = AList.lookup op = rec_eqns c;
+        val SOME (_, _, eqns'') = AList.lookup op = eqns name;
         val SOME (cname, (_, cargs, _, _, _)) = find_first
-          (fn (_, (_, _, _, _, eq')) => eq = eq') eqns
+          (fn (_, (_, _, _, _, eq')) => eq = eq') eqns''
       in (i, find_index (fn (cname', _) => cname = cname') constrs, cargs) end;
 
     val rec_rewritess =
@@ -296,19 +312,15 @@ fun gen_primrec_i note def alt_name invs fctxt eqns_atts thy =
       curry (List.take o swap) (length fvars) |> map cert;
     val invs' = (case invs of
         NONE => map (fn (i, _) =>
-          let
-            val SOME (_, T) = AList.lookup op = fnameTs i
-            val (Ts, U) = strip_type T
-          in
-            Abs ("x", List.drop (Ts, length lsrs + 1) ---> U, HOLogic.true_const)
-          end) descr
-      | SOME invs' => invs');
+          Abs ("x", fastype_of (snd (nth defs' i)), HOLogic.true_const)) descr
+      | SOME invs' => map (prep_term lthy') invs');
     val inst = (map cert fvars ~~ cfs) @
       (map (cert o Var) pvars ~~ map cert invs') @
       (case ctxtvars of
-         [ctxtvar] => [(cert (Var ctxtvar), cert (the_default HOLogic.unit fctxt))]
+         [ctxtvar] => [(cert (Var ctxtvar),
+           cert (the_default HOLogic.unit (Option.map (prep_term lthy') fctxt)))]
        | _ => []);
-    val rec_rewrites' = map (fn (_, eq) =>
+    val rec_rewrites' = map (fn eq =>
       let
         val (i, j, cargs) = mk_idx eq
         val th = nth (nth rec_rewritess i) j;
@@ -317,8 +329,8 @@ fun gen_primrec_i note def alt_name invs fctxt eqns_atts thy =
           strip_comb |> snd
       in (cargs, Logic.strip_imp_prems eq,
         Drule.cterm_instantiate (inst @
-          (map (cterm_of thy') cargs' ~~ map (cterm_of thy' o Free) cargs)) th)
-      end) eqns;
+          (map cert cargs' ~~ map (cert o Free) cargs)) th)
+      end) eqns';
 
     val prems = foldr1 (common_prefix op aconv) (map (prems_of o #3) rec_rewrites');
     val cprems = map cert prems;
@@ -346,64 +358,37 @@ fun gen_primrec_i note def alt_name invs fctxt eqns_atts thy =
     val rule = implies_intr_list rule_prems
       (Conjunction.intr_balanced (map mk_eqn (rec_rewrites' ~~ asmss)));
 
-    val goals = map (fn ((cargs, _, _), (_, eqn)) =>
-      (list_all_free (cargs, eqn), [])) (rec_rewrites' ~~ eqns);
+    val goals = map (fn ((cargs, _, _), eqn) =>
+      (list_all_free (cargs, eqn), [])) (rec_rewrites' ~~ eqns');
 
   in
-    thy' |>
-    ProofContext.init |>
+    lthy' |>
+    Variable.add_fixes (map fst lsrs) |> snd |>
     Proof.theorem_i NONE
-      (fn thss => ProofContext.theory (fn thy =>
+      (fn thss => fn goal_ctxt =>
          let
-           val simps = map standard (flat thss);
-           val (simps', thy') =
-             fold_map note ((map fst eqns ~~ atts) ~~ map single simps) thy;
-           val simps'' = maps snd simps'
+           val simps = ProofContext.export goal_ctxt lthy' (flat thss);
+           val (simps', lthy'') = fold_map (LocalTheory.note Thm.theoremK)
+             (names_atts' ~~ map single simps) lthy'
          in
-           thy'
-           |> note (("simps", [Simplifier.simp_add]), simps'')
+           lthy''
+           |> LocalTheory.note Thm.theoremK ((qualify (Binding.name "simps"),
+             [Attrib.internal (K Simplifier.simp_add)]), maps snd simps')
            |> snd
-           |> Sign.parent_path
-         end))
+         end)
       [goals] |>
     Proof.apply (Method.Basic (fn _ => Method.RAW_METHOD (fn _ =>
-      rewrite_goals_tac (map snd defs_thms') THEN
+      rewrite_goals_tac defs_thms THEN
       compose_tac (false, rule, length rule_prems) 1), Position.none)) |>
     Seq.hd
   end;
 
-fun gen_primrec note def alt_name invs fctxt eqns thy =
-  let
-    val ((names, strings), srcss) = apfst split_list (split_list eqns);
-    val atts = map (map (Attrib.attribute thy)) srcss;
-    val eqn_ts = map (fn s => Syntax.read_prop_global thy s
-      handle ERROR msg => cat_error msg ("The error(s) above occurred for " ^ s)) strings;
-    val rec_ts = map (fn eq => head_of (fst (HOLogic.dest_eq
-      (HOLogic.dest_Trueprop (Logic.strip_imp_concl eq))))
-      handle TERM _ => primrec_eq_err thy "not a proper equation" eq) eqn_ts;
-    val (_, eqn_ts') = OldPrimrecPackage.unify_consts thy rec_ts eqn_ts
-  in
-    gen_primrec_i note def alt_name
-      (Option.map (map (Syntax.read_term_global thy)) invs)
-      (Option.map (Syntax.read_term_global thy) fctxt)
-      (names ~~ eqn_ts' ~~ atts) thy
-  end;
-
-fun thy_note ((name, atts), thms) =
-  PureThy.add_thmss [((name, thms), atts)] #-> (fn [thms] => pair (name, thms));
-fun thy_def false ((name, atts), t) =
-      PureThy.add_defs false [((name, t), atts)] #-> (fn [thm] => pair (name, thm))
-  | thy_def true ((name, atts), t) =
-      PureThy.add_defs_unchecked false [((name, t), atts)] #-> (fn [thm] => pair (name, thm));
-
 in
 
-val add_primrec = gen_primrec thy_note (thy_def false);
-val add_primrec_unchecked = gen_primrec thy_note (thy_def true);
-val add_primrec_i = gen_primrec_i thy_note (thy_def false);
-val add_primrec_unchecked_i = gen_primrec_i thy_note (thy_def true);
+val add_primrec = gen_primrec false Specification.check_specification (K I);
+val add_primrec_cmd = gen_primrec true Specification.read_specification Syntax.read_term;
 
-end; (*local*)
+end;
 
 
 (* outer syntax *)
@@ -419,25 +404,26 @@ val parser1 = (freshness_context -- P.$$$ ":") |-- unless_flag P.term >> SOME;
 val parser2 = (invariant -- P.$$$ ":") |--
     (Scan.repeat1 (unless_flag P.term) >> SOME) -- Scan.optional parser1 NONE ||
   (parser1 >> pair NONE);
-val parser3 =
-  unless_flag P.name -- Scan.optional parser2 (NONE, NONE) ||
-  (parser2 >> pair "");
-val parser4 =
-  (P.$$$ "unchecked" >> K true) -- Scan.optional parser3 ("", (NONE, NONE)) ||
-  (parser3 >> pair false);
 val options =
   Scan.optional (P.$$$ "(" |-- P.!!!
-    (parser4 --| P.$$$ ")")) (false, ("", (NONE, NONE)));
+    (parser2 --| P.$$$ ")")) (NONE, NONE);
 
-val primrec_decl =
-  options -- Scan.repeat1 (SpecParse.opt_thm_name ":" -- P.prop);
+fun pipe_error t = P.!!! (Scan.fail_with (K
+  (cat_lines ["Equations must be separated by " ^ quote "|", quote t])));
+
+val statement = SpecParse.opt_thm_name ":" -- P.prop --| Scan.ahead
+  ((P.term :-- pipe_error) || Scan.succeed ("",""));
+
+val statements = P.enum1 "|" statement;
+
+val primrec_decl = P.opt_target -- options --
+  P.fixes -- P.for_fixes --| P.$$$ "where" -- statements;
 
 val _ =
   OuterSyntax.command "nominal_primrec" "define primitive recursive functions on nominal datatypes" K.thy_goal
-    (primrec_decl >> (fn ((unchecked, (alt_name, (invs, fctxt))), eqns) =>
-      Toplevel.print o Toplevel.theory_to_proof
-        ((if unchecked then add_primrec_unchecked else add_primrec) alt_name invs fctxt
-          (map P.triple_swap eqns))));
+    (primrec_decl >> (fn ((((opt_target, (invs, fctxt)), raw_fixes), raw_params), raw_spec) =>
+      Toplevel.print o Toplevel.local_theory_to_proof opt_target
+        (add_primrec_cmd invs fctxt raw_fixes raw_params raw_spec)));
 
 end;
 

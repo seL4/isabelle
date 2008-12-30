@@ -1,5 +1,4 @@
 (*  Title:      HOL/Tools/atp_manager.ML
-    ID:         $Id$
     Author:     Fabian Immler, TU Muenchen
 
 ATP threads are registered here.
@@ -19,6 +18,7 @@ sig
   val set_timeout: int -> unit
   val kill: unit -> unit
   val info: unit -> unit
+  val messages: int option -> unit
   type prover = int -> Proof.state -> bool * string
   val add_prover: string -> prover -> theory -> theory
   val print_provers: theory -> unit
@@ -29,6 +29,9 @@ structure AtpManager: ATP_MANAGER =
 struct
 
 (** preferences **)
+
+val message_store_limit = 20;
+val message_display_limit = 5;
 
 local
 
@@ -85,13 +88,14 @@ datatype T = State of
  {timeout_heap: ThreadHeap.T,
   oldest_heap: ThreadHeap.T,
   active: (Thread.thread * (Time.time * Time.time * string)) list,
-  cancelling: (Thread.thread * (Time.time * Time.time * string)) list};
+  cancelling: (Thread.thread * (Time.time * Time.time * string)) list,
+  messages: string list};
 
-fun make_state timeout_heap oldest_heap active cancelling =
+fun make_state timeout_heap oldest_heap active cancelling messages =
   State {timeout_heap = timeout_heap, oldest_heap = oldest_heap,
-    active = active, cancelling = cancelling};
+    active = active, cancelling = cancelling, messages = messages};
 
-val state = Synchronized.var "atp_manager" (make_state ThreadHeap.empty ThreadHeap.empty [] []);
+val state = Synchronized.var "atp_manager" (make_state ThreadHeap.empty ThreadHeap.empty [] [] []);
 
 
 (* the managing thread *)
@@ -100,34 +104,31 @@ val state = Synchronized.var "atp_manager" (make_state ThreadHeap.empty ThreadHe
 val managing_thread = ref (NONE: Thread.thread option);
 
 
-(* unregister thread from thread manager -- move to cancelling *)
+(* unregister thread *)
 
 fun unregister (success, message) thread = Synchronized.change_result state
-  (fn State {timeout_heap, oldest_heap, active, cancelling} =>
-    let
-      val info = lookup_thread active thread
+  (fn state as State {timeout_heap, oldest_heap, active, cancelling, messages} =>
+    (case lookup_thread active thread of
+      SOME (birthtime, _, description) =>
+        let
+          val (group, active') =
+            if success then List.partition (fn (_, (tb, _, _)) => tb = birthtime) active
+            else List.partition (fn (th, _) => Thread.equal (th, thread)) active
+          val others = delete_thread thread group
 
-      (* get birthtime of unregistering thread if successful - for group-killing*)
-      val birthtime = case info of NONE => Time.zeroTime
-        | SOME (tb, _, _) => if success then tb else Time.zeroTime
+          val now = Time.now ()
+          val cancelling' =
+            fold (fn (th, (tb, _, desc)) => update_thread (th, (tb, now, desc))) others cancelling
 
-      (* move unregistering thread to cancelling *)
-      val active' = delete_thread thread active
-      val cancelling' = case info of NONE => cancelling
-        | SOME (tb, _, desc) => update_thread (thread, (tb, Time.now (), desc)) cancelling
-
-      (* move all threads of the same group to cancelling *)
-      val group_threads = active |> map_filter (fn (th, (tb, _, desc)) =>
-          if tb = birthtime then SOME (th, (tb, Time.now (), desc)) else NONE)
-      val active'' = filter_out (fn (_, (tb, _, _)) => tb = birthtime) active'
-      val cancelling'' = append group_threads cancelling'
-
-      (* message for user *)
-      val message' = case info of NONE => ""
-        | SOME (_, _, desc) => "Sledgehammer: " ^ desc ^ "\n" ^ message ^
-          (if null group_threads then ""
-           else "\nInterrupted " ^ string_of_int (length group_threads - 1) ^ " other group members")
-    in (message', make_state timeout_heap oldest_heap active'' cancelling'') end);
+          val msg = description ^ "\n" ^ message
+          val message' = "Sledgehammer: " ^ msg ^
+            (if null others then ""
+             else "\nInterrupted " ^ string_of_int (length others) ^ " other group members")
+          val messages' = msg ::
+            (if length messages <= message_store_limit then messages
+             else #1 (chop message_store_limit messages))
+        in (message', make_state timeout_heap oldest_heap active' cancelling' messages') end
+    | NONE => ("", state)));
 
 
 (* kill excessive atp threads *)
@@ -140,12 +141,13 @@ local
 
 fun kill_oldest () =
   let exception Unchanged in
-    Synchronized.change_result state (fn State {timeout_heap, oldest_heap, active, cancelling} =>
+    Synchronized.change_result state
+      (fn State {timeout_heap, oldest_heap, active, cancelling, messages} =>
         if ThreadHeap.is_empty oldest_heap orelse not (excessive_atps active)
         then raise Unchanged
         else
           let val ((_, oldest_thread), oldest_heap') = ThreadHeap.min_elem oldest_heap
-          in (oldest_thread, make_state timeout_heap oldest_heap' active cancelling) end)
+          in (oldest_thread, make_state timeout_heap oldest_heap' active cancelling messages) end)
       |> (priority o unregister (false, "Interrupted (maximum number of ATPs exceeded)"))
     handle Unchanged => ()
   end;
@@ -175,7 +177,7 @@ fun check_thread_manager () = CRITICAL (fn () =>
         | SOME (time, _) => SOME time)
 
       (* action: cancel find threads whose timeout is reached, and interrupt cancelling threads *)
-      fun action (State {timeout_heap, oldest_heap, active, cancelling}) =
+      fun action (State {timeout_heap, oldest_heap, active, cancelling, messages}) =
         let val (timeout_threads, timeout_heap') =
           ThreadHeap.upto (Time.now (), Thread.self ()) timeout_heap
         in
@@ -185,7 +187,7 @@ fun check_thread_manager () = CRITICAL (fn () =>
             let
               val _ = List.app (SimpleThread.interrupt o #1) cancelling
               val cancelling' = filter (Thread.isActive o #1) cancelling
-              val state' = make_state timeout_heap' oldest_heap active cancelling'
+              val state' = make_state timeout_heap' oldest_heap active cancelling' messages
             in SOME (map #2 timeout_threads, state') end
         end
     in
@@ -203,12 +205,13 @@ fun check_thread_manager () = CRITICAL (fn () =>
 
 fun register birthtime deadtime (thread, desc) =
  (check_thread_manager ();
-  Synchronized.change state (fn State {timeout_heap, oldest_heap, active, cancelling} =>
-    let
-      val timeout_heap' = ThreadHeap.insert (deadtime, thread) timeout_heap
-      val oldest_heap' = ThreadHeap.insert (birthtime, thread) oldest_heap
-      val active' = update_thread (thread, (birthtime, deadtime, desc)) active
-    in make_state timeout_heap' oldest_heap' active' cancelling end));
+  Synchronized.change state
+    (fn State {timeout_heap, oldest_heap, active, cancelling, messages} =>
+      let
+        val timeout_heap' = ThreadHeap.insert (deadtime, thread) timeout_heap
+        val oldest_heap' = ThreadHeap.insert (birthtime, thread) oldest_heap
+        val active' = update_thread (thread, (birthtime, deadtime, desc)) active
+      in make_state timeout_heap' oldest_heap' active' cancelling messages end));
 
 
 
@@ -217,16 +220,17 @@ fun register birthtime deadtime (thread, desc) =
 (* kill: move all threads to cancelling *)
 
 fun kill () = Synchronized.change state
-  (fn State {timeout_heap, oldest_heap, active, cancelling} =>
+  (fn State {timeout_heap, oldest_heap, active, cancelling, messages} =>
     let val formerly_active = map (fn (th, (tb, _, desc)) => (th, (tb, Time.now (), desc))) active
-    in make_state timeout_heap oldest_heap [] (formerly_active @ cancelling) end);
+    in make_state timeout_heap oldest_heap [] (formerly_active @ cancelling) messages end);
 
 
-(* info: information on running threads *)
+(* ATP info *)
 
 fun info () =
   let
-    val State {timeout_heap, oldest_heap, active, cancelling} = Synchronized.value state
+    val State {active, cancelling, ...} = Synchronized.value state
+
     fun running_info (_, (birth_time, dead_time, desc)) = "Running: "
         ^ (string_of_int o Time.toSeconds) (Time.- (Time.now (), birth_time))
         ^ " s  --  "
@@ -235,6 +239,7 @@ fun info () =
     fun cancelling_info (_, (_, dead_time, desc)) = "Trying to interrupt thread since "
         ^ (string_of_int o Time.toSeconds) (Time.- (Time.now (), dead_time))
         ^ " s:\n" ^ desc
+
     val running =
       if null active then "No ATPs running."
       else space_implode "\n\n" ("Running ATPs:" :: map running_info active)
@@ -242,7 +247,16 @@ fun info () =
       if null cancelling then ""
       else space_implode "\n\n"
         ("Trying to interrupt the following ATPs:" :: map cancelling_info cancelling)
+
   in writeln (running ^ "\n" ^ interrupting) end;
+
+fun messages opt_limit =
+  let
+    val limit = the_default message_display_limit opt_limit;
+    val State {messages = msgs, ...} = Synchronized.value state
+    val header = "Recent ATP messages" ^
+      (if length msgs <= limit then ":" else " (" ^ string_of_int limit ^ " displayed):");
+  in writeln (space_implode "\n\n" (header :: #1 (chop limit msgs))) end;
 
 
 
@@ -322,6 +336,11 @@ val _ =
     (Scan.succeed (Toplevel.no_timing o Toplevel.imperative info));
 
 val _ =
+  OuterSyntax.improper_command "atp_messages" "print recent messages issued by managed provers" K.diag
+    (Scan.option (P.$$$ "(" |-- P.nat --| P.$$$ ")") >>
+      (fn limit => Toplevel.no_timing o Toplevel.imperative (fn () => messages limit)));
+
+val _ =
   OuterSyntax.improper_command "print_atps" "print external provers" K.diag
     (Scan.succeed (Toplevel.no_timing o Toplevel.unknown_theory o
       Toplevel.keep (print_provers o Toplevel.theory_of)));
@@ -329,7 +348,7 @@ val _ =
 val _ =
   OuterSyntax.command "sledgehammer" "call all automatic theorem provers" K.diag
     (Scan.repeat P.xname >> (fn names => Toplevel.no_timing o Toplevel.unknown_proof o
-    Toplevel.keep ((sledgehammer names) o Toplevel.proof_of)));
+      Toplevel.keep ((sledgehammer names) o Toplevel.proof_of)));
 
 end;
 

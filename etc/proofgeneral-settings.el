@@ -1,6 +1,3 @@
-;;;
-;;; $Id$
-;;;
 ;;; Options for Proof General
 
 ;; Examples for sensible settings:

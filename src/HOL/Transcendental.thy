@@ -11,7 +11,7 @@ theory Transcendental
 imports Fact Series Deriv NthRoot
 begin
 
-subsection{*Properties of Power Series*}
+subsection {* Properties of Power Series *}
 
 lemma lemma_realpow_diff:
   fixes y :: "'a::recpower"
@@ -26,8 +26,8 @@ lemma lemma_realpow_diff_sumr:
   fixes y :: "'a::{recpower,comm_semiring_0}" shows
      "(\<Sum>p=0..<Suc n. (x ^ p) * y ^ (Suc n - p)) =  
       y * (\<Sum>p=0..<Suc n. (x ^ p) * y ^ (n - p))"
-by (auto simp add: setsum_right_distrib lemma_realpow_diff mult_ac
-  simp del: setsum_op_ivl_Suc cong: strong_setsum_cong)
+by (simp add: setsum_right_distrib lemma_realpow_diff mult_ac
+         del: setsum_op_ivl_Suc cong: strong_setsum_cong)
 
 lemma lemma_realpow_diff_sumr2:
   fixes y :: "'a::{recpower,comm_ring}" shows
@@ -114,7 +114,7 @@ lemma powser_inside:
 by (rule powser_insidea [THEN summable_norm_cancel])
 
 
-subsection{*Term-by-Term Differentiability of Power Series*}
+subsection {* Term-by-Term Differentiability of Power Series *}
 
 definition
   diffs :: "(nat => 'a::ring_1) => nat => 'a" where
@@ -124,33 +124,22 @@ text{*Lemma about distributing negation over it*}
 lemma diffs_minus: "diffs (%n. - c n) = (%n. - diffs c n)"
 by (simp add: diffs_def)
 
-text{*Show that we can shift the terms down one*}
-lemma lemma_diffs:
-     "(\<Sum>n=0..<n. (diffs c)(n) * (x ^ n)) =  
-      (\<Sum>n=0..<n. of_nat n * c(n) * (x ^ (n - Suc 0))) +  
-      (of_nat n * c(n) * x ^ (n - Suc 0))"
-apply (induct "n")
-apply (auto simp add: mult_assoc add_assoc [symmetric] diffs_def)
+lemma sums_Suc_imp:
+  assumes f: "f 0 = 0"
+  shows "(\<lambda>n. f (Suc n)) sums s \<Longrightarrow> (\<lambda>n. f n) sums s"
+unfolding sums_def
+apply (rule LIMSEQ_imp_Suc)
+apply (subst setsum_shift_lb_Suc0_0_upt [where f=f, OF f, symmetric])
+apply (simp only: setsum_shift_bounds_Suc_ivl)
 done
-
-lemma lemma_diffs2:
-     "(\<Sum>n=0..<n. of_nat n * c(n) * (x ^ (n - Suc 0))) =  
-      (\<Sum>n=0..<n. (diffs c)(n) * (x ^ n)) -  
-      (of_nat n * c(n) * x ^ (n - Suc 0))"
-by (auto simp add: lemma_diffs)
-
 
 lemma diffs_equiv:
      "summable (%n. (diffs c)(n) * (x ^ n)) ==>  
       (%n. of_nat n * c(n) * (x ^ (n - Suc 0))) sums  
          (\<Sum>n. (diffs c)(n) * (x ^ n))"
-apply (subgoal_tac " (%n. of_nat n * c (n) * (x ^ (n - Suc 0))) ----> 0")
-apply (rule_tac [2] LIMSEQ_imp_Suc)
-apply (drule summable_sums) 
-apply (auto simp add: sums_def)
-apply (drule_tac X="(\<lambda>n. \<Sum>n = 0..<n. diffs c n * x ^ n)" in LIMSEQ_diff)
-apply (auto simp add: lemma_diffs2 [symmetric] diffs_def [symmetric])
-apply (simp add: diffs_def summable_LIMSEQ_zero)
+unfolding diffs_def
+apply (drule summable_sums)
+apply (rule sums_Suc_imp, simp_all)
 done
 
 lemma lemma_termdiff1:
@@ -159,12 +148,6 @@ lemma lemma_termdiff1:
    (\<Sum>p=0..<m. (z ^ p) * (((z + h) ^ (m - p)) - (z ^ (m - p))))"
 by (auto simp add: right_distrib diff_minus power_add [symmetric] mult_ac
   cong: strong_setsum_cong)
-
-lemma less_add_one: "m < n ==> (\<exists>d. n = m + d + Suc 0)"
-by (simp add: less_iff_Suc_add)
-
-lemma sumdiff: "a + b - (c + d) = a - c + b - (d::real)"
-by arith
 
 lemma sumr_diff_mult_const2:
   "setsum f {0..<n} - of_nat n * (r::'a::ring_1) = (\<Sum>i = 0..<n. f i - r)"
@@ -252,15 +235,15 @@ lemma lemma_termdiff4:
   assumes k: "0 < (k::real)"
   assumes le: "\<And>h. \<lbrakk>h \<noteq> 0; norm h < k\<rbrakk> \<Longrightarrow> norm (f h) \<le> K * norm h"
   shows "f -- 0 --> 0"
-proof (simp add: LIM_def, safe)
+unfolding LIM_def diff_0_right
+proof (safe)
+  let ?h = "of_real (k / 2)::'a"
+  have "?h \<noteq> 0" and "norm ?h < k" using k by simp_all
+  hence "norm (f ?h) \<le> K * norm ?h" by (rule le)
+  hence "0 \<le> K * norm ?h" by (rule order_trans [OF norm_ge_zero])
+  hence zero_le_K: "0 \<le> K" using k by (simp add: zero_le_mult_iff)
+
   fix r::real assume r: "0 < r"
-  have zero_le_K: "0 \<le> K"
-    apply (cut_tac k)
-    apply (cut_tac h="of_real (k/2)" in le, simp)
-    apply (simp del: of_real_divide)
-    apply (drule order_trans [OF norm_ge_zero])
-    apply (simp add: zero_le_mult_iff)
-    done
   show "\<exists>s. 0 < s \<and> (\<forall>x. x \<noteq> 0 \<and> norm x < s \<longrightarrow> norm (f x) < r)"
   proof (cases)
     assume "K = 0"
@@ -392,11 +375,12 @@ lemma termdiffs:
   assumes 3: "summable (\<lambda>n. (diffs (diffs c)) n * K ^ n)"
   assumes 4: "norm x < norm K"
   shows "DERIV (\<lambda>x. \<Sum>n. c n * x ^ n) x :> (\<Sum>n. (diffs c) n * x ^ n)"
-proof (simp add: deriv_def, rule LIM_zero_cancel)
+unfolding deriv_def
+proof (rule LIM_zero_cancel)
   show "(\<lambda>h. (suminf (\<lambda>n. c n * (x + h) ^ n) - suminf (\<lambda>n. c n * x ^ n)) / h
             - suminf (\<lambda>n. diffs c n * x ^ n)) -- 0 --> 0"
   proof (rule LIM_equal2)
-    show "0 < norm K - norm x" by (simp add: less_diff_eq 4)
+    show "0 < norm K - norm x" using 4 by (simp add: less_diff_eq)
   next
     fix h :: 'a
     assume "h \<noteq> 0"
@@ -421,8 +405,7 @@ proof (simp add: deriv_def, rule LIM_zero_cancel)
       apply (rule summable_divide)
       apply (rule summable_diff [OF B A])
       apply (rule sums_summable [OF diffs_equiv [OF C]])
-      apply (rule_tac f="suminf" in arg_cong)
-      apply (rule ext)
+      apply (rule arg_cong [where f="suminf"], rule ext)
       apply (simp add: ring_simps)
       done
   next
@@ -433,21 +416,11 @@ proof (simp add: deriv_def, rule LIM_zero_cancel)
 qed
 
 
-subsection{*Exponential Function*}
+subsection {* Exponential Function *}
 
 definition
   exp :: "'a \<Rightarrow> 'a::{recpower,real_normed_field,banach}" where
   "exp x = (\<Sum>n. x ^ n /\<^sub>R real (fact n))"
-
-definition
-  sin :: "real => real" where
-  "sin x = (\<Sum>n. (if even(n) then 0 else
-             (-1 ^ ((n - Suc 0) div 2))/(real (fact n))) * x ^ n)"
- 
-definition
-  cos :: "real => real" where
-  "cos x = (\<Sum>n. (if even(n) then (-1 ^ (n div 2))/(real (fact n)) 
-                            else 0) * x ^ n)"
 
 lemma summable_exp_generic:
   fixes x :: "'a::{real_normed_algebra_1,recpower,banach}"
@@ -493,66 +466,9 @@ qed
 lemma summable_exp: "summable (%n. inverse (real (fact n)) * x ^ n)"
 by (insert summable_exp_generic [where x=x], simp)
 
-lemma summable_sin: 
-     "summable (%n.  
-           (if even n then 0  
-           else -1 ^ ((n - Suc 0) div 2)/(real (fact n))) *  
-                x ^ n)"
-apply (rule_tac g = "(%n. inverse (real (fact n)) * \<bar>x\<bar> ^ n)" in summable_comparison_test)
-apply (rule_tac [2] summable_exp)
-apply (rule_tac x = 0 in exI)
-apply (auto simp add: divide_inverse abs_mult power_abs [symmetric] zero_le_mult_iff)
-done
-
-lemma summable_cos: 
-      "summable (%n.  
-           (if even n then  
-           -1 ^ (n div 2)/(real (fact n)) else 0) * x ^ n)"
-apply (rule_tac g = "(%n. inverse (real (fact n)) * \<bar>x\<bar> ^ n)" in summable_comparison_test)
-apply (rule_tac [2] summable_exp)
-apply (rule_tac x = 0 in exI)
-apply (auto simp add: divide_inverse abs_mult power_abs [symmetric] zero_le_mult_iff)
-done
-
-lemma lemma_STAR_sin:
-     "(if even n then 0  
-       else -1 ^ ((n - Suc 0) div 2)/(real (fact n))) * 0 ^ n = 0"
-by (induct "n", auto)
-
-lemma lemma_STAR_cos:
-     "0 < n -->  
-      -1 ^ (n div 2)/(real (fact n)) * 0 ^ n = 0"
-by (induct "n", auto)
-
-lemma lemma_STAR_cos1:
-     "0 < n -->  
-      (-1) ^ (n div 2)/(real (fact n)) * 0 ^ n = 0"
-by (induct "n", auto)
-
-lemma lemma_STAR_cos2:
-  "(\<Sum>n=1..<n. if even n then -1 ^ (n div 2)/(real (fact n)) *  0 ^ n 
-                         else 0) = 0"
-apply (induct "n")
-apply (case_tac [2] "n", auto)
-done
-
 lemma exp_converges: "(\<lambda>n. x ^ n /\<^sub>R real (fact n)) sums exp x"
 unfolding exp_def by (rule summable_exp_generic [THEN summable_sums])
 
-lemma sin_converges: 
-      "(%n. (if even n then 0  
-            else -1 ^ ((n - Suc 0) div 2)/(real (fact n))) *  
-                 x ^ n) sums sin(x)"
-unfolding sin_def by (rule summable_sin [THEN summable_sums])
-
-lemma cos_converges: 
-      "(%n. (if even n then  
-           -1 ^ (n div 2)/(real (fact n))  
-           else 0) * x ^ n) sums cos(x)"
-unfolding cos_def by (rule summable_cos [THEN summable_sums])
-
-
-subsection{*Formal Derivatives of Exp, Sin, and Cos Series*} 
 
 lemma exp_fdiffs: 
       "diffs (%n. inverse(real (fact n))) = (%n. inverse(real (fact n)))"
@@ -561,48 +477,6 @@ by (simp add: diffs_def mult_assoc [symmetric] real_of_nat_def of_nat_mult
 
 lemma diffs_of_real: "diffs (\<lambda>n. of_real (f n)) = (\<lambda>n. of_real (diffs f n))"
 by (simp add: diffs_def)
-
-lemma sin_fdiffs: 
-      "diffs(%n. if even n then 0  
-           else -1 ^ ((n - Suc 0) div 2)/(real (fact n)))  
-       = (%n. if even n then  
-                 -1 ^ (n div 2)/(real (fact n))  
-              else 0)"
-by (auto intro!: ext 
-         simp add: diffs_def divide_inverse real_of_nat_def of_nat_mult
-         simp del: mult_Suc of_nat_Suc)
-
-lemma sin_fdiffs2: 
-       "diffs(%n. if even n then 0  
-           else -1 ^ ((n - Suc 0) div 2)/(real (fact n))) n  
-       = (if even n then  
-                 -1 ^ (n div 2)/(real (fact n))  
-              else 0)"
-by (simp only: sin_fdiffs)
-
-lemma cos_fdiffs: 
-      "diffs(%n. if even n then  
-                 -1 ^ (n div 2)/(real (fact n)) else 0)  
-       = (%n. - (if even n then 0  
-           else -1 ^ ((n - Suc 0)div 2)/(real (fact n))))"
-by (auto intro!: ext 
-         simp add: diffs_def divide_inverse odd_Suc_mult_two_ex real_of_nat_def of_nat_mult
-         simp del: mult_Suc of_nat_Suc)
-
-
-lemma cos_fdiffs2: 
-      "diffs(%n. if even n then  
-                 -1 ^ (n div 2)/(real (fact n)) else 0) n 
-       = - (if even n then 0  
-           else -1 ^ ((n - Suc 0)div 2)/(real (fact n)))"
-by (simp only: cos_fdiffs)
-
-text{*Now at last we can get the derivatives of exp, sin and cos*}
-
-lemma lemma_sin_minus:
-     "- sin x = (\<Sum>n. - ((if even n then 0 
-                  else -1 ^ ((n - Suc 0) div 2)/(real (fact n))) * x ^ n))"
-by (auto intro!: sums_unique sums_minus sin_converges)
 
 lemma lemma_exp_ext: "exp = (\<lambda>x. \<Sum>n. x ^ n /\<^sub>R real (fact n))"
 by (auto intro!: ext simp add: exp_def)
@@ -617,45 +491,11 @@ apply (rule exp_converges [THEN sums_summable, unfolded scaleR_conv_of_real])+
 apply (simp del: of_real_add)
 done
 
-lemma lemma_sin_ext:
-     "sin = (%x. \<Sum>n. 
-                   (if even n then 0  
-                       else -1 ^ ((n - Suc 0) div 2)/(real (fact n))) *  
-                   x ^ n)"
-by (auto intro!: ext simp add: sin_def)
-
-lemma lemma_cos_ext:
-     "cos = (%x. \<Sum>n. 
-                   (if even n then -1 ^ (n div 2)/(real (fact n)) else 0) *
-                   x ^ n)"
-by (auto intro!: ext simp add: cos_def)
-
-lemma DERIV_sin [simp]: "DERIV sin x :> cos(x)"
-apply (simp add: cos_def)
-apply (subst lemma_sin_ext)
-apply (auto simp add: sin_fdiffs2 [symmetric])
-apply (rule_tac K = "1 + \<bar>x\<bar>" in termdiffs)
-apply (auto intro: sin_converges cos_converges sums_summable intro!: sums_minus [THEN sums_summable] simp add: cos_fdiffs sin_fdiffs)
-done
-
-lemma DERIV_cos [simp]: "DERIV cos x :> -sin(x)"
-apply (subst lemma_cos_ext)
-apply (auto simp add: lemma_sin_minus cos_fdiffs2 [symmetric] minus_mult_left)
-apply (rule_tac K = "1 + \<bar>x\<bar>" in termdiffs)
-apply (auto intro: sin_converges cos_converges sums_summable intro!: sums_minus [THEN sums_summable] simp add: cos_fdiffs sin_fdiffs diffs_minus)
-done
-
 lemma isCont_exp [simp]: "isCont exp x"
 by (rule DERIV_exp [THEN DERIV_isCont])
 
-lemma isCont_sin [simp]: "isCont sin x"
-by (rule DERIV_sin [THEN DERIV_isCont])
 
-lemma isCont_cos [simp]: "isCont cos x"
-by (rule DERIV_cos [THEN DERIV_isCont])
-
-
-subsection{*Properties of the Exponential Function*}
+subsubsection {* Properties of the Exponential Function *}
 
 lemma powser_zero:
   fixes f :: "nat \<Rightarrow> 'a::{real_normed_algebra_1,recpower}"
@@ -724,12 +564,60 @@ lemma exp_add: "exp (x + y) = exp x * exp y"
 unfolding exp_def
 by (simp only: Cauchy_product summable_norm_exp exp_series_add)
 
+lemma mult_exp_exp: "exp x * exp y = exp (x + y)"
+by (rule exp_add [symmetric])
+
 lemma exp_of_real: "exp (of_real x) = of_real (exp x)"
 unfolding exp_def
 apply (subst of_real.suminf)
 apply (rule summable_exp_generic)
 apply (simp add: scaleR_conv_of_real)
 done
+
+lemma exp_not_eq_zero [simp]: "exp x \<noteq> 0"
+proof
+  have "exp x * exp (- x) = 1" by (simp add: mult_exp_exp)
+  also assume "exp x = 0"
+  finally show "False" by simp
+qed
+
+lemma exp_minus: "exp (- x) = inverse (exp x)"
+by (rule inverse_unique [symmetric], simp add: mult_exp_exp)
+
+lemma exp_diff: "exp (x - y) = exp x / exp y"
+  unfolding diff_minus divide_inverse
+  by (simp add: exp_add exp_minus)
+
+
+subsubsection {* Properties of the Exponential Function on Reals *}
+
+text {* Comparisons of @{term "exp x"} with zero. *}
+
+text{*Proof: because every exponential can be seen as a square.*}
+lemma exp_ge_zero [simp]: "0 \<le> exp (x::real)"
+proof -
+  have "0 \<le> exp (x/2) * exp (x/2)" by simp
+  thus ?thesis by (simp add: exp_add [symmetric])
+qed
+
+lemma exp_gt_zero [simp]: "0 < exp (x::real)"
+by (simp add: order_less_le)
+
+lemma not_exp_less_zero [simp]: "\<not> exp (x::real) < 0"
+by (simp add: not_less)
+
+lemma not_exp_le_zero [simp]: "\<not> exp (x::real) \<le> 0"
+by (simp add: not_le)
+
+lemma abs_exp_cancel [simp]: "\<bar>exp x::real\<bar> = exp x"
+by simp
+
+lemma exp_real_of_nat_mult: "exp(real n * x) = exp(x) ^ n"
+apply (induct "n")
+apply (auto simp add: real_of_nat_Suc right_distrib exp_add mult_commute)
+done
+
+text {* Strict monotonicity of exponential. *}
 
 lemma exp_ge_add_one_self_aux: "0 \<le> (x::real) ==> (1 + x) \<le> exp(x)"
 apply (drule order_le_imp_less_or_eq, auto)
@@ -739,114 +627,61 @@ apply (rule_tac [2] n = 2 and f = "(%n. inverse (real (fact n)) * x ^ n)" in ser
 apply (auto intro: summable_exp simp add: numeral_2_eq_2 zero_le_mult_iff)
 done
 
-lemma exp_gt_one [simp]: "0 < (x::real) ==> 1 < exp x"
-apply (rule order_less_le_trans)
-apply (rule_tac [2] exp_ge_add_one_self_aux, auto)
-done
-
-lemma DERIV_exp_add_const: "DERIV (%x. exp (x + y)) x :> exp(x + y)"
+lemma exp_gt_one: "0 < (x::real) \<Longrightarrow> 1 < exp x"
 proof -
-  have "DERIV (exp \<circ> (\<lambda>x. x + y)) x :> exp (x + y) * (1+0)"
-    by (fast intro: DERIV_chain DERIV_add DERIV_exp DERIV_ident DERIV_const) 
-  thus ?thesis by (simp add: o_def)
+  assume x: "0 < x"
+  hence "1 < 1 + x" by simp
+  also from x have "1 + x \<le> exp x"
+    by (simp add: exp_ge_add_one_self_aux)
+  finally show ?thesis .
 qed
-
-lemma DERIV_exp_minus [simp]: "DERIV (%x. exp (-x)) x :> - exp(-x)"
-proof -
-  have "DERIV (exp \<circ> uminus) x :> exp (- x) * - 1"
-    by (fast intro: DERIV_chain DERIV_minus DERIV_exp DERIV_ident)
-  thus ?thesis by (simp add: o_def)
-qed
-
-lemma DERIV_exp_exp_zero [simp]: "DERIV (%x. exp (x + y) * exp (- x)) x :> 0"
-proof -
-  have "DERIV (\<lambda>x. exp (x + y) * exp (- x)) x
-       :> exp (x + y) * exp (- x) + - exp (- x) * exp (x + y)"
-    by (fast intro: DERIV_exp_add_const DERIV_exp_minus DERIV_mult) 
-  thus ?thesis by (simp add: mult_commute)
-qed
-
-lemma exp_add_mult_minus [simp]: "exp(x + y)*exp(-x) = exp(y::real)"
-proof -
-  have "\<forall>x. DERIV (%x. exp (x + y) * exp (- x)) x :> 0" by simp
-  hence "exp (x + y) * exp (- x) = exp (0 + y) * exp (- 0)" 
-    by (rule DERIV_isconst_all) 
-  thus ?thesis by simp
-qed
-
-lemma exp_mult_minus [simp]: "exp x * exp(-x) = 1"
-by (simp add: exp_add [symmetric])
-
-lemma exp_mult_minus2 [simp]: "exp(-x)*exp(x) = 1"
-by (simp add: mult_commute)
-
-
-lemma exp_minus: "exp(-x) = inverse(exp(x))"
-by (auto intro: inverse_unique [symmetric])
-
-text{*Proof: because every exponential can be seen as a square.*}
-lemma exp_ge_zero [simp]: "0 \<le> exp (x::real)"
-apply (rule_tac t = x in real_sum_of_halves [THEN subst])
-apply (subst exp_add, auto)
-done
-
-lemma exp_not_eq_zero [simp]: "exp x \<noteq> 0"
-apply (cut_tac x = x in exp_mult_minus2)
-apply (auto simp del: exp_mult_minus2)
-done
-
-lemma exp_gt_zero [simp]: "0 < exp (x::real)"
-by (simp add: order_less_le)
-
-lemma inv_exp_gt_zero [simp]: "0 < inverse(exp x::real)"
-by (auto intro: positive_imp_inverse_positive)
-
-lemma abs_exp_cancel [simp]: "\<bar>exp x::real\<bar> = exp x"
-by auto
-
-lemma exp_real_of_nat_mult: "exp(real n * x) = exp(x) ^ n"
-apply (induct "n")
-apply (auto simp add: real_of_nat_Suc right_distrib exp_add mult_commute)
-done
-
-lemma exp_diff: "exp(x - y) = exp(x)/(exp y)"
-apply (simp add: diff_minus divide_inverse)
-apply (simp (no_asm) add: exp_add exp_minus)
-done
-
 
 lemma exp_less_mono:
   fixes x y :: real
-  assumes xy: "x < y" shows "exp x < exp y"
+  assumes "x < y" shows "exp x < exp y"
 proof -
-  from xy have "1 < exp (y + - x)"
-    by (rule real_less_sum_gt_zero [THEN exp_gt_one])
-  hence "exp x * inverse (exp x) < exp y * inverse (exp x)"
-    by (auto simp add: exp_add exp_minus)
-  thus ?thesis
-    by (simp add: divide_inverse [symmetric] pos_less_divide_eq
-             del: divide_self_if)
+  from `x < y` have "0 < y - x" by simp
+  hence "1 < exp (y - x)" by (rule exp_gt_one)
+  hence "1 < exp y / exp x" by (simp only: exp_diff)
+  thus "exp x < exp y" by simp
 qed
 
 lemma exp_less_cancel: "exp (x::real) < exp y ==> x < y"
-apply (simp add: linorder_not_le [symmetric]) 
-apply (auto simp add: order_le_less exp_less_mono) 
+apply (simp add: linorder_not_le [symmetric])
+apply (auto simp add: order_le_less exp_less_mono)
 done
 
-lemma exp_less_cancel_iff [iff]: "(exp(x::real) < exp(y)) = (x < y)"
+lemma exp_less_cancel_iff [iff]: "exp (x::real) < exp y \<longleftrightarrow> x < y"
 by (auto intro: exp_less_mono exp_less_cancel)
 
-lemma exp_le_cancel_iff [iff]: "(exp(x::real) \<le> exp(y)) = (x \<le> y)"
+lemma exp_le_cancel_iff [iff]: "exp (x::real) \<le> exp y \<longleftrightarrow> x \<le> y"
 by (auto simp add: linorder_not_less [symmetric])
 
-lemma exp_inj_iff [iff]: "(exp (x::real) = exp y) = (x = y)"
+lemma exp_inj_iff [iff]: "exp (x::real) = exp y \<longleftrightarrow> x = y"
 by (simp add: order_eq_iff)
+
+text {* Comparisons of @{term "exp x"} with one. *}
+
+lemma one_less_exp_iff [simp]: "1 < exp (x::real) \<longleftrightarrow> 0 < x"
+  using exp_less_cancel_iff [where x=0 and y=x] by simp
+
+lemma exp_less_one_iff [simp]: "exp (x::real) < 1 \<longleftrightarrow> x < 0"
+  using exp_less_cancel_iff [where x=x and y=0] by simp
+
+lemma one_le_exp_iff [simp]: "1 \<le> exp (x::real) \<longleftrightarrow> 0 \<le> x"
+  using exp_le_cancel_iff [where x=0 and y=x] by simp
+
+lemma exp_le_one_iff [simp]: "exp (x::real) \<le> 1 \<longleftrightarrow> x \<le> 0"
+  using exp_le_cancel_iff [where x=x and y=0] by simp
+
+lemma exp_eq_one_iff [simp]: "exp (x::real) = 1 \<longleftrightarrow> x = 0"
+  using exp_inj_iff [where x=x and y=0] by simp
 
 lemma lemma_exp_total: "1 \<le> y ==> \<exists>x. 0 \<le> x & x \<le> y - 1 & exp(x::real) = y"
 apply (rule IVT)
 apply (auto intro: isCont_exp simp add: le_diff_eq)
 apply (subgoal_tac "1 + (y - 1) \<le> exp (y - 1)") 
-apply simp 
+apply simp
 apply (rule exp_ge_add_one_self_aux, simp)
 done
 
@@ -861,7 +696,7 @@ apply (simp add: exp_minus)
 done
 
 
-subsection{*Properties of the Logarithmic Function*}
+subsection {* Natural Logarithm *}
 
 definition
   ln :: "real => real" where
@@ -873,59 +708,46 @@ by (simp add: ln_def)
 lemma exp_ln [simp]: "0 < x \<Longrightarrow> exp (ln x) = x"
 by (auto dest: exp_total)
 
-lemma exp_ln_iff [simp]: "(exp (ln x) = x) = (0 < x)"
-apply (auto dest: exp_total)
-apply (erule subst, simp) 
+lemma exp_ln_iff [simp]: "exp (ln x) = x \<longleftrightarrow> 0 < x"
+apply (rule iffI)
+apply (erule subst, rule exp_gt_zero)
+apply (erule exp_ln)
 done
 
-lemma ln_mult: "[| 0 < x; 0 < y |] ==> ln(x * y) = ln(x) + ln(y)"
-apply (rule exp_inj_iff [THEN iffD1])
-apply (simp add: exp_add exp_ln mult_pos_pos)
+lemma ln_unique: "exp y = x \<Longrightarrow> ln x = y"
+by (erule subst, rule ln_exp)
+
+lemma ln_one [simp]: "ln 1 = 0"
+by (rule ln_unique, simp)
+
+lemma ln_mult: "\<lbrakk>0 < x; 0 < y\<rbrakk> \<Longrightarrow> ln (x * y) = ln x + ln y"
+by (rule ln_unique, simp add: exp_add)
+
+lemma ln_inverse: "0 < x \<Longrightarrow> ln (inverse x) = - ln x"
+by (rule ln_unique, simp add: exp_minus)
+
+lemma ln_div: "\<lbrakk>0 < x; 0 < y\<rbrakk> \<Longrightarrow> ln (x / y) = ln x - ln y"
+by (rule ln_unique, simp add: exp_diff)
+
+lemma ln_realpow: "0 < x \<Longrightarrow> ln (x ^ n) = real n * ln x"
+by (rule ln_unique, simp add: exp_real_of_nat_mult)
+
+lemma ln_less_cancel_iff [simp]: "\<lbrakk>0 < x; 0 < y\<rbrakk> \<Longrightarrow> ln x < ln y \<longleftrightarrow> x < y"
+by (subst exp_less_cancel_iff [symmetric], simp)
+
+lemma ln_le_cancel_iff [simp]: "\<lbrakk>0 < x; 0 < y\<rbrakk> \<Longrightarrow> ln x \<le> ln y \<longleftrightarrow> x \<le> y"
+by (simp add: linorder_not_less [symmetric])
+
+lemma ln_inj_iff [simp]: "\<lbrakk>0 < x; 0 < y\<rbrakk> \<Longrightarrow> ln x = ln y \<longleftrightarrow> x = y"
+by (simp add: order_eq_iff)
+
+lemma ln_add_one_self_le_self [simp]: "0 \<le> x \<Longrightarrow> ln (1 + x) \<le> x"
+apply (rule exp_le_cancel_iff [THEN iffD1])
+apply (simp add: exp_ge_add_one_self_aux)
 done
 
-lemma ln_inj_iff[simp]: "[| 0 < x; 0 < y |] ==> (ln x = ln y) = (x = y)"
-apply (simp only: exp_ln_iff [symmetric])
-apply (erule subst)+
-apply simp 
-done
-
-lemma ln_one[simp]: "ln 1 = 0"
-by (rule exp_inj_iff [THEN iffD1], auto)
-
-lemma ln_inverse: "0 < x ==> ln(inverse x) = - ln x"
-apply (rule_tac a1 = "ln x" in add_left_cancel [THEN iffD1])
-apply (auto simp add: positive_imp_inverse_positive ln_mult [symmetric])
-done
-
-lemma ln_div: 
-    "[|0 < x; 0 < y|] ==> ln(x/y) = ln x - ln y"
-apply (simp add: divide_inverse)
-apply (auto simp add: positive_imp_inverse_positive ln_mult ln_inverse)
-done
-
-lemma ln_less_cancel_iff[simp]: "[| 0 < x; 0 < y|] ==> (ln x < ln y) = (x < y)"
-apply (simp only: exp_ln_iff [symmetric])
-apply (erule subst)+
-apply simp 
-done
-
-lemma ln_le_cancel_iff[simp]: "[| 0 < x; 0 < y|] ==> (ln x \<le> ln y) = (x \<le> y)"
-by (auto simp add: linorder_not_less [symmetric])
-
-lemma ln_realpow: "0 < x ==> ln(x ^ n) = real n * ln(x)"
-by (auto dest!: exp_total simp add: exp_real_of_nat_mult [symmetric])
-
-lemma ln_add_one_self_le_self [simp]: "0 \<le> x ==> ln(1 + x) \<le> x"
-apply (rule ln_exp [THEN subst])
-apply (rule ln_le_cancel_iff [THEN iffD2]) 
-apply (auto simp add: exp_ge_add_one_self_aux)
-done
-
-lemma ln_less_self [simp]: "0 < x ==> ln x < x"
-apply (rule order_less_le_trans)
-apply (rule_tac [2] ln_add_one_self_le_self)
-apply (rule ln_less_cancel_iff [THEN iffD2], auto)
-done
+lemma ln_less_self [simp]: "0 < x \<Longrightarrow> ln x < x"
+by (rule order_less_le_trans [where y="ln (1 + x)"]) simp_all
 
 lemma ln_ge_zero [simp]:
   assumes x: "1 \<le> x" shows "0 \<le> ln x"
@@ -992,7 +814,151 @@ apply (simp_all add: abs_if isCont_ln)
 done
 
 
-subsection{*Basic Properties of the Trigonometric Functions*}
+subsection {* Sine and Cosine *}
+
+definition
+  sin :: "real => real" where
+  "sin x = (\<Sum>n. (if even(n) then 0 else
+             (-1 ^ ((n - Suc 0) div 2))/(real (fact n))) * x ^ n)"
+ 
+definition
+  cos :: "real => real" where
+  "cos x = (\<Sum>n. (if even(n) then (-1 ^ (n div 2))/(real (fact n)) 
+                            else 0) * x ^ n)"
+
+lemma summable_sin: 
+     "summable (%n.  
+           (if even n then 0  
+           else -1 ^ ((n - Suc 0) div 2)/(real (fact n))) *  
+                x ^ n)"
+apply (rule_tac g = "(%n. inverse (real (fact n)) * \<bar>x\<bar> ^ n)" in summable_comparison_test)
+apply (rule_tac [2] summable_exp)
+apply (rule_tac x = 0 in exI)
+apply (auto simp add: divide_inverse abs_mult power_abs [symmetric] zero_le_mult_iff)
+done
+
+lemma summable_cos: 
+      "summable (%n.  
+           (if even n then  
+           -1 ^ (n div 2)/(real (fact n)) else 0) * x ^ n)"
+apply (rule_tac g = "(%n. inverse (real (fact n)) * \<bar>x\<bar> ^ n)" in summable_comparison_test)
+apply (rule_tac [2] summable_exp)
+apply (rule_tac x = 0 in exI)
+apply (auto simp add: divide_inverse abs_mult power_abs [symmetric] zero_le_mult_iff)
+done
+
+lemma lemma_STAR_sin:
+     "(if even n then 0  
+       else -1 ^ ((n - Suc 0) div 2)/(real (fact n))) * 0 ^ n = 0"
+by (induct "n", auto)
+
+lemma lemma_STAR_cos:
+     "0 < n -->  
+      -1 ^ (n div 2)/(real (fact n)) * 0 ^ n = 0"
+by (induct "n", auto)
+
+lemma lemma_STAR_cos1:
+     "0 < n -->  
+      (-1) ^ (n div 2)/(real (fact n)) * 0 ^ n = 0"
+by (induct "n", auto)
+
+lemma lemma_STAR_cos2:
+  "(\<Sum>n=1..<n. if even n then -1 ^ (n div 2)/(real (fact n)) *  0 ^ n 
+                         else 0) = 0"
+apply (induct "n")
+apply (case_tac [2] "n", auto)
+done
+
+lemma sin_converges: 
+      "(%n. (if even n then 0  
+            else -1 ^ ((n - Suc 0) div 2)/(real (fact n))) *  
+                 x ^ n) sums sin(x)"
+unfolding sin_def by (rule summable_sin [THEN summable_sums])
+
+lemma cos_converges: 
+      "(%n. (if even n then  
+           -1 ^ (n div 2)/(real (fact n))  
+           else 0) * x ^ n) sums cos(x)"
+unfolding cos_def by (rule summable_cos [THEN summable_sums])
+
+lemma sin_fdiffs: 
+      "diffs(%n. if even n then 0  
+           else -1 ^ ((n - Suc 0) div 2)/(real (fact n)))  
+       = (%n. if even n then  
+                 -1 ^ (n div 2)/(real (fact n))  
+              else 0)"
+by (auto intro!: ext 
+         simp add: diffs_def divide_inverse real_of_nat_def of_nat_mult
+         simp del: mult_Suc of_nat_Suc)
+
+lemma sin_fdiffs2: 
+       "diffs(%n. if even n then 0  
+           else -1 ^ ((n - Suc 0) div 2)/(real (fact n))) n  
+       = (if even n then  
+                 -1 ^ (n div 2)/(real (fact n))  
+              else 0)"
+by (simp only: sin_fdiffs)
+
+lemma cos_fdiffs: 
+      "diffs(%n. if even n then  
+                 -1 ^ (n div 2)/(real (fact n)) else 0)  
+       = (%n. - (if even n then 0  
+           else -1 ^ ((n - Suc 0)div 2)/(real (fact n))))"
+by (auto intro!: ext 
+         simp add: diffs_def divide_inverse odd_Suc_mult_two_ex real_of_nat_def of_nat_mult
+         simp del: mult_Suc of_nat_Suc)
+
+
+lemma cos_fdiffs2: 
+      "diffs(%n. if even n then  
+                 -1 ^ (n div 2)/(real (fact n)) else 0) n 
+       = - (if even n then 0  
+           else -1 ^ ((n - Suc 0)div 2)/(real (fact n)))"
+by (simp only: cos_fdiffs)
+
+text{*Now at last we can get the derivatives of exp, sin and cos*}
+
+lemma lemma_sin_minus:
+     "- sin x = (\<Sum>n. - ((if even n then 0 
+                  else -1 ^ ((n - Suc 0) div 2)/(real (fact n))) * x ^ n))"
+by (auto intro!: sums_unique sums_minus sin_converges)
+
+lemma lemma_sin_ext:
+     "sin = (%x. \<Sum>n. 
+                   (if even n then 0  
+                       else -1 ^ ((n - Suc 0) div 2)/(real (fact n))) *  
+                   x ^ n)"
+by (auto intro!: ext simp add: sin_def)
+
+lemma lemma_cos_ext:
+     "cos = (%x. \<Sum>n. 
+                   (if even n then -1 ^ (n div 2)/(real (fact n)) else 0) *
+                   x ^ n)"
+by (auto intro!: ext simp add: cos_def)
+
+lemma DERIV_sin [simp]: "DERIV sin x :> cos(x)"
+apply (simp add: cos_def)
+apply (subst lemma_sin_ext)
+apply (auto simp add: sin_fdiffs2 [symmetric])
+apply (rule_tac K = "1 + \<bar>x\<bar>" in termdiffs)
+apply (auto intro: sin_converges cos_converges sums_summable intro!: sums_minus [THEN sums_summable] simp add: cos_fdiffs sin_fdiffs)
+done
+
+lemma DERIV_cos [simp]: "DERIV cos x :> -sin(x)"
+apply (subst lemma_cos_ext)
+apply (auto simp add: lemma_sin_minus cos_fdiffs2 [symmetric] minus_mult_left)
+apply (rule_tac K = "1 + \<bar>x\<bar>" in termdiffs)
+apply (auto intro: sin_converges cos_converges sums_summable intro!: sums_minus [THEN sums_summable] simp add: cos_fdiffs sin_fdiffs diffs_minus)
+done
+
+lemma isCont_sin [simp]: "isCont sin x"
+by (rule DERIV_sin [THEN DERIV_isCont])
+
+lemma isCont_cos [simp]: "isCont cos x"
+by (rule DERIV_cos [THEN DERIV_isCont])
+
+
+subsection {* Properties of Sine and Cosine *}
 
 lemma sin_zero [simp]: "sin 0 = 0"
 unfolding sin_def by (simp add: powser_zero)
@@ -1087,9 +1053,6 @@ lemma cos_squared_eq: "(cos x)\<twosuperior> = 1 - (sin x)\<twosuperior>"
 apply (rule_tac a1 = "(sin x)\<twosuperior>" in add_right_cancel [THEN iffD1])
 apply (simp del: realpow_Suc)
 done
-
-lemma real_gt_one_ge_zero_add_less: "[| 1 < x; 0 \<le> y |] ==> 1 < x + (y::real)"
-by arith
 
 lemma abs_sin_le_one [simp]: "\<bar>sin x\<bar> \<le> 1"
 by (rule power2_le_imp_le, simp_all add: sin_squared_eq)
@@ -1187,7 +1150,7 @@ apply (best intro!: DERIV_intros intro: DERIV_chain2)
 apply (auto simp add: diff_minus left_distrib right_distrib mult_ac add_ac)
 done
 
-lemma sin_cos_minus [simp]: 
+lemma sin_cos_minus: 
     "(sin(-x) + (sin x)) ^ 2 + (cos(-x) - (cos x)) ^ 2 = 0"
 apply (cut_tac y = 0 and x = x 
        in lemma_DERIV_sin_cos_minus [THEN DERIV_isconst_all])
@@ -1195,14 +1158,10 @@ apply simp
 done
 
 lemma sin_minus [simp]: "sin (-x) = -sin(x)"
-apply (cut_tac x = x in sin_cos_minus)
-apply (simp del: sin_cos_minus)
-done
+  using sin_cos_minus [where x=x] by simp
 
 lemma cos_minus [simp]: "cos (-x) = cos(x)"
-apply (cut_tac x = x in sin_cos_minus)
-apply (simp del: sin_cos_minus)
-done
+  using sin_cos_minus [where x=x] by simp
 
 lemma sin_diff: "sin (x - y) = sin x * cos y - cos x * sin y"
 by (simp add: diff_minus sin_add)
@@ -1217,16 +1176,14 @@ lemma cos_diff2: "cos (x - y) = cos y * cos x + sin y * sin x"
 by (simp add: cos_diff mult_commute)
 
 lemma sin_double [simp]: "sin(2 * x) = 2* sin x * cos x"
-by (cut_tac x = x and y = x in sin_add, auto)
-
+  using sin_add [where x=x and y=x] by simp
 
 lemma cos_double: "cos(2* x) = ((cos x)\<twosuperior>) - ((sin x)\<twosuperior>)"
-apply (cut_tac x = x and y = x in cos_add)
-apply (simp add: power2_eq_square)
-done
+  using cos_add [where x=x and y=x]
+  by (simp add: power2_eq_square)
 
 
-subsection{*The Constant Pi*}
+subsection {* The Constant Pi *}
 
 definition
   pi :: "real" where
@@ -1401,8 +1358,8 @@ by (rule pi_gt_zero [THEN less_imp_neq, THEN not_sym])
 lemma pi_not_less_zero [simp]: "\<not> pi < 0"
 by (simp add: linorder_not_less)
 
-lemma minus_pi_half_less_zero [simp]: "-(pi/2) < 0"
-by auto
+lemma minus_pi_half_less_zero: "-(pi/2) < 0"
+by simp
 
 lemma sin_pi_half [simp]: "sin(pi/2) = 1"
 apply (cut_tac x = "pi/2" in sin_cos_squared_add2)
@@ -1614,7 +1571,7 @@ apply (auto simp add: even_mult_two_ex)
 done
 
 
-subsection{*Tangent*}
+subsection {* Tangent *}
 
 definition
   tan :: "real => real" where
@@ -2139,11 +2096,6 @@ done
 lemma sin_zero_abs_cos_one: "sin x = 0 ==> \<bar>cos x\<bar> = 1"
 by (auto simp add: sin_zero_iff even_mult_two_ex)
 
-lemma exp_eq_one_iff [simp]: "(exp (x::real) = 1) = (x = 0)"
-apply auto
-apply (drule_tac f = ln in arg_cong, auto)
-done
-
 lemma cos_one_sin_zero: "cos x = 1 ==> sin x = 0"
 by (cut_tac x = x in sin_cos_squared_add3, auto)
 
@@ -2190,60 +2142,4 @@ apply (rule_tac x=x in exI, rule_tac x=0 in exI, simp)
 apply (erule polar_ex2)
 done
 
-
-subsection {* Theorems about Limits *}
-
-(* need to rename second isCont_inverse *)
-
-lemma isCont_inv_fun:
-  fixes f g :: "real \<Rightarrow> real"
-  shows "[| 0 < d; \<forall>z. \<bar>z - x\<bar> \<le> d --> g(f(z)) = z;  
-         \<forall>z. \<bar>z - x\<bar> \<le> d --> isCont f z |]  
-      ==> isCont g (f x)"
-by (rule isCont_inverse_function)
-
-lemma isCont_inv_fun_inv:
-  fixes f g :: "real \<Rightarrow> real"
-  shows "[| 0 < d;  
-         \<forall>z. \<bar>z - x\<bar> \<le> d --> g(f(z)) = z;  
-         \<forall>z. \<bar>z - x\<bar> \<le> d --> isCont f z |]  
-       ==> \<exists>e. 0 < e &  
-             (\<forall>y. 0 < \<bar>y - f(x)\<bar> & \<bar>y - f(x)\<bar> < e --> f(g(y)) = y)"
-apply (drule isCont_inj_range)
-prefer 2 apply (assumption, assumption, auto)
-apply (rule_tac x = e in exI, auto)
-apply (rotate_tac 2)
-apply (drule_tac x = y in spec, auto)
-done
-
-
-text{*Bartle/Sherbert: Introduction to Real Analysis, Theorem 4.2.9, p. 110*}
-lemma LIM_fun_gt_zero:
-     "[| f -- c --> (l::real); 0 < l |]  
-         ==> \<exists>r. 0 < r & (\<forall>x::real. x \<noteq> c & \<bar>c - x\<bar> < r --> 0 < f x)"
-apply (auto simp add: LIM_def)
-apply (drule_tac x = "l/2" in spec, safe, force)
-apply (rule_tac x = s in exI)
-apply (auto simp only: abs_less_iff)
-done
-
-lemma LIM_fun_less_zero:
-     "[| f -- c --> (l::real); l < 0 |]  
-      ==> \<exists>r. 0 < r & (\<forall>x::real. x \<noteq> c & \<bar>c - x\<bar> < r --> f x < 0)"
-apply (auto simp add: LIM_def)
-apply (drule_tac x = "-l/2" in spec, safe, force)
-apply (rule_tac x = s in exI)
-apply (auto simp only: abs_less_iff)
-done
-
-
-lemma LIM_fun_not_zero:
-     "[| f -- c --> (l::real); l \<noteq> 0 |] 
-      ==> \<exists>r. 0 < r & (\<forall>x::real. x \<noteq> c & \<bar>c - x\<bar> < r --> f x \<noteq> 0)"
-apply (cut_tac x = l and y = 0 in linorder_less_linear, auto)
-apply (drule LIM_fun_less_zero)
-apply (drule_tac [3] LIM_fun_gt_zero)
-apply force+
-done
-  
 end 

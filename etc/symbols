@@ -1,4 +1,3 @@
-# $Id$
 # Default interpretation of some Isabelle symbols
 
 \<zero>                 code: 0x01d7ec  font: Isabelle

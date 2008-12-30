@@ -1,5 +1,5 @@
 # -*- shell-script -*-
-# $Id$
+#
 # Author: Makarius
 #
 # timestart - setup bash environment for timing.

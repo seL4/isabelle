@@ -1,5 +1,4 @@
 #
-# $Id$
 # Author: Makarius
 #
 # keywords.pl - generate outer syntax keyword files from session logs
@@ -79,8 +78,6 @@ sub emacs_output {
   print ";; Generated from ${sessions}.\n";
   print ";; *** DO NOT EDIT *** DO NOT EDIT *** DO NOT EDIT ***\n";
   print ";;\n";
-  print ";; \$", "Id\$\n";
-  print ";;\n";
 
   for my $kind (@kinds) {
     my @names;
@@ -154,7 +151,6 @@ sub jedit_output {
 EOF
   print "<!-- Generated from ${sessions}. -->\n";
   print "<!-- *** DO NOT EDIT *** DO NOT EDIT *** DO NOT EDIT *** -->\n";
-  print "<!-- \$", "Id\$ -->\n";
   print <<'EOF';
 <MODE>
   <PROPS>

@@ -1,8 +1,5 @@
 (*  Title:      HOLCF/Tr.thy
-    ID:         $Id$
     Author:     Franz Regensburger
-
-Introduce infix if_then_else_fi and boolean connectives andalso, orelse.
 *)
 
 header {* The type of lifted booleans *}

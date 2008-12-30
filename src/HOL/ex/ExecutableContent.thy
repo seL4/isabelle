@@ -24,4 +24,11 @@ imports
   "~~/src/HOL/ex/Records"
 begin
 
+text {* However, some aren't executable *}
+
+declare pair_leq_def[code del]
+declare max_weak_def[code del]
+declare min_weak_def[code del]
+declare ms_weak_def[code del]
+
 end

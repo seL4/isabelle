@@ -1481,4 +1481,155 @@ text {*
   @{term "{#x+x|x:#M. x<c#}"}.
 *}
 
+
+subsection {* Termination proofs with multiset orders *}
+
+lemma multi_member_skip: "x \<in># XS \<Longrightarrow> x \<in># {# y #} + XS"
+  and multi_member_this: "x \<in># {# x #} + XS"
+  and multi_member_last: "x \<in># {# x #}"
+  by auto
+
+definition "ms_strict = mult pair_less"
+definition "ms_weak = ms_strict \<union> Id"
+
+lemma ms_reduction_pair: "reduction_pair (ms_strict, ms_weak)"
+unfolding reduction_pair_def ms_strict_def ms_weak_def pair_less_def
+by (auto intro: wf_mult1 wf_trancl simp: mult_def)
+
+lemma smsI:
+  "(set_of A, set_of B) \<in> max_strict \<Longrightarrow> (Z + A, Z + B) \<in> ms_strict"
+  unfolding ms_strict_def
+by (rule one_step_implies_mult) (auto simp add: max_strict_def pair_less_def elim!:max_ext.cases)
+
+lemma wmsI:
+  "(set_of A, set_of B) \<in> max_strict \<or> A = {#} \<and> B = {#}
+  \<Longrightarrow> (Z + A, Z + B) \<in> ms_weak"
+unfolding ms_weak_def ms_strict_def
+by (auto simp add: pair_less_def max_strict_def elim!:max_ext.cases intro: one_step_implies_mult)
+
+inductive pw_leq
+where
+  pw_leq_empty: "pw_leq {#} {#}"
+| pw_leq_step:  "\<lbrakk>(x,y) \<in> pair_leq; pw_leq X Y \<rbrakk> \<Longrightarrow> pw_leq ({#x#} + X) ({#y#} + Y)"
+
+lemma pw_leq_lstep:
+  "(x, y) \<in> pair_leq \<Longrightarrow> pw_leq {#x#} {#y#}"
+by (drule pw_leq_step) (rule pw_leq_empty, simp)
+
+lemma pw_leq_split:
+  assumes "pw_leq X Y"
+  shows "\<exists>A B Z. X = A + Z \<and> Y = B + Z \<and> ((set_of A, set_of B) \<in> max_strict \<or> (B = {#} \<and> A = {#}))"
+  using assms
+proof (induct)
+  case pw_leq_empty thus ?case by auto
+next
+  case (pw_leq_step x y X Y)
+  then obtain A B Z where
+    [simp]: "X = A + Z" "Y = B + Z" 
+      and 1[simp]: "(set_of A, set_of B) \<in> max_strict \<or> (B = {#} \<and> A = {#})" 
+    by auto
+  from pw_leq_step have "x = y \<or> (x, y) \<in> pair_less" 
+    unfolding pair_leq_def by auto
+  thus ?case
+  proof
+    assume [simp]: "x = y"
+    have
+      "{#x#} + X = A + ({#y#}+Z) 
+      \<and> {#y#} + Y = B + ({#y#}+Z)
+      \<and> ((set_of A, set_of B) \<in> max_strict \<or> (B = {#} \<and> A = {#}))"
+      by (auto simp: add_ac)
+    thus ?case by (intro exI)
+  next
+    assume A: "(x, y) \<in> pair_less"
+    let ?A' = "{#x#} + A" and ?B' = "{#y#} + B"
+    have "{#x#} + X = ?A' + Z"
+      "{#y#} + Y = ?B' + Z"
+      by (auto simp add: add_ac)
+    moreover have 
+      "(set_of ?A', set_of ?B') \<in> max_strict"
+      using 1 A unfolding max_strict_def 
+      by (auto elim!: max_ext.cases)
+    ultimately show ?thesis by blast
+  qed
+qed
+
+lemma 
+  assumes pwleq: "pw_leq Z Z'"
+  shows ms_strictI: "(set_of A, set_of B) \<in> max_strict \<Longrightarrow> (Z + A, Z' + B) \<in> ms_strict"
+  and   ms_weakI1:  "(set_of A, set_of B) \<in> max_strict \<Longrightarrow> (Z + A, Z' + B) \<in> ms_weak"
+  and   ms_weakI2:  "(Z + {#}, Z' + {#}) \<in> ms_weak"
+proof -
+  from pw_leq_split[OF pwleq] 
+  obtain A' B' Z''
+    where [simp]: "Z = A' + Z''" "Z' = B' + Z''"
+    and mx_or_empty: "(set_of A', set_of B') \<in> max_strict \<or> (A' = {#} \<and> B' = {#})"
+    by blast
+  {
+    assume max: "(set_of A, set_of B) \<in> max_strict"
+    from mx_or_empty
+    have "(Z'' + (A + A'), Z'' + (B + B')) \<in> ms_strict"
+    proof
+      assume max': "(set_of A', set_of B') \<in> max_strict"
+      with max have "(set_of (A + A'), set_of (B + B')) \<in> max_strict"
+        by (auto simp: max_strict_def intro: max_ext_additive)
+      thus ?thesis by (rule smsI) 
+    next
+      assume [simp]: "A' = {#} \<and> B' = {#}"
+      show ?thesis by (rule smsI) (auto intro: max)
+    qed
+    thus "(Z + A, Z' + B) \<in> ms_strict" by (simp add:add_ac)
+    thus "(Z + A, Z' + B) \<in> ms_weak" by (simp add: ms_weak_def)
+  }
+  from mx_or_empty
+  have "(Z'' + A', Z'' + B') \<in> ms_weak" by (rule wmsI)
+  thus "(Z + {#}, Z' + {#}) \<in> ms_weak" by (simp add:add_ac)
+qed
+
+lemma empty_idemp: "{#} + x = x" "x + {#} = x"
+and nonempty_plus: "{# x #} + rs \<noteq> {#}"
+and nonempty_single: "{# x #} \<noteq> {#}"
+by auto
+
+setup {*
+let
+  fun msetT T = Type ("Multiset.multiset", [T]);
+
+  fun mk_mset T [] = Const (@{const_name Mempty}, msetT T)
+    | mk_mset T [x] = Const (@{const_name single}, T --> msetT T) $ x
+    | mk_mset T (x :: xs) =
+          Const (@{const_name plus}, msetT T --> msetT T --> msetT T) $
+                mk_mset T [x] $ mk_mset T xs
+
+  fun mset_member_tac m i =
+      (if m <= 0 then
+           rtac @{thm multi_member_this} i ORELSE rtac @{thm multi_member_last} i
+       else
+           rtac @{thm multi_member_skip} i THEN mset_member_tac (m - 1) i)
+
+  val mset_nonempty_tac =
+      rtac @{thm nonempty_plus} ORELSE' rtac @{thm nonempty_single}
+
+  val regroup_munion_conv =
+      FundefLib.regroup_conv @{const_name Multiset.Mempty} @{const_name plus}
+        (map (fn t => t RS eq_reflection) (@{thms union_ac} @ @{thms empty_idemp}))
+
+  fun unfold_pwleq_tac i =
+    (rtac @{thm pw_leq_step} i THEN (fn st => unfold_pwleq_tac (i + 1) st))
+      ORELSE (rtac @{thm pw_leq_lstep} i)
+      ORELSE (rtac @{thm pw_leq_empty} i)
+
+  val set_of_simps = [@{thm set_of_empty}, @{thm set_of_single}, @{thm set_of_union},
+                      @{thm Un_insert_left}, @{thm Un_empty_left}]
+in
+  ScnpReconstruct.multiset_setup (ScnpReconstruct.Multiset 
+  {
+    msetT=msetT, mk_mset=mk_mset, mset_regroup_conv=regroup_munion_conv,
+    mset_member_tac=mset_member_tac, mset_nonempty_tac=mset_nonempty_tac,
+    mset_pwleq_tac=unfold_pwleq_tac, set_of_simps=set_of_simps,
+    smsI'=@{thm ms_strictI}, wmsI2''=@{thm ms_weakI2}, wmsI1=@{thm ms_weakI1},
+    reduction_pair=@{thm ms_reduction_pair}
+  })
+end
+*}
+
 end

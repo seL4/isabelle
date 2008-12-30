@@ -120,29 +120,6 @@ lemma Inr_eq [iff]: "(Inr(x)=Inr(y)) = (x=y)"
 by (blast dest!: Inr_inject)
 
 
-subsection {* Projections *}
-
-definition 
-  "sum_case f g x =
-  (if (\<exists>!y. x = Inl y) 
-  then f (THE y. x = Inl y) 
-  else g (THE y. x = Inr y))"
-definition "Projl x = sum_case id undefined x"
-definition "Projr x = sum_case undefined id x"
-
-lemma sum_cases[simp]: 
-  "sum_case f g (Inl x) = f x"
-  "sum_case f g (Inr y) = g y"
-  unfolding sum_case_def
-  by auto
-
-lemma Projl_Inl[simp]: "Projl (Inl x) = x"
-  unfolding Projl_def by simp
-
-lemma Projr_Inr[simp]: "Projr (Inr x) = x"
-  unfolding Projr_def by simp
-
-
 subsection{*The Disjoint Sum of Sets*}
 
 (** Introduction rules for the injections **)

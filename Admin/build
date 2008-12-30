@@ -7,7 +7,7 @@
 #paranoia setting for sunbroy
 PATH="/usr/local/dist/DIR/j2sdk1.5.0/bin:$PATH"
 
-PATH="/home/scala/scala/bin:$PATH"
+PATH="/home/scala/current/bin:$PATH"
 
 
 ## directory layout
@@ -101,15 +101,6 @@ function build_jars ()
   pushd "$ISABELLE_HOME/src/Pure" >/dev/null
   "$ISABELLE_TOOL" make jar || fail "Failed to build Pure.jar!"
   popd >/dev/null
-
-  if [ -d "$HOME/lib/jedit/current" ]; then
-    pushd "$ISABELLE_HOME/lib/jedit/plugin" >/dev/null
-    ./mk
-    [ -f ../isabelle.jar ] || fail "Failed to build jEdit plugin!"
-    popd >/dev/null
-  else
-    echo "Warning: skipping jedit plugin"
-  fi
 }
 
 

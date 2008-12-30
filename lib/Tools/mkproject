@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 #
-# $Id$
-# Author: David Aspinall and Makarius Wenzel
+# Author: David Aspinall
 #
 # DESCRIPTION: prepare a session directory for PG-Eclipse
 

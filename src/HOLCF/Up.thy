@@ -1,8 +1,5 @@
 (*  Title:      HOLCF/Up.thy
-    ID:         $Id$
     Author:     Franz Regensburger and Brian Huffman
-
-Lifting.
 *)
 
 header {* The type of lifted values *}

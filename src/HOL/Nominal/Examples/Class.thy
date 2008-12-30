@@ -1,5 +1,3 @@
-(* $Id$ *)
-
 theory Class
 imports "../Nominal" 
 begin
@@ -17,15 +15,21 @@ nominal_datatype ty =
   | OR   "ty" "ty"   ("_ OR _" [100,100] 100)
   | IMP  "ty" "ty"   ("_ IMP _" [100,100] 100)
 
-instance ty :: size ..
+instantiation ty :: size
+begin
 
-nominal_primrec
+nominal_primrec size_ty
+where
   "size (PR s)     = (1::nat)"
-  "size (NOT T)     = 1 + size T"
-  "size (T1 AND T2) = 1 + size T1 + size T2"
-  "size (T1 OR T2)  = 1 + size T1 + size T2"
-  "size (T1 IMP T2) = 1 + size T1 + size T2"
+| "size (NOT T)     = 1 + size T"
+| "size (T1 AND T2) = 1 + size T1 + size T2"
+| "size (T1 OR T2)  = 1 + size T1 + size T2"
+| "size (T1 IMP T2) = 1 + size T1 + size T2"
 by (rule TrueI)+
+
+instance ..
+
+end
 
 lemma ty_cases:
   fixes T::ty
@@ -66,25 +70,23 @@ nominal_datatype ctrm = Co "\<guillemotleft>coname\<guillemotright>trm" ("(<_>:_
 
 text {* renaming functions *}
 
-consts
-  nrename :: "trm \<Rightarrow> name \<Rightarrow> name \<Rightarrow> trm"      ("_[_\<turnstile>n>_]" [100,100,100] 100) 
-  crename :: "trm \<Rightarrow> coname \<Rightarrow> coname \<Rightarrow> trm"  ("_[_\<turnstile>c>_]" [100,100,100] 100) 
-
 nominal_primrec (freshness_context: "(d::coname,e::coname)") 
+  crename :: "trm \<Rightarrow> coname \<Rightarrow> coname \<Rightarrow> trm"  ("_[_\<turnstile>c>_]" [100,100,100] 100) 
+where
   "(Ax x a)[d\<turnstile>c>e] = (if a=d then Ax x e else Ax x a)" 
-  "\<lbrakk>a\<sharp>(d,e,N);x\<sharp>M\<rbrakk> \<Longrightarrow> (Cut <a>.M (x).N)[d\<turnstile>c>e] = Cut <a>.(M[d\<turnstile>c>e]) (x).(N[d\<turnstile>c>e])" 
-  "(NotR (x).M a)[d\<turnstile>c>e] = (if a=d then NotR (x).(M[d\<turnstile>c>e]) e else NotR (x).(M[d\<turnstile>c>e]) a)" 
-  "a\<sharp>(d,e) \<Longrightarrow> (NotL <a>.M x)[d\<turnstile>c>e] = (NotL <a>.(M[d\<turnstile>c>e]) x)" 
-  "\<lbrakk>a\<sharp>(d,e,N,c);b\<sharp>(d,e,M,c);b\<noteq>a\<rbrakk> \<Longrightarrow> (AndR <a>.M <b>.N c)[d\<turnstile>c>e] = 
+| "\<lbrakk>a\<sharp>(d,e,N);x\<sharp>M\<rbrakk> \<Longrightarrow> (Cut <a>.M (x).N)[d\<turnstile>c>e] = Cut <a>.(M[d\<turnstile>c>e]) (x).(N[d\<turnstile>c>e])" 
+| "(NotR (x).M a)[d\<turnstile>c>e] = (if a=d then NotR (x).(M[d\<turnstile>c>e]) e else NotR (x).(M[d\<turnstile>c>e]) a)" 
+| "a\<sharp>(d,e) \<Longrightarrow> (NotL <a>.M x)[d\<turnstile>c>e] = (NotL <a>.(M[d\<turnstile>c>e]) x)" 
+| "\<lbrakk>a\<sharp>(d,e,N,c);b\<sharp>(d,e,M,c);b\<noteq>a\<rbrakk> \<Longrightarrow> (AndR <a>.M <b>.N c)[d\<turnstile>c>e] = 
           (if c=d then AndR <a>.(M[d\<turnstile>c>e]) <b>.(N[d \<turnstile>c>e]) e else AndR <a>.(M[d\<turnstile>c>e]) <b>.(N[d\<turnstile>c>e]) c)" 
-  "x\<sharp>y \<Longrightarrow> (AndL1 (x).M y)[d\<turnstile>c>e] = AndL1 (x).(M[d\<turnstile>c>e]) y"
-  "x\<sharp>y \<Longrightarrow> (AndL2 (x).M y)[d\<turnstile>c>e] = AndL2 (x).(M[d\<turnstile>c>e]) y"
-  "a\<sharp>(d,e,b) \<Longrightarrow> (OrR1 <a>.M b)[d\<turnstile>c>e] = (if b=d then OrR1 <a>.(M[d\<turnstile>c>e]) e else OrR1 <a>.(M[d\<turnstile>c>e]) b)"
-  "a\<sharp>(d,e,b) \<Longrightarrow> (OrR2 <a>.M b)[d\<turnstile>c>e] = (if b=d then OrR2 <a>.(M[d\<turnstile>c>e]) e else OrR2 <a>.(M[d\<turnstile>c>e]) b)"
-  "\<lbrakk>x\<sharp>(N,z);y\<sharp>(M,z);y\<noteq>x\<rbrakk> \<Longrightarrow> (OrL (x).M (y).N z)[d\<turnstile>c>e] = OrL (x).(M[d\<turnstile>c>e]) (y).(N[d\<turnstile>c>e]) z"
-  "a\<sharp>(d,e,b) \<Longrightarrow> (ImpR (x).<a>.M b)[d\<turnstile>c>e] = 
+| "x\<sharp>y \<Longrightarrow> (AndL1 (x).M y)[d\<turnstile>c>e] = AndL1 (x).(M[d\<turnstile>c>e]) y"
+| "x\<sharp>y \<Longrightarrow> (AndL2 (x).M y)[d\<turnstile>c>e] = AndL2 (x).(M[d\<turnstile>c>e]) y"
+| "a\<sharp>(d,e,b) \<Longrightarrow> (OrR1 <a>.M b)[d\<turnstile>c>e] = (if b=d then OrR1 <a>.(M[d\<turnstile>c>e]) e else OrR1 <a>.(M[d\<turnstile>c>e]) b)"
+| "a\<sharp>(d,e,b) \<Longrightarrow> (OrR2 <a>.M b)[d\<turnstile>c>e] = (if b=d then OrR2 <a>.(M[d\<turnstile>c>e]) e else OrR2 <a>.(M[d\<turnstile>c>e]) b)"
+| "\<lbrakk>x\<sharp>(N,z);y\<sharp>(M,z);y\<noteq>x\<rbrakk> \<Longrightarrow> (OrL (x).M (y).N z)[d\<turnstile>c>e] = OrL (x).(M[d\<turnstile>c>e]) (y).(N[d\<turnstile>c>e]) z"
+| "a\<sharp>(d,e,b) \<Longrightarrow> (ImpR (x).<a>.M b)[d\<turnstile>c>e] = 
        (if b=d then ImpR (x).<a>.(M[d\<turnstile>c>e]) e else ImpR (x).<a>.(M[d\<turnstile>c>e]) b)"
-  "\<lbrakk>a\<sharp>(d,e,N);x\<sharp>(M,y)\<rbrakk> \<Longrightarrow> (ImpL <a>.M (x).N y)[d\<turnstile>c>e] = ImpL <a>.(M[d\<turnstile>c>e]) (x).(N[d\<turnstile>c>e]) y"
+| "\<lbrakk>a\<sharp>(d,e,N);x\<sharp>(M,y)\<rbrakk> \<Longrightarrow> (ImpL <a>.M (x).N y)[d\<turnstile>c>e] = ImpL <a>.(M[d\<turnstile>c>e]) (x).(N[d\<turnstile>c>e]) y"
 apply(finite_guess)+
 apply(rule TrueI)+
 apply(simp add: abs_fresh abs_supp fin_supp)+
@@ -92,19 +94,21 @@ apply(fresh_guess)+
 done
 
 nominal_primrec (freshness_context: "(u::name,v::name)") 
+  nrename :: "trm \<Rightarrow> name \<Rightarrow> name \<Rightarrow> trm"      ("_[_\<turnstile>n>_]" [100,100,100] 100) 
+where
   "(Ax x a)[u\<turnstile>n>v] = (if x=u then Ax v a else Ax x a)" 
-  "\<lbrakk>a\<sharp>N;x\<sharp>(u,v,M)\<rbrakk> \<Longrightarrow> (Cut <a>.M (x).N)[u\<turnstile>n>v] = Cut <a>.(M[u\<turnstile>n>v]) (x).(N[u\<turnstile>n>v])" 
-  "x\<sharp>(u,v) \<Longrightarrow> (NotR (x).M a)[u\<turnstile>n>v] = NotR (x).(M[u\<turnstile>n>v]) a" 
-  "(NotL <a>.M x)[u\<turnstile>n>v] = (if x=u then NotL <a>.(M[u\<turnstile>n>v]) v else NotL <a>.(M[u\<turnstile>n>v]) x)" 
-  "\<lbrakk>a\<sharp>(N,c);b\<sharp>(M,c);b\<noteq>a\<rbrakk> \<Longrightarrow> (AndR <a>.M <b>.N c)[u\<turnstile>n>v] = AndR <a>.(M[u\<turnstile>n>v]) <b>.(N[u\<turnstile>n>v]) c" 
-  "x\<sharp>(u,v,y) \<Longrightarrow> (AndL1 (x).M y)[u\<turnstile>n>v] = (if y=u then AndL1 (x).(M[u\<turnstile>n>v]) v else AndL1 (x).(M[u\<turnstile>n>v]) y)"
-  "x\<sharp>(u,v,y) \<Longrightarrow> (AndL2 (x).M y)[u\<turnstile>n>v] = (if y=u then AndL2 (x).(M[u\<turnstile>n>v]) v else AndL2 (x).(M[u\<turnstile>n>v]) y)"
-  "a\<sharp>b \<Longrightarrow> (OrR1 <a>.M b)[u\<turnstile>n>v] = OrR1 <a>.(M[u\<turnstile>n>v]) b"
-  "a\<sharp>b \<Longrightarrow> (OrR2 <a>.M b)[u\<turnstile>n>v] = OrR2 <a>.(M[u\<turnstile>n>v]) b"
-  "\<lbrakk>x\<sharp>(u,v,N,z);y\<sharp>(u,v,M,z);y\<noteq>x\<rbrakk> \<Longrightarrow> (OrL (x).M (y).N z)[u\<turnstile>n>v] = 
+| "\<lbrakk>a\<sharp>N;x\<sharp>(u,v,M)\<rbrakk> \<Longrightarrow> (Cut <a>.M (x).N)[u\<turnstile>n>v] = Cut <a>.(M[u\<turnstile>n>v]) (x).(N[u\<turnstile>n>v])" 
+| "x\<sharp>(u,v) \<Longrightarrow> (NotR (x).M a)[u\<turnstile>n>v] = NotR (x).(M[u\<turnstile>n>v]) a" 
+| "(NotL <a>.M x)[u\<turnstile>n>v] = (if x=u then NotL <a>.(M[u\<turnstile>n>v]) v else NotL <a>.(M[u\<turnstile>n>v]) x)" 
+| "\<lbrakk>a\<sharp>(N,c);b\<sharp>(M,c);b\<noteq>a\<rbrakk> \<Longrightarrow> (AndR <a>.M <b>.N c)[u\<turnstile>n>v] = AndR <a>.(M[u\<turnstile>n>v]) <b>.(N[u\<turnstile>n>v]) c" 
+| "x\<sharp>(u,v,y) \<Longrightarrow> (AndL1 (x).M y)[u\<turnstile>n>v] = (if y=u then AndL1 (x).(M[u\<turnstile>n>v]) v else AndL1 (x).(M[u\<turnstile>n>v]) y)"
+| "x\<sharp>(u,v,y) \<Longrightarrow> (AndL2 (x).M y)[u\<turnstile>n>v] = (if y=u then AndL2 (x).(M[u\<turnstile>n>v]) v else AndL2 (x).(M[u\<turnstile>n>v]) y)"
+| "a\<sharp>b \<Longrightarrow> (OrR1 <a>.M b)[u\<turnstile>n>v] = OrR1 <a>.(M[u\<turnstile>n>v]) b"
+| "a\<sharp>b \<Longrightarrow> (OrR2 <a>.M b)[u\<turnstile>n>v] = OrR2 <a>.(M[u\<turnstile>n>v]) b"
+| "\<lbrakk>x\<sharp>(u,v,N,z);y\<sharp>(u,v,M,z);y\<noteq>x\<rbrakk> \<Longrightarrow> (OrL (x).M (y).N z)[u\<turnstile>n>v] = 
         (if z=u then OrL (x).(M[u\<turnstile>n>v]) (y).(N[u\<turnstile>n>v]) v else OrL (x).(M[u\<turnstile>n>v]) (y).(N[u\<turnstile>n>v]) z)"
-  "\<lbrakk>a\<sharp>b; x\<sharp>(u,v)\<rbrakk> \<Longrightarrow> (ImpR (x).<a>.M b)[u\<turnstile>n>v] = ImpR (x).<a>.(M[u\<turnstile>n>v]) b"
-  "\<lbrakk>a\<sharp>N;x\<sharp>(u,v,M,y)\<rbrakk> \<Longrightarrow> (ImpL <a>.M (x).N y)[u\<turnstile>n>v] = 
+| "\<lbrakk>a\<sharp>b; x\<sharp>(u,v)\<rbrakk> \<Longrightarrow> (ImpR (x).<a>.M b)[u\<turnstile>n>v] = ImpR (x).<a>.(M[u\<turnstile>n>v]) b"
+| "\<lbrakk>a\<sharp>N;x\<sharp>(u,v,M,y)\<rbrakk> \<Longrightarrow> (ImpL <a>.M (x).N y)[u\<turnstile>n>v] = 
         (if y=u then ImpL <a>.(M[u\<turnstile>n>v]) (x).(N[u\<turnstile>n>v]) v else ImpL <a>.(M[u\<turnstile>n>v]) (x).(N[u\<turnstile>n>v]) y)"
 apply(finite_guess)+
 apply(rule TrueI)+
@@ -766,32 +770,30 @@ apply(rule exists_fresh')
 apply(simp add: fin_supp)
 done
 
-consts
-  substn :: "trm \<Rightarrow> name   \<Rightarrow> coname \<Rightarrow> trm \<Rightarrow> trm" ("_{_:=<_>._}" [100,100,100,100] 100) 
-  substc :: "trm \<Rightarrow> coname \<Rightarrow> name   \<Rightarrow> trm \<Rightarrow> trm" ("_{_:=(_)._}" [100,100,100,100] 100)
-
 nominal_primrec (freshness_context: "(y::name,c::coname,P::trm)")
+  substn :: "trm \<Rightarrow> name   \<Rightarrow> coname \<Rightarrow> trm \<Rightarrow> trm" ("_{_:=<_>._}" [100,100,100,100] 100) 
+where
   "(Ax x a){y:=<c>.P} = (if x=y then Cut <c>.P (y).Ax y a else Ax x a)" 
-  "\<lbrakk>a\<sharp>(c,P,N);x\<sharp>(y,P,M)\<rbrakk> \<Longrightarrow> (Cut <a>.M (x).N){y:=<c>.P} = 
+| "\<lbrakk>a\<sharp>(c,P,N);x\<sharp>(y,P,M)\<rbrakk> \<Longrightarrow> (Cut <a>.M (x).N){y:=<c>.P} = 
   (if M=Ax y a then Cut <c>.P (x).(N{y:=<c>.P}) else Cut <a>.(M{y:=<c>.P}) (x).(N{y:=<c>.P}))" 
-  "x\<sharp>(y,P) \<Longrightarrow> (NotR (x).M a){y:=<c>.P} = NotR (x).(M{y:=<c>.P}) a" 
-  "a\<sharp>(c,P) \<Longrightarrow> (NotL <a>.M x){y:=<c>.P} = 
+| "x\<sharp>(y,P) \<Longrightarrow> (NotR (x).M a){y:=<c>.P} = NotR (x).(M{y:=<c>.P}) a" 
+| "a\<sharp>(c,P) \<Longrightarrow> (NotL <a>.M x){y:=<c>.P} = 
   (if x=y then fresh_fun (\<lambda>x'. Cut <c>.P (x').NotL <a>.(M{y:=<c>.P}) x') else NotL <a>.(M{y:=<c>.P}) x)"
-  "\<lbrakk>a\<sharp>(c,P,N,d);b\<sharp>(c,P,M,d);b\<noteq>a\<rbrakk> \<Longrightarrow> 
+| "\<lbrakk>a\<sharp>(c,P,N,d);b\<sharp>(c,P,M,d);b\<noteq>a\<rbrakk> \<Longrightarrow> 
   (AndR <a>.M <b>.N d){y:=<c>.P} = AndR <a>.(M{y:=<c>.P}) <b>.(N{y:=<c>.P}) d" 
-  "x\<sharp>(y,P,z) \<Longrightarrow> (AndL1 (x).M z){y:=<c>.P} = 
+| "x\<sharp>(y,P,z) \<Longrightarrow> (AndL1 (x).M z){y:=<c>.P} = 
   (if z=y then fresh_fun (\<lambda>z'. Cut <c>.P (z').AndL1 (x).(M{y:=<c>.P}) z') 
    else AndL1 (x).(M{y:=<c>.P}) z)"
-  "x\<sharp>(y,P,z) \<Longrightarrow> (AndL2 (x).M z){y:=<c>.P} = 
+| "x\<sharp>(y,P,z) \<Longrightarrow> (AndL2 (x).M z){y:=<c>.P} = 
   (if z=y then fresh_fun (\<lambda>z'. Cut <c>.P (z').AndL2 (x).(M{y:=<c>.P}) z') 
    else AndL2 (x).(M{y:=<c>.P}) z)"
-  "a\<sharp>(c,P,b) \<Longrightarrow> (OrR1 <a>.M b){y:=<c>.P} = OrR1 <a>.(M{y:=<c>.P}) b"
-  "a\<sharp>(c,P,b) \<Longrightarrow> (OrR2 <a>.M b){y:=<c>.P} = OrR2 <a>.(M{y:=<c>.P}) b"
-  "\<lbrakk>x\<sharp>(y,N,P,z);u\<sharp>(y,M,P,z);x\<noteq>u\<rbrakk> \<Longrightarrow> (OrL (x).M (u).N z){y:=<c>.P} = 
+| "a\<sharp>(c,P,b) \<Longrightarrow> (OrR1 <a>.M b){y:=<c>.P} = OrR1 <a>.(M{y:=<c>.P}) b"
+| "a\<sharp>(c,P,b) \<Longrightarrow> (OrR2 <a>.M b){y:=<c>.P} = OrR2 <a>.(M{y:=<c>.P}) b"
+| "\<lbrakk>x\<sharp>(y,N,P,z);u\<sharp>(y,M,P,z);x\<noteq>u\<rbrakk> \<Longrightarrow> (OrL (x).M (u).N z){y:=<c>.P} = 
   (if z=y then fresh_fun (\<lambda>z'. Cut <c>.P (z').OrL (x).(M{y:=<c>.P}) (u).(N{y:=<c>.P}) z') 
    else OrL (x).(M{y:=<c>.P}) (u).(N{y:=<c>.P}) z)"
-  "\<lbrakk>a\<sharp>(b,c,P); x\<sharp>(y,P)\<rbrakk> \<Longrightarrow> (ImpR (x).<a>.M b){y:=<c>.P} = ImpR (x).<a>.(M{y:=<c>.P}) b"
-  "\<lbrakk>a\<sharp>(N,c,P);x\<sharp>(y,P,M,z)\<rbrakk> \<Longrightarrow> (ImpL <a>.M (x).N z){y:=<c>.P} = 
+| "\<lbrakk>a\<sharp>(b,c,P); x\<sharp>(y,P)\<rbrakk> \<Longrightarrow> (ImpR (x).<a>.M b){y:=<c>.P} = ImpR (x).<a>.(M{y:=<c>.P}) b"
+| "\<lbrakk>a\<sharp>(N,c,P);x\<sharp>(y,P,M,z)\<rbrakk> \<Longrightarrow> (ImpL <a>.M (x).N z){y:=<c>.P} = 
   (if y=z then fresh_fun (\<lambda>z'. Cut <c>.P (z').ImpL <a>.(M{y:=<c>.P}) (x).(N{y:=<c>.P}) z') 
    else ImpL <a>.(M{y:=<c>.P}) (x).(N{y:=<c>.P}) z)"
 apply(finite_guess)+
@@ -842,27 +844,29 @@ apply(fresh_guess)+
 done
 
 nominal_primrec (freshness_context: "(d::name,z::coname,P::trm)")
+  substc :: "trm \<Rightarrow> coname \<Rightarrow> name   \<Rightarrow> trm \<Rightarrow> trm" ("_{_:=(_)._}" [100,100,100,100] 100)
+where
   "(Ax x a){d:=(z).P} = (if d=a then Cut <a>.(Ax x a) (z).P else Ax x a)" 
-  "\<lbrakk>a\<sharp>(d,P,N);x\<sharp>(z,P,M)\<rbrakk> \<Longrightarrow> (Cut <a>.M (x).N){d:=(z).P} = 
+| "\<lbrakk>a\<sharp>(d,P,N);x\<sharp>(z,P,M)\<rbrakk> \<Longrightarrow> (Cut <a>.M (x).N){d:=(z).P} = 
   (if N=Ax x d then Cut <a>.(M{d:=(z).P}) (z).P else Cut <a>.(M{d:=(z).P}) (x).(N{d:=(z).P}))" 
-  "x\<sharp>(z,P) \<Longrightarrow> (NotR (x).M a){d:=(z).P} = 
+| "x\<sharp>(z,P) \<Longrightarrow> (NotR (x).M a){d:=(z).P} = 
   (if d=a then fresh_fun (\<lambda>a'. Cut <a'>.NotR (x).(M{d:=(z).P}) a' (z).P) else NotR (x).(M{d:=(z).P}) a)" 
-  "a\<sharp>(d,P) \<Longrightarrow> (NotL <a>.M x){d:=(z).P} = NotL <a>.(M{d:=(z).P}) x" 
-  "\<lbrakk>a\<sharp>(P,c,N,d);b\<sharp>(P,c,M,d);b\<noteq>a\<rbrakk> \<Longrightarrow> (AndR <a>.M <b>.N c){d:=(z).P} = 
+| "a\<sharp>(d,P) \<Longrightarrow> (NotL <a>.M x){d:=(z).P} = NotL <a>.(M{d:=(z).P}) x" 
+| "\<lbrakk>a\<sharp>(P,c,N,d);b\<sharp>(P,c,M,d);b\<noteq>a\<rbrakk> \<Longrightarrow> (AndR <a>.M <b>.N c){d:=(z).P} = 
   (if d=c then fresh_fun (\<lambda>a'. Cut <a'>.(AndR <a>.(M{d:=(z).P}) <b>.(N{d:=(z).P}) a') (z).P)
    else AndR <a>.(M{d:=(z).P}) <b>.(N{d:=(z).P}) c)" 
-  "x\<sharp>(y,z,P) \<Longrightarrow> (AndL1 (x).M y){d:=(z).P} = AndL1 (x).(M{d:=(z).P}) y"
-  "x\<sharp>(y,P,z) \<Longrightarrow> (AndL2 (x).M y){d:=(z).P} = AndL2 (x).(M{d:=(z).P}) y"
-  "a\<sharp>(d,P,b) \<Longrightarrow> (OrR1 <a>.M b){d:=(z).P} = 
+| "x\<sharp>(y,z,P) \<Longrightarrow> (AndL1 (x).M y){d:=(z).P} = AndL1 (x).(M{d:=(z).P}) y"
+| "x\<sharp>(y,P,z) \<Longrightarrow> (AndL2 (x).M y){d:=(z).P} = AndL2 (x).(M{d:=(z).P}) y"
+| "a\<sharp>(d,P,b) \<Longrightarrow> (OrR1 <a>.M b){d:=(z).P} = 
   (if d=b then fresh_fun (\<lambda>a'. Cut <a'>.OrR1 <a>.(M{d:=(z).P}) a' (z).P) else OrR1 <a>.(M{d:=(z).P}) b)"
-  "a\<sharp>(d,P,b) \<Longrightarrow> (OrR2 <a>.M b){d:=(z).P} = 
+| "a\<sharp>(d,P,b) \<Longrightarrow> (OrR2 <a>.M b){d:=(z).P} = 
   (if d=b then fresh_fun (\<lambda>a'. Cut <a'>.OrR2 <a>.(M{d:=(z).P}) a' (z).P) else OrR2 <a>.(M{d:=(z).P}) b)"
-  "\<lbrakk>x\<sharp>(N,z,P,u);y\<sharp>(M,z,P,u);x\<noteq>y\<rbrakk> \<Longrightarrow> (OrL (x).M (y).N u){d:=(z).P} = 
+| "\<lbrakk>x\<sharp>(N,z,P,u);y\<sharp>(M,z,P,u);x\<noteq>y\<rbrakk> \<Longrightarrow> (OrL (x).M (y).N u){d:=(z).P} = 
   OrL (x).(M{d:=(z).P}) (y).(N{d:=(z).P}) u" 
-  "\<lbrakk>a\<sharp>(b,d,P); x\<sharp>(z,P)\<rbrakk> \<Longrightarrow> (ImpR (x).<a>.M b){d:=(z).P} = 
+| "\<lbrakk>a\<sharp>(b,d,P); x\<sharp>(z,P)\<rbrakk> \<Longrightarrow> (ImpR (x).<a>.M b){d:=(z).P} = 
   (if d=b then fresh_fun (\<lambda>a'. Cut <a'>.ImpR (x).<a>.(M{d:=(z).P}) a' (z).P) 
    else ImpR (x).<a>.(M{d:=(z).P}) b)"
-  "\<lbrakk>a\<sharp>(N,d,P);x\<sharp>(y,z,P,M)\<rbrakk> \<Longrightarrow> (ImpL <a>.M (x).N y){d:=(z).P} = 
+| "\<lbrakk>a\<sharp>(N,d,P);x\<sharp>(y,z,P,M)\<rbrakk> \<Longrightarrow> (ImpL <a>.M (x).N y){d:=(z).P} = 
   ImpL <a>.(M{d:=(z).P}) (x).(N{d:=(z).P}) y"
 apply(finite_guess)+
 apply(rule TrueI)+
@@ -10305,11 +10309,10 @@ by (simp add: BINDINGn_def) (blast)
 lemma BINDINGc_decreasing:
   shows "X\<subseteq>Y \<Longrightarrow> BINDINGc B Y \<subseteq> BINDINGc B X"
 by (simp add: BINDINGc_def) (blast) 
-
-consts
-  NOTRIGHT::"ty \<Rightarrow> ntrm set \<Rightarrow> ctrm set"
   
 nominal_primrec
+  NOTRIGHT :: "ty \<Rightarrow> ntrm set \<Rightarrow> ctrm set"
+where
  "NOTRIGHT (NOT B) X = { <a>:NotR (x).M a | a x M. fic (NotR (x).M a) a \<and> (x):M \<in> X }"
 apply(rule TrueI)+
 done
@@ -10365,11 +10368,10 @@ apply(drule sym)
 apply(drule pt_bij1[OF pt_coname_inst, OF at_coname_inst])
 apply(simp add: swap_simps)
 done
-
-consts
-  NOTLEFT::"ty \<Rightarrow> ctrm set \<Rightarrow> ntrm set"
   
 nominal_primrec
+  NOTLEFT :: "ty \<Rightarrow> ctrm set \<Rightarrow> ntrm set"
+where
  "NOTLEFT (NOT B) X = { (x):NotL <a>.M x | a x M. fin (NotL <a>.M x) x \<and> <a>:M \<in> X }"
 apply(rule TrueI)+
 done
@@ -10425,11 +10427,10 @@ apply(drule sym)
 apply(drule pt_bij1[OF pt_coname_inst, OF at_coname_inst])
 apply(simp add: swap_simps)
 done
-
-consts
-  ANDRIGHT::"ty \<Rightarrow> ctrm set \<Rightarrow> ctrm set \<Rightarrow> ctrm set"
   
 nominal_primrec
+  ANDRIGHT :: "ty \<Rightarrow> ctrm set \<Rightarrow> ctrm set \<Rightarrow> ctrm set"
+where
  "ANDRIGHT (B AND C) X Y = 
             { <c>:AndR <a>.M <b>.N c | c a b M N. fic (AndR <a>.M <b>.N c) c \<and> <a>:M \<in> X \<and> <b>:N \<in> Y }"
 apply(rule TrueI)+
@@ -10505,10 +10506,9 @@ apply(drule pt_bij1[OF pt_coname_inst, OF at_coname_inst])
 apply(simp)
 done
 
-consts
-  ANDLEFT1::"ty \<Rightarrow> ntrm set \<Rightarrow> ntrm set"
-
 nominal_primrec
+  ANDLEFT1 :: "ty \<Rightarrow> ntrm set \<Rightarrow> ntrm set"
+where
  "ANDLEFT1 (B AND C) X = { (y):AndL1 (x).M y | x y M. fin (AndL1 (x).M y) y \<and> (x):M \<in> X }"
 apply(rule TrueI)+
 done
@@ -10565,10 +10565,9 @@ apply(drule pt_bij1[OF pt_coname_inst, OF at_coname_inst])
 apply(simp add: swap_simps)
 done
 
-consts
-  ANDLEFT2::"ty \<Rightarrow> ntrm set \<Rightarrow> ntrm set"
-
 nominal_primrec
+  ANDLEFT2 :: "ty \<Rightarrow> ntrm set \<Rightarrow> ntrm set"
+where
  "ANDLEFT2 (B AND C) X = { (y):AndL2 (x).M y | x y M. fin (AndL2 (x).M y) y \<and> (x):M \<in> X }"
 apply(rule TrueI)+
 done
@@ -10625,10 +10624,9 @@ apply(drule pt_bij1[OF pt_coname_inst, OF at_coname_inst])
 apply(simp add: swap_simps)
 done
 
-consts
-  ORLEFT::"ty \<Rightarrow> ntrm set \<Rightarrow> ntrm set \<Rightarrow> ntrm set"
-  
 nominal_primrec
+  ORLEFT :: "ty \<Rightarrow> ntrm set \<Rightarrow> ntrm set \<Rightarrow> ntrm set"
+where
  "ORLEFT (B OR C) X Y = 
             { (z):OrL (x).M (y).N z | x y z M N. fin (OrL (x).M (y).N z) z \<and> (x):M \<in> X \<and> (y):N \<in> Y }"
 apply(rule TrueI)+
@@ -10704,10 +10702,9 @@ apply(drule pt_bij1[OF pt_coname_inst, OF at_coname_inst])
 apply(simp add: swap_simps)
 done
 
-consts
-  ORRIGHT1::"ty \<Rightarrow> ctrm set \<Rightarrow> ctrm set"
-
 nominal_primrec
+  ORRIGHT1 :: "ty \<Rightarrow> ctrm set \<Rightarrow> ctrm set"
+where
  "ORRIGHT1 (B OR C) X = { <b>:OrR1 <a>.M b | a b M. fic (OrR1 <a>.M b) b \<and> <a>:M \<in> X }"
 apply(rule TrueI)+
 done
@@ -10764,10 +10761,9 @@ apply(drule pt_bij1[OF pt_coname_inst, OF at_coname_inst])
 apply(simp)
 done
 
-consts
-  ORRIGHT2::"ty \<Rightarrow> ctrm set \<Rightarrow> ctrm set"
-
 nominal_primrec
+  ORRIGHT2 :: "ty \<Rightarrow> ctrm set \<Rightarrow> ctrm set"
+where
  "ORRIGHT2 (B OR C) X = { <b>:OrR2 <a>.M b | a b M. fic (OrR2 <a>.M b) b \<and> <a>:M \<in> X }"
 apply(rule TrueI)+
 done
@@ -10824,10 +10820,9 @@ apply(drule pt_bij1[OF pt_coname_inst, OF at_coname_inst])
 apply(simp)
 done
 
-consts
-  IMPRIGHT::"ty \<Rightarrow> ntrm set \<Rightarrow> ctrm set \<Rightarrow> ntrm set \<Rightarrow> ctrm set \<Rightarrow> ctrm set"
-
 nominal_primrec
+  IMPRIGHT :: "ty \<Rightarrow> ntrm set \<Rightarrow> ctrm set \<Rightarrow> ntrm set \<Rightarrow> ctrm set \<Rightarrow> ctrm set"
+where
  "IMPRIGHT (B IMP C) X Y Z U= 
         { <b>:ImpR (x).<a>.M b | x a b M. fic (ImpR (x).<a>.M b) b 
                                         \<and> (\<forall>z P. x\<sharp>(z,P) \<and> (z):P \<in> Z \<longrightarrow> (x):(M{a:=(z).P}) \<in> X)
@@ -10954,10 +10949,9 @@ apply(drule pt_bij1[OF pt_coname_inst, OF at_coname_inst])
 apply(perm_simp add: nsubst_eqvt fresh_right)
 done
 
-consts
-  IMPLEFT::"ty \<Rightarrow> ctrm set \<Rightarrow> ntrm set \<Rightarrow> ntrm set"
-
 nominal_primrec
+  IMPLEFT :: "ty \<Rightarrow> ctrm set \<Rightarrow> ntrm set \<Rightarrow> ntrm set"
+where
  "IMPLEFT (B IMP C) X Y = 
         { (y):ImpL <a>.M (x).N y | x a y M N. fin (ImpL <a>.M (x).N y) y \<and> <a>:M \<in> X \<and> (x):N \<in> Y }"
 apply(rule TrueI)+
@@ -17800,23 +17794,21 @@ apply(induct \<theta>c)
 apply(auto)
 done 
 
-consts
-  stn :: "trm\<Rightarrow>(name\<times>coname\<times>trm) list\<Rightarrow>trm" 
-  stc :: "trm\<Rightarrow>(coname\<times>name\<times>trm) list\<Rightarrow>trm" 
-
 nominal_primrec (freshness_context: "\<theta>n::(name\<times>coname\<times>trm)")
+  stn :: "trm\<Rightarrow>(name\<times>coname\<times>trm) list\<Rightarrow>trm" 
+where
   "stn (Ax x a) \<theta>n = lookupc x a \<theta>n"
-  "\<lbrakk>a\<sharp>(N,\<theta>n);x\<sharp>(M,\<theta>n)\<rbrakk> \<Longrightarrow> stn (Cut <a>.M (x).N) \<theta>n = (Cut <a>.M (x).N)" 
-  "x\<sharp>\<theta>n \<Longrightarrow> stn (NotR (x).M a) \<theta>n = (NotR (x).M a)"
-  "a\<sharp>\<theta>n \<Longrightarrow>stn (NotL <a>.M x) \<theta>n = (NotL <a>.M x)"
-  "\<lbrakk>a\<sharp>(N,d,b,\<theta>n);b\<sharp>(M,d,a,\<theta>n)\<rbrakk> \<Longrightarrow> stn (AndR <a>.M <b>.N d) \<theta>n = (AndR <a>.M <b>.N d)"
-  "x\<sharp>(z,\<theta>n) \<Longrightarrow> stn (AndL1 (x).M z) \<theta>n = (AndL1 (x).M z)"
-  "x\<sharp>(z,\<theta>n) \<Longrightarrow> stn (AndL2 (x).M z) \<theta>n = (AndL2 (x).M z)"
-  "a\<sharp>(b,\<theta>n) \<Longrightarrow> stn (OrR1 <a>.M b) \<theta>n = (OrR1 <a>.M b)"
-  "a\<sharp>(b,\<theta>n) \<Longrightarrow> stn (OrR2 <a>.M b) \<theta>n = (OrR2 <a>.M b)"
-  "\<lbrakk>x\<sharp>(N,z,u,\<theta>n);u\<sharp>(M,z,x,\<theta>n)\<rbrakk> \<Longrightarrow> stn (OrL (x).M (u).N z) \<theta>n = (OrL (x).M (u).N z)"
-  "\<lbrakk>a\<sharp>(b,\<theta>n);x\<sharp>\<theta>n\<rbrakk> \<Longrightarrow> stn (ImpR (x).<a>.M b) \<theta>n = (ImpR (x).<a>.M b)"
-  "\<lbrakk>a\<sharp>(N,\<theta>n);x\<sharp>(M,z,\<theta>n)\<rbrakk> \<Longrightarrow> stn (ImpL <a>.M (x).N z) \<theta>n = (ImpL <a>.M (x).N z)"
+| "\<lbrakk>a\<sharp>(N,\<theta>n);x\<sharp>(M,\<theta>n)\<rbrakk> \<Longrightarrow> stn (Cut <a>.M (x).N) \<theta>n = (Cut <a>.M (x).N)" 
+| "x\<sharp>\<theta>n \<Longrightarrow> stn (NotR (x).M a) \<theta>n = (NotR (x).M a)"
+| "a\<sharp>\<theta>n \<Longrightarrow>stn (NotL <a>.M x) \<theta>n = (NotL <a>.M x)"
+| "\<lbrakk>a\<sharp>(N,d,b,\<theta>n);b\<sharp>(M,d,a,\<theta>n)\<rbrakk> \<Longrightarrow> stn (AndR <a>.M <b>.N d) \<theta>n = (AndR <a>.M <b>.N d)"
+| "x\<sharp>(z,\<theta>n) \<Longrightarrow> stn (AndL1 (x).M z) \<theta>n = (AndL1 (x).M z)"
+| "x\<sharp>(z,\<theta>n) \<Longrightarrow> stn (AndL2 (x).M z) \<theta>n = (AndL2 (x).M z)"
+| "a\<sharp>(b,\<theta>n) \<Longrightarrow> stn (OrR1 <a>.M b) \<theta>n = (OrR1 <a>.M b)"
+| "a\<sharp>(b,\<theta>n) \<Longrightarrow> stn (OrR2 <a>.M b) \<theta>n = (OrR2 <a>.M b)"
+| "\<lbrakk>x\<sharp>(N,z,u,\<theta>n);u\<sharp>(M,z,x,\<theta>n)\<rbrakk> \<Longrightarrow> stn (OrL (x).M (u).N z) \<theta>n = (OrL (x).M (u).N z)"
+| "\<lbrakk>a\<sharp>(b,\<theta>n);x\<sharp>\<theta>n\<rbrakk> \<Longrightarrow> stn (ImpR (x).<a>.M b) \<theta>n = (ImpR (x).<a>.M b)"
+| "\<lbrakk>a\<sharp>(N,\<theta>n);x\<sharp>(M,z,\<theta>n)\<rbrakk> \<Longrightarrow> stn (ImpL <a>.M (x).N z) \<theta>n = (ImpL <a>.M (x).N z)"
 apply(finite_guess)+
 apply(rule TrueI)+
 apply(simp add: abs_fresh abs_supp fin_supp)+
@@ -17824,18 +17816,20 @@ apply(fresh_guess)+
 done
 
 nominal_primrec (freshness_context: "\<theta>c::(coname\<times>name\<times>trm)")
+  stc :: "trm\<Rightarrow>(coname\<times>name\<times>trm) list\<Rightarrow>trm" 
+where
   "stc (Ax x a) \<theta>c = lookupd x a \<theta>c"
-  "\<lbrakk>a\<sharp>(N,\<theta>c);x\<sharp>(M,\<theta>c)\<rbrakk> \<Longrightarrow> stc (Cut <a>.M (x).N) \<theta>c = (Cut <a>.M (x).N)" 
-  "x\<sharp>\<theta>c \<Longrightarrow> stc (NotR (x).M a) \<theta>c = (NotR (x).M a)"
-  "a\<sharp>\<theta>c \<Longrightarrow> stc (NotL <a>.M x) \<theta>c = (NotL <a>.M x)"
-  "\<lbrakk>a\<sharp>(N,d,b,\<theta>c);b\<sharp>(M,d,a,\<theta>c)\<rbrakk> \<Longrightarrow> stc (AndR <a>.M <b>.N d) \<theta>c = (AndR <a>.M <b>.N d)"
-  "x\<sharp>(z,\<theta>c) \<Longrightarrow> stc (AndL1 (x).M z) \<theta>c = (AndL1 (x).M z)"
-  "x\<sharp>(z,\<theta>c) \<Longrightarrow> stc (AndL2 (x).M z) \<theta>c = (AndL2 (x).M z)"
-  "a\<sharp>(b,\<theta>c) \<Longrightarrow> stc (OrR1 <a>.M b) \<theta>c = (OrR1 <a>.M b)"
-  "a\<sharp>(b,\<theta>c) \<Longrightarrow> stc (OrR2 <a>.M b) \<theta>c = (OrR2 <a>.M b)"
-  "\<lbrakk>x\<sharp>(N,z,u,\<theta>c);u\<sharp>(M,z,x,\<theta>c)\<rbrakk> \<Longrightarrow> stc (OrL (x).M (u).N z) \<theta>c = (OrL (x).M (u).N z)"
-  "\<lbrakk>a\<sharp>(b,\<theta>c);x\<sharp>\<theta>c\<rbrakk> \<Longrightarrow> stc (ImpR (x).<a>.M b) \<theta>c = (ImpR (x).<a>.M b)"
-  "\<lbrakk>a\<sharp>(N,\<theta>c);x\<sharp>(M,z,\<theta>c)\<rbrakk> \<Longrightarrow> stc (ImpL <a>.M (x).N z) \<theta>c = (ImpL <a>.M (x).N z)"
+| "\<lbrakk>a\<sharp>(N,\<theta>c);x\<sharp>(M,\<theta>c)\<rbrakk> \<Longrightarrow> stc (Cut <a>.M (x).N) \<theta>c = (Cut <a>.M (x).N)" 
+| "x\<sharp>\<theta>c \<Longrightarrow> stc (NotR (x).M a) \<theta>c = (NotR (x).M a)"
+| "a\<sharp>\<theta>c \<Longrightarrow> stc (NotL <a>.M x) \<theta>c = (NotL <a>.M x)"
+| "\<lbrakk>a\<sharp>(N,d,b,\<theta>c);b\<sharp>(M,d,a,\<theta>c)\<rbrakk> \<Longrightarrow> stc (AndR <a>.M <b>.N d) \<theta>c = (AndR <a>.M <b>.N d)"
+| "x\<sharp>(z,\<theta>c) \<Longrightarrow> stc (AndL1 (x).M z) \<theta>c = (AndL1 (x).M z)"
+| "x\<sharp>(z,\<theta>c) \<Longrightarrow> stc (AndL2 (x).M z) \<theta>c = (AndL2 (x).M z)"
+| "a\<sharp>(b,\<theta>c) \<Longrightarrow> stc (OrR1 <a>.M b) \<theta>c = (OrR1 <a>.M b)"
+| "a\<sharp>(b,\<theta>c) \<Longrightarrow> stc (OrR2 <a>.M b) \<theta>c = (OrR2 <a>.M b)"
+| "\<lbrakk>x\<sharp>(N,z,u,\<theta>c);u\<sharp>(M,z,x,\<theta>c)\<rbrakk> \<Longrightarrow> stc (OrL (x).M (u).N z) \<theta>c = (OrL (x).M (u).N z)"
+| "\<lbrakk>a\<sharp>(b,\<theta>c);x\<sharp>\<theta>c\<rbrakk> \<Longrightarrow> stc (ImpR (x).<a>.M b) \<theta>c = (ImpR (x).<a>.M b)"
+| "\<lbrakk>a\<sharp>(N,\<theta>c);x\<sharp>(M,z,\<theta>c)\<rbrakk> \<Longrightarrow> stc (ImpL <a>.M (x).N z) \<theta>c = (ImpL <a>.M (x).N z)"
 apply(finite_guess)+
 apply(rule TrueI)+
 apply(simp add: abs_fresh abs_supp fin_supp)+
@@ -17926,51 +17920,50 @@ apply(auto)
 apply(perm_simp)
 done
 
-consts
-  psubst :: "(name\<times>coname\<times>trm) list\<Rightarrow>(coname\<times>name\<times>trm) list\<Rightarrow>trm\<Rightarrow>trm" ("_,_<_>" [100,100,100] 100) 
-
 nominal_primrec (freshness_context: "(\<theta>n::(name\<times>coname\<times>trm) list,\<theta>c::(coname\<times>name\<times>trm) list)")
+  psubst :: "(name\<times>coname\<times>trm) list\<Rightarrow>(coname\<times>name\<times>trm) list\<Rightarrow>trm\<Rightarrow>trm" ("_,_<_>" [100,100,100] 100) 
+where
   "\<theta>n,\<theta>c<Ax x a> = lookup x a \<theta>n \<theta>c" 
-  "\<lbrakk>a\<sharp>(N,\<theta>n,\<theta>c);x\<sharp>(M,\<theta>n,\<theta>c)\<rbrakk> \<Longrightarrow> \<theta>n,\<theta>c<Cut <a>.M (x).N> = 
+| "\<lbrakk>a\<sharp>(N,\<theta>n,\<theta>c);x\<sharp>(M,\<theta>n,\<theta>c)\<rbrakk> \<Longrightarrow> \<theta>n,\<theta>c<Cut <a>.M (x).N> = 
    Cut <a>.(if \<exists>x. M=Ax x a then stn M \<theta>n else \<theta>n,\<theta>c<M>) 
        (x).(if \<exists>a. N=Ax x a then stc N \<theta>c else \<theta>n,\<theta>c<N>)" 
-  "x\<sharp>(\<theta>n,\<theta>c) \<Longrightarrow> \<theta>n,\<theta>c<NotR (x).M a> = 
+| "x\<sharp>(\<theta>n,\<theta>c) \<Longrightarrow> \<theta>n,\<theta>c<NotR (x).M a> = 
   (case (findc \<theta>c a) of 
        Some (u,P) \<Rightarrow> fresh_fun (\<lambda>a'. Cut <a'>.NotR (x).(\<theta>n,\<theta>c<M>) a' (u).P) 
      | None \<Rightarrow> NotR (x).(\<theta>n,\<theta>c<M>) a)"
-  "a\<sharp>(\<theta>n,\<theta>c) \<Longrightarrow> \<theta>n,\<theta>c<NotL <a>.M x> = 
+| "a\<sharp>(\<theta>n,\<theta>c) \<Longrightarrow> \<theta>n,\<theta>c<NotL <a>.M x> = 
   (case (findn \<theta>n x) of 
        Some (c,P) \<Rightarrow> fresh_fun (\<lambda>x'. Cut <c>.P (x').(NotL <a>.(\<theta>n,\<theta>c<M>) x')) 
      | None \<Rightarrow> NotL <a>.(\<theta>n,\<theta>c<M>) x)"
-  "\<lbrakk>a\<sharp>(N,c,\<theta>n,\<theta>c);b\<sharp>(M,c,\<theta>n,\<theta>c);b\<noteq>a\<rbrakk> \<Longrightarrow> (\<theta>n,\<theta>c<AndR <a>.M <b>.N c>) = 
+| "\<lbrakk>a\<sharp>(N,c,\<theta>n,\<theta>c);b\<sharp>(M,c,\<theta>n,\<theta>c);b\<noteq>a\<rbrakk> \<Longrightarrow> (\<theta>n,\<theta>c<AndR <a>.M <b>.N c>) = 
   (case (findc \<theta>c c) of 
        Some (x,P) \<Rightarrow> fresh_fun (\<lambda>a'. Cut <a'>.(AndR <a>.(\<theta>n,\<theta>c<M>) <b>.(\<theta>n,\<theta>c<N>) a') (x).P)
      | None \<Rightarrow> AndR <a>.(\<theta>n,\<theta>c<M>) <b>.(\<theta>n,\<theta>c<N>) c)"
-  "x\<sharp>(z,\<theta>n,\<theta>c) \<Longrightarrow> (\<theta>n,\<theta>c<AndL1 (x).M z>) = 
+| "x\<sharp>(z,\<theta>n,\<theta>c) \<Longrightarrow> (\<theta>n,\<theta>c<AndL1 (x).M z>) = 
   (case (findn \<theta>n z) of 
        Some (c,P) \<Rightarrow> fresh_fun (\<lambda>z'. Cut <c>.P (z').AndL1 (x).(\<theta>n,\<theta>c<M>) z') 
      | None \<Rightarrow> AndL1 (x).(\<theta>n,\<theta>c<M>) z)"
-  "x\<sharp>(z,\<theta>n,\<theta>c) \<Longrightarrow> (\<theta>n,\<theta>c<AndL2 (x).M z>) = 
+| "x\<sharp>(z,\<theta>n,\<theta>c) \<Longrightarrow> (\<theta>n,\<theta>c<AndL2 (x).M z>) = 
   (case (findn \<theta>n z) of 
        Some (c,P) \<Rightarrow> fresh_fun (\<lambda>z'. Cut <c>.P (z').AndL2 (x).(\<theta>n,\<theta>c<M>) z') 
      | None \<Rightarrow> AndL2 (x).(\<theta>n,\<theta>c<M>) z)"
-  "\<lbrakk>x\<sharp>(N,z,\<theta>n,\<theta>c);u\<sharp>(M,z,\<theta>n,\<theta>c);x\<noteq>u\<rbrakk> \<Longrightarrow> (\<theta>n,\<theta>c<OrL (x).M (u).N z>) =
+| "\<lbrakk>x\<sharp>(N,z,\<theta>n,\<theta>c);u\<sharp>(M,z,\<theta>n,\<theta>c);x\<noteq>u\<rbrakk> \<Longrightarrow> (\<theta>n,\<theta>c<OrL (x).M (u).N z>) =
   (case (findn \<theta>n z) of  
        Some (c,P) \<Rightarrow> fresh_fun (\<lambda>z'. Cut <c>.P (z').OrL (x).(\<theta>n,\<theta>c<M>) (u).(\<theta>n,\<theta>c<N>) z') 
      | None \<Rightarrow> OrL (x).(\<theta>n,\<theta>c<M>) (u).(\<theta>n,\<theta>c<N>) z)"
-  "a\<sharp>(b,\<theta>n,\<theta>c) \<Longrightarrow> (\<theta>n,\<theta>c<OrR1 <a>.M b>) = 
+| "a\<sharp>(b,\<theta>n,\<theta>c) \<Longrightarrow> (\<theta>n,\<theta>c<OrR1 <a>.M b>) = 
   (case (findc \<theta>c b) of
        Some (x,P) \<Rightarrow> fresh_fun (\<lambda>a'. Cut <a'>.OrR1 <a>.(\<theta>n,\<theta>c<M>) a' (x).P) 
      | None \<Rightarrow> OrR1 <a>.(\<theta>n,\<theta>c<M>) b)"
-  "a\<sharp>(b,\<theta>n,\<theta>c) \<Longrightarrow> (\<theta>n,\<theta>c<OrR2 <a>.M b>) = 
+| "a\<sharp>(b,\<theta>n,\<theta>c) \<Longrightarrow> (\<theta>n,\<theta>c<OrR2 <a>.M b>) = 
   (case (findc \<theta>c b) of
        Some (x,P) \<Rightarrow> fresh_fun (\<lambda>a'. Cut <a'>.OrR2 <a>.(\<theta>n,\<theta>c<M>) a' (x).P) 
      | None \<Rightarrow> OrR2 <a>.(\<theta>n,\<theta>c<M>) b)"
-  "\<lbrakk>a\<sharp>(b,\<theta>n,\<theta>c); x\<sharp>(\<theta>n,\<theta>c)\<rbrakk> \<Longrightarrow> (\<theta>n,\<theta>c<ImpR (x).<a>.M b>) = 
+| "\<lbrakk>a\<sharp>(b,\<theta>n,\<theta>c); x\<sharp>(\<theta>n,\<theta>c)\<rbrakk> \<Longrightarrow> (\<theta>n,\<theta>c<ImpR (x).<a>.M b>) = 
   (case (findc \<theta>c b) of
        Some (z,P) \<Rightarrow> fresh_fun (\<lambda>a'. Cut <a'>.ImpR (x).<a>.(\<theta>n,\<theta>c<M>) a' (z).P)
      | None \<Rightarrow> ImpR (x).<a>.(\<theta>n,\<theta>c<M>) b)"
-  "\<lbrakk>a\<sharp>(N,\<theta>n,\<theta>c); x\<sharp>(z,M,\<theta>n,\<theta>c)\<rbrakk> \<Longrightarrow> (\<theta>n,\<theta>c<ImpL <a>.M (x).N z>) = 
+| "\<lbrakk>a\<sharp>(N,\<theta>n,\<theta>c); x\<sharp>(z,M,\<theta>n,\<theta>c)\<rbrakk> \<Longrightarrow> (\<theta>n,\<theta>c<ImpL <a>.M (x).N z>) = 
   (case (findn \<theta>n z) of
        Some (c,P) \<Rightarrow> fresh_fun (\<lambda>z'. Cut <c>.P (z').ImpL <a>.(\<theta>n,\<theta>c<M>) (x).(\<theta>n,\<theta>c<N>) z') 
      | None \<Rightarrow> ImpL <a>.(\<theta>n,\<theta>c<M>) (x).(\<theta>n,\<theta>c<N>) z)"

@@ -1,5 +1,3 @@
-(* $Id$ *)
-
 (* Authors: Christian Urban and Mathilde Arnaud                   *)
 (*                                                                *)
 (* A formalisation of the Church-Rosser proof by Masako Takahashi.*)
@@ -20,12 +18,12 @@ nominal_datatype lam =
   | App "lam" "lam"
   | Lam "\<guillemotleft>name\<guillemotright>lam" ("Lam [_]._" [100,100] 100)
 
-consts subst :: "lam \<Rightarrow> name \<Rightarrow> lam \<Rightarrow> lam"  ("_[_::=_]" [100,100,100] 100)
-
 nominal_primrec
+  subst :: "lam \<Rightarrow> name \<Rightarrow> lam \<Rightarrow> lam"  ("_[_::=_]" [100,100,100] 100)
+where
   "(Var x)[y::=s] = (if x=y then s else (Var x))"
-  "(App t\<^isub>1 t\<^isub>2)[y::=s] = App (t\<^isub>1[y::=s]) (t\<^isub>2[y::=s])"
-  "x\<sharp>(y,s) \<Longrightarrow> (Lam [x].t)[y::=s] = Lam [x].(t[y::=s])"
+| "(App t\<^isub>1 t\<^isub>2)[y::=s] = App (t\<^isub>1[y::=s]) (t\<^isub>2[y::=s])"
+| "x\<sharp>(y,s) \<Longrightarrow> (Lam [x].t)[y::=s] = Lam [x].(t[y::=s])"
 apply(finite_guess)+
 apply(rule TrueI)+
 apply(simp add: abs_fresh)
@@ -54,14 +52,16 @@ by (nominal_induct t avoiding: z y s rule: lam.strong_induct)
 lemma substitution_lemma:  
   assumes a: "x\<noteq>y" "x\<sharp>u"
   shows "t[x::=s][y::=u] = t[y::=u][x::=s[y::=u]]"
-using a by (nominal_induct t avoiding: x y s u rule: lam.strong_induct)
-           (auto simp add: fresh_fact forget)
+using a 
+by (nominal_induct t avoiding: x y s u rule: lam.strong_induct)
+   (auto simp add: fresh_fact forget)
 
 lemma subst_rename: 
   assumes a: "y\<sharp>t"
   shows "t[x::=s] = ([(y,x)]\<bullet>t)[y::=s]"
-using a by (nominal_induct t avoiding: x y s rule: lam.strong_induct)
-           (auto simp add: calc_atm fresh_atm abs_fresh)
+using a 
+by (nominal_induct t avoiding: x y s rule: lam.strong_induct)
+   (auto simp add: swap_simps fresh_atm abs_fresh)
 
 section {* Beta-Reduction *}
 
@@ -103,8 +103,9 @@ by (nominal_induct t rule: lam.strong_induct) (auto)
 lemma One_subst: 
   assumes a: "t1 \<longrightarrow>\<^isub>1 t2" "s1 \<longrightarrow>\<^isub>1 s2"
   shows "t1[x::=s1] \<longrightarrow>\<^isub>1 t2[x::=s2]" 
-using a by (nominal_induct t1 t2 avoiding: s1 s2 x rule: One.strong_induct)
-           (auto simp add: substitution_lemma fresh_atm fresh_fact)
+using a 
+by (nominal_induct t1 t2 avoiding: s1 s2 x rule: One.strong_induct)
+   (auto simp add: substitution_lemma fresh_atm fresh_fact)
 
 lemma better_o4_intro:
   assumes a: "t1 \<longrightarrow>\<^isub>1 t2" "s1 \<longrightarrow>\<^isub>1 s2"
@@ -202,35 +203,30 @@ lemma Development_existence:
 by (nominal_induct M rule: lam.strong_induct)
    (auto dest!: Dev_Lam intro: better_d4_intro)
 
-(* needs fixing *)
 lemma Triangle:
   assumes a: "t \<longrightarrow>\<^isub>d t1" "t \<longrightarrow>\<^isub>1 t2"
   shows "t2 \<longrightarrow>\<^isub>1 t1"
 using a 
 proof(nominal_induct avoiding: t2 rule: Dev.strong_induct)
   case (d4 x s1 s2 t1 t1' t2) 
-  have ih1: "\<And>t. t1 \<longrightarrow>\<^isub>1 t \<Longrightarrow>  t \<longrightarrow>\<^isub>1 t1'"
-  and  ih2: "\<And>s. s1 \<longrightarrow>\<^isub>1 s \<Longrightarrow>  s \<longrightarrow>\<^isub>1 s2"
-  and  fc: "x\<sharp>t2" "x\<sharp>s1" "x\<sharp>s2" by fact+ 
+  have  fc: "x\<sharp>t2" "x\<sharp>s1" by fact+ 
   have "App (Lam [x].t1) s1 \<longrightarrow>\<^isub>1 t2" by fact
-  then obtain t' s' where "(t2 = App (Lam [x].t') s' \<and> t1 \<longrightarrow>\<^isub>1 t' \<and> s1 \<longrightarrow>\<^isub>1 s') \<or> 
-                           (t2 = t'[x::=s'] \<and> t1 \<longrightarrow>\<^isub>1 t' \<and> s1 \<longrightarrow>\<^isub>1 s')"
+  then obtain t' s' where reds: 
+             "(t2 = App (Lam [x].t') s' \<and> t1 \<longrightarrow>\<^isub>1 t' \<and> s1 \<longrightarrow>\<^isub>1 s') \<or> 
+              (t2 = t'[x::=s'] \<and> t1 \<longrightarrow>\<^isub>1 t' \<and> s1 \<longrightarrow>\<^isub>1 s')"
   using fc by (auto dest!: One_Redex)
-  then show "t2 \<longrightarrow>\<^isub>1 t1'[x::=s2]"
-    apply -
-    apply(erule disjE)
-    apply(erule conjE)+
-    apply(simp)
-    apply(rule o4)
-    using fc apply(simp)
-    using ih1 apply(simp)
-    using ih2 apply(simp)
-    apply(erule conjE)+
-    apply(simp)
-    apply(rule One_subst)
-    using ih1 apply(simp)
-    using ih2 apply(simp)    
-    done
+  have ih1: "t1 \<longrightarrow>\<^isub>1 t' \<Longrightarrow>  t' \<longrightarrow>\<^isub>1 t1'" by fact
+  have ih2: "s1 \<longrightarrow>\<^isub>1 s' \<Longrightarrow>  s' \<longrightarrow>\<^isub>1 s2" by fact
+  { assume "t1 \<longrightarrow>\<^isub>1 t'" "s1 \<longrightarrow>\<^isub>1 s'"
+    then have "App (Lam [x].t') s' \<longrightarrow>\<^isub>1 t1'[x::=s2]" 
+      using ih1 ih2 by (auto intro: better_o4_intro)
+  }
+  moreover
+  { assume "t1 \<longrightarrow>\<^isub>1 t'" "s1 \<longrightarrow>\<^isub>1 s'"
+    then have "t'[x::=s'] \<longrightarrow>\<^isub>1 t1'[x::=s2]" 
+      using ih1 ih2 by (auto intro: One_subst)
+  }
+  ultimately show "t2 \<longrightarrow>\<^isub>1 t1'[x::=s2]" using reds by auto 
 qed (auto dest!: One_Lam One_Var One_App)
 
 lemma Diamond_for_One:
@@ -309,5 +305,7 @@ proof -
   then have "\<exists>t3. t1 \<longrightarrow>\<^isub>1\<^sup>* t3 \<and> t2 \<longrightarrow>\<^isub>1\<^sup>* t3" by (simp add: CR_for_One_star) 
   then show "\<exists>t3. t1 \<longrightarrow>\<^isub>\<beta>\<^sup>* t3 \<and> t2 \<longrightarrow>\<^isub>\<beta>\<^sup>* t3" by (simp add: Beta_star_equals_One_star)
 qed
+
+
 
 end

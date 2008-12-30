@@ -1,5 +1,4 @@
 /*  Title:      Pure/General/position.scala
-    ID:         $Id$
     Author:     Makarius
 
 Position properties.

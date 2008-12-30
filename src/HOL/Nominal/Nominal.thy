@@ -1262,19 +1262,21 @@ lemma perm_set_eq:
   apply (simp add: pt_rev_pi [OF pt at])
   done
 
-lemma insert_eqvt:
+lemma pt_insert_eqvt:
+  fixes pi::"'x prm"
+  and   x::"'a"
   assumes pt: "pt TYPE('a) TYPE('x)"
   and at: "at TYPE('x)" 
-  shows "(pi::'x prm)\<bullet>(insert (x::'a) X) = insert (pi\<bullet>x) (pi\<bullet>X)"
+  shows "(pi\<bullet>(insert x X)) = insert (pi\<bullet>x) (pi\<bullet>X)"
   by (auto simp add: perm_set_eq [OF pt at])
 
-lemma set_eqvt:
+lemma pt_set_eqvt:
   fixes pi :: "'x prm"
   and   xs :: "'a list"
   assumes pt: "pt TYPE('a) TYPE('x)"
   and at: "at TYPE('x)" 
   shows "pi\<bullet>(set xs) = set (pi\<bullet>xs)"
-by (induct xs) (auto simp add: empty_eqvt insert_eqvt [OF pt at])
+by (induct xs) (auto simp add: empty_eqvt pt_insert_eqvt [OF pt at])
 
 lemma supp_singleton:
   assumes pt: "pt TYPE('a) TYPE('x)"
@@ -1568,10 +1570,10 @@ apply(simp add: pt_set_bij1[OF ptb, OF at])
 apply(simp add: pt_fresh_left_ineq[OF pta, OF ptb, OF at, OF cp])
 apply(drule_tac x="pi\<bullet>xa" in bspec)
 apply(simp add: pt_set_bij1[OF ptb, OF at])
-apply(simp add: set_eqvt [OF ptb at] pt_rev_pi[OF pt_list_inst[OF ptb], OF at])
+apply(simp add: pt_set_eqvt [OF ptb at] pt_rev_pi[OF pt_list_inst[OF ptb], OF at])
 apply(simp add: pt_fresh_bij_ineq[OF pta, OF ptb, OF at, OF cp])
 apply(drule_tac x="(rev pi)\<bullet>xa" in bspec)
-apply(simp add: pt_set_bij1[OF ptb, OF at] set_eqvt [OF ptb at])
+apply(simp add: pt_set_bij1[OF ptb, OF at] pt_set_eqvt [OF ptb at])
 apply(simp add: pt_fresh_left_ineq[OF pta, OF ptb, OF at, OF cp])
 done
 

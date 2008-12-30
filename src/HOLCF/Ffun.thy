@@ -1,10 +1,5 @@
 (*  Title:      HOLCF/FunCpo.thy
-    ID:         $Id$
     Author:     Franz Regensburger
-
-Definition of the partial ordering for the type of all functions => (fun)
-
-Class instance of  => (fun) for class pcpo.
 *)
 
 header {* Class instances for the full function space *}

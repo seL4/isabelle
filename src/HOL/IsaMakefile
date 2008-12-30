@@ -112,6 +112,8 @@ PLAIN_DEPENDENCIES = $(OUT)/Pure \
   Tools/dseq.ML \
   Tools/function_package/auto_term.ML \
   Tools/function_package/context_tree.ML \
+  Tools/function_package/decompose.ML \
+  Tools/function_package/descent.ML \
   Tools/function_package/fundef_common.ML \
   Tools/function_package/fundef_core.ML \
   Tools/function_package/fundef_datatype.ML \
@@ -123,8 +125,11 @@ PLAIN_DEPENDENCIES = $(OUT)/Pure \
   Tools/function_package/measure_functions.ML \
   Tools/function_package/mutual.ML \
   Tools/function_package/pattern_split.ML \
+  Tools/function_package/scnp_reconstruct.ML \
+  Tools/function_package/scnp_solve.ML \
   Tools/function_package/size.ML \
   Tools/function_package/sum_tree.ML \
+  Tools/function_package/termination.ML \
   Tools/hologic.ML \
   Tools/inductive_codegen.ML \
   Tools/inductive_package.ML \
@@ -179,6 +184,7 @@ PLAIN_DEPENDENCIES = $(OUT)/Pure \
   $(SRC)/Tools/code/code_thingol.ML \
   $(SRC)/Tools/induct.ML \
   $(SRC)/Tools/induct_tacs.ML \
+  $(SRC)/Tools/value.ML \
   $(SRC)/Tools/nbe.ML \
   $(SRC)/Tools/random_word.ML \
   $(SRC)/Tools/rat.ML
@@ -255,7 +261,7 @@ $(OUT)/HOL-Main: main.ML $(MAIN_DEPENDENCIES)
 $(OUT)/HOL: ROOT.ML $(MAIN_DEPENDENCIES) \
   Complex_Main.thy \
   Complex.thy \
-  Complex/Fundamental_Theorem_Algebra.thy \
+  Fundamental_Theorem_Algebra.thy \
   Deriv.thy \
   Fact.thy \
   FrechetDeriv.thy \
@@ -265,11 +271,11 @@ $(OUT)/HOL: ROOT.ML $(MAIN_DEPENDENCIES) \
   Log.thy \
   MacLaurin.thy \
   NthRoot.thy \
-  Hyperreal/SEQ.thy \
+  SEQ.thy \
   Series.thy \
   Taylor.thy \
   Transcendental.thy \
-  Library/Dense_Linear_Order.thy \
+  Dense_Linear_Order.thy \
   GCD.thy \
   Order_Relation.thy \
   Parity.thy \
@@ -281,7 +287,7 @@ $(OUT)/HOL: ROOT.ML $(MAIN_DEPENDENCIES) \
   RealDef.thy \
   RealPow.thy \
   Real.thy \
-  Real/RealVector.thy \
+  RealVector.thy \
   Tools/float_syntax.ML \
   Tools/rat_arith.ML \
   Tools/real_arith.ML \
@@ -331,16 +337,16 @@ $(LOG)/HOL-Library.gz: $(OUT)/HOL Library/SetsAndFunctions.thy		\
 HOL-HahnBanach: HOL $(LOG)/HOL-HahnBanach.gz
 
 $(LOG)/HOL-HahnBanach.gz: $(OUT)/HOL			\
-  Real/HahnBanach/Bounds.thy Real/HahnBanach/FunctionNorm.thy		\
-  Real/HahnBanach/FunctionOrder.thy Real/HahnBanach/HahnBanach.thy	\
-  Real/HahnBanach/HahnBanachExtLemmas.thy				\
-  Real/HahnBanach/HahnBanachSupLemmas.thy				\
-  Real/HahnBanach/Linearform.thy Real/HahnBanach/NormedSpace.thy	\
-  Real/HahnBanach/README.html Real/HahnBanach/ROOT.ML			\
-  Real/HahnBanach/Subspace.thy Real/HahnBanach/VectorSpace.thy		\
-  Real/HahnBanach/ZornLemma.thy Real/HahnBanach/document/root.bib	\
-  Real/HahnBanach/document/root.tex
-	@cd Real; $(ISABELLE_TOOL) usedir -g true $(OUT)/HOL HahnBanach
+  HahnBanach/Bounds.thy HahnBanach/FunctionNorm.thy		\
+  HahnBanach/FunctionOrder.thy HahnBanach/HahnBanach.thy	\
+  HahnBanach/HahnBanachExtLemmas.thy				\
+  HahnBanach/HahnBanachSupLemmas.thy				\
+  HahnBanach/Linearform.thy HahnBanach/NormedSpace.thy	\
+  HahnBanach/README.html HahnBanach/ROOT.ML			\
+  HahnBanach/Subspace.thy HahnBanach/VectorSpace.thy		\
+  HahnBanach/ZornLemma.thy HahnBanach/document/root.bib	\
+  HahnBanach/document/root.tex
+	@$(ISABELLE_TOOL) usedir -g true $(OUT)/HOL HahnBanach
 
 
 ## HOL-Subst
@@ -776,20 +782,21 @@ $(LOG)/HOL-ex.gz: $(OUT)/HOL Library/Commutative_Ring.thy		\
   ex/Coherent.thy ex/Dense_Linear_Order_Ex.thy ex/Eval_Examples.thy	\
   ex/Groebner_Examples.thy ex/Random.thy ex/Quickcheck.thy		\
   ex/Codegenerator.thy ex/Codegenerator_Pretty.thy			\
+  ex/CodegenSML_Test.thy 						\
   ex/Commutative_RingEx.thy ex/Efficient_Nat_examples.thy		\
   ex/Hex_Bin_Examples.thy ex/Commutative_Ring_Complete.thy		\
   ex/ExecutableContent.thy ex/Fundefs.thy ex/Guess.thy ex/Hebrew.thy	\
   ex/Binary.thy ex/Higher_Order_Logic.thy ex/Hilbert_Classical.thy	\
   ex/Induction_Scheme.thy ex/InductiveInvariant.thy			\
   ex/InductiveInvariant_examples.thy ex/Intuitionistic.thy		\
-  ex/Lagrange.thy ex/LexOrds.thy ex/LocaleTest2.thy ex/MT.thy		\
+  ex/Lagrange.thy ex/LocaleTest2.thy ex/MT.thy		\
   ex/MergeSort.thy ex/MonoidGroup.thy ex/Multiquote.thy ex/NatSum.thy	\
   ex/Numeral.thy ex/PER.thy ex/PresburgerEx.thy ex/Primrec.thy		\
   ex/Quickcheck_Examples.thy ex/Reflection.thy ex/reflection_data.ML	\
   ex/ReflectionEx.thy ex/ROOT.ML ex/Recdefs.thy ex/Records.thy		\
   ex/Reflected_Presburger.thy ex/coopertac.ML				\
   ex/Refute_Examples.thy ex/SAT_Examples.thy ex/SVC_Oracle.thy		\
-  ex/Sudoku.thy ex/Tarski.thy ex/Term_Of_Syntax.thy			\
+  ex/Sudoku.thy ex/Tarski.thy ex/Termination.thy ex/Term_Of_Syntax.thy			\
   ex/Unification.thy ex/document/root.bib			\
   ex/document/root.tex ex/Meson_Test.thy ex/reflection.ML ex/set.thy	\
   ex/svc_funcs.ML ex/svc_test.thy	\

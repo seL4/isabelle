@@ -9,7 +9,7 @@ theory Complex_Main
 imports
   Main
   Real
-  "~~/src/HOL/Complex/Fundamental_Theorem_Algebra"
+  Fundamental_Theorem_Algebra
   Log
   Ln
   Taylor

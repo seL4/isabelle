@@ -107,18 +107,23 @@ text {*
 section {* Thread-safe programming *}
 
 text {*
-  Recent versions of Poly/ML (5.2 or later) support multithreaded
-  execution based on native operating system threads of the underlying
-  platform.  Thus threads will actually be executed in parallel on
-  multi-core systems.  A speedup-factor of approximately 2--4 can be
-  expected for large well-structured Isabelle sessions, where theories
-  are organized as a graph with sufficiently many independent nodes.
+  Recent versions of Poly/ML (5.2.1 or later) support robust
+  multithreaded execution, based on native operating system threads of
+  the underlying platform.  Thus threads will actually be executed in
+  parallel on multi-core systems.  A speedup-factor of approximately
+  1.5--3 can be expected on a regular 4-core machine.\footnote{There
+  is some inherent limitation of the speedup factor due to garbage
+  collection, which is still sequential.  It helps to provide initial
+  heap space generously, using the \texttt{-H} option of Poly/ML.}
+  Threads also help to organize advanced operations of the system,
+  with explicit communication between sub-components, real-time
+  conditions, time-outs etc.
 
-  Threads lack the memory protection of separate processes, but
+  Threads lack the memory protection of separate processes, and
   operate concurrently on shared heap memory.  This has the advantage
   that results of independent computations are immediately available
-  to other threads, without requiring explicit communication,
-  reloading, or even recoding of data.
+  to other threads, without requiring untyped character streams,
+  awkward serialization etc.
 
   On the other hand, some programming guidelines need to be observed
   in order to make unprotected parallelism work out smoothly.  While
@@ -143,27 +148,29 @@ text {*
 
   \end{itemize}
 
-  Note that ML bindings within the toplevel environment (@{verbatim
-  "type"}, @{verbatim val}, @{verbatim "structure"} etc.) due to
-  run-time invocation of the compiler are non-critical, because
-  Isabelle/Isar incorporates such bindings within the theory or proof
-  context.
-
   The majority of tools implemented within the Isabelle/Isar framework
   will not require any of these critical elements: nothing special
   needs to be observed when staying in the purely functional fragment
   of ML.  Note that output via the official Isabelle channels does not
-  even count as direct I/O in the above sense, so the operations @{ML
-  "writeln"}, @{ML "warning"}, @{ML "tracing"} etc.\ are safe.
+  count as direct I/O, so the operations @{ML "writeln"}, @{ML
+  "warning"}, @{ML "tracing"} etc.\ are safe.
 
-  \paragraph{Multithreading in Isabelle/Isar.}  Our parallel execution
-  model is centered around the theory loader.  Whenever a given
-  subgraph of theories needs to be updated, the system schedules a
-  number of threads to process the sources as required, while
-  observing their dependencies.  Thus concurrency is limited to
-  independent nodes according to the theory import relation.
+  Moreover, ML bindings within the toplevel environment (@{verbatim
+  "type"}, @{verbatim val}, @{verbatim "structure"} etc.) due to
+  run-time invocation of the compiler are also safe, because
+  Isabelle/Isar manages this as part of the theory or proof context.
 
-  Any user-code that works relatively to the present background theory
+  \paragraph{Multithreading in Isabelle/Isar.}  The theory loader
+  automatically exploits the overall parallelism of independent nodes
+  in the development graph, as well as the inherent irrelevance of
+  proofs for goals being fully specified in advance.  This means,
+  checking of individual Isar proofs is parallelized by default.
+  Beyond that, very sophisticated proof tools may use local
+  parallelism internally, via the general programming model of
+  ``future values'' (see also @{"file"
+  "~~/src/Pure/Concurrent/future.ML"}).
+
+  Any ML code that works relatively to the present background theory
   is already safe.  Contextual data may be easily stored within the
   theory or proof context, thanks to the generic data concept of
   Isabelle/Isar (see \secref{sec:context-data}).  This greatly
@@ -179,9 +186,13 @@ text {*
   quickly, otherwise parallel execution performance may degrade
   significantly.
 
-  Despite this potential bottle-neck, we refrain from fine-grained
-  locking mechanism within user-code: the restriction to a single lock
-  prevents deadlocks without demanding special precautions.
+  Despite this potential bottle-neck, centralized locking is
+  convenient, because it prevents deadlocks without demanding special
+  precautions.  Explicit communication demands other means, though.
+  The high-level abstraction of synchronized variables @{"file"
+  "~~/src/Pure/Concurrent/synchronized.ML"} enables parallel
+  components to communicate via shared state; see also @{"file"
+  "~~/src/Pure/Concurrent/mailbox.ML"} as canonical example.
 
   \paragraph{Good conduct of impure programs.} The following
   guidelines enable non-functional programs to participate in

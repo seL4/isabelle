@@ -1,5 +1,5 @@
 # -*- shell-script -*- :mode=shellscript:
-# $Id$
+#
 # Author: Markus Wenzel, TU Muenchen
 #
 # getsettings - bash source script to augment current env.

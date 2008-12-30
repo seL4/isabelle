@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 #
-# $Id$
 # Author: Markus Wenzel, TU Muenchen
 #
 # SML/NJ startup script (for 110 or later).
