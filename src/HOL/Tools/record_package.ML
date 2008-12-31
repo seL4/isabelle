@@ -1383,14 +1383,14 @@ fun read_typ ctxt raw_T env =
   let
     val ctxt' = fold (Variable.declare_typ o TFree) env ctxt;
     val T = Syntax.read_typ ctxt' raw_T;
-    val env' = Term.add_typ_tfrees (T, env);
+    val env' = OldTerm.add_typ_tfrees (T, env);
   in (T, env') end;
 
 fun cert_typ ctxt raw_T env =
   let
     val thy = ProofContext.theory_of ctxt;
     val T = Type.no_tvars (Sign.certify_typ thy raw_T) handle TYPE (msg, _, _) => error msg;
-    val env' = Term.add_typ_tfrees (T, env);
+    val env' = OldTerm.add_typ_tfrees (T, env);
   in (T, env') end;
 
 
@@ -1776,7 +1776,7 @@ fun record_definition (args, bname) parent (parents: parent_info list) raw_field
     val names = map fst fields;
     val extN = full bname;
     val types = map snd fields;
-    val alphas_fields = foldr add_typ_tfree_names [] types;
+    val alphas_fields = foldr OldTerm.add_typ_tfree_names [] types;
     val alphas_ext = alphas inter alphas_fields;
     val len = length fields;
     val variants = Name.variant_list (moreN::rN::rN ^ "'"::wN::parent_variants) (map fst bfields);
@@ -2225,7 +2225,7 @@ fun gen_add_record prep_typ prep_raw_parent quiet_mode (params, bname) raw_paren
     val init_env =
       (case parent of
         NONE => []
-      | SOME (types, _) => foldr Term.add_typ_tfrees [] types);
+      | SOME (types, _) => foldr OldTerm.add_typ_tfrees [] types);
 
 
     (* fields *)

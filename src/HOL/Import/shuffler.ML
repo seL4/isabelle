@@ -247,8 +247,8 @@ fun quant_rewrite thy assumes (t as Const("all",T1) $ (Abs(x,xT,Const("all",T2) 
 
 fun freeze_thaw_term t =
     let
-        val tvars = term_tvars t
-        val tfree_names = add_term_tfree_names(t,[])
+        val tvars = OldTerm.term_tvars t
+        val tfree_names = OldTerm.add_term_tfree_names(t,[])
         val (type_inst,_) =
             Library.foldl (fn ((inst,used),(w as (v,_),S)) =>
                       let
@@ -267,7 +267,7 @@ fun inst_tfrees thy [] thm = thm
   | inst_tfrees thy ((name,U)::rest) thm =
     let
         val cU = ctyp_of thy U
-        val tfrees = add_term_tfrees (prop_of thm,[])
+        val tfrees = OldTerm.add_term_tfrees (prop_of thm,[])
         val (rens, thm') = Thm.varifyT'
     (remove (op = o apsnd fst) name tfrees) thm
         val mid =
@@ -321,7 +321,7 @@ fun eta_contract thy assumes origt =
               then
                   let
                       val cert = cterm_of thy
-                      val v = Free(Name.variant (add_term_free_names(t,[])) "v",xT)
+                      val v = Free(Name.variant (OldTerm.add_term_free_names(t,[])) "v",xT)
                       val cv = cert v
                       val ct = cert t
                       val th = (assume ct)
@@ -384,7 +384,7 @@ fun eta_expand thy assumes origt =
                       Type("fun",[aT,bT]) =>
                       let
                           val cert = cterm_of thy
-                          val vname = Name.variant (add_term_free_names(t,[])) "v"
+                          val vname = Name.variant (OldTerm.add_term_free_names(t,[])) "v"
                           val v = Free(vname,aT)
                           val cv = cert v
                           val ct = cert t
@@ -572,8 +572,8 @@ val collect_ignored =
     fold_rev (fn thm => fn cs =>
               let
                   val (lhs,rhs) = Logic.dest_equals (prop_of thm)
-                  val ignore_lhs = term_consts lhs \\ term_consts rhs
-                  val ignore_rhs = term_consts rhs \\ term_consts lhs
+                  val ignore_lhs = OldTerm.term_consts lhs \\ OldTerm.term_consts rhs
+                  val ignore_rhs = OldTerm.term_consts rhs \\ OldTerm.term_consts lhs
               in
                   fold_rev (insert (op =)) cs (ignore_lhs @ ignore_rhs)
               end)

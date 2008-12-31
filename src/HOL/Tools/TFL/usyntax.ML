@@ -112,7 +112,7 @@ fun dest_vtype (TVar x) = x
 
 val is_vartype = can dest_vtype;
 
-val type_vars  = map mk_prim_vartype o typ_tvars
+val type_vars  = map mk_prim_vartype o OldTerm.typ_tvars
 fun type_varsl L = distinct (op =) (fold (curry op @ o type_vars) L []);
 
 val alpha  = mk_vartype "'a"
@@ -142,7 +142,7 @@ fun free_vars_lr tm =
 
 
 
-val type_vars_in_term = map mk_prim_vartype o term_tvars;
+val type_vars_in_term = map mk_prim_vartype o OldTerm.term_tvars;
 
 
 

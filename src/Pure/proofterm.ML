@@ -411,12 +411,12 @@ fun prf_add_loose_bnos plev tlev (PBound i) (is, js) =
 fun del_conflicting_tvars envT T = TermSubst.instantiateT
   (map_filter (fn ixnS as (_, S) =>
      (Type.lookup envT ixnS; NONE) handle TYPE _ =>
-        SOME (ixnS, TFree ("'dummy", S))) (typ_tvars T)) T;
+        SOME (ixnS, TFree ("'dummy", S))) (OldTerm.typ_tvars T)) T;
 
 fun del_conflicting_vars env t = TermSubst.instantiate
   (map_filter (fn ixnS as (_, S) =>
      (Type.lookup (type_env env) ixnS; NONE) handle TYPE _ =>
-        SOME (ixnS, TFree ("'dummy", S))) (term_tvars t),
+        SOME (ixnS, TFree ("'dummy", S))) (OldTerm.term_tvars t),
    map_filter (fn Var (ixnT as (_, T)) =>
      (Envir.lookup (env, ixnT); NONE) handle TYPE _ =>
         SOME (ixnT, Free ("dummy", T))) (OldTerm.term_vars t)) t;
@@ -612,8 +612,8 @@ in
 
 fun freezeT t prf =
   let
-    val used = it_term_types add_typ_tfree_names (t, [])
-    and tvars = map #1 (it_term_types add_typ_tvars (t, []));
+    val used = OldTerm.it_term_types OldTerm.add_typ_tfree_names (t, [])
+    and tvars = map #1 (OldTerm.it_term_types OldTerm.add_typ_tvars (t, []));
     val (alist, _) = List.foldr new_name ([], used) tvars;
   in
     (case alist of

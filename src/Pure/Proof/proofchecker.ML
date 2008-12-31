@@ -1,5 +1,4 @@
 (*  Title:      Pure/Proof/proofchecker.ML
-    ID:         $Id$
     Author:     Stefan Berghofer, TU Muenchen
 
 Simple proof checker based only on the core inference rules
@@ -37,7 +36,7 @@ fun thm_of_proof thy prf =
 
     fun thm_of_atom thm Ts =
       let
-        val tvars = term_tvars (Thm.full_prop_of thm);
+        val tvars = OldTerm.term_tvars (Thm.full_prop_of thm);
         val (fmap, thm') = Thm.varifyT' [] thm;
         val ctye = map (pairself (Thm.ctyp_of thy))
           (map TVar tvars @ map (fn ((_, S), ixn) => TVar (ixn, S)) fmap ~~ Ts)

@@ -123,7 +123,7 @@ fun mk_casesplit_goal_thm sgn (vstr,ty) gt =
 
       val casethm_vars = rev (OldTerm.term_vars (Thm.concl_of case_thm));
 
-      val casethm_tvars = Term.term_tvars (Thm.concl_of case_thm);
+      val casethm_tvars = OldTerm.term_tvars (Thm.concl_of case_thm);
       val (Pv, Dv, type_insts) =
           case (Thm.concl_of case_thm) of
             (_ $ ((Pv as Var(P,Pty)) $ (Dv as Var(D, Dty)))) =>

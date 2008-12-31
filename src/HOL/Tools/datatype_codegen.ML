@@ -216,7 +216,7 @@ fun pretty_case thy defs dep module brack constrs (c as Const (_, T)) ts gr =
       let
         val ts1 = Library.take (i, ts);
         val t :: ts2 = Library.drop (i, ts);
-        val names = foldr add_term_names
+        val names = foldr OldTerm.add_term_names
           (map (fst o fst o dest_Var) (foldr OldTerm.add_term_vars [] ts1)) ts1;
         val (Ts, dT) = split_last (Library.take (i+1, fst (strip_type T)));
 

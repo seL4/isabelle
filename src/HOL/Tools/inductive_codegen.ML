@@ -57,7 +57,7 @@ fun add optmod optnparms = Thm.declaration_attribute (fn thm => Context.mapping 
       | _ => (warn thm; thy))
     | SOME (Const (s, _), _) =>
         let
-          val cs = foldr add_term_consts [] (prems_of thm);
+          val cs = foldr OldTerm.add_term_consts [] (prems_of thm);
           val rules = Symtab.lookup_list intros s;
           val nparms = (case optnparms of
             SOME k => k
@@ -490,7 +490,7 @@ fun mk_extra_defs thy defs gr dep names module ts =
       | SOME (names, thyname, nparms, intrs) =>
           mk_ind_def thy defs gr dep names (if_library thyname module)
             [] (prep_intrs intrs) nparms))
-            (gr, foldr add_term_consts [] ts)
+            (gr, foldr OldTerm.add_term_consts [] ts)
 
 and mk_ind_def thy defs gr dep names module modecs intrs nparms =
   add_edge_acyclic (hd names, dep) gr handle

@@ -1,5 +1,4 @@
 (*  Title:      HOL/Tools/datatype_package.ML
-    ID:         $Id$
     Author:     Stefan Berghofer, TU Muenchen
 
 Datatype package for Isabelle/HOL.
@@ -492,7 +491,7 @@ fun gen_rep_datatype prep_term after_qed alt_names raw_ts thy =
       ^ Syntax.string_of_typ_global thy T);
     fun type_of_constr (cT as (_, T)) =
       let
-        val frees = typ_tfrees T;
+        val frees = OldTerm.typ_tfrees T;
         val (tyco, vs) = ((apsnd o map) (dest_TFree) o dest_Type o snd o strip_type) T
           handle TYPE _ => no_constr cT
         val _ = if has_duplicates (eq_fst (op =)) vs then no_constr cT else ();
@@ -583,7 +582,7 @@ fun gen_add_datatype prep_typ err flat_names new_type_names dts thy =
         fun prep_constr (cname, cargs, mx') (constrs, constr_syntax', sorts') =
           let
             val (cargs', sorts'') = Library.foldl (prep_typ tmp_thy) (([], sorts'), cargs);
-            val _ = (case fold (curry add_typ_tfree_names) cargs' [] \\ tvs of
+            val _ = (case fold (curry OldTerm.add_typ_tfree_names) cargs' [] \\ tvs of
                 [] => ()
               | vs => error ("Extra type variables on rhs: " ^ commas vs))
           in (constrs @ [((if flat_names then Sign.full_bname tmp_thy else

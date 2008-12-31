@@ -548,7 +548,7 @@ fun extract thms thy =
           let
             val prf = force_proof body;
             val (vs', tye) = find_inst prop Ts ts vs;
-            val tye' = (map fst (term_tvars prop) ~~ Ts') @ tye;
+            val tye' = (map fst (OldTerm.term_tvars prop) ~~ Ts') @ tye;
             val T = etype_of thy' vs' [] prop;
             val defs' = if T = nullT then defs
               else fst (extr d defs vs ts Ts hs prf0)
@@ -569,7 +569,7 @@ fun extract thms thy =
                     val corr_prf' = List.foldr forall_intr_prf
                       (proof_combt
                          (PThm (serial (),
-                          ((corr_name name vs', corr_prop, SOME (map TVar (term_tvars corr_prop))),
+                          ((corr_name name vs', corr_prop, SOME (map TVar (OldTerm.term_tvars corr_prop))),
                             Lazy.value (make_proof_body corr_prf))), vfs_of corr_prop))
                       (map (get_var_type corr_prop) (vfs_of prop))
                   in
@@ -587,7 +587,7 @@ fun extract thms thy =
       | corr d defs vs ts Ts hs (prf0 as PAxm (s, prop, SOME Ts')) _ _ =
           let
             val (vs', tye) = find_inst prop Ts ts vs;
-            val tye' = (map fst (term_tvars prop) ~~ Ts') @ tye
+            val tye' = (map fst (OldTerm.term_tvars prop) ~~ Ts') @ tye
           in
             if etype_of thy' vs' [] prop = nullT andalso
               realizes_null vs' prop aconv prop then (defs, prf0)
@@ -638,7 +638,7 @@ fun extract thms thy =
           let
             val prf = force_proof body;
             val (vs', tye) = find_inst prop Ts ts vs;
-            val tye' = (map fst (term_tvars prop) ~~ Ts') @ tye
+            val tye' = (map fst (OldTerm.term_tvars prop) ~~ Ts') @ tye
           in
             case Symtab.lookup realizers s of
               NONE => (case find vs' (find' s defs) of
@@ -675,12 +675,12 @@ fun extract thms thy =
                          (chtype [propT, T] combination_axm %> f %> f %> c %> t' %%
                            (chtype [T --> propT] reflexive_axm %> f) %%
                            PAxm (cname ^ "_def", eqn,
-                             SOME (map TVar (term_tvars eqn))))) %% corr_prf;
+                             SOME (map TVar (OldTerm.term_tvars eqn))))) %% corr_prf;
                     val corr_prop = Reconstruct.prop_of corr_prf';
                     val corr_prf'' = List.foldr forall_intr_prf
                       (proof_combt
                         (PThm (serial (),
-                         ((corr_name s vs', corr_prop, SOME (map TVar (term_tvars corr_prop))),
+                         ((corr_name s vs', corr_prop, SOME (map TVar (OldTerm.term_tvars corr_prop))),
                            Lazy.value (make_proof_body corr_prf'))), vfs_of corr_prop))
                       (map (get_var_type corr_prop) (vfs_of prop));
                   in
@@ -698,7 +698,7 @@ fun extract thms thy =
       | extr d defs vs ts Ts hs (prf0 as PAxm (s, prop, SOME Ts')) =
           let
             val (vs', tye) = find_inst prop Ts ts vs;
-            val tye' = (map fst (term_tvars prop) ~~ Ts') @ tye
+            val tye' = (map fst (OldTerm.term_tvars prop) ~~ Ts') @ tye
           in
             case find vs' (Symtab.lookup_list realizers s) of
               SOME (t, _) => (defs, subst_TVars tye' t)

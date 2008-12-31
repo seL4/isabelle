@@ -138,8 +138,8 @@ fun make_constraints_cprf thy env cprf =
 
     fun mk_cnstrts_atom env vTs prop opTs prf =
           let
-            val tvars = term_tvars prop;
-            val tfrees = term_tfrees prop;
+            val tvars = OldTerm.term_tvars prop;
+            val tfrees = OldTerm.term_tfrees prop;
             val (env', Ts) = (case opTs of
                 NONE => foldl_map mk_tvar (env, map snd tvars @ map snd tfrees)
               | SOME Ts => (env, Ts));
@@ -299,7 +299,7 @@ fun reconstruct_proof thy prop cprf =
   end;
 
 fun prop_of_atom prop Ts = subst_atomic_types
-  (map TVar (term_tvars prop) @ map TFree (term_tfrees prop) ~~ Ts)
+  (map TVar (OldTerm.term_tvars prop) @ map TFree (OldTerm.term_tfrees prop) ~~ Ts)
   (forall_intr_vfs prop);
 
 val head_norm = Envir.head_norm (Envir.empty 0);
@@ -366,9 +366,9 @@ fun expand_proof thy thms prf =
                   end
               | SOME (maxidx', prf) => (maxidx' + maxidx + 1,
                   inc (maxidx + 1) prf, prfs));
-            val tfrees = term_tfrees prop;
+            val tfrees = OldTerm.term_tfrees prop;
             val tye = map (fn ((s, j), _) => (s, maxidx + 1 + j))
-              (term_tvars prop) @ map (rpair ~1 o fst) tfrees ~~ Ts;
+              (OldTerm.term_tvars prop) @ map (rpair ~1 o fst) tfrees ~~ Ts;
             val varify = map_type_tfree (fn p as (a, S) =>
               if member (op =) tfrees p then TVar ((a, ~1), S) else TFree p)
           in

@@ -514,7 +514,7 @@ fun get ([],_,L) = rev L
                 val (f,args) = S.strip_comb (get_lhs eq)
                 val (vstrl,_) = S.strip_abs f
                 val names  =
-                  Name.variant_list (add_term_names(body, [])) (map (#1 o dest_Free) vstrl)
+                  Name.variant_list (OldTerm.add_term_names(body, [])) (map (#1 o dest_Free) vstrl)
             in get (rst, n+1, (names,n)::L) end
             handle TERM _ => get (rst, n+1, L)
               | U.ERR _ => get (rst, n+1, L);
@@ -803,7 +803,7 @@ fun CONTEXT_REWRITE_RULE (func, G, cut_lemma, congs) th =
     (if (is_cong thm) then cong_prover else restrict_prover) ss thm
     end
     val ctm = cprop_of th
-    val names = add_term_names (term_of ctm, [])
+    val names = OldTerm.add_term_names (term_of ctm, [])
     val th1 = MetaSimplifier.rewrite_cterm(false,true,false)
       (prover names) (ss0 addsimps [cut_lemma'] addeqcongs congs) ctm
     val th2 = equal_elim th1 th

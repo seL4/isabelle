@@ -1149,7 +1149,7 @@ fun disambiguate_frees thm =
       val t = term_of ct
       val thy = theory_of_cterm ct
       val frees = OldTerm.term_frees t
-      val freenames = add_term_free_names (t, [])
+      val freenames = OldTerm.add_term_free_names (t, [])
       fun is_old_name n = n mem_string freenames
       fun name_of (Free (n, _)) = n
         | name_of _ = ERR "name_of"
@@ -1218,7 +1218,7 @@ fun non_trivial_term_consts tm =
                          c = "All" orelse
                          c = "op -->" orelse
                          c = "op &" orelse
-                         c = "op =")) (Term.term_consts tm)
+                         c = "op =")) (OldTerm.term_consts tm)
 
 fun match_consts t (* th *) =
     let
@@ -1423,9 +1423,9 @@ fun INST_TYPE lambda (hth as HOLThm(rens,th)) thy =
     let
         val _ = message "INST_TYPE:"
         val _ = if_debug pth hth
-        val tys_before = add_term_tfrees (prop_of th,[])
+        val tys_before = OldTerm.add_term_tfrees (prop_of th,[])
         val th1 = Thm.varifyT th
-        val tys_after = add_term_tvars (prop_of th1,[])
+        val tys_after = OldTerm.add_term_tvars (prop_of th1,[])
         val tyinst = map (fn (bef, iS) =>
                              (case try (Lib.assoc (TFree bef)) lambda of
                                   SOME ty => (ctyp_of thy (TVar iS), ctyp_of thy ty)
@@ -2092,7 +2092,7 @@ fun new_type_definition thyname thmname tycname hth thy =
             val c = case concl_of th2 of
                         _ $ (Const("Ex",_) $ Abs(_,_,Const("op :",_) $ _ $ c)) => c
                       | _ => raise ERR "new_type_definition" "Bad type definition theorem"
-            val tfrees = term_tfrees c
+            val tfrees = OldTerm.term_tfrees c
             val tnames = map fst tfrees
             val tsyn = mk_syn thy tycname
             val typ = (tycname,tnames,tsyn)
@@ -2178,7 +2178,7 @@ fun type_introduction thyname thmname tycname abs_name rep_name (P,t) hth thy =
             val c = case concl_of th2 of
                         _ $ (Const("Ex",_) $ Abs(_,_,Const("op :",_) $ _ $ c)) => c
                       | _ => raise ERR "type_introduction" "Bad type definition theorem"
-            val tfrees = term_tfrees c
+            val tfrees = OldTerm.term_tfrees c
             val tnames = sort string_ord (map fst tfrees)
             val tsyn = mk_syn thy tycname
             val typ = (tycname,tnames,tsyn)

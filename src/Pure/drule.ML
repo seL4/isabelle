@@ -367,7 +367,7 @@ fun freeze_thaw th =
          let fun newName (Var(ix,_), (pairs,used)) =
                    let val v = Name.variant used (string_of_indexname ix)
                    in  ((ix,v)::pairs, v::used)  end;
-             val (alist, _) = List.foldr newName ([], Library.foldr add_term_names
+             val (alist, _) = List.foldr newName ([], Library.foldr OldTerm.add_term_names
                (prop :: Thm.terms_of_tpairs tpairs, [])) vars
              fun mk_inst (Var(v,T)) =
                  (cterm_of thy (Var(v,T)),
@@ -805,8 +805,8 @@ fun norm_hhf_cterm ct =
 
 (*Increment the indexes of only the type variables*)
 fun incr_type_indexes inc th =
-  let val tvs = term_tvars (prop_of th)
-      and thy = theory_of_thm th
+  let val tvs = OldTerm.term_tvars (prop_of th)
+      and thy = Thm.theory_of_thm th
       fun inc_tvar ((a,i),s) = pairself (ctyp_of thy) (TVar ((a,i),s), TVar ((a,i+inc),s))
   in Thm.instantiate (map inc_tvar tvs, []) th end;
 

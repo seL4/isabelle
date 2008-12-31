@@ -158,7 +158,7 @@ fun prove_strong_ind s avoids thy =
     val elims = map (atomize_induct ctxt) elims;
     val monos = InductivePackage.get_monos ctxt;
     val eqvt_thms = NominalThmDecls.get_eqvt_thms ctxt;
-    val _ = (case names \\ foldl (apfst prop_of #> add_term_consts) [] eqvt_thms of
+    val _ = (case names \\ foldl (apfst prop_of #> OldTerm.add_term_consts) [] eqvt_thms of
         [] => ()
       | xs => error ("Missing equivariance theorem for predicate(s): " ^
           commas_quote xs));
@@ -221,8 +221,8 @@ fun prove_strong_ind s avoids thy =
     val ind_sort = if null atomTs then HOLogic.typeS
       else Sign.certify_sort thy (map (fn a => Sign.intern_class thy
         ("fs_" ^ Sign.base_name a)) atoms);
-    val fs_ctxt_tyname = Name.variant (map fst (term_tfrees raw_induct')) "'n";
-    val fs_ctxt_name = Name.variant (add_term_names (raw_induct', [])) "z";
+    val fs_ctxt_tyname = Name.variant (map fst (OldTerm.term_tfrees raw_induct')) "'n";
+    val fs_ctxt_name = Name.variant (OldTerm.add_term_names (raw_induct', [])) "z";
     val fsT = TFree (fs_ctxt_tyname, ind_sort);
 
     val inductive_forall_def' = Drule.instantiate'

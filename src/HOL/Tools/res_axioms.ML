@@ -89,7 +89,7 @@ fun declare_skofuns s th =
           in dec_sko (subst_bound (list_comb (c, args), p)) (ax :: axs, thy'') end
       | dec_sko (Const ("All", _) $ (xtp as Abs (a, T, p))) thx =
           (*Universal quant: insert a free variable into body and continue*)
-          let val fname = Name.variant (add_term_names (p, [])) a
+          let val fname = Name.variant (OldTerm.add_term_names (p, [])) a
           in dec_sko (subst_bound (Free (fname, T), p)) thx end
       | dec_sko (Const ("op &", _) $ p $ q) thx = dec_sko q (dec_sko p thx)
       | dec_sko (Const ("op |", _) $ p $ q) thx = dec_sko q (dec_sko p thx)
@@ -117,7 +117,7 @@ fun assume_skofuns s th =
             end
         | dec_sko (Const ("All",_) $ (xtp as Abs(a,T,p))) defs =
             (*Universal quant: insert a free variable into body and continue*)
-            let val fname = Name.variant (add_term_names (p,[])) a
+            let val fname = Name.variant (OldTerm.add_term_names (p,[])) a
             in dec_sko (subst_bound (Free(fname,T), p)) defs end
         | dec_sko (Const ("op &", _) $ p $ q) defs = dec_sko q (dec_sko p defs)
         | dec_sko (Const ("op |", _) $ p $ q) defs = dec_sko q (dec_sko p defs)

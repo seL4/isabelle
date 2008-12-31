@@ -440,11 +440,11 @@ fun add_classes (sorts, cset) = foldl setinsert cset (List.concat sorts);
 fun delete_type cset = Symtab.delete_safe "HOL.type" cset;
 
 fun tvar_classes_of_terms ts =
-  let val sorts_list = map (map #2 o term_tvars) ts
+  let val sorts_list = map (map #2 o OldTerm.term_tvars) ts
   in  Symtab.keys (delete_type (foldl add_classes Symtab.empty sorts_list))  end;
 
 fun tfree_classes_of_terms ts =
-  let val sorts_list = map (map #2 o term_tfrees) ts
+  let val sorts_list = map (map #2 o OldTerm.term_tfrees) ts
   in  Symtab.keys (delete_type (foldl add_classes Symtab.empty sorts_list))  end;
 
 (*fold type constructors*)

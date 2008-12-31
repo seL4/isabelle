@@ -152,7 +152,7 @@ fun prove_strong_ind s avoids thy =
     val elims = map (atomize_induct ctxt) elims;
     val monos = InductivePackage.get_monos ctxt;
     val eqvt_thms = NominalThmDecls.get_eqvt_thms ctxt;
-    val _ = (case names \\ foldl (apfst prop_of #> add_term_consts) [] eqvt_thms of
+    val _ = (case names \\ foldl (apfst prop_of #> OldTerm.add_term_consts) [] eqvt_thms of
         [] => ()
       | xs => error ("Missing equivariance theorem for predicate(s): " ^
           commas_quote xs));
@@ -199,8 +199,8 @@ fun prove_strong_ind s avoids thy =
     val ind_sort = if null atomTs then HOLogic.typeS
       else Sign.certify_sort thy (map (fn T => Sign.intern_class thy
         ("fs_" ^ Sign.base_name (fst (dest_Type T)))) atomTs);
-    val fs_ctxt_tyname = Name.variant (map fst (term_tfrees raw_induct')) "'n";
-    val fs_ctxt_name = Name.variant (add_term_names (raw_induct', [])) "z";
+    val fs_ctxt_tyname = Name.variant (map fst (OldTerm.term_tfrees raw_induct')) "'n";
+    val fs_ctxt_name = Name.variant (OldTerm.add_term_names (raw_induct', [])) "z";
     val fsT = TFree (fs_ctxt_tyname, ind_sort);
 
     val inductive_forall_def' = Drule.instantiate'
@@ -411,7 +411,7 @@ fun prove_strong_ind s avoids thy =
       let
         val prem :: prems = Logic.strip_imp_prems rule;
         val concl = Logic.strip_imp_concl rule;
-        val used = add_term_free_names (rule, [])
+        val used = OldTerm.add_term_free_names (rule, [])
       in
         (prem,
          List.drop (snd (strip_comb (HOLogic.dest_Trueprop prem)), length ind_params),
@@ -613,7 +613,7 @@ fun prove_eqvt s xatoms thy =
       [mk_perm_bool_simproc names,
        NominalPermeq.perm_simproc_app, NominalPermeq.perm_simproc_fun];
     val t = Logic.unvarify (concl_of raw_induct);
-    val pi = Name.variant (add_term_names (t, [])) "pi";
+    val pi = Name.variant (OldTerm.add_term_names (t, [])) "pi";
     val ps = map (fst o HOLogic.dest_imp)
       (HOLogic.dest_conj (HOLogic.dest_Trueprop t));
     fun eqvt_tac pi (intr, vs) st =

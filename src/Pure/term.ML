@@ -73,8 +73,6 @@ sig
   val fold_term_types: (term -> typ -> 'a -> 'a) -> term -> 'a -> 'a
   val fold_types: (typ -> 'a -> 'a) -> term -> 'a -> 'a
   val burrow_types: (typ list -> typ list) -> term list -> term list
-  val it_term_types: (typ * 'a -> 'a) -> term * 'a -> 'a
-  val add_term_names: term * string list -> string list
   val aconv: term * term -> bool
   val propT: typ
   val strip_all_body: term -> term
@@ -108,24 +106,10 @@ sig
   val maxidx_of_typ: typ -> int
   val maxidx_of_typs: typ list -> int
   val maxidx_of_term: term -> int
-  val add_term_consts: term * string list -> string list
-  val term_consts: term -> string list
   val exists_subtype: (typ -> bool) -> typ -> bool
   val exists_type: (typ -> bool) -> term -> bool
   val exists_subterm: (term -> bool) -> term -> bool
   val exists_Const: (string * typ -> bool) -> term -> bool
-  val add_term_free_names: term * string list -> string list
-  val add_typ_tvars: typ * (indexname * sort) list -> (indexname * sort) list
-  val add_typ_tfree_names: typ * string list -> string list
-  val add_typ_tfrees: typ * (string * sort) list -> (string * sort) list
-  val add_typ_varnames: typ * string list -> string list
-  val add_term_tvars: term * (indexname * sort) list -> (indexname * sort) list
-  val add_term_tfrees: term * (string * sort) list -> (string * sort) list
-  val add_term_tfree_names: term * string list -> string list
-  val typ_tfrees: typ -> (string * sort) list
-  val typ_tvars: typ -> (indexname * sort) list
-  val term_tfrees: term -> (string * sort) list
-  val term_tvars: term -> (indexname * sort) list
   val rename_wrt_term: term -> (string * 'a) list -> (string * 'a) list
   val show_question_marks: bool ref
 end;
@@ -423,29 +407,16 @@ fun map_types f =
       | map_aux (t $ u) = map_aux t $ map_aux u;
   in map_aux end;
 
-(* iterate a function over all types in a term *)
-fun it_term_types f =
-let fun iter(Const(_,T), a) = f(T,a)
-      | iter(Free(_,T), a) = f(T,a)
-      | iter(Var(_,T), a) = f(T,a)
-      | iter(Abs(_,T,t), a) = iter(t,f(T,a))
-      | iter(f$u, a) = iter(f, iter(u, a))
-      | iter(Bound _, a) = a
-in iter end
-
 
 (* fold types and terms *)
 
-(*fold atoms of type*)
 fun fold_atyps f (Type (_, Ts)) = fold (fold_atyps f) Ts
   | fold_atyps f T = f T;
 
-(*fold atoms of term*)
 fun fold_aterms f (t $ u) = fold_aterms f t #> fold_aterms f u
   | fold_aterms f (Abs (_, _, t)) = fold_aterms f t
   | fold_aterms f a = f a;
 
-(*fold types of term*)
 fun fold_term_types f (t as Const (_, T)) = f t T
   | fold_term_types f (t as Free (_, T)) = f t T
   | fold_term_types f (t as Var (_, T)) = f t T
@@ -855,7 +826,7 @@ fun maxidx_of_term t = maxidx_term t ~1;
 
 
 
-(**** Syntax-related declarations ****)
+(** misc syntax operations **)
 
 (* substructure *)
 
@@ -884,70 +855,11 @@ fun exists_subterm P =
       | _ => false);
   in ex end;
 
+fun exists_Const P = exists_subterm (fn Const c => P c | _ => false);
+
 fun has_abs (Abs _) = true
   | has_abs (t $ u) = has_abs t orelse has_abs u
   | has_abs _ = false;
-
-
-
-(** Consts etc. **)
-
-fun add_term_consts (Const (c, _), cs) = insert (op =) c cs
-  | add_term_consts (t $ u, cs) = add_term_consts (t, add_term_consts (u, cs))
-  | add_term_consts (Abs (_, _, t), cs) = add_term_consts (t, cs)
-  | add_term_consts (_, cs) = cs;
-
-fun term_consts t = add_term_consts(t,[]);
-
-fun exists_Const P = exists_subterm (fn Const c => P c | _ => false);
-
-
-(** TFrees and TVars **)
-
-(*Accumulates the names of Frees in the term, suppressing duplicates.*)
-fun add_term_free_names (Free(a,_), bs) = insert (op =) a bs
-  | add_term_free_names (f$u, bs) = add_term_free_names (f, add_term_free_names(u, bs))
-  | add_term_free_names (Abs(_,_,t), bs) = add_term_free_names(t,bs)
-  | add_term_free_names (_, bs) = bs;
-
-(*Accumulates the names in the term, suppressing duplicates.
-  Includes Frees and Consts.  For choosing unambiguous bound var names.*)
-fun add_term_names (Const(a,_), bs) = insert (op =) (NameSpace.base a) bs
-  | add_term_names (Free(a,_), bs) = insert (op =) a bs
-  | add_term_names (f$u, bs) = add_term_names (f, add_term_names(u, bs))
-  | add_term_names (Abs(_,_,t), bs) = add_term_names(t,bs)
-  | add_term_names (_, bs) = bs;
-
-(*Accumulates the TVars in a type, suppressing duplicates. *)
-fun add_typ_tvars(Type(_,Ts),vs) = List.foldr add_typ_tvars vs Ts
-  | add_typ_tvars(TFree(_),vs) = vs
-  | add_typ_tvars(TVar(v),vs) = insert (op =) v vs;
-
-(*Accumulates the TFrees in a type, suppressing duplicates. *)
-fun add_typ_tfree_names(Type(_,Ts),fs) = List.foldr add_typ_tfree_names fs Ts
-  | add_typ_tfree_names(TFree(f,_),fs) = insert (op =) f fs
-  | add_typ_tfree_names(TVar(_),fs) = fs;
-
-fun add_typ_tfrees(Type(_,Ts),fs) = List.foldr add_typ_tfrees fs Ts
-  | add_typ_tfrees(TFree(f),fs) = insert (op =) f fs
-  | add_typ_tfrees(TVar(_),fs) = fs;
-
-fun add_typ_varnames(Type(_,Ts),nms) = List.foldr add_typ_varnames nms Ts
-  | add_typ_varnames(TFree(nm,_),nms) = insert (op =) nm nms
-  | add_typ_varnames(TVar((nm,_),_),nms) = insert (op =) nm nms;
-
-(*Accumulates the TVars in a term, suppressing duplicates. *)
-val add_term_tvars = it_term_types add_typ_tvars;
-
-(*Accumulates the TFrees in a term, suppressing duplicates. *)
-val add_term_tfrees = it_term_types add_typ_tfrees;
-val add_term_tfree_names = it_term_types add_typ_tfree_names;
-
-(*Non-list versions*)
-fun typ_tfrees T = add_typ_tfrees(T,[]);
-fun typ_tvars T = add_typ_tvars(T,[]);
-fun term_tfrees t = add_term_tfrees(t,[]);
-fun term_tvars t = add_term_tvars(t,[]);
 
 
 (* dest abstraction *)

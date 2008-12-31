@@ -96,7 +96,7 @@ fun prove_primrec_thms flat_names new_type_names descr sorts
 
     val descr' = List.concat descr;
     val recTs = get_rec_types descr' sorts;
-    val used = foldr add_typ_tfree_names [] recTs;
+    val used = foldr OldTerm.add_typ_tfree_names [] recTs;
     val newTs = Library.take (length (hd descr), recTs);
 
     val induct_Ps = map head_of (HOLogic.dest_conj (HOLogic.dest_Trueprop (concl_of induct)));
@@ -279,7 +279,7 @@ fun prove_case_thms flat_names new_type_names descr sorts reccomb_names primrec_
 
     val descr' = List.concat descr;
     val recTs = get_rec_types descr' sorts;
-    val used = foldr add_typ_tfree_names [] recTs;
+    val used = foldr OldTerm.add_typ_tfree_names [] recTs;
     val newTs = Library.take (length (hd descr), recTs);
     val T' = TFree (Name.variant used "'t", HOLogic.typeS);
 
