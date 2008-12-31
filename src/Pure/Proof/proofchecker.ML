@@ -30,8 +30,7 @@ val beta_eta_convert =
 
 fun thm_of_proof thy prf =
   let
-    val prf_names = Proofterm.fold_proof_terms
-      (fold_aterms (fn Free (x, _) => Name.declare x | _ => I)) (K I) prf Name.context;
+    val prf_names = Proofterm.fold_proof_terms Term.declare_term_frees (K I) prf Name.context;
     val lookup = lookup_thm thy;
 
     fun thm_of_atom thm Ts =

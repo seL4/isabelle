@@ -707,8 +707,7 @@ and translate_app thy algbr funcgr thm ((c, ty), ts) = case Code.get_case_data t
         let
           val k = length ts;
           val tys = (curry Library.take (i - k) o curry Library.drop k o fst o strip_type) ty;
-          val ctxt = (fold o fold_aterms)
-            (fn Free (v, _) => Name.declare v | _ => I) ts Name.context;
+          val ctxt = (fold o fold_aterms) Term.declare_term_frees ts Name.context;
           val vs = Name.names ctxt "a" tys;
         in
           fold_map (translate_typ thy algbr funcgr) tys
