@@ -1,5 +1,4 @@
 (*  Title:      Pure/Isar/find_theorems.ML
-    ID:         $Id$
     Author:     Rafal Kolanski and Gerwin Klein, NICTA
 
 Retrieve theorems from proof context.
@@ -287,7 +286,7 @@ in
 
 fun rem_thm_dups xs =
   xs ~~ (1 upto length xs)
-  |> sort (Term.fast_term_ord o pairself (Thm.prop_of o #2 o #1))
+  |> sort (TermOrd.fast_term_ord o pairself (Thm.prop_of o #2 o #1))
   |> rem_cdups
   |> sort (int_ord o pairself #2)
   |> map #1;

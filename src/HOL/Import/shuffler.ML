@@ -353,7 +353,7 @@ val meta_sym_rew = thm "refl"
 
 fun equals_fun thy assume t =
     case t of
-        Const("op ==",_) $ u $ v => if Term.term_ord (u,v) = LESS then SOME (meta_sym_rew) else NONE
+        Const("op ==",_) $ u $ v => if TermOrd.term_ord (u,v) = LESS then SOME (meta_sym_rew) else NONE
       | _ => NONE
 
 fun eta_expand thy assumes origt =

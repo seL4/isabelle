@@ -1,5 +1,4 @@
 (*  Title:      Pure/unify.ML
-    ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   Cambridge University 1992
 
@@ -104,7 +103,7 @@ fun occurs_terms (seen: (indexname list) ref,
   | occur (Free _)  = false
   | occur (Var (w, T))  =
       if member (op =) (!seen) w then false
-      else if eq_ix(v,w) then true
+      else if Term.eq_ix (v, w) then true
         (*no need to lookup: v has no assignment*)
       else (seen := w:: !seen;
             case Envir.lookup (env, (w, T)) of
@@ -167,7 +166,7 @@ fun rigid_occurs_term (seen: (indexname list)ref, env, v: indexname, t) =
   | occur (Free _)  = NoOcc
   | occur (Var (w, T))  =
       if member (op =) (!seen) w then NoOcc
-      else if eq_ix(v,w) then Rigid
+      else if Term.eq_ix (v, w) then Rigid
       else (seen := w:: !seen;
             case Envir.lookup (env, (w, T)) of
           NONE    => NoOcc
@@ -176,7 +175,7 @@ fun rigid_occurs_term (seen: (indexname list)ref, env, v: indexname, t) =
   | occur (t as f$_) =  (*switch to nonrigid search?*)
      (case head_of_in (env,f) of
         Var (w,_) => (*w is not assigned*)
-    if eq_ix(v,w) then Rigid
+    if Term.eq_ix (v, w) then Rigid
     else  nonrigid t
       | Abs(_,_,body) => nonrigid t (*not in normal form*)
       | _ => occomb t)
@@ -541,10 +540,10 @@ fun add_ffpair thy ((rbinder,t0,u0), (env,tpairs))
   let val t = Envir.norm_term env t0  and  u = Envir.norm_term env u0
   in  case  (head_of t, head_of u) of
       (Var(v,T), Var(w,U)) =>  (*Check for identical variables...*)
-  if eq_ix(v,w) then     (*...occur check would falsely return true!*)
+  if Term.eq_ix (v, w) then     (*...occur check would falsely return true!*)
       if T=U then (env, add_tpair (rbinder, (t,u), tpairs))
       else raise TERM ("add_ffpair: Var name confusion", [t,u])
-  else if Term.indexname_ord (v, w) = LESS then (*prefer to update the LARGER variable*)
+  else if TermOrd.indexname_ord (v, w) = LESS then (*prefer to update the LARGER variable*)
        clean_ffpair thy ((rbinder, u, t), (env,tpairs))
         else clean_ffpair thy ((rbinder, t, u), (env,tpairs))
     | _ => raise TERM ("add_ffpair: Vars expected", [t,u])

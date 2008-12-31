@@ -1,8 +1,7 @@
-(*
-  Title:     The algebraic hierarchy of rings as axiomatic classes
-  Id:        $Id$
-  Author:    Clemens Ballarin, started 9 December 1996
-  Copyright: Clemens Ballarin
+(*  Title:     HOL/Algebra/abstract/Ring2.thy
+    Author:    Clemens Ballarin
+
+The algebraic hierarchy of rings as axiomatic classes.
 *)
 
 header {* The algebraic hierarchy of rings as type classes *}
@@ -211,7 +210,7 @@ fun ring_ord (Const (a, _)) =
         @{const_name HOL.minus}, @{const_name HOL.one}, @{const_name HOL.times}]
   | ring_ord _ = ~1;
 
-fun termless_ring (a, b) = (Term.term_lpo ring_ord (a, b) = LESS);
+fun termless_ring (a, b) = (TermOrd.term_lpo ring_ord (a, b) = LESS);
 
 val ring_ss = HOL_basic_ss settermless termless_ring addsimps
   [thm "a_assoc", thm "l_zero", thm "l_neg", thm "a_comm", thm "m_assoc",

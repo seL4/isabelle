@@ -1,5 +1,4 @@
 (*  Title:      Pure/search.ML
-    ID:         $Id$
     Author:     Lawrence C Paulson and Norbert Voelker
 
 Search tacticals.
@@ -42,10 +41,8 @@ signature SEARCH =
 (** Instantiation of heaps for best-first search **)
 
 (*total ordering on theorems, allowing duplicates to be found*)
-structure ThmHeap =
-  HeapFun (type elem = int * thm
-    val ord = Library.prod_ord Library.int_ord
-      (Term.term_ord o Library.pairself (#prop o Thm.rep_thm)));
+structure ThmHeap = HeapFun(type elem = int * thm
+  val ord = prod_ord int_ord (TermOrd.term_ord o pairself Thm.prop_of));
 
 
 structure Search : SEARCH =

@@ -1,7 +1,6 @@
 (*  Title:      Pure/thm.ML
-    ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
-    Copyright   1994  University of Cambridge
+    Author:     Makarius
 
 The very core of Isabelle's Meta Logic: certified types and terms,
 derivations, theorems, framework rules (including lifting and
@@ -380,9 +379,9 @@ fun attach_tpairs tpairs prop =
 
 fun full_prop_of (Thm (_, {tpairs, prop, ...})) = attach_tpairs tpairs prop;
 
-val union_hyps = OrdList.union Term.fast_term_ord;
-val insert_hyps = OrdList.insert Term.fast_term_ord;
-val remove_hyps = OrdList.remove Term.fast_term_ord;
+val union_hyps = OrdList.union TermOrd.fast_term_ord;
+val insert_hyps = OrdList.insert TermOrd.fast_term_ord;
+val remove_hyps = OrdList.remove TermOrd.fast_term_ord;
 
 
 (* merge theories of cterms/thms -- trivial absorption only *)
@@ -1561,9 +1560,9 @@ fun bicompose match arg i state =
 (*Quick test whether rule is resolvable with the subgoal with hyps Hs
   and conclusion B.  If eres_flg then checks 1st premise of rule also*)
 fun could_bires (Hs, B, eres_flg, rule) =
-    let fun could_reshyp (A1::_) = exists (fn H => could_unify (A1, H)) Hs
+    let fun could_reshyp (A1::_) = exists (fn H => Term.could_unify (A1, H)) Hs
           | could_reshyp [] = false;  (*no premise -- illegal*)
-    in  could_unify(concl_of rule, B) andalso
+    in  Term.could_unify(concl_of rule, B) andalso
         (not eres_flg  orelse  could_reshyp (prems_of rule))
     end;
 

@@ -1,9 +1,8 @@
 (*  Title:      Sequents/modal.ML
-    ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1992  University of Cambridge
 
-Simple modal reasoner
+Simple modal reasoner.
 *)
 
 
@@ -39,7 +38,7 @@ fun forms_of_seq (Const("SeqO",_) $ P $ u) = P :: forms_of_seq u
   Assumes each formula in seqc is surrounded by sequence variables
   -- checks that each concl formula looks like some subgoal formula.*)
 fun could_res (seqp,seqc) =
-      forall (fn Qc => exists (fn Qp => could_unify (Qp,Qc)) 
+      forall (fn Qc => exists (fn Qp => Term.could_unify (Qp,Qc)) 
                               (forms_of_seq seqp))
              (forms_of_seq seqc);
 

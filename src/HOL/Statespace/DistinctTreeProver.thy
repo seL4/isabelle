@@ -1,5 +1,4 @@
-(*  Title:      DistinctTreeProver.thy
-    ID:         $Id$
+(*  Title:      HOL/Statespace/DistinctTreeProver.thy
     Author:     Norbert Schirmer, TU Muenchen
 *)
 
@@ -646,9 +645,9 @@ val nums' = (0 upto 3000);
 val const_decls = map (fn i => Syntax.no_syn 
                                  ("const" ^ string_of_int i,Type ("nat",[]))) nums
 
-val consts = sort Term.fast_term_ord 
+val consts = sort TermOrd.fast_term_ord 
               (map (fn i => Const ("DistinctTreeProver.const"^string_of_int i,Type ("nat",[]))) nums)
-val consts' = sort Term.fast_term_ord 
+val consts' = sort TermOrd.fast_term_ord 
               (map (fn i => Const ("DistinctTreeProver.const"^string_of_int i,Type ("nat",[]))) nums')
 
 val t = DistinctTreeProver.mk_tree I (Type ("nat",[])) consts

@@ -434,9 +434,9 @@ fun get_bno l n (Const("all",_) $ Abs(s,_,t)) = get_bno (s::l) n t
   | get_bno l n (Bound m) = (m-length(l),n)
 
 (* Not a great way of identifying induction hypothesis! *)
-fun could_IH x = could_unify(x,hd (prems_of @{thm rcallT})) orelse
-                 could_unify(x,hd (prems_of @{thm rcall2T})) orelse
-                 could_unify(x,hd (prems_of @{thm rcall3T}))
+fun could_IH x = Term.could_unify(x,hd (prems_of @{thm rcallT})) orelse
+                 Term.could_unify(x,hd (prems_of @{thm rcall2T})) orelse
+                 Term.could_unify(x,hd (prems_of @{thm rcall3T}))
 
 fun IHinst tac rls = SUBGOAL (fn (Bi,i) =>
   let val bvs = bvars Bi []

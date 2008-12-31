@@ -1,5 +1,4 @@
 (*  Title:      Pure/type.ML
-    ID:         $Id$
     Author:     Tobias Nipkow, Lawrence C Paulson, and Markus Wenzel
 
 Type signatures and certified types, special treatment of type vars,
@@ -401,7 +400,7 @@ fun occurs v tye =
     fun occ (Type (_, Ts)) = exists occ Ts
       | occ (TFree _) = false
       | occ (TVar (w, S)) =
-          eq_ix (v, w) orelse
+          Term.eq_ix (v, w) orelse
             (case lookup tye (w, S) of
               NONE => false
             | SOME U => occ U);
@@ -438,7 +437,7 @@ fun unify (tsig as TSig {classes = (_, classes), ...}) TU (tyenv, maxidx) =
     fun unif (ty1, ty2) tye =
       (case (devar tye ty1, devar tye ty2) of
         (T as TVar (v, S1), U as TVar (w, S2)) =>
-          if eq_ix (v, w) then
+          if Term.eq_ix (v, w) then
             if S1 = S2 then tye else tvar_clash v S1 S2
           else if Sorts.sort_le classes (S1, S2) then
             Vartab.update_new (w, (S2, T)) tye
@@ -466,7 +465,7 @@ fun unify (tsig as TSig {classes = (_, classes), ...}) TU (tyenv, maxidx) =
 fun raw_unify (ty1, ty2) tye =
   (case (devar tye ty1, devar tye ty2) of
     (T as TVar (v, S1), U as TVar (w, S2)) =>
-      if eq_ix (v, w) then
+      if Term.eq_ix (v, w) then
         if S1 = S2 then tye else tvar_clash v S1 S2
       else Vartab.update_new (w, (S2, T)) tye
   | (TVar (v, S), T) =>

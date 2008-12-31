@@ -1,5 +1,4 @@
 (*  Title:      Tools/Compute_Oracle/linker.ML
-    ID:         $Id$
     Author:     Steven Obua
 
 Linker.ML solves the problem that the computing oracle does not
@@ -51,7 +50,7 @@ fun constant_of (Const (name, ty)) = Constant (false, name, ty)
   | constant_of _ = raise Link "constant_of"
 
 fun bool_ord (x,y) = if x then (if y then EQUAL else GREATER) else (if y then LESS else EQUAL)
-fun constant_ord (Constant (x1,x2,x3), Constant (y1,y2,y3)) = (prod_ord (prod_ord bool_ord fast_string_ord) Term.typ_ord) (((x1,x2),x3), ((y1,y2),y3))
+fun constant_ord (Constant (x1,x2,x3), Constant (y1,y2,y3)) = (prod_ord (prod_ord bool_ord fast_string_ord) TermOrd.typ_ord) (((x1,x2),x3), ((y1,y2),y3))
 fun constant_modty_ord (Constant (x1,x2,_), Constant (y1,y2,_)) = (prod_ord bool_ord fast_string_ord) ((x1,x2), (y1,y2))
 
 
@@ -71,7 +70,7 @@ fun merge_subst (A:Type.tyenv) (B:Type.tyenv) =
     handle Type.TYPE_MATCH => NONE
 
 fun subst_ord (A:Type.tyenv, B:Type.tyenv) =
-    (list_ord (prod_ord Term.fast_indexname_ord (prod_ord Term.sort_ord Term.typ_ord))) (Vartab.dest A, Vartab.dest B)
+    (list_ord (prod_ord TermOrd.fast_indexname_ord (prod_ord TermOrd.sort_ord TermOrd.typ_ord))) (Vartab.dest A, Vartab.dest B)
 
 structure Substtab = TableFun(type key = Type.tyenv val ord = subst_ord);
 
@@ -379,7 +378,7 @@ fun thm2cthm th =
         ComputeThm (hyps, shyps, prop)
     end
 
-val cthm_ord' = prod_ord (prod_ord (list_ord Term.term_ord) (list_ord Term.sort_ord)) Term.term_ord
+val cthm_ord' = prod_ord (prod_ord (list_ord TermOrd.term_ord) (list_ord TermOrd.sort_ord)) TermOrd.term_ord
 
 fun cthm_ord (ComputeThm (h1, sh1, p1), ComputeThm (h2, sh2, p2)) = cthm_ord' (((h1,sh1), p1), ((h2, sh2), p2))
 

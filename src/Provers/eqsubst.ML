@@ -1,13 +1,12 @@
 (*  Title:      Provers/eqsubst.ML
-    ID:         $Id$
-    Author:     Lucas Dixon, University of Edinburgh, lucas.dixon@ed.ac.uk
+    Author:     Lucas Dixon, University of Edinburgh
 
 A proof method to perform a substiution using an equation.
 *)
 
 signature EQSUBST =
 sig
-  (* a type abriviation for match information *)
+  (* a type abbreviation for match information *)
   type match =
        ((indexname * (sort * typ)) list (* type instantiations *)
         * (indexname * (typ * term)) list) (* term instantiations *)
@@ -224,7 +223,7 @@ fun clean_unify thry ix (a as (pat, tgt)) =
       (* is it OK to ignore the type instantiation info?
          or should I be using it? *)
       val typs_unify =
-          SOME (Sign.typ_unify thry (pat_ty, tgt_ty) (Term.Vartab.empty, ix))
+          SOME (Sign.typ_unify thry (pat_ty, tgt_ty) (Vartab.empty, ix))
             handle Type.TUNIFY => NONE;
     in
       case typs_unify of

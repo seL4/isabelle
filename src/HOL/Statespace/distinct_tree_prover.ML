@@ -1,5 +1,4 @@
-(*  Title:      distinct_tree_prover.thy
-    ID:         $Id$
+(*  Title:      HOL/Statespace/distinct_tree_prover.ML
     Author:     Norbert Schirmer, TU Muenchen
 *)
 
@@ -83,7 +82,7 @@ fun bin_find_tree order e (Const ("DistinctTreeProver.tree.Tip",_)) = NONE
   | bin_find_tree order e t = raise TERM ("find_tree: input not a tree",[t])
 
 fun find_tree e t =
-  (case bin_find_tree Term.fast_term_ord e t of
+  (case bin_find_tree TermOrd.fast_term_ord e t of
      NONE => lin_find_tree e t
    | x => x);
 

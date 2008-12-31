@@ -1,5 +1,4 @@
 (*  Title:      Pure/facts.ML
-    ID:         $Id$
     Author:     Makarius
 
 Environment of named facts, optionally indexed by proposition.
@@ -166,7 +165,7 @@ fun extern_static prev_facts facts =
 
 (* indexed props *)
 
-val prop_ord = Term.term_ord o pairself Thm.full_prop_of;
+val prop_ord = TermOrd.term_ord o pairself Thm.full_prop_of;
 
 fun props (Facts {props, ...}) = sort_distinct prop_ord (Net.content props);
 fun could_unify (Facts {props, ...}) = Net.unify_term props;

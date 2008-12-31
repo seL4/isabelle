@@ -188,7 +188,7 @@ fun fold_proof_atoms all f =
 
 (* proof body *)
 
-val oracle_ord = prod_ord fast_string_ord Term.fast_term_ord;
+val oracle_ord = prod_ord fast_string_ord TermOrd.fast_term_ord;
 fun thm_ord ((i, _): pthm, (j, _)) = int_ord (j, i);
 
 fun make_body prf =

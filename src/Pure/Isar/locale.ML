@@ -1,6 +1,6 @@
 (*  Title:      Pure/Isar/locale.ML
-    ID:         $Id$
-    Author:     Clemens Ballarin, TU Muenchen; Markus Wenzel, LMU/TU Muenchen
+    Author:     Clemens Ballarin, TU Muenchen
+    Author:     Markus Wenzel, LMU/TU Muenchen
 
 Locales -- Isar proof contexts as meta-level predicates, with local
 syntax and implicit structures.
@@ -1297,7 +1297,7 @@ end;
 
 fun defs_ord (defs1, defs2) =
     list_ord (fn ((_, (d1, _)), (_, (d2, _))) =>
-      Term.fast_term_ord (d1, d2)) (defs1, defs2);
+      TermOrd.fast_term_ord (d1, d2)) (defs1, defs2);
 structure Defstab =
     TableFun(type key = (Attrib.binding * (term * term list)) list val ord = defs_ord);
 

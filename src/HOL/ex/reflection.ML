@@ -1,19 +1,18 @@
-(*
-    ID:         $Id$
-    Author:     Amine Chaieb, TU Muenchen
+(*  Author:     Amine Chaieb, TU Muenchen
 
 A trial for automatical reification.
 *)
 
-signature REFLECTION = sig
+signature REFLECTION =
+sig
   val genreify_tac: Proof.context -> thm list -> term option -> int -> tactic
   val reflection_tac: Proof.context -> thm list -> thm list -> term option -> int -> tactic
   val gen_reflection_tac: Proof.context -> (cterm -> thm)
     -> thm list -> thm list -> term option -> int -> tactic
 end;
 
-structure Reflection : REFLECTION
-= struct
+structure Reflection : REFLECTION =
+struct
 
 val ext2 = thm "ext2";
 val nth_Cons_0 = thm "nth_Cons_0";
@@ -38,7 +37,7 @@ fun mk_congeq ctxt fs th =
    val (((_,_),[th']), ctxt') = Variable.import_thms true [th] ctxt
    val (lhs, rhs) = HOLogic.dest_eq (HOLogic.dest_Trueprop (Thm.prop_of th'))
    fun add_fterms (t as t1 $ t2) = 
-       if exists (fn f => could_unify (t |> strip_comb |> fst, f)) fs then insert (op aconv) t
+       if exists (fn f => Term.could_unify (t |> strip_comb |> fst, f)) fs then insert (op aconv) t
        else add_fterms t1 #> add_fterms t2
      | add_fterms (t as Abs(xn,xT,t')) = 
        if (fN mem (term_consts t)) then (fn _ => [t]) else (fn _ => [])
@@ -139,7 +138,7 @@ fun decomp_genreif da cgns (t,ctxt) =
         val (tyenv, tmenv) =
         Pattern.match thy
         ((fst o HOLogic.dest_eq o HOLogic.dest_Trueprop) (concl_of cong), t)
-        (Envir.type_env (Envir.empty 0),Term.Vartab.empty)
+        (Envir.type_env (Envir.empty 0), Vartab.empty)
         val (fnvs,invs) = List.partition (fn ((vn,_),_) => vn mem vns) (Vartab.dest tmenv)
         val (fts,its) = 
 	    (map (snd o snd) fnvs,
@@ -191,7 +190,7 @@ let
    val rhs_P = subst_free subst rhs
    val (tyenv, tmenv) = Pattern.match 
 	                    thy (rhs_P, t)
-	                    (Envir.type_env (Envir.empty 0),Term.Vartab.empty)
+	                    (Envir.type_env (Envir.empty 0), Vartab.empty)
    val sbst = Envir.subst_vars (tyenv, tmenv)
    val sbsT = Envir.typ_subst_TVars tyenv
    val subst_ty = map (fn (n,(s,t)) => (certT (TVar (n, s)), certT t)) 

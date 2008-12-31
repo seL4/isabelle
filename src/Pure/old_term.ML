@@ -17,7 +17,7 @@ struct
 
 (*Accumulates the Vars in the term, suppressing duplicates*)
 fun add_term_vars (t, vars: term list) = case t of
-    Var   _ => OrdList.insert Term.term_ord t vars
+    Var   _ => OrdList.insert TermOrd.term_ord t vars
   | Abs (_,_,body) => add_term_vars(body,vars)
   | f$t =>  add_term_vars (f, add_term_vars(t, vars))
   | _ => vars;
@@ -26,7 +26,7 @@ fun term_vars t = add_term_vars(t,[]);
 
 (*Accumulates the Frees in the term, suppressing duplicates*)
 fun add_term_frees (t, frees: term list) = case t of
-    Free   _ => OrdList.insert Term.term_ord t frees
+    Free   _ => OrdList.insert TermOrd.term_ord t frees
   | Abs (_,_,body) => add_term_frees(body,frees)
   | f$t =>  add_term_frees (f, add_term_frees(t, frees))
   | _ => frees;

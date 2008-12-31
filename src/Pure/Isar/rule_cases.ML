@@ -1,5 +1,4 @@
 (*  Title:      Pure/Isar/rule_cases.ML
-    ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
 
 Annotations and local contexts of rules.
@@ -319,7 +318,7 @@ fun params xss = Thm.rule_attribute (K (rename_params xss));
 local
 
 fun equal_cterms ts us =
-  is_equal (list_ord (Term.fast_term_ord o pairself Thm.term_of) (ts, us));
+  is_equal (list_ord (TermOrd.fast_term_ord o pairself Thm.term_of) (ts, us));
 
 fun prep_rule n th =
   let

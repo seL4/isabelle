@@ -1,7 +1,5 @@
 (*  Title:      Pure/envir.ML
-    ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
-    Copyright   1988  University of Cambridge
 
 Environments.  The type of a term variable / sort of a type variable is
 part of its name. The lookup function must apply type substitutions,
@@ -118,7 +116,7 @@ fun above (Envir {asol, iTs, ...}) lim =
 fun vupdate ((aU as (a, U), t), env as Envir {iTs, ...}) = case t of
       Var (nT as (name', T)) =>
         if a = name' then env     (*cycle!*)
-        else if Term.indexname_ord (a, name') = LESS then
+        else if TermOrd.indexname_ord (a, name') = LESS then
            (case lookup (env, nT) of  (*if already assigned, chase*)
                 NONE => update ((nT, Var (a, T)), env)
               | SOME u => vupdate ((aU, u), env))

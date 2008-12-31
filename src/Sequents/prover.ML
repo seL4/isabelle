@@ -1,9 +1,8 @@
-(*  Title:      Sequents/prover
-    ID:         $Id$
+(*  Title:      Sequents/prover.ML
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1992  University of Cambridge
 
-Simple classical reasoner for the sequent calculus, based on "theorem packs"
+Simple classical reasoner for the sequent calculus, based on "theorem packs".
 *)
 
 
@@ -65,7 +64,7 @@ fun forms_of_seq (Const("SeqO'",_) $ P $ u) = P :: forms_of_seq u
   -- checks that each concl formula looks like some subgoal formula.
   It SHOULD check order as well, using recursion rather than forall/exists*)
 fun could_res (seqp,seqc) =
-      forall (fn Qc => exists (fn Qp => could_unify (Qp,Qc)) 
+      forall (fn Qc => exists (fn Qp => Term.could_unify (Qp,Qc)) 
                               (forms_of_seq seqp))
              (forms_of_seq seqc);
 
@@ -78,7 +77,7 @@ fun could_resolve_seq (prem,conc) =
 	  could_res (leftp,leftc) andalso could_res (rightp,rightc)
     | (_ $ Abs(_,_,leftp) $ rightp,
        _ $ Abs(_,_,leftc) $ rightc) =>
-	  could_res (leftp,leftc)  andalso  could_unify (rightp,rightc)
+	  could_res (leftp,leftc)  andalso  Term.could_unify (rightp,rightc)
     | _ => false;
 
 

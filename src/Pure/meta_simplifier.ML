@@ -1,6 +1,5 @@
 (*  Title:      Pure/meta_simplifier.ML
-    ID:         $Id$
-    Author:     Tobias Nipkow and Stefan Berghofer
+    Author:     Tobias Nipkow and Stefan Berghofer, TU Muenchen
 
 Meta-level Simplification.
 *)
@@ -788,7 +787,7 @@ val basic_mk_rews: mk_rews =
   mk_eq_True = K NONE,
   reorient = default_reorient};
 
-val empty_ss = init_ss basic_mk_rews Term.termless (K (K no_tac)) ([], []);
+val empty_ss = init_ss basic_mk_rews TermOrd.termless (K (K no_tac)) ([], []);
 
 
 (* merge *)  (*NOTE: ignores some fields of 2nd simpset*)
