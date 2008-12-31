@@ -54,15 +54,12 @@ fun ty_info (tab : string -> DatatypeAux.datatype_info option) s =
  * b=false --> i = ~1
  *---------------------------------------------------------------------------*)
 
-fun pattern_map f (tm,x) = (f tm, x);
-
-fun pattern_subst theta = pattern_map (subst_free theta);
+fun pattern_subst theta (tm, x) = (subst_free theta tm, x);
 
 fun row_of_pat x = fst (snd x);
 
-fun add_row_used ((prfx, pats), (tm, tag)) used =
-  foldl OldTerm.add_term_free_names (foldl OldTerm.add_term_free_names
-    (OldTerm.add_term_free_names (tm, used)) pats) prfx;
+fun add_row_used ((prfx, pats), (tm, tag)) =
+  fold Term.add_free_names (tm :: pats @ prfx);
 
 (* try to preserve names given by user *)
 fun default_names names ts =
@@ -139,7 +136,7 @@ fun partition _ _ _ _ _ _ _ [] = raise CASE_ERROR ("partition: no rows", ~1)
                     let
                       val Ts = map type_of rstp;
                       val xs = Name.variant_list
-                        (foldl OldTerm.add_term_free_names used' gvars)
+                        (fold Term.add_free_names gvars used')
                         (replicate (length rstp) "x")
                     in
                       [((prfx, gvars @ map Free (xs ~~ Ts)),
@@ -221,7 +218,7 @@ fun mk_case tab ctxt ty_match ty_inst type_of used range_ty =
               | SOME {case_name, constructors} =>
                 let
                   val pty = body_type cT;
-                  val used' = foldl OldTerm.add_term_free_names used rstp;
+                  val used' = fold Term.add_free_names rstp used;
                   val nrows = maps (expand constructors used' pty) rows;
                   val subproblems = partition ty_match ty_inst type_of used'
                     constructors pty range_ty nrows;
@@ -335,7 +332,7 @@ fun case_tr err tab_of ctxt [t, u] =
         | prep_pat t used = case_error ("Bad pattern: " ^ Syntax.string_of_term ctxt t);
       fun dest_case1 (t as Const ("_case1", _) $ l $ r) =
             let val (l', cnstrts) = strip_constraints l
-            in ((fst (prep_pat l' (OldTerm.add_term_free_names (t, []))), r), cnstrts)
+            in ((fst (prep_pat l' (Term.add_free_names t [])), r), cnstrts)
             end
         | dest_case1 t = case_error "dest_case1";
       fun dest_case2 (Const ("_case2", _) $ t $ u) = t :: dest_case2 u
@@ -423,7 +420,7 @@ val dest_case' = gen_dest_case
 (* destruct nested patterns *)
 
 fun strip_case' dest (pat, rhs) =
-  case dest (OldTerm.add_term_free_names (pat, [])) rhs of
+  case dest (Term.add_free_names pat []) rhs of
     SOME (exp as Free _, clauses) =>
       if member op aconv (OldTerm.term_frees pat) exp andalso
         not (exists (fn (_, rhs') =>

@@ -49,7 +49,7 @@ fun strip_all' used names (Const ("all", _) $ Abs (s, T, t)) =
       t $ strip_all' used names Q
   | strip_all' _ _ t = t;
 
-fun strip_all t = strip_all' (OldTerm.add_term_free_names (t, [])) [] t;
+fun strip_all t = strip_all' (Term.add_free_names t []) [] t;
 
 fun strip_one name (Const ("all", _) $ Abs (s, T, Const ("==>", _) $ P $ Q)) =
       (subst_bound (Free (name, T), P), subst_bound (Free (name, T), Q))
@@ -370,7 +370,7 @@ fun add_ind_realizer rsets intrs induct raw_induct elims (thy, vs) =
           (vs' @ Ps) rec_names rss' intrs dummies;
         val rlzs = map (fn (r, ind) => Extraction.realizes_of thy (vs' @ Ps) r
           (prop_of ind)) (rs ~~ inducts);
-        val used = foldr OldTerm.add_term_free_names [] rlzs;
+        val used = fold Term.add_free_names rlzs [];
         val rnames = Name.variant_list used (replicate (length inducts) "r");
         val rnames' = Name.variant_list
           (used @ rnames) (replicate (length intrs) "s");

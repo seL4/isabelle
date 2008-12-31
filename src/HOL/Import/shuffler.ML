@@ -321,7 +321,7 @@ fun eta_contract thy assumes origt =
               then
                   let
                       val cert = cterm_of thy
-                      val v = Free(Name.variant (OldTerm.add_term_free_names(t,[])) "v",xT)
+                      val v = Free (Name.variant (Term.add_free_names t []) "v", xT)
                       val cv = cert v
                       val ct = cert t
                       val th = (assume ct)
@@ -384,7 +384,7 @@ fun eta_expand thy assumes origt =
                       Type("fun",[aT,bT]) =>
                       let
                           val cert = cterm_of thy
-                          val vname = Name.variant (OldTerm.add_term_free_names(t,[])) "v"
+                          val vname = Name.variant (Term.add_free_names t []) "v"
                           val v = Free(vname,aT)
                           val cv = cert v
                           val ct = cert t

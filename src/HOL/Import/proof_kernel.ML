@@ -1149,8 +1149,8 @@ fun disambiguate_frees thm =
       val t = term_of ct
       val thy = theory_of_cterm ct
       val frees = OldTerm.term_frees t
-      val freenames = OldTerm.add_term_free_names (t, [])
-      fun is_old_name n = n mem_string freenames
+      val freenames = Term.add_free_names t []
+      val is_old_name = member (op =) freenames
       fun name_of (Free (n, _)) = n
         | name_of _ = ERR "name_of"
       fun new_name' bump map n =

@@ -411,7 +411,7 @@ fun prove_strong_ind s avoids thy =
       let
         val prem :: prems = Logic.strip_imp_prems rule;
         val concl = Logic.strip_imp_concl rule;
-        val used = OldTerm.add_term_free_names (rule, [])
+        val used = Term.add_free_names rule [];
       in
         (prem,
          List.drop (snd (strip_comb (HOLogic.dest_Trueprop prem)), length ind_params),

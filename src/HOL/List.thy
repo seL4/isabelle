@@ -358,7 +358,7 @@ let
 
    fun pat_tr ctxt p e opti = (* %x. case x of p => e | _ => [] *)
     let
-      val x = Free (Name.variant (OldTerm.add_term_free_names (p$e, [])) "x", dummyT);
+      val x = Free (Name.variant (fold Term.add_free_names [p, e] []) "x", dummyT);
       val e = if opti then singl e else e;
       val case1 = Syntax.const "_case1" $ p $ e;
       val case2 = Syntax.const "_case1" $ Syntax.const Term.dummy_patternN

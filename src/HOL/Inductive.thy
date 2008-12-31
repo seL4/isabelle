@@ -362,7 +362,7 @@ parse_translation (advanced) {*
 let
   fun fun_tr ctxt [cs] =
     let
-      val x = Free (Name.variant (OldTerm.add_term_free_names (cs, [])) "x", dummyT);
+      val x = Free (Name.variant (Term.add_free_names cs []) "x", dummyT);
       val ft = DatatypeCase.case_tr true DatatypePackage.datatype_of_constr
                  ctxt [x, cs]
     in lambda x ft end
