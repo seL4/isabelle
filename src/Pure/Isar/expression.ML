@@ -594,10 +594,11 @@ fun def_pred bname parms defs ts norm_ts thy =
     val name = Sign.full_bname thy bname;
 
     val (body, bodyT, body_eq) = atomize_spec thy norm_ts;
-    val env = Term.add_term_free_names (body, []);
+    val env = Term.add_free_names body [];
     val xs = filter (member (op =) env o #1) parms;
     val Ts = map #2 xs;
-    val extraTs = (Term.term_tfrees body \\ fold Term.add_tfreesT Ts [])
+    val extraTs =
+      (Term.add_tfrees body [] \\ fold Term.add_tfreesT Ts [])
       |> Library.sort_wrt #1 |> map TFree;
     val predT = map Term.itselfT extraTs ---> Ts ---> bodyT;
 

@@ -1,5 +1,4 @@
 (*  Title:      HOL/Tools/recfun_codegen.ML
-    ID:         $Id$
     Author:     Stefan Berghofer, TU Muenchen
 
 Code generator for recursive functions.
@@ -46,7 +45,7 @@ fun expand_eta thy [] = []
   | expand_eta thy (thms as thm :: _) =
       let
         val (_, ty) = Code_Unit.const_typ_eqn thm;
-      in if (null o Term.typ_tvars) ty orelse (null o fst o strip_type) ty
+      in if null (Term.add_tvarsT ty []) orelse (null o fst o strip_type) ty
         then thms
         else map (Code_Unit.expand_eta thy 1) thms
       end;

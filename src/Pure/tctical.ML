@@ -485,9 +485,8 @@ fun print_vars_terms thy (n,thm) =
   let
     fun typed ty = " has type: " ^ Syntax.string_of_typ_global thy ty;
     fun find_vars thy (Const (c, ty)) =
-        (case Term.typ_tvars ty
-         of [] => I
-          | _ => insert (op =) (c ^ typed ty))
+          if null (Term.add_tvarsT ty []) then I
+          else insert (op =) (c ^ typed ty)
       | find_vars thy (Var (xi, ty)) = insert (op =) (Term.string_of_vname xi ^ typed ty)
       | find_vars _ (Free _) = I
       | find_vars _ (Bound _) = I

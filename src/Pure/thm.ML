@@ -1154,7 +1154,7 @@ fun unconstrainT
 (* Replace all TFrees not fixed or in the hyps by new TVars *)
 fun varifyT' fixed (Thm (der, {thy_ref, maxidx, shyps, hyps, tpairs, prop, ...})) =
   let
-    val tfrees = List.foldr add_term_tfrees fixed hyps;
+    val tfrees = fold Term.add_tfrees hyps fixed;
     val prop1 = attach_tpairs tpairs prop;
     val (al, prop2) = Type.varify tfrees prop1;
     val (ts, prop3) = Logic.strip_prems (length tpairs, [], prop2);

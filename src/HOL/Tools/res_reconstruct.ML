@@ -405,7 +405,7 @@ fun bad_free (Free (a,_)) = String.isPrefix "sko_" a
 fun add_wanted_prfline ctxt ((lno, t, []), (nlines, lines)) =
       (nlines, (lno, t, []) :: lines)   (*conjecture clauses must be kept*)
   | add_wanted_prfline ctxt ((lno, t, deps), (nlines, lines)) =
-      if eq_types t orelse not (null (term_tvars t)) orelse
+      if eq_types t orelse not (null (Term.add_tvars t [])) orelse
          exists_subterm bad_free t orelse
          (not (null lines) andalso   (*final line can't be deleted for these reasons*)
           (length deps < 2 orelse nlines mod (Config.get ctxt modulus) <> 0))   

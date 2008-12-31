@@ -790,7 +790,7 @@ struct
       (* replace the (at most one) schematic type variable in each axiom *)
       (* by the actual type 'T'                                          *)
       val monomorphic_class_axioms = map (fn (axname, ax) =>
-        (case Term.term_tvars ax of
+        (case Term.add_tvars ax [] of
           [] =>
           (axname, ax)
         | [(idx, S)] =>
@@ -942,16 +942,13 @@ struct
 (*               and all mutually recursive IDTs are considered.             *)
 (* ------------------------------------------------------------------------- *)
 
-  (* theory -> Term.term -> Term.typ list *)
-
   fun ground_types thy t =
   let
-    (* Term.typ * Term.typ list -> Term.typ list *)
-    fun collect_types (T, acc) =
+    fun collect_types T acc =
       (case T of
-        Type ("fun", [T1, T2]) => collect_types (T1, collect_types (T2, acc))
+        Type ("fun", [T1, T2]) => collect_types T1 (collect_types T2 acc)
       | Type ("prop", [])      => acc
-      | Type ("set", [T1])     => collect_types (T1, acc)
+      | Type ("set", [T1])     => collect_types T1 acc
       | Type (s, Ts)           =>
         (case DatatypePackage.get_datatype thy s of
           SOME info =>  (* inductive datatype *)
@@ -976,9 +973,9 @@ struct
             in
               case d of
                 DatatypeAux.DtTFree _ =>
-                collect_types (dT, acc)
+                collect_types dT acc
               | DatatypeAux.DtType (_, ds) =>
-                collect_types (dT, foldr collect_dtyp acc ds)
+                collect_types dT (foldr collect_dtyp acc ds)
               | DatatypeAux.DtRec i =>
                 if dT mem acc then
                   acc  (* prevent infinite recursion *)
@@ -1008,11 +1005,11 @@ struct
         | NONE =>
           (* not an inductive datatype, e.g. defined via "typedef" or *)
           (* "typedecl"                                               *)
-          insert (op =) T (foldr collect_types acc Ts))
+          insert (op =) T (fold collect_types Ts acc))
       | TFree _                => insert (op =) T acc
       | TVar _                 => insert (op =) T acc)
   in
-    it_term_types collect_types (t, [])
+    fold_types collect_types t []
   end;
 
 (* ------------------------------------------------------------------------- *)
@@ -1287,7 +1284,7 @@ struct
     (* terms containing them (their logical meaning is that there EXISTS a *)
     (* type s.t. ...; to refute such a formula, we would have to show that *)
     (* for ALL types, not ...)                                             *)
-    val _ = null (term_tvars t) orelse
+    val _ = null (Term.add_tvars t []) orelse
       error "Term to be refuted contains schematic type variables"
 
     (* existential closure over schematic variables *)

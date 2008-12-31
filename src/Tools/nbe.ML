@@ -1,5 +1,4 @@
 (*  Title:      Tools/nbe.ML
-    ID:         $Id$
     Authors:    Klaus Aehlig, LMU Muenchen; Tobias Nipkow, Florian Haftmann, TU Muenchen
 
 Normalization by evaluation, based on generic code generator.
@@ -448,7 +447,7 @@ fun eval thy t naming program vs_ty_t deps =
       singleton (TypeInfer.infer_types (Syntax.pp_global thy) (Sign.tsig_of thy) I
         (try (Type.strip_sorts o Sign.the_const_type thy)) (K NONE) Name.context 0)
       (TypeInfer.constrain ty t);
-    fun check_tvars t = if null (Term.term_tvars t) then t else
+    fun check_tvars t = if null (Term.add_tvars t []) then t else
       error ("Illegal schematic type variables in normalized term: "
         ^ setmp show_types true (Syntax.string_of_term_global thy) t);
     val string_of_term = setmp show_types true (Syntax.string_of_term_global thy);
