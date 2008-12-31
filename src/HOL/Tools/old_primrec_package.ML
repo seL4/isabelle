@@ -161,7 +161,7 @@ fun process_fun thy descr rec_eqns (i, fnameT as (fname, _)) (fnameTs, fnss) =
               val recs = filter (is_rec_type o snd) (cargs' ~~ cargs);
               val rargs = map fst recs;
               val subs = map (rpair dummyT o fst)
-                (rev (rename_wrt_term rhs rargs));
+                (rev (Term.rename_wrt_term rhs rargs));
               val (rhs', (fnameTs'', fnss'')) =
                   (subst (map (fn ((x, y), z) =>
                                (Free x, (body_index y, Free z)))

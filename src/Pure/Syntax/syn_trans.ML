@@ -1,5 +1,4 @@
 (*  Title:      Pure/Syntax/syn_trans.ML
-    ID:         $Id$
     Author:     Tobias Nipkow and Markus Wenzel, TU Muenchen
 
 Syntax translation functions.
@@ -264,7 +263,7 @@ fun strip_abss vars_of body_of tm =
   let
     val vars = vars_of tm;
     val body = body_of tm;
-    val rev_new_vars = rename_wrt_term body vars;
+    val rev_new_vars = Term.rename_wrt_term body vars;
     fun subst (x, T) b =
       if can Name.dest_internal x andalso not (Term.loose_bvar1 (b, 0))
       then (Const ("_idtdummy", T), incr_boundvars ~1 b)
@@ -302,7 +301,7 @@ fun abs_tr' tm =
     (strip_abss strip_abs_vars strip_abs_body (eta_contr tm));
 
 fun atomic_abs_tr' (x, T, t) =
-  let val [xT] = rename_wrt_term t [(x, T)]
+  let val [xT] = Term.rename_wrt_term t [(x, T)]
   in (mark_boundT xT, subst_bound (mark_bound (fst xT), t)) end;
 
 fun abs_ast_tr' (*"_abs"*) asts =

@@ -1,9 +1,8 @@
 (*  Title:      HOL/ex/svc_funcs.ML
-    ID:         $Id$
     Author:     Lawrence C Paulson
     Copyright   1999  University of Cambridge
 
-Translation functions for the interface to SVC
+Translation functions for the interface to SVC.
 
 Based upon the work of Soren T. Heilmann
 
@@ -126,7 +125,7 @@ struct
    pos ["positive"]: true if an assumption, false if a goal*)
  fun expr_of pos t =
   let
-    val params = rev (rename_wrt_term t (Term.strip_all_vars t))
+    val params = rev (Term.rename_wrt_term t (Term.strip_all_vars t))
     and body   = Term.strip_all_body t
     val nat_vars = ref ([] : string list)
     (*translation of a variable: record all natural numbers*)

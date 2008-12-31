@@ -240,7 +240,7 @@ fun prove_strong_ind s avoids thy =
              if null (OldTerm.term_frees prem inter ps) then prem
              else lift_prem prem) prems,
            HOLogic.mk_Trueprop (lift_pred p ts));
-        val vs = map (Var o apfst (rpair 0)) (rename_wrt_term prem params')
+        val vs = map (Var o apfst (rpair 0)) (Term.rename_wrt_term prem params')
       in
         (list_all (params', prem), (rev vs, subst_bounds (vs, prem)))
       end) prems);

@@ -1,8 +1,6 @@
-(*
-  Title:	Transitivity reasoner for partial and linear orders
-  Id:		$Id$
-  Author:	Oliver Kutter
-  Copyright:	TU Muenchen
+(*  Author:     Oliver Kutter, TU Muenchen
+
+Transitivity reasoner for partial and linear orders.
 *)
 
 (* TODO: reduce number of input thms *)
@@ -1234,7 +1232,7 @@ in
 
     SUBGOAL (fn (A, n, sign) =>
      let
-      val rfrees = map Free (rename_wrt_term A (Logic.strip_params A))
+      val rfrees = map Free (Term.rename_wrt_term A (Logic.strip_params A))
       val Hs = map prop_of prems @ map (fn H => subst_bounds (rfrees, H)) (Logic.strip_assums_hyp A)
       val C = subst_bounds (rfrees, Logic.strip_assums_concl A)
       val lesss = List.concat (ListPair.map (mkasm decomp less_thms sign) (Hs, 0 upto (length Hs - 1)))

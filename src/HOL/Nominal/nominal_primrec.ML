@@ -155,7 +155,7 @@ fun process_fun lthy descr eqns (i, fname) (fnames, fnss) =
               val recs = filter (is_rec_type o snd) (cargs' ~~ cargs);
               val rargs = map fst recs;
               val subs = map (rpair dummyT o fst)
-                (rev (rename_wrt_term rhs rargs));
+                (rev (Term.rename_wrt_term rhs rargs));
               val (rhs', (fnames'', fnss'')) = subst (map2 (fn (x, y) => fn z =>
                 (Free x, (body_index y, Free z))) recs subs) rhs (fnames', fnss')
                   handle RecError s => primrec_eq_err lthy s eq
