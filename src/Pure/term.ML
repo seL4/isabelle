@@ -110,7 +110,6 @@ sig
   val exists_type: (typ -> bool) -> term -> bool
   val exists_subterm: (term -> bool) -> term -> bool
   val exists_Const: (string * typ -> bool) -> term -> bool
-  val rename_wrt_term: term -> (string * 'a) list -> (string * 'a) list
   val show_question_marks: bool ref
 end;
 
@@ -135,6 +134,11 @@ sig
   val add_free_names: term -> string list -> string list
   val add_frees: term -> (string * typ) list -> (string * typ) list
   val hidden_polymorphism: term -> (indexname * sort) list
+  val declare_typ_names: typ -> Name.context -> Name.context
+  val declare_term_names: term -> Name.context -> Name.context
+  val declare_term_frees: term -> Name.context -> Name.context
+  val variant_frees: term -> (string * 'a) list -> (string * 'a) list
+  val rename_wrt_term: term -> (string * 'a) list -> (string * 'a) list
   val eq_ix: indexname * indexname -> bool
   val eq_tvar: (indexname * sort) * (indexname * sort) -> bool
   val eq_var: (indexname * typ) * (indexname * typ) -> bool
@@ -149,9 +153,6 @@ sig
   val maxidx_term: term -> int -> int
   val has_abs: term -> bool
   val dest_abs: string * typ * term -> string * term
-  val declare_typ_names: typ -> Name.context -> Name.context
-  val declare_term_names: term -> Name.context -> Name.context
-  val variant_frees: term -> (string * 'a) list -> (string * 'a) list
   val dummy_patternN: string
   val dummy_pattern: typ -> term
   val is_dummy_pattern: term -> bool
@@ -470,6 +471,25 @@ fun hidden_polymorphism t =
   in extra_tvars end;
 
 
+(* renaming variables *)
+
+val declare_typ_names = fold_atyps (fn TFree (a, _) => Name.declare a | _ => I);
+
+fun declare_term_names tm =
+  fold_aterms
+    (fn Const (a, _) => Name.declare (NameSpace.base a)
+      | Free (a, _) => Name.declare a
+      | _ => I) tm #>
+  fold_types declare_typ_names tm;
+
+val declare_term_frees = fold_aterms (fn Free (x, _) => Name.declare x | _ => I);
+
+fun variant_frees t frees =
+  fst (Name.variants (map fst frees) (declare_term_names t Name.context)) ~~ map snd frees;
+
+fun rename_wrt_term t frees = rev (variant_frees t frees);  (*reversed result!*)
+
+
 
 (** Comparing terms **)
 
@@ -638,7 +658,7 @@ val betapplys = Library.foldl betapply;
   of bound variables and implicit eta-expansion*)
 fun strip_abs_eta k t =
   let
-    val used = fold_aterms (fn Free (v, _) => Name.declare v | _ => I) t Name.context;
+    val used = fold_aterms declare_term_frees t Name.context;
     fun strip_abs t (0, used) = (([], t), (0, used))
       | strip_abs (Abs (v, T, t)) (k, used) =
           let
@@ -874,23 +894,6 @@ fun dest_abs (x, T, body) =
     if name_clash body then dest_abs (Name.variant [x] x, T, body)    (*potentially slow*)
     else (x, subst_bound (Free (x, T), body))
   end;
-
-
-(* renaming variables *)
-
-val declare_typ_names = fold_atyps (fn TFree (a, _) => Name.declare a | _ => I);
-
-fun declare_term_names tm =
-  fold_aterms
-    (fn Const (a, _) => Name.declare (NameSpace.base a)
-      | Free (a, _) => Name.declare a
-      | _ => I) tm #>
-  fold_types declare_typ_names tm;
-
-fun variant_frees t frees =
-  fst (Name.variants (map fst frees) (declare_term_names t Name.context)) ~~ map snd frees;
-
-fun rename_wrt_term t frees = rev (variant_frees t frees);  (*reversed result!*)
 
 
 (* dummy patterns *)
