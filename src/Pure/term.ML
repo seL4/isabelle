@@ -1,5 +1,6 @@
 (*  Title:      Pure/term.ML
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
+    Author:     Makarius
 
 Simply typed lambda-calculus: types, terms, and basic operations.
 *)
