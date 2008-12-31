@@ -1,5 +1,4 @@
 (*  Title:      Pure/Proof/proof_rewrite_rules.ML
-    ID:         $Id$
     Author:     Stefan Berghofer, TU Muenchen
 
 Simplification functions for proof terms involving meta level rules.
@@ -196,7 +195,8 @@ fun rewrite_terms r =
   let
     fun rew_term Ts t =
       let
-        val frees = map Free (Name.invent_list (add_term_names (t, [])) "xa" (length Ts) ~~ Ts);
+        val frees =
+          map Free (Name.invent_list (OldTerm.add_term_names (t, [])) "xa" (length Ts) ~~ Ts);
         val t' = r (subst_bounds (frees, t));
         fun strip [] t = t
           | strip (_ :: xs) (Abs (_, _, t)) = strip xs t;
@@ -228,7 +228,7 @@ fun insert_refl defs Ts (prf1 %% prf2) =
           if member (op =) defs s then
             let
               val vs = vars_of prop;
-              val tvars = term_tvars prop;
+              val tvars = OldTerm.term_tvars prop;
               val (_, rhs) = Logic.dest_equals prop;
               val rhs' = Term.betapplys (subst_TVars (map fst tvars ~~ Ts)
                 (fold_rev (fn x => fn b => Abs ("", dummyT, abstract_over (x, b))) vs rhs),
@@ -249,7 +249,9 @@ fun elim_defs thy r defs prf =
         val cnames = map (fst o dest_Const o fst) defs';
         val thms = fold_proof_atoms true
           (fn PThm (_, ((name, prop, _), _)) =>
-              if member (op =) defnames name orelse null (term_consts prop inter cnames) then I
+              if member (op =) defnames name orelse
+                not (exists_Const (member (op =) cnames o #1) prop)
+              then I
               else cons (name, SOME prop)
             | _ => I) [prf] [];
       in Reconstruct.expand_proof thy thms end;
