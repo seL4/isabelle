@@ -176,9 +176,9 @@ fun filter_simp ctxt t (_, thm) =
 
 (* filter_pattern *)
 
-fun get_names (_, thm) = let
-    val t = Thm.full_prop_of thm;
-  in (term_consts t) union (add_term_free_names (t, [])) end;
+fun get_names (_, thm) =
+  fold_aterms (fn Const (c, _) => insert (op =) c | Free (x, _) => insert (op =) x | _ => I)
+    (Thm.full_prop_of thm) [];
 
 fun add_pat_names (t, cs) =
       case strip_comb t of
