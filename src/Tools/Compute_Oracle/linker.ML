@@ -81,7 +81,7 @@ fun substtab_unions [] = Substtab.empty
 
 datatype instances = Instances of unit ConsttabModTy.table * Type.tyenv Consttab.table Consttab.table * constant list list * unit Substtab.table
 
-fun is_polymorphic (Constant (_, _, ty)) = not (null (typ_tvars ty))
+fun is_polymorphic (Constant (_, _, ty)) = not (null (Term.add_tvarsT ty []))
 
 fun distinct_constants cs =
     Consttab.keys (fold (fn c => Consttab.update (c, ())) cs Consttab.empty)
@@ -90,7 +90,7 @@ fun empty cs =
     let
         val cs = distinct_constants (filter is_polymorphic cs)
         val old_cs = cs
-(*      fun collect_tvars ty tab = fold (fn v => fn tab => Typtab.update (TVar v, ()) tab) (typ_tvars ty) tab
+(*      fun collect_tvars ty tab = fold (fn v => fn tab => Typtab.update (TVar v, ()) tab) (OldTerm.typ_tvars ty) tab
         val tvars_count = length (Typtab.keys (fold (fn c => fn tab => collect_tvars (typ_of_constant c) tab) cs Typtab.empty))
         fun tvars_of ty = collect_tvars ty Typtab.empty
         val cs = map (fn c => (c, tvars_of (typ_of_constant c))) cs
@@ -262,10 +262,10 @@ fun create_theorem th =
 let
     val (left, right) = collect_consts_of_thm th
     val polycs = filter Linker.is_polymorphic left
-    val tytab = fold (fn p => fn tab => fold (fn n => fn tab => Typtab.update (TVar n, ()) tab) (typ_tvars (Linker.typ_of_constant p)) tab) polycs Typtab.empty
+    val tytab = fold (fn p => fn tab => fold (fn n => fn tab => Typtab.update (TVar n, ()) tab) (OldTerm.typ_tvars (Linker.typ_of_constant p)) tab) polycs Typtab.empty
     fun check_const (c::cs) cs' =
         let
-            val tvars = typ_tvars (Linker.typ_of_constant c)
+            val tvars = OldTerm.typ_tvars (Linker.typ_of_constant c)
             val wrong = fold (fn n => fn wrong => wrong orelse is_none (Typtab.lookup tytab (TVar n))) tvars false
         in
             if wrong then raise PCompute "right hand side of theorem contains type variables which do not occur on the left hand side"

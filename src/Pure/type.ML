@@ -265,9 +265,9 @@ end;
 (* no_tvars *)
 
 fun no_tvars T =
-  (case typ_tvars T of [] => T
+  (case Term.add_tvarsT T [] of [] => T
   | vs => raise TYPE ("Illegal schematic type variable(s): " ^
-      commas_quote (map (Term.string_of_vname o #1) vs), [T], []));
+      commas_quote (map (Term.string_of_vname o #1) (rev vs)), [T], []));
 
 
 (* varify *)
@@ -307,8 +307,8 @@ in
 (*this sort of code could replace unvarifyT*)
 fun freeze_thaw_type T =
   let
-    val used = add_typ_tfree_names (T, [])
-    and tvars = map #1 (add_typ_tvars (T, []));
+    val used = OldTerm.add_typ_tfree_names (T, [])
+    and tvars = map #1 (OldTerm.add_typ_tvars (T, []));
     val (alist, _) = List.foldr new_name ([], used) tvars;
   in (map_type_tvar (freeze_one alist) T, map_type_tfree (thaw_one (map swap alist))) end;
 
@@ -316,8 +316,8 @@ val freeze_type = #1 o freeze_thaw_type;
 
 fun freeze_thaw t =
   let
-    val used = it_term_types add_typ_tfree_names (t, [])
-    and tvars = map #1 (it_term_types add_typ_tvars (t, []));
+    val used = OldTerm.it_term_types OldTerm.add_typ_tfree_names (t, [])
+    and tvars = map #1 (OldTerm.it_term_types OldTerm.add_typ_tvars (t, []));
     val (alist, _) = List.foldr new_name ([], used) tvars;
   in
     (case alist of
