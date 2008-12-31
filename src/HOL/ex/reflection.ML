@@ -40,7 +40,7 @@ fun mk_congeq ctxt fs th =
        if exists (fn f => Term.could_unify (t |> strip_comb |> fst, f)) fs then insert (op aconv) t
        else add_fterms t1 #> add_fterms t2
      | add_fterms (t as Abs(xn,xT,t')) = 
-       if (fN mem (term_consts t)) then (fn _ => [t]) else (fn _ => [])
+       if exists_Const (fn (c, _) => c = fN) t then (fn _ => [t]) else (fn _ => [])
      | add_fterms _ = I
    val fterms = add_fterms rhs []
    val (xs, ctxt'') = Variable.variant_fixes (replicate (length fterms) "x") ctxt'

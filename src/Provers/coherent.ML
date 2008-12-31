@@ -1,7 +1,6 @@
 (*  Title:      Provers/coherent.ML
-    ID:         $Id$
     Author:     Stefan Berghofer, TU Muenchen
-                Marc Bezem, Institutt for Informatikk, Universitetet i Bergen 
+    Author:     Marc Bezem, Institutt for Informatikk, Universitetet i Bergen 
 
 Prover for coherent logic, see e.g.
 
@@ -39,7 +38,7 @@ datatype cl_prf =
   ClPrf of thm * (Type.tyenv * Envir.tenv) * ((indexname * typ) * term) list *
   int list * (term list * cl_prf) list;
 
-fun is_atomic t = null (term_consts t inter Data.operator_names);
+val is_atomic = not o exists_Const (member (op =) Data.operator_names o #1);
 
 local open Conv in
 
