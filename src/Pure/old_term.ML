@@ -7,7 +7,6 @@ Some old-style term operations.
 signature OLD_TERM =
 sig
   val it_term_types: (typ * 'a -> 'a) -> term * 'a -> 'a
-  val add_term_free_names: term * string list -> string list
   val add_term_names: term * string list -> string list
   val add_typ_tvars: typ * (indexname * sort) list -> (indexname * sort) list
   val add_typ_tfree_names: typ * string list -> string list
@@ -39,12 +38,6 @@ let fun iter(Const(_,T), a) = f(T,a)
       | iter(f$u, a) = iter(f, iter(u, a))
       | iter(Bound _, a) = a
 in iter end
-
-(*Accumulates the names of Frees in the term, suppressing duplicates.*)
-fun add_term_free_names (Free(a,_), bs) = insert (op =) a bs
-  | add_term_free_names (f$u, bs) = add_term_free_names (f, add_term_free_names(u, bs))
-  | add_term_free_names (Abs(_,_,t), bs) = add_term_free_names(t,bs)
-  | add_term_free_names (_, bs) = bs;
 
 (*Accumulates the names in the term, suppressing duplicates.
   Includes Frees and Consts.  For choosing unambiguous bound var names.*)
