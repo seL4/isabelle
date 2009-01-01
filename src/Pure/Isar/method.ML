@@ -1,5 +1,4 @@
 (*  Title:      Pure/Isar/method.ML
-    ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
 
 Isar proof methods.
@@ -223,15 +222,9 @@ fun cond_rtac cond rule = SUBGOAL (fn (prop, i) =>
   if cond (Logic.strip_assums_concl prop)
   then Tactic.rtac rule i else no_tac);
 
-fun legacy_tac st =
-  (legacy_feature
-      ("Implicit use of prems in assumption proof" ^ Position.str_of (Position.thread_data ()));
-    all_tac st);
-
 fun assm_tac ctxt =
   assume_tac APPEND'
   Goal.assume_rule_tac ctxt APPEND'
-  (CHANGED o solve_tac (Assumption.prems_of ctxt) THEN' K legacy_tac) APPEND'
   cond_rtac (can Logic.dest_equals) Drule.reflexive_thm APPEND'
   cond_rtac (can Logic.dest_term) Drule.termI;
 
