@@ -35,6 +35,7 @@ load "OS";
 load "Process";
 load "FileSys";
 load "IO";
+load "CharVector";
 
 exception Interrupt;
 
