@@ -328,7 +328,7 @@ next
   have ih2:"\<And>t. e\<^isub>2 \<Down> t \<Longrightarrow> e\<^isub>2' = t" by fact
   have ih3: "\<And>t. e\<^isub>1'[x::=e\<^isub>2'] \<Down> t \<Longrightarrow> e' = t" by fact
   have app: "App e\<^isub>1 e\<^isub>2 \<Down> t\<^isub>2" by fact
-  have vc: "x\<sharp>e\<^isub>1" "x\<sharp>e\<^isub>2" "x\<sharp>t\<^isub>2" by fact
+  have vc: "x\<sharp>e\<^isub>1" "x\<sharp>e\<^isub>2" "x\<sharp>t\<^isub>2" by fact+
   then have "x\<sharp>App e\<^isub>1 e\<^isub>2" by auto
   from app vc obtain f\<^isub>1 f\<^isub>2 where x1: "e\<^isub>1 \<Down> Lam [x]. f\<^isub>1" and x2: "e\<^isub>2 \<Down> f\<^isub>2" and x3: "f\<^isub>1[x::=f\<^isub>2] \<Down> t\<^isub>2"
     by (auto elim!: b_App_elim)
@@ -515,7 +515,7 @@ next
   have ih:"\<And>\<theta> \<Gamma> T. \<lbrakk>\<theta> Vcloses \<Gamma>; \<Gamma> \<turnstile> e : T\<rbrakk> \<Longrightarrow> \<exists>v. \<theta><e> \<Down> v \<and> v \<in> V T" by fact
   have as\<^isub>1: "\<theta> Vcloses \<Gamma>" by fact
   have as\<^isub>2: "\<Gamma> \<turnstile> Lam [x].e : T" by fact
-  have fs: "x\<sharp>\<Gamma>" "x\<sharp>\<theta>" by fact
+  have fs: "x\<sharp>\<Gamma>" "x\<sharp>\<theta>" by fact+
   from as\<^isub>2 fs obtain T\<^isub>1 T\<^isub>2 
     where "(i)": "(x,T\<^isub>1)#\<Gamma> \<turnstile> e:T\<^isub>2" and "(ii)": "T = T\<^isub>1 \<rightarrow> T\<^isub>2" using fs
     by (auto elim: t_Lam_elim)
