@@ -16,7 +16,7 @@ definition csqrt :: "complex \<Rightarrow> complex" where
 
 lemma csqrt[algebra]: "csqrt z ^ 2 = z"
 proof-
-  obtain x y where xy: "z = Complex x y" by (cases z, simp_all)
+  obtain x y where xy: "z = Complex x y" by (cases z)
   {assume y0: "y = 0"
     {assume x0: "x \<ge> 0" 
       then have ?thesis using y0 xy real_sqrt_pow2[OF x0]
