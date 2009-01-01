@@ -572,8 +572,8 @@ val collect_ignored =
     fold_rev (fn thm => fn cs =>
               let
                   val (lhs,rhs) = Logic.dest_equals (prop_of thm)
-                  val ignore_lhs = OldTerm.term_consts lhs \\ OldTerm.term_consts rhs
-                  val ignore_rhs = OldTerm.term_consts rhs \\ OldTerm.term_consts lhs
+                  val ignore_lhs = Term.add_const_names lhs [] \\ Term.add_const_names rhs []
+                  val ignore_rhs = Term.add_const_names rhs [] \\ Term.add_const_names lhs []
               in
                   fold_rev (insert (op =)) cs (ignore_lhs @ ignore_rhs)
               end)

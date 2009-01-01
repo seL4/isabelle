@@ -169,7 +169,7 @@ fun remove_suc thy thms =
 fun eqn_suc_preproc thy ths =
   let
     val dest = fst o HOLogic.dest_eq o HOLogic.dest_Trueprop o prop_of;
-    fun contains_suc t = member (op =) (OldTerm.term_consts t) @{const_name Suc};
+    val contains_suc = exists_Const (fn (c, _) => c = @{const_name Suc});
   in
     if forall (can dest) ths andalso
       exists (contains_suc o dest) ths
@@ -211,8 +211,8 @@ fun clause_suc_preproc thy ths =
     val dest = fst o HOLogic.dest_mem o HOLogic.dest_Trueprop
   in
     if forall (can (dest o concl_of)) ths andalso
-      exists (fn th => member (op =) (foldr OldTerm.add_term_consts
-        [] (map_filter (try dest) (concl_of th :: prems_of th))) "Suc") ths
+      exists (fn th => exists (exists_Const (fn (c, _) => c = @{const_name Suc}))
+        (map_filter (try dest) (concl_of th :: prems_of th))) ths
     then remove_suc_clause thy ths else ths
   end;
 

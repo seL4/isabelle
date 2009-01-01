@@ -158,7 +158,7 @@ fun prove_strong_ind s avoids thy =
     val elims = map (atomize_induct ctxt) elims;
     val monos = InductivePackage.get_monos ctxt;
     val eqvt_thms = NominalThmDecls.get_eqvt_thms ctxt;
-    val _ = (case names \\ foldl (apfst prop_of #> OldTerm.add_term_consts) [] eqvt_thms of
+    val _ = (case names \\ fold (Term.add_const_names o Thm.prop_of) eqvt_thms [] of
         [] => ()
       | xs => error ("Missing equivariance theorem for predicate(s): " ^
           commas_quote xs));

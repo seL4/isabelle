@@ -14,7 +14,6 @@ sig
   val add_term_tvars: term * (indexname * sort) list -> (indexname * sort) list
   val add_term_tfrees: term * (string * sort) list -> (string * sort) list
   val add_term_tfree_names: term * string list -> string list
-  val add_term_consts: term * string list -> string list
   val typ_tfrees: typ -> (string * sort) list
   val typ_tvars: typ -> (indexname * sort) list
   val term_tfrees: term -> (string * sort) list
@@ -23,7 +22,6 @@ sig
   val term_vars: term -> term list
   val add_term_frees: term * term list -> term list
   val term_frees: term -> term list
-  val term_consts: term -> string list
 end;
 
 structure OldTerm: OLD_TERM =
@@ -68,17 +66,11 @@ val add_term_tvars = it_term_types add_typ_tvars;
 val add_term_tfrees = it_term_types add_typ_tfrees;
 val add_term_tfree_names = it_term_types add_typ_tfree_names;
 
-fun add_term_consts (Const (c, _), cs) = insert (op =) c cs
-  | add_term_consts (t $ u, cs) = add_term_consts (t, add_term_consts (u, cs))
-  | add_term_consts (Abs (_, _, t), cs) = add_term_consts (t, cs)
-  | add_term_consts (_, cs) = cs;
-
 (*Non-list versions*)
 fun typ_tfrees T = add_typ_tfrees(T,[]);
 fun typ_tvars T = add_typ_tvars(T,[]);
 fun term_tfrees t = add_term_tfrees(t,[]);
 fun term_tvars t = add_term_tvars(t,[]);
-fun term_consts t = add_term_consts(t,[]);
 
 
 (*Accumulates the Vars in the term, suppressing duplicates.*)
