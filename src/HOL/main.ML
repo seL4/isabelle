@@ -1,7 +1,2 @@
-(*  Title:      HOL/main.ML
-    ID:         $Id$
- 
-Classical Higher-order Logic -- only "Main".
-*)
-
+(*side-entry for HOL-Main*)
 use_thy "Main";

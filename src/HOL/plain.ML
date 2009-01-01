@@ -1,6 +1,2 @@
-(*  Title:      HOL/plain.ML
- 
-Classical Higher-order Logic -- plain Tool bootstrap.
-*)
-
+(*side-entry for HOL-Plain*)
 use_thy "Plain";

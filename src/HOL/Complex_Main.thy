@@ -1,9 +1,4 @@
-(*  Title:      HOL/Complex_Main.thy
-    Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
-    Copyright   2003  University of Cambridge
-*)
-
-header{*Comprehensive Complex Theory*}
+header {* Comprehensive Complex Theory *}
 
 theory Complex_Main
 imports
