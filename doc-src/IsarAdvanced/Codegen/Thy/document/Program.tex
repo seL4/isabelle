@@ -87,10 +87,10 @@ Coming back to our introductory example, we
 \begin{isamarkuptext}%
 \isatypewriter%
 \noindent%
-\hspace*{0pt}dequeue ::~forall a. Queue a -> (Maybe a, Queue a);\\
-\hspace*{0pt}dequeue (Queue xs (y :~ys)) = (Just y, Queue xs ys);\\
+\hspace*{0pt}dequeue ::~forall a.~Queue a -> (Maybe a,~Queue a);\\
+\hspace*{0pt}dequeue (Queue xs (y :~ys)) = (Just y,~Queue xs ys);\\
 \hspace*{0pt}dequeue (Queue xs []) =\\
-\hspace*{0pt} ~(if nulla xs then (Nothing, Queue [] [])\\
+\hspace*{0pt} ~(if nulla xs then (Nothing,~Queue [] [])\\
 \hspace*{0pt} ~~~else dequeue (Queue [] (rev xs)));%
 \end{isamarkuptext}%
 \isamarkuptrue%
@@ -286,7 +286,7 @@ Concerning type classes and code generation, let us examine an example
 \hspace*{0pt} ~neutral ::~a;\\
 \hspace*{0pt}{\char125};\\
 \hspace*{0pt}\\
-\hspace*{0pt}pow ::~forall a. (Monoid a) => Nat -> a -> a;\\
+\hspace*{0pt}pow ::~forall a.~(Monoid a) => Nat -> a -> a;\\
 \hspace*{0pt}pow Zero{\char95}nat a = neutral;\\
 \hspace*{0pt}pow (Suc n) a = mult a (pow n a);\\
 \hspace*{0pt}\\
@@ -346,7 +346,7 @@ Concerning type classes and code generation, let us examine an example
 \hspace*{0pt}type 'a semigroup = {\char123}mult :~'a -> 'a -> 'a{\char125};\\
 \hspace*{0pt}fun mult (A{\char95}:'a semigroup) = {\char35}mult A{\char95};\\
 \hspace*{0pt}\\
-\hspace*{0pt}type 'a monoid = {\char123}Program{\char95}{\char95}semigroup{\char95}monoid :~'a semigroup, neutral :~'a{\char125};\\
+\hspace*{0pt}type 'a monoid = {\char123}Program{\char95}{\char95}semigroup{\char95}monoid :~'a semigroup,~neutral :~'a{\char125};\\
 \hspace*{0pt}fun semigroup{\char95}monoid (A{\char95}:'a monoid) = {\char35}Program{\char95}{\char95}semigroup{\char95}monoid A{\char95};\\
 \hspace*{0pt}fun neutral (A{\char95}:'a monoid) = {\char35}neutral A{\char95};\\
 \hspace*{0pt}\\
@@ -356,7 +356,7 @@ Concerning type classes and code generation, let us examine an example
 \hspace*{0pt}fun plus{\char95}nat (Suc m) n = plus{\char95}nat m (Suc n)\\
 \hspace*{0pt} ~| plus{\char95}nat Zero{\char95}nat n = n;\\
 \hspace*{0pt}\\
-\hspace*{0pt}val neutral{\char95}nat :~nat = Suc Zero{\char95}nat;\\
+\hspace*{0pt}val neutral{\char95}nat :~nat = Suc Zero{\char95}nat\\
 \hspace*{0pt}\\
 \hspace*{0pt}fun mult{\char95}nat Zero{\char95}nat n = Zero{\char95}nat\\
 \hspace*{0pt} ~| mult{\char95}nat (Suc m) n = plus{\char95}nat n (mult{\char95}nat m n);\\
@@ -364,12 +364,12 @@ Concerning type classes and code generation, let us examine an example
 \hspace*{0pt}val semigroup{\char95}nat = {\char123}mult = mult{\char95}nat{\char125}~:~nat semigroup;\\
 \hspace*{0pt}\\
 \hspace*{0pt}val monoid{\char95}nat =\\
-\hspace*{0pt} ~{\char123}Program{\char95}{\char95}semigroup{\char95}monoid = semigroup{\char95}nat, neutral = neutral{\char95}nat{\char125}~:\\
+\hspace*{0pt} ~{\char123}Program{\char95}{\char95}semigroup{\char95}monoid = semigroup{\char95}nat,~neutral = neutral{\char95}nat{\char125}~:\\
 \hspace*{0pt} ~nat monoid;\\
 \hspace*{0pt}\\
 \hspace*{0pt}fun bexp n = pow monoid{\char95}nat n (Suc (Suc Zero{\char95}nat));\\
 \hspace*{0pt}\\
-\hspace*{0pt}end; (*struct Example*)%
+\hspace*{0pt}end;~(*struct Example*)%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -675,7 +675,7 @@ Conceptually, any datatype is spanned by a set of
 \hspace*{0pt} ~| plus{\char95}nat m Zero{\char95}nat = m\\
 \hspace*{0pt} ~| plus{\char95}nat Zero{\char95}nat n = n;\\
 \hspace*{0pt}\\
-\hspace*{0pt}end; (*struct Example*)%
+\hspace*{0pt}end;~(*struct Example*)%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -794,7 +794,7 @@ Surely you have already noticed how equality is treated
 \hspace*{0pt} ~~~~~~~~~~~~else collect{\char95}duplicates A{\char95}~xs (z ::~ys) zs)\\
 \hspace*{0pt} ~~~~~else collect{\char95}duplicates A{\char95}~(z ::~xs) (z ::~ys) zs);\\
 \hspace*{0pt}\\
-\hspace*{0pt}end; (*struct Example*)%
+\hspace*{0pt}end;~(*struct Example*)%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -918,7 +918,7 @@ Surely you have already noticed how equality is treated
 \hspace*{0pt}type 'a eq = {\char123}eq :~'a -> 'a -> bool{\char125};\\
 \hspace*{0pt}fun eq (A{\char95}:'a eq) = {\char35}eq A{\char95};\\
 \hspace*{0pt}\\
-\hspace*{0pt}type 'a ord = {\char123}less{\char95}eq :~'a -> 'a -> bool, less :~'a -> 'a -> bool{\char125};\\
+\hspace*{0pt}type 'a ord = {\char123}less{\char95}eq :~'a -> 'a -> bool,~less :~'a -> 'a -> bool{\char125};\\
 \hspace*{0pt}fun less{\char95}eq (A{\char95}:'a ord) = {\char35}less{\char95}eq A{\char95};\\
 \hspace*{0pt}fun less (A{\char95}:'a ord) = {\char35}less A{\char95};\\
 \hspace*{0pt}\\
@@ -930,16 +930,16 @@ Surely you have already noticed how equality is treated
 \hspace*{0pt}type 'a order = {\char123}Orderings{\char95}{\char95}preorder{\char95}order :~'a preorder{\char125};\\
 \hspace*{0pt}fun preorder{\char95}order (A{\char95}:'a order) = {\char35}Orderings{\char95}{\char95}preorder{\char95}order A{\char95};\\
 \hspace*{0pt}\\
-\hspace*{0pt}fun less{\char95}eqa (A1{\char95}, A2{\char95}) B{\char95}~(x1, y1) (x2, y2) =\\
+\hspace*{0pt}fun less{\char95}eqa (A1{\char95},~A2{\char95}) B{\char95}~(x1,~y1) (x2,~y2) =\\
 \hspace*{0pt} ~less ((ord{\char95}preorder o preorder{\char95}order) A2{\char95}) x1 x2 orelse\\
 \hspace*{0pt} ~~~eqop A1{\char95}~x1 x2 andalso\\
 \hspace*{0pt} ~~~~~less{\char95}eq ((ord{\char95}preorder o preorder{\char95}order) B{\char95}) y1 y2\\
-\hspace*{0pt} ~| less{\char95}eqa (A1{\char95}, A2{\char95}) B{\char95}~(x1, y1) (x2, y2) =\\
+\hspace*{0pt} ~| less{\char95}eqa (A1{\char95},~A2{\char95}) B{\char95}~(x1,~y1) (x2,~y2) =\\
 \hspace*{0pt} ~~~less ((ord{\char95}preorder o preorder{\char95}order) A2{\char95}) x1 x2 orelse\\
 \hspace*{0pt} ~~~~~eqop A1{\char95}~x1 x2 andalso\\
 \hspace*{0pt} ~~~~~~~less{\char95}eq ((ord{\char95}preorder o preorder{\char95}order) B{\char95}) y1 y2;\\
 \hspace*{0pt}\\
-\hspace*{0pt}end; (*struct Example*)%
+\hspace*{0pt}end;~(*struct Example*)%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -1052,10 +1052,10 @@ In some cases, the automatically derived defining equations
 \hspace*{0pt} ~| list{\char95}all2 p xs [] = null xs\\
 \hspace*{0pt} ~| list{\char95}all2 p [] ys = null ys;\\
 \hspace*{0pt}\\
-\hspace*{0pt}fun eq{\char95}monotype (Mono (tyco1, typargs1)) (Mono (tyco2, typargs2)) =\\
+\hspace*{0pt}fun eq{\char95}monotype (Mono (tyco1,~typargs1)) (Mono (tyco2,~typargs2)) =\\
 \hspace*{0pt} ~eq{\char95}nat tyco1 tyco2 andalso list{\char95}all2 eq{\char95}monotype typargs1 typargs2;\\
 \hspace*{0pt}\\
-\hspace*{0pt}end; (*struct Example*)%
+\hspace*{0pt}end;~(*struct Example*)%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -1108,12 +1108,12 @@ Partiality usually enters the game by partial patterns, as
 \begin{isamarkuptext}%
 \isatypewriter%
 \noindent%
-\hspace*{0pt}strict{\char95}dequeue ::~forall a. Queue a -> (a, Queue a);\\
-\hspace*{0pt}strict{\char95}dequeue (Queue xs (y :~ys)) = (y, Queue xs ys);\\
+\hspace*{0pt}strict{\char95}dequeue ::~forall a.~Queue a -> (a,~Queue a);\\
+\hspace*{0pt}strict{\char95}dequeue (Queue xs (y :~ys)) = (y,~Queue xs ys);\\
 \hspace*{0pt}strict{\char95}dequeue (Queue xs []) =\\
 \hspace*{0pt} ~let {\char123}\\
 \hspace*{0pt} ~~~(y :~ys) = rev xs;\\
-\hspace*{0pt} ~{\char125}~in (y, Queue [] ys);%
+\hspace*{0pt} ~{\char125}~in (y,~Queue [] ys);%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -1204,13 +1204,13 @@ Partiality usually enters the game by partial patterns, as
 \begin{isamarkuptext}%
 \isatypewriter%
 \noindent%
-\hspace*{0pt}empty{\char95}queue ::~forall a. a;\\
+\hspace*{0pt}empty{\char95}queue ::~forall a.~a;\\
 \hspace*{0pt}empty{\char95}queue = error {\char34}empty{\char95}queue{\char34};\\
 \hspace*{0pt}\\
-\hspace*{0pt}strict{\char95}dequeue' ::~forall a. Queue a -> (a, Queue a);\\
+\hspace*{0pt}strict{\char95}dequeue' ::~forall a.~Queue a -> (a,~Queue a);\\
 \hspace*{0pt}strict{\char95}dequeue' (Queue xs []) =\\
 \hspace*{0pt} ~(if nulla xs then empty{\char95}queue else strict{\char95}dequeue' (Queue [] (rev xs)));\\
-\hspace*{0pt}strict{\char95}dequeue' (Queue xs (y :~ys)) = (y, Queue xs ys);%
+\hspace*{0pt}strict{\char95}dequeue' (Queue xs (y :~ys)) = (y,~Queue xs ys);%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
