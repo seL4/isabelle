@@ -452,7 +452,7 @@ proof (induct t\<^isub>1)
   case Tip thus ?case by simp
 next
   case (Node l x d r)
-  have sub: "subtract (Node l x d r) t\<^isub>2 = Some t".
+  have sub: "subtract (Node l x d r) t\<^isub>2 = Some t" by fact
   show ?case
   proof (cases "delete x t\<^isub>2")
     case (Some t\<^isub>2')

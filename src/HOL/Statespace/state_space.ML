@@ -1,5 +1,4 @@
 (*  Title:      HOL/Statespace/state_space.ML
-    ID:         $Id$
     Author:     Norbert Schirmer, TU Muenchen
 *)
 
@@ -421,7 +420,10 @@ fun statespace_definition state_type args name parents parent_comps components t
 
         val expr = ([(suffix valuetypesN name, 
                      (("",false),Expression.Positional (map SOME pars)))],[]);
-      in prove_interpretation_in (K all_tac) (suffix valuetypesN name, expr) thy end;
+      in
+        prove_interpretation_in (ALLGOALS o solve_tac o Assumption.prems_of)
+          (suffix valuetypesN name, expr) thy
+      end;
 
     fun interprete_parent (_, pname, rs) =
       let

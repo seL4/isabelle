@@ -204,7 +204,7 @@ lemma (in normed_vectorspace_with_fn_norm) fn_norm_le_cong:
   shows "\<bar>f x\<bar> \<le> \<parallel>f\<parallel>\<hyphen>V * \<parallel>x\<parallel>"
 proof -
   interpret continuous V norm f by fact
-  interpret linearform V f .
+  interpret linearform V f by fact
   show ?thesis
   proof cases
     assume "x = 0"

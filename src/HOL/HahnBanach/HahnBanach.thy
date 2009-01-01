@@ -492,7 +492,7 @@ proof -
 	then have "\<bar>f x\<bar> = \<bar>g x\<bar>" by (simp only:)
 	also from g_cont
 	have "\<dots> \<le> \<parallel>g\<parallel>\<hyphen>E * \<parallel>x\<parallel>"
-	proof (rule fn_norm_le_cong [of g, folded B_def fn_norm_def])
+	proof (rule fn_norm_le_cong [OF _ linearformE, folded B_def fn_norm_def])
 	  from FE x show "x \<in> E" ..
 	qed
 	finally show "\<bar>f x\<bar> \<le> \<parallel>g\<parallel>\<hyphen>E * \<parallel>x\<parallel>" .
