@@ -24,9 +24,9 @@ text %mlref {*
   \begin{mldecls}
   @{index_ML Code.add_eqn: "thm -> theory -> theory"} \\
   @{index_ML Code.del_eqn: "thm -> theory -> theory"} \\
-  @{index_ML Code.add_eqnl: "string * (thm * bool) list Lazy.T -> theory -> theory"} \\
-  @{index_ML Code.map_pre: "(MetaSimplifier.simpset -> MetaSimplifier.simpset) -> theory -> theory"} \\
-  @{index_ML Code.map_post: "(MetaSimplifier.simpset -> MetaSimplifier.simpset) -> theory -> theory"} \\
+  @{index_ML Code.add_eqnl: "string * (thm * bool) list lazy -> theory -> theory"} \\
+  @{index_ML Code.map_pre: "(simpset -> simpset) -> theory -> theory"} \\
+  @{index_ML Code.map_post: "(simpset -> simpset) -> theory -> theory"} \\
   @{index_ML Code.add_functrans: "string * (theory -> (thm * bool) list -> (thm * bool) list option)
     -> theory -> theory"} \\
   @{index_ML Code.del_functrans: "string -> theory -> theory"} \\
@@ -80,7 +80,7 @@ text %mlref {*
   \begin{mldecls}
   @{index_ML Code_Unit.read_const: "theory -> string -> string"} \\
   @{index_ML Code_Unit.head_eqn: "theory -> thm -> string * ((string * sort) list * typ)"} \\
-  @{index_ML Code_Unit.rewrite_eqn: "MetaSimplifier.simpset -> thm -> thm"} \\
+  @{index_ML Code_Unit.rewrite_eqn: "simpset -> thm -> thm"} \\
   \end{mldecls}
 
   \begin{description}
