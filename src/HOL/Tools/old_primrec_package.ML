@@ -34,14 +34,13 @@ fun primrec_eq_err thy s eq =
   same type in all introduction rules*)
 fun unify_consts thy cs intr_ts =
   (let
-    val add_term_consts_2 = fold_aterms (fn Const c => insert (op =) c | _ => I);
     fun varify (t, (i, ts)) =
       let val t' = map_types (Logic.incr_tvar (i + 1)) (snd (Type.varify [] t))
       in (maxidx_of_term t', t'::ts) end;
     val (i, cs') = foldr varify (~1, []) cs;
     val (i', intr_ts') = foldr varify (i, []) intr_ts;
-    val rec_consts = fold add_term_consts_2 cs' [];
-    val intr_consts = fold add_term_consts_2 intr_ts' [];
+    val rec_consts = fold Term.add_consts cs' [];
+    val intr_consts = fold Term.add_consts intr_ts' [];
     fun unify (cname, cT) =
       let val consts = map snd (filter (fn (c, _) => c = cname) intr_consts)
       in fold (Sign.typ_unify thy) ((replicate (length consts) cT) ~~ consts) end;
