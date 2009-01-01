@@ -16,12 +16,12 @@ text {* In the above example, the fact that @{text \<le>} is a partial
   \isakeyword{interpret}).  This interpretation is inside the proof of the global
   interpretation.  The third revision of the example illustrates this.  *}
 
-interpretation %visible nat: partial_order ["op \<le> :: nat \<Rightarrow> nat \<Rightarrow> bool"]
+interpretation %visible nat: partial_order "op \<le> :: nat \<Rightarrow> nat \<Rightarrow> bool"
   where "partial_order.less (op \<le>) (x::nat) y = (x < y)"
 proof -
   show "partial_order (op \<le> :: nat \<Rightarrow> nat \<Rightarrow> bool)"
     by unfold_locales auto
-  then interpret nat: partial_order ["op \<le> :: [nat, nat] \<Rightarrow> bool"] .
+  then interpret nat: partial_order "op \<le> :: [nat, nat] \<Rightarrow> bool" .
   show "partial_order.less (op \<le>) (x::nat) y = (x < y)"
     unfolding nat.less_def by auto
 qed
@@ -48,7 +48,7 @@ text {* Further interpretations are necessary to reuse theorems from
   interpretation is reproduced in order to give an example of a more
   elaborate interpretation proof.  *}
 
-interpretation %visible nat: lattice ["op \<le> :: nat \<Rightarrow> nat \<Rightarrow> bool"]
+interpretation %visible nat: lattice "op \<le> :: nat \<Rightarrow> nat \<Rightarrow> bool"
   where "lattice.meet op \<le> (x::nat) y = min x y"
     and "lattice.join op \<le> (x::nat) y = max x y"
 proof -
@@ -63,7 +63,7 @@ proof -
     by arith+
   txt {* In order to show the equations, we put ourselves in a
     situation where the lattice theorems can be used in a convenient way. *}
-  then interpret nat: lattice ["op \<le> :: nat \<Rightarrow> nat \<Rightarrow> bool"] .
+  then interpret nat: lattice "op \<le> :: nat \<Rightarrow> nat \<Rightarrow> bool" .
   show "lattice.meet op \<le> (x::nat) y = min x y"
     by (bestsimp simp: nat.meet_def nat.is_inf_def)
   show "lattice.join op \<le> (x::nat) y = max x y"
@@ -73,7 +73,7 @@ qed
 text {* That the relation @{text \<le>} is a total order completes this
   sequence of interpretations. *}
 
-interpretation %visible nat: total_order ["op \<le> :: nat \<Rightarrow> nat \<Rightarrow> bool"]
+interpretation %visible nat: total_order "op \<le> :: nat \<Rightarrow> nat \<Rightarrow> bool"
   by unfold_locales arith
 
 text {* Theorems that are available in the theory at this point are shown in
@@ -130,12 +130,12 @@ text {* Divisibility on the natural numbers is a distributive lattice
   but not a total order.  Interpretation again proceeds
   incrementally. *}
 
-interpretation nat_dvd: partial_order ["op dvd :: nat \<Rightarrow> nat \<Rightarrow> bool"]
+interpretation nat_dvd: partial_order "op dvd :: nat \<Rightarrow> nat \<Rightarrow> bool"
   where "partial_order.less op dvd (x::nat) y = (x dvd y \<and> x \<noteq> y)"
 proof -
   show "partial_order (op dvd :: nat \<Rightarrow> nat \<Rightarrow> bool)"
     by unfold_locales (auto simp: dvd_def)
-  then interpret nat_dvd: partial_order ["op dvd :: nat \<Rightarrow> nat \<Rightarrow> bool"] .
+  then interpret nat_dvd: partial_order "op dvd :: nat \<Rightarrow> nat \<Rightarrow> bool" .
   show "partial_order.less op dvd (x::nat) y = (x dvd y \<and> x \<noteq> y)"
     apply (unfold nat_dvd.less_def)
     apply auto
@@ -145,7 +145,7 @@ qed
 text {* Note that there is no symbol for strict divisibility.  Instead,
   interpretation substitutes @{term "x dvd y \<and> x \<noteq> y"}.   *}
 
-interpretation nat_dvd: lattice ["op dvd :: nat \<Rightarrow> nat \<Rightarrow> bool"]
+interpretation nat_dvd: lattice "op dvd :: nat \<Rightarrow> nat \<Rightarrow> bool"
   where nat_dvd_meet_eq:
       "lattice.meet op dvd = gcd"
     and nat_dvd_join_eq:
@@ -159,7 +159,7 @@ proof -
     apply (rule_tac x = "lcm x y" in exI)
     apply (auto intro: lcm_dvd1 lcm_dvd2 lcm_least)
     done
-  then interpret nat_dvd: lattice ["op dvd :: nat \<Rightarrow> nat \<Rightarrow> bool"] .
+  then interpret nat_dvd: lattice "op dvd :: nat \<Rightarrow> nat \<Rightarrow> bool" .
   show "lattice.meet op dvd = gcd"
     apply (auto simp add: expand_fun_eq)
     apply (unfold nat_dvd.meet_def)
@@ -203,7 +203,7 @@ lemma %invisible gcd_lcm_distr:
 ML %invisible {* reset quick_and_dirty *}
   
 interpretation %visible nat_dvd:
-  distrib_lattice ["op dvd :: nat \<Rightarrow> nat \<Rightarrow> bool"]
+  distrib_lattice "op dvd :: nat \<Rightarrow> nat \<Rightarrow> bool"
   apply unfold_locales
   txt {* @{subgoals [display]} *}
   apply (unfold nat_dvd_meet_eq nat_dvd_join_eq)
@@ -262,7 +262,7 @@ text {*
   preserving maps can be declared in the following way.  *}
 
   locale order_preserving =
-    partial_order + partial_order le' (infixl "\<preceq>" 50) +
+    partial_order + po': partial_order le' for le' (infixl "\<preceq>" 50) +
     fixes \<phi> :: "'a \<Rightarrow> 'b"
     assumes hom_le: "x \<sqsubseteq> y \<Longrightarrow> \<phi> x \<preceq> \<phi> y"
 
@@ -288,7 +288,8 @@ text {* The second line contains the expression, which is the
   obtained by appending the conclusions of the left locale and of the
   right locale.  *}
 
-text {* The locale @{text order_preserving} contains theorems for both
+text {* % FIXME needs update
+  The locale @{text order_preserving} contains theorems for both
   orders @{text \<sqsubseteq>} and @{text \<preceq>}.  How can one refer to a theorem for
   a particular order, @{text \<sqsubseteq>} or @{text \<preceq>}?  Names in locales are
   qualified by the locale parameters.  More precisely, a name is
@@ -297,20 +298,21 @@ text {* The locale @{text order_preserving} contains theorems for both
 
 context %invisible order_preserving begin
 
-text {*
-  @{thm [source] le.less_le_trans}: @{thm le.less_le_trans}
+text {* % FIXME needs update?
+  @{thm [source] less_le_trans}: @{thm less_le_trans}
 
-  @{thm [source] le_le'_\<phi>.hom_le}: @{thm le_le'_\<phi>.hom_le}
+  @{thm [source] hom_le}: @{thm hom_le}
   *}
 
 text {* When renaming a locale, the morphism is also applied
   to the qualifiers.  Hence theorems for the partial order @{text \<preceq>}
   are qualified by @{text le'}.  For example, @{thm [source]
-  le'.less_le_trans}: @{thm [display, indent=2] le'.less_le_trans} *}
+  po'.less_le_trans}: @{thm [display, indent=2] po'.less_le_trans} *}
 
 end %invisible
 
-text {* This example reveals that there is no infix syntax for the strict
+text {* % FIXME needs update?
+  This example reveals that there is no infix syntax for the strict
   version of @{text \<preceq>}!  This can, of course, not be introduced
   automatically, but it can be declared manually through an abbreviation.
   *}
@@ -319,7 +321,7 @@ text {* This example reveals that there is no infix syntax for the strict
     less' (infixl "\<prec>" 50) where "less' \<equiv> partial_order.less le'"
 
 text {* Now the theorem is displayed nicely as
-  @{thm [locale=order_preserving] le'.less_le_trans}.  *}
+  @{thm [locale=order_preserving] po'.less_le_trans}.  *}
 
 text {* Not only names of theorems are qualified.  In fact, all names
   are qualified, in particular names introduced by definitions and
@@ -331,7 +333,7 @@ text {* Not only names of theorems are qualified.  In fact, all names
 text {* Two more locales illustrate working with locale expressions.
   A map @{text \<phi>} is a lattice homomorphism if it preserves meet and join. *}
 
-  locale lattice_hom = lattice + lattice le' (infixl "\<preceq>" 50) +
+  locale lattice_hom = lattice + lat'!: lattice le' for le' (infixl "\<preceq>" 50) +
     fixes \<phi>
     assumes hom_meet:
 	"\<phi> (lattice.meet le x y) = lattice.meet le' (\<phi> x) (\<phi> y)"
@@ -339,14 +341,14 @@ text {* Two more locales illustrate working with locale expressions.
 	"\<phi> (lattice.join le x y) = lattice.join le' (\<phi> x) (\<phi> y)"
 
   abbreviation (in lattice_hom)
-    meet' (infixl "\<sqinter>''" 50) where "meet' \<equiv> le'.meet"
+    meet' (infixl "\<sqinter>''" 50) where "meet' \<equiv> lat'.meet"
   abbreviation (in lattice_hom)
-    join' (infixl "\<squnion>''" 50) where "join' \<equiv> le'.join"
+    join' (infixl "\<squnion>''" 50) where "join' \<equiv> lat'.join"
 
 text {* A homomorphism is an endomorphism if both orders coincide. *}
 
   locale lattice_end =
-    lattice_hom le (infixl "\<sqsubseteq>" 50) le (infixl "\<sqsubseteq>" 50)
+    lattice_hom le le for le (infixl "\<sqsubseteq>" 50)
 
 text {* The inheritance diagram of the situation we have now is shown
   in Figure~\ref{fig:hom}, where the dashed line depicts an
@@ -395,20 +397,20 @@ text {* It can be shown easily that a lattice homomorphism is order
   preserving.  As the final example of this section, a locale
   interpretation is used to assert this. *}
 
-  interpretation lattice_hom \<subseteq> order_preserving proof unfold_locales
+  sublocale lattice_hom \<subseteq> order_preserving proof unfold_locales
     fix x y
     assume "x \<sqsubseteq> y"
-    then have "y = (x \<squnion> y)" by (simp add: le.join_connection)
+    then have "y = (x \<squnion> y)" by (simp add: join_connection)
     then have "\<phi> y = (\<phi> x \<squnion>' \<phi> y)" by (simp add: hom_join [symmetric])
-    then show "\<phi> x \<preceq> \<phi> y" by (simp add: le'.join_connection)
+    then show "\<phi> x \<preceq> \<phi> y" by (simp add: lat'.join_connection)
   qed
 
 text {* Theorems and other declarations --- syntax, in particular ---
   from the locale @{text order_preserving} are now active in @{text
   lattice_hom}, for example
 
-  @{thm [locale=lattice_hom, source] le'.less_le_trans}:
-  @{thm [locale=lattice_hom] le'.less_le_trans}
+  @{thm [locale=lattice_hom, source] lat'.less_le_trans}:
+  @{thm [locale=lattice_hom] lat'.less_le_trans}
   *}
 
 
