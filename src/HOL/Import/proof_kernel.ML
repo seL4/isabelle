@@ -280,14 +280,12 @@ fun i mem L =
           | itr (a::rst) = i=a orelse itr rst
     in itr L end;
 
-fun insert i L = if i mem L then L else i::L
-
 fun mk_set [] = []
-  | mk_set (a::rst) = insert a (mk_set rst)
+  | mk_set (a::rst) = insert (op =) a (mk_set rst)
 
 fun [] union S = S
   | S union [] = S
-  | (a::rst) union S2 = rst union (insert a S2)
+  | (a::rst) union S2 = rst union (insert (op =) a S2)
 
 fun implode_subst [] = []
   | implode_subst (x::r::rest) = ((x,r)::(implode_subst rest))
@@ -1213,24 +1211,23 @@ fun get_hol4_thm thyname thmname thy =
               | NONE => NONE
         end
 
-fun non_trivial_term_consts tm =
-    List.filter (fn c => not (c = "Trueprop" orelse
-                         c = "All" orelse
-                         c = "op -->" orelse
-                         c = "op &" orelse
-                         c = "op =")) (OldTerm.term_consts tm)
+fun non_trivial_term_consts t = fold_aterms
+  (fn Const (c, _) =>
+      if c = "Trueprop" orelse c = "All" orelse c = "op -->" orelse c = "op &" orelse c = "op ="
+      then I else insert (op =) c
+    | _ => I) t [];
 
 fun match_consts t (* th *) =
     let
         fun add_consts (Const (c, _), cs) =
             (case c of
-                 "op =" => Library.insert (op =) "==" cs
-               | "op -->" => Library.insert (op =) "==>" cs
+                 "op =" => insert (op =) "==" cs
+               | "op -->" => insert (op =) "==>" cs
                | "All" => cs
                | "all" => cs
                | "op &" => cs
                | "Trueprop" => cs
-               | _ => Library.insert (op =) c cs)
+               | _ => insert (op =) c cs)
           | add_consts (t $ u, cs) = add_consts (t, add_consts (u, cs))
           | add_consts (Abs (_, _, t), cs) = add_consts (t, cs)
           | add_consts (_, cs) = cs
@@ -1297,7 +1294,7 @@ fun get_isabelle_thm thyname thmname hol4conc thy =
             let
                 val _ = (message "Looking for conclusion:";
                          if_debug prin isaconc)
-                val cs = non_trivial_term_consts isaconc
+                val cs = non_trivial_term_consts isaconc;
                 val _ = (message "Looking for consts:";
                          message (commas cs))
                 val pot_thms = Shuffler.find_potential thy isaconc
