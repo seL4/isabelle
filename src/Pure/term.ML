@@ -134,6 +134,8 @@ sig
   val add_tfrees: term -> (string * sort) list -> (string * sort) list
   val add_free_names: term -> string list -> string list
   val add_frees: term -> (string * typ) list -> (string * typ) list
+  val add_const_names: term -> string list -> string list
+  val add_consts: term -> (string * typ) list -> (string * typ) list
   val hidden_polymorphism: term -> (indexname * sort) list
   val declare_typ_names: typ -> Name.context -> Name.context
   val declare_term_names: term -> Name.context -> Name.context
@@ -461,6 +463,8 @@ val add_tfreesT = fold_atyps (fn TFree v => insert (op =) v | _ => I);
 val add_tfrees = fold_types add_tfreesT;
 val add_free_names = fold_aterms (fn Free (x, _) => insert (op =) x | _ => I);
 val add_frees = fold_aterms (fn Free v => insert (op =) v | _ => I);
+val add_const_names = fold_aterms (fn Const (c, _) => insert (op =) c | _ => I);
+val add_consts = fold_aterms (fn Const c => insert (op =) c | _ => I);
 
 (*extra type variables in a term, not covered by its type*)
 fun hidden_polymorphism t =
