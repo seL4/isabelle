@@ -165,7 +165,7 @@ fun filter_elim ctxt goal (_, thm) =
 fun filter_simp ctxt t (_, thm) =
   let
     val (_, {mk_rews = {mk, ...}, ...}) =
-      MetaSimplifier.rep_ss (Simplifier.local_simpset_of ctxt);
+      Simplifier.rep_ss (Simplifier.local_simpset_of ctxt);
     val extract_simp =
       (map Thm.full_prop_of o mk, #1 o Logic.dest_equals o Logic.strip_imp_concl);
     val ss = is_matching_thm extract_simp ctxt false t thm

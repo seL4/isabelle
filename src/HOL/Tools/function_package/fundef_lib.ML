@@ -1,5 +1,4 @@
 (*  Title:      HOL/Tools/function_package/fundef_lib.ML
-    ID:         $Id$
     Author:     Alexander Krauss, TU Muenchen
 
 A package for general recursive function definitions. 
@@ -163,7 +162,7 @@ fun regroup_conv neu cn ac is ct =
           else if js = []
             then mk (foldr1 mk (map (nth xs) is), Const (neu, ty))
             else mk (foldr1 mk (map (nth xs) is), foldr1 mk (map (nth xs) js)))))
-     (K (MetaSimplifier.rewrite_goals_tac ac
+     (K (rewrite_goals_tac ac
          THEN rtac Drule.reflexive_thm 1))
  end
 

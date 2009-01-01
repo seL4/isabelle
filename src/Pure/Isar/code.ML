@@ -1,5 +1,4 @@
 (*  Title:      Pure/Isar/code.ML
-    ID:         $Id$
     Author:     Florian Haftmann, TU Muenchen
 
 Abstract executable content of theory.  Management of data dependent on
@@ -16,8 +15,8 @@ sig
   val del_eqn: thm -> theory -> theory
   val del_eqns: string -> theory -> theory
   val add_eqnl: string * (thm * bool) list lazy -> theory -> theory
-  val map_pre: (MetaSimplifier.simpset -> MetaSimplifier.simpset) -> theory -> theory
-  val map_post: (MetaSimplifier.simpset -> MetaSimplifier.simpset) -> theory -> theory
+  val map_pre: (simpset -> simpset) -> theory -> theory
+  val map_post: (simpset -> simpset) -> theory -> theory
   val add_inline: thm -> theory -> theory
   val add_functrans: string * (theory -> (thm * bool) list -> (thm * bool) list option) -> theory -> theory
   val del_functrans: string -> theory -> theory
@@ -186,8 +185,8 @@ fun merge_spec (Spec { concluded_history = _, eqns = eqns1, dtyps = dtyps1, case
 (* pre- and postprocessor *)
 
 datatype thmproc = Thmproc of {
-  pre: MetaSimplifier.simpset,
-  post: MetaSimplifier.simpset,
+  pre: simpset,
+  post: simpset,
   functrans: (string * (serial * (theory -> (thm * bool) list -> (thm * bool) list option))) list
 };
 
@@ -198,8 +197,8 @@ fun map_thmproc f (Thmproc { pre, post, functrans }) =
 fun merge_thmproc (Thmproc { pre = pre1, post = post1, functrans = functrans1 },
   Thmproc { pre = pre2, post = post2, functrans = functrans2 }) =
     let
-      val pre = MetaSimplifier.merge_ss (pre1, pre2);
-      val post = MetaSimplifier.merge_ss (post1, post2);
+      val pre = Simplifier.merge_ss (pre1, pre2);
+      val post = Simplifier.merge_ss (post1, post2);
       val functrans = AList.merge (op =) (eq_fst (op =)) (functrans1, functrans2);
     in mk_thmproc ((pre, post), functrans) end;
 
@@ -221,7 +220,7 @@ fun merge_exec (Exec { thmproc = thmproc1, spec = spec1 },
     val thmproc = merge_thmproc (thmproc1, thmproc2);
     val spec = merge_spec (spec1, spec2);
   in mk_exec (thmproc, spec) end;
-val empty_exec = mk_exec (mk_thmproc ((MetaSimplifier.empty_ss, MetaSimplifier.empty_ss), []),
+val empty_exec = mk_exec (mk_thmproc ((Simplifier.empty_ss, Simplifier.empty_ss), []),
   mk_spec ((false, Symtab.empty), (Symtab.empty, (Symtab.empty, Symtab.empty))));
 
 fun the_thmproc (Exec { thmproc = Thmproc x, ...}) = x;
@@ -417,12 +416,12 @@ fun print_codesetup thy =
       Pretty.block [
         Pretty.str "preprocessing simpset:",
         Pretty.fbrk,
-        MetaSimplifier.pretty_ss pre
+        Simplifier.pretty_ss pre
       ],
       Pretty.block [
         Pretty.str "postprocessing simpset:",
         Pretty.fbrk,
-        MetaSimplifier.pretty_ss post
+        Simplifier.pretty_ss post
       ],
       Pretty.block (
         Pretty.str "function transformers:"

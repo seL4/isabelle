@@ -5,23 +5,20 @@
 signature DISTINCT_TREE_PROVER =
 sig
   datatype Direction = Left | Right
-  val mk_tree : ('a -> Term.term) -> Term.typ -> 'a list -> Term.term
-  val dest_tree : Term.term -> Term.term list
-  val find_tree :
-       Term.term -> Term.term -> Direction list option 
+  val mk_tree : ('a -> term) -> typ -> 'a list -> term
+  val dest_tree : term -> term list
+  val find_tree : term -> term -> Direction list option 
 
-  val neq_to_eq_False : Thm.thm
-  val distinctTreeProver : Thm.thm -> Direction list -> Direction list -> Thm.thm
-  val neq_x_y :
-       Proof.context -> Term.term -> Term.term -> string -> Thm.thm option   
-  val distinctFieldSolver : string list -> MetaSimplifier.solver
-  val distinctTree_tac :
-       string list -> Proof.context -> Term.term * int -> Tactical.tactic
-  val distinct_implProver : Thm.thm -> Thm.cterm -> Thm.thm
-  val subtractProver : Term.term -> Thm.cterm -> Thm.thm -> Thm.thm
-  val distinct_simproc : string list -> MetaSimplifier.simproc
+  val neq_to_eq_False : thm
+  val distinctTreeProver : thm -> Direction list -> Direction list -> thm
+  val neq_x_y : Proof.context -> term -> term -> string -> thm option   
+  val distinctFieldSolver : string list -> solver
+  val distinctTree_tac : string list -> Proof.context -> term * int -> tactic
+  val distinct_implProver : thm -> cterm -> thm
+  val subtractProver : term -> cterm -> thm -> thm
+  val distinct_simproc : string list -> simproc
   
-  val discharge : Thm.thm list -> Thm.thm -> Thm.thm
+  val discharge : thm list -> thm -> thm
 end;
 
 structure DistinctTreeProver : DISTINCT_TREE_PROVER =

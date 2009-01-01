@@ -1,5 +1,4 @@
 (*  Title:      HOL/arith_data.ML
-    ID:         $Id$
     Author:     Markus Wenzel, Stefan Berghofer, and Tobias Nipkow
 
 Basic arithmetic proof tools.
@@ -7,9 +6,8 @@ Basic arithmetic proof tools.
 
 signature ARITH_DATA =
 sig
-  val prove_conv: tactic -> (MetaSimplifier.simpset -> tactic)
-    -> MetaSimplifier.simpset -> term * term -> thm
-  val simp_all_tac: thm list -> MetaSimplifier.simpset -> tactic
+  val prove_conv: tactic -> (simpset -> tactic) -> simpset -> term * term -> thm
+  val simp_all_tac: thm list -> simpset -> tactic
 
   val mk_sum: term list -> term
   val mk_norm_sum: term list -> term
