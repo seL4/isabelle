@@ -74,7 +74,7 @@ fun parameters_of thy strict (expr, fixed) =
       end;
 
     fun match_bind (n, b) = (n = Binding.base_name b);
-    fun parm_eq ((b1, mx1), (b2, mx2)) =
+    fun parm_eq ((b1, mx1: mixfix), (b2, mx2)) =
       (* FIXME: cannot compare bindings for equality, instead check for equal name and syntax *)
       (Binding.base_name b1 = Binding.base_name b2) andalso
       (if mx1 = mx2 then true

@@ -20,7 +20,7 @@ structure Evaluator = TheoryDataFun(
   val empty = [];
   val copy = I;
   val extend = I;
-  fun merge pp = AList.merge (op =) (K true);
+  fun merge _ data = AList.merge (op =) (K true) data;
 )
 
 val add_evaluator = Evaluator.map o AList.update (op =);

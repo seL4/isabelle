@@ -1,6 +1,5 @@
 (*  Title:      HOL/Tools/lin_arith.ML
-    ID:         $Id$
-    Author:     Tjark Weber and Tobias Nipkow
+    Author:     Tjark Weber and Tobias Nipkow, TU Muenchen
 
 HOL setup for linear arithmetic (see Provers/Arith/fast_lin_arith.ML).
 *)
@@ -99,8 +98,9 @@ structure ArithContextData = GenericDataFun
             tactics: arith_tactic list};
   val empty = {splits = [], inj_consts = [], discrete = [], tactics = []};
   val extend = I;
-  fun merge _ ({splits= splits1, inj_consts= inj_consts1, discrete= discrete1, tactics= tactics1},
-             {splits= splits2, inj_consts= inj_consts2, discrete= discrete2, tactics= tactics2}) =
+  fun merge _
+   ({splits= splits1, inj_consts= inj_consts1, discrete= discrete1, tactics= tactics1},
+    {splits= splits2, inj_consts= inj_consts2, discrete= discrete2, tactics= tactics2}) : T =
    {splits = Library.merge Thm.eq_thm_prop (splits1, splits2),
     inj_consts = Library.merge (op =) (inj_consts1, inj_consts2),
     discrete = Library.merge (op =) (discrete1, discrete2),

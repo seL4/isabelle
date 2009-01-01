@@ -1695,7 +1695,7 @@ structure Oracles = TheoryDataFun
   val empty = NameSpace.empty_table;
   val copy = I;
   val extend = I;
-  fun merge _ oracles = NameSpace.merge_tables (op =) oracles
+  fun merge _ oracles : T = NameSpace.merge_tables (op =) oracles
     handle Symtab.DUP dup => err_dup_ora dup;
 );
 

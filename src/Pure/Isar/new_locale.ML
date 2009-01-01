@@ -115,17 +115,17 @@ structure LocalesData = TheoryDataFun
   val extend = I;
 
   fun join_locales _
-    (Loc {parameters, spec, decls = (decls1, decls2), notes, dependencies},
-      Loc {decls = (decls1', decls2'), notes = notes',
-        dependencies = dependencies', ...}) =
-        let fun s_merge x = merge (eq_snd (op =)) x in
-          Loc {parameters = parameters,
-            spec = spec,
-            decls = (s_merge (decls1, decls1'), s_merge (decls2, decls2')),
-            notes = s_merge (notes, notes'),
-            dependencies = s_merge (dependencies, dependencies')
-          }          
-        end;
+   (Loc {parameters, spec, decls = (decls1, decls2), notes, dependencies},
+    Loc {decls = (decls1', decls2'), notes = notes', dependencies = dependencies', ...}) =
+      Loc {
+        parameters = parameters,
+        spec = spec,
+        decls =
+         (merge (eq_snd op =) (decls1, decls1'),
+          merge (eq_snd op =) (decls2, decls2')),
+        notes = merge (eq_snd op =) (notes, notes'),
+        dependencies = merge (eq_snd op =) (dependencies, dependencies')};
+
   fun merge _ = NameSpace.join_tables join_locales;
 );
 
@@ -197,7 +197,7 @@ type identifiers = (string * term list) list;
 
 val empty = ([] : identifiers);
 
-fun ident_eq thy ((n, ts), (m, ss)) = (m = n) andalso Pattern.matchess thy (ss, ts);
+fun ident_eq thy ((n: string, ts), (m, ss)) = (m = n) andalso Pattern.matchess thy (ss, ts);
 
 local
 
@@ -221,7 +221,7 @@ val _ = Context.>> (Context.map_theory (Theory.at_begin (fn thy =>
     Ready _ => NONE |
     ids => SOME (Context.theory_map (IdentifiersData.put (Ready (finish thy ids))) thy))
   )));
-  
+
 fun get_global_idents thy =
   let val (Ready ids) = (IdentifiersData.get o Context.Theory) thy in ids end;
 val put_global_idents = Context.theory_map o IdentifiersData.put o Ready;
@@ -331,7 +331,7 @@ fun init_local_elem (Fixes fixes) ctxt = ctxt |>
       in
         ctxt |> fold Variable.auto_fixes (maps (map fst o snd) assms') |>
           ProofContext.add_assms_i Assumption.assume_export assms' |> snd
-     end 
+     end
   | init_local_elem (Defines defs) ctxt =
       let
         val defs' = Attrib.map_specs (Attrib.attribute_i (ProofContext.theory_of ctxt)) defs
@@ -376,7 +376,7 @@ fun print_locale thy show_facts name =
   in
     Pretty.big_list "locale elements:"
       (activate_all name' thy (cons_elem show_facts) (K (Element.transfer_morphism thy))
-        (empty, []) |> snd |> rev |> 
+        (empty, []) |> snd |> rev |>
         map (Element.pretty_ctxt ctxt) |> map Pretty.chunks) |> Pretty.writeln
   end
 
@@ -393,7 +393,7 @@ structure RegistrationsData = GenericDataFun
     (* registrations, in reverse order of declaration *)
   val empty = [];
   val extend = I;
-  fun merge _ = Library.merge (eq_snd (op =));
+  fun merge _ data : T = Library.merge (eq_snd op =) data;
     (* FIXME consolidate with dependencies, consider one data slot only *)
 );
 

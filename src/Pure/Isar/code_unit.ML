@@ -229,7 +229,7 @@ structure ConstAlias = TheoryDataFun
   val empty = ([], []);
   val copy = I;
   val extend = I;
-  fun merge _ ((alias1, classes1), (alias2, classes2)) =
+  fun merge _ ((alias1, classes1), (alias2, classes2)) : T =
     (Library.merge (eq_snd Thm.eq_thm_prop) (alias1, alias2),
       Library.merge (op =) (classes1, classes2));
 );
