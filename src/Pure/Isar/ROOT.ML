@@ -1,5 +1,4 @@
 (*  Title:      Pure/Isar/ROOT.ML
-    ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
 
 Isar -- Intelligible Semi-Automated Reasoning for Isabelle.
@@ -21,8 +20,9 @@ use "../Proof/proofchecker.ML";
 
 (*outer syntax*)
 use "outer_lex.ML";
-use "outer_parse.ML";
 use "outer_keyword.ML";
+use "outer_parse.ML";
+use "value_parse.ML";
 use "args.ML";
 use "antiquote.ML";
 use "../ML/ml_context.ML";
