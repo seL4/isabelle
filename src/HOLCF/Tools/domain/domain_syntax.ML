@@ -89,7 +89,7 @@ local open Syntax in
     fun arg1 n (con,_,args) = foldr cabs (expvar n) (argvars n args);
     fun when1 n m = if n = m then arg1 n else K (Constant "UU");
 
-    fun app_var x = mk_appl (Constant "_var") [x, Variable "rhs"];
+    fun app_var x = mk_appl (Constant "_variable") [x, Variable "rhs"];
     fun app_pat x = mk_appl (Constant "_pat") [x];
     fun args_list [] = Constant "_noargs"
     |   args_list xs = foldr1 (app "_args") xs;

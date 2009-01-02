@@ -174,7 +174,7 @@ fun latex_output str =
 fun latex_markup (s, _) =
   if s = Markup.keywordN then ("\\isakeyword{", "}")
   else if s = Markup.commandN then ("\\isacommand{", "}")
-  else ("", "");
+  else Markup.no_output;
 
 fun latex_indent "" _ = ""
   | latex_indent s _ = enclose "\\isaindent{" "}" s;

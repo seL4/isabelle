@@ -408,9 +408,8 @@ val token_trans =
    ("free", free_or_skolem),
    ("bound", plain_markup Markup.bound),
    ("var", var_or_skolem),
-   ("num", plain_markup Markup.num),
-   ("xnum", plain_markup Markup.xnum),
-   ("xstr", plain_markup Markup.xstr)];
+   ("numeral", plain_markup Markup.numeral),
+   ("inner_string", plain_markup Markup.inner_string)];
 
 in val _ = Context.>> (Context.map_theory (Sign.add_tokentrfuns token_trans)) end;
 
