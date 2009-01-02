@@ -757,9 +757,13 @@ val _ =
 
 (* nested commands *)
 
+val props_text =
+  Scan.optional ValueParse.properties [] -- P.position P.string >> (fn (props, (str, pos)) =>
+    (Position.of_properties (Position.default_properties pos props), str));
+
 val _ =
   OuterSyntax.improper_command "Isabelle.command" "nested Isabelle command" K.control
-    (P.props_text :|-- (fn (pos, str) =>
+    (props_text :|-- (fn (pos, str) =>
       (case OuterSyntax.parse pos str of
         [tr] => Scan.succeed (K tr)
       | _ => Scan.fail_with (K "exactly one command expected"))
