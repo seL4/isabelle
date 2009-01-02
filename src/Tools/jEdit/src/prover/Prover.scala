@@ -156,12 +156,8 @@ class Prover(isabelle_system: IsabelleSystem, isabelle_symbols: Symbol.Interpret
     cmd.status = Command.Status.UNPROCESSED
     commands.put(cmd.id, cmd)
 
-    val props = new Properties
-    props.setProperty(Markup.ID, cmd.id)
-    props.setProperty(Markup.OFFSET, "1")
-
     val content = isabelle_symbols.encode(document.getContent(cmd))
-    process.create_command(props, content)
+    process.create_command(cmd.id, content)
     process.insert_command(if (cmd.previous == null) "" else cmd.previous.id, cmd.id)
   }
 
