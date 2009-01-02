@@ -339,6 +339,7 @@ lemma ex1E:
   shows "?a : R"
   apply (insert assms(1) [unfolded ex1_def])
   apply (erule exE conjE | assumption | rule assms(1))+
+  apply (erule assms(2), assumption)
   done
 
 
