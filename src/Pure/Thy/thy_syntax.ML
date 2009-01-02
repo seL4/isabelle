@@ -1,11 +1,10 @@
-(*  Title:      Pure/Thy/thy_edit.ML
-    ID:         $Id$
+(*  Title:      Pure/Thy/thy_syntax.ML
     Author:     Makarius
 
-Basic editor operations on theory sources.
+Superficial theory syntax: tokens and spans.
 *)
 
-signature THY_EDIT =
+signature THY_SYNTAX =
 sig
   val token_source: Scan.lexicon * Scan.lexicon -> Position.T -> (string, 'a) Source.source ->
     (OuterLex.token, (SymbolPos.T, Position.T * (Symbol.symbol, (string, 'a)
@@ -27,7 +26,7 @@ sig
     (span * span list * bool, (span, 'a) Source.source) Source.source
 end;
 
-structure ThyEdit: THY_EDIT =
+structure ThySyntax: THY_SYNTAX =
 struct
 
 structure K = OuterKeyword;

@@ -239,9 +239,9 @@ val not_singleton = "Exactly one command expected";
 
 fun prepare_span commands span =
   let
-    val range_pos = Position.encode_range (ThyEdit.span_range span);
-    val toks = ThyEdit.span_content span;
-    val _ = List.app ThyEdit.report_token toks;
+    val range_pos = Position.encode_range (ThySyntax.span_range span);
+    val toks = ThySyntax.span_content span;
+    val _ = List.app ThySyntax.report_token toks;
   in
     (case Source.exhaust (toplevel_source false NONE (K commands) (Source.of_list toks)) of
       [tr] => (tr, true)
@@ -261,7 +261,7 @@ fun prepare_unit commands (cmd, proof, proper_proof) =
 
 fun prepare_command pos str =
   let val (lexs, commands) = get_syntax () in
-    (case ThyEdit.parse_spans lexs pos str of
+    (case ThySyntax.parse_spans lexs pos str of
       [span] => #1 (prepare_span commands span)
     | _ => Toplevel.malformed pos not_singleton)
   end;
@@ -275,14 +275,14 @@ fun load_thy name pos text time =
 
     val _ = Present.init_theory name;
 
-    val toks = Source.exhausted (ThyEdit.token_source lexs pos (Source.of_list text));
-    val spans = Source.exhaust (ThyEdit.span_source toks);
-    val _ = List.app ThyEdit.report_span spans;
-    val units = Source.exhaust (ThyEdit.unit_source (Source.of_list spans))
+    val toks = Source.exhausted (ThySyntax.token_source lexs pos (Source.of_list text));
+    val spans = Source.exhaust (ThySyntax.span_source toks);
+    val _ = List.app ThySyntax.report_span spans;
+    val units = Source.exhaust (ThySyntax.unit_source (Source.of_list spans))
       |> maps (prepare_unit commands);
 
     val _ = Present.theory_source name
-      (fn () => HTML.html_mode (implode o map ThyEdit.present_span) spans);
+      (fn () => HTML.html_mode (implode o map ThySyntax.present_span) spans);
 
     val _ = if time then writeln ("\n**** Starting theory " ^ quote name ^ " ****") else ();
     val _ = cond_timeit time "" (fn () =>

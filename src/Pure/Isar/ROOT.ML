@@ -80,7 +80,7 @@ use "toplevel.ML";
 (*theory syntax*)
 use "../Thy/term_style.ML";
 use "../Thy/thy_output.ML";
-use "../Thy/thy_edit.ML";
+use "../Thy/thy_syntax.ML";
 use "../old_goals.ML";
 use "outer_syntax.ML";
 use "../Thy/thy_info.ML";
