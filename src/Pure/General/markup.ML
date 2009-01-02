@@ -52,11 +52,9 @@ sig
   val skolemN: string val skolem: T
   val boundN: string val bound: T
   val varN: string val var: T
-  val numN: string val num: T
-  val floatN: string val float: T
-  val xnumN: string val xnum: T
-  val xstrN: string val xstr: T
+  val numeralN: string val numeral: T
   val literalN: string val literal: T
+  val inner_stringN: string val inner_string: T
   val inner_commentN: string val inner_comment: T
   val sortN: string val sort: T
   val typN: string val typ: T
@@ -203,11 +201,9 @@ val (freeN, free) = markup_elem "free";
 val (skolemN, skolem) = markup_elem "skolem";
 val (boundN, bound) = markup_elem "bound";
 val (varN, var) = markup_elem "var";
-val (numN, num) = markup_elem "num";
-val (floatN, float) = markup_elem "float";
-val (xnumN, xnum) = markup_elem "xnum";
-val (xstrN, xstr) = markup_elem "xstr";
+val (numeralN, numeral) = markup_elem "numeral";
 val (literalN, literal) = markup_elem "literal";
+val (inner_stringN, inner_string) = markup_elem "inner_string";
 val (inner_commentN, inner_comment) = markup_elem "inner_comment";
 
 val (sortN, sort) = markup_elem "sort";
