@@ -851,7 +851,7 @@ qed
 definition Fract_norm :: "int \<Rightarrow> int \<Rightarrow> rat" where
   [simp, code del]: "Fract_norm a b = Fract a b"
 
-lemma [code]: "Fract_norm a b = (if a = 0 \<or> b = 0 then 0 else let c = zgcd a b in
+lemma Fract_norm_code [code]: "Fract_norm a b = (if a = 0 \<or> b = 0 then 0 else let c = zgcd a b in
   if b > 0 then Fract (a div c) (b div c) else Fract (- (a div c)) (- (b div c)))"
   by (simp add: eq_rat Zero_rat_def Let_def Fract_norm)
 
@@ -871,7 +871,7 @@ lemma rat_eq_code [code]:
        then c = 0 \<or> d = 0
      else if d = 0
        then a = 0 \<or> b = 0
-     else a * d =  b * c)"
+     else a * d = b * c)"
   by (auto simp add: eq eq_rat)
 
 lemma rat_eq_refl [code nbe]:
