@@ -1,5 +1,4 @@
 (*  Title:      Pure/Isar/spec_parse.ML
-    ID:         $Id$
     Author:     Makarius
 
 Parsers for complex specifications.
@@ -7,35 +6,33 @@ Parsers for complex specifications.
 
 signature SPEC_PARSE =
 sig
-  type token
-  val attrib: OuterLex.token list -> Attrib.src * token list
-  val attribs: token list -> Attrib.src list * token list
-  val opt_attribs: token list -> Attrib.src list * token list
-  val thm_name: string -> token list -> Attrib.binding * token list
-  val opt_thm_name: string -> token list -> Attrib.binding * token list
-  val spec: token list -> (Attrib.binding * string list) * token list
-  val named_spec: token list -> (Attrib.binding * string list) * token list
-  val spec_name: token list -> ((Binding.T * string) * Attrib.src list) * token list
-  val spec_opt_name: token list -> ((Binding.T * string) * Attrib.src list) * token list
-  val xthm: token list -> (Facts.ref * Attrib.src list) * token list
-  val xthms1: token list -> (Facts.ref * Attrib.src list) list * token list
-  val name_facts: token list ->
-    (Attrib.binding * (Facts.ref * Attrib.src list) list) list * token list
-  val locale_mixfix: token list -> mixfix * token list
-  val locale_fixes: token list -> (Binding.T * string option * mixfix) list * token list
-  val locale_insts: token list -> (string option list * (Attrib.binding * string) list) * token list
-  val class_expr: token list -> string list * token list
-  val locale_expr: token list -> Locale.expr * token list
-  val locale_expression: OuterParse.token list -> Expression.expression * OuterParse.token list
-  val locale_keyword: token list -> string * token list
-  val context_element: token list -> Element.context * token list
-  val statement: token list -> (Attrib.binding * (string * string list) list) list * token list
-  val general_statement: token list ->
-    (Element.context list * Element.statement) * OuterLex.token list
-  val statement_keyword: token list -> string * token list
-  val specification: token list ->
-    (Binding.T *
-      ((Attrib.binding * string list) list * (Binding.T * string option) list)) list * token list
+  type token = OuterParse.token
+  type 'a parser = 'a OuterParse.parser
+  val attrib: Attrib.src parser
+  val attribs: Attrib.src list parser
+  val opt_attribs: Attrib.src list parser
+  val thm_name: string -> Attrib.binding parser
+  val opt_thm_name: string -> Attrib.binding parser
+  val spec: (Attrib.binding * string list) parser
+  val named_spec: (Attrib.binding * string list) parser
+  val spec_name: ((Binding.T * string) * Attrib.src list) parser
+  val spec_opt_name: ((Binding.T * string) * Attrib.src list) parser
+  val xthm: (Facts.ref * Attrib.src list) parser
+  val xthms1: (Facts.ref * Attrib.src list) list parser
+  val name_facts: (Attrib.binding * (Facts.ref * Attrib.src list) list) list parser
+  val locale_mixfix: mixfix parser
+  val locale_fixes: (Binding.T * string option * mixfix) list parser
+  val locale_insts: (string option list * (Attrib.binding * string) list) parser
+  val class_expr: string list parser
+  val locale_expr: Locale.expr parser
+  val locale_expression: Expression.expression parser
+  val locale_keyword: string parser
+  val context_element: Element.context parser
+  val statement: (Attrib.binding * (string * string list) list) list parser
+  val general_statement: (Element.context list * Element.statement) parser
+  val statement_keyword: string parser
+  val specification:
+    (Binding.T * ((Attrib.binding * string list) list * (Binding.T * string option) list)) list parser
 end;
 
 structure SpecParse: SPEC_PARSE =
@@ -43,6 +40,7 @@ struct
 
 structure P = OuterParse;
 type token = P.token;
+type 'a parser = 'a P.parser;
 
 
 (* theorem specifications *)
