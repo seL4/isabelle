@@ -1,5 +1,4 @@
 (*  Title:      Pure/Isar/isar.ML
-    ID:         $Id$
     Author:     Makarius
 
 The global Isabelle/Isar state and main read-eval-print loop.
@@ -377,26 +376,25 @@ fun remove_command id = NAMED_CRITICAL "Isar" (fn () =>
 
 local
 
-structure P = OuterParse and K = OuterKeyword;
+structure P = struct open OuterParse open ValueParse end;
 val op >> = Scan.>>;
 
 in
 
 val _ =
-  OuterSyntax.improper_command "Isar.command" "define command (Isar editor model)" K.control
-    (P.props_text >> (fn (pos, str) =>
-      Toplevel.no_timing o Toplevel.imperative (fn () =>
-        ignore (create_command (OuterSyntax.prepare_command pos str)))));
+  OuterSyntax.internal_command "Isar.command"
+    (P.string -- P.string >> (fn (id, text) =>
+      Toplevel.imperative (fn () =>
+        ignore (create_command (OuterSyntax.prepare_command (Position.id id) text)))));
 
 val _ =
-  OuterSyntax.improper_command "Isar.insert" "insert command (Isar editor model)" K.control
+  OuterSyntax.internal_command "Isar.insert"
     (P.string -- P.string >> (fn (prev, id) =>
-      Toplevel.no_timing o Toplevel.imperative (fn () => insert_command prev id)));
+      Toplevel.imperative (fn () => insert_command prev id)));
 
 val _ =
-  OuterSyntax.improper_command "Isar.remove" "remove command (Isar editor model)" K.control
-    (P.string >> (fn id =>
-      Toplevel.no_timing o Toplevel.imperative (fn () => remove_command id)));
+  OuterSyntax.internal_command "Isar.remove"
+    (P.string >> (fn id => Toplevel.imperative (fn () => remove_command id)));
 
 end;
 
