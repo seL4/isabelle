@@ -249,7 +249,7 @@ let
     |> ListPair.map (fn (t, tacs) =>
       Goal.prove_global thy1 [] [] t
         (fn _ => EVERY (rewrite_goals_tac part_rec_defs :: tacs)))
-    handle Simplifier.SIMPLIFIER (msg, thm) => (Display.print_thm thm; error msg);
+    handle MetaSimplifier.SIMPLIFIER (msg, thm) => (Display.print_thm thm; error msg);
 
   (********)
   val dummy = writeln "  Proving the elimination rule...";
