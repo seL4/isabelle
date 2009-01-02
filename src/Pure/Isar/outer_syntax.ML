@@ -1,5 +1,4 @@
 (*  Title:      Pure/Isar/outer_syntax.ML
-    ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
 
 The global Isabelle/Isar outer syntax.
@@ -10,17 +9,20 @@ beginning; for interactive processing it may change dynamically.
 
 signature OUTER_SYNTAX =
 sig
-  type parser_fn = OuterLex.token list ->
-    (Toplevel.transition -> Toplevel.transition) * OuterLex.token list
-  val command: string -> string -> OuterKeyword.T -> parser_fn -> unit
-  val markup_command: ThyOutput.markup -> string -> string -> OuterKeyword.T -> parser_fn -> unit
-  val improper_command: string -> string -> OuterKeyword.T -> parser_fn -> unit
+  type 'a parser = 'a OuterParse.parser
+  val command: string -> string -> OuterKeyword.T ->
+    (Toplevel.transition -> Toplevel.transition) parser -> unit
+  val markup_command: ThyOutput.markup -> string -> string -> OuterKeyword.T ->
+    (Toplevel.transition -> Toplevel.transition) parser -> unit
+  val improper_command: string -> string -> OuterKeyword.T ->
+    (Toplevel.transition -> Toplevel.transition) parser -> unit
+  val internal_command: string -> (Toplevel.transition -> Toplevel.transition) parser -> unit
   val local_theory: string -> string -> OuterKeyword.T ->
-    (OuterParse.token list -> (local_theory -> local_theory) * OuterLex.token list) -> unit
+    (local_theory -> local_theory) parser -> unit
   val local_theory_to_proof': string -> string -> OuterKeyword.T ->
-    (OuterParse.token list -> (bool -> local_theory -> Proof.state) * OuterLex.token list) -> unit
+    (bool -> local_theory -> Proof.state) parser -> unit
   val local_theory_to_proof: string -> string -> OuterKeyword.T ->
-    (OuterParse.token list -> (local_theory -> Proof.state) * OuterLex.token list) -> unit
+    (local_theory -> Proof.state) parser -> unit
   val print_outer_syntax: unit -> unit
   val scan: Position.T -> string -> OuterLex.token list
   val parse: Position.T -> string -> Toplevel.transition list
@@ -36,22 +38,22 @@ struct
 
 structure T = OuterLex;
 structure P = OuterParse;
+type 'a parser = 'a P.parser;
+
 
 
 (** outer syntax **)
 
-(* parsers *)
+(* command parsers *)
 
-type parser_fn = T.token list -> (Toplevel.transition -> Toplevel.transition) * T.token list;
-
-datatype parser = Parser of
+datatype command = Command of
  {comment: string,
   markup: ThyOutput.markup option,
   int_only: bool,
-  parse: parser_fn};
+  parse: (Toplevel.transition -> Toplevel.transition) parser};
 
-fun make_parser comment markup int_only parse =
-  Parser {comment = comment, markup = markup, int_only = int_only, parse = parse};
+fun make_command comment markup int_only parse =
+  Command {comment = comment, markup = markup, int_only = int_only, parse = parse};
 
 
 (* parse command *)
@@ -63,7 +65,7 @@ fun terminate false = Scan.succeed ()
 
 fun body cmd (name, _) =
   (case cmd name of
-    SOME (Parser {int_only, parse, ...}) =>
+    SOME (Command {int_only, parse, ...}) =>
       P.!!! (Scan.prompt (name ^ "# ") (P.tags |-- parse >> pair int_only))
   | NONE => sys_error ("no parser for outer syntax command " ^ quote name));
 
@@ -85,46 +87,49 @@ end;
 
 local
 
-val global_parsers = ref (Symtab.empty: parser Symtab.table);
+val global_commands = ref (Symtab.empty: command Symtab.table);
 val global_markups = ref ([]: (string * ThyOutput.markup) list);
 
-fun change_parsers f = CRITICAL (fn () =>
- (change global_parsers f;
+fun change_commands f = CRITICAL (fn () =>
+ (change global_commands f;
   global_markups :=
-    Symtab.fold (fn (name, Parser {markup = SOME m, ...}) => cons (name, m) | _ => I)
-      (! global_parsers) []));
+    Symtab.fold (fn (name, Command {markup = SOME m, ...}) => cons (name, m) | _ => I)
+      (! global_commands) []));
 
 in
 
 (* access current syntax *)
 
-fun get_parsers () = CRITICAL (fn () => ! global_parsers);
+fun get_commands () = CRITICAL (fn () => ! global_commands);
 fun get_markups () = CRITICAL (fn () => ! global_markups);
 
-fun get_parser () = Symtab.lookup (get_parsers ());
-fun get_syntax () = CRITICAL (fn () => (OuterKeyword.get_lexicons (), get_parser ()));
+fun get_command () = Symtab.lookup (get_commands ());
+fun get_syntax () = CRITICAL (fn () => (OuterKeyword.get_lexicons (), get_command ()));
 
 fun is_markup kind name = AList.lookup (op =) (get_markups ()) name = SOME kind;
 
 
 (* augment syntax *)
 
-fun add_parser name kind parser = CRITICAL (fn () =>
+fun add_command name kind cmd = CRITICAL (fn () =>
  (OuterKeyword.command name kind;
-  if not (Symtab.defined (get_parsers ()) name) then ()
+  if not (Symtab.defined (get_commands ()) name) then ()
   else warning ("Redefining outer syntax command " ^ quote name);
-  change_parsers (Symtab.update (name, parser))));
+  change_commands (Symtab.update (name, cmd))));
 
 fun command name comment kind parse =
-  add_parser name kind (make_parser comment NONE false parse);
+  add_command name kind (make_command comment NONE false parse);
 
 fun markup_command markup name comment kind parse =
-  add_parser name kind (make_parser comment (SOME markup) false parse);
+  add_command name kind (make_command comment (SOME markup) false parse);
 
 fun improper_command name comment kind parse =
-  add_parser name kind (make_parser comment NONE true parse);
+  add_command name kind (make_command comment NONE true parse);
 
 end;
+
+fun internal_command name parse =
+  command name "(internal)" OuterKeyword.control (parse >> (fn tr => Toplevel.no_timing o tr));
 
 
 (* local_theory commands *)
@@ -133,22 +138,22 @@ fun local_theory_command do_print trans name comment kind parse =
   command name comment kind (P.opt_target -- parse
     >> (fn (loc, f) => (if do_print then Toplevel.print else I) o trans loc f));
 
-val local_theory           = local_theory_command false Toplevel.local_theory;
+val local_theory = local_theory_command false Toplevel.local_theory;
 val local_theory_to_proof' = local_theory_command true Toplevel.local_theory_to_proof';
-val local_theory_to_proof  = local_theory_command true Toplevel.local_theory_to_proof;
+val local_theory_to_proof = local_theory_command true Toplevel.local_theory_to_proof;
 
 
 (* inspect syntax *)
 
-fun dest_parsers () =
-  get_parsers () |> Symtab.dest |> sort_wrt #1
-  |> map (fn (name, Parser {comment, int_only, ...}) => (name, comment, int_only));
+fun dest_commands () =
+  get_commands () |> Symtab.dest |> sort_wrt #1
+  |> map (fn (name, Command {comment, int_only, ...}) => (name, comment, int_only));
 
 fun print_outer_syntax () =
   let
     fun pretty_cmd (name, comment, _) =
       Pretty.block [Pretty.str (name ^ ":"), Pretty.brk 2, Pretty.str comment];
-    val (int_cmds, cmds) = List.partition #3 (dest_parsers ());
+    val (int_cmds, cmds) = List.partition #3 (dest_commands ());
   in
     [Pretty.strs ("syntax keywords:" :: map quote (OuterKeyword.dest_keywords ())),
       Pretty.big_list "commands:" (map pretty_cmd cmds),
@@ -194,7 +199,7 @@ fun parse pos str =
   Source.of_string str
   |> Symbol.source {do_recover = false}
   |> T.source {do_recover = SOME false} OuterKeyword.get_lexicons pos
-  |> toplevel_source false NONE get_parser
+  |> toplevel_source false NONE get_command
   |> Source.exhaust;
 
 
@@ -225,39 +230,39 @@ fun isar term : isar =
   Source.tty
   |> Symbol.source {do_recover = true}
   |> T.source {do_recover = SOME true} OuterKeyword.get_lexicons Position.none
-  |> toplevel_source term (SOME true) get_parser;
+  |> toplevel_source term (SOME true) get_command;
 
 
 (* prepare toplevel commands -- fail-safe *)
 
 val not_singleton = "Exactly one command expected";
 
-fun prepare_span parser span =
+fun prepare_span commands span =
   let
     val range_pos = Position.encode_range (ThyEdit.span_range span);
     val toks = ThyEdit.span_content span;
     val _ = List.app ThyEdit.report_token toks;
   in
-    (case Source.exhaust (toplevel_source false NONE (K parser) (Source.of_list toks)) of
+    (case Source.exhaust (toplevel_source false NONE (K commands) (Source.of_list toks)) of
       [tr] => (tr, true)
     | [] => (Toplevel.ignored range_pos, false)
     | _ => (Toplevel.malformed range_pos not_singleton, true))
     handle ERROR msg => (Toplevel.malformed range_pos msg, true)
   end;
 
-fun prepare_unit parser (cmd, proof, proper_proof) =
+fun prepare_unit commands (cmd, proof, proper_proof) =
   let
-    val (tr, proper_cmd) = prepare_span parser cmd;
-    val proof_trs = map (prepare_span parser) proof |> filter #2 |> map #1;
+    val (tr, proper_cmd) = prepare_span commands cmd;
+    val proof_trs = map (prepare_span commands) proof |> filter #2 |> map #1;
   in
     if proper_cmd andalso proper_proof then [(tr, proof_trs)]
     else map (rpair []) (if proper_cmd then tr :: proof_trs else proof_trs)
   end;
 
 fun prepare_command pos str =
-  let val (lexs, parser) = get_syntax () in
+  let val (lexs, commands) = get_syntax () in
     (case ThyEdit.parse_spans lexs pos str of
-      [span] => #1 (prepare_span parser span)
+      [span] => #1 (prepare_span commands span)
     | _ => Toplevel.malformed pos not_singleton)
   end;
 
@@ -266,7 +271,7 @@ fun prepare_command pos str =
 
 fun load_thy name pos text time =
   let
-    val (lexs, parser) = get_syntax ();
+    val (lexs, commands) = get_syntax ();
 
     val _ = Present.init_theory name;
 
@@ -274,7 +279,7 @@ fun load_thy name pos text time =
     val spans = Source.exhaust (ThyEdit.span_source toks);
     val _ = List.app ThyEdit.report_span spans;
     val units = Source.exhaust (ThyEdit.unit_source (Source.of_list spans))
-      |> maps (prepare_unit parser);
+      |> maps (prepare_unit commands);
 
     val _ = Present.theory_source name
       (fn () => HTML.html_mode (implode o map ThyEdit.present_span) spans);
