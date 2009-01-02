@@ -1,5 +1,4 @@
 (*  Title:      Pure/General/markup.ML
-    ID:         $Id$
     Author:     Makarius
 
 Common markup elements.
@@ -104,6 +103,7 @@ sig
   val debugN: string
   val initN: string
   val statusN: string
+  val no_output: output * output
   val default_output: T -> output * output
   val add_mode: string -> (T -> output * output) -> unit
   val output: T -> output * output
@@ -288,7 +288,8 @@ val statusN = "status";
 
 (* print mode operations *)
 
-fun default_output (_: T) = ("", "");
+val no_output = ("", "");
+fun default_output (_: T) = no_output;
 
 local
   val default = {output = default_output};
@@ -300,7 +301,7 @@ in
     the_default default (Library.get_first (Symtab.lookup (! modes)) (print_mode_value ()));
 end;
 
-fun output m = if is_none m then ("", "") else #output (get_mode ()) m;
+fun output m = if is_none m then no_output else #output (get_mode ()) m;
 
 val enclose = output #-> Library.enclose;
 

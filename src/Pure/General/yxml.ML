@@ -42,7 +42,7 @@ val detect = String.isPrefix XY;
 (* output *)
 
 fun output_markup (markup as (name, atts)) =
-  if Markup.is_none markup then ("", "")
+  if Markup.is_none markup then Markup.no_output
   else (XY ^ name ^ implode (map (fn (a, x) => Y ^ a ^ "=" ^ x) atts) ^ X, XYX);
 
 fun element name atts body =
