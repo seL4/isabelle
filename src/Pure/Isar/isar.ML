@@ -40,15 +40,6 @@ struct
 type id = string;
 val no_id : id = "";
 
-fun identify tr =
-  (case Toplevel.get_id tr of
-    SOME id => (id, tr)
-  | NONE =>
-      let val id =
-        if ! Toplevel.debug then "isabelle:" ^ Toplevel.name_of tr ^ serial_string ()
-        else "isabelle:" ^ serial_string ()
-      in (id, Toplevel.put_id id tr) end);
-
 
 (* command category *)
 
@@ -167,7 +158,15 @@ fun report_update_status status id =
 
 fun create_command raw_tr =
   let
-    val (id, tr) = identify raw_tr;
+    val (id, tr) =
+      (case Toplevel.get_id raw_tr of
+        SOME id => (id, raw_tr)
+      | NONE =>
+          let val id =
+            if ! Toplevel.debug then "isabelle:" ^ Toplevel.name_of raw_tr ^ serial_string ()
+            else "isabelle:" ^ serial_string ()
+          in (id, Toplevel.put_id id raw_tr) end);
+
     val cmd = make_command (category_of tr, tr, Unprocessed);
     val _ = change_commands (Graph.new_node (id, cmd));
   in id end;
