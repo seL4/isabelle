@@ -20,20 +20,20 @@ hr { height: 0px; border: 0px; }
 
 /* inner and outer syntax markup */
 
-.tfree, tfree          { color: purple; }
-.tvar, tvar            { color: purple; }
-.free, free            { color: blue; }
-.skolem, skolem        { color: brown; }
-.bound, bound          { color: green; }
-.var, var              { color: blue; }
-.num, num              { }
-.xnum, xnum            { }
-.xstr, xstr            { color: brown; }
-.literal, literal      { font-weight: bold; }
-                      
+.tfree, tfree                 { color: purple; }
+.tvar, tvar                   { color: purple; }
+.free, free                   { color: blue; }
+.skolem, skolem               { color: brown; }
+.bound, bound                 { color: green; }
+.var, var                     { color: blue; }
+.numeral, numeral             { }
+.literal, literal             { font-weight: bold; }
+.inner_string, inner_string   { color: brown; }
+.inner_comment, inner_comment { color: #8B0000; }
+
 .loc, loc              { color: brown; }
 .tclass, tclass        { color: red; }
-          
+
 .keyword, keyword      { font-weight: bold; }
 .command, command      { font-weight: bold; }
 .ident, ident          { }
