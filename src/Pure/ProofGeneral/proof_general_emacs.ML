@@ -1,5 +1,4 @@
 (*  Title:      Pure/ProofGeneral/proof_general_emacs.ML
-    ID:         $Id$
     Author:     David Aspinall and Markus Wenzel
 
 Isabelle/Isar configuration for Emacs Proof General.
@@ -21,16 +20,13 @@ struct
 (* print modes *)
 
 val proof_generalN = "ProofGeneralEmacs";  (*token markup (colouring vars, etc.)*)
-val pgasciiN = "PGASCII";                  (*plain 7-bit ASCII communication*)
 val thm_depsN = "thm_deps";                (*meta-information about theorem deps*)
 val test_markupN = "test_markup";          (*XML markup for everything*)
 
 val _ = Markup.add_mode test_markupN (fn (name, props) =>
   if name = Markup.promptN then ("", "") else XML.output_markup (name, props));
 
-fun special oct =
-  if print_mode_active pgasciiN then Symbol.SOH ^ chr (ord (oct_char oct) - 167)
-  else oct_char oct;
+fun special ch = Symbol.SOH ^ ch;
 
 
 (* text output: print modes for xsymbol *)
@@ -59,16 +55,16 @@ end;
 val _ = Markup.add_mode proof_generalN (fn (name, props) =>
   let
     val (bg1, en1) =
-      if name = Markup.stateN then (special "366" ^ "\n", "\n" ^ special "367")
-      else if name = Markup.sendbackN then (special "376", special "377")
-      else if name = Markup.hiliteN then (special "327", special "330")
-      else if name = Markup.tclassN then (special "351", special "350")
-      else if name = Markup.tfreeN then (special "352", special "350")
-      else if name = Markup.tvarN then (special "353", special "350")
-      else if name = Markup.freeN then (special "354", special "350")
-      else if name = Markup.boundN then (special "355", special "350")
-      else if name = Markup.varN then (special "356", special "350")
-      else if name = Markup.skolemN then (special "357", special "350")
+      if name = Markup.stateN then (special "O" ^ "\n", "\n" ^ special "P")
+      else if name = Markup.sendbackN then (special "W", special "X")
+      else if name = Markup.hiliteN then (special "0", special "1")
+      else if name = Markup.tclassN then (special "B", special "A")
+      else if name = Markup.tfreeN then (special "C", special "A")
+      else if name = Markup.tvarN then (special "D", special "A")
+      else if name = Markup.freeN then (special "E", special "A")
+      else if name = Markup.boundN then (special "F", special "A")
+      else if name = Markup.varN then (special "G", special "A")
+      else if name = Markup.skolemN then (special "H", special "A")
       else ("", "");
     val (bg2, en2) =
       if name <> Markup.promptN andalso print_mode_active test_markupN
@@ -85,17 +81,17 @@ fun decorate bg en prfx =
 fun setup_messages () =
  (Output.writeln_fn := Output.writeln_default;
   Output.status_fn := (fn "" => () | s => ! Output.priority_fn s);
-  Output.priority_fn := (fn s => decorate (special "360") (special "361") "" s);
-  Output.tracing_fn := (fn s => decorate (special "360" ^ special "375") (special "361") "" s);
-  Output.debug_fn := (fn s => decorate (special "362") (special "363") "+++ " s);
-  Output.warning_fn := (fn s => decorate (special "362") (special "363") "### " s);
-  Output.error_fn := (fn s => decorate (special "364") (special "365") "*** " s);
-  Output.prompt_fn := (fn s => Output.std_output (s ^ special "372")));
+  Output.priority_fn := (fn s => decorate (special "I") (special "J") "" s);
+  Output.tracing_fn := (fn s => decorate (special "I" ^ special "V") (special "J") "" s);
+  Output.debug_fn := (fn s => decorate (special "K") (special "L") "+++ " s);
+  Output.warning_fn := (fn s => decorate (special "K") (special "L") "### " s);
+  Output.error_fn := (fn s => decorate (special "M") (special "N") "*** " s);
+  Output.prompt_fn := (fn s => Output.std_output (s ^ special "S")));
 
 fun panic s =
-  (decorate (special "364") (special "365") "!!! " ("## SYSTEM EXIT ##\n" ^ s); exit 1);
+  (decorate (special "M") (special "N") "!!! " ("## SYSTEM EXIT ##\n" ^ s); exit 1);
 
-fun emacs_notify s = decorate (special "360") (special "361") "" s;
+fun emacs_notify s = decorate (special "I") (special "J") "" s;
 
 fun tell_clear_goals () =
   emacs_notify "Proof General, please clear the goals buffer.";
