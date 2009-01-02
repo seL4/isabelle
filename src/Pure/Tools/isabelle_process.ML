@@ -55,10 +55,8 @@ fun message_props props =
   let val clean = clean_string [Symbol.STX, "\n", "\r"]
   in implode (map (fn (x, y) => clean x ^ "=" ^ clean y ^ special_sep ^ "\n") props) end;
 
-fun message_text class ts =
-  XML.Elem (Markup.messageN, [(Markup.classN, class)], ts)
-  |> YXML.string_of
-  |> clean_string [Symbol.STX];
+fun message_text class body =
+  YXML.element Markup.messageN [(Markup.classN, class)] [clean_string [Symbol.STX] body];
 
 fun message_pos trees = trees |> get_first
   (fn XML.Elem (name, atts, ts) =>
@@ -74,19 +72,18 @@ in
 fun message _ _ _ "" = ()
   | message out_stream ch class body =
       let
-        val trees = YXML.parse_body body;
-        val pos = the_default Position.none (message_pos trees);
+        val pos = the_default Position.none (message_pos (YXML.parse_body body));
         val props =
           Position.properties_of (Position.thread_data ())
           |> Position.default_properties pos;
-        val txt = message_text class trees;
+        val txt = message_text class body;
       in output out_stream (special ch ^ message_props props ^ txt ^ special_end) end;
 
 fun init_message out_stream =
   let
     val pid = (Markup.pidN, process_id ());
     val session = (Markup.sessionN, List.last (Session.id ()) handle List.Empty => "unknown");
-    val text = message_text Markup.initN [XML.Text (Session.welcome ())];
+    val text = message_text Markup.initN (Session.welcome ());
   in output out_stream (special "A" ^ message_props [pid, session] ^ text ^ special_end) end;
 
 end;
