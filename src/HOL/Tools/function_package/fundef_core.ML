@@ -436,7 +436,7 @@ fun prove_stuff ctxt globals G f R clauses complete compat compat_store G_elim f
                                   |> implies_intr (cterm_of thy (HOLogic.mk_Trueprop (mk_acc domT R $ x)))
                                   |> forall_intr (cterm_of thy x)
                                   |> (fn it => Drule.compose_single (it, 2, acc_induct_rule)) (* "EX! y. (?x,y):G" *)
-                                  |> (fn it => fold (forall_intr o cterm_of thy) (OldTerm.term_vars (prop_of it)) it)
+                                  |> (fn it => fold (forall_intr o cterm_of thy o Var) (Term.add_vars (prop_of it) []) it)
 
         val goalstate =  Conjunction.intr graph_is_function complete
                           |> Thm.close_derivation

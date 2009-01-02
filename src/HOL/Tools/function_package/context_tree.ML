@@ -80,7 +80,7 @@ fun branch_vars t =
     let 
       val t' = snd (dest_all_all t)
       val (assumes, concl) = Logic.strip_horn t'
-    in (fold (curry OldTerm.add_term_vars) assumes [], OldTerm.term_vars concl)
+    in (fold Term.add_vars assumes [], Term.add_vars concl [])
     end
 
 fun cong_deps crule =
@@ -89,7 +89,9 @@ fun cong_deps crule =
     in
       IntGraph.empty
         |> fold (fn (i,_)=> IntGraph.new_node (i,i)) num_branches
-        |> fold_product (fn (i,(c1,_)) => fn (j,(_, t2)) => if i = j orelse null (c1 inter t2) then I else IntGraph.add_edge_acyclic (i,j))
+        |> fold_product (fn (i, (c1, _)) => fn (j, (_, t2)) => 
+               if i = j orelse null (c1 inter t2) 
+               then I else IntGraph.add_edge_acyclic (i,j))
              num_branches num_branches
     end
     

@@ -63,9 +63,10 @@ fun inst_free var inst thm =
 
 fun inst_case_thm thy x P thm =
     let
-        val [Pv, xv] = OldTerm.term_vars (prop_of thm)
+        val [Pv, xv] = Term.add_vars (prop_of thm) []
     in
-        cterm_instantiate [(cterm_of thy xv, cterm_of thy x), (cterm_of thy Pv, cterm_of thy P)] thm
+        cterm_instantiate [(cterm_of thy (Var xv), cterm_of thy x), 
+                           (cterm_of thy (Var Pv), cterm_of thy P)] thm
     end
 
 
