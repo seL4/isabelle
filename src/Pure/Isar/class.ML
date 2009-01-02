@@ -85,7 +85,7 @@ val add_locale = Locale.add_locale;
 
 end;
 
-structure New_Locale =
+(*structure New_Locale =
 struct
 
 val intro_locales_tac = Locale.intro_locales_tac; (*already forked!*)
@@ -106,7 +106,7 @@ val read_expr = Locale.read_expr; (*!"*)
 val parameters_of = NewLocale.params_of; (*why typ option?*)
 val add_locale = Expression.add_locale;
 
-end;
+end;*)
 
 structure Locale = Old_Locale;
 
