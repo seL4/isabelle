@@ -59,10 +59,10 @@ open Basic_Binding;
 (** long identifiers **)
 
 fun hidden name = "??." ^ name;
-val is_hidden = String.isPrefix "??."
+val is_hidden = String.isPrefix "??.";
 
-val separator = ".";
-val is_qualified = exists_string (fn s => s = separator);
+val separator = Binding.separator;
+val is_qualified = Binding.is_qualified;
 
 val implode_name = space_implode separator;
 val explode_name = space_explode separator;
