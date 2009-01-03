@@ -26,6 +26,8 @@ sig
   val base_name: T -> string
   val pos_of: T -> Position.T
   val dest: T -> (string * bool) list * string
+  val separator: string
+  val is_qualified: string -> bool
   val display: T -> string
 end
 
@@ -37,6 +39,17 @@ struct
 val long_names = ref false;
 val short_names = ref false;
 val unique_names = ref true;
+
+
+(** qualification **)
+
+val separator = ".";
+val is_qualified = exists_string (fn s => s = separator);
+
+fun reject_qualified kind s =
+  if is_qualified s then
+    error ("Attempt to declare qualified " ^ kind ^ " " ^ quote s)
+  else s;
 
 
 (** binding representation **)
@@ -54,13 +67,14 @@ val map_base = map_binding o apsnd;
 
 fun qualify_base path name =
   if path = "" orelse name = "" then name
-  else path ^ "." ^ name;
+  else path ^ separator ^ name;
 
 val qualify = map_base o qualify_base;
   (*FIXME should all operations on bare names move here from name_space.ML ?*)
 
 fun add_prefix sticky "" b = b
-  | add_prefix sticky prfx b = (map_binding o apfst) (cons (prfx, sticky)) b;
+  | add_prefix sticky prfx b = (map_binding o apfst)
+      (cons ((*reject_qualified "prefix"*) prfx, sticky)) b;
 
 fun map_prefix f (Binding ((prefix, name), pos)) =
   f prefix (name_pos (name, pos));
