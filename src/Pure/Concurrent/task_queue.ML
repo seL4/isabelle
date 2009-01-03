@@ -6,11 +6,12 @@ Ordered queue of grouped tasks.
 
 signature TASK_QUEUE =
 sig
-  eqtype task
+  type task
   val new_task: int -> task
   val pri_of_task: task -> int
   val str_of_task: task -> string
-  eqtype group
+  type group
+  val eq_group: group * group -> bool
   val new_group: unit -> group
   val invalidate_group: group -> unit
   val str_of_group: group -> string
@@ -24,11 +25,12 @@ sig
     (((task * group * (unit -> bool)) * task list) option * queue)
   val interrupt: queue -> task -> unit
   val interrupt_external: queue -> string -> unit
-  val finish: task -> queue -> queue
   val cancel: queue -> group -> bool
+  val cancel_all: queue -> group list
+  val finish: task -> queue -> queue
 end;
 
-structure Task_Queue: TASK_QUEUE =
+structure Task_Queue:> TASK_QUEUE =
 struct
 
 (* tasks *)
@@ -46,6 +48,7 @@ structure Task_Graph = GraphFun(type key = task val ord = task_ord);
 (* groups *)
 
 datatype group = Group of serial * bool ref;
+fun eq_group (Group (gid1, _), Group (gid2, _)) = gid1 = gid2;
 
 fun new_group () = Group (serial (), ref true);
 
@@ -150,7 +153,7 @@ fun interrupt_external (queue as Queue {jobs, ...}) str =
   | NONE => ());
 
 
-(* misc operations *)
+(* termination *)
 
 fun cancel (Queue {groups, jobs, ...}) (group as Group (gid, _)) =
   let
@@ -159,6 +162,16 @@ fun cancel (Queue {groups, jobs, ...}) (group as Group (gid, _)) =
     val running = fold (get_job jobs #> (fn Running thread => cons thread | _ => I)) tasks [];
     val _ = List.app SimpleThread.interrupt running;
   in null running end;
+
+fun cancel_all (Queue {jobs, ...}) =
+  let
+    fun cancel_job (group, job) (groups, running) =
+      (invalidate_group group;
+        (case job of Running thread => (insert eq_group group groups, thread :: running)
+        | _ => (groups, running)));
+    val (groups, running) = Task_Graph.fold (cancel_job o #1 o #2) jobs ([], []);
+    val _ = List.app SimpleThread.interrupt running;
+  in groups end;
 
 fun finish task (Queue {groups, jobs}) =
   let
