@@ -1,5 +1,4 @@
 (*  Title:      HOL/Library/Nat_Infinity.thy
-    ID:         $Id$
     Author:     David von Oheimb, TU Muenchen;  Florian Haftmann, TU Muenchen
 *)
 
@@ -9,12 +8,25 @@ theory Nat_Infinity
 imports Plain "~~/src/HOL/Presburger"
 begin
 
+text {* FIXME: move to Nat.thy *}
+
+instantiation nat :: bot
+begin
+
+definition bot_nat :: nat where
+  "bot_nat = 0"
+
+instance proof
+qed (simp add: bot_nat_def)
+
 subsection {* Type definition *}
 
 text {*
   We extend the standard natural numbers by a special value indicating
   infinity.
 *}
+
+end
 
 datatype inat = Fin nat | Infty
 
@@ -352,6 +364,20 @@ apply (rule iSuc_Fin [THEN subst])
 apply (rule exI)
 apply (erule (1) le_less_trans)
 done
+
+instantiation inat :: "{bot, top}"
+begin
+
+definition bot_inat :: inat where
+  "bot_inat = 0"
+
+definition top_inat :: inat where
+  "top_inat = \<infinity>"
+
+instance proof
+qed (simp_all add: bot_inat_def top_inat_def)
+
+end
 
 
 subsection {* Well-ordering *}
