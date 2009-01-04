@@ -144,7 +144,7 @@ fun inform_file_processed file =
             (warning (cat_lines ["Failed to register theory: " ^ quote name, msg]);
               tell_file_retracted (ThyLoad.thy_path name))
       else ();
-    val _ = Isar.init_point ();
+    val _ = Isar.init ();
   in () end;
 
 
@@ -156,7 +156,7 @@ fun restart () =
  (sync_thy_loader ();
   tell_clear_goals ();
   tell_clear_response ();
-  Isar.init_point ();
+  Isar.init ();
   welcome ());
 
 

@@ -774,7 +774,7 @@ val _ =
 
 val _ =
   OuterSyntax.improper_command "init_toplevel" "init toplevel point-of-interest" K.control
-    (Scan.succeed (Toplevel.no_timing o Toplevel.imperative Isar.init_point));
+    (Scan.succeed (Toplevel.no_timing o Toplevel.imperative Isar.init));
 
 val _ =
   OuterSyntax.improper_command "linear_undo" "undo commands" K.control
