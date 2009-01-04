@@ -110,6 +110,7 @@ sig
   val sort_triv: theory -> typ * sort -> thm list
   val unconstrainTs: thm -> thm
   val with_subgoal: int -> (thm -> thm) -> thm -> thm
+  val comp_no_flatten: thm * int -> int -> thm -> thm
   val rename_bvars: (string * string) list -> thm -> thm
   val rename_bvars': string option list -> thm -> thm
   val incr_type_indexes: int -> thm -> thm
@@ -817,6 +818,14 @@ fun incr_indexes2 th1 th2 =
 
 fun th1 INCR_COMP th2 = incr_indexes th2 th1 COMP th2;
 fun th1 COMP_INCR th2 = th1 COMP incr_indexes th1 th2;
+
+fun comp_no_flatten (th, n) i rule =
+  (case distinct Thm.eq_thm (Seq.list_of
+      (Thm.compose_no_flatten false (th, n) i (incr_indexes th rule))) of
+    [th'] => th'
+  | [] => raise THM ("comp_no_flatten", i, [th, rule])
+  | _ => raise THM ("comp_no_flatten: unique result expected", i, [th, rule]));
+
 
 
 (*** Instantiate theorem th, reading instantiations in theory thy ****)
