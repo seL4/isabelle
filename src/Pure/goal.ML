@@ -1,6 +1,5 @@
 (*  Title:      Pure/goal.ML
-    ID:         $Id$
-    Author:     Makarius and Lawrence C Paulson
+    Author:     Makarius
 
 Goals in tactical theorem proving.
 *)
@@ -58,18 +57,14 @@ val init =
   --- (protect)
   #C
 *)
-fun protect th = th COMP_INCR Drule.protectI;
+fun protect th = Drule.comp_no_flatten (th, 0) 1 Drule.protectI;
 
 (*
   A ==> ... ==> #C
   ---------------- (conclude)
   A ==> ... ==> C
 *)
-fun conclude th =
-  (case SINGLE (Thm.compose_no_flatten false (th, Thm.nprems_of th) 1)
-      (Drule.incr_indexes th Drule.protectD) of
-    SOME th' => th'
-  | NONE => raise THM ("Failed to conclude goal", 0, [th]));
+fun conclude th = Drule.comp_no_flatten (th, Thm.nprems_of th) 1 Drule.protectD;
 
 (*
   #C
