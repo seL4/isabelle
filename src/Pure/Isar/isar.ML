@@ -6,15 +6,12 @@ The global Isabelle/Isar state and main read-eval-print loop.
 
 signature ISAR =
 sig
-  type id = string
-  val no_id: id
-  val create_command: Toplevel.transition -> id
-  val init_point: unit -> unit
+  val init: unit -> unit
+  val exn: unit -> (exn * string) option
   val state: unit -> Toplevel.state
   val context: unit -> Proof.context
   val goal: unit -> thm
   val print: unit -> unit
-  val exn: unit -> (exn * string) option
   val >> : Toplevel.transition -> bool
   val >>> : Toplevel.transition list -> unit
   val linear_undo: int -> unit
@@ -25,12 +22,140 @@ sig
   val toplevel_loop: {init: bool, welcome: bool, sync: bool, secure: bool} -> unit
   val loop: unit -> unit
   val main: unit -> unit
+
+  type id = string
+  val no_id: id
+  val create_command: Toplevel.transition -> id
   val insert_command: id -> id -> unit
   val remove_command: id -> unit
 end;
 
 structure Isar: ISAR =
 struct
+
+
+(** TTY model -- SINGLE-THREADED! **)
+
+(* the global state *)
+
+type history = (Toplevel.state * Toplevel.transition) list;
+  (*previous state, state transition -- regular commands only*)
+
+local
+  val global_history = ref ([]: history);
+  val global_state = ref Toplevel.toplevel;
+  val global_exn = ref (NONE: (exn * string) option);
+in
+
+fun edit_history count f = NAMED_CRITICAL "Isar" (fn () =>
+  let
+    fun edit 0 (st, hist) = (global_history := hist; global_state := st; global_exn := NONE)
+      | edit n (st, hist) = edit (n - 1) (f st hist);
+  in edit count (! global_state, ! global_history) end);
+
+fun state () = NAMED_CRITICAL "Isar" (fn () => ! global_state);
+fun set_state state = NAMED_CRITICAL "Isar" (fn () => global_state := state);
+
+fun exn () = NAMED_CRITICAL "Isar" (fn () => ! global_exn);
+fun set_exn exn =  NAMED_CRITICAL "Isar" (fn () => global_exn := exn);
+
+end;
+
+
+fun init () = edit_history 1 (K (K (Toplevel.toplevel, [])));
+
+fun context () = Toplevel.context_of (state ())
+  handle Toplevel.UNDEF => error "Unknown context";
+
+fun goal () = #2 (#2 (Proof.get_goal (Toplevel.proof_of (state ()))))
+  handle Toplevel.UNDEF => error "No goal present";
+
+fun print () = Toplevel.print_state false (state ());
+
+
+(* history navigation *)
+
+local
+
+fun find_and_undo _ [] = error "Undo history exhausted"
+  | find_and_undo which ((prev, tr) :: hist) =
+      ((case Toplevel.init_of tr of SOME name => ThyInfo.kill_thy name | NONE => ());
+        if which (Toplevel.name_of tr) then (prev, hist) else find_and_undo which hist);
+
+in
+
+fun linear_undo n = edit_history n (K (find_and_undo (K true)));
+
+fun undo n = edit_history n (fn st => fn hist =>
+  find_and_undo (if Toplevel.is_proof st then K true else OuterKeyword.is_theory) hist);
+
+fun kill () = edit_history 1 (fn st => fn hist =>
+  find_and_undo
+    (if Toplevel.is_proof st then OuterKeyword.is_theory else OuterKeyword.is_theory_begin) hist);
+
+fun kill_proof () = edit_history 1 (fn st => fn hist =>
+  if Toplevel.is_proof st then find_and_undo OuterKeyword.is_theory hist
+  else raise Toplevel.UNDEF);
+
+end;
+
+
+(* interactive state transformations *)
+
+fun op >> tr =
+  (case Toplevel.transition true tr (state ()) of
+    NONE => false
+  | SOME (_, SOME err) => (set_exn (SOME err); Toplevel.error_msg tr err; true)
+  | SOME (st', NONE) =>
+      let
+        val name = Toplevel.name_of tr;
+        val _ = if OuterKeyword.is_theory_begin name then init () else ();
+        val _ =
+          if OuterKeyword.is_regular name
+          then edit_history 1 (fn st => fn hist => (st', (st, tr) :: hist)) else ();
+      in true end);
+
+fun op >>> [] = ()
+  | op >>> (tr :: trs) = if op >> tr then op >>> trs else ();
+
+
+(* toplevel loop *)
+
+val crashes = ref ([]: exn list);
+
+local
+
+fun raw_loop secure src =
+  let
+    fun check_secure () =
+      (if secure then warning "Secure loop -- cannot exit to ML" else (); secure);
+  in
+    (case Source.get_single (Source.set_prompt Source.default_prompt src) of
+      NONE => if secure then quit () else ()
+    | SOME (tr, src') => if op >> tr orelse check_secure () then raw_loop secure src' else ())
+    handle exn => (Output.error_msg (Toplevel.exn_message exn)
+    handle crash =>
+      (CRITICAL (fn () => change crashes (cons crash));
+        warning "Recovering after Isar toplevel crash -- see also Isar.crashes");
+      raw_loop secure src)
+  end;
+
+in
+
+fun toplevel_loop {init = do_init, welcome, sync, secure} =
+ (Context.set_thread_data NONE;
+  if do_init then init () else ();  (* FIXME init editor model *)
+  if welcome then writeln (Session.welcome ()) else ();
+  uninterruptible (fn _ => fn () => raw_loop secure (OuterSyntax.isar sync)) ());
+
+end;
+
+fun loop () =
+  toplevel_loop {init = false, welcome = false, sync = false, secure = Secure.is_secure ()};
+
+fun main () =
+  toplevel_loop {init = true, welcome = true, sync = false, secure = Secure.is_secure ()};
+
 
 
 (** individual toplevel commands **)
@@ -188,153 +313,6 @@ fun the_state id =
 
 
 
-(** TTY model -- single-threaded **)
-
-(* global point *)
-
-local val global_point = ref no_id in
-
-fun change_point f = NAMED_CRITICAL "Isar" (fn () => change global_point f);
-fun point () = NAMED_CRITICAL "Isar" (fn () => ! global_point);
-
-end;
-
-
-fun set_point id = change_point (K id);
-fun init_point () = set_point no_id;
-
-fun point_state () = NAMED_CRITICAL "Isar" (fn () =>
-  let val id = point () in (id, the_state id) end);
-
-fun state () = #2 (point_state ());
-
-fun context () =
-  Toplevel.context_of (state ())
-    handle Toplevel.UNDEF => error "Unknown context";
-
-fun goal () =
-  #2 (#2 (Proof.get_goal (Toplevel.proof_of (state ()))))
-    handle Toplevel.UNDEF => error "No goal present";
-
-fun print () = Toplevel.print_state false (state ());
-
-
-(* global failure status *)
-
-local val global_exn = ref (NONE: (exn * string) option) in
-
-fun set_exn err = global_exn := err;
-fun exn () = ! global_exn;
-
-end;
-
-
-(* interactive state transformations *)
-
-fun op >> raw_tr =
-  let
-    val id = create_command raw_tr;
-    val {category, transition = tr, ...} = the_command id;
-    val (prev, prev_state) = point_state ();
-    val _ =
-      if is_regular category
-      then (dispose_commands (next_commands prev); change_commands (add_edge (prev, id)))
-      else ();
-  in
-    (case run true tr prev_state of
-      NONE => false
-    | SOME (status as Failed err) => (update_status status id; set_exn (SOME err); true)
-    | SOME status =>
-       (update_status status id; set_exn NONE;
-        if is_regular category then set_point id else ();
-        true))
-  end;
-
-fun op >>> [] = ()
-  | op >>> (tr :: trs) = if op >> tr then op >>> trs else ();
-
-
-(* implicit navigation wrt. proper commands *)
-
-local
-
-fun err_undo () = error "Undo history exhausted";
-
-fun find_category which id =
-  (case #category (the_command id) of
-    Empty => err_undo ()
-  | category => if which category then id else find_category which (prev_command id));
-
-fun find_begin_theory id =
-  if id = no_id then err_undo ()
-  else if is_some (Toplevel.init_of (#transition (the_command id))) then id
-  else find_begin_theory (prev_command id);
-
-fun undo_command id =
-  (case Toplevel.init_of (#transition (the_command id)) of
-    SOME name => prev_command id before ThyInfo.kill_thy name
-  | NONE => prev_command id);
-
-in
-
-fun linear_undo n = change_point (funpow n (fn id => undo_command (find_category is_proper id)));
-
-fun undo n = change_point (funpow n (fn id => undo_command
-  (find_category (if Toplevel.is_proof (the_state id) then is_proper else is_theory) id)));
-
-fun kill () = change_point (fn id => undo_command
-  (if Toplevel.is_proof (the_state id) then find_category is_theory id else find_begin_theory id));
-
-fun kill_proof () = change_point (fn id =>
-  if Toplevel.is_proof (the_state id) then undo_command (find_category is_theory id)
-  else raise Toplevel.UNDEF);
-
-end;
-
-
-(* toplevel loop *)
-
-val crashes = ref ([]: exn list);
-
-local
-
-fun raw_loop secure src =
-  let
-    fun check_secure () =
-      (if secure then warning "Secure loop -- cannot exit to ML" else (); secure);
-    val prev = point ();
-    val prev_name = Toplevel.name_of (#transition (the_command prev));
-    val prompt_markup =
-      prev <> no_id ? Markup.markup
-        (Markup.properties [(Markup.idN, prev), (Markup.nameN, prev_name)] Markup.prompt);
-  in
-    (case Source.get_single (Source.set_prompt (prompt_markup Source.default_prompt) src) of
-      NONE => if secure then quit () else ()
-    | SOME (tr, src') => if op >> tr orelse check_secure () then raw_loop secure src' else ())
-    handle exn => (Output.error_msg (Toplevel.exn_message exn) handle crash =>
-      (CRITICAL (fn () => change crashes (cons crash));
-        warning "Recovering after Isar toplevel crash -- see also Isar.crashes");
-      raw_loop secure src)
-  end;
-
-in
-
-fun toplevel_loop {init, welcome, sync, secure} =
- (Context.set_thread_data NONE;
-  if init then (init_point (); init_commands ()) else ();
-  if welcome then writeln (Session.welcome ()) else ();
-  uninterruptible (fn _ => fn () => raw_loop secure (OuterSyntax.isar sync)) ());
-
-end;
-
-fun loop () =
-  toplevel_loop {init = false, welcome = false, sync = false, secure = Secure.is_secure ()};
-
-fun main () =
-  toplevel_loop {init = true, welcome = true, sync = false, secure = Secure.is_secure ()};
-
-
-
 (** editor model **)
 
 (* run commands *)
@@ -375,7 +353,7 @@ fun remove_command id = NAMED_CRITICAL "Isar" (fn () =>
 
 local
 
-structure P = struct open OuterParse open ValueParse end;
+structure P = OuterParse;
 val op >> = Scan.>>;
 
 in
