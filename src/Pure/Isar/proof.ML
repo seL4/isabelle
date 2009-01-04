@@ -140,7 +140,7 @@ and node =
     goal: goal option}
 and goal =
   Goal of
-   {statement: (string * Position.T) * term list list * cterm,
+   {statement: (string * Position.T) * term list list * term,
       (*goal kind and statement (starting with vars), initial proposition*)
     messages: (unit -> Pretty.T) list,    (*persistent messages (hints etc.)*)
     using: thm list,                      (*goal facts*)
@@ -313,8 +313,8 @@ fun get_goal state =
 
 fun schematic_goal state =
   let val (_, (_, {statement = (_, _, prop), ...})) = find_goal state in
-    Term.exists_subterm Term.is_Var (Thm.term_of prop) orelse
-    Term.exists_type (Term.exists_subtype Term.is_TVar) (Thm.term_of prop)
+    Term.exists_subterm Term.is_Var prop orelse
+    Term.exists_type (Term.exists_subtype Term.is_TVar) prop
   end;
 
 
@@ -806,9 +806,10 @@ fun generic_goal prepp kind before_qed after_qed raw_propp state =
 
     val propss' = map (Logic.mk_term o Var) vars :: propss;
     val goal_propss = filter_out null propss';
-    val goal = cert (Logic.mk_conjunction_balanced (map Logic.mk_conjunction_balanced goal_propss))
+    val goal =
+      cert (Logic.mk_conjunction_balanced (map Logic.mk_conjunction_balanced goal_propss))
       |> Thm.weaken_sorts (Variable.sorts_of (context_of goal_state));
-    val statement = ((kind, pos), propss', goal);
+    val statement = ((kind, pos), propss', Thm.term_of goal);
     val after_qed' = after_qed |>> (fn after_local =>
       fn results => map_context after_ctxt #> after_local results);
   in
@@ -979,40 +980,45 @@ end;
 
 (* fork global proofs *)
 
-fun is_initial state =
+local
+
+fun is_original state =
   (case try find_goal state of
     NONE => false
-  | SOME (_, (_, {statement = (_, _, prop), goal, ...})) => Thm.eq_thm_prop (Goal.init prop, goal));
+  | SOME (_, (_, {statement = (_, _, prop), goal, ...})) =>
+      Logic.protect prop aconv Thm.concl_of goal);
+
+in
 
 fun is_relevant state =
   can (assert_bottom false) state orelse
   can assert_forward state orelse
-  not (is_initial state) orelse
+  not (is_original state) orelse
   schematic_goal state;
 
-fun future_proof proof state =
+fun future_proof fork_proof state =
   let
     val _ = is_relevant state andalso error "Cannot fork relevant proof";
 
     val (goal_ctxt, (_, goal)) = find_goal state;
-    val {statement as (kind, propss, cprop), messages, using, goal, before_qed, after_qed} = goal;
-    val prop = Thm.term_of cprop;
-    val cprop_protected = #2 (Thm.dest_implies (Thm.cprop_of goal));
+    val {statement as (kind, propss, prop), messages, using, goal, before_qed, after_qed} = goal;
 
-    val statement' = (kind, [[], [Thm.term_of cprop_protected]], cprop_protected);
-    val goal' = Thm.adjust_maxidx_thm ~1 (Drule.protectI RS Goal.init cprop_protected);
-    fun after_qed' [[th]] = ProofContext.put_thms false (AutoBind.thisN, SOME [Goal.conclude th]);
-    val this_name = ProofContext.full_bname (ProofContext.reset_naming goal_ctxt) AutoBind.thisN;
+    val prop' = Logic.protect prop;
+    val statement' = (kind, [[], [prop']], prop');
+    val goal' = Thm.adjust_maxidx_thm (Thm.maxidx_of goal)
+      (Drule.comp_no_flatten (goal, Thm.nprems_of goal) 1 Drule.protectI);
+    fun after_qed' [[th]] = ProofContext.put_thms false (AutoBind.thisN, SOME [th]);
+    val this_name = ProofContext.full_bname goal_ctxt AutoBind.thisN;
 
     val result_ctxt =
       state
       |> map_contexts (Variable.auto_fixes prop)
       |> map_goal I (K (statement', messages, using, goal', before_qed, (#1 after_qed, after_qed')))
-      |> proof;
+      |> fork_proof;
 
-    val thm = result_ctxt |> Future.map (fn (_, ctxt) =>
+    val future_thm = result_ctxt |> Future.map (fn (_, ctxt) =>
       ProofContext.get_fact_single ctxt (Facts.named this_name));
-    val finished_goal = Goal.protect (Goal.future_result goal_ctxt thm prop);
+    val finished_goal = Goal.future_result goal_ctxt future_thm prop';
     val state' =
       state
       |> map_goal I (K (statement, messages, using, finished_goal, NONE, after_qed))
@@ -1020,3 +1026,6 @@ fun future_proof proof state =
   in (Future.map #1 result_ctxt, state') end;
 
 end;
+
+end;
+
