@@ -34,54 +34,51 @@ text{*\noindent Single-identifier formulae such as @{term A} need not
 be enclosed in double quotes. However, we will continue to do so for
 uniformity.
 
-Trivial proofs, in particular those by assumption, should be trivial
-to perform. Proof ``.'' does just that (and a bit more). Thus
-naming of assumptions is often superfluous: *}
+Instead of applying fact @{text a} via the @{text rule} method, we can
+also push it directly onto our goal.  The proof is then immediate,
+which is formally written as ``.'' in Isar: *}
 lemma "A \<longrightarrow> A"
 proof
-  assume "A"
-  show "A" .
+  assume a: "A"
+  from a show "A" .
 qed
 
-text{* To hide proofs by assumption further, \isakeyword{by}@{text"(method)"}
-first applies @{text method} and then tries to solve all remaining subgoals
-by assumption: *}
+text{* We can also push several facts towards a goal, and put another
+rule in between to establish some result that is one step further
+removed.  We illustrate this by introducing a trivial conjunction: *}
 lemma "A \<longrightarrow> A \<and> A"
 proof
-  assume "A"
-  show "A \<and> A" by(rule conjI)
+  assume a: "A"
+  from a and a show "A \<and> A" by(rule conjI)
 qed
 text{*\noindent Rule @{thm[source]conjI} is of course @{thm conjI}.
-A drawback of implicit proofs by assumption is that it
-is no longer obvious where an assumption is used.
 
 Proofs of the form \isakeyword{by}@{text"(rule"}~\emph{name}@{text")"}
-can be abbreviated to ``..''  if \emph{name} refers to one of the
+can be abbreviated to ``..'' if \emph{name} refers to one of the
 predefined introduction rules (or elimination rules, see below): *}
 
 lemma "A \<longrightarrow> A \<and> A"
 proof
-  assume "A"
-  show "A \<and> A" ..
+  assume a: "A"
+  from a and a show "A \<and> A" ..
 qed
 text{*\noindent
 This is what happens: first the matching introduction rule @{thm[source]conjI}
-is applied (first ``.''), then the two subgoals are solved by assumption
-(second ``.''). *}
+is applied (first ``.''), the remaining problem is solved immediately (second ``.''). *}
 
 subsubsection{*Elimination rules*}
 
 text{*A typical elimination rule is @{thm[source]conjE}, $\land$-elimination:
 @{thm[display,indent=5]conjE}  In the following proof it is applied
 by hand, after its first (\emph{major}) premise has been eliminated via
-@{text"[OF AB]"}: *}
+@{text"[OF ab]"}: *}
 lemma "A \<and> B \<longrightarrow> B \<and> A"
 proof
-  assume AB: "A \<and> B"
+  assume ab: "A \<and> B"
   show "B \<and> A"
-  proof (rule conjE[OF AB])  -- {*@{text"conjE[OF AB]"}: @{thm conjE[OF AB]} *}
-    assume "A" "B"
-    show ?thesis ..
+  proof (rule conjE[OF ab])  -- {*@{text"conjE[OF ab]"}: @{thm conjE[OF ab]} *}
+    assume a: "A" and b: "B"
+    from b and a show ?thesis ..
   qed
 qed
 text{*\noindent Note that the term @{text"?thesis"} always stands for the
@@ -106,11 +103,11 @@ is equivalent to the following one: *}
 
 lemma "A \<and> B \<longrightarrow> B \<and> A"
 proof
-  assume AB: "A \<and> B"
-  from AB show "B \<and> A"
+  assume ab: "A \<and> B"
+  from ab show "B \<and> A"
   proof
-    assume "A" "B"
-    show ?thesis ..
+    assume a: "A" and b: "B"
+    from b and a show ?thesis ..
   qed
 qed
 
@@ -120,15 +117,16 @@ Try to arrange the sequence of propositions in a UNIX-like pipe,
 such that the proof of each proposition builds on the previous proposition.
 \end{quote}
 The previous proposition can be referred to via the fact @{text this}.
-This greatly reduces the need for explicit naming of propositions:
+This greatly reduces the need for explicit naming of propositions.  We also
+rearrange the additional inner assumptions into proper order for immediate use:
 *}
 lemma "A \<and> B \<longrightarrow> B \<and> A"
 proof
   assume "A \<and> B"
   from this show "B \<and> A"
   proof
-    assume "A" "B"
-    show ?thesis ..
+    assume "B" "A"
+    from this show ?thesis ..
   qed
 qed
 
@@ -199,11 +197,11 @@ proof
     assume nn: "\<not> (\<not> A \<or> \<not> B)"
     have "\<not> A"
     proof
-      assume "A"
+      assume a: "A"
       have "\<not> B"
       proof
-        assume "B"
-        have "A \<and> B" ..
+        assume b: "B"
+        from a and b have "A \<and> B" ..
         with n show False ..
       qed
       hence "\<not> A \<or> \<not> B" ..
@@ -282,28 +280,28 @@ We can simplify things even more by stating the theorem by means of the
 \isakeyword{assumes} and \isakeyword{shows} elements which allow direct
 naming of assumptions: *}
 
-lemma assumes AB: "large_A \<and> large_B"
+lemma assumes ab: "large_A \<and> large_B"
   shows "large_B \<and> large_A" (is "?B \<and> ?A")
 proof
-  from AB show "?B" ..
+  from ab show "?B" ..
 next
-  from AB show "?A" ..
+  from ab show "?A" ..
 qed
 text{*\noindent Note the difference between @{text ?AB}, a term, and
-@{text AB}, a fact.
+@{text ab}, a fact.
 
 Finally we want to start the proof with $\land$-elimination so we
 don't have to perform it twice, as above. Here is a slick way to
 achieve this: *}
 
-lemma assumes AB: "large_A \<and> large_B"
+lemma assumes ab: "large_A \<and> large_B"
   shows "large_B \<and> large_A" (is "?B \<and> ?A")
-using AB
+using ab
 proof
-  assume "?A" "?B" show ?thesis ..
+  assume "?B" "?A" thus ?thesis ..
 qed
 text{*\noindent Command \isakeyword{using} can appear before a proof
-and adds further facts to those piped into the proof. Here @{text AB}
+and adds further facts to those piped into the proof. Here @{text ab}
 is the only such fact and it triggers $\land$-elimination. Another
 frequent idiom is as follows:
 \begin{center}
@@ -319,23 +317,23 @@ would trigger $\lor$-introduction, requiring us to prove @{prop P}, which may
 not be what we had in mind.
 A simple ``@{text"-"}'' prevents this \emph{faux pas}: *}
 
-lemma assumes AB: "A \<or> B" shows "B \<or> A"
+lemma assumes ab: "A \<or> B" shows "B \<or> A"
 proof -
-  from AB show ?thesis
+  from ab show ?thesis
   proof
-    assume A show ?thesis ..
+    assume A thus ?thesis ..
   next
-    assume B show ?thesis ..
+    assume B thus ?thesis ..
   qed
 qed
 text{*\noindent Alternatively one can feed @{prop"A \<or> B"} directly
 into the proof, thus triggering the elimination rule: *}
-lemma assumes AB: "A \<or> B" shows "B \<or> A"
-using AB
+lemma assumes ab: "A \<or> B" shows "B \<or> A"
+using ab
 proof
-  assume A show ?thesis ..
+  assume A thus ?thesis ..
 next
-  assume B show ?thesis ..
+  assume B thus ?thesis ..
 qed
 text{* \noindent Remember that eliminations have priority over
 introductions.
@@ -416,7 +414,7 @@ proof -
   proof              -- "@{thm[source]exE}: @{thm exE}"
     fix x
     assume "P(f x)"
-    show ?thesis ..  -- "@{thm[source]exI}: @{thm exI}"
+    thus ?thesis ..  -- "@{thm[source]exI}: @{thm exI}"
   qed
 qed
 text{*\noindent Explicit $\exists$-elimination as seen above can become
@@ -499,12 +497,12 @@ proof
       assume "y \<in> ?S"
       hence "y \<notin> f y"   by simp
       hence "y \<notin> ?S"    by(simp add: `?S = f y`)
-      thus False         by contradiction
+      with `y \<in> ?S` show False by contradiction
     next
       assume "y \<notin> ?S"
       hence "y \<in> f y"   by simp
       hence "y \<in> ?S"    by(simp add: `?S = f y`)
-      thus False         by contradiction
+      with `y \<notin> ?S` show False by contradiction
     qed
   qed
 qed

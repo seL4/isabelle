@@ -1,5 +1,4 @@
 (*  Title:      HOL/Import/shuffler.ML
-    ID:         $Id$
     Author:     Sebastian Skalberg, TU Muenchen
 
 Package for proving two terms equal by normalizing (hence the
@@ -248,8 +247,8 @@ fun quant_rewrite thy assumes (t as Const("all",T1) $ (Abs(x,xT,Const("all",T2) 
 
 fun freeze_thaw_term t =
     let
-        val tvars = term_tvars t
-        val tfree_names = add_term_tfree_names(t,[])
+        val tvars = OldTerm.term_tvars t
+        val tfree_names = OldTerm.add_term_tfree_names(t,[])
         val (type_inst,_) =
             Library.foldl (fn ((inst,used),(w as (v,_),S)) =>
                       let
@@ -268,7 +267,7 @@ fun inst_tfrees thy [] thm = thm
   | inst_tfrees thy ((name,U)::rest) thm =
     let
         val cU = ctyp_of thy U
-        val tfrees = add_term_tfrees (prop_of thm,[])
+        val tfrees = OldTerm.add_term_tfrees (prop_of thm,[])
         val (rens, thm') = Thm.varifyT'
     (remove (op = o apsnd fst) name tfrees) thm
         val mid =
@@ -322,7 +321,7 @@ fun eta_contract thy assumes origt =
               then
                   let
                       val cert = cterm_of thy
-                      val v = Free(Name.variant (add_term_free_names(t,[])) "v",xT)
+                      val v = Free (Name.variant (Term.add_free_names t []) "v", xT)
                       val cv = cert v
                       val ct = cert t
                       val th = (assume ct)
@@ -354,7 +353,7 @@ val meta_sym_rew = thm "refl"
 
 fun equals_fun thy assume t =
     case t of
-        Const("op ==",_) $ u $ v => if Term.term_ord (u,v) = LESS then SOME (meta_sym_rew) else NONE
+        Const("op ==",_) $ u $ v => if TermOrd.term_ord (u,v) = LESS then SOME (meta_sym_rew) else NONE
       | _ => NONE
 
 fun eta_expand thy assumes origt =
@@ -385,7 +384,7 @@ fun eta_expand thy assumes origt =
                       Type("fun",[aT,bT]) =>
                       let
                           val cert = cterm_of thy
-                          val vname = Name.variant (add_term_free_names(t,[])) "v"
+                          val vname = Name.variant (Term.add_free_names t []) "v"
                           val v = Free(vname,aT)
                           val cv = cert v
                           val ct = cert t
@@ -520,7 +519,7 @@ fun close_thm th =
     let
         val thy = Thm.theory_of_thm th
         val c = prop_of th
-        val vars = add_term_frees (c,add_term_vars(c,[]))
+        val vars = OldTerm.add_term_frees (c, OldTerm.add_term_vars(c,[]))
     in
         Drule.forall_intr_list (map (cterm_of thy) vars) th
     end
@@ -573,8 +572,8 @@ val collect_ignored =
     fold_rev (fn thm => fn cs =>
               let
                   val (lhs,rhs) = Logic.dest_equals (prop_of thm)
-                  val ignore_lhs = term_consts lhs \\ term_consts rhs
-                  val ignore_rhs = term_consts rhs \\ term_consts lhs
+                  val ignore_lhs = Term.add_const_names lhs [] \\ Term.add_const_names rhs []
+                  val ignore_rhs = Term.add_const_names rhs [] \\ Term.add_const_names lhs []
               in
                   fold_rev (insert (op =)) cs (ignore_lhs @ ignore_rhs)
               end)
@@ -585,7 +584,7 @@ succeeds, SOME theorem is returned, otherwise NONE.  *)
 
 fun set_prop thy t =
     let
-        val vars = add_term_frees (t,add_term_vars (t,[]))
+        val vars = OldTerm.add_term_frees (t, OldTerm.add_term_vars (t,[]))
         val closed_t = fold_rev Logic.all vars t
         val rew_th = norm_term thy closed_t
         val rhs = Thm.rhs_of rew_th

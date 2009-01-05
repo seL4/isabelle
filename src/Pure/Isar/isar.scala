@@ -1,22 +1,19 @@
 /*  Title:      Pure/Isar/isar.scala
     Author:     Makarius
 
-Isar toplevel editor model.
+Isar document model.
 */
 
 package isabelle
-
-import java.util.Properties
 
 
 class Isar(isabelle_system: IsabelleSystem, results: EventBus[IsabelleProcess.Result], args: String*)
   extends IsabelleProcess(isabelle_system, results, args: _*)
 {
-
   /* basic editor commands */
 
-  def create_command(props: Properties, text: String) =
-    output_sync("Isar.command " + IsabelleSyntax.encode_properties(props) + " " +
+  def create_command(id: String, text: String) =
+    output_sync("Isar.command " + IsabelleSyntax.encode_string(id) + " " +
       IsabelleSyntax.encode_string(text))
 
   def insert_command(prev: String, id: String) =
@@ -25,5 +22,4 @@ class Isar(isabelle_system: IsabelleSystem, results: EventBus[IsabelleProcess.Re
 
   def remove_command(id: String) =
     output_sync("Isar.remove " + IsabelleSyntax.encode_string(id))
-
 }

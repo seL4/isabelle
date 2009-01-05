@@ -47,9 +47,11 @@ sig
   val unfold_attrib: attribute
   val intro_locales_tac: bool -> Proof.context -> thm list -> tactic
 
-  (* Identifiers and registrations *)
-  val clear_local_idents: Proof.context -> Proof.context
-  val add_global_registration: (string * Morphism.morphism) -> theory -> theory
+  (* Registrations *)
+  val add_global_registration: (string * (Morphism.morphism * Morphism.morphism)) ->
+    theory -> theory
+  val amend_global_registration: Morphism.morphism -> (string * Morphism.morphism) ->
+    theory -> theory
   val get_global_registrations: theory -> (string * Morphism.morphism) list
 
   (* Diagnostic *)
@@ -113,17 +115,17 @@ structure LocalesData = TheoryDataFun
   val extend = I;
 
   fun join_locales _
-    (Loc {parameters, spec, decls = (decls1, decls2), notes, dependencies},
-      Loc {decls = (decls1', decls2'), notes = notes',
-        dependencies = dependencies', ...}) =
-        let fun s_merge x = merge (eq_snd (op =)) x in
-          Loc {parameters = parameters,
-            spec = spec,
-            decls = (s_merge (decls1, decls1'), s_merge (decls2, decls2')),
-            notes = s_merge (notes, notes'),
-            dependencies = s_merge (dependencies, dependencies')
-          }          
-        end;
+   (Loc {parameters, spec, decls = (decls1, decls2), notes, dependencies},
+    Loc {decls = (decls1', decls2'), notes = notes', dependencies = dependencies', ...}) =
+      Loc {
+        parameters = parameters,
+        spec = spec,
+        decls =
+         (merge (eq_snd op =) (decls1, decls1'),
+          merge (eq_snd op =) (decls2, decls2')),
+        notes = merge (eq_snd op =) (notes, notes'),
+        dependencies = merge (eq_snd op =) (dependencies, dependencies')};
+
   fun merge _ = NameSpace.join_tables join_locales;
 );
 
@@ -195,7 +197,7 @@ type identifiers = (string * term list) list;
 
 val empty = ([] : identifiers);
 
-fun ident_eq thy ((n, ts), (m, ss)) = (m = n) andalso Pattern.matchess thy (ss, ts);
+fun ident_eq thy ((n: string, ts), (m, ss)) = (m = n) andalso Pattern.matchess thy (ss, ts);
 
 local
 
@@ -219,16 +221,14 @@ val _ = Context.>> (Context.map_theory (Theory.at_begin (fn thy =>
     Ready _ => NONE |
     ids => SOME (Context.theory_map (IdentifiersData.put (Ready (finish thy ids))) thy))
   )));
-  
+
 fun get_global_idents thy =
   let val (Ready ids) = (IdentifiersData.get o Context.Theory) thy in ids end;
 val put_global_idents = Context.theory_map o IdentifiersData.put o Ready;
-val clear_global_idents = put_global_idents empty;
 
 fun get_local_idents ctxt =
   let val (Ready ids) = (IdentifiersData.get o Context.Proof) ctxt in ids end;
 val put_local_idents = Context.proof_map o IdentifiersData.put o Ready;
-val clear_local_idents = put_local_idents empty;
 
 end;
 
@@ -287,18 +287,18 @@ fun activate_decls thy (name, morph) ctxt =
       fold_rev (fn (decl, _) => Context.proof_map (decl morph)) term_decls
   end;
 
-fun activate_notes activ_elem thy (name, morph) input =
+fun activate_notes activ_elem transfer thy (name, morph) input =
   let
     val Loc {notes, ...} = the_locale thy name;
     fun activate ((kind, facts), _) input =
       let
-        val facts' = facts |> Element.facts_map (Element.morph_ctxt morph)
+        val facts' = facts |> Element.facts_map (Element.morph_ctxt (transfer input $> morph))
       in activ_elem (Notes (kind, facts')) input end;
   in
     fold_rev activate notes input
   end;
 
-fun activate_all name thy activ_elem (marked, input) =
+fun activate_all name thy activ_elem transfer (marked, input) =
   let
     val Loc {parameters = (_, params), spec = (asm, defs), ...} =
       the_locale thy name;
@@ -310,7 +310,7 @@ fun activate_all name thy activ_elem (marked, input) =
       (if not (null defs)
         then activ_elem (Defines (map (fn def => (Attrib.empty_binding, (def, []))) defs))
         else I) |>
-      pair marked |> roundup thy (activate_notes activ_elem) (name, Morphism.identity)
+      pair marked |> roundup thy (activate_notes activ_elem transfer) (name, Morphism.identity)
   end;
 
 
@@ -331,7 +331,7 @@ fun init_local_elem (Fixes fixes) ctxt = ctxt |>
       in
         ctxt |> fold Variable.auto_fixes (maps (map fst o snd) assms') |>
           ProofContext.add_assms_i Assumption.assume_export assms' |> snd
-     end 
+     end
   | init_local_elem (Defines defs) ctxt =
       let
         val defs' = Attrib.map_specs (Attrib.attribute_i (ProofContext.theory_of ctxt)) defs
@@ -354,15 +354,19 @@ fun activate_declarations thy dep ctxt =
   roundup thy activate_decls dep (get_local_idents ctxt, ctxt) |> uncurry put_local_idents;
 
 fun activate_global_facts dep thy =
-  roundup thy (activate_notes init_global_elem) dep (get_global_idents thy, thy) |>
+  roundup thy (activate_notes init_global_elem Element.transfer_morphism)
+    dep (get_global_idents thy, thy) |>
   uncurry put_global_idents;
 
 fun activate_local_facts dep ctxt =
-  roundup (ProofContext.theory_of ctxt) (activate_notes init_local_elem) dep
+  roundup (ProofContext.theory_of ctxt)
+  (activate_notes init_local_elem (Element.transfer_morphism o ProofContext.theory_of)) dep
     (get_local_idents ctxt, ctxt) |>
   uncurry put_local_idents;
 
-fun init name thy = activate_all name thy init_local_elem (empty, ProofContext.init thy) |>
+fun init name thy =
+  activate_all name thy init_local_elem (Element.transfer_morphism o ProofContext.theory_of)
+    (empty, ProofContext.init thy) |>
   uncurry put_local_idents;
 
 fun print_locale thy show_facts name =
@@ -371,11 +375,54 @@ fun print_locale thy show_facts name =
     val ctxt = init name' thy
   in
     Pretty.big_list "locale elements:"
-      (activate_all name' thy (cons_elem show_facts) (empty, []) |> snd |> rev |> 
+      (activate_all name' thy (cons_elem show_facts) (K (Element.transfer_morphism thy))
+        (empty, []) |> snd |> rev |>
         map (Element.pretty_ctxt ctxt) |> map Pretty.chunks) |> Pretty.writeln
   end
 
 end;
+
+
+(*** Registrations: interpretations in theories ***)
+
+(* FIXME only global variant needed *)
+structure RegistrationsData = GenericDataFun
+(
+  type T = ((string * (Morphism.morphism * Morphism.morphism)) * stamp) list;
+(* FIXME mixins need to be stamped *)
+    (* registrations, in reverse order of declaration *)
+  val empty = [];
+  val extend = I;
+  fun merge _ data : T = Library.merge (eq_snd op =) data;
+    (* FIXME consolidate with dependencies, consider one data slot only *)
+);
+
+val get_global_registrations =
+  Context.Theory #> RegistrationsData.get #> map fst #> map (apsnd op $>);
+
+fun add_global reg =
+  (Context.theory_map o RegistrationsData.map) (cons (reg, stamp ()));
+
+fun add_global_registration (name, (base_morph, export)) thy =
+  roundup thy (fn _ => fn (name', morph') => fn thy => add_global (name', (morph', export)) thy)
+    (name, base_morph) (get_global_idents thy, thy) |>
+    snd (* FIXME ?? uncurry put_global_idents *);
+
+fun amend_global_registration morph (name, base_morph) thy =
+  let
+    val regs = (Context.Theory #> RegistrationsData.get #> map fst) thy;
+    val base = instance_of thy name base_morph;
+    fun match (name', (morph', _)) =
+      name = name' andalso eq_list (op aconv) (base, instance_of thy name' morph');
+    val i = find_index match (rev regs);
+    val _ = if i = ~1 then error ("No interpretation of locale " ^
+        quote (extern thy name) ^ " and parameter instantiation " ^
+        space_implode " " (map (quote o Syntax.string_of_term_global thy) base) ^ " available.")
+      else ();
+  in
+    (Context.theory_map o RegistrationsData.map) (nth_map (length regs - 1 - i)
+      (fn ((name, (base, export)), stamp) => ((name, (base $> morph, export)), stamp))) thy
+  end;
 
 
 (*** Storing results ***)
@@ -384,12 +431,18 @@ end;
 
 fun add_thmss loc kind args ctxt =
   let
-    val (([Notes args'], _), ctxt') = Element.activate_i [Notes (kind, args)] ctxt;
-    val ctxt'' = ctxt' |> ProofContext.theory
-      (change_locale loc
+    val ([Notes args'], ctxt') = Element.activate_i [Notes (kind, args)] ctxt;
+    val ctxt'' = ctxt' |> ProofContext.theory (
+      change_locale loc
         (fn (parameters, spec, decls, notes, dependencies) =>
-          (parameters, spec, decls, (args', stamp ()) :: notes, dependencies)))
-      (* FIXME registrations *)
+          (parameters, spec, decls, (args', stamp ()) :: notes, dependencies)) #>
+      (* Registrations *)
+      (fn thy => fold_rev (fn (name, morph) =>
+            let
+              val args'' = snd args' |> Element.facts_map (Element.morph_ctxt morph) |>
+                Attrib.map_facts (Attrib.attribute_i thy)
+            in Locale.global_note_qualified kind args'' #> snd end)
+        (get_global_registrations thy |> filter (fn (name, _) => name = loc)) thy))
   in ctxt'' end;
 
 
@@ -450,24 +503,6 @@ val _ = Context.>> (Context.map_theory
       Method.ctxt_args (fn ctxt => Method.METHOD (intro_locales_tac true ctxt ORELSE'
         Locale.intro_locales_tac true ctxt)),
       "back-chain all introduction rules of locales")]));
-
-
-(*** Registrations: interpretations in theories ***)
-
-(* FIXME only global variant needed *)
-structure RegistrationsData = GenericDataFun
-(
-  type T = ((string * Morphism.morphism) * stamp) list;
-    (* registrations, in reverse order of declaration *)
-  val empty = [];
-  val extend = I;
-  fun merge _ = Library.merge (eq_snd (op =));
-    (* FIXME consolidate with dependencies, consider one data slot only *)
-);
-
-val get_global_registrations = map fst o RegistrationsData.get o Context.Theory;
-fun add_global_registration reg =
-  (Context.theory_map o RegistrationsData.map) (cons (reg, stamp ()));
 
 end;
 

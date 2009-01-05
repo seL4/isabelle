@@ -1,5 +1,4 @@
 (*  Title:      HOL/Tools/inductive_codegen.ML
-    ID:         $Id$
     Author:     Stefan Berghofer, TU Muenchen
 
 Code generator for inductive predicates.
@@ -58,7 +57,7 @@ fun add optmod optnparms = Thm.declaration_attribute (fn thm => Context.mapping 
       | _ => (warn thm; thy))
     | SOME (Const (s, _), _) =>
         let
-          val cs = foldr add_term_consts [] (prems_of thm);
+          val cs = fold Term.add_const_names (Thm.prems_of thm) [];
           val rules = Symtab.lookup_list intros s;
           val nparms = (case optnparms of
             SOME k => k
@@ -129,7 +128,7 @@ fun print_modes modes = message ("Inferred modes:\n" ^
   cat_lines (map (fn (s, ms) => s ^ ": " ^ commas (map
     string_of_mode ms)) modes));
 
-val term_vs = map (fst o fst o dest_Var) o term_vars;
+val term_vs = map (fst o fst o dest_Var) o OldTerm.term_vars;
 val terms_vs = distinct (op =) o List.concat o (map term_vs);
 
 (** collect all Vars in a term (with duplicates!) **)
@@ -491,7 +490,7 @@ fun mk_extra_defs thy defs gr dep names module ts =
       | SOME (names, thyname, nparms, intrs) =>
           mk_ind_def thy defs gr dep names (if_library thyname module)
             [] (prep_intrs intrs) nparms))
-            (gr, foldr add_term_consts [] ts)
+            (gr, fold Term.add_const_names ts [])
 
 and mk_ind_def thy defs gr dep names module modecs intrs nparms =
   add_edge_acyclic (hd names, dep) gr handle

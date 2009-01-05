@@ -1,7 +1,5 @@
 (*  Title:      HOL/Tools/TFL/usyntax.ML
-    ID:         $Id$
     Author:     Konrad Slind, Cambridge University Computer Laboratory
-    Copyright   1997  University of Cambridge
 
 Emulation of HOL's abstract syntax functions.
 *)
@@ -114,7 +112,7 @@ fun dest_vtype (TVar x) = x
 
 val is_vartype = can dest_vtype;
 
-val type_vars  = map mk_prim_vartype o typ_tvars
+val type_vars  = map mk_prim_vartype o OldTerm.typ_tvars
 fun type_varsl L = distinct (op =) (fold (curry op @ o type_vars) L []);
 
 val alpha  = mk_vartype "'a"
@@ -144,7 +142,7 @@ fun free_vars_lr tm =
 
 
 
-val type_vars_in_term = map mk_prim_vartype o term_tvars;
+val type_vars_in_term = map mk_prim_vartype o OldTerm.term_tvars;
 
 
 
@@ -321,7 +319,7 @@ val list_mk_conj = Utils.end_itlist(fn c1 => fn tm => mk_conj{conj1=c1, conj2=tm
 
 
 (* Need to reverse? *)
-fun gen_all tm = list_mk_forall(term_frees tm, tm);
+fun gen_all tm = list_mk_forall(OldTerm.term_frees tm, tm);
 
 (* Destructing a cterm to a list of Terms *)
 fun strip_comb tm =

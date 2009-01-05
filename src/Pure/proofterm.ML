@@ -1,5 +1,4 @@
 (*  Title:      Pure/proofterm.ML
-    ID:         $Id$
     Author:     Stefan Berghofer, TU Muenchen
 
 LF style proof terms.
@@ -189,7 +188,7 @@ fun fold_proof_atoms all f =
 
 (* proof body *)
 
-val oracle_ord = prod_ord fast_string_ord Term.fast_term_ord;
+val oracle_ord = prod_ord fast_string_ord TermOrd.fast_term_ord;
 fun thm_ord ((i, _): pthm, (j, _)) = int_ord (j, i);
 
 fun make_body prf =
@@ -412,15 +411,15 @@ fun prf_add_loose_bnos plev tlev (PBound i) (is, js) =
 fun del_conflicting_tvars envT T = TermSubst.instantiateT
   (map_filter (fn ixnS as (_, S) =>
      (Type.lookup envT ixnS; NONE) handle TYPE _ =>
-        SOME (ixnS, TFree ("'dummy", S))) (typ_tvars T)) T;
+        SOME (ixnS, TFree ("'dummy", S))) (OldTerm.typ_tvars T)) T;
 
 fun del_conflicting_vars env t = TermSubst.instantiate
   (map_filter (fn ixnS as (_, S) =>
      (Type.lookup (type_env env) ixnS; NONE) handle TYPE _ =>
-        SOME (ixnS, TFree ("'dummy", S))) (term_tvars t),
+        SOME (ixnS, TFree ("'dummy", S))) (OldTerm.term_tvars t),
    map_filter (fn Var (ixnT as (_, T)) =>
      (Envir.lookup (env, ixnT); NONE) handle TYPE _ =>
-        SOME (ixnT, Free ("dummy", T))) (term_vars t)) t;
+        SOME (ixnT, Free ("dummy", T))) (OldTerm.term_vars t)) t;
 
 fun norm_proof env =
   let
@@ -545,15 +544,13 @@ fun freeze_thaw_prf prf =
   let
     val (fs, Tfs, vs, Tvs) = fold_proof_terms
       (fn t => fn (fs, Tfs, vs, Tvs) =>
-         (add_term_frees (t, fs), add_term_tfree_names (t, Tfs),
-          add_term_vars (t, vs), add_term_tvar_ixns (t, Tvs)))
+         (Term.add_free_names t fs, Term.add_tfree_names t Tfs,
+          Term.add_var_names t vs, Term.add_tvar_names t Tvs))
       (fn T => fn (fs, Tfs, vs, Tvs) =>
-         (fs, add_typ_tfree_names (T, Tfs),
-          vs, add_typ_ixns (Tvs, T)))
+         (fs, Term.add_tfree_namesT T Tfs,
+          vs, Term.add_tvar_namesT T Tvs))
       prf ([], [], [], []);
-    val fs' = map (fst o dest_Free) fs;
-    val vs' = map (fst o dest_Var) vs;
-    val names = vs' ~~ Name.variant_list fs' (map fst vs');
+    val names = vs ~~ Name.variant_list fs (map fst vs);
     val names' = Tvs ~~ Name.variant_list Tfs (map fst Tvs);
     val rnames = map swap names;
     val rnames' = map swap names';
@@ -591,8 +588,9 @@ fun varify_proof t fixed prf =
   let
     val fs = Term.fold_types (Term.fold_atyps
       (fn TFree v => if member (op =) fixed v then I else insert (op =) v | _ => I)) t [];
-    val ixns = add_term_tvar_ixns (t, []);
-    val fmap = fs ~~ Name.variant_list (map #1 ixns) (map fst fs);
+    val used = Name.context
+      |> fold_types (fold_atyps (fn TVar ((a, _), _) => Name.declare a | _ => I)) t;
+    val fmap = fs ~~ (#1 (Name.variants (map fst fs) used));
     fun thaw (f as (a, S)) =
       (case AList.lookup (op =) fmap f of
         NONE => TFree f
@@ -614,8 +612,8 @@ in
 
 fun freezeT t prf =
   let
-    val used = it_term_types add_typ_tfree_names (t, [])
-    and tvars = map #1 (it_term_types add_typ_tvars (t, []));
+    val used = OldTerm.it_term_types OldTerm.add_typ_tfree_names (t, [])
+    and tvars = map #1 (OldTerm.it_term_types OldTerm.add_typ_tvars (t, []));
     val (alist, _) = List.foldr new_name ([], used) tvars;
   in
     (case alist of

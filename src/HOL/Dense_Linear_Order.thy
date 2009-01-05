@@ -1,13 +1,10 @@
-(*
-    ID:         $Id$
-    Author:     Amine Chaieb, TU Muenchen
-*)
+(* Author: Amine Chaieb, TU Muenchen *)
 
 header {* Dense linear order without endpoints
   and a quantifier elimination procedure in Ferrante and Rackoff style *}
 
 theory Dense_Linear_Order
-imports Plain "~~/src/HOL/Groebner_Basis"
+imports Plain Groebner_Basis
 uses
   "~~/src/HOL/Tools/Qelim/langford_data.ML"
   "~~/src/HOL/Tools/Qelim/ferrante_rackoff_data.ML"
@@ -304,7 +301,7 @@ section {* Contructive dense linear orders yield QE for linear arithmetic over o
 
 text {* Linear order without upper bounds *}
 
-locale linorder_stupid_syntax = linorder
+class_locale linorder_stupid_syntax = linorder
 begin
 notation
   less_eq  ("op \<sqsubseteq>") and
@@ -314,7 +311,7 @@ notation
 
 end
 
-locale linorder_no_ub = linorder_stupid_syntax +
+class_locale linorder_no_ub = linorder_stupid_syntax +
   assumes gt_ex: "\<exists>y. less x y"
 begin
 lemma ge_ex: "\<exists>y. x \<sqsubseteq> y" using gt_ex by auto
@@ -363,7 +360,7 @@ end
 
 text {* Linear order without upper bounds *}
 
-locale linorder_no_lb = linorder_stupid_syntax +
+class_locale linorder_no_lb = linorder_stupid_syntax +
   assumes lt_ex: "\<exists>y. less y x"
 begin
 lemma le_ex: "\<exists>y. y \<sqsubseteq> x" using lt_ex by auto
@@ -410,12 +407,12 @@ qed
 end
 
 
-locale constr_dense_linear_order = linorder_no_lb + linorder_no_ub +
+class_locale constr_dense_linear_order = linorder_no_lb + linorder_no_ub +
   fixes between
   assumes between_less: "less x y \<Longrightarrow> less x (between x y) \<and> less (between x y) y"
      and  between_same: "between x x = x"
 
-interpretation  constr_dense_linear_order < dense_linear_order 
+class_interpretation  constr_dense_linear_order < dense_linear_order 
   apply unfold_locales
   using gt_ex lt_ex between_less
     by (auto, rule_tac x="between x y" in exI, simp)
@@ -638,7 +635,7 @@ lemma sum_eq:"((x::'a::pordered_ab_group_add) + t = 0) == (x = - t)"
   using eq_diff_eq[where a= x and b=t and c=0] by simp
 
 
-interpretation class_ordered_field_dense_linear_order: constr_dense_linear_order
+class_interpretation class_ordered_field_dense_linear_order: constr_dense_linear_order
  ["op <=" "op <"
    "\<lambda> x y. 1/2 * ((x::'a::{ordered_field,recpower,number_ring}) + y)"]
 proof (unfold_locales, dlo, dlo, auto)

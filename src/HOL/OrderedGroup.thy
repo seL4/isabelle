@@ -1,7 +1,5 @@
 (*  Title:   HOL/OrderedGroup.thy
-    ID:      $Id$
-    Author:  Gertrud Bauer, Steven Obua, Lawrence C Paulson, and Markus Wenzel,
-             with contributions by Jeremy Avigad
+    Author:  Gertrud Bauer, Steven Obua, Lawrence C Paulson, Markus Wenzel, Jeremy Avigad
 *)
 
 header {* Ordered Groups *}
@@ -1376,7 +1374,7 @@ fun agrp_ord (Const (a, _)) = find_index (fn a' => a = a')
         @{const_name HOL.uminus}, @{const_name HOL.minus}]
   | agrp_ord _ = ~1;
 
-fun termless_agrp (a, b) = (Term.term_lpo agrp_ord (a, b) = LESS);
+fun termless_agrp (a, b) = (TermOrd.term_lpo agrp_ord (a, b) = LESS);
 
 local
   val ac1 = mk_meta_eq @{thm add_assoc};

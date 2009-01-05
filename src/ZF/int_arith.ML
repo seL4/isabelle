@@ -1,7 +1,5 @@
 (*  Title:      ZF/int_arith.ML
-    ID:         $Id$
     Author:     Larry Paulson
-    Copyright   2000  University of Cambridge
 
 Simprocs for linear arithmetic.
 *)
@@ -72,7 +70,7 @@ fun mk_coeff (k, t) = mk_times (mk_numeral k, t);
 (*Express t as a product of (possibly) a numeral with other sorted terms*)
 fun dest_coeff sign (Const (@{const_name "zminus"}, _) $ t) = dest_coeff (~sign) t
   | dest_coeff sign t =
-    let val ts = sort Term.term_ord (dest_prod t)
+    let val ts = sort TermOrd.term_ord (dest_prod t)
         val (n, ts') = find_first_numeral [] ts
                           handle TERM _ => (1, ts)
     in (sign*n, mk_prod ts') end;

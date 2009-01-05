@@ -1,7 +1,4 @@
-(*  Author: Jia Meng, Cambridge University Computer Laboratory, NICTA
-    ID: $Id$
-    Copyright 2004 University of Cambridge
-*)
+(*  Author: Jia Meng, Cambridge University Computer Laboratory, NICTA *)
 
 signature RES_ATP =
 sig
@@ -443,11 +440,11 @@ fun add_classes (sorts, cset) = foldl setinsert cset (List.concat sorts);
 fun delete_type cset = Symtab.delete_safe "HOL.type" cset;
 
 fun tvar_classes_of_terms ts =
-  let val sorts_list = map (map #2 o term_tvars) ts
+  let val sorts_list = map (map #2 o OldTerm.term_tvars) ts
   in  Symtab.keys (delete_type (foldl add_classes Symtab.empty sorts_list))  end;
 
 fun tfree_classes_of_terms ts =
-  let val sorts_list = map (map #2 o term_tfrees) ts
+  let val sorts_list = map (map #2 o OldTerm.term_tfrees) ts
   in  Symtab.keys (delete_type (foldl add_classes Symtab.empty sorts_list))  end;
 
 (*fold type constructors*)
@@ -507,11 +504,8 @@ fun too_general_equality (Const ("op =", _) $ x $ y) =
 fun is_taut (Const ("Trueprop", _) $ Const ("True", _)) = true
   | is_taut _ = false;
 
-(*True if the term contains a variable whose (atomic) type is in the given list.*)
-fun has_typed_var tycons =
-  let fun var_tycon (Var (_, Type(a,_))) = a mem_string tycons
-        | var_tycon _ = false
-  in  exists var_tycon o term_vars  end;
+fun has_typed_var tycons = exists_subterm
+  (fn Var (_, Type (a, _)) => member (op =) tycons a | _ => false);
 
 (*Clauses are forbidden to contain variables of these types. The typical reason is that
   they lead to unsoundness. Note that "unit" satisfies numerous equations like ?X=().

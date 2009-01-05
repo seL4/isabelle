@@ -1,5 +1,4 @@
 (*  Title:      Pure/Isar/outer_parse.ML
-    ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
 
 Generic parsers for Isabelle/Isar outer syntax.
@@ -8,48 +7,49 @@ Generic parsers for Isabelle/Isar outer syntax.
 signature OUTER_PARSE =
 sig
   type token = OuterLex.token
+  type 'a parser = token list -> 'a * token list
   val group: string -> (token list -> 'a) -> token list -> 'a
   val !!! : (token list -> 'a) -> token list -> 'a
   val !!!! : (token list -> 'a) -> token list -> 'a
   val triple1: ('a * 'b) * 'c -> 'a * 'b * 'c
   val triple2: 'a * ('b * 'c) -> 'a * 'b * 'c
   val triple_swap: ('a * 'b) * 'c -> ('a * 'c) * 'b
-  val not_eof: token list -> token * token list
+  val not_eof: token parser
   val position: (token list -> 'a * 'b) -> token list -> ('a * Position.T) * 'b
-  val command: token list -> string * token list
-  val keyword: token list -> string * token list
-  val short_ident: token list -> string * token list
-  val long_ident: token list -> string * token list
-  val sym_ident: token list -> string * token list
-  val minus: token list -> string * token list
-  val term_var: token list -> string * token list
-  val type_ident: token list -> string * token list
-  val type_var: token list -> string * token list
-  val number: token list -> string * token list
-  val string: token list -> string * token list
-  val alt_string: token list -> string * token list
-  val verbatim: token list -> string * token list
-  val sync: token list -> string * token list
-  val eof: token list -> string * token list
-  val keyword_with: (string -> bool) -> token list -> string * token list
-  val keyword_ident_or_symbolic: token list -> string * token list
-  val $$$ : string -> token list -> string * token list
-  val reserved: string -> token list -> string * token list
-  val semicolon: token list -> string * token list
-  val underscore: token list -> string * token list
-  val maybe: (token list -> 'a * token list) -> token list -> 'a option * token list
-  val tag_name: token list -> string * token list
-  val tags: token list -> string list * token list
-  val opt_unit: token list -> unit * token list
-  val opt_keyword: string -> token list -> bool * token list
-  val begin: token list -> string * token list
-  val opt_begin: token list -> bool * token list
-  val nat: token list -> int * token list
-  val int: token list -> int * token list
-  val enum: string -> (token list -> 'a * token list) -> token list -> 'a list * token list
-  val enum1: string -> (token list -> 'a * token list) -> token list -> 'a list * token list
-  val and_list: (token list -> 'a * token list) -> token list -> 'a list * token list
-  val and_list1: (token list -> 'a * token list) -> token list -> 'a list * token list
+  val command: string parser
+  val keyword: string parser
+  val short_ident: string parser
+  val long_ident: string parser
+  val sym_ident: string parser
+  val minus: string parser
+  val term_var: string parser
+  val type_ident: string parser
+  val type_var: string parser
+  val number: string parser
+  val string: string parser
+  val alt_string: string parser
+  val verbatim: string parser
+  val sync: string parser
+  val eof: string parser
+  val keyword_with: (string -> bool) -> string parser
+  val keyword_ident_or_symbolic: string parser
+  val $$$ : string -> string parser
+  val reserved: string -> string parser
+  val semicolon: string parser
+  val underscore: string parser
+  val maybe: 'a parser -> 'a option parser
+  val tag_name: string parser
+  val tags: string list parser
+  val opt_unit: unit parser
+  val opt_keyword: string -> bool parser
+  val begin: string parser
+  val opt_begin: bool parser
+  val nat: int parser
+  val int: int parser
+  val enum: string -> 'a parser -> 'a list parser
+  val enum1: string -> 'a parser -> 'a list parser
+  val and_list: 'a parser -> 'a list parser
+  val and_list1: 'a parser -> 'a list parser
   val enum': string -> ('a * token list -> 'b * ('a * token list)) ->
     'a * token list -> 'b list * ('a * token list)
   val enum1': string -> ('a * token list -> 'b * ('a * token list)) ->
@@ -58,46 +58,44 @@ sig
     'a * token list -> 'b list * ('a * token list)
   val and_list1': ('a * token list -> 'b * ('a * token list)) ->
     'a * token list -> 'b list * ('a * token list)
-  val list: (token list -> 'a * token list) -> token list -> 'a list * token list
-  val list1: (token list -> 'a * token list) -> token list -> 'a list * token list
-  val name: token list -> bstring * token list
-  val binding: token list -> Binding.T * token list
-  val xname: token list -> xstring * token list
-  val text: token list -> string * token list
-  val path: token list -> Path.T * token list
-  val parname: token list -> string * token list
-  val parbinding: token list -> Binding.T * token list
-  val sort: token list -> string * token list
-  val arity: token list -> (string * string list * string) * token list
-  val multi_arity: token list -> (string list * string list * string) * token list
-  val type_args: token list -> string list * token list
-  val typ_group: token list -> string * token list
-  val typ: token list -> string * token list
-  val mixfix: token list -> mixfix * token list
-  val mixfix': token list -> mixfix * token list
-  val opt_infix: token list -> mixfix * token list
-  val opt_infix': token list -> mixfix * token list
-  val opt_mixfix: token list -> mixfix * token list
-  val opt_mixfix': token list -> mixfix * token list
-  val where_: token list -> string * token list
-  val const: token list -> (string * string * mixfix) * token list
-  val params: token list -> (Binding.T * string option) list * token list
-  val simple_fixes: token list -> (Binding.T * string option) list * token list
-  val fixes: token list -> (Binding.T * string option * mixfix) list * token list
-  val for_fixes: token list -> (Binding.T * string option * mixfix) list * token list
-  val for_simple_fixes: token list -> (Binding.T * string option) list * token list
-  val ML_source: token list -> (SymbolPos.text * Position.T) * token list
-  val doc_source: token list -> (SymbolPos.text * Position.T) * token list
-  val properties: token list -> Properties.T * token list
-  val props_text: token list -> (Position.T * string) * token list
-  val term_group: token list -> string * token list
-  val prop_group: token list -> string * token list
-  val term: token list -> string * token list
-  val prop: token list -> string * token list
-  val propp: token list -> (string * string list) * token list
-  val termp: token list -> (string * string list) * token list
-  val target: token list -> xstring * token list
-  val opt_target: token list -> xstring option * token list
+  val list: 'a parser -> 'a list parser
+  val list1: 'a parser -> 'a list parser
+  val name: bstring parser
+  val binding: Binding.T parser
+  val xname: xstring parser
+  val text: string parser
+  val path: Path.T parser
+  val parname: string parser
+  val parbinding: Binding.T parser
+  val sort: string parser
+  val arity: (string * string list * string) parser
+  val multi_arity: (string list * string list * string) parser
+  val type_args: string list parser
+  val typ_group: string parser
+  val typ: string parser
+  val mixfix: mixfix parser
+  val mixfix': mixfix parser
+  val opt_infix: mixfix parser
+  val opt_infix': mixfix parser
+  val opt_mixfix: mixfix parser
+  val opt_mixfix': mixfix parser
+  val where_: string parser
+  val const: (string * string * mixfix) parser
+  val params: (Binding.T * string option) list parser
+  val simple_fixes: (Binding.T * string option) list parser
+  val fixes: (Binding.T * string option * mixfix) list parser
+  val for_fixes: (Binding.T * string option * mixfix) list parser
+  val for_simple_fixes: (Binding.T * string option) list parser
+  val ML_source: (SymbolPos.text * Position.T) parser
+  val doc_source: (SymbolPos.text * Position.T) parser
+  val term_group: string parser
+  val prop_group: string parser
+  val term: string parser
+  val prop: string parser
+  val propp: (string * string list) parser
+  val termp: (string * string list) parser
+  val target: xstring parser
+  val opt_target: xstring option parser
 end;
 
 structure OuterParse: OUTER_PARSE =
@@ -105,6 +103,8 @@ struct
 
 structure T = OuterLex;
 type token = T.token;
+
+type 'a parser = token list -> 'a * token list;
 
 
 (** error handling **)
@@ -309,12 +309,6 @@ val for_simple_fixes = Scan.optional ($$$ "for" |-- !!! simple_fixes) [];
 
 val ML_source = source_position (group "ML source" text);
 val doc_source = source_position (group "document source" text);
-
-val properties = $$$ "(" |-- !!! (list1 (string -- ($$$ "=" |-- string)) --| $$$ ")");
-
-val props_text =
-  Scan.optional properties [] -- position string >> (fn (props, (str, pos)) =>
-    (Position.of_properties (Position.default_properties pos props), str));
 
 
 (* terms *)

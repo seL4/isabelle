@@ -1,5 +1,4 @@
 (*  Title:      Tools/IsaPlanner/isand.ML
-    ID:		$Id$
     Author:     Lucas Dixon, University of Edinburgh
 
 Natural Deduction tools.
@@ -187,8 +186,8 @@ fun assume_allified sgn (tyvs,vs) t =
 (* change type-vars to fresh type frees *)
 fun fix_tvars_to_tfrees_in_terms names ts = 
     let 
-      val tfree_names = map fst (List.foldr Term.add_term_tfrees [] ts);
-      val tvars = List.foldr Term.add_term_tvars [] ts;
+      val tfree_names = map fst (List.foldr OldTerm.add_term_tfrees [] ts);
+      val tvars = List.foldr OldTerm.add_term_tvars [] ts;
       val (names',renamings) = 
           List.foldr (fn (tv as ((n,i),s),(Ns,Rs)) => 
                          let val n2 = Name.variant Ns n in 
@@ -213,15 +212,15 @@ fun fix_tvars_to_tfrees th =
 fun unfix_tfrees ns th = 
     let 
       val varfiytfrees = map (Term.dest_TFree o Thm.typ_of) ns
-      val skiptfrees = subtract (op =) varfiytfrees (Term.add_term_tfrees (Thm.prop_of th,[]));
+      val skiptfrees = subtract (op =) varfiytfrees (OldTerm.add_term_tfrees (Thm.prop_of th,[]));
     in #2 (Thm.varifyT' skiptfrees th) end;
 
 (* change schematic/meta vars to fresh free vars, avoiding name clashes 
    with "names" *)
 fun fix_vars_to_frees_in_terms names ts = 
     let 
-      val vars = map Term.dest_Var (List.foldr Term.add_term_vars [] ts);
-      val Ns = List.foldr Term.add_term_names names ts;
+      val vars = map Term.dest_Var (List.foldr OldTerm.add_term_vars [] ts);
+      val Ns = List.foldr OldTerm.add_term_names names ts;
       val (_,renamings) = 
           Library.foldl (fn ((Ns,Rs),v as ((n,i),ty)) => 
                     let val n2 = Name.variant Ns n in
@@ -246,7 +245,7 @@ fun fix_tvars_upto_idx ix th =
       val ctypify = Thm.ctyp_of sgn
       val tpairs = Thm.terms_of_tpairs (Thm.tpairs_of th);
       val prop = (Thm.prop_of th);
-      val tvars = List.foldr Term.add_term_tvars [] (prop :: tpairs);
+      val tvars = List.foldr OldTerm.add_term_tvars [] (prop :: tpairs);
       val ctyfixes = 
           map_filter 
             (fn (v as ((s,i),ty)) => 
@@ -259,7 +258,7 @@ fun fix_vars_upto_idx ix th =
       val ctermify = Thm.cterm_of sgn
       val tpairs = Thm.terms_of_tpairs (Thm.tpairs_of th);
       val prop = (Thm.prop_of th);
-      val vars = map Term.dest_Var (List.foldr Term.add_term_vars 
+      val vars = map Term.dest_Var (List.foldr OldTerm.add_term_vars 
                                                [] (prop :: tpairs));
       val cfixes = 
           map_filter 
@@ -360,7 +359,7 @@ fun prepare_goal_export (vs, cterms) th =
       val sgn = Thm.theory_of_thm th;
       val ctermify = Thm.cterm_of sgn;
 
-      val allfrees = map Term.dest_Free (Term.term_frees (Thm.prop_of th))
+      val allfrees = map Term.dest_Free (OldTerm.term_frees (Thm.prop_of th))
       val cfrees = map (ctermify o Free o lookupfree allfrees) vs
 
       val sgs = prems_of th;
@@ -420,8 +419,8 @@ fun fix_alls_in_term alledt =
     let
       val t = Term.strip_all_body alledt;
       val alls = rev (Term.strip_all_vars alledt);
-      val varnames = map (fst o fst o Term.dest_Var) (Term.term_vars t)
-      val names = Term.add_term_names (t,varnames);
+      val varnames = map (fst o fst o Term.dest_Var) (OldTerm.term_vars t)
+      val names = OldTerm.add_term_names (t,varnames);
       val fvs = map Free 
                     (Name.variant_list names (map fst alls)
                        ~~ (map snd alls));
@@ -429,8 +428,8 @@ fun fix_alls_in_term alledt =
 
 fun fix_alls_term i t = 
     let 
-      val varnames = map (fst o fst o Term.dest_Var) (Term.term_vars t)
-      val names = Term.add_term_names (t,varnames);
+      val varnames = map (fst o fst o Term.dest_Var) (OldTerm.term_vars t)
+      val names = OldTerm.add_term_names (t,varnames);
       val gt = Logic.get_goal t i;
       val body = Term.strip_all_body gt;
       val alls = rev (Term.strip_all_vars gt);

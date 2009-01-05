@@ -1,5 +1,4 @@
 (*  Title:      HOL/Tools/datatype_prop.ML
-    ID:         $Id$
     Author:     Stefan Berghofer, TU Muenchen
 
 Characteristic properties of datatypes.
@@ -206,7 +205,7 @@ fun make_primrecs new_type_names descr sorts thy =
   let
     val descr' = List.concat descr;
     val recTs = get_rec_types descr' sorts;
-    val used = foldr add_typ_tfree_names [] recTs;
+    val used = foldr OldTerm.add_typ_tfree_names [] recTs;
 
     val (rec_result_Ts, reccomb_fn_Ts) = make_primrec_Ts descr sorts used;
 
@@ -256,7 +255,7 @@ fun make_case_combs new_type_names descr sorts thy fname =
   let
     val descr' = List.concat descr;
     val recTs = get_rec_types descr' sorts;
-    val used = foldr add_typ_tfree_names [] recTs;
+    val used = foldr OldTerm.add_typ_tfree_names [] recTs;
     val newTs = Library.take (length (hd descr), recTs);
     val T' = TFree (Name.variant used "'t", HOLogic.typeS);
 
@@ -303,7 +302,7 @@ fun make_splits new_type_names descr sorts thy =
   let
     val descr' = List.concat descr;
     val recTs = get_rec_types descr' sorts;
-    val used' = foldr add_typ_tfree_names [] recTs;
+    val used' = foldr OldTerm.add_typ_tfree_names [] recTs;
     val newTs = Library.take (length (hd descr), recTs);
     val T' = TFree (Name.variant used' "'t", HOLogic.typeS);
     val P = Free ("P", T' --> HOLogic.boolT);

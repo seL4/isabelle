@@ -1,5 +1,4 @@
 (*  Title:      HOL/Nominal/nominal_package.ML
-    ID:         $Id$
     Author:     Stefan Berghofer and Christian Urban, TU Muenchen
 
 Nominal datatype package for Isabelle/HOL.
@@ -1414,7 +1413,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
 
     val _ = warning "defining recursion combinator ...";
 
-    val used = foldr add_typ_tfree_names [] recTs;
+    val used = foldr OldTerm.add_typ_tfree_names [] recTs;
 
     val (rec_result_Ts', rec_fn_Ts') = DatatypeProp.make_primrec_Ts descr' sorts used;
 

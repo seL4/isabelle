@@ -1,5 +1,4 @@
 (*  Title:      HOL/Tools/datatype_aux.ML
-    ID:         $Id$
     Author:     Stefan Berghofer, TU Muenchen
 
 Auxiliary functions for defining datatypes.
@@ -131,7 +130,7 @@ fun indtac indrule indnames i st =
     val flt = if null indnames then I else
       filter (fn Free (s, _) => s mem indnames | _ => false);
     fun abstr (t1, t2) = (case t1 of
-        NONE => (case flt (term_frees t2) of
+        NONE => (case flt (OldTerm.term_frees t2) of
             [Free (s, T)] => SOME (absfree (s, T, t2))
           | _ => NONE)
       | SOME (_ $ t') => SOME (Abs ("x", fastype_of t', abstract_over (t', t2))))

@@ -1,5 +1,4 @@
 (*  Title:      HOL/Tools/numeral_syntax.ML
-    ID:         $Id$
     Authors:    Markus Wenzel, TU Muenchen
 
 Concrete syntax for generic numerals -- preserves leading zeros/ones.
@@ -19,12 +18,11 @@ local
 
 fun mk_bin num =
   let
-    val {leading_zeros = z, value, ...} = Syntax.read_xnum num;
     fun bit b bs = HOLogic.mk_bit b $ bs;
-    fun mk 0 = (* FIXME funpow z (bit 0) *) (Syntax.const @{const_name Int.Pls})
-      | mk ~1 = (* FIXME funpow z (bit 1) *) (Syntax.const @{const_name Int.Min})
+    fun mk 0 = Syntax.const @{const_name Int.Pls}
+      | mk ~1 = Syntax.const @{const_name Int.Min}
       | mk i = let val (q, r) = Integer.div_mod i 2 in bit r (mk q) end;
-  in mk value end;
+  in mk (#value (Syntax.read_xnum num)) end;
 
 in
 
@@ -65,15 +63,18 @@ fun dest_bin_str tm =
     else sign ^ implode (replicate z "0") ^ num
   end;
 
+fun syntax_numeral t =
+  Syntax.const "_Numeral" $ (Syntax.const "_numeral" $ Syntax.free (dest_bin_str t));
+
 in
 
 fun numeral_tr' show_sorts (*"number_of"*) (Type ("fun", [_, T])) (t :: ts) =
-      let val t' = Syntax.const "_Numeral" $ Syntax.free (dest_bin_str t) in
-        if not (! show_types) andalso can Term.dest_Type T then t'
-        else Syntax.const Syntax.constrainC $ t' $ Syntax.term_of_typ show_sorts T
-      end
+      let val t' =
+        if not (! show_types) andalso can Term.dest_Type T then syntax_numeral t
+        else Syntax.const Syntax.constrainC $ syntax_numeral t $ Syntax.term_of_typ show_sorts T
+      in list_comb (t', ts) end
   | numeral_tr' _ (*"number_of"*) T (t :: ts) =
-      if T = dummyT then Syntax.const "_Numeral" $ Syntax.free (dest_bin_str t)
+      if T = dummyT then list_comb (syntax_numeral t, ts)
       else raise Match
   | numeral_tr' _ (*"number_of"*) _ _ = raise Match;
 

@@ -1,5 +1,4 @@
 (*  Title:      Tools/Compute_Oracle/compute.ML
-    ID:         $Id$
     Author:     Steven Obua
 *)
 
@@ -168,7 +167,7 @@ fun machine_of_prog (ProgBarras _) = BARRAS
   | machine_of_prog (ProgHaskell _) = HASKELL
   | machine_of_prog (ProgSML _) = SML
 
-structure Sorttab = TableFun(type key = sort val ord = Term.sort_ord)
+structure Sorttab = TableFun(type key = sort val ord = TermOrd.sort_ord)
 
 type naming = int -> string
 

@@ -1,8 +1,7 @@
 (*  Title:      Pure/General/position.ML
-    ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
 
-Source positions: counting Isabelle symbols -- starting from 1.
+Source positions: counting Isabelle symbols, starting from 1.
 *)
 
 signature POSITION =
@@ -19,6 +18,7 @@ sig
   val file: string -> T
   val line: int -> T
   val line_file: int -> string -> T
+  val id: string -> T
   val get_id: T -> string option
   val put_id: string -> T -> T
   val of_properties: Properties.T -> T
@@ -86,6 +86,7 @@ fun distance_of (Pos ((_, j, k), _)) (Pos ((_, j', k'), _)) =
 val none = Pos ((0, 0, 0), []);
 val start = Pos ((1, 1, 1), []);
 
+
 fun file_name "" = []
   | file_name name = [(Markup.fileN, name)];
 
@@ -95,10 +96,13 @@ fun line_file i name = Pos ((i, 0, 0), file_name name);
 fun line i = line_file i "";
 
 
-(* markup properties *)
+fun id id = Pos ((0, 0, 1), [(Markup.idN, id)]);
 
 fun get_id (Pos (_, props)) = Properties.get props Markup.idN;
 fun put_id id (Pos (count, props)) = Pos (count, Properties.put (Markup.idN, id) props);
+
+
+(* markup properties *)
 
 fun of_properties props =
   let

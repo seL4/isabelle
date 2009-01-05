@@ -1,6 +1,4 @@
-(*
-  Id:        $Id$
-  Author:    Clemens Ballarin
+(*  Author:    Clemens Ballarin
 
 Normalisation method for locales ring and cring.
 *)
@@ -48,7 +46,7 @@ fun struct_tac ((s, ts), simps) =
     val ops = map (fst o Term.strip_comb) ts;
     fun ord (Const (a, _)) = find_index (fn (Const (b, _)) => a=b | _ => false) ops
       | ord (Free (a, _)) = find_index (fn (Free (b, _)) => a=b | _ => false) ops;
-    fun less (a, b) = (Term.term_lpo ord (a, b) = LESS);
+    fun less (a, b) = (TermOrd.term_lpo ord (a, b) = LESS);
   in asm_full_simp_tac (HOL_ss settermless less addsimps simps) end;
 
 fun algebra_tac ctxt =

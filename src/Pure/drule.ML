@@ -1,7 +1,5 @@
 (*  Title:      Pure/drule.ML
-    ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
-    Copyright   1993  University of Cambridge
 
 Derived rules and other operations on theorems.
 *)
@@ -112,6 +110,7 @@ sig
   val sort_triv: theory -> typ * sort -> thm list
   val unconstrainTs: thm -> thm
   val with_subgoal: int -> (thm -> thm) -> thm -> thm
+  val comp_no_flatten: thm * int -> int -> thm -> thm
   val rename_bvars: (string * string) list -> thm -> thm
   val rename_bvars': string option list -> thm -> thm
   val incr_type_indexes: int -> thm -> thm
@@ -340,7 +339,7 @@ fun freeze_thaw_robust th =
      val thy = Thm.theory_of_thm fth
      val {prop, tpairs, ...} = rep_thm fth
  in
-   case List.foldr add_term_vars [] (prop :: Thm.terms_of_tpairs tpairs) of
+   case List.foldr OldTerm.add_term_vars [] (prop :: Thm.terms_of_tpairs tpairs) of
        [] => (fth, fn i => fn x => x)   (*No vars: nothing to do!*)
      | vars =>
          let fun newName (Var(ix,_)) = (ix, gensym (string_of_indexname ix))
@@ -363,13 +362,13 @@ fun freeze_thaw th =
      val thy = Thm.theory_of_thm fth
      val {prop, tpairs, ...} = rep_thm fth
  in
-   case List.foldr add_term_vars [] (prop :: Thm.terms_of_tpairs tpairs) of
+   case List.foldr OldTerm.add_term_vars [] (prop :: Thm.terms_of_tpairs tpairs) of
        [] => (fth, fn x => x)
      | vars =>
          let fun newName (Var(ix,_), (pairs,used)) =
                    let val v = Name.variant used (string_of_indexname ix)
                    in  ((ix,v)::pairs, v::used)  end;
-             val (alist, _) = List.foldr newName ([], Library.foldr add_term_names
+             val (alist, _) = List.foldr newName ([], Library.foldr OldTerm.add_term_names
                (prop :: Thm.terms_of_tpairs tpairs, [])) vars
              fun mk_inst (Var(v,T)) =
                  (cterm_of thy (Var(v,T)),
@@ -807,8 +806,8 @@ fun norm_hhf_cterm ct =
 
 (*Increment the indexes of only the type variables*)
 fun incr_type_indexes inc th =
-  let val tvs = term_tvars (prop_of th)
-      and thy = theory_of_thm th
+  let val tvs = OldTerm.term_tvars (prop_of th)
+      and thy = Thm.theory_of_thm th
       fun inc_tvar ((a,i),s) = pairself (ctyp_of thy) (TVar ((a,i),s), TVar ((a,i+inc),s))
   in Thm.instantiate (map inc_tvar tvs, []) th end;
 
@@ -819,6 +818,14 @@ fun incr_indexes2 th1 th2 =
 
 fun th1 INCR_COMP th2 = incr_indexes th2 th1 COMP th2;
 fun th1 COMP_INCR th2 = th1 COMP incr_indexes th1 th2;
+
+fun comp_no_flatten (th, n) i rule =
+  (case distinct Thm.eq_thm (Seq.list_of
+      (Thm.compose_no_flatten false (th, n) i (incr_indexes th rule))) of
+    [th'] => th'
+  | [] => raise THM ("comp_no_flatten", i, [th, rule])
+  | _ => raise THM ("comp_no_flatten: unique result expected", i, [th, rule]));
+
 
 
 (*** Instantiate theorem th, reading instantiations in theory thy ****)

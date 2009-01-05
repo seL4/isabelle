@@ -1,5 +1,4 @@
 (*  Title:      Pure/Isar/outer_keyword.ML
-    ID:         $Id$
     Author:     Makarius
 
 Isar command keyword classification and global keyword tables.
@@ -47,9 +46,12 @@ sig
   val report: unit -> unit
   val keyword: string -> unit
   val command: string -> T -> unit
+  val is_diag: string -> bool
+  val is_control: string -> bool
+  val is_regular: string -> bool
+  val is_theory_begin: string -> bool
   val is_theory: string -> bool
   val is_proof: string -> bool
-  val is_diag: string -> bool
   val is_theory_goal: string -> bool
   val is_proof_goal: string -> bool
   val is_qed: string -> bool
@@ -174,14 +176,18 @@ fun command_category ks name =
     NONE => false
   | SOME k => member (op = o pairself kind_of) ks k);
 
+val is_diag = command_category [diag];
+val is_control = command_category [control];
+fun is_regular name = not (is_diag name orelse is_control name);
+
+val is_theory_begin = command_category [thy_begin];
+
 val is_theory = command_category
   [thy_begin, thy_switch, thy_end, thy_heading, thy_decl, thy_script, thy_goal];
 
 val is_proof = command_category
   [qed, qed_block, qed_global, prf_heading, prf_goal, prf_block, prf_open, prf_close,
     prf_chain, prf_decl, prf_asm, prf_asm_goal, prf_script];
-
-val is_diag = command_category [diag];
 
 val is_theory_goal = command_category [thy_goal];
 val is_proof_goal = command_category [prf_goal, prf_asm_goal];

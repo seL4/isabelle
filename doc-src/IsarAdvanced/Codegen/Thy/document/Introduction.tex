@@ -164,20 +164,20 @@ The key concept for understanding \isa{Isabelle}'s code generation is
 \hspace*{0pt}\\
 \hspace*{0pt}datatype 'a queue = Queue of 'a list * 'a list;\\
 \hspace*{0pt}\\
-\hspace*{0pt}val empty :~'a queue = Queue ([], []);\\
+\hspace*{0pt}val empty :~'a queue = Queue ([],~[])\\
 \hspace*{0pt}\\
-\hspace*{0pt}fun dequeue (Queue ([], [])) = (NONE, Queue ([], []))\\
-\hspace*{0pt} ~| dequeue (Queue (xs, y ::~ys)) = (SOME y, Queue (xs, ys))\\
-\hspace*{0pt} ~| dequeue (Queue (v ::~va, [])) =\\
+\hspace*{0pt}fun dequeue (Queue ([],~[])) = (NONE,~Queue ([],~[]))\\
+\hspace*{0pt} ~| dequeue (Queue (xs,~y ::~ys)) = (SOME y,~Queue (xs,~ys))\\
+\hspace*{0pt} ~| dequeue (Queue (v ::~va,~[])) =\\
 \hspace*{0pt} ~~~let\\
 \hspace*{0pt} ~~~~~val y ::~ys = rev (v ::~va);\\
 \hspace*{0pt} ~~~in\\
-\hspace*{0pt} ~~~~~(SOME y, Queue ([], ys))\\
+\hspace*{0pt} ~~~~~(SOME y,~Queue ([],~ys))\\
 \hspace*{0pt} ~~~end;\\
 \hspace*{0pt}\\
-\hspace*{0pt}fun enqueue x (Queue (xs, ys)) = Queue (x ::~xs, ys);\\
+\hspace*{0pt}fun enqueue x (Queue (xs,~ys)) = Queue (x ::~xs,~ys);\\
 \hspace*{0pt}\\
-\hspace*{0pt}end; (*struct Example*)%
+\hspace*{0pt}end;~(*struct Example*)%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -233,31 +233,31 @@ The key concept for understanding \isa{Isabelle}'s code generation is
 \hspace*{0pt}module Example where {\char123}\\
 \hspace*{0pt}\\
 \hspace*{0pt}\\
-\hspace*{0pt}foldla ::~forall a b. (a -> b -> a) -> a -> [b] -> a;\\
+\hspace*{0pt}foldla ::~forall a b.~(a -> b -> a) -> a -> [b] -> a;\\
 \hspace*{0pt}foldla f a [] = a;\\
 \hspace*{0pt}foldla f a (x :~xs) = foldla f (f a x) xs;\\
 \hspace*{0pt}\\
-\hspace*{0pt}rev ::~forall a. [a] -> [a];\\
+\hspace*{0pt}rev ::~forall a.~[a] -> [a];\\
 \hspace*{0pt}rev xs = foldla ({\char92}~xsa x -> x :~xsa) [] xs;\\
 \hspace*{0pt}\\
-\hspace*{0pt}list{\char95}case ::~forall t a. t -> (a -> [a] -> t) -> [a] -> t;\\
+\hspace*{0pt}list{\char95}case ::~forall t a.~t -> (a -> [a] -> t) -> [a] -> t;\\
 \hspace*{0pt}list{\char95}case f1 f2 (a :~list) = f2 a list;\\
 \hspace*{0pt}list{\char95}case f1 f2 [] = f1;\\
 \hspace*{0pt}\\
 \hspace*{0pt}data Queue a = Queue [a] [a];\\
 \hspace*{0pt}\\
-\hspace*{0pt}empty ::~forall a. Queue a;\\
+\hspace*{0pt}empty ::~forall a.~Queue a;\\
 \hspace*{0pt}empty = Queue [] [];\\
 \hspace*{0pt}\\
-\hspace*{0pt}dequeue ::~forall a. Queue a -> (Maybe a, Queue a);\\
-\hspace*{0pt}dequeue (Queue [] []) = (Nothing, Queue [] []);\\
-\hspace*{0pt}dequeue (Queue xs (y :~ys)) = (Just y, Queue xs ys);\\
+\hspace*{0pt}dequeue ::~forall a.~Queue a -> (Maybe a,~Queue a);\\
+\hspace*{0pt}dequeue (Queue [] []) = (Nothing,~Queue [] []);\\
+\hspace*{0pt}dequeue (Queue xs (y :~ys)) = (Just y,~Queue xs ys);\\
 \hspace*{0pt}dequeue (Queue (v :~va) []) =\\
 \hspace*{0pt} ~let {\char123}\\
 \hspace*{0pt} ~~~(y :~ys) = rev (v :~va);\\
-\hspace*{0pt} ~{\char125}~in (Just y, Queue [] ys);\\
+\hspace*{0pt} ~{\char125}~in (Just y,~Queue [] ys);\\
 \hspace*{0pt}\\
-\hspace*{0pt}enqueue ::~forall a. a -> Queue a -> Queue a;\\
+\hspace*{0pt}enqueue ::~forall a.~a -> Queue a -> Queue a;\\
 \hspace*{0pt}enqueue x (Queue xs ys) = Queue (x :~xs) ys;\\
 \hspace*{0pt}\\
 \hspace*{0pt}{\char125}%

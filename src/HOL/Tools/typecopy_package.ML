@@ -1,5 +1,4 @@
 (*  Title:      HOL/Tools/typecopy_package.ML
-    ID:         $Id$
     Author:     Florian Haftmann, TU Muenchen
 
 Introducing copies of types using trivial typedefs; datatype-like abstraction.
@@ -75,7 +74,8 @@ val interpretation = TypecopyInterpretation.interpretation;
 fun add_typecopy (raw_tyco, raw_vs) raw_ty constr_proj thy =
   let
     val ty = Sign.certify_typ thy raw_ty;
-    val vs = AList.make (the_default HOLogic.typeS o AList.lookup (op =) (typ_tfrees ty)) raw_vs;
+    val vs =
+      AList.make (the_default HOLogic.typeS o AList.lookup (op =) (Term.add_tfreesT ty [])) raw_vs;
     val tac = Tactic.rtac UNIV_witness 1;
     fun add_info tyco ( { abs_type = ty_abs, rep_type = ty_rep, Abs_name = c_abs,
       Rep_name = c_rep, Abs_inject = inject,

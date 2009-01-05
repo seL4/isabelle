@@ -1,5 +1,6 @@
 (*  Title:      HOL/Nominal/nominal_primrec.ML
-    Author:     Stefan Berghofer, TU Muenchen and Norbert Voelker, FernUni Hagen
+    Author:     Norbert Voelker, FernUni Hagen
+    Author:     Stefan Berghofer, TU Muenchen
 
 Package for defining functions on nominal datatypes by primitive recursion.
 Taken from HOL/Tools/primrec_package.ML
@@ -71,7 +72,7 @@ fun process_eqn lthy is_fixed spec rec_fns =
     else
      (check_vars "repeated variable names in pattern: " (duplicates (op =) lfrees);
       check_vars "extra variables on rhs: "
-        (map dest_Free (term_frees rhs) |> subtract (op =) lfrees
+        (map dest_Free (OldTerm.term_frees rhs) |> subtract (op =) lfrees
           |> filter_out (is_fixed o fst));
       case AList.lookup (op =) rec_fns fname of
         NONE =>
@@ -154,7 +155,7 @@ fun process_fun lthy descr eqns (i, fname) (fnames, fnss) =
               val recs = filter (is_rec_type o snd) (cargs' ~~ cargs);
               val rargs = map fst recs;
               val subs = map (rpair dummyT o fst)
-                (rev (rename_wrt_term rhs rargs));
+                (rev (Term.rename_wrt_term rhs rargs));
               val (rhs', (fnames'', fnss'')) = subst (map2 (fn (x, y) => fn z =>
                 (Free x, (body_index y, Free z))) recs subs) rhs (fnames', fnss')
                   handle RecError s => primrec_eq_err lthy s eq

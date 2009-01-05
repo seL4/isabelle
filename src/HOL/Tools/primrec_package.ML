@@ -69,7 +69,7 @@ fun process_eqn is_fixed spec rec_fns =
     else
      (check_vars "repeated variable names in pattern: " (duplicates (op =) lfrees);
       check_vars "extra variables on rhs: "
-        (map dest_Free (term_frees rhs) |> subtract (op =) lfrees
+        (map dest_Free (OldTerm.term_frees rhs) |> subtract (op =) lfrees
           |> filter_out (is_fixed o fst));
       case AList.lookup (op =) rec_fns fname of
         NONE =>
@@ -141,7 +141,7 @@ fun process_fun descr eqns (i, fname) (fnames, fnss) =
               val recs = filter (is_rec_type o snd) (cargs' ~~ cargs);
               val rargs = map fst recs;
               val subs = map (rpair dummyT o fst)
-                (rev (rename_wrt_term rhs rargs));
+                (rev (Term.rename_wrt_term rhs rargs));
               val (rhs', (fnames'', fnss'')) = subst (map2 (fn (x, y) => fn z =>
                 (Free x, (body_index y, Free z))) recs subs) rhs (fnames', fnss')
                   handle PrimrecError (s, NONE) => primrec_error_eqn s eq

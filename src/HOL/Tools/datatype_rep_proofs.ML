@@ -1,5 +1,4 @@
 (*  Title:      HOL/Tools/datatype_rep_proofs.ML
-    ID:         $Id$
     Author:     Stefan Berghofer, TU Muenchen
 
 Definitional introduction of datatypes
@@ -8,7 +7,6 @@ Proof of characteristic theorems:
  - injectivity of constructors
  - distinctness of constructors
  - induction theorem
-
 *)
 
 signature DATATYPE_REP_PROOFS =
@@ -85,7 +83,7 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
     val branchT = if null branchTs then HOLogic.unitT
       else BalancedTree.make (fn (T, U) => Type ("+", [T, U])) branchTs;
     val arities = get_arities descr' \ 0;
-    val unneeded_vars = hd tyvars \\ foldr add_typ_tfree_names [] (leafTs' @ branchTs);
+    val unneeded_vars = hd tyvars \\ foldr OldTerm.add_typ_tfree_names [] (leafTs' @ branchTs);
     val leafTs = leafTs' @ (map (fn n => TFree (n, (the o AList.lookup (op =) sorts) n)) unneeded_vars);
     val recTs = get_rec_types descr' sorts;
     val newTs = Library.take (length (hd descr), recTs);
@@ -369,7 +367,7 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
         val prop = Thm.prop_of thm;
         val _ $ (_ $ ((S as Const (_, Type (_, [U, _]))) $ _ )) $
           (_ $ (_ $ (r $ (a $ _)) $ _)) = Type.freeze prop;
-        val used = add_term_tfree_names (a, []);
+        val used = OldTerm.add_term_tfree_names (a, []);
 
         fun mk_thm i =
           let

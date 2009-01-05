@@ -610,7 +610,7 @@ text {*
   Changes to the locale hierarchy may be declared
   with the \isakeyword{interpretation} command. *}
 
-  interpretation %visible total_order \<subseteq> lattice
+  sublocale %visible total_order \<subseteq> lattice
 
 txt {* This enters the context of locale @{text total_order}, in
   which the goal @{subgoals [display]} must be shown.  First, the
@@ -652,7 +652,7 @@ txt {* The proof for the second subgoal is analogous and not
 
 text {* Similarly, total orders are distributive lattices. *}
 
-  interpretation total_order \<subseteq> distrib_lattice
+  sublocale total_order \<subseteq> distrib_lattice
   proof unfold_locales
     fix %"proof" x y z
     show "x \<sqinter> (y \<squnion> z) = x \<sqinter> y \<squnion> x \<sqinter> z" (is "?l = ?r")

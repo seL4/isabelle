@@ -1,5 +1,4 @@
 (*  Title:      Provers/Arith/cancel_sums.ML
-    ID:         $Id$
     Author:     Markus Wenzel and Stefan Berghofer, TU Muenchen
 
 Cancel common summands of balanced expressions:
@@ -38,11 +37,11 @@ fun cons1 x (xs, y, z) = (x :: xs, y, z);
 fun cons2 y (x, ys, z) = (x, y :: ys, z);
 fun cons12 x y (xs, ys, z) = (x :: xs, y :: ys, z);
 
-(*symmetric difference of multisets -- assumed to be sorted wrt. Logic.term_ord*)
+(*symmetric difference of multisets -- assumed to be sorted wrt. TermOrd.term_ord*)
 fun cancel ts [] vs = (ts, [], vs)
   | cancel [] us vs = ([], us, vs)
   | cancel (t :: ts) (u :: us) vs =
-      (case Term.term_ord (t, u) of
+      (case TermOrd.term_ord (t, u) of
         EQUAL => cancel ts us (t :: vs)
       | LESS => cons1 t (cancel ts (u :: us) vs)
       | GREATER => cons2 u (cancel (t :: ts) us vs));
@@ -64,7 +63,7 @@ fun proc ss t =
   | SOME bal =>
       let
         val thy = ProofContext.theory_of (Simplifier.the_context ss);
-        val (ts, us) = pairself (sort Term.term_ord o Data.dest_sum) bal;
+        val (ts, us) = pairself (sort TermOrd.term_ord o Data.dest_sum) bal;
         val (ts', us', vs) = cancel ts us [];
       in
         if null vs then NONE

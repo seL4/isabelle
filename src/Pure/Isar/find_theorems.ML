@@ -1,5 +1,4 @@
 (*  Title:      Pure/Isar/find_theorems.ML
-    ID:         $Id$
     Author:     Rafal Kolanski and Gerwin Klein, NICTA
 
 Retrieve theorems from proof context.
@@ -166,7 +165,7 @@ fun filter_elim ctxt goal (_, thm) =
 fun filter_simp ctxt t (_, thm) =
   let
     val (_, {mk_rews = {mk, ...}, ...}) =
-      MetaSimplifier.rep_ss (Simplifier.local_simpset_of ctxt);
+      Simplifier.rep_ss (Simplifier.local_simpset_of ctxt);
     val extract_simp =
       (map Thm.full_prop_of o mk, #1 o Logic.dest_equals o Logic.strip_imp_concl);
     val ss = is_matching_thm extract_simp ctxt false t thm
@@ -177,9 +176,9 @@ fun filter_simp ctxt t (_, thm) =
 
 (* filter_pattern *)
 
-fun get_names (_, thm) = let
-    val t = Thm.full_prop_of thm;
-  in (term_consts t) union (add_term_free_names (t, [])) end;
+fun get_names (_, thm) =
+  fold_aterms (fn Const (c, _) => insert (op =) c | Free (x, _) => insert (op =) x | _ => I)
+    (Thm.full_prop_of thm) [];
 
 fun add_pat_names (t, cs) =
       case strip_comb t of
@@ -287,7 +286,7 @@ in
 
 fun rem_thm_dups xs =
   xs ~~ (1 upto length xs)
-  |> sort (Term.fast_term_ord o pairself (Thm.prop_of o #2 o #1))
+  |> sort (TermOrd.fast_term_ord o pairself (Thm.prop_of o #2 o #1))
   |> rem_cdups
   |> sort (int_ord o pairself #2)
   |> map #1;

@@ -1,9 +1,7 @@
 (*  Title:      HOL/Tools/TFL/rules.ML
-    ID:         $Id$
     Author:     Konrad Slind, Cambridge University Computer Laboratory
-    Copyright   1997  University of Cambridge
 
-Emulation of HOL inference rules for TFL
+Emulation of HOL inference rules for TFL.
 *)
 
 signature RULES =
@@ -173,7 +171,7 @@ fun LIST_CONJ [] = raise RULES_ERR "LIST_CONJ" "empty list"
  *---------------------------------------------------------------------------*)
 local val thy = Thm.theory_of_thm disjI1
       val prop = Thm.prop_of disjI1
-      val [P,Q] = term_vars prop
+      val [P,Q] = OldTerm.term_vars prop
       val disj1 = Thm.forall_intr (Thm.cterm_of thy Q) disjI1
 in
 fun DISJ1 thm tm = thm RS (forall_elim (D.drop_prop tm) disj1)
@@ -182,7 +180,7 @@ end;
 
 local val thy = Thm.theory_of_thm disjI2
       val prop = Thm.prop_of disjI2
-      val [P,Q] = term_vars prop
+      val [P,Q] = OldTerm.term_vars prop
       val disj2 = Thm.forall_intr (Thm.cterm_of thy P) disjI2
 in
 fun DISJ2 tm thm = thm RS (forall_elim (D.drop_prop tm) disj2)
@@ -278,7 +276,7 @@ fun DISJ_CASESL disjth thl =
 local (* this is fragile *)
       val thy = Thm.theory_of_thm spec
       val prop = Thm.prop_of spec
-      val x = hd (tl (term_vars prop))
+      val x = hd (tl (OldTerm.term_vars prop))
       val cTV = ctyp_of thy (type_of x)
       val gspec = forall_intr (cterm_of thy x) spec
 in
@@ -295,7 +293,7 @@ val ISPECL = fold ISPEC;
 (* Not optimized! Too complicated. *)
 local val thy = Thm.theory_of_thm allI
       val prop = Thm.prop_of allI
-      val [P] = add_term_vars (prop, [])
+      val [P] = OldTerm.add_term_vars (prop, [])
       fun cty_theta s = map (fn (i, (S, ty)) => (ctyp_of s (TVar (i, S)), ctyp_of s ty))
       fun ctm_theta s = map (fn (i, (_, tm2)) =>
                              let val ctm2 = cterm_of s tm2
@@ -325,7 +323,7 @@ fun GEN_ALL thm =
    let val thy = Thm.theory_of_thm thm
        val prop = Thm.prop_of thm
        val tycheck = cterm_of thy
-       val vlist = map tycheck (add_term_vars (prop, []))
+       val vlist = map tycheck (OldTerm.add_term_vars (prop, []))
   in GENL vlist thm
   end;
 
@@ -365,7 +363,7 @@ fun CHOOSE (fvar, exth) fact =
 
 local val thy = Thm.theory_of_thm exI
       val prop = Thm.prop_of exI
-      val [P,x] = term_vars prop
+      val [P,x] = OldTerm.term_vars prop
 in
 fun EXISTS (template,witness) thm =
    let val thy = Thm.theory_of_thm thm
@@ -516,7 +514,7 @@ fun get ([],_,L) = rev L
                 val (f,args) = S.strip_comb (get_lhs eq)
                 val (vstrl,_) = S.strip_abs f
                 val names  =
-                  Name.variant_list (add_term_names(body, [])) (map (#1 o dest_Free) vstrl)
+                  Name.variant_list (OldTerm.add_term_names(body, [])) (map (#1 o dest_Free) vstrl)
             in get (rst, n+1, (names,n)::L) end
             handle TERM _ => get (rst, n+1, L)
               | U.ERR _ => get (rst, n+1, L);
@@ -676,7 +674,7 @@ fun CONTEXT_REWRITE_RULE (func, G, cut_lemma, congs) th =
      fun prover used ss thm =
      let fun cong_prover ss thm =
          let val dummy = say "cong_prover:"
-             val cntxt = MetaSimplifier.prems_of_ss ss
+             val cntxt = Simplifier.prems_of_ss ss
              val dummy = print_thms "cntxt:" cntxt
              val dummy = say "cong rule:"
              val dummy = say (Display.string_of_thm thm)
@@ -689,7 +687,7 @@ fun CONTEXT_REWRITE_RULE (func, G, cut_lemma, congs) th =
                      val ants = map tych (Logic.strip_imp_prems imp)
                      val eq = Logic.strip_imp_concl imp
                      val lhs = tych(get_lhs eq)
-                     val ss' = MetaSimplifier.add_prems (map ASSUME ants) ss
+                     val ss' = Simplifier.add_prems (map ASSUME ants) ss
                      val lhs_eq_lhs1 = MetaSimplifier.rewrite_cterm (false,true,false) (prover used) ss' lhs
                        handle U.ERR _ => Thm.reflexive lhs
                      val dummy = print_thms "proven:" [lhs_eq_lhs1]
@@ -710,7 +708,7 @@ fun CONTEXT_REWRITE_RULE (func, G, cut_lemma, congs) th =
                   val Q = get_lhs eq1
                   val QeqQ1 = pbeta_reduce (tych Q)
                   val Q1 = #2(D.dest_eq(cconcl QeqQ1))
-                  val ss' = MetaSimplifier.add_prems (map ASSUME ants1) ss
+                  val ss' = Simplifier.add_prems (map ASSUME ants1) ss
                   val Q1eeqQ2 = MetaSimplifier.rewrite_cterm (false,true,false) (prover used') ss' Q1
                                 handle U.ERR _ => Thm.reflexive Q1
                   val Q2 = #2 (Logic.dest_equals (Thm.prop_of Q1eeqQ2))
@@ -760,12 +758,12 @@ fun CONTEXT_REWRITE_RULE (func, G, cut_lemma, congs) th =
 
         fun restrict_prover ss thm =
           let val dummy = say "restrict_prover:"
-              val cntxt = rev(MetaSimplifier.prems_of_ss ss)
+              val cntxt = rev(Simplifier.prems_of_ss ss)
               val dummy = print_thms "cntxt:" cntxt
               val thy = Thm.theory_of_thm thm
               val Const("==>",_) $ (Const("Trueprop",_) $ A) $ _ = Thm.prop_of thm
               fun genl tm = let val vlist = subtract (op aconv) globals
-                                           (add_term_frees(tm,[]))
+                                           (OldTerm.add_term_frees(tm,[]))
                             in fold_rev Forall vlist tm
                             end
               (*--------------------------------------------------------------
@@ -805,7 +803,7 @@ fun CONTEXT_REWRITE_RULE (func, G, cut_lemma, congs) th =
     (if (is_cong thm) then cong_prover else restrict_prover) ss thm
     end
     val ctm = cprop_of th
-    val names = add_term_names (term_of ctm, [])
+    val names = OldTerm.add_term_names (term_of ctm, [])
     val th1 = MetaSimplifier.rewrite_cterm(false,true,false)
       (prover names) (ss0 addsimps [cut_lemma'] addeqcongs congs) ctm
     val th2 = equal_elim th1 th

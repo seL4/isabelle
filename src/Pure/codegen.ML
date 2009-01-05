@@ -1,5 +1,4 @@
 (*  Title:      Pure/codegen.ML
-    ID:         $Id$
     Author:     Stefan Berghofer, TU Muenchen
 
 Generic code generator.
@@ -278,7 +277,7 @@ fun preprocess thy =
 
 fun preprocess_term thy t =
   let
-    val x = Free (Name.variant (add_term_names (t, [])) "x", fastype_of t);
+    val x = Free (Name.variant (OldTerm.add_term_names (t, [])) "x", fastype_of t);
     (* fake definition *)
     val eq = setmp quick_and_dirty true (SkipProof.make_thm thy)
       (Logic.mk_equals (x, t));
@@ -460,7 +459,7 @@ fun thyname_of_const thy =
 
 fun rename_terms ts =
   let
-    val names = List.foldr add_term_names
+    val names = List.foldr OldTerm.add_term_names
       (map (fst o fst) (rev (fold Term.add_vars ts []))) ts;
     val reserved = filter ML_Syntax.is_reserved names;
     val (illegal, alt_names) = split_list (map_filter (fn s =>
@@ -485,7 +484,7 @@ val rename_term = hd o rename_terms o single;
 (**** retrieve definition of constant ****)
 
 fun is_instance T1 T2 =
-  Type.raw_instance (T1, if null (typ_tfrees T2) then T2 else Logic.varifyT T2);
+  Type.raw_instance (T1, if null (OldTerm.typ_tfrees T2) then T2 else Logic.varifyT T2);
 
 fun get_assoc_code thy (s, T) = Option.map snd (find_first (fn ((s', T'), _) =>
   s = s' andalso is_instance T T') (#consts (CodegenData.get thy)));
@@ -598,8 +597,8 @@ fun mk_app _ p [] = p
      else Pretty.block (separate (Pretty.brk 1) (p :: ps));
 
 fun new_names t xs = Name.variant_list
-  (map (fst o fst o dest_Var) (term_vars t) union
-    add_term_names (t, ML_Syntax.reserved_names)) (map mk_id xs);
+  (map (fst o fst o dest_Var) (OldTerm.term_vars t) union
+    OldTerm.add_term_names (t, ML_Syntax.reserved_names)) (map mk_id xs);
 
 fun new_name t x = hd (new_names t [x]);
 
@@ -917,9 +916,9 @@ fun eval_term thy t =
     val ctxt = ProofContext.init thy;
     val e =
       let
-        val _ = (null (term_tvars t) andalso null (term_tfrees t)) orelse
+        val _ = (null (Term.add_tvars t []) andalso null (Term.add_tfrees t [])) orelse
           error "Term to be evaluated contains type variables";
-        val _ = (null (term_vars t) andalso null (term_frees t)) orelse
+        val _ = (null (Term.add_vars t []) andalso null (Term.add_frees t [])) orelse
           error "Term to be evaluated contains variables";
         val (code, gr) = setmp mode ["term_of"]
           (generate_code_i thy [] "Generated")

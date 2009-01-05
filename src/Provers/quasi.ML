@@ -1,9 +1,7 @@
-(* 
-   Title:	Reasoner for simple transitivity and quasi orders. 
-   Id:		$Id$
-   Author:	Oliver Kutter
-   Copyright:	TU Muenchen
- *)
+(*  Author:     Oliver Kutter, TU Muenchen
+
+Reasoner for simple transitivity and quasi orders.
+*)
 
 (* 
  
@@ -557,7 +555,7 @@ fun solveQuasiOrder sign (asms, concl) =
 (* trans_tac - solves transitivity chains over <= *)
 val trans_tac  =  SUBGOAL (fn (A, n, sign) =>
  let
-  val rfrees = map Free (rename_wrt_term A (Logic.strip_params A))
+  val rfrees = map Free (Term.rename_wrt_term A (Logic.strip_params A))
   val Hs = map (fn H => subst_bounds (rfrees, H)) (Logic.strip_assums_hyp A)
   val C = subst_bounds (rfrees, Logic.strip_assums_concl A)
   val lesss = List.concat (ListPair.map (mkasm_trans  sign) (Hs, 0 upto (length Hs - 1)))
@@ -578,7 +576,7 @@ val trans_tac  =  SUBGOAL (fn (A, n, sign) =>
 (* quasi_tac - solves quasi orders *)
 val quasi_tac = SUBGOAL (fn (A, n, sign) =>
  let
-  val rfrees = map Free (rename_wrt_term A (Logic.strip_params A))
+  val rfrees = map Free (Term.rename_wrt_term A (Logic.strip_params A))
   val Hs = map (fn H => subst_bounds (rfrees, H)) (Logic.strip_assums_hyp A)
   val C = subst_bounds (rfrees, Logic.strip_assums_concl A)
   val lesss = List.concat (ListPair.map (mkasm_quasi sign) (Hs, 0 upto (length Hs - 1)))

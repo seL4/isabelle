@@ -1,5 +1,4 @@
 (*  Title:      Tools/code/code_thingol.ML
-    ID:         $Id$
     Author:     Florian Haftmann, TU Muenchen
 
 Intermediate language ("Thin-gol") representing executable code.
@@ -620,7 +619,7 @@ and ensure_const thy algbr funcgr c =
     fun stmt_fun ((vs, raw_ty), raw_thms) =
       let
         val ty = Logic.unvarifyT raw_ty;
-        val thms = if (null o Term.typ_tfrees) ty orelse (null o fst o strip_type) ty
+        val thms = if null (Term.add_tfreesT ty []) orelse (null o fst o strip_type) ty
           then raw_thms
           else (map o apfst) (Code_Unit.expand_eta thy 1) raw_thms;
       in
@@ -708,8 +707,7 @@ and translate_app thy algbr funcgr thm ((c, ty), ts) = case Code.get_case_data t
         let
           val k = length ts;
           val tys = (curry Library.take (i - k) o curry Library.drop k o fst o strip_type) ty;
-          val ctxt = (fold o fold_aterms)
-            (fn Free (v, _) => Name.declare v | _ => I) ts Name.context;
+          val ctxt = (fold o fold_aterms) Term.declare_term_frees ts Name.context;
           val vs = Name.names ctxt "a" tys;
         in
           fold_map (translate_typ thy algbr funcgr) tys

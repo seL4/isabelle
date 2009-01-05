@@ -1,7 +1,4 @@
-(*  ID:         $Id$
-    Author:     L C Paulson and Claire Quigley
-    Copyright   2004  University of Cambridge
-*)
+(*  Author:     L C Paulson and Claire Quigley, Cambridge University Computer Laboratory *)
 
 (***************************************************************************)
 (*  Code to deal with the transfer of proofs from a prover process         *)
@@ -243,7 +240,7 @@ fun clause_of_strees ctxt vt0 ts =
     singleton (Syntax.check_terms ctxt) (TypeInfer.constrain HOLogic.boolT (fix_sorts vt dt))
   end;
 
-fun gen_all_vars t = fold_rev Logic.all (term_vars t) t;
+fun gen_all_vars t = fold_rev Logic.all (OldTerm.term_vars t) t;
 
 fun ints_of_stree_aux (Int n, ns) = n::ns
   | ints_of_stree_aux (Br(_,ts), ns) = foldl ints_of_stree_aux ns ts;
@@ -253,7 +250,7 @@ fun ints_of_stree t = ints_of_stree_aux (t, []);
 fun decode_tstp vt0 (name, role, ts, annots) ctxt =
   let val deps = case annots of NONE => [] | SOME (source,_) => ints_of_stree source
       val cl = clause_of_strees ctxt vt0 ts
-  in  ((name, role, cl, deps), fold Variable.declare_term (term_frees cl) ctxt)  end;
+  in  ((name, role, cl, deps), fold Variable.declare_term (OldTerm.term_frees cl) ctxt)  end;
 
 fun dest_tstp ((((name, role), ts), annots), chs) =
   case chs of
@@ -408,8 +405,8 @@ fun bad_free (Free (a,_)) = String.isPrefix "sko_" a
 fun add_wanted_prfline ctxt ((lno, t, []), (nlines, lines)) =
       (nlines, (lno, t, []) :: lines)   (*conjecture clauses must be kept*)
   | add_wanted_prfline ctxt ((lno, t, deps), (nlines, lines)) =
-      if eq_types t orelse not (null (term_tvars t)) orelse
-         exists bad_free (term_frees t) orelse
+      if eq_types t orelse not (null (Term.add_tvars t [])) orelse
+         exists_subterm bad_free t orelse
          (not (null lines) andalso   (*final line can't be deleted for these reasons*)
           (length deps < 2 orelse nlines mod (Config.get ctxt modulus) <> 0))   
       then (nlines+1, map (replace_deps (lno, deps)) lines) (*Delete line*)

@@ -1,5 +1,4 @@
 (*  Title:      Pure/library.ML
-    ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Author:     Markus Wenzel, TU Muenchen
 
@@ -491,7 +490,7 @@ fun split_last [] = raise Empty
   | split_last [x] = ([], x)
   | split_last (x :: xs) = apfst (cons x) (split_last xs);
 
-(*find the position of an element in a list*)
+(*find position of first element satisfying a predicate*)
 fun find_index pred =
   let fun find (_: int) [] = ~1
         | find n (x :: xs) = if pred x then n else find (n + 1) xs;

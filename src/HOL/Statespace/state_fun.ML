@@ -1,5 +1,4 @@
 (*  Title:      HOL/Statespace/state_fun.ML
-    ID:         $Id$
     Author:     Norbert Schirmer, TU Muenchen
 *)
 
@@ -8,17 +7,17 @@ sig
   val lookupN : string
   val updateN : string
 
-  val mk_constr : Context.theory -> Term.typ -> Term.term
-  val mk_destr : Context.theory -> Term.typ -> Term.term
+  val mk_constr : theory -> typ -> term
+  val mk_destr : theory -> typ -> term
 
-  val lookup_simproc : MetaSimplifier.simproc
-  val update_simproc : MetaSimplifier.simproc
-  val ex_lookup_eq_simproc : MetaSimplifier.simproc
-  val ex_lookup_ss : MetaSimplifier.simpset
-  val lazy_conj_simproc : MetaSimplifier.simproc
-  val string_eq_simp_tac : int -> Tactical.tactic
+  val lookup_simproc : simproc
+  val update_simproc : simproc
+  val ex_lookup_eq_simproc : simproc
+  val ex_lookup_ss : simpset
+  val lazy_conj_simproc : simproc
+  val string_eq_simp_tac : int -> tactic
 
-  val setup : Context.theory -> Context.theory
+  val setup : theory -> theory
 end;
 
 structure StateFun: STATE_FUN = 

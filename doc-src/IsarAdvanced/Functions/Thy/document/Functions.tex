@@ -440,7 +440,7 @@ To see how the automatic termination proofs work, let's look at an
 \isamarkuptrue%
 %
 \begin{isamarkuptext}%
-The the key to this error message is the matrix at the bottom. The rows
+The key to this error message is the matrix at the bottom. The rows
   of that matrix correspond to the different recursive calls (In our
   case, there is just one). The columns are the function's arguments 
   (expressed through different measure functions, which map the
@@ -674,7 +674,7 @@ Up to now, we used pattern matching only on datatypes, and the
 {\isacharbar}\ {\isachardoublequoteopen}And\ X\ X\ {\isacharequal}\ X{\isachardoublequoteclose}%
 \begin{isamarkuptext}%
 This definition is useful, because the equations can directly be used
-  as simplification rules rules. But the patterns overlap: For example,
+  as simplification rules. But the patterns overlap: For example,
   the expression \isa{And\ T\ T} is matched by both the first and
   the second equation. By default, Isabelle makes the patterns disjoint by
   splitting them up, producing instances:%
@@ -829,13 +829,21 @@ This kind of matching is again justified by the proof of pattern
   either \isa{{\isadigit{0}}}, \isa{{\isadigit{1}}} or \isa{n\ {\isacharplus}\ {\isadigit{2}}}:
 
   \begin{isabelle}%
-\ {\isadigit{1}}{\isachardot}\ {\isasymAnd}P\ x{\isachardot}\ {\isasymlbrakk}x\ {\isacharequal}\ {\isadigit{0}}\ {\isasymLongrightarrow}\ P{\isacharsemicolon}\ x\ {\isacharequal}\ {\isadigit{1}}\ {\isasymLongrightarrow}\ P{\isacharsemicolon}\ {\isasymAnd}n{\isachardot}\ x\ {\isacharequal}\ n\ {\isacharplus}\ {\isadigit{2}}\ {\isasymLongrightarrow}\ P{\isasymrbrakk}\ {\isasymLongrightarrow}\ P%
+\ {\isadigit{1}}{\isachardot}\ {\isasymAnd}P\ x{\isachardot}\ {\isasymlbrakk}x\ {\isacharequal}\ {\isadigit{0}}\ {\isasymLongrightarrow}\ P{\isacharsemicolon}\ x\ {\isacharequal}\ {\isadigit{1}}\ {\isasymLongrightarrow}\ P{\isacharsemicolon}\ {\isasymAnd}n{\isachardot}\ x\ {\isacharequal}\ n\ {\isacharplus}\ {\isadigit{2}}\ {\isasymLongrightarrow}\ P{\isasymrbrakk}\ {\isasymLongrightarrow}\ P\isanewline
+\ {\isadigit{2}}{\isachardot}\ {\isadigit{0}}\ {\isacharequal}\ {\isadigit{0}}\ {\isasymLongrightarrow}\ {\isadigit{1}}\ {\isacharequal}\ {\isadigit{1}}\isanewline
+\ {\isadigit{3}}{\isachardot}\ {\isadigit{0}}\ {\isacharequal}\ {\isadigit{1}}\ {\isasymLongrightarrow}\ {\isadigit{1}}\ {\isacharequal}\ {\isadigit{1}}\isanewline
+\ {\isadigit{4}}{\isachardot}\ {\isasymAnd}n{\isachardot}\ {\isadigit{0}}\ {\isacharequal}\ n\ {\isacharplus}\ {\isadigit{2}}\ {\isasymLongrightarrow}\ {\isadigit{1}}\ {\isacharequal}\ fib{\isadigit{2}}{\isacharunderscore}sumC\ n\ {\isacharplus}\ fib{\isadigit{2}}{\isacharunderscore}sumC\ {\isacharparenleft}Suc\ n{\isacharparenright}\isanewline
+\ {\isadigit{5}}{\isachardot}\ {\isadigit{1}}\ {\isacharequal}\ {\isadigit{1}}\ {\isasymLongrightarrow}\ {\isadigit{1}}\ {\isacharequal}\ {\isadigit{1}}\isanewline
+\ {\isadigit{6}}{\isachardot}\ {\isasymAnd}n{\isachardot}\ {\isadigit{1}}\ {\isacharequal}\ n\ {\isacharplus}\ {\isadigit{2}}\ {\isasymLongrightarrow}\ {\isadigit{1}}\ {\isacharequal}\ fib{\isadigit{2}}{\isacharunderscore}sumC\ n\ {\isacharplus}\ fib{\isadigit{2}}{\isacharunderscore}sumC\ {\isacharparenleft}Suc\ n{\isacharparenright}\isanewline
+\ {\isadigit{7}}{\isachardot}\ {\isasymAnd}n\ na{\isachardot}\isanewline
+\isaindent{\ {\isadigit{7}}{\isachardot}\ \ \ \ }n\ {\isacharplus}\ {\isadigit{2}}\ {\isacharequal}\ na\ {\isacharplus}\ {\isadigit{2}}\ {\isasymLongrightarrow}\isanewline
+\isaindent{\ {\isadigit{7}}{\isachardot}\ \ \ \ }fib{\isadigit{2}}{\isacharunderscore}sumC\ n\ {\isacharplus}\ fib{\isadigit{2}}{\isacharunderscore}sumC\ {\isacharparenleft}Suc\ n{\isacharparenright}\ {\isacharequal}\ fib{\isadigit{2}}{\isacharunderscore}sumC\ na\ {\isacharplus}\ fib{\isadigit{2}}{\isacharunderscore}sumC\ {\isacharparenleft}Suc\ na{\isacharparenright}%
 \end{isabelle}
 
   This is an arithmetic triviality, but unfortunately the
   \isa{arith} method cannot handle this specific form of an
   elimination rule. However, we can use the method \isa{atomize{\isacharunderscore}elim} to do an ad-hoc conversion to a disjunction of
-  existentials, which can then be soved by the arithmetic decision procedure.
+  existentials, which can then be solved by the arithmetic decision procedure.
   Pattern compatibility and termination are automatic as usual.%
 \end{isamarkuptxt}%
 \isamarkuptrue%

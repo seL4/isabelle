@@ -5899,7 +5899,7 @@ in
   let 
     val thy = Thm.theory_of_cterm ct;
     val t = Thm.term_of ct;
-    val fs = term_frees t;
+    val fs = OldTerm.term_frees t;
     val vs = fs ~~ (0 upto (length fs - 1));
     val qe = if proofs then @{code mirlfrqe} else @{code mircfrqe};
     val t' = (term_of_fm vs o qe o fm_of_term vs) t;

@@ -1,7 +1,6 @@
 (*  Title:      Pure/logic.ML
-    ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
-    Copyright   Cambridge University 1992
+    Author:     Makarius
 
 Abstract syntax operations of the Pure meta-logic.
 *)
@@ -515,7 +514,7 @@ fun get_goal st i = nth_prem (i, st)
 (*reverses parameters for substitution*)
 fun goal_params st i =
   let val gi = get_goal st i
-      val rfrees = map Free (rename_wrt_term gi (strip_params gi))
+      val rfrees = map Free (Term.rename_wrt_term gi (strip_params gi))
   in (gi, rfrees) end;
 
 fun concl_of_goal st i =

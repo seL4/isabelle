@@ -45,7 +45,7 @@ text {*
   @{text partial_order} in the global context of the theory.  The
   parameter @{term le} is replaced by @{term "op \<le> :: nat \<Rightarrow> nat \<Rightarrow> bool"}. *} 
 
-  interpretation %visible nat: partial_order ["op \<le> :: nat \<Rightarrow> nat \<Rightarrow> bool"]
+  interpretation %visible nat: partial_order "op \<le> :: nat \<Rightarrow> nat \<Rightarrow> bool"
 txt {* The locale name is succeeded by a \emph{parameter
   instantiation}.  In general, this is a list of terms, which refer to
   the parameters in the order of declaration in the locale.  The

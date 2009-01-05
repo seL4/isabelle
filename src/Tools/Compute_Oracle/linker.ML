@@ -1,5 +1,4 @@
 (*  Title:      Tools/Compute_Oracle/linker.ML
-    ID:         $Id$
     Author:     Steven Obua
 
 Linker.ML solves the problem that the computing oracle does not
@@ -51,7 +50,7 @@ fun constant_of (Const (name, ty)) = Constant (false, name, ty)
   | constant_of _ = raise Link "constant_of"
 
 fun bool_ord (x,y) = if x then (if y then EQUAL else GREATER) else (if y then LESS else EQUAL)
-fun constant_ord (Constant (x1,x2,x3), Constant (y1,y2,y3)) = (prod_ord (prod_ord bool_ord fast_string_ord) Term.typ_ord) (((x1,x2),x3), ((y1,y2),y3))
+fun constant_ord (Constant (x1,x2,x3), Constant (y1,y2,y3)) = (prod_ord (prod_ord bool_ord fast_string_ord) TermOrd.typ_ord) (((x1,x2),x3), ((y1,y2),y3))
 fun constant_modty_ord (Constant (x1,x2,_), Constant (y1,y2,_)) = (prod_ord bool_ord fast_string_ord) ((x1,x2), (y1,y2))
 
 
@@ -71,7 +70,7 @@ fun merge_subst (A:Type.tyenv) (B:Type.tyenv) =
     handle Type.TYPE_MATCH => NONE
 
 fun subst_ord (A:Type.tyenv, B:Type.tyenv) =
-    (list_ord (prod_ord Term.fast_indexname_ord (prod_ord Term.sort_ord Term.typ_ord))) (Vartab.dest A, Vartab.dest B)
+    (list_ord (prod_ord TermOrd.fast_indexname_ord (prod_ord TermOrd.sort_ord TermOrd.typ_ord))) (Vartab.dest A, Vartab.dest B)
 
 structure Substtab = TableFun(type key = Type.tyenv val ord = subst_ord);
 
@@ -82,7 +81,7 @@ fun substtab_unions [] = Substtab.empty
 
 datatype instances = Instances of unit ConsttabModTy.table * Type.tyenv Consttab.table Consttab.table * constant list list * unit Substtab.table
 
-fun is_polymorphic (Constant (_, _, ty)) = not (null (typ_tvars ty))
+fun is_polymorphic (Constant (_, _, ty)) = not (null (Term.add_tvarsT ty []))
 
 fun distinct_constants cs =
     Consttab.keys (fold (fn c => Consttab.update (c, ())) cs Consttab.empty)
@@ -91,7 +90,7 @@ fun empty cs =
     let
         val cs = distinct_constants (filter is_polymorphic cs)
         val old_cs = cs
-(*      fun collect_tvars ty tab = fold (fn v => fn tab => Typtab.update (TVar v, ()) tab) (typ_tvars ty) tab
+(*      fun collect_tvars ty tab = fold (fn v => fn tab => Typtab.update (TVar v, ()) tab) (OldTerm.typ_tvars ty) tab
         val tvars_count = length (Typtab.keys (fold (fn c => fn tab => collect_tvars (typ_of_constant c) tab) cs Typtab.empty))
         fun tvars_of ty = collect_tvars ty Typtab.empty
         val cs = map (fn c => (c, tvars_of (typ_of_constant c))) cs
@@ -263,10 +262,10 @@ fun create_theorem th =
 let
     val (left, right) = collect_consts_of_thm th
     val polycs = filter Linker.is_polymorphic left
-    val tytab = fold (fn p => fn tab => fold (fn n => fn tab => Typtab.update (TVar n, ()) tab) (typ_tvars (Linker.typ_of_constant p)) tab) polycs Typtab.empty
+    val tytab = fold (fn p => fn tab => fold (fn n => fn tab => Typtab.update (TVar n, ()) tab) (OldTerm.typ_tvars (Linker.typ_of_constant p)) tab) polycs Typtab.empty
     fun check_const (c::cs) cs' =
         let
-            val tvars = typ_tvars (Linker.typ_of_constant c)
+            val tvars = OldTerm.typ_tvars (Linker.typ_of_constant c)
             val wrong = fold (fn n => fn wrong => wrong orelse is_none (Typtab.lookup tytab (TVar n))) tvars false
         in
             if wrong then raise PCompute "right hand side of theorem contains type variables which do not occur on the left hand side"
@@ -379,7 +378,7 @@ fun thm2cthm th =
         ComputeThm (hyps, shyps, prop)
     end
 
-val cthm_ord' = prod_ord (prod_ord (list_ord Term.term_ord) (list_ord Term.sort_ord)) Term.term_ord
+val cthm_ord' = prod_ord (prod_ord (list_ord TermOrd.term_ord) (list_ord TermOrd.sort_ord)) TermOrd.term_ord
 
 fun cthm_ord (ComputeThm (h1, sh1, p1), ComputeThm (h2, sh2, p2)) = cthm_ord' (((h1,sh1), p1), ((h2, sh2), p2))
 

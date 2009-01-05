@@ -1,5 +1,4 @@
-(*  Title:      DistinctTreeProver.thy
-    ID:         $Id$
+(*  Title:      HOL/Statespace/DistinctTreeProver.thy
     Author:     Norbert Schirmer, TU Muenchen
 *)
 
@@ -453,7 +452,7 @@ proof (induct t\<^isub>1)
   case Tip thus ?case by simp
 next
   case (Node l x d r)
-  have sub: "subtract (Node l x d r) t\<^isub>2 = Some t".
+  have sub: "subtract (Node l x d r) t\<^isub>2 = Some t" by fact
   show ?case
   proof (cases "delete x t\<^isub>2")
     case (Some t\<^isub>2')
@@ -646,9 +645,9 @@ val nums' = (0 upto 3000);
 val const_decls = map (fn i => Syntax.no_syn 
                                  ("const" ^ string_of_int i,Type ("nat",[]))) nums
 
-val consts = sort Term.fast_term_ord 
+val consts = sort TermOrd.fast_term_ord 
               (map (fn i => Const ("DistinctTreeProver.const"^string_of_int i,Type ("nat",[]))) nums)
-val consts' = sort Term.fast_term_ord 
+val consts' = sort TermOrd.fast_term_ord 
               (map (fn i => Const ("DistinctTreeProver.const"^string_of_int i,Type ("nat",[]))) nums')
 
 val t = DistinctTreeProver.mk_tree I (Type ("nat",[])) consts

@@ -1,7 +1,6 @@
 (*  Title:      HOL/Tools/datatype_case.ML
-    ID:         $Id$
     Author:     Konrad Slind, Cambridge University Computer Laboratory
-                Stefan Berghofer, TU Muenchen
+    Author:     Stefan Berghofer, TU Muenchen
 
 Nested case expressions on datatypes.
 *)
@@ -55,15 +54,12 @@ fun ty_info (tab : string -> DatatypeAux.datatype_info option) s =
  * b=false --> i = ~1
  *---------------------------------------------------------------------------*)
 
-fun pattern_map f (tm,x) = (f tm, x);
-
-fun pattern_subst theta = pattern_map (subst_free theta);
+fun pattern_subst theta (tm, x) = (subst_free theta tm, x);
 
 fun row_of_pat x = fst (snd x);
 
-fun add_row_used ((prfx, pats), (tm, tag)) used =
-  foldl add_term_free_names (foldl add_term_free_names
-    (add_term_free_names (tm, used)) pats) prfx;
+fun add_row_used ((prfx, pats), (tm, tag)) =
+  fold Term.add_free_names (tm :: pats @ prfx);
 
 (* try to preserve names given by user *)
 fun default_names names ts =
@@ -140,7 +136,7 @@ fun partition _ _ _ _ _ _ _ [] = raise CASE_ERROR ("partition: no rows", ~1)
                     let
                       val Ts = map type_of rstp;
                       val xs = Name.variant_list
-                        (foldl add_term_free_names used' gvars)
+                        (fold Term.add_free_names gvars used')
                         (replicate (length rstp) "x")
                     in
                       [((prfx, gvars @ map Free (xs ~~ Ts)),
@@ -222,7 +218,7 @@ fun mk_case tab ctxt ty_match ty_inst type_of used range_ty =
               | SOME {case_name, constructors} =>
                 let
                   val pty = body_type cT;
-                  val used' = foldl add_term_free_names used rstp;
+                  val used' = fold Term.add_free_names rstp used;
                   val nrows = maps (expand constructors used' pty) rows;
                   val subproblems = partition ty_match ty_inst type_of used'
                     constructors pty range_ty nrows;
@@ -336,7 +332,7 @@ fun case_tr err tab_of ctxt [t, u] =
         | prep_pat t used = case_error ("Bad pattern: " ^ Syntax.string_of_term ctxt t);
       fun dest_case1 (t as Const ("_case1", _) $ l $ r) =
             let val (l', cnstrts) = strip_constraints l
-            in ((fst (prep_pat l' (add_term_free_names (t, []))), r), cnstrts)
+            in ((fst (prep_pat l' (Term.add_free_names t [])), r), cnstrts)
             end
         | dest_case1 t = case_error "dest_case1";
       fun dest_case2 (Const ("_case2", _) $ t $ u) = t :: dest_case2 u
@@ -366,7 +362,7 @@ fun gen_dest_case name_of type_of tab d used t =
             val _ = if length zs < i then raise CASE_ERROR ("", 0) else ();
             val (xs, ys) = chop i zs;
             val u = list_abs (ys, strip_abs_body t);
-            val xs' = map Free (Name.variant_list (add_term_names (u, used))
+            val xs' = map Free (Name.variant_list (OldTerm.add_term_names (u, used))
               (map fst xs) ~~ map snd xs)
           in (xs', subst_bounds (rev xs', u)) end;
         fun is_dependent i t =
@@ -424,11 +420,11 @@ val dest_case' = gen_dest_case
 (* destruct nested patterns *)
 
 fun strip_case' dest (pat, rhs) =
-  case dest (add_term_free_names (pat, [])) rhs of
+  case dest (Term.add_free_names pat []) rhs of
     SOME (exp as Free _, clauses) =>
-      if member op aconv (term_frees pat) exp andalso
+      if member op aconv (OldTerm.term_frees pat) exp andalso
         not (exists (fn (_, rhs') =>
-          member op aconv (term_frees rhs') exp) clauses)
+          member op aconv (OldTerm.term_frees rhs') exp) clauses)
       then
         maps (strip_case' dest) (map (fn (pat', rhs') =>
           (subst_free [(exp, pat')] pat, rhs')) clauses)
@@ -451,7 +447,7 @@ fun case_tr' tab_of cname ctxt ts =
     val thy = ProofContext.theory_of ctxt;
     val consts = ProofContext.consts_of ctxt;
     fun mk_clause (pat, rhs) =
-      let val xs = term_frees pat
+      let val xs = Term.add_frees pat []
       in
         Syntax.const "_case1" $
           map_aterms
@@ -459,8 +455,8 @@ fun case_tr' tab_of cname ctxt ts =
               | Const (s, _) => Const (Consts.extern_early consts s, dummyT)
               | t => t) pat $
           map_aterms
-            (fn x as Free (s, _) =>
-                  if member op aconv xs x then Syntax.mark_bound s else x
+            (fn x as Free (s, T) =>
+                  if member (op =) xs (s, T) then Syntax.mark_bound s else x
               | t => t) rhs
       end
   in case strip_case' (tab_of thy) true (list_comb (Syntax.const cname, ts)) of

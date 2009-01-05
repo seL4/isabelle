@@ -1,5 +1,4 @@
 (*  Title:      HOL/Real/HahnBanach/ZornLemma.thy
-    ID:         $Id$
     Author:     Gertrud Bauer, TU Munich
 *)
 

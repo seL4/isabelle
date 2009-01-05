@@ -1,5 +1,4 @@
 (*  Title:      HOL/Tools/Groebner_Basis/groebner.ML
-    ID:         $Id$
     Author:     Amine Chaieb, TU Muenchen
 *)
 
@@ -599,14 +598,14 @@ let
      if length ideal = 2 then ideal else [eq_commute, eq_commute]
   val ring_dest_neg =
     fn t => let val (l,r) = dest_comb t in
-        if could_unify(term_of l,term_of ring_neg_tm) then r else raise CTERM ("ring_dest_neg", [t])
+        if Term.could_unify(term_of l,term_of ring_neg_tm) then r else raise CTERM ("ring_dest_neg", [t])
       end
 
  val ring_mk_neg = fn tm => mk_comb (ring_neg_tm) (tm);
 (*
  fun ring_dest_inv t =
     let val (l,r) = dest_comb t in
-        if could_unify(term_of l, term_of ring_inv_tm) then r else raise CTERM "ring_dest_inv"
+        if Term.could_unify(term_of l, term_of ring_inv_tm) then r else raise CTERM "ring_dest_inv"
     end
 *)
  val ring_dest_add = dest_binary ring_add_tm;
@@ -687,7 +686,7 @@ fun grobify_equations tm =
   val cjs = conjs tm
   val  rawvars = fold_rev (fn eq => fn a =>
                                        grobvars (dest_arg1 eq) (grobvars (dest_arg eq) a)) cjs []
-  val vars = sort (fn (x, y) => Term.term_ord(term_of x,term_of y))
+  val vars = sort (fn (x, y) => TermOrd.term_ord(term_of x,term_of y))
                   (distinct (op aconvc) rawvars)
  in (vars,map (grobify_equation vars) cjs)
  end;
@@ -896,7 +895,7 @@ fun isolate_variables evs ps eq =
   val vars = filter (fn v => free_in v eq) evs
   val (qs,p) = isolate_monomials vars eq
   val rs = ideal (qs @ ps) p 
-              (fn (s,t) => Term.term_ord (term_of s, term_of t))
+              (fn (s,t) => TermOrd.term_ord (term_of s, term_of t))
  in (eq,Library.take (length qs, rs) ~~ vars)
  end;
  fun subst_in_poly i p = Thm.rhs_of (ring_normalize_conv (vsubst i p));

@@ -1,11 +1,8 @@
 (*  Title:      HOL/Tools/meson.ML
-    ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
-    Copyright   1992  University of Cambridge
 
 The MESON resolution proof procedure for HOL.
-
-When making clauses, avoids using the rewriter -- instead uses RS recursively
+When making clauses, avoids using the rewriter -- instead uses RS recursively.
 *)
 
 signature MESON =
@@ -400,7 +397,7 @@ fun higher_inst_const thy (c,T) =
   Also rejects functions whose arguments are Booleans or other functions.*)
 fun is_fol_term thy t =
     Term.is_first_order ["all","All","Ex"] t andalso
-    not (exists (has_bool o fastype_of) (term_vars t)  orelse
+    not (exists_subterm (fn Var (_, T) => has_bool T | _ => false) t  orelse
          has_bool_arg_const t  orelse
          exists_Const (higher_inst_const thy) t orelse
          has_meta_conn t);
@@ -699,4 +696,3 @@ fun skolemize_tac i st =
   handle Subscript => Seq.empty;
 
 end;
-

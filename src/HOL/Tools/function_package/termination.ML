@@ -1,4 +1,4 @@
-(*  Title:       HOL/Tools/function_package/termination_data.ML
+(*  Title:       HOL/Tools/function_package/termination.ML
     Author:      Alexander Krauss, TU Muenchen
 
 Context data for termination proofs
@@ -50,9 +50,9 @@ struct
 
 open FundefLib
 
-val term2_ord = prod_ord Term.fast_term_ord Term.fast_term_ord
+val term2_ord = prod_ord TermOrd.fast_term_ord TermOrd.fast_term_ord
 structure Term2tab = TableFun(type key = term * term val ord = term2_ord);
-structure Term3tab = TableFun(type key = term * (term * term) val ord = prod_ord Term.fast_term_ord term2_ord);
+structure Term3tab = TableFun(type key = term * (term * term) val ord = prod_ord TermOrd.fast_term_ord term2_ord);
 
 (** Analyzing binary trees **)
 

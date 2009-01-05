@@ -1,5 +1,4 @@
 (*  Title:      Pure/Proof/proofchecker.ML
-    ID:         $Id$
     Author:     Stefan Berghofer, TU Muenchen
 
 Simple proof checker based only on the core inference rules
@@ -31,13 +30,12 @@ val beta_eta_convert =
 
 fun thm_of_proof thy prf =
   let
-    val prf_names = Proofterm.fold_proof_terms
-      (fold_aterms (fn Free (x, _) => Name.declare x | _ => I)) (K I) prf Name.context;
+    val prf_names = Proofterm.fold_proof_terms Term.declare_term_frees (K I) prf Name.context;
     val lookup = lookup_thm thy;
 
     fun thm_of_atom thm Ts =
       let
-        val tvars = term_tvars (Thm.full_prop_of thm);
+        val tvars = OldTerm.term_tvars (Thm.full_prop_of thm);
         val (fmap, thm') = Thm.varifyT' [] thm;
         val ctye = map (pairself (Thm.ctyp_of thy))
           (map TVar tvars @ map (fn ((_, S), ixn) => TVar (ixn, S)) fmap ~~ Ts)

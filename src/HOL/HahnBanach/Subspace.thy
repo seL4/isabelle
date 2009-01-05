@@ -1,5 +1,4 @@
 (*  Title:      HOL/Real/HahnBanach/Subspace.thy
-    ID:         $Id$
     Author:     Gertrud Bauer, TU Munich
 *)
 
@@ -17,8 +16,8 @@ text {*
   and scalar multiplication.
 *}
 
-locale subspace = var U + var V +
-  constrains U :: "'a\<Colon>{minus, plus, zero, uminus} set"
+locale subspace =
+  fixes U :: "'a\<Colon>{minus, plus, zero, uminus} set" and V
   assumes non_empty [iff, intro]: "U \<noteq> {}"
     and subset [iff]: "U \<subseteq> V"
     and add_closed [iff]: "x \<in> U \<Longrightarrow> y \<in> U \<Longrightarrow> x + y \<in> U"
@@ -46,7 +45,7 @@ lemma (in subspace) diff_closed [iff]:
   assumes x: "x \<in> U" and y: "y \<in> U"
   shows "x - y \<in> U"
 proof -
-  interpret vectorspace [V] by fact
+  interpret vectorspace V by fact
   from x y show ?thesis by (simp add: diff_eq1 negate_eq1)
 qed
 
@@ -60,11 +59,11 @@ lemma (in subspace) zero [intro]:
   assumes "vectorspace V"
   shows "0 \<in> U"
 proof -
-  interpret vectorspace [V] by fact
-  have "U \<noteq> {}" by (rule U_V.non_empty)
+  interpret V!: vectorspace V by fact
+  have "U \<noteq> {}" by (rule non_empty)
   then obtain x where x: "x \<in> U" by blast
   then have "x \<in> V" .. then have "0 = x - x" by simp
-  also from `vectorspace V` x x have "\<dots> \<in> U" by (rule U_V.diff_closed)
+  also from `vectorspace V` x x have "\<dots> \<in> U" by (rule diff_closed)
   finally show ?thesis .
 qed
 
@@ -73,7 +72,7 @@ lemma (in subspace) neg_closed [iff]:
   assumes x: "x \<in> U"
   shows "- x \<in> U"
 proof -
-  interpret vectorspace [V] by fact
+  interpret vectorspace V by fact
   from x show ?thesis by (simp add: negate_eq1)
 qed
 
@@ -83,7 +82,7 @@ lemma (in subspace) vectorspace [iff]:
   assumes "vectorspace V"
   shows "vectorspace U"
 proof -
-  interpret vectorspace [V] by fact
+  interpret vectorspace V by fact
   show ?thesis
   proof
     show "U \<noteq> {}" ..
@@ -255,8 +254,8 @@ lemma subspace_sum1 [iff]:
   assumes "vectorspace U" "vectorspace V"
   shows "U \<unlhd> U + V"
 proof -
-  interpret vectorspace [U] by fact
-  interpret vectorspace [V] by fact
+  interpret vectorspace U by fact
+  interpret vectorspace V by fact
   show ?thesis
   proof
     show "U \<noteq> {}" ..
@@ -279,9 +278,9 @@ lemma sum_subspace [intro?]:
   assumes "subspace U E" "vectorspace E" "subspace V E"
   shows "U + V \<unlhd> E"
 proof -
-  interpret subspace [U E] by fact
-  interpret vectorspace [E] by fact
-  interpret subspace [V E] by fact
+  interpret subspace U E by fact
+  interpret vectorspace E by fact
+  interpret subspace V E by fact
   show ?thesis
   proof
     have "0 \<in> U + V"
@@ -346,9 +345,9 @@ lemma decomp:
     and sum: "u1 + v1 = u2 + v2"
   shows "u1 = u2 \<and> v1 = v2"
 proof -
-  interpret vectorspace [E] by fact
-  interpret subspace [U E] by fact
-  interpret subspace [V E] by fact
+  interpret vectorspace E by fact
+  interpret subspace U E by fact
+  interpret subspace V E by fact
   show ?thesis
   proof
     have U: "vectorspace U"  (* FIXME: use interpret *)
@@ -395,8 +394,8 @@ lemma decomp_H':
     and eq: "y1 + a1 \<cdot> x' = y2 + a2 \<cdot> x'"
   shows "y1 = y2 \<and> a1 = a2"
 proof -
-  interpret vectorspace [E] by fact
-  interpret subspace [H E] by fact
+  interpret vectorspace E by fact
+  interpret subspace H E by fact
   show ?thesis
   proof
     have c: "y1 = y2 \<and> a1 \<cdot> x' = a2 \<cdot> x'"
@@ -451,8 +450,8 @@ lemma decomp_H'_H:
     and x': "x' \<notin> H"  "x' \<in> E"  "x' \<noteq> 0"
   shows "(SOME (y, a). t = y + a \<cdot> x' \<and> y \<in> H) = (t, 0)"
 proof -
-  interpret vectorspace [E] by fact
-  interpret subspace [H E] by fact
+  interpret vectorspace E by fact
+  interpret subspace H E by fact
   show ?thesis
   proof (rule, simp_all only: split_paired_all split_conv)
     from t x' show "t = t + 0 \<cdot> x' \<and> t \<in> H" by simp
@@ -483,8 +482,8 @@ lemma h'_definite:
     and x': "x' \<notin> H"  "x' \<in> E"  "x' \<noteq> 0"
   shows "h' x = h y + a * xi"
 proof -
-  interpret vectorspace [E] by fact
-  interpret subspace [H E] by fact
+  interpret vectorspace E by fact
+  interpret subspace H E by fact
   from x y x' have "x \<in> H + lin x'" by auto
   have "\<exists>!p. (\<lambda>(y, a). x = y + a \<cdot> x' \<and> y \<in> H) p" (is "\<exists>!p. ?P p")
   proof (rule ex_ex1I)

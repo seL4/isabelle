@@ -1,6 +1,5 @@
 (*
   Title:     HOL/Algebra/UnivPoly.thy
-  Id:        $Id$
   Author:    Clemens Ballarin, started 9 December 1996
   Copyright: Clemens Ballarin
 
@@ -176,17 +175,17 @@ locale UP =
   fixes R (structure) and P (structure)
   defines P_def: "P == UP R"
 
-locale UP_ring = UP + ring R
+locale UP_ring = UP + R: ring R
 
-locale UP_cring = UP + cring R
+locale UP_cring = UP + R: cring R
 
-interpretation UP_cring < UP_ring
-  by (rule P_def) intro_locales
+sublocale UP_cring < UP_ring
+  by intro_locales [1] (rule P_def)
 
-locale UP_domain = UP + "domain" R
+locale UP_domain = UP + R: "domain" R
 
-interpretation UP_domain < UP_cring
-  by (rule P_def) intro_locales
+sublocale UP_domain < UP_cring
+  by intro_locales [1] (rule P_def)
 
 context UP
 begin
@@ -458,8 +457,8 @@ qed
 
 end
 
-interpretation UP_ring < ring P using UP_ring .
-interpretation UP_cring < cring P using UP_cring .
+sublocale UP_ring < P: ring P using UP_ring .
+sublocale UP_cring < P: cring P using UP_cring .
 
 
 subsection {* Polynomials Form an Algebra *}
@@ -508,7 +507,7 @@ lemma (in UP_cring) UP_algebra:
   "algebra R P" by (auto intro!: algebraI R.cring UP_cring UP_smult_l_distr UP_smult_r_distr
     UP_smult_assoc1 UP_smult_assoc2)
 
-interpretation UP_cring < algebra R P using UP_algebra .
+sublocale UP_cring < algebra R P using UP_algebra .
 
 
 subsection {* Further Lemmas Involving Monomials *}
@@ -1085,7 +1084,7 @@ text {*
   Interpretation of theorems from @{term domain}.
 *}
 
-interpretation UP_domain < "domain" P
+sublocale UP_domain < "domain" P
   by intro_locales (rule domain.axioms UP_domain)+
 
 
@@ -1204,7 +1203,9 @@ end
 
 text {* The universal property of the polynomial ring *}
 
-locale UP_pre_univ_prop = ring_hom_cring R S h + UP_cring R P
+locale UP_pre_univ_prop = ring_hom_cring + UP_cring
+
+(* FIXME print_locale ring_hom_cring fails *)
 
 locale UP_univ_prop = UP_pre_univ_prop +
   fixes s and Eval
@@ -1350,7 +1351,7 @@ end
 
 text {* Interpretation of ring homomorphism lemmas. *}
 
-interpretation UP_univ_prop < ring_hom_cring P S Eval
+sublocale UP_univ_prop < ring_hom_cring P S Eval
   apply (unfold Eval_def)
   apply intro_locales
   apply (rule ring_hom_cring.axioms)
@@ -1391,7 +1392,7 @@ lemma (in UP_pre_univ_prop) eval_monom:
   assumes R: "r \<in> carrier R" and S: "s \<in> carrier S"
   shows "eval R S h s (monom P r n) = h r \<otimes>\<^bsub>S\<^esub> s (^)\<^bsub>S\<^esub> n"
 proof -
-  interpret UP_univ_prop [R S h P s _]
+  interpret UP_univ_prop R S h P s "eval R S h s"
     using UP_pre_univ_prop_axioms P_def R S
     by (auto intro: UP_univ_prop.intro UP_univ_prop_axioms.intro)
   from R
@@ -1428,8 +1429,8 @@ lemma UP_hom_unique:
     and P: "p \<in> carrier P" and S: "s \<in> carrier S"
   shows "Phi p = Psi p"
 proof -
-  interpret ring_hom_cring [P S Phi] by fact
-  interpret ring_hom_cring [P S Psi] by fact
+  interpret ring_hom_cring P S Phi by fact
+  interpret ring_hom_cring P S Psi by fact
   have "Phi p =
       Phi (\<Oplus>\<^bsub>P \<^esub>i \<in> {..deg R p}. monom P (coeff P p i) 0 \<otimes>\<^bsub>P\<^esub> monom P \<one> 1 (^)\<^bsub>P\<^esub> i)"
     by (simp add: up_repr P monom_mult [THEN sym] monom_pow del: monom_mult)
@@ -1772,17 +1773,17 @@ lemma eval_monom_expr:
   shows "eval R R id a (monom P \<one>\<^bsub>R\<^esub> 1 \<ominus>\<^bsub>P\<^esub> monom P a 0) = \<zero>"
   (is "eval R R id a ?g = _")
 proof -
-  interpret UP_pre_univ_prop [R R id P] proof qed simp
+  interpret UP_pre_univ_prop R R id proof qed simp
   have eval_ring_hom: "eval R R id a \<in> ring_hom P R" using eval_ring_hom [OF a] by simp
-  interpret ring_hom_cring [P R "eval R R id a"] proof qed (simp add: eval_ring_hom)
+  interpret ring_hom_cring P R "eval R R id a" proof qed (simp add: eval_ring_hom)
   have mon1_closed: "monom P \<one>\<^bsub>R\<^esub> 1 \<in> carrier P" 
     and mon0_closed: "monom P a 0 \<in> carrier P" 
     and min_mon0_closed: "\<ominus>\<^bsub>P\<^esub> monom P a 0 \<in> carrier P"
     using a R.a_inv_closed by auto
   have "eval R R id a ?g = eval R R id a (monom P \<one> 1) \<ominus> eval R R id a (monom P a 0)"
     unfolding P.minus_eq [OF mon1_closed mon0_closed]
-    unfolding R_S_h.hom_add [OF mon1_closed min_mon0_closed]
-    unfolding R_S_h.hom_a_inv [OF mon0_closed] 
+    unfolding hom_add [OF mon1_closed min_mon0_closed]
+    unfolding hom_a_inv [OF mon0_closed] 
     using R.minus_eq [symmetric] mon1_closed mon0_closed by auto
   also have "\<dots> = a \<ominus> a"
     using eval_monom [OF R.one_closed a, of 1] using eval_monom [OF a a, of 0] using a by simp
@@ -1819,7 +1820,7 @@ lemma remainder_theorem_expression:
     and deg_r_0: "deg R r = 0"
     shows "r = monom P (eval R R id a f) 0"
 proof -
-  interpret UP_pre_univ_prop [R R id P] proof qed simp
+  interpret UP_pre_univ_prop R R id P proof qed simp
   have eval_ring_hom: "eval R R id a \<in> ring_hom P R"
     using eval_ring_hom [OF a] by simp
   have "eval R R id a f = eval R R id a ?gq \<oplus>\<^bsub>R\<^esub> eval R R id a r"
@@ -1885,7 +1886,7 @@ text {*
   "UP INTEG"} globally.
 *}
 
-interpretation INTEG: UP_pre_univ_prop [INTEG INTEG id]
+interpretation INTEG!: UP_pre_univ_prop INTEG INTEG id "UP INTEG"
   using INTEG_id_eval by simp_all
 
 lemma INTEG_closed [intro, simp]:

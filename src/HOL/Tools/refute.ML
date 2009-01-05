@@ -1,7 +1,5 @@
 (*  Title:      HOL/Tools/refute.ML
-    ID:         $Id$
-    Author:     Tjark Weber
-    Copyright   2003-2007
+    Author:     Tjark Weber, TU Muenchen
 
 Finite model generation for HOL formulas, using a SAT solver.
 *)
@@ -391,11 +389,6 @@ struct
 (* TRANSLATION HOL -> PROPOSITIONAL LOGIC, BOOLEAN ASSIGNMENT -> MODEL       *)
 (* ------------------------------------------------------------------------- *)
 
-  (* (''a * 'b) list -> ''a -> 'b *)
-
-  fun lookup xs key =
-    Option.valOf (AList.lookup (op =) xs key);
-
 (* ------------------------------------------------------------------------- *)
 (* typ_of_dtyp: converts a data type ('DatatypeAux.dtyp') into a type        *)
 (*              ('Term.typ'), given type parameters for the data type's type *)
@@ -407,12 +400,12 @@ struct
 
   fun typ_of_dtyp descr typ_assoc (DatatypeAux.DtTFree a) =
     (* replace a 'DtTFree' variable by the associated type *)
-    lookup typ_assoc (DatatypeAux.DtTFree a)
+    the (AList.lookup (op =) typ_assoc (DatatypeAux.DtTFree a))
     | typ_of_dtyp descr typ_assoc (DatatypeAux.DtType (s, ds)) =
     Type (s, map (typ_of_dtyp descr typ_assoc) ds)
     | typ_of_dtyp descr typ_assoc (DatatypeAux.DtRec i) =
     let
-      val (s, ds, _) = lookup descr i
+      val (s, ds, _) = the (AList.lookup (op =) descr i)
     in
       Type (s, map (typ_of_dtyp descr typ_assoc) ds)
     end;
@@ -426,7 +419,7 @@ struct
   fun close_form t =
   let
     (* (Term.indexname * Term.typ) list *)
-    val vars = sort_wrt (fst o fst) (map dest_Var (term_vars t))
+    val vars = sort_wrt (fst o fst) (map dest_Var (OldTerm.term_vars t))
   in
     Library.foldl (fn (t', ((x, i), T)) =>
       (Term.all T) $ Abs (x, T, abstract_over (Var ((x, i), T), t')))
@@ -792,7 +785,7 @@ struct
       (* replace the (at most one) schematic type variable in each axiom *)
       (* by the actual type 'T'                                          *)
       val monomorphic_class_axioms = map (fn (axname, ax) =>
-        (case Term.term_tvars ax of
+        (case Term.add_tvars ax [] of
           [] =>
           (axname, ax)
         | [(idx, S)] =>
@@ -852,14 +845,14 @@ struct
       | Const ("The", T)                =>
         let
           val ax = specialize_type thy ("The", T)
-            (lookup axioms "HOL.the_eq_trivial")
+            (the (AList.lookup (op =) axioms "HOL.the_eq_trivial"))
         in
           collect_this_axiom ("HOL.the_eq_trivial", ax) axs
         end
       | Const ("Hilbert_Choice.Eps", T) =>
         let
           val ax = specialize_type thy ("Hilbert_Choice.Eps", T)
-            (lookup axioms "Hilbert_Choice.someI")
+            (the (AList.lookup (op =) axioms "Hilbert_Choice.someI"))
         in
           collect_this_axiom ("Hilbert_Choice.someI", ax) axs
         end
@@ -944,23 +937,20 @@ struct
 (*               and all mutually recursive IDTs are considered.             *)
 (* ------------------------------------------------------------------------- *)
 
-  (* theory -> Term.term -> Term.typ list *)
-
   fun ground_types thy t =
   let
-    (* Term.typ * Term.typ list -> Term.typ list *)
-    fun collect_types (T, acc) =
+    fun collect_types T acc =
       (case T of
-        Type ("fun", [T1, T2]) => collect_types (T1, collect_types (T2, acc))
+        Type ("fun", [T1, T2]) => collect_types T1 (collect_types T2 acc)
       | Type ("prop", [])      => acc
-      | Type ("set", [T1])     => collect_types (T1, acc)
+      | Type ("set", [T1])     => collect_types T1 acc
       | Type (s, Ts)           =>
         (case DatatypePackage.get_datatype thy s of
           SOME info =>  (* inductive datatype *)
           let
             val index        = #index info
             val descr        = #descr info
-            val (_, typs, _) = lookup descr index
+            val (_, typs, _) = the (AList.lookup (op =) descr index)
             val typ_assoc    = typs ~~ Ts
             (* sanity check: every element in 'dtyps' must be a *)
             (* 'DtTFree'                                        *)
@@ -978,15 +968,15 @@ struct
             in
               case d of
                 DatatypeAux.DtTFree _ =>
-                collect_types (dT, acc)
+                collect_types dT acc
               | DatatypeAux.DtType (_, ds) =>
-                collect_types (dT, foldr collect_dtyp acc ds)
+                collect_types dT (foldr collect_dtyp acc ds)
               | DatatypeAux.DtRec i =>
                 if dT mem acc then
                   acc  (* prevent infinite recursion *)
                 else
                   let
-                    val (_, dtyps, dconstrs) = lookup descr i
+                    val (_, dtyps, dconstrs) = the (AList.lookup (op =) descr i)
                     (* if the current type is a recursive IDT (i.e. a depth *)
                     (* is required), add it to 'acc'                        *)
                     val acc_dT = if Library.exists (fn (_, ds) =>
@@ -1010,11 +1000,11 @@ struct
         | NONE =>
           (* not an inductive datatype, e.g. defined via "typedef" or *)
           (* "typedecl"                                               *)
-          insert (op =) T (foldr collect_types acc Ts))
+          insert (op =) T (fold collect_types Ts acc))
       | TFree _                => insert (op =) T acc
       | TVar _                 => insert (op =) T acc)
   in
-    it_term_types collect_types (t, [])
+    fold_types collect_types t []
   end;
 
 (* ------------------------------------------------------------------------- *)
@@ -1170,7 +1160,7 @@ struct
             let
               val index           = #index info
               val descr           = #descr info
-              val (_, _, constrs) = lookup descr index
+              val (_, _, constrs) = the (AList.lookup (op =) descr index)
             in
               (* recursive datatype? *)
               Library.exists (fn (_, ds) =>
@@ -1289,12 +1279,12 @@ struct
     (* terms containing them (their logical meaning is that there EXISTS a *)
     (* type s.t. ...; to refute such a formula, we would have to show that *)
     (* for ALL types, not ...)                                             *)
-    val _ = null (term_tvars t) orelse
+    val _ = null (Term.add_tvars t []) orelse
       error "Term to be refuted contains schematic type variables"
 
     (* existential closure over schematic variables *)
     (* (Term.indexname * Term.typ) list *)
-    val vars = sort_wrt (fst o fst) (map dest_Var (term_vars t))
+    val vars = sort_wrt (fst o fst) (map dest_Var (OldTerm.term_vars t))
     (* Term.term *)
     val ex_closure = Library.foldl (fn (t', ((x, i), T)) =>
       (HOLogic.exists_const T) $
@@ -1662,7 +1652,7 @@ struct
       fun interpret_groundtype () =
       let
         (* the model must specify a size for ground types *)
-        val size = (if T = Term.propT then 2 else lookup typs T)
+        val size = if T = Term.propT then 2 else the (AList.lookup (op =) typs T)
         val next = next_idx+size
         (* check if 'maxvars' is large enough *)
         val _    = (if next-1>maxvars andalso maxvars>0 then
@@ -2025,7 +2015,7 @@ struct
             let
               val index               = #index info
               val descr               = #descr info
-              val (_, dtyps, constrs) = lookup descr index
+              val (_, dtyps, constrs) = the (AList.lookup (op =) descr index)
               val typ_assoc           = dtyps ~~ Ts
               (* sanity check: every element in 'dtyps' must be a 'DtTFree' *)
               val _ = if Library.exists (fn d =>
@@ -2149,7 +2139,7 @@ struct
             let
               val index               = #index info
               val descr               = #descr info
-              val (_, dtyps, constrs) = lookup descr index
+              val (_, dtyps, constrs) = the (AList.lookup (op =) descr index)
               val typ_assoc           = dtyps ~~ Ts
               (* sanity check: every element in 'dtyps' must be a 'DtTFree' *)
               val _ = if Library.exists (fn d =>
@@ -2209,7 +2199,7 @@ struct
             let
               val index               = #index info
               val descr               = #descr info
-              val (_, dtyps, constrs) = lookup descr index
+              val (_, dtyps, constrs) = the (AList.lookup (op =) descr index)
               val typ_assoc           = dtyps ~~ Ts'
               (* sanity check: every element in 'dtyps' must be a 'DtTFree' *)
               val _ = if Library.exists (fn d =>
@@ -2405,7 +2395,7 @@ struct
                   (* the index of some mutually recursive IDT               *)
                   val index         = #index info
                   val descr         = #descr info
-                  val (_, dtyps, _) = lookup descr index
+                  val (_, dtyps, _) = the (AList.lookup (op =) descr index)
                   (* sanity check: we assume that the order of constructors *)
                   (*               in 'descr' is the same as the order of   *)
                   (*               corresponding parameters, otherwise the  *)
@@ -2464,7 +2454,7 @@ struct
                         end
                       | DatatypeAux.DtRec i =>
                         let
-                          val (_, ds, _) = lookup descr i
+                          val (_, ds, _) = the (AList.lookup (op =) descr i)
                           val (_, Ts)    = dest_Type T
                         in
                           rec_typ_assoc ((d, T)::acc) ((ds ~~ Ts) @ xs)
@@ -2478,10 +2468,10 @@ struct
                         raise REFUTE ("IDT_recursion_interpreter",
                           "different type associations for the same dtyp"))
                   (* (DatatypeAux.dtyp * Term.typ) list *)
-                  val typ_assoc = List.filter
+                  val typ_assoc = filter
                     (fn (DatatypeAux.DtTFree _, _) => true | (_, _) => false)
                     (rec_typ_assoc []
-                      (#2 (lookup descr idt_index) ~~ (snd o dest_Type) IDT))
+                      (#2 (the (AList.lookup (op =) descr idt_index)) ~~ (snd o dest_Type) IDT))
                   (* sanity check: typ_assoc must associate types to the   *)
                   (*               elements of 'dtyps' (and only to those) *)
                   val _ = if not (Library.eq_set (dtyps, map fst typ_assoc))
@@ -2605,7 +2595,7 @@ struct
                           SOME args => (n, args)
                         | NONE      => get_cargs_rec (n+1, xs))
                     in
-                      get_cargs_rec (0, lookup mc_intrs idx)
+                      get_cargs_rec (0, the (AList.lookup (op =) mc_intrs idx))
                     end
                   (* computes one entry in 'REC_OPERATORS', and recursively *)
                   (* all entries needed for it, where 'idx' gives the       *)
@@ -2613,7 +2603,7 @@ struct
                   (* int -> int -> interpretation *)
                   fun compute_array_entry idx elem =
                   let
-                    val arr          = lookup REC_OPERATORS idx
+                    val arr          = the (AList.lookup (op =) REC_OPERATORS idx)
                     val (flag, intr) = Array.sub (arr, elem)
                   in
                     if flag then
@@ -2627,7 +2617,7 @@ struct
                         val (c, args) = get_cargs idx elem
                         (* find the indices of the constructor's /recursive/ *)
                         (* arguments                                         *)
-                        val (_, _, constrs) = lookup descr idx
+                        val (_, _, constrs) = the (AList.lookup (op =) descr idx)
                         val (_, dtyps)      = List.nth (constrs, c)
                         val rec_dtyps_args  = List.filter
                           (DatatypeAux.is_rec_type o fst) (dtyps ~~ args)
@@ -2679,7 +2669,7 @@ struct
                         result
                       end
                   end
-                  val idt_size = Array.length (lookup REC_OPERATORS idt_index)
+                  val idt_size = Array.length (the (AList.lookup (op =) REC_OPERATORS idt_index))
                   (* sanity check: the size of 'IDT' should be 'idt_size' *)
                   val _ = if idt_size <> size_of_type thy (typs, []) IDT then
                         raise REFUTE ("IDT_recursion_interpreter",
@@ -2978,8 +2968,8 @@ struct
         (* nat -> nat -> interpretation *)
         fun append m n =
           let
-            val (len_m, off_m) = lookup lenoff_lists m
-            val (len_n, off_n) = lookup lenoff_lists n
+            val (len_m, off_m) = the (AList.lookup (op =) lenoff_lists m)
+            val (len_n, off_n) = the (AList.lookup (op =) lenoff_lists n)
             val len_elem = len_m + len_n
             val off_elem = off_m * power (size_elem, len_n) + off_n
           in
@@ -3267,7 +3257,7 @@ struct
           val (typs, _)           = model
           val index               = #index info
           val descr               = #descr info
-          val (_, dtyps, constrs) = lookup descr index
+          val (_, dtyps, constrs) = the (AList.lookup (op =) descr index)
           val typ_assoc           = dtyps ~~ Ts
           (* sanity check: every element in 'dtyps' must be a 'DtTFree' *)
           val _ = if Library.exists (fn d =>

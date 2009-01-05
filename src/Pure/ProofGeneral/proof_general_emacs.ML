@@ -1,5 +1,4 @@
 (*  Title:      Pure/ProofGeneral/proof_general_emacs.ML
-    ID:         $Id$
     Author:     David Aspinall and Markus Wenzel
 
 Isabelle/Isar configuration for Emacs Proof General.
@@ -21,81 +20,77 @@ struct
 (* print modes *)
 
 val proof_generalN = "ProofGeneralEmacs";  (*token markup (colouring vars, etc.)*)
-val pgasciiN = "PGASCII";                  (*plain 7-bit ASCII communication*)
 val thm_depsN = "thm_deps";                (*meta-information about theorem deps*)
 val test_markupN = "test_markup";          (*XML markup for everything*)
 
-val _ = Markup.add_mode test_markupN (fn (name, props) =>
-  if name = Markup.promptN then ("", "") else XML.output_markup (name, props));
-
-fun special oct =
-  if print_mode_active pgasciiN then Symbol.SOH ^ chr (ord (oct_char oct) - 167)
-  else oct_char oct;
+fun special ch = Symbol.SOH ^ ch;
 
 
-(* text output: print modes for xsymbol *)
+(* render markup *)
 
 local
 
-fun xsym_output "\\" = "\\\\"
-  | xsym_output s = if Symbol.is_raw s then Symbol.decode_raw s else s;
-
-fun xsymbols_output s =
-  if print_mode_active Symbol.xsymbolsN andalso exists_string (fn c => c = "\\") s then
-    let val syms = Symbol.explode s
-    in (implode (map xsym_output syms), Symbol.length syms) end
-  else Output.default_output s;
+fun render_trees ts = fold render_tree ts
+and render_tree (XML.Text s) = Buffer.add s
+  | render_tree (XML.Elem (name, props, ts)) =
+      let
+        val (bg1, en1) =
+          if name <> Markup.promptN andalso print_mode_active test_markupN
+          then XML.output_markup (name, props)
+          else Markup.no_output;
+        val (bg2, en2) =
+          if (case ts of [XML.Text _] => false | _ => true) then Markup.no_output
+          else if name = Markup.stateN then (special "O" ^ "\n", "\n" ^ special "P")
+          else if name = Markup.sendbackN then (special "W", special "X")
+          else if name = Markup.hiliteN then (special "0", special "1")
+          else if name = Markup.tclassN then (special "B", special "A")
+          else if name = Markup.tfreeN then (special "C", special "A")
+          else if name = Markup.tvarN then (special "D", special "A")
+          else if name = Markup.freeN then (special "E", special "A")
+          else if name = Markup.boundN then (special "F", special "A")
+          else if name = Markup.varN then (special "G", special "A")
+          else if name = Markup.skolemN then (special "H", special "A")
+          else Markup.no_output;
+      in
+        Buffer.add bg1 #>
+        Buffer.add bg2 #>
+        render_trees ts #>
+        Buffer.add en2 #>
+        Buffer.add en1
+      end;
 
 in
 
-fun setup_xsymbols_output () =
-  Output.add_mode Symbol.xsymbolsN xsymbols_output Symbol.encode_raw;
+fun render text =
+  Buffer.content (render_trees (YXML.parse_body text) Buffer.empty);
 
 end;
 
 
-(* common markup *)
+(* messages *)
 
-val _ = Markup.add_mode proof_generalN (fn (name, props) =>
-  let
-    val (bg1, en1) =
-      if name = Markup.stateN then (special "366" ^ "\n", "\n" ^ special "367")
-      else if name = Markup.sendbackN then (special "376", special "377")
-      else if name = Markup.hiliteN then (special "327", special "330")
-      else if name = Markup.tclassN then (special "351", special "350")
-      else if name = Markup.tfreeN then (special "352", special "350")
-      else if name = Markup.tvarN then (special "353", special "350")
-      else if name = Markup.freeN then (special "354", special "350")
-      else if name = Markup.boundN then (special "355", special "350")
-      else if name = Markup.varN then (special "356", special "350")
-      else if name = Markup.skolemN then (special "357", special "350")
-      else ("", "");
-    val (bg2, en2) =
-      if name <> Markup.promptN andalso print_mode_active test_markupN
-      then XML.output_markup (name, props)
-      else ("", "");
-  in (bg1 ^ bg2, en2 ^ en1) end);
-
-
-(* messages and notification *)
-
-fun decorate bg en prfx =
-  Output.writeln_default o enclose bg en o prefix_lines prfx;
+fun message bg en prfx text =
+  (case render text of
+    "" => ()
+  | s => Output.writeln_default (enclose bg en (prefix_lines prfx s)));
 
 fun setup_messages () =
- (Output.writeln_fn := Output.writeln_default;
-  Output.status_fn := (fn "" => () | s => ! Output.priority_fn s);
-  Output.priority_fn := (fn s => decorate (special "360") (special "361") "" s);
-  Output.tracing_fn := (fn s => decorate (special "360" ^ special "375") (special "361") "" s);
-  Output.debug_fn := (fn s => decorate (special "362") (special "363") "+++ " s);
-  Output.warning_fn := (fn s => decorate (special "362") (special "363") "### " s);
-  Output.error_fn := (fn s => decorate (special "364") (special "365") "*** " s);
-  Output.prompt_fn := (fn s => Output.std_output (s ^ special "372")));
+ (Output.writeln_fn := message "" "" "";
+  Output.status_fn := (fn s => ! Output.priority_fn s);
+  Output.priority_fn := message (special "I") (special "J") "";
+  Output.tracing_fn := message (special "I" ^ special "V") (special "J") "";
+  Output.debug_fn := message (special "K") (special "L") "+++ ";
+  Output.warning_fn := message (special "K") (special "L") "### ";
+  Output.error_fn := message (special "M") (special "N") "*** ";
+  Output.prompt_fn := (fn s => Output.std_output (render s ^ special "S")));
 
 fun panic s =
-  (decorate (special "364") (special "365") "!!! " ("## SYSTEM EXIT ##\n" ^ s); exit 1);
+  (message (special "M") (special "N") "!!! " ("## SYSTEM EXIT ##\n" ^ s); exit 1);
 
-fun emacs_notify s = decorate (special "360") (special "361") "" s;
+
+(* notification *)
+
+val emacs_notify = message (special "I") (special "J") "";
 
 fun tell_clear_goals () =
   emacs_notify "Proof General, please clear the goals buffer.";
@@ -149,7 +144,7 @@ fun inform_file_processed file =
             (warning (cat_lines ["Failed to register theory: " ^ quote name, msg]);
               tell_file_retracted (ThyLoad.thy_path name))
       else ();
-    val _ = Isar.init_point ();
+    val _ = Isar.init ();
   in () end;
 
 
@@ -161,7 +156,7 @@ fun restart () =
  (sync_thy_loader ();
   tell_clear_goals ();
   tell_clear_response ();
-  Isar.init_point ();
+  Isar.init ();
   welcome ());
 
 
@@ -237,7 +232,9 @@ fun init false = panic "No Proof General interface support for Isabelle/classic 
   | init true =
       (! initialized orelse
         (Output.no_warnings init_outer_syntax ();
-          setup_xsymbols_output ();
+          Output.add_mode Symbol.xsymbolsN Symbol.output Output.default_escape;
+          Output.add_mode proof_generalN Output.default_output Output.default_escape;
+          Markup.add_mode proof_generalN YXML.output_markup;
           setup_messages ();
           ProofGeneralPgip.init_pgip_channel (! Output.priority_fn);
           setup_thy_loader ();

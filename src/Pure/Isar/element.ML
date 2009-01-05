@@ -23,6 +23,10 @@ sig
   val facts_map: (('typ, 'term, 'fact) ctxt -> ('a, 'b, 'c) ctxt) ->
    (Attrib.binding * ('fact * Attrib.src list) list) list ->
    (Attrib.binding * ('c * Attrib.src list) list) list
+  val map_ctxt': {binding: Binding.T -> Binding.T,
+    var: Binding.T * mixfix -> Binding.T * mixfix,
+    typ: 'typ -> 'a, term: 'term -> 'b, pat: 'term -> 'b, fact: 'fact -> 'c,
+    attrib: Attrib.src -> Attrib.src} -> ('typ, 'term, 'fact) ctxt -> ('a, 'b, 'c) ctxt
   val map_ctxt: {binding: Binding.T -> Binding.T,
     var: Binding.T * mixfix -> Binding.T * mixfix,
     typ: 'typ -> 'a, term: 'term -> 'b, fact: 'fact -> 'c,
@@ -74,10 +78,9 @@ sig
   val generalize_facts: Proof.context -> Proof.context ->
     (Attrib.binding * (thm list * Attrib.src list) list) list ->
     (Attrib.binding * (thm list * Attrib.src list) list) list
-  val activate: (typ, term, Facts.ref) ctxt list -> Proof.context ->
-    (context_i list * (Binding.T * Thm.thm list) list) * Proof.context
-  val activate_i: context_i list -> Proof.context ->
-    (context_i list * (Binding.T * Thm.thm list) list) * Proof.context
+  val transfer_morphism: theory -> morphism
+  val activate: (typ, term, Facts.ref) ctxt list -> Proof.context -> context_i list * Proof.context
+  val activate_i: context_i list -> Proof.context -> context_i list * Proof.context
 end;
 
 structure Element: ELEMENT =
@@ -109,17 +112,21 @@ type context_i = (typ, term, thm list) ctxt;
 
 fun facts_map f facts = Notes ("", facts) |> f |> (fn Notes (_, facts') => facts');
 
-fun map_ctxt {binding, var, typ, term, fact, attrib} =
+fun map_ctxt' {binding, var, typ, term, pat, fact, attrib} =
   fn Fixes fixes => Fixes (fixes |> map (fn (x, T, mx) =>
        let val (x', mx') = var (x, mx) in (x', Option.map typ T, mx') end))
    | Constrains xs => Constrains (xs |> map (fn (x, T) =>
        let val x' = Binding.base_name (#1 (var (Binding.name x, NoSyn))) in (x', typ T) end))
    | Assumes asms => Assumes (asms |> map (fn ((a, atts), propps) =>
-      ((binding a, map attrib atts), propps |> map (fn (t, ps) => (term t, map term ps)))))
+      ((binding a, map attrib atts), propps |> map (fn (t, ps) => (term t, map pat ps)))))
    | Defines defs => Defines (defs |> map (fn ((a, atts), (t, ps)) =>
-      ((binding a, map attrib atts), (term t, map term ps))))
+      ((binding a, map attrib atts), (term t, map pat ps))))
    | Notes (kind, facts) => Notes (kind, facts |> map (fn ((a, atts), bs) =>
       ((binding a, map attrib atts), bs |> map (fn (ths, btts) => (fact ths, map attrib btts)))));
+
+fun map_ctxt {binding, var, typ, term, fact, attrib} =
+  map_ctxt' {binding = binding, var = var, typ = typ, term = term, pat = term,
+    fact = fact, attrib = attrib}
 
 fun map_ctxt_attrib attrib =
   map_ctxt {binding = I, var = I, typ = I, term = I, fact = I, attrib = attrib};
@@ -531,14 +538,23 @@ fun generalize_facts inner outer facts =
   in facts_map (morph_ctxt morphism) facts end;
 
 
+(* transfer to theory using closure *)
+
+fun transfer_morphism thy =
+  let val thy_ref = Theory.check_thy thy in
+    Morphism.morphism {binding = I, var = I, typ = I, term = I,
+      fact = map (fn th => transfer (Theory.deref thy_ref) th)}
+  end;
+
+
 (** activate in context, return elements and facts **)
 
 local
 
 fun activate_elem (Fixes fixes) ctxt =
-      ([], ctxt |> ProofContext.add_fixes_i fixes |> snd)
+      ctxt |> ProofContext.add_fixes_i fixes |> snd
   | activate_elem (Constrains _) ctxt =
-      ([], ctxt)
+      ctxt
   | activate_elem (Assumes asms) ctxt =
       let
         val asms' = Attrib.map_specs (Attrib.attribute_i (ProofContext.theory_of ctxt)) asms;
@@ -546,7 +562,7 @@ fun activate_elem (Fixes fixes) ctxt =
         val (_, ctxt') =
           ctxt |> fold Variable.auto_fixes ts
           |> ProofContext.add_assms_i Assumption.presume_export asms';
-      in ([], ctxt') end
+      in ctxt' end
   | activate_elem (Defines defs) ctxt =
       let
         val defs' = Attrib.map_specs (Attrib.attribute_i (ProofContext.theory_of ctxt)) defs;
@@ -556,19 +572,20 @@ fun activate_elem (Fixes fixes) ctxt =
         val (_, ctxt') =
           ctxt |> fold (Variable.auto_fixes o #1) asms
           |> ProofContext.add_assms_i LocalDefs.def_export (map #2 asms);
-      in ([], ctxt') end
+      in ctxt' end
   | activate_elem (Notes (kind, facts)) ctxt =
       let
         val facts' = Attrib.map_facts (Attrib.attribute_i (ProofContext.theory_of ctxt)) facts;
         val (res, ctxt') = ctxt |> ProofContext.note_thmss_i kind facts';
-      in ((map (#1 o #1) facts' ~~ map #2 res), ctxt') end;
+      in ctxt' end;
 
 fun gen_activate prep_facts raw_elems ctxt =
   let
-    val elems = map (map_ctxt_attrib Args.assignable o prep_facts ctxt) raw_elems;
-    val (res, ctxt') = fold_map activate_elem elems (ProofContext.qualified_names ctxt);
-    val elems' = elems |> map (map_ctxt_attrib Args.closure);
-  in ((elems', flat res), ProofContext.restore_naming ctxt ctxt') end;
+    fun activate elem ctxt =
+      let val elem' = (map_ctxt_attrib Args.assignable o prep_facts ctxt) elem
+      in (elem', activate_elem elem' ctxt) end
+    val (elems, ctxt') = fold_map activate raw_elems (ProofContext.qualified_names ctxt);
+  in (elems |> map (map_ctxt_attrib Args.closure), ProofContext.restore_naming ctxt ctxt') end;
 
 fun check_name name =
   if NameSpace.is_qualified name then error ("Illegal qualified name: " ^ quote name)

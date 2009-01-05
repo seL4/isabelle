@@ -1,5 +1,4 @@
 (*  Title:      Pure/type.ML
-    ID:         $Id$
     Author:     Tobias Nipkow, Lawrence C Paulson, and Markus Wenzel
 
 Type signatures and certified types, special treatment of type vars,
@@ -266,9 +265,9 @@ end;
 (* no_tvars *)
 
 fun no_tvars T =
-  (case typ_tvars T of [] => T
+  (case Term.add_tvarsT T [] of [] => T
   | vs => raise TYPE ("Illegal schematic type variable(s): " ^
-      commas_quote (map (Term.string_of_vname o #1) vs), [T], []));
+      commas_quote (map (Term.string_of_vname o #1) (rev vs)), [T], []));
 
 
 (* varify *)
@@ -277,8 +276,9 @@ fun varify fixed t =
   let
     val fs = Term.fold_types (Term.fold_atyps
       (fn TFree v => if member (op =) fixed v then I else insert (op =) v | _ => I)) t [];
-    val ixns = add_term_tvar_ixns (t, []);
-    val fmap = fs ~~ map (rpair 0) (Name.variant_list (map #1 ixns) (map fst fs))
+    val used = Name.context
+      |> fold_types (fold_atyps (fn TVar ((a, _), _) => Name.declare a | _ => I)) t;
+    val fmap = fs ~~ map (rpair 0) (#1 (Name.variants (map fst fs) used));
     fun thaw (f as (a, S)) =
       (case AList.lookup (op =) fmap f of
         NONE => TFree f
@@ -307,8 +307,8 @@ in
 (*this sort of code could replace unvarifyT*)
 fun freeze_thaw_type T =
   let
-    val used = add_typ_tfree_names (T, [])
-    and tvars = map #1 (add_typ_tvars (T, []));
+    val used = OldTerm.add_typ_tfree_names (T, [])
+    and tvars = map #1 (OldTerm.add_typ_tvars (T, []));
     val (alist, _) = List.foldr new_name ([], used) tvars;
   in (map_type_tvar (freeze_one alist) T, map_type_tfree (thaw_one (map swap alist))) end;
 
@@ -316,8 +316,8 @@ val freeze_type = #1 o freeze_thaw_type;
 
 fun freeze_thaw t =
   let
-    val used = it_term_types add_typ_tfree_names (t, [])
-    and tvars = map #1 (it_term_types add_typ_tvars (t, []));
+    val used = OldTerm.it_term_types OldTerm.add_typ_tfree_names (t, [])
+    and tvars = map #1 (OldTerm.it_term_types OldTerm.add_typ_tvars (t, []));
     val (alist, _) = List.foldr new_name ([], used) tvars;
   in
     (case alist of
@@ -400,7 +400,7 @@ fun occurs v tye =
     fun occ (Type (_, Ts)) = exists occ Ts
       | occ (TFree _) = false
       | occ (TVar (w, S)) =
-          eq_ix (v, w) orelse
+          Term.eq_ix (v, w) orelse
             (case lookup tye (w, S) of
               NONE => false
             | SOME U => occ U);
@@ -437,7 +437,7 @@ fun unify (tsig as TSig {classes = (_, classes), ...}) TU (tyenv, maxidx) =
     fun unif (ty1, ty2) tye =
       (case (devar tye ty1, devar tye ty2) of
         (T as TVar (v, S1), U as TVar (w, S2)) =>
-          if eq_ix (v, w) then
+          if Term.eq_ix (v, w) then
             if S1 = S2 then tye else tvar_clash v S1 S2
           else if Sorts.sort_le classes (S1, S2) then
             Vartab.update_new (w, (S2, T)) tye
@@ -465,7 +465,7 @@ fun unify (tsig as TSig {classes = (_, classes), ...}) TU (tyenv, maxidx) =
 fun raw_unify (ty1, ty2) tye =
   (case (devar tye ty1, devar tye ty2) of
     (T as TVar (v, S1), U as TVar (w, S2)) =>
-      if eq_ix (v, w) then
+      if Term.eq_ix (v, w) then
         if S1 = S2 then tye else tvar_clash v S1 S2
       else Vartab.update_new (w, (S2, T)) tye
   | (TVar (v, S), T) =>

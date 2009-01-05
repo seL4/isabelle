@@ -1,5 +1,4 @@
 (*  Title:      FOLP/IFOLP.thy
-    ID:         $Id$
     Author:     Martin D Coen, Cambridge University Computer Laboratory
     Copyright   1992  University of Cambridge
 *)
@@ -247,7 +246,7 @@ val uniq_assume_tac =
           and concl = discard_proof (Logic.strip_assums_concl prem)
       in
           if exists (fn hyp => hyp aconv concl) hyps
-          then case distinct (op =) (filter (fn hyp => could_unify (hyp, concl)) hyps) of
+          then case distinct (op =) (filter (fn hyp => Term.could_unify (hyp, concl)) hyps) of
                    [_] => assume_tac i
                  |  _  => no_tac
           else no_tac
@@ -340,6 +339,7 @@ lemma ex1E:
   shows "?a : R"
   apply (insert assms(1) [unfolded ex1_def])
   apply (erule exE conjE | assumption | rule assms(1))+
+  apply (erule assms(2), assumption)
   done
 
 

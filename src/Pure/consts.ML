@@ -275,8 +275,8 @@ fun abbreviate pp tsig naming mode tags (b, raw_rhs) consts =
     val T = Term.fastype_of rhs;
     val lhs = Const (NameSpace.full_name naming b, T);
 
-    fun err msg = error (msg ^ " on rhs of abbreviation:\n" ^
-      Pretty.string_of_term pp (Logic.mk_equals (lhs, rhs)));
+    fun err msg = (warning (* FIXME should be error *) (msg ^ " on rhs of abbreviation:\n" ^
+      Pretty.string_of_term pp (Logic.mk_equals (lhs, rhs))); true);
     val _ = Term.exists_subterm Term.is_Var rhs andalso err "Illegal schematic variables";
     val _ = null (Term.hidden_polymorphism rhs) orelse err "Extra type variables";
   in

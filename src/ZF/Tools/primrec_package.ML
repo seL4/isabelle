@@ -1,10 +1,9 @@
 (*  Title:      ZF/Tools/primrec_package.ML
-    ID:         $Id$
-    Author:     Stefan Berghofer and Norbert Voelker
-    Copyright   1998  TU Muenchen
-    ZF version by Lawrence C Paulson (Cambridge)
+    Author:     Norbert Voelker, FernUni Hagen
+    Author:     Stefan Berghofer, TU Muenchen
+    Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
 
-Package for defining functions on datatypes by primitive recursion
+Package for defining functions on datatypes by primitive recursion.
 *)
 
 signature PRIMREC_PACKAGE =
@@ -33,7 +32,7 @@ fun primrec_eq_err sign s eq =
 fun process_eqn thy (eq, rec_fn_opt) =
   let
     val (lhs, rhs) =
-        if null (term_vars eq) then
+        if null (Term.add_vars eq []) then
             dest_eqn eq handle TERM _ => raise RecError "not a proper equation"
         else raise RecError "illegal schematic variable(s)";
 
@@ -66,7 +65,7 @@ fun process_eqn thy (eq, rec_fn_opt) =
   in
     if has_duplicates (op =) lfrees then
       raise RecError "repeated variable name in pattern"
-    else if not ((map dest_Free (term_frees rhs)) subset lfrees) then
+    else if not ((map dest_Free (OldTerm.term_frees rhs)) subset lfrees) then
       raise RecError "extra variables on rhs"
     else if length middle > 1 then
       raise RecError "more than one non-variable in pattern"

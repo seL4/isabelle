@@ -356,11 +356,11 @@ lemma td_ext_uint:
 
 lemmas int_word_uint = td_ext_uint [THEN td_ext.eq_norm, standard]
 
-interpretation word_uint: 
-  td_ext ["uint::'a::len0 word \<Rightarrow> int" 
-          word_of_int 
-          "uints (len_of TYPE('a::len0))"
-          "\<lambda>w. w mod 2 ^ len_of TYPE('a::len0)"]
+interpretation word_uint!:
+  td_ext "uint::'a::len0 word \<Rightarrow> int" 
+         word_of_int 
+         "uints (len_of TYPE('a::len0))"
+         "\<lambda>w. w mod 2 ^ len_of TYPE('a::len0)"
   by (rule td_ext_uint)
   
 lemmas td_uint = word_uint.td_thm
@@ -368,11 +368,11 @@ lemmas td_uint = word_uint.td_thm
 lemmas td_ext_ubin = td_ext_uint 
   [simplified len_gt_0 no_bintr_alt1 [symmetric]]
 
-interpretation word_ubin:
-  td_ext ["uint::'a::len0 word \<Rightarrow> int" 
-          word_of_int 
-          "uints (len_of TYPE('a::len0))"
-          "bintrunc (len_of TYPE('a::len0))"]
+interpretation word_ubin!:
+  td_ext "uint::'a::len0 word \<Rightarrow> int" 
+         word_of_int 
+         "uints (len_of TYPE('a::len0))"
+         "bintrunc (len_of TYPE('a::len0))"
   by (rule td_ext_ubin)
 
 lemma sint_sbintrunc': 
@@ -423,19 +423,19 @@ lemmas td_ext_sint = td_ext_sbin
    and interpretations do not produce thm duplicates. I.e. 
    we get the name word_sint.Rep_eqD, but not word_sbin.Req_eqD,
    because the latter is the same thm as the former *)
-interpretation word_sint:
-  td_ext ["sint ::'a::len word => int" 
+interpretation word_sint!:
+  td_ext "sint ::'a::len word => int" 
           word_of_int 
           "sints (len_of TYPE('a::len))"
           "%w. (w + 2^(len_of TYPE('a::len) - 1)) mod 2^len_of TYPE('a::len) -
-               2 ^ (len_of TYPE('a::len) - 1)"]
+               2 ^ (len_of TYPE('a::len) - 1)"
   by (rule td_ext_sint)
 
-interpretation word_sbin:
-  td_ext ["sint ::'a::len word => int" 
+interpretation word_sbin!:
+  td_ext "sint ::'a::len word => int" 
           word_of_int 
           "sints (len_of TYPE('a::len))"
-          "sbintrunc (len_of TYPE('a::len) - 1)"]
+          "sbintrunc (len_of TYPE('a::len) - 1)"
   by (rule td_ext_sbin)
 
 lemmas int_word_sint = td_ext_sint [THEN td_ext.eq_norm, standard]
@@ -635,10 +635,10 @@ lemma td_bl:
   apply simp
   done
 
-interpretation word_bl:
-  type_definition ["to_bl :: 'a::len0 word => bool list"
-                   of_bl  
-                   "{bl. length bl = len_of TYPE('a::len0)}"]
+interpretation word_bl!:
+  type_definition "to_bl :: 'a::len0 word => bool list"
+                  of_bl  
+                  "{bl. length bl = len_of TYPE('a::len0)}"
   by (rule td_bl)
 
 lemma word_size_bl: "size w == size (to_bl w)"

@@ -79,7 +79,7 @@ fun element name atts body =
   end;
 
 fun output_markup (markup as (name, atts)) =
-  if Markup.is_none markup then ("", "")
+  if Markup.is_none markup then Markup.no_output
   else (enclose "<" ">" (elem name atts), enclose "</" ">" name);
 
 

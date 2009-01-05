@@ -1,9 +1,8 @@
 (*  Title:      HOL/Tools/inductive_realizer.ML
-    ID:         $Id$
     Author:     Stefan Berghofer, TU Muenchen
 
 Porgram extraction from proofs involving inductive predicates:
-Realizers for induction and elimination rules
+Realizers for induction and elimination rules.
 *)
 
 signature INDUCTIVE_REALIZER =
@@ -50,7 +49,7 @@ fun strip_all' used names (Const ("all", _) $ Abs (s, T, t)) =
       t $ strip_all' used names Q
   | strip_all' _ _ t = t;
 
-fun strip_all t = strip_all' (add_term_free_names (t, [])) [] t;
+fun strip_all t = strip_all' (Term.add_free_names t []) [] t;
 
 fun strip_one name (Const ("all", _) $ Abs (s, T, Const ("==>", _) $ P $ Q)) =
       (subst_bound (Free (name, T), P), subst_bound (Free (name, T), Q))
@@ -60,11 +59,11 @@ fun relevant_vars prop = foldr (fn
       (Var ((a, i), T), vs) => (case strip_type T of
         (_, Type (s, _)) => if s mem ["bool"] then (a, T) :: vs else vs
       | _ => vs)
-    | (_, vs) => vs) [] (term_vars prop);
+    | (_, vs) => vs) [] (OldTerm.term_vars prop);
 
 fun dt_of_intrs thy vs nparms intrs =
   let
-    val iTs = term_tvars (prop_of (hd intrs));
+    val iTs = OldTerm.term_tvars (prop_of (hd intrs));
     val Tvs = map TVar iTs;
     val (Const (s, _), ts) = strip_comb (HOLogic.dest_Trueprop
       (Logic.strip_imp_concl (prop_of (hd intrs))));
@@ -101,7 +100,7 @@ fun gen_rvar vs (t as Var ((a, 0), T)) =
 fun mk_realizes_eqn n vs nparms intrs =
   let
     val concl = HOLogic.dest_Trueprop (concl_of (hd intrs));
-    val iTs = term_tvars concl;
+    val iTs = OldTerm.term_tvars concl;
     val Tvs = map TVar iTs;
     val (h as Const (s, T), us) = strip_comb concl;
     val params = List.take (us, nparms);
@@ -147,7 +146,7 @@ fun fun_of_prem thy rsets vs params rule ivs intr =
     val conclT = Extraction.etype_of thy vs [] (Logic.strip_imp_concl rule');
     val used = map (fst o dest_Free) args;
 
-    fun is_rec t = not (null (term_consts t inter rsets));
+    val is_rec = exists_Const (fn (c, _) => member (op =) rsets c);
 
     fun is_meta (Const ("all", _) $ Abs (s, _, P)) = is_meta P
       | is_meta (Const ("==>", _) $ _ $ Q) = is_meta Q
@@ -276,7 +275,7 @@ fun add_ind_realizer rsets intrs induct raw_induct elims (thy, vs) =
   let
     val qualifier = NameSpace.qualifier (name_of_thm induct);
     val inducts = PureThy.get_thms thy (NameSpace.qualified qualifier "inducts");
-    val iTs = term_tvars (prop_of (hd intrs));
+    val iTs = OldTerm.term_tvars (prop_of (hd intrs));
     val ar = length vs + length iTs;
     val params = InductivePackage.params_of raw_induct;
     val arities = InductivePackage.arities_of raw_induct;
@@ -371,7 +370,7 @@ fun add_ind_realizer rsets intrs induct raw_induct elims (thy, vs) =
           (vs' @ Ps) rec_names rss' intrs dummies;
         val rlzs = map (fn (r, ind) => Extraction.realizes_of thy (vs' @ Ps) r
           (prop_of ind)) (rs ~~ inducts);
-        val used = foldr add_term_free_names [] rlzs;
+        val used = fold Term.add_free_names rlzs [];
         val rnames = Name.variant_list used (replicate (length inducts) "r");
         val rnames' = Name.variant_list
           (used @ rnames) (replicate (length intrs) "s");

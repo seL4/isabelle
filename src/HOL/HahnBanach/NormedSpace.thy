@@ -1,5 +1,4 @@
 (*  Title:      HOL/Real/HahnBanach/NormedSpace.thy
-    ID:         $Id$
     Author:     Gertrud Bauer, TU Munich
 *)
 
@@ -20,7 +19,7 @@ text {*
 locale norm_syntax =
   fixes norm :: "'a \<Rightarrow> real"    ("\<parallel>_\<parallel>")
 
-locale seminorm = var V + norm_syntax +
+locale seminorm = var_V + norm_syntax +
   constrains V :: "'a\<Colon>{minus, plus, zero, uminus} set"
   assumes ge_zero [iff?]: "x \<in> V \<Longrightarrow> 0 \<le> \<parallel>x\<parallel>"
     and abs_homogenous [iff?]: "x \<in> V \<Longrightarrow> \<parallel>a \<cdot> x\<parallel> = \<bar>a\<bar> * \<parallel>x\<parallel>"
@@ -32,7 +31,7 @@ lemma (in seminorm) diff_subadditive:
   assumes "vectorspace V"
   shows "x \<in> V \<Longrightarrow> y \<in> V \<Longrightarrow> \<parallel>x - y\<parallel> \<le> \<parallel>x\<parallel> + \<parallel>y\<parallel>"
 proof -
-  interpret vectorspace [V] by fact
+  interpret vectorspace V by fact
   assume x: "x \<in> V" and y: "y \<in> V"
   then have "x - y = x + - 1 \<cdot> y"
     by (simp add: diff_eq2 negate_eq2a)
@@ -48,7 +47,7 @@ lemma (in seminorm) minus:
   assumes "vectorspace V"
   shows "x \<in> V \<Longrightarrow> \<parallel>- x\<parallel> = \<parallel>x\<parallel>"
 proof -
-  interpret vectorspace [V] by fact
+  interpret vectorspace V by fact
   assume x: "x \<in> V"
   then have "- x = - 1 \<cdot> x" by (simp only: negate_eq1)
   also from x have "\<parallel>\<dots>\<parallel> = \<bar>- 1\<bar> * \<parallel>x\<parallel>"
@@ -103,8 +102,8 @@ lemma subspace_normed_vs [intro?]:
   assumes "subspace F E" "normed_vectorspace E norm"
   shows "normed_vectorspace F norm"
 proof -
-  interpret subspace [F E] by fact
-  interpret normed_vectorspace [E norm] by fact
+  interpret subspace F E by fact
+  interpret normed_vectorspace E norm by fact
   show ?thesis
   proof
     show "vectorspace F" by (rule vectorspace) unfold_locales

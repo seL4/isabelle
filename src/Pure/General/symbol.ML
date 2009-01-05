@@ -65,6 +65,7 @@ sig
   val bump_string: string -> string
   val length: symbol list -> int
   val xsymbolsN: string
+  val output: string -> output * int
 end;
 
 structure Symbol: SYMBOL =
@@ -175,21 +176,22 @@ fun raw_chr c =
   ord space <= ord c andalso ord c <= ord "~" andalso c <> "." andalso c <> ">"
   orelse ord c >= 128;
 
-fun encode_raw str =
-  let
-    val raw0 = enclose "\\<^raw:" ">";
-    val raw1 = raw0 o implode;
-    val raw2 = enclose "\\<^raw" ">" o string_of_int o ord;
-
-    fun encode cs = enc (Library.take_prefix raw_chr cs)
-    and enc ([], []) = []
-      | enc (cs, []) = [raw1 cs]
-      | enc ([], d :: ds) = raw2 d :: encode ds
-      | enc (cs, d :: ds) = raw1 cs :: raw2 d :: encode ds;
-  in
-    if exists_string (not o raw_chr) str then implode (encode (explode str))
-    else raw0 str
-  end;
+fun encode_raw "" = ""
+  | encode_raw str =
+      let
+        val raw0 = enclose "\\<^raw:" ">";
+        val raw1 = raw0 o implode;
+        val raw2 = enclose "\\<^raw" ">" o string_of_int o ord;
+    
+        fun encode cs = enc (Library.take_prefix raw_chr cs)
+        and enc ([], []) = []
+          | enc (cs, []) = [raw1 cs]
+          | enc ([], d :: ds) = raw2 d :: encode ds
+          | enc (cs, d :: ds) = raw1 cs :: raw2 d :: encode ds;
+      in
+        if exists_string (not o raw_chr) str then implode (encode (explode str))
+        else raw0 str
+      end;
 
 
 (* diagnostics *)
@@ -519,9 +521,9 @@ fun bump_string str =
 
 
 
-(** xsymbols **)
+(** symbol output **)
 
-val xsymbolsN = "xsymbols";
+(* length *)
 
 fun sym_len s =
   if not (is_printable s) then (0: int)
@@ -532,8 +534,16 @@ fun sym_len s =
 
 fun sym_length ss = fold (fn s => fn n => sym_len s + n) ss 0;
 
+
+(* print mode *)
+
+val xsymbolsN = "xsymbols";
+
+fun output s = (s, sym_length (sym_explode s));
+
+
 (*final declarations of this structure!*)
-val length = sym_length;
 val explode = sym_explode;
+val length = sym_length;
 
 end;

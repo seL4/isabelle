@@ -31,28 +31,33 @@ ISABELLE_SESSIONS="\
   HOL-Word \
   HOL-ex \
   ZF \
-  ZF-Constructible\
+  ZF-Constructible \
   ZF-UNITY"
 
 AFP_SESSIONS="\
-  CoreC++\
-  LinearQuantifierElim\
-  HOL-DiskPaxos\
-  HOL-Fermat3_4\
-  HOL-Flyspeck-Tame\
-  HOL-Group-Ring-Module\
-  HOL-JinjaThreads\
-  HOL-Jinja\
-  HOL-JiveDataStoreModel\
-  HOL-POPLmark-deBruijn\
-  HOL-Program-Conflict-Analysis\
-  HOL-RSAPSS\
-  HOL-Recursion-Theory-I\
-  HOL-SumSquares\
-  HOL-Topology\
-  HOL-Valuation\
-  Simpl-BDD\
-  Simpl"
+  CoreC++ \
+  HOL-BytecodeLogicJmlTypes \
+  HOL-DiskPaxos \
+  HOL-Fermat3_4 \
+  HOL-Flyspeck-Tame \
+  HOL-Group-Ring-Module \
+  HOL-Jinja \
+  HOL-JinjaThreads \
+  HOL-JiveDataStoreModel \
+  HOL-POPLmark-deBruijn \
+  HOL-Program-Conflict-Analysis \
+  HOL-RSAPSS \
+  HOL-Recursion-Theory-I \
+  HOL-SATSolverVerification \
+  HOL-SIFPL \
+  HOL-SenSocialChoice \
+  HOL-Slicing \
+  HOL-SumSquares \
+  HOL-Topology \
+  HOL-Valuation \
+  LinearQuantifierElim \
+  Simpl \
+  Simpl-BDD"
 
 for PLATFORM in $PLATFORMS
 do

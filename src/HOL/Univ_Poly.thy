@@ -2,7 +2,7 @@
     Author:      Amine Chaieb
 *)
 
-header{*Univariate Polynomials*}
+header {* Univariate Polynomials *}
 
 theory Univ_Poly
 imports Plain List
@@ -368,12 +368,13 @@ lemma (in ring_char_0) UNIV_ring_char_0_infinte:
   "\<not> (finite (UNIV:: 'a set))" 
 proof
   assume F: "finite (UNIV :: 'a set)"
-  have th0: "of_nat ` UNIV \<subseteq> UNIV" by simp
-  from finite_subset[OF th0] have th: "finite (of_nat ` UNIV :: 'a set)" .
-  have th': "inj_on (of_nat::nat \<Rightarrow> 'a) (UNIV)"
-    unfolding inj_on_def by auto
-  from finite_imageD[OF th th'] UNIV_nat_infinite 
-  show False by blast
+  have "finite (UNIV :: nat set)"
+  proof (rule finite_imageD)
+    have "of_nat ` UNIV \<subseteq> UNIV" by simp
+    then show "finite (of_nat ` UNIV :: 'a set)" using F by (rule finite_subset)
+    show "inj (of_nat :: nat \<Rightarrow> 'a)" by (simp add: inj_on_def)
+  qed
+  with UNIV_nat_infinite show False ..
 qed
 
 lemma (in idom_char_0) poly_roots_finite: "(poly p \<noteq> poly []) = 
@@ -580,8 +581,8 @@ proof(induct d arbitrary: p)
 next
   case (Suc n p)
   {assume p0: "poly p a = 0"
-    from Suc.prems have h: "length p = Suc n" "poly p \<noteq> poly []" by blast
-    hence pN: "p \<noteq> []" by - (rule ccontr, simp)
+    from Suc.prems have h: "length p = Suc n" "poly p \<noteq> poly []" by auto
+    hence pN: "p \<noteq> []" by auto
     from p0[unfolded poly_linear_divides] pN  obtain q where 
       q: "p = [-a, 1] *** q" by blast
     from q h p0 have qh: "length q = n" "poly q \<noteq> poly []" 

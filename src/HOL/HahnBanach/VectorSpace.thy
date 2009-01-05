@@ -39,7 +39,9 @@ text {*
   the neutral element of scalar multiplication.
 *}
 
-locale vectorspace = var V +
+locale var_V = fixes V
+
+locale vectorspace = var_V +
   assumes non_empty [iff, intro?]: "V \<noteq> {}"
     and add_closed [iff]: "x \<in> V \<Longrightarrow> y \<in> V \<Longrightarrow> x + y \<in> V"
     and mult_closed [iff]: "x \<in> V \<Longrightarrow> a \<cdot> x \<in> V"

@@ -1,14 +1,13 @@
 (*  Title:      Pure/ML-Systems/mosml.ML
-    ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
-    Copyright   1999  University of Cambridge
+    Author:     Makarius
 
 Compatibility file for Moscow ML 2.01
 
 NOTE: saving images does not work; may run it interactively as follows:
 
 $ cd Isabelle/src/Pure
-$ isabelle RAW_ML_SYSTEM
+$ isabelle-process RAW_ML_SYSTEM
 > val ml_system = "mosml";
 > use "ML-Systems/mosml.ML";
 > use "ROOT.ML";
@@ -27,6 +26,7 @@ val ml_system_fix_ints = false;
 fun forget_structure _ = ();
 
 load "Obj";
+load "Word";
 load "Bool";
 load "Int";
 load "Real";
@@ -35,6 +35,7 @@ load "OS";
 load "Process";
 load "FileSys";
 load "IO";
+load "CharVector";
 
 exception Interrupt;
 
@@ -54,6 +55,14 @@ in fun pointer_eq (x:'a, y:'a) = (cast x = cast y) end;
 structure IntInf =
 struct
   fun divMod (x, y) = (x div y, x mod y);
+
+  local
+    fun log 1 a = a
+      | log n a = log (n div 2) (a + 1);
+  in
+    fun log2 n = if n > 0 then log n 0 else raise Domain;
+  end;
+
   open Int;
 end;
 

@@ -46,6 +46,9 @@
     "chapter"
     "class"
     "class_deps"
+    "class_interpret"
+    "class_interpretation"
+    "class_locale"
     "classes"
     "classrel"
     "code_abort"
@@ -420,6 +423,7 @@
     "axiomatization"
     "axioms"
     "class"
+    "class_locale"
     "classes"
     "classrel"
     "code_abort"
@@ -503,6 +507,7 @@
 
 (defconst isar-keywords-theory-goal
   '("ax_specification"
+    "class_interpretation"
     "corollary"
     "cpodef"
     "function"
@@ -541,7 +546,8 @@
     "subsubsect"))
 
 (defconst isar-keywords-proof-goal
-  '("have"
+  '("class_interpret"
+    "have"
     "hence"
     "interpret"
     "invoke"))

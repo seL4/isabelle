@@ -1,5 +1,4 @@
 (*  Title:      HOL/Tools/Qelim/cooper.ML
-    ID:         $Id$
     Author:     Amine Chaieb, TU Muenchen
 *)
 
@@ -515,7 +514,7 @@ local
   let val _ = ()
   in
    Qelim.gen_qelim_conv pcv postcv pcv (cons o term_of) 
-      (term_frees (term_of p)) (linearize_conv ctxt) (integer_nnf_conv ctxt) 
+      (OldTerm.term_frees (term_of p)) (linearize_conv ctxt) (integer_nnf_conv ctxt) 
       (cooperex_conv ctxt) p 
   end
   handle  CTERM s => raise COOPER ("Cooper Failed", CTERM s)
@@ -637,7 +636,7 @@ fun cooper_oracle ct =
   let
     val thy = Thm.theory_of_cterm ct;
     val t = Thm.term_of ct;
-    val (vs, ps) = pairself (map_index swap) (term_frees t, term_bools [] t);
+    val (vs, ps) = pairself (map_index swap) (OldTerm.term_frees t, term_bools [] t);
   in
     Thm.cterm_of thy (Logic.mk_equals (HOLogic.mk_Trueprop t,
       HOLogic.mk_Trueprop (term_of_qf ps vs (pa (qf_of_term ps vs t)))))

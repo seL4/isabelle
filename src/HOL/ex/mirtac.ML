@@ -1,5 +1,4 @@
-(*  Title:      HOL/Complex/ex/mirtac.ML
-    ID:         $Id$
+(*  Title:      HOL/ex/mirtac.ML
     Author:     Amine Chaieb, TU Muenchen
 *)
 
@@ -74,7 +73,7 @@ fun prepare_for_mir thy q fm =
     val (fm',np) =  foldr (fn ((x, T), (fm,n)) => mk_all ((x, T), (fm,n)))
       (foldr HOLogic.mk_imp c rhs, np) ps
     val (vs, _) = List.partition (fn t => q orelse (type_of t) = nT)
-      (term_frees fm' @ term_vars fm');
+      (OldTerm.term_frees fm' @ OldTerm.term_vars fm');
     val fm2 = foldr mk_all2 fm' vs
   in (fm2, np + length vs, length rhs) end;
 

@@ -1,7 +1,5 @@
 (*  Title:      ZF/Tools/inductive_package.ML
-    ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
-    Copyright   1994  University of Cambridge
 
 Fixedpoint definition module -- for Inductive/Coinductive Definitions
 
@@ -101,7 +99,7 @@ let
                Syntax.string_of_term ctxt t);
 
   (*** Construct the fixedpoint definition ***)
-  val mk_variant = Name.variant (foldr add_term_names [] intr_tms);
+  val mk_variant = Name.variant (foldr OldTerm.add_term_names [] intr_tms);
 
   val z' = mk_variant"z" and X' = mk_variant"X" and w' = mk_variant"w";
 
@@ -113,7 +111,7 @@ let
   fun fp_part intr = (*quantify over rule's free vars except parameters*)
     let val prems = map dest_tprop (Logic.strip_imp_prems intr)
         val dummy = List.app (fn rec_hd => List.app (chk_prem rec_hd) prems) rec_hds
-        val exfrees = term_frees intr \\ rec_params
+        val exfrees = OldTerm.term_frees intr \\ rec_params
         val zeq = FOLogic.mk_eq (Free(z',iT), #1 (rule_concl intr))
     in foldr FOLogic.mk_exists
              (BalancedTree.make FOLogic.mk_conj (zeq::prems)) exfrees
@@ -304,7 +302,7 @@ let
 
      (*Make a premise of the induction rule.*)
      fun induct_prem ind_alist intr =
-       let val quantfrees = map dest_Free (term_frees intr \\ rec_params)
+       let val quantfrees = map dest_Free (OldTerm.term_frees intr \\ rec_params)
            val iprems = foldr (add_induct_prem ind_alist) []
                               (Logic.strip_imp_prems intr)
            val (t,X) = Ind_Syntax.rule_concl intr

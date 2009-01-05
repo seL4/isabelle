@@ -1,5 +1,4 @@
 (*  Title:      Pure/Proof/reconstruct.ML
-    ID:         $Id$
     Author:     Stefan Berghofer, TU Muenchen
 
 Reconstruction of partial proof terms.
@@ -139,8 +138,8 @@ fun make_constraints_cprf thy env cprf =
 
     fun mk_cnstrts_atom env vTs prop opTs prf =
           let
-            val tvars = term_tvars prop;
-            val tfrees = term_tfrees prop;
+            val tvars = OldTerm.term_tvars prop;
+            val tfrees = OldTerm.term_tfrees prop;
             val (env', Ts) = (case opTs of
                 NONE => foldl_map mk_tvar (env, map snd tvars @ map snd tfrees)
               | SOME Ts => (env, Ts));
@@ -232,9 +231,6 @@ fun make_constraints_cprf thy env cprf =
 
 (**** update list of free variables of constraints ****)
 
-val add_term_ixns = fold_aterms (fn Var (xi, _) => insert (op =) xi | _ => I);
-val add_typ_ixns = fold_atyps (fn TVar (ai, _) => insert (op =) ai | _ => I);
-
 fun upd_constrs env cs =
   let
     val Envir.Envir {asol, iTs, ...} = env;
@@ -242,8 +238,8 @@ fun upd_constrs env cs =
       |> Vartab.fold (cons o #1) asol
       |> Vartab.fold (cons o #1) iTs;
     val vran = []
-      |> Vartab.fold (add_term_ixns o #2 o #2) asol
-      |> Vartab.fold (add_typ_ixns o #2 o #2) iTs;
+      |> Vartab.fold (Term.add_var_names o #2 o #2) asol
+      |> Vartab.fold (Term.add_tvar_namesT o #2 o #2) iTs;
     fun check_cs [] = []
       | check_cs ((u, p, vs)::ps) =
           let val vs' = subtract (op =) dom vs;
@@ -294,7 +290,7 @@ fun reconstruct_proof thy prop cprf =
     val (t, prf, cs, env, _) = make_constraints_cprf thy
       (Envir.empty (maxidx_proof cprf ~1)) cprf';
     val cs' = map (fn p => (true, p, op union
-        (pairself (map (fst o dest_Var) o term_vars) p)))
+        (pairself (map (fst o dest_Var) o OldTerm.term_vars) p)))
       (map (pairself (Envir.norm_term env)) ((t, prop')::cs));
     val _ = message ("Solving remaining constraints (" ^ string_of_int (length cs') ^ ") ...");
     val env' = solve thy cs' env
@@ -303,7 +299,7 @@ fun reconstruct_proof thy prop cprf =
   end;
 
 fun prop_of_atom prop Ts = subst_atomic_types
-  (map TVar (term_tvars prop) @ map TFree (term_tfrees prop) ~~ Ts)
+  (map TVar (OldTerm.term_tvars prop) @ map TFree (OldTerm.term_tfrees prop) ~~ Ts)
   (forall_intr_vfs prop);
 
 val head_norm = Envir.head_norm (Envir.empty 0);
@@ -370,9 +366,9 @@ fun expand_proof thy thms prf =
                   end
               | SOME (maxidx', prf) => (maxidx' + maxidx + 1,
                   inc (maxidx + 1) prf, prfs));
-            val tfrees = term_tfrees prop;
+            val tfrees = OldTerm.term_tfrees prop;
             val tye = map (fn ((s, j), _) => (s, maxidx + 1 + j))
-              (term_tvars prop) @ map (rpair ~1 o fst) tfrees ~~ Ts;
+              (OldTerm.term_tvars prop) @ map (rpair ~1 o fst) tfrees ~~ Ts;
             val varify = map_type_tfree (fn p as (a, S) =>
               if member (op =) tfrees p then TVar ((a, ~1), S) else TFree p)
           in

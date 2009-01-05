@@ -1,11 +1,9 @@
-(*  Title:       Fundamental_Theorem_Algebra.thy
-    Author:      Amine Chaieb
-*)
+(* Author: Amine Chaieb, TU Muenchen *)
 
 header{*Fundamental Theorem of Algebra*}
 
 theory Fundamental_Theorem_Algebra
-imports "~~/src/HOL/Univ_Poly" "~~/src/HOL/Library/Dense_Linear_Order" "~~/src/HOL/Complex"
+imports Univ_Poly Dense_Linear_Order Complex
 begin
 
 subsection {* Square root of complex numbers *}
@@ -18,7 +16,7 @@ definition csqrt :: "complex \<Rightarrow> complex" where
 
 lemma csqrt[algebra]: "csqrt z ^ 2 = z"
 proof-
-  obtain x y where xy: "z = Complex x y" by (cases z, simp_all)
+  obtain x y where xy: "z = Complex x y" by (cases z)
   {assume y0: "y = 0"
     {assume x0: "x \<ge> 0" 
       then have ?thesis using y0 xy real_sqrt_pow2[OF x0]

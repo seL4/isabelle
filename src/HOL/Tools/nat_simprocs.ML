@@ -1,7 +1,5 @@
-(*  Title:      HOL/nat_simprocs.ML
-    ID:         $Id$
+(*  Title:      HOL/Tools/nat_simprocs.ML
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
-    Copyright   2000  University of Cambridge
 
 Simprocs for nat numerals.
 *)
@@ -81,7 +79,7 @@ fun mk_coeff (k,t) = mk_times (mk_number k, t);
 
 (*Express t as a product of (possibly) a numeral with other factors, sorted*)
 fun dest_coeff t =
-    let val ts = sort Term.term_ord (dest_prod t)
+    let val ts = sort TermOrd.term_ord (dest_prod t)
         val (n, _, ts') = find_first_numeral [] ts
                           handle TERM _ => (1, one, ts)
     in (n, mk_prod ts') end;

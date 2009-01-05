@@ -1,10 +1,8 @@
 (*  Title:      HOL/Nominal/nominal_fresh_fun.ML
-    ID:         $Id$
-    Authors:    Stefan Berghofer, Julien Narboux, TU Muenchen
+    Authors:    Stefan Berghofer and Julien Narboux, TU Muenchen
 
 Provides a tactic to generate fresh names and
 a tactic to analyse instances of the fresh_fun.
-
 *)
 
 (* First some functions that should be in the library *)
@@ -83,7 +81,7 @@ fun generate_fresh_tac atom_name i thm =
    val bvs = map_index (Bound o fst) ps;
 (* select variables of the right class *)
    val vs = filter (fn t => is_of_fs_name (fastype_of1 (Ts, t)))
-     (term_frees goal @ bvs);
+     (OldTerm.term_frees goal @ bvs);
 (* build the tuple *)
    val s = (Library.foldr1 (fn (v, s) =>
      HOLogic.pair_const (fastype_of1 (Ts, v)) (fastype_of1 (Ts, s)) $ v $ s) vs) handle _ => HOLogic.unit ;  (* FIXME avoid handle _ *)
@@ -91,7 +89,7 @@ fun generate_fresh_tac atom_name i thm =
    val at_name_inst_thm = get_dyn_thm thy ("at_"^atom_basename^"_inst") atom_basename;
    val exists_fresh' = at_name_inst_thm RS at_exists_fresh';
 (* find the variable we want to instantiate *)
-   val x = hd (term_vars (prop_of exists_fresh'));
+   val x = hd (OldTerm.term_vars (prop_of exists_fresh'));
  in 
    (cut_inst_tac_term' [(x,s)] exists_fresh' 1 THEN
    rtac fs_name_thm 1 THEN
@@ -150,7 +148,7 @@ fun fresh_fun_tac no_asm i thm =
     val fresh_perm_app = PureThy.get_thms thy "fresh_perm_app";
     val ss' = ss addsimps fresh_prod::abs_fresh;
     val ss'' = ss' addsimps fresh_perm_app;
-    val x = hd (tl (term_vars (prop_of exI)));
+    val x = hd (tl (OldTerm.term_vars (prop_of exI)));
     val goal = nth (prems_of thm) (i-1);
     val atom_name_opt = get_inner_fresh_fun goal;
     val n = List.length (Logic.strip_params goal);
@@ -165,7 +163,7 @@ fun fresh_fun_tac no_asm i thm =
     val pt_name_inst = get_dyn_thm thy ("pt_"^atom_basename^"_inst") atom_basename;
     val at_name_inst = get_dyn_thm thy ("at_"^atom_basename^"_inst") atom_basename;
     fun inst_fresh vars params i st =
-   let val vars' = term_vars (prop_of st);
+   let val vars' = OldTerm.term_vars (prop_of st);
        val thy = theory_of_thm st;
    in case vars' \\ vars of 
      [x] => Seq.single (Thm.instantiate ([],[(cterm_of thy x,cterm_of thy (list_abs (params,Bound 0)))]) st)
@@ -174,7 +172,7 @@ fun fresh_fun_tac no_asm i thm =
   in
   ((fn st =>
   let 
-    val vars = term_vars (prop_of st);
+    val vars = OldTerm.term_vars (prop_of st);
     val params = Logic.strip_params (nth (prems_of st) (i-1))
     (* The tactics which solve the subgoals generated 
        by the conditionnal rewrite rule. *)

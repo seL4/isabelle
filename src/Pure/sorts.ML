@@ -1,5 +1,4 @@
 (*  Title:      Pure/sorts.ML
-    ID:         $Id$
     Author:     Markus Wenzel and Stefan Berghofer, TU Muenchen
 
 The order-sorted algebra of type classes.
@@ -74,13 +73,13 @@ struct
 
 (** ordered lists of sorts **)
 
-val make = OrdList.make Term.sort_ord;
-val op subset = OrdList.subset Term.sort_ord;
-val op union = OrdList.union Term.sort_ord;
-val subtract = OrdList.subtract Term.sort_ord;
+val make = OrdList.make TermOrd.sort_ord;
+val op subset = OrdList.subset TermOrd.sort_ord;
+val op union = OrdList.union TermOrd.sort_ord;
+val subtract = OrdList.subtract TermOrd.sort_ord;
 
-val remove_sort = OrdList.remove Term.sort_ord;
-val insert_sort = OrdList.insert Term.sort_ord;
+val remove_sort = OrdList.remove TermOrd.sort_ord;
+val insert_sort = OrdList.insert TermOrd.sort_ord;
 
 fun insert_typ (TFree (_, S)) Ss = insert_sort S Ss
   | insert_typ (TVar (_, S)) Ss = insert_sort S Ss

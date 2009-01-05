@@ -30,6 +30,10 @@ statespace vars =
   n::nat
   b::bool
 
+print_locale vars_namespace
+print_locale vars_valuetypes
+print_locale vars
+
 text {* \noindent This resembles a \isacommand{record} definition, 
 but introduces sophisticated locale
 infrastructure instead of HOL type schemes.  The resulting context
@@ -37,7 +41,7 @@ postulates two distinct names @{term "n"} and @{term "b"} and
 projection~/ injection functions that convert from abstract values to
 @{typ "nat"} and @{text "bool"}. The logical content of the locale is: *}
 
-locale vars' =
+class_locale vars' =
   fixes n::'name and b::'name
   assumes "distinct [n, b]" 
 
@@ -196,10 +200,19 @@ lemma (in dup)
   by simp
 
 
+text {* Hmm, I hoped this would work now...*}
+
+(*
+locale fooX = foo +
+ assumes "s<a:=i>\<cdot>b = k"
+*)
+
+(* ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ *)
 text {* There are known problems with syntax-declarations. They currently
 only work, when the context is already built. Hopefully this will be 
 implemented correctly in future Isabelle versions. *}
 
+(*
 lemma 
   assumes "foo f a b c p1 i1 p2 i2 p3 i3 p4 i4"
   shows True
@@ -207,7 +220,7 @@ proof
   interpret foo [f a b c p1 i1 p2 i2 p3 i3 p4 i4] by fact
   term "s<a := i>\<cdot>a = i"
 qed
-
+*)
 (*
 lemma 
   includes foo

@@ -1,8 +1,6 @@
 (*  Title:      HOL/Tools/cnf_funcs.ML
-    ID:         $Id$
     Author:     Alwen Tiu, QSL Team, LORIA (http://qsl.loria.fr)
-    Author:     Tjark Weber
-    Copyright   2005-2006
+    Author:     Tjark Weber, TU Muenchen
 
   FIXME: major overlaps with the code in meson.ML
 
@@ -499,7 +497,7 @@ let
 					NONE
 		in
 			Int.max (max, getOpt (idx, 0))
-		end) (term_frees simp) 0)
+		end) (OldTerm.term_frees simp) 0)
 	(* finally, convert to definitional CNF (this should preserve the simplification) *)
 	val cnfx_thm = make_cnfx_thm_from_nnf simp
 in

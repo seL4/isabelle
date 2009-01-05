@@ -1,9 +1,6 @@
 (*  Title:      HOL/Tools/sat_funcs.ML
-    ID:         $Id$
     Author:     Stephan Merz and Alwen Tiu, QSL Team, LORIA (http://qsl.loria.fr)
-    Author:     Tjark Weber
-    Copyright   2005-2006
-
+    Author:     Tjark Weber, TU Muenchen
 
 Proof reconstruction from SAT solvers.
 
@@ -323,7 +320,7 @@ let
 	(* Conjunction.intr_balanced and fold Thm.weaken below, is quadratic for *)
 	(* terms sorted in descending order, while only linear for terms      *)
 	(* sorted in ascending order                                          *)
-	val sorted_clauses = sort (Term.fast_term_ord o pairself Thm.term_of) nontrivial_clauses
+	val sorted_clauses = sort (TermOrd.fast_term_ord o pairself Thm.term_of) nontrivial_clauses
 	val _ = if !trace_sat then
 			tracing ("Sorted non-trivial clauses:\n" ^ cat_lines (map Display.string_of_cterm sorted_clauses))
 		else ()

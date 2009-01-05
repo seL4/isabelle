@@ -1,5 +1,4 @@
 (*  Title:      Pure/variable.ML
-    ID:         $Id$
     Author:     Makarius
 
 Fixed type/term variables and polymorphic term abbreviations.
@@ -179,12 +178,12 @@ val def_sort = Vartab.lookup o #2 o constraints_of;
 (* names *)
 
 fun declare_type_names t =
-  map_names (fold_types (fold_atyps (fn TFree (a, _) => Name.declare a | _ => I)) t) #>
+  map_names (fold_types (fold_atyps Term.declare_typ_names) t) #>
   map_maxidx (fold_types Term.maxidx_typ t);
 
 fun declare_names t =
   declare_type_names t #>
-  map_names (fold_aterms (fn Free (x, _) => Name.declare x | _ => I) t) #>
+  map_names (fold_aterms Term.declare_term_frees t) #>
   map_maxidx (Term.maxidx_term t);
 
 

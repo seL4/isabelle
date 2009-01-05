@@ -1,5 +1,4 @@
 (*  Title:      HOL/Tools/string_syntax.ML
-    ID:         $Id$
     Author:     Makarius
 
 Concrete syntax for hex chars and strings.
@@ -43,8 +42,8 @@ fun dest_chr c1 c2 =
 fun dest_char (Syntax.Appl [Syntax.Constant "Char", c1, c2]) = dest_chr c1 c2
   | dest_char _ = raise Match;
 
-fun syntax_xstr cs =
-  Syntax.Appl [Syntax.Constant "_xstr", Syntax.Variable (Syntax.implode_xstr cs)];
+fun syntax_string cs =
+  Syntax.Appl [Syntax.Constant "_inner_string", Syntax.Variable (Syntax.implode_xstr cs)];
 
 
 fun char_ast_tr [Syntax.Variable xstr] =
@@ -53,7 +52,7 @@ fun char_ast_tr [Syntax.Variable xstr] =
     | _ => error ("Single character expected: " ^ xstr))
   | char_ast_tr asts = raise AST ("char_ast_tr", asts);
 
-fun char_ast_tr' [c1, c2] = Syntax.Appl [Syntax.Constant "_Char", syntax_xstr [dest_chr c1 c2]]
+fun char_ast_tr' [c1, c2] = Syntax.Appl [Syntax.Constant "_Char", syntax_string [dest_chr c1 c2]]
   | char_ast_tr' _ = raise Match;
 
 
@@ -70,7 +69,7 @@ fun string_ast_tr [Syntax.Variable xstr] =
   | string_ast_tr asts = raise AST ("string_tr", asts);
 
 fun list_ast_tr' [args] = Syntax.Appl [Syntax.Constant "_String",
-        syntax_xstr (map dest_char (Syntax.unfold_ast "_args" args))]
+        syntax_string (map dest_char (Syntax.unfold_ast "_args" args))]
   | list_ast_tr' ts = raise Match;
 
 

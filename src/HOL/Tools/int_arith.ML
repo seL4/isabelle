@@ -1,5 +1,4 @@
-(*  Title:      HOL/int_arith1.ML
-    ID:         $Id$
+(*  Title:      HOL/Tools/int_arith1.ML
     Authors:    Larry Paulson and Tobias Nipkow
 
 Simprocs and decision procedure for linear arithmetic.
@@ -66,12 +65,12 @@ fun num_ord (i,j) =
     EQUAL => int_ord (Int.sign i, Int.sign j) 
   | ord => ord);
 
-(*This resembles Term.term_ord, but it puts binary numerals before other
+(*This resembles TermOrd.term_ord, but it puts binary numerals before other
   non-atomic terms.*)
 local open Term 
 in 
 fun numterm_ord (Abs (_, T, t), Abs(_, U, u)) =
-      (case numterm_ord (t, u) of EQUAL => typ_ord (T, U) | ord => ord)
+      (case numterm_ord (t, u) of EQUAL => TermOrd.typ_ord (T, U) | ord => ord)
   | numterm_ord
      (Const(@{const_name Int.number_of}, _) $ v, Const(@{const_name Int.number_of}, _) $ w) =
      num_ord (HOLogic.dest_numeral v, HOLogic.dest_numeral w)
@@ -81,7 +80,7 @@ fun numterm_ord (Abs (_, T, t), Abs(_, U, u)) =
       (case int_ord (size_of_term t, size_of_term u) of
         EQUAL =>
           let val (f, ts) = strip_comb t and (g, us) = strip_comb u in
-            (case hd_ord (f, g) of EQUAL => numterms_ord (ts, us) | ord => ord)
+            (case TermOrd.hd_ord (f, g) of EQUAL => numterms_ord (ts, us) | ord => ord)
           end
       | ord => ord)
 and numterms_ord (ts, us) = list_ord numterm_ord (ts, us)
@@ -164,7 +163,7 @@ fun mk_coeff (k, t) = mk_times (mk_number (Term.fastype_of t) k, t);
 (*Express t as a product of (possibly) a numeral with other sorted terms*)
 fun dest_coeff sign (Const (@{const_name HOL.uminus}, _) $ t) = dest_coeff (~sign) t
   | dest_coeff sign t =
-    let val ts = sort Term.term_ord (dest_prod t)
+    let val ts = sort TermOrd.term_ord (dest_prod t)
         val (n, ts') = find_first_numeral [] ts
                           handle TERM _ => (1, ts)
     in (sign*n, mk_prod (Term.fastype_of t) ts') end;

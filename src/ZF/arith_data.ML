@@ -1,7 +1,5 @@
 (*  Title:      ZF/arith_data.ML
-    ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
-    Copyright   2000  University of Cambridge
 
 Arithmetic simplification: cancellation of common terms
 *)
@@ -106,7 +104,7 @@ fun mk_coeff (0, t) = zero
 
 (*Dummy version: the "coefficient" is always 1.
   In the result, the factors are sorted terms*)
-fun dest_coeff t = (1, mk_prod (sort Term.term_ord (dest_prod t)));
+fun dest_coeff t = (1, mk_prod (sort TermOrd.term_ord (dest_prod t)));
 
 (*Find first coefficient-term THAT MATCHES u*)
 fun find_first_coeff past u [] = raise TERM("find_first_coeff", [])

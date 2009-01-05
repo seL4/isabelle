@@ -440,7 +440,7 @@ fun guess_instance ctxt rule i st =
     val thy = ProofContext.theory_of ctxt;
     val maxidx = Thm.maxidx_of st;
     val goal = Thm.term_of (Thm.cprem_of st i);  (*exception Subscript*)
-    val params = rev (rename_wrt_term goal (Logic.strip_params goal));
+    val params = rev (Term.rename_wrt_term goal (Logic.strip_params goal));
   in
     if not (null params) then
       (warning ("Cannot determine rule instantiation due to pending parameter(s): " ^

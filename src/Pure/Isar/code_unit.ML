@@ -1,5 +1,4 @@
 (*  Title:      Pure/Isar/code_unit.ML
-    ID:         $Id$
     Author:     Florian Haftmann, TU Muenchen
 
 Basic notions of code generation.  Auxiliary.
@@ -230,7 +229,7 @@ structure ConstAlias = TheoryDataFun
   val empty = ([], []);
   val copy = I;
   val extend = I;
-  fun merge _ ((alias1, classes1), (alias2, classes2)) =
+  fun merge _ ((alias1, classes1), (alias2, classes2)) : T =
     (Library.merge (eq_snd Thm.eq_thm_prop) (alias1, alias2),
       Library.merge (op =) (classes1, classes2));
 );
@@ -286,7 +285,7 @@ fun constrset_of_consts thy cs =
       ^ " :: " ^ string_of_typ thy ty);
     fun last_typ c_ty ty =
       let
-        val frees = typ_tfrees ty;
+        val frees = OldTerm.typ_tfrees ty;
         val (tyco, vs) = ((apsnd o map) (dest_TFree) o dest_Type o snd o strip_type) ty
           handle TYPE _ => no_constr c_ty
         val _ = if has_duplicates (eq_fst (op =)) vs then no_constr c_ty else ();

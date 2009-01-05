@@ -1,6 +1,5 @@
 (*
   Title:     HOL/Algebra/AbelCoset.thy
-  Id:        $Id$
   Author:    Stephan Hohe, TU Muenchen
 *)
 
@@ -52,7 +51,9 @@ constdefs
   "a_kernel G H h \<equiv> kernel \<lparr>carrier = carrier G, mult = add G, one = zero G\<rparr>
                               \<lparr>carrier = carrier H, mult = add H, one = zero H\<rparr> h"
 
-locale abelian_group_hom = abelian_group G + abelian_group H + var h +
+locale abelian_group_hom = G: abelian_group G + H: abelian_group H
+    for G (structure) and H (structure) +
+  fixes h
   assumes a_group_hom: "group_hom (| carrier = carrier G, mult = add G, one = zero G |)
                                   (| carrier = carrier H, mult = add H, one = zero H |) h"
 
@@ -180,7 +181,8 @@ by (rule group.rcos_self [OF a_group,
 
 subsubsection {* Subgroups *}
 
-locale additive_subgroup = var H + struct G +
+locale additive_subgroup =
+  fixes H and G (structure)
   assumes a_subgroup: "subgroup H \<lparr>carrier = carrier G, mult = add G, one = zero G\<rparr>"
 
 lemma (in additive_subgroup) is_additive_subgroup:
@@ -218,7 +220,7 @@ subsubsection {* Additive subgroups are normal *}
 
 text {* Every subgroup of an @{text "abelian_group"} is normal *}
 
-locale abelian_subgroup = additive_subgroup H G + abelian_group G +
+locale abelian_subgroup = additive_subgroup + abelian_group G +
   assumes a_normal: "normal H \<lparr>carrier = carrier G, mult = add G, one = zero G\<rparr>"
 
 lemma (in abelian_subgroup) is_abelian_subgroup:
@@ -230,7 +232,7 @@ lemma abelian_subgroupI:
       and a_comm: "!!x y. [| x \<in> carrier G; y \<in> carrier G |] ==> x \<oplus>\<^bsub>G\<^esub> y = y \<oplus>\<^bsub>G\<^esub> x"
   shows "abelian_subgroup H G"
 proof -
-  interpret normal ["H" "\<lparr>carrier = carrier G, mult = add G, one = zero G\<rparr>"]
+  interpret normal "H" "\<lparr>carrier = carrier G, mult = add G, one = zero G\<rparr>"
   by (rule a_normal)
 
   show "abelian_subgroup H G"
@@ -243,9 +245,9 @@ lemma abelian_subgroupI2:
       and a_subgroup: "subgroup H \<lparr>carrier = carrier G, mult = add G, one = zero G\<rparr>"
   shows "abelian_subgroup H G"
 proof -
-  interpret comm_group ["\<lparr>carrier = carrier G, mult = add G, one = zero G\<rparr>"]
+  interpret comm_group "\<lparr>carrier = carrier G, mult = add G, one = zero G\<rparr>"
   by (rule a_comm_group)
-  interpret subgroup ["H" "\<lparr>carrier = carrier G, mult = add G, one = zero G\<rparr>"]
+  interpret subgroup "H" "\<lparr>carrier = carrier G, mult = add G, one = zero G\<rparr>"
   by (rule a_subgroup)
 
   show "abelian_subgroup H G"
@@ -538,8 +540,8 @@ lemma abelian_group_homI:
                                   (| carrier = carrier H, mult = add H, one = zero H |) h"
   shows "abelian_group_hom G H h"
 proof -
-  interpret G: abelian_group [G] by fact
-  interpret H: abelian_group [H] by fact
+  interpret G!: abelian_group G by fact
+  interpret H!: abelian_group H by fact
   show ?thesis apply (intro abelian_group_hom.intro abelian_group_hom_axioms.intro)
     apply fact
     apply fact
@@ -690,7 +692,7 @@ lemma (in abelian_subgroup) a_rcos_module_minus:
   assumes carr: "x \<in> carrier G" "x' \<in> carrier G"
   shows "(x' \<in> H +> x) = (x' \<ominus> x \<in> H)"
 proof -
-  interpret G: ring [G] by fact
+  interpret G!: ring G by fact
   from carr
   have "(x' \<in> H +> x) = (x' \<oplus> \<ominus>x \<in> H)" by (rule a_rcos_module)
   with carr

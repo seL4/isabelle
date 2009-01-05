@@ -1,12 +1,11 @@
 (*  Title:      Pure/term.ML
-    ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
-    Copyright   Cambridge University 1992
+    Author:     Makarius
 
 Simply typed lambda-calculus: types, terms, and basic operations.
 *)
 
-infix 9  $;
+infix 9 $;
 infixr 5 -->;
 infixr --->;
 infix aconv;
@@ -75,12 +74,7 @@ sig
   val fold_term_types: (term -> typ -> 'a -> 'a) -> term -> 'a -> 'a
   val fold_types: (typ -> 'a -> 'a) -> term -> 'a -> 'a
   val burrow_types: (typ list -> typ list) -> term list -> term list
-  val it_term_types: (typ * 'a -> 'a) -> term * 'a -> 'a
-  val add_term_names: term * string list -> string list
   val aconv: term * term -> bool
-  structure Vartab: TABLE
-  structure Typtab: TABLE
-  structure Termtab: TABLE
   val propT: typ
   val strip_all_body: term -> term
   val strip_all_vars: term -> (string * typ) list
@@ -94,8 +88,6 @@ sig
   val subst_bound: term * term -> term
   val betapply: term * term -> term
   val betapplys: term * term list -> term
-  val eq_ix: indexname * indexname -> bool
-  val could_unify: term * term -> bool
   val subst_free: (term * term) list -> term -> term
   val abstract_over: term * term -> term
   val lambda: term -> term -> term
@@ -115,31 +107,10 @@ sig
   val maxidx_of_typ: typ -> int
   val maxidx_of_typs: typ list -> int
   val maxidx_of_term: term -> int
-  val add_term_consts: term * string list -> string list
-  val term_consts: term -> string list
   val exists_subtype: (typ -> bool) -> typ -> bool
   val exists_type: (typ -> bool) -> term -> bool
   val exists_subterm: (term -> bool) -> term -> bool
   val exists_Const: (string * typ -> bool) -> term -> bool
-  val add_term_free_names: term * string list -> string list
-  val add_typ_tvars: typ * (indexname * sort) list -> (indexname * sort) list
-  val add_typ_tfree_names: typ * string list -> string list
-  val add_typ_tfrees: typ * (string * sort) list -> (string * sort) list
-  val add_typ_varnames: typ * string list -> string list
-  val add_term_tvars: term * (indexname * sort) list -> (indexname * sort) list
-  val add_term_tfrees: term * (string * sort) list -> (string * sort) list
-  val add_term_tfree_names: term * string list -> string list
-  val typ_tfrees: typ -> (string * sort) list
-  val typ_tvars: typ -> (indexname * sort) list
-  val term_tfrees: term -> (string * sort) list
-  val term_tvars: term -> (indexname * sort) list
-  val add_typ_ixns: indexname list * typ -> indexname list
-  val add_term_tvar_ixns: term * indexname list -> indexname list
-  val add_term_vars: term * term list -> term list
-  val term_vars: term -> term list
-  val add_term_frees: term * term list -> term list
-  val term_frees: term -> term list
-  val rename_wrt_term: term -> (string * 'a) list -> (string * 'a) list
   val show_question_marks: bool ref
 end;
 
@@ -151,41 +122,40 @@ sig
   val a_itselfT: typ
   val all: typ -> term
   val argument_type_of: term -> int -> typ
-  val head_name_of: term -> string
+  val add_tvar_namesT: typ -> indexname list -> indexname list
+  val add_tvar_names: term -> indexname list -> indexname list
   val add_tvarsT: typ -> (indexname * sort) list -> (indexname * sort) list
   val add_tvars: term -> (indexname * sort) list -> (indexname * sort) list
+  val add_var_names: term -> indexname list -> indexname list
   val add_vars: term -> (indexname * typ) list -> (indexname * typ) list
-  val add_varnames: term -> indexname list -> indexname list
+  val add_tfree_namesT: typ -> string list -> string list
+  val add_tfree_names: term -> string list -> string list
   val add_tfreesT: typ -> (string * sort) list -> (string * sort) list
   val add_tfrees: term -> (string * sort) list -> (string * sort) list
+  val add_free_names: term -> string list -> string list
   val add_frees: term -> (string * typ) list -> (string * typ) list
+  val add_const_names: term -> string list -> string list
+  val add_consts: term -> (string * typ) list -> (string * typ) list
   val hidden_polymorphism: term -> (indexname * sort) list
+  val declare_typ_names: typ -> Name.context -> Name.context
+  val declare_term_names: term -> Name.context -> Name.context
+  val declare_term_frees: term -> Name.context -> Name.context
+  val variant_frees: term -> (string * 'a) list -> (string * 'a) list
+  val rename_wrt_term: term -> (string * 'a) list -> (string * 'a) list
+  val eq_ix: indexname * indexname -> bool
+  val eq_tvar: (indexname * sort) * (indexname * sort) -> bool
+  val eq_var: (indexname * typ) * (indexname * typ) -> bool
+  val could_unify: term * term -> bool
   val strip_abs_eta: int -> term -> (string * typ) list * term
-  val fast_indexname_ord: indexname * indexname -> order
-  val indexname_ord: indexname * indexname -> order
-  val sort_ord: sort * sort -> order
-  val typ_ord: typ * typ -> order
-  val fast_term_ord: term * term -> order
-  val term_ord: term * term -> order
-  val hd_ord: term * term -> order
-  val termless: term * term -> bool
-  val term_lpo: (term -> int) -> term * term -> order
   val match_bvars: (term * term) * (string * string) list -> (string * string) list
   val map_abs_vars: (string -> string) -> term -> term
   val rename_abs: term -> term -> term -> term option
-  val eq_tvar: (indexname * sort) * (indexname * sort) -> bool
-  val eq_var: (indexname * typ) * (indexname * typ) -> bool
-  val tvar_ord: (indexname * sort) * (indexname * sort) -> order
-  val var_ord: (indexname * typ) * (indexname * typ) -> order
   val close_schematic_term: term -> term
   val maxidx_typ: typ -> int -> int
   val maxidx_typs: typ list -> int -> int
   val maxidx_term: term -> int -> int
   val has_abs: term -> bool
   val dest_abs: string * typ * term -> string * term
-  val declare_typ_names: typ -> Name.context -> Name.context
-  val declare_term_names: term -> Name.context -> Name.context
-  val variant_frees: term -> (string * 'a) list -> (string * 'a) list
   val dummy_patternN: string
   val dummy_pattern: typ -> term
   val is_dummy_pattern: term -> bool
@@ -413,16 +383,6 @@ fun strip_comb u : term * term list =
 fun head_of (f$t) = head_of f
   | head_of u = u;
 
-fun head_name_of tm =
-  (case head_of tm of
-    t as Const (c, _) =>
-      if NameSpace.is_qualified c then c
-      else raise TERM ("Malformed constant name", [t])
-  | t as Free (x, _) =>
-      if not (NameSpace.is_qualified x) then x
-      else raise TERM ("Malformed fixed variable name", [t])
-  | t => raise TERM ("No fixed head of term", [t]));
-
 (*number of atoms and abstractions in a term*)
 fun size_of_term tm =
   let
@@ -451,29 +411,16 @@ fun map_types f =
       | map_aux (t $ u) = map_aux t $ map_aux u;
   in map_aux end;
 
-(* iterate a function over all types in a term *)
-fun it_term_types f =
-let fun iter(Const(_,T), a) = f(T,a)
-      | iter(Free(_,T), a) = f(T,a)
-      | iter(Var(_,T), a) = f(T,a)
-      | iter(Abs(_,T,t), a) = iter(t,f(T,a))
-      | iter(f$u, a) = iter(f, iter(u, a))
-      | iter(Bound _, a) = a
-in iter end
-
 
 (* fold types and terms *)
 
-(*fold atoms of type*)
 fun fold_atyps f (Type (_, Ts)) = fold (fold_atyps f) Ts
   | fold_atyps f T = f T;
 
-(*fold atoms of term*)
 fun fold_aterms f (t $ u) = fold_aterms f t #> fold_aterms f u
   | fold_aterms f (Abs (_, _, t)) = fold_aterms f t
   | fold_aterms f a = f a;
 
-(*fold types of term*)
 fun fold_term_types f (t as Const (_, T)) = f t T
   | fold_term_types f (t as Free (_, T)) = f t T
   | fold_term_types f (t as Var (_, T)) = f t T
@@ -504,13 +451,20 @@ fun burrow_types f ts =
   in ts' end;
 
 (*collect variables*)
+val add_tvar_namesT = fold_atyps (fn TVar (xi, _) => insert (op =) xi | _ => I);
+val add_tvar_names = fold_types add_tvar_namesT;
 val add_tvarsT = fold_atyps (fn TVar v => insert (op =) v | _ => I);
 val add_tvars = fold_types add_tvarsT;
+val add_var_names = fold_aterms (fn Var (xi, _) => insert (op =) xi | _ => I);
 val add_vars = fold_aterms (fn Var v => insert (op =) v | _ => I);
-val add_varnames = fold_aterms (fn Var (xi, _) => insert (op =) xi | _ => I);
+val add_tfree_namesT = fold_atyps (fn TFree (xi, _) => insert (op =) xi | _ => I);
+val add_tfree_names = fold_types add_tfree_namesT;
 val add_tfreesT = fold_atyps (fn TFree v => insert (op =) v | _ => I);
 val add_tfrees = fold_types add_tfreesT;
+val add_free_names = fold_aterms (fn Free (x, _) => insert (op =) x | _ => I);
 val add_frees = fold_aterms (fn Free v => insert (op =) v | _ => I);
+val add_const_names = fold_aterms (fn Const (c, _) => insert (op =) c | _ => I);
+val add_consts = fold_aterms (fn Const c => insert (op =) c | _ => I);
 
 (*extra type variables in a term, not covered by its type*)
 fun hidden_polymorphism t =
@@ -522,10 +476,37 @@ fun hidden_polymorphism t =
   in extra_tvars end;
 
 
+(* renaming variables *)
 
-(** Comparing terms, types, sorts etc. **)
+val declare_typ_names = fold_atyps (fn TFree (a, _) => Name.declare a | _ => I);
 
-(* alpha equivalence -- tuned for equalities *)
+fun declare_term_names tm =
+  fold_aterms
+    (fn Const (a, _) => Name.declare (NameSpace.base a)
+      | Free (a, _) => Name.declare a
+      | _ => I) tm #>
+  fold_types declare_typ_names tm;
+
+val declare_term_frees = fold_aterms (fn Free (x, _) => Name.declare x | _ => I);
+
+fun variant_frees t frees =
+  fst (Name.variants (map fst frees) (declare_term_names t Name.context)) ~~ map snd frees;
+
+fun rename_wrt_term t frees = rev (variant_frees t frees);  (*reversed result!*)
+
+
+
+(** Comparing terms **)
+
+(* variables *)
+
+fun eq_ix ((x, i): indexname, (y, j)) = i = j andalso x = y;
+
+fun eq_tvar ((xi, S: sort), (xi', S')) = eq_ix (xi, xi') andalso S = S';
+fun eq_var ((xi, T: typ), (xi', T')) = eq_ix (xi, xi') andalso T = T';
+
+
+(* alpha equivalence *)
 
 fun tm1 aconv tm2 =
   pointer_eq (tm1, tm2) orelse
@@ -535,184 +516,24 @@ fun tm1 aconv tm2 =
     | (a1, a2) => a1 = a2);
 
 
-(* fast syntactic ordering -- tuned for inequalities *)
+(*A fast unification filter: true unless the two terms cannot be unified.
+  Terms must be NORMAL.  Treats all Vars as distinct. *)
+fun could_unify (t, u) =
+  let
+    fun matchrands (f $ t) (g $ u) = could_unify (t, u) andalso matchrands f g
+      | matchrands _ _ = true;
+  in
+    case (head_of t, head_of u) of
+      (_, Var _) => true
+    | (Var _, _) => true
+    | (Const (a, _), Const (b, _)) => a = b andalso matchrands t u
+    | (Free (a, _), Free (b, _)) => a = b andalso matchrands t u
+    | (Bound i, Bound j) => i = j andalso matchrands t u
+    | (Abs _, _) => true   (*because of possible eta equality*)
+    | (_, Abs _) => true
+    | _ => false
+  end;
 
-fun fast_indexname_ord ((x, i), (y, j)) =
-  (case int_ord (i, j) of EQUAL => fast_string_ord (x, y) | ord => ord);
-
-fun sort_ord SS =
-  if pointer_eq SS then EQUAL
-  else dict_ord fast_string_ord SS;
-
-local
-
-fun cons_nr (TVar _) = 0
-  | cons_nr (TFree _) = 1
-  | cons_nr (Type _) = 2;
-
-in
-
-fun typ_ord TU =
-  if pointer_eq TU then EQUAL
-  else
-    (case TU of
-      (Type (a, Ts), Type (b, Us)) =>
-        (case fast_string_ord (a, b) of EQUAL => dict_ord typ_ord (Ts, Us) | ord => ord)
-    | (TFree (a, S), TFree (b, S')) =>
-        (case fast_string_ord (a, b) of EQUAL => sort_ord (S, S') | ord => ord)
-    | (TVar (xi, S), TVar (yj, S')) =>
-        (case fast_indexname_ord (xi, yj) of EQUAL => sort_ord (S, S') | ord => ord)
-    | (T, U) => int_ord (cons_nr T, cons_nr U));
-
-end;
-
-local
-
-fun cons_nr (Const _) = 0
-  | cons_nr (Free _) = 1
-  | cons_nr (Var _) = 2
-  | cons_nr (Bound _) = 3
-  | cons_nr (Abs _) = 4
-  | cons_nr (_ $ _) = 5;
-
-fun struct_ord (Abs (_, _, t), Abs (_, _, u)) = struct_ord (t, u)
-  | struct_ord (t1 $ t2, u1 $ u2) =
-      (case struct_ord (t1, u1) of EQUAL => struct_ord (t2, u2) | ord => ord)
-  | struct_ord (t, u) = int_ord (cons_nr t, cons_nr u);
-
-fun atoms_ord (Abs (_, _, t), Abs (_, _, u)) = atoms_ord (t, u)
-  | atoms_ord (t1 $ t2, u1 $ u2) =
-      (case atoms_ord (t1, u1) of EQUAL => atoms_ord (t2, u2) | ord => ord)
-  | atoms_ord (Const (a, _), Const (b, _)) = fast_string_ord (a, b)
-  | atoms_ord (Free (x, _), Free (y, _)) = fast_string_ord (x, y)
-  | atoms_ord (Var (xi, _), Var (yj, _)) = fast_indexname_ord (xi, yj)
-  | atoms_ord (Bound i, Bound j) = int_ord (i, j)
-  | atoms_ord _ = sys_error "atoms_ord";
-
-fun types_ord (Abs (_, T, t), Abs (_, U, u)) =
-      (case typ_ord (T, U) of EQUAL => types_ord (t, u) | ord => ord)
-  | types_ord (t1 $ t2, u1 $ u2) =
-      (case types_ord (t1, u1) of EQUAL => types_ord (t2, u2) | ord => ord)
-  | types_ord (Const (_, T), Const (_, U)) = typ_ord (T, U)
-  | types_ord (Free (_, T), Free (_, U)) = typ_ord (T, U)
-  | types_ord (Var (_, T), Var (_, U)) = typ_ord (T, U)
-  | types_ord (Bound _, Bound _) = EQUAL
-  | types_ord _ = sys_error "types_ord";
-
-in
-
-fun fast_term_ord tu =
-  if pointer_eq tu then EQUAL
-  else
-    (case struct_ord tu of
-      EQUAL => (case atoms_ord tu of EQUAL => types_ord tu | ord => ord)
-    | ord => ord);
-
-structure Vartab = TableFun(type key = indexname val ord = fast_indexname_ord);
-structure Typtab = TableFun(type key = typ val ord = typ_ord);
-structure Termtab = TableFun(type key = term val ord = fast_term_ord);
-
-end;
-
-
-(* term_ord *)
-
-(*a linear well-founded AC-compatible ordering for terms:
-  s < t <=> 1. size(s) < size(t) or
-            2. size(s) = size(t) and s=f(...) and t=g(...) and f<g or
-            3. size(s) = size(t) and s=f(s1..sn) and t=f(t1..tn) and
-               (s1..sn) < (t1..tn) (lexicographically)*)
-
-fun indexname_ord ((x, i), (y, j)) =
-  (case int_ord (i, j) of EQUAL => string_ord (x, y) | ord => ord);
-
-local
-
-fun hd_depth (t $ _, n) = hd_depth (t, n + 1)
-  | hd_depth p = p;
-
-fun dest_hd (Const (a, T)) = (((a, 0), T), 0)
-  | dest_hd (Free (a, T)) = (((a, 0), T), 1)
-  | dest_hd (Var v) = (v, 2)
-  | dest_hd (Bound i) = ((("", i), dummyT), 3)
-  | dest_hd (Abs (_, T, _)) = ((("", 0), T), 4);
-
-in
-
-fun term_ord tu =
-  if pointer_eq tu then EQUAL
-  else
-    (case tu of
-      (Abs (_, T, t), Abs(_, U, u)) =>
-        (case term_ord (t, u) of EQUAL => typ_ord (T, U) | ord => ord)
-    | (t, u) =>
-        (case int_ord (size_of_term t, size_of_term u) of
-          EQUAL =>
-            (case prod_ord hd_ord int_ord (hd_depth (t, 0), hd_depth (u, 0)) of
-              EQUAL => args_ord (t, u) | ord => ord)
-        | ord => ord))
-and hd_ord (f, g) =
-  prod_ord (prod_ord indexname_ord typ_ord) int_ord (dest_hd f, dest_hd g)
-and args_ord (f $ t, g $ u) =
-      (case args_ord (f, g) of EQUAL => term_ord (t, u) | ord => ord)
-  | args_ord _ = EQUAL;
-
-fun termless tu = (term_ord tu = LESS);
-
-end;
-
-
-(** Lexicographic path order on terms **)
-
-(*
-  See Baader & Nipkow, Term rewriting, CUP 1998.
-  Without variables.  Const, Var, Bound, Free and Abs are treated all as
-  constants.
-
-  f_ord maps terms to integers and serves two purposes:
-  - Predicate on constant symbols.  Those that are not recognised by f_ord
-    must be mapped to ~1.
-  - Order on the recognised symbols.  These must be mapped to distinct
-    integers >= 0.
-  The argument of f_ord is never an application.
-*)
-
-local
-
-fun unrecognized (Const (a, T)) = ((1, ((a, 0), T)), 0)
-  | unrecognized (Free (a, T)) = ((1, ((a, 0), T)), 0)
-  | unrecognized (Var v) = ((1, v), 1)
-  | unrecognized (Bound i) = ((1, (("", i), dummyT)), 2)
-  | unrecognized (Abs (_, T, _)) = ((1, (("", 0), T)), 3);
-
-fun dest_hd f_ord t =
-      let val ord = f_ord t in
-        if ord = ~1 then unrecognized t else ((0, (("", ord), fastype_of t)), 0)
-      end
-
-fun term_lpo f_ord (s, t) =
-  let val (f, ss) = strip_comb s and (g, ts) = strip_comb t in
-    if forall (fn si => term_lpo f_ord (si, t) = LESS) ss
-    then case hd_ord f_ord (f, g) of
-        GREATER =>
-          if forall (fn ti => term_lpo f_ord (s, ti) = GREATER) ts
-          then GREATER else LESS
-      | EQUAL =>
-          if forall (fn ti => term_lpo f_ord (s, ti) = GREATER) ts
-          then list_ord (term_lpo f_ord) (ss, ts)
-          else LESS
-      | LESS => LESS
-    else GREATER
-  end
-and hd_ord f_ord (f, g) = case (f, g) of
-    (Abs (_, T, t), Abs (_, U, u)) =>
-      (case term_lpo f_ord (t, u) of EQUAL => typ_ord (T, U) | ord => ord)
-  | (_, _) => prod_ord (prod_ord int_ord
-                  (prod_ord indexname_ord typ_ord)) int_ord
-                (dest_hd f_ord f, dest_hd f_ord g)
-in
-val term_lpo = term_lpo
-end;
 
 
 (** Connectives of higher order logic **)
@@ -842,7 +663,7 @@ val betapplys = Library.foldl betapply;
   of bound variables and implicit eta-expansion*)
 fun strip_abs_eta k t =
   let
-    val used = fold_aterms (fn Free (v, _) => Name.declare v | _ => I) t Name.context;
+    val used = fold_aterms declare_term_frees t Name.context;
     fun strip_abs t (0, used) = (([], t), (0, used))
       | strip_abs (Abs (v, T, t)) (k, used) =
           let
@@ -863,35 +684,8 @@ fun strip_abs_eta k t =
   in (vs1 @ vs2, t'') end;
 
 
-(* comparing variables *)
-
-fun eq_ix ((x, i): indexname, (y, j)) = i = j andalso x = y;
-
-fun eq_tvar ((xi, S: sort), (xi', S')) = eq_ix (xi, xi') andalso S = S';
-fun eq_var ((xi, T: typ), (xi', T')) = eq_ix (xi, xi') andalso T = T';
-
-val tvar_ord = prod_ord indexname_ord sort_ord;
-val var_ord = prod_ord indexname_ord typ_ord;
-
-
-(*A fast unification filter: true unless the two terms cannot be unified.
-  Terms must be NORMAL.  Treats all Vars as distinct. *)
-fun could_unify (t,u) =
-  let fun matchrands (f$t, g$u) = could_unify(t,u) andalso  matchrands(f,g)
-        | matchrands _ = true
-  in case (head_of t , head_of u) of
-        (_, Var _) => true
-      | (Var _, _) => true
-      | (Const(a,_), Const(b,_)) =>  a=b andalso matchrands(t,u)
-      | (Free(a,_), Free(b,_)) =>  a=b andalso matchrands(t,u)
-      | (Bound i, Bound j) =>  i=j andalso matchrands(t,u)
-      | (Abs _, _) =>  true   (*because of possible eta equality*)
-      | (_, Abs _) =>  true
-      | _ => false
-  end;
-
 (*Substitute new for free occurrences of old in a term*)
-fun subst_free [] = (fn t=>t)
+fun subst_free [] = I
   | subst_free pairs =
       let fun substf u =
             case AList.lookup (op aconv) pairs u of
@@ -1011,11 +805,11 @@ fun close_schematic_term t =
 (** Identifying first-order terms **)
 
 (*Differs from proofterm/is_fun in its treatment of TVar*)
-fun is_funtype (Type("fun",[_,_])) = true
+fun is_funtype (Type ("fun", [_, _])) = true
   | is_funtype _ = false;
 
 (*Argument Ts is a reverse list of binder types, needed if term t contains Bound vars*)
-fun has_not_funtype Ts t = not (is_funtype (fastype_of1 (Ts,t)));
+fun has_not_funtype Ts t = not (is_funtype (fastype_of1 (Ts, t)));
 
 (*First order means in all terms of the form f(t1,...,tn) no argument has a
   function type. The supplied quantifiers are excluded: their argument always
@@ -1057,7 +851,7 @@ fun maxidx_of_term t = maxidx_term t ~1;
 
 
 
-(**** Syntax-related declarations ****)
+(** misc syntax operations **)
 
 (* substructure *)
 
@@ -1086,107 +880,11 @@ fun exists_subterm P =
       | _ => false);
   in ex end;
 
+fun exists_Const P = exists_subterm (fn Const c => P c | _ => false);
+
 fun has_abs (Abs _) = true
   | has_abs (t $ u) = has_abs t orelse has_abs u
   | has_abs _ = false;
-
-
-
-(** Consts etc. **)
-
-fun add_term_consts (Const (c, _), cs) = insert (op =) c cs
-  | add_term_consts (t $ u, cs) = add_term_consts (t, add_term_consts (u, cs))
-  | add_term_consts (Abs (_, _, t), cs) = add_term_consts (t, cs)
-  | add_term_consts (_, cs) = cs;
-
-fun term_consts t = add_term_consts(t,[]);
-
-fun exists_Const P = exists_subterm (fn Const c => P c | _ => false);
-
-
-(** TFrees and TVars **)
-
-(*Accumulates the names of Frees in the term, suppressing duplicates.*)
-fun add_term_free_names (Free(a,_), bs) = insert (op =) a bs
-  | add_term_free_names (f$u, bs) = add_term_free_names (f, add_term_free_names(u, bs))
-  | add_term_free_names (Abs(_,_,t), bs) = add_term_free_names(t,bs)
-  | add_term_free_names (_, bs) = bs;
-
-(*Accumulates the names in the term, suppressing duplicates.
-  Includes Frees and Consts.  For choosing unambiguous bound var names.*)
-fun add_term_names (Const(a,_), bs) = insert (op =) (NameSpace.base a) bs
-  | add_term_names (Free(a,_), bs) = insert (op =) a bs
-  | add_term_names (f$u, bs) = add_term_names (f, add_term_names(u, bs))
-  | add_term_names (Abs(_,_,t), bs) = add_term_names(t,bs)
-  | add_term_names (_, bs) = bs;
-
-(*Accumulates the TVars in a type, suppressing duplicates. *)
-fun add_typ_tvars(Type(_,Ts),vs) = List.foldr add_typ_tvars vs Ts
-  | add_typ_tvars(TFree(_),vs) = vs
-  | add_typ_tvars(TVar(v),vs) = insert (op =) v vs;
-
-(*Accumulates the TFrees in a type, suppressing duplicates. *)
-fun add_typ_tfree_names(Type(_,Ts),fs) = List.foldr add_typ_tfree_names fs Ts
-  | add_typ_tfree_names(TFree(f,_),fs) = insert (op =) f fs
-  | add_typ_tfree_names(TVar(_),fs) = fs;
-
-fun add_typ_tfrees(Type(_,Ts),fs) = List.foldr add_typ_tfrees fs Ts
-  | add_typ_tfrees(TFree(f),fs) = insert (op =) f fs
-  | add_typ_tfrees(TVar(_),fs) = fs;
-
-fun add_typ_varnames(Type(_,Ts),nms) = List.foldr add_typ_varnames nms Ts
-  | add_typ_varnames(TFree(nm,_),nms) = insert (op =) nm nms
-  | add_typ_varnames(TVar((nm,_),_),nms) = insert (op =) nm nms;
-
-(*Accumulates the TVars in a term, suppressing duplicates. *)
-val add_term_tvars = it_term_types add_typ_tvars;
-
-(*Accumulates the TFrees in a term, suppressing duplicates. *)
-val add_term_tfrees = it_term_types add_typ_tfrees;
-val add_term_tfree_names = it_term_types add_typ_tfree_names;
-
-(*Non-list versions*)
-fun typ_tfrees T = add_typ_tfrees(T,[]);
-fun typ_tvars T = add_typ_tvars(T,[]);
-fun term_tfrees t = add_term_tfrees(t,[]);
-fun term_tvars t = add_term_tvars(t,[]);
-
-(*special code to enforce left-to-right collection of TVar-indexnames*)
-
-fun add_typ_ixns(ixns,Type(_,Ts)) = Library.foldl add_typ_ixns (ixns,Ts)
-  | add_typ_ixns(ixns,TVar(ixn,_)) = if member (op =) ixns ixn then ixns
-                                     else ixns@[ixn]
-  | add_typ_ixns(ixns,TFree(_)) = ixns;
-
-fun add_term_tvar_ixns(Const(_,T),ixns) = add_typ_ixns(ixns,T)
-  | add_term_tvar_ixns(Free(_,T),ixns) = add_typ_ixns(ixns,T)
-  | add_term_tvar_ixns(Var(_,T),ixns) = add_typ_ixns(ixns,T)
-  | add_term_tvar_ixns(Bound _,ixns) = ixns
-  | add_term_tvar_ixns(Abs(_,T,t),ixns) =
-      add_term_tvar_ixns(t,add_typ_ixns(ixns,T))
-  | add_term_tvar_ixns(f$t,ixns) =
-      add_term_tvar_ixns(t,add_term_tvar_ixns(f,ixns));
-
-
-(** Frees and Vars **)
-
-(*Accumulates the Vars in the term, suppressing duplicates*)
-fun add_term_vars (t, vars: term list) = case t of
-    Var   _ => OrdList.insert term_ord t vars
-  | Abs (_,_,body) => add_term_vars(body,vars)
-  | f$t =>  add_term_vars (f, add_term_vars(t, vars))
-  | _ => vars;
-
-fun term_vars t = add_term_vars(t,[]);
-
-(*Accumulates the Frees in the term, suppressing duplicates*)
-fun add_term_frees (t, frees: term list) = case t of
-    Free   _ => OrdList.insert term_ord t frees
-  | Abs (_,_,body) => add_term_frees(body,frees)
-  | f$t =>  add_term_frees (f, add_term_frees(t, frees))
-  | _ => frees;
-
-fun term_frees t = add_term_frees(t,[]);
 
 
 (* dest abstraction *)
@@ -1201,23 +899,6 @@ fun dest_abs (x, T, body) =
     if name_clash body then dest_abs (Name.variant [x] x, T, body)    (*potentially slow*)
     else (x, subst_bound (Free (x, T), body))
   end;
-
-
-(* renaming variables *)
-
-val declare_typ_names = fold_atyps (fn TFree (a, _) => Name.declare a | _ => I);
-
-fun declare_term_names tm =
-  fold_aterms
-    (fn Const (a, _) => Name.declare (NameSpace.base a)
-      | Free (a, _) => Name.declare a
-      | _ => I) tm #>
-  fold_types declare_typ_names tm;
-
-fun variant_frees t frees =
-  fst (Name.variants (map fst frees) (declare_term_names t Name.context)) ~~ map snd frees;
-
-fun rename_wrt_term t frees = rev (variant_frees t frees);  (*reversed result!*)
 
 
 (* dummy patterns *)

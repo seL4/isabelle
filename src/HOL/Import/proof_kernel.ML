@@ -1,6 +1,5 @@
 (*  Title:      HOL/Import/proof_kernel.ML
-    ID:         $Id$
-    Author:     Sebastian Skalberg (TU Muenchen), Steven Obua
+    Author:     Sebastian Skalberg and Steven Obua, TU Muenchen
 *)
 
 signature ProofKernel =
@@ -281,14 +280,12 @@ fun i mem L =
           | itr (a::rst) = i=a orelse itr rst
     in itr L end;
 
-fun insert i L = if i mem L then L else i::L
-
 fun mk_set [] = []
-  | mk_set (a::rst) = insert a (mk_set rst)
+  | mk_set (a::rst) = insert (op =) a (mk_set rst)
 
 fun [] union S = S
   | S union [] = S
-  | (a::rst) union S2 = rst union (insert a S2)
+  | (a::rst) union S2 = rst union (insert (op =) a S2)
 
 fun implode_subst [] = []
   | implode_subst (x::r::rest) = ((x,r)::(implode_subst rest))
@@ -1149,9 +1146,9 @@ fun disambiguate_frees thm =
       val ct = cprop_of thm
       val t = term_of ct
       val thy = theory_of_cterm ct
-      val frees = term_frees t
-      val freenames = add_term_free_names (t, [])
-      fun is_old_name n = n mem_string freenames
+      val frees = OldTerm.term_frees t
+      val freenames = Term.add_free_names t []
+      val is_old_name = member (op =) freenames
       fun name_of (Free (n, _)) = n
         | name_of _ = ERR "name_of"
       fun new_name' bump map n =
@@ -1214,24 +1211,23 @@ fun get_hol4_thm thyname thmname thy =
               | NONE => NONE
         end
 
-fun non_trivial_term_consts tm =
-    List.filter (fn c => not (c = "Trueprop" orelse
-                         c = "All" orelse
-                         c = "op -->" orelse
-                         c = "op &" orelse
-                         c = "op =")) (Term.term_consts tm)
+fun non_trivial_term_consts t = fold_aterms
+  (fn Const (c, _) =>
+      if c = "Trueprop" orelse c = "All" orelse c = "op -->" orelse c = "op &" orelse c = "op ="
+      then I else insert (op =) c
+    | _ => I) t [];
 
 fun match_consts t (* th *) =
     let
         fun add_consts (Const (c, _), cs) =
             (case c of
-                 "op =" => Library.insert (op =) "==" cs
-               | "op -->" => Library.insert (op =) "==>" cs
+                 "op =" => insert (op =) "==" cs
+               | "op -->" => insert (op =) "==>" cs
                | "All" => cs
                | "all" => cs
                | "op &" => cs
                | "Trueprop" => cs
-               | _ => Library.insert (op =) c cs)
+               | _ => insert (op =) c cs)
           | add_consts (t $ u, cs) = add_consts (t, add_consts (u, cs))
           | add_consts (Abs (_, _, t), cs) = add_consts (t, cs)
           | add_consts (_, cs) = cs
@@ -1298,7 +1294,7 @@ fun get_isabelle_thm thyname thmname hol4conc thy =
             let
                 val _ = (message "Looking for conclusion:";
                          if_debug prin isaconc)
-                val cs = non_trivial_term_consts isaconc
+                val cs = non_trivial_term_consts isaconc;
                 val _ = (message "Looking for consts:";
                          message (commas cs))
                 val pot_thms = Shuffler.find_potential thy isaconc
@@ -1424,9 +1420,9 @@ fun INST_TYPE lambda (hth as HOLThm(rens,th)) thy =
     let
         val _ = message "INST_TYPE:"
         val _ = if_debug pth hth
-        val tys_before = add_term_tfrees (prop_of th,[])
+        val tys_before = OldTerm.add_term_tfrees (prop_of th,[])
         val th1 = Thm.varifyT th
-        val tys_after = add_term_tvars (prop_of th1,[])
+        val tys_after = OldTerm.add_term_tvars (prop_of th1,[])
         val tyinst = map (fn (bef, iS) =>
                              (case try (Lib.assoc (TFree bef)) lambda of
                                   SOME ty => (ctyp_of thy (TVar iS), ctyp_of thy ty)
@@ -2093,7 +2089,7 @@ fun new_type_definition thyname thmname tycname hth thy =
             val c = case concl_of th2 of
                         _ $ (Const("Ex",_) $ Abs(_,_,Const("op :",_) $ _ $ c)) => c
                       | _ => raise ERR "new_type_definition" "Bad type definition theorem"
-            val tfrees = term_tfrees c
+            val tfrees = OldTerm.term_tfrees c
             val tnames = map fst tfrees
             val tsyn = mk_syn thy tycname
             val typ = (tycname,tnames,tsyn)
@@ -2179,7 +2175,7 @@ fun type_introduction thyname thmname tycname abs_name rep_name (P,t) hth thy =
             val c = case concl_of th2 of
                         _ $ (Const("Ex",_) $ Abs(_,_,Const("op :",_) $ _ $ c)) => c
                       | _ => raise ERR "type_introduction" "Bad type definition theorem"
-            val tfrees = term_tfrees c
+            val tfrees = OldTerm.term_tfrees c
             val tnames = sort string_ord (map fst tfrees)
             val tsyn = mk_syn thy tycname
             val typ = (tycname,tnames,tsyn)

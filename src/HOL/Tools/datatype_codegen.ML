@@ -1,6 +1,5 @@
 (*  Title:      HOL/Tools/datatype_codegen.ML
-    ID:         $Id$
-    Author:     Stefan Berghofer & Florian Haftmann, TU Muenchen
+    Author:     Stefan Berghofer and Florian Haftmann, TU Muenchen
 
 Code generator facilities for inductive datatypes.
 *)
@@ -217,8 +216,8 @@ fun pretty_case thy defs dep module brack constrs (c as Const (_, T)) ts gr =
       let
         val ts1 = Library.take (i, ts);
         val t :: ts2 = Library.drop (i, ts);
-        val names = foldr add_term_names
-          (map (fst o fst o dest_Var) (foldr add_term_vars [] ts1)) ts1;
+        val names = foldr OldTerm.add_term_names
+          (map (fst o fst o dest_Var) (foldr OldTerm.add_term_vars [] ts1)) ts1;
         val (Ts, dT) = split_last (Library.take (i+1, fst (strip_type T)));
 
         fun pcase [] [] [] gr = ([], gr)
@@ -414,7 +413,7 @@ fun get_eq thy dtco =
     val inject2 = (#inject o DatatypePackage.the_datatype thy) dtco;
     val ctxt = ProofContext.init thy;
     val simpset = Simplifier.context ctxt
-      (MetaSimplifier.empty_ss addsimprocs [DatatypePackage.distinct_simproc]);
+      (Simplifier.empty_ss addsimprocs [DatatypePackage.distinct_simproc]);
     val cos = map (fn (co, tys) =>
         (Const (co, tys ---> Type (dtco, map TFree vs)), tys)) cs;
     val tac = ALLGOALS (simp_tac simpset)

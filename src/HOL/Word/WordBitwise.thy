@@ -344,11 +344,11 @@ lemma td_ext_nth':
 
 lemmas td_ext_nth = td_ext_nth' [OF refl refl refl, unfolded word_size]
 
-interpretation test_bit:
-  td_ext ["op !! :: 'a::len0 word => nat => bool"
-          set_bits
-          "{f. \<forall>i. f i \<longrightarrow> i < len_of TYPE('a::len0)}"
-          "(\<lambda>h i. h i \<and> i < len_of TYPE('a::len0))"]
+interpretation test_bit!:
+  td_ext "op !! :: 'a::len0 word => nat => bool"
+         set_bits
+         "{f. \<forall>i. f i \<longrightarrow> i < len_of TYPE('a::len0)}"
+         "(\<lambda>h i. h i \<and> i < len_of TYPE('a::len0))"
   by (rule td_ext_nth)
 
 declare test_bit.Rep' [simp del]

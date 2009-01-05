@@ -405,10 +405,10 @@ lemma abs_ineq_iff:
     and "linearform H h"
   shows "(\<forall>x \<in> H. \<bar>h x\<bar> \<le> p x) = (\<forall>x \<in> H. h x \<le> p x)" (is "?L = ?R")
 proof
-  interpret subspace [H E] by fact
-  interpret vectorspace [E] by fact
-  interpret seminorm [E p] by fact
-  interpret linearform [H h] by fact
+  interpret subspace H E by fact
+  interpret vectorspace E by fact
+  interpret seminorm E p by fact
+  interpret linearform H h by fact
   have H: "vectorspace H" using `vectorspace E` ..
   {
     assume l: ?L

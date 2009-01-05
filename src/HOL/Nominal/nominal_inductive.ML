@@ -1,5 +1,4 @@
 (*  Title:      HOL/Nominal/nominal_inductive.ML
-    ID:         $Id$
     Author:     Stefan Berghofer, TU Muenchen
 
 Infrastructure for proving equivariance and strong induction theorems
@@ -153,7 +152,7 @@ fun prove_strong_ind s avoids thy =
     val elims = map (atomize_induct ctxt) elims;
     val monos = InductivePackage.get_monos ctxt;
     val eqvt_thms = NominalThmDecls.get_eqvt_thms ctxt;
-    val _ = (case names \\ foldl (apfst prop_of #> add_term_consts) [] eqvt_thms of
+    val _ = (case names \\ fold (Term.add_const_names o Thm.prop_of) eqvt_thms [] of
         [] => ()
       | xs => error ("Missing equivariance theorem for predicate(s): " ^
           commas_quote xs));
@@ -200,8 +199,8 @@ fun prove_strong_ind s avoids thy =
     val ind_sort = if null atomTs then HOLogic.typeS
       else Sign.certify_sort thy (map (fn T => Sign.intern_class thy
         ("fs_" ^ Sign.base_name (fst (dest_Type T)))) atomTs);
-    val fs_ctxt_tyname = Name.variant (map fst (term_tfrees raw_induct')) "'n";
-    val fs_ctxt_name = Name.variant (add_term_names (raw_induct', [])) "z";
+    val fs_ctxt_tyname = Name.variant (map fst (OldTerm.term_tfrees raw_induct')) "'n";
+    val fs_ctxt_name = Name.variant (OldTerm.add_term_names (raw_induct', [])) "z";
     val fsT = TFree (fs_ctxt_tyname, ind_sort);
 
     val inductive_forall_def' = Drule.instantiate'
@@ -238,10 +237,10 @@ fun prove_strong_ind s avoids thy =
         val prem = Logic.list_implies
           (map mk_fresh bvars @ mk_distinct bvars @
            map (fn prem =>
-             if null (term_frees prem inter ps) then prem
+             if null (OldTerm.term_frees prem inter ps) then prem
              else lift_prem prem) prems,
            HOLogic.mk_Trueprop (lift_pred p ts));
-        val vs = map (Var o apfst (rpair 0)) (rename_wrt_term prem params')
+        val vs = map (Var o apfst (rpair 0)) (Term.rename_wrt_term prem params')
       in
         (list_all (params', prem), (rev vs, subst_bounds (vs, prem)))
       end) prems);
@@ -264,7 +263,7 @@ fun prove_strong_ind s avoids thy =
     val vc_compat = map (fn (params, bvars, prems, (p, ts)) =>
       map (fn q => list_all (params, incr_boundvars ~1 (Logic.list_implies
           (List.mapPartial (fn prem =>
-             if null (ps inter term_frees prem) then SOME prem
+             if null (ps inter OldTerm.term_frees prem) then SOME prem
              else map_term (split_conj (K o I) names) prem prem) prems, q))))
         (mk_distinct bvars @
          maps (fn (t, T) => map (fn (u, U) => HOLogic.mk_Trueprop
@@ -353,7 +352,7 @@ fun prove_strong_ind s avoids thy =
                          (rev pis' @ pis) th));
                  val (gprems1, gprems2) = split_list
                    (map (fn (th, t) =>
-                      if null (term_frees t inter ps) then (SOME th, mk_pi th)
+                      if null (OldTerm.term_frees t inter ps) then (SOME th, mk_pi th)
                       else
                         (map_thm ctxt (split_conj (K o I) names)
                            (etac conjunct1 1) monos NONE th,
@@ -412,7 +411,7 @@ fun prove_strong_ind s avoids thy =
       let
         val prem :: prems = Logic.strip_imp_prems rule;
         val concl = Logic.strip_imp_concl rule;
-        val used = add_term_free_names (rule, [])
+        val used = Term.add_free_names rule [];
       in
         (prem,
          List.drop (snd (strip_comb (HOLogic.dest_Trueprop prem)), length ind_params),
@@ -614,7 +613,7 @@ fun prove_eqvt s xatoms thy =
       [mk_perm_bool_simproc names,
        NominalPermeq.perm_simproc_app, NominalPermeq.perm_simproc_fun];
     val t = Logic.unvarify (concl_of raw_induct);
-    val pi = Name.variant (add_term_names (t, [])) "pi";
+    val pi = Name.variant (OldTerm.add_term_names (t, [])) "pi";
     val ps = map (fst o HOLogic.dest_imp)
       (HOLogic.dest_conj (HOLogic.dest_Trueprop t));
     fun eqvt_tac pi (intr, vs) st =

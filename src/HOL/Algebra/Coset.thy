@@ -1,5 +1,4 @@
 (*  Title:      HOL/Algebra/Coset.thy
-    ID:         $Id$
     Author:     Florian Kammueller, with new proofs by L C Paulson, and
                 Stephan Hohe
 *)
@@ -114,7 +113,7 @@ lemma (in group) repr_independenceD:
       and repr:  "H #> x = H #> y"
   shows "y \<in> H #> x"
 proof -
-  interpret subgroup [H G] by fact
+  interpret subgroup H G by fact
   show ?thesis  apply (subst repr)
   apply (intro rcos_self)
    apply (rule ycarr)
@@ -129,7 +128,7 @@ lemma (in subgroup) elemrcos_carrier:
     and a': "a' \<in> H #> a"
   shows "a' \<in> carrier G"
 proof -
-  interpret group [G] by fact
+  interpret group G by fact
   from subset and acarr
   have "H #> a \<subseteq> carrier G" by (rule r_coset_subset_G)
   from this and a'
@@ -142,7 +141,7 @@ lemma (in subgroup) rcos_const:
   assumes hH: "h \<in> H"
   shows "H #> h = H"
 proof -
-  interpret group [G] by fact
+  interpret group G by fact
   show ?thesis apply (unfold r_coset_def)
     apply rule
     apply rule
@@ -173,7 +172,7 @@ lemma (in subgroup) rcos_module_imp:
       and x'cos: "x' \<in> H #> x"
   shows "(x' \<otimes> inv x) \<in> H"
 proof -
-  interpret group [G] by fact
+  interpret group G by fact
   from xcarr x'cos
       have x'carr: "x' \<in> carrier G"
       by (rule elemrcos_carrier[OF is_group])
@@ -213,7 +212,7 @@ lemma (in subgroup) rcos_module_rev:
       and xixH: "(x' \<otimes> inv x) \<in> H"
   shows "x' \<in> H #> x"
 proof -
-  interpret group [G] by fact
+  interpret group G by fact
   from xixH
       have "\<exists>h\<in>H. x' \<otimes> (inv x) = h" by fast
   from this
@@ -244,7 +243,7 @@ lemma (in subgroup) rcos_module:
   assumes carr: "x \<in> carrier G" "x' \<in> carrier G"
   shows "(x' \<in> H #> x) = (x' \<otimes> inv x \<in> H)"
 proof -
-  interpret group [G] by fact
+  interpret group G by fact
   show ?thesis proof  assume "x' \<in> H #> x"
     from this and carr
     show "x' \<otimes> inv x \<in> H"
@@ -263,7 +262,7 @@ lemma (in subgroup) rcosets_carrier:
   assumes XH: "X \<in> rcosets H"
   shows "X \<subseteq> carrier G"
 proof -
-  interpret group [G] by fact
+  interpret group G by fact
   from XH have "\<exists>x\<in> carrier G. X = H #> x"
       unfolding RCOSETS_def
       by fast
@@ -348,7 +347,7 @@ lemma (in subgroup) lcos_module_rev:
       and xixH: "(inv x \<otimes> x') \<in> H"
   shows "x' \<in> x <# H"
 proof -
-  interpret group [G] by fact
+  interpret group G by fact
   from xixH
       have "\<exists>h\<in>H. (inv x) \<otimes> x' = h" by fast
   from this
@@ -600,7 +599,7 @@ lemma (in subgroup) equiv_rcong:
    assumes "group G"
    shows "equiv (carrier G) (rcong H)"
 proof -
-  interpret group [G] by fact
+  interpret group G by fact
   show ?thesis
   proof (intro equiv.intro)
     show "refl (carrier G) (rcong H)"
@@ -647,7 +646,7 @@ lemma (in subgroup) l_coset_eq_rcong:
   assumes a: "a \<in> carrier G"
   shows "a <# H = rcong H `` {a}"
 proof -
-  interpret group [G] by fact
+  interpret group G by fact
   show ?thesis by (force simp add: r_congruent_def l_coset_def m_assoc [symmetric] a ) 
 qed
 
@@ -658,7 +657,7 @@ lemma (in group) rcos_equation:
   assumes p: "ha \<otimes> a = h \<otimes> b" "a \<in> carrier G" "b \<in> carrier G" "h \<in> H" "ha \<in> H" "hb \<in> H"
   shows "hb \<otimes> a \<in> (\<Union>h\<in>H. {h \<otimes> b})"
 proof -
-  interpret subgroup [H G] by fact
+  interpret subgroup H G by fact
   from p show ?thesis apply (rule_tac UN_I [of "hb \<otimes> ((inv ha) \<otimes> h)"])
     apply (simp add: )
     apply (simp add: m_assoc transpose_inv)
@@ -670,7 +669,7 @@ lemma (in group) rcos_disjoint:
   assumes p: "a \<in> rcosets H" "b \<in> rcosets H" "a\<noteq>b"
   shows "a \<inter> b = {}"
 proof -
-  interpret subgroup [H G] by fact
+  interpret subgroup H G by fact
   from p show ?thesis apply (simp add: RCOSETS_def r_coset_def)
     apply (blast intro: rcos_equation prems sym)
     done
@@ -760,7 +759,7 @@ lemma (in group) rcosets_part_G:
   assumes "subgroup H G"
   shows "\<Union>(rcosets H) = carrier G"
 proof -
-  interpret subgroup [H G] by fact
+  interpret subgroup H G by fact
   show ?thesis
     apply (rule equalityI)
     apply (force simp add: RCOSETS_def r_coset_def)
@@ -847,7 +846,7 @@ lemma (in subgroup) subgroup_in_rcosets:
   assumes "group G"
   shows "H \<in> rcosets H"
 proof -
-  interpret group [G] by fact
+  interpret group G by fact
   from _ subgroup_axioms have "H #> \<one> = H"
     by (rule coset_join2) auto
   then show ?thesis

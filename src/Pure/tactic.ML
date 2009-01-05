@@ -1,9 +1,7 @@
 (*  Title:      Pure/tactic.ML
-    ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
-    Copyright   1991  University of Cambridge
 
-Basic tactics.
+Fundamental tactics.
 *)
 
 signature BASIC_TACTIC =
@@ -192,7 +190,7 @@ fun distinct_subgoals_tac state =
 (*Determine print names of goal parameters (reversed)*)
 fun innermost_params i st =
   let val (_, _, Bi, _) = dest_state (st, i)
-  in rename_wrt_term Bi (Logic.strip_params Bi) end;
+  in Term.rename_wrt_term Bi (Logic.strip_params Bi) end;
 
 (*params of subgoal i as they are printed*)
 fun params_of_state i st = rev (innermost_params i st);

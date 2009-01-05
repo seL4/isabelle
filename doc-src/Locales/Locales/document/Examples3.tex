@@ -43,7 +43,7 @@ In the above example, the fact that \isa{{\isasymle}} is a partial
 %
 \isatagvisible
 \isacommand{interpretation}\isamarkupfalse%
-\ nat{\isacharcolon}\ partial{\isacharunderscore}order\ {\isacharbrackleft}{\isachardoublequoteopen}op\ {\isasymle}\ {\isacharcolon}{\isacharcolon}\ nat\ {\isasymRightarrow}\ nat\ {\isasymRightarrow}\ bool{\isachardoublequoteclose}{\isacharbrackright}\isanewline
+\ nat{\isacharcolon}\ partial{\isacharunderscore}order\ {\isachardoublequoteopen}op\ {\isasymle}\ {\isacharcolon}{\isacharcolon}\ nat\ {\isasymRightarrow}\ nat\ {\isasymRightarrow}\ bool{\isachardoublequoteclose}\isanewline
 \ \ \isakeyword{where}\ {\isachardoublequoteopen}partial{\isacharunderscore}order{\isachardot}less\ {\isacharparenleft}op\ {\isasymle}{\isacharparenright}\ {\isacharparenleft}x{\isacharcolon}{\isacharcolon}nat{\isacharparenright}\ y\ {\isacharequal}\ {\isacharparenleft}x\ {\isacharless}\ y{\isacharparenright}{\isachardoublequoteclose}\isanewline
 \isacommand{proof}\isamarkupfalse%
 \ {\isacharminus}\isanewline
@@ -53,7 +53,7 @@ In the above example, the fact that \isa{{\isasymle}} is a partial
 \ unfold{\isacharunderscore}locales\ auto\isanewline
 \ \ \isacommand{then}\isamarkupfalse%
 \ \isacommand{interpret}\isamarkupfalse%
-\ nat{\isacharcolon}\ partial{\isacharunderscore}order\ {\isacharbrackleft}{\isachardoublequoteopen}op\ {\isasymle}\ {\isacharcolon}{\isacharcolon}\ {\isacharbrackleft}nat{\isacharcomma}\ nat{\isacharbrackright}\ {\isasymRightarrow}\ bool{\isachardoublequoteclose}{\isacharbrackright}\ \isacommand{{\isachardot}}\isamarkupfalse%
+\ nat{\isacharcolon}\ partial{\isacharunderscore}order\ {\isachardoublequoteopen}op\ {\isasymle}\ {\isacharcolon}{\isacharcolon}\ {\isacharbrackleft}nat{\isacharcomma}\ nat{\isacharbrackright}\ {\isasymRightarrow}\ bool{\isachardoublequoteclose}\ \isacommand{{\isachardot}}\isamarkupfalse%
 \isanewline
 \ \ \isacommand{show}\isamarkupfalse%
 \ {\isachardoublequoteopen}partial{\isacharunderscore}order{\isachardot}less\ {\isacharparenleft}op\ {\isasymle}{\isacharparenright}\ {\isacharparenleft}x{\isacharcolon}{\isacharcolon}nat{\isacharparenright}\ y\ {\isacharequal}\ {\isacharparenleft}x\ {\isacharless}\ y{\isacharparenright}{\isachardoublequoteclose}\isanewline
@@ -91,8 +91,8 @@ The inner interpretation does not require an
 \begin{isamarkuptext}%
 Further interpretations are necessary to reuse theorems from
   the other locales.  In \isa{lattice} the operations \isa{{\isasymsqinter}} and
-  \isa{{\isasymsqunion}} are substituted by \isa{ord{\isacharunderscore}class{\isachardot}min} and
-  \isa{ord{\isacharunderscore}class{\isachardot}max}.  The entire proof for the
+  \isa{{\isasymsqunion}} are substituted by \isa{min} and
+  \isa{max}.  The entire proof for the
   interpretation is reproduced in order to give an example of a more
   elaborate interpretation proof.%
 \end{isamarkuptext}%
@@ -104,7 +104,7 @@ Further interpretations are necessary to reuse theorems from
 %
 \isatagvisible
 \isacommand{interpretation}\isamarkupfalse%
-\ nat{\isacharcolon}\ lattice\ {\isacharbrackleft}{\isachardoublequoteopen}op\ {\isasymle}\ {\isacharcolon}{\isacharcolon}\ nat\ {\isasymRightarrow}\ nat\ {\isasymRightarrow}\ bool{\isachardoublequoteclose}{\isacharbrackright}\isanewline
+\ nat{\isacharcolon}\ lattice\ {\isachardoublequoteopen}op\ {\isasymle}\ {\isacharcolon}{\isacharcolon}\ nat\ {\isasymRightarrow}\ nat\ {\isasymRightarrow}\ bool{\isachardoublequoteclose}\isanewline
 \ \ \isakeyword{where}\ {\isachardoublequoteopen}lattice{\isachardot}meet\ op\ {\isasymle}\ {\isacharparenleft}x{\isacharcolon}{\isacharcolon}nat{\isacharparenright}\ y\ {\isacharequal}\ min\ x\ y{\isachardoublequoteclose}\isanewline
 \ \ \ \ \isakeyword{and}\ {\isachardoublequoteopen}lattice{\isachardot}join\ op\ {\isasymle}\ {\isacharparenleft}x{\isacharcolon}{\isacharcolon}nat{\isacharparenright}\ y\ {\isacharequal}\ max\ x\ y{\isachardoublequoteclose}\isanewline
 \isacommand{proof}\isamarkupfalse%
@@ -143,7 +143,7 @@ In order to show the equations, we put ourselves in a
 \isamarkuptrue%
 \ \ \isacommand{then}\isamarkupfalse%
 \ \isacommand{interpret}\isamarkupfalse%
-\ nat{\isacharcolon}\ lattice\ {\isacharbrackleft}{\isachardoublequoteopen}op\ {\isasymle}\ {\isacharcolon}{\isacharcolon}\ nat\ {\isasymRightarrow}\ nat\ {\isasymRightarrow}\ bool{\isachardoublequoteclose}{\isacharbrackright}\ \isacommand{{\isachardot}}\isamarkupfalse%
+\ nat{\isacharcolon}\ lattice\ {\isachardoublequoteopen}op\ {\isasymle}\ {\isacharcolon}{\isacharcolon}\ nat\ {\isasymRightarrow}\ nat\ {\isasymRightarrow}\ bool{\isachardoublequoteclose}\ \isacommand{{\isachardot}}\isamarkupfalse%
 \isanewline
 \ \ \isacommand{show}\isamarkupfalse%
 \ {\isachardoublequoteopen}lattice{\isachardot}meet\ op\ {\isasymle}\ {\isacharparenleft}x{\isacharcolon}{\isacharcolon}nat{\isacharparenright}\ y\ {\isacharequal}\ min\ x\ y{\isachardoublequoteclose}\isanewline
@@ -174,7 +174,7 @@ That the relation \isa{{\isasymle}} is a total order completes this
 %
 \isatagvisible
 \isacommand{interpretation}\isamarkupfalse%
-\ nat{\isacharcolon}\ total{\isacharunderscore}order\ {\isacharbrackleft}{\isachardoublequoteopen}op\ {\isasymle}\ {\isacharcolon}{\isacharcolon}\ nat\ {\isasymRightarrow}\ nat\ {\isasymRightarrow}\ bool{\isachardoublequoteclose}{\isacharbrackright}\isanewline
+\ nat{\isacharcolon}\ total{\isacharunderscore}order\ {\isachardoublequoteopen}op\ {\isasymle}\ {\isacharcolon}{\isacharcolon}\ nat\ {\isasymRightarrow}\ nat\ {\isasymRightarrow}\ bool{\isachardoublequoteclose}\isanewline
 \ \ \isacommand{by}\isamarkupfalse%
 \ unfold{\isacharunderscore}locales\ arith%
 \endisatagvisible
@@ -196,11 +196,11 @@ Theorems that are available in the theory at this point are shown in
   \isa{nat{\isachardot}less{\isacharunderscore}def} from locale \isa{partial{\isacharunderscore}order}: \\
   \quad \isa{{\isacharparenleft}{\isacharquery}x\ {\isacharless}\ {\isacharquery}y{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}{\isacharquery}x\ {\isasymle}\ {\isacharquery}y\ {\isasymand}\ {\isacharquery}x\ {\isasymnoteq}\ {\isacharquery}y{\isacharparenright}} \\
   \isa{nat{\isachardot}meet{\isacharunderscore}left} from locale \isa{lattice}: \\
-  \quad \isa{ord{\isacharunderscore}class{\isachardot}min\ {\isacharquery}x\ {\isacharquery}y\ {\isasymle}\ {\isacharquery}x} \\
+  \quad \isa{min\ {\isacharquery}x\ {\isacharquery}y\ {\isasymle}\ {\isacharquery}x} \\
   \isa{nat{\isachardot}join{\isacharunderscore}distr} from locale \isa{distrib{\isacharunderscore}lattice}: \\
-  \quad \isa{ord{\isacharunderscore}class{\isachardot}max\ {\isacharquery}x\ {\isacharparenleft}ord{\isacharunderscore}class{\isachardot}min\ {\isacharquery}y\ {\isacharquery}z{\isacharparenright}\ {\isacharequal}\ ord{\isacharunderscore}class{\isachardot}min\ {\isacharparenleft}ord{\isacharunderscore}class{\isachardot}max\ {\isacharquery}x\ {\isacharquery}y{\isacharparenright}\ {\isacharparenleft}ord{\isacharunderscore}class{\isachardot}max\ {\isacharquery}x\ {\isacharquery}z{\isacharparenright}} \\
+  \quad \isa{lattice{\isachardot}join\ op\ {\isasymle}\ {\isacharquery}x\ {\isacharparenleft}lattice{\isachardot}meet\ op\ {\isasymle}\ {\isacharquery}y\ {\isacharquery}z{\isacharparenright}\ {\isacharequal}\ lattice{\isachardot}meet\ op\ {\isasymle}\ {\isacharparenleft}lattice{\isachardot}join\ op\ {\isasymle}\ {\isacharquery}x\ {\isacharquery}y{\isacharparenright}\ {\isacharparenleft}lattice{\isachardot}join\ op\ {\isasymle}\ {\isacharquery}x\ {\isacharquery}z{\isacharparenright}} \\
   \isa{nat{\isachardot}less{\isacharunderscore}total} from locale \isa{total{\isacharunderscore}order}: \\
-  \quad \isa{{\isacharquery}x\ {\isacharless}\ {\isacharquery}y\ {\isasymor}\ {\isacharquery}x\ {\isacharequal}\ {\isacharquery}y\ {\isasymor}\ {\isacharquery}y\ {\isacharless}\ {\isacharquery}x}
+  \quad \isa{partial{\isacharunderscore}order{\isachardot}less\ op\ {\isasymle}\ {\isacharquery}x\ {\isacharquery}y\ {\isasymor}\ {\isacharquery}x\ {\isacharequal}\ {\isacharquery}y\ {\isasymor}\ partial{\isacharunderscore}order{\isachardot}less\ op\ {\isasymle}\ {\isacharquery}y\ {\isacharquery}x}
 \end{tabular}
 \end{center}
 \hrule
@@ -244,7 +244,7 @@ Divisibility on the natural numbers is a distributive lattice
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{interpretation}\isamarkupfalse%
-\ nat{\isacharunderscore}dvd{\isacharcolon}\ partial{\isacharunderscore}order\ {\isacharbrackleft}{\isachardoublequoteopen}op\ dvd\ {\isacharcolon}{\isacharcolon}\ nat\ {\isasymRightarrow}\ nat\ {\isasymRightarrow}\ bool{\isachardoublequoteclose}{\isacharbrackright}\isanewline
+\ nat{\isacharunderscore}dvd{\isacharcolon}\ partial{\isacharunderscore}order\ {\isachardoublequoteopen}op\ dvd\ {\isacharcolon}{\isacharcolon}\ nat\ {\isasymRightarrow}\ nat\ {\isasymRightarrow}\ bool{\isachardoublequoteclose}\isanewline
 \ \ \isakeyword{where}\ {\isachardoublequoteopen}partial{\isacharunderscore}order{\isachardot}less\ op\ dvd\ {\isacharparenleft}x{\isacharcolon}{\isacharcolon}nat{\isacharparenright}\ y\ {\isacharequal}\ {\isacharparenleft}x\ dvd\ y\ {\isasymand}\ x\ {\isasymnoteq}\ y{\isacharparenright}{\isachardoublequoteclose}\isanewline
 %
 \isadelimproof
@@ -260,7 +260,7 @@ Divisibility on the natural numbers is a distributive lattice
 \ unfold{\isacharunderscore}locales\ {\isacharparenleft}auto\ simp{\isacharcolon}\ dvd{\isacharunderscore}def{\isacharparenright}\isanewline
 \ \ \isacommand{then}\isamarkupfalse%
 \ \isacommand{interpret}\isamarkupfalse%
-\ nat{\isacharunderscore}dvd{\isacharcolon}\ partial{\isacharunderscore}order\ {\isacharbrackleft}{\isachardoublequoteopen}op\ dvd\ {\isacharcolon}{\isacharcolon}\ nat\ {\isasymRightarrow}\ nat\ {\isasymRightarrow}\ bool{\isachardoublequoteclose}{\isacharbrackright}\ \isacommand{{\isachardot}}\isamarkupfalse%
+\ nat{\isacharunderscore}dvd{\isacharcolon}\ partial{\isacharunderscore}order\ {\isachardoublequoteopen}op\ dvd\ {\isacharcolon}{\isacharcolon}\ nat\ {\isasymRightarrow}\ nat\ {\isasymRightarrow}\ bool{\isachardoublequoteclose}\ \isacommand{{\isachardot}}\isamarkupfalse%
 \isanewline
 \ \ \isacommand{show}\isamarkupfalse%
 \ {\isachardoublequoteopen}partial{\isacharunderscore}order{\isachardot}less\ op\ dvd\ {\isacharparenleft}x{\isacharcolon}{\isacharcolon}nat{\isacharparenright}\ y\ {\isacharequal}\ {\isacharparenleft}x\ dvd\ y\ {\isasymand}\ x\ {\isasymnoteq}\ y{\isacharparenright}{\isachardoublequoteclose}\isanewline
@@ -285,7 +285,7 @@ Note that there is no symbol for strict divisibility.  Instead,
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{interpretation}\isamarkupfalse%
-\ nat{\isacharunderscore}dvd{\isacharcolon}\ lattice\ {\isacharbrackleft}{\isachardoublequoteopen}op\ dvd\ {\isacharcolon}{\isacharcolon}\ nat\ {\isasymRightarrow}\ nat\ {\isasymRightarrow}\ bool{\isachardoublequoteclose}{\isacharbrackright}\isanewline
+\ nat{\isacharunderscore}dvd{\isacharcolon}\ lattice\ {\isachardoublequoteopen}op\ dvd\ {\isacharcolon}{\isacharcolon}\ nat\ {\isasymRightarrow}\ nat\ {\isasymRightarrow}\ bool{\isachardoublequoteclose}\isanewline
 \ \ \isakeyword{where}\ nat{\isacharunderscore}dvd{\isacharunderscore}meet{\isacharunderscore}eq{\isacharcolon}\isanewline
 \ \ \ \ \ \ {\isachardoublequoteopen}lattice{\isachardot}meet\ op\ dvd\ {\isacharequal}\ gcd{\isachardoublequoteclose}\isanewline
 \ \ \ \ \isakeyword{and}\ nat{\isacharunderscore}dvd{\isacharunderscore}join{\isacharunderscore}eq{\isacharcolon}\isanewline
@@ -316,7 +316,7 @@ Note that there is no symbol for strict divisibility.  Instead,
 \isanewline
 \ \ \isacommand{then}\isamarkupfalse%
 \ \isacommand{interpret}\isamarkupfalse%
-\ nat{\isacharunderscore}dvd{\isacharcolon}\ lattice\ {\isacharbrackleft}{\isachardoublequoteopen}op\ dvd\ {\isacharcolon}{\isacharcolon}\ nat\ {\isasymRightarrow}\ nat\ {\isasymRightarrow}\ bool{\isachardoublequoteclose}{\isacharbrackright}\ \isacommand{{\isachardot}}\isamarkupfalse%
+\ nat{\isacharunderscore}dvd{\isacharcolon}\ lattice\ {\isachardoublequoteopen}op\ dvd\ {\isacharcolon}{\isacharcolon}\ nat\ {\isasymRightarrow}\ nat\ {\isasymRightarrow}\ bool{\isachardoublequoteclose}\ \isacommand{{\isachardot}}\isamarkupfalse%
 \isanewline
 \ \ \isacommand{show}\isamarkupfalse%
 \ {\isachardoublequoteopen}lattice{\isachardot}meet\ op\ dvd\ {\isacharequal}\ gcd{\isachardoublequoteclose}\isanewline
@@ -390,7 +390,7 @@ Equations \isa{nat{\isacharunderscore}dvd{\isacharunderscore}meet{\isacharunders
 \isatagvisible
 \isacommand{interpretation}\isamarkupfalse%
 \ nat{\isacharunderscore}dvd{\isacharcolon}\isanewline
-\ \ distrib{\isacharunderscore}lattice\ {\isacharbrackleft}{\isachardoublequoteopen}op\ dvd\ {\isacharcolon}{\isacharcolon}\ nat\ {\isasymRightarrow}\ nat\ {\isasymRightarrow}\ bool{\isachardoublequoteclose}{\isacharbrackright}\isanewline
+\ \ distrib{\isacharunderscore}lattice\ {\isachardoublequoteopen}op\ dvd\ {\isacharcolon}{\isacharcolon}\ nat\ {\isasymRightarrow}\ nat\ {\isasymRightarrow}\ bool{\isachardoublequoteclose}\isanewline
 \ \ \isacommand{apply}\isamarkupfalse%
 \ unfold{\isacharunderscore}locales%
 \begin{isamarkuptxt}%
@@ -434,7 +434,7 @@ Theorems that are available in the theory after these
   \isa{nat{\isacharunderscore}dvd{\isachardot}meet{\isacharunderscore}left} from locale \isa{lattice}: \\
   \quad \isa{gcd\ {\isacharquery}x\ {\isacharquery}y\ dvd\ {\isacharquery}x} \\
   \isa{nat{\isacharunderscore}dvd{\isachardot}join{\isacharunderscore}distr} from locale \isa{distrib{\isacharunderscore}lattice}: \\
-  \quad \isa{lcm\ {\isacharquery}x\ {\isacharparenleft}gcd\ {\isacharquery}y\ {\isacharquery}z{\isacharparenright}\ {\isacharequal}\ gcd\ {\isacharparenleft}lcm\ {\isacharquery}x\ {\isacharquery}y{\isacharparenright}\ {\isacharparenleft}lcm\ {\isacharquery}x\ {\isacharquery}z{\isacharparenright}} \\
+  \quad \isa{lattice{\isachardot}join\ op\ dvd\ {\isacharquery}x\ {\isacharparenleft}lattice{\isachardot}meet\ op\ dvd\ {\isacharquery}y\ {\isacharquery}z{\isacharparenright}\ {\isacharequal}\ lattice{\isachardot}meet\ op\ dvd\ {\isacharparenleft}lattice{\isachardot}join\ op\ dvd\ {\isacharquery}x\ {\isacharquery}y{\isacharparenright}\ {\isacharparenleft}lattice{\isachardot}join\ op\ dvd\ {\isacharquery}x\ {\isacharquery}z{\isacharparenright}} \\
 \end{tabular}
 \end{center}
 \hrule
@@ -476,7 +476,7 @@ A map \isa{{\isasymphi}} between partial orders \isa{{\isasymsqsubseteq}} and \i
 \isamarkuptrue%
 \ \ \isacommand{locale}\isamarkupfalse%
 \ order{\isacharunderscore}preserving\ {\isacharequal}\isanewline
-\ \ \ \ partial{\isacharunderscore}order\ {\isacharplus}\ partial{\isacharunderscore}order\ le{\isacharprime}\ {\isacharparenleft}\isakeyword{infixl}\ {\isachardoublequoteopen}{\isasympreceq}{\isachardoublequoteclose}\ {\isadigit{5}}{\isadigit{0}}{\isacharparenright}\ {\isacharplus}\isanewline
+\ \ \ \ partial{\isacharunderscore}order\ {\isacharplus}\ po{\isacharprime}{\isacharcolon}\ partial{\isacharunderscore}order\ le{\isacharprime}\ \isakeyword{for}\ le{\isacharprime}\ {\isacharparenleft}\isakeyword{infixl}\ {\isachardoublequoteopen}{\isasympreceq}{\isachardoublequoteclose}\ {\isadigit{5}}{\isadigit{0}}{\isacharparenright}\ {\isacharplus}\isanewline
 \ \ \ \ \isakeyword{fixes}\ {\isasymphi}\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}b{\isachardoublequoteclose}\isanewline
 \ \ \ \ \isakeyword{assumes}\ hom{\isacharunderscore}le{\isacharcolon}\ {\isachardoublequoteopen}x\ {\isasymsqsubseteq}\ y\ {\isasymLongrightarrow}\ {\isasymphi}\ x\ {\isasympreceq}\ {\isasymphi}\ y{\isachardoublequoteclose}%
 \begin{isamarkuptext}%
@@ -505,7 +505,8 @@ The second line contains the expression, which is the
 \isamarkuptrue%
 %
 \begin{isamarkuptext}%
-The locale \isa{order{\isacharunderscore}preserving} contains theorems for both
+% FIXME needs update
+  The locale \isa{order{\isacharunderscore}preserving} contains theorems for both
   orders \isa{{\isasymsqsubseteq}} and \isa{{\isasympreceq}}.  How can one refer to a theorem for
   a particular order, \isa{{\isasymsqsubseteq}} or \isa{{\isasympreceq}}?  Names in locales are
   qualified by the locale parameters.  More precisely, a name is
@@ -529,16 +530,17 @@ The locale \isa{order{\isacharunderscore}preserving} contains theorems for both
 \endisadeliminvisible
 %
 \begin{isamarkuptext}%
-\isa{le{\isachardot}less{\isacharunderscore}le{\isacharunderscore}trans}: \isa{{\isasymlbrakk}{\isacharquery}x\ {\isasymsqsubset}\ {\isacharquery}y{\isacharsemicolon}\ {\isacharquery}y\ {\isasymsqsubseteq}\ {\isacharquery}z{\isasymrbrakk}\ {\isasymLongrightarrow}\ {\isacharquery}x\ {\isasymsqsubset}\ {\isacharquery}z}
+% FIXME needs update?
+  \isa{less{\isacharunderscore}le{\isacharunderscore}trans}: \isa{{\isasymlbrakk}partial{\isacharunderscore}order{\isachardot}less\ op\ {\isasympreceq}\ {\isacharquery}x\ {\isacharquery}y{\isacharsemicolon}\ {\isacharquery}y\ {\isasympreceq}\ {\isacharquery}z{\isasymrbrakk}\ {\isasymLongrightarrow}\ partial{\isacharunderscore}order{\isachardot}less\ op\ {\isasympreceq}\ {\isacharquery}x\ {\isacharquery}z}
 
-  \isa{le{\isacharunderscore}le{\isacharprime}{\isacharunderscore}{\isasymphi}{\isachardot}hom{\isacharunderscore}le}: \isa{{\isacharquery}x\ {\isasymsqsubseteq}\ {\isacharquery}y\ {\isasymLongrightarrow}\ {\isasymphi}\ {\isacharquery}x\ {\isasympreceq}\ {\isasymphi}\ {\isacharquery}y}%
+  \isa{hom{\isacharunderscore}le}: \isa{{\isacharquery}x\ {\isasymsqsubseteq}\ {\isacharquery}y\ {\isasymLongrightarrow}\ {\isasymphi}\ {\isacharquery}x\ {\isasympreceq}\ {\isasymphi}\ {\isacharquery}y}%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
 \begin{isamarkuptext}%
 When renaming a locale, the morphism is also applied
   to the qualifiers.  Hence theorems for the partial order \isa{{\isasympreceq}}
-  are qualified by \isa{le{\isacharprime}}.  For example, \isa{le{\isacharprime}{\isachardot}less{\isacharunderscore}le{\isacharunderscore}trans}: \begin{isabelle}%
+  are qualified by \isa{le{\isacharprime}}.  For example, \isa{po{\isacharprime}{\isachardot}less{\isacharunderscore}le{\isacharunderscore}trans}: \begin{isabelle}%
 \ \ {\isasymlbrakk}partial{\isacharunderscore}order{\isachardot}less\ op\ {\isasympreceq}\ {\isacharquery}x\ {\isacharquery}y{\isacharsemicolon}\ {\isacharquery}y\ {\isasympreceq}\ {\isacharquery}z{\isasymrbrakk}\isanewline
 \isaindent{\ \ }{\isasymLongrightarrow}\ partial{\isacharunderscore}order{\isachardot}less\ op\ {\isasympreceq}\ {\isacharquery}x\ {\isacharquery}z%
 \end{isabelle}%
@@ -560,7 +562,8 @@ When renaming a locale, the morphism is also applied
 \endisadeliminvisible
 %
 \begin{isamarkuptext}%
-This example reveals that there is no infix syntax for the strict
+% FIXME needs update?
+  This example reveals that there is no infix syntax for the strict
   version of \isa{{\isasympreceq}}!  This can, of course, not be introduced
   automatically, but it can be declared manually through an abbreviation.%
 \end{isamarkuptext}%
@@ -589,7 +592,7 @@ Two more locales illustrate working with locale expressions.
 \end{isamarkuptext}%
 \isamarkuptrue%
 \ \ \isacommand{locale}\isamarkupfalse%
-\ lattice{\isacharunderscore}hom\ {\isacharequal}\ lattice\ {\isacharplus}\ lattice\ le{\isacharprime}\ {\isacharparenleft}\isakeyword{infixl}\ {\isachardoublequoteopen}{\isasympreceq}{\isachardoublequoteclose}\ {\isadigit{5}}{\isadigit{0}}{\isacharparenright}\ {\isacharplus}\isanewline
+\ lattice{\isacharunderscore}hom\ {\isacharequal}\ lattice\ {\isacharplus}\ lat{\isacharprime}{\isacharbang}{\isacharcolon}\ lattice\ le{\isacharprime}\ \isakeyword{for}\ le{\isacharprime}\ {\isacharparenleft}\isakeyword{infixl}\ {\isachardoublequoteopen}{\isasympreceq}{\isachardoublequoteclose}\ {\isadigit{5}}{\isadigit{0}}{\isacharparenright}\ {\isacharplus}\isanewline
 \ \ \ \ \isakeyword{fixes}\ {\isasymphi}\isanewline
 \ \ \ \ \isakeyword{assumes}\ hom{\isacharunderscore}meet{\isacharcolon}\isanewline
 \ \ \ \ \ \ \ \ {\isachardoublequoteopen}{\isasymphi}\ {\isacharparenleft}lattice{\isachardot}meet\ le\ x\ y{\isacharparenright}\ {\isacharequal}\ lattice{\isachardot}meet\ le{\isacharprime}\ {\isacharparenleft}{\isasymphi}\ x{\isacharparenright}\ {\isacharparenleft}{\isasymphi}\ y{\isacharparenright}{\isachardoublequoteclose}\isanewline
@@ -598,17 +601,17 @@ Two more locales illustrate working with locale expressions.
 \isanewline
 \ \ \isacommand{abbreviation}\isamarkupfalse%
 \ {\isacharparenleft}\isakeyword{in}\ lattice{\isacharunderscore}hom{\isacharparenright}\isanewline
-\ \ \ \ meet{\isacharprime}\ {\isacharparenleft}\isakeyword{infixl}\ {\isachardoublequoteopen}{\isasymsqinter}{\isacharprime}{\isacharprime}{\isachardoublequoteclose}\ {\isadigit{5}}{\isadigit{0}}{\isacharparenright}\ \isakeyword{where}\ {\isachardoublequoteopen}meet{\isacharprime}\ {\isasymequiv}\ le{\isacharprime}{\isachardot}meet{\isachardoublequoteclose}\isanewline
+\ \ \ \ meet{\isacharprime}\ {\isacharparenleft}\isakeyword{infixl}\ {\isachardoublequoteopen}{\isasymsqinter}{\isacharprime}{\isacharprime}{\isachardoublequoteclose}\ {\isadigit{5}}{\isadigit{0}}{\isacharparenright}\ \isakeyword{where}\ {\isachardoublequoteopen}meet{\isacharprime}\ {\isasymequiv}\ lat{\isacharprime}{\isachardot}meet{\isachardoublequoteclose}\isanewline
 \ \ \isacommand{abbreviation}\isamarkupfalse%
 \ {\isacharparenleft}\isakeyword{in}\ lattice{\isacharunderscore}hom{\isacharparenright}\isanewline
-\ \ \ \ join{\isacharprime}\ {\isacharparenleft}\isakeyword{infixl}\ {\isachardoublequoteopen}{\isasymsqunion}{\isacharprime}{\isacharprime}{\isachardoublequoteclose}\ {\isadigit{5}}{\isadigit{0}}{\isacharparenright}\ \isakeyword{where}\ {\isachardoublequoteopen}join{\isacharprime}\ {\isasymequiv}\ le{\isacharprime}{\isachardot}join{\isachardoublequoteclose}%
+\ \ \ \ join{\isacharprime}\ {\isacharparenleft}\isakeyword{infixl}\ {\isachardoublequoteopen}{\isasymsqunion}{\isacharprime}{\isacharprime}{\isachardoublequoteclose}\ {\isadigit{5}}{\isadigit{0}}{\isacharparenright}\ \isakeyword{where}\ {\isachardoublequoteopen}join{\isacharprime}\ {\isasymequiv}\ lat{\isacharprime}{\isachardot}join{\isachardoublequoteclose}%
 \begin{isamarkuptext}%
 A homomorphism is an endomorphism if both orders coincide.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \ \ \isacommand{locale}\isamarkupfalse%
 \ lattice{\isacharunderscore}end\ {\isacharequal}\isanewline
-\ \ \ \ lattice{\isacharunderscore}hom\ le\ {\isacharparenleft}\isakeyword{infixl}\ {\isachardoublequoteopen}{\isasymsqsubseteq}{\isachardoublequoteclose}\ {\isadigit{5}}{\isadigit{0}}{\isacharparenright}\ le\ {\isacharparenleft}\isakeyword{infixl}\ {\isachardoublequoteopen}{\isasymsqsubseteq}{\isachardoublequoteclose}\ {\isadigit{5}}{\isadigit{0}}{\isacharparenright}%
+\ \ \ \ lattice{\isacharunderscore}hom\ le\ le\ \isakeyword{for}\ le\ {\isacharparenleft}\isakeyword{infixl}\ {\isachardoublequoteopen}{\isasymsqsubseteq}{\isachardoublequoteclose}\ {\isadigit{5}}{\isadigit{0}}{\isacharparenright}%
 \begin{isamarkuptext}%
 The inheritance diagram of the situation we have now is shown
   in Figure~\ref{fig:hom}, where the dashed line depicts an
@@ -659,7 +662,7 @@ It can be shown easily that a lattice homomorphism is order
   interpretation is used to assert this.%
 \end{isamarkuptext}%
 \isamarkuptrue%
-\ \ \isacommand{interpretation}\isamarkupfalse%
+\ \ \isacommand{sublocale}\isamarkupfalse%
 \ lattice{\isacharunderscore}hom\ {\isasymsubseteq}\ order{\isacharunderscore}preserving%
 \isadelimproof
 \ %
@@ -675,7 +678,7 @@ It can be shown easily that a lattice homomorphism is order
 \ \ \ \ \isacommand{then}\isamarkupfalse%
 \ \isacommand{have}\isamarkupfalse%
 \ {\isachardoublequoteopen}y\ {\isacharequal}\ {\isacharparenleft}x\ {\isasymsqunion}\ y{\isacharparenright}{\isachardoublequoteclose}\ \isacommand{by}\isamarkupfalse%
-\ {\isacharparenleft}simp\ add{\isacharcolon}\ le{\isachardot}join{\isacharunderscore}connection{\isacharparenright}\isanewline
+\ {\isacharparenleft}simp\ add{\isacharcolon}\ join{\isacharunderscore}connection{\isacharparenright}\isanewline
 \ \ \ \ \isacommand{then}\isamarkupfalse%
 \ \isacommand{have}\isamarkupfalse%
 \ {\isachardoublequoteopen}{\isasymphi}\ y\ {\isacharequal}\ {\isacharparenleft}{\isasymphi}\ x\ {\isasymsqunion}{\isacharprime}\ {\isasymphi}\ y{\isacharparenright}{\isachardoublequoteclose}\ \isacommand{by}\isamarkupfalse%
@@ -683,7 +686,7 @@ It can be shown easily that a lattice homomorphism is order
 \ \ \ \ \isacommand{then}\isamarkupfalse%
 \ \isacommand{show}\isamarkupfalse%
 \ {\isachardoublequoteopen}{\isasymphi}\ x\ {\isasympreceq}\ {\isasymphi}\ y{\isachardoublequoteclose}\ \isacommand{by}\isamarkupfalse%
-\ {\isacharparenleft}simp\ add{\isacharcolon}\ le{\isacharprime}{\isachardot}join{\isacharunderscore}connection{\isacharparenright}\isanewline
+\ {\isacharparenleft}simp\ add{\isacharcolon}\ lat{\isacharprime}{\isachardot}join{\isacharunderscore}connection{\isacharparenright}\isanewline
 \ \ \isacommand{qed}\isamarkupfalse%
 %
 \endisatagproof
@@ -697,7 +700,7 @@ It can be shown easily that a lattice homomorphism is order
 Theorems and other declarations --- syntax, in particular ---
   from the locale \isa{order{\isacharunderscore}preserving} are now active in \isa{lattice{\isacharunderscore}hom}, for example
 
-  \isa{le{\isacharprime}{\isachardot}less{\isacharunderscore}le{\isacharunderscore}trans}:
+  \isa{lat{\isacharprime}{\isachardot}less{\isacharunderscore}le{\isacharunderscore}trans}:
   \isa{{\isasymlbrakk}{\isacharquery}x\ {\isasymprec}\ {\isacharquery}y{\isacharsemicolon}\ {\isacharquery}y\ {\isasympreceq}\ {\isacharquery}z{\isasymrbrakk}\ {\isasymLongrightarrow}\ {\isacharquery}x\ {\isasymprec}\ {\isacharquery}z}%
 \end{isamarkuptext}%
 \isamarkuptrue%

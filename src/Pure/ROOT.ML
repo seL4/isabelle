@@ -25,7 +25,9 @@ cd "Concurrent"; use "ROOT.ML"; cd "..";
 (*fundamental structures*)
 use "name.ML";
 use "term.ML";
+use "term_ord.ML";
 use "term_subst.ML";
+use "old_term.ML";
 use "logic.ML";
 use "General/pretty.ML";
 use "context.ML";

@@ -1,6 +1,5 @@
 (*
   Title:  HOL/Algebra/Group.thy
-  Id:     $Id$
   Author: Clemens Ballarin, started 4 February 2003
 
 Based on work by Florian Kammueller, L C Paulson and Markus Wenzel.
@@ -425,7 +424,7 @@ lemma (in subgroup) subgroup_is_group [intro]:
   assumes "group G"
   shows "group (G\<lparr>carrier := H\<rparr>)"
 proof -
-  interpret group [G] by fact
+  interpret group G by fact
   show ?thesis
     apply (rule monoid.group_l_invI)
     apply (unfold_locales) [1]
@@ -489,8 +488,8 @@ lemma DirProd_monoid:
   assumes "monoid G" and "monoid H"
   shows "monoid (G \<times>\<times> H)"
 proof -
-  interpret G: monoid [G] by fact
-  interpret H: monoid [H] by fact
+  interpret G!: monoid G by fact
+  interpret H!: monoid H by fact
   from assms
   show ?thesis by (unfold monoid_def DirProd_def, auto) 
 qed
@@ -501,8 +500,8 @@ lemma DirProd_group:
   assumes "group G" and "group H"
   shows "group (G \<times>\<times> H)"
 proof -
-  interpret G: group [G] by fact
-  interpret H: group [H] by fact
+  interpret G!: group G by fact
+  interpret H!: group H by fact
   show ?thesis by (rule groupI)
      (auto intro: G.m_assoc H.m_assoc G.l_inv H.l_inv
            simp add: DirProd_def)
@@ -526,9 +525,9 @@ lemma inv_DirProd [simp]:
       and h: "h \<in> carrier H"
   shows "m_inv (G \<times>\<times> H) (g, h) = (inv\<^bsub>G\<^esub> g, inv\<^bsub>H\<^esub> h)"
 proof -
-  interpret G: group [G] by fact
-  interpret H: group [H] by fact
-  interpret Prod: group ["G \<times>\<times> H"]
+  interpret G!: group G by fact
+  interpret H!: group H by fact
+  interpret Prod!: group "G \<times>\<times> H"
     by (auto intro: DirProd_group group.intro group.axioms assms)
   show ?thesis by (simp add: Prod.inv_equality g h)
 qed
@@ -541,15 +540,6 @@ constdefs (structure G and H)
   "hom G H ==
     {h. h \<in> carrier G -> carrier H &
       (\<forall>x \<in> carrier G. \<forall>y \<in> carrier G. h (x \<otimes>\<^bsub>G\<^esub> y) = h x \<otimes>\<^bsub>H\<^esub> h y)}"
-
-lemma hom_mult:
-  "[| h \<in> hom G H; x \<in> carrier G; y \<in> carrier G |]
-   ==> h (x \<otimes>\<^bsub>G\<^esub> y) = h x \<otimes>\<^bsub>H\<^esub> h y"
-  by (simp add: hom_def)
-
-lemma hom_closed:
-  "[| h \<in> hom G H; x \<in> carrier G |] ==> h x \<in> carrier H"
-  by (auto simp add: hom_def funcset_mem)
 
 lemma (in group) hom_compose:
      "[|h \<in> hom G H; i \<in> hom H I|] ==> compose (carrier G) i h \<in> hom G I"
@@ -587,10 +577,23 @@ by (auto simp add: iso_def hom_def inj_on_def bij_betw_def Pi_def)
 
 text{*Basis for homomorphism proofs: we assume two groups @{term G} and
   @{term H}, with a homomorphism @{term h} between them*}
-locale group_hom = group G + group H + var h +
+locale group_hom = G: group G + H: group H for G (structure) and H (structure) +
+  fixes h
   assumes homh: "h \<in> hom G H"
-  notes hom_mult [simp] = hom_mult [OF homh]
-    and hom_closed [simp] = hom_closed [OF homh]
+
+lemma (in group_hom) hom_mult [simp]:
+  "[| x \<in> carrier G; y \<in> carrier G |] ==> h (x \<otimes>\<^bsub>G\<^esub> y) = h x \<otimes>\<^bsub>H\<^esub> h y"
+proof -
+  assume "x \<in> carrier G" "y \<in> carrier G"
+  with homh [unfolded hom_def] show ?thesis by simp
+qed
+
+lemma (in group_hom) hom_closed [simp]:
+  "x \<in> carrier G ==> h x \<in> carrier H"
+proof -
+  assume "x \<in> carrier G"
+  with homh [unfolded hom_def] show ?thesis by (auto simp add: funcset_mem)
+qed
 
 lemma (in group_hom) one_closed [simp]:
   "h \<one> \<in> carrier H"

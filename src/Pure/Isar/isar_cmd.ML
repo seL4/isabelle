@@ -53,8 +53,7 @@ sig
   val print_configs: Toplevel.transition -> Toplevel.transition
   val print_theorems: Toplevel.transition -> Toplevel.transition
   val print_locales: Toplevel.transition -> Toplevel.transition
-  val print_locale: bool * (Locale.expr * Element.context list)
-    -> Toplevel.transition -> Toplevel.transition
+  val print_locale: bool * xstring -> Toplevel.transition -> Toplevel.transition
   val print_registrations: bool -> string -> Toplevel.transition -> Toplevel.transition
   val print_attributes: Toplevel.transition -> Toplevel.transition
   val print_simpset: Toplevel.transition -> Toplevel.transition
@@ -355,11 +354,11 @@ val print_theorems_theory = Toplevel.keep (fn state =>
 val print_theorems = Toplevel.unknown_context o print_theorems_theory o print_theorems_proof;
 
 val print_locales = Toplevel.unknown_theory o
-  Toplevel.keep (Locale.print_locales o Toplevel.theory_of);
+  Toplevel.keep (NewLocale.print_locales o Toplevel.theory_of);
 
-fun print_locale (show_facts, (imports, body)) = Toplevel.unknown_theory o
+fun print_locale (show_facts, name) = Toplevel.unknown_theory o
   Toplevel.keep (fn state =>
-    Locale.print_locale (Toplevel.theory_of state) show_facts imports body);
+    NewLocale.print_locale (Toplevel.theory_of state) show_facts name);
 
 fun print_registrations show_wits name = Toplevel.unknown_context o
   Toplevel.keep (Toplevel.node_case

@@ -216,19 +216,19 @@ text {* Parsing Case expressions *}
 
 syntax
   "_pat" :: "'a"
-  "_var" :: "'a"
+  "_variable" :: "'a"
   "_noargs" :: "'a"
 
 translations
-  "_Case1 p r" => "CONST branch (_pat p)\<cdot>(_var p r)"
-  "_var (_args x y) r" => "CONST csplit\<cdot>(_var x (_var y r))"
-  "_var _noargs r" => "CONST unit_when\<cdot>r"
+  "_Case1 p r" => "CONST branch (_pat p)\<cdot>(_variable p r)"
+  "_variable (_args x y) r" => "CONST csplit\<cdot>(_variable x (_variable y r))"
+  "_variable _noargs r" => "CONST unit_when\<cdot>r"
 
 parse_translation {*
 (* rewrites (_pat x) => (return) *)
-(* rewrites (_var x t) => (Abs_CFun (%x. t)) *)
+(* rewrites (_variable x t) => (Abs_CFun (%x. t)) *)
   [("_pat", K (Syntax.const "Fixrec.return")),
-   mk_binder_tr ("_var", "Abs_CFun")];
+   mk_binder_tr ("_variable", "Abs_CFun")];
 *}
 
 text {* Printing Case expressions *}
@@ -250,7 +250,7 @@ print_translation {*
             val abs = case t of Abs abs => abs
                 | _ => ("x", dummyT, incr_boundvars 1 t $ Bound 0);
             val (x, t') = atomic_abs_tr' abs;
-          in (Syntax.const "_var" $ x, t') end
+          in (Syntax.const "_variable" $ x, t') end
     |   dest_LAM _ = raise Match; (* too few vars: abort translation *)
 
     fun Case1_tr' [Const(@{const_syntax branch},_) $ p, r] =
@@ -261,7 +261,7 @@ print_translation {*
 *}
 
 translations
-  "x" <= "_match Fixrec.return (_var x)"
+  "x" <= "_match Fixrec.return (_variable x)"
 
 
 subsection {* Pattern combinators for data constructors *}
@@ -320,18 +320,18 @@ translations
 
 text {* Parse translations (variables) *}
 translations
-  "_var (XCONST cpair\<cdot>x\<cdot>y) r" => "_var (_args x y) r"
-  "_var (XCONST spair\<cdot>x\<cdot>y) r" => "_var (_args x y) r"
-  "_var (XCONST sinl\<cdot>x) r" => "_var x r"
-  "_var (XCONST sinr\<cdot>x) r" => "_var x r"
-  "_var (XCONST up\<cdot>x) r" => "_var x r"
-  "_var (XCONST TT) r" => "_var _noargs r"
-  "_var (XCONST FF) r" => "_var _noargs r"
-  "_var (XCONST ONE) r" => "_var _noargs r"
+  "_variable (XCONST cpair\<cdot>x\<cdot>y) r" => "_variable (_args x y) r"
+  "_variable (XCONST spair\<cdot>x\<cdot>y) r" => "_variable (_args x y) r"
+  "_variable (XCONST sinl\<cdot>x) r" => "_variable x r"
+  "_variable (XCONST sinr\<cdot>x) r" => "_variable x r"
+  "_variable (XCONST up\<cdot>x) r" => "_variable x r"
+  "_variable (XCONST TT) r" => "_variable _noargs r"
+  "_variable (XCONST FF) r" => "_variable _noargs r"
+  "_variable (XCONST ONE) r" => "_variable _noargs r"
 
 translations
-  "_var (CONST cpair\<cdot>x\<cdot>y) r" => "_var (_args x y) r"
-  "_var (CONST spair\<cdot>x\<cdot>y) r" => "_var (_args x y) r"
+  "_variable (CONST cpair\<cdot>x\<cdot>y) r" => "_variable (_args x y) r"
+  "_variable (CONST spair\<cdot>x\<cdot>y) r" => "_variable (_args x y) r"
 
 text {* Print translations *}
 translations
@@ -437,14 +437,14 @@ translations
 
 text {* Parse translations (variables) *}
 translations
-  "_var _ r" => "_var _noargs r"
-  "_var (_as_pat x y) r" => "_var (_args x y) r"
-  "_var (_lazy_pat x) r" => "_var x r"
+  "_variable _ r" => "_variable _noargs r"
+  "_variable (_as_pat x y) r" => "_variable (_args x y) r"
+  "_variable (_lazy_pat x) r" => "_variable x r"
 
 text {* Print translations *}
 translations
   "_" <= "_match (CONST wild_pat) _noargs"
-  "_as_pat x (_match p v)" <= "_match (CONST as_pat p) (_args (_var x) v)"
+  "_as_pat x (_match p v)" <= "_match (CONST as_pat p) (_args (_variable x) v)"
   "_lazy_pat (_match p v)" <= "_match (CONST lazy_pat p) v"
 
 text {* Lazy patterns in lambda abstractions *}

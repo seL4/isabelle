@@ -1,5 +1,4 @@
 (*  Title:      HOL/Library/Efficient_Nat.thy
-    ID:         $Id$
     Author:     Stefan Berghofer, Florian Haftmann, TU Muenchen
 *)
 
@@ -127,7 +126,7 @@ let
 fun remove_suc thy thms =
   let
     val vname = Name.variant (map fst
-      (fold (Term.add_varnames o Thm.full_prop_of) thms [])) "x";
+      (fold (Term.add_var_names o Thm.full_prop_of) thms [])) "x";
     val cv = cterm_of thy (Var ((vname, 0), HOLogic.natT));
     fun lhs_of th = snd (Thm.dest_comb
       (fst (Thm.dest_comb (snd (Thm.dest_comb (cprop_of th))))));
@@ -170,7 +169,7 @@ fun remove_suc thy thms =
 fun eqn_suc_preproc thy ths =
   let
     val dest = fst o HOLogic.dest_eq o HOLogic.dest_Trueprop o prop_of;
-    fun contains_suc t = member (op =) (term_consts t) @{const_name Suc};
+    val contains_suc = exists_Const (fn (c, _) => c = @{const_name Suc});
   in
     if forall (can dest) ths andalso
       exists (contains_suc o dest) ths
@@ -180,7 +179,7 @@ fun eqn_suc_preproc thy ths =
 fun remove_suc_clause thy thms =
   let
     val vname = Name.variant (map fst
-      (fold (Term.add_varnames o Thm.full_prop_of) thms [])) "x";
+      (fold (Term.add_var_names o Thm.full_prop_of) thms [])) "x";
     fun find_var (t as Const (@{const_name Suc}, _) $ (v as Var _)) = SOME (t, v)
       | find_var (t $ u) = (case find_var t of NONE => find_var u | x => x)
       | find_var _ = NONE;
@@ -212,8 +211,8 @@ fun clause_suc_preproc thy ths =
     val dest = fst o HOLogic.dest_mem o HOLogic.dest_Trueprop
   in
     if forall (can (dest o concl_of)) ths andalso
-      exists (fn th => member (op =) (foldr add_term_consts
-        [] (map_filter (try dest) (concl_of th :: prems_of th))) "Suc") ths
+      exists (fn th => exists (exists_Const (fn (c, _) => c = @{const_name Suc}))
+        (map_filter (try dest) (concl_of th :: prems_of th))) ths
     then remove_suc_clause thy ths else ths
   end;
 

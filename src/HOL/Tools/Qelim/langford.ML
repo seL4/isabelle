@@ -1,3 +1,7 @@
+(*  Title:      HOL/Tools/Qelim/langford.ML
+    Author:     Amine Chaieb, TU Muenchen
+*)
+
 signature LANGFORD_QE = 
 sig
   val dlo_tac : Proof.context -> int -> tactic
@@ -114,7 +118,7 @@ fun partition f [] = ([],[])
       let val (yes,no) = partition f xs 
       in if f x then (x::yes,no) else (yes, x::no) end;
 
-fun contains x ct = member (op aconv) (term_frees (term_of ct)) (term_of x);
+fun contains x ct = member (op aconv) (OldTerm.term_frees (term_of ct)) (term_of x);
 
 fun is_eqx x eq = case term_of eq of
    Const("op =",_)$l$r => l aconv term_of x orelse r aconv term_of x
@@ -211,7 +215,7 @@ fun generalize_tac f = CSUBGOAL (fn (p, i) => PRIMITIVE (fn st =>
  let 
    fun all T = Drule.cterm_rule (instantiate' [SOME T] []) @{cpat "all"}
    fun gen x t = Thm.capply (all (ctyp_of_term x)) (Thm.cabs x t)
-   val ts = sort (fn (a,b) => Term.fast_term_ord (term_of a, term_of b)) (f p)
+   val ts = sort (fn (a,b) => TermOrd.fast_term_ord (term_of a, term_of b)) (f p)
    val p' = fold_rev gen ts p
  in implies_intr p' (implies_elim st (fold forall_elim ts (assume p'))) end));
 
