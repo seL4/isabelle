@@ -73,9 +73,9 @@ local
   fun lam [] = ([], cont_K)
     | lam (x::ys) =
     let
-      (* should use "standard" for thms that are used multiple times *)
+      (* should use "close_derivation" for thms that are used multiple times *)
       (* it seems to allow for sharing in explicit proof objects *)
-      val x' = standard (k x);
+      val x' = Thm.close_derivation (k x);
       val Lx = x' RS cont_L;
     in (map (fn y => SOME (k y RS Lx)) ys, x') end;
 
