@@ -115,6 +115,7 @@ sig
     ((Binding.T * attribute list) * (term * term list) list) list -> bool -> state -> state
   val is_relevant: state -> bool
   val future_proof: (state -> ('a * context) future) -> state -> 'a future * context
+  val future_terminal_proof: Method.text * Method.text option -> state -> context
 end;
 
 structure Proof: PROOF =
@@ -1026,6 +1027,11 @@ fun future_proof fork_proof state =
   in (Future.map #1 result_ctxt, state') end;
 
 end;
+
+fun future_terminal_proof meths state =
+  if is_relevant state then global_terminal_proof meths state
+  else #2 (state |> future_proof (fn state' =>
+    Future.fork_pri ~1 (fn () => ((), global_terminal_proof meths state'))));
 
 end;
 
