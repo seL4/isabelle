@@ -13,6 +13,7 @@ sig
   val begin: string -> Proof.context -> local_theory
   val context: xstring -> theory -> local_theory
   val instantiation: string list * (string * sort) list * sort -> theory -> local_theory
+  val instantiation_cmd: xstring list * sort * xstring -> theory -> local_theory
   val overloading: (string * (string * typ) * bool) list -> theory -> local_theory
   val overloading_cmd: (string * string * bool) list -> theory -> local_theory
 end;
@@ -82,7 +83,7 @@ fun pretty (Target {target, is_locale, is_class, instantiation, overloading, ...
   Pretty.block [Pretty.str "theory", Pretty.brk 1,
       Pretty.str (Context.theory_name (ProofContext.theory_of ctxt))] ::
     (if not (null overloading) then [Overloading.pretty ctxt]
-     else if not (null (#1 instantiation)) then [Class.pretty_instantiation ctxt]
+     else if not (null (#1 instantiation)) then [Class_Target.pretty_instantiation ctxt]
      else pretty_thy ctxt target is_locale is_class);
 
 
@@ -108,7 +109,7 @@ val declaration = target_decl locale_add_declaration;
 
 fun class_target (Target {target, ...}) f =
   LocalTheory.raw_theory f #>
-  LocalTheory.target (Class.refresh_syntax target);
+  LocalTheory.target (Class_Target.refresh_syntax target);
 
 
 (* notes *)
@@ -207,7 +208,7 @@ fun locale_const (Target {target, is_class, ...}) (prmode as (mode, _)) tags ((b
     val (prefix', _) = Binding.dest b';
     val class_global = Binding.base_name b = Binding.base_name b'
       andalso not (null prefix')
-      andalso (fst o snd o split_last) prefix' = Class.class_prefix target;
+      andalso (fst o snd o split_last) prefix' = Class_Target.class_prefix target;
   in
     not (is_class andalso (similar_body orelse class_global)) ?
       (Context.mapping_result
@@ -231,11 +232,11 @@ fun declare_const (ta as Target {target, is_locale, is_class, ...}) depends ((b,
     val (mx1, mx2, mx3) = fork_mixfix ta mx;
     fun syntax_error c = error ("Illegal mixfix syntax for overloaded constant " ^ quote c);
     val declare_const =
-      (case Class.instantiation_param lthy c of
+      (case Class_Target.instantiation_param lthy c of
         SOME c' =>
           if mx3 <> NoSyn then syntax_error c'
           else LocalTheory.theory_result (AxClass.declare_overloaded (c', U))
-            ##> Class.confirm_declaration c
+            ##> Class_Target.confirm_declaration c
         | NONE =>
             (case Overloading.operation lthy c of
               SOME (c', _) =>
@@ -248,7 +249,7 @@ fun declare_const (ta as Target {target, is_locale, is_class, ...}) depends ((b,
   in
     lthy'
     |> is_locale ? term_syntax ta (locale_const ta Syntax.mode_default tags ((b, mx2), t))
-    |> is_class ? class_target ta (Class.declare target tags ((c, mx1), t))
+    |> is_class ? class_target ta (Class_Target.declare target tags ((c, mx1), t))
     |> LocalDefs.add_def ((b, NoSyn), t)
   end;
 
@@ -275,7 +276,7 @@ fun abbrev (ta as Target {target, is_locale, is_class, ...}) prmode ((b, mx), t)
         #-> (fn (lhs, _) =>
           let val lhs' = Term.list_comb (Logic.unvarify lhs, xs) in
             term_syntax ta (locale_const ta prmode tags ((b, mx2), lhs')) #>
-            is_class ? class_target ta (Class.abbrev target prmode tags ((c, mx1), t'))
+            is_class ? class_target ta (Class_Target.abbrev target prmode tags ((c, mx1), t'))
           end)
       else
         LocalTheory.theory
@@ -311,7 +312,7 @@ fun define (ta as Target {target, is_locale, is_class, ...})
         SOME (_, checked) =>
           (fn name => fn (Const (c, _), rhs) => Overloading.define checked name (c, rhs))
       | NONE =>
-          if is_none (Class.instantiation_param lthy c)
+          if is_none (Class_Target.instantiation_param lthy c)
           then (fn name => fn eq => Thm.add_def false false (name, Logic.mk_equals eq))
           else (fn name => fn (Const (c, _), rhs) => AxClass.define_overloaded name (c, rhs)));
     val (global_def, lthy3) = lthy2
@@ -334,14 +335,14 @@ local
 fun init_target _ NONE = global_target
   | init_target thy (SOME target) =
       make_target target (NewLocale.test_locale thy (NewLocale.intern thy target))
-      true (Class.is_class thy target) ([], [], []) [];
+      true (Class_Target.is_class thy target) ([], [], []) [];
 
 fun init_ctxt (Target {target, new_locale, is_locale, is_class, instantiation, overloading}) =
-  if not (null (#1 instantiation)) then Class.init_instantiation instantiation
+  if not (null (#1 instantiation)) then Class_Target.init_instantiation instantiation
   else if not (null overloading) then Overloading.init overloading
   else if not is_locale then ProofContext.init
   else if not is_class then locale_init new_locale target
-  else Class.init target;
+  else Class_Target.init target;
 
 fun init_lthy (ta as Target {target, instantiation, overloading, ...}) =
   Data.put ta #>
@@ -355,10 +356,19 @@ fun init_lthy (ta as Target {target, instantiation, overloading, ...}) =
     declaration = declaration ta,
     reinit = fn lthy => init_lthy_ctxt ta (ProofContext.theory_of lthy),
     exit = LocalTheory.target_of o
-      (if not (null (#1 instantiation)) then Class.conclude_instantiation
+      (if not (null (#1 instantiation)) then Class_Target.conclude_instantiation
        else if not (null overloading) then Overloading.conclude
        else I)}
 and init_lthy_ctxt ta = init_lthy ta o init_ctxt ta;
+
+fun read_multi_arity thy (raw_tycos, raw_sorts, raw_sort) =
+  let
+    val all_arities = map (fn raw_tyco => Sign.read_arity thy
+      (raw_tyco, raw_sorts, raw_sort)) raw_tycos;
+    val tycos = map #1 all_arities;
+    val (_, sorts, sort) = hd all_arities;
+    val vs = Name.names Name.context Name.aT sorts;
+  in (tycos, vs, sort) end;
 
 fun gen_overloading prep_const raw_ops thy =
   let
@@ -377,6 +387,8 @@ fun context "-" thy = init NONE thy
       (NewLocale.test_locale thy (NewLocale.intern thy target)) thy target)) thy;
 
 fun instantiation arities = init_lthy_ctxt (make_target "" false false false arities []);
+fun instantiation_cmd raw_arities thy =
+  instantiation (read_multi_arity thy raw_arities) thy;
 
 val overloading = gen_overloading (fn ctxt => Syntax.check_term ctxt o Const);
 val overloading_cmd = gen_overloading Syntax.read_term;

@@ -1,5 +1,4 @@
 (*  Title:      Pure/Isar/isar_syn.ML
-    ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
 
 Isar/Pure outer syntax.
@@ -394,9 +393,7 @@ val _ =
     (P.name -- Scan.optional (P.$$$ "=" |-- P.!!! locale_val) (([], []), []) -- P.opt_begin
       >> (fn ((name, (expr, elems)), begin) =>
           (begin ? Toplevel.print) o Toplevel.begin_local_theory begin
-            (Expression.add_locale_cmd name name expr elems #>
-              (fn ((target, notes), ctxt) => TheoryTarget.begin target ctxt |>
-                fold (fn (kind, facts) => LocalTheory.notes kind facts #> snd) notes))));
+            (Expression.add_locale_cmd name name expr elems #> snd)));
 
 val _ =
   OuterSyntax.command "sublocale"
@@ -477,13 +474,13 @@ val _ =
 
 val _ =
   OuterSyntax.local_theory_to_proof "subclass" "prove a subclass relation" K.thy_goal
-    (P.xname >> Subclass.subclass_cmd);
+    (P.xname >> Class.subclass_cmd);
 
 val _ =
   OuterSyntax.command "instantiation" "instantiate and prove type arity" K.thy_decl
    (P.multi_arity --| P.begin
      >> (fn arities => Toplevel.print o
-         Toplevel.begin_local_theory true (Instance.instantiation_cmd arities)));
+         Toplevel.begin_local_theory true (TheoryTarget.instantiation_cmd arities)));
 
 val _ =
   OuterSyntax.command "instance" "prove type arity or subclass relation" K.thy_goal

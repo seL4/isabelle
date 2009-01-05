@@ -55,11 +55,10 @@ use "local_theory.ML";
 use "overloading.ML";
 use "locale.ML";
 use "new_locale.ML";
-use "class.ML";
+use "class_target.ML";
 use "theory_target.ML";
 use "expression.ML";
-use "instance.ML";
-use "subclass.ML";
+use "class.ML";
 
 (*complex proof machineries*)
 use "../simplifier.ML";
