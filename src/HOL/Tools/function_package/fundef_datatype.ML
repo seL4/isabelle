@@ -199,13 +199,13 @@ fun pat_complete_tac ctxt = SUBGOAL (fn (subgoal, i) =>
 fun pat_completeness ctxt = Method.SIMPLE_METHOD' (pat_complete_tac ctxt)
 
 val by_pat_completeness_simp =
-    Proof.global_terminal_proof
+    Proof.future_terminal_proof
       (Method.Basic (pat_completeness, Position.none),
        SOME (Method.Source_i (Args.src (("HOL.auto", []), Position.none))))
 
 fun termination_by method =
     FundefPackage.setup_termination_proof NONE
-    #> Proof.global_terminal_proof
+    #> Proof.future_terminal_proof
       (Method.Basic (method, Position.none), NONE)
 
 fun mk_catchall fixes arities =
