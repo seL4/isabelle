@@ -1,7 +1,7 @@
 (*  Title:      Pure/Isar/expression.ML
     Author:     Clemens Ballarin, TU Muenchen
 
-New locale development --- experimental.
+Locale expressions.
 *)
 
 signature EXPRESSION =
@@ -55,7 +55,7 @@ type expression_i = term expr * (Binding.T * typ option * mixfix) list;
 
 (** Internalise locale names in expr **)
 
-fun intern thy instances =  map (apfst (NewLocale.intern thy)) instances;
+fun intern thy instances =  map (apfst (Locale.intern thy)) instances;
 
 
 (** Parameters of expression.
@@ -85,14 +85,14 @@ fun parameters_of thy strict (expr, fixed) =
       (* FIXME: cannot compare bindings for equality. *)
 
     fun params_loc loc =
-          (NewLocale.params_of thy loc |> map (fn (p, _, mx) => (p, mx)), loc);
+          (Locale.params_of thy loc |> map (fn (p, _, mx) => (p, mx)), loc);
     fun params_inst (expr as (loc, (prfx, Positional insts))) =
           let
             val (ps, loc') = params_loc loc;
             val d = length ps - length insts;
             val insts' =
               if d < 0 then error ("More arguments than parameters in instantiation of locale " ^
-                quote (NewLocale.extern thy loc))
+                quote (Locale.extern thy loc))
               else insts @ replicate d NONE;
             val ps' = (ps ~~ insts') |>
               map_filter (fn (p, NONE) => SOME p | (_, SOME _) => NONE);
@@ -309,7 +309,7 @@ fun finish_primitive parms _ (Fixes fixes) = Fixes (map (fn (binding, _, mx) =>
 fun finish_inst ctxt parms do_close (loc, (prfx, inst)) =
   let
     val thy = ProofContext.theory_of ctxt;
-    val (parm_names, parm_types) = NewLocale.params_of thy loc |>
+    val (parm_names, parm_types) = Locale.params_of thy loc |>
       map (fn (b, SOME T, _) => (Binding.base_name b, T)) |> split_list;
     val (morph, _) = inst_morph (parm_names, parm_types) (prfx, inst) ctxt;
   in (loc, morph) end;
@@ -341,7 +341,7 @@ fun prep_full_context_statement parse_typ parse_prop parse_inst prep_vars prep_e
 
     fun prep_inst (loc, (prfx, inst)) (i, insts, ctxt) =
       let
-        val (parm_names, parm_types) = NewLocale.params_of thy loc |>
+        val (parm_names, parm_types) = Locale.params_of thy loc |>
           map (fn (b, SOME T, _) => (Binding.base_name b, T)) |> split_list;
         val inst' = parse_inst parm_names inst ctxt;
         val parm_types' = map (TypeInfer.paramify_vars o
@@ -351,7 +351,7 @@ fun prep_full_context_statement parse_typ parse_prop parse_inst prep_vars prep_e
         val (insts'', _, _, ctxt' (* FIXME not used *) ) = check_autofix insts' [] [] ctxt;
         val inst''' = insts'' |> List.last |> snd |> snd;
         val (morph, _) = inst_morph (parm_names, parm_types) (prfx, inst''') ctxt;
-        val ctxt'' = NewLocale.activate_declarations thy (loc, morph) ctxt;
+        val ctxt'' = Locale.activate_declarations thy (loc, morph) ctxt;
       in (i+1, insts', ctxt'') end;
   
     fun prep_elem raw_elem (insts, elems, ctxt) =
@@ -425,7 +425,7 @@ fun prep_declaration prep activate raw_import raw_elems context =
     (* Declare parameters and imported facts *)
     val context' = context |>
       ProofContext.add_fixes_i fixed |> snd |>
-      fold NewLocale.activate_local_facts deps;
+      fold Locale.activate_local_facts deps;
     val (elems', _) = activate elems (ProofContext.set_stmt true context');
   in ((fixed, deps, elems'), (parms, ctxt')) end;
 
@@ -443,7 +443,7 @@ local
 
 fun props_of thy (name, morph) =
   let
-    val (asm, defs) = NewLocale.specification_of thy name;
+    val (asm, defs) = Locale.specification_of thy name;
   in
     (case asm of NONE => defs | SOME asm => asm :: defs) |> map (Morphism.term morph)
   end;
@@ -530,7 +530,7 @@ fun eval_text _ _ (Fixes _) text = text
 fun eval_inst ctxt (loc, morph) text =
   let
     val thy = ProofContext.theory_of ctxt;
-    val (asm, defs) = NewLocale.specification_of thy loc;
+    val (asm, defs) = Locale.specification_of thy loc;
     val asm' = Option.map (Morphism.term morph) asm;
     val defs' = map (Morphism.term morph) defs;
     val text' = text |>
@@ -540,7 +540,7 @@ fun eval_inst ctxt (loc, morph) text =
       (if not (null defs)
         then eval_text ctxt false (Defines (map (fn def => (Attrib.empty_binding, (def, []))) defs'))
         else I)
-(* FIXME clone from new_locale.ML *)
+(* FIXME clone from locale.ML *)
   in text' end;
 
 fun eval_elem ctxt elem text =
@@ -657,7 +657,7 @@ fun define_preds pname parms (((exts, exts'), (ints, ints')), defs) thy =
             |> Sign.add_path aname
             |> Sign.no_base_names
             |> PureThy.note_thmss Thm.internalK
-              [((Binding.name introN, []), [([intro], [NewLocale.unfold_attrib])])]
+              [((Binding.name introN, []), [([intro], [Locale.unfold_attrib])])]
             ||> Sign.restore_naming thy';
           in (SOME statement, SOME intro, axioms, thy'') end;
     val (b_pred, b_intro, b_axioms, thy'''') =
@@ -672,7 +672,7 @@ fun define_preds pname parms (((exts, exts'), (ints, ints')), defs) thy =
             |> Sign.add_path pname
             |> Sign.no_base_names
             |> PureThy.note_thmss Thm.internalK
-                 [((Binding.name introN, []), [([intro], [NewLocale.intro_attrib])]),
+                 [((Binding.name introN, []), [([intro], [Locale.intro_attrib])]),
                   ((Binding.name axiomsN, []),
                     [(map (Drule.standard o Element.conclude_witness) axioms, [])])]
             ||> Sign.restore_naming thy''';
@@ -694,14 +694,14 @@ fun assumes_to_notes (Assumes asms) axms =
 fun defines_to_notes thy (Defines defs) =
       Notes (Thm.definitionK, map (fn (a, (def, _)) =>
         (a, [([Assumption.assume (cterm_of thy def)],
-          [(Attrib.internal o K) NewLocale.witness_attrib])])) defs)
+          [(Attrib.internal o K) Locale.witness_attrib])])) defs)
   | defines_to_notes _ e = e;
 
 fun gen_add_locale prep_decl
     bname predicate_name raw_imprt raw_body thy =
   let
     val name = Sign.full_bname thy bname;
-    val _ = NewLocale.test_locale thy name andalso
+    val _ = Locale.test_locale thy name andalso
       error ("Duplicate definition of locale " ^ quote name);
 
     val ((fixed, deps, body_elems), (parms, ctxt')) =
@@ -726,7 +726,7 @@ fun gen_add_locale prep_decl
         if is_some asm
         then [(Thm.internalK, [((Binding.name (bname ^ "_" ^ axiomsN), []),
           [([Assumption.assume (cterm_of thy' (the asm))],
-            [(Attrib.internal o K) NewLocale.witness_attrib])])])]
+            [(Attrib.internal o K) Locale.witness_attrib])])])]
         else [];
 
     val notes' = body_elems |>
@@ -740,7 +740,7 @@ fun gen_add_locale prep_decl
     val deps' = map (fn (l, morph) => (l, morph $> b_satisfy)) deps;
 
     val loc_ctxt = thy'
-      |> NewLocale.register_locale bname (extraTs, params)
+      |> Locale.register_locale bname (extraTs, params)
           (asm, rev defs) ([], [])
           (map (fn n => (n, stamp ())) notes |> rev) (map (fn d => (d, stamp ())) deps' |> rev)
       |> TheoryTarget.init (SOME name)
@@ -774,20 +774,20 @@ fun gen_sublocale prep_expr intern
     raw_target expression thy =
   let
     val target = intern thy raw_target;
-    val target_ctxt = NewLocale.init target thy;
+    val target_ctxt = Locale.init target thy;
 
     val ((propss, deps, export), goal_ctxt) = prep_expr expression target_ctxt;
     
     fun store_dep ((name, morph), thms) =
-      NewLocale.add_dependency target (name, morph $> Element.satisfy_morphism thms $> export);
+      Locale.add_dependency target (name, morph $> Element.satisfy_morphism thms $> export);
 
     fun after_qed results =
       ProofContext.theory (
         (* store dependencies *)
         fold store_dep (deps ~~ prep_result propss results) #>
         (* propagate registrations *)
-        (fn thy => fold_rev (fn reg => NewLocale.activate_global_facts reg)
-          (NewLocale.get_global_registrations thy) thy));
+        (fn thy => fold_rev (fn reg => Locale.activate_global_facts reg)
+          (Locale.get_global_registrations thy) thy));
   in
     goal_ctxt |>
       Proof.theorem_i NONE after_qed (prep_propp propss) |>
@@ -796,7 +796,7 @@ fun gen_sublocale prep_expr intern
 
 in
 
-fun sublocale_cmd x = gen_sublocale read_goal_expression NewLocale.intern x;
+fun sublocale_cmd x = gen_sublocale read_goal_expression Locale.intern x;
 fun sublocale x = gen_sublocale cert_goal_expression (K I) x;
 
 end;
@@ -824,11 +824,11 @@ fun gen_interpretation prep_expr parse_prop prep_attr
         let
           val thms' = map (Element.morph_witness export') thms;
           val morph' = morph $> Element.satisfy_morphism thms';
-          val add = NewLocale.add_global_registration (name, (morph', export));
+          val add = Locale.add_global_registration (name, (morph', export));
         in ((name, morph') :: regs, add thy) end
       | store (Eqns [], []) (regs, thy) =
         let val add = fold_rev (fn (name, morph) =>
-              NewLocale.activate_global_facts (name, morph $> export)) regs;
+              Locale.activate_global_facts (name, morph $> export)) regs;
         in (regs, add thy) end
       | store (Eqns attns, thms) (regs, thy) =
         let
@@ -842,8 +842,8 @@ fun gen_interpretation prep_expr parse_prop prep_attr
           val attns' = map ((apsnd o map) (Attrib.attribute_i thy)) attns;
           val add =
             fold_rev (fn (name, morph) =>
-              NewLocale.amend_global_registration eq_morph (name, morph) #>
-              NewLocale.activate_global_facts (name, morph $> eq_morph $> export)) regs #>
+              Locale.amend_global_registration eq_morph (name, morph) #>
+              Locale.activate_global_facts (name, morph $> eq_morph $> export)) regs #>
             PureThy.note_thmss Thm.lemmaK (attns' ~~ map (fn th => [([th], [])]) thms') #>
             snd
         in (regs, add thy) end;
@@ -883,7 +883,7 @@ fun gen_interpret prep_expr
       let
         val morph' = morph $> Element.satisfy_morphism thms $> export;
       in
-        NewLocale.activate_local_facts (name, morph')
+        Locale.activate_local_facts (name, morph')
       end;
 
     fun after_qed results =

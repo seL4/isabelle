@@ -27,7 +27,7 @@ open Class_Target;
 (** rule calculation **)
 
 fun calculate_axiom thy sups base_sort assm_axiom param_map class =
-  case Locale.intros thy class
+  case Old_Locale.intros thy class
    of (_, []) => assm_axiom
     | (_, [intro]) =>
       let
@@ -52,7 +52,7 @@ fun calculate_rules thy phi sups base_sort param_map axiom class =
         (Var ((v, 0), map_atyps (fn _ => TVar ((Name.aT, 0), sort)) ty),
           Const (c, map_atyps (fn _ => TVar ((Name.aT, 0), sort)) ty))) param_map);
     val defs = these_defs thy sups;
-    val assm_intro = Locale.intros thy class
+    val assm_intro = Old_Locale.intros thy class
       |> fst
       |> map (instantiate thy base_sort)
       |> map (MetaSimplifier.rewrite_rule defs)
@@ -64,7 +64,7 @@ fun calculate_rules thy phi sups base_sort param_map axiom class =
     val of_class_sups = if null sups
       then map (fixate o Thm.class_triv thy) base_sort
       else map (fixate o snd o rules thy) sups;
-    val locale_dests = map Drule.standard' (Locale.dests thy class);
+    val locale_dests = map Drule.standard' (Old_Locale.dests thy class);
     val num_trivs = case length locale_dests
      of 0 => if is_none axiom then 0 else 1
       | n => n;
@@ -105,10 +105,10 @@ fun gen_class_spec prep_class process_expr thy raw_supclasses raw_elems =
     val base_sort = if null sups then supsort else
       foldr1 (Sorts.inter_sort (Sign.classes_of thy))
         (map (base_sort thy) sups);
-    val suplocales = map Locale.Locale sups;
-    val supexpr = Locale.Merge suplocales;
-    val supparams = (map fst o Locale.parameters_of_expr thy) supexpr;
-    val mergeexpr = Locale.Merge suplocales;
+    val suplocales = map Old_Locale.Locale sups;
+    val supexpr = Old_Locale.Merge suplocales;
+    val supparams = (map fst o Old_Locale.parameters_of_expr thy) supexpr;
+    val mergeexpr = Old_Locale.Merge suplocales;
     val constrain = Element.Constrains ((map o apsnd o map_atyps)
       (K (TFree (Name.aT, base_sort))) supparams);
     fun fork_syn (Element.Fixes xs) =
@@ -121,23 +121,23 @@ fun gen_class_spec prep_class process_expr thy raw_supclasses raw_elems =
       in (constrain :: elems', global_syntax) end;
     val (elems, global_syntax) =
       ProofContext.init thy
-      |> Locale.cert_expr supexpr [constrain]
+      |> Old_Locale.cert_expr supexpr [constrain]
       |> snd
       |> begin sups base_sort
-      |> process_expr Locale.empty raw_elems
+      |> process_expr Old_Locale.empty raw_elems
       |> fst
       |> fork_syntax
   in (((sups, supparams), (supsort, base_sort, mergeexpr)), (elems, global_syntax)) end;
 
-val read_class_spec = gen_class_spec Sign.intern_class Locale.read_expr;
-val check_class_spec = gen_class_spec (K I) Locale.cert_expr;
+val read_class_spec = gen_class_spec Sign.intern_class Old_Locale.read_expr;
+val check_class_spec = gen_class_spec (K I) Old_Locale.cert_expr;
 
 fun add_consts bname class base_sort sups supparams global_syntax thy =
   let
     val supconsts = map fst supparams
       |> AList.make (snd o the o AList.lookup (op =) (these_params thy sups))
       |> (map o apsnd o apsnd o map_atyps o K o TFree) (Name.aT, [class]);
-    val all_params = map fst (Locale.parameters_of thy class);
+    val all_params = map fst (Old_Locale.parameters_of thy class);
     val raw_params = (snd o chop (length supparams)) all_params;
     fun add_const (v, raw_ty) thy =
       let
@@ -165,7 +165,7 @@ fun adjungate_axclass bname class base_sort sups supsort supparams global_syntax
     fun globalize param_map = map_aterms
       (fn Free (v, ty) => Const ((fst o the o AList.lookup (op =) param_map) v, ty)
         | t => t);
-    val raw_pred = Locale.intros thy class
+    val raw_pred = Old_Locale.intros thy class
       |> fst
       |> map (Logic.unvarify o Logic.strip_imp_concl o Thm.prop_of);
     fun get_axiom thy = case (#axioms o AxClass.get_info thy) class
@@ -191,7 +191,7 @@ fun gen_class prep_spec bname raw_supclasses raw_elems thy =
     val supconsts = map (apsnd fst o snd) (these_params thy sups);
   in
     thy
-    |> Locale.add_locale "" bname mergeexpr elems
+    |> Old_Locale.add_locale "" bname mergeexpr elems
     |> snd
     |> ProofContext.theory_of
     |> adjungate_axclass bname class base_sort sups supsort supparams global_syntax
@@ -242,7 +242,7 @@ fun gen_subclass prep_class do_proof raw_sup lthy =
       error ("Class " ^ Syntax.string_of_sort lthy [sub] ^ " lacks parameter(s) " ^
         commas_quote err_params ^ " of " ^ Syntax.string_of_sort lthy [sup]);
     val sublocale_prop =
-      Locale.global_asms_of thy sup
+      Old_Locale.global_asms_of thy sup
       |> maps snd
       |> try the_single
       |> Option.map (ObjectLogic.ensure_propT thy);

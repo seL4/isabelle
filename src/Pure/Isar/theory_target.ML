@@ -24,19 +24,19 @@ struct
 (* new locales *)
 
 fun locale_extern new_locale x = 
-  if new_locale then NewLocale.extern x else Locale.extern x;
+  if new_locale then Locale.extern x else Old_Locale.extern x;
 fun locale_add_type_syntax new_locale x =
-  if new_locale then NewLocale.add_type_syntax x else Locale.add_type_syntax x;
+  if new_locale then Locale.add_type_syntax x else Old_Locale.add_type_syntax x;
 fun locale_add_term_syntax new_locale x =
-  if new_locale then NewLocale.add_term_syntax x else Locale.add_term_syntax x;
+  if new_locale then Locale.add_term_syntax x else Old_Locale.add_term_syntax x;
 fun locale_add_declaration new_locale x =
-  if new_locale then NewLocale.add_declaration x else Locale.add_declaration x;
+  if new_locale then Locale.add_declaration x else Old_Locale.add_declaration x;
 fun locale_add_thmss new_locale x =
-  if new_locale then NewLocale.add_thmss x else Locale.add_thmss x;
+  if new_locale then Locale.add_thmss x else Old_Locale.add_thmss x;
 fun locale_init new_locale x =
-  if new_locale then NewLocale.init x else Locale.init x;
+  if new_locale then Locale.init x else Old_Locale.init x;
 fun locale_intern new_locale x =
-  if new_locale then NewLocale.intern x else Locale.intern x;
+  if new_locale then Locale.intern x else Old_Locale.intern x;
 
 (* context data *)
 
@@ -334,7 +334,7 @@ local
 
 fun init_target _ NONE = global_target
   | init_target thy (SOME target) =
-      make_target target (NewLocale.test_locale thy (NewLocale.intern thy target))
+      make_target target (Locale.test_locale thy (Locale.intern thy target))
       true (Class_Target.is_class thy target) ([], [], []) [];
 
 fun init_ctxt (Target {target, new_locale, is_locale, is_class, instantiation, overloading}) =
@@ -384,7 +384,7 @@ fun begin target ctxt = init_lthy (init_target (ProofContext.theory_of ctxt) (SO
 
 fun context "-" thy = init NONE thy
   | context target thy = init (SOME (locale_intern
-      (NewLocale.test_locale thy (NewLocale.intern thy target)) thy target)) thy;
+      (Locale.test_locale thy (Locale.intern thy target)) thy target)) thy;
 
 fun instantiation arities = init_lthy_ctxt (make_target "" false false false arities []);
 fun instantiation_cmd raw_arities thy =

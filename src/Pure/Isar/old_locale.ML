@@ -34,7 +34,7 @@ See also:
 - test subsumption of interpretations when merging theories
 *)
 
-signature LOCALE =
+signature OLD_LOCALE =
 sig
   datatype expr =
     Locale of string |
@@ -125,7 +125,7 @@ sig
     bool -> Proof.state -> Proof.state
 end;
 
-structure Locale: LOCALE =
+structure Old_Locale: OLD_LOCALE =
 struct
 
 (* legacy operations *)

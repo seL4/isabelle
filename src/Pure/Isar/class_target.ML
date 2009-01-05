@@ -72,23 +72,23 @@ struct
 structure Old_Locale =
 struct
 
-val intro_locales_tac = Locale.intro_locales_tac; (*already forked!*)
+val intro_locales_tac = Old_Locale.intro_locales_tac; (*already forked!*)
 
-val interpretation = Locale.interpretation;
-val interpretation_in_locale = Locale.interpretation_in_locale;
-val get_interpret_morph = Locale.get_interpret_morph;
-val Locale = Locale.Locale;
-val extern = Locale.extern;
-val intros = Locale.intros;
-val dests = Locale.dests;
-val init = Locale.init;
-val Merge = Locale.Merge;
-val parameters_of_expr = Locale.parameters_of_expr;
-val empty = Locale.empty;
-val cert_expr = Locale.cert_expr;
-val read_expr = Locale.read_expr;
-val parameters_of = Locale.parameters_of;
-val add_locale = Locale.add_locale;
+val interpretation = Old_Locale.interpretation;
+val interpretation_in_locale = Old_Locale.interpretation_in_locale;
+val get_interpret_morph = Old_Locale.get_interpret_morph;
+val Locale = Old_Locale.Locale;
+val extern = Old_Locale.extern;
+val intros = Old_Locale.intros;
+val dests = Old_Locale.dests;
+val init = Old_Locale.init;
+val Merge = Old_Locale.Merge;
+val parameters_of_expr = Old_Locale.parameters_of_expr;
+val empty = Old_Locale.empty;
+val cert_expr = Old_Locale.cert_expr;
+val read_expr = Old_Locale.read_expr;
+val parameters_of = Old_Locale.parameters_of;
+val add_locale = Old_Locale.add_locale;
 
 end;
 
@@ -401,7 +401,7 @@ fun intro_classes_tac facts st =
   end;
 
 fun default_intro_tac ctxt [] =
-      intro_classes_tac [] ORELSE NewLocale.intro_locales_tac true ctxt [] ORELSE
+      intro_classes_tac [] ORELSE Locale.intro_locales_tac true ctxt [] ORELSE
       Locale.intro_locales_tac true ctxt []
   | default_intro_tac _ _ = no_tac;
 

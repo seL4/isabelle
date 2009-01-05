@@ -24,7 +24,7 @@ sig
   val locale_fixes: (Binding.T * string option * mixfix) list parser
   val locale_insts: (string option list * (Attrib.binding * string) list) parser
   val class_expr: string list parser
-  val locale_expr: Locale.expr parser
+  val locale_expr: Old_Locale.expr parser
   val locale_expression: Expression.expression parser
   val locale_keyword: string parser
   val context_element: Element.context parser
@@ -117,9 +117,9 @@ val class_expr = plus1_unless locale_keyword P.xname;
 
 val locale_expr =
   let
-    fun expr2 x = (P.xname >> Locale.Locale || P.$$$ "(" |-- P.!!! (expr0 --| P.$$$ ")")) x
-    and expr1 x = (expr2 -- Scan.repeat1 (P.maybe rename) >> Locale.Rename || expr2) x
-    and expr0 x = (plus1_unless locale_keyword expr1 >> (fn [e] => e | es => Locale.Merge es)) x;
+    fun expr2 x = (P.xname >> Old_Locale.Locale || P.$$$ "(" |-- P.!!! (expr0 --| P.$$$ ")")) x
+    and expr1 x = (expr2 -- Scan.repeat1 (P.maybe rename) >> Old_Locale.Rename || expr2) x
+    and expr0 x = (plus1_unless locale_keyword expr1 >> (fn [e] => e | es => Old_Locale.Merge es)) x;
   in expr0 end;
 
 val locale_expression =

@@ -265,7 +265,7 @@ fun interprete_parent name dist_thm_name parent_expr thy =
       in EVERY [rtac rule i] st
       end
 
-    fun tac ctxt = EVERY [NewLocale.intro_locales_tac true ctxt [],
+    fun tac ctxt = EVERY [Locale.intro_locales_tac true ctxt [],
                           ALLGOALS (SUBGOAL (solve_tac ctxt))]
 
   in thy
@@ -429,7 +429,7 @@ fun statespace_definition state_type args name parents parent_comps components t
       let
         val expr = ([(pname, (("",false), Expression.Positional rs))],[])
       in prove_interpretation_in
-           (fn ctxt => NewLocale.intro_locales_tac false ctxt [])
+           (fn ctxt => Locale.intro_locales_tac false ctxt [])
            (full_name, expr) end;
 
     fun declare_declinfo updates lthy phi ctxt =

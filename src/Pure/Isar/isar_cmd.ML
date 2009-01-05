@@ -354,17 +354,17 @@ val print_theorems_theory = Toplevel.keep (fn state =>
 val print_theorems = Toplevel.unknown_context o print_theorems_theory o print_theorems_proof;
 
 val print_locales = Toplevel.unknown_theory o
-  Toplevel.keep (NewLocale.print_locales o Toplevel.theory_of);
+  Toplevel.keep (Locale.print_locales o Toplevel.theory_of);
 
 fun print_locale (show_facts, name) = Toplevel.unknown_theory o
   Toplevel.keep (fn state =>
-    NewLocale.print_locale (Toplevel.theory_of state) show_facts name);
+    Locale.print_locale (Toplevel.theory_of state) show_facts name);
 
 fun print_registrations show_wits name = Toplevel.unknown_context o
   Toplevel.keep (Toplevel.node_case
-      (Context.cases (Locale.print_registrations show_wits name o ProofContext.init)
-        (Locale.print_registrations show_wits name))
-    (Locale.print_registrations show_wits name o Proof.context_of));
+      (Context.cases (Old_Locale.print_registrations show_wits name o ProofContext.init)
+        (Old_Locale.print_registrations show_wits name))
+    (Old_Locale.print_registrations show_wits name o Proof.context_of));
 
 val print_attributes = Toplevel.unknown_theory o
   Toplevel.keep (Attrib.print_attributes o Toplevel.theory_of);
