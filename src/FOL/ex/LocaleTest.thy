@@ -4,8 +4,8 @@
 Testing environment for locale expressions --- experimental.
 *)
 
-theory NewLocaleTest
-imports NewLocaleSetup
+theory LocaleTest
+imports FOL
 begin
 
 ML_val {* set Toplevel.debug *}

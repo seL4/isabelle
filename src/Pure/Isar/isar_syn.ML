@@ -1,5 +1,4 @@
 (*  Title:      Pure/Isar/isar_syn.ML
-    ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
 
 Isar/Pure outer syntax.
@@ -394,9 +393,7 @@ val _ =
     (P.name -- Scan.optional (P.$$$ "=" |-- P.!!! locale_val) (([], []), []) -- P.opt_begin
       >> (fn ((name, (expr, elems)), begin) =>
           (begin ? Toplevel.print) o Toplevel.begin_local_theory begin
-            (Expression.add_locale_cmd name name expr elems #>
-              (fn ((target, notes), ctxt) => TheoryTarget.begin target ctxt |>
-                fold (fn (kind, facts) => LocalTheory.notes kind facts #> snd) notes))));
+            (Expression.add_locale_cmd name name expr elems #> snd)));
 
 val _ =
   OuterSyntax.command "sublocale"
@@ -430,24 +427,24 @@ in
 val locale_val =
   SpecParse.locale_expr --
     Scan.optional (P.$$$ "+" |-- P.!!! (Scan.repeat1 SpecParse.context_element)) [] ||
-  Scan.repeat1 SpecParse.context_element >> pair Locale.empty;
+  Scan.repeat1 SpecParse.context_element >> pair Old_Locale.empty;
 
 val _ =
   OuterSyntax.command "class_locale" "define named proof context based on classes" K.thy_decl
-    (P.name -- Scan.optional (P.$$$ "=" |-- P.!!! locale_val) (Locale.empty, []) -- P.opt_begin
+    (P.name -- Scan.optional (P.$$$ "=" |-- P.!!! locale_val) (Old_Locale.empty, []) -- P.opt_begin
       >> (fn ((name, (expr, elems)), begin) =>
           (begin ? Toplevel.print) o Toplevel.begin_local_theory begin
-            (Locale.add_locale_cmd name expr elems #-> TheoryTarget.begin)));
+            (Old_Locale.add_locale_cmd name expr elems #-> TheoryTarget.begin)));
 
 val _ =
   OuterSyntax.command "class_interpretation"
     "prove and register interpretation of locale expression in theory or locale" K.thy_goal
     (P.xname --| (P.$$$ "\\<subseteq>" || P.$$$ "<") -- P.!!! SpecParse.locale_expr
-      >> (Toplevel.print oo (Toplevel.theory_to_proof o Locale.interpretation_in_locale I)) ||
+      >> (Toplevel.print oo (Toplevel.theory_to_proof o Old_Locale.interpretation_in_locale I)) ||
       opt_prefix  -- SpecParse.locale_expr -- SpecParse.locale_insts
         >> (fn ((name, expr), insts) => Toplevel.print o
             Toplevel.theory_to_proof
-              (Locale.interpretation_cmd (Binding.base_name name) expr insts)));
+              (Old_Locale.interpretation_cmd (Binding.base_name name) expr insts)));
 
 val _ =
   OuterSyntax.command "class_interpret"
@@ -456,7 +453,7 @@ val _ =
     (opt_prefix -- SpecParse.locale_expr -- SpecParse.locale_insts
       >> (fn ((name, expr), insts) => Toplevel.print o
           Toplevel.proof'
-            (fn int => Locale.interpret_cmd (Binding.base_name name) expr insts int)));
+            (fn int => Old_Locale.interpret_cmd (Binding.base_name name) expr insts int)));
 
 end;
 
@@ -477,13 +474,13 @@ val _ =
 
 val _ =
   OuterSyntax.local_theory_to_proof "subclass" "prove a subclass relation" K.thy_goal
-    (P.xname >> Subclass.subclass_cmd);
+    (P.xname >> Class.subclass_cmd);
 
 val _ =
   OuterSyntax.command "instantiation" "instantiate and prove type arity" K.thy_decl
    (P.multi_arity --| P.begin
      >> (fn arities => Toplevel.print o
-         Toplevel.begin_local_theory true (Instance.instantiation_cmd arities)));
+         Toplevel.begin_local_theory true (TheoryTarget.instantiation_cmd arities)));
 
 val _ =
   OuterSyntax.command "instance" "prove type arity or subclass relation" K.thy_goal

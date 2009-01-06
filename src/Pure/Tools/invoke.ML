@@ -6,9 +6,9 @@ Schematic invocation of locale expression in proof context.
 
 signature INVOKE =
 sig
-  val invoke: string * Attrib.src list -> Locale.expr -> string option list ->
+  val invoke: string * Attrib.src list -> Old_Locale.expr -> string option list ->
     (Binding.T * string option * mixfix) list -> bool -> Proof.state -> Proof.state
-  val invoke_i: string * attribute list -> Locale.expr -> term option list ->
+  val invoke_i: string * attribute list -> Old_Locale.expr -> term option list ->
     (Binding.T * typ option * mixfix) list -> bool -> Proof.state -> Proof.state
 end;
 
@@ -104,8 +104,8 @@ fun gen_invoke prep_att prep_expr parse_term add_fixes
 in
 
 fun invoke x =
-  gen_invoke Attrib.attribute Locale.read_expr Syntax.parse_term ProofContext.add_fixes x;
-fun invoke_i x = gen_invoke (K I) Locale.cert_expr (K I) ProofContext.add_fixes_i x;
+  gen_invoke Attrib.attribute Old_Locale.read_expr Syntax.parse_term ProofContext.add_fixes x;
+fun invoke_i x = gen_invoke (K I) Old_Locale.cert_expr (K I) ProofContext.add_fixes_i x;
 
 end;
 
