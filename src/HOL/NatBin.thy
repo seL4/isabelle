@@ -29,14 +29,14 @@ lemma [code post]:
   unfolding nat_number_of_def ..
 
 abbreviation (xsymbols)
-  square :: "'a::power => 'a"  ("(_\<twosuperior>)" [1000] 999) where
+  power2 :: "'a::power => 'a"  ("(_\<twosuperior>)" [1000] 999) where
   "x\<twosuperior> == x^2"
 
 notation (latex output)
-  square  ("(_\<twosuperior>)" [1000] 999)
+  power2  ("(_\<twosuperior>)" [1000] 999)
 
 notation (HTML output)
-  square  ("(_\<twosuperior>)" [1000] 999)
+  power2  ("(_\<twosuperior>)" [1000] 999)
 
 
 subsection {* Predicate for negative binary numbers *}
