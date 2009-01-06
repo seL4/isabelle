@@ -456,7 +456,7 @@ fun saturate_skolem_cache thy =
           |> fold (mark_seen o #1) new_facts
           |> fold_map skolem_def (sort_distinct (Thm.thm_ord o pairself snd) new_thms)
           |>> map_filter I;
-        val cache_entries = ParList.map skolem_cnfs defs;
+        val cache_entries = Par_List.map skolem_cnfs defs;
       in SOME (fold update_cache cache_entries thy') end
   end;
 

@@ -135,7 +135,7 @@ val extend_data = Datatab.map' invoke_extend;
 
 fun merge_data pp (data1, data2) =
   Datatab.keys (Datatab.merge (K true) (data1, data2))
-  |> ParList.map (fn k =>
+  |> Par_List.map (fn k =>
     (case (Datatab.lookup data1 k, Datatab.lookup data2 k) of
       (SOME x, NONE) => (k, invoke_extend k x)
     | (NONE, SOME y) => (k, invoke_extend k y)
