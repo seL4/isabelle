@@ -33,14 +33,7 @@ val cont_L = @{thm cont2cont_LAM};
 val cont_R = @{thm cont_Rep_CFun2};
 
 (* checks whether a term contains no dangling bound variables *)
-val is_closed_term =
-  let
-    fun bound_less i (t $ u) =
-          bound_less i t andalso bound_less i u
-      | bound_less i (Abs (_, _, t)) = bound_less (i+1) t
-      | bound_less i (Bound n) = n < i
-      | bound_less i _ = true; (* Const, Free, and Var are OK *)
-  in bound_less 0 end;
+fun is_closed_term t = not (Term.loose_bvar (t, 0));
 
 (* checks whether a term is written entirely in the LCF sublanguage *)
 fun is_lcf_term (Const (@{const_name Rep_CFun}, _) $ t $ u) =
