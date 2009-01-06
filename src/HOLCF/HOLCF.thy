@@ -24,7 +24,7 @@ defaultsort pcpo
 declaration {* fn _ =>
   Simplifier.map_ss (fn simpset => simpset addSolver
     (mk_solver' "adm_tac" (fn ss =>
-      adm_tac (cut_facts_tac (Simplifier.prems_of_ss ss) THEN' cont_tacRs ss))));
+      Adm.adm_tac (cut_facts_tac (Simplifier.prems_of_ss ss) THEN' cont_tacRs ss))));
 *}
 
 end
