@@ -40,7 +40,8 @@ fun is_lcf_term (Const (@{const_name Rep_CFun}, _) $ t $ u) =
       is_lcf_term t andalso is_lcf_term u
   | is_lcf_term (Const (@{const_name Abs_CFun}, _) $ Abs (_, _, t)) =
       is_lcf_term t
-  | is_lcf_term (Const (@{const_name Abs_CFun}, _) $ _) = false
+  | is_lcf_term (Const (@{const_name Abs_CFun}, _) $ t) =
+      is_lcf_term (Term.incr_boundvars 1 t $ Bound 0)
   | is_lcf_term (Bound _) = true
   | is_lcf_term t = is_closed_term t;
 
@@ -83,6 +84,12 @@ local
     | cont_thms1 b (Const (@{const_name Abs_CFun}, _) $ Abs (_, _, t)) =
     let
       val (cs, ls) = cont_thms1 b t;
+      val (cs', l) = lam cs;
+    in (cs', l::ls) end
+    | cont_thms1 b (Const (@{const_name Abs_CFun}, _) $ t) =
+    let
+      val t' = Term.incr_boundvars 1 t $ Bound 0;
+      val (cs, ls) = cont_thms1 b t';
       val (cs', l) = lam cs;
     in (cs', l::ls) end
     | cont_thms1 _ (Bound n) = (var n, [])
