@@ -8,8 +8,8 @@ signature EXPRESSION =
 sig
   datatype 'term map = Positional of 'term option list | Named of (string * 'term) list;
   type 'term expr = (string * ((string * bool) * 'term map)) list;
-  type expression = string expr * (Binding.T * string option * mixfix) list;
   type expression_i = term expr * (Binding.T * typ option * mixfix) list;
+  type expression = string expr * (Binding.T * string option * mixfix) list;
 
   (* Processing of context statements *)
   val read_statement: Element.context list -> (string * string list) list list ->
@@ -18,20 +18,20 @@ sig
     Proof.context -> (term * term list) list list * Proof.context;
 
   (* Declaring locales *)
-  val add_locale_cmd: string -> bstring -> expression -> Element.context list ->
-    theory -> string * local_theory;
   val add_locale: string -> bstring -> expression_i -> Element.context_i list ->
+    theory -> string * local_theory;
+  val add_locale_cmd: string -> bstring -> expression -> Element.context list ->
     theory -> string * local_theory;
 
   (* Interpretation *)
-  val sublocale_cmd: string -> expression -> theory -> Proof.state;
   val sublocale: string -> expression_i -> theory -> Proof.state;
-  val interpretation_cmd: expression -> (Attrib.binding * string) list ->
-    theory -> Proof.state;
+  val sublocale_cmd: string -> expression -> theory -> Proof.state;
   val interpretation: expression_i -> (Attrib.binding * term) list ->
     theory -> Proof.state;
-  val interpret_cmd: expression -> bool -> Proof.state -> Proof.state;
+  val interpretation_cmd: expression -> (Attrib.binding * string) list ->
+    theory -> Proof.state;
   val interpret: expression_i -> bool -> Proof.state -> Proof.state;
+  val interpret_cmd: expression -> bool -> Proof.state -> Proof.state;
 end;
 
 

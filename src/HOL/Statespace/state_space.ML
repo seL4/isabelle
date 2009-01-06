@@ -155,15 +155,13 @@ fun prove_interpretation_in ctxt_tac (name, expr) thy =
 fun add_locale name expr elems thy =
   thy 
   |> Expression.add_locale name name expr elems
-  |> (fn ((target, notes), ctxt) => TheoryTarget.begin target ctxt |>
-           fold (fn (kind, facts) => LocalTheory.notes kind facts #> snd) notes)
+  |> snd
   |> LocalTheory.exit;
 
 fun add_locale_cmd name expr elems thy =
   thy 
   |> Expression.add_locale_cmd name name expr elems
-  |> (fn ((target, notes), ctxt) => TheoryTarget.begin target ctxt |>
-           fold (fn (kind, facts) => LocalTheory.notes kind facts #> snd) notes)
+  |> snd
   |> LocalTheory.exit;
 
 type statespace_info =

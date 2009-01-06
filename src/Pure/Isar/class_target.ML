@@ -69,71 +69,35 @@ struct
 
 (*temporary adaption code to mediate between old and new locale code*)
 
-structure Old_Locale =
+structure Locale_Layer =
 struct
 
-val intro_locales_tac = Old_Locale.intro_locales_tac; (*already forked!*)
-
-val interpretation = Old_Locale.interpretation;
-val interpretation_in_locale = Old_Locale.interpretation_in_locale;
+val init = Old_Locale.init;
+val parameters_of = Old_Locale.parameters_of;
+val intros = Old_Locale.intros;
+val dests = Old_Locale.dests;
 val get_interpret_morph = Old_Locale.get_interpret_morph;
 val Locale = Old_Locale.Locale;
 val extern = Old_Locale.extern;
-val intros = Old_Locale.intros;
-val dests = Old_Locale.dests;
-val init = Old_Locale.init;
-val Merge = Old_Locale.Merge;
-val parameters_of_expr = Old_Locale.parameters_of_expr;
-val empty = Old_Locale.empty;
-val cert_expr = Old_Locale.cert_expr;
-val read_expr = Old_Locale.read_expr;
-val parameters_of = Old_Locale.parameters_of;
-val add_locale = Old_Locale.add_locale;
-
-end;
-
-(*structure New_Locale =
-struct
-
-val intro_locales_tac = Locale.intro_locales_tac; (*already forked!*)
-
-val interpretation = Locale.interpretation; (*!*)
-val interpretation_in_locale = Locale.interpretation_in_locale; (*!*)
-val get_interpret_morph = Locale.get_interpret_morph; (*!*)
-fun Locale loc = ([(loc, ("", Expression.Positional []))], []);
-val extern = NewLocale.extern;
-val intros = Locale.intros; (*!*)
-val dests = Locale.dests; (*!*)
-val init = NewLocale.init;
-fun Merge locs = (map (fn loc => (loc, ("", Expression.Positional []))) locs, []);
-val parameters_of_expr = Locale.parameters_of_expr; (*!*)
-val empty = ([], []);
-val cert_expr = Locale.cert_expr; (*!"*)
-val read_expr = Locale.read_expr; (*!"*)
-val parameters_of = NewLocale.params_of; (*why typ option?*)
-val add_locale = Expression.add_locale;
-
-end;*)
-
-structure Locale = Old_Locale;
-
-(*proper code again*)
-
-
-(** auxiliary **)
+val intro_locales_tac = Old_Locale.intro_locales_tac;
 
 fun prove_interpretation tac prfx_atts expr inst =
-  Locale.interpretation I prfx_atts expr inst
+  Old_Locale.interpretation I prfx_atts expr inst
   ##> Proof.global_terminal_proof
       (Method.Basic (fn ctxt => Method.SIMPLE_METHOD (tac ctxt), Position.none), NONE)
   ##> ProofContext.theory_of;
 
 fun prove_interpretation_in tac after_qed (name, expr) =
-  Locale.interpretation_in_locale
+  Old_Locale.interpretation_in_locale
       (ProofContext.theory after_qed) (name, expr)
   #> Proof.global_terminal_proof
       (Method.Basic (K (Method.SIMPLE_METHOD tac), Position.none), NONE)
   #> ProofContext.theory_of;
+
+end;
+
+
+(** auxiliary **)
 
 val class_prefix = Logic.const_of_class o Sign.base_name;
 
@@ -143,7 +107,7 @@ fun class_name_morphism class =
 type raw_morphism = morphism * ((typ Vartab.table * typ list) *  (term Vartab.table * term list));
 
 fun activate_class_morphism thy class inst morphism =
-  Locale.get_interpret_morph thy (class_name_morphism class) (class, "") morphism class inst;
+  Locale_Layer.get_interpret_morph thy (class_name_morphism class) (class, "") morphism class inst;
 
 
 (** primitive axclass and instance commands **)
@@ -308,7 +272,7 @@ fun print_classes thy =
       (SOME o Pretty.block) [Pretty.str "supersort: ",
         (Syntax.pretty_sort ctxt o Sign.minimize_sort thy o Sign.super_classes thy) class],
       if is_class thy class then (SOME o Pretty.str)
-        ("locale: " ^ Locale.extern thy class) else NONE,
+        ("locale: " ^ Locale_Layer.extern thy class) else NONE,
       ((fn [] => NONE | ps => (SOME o Pretty.block o Pretty.fbreaks)
           (Pretty.str "parameters:" :: ps)) o map mk_param
         o these o Option.map #params o try (AxClass.get_info thy)) class,
@@ -362,12 +326,12 @@ fun prove_class_interpretation class inst consts hyp_facts def_facts thy =
     val no_constraints = map (map_atyps (K (TFree (Name.aT, [])))) constraints;
     fun add_constraint c T = Sign.add_const_constraint (c, SOME T);
     fun tac ctxt = ALLGOALS (ProofContext.fact_tac (hyp_facts @ def_facts)
-      ORELSE' (fn n => SELECT_GOAL (Locale.intro_locales_tac false ctxt []) n));
+      ORELSE' (fn n => SELECT_GOAL (Locale_Layer.intro_locales_tac false ctxt []) n));
     val prfx = class_prefix class;
   in
     thy
     |> fold2 add_constraint (map snd consts) no_constraints
-    |> prove_interpretation tac (class_name_morphism class) (Locale.Locale class)
+    |> Locale_Layer.prove_interpretation tac (class_name_morphism class) (Locale_Layer.Locale class)
           (map SOME inst, map (pair (Attrib.empty_binding) o Thm.prop_of) def_facts)
     ||> fold2 add_constraint (map snd consts) constraints
   end;
@@ -384,8 +348,8 @@ fun prove_subclass_relation (sub, sup) some_thm thy =
   in
     thy
     |> AxClass.add_classrel classrel
-    |> prove_interpretation_in (ALLGOALS (ProofContext.fact_tac (the_list some_thm)))
-         I (sub, Locale.Locale sup)
+    |> Locale_Layer.prove_interpretation_in (ALLGOALS (ProofContext.fact_tac (the_list some_thm)))
+         I (sub, Locale_Layer.Locale sup)
     |> ClassData.map (Graph.add_edge (sub, sup))
   end;
 
@@ -401,7 +365,7 @@ fun intro_classes_tac facts st =
   end;
 
 fun default_intro_tac ctxt [] =
-      intro_classes_tac [] ORELSE Locale.intro_locales_tac true ctxt [] ORELSE
+      intro_classes_tac [] ORELSE Old_Locale.intro_locales_tac true ctxt [] ORELSE
       Locale.intro_locales_tac true ctxt []
   | default_intro_tac _ _ = no_tac;
 
@@ -470,7 +434,7 @@ fun begin sups base_sort ctxt =
 
 fun init class thy =
   thy
-  |> Locale.init class
+  |> Locale_Layer.init class
   |> begin [class] (base_sort thy class);
 
 
