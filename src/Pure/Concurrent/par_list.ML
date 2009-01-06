@@ -1,5 +1,4 @@
 (*  Title:      Pure/Concurrent/par_list.ML
-    ID:         $Id$
     Author:     Makarius
 
 Parallel list combinators.
@@ -24,7 +23,7 @@ sig
   val forall: ('a -> bool) -> 'a list -> bool
 end;
 
-structure ParList: PAR_LIST =
+structure Par_List: PAR_LIST =
 struct
 
 fun raw_map f xs =

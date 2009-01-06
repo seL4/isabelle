@@ -132,7 +132,15 @@ fun declare_theory_data empty copy extend merge =
 
 val copy_data = Datatab.map' invoke_copy;
 val extend_data = Datatab.map' invoke_extend;
-fun merge_data pp = Datatab.join (invoke_merge pp) o pairself extend_data;
+
+fun merge_data pp (data1, data2) =
+  Datatab.keys (Datatab.merge (K true) (data1, data2))
+  |> Par_List.map (fn k =>
+    (case (Datatab.lookup data1 k, Datatab.lookup data2 k) of
+      (SOME x, NONE) => (k, invoke_extend k x)
+    | (NONE, SOME y) => (k, invoke_extend k y)
+    | (SOME x, SOME y) => (k, invoke_merge pp k (invoke_extend k x, invoke_extend k y))))
+  |> Datatab.make;
 
 end;
 
