@@ -14,7 +14,9 @@ no_document use_thys [
   "Term_Of_Syntax",
   "Codegenerator",
   "Codegenerator_Pretty",
-  "NormalForm"
+  "NormalForm",
+  "../NumberTheory/Factorization",
+  "../Library/BigO"
 ];
 
 use_thys [
@@ -62,7 +64,17 @@ use_thys [
   "PresburgerEx",
   "Reflected_Presburger",
   "Reflection",
-  "ReflectionEx"
+  "ReflectionEx",
+  "BinEx",
+  "Sqrt",
+  "Sqrt_Script",
+  "BigO_Complex",
+  "Arithmetic_Series_Complex",
+  "HarmonicSeries",
+  "MIR",
+  "ReflectedFerrack",
+  "Refute_Examples",
+  "Quickcheck_Examples"
 ];
 
 setmp Proofterm.proofs 2 use_thy "Hilbert_Classical";
@@ -73,7 +85,7 @@ use_thy "SVC_Oracle";
 fun svc_enabled () = getenv "SVC_HOME" <> "";
 fun if_svc_enabled f x = if svc_enabled () then f x else ();
 
-if_svc_enabled time_use_thy "svc_test";
+if_svc_enabled use_thy "svc_test";
 
 
 (* requires a proof-generating SAT solver (zChaff or MiniSAT) to be *)
@@ -86,26 +98,4 @@ if getenv "ZCHAFF_HOME" <> "" then
   use_thy "Sudoku"
 else ();
 
-time_use_thy "Refute_Examples";
-time_use_thy "Quickcheck_Examples";
-
 HTML.with_charset "utf-8" (no_document use_thys) ["Hebrew", "Chinese"];
-
-no_document use_thys [
-  "../NumberTheory/Factorization",
-  "../Library/BigO"
-];
-
-use_thys [
-  "BinEx",
-  "Sqrt",
-  "Sqrt_Script",
-  "BigO_Complex",
-
-  "Arithmetic_Series_Complex",
-  "HarmonicSeries",
-
-  "MIR",
-  "ReflectedFerrack"
-];
-
