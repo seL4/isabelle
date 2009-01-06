@@ -1029,7 +1029,7 @@ fun future_proof fork_proof state =
 end;
 
 fun future_terminal_proof meths state =
-  if is_relevant state then global_terminal_proof meths state
+  if is_relevant state orelse not (Future.enabled ()) then global_terminal_proof meths state
   else #2 (state |> future_proof (fn state' =>
     Future.fork_pri ~1 (fn () => ((), global_terminal_proof meths state'))));
 
