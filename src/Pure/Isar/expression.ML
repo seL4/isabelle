@@ -887,7 +887,7 @@ fun gen_interpret prep_expr
       end;
 
     fun after_qed results =
-      Proof.map_context (fold store_reg (regs ~~ prep_result propss results)) #> Seq.single;
+      Proof.map_context (fold store_reg (regs ~~ prep_result propss results));
   in
     state |> Proof.map_context (K goal_ctxt) |>
       Proof.local_goal (ProofDisplay.print_results int) (K I) ProofContext.bind_propp_i

@@ -116,7 +116,7 @@ sig
     theory -> Proof.state
   val interpretation_in_locale: (Proof.context -> Proof.context) ->
     xstring * expr -> theory -> Proof.state
-  val interpret: (Proof.state -> Proof.state Seq.seq) ->
+  val interpret: (Proof.state -> Proof.state) ->
     (Binding.T -> Binding.T) -> expr ->
     term option list * (Attrib.binding * term) list ->
     bool -> Proof.state ->
@@ -2478,7 +2478,7 @@ fun interpretation_in_locale after_qed (raw_target, expr) thy =
 
 val interpret = gen_interpret prep_local_registration;
 fun interpret_cmd interp_prfx = snd oooo gen_interpret prep_local_registration_cmd
-  Seq.single (standard_name_morph interp_prfx);
+  I (standard_name_morph interp_prfx);
 
 end;
 

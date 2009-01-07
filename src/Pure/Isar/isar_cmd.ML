@@ -1,5 +1,4 @@
 (*  Title:      Pure/Isar/isar_cmd.ML
-    ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
 
 Derived Isar commands.
@@ -219,7 +218,7 @@ fun hide_names b (kind, xnames) thy =
 (* goals *)
 
 fun goal opt_chain goal stmt int =
-  opt_chain #> goal NONE (K Seq.single) stmt int;
+  opt_chain #> goal NONE (K I) stmt int;
 
 val have = goal I Proof.have;
 val hence = goal Proof.chain Proof.have;
@@ -229,12 +228,12 @@ val thus = goal Proof.chain Proof.show;
 
 (* local endings *)
 
-fun local_qed m = Toplevel.proofs (Proof.local_qed (m, true));
-val local_terminal_proof = Toplevel.proofs o Proof.local_terminal_proof;
-val local_default_proof = Toplevel.proofs Proof.local_default_proof;
-val local_immediate_proof = Toplevel.proofs Proof.local_immediate_proof;
-val local_done_proof = Toplevel.proofs Proof.local_done_proof;
-val local_skip_proof = Toplevel.proofs' Proof.local_skip_proof;
+fun local_qed m = Toplevel.proof (Proof.local_qed (m, true));
+val local_terminal_proof = Toplevel.proof o Proof.local_terminal_proof;
+val local_default_proof = Toplevel.proof Proof.local_default_proof;
+val local_immediate_proof = Toplevel.proof Proof.local_immediate_proof;
+val local_done_proof = Toplevel.proof Proof.local_done_proof;
+val local_skip_proof = Toplevel.proof' Proof.local_skip_proof;
 
 val skip_local_qed = Toplevel.skip_proof (fn i => if i > 1 then i - 1 else raise Toplevel.UNDEF);
 
