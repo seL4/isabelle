@@ -155,7 +155,7 @@ fun prove_primrec_thms flat_names new_type_names descr sorts
         InductivePackage.add_inductive_global (serial_string ())
           {quiet_mode = ! quiet_mode, verbose = false, kind = Thm.internalK,
             alt_name = Binding.name big_rec_name', coind = false, no_elim = false, no_ind = true,
-            skip_mono = true}
+            skip_mono = true, fork_mono = false}
           (map (fn (s, T) => ((Binding.name s, T), NoSyn)) (rec_set_names' ~~ rec_set_Ts))
           (map dest_Free rec_fns)
           (map (fn x => (Attrib.empty_binding, x)) rec_intr_ts) [] thy0;
