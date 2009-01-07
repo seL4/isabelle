@@ -115,7 +115,7 @@ sig
     ((Binding.T * attribute list) * (term * term list) list) list -> bool -> state -> state
   val is_relevant: state -> bool
   val future_proof: (state -> ('a * context) future) -> state -> 'a future * context
-  val future_terminal_proof: Method.text * Method.text option -> state -> context
+  val future_terminal_proof: Method.text * Method.text option -> bool -> state -> context
 end;
 
 structure Proof: PROOF =
@@ -993,7 +993,6 @@ in
 
 fun is_relevant state =
   can (assert_bottom false) state orelse
-  can assert_forward state orelse
   not (is_original state) orelse
   schematic_goal state;
 
@@ -1001,6 +1000,7 @@ fun future_proof fork_proof state =
   let
     val _ = is_relevant state andalso error "Cannot fork relevant proof";
 
+    val _ = assert_backward state;
     val (goal_ctxt, (_, goal)) = find_goal state;
     val {statement as (kind, propss, prop), messages, using, goal, before_qed, after_qed} = goal;
 
@@ -1028,8 +1028,9 @@ fun future_proof fork_proof state =
 
 end;
 
-fun future_terminal_proof meths state =
-  if is_relevant state orelse not (Future.enabled ()) then global_terminal_proof meths state
+fun future_terminal_proof meths int state =
+  if int orelse is_relevant state orelse not (Future.enabled ())
+  then global_terminal_proof meths state
   else #2 (state |> future_proof (fn state' =>
     Future.fork_pri ~1 (fn () => ((), global_terminal_proof meths state'))));
 
