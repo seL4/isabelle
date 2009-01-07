@@ -1,5 +1,4 @@
 (*  Title:      Pure/Isar/toplevel.ML
-    ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
 
 Isabelle/Isar toplevel transactions.
@@ -66,6 +65,8 @@ sig
   val theory': (bool -> theory -> theory) -> transition -> transition
   val begin_local_theory: bool -> (theory -> local_theory) -> transition -> transition
   val end_local_theory: transition -> transition
+  val local_theory': xstring option -> (bool -> local_theory -> local_theory) ->
+    transition -> transition
   val local_theory: xstring option -> (local_theory -> local_theory) -> transition -> transition
   val present_local_theory: xstring option -> (node -> unit) -> transition -> transition
   val local_theory_to_proof': xstring option -> (bool -> local_theory -> Proof.state) ->
@@ -512,14 +513,15 @@ fun local_theory_presentation loc f g = transaction (fn int =>
   (fn Theory (gthy, _) =>
         let
           val finish = loc_finish loc gthy;
-          val lthy' = f (loc_begin loc gthy);
+          val lthy' = f int (loc_begin loc gthy);
         in Theory (finish lthy', SOME lthy') end
     | _ => raise UNDEF) #> tap g);
 
 in
 
-fun local_theory loc f = local_theory_presentation loc f (K I);
-fun present_local_theory loc g = local_theory_presentation loc I g;
+fun local_theory' loc f = local_theory_presentation loc f (K I);
+fun local_theory loc f = local_theory' loc (K f);
+fun present_local_theory loc g = local_theory_presentation loc (K I) g;
 
 end;
 
