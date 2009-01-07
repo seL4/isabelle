@@ -10,6 +10,12 @@ val HOLCF_ss = @{simpset};
 
 structure Domain_Theorems = struct
 
+val quiet_mode = ref false;
+val trace_domain = ref false;
+
+fun message s = if !quiet_mode then () else writeln s;
+fun trace s = if !trace_domain then tracing s else ();
+
 local
 
 val adm_impl_admw = @{thm adm_impl_admw};
@@ -115,7 +121,7 @@ in
 fun theorems (((dname, _), cons) : eq, eqs : eq list) thy =
 let
 
-val dummy = writeln ("Proving isomorphism properties of domain "^dname^" ...");
+val _ = message ("Proving isomorphism properties of domain "^dname^" ...");
 val pg = pg' thy;
 
 (* ----- getting the axioms and definitions --------------------------------- *)
@@ -158,6 +164,8 @@ val iso_rews = map standard [ax_abs_iso,ax_rep_iso,abs_strict,rep_strict];
 
 (* ----- generating beta reduction rules from definitions-------------------- *)
 
+val _ = trace " Proving beta reduction rules...";
+
 local
   fun arglist (Const _ $ Abs (s, _, t)) =
     let
@@ -179,7 +187,9 @@ in
     in pg (def::betas) appl (K [rtac reflexive_thm 1]) end;
 end;
 
+val _ = trace "Proving when_appl...";
 val when_appl = appl_of_def ax_when_def;
+val _ = trace "Proving con_appls...";
 val con_appls = map appl_of_def axs_con_def;
 
 local
@@ -229,7 +239,9 @@ local
     rewrite_goals_tac [mk_meta_eq iso_swap],
     rtac thm3 1];
 in
+  val _ = trace " Proving exhaust...";
   val exhaust = pg con_appls (mk_trp exh) (K tacs);
+  val _ = trace " Proving casedist...";
   val casedist =
     standard (rewrite_rule exh_casedists (exhaust RS exh_casedist0));
 end;
@@ -239,6 +251,7 @@ local
   fun bound_fun i _ = Bound (length cons - i);
   val when_app = list_ccomb (%%:(dname^"_when"), mapn bound_fun 1 cons);
 in
+  val _ = trace " Proving when_strict...";
   val when_strict =
     let
       val axs = [when_appl, mk_meta_eq rep_strict];
@@ -246,6 +259,7 @@ in
       val tacs = [resolve_tac [sscase1, ssplit1, strictify1] 1];
     in pg axs goal (K tacs) end;
 
+  val _ = trace " Proving when_apps...";
   val when_apps =
     let
       fun one_when n (con,args) =
@@ -276,6 +290,7 @@ local
       val tacs = [asm_simp_tac (HOLCF_ss addsimps when_rews) 1];
     in pg axs_dis_def goal (K tacs) end;
 
+  val _ = trace " Proving dis_apps...";
   val dis_apps = maps (fn (c,_) => map (dis_app c) cons) cons;
 
   fun dis_defin (con, args) =
@@ -288,7 +303,9 @@ local
           (asm_simp_tac (HOLCF_ss addsimps dis_apps) 1))];
     in pg [] goal (K tacs) end;
 
+  val _ = trace " Proving dis_stricts...";
   val dis_stricts = map dis_strict cons;
+  val _ = trace " Proving dis_defins...";
   val dis_defins = map dis_defin cons;
 in
   val dis_rews = dis_stricts @ dis_defins @ dis_apps;
@@ -301,6 +318,7 @@ local
       val tacs = [rtac when_strict 1];
     in pg axs_mat_def goal (K tacs) end;
 
+  val _ = trace " Proving mat_stricts...";
   val mat_stricts = map mat_strict cons;
 
   fun one_mat c (con, args) =
@@ -314,6 +332,7 @@ local
       val tacs = [asm_simp_tac (HOLCF_ss addsimps when_rews) 1];
     in pg axs_mat_def goal (K tacs) end;
 
+  val _ = trace " Proving mat_apps...";
   val mat_apps =
     maps (fn (c,_) => map (one_mat c) cons) cons;
 in
@@ -346,7 +365,9 @@ local
       val tacs = [asm_simp_tac (HOLCF_ss addsimps when_rews) 1];
     in pg axs goal (K tacs) end;
 
+  val _ = trace " Proving pat_stricts...";
   val pat_stricts = map pat_strict cons;
+  val _ = trace " Proving pat_apps...";
   val pat_apps = maps (fn c => map (pat_app c) cons) cons;
 in
   val pat_rews = pat_stricts @ pat_apps;
@@ -374,7 +395,9 @@ local
         asm_simp_tac (HOLCF_ss addsimps dis_rews) 1];
     in pg [] goal tacs end;
 in
+  val _ = trace " Proving con_stricts...";
   val con_stricts = maps con_strict cons;
+  val _ = trace " Proving pat_defins...";
   val con_defins = map con_defin cons;
   val con_rews = con_stricts @ con_defins;
 end;
@@ -391,6 +414,7 @@ local
         REPEAT (resolve_tac rules 1 ORELSE atac 1)];
     in pg con_appls goal (K tacs) end;
 in
+  val _ = trace " Proving con_compacts...";
   val con_compacts = map con_compact cons;
 end;
 
@@ -402,6 +426,7 @@ local
   fun sel_strict (_, args) =
     List.mapPartial (Option.map one_sel o sel_of) args;
 in
+  val _ = trace " Proving sel_stricts...";
   val sel_stricts = maps sel_strict cons;
 end;
 
@@ -439,6 +464,7 @@ local
   fun one_con (c, args) =
     flat (map_filter I (mapn (one_sel' c) 0 args));
 in
+  val _ = trace " Proving sel_apps...";
   val sel_apps = maps one_con cons;
 end;
 
@@ -453,6 +479,7 @@ local
           (asm_simp_tac (HOLCF_ss addsimps sel_apps) 1))];
     in pg [] goal (K tacs) end;
 in
+  val _ = trace " Proving sel_defins...";
   val sel_defins =
     if length cons = 1
     then List.mapPartial (fn arg => Option.map sel_defin (sel_of arg))
@@ -463,6 +490,7 @@ end;
 val sel_rews = sel_stricts @ sel_defins @ sel_apps;
 val rev_contrapos = @{thm rev_contrapos};
 
+val _ = trace " Proving dist_les...";
 val distincts_le =
   let
     fun dist (con1, args1) (con2, args2) =
@@ -487,6 +515,8 @@ val distincts_le =
       | distincts (c::cs) = (map (distinct c) cs) :: distincts cs;
   in distincts cons end;
 val dist_les = flat (flat distincts_le);
+
+val _ = trace " Proving dist_eqs...";
 val dist_eqs =
   let
     fun distinct (_,args1) ((_,args2), leqs) =
@@ -517,6 +547,7 @@ local
     in pg con_appls prop end;
   val cons' = List.filter (fn (_,args) => args<>[]) cons;
 in
+  val _ = trace " Proving inverts...";
   val inverts =
     let
       val abs_less = ax_abs_iso RS (allI RS injection_less);
@@ -524,6 +555,7 @@ in
         [asm_full_simp_tac (HOLCF_ss addsimps [abs_less, spair_less]) 1];
     in map (fn (con, args) => pgterm (op <<) con args (K tacs)) cons' end;
 
+  val _ = trace " Proving injects...";
   val injects =
     let
       val abs_eq = ax_abs_iso RS (allI RS injection_eq);
@@ -551,6 +583,7 @@ local
       val tacs2 = [asm_simp_tac (HOLCF_ss addsimps when_apps) 1];
     in pg [ax_copy_def] goal (fn ctxt => (tacs1 ctxt @ tacs2)) end;
 in
+  val _ = trace " Proving copy_apps...";
   val copy_apps = map copy_app cons;
 end;
 
@@ -565,6 +598,7 @@ local
 
   fun has_nonlazy_rec (_, args) = exists is_nonlazy_rec args;
 in
+  val _ = trace " Proving copy_stricts...";
   val copy_stricts = map one_strict (List.filter has_nonlazy_rec cons);
 end;
 
@@ -603,7 +637,7 @@ val dnames = map (fst o fst) eqs;
 val conss  = map  snd        eqs;
 val comp_dname = Sign.full_bname thy comp_dnam;
 
-val d = writeln("Proving induction properties of domain "^comp_dname^" ...");
+val _ = message ("Proving induction properties of domain "^comp_dname^" ...");
 val pg = pg' thy;
 
 (* ----- getting the composite axiom and definitions ------------------------ *)
@@ -639,6 +673,7 @@ local
   val copy_con_rews  = copy_rews @ con_rews;
   val copy_take_defs =
     (if n_eqs = 1 then [] else [ax_copy2_def]) @ axs_take_def;
+  val _ = trace " Proving take_stricts...";
   val take_stricts =
     let
       fun one_eq ((dn, args), _) = strict (dc_take dn $ %:"n");
@@ -656,6 +691,7 @@ local
     in pg axs_take_def goal (K [simp_tac iterate_Cprod_ss 1]) end;
   val take_0s = mapn take_0 1 dnames;
   fun c_UU_tac ctxt = case_UU_tac ctxt (take_stricts'::copy_con_rews) 1;
+  val _ = trace " Proving take_apps...";
   val take_apps =
     let
       fun mk_eqn dn (con, args) =
@@ -737,6 +773,7 @@ local
     val is_finite = forall (not o lazy_rec_to [] false) n__eqs;
   end;
 in (* local *)
+  val _ = trace " Proving finite_ind...";
   val finite_ind =
     let
       fun concf n dn = %:(P_name n) $ (dc_take dn $ %:"n" `%(x_name n));
@@ -768,6 +805,7 @@ in (* local *)
         end;
     in pg'' thy [] goal tacf end;
 
+  val _ = trace " Proving take_lemmas...";
   val take_lemmas =
     let
       fun take_lemma n (dn, ax_reach) =
@@ -793,6 +831,7 @@ in (* local *)
 
 (* ----- theorems concerning finiteness and induction ----------------------- *)
 
+  val _ = trace " Proving finites, ind...";
   val (finites, ind) =
     if is_finite
     then (* finite case *)
@@ -914,6 +953,7 @@ local
   fun bnd_arg n i = Bound(2*(n_eqs - n)-i-1);
   val take_ss = HOL_ss addsimps take_rews;
   val sproj = prj (fn s => K("fst("^s^")")) (fn s => K("snd("^s^")"));
+  val _ = trace " Proving coind_lemma...";
   val coind_lemma =
     let
       fun mk_prj n _ = proj (%:"R") eqs n $ bnd_arg n 0 $ bnd_arg n 1;
@@ -940,6 +980,7 @@ local
         flat (mapn (x_tacs ctxt) 0 xs);
     in pg [ax_bisim_def] goal tacs end;
 in
+  val _ = trace " Proving coind...";
   val coind = 
     let
       fun mk_prj n x = mk_trp (proj (%:"R") eqs n $ %:x $ %:(x^"'"));
