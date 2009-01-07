@@ -334,7 +334,7 @@ local
 
 fun init_target _ NONE = global_target
   | init_target thy (SOME target) =
-      make_target target (Locale.test_locale thy (Locale.intern thy target))
+      make_target target (Locale.defined thy (Locale.intern thy target))
       true (Class_Target.is_class thy target) ([], [], []) [];
 
 fun init_ctxt (Target {target, new_locale, is_locale, is_class, instantiation, overloading}) =
@@ -384,7 +384,7 @@ fun begin target ctxt = init_lthy (init_target (ProofContext.theory_of ctxt) (SO
 
 fun context "-" thy = init NONE thy
   | context target thy = init (SOME (locale_intern
-      (Locale.test_locale thy (Locale.intern thy target)) thy target)) thy;
+      (Locale.defined thy (Locale.intern thy target)) thy target)) thy;
 
 fun instantiation arities = init_lthy_ctxt (make_target "" false false false arities []);
 fun instantiation_cmd raw_arities thy =

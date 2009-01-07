@@ -18,9 +18,9 @@ sig
     Proof.context -> (term * term list) list list * Proof.context;
 
   (* Declaring locales *)
-  val add_locale: string -> bstring -> expression_i -> Element.context_i list ->
+  val add_locale: bstring -> bstring -> expression_i -> Element.context_i list ->
     theory -> string * local_theory;
-  val add_locale_cmd: string -> bstring -> expression -> Element.context list ->
+  val add_locale_cmd: bstring -> bstring -> expression -> Element.context list ->
     theory -> string * local_theory;
 
   (* Interpretation *)
@@ -698,18 +698,20 @@ fun defines_to_notes thy (Defines defs) =
   | defines_to_notes _ e = e;
 
 fun gen_add_locale prep_decl
-    bname predicate_name raw_imprt raw_body thy =
+    bname raw_predicate_bname raw_imprt raw_body thy =
   let
     val name = Sign.full_bname thy bname;
-    val _ = Locale.test_locale thy name andalso
+    val _ = Locale.defined thy name andalso
       error ("Duplicate definition of locale " ^ quote name);
 
     val ((fixed, deps, body_elems), (parms, ctxt')) =
       prep_decl raw_imprt raw_body (ProofContext.init thy);
     val text as (((_, exts'), _), defs) = eval ctxt' deps body_elems;
 
+    val predicate_bname = if raw_predicate_bname = "" then bname
+      else raw_predicate_bname;
     val ((a_statement, a_intro, a_axioms), (b_statement, b_intro, b_axioms), thy') =
-      define_preds predicate_name parms text thy;
+      define_preds predicate_bname parms text thy;
 
     val extraTs = fold Term.add_tfrees exts' [] \\ fold Term.add_tfreesT (map snd parms) [];
     val _ = if null extraTs then ()
@@ -787,7 +789,7 @@ fun gen_sublocale prep_expr intern
         fold store_dep (deps ~~ prep_result propss results) #>
         (* propagate registrations *)
         (fn thy => fold_rev (fn reg => Locale.activate_global_facts reg)
-          (Locale.get_global_registrations thy) thy));
+          (Locale.get_registrations thy) thy));
   in
     goal_ctxt |>
       Proof.theorem_i NONE after_qed (prep_propp propss) |>
@@ -824,7 +826,7 @@ fun gen_interpretation prep_expr parse_prop prep_attr
         let
           val thms' = map (Element.morph_witness export') thms;
           val morph' = morph $> Element.satisfy_morphism thms';
-          val add = Locale.add_global_registration (name, (morph', export));
+          val add = Locale.add_registration (name, (morph', export));
         in ((name, morph') :: regs, add thy) end
       | store (Eqns [], []) (regs, thy) =
         let val add = fold_rev (fn (name, morph) =>
@@ -842,7 +844,7 @@ fun gen_interpretation prep_expr parse_prop prep_attr
           val attns' = map ((apsnd o map) (Attrib.attribute_i thy)) attns;
           val add =
             fold_rev (fn (name, morph) =>
-              Locale.amend_global_registration eq_morph (name, morph) #>
+              Locale.amend_registration eq_morph (name, morph) #>
               Locale.activate_global_facts (name, morph $> eq_morph $> export)) regs #>
             PureThy.note_thmss Thm.lemmaK (attns' ~~ map (fn th => [([th], [])]) thms') #>
             snd
