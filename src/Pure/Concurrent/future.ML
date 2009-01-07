@@ -145,8 +145,9 @@ fun do_cancel group = (*requires SYNCHRONIZED*)
 fun execute name (task, group, jobs) =
   let
     val _ = trace_active ();
+    val valid = Task_Queue.is_valid group;
     val ok = setmp_thread_data (name, task) (fn () =>
-      fold (fn job => fn ok => job ok) jobs (Task_Queue.is_valid group)) ();
+      fold (fn job => fn ok => job valid andalso ok) jobs true) ();
     val _ = SYNCHRONIZED "execute" (fn () =>
      (change queue (Task_Queue.finish task);
       if ok then ()
@@ -311,18 +312,21 @@ fun join x = Exn.release (join_result x);
 
 (* map *)
 
-fun map_future f (x as Future {task, group, ...}) =
+fun map_future f x =
   let
     val _ = scheduler_check "map_future check";
 
-    val (result', job) = future_job group (fn () => f (join x));
+    val task = task_of x;
+    val group = Task_Queue.new_group ();
+    val (result, job) = future_job group (fn () => f (join x));
+
     val extended = SYNCHRONIZED "map_future" (fn () =>
       (case Task_Queue.extend task job (! queue) of
         SOME queue' => (queue := queue'; true)
       | NONE => false));
   in
-    if extended then Future {task = task, group = group, result = result'}
-    else fork_future (SOME group) [task] (Task_Queue.pri_of_task task) (fn () => f (join x))
+    if extended then Future {task = task, group = group, result = result}
+    else fork_future NONE [task] (Task_Queue.pri_of_task task) (fn () => f (join x))
   end;
 
 
