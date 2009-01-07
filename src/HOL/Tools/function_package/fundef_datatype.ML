@@ -203,10 +203,10 @@ val by_pat_completeness_simp =
       (Method.Basic (pat_completeness, Position.none),
        SOME (Method.Source_i (Args.src (("HOL.auto", []), Position.none))))
 
-fun termination_by method =
+fun termination_by method int =
     FundefPackage.setup_termination_proof NONE
     #> Proof.future_terminal_proof
-      (Method.Basic (method, Position.none), NONE)
+      (Method.Basic (method, Position.none), NONE) int
 
 fun mk_catchall fixes arities =
     let
@@ -304,19 +304,19 @@ val fun_config = FundefConfig { sequential=true, default="%x. undefined" (*FIXME
 
 local structure P = OuterParse and K = OuterKeyword in
 
-fun fun_cmd config fixes statements flags lthy =
+fun fun_cmd config fixes statements flags int lthy =
   let val group = serial_string () in
     lthy
       |> LocalTheory.set_group group
       |> FundefPackage.add_fundef fixes statements config flags
-      |> by_pat_completeness_simp
+      |> by_pat_completeness_simp int
       |> LocalTheory.restore
       |> LocalTheory.set_group group
-      |> termination_by (FundefCommon.get_termination_prover (Context.Proof lthy))
+      |> termination_by (FundefCommon.get_termination_prover (Context.Proof lthy)) int
   end;
 
 val _ =
-  OuterSyntax.local_theory "fun" "define general recursive functions (short version)" K.thy_decl
+  OuterSyntax.local_theory' "fun" "define general recursive functions (short version)" K.thy_decl
   (fundef_parser fun_config
      >> (fn ((config, fixes), (flags, statements)) => fun_cmd config fixes statements flags));
 
