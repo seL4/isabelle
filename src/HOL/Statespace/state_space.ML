@@ -160,7 +160,7 @@ fun add_locale name expr elems thy =
 
 fun add_locale_cmd name expr elems thy =
   thy 
-  |> Expression.add_locale_cmd name name expr elems
+  |> Expression.add_locale_cmd name "" expr elems
   |> snd
   |> LocalTheory.exit;
 
