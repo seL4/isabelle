@@ -470,7 +470,7 @@ val _ =
    (P.name -- (P.$$$ "=" |-- class_val) -- P.opt_begin
     >> (fn ((name, (supclasses, elems)), begin) =>
         (begin ? Toplevel.print) o Toplevel.begin_local_theory begin
-          (Class.class_cmd name supclasses elems #-> TheoryTarget.begin)));
+          (Class.class_cmd name supclasses elems #> snd)));
 
 val _ =
   OuterSyntax.local_theory_to_proof "subclass" "prove a subclass relation" K.thy_goal
