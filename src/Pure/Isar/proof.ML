@@ -30,7 +30,6 @@ sig
   val enter_forward: state -> state
   val goal_message: (unit -> Pretty.T) -> state -> state
   val get_goal: state -> context * (thm list * thm)
-  val schematic_goal: state -> bool
   val show_main_goal: bool ref
   val verbose: bool ref
   val pretty_state: int -> state -> Pretty.T list
@@ -113,9 +112,14 @@ sig
     (Attrib.binding * (string * string list) list) list -> bool -> state -> state
   val show_i: Method.text option -> (thm list list -> state -> state) ->
     ((Binding.T * attribute list) * (term * term list) list) list -> bool -> state -> state
+  val schematic_goal: state -> bool
   val is_relevant: state -> bool
-  val future_proof: (state -> ('a * context) future) -> state -> 'a future * context
-  val future_terminal_proof: Method.text * Method.text option -> bool -> state -> context
+  val local_future_proof: (state -> ('a * state) Future.future) ->
+    state -> 'a Future.future * state
+  val global_future_proof: (state -> ('a * Proof.context) Future.future) ->
+    state -> 'a Future.future * context
+  val local_future_terminal_proof: Method.text * Method.text option -> bool -> state -> state
+  val global_future_terminal_proof: Method.text * Method.text option -> bool -> state -> context
 end;
 
 structure Proof: PROOF =
@@ -311,12 +315,6 @@ in val find_goal = find 0 end;
 fun get_goal state =
   let val (ctxt, (_, {using, goal, ...})) = find_goal state
   in (ctxt, (using, goal)) end;
-
-fun schematic_goal state =
-  let val (_, (_, {statement = (_, _, prop), ...})) = find_goal state in
-    Term.exists_subterm Term.is_Var prop orelse
-    Term.exists_type (Term.exists_subtype Term.is_TVar) prop
-  end;
 
 
 
@@ -972,24 +970,31 @@ val show_i = gen_show (K I) ProofContext.bind_propp_i;
 end;
 
 
-(* fork global proofs *)
+
+(** future proofs **)
+
+(* relevant proof states *)
+
+fun is_schematic t =
+  Term.exists_subterm Term.is_Var t orelse
+  Term.exists_type (Term.exists_subtype Term.is_TVar) t;
+
+fun schematic_goal state =
+  let val (_, (_, {statement = (_, _, prop), ...})) = find_goal state
+  in is_schematic prop end;
+
+fun is_relevant state =
+  (case try find_goal state of
+    NONE => true
+  | SOME (_, (_, {statement = (_, _, prop), goal, ...})) =>
+      is_schematic prop orelse not (Logic.protect prop aconv Thm.concl_of goal));
+
+
+(* full proofs *)
 
 local
 
-fun is_original state =
-  (case try find_goal state of
-    NONE => false
-  | SOME (_, (_, {statement = (_, _, prop), goal, ...})) =>
-      Logic.protect prop aconv Thm.concl_of goal);
-
-in
-
-fun is_relevant state =
-  can (assert_bottom false) state orelse
-  not (is_original state) orelse
-  schematic_goal state;
-
-fun future_proof fork_proof state =
+fun future_proof done get_context fork_proof state =
   let
     val _ = assert_backward state;
     val (goal_ctxt, (_, goal)) = find_goal state;
@@ -1001,31 +1006,53 @@ fun future_proof fork_proof state =
     val statement' = (kind, [[], [prop']], prop');
     val goal' = Thm.adjust_maxidx_thm (Thm.maxidx_of goal)
       (Drule.comp_no_flatten (goal, Thm.nprems_of goal) 1 Drule.protectI);
-    fun after_qed' [[th]] = ProofContext.put_thms false (AutoBind.thisN, SOME [th]);
+
+    fun after_local' [[th]] = put_thms false (AutoBind.thisN, SOME [th]);
+    fun after_global' [[th]] = ProofContext.put_thms false (AutoBind.thisN, SOME [th]);
+    val after_qed' = (after_local', after_global');
     val this_name = ProofContext.full_bname goal_ctxt AutoBind.thisN;
 
     val result_ctxt =
       state
-      |> map_contexts (Variable.auto_fixes prop)
-      |> map_goal I (K (statement', messages, using, goal', before_qed, (#1 after_qed, after_qed')))
+      |> map_contexts (Variable.declare_term prop)
+      |> map_goal I (K (statement', messages, using, goal', before_qed, after_qed'))
       |> fork_proof;
 
-    val future_thm = result_ctxt |> Future.map (fn (_, ctxt) =>
-      ProofContext.get_fact_single ctxt (Facts.named this_name));
-    val finished_goal = Goal.future_result goal_ctxt future_thm prop';
+    val future_thm = result_ctxt |> Future.map (fn (_, x) =>
+      ProofContext.get_fact_single (get_context x) (Facts.named this_name));
+    val finished_goal = exception_trace (fn () => Goal.future_result goal_ctxt future_thm prop');
     val state' =
       state
       |> map_goal I (K (statement, messages, using, finished_goal, NONE, after_qed))
-      |> global_done_proof;
+      |> done;
   in (Future.map #1 result_ctxt, state') end;
+
+in
+
+fun local_future_proof x = future_proof local_done_proof context_of x;
+fun global_future_proof x = future_proof global_done_proof I x;
 
 end;
 
-fun future_terminal_proof meths int state =
+
+(* terminal proofs *)
+
+local
+
+fun future_terminal_proof proof1 proof2 meths int state =
   if int orelse is_relevant state orelse not (Future.enabled ())
-  then global_terminal_proof meths state
-  else #2 (state |> future_proof (fn state' =>
-    Future.fork_pri ~1 (fn () => ((), global_terminal_proof meths state'))));
+  then proof1 meths state
+  else snd (state |> proof2 (fn state' => Future.fork_pri ~1 (fn () => ((), proof1 meths state'))));
+
+in
+
+fun local_future_terminal_proof x =
+  future_terminal_proof local_terminal_proof local_future_proof x;
+
+fun global_future_terminal_proof x =
+  future_terminal_proof global_terminal_proof global_future_proof x;
+
+end;
 
 end;
 
