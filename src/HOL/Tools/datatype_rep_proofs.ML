@@ -183,7 +183,7 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
         InductivePackage.add_inductive_global (serial_string ())
           {quiet_mode = ! quiet_mode, verbose = false, kind = Thm.internalK,
            alt_name = Binding.name big_rec_name, coind = false, no_elim = true, no_ind = false,
-           skip_mono = true}
+           skip_mono = true, fork_mono = false}
           (map (fn s => ((Binding.name s, UnivT'), NoSyn)) rep_set_names') []
           (map (fn x => (Attrib.empty_binding, x)) intr_ts) [] thy1;
 

@@ -571,7 +571,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
         InductivePackage.add_inductive_global (serial_string ())
           {quiet_mode = false, verbose = false, kind = Thm.internalK,
            alt_name = Binding.name big_rep_name, coind = false, no_elim = true, no_ind = false,
-           skip_mono = true}
+           skip_mono = true, fork_mono = false}
           (map (fn (s, T) => ((Binding.name s, T --> HOLogic.boolT), NoSyn))
              (rep_set_names' ~~ recTs'))
           [] (map (fn x => (Attrib.empty_binding, x)) intr_ts) [] thy3;
@@ -1509,7 +1509,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
         InductivePackage.add_inductive_global (serial_string ())
           {quiet_mode = ! quiet_mode, verbose = false, kind = Thm.internalK,
            alt_name = Binding.name big_rec_name, coind = false, no_elim = false, no_ind = false,
-           skip_mono = true}
+           skip_mono = true, fork_mono = false}
           (map (fn (s, T) => ((Binding.name s, T), NoSyn)) (rec_set_names' ~~ rec_set_Ts))
           (map dest_Free rec_fns)
           (map (fn x => (Attrib.empty_binding, x)) rec_intr_ts) [] ||>
