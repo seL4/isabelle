@@ -718,7 +718,7 @@ fun proof_result immediate (tr, proof_trs) st =
         val (body_trs, end_tr) = split_last proof_trs;
         val finish = Context.Theory o ProofContext.theory_of;
 
-        val future_proof = Proof.future_proof
+        val future_proof = Proof.global_future_proof
           (fn prf =>
             Future.fork_pri ~1 (fn () =>
               let val (states, State (result_node, _)) =
