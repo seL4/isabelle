@@ -11,9 +11,9 @@ sig
       ML is artificial*)
 
   val class: bstring -> class list -> Element.context_i list
-    -> theory -> string * Proof.context
+    -> theory -> string * local_theory
   val class_cmd: bstring -> xstring list -> Element.context list
-    -> theory -> string * Proof.context
+    -> theory -> string * local_theory
   val prove_subclass: tactic -> class -> local_theory -> local_theory
   val subclass: class -> local_theory -> Proof.state
   val subclass_cmd: xstring -> local_theory -> Proof.state
@@ -208,7 +208,7 @@ fun gen_class prep_spec bname raw_supclasses raw_elems thy =
         register class sups params base_sort inst
           morphism axiom assm_intro of_class
     #> fold (note_assm_intro class) (the_list assm_intro))))))
-    |> init class
+    |> TheoryTarget.init (SOME class)
     |> pair class
   end;
 
