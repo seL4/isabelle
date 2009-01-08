@@ -236,6 +236,13 @@ structure:
     src/HOL/Real/rat_arith.ML ~> src/HOL/Tools
     src/HOL/Real/real_arith.ML ~> src/HOL/Tools
 
+    src/HOL/Library/Array.thy ~> src/HOL/Imperative_HOL
+    src/HOL/Library/Heap_Monad.thy ~> src/HOL/Imperative_HOL
+    src/HOL/Library/Heap.thy ~> src/HOL/Imperative_HOL
+    src/HOL/Library/Imperative_HOL.thy ~> src/HOL/Imperative_HOL
+    src/HOL/Library/Ref.thy ~> src/HOL/Imperative_HOL
+    src/HOL/Library/Relational.thy ~> src/HOL/Imperative_HOL
+
 * If methods "eval" and "evaluation" encounter a structured proof state
 with !!/==>, only the conclusion is evaluated to True (if possible),
 avoiding strange error messages.

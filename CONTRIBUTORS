@@ -7,11 +7,18 @@ distribution.
 Contributions to this Isabelle version
 --------------------------------------
 
+* December 2008: Clemens Ballarin, TUM
+  New locale implementation.
+
 * December 2008: Armin Heller, TUM and Alexander Krauss, TUM
   Method "sizechange" for advanced termination proofs.
 
 * November 2008: Timothy Bourke, NICTA
   Performance improvement (factor 50) for find_theorems.
+
+* 2008: Florian Haftmann, TUM
+  Various extensions and restructurings in HOL, improvements
+  in evaluation mechanisms, new module binding.ML for name bindings.
 
 * October 2008: Fabian Immler, TUM
   ATP manager for Sledgehammer, based on ML threads instead of Posix
