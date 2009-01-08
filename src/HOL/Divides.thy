@@ -33,6 +33,10 @@ lemma mod_div_equality2: "b * (a div b) + a mod b = a"
   unfolding mult_commute [of b]
   by (rule mod_div_equality)
 
+lemma mod_div_equality': "a mod b + a div b * b = a"
+  using mod_div_equality [of a b]
+  by (simp only: add_ac)
+
 lemma div_mod_equality: "((a div b) * b + a mod b) + c = a + c"
   by (simp add: mod_div_equality)
 
@@ -141,6 +145,107 @@ next
   then have "b mod a = a * c mod a" by simp
   then have "b mod a = c * a mod a" by (simp add: mult_commute)
   then show "b mod a = 0" by simp
+qed
+
+lemma mod_div_trivial [simp]: "a mod b div b = 0"
+proof (cases "b = 0")
+  assume "b = 0"
+  thus ?thesis by simp
+next
+  assume "b \<noteq> 0"
+  hence "a div b + a mod b div b = (a mod b + a div b * b) div b"
+    by (rule div_mult_self1 [symmetric])
+  also have "\<dots> = a div b"
+    by (simp only: mod_div_equality')
+  also have "\<dots> = a div b + 0"
+    by simp
+  finally show ?thesis
+    by (rule add_left_imp_eq)
+qed
+
+lemma mod_mod_trivial [simp]: "a mod b mod b = a mod b"
+proof -
+  have "a mod b mod b = (a mod b + a div b * b) mod b"
+    by (simp only: mod_mult_self1)
+  also have "\<dots> = a mod b"
+    by (simp only: mod_div_equality')
+  finally show ?thesis .
+qed
+
+text {* Addition respects modular equivalence. *}
+
+lemma mod_add_left_eq: "(a + b) mod c = (a mod c + b) mod c"
+proof -
+  have "(a + b) mod c = (a div c * c + a mod c + b) mod c"
+    by (simp only: mod_div_equality)
+  also have "\<dots> = (a mod c + b + a div c * c) mod c"
+    by (simp only: add_ac)
+  also have "\<dots> = (a mod c + b) mod c"
+    by (rule mod_mult_self1)
+  finally show ?thesis .
+qed
+
+lemma mod_add_right_eq: "(a + b) mod c = (a + b mod c) mod c"
+proof -
+  have "(a + b) mod c = (a + (b div c * c + b mod c)) mod c"
+    by (simp only: mod_div_equality)
+  also have "\<dots> = (a + b mod c + b div c * c) mod c"
+    by (simp only: add_ac)
+  also have "\<dots> = (a + b mod c) mod c"
+    by (rule mod_mult_self1)
+  finally show ?thesis .
+qed
+
+lemma mod_add_eq: "(a + b) mod c = (a mod c + b mod c) mod c"
+by (rule trans [OF mod_add_left_eq mod_add_right_eq])
+
+lemma mod_add_cong:
+  assumes "a mod c = a' mod c"
+  assumes "b mod c = b' mod c"
+  shows "(a + b) mod c = (a' + b') mod c"
+proof -
+  have "(a mod c + b mod c) mod c = (a' mod c + b' mod c) mod c"
+    unfolding assms ..
+  thus ?thesis
+    by (simp only: mod_add_eq [symmetric])
+qed
+
+text {* Multiplication respects modular equivalence. *}
+
+lemma mod_mult_left_eq: "(a * b) mod c = ((a mod c) * b) mod c"
+proof -
+  have "(a * b) mod c = ((a div c * c + a mod c) * b) mod c"
+    by (simp only: mod_div_equality)
+  also have "\<dots> = (a mod c * b + a div c * b * c) mod c"
+    by (simp only: left_distrib right_distrib add_ac mult_ac)
+  also have "\<dots> = (a mod c * b) mod c"
+    by (rule mod_mult_self1)
+  finally show ?thesis .
+qed
+
+lemma mod_mult_right_eq: "(a * b) mod c = (a * (b mod c)) mod c"
+proof -
+  have "(a * b) mod c = (a * (b div c * c + b mod c)) mod c"
+    by (simp only: mod_div_equality)
+  also have "\<dots> = (a * (b mod c) + a * (b div c) * c) mod c"
+    by (simp only: left_distrib right_distrib add_ac mult_ac)
+  also have "\<dots> = (a * (b mod c)) mod c"
+    by (rule mod_mult_self1)
+  finally show ?thesis .
+qed
+
+lemma mod_mult_eq: "(a * b) mod c = ((a mod c) * (b mod c)) mod c"
+by (rule trans [OF mod_mult_left_eq mod_mult_right_eq])
+
+lemma mod_mult_cong:
+  assumes "a mod c = a' mod c"
+  assumes "b mod c = b' mod c"
+  shows "(a * b) mod c = (a' * b') mod c"
+proof -
+  have "(a mod c * (b mod c)) mod c = (a' mod c * (b' mod c)) mod c"
+    unfolding assms ..
+  thus ?thesis
+    by (simp only: mod_mult_eq [symmetric])
 qed
 
 end
@@ -467,22 +572,14 @@ apply (blast intro: divmod_rel [THEN divmod_rel_mult1_eq, THEN div_eq])
 done
 
 lemma mod_mult1_eq: "(a*b) mod c = a*(b mod c) mod (c::nat)"
-apply (cases "c = 0", simp)
-apply (blast intro: divmod_rel [THEN divmod_rel_mult1_eq, THEN mod_eq])
-done
+  by (rule mod_mult_right_eq)
 
 lemma mod_mult1_eq': "(a*b) mod (c::nat) = ((a mod c) * b) mod c"
-  apply (rule trans)
-   apply (rule_tac s = "b*a mod c" in trans)
-    apply (rule_tac [2] mod_mult1_eq)
-   apply (simp_all add: mult_commute)
-  done
+  by (rule mod_mult_left_eq)
 
 lemma mod_mult_distrib_mod:
   "(a*b) mod (c::nat) = ((a mod c) * (b mod c)) mod c"
-apply (rule mod_mult1_eq' [THEN trans])
-apply (rule mod_mult1_eq)
-done
+  by (rule mod_mult_eq)
 
 lemma divmod_rel_add1_eq:
   "[| divmod_rel a c aq ar; divmod_rel b c bq br;  c > 0 |]
@@ -497,9 +594,7 @@ apply (blast intro: divmod_rel_add1_eq [THEN div_eq] divmod_rel)
 done
 
 lemma mod_add1_eq: "(a+b) mod (c::nat) = (a mod c + b mod c) mod c"
-apply (cases "c = 0", simp)
-apply (blast intro: divmod_rel_add1_eq [THEN mod_eq] divmod_rel)
-done
+  by (rule mod_add_eq)
 
 lemma mod_lemma: "[| (0::nat) < c; r < b |] ==> b * (q mod c) + r < b * c"
   apply (cut_tac m = q and n = c in mod_less_divisor)
@@ -618,11 +713,11 @@ apply (simp add: linorder_not_less le_Suc_eq mod_geq)
 apply (auto simp add: Suc_diff_le le_mod_geq)
 done
 
-lemma nat_mod_div_trivial [simp]: "m mod n div n = (0 :: nat)"
-  by (cases "n = 0") auto
+lemma nat_mod_div_trivial: "m mod n div n = (0 :: nat)"
+  by simp
 
-lemma nat_mod_mod_trivial [simp]: "m mod n mod n = (m mod n :: nat)"
-  by (cases "n = 0") auto
+lemma nat_mod_mod_trivial: "m mod n mod n = (m mod n :: nat)"
+  by simp
 
 
 subsubsection {* The Divides Relation *}
@@ -716,18 +811,6 @@ lemma le_imp_power_dvd: "!!i::nat. m \<le> n ==> i^m dvd i^n"
   apply (unfold dvd_def)
   apply (erule linorder_not_less [THEN iffD2, THEN add_diff_inverse, THEN subst])
   apply (simp add: power_add)
-  done
-
-lemma mod_add_left_eq: "((a::nat) + b) mod c = (a mod c + b) mod c"
-  apply (rule trans [symmetric])
-   apply (rule mod_add1_eq, simp)
-  apply (rule mod_add1_eq [symmetric])
-  done
-
-lemma mod_add_right_eq: "(a+b) mod (c::nat) = (a + (b mod c)) mod c"
-  apply (rule trans [symmetric])
-   apply (rule mod_add1_eq, simp)
-  apply (rule mod_add1_eq [symmetric])
   done
 
 lemma nat_zero_less_power_iff [simp]: "(x^n > 0) = (x > (0::nat) | n=0)"

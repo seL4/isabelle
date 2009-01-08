@@ -747,12 +747,12 @@ done
 lemma zdiv_zmult_self1 [simp]: "b \<noteq> (0::int) ==> (a*b) div b = a"
 by (simp add: zdiv_zmult1_eq)
 
-lemma mod_div_trivial [simp]: "(a mod b) div b = (0::int)"
+lemma zmod_zdiv_trivial: "(a mod b) div b = (0::int)"
 apply (case_tac "b = 0", simp)
 apply (auto simp add: linorder_neq_iff div_pos_pos_trivial div_neg_neg_trivial)
 done
 
-lemma mod_mod_trivial [simp]: "(a mod b) mod b = a mod (b::int)"
+lemma zmod_zmod_trivial: "(a mod b) mod b = a mod (b::int)"
 apply (case_tac "b = 0", simp)
 apply (force simp add: linorder_neq_iff mod_pos_pos_trivial mod_neg_neg_trivial)
 done
@@ -776,63 +776,47 @@ apply (case_tac "c = 0", simp)
 apply (blast intro: zadd1_lemma [OF quorem_div_mod quorem_div_mod] quorem_mod)
 done
 
-lemma zdiv_zadd_self1[simp]: "a \<noteq> (0::int) ==> (a+b) div a = b div a + 1"
-by (simp add: zdiv_zadd1_eq)
-
-lemma zdiv_zadd_self2[simp]: "a \<noteq> (0::int) ==> (b+a) div a = b div a + 1"
-by (simp add: zdiv_zadd1_eq)
-
 instance int :: semiring_div
 proof
   fix a b c :: int
   assume not0: "b \<noteq> 0"
   show "(a + c * b) div b = c + a div b"
     unfolding zdiv_zadd1_eq [of a "c * b"] using not0 
-      by (simp add: zmod_zmult1_eq)
+      by (simp add: zmod_zmult1_eq zmod_zdiv_trivial)
 qed auto
 
-lemma zdiv_zmult_self2 [simp]: "b \<noteq> (0::int) ==> (b*a) div b = a"
-by (subst mult_commute, erule zdiv_zmult_self1)
+lemma zdiv_zadd_self1: "a \<noteq> (0::int) ==> (a+b) div a = b div a + 1"
+by (rule div_add_self1) (* already declared [simp] *)
 
-lemma zmod_zmult_self1 [simp]: "(a*b) mod b = (0::int)"
-by (simp add: zmod_zmult1_eq)
+lemma zdiv_zadd_self2: "a \<noteq> (0::int) ==> (b+a) div a = b div a + 1"
+by (rule div_add_self2) (* already declared [simp] *)
 
-lemma zmod_zmult_self2 [simp]: "(b*a) mod b = (0::int)"
-by (simp add: mult_commute zmod_zmult1_eq)
+lemma zdiv_zmult_self2: "b \<noteq> (0::int) ==> (b*a) div b = a"
+by (rule div_mult_self1_is_id) (* already declared [simp] *)
+
+lemma zmod_zmult_self1: "(a*b) mod b = (0::int)"
+by (rule mod_mult_self2_is_0) (* already declared [simp] *)
+
+lemma zmod_zmult_self2: "(b*a) mod b = (0::int)"
+by (rule mod_mult_self1_is_0) (* already declared [simp] *)
 
 lemma zmod_eq_0_iff: "(m mod d = 0) = (EX q::int. m = d*q)"
-proof
-  assume "m mod d = 0"
-  with zmod_zdiv_equality[of m d] show "EX q::int. m = d*q" by auto
-next
-  assume "EX q::int. m = d*q"
-  thus "m mod d = 0" by auto
-qed
+by (simp add: dvd_eq_mod_eq_0 [symmetric] dvd_def)
 
+(* REVISIT: should this be generalized to all semiring_div types? *)
 lemmas zmod_eq_0D [dest!] = zmod_eq_0_iff [THEN iffD1]
 
 lemma zmod_zadd_left_eq: "(a+b) mod (c::int) = ((a mod c) + b) mod c"
-apply (rule trans [symmetric])
-apply (rule zmod_zadd1_eq, simp)
-apply (rule zmod_zadd1_eq [symmetric])
-done
+by (rule mod_add_left_eq)
 
 lemma zmod_zadd_right_eq: "(a+b) mod (c::int) = (a + (b mod c)) mod c"
-apply (rule trans [symmetric])
-apply (rule zmod_zadd1_eq, simp)
-apply (rule zmod_zadd1_eq [symmetric])
-done
+by (rule mod_add_right_eq)
 
-lemma zmod_zadd_self1[simp]: "(a+b) mod a = b mod (a::int)"
-apply (case_tac "a = 0", simp)
-apply (simp add: zmod_zadd1_eq)
-done
+lemma zmod_zadd_self1: "(a+b) mod a = b mod (a::int)"
+by (rule mod_add_self1) (* already declared [simp] *)
 
-lemma zmod_zadd_self2[simp]: "(b+a) mod a = b mod (a::int)"
-apply (case_tac "a = 0", simp)
-apply (simp add: zmod_zadd1_eq)
-done
-
+lemma zmod_zadd_self2: "(b+a) mod a = b mod (a::int)"
+by (rule mod_add_self2) (* already declared [simp] *)
 
 lemma zmod_zdiff1_eq: fixes a::int
   shows "(a - b) mod c = (a mod c - b mod c) mod c" (is "?l = ?r")
