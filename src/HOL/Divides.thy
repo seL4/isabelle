@@ -248,6 +248,23 @@ proof -
     by (simp only: mod_mult_eq [symmetric])
 qed
 
+lemma mod_mod_cancel:
+  assumes "c dvd b"
+  shows "a mod b mod c = a mod c"
+proof -
+  from `c dvd b` obtain k where "b = c * k"
+    by (rule dvdE)
+  have "a mod b mod c = a mod (c * k) mod c"
+    by (simp only: `b = c * k`)
+  also have "\<dots> = (a mod (c * k) + a div (c * k) * k * c) mod c"
+    by (simp only: mod_mult_self1)
+  also have "\<dots> = (a div (c * k) * (c * k) + a mod (c * k)) mod c"
+    by (simp only: add_ac mult_ac)
+  also have "\<dots> = a mod c"
+    by (simp only: mod_div_equality)
+  finally show ?thesis .
+qed
+
 end
 
 
