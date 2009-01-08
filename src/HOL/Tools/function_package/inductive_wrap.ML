@@ -48,7 +48,8 @@ fun inductive_def defs (((R, T), mixfix), lthy) =
               coind = false,
               no_elim = false,
               no_ind = false,
-              skip_mono = true}
+              skip_mono = true,
+              fork_mono = false}
             [((Binding.name R, T), NoSyn)] (* the relation *)
             [] (* no parameters *)
             (map (fn t => (Attrib.empty_binding, t)) defs) (* the intros *)
