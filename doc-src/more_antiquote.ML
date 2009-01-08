@@ -50,7 +50,7 @@ fun typewriter s =
   end
 
 
-(* class antiquotation *)
+(* class and type constructor antiquotation *)
 
 local
 
@@ -70,6 +70,38 @@ in
 val _ = O.add_commands
   [("class", ThyOutput.args (Scan.lift Args.name) (K pr_class)),
     ("type", ThyOutput.args (Scan.lift Args.name) (K pr_type))]
+
+end;
+
+
+(* code theorem antiquotation *)
+
+local
+
+fun pretty_term ctxt t = Syntax.pretty_term (Variable.auto_fixes t ctxt) t;
+
+fun pretty_thm ctxt = pretty_term ctxt o Thm.full_prop_of;
+
+fun no_vars ctxt thm =
+  let
+    val ctxt' = Variable.set_body false ctxt;
+    val ((_, [thm]), _) = Variable.import_thms true [thm] ctxt';
+  in thm end;
+
+fun pretty_code_thm src ctxt raw_const =
+  let
+    val thy = ProofContext.theory_of ctxt;
+    val const = Code_Unit.check_const thy raw_const;
+    val (_, funcgr) = Code_Funcgr.make thy [const];
+    val thms = Code_Funcgr.eqns funcgr const
+      |> map_filter (fn (thm, linear) => if linear then SOME thm else NONE)
+      |> map (no_vars ctxt o AxClass.overload thy);
+  in ThyOutput.output_list pretty_thm src ctxt thms end;
+
+in
+
+val _ = O.add_commands
+  [("code_thms", ThyOutput.args Args.term pretty_code_thm)];
 
 end;
 
