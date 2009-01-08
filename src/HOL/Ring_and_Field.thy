@@ -235,19 +235,21 @@ lemma minus_mult_left: "- (a * b) = - a * b"
 lemma minus_mult_right: "- (a * b) = a * - b"
   by (rule equals_zero_I) (simp add: right_distrib [symmetric]) 
 
+text{*Extract signs from products*}
+lemmas mult_minus_left [simp] = minus_mult_left [symmetric]
+lemmas mult_minus_right [simp] = minus_mult_right [symmetric]
+
 lemma minus_mult_minus [simp]: "- a * - b = a * b"
-  by (simp add: minus_mult_left [symmetric] minus_mult_right [symmetric])
+  by simp
 
 lemma minus_mult_commute: "- a * b = a * - b"
-  by (simp add: minus_mult_left [symmetric] minus_mult_right [symmetric])
+  by simp
 
 lemma right_diff_distrib: "a * (b - c) = a * b - a * c"
-  by (simp add: right_distrib diff_minus 
-    minus_mult_left [symmetric] minus_mult_right [symmetric]) 
+  by (simp add: right_distrib diff_minus)
 
 lemma left_diff_distrib: "(a - b) * c = a * c - b * c"
-  by (simp add: left_distrib diff_minus 
-    minus_mult_left [symmetric] minus_mult_right [symmetric]) 
+  by (simp add: left_distrib diff_minus)
 
 lemmas ring_distribs =
   right_distrib left_distrib left_diff_distrib right_diff_distrib
@@ -1246,30 +1248,25 @@ using nonzero_mult_divide_mult_cancel_right[of b c a] by(simp add:mult_ac)
 subsection {* Division and Unary Minus *}
 
 lemma nonzero_minus_divide_left: "b \<noteq> 0 ==> - (a/b) = (-a) / (b::'a::field)"
-by (simp add: divide_inverse minus_mult_left)
+by (simp add: divide_inverse)
 
 lemma nonzero_minus_divide_right: "b \<noteq> 0 ==> - (a/b) = a / -(b::'a::field)"
-by (simp add: divide_inverse nonzero_inverse_minus_eq minus_mult_right)
+by (simp add: divide_inverse nonzero_inverse_minus_eq)
 
 lemma nonzero_minus_divide_divide: "b \<noteq> 0 ==> (-a)/(-b) = a / (b::'a::field)"
 by (simp add: divide_inverse nonzero_inverse_minus_eq)
 
 lemma minus_divide_left: "- (a/b) = (-a) / (b::'a::field)"
-by (simp add: divide_inverse minus_mult_left [symmetric])
+by (simp add: divide_inverse)
 
 lemma minus_divide_right: "- (a/b) = a / -(b::'a::{field,division_by_zero})"
-by (simp add: divide_inverse minus_mult_right [symmetric])
+by (simp add: divide_inverse)
 
 
 text{*The effect is to extract signs from divisions*}
 lemmas divide_minus_left = minus_divide_left [symmetric]
 lemmas divide_minus_right = minus_divide_right [symmetric]
 declare divide_minus_left [simp]   divide_minus_right [simp]
-
-text{*Also, extract signs from products*}
-lemmas mult_minus_left = minus_mult_left [symmetric]
-lemmas mult_minus_right = minus_mult_right [symmetric]
-declare mult_minus_left [simp]   mult_minus_right [simp]
 
 lemma minus_divide_divide [simp]:
   "(-a)/(-b) = a / (b::'a::{field,division_by_zero})"
