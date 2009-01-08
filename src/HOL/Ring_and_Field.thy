@@ -295,6 +295,30 @@ begin
 subclass ring_1 ..
 subclass comm_semiring_1_cancel ..
 
+lemma dvd_minus_iff: "x dvd - y \<longleftrightarrow> x dvd y"
+proof
+  assume "x dvd - y"
+  then have "x dvd - 1 * - y" by (rule dvd_mult)
+  then show "x dvd y" by simp
+next
+  assume "x dvd y"
+  then have "x dvd - 1 * y" by (rule dvd_mult)
+  then show "x dvd - y" by simp
+qed
+
+lemma minus_dvd_iff: "- x dvd y \<longleftrightarrow> x dvd y"
+proof
+  assume "- x dvd y"
+  then obtain k where "y = - x * k" ..
+  then have "y = x * - k" by simp
+  then show "x dvd y" ..
+next
+  assume "x dvd y"
+  then obtain k where "y = x * k" ..
+  then have "y = - x * - k" by simp
+  then show "- x dvd y" ..
+qed
+
 end
 
 class ring_no_zero_divisors = ring + no_zero_divisors
