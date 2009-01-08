@@ -319,6 +319,9 @@ next
   then show "- x dvd y" ..
 qed
 
+lemma dvd_diff: "x dvd y \<Longrightarrow> x dvd z \<Longrightarrow> x dvd (y - z)"
+  by (simp add: diff_minus dvd_add dvd_minus_iff)
+
 end
 
 class ring_no_zero_divisors = ring + no_zero_divisors
