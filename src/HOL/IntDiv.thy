@@ -776,7 +776,7 @@ apply (case_tac "c = 0", simp)
 apply (blast intro: zadd1_lemma [OF quorem_div_mod quorem_div_mod] quorem_mod)
 done
 
-instance int :: semiring_div
+instance int :: ring_div
 proof
   fix a b c :: int
   assume not0: "b \<noteq> 0"
@@ -818,14 +818,8 @@ by (rule mod_add_self1) (* already declared [simp] *)
 lemma zmod_zadd_self2: "(b+a) mod a = b mod (a::int)"
 by (rule mod_add_self2) (* already declared [simp] *)
 
-lemma zmod_zdiff1_eq: fixes a::int
-  shows "(a - b) mod c = (a mod c - b mod c) mod c" (is "?l = ?r")
-proof -
-  have "?l = (c + (a mod c - b mod c)) mod c"
-    using zmod_zadd1_eq[of a "-b" c] by(simp add:ring_simps zmod_zminus1_eq_if)
-  also have "\<dots> = ?r" by simp
-  finally show ?thesis .
-qed
+lemma zmod_zdiff1_eq: "(a - b) mod c = (a mod c - b mod c) mod (c::int)"
+by (rule mod_diff_eq)
 
 subsection{*Proving  @{term "a div (b*c) = (a div b) div c"} *}
 
@@ -1423,20 +1417,13 @@ done
 
 text {* by Brian Huffman *}
 lemma zminus_zmod: "- ((x::int) mod m) mod m = - x mod m"
-by (simp only: zmod_zminus1_eq_if mod_mod_trivial)
+by (rule mod_minus_eq [symmetric])
 
 lemma zdiff_zmod_left: "(x mod m - y) mod m = (x - y) mod (m::int)"
-by (simp only: diff_def zmod_zadd_left_eq [symmetric])
+by (rule mod_diff_left_eq [symmetric])
 
 lemma zdiff_zmod_right: "(x - y mod m) mod m = (x - y) mod (m::int)"
-proof -
-  have "(x + - (y mod m) mod m) mod m = (x + - y mod m) mod m"
-    by (simp only: zminus_zmod)
-  hence "(x + - (y mod m)) mod m = (x + - y) mod m"
-    by (simp only: zmod_zadd_right_eq [symmetric])
-  thus "(x - y mod m) mod m = (x - y) mod m"
-    by (simp only: diff_def)
-qed
+by (rule mod_diff_right_eq [symmetric])
 
 lemmas zmod_simps =
   IntDiv.zmod_zadd_left_eq  [symmetric]

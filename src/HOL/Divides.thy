@@ -267,6 +267,55 @@ qed
 
 end
 
+class ring_div = semiring_div + comm_ring_1
+begin
+
+text {* Negation respects modular equivalence. *}
+
+lemma mod_minus_eq: "(- a) mod b = (- (a mod b)) mod b"
+proof -
+  have "(- a) mod b = (- (a div b * b + a mod b)) mod b"
+    by (simp only: mod_div_equality)
+  also have "\<dots> = (- (a mod b) + - (a div b) * b) mod b"
+    by (simp only: minus_add_distrib minus_mult_left add_ac)
+  also have "\<dots> = (- (a mod b)) mod b"
+    by (rule mod_mult_self1)
+  finally show ?thesis .
+qed
+
+lemma mod_minus_cong:
+  assumes "a mod b = a' mod b"
+  shows "(- a) mod b = (- a') mod b"
+proof -
+  have "(- (a mod b)) mod b = (- (a' mod b)) mod b"
+    unfolding assms ..
+  thus ?thesis
+    by (simp only: mod_minus_eq [symmetric])
+qed
+
+text {* Subtraction respects modular equivalence. *}
+
+lemma mod_diff_left_eq: "(a - b) mod c = (a mod c - b) mod c"
+  unfolding diff_minus
+  by (intro mod_add_cong mod_minus_cong) simp_all
+
+lemma mod_diff_right_eq: "(a - b) mod c = (a - b mod c) mod c"
+  unfolding diff_minus
+  by (intro mod_add_cong mod_minus_cong) simp_all
+
+lemma mod_diff_eq: "(a - b) mod c = (a mod c - b mod c) mod c"
+  unfolding diff_minus
+  by (intro mod_add_cong mod_minus_cong) simp_all
+
+lemma mod_diff_cong:
+  assumes "a mod c = a' mod c"
+  assumes "b mod c = b' mod c"
+  shows "(a - b) mod c = (a' - b') mod c"
+  unfolding diff_minus using assms
+  by (intro mod_add_cong mod_minus_cong)
+
+end
+
 
 subsection {* Division on @{typ nat} *}
 
