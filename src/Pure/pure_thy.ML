@@ -1,5 +1,4 @@
 (*  Title:      Pure/pure_thy.ML
-    ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
 
 Theorem storage.  Pure theory syntax and logical content.
@@ -11,7 +10,7 @@ sig
   val intern_fact: theory -> xstring -> string
   val defined_fact: theory -> string -> bool
   val hide_fact: bool -> string -> theory -> theory
-  val join_proofs: theory list -> unit Exn.result list
+  val join_proofs: theory -> exn list
   val get_fact: Context.generic -> theory -> Facts.ref -> thm list
   val get_thms: theory -> xstring -> thm list
   val get_thm: theory -> xstring -> thm
@@ -81,7 +80,9 @@ fun hide_fact fully name = FactsData.map (apfst (Facts.hide fully name));
 
 fun lazy_proof thm = Lazy.lazy (fn () => Thm.join_proof thm);
 
-val join_proofs = maps (fn thy => map (Exn.capture Lazy.force) (rev (#2 (FactsData.get thy))));
+fun join_proofs thy =
+  rev (#2 (FactsData.get thy)) |> map_filter (fn prf =>
+    (case Exn.capture Lazy.force prf of Exn.Exn exn => SOME exn | _ => NONE));
 
 
 
