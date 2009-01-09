@@ -94,7 +94,7 @@ lemma zgcd_zadd_zmult [simp]: "zgcd (m + n * k) n = zgcd m n"
 
 lemma zgcd_zdvd_zgcd_zmult: "zgcd m n dvd zgcd (k * m) n"
   apply (simp add: zgcd_greatest_iff)
-  apply (blast intro: zdvd_trans)
+  apply (blast intro: zdvd_trans dvd_triv_right)
   done
 
 lemma zgcd_zmult_zdvd_zgcd:
