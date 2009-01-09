@@ -194,7 +194,7 @@ datatype status =
   Finished of Toplevel.state;
 
 fun status_markup Unprocessed = Markup.unprocessed
-  | status_markup Running = Markup.running
+  | status_markup Running = (Markup.runningN, [])
   | status_markup (Failed _) = Markup.failed
   | status_markup (Finished _) = Markup.finished;
 
