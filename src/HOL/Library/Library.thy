@@ -22,7 +22,6 @@ imports
   Executable_Set
   Float
   FuncSet
-  Imperative_HOL
   Infinite_Set
   ListVector
   Multiset

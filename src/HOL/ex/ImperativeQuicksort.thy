@@ -1,5 +1,5 @@
 theory ImperativeQuicksort
-imports Imperative_HOL Subarray Multiset Efficient_Nat
+imports "~~/src/HOL/Imperative_HOL/Imperative_HOL" Subarray Multiset Efficient_Nat
 begin
 
 text {* We prove QuickSort correct in the Relational Calculus. *}
