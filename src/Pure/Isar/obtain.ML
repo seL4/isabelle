@@ -1,5 +1,4 @@
 (*  Title:      Pure/Isar/obtain.ML
-    ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
 
 The 'obtain' and 'guess' language elements -- generalized existence at
@@ -150,13 +149,13 @@ fun gen_obtain prep_att prep_vars prep_propp
 
     fun after_qed _ =
       Proof.local_qed (NONE, false)
-      #> Seq.map (`Proof.the_fact #-> (fn rule =>
+      #> `Proof.the_fact #-> (fn rule =>
         Proof.fix_i vars
-        #> Proof.assm_i (obtain_export fix_ctxt rule (map (cert o Free) parms)) asms));
+        #> Proof.assm_i (obtain_export fix_ctxt rule (map (cert o Free) parms)) asms);
   in
     state
     |> Proof.enter_forward
-    |> Proof.have_i NONE (K Seq.single) [((Binding.empty, []), [(obtain_prop, [])])] int
+    |> Proof.have_i NONE (K I) [((Binding.empty, []), [(obtain_prop, [])])] int
     |> Proof.proof (SOME Method.succeed_text) |> Seq.hd
     |> Proof.fix_i [(Binding.name thesisN, NONE, NoSyn)]
     |> Proof.assume_i
@@ -306,7 +305,7 @@ fun gen_guess prep_vars raw_vars int state =
     val before_qed = SOME (Method.primitive_text (Goal.conclude #> MetaSimplifier.norm_hhf #>
         (fn th => Goal.protect (Conjunction.intr (Drule.mk_term (Thm.cprop_of th)) th))));
     fun after_qed [[_, res]] =
-      Proof.end_block #> guess_context (check_result ctxt thesis res) #> Seq.single;
+      Proof.end_block #> guess_context (check_result ctxt thesis res);
   in
     state
     |> Proof.enter_forward

@@ -17,6 +17,8 @@ sig
   val improper_command: string -> string -> OuterKeyword.T ->
     (Toplevel.transition -> Toplevel.transition) parser -> unit
   val internal_command: string -> (Toplevel.transition -> Toplevel.transition) parser -> unit
+  val local_theory': string -> string -> OuterKeyword.T ->
+    (bool -> local_theory -> local_theory) parser -> unit
   val local_theory: string -> string -> OuterKeyword.T ->
     (local_theory -> local_theory) parser -> unit
   val local_theory_to_proof': string -> string -> OuterKeyword.T ->
@@ -138,6 +140,7 @@ fun local_theory_command do_print trans name comment kind parse =
   command name comment kind (P.opt_target -- parse
     >> (fn (loc, f) => (if do_print then Toplevel.print else I) o trans loc f));
 
+val local_theory' = local_theory_command false Toplevel.local_theory';
 val local_theory = local_theory_command false Toplevel.local_theory;
 val local_theory_to_proof' = local_theory_command true Toplevel.local_theory_to_proof';
 val local_theory_to_proof = local_theory_command true Toplevel.local_theory_to_proof;

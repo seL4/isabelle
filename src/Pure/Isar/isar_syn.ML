@@ -393,7 +393,7 @@ val _ =
     (P.name -- Scan.optional (P.$$$ "=" |-- P.!!! locale_val) (([], []), []) -- P.opt_begin
       >> (fn ((name, (expr, elems)), begin) =>
           (begin ? Toplevel.print) o Toplevel.begin_local_theory begin
-            (Expression.add_locale_cmd name name expr elems #> snd)));
+            (Expression.add_locale_cmd name "" expr elems #> snd)));
 
 val _ =
   OuterSyntax.command "sublocale"
@@ -470,7 +470,7 @@ val _ =
    (P.name -- (P.$$$ "=" |-- class_val) -- P.opt_begin
     >> (fn ((name, (supclasses, elems)), begin) =>
         (begin ? Toplevel.print) o Toplevel.begin_local_theory begin
-          (Class.class_cmd name supclasses elems #-> TheoryTarget.begin)));
+          (Class.class_cmd name supclasses elems #> snd)));
 
 val _ =
   OuterSyntax.local_theory_to_proof "subclass" "prove a subclass relation" K.thy_goal

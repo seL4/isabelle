@@ -11,11 +11,13 @@ no_document use_thys [
   "Word",
   "Eval_Examples",
   "Quickcheck",
-  "Term_Of_Syntax"
+  "Term_Of_Syntax",
+  "Codegenerator",
+  "Codegenerator_Pretty",
+  "NormalForm",
+  "../NumberTheory/Factorization",
+  "../Library/BigO"
 ];
-
-no_document use_thy "Codegenerator";
-no_document use_thy "Codegenerator_Pretty";
 
 use_thys [
   "Numeral",
@@ -57,56 +59,43 @@ use_thys [
   "Meson_Test",
   "Code_Antiq",
   "Termination",
-  "Coherent"
-];
-
-setmp Proofterm.proofs 2 time_use_thy "Hilbert_Classical";
-
-time_use_thy "Dense_Linear_Order_Ex";
-time_use_thy "PresburgerEx";
-time_use_thy "Reflected_Presburger";
-
-use_thys ["Reflection", "ReflectionEx"];
-
-time_use_thy "SVC_Oracle";
-
-(*check if user has SVC installed*)
-fun svc_enabled () = getenv "SVC_HOME" <> "";
-fun if_svc_enabled f x = if svc_enabled () then f x else ();
-
-if_svc_enabled time_use_thy "svc_test";
-
-(* requires a proof-generating SAT solver (zChaff or MiniSAT) to be *)
-(* installed:                                                       *)
-try time_use_thy "SAT_Examples";
-
-(* requires zChaff (or some other reasonably fast SAT solver) to be *)
-(* installed:                                                       *)
-if getenv "ZCHAFF_HOME" <> "" then
-  time_use_thy "Sudoku"
-else ();
-
-time_use_thy "Refute_Examples";
-time_use_thy "Quickcheck_Examples";
-no_document time_use_thy "NormalForm";
-
-HTML.with_charset "utf-8" (no_document use_thys) ["Hebrew", "Chinese"];
-
-no_document use_thys [
-  "../NumberTheory/Factorization",
-  "../Library/BigO"
-];
-
-use_thys [
+  "Coherent",
+  "Dense_Linear_Order_Ex",
+  "PresburgerEx",
+  "Reflected_Presburger",
+  "Reflection",
+  "ReflectionEx",
   "BinEx",
   "Sqrt",
   "Sqrt_Script",
   "BigO_Complex",
-
   "Arithmetic_Series_Complex",
   "HarmonicSeries",
-
   "MIR",
-  "ReflectedFerrack"
+  "ReflectedFerrack",
+  "Refute_Examples",
+  "Quickcheck_Examples"
 ];
 
+setmp Proofterm.proofs 2 use_thy "Hilbert_Classical";
+
+
+use_thy "SVC_Oracle";
+
+fun svc_enabled () = getenv "SVC_HOME" <> "";
+fun if_svc_enabled f x = if svc_enabled () then f x else ();
+
+if_svc_enabled use_thy "svc_test";
+
+
+(* requires a proof-generating SAT solver (zChaff or MiniSAT) to be *)
+(* installed:                                                       *)
+try use_thy "SAT_Examples";
+
+(* requires zChaff (or some other reasonably fast SAT solver) to be *)
+(* installed:                                                       *)
+if getenv "ZCHAFF_HOME" <> "" then
+  use_thy "Sudoku"
+else ();
+
+HTML.with_charset "utf-8" (no_document use_thys) ["Hebrew", "Chinese"];

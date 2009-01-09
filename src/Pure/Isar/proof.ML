@@ -30,7 +30,6 @@ sig
   val enter_forward: state -> state
   val goal_message: (unit -> Pretty.T) -> state -> state
   val get_goal: state -> context * (thm list * thm)
-  val schematic_goal: state -> bool
   val show_main_goal: bool ref
   val verbose: bool ref
   val pretty_state: int -> state -> Pretty.T list
@@ -87,35 +86,40 @@ sig
   val local_goal: (context -> ((string * string) * (string * thm list) list) -> unit) ->
     (theory -> 'a -> attribute) ->
     (context * 'b list -> context * (term list list * (context -> context))) ->
-    string -> Method.text option -> (thm list list -> state -> state Seq.seq) ->
+    string -> Method.text option -> (thm list list -> state -> state) ->
     ((Binding.T * 'a list) * 'b) list -> state -> state
-  val local_qed: Method.text option * bool -> state -> state Seq.seq
+  val local_qed: Method.text option * bool -> state -> state
   val theorem: Method.text option -> (thm list list -> context -> context) ->
     (string * string list) list list -> context -> state
   val theorem_i: Method.text option -> (thm list list -> context -> context) ->
     (term * term list) list list -> context -> state
   val global_qed: Method.text option * bool -> state -> context
-  val local_terminal_proof: Method.text * Method.text option -> state -> state Seq.seq
-  val local_default_proof: state -> state Seq.seq
-  val local_immediate_proof: state -> state Seq.seq
-  val local_done_proof: state -> state Seq.seq
-  val local_skip_proof: bool -> state -> state Seq.seq
+  val local_terminal_proof: Method.text * Method.text option -> state -> state
+  val local_default_proof: state -> state
+  val local_immediate_proof: state -> state
+  val local_skip_proof: bool -> state -> state
+  val local_done_proof: state -> state
   val global_terminal_proof: Method.text * Method.text option -> state -> context
   val global_default_proof: state -> context
   val global_immediate_proof: state -> context
-  val global_done_proof: state -> context
   val global_skip_proof: bool -> state -> context
-  val have: Method.text option -> (thm list list -> state -> state Seq.seq) ->
+  val global_done_proof: state -> context
+  val have: Method.text option -> (thm list list -> state -> state) ->
     (Attrib.binding * (string * string list) list) list -> bool -> state -> state
-  val have_i: Method.text option -> (thm list list -> state -> state Seq.seq) ->
+  val have_i: Method.text option -> (thm list list -> state -> state) ->
     ((Binding.T * attribute list) * (term * term list) list) list -> bool -> state -> state
-  val show: Method.text option -> (thm list list -> state -> state Seq.seq) ->
+  val show: Method.text option -> (thm list list -> state -> state) ->
     (Attrib.binding * (string * string list) list) list -> bool -> state -> state
-  val show_i: Method.text option -> (thm list list -> state -> state Seq.seq) ->
+  val show_i: Method.text option -> (thm list list -> state -> state) ->
     ((Binding.T * attribute list) * (term * term list) list) list -> bool -> state -> state
+  val schematic_goal: state -> bool
   val is_relevant: state -> bool
-  val future_proof: (state -> ('a * context) future) -> state -> 'a future * context
-  val future_terminal_proof: Method.text * Method.text option -> state -> context
+  val local_future_proof: (state -> ('a * state) Future.future) ->
+    state -> 'a Future.future * state
+  val global_future_proof: (state -> ('a * Proof.context) Future.future) ->
+    state -> 'a Future.future * context
+  val local_future_terminal_proof: Method.text * Method.text option -> bool -> state -> state
+  val global_future_terminal_proof: Method.text * Method.text option -> bool -> state -> context
 end;
 
 structure Proof: PROOF =
@@ -148,7 +152,7 @@ and goal =
     goal: thm,                            (*subgoals ==> statement*)
     before_qed: Method.text option,
     after_qed:
-      (thm list list -> state -> state Seq.seq) *
+      (thm list list -> state -> state) *
       (thm list list -> context -> context)};
 
 fun make_goal (statement, messages, using, goal, before_qed, after_qed) =
@@ -312,12 +316,6 @@ fun get_goal state =
   let val (ctxt, (_, {using, goal, ...})) = find_goal state
   in (ctxt, (using, goal)) end;
 
-fun schematic_goal state =
-  let val (_, (_, {statement = (_, _, prop), ...})) = find_goal state in
-    Term.exists_subterm Term.is_Var prop orelse
-    Term.exists_type (Term.exists_subtype Term.is_TVar) prop
-  end;
-
 
 
 (** pretty_state **)
@@ -347,8 +345,7 @@ fun pretty_state nr state =
       (case filter_out (fn s => s = "") strs of [] => ""
       | strs' => enclose " (" ")" (commas strs'));
 
-    fun prt_goal (SOME (ctxt, (i,
-            {statement = ((_, pos), _, _), messages, using, goal, before_qed, after_qed}))) =
+    fun prt_goal (SOME (ctxt, (i, {statement = ((_, pos), _, _), messages, using, goal, before_qed, after_qed}))) =
           pretty_facts "using " ctxt
             (if mode <> Backward orelse null using then NONE else SOME using) @
           [Pretty.str ("goal" ^
@@ -751,6 +748,13 @@ fun end_proof bot txt state =
   |> `before_qed |-> (refine o the_default Method.succeed_text)
   |> Seq.maps (refine (Method.finish_text txt (Position.thread_data ())));
 
+fun check_result msg sq =
+  (case Seq.pull sq of
+    NONE => error msg
+  | SOME (s, _) => s);
+
+fun check_finish sq = check_result "Failed to finish proof" sq;
+
 
 (* unstructured refinement *)
 
@@ -842,7 +846,7 @@ fun generic_qed after_ctxt state =
       |> burrow (ProofContext.export goal_ctxt outer_ctxt);
 
     val (after_local, after_global) = after_qed;
-    fun after_local' x y = Position.setmp_thread_data_seq pos (fn () => after_local x y) ();
+    fun after_local' x y = Position.setmp_thread_data pos (fn () => after_local x y) ();
     fun after_global' x y = Position.setmp_thread_data pos (fn () => after_global x y) ();
   in
     outer_state
@@ -871,61 +875,47 @@ fun local_goal print_results prep_att prepp kind before_qed after_qed stmt state
     |> tap (Variable.warn_extra_tfrees (context_of state) o context_of)
   end;
 
-fun local_qed txt =
-  end_proof false txt #>
-  Seq.maps (generic_qed ProofContext.auto_bind_facts #->
+fun local_qeds txt =
+  end_proof false txt
+  #> Seq.map (generic_qed ProofContext.auto_bind_facts #->
     (fn ((after_qed, _), results) => after_qed results));
+
+fun local_qed txt = local_qeds txt #> check_finish;
 
 
 (* global goals *)
 
 fun global_goal prepp before_qed after_qed propp ctxt =
   init ctxt
-  |> generic_goal (prepp #> ProofContext.auto_fixes) ""
-    before_qed (K Seq.single, after_qed) propp;
+  |> generic_goal (prepp #> ProofContext.auto_fixes) "" before_qed (K I, after_qed) propp;
 
 val theorem = global_goal ProofContext.bind_propp_schematic;
 val theorem_i = global_goal ProofContext.bind_propp_schematic_i;
 
-fun check_result msg sq =
-  (case Seq.pull sq of
-    NONE => error msg
-  | SOME (s', sq') => Seq.cons s' sq');
-
 fun global_qeds txt =
   end_proof true txt
   #> Seq.map (generic_qed (K I) #> (fn (((_, after_qed), results), state) =>
-    after_qed results (context_of state)))
-  |> Seq.DETERM;   (*backtracking may destroy theory!*)
+    after_qed results (context_of state)));
 
-fun global_qed txt =
-  global_qeds txt
-  #> check_result "Failed to finish proof"
-  #> Seq.hd;
+fun global_qed txt = global_qeds txt #> check_finish;
 
 
 (* concluding steps *)
 
-fun local_terminal_proof (text, opt_text) =
-  proof (SOME text) #> Seq.maps (local_qed (opt_text, true));
+fun terminal_proof qed initial terminal =
+  proof (SOME initial) #> Seq.maps (qed terminal) #> check_finish;
 
+fun local_terminal_proof (text, opt_text) = terminal_proof local_qeds text (opt_text, true);
 val local_default_proof = local_terminal_proof (Method.default_text, NONE);
 val local_immediate_proof = local_terminal_proof (Method.this_text, NONE);
-val local_done_proof = proof (SOME Method.done_text) #> Seq.maps (local_qed (NONE, false));
 fun local_skip_proof int = local_terminal_proof (Method.sorry_text int, NONE);
+val local_done_proof = terminal_proof local_qeds Method.done_text (NONE, false);
 
-fun global_term_proof immed (text, opt_text) =
-  proof (SOME text)
-  #> check_result "Terminal proof method failed"
-  #> Seq.maps (global_qeds (opt_text, immed))
-  #> check_result "Failed to finish proof (after successful terminal method)"
-  #> Seq.hd;
-
-val global_terminal_proof = global_term_proof true;
+fun global_terminal_proof (text, opt_text) = terminal_proof global_qeds text (opt_text, true);
 val global_default_proof = global_terminal_proof (Method.default_text, NONE);
 val global_immediate_proof = global_terminal_proof (Method.this_text, NONE);
-val global_done_proof = global_term_proof false (Method.done_text, NONE);
 fun global_skip_proof int = global_terminal_proof (Method.sorry_text int, NONE);
+val global_done_proof = terminal_proof global_qeds Method.done_text (NONE, false);
 
 
 (* common goal statements *)
@@ -940,7 +930,7 @@ fun gen_show prep_att prepp before_qed after_qed stmt int state =
     val testing = ref false;
     val rule = ref (NONE: thm option);
     fun fail_msg ctxt =
-      "Local statement will fail to solve any pending goal" ::
+      "Local statement will fail to refine any pending goal" ::
       (case ! rule of NONE => [] | SOME th => [ProofDisplay.string_of_rule ctxt "Failed" th])
       |> cat_lines;
 
@@ -951,13 +941,14 @@ fun gen_show prep_att prepp before_qed after_qed stmt int state =
       else if int then priority (ProofDisplay.string_of_rule ctxt "Successful" th)
       else ();
     val test_proof =
-      (Seq.pull oo local_skip_proof) true
+      try (local_skip_proof true)
       |> setmp_noncritical testing true
       |> Exn.capture;
 
     fun after_qed' results =
       refine_goals print_rule (context_of state) (flat results)
-      #> Seq.maps (after_qed results);
+      #> check_result "Failed to refine any pending goal"
+      #> after_qed results;
   in
     state
     |> local_goal print_results prep_att prepp "show" before_qed after_qed' stmt
@@ -979,59 +970,89 @@ val show_i = gen_show (K I) ProofContext.bind_propp_i;
 end;
 
 
-(* fork global proofs *)
+
+(** future proofs **)
+
+(* relevant proof states *)
+
+fun is_schematic t =
+  Term.exists_subterm Term.is_Var t orelse
+  Term.exists_type (Term.exists_subtype Term.is_TVar) t;
+
+fun schematic_goal state =
+  let val (_, (_, {statement = (_, _, prop), ...})) = find_goal state
+  in is_schematic prop end;
+
+fun is_relevant state =
+  (case try find_goal state of
+    NONE => true
+  | SOME (_, (_, {statement = (_, _, prop), goal, ...})) =>
+      is_schematic prop orelse not (Logic.protect prop aconv Thm.concl_of goal));
+
+
+(* full proofs *)
 
 local
 
-fun is_original state =
-  (case try find_goal state of
-    NONE => false
-  | SOME (_, (_, {statement = (_, _, prop), goal, ...})) =>
-      Logic.protect prop aconv Thm.concl_of goal);
-
-in
-
-fun is_relevant state =
-  can (assert_bottom false) state orelse
-  can assert_forward state orelse
-  not (is_original state) orelse
-  schematic_goal state;
-
-fun future_proof fork_proof state =
+fun future_proof done get_context fork_proof state =
   let
-    val _ = is_relevant state andalso error "Cannot fork relevant proof";
-
+    val _ = assert_backward state;
     val (goal_ctxt, (_, goal)) = find_goal state;
     val {statement as (kind, propss, prop), messages, using, goal, before_qed, after_qed} = goal;
+
+    val _ = is_relevant state andalso error "Cannot fork relevant proof";
 
     val prop' = Logic.protect prop;
     val statement' = (kind, [[], [prop']], prop');
     val goal' = Thm.adjust_maxidx_thm (Thm.maxidx_of goal)
       (Drule.comp_no_flatten (goal, Thm.nprems_of goal) 1 Drule.protectI);
-    fun after_qed' [[th]] = ProofContext.put_thms false (AutoBind.thisN, SOME [th]);
+
+    fun after_local' [[th]] = put_thms false (AutoBind.thisN, SOME [th]);
+    fun after_global' [[th]] = ProofContext.put_thms false (AutoBind.thisN, SOME [th]);
+    val after_qed' = (after_local', after_global');
     val this_name = ProofContext.full_bname goal_ctxt AutoBind.thisN;
 
     val result_ctxt =
       state
-      |> map_contexts (Variable.auto_fixes prop)
-      |> map_goal I (K (statement', messages, using, goal', before_qed, (#1 after_qed, after_qed')))
+      |> map_contexts (Variable.declare_term prop)
+      |> map_goal I (K (statement', messages, using, goal', before_qed, after_qed'))
       |> fork_proof;
 
-    val future_thm = result_ctxt |> Future.map (fn (_, ctxt) =>
-      ProofContext.get_fact_single ctxt (Facts.named this_name));
-    val finished_goal = Goal.future_result goal_ctxt future_thm prop';
+    val future_thm = result_ctxt |> Future.map (fn (_, x) =>
+      ProofContext.get_fact_single (get_context x) (Facts.named this_name));
+    val finished_goal = exception_trace (fn () => Goal.future_result goal_ctxt future_thm prop');
     val state' =
       state
       |> map_goal I (K (statement, messages, using, finished_goal, NONE, after_qed))
-      |> global_done_proof;
+      |> done;
   in (Future.map #1 result_ctxt, state') end;
+
+in
+
+fun local_future_proof x = future_proof local_done_proof context_of x;
+fun global_future_proof x = future_proof global_done_proof I x;
 
 end;
 
-fun future_terminal_proof meths state =
-  if is_relevant state orelse not (Future.enabled ()) then global_terminal_proof meths state
-  else #2 (state |> future_proof (fn state' =>
-    Future.fork_pri ~1 (fn () => ((), global_terminal_proof meths state'))));
+
+(* terminal proofs *)
+
+local
+
+fun future_terminal_proof proof1 proof2 meths int state =
+  if int orelse is_relevant state orelse not (Future.enabled ())
+  then proof1 meths state
+  else snd (state |> proof2 (fn state' => Future.fork_pri ~1 (fn () => ((), proof1 meths state'))));
+
+in
+
+fun local_future_terminal_proof x =
+  future_terminal_proof local_terminal_proof local_future_proof x;
+
+fun global_future_terminal_proof x =
+  future_terminal_proof global_terminal_proof global_future_proof x;
+
+end;
 
 end;
 

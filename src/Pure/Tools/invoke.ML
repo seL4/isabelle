@@ -88,7 +88,7 @@ fun gen_invoke prep_att prep_expr parse_term add_fixes
           |> (snd o ProofContext.note_thmss_i "" notes)
           |> ProofContext.restore_naming ctxt
         end) #>
-      Proof.put_facts NONE #> Seq.single;
+      Proof.put_facts NONE;
   in
     state'
     |> Proof.chain_facts chain_facts

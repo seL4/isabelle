@@ -133,11 +133,12 @@ fun raw_loop secure src =
     (case Source.get_single (Source.set_prompt Source.default_prompt src) of
       NONE => if secure then quit () else ()
     | SOME (tr, src') => if op >> tr orelse check_secure () then raw_loop secure src' else ())
-    handle exn => (Output.error_msg (Toplevel.exn_message exn)
-    handle crash =>
-      (CRITICAL (fn () => change crashes (cons crash));
-        warning "Recovering after Isar toplevel crash -- see also Isar.crashes");
-      raw_loop secure src)
+    handle exn =>
+      (Output.error_msg (Toplevel.exn_message exn)
+        handle crash =>
+          (CRITICAL (fn () => change crashes (cons crash));
+            warning "Recovering from Isar toplevel crash -- see also Isar.crashes");
+          raw_loop secure src)
   end;
 
 in
