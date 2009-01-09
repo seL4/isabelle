@@ -85,8 +85,9 @@ sig
   val subgoalN: string val subgoal: T
   val sendbackN: string val sendback: T
   val hiliteN: string val hilite: T
+  val taskN: string
   val unprocessedN: string val unprocessed: T
-  val runningN: string val running: T
+  val runningN: string val running: string -> T
   val failedN: string val failed: T
   val finishedN: string val finished: T
   val disposedN: string val disposed: T
@@ -259,8 +260,10 @@ val (hiliteN, hilite) = markup_elem "hilite";
 
 (* command status *)
 
+val taskN = "task";
+
 val (unprocessedN, unprocessed) = markup_elem "unprocessed";
-val (runningN, running) = markup_elem "running";
+val (runningN, running) = markup_string "running" taskN;
 val (failedN, failed) = markup_elem "failed";
 val (finishedN, finished) = markup_elem "finished";
 val (disposedN, disposed) = markup_elem "disposed";

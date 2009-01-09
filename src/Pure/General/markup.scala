@@ -110,6 +110,8 @@ object Markup {
 
   /* command status */
 
+  val TASK = "task"
+
   val UNPROCESSED = "unprocessed"
   val RUNNING = "running"
   val FAILED = "failed"
