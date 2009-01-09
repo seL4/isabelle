@@ -279,6 +279,14 @@ fun pred_of_sort (LTVar (s,ty)) = (s,1)
 (*Given a list of sorted type variables, return a list of type literals.*)
 fun add_typs Ts = foldl (op union) [] (map sorts_on_typs Ts);
 
+(*The correct treatment of TFrees like 'a in lemmas (axiom clauses) is not clear.
+  * Ignoring them leads to unsound proofs, since we do nothing to ensure that 'a
+    in a lemma has the same sort as 'a in the conjecture.
+  * Deleting such clauses will lead to problems with locales in other use of local results
+    where 'a is fixed. Probably we should delete clauses unless the sorts agree.
+  * Currently we include a class constraint in the clause, exactly as with TVars.
+*)
+
 (** make axiom and conjecture clauses. **)
 
 fun get_tvar_strs [] = []
