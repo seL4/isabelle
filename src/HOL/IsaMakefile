@@ -23,6 +23,7 @@ test: \
   HOL-IMP \
   HOL-IMPP \
   HOL-IOA \
+  HOL-Imperative_HOL \
   HOL-Induct \
   HOL-Isar_examples \
   HOL-Lambda \
@@ -325,9 +326,7 @@ $(LOG)/HOL-Library.gz: $(OUT)/HOL Library/SetsAndFunctions.thy		\
   Library/Code_Char_chr.thy Library/Code_Integer.thy			\
   Library/Numeral_Type.thy			\
   Library/Boolean_Algebra.thy Library/Countable.thy	\
-  Library/Heap.thy Library/Heap_Monad.thy Library/Array.thy		\
-  Library/Relational.thy Library/Sublist.thy Library/Subarray.thy	\
-  Library/Ref.thy Library/Imperative_HOL.thy Library/RBT.thy		\
+  Library/RBT.thy		\
   Library/Enum.thy Library/Float.thy $(SRC)/Tools/float.ML $(SRC)/HOL/Tools/float_arith.ML
 	@cd Library; $(ISABELLE_TOOL) usedir $(OUT)/HOL Library
 
@@ -625,6 +624,17 @@ $(LOG)/HOL-Modelcheck.gz: $(OUT)/HOL Modelcheck/CTL.thy		\
 	@$(ISABELLE_TOOL) usedir $(OUT)/HOL Modelcheck
 
 
+## HOL-Imperative_HOL
+
+HOL-Imperative_HOL: HOL $(LOG)/HOL-Imperative_HOL.gz
+
+$(LOG)/HOL-Imperative_HOL.gz: $(OUT)/HOL Imperative_HOL/Heap.thy \
+  Imperative_HOL/Heap_Monad.thy Imperative_HOL/Array.thy \
+  Imperative_HOL/Relational.thy \
+  Imperative_HOL/Ref.thy Imperative_HOL/Imperative_HOL.thy
+	@$(ISABELLE_TOOL) usedir $(OUT)/HOL Imperative_HOL
+
+
 ## HOL-SizeChange
 
 HOL-SizeChange: HOL $(LOG)/HOL-SizeChange.gz
@@ -796,8 +806,9 @@ $(LOG)/HOL-ex.gz: $(OUT)/HOL Library/Commutative_Ring.thy		\
   ex/ReflectionEx.thy ex/ROOT.ML ex/Recdefs.thy ex/Records.thy		\
   ex/Reflected_Presburger.thy ex/coopertac.ML				\
   ex/Refute_Examples.thy ex/SAT_Examples.thy ex/SVC_Oracle.thy		\
-  ex/Sudoku.thy ex/Tarski.thy ex/Termination.thy ex/Term_Of_Syntax.thy			\
-  ex/Unification.thy ex/document/root.bib			\
+  ex/Subarray.thy ex/Sublist.thy                                        \
+  ex/Sudoku.thy ex/Tarski.thy ex/Termination.thy ex/Term_Of_Syntax.thy	\
+  ex/Unification.thy ex/document/root.bib			        \
   ex/document/root.tex ex/Meson_Test.thy ex/reflection.ML ex/set.thy	\
   ex/svc_funcs.ML ex/svc_test.thy	\
   ex/ImperativeQuicksort.thy	\
