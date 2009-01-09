@@ -20,7 +20,7 @@ sig
     (Binding.T * string option * mixfix) list ->
     (Binding.T * string option * mixfix) list ->
     (Attrib.binding * string) list -> (Facts.ref * Attrib.src list) list ->
-    local_theory -> InductivePackage.inductive_result * local_theory
+    bool -> local_theory -> InductivePackage.inductive_result * local_theory
   val codegen_preproc: theory -> thm list -> thm list
   val setup: theory -> theory
 end;
@@ -403,7 +403,8 @@ fun code_ind_att optmod = to_pred_att [] #> InductiveCodegen.add optmod NONE;
 
 (**** definition of inductive sets ****)
 
-fun add_ind_set_def {quiet_mode, verbose, kind, alt_name, coind, no_elim, no_ind, skip_mono}
+fun add_ind_set_def
+    {quiet_mode, verbose, kind, alt_name, coind, no_elim, no_ind, skip_mono, fork_mono}
     cs intros monos params cnames_syn ctxt =
   let
     val thy = ProofContext.theory_of ctxt;
@@ -468,7 +469,8 @@ fun add_ind_set_def {quiet_mode, verbose, kind, alt_name, coind, no_elim, no_ind
     val ({preds, intrs, elims, raw_induct, ...}, ctxt1) =
       InductivePackage.add_ind_def
         {quiet_mode = quiet_mode, verbose = verbose, kind = kind, alt_name = Binding.empty,
-          coind = coind, no_elim = no_elim, no_ind = no_ind, skip_mono = skip_mono}
+          coind = coind, no_elim = no_elim, no_ind = no_ind,
+          skip_mono = skip_mono, fork_mono = fork_mono}
         cs' intros' monos' params1 cnames_syn' ctxt;
 
     (* define inductive sets using previously defined predicates *)
@@ -550,10 +552,10 @@ local structure P = OuterParse and K = OuterKeyword in
 val ind_set_decl = InductivePackage.gen_ind_decl add_ind_set_def;
 
 val _ =
-  OuterSyntax.local_theory "inductive_set" "define inductive sets" K.thy_decl (ind_set_decl false);
+  OuterSyntax.local_theory' "inductive_set" "define inductive sets" K.thy_decl (ind_set_decl false);
 
 val _ =
-  OuterSyntax.local_theory "coinductive_set" "define coinductive sets" K.thy_decl (ind_set_decl true);
+  OuterSyntax.local_theory' "coinductive_set" "define coinductive sets" K.thy_decl (ind_set_decl true);
 
 end;
 
