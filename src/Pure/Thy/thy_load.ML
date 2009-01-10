@@ -1,5 +1,4 @@
 (*  Title:      Pure/Thy/thy_load.ML
-    ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
 
 Theory loader primitives, including load path.
@@ -22,6 +21,7 @@ sig
   val ml_exts: string list
   val ml_path: string -> Path.T
   val thy_path: string -> Path.T
+  val split_thy_path: Path.T -> Path.T * string
   val check_file: Path.T -> Path.T -> (Path.T * File.ident) option
   val check_ml: Path.T -> Path.T -> (Path.T * File.ident) option
   val check_thy: Path.T -> string -> Path.T * File.ident
@@ -61,6 +61,11 @@ end;
 val ml_exts = ["ML", "sml"];
 val ml_path = Path.ext "ML" o Path.basic;
 val thy_path = Path.ext "thy" o Path.basic;
+
+fun split_thy_path path =
+  (case Path.split_ext path of
+    (path', "thy") => (Path.dir path', Path.implode (Path.base path'))
+  | _ => error ("Bad theory file specification " ^ Path.implode path));
 
 
 (* check files *)

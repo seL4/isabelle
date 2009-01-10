@@ -1,5 +1,4 @@
 (*  Title:      Pure/Thy/thy_info.ML
-    ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
 
 Main part of theory loader database, including handling of theory and
@@ -24,6 +23,8 @@ sig
   val get_parents: string -> string list
   val touch_thy: string -> unit
   val touch_child_thys: string -> unit
+  val remove_thy: string -> unit
+  val kill_thy: string -> unit
   val provide_file: Path.T -> string -> unit
   val load_file: bool -> Path.T -> unit
   val exec_file: bool -> Path.T -> Context.generic -> Context.generic
@@ -32,8 +33,6 @@ sig
   val use_thys: string list -> unit
   val use_thy: string -> unit
   val time_use_thy: string -> unit
-  val remove_thy: string -> unit
-  val kill_thy: string -> unit
   val thy_ord: theory * theory -> order
   val begin_theory: string -> string list -> (Path.T * bool) list -> bool -> theory
   val end_theory: theory -> unit
@@ -232,6 +231,27 @@ fun touch_child_thys name = touch_thys (thy_graph Graph.imm_succs name);
 end;
 
 
+(* remove theory *)
+
+fun remove_thy name =
+  if is_finished name then error (loader_msg "cannot remove finished theory" [name])
+  else
+    let val succs = thy_graph Graph.all_succs [name] in
+      priority (loader_msg "removing" succs);
+      CRITICAL (fn () => (List.app (perform Remove) succs; change_thys (Graph.del_nodes succs)))
+    end;
+
+val kill_thy = if_known_thy remove_thy;
+
+fun consolidate_thy name =
+  (case lookup_theory name of
+    NONE => []
+  | SOME thy =>
+      (case PureThy.join_proofs thy of
+        [] => []
+      | exns => (kill_thy name; exns)));
+
+
 (* load_file *)
 
 local
@@ -342,7 +362,7 @@ fun schedule_futures task_graph =
       in (x, Symtab.update (name, x) tab) end;
 
     val thy_results = Future.join_results (#1 (fold_map future tasks Symtab.empty));
-    val proof_results = PureThy.join_proofs (map_filter (try get_theory o #1) tasks);
+    val proof_results = map Exn.Exn (maps (consolidate_thy o #1) tasks);
   in ignore (Exn.release_all (thy_results @ proof_results)) end;
 
 in
@@ -462,19 +482,6 @@ val use_thy = gen_use_thy (require_thy false);
 val time_use_thy = gen_use_thy (require_thy true);
 
 end;
-
-
-(* remove theory *)
-
-fun remove_thy name =
-  if is_finished name then error (loader_msg "cannot remove finished theory" [name])
-  else
-    let val succs = thy_graph Graph.all_succs [name] in
-      priority (loader_msg "removing" succs);
-      CRITICAL (fn () => (List.app (perform Remove) succs; change_thys (Graph.del_nodes succs)))
-    end;
-
-val kill_thy = if_known_thy remove_thy;
 
 
 (* update_time *)

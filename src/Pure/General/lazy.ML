@@ -1,5 +1,4 @@
 (*  Title:      Pure/General/lazy.ML
-    ID:         $Id$
     Author:     Florian Haftmann and Makarius, TU Muenchen
 
 Lazy evaluation with memoing.  Concurrency may lead to multiple
@@ -13,6 +12,7 @@ sig
   val lazy: (unit -> 'a) -> 'a lazy
   val value: 'a -> 'a lazy
   val peek: 'a lazy -> 'a Exn.result option
+  val force_result: 'a lazy -> 'a Exn.result
   val force: 'a lazy -> 'a
   val map_force: ('a -> 'a) -> 'a lazy -> 'a lazy
 end
@@ -41,7 +41,7 @@ fun peek r =
 
 (* force result *)
 
-fun force r =
+fun force_result r =
   let
     (*potentially concurrent evaluation*)
     val res =
@@ -53,7 +53,9 @@ fun force r =
       (case ! r of
         Lazy _ => (r := Result res; res)
       | Result res' => res'));
-  in Exn.release res' end;
+  in res' end;
+
+fun force r = Exn.release (force_result r);
 
 fun map_force f = value o f o force;
 
