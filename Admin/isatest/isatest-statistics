@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 #
-# $Id$
 # Author: Makarius
 #
 # DESCRIPTION: Produce statistics from isatest session logs.
@@ -93,7 +92,7 @@ perl -e '
 
 for SESSION in $SESSIONS
 do
-  fgrep "$SESSION " "$ALL_DATA" > "$SESSION_DATA"
+  grep "^${SESSION} " "$ALL_DATA" > "$SESSION_DATA"
   PLOT="plot [] [0:] \"$SESSION_DATA\" using 2:3 smooth sbezier title \"interpolated cpu time\", \"$SESSION_DATA\" using 2:3 smooth csplines title \"cpu time\""
   if [ "$PARALLEL" = true ]; then
     PLOT="${PLOT}, \"$SESSION_DATA\" using 2:4 smooth sbezier title \"interpolated elapsed time\", \"$SESSION_DATA\" using 2:4 smooth csplines title \"elapsed time\""
