@@ -81,8 +81,7 @@ fun hide_fact fully name = FactsData.map (apfst (Facts.hide fully name));
 fun lazy_proof thm = Lazy.lazy (fn () => Thm.join_proof thm);
 
 fun join_proofs thy =
-  rev (#2 (FactsData.get thy)) |> map_filter (fn prf =>
-    (case Exn.capture Lazy.force prf of Exn.Exn exn => SOME exn | _ => NONE));
+  map_filter (Exn.get_exn o Lazy.force_result) (rev (#2 (FactsData.get thy)));
 
 
 
