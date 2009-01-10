@@ -1,5 +1,4 @@
 (*  Title:      Pure/Isar/session.ML
-    ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
 
 Session management -- maintain state of logic images.
@@ -11,7 +10,7 @@ sig
   val name: unit -> string
   val welcome: unit -> string
   val use_dir: string -> bool -> string list -> bool -> bool -> string -> bool -> string list ->
-    string -> string -> bool * string -> string -> int -> bool -> int -> int -> unit
+    string -> string -> bool * string -> string -> int -> bool -> int -> int -> bool -> unit
   val finish: unit -> unit
 end;
 
@@ -87,7 +86,7 @@ fun dumping (_, "") = NONE
   | dumping (cp, path) = SOME (cp, Path.explode path);
 
 fun use_dir root build modes reset info doc doc_graph doc_versions
-    parent name dump rpath level verbose max_threads trace_threads =
+    parent name dump rpath level verbose max_threads trace_threads parallel_proofs =
   ((fn () =>
      (init reset parent name;
       Present.init build info doc doc_graph doc_versions (path ()) name
@@ -96,6 +95,7 @@ fun use_dir root build modes reset info doc doc_graph doc_versions
       finish ()))
     |> setmp_noncritical Proofterm.proofs level
     |> setmp_noncritical print_mode (modes @ print_mode_value ())
+    |> setmp_noncritical Goal.parallel_proofs parallel_proofs
     |> setmp_noncritical Multithreading.trace trace_threads
     |> setmp_noncritical Multithreading.max_threads
       (if Multithreading.available then max_threads

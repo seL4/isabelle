@@ -745,7 +745,7 @@ fun excursion input =
   let
     val end_pos = if null input then error "No input" else pos_of (fst (List.last input));
 
-    val immediate = not (Future.enabled ());
+    val immediate = not (Future.enabled () andalso ! Goal.parallel_proofs);
     val (results, end_state) = fold_map (proof_result immediate) input toplevel;
     val _ =
       (case end_state of

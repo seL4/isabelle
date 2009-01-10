@@ -1041,7 +1041,7 @@ end;
 local
 
 fun future_terminal_proof proof1 proof2 meths int state =
-  if int orelse is_relevant state orelse not (Future.enabled ())
+  if int orelse is_relevant state orelse not (Future.enabled () andalso ! Goal.parallel_proofs)
   then proof1 meths state
   else snd (state |> proof2 (fn state' => Future.fork_pri ~1 (fn () => ((), proof1 meths state'))));
 

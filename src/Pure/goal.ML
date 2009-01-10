@@ -6,6 +6,7 @@ Goals in tactical theorem proving.
 
 signature BASIC_GOAL =
 sig
+  val parallel_proofs: bool ref
   val SELECT_GOAL: tactic -> int -> tactic
   val CONJUNCTS: tactic -> int -> tactic
   val PRECISE_CONJUNCTS: int -> tactic -> int -> tactic
@@ -123,6 +124,8 @@ fun future_result ctxt result prop =
       |> fold (Thm.elim_implies o Thm.assume) assms;
   in local_result end;
 
+val parallel_proofs = ref true;
+
 
 
 (** tactical theorem proving **)
@@ -172,7 +175,8 @@ fun prove_common immediate ctxt xs asms props tac =
             else err ("Proved a different theorem: " ^ string_of_term (Thm.prop_of res))
           end);
     val res =
-      if immediate orelse #maxidx (Thm.rep_cterm stmt) >= 0 orelse not (Future.enabled ())
+      if immediate orelse #maxidx (Thm.rep_cterm stmt) >= 0 orelse
+        not (Future.enabled () andalso ! parallel_proofs)
       then result ()
       else future_result ctxt' (Future.fork_pri ~1 result) (Thm.term_of stmt);
   in

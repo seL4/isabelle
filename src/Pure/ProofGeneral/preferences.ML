@@ -1,5 +1,4 @@
 (*  Title:      Pure/ProofGeneral/preferences.ML
-    ID:         $Id$
     Author:     David Aspinall and Markus Wenzel
 
 User preferences for Isabelle which are maintained by the interface.
@@ -164,7 +163,10 @@ val proof_preferences =
   proof_pref,
   nat_pref Multithreading.max_threads
     "max-threads"
-    "Maximum number of threads"];
+    "Maximum number of threads",
+  bool_pref Goal.parallel_proofs
+    "parallel-proofs"
+    "Check proofs in parallel"];
 
 val pure_preferences =
  [("Display", display_preferences),

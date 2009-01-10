@@ -442,6 +442,7 @@ Usage: usedir [OPTIONS] LOGIC NAME
     -D PATH      dump generated document sources into PATH
     -M MAX       multithreading: maximum number of worker threads (default 1)
     -P PATH      set path for remote theory browsing information
+    -Q BOOL      check proofs in parallel (default true)
     -T LEVEL     multithreading: trace level (default 0)
     -V VERSION   declare alternative document VERSION
     -b           build mode (output heap image, using current dir)
@@ -461,6 +462,11 @@ Usage: usedir [OPTIONS] LOGIC NAME
 
   ISABELLE_USEDIR_OPTIONS=
   HOL_USEDIR_OPTIONS=
+
+  ML_PLATFORM=x86-linux
+  ML_HOME=/usr/local/polyml-5.2.1/x86-linux
+  ML_SYSTEM=polyml-5.2.1
+  ML_OPTIONS=-H 500
 \end{ttbox}
 
   Note that the value of the @{setting_ref ISABELLE_USEDIR_OPTIONS}
@@ -573,6 +579,13 @@ text {*
   operation.  This may be helpful in isolating performance
   bottle-necks, e.g.\ due to excessive wait states when locking
   critical code sections.
+
+  \medskip The @{verbatim "-Q"} option tells whether individual proofs
+  should be checked in parallel; the default is @{verbatim true}.
+  Note that fine-grained proof parallelism requires considerable
+  amounts of extra memory, since full proof context information is
+  maintained for each independent derivation thread, until checking is
+  completed.
 
   \medskip Any @{tool usedir} session is named by some \emph{session
   identifier}. These accumulate, documenting the way sessions depend

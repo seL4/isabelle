@@ -34,7 +34,8 @@ fun cheat_tac thy st =
   ALLGOALS (Tactic.rtac (make_thm thy (Var (("A", 0), propT)))) st;
 
 fun prove ctxt xs asms prop tac =
-  (if Future.enabled () then Goal.prove_future else Goal.prove) ctxt xs asms prop
+  (if Future.enabled () andalso ! Goal.parallel_proofs then Goal.prove_future else Goal.prove)
+    ctxt xs asms prop
     (fn args => fn st =>
       if ! quick_and_dirty
       then setmp quick_and_dirty true (cheat_tac (ProofContext.theory_of ctxt)) st
