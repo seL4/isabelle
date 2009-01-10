@@ -96,7 +96,7 @@ sig
   val transition: bool -> transition -> state -> (state * (exn * string) option) option
   val commit_exit: Position.T -> transition
   val command: transition -> state -> state
-  val excursion: (transition * transition list) list -> (transition * state) list * (unit -> unit)
+  val excursion: (transition * transition list) list -> (transition * state) list lazy
 end;
 
 structure Toplevel: TOPLEVEL =
@@ -746,12 +746,12 @@ fun excursion input =
     val end_pos = if null input then error "No input" else pos_of (fst (List.last input));
 
     val immediate = not (Future.enabled ());
-    val (future_results, end_state) = fold_map (proof_result immediate) input toplevel;
+    val (results, end_state) = fold_map (proof_result immediate) input toplevel;
     val _ =
       (case end_state of
-        State (NONE, SOME (Theory (Context.Theory _, _), _)) => ()
+        State (NONE, SOME (Theory (Context.Theory _, _), _)) =>
+          command (commit_exit end_pos) end_state
       | _ => error "Unfinished development at end of input");
-    val results = maps Lazy.force future_results;
-  in (results, fn () => ignore (command (commit_exit end_pos) end_state)) end;
+  in Lazy.lazy (fn () => maps Lazy.force results) end;
 
 end;

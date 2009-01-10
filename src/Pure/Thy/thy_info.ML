@@ -243,14 +243,6 @@ fun remove_thy name =
 
 val kill_thy = if_known_thy remove_thy;
 
-fun consolidate_thy name =
-  (case lookup_theory name of
-    NONE => []
-  | SOME thy =>
-      (case PureThy.join_proofs thy of
-        [] => []
-      | exns => (kill_thy name; exns)));
-
 
 (* load_file *)
 
@@ -320,33 +312,29 @@ fun load_thy time upd_time initiators name =
     val _ = CRITICAL (fn () =>
       change_deps name (Option.map (fn {master, text, parents, files, ...} =>
         make_deps upd_time master text parents files)));
-    val _ = OuterSyntax.load_thy name pos text (time orelse ! Output.timing);
-  in
-    CRITICAL (fn () =>
-     (change_deps name
-        (Option.map (fn {update_time, master, parents, files, ...} =>
-          make_deps update_time master [] parents files));
-      perform Update name))
-  end;
+    val after_load = OuterSyntax.load_thy name pos text (time orelse ! Output.timing);
+    val _ =
+      CRITICAL (fn () =>
+       (change_deps name
+          (Option.map (fn {update_time, master, parents, files, ...} =>
+            make_deps update_time master [] parents files));
+        perform Update name));
+  in after_load end;
 
 
 (* scheduling loader tasks *)
 
-datatype task = Task of (unit -> unit) | Finished | Running;
+datatype task = Task of (unit -> unit -> unit) | Finished | Running;
 fun task_finished Finished = true | task_finished _ = false;
 
 local
-
-fun schedule_seq tasks =
-  Graph.topological_order tasks
-  |> List.app (fn name => (case Graph.get_node tasks name of Task body => body () | _ => ()));
 
 fun schedule_futures task_graph =
   let
     val tasks = Graph.topological_order task_graph |> map_filter (fn name =>
       (case Graph.get_node task_graph name of Task body => SOME (name, body) | _ => NONE));
 
-    fun future (name, body) tab =
+    fun fork (name, body) tab =
       let
         val deps = Graph.imm_preds task_graph name
           |> map_filter (fn parent =>
@@ -358,12 +346,23 @@ fun schedule_futures task_graph =
             [] => body ()
           | bad => error (loader_msg
               ("failed to load " ^ quote name ^ " (unresolved " ^ commas_quote bad ^ ")") [])));
+      in Symtab.update (name, x) tab end;
 
-      in (x, Symtab.update (name, x) tab) end;
+    val futures = fold fork tasks Symtab.empty;
 
-    val thy_results = Future.join_results (#1 (fold_map future tasks Symtab.empty));
-    val proof_results = map Exn.Exn (maps (consolidate_thy o #1) tasks);
-  in ignore (Exn.release_all (thy_results @ proof_results)) end;
+    val exns = tasks |> maps (fn (name, _) =>
+      let
+        val after_load = Future.join (the (Symtab.lookup futures name));
+        val _ = after_load ();
+        val proof_exns = PureThy.join_proofs (get_theory name);
+        val _ = null proof_exns orelse raise Exn.EXCEPTIONS proof_exns;
+      in [] end handle exn => (kill_thy name; [exn]));
+
+  in ignore (Exn.release_all (map Exn.Exn exns)) end;
+
+fun schedule_seq tasks =
+  Graph.topological_order tasks
+  |> List.app (fn name => (case Graph.get_node tasks name of Task body => body () () | _ => ()));
 
 in
 
