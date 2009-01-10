@@ -45,6 +45,7 @@ sig
   val join: 'a future -> 'a
   val map: ('a -> 'b) -> 'a future -> 'b future
   val interrupt_task: string -> unit
+  val cancel_group: group -> unit
   val cancel: 'a future -> unit
   val shutdown: unit -> unit
 end;
@@ -330,17 +331,18 @@ fun map_future f x =
   end;
 
 
-(* cancel *)
+(* cancellation *)
 
 (*interrupt: permissive signal, may get ignored*)
 fun interrupt_task id = SYNCHRONIZED "interrupt"
   (fn () => Task_Queue.interrupt_external (! queue) id);
 
 (*cancel: present and future group members will be interrupted eventually*)
-fun cancel x =
+fun cancel_group group =
  (scheduler_check "cancel check";
-  SYNCHRONIZED "cancel" (fn () => (do_cancel (group_of x); notify_all ())));
+  SYNCHRONIZED "cancel" (fn () => (do_cancel group; notify_all ())));
 
+fun cancel x = cancel_group (group_of x);
 
 
 (** global join and shutdown **)
