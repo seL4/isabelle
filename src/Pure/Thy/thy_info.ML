@@ -231,15 +231,31 @@ fun touch_child_thys name = touch_thys (thy_graph Graph.imm_succs name);
 end;
 
 
+(* manage pending proofs *)
+
+fun join_thy name =
+  (case lookup_theory name of
+    NONE => []
+  | SOME thy => PureThy.join_proofs thy);
+
+fun cancel_thy name =
+  (case lookup_theory name of
+    NONE => ()
+  | SOME thy => PureThy.cancel_proofs thy);
+
+
 (* remove theory *)
 
 fun remove_thy name =
   if is_finished name then error (loader_msg "cannot remove finished theory" [name])
   else
-    let val succs = thy_graph Graph.all_succs [name] in
-      priority (loader_msg "removing" succs);
-      CRITICAL (fn () => (List.app (perform Remove) succs; change_thys (Graph.del_nodes succs)))
-    end;
+    let
+      val succs = thy_graph Graph.all_succs [name];
+      val _ = List.app cancel_thy succs;
+      val _ = priority (loader_msg "removing" succs);
+      val _ = CRITICAL (fn () =>
+        (List.app (perform Remove) succs; change_thys (Graph.del_nodes succs)));
+    in () end;
 
 val kill_thy = if_known_thy remove_thy;
 
@@ -350,15 +366,15 @@ fun schedule_futures task_graph =
 
     val futures = fold fork tasks Symtab.empty;
 
-    val exns = tasks |> maps (fn (name, _) =>
+    val exns = rev tasks |> maps (fn (name, _) =>
       let
         val after_load = Future.join (the (Symtab.lookup futures name));
-        val _ = after_load ();
-        val proof_exns = PureThy.join_proofs (get_theory name);
+        val proof_exns = join_thy name;
         val _ = null proof_exns orelse raise Exn.EXCEPTIONS proof_exns;
+        val _ = after_load ();
       in [] end handle exn => (kill_thy name; [exn]));
 
-  in ignore (Exn.release_all (map Exn.Exn exns)) end;
+  in ignore (Exn.release_all (map Exn.Exn (rev exns))) end;
 
 fun schedule_seq tasks =
   Graph.topological_order tasks
