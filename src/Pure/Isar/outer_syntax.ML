@@ -32,7 +32,7 @@ sig
   type isar
   val isar: bool -> isar
   val prepare_command: Position.T -> string -> Toplevel.transition
-  val load_thy: string -> Position.T -> string list -> bool -> unit
+  val load_thy: string -> Position.T -> string list -> bool -> unit -> unit
 end;
 
 structure OuterSyntax: OUTER_SYNTAX =
@@ -288,16 +288,13 @@ fun load_thy name pos text time =
       (fn () => HTML.html_mode (implode o map ThySyntax.present_span) spans);
 
     val _ = if time then writeln ("\n**** Starting theory " ^ quote name ^ " ****") else ();
-    val _ = cond_timeit time "" (fn () =>
-      let
-        val (results, commit_exit) = Toplevel.excursion units;
-        val _ =
-          ThyOutput.present_thy (#1 lexs) OuterKeyword.command_tags is_markup results toks
-          |> Buffer.content
-          |> Present.theory_output name
-        val _ = commit_exit ();
-      in () end);
+    val results = cond_timeit time "" (fn () => Toplevel.excursion units);
     val _ = if time then writeln ("**** Finished theory " ^ quote name ^ " ****\n") else ();
-  in () end;
+
+    fun after_load () =
+      ThyOutput.present_thy (#1 lexs) OuterKeyword.command_tags is_markup (Lazy.force results) toks
+      |> Buffer.content
+      |> Present.theory_output name;
+  in after_load end;
 
 end;
