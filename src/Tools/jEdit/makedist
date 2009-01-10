@@ -11,7 +11,7 @@ SUPER=$(cd "$THIS/.."; pwd)
 
 ## diagnostics
 
-JEDIT_HOME="/home/isajedit/jedit-orig/4.3pre15"
+JEDIT_HOME="/home/isajedit/jedit-orig/4.3pre16"
 SCALA_HOME="/home/scala/current"
 
 function usage()
@@ -84,11 +84,18 @@ ln -s "$JEDIT" jedit
 
 [ "$JEDIT_HOME/jedit.jar" ] || fail "Bad original jEdit directory: $JEDIT_HOME"
 cp -R "$JEDIT_HOME/." "$JEDIT/."
+rm -rf "$JEDIT/jEdit"
+
+mkdir "$JEDIT/jars"
 
 [ "$SCALA_HOME/lib/scala-library.jar" ] || fail "Bad Scala directory: $SCALA_HOME"
 cp "$SCALA_HOME/lib/scala-library.jar" "$JEDIT/jars/"
 
 cp -R "$THIS/dist-template/." "$JEDIT/."
+
+perl -i -e 'while (<>) { if (m/NAME="javacc"/) {
+  print qq,<MODE NAME="isabelle" FILE="isabelle.xml" FILE_NAME_GLOB="*.thy"/>\n\n,; }
+  print; }' "$JEDIT/modes/catalog"
 
 cp jars/Isabelle-jEdit.jar "$JEDIT/jars/isabelle.jar"
 cp jars/lib/Pure.jar "$JEDIT/jars/isabelle-Pure.jar"

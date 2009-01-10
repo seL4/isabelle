@@ -1,262 +1,290 @@
+/*
+ * jEdit text area as document text source
+ *
+ * @author Fabian Immler, TU Munich
+ * @author Johannes Hölzl, TU Munich
+ * @author Makarius
+ */
+
 package isabelle.jedit
 
-import isabelle.utils.EventSource
 
 import isabelle.proofdocument.Text
+import isabelle.prover.{Prover, Command}
 
-import isabelle.prover.{ Prover, Command, CommandChangeInfo }
-import isabelle.prover.Command.Phase
-
-import javax.swing.Timer
-import javax.swing.event.{ CaretListener, CaretEvent }
 import java.awt.Graphics2D
-import java.awt.event.{ ActionEvent, ActionListener }
-import java.awt.Color;
+import java.awt.event.{ActionEvent, ActionListener}
+import java.awt.Color
+import javax.swing.Timer
+import javax.swing.event.{CaretListener, CaretEvent}
 
-import org.gjt.sp.jedit.buffer.{ BufferListener, JEditBuffer }
-import org.gjt.sp.jedit.textarea.{ JEditTextArea, TextAreaExtension, TextAreaPainter }
+import org.gjt.sp.jedit.buffer.{BufferListener, JEditBuffer}
+import org.gjt.sp.jedit.textarea.{JEditTextArea, TextAreaExtension, TextAreaPainter}
 import org.gjt.sp.jedit.syntax.SyntaxStyle
+
 
 object TheoryView {
 
-  def chooseColor(state : Command) : Color = {
-    if (state == null)
-      Color.red
+  def choose_color(state: Command): Color = {
+    if (state == null) Color.red
     else
-      state.phase match {
-        case Phase.UNPROCESSED => new Color(255, 255, 192)
-        case Phase.FINISHED => new Color(192, 255, 192)
-        case Phase.FAILED => new Color(255, 192, 192)
+      state.status match {
+        case Command.Status.UNPROCESSED => new Color(255, 228, 225)
+        case Command.Status.FINISHED => new Color(234, 248, 255)
+        case Command.Status.FAILED => new Color(255, 192, 192)
         case _ => Color.red
       }
   }
 
-  def chooseColor(status : String) : Color = {
-    //TODO: as properties!
-    status match {
-      //outer
-      case "ident" | "command" | "keyword" => Color.blue
-      case "verbatim"=> Color.green
-      case "comment" => Color.gray
-      case "control" => Color.white
-      case "malformed" => Color.red
-      case "string" | "altstring" => Color.orange
-      //logical
-      case "tclass" | "tycon" | "fixed_decl"  | "fixed"
-        | "const_decl" | "const" | "fact_decl" | "fact"
-        |"dynamic_fact" |"local_fact_decl" | "local_fact"
-        => new Color(255, 0, 255)
-      //inner syntax
-      case "tfree" | "free" => Color.blue
-      case "tvar" | "skolem" | "bound" | "var" => Color.green
-      case "num" | "xnum" | "xstr" | "literal" | "inner_comment" => new Color(255, 128, 128)
-      case "sort" | "typ" | "term" | "prop" | "attribute" | "method"  => Color.yellow
-        // embedded source
-      case "doc_source"  | "ML_source" | "ML_antic" | "doc_antiq" | "antiq"
-        => new Color(0, 192, 0)
+  def choose_color(markup: String): Color = {
+    // TODO: as properties
+    markup match {
+      // logical entities
+      case Markup.TCLASS | Markup.TYCON | Markup.FIXED_DECL | Markup.FIXED | Markup.CONST_DECL
+        | Markup.CONST | Markup.FACT_DECL | Markup.FACT | Markup.DYNAMIC_FACT
+        | Markup.LOCAL_FACT_DECL | Markup.LOCAL_FACT => new Color(255, 0, 255)
+      // inner syntax
+      case Markup.TFREE | Markup.FREE => Color.blue
+      case Markup.TVAR | Markup.SKOLEM | Markup.BOUND | Markup.VAR => Color.green
+      case Markup.NUM | Markup.FLOAT | Markup.XNUM | Markup.XSTR | Markup.LITERAL
+        | Markup.INNER_COMMENT => new Color(255, 128, 128)
+      case Markup.SORT | Markup.TYP | Markup.TERM | Markup.PROP
+        | Markup.ATTRIBUTE | Markup.METHOD => Color.yellow
+      // embedded source text
+      case Markup.ML_SOURCE | Markup.DOC_SOURCE | Markup.ANTIQ | Markup.ML_ANTIQ
+        | Markup.DOC_ANTIQ => new Color(0, 192, 0)
+      // outer syntax
+      case Markup.IDENT | Markup.COMMAND | Markup.KEYWORD => Color.blue
+      case Markup.VERBATIM => Color.green
+      case Markup.COMMENT => Color.gray
+      case Markup.CONTROL => Color.white
+      case Markup.MALFORMED => Color.red
+      case Markup.STRING | Markup.ALTSTRING => Color.orange
+      // other
       case _ => Color.white
     }
   }
 }
 
-class TheoryView (text_area : JEditTextArea)
+
+class TheoryView (text_area: JEditTextArea)
     extends TextAreaExtension with Text with BufferListener {
-  import TheoryView._
-  import Text.Changed
 
-  var col : Changed = null
-
-  val buffer = text_area.getBuffer
+  private val buffer = text_area.getBuffer
   buffer.addBufferListener(this)
-  
-  val colTimer = new Timer(300, new ActionListener() {
-    override def actionPerformed(e : ActionEvent) { commit() }
+
+
+  private var col: Text.Changed = null
+
+  private val col_timer = new Timer(300, new ActionListener() {
+    override def actionPerformed(e: ActionEvent) = commit()
   })
-  
-  val changesSource = new EventSource[Changed]
-  val phase_overview = new PhaseOverviewPanel(Plugin.prover(buffer))
 
-    val repaint_delay = new isabelle.utils.Delay(100, () => repaintAll())
-    Plugin.prover(buffer).commandInfo.add(_ => repaint_delay.delay_or_ignore())
-    Plugin.plugin.viewFontChanged.add(font => updateFont())
+  col_timer.stop
+  col_timer.setRepeats(true)
 
-    colTimer.stop
-    colTimer.setRepeats(true)
 
-  def activate() {
-    text_area.addCaretListener(selectedStateController)
-    phase_overview.textarea = text_area
-    text_area.addLeftOfScrollBar(phase_overview)
-    val painter = text_area.getPainter()
-    painter.addExtension(TextAreaPainter.LINE_BACKGROUND_LAYER + 1, this)
-    updateFont()
-  }
-  
-  private def updateFont() {
+  private val phase_overview = new PhaseOverviewPanel(Isabelle.prover(buffer))
+
+
+  /* activation */
+
+  Isabelle.plugin.font_changed += (_ => update_font())
+
+  private def update_font() = {
     if (text_area != null) {
-      val painter = text_area.getPainter()
-      if (Plugin.plugin.viewFont != null) {
-        painter.setStyles(painter.getStyles().map(style =>
-          new SyntaxStyle(style.getForegroundColor, 
-                          style.getBackgroundColor, 
-                          Plugin.plugin.viewFont)
+      if (Isabelle.plugin.font != null) {
+        val painter = text_area.getPainter
+        painter.setStyles(painter.getStyles.map(style =>
+          new SyntaxStyle(style.getForegroundColor, style.getBackgroundColor, Isabelle.plugin.font)
         ))
-        painter.setFont(Plugin.plugin.viewFont)
-        repaintAll()
+        painter.setFont(Isabelle.plugin.font)
+        repaint_all()
       }
     }
   }
-  
-  def deactivate() {
-    text_area.getPainter().removeExtension(this)
-    text_area.removeCaretListener(selectedStateController)
-    text_area.removeLeftOfScrollBar(phase_overview)
-  }
-  
-  val selectedStateController = new CaretListener() {
-    override def caretUpdate(e : CaretEvent) {
-      val cmd = Plugin.prover(buffer).document.getNextCommandContaining(e.getDot())
-      if (cmd != null && cmd.start <= e.getDot() && 
-            Plugin.prover_setup(buffer).selectedState != cmd)
-        Plugin.prover_setup(buffer).selectedState = cmd
+
+  private val selected_state_controller = new CaretListener {
+    override def caretUpdate(e: CaretEvent) = {
+      val cmd = Isabelle.prover(buffer).document.getNextCommandContaining(e.getDot)
+      if (cmd != null && cmd.start <= e.getDot &&
+          Isabelle.prover_setup(buffer).selected_state != cmd)
+        Isabelle.prover_setup(buffer).selected_state = cmd
     }
   }
 
-  private def fromCurrent(pos : Int) =
+  def activate() = {
+    text_area.addCaretListener(selected_state_controller)
+    phase_overview.textarea = text_area
+    text_area.addLeftOfScrollBar(phase_overview)
+    text_area.getPainter.addExtension(TextAreaPainter.LINE_BACKGROUND_LAYER + 1, this)
+    update_font()
+  }
+
+  def deactivate() = {
+    text_area.getPainter.removeExtension(this)
+    text_area.removeLeftOfScrollBar(phase_overview)
+    text_area.removeCaretListener(selected_state_controller)
+  }
+
+
+  /* painting */
+
+  val repaint_delay = new isabelle.utils.Delay(100, () => repaint_all())
+  Isabelle.prover(buffer).command_info += (_ => repaint_delay.delay_or_ignore())
+
+  private def from_current(pos: Int) =
     if (col != null && col.start <= pos)
       if (pos < col.start + col.added) col.start
       else pos - col.added + col.removed
     else pos
-  
-  private def toCurrent(pos : Int) = 
+
+  private def to_current(pos : Int) =
     if (col != null && col.start <= pos)
       if (pos < col.start + col.removed) col.start
       else pos + col.added - col.removed
     else pos
-  
-  def repaint(cmd : Command)
+
+  def repaint(cmd: Command) =
   {
-    val ph = cmd.phase
-    if (text_area != null && ph != Phase.REMOVE && ph != Phase.REMOVED) {
-      var start = text_area.getLineOfOffset(toCurrent(cmd.start))
-      var stop = text_area.getLineOfOffset(toCurrent(cmd.stop) - 1)
+    val status = cmd.status
+    if (text_area != null && status != Command.Status.REMOVE && status != Command.Status.REMOVED) {
+      val start = text_area.getLineOfOffset(to_current(cmd.start))
+      val stop = text_area.getLineOfOffset(to_current(cmd.stop) - 1)
       text_area.invalidateLineRange(start, stop)
-      
-      if (Plugin.prover_setup(buffer).selectedState == cmd)
-        Plugin.prover_setup(buffer).selectedState = cmd // update State view
+
+      if (Isabelle.prover_setup(buffer).selected_state == cmd)
+        Isabelle.prover_setup(buffer).selected_state = cmd  // update State view
     }
   }
-  
-  def repaintAll()
+
+  def repaint_all() =
   {
     if (text_area != null)
-      text_area.invalidateLineRange(text_area.getFirstPhysicalLine,
-                                   text_area.getLastPhysicalLine)
+      text_area.invalidateLineRange(text_area.getFirstPhysicalLine, text_area.getLastPhysicalLine)
   }
 
-  def encolor(gfx : Graphics2D, y : Int, height : Int, begin : Int, finish : Int, color : Color, fill : Boolean){
-      val fm = text_area.getPainter.getFontMetrics
-      val startP = text_area.offsetToXY(begin)
-      val stopP = if (finish < buffer.getLength()) text_area.offsetToXY(finish)
-                  else { var p = text_area.offsetToXY(finish - 1)
-                         p.x = p.x + fm.charWidth(' ')
-                         p }
-			
-      if (startP != null && stopP != null) {
-        gfx.setColor(color)
-        if(fill){gfx.fillRect(startP.x, y, stopP.x - startP.x, height)}
-        else {gfx.drawRect(startP.x, y, stopP.x - startP.x, height)}
+  def encolor(gfx: Graphics2D,
+    y: Int, height: Int, begin: Int, finish: Int, color: Color, fill: Boolean) =
+  {
+    val start = text_area.offsetToXY(begin)
+    val stop =
+      if (finish < buffer.getLength) text_area.offsetToXY(finish)
+      else {
+        val p = text_area.offsetToXY(finish - 1)
+        p.x = p.x + text_area.getPainter.getFontMetrics.charWidth(' ')
+        p
       }
+
+    if (start != null && stop != null) {
+      gfx.setColor(color)
+      if (fill) gfx.fillRect(start.x, y, stop.x - start.x, height)
+      else gfx.drawRect(start.x, y, stop.x - start.x, height)
+    }
   }
 
-  override def paintValidLine(gfx : Graphics2D, screenLine : Int,
-                              pl : Int, start : Int, end : Int, y : Int)
-  {	
-    val fm = text_area.getPainter.getFontMetrics
-    var savedColor = gfx.getColor
-    var e = Plugin.prover(buffer).document.getNextCommandContaining(fromCurrent(start))
 
-    //Encolor Phase
-    while (e != null && toCurrent(e.start) < end) {
-      val begin =  start max toCurrent(e.start)
-      val finish = end - 1 min  toCurrent(e.stop)
-      encolor(gfx, y, fm.getHeight, begin, finish, chooseColor(e), true)
+  /* TextAreaExtension methods */
+
+  override def paintValidLine(gfx: Graphics2D,
+    screen_line: Int, physical_line: Int, start: Int, end: Int, y: Int) =
+  {
+    val saved_color = gfx.getColor
+
+    val metrics = text_area.getPainter.getFontMetrics
+    var e = Isabelle.prover(buffer).document.getNextCommandContaining(from_current(start))
+
+    // encolor phase
+    while (e != null && to_current(e.start) < end) {
+      val begin = start max to_current(e.start)
+      val finish = end - 1 min to_current(e.stop)
+      encolor(gfx, y, metrics.getHeight, begin, finish, TheoryView.choose_color(e), true)
+
       // paint details of command
-      for(node <- e.root_node.dfs){
-        val begin = toCurrent(node.start + e.start)
-        val finish = toCurrent(node.end + e.start)
-        if(finish > start && begin < end)
-        encolor(gfx, y + fm.getHeight - 4, 2, begin max start, finish min end, chooseColor(node.short), true)
+      for (node <- e.root_node.dfs) {
+        val begin = to_current(node.start + e.start)
+        val finish = to_current(node.end + e.start)
+        if (finish > start && begin < end) {
+          encolor(gfx, y + metrics.getHeight - 4, 2, begin max start, finish min end,
+            TheoryView.choose_color(node.short), true)
+        }
       }
       e = e.next
     }
 
-    gfx.setColor(savedColor)
+    gfx.setColor(saved_color)
   }
-	
-  def content(start : Int, stop : Int) = buffer.getText(start, stop - start)
-  override def length = buffer.getLength
 
-  def changes = changesSource
+
+  /* Text methods */
+
+  def content(start: Int, stop: Int) = buffer.getText(start, stop - start)
+  def length = buffer.getLength
+  val changes = new EventBus[Text.Changed]
+
+
+  /* BufferListener methods */
 
   private def commit() {
     if (col != null)
-      changes.fire(col)
+      changes.event(col)
     col = null
-    if (colTimer.isRunning())
-      colTimer.stop()
-  }	
-	
-  private def delayCommit() {
-    if (colTimer.isRunning())
-      colTimer.restart()
-    else
-      colTimer.start()
+    if (col_timer.isRunning())
+      col_timer.stop()
   }
-	
-  override def contentInserted(buffer : JEditBuffer, startLine : Int, 
-                               offset : Int, numLines : Int, length : Int) { }
-  override def contentRemoved(buffer : JEditBuffer, startLine : Int, 
-                              offset : Int, numLines : Int, length : Int) { }
 
-  override def preContentInserted(buffer : JEditBuffer, startLine : Int,
-			offset : Int, numLines : Int, length : Int) {
+  private def delay_commit() {
+    if (col_timer.isRunning())
+      col_timer.restart()
+    else
+      col_timer.start()
+  }
+
+
+  override def contentInserted(buffer: JEditBuffer,
+    start_line: Int, offset: Int, num_lines: Int, length: Int) { }
+
+  override def contentRemoved(buffer: JEditBuffer,
+    start_line: Int, offset: Int, num_lines: Int, length: Int) { }
+
+  override def preContentInserted(buffer: JEditBuffer,
+    start_line: Int, offset: Int, num_lines: Int, length: Int) =
+  {
     if (col == null)
-      col = new Changed(offset, length, 0)
-    else if (col.start <= offset && offset <= col.start + col.added) 
-      col = new Changed(col.start, col.added + length, col.removed)
-    else { 
+      col = new Text.Changed(offset, length, 0)
+    else if (col.start <= offset && offset <= col.start + col.added)
+      col = new Text.Changed(col.start, col.added + length, col.removed)
+    else {
       commit()
-      col = new Changed(offset, length, 0) 
+      col = new Text.Changed(offset, length, 0)
     }
-    delayCommit()
-  }	
-  
-  override def preContentRemoved(buffer : JEditBuffer, startLine : Int,
-			start : Int, numLines : Int, removed : Int) {
+    delay_commit()
+  }
+
+  override def preContentRemoved(buffer: JEditBuffer,
+    start_line: Int, start: Int, num_lines: Int, removed: Int) =
+  {
     if (col == null)
-      col = new Changed(start, 0, removed)
-    else if (col.start > start + removed || start > col.start + col.added) { 
+      col = new Text.Changed(start, 0, removed)
+    else if (col.start > start + removed || start > col.start + col.added) {
       commit()
-      col = new Changed(start, 0, removed) 
+      col = new Text.Changed(start, 0, removed)
     }
     else {
       val offset = start - col.start
       val diff = col.added - removed
-      val (added, addRemoved) = 
-        if (diff < offset) 
+      val (added, add_removed) =
+        if (diff < offset)
           (offset max 0, diff - (offset max 0))
-        else 
+        else
           (diff - (offset min 0), offset min 0)
-      
-      col = new Changed(start min col.start, added, col.removed - addRemoved) 
+      col = new Text.Changed(start min col.start, added, col.removed - add_removed)
     }
-    delayCommit()
+    delay_commit()
   }
 
-  override def bufferLoaded(buffer : JEditBuffer) { }
-  override def foldHandlerChanged(buffer : JEditBuffer) { }
-  override def foldLevelChanged(buffer : JEditBuffer, startLine : Int, 
-                                endLine : Int) = { }
-  override def transactionComplete(buffer : JEditBuffer) = { } 
+  override def bufferLoaded(buffer: JEditBuffer) { }
+  override def foldHandlerChanged(buffer: JEditBuffer) { }
+  override def foldLevelChanged(buffer: JEditBuffer, start_line: Int, end_line: Int) { }
+  override def transactionComplete(buffer: JEditBuffer) { }
 }

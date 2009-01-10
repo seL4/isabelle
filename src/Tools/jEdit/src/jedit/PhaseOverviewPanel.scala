@@ -1,3 +1,9 @@
+/*
+ * Information on command status left of scrollbar (with panel)
+ *
+ * @author Fabian Immler, TU Munich
+ */
+
 package isabelle.jedit
 
 import isabelle.prover.Command
@@ -18,7 +24,7 @@ class PhaseOverviewPanel(prover : isabelle.prover.Prover) extends JPanel(new Bor
   var textarea : JEditTextArea = null
 
   val repaint_delay = new isabelle.utils.Delay(100, () => repaint())
-    prover.commandInfo.add(cc => repaint_delay.delay_or_ignore())
+  prover.command_info += (_ => repaint_delay.delay_or_ignore())
     
   setRequestFocusEnabled(false);
 
@@ -57,10 +63,10 @@ class PhaseOverviewPanel(prover : isabelle.prover.Prover) extends JPanel(new Bor
       val line2 = buffer.getLineOfOffset(command.stop - 1) + 1
       val y = lineToY(line1)
       val height = lineToY(line2) - y - 1
-      val (light, dark) = command.phase match {
-        case Command.Phase.UNPROCESSED => (Color.yellow, new Color(128,128,0))
-        case Command.Phase.FINISHED => (Color.green, new Color(0, 128, 0))
-        case Command.Phase.FAILED => (Color.red, new Color(128,0,0))
+      val (light, dark) = command.status match {
+        case Command.Status.UNPROCESSED => (Color.yellow, new Color(128,128,0))
+        case Command.Status.FINISHED => (Color.green, new Color(0, 128, 0))
+        case Command.Status.FAILED => (Color.red, new Color(128,0,0))
       }
 
       gfx.setColor(light)

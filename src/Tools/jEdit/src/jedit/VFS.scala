@@ -1,14 +1,18 @@
+/*
+ * Isabelle virtual file system for jEdit.
+ *
+ * This filesystem passes every operation on to FileVFS. Just the read and write
+ * operations are overwritten to convert Isabelle symbols to unicode on read and
+ * unicode to Isabelle symbols on write.
+ *
+ * @author Johannes Hölzl, TU Munich
+ */
+
 package isabelle.jedit
 
-import java.io.InputStream
-import java.io.OutputStream
-import java.io.ByteArrayInputStream
-import java.io.ByteArrayOutputStream
-import java.io.InputStreamReader
 
+import java.io.{InputStream, OutputStream, ByteArrayInputStream, ByteArrayOutputStream, InputStreamReader}
 import java.awt.Component
-
-import isabelle.Symbol.Interpretation
 
 import org.gjt.sp.jedit.Buffer
 import org.gjt.sp.jedit.View
@@ -16,18 +20,17 @@ import org.gjt.sp.jedit.io
 import org.gjt.sp.jedit.io.VFSFile
 import org.gjt.sp.jedit.io.VFSManager
 
-object VFS {
-  val converter = new Interpretation()
-  
+
+object VFS {  
   val BUFFER_SIZE = 1024
   
-  def inputConverter(in : InputStream) = {
-    val reader = new InputStreamReader(in, "UTF-8")
-    val buffer = new StringBuffer()
+  def input_converter(isabelle_system: IsabelleSystem, in: InputStream) = {
+    val reader = new InputStreamReader(in, Isabelle.system.charset)
+    val buffer = new StringBuilder
     val array = new Array[Char](BUFFER_SIZE)
     
     var finished = false
-    while (! finished) {
+    while (!finished) {
       val length = reader.read(array, 0, array.length)
       if (length == -1)
         finished = true
@@ -35,31 +38,33 @@ object VFS {
         buffer.append(array, 0, length)
     }
 
-    val str = converter.decode(buffer.toString())
-    new ByteArrayInputStream(str.getBytes("UTF-8"))
+    val str = Isabelle.symbols.decode(buffer.toString)
+    new ByteArrayInputStream(str.getBytes(isabelle_system.charset))
   }
   
-  class OutputConverter(out : OutputStream) extends ByteArrayOutputStream {
+  class OutputConverter(out: OutputStream) extends ByteArrayOutputStream {
     override def close() {
-      out.write(converter.encode(new String(buf, 0, count)).getBytes())
+      out.write(Isabelle.symbols.encode(new String(buf, 0, count)).getBytes)
       out.close()
     }
   }
   
-  def mapFile(vfs : VFS, base : VFSFile) =
+  def map_file(vfs: VFS, base: VFSFile) =
     if (base == null) null else new File(vfs, base)
   
-  class File(vfs : VFS, base : VFSFile) extends VFSFile {
+  class File(vfs: VFS, base: VFSFile) extends VFSFile {
+    // FIXME redundant overriding (!??)
+    
     override def getColor() = 
       base.getColor()
     
     override def getDeletePath() = 
       base.getDeletePath()
     
-    override def getExtendedAttribute(name : String) =
+    override def getExtendedAttribute(name: String) =
       base.getExtendedAttribute(name)
 
-    override def getIcon(expanded : Boolean, openBuffer : Boolean) = 
+    override def getIcon(expanded: Boolean, openBuffer: Boolean) = 
       base.getIcon(expanded, openBuffer)
 
     override def getLength() = 
@@ -69,7 +74,7 @@ object VFS {
       base.getName()
 
     override def getPath() =
-      Plugin.VFS_PREFIX + base.getPath()
+      Isabelle.VFS_PREFIX + base.getPath()
 
     override def getSymlinkPath() =
       base.getSymlinkPath()
@@ -80,7 +85,7 @@ object VFS {
     override def getVFS() =
       vfs
 
-    override def isBinary(session : Object) =
+    override def isBinary(session: Object) =
       base.isBinary(session)
 
     override def isHidden() =
@@ -92,52 +97,44 @@ object VFS {
     override def isWriteable() =
       base.isWriteable()
 
-    override def setDeletePath(path : String) =
+    override def setDeletePath(path: String) =
       base.setDeletePath(path)
     
-    override def setHidden(hidden : Boolean) =
+    override def setHidden(hidden: Boolean) =
       base.setHidden(hidden)
       
-    override def setLength(length : Long) =
+    override def setLength(length: Long) =
       base.setLength(length)
       
-    override def setName(name : String) =
+    override def setName(name: String) =
       base.setName(name)
       
-    override def setPath(path : String) =
+    override def setPath(path: String) =
       base.setPath(path)
       
-    override def setReadable(readable : Boolean) =
+    override def setReadable(readable: Boolean) =
       base.setReadable(readable)
       
-    override def setWriteable(writeable : Boolean) =
+    override def setWriteable(writeable: Boolean) =
       base.setWriteable(writeable)
       
-    override def setSymlinkPath(symlinkPath : String) =
+    override def setSymlinkPath(symlinkPath: String) =
       base.setSymlinkPath(symlinkPath)
       
-    override def setType(fType : Int) =
+    override def setType(fType: Int) =
       base.setType(fType)
-  } 
-  
+  }  
 }
 
-/**
- * The Isabelle virtual file system for jEdit.
- * 
- * This filesystem passes every operation on to FileVFS. Just the read and write
- * operations are overwritten to convert the xsymbols to unicode on read and
- * unicode to xsymbols on write.
- * 
- * @author Johannes Hölzl <hoelzl@in.tum.de>
- */
-class VFS extends io.VFS("isabelle", VFSManager.getVFSForProtocol("file").getCapabilities()) {
-  private var baseVFS = VFSManager.getVFSForProtocol("file") 
 
-  private def cutPath(path : String) = 
-    if (path.startsWith(Plugin.VFS_PREFIX)) path.substring(Plugin.VFS_PREFIX.length) else path
+class VFS extends io.VFS("isabelle", VFSManager.getVFSForProtocol("file").getCapabilities) {
+  private var baseVFS = VFSManager.getVFSForProtocol("file")
+
+  private def cutPath(path: String) = 
+    if (path.startsWith(Isabelle.VFS_PREFIX)) path.substring(Isabelle.VFS_PREFIX.length)
+    else path
   
-  override def createVFSSession(path : String, comp : Component) = 
+  override def createVFSSession(path: String, comp: Component) = 
     baseVFS.createVFSSession(cutPath(path), comp)
   
   override def getCapabilities() = 
@@ -146,54 +143,49 @@ class VFS extends io.VFS("isabelle", VFSManager.getVFSForProtocol("file").getCap
   override def getExtendedAttributes() = 
     baseVFS.getExtendedAttributes()
   
-  override def getParentOfPath(path : String) = 
-    Plugin.VFS_PREFIX + baseVFS.getParentOfPath(cutPath(path))
+  override def getParentOfPath(path: String) = 
+    Isabelle.VFS_PREFIX + baseVFS.getParentOfPath(cutPath(path))
   
-  override def constructPath(parent : String, path : String) = 
-    Plugin.VFS_PREFIX + baseVFS.constructPath(cutPath(parent), path)
+  override def constructPath(parent: String, path: String) = 
+    Isabelle.VFS_PREFIX + baseVFS.constructPath(cutPath(parent), path)
   
-  override def getFileName(path : String) = 
+  override def getFileName(path: String) = 
     baseVFS.getFileName(path)
   
   override def getFileSeparator() = 
     baseVFS.getFileSeparator()
   
-  override def getTwoStageSaveName(path : String) = 
-    Plugin.VFS_PREFIX + baseVFS.getTwoStageSaveName(cutPath(path))
+  override def getTwoStageSaveName(path: String) = 
+    Isabelle.VFS_PREFIX + baseVFS.getTwoStageSaveName(cutPath(path))
   
-  override def _canonPath(session : Object, path : String, comp : Component) =
-    Plugin.VFS_PREFIX + baseVFS._canonPath(session, cutPath(path), comp)
+  override def _canonPath(session: Object, path: String, comp: Component) =
+    Isabelle.VFS_PREFIX + baseVFS._canonPath(session, cutPath(path), comp)
   
-  override def _createInputStream(session : Object, path : String,
-                                  ignoreErrors : Boolean, comp : Component) =
-    VFS.inputConverter(baseVFS._createInputStream(session, cutPath(path), 
-                                                  ignoreErrors, comp))
+  override def _createInputStream(session: Object, path: String,
+      ignoreErrors: Boolean, comp: Component) =
+    VFS.input_converter(Isabelle.system, baseVFS._createInputStream(session, cutPath(path), ignoreErrors, comp))
   
-  override def _createOutputStream(session : Object, path : String,
-                                   comp : Component) =
+  override def _createOutputStream(session: Object, path: String, comp: Component) =
     new VFS.OutputConverter(baseVFS._createOutputStream(session, cutPath(path), comp))
   
-  override def _delete(session : Object, path : String, comp : Component) =
+  override def _delete(session: Object, path: String, comp: Component) =
     baseVFS._delete(session, cutPath(path), comp)
   
-  override def _getFile(session : Object, path : String, comp : Component) =
-    VFS.mapFile(this, baseVFS._getFile(session, cutPath(path), comp))
+  override def _getFile(session: Object, path: String, comp: Component) =
+    VFS.map_file(this, baseVFS._getFile(session, cutPath(path), comp))
 
-  override def _listFiles(session : Object, path : String, comp :  Component): Array[VFSFile] =
-    (baseVFS._listFiles(session, cutPath(path), comp)
-            .map(file => VFS.mapFile(this, file)))
+  override def _listFiles(session: Object, path: String, comp:  Component): Array[VFSFile] =
+    (baseVFS._listFiles(session, cutPath(path), comp).map(file => VFS.map_file(this, file)))
 
-  override def _mkdir(session : Object, path : String, comp : Component) =
+  override def _mkdir(session: Object, path: String, comp: Component) =
     baseVFS._mkdir(session, cutPath(path), comp)
 
-  override def _rename(session : Object, from : String, to : String,
-                       comp : Component) =
+  override def _rename(session: Object, from: String, to: String, comp: Component) =
     baseVFS._rename(session, cutPath(from), cutPath(to), comp)
 
-  override def _backup(session : Object, path : String, comp : Component) =
-    baseVFS._backup(session, cutPath(path), comp);
+  override def _backup(session: Object, path: String, comp: Component) =
+    baseVFS._backup(session, cutPath(path), comp)
 
-  override def _saveComplete(session : Object, buffer : Buffer, path : String,
-                             comp : Component) =
+  override def _saveComplete(session: Object, buffer: Buffer, path: String, comp: Component) =
     baseVFS._saveComplete(session, buffer, cutPath(path), comp)
 }

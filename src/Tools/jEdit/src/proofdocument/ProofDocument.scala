@@ -1,8 +1,13 @@
+/*
+ * Document as list of tokens
+ *
+ * @author Johannes Hölzl, TU Munich
+ */
+
 package isabelle.proofdocument
 
 import java.util.regex.Pattern
 
-import isabelle.utils.EventSource
 
 object ProofDocument {
   // Be carefully when changeing this regex. Not only must it handle the 
@@ -30,15 +35,14 @@ abstract class ProofDocument[C](text : Text) {
   protected var lastToken : Token[C] = null
   private var active = false 
   
-  {
-    text.changes.add(e => textChanged(e.start, e.added, e.removed))
-  }
+  text.changes += (e => textChanged(e.start, e.added, e.removed))
 	
-  def activate() : Unit =
-    if (! active) {
+  def activate() {
+    if (!active) {
       active = true
       textChanged(0, text.length, 0)
     }
+  }
   
   protected def tokens(start : Token[C], stop : Token[C]) = 
     new Iterator[Token[C]]() {
@@ -218,7 +222,7 @@ abstract class ProofDocument[C](text : Text) {
     tokenChanged(beforeChange, afterChange, firstRemoved)
   }
   
-  protected def isStartKeyword(str : String) : Boolean;
+  protected def isStartKeyword(str: String): Boolean
   
   protected def tokenChanged(start : Token[C], stop : Token[C], 
                              removed : Token[C]) 

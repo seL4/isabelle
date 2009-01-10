@@ -1,55 +1,51 @@
 /*
- * BufferExtension.scala
+ * Independent prover sessions
  *
- * To change this template, choose Tools | Template Manager
- * and open the template in the editor.
+ * @author Fabian Immler, TU Munich
  */
 
 package isabelle.jedit
 
-import isabelle.utils.EventSource
 
-import isabelle.prover.{ Prover, Command }
+import isabelle.prover.{Prover, Command}
+import isabelle.renderer.UserAgent
+
+
 import org.w3c.dom.Document
 
-import isabelle.IsabelleSystem
-
-import org.gjt.sp.jedit.{ jEdit, EBMessage, EBPlugin, Buffer, EditPane, View }
+import org.gjt.sp.jedit.{jEdit, EBMessage, EBPlugin, Buffer, EditPane, View}
 import org.gjt.sp.jedit.buffer.JEditBuffer
-import org.gjt.sp.jedit.msg.{ EditPaneUpdate, PropertiesChanged }
+import org.gjt.sp.jedit.msg.{EditPaneUpdate, PropertiesChanged}
 
 import javax.swing.{JTextArea, JScrollPane}
 
-class ProverSetup(buffer : JEditBuffer) {
 
-  val prover = new Prover()
-  var theory_view : TheoryView = null
-  
-  private var _selectedState : Command = null
+class ProverSetup(buffer: JEditBuffer)
+{
+  val prover = new Prover(Isabelle.system, Isabelle.symbols)
+  var theory_view: TheoryView = null
 
-  val stateUpdate = new EventSource[Command]
+  val state_update = new EventBus[Command]
 
-  def selectedState = _selectedState
-  def selectedState_=(newState : Command) {
-    _selectedState = newState
-    stateUpdate fire newState
-  }
+  private var _selected_state: Command = null
+  def selected_state = _selected_state
+  def selected_state_=(state: Command) { _selected_state = state; state_update.event(state) }
 
-  val output_text_view = new JTextArea("== Isabelle output ==\n")
-  
-  def activate(view : View) {
-    val logic = Plugin.property("logic")
-    prover.start(if (logic == null) logic else "HOL")
+  val output_text_view = new JTextArea
+
+  def activate(view: View) {
+    prover.start(Isabelle.property("logic"))
     val buffer = view.getBuffer
-    val dir = buffer.getDirectory()
+    val dir = buffer.getDirectory
 
     theory_view = new TheoryView(view.getTextArea)
-    prover.setDocument(theory_view ,
-                       if (dir.startsWith(Plugin.VFS_PREFIX)) dir.substring(Plugin.VFS_PREFIX.length) else dir)
+    prover.set_document(theory_view,
+        if (dir.startsWith(Isabelle.VFS_PREFIX)) dir.substring(Isabelle.VFS_PREFIX.length) else dir)
     theory_view.activate
-    prover.outputInfo.add( text => {
+    prover.output_info += (text =>
+      {
         output_text_view.append(text)
-        val dockable = view.getDockableWindowManager.getDockable("Isabelle_output")
+        val dockable = view.getDockableWindowManager.getDockable("isabelle-output")
         //link process output if dockable is active
         if(dockable != null) {
           val output_dockable = dockable.asInstanceOf[OutputDockable]
@@ -60,23 +56,25 @@ class ProverSetup(buffer : JEditBuffer) {
           }
         }
       })
-    
+
     //register for state-view
-    stateUpdate.add(state => {
-      val state_view = view.getDockableWindowManager.getDockable("Isabelle_state")
-      val state_panel = if(state_view != null) state_view.asInstanceOf[StateViewDockable].panel else null
-      if(state_panel != null){
+    state_update += (state => {
+      val state_view = view.getDockableWindowManager.getDockable("isabelle-state")
+      val state_panel =
+        if (state_view != null) state_view.asInstanceOf[StateViewDockable].panel
+        else null
+      if (state_panel != null){
         if (state == null)
-          state_panel.setDocument(null : Document)
+          state_panel.setDocument(null: Document)
         else
           state_panel.setDocument(state.results_xml, UserAgent.baseURL)
       }
     })
- 
+
     //register for theory-view
 
     // could also use this:
-    // prover.commandInfo.add(c => Plugin.theory_view.repaint(c.command))
+    // prover.commandInfo.add(c => Isabelle.theory_view.repaint(c.command))
 
   }
 

@@ -1,3 +1,9 @@
+/*
+ * Delayed actions
+ *
+ * @author Fabian Immler, TU Munich
+ */
+
 package isabelle.utils
 
 import javax.swing.Timer

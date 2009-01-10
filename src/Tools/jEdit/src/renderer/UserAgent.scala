@@ -1,13 +1,22 @@
-package isabelle.jedit
+/*
+ * XML/CSS rendering -- user agent
+ *
+ * @author Fabian Immler, TU Munich
+ * @author Johannes Hölzl, TU Munich
+ */
+
+package isabelle.renderer
+
 
 import java.io.ByteArrayInputStream
 import org.xhtmlrenderer.swing.NaiveUserAgent
 import org.xhtmlrenderer.resource.CSSResource
-import isabelle.IsabelleSystem.getenv
+
 
 object UserAgent {
-  val baseURL = "file://localhost" + getenv("ISABELLE_HOME") + "/lib/html/"
-  val userStylesheet =  "file://localhost" + getenv("ISABELLE_HOME_USER") + "/etc/user.css";
+  // FIXME avoid static getenv
+  val baseURL = "file://localhost" + System.getenv("ISABELLE_HOME") + "/lib/html/"
+  val userStylesheet =  "file://localhost" + System.getenv("ISABELLE_HOME_USER") + "/etc/user.css"
   val stylesheet = """
 
 @import "isabelle.css";

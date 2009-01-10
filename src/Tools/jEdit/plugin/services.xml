@@ -2,7 +2,7 @@
 <!DOCTYPE SERVICES SYSTEM "services.dtd">
 <SERVICES>
 	<SERVICE NAME="isabelle" CLASS="sidekick.SideKickParser">
-		new isabelle.prover.IsabelleSKParser();
+		new isabelle.jedit.IsabelleSideKickParser();
 	</SERVICE>
 	<SERVICE NAME="isabelle" CLASS="org.gjt.sp.jedit.io.VFS">
 		new isabelle.jedit.VFS();

@@ -1,8 +1,7 @@
 /*
- * RelativeAsset.scala
+ * Document markup nodes, with connection to Swing tree model
  *
- * To change this template, choose Tools | Template Manager
- * and open the template in the editor.
+ * @author Fabian Immler, TU Munich
  */
 
 package isabelle.prover
