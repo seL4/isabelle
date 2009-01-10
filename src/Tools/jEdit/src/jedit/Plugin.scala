@@ -73,33 +73,23 @@ class Plugin extends EBPlugin {
 
   private val mapping = new HashMap[JEditBuffer, ProverSetup]
 
-  def install(view: View) {
+  private def install(view: View) {
     val buffer = view.getBuffer
-    mapping.get(buffer) match{
-      case None =>{
-          val prover_setup = new ProverSetup(buffer)
-          mapping.update(buffer, prover_setup)
-          prover_setup.activate(view)
-      }
-      case _ => System.err.println("Already installed plugin on Buffer")
-    }
+    val prover_setup = new ProverSetup(buffer)
+    mapping.update(buffer, prover_setup)
+    prover_setup.activate(view)
   }
 
-  def uninstall(view: View) {
-    val buffer = view.getBuffer
-    mapping.removeKey(buffer) match{
-      case None => System.err.println("No Plugin installed on this Buffer")
-      case Some(proversetup) =>
-        proversetup.deactivate
-    }
-  }
+  private def uninstall(view: View) =
+    mapping.removeKey(view.getBuffer).get.deactivate
+
+  def switch_active (view : View) =
+    if (mapping.isDefinedAt(view.getBuffer)) uninstall(view)
+    else install(view)
 
   def prover_setup (buffer : JEditBuffer) : Option[ProverSetup] = mapping.get(buffer)
   def is_active (buffer : JEditBuffer) = mapping.isDefinedAt(buffer)
-  def switch_active (view : View) = mapping.get(view.getBuffer) match {
-    case None => install(view)
-    case _ => uninstall(view)}
-
+  
   
   // main plugin plumbing
 
