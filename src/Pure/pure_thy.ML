@@ -11,6 +11,7 @@ sig
   val defined_fact: theory -> string -> bool
   val hide_fact: bool -> string -> theory -> theory
   val join_proofs: theory -> exn list
+  val cancel_proofs: theory -> unit
   val get_fact: Context.generic -> theory -> Facts.ref -> thm list
   val get_thms: theory -> xstring -> thm list
   val get_thm: theory -> xstring -> thm
@@ -58,11 +59,11 @@ struct
 
 structure FactsData = TheoryDataFun
 (
-  type T = Facts.T * unit lazy list;
-  val empty = (Facts.empty, []);
+  type T = Facts.T * (unit lazy list * Task_Queue.group list);
+  val empty = (Facts.empty, ([], []));
   val copy = I;
-  fun extend (facts, _) = (facts, []);
-  fun merge _ ((facts1, _), (facts2, _)) = (Facts.merge (facts1, facts2), []);
+  fun extend (facts, _) = (facts, ([], []));
+  fun merge _ ((facts1, _), (facts2, _)) = (Facts.merge (facts1, facts2), ([], []));
 );
 
 
@@ -81,7 +82,9 @@ fun hide_fact fully name = FactsData.map (apfst (Facts.hide fully name));
 fun lazy_proof thm = Lazy.lazy (fn () => Thm.join_proof thm);
 
 fun join_proofs thy =
-  map_filter (Exn.get_exn o Lazy.force_result) (rev (#2 (FactsData.get thy)));
+  map_filter (Exn.get_exn o Lazy.force_result) (rev (#1 (#2 (FactsData.get thy))));
+
+fun cancel_proofs thy = List.app Future.cancel_group (#2 (#2 (FactsData.get thy)));
 
 
 
@@ -142,7 +145,8 @@ fun name_thmss official pos name fact =
 (* enter_thms *)
 
 fun enter_proofs (thy, thms) =
-  (FactsData.map (apsnd (fold (cons o lazy_proof) thms)) thy, thms);
+  (FactsData.map (apsnd (fn (proofs, groups) =>
+    (fold (cons o lazy_proof) thms proofs, fold Thm.pending_groups thms groups))) thy, thms);
 
 fun enter_thms pre_name post_name app_att (b, thms) thy =
   if Binding.is_empty b
