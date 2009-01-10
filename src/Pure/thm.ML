@@ -146,6 +146,7 @@ sig
   val varifyT': (string * sort) list -> thm -> ((string * sort) * indexname) list * thm
   val freezeT: thm -> thm
   val future: thm future -> cterm -> thm
+  val pending_groups: thm -> Task_Queue.group list -> Task_Queue.group list
   val proof_body_of: thm -> proof_body
   val proof_of: thm -> proof
   val join_proof: thm -> unit
@@ -1626,7 +1627,13 @@ fun future future_thm ct =
   end;
 
 
-(* fulfilled proof *)
+(* pending task groups *)
+
+fun pending_groups (Thm (Deriv {open_promises, ...}, _)) =
+  fold (insert Task_Queue.eq_group o Future.group_of o #2) open_promises;
+
+
+(* fulfilled proofs *)
 
 fun raw_proof_of (Thm (Deriv {body, ...}, _)) = Proofterm.proof_of body;
 
