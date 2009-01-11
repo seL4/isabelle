@@ -34,7 +34,7 @@ class ProverSetup(buffer: JEditBuffer)
   val output_text_view = new JTextArea
 
   def activate(view: View) {
-    prover.start(Isabelle.property("logic"))
+    prover.start(Isabelle.Property("logic"))
     val buffer = view.getBuffer
     val dir = buffer.getDirectory
 

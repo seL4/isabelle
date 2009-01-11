@@ -17,15 +17,14 @@ import javax.swing.{ JTextField, JButton, JPanel, JLabel, JFileChooser,
 
 import org.gjt.sp.jedit.AbstractOptionPane
 
+
 class OptionPane extends AbstractOptionPane("isabelle") {
-  import Isabelle.property
-  
   var pathName = new JTextField()
   var fontSize = new JSpinner()
   var logicName = new JComboBox()
     
   override def _init() {
-    addComponent(property("font-path.title"), {
+    addComponent(Isabelle.Property("font-path.title"), {
       val pickPath = new JButton("...")
       pickPath.addActionListener(new ActionListener() {
         override def actionPerformed(e : ActionEvent) {
@@ -35,7 +34,7 @@ class OptionPane extends AbstractOptionPane("isabelle") {
         } 
       })
 
-      pathName.setText(property("font-path"))
+      pathName.setText(Isabelle.Property("font-path"))
       
       val pathPanel = new JPanel(new BorderLayout())
       pathPanel.add(pathName, CENTER)
@@ -43,10 +42,10 @@ class OptionPane extends AbstractOptionPane("isabelle") {
       pathPanel
     }, HORIZONTAL)
 
-    addComponent(property("font-size.title"), {
+    addComponent(Isabelle.Property("font-size.title"), {
       try {
-        if (property("font-size") != null)
-          fontSize.setValue(Integer.valueOf(property("font-size")))
+        if (Isabelle.Property("font-size") != null)
+          fontSize.setValue(Integer.valueOf(Isabelle.Property("font-size")))
       }
       catch {
         case e : NumberFormatException => 
@@ -56,10 +55,10 @@ class OptionPane extends AbstractOptionPane("isabelle") {
       fontSize
     })
 
-    addComponent(property("logic.title"), {
+    addComponent(Isabelle.Property("logic.title"), {
       for (name <- Isabelle.system.find_logics()) {
         logicName.addItem(name)
-        if (name == property("logic"))
+        if (name == Isabelle.Property("logic"))
           logicName.setSelectedItem(name)
       }
 
@@ -70,9 +69,9 @@ class OptionPane extends AbstractOptionPane("isabelle") {
   override def _save() {
     val size = fontSize.getValue()
     val name = pathName.getText()
-    if (property("font-path") != name || property("font-size") != size.toString) {
-      property("font-path", name)
-      property("font-size", size.toString)
+    if (Isabelle.Property("font-path") != name || Isabelle.Property("font-size") != size.toString) {
+      Isabelle.Property("font-path") = name
+      Isabelle.Property("font-size") = size.toString
       SwingUtilities invokeLater new Runnable() {
         override def run() = 
           Isabelle.plugin.set_font(name, size.asInstanceOf[Integer].intValue)
@@ -80,6 +79,6 @@ class OptionPane extends AbstractOptionPane("isabelle") {
     }
     
     val logic = logicName.getSelectedItem.asInstanceOf[String]
-    property("logic", logic) 
+    Isabelle.Property("logic") = logic
   }
 }

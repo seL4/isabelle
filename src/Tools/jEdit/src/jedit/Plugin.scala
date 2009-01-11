@@ -26,13 +26,14 @@ import org.gjt.sp.jedit.msg.{EditPaneUpdate, PropertiesChanged}
 object Isabelle {
   // name
   val NAME = "Isabelle"
-  val OPTION_PREFIX = "options.isabelle."
   val VFS_PREFIX = "isabelle:"
 
   // properties
-  def property(name: String) = jEdit.getProperty(OPTION_PREFIX + name)
-  def property(name: String, value: String) = 
-    jEdit.setProperty(OPTION_PREFIX + name, value)
+  object Property {
+    private val OPTION_PREFIX = "options.isabelle."
+    def apply(name: String) = jEdit.getProperty(OPTION_PREFIX + name)
+    def update(name: String, value: String) = jEdit.setProperty(OPTION_PREFIX + name, value)
+  }
 
 
   // Isabelle system
@@ -128,9 +129,9 @@ class Plugin extends EBPlugin {
     Isabelle.symbols = new Symbol.Interpretation(Isabelle.system)
     Isabelle.plugin = this
     
-    if (Isabelle.property("font-path") != null && Isabelle.property("font-size") != null)
+    if (Isabelle.Property("font-path") != null && Isabelle.Property("font-size") != null)
       try {
-        set_font(Isabelle.property("font-path"), Isabelle.property("font-size").toFloat)
+        set_font(Isabelle.Property("font-path"), Isabelle.Property("font-size").toFloat)
       }
       catch {
         case e: NumberFormatException =>
