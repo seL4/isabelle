@@ -24,8 +24,19 @@ class Prover(isabelle_system: IsabelleSystem, isabelle_symbols: Symbol.Interpret
   private var process: Isar = null
   private var commands = new HashMap[String, Command]
 
-  val command_decls = new HashSet[String]
-  val keyword_decls = new HashSet[String]
+  val decl_info = new EventBus[(String, String)]
+  val command_decls = new HashSet[String]{
+    override def +=(elem : String) = {
+      decl_info.event(elem, Markup.COMMAND)
+      this += elem
+    }
+  }
+  val keyword_decls = new HashSet[String]{
+    override def +=(elem : String) = {
+      decl_info.event(elem, Markup.KEYWORD)
+      this += elem
+    }
+  }
   private var initialized = false
 
   val activated = new EventBus[Unit]
