@@ -71,11 +71,6 @@ class ProverSetup(buffer: JEditBuffer)
       }
     })
 
-    //register for theory-view
-
-    // could also use this:
-    // prover.commandInfo.add(c => Isabelle.theory_view.repaint(c.command))
-
   }
 
   def deactivate {
