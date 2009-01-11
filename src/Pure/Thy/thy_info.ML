@@ -350,6 +350,8 @@ fun schedule_futures task_graph =
     val tasks = Graph.topological_order task_graph |> map_filter (fn name =>
       (case Graph.get_node task_graph name of Task body => SOME (name, body) | _ => NONE));
 
+    val par_proofs = ! parallel_proofs;
+
     fun fork (name, body) tab =
       let
         val deps = Graph.imm_preds task_graph name
@@ -357,12 +359,15 @@ fun schedule_futures task_graph =
             (case Symtab.lookup tab parent of SOME future => SOME (parent, future) | NONE => NONE));
         fun failed (parent, future) = if can Future.join future then NONE else SOME parent;
 
-        val x = Future.fork_deps (map #2 deps) (fn () =>
+        val future = Future.fork_deps (map #2 deps) (fn () =>
           (case map_filter failed deps of
             [] => body ()
           | bad => error (loader_msg
               ("failed to load " ^ quote name ^ " (unresolved " ^ commas_quote bad ^ ")") [])));
-      in Symtab.update (name, x) tab end;
+        val future' =
+          if par_proofs then future
+          else Future.map (fn after_load => (after_load (); fn () => ())) future;
+      in Symtab.update (name, future') tab end;
 
     val futures = fold fork tasks Symtab.empty;
 

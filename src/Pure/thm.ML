@@ -1613,7 +1613,7 @@ fun future future_thm ct =
     val _ = T <> propT andalso raise CTERM ("future: prop expected", [ct]);
 
     val i = serial ();
-    val future = future_thm |> Future.map (future_result i thy sorts prop o norm_proof);
+    val future = future_thm |> Future.map (future_result i thy sorts prop);
     val promise = (i, future);
   in
     Thm (make_deriv i [promise] [promise] [] [] (Pt.promise_proof thy i prop),
