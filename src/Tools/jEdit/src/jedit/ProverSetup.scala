@@ -78,7 +78,7 @@ class ProverSetup(buffer: JEditBuffer)
     buffer.setTokenMarker(token_marker)
 
     // register for new declarations
-    prover.decl_info += (pair => pair match {case (a,b) => token_marker += (a,b)})
+    prover.decl_info += (pair => token_marker += (pair._1, pair._2))
 
   }
 
