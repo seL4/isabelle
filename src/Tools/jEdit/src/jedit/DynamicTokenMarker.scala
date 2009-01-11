@@ -24,17 +24,27 @@ class DynamicTokenMarker extends TokenMarker {
   ruleset.setEscapeRule(original.getEscapeRule)
   ruleset.setHighlightDigits(false)
   ruleset.setIgnoreCase(false)
-  ruleset.setNoWordSep("_")
+  ruleset.setNoWordSep("_'.?")
   ruleset.setProperties(null)
   ruleset.setTerminateChar(-1)
 
   addRuleSet(ruleset)
 
-  def += (token:String, kind:String) = {
-    val kind_byte = kind match {
-      case Markup.COMMAND => Token.KEYWORD4
-      case Markup.KEYWORD => Token.KEYWORD3
+  private val kinds = List(
+    OuterKeyword.minor -> Token.KEYWORD4,
+    OuterKeyword.control -> Token.INVALID,
+    OuterKeyword.diag -> Token.LABEL,
+    OuterKeyword.heading -> Token.KEYWORD1,
+    OuterKeyword.theory1 -> Token.KEYWORD4,
+    OuterKeyword.theory2 -> Token.KEYWORD1,
+    OuterKeyword.proof1 -> Token.KEYWORD1,
+    OuterKeyword.proof2 -> Token.KEYWORD2,
+    OuterKeyword.improper -> Token.DIGIT
+  )
+  def += (name: String, kind: String) = {
+    kinds.find(pair => pair._1.contains(kind)) match {
+      case None =>
+      case Some((_, kind_byte)) => getMainRuleSet.getKeywords.add(name, kind_byte)
     }
-    getMainRuleSet.getKeywords.add(token, kind_byte)
   }
 }
