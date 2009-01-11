@@ -10,10 +10,9 @@ import java.lang.Integer
 
 import java.awt.BorderLayout
 import java.awt.GridBagConstraints.HORIZONTAL
-import java.awt.BorderLayout.{ WEST, CENTER, EAST }
-import java.awt.event.{ ActionListener, ActionEvent }
-import javax.swing.{ JTextField, JButton, JPanel, JLabel, JFileChooser, 
-                     JSpinner, SwingUtilities, JComboBox }
+import java.awt.BorderLayout.{WEST, CENTER, EAST}
+import java.awt.event.{ActionListener, ActionEvent}
+import javax.swing.{JTextField, JButton, JPanel, JLabel, JFileChooser, JSpinner, JComboBox}
 
 import org.gjt.sp.jedit.AbstractOptionPane
 
@@ -72,10 +71,7 @@ class OptionPane extends AbstractOptionPane("isabelle") {
     if (Isabelle.Property("font-path") != name || Isabelle.Property("font-size") != size.toString) {
       Isabelle.Property("font-path") = name
       Isabelle.Property("font-size") = size.toString
-      SwingUtilities invokeLater new Runnable() {
-        override def run() = 
-          Isabelle.plugin.set_font(name, size.asInstanceOf[Integer].intValue)
-      }
+      Swing.later { Isabelle.plugin.set_font(name, size.asInstanceOf[Integer].intValue) }
     }
     
     val logic = logicName.getSelectedItem.asInstanceOf[String]
