@@ -12,10 +12,10 @@ sig
   type expression = string expr * (Binding.T * string option * mixfix) list;
 
   (* Processing of context statements *)
-  val read_statement: Element.context list -> (string * string list) list list ->
-    Proof.context ->  (term * term list) list list * Proof.context;
   val cert_statement: Element.context_i list -> (term * term list) list list ->
     Proof.context -> (term * term list) list list * Proof.context;
+  val read_statement: Element.context list -> (string * string list) list list ->
+    Proof.context ->  (term * term list) list list * Proof.context;
 
   (* Declaring locales *)
   val add_locale: bstring -> bstring -> expression_i -> Element.context_i list ->
@@ -24,6 +24,9 @@ sig
     theory -> string * local_theory;
 
   (* Interpretation *)
+  val cert_goal_expression: expression_i -> Proof.context ->
+    (term list list * (string * morphism) list * morphism) * Proof.context;
+
   val sublocale: string -> expression_i -> theory -> Proof.state;
   val sublocale_cmd: string -> expression -> theory -> Proof.state;
   val interpretation: expression_i -> (Attrib.binding * term) list ->
@@ -740,10 +743,11 @@ fun gen_add_locale prep_decl
       map_filter (fn Notes notes => SOME notes | _ => NONE);
 
     val deps' = map (fn (l, morph) => (l, morph $> b_satisfy)) deps;
+    val axioms = map Element.conclude_witness b_axioms;
 
     val loc_ctxt = thy'
       |> Locale.register_locale bname (extraTs, params)
-          (asm, rev defs) ([], [])
+          (asm, rev defs) (a_intro, b_intro) axioms ([], []) 
           (map (fn n => (n, stamp ())) notes |> rev) (map (fn d => (d, stamp ())) deps' |> rev)
       |> TheoryTarget.init (SOME name)
       |> fold (fn (kind, facts) => LocalTheory.notes kind facts #> snd) notes';
@@ -816,11 +820,53 @@ fun gen_interpretation prep_expr parse_prop prep_attr
     val ctxt = ProofContext.init thy;
 
     val ((propss, regs, export), expr_ctxt) = prep_expr expression ctxt;
-    
+
     val eqns = map (parse_prop expr_ctxt o snd) equations |> Syntax.check_terms expr_ctxt;
     val eq_attns = map ((apsnd o map) (prep_attr thy) o fst) equations;
     val goal_ctxt = fold Variable.auto_fixes eqns expr_ctxt;
     val export' = Variable.export_morphism goal_ctxt expr_ctxt;
+
+    (*** alternative code -- unclear why it does not work yet ***)
+    fun store_reg ((name, morph), thms) thy =
+      let
+        val thms' = map (Element.morph_witness export') thms;
+        val morph' = morph $> Element.satisfy_morphism thms';
+      in
+        thy
+        |> Locale.add_registration (name, (morph', export))
+        |> pair (name, morph')
+      end;
+
+    fun store_eqns_activate regs [] thy =
+          thy
+          |> fold (fn (name, morph) =>
+               Locale.activate_global_facts (name, morph $> export)) regs
+      | store_eqns_activate regs thms thys =
+          let
+            val thms' = thms |> map (Element.conclude_witness #>
+              Morphism.thm (export' $> export) #>
+              LocalDefs.meta_rewrite_rule (ProofContext.init thy) #>
+              Drule.abs_def);
+            val eq_morph =
+              Morphism.term_morphism (MetaSimplifier.rewrite_term thy thms' []) $>
+              Morphism.thm_morphism (MetaSimplifier.rewrite_rule thms');
+            val eq_attns' = map ((apsnd o map) (Attrib.attribute_i thy)) eq_attns;
+          in
+            thy
+            |> fold (fn (name, morph) =>
+                Locale.amend_registration eq_morph (name, morph) #>
+                Locale.activate_global_facts (name, morph $> eq_morph $> export)) regs
+            |> PureThy.note_thmss Thm.lemmaK (eq_attns' ~~ map (fn th => [([th], [])]) thms')
+            |> snd
+          end;
+
+    fun after_qed results =
+      let
+        val (wits_reg, wits_eq) = split_last (prep_result (propss @ [eqns]) results);
+      in ProofContext.theory (fold_map store_reg (regs ~~ wits_reg)
+        #-> (fn regs => store_eqns_activate regs wits_eq))
+      end;
+    (*** alternative code end ***)
 
     fun store (Reg (name, morph), thms) (regs, thy) =
         let
