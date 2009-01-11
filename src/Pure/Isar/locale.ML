@@ -34,6 +34,7 @@ sig
   val register_locale: bstring ->
     (string * sort) list * (Binding.T * typ option * mixfix) list ->
     term option * term list ->
+    thm option * thm option -> thm list ->
     (declaration * stamp) list * (declaration * stamp) list ->
     ((string * (Attrib.binding * (thm list * Attrib.src list) list) list) * stamp) list ->
     ((string * Morphism.morphism) * stamp) list -> theory -> theory
@@ -45,6 +46,8 @@ sig
   (* Specification *)
   val defined: theory -> string -> bool
   val params_of: theory -> string -> (Binding.T * typ option * mixfix) list
+  val intros_of: theory -> string -> thm option * thm option
+  val axioms_of: theory -> string -> thm list
   val instance_of: theory -> string -> Morphism.morphism -> term list
   val specification_of: theory -> string -> term option * term list
   val declarations_of: theory -> string -> declaration list * declaration list
@@ -118,6 +121,8 @@ datatype locale = Loc of {
     (* type and term parameters *)
   spec: term option * term list,
     (* assumptions (as a single predicate expression) and defines *)
+  intros: thm option * thm option,
+  axioms: thm list,
   (** dynamic part **)
   decls: (declaration * stamp) list * (declaration * stamp) list,
     (* type and term syntax declarations *)
@@ -127,17 +132,18 @@ datatype locale = Loc of {
     (* locale dependencies (sublocale relation) *)
 };
 
-fun mk_locale ((parameters, spec), ((decls, notes), dependencies)) =
-  Loc {parameters = parameters, spec = spec, decls = decls,
-    notes = notes, dependencies = dependencies};
-fun map_locale f (Loc {parameters, spec, decls, notes, dependencies}) =
-  mk_locale (f ((parameters, spec), ((decls, notes), dependencies)));
-fun merge_locale (Loc {parameters, spec, decls = (decls1, decls2), notes, dependencies},
-  Loc {decls = (decls1', decls2'), notes = notes', dependencies = dependencies', ...}) =
-    mk_locale ((parameters, spec),
-      (((merge (eq_snd op =) (decls1, decls1'), merge (eq_snd op =) (decls2, decls2')),
-        merge (eq_snd op =) (notes, notes')),
-          merge (eq_snd op =) (dependencies, dependencies')));
+fun mk_locale ((parameters, spec, intros, axioms), ((decls, notes), dependencies)) =
+  Loc {parameters = parameters, intros = intros, axioms = axioms, spec = spec,
+    decls = decls, notes = notes, dependencies = dependencies};
+fun map_locale f (Loc {parameters, spec, intros, axioms, decls, notes, dependencies}) =
+  mk_locale (f ((parameters, spec, intros, axioms), ((decls, notes), dependencies)));
+fun merge_locale (Loc {parameters, spec, intros, axioms, decls = (decls1, decls2),
+  notes, dependencies}, Loc {decls = (decls1', decls2'), notes = notes',
+    dependencies = dependencies', ...}) = mk_locale
+      ((parameters, spec, intros, axioms),
+        (((merge (eq_snd op =) (decls1, decls1'), merge (eq_snd op =) (decls2, decls2')),
+          merge (eq_snd op =) (notes, notes')),
+            merge (eq_snd op =) (dependencies, dependencies')));
 
 structure LocalesData = TheoryDataFun
 (
@@ -159,9 +165,9 @@ fun the_locale thy name = case get_locale thy name
  of SOME (Loc loc) => loc
   | NONE => error ("Unknown locale " ^ quote name);
 
-fun register_locale bname parameters spec decls notes dependencies thy =
+fun register_locale bname parameters spec intros axioms decls notes dependencies thy =
   thy |> LocalesData.map (NameSpace.bind (Sign.naming_of thy) (Binding.name bname,
-    mk_locale ((parameters, spec), ((decls, notes), dependencies))) #> snd);
+    mk_locale ((parameters, spec, intros, axioms), ((decls, notes), dependencies))) #> snd);
 
 fun change_locale name =
   LocalesData.map o apsnd o Symtab.map_entry name o map_locale o apsnd;
@@ -174,6 +180,10 @@ fun print_locales thy =
 (*** Primitive operations ***)
 
 fun params_of thy = snd o #parameters o the_locale thy;
+
+fun intros_of thy = #intros o the_locale thy;
+
+fun axioms_of thy = #axioms o the_locale thy;
 
 fun instance_of thy name morph = params_of thy name |>
   map ((fn (b, T, _) => Free (Binding.base_name b, the T)) #> Morphism.term morph);

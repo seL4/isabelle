@@ -1,5 +1,4 @@
 (*  Title:      Pure/Isar/local_defs.ML
-    ID:         $Id$
     Author:     Makarius
 
 Local definitions.

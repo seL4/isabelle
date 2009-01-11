@@ -7,8 +7,8 @@ Type classes derived from primitive axclasses and locales - interfaces
 signature CLASS =
 sig
   include CLASS_TARGET
-    (*FIXME the split in class_target.ML, theory_target.ML and
-      ML is artificial*)
+    (*FIXME the split into class_target.ML, theory_target.ML and
+      class.ML is artificial*)
 
   val class: bstring -> class list -> Element.context_i list
     -> theory -> string * local_theory
@@ -45,7 +45,25 @@ fun calculate_axiom thy sups base_sort assm_axiom param_map class =
         |> SOME
       end;
 
-fun calculate_rules thy phi sups base_sort param_map axiom class =
+fun raw_morphism thy class param_map some_axiom =
+  let
+    val ctxt = ProofContext.init thy;
+    val some_wit = case some_axiom
+     of SOME axiom => SOME (Element.prove_witness ctxt
+          (Logic.unvarify (Thm.prop_of axiom))
+            (ALLGOALS (ProofContext.fact_tac [axiom])))
+      | NONE => NONE;
+    val instT = Symtab.empty |> Symtab.update ("'a", TFree ("'a", [class]));
+    val inst = Symtab.make ((map o apsnd) Const param_map);
+  in case some_wit
+   of SOME wit => Element.inst_morphism thy (instT, inst)
+        $> Morphism.binding_morphism (Binding.add_prefix false (class_prefix class))
+        $> Element.satisfy_morphism [wit]
+    | NONE => Element.inst_morphism thy (instT, inst)
+        $> Morphism.binding_morphism (Binding.add_prefix false (class_prefix class))
+  end;
+
+fun calculate_rules thy morph sups base_sort param_map axiom class =
   let
     fun instantiate thy sort = Thm.instantiate ([pairself (Thm.ctyp_of thy o TVar o pair (Name.aT, 0))
       (base_sort, sort)], map (fn (v, (c, ty)) => pairself (Thm.cterm_of thy)
@@ -200,14 +218,13 @@ fun gen_class prep_spec bname raw_supclasses raw_elems thy =
     #-> (fn axiom =>
         prove_class_interpretation class inst
           (supconsts @ map (pair class o fst o snd) params) (the_list axiom) []
-    #-> (fn morphism =>
-        `(fn thy => activate_class_morphism thy class inst morphism)
-    #-> (fn phi =>
-        `(fn thy => calculate_rules thy phi sups base_sort param_map axiom class)
+    #> `(fn thy => raw_morphism thy class param_map axiom)
+    #-> (fn morph =>
+        `(fn thy => calculate_rules thy morph sups base_sort param_map axiom class)
     #-> (fn (assm_intro, of_class) =>
         register class sups params base_sort inst
-          morphism axiom assm_intro of_class
-    #> fold (note_assm_intro class) (the_list assm_intro))))))
+          morph axiom assm_intro of_class
+    #> fold (note_assm_intro class) (the_list assm_intro)))))
     |> TheoryTarget.init (SOME class)
     |> pair class
   end;
