@@ -35,11 +35,11 @@ object OuterKeyword {
   val minor = Set(MINOR)
   val control = Set(CONTROL)
   val diag = Set(DIAG)
-  val theory0 = Set(THY_BEGIN, THY_SWITCH, THY_END)
-  val theory1 = Set(THY_HEADING)
+  val heading = Set(THY_HEADING, PRF_HEADING)
+  val theory1 = Set(THY_BEGIN, THY_SWITCH, THY_END)
   val theory2 = Set(THY_DECL, THY_GOAL)
-  val proof1 = Set(QED, QED_BLOCK, QED_GLOBAL, PRF_HEADING, PRF_GOAL, PRF_BLOCK, PRF_OPEN,
-    PRF_CLOSE, PRF_CHAIN, PRF_DECL)
+  val proof1 =
+    Set(QED, QED_BLOCK, QED_GLOBAL, PRF_GOAL, PRF_BLOCK, PRF_OPEN, PRF_CLOSE, PRF_CHAIN, PRF_DECL)
   val proof2 = Set(PRF_ASM, PRF_ASM_GOAL)
   val improper = Set(THY_SCRIPT, PRF_SCRIPT)
 }
