@@ -28,13 +28,13 @@ class Prover(isabelle_system: IsabelleSystem, isabelle_symbols: Symbol.Interpret
   val command_decls = new HashSet[String]{
     override def +=(elem : String) = {
       decl_info.event(elem, Markup.COMMAND)
-      this += elem
+      super.+=(elem)
     }
   }
   val keyword_decls = new HashSet[String]{
     override def +=(elem : String) = {
       decl_info.event(elem, Markup.KEYWORD)
-      this += elem
+      super.+=(elem)
     }
   }
   private var initialized = false
