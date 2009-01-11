@@ -20,6 +20,7 @@ sig
   val conclude: thm -> thm
   val finish: thm -> thm
   val norm_result: thm -> thm
+  val future_enabled: unit -> bool
   val future_result: Proof.context -> thm future -> term -> thm
   val prove_internal: cterm list -> cterm -> (thm list -> tactic) -> thm
   val prove_multi: Proof.context -> string list -> term list -> term list ->
@@ -92,6 +93,14 @@ val norm_result =
   #> Drule.zero_var_indexes;
 
 
+(* future_enabled *)
+
+val parallel_proofs = ref true;
+
+fun future_enabled () =
+  Future.enabled () andalso ! parallel_proofs andalso is_some (Future.thread_data ());
+
+
 (* future_result *)
 
 fun future_result ctxt result prop =
@@ -123,8 +132,6 @@ fun future_result ctxt result prop =
       |> Drule.forall_elim_list fixes
       |> fold (Thm.elim_implies o Thm.assume) assms;
   in local_result end;
-
-val parallel_proofs = ref true;
 
 
 
@@ -175,8 +182,7 @@ fun prove_common immediate ctxt xs asms props tac =
             else err ("Proved a different theorem: " ^ string_of_term (Thm.prop_of res))
           end);
     val res =
-      if immediate orelse #maxidx (Thm.rep_cterm stmt) >= 0 orelse
-        not (Future.enabled () andalso ! parallel_proofs)
+      if immediate orelse #maxidx (Thm.rep_cterm stmt) >= 0 orelse not (future_enabled ())
       then result ()
       else future_result ctxt' (Future.fork_pri ~1 result) (Thm.term_of stmt);
   in
