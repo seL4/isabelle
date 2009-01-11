@@ -42,6 +42,8 @@ class ProverSetup(buffer: JEditBuffer)
     prover.set_document(theory_view,
         if (dir.startsWith(Isabelle.VFS_PREFIX)) dir.substring(Isabelle.VFS_PREFIX.length) else dir)
     theory_view.activate
+
+    //register output-view
     prover.output_info += (text =>
       {
         output_text_view.append(text)
@@ -70,10 +72,18 @@ class ProverSetup(buffer: JEditBuffer)
           state_panel.setDocument(state.results_xml, UserAgent.baseURL)
       }
     })
+  
+    // one independent token marker per prover
+    val token_marker = new DynamicTokenMarker
+    buffer.setTokenMarker(token_marker)
+
+    // register for new declarations
+    prover.decl_info += (pair => pair match {case (a,b) => token_marker += (a,b)})
 
   }
 
   def deactivate {
+    buffer.setTokenMarker(buffer.getMode.getTokenMarker)
     theory_view.deactivate
     prover.stop
   }
