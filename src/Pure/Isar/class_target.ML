@@ -7,9 +7,8 @@ Type classes derived from primitive axclasses and locales - mechanisms.
 signature CLASS_TARGET =
 sig
   (*classes*)
-  type raw_morphism = morphism * ((typ Vartab.table * typ list) *  (term Vartab.table * term list));
   val register: class -> class list -> ((string * typ) * (string * typ)) list
-    -> sort -> term list -> raw_morphism
+    -> sort -> term list -> morphism
     -> thm option -> thm option -> thm -> theory -> theory
 
   val begin: class list -> sort -> Proof.context -> Proof.context
@@ -22,10 +21,8 @@ sig
 
   val intro_classes_tac: thm list -> tactic
   val default_intro_tac: Proof.context -> thm list -> tactic
-  val activate_class_morphism: theory -> class -> term list
-    -> raw_morphism -> morphism
   val prove_class_interpretation: class -> term list -> (class * string) list
-    -> thm list -> thm list -> theory -> raw_morphism * theory
+    -> thm list -> thm list -> theory -> theory
   val prove_subclass_relation: class * class -> thm option -> theory -> theory
 
   val class_prefix: string -> string
@@ -97,19 +94,6 @@ fun prove_interpretation_in tac after_qed (name, expr) =
 end;
 
 
-(** auxiliary **)
-
-val class_prefix = Logic.const_of_class o Sign.base_name;
-
-fun class_name_morphism class =
-  Binding.map_prefix (K (Binding.add_prefix false (class_prefix class)));
-
-type raw_morphism = morphism * ((typ Vartab.table * typ list) *  (term Vartab.table * term list));
-
-fun activate_class_morphism thy class inst morphism =
-  Locale_Layer.get_interpret_morph thy (class_name_morphism class) (class, "") morphism class inst;
-
-
 (** primitive axclass and instance commands **)
 
 fun axclass_cmd (class, raw_superclasses) raw_specs thy =
@@ -164,8 +148,8 @@ datatype class_data = ClassData of {
   base_sort: sort,
   inst: term list
     (*canonical interpretation*),
-  morphism: Morphism.morphism * ((typ Vartab.table * typ list) * (term Vartab.table * term list))
-    (*morphism cookie of canonical interpretation*),
+  base_morph: Morphism.morphism
+    (*static part of canonical morphism*),
   assm_intro: thm option,
   of_class: thm,
   axiom: thm option,
@@ -177,21 +161,21 @@ datatype class_data = ClassData of {
 };
 
 fun rep_class_data (ClassData d) = d;
-fun mk_class_data ((consts, base_sort, inst, morphism, assm_intro, of_class, axiom),
+fun mk_class_data ((consts, base_sort, inst, base_morph, assm_intro, of_class, axiom),
     (defs, operations)) =
   ClassData { consts = consts, base_sort = base_sort, inst = inst,
-    morphism = morphism, assm_intro = assm_intro, of_class = of_class, axiom = axiom,
+    base_morph = base_morph, assm_intro = assm_intro, of_class = of_class, axiom = axiom,
     defs = defs, operations = operations };
-fun map_class_data f (ClassData { consts, base_sort, inst, morphism, assm_intro,
+fun map_class_data f (ClassData { consts, base_sort, inst, base_morph, assm_intro,
     of_class, axiom, defs, operations }) =
-  mk_class_data (f ((consts, base_sort, inst, morphism, assm_intro, of_class, axiom),
+  mk_class_data (f ((consts, base_sort, inst, base_morph, assm_intro, of_class, axiom),
     (defs, operations)));
 fun merge_class_data _ (ClassData { consts = consts,
-    base_sort = base_sort, inst = inst, morphism = morphism, assm_intro = assm_intro,
+    base_sort = base_sort, inst = inst, base_morph = base_morph, assm_intro = assm_intro,
     of_class = of_class, axiom = axiom, defs = defs1, operations = operations1 },
-  ClassData { consts = _, base_sort = _, inst = _, morphism = _, assm_intro = _,
+  ClassData { consts = _, base_sort = _, inst = _, base_morph = _, assm_intro = _,
     of_class = _, axiom = _, defs = defs2, operations = operations2 }) =
-  mk_class_data ((consts, base_sort, inst, morphism, assm_intro, of_class, axiom),
+  mk_class_data ((consts, base_sort, inst, base_morph, assm_intro, of_class, axiom),
     (Thm.merge_thms (defs1, defs2),
       AList.merge (op =) (K true) (operations1, operations2)));
 
@@ -246,10 +230,19 @@ fun rules thy class = let
     val { axiom, of_class, ... } = the_class_data thy class
   in (axiom, of_class) end;
 
+val class_prefix = Logic.const_of_class o Sign.base_name;
+
+fun class_binding_morph class =
+  Binding.map_prefix (K (Binding.add_prefix false (class_prefix class)));
+
 fun morphism thy class =
   let
-    val { inst, morphism, ... } = the_class_data thy class;
-  in activate_class_morphism thy class inst morphism end;
+    val { base_morph, defs, ... } = the_class_data thy class;
+  in
+    base_morph 
+    $> Morphism.term_morphism (MetaSimplifier.rewrite_term thy defs [])
+    $> Morphism.thm_morphism (MetaSimplifier.rewrite_rule defs)
+  end;
 
 fun print_classes thy =
   let
@@ -289,23 +282,23 @@ fun print_classes thy =
 
 (* updaters *)
 
-fun register class superclasses params base_sort inst phi
+fun register class superclasses params base_sort inst morph
     axiom assm_intro of_class thy =
   let
     val operations = map (fn (v_ty as (_, ty), (c, _)) =>
       (c, (class, (ty, Free v_ty)))) params;
     val add_class = Graph.new_node (class,
         mk_class_data (((map o pairself) fst params, base_sort,
-          inst, phi, assm_intro, of_class, axiom), ([], operations)))
+          inst, morph, assm_intro, of_class, axiom), ([], operations)))
       #> fold (curry Graph.add_edge class) superclasses;
   in ClassData.map add_class thy end;
 
 fun register_operation class (c, (t, some_def)) thy =
   let
     val base_sort = base_sort thy class;
-    val prep_typ = map_type_tvar
-      (fn (vi as (v, _), sort) => if Name.aT = v
-        then TFree (v, base_sort) else TVar (vi, sort));
+    val prep_typ = map_type_tfree
+      (fn (v, sort) => if Name.aT = v
+        then TFree (v, base_sort) else TVar ((v, 0), sort));
     val t' = map_types prep_typ t;
     val ty' = Term.fastype_of t';
   in
@@ -331,9 +324,10 @@ fun prove_class_interpretation class inst consts hyp_facts def_facts thy =
   in
     thy
     |> fold2 add_constraint (map snd consts) no_constraints
-    |> Locale_Layer.prove_interpretation tac (class_name_morphism class) (Locale_Layer.Locale class)
+    |> Locale_Layer.prove_interpretation tac (class_binding_morph class) (Locale_Layer.Locale class)
           (map SOME inst, map (pair (Attrib.empty_binding) o Thm.prop_of) def_facts)
-    ||> fold2 add_constraint (map snd consts) constraints
+    |> snd
+    |> fold2 add_constraint (map snd consts) constraints
   end;
 
 fun prove_subclass_relation (sub, sup) some_thm thy =
@@ -444,16 +438,15 @@ fun declare class pos ((c, mx), dict) thy =
   let
     val prfx = class_prefix class;
     val thy' = thy |> Sign.add_path prfx;
-    val phi = morphism thy' class;
+    val morph = morphism thy' class;
     val inst = the_inst thy' class;
     val params = map (apsnd fst o snd) (these_params thy' [class]);
 
     val c' = Sign.full_bname thy' c;
-    val dict' = Morphism.term phi dict;
-    val dict_def = map_types Logic.unvarifyT dict';
-    val ty' = Term.fastype_of dict_def;
+    val dict' = Morphism.term morph dict;
+    val ty' = Term.fastype_of dict';
     val ty'' = Type.strip_sorts ty';
-    val def_eq = Logic.mk_equals (Const (c', ty'), dict_def);
+    val def_eq = Logic.mk_equals (Const (c', ty'), dict');
     fun get_axiom thy = ((Thm.varifyT o Thm.axiom thy) c', thy);
   in
     thy'
@@ -462,9 +455,6 @@ fun declare class pos ((c, mx), dict) thy =
     |>> Thm.symmetric
     ||>> get_axiom
     |-> (fn (def, def') => prove_class_interpretation class inst params [] [def]
-      #> snd
-        (*assumption: interpretation cookie does not change
-          by adding equations to interpretation*)
       #> register_operation class (c', (dict', SOME (Thm.symmetric def')))
       #> PureThy.store_thm (c ^ "_raw", def')
       #> snd)
@@ -649,9 +639,9 @@ fun prove_instantiation_exit tac = prove_instantiation_instance tac
 
 fun prove_instantiation_exit_result f tac x lthy =
   let
-    val phi = ProofContext.export_morphism lthy
+    val morph = ProofContext.export_morphism lthy
       (ProofContext.init (ProofContext.theory_of lthy));
-    val y = f phi x;
+    val y = f morph x;
   in
     lthy
     |> prove_instantiation_exit (fn ctxt => tac ctxt y)
