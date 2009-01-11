@@ -25,16 +25,16 @@ class Prover(isabelle_system: IsabelleSystem, isabelle_symbols: Symbol.Interpret
   private var commands = new HashMap[String, Command]
 
   val decl_info = new EventBus[(String, String)]
-  val command_decls = new HashSet[String]{
-    override def +=(elem : String) = {
-      decl_info.event(elem, Markup.COMMAND)
-      super.+=(elem)
+  val command_decls = new HashMap[String, String] {
+    override def +=(entry: (String, String)) = {
+      decl_info.event(entry)
+      super.+=(entry)
     }
   }
-  val keyword_decls = new HashSet[String]{
-    override def +=(elem : String) = {
-      decl_info.event(elem, Markup.KEYWORD)
-      super.+=(elem)
+  val keyword_decls = new HashSet[String] {
+    override def +=(name: String) = {
+      decl_info.event(name, OuterKeyword.MINOR)
+      super.+=(name)
     }
   }
   private var initialized = false
@@ -90,8 +90,9 @@ class Prover(isabelle_system: IsabelleSystem, isabelle_symbols: Symbol.Interpret
                       command_change(st)
 
                     // command and keyword declarations
-                    case XML.Elem(Markup.COMMAND_DECL, (Markup.NAME, name) :: _, _) =>
-                      command_decls += name
+                    case XML.Elem(Markup.COMMAND_DECL,
+                        (Markup.NAME, name) :: (Markup.KIND, kind) :: _, _) =>
+                      command_decls += (name -> kind)
                     case XML.Elem(Markup.KEYWORD_DECL, (Markup.NAME, name) :: _, _) =>
                       keyword_decls += name
 
