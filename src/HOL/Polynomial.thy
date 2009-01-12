@@ -196,6 +196,28 @@ proof (induct p rule: measure_induct_rule [where f=degree])
 qed
 
 
+subsection {* Recursion combinator for polynomials *}
+
+function
+  poly_rec :: "'b \<Rightarrow> ('a::zero \<Rightarrow> 'a poly \<Rightarrow> 'b \<Rightarrow> 'b) \<Rightarrow> 'a poly \<Rightarrow> 'b"
+where
+  poly_rec_pCons_eq_if [simp del]:
+    "poly_rec z f (pCons a p) = f a p (if p = 0 then z else poly_rec z f p)"
+by (case_tac x, rename_tac q, case_tac q, auto)
+
+termination poly_rec
+by (relation "measure (degree \<circ> snd \<circ> snd)", simp)
+   (simp add: degree_pCons_eq)
+
+lemma poly_rec_0:
+  "f 0 0 z = z \<Longrightarrow> poly_rec z f 0 = z"
+  using poly_rec_pCons_eq_if [of z f 0 0] by simp
+
+lemma poly_rec_pCons:
+  "f 0 0 z = z \<Longrightarrow> poly_rec z f (pCons a p) = f a p (poly_rec z f p)"
+  by (simp add: poly_rec_pCons_eq_if poly_rec_0)
+
+
 subsection {* Monomials *}
 
 definition
@@ -885,22 +907,21 @@ done
 subsection {* Evaluation of polynomials *}
 
 definition
-  poly :: "'a::{comm_semiring_1,recpower} poly \<Rightarrow> 'a \<Rightarrow> 'a" where
-  "poly p = (\<lambda>x. \<Sum>n\<le>degree p. coeff p n * x ^ n)"
+  poly :: "'a::comm_semiring_0 poly \<Rightarrow> 'a \<Rightarrow> 'a" where
+  "poly = poly_rec (\<lambda>x. 0) (\<lambda>a p f x. a + x * f x)"
 
 lemma poly_0 [simp]: "poly 0 x = 0"
-  unfolding poly_def by simp
+  unfolding poly_def by (simp add: poly_rec_0)
 
 lemma poly_pCons [simp]: "poly (pCons a p) x = a + x * poly p x"
-  unfolding poly_def
-  by (simp add: degree_pCons_eq_if setsum_atMost_Suc_shift power_Suc
-                setsum_left_distrib setsum_right_distrib mult_ac
-           del: setsum_atMost_Suc)
+  unfolding poly_def by (simp add: poly_rec_pCons)
 
 lemma poly_1 [simp]: "poly 1 x = 1"
   unfolding one_poly_def by simp
 
-lemma poly_monom: "poly (monom a n) x = a * x ^ n"
+lemma poly_monom:
+  fixes a x :: "'a::{comm_semiring_1,recpower}"
+  shows "poly (monom a n) x = a * x ^ n"
   by (induct n, simp add: monom_0, simp add: monom_Suc power_Suc mult_ac)
 
 lemma poly_add [simp]: "poly (p + q) x = poly p x + poly q x"
@@ -909,12 +930,12 @@ lemma poly_add [simp]: "poly (p + q) x = poly p x + poly q x"
   done
 
 lemma poly_minus [simp]:
-  fixes x :: "'a::{comm_ring_1,recpower}"
+  fixes x :: "'a::comm_ring"
   shows "poly (- p) x = - poly p x"
   by (induct p, simp_all)
 
 lemma poly_diff [simp]:
-  fixes x :: "'a::{comm_ring_1,recpower}"
+  fixes x :: "'a::comm_ring"
   shows "poly (p - q) x = poly p x - poly q x"
   by (simp add: diff_minus)
 
