@@ -433,11 +433,11 @@ lemma smult_add_left:
   "smult (a + b) p = smult a p + smult b p"
   by (rule poly_ext, simp add: ring_simps)
 
-lemma smult_minus_right:
+lemma smult_minus_right [simp]:
   "smult (a::'a::comm_ring) (- p) = - smult a p"
   by (rule poly_ext, simp)
 
-lemma smult_minus_left:
+lemma smult_minus_left [simp]:
   "smult (- a::'a::comm_ring) p = - smult a p"
   by (rule poly_ext, simp)
 
@@ -991,8 +991,24 @@ lemma synthetic_div_pCons [simp]:
   unfolding synthetic_div_def
   by (simp add: split_def snd_synthetic_divmod)
 
-lemma synthetic_div:
+lemma synthetic_div_correct:
   "p + smult c (synthetic_div p c) = pCons (poly p c) (synthetic_div p c)"
   by (induct p) simp_all
+
+lemma synthetic_div_unique_lemma: "smult c p = pCons a p \<Longrightarrow> p = 0"
+by (induct p arbitrary: a) simp_all
+
+lemma synthetic_div_unique:
+  "p + smult c q = pCons r q \<Longrightarrow> r = poly p c \<and> q = synthetic_div p c"
+apply (induct p arbitrary: q r)
+apply (simp, frule synthetic_div_unique_lemma, simp)
+apply (case_tac q, force)
+done
+
+lemma synthetic_div_correct':
+  fixes c :: "'a::comm_ring_1"
+  shows "[:-c, 1:] * synthetic_div p c + [:poly p c:] = p"
+  using synthetic_div_correct [of p c]
+  by (simp add: group_simps)
 
 end
