@@ -100,6 +100,13 @@ definition
 where
   [code del]: "pCons a p = Abs_poly (nat_case a (coeff p))"
 
+syntax
+  "_poly" :: "args \<Rightarrow> 'a poly"  ("[:(_):]")
+
+translations
+  "[:x, xs:]" == "CONST pCons x [:xs:]"
+  "[:x:]" == "CONST pCons x 0"
+
 lemma Poly_nat_case: "f \<in> Poly \<Longrightarrow> nat_case a f \<in> Poly"
   unfolding Poly_def by (auto split: nat.split)
 
