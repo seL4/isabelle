@@ -319,6 +319,10 @@ lemma diff_pCons [simp]:
 lemma degree_add_le: "degree (p + q) \<le> max (degree p) (degree q)"
   by (rule degree_le, auto simp add: coeff_eq_0)
 
+lemma degree_add_less:
+  "\<lbrakk>degree p < n; degree q < n\<rbrakk> \<Longrightarrow> degree (p + q) < n"
+  by (auto intro: le_less_trans degree_add_le)
+
 lemma degree_add_eq_right:
   "degree p < degree q \<Longrightarrow> degree (p + q) = degree q"
   apply (cases "q = 0", simp)
@@ -340,6 +344,10 @@ lemma degree_minus [simp]: "degree (- p) = degree p"
 lemma degree_diff_le: "degree (p - q) \<le> max (degree p) (degree q)"
   using degree_add_le [where p=p and q="-q"]
   by (simp add: diff_minus)
+
+lemma degree_diff_less:
+  "\<lbrakk>degree p < n; degree q < n\<rbrakk> \<Longrightarrow> degree (p - q) < n"
+  by (auto intro: le_less_trans degree_diff_le)
 
 lemma add_monom: "monom a n + monom b n = monom (a + b) n"
   by (rule poly_ext) simp
@@ -762,7 +770,7 @@ next
   from q1 q2 have q3: "(q1 - q2) * y = r2 - r1"
     by (simp add: ring_simps)
   from r1 r2 have r3: "(r2 - r1) = 0 \<or> degree (r2 - r1) < degree y"
-    by (auto intro: le_less_trans [OF degree_diff_le])
+    by (auto intro: degree_diff_less)
 
   show "q1 = q2 \<and> r1 = r2"
   proof (rule ccontr)
