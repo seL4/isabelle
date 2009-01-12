@@ -955,4 +955,44 @@ lemma poly_smult [simp]: "poly (smult a p) x = a * poly p x"
 lemma poly_mult [simp]: "poly (p * q) x = poly p x * poly q x"
   by (induct p, simp_all, simp add: ring_simps)
 
+
+subsection {* Synthetic division *}
+
+definition
+  synthetic_divmod :: "'a::comm_semiring_0 poly \<Rightarrow> 'a \<Rightarrow> 'a poly \<times> 'a"
+where
+  "synthetic_divmod p c =
+    poly_rec (0, 0) (\<lambda>a p (q, r). (pCons r q, a + c * r)) p"
+
+definition
+  synthetic_div :: "'a::comm_semiring_0 poly \<Rightarrow> 'a \<Rightarrow> 'a poly"
+where
+  "synthetic_div p c = fst (synthetic_divmod p c)"
+
+lemma synthetic_divmod_0 [simp]:
+  "synthetic_divmod 0 c = (0, 0)"
+  unfolding synthetic_divmod_def
+  by (simp add: poly_rec_0)
+
+lemma synthetic_divmod_pCons [simp]:
+  "synthetic_divmod (pCons a p) c =
+    (\<lambda>(q, r). (pCons r q, a + c * r)) (synthetic_divmod p c)"
+  unfolding synthetic_divmod_def
+  by (simp add: poly_rec_pCons)
+
+lemma snd_synthetic_divmod: "snd (synthetic_divmod p c) = poly p c"
+  by (induct p, simp, simp add: split_def)
+
+lemma synthetic_div_0 [simp]: "synthetic_div 0 c = 0"
+  unfolding synthetic_div_def by simp
+
+lemma synthetic_div_pCons [simp]:
+  "synthetic_div (pCons a p) c = pCons (poly p c) (synthetic_div p c)"
+  unfolding synthetic_div_def
+  by (simp add: split_def snd_synthetic_divmod)
+
+lemma synthetic_div:
+  "p + smult c (synthetic_div p c) = pCons (poly p c) (synthetic_div p c)"
+  by (induct p) simp_all
+
 end
