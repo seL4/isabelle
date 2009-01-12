@@ -71,6 +71,7 @@ class TheoryView (text_area: JEditTextArea)
     extends TextAreaExtension with Text with BufferListener {
 
   private val buffer = text_area.getBuffer
+  private val prover = Isabelle.prover_setup(buffer).get.prover
   buffer.addBufferListener(this)
 
 
@@ -84,7 +85,7 @@ class TheoryView (text_area: JEditTextArea)
   col_timer.setRepeats(true)
 
 
-  private val phase_overview = new PhaseOverviewPanel(Isabelle.prover(buffer))
+  private val phase_overview = new PhaseOverviewPanel(prover)
 
 
   /* activation */
@@ -106,10 +107,10 @@ class TheoryView (text_area: JEditTextArea)
 
   private val selected_state_controller = new CaretListener {
     override def caretUpdate(e: CaretEvent) = {
-      val cmd = Isabelle.prover(buffer).document.getNextCommandContaining(e.getDot)
+      val cmd = prover.document.getNextCommandContaining(e.getDot)
       if (cmd != null && cmd.start <= e.getDot &&
-          Isabelle.prover_setup(buffer).selected_state != cmd)
-        Isabelle.prover_setup(buffer).selected_state = cmd
+          Isabelle.prover_setup(buffer).get.selected_state != cmd)
+        Isabelle.prover_setup(buffer).get.selected_state = cmd
     }
   }
 
@@ -131,7 +132,7 @@ class TheoryView (text_area: JEditTextArea)
   /* painting */
 
   val repaint_delay = new isabelle.utils.Delay(100, () => repaint_all())
-  Isabelle.prover(buffer).command_info += (_ => repaint_delay.delay_or_ignore())
+  prover.command_info += (_ => repaint_delay.delay_or_ignore())
 
   private def from_current(pos: Int) =
     if (col != null && col.start <= pos)
@@ -153,8 +154,8 @@ class TheoryView (text_area: JEditTextArea)
       val stop = text_area.getLineOfOffset(to_current(cmd.stop) - 1)
       text_area.invalidateLineRange(start, stop)
 
-      if (Isabelle.prover_setup(buffer).selected_state == cmd)
-        Isabelle.prover_setup(buffer).selected_state = cmd  // update State view
+      if (Isabelle.prover_setup(buffer).get.selected_state == cmd)
+        Isabelle.prover_setup(buffer).get.selected_state = cmd  // update State view
     }
   }
 
@@ -192,7 +193,7 @@ class TheoryView (text_area: JEditTextArea)
     val saved_color = gfx.getColor
 
     val metrics = text_area.getPainter.getFontMetrics
-    var e = Isabelle.prover(buffer).document.getNextCommandContaining(from_current(start))
+    var e = prover.document.getNextCommandContaining(from_current(start))
 
     // encolor phase
     while (e != null && to_current(e.start) < end) {

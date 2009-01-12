@@ -45,8 +45,7 @@ object Isabelle {
   var plugin: Plugin = null
 
   // provers
-  def prover(buffer: JEditBuffer) = plugin.prover_setup(buffer).get.prover
-  def prover_setup(buffer: JEditBuffer) = plugin.prover_setup(buffer).get
+  def prover_setup(buffer: JEditBuffer) = plugin.prover_setup(buffer)
 }
 
 

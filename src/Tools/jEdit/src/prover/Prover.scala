@@ -12,6 +12,7 @@ package isabelle.prover
 import java.util.Properties
 
 import scala.collection.mutable.{HashMap, HashSet}
+import scala.collection.immutable.{TreeSet}
 
 import org.gjt.sp.util.Log
 
@@ -37,6 +38,17 @@ class Prover(isabelle_system: IsabelleSystem, isabelle_symbols: Symbol.Interpret
       super.+=(name)
     }
   }
+  var _completions = new TreeSet[String]
+  def completions = _completions
+  /* // TODO: ask Makarius to make Interpretation.symbols public (here: read-only as 'symbol_map')
+  val map = isabelle.jedit.Isabelle.symbols.symbol_map
+  for(xsymb <- map.keys) {
+    _completions += xsymb
+    if(map(xsymb).get("abbrev").isDefined) _completions += map(xsymb)("abbrev")
+  }
+  */
+  decl_info += (k_v => _completions += k_v._1)
+  
   private var initialized = false
 
   val activated = new EventBus[Unit]
