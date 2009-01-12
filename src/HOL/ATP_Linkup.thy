@@ -113,9 +113,20 @@ setup {* AtpManager.add_prover "spass_no_tc" (AtpWrapper.spass_opts 40 false) *}
 
 text {* remote provers via SystemOnTPTP *}
 setup {* AtpManager.add_prover "remote_vamp9"
-  (AtpWrapper.remote_prover "Vampire---9.0" "jumpirefix --output_syntax tptp --mode casc -t 3600") *}
-setup {* AtpManager.add_prover "remote_vamp10"
-  (AtpWrapper.remote_prover "Vampire---10.0" "drakosha.pl 60") *}
+  (AtpWrapper.remote_prover "Vampire---9.0" 90) *}
+setup {* AtpManager.add_prover "remote_spass"
+  (AtpWrapper.remote_prover "SPASS---3.01" 90) *}
+setup {* AtpManager.add_prover "remote_metis"
+  (AtpWrapper.remote_prover "Metis---2.1" 90) *}
+setup {* AtpManager.add_prover "remote_snark"
+  (AtpWrapper.remote_prover "SNARK---20080805r005" 90) *}
+setup {* AtpManager.add_prover "remote_otter"
+  (AtpWrapper.remote_prover "Otter---3.3" 90) *}
+setup {* AtpManager.add_prover "remote_e"
+  (AtpWrapper.remote_prover "EP---1.0" 90) *}
+setup {* AtpManager.add_prover "remote_sos"
+  (AtpWrapper.remote_prover "SOS---2.0" 90) *}
+  
 
 
 subsection {* The Metis prover *}
