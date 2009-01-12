@@ -135,7 +135,7 @@ apply (rule order_antisym [OF _ le0])
 apply (rule degree_le, simp add: coeff_pCons split: nat.split)
 done
 
-lemma degree_pCons_eq_if:
+lemma degree_pCons_eq_if [simp]:
   "degree (pCons a p) = (if p = 0 then 0 else Suc (degree p))"
 apply (cases "p = 0", simp_all)
 apply (rule order_antisym [OF _ le0])
@@ -760,7 +760,7 @@ proof -
     also have "\<dots> \<le> degree y"
     proof (rule min_max.le_supI)
       show "degree (pCons a r) \<le> degree y"
-        using r by (auto simp add: degree_pCons_eq_if)
+        using r by auto
       show "degree (smult b y) \<le> degree y"
         by (rule degree_smult_le)
     qed
@@ -991,6 +991,14 @@ lemma synthetic_div_pCons [simp]:
   unfolding synthetic_div_def
   by (simp add: split_def snd_synthetic_divmod)
 
+lemma synthetic_div_eq_0_iff:
+  "synthetic_div p c = 0 \<longleftrightarrow> degree p = 0"
+  by (induct p, simp, case_tac p, simp)
+
+lemma degree_synthetic_div:
+  "degree (synthetic_div p c) = degree p - 1"
+  by (induct p, simp, simp add: synthetic_div_eq_0_iff)
+
 lemma synthetic_div_correct:
   "p + smult c (synthetic_div p c) = pCons (poly p c) (synthetic_div p c)"
   by (induct p) simp_all
@@ -1010,5 +1018,24 @@ lemma synthetic_div_correct':
   shows "[:-c, 1:] * synthetic_div p c + [:poly p c:] = p"
   using synthetic_div_correct [of p c]
   by (simp add: group_simps)
+
+lemma poly_eq_0_iff_dvd:
+  fixes c :: "'a::idom"
+  shows "poly p c = 0 \<longleftrightarrow> [:-c, 1:] dvd p"
+proof
+  assume "poly p c = 0"
+  with synthetic_div_correct' [of c p]
+  have "p = [:-c, 1:] * synthetic_div p c" by simp
+  then show "[:-c, 1:] dvd p" ..
+next
+  assume "[:-c, 1:] dvd p"
+  then obtain k where "p = [:-c, 1:] * k" by (rule dvdE)
+  then show "poly p c = 0" by simp
+qed
+
+lemma dvd_iff_poly_eq_0:
+  fixes c :: "'a::idom"
+  shows "[:c, 1:] dvd p \<longleftrightarrow> poly p (-c) = 0"
+  by (simp add: poly_eq_0_iff_dvd)
 
 end
