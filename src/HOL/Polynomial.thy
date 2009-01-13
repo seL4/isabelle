@@ -208,7 +208,7 @@ subsection {* Recursion combinator for polynomials *}
 function
   poly_rec :: "'b \<Rightarrow> ('a::zero \<Rightarrow> 'a poly \<Rightarrow> 'b \<Rightarrow> 'b) \<Rightarrow> 'a poly \<Rightarrow> 'b"
 where
-  poly_rec_pCons_eq_if [simp del]:
+  poly_rec_pCons_eq_if [simp del, code del]:
     "poly_rec z f (pCons a p) = f a p (if p = 0 then z else poly_rec z f p)"
 by (case_tac x, rename_tac q, case_tac q, auto)
 
@@ -487,7 +487,7 @@ instantiation poly :: (comm_semiring_0) comm_semiring_0
 begin
 
 definition
-  times_poly_def:
+  times_poly_def [code del]:
     "p * q = poly_rec 0 (\<lambda>a p pq. smult a q + pCons 0 pq) p"
 
 lemma mult_poly_0_left: "(0::'a poly) * q = 0"
@@ -649,6 +649,7 @@ subsection {* Long division of polynomials *}
 definition
   divmod_poly_rel :: "'a::field poly \<Rightarrow> 'a poly \<Rightarrow> 'a poly \<Rightarrow> 'a poly \<Rightarrow> bool"
 where
+  [code del]:
   "divmod_poly_rel x y q r \<longleftrightarrow>
     x = q * y + r \<and> (if y = 0 then q = 0 else r = 0 \<or> degree r < degree y)"
 
