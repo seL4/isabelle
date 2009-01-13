@@ -6,7 +6,7 @@
 header{*Theory of Integration*}
 
 theory Integration
-imports Deriv
+imports Deriv ATP_Linkup
 begin
 
 text{*We follow John Harrison in formalizing the Gauge integral.*}
