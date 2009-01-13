@@ -85,6 +85,7 @@ use "outer_syntax.ML";
 use "../Thy/thy_info.ML";
 use "session.ML";
 use "isar.ML";
+use "isar_document.ML";
 
 (*theory and proof operations*)
 use "rule_insts.ML";
