@@ -3,8 +3,11 @@
 header{*Fundamental Theorem of Algebra*}
 
 theory Fundamental_Theorem_Algebra
-imports Univ_Poly Dense_Linear_Order Complex
+imports Polynomial Dense_Linear_Order Complex
 begin
+
+hide (open) const Univ_Poly.poly
+hide (open) const Univ_Poly.degree
 
 subsection {* Square root of complex numbers *}
 definition csqrt :: "complex \<Rightarrow> complex" where
@@ -70,10 +73,10 @@ subsection{* Basic lemmas about complex polynomials *}
 lemma poly_bound_exists:
   shows "\<exists>m. m > 0 \<and> (\<forall>z. cmod z <= r \<longrightarrow> cmod (poly p z) \<le> m)"
 proof(induct p)
-  case Nil thus ?case by (rule exI[where x=1], simp) 
+  case 0 thus ?case by (rule exI[where x=1], simp) 
 next
-  case (Cons c cs)
-  from Cons.hyps obtain m where m: "\<forall>z. cmod z \<le> r \<longrightarrow> cmod (poly cs z) \<le> m"
+  case (pCons c cs)
+  from pCons.hyps obtain m where m: "\<forall>z. cmod z \<le> r \<longrightarrow> cmod (poly cs z) \<le> m"
     by blast
   let ?k = " 1 + cmod c + \<bar>r * m\<bar>"
   have kp: "?k > 0" using abs_ge_zero[of "r*m"] norm_ge_zero[of c] by arith
@@ -81,48 +84,72 @@ next
     assume H: "cmod z \<le> r"
     from m H have th: "cmod (poly cs z) \<le> m" by blast
     from H have rp: "r \<ge> 0" using norm_ge_zero[of z] by arith
-    have "cmod (poly (c # cs) z) \<le> cmod c + cmod (z* poly cs z)"
+    have "cmod (poly (pCons c cs) z) \<le> cmod c + cmod (z* poly cs z)"
       using norm_triangle_ineq[of c "z* poly cs z"] by simp
     also have "\<dots> \<le> cmod c + r*m" using mult_mono[OF H th rp norm_ge_zero[of "poly cs z"]] by (simp add: norm_mult)
     also have "\<dots> \<le> ?k" by simp
-    finally have "cmod (poly (c # cs) z) \<le> ?k" .}
+    finally have "cmod (poly (pCons c cs) z) \<le> ?k" .}
   with kp show ?case by blast
 qed
 
 
 text{* Offsetting the variable in a polynomial gives another of same degree *}
-  (* FIXME : Lemma holds also in locale --- fix it later *)
-lemma  poly_offset_lemma:
-  shows "\<exists>b q. (length q = length p) \<and> (\<forall>x. poly (b#q) (x::complex) = (a + x) * poly p x)"
-proof(induct p)
-  case Nil thus ?case by simp
-next
-  case (Cons c cs)
-  from Cons.hyps obtain b q where 
-    bq: "length q = length cs" "\<forall>x. poly (b # q) x = (a + x) * poly cs x"
-    by blast
-  let ?b = "a*c"
-  let ?q = "(b+c)#q"
-  have lg: "length ?q = length (c#cs)" using bq(1) by simp
-  {fix x
-    from bq(2)[rule_format, of x]
-    have "x*poly (b # q) x = x*((a + x) * poly cs x)" by simp
-    hence "poly (?b# ?q) x = (a + x) * poly (c # cs) x"
-      by (simp add: ring_simps)}
-  with lg  show ?case by blast 
-qed
 
-    (* FIXME : This one too*)
-lemma poly_offset: "\<exists> q. length q = length p \<and> (\<forall>x. poly q (x::complex) = poly p (a + x))"
-proof (induct p)
-  case Nil thus ?case by simp
-next
-  case (Cons c cs)
-  from Cons.hyps obtain q where q: "length q = length cs" "\<forall>x. poly q x = poly cs (a + x)" by blast
-  from poly_offset_lemma[of q a] obtain b p where 
-    bp: "length p = length q" "\<forall>x. poly (b # p) x = (a + x) * poly q x"
-    by blast
-  thus ?case using q bp by - (rule exI[where x="(c + b)#p"], simp)
+definition
+  "offset_poly p h = poly_rec 0 (\<lambda>a p q. smult h q + pCons a q) p"
+
+lemma offset_poly_0: "offset_poly 0 h = 0"
+  unfolding offset_poly_def by (simp add: poly_rec_0)
+
+lemma offset_poly_pCons:
+  "offset_poly (pCons a p) h =
+    smult h (offset_poly p h) + pCons a (offset_poly p h)"
+  unfolding offset_poly_def by (simp add: poly_rec_pCons)
+
+lemma offset_poly_single: "offset_poly [:a:] h = [:a:]"
+by (simp add: offset_poly_pCons offset_poly_0)
+
+lemma poly_offset_poly: "poly (offset_poly p h) x = poly p (h + x)"
+apply (induct p)
+apply (simp add: offset_poly_0)
+apply (simp add: offset_poly_pCons ring_simps)
+done
+
+lemma offset_poly_eq_0_lemma: "smult c p + pCons a p = 0 \<Longrightarrow> p = 0"
+by (induct p arbitrary: a, simp, force)
+
+lemma offset_poly_eq_0_iff: "offset_poly p h = 0 \<longleftrightarrow> p = 0"
+apply (safe intro!: offset_poly_0)
+apply (induct p, simp)
+apply (simp add: offset_poly_pCons)
+apply (frule offset_poly_eq_0_lemma, simp)
+done
+
+lemma degree_offset_poly: "degree (offset_poly p h) = degree p"
+apply (induct p)
+apply (simp add: offset_poly_0)
+apply (case_tac "p = 0")
+apply (simp add: offset_poly_0 offset_poly_pCons)
+apply (simp add: offset_poly_pCons)
+apply (subst degree_add_eq_right)
+apply (rule le_less_trans [OF degree_smult_le])
+apply (simp add: offset_poly_eq_0_iff)
+apply (simp add: offset_poly_eq_0_iff)
+done
+
+definition
+  "plength p = (if p = 0 then 0 else Suc (degree p))"
+
+lemma plength_eq_0_iff [simp]: "plength p = 0 \<longleftrightarrow> p = 0"
+  unfolding plength_def by simp
+
+lemma poly_offset: "\<exists> q. plength q = plength p \<and> (\<forall>x. poly q (x::complex) = poly p (a + x))"
+proof (intro exI conjI)
+  show "plength (offset_poly p a) = plength p"
+    unfolding plength_def
+    by (simp add: offset_poly_eq_0_iff degree_offset_poly)
+  show "\<forall>x. poly (offset_poly p a) x = poly p (a + x)"
+    by (simp add: poly_offset_poly)
 qed
 
 text{* An alternative useful formulation of completeness of the reals *}
@@ -474,15 +501,21 @@ lemma poly_cont:
   assumes ep: "e > 0" 
   shows "\<exists>d >0. \<forall>w. 0 < cmod (w - z) \<and> cmod (w - z) < d \<longrightarrow> cmod (poly p w - poly p z) < e"
 proof-
-  from poly_offset[of p z] obtain q where q: "length q = length p" "\<And>x. poly q x = poly p (z + x)" by blast
+  obtain q where q: "degree q = degree p" "\<And>x. poly q x = poly p (z + x)"
+  proof
+    show "degree (offset_poly p z) = degree p"
+      by (rule degree_offset_poly)
+    show "\<And>x. poly (offset_poly p z) x = poly p (z + x)"
+      by (rule poly_offset_poly)
+  qed
   {fix w
     note q(2)[of "w - z", simplified]}
   note th = this
   show ?thesis unfolding th[symmetric]
   proof(induct q)
-    case Nil thus ?case  using ep by auto
+    case 0 thus ?case  using ep by auto
   next
-    case (Cons c cs)
+    case (pCons c cs)
     from poly_bound_exists[of 1 "cs"] 
     obtain m where m: "m > 0" "\<And>z. cmod z \<le> 1 \<Longrightarrow> cmod (poly cs z) \<le> m" by blast
     from ep m(1) have em0: "e/m > 0" by (simp add: field_simps)
@@ -621,36 +654,32 @@ lemma "(rcis (sqrt (abs r)) ((pi + a)/2)) ^ 2 = rcis (- abs r) a"
 
 text {* Nonzero polynomial in z goes to infinity as z does. *}
 
-instance complex::idom_char_0 by (intro_classes)
-instance complex :: recpower_idom_char_0 by intro_classes
-
 lemma poly_infinity:
-  assumes ex: "list_ex (\<lambda>c. c \<noteq> 0) p"
-  shows "\<exists>r. \<forall>z. r \<le> cmod z \<longrightarrow> d \<le> cmod (poly (a#p) z)"
+  assumes ex: "p \<noteq> 0"
+  shows "\<exists>r. \<forall>z. r \<le> cmod z \<longrightarrow> d \<le> cmod (poly (pCons a p) z)"
 using ex
 proof(induct p arbitrary: a d)
-  case (Cons c cs a d) 
-  {assume H: "list_ex (\<lambda>c. c\<noteq>0) cs"
-    with Cons.hyps obtain r where r: "\<forall>z. r \<le> cmod z \<longrightarrow> d + cmod a \<le> cmod (poly (c # cs) z)" by blast
+  case (pCons c cs a d) 
+  {assume H: "cs \<noteq> 0"
+    with pCons.hyps obtain r where r: "\<forall>z. r \<le> cmod z \<longrightarrow> d + cmod a \<le> cmod (poly (pCons c cs) z)" by blast
     let ?r = "1 + \<bar>r\<bar>"
     {fix z assume h: "1 + \<bar>r\<bar> \<le> cmod z"
       have r0: "r \<le> cmod z" using h by arith
       from r[rule_format, OF r0]
-      have th0: "d + cmod a \<le> 1 * cmod(poly (c#cs) z)" by arith
+      have th0: "d + cmod a \<le> 1 * cmod(poly (pCons c cs) z)" by arith
       from h have z1: "cmod z \<ge> 1" by arith
-      from order_trans[OF th0 mult_right_mono[OF z1 norm_ge_zero[of "poly (c#cs) z"]]]
-      have th1: "d \<le> cmod(z * poly (c#cs) z) - cmod a"
+      from order_trans[OF th0 mult_right_mono[OF z1 norm_ge_zero[of "poly (pCons c cs) z"]]]
+      have th1: "d \<le> cmod(z * poly (pCons c cs) z) - cmod a"
 	unfolding norm_mult by (simp add: ring_simps)
-      from complex_mod_triangle_sub[of "z * poly (c#cs) z" a]
-      have th2: "cmod(z * poly (c#cs) z) - cmod a \<le> cmod (poly (a#c#cs) z)" 
+      from complex_mod_triangle_sub[of "z * poly (pCons c cs) z" a]
+      have th2: "cmod(z * poly (pCons c cs) z) - cmod a \<le> cmod (poly (pCons a (pCons c cs)) z)" 
 	by (simp add: diff_le_eq ring_simps) 
-      from th1 th2 have "d \<le> cmod (poly (a#c#cs) z)"  by arith}
+      from th1 th2 have "d \<le> cmod (poly (pCons a (pCons c cs)) z)"  by arith}
     hence ?case by blast}
   moreover
-  {assume cs0: "\<not> (list_ex (\<lambda>c. c \<noteq> 0) cs)"
-    with Cons.prems have c0: "c \<noteq> 0" by simp
-    from cs0 have cs0': "list_all (\<lambda>c. c = 0) cs" 
-      by (auto simp add: list_all_iff list_ex_iff)
+  {assume cs0: "\<not> (cs \<noteq> 0)"
+    with pCons.prems have c0: "c \<noteq> 0" by simp
+    from cs0 have cs0': "cs = 0" by simp
     {fix z
       assume h: "(\<bar>d\<bar> + cmod a) / cmod c \<le> cmod z"
       from c0 have "cmod c > 0" by simp
@@ -660,8 +689,8 @@ proof(induct p arbitrary: a d)
       from complex_mod_triangle_sub[of "z*c" a ]
       have th1: "cmod (z * c) \<le> cmod (a + z * c) + cmod a"
 	by (simp add: ring_simps)
-      from ath[OF th1 th0] have "d \<le> cmod (poly (a # c # cs) z)" 
-	using poly_0[OF cs0'] by simp}
+      from ath[OF th1 th0] have "d \<le> cmod (poly (pCons a (pCons c cs)) z)" 
+        using cs0' by simp}
     then have ?case  by blast}
   ultimately show ?case by blast
 qed simp
@@ -670,57 +699,53 @@ text {* Hence polynomial's modulus attains its minimum somewhere. *}
 lemma poly_minimum_modulus:
   "\<exists>z.\<forall>w. cmod (poly p z) \<le> cmod (poly p w)"
 proof(induct p)
-  case (Cons c cs) 
-  {assume cs0: "list_ex (\<lambda>c. c \<noteq> 0) cs"
-    from poly_infinity[OF cs0, of "cmod (poly (c#cs) 0)" c]
-    obtain r where r: "\<And>z. r \<le> cmod z \<Longrightarrow> cmod (poly (c # cs) 0) \<le> cmod (poly (c # cs) z)" by blast
+  case (pCons c cs) 
+  {assume cs0: "cs \<noteq> 0"
+    from poly_infinity[OF cs0, of "cmod (poly (pCons c cs) 0)" c]
+    obtain r where r: "\<And>z. r \<le> cmod z \<Longrightarrow> cmod (poly (pCons c cs) 0) \<le> cmod (poly (pCons c cs) z)" by blast
     have ath: "\<And>z r. r \<le> cmod z \<or> cmod z \<le> \<bar>r\<bar>" by arith
-    from poly_minimum_modulus_disc[of "\<bar>r\<bar>" "c#cs"] 
-    obtain v where v: "\<And>w. cmod w \<le> \<bar>r\<bar> \<Longrightarrow> cmod (poly (c # cs) v) \<le> cmod (poly (c # cs) w)" by blast
+    from poly_minimum_modulus_disc[of "\<bar>r\<bar>" "pCons c cs"] 
+    obtain v where v: "\<And>w. cmod w \<le> \<bar>r\<bar> \<Longrightarrow> cmod (poly (pCons c cs) v) \<le> cmod (poly (pCons c cs) w)" by blast
     {fix z assume z: "r \<le> cmod z"
       from v[of 0] r[OF z] 
-      have "cmod (poly (c # cs) v) \<le> cmod (poly (c # cs) z)"
+      have "cmod (poly (pCons c cs) v) \<le> cmod (poly (pCons c cs) z)"
 	by simp }
     note v0 = this
     from v0 v ath[of r] have ?case by blast}
   moreover
-  {assume cs0: "\<not> (list_ex (\<lambda>c. c\<noteq>0) cs)"
-    hence th:"list_all (\<lambda>c. c = 0) cs" by (simp add: list_all_iff list_ex_iff)
-    from poly_0[OF th] Cons.hyps have ?case by simp}
+  {assume cs0: "\<not> (cs \<noteq> 0)"
+    hence th:"cs = 0" by simp
+    from th pCons.hyps have ?case by simp}
   ultimately show ?case by blast
 qed simp
 
 text{* Constant function (non-syntactic characterization). *}
 definition "constant f = (\<forall>x y. f x = f y)"
 
-lemma nonconstant_length: "\<not> (constant (poly p)) \<Longrightarrow> length p \<ge> 2"
-  unfolding constant_def
+lemma nonconstant_length: "\<not> (constant (poly p)) \<Longrightarrow> plength p \<ge> 2"
+  unfolding constant_def plength_def
   apply (induct p, auto)
-  apply (unfold not_less[symmetric])
-  apply simp
-  apply (rule ccontr)
-  apply auto
   done
  
 lemma poly_replicate_append:
-  "poly ((replicate n 0)@p) (x::'a::{recpower, comm_ring}) = x^n * poly p x"
-  by(induct n, auto simp add: power_Suc ring_simps)
+  "poly (monom 1 n * p) (x::'a::{recpower, comm_ring_1}) = x^n * poly p x"
+  by (simp add: poly_monom)
 
 text {* Decomposition of polynomial, skipping zero coefficients 
   after the first.  *}
 
 lemma poly_decompose_lemma:
  assumes nz: "\<not>(\<forall>z. z\<noteq>0 \<longrightarrow> poly p z = (0::'a::{recpower,idom}))"
-  shows "\<exists>k a q. a\<noteq>0 \<and> Suc (length q + k) = length p \<and> 
-                 (\<forall>z. poly p z = z^k * poly (a#q) z)"
+  shows "\<exists>k a q. a\<noteq>0 \<and> Suc (plength q + k) = plength p \<and> 
+                 (\<forall>z. poly p z = z^k * poly (pCons a q) z)"
+unfolding plength_def
 using nz
 proof(induct p)
-  case Nil thus ?case by simp
+  case 0 thus ?case by simp
 next
-  case (Cons c cs)
+  case (pCons c cs)
   {assume c0: "c = 0"
-    
-    from Cons.hyps Cons.prems c0 have ?case apply auto
+    from pCons.hyps pCons.prems c0 have ?case apply auto
       apply (rule_tac x="k+1" in exI)
       apply (rule_tac x="a" in exI, clarsimp)
       apply (rule_tac x="q" in exI)
@@ -739,26 +764,27 @@ qed
 lemma poly_decompose:
   assumes nc: "~constant(poly p)"
   shows "\<exists>k a q. a\<noteq>(0::'a::{recpower,idom}) \<and> k\<noteq>0 \<and>
-               length q + k + 1 = length p \<and> 
-              (\<forall>z. poly p z = poly p 0 + z^k * poly (a#q) z)"
+               plength q + k + 1 = plength p \<and> 
+              (\<forall>z. poly p z = poly p 0 + z^k * poly (pCons a q) z)"
 using nc 
 proof(induct p)
-  case Nil thus ?case by (simp add: constant_def)
+  case 0 thus ?case by (simp add: constant_def)
 next
-  case (Cons c cs)
+  case (pCons c cs)
   {assume C:"\<forall>z. z \<noteq> 0 \<longrightarrow> poly cs z = 0"
     {fix x y
-      from C have "poly (c#cs) x = poly (c#cs) y" by (cases "x=0", auto)}
-    with Cons.prems have False by (auto simp add: constant_def)}
+      from C have "poly (pCons c cs) x = poly (pCons c cs) y" by (cases "x=0", auto)}
+    with pCons.prems have False by (auto simp add: constant_def)}
   hence th: "\<not> (\<forall>z. z \<noteq> 0 \<longrightarrow> poly cs z = 0)" ..
   from poly_decompose_lemma[OF th] 
   show ?case 
-    apply clarsimp    
+    apply clarsimp
     apply (rule_tac x="k+1" in exI)
     apply (rule_tac x="a" in exI)
     apply simp
     apply (rule_tac x="q" in exI)
     apply (auto simp add: power_Suc)
+    apply (auto simp add: plength_def split: if_splits)
     done
 qed
 
@@ -768,10 +794,10 @@ lemma fundamental_theorem_of_algebra:
   assumes nc: "~constant(poly p)"
   shows "\<exists>z::complex. poly p z = 0"
 using nc
-proof(induct n\<equiv> "length p" arbitrary: p rule: nat_less_induct)
-  fix n fix p :: "complex list"
+proof(induct n\<equiv> "plength p" arbitrary: p rule: nat_less_induct)
+  fix n fix p :: "complex poly"
   let ?p = "poly p"
-  assume H: "\<forall>m<n. \<forall>p. \<not> constant (poly p) \<longrightarrow> m = length p \<longrightarrow> (\<exists>(z::complex). poly p z = 0)" and nc: "\<not> constant ?p" and n: "n = length p"
+  assume H: "\<forall>m<n. \<forall>p. \<not> constant (poly p) \<longrightarrow> m = plength p \<longrightarrow> (\<exists>(z::complex). poly p z = 0)" and nc: "\<not> constant ?p" and n: "n = plength p"
   let ?ths = "\<exists>z. ?p z = 0"
 
   from nonconstant_length[OF nc] have n2: "n\<ge> 2" by (simp add: n)
@@ -781,7 +807,7 @@ proof(induct n\<equiv> "length p" arbitrary: p rule: nat_less_induct)
   moreover
   {assume pc0: "?p c \<noteq> 0"
     from poly_offset[of p c] obtain q where
-      q: "length q = length p" "\<forall>x. poly q x = ?p (c+x)" by blast
+      q: "plength q = plength p" "\<forall>x. poly q x = ?p (c+x)" by blast
     {assume h: "constant (poly q)"
       from q(2) have th: "\<forall>x. poly q (x - c) = ?p x" by auto
       {fix x y
@@ -797,10 +823,12 @@ proof(induct n\<equiv> "length p" arbitrary: p rule: nat_less_induct)
     let ?a0 = "poly q 0"
     from pc0 pqc0 have a00: "?a0 \<noteq> 0" by simp 
     from a00 
-    have qr: "\<forall>z. poly q z = poly (map (op * (inverse ?a0)) q) z * ?a0"
-      by (simp add: poly_cmult_map)
-    let ?r = "map (op * (inverse ?a0)) q"
-    have lgqr: "length q = length ?r" by simp 
+    have qr: "\<forall>z. poly q z = poly (smult (inverse ?a0) q) z * ?a0"
+      by simp
+    let ?r = "smult (inverse ?a0) q"
+    have lgqr: "plength q = plength ?r"
+      using a00 unfolding plength_def Polynomial.degree_def
+      by (simp add: expand_poly_eq)
     {assume h: "\<And>x y. poly ?r x = poly ?r y"
       {fix x y
 	from qr[rule_format, of x] 
@@ -813,16 +841,16 @@ proof(induct n\<equiv> "length p" arbitrary: p rule: nat_less_induct)
     from qr[rule_format, of 0] a00  have r01: "poly ?r 0 = 1" by auto
     {fix w 
       have "cmod (poly ?r w) < 1 \<longleftrightarrow> cmod (poly q w / ?a0) < 1"
-	using qr[rule_format, of w] a00 by simp
+	using qr[rule_format, of w] a00 by (simp add: divide_inverse mult_ac)
       also have "\<dots> \<longleftrightarrow> cmod (poly q w) < cmod ?a0"
 	using a00 unfolding norm_divide by (simp add: field_simps)
       finally have "cmod (poly ?r w) < 1 \<longleftrightarrow> cmod (poly q w) < cmod ?a0" .}
     note mrmq_eq = this
     from poly_decompose[OF rnc] obtain k a s where 
-      kas: "a\<noteq>0" "k\<noteq>0" "length s + k + 1 = length ?r" 
-      "\<forall>z. poly ?r z = poly ?r 0 + z^k* poly (a#s) z" by blast
+      kas: "a\<noteq>0" "k\<noteq>0" "plength s + k + 1 = plength ?r" 
+      "\<forall>z. poly ?r z = poly ?r 0 + z^k* poly (pCons a s) z" by blast
     {assume "k + 1 = n"
-      with kas(3) lgqr[symmetric] q(1) n[symmetric] have s0:"s=[]" by auto
+      with kas(3) lgqr[symmetric] q(1) n[symmetric] have s0:"s=0" by auto
       {fix w
 	have "cmod (poly ?r w) = cmod (1 + a * w ^ k)" 
 	  using kas(4)[rule_format, of w] s0 r01 by (simp add: ring_simps)}
@@ -831,18 +859,17 @@ proof(induct n\<equiv> "length p" arbitrary: p rule: nat_less_induct)
       have "\<exists>w. cmod (poly ?r w) < 1" unfolding hth by blast}
     moreover
     {assume kn: "k+1 \<noteq> n"
-      from kn kas(3) q(1) n[symmetric] have k1n: "k + 1 < n" by simp
-      have th01: "\<not> constant (poly (1#((replicate (k - 1) 0)@[a])))" 
-	unfolding constant_def poly_Nil poly_Cons poly_replicate_append
+      from kn kas(3) q(1) n[symmetric] lgqr have k1n: "k + 1 < n" by simp
+      have th01: "\<not> constant (poly (pCons 1 (monom a (k - 1))))" 
+	unfolding constant_def poly_pCons poly_monom
 	using kas(1) apply simp 
 	by (rule exI[where x=0], rule exI[where x=1], simp)
-      from kas(2) have th02: "k+1 = length (1#((replicate (k - 1) 0)@[a]))" 
-	by simp
+      from kas(1) kas(2) have th02: "k+1 = plength (pCons 1 (monom a (k - 1)))"
+	by (simp add: plength_def degree_monom_eq)
       from H[rule_format, OF k1n th01 th02]
       obtain w where w: "1 + w^k * a = 0"
-	unfolding poly_Nil poly_Cons poly_replicate_append
-	using kas(2) by (auto simp add: power_Suc[symmetric, of _ "k - Suc 0"] 
-	  mult_assoc[of _ _ a, symmetric])
+	unfolding poly_pCons poly_monom
+	using kas(2) by (cases k, auto simp add: ring_simps)
       from poly_bound_exists[of "cmod w" s] obtain m where 
 	m: "m > 0" "\<forall>z. cmod z \<le> cmod w \<longrightarrow> cmod (poly s z) \<le> m" by blast
       have w0: "w\<noteq>0" using kas(2) w by (auto simp add: power_0_left)
@@ -901,21 +928,21 @@ qed
 text {* Alternative version with a syntactic notion of constant polynomial. *}
 
 lemma fundamental_theorem_of_algebra_alt:
-  assumes nc: "~(\<exists>a l. a\<noteq> 0 \<and> list_all(\<lambda>b. b = 0) l \<and> p = a#l)"
+  assumes nc: "~(\<exists>a l. a\<noteq> 0 \<and> l = 0 \<and> p = pCons a l)"
   shows "\<exists>z. poly p z = (0::complex)"
 using nc
 proof(induct p)
-  case (Cons c cs)
+  case (pCons c cs)
   {assume "c=0" hence ?case by auto}
   moreover
   {assume c0: "c\<noteq>0"
-    {assume nc: "constant (poly (c#cs))"
+    {assume nc: "constant (poly (pCons c cs))"
       from nc[unfolded constant_def, rule_format, of 0] 
       have "\<forall>w. w \<noteq> 0 \<longrightarrow> poly cs w = 0" by auto 
-      hence "list_all (\<lambda>c. c=0) cs"
+      hence "cs = 0"
 	proof(induct cs)
-	  case (Cons d ds)
-	  {assume "d=0" hence ?case using Cons.prems Cons.hyps by simp}
+	  case (pCons d ds)
+	  {assume "d=0" hence ?case using pCons.prems pCons.hyps by simp}
 	  moreover
 	  {assume d0: "d\<noteq>0"
 	    from poly_bound_exists[of 1 ds] obtain m where 
@@ -925,7 +952,7 @@ proof(induct p)
 	      x: "x > 0" "x < cmod d / m" "x < 1" by blast
 	    let ?x = "complex_of_real x"
 	    from x have cx: "?x \<noteq> 0"  "cmod ?x \<le> 1" by simp_all
-	    from Cons.prems[rule_format, OF cx(1)]
+	    from pCons.prems[rule_format, OF cx(1)]
 	    have cth: "cmod (?x*poly ds ?x) = cmod d" by (simp add: eq_diff_eq[symmetric])
 	    from m(2)[rule_format, OF cx(2)] x(1)
 	    have th0: "cmod (?x*poly ds ?x) \<le> x*m"
@@ -935,154 +962,252 @@ proof(induct p)
 	    with cth  have ?case by blast}
 	  ultimately show ?case by blast 
 	qed simp}
-      then have nc: "\<not> constant (poly (c#cs))" using Cons.prems c0 
+      then have nc: "\<not> constant (poly (pCons c cs))" using pCons.prems c0 
 	by blast
       from fundamental_theorem_of_algebra[OF nc] have ?case .}
   ultimately show ?case by blast  
 qed simp
 
+subsection {* Order of polynomial roots *}
+
+definition
+  order :: "'a::{idom,recpower} \<Rightarrow> 'a poly \<Rightarrow> nat"
+where
+  "order a p = (LEAST n. \<not> [:-a, 1:] ^ Suc n dvd p)"
+
+lemma degree_power_le: "degree (p ^ n) \<le> degree p * n"
+by (induct n, simp, auto intro: order_trans degree_mult_le)
+
+lemma coeff_linear_power:
+  fixes a :: "'a::{comm_semiring_1,recpower}"
+  shows "coeff ([:a, 1:] ^ n) n = 1"
+apply (induct n, simp_all)
+apply (subst coeff_eq_0)
+apply (auto intro: le_less_trans degree_power_le)
+done
+
+lemma degree_linear_power:
+  fixes a :: "'a::{comm_semiring_1,recpower}"
+  shows "degree ([:a, 1:] ^ n) = n"
+apply (rule order_antisym)
+apply (rule ord_le_eq_trans [OF degree_power_le], simp)
+apply (rule le_degree, simp add: coeff_linear_power)
+done
+
+lemma order_1: "[:-a, 1:] ^ order a p dvd p"
+apply (cases "p = 0", simp)
+apply (cases "order a p", simp)
+apply (subgoal_tac "nat < (LEAST n. \<not> [:-a, 1:] ^ Suc n dvd p)")
+apply (drule not_less_Least, simp)
+apply (fold order_def, simp)
+done
+
+lemma order_2: "p \<noteq> 0 \<Longrightarrow> \<not> [:-a, 1:] ^ Suc (order a p) dvd p"
+unfolding order_def
+apply (rule LeastI_ex)
+apply (rule_tac x="degree p" in exI)
+apply (rule notI)
+apply (drule (1) dvd_imp_degree_le)
+apply (simp only: degree_linear_power)
+done
+
+lemma order:
+  "p \<noteq> 0 \<Longrightarrow> [:-a, 1:] ^ order a p dvd p \<and> \<not> [:-a, 1:] ^ Suc (order a p) dvd p"
+by (rule conjI [OF order_1 order_2])
+
+lemma order_degree:
+  assumes p: "p \<noteq> 0"
+  shows "order a p \<le> degree p"
+proof -
+  have "order a p = degree ([:-a, 1:] ^ order a p)"
+    by (simp only: degree_linear_power)
+  also have "\<dots> \<le> degree p"
+    using order_1 p by (rule dvd_imp_degree_le)
+  finally show ?thesis .
+qed
+
+lemma order_root: "poly p a = 0 \<longleftrightarrow> p = 0 \<or> order a p \<noteq> 0"
+apply (cases "p = 0", simp_all)
+apply (rule iffI)
+apply (rule ccontr, simp)
+apply (frule order_2 [where a=a], simp)
+apply (simp add: poly_eq_0_iff_dvd)
+apply (simp add: poly_eq_0_iff_dvd)
+apply (simp only: order_def)
+apply (drule not_less_Least, simp)
+done
+
+lemma UNIV_nat_infinite:
+  "\<not> finite (UNIV :: nat set)" (is "\<not> finite ?U")
+proof
+  assume "finite ?U"
+  moreover have "Suc (Max ?U) \<in> ?U" ..
+  ultimately have "Suc (Max ?U) \<le> Max ?U" by (rule Max_ge)
+  then show "False" by simp
+qed
+
+lemma UNIV_char_0_infinite:
+  "\<not> finite (UNIV::'a::semiring_char_0 set)"
+proof
+  assume "finite (UNIV::'a set)"
+  with subset_UNIV have "finite (range of_nat::'a set)"
+    by (rule finite_subset)
+  moreover have "inj (of_nat::nat \<Rightarrow> 'a)"
+    by (simp add: inj_on_def)
+  ultimately have "finite (UNIV::nat set)"
+    by (rule finite_imageD)
+  then show "False"
+    by (simp add: UNIV_nat_infinite)
+qed
+
+lemma poly_zero:
+  fixes p :: "'a::{idom,ring_char_0} poly"
+  shows "poly p = poly 0 \<longleftrightarrow> p = 0"
+apply (cases "p = 0", simp_all)
+apply (drule Polynomial.poly_roots_finite)
+apply (auto simp add: UNIV_char_0_infinite)
+done
+
+lemma poly_eq_iff:
+  fixes p q :: "'a::{idom,ring_char_0} poly"
+  shows "poly p = poly q \<longleftrightarrow> p = q"
+  using poly_zero [of "p - q"]
+  by (simp add: expand_fun_eq)
+
+
 subsection{* Nullstellenstatz, degrees and divisibility of polynomials *}
 
 lemma nullstellensatz_lemma:
-  fixes p :: "complex list"
+  fixes p :: "complex poly"
   assumes "\<forall>x. poly p x = 0 \<longrightarrow> poly q x = 0"
   and "degree p = n" and "n \<noteq> 0"
-  shows "p divides (pexp q n)"
+  shows "p dvd (q ^ n)"
 using prems
 proof(induct n arbitrary: p q rule: nat_less_induct)
-  fix n::nat fix p q :: "complex list"
+  fix n::nat fix p q :: "complex poly"
   assume IH: "\<forall>m<n. \<forall>p q.
                  (\<forall>x. poly p x = (0::complex) \<longrightarrow> poly q x = 0) \<longrightarrow>
-                 degree p = m \<longrightarrow> m \<noteq> 0 \<longrightarrow> p divides (q %^ m)"
+                 degree p = m \<longrightarrow> m \<noteq> 0 \<longrightarrow> p dvd (q ^ m)"
     and pq0: "\<forall>x. poly p x = 0 \<longrightarrow> poly q x = 0" 
     and dpn: "degree p = n" and n0: "n \<noteq> 0"
-  let ?ths = "p divides (q %^ n)"
+  from dpn n0 have pne: "p \<noteq> 0" by auto
+  let ?ths = "p dvd (q ^ n)"
   {fix a assume a: "poly p a = 0"
-    {assume p0: "poly p = poly []" 
-      hence ?ths unfolding divides_def  using pq0 n0
-	apply - apply (rule exI[where x="[]"], rule ext)
-	by (auto simp add: poly_mult poly_exp)}
-    moreover
-    {assume p0: "poly p \<noteq> poly []" 
-      and oa: "order  a p \<noteq> 0"
-      from p0 have pne: "p \<noteq> []" by auto
+    {assume oa: "order a p \<noteq> 0"
       let ?op = "order a p"
-      from p0 have ap: "([- a, 1] %^ ?op) divides p" 
-	"\<not> pexp [- a, 1] (Suc ?op) divides p" using order by blast+ 
-      note oop = order_degree[OF p0, unfolded dpn]
-      {assume q0: "q = []"
-	hence ?ths using n0 unfolding divides_def 
-	  apply simp
-	  apply (rule exI[where x="[]"], rule ext)
-	  by (simp add: divides_def poly_exp poly_mult)}
+      from pne have ap: "([:- a, 1:] ^ ?op) dvd p" 
+	"\<not> [:- a, 1:] ^ (Suc ?op) dvd p" using order by blast+ 
+      note oop = order_degree[OF pne, unfolded dpn]
+      {assume q0: "q = 0"
+	hence ?ths using n0
+          by (simp add: power_0_left)}
       moreover
-      {assume q0: "q\<noteq>[]"
-	from pq0[rule_format, OF a, unfolded poly_linear_divides] q0
-	obtain r where r: "q = pmult [- a, 1] r" by blast
-	from ap[unfolded divides_def] obtain s where
-	  s: "poly p = poly (pmult (pexp [- a, 1] ?op) s)" by blast
-	have s0: "poly s \<noteq> poly []"
-	  using s p0 by (simp add: poly_entire)
-	hence pns0: "poly (pnormalize s) \<noteq> poly []" and sne: "s\<noteq>[]" by auto
+      {assume q0: "q \<noteq> 0"
+	from pq0[rule_format, OF a, unfolded poly_eq_0_iff_dvd]
+	obtain r where r: "q = [:- a, 1:] * r" by (rule dvdE)
+	from ap(1) obtain s where
+	  s: "p = [:- a, 1:] ^ ?op * s" by (rule dvdE)
+	have sne: "s \<noteq> 0"
+	  using s pne by auto
 	{assume ds0: "degree s = 0"
-	  from ds0 pns0 have "\<exists>k. pnormalize s = [k]" unfolding degree_def 
-	    by (cases "pnormalize s", auto)
-	  then obtain k where kpn: "pnormalize s = [k]" by blast
-	  from pns0[unfolded poly_zero] kpn have k: "k \<noteq>0" "poly s = poly [k]"
-	    using poly_normalize[of s] by simp_all
-	  let ?w = "pmult (pmult [1/k] (pexp [-a,1] (n - ?op))) (pexp r n)"
-	  from k r s oop have "poly (pexp q n) = poly (pmult p ?w)"
-	    by - (rule ext, simp add: poly_mult poly_exp poly_cmult poly_add power_add[symmetric] ring_simps power_mult_distrib[symmetric])
-	  hence ?ths unfolding divides_def by blast}
+	  from ds0 have "\<exists>k. s = [:k:]"
+            by (cases s, simp split: if_splits)
+	  then obtain k where kpn: "s = [:k:]" by blast
+          from sne kpn have k: "k \<noteq> 0" by simp
+	  let ?w = "([:1/k:] * ([:-a,1:] ^ (n - ?op))) * (r ^ n)"
+          from k oop [of a] have "q ^ n = p * ?w"
+            apply -
+            apply (subst r, subst s, subst kpn)
+            apply (subst power_mult_distrib)
+            apply (simp add: mult_smult_left mult_smult_right smult_smult)
+            apply (subst power_add [symmetric], simp)
+            done
+	  hence ?ths unfolding dvd_def by blast}
 	moreover
 	{assume ds0: "degree s \<noteq> 0"
-	  from ds0 s0 dpn degree_unique[OF s, unfolded linear_pow_mul_degree] oa
-	    have dsn: "degree s < n" by auto 
+	  from ds0 sne dpn s oa
+	    have dsn: "degree s < n" apply auto
+              apply (erule ssubst)
+              apply (simp add: degree_mult_eq degree_linear_power)
+              done
 	    {fix x assume h: "poly s x = 0"
 	      {assume xa: "x = a"
-		from h[unfolded xa poly_linear_divides] sne obtain u where
-		  u: "s = pmult [- a, 1] u" by blast
-		have "poly p = poly (pmult (pexp [- a, 1] (Suc ?op)) u)"
-		  unfolding s u
-		  apply (rule ext)
-		  by (simp add: ring_simps power_mult_distrib[symmetric] poly_mult poly_cmult poly_add poly_exp)
-		with ap(2)[unfolded divides_def] have False by blast}
+		from h[unfolded xa poly_eq_0_iff_dvd] obtain u where
+		  u: "s = [:- a, 1:] * u" by (rule dvdE)
+		have "p = [:- a, 1:] ^ (Suc ?op) * u"
+                  by (subst s, subst u, simp only: power_Suc mult_ac)
+		with ap(2)[unfolded dvd_def] have False by blast}
 	      note xa = this
-	      from h s have "poly p x = 0" by (simp add: poly_mult)
+	      from h have "poly p x = 0" by (subst s, simp)
 	      with pq0 have "poly q x = 0" by blast
 	      with r xa have "poly r x = 0"
-		by (auto simp add: poly_mult poly_add poly_cmult eq_diff_eq[symmetric])}
+                by (auto simp add: uminus_add_conv_diff)}
 	    note impth = this
 	    from IH[rule_format, OF dsn, of s r] impth ds0
-	    have "s divides (pexp r (degree s))" by blast
-	    then obtain u where u: "poly (pexp r (degree s)) = poly (pmult s u)"
-	      unfolding divides_def by blast
+	    have "s dvd (r ^ (degree s))" by blast
+	    then obtain u where u: "r ^ (degree s) = s * u" ..
 	    hence u': "\<And>x. poly s x * poly u x = poly r x ^ degree s"
-	      by (simp add: poly_mult[symmetric] poly_exp[symmetric])
-	    let ?w = "pmult (pmult u (pexp [-a,1] (n - ?op))) (pexp r (n - degree s))"
-	    from u' s r oop[of a] dsn have "poly (pexp q n) = poly (pmult p ?w)"
-	      apply - apply (rule ext)
-	      apply (simp only:  power_mult_distrib power_add[symmetric] poly_add poly_mult poly_exp poly_cmult ring_simps)
-	      
-	      apply (simp add:  power_mult_distrib power_add[symmetric] poly_add poly_mult poly_exp poly_cmult mult_assoc[symmetric])
-	      done
-	    hence ?ths unfolding divides_def by blast}
+              by (simp only: Polynomial.poly_mult[symmetric] poly_power[symmetric])
+	    let ?w = "(u * ([:-a,1:] ^ (n - ?op))) * (r ^ (n - degree s))"
+	    from oop[of a] dsn have "q ^ n = p * ?w"
+              apply -
+              apply (subst s, subst r)
+              apply (simp only: power_mult_distrib)
+              apply (subst mult_assoc [where b=s])
+              apply (subst mult_assoc [where a=u])
+              apply (subst mult_assoc [where b=u, symmetric])
+              apply (subst u [symmetric])
+              apply (simp add: mult_ac power_add [symmetric])
+              done
+	    hence ?ths unfolding dvd_def by blast}
       ultimately have ?ths by blast }
       ultimately have ?ths by blast}
-    ultimately have ?ths using a order_root by blast}
+    then have ?ths using a order_root pne by blast}
   moreover
   {assume exa: "\<not> (\<exists>a. poly p a = 0)"
-    from fundamental_theorem_of_algebra_alt[of p] exa obtain c cs where
-      ccs: "c\<noteq>0" "list_all (\<lambda>c. c = 0) cs" "p = c#cs" by blast
+    from fundamental_theorem_of_algebra_alt[of p] exa obtain c where
+      ccs: "c\<noteq>0" "p = pCons c 0" by blast
     
-    from poly_0[OF ccs(2)] ccs(3) 
-    have pp: "\<And>x. poly p x =  c" by simp
-    let ?w = "pmult [1/c] (pexp q n)"
-    from pp ccs(1) 
-    have "poly (pexp q n) = poly (pmult p ?w) "
-      apply - apply (rule ext)
-      unfolding poly_mult_assoc[symmetric] by (simp add: poly_mult)
-    hence ?ths unfolding divides_def by blast}
+    then have pp: "\<And>x. poly p x =  c" by simp
+    let ?w = "[:1/c:] * (q ^ n)"
+    from ccs
+    have "(q ^ n) = (p * ?w) "
+      by (simp add: smult_smult)
+    hence ?ths unfolding dvd_def by blast}
   ultimately show ?ths by blast
 qed
 
 lemma nullstellensatz_univariate:
   "(\<forall>x. poly p x = (0::complex) \<longrightarrow> poly q x = 0) \<longleftrightarrow> 
-    p divides (q %^ (degree p)) \<or> (poly p = poly [] \<and> poly q = poly [])"
+    p dvd (q ^ (degree p)) \<or> (p = 0 \<and> q = 0)"
 proof-
-  {assume pe: "poly p = poly []"
-    hence eq: "(\<forall>x. poly p x = (0::complex) \<longrightarrow> poly q x = 0) \<longleftrightarrow> poly q = poly []"
+  {assume pe: "p = 0"
+    hence eq: "(\<forall>x. poly p x = (0::complex) \<longrightarrow> poly q x = 0) \<longleftrightarrow> q = 0"
       apply auto
+      apply (rule poly_zero [THEN iffD1])
       by (rule ext, simp)
-    {assume "p divides (pexp q (degree p))"
-      then obtain r where r: "poly (pexp q (degree p)) = poly (pmult p r)" 
-	unfolding divides_def by blast
-      from cong[OF r refl] pe degree_unique[OF pe]
-      have False by (simp add: poly_mult degree_def)}
+    {assume "p dvd (q ^ (degree p))"
+      then obtain r where r: "q ^ (degree p) = p * r" ..
+      from r pe have False by simp}
     with eq pe have ?thesis by blast}
   moreover
-  {assume pe: "poly p \<noteq> poly []"
-    have p0: "poly [0] = poly []" by (rule ext, simp)
+  {assume pe: "p \<noteq> 0"
     {assume dp: "degree p = 0"
-      then obtain k where "pnormalize p = [k]" using pe poly_normalize[of p]
-	unfolding degree_def by (cases "pnormalize p", auto)
-      hence k: "pnormalize p = [k]" "poly p = poly [k]" "k\<noteq>0"
-	using pe poly_normalize[of p] by (auto simp add: p0)
+      then obtain k where k: "p = [:k:]" "k\<noteq>0" using pe
+        by (cases p, simp split: if_splits)
       hence th1: "\<forall>x. poly p x \<noteq> 0" by simp
-      from k(2,3) dp have "poly (pexp q (degree p)) = poly (pmult p [1/k]) "
-	by - (rule ext, simp add: poly_mult poly_exp)
-      hence th2: "p divides (pexp q (degree p))" unfolding divides_def by blast
+      from k dp have "q ^ (degree p) = p * [:1/k:]"
+        by (simp add: one_poly_def)
+      hence th2: "p dvd (q ^ (degree p))" ..
       from th1 th2 pe have ?thesis by blast}
     moreover
     {assume dp: "degree p \<noteq> 0"
       then obtain n where n: "degree p = Suc n " by (cases "degree p", auto)
-      {assume "p divides (pexp q (Suc n))"
-	then obtain u where u: "poly (pexp q (Suc n)) = poly (pmult p u)"
-	  unfolding divides_def by blast
-	hence u' :"\<And>x. poly (pexp q (Suc n)) x = poly (pmult p u) x" by simp_all
+      {assume "p dvd (q ^ (Suc n))"
+	then obtain u where u: "q ^ (Suc n) = p * u" ..
 	{fix x assume h: "poly p x = 0" "poly q x \<noteq> 0"
-	  hence "poly (pexp q (Suc n)) x \<noteq> 0" by (simp only: poly_exp) simp	  
-	  hence False using u' h(1) by (simp only: poly_mult poly_exp) simp}}
+	  hence "poly (q ^ (Suc n)) x \<noteq> 0" by simp
+	  hence False using u h(1) by (simp only: poly_mult poly_exp) simp}}
 	with n nullstellensatz_lemma[of p q "degree p"] dp 
 	have ?thesis by auto}
     ultimately have ?thesis by blast}
@@ -1091,218 +1216,167 @@ qed
 
 text{* Useful lemma *}
 
-lemma (in idom_char_0) constant_degree: "constant (poly p) \<longleftrightarrow> degree p = 0" (is "?lhs = ?rhs")
+lemma constant_degree:
+  fixes p :: "'a::{idom,ring_char_0} poly"
+  shows "constant (poly p) \<longleftrightarrow> degree p = 0" (is "?lhs = ?rhs")
 proof
   assume l: ?lhs
-  from l[unfolded constant_def, rule_format, of _ "zero"]
-  have th: "poly p = poly [poly p 0]" apply - by (rule ext, simp)
-  from degree_unique[OF th] show ?rhs by (simp add: degree_def)
+  from l[unfolded constant_def, rule_format, of _ "0"]
+  have th: "poly p = poly [:poly p 0:]" apply - by (rule ext, simp)
+  then have "p = [:poly p 0:]" by (simp add: poly_eq_iff)
+  then have "degree p = degree [:poly p 0:]" by simp
+  then show ?rhs by simp
 next
   assume r: ?rhs
-  from r have "pnormalize p = [] \<or> (\<exists>k. pnormalize p = [k])"
-    unfolding degree_def by (cases "pnormalize p", auto)
-  then show ?lhs unfolding constant_def poly_normalize[of p, symmetric]
-    by (auto simp del: poly_normalize)
+  then obtain k where "p = [:k:]"
+    by (cases p, simp split: if_splits)
+  then show ?lhs unfolding constant_def by auto
 qed
 
-(* It would be nicer to prove this without using algebraic closure...        *)
-
-lemma divides_degree_lemma: assumes dpn: "degree (p::complex list) = n"
-  shows "n \<le> degree (p *** q) \<or> poly (p *** q) = poly []"
-  using dpn
-proof(induct n arbitrary: p q)
-  case 0 thus ?case by simp
-next
-  case (Suc n p q)
-  from Suc.prems fundamental_theorem_of_algebra[of p] constant_degree[of p]
-  obtain a where a: "poly p a = 0" by auto
-  then obtain r where r: "p = pmult [-a, 1] r" unfolding poly_linear_divides
-    using Suc.prems by (auto simp add: degree_def)
-  {assume h: "poly (pmult r q) = poly []"
-    hence "poly (pmult p q) = poly []" using r
-      apply - apply (rule ext)  by (auto simp add: poly_entire poly_mult poly_add poly_cmult) hence ?case by blast}
-  moreover
-  {assume h: "poly (pmult r q) \<noteq> poly []" 
-    hence r0: "poly r \<noteq> poly []" and q0: "poly q \<noteq> poly []"
-      by (auto simp add: poly_entire)
-    have eq: "poly (pmult p q) = poly (pmult [-a, 1] (pmult r q))"
-      apply - apply (rule ext)
-      by (simp add: r poly_mult poly_add poly_cmult ring_simps)
-    from linear_mul_degree[OF h, of "- a"]
-    have dqe: "degree (pmult p q) = degree (pmult r q) + 1"
-      unfolding degree_unique[OF eq] .
-    from linear_mul_degree[OF r0, of "- a", unfolded r[symmetric]] r Suc.prems 
-    have dr: "degree r = n" by auto
-    from  Suc.hyps[OF dr, of q] have "Suc n \<le> degree (pmult p q)"
-      unfolding dqe using h by (auto simp del: poly.simps) 
-    hence ?case by blast}
-  ultimately show ?case by blast
-qed
-
-lemma divides_degree: assumes pq: "p divides (q:: complex list)"
-  shows "degree p \<le> degree q \<or> poly q = poly []"
-using pq  divides_degree_lemma[OF refl, of p]
-apply (auto simp add: divides_def poly_entire)
-apply atomize
-apply (erule_tac x="qa" in allE, auto)
-apply (subgoal_tac "degree q = degree (p *** qa)", simp)
-apply (rule degree_unique, simp)
+lemma divides_degree: assumes pq: "p dvd (q:: complex poly)"
+  shows "degree p \<le> degree q \<or> q = 0"
+apply (cases "q = 0", simp_all)
+apply (erule dvd_imp_degree_le [OF pq])
 done
 
 (* Arithmetic operations on multivariate polynomials.                        *)
 
 lemma mpoly_base_conv: 
-  "(0::complex) \<equiv> poly [] x" "c \<equiv> poly [c] x" "x \<equiv> poly [0,1] x" by simp_all
+  "(0::complex) \<equiv> poly 0 x" "c \<equiv> poly [:c:] x" "x \<equiv> poly [:0,1:] x" by simp_all
 
 lemma mpoly_norm_conv: 
-  "poly [0] (x::complex) \<equiv> poly [] x" "poly [poly [] y] x \<equiv> poly [] x" by simp_all
+  "poly [:0:] (x::complex) \<equiv> poly 0 x" "poly [:poly 0 y:] x \<equiv> poly 0 x" by simp_all
 
 lemma mpoly_sub_conv: 
   "poly p (x::complex) - poly q x \<equiv> poly p x + -1 * poly q x"
   by (simp add: diff_def)
 
-lemma poly_pad_rule: "poly p x = 0 ==> poly (0#p) x = (0::complex)" by simp
+lemma poly_pad_rule: "poly p x = 0 ==> poly (pCons 0 p) x = (0::complex)" by simp
 
 lemma poly_cancel_eq_conv: "p = (0::complex) \<Longrightarrow> a \<noteq> 0 \<Longrightarrow> (q = 0) \<equiv> (a * q - b * p = 0)" apply (atomize (full)) by auto
 
-lemma resolve_eq_raw:  "poly [] x \<equiv> 0" "poly [c] x \<equiv> (c::complex)" by auto
+lemma resolve_eq_raw:  "poly 0 x \<equiv> 0" "poly [:c:] x \<equiv> (c::complex)" by auto
 lemma  resolve_eq_then: "(P \<Longrightarrow> (Q \<equiv> Q1)) \<Longrightarrow> (\<not>P \<Longrightarrow> (Q \<equiv> Q2))
   \<Longrightarrow> Q \<equiv> P \<and> Q1 \<or> \<not>P\<and> Q2" apply (atomize (full)) by blast 
 lemma expand_ex_beta_conv: "list_ex P [c] \<equiv> P c" by simp
 
 lemma poly_divides_pad_rule: 
-  fixes p q :: "complex list"
-  assumes pq: "p divides q"
-  shows "p divides ((0::complex)#q)"
+  fixes p q :: "complex poly"
+  assumes pq: "p dvd q"
+  shows "p dvd (pCons (0::complex) q)"
 proof-
-  from pq obtain r where r: "poly q = poly (p *** r)" unfolding divides_def by blast
-  hence "poly (0#q) = poly (p *** ([0,1] *** r))" 
-    by - (rule ext, simp add: poly_mult poly_cmult poly_add)
-  thus ?thesis unfolding divides_def by blast
+  have "pCons 0 q = q * [:0,1:]" by simp
+  then have "q dvd (pCons 0 q)" ..
+  with pq show ?thesis by (rule dvd_trans)
 qed
 
 lemma poly_divides_pad_const_rule: 
-  fixes p q :: "complex list"
-  assumes pq: "p divides q"
-  shows "p divides (a %* q)"
+  fixes p q :: "complex poly"
+  assumes pq: "p dvd q"
+  shows "p dvd (smult a q)"
 proof-
-  from pq obtain r where r: "poly q = poly (p *** r)" unfolding divides_def by blast
-  hence "poly (a %* q) = poly (p *** (a %* r))" 
-    by - (rule ext, simp add: poly_mult poly_cmult poly_add)
-  thus ?thesis unfolding divides_def by blast
+  have "smult a q = q * [:a:]" by simp
+  then have "q dvd smult a q" ..
+  with pq show ?thesis by (rule dvd_trans)
 qed
 
 
 lemma poly_divides_conv0:  
-  fixes p :: "complex list"
-  assumes lgpq: "length q < length p" and lq:"last p \<noteq> 0"
-  shows "p divides q \<equiv> (\<not> (list_ex (\<lambda>c. c \<noteq> 0) q))" (is "?lhs \<equiv> ?rhs")
+  fixes p :: "complex poly"
+  assumes lgpq: "degree q < degree p" and lq:"p \<noteq> 0"
+  shows "p dvd q \<equiv> q = 0" (is "?lhs \<equiv> ?rhs")
 proof-
   {assume r: ?rhs 
-    hence eq: "poly q = poly []" unfolding poly_zero 
-      by (simp add: list_all_iff list_ex_iff)
-    hence "poly q = poly (p *** [])" by - (rule ext, simp add: poly_mult)
-    hence ?lhs unfolding divides_def  by blast}
+    hence "q = p * 0" by simp
+    hence ?lhs ..}
   moreover
   {assume l: ?lhs
-    have ath: "\<And>lq lp dq::nat. lq < lp ==> lq \<noteq> 0 \<Longrightarrow> dq <= lq - 1 ==> dq < lp - 1"
-      by arith
-    {assume q0: "length q = 0"
-      hence "q = []" by simp
+    {assume q0: "q = 0"
       hence ?rhs by simp}
     moreover
-    {assume lgq0: "length q \<noteq> 0"
-      from pnormalize_length[of q] have dql: "degree q \<le> length q - 1" 
-	unfolding degree_def by simp
-      from ath[OF lgpq lgq0 dql, unfolded pnormal_degree[OF lq, symmetric]] divides_degree[OF l] have "poly q = poly []" by auto
-      hence ?rhs unfolding poly_zero by (simp add: list_all_iff list_ex_iff)}
+    {assume q0: "q \<noteq> 0"
+      from l q0 have "degree p \<le> degree q"
+        by (rule dvd_imp_degree_le)
+      with lgpq have ?rhs by simp }
     ultimately have ?rhs by blast }
   ultimately show "?lhs \<equiv> ?rhs" by - (atomize (full), blast) 
 qed
 
 lemma poly_divides_conv1: 
-  assumes a0: "a\<noteq> (0::complex)" and pp': "(p::complex list) divides p'"
-  and qrp': "\<And>x. a * poly q x - poly p' x \<equiv> poly r x"
-  shows "p divides q \<equiv> p divides (r::complex list)" (is "?lhs \<equiv> ?rhs")
+  assumes a0: "a\<noteq> (0::complex)" and pp': "(p::complex poly) dvd p'"
+  and qrp': "smult a q - p' \<equiv> r"
+  shows "p dvd q \<equiv> p dvd (r::complex poly)" (is "?lhs \<equiv> ?rhs")
 proof-
   {
-  from pp' obtain t where t: "poly p' = poly (p *** t)" 
-    unfolding divides_def by blast
+  from pp' obtain t where t: "p' = p * t" ..
   {assume l: ?lhs
-    then obtain u where u: "poly q = poly (p *** u)" unfolding divides_def by blast
-     have "poly r = poly (p *** ((a %* u) +++ (-- t)))"
-       using u qrp' t
-       by - (rule ext, 
-	 simp add: poly_add poly_mult poly_cmult poly_minus ring_simps)
-     then have ?rhs unfolding divides_def by blast}
+    then obtain u where u: "q = p * u" ..
+     have "r = p * (smult a u - t)"
+       using u qrp' [symmetric] t by (simp add: ring_simps mult_smult_right)
+     then have ?rhs ..}
   moreover
   {assume r: ?rhs
-    then obtain u where u: "poly r = poly (p *** u)" unfolding divides_def by blast
-    from u t qrp' a0 have "poly q = poly (p *** ((1/a) %* (u +++ t)))"
-      by - (rule ext, atomize (full), simp add: poly_mult poly_add poly_cmult field_simps)
-    hence ?lhs  unfolding divides_def by blast}
+    then obtain u where u: "r = p * u" ..
+    from u [symmetric] t qrp' [symmetric] a0
+    have "q = p * smult (1/a) (u + t)"
+      by (simp add: ring_simps mult_smult_right smult_smult)
+    hence ?lhs ..}
   ultimately have "?lhs = ?rhs" by blast }
 thus "?lhs \<equiv> ?rhs"  by - (atomize(full), blast) 
 qed
 
 lemma basic_cqe_conv1:
-  "(\<exists>x. poly p x = 0 \<and> poly [] x \<noteq> 0) \<equiv> False"
-  "(\<exists>x. poly [] x \<noteq> 0) \<equiv> False"
-  "(\<exists>x. poly [c] x \<noteq> 0) \<equiv> c\<noteq>0"
-  "(\<exists>x. poly [] x = 0) \<equiv> True"
-  "(\<exists>x. poly [c] x = 0) \<equiv> c = 0" by simp_all
+  "(\<exists>x. poly p x = 0 \<and> poly 0 x \<noteq> 0) \<equiv> False"
+  "(\<exists>x. poly 0 x \<noteq> 0) \<equiv> False"
+  "(\<exists>x. poly [:c:] x \<noteq> 0) \<equiv> c\<noteq>0"
+  "(\<exists>x. poly 0 x = 0) \<equiv> True"
+  "(\<exists>x. poly [:c:] x = 0) \<equiv> c = 0" by simp_all
 
 lemma basic_cqe_conv2: 
-  assumes l:"last (a#b#p) \<noteq> 0" 
-  shows "(\<exists>x. poly (a#b#p) x = (0::complex)) \<equiv> True"
+  assumes l:"p \<noteq> 0" 
+  shows "(\<exists>x. poly (pCons a (pCons b p)) x = (0::complex)) \<equiv> True"
 proof-
   {fix h t
-    assume h: "h\<noteq>0" "list_all (\<lambda>c. c=(0::complex)) t"  "a#b#p = h#t"
-    hence "list_all (\<lambda>c. c= 0) (b#p)" by simp
-    moreover have "last (b#p) \<in> set (b#p)" by simp
-    ultimately have "last (b#p) = 0" by (simp add: list_all_iff)
+    assume h: "h\<noteq>0" "t=0"  "pCons a (pCons b p) = pCons h t"
     with l have False by simp}
-  hence th: "\<not> (\<exists> h t. h\<noteq>0 \<and> list_all (\<lambda>c. c=0) t \<and> a#b#p = h#t)"
+  hence th: "\<not> (\<exists> h t. h\<noteq>0 \<and> t=0 \<and> pCons a (pCons b p) = pCons h t)"
     by blast
   from fundamental_theorem_of_algebra_alt[OF th] 
-  show "(\<exists>x. poly (a#b#p) x = (0::complex)) \<equiv> True" by auto
+  show "(\<exists>x. poly (pCons a (pCons b p)) x = (0::complex)) \<equiv> True" by auto
 qed
 
-lemma  basic_cqe_conv_2b: "(\<exists>x. poly p x \<noteq> (0::complex)) \<equiv> (list_ex (\<lambda>c. c \<noteq> 0) p)"
+lemma  basic_cqe_conv_2b: "(\<exists>x. poly p x \<noteq> (0::complex)) \<equiv> (p \<noteq> 0)"
 proof-
-  have "\<not> (list_ex (\<lambda>c. c \<noteq> 0) p) \<longleftrightarrow> poly p = poly []" 
-    by (simp add: poly_zero list_all_iff list_ex_iff)
+  have "p = 0 \<longleftrightarrow> poly p = poly 0"
+    by (simp add: poly_zero)
   also have "\<dots> \<longleftrightarrow> (\<not> (\<exists>x. poly p x \<noteq> 0))" by (auto intro: ext)
-  finally show "(\<exists>x. poly p x \<noteq> (0::complex)) \<equiv> (list_ex (\<lambda>c. c \<noteq> 0) p)"
+  finally show "(\<exists>x. poly p x \<noteq> (0::complex)) \<equiv> p \<noteq> 0"
     by - (atomize (full), blast)
 qed
 
 lemma basic_cqe_conv3:
-  fixes p q :: "complex list"
-  assumes l: "last (a#p) \<noteq> 0" 
-  shows "(\<exists>x. poly (a#p) x =0 \<and> poly q x \<noteq> 0) \<equiv> \<not> ((a#p) divides (q %^ (length p)))"
+  fixes p q :: "complex poly"
+  assumes l: "p \<noteq> 0" 
+  shows "(\<exists>x. poly (pCons a p) x = 0 \<and> poly q x \<noteq> 0) \<equiv> \<not> ((pCons a p) dvd (q ^ (plength p)))"
 proof-
-  note np = pnormalize_eq[OF l]
-  {assume "poly (a#p) = poly []" hence False using l
-      unfolding poly_zero apply (auto simp add: list_all_iff del: last.simps)
-      apply (cases p, simp_all) done}
-  then have p0: "poly (a#p) \<noteq> poly []"  by blast
-  from np have dp:"degree (a#p) = length p" by (simp add: degree_def)
-  from nullstellensatz_univariate[of "a#p" q] p0 dp
-  show "(\<exists>x. poly (a#p) x =0 \<and> poly q x \<noteq> 0) \<equiv> \<not> ((a#p) divides (q %^ (length p)))"
+  from l have dp:"degree (pCons a p) = plength p" by (simp add: plength_def)
+  from nullstellensatz_univariate[of "pCons a p" q] l
+  show "(\<exists>x. poly (pCons a p) x = 0 \<and> poly q x \<noteq> 0) \<equiv> \<not> ((pCons a p) dvd (q ^ (plength p)))"
+    unfolding dp
     by - (atomize (full), auto)
 qed
 
 lemma basic_cqe_conv4:
-  fixes p q :: "complex list"
-  assumes h: "\<And>x. poly (q %^ n) x \<equiv> poly r x"
-  shows "p divides (q %^ n) \<equiv> p divides r"
+  fixes p q :: "complex poly"
+  assumes h: "\<And>x. poly (q ^ n) x \<equiv> poly r x"
+  shows "p dvd (q ^ n) \<equiv> p dvd r"
 proof-
-  from h have "poly (q %^ n) = poly r" by (auto intro: ext)  
-  thus "p divides (q %^ n) \<equiv> p divides r" unfolding divides_def by simp
+  from h have "poly (q ^ n) = poly r" by (auto intro: ext)
+  then have "(q ^ n) = r" by (simp add: poly_eq_iff)
+  thus "p dvd (q ^ n) \<equiv> p dvd r" by simp
 qed
 
-lemma pmult_Cons_Cons: "((a::complex)#b#p) *** q = (a %*q) +++ (0#((b#p) *** q))"
+lemma pmult_Cons_Cons: "(pCons (a::complex) (pCons b p) * q = (smult a q) + (pCons 0 (pCons b p * q)))"
   by simp
 
 lemma elim_neg_conv: "- z \<equiv> (-1) * (z::complex)" by simp
@@ -1314,7 +1388,7 @@ lemma length_simps: "length [] = 0" "length (x#y#xs) = length xs + 2" "length [x
 lemma complex_entire: "(z::complex) \<noteq> 0 \<and> w \<noteq> 0 \<equiv> z*w \<noteq> 0" by simp
 lemma resolve_eq_ne: "(P \<equiv> True) \<equiv> (\<not>P \<equiv> False)" "(P \<equiv> False) \<equiv> (\<not>P \<equiv> True)" 
   by (atomize (full)) simp_all
-lemma cqe_conv1: "poly [] x = 0 \<longleftrightarrow> True"  by simp
+lemma cqe_conv1: "poly 0 x = 0 \<longleftrightarrow> True"  by simp
 lemma cqe_conv2: "(p \<Longrightarrow> (q \<equiv> r)) \<equiv> ((p \<and> q) \<equiv> (p \<and> r))"  (is "?l \<equiv> ?r")
 proof
   assume "p \<Longrightarrow> q \<equiv> r" thus "p \<and> q \<equiv> p \<and> r" apply - apply (atomize (full)) by blast
@@ -1322,6 +1396,6 @@ next
   assume "p \<and> q \<equiv> p \<and> r" "p"
   thus "q \<equiv> r" apply - apply (atomize (full)) apply blast done
 qed
-lemma poly_const_conv: "poly [c] (x::complex) = y \<longleftrightarrow> c = y" by simp
+lemma poly_const_conv: "poly [:c:] (x::complex) = y \<longleftrightarrow> c = y" by simp
 
 end
