@@ -282,6 +282,7 @@ $(OUT)/HOL: ROOT.ML $(MAIN_DEPENDENCIES) \
   Parity.thy \
   Univ_Poly.thy \
   Lubs.thy \
+  Polynomial.thy \
   PReal.thy \
   Rational.thy \
   RComplete.thy \
