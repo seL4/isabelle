@@ -295,7 +295,7 @@ begin
 subclass ring_1 ..
 subclass comm_semiring_1_cancel ..
 
-lemma dvd_minus_iff [iff]: "x dvd - y \<longleftrightarrow> x dvd y"
+lemma dvd_minus_iff [simp]: "x dvd - y \<longleftrightarrow> x dvd y"
 proof
   assume "x dvd - y"
   then have "x dvd - 1 * - y" by (rule dvd_mult)
@@ -306,7 +306,7 @@ next
   then show "x dvd - y" by simp
 qed
 
-lemma minus_dvd_iff [iff]: "- x dvd y \<longleftrightarrow> x dvd y"
+lemma minus_dvd_iff [simp]: "- x dvd y \<longleftrightarrow> x dvd y"
 proof
   assume "- x dvd y"
   then obtain k where "y = - x * k" ..
