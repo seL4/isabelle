@@ -955,6 +955,11 @@ lemma poly_smult [simp]: "poly (smult a p) x = a * poly p x"
 lemma poly_mult [simp]: "poly (p * q) x = poly p x * poly q x"
   by (induct p, simp_all, simp add: ring_simps)
 
+lemma poly_power [simp]:
+  fixes p :: "'a::{comm_semiring_1,recpower} poly"
+  shows "poly (p ^ n) x = poly p x ^ n"
+  by (induct n, simp, simp add: power_Suc)
+
 
 subsection {* Synthetic division *}
 
@@ -1037,5 +1042,36 @@ lemma dvd_iff_poly_eq_0:
   fixes c :: "'a::idom"
   shows "[:c, 1:] dvd p \<longleftrightarrow> poly p (-c) = 0"
   by (simp add: poly_eq_0_iff_dvd)
+
+lemma poly_roots_finite:
+  fixes p :: "'a::idom poly"
+  shows "p \<noteq> 0 \<Longrightarrow> finite {x. poly p x = 0}"
+proof (induct n \<equiv> "degree p" arbitrary: p)
+  case (0 p)
+  then obtain a where "a \<noteq> 0" and "p = [:a:]"
+    by (cases p, simp split: if_splits)
+  then show "finite {x. poly p x = 0}" by simp
+next
+  case (Suc n p)
+  show "finite {x. poly p x = 0}"
+  proof (cases "\<exists>x. poly p x = 0")
+    case False
+    then show "finite {x. poly p x = 0}" by simp
+  next
+    case True
+    then obtain a where "poly p a = 0" ..
+    then have "[:-a, 1:] dvd p" by (simp only: poly_eq_0_iff_dvd)
+    then obtain k where k: "p = [:-a, 1:] * k" ..
+    with `p \<noteq> 0` have "k \<noteq> 0" by auto
+    with k have "degree p = Suc (degree k)"
+      by (simp add: degree_mult_eq del: mult_pCons_left)
+    with `Suc n = degree p` have "n = degree k" by simp
+    with `k \<noteq> 0` have "finite {x. poly k x = 0}" by (rule Suc.hyps)
+    then have "finite (insert a {x. poly k x = 0})" by simp
+    then show "finite {x. poly p x = 0}"
+      by (simp add: k uminus_add_conv_diff Collect_disj_eq
+               del: mult_pCons_left)
+  qed
+qed
 
 end
