@@ -662,17 +662,7 @@ subsection {* Polynomials form an integral domain *}
 lemma coeff_mult_degree_sum:
   "coeff (p * q) (degree p + degree q) =
    coeff p (degree p) * coeff q (degree q)"
- apply (simp add: coeff_mult)
- apply (subst setsum_diff1' [where a="degree p"])
-   apply simp
-  apply simp
- apply (subst setsum_0' [rule_format])
-  apply clarsimp
-  apply (subgoal_tac "degree p < a \<or> degree q < degree p + degree q - a")
-   apply (force simp add: coeff_eq_0)
-  apply arith
- apply simp
-done
+  by (induct p, simp, simp add: coeff_eq_0)
 
 instance poly :: (idom) idom
 proof
