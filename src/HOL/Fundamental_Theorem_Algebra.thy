@@ -134,7 +134,7 @@ apply (simp add: offset_poly_eq_0_iff)
 apply (simp add: offset_poly_eq_0_iff)
 done
 
-definition [code del]:
+definition
   "plength p = (if p = 0 then 0 else Suc (degree p))"
 
 lemma plength_eq_0_iff [simp]: "plength p = 0 \<longleftrightarrow> p = 0"

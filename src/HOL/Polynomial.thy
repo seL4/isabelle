@@ -910,7 +910,7 @@ subsection {* Synthetic division *}
 
 definition
   synthetic_divmod :: "'a::comm_semiring_0 poly \<Rightarrow> 'a \<Rightarrow> 'a poly \<times> 'a"
-where
+where [code del]:
   "synthetic_divmod p c =
     poly_rec (0, 0) (\<lambda>a p (q, r). (pCons r q, a + c * r)) p"
 
@@ -1018,5 +1018,97 @@ next
                del: mult_pCons_left)
   qed
 qed
+
+
+subsection {* Configuration of the code generator *}
+
+code_datatype "0::'a::zero poly" pCons
+
+instantiation poly :: ("{zero,eq}") eq
+begin
+
+definition [code del]:
+  "eq_class.eq (p::'a poly) q \<longleftrightarrow> p = q"
+
+instance
+  by default (rule eq_poly_def)
+
+end
+
+lemma eq_poly_code [code]:
+  "eq_class.eq (0::_ poly) (0::_ poly) \<longleftrightarrow> True"
+  "eq_class.eq (0::_ poly) (pCons b q) \<longleftrightarrow> eq_class.eq 0 b \<and> eq_class.eq 0 q"
+  "eq_class.eq (pCons a p) (0::_ poly) \<longleftrightarrow> eq_class.eq a 0 \<and> eq_class.eq p 0"
+  "eq_class.eq (pCons a p) (pCons b q) \<longleftrightarrow> eq_class.eq a b \<and> eq_class.eq p q"
+unfolding eq by simp_all
+
+lemmas coeff_code [code] =
+  coeff_0 coeff_pCons_0 coeff_pCons_Suc
+
+lemmas degree_code [code] =
+  degree_0 degree_pCons_eq_if
+
+lemmas monom_poly_code [code] =
+  monom_0 monom_Suc
+
+lemma add_poly_code [code]:
+  "0 + q = (q :: _ poly)"
+  "p + 0 = (p :: _ poly)"
+  "pCons a p + pCons b q = pCons (a + b) (p + q)"
+by simp_all
+
+lemma minus_poly_code [code]:
+  "- 0 = (0 :: _ poly)"
+  "- pCons a p = pCons (- a) (- p)"
+by simp_all
+
+lemma diff_poly_code [code]:
+  "0 - q = (- q :: _ poly)"
+  "p - 0 = (p :: _ poly)"
+  "pCons a p - pCons b q = pCons (a - b) (p - q)"
+by simp_all
+
+lemmas smult_poly_code [code] =
+  smult_0_right smult_pCons
+
+lemma mult_poly_code [code]:
+  "0 * q = (0 :: _ poly)"
+  "pCons a p * q = smult a q + pCons 0 (p * q)"
+by simp_all
+
+lemmas poly_code [code] =
+  poly_0 poly_pCons
+
+lemmas synthetic_divmod_code [code] =
+  synthetic_divmod_0 synthetic_divmod_pCons
+
+text {* code generator setup for div and mod *}
+
+definition
+  divmod_poly :: "'a::field poly \<Rightarrow> 'a poly \<Rightarrow> 'a poly \<times> 'a poly"
+where
+  [code del]: "divmod_poly x y = (x div y, x mod y)"
+
+lemma div_poly_code [code]: "x div y = fst (divmod_poly x y)"
+  unfolding divmod_poly_def by simp
+
+lemma mod_poly_code [code]: "x mod y = snd (divmod_poly x y)"
+  unfolding divmod_poly_def by simp
+
+lemma divmod_poly_0 [code]: "divmod_poly 0 y = (0, 0)"
+  unfolding divmod_poly_def by simp
+
+lemma divmod_poly_pCons [code]:
+  "divmod_poly (pCons a x) y =
+    (if y = 0 then (0, pCons a x) else
+      (let (q, r) = divmod_poly x y;
+           b = coeff (pCons a r) (degree y) / coeff y (degree y)
+        in (pCons b q, pCons a r - smult b y)))"
+apply (simp add: divmod_poly_def Let_def, safe)
+apply (rule div_poly_eq)
+apply (erule divmod_poly_rel_pCons [OF divmod_poly_rel _ refl])
+apply (rule mod_poly_eq)
+apply (erule divmod_poly_rel_pCons [OF divmod_poly_rel _ refl])
+done
 
 end
