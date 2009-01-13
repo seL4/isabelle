@@ -12,6 +12,7 @@ sig
   val parens: 'a parser -> 'a parser
   val pair: 'a parser -> 'b parser -> ('a * 'b) parser
   val triple: 'a parser -> 'b parser -> 'c parser -> ('a * 'b * 'c) parser
+  val list: 'a parser -> 'a list parser
   val properties: Properties.T parser
 end;
 
