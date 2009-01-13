@@ -1115,8 +1115,7 @@ proof(induct n arbitrary: p q rule: nat_less_induct)
           from k oop [of a] have "q ^ n = p * ?w"
             apply -
             apply (subst r, subst s, subst kpn)
-            apply (subst power_mult_distrib)
-            apply (simp add: mult_smult_left mult_smult_right smult_smult)
+            apply (subst power_mult_distrib, simp)
             apply (subst power_add [symmetric], simp)
             done
 	  hence ?ths unfolding dvd_def by blast}

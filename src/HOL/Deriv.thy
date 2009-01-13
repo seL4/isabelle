@@ -1475,7 +1475,7 @@ apply simp
 apply (subst power_Suc)
 apply (subst pderiv_mult)
 apply (erule ssubst)
-apply (simp add: mult_smult_right mult_smult_left smult_add_left ring_simps)
+apply (simp add: smult_add_left ring_simps)
 done
 
 lemma DERIV_cmult2: "DERIV f x :> D ==> DERIV (%x. (f x) * c :: real) x :> D * c"
