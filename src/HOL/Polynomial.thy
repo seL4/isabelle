@@ -1024,6 +1024,8 @@ subsection {* Configuration of the code generator *}
 
 code_datatype "0::'a::zero poly" pCons
 
+declare pCons_0_0 [code post]
+
 instantiation poly :: ("{zero,eq}") eq
 begin
 
