@@ -24,6 +24,11 @@ type document_id = string;
 type command_id = string;
 type state_id = string;
 
+val no_id = "";
+
+fun err_dup kind id = error ("Duplicate " ^ kind ^ ": " ^ quote id);
+fun err_undef kind id = error ("Unknown " ^ kind ^ ": " ^ quote id);
+
 
 (** execution states **)
 
@@ -44,7 +49,7 @@ fun status_update tr state status =
   (case status of
     Unprocessed => SOME (Running (Future.fork_pri 1 (fn () =>
       (case Toplevel.transition true tr state of
-        NONE => (Toplevel.error_msg tr (SYS_ERROR "Cannot terminate here!", ""); NONE)
+        NONE => (Toplevel.error_msg tr (ERROR "Cannot terminate here!", ""); NONE)
       | SOME (_, SOME err) => (Toplevel.error_msg tr err; NONE)
       | SOME (state', NONE) => SOME state'))))
   | Running future =>
@@ -78,22 +83,77 @@ datatype entry = Entry of
 
 fun make_entry prev next state = Entry {prev = prev, next = next, state = state};
 
+fun the_entry entries (id: command_id) =
+  (case Symtab.lookup entries id of
+    NONE => err_undef "document entry" id
+  | SOME (Entry entry) => entry);
+
+fun put_entry (id: command_id, entry: entry) = Symtab.update (id, entry);
+
+fun map_entry (id: command_id) f entries =
+  let
+    val {prev, next, state} = the_entry entries id;
+    val (prev', next', state') = f (prev, next, state);
+  in put_entry (id, make_entry prev' next' state') entries end;
+
 
 (* document *)
 
 datatype document = Document of
  {dir: Path.T,                    (*master directory*)
   name: string,                   (*theory name*)
-  commands: entry Symtab.table};  (*unique command entries indexed by command_id*)
+  start: command_id,              (*empty start command*)
+  entries: entry Symtab.table};   (*unique command entries indexed by command_id*)
 
-fun make_document dir name commands = Document {dir = dir, name = name, commands = commands};
+fun make_document dir name start entries =
+  Document {dir = dir, name = name, start = start, entries = entries};
+
+fun map_entries f (Document {dir, name, start, entries}) =
+  make_document dir name start (f entries);
+
+
+fun fold_entries f (Document {start, entries, ...}) =
+  let
+    fun descend NONE x = x
+      | descend (SOME id) x = descend_next id (f id x)
+    and descend_next id = descend (#next (the_entry entries id));
+  in descend_next start end;
+
+
+fun insert_entry (id: command_id, id2: command_id) = map_entries (fn entries =>
+  let
+    val {prev, next, state} = the_entry entries id;
+    val state2 = no_id;
+  in
+    entries |>
+      (case next of
+        NONE => put_entry (id2, make_entry (SOME id) NONE state2)
+      | SOME id3 =>
+          let val {next = next3, state = state3, ...} = the_entry entries id3 in
+            put_entry (id, make_entry prev (SOME id2) state) #>
+            put_entry (id2, make_entry (SOME id) (SOME id3) state2) #>
+            put_entry (id3, make_entry (SOME id2) next3 state3)
+          end)
+  end);
+
+fun delete_after_entry (id: command_id) = map_entries (fn entries =>
+  let val {prev, next, state} = the_entry entries id in
+    entries |>
+      (case next of
+        NONE => error ("Missing next entry: " ^ quote id)
+      | SOME id2 =>
+          (case #next (the_entry entries id2) of
+            NONE => put_entry (id, make_entry prev NONE state)
+          | SOME id3 =>
+              let val {next = next3, state = state3, ...} = the_entry entries id3 in
+                put_entry (id, make_entry prev (SOME id3) state) #>
+                put_entry (id3, make_entry (SOME id) next3 state3)
+              end))
+  end);
 
 
 
 (** global configuration **)
-
-fun err_dup kind id = sys_error ("Duplicate " ^ kind ^ ": " ^ quote id);
-fun err_undef kind id = sys_error ("Unknown " ^ kind ^ ": " ^ quote id);
 
 local
   val global_states = ref (Symtab.empty: state Symtab.table);
@@ -126,7 +186,7 @@ fun the_state (id: state_id) =
   (case Symtab.lookup (get_states ()) id of
     NONE => err_undef "state" id
   | SOME (State {status as Finished state, ...}) => state
-  | _ => sys_error ("Unfinished state " ^ id));
+  | _ => error ("Unfinished state " ^ id));
 
 
 fun define_command id tr =
@@ -149,23 +209,27 @@ fun the_document (id: document_id) =
   | SOME doc => doc);
 
 
+(* document editing *)
+
 fun begin_document (id: document_id) path =
   let
     val (dir, name) = ThyLoad.split_thy_path path;
     val _ = define_command id Toplevel.empty;
     val _ = define_state id (make_state NONE id (Finished Toplevel.toplevel));
-    val commands = Symtab.make [(id, make_entry NONE NONE id)];
-    val _ = define_document id (make_document dir name commands);
+    val entries = Symtab.make [(id, make_entry NONE NONE id)];
+    val _ = define_document id (make_document dir name id entries);
   in () end;
 
 fun edit_document (id: document_id) (new_id: document_id) edits =
   let
-    val Document {dir, name, commands} = the_document id;
-    val commands' = sys_error "FIXME";
-    val _ = define_document new_id (make_document dir name commands');
+    val document' =
+      fold (fn (id, SOME id2) => insert_entry (id, id2) | (id, NONE) => delete_after_entry id)
+        edits (the_document id);
+    (* FIXME update states *)
+    val _ = define_document new_id document';
   in () end;
 
-fun end_document (id: document_id) = sys_error "FIXME";
+fun end_document (id: document_id) = error "FIXME";
 
 
 
@@ -196,3 +260,4 @@ val _ =
 end;
 
 end;
+
