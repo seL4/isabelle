@@ -6,9 +6,6 @@ theory Fundamental_Theorem_Algebra
 imports Polynomial Dense_Linear_Order Complex
 begin
 
-hide (open) const Univ_Poly.poly
-hide (open) const Univ_Poly.degree
-
 subsection {* Square root of complex numbers *}
 definition csqrt :: "complex \<Rightarrow> complex" where
 "csqrt z = (if Im z = 0 then
@@ -827,7 +824,7 @@ proof(induct n\<equiv> "plength p" arbitrary: p rule: nat_less_induct)
       by simp
     let ?r = "smult (inverse ?a0) q"
     have lgqr: "plength q = plength ?r"
-      using a00 unfolding plength_def Polynomial.degree_def
+      using a00 unfolding plength_def degree_def
       by (simp add: expand_poly_eq)
     {assume h: "\<And>x y. poly ?r x = poly ?r y"
       {fix x y
@@ -1064,7 +1061,7 @@ lemma poly_zero:
   fixes p :: "'a::{idom,ring_char_0} poly"
   shows "poly p = poly 0 \<longleftrightarrow> p = 0"
 apply (cases "p = 0", simp_all)
-apply (drule Polynomial.poly_roots_finite)
+apply (drule poly_roots_finite)
 apply (auto simp add: UNIV_char_0_infinite)
 done
 
@@ -1147,7 +1144,7 @@ proof(induct n arbitrary: p q rule: nat_less_induct)
 	    have "s dvd (r ^ (degree s))" by blast
 	    then obtain u where u: "r ^ (degree s) = s * u" ..
 	    hence u': "\<And>x. poly s x * poly u x = poly r x ^ degree s"
-              by (simp only: Polynomial.poly_mult[symmetric] poly_power[symmetric])
+              by (simp only: poly_mult[symmetric] poly_power[symmetric])
 	    let ?w = "(u * ([:-a,1:] ^ (n - ?op))) * (r ^ (n - degree s))"
 	    from oop[of a] dsn have "q ^ n = p * ?w"
               apply -
@@ -1207,7 +1204,7 @@ proof-
 	then obtain u where u: "q ^ (Suc n) = p * u" ..
 	{fix x assume h: "poly p x = 0" "poly q x \<noteq> 0"
 	  hence "poly (q ^ (Suc n)) x \<noteq> 0" by simp
-	  hence False using u h(1) by (simp only: poly_mult poly_exp) simp}}
+	  hence False using u h(1) by (simp only: poly_mult) simp}}
 	with n nullstellensatz_lemma[of p q "degree p"] dp 
 	have ?thesis by auto}
     ultimately have ?thesis by blast}
@@ -1258,7 +1255,6 @@ lemma poly_cancel_eq_conv: "p = (0::complex) \<Longrightarrow> a \<noteq> 0 \<Lo
 lemma resolve_eq_raw:  "poly 0 x \<equiv> 0" "poly [:c:] x \<equiv> (c::complex)" by auto
 lemma  resolve_eq_then: "(P \<Longrightarrow> (Q \<equiv> Q1)) \<Longrightarrow> (\<not>P \<Longrightarrow> (Q \<equiv> Q2))
   \<Longrightarrow> Q \<equiv> P \<and> Q1 \<or> \<not>P\<and> Q2" apply (atomize (full)) by blast 
-lemma expand_ex_beta_conv: "list_ex P [c] \<equiv> P c" by simp
 
 lemma poly_divides_pad_rule: 
   fixes p q :: "complex poly"
@@ -1382,8 +1378,6 @@ lemma pmult_Cons_Cons: "(pCons (a::complex) (pCons b p) * q = (smult a q) + (pCo
 lemma elim_neg_conv: "- z \<equiv> (-1) * (z::complex)" by simp
 lemma eqT_intr: "PROP P \<Longrightarrow> (True \<Longrightarrow> PROP P )" "PROP P \<Longrightarrow> True" by blast+
 lemma negate_negate_rule: "Trueprop P \<equiv> \<not> P \<equiv> False" by (atomize (full), auto)
-lemma last_simps: "last [x] = x" "last (x#y#ys) = last (y#ys)" by simp_all
-lemma length_simps: "length [] = 0" "length (x#y#xs) = length xs + 2" "length [x] = 1" by simp_all
 
 lemma complex_entire: "(z::complex) \<noteq> 0 \<and> w \<noteq> 0 \<equiv> z*w \<noteq> 0" by simp
 lemma resolve_eq_ne: "(P \<equiv> True) \<equiv> (\<not>P \<equiv> False)" "(P \<equiv> False) \<equiv> (\<not>P \<equiv> True)" 

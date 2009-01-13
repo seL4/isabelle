@@ -9,7 +9,7 @@
 header{* Differentiation *}
 
 theory Deriv
-imports Lim Univ_Poly
+imports Lim Polynomial
 begin
 
 text{*Standard Definitions*}
@@ -1412,34 +1412,71 @@ qed
 lemma lemma_DERIV_subst: "[| DERIV f x :> D; D = E |] ==> DERIV f x :> E"
 by auto
 
+
 subsection {* Derivatives of univariate polynomials *}
 
-
-  
-primrec pderiv_aux :: "nat => real list => real list" where
-   pderiv_aux_Nil:  "pderiv_aux n [] = []"
-|  pderiv_aux_Cons: "pderiv_aux n (h#t) =
-                     (real n * h)#(pderiv_aux (Suc n) t)"
-
 definition
-  pderiv :: "real list => real list" where
-  "pderiv p = (if p = [] then [] else pderiv_aux 1 (tl p))"
+  pderiv :: "'a::real_normed_field poly \<Rightarrow> 'a poly" where
+  "pderiv = poly_rec 0 (\<lambda>a p p'. p + pCons 0 p')"
 
+lemma pderiv_0 [simp]: "pderiv 0 = 0"
+  unfolding pderiv_def by (simp add: poly_rec_0)
 
-text{*The derivative*}
+lemma pderiv_pCons: "pderiv (pCons a p) = p + pCons 0 (pderiv p)"
+  unfolding pderiv_def by (simp add: poly_rec_pCons)
 
-lemma pderiv_Nil: "pderiv [] = []"
+lemma coeff_pderiv: "coeff (pderiv p) n = of_nat (Suc n) * coeff p (Suc n)"
+  apply (induct p arbitrary: n, simp)
+  apply (simp add: pderiv_pCons coeff_pCons ring_simps split: nat.split)
+  done
 
-apply (simp add: pderiv_def)
+lemma pderiv_eq_0_iff: "pderiv p = 0 \<longleftrightarrow> degree p = 0"
+  apply (rule iffI)
+  apply (cases p, simp)
+  apply (simp add: expand_poly_eq coeff_pderiv del: of_nat_Suc)
+  apply (simp add: expand_poly_eq coeff_pderiv coeff_eq_0)
+  done
+
+lemma degree_pderiv: "degree (pderiv p) = degree p - 1"
+  apply (rule order_antisym [OF degree_le])
+  apply (simp add: coeff_pderiv coeff_eq_0)
+  apply (cases "degree p", simp)
+  apply (rule le_degree)
+  apply (simp add: coeff_pderiv del: of_nat_Suc)
+  apply (rule subst, assumption)
+  apply (rule leading_coeff_neq_0, clarsimp)
+  done
+
+lemma pderiv_singleton [simp]: "pderiv [:a:] = 0"
+by (simp add: pderiv_pCons)
+
+lemma pderiv_add: "pderiv (p + q) = pderiv p + pderiv q"
+by (rule poly_ext, simp add: coeff_pderiv ring_simps)
+
+lemma pderiv_minus: "pderiv (- p) = - pderiv p"
+by (rule poly_ext, simp add: coeff_pderiv)
+
+lemma pderiv_diff: "pderiv (p - q) = pderiv p - pderiv q"
+by (rule poly_ext, simp add: coeff_pderiv ring_simps)
+
+lemma pderiv_smult: "pderiv (smult a p) = smult a (pderiv p)"
+by (rule poly_ext, simp add: coeff_pderiv ring_simps)
+
+lemma pderiv_mult: "pderiv (p * q) = p * pderiv q + q * pderiv p"
+apply (induct p)
+apply simp
+apply (simp add: pderiv_add pderiv_smult pderiv_pCons ring_simps)
 done
-declare pderiv_Nil [simp]
 
-lemma pderiv_singleton: "pderiv [c] = []"
-by (simp add: pderiv_def)
-declare pderiv_singleton [simp]
-
-lemma pderiv_Cons: "pderiv (h#t) = pderiv_aux 1 t"
-by (simp add: pderiv_def)
+lemma pderiv_power_Suc:
+  "pderiv (p ^ Suc n) = smult (of_nat (Suc n)) (p ^ n) * pderiv p"
+apply (induct n)
+apply simp
+apply (subst power_Suc)
+apply (subst pderiv_mult)
+apply (erule ssubst)
+apply (simp add: mult_smult_right mult_smult_left smult_add_left ring_simps)
+done
 
 lemma DERIV_cmult2: "DERIV f x :> D ==> DERIV (%x. (f x) * c :: real) x :> D * c"
 by (simp add: DERIV_cmult mult_commute [of _ c])
@@ -1448,32 +1485,17 @@ lemma DERIV_pow2: "DERIV (%x. x ^ Suc n) x :> real (Suc n) * (x ^ n)"
 by (rule lemma_DERIV_subst, rule DERIV_pow, simp)
 declare DERIV_pow2 [simp] DERIV_pow [simp]
 
-lemma lemma_DERIV_poly1: "\<forall>n. DERIV (%x. (x ^ (Suc n) * poly p x)) x :>
-        x ^ n * poly (pderiv_aux (Suc n) p) x "
-apply (induct "p")
-apply (auto intro!: DERIV_add DERIV_cmult2 
-            simp add: pderiv_def right_distrib real_mult_assoc [symmetric] 
-            simp del: realpow_Suc)
-apply (subst mult_commute) 
-apply (simp del: realpow_Suc) 
-apply (simp add: mult_commute realpow_Suc [symmetric] del: realpow_Suc)
-done
-
-lemma lemma_DERIV_poly: "DERIV (%x. (x ^ (Suc n) * poly p x)) x :>
-        x ^ n * poly (pderiv_aux (Suc n) p) x "
-by (simp add: lemma_DERIV_poly1 del: realpow_Suc)
-
-lemma DERIV_add_const: "DERIV f x :> D ==>  DERIV (%x. a + f x :: real) x :> D"
+lemma DERIV_add_const: "DERIV f x :> D ==>  DERIV (%x. a + f x :: 'a::real_normed_field) x :> D"
 by (rule lemma_DERIV_subst, rule DERIV_add, auto)
 
 lemma poly_DERIV[simp]: "DERIV (%x. poly p x) x :> poly (pderiv p) x"
-apply (induct "p")
-apply (auto simp add: pderiv_Cons)
-apply (rule DERIV_add_const)
+apply (induct p)
+apply simp
+apply (simp add: pderiv_pCons)
 apply (rule lemma_DERIV_subst)
-apply (rule lemma_DERIV_poly [where n=0, simplified], simp) 
+apply (rule DERIV_add DERIV_mult DERIV_const DERIV_ident | assumption)+
+apply simp
 done
-
 
 text{* Consequences of the derivative theorem above*}
 
@@ -1493,11 +1515,9 @@ done
 
 lemma poly_IVT_neg: "[| (a::real) < b; 0 < poly p a; poly p b < 0 |]
       ==> \<exists>x. a < x & x < b & (poly p x = 0)"
-apply (insert poly_IVT_pos [where p = "-- p" ]) 
-apply (simp add: poly_minus neg_less_0_iff_less) 
-done
+by (insert poly_IVT_pos [where p = "- p" ]) simp
 
-lemma poly_MVT: "a < b ==>
+lemma poly_MVT: "(a::real) < b ==>
      \<exists>x. a < x & x < b & (poly p b - poly p a = (b - a) * poly (pderiv p) x)"
 apply (drule_tac f = "poly p" in MVT, auto)
 apply (rule_tac x = z in exI)
@@ -1506,136 +1526,7 @@ done
 
 text{*Lemmas for Derivatives*}
 
-lemma lemma_poly_pderiv_aux_add: "\<forall>p2 n. poly (pderiv_aux n (p1 +++ p2)) x =
-                poly (pderiv_aux n p1 +++ pderiv_aux n p2) x"
-apply (induct "p1", simp, clarify) 
-apply (case_tac "p2")
-apply (auto simp add: right_distrib)
-done
-
-lemma poly_pderiv_aux_add: "poly (pderiv_aux n (p1 +++ p2)) x =
-      poly (pderiv_aux n p1 +++ pderiv_aux n p2) x"
-apply (simp add: lemma_poly_pderiv_aux_add)
-done
-
-lemma lemma_poly_pderiv_aux_cmult: "\<forall>n. poly (pderiv_aux n (c %* p)) x = poly (c %* pderiv_aux n p) x"
-apply (induct "p")
-apply (auto simp add: poly_cmult mult_ac)
-done
-
-lemma poly_pderiv_aux_cmult: "poly (pderiv_aux n (c %* p)) x = poly (c %* pderiv_aux n p) x"
-by (simp add: lemma_poly_pderiv_aux_cmult)
-
-lemma poly_pderiv_aux_minus:
-   "poly (pderiv_aux n (-- p)) x = poly (-- pderiv_aux n p) x"
-apply (simp add: poly_minus_def poly_pderiv_aux_cmult)
-done
-
-lemma lemma_poly_pderiv_aux_mult1: "\<forall>n. poly (pderiv_aux (Suc n) p) x = poly ((pderiv_aux n p) +++ p) x"
-apply (induct "p")
-apply (auto simp add: real_of_nat_Suc left_distrib)
-done
-
-lemma lemma_poly_pderiv_aux_mult: "poly (pderiv_aux (Suc n) p) x = poly ((pderiv_aux n p) +++ p) x"
-by (simp add: lemma_poly_pderiv_aux_mult1)
-
-lemma lemma_poly_pderiv_add: "\<forall>q. poly (pderiv (p +++ q)) x = poly (pderiv p +++ pderiv q) x"
-apply (induct "p", simp, clarify) 
-apply (case_tac "q")
-apply (auto simp add: poly_pderiv_aux_add poly_add pderiv_def)
-done
-
-lemma poly_pderiv_add: "poly (pderiv (p +++ q)) x = poly (pderiv p +++ pderiv q) x"
-by (simp add: lemma_poly_pderiv_add)
-
-lemma poly_pderiv_cmult: "poly (pderiv (c %* p)) x = poly (c %* (pderiv p)) x"
-apply (induct "p")
-apply (auto simp add: poly_pderiv_aux_cmult poly_cmult pderiv_def)
-done
-
-lemma poly_pderiv_minus: "poly (pderiv (--p)) x = poly (--(pderiv p)) x"
-by (simp add: poly_minus_def poly_pderiv_cmult)
-
-lemma lemma_poly_mult_pderiv:
-   "poly (pderiv (h#t)) x = poly ((0 # (pderiv t)) +++ t) x"
-apply (simp add: pderiv_def)
-apply (induct "t")
-apply (auto simp add: poly_add lemma_poly_pderiv_aux_mult)
-done
-
-lemma poly_pderiv_mult: "\<forall>q. poly (pderiv (p *** q)) x =
-      poly (p *** (pderiv q) +++ q *** (pderiv p)) x"
-apply (induct "p")
-apply (auto simp add: poly_add poly_cmult poly_pderiv_cmult poly_pderiv_add poly_mult)
-apply (rule lemma_poly_mult_pderiv [THEN ssubst])
-apply (rule lemma_poly_mult_pderiv [THEN ssubst])
-apply (rule poly_add [THEN ssubst])
-apply (rule poly_add [THEN ssubst])
-apply (simp (no_asm_simp) add: poly_mult right_distrib add_ac mult_ac)
-done
-
-lemma poly_pderiv_exp: "poly (pderiv (p %^ (Suc n))) x =
-         poly ((real (Suc n)) %* (p %^ n) *** pderiv p) x"
-apply (induct "n")
-apply (auto simp add: poly_add poly_pderiv_cmult poly_cmult poly_pderiv_mult
-                      real_of_nat_zero poly_mult real_of_nat_Suc 
-                      right_distrib left_distrib mult_ac)
-done
-
-lemma poly_pderiv_exp_prime: "poly (pderiv ([-a, 1] %^ (Suc n))) x =
-      poly (real (Suc n) %* ([-a, 1] %^ n)) x"
-apply (simp add: poly_pderiv_exp poly_mult del: pexp_Suc)
-apply (simp add: poly_cmult pderiv_def)
-done
-
-
-lemma real_mult_zero_disj_iff[simp]: "(x * y = 0) = (x = (0::real) | y = 0)"
-by simp
-
-lemma pderiv_aux_iszero [rule_format, simp]:
-    "\<forall>n. list_all (%c. c = 0) (pderiv_aux (Suc n) p) = list_all (%c. c = 0) p"
-by (induct "p", auto)
-
-lemma pderiv_aux_iszero_num: "(number_of n :: nat) \<noteq> 0
-      ==> (list_all (%c. c = 0) (pderiv_aux (number_of n) p) =
-      list_all (%c. c = 0) p)"
-unfolding neq0_conv
-apply (rule_tac n1 = "number_of n" and m1 = 0 in less_imp_Suc_add [THEN exE], force)
-apply (rule_tac n1 = "0 + x" in pderiv_aux_iszero [THEN subst])
-apply (simp (no_asm_simp) del: pderiv_aux_iszero)
-done
-
-instance real:: idom_char_0
-apply (intro_classes)
-done
-
-instance real:: recpower_idom_char_0
-apply (intro_classes)
-done
-
-lemma pderiv_iszero [rule_format]:
-     "poly (pderiv p) = poly [] --> (\<exists>h. poly p = poly [h])"
-apply (simp add: poly_zero)
-apply (induct "p", force)
-apply (simp add: pderiv_Cons pderiv_aux_iszero_num del: poly_Cons)
-apply (auto simp add: poly_zero [symmetric])
-done
-
-lemma pderiv_zero_obj: "poly p = poly [] --> (poly (pderiv p) = poly [])"
-apply (simp add: poly_zero)
-apply (induct "p", force)
-apply (simp add: pderiv_Cons pderiv_aux_iszero_num del: poly_Cons)
-done
-
-lemma pderiv_zero: "poly p = poly [] ==> (poly (pderiv p) = poly [])"
-by (blast elim: pderiv_zero_obj [THEN impE])
-declare pderiv_zero [simp]
-
-lemma poly_pderiv_welldef: "poly p = poly q ==> (poly (pderiv p) = poly (pderiv q))"
-apply (cut_tac p = "p +++ --q" in pderiv_zero_obj)
-apply (simp add: fun_eq poly_add poly_minus poly_pderiv_add poly_pderiv_minus del: pderiv_zero)
-done
-
+(* FIXME
 lemma lemma_order_pderiv [rule_format]:
      "\<forall>p q a. 0 < n &
        poly (pderiv p) \<noteq> poly [] &
@@ -1756,7 +1647,7 @@ apply (blast dest: pderiv_zero)
 apply (simp (no_asm) add: rsquarefree_def order_root del: pmult_Cons)
 apply (simp add: poly_entire del: pmult_Cons)
 done
-
+*)
 
 subsection {* Theorems about Limits *}
 
