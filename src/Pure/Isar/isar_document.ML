@@ -18,12 +18,11 @@ end;
 structure IsarDocument: ISAR_DOCUMENT =
 struct
 
-
 (* unique identifiers *)
 
-type document_id = string;
-type command_id = string;
 type state_id = string;
+type command_id = string;
+type document_id = string;
 
 fun new_id () = "isabelle:" ^ serial_string ();
 
@@ -31,59 +30,13 @@ fun err_dup kind id = error ("Duplicate " ^ kind ^ ": " ^ quote id);
 fun err_undef kind id = error ("Unknown " ^ kind ^ ": " ^ quote id);
 
 
-(** execution states **)
-
-(* command status *)
-
-datatype status =
-  Unprocessed |
-  Running of Toplevel.state option future |
-  Failed |
-  Finished of Toplevel.state;
-
-fun markup_status Unprocessed = Markup.unprocessed
-  | markup_status (Running future) = Markup.running (Task_Queue.str_of_task (Future.task_of future))
-  | markup_status Failed = Markup.failed
-  | markup_status (Finished _) = Markup.finished;
-
-fun update_status retry tr state status =
-  (case status of
-    Unprocessed => SOME (Running (Future.fork_pri 1 (fn () =>
-      (case Toplevel.transition true tr state of
-        NONE => (Toplevel.error_msg tr (ERROR "Cannot terminate here!", ""); NONE)
-      | SOME (_, SOME err) => (Toplevel.error_msg tr err; NONE)
-      | SOME (state', NONE) => SOME state'))))
-  | Running future =>
-      (case Future.peek future of
-        NONE => NONE
-      | SOME (Exn.Result NONE) => SOME Failed
-      | SOME (Exn.Result (SOME state')) => SOME (Finished state')
-      | SOME (Exn.Exn exn) => (Toplevel.error_msg tr (exn, ""); SOME Failed))
-  | Failed => if retry then SOME Unprocessed else NONE
-  | _ => NONE);
-
-
-(* state *)
-
-datatype state = State of
- {prev: state_id option,
-  command: command_id,
-  status: status};
-
-fun make_state prev command status = State {prev = prev, command = command, status = status};
-
-
 
 (** documents **)
 
 (* command entries *)
 
-datatype entry = Entry of
- {prev: command_id option,
-  next: command_id option,
-  state: state_id option};
-
-fun make_entry prev next state = Entry {prev = prev, next = next, state = state};
+datatype entry = Entry of {next: command_id option, state: state_id option};
+fun make_entry next state = Entry {next = next, state = state};
 
 fun the_entry entries (id: command_id) =
   (case Symtab.lookup entries id of
@@ -91,12 +44,6 @@ fun the_entry entries (id: command_id) =
   | SOME (Entry entry) => entry);
 
 fun put_entry (id: command_id, entry: entry) = Symtab.update (id, entry);
-
-fun map_entry (id: command_id) f entries =
-  let
-    val {prev, next, state} = the_entry entries id;
-    val (prev', next', state') = f (prev, next, state);
-  in put_entry (id, make_entry prev' next' state') entries end;
 
 
 (* document *)
@@ -114,7 +61,7 @@ fun map_entries f (Document {dir, name, start, entries}) =
   make_document dir name start (f entries);
 
 
-(* iterating entries *)
+(* iterate entries *)
 
 fun fold_entries opt_id f (Document {start, entries, ...}) =
   let
@@ -122,40 +69,35 @@ fun fold_entries opt_id f (Document {start, entries, ...}) =
       | apply (SOME id) x = apply (#next (the_entry entries id)) (f id x);
   in if is_some opt_id then apply opt_id else apply (SOME start) end;
 
-fun get_first_entries opt_id f (Document {start, entries, ...}) =
+fun find_entries P (Document {start, entries, ...}) =
   let
-    fun get NONE = NONE
-      | get (SOME id) = (case f id of NONE => get (#next (the_entry entries id)) | some => some);
-  in if is_some opt_id then get opt_id else get (SOME start) end;
-
-fun find_first_entries opt_id P =
-  get_first_entries opt_id (fn x => if P x then SOME x else NONE);
+    fun find _ NONE = NONE
+      | find prev (SOME id) =
+          if P id then SOME (prev, id)
+          else find (SOME id) (#next (the_entry entries id));
+  in find NONE (SOME start) end;
 
 
 (* modify entries *)
 
-fun insert_entry (id: command_id, id2: command_id) = map_entries (fn entries =>
-  let val {prev, next, state} = the_entry entries id in
-    entries |>
-      (case next of
-        NONE => put_entry (id2, make_entry (SOME id) NONE NONE)
-      | SOME id3 =>
-          put_entry (id, make_entry prev (SOME id2) state) #>
-          put_entry (id2, make_entry (SOME id) (SOME id3) NONE) #>
-          put_entry (id3, make_entry (SOME id2) (#next (the_entry entries id3)) NONE))
+fun insert_after (id: command_id) (id2: command_id) = map_entries (fn entries =>
+  let val {next, state} = the_entry entries id in
+    entries
+    |> put_entry (id, make_entry (SOME id2) state)
+    |> put_entry (id2, make_entry next NONE)
   end);
 
 fun delete_after (id: command_id) = map_entries (fn entries =>
-  let val {prev, next, state} = the_entry entries id in
-    entries |>
-      (case next of
-        NONE => error ("Missing next entry: " ^ quote id)
-      | SOME id2 =>
+  let val {next, state} = the_entry entries id in
+    (case next of
+      NONE => error ("No next entry to delete: " ^ quote id)
+    | SOME id2 =>
+        entries |>
           (case #next (the_entry entries id2) of
-            NONE => put_entry (id, make_entry prev NONE state)
+            NONE => put_entry (id, make_entry NONE state)
           | SOME id3 =>
-              put_entry (id, make_entry prev (SOME id3) state) #>
-              put_entry (id3, make_entry (SOME id) (#next (the_entry entries id3)) NONE)))
+              put_entry (id, make_entry (SOME id3) state) #>
+              put_entry (id3, make_entry (#next (the_entry entries id3)) NONE)))
   end);
 
 
@@ -163,7 +105,7 @@ fun delete_after (id: command_id) = map_entries (fn entries =>
 (** global configuration **)
 
 local
-  val global_states = ref (Symtab.empty: state Symtab.table);
+  val global_states = ref (Symtab.empty: Toplevel.state option future Symtab.table);
   val global_commands = ref (Symtab.empty: Toplevel.transition Symtab.table);
   val global_documents = ref (Symtab.empty: document Symtab.table);
 in
@@ -192,12 +134,12 @@ fun define_state (id: state_id) state =
 fun the_state (id: state_id) =
   (case Symtab.lookup (get_states ()) id of
     NONE => err_undef "state" id
-  | SOME (State state) => state);
+  | SOME state => state);
 
 
 fun define_command id tr =
   change_commands (Symtab.update_new (id, Toplevel.put_id id tr))
-    handle Symtab.DUP dup => err_dup ("command " ^ Toplevel.name_of tr) dup;
+    handle Symtab.DUP dup => err_dup "command" dup;
 
 fun the_command (id: command_id) =
   (case Symtab.lookup (get_commands ()) id of
@@ -221,8 +163,8 @@ fun begin_document (id: document_id) path =
   let
     val (dir, name) = ThyLoad.split_thy_path path;
     val _ = define_command id Toplevel.empty;
-    val _ = define_state id (make_state NONE id (Finished Toplevel.toplevel));
-    val entries = Symtab.make [(id, make_entry NONE NONE (SOME id))];
+    val _ = define_state id (Future.value (SOME Toplevel.toplevel));
+    val entries = Symtab.make [(id, make_entry NONE (SOME id))];
     val _ = define_document id (make_document dir name id entries);
   in () end;
 
@@ -231,7 +173,13 @@ fun end_document (id: document_id) = error "FIXME";
 
 (* document editing *)
 
-fun refresh_states old_document new_document =
+fun update_state tr state = Future.fork_deps [state] (fn () =>
+  (case Future.join state of NONE => NONE | SOME st => Toplevel.run_command tr st));
+
+fun update_entry (id, state_id) entries =
+  Symtab.map_entry
+
+fun update_states old_document new_document =
   let
     val Document {entries = old_entries, ...} = old_document;
     val Document {entries = new_entries, ...} = new_document;
@@ -243,27 +191,29 @@ fun refresh_states old_document new_document =
 
     fun cancel_state id () =
       (case the_entry old_entries id of
-        {state = SOME state_id, ...} =>
-          (case the_state state_id of
-            {status = Running future, ...} => Future.cancel future
-          | _ => ())
+        {state = SOME state_id, ...} => Future.cancel (the_state state_id)
       | _ => ());
 
-    fun new_state id (prev_state_id, new_states) =
+    fun new_state id (state_id, updates) =
       let
-        val state_id = new_id ();
-        val state = make_state prev_state_id id Unprocessed;
-        val _ = define_state state_id state;
-      in (SOME state_id, (state_id, state) :: new_states) end;
+        val state_id' = new_id ();
+        val state' = update_state (the_command id) (the_state state_id);
+        val _ = define_state state_id' state';
+      in (state_id', (id, state_id') :: updates) end;
+
+    fun update_state (id, state_id) entries =
+      let val _ = Output.status (Markup.markup (Markup.command_state id state_id) "")
+      in put_entry (id, make_entry (#next (the_entry entries id)) (SOME state_id)) entries end;
   in
-    (case find_first_entries NONE is_changed old_document of
+    (case find_entries is_changed old_document of
       NONE => new_document
-    | SOME id =>
+    | SOME (prev, id) =>
         let
           val _ = fold_entries (SOME id) cancel_state old_document ();
-          val (_, new_states) = fold_entries (SOME id) new_state new_document (NONE, []);
-          (* FIXME update states *)
-        in new_document end)
+          val prev_state_id = the (#state (the_entry new_entries (the prev)));
+          val (_, updates) = fold_entries (SOME id) new_state new_document (prev_state_id, []);
+          val new_document' = new_document |> map_entries (fold update_state updates);
+        in new_document' end)
   end;
 
 fun edit_document (id: document_id) (id': document_id) edits =
@@ -271,8 +221,8 @@ fun edit_document (id: document_id) (id': document_id) edits =
     val document = Document (the_document id);
     val document' =
       document
-      |> fold (fn (id, SOME id2) => insert_entry (id, id2) | (id, NONE) => delete_after id) edits
-      |> refresh_states document;
+      |> fold (fn (id, SOME id2) => insert_after id id2 | (id, NONE) => delete_after id) edits
+      |> update_states document;
     val _ = define_document id' document';
   in () end;
 

@@ -117,6 +117,7 @@ object Markup {
   val FAILED = "failed"
   val FINISHED = "finished"
   val DISPOSED = "disposed"
+  val COMMAND_STATE = "command_state"
 
 
   /* messages */
