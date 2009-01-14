@@ -176,9 +176,6 @@ fun end_document (id: document_id) = error "FIXME";
 fun update_state tr state = Future.fork_deps [state] (fn () =>
   (case Future.join state of NONE => NONE | SOME st => Toplevel.run_command tr st));
 
-fun update_entry (id, state_id) entries =
-  Symtab.map_entry
-
 fun update_states old_document new_document =
   let
     val Document {entries = old_entries, ...} = old_document;
