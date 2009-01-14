@@ -970,6 +970,7 @@ subsection {* Order of polynomial roots *}
 definition
   order :: "'a::{idom,recpower} \<Rightarrow> 'a poly \<Rightarrow> nat"
 where
+  [code del]:
   "order a p = (LEAST n. \<not> [:-a, 1:] ^ Suc n dvd p)"
 
 lemma degree_power_le: "degree (p ^ n) \<le> degree p * n"
