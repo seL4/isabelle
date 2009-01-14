@@ -30,7 +30,7 @@ than the corresponding operations of CVS or SVN.
 
 
 Initial configuration
-=====================
+---------------------
 
 Always use Mercurial version 1.0 or later, such as 1.0.1 or 1.0.2.
 The old 0.9.x versions do not work in a multi-user environment with
@@ -84,7 +84,7 @@ book http://hgbook.red-bean.com/
 
 
 Shared pull/push access
-=======================
+-----------------------
 
 The entry point http://isabelle.in.tum.de/repos/isabelle is world
 readable, both via plain web browsing and the hg client as described
@@ -136,7 +136,7 @@ place, to get exactly to the same point:
 
 
 Content discipline
-==================
+------------------
 
 Old-style centralized version control is occasionally compared to "a
 library where everybody scribbles into the books".  Or seen the other
@@ -183,7 +183,7 @@ changesets that might become public at some point.
 
 
 Building Isabelle from the repository version
-=============================================
+---------------------------------------------
 
 Compared to a proper distribution or development snapshot, a
 repository version of Isabelle lacks textual version identifiers in
