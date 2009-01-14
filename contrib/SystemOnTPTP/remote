@@ -10,10 +10,6 @@
 #
 # ./remote Vampire---9.0 timelimit file
 # ./remote SPASS---3.01 timelimit file
-# ./remote Metis---2.1 timelimit file
-# ./remote SNARK---20080805r005 timelimit file
-# ./remote Otter---3.3 timelimit file
-# ./remote SOS---2.0 timelimit file
 # ./remote EP---1.0 timelimit file
 
 use warnings;
