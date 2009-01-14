@@ -91,6 +91,7 @@ sig
   val failedN: string val failed: T
   val finishedN: string val finished: T
   val disposedN: string val disposed: T
+  val command_stateN: string val command_state: string -> string -> T
   val pidN: string
   val sessionN: string
   val classN: string
@@ -267,6 +268,9 @@ val (runningN, running) = markup_string "running" taskN;
 val (failedN, failed) = markup_elem "failed";
 val (finishedN, finished) = markup_elem "finished";
 val (disposedN, disposed) = markup_elem "disposed";
+
+val command_stateN = "command_state";
+fun command_state id state_id : T = (command_stateN, [(idN, id), (stateN, state_id)]);
 
 
 (* messages *)
