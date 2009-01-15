@@ -26,6 +26,8 @@ sig
   (* Interpretation *)
   val cert_goal_expression: expression_i -> Proof.context ->
     (term list list * (string * morphism) list * morphism) * Proof.context;
+  val read_goal_expression: expression -> Proof.context ->
+    (term list list * (string * morphism) list * morphism) * Proof.context;
 
   val sublocale: string -> expression_i -> theory -> Proof.state;
   val sublocale_cmd: string -> expression -> theory -> Proof.state;
@@ -812,21 +814,17 @@ end;
 
 local
 
-datatype goal = Reg of string * Morphism.morphism | Eqns of Attrib.binding list;
-
 fun gen_interpretation prep_expr parse_prop prep_attr
-    expression equations thy =
+    expression equations theory =
   let
-    val ctxt = ProofContext.init thy;
-
-    val ((propss, regs, export), expr_ctxt) = prep_expr expression ctxt;
+    val ((propss, regs, export), expr_ctxt) = ProofContext.init theory
+      |> prep_expr expression;
 
     val eqns = map (parse_prop expr_ctxt o snd) equations |> Syntax.check_terms expr_ctxt;
-    val eq_attns = map ((apsnd o map) (prep_attr thy) o fst) equations;
+    val eq_attns = map ((apsnd o map) (prep_attr theory) o fst) equations;
     val goal_ctxt = fold Variable.auto_fixes eqns expr_ctxt;
     val export' = Variable.export_morphism goal_ctxt expr_ctxt;
 
-    (*** alternative code -- unclear why it does not work yet ***)
     fun store_reg ((name, morph), thms) thy =
       let
         val thms' = map (Element.morph_witness export') thms;
@@ -841,7 +839,7 @@ fun gen_interpretation prep_expr parse_prop prep_attr
           thy
           |> fold (fn (name, morph) =>
                Locale.activate_global_facts (name, morph $> export)) regs
-      | store_eqns_activate regs thms thys =
+      | store_eqns_activate regs thms thy =
           let
             val thms' = thms |> map (Element.conclude_witness #>
               Morphism.thm (export' $> export) #>
@@ -866,40 +864,7 @@ fun gen_interpretation prep_expr parse_prop prep_attr
       in ProofContext.theory (fold_map store_reg (regs ~~ wits_reg)
         #-> (fn regs => store_eqns_activate regs wits_eq))
       end;
-    (*** alternative code end ***)
 
-    fun store (Reg (name, morph), thms) (regs, thy) =
-        let
-          val thms' = map (Element.morph_witness export') thms;
-          val morph' = morph $> Element.satisfy_morphism thms';
-          val add = Locale.add_registration (name, (morph', export));
-        in ((name, morph') :: regs, add thy) end
-      | store (Eqns [], []) (regs, thy) =
-        let val add = fold_rev (fn (name, morph) =>
-              Locale.activate_global_facts (name, morph $> export)) regs;
-        in (regs, add thy) end
-      | store (Eqns attns, thms) (regs, thy) =
-        let
-          val thms' = thms |> map (Element.conclude_witness #>
-            Morphism.thm (export' $> export) #>
-            LocalDefs.meta_rewrite_rule (ProofContext.init thy) #>
-            Drule.abs_def);
-          val eq_morph =
-            Morphism.term_morphism (MetaSimplifier.rewrite_term thy thms' []) $>
-            Morphism.thm_morphism (MetaSimplifier.rewrite_rule thms');
-          val attns' = map ((apsnd o map) (Attrib.attribute_i thy)) attns;
-          val add =
-            fold_rev (fn (name, morph) =>
-              Locale.amend_registration eq_morph (name, morph) #>
-              Locale.activate_global_facts (name, morph $> eq_morph $> export)) regs #>
-            PureThy.note_thmss Thm.lemmaK (attns' ~~ map (fn th => [([th], [])]) thms') #>
-            snd
-        in (regs, add thy) end;
-
-    fun after_qed results =
-      ProofContext.theory (fn thy =>
-        fold store (map Reg regs @ [Eqns eq_attns] ~~
-          prep_result (propss @ [eqns]) results) ([], thy) |> snd);
   in
     goal_ctxt |>
       Proof.theorem_i NONE after_qed (prep_propp (propss @ [eqns])) |>
