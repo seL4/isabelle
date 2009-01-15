@@ -159,7 +159,7 @@ let
     let
       val tr = instantiate' [] [SOME (cterm_of thy t)] Eq_TrueI;
       val rules = Cont2ContData.get (Simplifier.the_context ss);
-      val tac = REPEAT_ALL_NEW (resolve_tac rules);
+      val tac = REPEAT_ALL_NEW (match_tac rules);
     in Option.map fst (Seq.pull (tac 1 tr)) end
 
   val proc =
