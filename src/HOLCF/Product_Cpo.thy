@@ -5,7 +5,7 @@
 header {* The cpo of cartesian products *}
 
 theory Product_Cpo
-imports Cont
+imports Adm
 begin
 
 defaultsort cpo
@@ -63,7 +63,7 @@ subsection {* Monotonicity of @{text "(_,_)"}, @{term fst}, @{term snd} *}
 lemma prod_lessI: "\<lbrakk>fst p \<sqsubseteq> fst q; snd p \<sqsubseteq> snd q\<rbrakk> \<Longrightarrow> p \<sqsubseteq> q"
 unfolding less_cprod_def by simp
 
-lemma Pair_less_iff [simp]: "(a, b) \<sqsubseteq> (c, d) = (a \<sqsubseteq> c \<and> b \<sqsubseteq> d)"
+lemma Pair_less_iff [simp]: "(a, b) \<sqsubseteq> (c, d) \<longleftrightarrow> a \<sqsubseteq> c \<and> b \<sqsubseteq> d"
 unfolding less_cprod_def by simp
 
 text {* Pair @{text "(_,_)"}  is monotone in both arguments *}
@@ -149,6 +149,20 @@ by intro_classes (fast intro: minimal_cprod)
 lemma inst_cprod_pcpo: "\<bottom> = (\<bottom>, \<bottom>)"
 by (rule minimal_cprod [THEN UU_I, symmetric])
 
+lemma Pair_defined_iff [simp]: "(x, y) = \<bottom> \<longleftrightarrow> x = \<bottom> \<and> y = \<bottom>"
+unfolding inst_cprod_pcpo by simp
+
+lemma fst_strict [simp]: "fst \<bottom> = \<bottom>"
+unfolding inst_cprod_pcpo by (rule fst_conv)
+
+lemma csnd_strict [simp]: "snd \<bottom> = \<bottom>"
+unfolding inst_cprod_pcpo by (rule snd_conv)
+
+lemma Pair_strict [simp]: "(\<bottom>, \<bottom>) = \<bottom>"
+by simp
+
+lemma split_strict [simp]: "split f \<bottom> = f \<bottom> \<bottom>"
+unfolding split_def by simp
 
 subsection {* Continuity of @{text "(_,_)"}, @{term fst}, @{term snd} *}
 
@@ -200,5 +214,34 @@ done
 lemmas cont2cont_fst [cont2cont] = cont2cont_compose [OF cont_fst]
 
 lemmas cont2cont_snd [cont2cont] = cont2cont_compose [OF cont_snd]
+
+subsection {* Compactness and chain-finiteness *}
+
+lemma fst_less_iff: "fst (x::'a \<times> 'b) \<sqsubseteq> y \<longleftrightarrow> x \<sqsubseteq> (y, snd x)"
+unfolding less_cprod_def by simp
+
+lemma snd_less_iff: "snd (x::'a \<times> 'b) \<sqsubseteq> y = x \<sqsubseteq> (fst x, y)"
+unfolding less_cprod_def by simp
+
+lemma compact_fst: "compact x \<Longrightarrow> compact (fst x)"
+by (rule compactI, simp add: fst_less_iff)
+
+lemma compact_snd: "compact x \<Longrightarrow> compact (snd x)"
+by (rule compactI, simp add: snd_less_iff)
+
+lemma compact_Pair: "\<lbrakk>compact x; compact y\<rbrakk> \<Longrightarrow> compact (x, y)"
+by (rule compactI, simp add: less_cprod_def)
+
+lemma compact_Pair_iff [simp]: "compact (x, y) \<longleftrightarrow> compact x \<and> compact y"
+apply (safe intro!: compact_Pair)
+apply (drule compact_fst, simp)
+apply (drule compact_snd, simp)
+done
+
+instance "*" :: (chfin, chfin) chfin
+apply intro_classes
+apply (erule compact_imp_max_in_chain)
+apply (case_tac "\<Squnion>i. Y i", simp)
+done
 
 end

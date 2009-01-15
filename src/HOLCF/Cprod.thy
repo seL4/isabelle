@@ -69,10 +69,10 @@ lemma cpair_eq [iff]: "(<a, b> = <a', b'>) = (a = a' \<and> b = b')"
 by (simp add: cpair_eq_pair)
 
 lemma cpair_less [iff]: "(<a, b> \<sqsubseteq> <a', b'>) = (a \<sqsubseteq> a' \<and> b \<sqsubseteq> b')"
-by (simp add: cpair_eq_pair less_cprod_def)
+by (simp add: cpair_eq_pair)
 
 lemma cpair_defined_iff [iff]: "(<x, y> = \<bottom>) = (x = \<bottom> \<and> y = \<bottom>)"
-by (simp add: inst_cprod_pcpo cpair_eq_pair)
+by (simp add: cpair_eq_pair)
 
 lemma cpair_strict [simp]: "\<langle>\<bottom>, \<bottom>\<rangle> = \<bottom>"
 by simp
@@ -97,10 +97,10 @@ lemma csnd_cpair [simp]: "csnd\<cdot><x, y> = y"
 by (simp add: cpair_eq_pair csnd_def cont_snd)
 
 lemma cfst_strict [simp]: "cfst\<cdot>\<bottom> = \<bottom>"
-unfolding inst_cprod_pcpo2 by (rule cfst_cpair)
+by (simp add: cfst_def)
 
 lemma csnd_strict [simp]: "csnd\<cdot>\<bottom> = \<bottom>"
-unfolding inst_cprod_pcpo2 by (rule csnd_cpair)
+by (simp add: csnd_def)
 
 lemma cpair_cfst_csnd: "\<langle>cfst\<cdot>p, csnd\<cdot>p\<rangle> = p"
 by (cases p rule: cprodE, simp)
@@ -126,19 +126,10 @@ lemma compact_csnd: "compact x \<Longrightarrow> compact (csnd\<cdot>x)"
 by (rule compactI, simp add: csnd_less_iff)
 
 lemma compact_cpair: "\<lbrakk>compact x; compact y\<rbrakk> \<Longrightarrow> compact <x, y>"
-by (rule compactI, simp add: less_cprod)
+by (simp add: cpair_eq_pair)
 
 lemma compact_cpair_iff [simp]: "compact <x, y> = (compact x \<and> compact y)"
-apply (safe intro!: compact_cpair)
-apply (drule compact_cfst, simp)
-apply (drule compact_csnd, simp)
-done
-
-instance "*" :: (chfin, chfin) chfin
-apply intro_classes
-apply (erule compact_imp_max_in_chain)
-apply (rule_tac p="\<Squnion>i. Y i" in cprodE, simp)
-done
+by (simp add: cpair_eq_pair)
 
 lemma lub_cprod2: 
   "chain S \<Longrightarrow> range S <<| <\<Squnion>i. cfst\<cdot>(S i), \<Squnion>i. csnd\<cdot>(S i)>"
