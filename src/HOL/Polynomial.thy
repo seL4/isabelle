@@ -345,19 +345,22 @@ lemma diff_pCons [simp]:
   "pCons a p - pCons b q = pCons (a - b) (p - q)"
   by (rule poly_ext, simp add: coeff_pCons split: nat.split)
 
-lemma degree_add_le: "degree (p + q) \<le> max (degree p) (degree q)"
+lemma degree_add_le_max: "degree (p + q) \<le> max (degree p) (degree q)"
   by (rule degree_le, auto simp add: coeff_eq_0)
+
+lemma degree_add_le:
+  "\<lbrakk>degree p \<le> n; degree q \<le> n\<rbrakk> \<Longrightarrow> degree (p + q) \<le> n"
+  by (auto intro: order_trans degree_add_le_max)
 
 lemma degree_add_less:
   "\<lbrakk>degree p < n; degree q < n\<rbrakk> \<Longrightarrow> degree (p + q) < n"
-  by (auto intro: le_less_trans degree_add_le)
+  by (auto intro: le_less_trans degree_add_le_max)
 
 lemma degree_add_eq_right:
   "degree p < degree q \<Longrightarrow> degree (p + q) = degree q"
   apply (cases "q = 0", simp)
   apply (rule order_antisym)
-  apply (rule ord_le_eq_trans [OF degree_add_le])
-  apply simp
+  apply (simp add: degree_add_le)
   apply (rule le_degree)
   apply (simp add: coeff_eq_0)
   done
@@ -370,13 +373,17 @@ lemma degree_add_eq_left:
 lemma degree_minus [simp]: "degree (- p) = degree p"
   unfolding degree_def by simp
 
-lemma degree_diff_le: "degree (p - q) \<le> max (degree p) (degree q)"
+lemma degree_diff_le_max: "degree (p - q) \<le> max (degree p) (degree q)"
   using degree_add_le [where p=p and q="-q"]
   by (simp add: diff_minus)
 
+lemma degree_diff_le:
+  "\<lbrakk>degree p \<le> n; degree q \<le> n\<rbrakk> \<Longrightarrow> degree (p - q) \<le> n"
+  by (simp add: diff_minus degree_add_le)
+
 lemma degree_diff_less:
   "\<lbrakk>degree p < n; degree q < n\<rbrakk> \<Longrightarrow> degree (p - q) < n"
-  by (auto intro: le_less_trans degree_diff_le)
+  by (simp add: diff_minus degree_add_less)
 
 lemma add_monom: "monom a n + monom b n = monom (a + b) n"
   by (rule poly_ext) simp
@@ -700,16 +707,13 @@ proof -
 
   have 2: "?r = 0 \<or> degree ?r < degree y"
   proof (rule eq_zero_or_degree_less)
-    have "degree ?r \<le> max (degree (pCons a r)) (degree (smult b y))"
-      by (rule degree_diff_le)
-    also have "\<dots> \<le> degree y"
-    proof (rule min_max.le_supI)
+    show "degree ?r \<le> degree y"
+    proof (rule degree_diff_le)
       show "degree (pCons a r) \<le> degree y"
         using r by auto
       show "degree (smult b y) \<le> degree y"
         by (rule degree_smult_le)
     qed
-    finally show "degree ?r \<le> degree y" .
   next
     show "coeff ?r (degree y) = 0"
       using `y \<noteq> 0` unfolding b by simp
