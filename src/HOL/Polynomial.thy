@@ -647,19 +647,19 @@ lemma dvd_imp_degree_le:
 subsection {* Long division of polynomials *}
 
 definition
-  divmod_poly_rel :: "'a::field poly \<Rightarrow> 'a poly \<Rightarrow> 'a poly \<Rightarrow> 'a poly \<Rightarrow> bool"
+  pdivmod_rel :: "'a::field poly \<Rightarrow> 'a poly \<Rightarrow> 'a poly \<Rightarrow> 'a poly \<Rightarrow> bool"
 where
   [code del]:
-  "divmod_poly_rel x y q r \<longleftrightarrow>
+  "pdivmod_rel x y q r \<longleftrightarrow>
     x = q * y + r \<and> (if y = 0 then q = 0 else r = 0 \<or> degree r < degree y)"
 
-lemma divmod_poly_rel_0:
-  "divmod_poly_rel 0 y 0 0"
-  unfolding divmod_poly_rel_def by simp
+lemma pdivmod_rel_0:
+  "pdivmod_rel 0 y 0 0"
+  unfolding pdivmod_rel_def by simp
 
-lemma divmod_poly_rel_by_0:
-  "divmod_poly_rel x 0 0 x"
-  unfolding divmod_poly_rel_def by simp
+lemma pdivmod_rel_by_0:
+  "pdivmod_rel x 0 0 x"
+  unfolding pdivmod_rel_def by simp
 
 lemma eq_zero_or_degree_less:
   assumes "degree p \<le> n" and "coeff p n = 0"
@@ -685,15 +685,15 @@ next
   then show ?thesis ..
 qed
 
-lemma divmod_poly_rel_pCons:
-  assumes rel: "divmod_poly_rel x y q r"
+lemma pdivmod_rel_pCons:
+  assumes rel: "pdivmod_rel x y q r"
   assumes y: "y \<noteq> 0"
   assumes b: "b = coeff (pCons a r) (degree y) / coeff y (degree y)"
-  shows "divmod_poly_rel (pCons a x) y (pCons b q) (pCons a r - smult b y)"
-    (is "divmod_poly_rel ?x y ?q ?r")
+  shows "pdivmod_rel (pCons a x) y (pCons b q) (pCons a r - smult b y)"
+    (is "pdivmod_rel ?x y ?q ?r")
 proof -
   have x: "x = q * y + r" and r: "r = 0 \<or> degree r < degree y"
-    using assms unfolding divmod_poly_rel_def by simp_all
+    using assms unfolding pdivmod_rel_def by simp_all
 
   have 1: "?x = ?q * y + ?r"
     using b x by simp
@@ -716,31 +716,31 @@ proof -
   qed
 
   from 1 2 show ?thesis
-    unfolding divmod_poly_rel_def
+    unfolding pdivmod_rel_def
     using `y \<noteq> 0` by simp
 qed
 
-lemma divmod_poly_rel_exists: "\<exists>q r. divmod_poly_rel x y q r"
+lemma pdivmod_rel_exists: "\<exists>q r. pdivmod_rel x y q r"
 apply (cases "y = 0")
-apply (fast intro!: divmod_poly_rel_by_0)
+apply (fast intro!: pdivmod_rel_by_0)
 apply (induct x)
-apply (fast intro!: divmod_poly_rel_0)
-apply (fast intro!: divmod_poly_rel_pCons)
+apply (fast intro!: pdivmod_rel_0)
+apply (fast intro!: pdivmod_rel_pCons)
 done
 
-lemma divmod_poly_rel_unique:
-  assumes 1: "divmod_poly_rel x y q1 r1"
-  assumes 2: "divmod_poly_rel x y q2 r2"
+lemma pdivmod_rel_unique:
+  assumes 1: "pdivmod_rel x y q1 r1"
+  assumes 2: "pdivmod_rel x y q2 r2"
   shows "q1 = q2 \<and> r1 = r2"
 proof (cases "y = 0")
   assume "y = 0" with assms show ?thesis
-    by (simp add: divmod_poly_rel_def)
+    by (simp add: pdivmod_rel_def)
 next
   assume [simp]: "y \<noteq> 0"
   from 1 have q1: "x = q1 * y + r1" and r1: "r1 = 0 \<or> degree r1 < degree y"
-    unfolding divmod_poly_rel_def by simp_all
+    unfolding pdivmod_rel_def by simp_all
   from 2 have q2: "x = q2 * y + r2" and r2: "r2 = 0 \<or> degree r2 < degree y"
-    unfolding divmod_poly_rel_def by simp_all
+    unfolding pdivmod_rel_def by simp_all
   from q1 q2 have q3: "(q1 - q2) * y = r2 - r1"
     by (simp add: ring_simps)
   from r1 r2 have r3: "(r2 - r1) = 0 \<or> degree (r2 - r1) < degree y"
@@ -761,36 +761,36 @@ next
   qed
 qed
 
-lemmas divmod_poly_rel_unique_div =
-  divmod_poly_rel_unique [THEN conjunct1, standard]
+lemmas pdivmod_rel_unique_div =
+  pdivmod_rel_unique [THEN conjunct1, standard]
 
-lemmas divmod_poly_rel_unique_mod =
-  divmod_poly_rel_unique [THEN conjunct2, standard]
+lemmas pdivmod_rel_unique_mod =
+  pdivmod_rel_unique [THEN conjunct2, standard]
 
 instantiation poly :: (field) ring_div
 begin
 
 definition div_poly where
-  [code del]: "x div y = (THE q. \<exists>r. divmod_poly_rel x y q r)"
+  [code del]: "x div y = (THE q. \<exists>r. pdivmod_rel x y q r)"
 
 definition mod_poly where
-  [code del]: "x mod y = (THE r. \<exists>q. divmod_poly_rel x y q r)"
+  [code del]: "x mod y = (THE r. \<exists>q. pdivmod_rel x y q r)"
 
 lemma div_poly_eq:
-  "divmod_poly_rel x y q r \<Longrightarrow> x div y = q"
+  "pdivmod_rel x y q r \<Longrightarrow> x div y = q"
 unfolding div_poly_def
-by (fast elim: divmod_poly_rel_unique_div)
+by (fast elim: pdivmod_rel_unique_div)
 
 lemma mod_poly_eq:
-  "divmod_poly_rel x y q r \<Longrightarrow> x mod y = r"
+  "pdivmod_rel x y q r \<Longrightarrow> x mod y = r"
 unfolding mod_poly_def
-by (fast elim: divmod_poly_rel_unique_mod)
+by (fast elim: pdivmod_rel_unique_mod)
 
-lemma divmod_poly_rel:
-  "divmod_poly_rel x y (x div y) (x mod y)"
+lemma pdivmod_rel:
+  "pdivmod_rel x y (x div y) (x mod y)"
 proof -
-  from divmod_poly_rel_exists
-    obtain q r where "divmod_poly_rel x y q r" by fast
+  from pdivmod_rel_exists
+    obtain q r where "pdivmod_rel x y q r" by fast
   thus ?thesis
     by (simp add: div_poly_eq mod_poly_eq)
 qed
@@ -798,26 +798,26 @@ qed
 instance proof
   fix x y :: "'a poly"
   show "x div y * y + x mod y = x"
-    using divmod_poly_rel [of x y]
-    by (simp add: divmod_poly_rel_def)
+    using pdivmod_rel [of x y]
+    by (simp add: pdivmod_rel_def)
 next
   fix x :: "'a poly"
-  have "divmod_poly_rel x 0 0 x"
-    by (rule divmod_poly_rel_by_0)
+  have "pdivmod_rel x 0 0 x"
+    by (rule pdivmod_rel_by_0)
   thus "x div 0 = 0"
     by (rule div_poly_eq)
 next
   fix y :: "'a poly"
-  have "divmod_poly_rel 0 y 0 0"
-    by (rule divmod_poly_rel_0)
+  have "pdivmod_rel 0 y 0 0"
+    by (rule pdivmod_rel_0)
   thus "0 div y = 0"
     by (rule div_poly_eq)
 next
   fix x y z :: "'a poly"
   assume "y \<noteq> 0"
-  hence "divmod_poly_rel (x + z * y) y (z + x div y) (x mod y)"
-    using divmod_poly_rel [of x y]
-    by (simp add: divmod_poly_rel_def left_distrib)
+  hence "pdivmod_rel (x + z * y) y (z + x div y) (x mod y)"
+    using pdivmod_rel [of x y]
+    by (simp add: pdivmod_rel_def left_distrib)
   thus "(x + z * y) div y = z + x div y"
     by (rule div_poly_eq)
 qed
@@ -826,22 +826,22 @@ end
 
 lemma degree_mod_less:
   "y \<noteq> 0 \<Longrightarrow> x mod y = 0 \<or> degree (x mod y) < degree y"
-  using divmod_poly_rel [of x y]
-  unfolding divmod_poly_rel_def by simp
+  using pdivmod_rel [of x y]
+  unfolding pdivmod_rel_def by simp
 
 lemma div_poly_less: "degree x < degree y \<Longrightarrow> x div y = 0"
 proof -
   assume "degree x < degree y"
-  hence "divmod_poly_rel x y 0 x"
-    by (simp add: divmod_poly_rel_def)
+  hence "pdivmod_rel x y 0 x"
+    by (simp add: pdivmod_rel_def)
   thus "x div y = 0" by (rule div_poly_eq)
 qed
 
 lemma mod_poly_less: "degree x < degree y \<Longrightarrow> x mod y = x"
 proof -
   assume "degree x < degree y"
-  hence "divmod_poly_rel x y 0 x"
-    by (simp add: divmod_poly_rel_def)
+  hence "pdivmod_rel x y 0 x"
+    by (simp add: pdivmod_rel_def)
   thus "x mod y = x" by (rule mod_poly_eq)
 qed
 
@@ -852,7 +852,7 @@ lemma mod_pCons:
   shows "(pCons a x) mod y = (pCons a (x mod y) - smult b y)"
 unfolding b
 apply (rule mod_poly_eq)
-apply (rule divmod_poly_rel_pCons [OF divmod_poly_rel y refl])
+apply (rule pdivmod_rel_pCons [OF pdivmod_rel y refl])
 done
 
 
@@ -1087,30 +1087,30 @@ lemmas synthetic_divmod_code [code] =
 text {* code generator setup for div and mod *}
 
 definition
-  divmod_poly :: "'a::field poly \<Rightarrow> 'a poly \<Rightarrow> 'a poly \<times> 'a poly"
+  pdivmod :: "'a::field poly \<Rightarrow> 'a poly \<Rightarrow> 'a poly \<times> 'a poly"
 where
-  [code del]: "divmod_poly x y = (x div y, x mod y)"
+  [code del]: "pdivmod x y = (x div y, x mod y)"
 
-lemma div_poly_code [code]: "x div y = fst (divmod_poly x y)"
-  unfolding divmod_poly_def by simp
+lemma div_poly_code [code]: "x div y = fst (pdivmod x y)"
+  unfolding pdivmod_def by simp
 
-lemma mod_poly_code [code]: "x mod y = snd (divmod_poly x y)"
-  unfolding divmod_poly_def by simp
+lemma mod_poly_code [code]: "x mod y = snd (pdivmod x y)"
+  unfolding pdivmod_def by simp
 
-lemma divmod_poly_0 [code]: "divmod_poly 0 y = (0, 0)"
-  unfolding divmod_poly_def by simp
+lemma pdivmod_0 [code]: "pdivmod 0 y = (0, 0)"
+  unfolding pdivmod_def by simp
 
-lemma divmod_poly_pCons [code]:
-  "divmod_poly (pCons a x) y =
+lemma pdivmod_pCons [code]:
+  "pdivmod (pCons a x) y =
     (if y = 0 then (0, pCons a x) else
-      (let (q, r) = divmod_poly x y;
+      (let (q, r) = pdivmod x y;
            b = coeff (pCons a r) (degree y) / coeff y (degree y)
         in (pCons b q, pCons a r - smult b y)))"
-apply (simp add: divmod_poly_def Let_def, safe)
+apply (simp add: pdivmod_def Let_def, safe)
 apply (rule div_poly_eq)
-apply (erule divmod_poly_rel_pCons [OF divmod_poly_rel _ refl])
+apply (erule pdivmod_rel_pCons [OF pdivmod_rel _ refl])
 apply (rule mod_poly_eq)
-apply (erule divmod_poly_rel_pCons [OF divmod_poly_rel _ refl])
+apply (erule pdivmod_rel_pCons [OF pdivmod_rel _ refl])
 done
 
 end
