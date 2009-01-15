@@ -45,6 +45,14 @@ fun the_entry entries (id: command_id) =
 
 fun put_entry (id: command_id, entry: entry) = Symtab.update (id, entry);
 
+fun put_entry_state (id: command_id) state entries =
+  let val {next, ...} = the_entry entries id
+  in put_entry (id, make_entry next state) entries end;
+
+fun reset_state id = put_entry_state id NONE;
+fun set_state (id, state_id) = put_entry_state id (SOME state_id);
+
+
 
 (* document *)
 
@@ -95,9 +103,7 @@ fun delete_after (id: command_id) = map_entries (fn entries =>
         entries |>
           (case #next (the_entry entries id2) of
             NONE => put_entry (id, make_entry NONE state)
-          | SOME id3 =>
-              put_entry (id, make_entry (SOME id3) state) #>
-              put_entry (id3, make_entry (#next (the_entry entries id3)) NONE)))
+          | SOME id3 => put_entry (id, make_entry (SOME id3) state) #> reset_state id3))
   end);
 
 
@@ -197,30 +203,33 @@ fun update_states old_document new_document =
         val state' = update_state (the_command id) (the_state state_id);
         val _ = define_state state_id' state';
       in (state_id', (id, state_id') :: updates) end;
-
-    fun update_state (id, state_id) entries =
-      let val _ = Output.status (Markup.markup (Markup.command_state id state_id) "")
-      in put_entry (id, make_entry (#next (the_entry entries id)) (SOME state_id)) entries end;
   in
     (case find_entries is_changed old_document of
-      NONE => new_document
+      NONE => ([], new_document)
     | SOME (prev, id) =>
         let
           val _ = fold_entries (SOME id) cancel_state old_document ();
           val prev_state_id = the (#state (the_entry new_entries (the prev)));
           val (_, updates) = fold_entries (SOME id) new_state new_document (prev_state_id, []);
-          val new_document' = new_document |> map_entries (fold update_state updates);
-        in new_document' end)
+          val new_document' = new_document |> map_entries (fold set_state updates);
+        in (updates, new_document') end)
   end;
+
+fun report_updates _ [] = ()
+  | report_updates (document_id: document_id) updates =
+      implode (map (fn (id, state_id) => Markup.markup (Markup.edit id state_id) "") updates)
+      |> Markup.markup (Markup.edits document_id)
+      |> Output.status;
 
 fun edit_document (id: document_id) (id': document_id) edits =
   let
     val document = Document (the_document id);
-    val document' =
+    val (updates, document') =
       document
       |> fold (fn (id, SOME id2) => insert_after id id2 | (id, NONE) => delete_after id) edits
       |> update_states document;
     val _ = define_document id' document';
+    val _ = report_updates id' updates;
   in () end;
 
 
