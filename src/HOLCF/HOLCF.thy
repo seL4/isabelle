@@ -10,6 +10,7 @@ imports
 uses
   "holcf_logic.ML"
   "Tools/cont_consts.ML"
+  "Tools/cont_proc.ML"
   "Tools/domain/domain_library.ML"
   "Tools/domain/domain_syntax.ML"
   "Tools/domain/domain_axioms.ML"

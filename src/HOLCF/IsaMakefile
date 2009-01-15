@@ -1,6 +1,4 @@
 #
-# $Id$
-#
 # IsaMakefile for HOLCF
 #
 
@@ -54,6 +52,7 @@ $(OUT)/HOLCF: $(OUT)/HOL \
   Pcpodef.thy \
   Pcpo.thy \
   Porder.thy \
+  Product_Cpo.thy \
   Sprod.thy \
   Ssum.thy \
   Tr.thy \

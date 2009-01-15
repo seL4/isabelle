@@ -55,6 +55,7 @@ lemma maybe_when_rews [simp]:
   "maybe_when\<cdot>f\<cdot>r\<cdot>fail = f"
   "maybe_when\<cdot>f\<cdot>r\<cdot>(return\<cdot>x) = r\<cdot>x"
 by (simp_all add: return_def fail_def maybe_when_def cont_Rep_maybe
+                  cont2cont_LAM
                   cont_Abs_maybe Abs_maybe_inverse Rep_maybe_strict)
 
 translations

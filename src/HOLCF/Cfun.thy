@@ -7,8 +7,7 @@ Definition of the type ->  of continuous functions.
 header {* The type of continuous functions *}
 
 theory Cfun
-imports Pcpodef Ffun
-uses ("Tools/cont_proc.ML")
+imports Pcpodef Product_Cpo
 begin
 
 defaultsort cpo
@@ -301,7 +300,7 @@ subsection {* Continuity simplification procedure *}
 
 text {* cont2cont lemma for @{term Rep_CFun} *}
 
-lemma cont2cont_Rep_CFun:
+lemma cont2cont_Rep_CFun [cont2cont]:
   assumes f: "cont (\<lambda>x. f x)"
   assumes t: "cont (\<lambda>x. t x)"
   shows "cont (\<lambda>x. (f x)\<cdot>(t x))"
@@ -321,6 +320,11 @@ lemma cont2mono_LAM:
 
 text {* cont2cont Lemma for @{term "%x. LAM y. f x y"} *}
 
+text {*
+  Not suitable as a cont2cont rule, because on nested lambdas
+  it causes exponential blow-up in the number of subgoals.
+*}
+
 lemma cont2cont_LAM:
   assumes f1: "\<And>x. cont (\<lambda>y. f x y)"
   assumes f2: "\<And>y. cont (\<lambda>x. f x y)"
@@ -331,16 +335,39 @@ proof (rule cont_Abs_CFun)
   from f2 show "cont f" by (rule cont2cont_lambda)
 qed
 
-text {* continuity simplification procedure *}
+text {*
+  This version does work as a cont2cont rule, since it
+  has only a single subgoal.
+*}
+
+lemma cont2cont_LAM' [cont2cont]:
+  fixes f :: "'a::cpo \<Rightarrow> 'b::cpo \<Rightarrow> 'c::cpo"
+  assumes f: "cont (\<lambda>p. f (fst p) (snd p))"
+  shows "cont (\<lambda>x. \<Lambda> y. f x y)"
+proof (rule cont2cont_LAM)
+  fix x :: 'a
+  have "cont (\<lambda>y. (x, y))"
+    by (rule cont_pair2)
+  with f have "cont (\<lambda>y. f (fst (x, y)) (snd (x, y)))"
+    by (rule cont2cont_app3)
+  thus "cont (\<lambda>y. f x y)"
+    by (simp only: fst_conv snd_conv)
+next
+  fix y :: 'b
+  have "cont (\<lambda>x. (x, y))"
+    by (rule cont_pair1)
+  with f have "cont (\<lambda>x. f (fst (x, y)) (snd (x, y)))"
+    by (rule cont2cont_app3)
+  thus "cont (\<lambda>x. f x y)"
+    by (simp only: fst_conv snd_conv)
+qed
+
+lemma cont2cont_LAM_discrete [cont2cont]:
+  "(\<And>y::'a::discrete_cpo. cont (\<lambda>x. f x y)) \<Longrightarrow> cont (\<lambda>x. \<Lambda> y. f x y)"
+by (simp add: cont2cont_LAM)
 
 lemmas cont_lemmas1 =
   cont_const cont_id cont_Rep_CFun2 cont2cont_Rep_CFun cont2cont_LAM
-
-use "Tools/cont_proc.ML";
-setup ContProc.setup;
-
-(*val cont_tac = (fn i => (resolve_tac cont_lemmas i));*)
-(*val cont_tacR = (fn i => (REPEAT (cont_tac i)));*)
 
 subsection {* Miscellaneous *}
 
@@ -530,7 +557,8 @@ lemmas cont_strictify2 =
   monocontlub2cont [OF monofun_strictify2 contlub_strictify2, standard]
 
 lemma strictify_conv_if: "strictify\<cdot>f\<cdot>x = (if x = \<bottom> then \<bottom> else f\<cdot>x)"
-by (unfold strictify_def, simp add: cont_strictify1 cont_strictify2)
+  unfolding strictify_def
+  by (simp add: cont_strictify1 cont_strictify2 cont2cont_LAM)
 
 lemma strictify1 [simp]: "strictify\<cdot>f\<cdot>\<bottom> = \<bottom>"
 by (simp add: strictify_conv_if)

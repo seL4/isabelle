@@ -135,18 +135,50 @@ apply (rule is_lubD1)
 apply (erule cpo_lubI)
 done
 
+subsection {* Continuity simproc *}
+
+ML {*
+structure Cont2ContData = NamedThmsFun
+  ( val name = "cont2cont" val description = "continuity intro rule" )
+*}
+
+setup {* Cont2ContData.setup *}
+
+text {*
+  Given the term @{term "cont f"}, the procedure tries to construct the
+  theorem @{term "cont f == True"}. If this theorem cannot be completely
+  solved by the introduction rules, then the procedure returns a
+  conditional rewrite rule with the unsolved subgoals as premises.
+*}
+
+setup {*
+let
+  fun solve_cont thy ss t =
+    let
+      val tr = instantiate' [] [SOME (cterm_of thy t)] Eq_TrueI;
+      val rules = Cont2ContData.get (Simplifier.the_context ss);
+      val tac = REPEAT_ALL_NEW (resolve_tac rules);
+    in Option.map fst (Seq.pull (tac 1 tr)) end
+
+  val proc =
+    Simplifier.simproc @{theory} "cont_proc" ["cont f"] solve_cont;
+in
+  Simplifier.map_simpset (fn ss => ss addsimprocs [proc])
+end
+*}
+
 subsection {* Continuity of basic functions *}
 
 text {* The identity function is continuous *}
 
-lemma cont_id: "cont (\<lambda>x. x)"
+lemma cont_id [cont2cont]: "cont (\<lambda>x. x)"
 apply (rule contI)
 apply (erule cpo_lubI)
 done
 
 text {* constant functions are continuous *}
 
-lemma cont_const: "cont (\<lambda>x. c)"
+lemma cont_const [cont2cont]: "cont (\<lambda>x. c)"
 apply (rule contI)
 apply (rule lub_const)
 done

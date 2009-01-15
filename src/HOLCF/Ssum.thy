@@ -188,7 +188,7 @@ translations
 
 lemma beta_sscase:
   "sscase\<cdot>f\<cdot>g\<cdot>s = (\<Lambda><t, x, y>. If t then f\<cdot>x else g\<cdot>y fi)\<cdot>(Rep_Ssum s)"
-unfolding sscase_def by (simp add: cont_Rep_Ssum)
+unfolding sscase_def by (simp add: cont_Rep_Ssum cont2cont_LAM)
 
 lemma sscase1 [simp]: "sscase\<cdot>f\<cdot>g\<cdot>\<bottom> = \<bottom>"
 unfolding beta_sscase by (simp add: Rep_Ssum_strict)

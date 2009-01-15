@@ -282,10 +282,10 @@ done
 text {* properties of fup *}
 
 lemma fup1 [simp]: "fup\<cdot>f\<cdot>\<bottom> = \<bottom>"
-by (simp add: fup_def cont_Ifup1 cont_Ifup2 inst_up_pcpo)
+by (simp add: fup_def cont_Ifup1 cont_Ifup2 inst_up_pcpo cont2cont_LAM)
 
 lemma fup2 [simp]: "fup\<cdot>f\<cdot>(up\<cdot>x) = f\<cdot>x"
-by (simp add: up_def fup_def cont_Iup cont_Ifup1 cont_Ifup2)
+by (simp add: up_def fup_def cont_Iup cont_Ifup1 cont_Ifup2 cont2cont_LAM)
 
 lemma fup3 [simp]: "fup\<cdot>up\<cdot>x = x"
 by (cases x, simp_all)
