@@ -293,6 +293,14 @@ qed
 
 end
 
+instance poly ::
+  ("{cancel_ab_semigroup_add,comm_monoid_add}") cancel_ab_semigroup_add
+proof
+  fix p q r :: "'a poly"
+  assume "p + q = p + r" thus "q = r"
+    by (simp add: expand_poly_eq)
+qed
+
 instantiation poly :: (ab_group_add) ab_group_add
 begin
 
@@ -541,6 +549,8 @@ qed
 
 end
 
+instance poly :: (comm_semiring_0_cancel) comm_semiring_0_cancel ..
+
 lemma coeff_mult:
   "coeff (p * q) n = (\<Sum>i\<le>n. coeff p i * coeff q (n-i))"
 proof (induct p arbitrary: n)
@@ -581,6 +591,8 @@ next
 qed
 
 end
+
+instance poly :: (comm_semiring_1_cancel) comm_semiring_1_cancel ..
 
 lemma coeff_1 [simp]: "coeff 1 n = (if n = 0 then 1 else 0)"
   unfolding one_poly_def
