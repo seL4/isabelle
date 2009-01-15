@@ -1,10 +1,10 @@
-(*  Title:      HOLCF/Dsum.thy
+(*  Title:      HOLCF/Sum_Cpo.thy
     Author:     Brian Huffman
 *)
 
 header {* The cpo of disjoint sums *}
 
-theory Dsum
+theory Sum_Cpo
 imports Bifinite
 begin
 

@@ -39,7 +39,6 @@ $(OUT)/HOLCF: $(OUT)/HOL \
   Discrete.thy \
   Deflation.thy \
   Domain.thy \
-  Dsum.thy \
   Eventual.thy \
   Ffun.thy \
   Fixrec.thy \
@@ -55,6 +54,7 @@ $(OUT)/HOLCF: $(OUT)/HOL \
   Product_Cpo.thy \
   Sprod.thy \
   Ssum.thy \
+  Sum_Cpo.thy \
   Tr.thy \
   Universal.thy \
   UpperPD.thy \
