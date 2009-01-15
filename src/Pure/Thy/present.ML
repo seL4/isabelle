@@ -467,7 +467,7 @@ fun begin_theory update_time dir files thy =
             val _ = add_file (Path.append html_prefix base_html,
               HTML.ml_file (Url.File base) (File.read path));
             in (Url.File base_html, Url.File raw_path, loadit) end
-      | NONE => error ("Browser info: expected to find ML file" ^ quote (Path.implode raw_path)));
+      | NONE => error ("Browser info: expected to find ML file " ^ quote (Path.implode raw_path)));
 
     val files_html = map prep_file files;
 
