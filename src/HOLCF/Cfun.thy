@@ -7,7 +7,7 @@ Definition of the type ->  of continuous functions.
 header {* The type of continuous functions *}
 
 theory Cfun
-imports Pcpodef Product_Cpo
+imports Pcpodef Ffun Product_Cpo
 begin
 
 defaultsort cpo

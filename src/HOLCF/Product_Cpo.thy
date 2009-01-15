@@ -5,7 +5,7 @@
 header {* The cpo of cartesian products *}
 
 theory Product_Cpo
-imports Ffun
+imports Cont
 begin
 
 defaultsort cpo
@@ -192,12 +192,13 @@ lemma cont2cont_Pair [cont2cont]:
   assumes f: "cont (\<lambda>x. f x)"
   assumes g: "cont (\<lambda>x. g x)"
   shows "cont (\<lambda>x. (f x, g x))"
-apply (rule cont2cont_app2 [OF cont2cont_lambda cont_pair2 g])
-apply (rule cont2cont_app2 [OF cont_const cont_pair1 f])
+apply (rule cont2cont_apply [OF _ cont_pair1 f])
+apply (rule cont2cont_apply [OF _ cont_pair2 g])
+apply (rule cont_const)
 done
 
-lemmas cont2cont_fst [cont2cont] = cont2cont_app3 [OF cont_fst]
+lemmas cont2cont_fst [cont2cont] = cont2cont_compose [OF cont_fst]
 
-lemmas cont2cont_snd [cont2cont] = cont2cont_app3 [OF cont_snd]
+lemmas cont2cont_snd [cont2cont] = cont2cont_compose [OF cont_snd]
 
 end
