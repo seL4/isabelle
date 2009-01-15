@@ -11,6 +11,7 @@ sig
   val quotes: bool ref
   val indent: int ref
   val source: bool ref
+  val break: bool ref
   val add_commands: (string * (Args.src -> Toplevel.node option -> string)) list -> unit
   val add_options: (string * (string -> (unit -> string) -> unit -> string)) list -> unit
   val defined_command: string -> bool
