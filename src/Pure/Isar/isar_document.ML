@@ -256,7 +256,7 @@ val _ =
 val _ =
   OuterSyntax.internal_command "Isar.edit_document"
     (P.string -- P.string -- V.list (P.string -- (P.string >> SOME) || P.string >> rpair NONE)
-      >> (fn ((id, new_id), edits) => Toplevel.imperative (fn () => end_document id new_id edits)));
+      >> (fn ((id, new_id), edits) => Toplevel.imperative (fn () => edit_document id new_id edits)));
 
 end;
 
