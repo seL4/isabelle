@@ -1,7 +1,7 @@
 (*  Title:      FOL/ex/NewLocaleTest.thy
     Author:     Clemens Ballarin, TU Muenchen
 
-Testing environment for locale expressions --- experimental.
+Testing environment for locale expressions.
 *)
 
 theory LocaleTest
@@ -482,5 +482,7 @@ proof
     by unfold_locales
   thm local_free.lone [where ?zero = 0]
 qed
+
+ML_val {* reset Toplevel.debug *}
 
 end
