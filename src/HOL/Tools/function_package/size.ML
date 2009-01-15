@@ -1,6 +1,5 @@
 (*  Title:      HOL/Tools/function_package/size.ML
-    ID:         $Id$
-    Author:     Stefan Berghofer, Florian Haftmann, TU Muenchen
+    Author:     Stefan Berghofer, Florian Haftmann & Alexander Krauss, TU Muenchen
 
 Size functions for datatypes.
 *)
@@ -81,7 +80,7 @@ fun prove_size_thms (info : datatype_info) new_type_names thy =
     val param_size = AList.lookup op = param_size_fs;
 
     val extra_rewrites = descr |> map (#1 o snd) |> distinct op = |>
-      List.mapPartial (Option.map snd o lookup_size thy) |> flat;
+      map_filter (Option.map snd o lookup_size thy) |> flat;
     val extra_size = Option.map fst o lookup_size thy;
 
     val (((size_names, size_fns), def_names), def_names') =
@@ -180,7 +179,7 @@ fun prove_size_thms (info : datatype_info) new_type_names thy =
       let
         val Ts = map (typ_of_dtyp descr sorts) cargs;
         val tnames = Name.variant_list f_names (DatatypeProp.make_tnames Ts);
-        val ts = List.mapPartial (fn (sT as (s, T), dt) =>
+        val ts = map_filter (fn (sT as (s, T), dt) =>
           Option.map (fn sz => sz $ Free sT)
             (if p dt then size_of_type size_of extra_size size_ofp T
              else NONE)) (tnames ~~ Ts ~~ cargs)

@@ -1,5 +1,4 @@
 (*  Title:      HOL/Library/LaTeXsugar.thy
-    ID:         $Id$
     Author:     Gerwin Klain, Tobias Nipkow, Norbert Schirmer
     Copyright   2005 NICTA and TUM
 *)

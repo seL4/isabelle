@@ -1,5 +1,4 @@
 (*  Title:      HOL/Library/OptionalSugar.thy
-    ID:         $Id$
     Author:     Gerwin Klain, Tobias Nipkow
     Copyright   2005 NICTA and TUM
 *)
@@ -37,6 +36,36 @@ translations
   "_bind (p#DUMMY) e" <= "_bind p (hd e)"
   "_bind (DUMMY#p) e" <= "_bind p (tl e)"
 
+(* type constraints with spacing *)
+setup {*
+let
+  val typ = SimpleSyntax.read_typ;
+  val typeT = Syntax.typeT;
+  val spropT = Syntax.spropT;
+in
+  Sign.del_modesyntax_i (Symbol.xsymbolsN, false) [
+    ("_constrain", typ "logic => type => logic", Mixfix ("_\<Colon>_", [4, 0], 3)),
+    ("_constrain", [spropT, typeT] ---> spropT, Mixfix ("_\<Colon>_", [4, 0], 3))]
+  #> Sign.add_modesyntax_i (Symbol.xsymbolsN, false) [
+      ("_constrain", typ "logic => type => logic", Mixfix ("_ \<Colon>  _", [4, 0], 3)),
+      ("_constrain", [spropT, typeT] ---> spropT, Mixfix ("_ \<Colon> _", [4, 0], 3))]
+end
+*}
+
+(* sorts as intersections *)
+setup {*
+let
+  val sortT = Type ("sort", []); (*FIXME*)
+  val classesT = Type ("classes", []); (*FIXME*)
+in
+  Sign.add_modesyntax_i (Symbol.xsymbolsN, false) [
+    ("_topsort", sortT, Mixfix ("\<top>", [], Syntax.max_pri)),
+    ("_sort", classesT --> sortT, Mixfix ("'(_')", [], Syntax.max_pri)),
+    ("_classes", Lexicon.idT --> classesT --> classesT, Mixfix ("_ \<inter> _", [], Syntax.max_pri)),
+    ("_classes", Lexicon.longidT --> classesT --> classesT, Mixfix ("_ \<inter> _", [], Syntax.max_pri))
+  ]
+end
+*}
 
 end
 (*>*)

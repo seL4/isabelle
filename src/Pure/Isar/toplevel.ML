@@ -96,6 +96,7 @@ sig
   val transition: bool -> transition -> state -> (state * (exn * string) option) option
   val commit_exit: Position.T -> transition
   val command: transition -> state -> state
+  val run_command: transition -> state -> state option
   val excursion: (transition * transition list) list -> (transition * state) list lazy
 end;
 
@@ -693,6 +694,16 @@ fun command tr st =
   | SOME (_, SOME exn_info) => raise EXCURSION_FAIL exn_info
   | NONE => raise EXCURSION_FAIL (TERMINATE, at_command tr));
 
+fun command_result tr st =
+  let val st' = command tr st
+  in (st', st') end;
+
+fun run_command tr st =
+  (case transition true tr st of
+    SOME (st', NONE) => (status tr Markup.finished; SOME st')
+  | SOME (_, SOME exn_info) => (error_msg tr exn_info; status tr Markup.failed; NONE)
+  | NONE => (error_msg tr (TERMINATE, at_command tr); status tr Markup.failed; NONE));
+
 
 (* excursion of units, consisting of commands with proof *)
 
@@ -701,10 +712,6 @@ structure States = ProofDataFun
   type T = state list future option;
   fun init _ = NONE;
 );
-
-fun command_result tr st =
-  let val st' = command tr st
-  in (st', st') end;
 
 fun proof_result immediate (tr, proof_trs) st =
   let val st' = command tr st in

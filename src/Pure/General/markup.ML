@@ -91,6 +91,8 @@ sig
   val failedN: string val failed: T
   val finishedN: string val finished: T
   val disposedN: string val disposed: T
+  val editsN: string val edits: string -> T
+  val editN: string val edit: string -> string -> T
   val pidN: string
   val sessionN: string
   val classN: string
@@ -267,6 +269,14 @@ val (runningN, running) = markup_string "running" taskN;
 val (failedN, failed) = markup_elem "failed";
 val (finishedN, finished) = markup_elem "finished";
 val (disposedN, disposed) = markup_elem "disposed";
+
+
+(* interactive documents *)
+
+val (editsN, edits) = markup_string "edits" idN;
+
+val editN = "edit";
+fun edit id state_id : T = (editN, [(idN, id), (stateN, state_id)]);
 
 
 (* messages *)

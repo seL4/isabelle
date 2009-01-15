@@ -119,6 +119,12 @@ object Markup {
   val DISPOSED = "disposed"
 
 
+  /* interactive documents */
+
+  val EDITS = "edits"
+  val EDIT = "edit"
+
+
   /* messages */
 
   val PID = "pid"
