@@ -49,8 +49,8 @@ fun put_entry_state (id: command_id) state entries =
   let val {next, ...} = the_entry entries id
   in put_entry (id, make_entry next state) entries end;
 
-fun reset_state id = put_entry_state id NONE;
-fun set_state (id, state_id) = put_entry_state id (SOME state_id);
+fun reset_entry_state id = put_entry_state id NONE;
+fun set_entry_state (id, state_id) = put_entry_state id (SOME state_id);
 
 
 
@@ -103,7 +103,7 @@ fun delete_after (id: command_id) = map_entries (fn entries =>
         entries |>
           (case #next (the_entry entries id2) of
             NONE => put_entry (id, make_entry NONE state)
-          | SOME id3 => put_entry (id, make_entry (SOME id3) state) #> reset_state id3))
+          | SOME id3 => put_entry (id, make_entry (SOME id3) state) #> reset_entry_state id3))
   end);
 
 
@@ -211,7 +211,7 @@ fun update_states old_document new_document =
           val _ = fold_entries (SOME id) cancel_state old_document ();
           val prev_state_id = the (#state (the_entry new_entries (the prev)));
           val (_, updates) = fold_entries (SOME id) new_state new_document (prev_state_id, []);
-          val new_document' = new_document |> map_entries (fold set_state updates);
+          val new_document' = new_document |> map_entries (fold set_entry_state updates);
         in (updates, new_document') end)
   end;
 
