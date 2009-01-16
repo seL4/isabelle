@@ -71,18 +71,20 @@ fun map_entries f (Document {dir, name, start, entries}) =
 
 (* iterate entries *)
 
-fun fold_entries opt_id f (Document {start, entries, ...}) =
+fun fold_entries id0 f (Document {entries, ...}) =
   let
     fun apply NONE x = x
-      | apply (SOME id) x = apply (#next (the_entry entries id)) (f id x);
-  in if is_some opt_id then apply opt_id else apply (SOME start) end;
+      | apply (SOME id) x =
+          let val entry = the_entry entries id
+          in apply (#next entry) (f (id, entry) x) end;
+  in if Symtab.defined entries id0 then apply (SOME id0) else I end;
 
-fun find_entries P (Document {start, entries, ...}) =
+fun first_entry P (Document {start, entries, ...}) =
   let
     fun find _ NONE = NONE
       | find prev (SOME id) =
-          if P id then SOME (prev, id)
-          else find (SOME id) (#next (the_entry entries id));
+          let val entry = the_entry entries id
+          in if P (id, entry) then SOME (prev, id) else find (SOME id) (#next entry) end;
   in find NONE (SOME start) end;
 
 
@@ -179,40 +181,48 @@ fun end_document (id: document_id) = error "FIXME";
 
 (* document editing *)
 
-fun update_state tr state = Future.fork_deps [state] (fn () =>
-  (case Future.join state of NONE => NONE | SOME st => Toplevel.run_command tr st));
+local
+
+fun is_changed entries' (id, {next = _, state}) =
+  (case try (the_entry entries') id of
+    SOME {next = _, state = state'} => state' <> state
+  | _ => true);
+
+fun cancel_state (id, {next = _, state = SOME state_id}) () = Future.cancel (the_state state_id)
+  | cancel_state _ () = ();
+
+fun update_state tr state state_id' =
+  Future.fork_deps [state] (fn () =>
+    (case Future.join state of
+      NONE => NONE
+    | SOME st => Toplevel.run_command (Toplevel.put_id state_id' tr) st));
+
+fun new_state (id, _) (state_id, updates) =
+  let
+    val state_id' = new_id ();
+    val state' = update_state (the_command id) (the_state state_id) state_id';
+    val _ = define_state state_id' state';
+  in (state_id', (id, state_id') :: updates) end;
 
 fun update_states old_document new_document =
   let
+    fun cancel_old id = fold_entries id cancel_state old_document ();
+
     val Document {entries = old_entries, ...} = old_document;
     val Document {entries = new_entries, ...} = new_document;
-
-    fun is_changed id =
-      (case try (the_entry new_entries) id of
-        SOME {state = SOME _, ...} => false
-      | _ => true);
-
-    fun cancel_state id () =
-      (case the_entry old_entries id of
-        {state = SOME state_id, ...} => Future.cancel (the_state state_id)
-      | _ => ());
-
-    fun new_state id (state_id, updates) =
-      let
-        val state_id' = new_id ();
-        val state' = update_state (the_command id) (the_state state_id);
-        val _ = define_state state_id' state';
-      in (state_id', (id, state_id') :: updates) end;
   in
-    (case find_entries is_changed old_document of
-      NONE => ([], new_document)
+    (case first_entry (is_changed old_entries) new_document of
+      NONE =>
+        (case first_entry (is_changed new_entries) old_document of
+          NONE => ([], new_document)
+        | SOME (_, id) => (cancel_old id; ([], new_document)))
     | SOME (prev, id) =>
         let
-          val _ = fold_entries (SOME id) cancel_state old_document ();
+          val _ = cancel_old id;
           val prev_state_id = the (#state (the_entry new_entries (the prev)));
-          val (_, updates) = fold_entries (SOME id) new_state new_document (prev_state_id, []);
+          val (_, updates) = fold_entries id new_state new_document (prev_state_id, []);
           val new_document' = new_document |> map_entries (fold set_entry_state updates);
-        in (updates, new_document') end)
+        in (rev updates, new_document') end)
   end;
 
 fun report_updates _ [] = ()
@@ -220,6 +230,8 @@ fun report_updates _ [] = ()
       implode (map (fn (id, state_id) => Markup.markup (Markup.edit id state_id) "") updates)
       |> Markup.markup (Markup.edits document_id)
       |> Output.status;
+
+in
 
 fun edit_document (id: document_id) (id': document_id) edits =
   let
@@ -231,6 +243,8 @@ fun edit_document (id: document_id) (id': document_id) edits =
     val _ = define_document id' document';
     val _ = report_updates id' updates;
   in () end;
+
+end;
 
 
 
