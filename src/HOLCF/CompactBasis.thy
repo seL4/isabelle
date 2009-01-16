@@ -244,7 +244,7 @@ lemma fold_pd_PDPlus:
   assumes "ab_semigroup_idem_mult f"
   shows "fold_pd g f (PDPlus t u) = f (fold_pd g f t) (fold_pd g f u)"
 proof -
-  class_interpret ab_semigroup_idem_mult [f] by fact
+  interpret ab_semigroup_idem_mult f by fact
   show ?thesis unfolding fold_pd_def Rep_PDPlus by (simp add: image_Un fold1_Un2)
 qed
 

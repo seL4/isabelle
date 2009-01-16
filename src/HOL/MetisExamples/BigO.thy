@@ -1,5 +1,4 @@
 (*  Title:      HOL/MetisExamples/BigO.thy
-    ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
 
 Testing the metis method
@@ -13,9 +12,7 @@ begin
 
 subsection {* Definitions *}
 
-constdefs 
-
-  bigo :: "('a => 'b::ordered_idom) => ('a => 'b) set"    ("(1O'(_'))")
+definition bigo :: "('a => 'b::ordered_idom) => ('a => 'b) set"    ("(1O'(_'))") where
   "O(f::('a => 'b)) ==   {h. EX c. ALL x. abs (h x) <= c * abs (f x)}"
 
 ML_command{*AtpWrapper.problem_name := "BigO__bigo_pos_const"*}
@@ -362,7 +359,7 @@ lemma bigo_plus_eq: "ALL x. 0 <= f x ==> ALL x. 0 <= g x ==>
   apply (rule add_mono)
 ML_command{*AtpWrapper.problem_name := "BigO__bigo_plus_eq_simpler"*} 
 (*Found by SPASS; SLOW*)
-apply (metis le_maxI2 linorder_linear linorder_not_le min_max.less_eq_less_sup.sup_absorb1 mult_le_cancel_right order_trans)
+apply (metis le_maxI2 linorder_linear linorder_not_le min_max.sup_absorb1 mult_le_cancel_right order_trans)
 apply (metis le_maxI2 linorder_not_le mult_le_cancel_right order_trans)
 done
 
@@ -1164,7 +1161,7 @@ apply (erule thin_rl)
 (*sledgehammer*);  
   apply (case_tac "0 <= k x - g x")
   prefer 2 (*re-order subgoals because I don't know what to put after a structured proof*)
-   apply (metis abs_ge_zero abs_minus_commute linorder_linear min_max.less_eq_less_sup.sup_absorb1 min_max.less_eq_less_sup.sup_commute)
+   apply (metis abs_ge_zero abs_minus_commute linorder_linear min_max.sup_absorb1 min_max.sup_commute)
 proof (neg_clausify)
 fix x
 assume 0: "\<And>A. k A \<le> f A"
@@ -1174,16 +1171,16 @@ assume 2: "(0\<Colon>'b) \<le> k x - g x"
 have 3: "\<not> k x - g x < (0\<Colon>'b)"
   by (metis 2 linorder_not_less)
 have 4: "\<And>X1 X2. min X1 (k X2) \<le> f X2"
-  by (metis min_max.less_eq_less_inf.inf_le2 min_max.less_eq_less_inf.le_inf_iff min_max.less_eq_less_inf.le_iff_inf 0)
+  by (metis min_max.inf_le2 min_max.le_inf_iff min_max.le_iff_inf 0)
 have 5: "\<bar>g x - f x\<bar> = f x - g x"
-  by (metis abs_minus_commute combine_common_factor mult_zero_right minus_add_cancel minus_zero abs_if diff_less_eq min_max.less_eq_less_inf.inf_commute 4 linorder_not_le min_max.less_eq_less_inf.le_iff_inf 3 diff_less_0_iff_less linorder_not_less)
+  by (metis abs_minus_commute combine_common_factor mult_zero_right minus_add_cancel minus_zero abs_if diff_less_eq min_max.inf_commute 4 linorder_not_le min_max.le_iff_inf 3 diff_less_0_iff_less linorder_not_less)
 have 6: "max (0\<Colon>'b) (k x - g x) = k x - g x"
-  by (metis min_max.less_eq_less_sup.le_iff_sup 2)
+  by (metis min_max.le_iff_sup 2)
 assume 7: "\<not> max (k x - g x) (0\<Colon>'b) \<le> \<bar>f x - g x\<bar>"
 have 8: "\<not> k x - g x \<le> f x - g x"
-  by (metis 5 abs_minus_commute 7 min_max.less_eq_less_sup.sup_commute 6)
+  by (metis 5 abs_minus_commute 7 min_max.sup_commute 6)
 show "False"
-  by (metis min_max.less_eq_less_sup.sup_commute min_max.less_eq_less_inf.inf_commute min_max.less_eq_less_inf_sup.sup_inf_absorb min_max.less_eq_less_inf.le_iff_inf 0 max_diff_distrib_left 1 linorder_not_le 8)
+  by (metis min_max.sup_commute min_max.inf_commute min_max.sup_inf_absorb min_max.le_iff_inf 0 max_diff_distrib_left 1 linorder_not_le 8)
 qed
 
 ML_command{*AtpWrapper.problem_name := "BigO__bigo_lesso3"*}
@@ -1206,7 +1203,7 @@ apply (erule thin_rl)
 ML_command{*AtpWrapper.problem_name := "BigO__bigo_lesso3_simpler"*}
 apply (metis diff_less_0_iff_less linorder_not_le not_leE uminus_add_conv_diff xt1(12) xt1(6))
 apply (metis add_minus_cancel diff_le_eq le_diff_eq uminus_add_conv_diff)
-apply (metis abs_ge_zero linorder_linear min_max.less_eq_less_sup.sup_absorb1 min_max.less_eq_less_sup.sup_commute)
+apply (metis abs_ge_zero linorder_linear min_max.sup_absorb1 min_max.sup_commute)
 done
 
 lemma bigo_lesso4: "f <o g =o O(k::'a=>'b::ordered_field) ==>

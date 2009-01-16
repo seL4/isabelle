@@ -150,14 +150,14 @@ fun parameters_of thy strict (expr, fixed) =
 
 local
 
-fun prep_inst parse_term parms (Positional insts) ctxt =
+fun prep_inst parse_term ctxt parms (Positional insts) =
       (insts ~~ parms) |> map (fn
-        (NONE, p) => Syntax.parse_term ctxt p |
+        (NONE, p) => Free (p, the (Variable.default_type ctxt p)) |
         (SOME t, _) => parse_term ctxt t)
-  | prep_inst parse_term parms (Named insts) ctxt =
+  | prep_inst parse_term ctxt parms (Named insts) =
       parms |> map (fn p => case AList.lookup (op =) insts p of
         SOME t => parse_term ctxt t |
-        NONE => Syntax.parse_term ctxt p);
+        NONE => Free (p, the (Variable.default_type ctxt p)));
 
 in
 
@@ -325,7 +325,7 @@ fun finish_inst ctxt parms do_close (loc, (prfx, inst)) =
   let
     val thy = ProofContext.theory_of ctxt;
     val (parm_names, parm_types) = Locale.params_of thy loc |>
-      map (fn (b, SOME T, _) => (Binding.base_name b, T)) |> split_list;
+      map_split (fn (b, SOME T, _) => (Binding.base_name b, T));
     val (morph, _) = inst_morph (parm_names, parm_types) (prfx, inst) ctxt;
   in (loc, morph) end;
 
@@ -357,8 +357,9 @@ fun prep_full_context_statement parse_typ parse_prop prep_vars_elem parse_inst p
     fun prep_inst (loc, (prfx, inst)) (i, insts, ctxt) =
       let
         val (parm_names, parm_types) = Locale.params_of thy loc |>
-          map (fn (b, SOME T, _) => (Binding.base_name b, T)) |> split_list;
-        val inst' = parse_inst parm_names inst ctxt;
+          map_split (fn (b, SOME T, _) => (Binding.base_name b, T))
+            (*FIXME return value of Locale.params_of has strange type*)
+        val inst' = parse_inst ctxt parm_names inst;
         val parm_types' = map (TypeInfer.paramify_vars o
           Term.map_type_tvar (fn ((x, _), S) => TVar ((x, i), S)) o Logic.varifyT) parm_types;
         val inst'' = map2 TypeInfer.constrain parm_types' inst';

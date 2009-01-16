@@ -16,7 +16,6 @@ uses
   "Tools/domain/domain_theorems.ML"
   "Tools/domain/domain_extender.ML"
   "Tools/adm_tac.ML"
-
 begin
 
 defaultsort pcpo

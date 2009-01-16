@@ -1,5 +1,4 @@
 (*  Title:      HOL/Library/Countable.thy
-    ID:         $Id$
     Author:     Alexander Krauss, TU Muenchen
 *)
 
