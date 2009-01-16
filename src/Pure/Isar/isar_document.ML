@@ -24,7 +24,7 @@ type state_id = string;
 type command_id = string;
 type document_id = string;
 
-fun new_id () = "isabelle:" ^ serial_string ();
+fun make_id () = "isabelle:" ^ serial_string ();
 
 fun err_dup kind id = error ("Duplicate " ^ kind ^ ": " ^ quote id);
 fun err_undef kind id = error ("Unknown " ^ kind ^ ": " ^ quote id);
@@ -51,7 +51,6 @@ fun put_entry_state (id: command_id) state entries =
 
 fun reset_entry_state id = put_entry_state id NONE;
 fun set_entry_state (id, state_id) = put_entry_state id (SOME state_id);
-
 
 
 (* document *)
@@ -135,15 +134,23 @@ fun init () = NAMED_CRITICAL "Isar" (fn () =>
 end;
 
 
-fun define_state (id: state_id) state =
-  change_states (Symtab.update_new (id, state))
+(* state *)
+
+val empty_state = Future.value (SOME Toplevel.toplevel);
+
+fun define_state (id: state_id) =
+  change_states (Symtab.update_new (id, empty_state))
     handle Symtab.DUP dup => err_dup "state" dup;
+
+fun put_state (id: state_id) state = change_states (Symtab.update (id, state));
 
 fun the_state (id: state_id) =
   (case Symtab.lookup (get_states ()) id of
     NONE => err_undef "state" id
   | SOME state => state);
 
+
+(* command *)
 
 fun define_command id tr =
   change_commands (Symtab.update_new (id, Toplevel.put_id id tr))
@@ -155,6 +162,8 @@ fun the_command (id: command_id) =
   | SOME tr => tr);
 
 
+(* document *)
+
 fun define_document (id: document_id) document =
   change_documents (Symtab.update_new (id, document))
     handle Symtab.DUP dup => err_dup "document" dup;
@@ -165,13 +174,16 @@ fun the_document (id: document_id) =
   | SOME document => document);
 
 
+
+(** main operations **)
+
 (* begin/end document *)
 
 fun begin_document (id: document_id) path =
   let
     val (dir, name) = ThyLoad.split_thy_path path;
     val _ = define_command id Toplevel.empty;
-    val _ = define_state id (Future.value (SOME Toplevel.toplevel));
+    val _ = define_state id;
     val entries = Symtab.make [(id, make_entry NONE (SOME id))];
     val _ = define_document id (make_document dir name id entries);
   in () end;
@@ -189,7 +201,7 @@ fun end_document (id: document_id) =
            (Toplevel.run_command name (Toplevel.put_id id (Toplevel.commit_exit Position.none)) st;
             ThyInfo.touch_child_thys name;
             ThyInfo.register_thy name)
-        | NONE => error ("Failed to finish theory " ^ quote name)))
+        | NONE => error ("Failed to finish theory " ^ quote name)));
   in () end;
 
 
@@ -204,39 +216,19 @@ fun is_changed entries' (id, {next = _, state}) =
 
 fun new_state name (id, _) (state_id, updates) =
   let
-    val state_id' = new_id ();
+    val state_id' = make_id ();
+    val _ = define_state state_id';
     val tr = Toplevel.put_id state_id' (the_command id);
-    val state = the_state state_id;
-    val state' =
-      Future.fork_deps [state] (fn () =>
-        (case Future.join state of
-          NONE => NONE
-        | SOME st => Toplevel.run_command name tr st));
-    val _ = define_state state_id' state';
-  in (state_id', (id, state_id') :: updates) end;
-
-fun update_states old_document new_document =
-  let
-    fun cancel_old id = fold_entries id
-      (fn (_, {state = SOME state_id, ...}) => K (Future.cancel (the_state state_id)) | _ => K ())
-      old_document ();
-
-    val Document {entries = old_entries, ...} = old_document;
-    val Document {name, entries = new_entries, ...} = new_document;
-  in
-    (case first_entry (is_changed old_entries) new_document of
-      NONE =>
-        (case first_entry (is_changed new_entries) old_document of
-          NONE => ([], new_document)
-        | SOME (_, id, _) => (cancel_old id; ([], new_document)))
-    | SOME (prev, id, _) =>
-        let
-          val _ = cancel_old id;
-          val prev_state_id = the (#state (the_entry new_entries (the prev)));
-          val (_, updates) = fold_entries id (new_state name) new_document (prev_state_id, []);
-          val new_document' = new_document |> map_entries (fold set_entry_state updates);
-        in (rev updates, new_document') end)
-  end;
+    fun make_state' () =
+      let
+        val state = the_state state_id;
+        val state' =
+          Future.fork_deps [state] (fn () =>
+            (case Future.join state of
+              NONE => NONE
+            | SOME st => Toplevel.run_command name tr st));
+      in put_state state_id' state' end;
+  in (state_id', ((id, state_id'), make_state') :: updates) end;
 
 fun report_updates _ [] = ()
   | report_updates (document_id: document_id) updates =
@@ -246,15 +238,33 @@ fun report_updates _ [] = ()
 
 in
 
-fun edit_document (id: document_id) (id': document_id) edits =
+fun edit_document (old_id: document_id) (new_id: document_id) edits =
   let
-    val document = the_document id;
-    val (updates, document') =
-      document
-      |> fold (fn (id, SOME id2) => insert_after id id2 | (id, NONE) => delete_after id) edits
-      |> update_states document;
-    val _ = define_document id' document';
-    val _ = report_updates id' updates;
+    val old_document as Document {name, entries = old_entries, ...} = the_document old_id;
+    val new_document as Document {entries = new_entries, ...} = old_document
+      |> fold (fn (id, SOME id2) => insert_after id id2 | (id, NONE) => delete_after id) edits;
+
+    fun cancel_old id = fold_entries id
+      (fn (_, {state = SOME state_id, ...}) => K (Future.cancel (the_state state_id)) | _ => K ())
+      old_document ();
+
+    val (updates, new_document') =
+      (case first_entry (is_changed old_entries) new_document of
+        NONE =>
+          (case first_entry (is_changed new_entries) old_document of
+            NONE => ([], new_document)
+          | SOME (_, id, _) => (cancel_old id; ([], new_document)))
+      | SOME (prev, id, _) =>
+          let
+            val _ = cancel_old id;
+            val prev_state_id = the (#state (the_entry new_entries (the prev)));
+            val (_, updates) = fold_entries id (new_state name) new_document (prev_state_id, []);
+            val new_document' = new_document |> map_entries (fold (set_entry_state o #1) updates);
+          in (rev updates, new_document') end);
+
+    val _ = define_document new_id new_document';
+    val _ = report_updates new_id (map #1 updates);
+    val _ = List.app (fn (_, run) => run ()) updates;
   in () end;
 
 end;
