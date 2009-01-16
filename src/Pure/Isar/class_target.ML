@@ -10,6 +10,8 @@ sig
   val register: class -> class list -> ((string * typ) * (string * typ)) list
     -> sort -> term list -> morphism
     -> thm option -> thm option -> thm -> theory -> theory
+  val register_subclass: class * class -> thm option
+    -> theory -> theory
 
   val begin: class list -> sort -> Proof.context -> Proof.context
   val init: class -> theory -> Proof.context
@@ -21,14 +23,12 @@ sig
 
   val intro_classes_tac: thm list -> tactic
   val default_intro_tac: Proof.context -> thm list -> tactic
-  val prove_class_interpretation: class -> term list -> (class * string) list
-    -> thm list -> thm list -> theory -> theory
-  val prove_subclass_relation: class * class -> thm option -> theory -> theory
 
   val class_prefix: string -> string
   val is_class: theory -> class -> bool
   val these_params: theory -> sort -> (string * (class * (string * typ))) list
   val these_defs: theory -> sort -> thm list
+  val eq_morph: theory -> thm list -> morphism
   val base_sort: theory -> class -> sort
   val rules: theory -> class -> thm option * thm
   val print_classes: theory -> unit
@@ -63,36 +63,6 @@ end;
 
 structure Class_Target : CLASS_TARGET =
 struct
-
-(*temporary adaption code to mediate between old and new locale code*)
-
-structure Locale_Layer =
-struct
-
-val init = Old_Locale.init;
-val parameters_of = Old_Locale.parameters_of;
-val intros = Old_Locale.intros;
-val dests = Old_Locale.dests;
-val get_interpret_morph = Old_Locale.get_interpret_morph;
-val Locale = Old_Locale.Locale;
-val extern = Old_Locale.extern;
-val intro_locales_tac = Old_Locale.intro_locales_tac;
-
-fun prove_interpretation tac prfx_atts expr inst =
-  Old_Locale.interpretation I prfx_atts expr inst
-  ##> Proof.global_terminal_proof
-      (Method.Basic (fn ctxt => Method.SIMPLE_METHOD (tac ctxt), Position.none), NONE)
-  ##> ProofContext.theory_of;
-
-fun prove_interpretation_in tac after_qed (name, expr) =
-  Old_Locale.interpretation_in_locale
-      (ProofContext.theory after_qed) (name, expr)
-  #> Proof.global_terminal_proof
-      (Method.Basic (K (Method.SIMPLE_METHOD tac), Position.none), NONE)
-  #> ProofContext.theory_of;
-
-end;
-
 
 (** primitive axclass and instance commands **)
 
@@ -201,6 +171,8 @@ val is_class = is_some oo lookup_class_data;
 
 val ancestry = Graph.all_succs o ClassData.get;
 
+val heritage = Graph.all_preds o ClassData.get;
+
 fun the_inst thy = #inst o the_class_data thy;
 
 fun these_params thy =
@@ -235,14 +207,14 @@ val class_prefix = Logic.const_of_class o Sign.base_name;
 fun class_binding_morph class =
   Binding.map_prefix (K (Binding.add_prefix false (class_prefix class)));
 
+fun eq_morph thy thms = (*FIXME how general is this?*)
+  Morphism.term_morphism (MetaSimplifier.rewrite_term thy thms [])
+  $> Morphism.thm_morphism (MetaSimplifier.rewrite_rule thms);
+
 fun morphism thy class =
   let
     val { base_morph, defs, ... } = the_class_data thy class;
-  in
-    base_morph 
-    $> Morphism.term_morphism (MetaSimplifier.rewrite_term thy defs [])
-    $> Morphism.thm_morphism (MetaSimplifier.rewrite_rule defs)
-  end;
+  in base_morph $> eq_morph thy defs end;
 
 fun print_classes thy =
   let
@@ -265,7 +237,7 @@ fun print_classes thy =
       (SOME o Pretty.block) [Pretty.str "supersort: ",
         (Syntax.pretty_sort ctxt o Sign.minimize_sort thy o Sign.super_classes thy) class],
       if is_class thy class then (SOME o Pretty.str)
-        ("locale: " ^ Locale_Layer.extern thy class) else NONE,
+        ("locale: " ^ Locale.extern thy class) else NONE,
       ((fn [] => NONE | ps => (SOME o Pretty.block o Pretty.fbreaks)
           (Pretty.str "parameters:" :: ps)) o map mk_param
         o these o Option.map #params o try (AxClass.get_info thy)) class,
@@ -312,39 +284,26 @@ fun register_operation class (c, (t, some_def)) thy =
 
 (** tactics and methods **)
 
-fun prove_class_interpretation class inst consts hyp_facts def_facts thy =
-  let
-    val constraints = map (fn (class, c) => map_atyps (K (TFree (Name.aT,
-      [class]))) (Sign.the_const_type thy c)) consts;
-    val no_constraints = map (map_atyps (K (TFree (Name.aT, [])))) constraints;
-    fun add_constraint c T = Sign.add_const_constraint (c, SOME T);
-    fun tac ctxt = ALLGOALS (ProofContext.fact_tac (hyp_facts @ def_facts)
-      ORELSE' (fn n => SELECT_GOAL (Locale_Layer.intro_locales_tac false ctxt []) n));
-    val prfx = class_prefix class;
-  in
-    thy
-    |> fold2 add_constraint (map snd consts) no_constraints
-    |> Locale_Layer.prove_interpretation tac (class_binding_morph class) (Locale_Layer.Locale class)
-          (map SOME inst, map (pair (Attrib.empty_binding) o Thm.prop_of) def_facts)
-    |> snd
-    |> fold2 add_constraint (map snd consts) constraints
-  end;
-
-fun prove_subclass_relation (sub, sup) some_thm thy =
+fun register_subclass (sub, sup) thms thy =
   let
     val of_class = (snd o rules thy) sup;
-    val intro = case some_thm
+    val intro = case thms
      of SOME thm => Drule.standard' (of_class OF [Drule.standard' thm])
       | NONE => Thm.instantiate ([pairself (Thm.ctyp_of thy o TVar o pair (Name.aT, 0))
           ([], [sub])], []) of_class;
     val classrel = (intro OF (the_list o fst o rules thy) sub)
       |> Thm.close_derivation;
+    (*FIXME generic amend operation for classes*)
+    val amendments = map (fn class => (class, morphism thy class))
+      (heritage thy [sub]);
+    val diff_sort = Sign.complete_sort thy [sup]
+      |> subtract (op =) (Sign.complete_sort thy [sub]);
+    val defs_morph = eq_morph thy (these_defs thy diff_sort);
   in
     thy
     |> AxClass.add_classrel classrel
-    |> Locale_Layer.prove_interpretation_in (ALLGOALS (ProofContext.fact_tac (the_list some_thm)))
-         I (sub, Locale_Layer.Locale sup)
     |> ClassData.map (Graph.add_edge (sub, sup))
+    |> fold (Locale.amend_registration defs_morph) amendments
   end;
 
 fun intro_classes_tac facts st =
@@ -428,7 +387,7 @@ fun begin sups base_sort ctxt =
 
 fun init class thy =
   thy
-  |> Locale_Layer.init class
+  |> Locale.init class
   |> begin [class] (base_sort thy class);
 
 
@@ -441,12 +400,18 @@ fun declare class pos ((c, mx), dict) thy =
     val morph = morphism thy' class;
     val inst = the_inst thy' class;
     val params = map (apsnd fst o snd) (these_params thy' [class]);
+    val amendments = map (fn class => (class, morphism thy' class))
+      (heritage thy' [class]);
 
     val c' = Sign.full_bname thy' c;
     val dict' = Morphism.term morph dict;
     val ty' = Term.fastype_of dict';
     val ty'' = Type.strip_sorts ty';
     val def_eq = Logic.mk_equals (Const (c', ty'), dict');
+    (*FIXME a mess*)
+    fun amend def def' (class, morph) thy =
+      Locale.amend_registration (eq_morph thy [Thm.varifyT def])
+        (class, morph) thy;
     fun get_axiom thy = ((Thm.varifyT o Thm.axiom thy) c', thy);
   in
     thy'
@@ -454,9 +419,9 @@ fun declare class pos ((c, mx), dict) thy =
     |> Thm.add_def false false (c, def_eq)
     |>> Thm.symmetric
     ||>> get_axiom
-    |-> (fn (def, def') => prove_class_interpretation class inst params [] [def]
-      #> register_operation class (c', (dict', SOME (Thm.symmetric def')))
-      #> PureThy.store_thm (c ^ "_raw", def')
+    |-> (fn (def, def') => register_operation class (c', (dict', SOME (Thm.symmetric def')))
+      #> fold (amend def def') amendments
+      #> PureThy.store_thm (c ^ "_raw", def') (*FIXME name*)
       #> snd)
     |> Sign.restore_naming thy
     |> Sign.add_const_constraint (c', SOME ty')
