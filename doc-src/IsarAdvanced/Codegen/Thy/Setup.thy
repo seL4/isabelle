@@ -4,7 +4,7 @@ uses "../../../antiquote_setup.ML" "../../../more_antiquote.ML"
 begin
 
 ML {* no_document use_thys
-  ["Efficient_Nat", "Code_Char_chr", "Product_ord", "Imperative_HOL",
+  ["Efficient_Nat", "Code_Char_chr", "Product_ord", "~~/src/HOL/Imperative_HOL/Imperative_HOL",
    "~~/src/HOL/ex/ReflectedFerrack"] *}
 
 ML_val {* Code_Target.code_width := 74 *}
