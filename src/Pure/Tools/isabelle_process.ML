@@ -55,9 +55,6 @@ fun message_props props =
   let val clean = clean_string [Symbol.STX, "\n", "\r"]
   in implode (map (fn (x, y) => clean x ^ "=" ^ clean y ^ special_sep ^ "\n") props) end;
 
-fun message_text class body =
-  YXML.element Markup.messageN [(Markup.classN, class)] [clean_string [Symbol.STX] body];
-
 fun message_pos trees = trees |> get_first
   (fn XML.Elem (name, atts, ts) =>
         if name = Markup.positionN then SOME (Position.of_properties atts)
@@ -69,21 +66,21 @@ fun output out_stream s = NAMED_CRITICAL "IO" (fn () =>
 
 in
 
-fun message _ _ _ "" = ()
-  | message out_stream ch class body =
+fun message _ _ "" = ()
+  | message out_stream ch body =
       let
         val pos = the_default Position.none (message_pos (YXML.parse_body body));
         val props =
           Position.properties_of (Position.thread_data ())
           |> Position.default_properties pos;
-        val txt = message_text class body;
+        val txt = clean_string [Symbol.STX] body;
       in output out_stream (special ch ^ message_props props ^ txt ^ special_end) end;
 
 fun init_message out_stream =
   let
     val pid = (Markup.pidN, process_id ());
     val session = (Markup.sessionN, List.last (Session.id ()) handle List.Empty => "unknown");
-    val text = message_text Markup.initN (Session.welcome ());
+    val text = Session.welcome ();
   in output out_stream (special "A" ^ message_props [pid, session] ^ text ^ special_end) end;
 
 end;
@@ -116,13 +113,13 @@ fun setup_channels out =
     val _ = SimpleThread.fork false (auto_flush out_stream);
     val _ = SimpleThread.fork false (auto_flush TextIO.stdErr);
   in
-    Output.status_fn   := message out_stream "B" Markup.statusN;
-    Output.writeln_fn  := message out_stream "C" Markup.writelnN;
-    Output.priority_fn := message out_stream "D" Markup.priorityN;
-    Output.tracing_fn  := message out_stream "E" Markup.tracingN;
-    Output.warning_fn  := message out_stream "F" Markup.warningN;
-    Output.error_fn    := message out_stream "G" Markup.errorN;
-    Output.debug_fn    := message out_stream "H" Markup.debugN;
+    Output.status_fn   := message out_stream "B";
+    Output.writeln_fn  := message out_stream "C";
+    Output.priority_fn := message out_stream "D";
+    Output.tracing_fn  := message out_stream "E";
+    Output.warning_fn  := message out_stream "F";
+    Output.error_fn    := message out_stream "G";
+    Output.debug_fn    := message out_stream "H";
     Output.prompt_fn   := ignore;
     out_stream
   end;

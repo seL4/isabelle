@@ -50,6 +50,21 @@ object IsabelleProcess {
       ('2' : Int) -> Kind.STDOUT,
       ('3' : Int) -> Kind.SIGNAL,
       ('4' : Int) -> Kind.EXIT)
+    // message markup
+    val markup = Map(
+      Kind.INIT -> Markup.INIT,
+      Kind.STATUS -> Markup.STATUS,
+      Kind.WRITELN -> Markup.WRITELN,
+      Kind.PRIORITY -> Markup.PRIORITY,
+      Kind.TRACING -> Markup.TRACING,
+      Kind.WARNING -> Markup.WARNING,
+      Kind.ERROR -> Markup.ERROR,
+      Kind.DEBUG -> Markup.DEBUG,
+      Kind.SYSTEM -> Markup.SYSTEM,
+      Kind.STDIN -> Markup.STDIN,
+      Kind.STDOUT -> Markup.STDOUT,
+      Kind.SIGNAL -> Markup.SIGNAL,
+      Kind.EXIT -> Markup.EXIT)
     //}}}
     def is_raw(kind: Value) =
       kind == STDOUT
@@ -67,8 +82,10 @@ object IsabelleProcess {
 
   class Result(val kind: Kind.Value, val props: Properties, val result: String) {
     override def toString = {
-      val tree = YXML.parse_failsafe(result)
-      val res = if (kind == Kind.STATUS) tree.toString else XML.content(tree).mkString
+      val trees = YXML.parse_body_failsafe(result)
+      val res =
+        if (kind == Kind.STATUS) trees.map(_.toString).mkString
+        else trees.flatMap(XML.content(_).mkString).mkString
       if (props == null) kind.toString + " [[" + res + "]]"
       else kind.toString + " " + props.toString + " [[" + res + "]]"
     }
@@ -77,6 +94,10 @@ object IsabelleProcess {
     def is_system = Kind.is_system(kind)
   }
 
+  def parse_message(kind: Kind.Value, result: String) = {
+    XML.Elem(Markup.MESSAGE, List((Markup.CLASS, Kind.markup(kind))),
+      YXML.parse_body_failsafe(result))
+  }
 }
 
 
