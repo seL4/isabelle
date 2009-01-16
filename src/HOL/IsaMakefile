@@ -6,7 +6,7 @@
 
 default: HOL
 generate: HOL-Generate-HOL HOL-Generate-HOLLight
-images: HOL-Plain HOL-Main HOL HOL-Algebra HOL-Nominal HOL-NSA HOL-Word TLA HOL4
+images: HOL HOL-Base HOL-Plain HOL-Main HOL-Algebra HOL-Nominal HOL-NSA HOL-Word TLA HOL4
 
 #Note: keep targets sorted (except for HOL-Library and HOL-ex)
 test: \
@@ -66,6 +66,8 @@ LOG = $(OUT)/log
 
 HOL: Pure $(OUT)/HOL
 
+HOL-Base: Pure $(OUT)/HOL-Base
+
 HOL-Plain: Pure $(OUT)/HOL-Plain
 
 HOL-Main: Pure $(OUT)/HOL-Main
@@ -75,15 +77,50 @@ Pure:
 
 $(OUT)/Pure: Pure
 
-PLAIN_DEPENDENCIES = $(OUT)/Pure \
+BASE_DEPENDENCIES = $(OUT)/Pure \
   Code_Setup.thy \
+  HOL.thy \
+  Tools/hologic.ML \
+  Tools/recfun_codegen.ML \
+  Tools/simpdata.ML \
+  $(SRC)/Tools/atomize_elim.ML \
+  $(SRC)/Tools/code/code_funcgr.ML \
+  $(SRC)/Tools/code/code_funcgr.ML \
+  $(SRC)/Tools/code/code_name.ML \
+  $(SRC)/Tools/code/code_printer.ML \
+  $(SRC)/Tools/code/code_target.ML \
+  $(SRC)/Tools/code/code_ml.ML \
+  $(SRC)/Tools/code/code_haskell.ML \
+  $(SRC)/Tools/code/code_thingol.ML \
+  $(SRC)/Tools/induct.ML \
+  $(SRC)/Tools/induct_tacs.ML \
+  $(SRC)/Tools/IsaPlanner/isand.ML \
+  $(SRC)/Tools/IsaPlanner/rw_inst.ML \
+  $(SRC)/Tools/IsaPlanner/rw_tools.ML \
+  $(SRC)/Tools/IsaPlanner/zipper.ML \
+  $(SRC)/Tools/nbe.ML \
+  $(SRC)/Tools/random_word.ML \
+  $(SRC)/Tools/value.ML \
+  $(SRC)/Provers/blast.ML \
+  $(SRC)/Provers/clasimp.ML \
+  $(SRC)/Provers/classical.ML \
+  $(SRC)/Provers/coherent.ML \
+  $(SRC)/Provers/eqsubst.ML \
+  $(SRC)/Provers/hypsubst.ML \
+  $(SRC)/Provers/project_rule.ML \
+  $(SRC)/Provers/quantifier1.ML \
+  $(SRC)/Provers/splitter.ML \
+
+$(OUT)/HOL-Base: base.ML $(BASE_DEPENDENCIES)
+	@$(ISABELLE_TOOL) usedir -b -f base.ML -g true $(OUT)/Pure HOL-Base
+
+PLAIN_DEPENDENCIES = $(BASE_DEPENDENCIES)\
   Datatype.thy \
   Divides.thy \
   Extraction.thy \
   Finite_Set.thy \
   Fun.thy \
   FunDef.thy \
-  HOL.thy \
   Inductive.thy \
   Lattices.thy \
   Nat.thy \
@@ -131,7 +168,6 @@ PLAIN_DEPENDENCIES = $(OUT)/Pure \
   Tools/function_package/size.ML \
   Tools/function_package/sum_tree.ML \
   Tools/function_package/termination.ML \
-  Tools/hologic.ML \
   Tools/inductive_codegen.ML \
   Tools/inductive_package.ML \
   Tools/inductive_realizer.ML \
@@ -140,14 +176,12 @@ PLAIN_DEPENDENCIES = $(OUT)/Pure \
   Tools/old_primrec_package.ML \
   Tools/primrec_package.ML \
   Tools/prop_logic.ML \
-  Tools/recfun_codegen.ML \
   Tools/record_package.ML \
   Tools/refute.ML \
   Tools/refute_isar.ML \
   Tools/rewrite_hol_proof.ML \
   Tools/sat_funcs.ML \
   Tools/sat_solver.ML \
-  Tools/simpdata.ML \
   Tools/split_rule.ML \
   Tools/typecopy_package.ML \
   Tools/typedef_codegen.ML \
@@ -159,35 +193,8 @@ PLAIN_DEPENDENCIES = $(OUT)/Pure \
   $(SRC)/Provers/Arith/cancel_div_mod.ML \
   $(SRC)/Provers/Arith/cancel_sums.ML \
   $(SRC)/Provers/Arith/fast_lin_arith.ML \
-  $(SRC)/Provers/blast.ML \
-  $(SRC)/Provers/clasimp.ML \
-  $(SRC)/Provers/classical.ML \
-  $(SRC)/Provers/coherent.ML \
-  $(SRC)/Provers/eqsubst.ML \
-  $(SRC)/Provers/hypsubst.ML \
   $(SRC)/Provers/order.ML \
-  $(SRC)/Provers/project_rule.ML \
-  $(SRC)/Provers/quantifier1.ML \
-  $(SRC)/Provers/splitter.ML \
   $(SRC)/Provers/trancl.ML \
-  $(SRC)/Tools/IsaPlanner/isand.ML \
-  $(SRC)/Tools/IsaPlanner/rw_inst.ML \
-  $(SRC)/Tools/IsaPlanner/rw_tools.ML \
-  $(SRC)/Tools/IsaPlanner/zipper.ML \
-  $(SRC)/Tools/atomize_elim.ML \
-  $(SRC)/Tools/code/code_funcgr.ML \
-  $(SRC)/Tools/code/code_funcgr.ML \
-  $(SRC)/Tools/code/code_name.ML \
-  $(SRC)/Tools/code/code_printer.ML \
-  $(SRC)/Tools/code/code_target.ML \
-  $(SRC)/Tools/code/code_ml.ML \
-  $(SRC)/Tools/code/code_haskell.ML \
-  $(SRC)/Tools/code/code_thingol.ML \
-  $(SRC)/Tools/induct.ML \
-  $(SRC)/Tools/induct_tacs.ML \
-  $(SRC)/Tools/value.ML \
-  $(SRC)/Tools/nbe.ML \
-  $(SRC)/Tools/random_word.ML \
   $(SRC)/Tools/rat.ML
 
 $(OUT)/HOL-Plain: plain.ML $(PLAIN_DEPENDENCIES)
@@ -280,7 +287,6 @@ $(OUT)/HOL: ROOT.ML $(MAIN_DEPENDENCIES) \
   GCD.thy \
   Order_Relation.thy \
   Parity.thy \
-  Univ_Poly.thy \
   Lubs.thy \
   Polynomial.thy \
   PReal.thy \
@@ -327,7 +333,7 @@ $(LOG)/HOL-Library.gz: $(OUT)/HOL Library/SetsAndFunctions.thy		\
   Library/Code_Char_chr.thy Library/Code_Integer.thy			\
   Library/Numeral_Type.thy			\
   Library/Boolean_Algebra.thy Library/Countable.thy	\
-  Library/RBT.thy		\
+  Library/RBT.thy	Library/Univ_Poly.thy	\
   Library/Enum.thy Library/Float.thy $(SRC)/Tools/float.ML $(SRC)/HOL/Tools/float_arith.ML
 	@cd Library; $(ISABELLE_TOOL) usedir $(OUT)/HOL Library
 
