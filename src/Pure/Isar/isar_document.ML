@@ -84,7 +84,7 @@ fun first_entry P (Document {start, entries, ...}) =
     fun first _ NONE = NONE
       | first prev (SOME id) =
           let val entry = the_entry entries id
-          in if P (id, entry) then SOME (prev, id) else first (SOME id) (#next entry) end;
+          in if P (id, entry) then SOME (prev, id, entry) else first (SOME id) (#next entry) end;
   in first NONE (SOME start) end;
 
 
@@ -176,7 +176,21 @@ fun begin_document (id: document_id) path =
     val _ = define_document id (make_document dir name id entries);
   in () end;
 
-fun end_document (id: document_id) = error "FIXME";
+fun end_document (id: document_id) =
+  let
+    val document as Document {name, ...} = the_document id;
+    val end_state =
+      the_state (the (#state (#3 (the
+        (first_entry (fn (_, {next, ...}) => is_none next) document)))));
+    val _ =
+      Future.fork_deps [end_state] (fn () =>
+        (case Future.join end_state of
+          SOME st =>
+           (Toplevel.run_command name (Toplevel.put_id id (Toplevel.commit_exit Position.none)) st;
+            ThyInfo.touch_child_thys name;
+            ThyInfo.register_thy name)
+        | NONE => error ("Failed to finish theory " ^ quote name)))
+  in () end;
 
 
 (* document editing *)
@@ -193,7 +207,7 @@ fun new_state name (id, _) (state_id, updates) =
     val state_id' = new_id ();
     val tr = Toplevel.put_id state_id' (the_command id);
     val state = the_state state_id;
-    val state' = 
+    val state' =
       Future.fork_deps [state] (fn () =>
         (case Future.join state of
           NONE => NONE
@@ -214,8 +228,8 @@ fun update_states old_document new_document =
       NONE =>
         (case first_entry (is_changed new_entries) old_document of
           NONE => ([], new_document)
-        | SOME (_, id) => (cancel_old id; ([], new_document)))
-    | SOME (prev, id) =>
+        | SOME (_, id, _) => (cancel_old id; ([], new_document)))
+    | SOME (prev, id, _) =>
         let
           val _ = cancel_old id;
           val prev_state_id = the (#state (the_entry new_entries (the prev)));
