@@ -109,12 +109,21 @@ object YXML {
       case _ => err("multiple results")
     }
 
+
+  /* failsafe parsing */
+
+  private def markup_failsafe(source: CharSequence) =
+    XML.Elem (Markup.BAD, Nil,
+      List(XML.Text(source.toString.replace(X_string, "\\<^X>").replace(Y_string, "\\<^Y>"))))
+
+  def parse_body_failsafe(source: CharSequence) = {
+    try { parse_body(source) }
+    catch { case _: RuntimeException => List(markup_failsafe(source)) }
+  }
+
   def parse_failsafe(source: CharSequence) = {
     try { parse(source) }
-    catch {
-      case _: RuntimeException => XML.Elem (Markup.BAD, Nil,
-        List(XML.Text(source.toString.replace(X_string, "\\<^X>").replace(Y_string, "\\<^Y>"))))
-    }
+    catch { case _: RuntimeException => markup_failsafe(source) }
   }
 
 }
