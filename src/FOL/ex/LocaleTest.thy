@@ -8,9 +8,6 @@ theory LocaleTest
 imports FOL
 begin
 
-ML_val {* set Toplevel.debug *}
-
-
 typedecl int arities int :: "term"
 consts plus :: "int => int => int" (infixl "+" 60)
   zero :: int ("0")
@@ -482,7 +479,5 @@ proof
     by unfold_locales
   thm local_free.lone [where ?zero = 0]
 qed
-
-ML_val {* reset Toplevel.debug *}
 
 end
