@@ -81,11 +81,11 @@ fun fold_entries id0 f (Document {entries, ...}) =
 
 fun first_entry P (Document {start, entries, ...}) =
   let
-    fun find _ NONE = NONE
-      | find prev (SOME id) =
+    fun first _ NONE = NONE
+      | first prev (SOME id) =
           let val entry = the_entry entries id
-          in if P (id, entry) then SOME (prev, id) else find (SOME id) (#next entry) end;
-  in find NONE (SOME start) end;
+          in if P (id, entry) then SOME (prev, id) else first (SOME id) (#next entry) end;
+  in first NONE (SOME start) end;
 
 
 (* modify entries *)
@@ -162,7 +162,7 @@ fun define_document (id: document_id) document =
 fun the_document (id: document_id) =
   (case Symtab.lookup (get_documents ()) id of
     NONE => err_undef "document" id
-  | SOME (Document doc) => doc);
+  | SOME document => document);
 
 
 (* begin/end document *)
@@ -185,31 +185,30 @@ local
 
 fun is_changed entries' (id, {next = _, state}) =
   (case try (the_entry entries') id of
-    SOME {next = _, state = state'} => state' <> state
-  | _ => true);
+    NONE => true
+  | SOME {next = _, state = state'} => state' <> state);
 
-fun cancel_state (id, {next = _, state = SOME state_id}) () = Future.cancel (the_state state_id)
-  | cancel_state _ () = ();
-
-fun update_state tr state state_id' =
-  Future.fork_deps [state] (fn () =>
-    (case Future.join state of
-      NONE => NONE
-    | SOME st => Toplevel.run_command (Toplevel.put_id state_id' tr) st));
-
-fun new_state (id, _) (state_id, updates) =
+fun new_state name (id, _) (state_id, updates) =
   let
     val state_id' = new_id ();
-    val state' = update_state (the_command id) (the_state state_id) state_id';
+    val tr = Toplevel.put_id state_id' (the_command id);
+    val state = the_state state_id;
+    val state' = 
+      Future.fork_deps [state] (fn () =>
+        (case Future.join state of
+          NONE => NONE
+        | SOME st => Toplevel.run_command name tr st));
     val _ = define_state state_id' state';
   in (state_id', (id, state_id') :: updates) end;
 
 fun update_states old_document new_document =
   let
-    fun cancel_old id = fold_entries id cancel_state old_document ();
+    fun cancel_old id = fold_entries id
+      (fn (_, {state = SOME state_id, ...}) => K (Future.cancel (the_state state_id)) | _ => K ())
+      old_document ();
 
     val Document {entries = old_entries, ...} = old_document;
-    val Document {entries = new_entries, ...} = new_document;
+    val Document {name, entries = new_entries, ...} = new_document;
   in
     (case first_entry (is_changed old_entries) new_document of
       NONE =>
@@ -220,7 +219,7 @@ fun update_states old_document new_document =
         let
           val _ = cancel_old id;
           val prev_state_id = the (#state (the_entry new_entries (the prev)));
-          val (_, updates) = fold_entries id new_state new_document (prev_state_id, []);
+          val (_, updates) = fold_entries id (new_state name) new_document (prev_state_id, []);
           val new_document' = new_document |> map_entries (fold set_entry_state updates);
         in (rev updates, new_document') end)
   end;
@@ -235,7 +234,7 @@ in
 
 fun edit_document (id: document_id) (id': document_id) edits =
   let
-    val document = Document (the_document id);
+    val document = the_document id;
     val (updates, document') =
       document
       |> fold (fn (id, SOME id2) => insert_after id id2 | (id, NONE) => delete_after id) edits

@@ -96,7 +96,7 @@ sig
   val transition: bool -> transition -> state -> (state * (exn * string) option) option
   val commit_exit: Position.T -> transition
   val command: transition -> state -> state
-  val run_command: transition -> state -> state option
+  val run_command: string -> transition -> state -> state option
   val excursion: (transition * transition list) list -> (transition * state) list lazy
 end;
 
@@ -698,11 +698,17 @@ fun command_result tr st =
   let val st' = command tr st
   in (st', st') end;
 
-fun run_command tr st =
-  (case transition true tr st of
-    SOME (st', NONE) => (status tr Markup.finished; SOME st')
-  | SOME (_, SOME exn_info) => (error_msg tr exn_info; status tr Markup.failed; NONE)
-  | NONE => (error_msg tr (TERMINATE, at_command tr); status tr Markup.failed; NONE));
+fun run_command thy_name tr st =
+  (case
+      (case init_of tr of
+        SOME name => Exn.capture (fn () => ThyLoad.check_name thy_name name) ()
+      | NONE => Exn.Result ()) of
+    Exn.Result () =>
+      (case transition true tr st of
+        SOME (st', NONE) => (status tr Markup.finished; SOME st')
+      | SOME (_, SOME exn_info) => (error_msg tr exn_info; status tr Markup.failed; NONE)
+      | NONE => (error_msg tr (TERMINATE, at_command tr); status tr Markup.failed; NONE))
+  | Exn.Exn exn => (error_msg tr (exn, at_command tr); status tr Markup.failed; NONE));
 
 
 (* excursion of units, consisting of commands with proof *)
