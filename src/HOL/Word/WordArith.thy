@@ -22,7 +22,7 @@ lemma signed_linorder: "linorder word_sle word_sless"
 proof
 qed (unfold word_sle_def word_sless_def, auto)
 
-class_interpretation signed: linorder ["word_sle" "word_sless"] 
+interpretation signed!: linorder "word_sle" "word_sless"
   by (rule signed_linorder)
 
 lemmas word_arith_wis = 

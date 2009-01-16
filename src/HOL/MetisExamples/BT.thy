@@ -84,7 +84,7 @@ ML {*AtpWrapper.problem_name := "BT__depth_reflect"*}
 lemma depth_reflect: "depth (reflect t) = depth t"
   apply (induct t)
   apply (metis depth.simps(1) reflect.simps(1))
-  apply (metis depth.simps(2) min_max.less_eq_less_sup.sup_commute reflect.simps(2))
+  apply (metis depth.simps(2) min_max.sup_commute reflect.simps(2))
   done
 
 text {*

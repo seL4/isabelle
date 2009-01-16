@@ -1,4 +1,3 @@
-(* $Id$ *)
 (*<*)
 theory Library
 imports
@@ -38,6 +37,7 @@ imports
   Ramsey
   RBT
   State_Monad
+  Univ_Poly
   While_Combinator
   Word
   Zorn

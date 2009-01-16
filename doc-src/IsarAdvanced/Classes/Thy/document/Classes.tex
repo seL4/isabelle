@@ -655,7 +655,23 @@ The example above gives an impression how Isar type classes work
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
+\isadeliminvisible
+\ %
+\endisadeliminvisible
+%
+\isataginvisible
+\isacommand{setup}\isamarkupfalse%
+\ {\isacharverbatimopen}\ Sign{\isachardot}add{\isacharunderscore}path\ {\isachardoublequote}foo{\isachardoublequote}\ {\isacharverbatimclose}%
+\endisataginvisible
+{\isafoldinvisible}%
+%
+\isadeliminvisible
+%
+\endisadeliminvisible
+\isanewline
+%
 \isadelimquote
+\isanewline
 %
 \endisadelimquote
 %
@@ -670,6 +686,20 @@ The example above gives an impression how Isar type classes work
 %
 \endisadelimquote
 %
+\isadeliminvisible
+\ %
+\endisadeliminvisible
+%
+\isataginvisible
+\isacommand{setup}\isamarkupfalse%
+\ {\isacharverbatimopen}\ Sign{\isachardot}parent{\isacharunderscore}path\ {\isacharverbatimclose}%
+\endisataginvisible
+{\isafoldinvisible}%
+%
+\isadeliminvisible
+%
+\endisadeliminvisible
+%
 \begin{isamarkuptext}%
 \noindent together with a corresponding interpretation:%
 \end{isamarkuptext}%
@@ -681,7 +711,7 @@ The example above gives an impression how Isar type classes work
 %
 \isatagquote
 \isacommand{interpretation}\isamarkupfalse%
-\ idem{\isacharunderscore}class{\isacharprime}{\isacharcolon}\ \ \ \ \isanewline
+\ idem{\isacharunderscore}class{\isacharcolon}\isanewline
 \ \ idem\ {\isachardoublequoteopen}f\ {\isasymColon}\ {\isacharparenleft}{\isasymalpha}{\isasymColon}idem{\isacharparenright}\ {\isasymRightarrow}\ {\isasymalpha}{\isachardoublequoteclose}\isanewline
 \isacommand{proof}\isamarkupfalse%
 \ \isacommand{qed}\isamarkupfalse%
@@ -843,8 +873,8 @@ We introduced Isar classes by analogy to type classes
 \endisadelimquote
 %
 \isatagquote
-\isacommand{class{\isacharunderscore}interpretation}\isamarkupfalse%
-\ list{\isacharunderscore}monoid{\isacharcolon}\ monoid\ {\isacharbrackleft}append\ {\isachardoublequoteopen}{\isacharbrackleft}{\isacharbrackright}{\isachardoublequoteclose}{\isacharbrackright}\isanewline
+\isacommand{interpretation}\isamarkupfalse%
+\ list{\isacharunderscore}monoid{\isacharbang}{\isacharcolon}\ monoid\ append\ {\isachardoublequoteopen}{\isacharbrackleft}{\isacharbrackright}{\isachardoublequoteclose}\isanewline
 \ \ \isacommand{proof}\isamarkupfalse%
 \ \isacommand{qed}\isamarkupfalse%
 \ auto%
@@ -874,13 +904,13 @@ We introduced Isar classes by analogy to type classes
 \ \ {\isachardoublequoteopen}replicate\ {\isadigit{0}}\ {\isacharunderscore}\ {\isacharequal}\ {\isacharbrackleft}{\isacharbrackright}{\isachardoublequoteclose}\isanewline
 \ \ {\isacharbar}\ {\isachardoublequoteopen}replicate\ {\isacharparenleft}Suc\ n{\isacharparenright}\ xs\ {\isacharequal}\ xs\ {\isacharat}\ replicate\ n\ xs{\isachardoublequoteclose}\isanewline
 \isanewline
-\isacommand{class{\isacharunderscore}interpretation}\isamarkupfalse%
-\ list{\isacharunderscore}monoid{\isacharcolon}\ monoid\ {\isacharbrackleft}append\ {\isachardoublequoteopen}{\isacharbrackleft}{\isacharbrackright}{\isachardoublequoteclose}{\isacharbrackright}\ \isakeyword{where}\isanewline
+\isacommand{interpretation}\isamarkupfalse%
+\ list{\isacharunderscore}monoid{\isacharbang}{\isacharcolon}\ monoid\ append\ {\isachardoublequoteopen}{\isacharbrackleft}{\isacharbrackright}{\isachardoublequoteclose}\ \isakeyword{where}\isanewline
 \ \ {\isachardoublequoteopen}monoid{\isachardot}pow{\isacharunderscore}nat\ append\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharequal}\ replicate{\isachardoublequoteclose}\isanewline
 \isacommand{proof}\isamarkupfalse%
 \ {\isacharminus}\isanewline
-\ \ \isacommand{class{\isacharunderscore}interpret}\isamarkupfalse%
-\ monoid\ {\isacharbrackleft}append\ {\isachardoublequoteopen}{\isacharbrackleft}{\isacharbrackright}{\isachardoublequoteclose}{\isacharbrackright}\ \isacommand{{\isachardot}{\isachardot}}\isamarkupfalse%
+\ \ \isacommand{interpret}\isamarkupfalse%
+\ monoid\ append\ {\isachardoublequoteopen}{\isacharbrackleft}{\isacharbrackright}{\isachardoublequoteclose}\ \isacommand{{\isachardot}{\isachardot}}\isamarkupfalse%
 \isanewline
 \ \ \isacommand{show}\isamarkupfalse%
 \ {\isachardoublequoteopen}monoid{\isachardot}pow{\isacharunderscore}nat\ append\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharequal}\ replicate{\isachardoublequoteclose}\isanewline

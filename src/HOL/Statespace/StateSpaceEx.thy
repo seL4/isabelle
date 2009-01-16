@@ -41,7 +41,7 @@ postulates two distinct names @{term "n"} and @{term "b"} and
 projection~/ injection functions that convert from abstract values to
 @{typ "nat"} and @{text "bool"}. The logical content of the locale is: *}
 
-class_locale vars' =
+locale vars' =
   fixes n::'name and b::'name
   assumes "distinct [n, b]" 
 

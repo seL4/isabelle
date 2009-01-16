@@ -67,7 +67,8 @@ object IsabelleProcess {
 
   class Result(val kind: Kind.Value, val props: Properties, val result: String) {
     override def toString = {
-      val res = XML.content(YXML.parse_failsafe(result)).mkString
+      val tree = YXML.parse_failsafe(result)
+      val res = if (kind == Kind.STATUS) tree.toString else XML.content(tree).mkString
       if (props == null) kind.toString + " [[" + res + "]]"
       else kind.toString + " " + props.toString + " [[" + res + "]]"
     }

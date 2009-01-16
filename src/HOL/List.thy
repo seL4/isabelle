@@ -547,9 +547,9 @@ by (induct xs) auto
 lemma append_Nil2 [simp]: "xs @ [] = xs"
 by (induct xs) auto
 
-class_interpretation semigroup_append: semigroup_add ["op @"]
+interpretation semigroup_append!: semigroup_add "op @"
   proof qed simp
-class_interpretation monoid_append: monoid_add ["[]" "op @"]
+interpretation monoid_append!: monoid_add "[]" "op @"
   proof qed simp+
 
 lemma append_is_Nil_conv [iff]: "(xs @ ys = []) = (xs = [] \<and> ys = [])"

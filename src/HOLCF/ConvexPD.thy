@@ -296,9 +296,8 @@ apply (induct xs rule: convex_pd.principal_induct, simp)
 apply (simp add: PDPlus_absorb)
 done
 
-class_interpretation aci_convex_plus: ab_semigroup_idem_mult ["op +\<natural>"]
-  by unfold_locales
-    (rule convex_plus_assoc convex_plus_commute convex_plus_absorb)+
+interpretation aci_convex_plus!: ab_semigroup_idem_mult "op +\<natural>"
+  proof qed (rule convex_plus_assoc convex_plus_commute convex_plus_absorb)+
 
 lemma convex_plus_left_commute: "xs +\<natural> (ys +\<natural> zs) = ys +\<natural> (xs +\<natural> zs)"
 by (rule aci_convex_plus.mult_left_commute)

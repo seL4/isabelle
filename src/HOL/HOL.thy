@@ -35,7 +35,7 @@ uses
   "~~/src/Tools/code/code_ml.ML"
   "~~/src/Tools/code/code_haskell.ML"
   "~~/src/Tools/nbe.ML"
-  ("~~/src/HOL/Tools/recfun_codegen.ML")
+  ("Tools/recfun_codegen.ML")
 begin
 
 subsection {* Primitive logic *}
@@ -1690,7 +1690,7 @@ end
 
 text {* Module setup *}
 
-use "~~/src/HOL/Tools/recfun_codegen.ML"
+use "Tools/recfun_codegen.ML"
 
 setup {*
   Code_ML.setup

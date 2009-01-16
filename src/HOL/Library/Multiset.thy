@@ -1,5 +1,4 @@
 (*  Title:      HOL/Library/Multiset.thy
-    ID:         $Id$
     Author:     Tobias Nipkow, Markus Wenzel, Lawrence C Paulson, Norbert Voelker
 *)
 
@@ -1080,16 +1079,16 @@ apply (subst elem_imp_eq_diff_union[symmetric])
 apply simp
 done
 
-class_interpretation mset_order: order ["op \<le>#" "op <#"]
+interpretation mset_order!: order "op \<le>#" "op <#"
 proof qed (auto intro: order.intro mset_le_refl mset_le_antisym
   mset_le_trans simp: mset_less_def)
 
-class_interpretation mset_order_cancel_semigroup:
-  pordered_cancel_ab_semigroup_add ["op +" "op \<le>#" "op <#"]
+interpretation mset_order_cancel_semigroup!:
+  pordered_cancel_ab_semigroup_add "op +" "op \<le>#" "op <#"
 proof qed (erule mset_le_mono_add [OF mset_le_refl])
 
-class_interpretation mset_order_semigroup_cancel:
-  pordered_ab_semigroup_add_imp_le ["op +" "op \<le>#" "op <#"]
+interpretation mset_order_semigroup_cancel!:
+  pordered_ab_semigroup_add_imp_le "op +" "op \<le>#" "op <#"
 proof qed simp
 
 
@@ -1156,7 +1155,7 @@ next
   then show ?case using T by simp
 qed
 
-lemmas mset_less_trans = mset_order.less_eq_less.less_trans
+lemmas mset_less_trans = mset_order.less_trans
 
 lemma mset_less_diff_self: "c \<in># B \<Longrightarrow> B - {#c#} \<subset># B"
 by (auto simp: mset_le_def mset_less_def multi_drop_mem_not_eq)
