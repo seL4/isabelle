@@ -13,7 +13,7 @@ import javax.swing.tree.DefaultMutableTreeNode
 
 import isabelle.proofdocument.Token
 import isabelle.jedit.{Isabelle, Plugin}
-import isabelle.{YXML, XML}
+import isabelle.XML
 
 import sidekick.{SideKickParsedData, IAsset}
 

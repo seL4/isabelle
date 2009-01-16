@@ -75,7 +75,7 @@ class Prover(isabelle_system: IsabelleSystem, isabelle_symbols: Symbol.Interpret
       }
     }
     else {
-      val tree = YXML.parse_failsafe(isabelle_symbols.decode(r.result))
+      val tree = IsabelleProcess.parse_message(r.kind, isabelle_symbols.decode(r.result))
       if (st == null || (st.status != Command.Status.REMOVED && st.status != Command.Status.REMOVE)) {
         r.kind match {
 
