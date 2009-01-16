@@ -250,9 +250,8 @@ apply (induct xs rule: lower_pd.principal_induct, simp)
 apply (simp add: PDPlus_absorb)
 done
 
-class_interpretation aci_lower_plus: ab_semigroup_idem_mult ["op +\<flat>"]
-  by unfold_locales
-    (rule lower_plus_assoc lower_plus_commute lower_plus_absorb)+
+interpretation aci_lower_plus!: ab_semigroup_idem_mult "op +\<flat>"
+  proof qed (rule lower_plus_assoc lower_plus_commute lower_plus_absorb)+
 
 lemma lower_plus_left_commute: "xs +\<flat> (ys +\<flat> zs) = ys +\<flat> (xs +\<flat> zs)"
 by (rule aci_lower_plus.mult_left_commute)
