@@ -84,7 +84,7 @@ ln -s "$JEDIT" jedit
 
 [ "$JEDIT_HOME/jedit.jar" ] || fail "Bad original jEdit directory: $JEDIT_HOME"
 cp -R "$JEDIT_HOME/." "$JEDIT/."
-rm -rf "$JEDIT/jEdit"
+rm -rf "$JEDIT/jEdit" "$JEDIT/build-support"
 
 mkdir -p "$JEDIT/jars"
 
