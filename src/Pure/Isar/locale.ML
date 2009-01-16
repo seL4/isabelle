@@ -58,7 +58,7 @@ sig
   val add_type_syntax: string -> declaration -> Proof.context -> Proof.context
   val add_term_syntax: string -> declaration -> Proof.context -> Proof.context
   val add_declaration: string -> declaration -> Proof.context -> Proof.context
-  val add_dependency: string -> (string * Morphism.morphism) -> theory -> theory
+  val add_dependency: string -> string * Morphism.morphism -> theory -> theory
 
   (* Activation *)
   val activate_declarations: theory -> string * Morphism.morphism ->
@@ -74,9 +74,9 @@ sig
   val intro_locales_tac: bool -> Proof.context -> thm list -> tactic
 
   (* Registrations *)
-  val add_registration: (string * (Morphism.morphism * Morphism.morphism)) ->
+  val add_registration: string * (Morphism.morphism * Morphism.morphism) ->
     theory -> theory
-  val amend_registration: Morphism.morphism -> (string * Morphism.morphism) ->
+  val amend_registration: Morphism.morphism -> string * Morphism.morphism ->
     theory -> theory
   val get_registrations: theory -> (string * Morphism.morphism) list
 
@@ -356,23 +356,20 @@ fun cons_elem false (Notes notes) elems = elems
 in
 
 fun activate_declarations thy dep ctxt =
-  roundup thy activate_decls dep (get_local_idents ctxt, ctxt) |> uncurry put_local_idents;
+  roundup thy activate_decls dep (get_local_idents ctxt, ctxt) |-> put_local_idents;
 
 fun activate_global_facts dep thy =
   roundup thy (activate_notes init_global_elem Element.transfer_morphism)
-    dep (get_global_idents thy, thy) |>
-  uncurry put_global_idents;
+    dep (get_global_idents thy, thy) |-> put_global_idents;
 
 fun activate_local_facts dep ctxt =
   roundup (ProofContext.theory_of ctxt)
   (activate_notes init_local_elem (Element.transfer_morphism o ProofContext.theory_of)) dep
-    (get_local_idents ctxt, ctxt) |>
-  uncurry put_local_idents;
+    (get_local_idents ctxt, ctxt) |-> put_local_idents;
 
 fun init name thy =
   activate_all name thy init_local_elem (Element.transfer_morphism o ProofContext.theory_of)
-    (empty, ProofContext.init thy) |>
-  uncurry put_local_idents;
+    (empty, ProofContext.init thy) |-> put_local_idents;
 
 fun print_locale thy show_facts name =
   let
@@ -408,8 +405,8 @@ val get_registrations =
 fun add_registration (name, (base_morph, export)) thy =
   roundup thy (fn _ => fn (name', morph') =>
     (RegistrationsData.map o cons) ((name', (morph', export)), stamp ()))
-    (name, base_morph) (get_global_idents thy, thy) |>
-    snd (* FIXME ?? uncurry put_global_idents *);
+    (name, base_morph) (get_global_idents thy, thy) |> snd
+    (* FIXME |-> put_global_idents ?*);
 
 fun amend_registration morph (name, base_morph) thy =
   let
@@ -426,6 +423,7 @@ fun amend_registration morph (name, base_morph) thy =
     RegistrationsData.map (nth_map (length regs - 1 - i)
       (fn ((name, (base, export)), stamp) => ((name, (base $> morph, export)), stamp))) thy
   end;
+
 
 
 (*** Storing results ***)
