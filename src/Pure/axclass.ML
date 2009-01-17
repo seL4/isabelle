@@ -295,7 +295,7 @@ fun add_classrel th thy =
   in
     thy
     |> Sign.primitive_classrel (c1, c2)
-    |> put_classrel ((c1, c2), Drule.unconstrainTs th)
+    |> put_classrel ((c1, c2), Thm.close_derivation (Drule.unconstrainTs th))
     |> perhaps complete_arities
   end;
 

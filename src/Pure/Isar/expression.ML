@@ -865,9 +865,7 @@ fun gen_interpretation prep_expr parse_prop prep_attr
               Morphism.thm (export' $> export) #>
               LocalDefs.meta_rewrite_rule (ProofContext.init thy) #>
               Drule.abs_def);
-            val eq_morph =
-              Morphism.term_morphism (MetaSimplifier.rewrite_term thy thms' []) $>
-              Morphism.thm_morphism (MetaSimplifier.rewrite_rule thms');
+            val eq_morph = Element.eq_morphism thy thms';
             val eq_attns' = map ((apsnd o map) (Attrib.attribute_i thy)) eq_attns;
           in
             thy
