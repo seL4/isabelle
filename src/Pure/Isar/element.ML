@@ -78,6 +78,7 @@ sig
   val generalize_facts: Proof.context -> Proof.context ->
     (Attrib.binding * (thm list * Attrib.src list) list) list ->
     (Attrib.binding * (thm list * Attrib.src list) list) list
+  val eq_morphism: theory -> thm list -> morphism
   val transfer_morphism: theory -> morphism
   val activate: (typ, term, Facts.ref) ctxt list -> Proof.context -> context_i list * Proof.context
   val activate_i: context_i list -> Proof.context -> context_i list * Proof.context
@@ -519,6 +520,14 @@ fun satisfy_thm witns thm = thm |> fold (fn hyp =>
 fun satisfy_morphism witns = Morphism.thm_morphism (satisfy_thm witns);
 
 fun satisfy_facts witns = facts_map (morph_ctxt (satisfy_morphism witns));
+
+
+(* rewriting with equalities *)
+
+fun eq_morphism thy thms = Morphism.morphism
+ {binding = I, var = I, typ = I,
+  term = MetaSimplifier.rewrite_term thy thms [],
+  fact = map (MetaSimplifier.rewrite_rule thms)};
 
 
 (* generalize type/term parameters *)

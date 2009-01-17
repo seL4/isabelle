@@ -112,7 +112,7 @@ BASE_DEPENDENCIES = $(OUT)/Pure \
   $(SRC)/Provers/splitter.ML \
 
 $(OUT)/HOL-Base: base.ML $(BASE_DEPENDENCIES)
-	@$(ISABELLE_TOOL) usedir -b -f base.ML -g true $(OUT)/Pure HOL-Base
+	@$(ISABELLE_TOOL) usedir -b -f base.ML -d false -g false $(OUT)/Pure HOL-Base
 
 PLAIN_DEPENDENCIES = $(BASE_DEPENDENCIES)\
   Datatype.thy \
