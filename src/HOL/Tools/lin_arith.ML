@@ -340,7 +340,7 @@ fun is_split_thm (thm : thm) : bool =
 
 fun subst_term ([] : (term * term) list) (t : term) = t
   | subst_term pairs                     t          =
-      (case AList.lookup (op aconv) pairs t of
+      (case AList.lookup Pattern.aeconv pairs t of
         SOME new =>
           new
       | NONE     =>
@@ -682,7 +682,7 @@ end;
 
 fun negated_term_occurs_positively (terms : term list) : bool =
   List.exists
-    (fn (Trueprop $ (Const ("Not", _) $ t)) => member (op aconv) terms (Trueprop $ t)
+    (fn (Trueprop $ (Const ("Not", _) $ t)) => member Pattern.aeconv terms (Trueprop $ t)
       | _                                   => false)
     terms;
 
