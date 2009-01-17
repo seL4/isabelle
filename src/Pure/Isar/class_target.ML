@@ -115,7 +115,7 @@ datatype class_data = ClassData of {
   consts: (string * string) list
     (*locale parameter ~> constant name*),
   base_sort: sort,
-  base_morph: Morphism.morphism
+  base_morph: morphism
     (*static part of canonical morphism*),
   assm_intro: thm option,
   of_class: thm,
