@@ -45,7 +45,7 @@ fun calculate_axiom thy sups base_sort assm_axiom param_map class =
         |> SOME
       end;
 
-fun raw_morphism thy class sups param_map some_axiom =
+fun calculate_morphism thy class sups param_map some_axiom =
   let
     val ctxt = ProofContext.init thy;
     val (([props], [(_, morph1)], export_morph), _) = ctxt
@@ -58,9 +58,8 @@ fun raw_morphism thy class sups param_map some_axiom =
           $> Element.satisfy_morphism [(Element.prove_witness ctxt prop
                (ALLGOALS (ProofContext.fact_tac (the_list some_axiom))))]
         | [] => morph2;
-    (*FIXME generic amend operation for classes*)
-    val morph4 = morph3 $> eq_morph thy (these_defs thy sups);
-  in (morph4, export_morph) end;
+    val morph4 = morph3 $> Element.eq_morphism thy (these_defs thy sups);
+  in (morph3, morph4, export_morph) end;
 
 fun calculate_rules thy morph sups base_sort param_map axiom class =
   let
@@ -96,13 +95,6 @@ fun calculate_rules thy morph sups base_sort param_map axiom class =
       |> Thm.close_derivation;
   in (assm_intro, of_class) end;
 
-fun note_assm_intro class assm_intro thy =
-  thy
-  |> Sign.sticky_prefix (class_prefix class ^ "_" ^ AxClass.axiomsN)
-  |> PureThy.store_thm (AxClass.introN, assm_intro)
-  |> snd
-  |> Sign.restore_naming thy;
-
 
 (** define classes **)
 
@@ -110,6 +102,7 @@ local
 
 fun gen_class_spec prep_class process_decl thy raw_supclasses raw_elems =
   let
+    (*FIXME 2009 simplify*)
     val supclasses = map (prep_class thy) raw_supclasses;
     val supsort = Sign.minimize_sort thy supclasses;
     val sups = filter (is_class thy) supsort;
@@ -127,7 +120,7 @@ fun gen_class_spec prep_class process_decl thy raw_supclasses raw_elems =
       sups, []);
     val constrain = Element.Constrains ((map o apsnd o map_atyps)
       (K (TFree (Name.aT, base_sort))) supparams);
-      (*FIXME perhaps better: control type variable by explicit
+      (*FIXME 2009 perhaps better: control type variable by explicit
       parameter instantiation of import expression*)
     val begin_ctxt = begin sups base_sort
       #> fold (Variable.declare_constraints o Free) ((map o apsnd o map_atyps)
@@ -148,6 +141,7 @@ val read_class_spec = gen_class_spec Sign.intern_class Expression.cert_read_decl
 
 fun add_consts bname class base_sort sups supparams global_syntax thy =
   let
+    (*FIXME 2009 simplify*)
     val supconsts = supparams
       |> AList.make (snd o the o AList.lookup (op =) (these_params thy sups))
       |> (map o apsnd o apsnd o map_atyps o K o TFree) (Name.aT, [class]);
@@ -177,6 +171,7 @@ fun add_consts bname class base_sort sups supparams global_syntax thy =
 
 fun adjungate_axclass bname class base_sort sups supsort supparams global_syntax thy =
   let
+    (*FIXME 2009 simplify*)
     fun globalize param_map = map_aterms
       (fn Free (v, ty) => Const ((fst o the o AList.lookup (op =) param_map) v, ty)
         | t => t);
@@ -191,12 +186,12 @@ fun adjungate_axclass bname class base_sort sups supsort supparams global_syntax
     |> add_consts bname class base_sort sups supparams global_syntax
     |-> (fn (param_map, params) => AxClass.define_class (bname, supsort)
           (map (fst o snd) params)
-          [(((*Binding.name (bname ^ "_" ^ AxClass.axiomsN*) Binding.empty, []),
+          [((Binding.empty, []),
             Option.map (globalize param_map) raw_pred |> the_list)]
     #> snd
     #> `get_axiom
     #-> (fn assm_axiom => fold (Sign.add_const_constraint o apsnd SOME o snd) params
-    #> pair (map (Const o snd) param_map, param_map, params, assm_axiom)))
+    #> pair (param_map, params, assm_axiom)))
   end;
 
 fun gen_class prep_spec bname raw_supclasses raw_elems thy =
@@ -204,32 +199,20 @@ fun gen_class prep_spec bname raw_supclasses raw_elems thy =
     val class = Sign.full_bname thy bname;
     val (((sups, supparams), (supsort, base_sort, supexpr)), (elems, global_syntax)) =
       prep_spec thy raw_supclasses raw_elems;
-    (*val export_morph = (*FIXME how canonical is this?*)
-      Morphism.morphism { binding = I, var = I,
-        typ = Logic.varifyT,
-        term = (*map_types Logic.varifyT*) I,
-        fact = map Thm.varifyT
-      } $> Morphism.morphism { binding = I, var = I,
-        typ = Logic.type_map TermSubst.zero_var_indexes,
-        term = TermSubst.zero_var_indexes,
-        fact = Drule.zero_var_indexes_list o map Thm.strip_shyps
-      };*)
   in
     thy
     |> Expression.add_locale bname "" supexpr elems
     |> snd |> LocalTheory.exit_global
     |> adjungate_axclass bname class base_sort sups supsort supparams global_syntax
-    |-> (fn (inst, param_map, params, assm_axiom) =>
+    |-> (fn (param_map, params, assm_axiom) =>
        `(fn thy => calculate_axiom thy sups base_sort assm_axiom param_map class)
     #-> (fn axiom =>
-       `(fn thy => raw_morphism thy class sups param_map axiom)
-    #-> (fn (morph, export_morph) => Locale.add_registration (class, (morph, export_morph))
+       `(fn thy => calculate_morphism thy class sups param_map axiom)
+    #-> (fn (raw_morph, morph, export_morph) => Locale.add_registration (class, (morph, export_morph))
     #>  Locale.activate_global_facts (class, morph $> export_morph)
     #> `(fn thy => calculate_rules thy morph sups base_sort param_map axiom class)
     #-> (fn (assm_intro, of_class) =>
-        register class sups params base_sort inst
-          morph axiom assm_intro of_class
-    (*#> fold (note_assm_intro class) (the_list assm_intro*)))))
+        register class sups params base_sort raw_morph axiom assm_intro of_class))))
     |> TheoryTarget.init (SOME class)
     |> pair class
   end;
@@ -246,12 +229,6 @@ end; (*local*)
 
 local
 
-fun prove_sublocale tac (sub, expr) =
-  Expression.sublocale sub expr
-  #> Proof.global_terminal_proof
-      (Method.Basic (K (Method.SIMPLE_METHOD tac), Position.none), NONE)
-  #> ProofContext.theory_of;
-
 fun gen_subclass prep_class do_proof raw_sup lthy =
   let
     val thy = ProofContext.theory_of lthy;
@@ -259,6 +236,7 @@ fun gen_subclass prep_class do_proof raw_sup lthy =
     val sub = case TheoryTarget.peek lthy
      of {is_class = false, ...} => error "Not a class context"
       | {target, ...} => target;
+
     val _ = if Sign.subsort thy ([sup], [sub])
       then error ("Class " ^ Syntax.string_of_sort lthy [sup]
         ^ " is subclass of class " ^ Syntax.string_of_sort lthy [sub])
@@ -273,15 +251,21 @@ fun gen_subclass prep_class do_proof raw_sup lthy =
     val expr = ([(sup, (("", false), Expression.Positional []))], []);
     val (([props], _, _), goal_ctxt) =
       Expression.cert_goal_expression expr lthy;
-    val some_prop = try the_single props; (*FIXME*)
+    val some_prop = try the_single props;
+
+    fun tac some_thm = ALLGOALS (ProofContext.fact_tac (the_list some_thm));
+    fun prove_sublocale some_thm =
+      Expression.sublocale sub expr
+      #> Proof.global_terminal_proof
+          (Method.Basic (K (Method.SIMPLE_METHOD (tac some_thm)), Position.none), NONE)
+      #> ProofContext.theory_of;
     fun after_qed some_thm =
       LocalTheory.theory (register_subclass (sub, sup) some_thm)
-      #> is_some some_thm ? LocalTheory.theory
-        (prove_sublocale (ALLGOALS (ProofContext.fact_tac (the_list some_thm))) (sub, expr))
-      #> (TheoryTarget.init (SOME sub) o ProofContext.theory_of);
-  in
-    do_proof after_qed some_prop lthy
-  end;
+      #> is_some some_thm ? LocalTheory.theory (prove_sublocale some_thm)
+          (*FIXME should also go to register_subclass*)
+      #> ProofContext.theory_of
+      #> TheoryTarget.init (SOME sub);
+  in do_proof after_qed some_prop lthy end;
 
 fun user_proof after_qed NONE =
       Proof.theorem_i NONE (K (after_qed NONE)) [[]]

@@ -8,10 +8,17 @@ signature CLASS_TARGET =
 sig
   (*classes*)
   val register: class -> class list -> ((string * typ) * (string * typ)) list
-    -> sort -> term list -> morphism
-    -> thm option -> thm option -> thm -> theory -> theory
+    -> sort -> morphism -> thm option -> thm option -> thm
+    -> theory -> theory
   val register_subclass: class * class -> thm option
     -> theory -> theory
+
+  val is_class: theory -> class -> bool
+  val base_sort: theory -> class -> sort
+  val rules: theory -> class -> thm option * thm
+  val these_params: theory -> sort -> (string * (class * (string * typ))) list
+  val these_defs: theory -> sort -> thm list
+  val print_classes: theory -> unit
 
   val begin: class list -> sort -> Proof.context -> Proof.context
   val init: class -> theory -> Proof.context
@@ -19,19 +26,8 @@ sig
     -> (string * mixfix) * term -> theory -> theory
   val abbrev: class -> Syntax.mode -> Properties.T
     -> (string * mixfix) * term -> theory -> theory
-  val refresh_syntax: class -> Proof.context -> Proof.context
-
-  val intro_classes_tac: thm list -> tactic
-  val default_intro_tac: Proof.context -> thm list -> tactic
-
   val class_prefix: string -> string
-  val is_class: theory -> class -> bool
-  val these_params: theory -> sort -> (string * (class * (string * typ))) list
-  val these_defs: theory -> sort -> thm list
-  val eq_morph: theory -> thm list -> morphism
-  val base_sort: theory -> class -> sort
-  val rules: theory -> class -> thm option * thm
-  val print_classes: theory -> unit
+  val refresh_syntax: class -> Proof.context -> Proof.context
 
   (*instances*)
   val init_instantiation: string list * (string * sort) list * sort
@@ -49,6 +45,9 @@ sig
   val confirm_declaration: string -> local_theory -> local_theory
   val pretty_instantiation: local_theory -> Pretty.T
   val type_name: string -> string
+
+  val intro_classes_tac: thm list -> tactic
+  val default_intro_tac: Proof.context -> thm list -> tactic
 
   (*old axclass layer*)
   val axclass_cmd: bstring * xstring list
@@ -116,8 +115,6 @@ datatype class_data = ClassData of {
   consts: (string * string) list
     (*locale parameter ~> constant name*),
   base_sort: sort,
-  inst: term list
-    (*canonical interpretation*),
   base_morph: Morphism.morphism
     (*static part of canonical morphism*),
   assm_intro: thm option,
@@ -130,22 +127,22 @@ datatype class_data = ClassData of {
 
 };
 
-fun rep_class_data (ClassData d) = d;
-fun mk_class_data ((consts, base_sort, inst, base_morph, assm_intro, of_class, axiom),
+fun rep_class_data (ClassData data) = data;
+fun mk_class_data ((consts, base_sort, base_morph, assm_intro, of_class, axiom),
     (defs, operations)) =
-  ClassData { consts = consts, base_sort = base_sort, inst = inst,
+  ClassData { consts = consts, base_sort = base_sort,
     base_morph = base_morph, assm_intro = assm_intro, of_class = of_class, axiom = axiom,
     defs = defs, operations = operations };
-fun map_class_data f (ClassData { consts, base_sort, inst, base_morph, assm_intro,
+fun map_class_data f (ClassData { consts, base_sort, base_morph, assm_intro,
     of_class, axiom, defs, operations }) =
-  mk_class_data (f ((consts, base_sort, inst, base_morph, assm_intro, of_class, axiom),
+  mk_class_data (f ((consts, base_sort, base_morph, assm_intro, of_class, axiom),
     (defs, operations)));
 fun merge_class_data _ (ClassData { consts = consts,
-    base_sort = base_sort, inst = inst, base_morph = base_morph, assm_intro = assm_intro,
+    base_sort = base_sort, base_morph = base_morph, assm_intro = assm_intro,
     of_class = of_class, axiom = axiom, defs = defs1, operations = operations1 },
-  ClassData { consts = _, base_sort = _, inst = _, base_morph = _, assm_intro = _,
+  ClassData { consts = _, base_sort = _, base_morph = _, assm_intro = _,
     of_class = _, axiom = _, defs = defs2, operations = operations2 }) =
-  mk_class_data ((consts, base_sort, inst, base_morph, assm_intro, of_class, axiom),
+  mk_class_data ((consts, base_sort, base_morph, assm_intro, of_class, axiom),
     (Thm.merge_thms (defs1, defs2),
       AList.merge (op =) (K true) (operations1, operations2)));
 
@@ -170,10 +167,7 @@ fun the_class_data thy class = case lookup_class_data thy class
 val is_class = is_some oo lookup_class_data;
 
 val ancestry = Graph.all_succs o ClassData.get;
-
 val heritage = Graph.all_preds o ClassData.get;
-
-fun the_inst thy = #inst o the_class_data thy;
 
 fun these_params thy =
   let
@@ -187,34 +181,22 @@ fun these_params thy =
       end;
   in maps params o ancestry thy end;
 
-fun these_assm_intros thy =
+val base_sort = #base_sort oo the_class_data;
+
+fun rules thy class =
+  let val { axiom, of_class, ... } = the_class_data thy class
+  in (axiom, of_class) end;
+
+fun all_assm_intros thy =
   Graph.fold (fn (_, (data, _)) => fold (insert Thm.eq_thm)
     ((the_list o #assm_intro o rep_class_data) data)) (ClassData.get thy) [];
 
-fun these_defs thy = maps (these o Option.map #defs o lookup_class_data thy) o ancestry thy;
+fun these_defs thy = maps (#defs o the_class_data thy) o ancestry thy;
+fun these_operations thy = maps (#operations o the_class_data thy) o ancestry thy;
 
-fun these_operations thy =
-  maps (#operations o the_class_data thy) o ancestry thy;
-
-val base_sort = #base_sort oo the_class_data;
-
-fun rules thy class = let
-    val { axiom, of_class, ... } = the_class_data thy class
-  in (axiom, of_class) end;
-
-val class_prefix = Logic.const_of_class o Sign.base_name;
-
-fun class_binding_morph class =
-  Binding.map_prefix (K (Binding.add_prefix false (class_prefix class)));
-
-fun eq_morph thy thms = (*FIXME how general is this?*)
-  Morphism.term_morphism (MetaSimplifier.rewrite_term thy thms [])
-  $> Morphism.thm_morphism (MetaSimplifier.rewrite_rule thms);
-
-fun morphism thy class =
-  let
-    val { base_morph, defs, ... } = the_class_data thy class;
-  in base_morph $> eq_morph thy defs end;
+val base_morphism = #base_morph oo the_class_data;
+fun morphism thy class = base_morphism thy class
+  $> Element.eq_morphism thy (these_defs thy [class]);
 
 fun print_classes thy =
   let
@@ -236,8 +218,6 @@ fun print_classes thy =
       (SOME o Pretty.str) ("class " ^ Sign.extern_class thy class ^ ":"),
       (SOME o Pretty.block) [Pretty.str "supersort: ",
         (Syntax.pretty_sort ctxt o Sign.minimize_sort thy o Sign.super_classes thy) class],
-      if is_class thy class then (SOME o Pretty.str)
-        ("locale: " ^ Locale.extern thy class) else NONE,
       ((fn [] => NONE | ps => (SOME o Pretty.block o Pretty.fbreaks)
           (Pretty.str "parameters:" :: ps)) o map mk_param
         o these o Option.map #params o try (AxClass.get_info thy)) class,
@@ -254,18 +234,26 @@ fun print_classes thy =
 
 (* updaters *)
 
-fun register class superclasses params base_sort inst morph
+fun register class sups params base_sort morph
     axiom assm_intro of_class thy =
   let
     val operations = map (fn (v_ty as (_, ty), (c, _)) =>
       (c, (class, (ty, Free v_ty)))) params;
     val add_class = Graph.new_node (class,
         mk_class_data (((map o pairself) fst params, base_sort,
-          inst, morph, assm_intro, of_class, axiom), ([], operations)))
-      #> fold (curry Graph.add_edge class) superclasses;
+          morph, assm_intro, of_class, axiom), ([], operations)))
+      #> fold (curry Graph.add_edge class) sups;
   in ClassData.map add_class thy end;
 
+fun activate_defs class thms thy =
+  let
+    val eq_morph = Element.eq_morphism thy thms;
+    fun amend cls thy = Locale.amend_registration eq_morph
+      (cls, morphism thy cls) thy;
+  in fold amend (heritage thy [class]) thy end;
+
 fun register_operation class (c, (t, some_def)) thy =
+  (*FIXME 2009 does this still also work for abbrevs?*)
   let
     val base_sort = base_sort thy class;
     val prep_typ = map_type_tfree
@@ -279,12 +267,11 @@ fun register_operation class (c, (t, some_def)) thy =
       (fn (defs, operations) =>
         (fold cons (the_list some_def) defs,
           (c, (class, (ty', t'))) :: operations))
+    |> is_some some_def ? activate_defs class (the_list some_def)
   end;
 
-
-(** tactics and methods **)
-
 fun register_subclass (sub, sup) thms thy =
+  (*FIXME should also add subclass interpretation*)
   let
     val of_class = (snd o rules thy) sup;
     val intro = case thms
@@ -293,45 +280,14 @@ fun register_subclass (sub, sup) thms thy =
           ([], [sub])], []) of_class;
     val classrel = (intro OF (the_list o fst o rules thy) sub)
       |> Thm.close_derivation;
-    (*FIXME generic amend operation for classes*)
-    val amendments = map (fn class => (class, morphism thy class))
-      (heritage thy [sub]);
     val diff_sort = Sign.complete_sort thy [sup]
       |> subtract (op =) (Sign.complete_sort thy [sub]);
-    val defs_morph = eq_morph thy (these_defs thy diff_sort);
   in
     thy
     |> AxClass.add_classrel classrel
     |> ClassData.map (Graph.add_edge (sub, sup))
-    |> fold (Locale.amend_registration defs_morph) amendments
+    |> activate_defs sub (these_defs thy diff_sort)
   end;
-
-fun intro_classes_tac facts st =
-  let
-    val thy = Thm.theory_of_thm st;
-    val classes = Sign.all_classes thy;
-    val class_trivs = map (Thm.class_triv thy) classes;
-    val class_intros = map_filter (try (#intro o AxClass.get_info thy)) classes;
-    val assm_intros = these_assm_intros thy;
-  in
-    Method.intros_tac (class_trivs @ class_intros @ assm_intros) facts st
-  end;
-
-fun default_intro_tac ctxt [] =
-      intro_classes_tac [] ORELSE Old_Locale.intro_locales_tac true ctxt [] ORELSE
-      Locale.intro_locales_tac true ctxt []
-  | default_intro_tac _ _ = no_tac;
-
-fun default_tac rules ctxt facts =
-  HEADGOAL (Method.some_rule_tac rules ctxt facts) ORELSE
-    default_intro_tac ctxt facts;
-
-val _ = Context.>> (Context.map_theory
-  (Method.add_methods
-   [("intro_classes", Method.no_args (Method.METHOD intro_classes_tac),
-      "back-chain introduction rules of classes"),
-    ("default", Method.thms_ctxt_args (Method.METHOD oo default_tac),
-      "apply some intro/elim rule")]));
 
 
 (** classes and class target **)
@@ -393,35 +349,33 @@ fun init class thy =
 
 (* class target *)
 
+val class_prefix = Logic.const_of_class o Sign.base_name;
+
 fun declare class pos ((c, mx), dict) thy =
   let
     val prfx = class_prefix class;
     val thy' = thy |> Sign.add_path prfx;
+      (*FIXME 2009 use proper name morphism*)
     val morph = morphism thy' class;
-    val inst = the_inst thy' class;
     val params = map (apsnd fst o snd) (these_params thy' [class]);
-    val amendments = map (fn class => (class, morphism thy' class))
-      (heritage thy' [class]);
 
     val c' = Sign.full_bname thy' c;
     val dict' = Morphism.term morph dict;
     val ty' = Term.fastype_of dict';
     val ty'' = Type.strip_sorts ty';
+      (*FIXME 2009 the tinkering with theorems here is a mess*)
     val def_eq = Logic.mk_equals (Const (c', ty'), dict');
-    (*FIXME a mess*)
-    fun amend def def' (class, morph) thy =
-      Locale.amend_registration (eq_morph thy [Thm.varifyT def])
-        (class, morph) thy;
     fun get_axiom thy = ((Thm.varifyT o Thm.axiom thy) c', thy);
   in
     thy'
     |> Sign.declare_const pos ((Binding.name c, ty''), mx) |> snd
-    |> Thm.add_def false false (c, def_eq)
+    |> Thm.add_def false false (c, def_eq) (*FIXME 2009 name of theorem*)
+      (*FIXME 2009 add_def should accept binding*)
     |>> Thm.symmetric
     ||>> get_axiom
     |-> (fn (def, def') => register_operation class (c', (dict', SOME (Thm.symmetric def')))
-      #> fold (amend def def') amendments
-      #> PureThy.store_thm (c ^ "_raw", def') (*FIXME name*)
+      #> PureThy.store_thm (c ^ "_raw", def') (*FIXME 2009 name of theorem*)
+         (*FIXME 2009 store_thm etc. should accept binding*)
       #> snd)
     |> Sign.restore_naming thy
     |> Sign.add_const_constraint (c', SOME ty')
@@ -522,7 +476,7 @@ val sanatize_name = (*FIXME*)
 
 fun type_name "*" = "prod"
   | type_name "+" = "sum"
-  | type_name s = sanatize_name (NameSpace.base s); (*FIXME*)
+  | type_name s = sanatize_name (NameSpace.base s);
 
 fun resort_terms pp algebra consts constraints ts =
   let
@@ -637,6 +591,36 @@ fun pretty_instantiation lthy =
     (Pretty.block o Pretty.fbreaks)
       (Pretty.str "instantiation" :: map pr_arity tycos @ map pr_param params)
   end;
+
+
+(** tactics and methods **)
+
+fun intro_classes_tac facts st =
+  let
+    val thy = Thm.theory_of_thm st;
+    val classes = Sign.all_classes thy;
+    val class_trivs = map (Thm.class_triv thy) classes;
+    val class_intros = map_filter (try (#intro o AxClass.get_info thy)) classes;
+    val assm_intros = all_assm_intros thy;
+  in
+    Method.intros_tac (class_trivs @ class_intros @ assm_intros) facts st
+  end;
+
+fun default_intro_tac ctxt [] =
+      intro_classes_tac [] ORELSE Old_Locale.intro_locales_tac true ctxt [] ORELSE
+      Locale.intro_locales_tac true ctxt []
+  | default_intro_tac _ _ = no_tac;
+
+fun default_tac rules ctxt facts =
+  HEADGOAL (Method.some_rule_tac rules ctxt facts) ORELSE
+    default_intro_tac ctxt facts;
+
+val _ = Context.>> (Context.map_theory
+  (Method.add_methods
+   [("intro_classes", Method.no_args (Method.METHOD intro_classes_tac),
+      "back-chain introduction rules of classes"),
+    ("default", Method.thms_ctxt_args (Method.METHOD oo default_tac),
+      "apply some intro/elim rule")]));
 
 end;
 
