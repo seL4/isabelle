@@ -146,7 +146,7 @@ fun mk_cntxt Ts t pos T maxi =
 
 fun mk_cntxt_splitthm t tt T =
   let fun repl lev t =
-    if incr_boundvars lev tt aconv t then Bound lev
+    if Pattern.aeconv(incr_boundvars lev tt, t) then Bound lev
     else case t of
         (Abs (v, T2, t)) => Abs (v, T2, repl (lev+1) t)
       | (Bound i) => Bound (if i>=lev then i+1 else i)

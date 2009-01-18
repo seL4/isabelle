@@ -149,9 +149,9 @@ fun nT (Type ("fun", [N, _])) = (N = HOLogic.natT)
 
 fun add_atom (t : term) (m : Rat.rat) (p : (term * Rat.rat) list, i : Rat.rat) :
              (term * Rat.rat) list * Rat.rat =
-  case AList.lookup (op =) p t of
+  case AList.lookup Pattern.aeconv p t of
       NONE   => ((t, m) :: p, i)
-    | SOME n => (AList.update (op =) (t, Rat.add n m) p, i);
+    | SOME n => (AList.update Pattern.aeconv (t, Rat.add n m) p, i);
 
 (* decompose nested multiplications, bracketing them to the right and combining
    all their coefficients
