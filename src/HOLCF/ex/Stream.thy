@@ -521,7 +521,7 @@ by (simp add: slen_take_lemma4 iSuc_Fin)
 section "smap"
 
 lemma smap_unfold: "smap = (\<Lambda> f t. case t of x&&xs \<Rightarrow> f$x && smap$f$xs)"
-by (insert smap_def [THEN eq_reflection, THEN fix_eq2], auto)
+by (insert smap_def [where 'a='a and 'b='b, THEN eq_reflection, THEN fix_eq2], auto)
 
 lemma smap_empty [simp]: "smap\<cdot>f\<cdot>\<bottom> = \<bottom>"
 by (subst smap_unfold, simp)
@@ -540,7 +540,7 @@ section "sfilter"
 lemma sfilter_unfold:
  "sfilter = (\<Lambda> p s. case s of x && xs \<Rightarrow>
   If p\<cdot>x then x && sfilter\<cdot>p\<cdot>xs else sfilter\<cdot>p\<cdot>xs fi)"
-by (insert sfilter_def [THEN eq_reflection, THEN fix_eq2], auto)
+by (insert sfilter_def [where 'a='a, THEN eq_reflection, THEN fix_eq2], auto)
 
 lemma strict_sfilter: "sfilter\<cdot>\<bottom> = \<bottom>"
 apply (rule ext_cfun)

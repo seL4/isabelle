@@ -37,7 +37,7 @@ sig
     thm option * thm option -> thm list ->
     (declaration * stamp) list * (declaration * stamp) list ->
     ((string * (Attrib.binding * (thm list * Attrib.src list) list) list) * stamp) list ->
-    ((string * Morphism.morphism) * stamp) list -> theory -> theory
+    ((string * morphism) * stamp) list -> theory -> theory
 
   (* Locale name space *)
   val intern: theory -> xstring -> string
@@ -48,9 +48,10 @@ sig
   val params_of: theory -> string -> (Binding.T * typ option * mixfix) list
   val intros_of: theory -> string -> thm option * thm option
   val axioms_of: theory -> string -> thm list
-  val instance_of: theory -> string -> Morphism.morphism -> term list
+  val instance_of: theory -> string -> morphism -> term list
   val specification_of: theory -> string -> term option * term list
   val declarations_of: theory -> string -> declaration list * declaration list
+  val dependencies_of: theory -> string -> (string * morphism) list
 
   (* Storing results *)
   val add_thmss: string -> string -> (Attrib.binding * (thm list * Attrib.src list) list) list ->
@@ -58,13 +59,13 @@ sig
   val add_type_syntax: string -> declaration -> Proof.context -> Proof.context
   val add_term_syntax: string -> declaration -> Proof.context -> Proof.context
   val add_declaration: string -> declaration -> Proof.context -> Proof.context
-  val add_dependency: string -> string * Morphism.morphism -> theory -> theory
+  val add_dependency: string -> string * morphism -> theory -> theory
 
   (* Activation *)
-  val activate_declarations: theory -> string * Morphism.morphism ->
+  val activate_declarations: theory -> string * morphism ->
     Proof.context -> Proof.context
-  val activate_global_facts: string * Morphism.morphism -> theory -> theory
-  val activate_local_facts: string * Morphism.morphism -> Proof.context -> Proof.context
+  val activate_global_facts: string * morphism -> theory -> theory
+  val activate_local_facts: string * morphism -> Proof.context -> Proof.context
   val init: string -> theory -> Proof.context
 
   (* Reasoning about locales *)
@@ -74,11 +75,11 @@ sig
   val intro_locales_tac: bool -> Proof.context -> thm list -> tactic
 
   (* Registrations *)
-  val add_registration: string * (Morphism.morphism * Morphism.morphism) ->
+  val add_registration: string * (morphism * morphism) ->
     theory -> theory
-  val amend_registration: Morphism.morphism -> string * Morphism.morphism ->
+  val amend_registration: morphism -> string * morphism ->
     theory -> theory
-  val get_registrations: theory -> (string * Morphism.morphism) list
+  val get_registrations: theory -> (string * morphism) list
 
   (* Diagnostic *)
   val print_locales: theory -> unit
@@ -128,7 +129,7 @@ datatype locale = Loc of {
     (* type and term syntax declarations *)
   notes: ((string * (Attrib.binding * (thm list * Attrib.src list) list) list) * stamp) list,
     (* theorem declarations *)
-  dependencies: ((string * Morphism.morphism) * stamp) list
+  dependencies: ((string * morphism) * stamp) list
     (* locale dependencies (sublocale relation) *)
 };
 
@@ -192,6 +193,9 @@ fun specification_of thy = #spec o the_locale thy;
 
 fun declarations_of thy name = the_locale thy name |>
   #decls |> apfst (map fst) |> apsnd (map fst);
+
+fun dependencies_of thy name = the_locale thy name |>
+  #dependencies |> map fst;
 
 
 (*** Activate context elements of locale ***)
@@ -389,7 +393,7 @@ end;
 
 structure RegistrationsData = TheoryDataFun
 (
-  type T = ((string * (Morphism.morphism * Morphism.morphism)) * stamp) list;
+  type T = ((string * (morphism * morphism)) * stamp) list;
     (* FIXME mixins need to be stamped *)
     (* registrations, in reverse order of declaration *)
   val empty = [];

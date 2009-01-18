@@ -135,15 +135,15 @@ apply (simp add: offset_poly_eq_0_iff)
 done
 
 definition
-  "plength p = (if p = 0 then 0 else Suc (degree p))"
+  "psize p = (if p = 0 then 0 else Suc (degree p))"
 
-lemma plength_eq_0_iff [simp]: "plength p = 0 \<longleftrightarrow> p = 0"
-  unfolding plength_def by simp
+lemma psize_eq_0_iff [simp]: "psize p = 0 \<longleftrightarrow> p = 0"
+  unfolding psize_def by simp
 
-lemma poly_offset: "\<exists> q. plength q = plength p \<and> (\<forall>x. poly q (x::complex) = poly p (a + x))"
+lemma poly_offset: "\<exists> q. psize q = psize p \<and> (\<forall>x. poly q (x::complex) = poly p (a + x))"
 proof (intro exI conjI)
-  show "plength (offset_poly p a) = plength p"
-    unfolding plength_def
+  show "psize (offset_poly p a) = psize p"
+    unfolding psize_def
     by (simp add: offset_poly_eq_0_iff degree_offset_poly)
   show "\<forall>x. poly (offset_poly p a) x = poly p (a + x)"
     by (simp add: poly_offset_poly)
@@ -719,8 +719,8 @@ qed simp
 text{* Constant function (non-syntactic characterization). *}
 definition "constant f = (\<forall>x y. f x = f y)"
 
-lemma nonconstant_length: "\<not> (constant (poly p)) \<Longrightarrow> plength p \<ge> 2"
-  unfolding constant_def plength_def
+lemma nonconstant_length: "\<not> (constant (poly p)) \<Longrightarrow> psize p \<ge> 2"
+  unfolding constant_def psize_def
   apply (induct p, auto)
   done
  
@@ -733,9 +733,9 @@ text {* Decomposition of polynomial, skipping zero coefficients
 
 lemma poly_decompose_lemma:
  assumes nz: "\<not>(\<forall>z. z\<noteq>0 \<longrightarrow> poly p z = (0::'a::{recpower,idom}))"
-  shows "\<exists>k a q. a\<noteq>0 \<and> Suc (plength q + k) = plength p \<and> 
+  shows "\<exists>k a q. a\<noteq>0 \<and> Suc (psize q + k) = psize p \<and> 
                  (\<forall>z. poly p z = z^k * poly (pCons a q) z)"
-unfolding plength_def
+unfolding psize_def
 using nz
 proof(induct p)
   case 0 thus ?case by simp
@@ -761,7 +761,7 @@ qed
 lemma poly_decompose:
   assumes nc: "~constant(poly p)"
   shows "\<exists>k a q. a\<noteq>(0::'a::{recpower,idom}) \<and> k\<noteq>0 \<and>
-               plength q + k + 1 = plength p \<and> 
+               psize q + k + 1 = psize p \<and> 
               (\<forall>z. poly p z = poly p 0 + z^k * poly (pCons a q) z)"
 using nc 
 proof(induct p)
@@ -781,7 +781,7 @@ next
     apply simp
     apply (rule_tac x="q" in exI)
     apply (auto simp add: power_Suc)
-    apply (auto simp add: plength_def split: if_splits)
+    apply (auto simp add: psize_def split: if_splits)
     done
 qed
 
@@ -791,10 +791,10 @@ lemma fundamental_theorem_of_algebra:
   assumes nc: "~constant(poly p)"
   shows "\<exists>z::complex. poly p z = 0"
 using nc
-proof(induct n\<equiv> "plength p" arbitrary: p rule: nat_less_induct)
+proof(induct n\<equiv> "psize p" arbitrary: p rule: nat_less_induct)
   fix n fix p :: "complex poly"
   let ?p = "poly p"
-  assume H: "\<forall>m<n. \<forall>p. \<not> constant (poly p) \<longrightarrow> m = plength p \<longrightarrow> (\<exists>(z::complex). poly p z = 0)" and nc: "\<not> constant ?p" and n: "n = plength p"
+  assume H: "\<forall>m<n. \<forall>p. \<not> constant (poly p) \<longrightarrow> m = psize p \<longrightarrow> (\<exists>(z::complex). poly p z = 0)" and nc: "\<not> constant ?p" and n: "n = psize p"
   let ?ths = "\<exists>z. ?p z = 0"
 
   from nonconstant_length[OF nc] have n2: "n\<ge> 2" by (simp add: n)
@@ -804,7 +804,7 @@ proof(induct n\<equiv> "plength p" arbitrary: p rule: nat_less_induct)
   moreover
   {assume pc0: "?p c \<noteq> 0"
     from poly_offset[of p c] obtain q where
-      q: "plength q = plength p" "\<forall>x. poly q x = ?p (c+x)" by blast
+      q: "psize q = psize p" "\<forall>x. poly q x = ?p (c+x)" by blast
     {assume h: "constant (poly q)"
       from q(2) have th: "\<forall>x. poly q (x - c) = ?p x" by auto
       {fix x y
@@ -823,8 +823,8 @@ proof(induct n\<equiv> "plength p" arbitrary: p rule: nat_less_induct)
     have qr: "\<forall>z. poly q z = poly (smult (inverse ?a0) q) z * ?a0"
       by simp
     let ?r = "smult (inverse ?a0) q"
-    have lgqr: "plength q = plength ?r"
-      using a00 unfolding plength_def degree_def
+    have lgqr: "psize q = psize ?r"
+      using a00 unfolding psize_def degree_def
       by (simp add: expand_poly_eq)
     {assume h: "\<And>x y. poly ?r x = poly ?r y"
       {fix x y
@@ -844,7 +844,7 @@ proof(induct n\<equiv> "plength p" arbitrary: p rule: nat_less_induct)
       finally have "cmod (poly ?r w) < 1 \<longleftrightarrow> cmod (poly q w) < cmod ?a0" .}
     note mrmq_eq = this
     from poly_decompose[OF rnc] obtain k a s where 
-      kas: "a\<noteq>0" "k\<noteq>0" "plength s + k + 1 = plength ?r" 
+      kas: "a\<noteq>0" "k\<noteq>0" "psize s + k + 1 = psize ?r" 
       "\<forall>z. poly ?r z = poly ?r 0 + z^k* poly (pCons a s) z" by blast
     {assume "k + 1 = n"
       with kas(3) lgqr[symmetric] q(1) n[symmetric] have s0:"s=0" by auto
@@ -861,8 +861,8 @@ proof(induct n\<equiv> "plength p" arbitrary: p rule: nat_less_induct)
 	unfolding constant_def poly_pCons poly_monom
 	using kas(1) apply simp 
 	by (rule exI[where x=0], rule exI[where x=1], simp)
-      from kas(1) kas(2) have th02: "k+1 = plength (pCons 1 (monom a (k - 1)))"
-	by (simp add: plength_def degree_monom_eq)
+      from kas(1) kas(2) have th02: "k+1 = psize (pCons 1 (monom a (k - 1)))"
+	by (simp add: psize_def degree_monom_eq)
       from H[rule_format, OF k1n th01 th02]
       obtain w where w: "1 + w^k * a = 0"
 	unfolding poly_pCons poly_monom
@@ -1353,11 +1353,11 @@ qed
 lemma basic_cqe_conv3:
   fixes p q :: "complex poly"
   assumes l: "p \<noteq> 0" 
-  shows "(\<exists>x. poly (pCons a p) x = 0 \<and> poly q x \<noteq> 0) \<equiv> \<not> ((pCons a p) dvd (q ^ (plength p)))"
+  shows "(\<exists>x. poly (pCons a p) x = 0 \<and> poly q x \<noteq> 0) \<equiv> \<not> ((pCons a p) dvd (q ^ (psize p)))"
 proof-
-  from l have dp:"degree (pCons a p) = plength p" by (simp add: plength_def)
+  from l have dp:"degree (pCons a p) = psize p" by (simp add: psize_def)
   from nullstellensatz_univariate[of "pCons a p" q] l
-  show "(\<exists>x. poly (pCons a p) x = 0 \<and> poly q x \<noteq> 0) \<equiv> \<not> ((pCons a p) dvd (q ^ (plength p)))"
+  show "(\<exists>x. poly (pCons a p) x = 0 \<and> poly q x \<noteq> 0) \<equiv> \<not> ((pCons a p) dvd (q ^ (psize p)))"
     unfolding dp
     by - (atomize (full), auto)
 qed

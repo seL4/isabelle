@@ -104,6 +104,8 @@ apply (drule_tac i=0 in is_ub_lub)
 apply simp
 done
 
+lemmas cont2monofunE = cont2mono [THEN monofunE]
+
 lemmas ch2ch_cont = cont2mono [THEN ch2ch_monofun]
 
 text {* right to left: @{prop "cont f \<Longrightarrow> monofun f \<and> contlub f"} *}
@@ -135,21 +137,81 @@ apply (rule is_lubD1)
 apply (erule cpo_lubI)
 done
 
+subsection {* Continuity simproc *}
+
+ML {*
+structure Cont2ContData = NamedThmsFun
+  ( val name = "cont2cont" val description = "continuity intro rule" )
+*}
+
+setup {* Cont2ContData.setup *}
+
+text {*
+  Given the term @{term "cont f"}, the procedure tries to construct the
+  theorem @{term "cont f == True"}. If this theorem cannot be completely
+  solved by the introduction rules, then the procedure returns a
+  conditional rewrite rule with the unsolved subgoals as premises.
+*}
+
+setup {*
+let
+  fun solve_cont thy ss t =
+    let
+      val tr = instantiate' [] [SOME (cterm_of thy t)] Eq_TrueI;
+      val rules = Cont2ContData.get (Simplifier.the_context ss);
+      val tac = REPEAT_ALL_NEW (match_tac rules);
+    in Option.map fst (Seq.pull (tac 1 tr)) end
+
+  val proc =
+    Simplifier.simproc @{theory} "cont_proc" ["cont f"] solve_cont;
+in
+  Simplifier.map_simpset (fn ss => ss addsimprocs [proc])
+end
+*}
+
 subsection {* Continuity of basic functions *}
 
 text {* The identity function is continuous *}
 
-lemma cont_id: "cont (\<lambda>x. x)"
+lemma cont_id [cont2cont]: "cont (\<lambda>x. x)"
 apply (rule contI)
 apply (erule cpo_lubI)
 done
 
 text {* constant functions are continuous *}
 
-lemma cont_const: "cont (\<lambda>x. c)"
+lemma cont_const [cont2cont]: "cont (\<lambda>x. c)"
 apply (rule contI)
 apply (rule lub_const)
 done
+
+text {* application of functions is continuous *}
+
+lemma cont2cont_apply:
+  fixes f :: "'a::cpo \<Rightarrow> 'b::cpo \<Rightarrow> 'c::cpo" and t :: "'a \<Rightarrow> 'b"
+  assumes f1: "\<And>y. cont (\<lambda>x. f x y)"
+  assumes f2: "\<And>x. cont (\<lambda>y. f x y)"
+  assumes t: "cont (\<lambda>x. t x)"
+  shows "cont (\<lambda>x. (f x) (t x))"
+proof (rule monocontlub2cont [OF monofunI contlubI])
+  fix x y :: "'a" assume "x \<sqsubseteq> y"
+  then show "f x (t x) \<sqsubseteq> f y (t y)"
+    by (auto intro: cont2monofunE [OF f1]
+                    cont2monofunE [OF f2]
+                    cont2monofunE [OF t]
+                    trans_less)
+next
+  fix Y :: "nat \<Rightarrow> 'a" assume "chain Y"
+  then show "f (\<Squnion>i. Y i) (t (\<Squnion>i. Y i)) = (\<Squnion>i. f (Y i) (t (Y i)))"
+    by (simp only: cont2contlubE [OF t]  ch2ch_cont [OF t]
+                   cont2contlubE [OF f1] ch2ch_cont [OF f1]
+                   cont2contlubE [OF f2] ch2ch_cont [OF f2]
+                   diag_lub)
+qed
+
+lemma cont2cont_compose:
+  "\<lbrakk>cont c; cont (\<lambda>x. f x)\<rbrakk> \<Longrightarrow> cont (\<lambda>x. c (f x))"
+by (rule cont2cont_apply [OF cont_const])
 
 text {* if-then-else is continuous *}
 
