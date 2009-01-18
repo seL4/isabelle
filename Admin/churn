@@ -1,0 +1,3 @@
+#!/bin/bash
+
+hg churn --aliases user-aliases --progress
