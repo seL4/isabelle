@@ -13,7 +13,8 @@ object IsabelleSyntax {
 
   /* string token */
 
-  def append_string(str: String, result: StringBuilder) = {
+  def append_string(str: String, result: StringBuilder)
+  {
     result.append("\"")
     for (c <- str) {
       if (c < 32 || c == '\\' || c == '\"') {
@@ -27,16 +28,41 @@ object IsabelleSyntax {
     result.append("\"")
   }
 
-  def encode_string(str: String) = {
+  def encode_string(str: String) =
+  {
     val result = new StringBuilder(str.length + 20)
     append_string(str, result)
     result.toString
   }
 
 
+  /* list */
+
+  def append_list[A](append_elem: (A, StringBuilder) => Unit, body: Iterable[A],
+    result: StringBuilder)
+  {
+    result.append("(")
+    val elems = body.elements
+    if (elems.hasNext) append_elem(elems.next, result)
+    while (elems.hasNext) {
+      result.append(", ")
+      append_elem(elems.next, result)
+    }
+    result.append(")")
+  }
+
+  def encode_list[A](append_elem: (A, StringBuilder) => Unit, elems: Iterable[A]) =
+  {
+    val result = new StringBuilder(20)
+    append_list(append_elem, elems, result)
+    result.toString
+  }
+
+
   /* properties */
 
-  def append_properties(props: Properties, result: StringBuilder) = {
+  def append_properties(props: Properties, result: StringBuilder)
+  {
     result.append("(")
     val names = props.propertyNames.asInstanceOf[Enumeration[String]]
     while (names.hasMoreElements) {
