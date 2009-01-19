@@ -178,8 +178,6 @@ text {* Equations @{thm [source] nat_dvd_meet_eq} and @{thm [source]
   nat_dvd_join_eq} are named since they are handy in the proof of
   the subsequent interpretation. *}
 
-ML %invisible {* set quick_and_dirty *}
-
 (*
 definition
   is_lcm :: "nat \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> bool" where
@@ -200,8 +198,6 @@ thm mult_is_0 [THEN iffD1]
 lemma %invisible gcd_lcm_distr:
   "gcd x (lcm y z) = lcm (gcd x y) (gcd x z)" sorry
 
-ML %invisible {* reset quick_and_dirty *}
-  
 interpretation %visible nat_dvd:
   distrib_lattice "op dvd :: nat \<Rightarrow> nat \<Rightarrow> bool"
   apply unfold_locales
