@@ -1,5 +1,4 @@
 (*  Title:      Pure/ML-Systems/ml_name_space.ML
-    ID:         $Id$
     Author:     Makarius
 
 ML name space -- dummy version of Poly/ML 5.2 facility.

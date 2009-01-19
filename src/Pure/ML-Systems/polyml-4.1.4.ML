@@ -1,5 +1,4 @@
 (*  Title:      Pure/ML-Systems/polyml-4.1.4.ML
-    ID:         $Id$
 
 Compatibility wrapper for Poly/ML 4.1.4.
 *)

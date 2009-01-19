@@ -1,5 +1,4 @@
 (*  Title:      Pure/Concurrent/synchronized.ML
-    ID:         $Id$
     Author:     Fabian Immler and Makarius
 
 State variables with synchronized access.

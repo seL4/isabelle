@@ -1,5 +1,4 @@
 (*  Title:      Pure/ML-Systems/universal.ML
-    ID:         $Id$
     Author:     Makarius
 
 Universal values via tagged union.  Emulates structure Universal

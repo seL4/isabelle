@@ -1,5 +1,4 @@
 (*  Title:      Pure/ML-Systems/alice.ML
-    ID:         $Id$
 
 Compatibility file for Alice 1.4.
 

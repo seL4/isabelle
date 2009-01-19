@@ -1,5 +1,4 @@
 (*  Title:      Pure/Concurrent/simple_thread.ML
-    ID:         $Id$
     Author:     Makarius
 
 Simplified thread operations.

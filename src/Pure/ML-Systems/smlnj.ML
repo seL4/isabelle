@@ -1,5 +1,4 @@
 (*  Title:      Pure/ML-Systems/smlnj.ML
-    ID:         $Id$
 
 Compatibility file for Standard ML of New Jersey 110 or later.
 *)

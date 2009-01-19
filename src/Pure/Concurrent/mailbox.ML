@@ -1,5 +1,4 @@
 (*  Title:      Pure/Concurrent/mailbox.ML
-    ID:         $Id$
     Author:     Makarius
 
 Message exchange via mailbox, with non-blocking send (due to unbounded

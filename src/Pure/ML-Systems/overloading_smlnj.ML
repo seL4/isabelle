@@ -1,5 +1,4 @@
 (*  Title:      Pure/ML-Systems/overloading_smlnj.ML
-    ID:         $Id$
     Author:     Makarius
 
 Overloading in SML/NJ (cf. smlnj/base/system/smlnj/init/pervasive.sml).

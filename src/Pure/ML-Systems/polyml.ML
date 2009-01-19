@@ -1,5 +1,4 @@
 (*  Title:      Pure/ML-Systems/polyml.ML
-    ID:         $Id$
 
 Compatibility wrapper for Poly/ML 5.2 or later.
 *)

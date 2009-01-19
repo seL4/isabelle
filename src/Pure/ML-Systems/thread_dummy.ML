@@ -1,5 +1,4 @@
 (*  Title:      Pure/ML-Systems/thread_dummy.ML
-    ID:         $Id$
     Author:     Makarius
 
 Default (mostly dummy) implementation of thread structures

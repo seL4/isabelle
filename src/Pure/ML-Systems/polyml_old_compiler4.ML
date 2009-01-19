@@ -1,5 +1,4 @@
 (*  Title:      Pure/ML-Systems/polyml_old_compiler4.ML
-    ID:         $Id$
 
 Runtime compilation -- for old PolyML.compiler (version 4.x).
 *)

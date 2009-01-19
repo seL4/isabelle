@@ -1,5 +1,4 @@
 (*  Title:      Pure/ML-Systems/polyml_old_basis.ML
-    ID:         $Id$
 
 Fixes for the old SML basis library (before Poly/ML 4.2.0).
 *)

@@ -1,5 +1,4 @@
 (*  Title:      Pure/ML-Systems/time_limit.ML
-    ID:         $Id$
     Author:     Makarius
 
 Dummy implementation of NJ's TimeLimit structure.

@@ -1,5 +1,4 @@
 (*  Title:      Pure/ML-Systems/proper_int.ML
-    ID:         $Id$
     Author:     Makarius
 
 SML basis with type int representing proper integers, not machine

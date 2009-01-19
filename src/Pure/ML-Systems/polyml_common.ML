@@ -1,5 +1,4 @@
 (*  Title:      Pure/ML-Systems/polyml_common.ML
-    ID:         $Id$
 
 Compatibility file for Poly/ML -- common part for 4.x and 5.x.
 *)

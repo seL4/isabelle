@@ -1,5 +1,4 @@
 (*  Title:      Pure/ML-Systems/exn.ML
-    ID:         $Id$
     Author:     Makarius
 
 Extra support for exceptions.

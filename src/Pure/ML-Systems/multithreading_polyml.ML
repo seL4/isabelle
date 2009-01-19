@@ -1,5 +1,4 @@
 (*  Title:      Pure/ML-Systems/multithreading_polyml.ML
-    ID:         $Id$
     Author:     Makarius
 
 Multithreading in Poly/ML 5.2 or later (cf. polyml/basis/Thread.sml).

@@ -1,5 +1,4 @@
 (*  Title:      Pure/ML-Systems/install_pp_polyml.ML
-    ID:         $Id$
 
 Extra toplevel pretty-printing for Poly/ML.
 *)

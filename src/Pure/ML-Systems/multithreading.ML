@@ -1,5 +1,4 @@
 (*  Title:      Pure/ML-Systems/multithreading.ML
-    ID:         $Id$
     Author:     Makarius
 
 Dummy implementation of multithreading setup.
