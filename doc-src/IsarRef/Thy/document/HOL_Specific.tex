@@ -3,8 +3,6 @@
 \def\isabellecontext{HOL{\isacharunderscore}Specific}%
 %
 \isadelimtheory
-\isanewline
-\isanewline
 %
 \endisadelimtheory
 %
@@ -1166,21 +1164,21 @@ Isabelle/Pure provides two generic frameworks to support code
   module name onto another.
 
   \item \hyperlink{command.HOL.code-abort}{\mbox{\isa{\isacommand{code{\isacharunderscore}abort}}}} declares constants which are not
-  required to have a definition by means of defining equations; if
+  required to have a definition by means of code equations; if
   needed these are implemented by program abort instead.
 
   \item \hyperlink{attribute.HOL.code}{\mbox{\isa{code}}} explicitly selects (or with option
-  ``\isa{{\isachardoublequote}del{\isachardoublequote}}'' deselects) a defining equation for code
-  generation.  Usually packages introducing defining equations provide
+  ``\isa{{\isachardoublequote}del{\isachardoublequote}}'' deselects) a code equation for code
+  generation.  Usually packages introducing code equations provide
   a reasonable default setup for selection.
 
   \item \hyperlink{attribute.HOL.code}{\mbox{\isa{code}}}~\isa{inline} declares (or with
   option ``\isa{{\isachardoublequote}del{\isachardoublequote}}'' removes) inlining theorems which are
-  applied as rewrite rules to any defining equation during
+  applied as rewrite rules to any code equation during
   preprocessing.
 
   \item \hyperlink{command.HOL.print-codesetup}{\mbox{\isa{\isacommand{print{\isacharunderscore}codesetup}}}} gives an overview on
-  selected defining equations, code generator datatypes and
+  selected code equations, code generator datatypes and
   preprocessor setup.
 
   \end{description}%

@@ -1,5 +1,3 @@
-(* $Id$ *)
-
 theory HOL_Specific
 imports Main
 begin
@@ -1163,21 +1161,21 @@ text {*
   module name onto another.
 
   \item @{command (HOL) "code_abort"} declares constants which are not
-  required to have a definition by means of defining equations; if
+  required to have a definition by means of code equations; if
   needed these are implemented by program abort instead.
 
   \item @{attribute (HOL) code} explicitly selects (or with option
-  ``@{text "del"}'' deselects) a defining equation for code
-  generation.  Usually packages introducing defining equations provide
+  ``@{text "del"}'' deselects) a code equation for code
+  generation.  Usually packages introducing code equations provide
   a reasonable default setup for selection.
 
   \item @{attribute (HOL) code}~@{text inline} declares (or with
   option ``@{text "del"}'' removes) inlining theorems which are
-  applied as rewrite rules to any defining equation during
+  applied as rewrite rules to any code equation during
   preprocessing.
 
   \item @{command (HOL) "print_codesetup"} gives an overview on
-  selected defining equations, code generator datatypes and
+  selected code equations, code generator datatypes and
   preprocessor setup.
 
   \end{description}

@@ -128,7 +128,7 @@ text {*
       \tikzstyle process=[ellipse, draw, thick, color = green, fill = white];
       \tikzstyle process_arrow=[->, semithick, color = green];
       \node (HOL) at (0, 4) [style=entity] {@{text "Isabelle/HOL"} theory};
-      \node (eqn) at (2, 2) [style=entity] {defining equations};
+      \node (eqn) at (2, 2) [style=entity] {code equations};
       \node (iml) at (2, 0) [style=entity] {intermediate language};
       \node (seri) at (1, 0) [style=process] {serialisation};
       \node (SML) at (0, 3) [style=entity] {@{text SML}};
@@ -153,12 +153,12 @@ text {*
   The code generator employs a notion of executability
   for three foundational executable ingredients known
   from functional programming:
-  \emph{defining equations}, \emph{datatypes}, and
-  \emph{type classes}.  A defining equation as a first approximation
+  \emph{code equations}, \emph{datatypes}, and
+  \emph{type classes}.  A code equation as a first approximation
   is a theorem of the form @{text "f t\<^isub>1 t\<^isub>2 \<dots> t\<^isub>n \<equiv> t"}
   (an equation headed by a constant @{text f} with arguments
   @{text "t\<^isub>1 t\<^isub>2 \<dots> t\<^isub>n"} and right hand side @{text t}).
-  Code generation aims to turn defining equations
+  Code generation aims to turn code equations
   into a functional program.  This is achieved by three major
   components which operate sequentially, i.e. the result of one is
   the input
@@ -168,7 +168,7 @@ text {*
 
     \item Out of the vast collection of theorems proven in a
       \qn{theory}, a reasonable subset modelling
-      defining equations is \qn{selected}.
+      code equations is \qn{selected}.
 
     \item On those selected theorems, certain
       transformations are carried out
@@ -177,7 +177,7 @@ text {*
       specifications into equivalent but executable counterparts.
       The result is a structured collection of \qn{code theorems}.
 
-    \item Before the selected defining equations are continued with,
+    \item Before the selected code equations are continued with,
       they can be \qn{preprocessed}, i.e. subjected to theorem
       transformations.  This \qn{preprocessor} is an interface which
       allows to apply
@@ -185,12 +185,12 @@ text {*
       to code generation;  motivating examples are shown below, see
       \secref{sec:preproc}.
       The result of the preprocessing step is a structured collection
-      of defining equations.
+      of code equations.
 
-    \item These defining equations are \qn{translated} to a program
+    \item These code equations are \qn{translated} to a program
       in an abstract intermediate language.  Think of it as a kind
       of \qt{Mini-Haskell} with four \qn{statements}: @{text data}
-      (for datatypes), @{text fun} (stemming from defining equations),
+      (for datatypes), @{text fun} (stemming from code equations),
       also @{text class} and @{text inst} (for type classes).
 
     \item Finally, the abstract program is \qn{serialised} into concrete

@@ -30,7 +30,7 @@
 We have already seen how by default equations stemming from
   \hyperlink{command.definition}{\mbox{\isa{\isacommand{definition}}}}/\hyperlink{command.primrec}{\mbox{\isa{\isacommand{primrec}}}}/\hyperlink{command.fun}{\mbox{\isa{\isacommand{fun}}}}
   statements are used for code generation.  This default behaviour
-  can be changed, e.g. by providing different defining equations.
+  can be changed, e.g. by providing different code equations.
   All kinds of customisation shown in this section is \emph{safe}
   in the sense that the user does not have to worry about
   correctness -- all programs generatable that way are partially
@@ -44,7 +44,7 @@ We have already seen how by default equations stemming from
 %
 \begin{isamarkuptext}%
 Coming back to our introductory example, we
-  could provide an alternative defining equations for \isa{dequeue}
+  could provide an alternative code equations for \isa{dequeue}
   explicitly:%
 \end{isamarkuptext}%
 \isamarkuptrue%
@@ -73,7 +73,7 @@ Coming back to our introductory example, we
 \begin{isamarkuptext}%
 \noindent The annotation \isa{{\isacharbrackleft}code{\isacharbrackright}} is an \isa{Isar}
   \isa{attribute} which states that the given theorems should be
-  considered as defining equations for a \isa{fun} statement --
+  considered as code equations for a \isa{fun} statement --
   the corresponding constant is determined syntactically.  The resulting code:%
 \end{isamarkuptext}%
 \isamarkuptrue%
@@ -132,13 +132,13 @@ Coming back to our introductory example, we
 \endisadelimquote
 %
 \begin{isamarkuptext}%
-\noindent prints a table with \emph{all} defining equations
+\noindent prints a table with \emph{all} code equations
   for \isa{dequeue}, including
-  \emph{all} defining equations those equations depend
+  \emph{all} code equations those equations depend
   on recursively.
   
   Similarly, the \hyperlink{command.code-deps}{\mbox{\isa{\isacommand{code{\isacharunderscore}deps}}}} command shows a graph
-  visualising dependencies between defining equations.%
+  visualising dependencies between code equations.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -398,7 +398,7 @@ Before selected function theorems are turned into abstract
 
   The \emph{simpset} allows to employ the full generality of the Isabelle
   simplifier.  Due to the interpretation of theorems
-  as defining equations, rewrites are applied to the right
+  as code equations, rewrites are applied to the right
   hand side and the arguments of the left hand side of an
   equation, but never to the constant heading the left hand side.
   An important special case are \emph{inline theorems} which may be
@@ -489,7 +489,7 @@ Before selected function theorems are turned into abstract
   the \hyperlink{command.print-codesetup}{\mbox{\isa{\isacommand{print{\isacharunderscore}codesetup}}}} command.
   \hyperlink{command.code-thms}{\mbox{\isa{\isacommand{code{\isacharunderscore}thms}}}} provides a convenient
   mechanism to inspect the impact of a preprocessor setup
-  on defining equations.
+  on code equations.
 
   \begin{warn}
     The attribute \emph{code unfold}
@@ -811,7 +811,7 @@ Surely you have already noticed how equality is treated
   an explicit class \isa{eq} with a corresponding operation
   \isa{eq{\isacharunderscore}class{\isachardot}eq} such that \isa{eq{\isacharunderscore}class{\isachardot}eq\ {\isacharequal}\ op\ {\isacharequal}}.
   The preprocessing framework does the rest by propagating the
-  \isa{eq} constraints through all dependent defining equations.
+  \isa{eq} constraints through all dependent code equations.
   For datatypes, instances of \isa{eq} are implicitly derived
   when possible.  For other types, you may instantiate \isa{eq}
   manually like any other type class.
@@ -951,7 +951,7 @@ Surely you have already noticed how equality is treated
 \endisadelimquote
 %
 \begin{isamarkuptext}%
-In some cases, the automatically derived defining equations
+In some cases, the automatically derived code equations
   for equality on a particular type may not be appropriate.
   As example, watch the following datatype representing
   monomorphic parametric types (where type constructors
@@ -1165,7 +1165,7 @@ Partiality usually enters the game by partial patterns, as
   on the right hand side of its first equation the constant
   \isa{empty{\isacharunderscore}queue} occurs which is unspecified.
 
-  Normally, if constants without any defining equations occur in
+  Normally, if constants without any code equations occur in
   a program, the code generator complains (since in most cases
   this is not what the user expects).  But such constants can also
   be thought of as function definitions with no equations which

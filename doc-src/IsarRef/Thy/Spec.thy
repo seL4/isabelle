@@ -1,5 +1,3 @@
-(* $Id$ *)
-
 theory Spec
 imports Main
 begin

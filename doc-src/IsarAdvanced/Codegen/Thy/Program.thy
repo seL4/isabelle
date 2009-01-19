@@ -10,7 +10,7 @@ text {*
   We have already seen how by default equations stemming from
   @{command definition}/@{command primrec}/@{command fun}
   statements are used for code generation.  This default behaviour
-  can be changed, e.g. by providing different defining equations.
+  can be changed, e.g. by providing different code equations.
   All kinds of customisation shown in this section is \emph{safe}
   in the sense that the user does not have to worry about
   correctness -- all programs generatable that way are partially
@@ -21,7 +21,7 @@ subsection {* Selecting code equations *}
 
 text {*
   Coming back to our introductory example, we
-  could provide an alternative defining equations for @{const dequeue}
+  could provide an alternative code equations for @{const dequeue}
   explicitly:
 *}
 
@@ -36,7 +36,7 @@ lemma %quote [code]:
 text {*
   \noindent The annotation @{text "[code]"} is an @{text Isar}
   @{text attribute} which states that the given theorems should be
-  considered as defining equations for a @{text fun} statement --
+  considered as code equations for a @{text fun} statement --
   the corresponding constant is determined syntactically.  The resulting code:
 *}
 
@@ -59,13 +59,13 @@ text {*
 code_thms %quote dequeue
 
 text {*
-  \noindent prints a table with \emph{all} defining equations
+  \noindent prints a table with \emph{all} code equations
   for @{const dequeue}, including
-  \emph{all} defining equations those equations depend
+  \emph{all} code equations those equations depend
   on recursively.
   
   Similarly, the @{command code_deps} command shows a graph
-  visualising dependencies between defining equations.
+  visualising dependencies between code equations.
 *}
 
 subsection {* @{text class} and @{text instantiation} *}
@@ -155,7 +155,7 @@ text {*
 
   The \emph{simpset} allows to employ the full generality of the Isabelle
   simplifier.  Due to the interpretation of theorems
-  as defining equations, rewrites are applied to the right
+  as code equations, rewrites are applied to the right
   hand side and the arguments of the left hand side of an
   equation, but never to the constant heading the left hand side.
   An important special case are \emph{inline theorems} which may be
@@ -207,7 +207,7 @@ text {*
   the @{command print_codesetup} command.
   @{command code_thms} provides a convenient
   mechanism to inspect the impact of a preprocessor setup
-  on defining equations.
+  on code equations.
 
   \begin{warn}
     The attribute \emph{code unfold}
@@ -351,7 +351,7 @@ text {*
   an explicit class @{class eq} with a corresponding operation
   @{const eq_class.eq} such that @{thm eq [no_vars]}.
   The preprocessing framework does the rest by propagating the
-  @{class eq} constraints through all dependent defining equations.
+  @{class eq} constraints through all dependent code equations.
   For datatypes, instances of @{class eq} are implicitly derived
   when possible.  For other types, you may instantiate @{text eq}
   manually like any other type class.
@@ -410,7 +410,7 @@ text {*
 text %quote {*@{code_stmts "op \<le> \<Colon> _ \<times> _ \<Rightarrow> _ \<times> _ \<Rightarrow> bool" (SML)}*}
 
 text {*
-  In some cases, the automatically derived defining equations
+  In some cases, the automatically derived code equations
   for equality on a particular type may not be appropriate.
   As example, watch the following datatype representing
   monomorphic parametric types (where type constructors
@@ -493,7 +493,7 @@ text {*
   on the right hand side of its first equation the constant
   @{const empty_queue} occurs which is unspecified.
 
-  Normally, if constants without any defining equations occur in
+  Normally, if constants without any code equations occur in
   a program, the code generator complains (since in most cases
   this is not what the user expects).  But such constants can also
   be thought of as function definitions with no equations which
