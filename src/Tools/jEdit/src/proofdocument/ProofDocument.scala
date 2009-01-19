@@ -1,18 +1,25 @@
 /*
- * Document as list of tokens
+ * Document as list of commands, consisting of lists of tokens
  *
  * @author Johannes Hölzl, TU Munich
+ * @author Makarius
  */
 
 package isabelle.proofdocument
 
 
 import java.util.regex.Pattern
+import isabelle.prover.{Prover, Command}
 
+
+class StructureChange(
+  val beforeChange: Command,
+  val addedCommands: List[Command],
+  val removedCommands: List[Command])
 
 object ProofDocument
 {
-  // Be carefully when changeing this regex. Not only must it handle the 
+  // Be carefully when changing this regex. Not only must it handle the 
   // spurious end of a token but also:  
   // Bug ID: 5050507 Pattern.matches throws StackOverflow Error
   // http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=5050507
@@ -27,60 +34,59 @@ object ProofDocument
       "\"([^\\\\\"]?(\\\\(.|\\z))?)*+(\"|\\z)|" +
       "`([^\\\\`]?(\\\\(.|\\z))?)*+(`|\\z)|" +
       "[()\\[\\]{}:;]", Pattern.MULTILINE)
+
 }
 
-abstract class ProofDocument(text: Text)
+class ProofDocument(text: Text, prover: Prover)
 {
-  protected var firstToken: Token = null
-  protected var lastToken: Token = null
   private var active = false 
-  
-  text.changes += (e => textChanged(e.start, e.added, e.removed))
-	
   def activate() {
     if (!active) {
       active = true
-      textChanged(0, text.length, 0)
+      text_changed(0, text.length, 0)
     }
   }
+
+  text.changes += (changed => text_changed(changed.start, changed.added, changed.removed))
+
+
+
+  /** token view **/
+
+  protected var firstToken: Token = null
+  protected var lastToken: Token = null
   
-  protected def tokens(start: Token, stop: Token) =
-    new Iterator[Token] {
+  protected def tokens(start: Token, stop: Token) = new Iterator[Token] {
       var current = start
       def hasNext = current != stop && current != null
       def next() = { val save = current ; current = current.next ; save }
     }
-  
-  protected def tokens(start: Token): Iterator[Token] = 
-    tokens(start, null)
-  
-  protected def tokens() : Iterator[Token] =
-    tokens(firstToken, null)
+  protected def tokens(start: Token): Iterator[Token] = tokens(start, null)
+  protected def tokens() : Iterator[Token] = tokens(firstToken, null)
 
-  private def textChanged(start : Int, addedLen : Int, removedLen : Int) {
-    val check_start = Token.check_start _
-    val check_stop = Token.check_stop _
-    val scan = Token.scan _
-    if (active == false)
+
+  private def text_changed(start: Int, addedLen: Int, removedLen: Int)
+  {
+    if (!active)
       return
-        
+
     var beforeChange = 
-      if (check_stop(firstToken, _ < start)) scan(firstToken, _.stop >= start)
+      if (Token.check_stop(firstToken, _ < start)) Token.scan(firstToken, _.stop >= start)
       else null
     
     var firstRemoved = 
       if (beforeChange != null) beforeChange.next
-      else if (check_start(firstToken, _ <= start + removedLen)) firstToken
+      else if (Token.check_start(firstToken, _ <= start + removedLen)) firstToken
       else null 
 
-    var lastRemoved = scan(firstRemoved, _.start > start + removedLen)
+    var lastRemoved = Token.scan(firstRemoved, _.start > start + removedLen)
 
     var shiftToken = 
       if (lastRemoved != null) lastRemoved
-      else if (check_start(firstToken, _ > start)) firstToken
+      else if (Token.check_start(firstToken, _ > start)) firstToken
       else null
     
-    while(shiftToken != null) {
+    while (shiftToken != null) {
       shiftToken.shift(addedLen - removedLen, start)
       shiftToken = shiftToken.next
     }
@@ -96,13 +102,13 @@ abstract class ProofDocument(text: Text)
     var position = 0 
     while (matcher.find(position) && ! finished) {
       position = matcher.end()
-			val kind = if(isStartKeyword(matcher.group())) {
-        Token.Kind.COMMAND_START
-      } else if (matcher.end() - matcher.start() > 2 && matcher.group().substring(0, 2) == "(*") {
-        Token.Kind.COMMENT
-      } else {
-        Token.Kind.OTHER
-      }
+			val kind =
+        if (prover.is_command_keyword(matcher.group()))
+          Token.Kind.COMMAND_START
+        else if (matcher.end() - matcher.start() > 2 && matcher.group().substring(0, 2) == "(*")
+          Token.Kind.COMMENT
+        else
+          Token.Kind.OTHER
       val newToken = new Token(matcher.start() + matchStart, matcher.end() + matchStart, kind)
 
       if (firstAdded == null)
@@ -113,12 +119,12 @@ abstract class ProofDocument(text: Text)
       }
       lastAdded = newToken
       
-      while (check_stop(lastRemoved, _ < newToken.stop) &&
+      while (Token.check_stop(lastRemoved, _ < newToken.stop) &&
               lastRemoved.next != null)	
         lastRemoved = lastRemoved.next
 			
       if (newToken.stop >= start + addedLen && 
-            check_stop(lastRemoved, _ == newToken.stop))
+            Token.check_stop(lastRemoved, _ == newToken.stop))
         finished = true
     }
 
@@ -134,8 +140,6 @@ abstract class ProofDocument(text: Text)
       }
       else {
         firstRemoved = firstRemoved.next
-        if (firstRemoved == null)
-          System.err.println("ERROR")
         assert(firstRemoved != null)
       }
 
@@ -157,8 +161,6 @@ abstract class ProofDocument(text: Text)
       }
       else {
         lastRemoved = lastRemoved.prev
-        if (lastRemoved == null)
-          System.err.println("ERROR")
         assert(lastRemoved != null)
       }
       
@@ -218,10 +220,140 @@ abstract class ProofDocument(text: Text)
         afterChange.prev = beforeChange
     }
     
-    tokenChanged(beforeChange, afterChange, firstRemoved)
+    token_changed(beforeChange, afterChange, firstRemoved)
   }
   
-  protected def isStartKeyword(str: String): Boolean
+
   
-  protected def tokenChanged(start: Token, stop: Token, removed: Token) 
+  /** command view **/
+
+  val structural_changes = new EventBus[StructureChange]
+
+  def commands = new Iterator[Command] {
+    var current = firstToken
+    def hasNext = current != null
+    def next() = { val s = current.command ; current = s.last.next ; s }
+  }
+
+  def getContent(cmd: Command) = text.content(cmd.proper_start, cmd.proper_stop)
+
+  def getNextCommandContaining(pos: Int): Command = {
+    for (cmd <- commands) { if (pos < cmd.stop) return cmd }
+    return null
+  }
+
+  private def token_changed(start: Token, stop: Token, removed: Token)
+  {
+    var removedCommands: List[Command] = Nil
+    var first: Command = null
+    var last: Command = null
+
+    for(t <- tokens(removed)) {
+      if (first == null)
+        first = t.command
+      if (t.command != last)
+        removedCommands = t.command :: removedCommands
+      last = t.command
+    }
+
+    var before: Command = null
+    if (!removedCommands.isEmpty) {
+      if (first.first == removed) {
+        if (start == null)
+          before = null
+        else
+          before = start.command
+      }
+      else
+        before = first.prev
+    }
+
+    var addedCommands: List[Command] = Nil
+    var scan: Token = null
+    if (start != null) {
+      val next = start.next
+      if (first != null && first.first != removed) {
+        scan = first.first
+        if (before == null)
+          before = first.prev
+      }
+      else if (next != null && next != stop) {
+        if (next.kind == Token.Kind.COMMAND_START) {
+          before = start.command
+          scan = next
+        }
+        else if (first == null || first.first == removed) {
+          first = start.command
+          removedCommands = first :: removedCommands
+          scan = first.first
+          if (before == null)
+            before = first.prev
+        }
+        else {
+          scan = first.first
+          if (before == null)
+            before = first.prev
+        }
+      }
+    }
+    else
+      scan = firstToken
+
+    var stopScan: Token = null
+    if (stop != null) {
+      if (stop == stop.command.first)
+        stopScan = stop
+      else
+        stopScan = stop.command.last.next
+    }
+    else if (last != null)
+      stopScan = last.last.next
+    else
+      stopScan = null
+
+    var cmdStart: Token = null
+    var cmdStop: Token = null
+    var overrun = false
+    var finished = false
+    while (scan != null && !finished) {
+      if (scan == stopScan) {
+        if (scan.kind == Token.Kind.COMMAND_START)
+          finished = true
+        else
+          overrun = true
+      }
+
+      if (scan.kind == Token.Kind.COMMAND_START && cmdStart != null && !finished) {
+        if (!overrun) {
+          addedCommands = new Command(this, cmdStart, cmdStop) :: addedCommands
+          cmdStart = scan
+          cmdStop = scan
+        }
+        else
+          finished = true
+      }
+      else if (!finished) {
+        if (cmdStart == null)
+          cmdStart = scan
+        cmdStop = scan
+      }
+      if (overrun && !finished) {
+        if (scan.command != last)
+          removedCommands = scan.command :: removedCommands
+        last = scan.command
+      }
+
+      if (!finished)
+        scan = scan.next
+    }
+
+    if (cmdStart != null)
+      addedCommands = new Command(this, cmdStart, cmdStop) :: addedCommands
+
+    // relink commands
+    addedCommands = addedCommands.reverse
+    removedCommands = removedCommands.reverse
+
+    structural_changes.event(new StructureChange(before, addedCommands, removedCommands))
+  }
 }

@@ -11,7 +11,7 @@ package isabelle.prover
 import javax.swing.text.Position
 import javax.swing.tree.DefaultMutableTreeNode
 
-import isabelle.proofdocument.Token
+import isabelle.proofdocument.{Token, ProofDocument}
 import isabelle.jedit.{Isabelle, Plugin}
 import isabelle.XML
 
@@ -29,7 +29,7 @@ object Command {
 }
 
 
-class Command(val document: Document, val first: Token, val last: Token)
+class Command(val document: ProofDocument, val first: Token, val last: Token)
 {
   val id = Isabelle.plugin.id()
   

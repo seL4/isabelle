@@ -32,7 +32,7 @@ class IsabelleSideKickParser extends SideKickParser("isabelle") {
     val prover_setup = Isabelle.plugin.prover_setup(buffer)
     if(prover_setup.isDefined){
         val document = prover_setup.get.prover.document
-        val commands = document.commands()
+        val commands = document.commands
         while (!stopped && commands.hasNext) {
           data.root.add(commands.next.root_node.swing_node)
         }

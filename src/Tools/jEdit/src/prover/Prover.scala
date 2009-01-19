@@ -25,6 +25,9 @@ class Prover(isabelle_system: IsabelleSystem, isabelle_symbols: Symbol.Interpret
   private var process: Isar = null
   private var commands = new HashMap[String, Command]
 
+
+  /* outer syntax keywords */
+
   val decl_info = new EventBus[(String, String)]
   val command_decls = new HashMap[String, String] {
     override def +=(entry: (String, String)) = {
@@ -32,6 +35,9 @@ class Prover(isabelle_system: IsabelleSystem, isabelle_symbols: Symbol.Interpret
       super.+=(entry)
     }
   }
+  def is_command_keyword(s: String): Boolean = command_decls.contains(s)
+
+
   val keyword_decls = new HashSet[String] {
     override def +=(name: String) = {
       decl_info.event(name, OuterKeyword.MINOR)
@@ -54,7 +60,7 @@ class Prover(isabelle_system: IsabelleSystem, isabelle_symbols: Symbol.Interpret
   val activated = new EventBus[Unit]
   val command_info = new EventBus[Command]
   val output_info = new EventBus[String]
-  var document: Document = null
+  var document: ProofDocument = null
 
 
   def command_change(c: Command) = Swing.now { command_info.event(c) }
@@ -97,7 +103,7 @@ class Prover(isabelle_system: IsabelleSystem, isabelle_symbols: Symbol.Interpret
                       st.status = Command.Status.FAILED
                       command_change(st)
                     case XML.Elem(Markup.DISPOSED, _, _) =>
-                      document.prover.commands.removeKey(st.id)
+                      commands.removeKey(st.id)
                       st.status = Command.Status.REMOVED
                       command_change(st)
 
@@ -163,7 +169,7 @@ class Prover(isabelle_system: IsabelleSystem, isabelle_symbols: Symbol.Interpret
   }
 
   def set_document(text: Text, path: String) {
-    this.document = new Document(text, this)
+    this.document = new ProofDocument(text, this)
     process.ML("ThyLoad.add_path " + IsabelleSyntax.encode_string(path))
 
     document.structural_changes += (changes => {
