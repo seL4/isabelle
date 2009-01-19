@@ -63,7 +63,7 @@ class Document(text : Text, val prover : Prover) extends ProofDocument(text)
           before = start.command
       }
       else
-        before = first.previous
+        before = first.prev
     }
 
     var addedCommands : List[Command] = Nil
@@ -73,7 +73,7 @@ class Document(text : Text, val prover : Prover) extends ProofDocument(text)
       if (first != null && first.first != removed) {
         scan = first.first
         if (before == null)
-          before = first.previous
+          before = first.prev
       }
       else if (next != null && next != stop) {
         if (next.kind.equals(Token.Kind.COMMAND_START)) {
@@ -85,12 +85,12 @@ class Document(text : Text, val prover : Prover) extends ProofDocument(text)
           removedCommands = first :: removedCommands
           scan = first.first
           if (before == null)
-            before = first.previous
+            before = first.prev
         }
         else {
           scan = first.first
           if (before == null)
-            before = first.previous
+            before = first.prev
         }
       }
     }

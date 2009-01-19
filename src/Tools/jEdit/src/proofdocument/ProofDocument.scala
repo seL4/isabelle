@@ -6,16 +6,18 @@
 
 package isabelle.proofdocument
 
+
 import java.util.regex.Pattern
 
 
-object ProofDocument {
+object ProofDocument
+{
   // Be carefully when changeing this regex. Not only must it handle the 
   // spurious end of a token but also:  
   // Bug ID: 5050507 Pattern.matches throws StackOverflow Error
   // http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=5050507
   
-  val tokenPattern = 
+  val token_pattern = 
     Pattern.compile(
       "\\{\\*([^*]|\\*[^}]|\\*\\z)*(\\z|\\*\\})|" +
       "\\(\\*([^*]|\\*[^)]|\\*\\z)*(\\z|\\*\\))|" +
@@ -25,14 +27,12 @@ object ProofDocument {
       "\"([^\\\\\"]?(\\\\(.|\\z))?)*+(\"|\\z)|" +
       "`([^\\\\`]?(\\\\(.|\\z))?)*+(`|\\z)|" +
       "[()\\[\\]{}:;]", Pattern.MULTILINE)
-
 }
 
-abstract class ProofDocument(text : Text) {
-  import ProofDocument._
-  
-  protected var firstToken : Token = null
-  protected var lastToken : Token = null
+abstract class ProofDocument(text: Text)
+{
+  protected var firstToken: Token = null
+  protected var lastToken: Token = null
   private var active = false 
   
   text.changes += (e => textChanged(e.start, e.added, e.removed))
@@ -44,40 +44,40 @@ abstract class ProofDocument(text : Text) {
     }
   }
   
-  protected def tokens(start : Token, stop : Token) = 
-    new Iterator[Token]() {
+  protected def tokens(start: Token, stop: Token) =
+    new Iterator[Token] {
       var current = start
-      def hasNext() = current != stop && current != null
+      def hasNext = current != stop && current != null
       def next() = { val save = current ; current = current.next ; save }
     }
   
-  protected def tokens(start : Token) : Iterator[Token] = 
+  protected def tokens(start: Token): Iterator[Token] = 
     tokens(start, null)
   
-  protected def tokens() : Iterator[Token] = 
+  protected def tokens() : Iterator[Token] =
     tokens(firstToken, null)
 
   private def textChanged(start : Int, addedLen : Int, removedLen : Int) {
-    val checkStart = Token.checkStart _
-    val checkStop = Token.checkStop _
+    val check_start = Token.check_start _
+    val check_stop = Token.check_stop _
     val scan = Token.scan _
     if (active == false)
       return
         
     var beforeChange = 
-      if (checkStop(firstToken, _ < start)) scan(firstToken, _.stop >= start) 
+      if (check_stop(firstToken, _ < start)) scan(firstToken, _.stop >= start)
       else null
     
     var firstRemoved = 
       if (beforeChange != null) beforeChange.next
-      else if (checkStart(firstToken, _ <= start + removedLen)) firstToken
+      else if (check_start(firstToken, _ <= start + removedLen)) firstToken
       else null 
 
     var lastRemoved = scan(firstRemoved, _.start > start + removedLen)
 
     var shiftToken = 
       if (lastRemoved != null) lastRemoved
-      else if (checkStart(firstToken, _ > start)) firstToken
+      else if (check_start(firstToken, _ > start)) firstToken
       else null
     
     while(shiftToken != null) {
@@ -88,13 +88,13 @@ abstract class ProofDocument(text : Text) {
     // scan changed tokens until the end of the text or a matching token is
     // found which is beyond the changed area
     val matchStart = if (beforeChange == null) 0 else beforeChange.stop
-    var firstAdded : Token = null
-    var lastAdded : Token = null
+    var firstAdded: Token = null
+    var lastAdded: Token = null
 
-    val matcher = tokenPattern.matcher(text.content(matchStart, text.length))
+    val matcher = ProofDocument.token_pattern.matcher(text.content(matchStart, text.length))
     var finished = false
     var position = 0 
-    while(matcher.find(position) && ! finished) {
+    while (matcher.find(position) && ! finished) {
       position = matcher.end()
 			val kind = if(isStartKeyword(matcher.group())) {
         Token.Kind.COMMAND_START
@@ -108,17 +108,17 @@ abstract class ProofDocument(text : Text) {
       if (firstAdded == null)
         firstAdded = newToken
       else {
-        newToken.previous = lastAdded
+        newToken.prev = lastAdded
         lastAdded.next = newToken
       }
       lastAdded = newToken
       
-      while(checkStop(lastRemoved, _ < newToken.stop) &&
+      while (check_stop(lastRemoved, _ < newToken.stop) &&
               lastRemoved.next != null)	
         lastRemoved = lastRemoved.next
 			
       if (newToken.stop >= start + addedLen && 
-            checkStop(lastRemoved, _ == newToken.stop) )
+            check_stop(lastRemoved, _ == newToken.stop))
         finished = true
     }
 
@@ -156,7 +156,7 @@ abstract class ProofDocument(text : Text) {
         lastRemoved = null
       }
       else {
-        lastRemoved = lastRemoved.previous
+        lastRemoved = lastRemoved.prev
         if (lastRemoved == null)
           System.err.println("ERROR")
         assert(lastRemoved != null)
@@ -167,7 +167,7 @@ abstract class ProofDocument(text : Text) {
         firstAdded = null
       }
       else
-        lastAdded = lastAdded.previous
+        lastAdded = lastAdded.prev
     }
     
     if (firstRemoved == null && firstAdded == null)
@@ -180,7 +180,7 @@ abstract class ProofDocument(text : Text) {
     else {
       // cut removed tokens out of list
       if (firstRemoved != null)
-        firstRemoved.previous = null
+        firstRemoved.prev = null
       if (lastRemoved != null)
         lastRemoved.next = null
       
@@ -198,7 +198,7 @@ abstract class ProofDocument(text : Text) {
       
       // insert new tokens into list
       if (firstAdded != null) {
-        firstAdded.previous = beforeChange
+        firstAdded.prev = beforeChange
         if (beforeChange != null)
           beforeChange.next = firstAdded
         else
@@ -210,12 +210,12 @@ abstract class ProofDocument(text : Text) {
       if (lastAdded != null) {
         lastAdded.next = afterChange
         if (afterChange != null)
-          afterChange.previous = lastAdded
+          afterChange.prev = lastAdded
         else
           lastToken = lastAdded
       }
       else if (afterChange != null)
-        afterChange.previous = beforeChange
+        afterChange.prev = beforeChange
     }
     
     tokenChanged(beforeChange, afterChange, firstRemoved)

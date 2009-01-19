@@ -77,7 +77,7 @@ class Command(val document: Document, val first: Token, val last: Token)
   def content(): String = document.getContent(this)
 
   def next = if (last.next != null) last.next.command else null
-  def previous = if (first.previous != null) first.previous.command else null
+  def prev = if (first.prev != null) first.prev.command else null
 
   def start = first.start
   def stop = last.stop
@@ -86,7 +86,7 @@ class Command(val document: Document, val first: Token, val last: Token)
   def proper_stop = {
     var i = last
     while (i != first && i.kind.equals(Token.Kind.COMMENT))
-      i = i.previous
+      i = i.prev
     i.stop
   }
 

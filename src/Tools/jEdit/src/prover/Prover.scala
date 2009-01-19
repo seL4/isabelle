@@ -182,7 +182,7 @@ class Prover(isabelle_system: IsabelleSystem, isabelle_symbols: Symbol.Interpret
 
     val content = isabelle_symbols.encode(document.getContent(cmd))
     process.create_command(cmd.id, content)
-    process.insert_command(if (cmd.previous == null) "" else cmd.previous.id, cmd.id)
+    process.insert_command(if (cmd.prev == null) "" else cmd.prev.id, cmd.id)
   }
 
   def remove(cmd: Command) {
