@@ -10,8 +10,8 @@ sig
   val register: class -> class list -> ((string * typ) * (string * typ)) list
     -> sort -> morphism -> thm option -> thm option -> thm
     -> theory -> theory
-  val register_subclass: class * class -> thm option
-    -> theory -> theory
+  val register_subclass: class * class -> morphism option -> Element.witness option
+    -> morphism -> theory -> theory
 
   val is_class: theory -> class -> bool
   val base_sort: theory -> class -> sort
@@ -270,16 +270,14 @@ fun register_operation class (c, (t, some_def)) thy =
     |> is_some some_def ? activate_defs class (the_list some_def)
   end;
 
-fun register_subclass (sub, sup) thms thy =
-  (*FIXME should also add subclass interpretation*)
+fun register_subclass (sub, sup) some_dep_morph some_wit export thy =
   let
-    val of_class = (snd o rules thy) sup;
-    val intro = case thms
-     of SOME thm => Drule.standard' (of_class OF [Drule.standard' thm])
-      | NONE => Thm.instantiate ([pairself (Thm.ctyp_of thy o TVar o pair (Name.aT, 0))
-          ([], [sub])], []) of_class;
-    val classrel = (intro OF (the_list o fst o rules thy) sub)
-      |> Thm.close_derivation;
+    val intros = (snd o rules thy) sup :: map_filter I
+      [Option.map (Drule.standard' o Element.conclude_witness) some_wit,
+        (fst o rules thy) sub];
+    val tac = ALLGOALS (EVERY' (map Tactic.rtac intros));
+    val classrel = Goal.prove_global thy [] [] (Logic.mk_classrel (sub, sup))
+      (K tac);
     val diff_sort = Sign.complete_sort thy [sup]
       |> subtract (op =) (Sign.complete_sort thy [sub]);
   in
@@ -287,6 +285,11 @@ fun register_subclass (sub, sup) thms thy =
     |> AxClass.add_classrel classrel
     |> ClassData.map (Graph.add_edge (sub, sup))
     |> activate_defs sub (these_defs thy diff_sort)
+    |> fold2 (fn dep_morph => fn wit => Locale.add_dependency sub (sup,
+        dep_morph $> Element.satisfy_morphism [wit] $> export))
+          (the_list some_dep_morph) (the_list some_wit)
+    |> (fn thy => fold_rev Locale.activate_global_facts
+      (Locale.get_registrations thy) thy)
   end;
 
 

@@ -89,7 +89,7 @@ fun calculate thy class sups base_sort param_map assm_axiom =
 
   in (base_morph, morph, export_morph, axiom, assm_intro, of_class) end;
 
-fun gen_class_spec prep_class process_decl thy raw_supclasses raw_elems =
+fun prep_class_spec prep_class process_decl thy raw_supclasses raw_elems =
   let
     (*FIXME 2009 simplify*)
     val supclasses = map (prep_class thy) raw_supclasses;
@@ -125,8 +125,8 @@ fun gen_class_spec prep_class process_decl thy raw_supclasses raw_elems =
     val (elems, global_syntax) = fold_map fork_syn syntax_elems [];
   in (((sups, supparam_names), (supsort, base_sort, supexpr)), (constrain :: elems, global_syntax)) end;
 
-val cert_class_spec = gen_class_spec (K I) Expression.cert_declaration;
-val read_class_spec = gen_class_spec Sign.intern_class Expression.cert_read_declaration;
+val cert_class_spec = prep_class_spec (K I) Expression.cert_declaration;
+val read_class_spec = prep_class_spec Sign.intern_class Expression.cert_read_declaration;
 
 fun add_consts bname class base_sort sups supparams global_syntax thy =
   let
@@ -218,51 +218,36 @@ local
 fun gen_subclass prep_class do_proof raw_sup lthy =
   let
     val thy = ProofContext.theory_of lthy;
-    val sup = prep_class thy raw_sup;
-    val sub = case TheoryTarget.peek lthy
-     of {is_class = false, ...} => error "Not a class context"
+    val proto_sup = prep_class thy raw_sup;
+    val proto_sub = case TheoryTarget.peek lthy
+     of {is_class = false, ...} => error "Not in a class context"
       | {target, ...} => target;
-
-    val _ = if Sign.subsort thy ([sup], [sub])
-      then error ("Class " ^ Syntax.string_of_sort lthy [sup]
-        ^ " is subclass of class " ^ Syntax.string_of_sort lthy [sub])
-      else ();
-    val sub_params = map fst (these_params thy [sub]);
-    val sup_params = map fst (these_params thy [sup]);
-    val err_params = subtract (op =) sub_params sup_params;
-    val _ = if null err_params then [] else
-      error ("Class " ^ Syntax.string_of_sort lthy [sub] ^ " lacks parameter(s) " ^
-        commas_quote err_params ^ " of " ^ Syntax.string_of_sort lthy [sup]);
+    val (sub, sup) = AxClass.cert_classrel thy (proto_sub, proto_sup)
 
     val expr = ([(sup, (("", false), Expression.Positional []))], []);
-    val (([props], _, _), goal_ctxt) =
+    val (([props], deps, export), goal_ctxt) =
       Expression.cert_goal_expression expr lthy;
     val some_prop = try the_single props;
-
-    fun tac some_thm = ALLGOALS (ProofContext.fact_tac (the_list some_thm));
-    fun prove_sublocale some_thm =
-      Expression.sublocale sub expr
-      #> Proof.global_terminal_proof
-          (Method.Basic (K (Method.SIMPLE_METHOD (tac some_thm)), Position.none), NONE)
-      #> ProofContext.theory_of;
-    fun after_qed some_thm =
-      LocalTheory.theory (register_subclass (sub, sup) some_thm)
-      #> is_some some_thm ? LocalTheory.theory (prove_sublocale some_thm)
-          (*FIXME should also go to register_subclass*)
-      #> ProofContext.theory_of
-      #> TheoryTarget.init (SOME sub);
-  in do_proof after_qed some_prop lthy end;
+    val some_dep_morph = try the_single (map snd deps);
+    fun after_qed some_wit =
+      ProofContext.theory (register_subclass (sub, sup)
+        some_dep_morph some_wit export)
+      #> ProofContext.theory_of #> TheoryTarget.init (SOME sub);
+  in do_proof after_qed some_prop goal_ctxt end;
 
 fun user_proof after_qed NONE =
       Proof.theorem_i NONE (K (after_qed NONE)) [[]]
+      #> Element.refine_witness #> Seq.hd
   | user_proof after_qed (SOME prop) =
-      Proof.theorem_i NONE (after_qed o try the_single o the_single) [[(prop, [])]];
+      Proof.theorem_i NONE (after_qed o SOME o Element.make_witness prop
+        o Thm.close_derivation o the_single o the_single)
+          [[(Element.mark_witness prop, [])]]
+      #> Element.refine_witness #> Seq.hd;
 
-fun tactic_proof tac after_qed NONE lthy =
-      after_qed NONE lthy
-  | tactic_proof tac after_qed (SOME prop) lthy =
-      after_qed (SOME (Goal.prove (LocalTheory.target_of lthy) [] [] prop
-        (K tac))) lthy;
+fun tactic_proof tac after_qed NONE ctxt =
+      after_qed NONE ctxt
+  | tactic_proof tac after_qed (SOME prop) ctxt =
+      after_qed (SOME (Element.prove_witness ctxt prop tac)) ctxt;
 
 in
 
