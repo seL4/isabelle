@@ -16,7 +16,7 @@ object Document {
 }
 
 
-class Document(text : Text, val prover : Prover) extends ProofDocument[Command](text)
+class Document(text : Text, val prover : Prover) extends ProofDocument(text)
 {
   val structural_changes = new EventBus[Document.StructureChange]
 
@@ -40,8 +40,8 @@ class Document(text : Text, val prover : Prover) extends ProofDocument[Command](
     return null
   }
 
-  override def tokenChanged(start : Token[Command], stop : Token[Command],
-                            removed : Token[Command]) {
+  override def tokenChanged(start : Token, stop : Token, removed : Token)
+  {
     var removedCommands : List[Command] = Nil
     var first : Command = null
     var last : Command = null
@@ -67,7 +67,7 @@ class Document(text : Text, val prover : Prover) extends ProofDocument[Command](
     }
 
     var addedCommands : List[Command] = Nil
-    var scan : Token[Command] = null
+    var scan : Token = null
     if (start != null) {
       val next = start.next
       if (first != null && first.first != removed) {
@@ -97,7 +97,7 @@ class Document(text : Text, val prover : Prover) extends ProofDocument[Command](
     else
       scan = firstToken
 
-    var stopScan : Token[Command] = null
+    var stopScan : Token = null
     if (stop != null) {
       if (stop == stop.command.first)
         stopScan = stop
@@ -109,8 +109,8 @@ class Document(text : Text, val prover : Prover) extends ProofDocument[Command](
     else
       stopScan = null
 
-    var cmdStart : Token[Command] = null
-    var cmdStop : Token[Command] = null
+    var cmdStart : Token = null
+    var cmdStop : Token = null
     var overrun = false
     var finished = false
     while (scan != null && !finished) {

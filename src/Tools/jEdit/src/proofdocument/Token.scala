@@ -6,6 +6,7 @@
  */
 
 package isabelle.proofdocument
+import isabelle.prover.Command
 
 object Token {
   object Kind {
@@ -13,13 +14,13 @@ object Token {
     val COMMENT = "COMMENT"
   }
 
-  def checkStart[C](t : Token[C], P : (Int) => Boolean)
+  def checkStart(t : Token, P : (Int) => Boolean)
     = t != null && P(t.start)
 
-  def checkStop[C](t : Token[C], P : (Int) => Boolean)
+  def checkStop(t : Token, P : (Int) => Boolean)
     = t != null && P(t.stop)
 
-  def scan[C](s : Token[C], f : (Token[C]) => Boolean) : Token[C] = {
+  def scan(s : Token, f : Token => Boolean) : Token = {
     var current = s
     while (current != null) {
       val next = current.next
@@ -32,10 +33,10 @@ object Token {
 
 }
 
-class Token[C](var start : Int, var stop : Int, var kind : String) {
-  var next : Token[C] = null
-  var previous : Token[C] = null
-  var command : C = null.asInstanceOf[C]
+class Token(var start : Int, var stop : Int, var kind : String) {
+  var next : Token = null
+  var previous : Token = null
+  var command : Command = null
   
   def length = stop - start
 
@@ -54,7 +55,7 @@ class Token[C](var start : Int, var stop : Int, var kind : String) {
       return false;
     
     obj match {
-      case other: Token[_] => 
+      case other: Token => 
         (start == other.start) && (stop == other.stop)
       case other: Any => false  
     }

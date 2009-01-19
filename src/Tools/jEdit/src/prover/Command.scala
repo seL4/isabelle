@@ -29,7 +29,7 @@ object Command {
 }
 
 
-class Command(val document: Document, val first: Token[Command], val last: Token[Command])
+class Command(val document: Document, val first: Token, val last: Token)
 {
   val id = Isabelle.plugin.id()
   

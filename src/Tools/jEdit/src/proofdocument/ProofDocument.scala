@@ -28,11 +28,11 @@ object ProofDocument {
 
 }
 
-abstract class ProofDocument[C](text : Text) {
+abstract class ProofDocument(text : Text) {
   import ProofDocument._
   
-  protected var firstToken : Token[C] = null
-  protected var lastToken : Token[C] = null
+  protected var firstToken : Token = null
+  protected var lastToken : Token = null
   private var active = false 
   
   text.changes += (e => textChanged(e.start, e.added, e.removed))
@@ -44,23 +44,23 @@ abstract class ProofDocument[C](text : Text) {
     }
   }
   
-  protected def tokens(start : Token[C], stop : Token[C]) = 
-    new Iterator[Token[C]]() {
+  protected def tokens(start : Token, stop : Token) = 
+    new Iterator[Token]() {
       var current = start
       def hasNext() = current != stop && current != null
       def next() = { val save = current ; current = current.next ; save }
     }
   
-  protected def tokens(start : Token[C]) : Iterator[Token[C]] = 
+  protected def tokens(start : Token) : Iterator[Token] = 
     tokens(start, null)
   
-  protected def tokens() : Iterator[Token[C]] = 
+  protected def tokens() : Iterator[Token] = 
     tokens(firstToken, null)
 
   private def textChanged(start : Int, addedLen : Int, removedLen : Int) {
-    val checkStart = Token.checkStart[C] _
-    val checkStop = Token.checkStop[C] _
-    val scan = Token.scan[C] _
+    val checkStart = Token.checkStart _
+    val checkStop = Token.checkStop _
+    val scan = Token.scan _
     if (active == false)
       return
         
@@ -88,8 +88,8 @@ abstract class ProofDocument[C](text : Text) {
     // scan changed tokens until the end of the text or a matching token is
     // found which is beyond the changed area
     val matchStart = if (beforeChange == null) 0 else beforeChange.stop
-    var firstAdded : Token[C] = null
-    var lastAdded : Token[C] = null
+    var firstAdded : Token = null
+    var lastAdded : Token = null
 
     val matcher = tokenPattern.matcher(text.content(matchStart, text.length))
     var finished = false
@@ -101,10 +101,7 @@ abstract class ProofDocument[C](text : Text) {
       } else if (matcher.end() - matcher.start() > 2 && matcher.group().substring(0, 2) == "(*"){
         Token.Kind.COMMENT
       } else {""}
-      val newToken = new Token[C](matcher.start() + matchStart, 
-                                  matcher.end() + matchStart,
-                                  kind
-                                  )
+      val newToken = new Token(matcher.start() + matchStart, matcher.end() + matchStart, kind)
 
       if (firstAdded == null)
         firstAdded = newToken
@@ -224,6 +221,5 @@ abstract class ProofDocument[C](text : Text) {
   
   protected def isStartKeyword(str: String): Boolean
   
-  protected def tokenChanged(start : Token[C], stop : Token[C], 
-                             removed : Token[C]) 
+  protected def tokenChanged(start: Token, stop: Token, removed: Token) 
 }
