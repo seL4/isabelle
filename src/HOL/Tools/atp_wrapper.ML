@@ -30,8 +30,8 @@ sig
   val eprover_full: AtpManager.prover
   val spass_opts: int -> bool  -> AtpManager.prover
   val spass: AtpManager.prover
-  val remote_prover_opts: int -> bool -> string -> string -> AtpManager.prover
-  val remote_prover: string -> string -> AtpManager.prover
+  val remote_prover_opts: int -> bool -> string -> int -> AtpManager.prover
+  val remote_prover: string -> int -> AtpManager.prover
 end;
 
 structure AtpWrapper: ATP_WRAPPER =
@@ -156,9 +156,9 @@ val spass = spass_opts 40 true;
 
 (* remote prover invocation via SystemOnTPTP *)
 
-fun remote_prover_opts max_new theory_const name command =
+fun remote_prover_opts max_new theory_const name timelimit =
   tptp_prover_opts max_new theory_const
-  (Path.explode "$ISABELLE_HOME/contrib/SystemOnTPTP/remote", name ^ " " ^ command);
+  (Path.explode "$ISABELLE_HOME/contrib/SystemOnTPTP/remote", name ^ " " ^ (string_of_int timelimit));
 
 val remote_prover = remote_prover_opts 60 false;
 
