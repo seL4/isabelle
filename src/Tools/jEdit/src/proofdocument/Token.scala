@@ -9,23 +9,24 @@ package isabelle.proofdocument
 import isabelle.prover.Command
 
 object Token {
-  object Kind {
-    val COMMAND_START = "COMMAND_START"
-    val COMMENT = "COMMENT"
+  object Kind extends Enumeration {
+    val COMMAND_START = Value("COMMAND_START")
+    val COMMENT = Value("COMMENT")
+    val OTHER = Value("OTHER")
   }
 
   def checkStart(t : Token, P : (Int) => Boolean)
-    = t != null && P(t.start)
+  = t != null && P(t.start)
 
   def checkStop(t : Token, P : (Int) => Boolean)
-    = t != null && P(t.stop)
+  = t != null && P(t.stop)
 
   def scan(s : Token, f : Token => Boolean) : Token = {
     var current = s
     while (current != null) {
       val next = current.next
       if (next == null || f(next))
-        return current
+      return current
       current = next
     }
     return null
@@ -33,7 +34,7 @@ object Token {
 
 }
 
-class Token(var start : Int, var stop : Int, var kind : String) {
+class Token(var start : Int, var stop : Int, var kind : Token.Kind.Value) {
   var next : Token = null
   var previous : Token = null
   var command : Command = null
@@ -49,10 +50,10 @@ class Token(var start : Int, var stop : Int, var kind : String) {
 
   override def equals(obj : Any) : Boolean = {
     if (super.equals(obj))
-      return true;
+    return true;
     
     if (null == obj)
-      return false;
+    return false;
     
     obj match {
       case other: Token => 

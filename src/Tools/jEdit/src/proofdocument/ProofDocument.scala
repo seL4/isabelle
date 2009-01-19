@@ -96,11 +96,13 @@ abstract class ProofDocument(text : Text) {
     var position = 0 
     while(matcher.find(position) && ! finished) {
       position = matcher.end()
-			val kind = if(isStartKeyword(matcher.group())){
+			val kind = if(isStartKeyword(matcher.group())) {
         Token.Kind.COMMAND_START
-      } else if (matcher.end() - matcher.start() > 2 && matcher.group().substring(0, 2) == "(*"){
+      } else if (matcher.end() - matcher.start() > 2 && matcher.group().substring(0, 2) == "(*") {
         Token.Kind.COMMENT
-      } else {""}
+      } else {
+        Token.Kind.OTHER
+      }
       val newToken = new Token(matcher.start() + matchStart, matcher.end() + matchStart, kind)
 
       if (firstAdded == null)
