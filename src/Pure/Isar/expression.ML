@@ -806,15 +806,15 @@ fun gen_sublocale prep_expr intern
 
     val ((propss, deps, export), goal_ctxt) = prep_expr expression target_ctxt;
     
-    fun store_dep ((name, morph), thms) =
+    fun store_dep (name, morph) thms =
       Locale.add_dependency target (name, morph $> Element.satisfy_morphism thms $> export);
 
     fun after_qed results =
       ProofContext.theory (
         (* store dependencies *)
-        fold store_dep (deps ~~ prep_result propss results) #>
+        fold2 store_dep deps (prep_result propss results) #>
         (* propagate registrations *)
-        (fn thy => fold_rev (fn reg => Locale.activate_global_facts reg)
+        (fn thy => fold_rev Locale.activate_global_facts
           (Locale.get_registrations thy) thy));
   in
     goal_ctxt |>
