@@ -1,5 +1,4 @@
 (*  Title:      Pure/Syntax/ast.ML
-    ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
 
 Abstract syntax trees, translation rules, matching and normalization of asts.

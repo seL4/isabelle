@@ -1,5 +1,4 @@
 (*  Title:      Pure/Syntax/printer.ML
-    ID:         $Id$
     Author:     Tobias Nipkow and Markus Wenzel, TU Muenchen
 
 Pretty printing of asts, terms, types and print (ast) translation.

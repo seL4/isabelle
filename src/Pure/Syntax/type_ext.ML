@@ -1,5 +1,4 @@
 (*  Title:      Pure/Syntax/type_ext.ML
-    ID:         $Id$
     Author:     Tobias Nipkow and Markus Wenzel, TU Muenchen
 
 Utilities for input and output of types.  Also the concrete syntax of

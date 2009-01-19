@@ -1,5 +1,4 @@
 (*  Title:      Pure/Syntax/mixfix.ML
-    ID:         $Id$
     Author:     Tobias Nipkow and Markus Wenzel, TU Muenchen
 
 Mixfix declarations, infixes, binders.

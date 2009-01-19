@@ -1,5 +1,4 @@
 (*  Title:      Pure/Syntax/parser.ML
-    ID:         $Id$
     Author:     Carsten Clasohm, Sonia Mahjoub, and Markus Wenzel, TU Muenchen
 
 General context-free parser for the inner syntax of terms, types, etc.

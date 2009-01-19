@@ -1,5 +1,4 @@
 (*  Title:      Pure/Syntax/simple_syntax.ML
-    ID:         $Id$
     Author:     Makarius
 
 Simple syntax for types and terms --- for bootstrapping Pure.

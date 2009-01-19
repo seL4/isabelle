@@ -1,5 +1,4 @@
 (*  Title:      Pure/Syntax/syn_ext.ML
-    ID:         $Id$
     Author:     Markus Wenzel and Carsten Clasohm, TU Muenchen
 
 Syntax extension (internal interface).

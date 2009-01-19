@@ -1,5 +1,4 @@
 (*  Title:      Pure/Syntax/lexicon.ML
-    ID:         $Id$
     Author:     Tobias Nipkow and Markus Wenzel, TU Muenchen
 
 Lexer for the inner Isabelle syntax (terms and types).
