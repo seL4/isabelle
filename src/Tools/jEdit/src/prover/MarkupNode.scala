@@ -15,13 +15,10 @@ object MarkupNode {
 
   def markup2default_node(node : MarkupNode) : DefaultMutableTreeNode = {
 
-    class MyPos(val o : Int) extends Position {
-      override def getOffset = o
-    }
+    implicit def int2pos(offset: Int): Position =
+      new Position { def getOffset = offset }
 
-    implicit def int2pos(x : Int) : MyPos = new MyPos(x)
-
-    object RelativeAsset extends IAsset{
+    object RelativeAsset extends IAsset {
       override def getIcon : Icon = null
       override def getShortString : String = node.short
       override def getLongString : String = node.long
