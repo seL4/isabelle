@@ -75,11 +75,11 @@ class IsabelleSideKickParser extends SideKickParser("isabelle") {
       val list = new java.util.LinkedList[String]
       val descriptions = new java.util.LinkedList[String]
       // compute suggestions
-      val (suggs,text) = suggestions(1)
+      val (suggs, text) = suggestions(1)
       for(s <- suggs) {
         val decoded = Isabelle.symbols.decode(s)
         list.add(decoded)
-        if(!decoded.equals(s)) descriptions.add(s) else descriptions.add(null)
+        if(decoded != s) descriptions.add(s) else descriptions.add(null)
       }
       return new IsabelleSideKickCompletion(pane.getView, text, list, descriptions)
     } else return null

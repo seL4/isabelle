@@ -76,7 +76,7 @@ class Document(text : Text, val prover : Prover) extends ProofDocument(text)
           before = first.prev
       }
       else if (next != null && next != stop) {
-        if (next.kind.equals(Token.Kind.COMMAND_START)) {
+        if (next.kind == Token.Kind.COMMAND_START) {
           before = start.command
           scan = next
         }
@@ -115,14 +115,14 @@ class Document(text : Text, val prover : Prover) extends ProofDocument(text)
     var finished = false
     while (scan != null && !finished) {
       if (scan == stopScan) {
-        if (scan.kind.equals(Token.Kind.COMMAND_START))
+        if (scan.kind == Token.Kind.COMMAND_START)
           finished = true
         else
           overrun = true
       }
 
-      if (scan.kind.equals(Token.Kind.COMMAND_START) && cmdStart != null && !finished) {
-        if (! overrun) {
+      if (scan.kind == Token.Kind.COMMAND_START && cmdStart != null && !finished) {
+        if (!overrun) {
           addedCommands = new Command(this, cmdStart, cmdStop) :: addedCommands
           cmdStart = scan
           cmdStop = scan
@@ -130,7 +130,7 @@ class Document(text : Text, val prover : Prover) extends ProofDocument(text)
         else
           finished = true
       }
-      else if (! finished) {
+      else if (!finished) {
         if (cmdStart == null)
           cmdStart = scan
         cmdStop = scan
