@@ -114,16 +114,18 @@ fun unregister (success, message) thread = Synchronized.change_result state
           val (group, active') =
             if success then List.partition (fn (_, (tb, _, _)) => tb = birthtime) active
             else List.partition (fn (th, _) => Thread.equal (th, thread)) active
-          val others = delete_thread thread group
+          (* do not interrupt successful thread, as it needs to print out its message
+          (and terminates afterwards - see start_prover )*)
+          val group' = if success then delete_thread thread group else group
 
           val now = Time.now ()
           val cancelling' =
-            fold (fn (th, (tb, _, desc)) => update_thread (th, (tb, now, desc))) group cancelling
+            fold (fn (th, (tb, _, desc)) => update_thread (th, (tb, now, desc))) group' cancelling
 
           val msg = description ^ "\n" ^ message
           val message' = "Sledgehammer: " ^ msg ^
-            (if null others then ""
-             else "\nInterrupted " ^ string_of_int (length others) ^ " other group members")
+            (if length group <= 1 then ""
+             else "\nInterrupted " ^ string_of_int (length group - 1) ^ " other group members")
           val messages' = msg ::
             (if length messages <= message_store_limit then messages
              else #1 (chop message_store_limit messages))
