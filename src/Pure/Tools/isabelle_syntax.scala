@@ -6,8 +6,6 @@ Isabelle outer syntax.
 
 package isabelle
 
-import java.util.{Properties, Enumeration}
-
 
 object IsabelleSyntax {
 
@@ -30,7 +28,7 @@ object IsabelleSyntax {
 
   def encode_string(str: String) =
   {
-    val result = new StringBuilder(str.length + 20)
+    val result = new StringBuilder(str.length + 10)
     append_string(str, result)
     result.toString
   }
@@ -53,7 +51,7 @@ object IsabelleSyntax {
 
   def encode_list[A](append_elem: (A, StringBuilder) => Unit, elems: Iterable[A]) =
   {
-    val result = new StringBuilder(20)
+    val result = new StringBuilder
     append_list(append_elem, elems, result)
     result.toString
   }
@@ -61,22 +59,16 @@ object IsabelleSyntax {
 
   /* properties */
 
-  def append_properties(props: Properties, result: StringBuilder)
+  def append_properties(props: List[(String, String)], result: StringBuilder)
   {
-    result.append("(")
-    val names = props.propertyNames.asInstanceOf[Enumeration[String]]
-    while (names.hasMoreElements) {
-      val name = names.nextElement; val value = props.getProperty(name)
-      append_string(name, result); result.append(" = "); append_string(value, result)
-      if (names.hasMoreElements) result.append(", ")
-    }
-    result.append(")")
+    append_list((p: (String, String), res) =>
+      { append_string(p._1, res); res.append(" = "); append_string(p._2, res) }, props, result)
   }
 
-  def encode_properties(props: Properties) = {
-    val result = new StringBuilder(40)
+  def encode_properties(props: List[(String, String)]) =
+  {
+    val result = new StringBuilder
     append_properties(props, result)
     result.toString
   }
-
 }
