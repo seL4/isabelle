@@ -78,9 +78,9 @@ object Symbol {
 
   /** Symbol interpretation **/
 
-  class Interpretation(isabelle_system: IsabelleSystem) {
-
-    private var symbols = new HashMap[String, HashMap[String, String]]
+  class Interpretation(symbol_decls: Iterator[String])
+  {
+    private val symbols = new HashMap[String, HashMap[String, String]]
     private var decoder: Recoder = null
     private var encoder: Recoder = null
 
@@ -94,10 +94,11 @@ object Symbol {
     private val blank_pattern = compile(""" \s+ """)
     private val key_pattern = compile(""" (.+): """)
 
-    private def read_line(line: String) = {
-      def err() = error("Bad symbol specification (line " + line + ")")
+    private def read_decl(decl: String) = {
+      def err() = error("Bad symbol declaration: " + decl)
 
-      def read_props(props: List[String], tab: HashMap[String, String]): Unit = {
+      def read_props(props: List[String], tab: HashMap[String, String])
+      {
         props match {
           case Nil => ()
           case _ :: Nil => err()
@@ -112,8 +113,8 @@ object Symbol {
         }
       }
 
-      if (!empty_pattern.matcher(line).matches) {
-        blank_pattern.split(line).toList match {
+      if (!empty_pattern.matcher(decl).matches) {
+        blank_pattern.split(decl).toList match {
           case Nil => err()
           case symbol :: props => {
             val tab = new HashMap[String, String]
@@ -121,13 +122,6 @@ object Symbol {
             symbols + (symbol -> tab)
           }
         }
-      }
-    }
-
-    private def read_symbols(path: String) = {
-      val file = new File(isabelle_system.platform_path(path))
-      if (file.canRead) {
-        for (line <- Source.fromFile(file).getLines) read_line(line)
       }
     }
 
@@ -154,9 +148,7 @@ object Symbol {
 
     /* constructor */
 
-    read_symbols("$ISABELLE_HOME/etc/symbols")
-    read_symbols("$ISABELLE_HOME_USER/etc/symbols")
+    symbol_decls.foreach(read_decl)
     init_recoders()
   }
-
 }
