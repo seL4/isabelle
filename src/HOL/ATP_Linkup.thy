@@ -112,12 +112,12 @@ text {* on some problems better results *}
 setup {* AtpManager.add_prover "spass_no_tc" (AtpWrapper.spass_opts 40 false) *}
 
 text {* remote provers via SystemOnTPTP *}
-setup {* AtpManager.add_prover "remote_vamp9"
-  (AtpWrapper.remote_prover "Vampire---9.0" 90) *}
+setup {* AtpManager.add_prover "remote_vampire"
+  (AtpWrapper.remote_prover "-s Vampire---9.0 -t 100") *}
 setup {* AtpManager.add_prover "remote_spass"
-  (AtpWrapper.remote_prover "SPASS---3.01" 90) *}
+  (AtpWrapper.remote_prover "-s SPASS---3.01 -t 100") *}
 setup {* AtpManager.add_prover "remote_e"
-  (AtpWrapper.remote_prover "EP---1.0" 90) *}
+  (AtpWrapper.remote_prover "-s EP---1.0 -t 100") *}
   
 
 

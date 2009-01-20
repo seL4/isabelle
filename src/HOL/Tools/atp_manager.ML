@@ -35,9 +35,9 @@ val message_display_limit = 5;
 
 local
 
-val atps = ref "e";
+val atps = ref "e remote_e remore_vampire remote_spass";
 val max_atps = ref 5;   (* ~1 means infinite number of atps *)
-val timeout = ref 60;
+val timeout = ref 100;
 
 in
 
