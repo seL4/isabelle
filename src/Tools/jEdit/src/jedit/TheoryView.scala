@@ -107,7 +107,7 @@ class TheoryView (text_area: JEditTextArea)
 
   private val selected_state_controller = new CaretListener {
     override def caretUpdate(e: CaretEvent) = {
-      val cmd = prover.document.getNextCommandContaining(e.getDot)
+      val cmd = prover.document.find_command_at(e.getDot)
       if (cmd != null && cmd.start <= e.getDot &&
           Isabelle.prover_setup(buffer).get.selected_state != cmd)
         Isabelle.prover_setup(buffer).get.selected_state = cmd
@@ -193,7 +193,7 @@ class TheoryView (text_area: JEditTextArea)
     val saved_color = gfx.getColor
 
     val metrics = text_area.getPainter.getFontMetrics
-    var e = prover.document.getNextCommandContaining(from_current(start))
+    var e = prover.document.find_command_at(from_current(start))
 
     // encolor phase
     while (e != null && to_current(e.start) < end) {

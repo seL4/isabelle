@@ -235,7 +235,7 @@ class ProofDocument(text: Text, prover: Prover)
     def next() = { val s = current.command ; current = s.last.next ; s }
   }
 
-  def getNextCommandContaining(pos: Int): Command = {
+  def find_command_at(pos: Int): Command = {
     for (cmd <- commands) { if (pos < cmd.stop) return cmd }
     return null
   }
@@ -246,7 +246,7 @@ class ProofDocument(text: Text, prover: Prover)
     var first: Command = null
     var last: Command = null
 
-    for(t <- tokens(removed)) {
+    for (t <- tokens(removed)) {
       if (first == null)
         first = t.command
       if (t.command != last)
@@ -297,43 +297,43 @@ class ProofDocument(text: Text, prover: Prover)
     else
       scan = first_token
 
-    var stopScan: Token = null
+    var stop_scan: Token = null
     if (stop != null) {
       if (stop == stop.command.first)
-        stopScan = stop
+        stop_scan = stop
       else
-        stopScan = stop.command.last.next
+        stop_scan = stop.command.last.next
     }
     else if (last != null)
-      stopScan = last.last.next
+      stop_scan = last.last.next
     else
-      stopScan = null
+      stop_scan = null
 
-    var cmdStart: Token = null
-    var cmdStop: Token = null
+    var cmd_start: Token = null
+    var cmd_stop: Token = null
     var overrun = false
     var finished = false
     while (scan != null && !finished) {
-      if (scan == stopScan) {
+      if (scan == stop_scan) {
         if (scan.kind == Token.Kind.COMMAND_START)
           finished = true
         else
           overrun = true
       }
 
-      if (scan.kind == Token.Kind.COMMAND_START && cmdStart != null && !finished) {
+      if (scan.kind == Token.Kind.COMMAND_START && cmd_start != null && !finished) {
         if (!overrun) {
-          added_commands = new Command(text, cmdStart, cmdStop) :: added_commands
-          cmdStart = scan
-          cmdStop = scan
+          added_commands = new Command(text, cmd_start, cmd_stop) :: added_commands
+          cmd_start = scan
+          cmd_stop = scan
         }
         else
           finished = true
       }
       else if (!finished) {
-        if (cmdStart == null)
-          cmdStart = scan
-        cmdStop = scan
+        if (cmd_start == null)
+          cmd_start = scan
+        cmd_stop = scan
       }
       if (overrun && !finished) {
         if (scan.command != last)
@@ -345,8 +345,8 @@ class ProofDocument(text: Text, prover: Prover)
         scan = scan.next
     }
 
-    if (cmdStart != null)
-      added_commands = new Command(text, cmdStart, cmdStop) :: added_commands
+    if (cmd_start != null)
+      added_commands = new Command(text, cmd_start, cmd_stop) :: added_commands
 
     // relink commands
     added_commands = added_commands.reverse
