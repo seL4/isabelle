@@ -7,7 +7,6 @@ Isabelle process management -- always reactive due to multi-threaded I/O.
 
 package isabelle
 
-import java.util.Properties
 import java.util.concurrent.LinkedBlockingQueue
 import java.io.{BufferedReader, BufferedWriter, InputStreamReader, OutputStreamWriter,
   InputStream, OutputStream, IOException}
@@ -80,23 +79,27 @@ object IsabelleProcess {
       kind == STATUS
   }
 
-  class Result(val kind: Kind.Value, val props: Properties, val result: String) {
+  class Result(val kind: Kind.Value, val props: List[(String, String)], val result: String) {
     override def toString = {
       val trees = YXML.parse_body_failsafe(result)
       val res =
         if (kind == Kind.STATUS) trees.map(_.toString).mkString
         else trees.flatMap(XML.content(_).mkString).mkString
-      if (props == null) kind.toString + " [[" + res + "]]"
-      else kind.toString + " " + props.toString + " [[" + res + "]]"
+      if (props.isEmpty)
+        kind.toString + " [[" + res + "]]"
+      else
+        kind.toString + " " +
+          (for ((x, y) <- props) yield x + "=" + y).mkString("{", ",", "}") + " [[" + res + "]]"
     }
     def is_raw = Kind.is_raw(kind)
     def is_control = Kind.is_control(kind)
     def is_system = Kind.is_system(kind)
   }
 
-  def parse_message(kind: Kind.Value, result: String) = {
-    XML.Elem(Markup.MESSAGE, List((Markup.CLASS, Kind.markup(kind))),
-      YXML.parse_body_failsafe(result))
+  def parse_message(isabelle_system: IsabelleSystem, result: Result) =
+  {
+    XML.Elem(Markup.MESSAGE, (Markup.CLASS, Kind.markup(result.kind)) :: result.props,
+      YXML.parse_body_failsafe(isabelle_system.symbols.decode(result.result)))
   }
 }
 
@@ -119,17 +122,22 @@ class IsabelleProcess(isabelle_system: IsabelleSystem,
   private var closing = false
   private var pid: String = null
   private var the_session: String = null
-  def session() = the_session
+  def session = the_session
 
 
   /* results */
 
+  def parse_message(result: Result): XML.Tree =
+    IsabelleProcess.parse_message(isabelle_system, result)
+
   private val result_queue = new LinkedBlockingQueue[Result]
 
-  private def put_result(kind: Kind.Value, props: Properties, result: String) {
-    if (kind == Kind.INIT && props != null) {
-      pid = props.getProperty(Markup.PID)
-      the_session = props.getProperty(Markup.SESSION)
+  private def put_result(kind: Kind.Value, props: List[(String, String)], result: String)
+  {
+    if (kind == Kind.INIT) {
+      val map = Map(props: _*)
+      if (map.isDefinedAt(Markup.PID)) pid = map(Markup.PID)
+      if (map.isDefinedAt(Markup.SESSION)) the_session = map(Markup.SESSION)
     }
     result_queue.put(new Result(kind, props, result))
   }
@@ -143,7 +151,7 @@ class IsabelleProcess(isabelle_system: IsabelleSystem,
           catch { case _: NullPointerException => null }
 
         if (result != null) {
-          results.event(result)  // FIXME try/catch (!??)
+          results.event(result)
           if (result.kind == Kind.EXIT) finished = true
         }
         else finished = true
@@ -156,13 +164,13 @@ class IsabelleProcess(isabelle_system: IsabelleSystem,
 
   def interrupt() = synchronized {
     if (proc == null) error("Cannot interrupt Isabelle: no process")
-    if (pid == null) put_result(Kind.SYSTEM, null, "Cannot interrupt: unknown pid")
+    if (pid == null) put_result(Kind.SYSTEM, Nil, "Cannot interrupt: unknown pid")
     else {
       try {
         if (isabelle_system.execute(true, "kill", "-INT", pid).waitFor == 0)
-          put_result(Kind.SIGNAL, null, "INT")
+          put_result(Kind.SIGNAL, Nil, "INT")
         else
-          put_result(Kind.SYSTEM, null, "Cannot interrupt: kill command failed")
+          put_result(Kind.SYSTEM, Nil, "Cannot interrupt: kill command failed")
       }
       catch { case e: IOException => error("Cannot interrupt Isabelle: " + e.getMessage) }
     }
@@ -173,7 +181,7 @@ class IsabelleProcess(isabelle_system: IsabelleSystem,
     else {
       try_close()
       Thread.sleep(500)
-      put_result(Kind.SIGNAL, null, "KILL")
+      put_result(Kind.SIGNAL, Nil, "KILL")
       proc.destroy
       proc = null
       pid = null
@@ -198,7 +206,7 @@ class IsabelleProcess(isabelle_system: IsabelleSystem,
   def command(text: String) =
     output_sync("Isabelle.command " + IsabelleSyntax.encode_string(text))
 
-  def command(props: Properties, text: String) =
+  def command(props: List[(String, String)], text: String) =
     output_sync("Isabelle.command " + IsabelleSyntax.encode_properties(props) + " " +
       IsabelleSyntax.encode_string(text))
 
@@ -233,17 +241,17 @@ class IsabelleProcess(isabelle_system: IsabelleSystem,
             finished = true
           }
           else {
-            put_result(Kind.STDIN, null, s)
+            put_result(Kind.STDIN, Nil, s)
             writer.write(s)
             writer.flush
           }
           //}}}
         }
         catch {
-          case e: IOException => put_result(Kind.SYSTEM, null, "Stdin thread: " + e.getMessage)
+          case e: IOException => put_result(Kind.SYSTEM, Nil, "Stdin thread: " + e.getMessage)
         }
       }
-      put_result(Kind.SYSTEM, null, "Stdin thread terminated")
+      put_result(Kind.SYSTEM, Nil, "Stdin thread terminated")
     }
   }
 
@@ -267,7 +275,7 @@ class IsabelleProcess(isabelle_system: IsabelleSystem,
             else done = true
           }
           if (result.length > 0) {
-            put_result(Kind.STDOUT, null, result.toString)
+            put_result(Kind.STDOUT, Nil, result.toString)
             result.length = 0
           }
           else {
@@ -278,10 +286,10 @@ class IsabelleProcess(isabelle_system: IsabelleSystem,
           //}}}
         }
         catch {
-          case e: IOException => put_result(Kind.SYSTEM, null, "Stdout thread: " + e.getMessage)
+          case e: IOException => put_result(Kind.SYSTEM, Nil, "Stdout thread: " + e.getMessage)
         }
       }
-      put_result(Kind.SYSTEM, null, "Stdout thread terminated")
+      put_result(Kind.SYSTEM, Nil, "Stdout thread terminated")
     }
   }
 
@@ -292,7 +300,7 @@ class IsabelleProcess(isabelle_system: IsabelleSystem,
     override def run() = {
       val reader = isabelle_system.fifo_reader(fifo)
       var kind: Kind.Value = null
-      var props: Properties = null
+      var props: List[(String, String)] = Nil
       var result = new StringBuilder
 
       var finished = false
@@ -307,7 +315,7 @@ class IsabelleProcess(isabelle_system: IsabelleSystem,
             } while (c >= 0 && c != 2)
 
             if (result.length > 0) {
-              put_result(Kind.SYSTEM, null, "Malformed message:\n" + result.toString)
+              put_result(Kind.SYSTEM, Nil, "Malformed message:\n" + result.toString)
               result.length = 0
             }
             if (c < 0) {
@@ -319,7 +327,7 @@ class IsabelleProcess(isabelle_system: IsabelleSystem,
               c = reader.read
               if (Kind.code.isDefinedAt(c)) kind = Kind.code(c)
               else kind = null
-              props = null
+              props = Nil
             }
             //}}}
           }
@@ -339,14 +347,13 @@ class IsabelleProcess(isabelle_system: IsabelleSystem,
                 if (i > 0) {
                   val name = line.substring(0, i)
                   val value = line.substring(i + 1, len - 2)
-                  if (props == null) props = new Properties
-                  if (!props.containsKey(name)) props.setProperty(name, value)
+                  props = (name, value) :: props
                 }
               }
               // last text line
               else if (line.endsWith("\u0002.")) {
                 result.append(line.substring(0, len - 2))
-                put_result(kind, props, result.toString)
+                put_result(kind, props.reverse, result.toString)
                 result.length = 0
                 kind = null
               }
@@ -360,10 +367,10 @@ class IsabelleProcess(isabelle_system: IsabelleSystem,
           }
         }
         catch {
-          case e: IOException => put_result(Kind.SYSTEM, null, "Message thread: " + e.getMessage)
+          case e: IOException => put_result(Kind.SYSTEM, Nil, "Message thread: " + e.getMessage)
         }
       }
-      put_result(Kind.SYSTEM, null, "Message thread terminated")
+      put_result(Kind.SYSTEM, Nil, "Message thread terminated")
     }
   }
 
@@ -377,7 +384,7 @@ class IsabelleProcess(isabelle_system: IsabelleSystem,
     {
       val (msg, rc) = isabelle_system.isabelle_tool("version")
       if (rc != 0) error("Version check failed -- bad Isabelle installation:\n" + msg)
-      put_result(Kind.SYSTEM, null, msg)
+      put_result(Kind.SYSTEM, Nil, msg)
     }
 
 
@@ -418,8 +425,8 @@ class IsabelleProcess(isabelle_system: IsabelleSystem,
       override def run() = {
         val rc = proc.waitFor()
         Thread.sleep(300)
-        put_result(Kind.SYSTEM, null, "Exit thread terminated")
-        put_result(Kind.EXIT, null, Integer.toString(rc))
+        put_result(Kind.SYSTEM, Nil, "Exit thread terminated")
+        put_result(Kind.EXIT, Nil, Integer.toString(rc))
         rm_fifo()
       }
     }.start
