@@ -13,7 +13,7 @@ import javax.swing.tree.DefaultMutableTreeNode
 
 import scala.collection.mutable.ListBuffer
 
-import isabelle.proofdocument.{Token, ProofDocument}
+import isabelle.proofdocument.{Text, Token, ProofDocument}
 import isabelle.jedit.{Isabelle, Plugin}
 import isabelle.XML
 
@@ -31,7 +31,7 @@ object Command {
 }
 
 
-class Command(val document: ProofDocument, val first: Token, val last: Token)
+class Command(text: Text, val first: Token, val last: Token)
 {
   val id = Isabelle.plugin.id()
   
@@ -74,7 +74,7 @@ class Command(val document: ProofDocument, val first: Token, val last: Token)
 
   /* content */
 
-  def content(): String = document.getContent(this)
+  val content = text.content(proper_start, proper_stop)
 
   def next = if (last.next != null) last.next.command else null
   def prev = if (first.prev != null) first.prev.command else null
@@ -94,7 +94,7 @@ class Command(val document: ProofDocument, val first: Token, val last: Token)
   /* markup tree */
 
   val root_node =
-    new MarkupNode(this, 0, stop - start, id, Markup.COMMAND_SPAN, content())
+    new MarkupNode(this, 0, stop - start, id, Markup.COMMAND_SPAN, content)
 
   def node_from(kind: String, begin: Int, end: Int) = {
     val markup_content = /*content.substring(begin, end)*/ ""

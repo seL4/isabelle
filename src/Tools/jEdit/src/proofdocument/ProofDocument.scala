@@ -235,8 +235,6 @@ class ProofDocument(text: Text, prover: Prover)
     def next() = { val s = current.command ; current = s.last.next ; s }
   }
 
-  def getContent(cmd: Command) = text.content(cmd.proper_start, cmd.proper_stop)
-
   def getNextCommandContaining(pos: Int): Command = {
     for (cmd <- commands) { if (pos < cmd.stop) return cmd }
     return null
@@ -325,7 +323,7 @@ class ProofDocument(text: Text, prover: Prover)
 
       if (scan.kind == Token.Kind.COMMAND_START && cmdStart != null && !finished) {
         if (!overrun) {
-          addedCommands = new Command(this, cmdStart, cmdStop) :: addedCommands
+          addedCommands = new Command(text, cmdStart, cmdStop) :: addedCommands
           cmdStart = scan
           cmdStop = scan
         }
@@ -348,7 +346,7 @@ class ProofDocument(text: Text, prover: Prover)
     }
 
     if (cmdStart != null)
-      addedCommands = new Command(this, cmdStart, cmdStop) :: addedCommands
+      addedCommands = new Command(text, cmdStart, cmdStop) :: addedCommands
 
     // relink commands
     addedCommands = addedCommands.reverse

@@ -196,7 +196,7 @@ class Prover(isabelle_system: IsabelleSystem)
     cmd.status = Command.Status.UNPROCESSED
     commands.put(cmd.id, cmd)
 
-    val content = isabelle_system.symbols.encode(document.getContent(cmd))
+    val content = isabelle_system.symbols.encode(cmd.content)
     process.create_command(cmd.id, content)
     process.insert_command(if (cmd.prev == null) "" else cmd.prev.id, cmd.id)
   }
