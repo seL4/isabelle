@@ -8,7 +8,7 @@ package isabelle.proofdocument
 
 
 object Text {
-  class Changed(val start: Int, val added: Int, val removed: Int)
+  case class Changed(val start: Int, val added: Int, val removed: Int)
 }
 
 trait Text {
