@@ -74,6 +74,9 @@ class Command(text: Text, val first: Token, val last: Token)
 
   /* content */
 
+  override def toString = name
+
+  val name = text.content(first.start, first.stop)
   val content = text.content(proper_start, proper_stop)
 
   def next = if (last.next != null) last.next.command else null
