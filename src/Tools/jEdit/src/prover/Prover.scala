@@ -18,7 +18,7 @@ import isabelle.proofdocument.{ProofDocument, Text, Token}
 import isabelle.IsarDocument
 
 
-class Prover(isabelle_system: IsabelleSystem, isabelle_symbols: Symbol.Interpretation)
+class Prover(isabelle_system: IsabelleSystem)
 {
   private var _logic = isabelle_system.getenv_strict("ISABELLE_LOGIC")
   private var process: Isar = null
@@ -196,7 +196,7 @@ class Prover(isabelle_system: IsabelleSystem, isabelle_symbols: Symbol.Interpret
     cmd.status = Command.Status.UNPROCESSED
     commands.put(cmd.id, cmd)
 
-    val content = isabelle_symbols.encode(document.getContent(cmd))
+    val content = isabelle_system.symbols.encode(document.getContent(cmd))
     process.create_command(cmd.id, content)
     process.insert_command(if (cmd.prev == null) "" else cmd.prev.id, cmd.id)
   }
