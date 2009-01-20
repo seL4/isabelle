@@ -33,7 +33,7 @@ object Token {
   }
 }
 
-class Token(var start: Int, var stop: Int, var kind: Token.Kind.Value)
+class Token(var start: Int, var stop: Int, val kind: Token.Kind.Value)
 {
   var next: Token = null
   var prev: Token = null
