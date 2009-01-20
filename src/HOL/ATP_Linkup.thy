@@ -112,10 +112,13 @@ text {* on some problems better results *}
 setup {* AtpManager.add_prover "spass_no_tc" (AtpWrapper.spass_opts 40 false) *}
 
 text {* remote provers via SystemOnTPTP *}
-setup {* AtpManager.add_prover "remote_vamp9"
-  (AtpWrapper.remote_prover "Vampire---9.0" "jumpirefix --output_syntax tptp --mode casc -t 3600") *}
-setup {* AtpManager.add_prover "remote_vamp10"
-  (AtpWrapper.remote_prover "Vampire---10.0" "drakosha.pl 60") *}
+setup {* AtpManager.add_prover "remote_vampire"
+  (AtpWrapper.remote_prover "-s Vampire---9.0") *}
+setup {* AtpManager.add_prover "remote_spass"
+  (AtpWrapper.remote_prover "-s SPASS---3.01") *}
+setup {* AtpManager.add_prover "remote_e"
+  (AtpWrapper.remote_prover "-s EP---1.0") *}
+  
 
 
 subsection {* The Metis prover *}

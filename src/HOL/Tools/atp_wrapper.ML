@@ -12,7 +12,7 @@ sig
   val external_prover:
     ((int -> Path.T) -> Proof.context * thm list * thm -> string list * ResHolClause.axiom_name Vector.vector list) ->
     Path.T * string ->
-    (string * int -> bool) ->
+    (string -> string option) ->
     (string * string vector * Proof.context * thm * int -> string) ->
     AtpManager.prover
   val tptp_prover_opts_full: int -> bool -> bool -> Path.T * string -> AtpManager.prover
@@ -30,8 +30,8 @@ sig
   val eprover_full: AtpManager.prover
   val spass_opts: int -> bool  -> AtpManager.prover
   val spass: AtpManager.prover
-  val remote_prover_opts: int -> bool -> string -> string -> AtpManager.prover
-  val remote_prover: string -> string -> AtpManager.prover
+  val remote_prover_opts: int -> bool -> string -> AtpManager.prover
+  val remote_prover: string -> AtpManager.prover
 end;
 
 structure AtpWrapper: ATP_WRAPPER =
@@ -47,7 +47,7 @@ val problem_name = ref "prob";
 
 (* basic template *)
 
-fun external_prover write_problem_files (cmd, args) check_success produce_answer subgoalno state =
+fun external_prover write_problem_files (cmd, args) find_failure produce_answer timeout subgoalno state =
   let
     (* path to unique problem file *)
     val destdir' = ! destdir
@@ -70,19 +70,18 @@ fun external_prover write_problem_files (cmd, args) check_success produce_answer
       if File.exists cmd then File.shell_path cmd ^ " " ^ args
       else error ("Bad executable: " ^ Path.implode cmd)
     val (proof, rc) = system_out (cmdline ^ " " ^ nth filenames (subgoalno - 1))
-    val _ =
-      if rc <> 0 then
-        warning ("Sledgehammer prover exited with return code " ^ string_of_int rc ^ "\n" ^ cmdline)
-      else ()
 
     (* remove *temporary* files *)
     val _ = if destdir' = "" then List.app OS.FileSys.remove filenames else ()
-
-    val success = check_success (proof, rc)
+    
+    (* check for success and print out some information on failure *)
+    val failure = find_failure proof
+    val success = (rc = 0) andalso (not (isSome failure))
     val message =
-      if success
-      then "Try this command: " ^ produce_answer (proof, thm_names, ctxt, goal, subgoalno)
-      else "Failed."
+      if isSome failure then "Could not prove: " ^ the failure
+      else if rc <> 0
+      then "Exited with return code " ^ string_of_int rc ^ ": " ^ proof 
+      else "Try this command: " ^ produce_answer (proof, thm_names, ctxt, goal, subgoalno)
   in (success, message) end;
 
 
@@ -95,7 +94,7 @@ fun tptp_prover_opts_full max_new theory_const full command =
   external_prover
     (ResAtp.write_problem_files ResHolClause.tptp_write_file max_new theory_const)
     command
-    ResReconstruct.check_success_e_vamp_spass
+    ResReconstruct.find_failure_e_vamp_spass
     (if full then ResReconstruct.structured_proof else ResReconstruct.lemma_list_tstp);
 
 (*arbitrary ATP with TPTP input/output and problemfile as last argument*)
@@ -115,15 +114,19 @@ val full_prover = full_prover_opts 60 true;
 
 (*NB: Vampire does not work without explicit timelimit*)
 
-fun vampire_opts max_new theory_const = tptp_prover_opts
+fun vampire_opts max_new theory_const timeout = tptp_prover_opts
   max_new theory_const
-  (Path.explode "$VAMPIRE_HOME/vampire", "--output_syntax tptp --mode casc -t 3600");
+  (Path.explode "$VAMPIRE_HOME/vampire",
+               ("--output_syntax tptp --mode casc -t " ^ string_of_int timeout))
+  timeout;
 
 val vampire = vampire_opts 60 false;
 
-fun vampire_opts_full max_new theory_const = full_prover_opts
+fun vampire_opts_full max_new theory_const timeout = full_prover_opts
   max_new theory_const
-  (Path.explode "$VAMPIRE_HOME/vampire", "--output_syntax tptp --mode casc -t 3600");
+  (Path.explode "$VAMPIRE_HOME/vampire",
+               ("--output_syntax tptp --mode casc -t " ^ string_of_int timeout))
+  timeout;
 
 val vampire_full = vampire_opts 60 false;
 
@@ -148,7 +151,7 @@ val eprover_full = eprover_opts_full 100 false;
 fun spass_opts max_new theory_const = external_prover
   (ResAtp.write_problem_files ResHolClause.dfg_write_file max_new theory_const)
   (Path.explode "$SPASS_HOME/SPASS", "-Auto -SOS=1 -PGiven=0 -PProblem=0 -Splits=0 -FullRed=0 -DocProof")
-  ResReconstruct.check_success_e_vamp_spass
+  ResReconstruct.find_failure_e_vamp_spass
   ResReconstruct.lemma_list_dfg;
 
 val spass = spass_opts 40 true;
@@ -156,9 +159,10 @@ val spass = spass_opts 40 true;
 
 (* remote prover invocation via SystemOnTPTP *)
 
-fun remote_prover_opts max_new theory_const name command =
+fun remote_prover_opts max_new theory_const args timeout =
   tptp_prover_opts max_new theory_const
-  (Path.explode "$ISABELLE_HOME/contrib/SystemOnTPTP/remote", name ^ " " ^ command);
+  (Path.explode "$ISABELLE_HOME/contrib/SystemOnTPTP/remote", args ^ " -t " ^ string_of_int timeout)
+  timeout;
 
 val remote_prover = remote_prover_opts 60 false;
 

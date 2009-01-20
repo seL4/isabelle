@@ -3,93 +3,137 @@
 # Wrapper for custom remote provers on SystemOnTPTP
 # Author: Fabian Immler, TU Muenchen
 #
-# Similar to the vampire wrapper, but compatible provers can be passed in the
-# command line, with %s for the problemfile e.g. 
-#
-# ./remote Vampire---9.0 jumpirefix --output_syntax tptp --mode casc -t 3600 %s
-# ./remote Vampire---10.0 drakosha.pl 60 %s
-# ./remote SPASS---3.01 SPASS -Auto -SOS=1 -PGiven=0 -PProblem=0 -Splits=0 -FullRed=0 -DocProof %s
-# ./remote Metis---2.1 metis --show proof --show saturation %s
-# ./remote SNARK---20080805r005 run-snark %s
 
 use warnings;
 use strict;
-
 use Getopt::Std;
 use HTTP::Request::Common;
-use LWP::UserAgent;
+use LWP;
 
-# address of proof-server
 my $SystemOnTPTPFormReplyURL = "http://www.cs.miami.edu/~tptp/cgi-bin/SystemOnTPTPFormReply";
 
-if(scalar(@ARGV) < 2) {
-    print "prover and command missing";
-    exit -1;
-}
-my $prover = shift(@ARGV);
-my $command = shift(@ARGV);
-
-# pass arguments
-my $options = "";
-while(scalar(@ARGV)>1){
-	$options.=" ".shift(@ARGV);
-}
-# last argument is problemfile to be uploaded
-my $problem = [shift(@ARGV)];
-
-# fill in form
+# default parameters
 my %URLParameters = (
     "NoHTML" => 1,
     "QuietFlag" => "-q01",
     "X2TPTP" => "-S",
     "SubmitButton" => "RunSelectedSystems",
     "ProblemSource" => "UPLOAD",
-    "UPLOADProblem" => $problem,
-    "System___$prover" => "$prover",
-    "Format___$prover" => "tptp",
-    "Command___$prover" => "$command $options %s"
-);
+    );
+
+# check connection
+my $TestAgent = LWP::UserAgent->new;
+$TestAgent->timeout(5);
+my $TestRequest = GET($SystemOnTPTPFormReplyURL);
+my $TestResponse = $TestAgent->request($TestRequest);
+if(! $TestResponse->is_success) {
+  print "HTTP-Error: " . $TestResponse->message . "\n";
+  exit(-1);
+}
+
+#----Get format and transform options if specified
+my %Options;
+getopts("hws:t:c:",\%Options);
+
+#----Usage
+if (exists($Options{'h'})) {
+    print("Usage: remote <options> [<File name>]\n");
+    print("    <options> are ...\n");
+    print("    -h            - print this help\n");
+    print("    -w            - list available ATP systems\n");
+    print("    -s<system>    - specified system to use\n");
+    print("    -t<timelimit> - CPU time limit for system\n");
+    print("    -c<command>   - custom command for system\n");
+    print("    <File name>   - TPTP problem file\n");
+    exit(0);
+}
+
+#----What systems flag
+if (exists($Options{'w'})) {
+    $URLParameters{"SubmitButton"} = "ListSystems";
+    delete($URLParameters{"ProblemSource"});
+}
+#----Selected system
+my $System;
+if (exists($Options{'s'})) {
+    $System = $Options{'s'};
+} else {
+    # use Vampire as default
+    $System = "Vampire---9.0";
+}
+$URLParameters{"System___$System"} = $System;
+
+#----Time limit
+if (exists($Options{'t'})) {
+    $URLParameters{"TimeLimit___$System"} = $Options{'t'};
+}
+#----Custom command
+if (exists($Options{'c'})) {
+    $URLParameters{"Command___$System"} = $Options{'c'};
+}
+
+#----Get single file name
+if (exists($URLParameters{"ProblemSource"})) {
+    if (scalar(@ARGV) >= 1) {
+        $URLParameters{"UPLOADProblem"} = [shift(@ARGV)];
+    } else {
+die("Missing problem file");
+    }
+}
 
 # Query Server
 my $Agent = LWP::UserAgent->new;
+if (exists($Options{'t'})) {
+  # give server more time to respond
+  $Agent->timeout($Options{'t'} * 2 + 10);
+}
 my $Request = POST($SystemOnTPTPFormReplyURL,
 	Content_Type => 'form-data',Content => \%URLParameters);
 my $Response = $Agent->request($Request);
-  
-#catch errors, let isabelle/watcher know
-if($Response->is_success && $Response->content !~ /NO SOLUTION OUTPUT BY SYSTEM/
-&& $Response->content =~ m/%\s*Result\s*:\s*Unsatisfiable.*?\n%\s*Output\s*:\s*.*?Refutation.*?\n/){
-    # convert to isabelle-friendly format
-    my @lines = split( /%\s*Result\s*:\s*Unsatisfiable.*?\n%\s*Output\s*:\s*.*?Refutation.*?\n/, $Response->content);
-    @lines = split( /\n/, $lines[1]);    my $extract = "";
-    my $inproof = 0 > 1;
-    my $ende = 0 > 1;
+
+#catch errors / failure
+if(! $Response->is_success){
+  	print "HTTP-Error: " . $Response->message . "\n";
+    exit(-1);
+} elsif (exists($Options{'w'})) {
+  print $Response->content;
+  exit (0);
+} elsif ($Response->content =~ /NO SOLUTION OUTPUT BY SYSTEM/){
+  if ($Response->content =~ /%\s*Result\s*:(.*)\n%\s*Output\s*:(.*)\n%/) {
+    print "No Solution Output\nResult: $1\nOutput: $2\n";
+  } else {
+    print "No Solution Output\n";
+  }
+  exit(-1);
+} elsif ($Response->content =~ /ERROR: Could not form TPTP format derivation/) {
+  print "Could not form TPTP format derivation\n";
+  exit(-1);
+} elsif ($Response->content =~ /WARNING: (\S*) does not exist/) {
+  print "Specified System $1 does not exist\n";
+  exit(-1);
+} elsif ($Response->content =~ /^\s*$/) {
+  print "Empty response (specified bad system? Inappropriate problem file format?)\n";
+  exit(-1);
+} elsif ($Response->content !~ /%\s*Result\s*:(.*)\n%\s*Output\s*:(.*)\n%/) {
+  print "Bad response: \n".$Response->content;
+  exit(-1);
+} else {
+    my @lines = split( /\n/, $Response->content);
+    my $extract = "";
     foreach my $line (@lines){
-        if(! $ende){
-            #ignore comments
-            if(! $inproof){
-                if ($line !~ /^%/ && !($line eq "")) {
-                    $extract .= "$line";
-                    $inproof = 1;
-                }
-            } else {
-                if ($line !~ /^%/) {
-                    $extract .= "$line";
-                } else {
-                    $ende = 1;
-                }
-            }
+        #ignore comments
+        if ($line !~ /^%/ && !($line eq "")) {
+            $extract .= "$line";
         }
     }
-    # insert newlines after '.'
+    # insert newlines after ').'
     $extract =~ s/\s//g;
     $extract =~ s/\)\.cnf/\)\.\ncnf/g;
+    
+    # orientation for res_reconstruct.ML
     print "# SZS output start CNFRefutation.\n";
     print "$extract\n";
     print "# SZS output end CNFRefutation.\n";
-} else {
-	print "HTTP-Request: " . $Response->message;
-	print "\nCANNOT PROVE: \n";
-  print $Response->content;
+    exit(0);
 }
 

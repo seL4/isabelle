@@ -15,7 +15,7 @@ sig
   val strip_prefix: string -> string -> string option
   val setup: Context.theory -> Context.theory
   (* extracting lemma list*)
-  val check_success_e_vamp_spass: string * int -> bool
+  val find_failure_e_vamp_spass: string -> string option
   val lemma_list_dfg: string * string vector * Proof.context * Thm.thm * int -> string
   val lemma_list_tstp: string * string vector * Proof.context * Thm.thm * int -> string
   (* structured proofs *)
@@ -463,10 +463,9 @@ fun decode_tstp_file cnfs ctxt th sgno thm_names =
   val failure_strings_vampire = ["Satisfiability detected", "Refutation not found", "CANNOT PROVE"];
   val failure_strings_SPASS = ["SPASS beiseite: Completion found.","SPASS beiseite: Ran out of time.",
   "SPASS beiseite: Maximal number of loops exceeded."];
-  fun check_success_e_vamp_spass (proof, rc) =
-    not (exists (fn s => String.isSubstring s proof)
-        (failure_strings_E @ failure_strings_vampire @ failure_strings_SPASS))
-    andalso (rc = 0);
+  fun find_failure_e_vamp_spass proof = 
+    hd (map (fn s => if String.isSubstring s proof then SOME s else NONE) 
+            (failure_strings_E @ failure_strings_vampire @ failure_strings_SPASS));
 
   (*=== EXTRACTING PROOF-TEXT === *)
   
