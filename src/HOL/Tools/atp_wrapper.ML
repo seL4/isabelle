@@ -47,7 +47,7 @@ val problem_name = ref "prob";
 
 (* basic template *)
 
-fun external_prover write_problem_files (cmd, args) find_failure produce_answer subgoalno state =
+fun external_prover write_problem_files (cmd, args) find_failure produce_answer timeout subgoalno state =
   let
     (* path to unique problem file *)
     val destdir' = ! destdir
@@ -114,15 +114,19 @@ val full_prover = full_prover_opts 60 true;
 
 (*NB: Vampire does not work without explicit timelimit*)
 
-fun vampire_opts max_new theory_const = tptp_prover_opts
+fun vampire_opts max_new theory_const timeout = tptp_prover_opts
   max_new theory_const
-  (Path.explode "$VAMPIRE_HOME/vampire", "--output_syntax tptp --mode casc -t 3600");
+  (Path.explode "$VAMPIRE_HOME/vampire",
+               ("--output_syntax tptp --mode casc -t " ^ string_of_int timeout))
+  timeout;
 
 val vampire = vampire_opts 60 false;
 
-fun vampire_opts_full max_new theory_const = full_prover_opts
+fun vampire_opts_full max_new theory_const timeout = full_prover_opts
   max_new theory_const
-  (Path.explode "$VAMPIRE_HOME/vampire", "--output_syntax tptp --mode casc -t 3600");
+  (Path.explode "$VAMPIRE_HOME/vampire",
+               ("--output_syntax tptp --mode casc -t " ^ string_of_int timeout))
+  timeout;
 
 val vampire_full = vampire_opts 60 false;
 
@@ -155,9 +159,10 @@ val spass = spass_opts 40 true;
 
 (* remote prover invocation via SystemOnTPTP *)
 
-fun remote_prover_opts max_new theory_const args =
+fun remote_prover_opts max_new theory_const args timeout =
   tptp_prover_opts max_new theory_const
-  (Path.explode "$ISABELLE_HOME/contrib/SystemOnTPTP/remote", args);
+  (Path.explode "$ISABELLE_HOME/contrib/SystemOnTPTP/remote", args ^ " -t " ^ string_of_int timeout)
+  timeout;
 
 val remote_prover = remote_prover_opts 60 false;
 
