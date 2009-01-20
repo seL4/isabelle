@@ -327,7 +327,6 @@ class IsabelleProcess(isabelle_system: IsabelleSystem,
               c = reader.read
               if (Kind.code.isDefinedAt(c)) kind = Kind.code(c)
               else kind = null
-              props = Nil
             }
             //}}}
           }
@@ -354,8 +353,9 @@ class IsabelleProcess(isabelle_system: IsabelleSystem,
               else if (line.endsWith("\u0002.")) {
                 result.append(line.substring(0, len - 2))
                 put_result(kind, props.reverse, result.toString)
-                result.length = 0
                 kind = null
+                props = Nil
+                result.length = 0
               }
               // text line
               else {
