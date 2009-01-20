@@ -183,8 +183,8 @@ class Prover(isabelle_system: IsabelleSystem)
     process.ML("ThyLoad.add_path " + IsabelleSyntax.encode_string(path))
 
     document.structural_changes += (changes => {
-      for (cmd <- changes.removedCommands) remove(cmd)
-      for (cmd <- changes.addedCommands) send(cmd)
+      for (cmd <- changes.removed_commands) remove(cmd)
+      for (cmd <- changes.added_commands) send(cmd)
     })
     if (initialized) {
       document.activate()

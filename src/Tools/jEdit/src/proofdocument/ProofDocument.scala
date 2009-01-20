@@ -12,10 +12,10 @@ import java.util.regex.Pattern
 import isabelle.prover.{Prover, Command}
 
 
-class StructureChange(
-  val beforeChange: Command,
-  val addedCommands: List[Command],
-  val removedCommands: List[Command])
+case class StructureChange(
+  val before_change: Command,
+  val added_commands: List[Command],
+  val removed_commands: List[Command])
 
 object ProofDocument
 {
@@ -53,174 +53,174 @@ class ProofDocument(text: Text, prover: Prover)
 
   /** token view **/
 
-  protected var firstToken: Token = null
-  protected var lastToken: Token = null
+  private var first_token: Token = null
+  private var last_token: Token = null
   
-  protected def tokens(start: Token, stop: Token) = new Iterator[Token] {
+  private def tokens(start: Token, stop: Token) = new Iterator[Token] {
       var current = start
       def hasNext = current != stop && current != null
-      def next() = { val save = current ; current = current.next ; save }
+      def next() = { val save = current; current = current.next; save }
     }
-  protected def tokens(start: Token): Iterator[Token] = tokens(start, null)
-  protected def tokens() : Iterator[Token] = tokens(firstToken, null)
+  private def tokens(start: Token): Iterator[Token] = tokens(start, null)
+  private def tokens(): Iterator[Token] = tokens(first_token, null)
 
 
-  private def text_changed(start: Int, addedLen: Int, removedLen: Int)
+  private def text_changed(start: Int, added_len: Int, removed_len: Int)
   {
     if (!active)
       return
 
-    var beforeChange = 
-      if (Token.check_stop(firstToken, _ < start)) Token.scan(firstToken, _.stop >= start)
+    var before_change =
+      if (Token.check_stop(first_token, _ < start)) Token.scan(first_token, _.stop >= start)
       else null
     
-    var firstRemoved = 
-      if (beforeChange != null) beforeChange.next
-      else if (Token.check_start(firstToken, _ <= start + removedLen)) firstToken
+    var first_removed =
+      if (before_change != null) before_change.next
+      else if (Token.check_start(first_token, _ <= start + removed_len)) first_token
       else null 
 
-    var lastRemoved = Token.scan(firstRemoved, _.start > start + removedLen)
+    var last_removed = Token.scan(first_removed, _.start > start + removed_len)
 
-    var shiftToken = 
-      if (lastRemoved != null) lastRemoved
-      else if (Token.check_start(firstToken, _ > start)) firstToken
+    var shift_token =
+      if (last_removed != null) last_removed
+      else if (Token.check_start(first_token, _ > start)) first_token
       else null
     
-    while (shiftToken != null) {
-      shiftToken.shift(addedLen - removedLen, start)
-      shiftToken = shiftToken.next
+    while (shift_token != null) {
+      shift_token.shift(added_len - removed_len, start)
+      shift_token = shift_token.next
     }
     
     // scan changed tokens until the end of the text or a matching token is
     // found which is beyond the changed area
-    val matchStart = if (beforeChange == null) 0 else beforeChange.stop
-    var firstAdded: Token = null
-    var lastAdded: Token = null
+    val match_start = if (before_change == null) 0 else before_change.stop
+    var first_added: Token = null
+    var last_added: Token = null
 
-    val matcher = ProofDocument.token_pattern.matcher(text.content(matchStart, text.length))
+    val matcher = ProofDocument.token_pattern.matcher(text.content(match_start, text.length))
     var finished = false
     var position = 0 
-    while (matcher.find(position) && ! finished) {
-      position = matcher.end()
+    while (matcher.find(position) && !finished) {
+      position = matcher.end
 			val kind =
-        if (prover.is_command_keyword(matcher.group()))
+        if (prover.is_command_keyword(matcher.group))
           Token.Kind.COMMAND_START
-        else if (matcher.end() - matcher.start() > 2 && matcher.group().substring(0, 2) == "(*")
+        else if (matcher.end - matcher.start > 2 && matcher.group.substring(0, 2) == "(*")
           Token.Kind.COMMENT
         else
           Token.Kind.OTHER
-      val newToken = new Token(matcher.start() + matchStart, matcher.end() + matchStart, kind)
+      val new_token = new Token(matcher.start + match_start, matcher.end + match_start, kind)
 
-      if (firstAdded == null)
-        firstAdded = newToken
+      if (first_added == null)
+        first_added = new_token
       else {
-        newToken.prev = lastAdded
-        lastAdded.next = newToken
+        new_token.prev = last_added
+        last_added.next = new_token
       }
-      lastAdded = newToken
+      last_added = new_token
       
-      while (Token.check_stop(lastRemoved, _ < newToken.stop) &&
-              lastRemoved.next != null)	
-        lastRemoved = lastRemoved.next
+      while (Token.check_stop(last_removed, _ < new_token.stop) &&
+              last_removed.next != null)
+        last_removed = last_removed.next
 			
-      if (newToken.stop >= start + addedLen && 
-            Token.check_stop(lastRemoved, _ == newToken.stop))
+      if (new_token.stop >= start + added_len &&
+            Token.check_stop(last_removed, _ == new_token.stop))
         finished = true
     }
 
-    var afterChange = if (lastRemoved != null) lastRemoved.next else null
+    var after_change = if (last_removed != null) last_removed.next else null
 		
     // remove superflous first token-change
-    if (firstAdded != null && firstAdded == firstRemoved && 
-          firstAdded.stop < start) {
-      beforeChange = firstRemoved
-      if (lastRemoved == firstRemoved) {
-        lastRemoved = null
-        firstRemoved = null
+    if (first_added != null && first_added == first_removed &&
+          first_added.stop < start) {
+      before_change = first_removed
+      if (last_removed == first_removed) {
+        last_removed = null
+        first_removed = null
       }
       else {
-        firstRemoved = firstRemoved.next
-        assert(firstRemoved != null)
+        first_removed = first_removed.next
+        assert(first_removed != null)
       }
 
-      if (lastAdded == firstAdded) {
-        lastAdded = null
-        firstAdded = null
+      if (last_added == first_added) {
+        last_added = null
+        first_added = null
       }
-      if (firstAdded != null)
-        firstAdded = firstAdded.next
+      if (first_added != null)
+        first_added = first_added.next
     }
     
     // remove superflous last token-change
-    if (lastAdded != null && lastAdded == lastRemoved &&
-          lastAdded.start > start + addedLen) {
-      afterChange = lastRemoved
-      if (firstRemoved == lastRemoved) {
-        firstRemoved = null
-        lastRemoved = null
+    if (last_added != null && last_added == last_removed &&
+          last_added.start > start + added_len) {
+      after_change = last_removed
+      if (first_removed == last_removed) {
+        first_removed = null
+        last_removed = null
       }
       else {
-        lastRemoved = lastRemoved.prev
-        assert(lastRemoved != null)
+        last_removed = last_removed.prev
+        assert(last_removed != null)
       }
       
-      if (lastAdded == firstAdded) {
-        lastAdded = null
-        firstAdded = null
+      if (last_added == first_added) {
+        last_added = null
+        first_added = null
       }
       else
-        lastAdded = lastAdded.prev
+        last_added = last_added.prev
     }
     
-    if (firstRemoved == null && firstAdded == null)
+    if (first_removed == null && first_added == null)
       return
     
-    if (firstToken == null) {
-      firstToken = firstAdded
-      lastToken = lastAdded
+    if (first_token == null) {
+      first_token = first_added
+      last_token = last_added
     }
     else {
       // cut removed tokens out of list
-      if (firstRemoved != null)
-        firstRemoved.prev = null
-      if (lastRemoved != null)
-        lastRemoved.next = null
+      if (first_removed != null)
+        first_removed.prev = null
+      if (last_removed != null)
+        last_removed.next = null
       
-      if (firstToken == firstRemoved)
-        if (firstAdded != null)
-          firstToken = firstAdded
+      if (first_token == first_removed)
+        if (first_added != null)
+          first_token = first_added
         else
-          firstToken = afterChange
+          first_token = after_change
       
-      if (lastToken == lastRemoved)
-        if (lastAdded != null)
-          lastToken = lastAdded
+      if (last_token == last_removed)
+        if (last_added != null)
+          last_token = last_added
         else
-          lastToken = beforeChange
+          last_token = before_change
       
       // insert new tokens into list
-      if (firstAdded != null) {
-        firstAdded.prev = beforeChange
-        if (beforeChange != null)
-          beforeChange.next = firstAdded
+      if (first_added != null) {
+        first_added.prev = before_change
+        if (before_change != null)
+          before_change.next = first_added
         else
-          firstToken = firstAdded
+          first_token = first_added
       }
-      else if (beforeChange != null)
-        beforeChange.next = afterChange
+      else if (before_change != null)
+        before_change.next = after_change
       
-      if (lastAdded != null) {
-        lastAdded.next = afterChange
-        if (afterChange != null)
-          afterChange.prev = lastAdded
+      if (last_added != null) {
+        last_added.next = after_change
+        if (after_change != null)
+          after_change.prev = last_added
         else
-          lastToken = lastAdded
+          last_token = last_added
       }
-      else if (afterChange != null)
-        afterChange.prev = beforeChange
+      else if (after_change != null)
+        after_change.prev = before_change
     }
     
-    token_changed(beforeChange, afterChange, firstRemoved)
+    token_changed(before_change, after_change, first_removed)
   }
   
 
@@ -230,7 +230,7 @@ class ProofDocument(text: Text, prover: Prover)
   val structural_changes = new EventBus[StructureChange]
 
   def commands = new Iterator[Command] {
-    var current = firstToken
+    var current = first_token
     def hasNext = current != null
     def next() = { val s = current.command ; current = s.last.next ; s }
   }
@@ -242,7 +242,7 @@ class ProofDocument(text: Text, prover: Prover)
 
   private def token_changed(start: Token, stop: Token, removed: Token)
   {
-    var removedCommands: List[Command] = Nil
+    var removed_commands: List[Command] = Nil
     var first: Command = null
     var last: Command = null
 
@@ -250,12 +250,12 @@ class ProofDocument(text: Text, prover: Prover)
       if (first == null)
         first = t.command
       if (t.command != last)
-        removedCommands = t.command :: removedCommands
+        removed_commands = t.command :: removed_commands
       last = t.command
     }
 
     var before: Command = null
-    if (!removedCommands.isEmpty) {
+    if (!removed_commands.isEmpty) {
       if (first.first == removed) {
         if (start == null)
           before = null
@@ -266,7 +266,7 @@ class ProofDocument(text: Text, prover: Prover)
         before = first.prev
     }
 
-    var addedCommands: List[Command] = Nil
+    var added_commands: List[Command] = Nil
     var scan: Token = null
     if (start != null) {
       val next = start.next
@@ -282,7 +282,7 @@ class ProofDocument(text: Text, prover: Prover)
         }
         else if (first == null || first.first == removed) {
           first = start.command
-          removedCommands = first :: removedCommands
+          removed_commands = first :: removed_commands
           scan = first.first
           if (before == null)
             before = first.prev
@@ -295,7 +295,7 @@ class ProofDocument(text: Text, prover: Prover)
       }
     }
     else
-      scan = firstToken
+      scan = first_token
 
     var stopScan: Token = null
     if (stop != null) {
@@ -323,7 +323,7 @@ class ProofDocument(text: Text, prover: Prover)
 
       if (scan.kind == Token.Kind.COMMAND_START && cmdStart != null && !finished) {
         if (!overrun) {
-          addedCommands = new Command(text, cmdStart, cmdStop) :: addedCommands
+          added_commands = new Command(text, cmdStart, cmdStop) :: added_commands
           cmdStart = scan
           cmdStop = scan
         }
@@ -337,7 +337,7 @@ class ProofDocument(text: Text, prover: Prover)
       }
       if (overrun && !finished) {
         if (scan.command != last)
-          removedCommands = scan.command :: removedCommands
+          removed_commands = scan.command :: removed_commands
         last = scan.command
       }
 
@@ -346,12 +346,12 @@ class ProofDocument(text: Text, prover: Prover)
     }
 
     if (cmdStart != null)
-      addedCommands = new Command(text, cmdStart, cmdStop) :: addedCommands
+      added_commands = new Command(text, cmdStart, cmdStop) :: added_commands
 
     // relink commands
-    addedCommands = addedCommands.reverse
-    removedCommands = removedCommands.reverse
+    added_commands = added_commands.reverse
+    removed_commands = removed_commands.reverse
 
-    structural_changes.event(new StructureChange(before, addedCommands, removedCommands))
+    structural_changes.event(new StructureChange(before, added_commands, removed_commands))
   }
 }
