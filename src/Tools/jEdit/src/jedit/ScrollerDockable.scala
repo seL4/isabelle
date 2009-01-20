@@ -228,8 +228,7 @@ class ResultToPanelRenderer extends Renderer[Result, XHTMLPanel]{
         fontResolver.setFontMapping("Isabelle", Isabelle.plugin.font)
       panel.relayout()
     })
-    val tree = IsabelleProcess.parse_message(r.kind, Isabelle.symbols.decode(r.result))
-    val document = XML.document(tree)
+    val document = XML.document(IsabelleProcess.parse_message(Isabelle.system, r))
     panel.setDocument(document, UserAgent.baseURL)
     val sa = new SelectionActions
     sa.install(panel)
