@@ -118,7 +118,7 @@ fun unregister (success, message) thread = Synchronized.change_result state
 
           val now = Time.now ()
           val cancelling' =
-            fold (fn (th, (tb, _, desc)) => update_thread (th, (tb, now, desc))) others cancelling
+            fold (fn (th, (tb, _, desc)) => update_thread (th, (tb, now, desc))) group cancelling
 
           val msg = description ^ "\n" ^ message
           val message' = "Sledgehammer: " ^ msg ^
