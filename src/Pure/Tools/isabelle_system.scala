@@ -143,4 +143,16 @@ class IsabelleSystem {
     }
     logics.toList.sort(_ < _)
   }
+
+
+  /* symbols */
+
+  private def read_symbols(path: String) = {
+    val file = new File(platform_path(path))
+    if (file.canRead) Source.fromFile(file).getLines
+    else Iterator.empty
+  }
+  val symbols = new Symbol.Interpretation(
+    read_symbols("$ISABELLE_HOME/etc/symbols") ++
+    read_symbols("$ISABELLE_HOME_USER/etc/symbols"))
 }
