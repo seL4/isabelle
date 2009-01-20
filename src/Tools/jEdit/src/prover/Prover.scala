@@ -9,27 +9,34 @@
 package isabelle.prover
 
 
-import java.util.Properties
-
 import scala.collection.mutable.{HashMap, HashSet}
 import scala.collection.immutable.{TreeSet}
 
 import org.gjt.sp.util.Log
 
 import isabelle.proofdocument.{ProofDocument, Text, Token}
+import isabelle.IsarDocument
 
 
 class Prover(isabelle_system: IsabelleSystem, isabelle_symbols: Symbol.Interpretation)
 {
   private var _logic = isabelle_system.getenv_strict("ISABELLE_LOGIC")
   private var process: Isar = null
-  private var commands = new HashMap[String, Command]
+
+  private val commands = new HashMap[IsarDocument.Command_ID, Command]
 
 
   /* outer syntax keywords */
 
   val decl_info = new EventBus[(String, String)]
-  val command_decls = new HashMap[String, String] {
+
+  private val keyword_decls = new HashSet[String] {
+    override def +=(name: String) = {
+      decl_info.event(name, OuterKeyword.MINOR)
+      super.+=(name)
+    }
+  }
+  private val command_decls = new HashMap[String, String] {
     override def +=(entry: (String, String)) = {
       decl_info.event(entry)
       super.+=(entry)
@@ -38,12 +45,8 @@ class Prover(isabelle_system: IsabelleSystem, isabelle_symbols: Symbol.Interpret
   def is_command_keyword(s: String): Boolean = command_decls.contains(s)
 
 
-  val keyword_decls = new HashSet[String] {
-    override def +=(name: String) = {
-      decl_info.event(name, OuterKeyword.MINOR)
-      super.+=(name)
-    }
-  }
+  /* completions */
+
   var _completions = new TreeSet[String]
   def completions = _completions
   /* // TODO: ask Makarius to make Interpretation.symbols public (here: read-only as 'symbol_map')
@@ -54,7 +57,10 @@ class Prover(isabelle_system: IsabelleSystem, isabelle_symbols: Symbol.Interpret
   }
   */
   decl_info += (k_v => _completions += k_v._1)
-  
+
+
+  /* event handling */
+
   private var initialized = false
 
   val activated = new EventBus[Unit]
@@ -65,9 +71,11 @@ class Prover(isabelle_system: IsabelleSystem, isabelle_symbols: Symbol.Interpret
 
   def command_change(c: Command) = Swing.now { command_info.event(c) }
 
-  private def handle_result(r: IsabelleProcess.Result) = {
-    val id = if (r.props != null) r.props.getProperty(Markup.ID) else null
-    val st = if (id != null) commands.getOrElse(id, null) else null
+  private def handle_result(r: IsabelleProcess.Result)
+  {
+    val (id, st) = r.props.find(p => p._1 == Markup.ID) match
+      { case None => (null, null)
+        case Some((_, i)) => (i, commands.getOrElse(i, null)) }
 
     if (r.kind == IsabelleProcess.Kind.STDOUT || r.kind == IsabelleProcess.Kind.STDIN)
       Swing.now { output_info.event(r.result) }
@@ -81,12 +89,12 @@ class Prover(isabelle_system: IsabelleSystem, isabelle_symbols: Symbol.Interpret
       }
     }
     else {
-      val tree = IsabelleProcess.parse_message(r.kind, isabelle_symbols.decode(r.result))
       if (st == null || (st.status != Command.Status.REMOVED && st.status != Command.Status.REMOVE)) {
         r.kind match {
 
           case IsabelleProcess.Kind.STATUS =>
             //{{{ handle all kinds of status messages here
+            val tree = process.parse_message(r)
             tree match {
               case XML.Elem(Markup.MESSAGE, _, elems) =>
                 for (elem <- elems) {
@@ -137,6 +145,7 @@ class Prover(isabelle_system: IsabelleSystem, isabelle_symbols: Symbol.Interpret
             //}}}
 
           case IsabelleProcess.Kind.ERROR if st != null =>
+            val tree = process.parse_message(r)
             if (st.status != Command.Status.REMOVED && st.status != Command.Status.REMOVE)
               st.status = Command.Status.FAILED
             st.add_result(tree)
@@ -144,6 +153,7 @@ class Prover(isabelle_system: IsabelleSystem, isabelle_symbols: Symbol.Interpret
 
           case IsabelleProcess.Kind.WRITELN | IsabelleProcess.Kind.PRIORITY
             | IsabelleProcess.Kind.WARNING if st != null =>
+            val tree = process.parse_message(r)
             st.add_result(tree)
             command_change(st)
 
