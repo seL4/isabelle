@@ -11,6 +11,8 @@ package isabelle.prover
 import javax.swing.text.Position
 import javax.swing.tree.DefaultMutableTreeNode
 
+import scala.collection.mutable.ListBuffer
+
 import isabelle.proofdocument.{Token, ProofDocument}
 import isabelle.jedit.{Isabelle, Plugin}
 import isabelle.XML
@@ -59,17 +61,15 @@ class Command(val document: ProofDocument, val first: Token, val last: Token)
 
   /* accumulated results */
 
-  var results: List[XML.Tree] = Nil
+  private val results = new ListBuffer[XML.Tree]
+  def add_result(tree: XML.Tree) { results += tree }
 
-  def results_xml = XML.document(
-    results match {
+  def result_document = XML.document(
+    results.toList match {
       case Nil => XML.Elem("message", Nil, Nil)
       case List(elem) => elem
-      case _ => XML.Elem("messages", Nil, List(results.first, results.last))
+      case elems => XML.Elem("messages", Nil, List(elems.first, elems.last))  // FIXME all elems!?
     }, "style")
-  def add_result(tree: XML.Tree) {
-    results = results ::: List(tree)    // FIXME canonical reverse order
-  }
 
 
   /* content */

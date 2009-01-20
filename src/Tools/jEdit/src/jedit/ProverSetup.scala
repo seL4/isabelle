@@ -69,7 +69,7 @@ class ProverSetup(buffer: JEditBuffer)
         if (state == null)
           state_panel.setDocument(null: Document)
         else
-          state_panel.setDocument(state.results_xml, UserAgent.baseURL)
+          state_panel.setDocument(state.result_document, UserAgent.baseURL)
       }
     })
   
