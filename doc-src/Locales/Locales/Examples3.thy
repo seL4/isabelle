@@ -178,8 +178,6 @@ text {* Equations @{thm [source] nat_dvd_meet_eq} and @{thm [source]
   nat_dvd_join_eq} are named since they are handy in the proof of
   the subsequent interpretation. *}
 
-ML %invisible {* set quick_and_dirty *}
-
 (*
 definition
   is_lcm :: "nat \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> bool" where
@@ -200,8 +198,6 @@ thm mult_is_0 [THEN iffD1]
 lemma %invisible gcd_lcm_distr:
   "gcd x (lcm y z) = lcm (gcd x y) (gcd x z)" sorry
 
-ML %invisible {* reset quick_and_dirty *}
-  
 interpretation %visible nat_dvd:
   distrib_lattice "op dvd :: nat \<Rightarrow> nat \<Rightarrow> bool"
   apply unfold_locales
@@ -262,7 +258,7 @@ text {*
   preserving maps can be declared in the following way.  *}
 
   locale order_preserving =
-    partial_order + po': partial_order le' for le' (infixl "\<preceq>" 50) +
+    le: partial_order + le': partial_order le' for le' (infixl "\<preceq>" 50) +
     fixes \<phi> :: "'a \<Rightarrow> 'b"
     assumes hom_le: "x \<sqsubseteq> y \<Longrightarrow> \<phi> x \<preceq> \<phi> y"
 
@@ -288,8 +284,7 @@ text {* The second line contains the expression, which is the
   obtained by appending the conclusions of the left locale and of the
   right locale.  *}
 
-text {* % FIXME needs update
-  The locale @{text order_preserving} contains theorems for both
+text {* The locale @{text order_preserving} contains theorems for both
   orders @{text \<sqsubseteq>} and @{text \<preceq>}.  How can one refer to a theorem for
   a particular order, @{text \<sqsubseteq>} or @{text \<preceq>}?  Names in locales are
   qualified by the locale parameters.  More precisely, a name is
@@ -298,8 +293,8 @@ text {* % FIXME needs update
 
 context %invisible order_preserving begin
 
-text {* % FIXME needs update?
-  @{thm [source] less_le_trans}: @{thm less_le_trans}
+text {*
+  @{thm [source] le.less_le_trans}: @{thm le.less_le_trans}
 
   @{thm [source] hom_le}: @{thm hom_le}
   *}
@@ -307,12 +302,11 @@ text {* % FIXME needs update?
 text {* When renaming a locale, the morphism is also applied
   to the qualifiers.  Hence theorems for the partial order @{text \<preceq>}
   are qualified by @{text le'}.  For example, @{thm [source]
-  po'.less_le_trans}: @{thm [display, indent=2] po'.less_le_trans} *}
+  le'.less_le_trans}: @{thm [display, indent=2] le'.less_le_trans} *}
 
 end %invisible
 
-text {* % FIXME needs update?
-  This example reveals that there is no infix syntax for the strict
+text {* This example reveals that there is no infix syntax for the strict
   version of @{text \<preceq>}!  This can, of course, not be introduced
   automatically, but it can be declared manually through an abbreviation.
   *}
@@ -321,7 +315,7 @@ text {* % FIXME needs update?
     less' (infixl "\<prec>" 50) where "less' \<equiv> partial_order.less le'"
 
 text {* Now the theorem is displayed nicely as
-  @{thm [locale=order_preserving] po'.less_le_trans}.  *}
+  @{thm [locale=order_preserving] le'.less_le_trans}.  *}
 
 text {* Not only names of theorems are qualified.  In fact, all names
   are qualified, in particular names introduced by definitions and
@@ -333,7 +327,7 @@ text {* Not only names of theorems are qualified.  In fact, all names
 text {* Two more locales illustrate working with locale expressions.
   A map @{text \<phi>} is a lattice homomorphism if it preserves meet and join. *}
 
-  locale lattice_hom = lattice + lat'!: lattice le' for le' (infixl "\<preceq>" 50) +
+  locale lattice_hom = le: lattice + le': lattice le' for le' (infixl "\<preceq>" 50) +
     fixes \<phi>
     assumes hom_meet:
 	"\<phi> (lattice.meet le x y) = lattice.meet le' (\<phi> x) (\<phi> y)"
@@ -341,9 +335,9 @@ text {* Two more locales illustrate working with locale expressions.
 	"\<phi> (lattice.join le x y) = lattice.join le' (\<phi> x) (\<phi> y)"
 
   abbreviation (in lattice_hom)
-    meet' (infixl "\<sqinter>''" 50) where "meet' \<equiv> lat'.meet"
+    meet' (infixl "\<sqinter>''" 50) where "meet' \<equiv> le'.meet"
   abbreviation (in lattice_hom)
-    join' (infixl "\<squnion>''" 50) where "join' \<equiv> lat'.join"
+    join' (infixl "\<squnion>''" 50) where "join' \<equiv> le'.join"
 
 text {* A homomorphism is an endomorphism if both orders coincide. *}
 
@@ -400,17 +394,17 @@ text {* It can be shown easily that a lattice homomorphism is order
   sublocale lattice_hom \<subseteq> order_preserving proof unfold_locales
     fix x y
     assume "x \<sqsubseteq> y"
-    then have "y = (x \<squnion> y)" by (simp add: join_connection)
+    then have "y = (x \<squnion> y)" by (simp add: le.join_connection)
     then have "\<phi> y = (\<phi> x \<squnion>' \<phi> y)" by (simp add: hom_join [symmetric])
-    then show "\<phi> x \<preceq> \<phi> y" by (simp add: lat'.join_connection)
+    then show "\<phi> x \<preceq> \<phi> y" by (simp add: le'.join_connection)
   qed
 
 text {* Theorems and other declarations --- syntax, in particular ---
   from the locale @{text order_preserving} are now active in @{text
   lattice_hom}, for example
 
-  @{thm [locale=lattice_hom, source] lat'.less_le_trans}:
-  @{thm [locale=lattice_hom] lat'.less_le_trans}
+  @{thm [locale=lattice_hom, source] le'.less_le_trans}:
+  @{thm [locale=lattice_hom] le'.less_le_trans}
   *}
 
 
@@ -450,7 +444,9 @@ text {*
 
   \textit{attr-name} & ::=
   & \textit{name} $|$ \textit{attribute} $|$
-    \textit{name} \textit{attribute} \\[2ex]
+    \textit{name} \textit{attribute} \\
+  \textit{qualifier} & ::=
+  & \textit{name} [``\textbf{!}''] \\[2ex]
 
   \multicolumn{3}{l}{Context Elements} \\
 
@@ -490,19 +486,23 @@ text {*
 
   \multicolumn{3}{l}{Locale Expressions} \\
 
-  \textit{rename} & ::=
-  & \textit{name} [ \textit{mixfix} ] $|$ ``\textbf{\_}'' \\
-  \textit{expr}  & ::= 
-  & \textit{renamed-expr} ( ``\textbf{+}'' \textit{renamed-expr} )$^*$ \\
-  \textit{renamed-expr} & ::=
-  & ( \textit{qualified-name} $|$
-    ``\textbf{(}'' \textit{expr} ``\textbf{)}'' ) \textit{rename}$^*$ \\[2ex]
+  \textit{pos-insts} & ::=
+  & ( \textit{term} $|$ ``\textbf{\_}'' )$^*$ \\
+  \textit{named-insts} & ::=
+  & \textbf{where} \textit{name} ``\textbf{=}'' \textit{term}
+  ( \textbf{and} \textit{name} ``\textbf{=}'' \textit{term} )$^*$ \\
+  \textit{instance} & ::=
+  & [ \textit{qualifier} \textbf{:} ]
+    \textit{qualified-name} ( \textit{pos-insts} $|$ \textit{named-inst} ) \\
+  \textit{expression}  & ::= 
+  & \textit{instance} ( ``\textbf{+}'' \textit{instance} )$^*$
+    [ \textbf{for} \textit{fixes} ( \textbf{and} \textit{fixes} )$^*$ ] \\[2ex]
 
   \multicolumn{3}{l}{Declaration of Locales} \\
 
   \textit{locale} & ::=
   & \textit{element}$^+$ \\
-  & | & \textit{locale-expr} [ ``\textbf{+}'' \textit{element}$^+$ ] \\
+  & | & \textit{expression} [ ``\textbf{+}'' \textit{element}$^+$ ] \\
   \textit{toplevel} & ::=
   & \textbf{locale} \textit{name} [ ``\textbf{=}''
     \textit{locale} ] \\[2ex]
@@ -511,19 +511,17 @@ text {*
 
   \textit{equation} & ::= & [ \textit{attr-name} ``\textbf{:}'' ]
     \textit{prop} \\
-  \textit{insts} & ::= & [ ``\textbf{[}'' \textit{term}$^+$
-    ``\textbf{]}'' ] \\
-  & & [ \textbf{where} \textit{equation} ( \textbf{and}
-    \textit{equation} )$^*$ ] \\
+  \textit{equations} & ::= &  \textbf{where} \textit{equation} ( \textbf{and}
+    \textit{equation} )$^*$  \\
   \textit{toplevel} & ::=
-  & \textbf{interpretation} \textit{name} ( ``$<$'' $|$
-    ``$\subseteq$'' ) \textit{expr} \textit{proof} \\
+  & \textbf{sublocale} \textit{name} ( ``$<$'' $|$
+    ``$\subseteq$'' ) \textit{expression} \textit{proof} \\
   & |
-  & \textbf{interpretation} [ \textit{attr-name} ``\textbf{:}'' ]
-    \textit{expr} \textit{insts} \textit{proof} \\
+  & \textbf{interpretation}
+    \textit{expression} [ \textit{equations} ] \textit{proof} \\
   & |
-  & \textbf{interpret} [ \textit{attr-name} ``\textbf{:}'' ]
-    \textit{expr} \textit{insts} \textit{proof} \\[2ex]
+  & \textbf{interpret}
+    \textit{expression} \textit{proof} \\[2ex]
 
   \multicolumn{3}{l}{Diagnostics} \\
 
@@ -533,7 +531,7 @@ text {*
 \end{tabular}
 \end{center}
 \hrule
-\caption{Syntax of Locale Commands.}
+\caption{Syntax of Locale Commands (abridged).}
 \label{tab:commands}
 \end{table}
   *}

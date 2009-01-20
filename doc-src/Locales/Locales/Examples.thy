@@ -608,7 +608,7 @@ text {*
   and @{text lattice} be placed between @{text partial_order}
   and @{text total_order}, as shown in Figure~\ref{fig:lattices}(b).
   Changes to the locale hierarchy may be declared
-  with the \isakeyword{interpretation} command. *}
+  with the \isakeyword{sublocale} command. *}
 
   sublocale %visible total_order \<subseteq> lattice
 
