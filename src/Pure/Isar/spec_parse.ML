@@ -24,7 +24,7 @@ sig
   val locale_fixes: (binding * string option * mixfix) list parser
   val locale_insts: (string option list * (Attrib.binding * string) list) parser
   val class_expr: string list parser
-    val locale_expression: Expression.expression parser
+  val locale_expression: Expression.expression parser
   val locale_keyword: string parser
   val context_element: Element.context parser
   val statement: (Attrib.binding * (string * string list) list) list parser
