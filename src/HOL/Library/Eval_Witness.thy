@@ -32,7 +32,7 @@ text {*
   with the oracle.  
 *}
 
-class ml_equiv = type
+class ml_equiv
 
 text {*
   Instances of @{text "ml_equiv"} should only be declared for those types,

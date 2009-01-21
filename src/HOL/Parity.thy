@@ -8,7 +8,7 @@ theory Parity
 imports Plain Presburger
 begin
 
-class even_odd = type + 
+class even_odd = 
   fixes even :: "'a \<Rightarrow> bool"
 
 abbreviation

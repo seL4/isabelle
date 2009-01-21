@@ -1515,7 +1515,7 @@ Least_Suc}, since there appears to be no need.*}
 
 subsection {* size of a datatype value *}
 
-class size = type +
+class size =
   fixes size :: "'a \<Rightarrow> nat" -- {* see further theory @{text Wellfounded} *}
 
 end

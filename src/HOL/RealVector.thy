@@ -124,7 +124,7 @@ end
 
 subsection {* Real vector spaces *}
 
-class scaleR = type +
+class scaleR =
   fixes scaleR :: "real \<Rightarrow> 'a \<Rightarrow> 'a" (infixr "*\<^sub>R" 75)
 begin
 
@@ -418,7 +418,7 @@ lemma Reals_induct [case_names of_real, induct set: Reals]:
 
 subsection {* Real normed vector spaces *}
 
-class norm = type +
+class norm =
   fixes norm :: "'a \<Rightarrow> real"
 
 instantiation real :: norm

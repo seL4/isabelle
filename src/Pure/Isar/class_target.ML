@@ -55,8 +55,6 @@ sig
     -> (Attrib.binding * string list) list
     -> theory -> class * theory
   val classrel_cmd: xstring * xstring -> theory -> Proof.state
-
-  (*old instance layer*)
   val instance_arity: (theory -> theory) -> arity -> theory -> Proof.state
   val instance_arity_cmd: bstring * xstring list * xstring -> theory -> Proof.state
 end;
@@ -275,7 +273,7 @@ fun register_subclass (sub, sup) some_dep_morph some_wit export thy =
     val intros = (snd o rules thy) sup :: map_filter I
       [Option.map (Drule.standard' o Element.conclude_witness) some_wit,
         (fst o rules thy) sub];
-    val tac = ALLGOALS (EVERY' (map Tactic.rtac intros));
+    val tac = EVERY (map (TRYALL o Tactic.rtac) intros);
     val classrel = Goal.prove_global thy [] [] (Logic.mk_classrel (sub, sup))
       (K tac);
     val diff_sort = Sign.complete_sort thy [sup]
@@ -285,9 +283,9 @@ fun register_subclass (sub, sup) some_dep_morph some_wit export thy =
     |> AxClass.add_classrel classrel
     |> ClassData.map (Graph.add_edge (sub, sup))
     |> activate_defs sub (these_defs thy diff_sort)
-    |> fold2 (fn dep_morph => fn wit => Locale.add_dependency sub (sup,
-        dep_morph $> Element.satisfy_morphism [wit] $> export))
-          (the_list some_dep_morph) (the_list some_wit)
+    |> fold (fn dep_morph => Locale.add_dependency sub (sup,
+        dep_morph $> Element.satisfy_morphism (the_list some_wit) $> export))
+          (the_list some_dep_morph)
     |> (fn thy => fold_rev Locale.activate_global_facts
       (Locale.get_registrations thy) thy)
   end;

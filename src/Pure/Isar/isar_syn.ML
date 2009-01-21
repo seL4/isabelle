@@ -428,7 +428,7 @@ val class_val =
 
 val _ =
   OuterSyntax.command "class" "define type class" K.thy_decl
-   (P.name -- (P.$$$ "=" |-- class_val) -- P.opt_begin
+   (P.name -- Scan.optional (P.$$$ "=" |-- class_val) ([], []) -- P.opt_begin
     >> (fn ((name, (supclasses, elems)), begin) =>
         (begin ? Toplevel.print) o Toplevel.begin_local_theory begin
           (Class.class_cmd name supclasses elems #> snd)));

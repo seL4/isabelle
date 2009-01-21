@@ -123,7 +123,7 @@ use "Tools/typedef_codegen.ML" setup TypedefCodegen.setup
 text {* This class is just a workaround for classes without parameters;
   it shall disappear as soon as possible. *}
 
-class itself = type + 
+class itself = 
   fixes itself :: "'a itself"
 
 setup {*

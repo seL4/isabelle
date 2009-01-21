@@ -208,34 +208,34 @@ abbreviation (input)
 
 subsubsection {* Generic classes and algebraic operations *}
 
-class default = type +
+class default =
   fixes default :: 'a
 
-class zero = type + 
+class zero = 
   fixes zero :: 'a  ("0")
 
-class one = type +
+class one =
   fixes one  :: 'a  ("1")
 
 hide (open) const zero one
 
-class plus = type +
+class plus =
   fixes plus :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"  (infixl "+" 65)
 
-class minus = type +
+class minus =
   fixes minus :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"  (infixl "-" 65)
 
-class uminus = type +
+class uminus =
   fixes uminus :: "'a \<Rightarrow> 'a"  ("- _" [81] 80)
 
-class times = type +
+class times =
   fixes times :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"  (infixl "*" 70)
 
-class inverse = type +
+class inverse =
   fixes inverse :: "'a \<Rightarrow> 'a"
     and divide :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"  (infixl "'/" 70)
 
-class abs = type +
+class abs =
   fixes abs :: "'a \<Rightarrow> 'a"
 begin
 
@@ -247,10 +247,10 @@ notation (HTML output)
 
 end
 
-class sgn = type +
+class sgn =
   fixes sgn :: "'a \<Rightarrow> 'a"
 
-class ord = type +
+class ord =
   fixes less_eq :: "'a \<Rightarrow> 'a \<Rightarrow> bool"
     and less :: "'a \<Rightarrow> 'a \<Rightarrow> bool"
 begin
@@ -1675,7 +1675,7 @@ subsection {* Code generator basics -- see further theory @{text "Code_Setup"} *
 
 text {* Equality *}
 
-class eq = type +
+class eq =
   fixes eq :: "'a \<Rightarrow> 'a \<Rightarrow> bool"
   assumes eq_equals: "eq x y \<longleftrightarrow> x = y"
 begin

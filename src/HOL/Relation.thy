@@ -1,5 +1,4 @@
 (*  Title:      HOL/Relation.thy
-    ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1996  University of Cambridge
 *)
@@ -7,7 +6,7 @@
 header {* Relations *}
 
 theory Relation
-imports Product_Type
+imports Datatype Finite_Set
 begin
 
 subsection {* Definitions *}
@@ -379,6 +378,12 @@ by blast
 lemma fst_eq_Domain: "fst ` R = Domain R";
 by (auto intro!:image_eqI)
 
+lemma Domain_dprod [simp]: "Domain (dprod r s) = uprod (Domain r) (Domain s)"
+by auto
+
+lemma Domain_dsum [simp]: "Domain (dsum r s) = usum (Domain r) (Domain s)"
+by auto
+
 
 subsection {* Range *}
 
@@ -563,6 +568,31 @@ lemma trans_inv_image: "trans r ==> trans (inv_image r f)"
   apply (unfold trans_def inv_image_def)
   apply (simp (no_asm))
   apply blast
+  done
+
+
+subsection {* Finiteness *}
+
+lemma finite_converse [iff]: "finite (r^-1) = finite r"
+  apply (subgoal_tac "r^-1 = (%(x,y). (y,x))`r")
+   apply simp
+   apply (rule iffI)
+    apply (erule finite_imageD [unfolded inj_on_def])
+    apply (simp split add: split_split)
+   apply (erule finite_imageI)
+  apply (simp add: converse_def image_def, auto)
+  apply (rule bexI)
+   prefer 2 apply assumption
+  apply simp
+  done
+
+text {* \paragraph{Finiteness of transitive closure} (Thanks to Sidi
+Ehmety) *}
+
+lemma finite_Field: "finite r ==> finite (Field r)"
+  -- {* A finite relation has a finite field (@{text "= domain \<union> range"}. *}
+  apply (induct set: finite)
+   apply (auto simp add: Field_def Domain_insert Range_insert)
   done
 
 

@@ -11,7 +11,7 @@ begin
 
 text {* A type class of kleene algebras *}
 
-class star = type +
+class star =
   fixes star :: "'a \<Rightarrow> 'a"
 
 class idem_add = ab_semigroup_add +
