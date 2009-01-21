@@ -61,12 +61,12 @@ sig
   val list: 'a parser -> 'a list parser
   val list1: 'a parser -> 'a list parser
   val name: bstring parser
-  val binding: Binding.T parser
+  val binding: binding parser
   val xname: xstring parser
   val text: string parser
   val path: Path.T parser
   val parname: string parser
-  val parbinding: Binding.T parser
+  val parbinding: binding parser
   val sort: string parser
   val arity: (string * string list * string) parser
   val multi_arity: (string list * string list * string) parser
@@ -81,11 +81,11 @@ sig
   val opt_mixfix': mixfix parser
   val where_: string parser
   val const: (string * string * mixfix) parser
-  val params: (Binding.T * string option) list parser
-  val simple_fixes: (Binding.T * string option) list parser
-  val fixes: (Binding.T * string option * mixfix) list parser
-  val for_fixes: (Binding.T * string option * mixfix) list parser
-  val for_simple_fixes: (Binding.T * string option) list parser
+  val params: (binding * string option) list parser
+  val simple_fixes: (binding * string option) list parser
+  val fixes: (binding * string option * mixfix) list parser
+  val for_fixes: (binding * string option * mixfix) list parser
+  val for_simple_fixes: (binding * string option) list parser
   val ML_source: (SymbolPos.text * Position.T) parser
   val doc_source: (SymbolPos.text * Position.T) parser
   val term_group: string parser

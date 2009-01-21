@@ -3,9 +3,10 @@
 
 Generic name spaces with declared and hidden entries.  Unknown names
 are considered global; no support for absolute addressing.
+Cf. Pure/General/binding.ML
 *)
 
-type bstring = string;    (*names to be bound*)
+type bstring = string;    (*simple names to be bound -- legacy*)
 type xstring = string;    (*external names*)
 
 signature NAME_SPACE =
@@ -31,8 +32,8 @@ sig
   val merge: T * T -> T
   type naming
   val default_naming: naming
-  val declare: naming -> Binding.T -> T -> string * T
-  val full_name: naming -> Binding.T -> string
+  val declare: naming -> binding -> T -> string * T
+  val full_name: naming -> binding -> string
   val external_names: naming -> string -> string list
   val path_of: naming -> string
   val add_path: string -> naming -> naming
@@ -41,7 +42,7 @@ sig
   val sticky_prefix: string -> naming -> naming
   type 'a table = T * 'a Symtab.table
   val empty_table: 'a table
-  val bind: naming -> Binding.T * 'a
+  val bind: naming -> binding * 'a
     -> 'a table -> string * 'a table (*exception Symtab.DUP*)
   val merge_tables: ('a * 'a -> bool) -> 'a table * 'a table -> 'a table
   val join_tables: (string -> 'a * 'a -> 'a)

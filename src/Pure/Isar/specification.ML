@@ -9,33 +9,33 @@ toplevel polymorphism.
 signature SPECIFICATION =
 sig
   val print_consts: local_theory -> (string * typ -> bool) -> (string * typ) list -> unit
-  val check_specification: (Binding.T * typ option * mixfix) list ->
+  val check_specification: (binding * typ option * mixfix) list ->
     (Attrib.binding * term list) list list -> Proof.context ->
-    (((Binding.T * typ) * mixfix) list * (Attrib.binding * term list) list) * Proof.context
-  val read_specification: (Binding.T * string option * mixfix) list ->
+    (((binding * typ) * mixfix) list * (Attrib.binding * term list) list) * Proof.context
+  val read_specification: (binding * string option * mixfix) list ->
     (Attrib.binding * string list) list list -> Proof.context ->
-    (((Binding.T * typ) * mixfix) list * (Attrib.binding * term list) list) * Proof.context
-  val check_free_specification: (Binding.T * typ option * mixfix) list ->
+    (((binding * typ) * mixfix) list * (Attrib.binding * term list) list) * Proof.context
+  val check_free_specification: (binding * typ option * mixfix) list ->
     (Attrib.binding * term list) list -> Proof.context ->
-    (((Binding.T * typ) * mixfix) list * (Attrib.binding * term list) list) * Proof.context
-  val read_free_specification: (Binding.T * string option * mixfix) list ->
+    (((binding * typ) * mixfix) list * (Attrib.binding * term list) list) * Proof.context
+  val read_free_specification: (binding * string option * mixfix) list ->
     (Attrib.binding * string list) list -> Proof.context ->
-    (((Binding.T * typ) * mixfix) list * (Attrib.binding * term list) list) * Proof.context
-  val axiomatization: (Binding.T * typ option * mixfix) list ->
+    (((binding * typ) * mixfix) list * (Attrib.binding * term list) list) * Proof.context
+  val axiomatization: (binding * typ option * mixfix) list ->
     (Attrib.binding * term list) list -> theory ->
     (term list * (string * thm list) list) * theory
-  val axiomatization_cmd: (Binding.T * string option * mixfix) list ->
+  val axiomatization_cmd: (binding * string option * mixfix) list ->
     (Attrib.binding * string list) list -> theory ->
     (term list * (string * thm list) list) * theory
   val definition:
-    (Binding.T * typ option * mixfix) option * (Attrib.binding * term) ->
+    (binding * typ option * mixfix) option * (Attrib.binding * term) ->
     local_theory -> (term * (string * thm)) * local_theory
   val definition_cmd:
-    (Binding.T * string option * mixfix) option * (Attrib.binding * string) ->
+    (binding * string option * mixfix) option * (Attrib.binding * string) ->
     local_theory -> (term * (string * thm)) * local_theory
-  val abbreviation: Syntax.mode -> (Binding.T * typ option * mixfix) option * term ->
+  val abbreviation: Syntax.mode -> (binding * typ option * mixfix) option * term ->
     local_theory -> local_theory
-  val abbreviation_cmd: Syntax.mode -> (Binding.T * string option * mixfix) option * string ->
+  val abbreviation_cmd: Syntax.mode -> (binding * string option * mixfix) option * string ->
     local_theory -> local_theory
   val notation: bool -> Syntax.mode -> (term * mixfix) list -> local_theory -> local_theory
   val notation_cmd: bool -> Syntax.mode -> (string * mixfix) list -> local_theory -> local_theory
@@ -149,7 +149,8 @@ fun gen_axioms do_print prep raw_vars raw_specs thy =
 
     (*axioms*)
     val (axioms, axioms_thy) = consts_thy |> fold_map (fn ((b, atts), props) =>
-        fold_map Thm.add_axiom (PureThy.name_multi (Binding.base_name b) (map subst props))
+        fold_map Thm.add_axiom
+          ((map o apfst) Binding.name (PureThy.name_multi (Binding.base_name b) (map subst props)))
         #>> (fn ths => ((b, atts), [(map Drule.standard' ths, [])]))) specs;
     val (facts, thy') = axioms_thy |> PureThy.note_thmss Thm.axiomK
       (Attrib.map_facts (Attrib.attribute_i axioms_thy) axioms);

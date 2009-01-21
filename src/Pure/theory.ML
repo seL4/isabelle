@@ -29,14 +29,14 @@ sig
   val at_end: (theory -> theory option) -> theory -> theory
   val begin_theory: string -> theory list -> theory
   val end_theory: theory -> theory
+  val add_axioms_i: (binding * term) list -> theory -> theory
   val add_axioms: (bstring * string) list -> theory -> theory
-  val add_axioms_i: (bstring * term) list -> theory -> theory
   val add_deps: string -> string * typ -> (string * typ) list -> theory -> theory
+  val add_defs_i: bool -> bool -> (binding * term) list -> theory -> theory
   val add_defs: bool -> bool -> (bstring * string) list -> theory -> theory
-  val add_defs_i: bool -> bool -> (bstring * term) list -> theory -> theory
-  val add_finals: bool -> string list -> theory -> theory
   val add_finals_i: bool -> term list -> theory -> theory
-  val specify_const: Properties.T -> (Binding.T * typ) * mixfix -> theory -> term * theory
+  val add_finals: bool -> string list -> theory -> theory
+  val specify_const: Properties.T -> (binding * typ) * mixfix -> theory -> term * theory
 end
 
 structure Theory: THEORY =
@@ -157,19 +157,19 @@ fun end_theory thy =
 fun err_in_axm msg name =
   cat_error msg ("The error(s) above occurred in axiom " ^ quote name);
 
-fun cert_axm thy (name, raw_tm) =
+fun cert_axm thy (b, raw_tm) =
   let
     val (t, T, _) = Sign.certify_prop thy raw_tm
       handle TYPE (msg, _, _) => error msg
         | TERM (msg, _) => error msg;
   in
     Term.no_dummy_patterns t handle TERM (msg, _) => error msg;
-    (name, Sign.no_vars (Syntax.pp_global thy) t)
+    (b, Sign.no_vars (Syntax.pp_global thy) t)
   end;
 
-fun read_axm thy (name, str) =
-  cert_axm thy (name, Syntax.read_prop_global thy str)
-    handle ERROR msg => err_in_axm msg name;
+fun read_axm thy (bname, str) =
+  cert_axm thy (Binding.name bname, Syntax.read_prop_global thy str)
+    handle ERROR msg => err_in_axm msg bname;
 
 
 (* add_axioms(_i) *)
@@ -178,15 +178,15 @@ local
 
 fun gen_add_axioms prep_axm raw_axms thy = thy |> map_axioms (fn axioms =>
   let
-    val axms = map (apfst Binding.name o apsnd Logic.varify o prep_axm thy) raw_axms;
+    val axms = map (apsnd Logic.varify o prep_axm thy) raw_axms;
     val axioms' = fold (snd oo NameSpace.bind (Sign.naming_of thy)) axms axioms
       handle Symtab.DUP dup => err_dup_axm dup;
   in axioms' end);
 
 in
 
-val add_axioms = gen_add_axioms read_axm;
 val add_axioms_i = gen_add_axioms cert_axm;
+val add_axioms = gen_add_axioms read_axm;
 
 end;
 
@@ -250,16 +250,16 @@ fun check_overloading thy overloaded (c, T) =
 
 (* check_def *)
 
-fun check_def thy unchecked overloaded (bname, tm) defs =
+fun check_def thy unchecked overloaded (b, tm) defs =
   let
     val ctxt = ProofContext.init thy;
-    val name = Sign.full_bname thy bname;
+    val name = Sign.full_name thy b;
     val (lhs_const, rhs) = Sign.cert_def ctxt tm;
     val rhs_consts = fold_aterms (fn Const const => insert (op =) const | _ => I) rhs [];
     val _ = check_overloading thy overloaded lhs_const;
   in defs |> dependencies thy unchecked true name lhs_const rhs_consts end
   handle ERROR msg => cat_error msg (Pretty.string_of (Pretty.block
-   [Pretty.str ("The error(s) above occurred in definition " ^ quote bname ^ ":"),
+   [Pretty.str ("The error(s) above occurred in definition " ^ quote (Binding.display b) ^ ":"),
     Pretty.fbrk, Pretty.quote (Syntax.pretty_term_global thy tm)]));
 
 
@@ -298,8 +298,8 @@ fun gen_add_finals prep_term overloaded args thy =
 
 in
 
-val add_finals = gen_add_finals Syntax.read_term_global;
 val add_finals_i = gen_add_finals (K I);
+val add_finals = gen_add_finals Syntax.read_term_global;
 
 end;
 

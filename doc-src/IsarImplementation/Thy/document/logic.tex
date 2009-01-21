@@ -325,9 +325,9 @@ The language of types is an uninterpreted order-sorted first-order
   \indexml{fastype\_of}\verb|fastype_of: term -> typ| \\
   \indexml{lambda}\verb|lambda: term -> term -> term| \\
   \indexml{betapply}\verb|betapply: term * term -> term| \\
-  \indexml{Sign.declare\_const}\verb|Sign.declare_const: Properties.T -> (Binding.T * typ) * mixfix ->|\isasep\isanewline%
+  \indexml{Sign.declare\_const}\verb|Sign.declare_const: Properties.T -> (binding * typ) * mixfix ->|\isasep\isanewline%
 \verb|  theory -> term * theory| \\
-  \indexml{Sign.add\_abbrev}\verb|Sign.add_abbrev: string -> Properties.T -> Binding.T * term ->|\isasep\isanewline%
+  \indexml{Sign.add\_abbrev}\verb|Sign.add_abbrev: string -> Properties.T -> binding * term ->|\isasep\isanewline%
 \verb|  theory -> (term * term) * theory| \\
   \indexml{Sign.const\_typargs}\verb|Sign.const_typargs: theory -> string * typ -> typ list| \\
   \indexml{Sign.const\_instance}\verb|Sign.const_instance: theory -> string * typ list -> typ| \\

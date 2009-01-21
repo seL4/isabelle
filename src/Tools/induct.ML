@@ -50,7 +50,7 @@ sig
   val setN: string
   (*proof methods*)
   val fix_tac: Proof.context -> int -> (string * typ) list -> int -> tactic
-  val add_defs: (Binding.T option * term) option list -> Proof.context ->
+  val add_defs: (binding option * term) option list -> Proof.context ->
     (term option list * thm list) * Proof.context
   val atomize_term: theory -> term -> term
   val atomize_tac: int -> tactic
@@ -62,7 +62,7 @@ sig
   val cases_tac: Proof.context -> term option list list -> thm option ->
     thm list -> int -> cases_tactic
   val get_inductT: Proof.context -> term option list list -> thm list list
-  val induct_tac: Proof.context -> (Binding.T option * term) option list list ->
+  val induct_tac: Proof.context -> (binding option * term) option list list ->
     (string * typ) list list -> term option list -> thm list option ->
     thm list -> int -> cases_tactic
   val coinduct_tac: Proof.context -> term option list -> term option list -> thm option ->

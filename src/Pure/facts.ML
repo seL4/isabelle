@@ -30,9 +30,9 @@ sig
   val props: T -> thm list
   val could_unify: T -> term -> thm list
   val merge: T * T -> T
-  val add_global: NameSpace.naming -> Binding.T * thm list -> T -> string * T
-  val add_local: bool -> NameSpace.naming -> Binding.T * thm list -> T -> string * T
-  val add_dynamic: NameSpace.naming -> Binding.T * (Context.generic -> thm list) -> T -> string * T
+  val add_global: NameSpace.naming -> binding * thm list -> T -> string * T
+  val add_local: bool -> NameSpace.naming -> binding * thm list -> T -> string * T
+  val add_dynamic: NameSpace.naming -> binding * (Context.generic -> thm list) -> T -> string * T
   val del: string -> T -> T
   val hide: bool -> string -> T -> T
 end;

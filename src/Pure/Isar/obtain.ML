@@ -39,16 +39,16 @@ similar, but derives these elements from the course of reasoning!
 signature OBTAIN =
 sig
   val thatN: string
-  val obtain: string -> (Binding.T * string option * mixfix) list ->
+  val obtain: string -> (binding * string option * mixfix) list ->
     (Attrib.binding * (string * string list) list) list ->
     bool -> Proof.state -> Proof.state
-  val obtain_i: string -> (Binding.T * typ option * mixfix) list ->
-    ((Binding.T * attribute list) * (term * term list) list) list ->
+  val obtain_i: string -> (binding * typ option * mixfix) list ->
+    ((binding * attribute list) * (term * term list) list) list ->
     bool -> Proof.state -> Proof.state
   val result: (Proof.context -> tactic) -> thm list -> Proof.context ->
     (cterm list * thm list) * Proof.context
-  val guess: (Binding.T * string option * mixfix) list -> bool -> Proof.state -> Proof.state
-  val guess_i: (Binding.T * typ option * mixfix) list -> bool -> Proof.state -> Proof.state
+  val guess: (binding * string option * mixfix) list -> bool -> Proof.state -> Proof.state
+  val guess_i: (binding * typ option * mixfix) list -> bool -> Proof.state -> Proof.state
 end;
 
 structure Obtain: OBTAIN =
