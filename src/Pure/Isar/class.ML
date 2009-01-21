@@ -92,8 +92,8 @@ fun calculate thy class sups base_sort param_map assm_axiom =
 fun add_typ_check level name f = Context.proof_map (Syntax.add_typ_check level name (fn xs => fn ctxt =>
   let val xs' = f xs in if eq_list (op =) (xs, xs') then NONE else SOME (xs', ctxt) end));
 
-fun singleton_infer_param change_sort = (map o map_atyps) (fn T as TVar (vi as (_, i), sort) =>
-      if TypeInfer.is_param vi then TypeInfer.param i (Name.aT, change_sort sort)
+val singleton_infer_param = (map o map_atyps) (fn T as TVar (vi as (_, i), sort) =>
+      if TypeInfer.is_param vi then TypeInfer.param i (Name.aT, sort)
       else error ("Illegal schematic type variable in class specification: " ^ Term.string_of_vname vi)
         (*FIXME does not occur*)
   | T as TFree (v, sort) =>
@@ -119,11 +119,12 @@ fun prep_class_spec prep_class prep_decl thy raw_supclasses raw_elems =
   let
     (* prepare import *)
     val inter_sort = curry (Sorts.inter_sort (Sign.classes_of thy));
-    val (sups, others_basesort) = map (prep_class thy) raw_supclasses
-      |> Sign.minimize_sort thy
-      |> List.partition (is_class thy);
-
-    val supparams = (map o apsnd) (snd o snd) (these_params thy sups);
+    val sups = map (prep_class thy) raw_supclasses
+      |> Sign.minimize_sort thy;
+    val _ = case filter_out (is_class thy) sups
+     of [] => ()
+      | no_classes => error ("These are not classes: " ^ commas (map quote no_classes));
+          val supparams = (map o apsnd) (snd o snd) (these_params thy sups);
     val supparam_names = map fst supparams;
     val _ = if has_duplicates (op =) supparam_names
       then error ("Duplicate parameter(s) in superclasses: "
@@ -131,7 +132,7 @@ fun prep_class_spec prep_class prep_decl thy raw_supclasses raw_elems =
       else ();
     val supexpr = (map (fn sup => (sup, (("", false), Expression.Positional [])))
       sups, []);
-    val given_basesort = fold inter_sort (map (base_sort thy) sups) others_basesort;
+    val given_basesort = fold inter_sort (map (base_sort thy) sups) [];
 
     (* infer types and base sort *)
     val base_constraints = (map o apsnd)
@@ -139,10 +140,9 @@ fun prep_class_spec prep_class prep_decl thy raw_supclasses raw_elems =
         (these_operations thy sups);
     val ((_, _, inferred_elems), _) = ProofContext.init thy
       |> fold (ProofContext.add_const_constraint o apsnd SOME) base_constraints
-      |> add_typ_check ~1 "singleton_infer_param" (singleton_infer_param (inter_sort given_basesort))
+      |> add_typ_check ~1 "singleton_infer_param" singleton_infer_param
       |> add_typ_check ~2 "singleton_fixate" singleton_fixate
       |> prep_decl supexpr raw_elems;
-    (*FIXME propagation of given base sort into class spec broken*)
     (*FIXME check for *all* side conditions here, extra check function for elements,
       less side-condition checks in check phase*)
     val base_sort = if null inferred_elems then given_basesort else
@@ -169,45 +169,6 @@ fun prep_class_spec prep_class prep_decl thy raw_supclasses raw_elems =
 
 val cert_class_spec = prep_class_spec (K I) Expression.cert_declaration;
 val read_class_spec = prep_class_spec Sign.intern_class Expression.cert_read_declaration;
-
-(*fun prep_class_spec prep_class process_decl thy raw_supclasses raw_elems =
-  let
-    (*FIXME 2009 simplify*)
-    val supclasses = map (prep_class thy) raw_supclasses;
-    val supsort = Sign.minimize_sort thy supclasses;
-    val (sups, bases) = List.partition (is_class thy) supsort;
-    val base_sort = if null sups then supsort else
-      Library.foldr (Sorts.inter_sort (Sign.classes_of thy))
-        (map (base_sort thy) sups, bases);
-    val supparams = (map o apsnd) (snd o snd) (these_params thy sups);
-    val supparam_names = map fst supparams;
-    val _ = if has_duplicates (op =) supparam_names
-      then error ("Duplicate parameter(s) in superclasses: "
-        ^ (commas o map quote o duplicates (op =)) supparam_names)
-      else ();
-
-    val supexpr = (map (fn sup => (sup, (("", false), Expression.Positional [])))
-      sups, []);
-    val constrain = Element.Constrains ((map o apsnd o map_atyps)
-      (K (TFree (Name.aT, base_sort))) supparams);
-      (*FIXME 2009 perhaps better: control type variable by explicit
-      parameter instantiation of import expression*)
-    val begin_ctxt = begin sups base_sort
-      #> fold (Variable.declare_constraints o Free) ((map o apsnd o map_atyps)
-          (K (TFree (Name.aT, base_sort))) supparams) (*FIXME
-            should constraints be issued in begin?*)
-    val ((_, _, syntax_elems), _) = ProofContext.init thy
-      |> begin_ctxt
-      |> process_decl supexpr raw_elems;
-    fun fork_syn (Element.Fixes xs) =
-          fold_map (fn (c, ty, syn) => cons (Binding.base_name c, syn) #> pair (c, ty, NoSyn)) xs
-          #>> Element.Fixes
-      | fork_syn x = pair x;
-    val (elems, global_syntax) = fold_map fork_syn syntax_elems [];
-  in (((sups, supparam_names), (supsort, base_sort, supexpr)), (constrain :: elems, global_syntax)) end;
-
-val cert_class_spec = prep_class_spec (K I) Expression.cert_declaration;
-val read_class_spec = prep_class_spec Sign.intern_class Expression.cert_read_declaration;*)
 
 fun add_consts bname class base_sort sups supparams global_syntax thy =
   let

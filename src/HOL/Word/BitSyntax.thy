@@ -12,7 +12,7 @@ theory BitSyntax
 imports BinGeneral
 begin
 
-class bit = type +
+class bit =
   fixes bitNOT :: "'a \<Rightarrow> 'a"       ("NOT _" [70] 71)
     and bitAND :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" (infixr "AND" 64)
     and bitOR  :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" (infixr "OR"  59)

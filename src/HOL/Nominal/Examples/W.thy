@@ -49,7 +49,7 @@ types
 
 text {* free type variables *}
 
-class ftv = type +
+class ftv =
   fixes ftv :: "'a \<Rightarrow> tvar list"
 
 instantiation * :: (ftv, ftv) ftv

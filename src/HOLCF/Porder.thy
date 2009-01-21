@@ -10,7 +10,7 @@ begin
 
 subsection {* Type class for partial orders *}
 
-class sq_ord = type +
+class sq_ord =
   fixes sq_le :: "'a \<Rightarrow> 'a \<Rightarrow> bool"
 
 notation

@@ -66,6 +66,12 @@ fractions (e.g. 123.45 or -123.45).
 
 *** Pure ***
 
+* Class declaration: sc. "base sort" must not be given in import list
+any longer but is inferred from the specification.  Particularly in HOL,
+write
+
+    class foo = ...     instead of      class foo = type + ...
+
 * Type Binding.T gradually replaces formerly used type bstring for names
 to be bound.  Name space interface for declarations has been simplified:
 
