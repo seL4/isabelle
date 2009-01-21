@@ -463,10 +463,12 @@ fun decode_tstp_file cnfs ctxt th sgno thm_names =
   val failure_strings_vampire = ["Satisfiability detected", "Refutation not found", "CANNOT PROVE"];
   val failure_strings_SPASS = ["SPASS beiseite: Completion found.","SPASS beiseite: Ran out of time.",
   "SPASS beiseite: Maximal number of loops exceeded."];
-  fun find_failure_e_vamp_spass proof = 
-    hd (map (fn s => if String.isSubstring s proof then SOME s else NONE) 
-            (failure_strings_E @ failure_strings_vampire @ failure_strings_SPASS));
-
+  fun find_failure_e_vamp_spass proof =
+    let val failures =
+      map_filter (fn s => if String.isSubstring s proof then SOME s else NONE) 
+         (failure_strings_E @ failure_strings_vampire @ failure_strings_SPASS)
+    in if null failures then NONE else SOME (hd failures) end;
+    
   (*=== EXTRACTING PROOF-TEXT === *)
   
   val begin_proof_strings = ["# SZS output start CNFRefutation.",

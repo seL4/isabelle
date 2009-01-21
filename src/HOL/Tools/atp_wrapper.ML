@@ -76,7 +76,7 @@ fun external_prover write_problem_files (cmd, args) find_failure produce_answer 
     
     (* check for success and print out some information on failure *)
     val failure = find_failure proof
-    val success = (rc = 0) andalso (not (isSome failure))
+    val success = rc = 0 andalso is_none failure
     val message =
       if isSome failure then "Could not prove: " ^ the failure
       else if rc <> 0
