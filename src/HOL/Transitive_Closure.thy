@@ -1,5 +1,4 @@
 (*  Title:      HOL/Transitive_Closure.thy
-    ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1992  University of Cambridge
 *)
@@ -566,6 +565,22 @@ lemma Not_Domain_rtrancl:
   apply (erule rev_mp)
   apply (erule rtrancl_induct)
    apply auto
+  done
+
+lemma trancl_subset_Field2: "r^+ <= Field r \<times> Field r"
+  apply clarify
+  apply (erule trancl_induct)
+   apply (auto simp add: Field_def)
+  done
+
+lemma finite_trancl: "finite (r^+) = finite r"
+  apply auto
+   prefer 2
+   apply (rule trancl_subset_Field2 [THEN finite_subset])
+   apply (rule finite_SigmaI)
+    prefer 3
+    apply (blast intro: r_into_trancl' finite_subset)
+   apply (auto simp add: finite_Field)
   done
 
 text {* More about converse @{text rtrancl} and @{text trancl}, should
