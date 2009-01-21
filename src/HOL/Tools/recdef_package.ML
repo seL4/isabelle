@@ -1,5 +1,4 @@
 (*  Title:      HOL/Tools/recdef_package.ML
-    ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
 
 Wrapper module for Konrad Slind's TFL package.
@@ -16,10 +15,10 @@ sig
   val cong_del: attribute
   val wf_add: attribute
   val wf_del: attribute
-  val add_recdef: bool -> xstring -> string -> ((bstring * string) * Attrib.src list) list ->
+  val add_recdef: bool -> xstring -> string -> ((binding * string) * Attrib.src list) list ->
     Attrib.src option -> theory -> theory
       * {simps: thm list, rules: thm list list, induct: thm, tcs: term list}
-  val add_recdef_i: bool -> xstring -> term -> ((bstring * term) * attribute list) list ->
+  val add_recdef_i: bool -> xstring -> term -> ((binding * term) * attribute list) list ->
     theory -> theory * {simps: thm list, rules: thm list list, induct: thm, tcs: term list}
   val defer_recdef: xstring -> string list -> (Facts.ref * Attrib.src list) list
     -> theory -> theory * {induct_rules: thm}
@@ -214,8 +213,8 @@ fun gen_add_recdef tfl_fn prep_att prep_hints not_permissive raw_name R eq_srcs 
       thy
       |> Sign.add_path bname
       |> PureThy.add_thmss
-        ((("simps", List.concat rules), simp_att) :: ((eq_names ~~ rules) ~~ eq_atts))
-      ||>> PureThy.add_thms [(("induct", induct), [])];
+        (((Binding.name "simps", List.concat rules), simp_att) :: ((eq_names ~~ rules) ~~ eq_atts))
+      ||>> PureThy.add_thms [((Binding.name "induct", induct), [])];
     val result = {simps = simps', rules = rules', induct = induct', tcs = tcs};
     val thy =
       thy
@@ -243,7 +242,7 @@ fun gen_defer_recdef tfl_fn eval_thms raw_name eqs raw_congs thy =
     val ([induct_rules'], thy3) =
       thy2
       |> Sign.add_path bname
-      |> PureThy.add_thms [(("induct_rules", induct_rules), [])]
+      |> PureThy.add_thms [((Binding.name "induct_rules", induct_rules), [])]
       ||> Sign.parent_path;
   in (thy3, {induct_rules = induct_rules'}) end;
 
@@ -299,7 +298,7 @@ val hints =
 
 val recdef_decl =
   Scan.optional (P.$$$ "(" -- P.!!! (P.$$$ "permissive" -- P.$$$ ")") >> K false) true --
-  P.name -- P.term -- Scan.repeat1 ((SpecParse.opt_thm_name ":" >> apfst Binding.base_name) -- P.prop)
+  P.name -- P.term -- Scan.repeat1 (SpecParse.opt_thm_name ":" -- P.prop)
     -- Scan.option hints
   >> (fn ((((p, f), R), eqs), src) => #1 o add_recdef p f R (map P.triple_swap eqs) src);
 

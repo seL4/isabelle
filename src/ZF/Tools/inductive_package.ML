@@ -27,10 +27,10 @@ sig
   (*Insert definitions for the recursive sets, which
      must *already* be declared as constants in parent theory!*)
   val add_inductive_i: bool -> term list * term ->
-    ((Binding.T * term) * attribute list) list ->
+    ((binding * term) * attribute list) list ->
     thm list * thm list * thm list * thm list -> theory -> theory * inductive_result
   val add_inductive: string list * string ->
-    ((Binding.T * string) * Attrib.src list) list ->
+    ((binding * string) * Attrib.src list) list ->
     (Facts.ref * Attrib.src list) list * (Facts.ref * Attrib.src list) list *
     (Facts.ref * Attrib.src list) list * (Facts.ref * Attrib.src list) list ->
     theory -> theory * inductive_result
@@ -173,7 +173,7 @@ let
   val (_, thy1) =
     thy
     |> Sign.add_path big_rec_base_name
-    |> PureThy.add_defs false (map Thm.no_attributes axpairs);
+    |> PureThy.add_defs false (map (Thm.no_attributes o apfst Binding.name) axpairs);
 
   val ctxt1 = ProofContext.init thy1;
 
@@ -510,9 +510,9 @@ let
 
      val ([induct', mutual_induct'], thy') =
        thy
-       |> PureThy.add_thms [((co_prefix ^ "induct", induct),
+       |> PureThy.add_thms [((Binding.name (co_prefix ^ "induct"), induct),
              [case_names, Induct.induct_pred big_rec_name]),
-           (("mutual_induct", mutual_induct), [case_names])];
+           ((Binding.name "mutual_induct", mutual_induct), [case_names])];
     in ((thy', induct'), mutual_induct')
     end;  (*of induction_rules*)
 
@@ -522,7 +522,7 @@ let
     if not coind then induction_rules raw_induct thy1
     else
       (thy1
-      |> PureThy.add_thms [((co_prefix ^ "induct", raw_induct), [])]
+      |> PureThy.add_thms [((Binding.name (co_prefix ^ "induct"), raw_induct), [])]
       |> apfst hd |> Library.swap, TrueI)
   and defs = big_rec_def :: part_rec_defs
 
@@ -531,15 +531,15 @@ let
     thy2
     |> IndCases.declare big_rec_name make_cases
     |> PureThy.add_thms
-      [(("bnd_mono", bnd_mono), []),
-       (("dom_subset", dom_subset), []),
-       (("cases", elim), [case_names, Induct.cases_pred big_rec_name])]
+      [((Binding.name "bnd_mono", bnd_mono), []),
+       ((Binding.name "dom_subset", dom_subset), []),
+       ((Binding.name "cases", elim), [case_names, Induct.cases_pred big_rec_name])]
     ||>> (PureThy.add_thmss o map Thm.no_attributes)
-        [("defs", defs),
-         ("intros", intrs)];
+        [(Binding.name "defs", defs),
+         (Binding.name "intros", intrs)];
   val (intrs'', thy4) =
     thy3
-    |> PureThy.add_thms ((intr_names ~~ intrs') ~~ map #2 intr_specs)
+    |> PureThy.add_thms ((map Binding.name intr_names ~~ intrs') ~~ map #2 intr_specs)
     ||> Sign.parent_path;
   in
     (thy4,

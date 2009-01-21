@@ -1,5 +1,4 @@
 (*  Title:      Pure/axclass.ML
-    ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
 
 Type classes defined as predicates, associated with a record of
@@ -9,7 +8,7 @@ parameters.
 signature AX_CLASS =
 sig
   val define_class: bstring * class list -> string list ->
-    ((Binding.T * attribute list) * term list) list -> theory -> class * theory
+    ((binding * attribute list) * term list) list -> theory -> class * theory
   val add_classrel: thm -> theory -> theory
   val add_arity: thm -> theory -> theory
   val prove_classrel: class * class -> tactic -> theory -> theory
@@ -329,7 +328,8 @@ fun prove_classrel raw_rel tac thy =
         quote (Syntax.string_of_classrel ctxt [c1, c2]));
   in
     thy
-    |> PureThy.add_thms [((prefix classrel_prefix (Logic.name_classrel (c1, c2)), th), [])]
+    |> PureThy.add_thms [((Binding.name
+        (prefix classrel_prefix (Logic.name_classrel (c1, c2))), th), [])]
     |-> (fn [th'] => add_classrel th')
   end;
 
@@ -345,7 +345,7 @@ fun prove_arity raw_arity tac thy =
           quote (Syntax.string_of_arity ctxt arity));
   in
     thy
-    |> PureThy.add_thms (map (rpair []) (names ~~ ths))
+    |> PureThy.add_thms (map (rpair []) (map Binding.name names ~~ ths))
     |-> fold add_arity
   end;
 
@@ -372,10 +372,10 @@ fun declare_overloaded (c, T) thy =
     |> Sign.no_base_names
     |> Sign.declare_const [] ((Binding.name c', T'), NoSyn)
     |-> (fn const' as Const (c'', _) => Thm.add_def false true
-          (Thm.def_name c', Logic.mk_equals (Const (c, T'), const'))
+          (Binding.name (Thm.def_name c'), Logic.mk_equals (Const (c, T'), const'))
     #>> Thm.varifyT
     #-> (fn thm => add_inst_param (c, tyco) (c'', thm)
-    #> PureThy.add_thm ((c', thm), [Thm.kind_internal])
+    #> PureThy.add_thm ((Binding.name c', thm), [Thm.kind_internal])
     #> snd
     #> Sign.restore_naming thy
     #> pair (Const (c, T))))
@@ -391,7 +391,7 @@ fun define_overloaded name (c, t) thy =
       (NameSpace.base c ^ "_" ^ NameSpace.base tyco) name;
   in
     thy
-    |> Thm.add_def false false (name', prop)
+    |> Thm.add_def false false (Binding.name name', prop)
     |>> (fn thm =>  Drule.transitive_thm OF [eq, thm])
   end;
 
@@ -469,7 +469,7 @@ fun define_class (bclass, raw_super) raw_params raw_specs thy =
     val ([def], def_thy) =
       thy
       |> Sign.primitive_class (bclass, super)
-      |> PureThy.add_defs false [((Thm.def_name bconst, class_eq), [])];
+      |> PureThy.add_defs false [((Binding.name (Thm.def_name bconst), class_eq), [])];
     val (raw_intro, (raw_classrel, raw_axioms)) =
       split_defined (length conjs) def ||> chop (length super);
 
@@ -515,7 +515,11 @@ fun axiomatize prep mk name add raw_args thy =
     val args = prep thy raw_args;
     val specs = mk args;
     val names = name args;
-  in thy |> PureThy.add_axioms (map (rpair []) (names ~~ specs)) |-> fold add end;
+  in
+    thy
+    |> PureThy.add_axioms (map (rpair []) (map Binding.name names ~~ specs))
+    |-> fold add
+  end;
 
 fun ax_classrel prep =
   axiomatize (map o prep) (map Logic.mk_classrel)

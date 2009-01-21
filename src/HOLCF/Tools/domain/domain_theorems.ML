@@ -607,7 +607,7 @@ val copy_rews = copy_strict :: copy_apps @ copy_stricts;
 in
   thy
     |> Sign.add_path (Sign.base_name dname)
-    |> (snd o (PureThy.add_thmss (map Thm.no_attributes [
+    |> (snd o (PureThy.add_thmss (map (Thm.no_attributes o apfst Binding.name) [
         ("iso_rews" , iso_rews  ),
         ("exhaust"  , [exhaust] ),
         ("casedist" , [casedist]),
@@ -623,7 +623,7 @@ in
         ("injects" , injects ),
         ("copy_rews", copy_rews)])))
     |> (snd o PureThy.add_thmss
-        [(("match_rews", mat_rews), [Simplifier.simp_add])])
+        [((Binding.name "match_rews", mat_rews), [Simplifier.simp_add])])
     |> Sign.parent_path
     |> pair (iso_rews @ when_rews @ con_rews @ sel_rews @ dis_rews @
         pat_rews @ dist_les @ dist_eqs @ copy_rews)
@@ -1000,7 +1000,7 @@ in
 end; (* local *)
 
 in thy |> Sign.add_path comp_dnam
-       |> (snd o (PureThy.add_thmss (map Thm.no_attributes [
+       |> (snd o (PureThy.add_thmss (map (Thm.no_attributes o apfst Binding.name) [
 		("take_rews"  , take_rews  ),
 		("take_lemmas", take_lemmas),
 		("finites"    , finites    ),

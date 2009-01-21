@@ -134,7 +134,7 @@ fun gen_add_domain prep_typ (comp_dnam, eqs''') thy''' =
   in
     theorems_thy
     |> Sign.add_path (Sign.base_name comp_dnam)
-    |> (snd o (PureThy.add_thmss [(("rews", List.concat rewss @ take_rews), [])]))
+    |> (snd o (PureThy.add_thmss [((Binding.name "rews", List.concat rewss @ take_rews), [])]))
     |> Sign.parent_path
   end;
 

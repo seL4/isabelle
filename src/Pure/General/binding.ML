@@ -6,6 +6,7 @@ Structured name bindings.
 
 signature BASIC_BINDING =
 sig
+  type binding
   val long_names: bool ref
   val short_names: bool ref
   val unique_names: bool ref
@@ -91,6 +92,8 @@ fun display (Binding ((prefix, name), _)) =
   in if not (! long_names) orelse null prefix orelse name = "" then name
     else space_implode "." (map mk_prefix prefix) ^ ":" ^ name
   end;
+
+type binding = T;
 
 end;
 

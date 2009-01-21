@@ -111,10 +111,10 @@ end; (* let *)
 
 fun infer_props thy = map (apsnd (FixrecPackage.legacy_infer_prop thy));
 
-fun add_axioms_i x = snd o PureThy.add_axioms (map Thm.no_attributes x);
+fun add_axioms_i x = snd o PureThy.add_axioms (map (Thm.no_attributes o apfst Binding.name) x);
 fun add_axioms_infer axms thy = add_axioms_i (infer_props thy axms) thy;
 
-fun add_defs_i x = snd o (PureThy.add_defs false) (map Thm.no_attributes x);
+fun add_defs_i x = snd o (PureThy.add_defs false) (map (Thm.no_attributes o apfst Binding.name) x);
 fun add_defs_infer defs thy = add_defs_i (infer_props thy defs) thy;
 
 in (* local *)

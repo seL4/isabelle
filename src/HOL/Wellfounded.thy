@@ -1,5 +1,4 @@
-(*  ID:         $Id$
-    Author:     Tobias Nipkow
+(*  Author:     Tobias Nipkow
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Author:     Konrad Slind, Alexander Krauss
     Copyright   1992-2008  University of Cambridge and TU Muenchen

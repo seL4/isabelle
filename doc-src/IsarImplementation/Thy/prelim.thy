@@ -707,13 +707,13 @@ text %mlref {*
   @{index_ML_type NameSpace.naming} \\
   @{index_ML NameSpace.default_naming: NameSpace.naming} \\
   @{index_ML NameSpace.add_path: "string -> NameSpace.naming -> NameSpace.naming"} \\
-  @{index_ML NameSpace.full_name: "NameSpace.naming -> Binding.T -> string"} \\
+  @{index_ML NameSpace.full_name: "NameSpace.naming -> binding -> string"} \\
   \end{mldecls}
   \begin{mldecls}
   @{index_ML_type NameSpace.T} \\
   @{index_ML NameSpace.empty: NameSpace.T} \\
   @{index_ML NameSpace.merge: "NameSpace.T * NameSpace.T -> NameSpace.T"} \\
-  @{index_ML NameSpace.declare: "NameSpace.naming -> Binding.T -> NameSpace.T -> string * NameSpace.T"} \\
+  @{index_ML NameSpace.declare: "NameSpace.naming -> binding -> NameSpace.T -> string * NameSpace.T"} \\
   @{index_ML NameSpace.intern: "NameSpace.T -> string -> string"} \\
   @{index_ML NameSpace.extern: "NameSpace.T -> string -> string"} \\
   \end{mldecls}

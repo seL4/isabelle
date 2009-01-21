@@ -15,24 +15,23 @@ sig
   val opt_thm_name: string -> Attrib.binding parser
   val spec: (Attrib.binding * string list) parser
   val named_spec: (Attrib.binding * string list) parser
-  val spec_name: ((Binding.T * string) * Attrib.src list) parser
-  val spec_opt_name: ((Binding.T * string) * Attrib.src list) parser
+  val spec_name: ((binding * string) * Attrib.src list) parser
+  val spec_opt_name: ((binding * string) * Attrib.src list) parser
   val xthm: (Facts.ref * Attrib.src list) parser
   val xthms1: (Facts.ref * Attrib.src list) list parser
   val name_facts: (Attrib.binding * (Facts.ref * Attrib.src list) list) list parser
   val locale_mixfix: mixfix parser
-  val locale_fixes: (Binding.T * string option * mixfix) list parser
+  val locale_fixes: (binding * string option * mixfix) list parser
   val locale_insts: (string option list * (Attrib.binding * string) list) parser
   val class_expr: string list parser
-  val locale_expr: Old_Locale.expr parser
-  val locale_expression: Expression.expression parser
+    val locale_expression: Expression.expression parser
   val locale_keyword: string parser
   val context_element: Element.context parser
   val statement: (Attrib.binding * (string * string list) list) list parser
   val general_statement: (Element.context list * Element.statement) parser
   val statement_keyword: string parser
   val specification:
-    (Binding.T * ((Attrib.binding * string list) list * (Binding.T * string option) list)) list parser
+    (binding * ((Attrib.binding * string list) list * (binding * string option) list)) list parser
 end;
 
 structure SpecParse: SPEC_PARSE =
@@ -114,13 +113,6 @@ val locale_keyword = P.$$$ "fixes" || P.$$$ "constrains" || P.$$$ "assumes" ||
    P.$$$ "defines" || P.$$$ "notes";
 
 val class_expr = plus1_unless locale_keyword P.xname;
-
-val locale_expr =
-  let
-    fun expr2 x = (P.xname >> Old_Locale.Locale || P.$$$ "(" |-- P.!!! (expr0 --| P.$$$ ")")) x
-    and expr1 x = (expr2 -- Scan.repeat1 (P.maybe rename) >> Old_Locale.Rename || expr2) x
-    and expr0 x = (plus1_unless locale_keyword expr1 >> (fn [e] => e | es => Old_Locale.Merge es)) x;
-  in expr0 end;
 
 val locale_expression =
   let

@@ -134,8 +134,8 @@ fun confirm c = map_overloading (filter_out (fn (_, (c', _)) => c' = c));
 
 fun declare c_ty = pair (Const c_ty);
 
-fun define checked name (c, t) =
-  Thm.add_def (not checked) true (name, Logic.mk_equals (Const (c, Term.fastype_of t), t));
+fun define checked name (c, t) = Thm.add_def (not checked) true (Binding.name name,
+  Logic.mk_equals (Const (c, Term.fastype_of t), t));
 
 
 (* target *)

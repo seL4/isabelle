@@ -18,16 +18,16 @@ sig
   val raw_theory: (theory -> theory) -> local_theory -> local_theory
   val checkpoint: local_theory -> local_theory
   val full_naming: local_theory -> NameSpace.naming
-  val full_name: local_theory -> Binding.T -> string
+  val full_name: local_theory -> binding -> string
   val theory_result: (theory -> 'a * theory) -> local_theory -> 'a * local_theory
   val theory: (theory -> theory) -> local_theory -> local_theory
   val target_result: (Proof.context -> 'a * Proof.context) -> local_theory -> 'a * local_theory
   val target: (Proof.context -> Proof.context) -> local_theory -> local_theory
   val affirm: local_theory -> local_theory
   val pretty: local_theory -> Pretty.T list
-  val abbrev: Syntax.mode -> (Binding.T * mixfix) * term -> local_theory ->
+  val abbrev: Syntax.mode -> (binding * mixfix) * term -> local_theory ->
     (term * term) * local_theory
-  val define: string -> (Binding.T * mixfix) * (Attrib.binding * term) -> local_theory ->
+  val define: string -> (binding * mixfix) * (Attrib.binding * term) -> local_theory ->
     (term * (string * thm)) * local_theory
   val note: string -> Attrib.binding * thm list -> local_theory -> (string * thm list) * local_theory
   val notes: string -> (Attrib.binding * (thm list * Attrib.src list) list) list ->
@@ -55,10 +55,10 @@ struct
 
 type operations =
  {pretty: local_theory -> Pretty.T list,
-  abbrev: Syntax.mode -> (Binding.T * mixfix) * term -> local_theory ->
+  abbrev: Syntax.mode -> (binding * mixfix) * term -> local_theory ->
     (term * term) * local_theory,
   define: string ->
-    (Binding.T * mixfix) * (Attrib.binding * term) -> local_theory ->
+    (binding * mixfix) * (Attrib.binding * term) -> local_theory ->
     (term * (string * thm)) * local_theory,
   notes: string ->
     (Attrib.binding * (thm list * Attrib.src list) list) list ->

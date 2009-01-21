@@ -14,7 +14,7 @@ sig
     tsig: Type.tsig,
     consts: Consts.T}
   val naming_of: theory -> NameSpace.naming
-  val full_name: theory -> Binding.T -> string
+  val full_name: theory -> binding -> string
   val base_name: string -> bstring
   val full_bname: theory -> bstring -> string
   val full_bname_path: theory -> string -> bstring -> string
@@ -91,10 +91,10 @@ sig
   val del_modesyntax: Syntax.mode -> (bstring * string * mixfix) list -> theory -> theory
   val del_modesyntax_i: Syntax.mode -> (bstring * typ * mixfix) list -> theory -> theory
   val notation: bool -> Syntax.mode -> (term * mixfix) list -> theory -> theory
-  val declare_const: Properties.T -> (Binding.T * typ) * mixfix -> theory -> term * theory
+  val declare_const: Properties.T -> (binding * typ) * mixfix -> theory -> term * theory
   val add_consts: (bstring * string * mixfix) list -> theory -> theory
   val add_consts_i: (bstring * typ * mixfix) list -> theory -> theory
-  val add_abbrev: string -> Properties.T -> Binding.T * term -> theory -> (term * term) * theory
+  val add_abbrev: string -> Properties.T -> binding * term -> theory -> (term * term) * theory
   val revert_abbrev: string -> string -> theory -> theory
   val add_const_constraint: string * typ option -> theory -> theory
   val primitive_class: string * class list -> theory -> theory

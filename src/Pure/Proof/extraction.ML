@@ -733,11 +733,11 @@ fun extract thms thy =
              val (def_thms, thy') = if t = nullt then ([], thy) else
                thy
                |> Sign.add_consts_i [(extr_name s vs, fastype_of ft, NoSyn)]
-               |> PureThy.add_defs false [((extr_name s vs ^ "_def",
+               |> PureThy.add_defs false [((Binding.name (extr_name s vs ^ "_def"),
                     Logic.mk_equals (head_of (strip_abs_body fu), ft)), [])]
            in
              thy'
-             |> PureThy.store_thm (corr_name s vs,
+             |> PureThy.store_thm (Binding.name (corr_name s vs),
                   Thm.varifyT (funpow (length (OldTerm.term_vars corr_prop))
                     (Thm.forall_elim_var 0) (forall_intr_frees
                       (ProofChecker.thm_of_proof thy'

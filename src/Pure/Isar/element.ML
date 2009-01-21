@@ -9,11 +9,11 @@ signature ELEMENT =
 sig
   datatype ('typ, 'term) stmt =
     Shows of (Attrib.binding * ('term * 'term list) list) list |
-    Obtains of (Binding.T * ((Binding.T * 'typ option) list * 'term list)) list
+    Obtains of (binding * ((binding * 'typ option) list * 'term list)) list
   type statement = (string, string) stmt
   type statement_i = (typ, term) stmt
   datatype ('typ, 'term, 'fact) ctxt =
-    Fixes of (Binding.T * 'typ option * mixfix) list |
+    Fixes of (binding * 'typ option * mixfix) list |
     Constrains of (string * 'typ) list |
     Assumes of (Attrib.binding * ('term * 'term list) list) list |
     Defines of (Attrib.binding * ('term * 'term list)) list |
@@ -23,12 +23,12 @@ sig
   val facts_map: (('typ, 'term, 'fact) ctxt -> ('a, 'b, 'c) ctxt) ->
    (Attrib.binding * ('fact * Attrib.src list) list) list ->
    (Attrib.binding * ('c * Attrib.src list) list) list
-  val map_ctxt': {binding: Binding.T -> Binding.T,
-    var: Binding.T * mixfix -> Binding.T * mixfix,
+  val map_ctxt': {binding: binding -> binding,
+    var: binding * mixfix -> binding * mixfix,
     typ: 'typ -> 'a, term: 'term -> 'b, pat: 'term -> 'b, fact: 'fact -> 'c,
     attrib: Attrib.src -> Attrib.src} -> ('typ, 'term, 'fact) ctxt -> ('a, 'b, 'c) ctxt
-  val map_ctxt: {binding: Binding.T -> Binding.T,
-    var: Binding.T * mixfix -> Binding.T * mixfix,
+  val map_ctxt: {binding: binding -> binding,
+    var: binding * mixfix -> binding * mixfix,
     typ: 'typ -> 'a, term: 'term -> 'b, fact: 'fact -> 'c,
     attrib: Attrib.src -> Attrib.src} -> ('typ, 'term, 'fact) ctxt -> ('a, 'b, 'c) ctxt
   val map_ctxt_attrib: (Attrib.src -> Attrib.src) ->
@@ -41,25 +41,21 @@ sig
   val pretty_ctxt: Proof.context -> context_i -> Pretty.T list
   val pretty_statement: Proof.context -> string -> thm -> Pretty.T
   type witness
-  val map_witness: (term * thm -> term * thm) -> witness -> witness
-  val morph_witness: morphism -> witness -> witness
-  val witness_prop: witness -> term
-  val witness_hyps: witness -> term list
-  val assume_witness: theory -> term -> witness
   val prove_witness: Proof.context -> term -> tactic -> witness
-  val close_witness: witness -> witness
+  val witness_proof: (witness list list -> Proof.context -> Proof.context) ->
+    term list list -> Proof.context -> Proof.state
+  val witness_proof_eqs: (witness list list -> thm list -> Proof.context -> Proof.context) ->
+    term list list -> term list -> Proof.context -> Proof.state
+  val witness_local_proof: (witness list list -> Proof.state -> Proof.state) ->
+    string -> term list list -> Proof.context -> bool -> Proof.state -> Proof.state
+  val morph_witness: morphism -> witness -> witness
   val conclude_witness: witness -> thm
-  val mark_witness: term -> term
-  val make_witness: term -> thm -> witness
-  val dest_witness: witness -> term * thm
-  val transfer_witness: theory -> witness -> witness
-  val refine_witness: Proof.state -> Proof.state Seq.seq
   val pretty_witness: Proof.context -> witness -> Pretty.T
   val rename: (string * (string * mixfix option)) list -> string -> string
   val rename_var_name: (string * (string * mixfix option)) list ->
     string * mixfix -> string * mixfix
   val rename_var: (string * (string * mixfix option)) list ->
-    Binding.T * mixfix -> Binding.T * mixfix
+    binding * mixfix -> binding * mixfix
   val rename_term: (string * (string * mixfix option)) list -> term -> term
   val rename_thm: (string * (string * mixfix option)) list -> thm -> thm
   val rename_morphism: (string * (string * mixfix option)) list -> morphism
@@ -93,7 +89,7 @@ struct
 
 datatype ('typ, 'term) stmt =
   Shows of (Attrib.binding * ('term * 'term list) list) list |
-  Obtains of (Binding.T * ((Binding.T * 'typ option) list * 'term list)) list;
+  Obtains of (binding * ((binding * 'typ option) list * 'term list)) list;
 
 type statement = (string, string) stmt;
 type statement_i = (typ, term) stmt;
@@ -102,7 +98,7 @@ type statement_i = (typ, term) stmt;
 (* context *)
 
 datatype ('typ, 'term, 'fact) ctxt =
-  Fixes of (Binding.T * 'typ option * mixfix) list |
+  Fixes of (binding * 'typ option * mixfix) list |
   Constrains of (string * 'typ) list |
   Assumes of (Attrib.binding * ('term * 'term list) list) list |
   Defines of (Attrib.binding * ('term * 'term list)) list |
@@ -300,24 +296,51 @@ end;
 
 datatype witness = Witness of term * thm;
 
+val mark_witness = Logic.protect;
+fun witness_prop (Witness (t, _)) = t;
+fun witness_hyps (Witness (_, th)) = #hyps (Thm.rep_thm th);
 fun map_witness f (Witness witn) = Witness (f witn);
 
 fun morph_witness phi = map_witness (fn (t, th) => (Morphism.term phi t, Morphism.thm phi th));
 
-fun witness_prop (Witness (t, _)) = t;
-fun witness_hyps (Witness (_, th)) = #hyps (Thm.rep_thm th);
-
-fun assume_witness thy t =
-  Witness (t, Goal.protect (Thm.assume (Thm.cterm_of thy t)));
-
 fun prove_witness ctxt t tac =
-  Witness (t, Thm.close_derivation (Goal.prove ctxt [] [] (Logic.protect t) (fn _ =>
+  Witness (t, Thm.close_derivation (Goal.prove ctxt [] [] (mark_witness t) (fn _ =>
     Tactic.rtac Drule.protectI 1 THEN tac)));
 
-val close_witness = map_witness (fn (t, th) => (t, Thm.close_derivation th));
+local
 
-fun conclude_witness (Witness (_, th)) =
-  Thm.close_derivation (MetaSimplifier.norm_hhf_protect (Goal.conclude th));
+val refine_witness =
+  Proof.refine (Method.Basic (K (Method.RAW_METHOD
+    (K (ALLGOALS
+      (CONJUNCTS (ALLGOALS
+        (CONJUNCTS (TRYALL (Tactic.rtac Drule.protectI)))))))), Position.none));
+
+fun gen_witness_proof proof after_qed wit_propss eq_props =
+  let
+    val propss = (map o map) (fn prop => (mark_witness prop, [])) wit_propss
+      @ [map (rpair []) eq_props];
+    fun after_qed' thmss =
+      let
+        val (wits, eqs) = split_last ((map o map) Thm.close_derivation thmss);
+      in after_qed ((map2 o map2) (curry Witness) wit_propss wits) eqs end;
+  in proof after_qed' propss #> refine_witness #> Seq.hd end;
+
+in
+
+fun witness_proof after_qed wit_propss =
+  gen_witness_proof (Proof.theorem_i NONE) (fn wits => fn _ => after_qed wits)
+    wit_propss [];
+
+val witness_proof_eqs = gen_witness_proof (Proof.theorem_i NONE);
+
+fun witness_local_proof after_qed cmd wit_propss goal_ctxt int =
+  gen_witness_proof (fn after_qed' => fn propss =>
+    Proof.map_context (K goal_ctxt)
+    #> Proof.local_goal (ProofDisplay.print_results int) (K I) ProofContext.bind_propp_i
+      cmd NONE after_qed' (map (pair (Binding.empty, [])) propss))
+    (fn wits => fn _ => after_qed wits) wit_propss [];
+
+end; (*local*)
 
 fun compose_witness (Witness (_, th)) r =
   let
@@ -330,18 +353,8 @@ fun compose_witness (Witness (_, th)) r =
         (Thm.instantiate (Thm.match (Thm.cprop_of th', A)) th'))
   end;
 
-val mark_witness = Logic.protect;
-
-fun make_witness t th = Witness (t, th);
-fun dest_witness (Witness w) = w;
-
-fun transfer_witness thy (Witness (t, th)) = Witness (t, Thm.transfer thy th);
-
-val refine_witness =
-  Proof.refine (Method.Basic (K (Method.RAW_METHOD
-    (K (ALLGOALS
-      (CONJUNCTS (ALLGOALS
-        (CONJUNCTS (TRYALL (Tactic.rtac Drule.protectI)))))))), Position.none));
+fun conclude_witness (Witness (_, th)) =
+  Thm.close_derivation (MetaSimplifier.norm_hhf_protect (Goal.conclude th));
 
 fun pretty_witness ctxt witn =
   let val prt_term = Pretty.quote o Syntax.pretty_term ctxt in

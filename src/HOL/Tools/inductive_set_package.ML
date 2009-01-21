@@ -12,13 +12,13 @@ sig
   val pred_set_conv_att: attribute
   val add_inductive_i:
     InductivePackage.inductive_flags ->
-    ((Binding.T * typ) * mixfix) list ->
+    ((binding * typ) * mixfix) list ->
     (string * typ) list ->
     (Attrib.binding * term) list -> thm list ->
     local_theory -> InductivePackage.inductive_result * local_theory
   val add_inductive: bool -> bool ->
-    (Binding.T * string option * mixfix) list ->
-    (Binding.T * string option * mixfix) list ->
+    (binding * string option * mixfix) list ->
+    (binding * string option * mixfix) list ->
     (Attrib.binding * string) list -> (Facts.ref * Attrib.src list) list ->
     bool -> local_theory -> InductivePackage.inductive_result * local_theory
   val codegen_preproc: theory -> thm list -> thm list

@@ -1,5 +1,4 @@
 (*  Title:      HOL/Finite_Set.thy
-    ID:         $Id$
     Author:     Tobias Nipkow, Lawrence C Paulson and Markus Wenzel
                 with contributions by Jeremy Avigad
 *)

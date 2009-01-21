@@ -247,7 +247,7 @@ fun add_datatype_i (dom_sum, rec_tms) con_ty_lists (monos, type_intrs, type_elim
       if need_recursor then
            thy |> Sign.add_consts_i
                     [(recursor_base_name, recursor_typ, NoSyn)]
-               |> (snd o PureThy.add_defs false [Thm.no_attributes recursor_def])
+               |> (snd o PureThy.add_defs false [(Thm.no_attributes o apfst Binding.name) recursor_def])
       else thy;
 
   val (con_defs, thy0) = thy_path
@@ -255,7 +255,7 @@ fun add_datatype_i (dom_sum, rec_tms) con_ty_lists (monos, type_intrs, type_elim
                  ((case_base_name, case_typ, NoSyn) ::
                   map #1 (List.concat con_ty_lists))
              |> PureThy.add_defs false
-                 (map Thm.no_attributes
+                 (map (Thm.no_attributes o apfst Binding.name)
                   (case_def ::
                    List.concat (ListPair.map mk_con_defs
                          (1 upto npart, con_ty_lists))))
@@ -383,13 +383,13 @@ fun add_datatype_i (dom_sum, rec_tms) con_ty_lists (monos, type_intrs, type_elim
   (*Updating theory components: simprules and datatype info*)
   (thy1 |> Sign.add_path big_rec_base_name
         |> PureThy.add_thmss
-         [(("simps", simps), [Simplifier.simp_add]),
-          (("", intrs), [Classical.safe_intro NONE]),
-          (("con_defs", con_defs), []),
-          (("case_eqns", case_eqns), []),
-          (("recursor_eqns", recursor_eqns), []),
-          (("free_iffs", free_iffs), []),
-          (("free_elims", free_SEs), [])] |> snd
+         [((Binding.name "simps", simps), [Simplifier.simp_add]),
+          ((Binding.empty , intrs), [Classical.safe_intro NONE]),
+          ((Binding.name "con_defs", con_defs), []),
+          ((Binding.name "case_eqns", case_eqns), []),
+          ((Binding.name "recursor_eqns", recursor_eqns), []),
+          ((Binding.name "free_iffs", free_iffs), []),
+          ((Binding.name "free_elims", free_SEs), [])] |> snd
         |> DatatypesData.map (Symtab.update (big_rec_name, dt_info))
         |> ConstructorsData.map (fold Symtab.update con_pairs)
         |> Sign.parent_path,

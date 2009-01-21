@@ -29,23 +29,18 @@ See also:
 
 signature LOCALE =
 sig
-  type locale
-
+  (* Locale specification *)
   val register_locale: bstring ->
-    (string * sort) list * (Binding.T * typ option * mixfix) list ->
+    (string * sort) list * (binding * typ option * mixfix) list ->
     term option * term list ->
     thm option * thm option -> thm list ->
     (declaration * stamp) list * (declaration * stamp) list ->
     ((string * (Attrib.binding * (thm list * Attrib.src list) list) list) * stamp) list ->
     ((string * morphism) * stamp) list -> theory -> theory
-
-  (* Locale name space *)
   val intern: theory -> xstring -> string
   val extern: theory -> string -> xstring
-
-  (* Specification *)
   val defined: theory -> string -> bool
-  val params_of: theory -> string -> (Binding.T * typ option * mixfix) list
+  val params_of: theory -> string -> (binding * typ option * mixfix) list
   val intros_of: theory -> string -> thm option * thm option
   val axioms_of: theory -> string -> thm list
   val instance_of: theory -> string -> morphism -> term list
@@ -112,13 +107,25 @@ struct
 
 datatype ctxt = datatype Element.ctxt;
 
+fun global_note_qualified kind facts thy = (*FIXME*)
+  thy
+  |> Sign.qualified_names
+  |> PureThy.note_thmss kind facts
+  ||> Sign.restore_naming thy;
+
+fun local_note_qualified kind facts ctxt = (*FIXME*)
+  ctxt
+  |> ProofContext.qualified_names
+  |> ProofContext.note_thmss_i kind facts
+  ||> ProofContext.restore_naming ctxt;
+
 
 
 (*** Theory data ***)
 
 datatype locale = Loc of {
   (** static part **)
-  parameters: (string * sort) list * (Binding.T * typ option * mixfix) list,
+  parameters: (string * sort) list * (binding * typ option * mixfix) list,
     (* type and term parameters *)
   spec: term option * term list,
     (* assumptions (as a single predicate expression) and defines *)
@@ -330,7 +337,7 @@ local
 fun init_global_elem (Notes (kind, facts)) thy =
   let
     val facts' = Attrib.map_facts (Attrib.attribute_i thy) facts
-  in Old_Locale.global_note_qualified kind facts' thy |> snd end
+  in global_note_qualified kind facts' thy |> snd end
 
 fun init_local_elem (Fixes fixes) ctxt = ctxt |>
       ProofContext.add_fixes_i fixes |> snd
@@ -352,7 +359,7 @@ fun init_local_elem (Fixes fixes) ctxt = ctxt |>
   | init_local_elem (Notes (kind, facts)) ctxt =
       let
         val facts' = Attrib.map_facts (Attrib.attribute_i (ProofContext.theory_of ctxt)) facts
-      in Old_Locale.local_note_qualified kind facts' ctxt |> snd end
+      in local_note_qualified kind facts' ctxt |> snd end
 
 fun cons_elem false (Notes notes) elems = elems
   | cons_elem _ elem elems = elem :: elems
@@ -445,7 +452,7 @@ fun add_thmss loc kind args ctxt =
             let
               val args'' = snd args' |> Element.facts_map (Element.morph_ctxt morph) |>
                 Attrib.map_facts (Attrib.attribute_i thy)
-            in Old_Locale.global_note_qualified kind args'' #> snd end)
+            in global_note_qualified kind args'' #> snd end)
         (get_registrations thy |> filter (fn (name, _) => name = loc)) thy))
   in ctxt'' end;
 
@@ -496,12 +503,10 @@ fun intro_locales_tac eager ctxt facts st =
 val _ = Context.>> (Context.map_theory
   (Method.add_methods
     [("intro_locales",
-      Method.ctxt_args (fn ctxt => Method.METHOD (intro_locales_tac false ctxt ORELSE'
-        Old_Locale.intro_locales_tac false ctxt)),
+      Method.ctxt_args (fn ctxt => Method.METHOD (intro_locales_tac false ctxt)),
       "back-chain introduction rules of locales without unfolding predicates"),
      ("unfold_locales",
-      Method.ctxt_args (fn ctxt => Method.METHOD (intro_locales_tac true ctxt ORELSE'
-        Old_Locale.intro_locales_tac true ctxt)),
+      Method.ctxt_args (fn ctxt => Method.METHOD (intro_locales_tac true ctxt)),
       "back-chain all introduction rules of locales")]));
 
 end;

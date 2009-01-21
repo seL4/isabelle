@@ -90,6 +90,9 @@ fun mk_Cons x xs =
   let val T = fastype_of x
   in Const ("List.list.Cons", T --> HOLogic.listT T --> HOLogic.listT T) $ x $ xs end;
 
+fun add_thms_string args = PureThy.add_thms ((map o apfst o apfst) Binding.name args);
+fun add_thmss_string args = PureThy.add_thmss ((map o apfst o apfst) Binding.name args);
+
 (* this function sets up all matters related to atom-  *)
 (* kinds; the user specifies a list of atom-kind names *)
 (* atom_decl <ak1> ... <akn>                           *)
@@ -121,7 +124,7 @@ fun create_nom_typedecls ak_names thy =
                                           atac 1]
              
               val (inj_thm,thy2) = 
-                   PureThy.add_thms [((ak^"_inj",Goal.prove_global thy1 [] [] stmnt1 proof1), [])] thy1
+                   add_thms_string [((ak^"_inj",Goal.prove_global thy1 [] [] stmnt1 proof1), [])] thy1
               
               (* second statement *)
               val y = Free ("y",ak_type)  
@@ -136,7 +139,7 @@ fun create_nom_typedecls ak_names thy =
 
               (* third statement *)
               val (inject_thm,thy3) =
-                  PureThy.add_thms [((ak^"_injection",Goal.prove_global thy2 [] [] stmnt2 proof2), [])] thy2
+                  add_thms_string [((ak^"_injection",Goal.prove_global thy2 [] [] stmnt2 proof2), [])] thy2
   
               val stmnt3 = HOLogic.mk_Trueprop
                            (HOLogic.mk_not
@@ -152,7 +155,7 @@ fun create_nom_typedecls ak_names thy =
                                           simp_tac (HOL_basic_ss addsimps simp3) 1]  
            
               val (inf_thm,thy4) =  
-                    PureThy.add_thms [((ak^"_infinite",Goal.prove_global thy3 [] [] stmnt3 proof3), [])] thy3
+                    add_thms_string [((ak^"_infinite",Goal.prove_global thy3 [] [] stmnt3 proof3), [])] thy3
           in 
             ((inj_thm,inject_thm,inf_thm),thy4)
           end) ak_names thy
@@ -186,7 +189,7 @@ fun create_nom_typedecls ak_names thy =
         val def2 = Logic.mk_equals (cswap $ ab $ c, cswap_akname $ ab $ c)
       in
         thy |> Sign.add_consts_i [("swap_" ^ ak_name, swapT, NoSyn)] 
-            |> PureThy.add_defs_unchecked true [((name, def2),[])]
+            |> PureThy.add_defs_unchecked true [((Binding.name name, def2),[])]
             |> snd
             |> OldPrimrecPackage.add_primrec_unchecked_i "" [(("", def1),[])]
       end) ak_names_types thy1;
@@ -241,14 +244,14 @@ fun create_nom_typedecls ak_names thy =
           val def = Logic.mk_equals
                     (cperm $ pi $ a, if ak_name = ak_name' then cperm_def $ pi $ a else a)
         in
-          PureThy.add_defs_unchecked true [((name, def),[])] thy'
+          PureThy.add_defs_unchecked true [((Binding.name name, def),[])] thy'
         end) ak_names_types thy) ak_names_types thy4;
     
     (* proves that every atom-kind is an instance of at *)
     (* lemma at_<ak>_inst:                              *)
     (* at TYPE(<ak>)                                    *)
     val (prm_cons_thms,thy6) = 
-      thy5 |> PureThy.add_thms (map (fn (ak_name, T) =>
+      thy5 |> add_thms_string (map (fn (ak_name, T) =>
       let
         val ak_name_qu = Sign.full_bname thy5 (ak_name);
         val i_type = Type(ak_name_qu,[]);
@@ -309,7 +312,7 @@ fun create_nom_typedecls ak_names thy =
     (* lemma pt_<ak>_inst:                                    *)
     (* pt TYPE('x::pt_<ak>) TYPE(<ak>)                        *)
     val (prm_inst_thms,thy8) = 
-      thy7 |> PureThy.add_thms (map (fn (ak_name, T) =>
+      thy7 |> add_thms_string (map (fn (ak_name, T) =>
       let
         val ak_name_qu = Sign.full_bname thy7 ak_name;
         val pt_name_qu = Sign.full_bname thy7 ("pt_"^ak_name);
@@ -355,7 +358,7 @@ fun create_nom_typedecls ak_names thy =
      (* lemma abst_<ak>_inst:                                    *)
      (* fs TYPE('x::pt_<ak>) TYPE (<ak>)                         *)
      val (fs_inst_thms,thy12) = 
-       thy11 |> PureThy.add_thms (map (fn (ak_name, T) =>
+       thy11 |> add_thms_string (map (fn (ak_name, T) =>
        let
          val ak_name_qu = Sign.full_bname thy11 ak_name;
          val fs_name_qu = Sign.full_bname thy11 ("fs_"^ak_name);
@@ -428,7 +431,7 @@ fun create_nom_typedecls ak_names thy =
                                         rtac allI 1, rtac allI 1, rtac allI 1,
                                         rtac cp1 1];
            in
-             yield_singleton PureThy.add_thms ((name,
+             yield_singleton add_thms_string ((name,
                Goal.prove_global thy' [] [] statement proof), []) thy'
            end) 
            ak_names_types thy) ak_names_types thy12b;
@@ -460,7 +463,7 @@ fun create_nom_typedecls ak_names thy =
 
                  val proof = fn _ => simp_tac simp_s 1;
                in
-                PureThy.add_thms [((name, Goal.prove_global thy' [] [] statement proof), [])] thy'
+                add_thms_string [((name, Goal.prove_global thy' [] [] statement proof), [])] thy'
                end
            else 
             ([],thy')))  (* do nothing branch, if ak_name = ak_name' *) 
@@ -870,114 +873,114 @@ fun create_nom_typedecls ak_names thy =
              fun inst_pt_pt_at_cp_dj thms = inst_zip djs (inst_pt_pt_at_cp thms);
            in
             thy32 
-            |>   PureThy.add_thmss [(("alpha", inst_pt_at [abs_fun_eq]),[])]
-            ||>> PureThy.add_thmss [(("alpha'", inst_pt_at [abs_fun_eq']),[])]
-            ||>> PureThy.add_thmss [(("alpha_fresh", inst_pt_at [abs_fun_fresh]),[])]
-            ||>> PureThy.add_thmss [(("alpha_fresh'", inst_pt_at [abs_fun_fresh']),[])]
-            ||>> PureThy.add_thmss [(("perm_swap", inst_pt_at [pt_swap_bij] @ inst_pt_at [pt_swap_bij']),[])]
-            ||>> PureThy.add_thmss 
+            |>   add_thmss_string [(("alpha", inst_pt_at [abs_fun_eq]),[])]
+            ||>> add_thmss_string [(("alpha'", inst_pt_at [abs_fun_eq']),[])]
+            ||>> add_thmss_string [(("alpha_fresh", inst_pt_at [abs_fun_fresh]),[])]
+            ||>> add_thmss_string [(("alpha_fresh'", inst_pt_at [abs_fun_fresh']),[])]
+            ||>> add_thmss_string [(("perm_swap", inst_pt_at [pt_swap_bij] @ inst_pt_at [pt_swap_bij']),[])]
+            ||>> add_thmss_string 
 	      let val thms1 = inst_at at_swap_simps
                   and thms2 = inst_dj [dj_perm_forget]
               in [(("swap_simps", thms1 @ thms2),[])] end 
-            ||>> PureThy.add_thmss 
+            ||>> add_thmss_string 
               let val thms1 = inst_pt_at [pt_pi_rev];
                   val thms2 = inst_pt_at [pt_rev_pi];
               in [(("perm_pi_simp",thms1 @ thms2),[])] end
-            ||>> PureThy.add_thmss [(("perm_fresh_fresh", inst_pt_at [pt_fresh_fresh]),[])]
-            ||>> PureThy.add_thmss [(("perm_bij", inst_pt_at [pt_bij]),[])]
-            ||>> PureThy.add_thmss 
+            ||>> add_thmss_string [(("perm_fresh_fresh", inst_pt_at [pt_fresh_fresh]),[])]
+            ||>> add_thmss_string [(("perm_bij", inst_pt_at [pt_bij]),[])]
+            ||>> add_thmss_string 
               let val thms1 = inst_pt_at [pt_perm_compose];
                   val thms2 = instR cp1 (Library.flat cps');
               in [(("perm_compose",thms1 @ thms2),[])] end
-            ||>> PureThy.add_thmss [(("perm_compose'",inst_pt_at [pt_perm_compose']),[])] 
-            ||>> PureThy.add_thmss [(("perm_app", inst_pt_at [perm_app]),[])]
-            ||>> PureThy.add_thmss [(("supp_atm", (inst_at [at_supp]) @ (inst_dj [dj_supp])),[])]
-            ||>> PureThy.add_thmss [(("exists_fresh", inst_at [at_exists_fresh]),[])]
-            ||>> PureThy.add_thmss [(("exists_fresh'", inst_at [at_exists_fresh']),[])]
-            ||>> PureThy.add_thmss
+            ||>> add_thmss_string [(("perm_compose'",inst_pt_at [pt_perm_compose']),[])] 
+            ||>> add_thmss_string [(("perm_app", inst_pt_at [perm_app]),[])]
+            ||>> add_thmss_string [(("supp_atm", (inst_at [at_supp]) @ (inst_dj [dj_supp])),[])]
+            ||>> add_thmss_string [(("exists_fresh", inst_at [at_exists_fresh]),[])]
+            ||>> add_thmss_string [(("exists_fresh'", inst_at [at_exists_fresh']),[])]
+            ||>> add_thmss_string
               let
                 val thms1 = inst_pt_at [all_eqvt];
                 val thms2 = map (fold_rule [inductive_forall_def]) thms1
               in
                 [(("all_eqvt", thms1 @ thms2), [NominalThmDecls.eqvt_force_add])]
               end
-            ||>> PureThy.add_thmss [(("ex_eqvt", inst_pt_at [ex_eqvt]),[NominalThmDecls.eqvt_force_add])]
-            ||>> PureThy.add_thmss [(("ex1_eqvt", inst_pt_at [ex1_eqvt]),[NominalThmDecls.eqvt_force_add])]
-            ||>> PureThy.add_thmss [(("the_eqvt", inst_pt_at [the_eqvt]),[NominalThmDecls.eqvt_force_add])]
-            ||>> PureThy.add_thmss 
+            ||>> add_thmss_string [(("ex_eqvt", inst_pt_at [ex_eqvt]),[NominalThmDecls.eqvt_force_add])]
+            ||>> add_thmss_string [(("ex1_eqvt", inst_pt_at [ex1_eqvt]),[NominalThmDecls.eqvt_force_add])]
+            ||>> add_thmss_string [(("the_eqvt", inst_pt_at [the_eqvt]),[NominalThmDecls.eqvt_force_add])]
+            ||>> add_thmss_string 
               let val thms1 = inst_at [at_fresh]
                   val thms2 = inst_dj [at_fresh_ineq]
               in [(("fresh_atm", thms1 @ thms2),[])] end
-            ||>> PureThy.add_thmss
+            ||>> add_thmss_string
               let val thms1 = inst_at at_calc
                   and thms2 = inst_dj [dj_perm_forget]
               in [(("calc_atm", thms1 @ thms2),[])] end
-            ||>> PureThy.add_thmss
+            ||>> add_thmss_string
               let val thms1 = inst_pt_at [abs_fun_pi]
                   and thms2 = inst_pt_pt_at_cp [abs_fun_pi_ineq]
               in [(("abs_perm", thms1 @ thms2),[NominalThmDecls.eqvt_add])] end
-            ||>> PureThy.add_thmss
+            ||>> add_thmss_string
               let val thms1 = inst_dj [dj_perm_forget]
                   and thms2 = inst_dj [dj_pp_forget]
               in [(("perm_dj", thms1 @ thms2),[])] end
-            ||>> PureThy.add_thmss
+            ||>> add_thmss_string
               let val thms1 = inst_pt_at_fs [fresh_iff]
                   and thms2 = inst_pt_at [fresh_iff]
                   and thms3 = inst_pt_pt_at_cp_dj [fresh_iff_ineq]
             in [(("abs_fresh", thms1 @ thms2 @ thms3),[])] end
-            ||>> PureThy.add_thmss
+            ||>> add_thmss_string
               let val thms1 = inst_pt_at [abs_fun_supp]
                   and thms2 = inst_pt_at_fs [abs_fun_supp]
                   and thms3 = inst_pt_pt_at_cp_dj [abs_fun_supp_ineq]
               in [(("abs_supp", thms1 @ thms2 @ thms3),[])] end
-            ||>> PureThy.add_thmss
+            ||>> add_thmss_string
               let val thms1 = inst_pt_at [fresh_left]
                   and thms2 = inst_pt_pt_at_cp [fresh_left_ineq]
               in [(("fresh_left", thms1 @ thms2),[])] end
-            ||>> PureThy.add_thmss
+            ||>> add_thmss_string
               let val thms1 = inst_pt_at [fresh_right]
                   and thms2 = inst_pt_pt_at_cp [fresh_right_ineq]
               in [(("fresh_right", thms1 @ thms2),[])] end
-            ||>> PureThy.add_thmss
+            ||>> add_thmss_string
               let val thms1 = inst_pt_at [fresh_bij]
                   and thms2 = inst_pt_pt_at_cp [fresh_bij_ineq]
               in [(("fresh_bij", thms1 @ thms2),[])] end
-            ||>> PureThy.add_thmss
+            ||>> add_thmss_string
               let val thms1 = inst_pt_at fresh_star_bij
                   and thms2 = flat (map (fn ti => inst_pt_pt_at_cp [ti]) fresh_star_bij_ineq);
               in [(("fresh_star_bij", thms1 @ thms2),[])] end
-            ||>> PureThy.add_thmss
+            ||>> add_thmss_string
               let val thms1 = inst_pt_at [fresh_eqvt]
                   and thms2 = inst_pt_pt_at_cp_dj [fresh_eqvt_ineq]
               in [(("fresh_eqvt", thms1 @ thms2),[NominalThmDecls.eqvt_add])] end
-            ||>> PureThy.add_thmss
+            ||>> add_thmss_string
               let val thms1 = inst_pt_at [in_eqvt]
               in [(("in_eqvt", thms1),[NominalThmDecls.eqvt_add])] end
-            ||>> PureThy.add_thmss
+            ||>> add_thmss_string
               let val thms1 = inst_pt_at [eq_eqvt]
               in [(("eq_eqvt", thms1),[NominalThmDecls.eqvt_add])] end
-            ||>> PureThy.add_thmss
+            ||>> add_thmss_string
               let val thms1 = inst_pt_at [set_diff_eqvt]
               in [(("set_diff_eqvt", thms1),[NominalThmDecls.eqvt_add])] end
-            ||>> PureThy.add_thmss
+            ||>> add_thmss_string
               let val thms1 = inst_pt_at [subseteq_eqvt]
               in [(("subseteq_eqvt", thms1),[NominalThmDecls.eqvt_add])] end
-            ||>> PureThy.add_thmss [(("insert_eqvt", inst_pt_at [insert_eqvt]), [NominalThmDecls.eqvt_add])]
-            ||>> PureThy.add_thmss [(("set_eqvt", inst_pt_at [set_eqvt]), [NominalThmDecls.eqvt_add])]
-            ||>> PureThy.add_thmss [(("perm_set_eq", inst_pt_at [perm_set_eq]), [])]
-            ||>> PureThy.add_thmss
+            ||>> add_thmss_string [(("insert_eqvt", inst_pt_at [insert_eqvt]), [NominalThmDecls.eqvt_add])]
+            ||>> add_thmss_string [(("set_eqvt", inst_pt_at [set_eqvt]), [NominalThmDecls.eqvt_add])]
+            ||>> add_thmss_string [(("perm_set_eq", inst_pt_at [perm_set_eq]), [])]
+            ||>> add_thmss_string
               let val thms1 = inst_pt_at [fresh_aux]
                   and thms2 = inst_pt_pt_at_cp_dj [fresh_perm_app_ineq] 
               in  [(("fresh_aux", thms1 @ thms2),[])] end  
-            ||>> PureThy.add_thmss
+            ||>> add_thmss_string
               let val thms1 = inst_pt_at [fresh_perm_app]
                   and thms2 = inst_pt_pt_at_cp_dj [fresh_perm_app_ineq] 
               in  [(("fresh_perm_app", thms1 @ thms2),[])] end 
-            ||>> PureThy.add_thmss
+            ||>> add_thmss_string
               let val thms1 = inst_pt_at [pt_perm_supp]
                   and thms2 = inst_pt_pt_at_cp [pt_perm_supp_ineq] 
               in  [(("supp_eqvt", thms1 @ thms2),[NominalThmDecls.eqvt_add])] end  
-            ||>> PureThy.add_thmss [(("fin_supp",fs_axs),[])]
+            ||>> add_thmss_string [(("fin_supp",fs_axs),[])]
            end;
 
     in 

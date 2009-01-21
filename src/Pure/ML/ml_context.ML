@@ -126,7 +126,8 @@ val stored_thms: thm list ref = ref [];
 
 fun ml_store sel (name, ths) =
   let
-    val ths' = Context.>>> (Context.map_theory_result (PureThy.store_thms (name, ths)));
+    val ths' = Context.>>> (Context.map_theory_result
+      (PureThy.store_thms (Binding.name name, ths)));
     val _ =
       if name = "" then ()
       else if not (ML_Syntax.is_identifier name) then

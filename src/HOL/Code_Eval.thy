@@ -1,5 +1,4 @@
 (*  Title:      HOL/Code_Eval.thy
-    ID:         $Id$
     Author:     Florian Haftmann, TU Muenchen
 *)
 
@@ -24,7 +23,7 @@ definition App :: "term \<Rightarrow> term \<Rightarrow> term" where
 code_datatype Const App
 
 class term_of = typerep +
-  fixes term_of :: "'a \<Rightarrow> term"
+  fixes term_of :: "'a::{} \<Rightarrow> term"
 
 lemma term_of_anything: "term_of x \<equiv> t"
   by (rule eq_reflection) (cases "term_of x", cases t, simp)

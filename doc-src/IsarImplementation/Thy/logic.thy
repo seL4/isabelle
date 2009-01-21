@@ -323,9 +323,9 @@ text %mlref {*
   @{index_ML fastype_of: "term -> typ"} \\
   @{index_ML lambda: "term -> term -> term"} \\
   @{index_ML betapply: "term * term -> term"} \\
-  @{index_ML Sign.declare_const: "Properties.T -> (Binding.T * typ) * mixfix ->
+  @{index_ML Sign.declare_const: "Properties.T -> (binding * typ) * mixfix ->
   theory -> term * theory"} \\
-  @{index_ML Sign.add_abbrev: "string -> Properties.T -> Binding.T * term ->
+  @{index_ML Sign.add_abbrev: "string -> Properties.T -> binding * term ->
   theory -> (term * term) * theory"} \\
   @{index_ML Sign.const_typargs: "theory -> string * typ -> typ list"} \\
   @{index_ML Sign.const_instance: "theory -> string * typ list -> typ"} \\

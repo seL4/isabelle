@@ -23,7 +23,7 @@ sig
   val abbrev_mode: Proof.context -> bool
   val set_stmt: bool -> Proof.context -> Proof.context
   val naming_of: Proof.context -> NameSpace.naming
-  val full_name: Proof.context -> Binding.T -> string
+  val full_name: Proof.context -> binding -> string
   val full_bname: Proof.context -> bstring -> string
   val consts_of: Proof.context -> Consts.T
   val const_syntax_name: Proof.context -> string -> string
@@ -105,27 +105,27 @@ sig
   val restore_naming: Proof.context -> Proof.context -> Proof.context
   val reset_naming: Proof.context -> Proof.context
   val note_thmss: string ->
-    ((Binding.T * attribute list) * (Facts.ref * attribute list) list) list ->
+    ((binding * attribute list) * (Facts.ref * attribute list) list) list ->
       Proof.context -> (string * thm list) list * Proof.context
   val note_thmss_i: string ->
-    ((Binding.T * attribute list) * (thm list * attribute list) list) list ->
+    ((binding * attribute list) * (thm list * attribute list) list) list ->
       Proof.context -> (string * thm list) list * Proof.context
   val put_thms: bool -> string * thm list option -> Proof.context -> Proof.context
-  val read_vars: (Binding.T * string option * mixfix) list -> Proof.context ->
-    (Binding.T * typ option * mixfix) list * Proof.context
-  val cert_vars: (Binding.T * typ option * mixfix) list -> Proof.context ->
-    (Binding.T * typ option * mixfix) list * Proof.context
-  val add_fixes: (Binding.T * string option * mixfix) list ->
+  val read_vars: (binding * string option * mixfix) list -> Proof.context ->
+    (binding * typ option * mixfix) list * Proof.context
+  val cert_vars: (binding * typ option * mixfix) list -> Proof.context ->
+    (binding * typ option * mixfix) list * Proof.context
+  val add_fixes: (binding * string option * mixfix) list ->
     Proof.context -> string list * Proof.context
-  val add_fixes_i: (Binding.T * typ option * mixfix) list ->
+  val add_fixes_i: (binding * typ option * mixfix) list ->
     Proof.context -> string list * Proof.context
   val auto_fixes: Proof.context * (term list list * 'a) -> Proof.context * (term list list * 'a)
   val bind_fixes: string list -> Proof.context -> (term -> term) * Proof.context
   val add_assms: Assumption.export ->
-    ((Binding.T * attribute list) * (string * string list) list) list ->
+    ((binding * attribute list) * (string * string list) list) list ->
     Proof.context -> (string * thm list) list * Proof.context
   val add_assms_i: Assumption.export ->
-    ((Binding.T * attribute list) * (term * term list) list) list ->
+    ((binding * attribute list) * (term * term list) list) list ->
     Proof.context -> (string * thm list) list * Proof.context
   val add_cases: bool -> (string * RuleCases.T option) list -> Proof.context -> Proof.context
   val apply_case: RuleCases.T -> Proof.context -> (string * term list) list * Proof.context
@@ -135,7 +135,7 @@ sig
     Context.generic -> Context.generic
   val add_const_constraint: string * typ option -> Proof.context -> Proof.context
   val add_abbrev: string -> Properties.T ->
-    Binding.T * term -> Proof.context -> (term * term) * Proof.context
+    binding * term -> Proof.context -> (term * term) * Proof.context
   val revert_abbrev: string -> string -> Proof.context -> Proof.context
   val verbose: bool ref
   val setmp_verbose: ('a -> 'b) -> 'a -> 'b

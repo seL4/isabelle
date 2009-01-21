@@ -97,12 +97,12 @@ fun prepare_pcpodef prep_term pcpo def name (t, vs, mx) raw_set opt_morphs thy =
         theory'
         |> Sign.add_path name
         |> PureThy.add_thms
-          ([(("adm_" ^ name, admissible'), []),
-            (("cont_" ^ Rep_name, @{thm typedef_cont_Rep} OF cpo_thms'), []),
-            (("cont_" ^ Abs_name, @{thm typedef_cont_Abs} OF cpo_thms'), []),
-            (("lub_" ^ name, @{thm typedef_lub} OF cpo_thms'), []),
-            (("thelub_" ^ name, @{thm typedef_thelub} OF cpo_thms'), []),
-            (("compact_" ^ name, @{thm typedef_compact} OF cpo_thms'), [])])
+          ([((Binding.name ("adm_" ^ name), admissible'), []),
+            ((Binding.name ("cont_" ^ Rep_name), @{thm typedef_cont_Rep} OF cpo_thms'), []),
+            ((Binding.name ("cont_" ^ Abs_name), @{thm typedef_cont_Abs} OF cpo_thms'), []),
+            ((Binding.name ("lub_" ^ name), @{thm typedef_lub} OF cpo_thms'), []),
+            ((Binding.name ("thelub_" ^ name), @{thm typedef_thelub} OF cpo_thms'), []),
+            ((Binding.name ("compact_" ^ name), @{thm typedef_compact} OF cpo_thms'), [])])
         |> snd
         |> Sign.parent_path
       end;
@@ -119,12 +119,12 @@ fun prepare_pcpodef prep_term pcpo def name (t, vs, mx) raw_set opt_morphs thy =
         theory'
         |> Sign.add_path name
         |> PureThy.add_thms
-            ([((Rep_name ^ "_strict", @{thm typedef_Rep_strict} OF pcpo_thms'), []),
-              ((Abs_name ^ "_strict", @{thm typedef_Abs_strict} OF pcpo_thms'), []),
-              ((Rep_name ^ "_strict_iff", @{thm typedef_Rep_strict_iff} OF pcpo_thms'), []),
-              ((Abs_name ^ "_strict_iff", @{thm typedef_Abs_strict_iff} OF pcpo_thms'), []),
-              ((Rep_name ^ "_defined", @{thm typedef_Rep_defined} OF pcpo_thms'), []),
-              ((Abs_name ^ "_defined", @{thm typedef_Abs_defined} OF pcpo_thms'), [])
+            ([((Binding.name (Rep_name ^ "_strict"), @{thm typedef_Rep_strict} OF pcpo_thms'), []),
+              ((Binding.name (Abs_name ^ "_strict"), @{thm typedef_Abs_strict} OF pcpo_thms'), []),
+              ((Binding.name (Rep_name ^ "_strict_iff"), @{thm typedef_Rep_strict_iff} OF pcpo_thms'), []),
+              ((Binding.name (Abs_name ^ "_strict_iff"), @{thm typedef_Abs_strict_iff} OF pcpo_thms'), []),
+              ((Binding.name (Rep_name ^ "_defined"), @{thm typedef_Rep_defined} OF pcpo_thms'), []),
+              ((Binding.name (Abs_name ^ "_defined"), @{thm typedef_Abs_defined} OF pcpo_thms'), [])
               ])
         |> snd
         |> Sign.parent_path

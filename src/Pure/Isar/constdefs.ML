@@ -8,12 +8,12 @@ dependencies; no support for overloading.
 
 signature CONSTDEFS =
 sig
-  val add_constdefs: (Binding.T * string option) list *
-    ((Binding.T * string option * mixfix) option *
+  val add_constdefs: (binding * string option) list *
+    ((binding * string option * mixfix) option *
       (Attrib.binding * string)) list -> theory -> theory
-  val add_constdefs_i: (Binding.T * typ option) list *
-    ((Binding.T * typ option * mixfix) option *
-      ((Binding.T * attribute list) * term)) list -> theory -> theory
+  val add_constdefs_i: (binding * typ option) list *
+    ((binding * typ option * mixfix) option *
+      ((binding * attribute list) * term)) list -> theory -> theory
 end;
 
 structure Constdefs: CONSTDEFS =
@@ -52,7 +52,7 @@ fun gen_constdef prep_vars prep_prop prep_att
     val thy' =
       thy
       |> Sign.add_consts_i [(c, T, mx)]
-      |> PureThy.add_defs false [((name, def), atts)]
+      |> PureThy.add_defs false [((Binding.name name, def), atts)]
       |-> (fn [thm] => Code.add_default_eqn thm);
   in ((c, T), thy') end;
 
