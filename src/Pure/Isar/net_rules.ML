@@ -1,5 +1,4 @@
 (*  Title:      Pure/Isar/net_rules.ML
-    ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
 
 Efficient storage of rules: preserves order, prefers later entries.

@@ -1,5 +1,4 @@
 (*  Title:      Pure/ProofGeneral/pgip_parser.ML
-    ID:         $Id$
     Author:     David Aspinall and Makarius
 
 Parsing theory sources without execution (via keyword classification).

@@ -1,5 +1,4 @@
 (*  Title:      Pure/Thy/html.ML
-    ID:         $Id$
     Author:     Markus Wenzel and Stefan Berghofer, TU Muenchen
 
 HTML presentation elements.

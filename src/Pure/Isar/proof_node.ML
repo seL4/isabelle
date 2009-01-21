@@ -1,5 +1,4 @@
 (*  Title:      Pure/Isar/proof_node.ML
-    ID:         $Id$
     Author:     Makarius
 
 Proof nodes with linear position and backtracking.

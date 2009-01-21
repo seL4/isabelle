@@ -1,5 +1,4 @@
 (*  Title:      Pure/ML/ml_context.ML
-    ID:         $Id$
     Author:     Makarius
 
 ML context and antiquotations.

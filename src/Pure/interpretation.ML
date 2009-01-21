@@ -1,5 +1,4 @@
 (*  Title:      Pure/interpretation.ML
-    ID:         $Id$
     Author:     Florian Haftmann and Makarius
 
 Generic interpretation of theory data.

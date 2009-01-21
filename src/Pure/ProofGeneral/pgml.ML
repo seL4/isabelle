@@ -1,5 +1,4 @@
 (*  Title:      Pure/ProofGeneral/pgml.ML
-    ID:         $Id$
     Author:     David Aspinall
 
 PGIP abstraction: PGML

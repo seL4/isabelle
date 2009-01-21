@@ -1,5 +1,4 @@
 (*  Title:      Pure/ML/ml_thms.ML
-    ID:         $Id$
     Author:     Makarius
 
 Isar theorem values within ML.

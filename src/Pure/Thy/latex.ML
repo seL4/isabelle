@@ -1,5 +1,4 @@
 (*  Title:      Pure/Thy/latex.ML
-    ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
 
 LaTeX presentation elements -- based on outer lexical syntax.

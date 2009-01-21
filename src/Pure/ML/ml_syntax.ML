@@ -1,5 +1,4 @@
 (*  Title:      Pure/ML/ml_syntax.ML
-    ID:         $Id$
     Author:     Makarius
 
 Basic ML syntax operations.

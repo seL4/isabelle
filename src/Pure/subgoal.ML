@@ -1,5 +1,4 @@
 (*  Title:      Pure/subgoal.ML
-    ID:         $Id$
     Author:     Makarius
 
 Tactical operations depending on local subgoal structure.

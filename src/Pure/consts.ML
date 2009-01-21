@@ -1,5 +1,4 @@
 (*  Title:      Pure/consts.ML
-    ID:         $Id$
     Author:     Makarius
 
 Polymorphic constants: declarations, abbreviations, additional type

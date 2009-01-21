@@ -1,5 +1,4 @@
 (*  Title:      Pure/config.ML
-    ID:         $Id$
     Author:     Makarius
 
 Configuration options as values within the local context.

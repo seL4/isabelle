@@ -1,5 +1,4 @@
 (*  Title:      Pure/Isar/context_rules.ML
-    ID:         $Id$
     Author:     Stefan Berghofer and Markus Wenzel, TU Muenchen
 
 Declarations of intro/elim/dest rules in Pure (see also

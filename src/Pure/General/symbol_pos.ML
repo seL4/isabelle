@@ -1,5 +1,4 @@
 (*  Title:      Pure/General/symbol_pos.ML
-    ID:         $Id$
     Author:     Makarius
 
 Symbols with explicit position information.

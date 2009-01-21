@@ -1,5 +1,4 @@
 (*  Title:      Pure/Isar/antiquote.ML
-    ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
 
 Text with antiquotations of inner items (terms, types etc.).

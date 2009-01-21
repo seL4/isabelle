@@ -1,5 +1,4 @@
 (*  Title:      Pure/ProofGeneral/pgip_markup.ML
-    ID:         $Id$
     Author:     David Aspinall
 
 PGIP abstraction: document markup for proof scripts (in progress).

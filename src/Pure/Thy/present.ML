@@ -1,5 +1,4 @@
 (*  Title:      Pure/Thy/present.ML
-    ID:         $Id$
     Author:     Markus Wenzel and Stefan Berghofer, TU Muenchen
 
 Theory presentation: HTML, graph files, (PDF)LaTeX documents.

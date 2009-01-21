@@ -1,5 +1,4 @@
 (*  Title:      Pure/Thy/thm_deps.ML
-    ID:         $Id$
     Author:     Stefan Berghofer, TU Muenchen
 
 Visualize dependencies of theorems.

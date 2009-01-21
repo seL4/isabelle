@@ -1,5 +1,4 @@
 (*  Title:      Pure/simplifier.ML
-    ID:         $Id$
     Author:     Tobias Nipkow and Markus Wenzel, TU Muenchen
 
 Generic simplifier, suitable for most logics (see also

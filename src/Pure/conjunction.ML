@@ -1,5 +1,4 @@
 (*  Title:      Pure/conjunction.ML
-    ID:         $Id$
     Author:     Makarius
 
 Meta-level conjunction.

@@ -1,5 +1,4 @@
 (*  Title:      Pure/type_infer.ML
-    ID:         $Id$
     Author:     Stefan Berghofer and Markus Wenzel, TU Muenchen
 
 Simple type inference.

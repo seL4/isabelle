@@ -1,5 +1,4 @@
 (*  Title:      Pure/ProofGeneral/proof_general_pgip.ML
-    ID:         $Id$
     Author:     David Aspinall and Markus Wenzel
 
 Isabelle configuration for Proof General using PGIP protocol.

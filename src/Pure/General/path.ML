@@ -1,5 +1,4 @@
 (*  Title:      Pure/General/path.ML
-    ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
 
 Abstract algebra of file paths (external encoding in Unix style).

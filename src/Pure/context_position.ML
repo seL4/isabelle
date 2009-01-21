@@ -1,5 +1,4 @@
 (*  Title:      Pure/context_position.ML
-    ID:         $Id$
     Author:     Makarius
 
 Context position visibility flag.

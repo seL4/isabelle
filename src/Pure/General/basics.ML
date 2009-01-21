@@ -1,5 +1,4 @@
 (*  Title:      Pure/General/basics.ML
-    ID:         $Id$
     Author:     Florian Haftmann and Makarius, TU Muenchen
 
 Fundamental concepts.

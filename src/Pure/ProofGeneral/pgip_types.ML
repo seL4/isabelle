@@ -1,5 +1,4 @@
 (*  Title:      Pure/ProofGeneral/pgip_types.ML
-    ID:         $Id$
     Author:     David Aspinall
 
 PGIP abstraction: types and conversions.

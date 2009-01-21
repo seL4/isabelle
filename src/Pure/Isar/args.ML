@@ -1,5 +1,4 @@
 (*  Title:      Pure/Isar/args.ML
-    ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
 
 Parsing with implicit value assigment.  Concrete argument syntax of

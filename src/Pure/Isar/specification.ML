@@ -1,5 +1,4 @@
 (*  Title:      Pure/Isar/specification.ML
-    ID:         $Id$
     Author:     Makarius
 
 Derived local theory specifications --- with type-inference and

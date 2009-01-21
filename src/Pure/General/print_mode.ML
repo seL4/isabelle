@@ -1,5 +1,4 @@
 (*  Title:      Pure/General/print_mode.ML
-    ID:         $Id$
     Author:     Makarius
 
 Generic print mode as thread-local value derived from global template;

@@ -1,5 +1,4 @@
 (*  Title:      Pure/ProofGeneral/pgip.ML
-    ID:         $Id$
     Author:     David Aspinall
 
 Prover-side PGIP abstraction.  

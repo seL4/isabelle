@@ -1,5 +1,4 @@
 (*  Title:      Pure/General/yxml.ML
-    ID:         $Id$
     Author:     Makarius
 
 Efficient text representation of XML trees using extra characters X

@@ -1,5 +1,4 @@
 (*  Title:      Pure/General/graph.ML
-    ID:         $Id$
     Author:     Markus Wenzel and Stefan Berghofer, TU Muenchen
 
 Directed graphs.

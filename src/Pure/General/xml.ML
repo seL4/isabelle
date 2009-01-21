@@ -1,5 +1,4 @@
 (*  Title:      Pure/General/xml.ML
-    ID:         $Id$
     Author:     David Aspinall, Stefan Berghofer and Markus Wenzel
 
 Basic support for XML.

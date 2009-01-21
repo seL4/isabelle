@@ -1,5 +1,4 @@
 (*  Title:      Pure/Isar/outer_lex.ML
-    ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
 
 Outer lexical syntax for Isabelle/Isar.

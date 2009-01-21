@@ -1,5 +1,4 @@
 (*  Title:      Pure/Thy/thy_header.ML
-    ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
 
 Theory headers -- independent of outer syntax.

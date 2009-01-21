@@ -1,5 +1,4 @@
 (*  Title:      Pure/General/alist.ML
-    ID:         $Id$
     Author:     Florian Haftmann, TU Muenchen
 
 Association lists -- lists of (key, value) pairs.

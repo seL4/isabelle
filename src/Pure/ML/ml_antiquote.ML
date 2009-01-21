@@ -1,5 +1,4 @@
 (*  Title:      Pure/ML/ml_antiquote.ML
-    ID:         $Id$
     Author:     Makarius
 
 Common ML antiquotations.

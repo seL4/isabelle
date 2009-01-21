@@ -1,5 +1,4 @@
 (*  Title:      Pure/ProofGeneral/pgip_output.ML
-    ID:         $Id$
     Author:     David Aspinall
 
 PGIP abstraction: output commands.

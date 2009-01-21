@@ -1,5 +1,4 @@
 (*  Title:      Pure/General/properties.ML
-    ID:         $Id$
     Author:     Makarius
 
 Property lists.

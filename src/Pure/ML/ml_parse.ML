@@ -1,5 +1,4 @@
 (*  Title:      Pure/ML/ml_parse.ML
-    ID:         $Id$
     Author:     Makarius
 
 Minimal parsing for SML -- fixing integer numerals.

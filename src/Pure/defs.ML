@@ -1,5 +1,4 @@
 (*  Title:      Pure/defs.ML
-    ID:         $Id$
     Author:     Makarius
 
 Global well-formedness checks for constant definitions.  Covers plain

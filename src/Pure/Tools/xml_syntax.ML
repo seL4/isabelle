@@ -1,5 +1,4 @@
 (*  Title:      Pure/Tools/xml_syntax.ML
-    ID:         $Id$
     Author:     Stefan Berghofer, TU Muenchen
 
 Input and output of types, terms, and proofs in XML format.

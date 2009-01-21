@@ -1,5 +1,4 @@
 (*  Title:      Pure/General/secure.ML
-    ID:         $Id$
     Author:     Makarius
 
 Secure critical operations.

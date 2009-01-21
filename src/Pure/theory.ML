@@ -1,5 +1,4 @@
 (*  Title:      Pure/theory.ML
-    ID:         $Id$
     Author:     Lawrence C Paulson and Markus Wenzel
 
 Logical theory content: axioms, definitions, and begin/end wrappers.

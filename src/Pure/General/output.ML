@@ -1,5 +1,4 @@
 (*  Title:      Pure/General/output.ML
-    ID:         $Id$
     Author:     Makarius, Hagia Maria Sion Abbey (Jerusalem)
 
 Output channels and timing messages.

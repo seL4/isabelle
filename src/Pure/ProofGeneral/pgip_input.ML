@@ -1,5 +1,4 @@
 (*  Title:      Pure/ProofGeneral/pgip_input.ML
-    ID:         $Id$
     Author:     David Aspinall
 
 PGIP abstraction: input commands.

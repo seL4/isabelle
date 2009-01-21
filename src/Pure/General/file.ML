@@ -1,5 +1,4 @@
 (*  Title:      Pure/General/file.ML
-    ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
 
 File system operations.

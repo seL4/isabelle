@@ -1,5 +1,4 @@
 (*  Title:      Pure/ProofGeneral/pgip_tests.ML
-    ID:         $Id$
     Author:     David Aspinall
 
 A test suite for the PGIP abstraction code (in progress).

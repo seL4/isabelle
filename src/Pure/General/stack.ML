@@ -1,5 +1,4 @@
 (*  Title:      Pure/General/stack.ML
-    ID:         $Id$
     Author:     Makarius
 
 Non-empty stacks.

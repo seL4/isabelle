@@ -1,5 +1,4 @@
 (*  Title:      Pure/Thy/term_style.ML
-    ID:         $Id$
     Author:     Florian Haftmann, TU Muenchen
 
 Styles for terms, to use with the "term_style" and "thm_style"

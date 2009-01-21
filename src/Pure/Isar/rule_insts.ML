@@ -1,5 +1,4 @@
 (*  Title:      Pure/Isar/rule_insts.ML
-    ID:         $Id$
     Author:     Makarius
 
 Rule instantiations -- operations within a rule/subgoal context.

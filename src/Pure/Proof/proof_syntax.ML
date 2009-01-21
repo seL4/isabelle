@@ -1,5 +1,4 @@
 (*  Title:      Pure/Proof/proof_syntax.ML
-    ID:         $Id$
     Author:     Stefan Berghofer, TU Muenchen
 
 Function for parsing and printing proof terms.

@@ -1,5 +1,4 @@
 (*  Title:      Pure/Isar/skip_proof.ML
-    ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
 
 Skipping proofs -- quick_and_dirty mode.

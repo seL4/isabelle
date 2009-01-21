@@ -1,5 +1,4 @@
 (*  Title:      Pure/General/pretty.ML
-    ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Author:     Markus Wenzel, TU Munich
 

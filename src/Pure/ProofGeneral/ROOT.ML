@@ -1,5 +1,4 @@
 (*  Title:      Pure/ProofGeneral/ROOT.ML
-    ID:         $Id$
     Author:     David Aspinall
 
 Proof General interface for Isabelle, both the traditional Emacs version,

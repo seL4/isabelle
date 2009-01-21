@@ -1,5 +1,4 @@
 (*  Title:      Pure/Isar/auto_bind.ML
-    ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
 
 Automatic bindings of Isar text elements.

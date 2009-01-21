@@ -1,5 +1,4 @@
 (*  Title:      Pure/conv.ML
-    ID:         $Id$
     Author:     Amine Chaieb and Makarius
 
 Conversions: primitive equality reasoning.

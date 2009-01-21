@@ -1,5 +1,4 @@
 (*  Title:      Pure/General/balanced_tree.ML
-    ID:         $Id$
     Author:     Lawrence C Paulson and Makarius
 
 Balanced binary trees.

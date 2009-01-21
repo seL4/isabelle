@@ -1,5 +1,4 @@
 (*  Title:      Pure/Isar/calculation.ML
-    ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
 
 Generic calculational proofs.

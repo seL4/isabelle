@@ -1,5 +1,4 @@
 (*  Title:      Pure/Thy/thy_output.ML
-    ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
 
 Theory document output.

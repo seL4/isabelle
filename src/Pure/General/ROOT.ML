@@ -1,5 +1,4 @@
 (*  Title:      Pure/General/ROOT.ML
-    ID:         $Id$
 
 Library of general tools.
 *)

@@ -1,5 +1,4 @@
 (*  Title:      Pure/sign.ML
-    ID:         $Id$
     Author:     Lawrence C Paulson and Markus Wenzel
 
 Logical signature content: naming conventions, concrete syntax, type

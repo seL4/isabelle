@@ -1,5 +1,4 @@
 (*  Title:      Pure/General/queue.ML
-    ID:         $Id$
     Author:     Makarius
 
 Efficient queues.

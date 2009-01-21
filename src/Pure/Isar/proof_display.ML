@@ -1,5 +1,4 @@
 (*  Title:      Pure/Isar/proof_display.ML
-    ID:         $Id$
     Author:     Makarius
 
 Printing of theorems, goals, results etc.

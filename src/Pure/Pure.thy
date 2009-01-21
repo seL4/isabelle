@@ -1,6 +1,3 @@
-(*  Title:      Pure/Pure.thy
-    ID:         $Id$
-*)
 
 section {* Further content for the Pure theory *}
 

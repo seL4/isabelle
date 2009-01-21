@@ -1,5 +1,4 @@
 (*  Title:      Pure/General/integer.ML
-    ID:         $Id$
     Author:     Florian Haftmann, TU Muenchen
 
 Unbounded integers.

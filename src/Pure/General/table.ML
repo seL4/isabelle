@@ -1,5 +1,4 @@
 (*  Title:      Pure/General/table.ML
-    ID:         $Id$
     Author:     Markus Wenzel and Stefan Berghofer, TU Muenchen
 
 Generic tables.  Efficient purely functional implementation using

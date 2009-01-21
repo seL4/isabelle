@@ -1,5 +1,4 @@
 (*  Title:      Pure/General/symbol.ML
-    ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
 
 Generalized characters with infinitely many named symbols.

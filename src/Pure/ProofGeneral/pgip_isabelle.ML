@@ -1,5 +1,4 @@
 (*  Title:      Pure/ProofGeneral/pgip_isabelle.ML
-    ID:         $Id$
     Author:     David Aspinall
 
 Prover-side PGIP abstraction: Isabelle configuration and mapping to Isabelle types.

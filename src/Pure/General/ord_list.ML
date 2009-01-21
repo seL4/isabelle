@@ -1,5 +1,4 @@
 (*  Title:      Pure/General/ord_list.ML
-    ID:         $Id$
     Author:     Makarius
 
 Ordered lists without duplicates -- a light-weight representation of

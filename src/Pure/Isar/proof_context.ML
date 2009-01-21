@@ -1,5 +1,4 @@
 (*  Title:      Pure/Isar/proof_context.ML
-    ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
 
 The key concept of Isar proof contexts: elevates primitive local

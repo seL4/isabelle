@@ -1,5 +1,4 @@
 (*  Title:      Pure/Isar/local_syntax.ML
-    ID:         $Id$
     Author:     Makarius
 
 Local syntax depending on theory syntax.

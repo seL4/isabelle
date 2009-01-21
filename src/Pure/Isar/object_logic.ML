@@ -1,5 +1,4 @@
 (*  Title:      Pure/Isar/object_logic.ML
-    ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
 
 Specifics about common object-logics.

@@ -1,5 +1,4 @@
 (*  Title:      Pure/Isar/overloading.ML
-    ID:         $Id$
     Author:     Florian Haftmann, TU Muenchen
 
 Overloaded definitions without any discipline.

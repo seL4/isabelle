@@ -1,5 +1,4 @@
 (*  Title:      Pure/ML/ml_lex.ML
-    ID:         $Id$
     Author:     Makarius
 
 Lexical syntax for SML.
