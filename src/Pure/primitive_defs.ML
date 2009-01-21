@@ -1,5 +1,4 @@
 (*  Title:      Pure/primitive_defs.ML
-    ID:         $Id$
     Author:     Makarius
 
 Primitive definition forms.

@@ -1,5 +1,4 @@
 (*  Title:      HOL/FunDef.thy
-    ID:         $Id$
     Author:     Alexander Krauss, TU Muenchen
 *)
 

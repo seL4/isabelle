@@ -1,5 +1,4 @@
 (*  Title:      HOL/Lattices.thy
-    ID:         $Id$
     Author:     Tobias Nipkow
 *)
 
