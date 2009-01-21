@@ -625,9 +625,6 @@ thm nat_dvd.meet_left text {* from dlat *}
 lemma "gcd x y dvd x"
   apply (rule nat_dvd.meet_left) done
 
-print_interps dpo
-print_interps dlat
-
 
 subsection {* Group example with defined operations @{text inv} and @{text unit} *}
 
