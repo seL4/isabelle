@@ -200,7 +200,7 @@ let
             in
               lthy
               |> LocalTheory.theory (Code.del_eqns c
-                   #> PureThy.add_thm ((fst (dest_Free random') ^ "_code", thm), [Thm.kind_internal])
+                   #> PureThy.add_thm ((Binding.name (fst (dest_Free random') ^ "_code"), thm), [Thm.kind_internal])
                    #-> Code.add_eqn)
             end;
         in

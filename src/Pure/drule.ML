@@ -460,10 +460,10 @@ val size_of_thm = size_of_term o Thm.full_prop_of;
 val read_prop = certify o SimpleSyntax.read_prop;
 
 fun store_thm name th =
-  Context.>>> (Context.map_theory_result (PureThy.store_thm (name, th)));
+  Context.>>> (Context.map_theory_result (PureThy.store_thm (Binding.name name, th)));
 
 fun store_thm_open name th =
-  Context.>>> (Context.map_theory_result (PureThy.store_thm_open (name, th)));
+  Context.>>> (Context.map_theory_result (PureThy.store_thm_open (Binding.name name, th)));
 
 fun store_standard_thm name th = store_thm name (standard th);
 fun store_standard_thm_open name thm = store_thm_open name (standard' thm);

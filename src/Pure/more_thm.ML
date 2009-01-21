@@ -38,8 +38,8 @@ sig
   val forall_elim_vars: int -> thm -> thm
   val unvarify: thm -> thm
   val close_derivation: thm -> thm
-  val add_axiom: bstring * term -> theory -> thm * theory
-  val add_def: bool -> bool -> bstring * term -> theory -> thm * theory
+  val add_axiom: binding * term -> theory -> thm * theory
+  val add_def: bool -> bool -> binding * term -> theory -> thm * theory
   val rule_attribute: (Context.generic -> thm -> thm) -> attribute
   val declaration_attribute: (thm -> Context.generic -> Context.generic) -> attribute
   val theory_attributes: attribute list -> theory * thm -> theory * thm
@@ -276,14 +276,15 @@ fun close_derivation thm =
 
 (** specification primitives **)
 
-fun add_axiom (name, prop) thy =
+fun add_axiom (b, prop) thy =
   let
-    val name' = if name = "" then "axiom_" ^ serial_string () else name;
-    val thy' = thy |> Theory.add_axioms_i [(name', prop)];
-    val axm = unvarify (Thm.axiom thy' (Sign.full_bname thy' name'));
+    val b' = if Binding.is_empty b
+      then Binding.name ("axiom_" ^ serial_string ()) else b;
+    val thy' = thy |> Theory.add_axioms_i [(b', prop)];
+    val axm = unvarify (Thm.axiom thy' (Sign.full_name thy' b'));
   in (axm, thy') end;
 
-fun add_def unchecked overloaded (name, prop) thy =
+fun add_def unchecked overloaded (b, prop) thy =
   let
     val tfrees = rev (map TFree (Term.add_tfrees prop []));
     val tfrees' = map (fn a => TFree (a, [])) (Name.invents Name.context Name.aT (length tfrees));
@@ -291,8 +292,8 @@ fun add_def unchecked overloaded (name, prop) thy =
     val recover_sorts = map (pairself (Thm.ctyp_of thy o Logic.varifyT)) (tfrees' ~~ tfrees);
 
     val prop' = Term.map_types (Term.map_atyps (perhaps (AList.lookup (op =) strip_sorts))) prop;
-    val thy' = Theory.add_defs_i unchecked overloaded [(name, prop')] thy;
-    val axm' = Thm.axiom thy' (Sign.full_bname thy' name);
+    val thy' = Theory.add_defs_i unchecked overloaded [(b, prop')] thy;
+    val axm' = Thm.axiom thy' (Sign.full_name thy' b);
     val thm = unvarify (Thm.instantiate (recover_sorts, []) axm');
   in (thm, thy') end;
 

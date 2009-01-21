@@ -13,8 +13,8 @@ sig
   val typed_print_translation: bool * (string * Position.T) -> theory -> theory
   val print_ast_translation: bool * (string * Position.T) -> theory -> theory
   val oracle: bstring -> SymbolPos.text * Position.T -> theory -> theory
-  val add_axioms: ((Binding.T * string) * Attrib.src list) list -> theory -> theory
-  val add_defs: (bool * bool) * ((Binding.T * string) * Attrib.src list) list -> theory -> theory
+  val add_axioms: ((binding * string) * Attrib.src list) list -> theory -> theory
+  val add_defs: (bool * bool) * ((binding * string) * Attrib.src list) list -> theory -> theory
   val declaration: string * Position.T -> local_theory -> local_theory
   val simproc_setup: string -> string list -> string * Position.T -> string list ->
     local_theory -> local_theory
@@ -53,7 +53,6 @@ sig
   val print_theorems: Toplevel.transition -> Toplevel.transition
   val print_locales: Toplevel.transition -> Toplevel.transition
   val print_locale: bool * xstring -> Toplevel.transition -> Toplevel.transition
-  val print_registrations: bool -> string -> Toplevel.transition -> Toplevel.transition
   val print_attributes: Toplevel.transition -> Toplevel.transition
   val print_simpset: Toplevel.transition -> Toplevel.transition
   val print_rules: Toplevel.transition -> Toplevel.transition
@@ -358,12 +357,6 @@ val print_locales = Toplevel.unknown_theory o
 fun print_locale (show_facts, name) = Toplevel.unknown_theory o
   Toplevel.keep (fn state =>
     Locale.print_locale (Toplevel.theory_of state) show_facts name);
-
-fun print_registrations show_wits name = Toplevel.unknown_context o
-  Toplevel.keep (Toplevel.node_case
-      (Context.cases (Old_Locale.print_registrations show_wits name o ProofContext.init)
-        (Old_Locale.print_registrations show_wits name))
-    (Old_Locale.print_registrations show_wits name o Proof.context_of));
 
 val print_attributes = Toplevel.unknown_theory o
   Toplevel.keep (Attrib.print_attributes o Toplevel.theory_of);

@@ -24,26 +24,26 @@ sig
   val name_thm: bool -> bool -> Position.T -> string -> thm -> thm
   val name_thms: bool -> bool -> Position.T -> string -> thm list -> thm list
   val name_thmss: bool -> Position.T -> string -> (thm list * 'a) list -> (thm list * 'a) list
-  val store_thms: bstring * thm list -> theory -> thm list * theory
-  val store_thm: bstring * thm -> theory -> thm * theory
-  val store_thm_open: bstring * thm -> theory -> thm * theory
-  val add_thms: ((bstring * thm) * attribute list) list -> theory -> thm list * theory
-  val add_thm: (bstring * thm) * attribute list -> theory -> thm * theory
-  val add_thmss: ((bstring * thm list) * attribute list) list -> theory -> thm list list * theory
-  val add_thms_dynamic: bstring * (Context.generic -> thm list) -> theory -> theory
-  val note_thmss: string -> ((Binding.T * attribute list) *
+  val store_thms: binding * thm list -> theory -> thm list * theory
+  val store_thm: binding * thm -> theory -> thm * theory
+  val store_thm_open: binding * thm -> theory -> thm * theory
+  val add_thms: ((binding * thm) * attribute list) list -> theory -> thm list * theory
+  val add_thm: (binding * thm) * attribute list -> theory -> thm * theory
+  val add_thmss: ((binding * thm list) * attribute list) list -> theory -> thm list list * theory
+  val add_thms_dynamic: binding * (Context.generic -> thm list) -> theory -> theory
+  val note_thmss: string -> ((binding * attribute list) *
     (thm list * attribute list) list) list -> theory -> (string * thm list) list * theory
-  val note_thmss_grouped: string -> string -> ((Binding.T * attribute list) *
+  val note_thmss_grouped: string -> string -> ((binding * attribute list) *
     (thm list * attribute list) list) list -> theory -> (string * thm list) list * theory
-  val add_axioms: ((bstring * term) * attribute list) list -> theory -> thm list * theory
+  val add_axioms: ((binding * term) * attribute list) list -> theory -> thm list * theory
   val add_axioms_cmd: ((bstring * string) * attribute list) list -> theory -> thm list * theory
-  val add_defs: bool -> ((bstring * term) * attribute list) list ->
+  val add_defs: bool -> ((binding * term) * attribute list) list ->
     theory -> thm list * theory
-  val add_defs_unchecked: bool -> ((bstring * term) * attribute list) list ->
-    theory -> thm list * theory
-  val add_defs_unchecked_cmd: bool -> ((bstring * string) * attribute list) list ->
+  val add_defs_unchecked: bool -> ((binding * term) * attribute list) list ->
     theory -> thm list * theory
   val add_defs_cmd: bool -> ((bstring * string) * attribute list) list ->
+    theory -> thm list * theory
+  val add_defs_unchecked_cmd: bool -> ((bstring * string) * attribute list) list ->
     theory -> thm list * theory
   val old_appl_syntax: theory -> bool
   val old_appl_syntax_setup: theory -> theory
@@ -163,21 +163,21 @@ fun enter_thms pre_name post_name app_att (b, thms) thy =
 
 (* store_thm(s) *)
 
-fun store_thms (bname, thms) = enter_thms (name_thms true true Position.none)
-  (name_thms false true Position.none) I (Binding.name bname, thms);
+fun store_thms (b, thms) = enter_thms (name_thms true true Position.none)
+  (name_thms false true Position.none) I (b, thms);
 
-fun store_thm (bname, th) = store_thms (bname, [th]) #>> the_single;
+fun store_thm (b, th) = store_thms (b, [th]) #>> the_single;
 
-fun store_thm_open (bname, th) =
+fun store_thm_open (b, th) =
   enter_thms (name_thms true false Position.none) (name_thms false false Position.none) I
-    (Binding.name bname, [th]) #>> the_single;
+    (b, [th]) #>> the_single;
 
 
 (* add_thms(s) *)
 
-fun add_thms_atts pre_name ((bname, thms), atts) =
+fun add_thms_atts pre_name ((b, thms), atts) =
   enter_thms pre_name (name_thms false true Position.none)
-    (foldl_map (Thm.theory_attributes atts)) (Binding.name bname, thms);
+    (foldl_map (Thm.theory_attributes atts)) (b, thms);
 
 fun gen_add_thmss pre_name =
   fold_map (add_thms_atts pre_name);
@@ -192,9 +192,9 @@ val add_thm = yield_singleton add_thms;
 
 (* add_thms_dynamic *)
 
-fun add_thms_dynamic (bname, f) thy = thy
+fun add_thms_dynamic (b, f) thy = thy
   |> (FactsData.map o apfst)
-      (Facts.add_dynamic (Sign.naming_of thy) (Binding.name bname, f) #> snd);
+      (Facts.add_dynamic (Sign.naming_of thy) (b, f) #> snd);
 
 
 (* note_thmss *)
@@ -224,21 +224,21 @@ end;
 (* store axioms as theorems *)
 
 local
-  fun get_ax thy (name, _) = Thm.axiom thy (Sign.full_bname thy name);
+  fun get_ax thy (b, _) = Thm.axiom thy (Sign.full_name thy b);
   fun get_axs thy named_axs = map (Thm.forall_elim_vars 0 o get_ax thy) named_axs;
-  fun add_axm add = fold_map (fn ((name, ax), atts) => fn thy =>
+  fun add_axm prep_b add = fold_map (fn ((b, ax), atts) => fn thy =>
     let
-      val named_ax = [(name, ax)];
+      val named_ax = [(b, ax)];
       val thy' = add named_ax thy;
-      val thm = hd (get_axs thy' named_ax);
-    in apfst hd (gen_add_thms (K I) [((name, thm), atts)] thy') end);
+      val thm = hd (get_axs thy' ((map o apfst) prep_b named_ax));
+    in apfst hd (gen_add_thms (K I) [((prep_b b, thm), atts)] thy') end);
 in
-  val add_defs               = add_axm o Theory.add_defs_i false;
-  val add_defs_unchecked     = add_axm o Theory.add_defs_i true;
-  val add_axioms             = add_axm Theory.add_axioms_i;
-  val add_defs_cmd           = add_axm o Theory.add_defs false;
-  val add_defs_unchecked_cmd = add_axm o Theory.add_defs true;
-  val add_axioms_cmd         = add_axm Theory.add_axioms;
+  val add_defs               = add_axm I o Theory.add_defs_i false;
+  val add_defs_unchecked     = add_axm I o Theory.add_defs_i true;
+  val add_axioms             = add_axm I Theory.add_axioms_i;
+  val add_defs_cmd           = add_axm Binding.name o Theory.add_defs false;
+  val add_defs_unchecked_cmd = add_axm Binding.name o Theory.add_defs true;
+  val add_axioms_cmd         = add_axm Binding.name Theory.add_axioms;
 end;
 
 
@@ -378,16 +378,16 @@ val _ = Context.>> (Context.map_theory
     ("sort_constraint", typ "'a itself => prop", NoSyn),
     ("conjunction", typ "prop => prop => prop", NoSyn)]
   #> (add_defs false o map Thm.no_attributes)
-   [("prop_def", prop "(CONST prop :: prop => prop) (A::prop) == A::prop"),
-    ("term_def", prop "(CONST Pure.term :: 'a => prop) (x::'a) == (!!A::prop. A ==> A)"),
-    ("sort_constraint_def",
+   [(Binding.name "prop_def", prop "(CONST prop :: prop => prop) (A::prop) == A::prop"),
+    (Binding.name "term_def", prop "(CONST Pure.term :: 'a => prop) (x::'a) == (!!A::prop. A ==> A)"),
+    (Binding.name "sort_constraint_def",
       prop "(CONST Pure.sort_constraint :: 'a itself => prop) (CONST TYPE :: 'a itself) ==\
       \ (CONST Pure.term :: 'a itself => prop) (CONST TYPE :: 'a itself)"),
-    ("conjunction_def", prop "(A &&& B) == (!!C::prop. (A ==> B ==> C) ==> C)")] #> snd
+    (Binding.name "conjunction_def", prop "(A &&& B) == (!!C::prop. (A ==> B ==> C) ==> C)")] #> snd
   #> Sign.hide_const false "Pure.term"
   #> Sign.hide_const false "Pure.sort_constraint"
   #> Sign.hide_const false "Pure.conjunction"
-  #> add_thmss [(("nothing", []), [])] #> snd
-  #> Theory.add_axioms_i Proofterm.equality_axms));
+  #> add_thmss [((Binding.name "nothing", []), [])] #> snd
+  #> Theory.add_axioms_i ((map o apfst) Binding.name Proofterm.equality_axms)));
 
 end;

@@ -1534,8 +1534,10 @@ fun extension_definition full name fields names alphas zeta moreT more vars thy 
       |> extension_typedef name repT (alphas@[zeta])
       ||> Sign.add_consts_i
             (map Syntax.no_syn ((apfst base ext_decl)::dest_decls@upd_decls))
-      ||>> PureThy.add_defs false (map Thm.no_attributes (ext_spec::dest_specs))
-      ||>> PureThy.add_defs false (map Thm.no_attributes upd_specs)
+      ||>> PureThy.add_defs false
+            (map (Thm.no_attributes o apfst Binding.name) (ext_spec :: dest_specs))
+      ||>> PureThy.add_defs false
+            (map (Thm.no_attributes o apfst Binding.name) upd_specs)
       |-> (fn args as ((_, dest_defs), upd_defs) =>
           fold Code.add_default_eqn dest_defs
           #> fold Code.add_default_eqn upd_defs
@@ -1693,14 +1695,14 @@ fun extension_definition full name fields names alphas zeta moreT more vars thy 
           [dest_convs',upd_convs']),
       thm_thy) =
       defs_thy
-      |> (PureThy.add_thms o map Thm.no_attributes)
+      |> (PureThy.add_thms o map (Thm.no_attributes o apfst Binding.name))
            [("ext_inject", inject),
             ("ext_induct", induct),
             ("ext_cases", cases),
             ("ext_surjective", surjective),
             ("ext_split", split_meta)]
-      ||>> (PureThy.add_thmss o map Thm.no_attributes)
-              [("dest_convs",dest_convs_standard),("upd_convs",upd_convs)]
+      ||>> (PureThy.add_thmss o map (Thm.no_attributes o apfst Binding.name))
+            [("dest_convs", dest_convs_standard), ("upd_convs", upd_convs)]
 
   in (thm_thy,extT,induct',inject',dest_convs',split_meta',upd_convs')
   end;
@@ -1938,9 +1940,9 @@ fun record_definition (args, bname) parent (parents: parent_info list) raw_field
           (map2 (fn (x, T) => fn mx => (x, T, mx)) sel_decls (field_syntax @ [Syntax.NoSyn]))
       |> (Sign.add_consts_i o map Syntax.no_syn)
           (upd_decls @ [make_decl, fields_decl, extend_decl, truncate_decl])
-      |> ((PureThy.add_defs false o map Thm.no_attributes) sel_specs)
-      ||>> ((PureThy.add_defs false o map Thm.no_attributes) upd_specs)
-      ||>> ((PureThy.add_defs false o map Thm.no_attributes)
+      |> ((PureThy.add_defs false o map (Thm.no_attributes o apfst Binding.name)) sel_specs)
+      ||>> ((PureThy.add_defs false o map (Thm.no_attributes o apfst Binding.name)) upd_specs)
+      ||>> ((PureThy.add_defs false o map (Thm.no_attributes o apfst Binding.name))
              [make_spec, fields_spec, extend_spec, truncate_spec])
       |-> (fn defs as ((sel_defs, upd_defs), derived_defs) =>
           fold Code.add_default_eqn sel_defs
@@ -2164,17 +2166,17 @@ fun record_definition (args, bname) parent (parents: parent_info list) raw_field
     val ((([sel_convs',upd_convs',sel_defs',upd_defs',[split_meta',split_object',split_ex'],derived_defs'],
             [surjective',equality']),[induct_scheme',induct',cases_scheme',cases']), thms_thy) =
       defs_thy
-      |> (PureThy.add_thmss o map Thm.no_attributes)
+      |> (PureThy.add_thmss o map (Thm.no_attributes o apfst Binding.name))
          [("select_convs", sel_convs_standard),
           ("update_convs", upd_convs),
           ("select_defs", sel_defs),
           ("update_defs", upd_defs),
           ("splits", [split_meta_standard,split_object,split_ex]),
           ("defs", derived_defs)]
-      ||>> (PureThy.add_thms o map Thm.no_attributes)
+      ||>> (PureThy.add_thms o map (Thm.no_attributes o apfst Binding.name))
           [("surjective", surjective),
            ("equality", equality)]
-      ||>> PureThy.add_thms
+      ||>> (PureThy.add_thms o (map o apfst o apfst) Binding.name)
         [(("induct_scheme", induct_scheme), induct_type_global (suffix schemeN name)),
          (("induct", induct), induct_type_global name),
          (("cases_scheme", cases_scheme), cases_type_global (suffix schemeN name)),
@@ -2186,8 +2188,8 @@ fun record_definition (args, bname) parent (parents: parent_info list) raw_field
     val final_thy =
       thms_thy
       |> (snd oo PureThy.add_thmss)
-          [(("simps", sel_upd_simps), [Simplifier.simp_add]),
-           (("iffs",iffs), [iff_add])]
+          [((Binding.name "simps", sel_upd_simps), [Simplifier.simp_add]),
+           ((Binding.name "iffs", iffs), [iff_add])]
       |> put_record name (make_record_info args parent fields extension induct_scheme')
       |> put_sel_upd (names @ [full_moreN]) sel_upd_simps
       |> add_record_equalities extension_id equality'

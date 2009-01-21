@@ -305,11 +305,11 @@ fun gen_primrec note def alt_name eqns thy =
   end;
 
 fun thy_note ((name, atts), thms) =
-  PureThy.add_thmss [((name, thms), atts)] #-> (fn [thms] => pair (name, thms));
+  PureThy.add_thmss [((Binding.name name, thms), atts)] #-> (fn [thms] => pair (name, thms));
 fun thy_def false ((name, atts), t) =
-      PureThy.add_defs false [((name, t), atts)] #-> (fn [thm] => pair (name, thm))
+      PureThy.add_defs false [((Binding.name name, t), atts)] #-> (fn [thm] => pair (name, thm))
   | thy_def true ((name, atts), t) =
-      PureThy.add_defs_unchecked false [((name, t), atts)] #-> (fn [thm] => pair (name, thm));
+      PureThy.add_defs_unchecked false [((Binding.name name, t), atts)] #-> (fn [thm] => pair (name, thm));
 
 in
 

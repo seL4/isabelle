@@ -391,14 +391,14 @@ fun add_ind_realizer rsets intrs induct raw_induct elims (thy, vs) =
            REPEAT ((resolve_tac prems THEN_ALL_NEW EVERY'
              [K (rewrite_goals_tac rews), ObjectLogic.atomize_prems_tac,
               DEPTH_SOLVE_1 o FIRST' [atac, etac allE, etac impE]]) 1)]);
-        val (thm', thy') = PureThy.store_thm (space_implode "_"
-          (NameSpace.qualified qualifier "induct" :: vs' @ Ps @ ["correctness"]), thm) thy;
+        val (thm', thy') = PureThy.store_thm (Binding.name (space_implode "_"
+          (NameSpace.qualified qualifier "induct" :: vs' @ Ps @ ["correctness"])), thm) thy;
         val thms = map (fn th => zero_var_indexes (rotate_prems ~1 (th RS mp)))
           (DatatypeAux.split_conj_thm thm');
         val ([thms'], thy'') = PureThy.add_thmss
-          [((space_implode "_"
+          [((Binding.name (space_implode "_"
              (NameSpace.qualified qualifier "inducts" :: vs' @ Ps @
-               ["correctness"]), thms), [])] thy';
+               ["correctness"])), thms), [])] thy';
         val realizers = inducts ~~ thms' ~~ rlzs ~~ rs;
       in
         Extraction.add_realizers_i
@@ -451,8 +451,8 @@ fun add_ind_realizer rsets intrs induct raw_induct elims (thy, vs) =
            rewrite_goals_tac rews,
            REPEAT ((resolve_tac prems THEN_ALL_NEW (ObjectLogic.atomize_prems_tac THEN'
              DEPTH_SOLVE_1 o FIRST' [atac, etac allE, etac impE])) 1)]);
-        val (thm', thy') = PureThy.store_thm (space_implode "_"
-          (name_of_thm elim :: vs @ Ps @ ["correctness"]), thm) thy
+        val (thm', thy') = PureThy.store_thm (Binding.name (space_implode "_"
+          (name_of_thm elim :: vs @ Ps @ ["correctness"])), thm) thy
       in
         Extraction.add_realizers_i
           [mk_realizer thy' (vs @ Ps) (name_of_thm elim, elim, thm', rlz, r)] thy'

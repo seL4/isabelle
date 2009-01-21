@@ -144,7 +144,7 @@ fun prove_size_thms (info : datatype_info) new_type_names thy =
            (size_names ~~ recTs1))
       |> PureThy.add_defs false
         (map (Thm.no_attributes o apsnd (Logic.mk_equals o apsnd (app fs)))
-           (def_names ~~ (size_fns ~~ rec_combs1)))
+           (map Binding.name def_names ~~ (size_fns ~~ rec_combs1)))
       ||> TheoryTarget.instantiation
            (map (#1 o snd) descr', map dest_TFree paramTs, [HOLogic.class_size])
       ||>> fold_map define_overloaded
@@ -208,7 +208,7 @@ fun prove_size_thms (info : datatype_info) new_type_names thy =
       prove_size_eqs is_rec_type overloaded_size_fns (K NONE) simpset3;
 
     val ([size_thms], thy'') =  PureThy.add_thmss
-      [(("size", size_eqns),
+      [((Binding.name "size", size_eqns),
         [Simplifier.simp_add, Thm.declaration_attribute
               (fn thm => Context.mapping (Code.add_default_eqn thm) I)])] thy'
 

@@ -76,7 +76,7 @@ fun parent_path flat_names = if flat_names then I else Sign.parent_path;
 fun store_thmss_atts label tnames attss thmss =
   fold_map (fn ((tname, atts), thms) =>
     Sign.add_path tname
-    #> PureThy.add_thmss [((label, thms), atts)]
+    #> PureThy.add_thmss [((Binding.name label, thms), atts)]
     #-> (fn thm::_ => Sign.parent_path #> pair thm)) (tnames ~~ attss ~~ thmss)
   ##> Theory.checkpoint;
 
@@ -85,7 +85,7 @@ fun store_thmss label tnames = store_thmss_atts label tnames (replicate (length 
 fun store_thms_atts label tnames attss thmss =
   fold_map (fn ((tname, atts), thms) =>
     Sign.add_path tname
-    #> PureThy.add_thms [((label, thms), atts)]
+    #> PureThy.add_thms [((Binding.name label, thms), atts)]
     #-> (fn thm::_ => Sign.parent_path #> pair thm)) (tnames ~~ attss ~~ thmss)
   ##> Theory.checkpoint;
 

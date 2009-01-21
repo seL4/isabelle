@@ -130,7 +130,7 @@ fun make_ind sorts ({descr, rec_names, rec_rewrites, induction, ...} : datatype_
     val vs = map (fn i => List.nth (pnames, i)) is;
     val (thm', thy') = thy
       |> Sign.absolute_path
-      |> PureThy.store_thm (space_implode "_" (ind_name :: vs @ ["correctness"]), thm)
+      |> PureThy.store_thm (Binding.name (space_implode "_" (ind_name :: vs @ ["correctness"])), thm)
       ||> Sign.restore_naming thy;
 
     val ivs = rev (Term.add_vars (Logic.varify (DatatypeProp.make_ind [descr] sorts)) []);
@@ -196,7 +196,7 @@ fun make_casedists sorts ({index, descr, case_name, case_rewrites, exhaustion, .
     val exh_name = Thm.get_name exhaustion;
     val (thm', thy') = thy
       |> Sign.absolute_path
-      |> PureThy.store_thm (exh_name ^ "_P_correctness", thm)
+      |> PureThy.store_thm (Binding.name (exh_name ^ "_P_correctness"), thm)
       ||> Sign.restore_naming thy;
 
     val P = Var (("P", 0), rT' --> HOLogic.boolT);

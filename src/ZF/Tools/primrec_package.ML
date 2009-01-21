@@ -8,8 +8,8 @@ Package for defining functions on datatypes by primitive recursion.
 
 signature PRIMREC_PACKAGE =
 sig
-  val add_primrec: ((Binding.T * string) * Attrib.src list) list -> theory -> theory * thm list
-  val add_primrec_i: ((Binding.T * term) * attribute list) list -> theory -> theory * thm list
+  val add_primrec: ((binding * string) * Attrib.src list) list -> theory -> theory * thm list
+  val add_primrec_i: ((binding * term) * attribute list) list -> theory -> theory * thm list
 end;
 
 structure PrimrecPackage : PRIMREC_PACKAGE =
@@ -169,7 +169,7 @@ fun add_primrec_i args thy =
 
     val ([def_thm], thy1) = thy
       |> Sign.add_path (Sign.base_name fname)
-      |> (PureThy.add_defs false o map Thm.no_attributes) [def];
+      |> PureThy.add_defs false [Thm.no_attributes (apfst Binding.name def)];
 
     val rewrites = def_thm :: map mk_meta_eq (#rec_rewrites con_info)
     val eqn_thms =
@@ -179,10 +179,10 @@ fun add_primrec_i args thy =
 
     val (eqn_thms', thy2) =
       thy1
-      |> PureThy.add_thms ((map Binding.base_name eqn_names ~~ eqn_thms) ~~ eqn_atts);
+      |> PureThy.add_thms ((eqn_names ~~ eqn_thms) ~~ eqn_atts);
     val (_, thy3) =
       thy2
-      |> PureThy.add_thmss [(("simps", eqn_thms'), [Simplifier.simp_add])]
+      |> PureThy.add_thmss [((Binding.name "simps", eqn_thms'), [Simplifier.simp_add])]
       ||> Sign.parent_path;
   in (thy3, eqn_thms') end;
 

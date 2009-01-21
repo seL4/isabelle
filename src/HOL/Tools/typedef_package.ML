@@ -112,7 +112,8 @@ fun prepare_typedef prep_term def name (t, vs, mx) raw_set opt_morphs thy =
       if def then
         theory
         |> Sign.add_consts_i [(name, setT', NoSyn)]
-        |> PureThy.add_defs false [Thm.no_attributes ((PrimitiveDefs.mk_defpair (setC, set)))]
+        |> PureThy.add_defs false [Thm.no_attributes (apfst (Binding.name)
+            (PrimitiveDefs.mk_defpair (setC, set)))]
         |-> (fn [th] => pair (SOME th))
       else (NONE, theory);
     fun contract_def NONE th = th
@@ -130,7 +131,7 @@ fun prepare_typedef prep_term def name (t, vs, mx) raw_set opt_morphs thy =
          (Abs_name, oldT --> newT, NoSyn)]
       #> add_def
       #-> (fn set_def =>
-        PureThy.add_axioms [((typedef_name, typedef_prop),
+        PureThy.add_axioms [((Binding.name typedef_name, typedef_prop),
           [Thm.rule_attribute (K (fn cond_axm => contract_def set_def inhabited RS cond_axm))])]
         ##>> pair set_def)
       ##> Theory.add_deps "" (dest_Const RepC) typedef_deps
@@ -143,7 +144,7 @@ fun prepare_typedef prep_term def name (t, vs, mx) raw_set opt_morphs thy =
             thy1
             |> Sign.add_path name
             |> PureThy.add_thms
-              ([((Rep_name, make @{thm type_definition.Rep}), []),
+              ((map o apfst o apfst) Binding.name [((Rep_name, make @{thm type_definition.Rep}), []),
                 ((Rep_name ^ "_inverse", make @{thm type_definition.Rep_inverse}), []),
                 ((Abs_name ^ "_inverse", make @{thm type_definition.Abs_inverse}), []),
                 ((Rep_name ^ "_inject", make @{thm type_definition.Rep_inject}), []),
