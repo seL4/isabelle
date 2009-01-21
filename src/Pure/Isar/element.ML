@@ -23,20 +23,12 @@ sig
   val facts_map: (('typ, 'term, 'fact) ctxt -> ('a, 'b, 'c) ctxt) ->
    (Attrib.binding * ('fact * Attrib.src list) list) list ->
    (Attrib.binding * ('c * Attrib.src list) list) list
-  val map_ctxt': {binding: binding -> binding,
-    var: binding * mixfix -> binding * mixfix,
-    typ: 'typ -> 'a, term: 'term -> 'b, pat: 'term -> 'b, fact: 'fact -> 'c,
-    attrib: Attrib.src -> Attrib.src} -> ('typ, 'term, 'fact) ctxt -> ('a, 'b, 'c) ctxt
-  val map_ctxt: {binding: binding -> binding,
-    var: binding * mixfix -> binding * mixfix,
-    typ: 'typ -> 'a, term: 'term -> 'b, fact: 'fact -> 'c,
-    attrib: Attrib.src -> Attrib.src} -> ('typ, 'term, 'fact) ctxt -> ('a, 'b, 'c) ctxt
+  val map_ctxt: {binding: binding -> binding, typ: 'typ -> 'a, term: 'term -> 'b,
+    pattern: 'term -> 'b, fact: 'fact -> 'c, attrib: Attrib.src -> Attrib.src} ->
+    ('typ, 'term, 'fact) ctxt -> ('a, 'b, 'c) ctxt
   val map_ctxt_attrib: (Attrib.src -> Attrib.src) ->
     ('typ, 'term, 'fact) ctxt -> ('typ, 'term, 'fact) ctxt
   val morph_ctxt: morphism -> context_i -> context_i
-  val params_of: context_i -> (string * typ) list
-  val prems_of: context_i -> term list
-  val facts_of: theory -> context_i -> (Attrib.binding * (thm list * Attrib.src list) list) list
   val pretty_stmt: Proof.context -> statement_i -> Pretty.T list
   val pretty_ctxt: Proof.context -> context_i -> Pretty.T list
   val pretty_statement: Proof.context -> string -> thm -> Pretty.T
@@ -51,14 +43,6 @@ sig
   val morph_witness: morphism -> witness -> witness
   val conclude_witness: witness -> thm
   val pretty_witness: Proof.context -> witness -> Pretty.T
-  val rename: (string * (string * mixfix option)) list -> string -> string
-  val rename_var_name: (string * (string * mixfix option)) list ->
-    string * mixfix -> string * mixfix
-  val rename_var: (string * (string * mixfix option)) list ->
-    binding * mixfix -> binding * mixfix
-  val rename_term: (string * (string * mixfix option)) list -> term -> term
-  val rename_thm: (string * (string * mixfix option)) list -> thm -> thm
-  val rename_morphism: (string * (string * mixfix option)) list -> morphism
   val instT_type: typ Symtab.table -> typ -> typ
   val instT_term: typ Symtab.table -> term -> term
   val instT_thm: theory -> typ Symtab.table -> thm -> thm
@@ -109,51 +93,27 @@ type context_i = (typ, term, thm list) ctxt;
 
 fun facts_map f facts = Notes ("", facts) |> f |> (fn Notes (_, facts') => facts');
 
-fun map_ctxt' {binding, var, typ, term, pat, fact, attrib} =
-  fn Fixes fixes => Fixes (fixes |> map (fn (x, T, mx) =>
-       let val (x', mx') = var (x, mx) in (x', Option.map typ T, mx') end))
+fun map_ctxt {binding, typ, term, pattern, fact, attrib} =
+  fn Fixes fixes => Fixes (fixes |> map (fn (x, T, mx) => (binding x, Option.map typ T, mx)))
    | Constrains xs => Constrains (xs |> map (fn (x, T) =>
-       let val x' = Binding.base_name (#1 (var (Binding.name x, NoSyn))) in (x', typ T) end))
+      (Binding.base_name (binding (Binding.name x)), typ T)))
    | Assumes asms => Assumes (asms |> map (fn ((a, atts), propps) =>
-      ((binding a, map attrib atts), propps |> map (fn (t, ps) => (term t, map pat ps)))))
+      ((binding a, map attrib atts), propps |> map (fn (t, ps) => (term t, map pattern ps)))))
    | Defines defs => Defines (defs |> map (fn ((a, atts), (t, ps)) =>
-      ((binding a, map attrib atts), (term t, map pat ps))))
+      ((binding a, map attrib atts), (term t, map pattern ps))))
    | Notes (kind, facts) => Notes (kind, facts |> map (fn ((a, atts), bs) =>
       ((binding a, map attrib atts), bs |> map (fn (ths, btts) => (fact ths, map attrib btts)))));
 
-fun map_ctxt {binding, var, typ, term, fact, attrib} =
-  map_ctxt' {binding = binding, var = var, typ = typ, term = term, pat = term,
-    fact = fact, attrib = attrib}
-
 fun map_ctxt_attrib attrib =
-  map_ctxt {binding = I, var = I, typ = I, term = I, fact = I, attrib = attrib};
+  map_ctxt {binding = I, typ = I, term = I, pattern = I, fact = I, attrib = attrib};
 
 fun morph_ctxt phi = map_ctxt
  {binding = Morphism.binding phi,
-  var = Morphism.var phi,
   typ = Morphism.typ phi,
   term = Morphism.term phi,
+  pattern = Morphism.term phi,
   fact = Morphism.fact phi,
   attrib = Args.morph_values phi};
-
-
-(* logical content *)
-
-fun params_of (Fixes fixes) = fixes |> map
-    (fn (x, SOME T, _) => (Binding.base_name x, T)
-      | (x, _, _) => raise TERM ("Untyped context element parameter " ^ quote (Binding.display x), []))
-  | params_of _ = [];
-
-fun prems_of (Assumes asms) = maps (map fst o snd) asms
-  | prems_of (Defines defs) = map (fst o snd) defs
-  | prems_of _ = [];
-
-fun assume thy t = Assumption.assume (Thm.cterm_of thy t);
-
-fun facts_of thy (Assumes asms) = map (apsnd (map (fn (t, _) => ([assume thy t], [])))) asms
-  | facts_of thy (Defines defs) = map (apsnd (fn (t, _) => [([assume thy t], [])])) defs
-  | facts_of _ (Notes (_, facts)) = facts
-  | facts_of _ _ = [];
 
 
 
@@ -165,9 +125,8 @@ fun pretty_items _ _ [] = []
         map (fn y => Pretty.block [Pretty.str "  ", Pretty.keyword sep, Pretty.brk 1, y]) ys;
 
 fun pretty_name_atts ctxt (b, atts) sep =
-  let
-    val name = Binding.display b;
-  in if name = "" andalso null atts then []
+  let val name = Binding.display b in
+    if name = "" andalso null atts then []
     else [Pretty.block
       (Pretty.breaks (Pretty.str name :: Attrib.pretty_attribs ctxt atts @ [Pretty.str sep]))]
   end;
@@ -307,6 +266,7 @@ fun prove_witness ctxt t tac =
   Witness (t, Thm.close_derivation (Goal.prove ctxt [] [] (mark_witness t) (fn _ =>
     Tactic.rtac Drule.protectI 1 THEN tac)));
 
+
 local
 
 val refine_witness =
@@ -320,8 +280,7 @@ fun gen_witness_proof proof after_qed wit_propss eq_props =
     val propss = (map o map) (fn prop => (mark_witness prop, [])) wit_propss
       @ [map (rpair []) eq_props];
     fun after_qed' thmss =
-      let
-        val (wits, eqs) = split_last ((map o map) Thm.close_derivation thmss);
+      let val (wits, eqs) = split_last ((map o map) Thm.close_derivation thmss);
       in after_qed ((map2 o map2) (curry Witness) wit_propss wits) eqs end;
   in proof after_qed' propss #> refine_witness #> Seq.hd end;
 
@@ -340,7 +299,8 @@ fun witness_local_proof after_qed cmd wit_propss goal_ctxt int =
       cmd NONE after_qed' (map (pair (Binding.empty, [])) propss))
     (fn wits => fn _ => after_qed wits) wit_propss [];
 
-end; (*local*)
+end;
+
 
 fun compose_witness (Witness (_, th)) r =
   let
@@ -398,50 +358,6 @@ fun hyps_rule rule th =
   end;
 
 
-(* rename *)
-
-fun rename ren x =
-  (case AList.lookup (op =) ren (x: string) of
-    NONE => x
-  | SOME (x', _) => x');
-
-fun rename_var_name ren (x, mx) =
-  (case (AList.lookup (op =) ren x, mx) of
-    (NONE, _) => (x, mx)
-  | (SOME (x', NONE), Structure) => (x', mx)
-  | (SOME (x', SOME _), Structure) =>
-      error ("Attempt to change syntax of structure parameter " ^ quote x)
-  | (SOME (x', NONE), _) => (x', NoSyn)
-  | (SOME (x', SOME mx'), _) => (x', mx'));
-
-fun rename_var ren (b, mx) =
-  let
-    val x = Binding.base_name b;
-    val (x', mx') = rename_var_name ren (x, mx);
-  in (Binding.name x', mx') end;
-
-fun rename_term ren (Free (x, T)) = Free (rename ren x, T)
-  | rename_term ren (t $ u) = rename_term ren t $ rename_term ren u
-  | rename_term ren (Abs (x, T, t)) = Abs (x, T, rename_term ren t)
-  | rename_term _ a = a;
-
-fun rename_thm ren th =
-  let
-    val thy = Thm.theory_of_thm th;
-    val subst = (Thm.fold_terms o Term.fold_aterms)
-      (fn Free (x, T) =>
-        let val x' = rename ren x
-        in if x = x' then I else insert (eq_fst (op =)) ((x, T), Free (x', T)) end
-      | _ => I) th [];
-  in
-    if null subst then th
-    else th |> hyps_rule (instantiate_frees thy subst)
-  end;
-
-fun rename_morphism ren = Morphism.morphism
-  {binding = I, var = rename_var ren, typ = I, term = rename_term ren, fact = map (rename_thm ren)};
-
-
 (* instantiate types *)
 
 fun instT_type env =
@@ -467,7 +383,7 @@ fun instT_thm thy env th =
 fun instT_morphism thy env =
   let val thy_ref = Theory.check_thy thy in
     Morphism.morphism
-     {binding = I, var = I,
+     {binding = I,
       typ = instT_type env,
       term = instT_term env,
       fact = map (fn th => instT_thm (Theory.deref thy_ref) env th)}
@@ -516,7 +432,7 @@ fun inst_thm thy (envT, env) th =
 fun inst_morphism thy envs =
   let val thy_ref = Theory.check_thy thy in
     Morphism.morphism
-     {binding = I, var = I,
+     {binding = I,
       typ = instT_type (#1 envs),
       term = inst_term envs,
       fact = map (fn th => inst_thm (Theory.deref thy_ref) envs th)}
@@ -530,15 +446,15 @@ fun satisfy_thm witns thm = thm |> fold (fn hyp =>
       NONE => I
     | SOME w => Thm.implies_intr hyp #> compose_witness w)) (#hyps (Thm.crep_thm thm));
 
-fun satisfy_morphism witns = Morphism.thm_morphism (satisfy_thm witns);
-
-fun satisfy_facts witns = facts_map (morph_ctxt (satisfy_morphism witns));
+val satisfy_morphism = Morphism.thm_morphism o satisfy_thm;
+val satisfy_facts = facts_map o morph_ctxt o satisfy_morphism;
 
 
 (* rewriting with equalities *)
 
 fun eq_morphism thy thms = Morphism.morphism
- {binding = I, var = I, typ = I,
+ {binding = I,
+  typ = I,
   term = MetaSimplifier.rewrite_term thy thms [],
   fact = map (MetaSimplifier.rewrite_rule thms)};
 
@@ -555,18 +471,16 @@ fun generalize_facts inner outer facts =
     val exp_fact = map (Thm.adjust_maxidx_thm maxidx) #> Variable.export inner outer;
     val exp_term = Drule.term_rule thy (singleton exp_fact);
     val exp_typ = Logic.type_map exp_term;
-    val morphism =
-      Morphism.morphism {binding = I, var = I, typ = exp_typ, term = exp_term, fact = exp_fact};
+    val morphism = Morphism.morphism {binding = I, typ = exp_typ, term = exp_term, fact = exp_fact};
   in facts_map (morph_ctxt morphism) facts end;
 
 
 (* transfer to theory using closure *)
 
 fun transfer_morphism thy =
-  let val thy_ref = Theory.check_thy thy in
-    Morphism.morphism {binding = I, var = I, typ = I, term = I,
-      fact = map (fn th => transfer (Theory.deref thy_ref) th)}
-  end;
+  let val thy_ref = Theory.check_thy thy
+  in Morphism.thm_morphism (fn th => transfer (Theory.deref thy_ref) th) end;
+
 
 
 (** activate in context, return elements and facts **)
@@ -613,11 +527,14 @@ fun check_name name =
   if NameSpace.is_qualified name then error ("Illegal qualified name: " ^ quote name)
   else name;
 
-fun prep_facts prep_name get intern ctxt elem = elem |> map_ctxt
-     {var = I, typ = I, term = I,
-      binding = Binding.map_base prep_name,
-      fact = get ctxt,
-      attrib = intern (ProofContext.theory_of ctxt)};
+fun prep_facts prep_name get intern ctxt =
+  map_ctxt
+   {binding = Binding.map_base prep_name,
+    typ = I,
+    term = I,
+    pattern = I,
+    fact = get ctxt,
+    attrib = intern (ProofContext.theory_of ctxt)};
 
 in
 
