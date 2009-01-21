@@ -242,7 +242,6 @@ VAMPIRE_HOME=$(choosefrom \
   "$ISABELLE_HOME/contrib/vampire/$ML_PLATFORM" \
   "$ISABELLE_HOME/../vampire/$ML_PLATFORM" \
   "/usr/local/Vampire" \
-  "$ISABELLE_HOME/contrib/SystemOnTPTP" \
   "")
 SPASS_HOME=$(choosefrom \
   "$ISABELLE_HOME/contrib/spass/$ML_PLATFORM/bin" \
