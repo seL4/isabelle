@@ -198,11 +198,14 @@ fun inst_morph (parm_names, parm_types) ((prfx, strict), insts') ctxt =
 
 (** Parsing **)
 
-fun parse_elem prep_typ prep_term ctxt elem =
-  Element.map_ctxt' {binding = I, var = I, typ = prep_typ ctxt,
-  term = prep_term (ProofContext.set_mode ProofContext.mode_schematic ctxt), (* FIXME ?? *)
-  pat = prep_term (ProofContext.set_mode ProofContext.mode_pattern ctxt),
-  fact = I, attrib = I} elem;
+fun parse_elem prep_typ prep_term ctxt =
+  Element.map_ctxt
+   {binding = I,
+    typ = prep_typ ctxt,
+    term = prep_term (ProofContext.set_mode ProofContext.mode_schematic ctxt),
+    pattern = prep_term (ProofContext.set_mode ProofContext.mode_pattern ctxt),
+    fact = I,
+    attrib = I};
 
 fun parse_concl prep_term ctxt concl =
   (map o map) (fn (t, ps) =>
@@ -490,8 +493,7 @@ fun prep_goal_expression prep expression context =
     val exp_fact = Drule.zero_var_indexes_list o map Thm.strip_shyps o Morphism.fact export;
     val exp_term = TermSubst.zero_var_indexes o Morphism.term export;
     val exp_typ = Logic.type_map exp_term;
-    val export' =
-      Morphism.morphism {binding = I, var = I, typ = exp_typ, term = exp_term, fact = exp_fact};
+    val export' = Morphism.morphism {binding = I, typ = exp_typ, term = exp_term, fact = exp_fact};
   in ((propss, deps, export'), goal_ctxt) end;
     
 in
