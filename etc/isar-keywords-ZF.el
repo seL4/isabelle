@@ -3,14 +3,16 @@
 ;; Generated from Pure + Pure-ProofGeneral + FOL + ZF.
 ;; *** DO NOT EDIT *** DO NOT EDIT *** DO NOT EDIT ***
 ;;
-;; $Id$
-;;
 
 (defconst isar-keywords-major
   '("\\."
     "\\.\\."
     "Isabelle\\.command"
+    "Isar\\.begin_document"
     "Isar\\.command"
+    "Isar\\.define_command"
+    "Isar\\.edit_document"
+    "Isar\\.end_document"
     "Isar\\.insert"
     "Isar\\.remove"
     "ML"
@@ -89,7 +91,6 @@
     "instantiation"
     "interpret"
     "interpretation"
-    "invoke"
     "judgment"
     "kill"
     "kill_thy"
@@ -135,7 +136,6 @@
     "print_drafts"
     "print_facts"
     "print_induct_rules"
-    "print_interps"
     "print_locale"
     "print_locales"
     "print_methods"
@@ -249,7 +249,11 @@
 
 (defconst isar-keywords-control
   '("Isabelle\\.command"
+    "Isar\\.begin_document"
     "Isar\\.command"
+    "Isar\\.define_command"
+    "Isar\\.edit_document"
+    "Isar\\.end_document"
     "Isar\\.insert"
     "Isar\\.remove"
     "ProofGeneral\\.inform_file_processed"
@@ -298,7 +302,6 @@
     "print_drafts"
     "print_facts"
     "print_induct_rules"
-    "print_interps"
     "print_locale"
     "print_locales"
     "print_methods"
@@ -438,8 +441,7 @@
 (defconst isar-keywords-proof-goal
   '("have"
     "hence"
-    "interpret"
-    "invoke"))
+    "interpret"))
 
 (defconst isar-keywords-proof-block
   '("next"

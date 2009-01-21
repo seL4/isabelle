@@ -3,14 +3,16 @@
 ;; Generated from Pure + Pure-ProofGeneral + HOL + HOLCF + IOA + HOL-Nominal + HOL-Statespace.
 ;; *** DO NOT EDIT *** DO NOT EDIT *** DO NOT EDIT ***
 ;;
-;; $Id$
-;;
 
 (defconst isar-keywords-major
   '("\\."
     "\\.\\."
     "Isabelle\\.command"
+    "Isar\\.begin_document"
     "Isar\\.command"
+    "Isar\\.define_command"
+    "Isar\\.edit_document"
+    "Isar\\.end_document"
     "Isar\\.insert"
     "Isar\\.remove"
     "ML"
@@ -46,9 +48,6 @@
     "chapter"
     "class"
     "class_deps"
-    "class_interpret"
-    "class_interpretation"
-    "class_locale"
     "classes"
     "classrel"
     "code_abort"
@@ -119,7 +118,6 @@
     "instantiation"
     "interpret"
     "interpretation"
-    "invoke"
     "judgment"
     "kill"
     "kill_thy"
@@ -172,7 +170,6 @@
     "print_drafts"
     "print_facts"
     "print_induct_rules"
-    "print_interps"
     "print_locale"
     "print_locales"
     "print_methods"
@@ -312,7 +309,11 @@
 
 (defconst isar-keywords-control
   '("Isabelle\\.command"
+    "Isar\\.begin_document"
     "Isar\\.command"
+    "Isar\\.define_command"
+    "Isar\\.edit_document"
+    "Isar\\.end_document"
     "Isar\\.insert"
     "Isar\\.remove"
     "ProofGeneral\\.inform_file_processed"
@@ -369,7 +370,6 @@
     "print_drafts"
     "print_facts"
     "print_induct_rules"
-    "print_interps"
     "print_locale"
     "print_locales"
     "print_methods"
@@ -423,7 +423,6 @@
     "axiomatization"
     "axioms"
     "class"
-    "class_locale"
     "classes"
     "classrel"
     "code_abort"
@@ -507,7 +506,6 @@
 
 (defconst isar-keywords-theory-goal
   '("ax_specification"
-    "class_interpretation"
     "corollary"
     "cpodef"
     "function"
@@ -546,11 +544,9 @@
     "subsubsect"))
 
 (defconst isar-keywords-proof-goal
-  '("class_interpret"
-    "have"
+  '("have"
     "hence"
-    "interpret"
-    "invoke"))
+    "interpret"))
 
 (defconst isar-keywords-proof-block
   '("next"

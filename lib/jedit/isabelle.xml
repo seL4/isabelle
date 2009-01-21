@@ -2,7 +2,6 @@
 <!DOCTYPE MODE SYSTEM "xmode.dtd">
 <!-- Generated from Pure + HOL + HOLCF + IOA + HOL-Nominal + HOL-Statespace + FOL + ZF. -->
 <!-- *** DO NOT EDIT *** DO NOT EDIT *** DO NOT EDIT *** -->
-<!-- $Id$ -->
 <MODE>
   <PROPS>
     <PROPERTY NAME="commentStart" VALUE="(*"/>
@@ -36,7 +35,11 @@
       <OPERATOR>.</OPERATOR>
       <OPERATOR>..</OPERATOR>
       <INVALID>Isabelle.command</INVALID>
+      <INVALID>Isar.begin_document</INVALID>
       <INVALID>Isar.command</INVALID>
+      <INVALID>Isar.define_command</INVALID>
+      <INVALID>Isar.edit_document</INVALID>
+      <INVALID>Isar.end_document</INVALID>
       <INVALID>Isar.insert</INVALID>
       <INVALID>Isar.remove</INVALID>
       <OPERATOR>ML</OPERATOR>
@@ -171,7 +174,6 @@
       <OPERATOR>interpret</OPERATOR>
       <OPERATOR>interpretation</OPERATOR>
       <KEYWORD4>intros</KEYWORD4>
-      <OPERATOR>invoke</OPERATOR>
       <KEYWORD4>is</KEYWORD4>
       <OPERATOR>judgment</OPERATOR>
       <INVALID>kill</INVALID>
@@ -239,7 +241,6 @@
       <LABEL>print_drafts</LABEL>
       <LABEL>print_facts</LABEL>
       <LABEL>print_induct_rules</LABEL>
-      <LABEL>print_interps</LABEL>
       <LABEL>print_locale</LABEL>
       <LABEL>print_locales</LABEL>
       <LABEL>print_methods</LABEL>
