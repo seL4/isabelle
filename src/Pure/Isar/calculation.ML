@@ -98,8 +98,8 @@ val _ = Context.>> (Context.map_theory
     ("sym", sym_att, "declaration of symmetry rule"),
     ("symmetric", Attrib.no_args symmetric, "resolution with symmetry rule")] #>
   PureThy.add_thms
-   [(("", transitive_thm), [trans_add]),
-    (("", symmetric_thm), [sym_add])] #> snd));
+   [((Binding.empty, transitive_thm), [trans_add]),
+    ((Binding.empty, symmetric_thm), [sym_add])] #> snd));
 
 
 

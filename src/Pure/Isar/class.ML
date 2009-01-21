@@ -1,7 +1,7 @@
 (*  Title:      Pure/Isar/ML
     Author:     Florian Haftmann, TU Muenchen
 
-Type classes derived from primitive axclasses and locales - interfaces
+Type classes derived from primitive axclasses and locales - interfaces.
 *)
 
 signature CLASS =
@@ -34,7 +34,7 @@ fun calculate thy class sups base_sort param_map assm_axiom =
 
     (* instantiation of canonical interpretation *)
     (*FIXME inst_morph should be calculated manually and not instantiate constraint*)
-    val aT = TFree ("'a", base_sort);
+    val aT = TFree (Name.aT, base_sort);
     val (([props], [(_, inst_morph)], export_morph), _) = empty_ctxt
       |> Expression.cert_goal_expression ([(class, (("", false),
            Expression.Named ((map o apsnd) Const param_map)))], []);
@@ -89,7 +89,88 @@ fun calculate thy class sups base_sort param_map assm_axiom =
 
   in (base_morph, morph, export_morph, axiom, assm_intro, of_class) end;
 
-fun prep_class_spec prep_class process_decl thy raw_supclasses raw_elems =
+fun add_typ_check level name f = Context.proof_map (Syntax.add_typ_check level name (fn xs => fn ctxt =>
+  let val xs' = f xs in if eq_list (op =) (xs, xs') then NONE else SOME (xs', ctxt) end));
+
+fun singleton_infer_param change_sort = (map o map_atyps) (fn T as TVar (vi as (_, i), sort) =>
+      if TypeInfer.is_param vi then TypeInfer.param i (Name.aT, change_sort sort)
+      else error ("Illegal schematic type variable in class specification: " ^ Term.string_of_vname vi)
+        (*FIXME does not occur*)
+  | T as TFree (v, sort) =>
+      if v = Name.aT then T
+      else error ("No type variable other than " ^ Name.aT ^ " allowed in class specification"));
+
+val singleton_fixate = (map o map_atyps) (fn TVar (vi, sort)
+  => TFree (Name.aT, sort) | T => T);
+
+fun add_tfrees_of_element (Element.Fixes fxs) = fold (fn (_, SOME T, _) => Term.add_tfreesT T
+      | _ => I) fxs
+  | add_tfrees_of_element (Element.Constrains cnstrs) = fold (Term.add_tfreesT o snd) cnstrs
+  | add_tfrees_of_element (Element.Assumes assms) = fold (fold (fn (t, ts) =>
+      Term.add_tfrees t #> fold Term.add_tfrees ts) o snd) assms
+  | add_tfrees_of_element _ = I;
+
+fun fork_syn (Element.Fixes xs) =
+      fold_map (fn (c, ty, syn) => cons (Binding.base_name c, syn) #> pair (c, ty, NoSyn)) xs
+      #>> Element.Fixes
+  | fork_syn x = pair x;
+
+fun prep_class_spec prep_class prep_decl thy raw_supclasses raw_elems =
+  let
+    (* prepare import *)
+    val inter_sort = curry (Sorts.inter_sort (Sign.classes_of thy));
+    val (sups, others_basesort) = map (prep_class thy) raw_supclasses
+      |> Sign.minimize_sort thy
+      |> List.partition (is_class thy);
+
+    val supparams = (map o apsnd) (snd o snd) (these_params thy sups);
+    val supparam_names = map fst supparams;
+    val _ = if has_duplicates (op =) supparam_names
+      then error ("Duplicate parameter(s) in superclasses: "
+        ^ (commas o map quote o duplicates (op =)) supparam_names)
+      else ();
+    val supexpr = (map (fn sup => (sup, (("", false), Expression.Positional [])))
+      sups, []);
+    val given_basesort = fold inter_sort (map (base_sort thy) sups) others_basesort;
+
+    (* infer types and base sort *)
+    val base_constraints = (map o apsnd)
+      (map_type_tfree (K (TVar ((Name.aT, 0), given_basesort))) o fst o snd)
+        (these_operations thy sups);
+    val ((_, _, inferred_elems), _) = ProofContext.init thy
+      |> fold (ProofContext.add_const_constraint o apsnd SOME) base_constraints
+      |> add_typ_check ~1 "singleton_infer_param" (singleton_infer_param (inter_sort given_basesort))
+      |> add_typ_check ~2 "singleton_fixate" singleton_fixate
+      |> prep_decl supexpr raw_elems;
+    (*FIXME propagation of given base sort into class spec broken*)
+    (*FIXME check for *all* side conditions here, extra check function for elements,
+      less side-condition checks in check phase*)
+    val base_sort = if null inferred_elems then given_basesort else
+      case fold add_tfrees_of_element inferred_elems []
+       of [] => error "No type variable in class specification"
+        | [(_, sort)] => sort
+        | _ => error "Multiple type variables in class specification"
+    val sup_sort = inter_sort base_sort sups
+
+    (* process elements as class specification *)
+    val begin_ctxt = begin sups base_sort
+      #> fold (Variable.declare_constraints o Free) ((map o apsnd o map_atyps)
+          (K (TFree (Name.aT, base_sort))) supparams)
+            (*FIXME should constraints be issued in begin?*)
+    val ((_, _, syntax_elems), _) = ProofContext.init thy
+      |> begin_ctxt
+      |> Expression.cert_declaration supexpr inferred_elems;
+    val (elems, global_syntax) = fold_map fork_syn syntax_elems [];
+    val constrain = Element.Constrains ((map o apsnd o map_atyps)
+      (K (TFree (Name.aT, base_sort))) supparams);
+      (*FIXME 2009 perhaps better: control type variable by explicit
+      parameter instantiation of import expression*)
+  in (((sups, supparam_names), (sup_sort, base_sort, supexpr)), (constrain :: elems, global_syntax)) end;
+
+val cert_class_spec = prep_class_spec (K I) Expression.cert_declaration;
+val read_class_spec = prep_class_spec Sign.intern_class Expression.cert_read_declaration;
+
+(*fun prep_class_spec prep_class process_decl thy raw_supclasses raw_elems =
   let
     (*FIXME 2009 simplify*)
     val supclasses = map (prep_class thy) raw_supclasses;
@@ -126,7 +207,7 @@ fun prep_class_spec prep_class process_decl thy raw_supclasses raw_elems =
   in (((sups, supparam_names), (supsort, base_sort, supexpr)), (constrain :: elems, global_syntax)) end;
 
 val cert_class_spec = prep_class_spec (K I) Expression.cert_declaration;
-val read_class_spec = prep_class_spec Sign.intern_class Expression.cert_read_declaration;
+val read_class_spec = prep_class_spec Sign.intern_class Expression.cert_read_declaration;*)
 
 fun add_consts bname class base_sort sups supparams global_syntax thy =
   let
@@ -235,19 +316,13 @@ fun gen_subclass prep_class do_proof raw_sup lthy =
       #> ProofContext.theory_of #> TheoryTarget.init (SOME sub);
   in do_proof after_qed some_prop goal_ctxt end;
 
-fun user_proof after_qed NONE =
-      Proof.theorem_i NONE (K (after_qed NONE)) [[]]
-      #> Element.refine_witness #> Seq.hd
-  | user_proof after_qed (SOME prop) =
-      Proof.theorem_i NONE (after_qed o SOME o Element.make_witness prop
-        o Thm.close_derivation o the_single o the_single)
-          [[(Element.mark_witness prop, [])]]
-      #> Element.refine_witness #> Seq.hd;
+fun user_proof after_qed some_prop =
+  Element.witness_proof (after_qed o try the_single o the_single)
+    [the_list some_prop];
 
-fun tactic_proof tac after_qed NONE ctxt =
-      after_qed NONE ctxt
-  | tactic_proof tac after_qed (SOME prop) ctxt =
-      after_qed (SOME (Element.prove_witness ctxt prop tac)) ctxt;
+fun tactic_proof tac after_qed some_prop ctxt =
+  after_qed (Option.map
+    (fn prop => Element.prove_witness ctxt prop tac) some_prop) ctxt;
 
 in
 

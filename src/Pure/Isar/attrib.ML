@@ -7,7 +7,7 @@ Symbolic representation of attributes -- with name and syntax.
 signature ATTRIB =
 sig
   type src = Args.src
-  type binding = Binding.T * src list
+  type binding = binding * src list
   val empty_binding: binding
   val print_attributes: theory -> unit
   val intern: theory -> xstring -> string
@@ -54,7 +54,7 @@ structure P = OuterParse;
 
 type src = Args.src;
 
-type binding = Binding.T * src list;
+type binding = binding * src list;
 val empty_binding: binding = (Binding.empty, []);
 
 

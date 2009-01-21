@@ -9,9 +9,9 @@ sig
   val legacy_infer_term: theory -> term -> term
   val legacy_infer_prop: theory -> term -> term
   val add_fixrec: bool -> (Attrib.binding * string) list list -> theory -> theory
-  val add_fixrec_i: bool -> ((Binding.T * attribute list) * term) list list -> theory -> theory
+  val add_fixrec_i: bool -> ((binding * attribute list) * term) list list -> theory -> theory
   val add_fixpat: Attrib.binding * string list -> theory -> theory
-  val add_fixpat_i: (Binding.T * attribute list) * term list -> theory -> theory
+  val add_fixpat_i: (binding * attribute list) * term list -> theory -> theory
 end;
 
 structure FixrecPackage: FIXREC_PACKAGE =

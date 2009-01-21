@@ -28,7 +28,7 @@ local
                                else thname
                 val def_eq = Logic.mk_equals (Const(cname_full,ctype),
                                               HOLogic.choice_const ctype $  P)
-                val (thms, thy') = PureThy.add_defs covld [((cdefname,def_eq),[])] thy
+                val (thms, thy') = PureThy.add_defs covld [((Binding.name cdefname, def_eq),[])] thy
                 val thm' = [thm,hd thms] MRS @{thm exE_some}
             in
                 mk_definitional cos (thy',thm')
@@ -39,7 +39,7 @@ local
         let
             fun process [] (thy,tm) =
                 let
-                    val (thms, thy') = PureThy.add_axioms [((axname,HOLogic.mk_Trueprop tm),[])] thy
+                    val (thms, thy') = PureThy.add_axioms [((Binding.name axname, HOLogic.mk_Trueprop tm),[])] thy
                 in
                     (thy',hd thms)
                 end
@@ -184,7 +184,7 @@ fun process_spec axiomatic cos alt_props thy =
                             if name = ""
                             then arg |> Library.swap
                             else (writeln ("  " ^ name ^ ": " ^ (Display.string_of_thm thm));
-                                  PureThy.store_thm (name, thm) thy)
+                                  PureThy.store_thm (Binding.name name, thm) thy)
                     in
                         args |> apsnd (remove_alls frees)
                              |> apsnd undo_imps

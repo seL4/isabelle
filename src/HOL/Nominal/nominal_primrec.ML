@@ -9,8 +9,8 @@ Taken from HOL/Tools/primrec_package.ML
 signature NOMINAL_PRIMREC =
 sig
   val add_primrec: term list option -> term option ->
-    (Binding.T * typ option * mixfix) list ->
-    (Binding.T * typ option * mixfix) list ->
+    (binding * typ option * mixfix) list ->
+    (binding * typ option * mixfix) list ->
     (Attrib.binding * term) list -> local_theory -> Proof.state
 end;
 

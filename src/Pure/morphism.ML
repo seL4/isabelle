@@ -16,21 +16,21 @@ end
 signature MORPHISM =
 sig
   include BASIC_MORPHISM
-  val var: morphism -> Binding.T * mixfix -> Binding.T * mixfix
-  val binding: morphism -> Binding.T -> Binding.T
+  val var: morphism -> binding * mixfix -> binding * mixfix
+  val binding: morphism -> binding -> binding
   val typ: morphism -> typ -> typ
   val term: morphism -> term -> term
   val fact: morphism -> thm list -> thm list
   val thm: morphism -> thm -> thm
   val cterm: morphism -> cterm -> cterm
   val morphism:
-   {binding: Binding.T -> Binding.T,
-    var: Binding.T * mixfix -> Binding.T * mixfix,
+   {binding: binding -> binding,
+    var: binding * mixfix -> binding * mixfix,
     typ: typ -> typ,
     term: term -> term,
     fact: thm list -> thm list} -> morphism
-  val binding_morphism: (Binding.T -> Binding.T) -> morphism
-  val var_morphism: (Binding.T * mixfix -> Binding.T * mixfix) -> morphism
+  val binding_morphism: (binding -> binding) -> morphism
+  val var_morphism: (binding * mixfix -> binding * mixfix) -> morphism
   val typ_morphism: (typ -> typ) -> morphism
   val term_morphism: (term -> term) -> morphism
   val fact_morphism: (thm list -> thm list) -> morphism
@@ -45,8 +45,8 @@ structure Morphism: MORPHISM =
 struct
 
 datatype morphism = Morphism of
- {binding: Binding.T -> Binding.T,
-  var: Binding.T * mixfix -> Binding.T * mixfix,
+ {binding: binding -> binding,
+  var: binding * mixfix -> binding * mixfix,
   typ: typ -> typ,
   term: term -> term,
   fact: thm list -> thm list};

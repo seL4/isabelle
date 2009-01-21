@@ -196,13 +196,13 @@ end;
 
 fun add_rules simps case_thms rec_thms inject distinct
                   weak_case_congs cong_att =
-  PureThy.add_thmss [(("simps", simps), []),
-    (("", flat case_thms @
+  PureThy.add_thmss [((Binding.name "simps", simps), []),
+    ((Binding.empty, flat case_thms @
           flat distinct @ rec_thms), [Simplifier.simp_add]),
-    (("", rec_thms), [Code.add_default_eqn_attribute]),
-    (("", flat inject), [iff_add]),
-    (("", map (fn th => th RS notE) (flat distinct)), [Classical.safe_elim NONE]),
-    (("", weak_case_congs), [cong_att])]
+    ((Binding.empty, rec_thms), [Code.add_default_eqn_attribute]),
+    ((Binding.empty, flat inject), [iff_add]),
+    ((Binding.empty, map (fn th => th RS notE) (flat distinct)), [Classical.safe_elim NONE]),
+    ((Binding.empty, weak_case_congs), [cong_att])]
   #> snd;
 
 
@@ -213,15 +213,15 @@ fun add_cases_induct infos induction thy =
     val inducts = ProjectRule.projections (ProofContext.init thy) induction;
 
     fun named_rules (name, {index, exhaustion, ...}: datatype_info) =
-      [(("", nth inducts index), [Induct.induct_type name]),
-       (("", exhaustion), [Induct.cases_type name])];
+      [((Binding.empty, nth inducts index), [Induct.induct_type name]),
+       ((Binding.empty, exhaustion), [Induct.cases_type name])];
     fun unnamed_rule i =
-      (("", nth inducts i), [Thm.kind_internal, Induct.induct_type ""]);
+      ((Binding.empty, nth inducts i), [Thm.kind_internal, Induct.induct_type ""]);
   in
     thy |> PureThy.add_thms
       (maps named_rules infos @
         map unnamed_rule (length infos upto length inducts - 1)) |> snd
-    |> PureThy.add_thmss [(("inducts", inducts), [])] |> snd
+    |> PureThy.add_thmss [((Binding.name "inducts", inducts), [])] |> snd
   end;
 
 
@@ -451,7 +451,7 @@ fun prove_rep_datatype alt_names new_type_names descr sorts induct inject half_d
       |> store_thmss "inject" new_type_names inject
       ||>> store_thmss "distinct" new_type_names distinct
       ||> Sign.add_path (space_implode "_" new_type_names)
-      ||>> PureThy.add_thms [(("induct", induct), [case_names_induct])];
+      ||>> PureThy.add_thms [((Binding.name "induct", induct), [case_names_induct])];
 
     val dt_infos = map (make_dt_info alt_names descr sorts induct' reccomb_names rec_thms)
       ((0 upto length descr - 1) ~~ descr ~~ case_names ~~ case_thms ~~ casedist_thms ~~

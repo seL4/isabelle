@@ -53,7 +53,6 @@ use "obtain.ML";
 (*local theories and targets*)
 use "local_theory.ML";
 use "overloading.ML";
-use "old_locale.ML";
 use "locale.ML";
 use "class_target.ML";
 use "theory_target.ML";

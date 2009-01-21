@@ -1,5 +1,4 @@
 (*  Title:      HOL/ATP_Linkup.thy
-    ID:         $Id$
     Author:     Lawrence C Paulson
     Author:     Jia Meng, NICTA
     Author:     Fabian Immler, TUM

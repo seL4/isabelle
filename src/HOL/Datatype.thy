@@ -1,5 +1,4 @@
 (*  Title:      HOL/Datatype.thy
-    ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Author:     Stefan Berghofer and Markus Wenzel, TU Muenchen
 

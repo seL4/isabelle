@@ -35,7 +35,7 @@ sig
   val name_source: T list -> string * T list
   val name_source_position: T list -> (SymbolPos.text * Position.T) * T list
   val name: T list -> string * T list
-  val binding: T list -> Binding.T * T list
+  val binding: T list -> binding * T list
   val alt_name: T list -> string * T list
   val symbol: T list -> string * T list
   val liberal_name: T list -> string * T list
@@ -66,8 +66,8 @@ sig
   val parse1: (string -> bool) -> OuterLex.token list -> T list * OuterLex.token list
   val attribs: (string -> string) -> T list -> src list * T list
   val opt_attribs: (string -> string) -> T list -> src list * T list
-  val thm_name: (string -> string) -> string -> T list -> (Binding.T * src list) * T list
-  val opt_thm_name: (string -> string) -> string -> T list -> (Binding.T * src list) * T list
+  val thm_name: (string -> string) -> string -> T list -> (binding * src list) * T list
+  val opt_thm_name: (string -> string) -> string -> T list -> (binding * src list) * T list
   val syntax: string -> ('b * T list -> 'a * ('b * T list)) -> src -> 'b -> 'a * 'b
   val context_syntax: string -> (Context.generic * T list -> 'a * (Context.generic * T list)) ->
     src -> Proof.context -> 'a * Proof.context

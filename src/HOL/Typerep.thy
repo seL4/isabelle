@@ -1,5 +1,4 @@
-(*  Title:      HOL/Library/RType.thy
-    ID:         $Id$
+(*  Title:      HOL/Typerep.thy
     Author:     Florian Haftmann, TU Muenchen
 *)
 
@@ -15,9 +14,7 @@ class typerep =
   fixes typerep :: "'a\<Colon>{} itself \<Rightarrow> typerep"
 begin
 
-definition
-  typerep_of :: "'a \<Rightarrow> typerep"
-where
+definition typerep_of :: "'a \<Rightarrow> typerep" where
   [simp]: "typerep_of x = typerep TYPE('a)"
 
 end

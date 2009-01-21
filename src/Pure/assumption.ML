@@ -1,5 +1,4 @@
 (*  Title:      Pure/assumption.ML
-    ID:         $Id$
     Author:     Makarius
 
 Local assumptions, parameterized by export rules.
@@ -79,7 +78,7 @@ fun extra_hyps ctxt th = subtract (op aconv) (map Thm.term_of (assms_of ctxt)) (
 (* named prems -- legacy feature *)
 
 val _ = Context.>>
-  (Context.map_theory (PureThy.add_thms_dynamic ("prems",
+  (Context.map_theory (PureThy.add_thms_dynamic (Binding.name "prems",
     fn Context.Theory _ => [] | Context.Proof ctxt => prems_of ctxt)));
 
 

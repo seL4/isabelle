@@ -1,5 +1,4 @@
 (*  Title:      Pure/Tools/named_thms.ML
-    ID:         $Id$
     Author:     Makarius
 
 Named collections of theorems in canonical order.
@@ -36,6 +35,6 @@ val del = Thm.declaration_attribute del_thm;
 
 val setup =
   Attrib.add_attributes [(name, Attrib.add_del_args add del, "declaration of " ^ description)] #>
-  PureThy.add_thms_dynamic (name, Data.get);
+  PureThy.add_thms_dynamic (Binding.name name, Data.get);
 
 end;

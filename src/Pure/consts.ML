@@ -30,10 +30,10 @@ sig
   val certify: Pretty.pp -> Type.tsig -> bool -> T -> term -> term  (*exception TYPE*)
   val typargs: T -> string * typ -> typ list
   val instance: T -> string * typ list -> typ
-  val declare: bool -> NameSpace.naming -> Properties.T -> (Binding.T * typ) -> T -> T
+  val declare: bool -> NameSpace.naming -> Properties.T -> (binding * typ) -> T -> T
   val constrain: string * typ option -> T -> T
   val abbreviate: Pretty.pp -> Type.tsig -> NameSpace.naming -> string -> Properties.T ->
-    Binding.T * term -> T -> (term * term) * T
+    binding * term -> T -> (term * term) * T
   val revert_abbrev: string -> string -> T -> T
   val hide: bool -> string -> T -> T
   val empty: T

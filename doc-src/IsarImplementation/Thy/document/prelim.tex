@@ -816,13 +816,13 @@ A \emph{qualified name} consists of a non-empty sequence of basic
   \indexmltype{NameSpace.naming}\verb|type NameSpace.naming| \\
   \indexml{NameSpace.default\_naming}\verb|NameSpace.default_naming: NameSpace.naming| \\
   \indexml{NameSpace.add\_path}\verb|NameSpace.add_path: string -> NameSpace.naming -> NameSpace.naming| \\
-  \indexml{NameSpace.full\_name}\verb|NameSpace.full_name: NameSpace.naming -> Binding.T -> string| \\
+  \indexml{NameSpace.full\_name}\verb|NameSpace.full_name: NameSpace.naming -> binding -> string| \\
   \end{mldecls}
   \begin{mldecls}
   \indexmltype{NameSpace.T}\verb|type NameSpace.T| \\
   \indexml{NameSpace.empty}\verb|NameSpace.empty: NameSpace.T| \\
   \indexml{NameSpace.merge}\verb|NameSpace.merge: NameSpace.T * NameSpace.T -> NameSpace.T| \\
-  \indexml{NameSpace.declare}\verb|NameSpace.declare: NameSpace.naming -> Binding.T -> NameSpace.T -> string * NameSpace.T| \\
+  \indexml{NameSpace.declare}\verb|NameSpace.declare: NameSpace.naming -> binding -> NameSpace.T -> string * NameSpace.T| \\
   \indexml{NameSpace.intern}\verb|NameSpace.intern: NameSpace.T -> string -> string| \\
   \indexml{NameSpace.extern}\verb|NameSpace.extern: NameSpace.T -> string -> string| \\
   \end{mldecls}

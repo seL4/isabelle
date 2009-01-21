@@ -18,6 +18,7 @@ sig
   val rules: theory -> class -> thm option * thm
   val these_params: theory -> sort -> (string * (class * (string * typ))) list
   val these_defs: theory -> sort -> thm list
+  val these_operations: theory -> sort -> (string * (class * (typ * term))) list
   val print_classes: theory -> unit
 
   val begin: class list -> sort -> Proof.context -> Proof.context
@@ -253,7 +254,6 @@ fun activate_defs class thms thy =
   in fold amend (heritage thy [class]) thy end;
 
 fun register_operation class (c, (t, some_def)) thy =
-  (*FIXME 2009 does this still also work for abbrevs?*)
   let
     val base_sort = base_sort thy class;
     val prep_typ = map_type_tfree
@@ -297,11 +297,14 @@ fun register_subclass (sub, sup) some_dep_morph some_wit export thy =
 
 (* class context syntax *)
 
-fun synchronize_class_syntax sups base_sort ctxt =
+fun these_unchecks thy =
+  map (fn (c, (_, (ty, t))) => (t, Const (c, ty))) o these_operations thy;
+
+fun synchronize_class_syntax sort base_sort ctxt =
   let
     val thy = ProofContext.theory_of ctxt;
     val algebra = Sign.classes_of thy;
-    val operations = these_operations thy sups;
+    val operations = these_operations thy sort;
     fun subst_class_typ sort = map_type_tfree (K (TVar ((Name.aT, 0), sort)));
     val primary_constraints =
       (map o apsnd) (subst_class_typ base_sort o fst o snd) operations;
@@ -322,7 +325,7 @@ fun synchronize_class_syntax sups base_sort ctxt =
           | NONE => NONE)
       | NONE => NONE)
     fun subst (c, ty) = Option.map snd (AList.lookup (op =) operations c);
-    val unchecks = map (fn (c, (_, (ty, t))) => (t, Const (c, ty))) operations;
+    val unchecks = these_unchecks thy sort;
   in
     ctxt
     |> fold declare_const primary_constraints
@@ -337,11 +340,11 @@ fun refresh_syntax class ctxt =
     val base_sort = base_sort thy class;
   in synchronize_class_syntax [class] base_sort ctxt end;
 
-fun begin sups base_sort ctxt =
+fun begin sort base_sort ctxt =
   ctxt
   |> Variable.declare_term
       (Logic.mk_type (TFree (Name.aT, base_sort)))
-  |> synchronize_class_syntax sups base_sort
+  |> synchronize_class_syntax sort base_sort
   |> Overloading.add_improvable_syntax;
 
 fun init class thy =
@@ -356,52 +359,42 @@ val class_prefix = Logic.const_of_class o Sign.base_name;
 
 fun declare class pos ((c, mx), dict) thy =
   let
-    val prfx = class_prefix class;
-    val thy' = thy |> Sign.add_path prfx;
-      (*FIXME 2009 use proper name morphism*)
-    val morph = morphism thy' class;
-    val params = map (apsnd fst o snd) (these_params thy' [class]);
-
-    val c' = Sign.full_bname thy' c;
+    val morph = morphism thy class;
+    val b = Morphism.binding morph (Binding.name c);
+    val b_def = Morphism.binding morph (Binding.name (c ^ "_dict"));
+    val c' = Sign.full_name thy b;
     val dict' = Morphism.term morph dict;
     val ty' = Term.fastype_of dict';
-    val ty'' = Type.strip_sorts ty';
-      (*FIXME 2009 the tinkering with theorems here is a mess*)
-    val def_eq = Logic.mk_equals (Const (c', ty'), dict');
-    fun get_axiom thy = ((Thm.varifyT o Thm.axiom thy) c', thy);
+    val def_eq = Logic.mk_equals (Const (c', ty'), dict')
+      |> map_types Type.strip_sorts;
   in
-    thy'
-    |> Sign.declare_const pos ((Binding.name c, ty''), mx) |> snd
-    |> Thm.add_def false false (c, def_eq) (*FIXME 2009 name of theorem*)
-      (*FIXME 2009 add_def should accept binding*)
-    |>> Thm.symmetric
-    ||>> get_axiom
-    |-> (fn (def, def') => register_operation class (c', (dict', SOME (Thm.symmetric def')))
-      #> PureThy.store_thm (c ^ "_raw", def') (*FIXME 2009 name of theorem*)
-         (*FIXME 2009 store_thm etc. should accept binding*)
-      #> snd)
-    |> Sign.restore_naming thy
+    thy
+    |> Sign.declare_const pos ((b, Type.strip_sorts ty'), mx)
+    |> snd
+    |> Thm.add_def false false (b_def, def_eq)
+    |>> Thm.varifyT
+    |-> (fn def_thm => PureThy.store_thm (b_def, def_thm)
+      #> snd
+      #> register_operation class (c', (dict', SOME (Thm.symmetric def_thm))))
     |> Sign.add_const_constraint (c', SOME ty')
   end;
 
 fun abbrev class prmode pos ((c, mx), rhs) thy =
   let
-    val prfx = class_prefix class;
-    val thy' = thy |> Sign.add_path prfx;
-
-    val unchecks = map (fn (c, (_, (ty, t))) => (t, Const (c, ty)))
-      (these_operations thy [class]);
-    val c' = Sign.full_bname thy' c;
+    val morph = morphism thy class;
+    val unchecks = these_unchecks thy [class];
+    val b = Morphism.binding morph (Binding.name c);
+    val c' = Sign.full_name thy b;
     val rhs' = Pattern.rewrite_term thy unchecks [] rhs;
-    val rhs'' = map_types Logic.varifyT rhs';
     val ty' = Term.fastype_of rhs';
+    val rhs'' = map_types ((*Type.strip_sorts o *)Logic.varifyT) rhs';
   in
-    thy'
-    |> Sign.add_abbrev (#1 prmode) pos (Binding.name c, map_types Type.strip_sorts rhs'') |> snd
+    thy
+    |> Sign.add_abbrev (#1 prmode) pos (b, rhs'')
+    |> snd
     |> Sign.add_const_constraint (c', SOME ty')
     |> Sign.notation true prmode [(Const (c', ty'), mx)]
     |> not (#1 prmode = PrintMode.input) ? register_operation class (c', (rhs', NONE))
-    |> Sign.restore_naming thy
   end;
 
 
@@ -610,8 +603,7 @@ fun intro_classes_tac facts st =
   end;
 
 fun default_intro_tac ctxt [] =
-      intro_classes_tac [] ORELSE Old_Locale.intro_locales_tac true ctxt [] ORELSE
-      Locale.intro_locales_tac true ctxt []
+      intro_classes_tac [] ORELSE Locale.intro_locales_tac true ctxt []
   | default_intro_tac _ _ = no_tac;
 
 fun default_tac rules ctxt facts =

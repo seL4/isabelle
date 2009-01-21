@@ -11,10 +11,10 @@ sig
   val mk_def: Proof.context -> (string * term) list -> term list
   val expand: cterm list -> thm -> thm
   val def_export: Assumption.export
-  val add_defs: ((Binding.T * mixfix) * ((Binding.T * attribute list) * term)) list ->
+  val add_defs: ((binding * mixfix) * ((binding * attribute list) * term)) list ->
     Proof.context -> (term * (string * thm)) list * Proof.context
-  val add_def: (Binding.T * mixfix) * term -> Proof.context -> (term * thm) * Proof.context
-  val fixed_abbrev: (Binding.T * mixfix) * term -> Proof.context ->
+  val add_def: (binding * mixfix) * term -> Proof.context -> (term * thm) * Proof.context
+  val fixed_abbrev: (binding * mixfix) * term -> Proof.context ->
     (term * term) * Proof.context
   val export: Proof.context -> Proof.context -> thm -> thm list * thm
   val export_cterm: Proof.context -> Proof.context -> cterm -> cterm * thm

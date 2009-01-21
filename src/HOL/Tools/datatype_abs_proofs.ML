@@ -238,7 +238,7 @@ fun prove_primrec_thms flat_names new_type_names descr sorts
           (Sign.base_name name, reccomb_fn_Ts @ [T] ---> T', NoSyn))
           (reccomb_names ~~ recTs ~~ rec_result_Ts))
       |> (PureThy.add_defs false o map Thm.no_attributes) (map (fn ((((name, comb), set), T), T') =>
-          ((Sign.base_name name) ^ "_def", Logic.mk_equals (comb, absfree ("x", T,
+          (Binding.name (Sign.base_name name ^ "_def"), Logic.mk_equals (comb, absfree ("x", T,
            Const ("The", (T' --> HOLogic.boolT) --> T') $ absfree ("y", T',
              set $ Free ("x", T) $ Free ("y", T'))))))
                (reccomb_names ~~ reccombs ~~ rec_sets ~~ recTs ~~ rec_result_Ts))
@@ -262,7 +262,7 @@ fun prove_primrec_thms flat_names new_type_names descr sorts
   in
     thy2
     |> Sign.add_path (space_implode "_" new_type_names)
-    |> PureThy.add_thmss [(("recs", rec_thms), [])]
+    |> PureThy.add_thmss [((Binding.name "recs", rec_thms), [])]
     ||> Sign.parent_path
     ||> Theory.checkpoint
     |-> (fn thms => pair (reccomb_names, Library.flat thms))
@@ -316,7 +316,7 @@ fun prove_case_thms flat_names new_type_names descr sorts reccomb_names primrec_
             fns2 @ (List.concat (Library.drop (i + 1, case_dummy_fns)));
           val reccomb = Const (recname, (map fastype_of fns) @ [T] ---> T');
           val decl = ((Binding.name (Sign.base_name name), caseT), NoSyn);
-          val def = ((Sign.base_name name) ^ "_def",
+          val def = (Binding.name (Sign.base_name name ^ "_def"),
             Logic.mk_equals (list_comb (Const (name, caseT), fns1),
               list_comb (reccomb, (List.concat (Library.take (i, case_dummy_fns))) @
                 fns2 @ (List.concat (Library.drop (i + 1, case_dummy_fns))) )));

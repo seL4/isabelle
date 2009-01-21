@@ -1,5 +1,4 @@
 (*  Title:      HOL/Orderings.thy
-    ID:         $Id$
     Author:     Tobias Nipkow, Markus Wenzel, and Larry Paulson
 *)
 
