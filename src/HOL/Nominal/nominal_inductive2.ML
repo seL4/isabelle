@@ -458,12 +458,12 @@ fun prove_strong_ind s avoids thy =
             [ind_case_names, RuleCases.consumes 1]);
         val ([strong_induct'], thy') = thy |>
           Sign.add_path rec_name |>
-          PureThy.add_thms [(("strong_induct", #1 strong_induct), #2 strong_induct)];
+          PureThy.add_thms [((Binding.name "strong_induct", #1 strong_induct), #2 strong_induct)];
         val strong_inducts =
           ProjectRule.projects ctxt (1 upto length names) strong_induct'
       in
         thy' |>
-        PureThy.add_thmss [(("strong_inducts", strong_inducts),
+        PureThy.add_thmss [((Binding.name "strong_inducts", strong_inducts),
           [ind_case_names, RuleCases.consumes 1])] |> snd |>
         Sign.parent_path
       end))

@@ -490,13 +490,13 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
             (full_new_type_names' ~~ tyvars) thy
         end) atoms |>
       PureThy.add_thmss
-        [((space_implode "_" new_type_names ^ "_unfolded_perm_eq",
+        [((Binding.name (space_implode "_" new_type_names ^ "_unfolded_perm_eq"),
           unfolded_perm_eq_thms), [Simplifier.simp_add]),
-         ((space_implode "_" new_type_names ^ "_perm_empty",
+         ((Binding.name (space_implode "_" new_type_names ^ "_perm_empty"),
           perm_empty_thms), [Simplifier.simp_add]),
-         ((space_implode "_" new_type_names ^ "_perm_append",
+         ((Binding.name (space_implode "_" new_type_names ^ "_perm_append"),
           perm_append_thms), [Simplifier.simp_add]),
-         ((space_implode "_" new_type_names ^ "_perm_eq",
+         ((Binding.name (space_implode "_" new_type_names ^ "_perm_eq"),
           perm_eq_thms), [Simplifier.simp_add])];
 
     (**** Define representing sets ****)
@@ -627,7 +627,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
           val pi = Free ("pi", permT);
           val T = Type (Sign.intern_type thy name, map TFree tvs);
         in apfst (pair r o hd)
-          (PureThy.add_defs_unchecked true [(("prm_" ^ name ^ "_def", Logic.mk_equals
+          (PureThy.add_defs_unchecked true [((Binding.name ("prm_" ^ name ^ "_def"), Logic.mk_equals
             (Const ("Nominal.perm", permT --> T --> T) $ pi $ Free ("x", T),
              Const (Sign.intern_const thy ("Abs_" ^ name), U --> T) $
                (Const ("Nominal.perm", permT --> U --> U) $ pi $
@@ -801,7 +801,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
         val def_name = (Sign.base_name cname) ^ "_def";
         val ([def_thm], thy') = thy |>
           Sign.add_consts_i [(cname', constrT, mx)] |>
-          (PureThy.add_defs false o map Thm.no_attributes) [(def_name, def)]
+          (PureThy.add_defs false o map Thm.no_attributes) [(Binding.name def_name, def)]
       in (thy', defs @ [def_thm], eqns @ [eqn]) end;
 
     fun dt_constr_defs ((thy, defs, eqns, dist_lemmas), ((((((_, (_, _, constrs)),
@@ -1114,8 +1114,8 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
  
     val (_, thy9) = thy8 |>
       Sign.add_path big_name |>
-      PureThy.add_thms [(("induct", dt_induct), [case_names_induct])] ||>>
-      PureThy.add_thmss [(("inducts", projections dt_induct), [case_names_induct])] ||>
+      PureThy.add_thms [((Binding.name "induct", dt_induct), [case_names_induct])] ||>>
+      PureThy.add_thmss [((Binding.name "inducts", projections dt_induct), [case_names_induct])] ||>
       Sign.parent_path ||>>
       DatatypeAux.store_thmss_atts "distinct" new_type_names simp_atts distinct_thms ||>>
       DatatypeAux.store_thmss "constr_rep" new_type_names constr_rep_thmss ||>>
@@ -1405,9 +1405,9 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
 
     val (_, thy10) = thy9 |>
       Sign.add_path big_name |>
-      PureThy.add_thms [(("strong_induct'", induct_aux), [])] ||>>
-      PureThy.add_thms [(("strong_induct", induct), [case_names_induct])] ||>>
-      PureThy.add_thmss [(("strong_inducts", projections induct), [case_names_induct])];
+      PureThy.add_thms [((Binding.name "strong_induct'", induct_aux), [])] ||>>
+      PureThy.add_thms [((Binding.name "strong_induct", induct), [case_names_induct])] ||>>
+      PureThy.add_thmss [((Binding.name "strong_inducts", projections induct), [case_names_induct])];
 
     (**** recursion combinator ****)
 
@@ -2015,7 +2015,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
           (Sign.base_name name, rec_fn_Ts @ [T] ---> T', NoSyn))
           (reccomb_names ~~ recTs ~~ rec_result_Ts))
       |> (PureThy.add_defs false o map Thm.no_attributes) (map (fn ((((name, comb), set), T), T') =>
-          ((Sign.base_name name) ^ "_def", Logic.mk_equals (comb, absfree ("x", T,
+          (Binding.name (Sign.base_name name ^ "_def"), Logic.mk_equals (comb, absfree ("x", T,
            Const ("The", (T' --> HOLogic.boolT) --> T') $ absfree ("y", T',
              set $ Free ("x", T) $ Free ("y", T'))))))
                (reccomb_names ~~ reccombs ~~ rec_sets ~~ recTs ~~ rec_result_Ts));
@@ -2052,12 +2052,12 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
     (* FIXME: theorems are stored in database for testing only *)
     val (_, thy13) = thy12 |>
       PureThy.add_thmss
-        [(("rec_equiv", List.concat rec_equiv_thms), []),
-         (("rec_equiv'", List.concat rec_equiv_thms'), []),
-         (("rec_fin_supp", List.concat rec_fin_supp_thms), []),
-         (("rec_fresh", List.concat rec_fresh_thms), []),
-         (("rec_unique", map standard rec_unique_thms), []),
-         (("recs", rec_thms), [])] ||>
+        [((Binding.name "rec_equiv", List.concat rec_equiv_thms), []),
+         ((Binding.name "rec_equiv'", List.concat rec_equiv_thms'), []),
+         ((Binding.name "rec_fin_supp", List.concat rec_fin_supp_thms), []),
+         ((Binding.name "rec_fresh", List.concat rec_fresh_thms), []),
+         ((Binding.name "rec_unique", map standard rec_unique_thms), []),
+         ((Binding.name "recs", rec_thms), [])] ||>
       Sign.parent_path ||>
       map_nominal_datatypes (fold Symtab.update dt_infos);
 

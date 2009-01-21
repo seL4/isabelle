@@ -562,17 +562,17 @@ fun prove_strong_ind s avoids thy =
             [ind_case_names, RuleCases.consumes 1]);
         val ([strong_induct'], thy') = thy |>
           Sign.add_path rec_name |>
-          PureThy.add_thms [(("strong_induct", #1 strong_induct), #2 strong_induct)];
+          PureThy.add_thms [((Binding.name "strong_induct", #1 strong_induct), #2 strong_induct)];
         val strong_inducts =
           ProjectRule.projects ctxt (1 upto length names) strong_induct'
       in
         thy' |>
-        PureThy.add_thmss [(("strong_inducts", strong_inducts),
+        PureThy.add_thmss [((Binding.name "strong_inducts", strong_inducts),
           [ind_case_names, RuleCases.consumes 1])] |> snd |>
         Sign.parent_path |>
         fold (fn ((name, elim), (_, cases)) =>
           Sign.add_path (Sign.base_name name) #>
-          PureThy.add_thms [(("strong_cases", elim),
+          PureThy.add_thms [((Binding.name "strong_cases", elim),
             [RuleCases.case_names (map snd cases),
              RuleCases.consumes 1])] #> snd #>
           Sign.parent_path) (strong_cases ~~ induct_cases')
@@ -653,7 +653,7 @@ fun prove_eqvt s xatoms thy =
   in
     fold (fn (name, ths) =>
       Sign.add_path (Sign.base_name name) #>
-      PureThy.add_thmss [(("eqvt", ths), [NominalThmDecls.eqvt_add])] #> snd #>
+      PureThy.add_thmss [((Binding.name "eqvt", ths), [NominalThmDecls.eqvt_add])] #> snd #>
       Sign.parent_path) (names ~~ transp thss) thy
   end;
 

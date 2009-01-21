@@ -96,7 +96,7 @@ fun add_fixdefs eqs thy =
     
     val fixdefs = map (apsnd (legacy_infer_prop thy)) pre_fixdefs;
     val (fixdef_thms, thy') =
-      PureThy.add_defs false (map Thm.no_attributes fixdefs) thy;
+      PureThy.add_defs false (map (Thm.no_attributes o apfst Binding.name) fixdefs) thy;
     val ctuple_fixdef_thm = foldr1 (fn (x,y) => @{thm cpair_equalI} OF [x,y]) fixdef_thms;
     
     val ctuple_unfold = legacy_infer_term thy' (mk_trp (mk_ctuple lhss === mk_ctuple rhss));
@@ -114,7 +114,7 @@ fun add_fixdefs eqs thy =
         in (n^"_unfold", thmL) :: unfolds ns thmR end;
     val unfold_thms = unfolds names ctuple_unfold_thm;
     val thms = ctuple_induct_thm :: unfold_thms;
-    val (_, thy'') = PureThy.add_thms (map Thm.no_attributes thms) thy';
+    val (_, thy'') = PureThy.add_thms (map (Thm.no_attributes o apfst Binding.name) thms) thy';
   in
     (thy'', names, fixdef_thms, map snd unfold_thms)
   end;
@@ -241,14 +241,14 @@ fun gen_add_fixrec prep_prop prep_attrib strict blocks thy =
   in
     if strict then let (* only prove simp rules if strict = true *)
       val eqn_blocks = unconcat lengths ((names ~~ eqn_ts') ~~ atts);
-      val simps = List.concat (map (make_simps thy') (unfold_thms ~~ eqn_blocks));
-      val (simp_thms, thy'') = PureThy.add_thms simps thy';
+      val simps = maps (make_simps thy') (unfold_thms ~~ eqn_blocks);
+      val (simp_thms, thy'') = PureThy.add_thms ((map o apfst o apfst) Binding.name simps) thy';
       
       val simp_names = map (fn name => name^"_simps") cnames;
       val simp_attribute = rpair [Simplifier.simp_add];
       val simps' = map simp_attribute (simp_names ~~ unconcat lengths simp_thms);
     in
-      (snd o PureThy.add_thmss simps') thy''
+      (snd o PureThy.add_thmss ((map o apfst o apfst) Binding.name simps')) thy''
     end
     else thy'
   end;
@@ -278,7 +278,7 @@ fun gen_add_fixpat prep_term prep_attrib ((name, srcs), strings) thy =
     val ts = map (prep_term thy) strings;
     val simps = map (fix_pat thy) ts;
   in
-    (snd o PureThy.add_thmss [((Binding.base_name name, simps), atts)]) thy
+    (snd o PureThy.add_thmss [((name, simps), atts)]) thy
   end;
 
 val add_fixpat = gen_add_fixpat Syntax.read_term_global Attrib.attribute;

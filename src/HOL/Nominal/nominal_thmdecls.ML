@@ -187,8 +187,8 @@ val setup =
         "equivariance theorem declaration (without checking the form of the lemma)"),
       ("fresh", Attrib.add_del_args fresh_add fresh_del, "freshness theorem declaration"),
       ("bij",   Attrib.add_del_args bij_add bij_del,     "bijection theorem declaration")] #>
-  PureThy.add_thms_dynamic ("eqvts", #eqvts o Data.get) #>
-  PureThy.add_thms_dynamic ("freshs", #freshs o Data.get) #>
-  PureThy.add_thms_dynamic ("bijs", #bijs o Data.get);
+  PureThy.add_thms_dynamic (Binding.name "eqvts", #eqvts o Data.get) #>
+  PureThy.add_thms_dynamic (Binding.name "freshs", #freshs o Data.get) #>
+  PureThy.add_thms_dynamic (Binding.name "bijs", #bijs o Data.get);
 
 end;
