@@ -475,6 +475,16 @@ lemma smult_pCons [simp]:
 lemma smult_monom: "smult a (monom b n) = monom (a * b) n"
   by (induct n, simp add: monom_0, simp add: monom_Suc)
 
+lemma degree_smult_eq [simp]:
+  fixes a :: "'a::idom"
+  shows "degree (smult a p) = (if a = 0 then 0 else degree p)"
+  by (cases "a = 0", simp, simp add: degree_def)
+
+lemma smult_eq_0_iff [simp]:
+  fixes a :: "'a::idom"
+  shows "smult a p = 0 \<longleftrightarrow> a = 0 \<or> p = 0"
+  by (simp add: expand_poly_eq)
+
 
 subsection {* Multiplication of polynomials *}
 
@@ -860,6 +870,29 @@ proof -
     by (simp add: pdivmod_rel_def)
   thus "x mod y = x" by (rule mod_poly_eq)
 qed
+
+lemma pdivmod_rel_smult_left:
+  "pdivmod_rel x y q r
+    \<Longrightarrow> pdivmod_rel (smult a x) y (smult a q) (smult a r)"
+  unfolding pdivmod_rel_def by (simp add: smult_add_right)
+
+lemma div_smult_left: "(smult a x) div y = smult a (x div y)"
+  by (rule div_poly_eq, rule pdivmod_rel_smult_left, rule pdivmod_rel)
+
+lemma mod_smult_left: "(smult a x) mod y = smult a (x mod y)"
+  by (rule mod_poly_eq, rule pdivmod_rel_smult_left, rule pdivmod_rel)
+
+lemma pdivmod_rel_smult_right:
+  "\<lbrakk>a \<noteq> 0; pdivmod_rel x y q r\<rbrakk>
+    \<Longrightarrow> pdivmod_rel x (smult a y) (smult (inverse a) q) r"
+  unfolding pdivmod_rel_def by simp
+
+lemma div_smult_right:
+  "a \<noteq> 0 \<Longrightarrow> x div (smult a y) = smult (inverse a) (x div y)"
+  by (rule div_poly_eq, erule pdivmod_rel_smult_right, rule pdivmod_rel)
+
+lemma mod_smult_right: "a \<noteq> 0 \<Longrightarrow> x mod (smult a y) = x mod y"
+  by (rule mod_poly_eq, erule pdivmod_rel_smult_right, rule pdivmod_rel)
 
 lemma mod_pCons:
   fixes a and x
