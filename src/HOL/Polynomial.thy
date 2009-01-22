@@ -787,6 +787,12 @@ next
   qed
 qed
 
+lemma pdivmod_rel_0_iff: "pdivmod_rel 0 y q r \<longleftrightarrow> q = 0 \<and> r = 0"
+by (auto dest: pdivmod_rel_unique intro: pdivmod_rel_0)
+
+lemma pdivmod_rel_by_0_iff: "pdivmod_rel x 0 q r \<longleftrightarrow> q = 0 \<and> r = x"
+by (auto dest: pdivmod_rel_unique intro: pdivmod_rel_by_0)
+
 lemmas pdivmod_rel_unique_div =
   pdivmod_rel_unique [THEN conjunct1, standard]
 
@@ -893,6 +899,31 @@ lemma div_smult_right:
 
 lemma mod_smult_right: "a \<noteq> 0 \<Longrightarrow> x mod (smult a y) = x mod y"
   by (rule mod_poly_eq, erule pdivmod_rel_smult_right, rule pdivmod_rel)
+
+lemma pdivmod_rel_mult:
+  "\<lbrakk>pdivmod_rel x y q r; pdivmod_rel q z q' r'\<rbrakk>
+    \<Longrightarrow> pdivmod_rel x (y * z) q' (y * r' + r)"
+apply (cases "z = 0", simp add: pdivmod_rel_def)
+apply (cases "y = 0", simp add: pdivmod_rel_by_0_iff pdivmod_rel_0_iff)
+apply (cases "r = 0")
+apply (cases "r' = 0")
+apply (simp add: pdivmod_rel_def)
+apply (simp add: pdivmod_rel_def ring_simps degree_mult_eq)
+apply (cases "r' = 0")
+apply (simp add: pdivmod_rel_def degree_mult_eq)
+apply (simp add: pdivmod_rel_def ring_simps)
+apply (simp add: degree_mult_eq degree_add_less)
+done
+
+lemma poly_div_mult_right:
+  fixes x y z :: "'a::field poly"
+  shows "x div (y * z) = (x div y) div z"
+  by (rule div_poly_eq, rule pdivmod_rel_mult, (rule pdivmod_rel)+)
+
+lemma poly_mod_mult_right:
+  fixes x y z :: "'a::field poly"
+  shows "x mod (y * z) = y * (x div y mod z) + x mod y"
+  by (rule mod_poly_eq, rule pdivmod_rel_mult, (rule pdivmod_rel)+)
 
 lemma mod_pCons:
   fixes a and x
