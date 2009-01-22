@@ -10,7 +10,7 @@ begin
 
 subsection {* Omega-profinite and bifinite domains *}
 
-class profinite = cpo +
+class profinite =
   fixes approx :: "nat \<Rightarrow> 'a \<rightarrow> 'a"
   assumes chain_approx [simp]: "chain approx"
   assumes lub_approx_app [simp]: "(\<Squnion>i. approx i\<cdot>x) = x"

@@ -12,9 +12,9 @@ subsection {* Complete partial orders *}
 
 text {* The class cpo of chain complete partial orders *}
 
-axclass cpo < po
+class cpo = po +
         -- {* class axiom: *}
-  cpo:   "chain S \<Longrightarrow> \<exists>x. range S <<| x"
+  assumes cpo:   "chain S \<Longrightarrow> \<exists>x. range S <<| x"
 
 text {* in cpo's everthing equal to THE lub has lub properties for every chain *}
 
@@ -170,8 +170,8 @@ subsection {* Pointed cpos *}
 
 text {* The class pcpo of pointed cpos *}
 
-axclass pcpo < cpo
-  least: "\<exists>x. \<forall>y. x \<sqsubseteq> y"
+class pcpo = cpo +
+  assumes least: "\<exists>x. \<forall>y. x \<sqsubseteq> y"
 
 definition
   UU :: "'a::pcpo" where
@@ -254,13 +254,13 @@ subsection {* Chain-finite and flat cpos *}
 
 text {* further useful classes for HOLCF domains *}
 
-axclass finite_po < finite, po
+class finite_po = finite + po
 
-axclass chfin < po
-  chfin: "chain Y \<Longrightarrow> \<exists>n. max_in_chain n Y"
+class chfin = po +
+  assumes chfin: "chain Y \<Longrightarrow> \<exists>n. max_in_chain n Y"
 
-axclass flat < pcpo
-  ax_flat: "x \<sqsubseteq> y \<Longrightarrow> (x = \<bottom>) \<or> (x = y)"
+class flat = pcpo +
+  assumes ax_flat: "x \<sqsubseteq> y \<Longrightarrow> (x = \<bottom>) \<or> (x = y)"
 
 text {* finite partial orders are chain-finite *}
 
@@ -310,11 +310,11 @@ by (simp add: chfin finite_chain_def)
 
 text {* Discrete cpos *}
 
-axclass discrete_cpo < sq_ord
-  discrete_cpo [simp]: "x \<sqsubseteq> y \<longleftrightarrow> x = y"
+class discrete_cpo = sq_ord +
+  assumes discrete_cpo [simp]: "x \<sqsubseteq> y \<longleftrightarrow> x = y"
 
-instance discrete_cpo < po
-by (intro_classes, simp_all)
+subclass (in discrete_cpo) po
+proof qed simp_all
 
 text {* In a discrete cpo, every chain is constant *}
 
