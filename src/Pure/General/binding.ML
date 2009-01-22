@@ -15,22 +15,21 @@ end;
 signature BINDING =
 sig
   include BASIC_BINDING
-  type T
-  val name_pos: string * Position.T -> T
-  val name: string -> T
-  val empty: T
-  val map_base: (string -> string) -> T -> T
-  val qualify: string -> T -> T
-  val add_prefix: bool -> string -> T -> T
-  val map_prefix: ((string * bool) list -> T -> T) -> T -> T
-  val is_empty: T -> bool
-  val base_name: T -> string
-  val pos_of: T -> Position.T
-  val dest: T -> (string * bool) list * string
+  val name_pos: string * Position.T -> binding
+  val name: string -> binding
+  val empty: binding
+  val map_base: (string -> string) -> binding -> binding
+  val qualify: string -> binding -> binding
+  val add_prefix: bool -> string -> binding -> binding
+  val map_prefix: ((string * bool) list -> binding -> binding) -> binding -> binding
+  val is_empty: binding -> bool
+  val base_name: binding -> string
+  val pos_of: binding -> Position.T
+  val dest: binding -> (string * bool) list * string
   val separator: string
   val is_qualified: string -> bool
-  val display: T -> string
-end
+  val display: binding -> string
+end;
 
 structure Binding : BINDING =
 struct
@@ -55,7 +54,7 @@ fun reject_qualified kind s =
 
 (** binding representation **)
 
-datatype T = Binding of ((string * bool) list * string) * Position.T;
+datatype binding = Binding of ((string * bool) list * string) * Position.T;
   (* (prefix components (with mandatory flag), base name, position) *)
 
 fun name_pos (name, pos) = Binding (([], name), pos);
@@ -92,8 +91,6 @@ fun display (Binding ((prefix, name), _)) =
   in if not (! long_names) orelse null prefix orelse name = "" then name
     else space_implode "." (map mk_prefix prefix) ^ ":" ^ name
   end;
-
-type binding = T;
 
 end;
 
