@@ -72,13 +72,13 @@ write
 
     class foo = ...     instead of      class foo = type + ...
 
-* Type Binding.T gradually replaces formerly used type bstring for names
+* Type binding gradually replaces formerly used type bstring for names
 to be bound.  Name space interface for declarations has been simplified:
 
   NameSpace.declare: NameSpace.naming
-    -> Binding.T -> NameSpace.T -> string * NameSpace.T
+    -> binding -> NameSpace.T -> string * NameSpace.T
   NameSpace.bind: NameSpace.naming
-    -> Binding.T * 'a -> 'a NameSpace.table -> string * 'a NameSpace.table
+    -> binding * 'a -> 'a NameSpace.table -> string * 'a NameSpace.table
          (*exception Symtab.DUP*)
 
 See further modules src/Pure/General/binding.ML and
