@@ -319,7 +319,7 @@ text {*
   \smallskip\begin{mldecls}
   @{ML "Sign.declare_const: Properties.T -> (binding * typ) * mixfix
   -> theory -> term * theory"} \\
-  @{ML "Thm.add_def: bool -> bool -> bstring * term -> theory -> thm * theory"}
+  @{ML "Thm.add_def: bool -> bool -> binding * term -> theory -> thm * theory"}
   \end{mldecls}
 
   \noindent Written with naive application, an addition of constant
@@ -328,7 +328,7 @@ text {*
 
   \smallskip\begin{mldecls}
   @{ML "(fn (t, thy) => Thm.add_def false false
-  (\"bar_def\", Logic.mk_equals (t, @{term \"%x. x\"})) thy)
+  (Binding.name \"bar_def\", Logic.mk_equals (t, @{term \"%x. x\"})) thy)
     (Sign.declare_const []
       ((Binding.name \"bar\", @{typ \"foo => foo\"}), NoSyn) thy)"}
   \end{mldecls}
@@ -347,7 +347,7 @@ text {*
 |> Sign.declare_const [] ((Binding.name \"bar\", @{typ \"foo => foo\"}), NoSyn)
 |> (fn (t, thy) => thy
 |> Thm.add_def false false
-     (\"bar_def\", Logic.mk_equals (t, @{term \"%x. x\"})))"}
+     (Binding.name \"bar_def\", Logic.mk_equals (t, @{term \"%x. x\"})))"}
   \end{mldecls}
 *}
 
@@ -370,7 +370,7 @@ text {*
 @{ML "thy
 |> Sign.declare_const [] ((Binding.name \"bar\", @{typ \"foo => foo\"}), NoSyn)
 |-> (fn t => Thm.add_def false false
-      (\"bar_def\", Logic.mk_equals (t, @{term \"%x. x\"})))
+      (Binding.name \"bar_def\", Logic.mk_equals (t, @{term \"%x. x\"})))
 "}
   \end{mldecls}
 
@@ -380,7 +380,7 @@ text {*
 @{ML "thy
 |> Sign.declare_const [] ((Binding.name \"bar\", @{typ \"foo => foo\"}), NoSyn)
 |>> (fn t => Logic.mk_equals (t, @{term \"%x. x\"}))
-|-> (fn def => Thm.add_def false false (\"bar_def\", def))
+|-> (fn def => Thm.add_def false false (Binding.name \"bar_def\", def))
 "}
   \end{mldecls}
 
@@ -392,7 +392,7 @@ text {*
 |> Sign.declare_const [] ((Binding.name \"bar\", @{typ \"foo => foo\"}), NoSyn)
 ||> Sign.add_path \"foobar\"
 |-> (fn t => Thm.add_def false false
-      (\"bar_def\", Logic.mk_equals (t, @{term \"%x. x\"})))
+      (Binding.name \"bar_def\", Logic.mk_equals (t, @{term \"%x. x\"})))
 ||> Sign.restore_naming thy
 "}
   \end{mldecls}
@@ -404,7 +404,7 @@ text {*
 |> Sign.declare_const [] ((Binding.name \"bar\", @{typ \"foo => foo\"}), NoSyn)
 ||>> Sign.declare_const [] ((Binding.name \"foobar\", @{typ \"foo => foo\"}), NoSyn)
 |-> (fn (t1, t2) => Thm.add_def false false
-      (\"bar_def\", Logic.mk_equals (t1, t2)))
+      (Binding.name \"bar_def\", Logic.mk_equals (t1, t2)))
 "}
   \end{mldecls}
 *}
@@ -451,7 +451,7 @@ in
        ((Binding.name const, @{typ \"foo => foo\"}), NoSyn)) consts
   |>> map (fn t => Logic.mk_equals (t, @{term \"%x. x\"}))
   |-> (fn defs => fold_map (fn def =>
-       Thm.add_def false false (\"\", def)) defs)
+       Thm.add_def false false (Binding.empty, def)) defs)
 end"}
   \end{mldecls}
 *}
