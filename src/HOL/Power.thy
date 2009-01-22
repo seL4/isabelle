@@ -11,7 +11,7 @@ theory Power
 imports Nat
 begin
 
-class power = type +
+class power =
   fixes power :: "'a \<Rightarrow> nat \<Rightarrow> 'a"            (infixr "^" 80)
 
 subsection{*Powers for Arbitrary Monoids*}

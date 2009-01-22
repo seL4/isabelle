@@ -6,7 +6,7 @@
 header {* Finite sets *}
 
 theory Finite_Set
-imports Datatype Divides Transitive_Closure
+imports Nat Product_Type Power
 begin
 
 subsection {* Definition and basic properties *}
@@ -380,46 +380,6 @@ lemma finite_UnionD: "finite(\<Union>A) \<Longrightarrow> finite A"
 by(blast intro: finite_subset[OF subset_Pow_Union])
 
 
-lemma finite_converse [iff]: "finite (r^-1) = finite r"
-  apply (subgoal_tac "r^-1 = (%(x,y). (y,x))`r")
-   apply simp
-   apply (rule iffI)
-    apply (erule finite_imageD [unfolded inj_on_def])
-    apply (simp split add: split_split)
-   apply (erule finite_imageI)
-  apply (simp add: converse_def image_def, auto)
-  apply (rule bexI)
-   prefer 2 apply assumption
-  apply simp
-  done
-
-
-text {* \paragraph{Finiteness of transitive closure} (Thanks to Sidi
-Ehmety) *}
-
-lemma finite_Field: "finite r ==> finite (Field r)"
-  -- {* A finite relation has a finite field (@{text "= domain \<union> range"}. *}
-  apply (induct set: finite)
-   apply (auto simp add: Field_def Domain_insert Range_insert)
-  done
-
-lemma trancl_subset_Field2: "r^+ <= Field r \<times> Field r"
-  apply clarify
-  apply (erule trancl_induct)
-   apply (auto simp add: Field_def)
-  done
-
-lemma finite_trancl: "finite (r^+) = finite r"
-  apply auto
-   prefer 2
-   apply (rule trancl_subset_Field2 [THEN finite_subset])
-   apply (rule finite_SigmaI)
-    prefer 3
-    apply (blast intro: r_into_trancl' finite_subset)
-   apply (auto simp add: finite_Field)
-  done
-
-
 subsection {* Class @{text finite}  *}
 
 setup {* Sign.add_path "finite" *} -- {*FIXME: name tweaking*}
@@ -470,9 +430,6 @@ qed
 
 instance "+" :: (finite, finite) finite
   by default (simp only: UNIV_Plus_UNIV [symmetric] finite_Plus finite)
-
-instance option :: (finite) finite
-  by default (simp add: insert_None_conv_UNIV [symmetric])
 
 
 subsection {* A fold functional for finite sets *}

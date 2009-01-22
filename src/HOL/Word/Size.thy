@@ -18,7 +18,7 @@ text {*
   some duplication with the definitions in @{text "Numeral_Type"}.
 *}
 
-class len0 = type +
+class len0 =
   fixes len_of :: "'a itself \<Rightarrow> nat"
 
 text {* 

@@ -8,7 +8,7 @@ Could <*> be generalized to a general summation (Sigma)?
 header {* Analogues of the Cartesian Product and Disjoint Sum for Datatypes *}
 
 theory Datatype
-imports Nat Relation
+imports Nat Product_Type
 begin
 
 typedef (Node)
@@ -507,15 +507,6 @@ lemma dsum_Sigma: "(dsum (A <*> B) (C <*> D)) <= (usum A C) <*> (usum B D)"
 by blast
 
 lemmas dsum_subset_Sigma = subset_trans [OF dsum_mono dsum_Sigma, standard]
-
-
-(*** Domain ***)
-
-lemma Domain_dprod [simp]: "Domain (dprod r s) = uprod (Domain r) (Domain s)"
-by auto
-
-lemma Domain_dsum [simp]: "Domain (dsum r s) = usum (Domain r) (Domain s)"
-by auto
 
 
 text {* hides popular names *}

@@ -594,9 +594,9 @@ The theory \isa{Pure} contains constant declarations for the
 \verb|  -> (string * ('a -> thm)) * theory| \\
   \end{mldecls}
   \begin{mldecls}
-  \indexml{Theory.add\_axioms\_i}\verb|Theory.add_axioms_i: (string * term) list -> theory -> theory| \\
+  \indexml{Theory.add\_axioms\_i}\verb|Theory.add_axioms_i: (binding * term) list -> theory -> theory| \\
   \indexml{Theory.add\_deps}\verb|Theory.add_deps: string -> string * typ -> (string * typ) list -> theory -> theory| \\
-  \indexml{Theory.add\_defs\_i}\verb|Theory.add_defs_i: bool -> bool -> (bstring * term) list -> theory -> theory| \\
+  \indexml{Theory.add\_defs\_i}\verb|Theory.add_defs_i: bool -> bool -> (binding * term) list -> theory -> theory| \\
   \end{mldecls}
 
   \begin{description}

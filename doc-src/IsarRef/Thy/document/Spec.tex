@@ -453,7 +453,6 @@ Locale expressions (more precisely, \emph{context expressions}) may
   \begin{matharray}{rcl}
     \indexdef{}{command}{interpretation}\hypertarget{command.interpretation}{\hyperlink{command.interpretation}{\mbox{\isa{\isacommand{interpretation}}}}} & : & \isa{{\isachardoublequote}theory\ {\isasymrightarrow}\ proof{\isacharparenleft}prove{\isacharparenright}{\isachardoublequote}} \\
     \indexdef{}{command}{interpret}\hypertarget{command.interpret}{\hyperlink{command.interpret}{\mbox{\isa{\isacommand{interpret}}}}} & : & \isa{{\isachardoublequote}proof{\isacharparenleft}state{\isacharparenright}\ {\isacharbar}\ proof{\isacharparenleft}chain\ {\isasymrightarrow}\ proof{\isacharparenleft}prove{\isacharparenright}{\isachardoublequote}} \\
-    \indexdef{}{command}{print\_interps}\hypertarget{command.print-interps}{\hyperlink{command.print-interps}{\mbox{\isa{\isacommand{print{\isacharunderscore}interps}}}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : &  \isa{{\isachardoublequote}context\ {\isasymrightarrow}{\isachardoublequote}} \\
   \end{matharray}
 
   \indexouternonterm{interp}
@@ -461,8 +460,6 @@ Locale expressions (more precisely, \emph{context expressions}) may
     'interpretation' (interp | name ('<' | subseteq) contextexpr)
     ;
     'interpret' interp
-    ;
-    'print\_interps' '!'? name
     ;
     instantiation: ('[' (inst+) ']')?
     ;
@@ -543,13 +540,6 @@ Locale expressions (more precisely, \emph{context expressions}) may
   interprets \isa{expr} in the proof context and is otherwise
   similar to interpretation in theories.
 
-  \item \hyperlink{command.print-interps}{\mbox{\isa{\isacommand{print{\isacharunderscore}interps}}}}~\isa{loc} prints the
-  interpretations of a particular locale \isa{loc} that are active
-  in the current context, either theory or proof context.  The
-  exclamation point argument triggers printing of \emph{witness}
-  theorems justifying interpretations.  These are normally omitted
-  from the output.
-  
   \end{description}
 
   \begin{warn}

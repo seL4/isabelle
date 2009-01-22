@@ -66,13 +66,19 @@ fractions (e.g. 123.45 or -123.45).
 
 *** Pure ***
 
-* Type Binding.T gradually replaces formerly used type bstring for names
+* Class declaration: sc. "base sort" must not be given in import list
+any longer but is inferred from the specification.  Particularly in HOL,
+write
+
+    class foo = ...     instead of      class foo = type + ...
+
+* Type binding gradually replaces formerly used type bstring for names
 to be bound.  Name space interface for declarations has been simplified:
 
   NameSpace.declare: NameSpace.naming
-    -> Binding.T -> NameSpace.T -> string * NameSpace.T
+    -> binding -> NameSpace.T -> string * NameSpace.T
   NameSpace.bind: NameSpace.naming
-    -> Binding.T * 'a -> 'a NameSpace.table -> string * 'a NameSpace.table
+    -> binding * 'a -> 'a NameSpace.table -> string * 'a NameSpace.table
          (*exception Symtab.DUP*)
 
 See further modules src/Pure/General/binding.ML and

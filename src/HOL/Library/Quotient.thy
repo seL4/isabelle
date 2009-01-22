@@ -21,7 +21,7 @@ text {*
  "\<sim> :: 'a => 'a => bool"}.
 *}
 
-class eqv = type +
+class eqv =
   fixes eqv :: "'a \<Rightarrow> 'a \<Rightarrow> bool"    (infixl "\<sim>" 50)
 
 class equiv = eqv +

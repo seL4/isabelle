@@ -596,9 +596,9 @@ text %mlref {*
   -> (string * ('a -> thm)) * theory"} \\
   \end{mldecls}
   \begin{mldecls}
-  @{index_ML Theory.add_axioms_i: "(string * term) list -> theory -> theory"} \\
+  @{index_ML Theory.add_axioms_i: "(binding * term) list -> theory -> theory"} \\
   @{index_ML Theory.add_deps: "string -> string * typ -> (string * typ) list -> theory -> theory"} \\
-  @{index_ML Theory.add_defs_i: "bool -> bool -> (bstring * term) list -> theory -> theory"} \\
+  @{index_ML Theory.add_defs_i: "bool -> bool -> (binding * term) list -> theory -> theory"} \\
   \end{mldecls}
 
   \begin{description}

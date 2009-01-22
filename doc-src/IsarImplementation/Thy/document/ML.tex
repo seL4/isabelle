@@ -368,7 +368,7 @@ Beyond the proposal of the SML/NJ basis library, Isabelle comes
   \smallskip\begin{mldecls}
   \verb|Sign.declare_const: Properties.T -> (binding * typ) * mixfix|\isasep\isanewline%
 \verb|  -> theory -> term * theory| \\
-  \verb|Thm.add_def: bool -> bool -> bstring * term -> theory -> thm * theory|
+  \verb|Thm.add_def: bool -> bool -> binding * term -> theory -> thm * theory|
   \end{mldecls}
 
   \noindent Written with naive application, an addition of constant
@@ -377,7 +377,7 @@ Beyond the proposal of the SML/NJ basis library, Isabelle comes
 
   \smallskip\begin{mldecls}
   \verb|(fn (t, thy) => Thm.add_def false false|\isasep\isanewline%
-\verb|  ("bar_def", Logic.mk_equals (t, @{term "%x. x"})) thy)|\isasep\isanewline%
+\verb|  (Binding.name "bar_def", Logic.mk_equals (t, @{term "%x. x"})) thy)|\isasep\isanewline%
 \verb|    (Sign.declare_const []|\isasep\isanewline%
 \verb|      ((Binding.name "bar", @{typ "foo => foo"}), NoSyn) thy)|
   \end{mldecls}
@@ -397,7 +397,7 @@ Beyond the proposal of the SML/NJ basis library, Isabelle comes
 \verb||\verb,|,\verb|> Sign.declare_const [] ((Binding.name "bar", @{typ "foo => foo"}), NoSyn)|\isasep\isanewline%
 \verb||\verb,|,\verb|> (fn (t, thy) => thy|\isasep\isanewline%
 \verb||\verb,|,\verb|> Thm.add_def false false|\isasep\isanewline%
-\verb|     ("bar_def", Logic.mk_equals (t, @{term "%x. x"})))|
+\verb|     (Binding.name "bar_def", Logic.mk_equals (t, @{term "%x. x"})))|
   \end{mldecls}%
 \end{isamarkuptext}%
 \isamarkuptrue%
@@ -435,7 +435,7 @@ Beyond the proposal of the SML/NJ basis library, Isabelle comes
 \verb|thy|\isasep\isanewline%
 \verb||\verb,|,\verb|> Sign.declare_const [] ((Binding.name "bar", @{typ "foo => foo"}), NoSyn)|\isasep\isanewline%
 \verb||\verb,|,\verb|-> (fn t => Thm.add_def false false|\isasep\isanewline%
-\verb|      ("bar_def", Logic.mk_equals (t, @{term "%x. x"})))|\isasep\isanewline%
+\verb|      (Binding.name "bar_def", Logic.mk_equals (t, @{term "%x. x"})))|\isasep\isanewline%
 
   \end{mldecls}
 
@@ -445,7 +445,7 @@ Beyond the proposal of the SML/NJ basis library, Isabelle comes
 \verb|thy|\isasep\isanewline%
 \verb||\verb,|,\verb|> Sign.declare_const [] ((Binding.name "bar", @{typ "foo => foo"}), NoSyn)|\isasep\isanewline%
 \verb||\verb,|,\verb|>> (fn t => Logic.mk_equals (t, @{term "%x. x"}))|\isasep\isanewline%
-\verb||\verb,|,\verb|-> (fn def => Thm.add_def false false ("bar_def", def))|\isasep\isanewline%
+\verb||\verb,|,\verb|-> (fn def => Thm.add_def false false (Binding.name "bar_def", def))|\isasep\isanewline%
 
   \end{mldecls}
 
@@ -457,7 +457,7 @@ Beyond the proposal of the SML/NJ basis library, Isabelle comes
 \verb||\verb,|,\verb|> Sign.declare_const [] ((Binding.name "bar", @{typ "foo => foo"}), NoSyn)|\isasep\isanewline%
 \verb||\verb,|,\verb||\verb,|,\verb|> Sign.add_path "foobar"|\isasep\isanewline%
 \verb||\verb,|,\verb|-> (fn t => Thm.add_def false false|\isasep\isanewline%
-\verb|      ("bar_def", Logic.mk_equals (t, @{term "%x. x"})))|\isasep\isanewline%
+\verb|      (Binding.name "bar_def", Logic.mk_equals (t, @{term "%x. x"})))|\isasep\isanewline%
 \verb||\verb,|,\verb||\verb,|,\verb|> Sign.restore_naming thy|\isasep\isanewline%
 
   \end{mldecls}
@@ -469,7 +469,7 @@ Beyond the proposal of the SML/NJ basis library, Isabelle comes
 \verb||\verb,|,\verb|> Sign.declare_const [] ((Binding.name "bar", @{typ "foo => foo"}), NoSyn)|\isasep\isanewline%
 \verb||\verb,|,\verb||\verb,|,\verb|>> Sign.declare_const [] ((Binding.name "foobar", @{typ "foo => foo"}), NoSyn)|\isasep\isanewline%
 \verb||\verb,|,\verb|-> (fn (t1, t2) => Thm.add_def false false|\isasep\isanewline%
-\verb|      ("bar_def", Logic.mk_equals (t1, t2)))|\isasep\isanewline%
+\verb|      (Binding.name "bar_def", Logic.mk_equals (t1, t2)))|\isasep\isanewline%
 
   \end{mldecls}%
 \end{isamarkuptext}%
@@ -531,7 +531,7 @@ Beyond the proposal of the SML/NJ basis library, Isabelle comes
 \verb|       ((Binding.name const, @{typ "foo => foo"}), NoSyn)) consts|\isasep\isanewline%
 \verb|  |\verb,|,\verb|>> map (fn t => Logic.mk_equals (t, @{term "%x. x"}))|\isasep\isanewline%
 \verb|  |\verb,|,\verb|-> (fn defs => fold_map (fn def =>|\isasep\isanewline%
-\verb|       Thm.add_def false false ("", def)) defs)|\isasep\isanewline%
+\verb|       Thm.add_def false false (Binding.empty, def)) defs)|\isasep\isanewline%
 \verb|end|
   \end{mldecls}%
 \end{isamarkuptext}%

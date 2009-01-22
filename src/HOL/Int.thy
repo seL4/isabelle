@@ -599,7 +599,7 @@ definition
   Bit1 :: "int \<Rightarrow> int" where
   [code del]: "Bit1 k = 1 + k + k"
 
-class number = type + -- {* for numeric types: nat, int, real, \dots *}
+class number = -- {* for numeric types: nat, int, real, \dots *}
   fixes number_of :: "int \<Rightarrow> 'a"
 
 use "Tools/numeral.ML"

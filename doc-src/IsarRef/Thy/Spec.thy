@@ -436,7 +436,6 @@ text {*
   \begin{matharray}{rcl}
     @{command_def "interpretation"} & : & @{text "theory \<rightarrow> proof(prove)"} \\
     @{command_def "interpret"} & : & @{text "proof(state) | proof(chain \<rightarrow> proof(prove)"} \\
-    @{command_def "print_interps"}@{text "\<^sup>*"} & : &  @{text "context \<rightarrow>"} \\
   \end{matharray}
 
   \indexouternonterm{interp}
@@ -444,8 +443,6 @@ text {*
     'interpretation' (interp | name ('<' | subseteq) contextexpr)
     ;
     'interpret' interp
-    ;
-    'print\_interps' '!'? name
     ;
     instantiation: ('[' (inst+) ']')?
     ;
@@ -531,13 +528,6 @@ text {*
   interprets @{text expr} in the proof context and is otherwise
   similar to interpretation in theories.
 
-  \item @{command "print_interps"}~@{text loc} prints the
-  interpretations of a particular locale @{text loc} that are active
-  in the current context, either theory or proof context.  The
-  exclamation point argument triggers printing of \emph{witness}
-  theorems justifying interpretations.  These are normally omitted
-  from the output.
-  
   \end{description}
 
   \begin{warn}
