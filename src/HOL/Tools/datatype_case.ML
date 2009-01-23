@@ -419,21 +419,21 @@ val dest_case' = gen_dest_case
 
 (* destruct nested patterns *)
 
-fun strip_case' dest (pat, rhs) =
+fun strip_case'' dest (pat, rhs) =
   case dest (Term.add_free_names pat []) rhs of
     SOME (exp as Free _, clauses) =>
       if member op aconv (OldTerm.term_frees pat) exp andalso
         not (exists (fn (_, rhs') =>
           member op aconv (OldTerm.term_frees rhs') exp) clauses)
       then
-        maps (strip_case' dest) (map (fn (pat', rhs') =>
+        maps (strip_case'' dest) (map (fn (pat', rhs') =>
           (subst_free [(exp, pat')] pat, rhs')) clauses)
       else [(pat, rhs)]
   | _ => [(pat, rhs)];
 
 fun gen_strip_case dest t = case dest [] t of
     SOME (x, clauses) =>
-      SOME (x, maps (strip_case' dest) clauses)
+      SOME (x, maps (strip_case'' dest) clauses)
   | NONE => NONE;
 
 val strip_case = gen_strip_case oo dest_case;

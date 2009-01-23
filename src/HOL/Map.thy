@@ -503,6 +503,15 @@ by(auto simp: dom_def override_on_def)
 lemma map_add_comm: "dom m1 \<inter> dom m2 = {} \<Longrightarrow> m1++m2 = m2++m1"
 by (rule ext) (force simp: map_add_def dom_def split: option.split)
 
+lemma dom_const [simp]:
+  "dom (\<lambda>x. Some y) = UNIV"
+  by auto
+
+lemma dom_if:
+  "dom (\<lambda>x. if P x then f x else g x) = dom f \<inter> {x. P x} \<union> dom g \<inter> {x. \<not> P x}"
+  by (auto split: if_splits)
+
+
 (* Due to John Matthews - could be rephrased with dom *)
 lemma finite_map_freshness:
   "finite (dom (f :: 'a \<rightharpoonup> 'b)) \<Longrightarrow> \<not> finite (UNIV :: 'a set) \<Longrightarrow>
