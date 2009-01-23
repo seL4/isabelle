@@ -66,7 +66,7 @@ fun calculate thy class sups base_sort param_map assm_axiom =
         val prop = thm |> Thm.prop_of |> Logic.unvarify
           |> Morphism.term (inst_morph $> eq_morph) 
           |> (map_types o map_atyps) (K aT);
-        fun tac ctxt = LocalDefs.unfold_tac ctxt (map Thm.symmetric defs) (*FIXME*)
+        fun tac ctxt = LocalDefs.unfold_tac ctxt (map Thm.symmetric defs) (*FIXME is WRONG!*)
           THEN ALLGOALS (ProofContext.fact_tac [thm]);
       in Goal.prove_global thy [] [] prop (tac o #context) end;
     val assm_intro = Option.map prove_assm_intro
