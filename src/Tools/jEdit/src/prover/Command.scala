@@ -100,7 +100,7 @@ class Command(text: Text, val first: Token, val last: Token)
     new MarkupNode(this, 0, stop - start, id, Markup.COMMAND_SPAN, content)
 
   def node_from(kind: String, begin: Int, end: Int) = {
-    val markup_content = /*content.substring(begin, end)*/ ""
+    val markup_content = content.substring(begin, end)
     new MarkupNode(this, begin, end, id, kind, markup_content)
   }
 }
