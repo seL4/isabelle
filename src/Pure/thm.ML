@@ -1658,7 +1658,7 @@ fun put_name name (thm as Thm (der, args)) =
     val {thy_ref, hyps, prop, tpairs, ...} = args;
     val _ = null tpairs orelse raise THM ("put_name: unsolved flex-flex constraints", 0, [thm]);
 
-    val ps = Lazy.lazy (fn () => map (apsnd (proof_of o Future.join)) promises);
+    val ps = map (apsnd (Future.map proof_of)) promises;
     val thy = Theory.deref thy_ref;
     val (pthm, proof) = Pt.thm_proof thy name hyps prop ps body;
 

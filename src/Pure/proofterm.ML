@@ -110,7 +110,7 @@ sig
   val promise_proof: theory -> serial -> term -> proof
   val fulfill_proof: theory -> (serial * proof) list -> proof_body -> proof_body
   val thm_proof: theory -> string -> term list -> term ->
-    (serial * proof) list lazy -> proof_body -> pthm * proof
+    (serial * proof future) list -> proof_body -> pthm * proof
   val get_name: term list -> term -> proof -> string
 
   (** rewriting on proof terms **)
@@ -1245,8 +1245,9 @@ fun thm_proof thy name hyps prop promises body =
       else MinProof;
 
     fun new_prf () = (serial (), name, prop,
-      Future.fork_pri ~2 (fn () => fulfill_proof thy (Lazy.force promises)
-        (PBody {oracles = oracles0, thms = thms0, proof = proof0})));
+      Future.fork_deps (map snd promises) (fn () =>
+        fulfill_proof thy (map (apsnd Future.join) promises)
+          (PBody {oracles = oracles0, thms = thms0, proof = proof0})));
 
     val (i, name, prop, body') =
       (case strip_combt (fst (strip_combP prf)) of
