@@ -1,8 +1,5 @@
-(* 
-  ID:     $Id$
-  Author: Brian Huffman
-
-  Boolean algebras as locales.
+(*  Title:      HOL/Library/Boolean_Algebra.thy
+    Author:     Brian Huffman
 *)
 
 header {* Boolean Algebras *}
