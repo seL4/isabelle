@@ -29,6 +29,7 @@ sig
     -> (string * mixfix) * term -> theory -> theory
   val class_prefix: string -> string
   val refresh_syntax: class -> Proof.context -> Proof.context
+  val redeclare_operations: theory -> sort -> Proof.context -> Proof.context
 
   (*instances*)
   val init_instantiation: string list * (string * sort) list * sort
@@ -298,6 +299,10 @@ fun register_subclass (sub, sup) some_dep_morph some_wit export thy =
 fun these_unchecks thy =
   map (fn (c, (_, (ty, t))) => (t, Const (c, ty))) o these_operations thy;
 
+fun redeclare_const thy c =
+  let val b = Sign.base_name c
+  in Sign.intern_const thy b = c ? Variable.declare_const (b, c) end;
+
 fun synchronize_class_syntax sort base_sort ctxt =
   let
     val thy = ProofContext.theory_of ctxt;
@@ -308,9 +313,6 @@ fun synchronize_class_syntax sort base_sort ctxt =
       (map o apsnd) (subst_class_typ base_sort o fst o snd) operations;
     val secondary_constraints =
       (map o apsnd) (fn (class, (ty, _)) => subst_class_typ [class] ty) operations;
-    fun declare_const (c, _) =
-      let val b = Sign.base_name c
-      in Sign.intern_const thy b = c ? Variable.declare_const (b, c) end;
     fun improve (c, ty) = (case AList.lookup (op =) primary_constraints c
      of SOME ty' => (case try (Type.raw_match (ty', ty)) Vartab.empty
          of SOME tyenv => (case Vartab.lookup tyenv (Name.aT, 0)
@@ -326,7 +328,7 @@ fun synchronize_class_syntax sort base_sort ctxt =
     val unchecks = these_unchecks thy sort;
   in
     ctxt
-    |> fold declare_const primary_constraints
+    |> fold (redeclare_const thy o fst) primary_constraints
     |> Overloading.map_improvable_syntax (K (((primary_constraints, secondary_constraints),
         (((improve, subst), true), unchecks)), false))
     |> Overloading.set_primary_constraints
@@ -337,6 +339,9 @@ fun refresh_syntax class ctxt =
     val thy = ProofContext.theory_of ctxt;
     val base_sort = base_sort thy class;
   in synchronize_class_syntax [class] base_sort ctxt end;
+
+fun redeclare_operations thy sort =
+  fold (redeclare_const thy o fst) (these_operations thy sort);
 
 fun begin sort base_sort ctxt =
   ctxt
@@ -489,7 +494,8 @@ fun init_instantiation (tycos, vs, sort) thy =
   let
     val _ = if null tycos then error "At least one arity must be given" else ();
     val params = these_params thy sort;
-    fun get_param tyco (param, (_, (c, ty))) = if can (AxClass.param_of_inst thy) (c, tyco)
+    fun get_param tyco (param, (_, (c, ty))) =
+      if can (AxClass.param_of_inst thy) (c, tyco)
       then NONE else SOME ((c, tyco),
         (param ^ "_" ^ type_name tyco, map_atyps (K (Type (tyco, map TFree vs))) ty));
     val inst_params = map_product get_param tycos params |> map_filter I;

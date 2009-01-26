@@ -91,19 +91,31 @@ fun calculate thy class sups base_sort param_map assm_axiom =
 
   in (base_morph, morph, export_morph, axiom, assm_intro, of_class) end;
 
+val reject_bcd_etc = (map o map_atyps) (fn T as TFree (v, sort) =>
+      if v = Name.aT then T
+      else error ("No type variable other than " ^ Name.aT ^ " allowed in class specification")
+  | T => T);
+
+fun singleton_fixate thy algebra Ts =
+  let
+    fun extract f = (fold o fold_atyps) f Ts [];
+    val tfrees = extract
+      (fn TFree (v, sort) => insert (op =) (v, sort) | _ => I);
+    val inferred_sort = extract
+      (fn TVar (_, sort) => curry (Sorts.inter_sort algebra) sort | _ => I);
+    val fixate_sort = if null tfrees then inferred_sort
+      else let val a_sort = (snd o the_single) tfrees
+      in if Sorts.sort_le algebra (a_sort, inferred_sort)
+        then Sorts.inter_sort algebra (a_sort, inferred_sort)
+        else error ("Type inference imposes additional sort constraint "
+          ^ Syntax.string_of_sort_global thy inferred_sort
+          ^ " of type parameter " ^ Name.aT ^ " of sort "
+          ^ Syntax.string_of_sort_global thy a_sort)
+      end
+  in (map o map_atyps) (K (TFree (Name.aT, fixate_sort))) Ts end;
+
 fun add_typ_check level name f = Context.proof_map (Syntax.add_typ_check level name (fn xs => fn ctxt =>
   let val xs' = f xs in if eq_list (op =) (xs, xs') then NONE else SOME (xs', ctxt) end));
-
-val singleton_infer_param = (map o map_atyps) (fn T as TVar (vi as (_, i), sort) =>
-      if TypeInfer.is_param vi then TypeInfer.param i (Name.aT, sort)
-      else error ("Illegal schematic type variable in class specification: " ^ Term.string_of_vname vi)
-        (*FIXME does not occur*)
-  | T as TFree (v, sort) =>
-      if v = Name.aT then T
-      else error ("No type variable other than " ^ Name.aT ^ " allowed in class specification"));
-
-val singleton_fixate = (map o map_atyps) (fn TVar (vi, sort)
-  => TFree (Name.aT, sort) | T => T);
 
 fun add_tfrees_of_element (Element.Fixes fxs) = fold (fn (_, SOME T, _) => Term.add_tfreesT T
       | _ => I) fxs
@@ -142,8 +154,9 @@ fun prep_class_spec prep_class prep_decl thy raw_supclasses raw_elems =
         (these_operations thy sups);
     val ((_, _, inferred_elems), _) = ProofContext.init thy
       |> fold (ProofContext.add_const_constraint o apsnd SOME) base_constraints
-      |> add_typ_check ~1 "singleton_infer_param" singleton_infer_param
-      |> add_typ_check ~2 "singleton_fixate" singleton_fixate
+      |> redeclare_operations thy sups
+      |> add_typ_check 10 "reject_bcd_etc" reject_bcd_etc
+      |> add_typ_check ~10 "singleton_fixate" (singleton_fixate thy (Sign.classes_of thy))
       |> prep_decl supexpr raw_elems;
     (*FIXME check for *all* side conditions here, extra check function for elements,
       less side-condition checks in check phase*)
