@@ -228,7 +228,7 @@ fun proof_of full thm =
     val prop = Thm.full_prop_of thm;
     val prf = Thm.proof_of thm;
     val prf' = (case strip_combt (fst (strip_combP prf)) of
-        (PThm (_, ((_, prop', _), body)), _) => if prop = prop' then force_proof body else prf
+        (PThm (_, ((_, prop', _), body)), _) => if prop = prop' then join_proof body else prf
       | _ => prf)
   in if full then Reconstruct.reconstruct_proof thy prop prf' else prf' end;
 

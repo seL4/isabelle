@@ -21,10 +21,10 @@ sig
    | PAxm of string * term * typ list option
    | Oracle of string * term * typ list option
    | Promise of serial * term * typ list
-   | PThm of serial * ((string * term * typ list option) * proof_body lazy)
+   | PThm of serial * ((string * term * typ list option) * proof_body future)
   and proof_body = PBody of
     {oracles: (string * term) OrdList.T,
-     thms: (serial * (string * term * proof_body lazy)) OrdList.T,
+     thms: (serial * (string * term * proof_body future)) OrdList.T,
      proof: proof}
 
   val %> : proof * term -> proof
@@ -35,10 +35,10 @@ sig
   include BASIC_PROOFTERM
 
   type oracle = string * term
-  type pthm = serial * (string * term * proof_body lazy)
-  val force_body: proof_body lazy ->
+  type pthm = serial * (string * term * proof_body future)
+  val join_body: proof_body future ->
     {oracles: oracle OrdList.T, thms: pthm OrdList.T, proof: proof}
-  val force_proof: proof_body lazy -> proof
+  val join_proof: proof_body future -> proof
   val proof_of: proof_body -> proof
   val fold_body_thms: (string * term * proof_body -> 'a -> 'a) -> proof_body list -> 'a -> 'a
   val fold_proof_atoms: bool -> (proof -> 'a -> 'a) -> proof list -> 'a -> 'a
@@ -142,17 +142,17 @@ datatype proof =
  | PAxm of string * term * typ list option
  | Oracle of string * term * typ list option
  | Promise of serial * term * typ list
- | PThm of serial * ((string * term * typ list option) * proof_body lazy)
+ | PThm of serial * ((string * term * typ list option) * proof_body future)
 and proof_body = PBody of
   {oracles: (string * term) OrdList.T,
-   thms: (serial * (string * term * proof_body lazy)) OrdList.T,
+   thms: (serial * (string * term * proof_body future)) OrdList.T,
    proof: proof};
 
 type oracle = string * term;
-type pthm = serial * (string * term * proof_body lazy);
+type pthm = serial * (string * term * proof_body future);
 
-val force_body = Lazy.force #> (fn PBody args => args);
-val force_proof = #proof o force_body;
+val join_body = Future.join #> (fn PBody args => args);
+val join_proof = #proof o join_body;
 
 fun proof_of (PBody {proof, ...}) = proof;
 
@@ -165,7 +165,7 @@ fun fold_body_thms f =
       if Inttab.defined seen i then (x, seen)
       else
         let
-          val body' = Lazy.force body;
+          val body' = Future.join body;
           val (x', seen') = app body' (x, Inttab.update (i, ()) seen);
         in (f (name, prop, body') x', seen') end);
   in fn bodies => fn x => #1 (fold app bodies (x, Inttab.empty)) end;
@@ -180,7 +180,7 @@ fun fold_proof_atoms all f =
           if Inttab.defined seen i then (x, seen)
           else
             let val (x', seen') =
-              (if all then app (force_proof body) else I) (x, Inttab.update (i, ()) seen)
+              (if all then app (join_proof body) else I) (x, Inttab.update (i, ()) seen)
             in (f prf x', seen') end)
       | app prf = (fn (x, seen) => (f prf x, seen));
   in fn prfs => fn x => #1 (fold app prfs (x, Inttab.empty)) end;
@@ -233,7 +233,7 @@ fun strip_combP prf =
 
 fun strip_thm (body as PBody {proof, ...}) =
   (case strip_combt (fst (strip_combP proof)) of
-    (PThm (_, (_, body')), _) => Lazy.force body'
+    (PThm (_, (_, body')), _) => Future.join body'
   | _ => body);
 
 val mk_Abst = fold_rev (fn (s, T:typ) => fn prf => Abst (s, NONE, prf));
@@ -1245,7 +1245,7 @@ fun thm_proof thy name hyps prop promises body =
       else MinProof;
 
     fun new_prf () = (serial (), name, prop,
-      Lazy.lazy (fn () => fulfill_proof thy (Lazy.force promises)
+      Future.fork_pri ~2 (fn () => fulfill_proof thy (Lazy.force promises)
         (PBody {oracles = oracles0, thms = thms0, proof = proof0})));
 
     val (i, name, prop, body') =
