@@ -1,5 +1,4 @@
 (* Author: Gerwin Klein, Jeremy Dawson
-   $Id$
 
    Miscellaneous additional library definitions and lemmas for 
    the word type. Instantiation to boolean algebras, definition
@@ -451,5 +450,14 @@ done
 lemma unatSuc: 
   "1 + n \<noteq> (0::'a::len word) \<Longrightarrow> unat (1 + n) = Suc (unat n)"
   by unat_arith
+
+
+lemmas word_no_1 [simp] = word_1_no [symmetric, unfolded BIT_simps]
+lemmas word_no_0 [simp] = word_0_no [symmetric]
+
+declare word_0_bl [simp]
+declare bin_to_bl_def [simp]
+declare to_bl_0 [simp]
+declare of_bl_True [simp]
 
 end
