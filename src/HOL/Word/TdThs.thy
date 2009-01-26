@@ -1,5 +1,4 @@
 (* 
-    ID:         $Id$
     Author:     Jeremy Dawson and Gerwin Klein, NICTA
 
   consequences of type definition theorems, 

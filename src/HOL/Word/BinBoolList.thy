@@ -1,5 +1,4 @@
 (* 
-  ID:     $Id$
   Author: Jeremy Dawson, NICTA
 
   contains theorems to do with integers, expressed using Pls, Min, BIT,

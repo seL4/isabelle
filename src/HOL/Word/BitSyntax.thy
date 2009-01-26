@@ -1,5 +1,4 @@
 (* 
-  ID:     $Id$
   Author: Brian Huffman, PSU and Gerwin Klein, NICTA
 
   Syntactic class for bitwise operations.

@@ -1,5 +1,4 @@
 (* 
-    ID:         $Id$
     Author:     Jeremy Dawson and Gerwin Klein, NICTA
 
   contains arithmetic theorems for word, instantiations to
