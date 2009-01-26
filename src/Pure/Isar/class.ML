@@ -33,11 +33,15 @@ fun calculate thy class sups base_sort param_map assm_axiom =
     val empty_ctxt = ProofContext.init thy;
 
     (* instantiation of canonical interpretation *)
-    (*FIXME inst_morph should be calculated manually and not instantiate constraint*)
     val aT = TFree (Name.aT, base_sort);
+    val param_map_const = (map o apsnd) Const param_map;
+    val param_map_inst = (map o apsnd)
+      (Const o apsnd (map_atyps (K aT))) param_map;
+    val const_morph = Element.inst_morphism thy
+      (Symtab.empty, Symtab.make param_map_inst);
     val (([props], [(_, inst_morph)], export_morph), _) = empty_ctxt
       |> Expression.cert_goal_expression ([(class, (("", false),
-           Expression.Named ((map o apsnd) Const param_map)))], []);
+           Expression.Named param_map_const))], []);
 
     (* witness for canonical interpretation *)
     val prop = try the_single props;
@@ -63,20 +67,18 @@ fun calculate thy class sups base_sort param_map assm_axiom =
     (* assm_intro *)
     fun prove_assm_intro thm = 
       let
-        val prop = thm |> Thm.prop_of |> Logic.unvarify
-          |> Morphism.term (inst_morph $> eq_morph) 
-          |> (map_types o map_atyps) (K aT);
-        fun tac ctxt = LocalDefs.unfold_tac ctxt (map Thm.symmetric defs) (*FIXME is WRONG!*)
-          THEN ALLGOALS (ProofContext.fact_tac [thm]);
-      in Goal.prove_global thy [] [] prop (tac o #context) end;
+        val ((_, [thm']), _) = Variable.import_thms true [thm] empty_ctxt;
+        val thm'' = Morphism.thm (const_morph $> eq_morph) thm';
+        val tac = ALLGOALS (ProofContext.fact_tac [thm'']);
+      in Goal.prove_global thy [] [] (Thm.prop_of thm'') (K tac) end;
     val assm_intro = Option.map prove_assm_intro
       (fst (Locale.intros_of thy class));
 
     (* of_class *)
     val of_class_prop_concl = Logic.mk_inclass (aT, class);
     val of_class_prop = case prop of NONE => of_class_prop_concl
-      | SOME prop => Logic.mk_implies (Morphism.term inst_morph prop,
-          of_class_prop_concl) |> (map_types o map_atyps) (K aT)
+      | SOME prop => Logic.mk_implies (Morphism.term const_morph
+          ((map_types o map_atyps) (K aT) prop), of_class_prop_concl);
     val sup_of_classes = map (snd o rules thy) sups;
     val loc_axiom_intros = map Drule.standard' (Locale.axioms_of thy class);
     val axclass_intro = #intro (AxClass.get_info thy class);
