@@ -14,7 +14,7 @@ text {* The class cpo of chain complete partial orders *}
 
 class cpo = po +
         -- {* class axiom: *}
-  assumes cpo:   "chain S \<Longrightarrow> \<exists>x. range S <<| x"
+  assumes cpo:   "chain S \<Longrightarrow> \<exists>x :: 'a::po. range S <<| x"
 
 text {* in cpo's everthing equal to THE lub has lub properties for every chain *}
 
@@ -257,10 +257,10 @@ text {* further useful classes for HOLCF domains *}
 class finite_po = finite + po
 
 class chfin = po +
-  assumes chfin: "chain Y \<Longrightarrow> \<exists>n. max_in_chain n Y"
+  assumes chfin: "chain Y \<Longrightarrow> \<exists>n. max_in_chain n (Y :: nat => 'a::po)"
 
 class flat = pcpo +
-  assumes ax_flat: "x \<sqsubseteq> y \<Longrightarrow> (x = \<bottom>) \<or> (x = y)"
+  assumes ax_flat: "(x :: 'a::pcpo) \<sqsubseteq> y \<Longrightarrow> x = \<bottom> \<or> x = y"
 
 text {* finite partial orders are chain-finite *}
 
