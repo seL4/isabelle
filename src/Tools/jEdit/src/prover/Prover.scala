@@ -34,6 +34,16 @@ class Prover(isabelle_system: IsabelleSystem, logic: String)
   def stop() { process.kill }
 
   
+  /* document state information */
+
+  private val states = new mutable.HashMap[IsarDocument.State_ID, Command]
+  private val commands = new mutable.HashMap[IsarDocument.Command_ID, Command]
+  private val document0 = Isabelle.plugin.id()
+  private val document_versions = new mutable.HashSet[IsarDocument.Document_ID] + document0
+
+  private var initialized = false
+
+  
   /* outer syntax keywords */
 
   val decl_info = new EventBus[(String, String)]
@@ -68,14 +78,6 @@ class Prover(isabelle_system: IsabelleSystem, logic: String)
 
   /* event handling */
 
-  private val states = new mutable.HashMap[IsarDocument.State_ID, Command]
-  private val commands = new mutable.HashMap[IsarDocument.Command_ID, Command]
-  private val document0 = Isabelle.plugin.id()
-  private val document_versions = new mutable.HashSet[IsarDocument.Document_ID] + document0
-
-
-  private var initialized = false
-
   val activated = new EventBus[Unit]
   val command_info = new EventBus[Command]
   val output_info = new EventBus[String]
@@ -84,15 +86,20 @@ class Prover(isabelle_system: IsabelleSystem, logic: String)
 
   def command_change(c: Command) = Swing.now { command_info.event(c) }
 
-  private def handle_result(r: IsabelleProcess.Result)
+  private def handle_result(result: IsabelleProcess.Result)
   {
-    val (id, st) = r.props.find(p => p._1 == Markup.ID) match
-      { case None => (null, null)
-        case Some((_, i)) => (i, commands.getOrElse(i, null)) }
+    val (running, command) =
+      result.props.find(p => p._1 == Markup.ID) match {
+        case None => (false, null)
+        case Some((_, id)) =>
+          if (commands.contains(id)) (false, commands(id))
+          else if (states.contains(id)) (true, states(id))
+          else (false, null)
+      }
 
-    if (r.kind == IsabelleProcess.Kind.STDOUT || r.kind == IsabelleProcess.Kind.STDIN)
-      Swing.now { output_info.event(r.result) }
-    else if (r.kind == IsabelleProcess.Kind.WRITELN && !initialized) {
+    if (result.kind == IsabelleProcess.Kind.STDOUT || result.kind == IsabelleProcess.Kind.STDIN)
+      Swing.now { output_info.event(result.result) }
+    else if (result.kind == IsabelleProcess.Kind.WRITELN && !initialized) {  // FIXME !?
       initialized = true
       Swing.now {
         if (document != null) {
@@ -102,76 +109,84 @@ class Prover(isabelle_system: IsabelleSystem, logic: String)
       }
     }
     else {
-      if (st == null || (st.status != Command.Status.REMOVED && st.status != Command.Status.REMOVE)) {
-        r.kind match {
+      result.kind match {
 
-          case IsabelleProcess.Kind.STATUS =>
-            //{{{ handle all kinds of status messages here
-            val tree = process.parse_message(r)
-            tree match {
-              case XML.Elem(Markup.MESSAGE, _, elems) =>
-                for (elem <- elems) {
-                  elem match {
-                    //{{{
-                    // command status
-                    case XML.Elem(Markup.FINISHED, _, _) =>
-                      st.status = Command.Status.FINISHED
-                      command_change(st)
-                    case XML.Elem(Markup.UNPROCESSED, _, _) =>
-                      st.status = Command.Status.UNPROCESSED
-                      command_change(st)
-                    case XML.Elem(Markup.FAILED, _, _) =>
-                      st.status = Command.Status.FAILED
-                      command_change(st)
-                    case XML.Elem(Markup.DISPOSED, _, _) =>
-                      commands.removeKey(st.id)
-                      st.status = Command.Status.REMOVED
-                      command_change(st)
+        case IsabelleProcess.Kind.WRITELN | IsabelleProcess.Kind.PRIORITY
+          | IsabelleProcess.Kind.WARNING | IsabelleProcess.Kind.ERROR
+        if command != null =>
+          if (result.kind == IsabelleProcess.Kind.ERROR)
+            command.status = Command.Status.FAILED
+          command.add_result(running, process.parse_message(result))
+          command_change(command)
 
-                    // command and keyword declarations
-                    case XML.Elem(Markup.COMMAND_DECL,
-                        (Markup.NAME, name) :: (Markup.KIND, kind) :: _, _) =>
-                      command_decls += (name -> kind)
-                    case XML.Elem(Markup.KEYWORD_DECL, (Markup.NAME, name) :: _, _) =>
-                      keyword_decls += name
+        case IsabelleProcess.Kind.STATUS =>
+          //{{{ handle all kinds of status messages here
+          process.parse_message(result) match {
+            case XML.Elem(Markup.MESSAGE, _, elems) =>
+              for (elem <- elems) {
+                elem match {
+                  //{{{
+                  // command and keyword declarations
+                  case XML.Elem(Markup.COMMAND_DECL,
+                      (Markup.NAME, name) :: (Markup.KIND, kind) :: _, _) =>
+                    command_decls += (name -> kind)
+                  case XML.Elem(Markup.KEYWORD_DECL, (Markup.NAME, name) :: _, _) =>
+                    keyword_decls += name
 
-                    // other markup
-                    case XML.Elem(kind,
-                        (Markup.OFFSET, offset) :: (Markup.END_OFFSET, end_offset) ::
-                             (Markup.ID, markup_id) :: _, _) =>
-                      val begin = Int.unbox(java.lang.Integer.valueOf(offset)) - 1
-                      val end = Int.unbox(java.lang.Integer.valueOf(end_offset)) - 1
+                  // document edits
+                  case XML.Elem(Markup.EDITS, (Markup.ID, doc_id) :: _, edits)
+                  if document_versions.contains(doc_id) =>
+                    for {
+                      XML.Elem(Markup.EDIT, (Markup.ID, cmd_id) :: (Markup.STATE, state_id) :: _, _)
+                        <- edits
+                      if (commands.contains(cmd_id))
+                    } {
+                      val cmd = commands(cmd_id)
+                      if (cmd.state_id != null) states -= cmd.state_id
+                      states(cmd_id) = cmd
+                      cmd.state_id = state_id
+                      cmd.status = Command.Status.UNPROCESSED
+                      command_change(cmd)
+                    }
 
-                      val command =
-                        // outer syntax: no id in props
-                        if (st == null) commands.getOrElse(markup_id, null)
-                        // inner syntax: id from props
-                        else st
-                      command.root_node.insert(command.node_from(kind, begin, end))
+                  // command status
+                  case XML.Elem(Markup.UNPROCESSED, _, _)
+                  if command != null =>
+                    command.status = Command.Status.UNPROCESSED
+                    command_change(command)
+                  case XML.Elem(Markup.FINISHED, _, _)
+                  if command != null =>
+                    command.status = Command.Status.FINISHED
+                    command_change(command)
+                  case XML.Elem(Markup.FAILED, _, _)
+                  if command != null =>
+                    command.status = Command.Status.FAILED
+                    command_change(command)
 
-                    case _ =>
-                    //}}}
-                  }
+                  // other markup
+                  case XML.Elem(kind,
+                      (Markup.OFFSET, offset) :: (Markup.END_OFFSET, end_offset) ::
+                           (Markup.ID, markup_id) :: _, _) =>
+                    val begin = offset.toInt - 1
+                    val end = end_offset.toInt - 1
+
+                    val cmd =  // FIXME proper command version!? running!?
+                      // outer syntax: no id in props
+                      if (command == null) commands.getOrElse(markup_id, null)
+                      // inner syntax: id from props
+                      else command
+                    if (cmd != null)
+                      cmd.root_node.insert(cmd.node_from(kind, begin, end))
+
+                  case _ =>
+                  //}}}
                 }
-              case _ =>
-            }
-            //}}}
+              }
+            case _ =>
+          }
+          //}}}
 
-          case IsabelleProcess.Kind.ERROR if st != null =>
-            val tree = process.parse_message(r)
-            if (st.status != Command.Status.REMOVED && st.status != Command.Status.REMOVE)
-              st.status = Command.Status.FAILED
-            st.add_result(tree)
-            command_change(st)
-
-          case IsabelleProcess.Kind.WRITELN | IsabelleProcess.Kind.PRIORITY
-            | IsabelleProcess.Kind.WARNING if st != null =>
-            val tree = process.parse_message(r)
-            st.add_result(tree)
-            command_change(st)
-
-          case _ =>
-        }
+        case _ =>
       }
     }
   }
@@ -200,7 +215,8 @@ class Prover(isabelle_system: IsabelleSystem, logic: String)
   }
 
   def remove(cmd: Command) {
-    cmd.status = Command.Status.REMOVE
+    commands -= cmd.id
+    if (cmd.state_id != null) states -= cmd.state_id
     process.remove_command(cmd.id)
   }
 }
