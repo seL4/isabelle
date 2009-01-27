@@ -10,6 +10,10 @@ theory WordExamples
 imports Word
 begin
 
+types word32 = "32 word"
+types word8 = "8 word"
+types byte = word8
+
 -- "modulus"
 
 lemma "(27 :: 4 word) = -5" by simp
