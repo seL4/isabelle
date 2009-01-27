@@ -46,9 +46,9 @@ class Prover(isabelle_system: IsabelleSystem)
   def completions = _completions
   /* // TODO: ask Makarius to make Interpretation.symbols public (here: read-only as 'symbol_map')
   val map = isabelle.jedit.Isabelle.symbols.symbol_map
-  for(xsymb <- map.keys) {
+  for (xsymb <- map.keys) {
     _completions += xsymb
-    if(map(xsymb).get("abbrev").isDefined) _completions += map(xsymb)("abbrev")
+    if (map(xsymb).get("abbrev").isDefined) _completions += map(xsymb)("abbrev")
   }
   */
   decl_info += (k_v => _completions += k_v._1)

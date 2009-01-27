@@ -32,7 +32,7 @@ class SelectionActions extends SelectionHighlighter with KeyListener{
   }
   
   override def keyPressed(e: KeyEvent) {
-    if(e.getKeyCode == KeyEvent.VK_ENTER) {
+    if (e.getKeyCode == KeyEvent.VK_ENTER) {
       copyaction
       e.consume
     }
