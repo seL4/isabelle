@@ -22,7 +22,7 @@ import javax.swing.{JTextArea, JScrollPane}
 
 class ProverSetup(buffer: JEditBuffer)
 {
-  val prover = new Prover(Isabelle.system)
+  var prover: Prover = null
   var theory_view: TheoryView = null
 
   val state_update = new EventBus[Command]
@@ -34,7 +34,7 @@ class ProverSetup(buffer: JEditBuffer)
   val output_text_view = new JTextArea
 
   def activate(view: View) {
-    prover.start(Isabelle.default_logic)
+    prover = new Prover(Isabelle.system, Isabelle.default_logic)
     
     val buffer = view.getBuffer
     val dir = buffer.getDirectory

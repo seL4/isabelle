@@ -19,8 +19,21 @@ import isabelle.proofdocument.{ProofDocument, Text, Token}
 import isabelle.IsarDocument
 
 
-class Prover(isabelle_system: IsabelleSystem)
+class Prover(isabelle_system: IsabelleSystem, logic: String)
 {
+  /* prover process */
+
+  private var process: Isar = null
+
+  {
+    val results = new EventBus[IsabelleProcess.Result] + handle_result
+    results.logger = Log.log(Log.ERROR, null, _)
+    process = new Isar(isabelle_system, results, "-m", "xsymbols", logic)
+  }
+
+  def stop() { process.kill }
+
+  
   /* outer syntax keywords */
 
   val decl_info = new EventBus[(String, String)]
@@ -55,8 +68,6 @@ class Prover(isabelle_system: IsabelleSystem)
 
 
   /* event handling */
-
-  private var process: Isar = null
 
   private val states = new mutable.HashMap[IsarDocument.State_ID, Command]
   private val commands = new mutable.HashMap[IsarDocument.Command_ID, Command]
@@ -164,17 +175,6 @@ class Prover(isabelle_system: IsabelleSystem)
         }
       }
     }
-  }
-
-
-  def start(logic: String) {
-    val results = new EventBus[IsabelleProcess.Result] + handle_result
-    results.logger = Log.log(Log.ERROR, null, _)
-    process = new Isar(isabelle_system, results, "-m", "xsymbols", logic)
-  }
-
-  def stop() {
-    process.kill
   }
 
   def set_document(text: Text, path: String) {
