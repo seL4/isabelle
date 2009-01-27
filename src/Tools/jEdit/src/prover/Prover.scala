@@ -20,11 +20,6 @@ import isabelle.IsarDocument
 
 class Prover(isabelle_system: IsabelleSystem)
 {
-  private var process: Isar = null
-
-  private val commands = new mutable.HashMap[IsarDocument.Command_ID, Command]
-
-
   /* outer syntax keywords */
 
   val decl_info = new EventBus[(String, String)]
@@ -59,6 +54,11 @@ class Prover(isabelle_system: IsabelleSystem)
 
 
   /* event handling */
+
+  private var process: Isar = null
+
+  private val commands = new mutable.HashMap[IsarDocument.Command_ID, Command]
+
 
   private var initialized = false
 
@@ -164,8 +164,7 @@ class Prover(isabelle_system: IsabelleSystem)
 
 
   def start(logic: String) {
-    val results = new EventBus[IsabelleProcess.Result]
-    results += handle_result
+    val results = new EventBus[IsabelleProcess.Result] + handle_result
     results.logger = Log.log(Log.ERROR, null, _)
     process = new Isar(isabelle_system, results, "-m", "xsymbols", logic)
   }
