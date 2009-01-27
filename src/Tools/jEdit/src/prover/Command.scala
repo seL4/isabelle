@@ -34,7 +34,10 @@ object Command {
 class Command(text: Text, val first: Token, val last: Token)
 {
   val id = Isabelle.plugin.id()
-  
+
+
+  /* content */
+
   {
     var t = first
     while (t != null) {
@@ -42,37 +45,6 @@ class Command(text: Text, val first: Token, val last: Token)
       t = if (t == last) null else t.next
     }
   }
-
-
-  /* command status */
-
-  private var _status = Command.Status.UNPROCESSED
-  def status = _status
-  def status_=(st: Command.Status.Value) = {
-    if (st == Command.Status.UNPROCESSED) {
-      // delete markup
-      for (child <- root_node.children) {
-        child.children = Nil
-      }
-    }
-    _status = st
-  }
-
-
-  /* accumulated results */
-
-  private val results = new mutable.ListBuffer[XML.Tree]
-  def add_result(tree: XML.Tree) { results += tree }
-
-  def result_document = XML.document(
-    results.toList match {
-      case Nil => XML.Elem("message", Nil, Nil)
-      case List(elem) => elem
-      case elems => XML.Elem("messages", Nil, List(elems.first, elems.last))  // FIXME all elems!?
-    }, "style")
-
-
-  /* content */
 
   override def toString = name
 
@@ -94,7 +66,38 @@ class Command(text: Text, val first: Token, val last: Token)
   }
 
 
-  /* markup tree */
+  /* command status */
+
+  private var _status = Command.Status.UNPROCESSED
+  def status = _status
+  def status_=(st: Command.Status.Value) {
+    if (st == Command.Status.UNPROCESSED) {
+      // delete markup
+      for (child <- root_node.children) {
+        child.children = Nil
+      }
+    }
+    _status = st
+  }
+
+
+  /* results */
+
+  private val results = new mutable.ListBuffer[XML.Tree]
+  def add_result(tree: XML.Tree) { results += tree }
+
+  private val state_results = new mutable.ListBuffer[XML.Tree]
+  def add_state_result(tree: XML.Tree) { state_results += tree }
+
+  def result_document = XML.document(
+    results.toList ::: state_results.toList match {
+      case Nil => XML.Elem("message", Nil, Nil)
+      case List(elem) => elem
+      case elems => XML.Elem("messages", Nil, elems)
+    }, "style")
+
+
+  /* markup */
 
   val root_node =
     new MarkupNode(this, 0, stop - start, id, Markup.COMMAND_SPAN, content)
