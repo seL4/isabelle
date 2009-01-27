@@ -8,3 +8,6 @@ use "ML-Systems/polyml_common.ML";
 use "ML-Systems/polyml_old_compiler5.ML";
 
 val pointer_eq = PolyML.pointerEq;
+
+fun share_common_data () = PolyML.shareCommonData PolyML.rootFunction;
+
