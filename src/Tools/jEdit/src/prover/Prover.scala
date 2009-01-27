@@ -1,5 +1,5 @@
 /*
- * Higher-level prover communication
+ * Higher-level prover communication: interactive document model
  *
  * @author Johannes Hölzl, TU Munich
  * @author Fabian Immler, TU Munich
@@ -14,6 +14,7 @@ import scala.collection.immutable.{TreeSet}
 
 import org.gjt.sp.util.Log
 
+import isabelle.jedit.Isabelle
 import isabelle.proofdocument.{ProofDocument, Text, Token}
 import isabelle.IsarDocument
 
@@ -57,7 +58,10 @@ class Prover(isabelle_system: IsabelleSystem)
 
   private var process: Isar = null
 
+  private val states = new mutable.HashMap[IsarDocument.State_ID, Command]
   private val commands = new mutable.HashMap[IsarDocument.Command_ID, Command]
+  private val document0 = Isabelle.plugin.id()
+  private val document_versions = new mutable.HashSet[IsarDocument.Document_ID] + document0
 
 
   private var initialized = false
