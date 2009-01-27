@@ -39,6 +39,12 @@ object Isabelle {
   var system: IsabelleSystem = null
   def symbols = system.symbols
 
+  // settings
+  def default_logic = {
+    val logic = Isabelle.Property("logic")
+    if (logic != null) logic else Isabelle.system.getenv_strict("ISABELLE_LOGIC")
+  }
+
   // plugin instance
   var plugin: Plugin = null
 
