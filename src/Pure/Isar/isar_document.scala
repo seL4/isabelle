@@ -6,14 +6,17 @@ Interactive Isar documents.
 
 package isabelle
 
-
-trait IsarDocument extends IsabelleProcess
-{
+object IsarDocument {
   /* unique identifiers */
 
   type State_ID = String
   type Command_ID = String
   type Document_ID = String
+}
+
+trait IsarDocument extends IsabelleProcess
+{
+  import IsarDocument._
 
 
   /* commands */
