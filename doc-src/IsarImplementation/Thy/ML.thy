@@ -291,7 +291,7 @@ text {*
   in particular files \emph{Pure/library.ML} and \emph{Pure/General/*.ML}.
 *}
 
-section {* Linear transformations *}
+section {* Linear transformations \label{sec:ML-linear-trans} *}
 
 text %mlref {*
   \begin{mldecls}
