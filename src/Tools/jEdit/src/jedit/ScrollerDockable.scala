@@ -11,7 +11,7 @@ import isabelle.IsabelleProcess.Result
 import isabelle.renderer.UserAgent
 
 
-import scala.collection.mutable.{ArrayBuffer, HashMap}
+import scala.collection.mutable
 
 import java.awt.{BorderLayout, Adjustable, Dimension}
 import java.awt.event.{ActionListener, ActionEvent, AdjustmentListener, AdjustmentEvent, ComponentListener, ComponentEvent}
@@ -179,7 +179,7 @@ class ScrollerDockable(view : View, position : String) extends JPanel with Adjus
 //Concrete Implementations
 
 //containing the unrendered messages
-class MessageBuffer extends HashMap[Int,Result] with Unrendered[Result]{
+class MessageBuffer extends mutable.HashMap[Int,Result] with Unrendered[Result]{
   override def addUnrendered (id: Int, m: Result) {
     update(id, m)
   }
@@ -192,7 +192,7 @@ class MessageBuffer extends HashMap[Int,Result] with Unrendered[Result]{
 
 //containing the rendered messages
 class PanelCache (buffer: Unrendered[Result], val renderer: Renderer[Result, XHTMLPanel])
-  extends HashMap[Int, XHTMLPanel] with Rendered[Result, XHTMLPanel]{
+  extends mutable.HashMap[Int, XHTMLPanel] with Rendered[Result, XHTMLPanel]{
 
   override def getRendered (id: Int): Option[XHTMLPanel] = {
     //get message from buffer and render it if necessary

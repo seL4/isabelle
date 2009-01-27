@@ -11,7 +11,7 @@ package isabelle.prover
 import javax.swing.text.Position
 import javax.swing.tree.DefaultMutableTreeNode
 
-import scala.collection.mutable.ListBuffer
+import scala.collection.mutable
 
 import isabelle.proofdocument.{Text, Token, ProofDocument}
 import isabelle.jedit.{Isabelle, Plugin}
@@ -61,7 +61,7 @@ class Command(text: Text, val first: Token, val last: Token)
 
   /* accumulated results */
 
-  private val results = new ListBuffer[XML.Tree]
+  private val results = new mutable.ListBuffer[XML.Tree]
   def add_result(tree: XML.Tree) { results += tree }
 
   def result_document = XML.document(

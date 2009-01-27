@@ -9,7 +9,7 @@
 package isabelle.prover
 
 
-import scala.collection.mutable.{HashMap, HashSet}
+import scala.collection.mutable
 import scala.collection.immutable.{TreeSet}
 
 import org.gjt.sp.util.Log
@@ -23,20 +23,20 @@ class Prover(isabelle_system: IsabelleSystem)
   private var _logic = isabelle_system.getenv_strict("ISABELLE_LOGIC")
   private var process: Isar = null
 
-  private val commands = new HashMap[IsarDocument.Command_ID, Command]
+  private val commands = new mutable.HashMap[IsarDocument.Command_ID, Command]
 
 
   /* outer syntax keywords */
 
   val decl_info = new EventBus[(String, String)]
 
-  private val keyword_decls = new HashSet[String] {
+  private val keyword_decls = new mutable.HashSet[String] {
     override def +=(name: String) = {
       decl_info.event(name, OuterKeyword.MINOR)
       super.+=(name)
     }
   }
-  private val command_decls = new HashMap[String, String] {
+  private val command_decls = new mutable.HashMap[String, String] {
     override def +=(entry: (String, String)) = {
       decl_info.event(entry)
       super.+=(entry)

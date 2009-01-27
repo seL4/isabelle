@@ -12,7 +12,7 @@ import java.io.{FileInputStream, IOException}
 import java.awt.Font
 import javax.swing.JScrollPane
 
-import scala.collection.mutable.HashMap
+import scala.collection.mutable
 
 import isabelle.prover.{Prover, Command}
 import isabelle.IsabelleSystem
@@ -69,7 +69,7 @@ class Plugin extends EBPlugin {
 
   // mapping buffer <-> prover
 
-  private val mapping = new HashMap[JEditBuffer, ProverSetup]
+  private val mapping = new mutable.HashMap[JEditBuffer, ProverSetup]
 
   private def install(view: View) {
     val buffer = view.getBuffer
