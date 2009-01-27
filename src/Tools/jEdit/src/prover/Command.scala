@@ -24,8 +24,6 @@ object Command {
   object Status extends Enumeration {
     val UNPROCESSED = Value("UNPROCESSED")
     val FINISHED = Value("FINISHED")
-    val REMOVE = Value("REMOVE")
-    val REMOVED = Value("REMOVED")
     val FAILED = Value("FAILED")
   }
 }
@@ -68,6 +66,8 @@ class Command(text: Text, val first: Token, val last: Token)
 
   /* command status */
 
+  var state_id: IsarDocument.State_ID = null
+
   private var _status = Command.Status.UNPROCESSED
   def status = _status
   def status_=(st: Command.Status.Value) {
@@ -84,10 +84,10 @@ class Command(text: Text, val first: Token, val last: Token)
   /* results */
 
   private val results = new mutable.ListBuffer[XML.Tree]
-  def add_result(tree: XML.Tree) { results += tree }
-
   private val state_results = new mutable.ListBuffer[XML.Tree]
-  def add_state_result(tree: XML.Tree) { state_results += tree }
+  def add_result(running: Boolean, tree: XML.Tree) {
+    (if (running) state_results else results) += tree
+  }
 
   def result_document = XML.document(
     results.toList ::: state_results.toList match {
