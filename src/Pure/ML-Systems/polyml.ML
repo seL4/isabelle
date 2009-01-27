@@ -12,6 +12,8 @@ else use "ML-Systems/multithreading_polyml.ML";
 
 val pointer_eq = PolyML.pointerEq;
 
+fun share_common_data () = PolyML.shareCommonData PolyML.rootFunction;
+
 
 (* runtime compilation *)
 
