@@ -1227,6 +1227,11 @@ fun fulfill_proof _ [] body0 = body0
         val proof = rewrite_prf fst (rules, K fill :: procs) proof0;
       in PBody {oracles = oracles, thms = thms, proof = proof} end;
 
+fun fulfill_proof_future _ [] body = Future.value body
+  | fulfill_proof_future thy promises body =
+      Future.fork_deps (map snd promises) (fn () =>
+        fulfill_proof thy (map (apsnd Future.join) promises) body);
+
 
 (***** theorems *****)
 
@@ -1243,12 +1248,9 @@ fun thm_proof thy name hyps prop promises body =
       if ! proofs = 2 then
         #4 (shrink_proof thy [] 0 (rew_proof thy (fold_rev implies_intr_proof hyps prf)))
       else MinProof;
+    val body0 = PBody {oracles = oracles0, thms = thms0, proof = proof0};
 
-    fun new_prf () = (serial (), name, prop,
-      Future.fork_deps (map snd promises) (fn () =>
-        fulfill_proof thy (map (apsnd Future.join) promises)
-          (PBody {oracles = oracles0, thms = thms0, proof = proof0})));
-
+    fun new_prf () = (serial (), name, prop, fulfill_proof_future thy promises body0);
     val (i, name, prop, body') =
       (case strip_combt (fst (strip_combP prf)) of
         (PThm (i, ((old_name, prop', NONE), body')), args') =>
