@@ -37,7 +37,7 @@ object ProofDocument
 
 }
 
-class ProofDocument(text: Text, prover: Prover)
+class ProofDocument(text: Text, is_command_keyword: String => Boolean)
 {
   private var active = false 
   def activate() {
@@ -103,7 +103,7 @@ class ProofDocument(text: Text, prover: Prover)
     while (matcher.find(position) && !finished) {
       position = matcher.end
 			val kind =
-        if (prover.is_command_keyword(matcher.group))
+        if (is_command_keyword(matcher.group))
           Token.Kind.COMMAND_START
         else if (matcher.end - matcher.start > 2 && matcher.group.substring(0, 2) == "(*")
           Token.Kind.COMMENT

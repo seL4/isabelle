@@ -50,7 +50,6 @@ class Prover(isabelle_system: IsabelleSystem, logic: String)
       super.+=(entry)
     }
   }
-  def is_command_keyword(s: String): Boolean = command_decls.contains(s)
 
 
   /* completions */
@@ -178,7 +177,7 @@ class Prover(isabelle_system: IsabelleSystem, logic: String)
   }
 
   def set_document(text: Text, path: String) {
-    this.document = new ProofDocument(text, this)
+    this.document = new ProofDocument(text, command_decls.contains(_))
     process.ML("ThyLoad.add_path " + IsabelleSyntax.encode_string(path))
 
     document.structural_changes += (changes => {
