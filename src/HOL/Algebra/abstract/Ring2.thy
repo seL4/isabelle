@@ -59,8 +59,9 @@ class factorial = "domain" +
   Proper definition using divisor chain condition currently not supported.
   factorial_divisor:    "wf {(a, b). a dvd b & ~ (b dvd a)}"
 *)
-  assumes factorial_divisor: "True"
-  and factorial_prime: "irred a ==> prime a"
+  (*assumes factorial_divisor: "True"*)
+  assumes factorial_prime: "irred a ==> prime a"
+
 
 subsection {* Euclidean domains *}
 

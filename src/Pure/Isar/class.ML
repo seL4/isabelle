@@ -24,9 +24,11 @@ struct
 
 open Class_Target;
 
-(** define classes **)
+(** class definitions **)
 
 local
+
+(* calculating class-related rules including canonical interpretation *)
 
 fun calculate thy class sups base_sort param_map assm_axiom =
   let
@@ -91,53 +93,76 @@ fun calculate thy class sups base_sort param_map assm_axiom =
 
   in (base_morph, morph, export_morph, axiom, assm_intro, of_class) end;
 
-val reject_bcd_etc = (map o map_atyps) (fn T as TFree (v, sort) =>
-      if v = Name.aT then T
-      else error ("No type variable other than " ^ Name.aT ^ " allowed in class specification")
-  | T => T);
 
-fun singleton_fixate thy algebra Ts =
+(* reading and processing class specifications *)
+
+fun prep_class_elems prep_decl thy supexpr sups proto_base_sort raw_elems =
   let
-    fun extract f = (fold o fold_atyps) f Ts [];
-    val tfrees = extract
-      (fn TFree (v, sort) => insert (op =) (v, sort) | _ => I);
-    val inferred_sort = extract
-      (fn TVar (_, sort) => curry (Sorts.inter_sort algebra) sort | _ => I);
-    val fixate_sort = if null tfrees then inferred_sort
-      else let val a_sort = (snd o the_single) tfrees
-      in if Sorts.sort_le algebra (a_sort, inferred_sort)
-        then Sorts.inter_sort algebra (a_sort, inferred_sort)
-        else error ("Type inference imposes additional sort constraint "
-          ^ Syntax.string_of_sort_global thy inferred_sort
-          ^ " of type parameter " ^ Name.aT ^ " of sort "
-          ^ Syntax.string_of_sort_global thy a_sort)
-      end
-  in (map o map_atyps) (K (TFree (Name.aT, fixate_sort))) Ts end;
 
-fun add_typ_check level name f = Context.proof_map (Syntax.add_typ_check level name (fn xs => fn ctxt =>
-  let val xs' = f xs in if eq_list (op =) (xs, xs') then NONE else SOME (xs', ctxt) end));
+    (* user space type system: only permits 'a type variable, improves towards 'a *)
+    val base_constraints = (map o apsnd)
+      (map_type_tfree (K (TVar ((Name.aT, 0), proto_base_sort))) o fst o snd)
+        (these_operations thy sups);
+    val reject_bcd_etc = (map o map_atyps) (fn T as TFree (v, sort) =>
+          if v = Name.aT then T
+          else error ("No type variable other than " ^ Name.aT ^ " allowed in class specification")
+      | T => T);
+    fun singleton_fixate thy algebra Ts =
+      let
+        fun extract f = (fold o fold_atyps) f Ts [];
+        val tfrees = extract
+          (fn TFree (v, sort) => insert (op =) (v, sort) | _ => I);
+        val inferred_sort = extract
+          (fn TVar (_, sort) => curry (Sorts.inter_sort algebra) sort | _ => I);
+        val fixate_sort = if null tfrees then inferred_sort
+          else let val a_sort = (snd o the_single) tfrees
+          in if Sorts.sort_le algebra (a_sort, inferred_sort)
+            then Sorts.inter_sort algebra (a_sort, inferred_sort)
+            else error ("Type inference imposes additional sort constraint "
+              ^ Syntax.string_of_sort_global thy inferred_sort
+              ^ " of type parameter " ^ Name.aT ^ " of sort "
+              ^ Syntax.string_of_sort_global thy a_sort)
+          end
+      in (map o map_atyps) (K (TFree (Name.aT, fixate_sort))) Ts end;
+    fun add_typ_check level name f = Context.proof_map (Syntax.add_typ_check level name (fn xs => fn ctxt =>
+      let val xs' = f xs in if eq_list (op =) (xs, xs') then NONE else SOME (xs', ctxt) end));
 
-fun add_tfrees_of_element (Element.Fixes fxs) = fold (fn (_, SOME T, _) => Term.add_tfreesT T
-      | _ => I) fxs
-  | add_tfrees_of_element (Element.Constrains cnstrs) = fold (Term.add_tfreesT o snd) cnstrs
-  | add_tfrees_of_element (Element.Assumes assms) = fold (fold (fn (t, ts) =>
-      Term.add_tfrees t #> fold Term.add_tfrees ts) o snd) assms
-  | add_tfrees_of_element _ = I;
+    (* preproceesing elements, retrieving base sort from type-checked elements *)
+    val ((_, _, inferred_elems), _) = ProofContext.init thy
+      |> fold (ProofContext.add_const_constraint o apsnd SOME) base_constraints
+      |> redeclare_operations thy sups
+      |> add_typ_check 10 "reject_bcd_etc" reject_bcd_etc
+      |> add_typ_check ~10 "singleton_fixate" (singleton_fixate thy (Sign.classes_of thy))
+      |> prep_decl supexpr raw_elems;
+    fun fold_element_types f (Element.Fixes fxs) = fold (fn (_, SOME T, _) => f T) fxs
+      | fold_element_types f (Element.Constrains cnstrs) = fold (f o snd) cnstrs
+      | fold_element_types f (Element.Assumes assms) = fold (fold (fn (t, ts) =>
+          fold_types f t #> (fold o fold_types) f ts) o snd) assms
+      | fold_element_types f (Element.Defines _) =
+          error ("\"defines\" element not allowed in class specification.")
+      | fold_element_types f (Element.Notes _) =
+          error ("\"notes\" element not allowed in class specification.");
+    val base_sort = if null inferred_elems then proto_base_sort else
+      case (fold o fold_element_types) Term.add_tfreesT inferred_elems []
+       of [] => error "No type variable in class specification"
+        | [(_, sort)] => sort
+        | _ => error "Multiple type variables in class specification"
 
-fun fork_syn (Element.Fixes xs) =
-      fold_map (fn (c, ty, syn) => cons (Binding.base_name c, syn) #> pair (c, ty, NoSyn)) xs
-      #>> Element.Fixes
-  | fork_syn x = pair x;
+  in (base_sort, inferred_elems) end;
 
-fun prep_class_spec prep_class prep_decl thy raw_supclasses raw_elems =
+val cert_class_elems = prep_class_elems Expression.cert_declaration;
+val read_class_elems = prep_class_elems Expression.cert_read_declaration;
+
+fun prep_class_spec prep_class prep_class_elems thy raw_supclasses raw_elems =
   let
+
     (* prepare import *)
     val inter_sort = curry (Sorts.inter_sort (Sign.classes_of thy));
     val sups = map (prep_class thy) raw_supclasses
       |> Sign.minimize_sort thy;
     val _ = case filter_out (is_class thy) sups
      of [] => ()
-      | no_classes => error ("These are not classes: " ^ commas (map quote no_classes));
+      | no_classes => error ("No proper classes: " ^ commas (map quote no_classes));
           val supparams = (map o apsnd) (snd o snd) (these_params thy sups);
     val supparam_names = map fst supparams;
     val _ = if has_duplicates (op =) supparam_names
@@ -149,41 +174,45 @@ fun prep_class_spec prep_class prep_decl thy raw_supclasses raw_elems =
     val given_basesort = fold inter_sort (map (base_sort thy) sups) [];
 
     (* infer types and base sort *)
-    val base_constraints = (map o apsnd)
-      (map_type_tfree (K (TVar ((Name.aT, 0), given_basesort))) o fst o snd)
-        (these_operations thy sups);
-    val ((_, _, inferred_elems), _) = ProofContext.init thy
-      |> fold (ProofContext.add_const_constraint o apsnd SOME) base_constraints
-      |> redeclare_operations thy sups
-      |> add_typ_check 10 "reject_bcd_etc" reject_bcd_etc
-      |> add_typ_check ~10 "singleton_fixate" (singleton_fixate thy (Sign.classes_of thy))
-      |> prep_decl supexpr raw_elems;
-    (*FIXME check for *all* side conditions here, extra check function for elements,
-      less side-condition checks in check phase*)
-    val base_sort = if null inferred_elems then given_basesort else
-      case fold add_tfrees_of_element inferred_elems []
-       of [] => error "No type variable in class specification"
-        | [(_, sort)] => sort
-        | _ => error "Multiple type variables in class specification"
+    val (base_sort, inferred_elems) = prep_class_elems thy supexpr sups
+      given_basesort raw_elems;
     val sup_sort = inter_sort base_sort sups
 
     (* process elements as class specification *)
-    val begin_ctxt = begin sups base_sort
-      #> fold (Variable.declare_constraints o Free) ((map o apsnd o map_atyps)
-          (K (TFree (Name.aT, base_sort))) supparams)
+    val class_ctxt = begin sups base_sort (ProofContext.init thy)
+    val ((_, _, syntax_elems), _) = class_ctxt
+      (*#> fold (Variable.declare_constraints o Free) ((map o apsnd o map_atyps)
+          (K (TFree (Name.aT, base_sort))) supparams) FIXME really necessary?*)
             (*FIXME should constraints be issued in begin?*)
-    val ((_, _, syntax_elems), _) = ProofContext.init thy
-      |> begin_ctxt
       |> Expression.cert_declaration supexpr inferred_elems;
+    fun check_vars e vs = if null vs
+      then error ("No type variable in part of specification element "
+        ^ (Pretty.output o Pretty.chunks) (Element.pretty_ctxt class_ctxt e))
+      else ();
+    fun check_element (e as Element.Fixes fxs) =
+          map (fn (_, SOME T, _) => check_vars e (Term.add_tfreesT T [])) fxs
+      | check_element (e as Element.Assumes assms) =
+          maps (fn (_, ts_pss) => map
+            (fn (t, _) => check_vars e (Term.add_tfrees t [])) ts_pss) assms
+      | check_element e = [()];
+    val _ = map check_element syntax_elems;
+    fun fork_syn (Element.Fixes xs) =
+          fold_map (fn (c, ty, syn) => cons (Binding.base_name c, syn) #> pair (c, ty, NoSyn)) xs
+          #>> Element.Fixes
+      | fork_syn x = pair x;
     val (elems, global_syntax) = fold_map fork_syn syntax_elems [];
     val constrain = Element.Constrains ((map o apsnd o map_atyps)
       (K (TFree (Name.aT, base_sort))) supparams);
       (*FIXME 2009 perhaps better: control type variable by explicit
       parameter instantiation of import expression*)
+
   in (((sups, supparam_names), (sup_sort, base_sort, supexpr)), (constrain :: elems, global_syntax)) end;
 
-val cert_class_spec = prep_class_spec (K I) Expression.cert_declaration;
-val read_class_spec = prep_class_spec Sign.intern_class Expression.cert_read_declaration;
+val cert_class_spec = prep_class_spec (K I) cert_class_elems;
+val read_class_spec = prep_class_spec Sign.intern_class read_class_elems;
+
+
+(* class establishment *)
 
 fun add_consts bname class base_sort sups supparams global_syntax thy =
   let

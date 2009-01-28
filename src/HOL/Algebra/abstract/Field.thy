@@ -1,6 +1,5 @@
 (*
     Properties of abstract class field
-    $Id$
     Author: Clemens Ballarin, started 15 November 1997
 *)
 
@@ -14,7 +13,6 @@ instance field < "domain"
 
 instance field < factorial
   apply intro_classes
-   apply (rule TrueI)
   apply (erule field_fact_prime)
   done
 
