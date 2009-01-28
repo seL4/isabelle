@@ -1,9 +1,9 @@
-(*
-    ID:         $Id$
+(*  Title:      HOL/ex/ReflectionEx.thy
     Author:     Amine Chaieb, TU Muenchen
 *)
 
 header {* Examples for generic reflection and reification *}
+
 theory ReflectionEx
 imports Reflection
 begin

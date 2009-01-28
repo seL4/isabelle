@@ -1,5 +1,5 @@
 theory ComputeNumeral
-imports ComputeHOL "~~/src/HOL/Real/Float"
+imports ComputeHOL Float
 begin
 
 (* normalization of bit strings *)
@@ -151,18 +151,18 @@ lemma adjust: "adjust b (q, r) = (if 0 \<le> r - b then (2 * q + 1, r - b) else 
   by (auto simp only: adjust_def)
 
 lemma negateSnd: "negateSnd (q, r) = (q, -r)" 
-  by (auto simp only: negateSnd_def)
+  by (simp add: negateSnd_def)
 
-lemma divAlg: "divAlg (a, b) = (if 0\<le>a then
+lemma divmod: "IntDiv.divmod a b = (if 0\<le>a then
                   if 0\<le>b then posDivAlg a b
                   else if a=0 then (0, 0)
                        else negateSnd (negDivAlg (-a) (-b))
                else 
                   if 0<b then negDivAlg a b
                   else negateSnd (posDivAlg (-a) (-b)))"
-  by (auto simp only: divAlg_def)
+  by (auto simp only: IntDiv.divmod_def)
 
-lemmas compute_div_mod = div_def mod_def divAlg adjust negateSnd posDivAlg.simps negDivAlg.simps
+lemmas compute_div_mod = div_def mod_def divmod adjust negateSnd posDivAlg.simps negDivAlg.simps
 
 
 

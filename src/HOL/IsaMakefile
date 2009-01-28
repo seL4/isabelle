@@ -331,10 +331,11 @@ $(LOG)/HOL-Library.gz: $(OUT)/HOL Library/SetsAndFunctions.thy		\
   Library/Binomial.thy Library/Eval_Witness.thy	\
   Library/Code_Index.thy Library/Code_Char.thy				\
   Library/Code_Char_chr.thy Library/Code_Integer.thy			\
-  Library/Numeral_Type.thy			\
+  Library/Numeral_Type.thy	Library/Reflection.thy		\
   Library/Boolean_Algebra.thy Library/Countable.thy	\
   Library/RBT.thy	Library/Univ_Poly.thy	\
-  Library/Enum.thy Library/Float.thy $(SRC)/Tools/float.ML $(SRC)/HOL/Tools/float_arith.ML
+  Library/Enum.thy Library/Float.thy $(SRC)/Tools/float.ML $(SRC)/HOL/Tools/float_arith.ML \
+  Library/reify_data.ML Library/reflection.ML
 	@cd Library; $(ISABELLE_TOOL) usedir $(OUT)/HOL Library
 
 
@@ -809,14 +810,14 @@ $(LOG)/HOL-ex.gz: $(OUT)/HOL Library/Commutative_Ring.thy		\
   ex/Lagrange.thy ex/LocaleTest2.thy ex/MT.thy		\
   ex/MergeSort.thy ex/MonoidGroup.thy ex/Multiquote.thy ex/NatSum.thy	\
   ex/Numeral.thy ex/PER.thy ex/PresburgerEx.thy ex/Primrec.thy		\
-  ex/Quickcheck_Examples.thy ex/Reflection.thy ex/reflection_data.ML	\
+  ex/Quickcheck_Examples.thy	\
   ex/ReflectionEx.thy ex/ROOT.ML ex/Recdefs.thy ex/Records.thy		\
   ex/Reflected_Presburger.thy ex/coopertac.ML				\
   ex/Refute_Examples.thy ex/SAT_Examples.thy ex/SVC_Oracle.thy		\
   ex/Subarray.thy ex/Sublist.thy                                        \
   ex/Sudoku.thy ex/Tarski.thy ex/Termination.thy ex/Term_Of_Syntax.thy	\
   ex/Unification.thy ex/document/root.bib			        \
-  ex/document/root.tex ex/Meson_Test.thy ex/reflection.ML ex/set.thy	\
+  ex/document/root.tex ex/Meson_Test.thy ex/set.thy	\
   ex/svc_funcs.ML ex/svc_test.thy	\
   ex/ImperativeQuicksort.thy	\
   ex/BigO_Complex.thy			\
@@ -968,7 +969,7 @@ $(LOG)/HOL-Nominal-Examples.gz: $(OUT)/HOL-Nominal 	\
 
 HOL-Word: HOL $(OUT)/HOL-Word
 
-$(OUT)/HOL-Word: $(OUT)/HOL Word/ROOT.ML Library/Infinite_Set.thy	\
+$(OUT)/HOL-Word: $(OUT)/HOL Word/ROOT.ML	\
   Library/Boolean_Algebra.thy			\
   Library/Numeral_Type.thy Word/Num_Lemmas.thy Word/TdThs.thy		\
   Word/Size.thy Word/BinGeneral.thy Word/BinOperations.thy		\

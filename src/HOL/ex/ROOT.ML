@@ -63,7 +63,6 @@ use_thys [
   "Dense_Linear_Order_Ex",
   "PresburgerEx",
   "Reflected_Presburger",
-  "Reflection",
   "ReflectionEx",
   "BinEx",
   "Sqrt",

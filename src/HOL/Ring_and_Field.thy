@@ -1091,6 +1091,9 @@ lemma sgn_times:
   "sgn (a * b) = sgn a * sgn b"
   by (auto simp add: sgn_if zero_less_mult_iff)
 
+lemma abs_sgn: "abs k = k * sgn k"
+  unfolding sgn_if abs_if by auto
+
 end
 
 class ordered_field = field + ordered_idom

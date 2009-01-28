@@ -1,4 +1,5 @@
-(*  Author:     Amine Chaieb, TU Muenchen
+(*  Title:      HOL/Library/reflection.ML
+    Author:     Amine Chaieb, TU Muenchen
 
 A trial for automatical reification.
 *)
@@ -14,9 +15,9 @@ end;
 structure Reflection : REFLECTION =
 struct
 
-val ext2 = thm "ext2";
-val nth_Cons_0 = thm "nth_Cons_0";
-val nth_Cons_Suc = thm "nth_Cons_Suc";
+val ext2 = @{thm ext2};
+val nth_Cons_0 = @{thm nth_Cons_0};
+val nth_Cons_Suc = @{thm nth_Cons_Suc};
 
   (* Make a congruence rule out of a defining equation for the interpretation *)
   (* th is one defining equation of f, i.e.
@@ -31,7 +32,7 @@ val nth_Cons_Suc = thm "nth_Cons_Suc";
 fun mk_congeq ctxt fs th = 
   let 
    val (f as Const(fN,fT)) = th |> prop_of |> HOLogic.dest_Trueprop |> HOLogic.dest_eq 
-				|> fst |> strip_comb |> fst
+     |> fst |> strip_comb |> fst
    val thy = ProofContext.theory_of ctxt
    val cert = Thm.cterm_of thy
    val (((_,_),[th']), ctxt') = Variable.import_thms true [th] ctxt
@@ -322,4 +323,5 @@ fun gen_reflection_tac ctxt conv corr_thms raw_eqs to i = (fn st =>
   in (rtac th i THEN TRY(rtac TrueI i)) st end);
 
 fun reflection_tac ctxt = gen_reflection_tac ctxt Codegen.evaluation_conv;
+
 end

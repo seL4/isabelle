@@ -1,12 +1,11 @@
 (*  Title:      HOL/Recdef.thy
-    ID:         $Id$
     Author:     Konrad Slind and Markus Wenzel, TU Muenchen
 *)
 
 header {* TFL: recursive function definitions *}
 
 theory Recdef
-imports FunDef
+imports FunDef Plain
 uses
   ("Tools/TFL/casesplit.ML")
   ("Tools/TFL/utils.ML")

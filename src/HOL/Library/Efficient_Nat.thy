@@ -56,10 +56,10 @@ text {* Specialized @{term "op div \<Colon> nat \<Rightarrow> nat \<Rightarrow> 
   and @{term "op mod \<Colon> nat \<Rightarrow> nat \<Rightarrow> nat"} operations. *}
 
 definition divmod_aux ::  "nat \<Rightarrow> nat \<Rightarrow> nat \<times> nat" where
-  [code del]: "divmod_aux = divmod"
+  [code del]: "divmod_aux = Divides.divmod"
 
 lemma [code]:
-  "divmod n m = (if m = 0 then (0, n) else divmod_aux n m)"
+  "Divides.divmod n m = (if m = 0 then (0, n) else divmod_aux n m)"
   unfolding divmod_aux_def divmod_div_mod by simp
 
 lemma divmod_aux_code [code]:
