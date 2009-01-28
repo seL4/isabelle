@@ -237,9 +237,9 @@ proof
   show "scaleR 1 x = x"
     by (simp add: expand_complex_eq)
   show "scaleR a x * y = scaleR a (x * y)"
-    by (simp add: expand_complex_eq ring_simps)
+    by (simp add: expand_complex_eq algebra_simps)
   show "x * scaleR a y = scaleR a (x * y)"
-    by (simp add: expand_complex_eq ring_simps)
+    by (simp add: expand_complex_eq algebra_simps)
 qed
 
 end
@@ -312,7 +312,7 @@ proof
        (simp add: power_mult_distrib right_distrib [symmetric] real_sqrt_mult)
   show "norm (x * y) = norm x * norm y"
     by (induct x, induct y)
-       (simp add: real_sqrt_mult [symmetric] power2_eq_square ring_simps)
+       (simp add: real_sqrt_mult [symmetric] power2_eq_square algebra_simps)
   show "sgn x = x /\<^sub>R cmod x" by(simp add: complex_sgn_def)
 qed
 

@@ -224,10 +224,6 @@ method_setup ring =
   {* Method.no_args (Method.SIMPLE_METHOD' (full_simp_tac ring_ss)) *}
   {* computes distributive normal form in rings *}
 
-lemmas ring_simps =
-  l_zero r_zero l_neg r_neg minus_minus minus0
-  l_one r_one l_null r_null l_minus r_minus
-
 
 subsection {* Rings and the summation operator *}
 

@@ -1001,7 +1001,7 @@ lemma unat_sub_if_size:
   apply (auto simp add: unat_def uint_sub_if')
    apply (rule nat_diff_distrib)
     prefer 3
-    apply (simp add: group_simps)
+    apply (simp add: algebra_simps)
     apply (rule nat_diff_distrib [THEN trans])
       prefer 3
       apply (subst nat_add_distrib)

@@ -349,7 +349,7 @@ lemma bigo_mult4 [intro]:"f : k +o O(h) ==> g * f : (g * k) +o O(g * h)"
   apply (drule set_plus_imp_minus)
   apply (rule set_minus_imp_plus)
   apply (drule bigo_mult3 [where g = g and j = g])
-  apply (auto simp add: ring_simps)
+  apply (auto simp add: algebra_simps)
   done
 
 lemma bigo_mult5: "ALL x. f x ~= 0 ==>
@@ -799,14 +799,14 @@ lemma bigo_lesso2: "f =o g +o O(h) ==>
   apply simp
   apply (subst abs_of_nonneg)
   apply (drule_tac x = x in spec) back
-  apply (simp add: compare_rls)
+  apply (simp add: algebra_simps)
   apply (subst diff_minus)+
   apply (rule add_right_mono)
   apply (erule spec)
   apply (rule order_trans) 
   prefer 2
   apply (rule abs_ge_zero)
-  apply (simp add: compare_rls)
+  apply (simp add: algebra_simps)
   done
 
 lemma bigo_lesso3: "f =o g +o O(h) ==>
@@ -823,7 +823,7 @@ lemma bigo_lesso3: "f =o g +o O(h) ==>
   apply simp
   apply (subst abs_of_nonneg)
   apply (drule_tac x = x in spec) back
-  apply (simp add: compare_rls)
+  apply (simp add: algebra_simps)
   apply (subst diff_minus)+
   apply (rule add_left_mono)
   apply (rule le_imp_neg_le)
@@ -831,7 +831,7 @@ lemma bigo_lesso3: "f =o g +o O(h) ==>
   apply (rule order_trans) 
   prefer 2
   apply (rule abs_ge_zero)
-  apply (simp add: compare_rls)
+  apply (simp add: algebra_simps)
   done
 
 lemma bigo_lesso4: "f <o g =o O(k::'a=>'b::ordered_field) ==>
@@ -844,7 +844,7 @@ lemma bigo_lesso4: "f <o g =o O(k::'a=>'b::ordered_field) ==>
   apply assumption
   apply (erule bigo_lesseq2) back
   apply (rule allI)
-  apply (auto simp add: func_plus fun_diff_def compare_rls 
+  apply (auto simp add: func_plus fun_diff_def algebra_simps
     split: split_max abs_split)
   done
 
@@ -856,7 +856,7 @@ lemma bigo_lesso5: "f <o g =o O(h) ==>
   apply (rule allI)
   apply (drule_tac x = x in spec)
   apply (subgoal_tac "abs(max (f x - g x) 0) = max (f x - g x) 0")
-  apply (clarsimp simp add: compare_rls add_ac) 
+  apply (clarsimp simp add: algebra_simps) 
   apply (rule abs_of_nonneg)
   apply (rule le_maxI2)
   done

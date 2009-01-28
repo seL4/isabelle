@@ -486,7 +486,7 @@ assume 1: "\<not> (0\<Colon>'b) \<le> f x + - lb x"
 have 2: "\<And>X3. (0\<Colon>'b) + X3 = X3"
   by (metis diff_eq_eq right_minus_eq)
 have 3: "\<not> (0\<Colon>'b) \<le> f x - lb x"
-  by (metis 1 compare_rls(1))
+  by (metis 1 diff_minus)
 have 4: "\<not> (0\<Colon>'b) + lb x \<le> f x"
   by (metis 3 le_diff_eq)
 show "False"
@@ -1197,7 +1197,7 @@ lemma bigo_lesso3: "f =o g +o O(h) ==>
 apply (erule thin_rl) 
 (*sledgehammer*); 
   apply (case_tac "0 <= f x - k x")
-  apply (simp del: compare_rls diff_minus);
+  apply (simp)
   apply (subst abs_of_nonneg)
   apply (drule_tac x = x in spec) back
 ML_command{*AtpWrapper.problem_name := "BigO__bigo_lesso3_simpler"*}
@@ -1216,7 +1216,7 @@ lemma bigo_lesso4: "f <o g =o O(k::'a=>'b::ordered_field) ==>
   apply assumption
   apply (erule bigo_lesseq2) back
   apply (rule allI)
-  apply (auto simp add: func_plus fun_diff_def compare_rls 
+  apply (auto simp add: func_plus fun_diff_def algebra_simps
     split: split_max abs_split)
 done
 

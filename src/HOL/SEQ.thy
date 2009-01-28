@@ -388,7 +388,7 @@ by (rule mult.LIMSEQ)
 lemma inverse_diff_inverse:
   "\<lbrakk>(a::'a::division_ring) \<noteq> 0; b \<noteq> 0\<rbrakk>
    \<Longrightarrow> inverse a - inverse b = - (inverse a * (a - b) * inverse b)"
-by (simp add: ring_simps)
+by (simp add: algebra_simps)
 
 lemma Bseq_inverse_lemma:
   fixes x :: "'a::real_normed_div_algebra"

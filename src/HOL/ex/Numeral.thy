@@ -699,7 +699,7 @@ context ring_1
 begin
 
 subclass semiring_1_minus
-  proof qed (simp_all add: ring_simps)
+  proof qed (simp_all add: algebra_simps)
 
 lemma Dig_zero_minus_of_num [numeral]:
   "0 - of_num n = - of_num n"
@@ -783,7 +783,7 @@ lemma Dig_sub [code]:
   "sub (Dig1 m) (Dig1 n) = dup (sub m n)"
   "sub (Dig1 m) (Dig0 n) = dup (sub m n) + 1"
   "sub (Dig0 m) (Dig1 n) = dup (sub m n) - 1"
-  apply (simp_all add: dup_def ring_simps)
+  apply (simp_all add: dup_def algebra_simps)
   apply (simp_all add: of_num_plus Dig_one_plus_dec)[4]
   apply (simp_all add: of_num.simps)
   done

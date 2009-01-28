@@ -141,7 +141,7 @@ by (simp add: deriv_def diff_minus [symmetric] DERIV_LIM_iff)
 lemma inverse_diff_inverse:
   "\<lbrakk>(a::'a::division_ring) \<noteq> 0; b \<noteq> 0\<rbrakk>
    \<Longrightarrow> inverse a - inverse b = - (inverse a * (a - b) * inverse b)"
-by (simp add: ring_simps)
+by (simp add: algebra_simps)
 
 lemma DERIV_inverse_lemma:
   "\<lbrakk>a \<noteq> 0; b \<noteq> (0::'a::real_normed_field)\<rbrakk>
@@ -206,7 +206,7 @@ case 0
 case (Suc k)
   from DERIV_mult' [OF f Suc] show ?case
     apply (simp only: of_nat_Suc ring_distribs mult_1_left)
-    apply (simp only: power_Suc right_distrib mult_ac add_ac)
+    apply (simp only: power_Suc algebra_simps)
     done
 qed
 
@@ -724,7 +724,7 @@ proof -
       from isCont_bounded [OF le this]
       obtain k where k: "!!x. a \<le> x & x \<le> b --> inverse (M - f x) \<le> k" by auto
       have Minv: "!!x. a \<le> x & x \<le> b --> 0 < inverse (M - f (x))"
-        by (simp add: M3 compare_rls)
+        by (simp add: M3 algebra_simps)
       have "!!x. a \<le> x & x \<le> b --> inverse (M - f x) < k+1" using k
         by (auto intro: order_le_less_trans [of _ k])
       with Minv
@@ -1398,7 +1398,7 @@ proof -
     have "?h b - ?h a =
          ((f b)*(g b) - (f a)*(g b) - (g b)*(f b) + (g a)*(f b)) -
           ((f b)*(g a) - (f a)*(g a) - (g b)*(f a) + (g a)*(f a))"
-      by (simp add: mult_ac add_ac right_diff_distrib)
+      by (simp add: algebra_simps)
     hence "?h b - ?h a = 0" by auto
   }
   ultimately have "(b - a) * (g'c * (f b - f a) - f'c * (g b - g a)) = 0" by auto
@@ -1427,7 +1427,7 @@ lemma pderiv_pCons: "pderiv (pCons a p) = p + pCons 0 (pderiv p)"
 
 lemma coeff_pderiv: "coeff (pderiv p) n = of_nat (Suc n) * coeff p (Suc n)"
   apply (induct p arbitrary: n, simp)
-  apply (simp add: pderiv_pCons coeff_pCons ring_simps split: nat.split)
+  apply (simp add: pderiv_pCons coeff_pCons algebra_simps split: nat.split)
   done
 
 lemma pderiv_eq_0_iff: "pderiv p = 0 \<longleftrightarrow> degree p = 0"
@@ -1451,21 +1451,21 @@ lemma pderiv_singleton [simp]: "pderiv [:a:] = 0"
 by (simp add: pderiv_pCons)
 
 lemma pderiv_add: "pderiv (p + q) = pderiv p + pderiv q"
-by (rule poly_ext, simp add: coeff_pderiv ring_simps)
+by (rule poly_ext, simp add: coeff_pderiv algebra_simps)
 
 lemma pderiv_minus: "pderiv (- p) = - pderiv p"
 by (rule poly_ext, simp add: coeff_pderiv)
 
 lemma pderiv_diff: "pderiv (p - q) = pderiv p - pderiv q"
-by (rule poly_ext, simp add: coeff_pderiv ring_simps)
+by (rule poly_ext, simp add: coeff_pderiv algebra_simps)
 
 lemma pderiv_smult: "pderiv (smult a p) = smult a (pderiv p)"
-by (rule poly_ext, simp add: coeff_pderiv ring_simps)
+by (rule poly_ext, simp add: coeff_pderiv algebra_simps)
 
 lemma pderiv_mult: "pderiv (p * q) = p * pderiv q + q * pderiv p"
 apply (induct p)
 apply simp
-apply (simp add: pderiv_add pderiv_smult pderiv_pCons ring_simps)
+apply (simp add: pderiv_add pderiv_smult pderiv_pCons algebra_simps)
 done
 
 lemma pderiv_power_Suc:
@@ -1475,7 +1475,7 @@ apply simp
 apply (subst power_Suc)
 apply (subst pderiv_mult)
 apply (erule ssubst)
-apply (simp add: smult_add_left ring_simps)
+apply (simp add: smult_add_left algebra_simps)
 done
 
 lemma DERIV_cmult2: "DERIV f x :> D ==> DERIV (%x. (f x) * c :: real) x :> D * c"

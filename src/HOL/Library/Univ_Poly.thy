@@ -217,7 +217,7 @@ next
     from Cons.hyps[rule_format, of x] 
     obtain q r where qr: "x#xs = [r] +++ [- a, 1] *** q" by blast
     have "h#x#xs = [a*r + h] +++ [-a, 1] *** (r#q)" 
-      using qr by(cases q, simp_all add: ring_simps diff_def[symmetric] 
+      using qr by(cases q, simp_all add: algebra_simps diff_def[symmetric] 
 	minus_mult_left[symmetric] right_minus)
     hence "\<exists>q r. h#x#xs = [r] +++ [-a, 1] *** q" by blast}
   thus ?case by blast
@@ -303,7 +303,7 @@ next
     from C[of ?i] obtain y where y: "poly p y = 0" "\<forall>m\<le> Suc n. y \<noteq> ?i m" 
       by blast
     from y have "y = a \<or> poly q y = 0" 
-      by (simp only: q poly_mult_eq_zero_disj poly_add) (simp add: ring_simps)
+      by (simp only: q poly_mult_eq_zero_disj poly_add) (simp add: algebra_simps)
     with i[rule_format, of y] y(1) y(2) have False apply auto 
       apply (erule_tac x="m" in allE)
       apply auto
@@ -414,8 +414,8 @@ qed
 
 lemma (in idom_char_0) poly_entire: 
   "poly (p *** q) = poly [] \<longleftrightarrow> poly p = poly [] \<or> poly q = poly []"
-using poly_entire_lemma2[of p q] 
-by auto (rule ext, simp add: poly_mult)+
+using poly_entire_lemma2[of p q]
+by (auto simp add: expand_fun_eq poly_mult)
 
 lemma (in idom_char_0) poly_entire_neg: "(poly (p *** q) \<noteq> poly []) = ((poly p \<noteq> poly []) & (poly q \<noteq> poly []))"
 by (simp add: poly_entire)
@@ -424,7 +424,7 @@ lemma fun_eq: " (f = g) = (\<forall>x. f x = g x)"
 by (auto intro!: ext)
 
 lemma (in comm_ring_1) poly_add_minus_zero_iff: "(poly (p +++ -- q) = poly []) = (poly p = poly q)"
-by (auto simp add: ring_simps poly_add poly_minus_def fun_eq poly_cmult minus_mult_left[symmetric])
+by (auto simp add: algebra_simps poly_add poly_minus_def fun_eq poly_cmult minus_mult_left[symmetric])
 
 lemma (in comm_ring_1) poly_add_minus_mult_eq: "poly (p *** q +++ --(p *** r)) = poly (p *** (q +++ -- r))"
 by (auto simp add: poly_add poly_minus_def fun_eq poly_mult poly_cmult right_distrib minus_mult_left[symmetric] minus_mult_right[symmetric])
@@ -550,7 +550,7 @@ lemma (in comm_ring_1) poly_divides_diff:
    "[| p divides q; p divides (q +++ r) |] ==> p divides r"
 apply (simp add: divides_def, auto)
 apply (rule_tac x = "padd qaa (poly_minus qa)" in exI)
-apply (auto simp add: poly_add fun_eq poly_mult poly_minus right_diff_distrib compare_rls add_ac)
+apply (auto simp add: poly_add fun_eq poly_mult poly_minus algebra_simps)
 done
 
 lemma (in comm_ring_1) poly_divides_diff2: "[| p divides r; p divides (q +++ r) |] ==> p divides q"
@@ -892,15 +892,15 @@ lemma (in idom_char_0) poly_Cons_eq: "poly (c#cs) = poly (d#ds) \<longleftrighta
 proof
   assume eq: ?lhs
   hence "\<And>x. poly ((c#cs) +++ -- (d#ds)) x = 0"
-    by (simp only: poly_minus poly_add ring_simps) simp
-  hence "poly ((c#cs) +++ -- (d#ds)) = poly []" by - (rule ext, simp) 
+    by (simp only: poly_minus poly_add algebra_simps) simp
+  hence "poly ((c#cs) +++ -- (d#ds)) = poly []" by(simp add:expand_fun_eq)
   hence "c = d \<and> list_all (\<lambda>x. x=0) ((cs +++ -- ds))"
-    unfolding poly_zero by (simp add: poly_minus_def ring_simps minus_mult_left[symmetric])
+    unfolding poly_zero by (simp add: poly_minus_def algebra_simps)
   hence "c = d \<and> (\<forall>x. poly (cs +++ -- ds) x = 0)"
     unfolding poly_zero[symmetric] by simp 
-  thus ?rhs  apply (simp add: poly_minus poly_add ring_simps) apply (rule ext, simp) done
+  thus ?rhs  by (simp add: poly_minus poly_add algebra_simps expand_fun_eq)
 next
-  assume ?rhs then show ?lhs  by -  (rule ext,simp)
+  assume ?rhs then show ?lhs by(simp add:expand_fun_eq)
 qed
   
 lemma (in idom_char_0) pnormalize_unique: "poly p = poly q \<Longrightarrow> pnormalize p = pnormalize q"
@@ -1008,7 +1008,7 @@ next
     from p have ap: "poly ([a,1] *** p) \<noteq> poly []"
       using poly_mult_not_eq_poly_Nil unfolding poly_entire by auto 
     have eq: "poly ([a,1] %^(Suc n) *** p) = poly ([a,1]%^n *** ([a,1] *** p))"
-     by (rule ext, simp add: poly_mult poly_add poly_exp poly_cmult mult_ac add_ac right_distrib)
+     by (rule ext, simp add: poly_mult poly_add poly_exp poly_cmult algebra_simps)
    from ap have ap': "(poly ([a,1] *** p) = poly []) = False" by blast
    have  th0: "degree ([a,1]%^n *** ([a,1] *** p)) = degree ([a,1] *** p) + n"
      apply (simp only: Suc.hyps[of a "pmult [a,one] p"] ap')

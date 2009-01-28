@@ -22,17 +22,34 @@ text {*
   \end{itemize}
 *}
 
+ML{*
+structure AlgebraSimps =
+  NamedThmsFun(val name = "algebra_simps"
+               val description = "algebra simplification rules");
+*}
+
+setup AlgebraSimps.setup
+
+text{* The rewrites accumulated in @{text algebra_simps} deal with the
+classical algebraic structures of groups, rings and family. They simplify
+terms by multiplying everything out (in case of a ring) and bringing sums and
+products into a canonical form (by ordered rewriting). As a result it decides
+group and ring equalities but also helps with inequalities.
+
+Of course it also works for fields, but it knows nothing about multiplicative
+inverses or division. This is catered for by @{text field_simps}. *}
+
 subsection {* Semigroups and Monoids *}
 
 class semigroup_add = plus +
-  assumes add_assoc: "(a + b) + c = a + (b + c)"
+  assumes add_assoc[algebra_simps]: "(a + b) + c = a + (b + c)"
 
 class ab_semigroup_add = semigroup_add +
-  assumes add_commute: "a + b = b + a"
+  assumes add_commute[algebra_simps]: "a + b = b + a"
 begin
 
-lemma add_left_commute: "a + (b + c) = b + (a + c)"
-  by (rule mk_left_commute [of "plus", OF add_assoc add_commute])
+lemma add_left_commute[algebra_simps]: "a + (b + c) = b + (a + c)"
+by (rule mk_left_commute [of "plus", OF add_assoc add_commute])
 
 theorems add_ac = add_assoc add_commute add_left_commute
 
@@ -41,14 +58,14 @@ end
 theorems add_ac = add_assoc add_commute add_left_commute
 
 class semigroup_mult = times +
-  assumes mult_assoc: "(a * b) * c = a * (b * c)"
+  assumes mult_assoc[algebra_simps]: "(a * b) * c = a * (b * c)"
 
 class ab_semigroup_mult = semigroup_mult +
-  assumes mult_commute: "a * b = b * a"
+  assumes mult_commute[algebra_simps]: "a * b = b * a"
 begin
 
-lemma mult_left_commute: "a * (b * c) = b * (a * c)"
-  by (rule mk_left_commute [of "times", OF mult_assoc mult_commute])
+lemma mult_left_commute[algebra_simps]: "a * (b * c) = b * (a * c)"
+by (rule mk_left_commute [of "times", OF mult_assoc mult_commute])
 
 theorems mult_ac = mult_assoc mult_commute mult_left_commute
 
@@ -57,24 +74,20 @@ end
 theorems mult_ac = mult_assoc mult_commute mult_left_commute
 
 class ab_semigroup_idem_mult = ab_semigroup_mult +
-  assumes mult_idem: "x * x = x"
+  assumes mult_idem[simp]: "x * x = x"
 begin
 
-lemma mult_left_idem: "x * (x * y) = x * y"
+lemma mult_left_idem[simp]: "x * (x * y) = x * y"
   unfolding mult_assoc [symmetric, of x] mult_idem ..
 
-lemmas mult_ac_idem = mult_ac mult_idem mult_left_idem
-
 end
-
-lemmas mult_ac_idem = mult_ac mult_idem mult_left_idem
 
 class monoid_add = zero + semigroup_add +
   assumes add_0_left [simp]: "0 + a = a"
     and add_0_right [simp]: "a + 0 = a"
 
 lemma zero_reorient: "0 = x \<longleftrightarrow> x = 0"
-  by (rule eq_commute)
+by (rule eq_commute)
 
 class comm_monoid_add = zero + ab_semigroup_add +
   assumes add_0: "0 + a = a"
@@ -90,7 +103,7 @@ class monoid_mult = one + semigroup_mult +
   assumes mult_1_right [simp]: "a * 1 = a"
 
 lemma one_reorient: "1 = x \<longleftrightarrow> x = 1"
-  by (rule eq_commute)
+by (rule eq_commute)
 
 class comm_monoid_mult = one + ab_semigroup_mult +
   assumes mult_1: "1 * a = a"
@@ -108,11 +121,11 @@ begin
 
 lemma add_left_cancel [simp]:
   "a + b = a + c \<longleftrightarrow> b = c"
-  by (blast dest: add_left_imp_eq)
+by (blast dest: add_left_imp_eq)
 
 lemma add_right_cancel [simp]:
   "b + a = c + a \<longleftrightarrow> b = c"
-  by (blast dest: add_right_imp_eq)
+by (blast dest: add_right_imp_eq)
 
 end
 
@@ -142,7 +155,7 @@ class group_add = minus + uminus + monoid_add +
 begin
 
 lemma minus_add_cancel: "- a + (a + b) = b"
-  by (simp add: add_assoc[symmetric])
+by (simp add: add_assoc[symmetric])
 
 lemma minus_zero [simp]: "- 0 = 0"
 proof -
@@ -176,8 +189,7 @@ next
 qed
 
 lemma equals_zero_I:
-  assumes "a + b = 0"
-  shows "- a = b"
+  assumes "a + b = 0" shows "- a = b"
 proof -
   have "- a = - a + (a + b)" using assms by simp
   also have "\<dots> = b" by (simp add: add_assoc[symmetric])
@@ -185,23 +197,22 @@ proof -
 qed
 
 lemma diff_self [simp]: "a - a = 0"
-  by (simp add: diff_minus)
+by (simp add: diff_minus)
 
 lemma diff_0 [simp]: "0 - a = - a"
-  by (simp add: diff_minus)
+by (simp add: diff_minus)
 
 lemma diff_0_right [simp]: "a - 0 = a" 
-  by (simp add: diff_minus)
+by (simp add: diff_minus)
 
 lemma diff_minus_eq_add [simp]: "a - - b = a + b"
-  by (simp add: diff_minus)
+by (simp add: diff_minus)
 
 lemma neg_equal_iff_equal [simp]:
   "- a = - b \<longleftrightarrow> a = b" 
 proof 
   assume "- a = - b"
-  hence "- (- a) = - (- b)"
-    by simp
+  hence "- (- a) = - (- b)" by simp
   thus "a = b" by simp
 next
   assume "a = b"
@@ -210,11 +221,11 @@ qed
 
 lemma neg_equal_0_iff_equal [simp]:
   "- a = 0 \<longleftrightarrow> a = 0"
-  by (subst neg_equal_iff_equal [symmetric], simp)
+by (subst neg_equal_iff_equal [symmetric], simp)
 
 lemma neg_0_equal_iff_equal [simp]:
   "0 = - a \<longleftrightarrow> 0 = a"
-  by (subst neg_equal_iff_equal [symmetric], simp)
+by (subst neg_equal_iff_equal [symmetric], simp)
 
 text{*The next two equations can make the simplifier loop!*}
 
@@ -233,10 +244,12 @@ proof -
 qed
 
 lemma diff_add_cancel: "a - b + b = a"
-  by (simp add: diff_minus add_assoc)
+by (simp add: diff_minus add_assoc)
 
 lemma add_diff_cancel: "a + b - b = a"
-  by (simp add: diff_minus add_assoc)
+by (simp add: diff_minus add_assoc)
+
+declare diff_minus[symmetric, algebra_simps]
 
 end
 
@@ -257,43 +270,38 @@ proof
   then show "b = c" by simp
 qed
 
-lemma uminus_add_conv_diff:
+lemma uminus_add_conv_diff[algebra_simps]:
   "- a + b = b - a"
-  by (simp add:diff_minus add_commute)
+by (simp add:diff_minus add_commute)
 
 lemma minus_add_distrib [simp]:
   "- (a + b) = - a + - b"
-  by (rule equals_zero_I) (simp add: add_ac)
+by (rule equals_zero_I) (simp add: add_ac)
 
 lemma minus_diff_eq [simp]:
   "- (a - b) = b - a"
-  by (simp add: diff_minus add_commute)
+by (simp add: diff_minus add_commute)
 
-lemma add_diff_eq: "a + (b - c) = (a + b) - c"
-  by (simp add: diff_minus add_ac)
+lemma add_diff_eq[algebra_simps]: "a + (b - c) = (a + b) - c"
+by (simp add: diff_minus add_ac)
 
-lemma diff_add_eq: "(a - b) + c = (a + c) - b"
-  by (simp add: diff_minus add_ac)
+lemma diff_add_eq[algebra_simps]: "(a - b) + c = (a + c) - b"
+by (simp add: diff_minus add_ac)
 
-lemma diff_eq_eq: "a - b = c \<longleftrightarrow> a = c + b"
-  by (auto simp add: diff_minus add_assoc)
+lemma diff_eq_eq[algebra_simps]: "a - b = c \<longleftrightarrow> a = c + b"
+by (auto simp add: diff_minus add_assoc)
 
-lemma eq_diff_eq: "a = c - b \<longleftrightarrow> a + b = c"
-  by (auto simp add: diff_minus add_assoc)
+lemma eq_diff_eq[algebra_simps]: "a = c - b \<longleftrightarrow> a + b = c"
+by (auto simp add: diff_minus add_assoc)
 
-lemma diff_diff_eq: "(a - b) - c = a - (b + c)"
-  by (simp add: diff_minus add_ac)
+lemma diff_diff_eq[algebra_simps]: "(a - b) - c = a - (b + c)"
+by (simp add: diff_minus add_ac)
 
-lemma diff_diff_eq2: "a - (b - c) = (a + c) - b"
-  by (simp add: diff_minus add_ac)
-
-lemmas compare_rls =
-       diff_minus [symmetric]
-       add_diff_eq diff_add_eq diff_diff_eq diff_diff_eq2
-       diff_eq_eq eq_diff_eq
+lemma diff_diff_eq2[algebra_simps]: "a - (b - c) = (a + c) - b"
+by (simp add: diff_minus add_ac)
 
 lemma eq_iff_diff_eq_0: "a = b \<longleftrightarrow> a - b = 0"
-  by (simp add: compare_rls)
+by (simp add: algebra_simps)
 
 end
 
@@ -305,7 +313,7 @@ begin
 
 lemma add_right_mono:
   "a \<le> b \<Longrightarrow> a + c \<le> b + c"
-  by (simp add: add_commute [of _ c] add_left_mono)
+by (simp add: add_commute [of _ c] add_left_mono)
 
 text {* non-strict, in both arguments *}
 lemma add_mono:
@@ -322,11 +330,11 @@ begin
 
 lemma add_strict_left_mono:
   "a < b \<Longrightarrow> c + a < c + b"
-  by (auto simp add: less_le add_left_mono)
+by (auto simp add: less_le add_left_mono)
 
 lemma add_strict_right_mono:
   "a < b \<Longrightarrow> a + c < b + c"
-  by (simp add: add_commute [of _ c] add_strict_left_mono)
+by (simp add: add_commute [of _ c] add_strict_left_mono)
 
 text{*Strict monotonicity in both arguments*}
 lemma add_strict_mono:
@@ -355,8 +363,7 @@ class pordered_ab_semigroup_add_imp_le =
 begin
 
 lemma add_less_imp_less_left:
-   assumes less: "c + a < c + b"
-   shows "a < b"
+  assumes less: "c + a < c + b" shows "a < b"
 proof -
   from less have le: "c + a <= c + b" by (simp add: order_le_less)
   have "a <= b" 
@@ -381,23 +388,23 @@ done
 
 lemma add_less_cancel_left [simp]:
   "c + a < c + b \<longleftrightarrow> a < b"
-  by (blast intro: add_less_imp_less_left add_strict_left_mono) 
+by (blast intro: add_less_imp_less_left add_strict_left_mono) 
 
 lemma add_less_cancel_right [simp]:
   "a + c < b + c \<longleftrightarrow> a < b"
-  by (blast intro: add_less_imp_less_right add_strict_right_mono)
+by (blast intro: add_less_imp_less_right add_strict_right_mono)
 
 lemma add_le_cancel_left [simp]:
   "c + a \<le> c + b \<longleftrightarrow> a \<le> b"
-  by (auto, drule add_le_imp_le_left, simp_all add: add_left_mono) 
+by (auto, drule add_le_imp_le_left, simp_all add: add_left_mono) 
 
 lemma add_le_cancel_right [simp]:
   "a + c \<le> b + c \<longleftrightarrow> a \<le> b"
-  by (simp add: add_commute [of a c] add_commute [of b c])
+by (simp add: add_commute [of a c] add_commute [of b c])
 
 lemma add_le_imp_le_right:
   "a + c \<le> b + c \<Longrightarrow> a \<le> b"
-  by simp
+by simp
 
 lemma max_add_distrib_left:
   "max x y + z = max (x + z) (y + z)"
@@ -416,8 +423,7 @@ class pordered_comm_monoid_add =
 begin
 
 lemma add_pos_nonneg:
-  assumes "0 < a" and "0 \<le> b"
-    shows "0 < a + b"
+  assumes "0 < a" and "0 \<le> b" shows "0 < a + b"
 proof -
   have "0 + 0 < a + b" 
     using assms by (rule add_less_le_mono)
@@ -425,13 +431,11 @@ proof -
 qed
 
 lemma add_pos_pos:
-  assumes "0 < a" and "0 < b"
-    shows "0 < a + b"
-  by (rule add_pos_nonneg) (insert assms, auto)
+  assumes "0 < a" and "0 < b" shows "0 < a + b"
+by (rule add_pos_nonneg) (insert assms, auto)
 
 lemma add_nonneg_pos:
-  assumes "0 \<le> a" and "0 < b"
-    shows "0 < a + b"
+  assumes "0 \<le> a" and "0 < b" shows "0 < a + b"
 proof -
   have "0 + 0 < a + b" 
     using assms by (rule add_le_less_mono)
@@ -439,8 +443,7 @@ proof -
 qed
 
 lemma add_nonneg_nonneg:
-  assumes "0 \<le> a" and "0 \<le> b"
-    shows "0 \<le> a + b"
+  assumes "0 \<le> a" and "0 \<le> b" shows "0 \<le> a + b"
 proof -
   have "0 + 0 \<le> a + b" 
     using assms by (rule add_mono)
@@ -448,8 +451,7 @@ proof -
 qed
 
 lemma add_neg_nonpos: 
-  assumes "a < 0" and "b \<le> 0"
-  shows "a + b < 0"
+  assumes "a < 0" and "b \<le> 0" shows "a + b < 0"
 proof -
   have "a + b < 0 + 0"
     using assms by (rule add_less_le_mono)
@@ -457,13 +459,11 @@ proof -
 qed
 
 lemma add_neg_neg: 
-  assumes "a < 0" and "b < 0"
-  shows "a + b < 0"
-  by (rule add_neg_nonpos) (insert assms, auto)
+  assumes "a < 0" and "b < 0" shows "a + b < 0"
+by (rule add_neg_nonpos) (insert assms, auto)
 
 lemma add_nonpos_neg:
-  assumes "a \<le> 0" and "b < 0"
-  shows "a + b < 0"
+  assumes "a \<le> 0" and "b < 0" shows "a + b < 0"
 proof -
   have "a + b < 0 + 0"
     using assms by (rule add_le_less_mono)
@@ -471,8 +471,7 @@ proof -
 qed
 
 lemma add_nonpos_nonpos:
-  assumes "a \<le> 0" and "b \<le> 0"
-  shows "a + b \<le> 0"
+  assumes "a \<le> 0" and "b \<le> 0" shows "a + b \<le> 0"
 proof -
   have "a + b \<le> 0 + 0"
     using assms by (rule add_mono)
@@ -500,31 +499,25 @@ subclass pordered_comm_monoid_add ..
 
 lemma max_diff_distrib_left:
   shows "max x y - z = max (x - z) (y - z)"
-  by (simp add: diff_minus, rule max_add_distrib_left) 
+by (simp add: diff_minus, rule max_add_distrib_left) 
 
 lemma min_diff_distrib_left:
   shows "min x y - z = min (x - z) (y - z)"
-  by (simp add: diff_minus, rule min_add_distrib_left) 
+by (simp add: diff_minus, rule min_add_distrib_left) 
 
 lemma le_imp_neg_le:
-  assumes "a \<le> b"
-  shows "-b \<le> -a"
+  assumes "a \<le> b" shows "-b \<le> -a"
 proof -
-  have "-a+a \<le> -a+b"
-    using `a \<le> b` by (rule add_left_mono) 
-  hence "0 \<le> -a+b"
-    by simp
-  hence "0 + (-b) \<le> (-a + b) + (-b)"
-    by (rule add_right_mono) 
-  thus ?thesis
-    by (simp add: add_assoc)
+  have "-a+a \<le> -a+b" using `a \<le> b` by (rule add_left_mono) 
+  hence "0 \<le> -a+b" by simp
+  hence "0 + (-b) \<le> (-a + b) + (-b)" by (rule add_right_mono) 
+  thus ?thesis by (simp add: add_assoc)
 qed
 
 lemma neg_le_iff_le [simp]: "- b \<le> - a \<longleftrightarrow> a \<le> b"
 proof 
   assume "- b \<le> - a"
-  hence "- (- a) \<le> - (- b)"
-    by (rule le_imp_neg_le)
+  hence "- (- a) \<le> - (- b)" by (rule le_imp_neg_le)
   thus "a\<le>b" by simp
 next
   assume "a\<le>b"
@@ -532,19 +525,19 @@ next
 qed
 
 lemma neg_le_0_iff_le [simp]: "- a \<le> 0 \<longleftrightarrow> 0 \<le> a"
-  by (subst neg_le_iff_le [symmetric], simp)
+by (subst neg_le_iff_le [symmetric], simp)
 
 lemma neg_0_le_iff_le [simp]: "0 \<le> - a \<longleftrightarrow> a \<le> 0"
-  by (subst neg_le_iff_le [symmetric], simp)
+by (subst neg_le_iff_le [symmetric], simp)
 
 lemma neg_less_iff_less [simp]: "- b < - a \<longleftrightarrow> a < b"
-  by (force simp add: less_le) 
+by (force simp add: less_le) 
 
 lemma neg_less_0_iff_less [simp]: "- a < 0 \<longleftrightarrow> 0 < a"
-  by (subst neg_less_iff_less [symmetric], simp)
+by (subst neg_less_iff_less [symmetric], simp)
 
 lemma neg_0_less_iff_less [simp]: "0 < - a \<longleftrightarrow> a < 0"
-  by (subst neg_less_iff_less [symmetric], simp)
+by (subst neg_less_iff_less [symmetric], simp)
 
 text{*The next several equations can make the simplifier loop!*}
 
@@ -573,7 +566,7 @@ proof -
 qed
 
 lemma minus_le_iff: "- a \<le> b \<longleftrightarrow> - b \<le> a"
-  by (auto simp add: le_less minus_less_iff)
+by (auto simp add: le_less minus_less_iff)
 
 lemma less_iff_diff_less_0: "a < b \<longleftrightarrow> a - b < 0"
 proof -
@@ -583,56 +576,34 @@ proof -
   finally show ?thesis .
 qed
 
-lemma diff_less_eq: "a - b < c \<longleftrightarrow> a < c + b"
+lemma diff_less_eq[algebra_simps]: "a - b < c \<longleftrightarrow> a < c + b"
 apply (subst less_iff_diff_less_0 [of a])
 apply (rule less_iff_diff_less_0 [of _ c, THEN ssubst])
 apply (simp add: diff_minus add_ac)
 done
 
-lemma less_diff_eq: "a < c - b \<longleftrightarrow> a + b < c"
+lemma less_diff_eq[algebra_simps]: "a < c - b \<longleftrightarrow> a + b < c"
 apply (subst less_iff_diff_less_0 [of "plus a b"])
 apply (subst less_iff_diff_less_0 [of a])
 apply (simp add: diff_minus add_ac)
 done
 
-lemma diff_le_eq: "a - b \<le> c \<longleftrightarrow> a \<le> c + b"
-  by (auto simp add: le_less diff_less_eq diff_add_cancel add_diff_cancel)
+lemma diff_le_eq[algebra_simps]: "a - b \<le> c \<longleftrightarrow> a \<le> c + b"
+by (auto simp add: le_less diff_less_eq diff_add_cancel add_diff_cancel)
 
-lemma le_diff_eq: "a \<le> c - b \<longleftrightarrow> a + b \<le> c"
-  by (auto simp add: le_less less_diff_eq diff_add_cancel add_diff_cancel)
-
-lemmas compare_rls =
-       diff_minus [symmetric]
-       add_diff_eq diff_add_eq diff_diff_eq diff_diff_eq2
-       diff_less_eq less_diff_eq diff_le_eq le_diff_eq
-       diff_eq_eq eq_diff_eq
-
-text{*This list of rewrites simplifies (in)equalities by bringing subtractions
-  to the top and then moving negative terms to the other side.
-  Use with @{text add_ac}*}
-lemmas (in -) compare_rls =
-       diff_minus [symmetric]
-       add_diff_eq diff_add_eq diff_diff_eq diff_diff_eq2
-       diff_less_eq less_diff_eq diff_le_eq le_diff_eq
-       diff_eq_eq eq_diff_eq
+lemma le_diff_eq[algebra_simps]: "a \<le> c - b \<longleftrightarrow> a + b \<le> c"
+by (auto simp add: le_less less_diff_eq diff_add_cancel add_diff_cancel)
 
 lemma le_iff_diff_le_0: "a \<le> b \<longleftrightarrow> a - b \<le> 0"
-  by (simp add: compare_rls)
+by (simp add: algebra_simps)
 
-lemmas group_simps =
-  add_ac
-  add_diff_eq diff_add_eq diff_diff_eq diff_diff_eq2
-  diff_eq_eq eq_diff_eq diff_minus [symmetric] uminus_add_conv_diff
-  diff_less_eq less_diff_eq diff_le_eq le_diff_eq
+text{*Legacy - use @{text algebra_simps} *}
+lemmas group_simps = algebra_simps
 
 end
 
-lemmas group_simps =
-  mult_ac
-  add_ac
-  add_diff_eq diff_add_eq diff_diff_eq diff_diff_eq2
-  diff_eq_eq eq_diff_eq diff_minus [symmetric] uminus_add_conv_diff
-  diff_less_eq less_diff_eq diff_le_eq le_diff_eq
+text{*Legacy - use @{text algebra_simps} *}
+lemmas group_simps = algebra_simps
 
 class ordered_ab_semigroup_add =
   linorder + pordered_ab_semigroup_add
@@ -766,8 +737,7 @@ lemma abs_minus_le_zero: "- \<bar>a\<bar> \<le> 0"
   unfolding neg_le_0_iff_le by simp
 
 lemma abs_of_nonneg [simp]:
-  assumes nonneg: "0 \<le> a"
-  shows "\<bar>a\<bar> = a"
+  assumes nonneg: "0 \<le> a" shows "\<bar>a\<bar> = a"
 proof (rule antisym)
   from nonneg le_imp_neg_le have "- a \<le> 0" by simp
   from this nonneg have "- a \<le> a" by (rule order_trans)
@@ -775,8 +745,8 @@ proof (rule antisym)
 qed (rule abs_ge_self)
 
 lemma abs_idempotent [simp]: "\<bar>\<bar>a\<bar>\<bar> = \<bar>a\<bar>"
-  by (rule antisym)
-    (auto intro!: abs_ge_self abs_leI order_trans [of "uminus (abs a)" zero "abs a"])
+by (rule antisym)
+   (auto intro!: abs_ge_self abs_leI order_trans [of "uminus (abs a)" zero "abs a"])
 
 lemma abs_eq_0 [simp]: "\<bar>a\<bar> = 0 \<longleftrightarrow> a = 0"
 proof -
@@ -792,7 +762,7 @@ proof -
 qed
 
 lemma abs_zero [simp]: "\<bar>0\<bar> = 0"
-  by simp
+by simp
 
 lemma abs_0_eq [simp, noatp]: "0 = \<bar>a\<bar> \<longleftrightarrow> a = 0"
 proof -
@@ -811,7 +781,7 @@ next
 qed
 
 lemma zero_less_abs_iff [simp]: "0 < \<bar>a\<bar> \<longleftrightarrow> a \<noteq> 0"
-  by (simp add: less_le)
+by (simp add: less_le)
 
 lemma abs_not_less_zero [simp]: "\<not> \<bar>a\<bar> < 0"
 proof -
@@ -834,11 +804,10 @@ proof -
 qed
 
 lemma abs_of_pos: "0 < a \<Longrightarrow> \<bar>a\<bar> = a"
-  by (rule abs_of_nonneg, rule less_imp_le)
+by (rule abs_of_nonneg, rule less_imp_le)
 
 lemma abs_of_nonpos [simp]:
-  assumes "a \<le> 0"
-  shows "\<bar>a\<bar> = - a"
+  assumes "a \<le> 0" shows "\<bar>a\<bar> = - a"
 proof -
   let ?b = "- a"
   have "- ?b \<le> 0 \<Longrightarrow> \<bar>- ?b\<bar> = - (- ?b)"
@@ -849,24 +818,24 @@ proof -
 qed
   
 lemma abs_of_neg: "a < 0 \<Longrightarrow> \<bar>a\<bar> = - a"
-  by (rule abs_of_nonpos, rule less_imp_le)
+by (rule abs_of_nonpos, rule less_imp_le)
 
 lemma abs_le_D1: "\<bar>a\<bar> \<le> b \<Longrightarrow> a \<le> b"
-  by (insert abs_ge_self, blast intro: order_trans)
+by (insert abs_ge_self, blast intro: order_trans)
 
 lemma abs_le_D2: "\<bar>a\<bar> \<le> b \<Longrightarrow> - a \<le> b"
-  by (insert abs_le_D1 [of "uminus a"], simp)
+by (insert abs_le_D1 [of "uminus a"], simp)
 
 lemma abs_le_iff: "\<bar>a\<bar> \<le> b \<longleftrightarrow> a \<le> b \<and> - a \<le> b"
-  by (blast intro: abs_leI dest: abs_le_D1 abs_le_D2)
+by (blast intro: abs_leI dest: abs_le_D1 abs_le_D2)
 
 lemma abs_triangle_ineq2: "\<bar>a\<bar> - \<bar>b\<bar> \<le> \<bar>a - b\<bar>"
-  apply (simp add: compare_rls)
-  apply (subgoal_tac "abs a = abs (plus (minus a b) b)")
+  apply (simp add: algebra_simps)
+  apply (subgoal_tac "abs a = abs (plus b (minus a b))")
   apply (erule ssubst)
   apply (rule abs_triangle_ineq)
-  apply (rule arg_cong) back
-  apply (simp add: compare_rls)
+  apply (rule arg_cong[of _ _ abs])
+  apply (simp add: algebra_simps)
 done
 
 lemma abs_triangle_ineq3: "\<bar>\<bar>a\<bar> - \<bar>b\<bar>\<bar> \<le> \<bar>a - b\<bar>"
@@ -879,12 +848,9 @@ done
 
 lemma abs_triangle_ineq4: "\<bar>a - b\<bar> \<le> \<bar>a\<bar> + \<bar>b\<bar>"
 proof -
-  have "abs(a - b) = abs(a + - b)"
-    by (subst diff_minus, rule refl)
-  also have "... <= abs a + abs (- b)"
-    by (rule abs_triangle_ineq)
-  finally show ?thesis
-    by simp
+  have "abs(a - b) = abs(a + - b)" by (subst diff_minus, rule refl)
+  also have "... <= abs a + abs (- b)" by (rule abs_triangle_ineq)
+  finally show ?thesis by simp
 qed
 
 lemma abs_diff_triangle_ineq: "\<bar>a + b - (c + d)\<bar> \<le> \<bar>a - c\<bar> + \<bar>b - d\<bar>"
@@ -999,23 +965,19 @@ next
 qed
 
 lemma neg_inf_eq_sup: "- inf a b = sup (-a) (-b)"
-  by (simp add: inf_eq_neg_sup)
+by (simp add: inf_eq_neg_sup)
 
 lemma neg_sup_eq_inf: "- sup a b = inf (-a) (-b)"
-  by (simp add: sup_eq_neg_inf)
+by (simp add: sup_eq_neg_inf)
 
 lemma add_eq_inf_sup: "a + b = sup a b + inf a b"
 proof -
   have "0 = - inf 0 (a-b) + inf (a-b) 0" by (simp add: inf_commute)
   hence "0 = sup 0 (b-a) + inf (a-b) 0" by (simp add: inf_eq_neg_sup)
   hence "0 = (-a + sup a b) + (inf a b + (-b))"
-    apply (simp add: add_sup_distrib_left add_inf_distrib_right)
-    by (simp add: diff_minus add_commute)
-  thus ?thesis
-    apply (simp add: compare_rls)
-    apply (subst add_left_cancel [symmetric, of "plus a b" "plus (sup a b) (inf a b)" "uminus a"])
-    apply (simp only: add_assoc, simp add: add_assoc[symmetric])
-    done
+    by (simp add: add_sup_distrib_left add_inf_distrib_right)
+       (simp add: algebra_simps)
+  thus ?thesis by (simp add: algebra_simps)
 qed
 
 subsection {* Positive Part, Negative Part, Absolute Value *}
@@ -1044,13 +1006,13 @@ proof -
 qed
 
 lemma prts: "a = pprt a + nprt a"
-  by (simp add: pprt_def nprt_def add_eq_inf_sup[symmetric])
+by (simp add: pprt_def nprt_def add_eq_inf_sup[symmetric])
 
 lemma zero_le_pprt[simp]: "0 \<le> pprt a"
-  by (simp add: pprt_def)
+by (simp add: pprt_def)
 
 lemma nprt_le_zero[simp]: "nprt a \<le> 0"
-  by (simp add: nprt_def)
+by (simp add: nprt_def)
 
 lemma le_eq_neg: "a \<le> - b \<longleftrightarrow> a + b \<le> 0" (is "?l = ?r")
 proof -
@@ -1071,16 +1033,16 @@ lemma pprt_0[simp]: "pprt 0 = 0" by (simp add: pprt_def)
 lemma nprt_0[simp]: "nprt 0 = 0" by (simp add: nprt_def)
 
 lemma pprt_eq_id [simp, noatp]: "0 \<le> x \<Longrightarrow> pprt x = x"
-  by (simp add: pprt_def le_iff_sup sup_ACI)
+by (simp add: pprt_def le_iff_sup sup_ACI)
 
 lemma nprt_eq_id [simp, noatp]: "x \<le> 0 \<Longrightarrow> nprt x = x"
-  by (simp add: nprt_def le_iff_inf inf_ACI)
+by (simp add: nprt_def le_iff_inf inf_ACI)
 
 lemma pprt_eq_0 [simp, noatp]: "x \<le> 0 \<Longrightarrow> pprt x = 0"
-  by (simp add: pprt_def le_iff_sup sup_ACI)
+by (simp add: pprt_def le_iff_sup sup_ACI)
 
 lemma nprt_eq_0 [simp, noatp]: "0 \<le> x \<Longrightarrow> nprt x = 0"
-  by (simp add: nprt_def le_iff_inf inf_ACI)
+by (simp add: nprt_def le_iff_inf inf_ACI)
 
 lemma sup_0_imp_0: "sup a (- a) = 0 \<Longrightarrow> a = 0"
 proof -
@@ -1105,10 +1067,10 @@ apply (erule sup_0_imp_0)
 done
 
 lemma inf_0_eq_0 [simp, noatp]: "inf a (- a) = 0 \<longleftrightarrow> a = 0"
-  by (rule, erule inf_0_imp_0) simp
+by (rule, erule inf_0_imp_0) simp
 
 lemma sup_0_eq_0 [simp, noatp]: "sup a (- a) = 0 \<longleftrightarrow> a = 0"
-  by (rule, erule sup_0_imp_0) simp
+by (rule, erule sup_0_imp_0) simp
 
 lemma zero_le_double_add_iff_zero_le_single_add [simp]:
   "0 \<le> a + a \<longleftrightarrow> 0 \<le> a"
@@ -1190,22 +1152,22 @@ proof -
 qed
 
 lemma zero_le_iff_zero_nprt: "0 \<le> a \<longleftrightarrow> nprt a = 0"
-  by (simp add: le_iff_inf nprt_def inf_commute)
+by (simp add: le_iff_inf nprt_def inf_commute)
 
 lemma le_zero_iff_zero_pprt: "a \<le> 0 \<longleftrightarrow> pprt a = 0"
-  by (simp add: le_iff_sup pprt_def sup_commute)
+by (simp add: le_iff_sup pprt_def sup_commute)
 
 lemma le_zero_iff_pprt_id: "0 \<le> a \<longleftrightarrow> pprt a = a"
-  by (simp add: le_iff_sup pprt_def sup_commute)
+by (simp add: le_iff_sup pprt_def sup_commute)
 
 lemma zero_le_iff_nprt_id: "a \<le> 0 \<longleftrightarrow> nprt a = a"
-  by (simp add: le_iff_inf nprt_def inf_commute)
+by (simp add: le_iff_inf nprt_def inf_commute)
 
 lemma pprt_mono [simp, noatp]: "a \<le> b \<Longrightarrow> pprt a \<le> pprt b"
-  by (simp add: le_iff_sup pprt_def sup_ACI sup_assoc [symmetric, of a])
+by (simp add: le_iff_sup pprt_def sup_ACI sup_assoc [symmetric, of a])
 
 lemma nprt_mono [simp, noatp]: "a \<le> b \<Longrightarrow> nprt a \<le> nprt b"
-  by (simp add: le_iff_inf nprt_def inf_ACI inf_assoc [symmetric, of a])
+by (simp add: le_iff_inf nprt_def inf_ACI inf_assoc [symmetric, of a])
 
 end
 
@@ -1240,6 +1202,7 @@ proof
   qed
   have abs_leI: "\<And>a b. a \<le> b \<Longrightarrow> - a \<le> b \<Longrightarrow> \<bar>a\<bar> \<le> b"
     by (simp add: abs_lattice le_supI)
+<<<<<<< local
   fix a b
   show "0 \<le> \<bar>a\<bar>" by simp
   show "a \<le> \<bar>a\<bar>"
@@ -1260,6 +1223,36 @@ proof
       by (drule_tac abs_leI, auto)
     with g[symmetric] show ?thesis by simp
   qed
+=======
+  show ?thesis
+  proof
+    fix a
+    show "0 \<le> \<bar>a\<bar>" by simp
+  next
+    fix a
+    show "a \<le> \<bar>a\<bar>" by (auto simp add: abs_lattice)
+  next
+    fix a
+    show "\<bar>-a\<bar> = \<bar>a\<bar>" by (simp add: abs_lattice sup_commute)
+  next
+    fix a b
+    show "a \<le> b \<Longrightarrow> - a \<le> b \<Longrightarrow> \<bar>a\<bar> \<le> b" by (erule abs_leI)
+  next
+    fix a b
+    show "\<bar>a + b\<bar> \<le> \<bar>a\<bar> + \<bar>b\<bar>"
+    proof -
+      have g:"abs a + abs b = sup (a+b) (sup (-a-b) (sup (-a+b) (a + (-b))))" (is "_=sup ?m ?n")
+        by (simp add: abs_lattice add_sup_inf_distribs sup_ACI diff_minus)
+      have a:"a+b <= sup ?m ?n" by (simp)
+      have b:"-a-b <= ?n" by (simp) 
+      have c:"?n <= sup ?m ?n" by (simp)
+      from b c have d: "-a-b <= sup ?m ?n" by(rule order_trans)
+      have e:"-a-b = -(a+b)" by (simp add: diff_minus)
+      from a d e have "abs(a+b) <= sup ?m ?n" by (drule_tac abs_leI, auto)
+      with g[symmetric] show ?thesis by simp
+    qed
+  qed auto
+>>>>>>> other
 qed
 
 end
@@ -1276,7 +1269,7 @@ qed
 lemma abs_if_lattice:
   fixes a :: "'a\<Colon>{lordered_ab_group_add_abs, linorder}"
   shows "\<bar>a\<bar> = (if a < 0 then - a else a)"
-  by auto
+by auto
 
 
 text {* Needed for abelian cancellation simprocs: *}
@@ -1322,7 +1315,7 @@ lemma estimate_by_abs:
   "a + b <= (c::'a::lordered_ab_group_add_abs) \<Longrightarrow> a <= c + abs b" 
 proof -
   assume "a+b <= c"
-  hence 2: "a <= c+(-b)" by (simp add: group_simps)
+  hence 2: "a <= c+(-b)" by (simp add: algebra_simps)
   have 3: "(-b) <= abs b" by (rule abs_ge_minus_self)
   show ?thesis by (rule le_add_right_mono[OF 2 3])
 qed

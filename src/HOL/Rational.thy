@@ -172,7 +172,7 @@ next
     by (cases q) (simp add: One_rat_def eq_rat)
 next
   fix q r s :: rat show "(q + r) + s = q + (r + s)"
-    by (cases q, cases r, cases s) (simp add: eq_rat ring_simps)
+    by (cases q, cases r, cases s) (simp add: eq_rat algebra_simps)
 next
   fix q r :: rat show "q + r = r + q"
     by (cases q, cases r) (simp add: eq_rat)
@@ -187,7 +187,7 @@ next
     by (cases q, cases r) (simp add: eq_rat)
 next
   fix q r s :: rat show "(q + r) * s = q * s + r * s"
-    by (cases q, cases r, cases s) (simp add: eq_rat ring_simps)
+    by (cases q, cases r, cases s) (simp add: eq_rat algebra_simps)
 next
   show "(0::rat) \<noteq> 1" by (simp add: Zero_rat_def One_rat_def eq_rat)
 next
