@@ -40,7 +40,7 @@ apply (subst lemma_realpow_diff_sumr)
 apply (simp add: right_distrib del: setsum_op_ivl_Suc)
 apply (subst mult_left_commute [where a="x - y"])
 apply (erule subst)
-apply (simp add: power_Suc ring_simps)
+apply (simp add: power_Suc algebra_simps)
 done
 
 lemma lemma_realpow_rev_sumr:
@@ -146,8 +146,7 @@ lemma lemma_termdiff1:
   fixes z :: "'a :: {recpower,comm_ring}" shows
   "(\<Sum>p=0..<m. (((z + h) ^ (m - p)) * (z ^ p)) - (z ^ m)) =  
    (\<Sum>p=0..<m. (z ^ p) * (((z + h) ^ (m - p)) - (z ^ (m - p))))"
-by (auto simp add: right_distrib diff_minus power_add [symmetric] mult_ac
-  cong: strong_setsum_cong)
+by(auto simp add: algebra_simps power_add [symmetric] cong: strong_setsum_cong)
 
 lemma sumr_diff_mult_const2:
   "setsum f {0..<n} - of_nat n * (r::'a::ring_1) = (\<Sum>i = 0..<n. f i - r)"
@@ -406,7 +405,7 @@ proof (rule LIM_zero_cancel)
       apply (rule summable_diff [OF B A])
       apply (rule sums_summable [OF diffs_equiv [OF C]])
       apply (rule arg_cong [where f="suminf"], rule ext)
-      apply (simp add: ring_simps)
+      apply (simp add: algebra_simps)
       done
   next
     show "(\<lambda>h. \<Sum>n. c n * (((x + h) ^ n - x ^ n) / h -
@@ -1122,7 +1121,7 @@ lemma lemma_DERIV_sin_cos_add:
 apply (safe, rule lemma_DERIV_subst)
 apply (best intro!: DERIV_intros intro: DERIV_chain2) 
   --{*replaces the old @{text DERIV_tac}*}
-apply (auto simp add: diff_minus left_distrib right_distrib mult_ac add_ac)
+apply (auto simp add: algebra_simps)
 done
 
 lemma sin_cos_add [simp]:
@@ -1146,8 +1145,8 @@ done
 lemma lemma_DERIV_sin_cos_minus:
     "\<forall>x. DERIV (%x. (sin(-x) + (sin x)) ^ 2 + (cos(-x) - (cos x)) ^ 2) x :> 0"
 apply (safe, rule lemma_DERIV_subst)
-apply (best intro!: DERIV_intros intro: DERIV_chain2) 
-apply (auto simp add: diff_minus left_distrib right_distrib mult_ac add_ac)
+apply (best intro!: DERIV_intros intro: DERIV_chain2)
+apply (simp add: algebra_simps)
 done
 
 lemma sin_cos_minus: 
@@ -1520,9 +1519,8 @@ lemma cos_zero_lemma:
 apply (drule pi_gt_zero [THEN reals_Archimedean4], safe)
 apply (subgoal_tac "0 \<le> x - real n * pi & 
                     (x - real n * pi) \<le> pi & (cos (x - real n * pi) = 0) ")
-apply (auto simp add: compare_rls) 
-  prefer 3 apply (simp add: cos_diff) 
- prefer 2 apply (simp add: real_of_nat_Suc left_distrib) 
+apply (auto simp add: algebra_simps real_of_nat_Suc)
+ prefer 2 apply (simp add: cos_diff)
 apply (simp add: cos_diff)
 apply (subgoal_tac "EX! x. 0 \<le> x & x \<le> pi & cos x = 0")
 apply (rule_tac [2] cos_total, safe)
@@ -1530,7 +1528,7 @@ apply (drule_tac x = "x - real n * pi" in spec)
 apply (drule_tac x = "pi/2" in spec)
 apply (simp add: cos_diff)
 apply (rule_tac x = "Suc (2 * n)" in exI)
-apply (simp add: real_of_nat_Suc left_distrib, auto)
+apply (simp add: real_of_nat_Suc algebra_simps, auto)
 done
 
 lemma sin_zero_lemma:
@@ -1601,7 +1599,7 @@ apply (auto simp del: inverse_mult_distrib
 apply (rule_tac c1 = "cos x * cos y" in real_mult_right_cancel [THEN subst])
 apply (auto simp del: inverse_mult_distrib 
             simp add: mult_assoc left_diff_distrib cos_add)
-done  
+done
 
 lemma add_tan_eq: 
       "[| cos x \<noteq> 0; cos y \<noteq> 0 |]  
@@ -1982,7 +1980,7 @@ proof -
   also have "\<dots> = (?c * ?c - ?s * ?s) * ?c - (?s * ?c + ?c * ?s) * ?s"
     by (simp only: cos_add sin_add)
   also have "\<dots> = ?c * (?c\<twosuperior> - 3 * ?s\<twosuperior>)"
-    by (simp add: ring_simps power2_eq_square)
+    by (simp add: algebra_simps power2_eq_square)
   finally have "?c\<twosuperior> = (sqrt 3 / 2)\<twosuperior>"
     using pos_c by (simp add: sin_squared_eq power_divide)
   thus ?thesis
@@ -2051,7 +2049,7 @@ done
 lemma sin_cos_npi [simp]: "sin (real (Suc (2 * n)) * pi / 2) = (-1) ^ n"
 proof -
   have "sin ((real n + 1/2) * pi) = cos (real n * pi)"
-    by (auto simp add: right_distrib sin_add left_distrib mult_ac)
+    by (auto simp add: algebra_simps sin_add)
   thus ?thesis
     by (simp add: real_of_nat_Suc left_distrib add_divide_distrib 
                   mult_commute [of pi])

@@ -240,7 +240,7 @@ proof -
     by (simp only: of_int_mult[symmetric] of_int_add [symmetric])
   then have "of_int x / of_int d = ?t / of_int d" 
     using cong[OF refl[of ?f] eq] by simp
-  then show ?thesis by (simp add: add_divide_distrib ring_simps prems)
+  then show ?thesis by (simp add: add_divide_distrib algebra_simps prems)
 qed
 
 lemma of_int_div: "(d::int) ~= 0 ==> d dvd n ==>

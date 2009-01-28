@@ -532,15 +532,15 @@ lemma card_atLeastLessThan_int [simp]: "card {l..<u} = nat (u - l)"
   done
 
 lemma card_atLeastAtMost_int [simp]: "card {l..u} = nat (u - l + 1)"
-  apply (subst atLeastLessThanPlusOne_atLeastAtMost_int [THEN sym])
-  apply (auto simp add: compare_rls)
-  done
+apply (subst atLeastLessThanPlusOne_atLeastAtMost_int [THEN sym])
+apply (auto simp add: algebra_simps)
+done
 
 lemma card_greaterThanAtMost_int [simp]: "card {l<..u} = nat (u - l)"
-  by (subst atLeastPlusOneAtMost_greaterThanAtMost_int [THEN sym], simp)
+by (subst atLeastPlusOneAtMost_greaterThanAtMost_int [THEN sym], simp)
 
 lemma card_greaterThanLessThan_int [simp]: "card {l<..<u} = nat (u - (l + 1))"
-  by (subst atLeastPlusOneLessThan_greaterThanLessThan_int [THEN sym], simp)
+by (subst atLeastPlusOneLessThan_greaterThanLessThan_int [THEN sym], simp)
 
 lemma finite_M_bounded_by_nat: "finite {k. P k \<and> k < (i::nat)}"
 proof -
@@ -806,7 +806,7 @@ by (simp add: setsum_head atLeastSucAtMost_greaterThanAtMost)
 lemma setsum_head_upt_Suc:
   "m < n \<Longrightarrow> setsum f {m..<n} = f m + setsum f {Suc m..<n}"
 apply(insert setsum_head_Suc[of m "n - 1" f])
-apply (simp add: atLeastLessThanSuc_atLeastAtMost[symmetric] ring_simps)
+apply (simp add: atLeastLessThanSuc_atLeastAtMost[symmetric] algebra_simps)
 done
 
 
@@ -870,7 +870,7 @@ proof (induct n)
   show ?case by simp
 next
   case (Suc n)
-  then show ?case by (simp add: ring_simps)
+  then show ?case by (simp add: algebra_simps)
 qed
 
 theorem arith_series_general:
@@ -894,11 +894,11 @@ proof cases
   have "(1+1)*?n*a + d*(1+1)*(\<Sum>i\<in>{1..n - 1}. ?I i) = ((1+1)*?n*a + d*?I (n - 1)*?I n)"
     by (simp only: mult_ac gauss_sum [of "n - 1"])
        (simp add:  mult_ac trans [OF add_commute of_nat_Suc [symmetric]])
-  finally show ?thesis by (simp add: mult_ac add_ac right_distrib)
+  finally show ?thesis by (simp add: algebra_simps)
 next
   assume "\<not>(n > 1)"
   hence "n = 1 \<or> n = 0" by auto
-  thus ?thesis by (auto simp: mult_ac right_distrib)
+  thus ?thesis by (auto simp: algebra_simps)
 qed
 
 lemma arith_series_nat:

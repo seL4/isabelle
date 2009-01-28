@@ -254,7 +254,7 @@ lemma cong_le: "y <= x \<Longrightarrow> [x = y] (mod n) \<longleftrightarrow> (
   apply (simp add: nat_mod)
   apply (rule_tac x="q" in exI)
   apply (rule_tac x="q + q" in exI)
-  by (auto simp: ring_simps)
+  by (auto simp: algebra_simps)
 
 lemma cong_to_1: "[a = 1] (mod n) \<longleftrightarrow> a = 0 \<and> n = 1 \<or> (\<exists>m. a = 1 + m * n)"
 proof-
@@ -780,7 +780,7 @@ proof-
 	of "(n - 1) div m * m"]
       have yn: "coprime ?y n" by (simp add: coprime_commute) 
       have "?y mod n = (a^m)^((n - 1) div m) mod n" 
-	by (simp add: ring_simps power_mult)
+	by (simp add: algebra_simps power_mult)
       also have "\<dots> = (a^m mod n)^((n - 1) div m) mod n" 
 	using power_mod[of "a^m" n "(n - 1) div m"] by simp
       also have "\<dots> = 1" using m(3)[unfolded modeq_def onen] onen 
@@ -1239,7 +1239,7 @@ proof-
   from bqn psp qrn
   have bqn: "a ^ (n - 1) mod n = 1"
     and psp: "list_all (\<lambda>p. prime p \<and> coprime (a^(r *(q div p)) mod n - 1) n) ps"  unfolding arnb[symmetric] power_mod 
-    by (simp_all add: power_mult[symmetric] ring_simps)
+    by (simp_all add: power_mult[symmetric] algebra_simps)
   from n  have n0: "n > 0" by arith
   from mod_div_equality[of "a^(n - 1)" n]
     mod_less_divisor[OF n0, of "a^(n - 1)"]
@@ -1248,7 +1248,7 @@ proof-
     apply -
     apply (rule exI[where x="0"])
     apply (rule exI[where x="a^(n - 1) div n"])
-    by (simp add: ring_simps)
+    by (simp add: algebra_simps)
   {fix p assume p: "prime p" "p dvd q"
     from psp psq have pfpsq: "primefact ps q"
       by (auto simp add: primefact_variant list_all_iff)

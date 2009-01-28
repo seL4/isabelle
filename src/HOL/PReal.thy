@@ -718,7 +718,7 @@ proof (cases z rule: int_cases)
     case (Suc k)
       from this obtain b where "b \<in> A" "b + of_nat k * u \<in> A" ..
       hence "b + of_int (int k)*u + u \<in> A" by (simp add: prems)
-      thus ?case by (force simp add: left_distrib add_ac prems) 
+      thus ?case by (force simp add: algebra_simps prems) 
   qed
 next
   case (neg n)
@@ -815,7 +815,7 @@ proof -
     proof -
       have "r + ?d < r + (r * ?d)/y" by (simp add: dless)
       also with ypos have "... = (r/y) * (y + ?d)"
-	by (simp only: right_distrib divide_inverse mult_ac, simp)
+	by (simp only: algebra_simps divide_inverse, simp)
       also have "... = r*x" using ypos
 	by (simp add: times_divide_eq_left) 
       finally show "r + ?d < r*x" .

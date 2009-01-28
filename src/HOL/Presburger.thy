@@ -59,7 +59,7 @@ lemma inf_period:
   "(d::'a::{comm_ring,Ring_and_Field.dvd}) dvd D \<Longrightarrow> \<forall>x k. (d dvd x + t) = (d dvd (x - k*D) + t)"
   "(d::'a::{comm_ring,Ring_and_Field.dvd}) dvd D \<Longrightarrow> \<forall>x k. (\<not>d dvd x + t) = (\<not>d dvd (x - k*D) + t)"
   "\<forall>x k. F = F"
-apply (auto elim!: dvdE simp add: ring_simps)
+apply (auto elim!: dvdE simp add: algebra_simps)
 unfolding mult_assoc [symmetric] left_distrib [symmetric] left_diff_distrib [symmetric]
 unfolding dvd_def mult_commute [of d] 
 by auto
@@ -101,7 +101,7 @@ next
   {fix x assume nob: "\<forall>j\<in>{1 .. D}. \<forall>b\<in>B. x \<noteq> b + j" and g: "x > t" and ng: "\<not> (x - D) > t"
     hence "x -t \<le> D" and "1 \<le> x - t" by simp+
       hence "\<exists>j \<in> {1 .. D}. x - t = j" by auto
-      hence "\<exists>j \<in> {1 .. D}. x = t + j" by (simp add: ring_simps)
+      hence "\<exists>j \<in> {1 .. D}. x = t + j" by (simp add: algebra_simps)
       with nob tB have "False" by simp}
   thus "\<forall>x.(\<forall>j\<in>{1 .. D}. \<forall>b\<in>B. x \<noteq> b + j)\<longrightarrow> (x > t) \<longrightarrow> (x - D > t)" by blast
 next
@@ -109,7 +109,7 @@ next
   {fix x assume nob: "\<forall>j\<in>{1 .. D}. \<forall>b\<in>B. x \<noteq> b + j" and g: "x \<ge> t" and ng: "\<not> (x - D) \<ge> t"
     hence "x - (t - 1) \<le> D" and "1 \<le> x - (t - 1)" by simp+
       hence "\<exists>j \<in> {1 .. D}. x - (t - 1) = j" by auto
-      hence "\<exists>j \<in> {1 .. D}. x = (t - 1) + j" by (simp add: ring_simps)
+      hence "\<exists>j \<in> {1 .. D}. x = (t - 1) + j" by (simp add: algebra_simps)
       with nob tB have "False" by simp}
   thus "\<forall>x.(\<forall>j\<in>{1 .. D}. \<forall>b\<in>B. x \<noteq> b + j)\<longrightarrow> (x \<ge> t) \<longrightarrow> (x - D \<ge> t)" by blast
 next
@@ -119,7 +119,7 @@ next
 next
   assume d: "d dvd D"
   {fix x assume H: "\<not>(d dvd x + t)" with d have "\<not> d dvd (x - D) + t"
-      by (clarsimp simp add: dvd_def,erule_tac x= "ka + k" in allE,simp add: ring_simps)}
+      by (clarsimp simp add: dvd_def,erule_tac x= "ka + k" in allE,simp add: algebra_simps)}
   thus "\<forall>(x::int).(\<forall>j\<in>{1 .. D}. \<forall>b\<in>B. x \<noteq> b + j)\<longrightarrow> (\<not>d dvd x+t) \<longrightarrow> (\<not>d dvd (x - D) + t)" by auto
 qed blast
 
@@ -158,26 +158,26 @@ next
   {fix x assume nob: "\<forall>j\<in>{1 .. D}. \<forall>b\<in>A. x \<noteq> b - j" and g: "x < t" and ng: "\<not> (x + D) < t"
     hence "t - x \<le> D" and "1 \<le> t - x" by simp+
       hence "\<exists>j \<in> {1 .. D}. t - x = j" by auto
-      hence "\<exists>j \<in> {1 .. D}. x = t - j" by (auto simp add: ring_simps) 
+      hence "\<exists>j \<in> {1 .. D}. x = t - j" by (auto simp add: algebra_simps) 
       with nob tA have "False" by simp}
   thus "\<forall>x.(\<forall>j\<in>{1 .. D}. \<forall>b\<in>A. x \<noteq> b - j)\<longrightarrow> (x < t) \<longrightarrow> (x + D < t)" by blast
 next
   assume dp: "D > 0" and tA:"t + 1\<in> A"
   {fix x assume nob: "\<forall>j\<in>{1 .. D}. \<forall>b\<in>A. x \<noteq> b - j" and g: "x \<le> t" and ng: "\<not> (x + D) \<le> t"
-    hence "(t + 1) - x \<le> D" and "1 \<le> (t + 1) - x" by (simp_all add: ring_simps)
+    hence "(t + 1) - x \<le> D" and "1 \<le> (t + 1) - x" by (simp_all add: algebra_simps)
       hence "\<exists>j \<in> {1 .. D}. (t + 1) - x = j" by auto
-      hence "\<exists>j \<in> {1 .. D}. x = (t + 1) - j" by (auto simp add: ring_simps)
+      hence "\<exists>j \<in> {1 .. D}. x = (t + 1) - j" by (auto simp add: algebra_simps)
       with nob tA have "False" by simp}
   thus "\<forall>x.(\<forall>j\<in>{1 .. D}. \<forall>b\<in>A. x \<noteq> b - j)\<longrightarrow> (x \<le> t) \<longrightarrow> (x + D \<le> t)" by blast
 next
   assume d: "d dvd D"
   {fix x assume H: "d dvd x + t" with d have "d dvd (x + D) + t"
-      by (clarsimp simp add: dvd_def,rule_tac x= "ka + k" in exI,simp add: ring_simps)}
+      by (clarsimp simp add: dvd_def,rule_tac x= "ka + k" in exI,simp add: algebra_simps)}
   thus "\<forall>(x::int).(\<forall>j\<in>{1 .. D}. \<forall>b\<in>A. x \<noteq> b - j)\<longrightarrow> (d dvd x+t) \<longrightarrow> (d dvd (x + D) + t)" by simp
 next
   assume d: "d dvd D"
   {fix x assume H: "\<not>(d dvd x + t)" with d have "\<not>d dvd (x + D) + t"
-      by (clarsimp simp add: dvd_def,erule_tac x= "ka - k" in allE,simp add: ring_simps)}
+      by (clarsimp simp add: dvd_def,erule_tac x= "ka - k" in allE,simp add: algebra_simps)}
   thus "\<forall>(x::int).(\<forall>j\<in>{1 .. D}. \<forall>b\<in>A. x \<noteq> b - j)\<longrightarrow> (\<not>d dvd x+t) \<longrightarrow> (\<not>d dvd (x + D) + t)" by auto
 qed blast
 
@@ -304,7 +304,7 @@ proof
   from ePeqP1 obtain z where P1eqP: "\<forall>x>z. P x = P' x" ..
   let ?w' = "x + (abs(x-z)+1) * d"
   let ?w = "x - (-(abs(x-z) + 1))*d"
-  have ww'[simp]: "?w = ?w'" by (simp add: ring_simps)
+  have ww'[simp]: "?w = ?w'" by (simp add: algebra_simps)
   from dpos have w: "?w > z" by(simp only: ww' incr_lemma)
   hence "P' x = P' ?w" using P1eqP1 by blast
   also have "\<dots> = P(?w)" using w P1eqP by blast

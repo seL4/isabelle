@@ -173,11 +173,11 @@ where
 
 text {* mkPinj preserve semantics *}
 lemma mkPinj_ci: "Ipol l (mkPinj a B) = Ipol l (Pinj a B)"
-  by (induct B) (auto simp add: mkPinj_def ring_simps)
+  by (induct B) (auto simp add: mkPinj_def algebra_simps)
 
 text {* mkPX preserves semantics *}
 lemma mkPX_ci: "Ipol l (mkPX A b C) = Ipol l (PX A b C)"
-  by (cases A) (auto simp add: mkPX_def mkPinj_ci power_add ring_simps)
+  by (cases A) (auto simp add: mkPX_def mkPinj_ci power_add algebra_simps)
 
 text {* Correctness theorems for the implemented operations *}
 
@@ -192,13 +192,13 @@ proof (induct P Q arbitrary: l rule: add.induct)
   show ?case
   proof (rule linorder_cases)
     assume "x < y"
-    with 6 show ?case by (simp add: mkPinj_ci ring_simps)
+    with 6 show ?case by (simp add: mkPinj_ci algebra_simps)
   next
     assume "x = y"
     with 6 show ?case by (simp add: mkPinj_ci)
   next
     assume "x > y"
-    with 6 show ?case by (simp add: mkPinj_ci ring_simps)
+    with 6 show ?case by (simp add: mkPinj_ci algebra_simps)
   qed
 next
   case (7 x P Q y R)
@@ -206,7 +206,7 @@ next
   moreover
   { assume "x = 0" with 7 have ?case by simp }
   moreover
-  { assume "x = 1" with 7 have ?case by (simp add: ring_simps) }
+  { assume "x = 1" with 7 have ?case by (simp add: algebra_simps) }
   moreover
   { assume "x > 1" from 7 have ?case by (cases x) simp_all }
   ultimately show ?case by blast
@@ -225,20 +225,20 @@ next
   show ?case
   proof (rule linorder_cases)
     assume a: "x < y" hence "EX d. d + x = y" by arith
-    with 9 a show ?case by (auto simp add: mkPX_ci power_add ring_simps)
+    with 9 a show ?case by (auto simp add: mkPX_ci power_add algebra_simps)
   next
     assume a: "y < x" hence "EX d. d + y = x" by arith
-    with 9 a show ?case by (auto simp add: power_add mkPX_ci ring_simps)
+    with 9 a show ?case by (auto simp add: power_add mkPX_ci algebra_simps)
   next
     assume "x = y"
-    with 9 show ?case by (simp add: mkPX_ci ring_simps)
+    with 9 show ?case by (simp add: mkPX_ci algebra_simps)
   qed
-qed (auto simp add: ring_simps)
+qed (auto simp add: algebra_simps)
 
 text {* Multiplication *}
 lemma mul_ci: "Ipol l (P \<otimes> Q) = Ipol l P * Ipol l Q"
   by (induct P Q arbitrary: l rule: mul.induct)
-    (simp_all add: mkPX_ci mkPinj_ci ring_simps add_ci power_add)
+    (simp_all add: mkPX_ci mkPinj_ci algebra_simps add_ci power_add)
 
 text {* Substraction *}
 lemma sub_ci: "Ipol l (P \<ominus> Q) = Ipol l P - Ipol l Q"
@@ -247,7 +247,7 @@ lemma sub_ci: "Ipol l (P \<ominus> Q) = Ipol l P - Ipol l Q"
 text {* Square *}
 lemma sqr_ci: "Ipol ls (sqr P) = Ipol ls P * Ipol ls P"
   by (induct P arbitrary: ls)
-    (simp_all add: add_ci mkPinj_ci mkPX_ci mul_ci ring_simps power_add)
+    (simp_all add: add_ci mkPinj_ci mkPX_ci mul_ci algebra_simps power_add)
 
 text {* Power *}
 lemma even_pow:"even n \<Longrightarrow> pow n P = pow (n div 2) (sqr P)"

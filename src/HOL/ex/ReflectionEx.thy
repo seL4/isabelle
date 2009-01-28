@@ -183,7 +183,7 @@ recdef lin_add "measure (\<lambda>(x,y). ((size x) + (size y)))"
 lemma lin_add: "Inum (lin_add (t,s)) bs = Inum (Add t s) bs"
 apply (induct t s rule: lin_add.induct, simp_all add: Let_def)
 apply (case_tac "c1+c2 = 0",case_tac "n1 \<le> n2", simp_all)
-by (case_tac "n1 = n2", simp_all add: ring_simps)
+by (case_tac "n1 = n2", simp_all add: algebra_simps)
 
 consts lin_mul :: "num \<Rightarrow> nat \<Rightarrow> num"
 recdef lin_mul "measure size "
@@ -192,7 +192,7 @@ recdef lin_mul "measure size "
   "lin_mul t = (\<lambda> i. Mul i t)"
 
 lemma lin_mul: "Inum (lin_mul t i) bs = Inum (Mul i t) bs"
-by (induct t arbitrary: i rule: lin_mul.induct, auto simp add: ring_simps)
+by (induct t arbitrary: i rule: lin_mul.induct, auto simp add: algebra_simps)
 
 consts linum:: "num \<Rightarrow> num"
 recdef linum "measure num_size"

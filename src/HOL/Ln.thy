@@ -187,7 +187,7 @@ lemma ln_one_minus_pos_upper_bound: "0 <= x ==> x < 1 ==> ln (1 - x) <= - x"
 proof -
   assume a: "0 <= (x::real)" and b: "x < 1"
   have "(1 - x) * (1 + x + x^2) = (1 - x^3)"
-    by (simp add: ring_simps power2_eq_square power3_eq_cube)
+    by (simp add: algebra_simps power2_eq_square power3_eq_cube)
   also have "... <= 1"
     by (auto simp add: a)
   finally have "(1 - x) * (1 + x + x ^ 2) <= 1" .
@@ -325,10 +325,10 @@ proof -
     done
   also have "... <= 2 * x^2"
     apply (subgoal_tac "- (-x) - 2 * (-x)^2 <= ln (1 - (-x))")
-    apply (simp add: compare_rls)
+    apply (simp add: algebra_simps)
     apply (rule ln_one_minus_pos_lower_bound)
     apply (insert prems, auto)
-    done 
+    done
   finally show ?thesis .
 qed
 
@@ -375,7 +375,7 @@ lemma DERIV_ln: "0 < x ==> DERIV ln x :> 1 / x"
   apply simp
   apply (subst ln_div [THEN sym])
   apply arith
-  apply (auto simp add: ring_simps add_frac_eq frac_eq_eq 
+  apply (auto simp add: algebra_simps add_frac_eq frac_eq_eq 
     add_divide_distrib power2_eq_square)
   apply (rule mult_pos_pos, assumption)+
   apply assumption
@@ -394,7 +394,7 @@ proof -
     apply auto
     done
   have "x * ln y - x * ln x = x * (ln y - ln x)"
-    by (simp add: ring_simps)
+    by (simp add: algebra_simps)
   also have "... = x * ln(y / x)"
     apply (subst ln_div)
     apply (rule b, rule a, rule refl)

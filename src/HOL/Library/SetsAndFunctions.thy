@@ -101,8 +101,8 @@ instance "fun" :: (type,comm_monoid_mult)comm_monoid_mult
 
 instance "fun" :: (type,comm_ring_1)comm_ring_1
   apply default
-   apply (auto simp add: func_plus func_times fun_Compl_def fun_diff_def ext
-     func_one func_zero ring_simps)
+   apply (auto simp add: func_plus func_times fun_Compl_def fun_diff_def
+     func_one func_zero algebra_simps)
   apply (drule fun_cong)
   apply simp
   done

@@ -845,12 +845,13 @@ text{*first, four lemmas to bound the remainder for the cases b<0 and b>0 *}
 
 lemma zmult2_lemma_aux1: "[| (0::int) < c;  b < r;  r \<le> 0 |] ==> b*c < b*(q mod c) + r"
 apply (subgoal_tac "b * (c - q mod c) < r * 1")
-apply (simp add: right_diff_distrib)
+ apply (simp add: algebra_simps)
 apply (rule order_le_less_trans)
-apply (erule_tac [2] mult_strict_right_mono)
-apply (rule mult_left_mono_neg)
-apply (auto simp add: compare_rls add_commute [of 1]
-                      add1_zle_eq pos_mod_bound)
+ apply (erule_tac [2] mult_strict_right_mono)
+ apply (rule mult_left_mono_neg)
+  using add1_zle_eq[of "q mod c"]apply(simp add: algebra_simps pos_mod_bound)
+ apply (simp)
+apply (simp)
 done
 
 lemma zmult2_lemma_aux2:
@@ -868,12 +869,13 @@ done
 
 lemma zmult2_lemma_aux4: "[| (0::int) < c; 0 \<le> r; r < b |] ==> b * (q mod c) + r < b * c"
 apply (subgoal_tac "r * 1 < b * (c - q mod c) ")
-apply (simp add: right_diff_distrib)
+ apply (simp add: right_diff_distrib)
 apply (rule order_less_le_trans)
-apply (erule mult_strict_right_mono)
-apply (rule_tac [2] mult_left_mono)
-apply (auto simp add: compare_rls add_commute [of 1]
-                      add1_zle_eq pos_mod_bound)
+ apply (erule mult_strict_right_mono)
+ apply (rule_tac [2] mult_left_mono)
+  apply simp
+ using add1_zle_eq[of "q mod c"] apply (simp add: algebra_simps pos_mod_bound)
+apply simp
 done
 
 lemma zmult2_lemma: "[| divmod_rel a b (q, r);  b \<noteq> 0;  0 < c |]  
@@ -1265,7 +1267,7 @@ lemma zdvd_not_zless: "0 < m ==> m < n ==> \<not> n dvd (m::int)"
 
 lemma zmult_div_cancel: "(n::int) * (m div n) = m - (m mod n)"
   using zmod_zdiv_equality[where a="m" and b="n"]
-  by (simp add: ring_simps)
+  by (simp add: algebra_simps)
 
 lemma zdvd_mult_div_cancel:"(n::int) dvd m \<Longrightarrow> n * (m div n) = m"
 apply (subgoal_tac "m mod n = 0")

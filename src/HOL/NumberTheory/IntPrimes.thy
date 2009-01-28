@@ -146,7 +146,7 @@ lemma zcong_zdiff:
 lemma zcong_trans:
     "[a = b] (mod m) ==> [b = c] (mod m) ==> [a = c] (mod m)"
   unfolding zcong_def
-  apply (auto elim!: dvdE simp add: ring_simps)
+  apply (auto elim!: dvdE simp add: algebra_simps)
   unfolding left_distrib [symmetric]
   apply (rule dvd_mult dvd_refl)+
   done
@@ -255,7 +255,7 @@ lemma zcong_zless_unique:
 
 lemma zcong_iff_lin: "([a = b] (mod m)) = (\<exists>k. b = a + m * k)"
   unfolding zcong_def
-  apply (auto elim!: dvdE simp add: ring_simps)
+  apply (auto elim!: dvdE simp add: algebra_simps)
   apply (rule_tac x = "-k" in exI) apply simp
   done
 
