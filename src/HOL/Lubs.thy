@@ -1,5 +1,4 @@
 (*  Title       : Lubs.thy
-    ID          : $Id$
     Author      : Jacques D. Fleuriot
     Copyright   : 1998  University of Cambridge
 *)
@@ -7,7 +6,7 @@
 header{*Definitions of Upper Bounds and Least Upper Bounds*}
 
 theory Lubs
-imports Plain
+imports Plain Main
 begin
 
 text{*Thanks to suggestions by James Margetson*}

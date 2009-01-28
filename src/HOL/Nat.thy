@@ -425,6 +425,17 @@ qed
 
 end
 
+instantiation nat :: bot
+begin
+
+definition bot_nat :: nat where
+  "bot_nat = 0"
+
+instance proof
+qed (simp add: bot_nat_def)
+
+end
+
 subsubsection {* Introduction properties *}
 
 lemma lessI [iff]: "n < Suc n"

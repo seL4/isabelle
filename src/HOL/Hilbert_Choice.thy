@@ -1,5 +1,4 @@
 (*  Title:      HOL/Hilbert_Choice.thy
-    ID:         $Id$
     Author:     Lawrence C Paulson
     Copyright   2001  University of Cambridge
 *)
@@ -7,7 +6,7 @@
 header {* Hilbert's Epsilon-Operator and the Axiom of Choice *}
 
 theory Hilbert_Choice
-imports Nat Wellfounded
+imports Nat Wellfounded Plain
 uses ("Tools/meson.ML") ("Tools/specification_package.ML")
 begin
 

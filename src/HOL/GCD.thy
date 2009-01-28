@@ -1,5 +1,4 @@
 (*  Title:      HOL/GCD.thy
-    ID:         $Id$
     Author:     Christophe Tabacznyj and Lawrence C Paulson
     Copyright   1996  University of Cambridge
 *)
@@ -7,7 +6,7 @@
 header {* The Greatest Common Divisor *}
 
 theory GCD
-imports Plain Presburger
+imports Plain Presburger Main
 begin
 
 text {*

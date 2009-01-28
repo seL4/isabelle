@@ -1,5 +1,4 @@
 (*  Title:      HOL/Relation_Power.thy
-    ID:         $Id$
     Author:     Tobias Nipkow
     Copyright   1996  TU Muenchen
 *)
@@ -7,7 +6,7 @@
 header{*Powers of Relations and Functions*}
 
 theory Relation_Power
-imports Power Transitive_Closure
+imports Power Transitive_Closure Plain
 begin
 
 instance
