@@ -8,25 +8,12 @@ theory Nat_Infinity
 imports Plain "~~/src/HOL/Presburger"
 begin
 
-text {* FIXME: move to Nat.thy *}
-
-instantiation nat :: bot
-begin
-
-definition bot_nat :: nat where
-  "bot_nat = 0"
-
-instance proof
-qed (simp add: bot_nat_def)
-
 subsection {* Type definition *}
 
 text {*
   We extend the standard natural numbers by a special value indicating
   infinity.
 *}
-
-end
 
 datatype inat = Fin nat | Infty
 

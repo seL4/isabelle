@@ -1,12 +1,11 @@
-(*  ID:         $Id$
-    Authors:    Lawrence C Paulson, Cambridge University Computer Laboratory
+(*  Authors:    Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1996  University of Cambridge
 *)
 
 header {* Equivalence Relations in Higher-Order Set Theory *}
 
 theory Equiv_Relations
-imports Finite_Set Relation
+imports Finite_Set Relation Plain
 begin
 
 subsection {* Equivalence relations *}

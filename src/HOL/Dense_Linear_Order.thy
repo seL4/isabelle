@@ -1,10 +1,12 @@
-(* Author: Amine Chaieb, TU Muenchen *)
+(*  Title       : HOL/Dense_Linear_Order.thy
+    Author      : Amine Chaieb, TU Muenchen
+*)
 
 header {* Dense linear order without endpoints
   and a quantifier elimination procedure in Ferrante and Rackoff style *}
 
 theory Dense_Linear_Order
-imports Plain Groebner_Basis
+imports Plain Groebner_Basis Main
 uses
   "~~/src/HOL/Tools/Qelim/langford_data.ML"
   "~~/src/HOL/Tools/Qelim/ferrante_rackoff_data.ML"

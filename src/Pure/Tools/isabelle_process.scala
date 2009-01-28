@@ -118,10 +118,10 @@ class IsabelleProcess(isabelle_system: IsabelleSystem,
 
   /* process information */
 
-  private var proc: Process = null
-  private var closing = false
-  private var pid: String = null
-  private var the_session: String = null
+  @volatile private var proc: Process = null
+  @volatile private var closing = false
+  @volatile private var pid: String = null
+  @volatile private var the_session: String = null
   def session = the_session
 
 
