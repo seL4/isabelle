@@ -2887,6 +2887,35 @@ apply(rule_tac a="sort xs" in ex1I)
 apply (auto simp: sorted_distinct_set_unique)
 done
 
+lemma sorted_take:
+  "sorted xs \<Longrightarrow> sorted (take n xs)"
+proof (induct xs arbitrary: n rule: sorted.induct)
+  case 1 show ?case by simp
+next
+  case 2 show ?case by (cases n) simp_all
+next
+  case (3 x y xs)
+  then have "x \<le> y" by simp
+  show ?case proof (cases n)
+    case 0 then show ?thesis by simp
+  next
+    case (Suc m) 
+    with 3 have "sorted (take m (y # xs))" by simp
+    with Suc  `x \<le> y` show ?thesis by (cases m) simp_all
+  qed
+qed
+
+lemma sorted_drop:
+  "sorted xs \<Longrightarrow> sorted (drop n xs)"
+proof (induct xs arbitrary: n rule: sorted.induct)
+  case 1 show ?case by simp
+next
+  case 2 show ?case by (cases n) simp_all
+next
+  case 3 then show ?case by (cases n) simp_all
+qed
+
+
 end
 
 lemma sorted_upt[simp]: "sorted[i..<j]"

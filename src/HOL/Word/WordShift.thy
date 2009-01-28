@@ -1,5 +1,4 @@
 (* 
-    ID:         $Id$
     Author:     Jeremy Dawson and Gerwin Klein, NICTA
 
   contains theorems to do with shifting, rotating, splitting words

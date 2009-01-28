@@ -1,11 +1,8 @@
-(*
-  ID:     $Id$
-  Author: Brian Huffman
-
-  Numeral Syntax for Types
+(*  Title:      HOL/Library/Numeral_Type.thy
+    Author:     Brian Huffman
 *)
 
-header "Numeral Syntax for Types"
+header {* Numeral Syntax for Types *}
 
 theory Numeral_Type
 imports Plain "~~/src/HOL/Presburger"

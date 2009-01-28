@@ -256,7 +256,7 @@ fun add_thm th =
   (case Thm.proof_body_of th of 
     PBody {proof = PThm (_, ((name, _, _), body)), ...} =>
       if Thm.has_name_hint th andalso Thm.get_name_hint th = name
-      then add_proof_body (Lazy.force body)
+      then add_proof_body (Future.join body)
       else I
   | body => add_proof_body body);
 

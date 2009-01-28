@@ -1,5 +1,4 @@
 (* 
-  ID:     $Id$
   Author: Jeremy Dawson and Gerwin Klein, NICTA
   
   Basic definition of word type and basic theorems following from 
@@ -12,8 +11,50 @@ theory WordDefinition
 imports Size BinBoolList TdThs
 begin
 
-typedef (open word) 'a word
-  = "{(0::int) ..< 2^len_of TYPE('a::len0)}" by auto
+subsection {* Type definition *}
+
+typedef (open word) 'a word = "{(0::int) ..< 2^len_of TYPE('a::len0)}"
+  morphisms uint Abs_word by auto
+
+definition word_of_int :: "int \<Rightarrow> 'a\<Colon>len0 word" where
+  -- {* representation of words using unsigned or signed bins, 
+        only difference in these is the type class *}
+  [code del]: "word_of_int w = Abs_word (bintrunc (len_of TYPE ('a)) w)" 
+
+lemma uint_word_of_int [code]: "uint (word_of_int w \<Colon> 'a\<Colon>len0 word) = w mod 2 ^ len_of TYPE('a)"
+  by (auto simp add: word_of_int_def bintrunc_mod2p intro: Abs_word_inverse)
+
+code_datatype word_of_int
+
+
+subsection {* Type conversions and casting *}
+
+definition sint :: "'a :: len word => int" where
+  -- {* treats the most-significant-bit as a sign bit *}
+  sint_uint: "sint w = sbintrunc (len_of TYPE ('a) - 1) (uint w)"
+
+definition unat :: "'a :: len0 word => nat" where
+  "unat w = nat (uint w)"
+
+definition uints :: "nat => int set" where
+  -- "the sets of integers representing the words"
+  "uints n = range (bintrunc n)"
+
+definition sints :: "nat => int set" where
+  "sints n = range (sbintrunc (n - 1))"
+
+definition unats :: "nat => nat set" where
+  "unats n = {i. i < 2 ^ n}"
+
+definition norm_sint :: "nat => int => int" where
+  "norm_sint n w = (w + 2 ^ (n - 1)) mod 2 ^ n - 2 ^ (n - 1)"
+
+definition scast :: "'a :: len word => 'b :: len word" where
+  -- "cast a word to a different length"
+  "scast w = word_of_int (sint w)"
+
+definition ucast :: "'a :: len0 word => 'b :: len0 word" where
+  "ucast w = word_of_int (uint w)"
 
 instantiation word :: (len0) size
 begin
@@ -25,82 +66,38 @@ instance ..
 
 end
 
-definition
-  -- {* representation of words using unsigned or signed bins, 
-        only difference in these is the type class *}
-  word_of_int :: "int \<Rightarrow> 'a\<Colon>len0 word"
-where
-  [code del]: "word_of_int w = Abs_word (bintrunc (len_of TYPE ('a)) w)" 
-
-code_datatype word_of_int
-
-
-subsection "Type conversions and casting"
-
-constdefs
-  -- {* uint and sint cast a word to an integer,
-        uint treats the word as unsigned,
-        sint treats the most-significant-bit as a sign bit *}
-  uint :: "'a :: len0 word => int"
-  "uint w == Rep_word w"
-  sint :: "'a :: len word => int"
-  sint_uint: "sint w == sbintrunc (len_of TYPE ('a) - 1) (uint w)"
-  unat :: "'a :: len0 word => nat"
-  "unat w == nat (uint w)"
-
-  -- "the sets of integers representing the words"
-  uints :: "nat => int set"
-  "uints n == range (bintrunc n)"
-  sints :: "nat => int set"
-  "sints n == range (sbintrunc (n - 1))"
-  unats :: "nat => nat set"
-  "unats n == {i. i < 2 ^ n}"
-  norm_sint :: "nat => int => int"
-  "norm_sint n w == (w + 2 ^ (n - 1)) mod 2 ^ n - 2 ^ (n - 1)"
-
-  -- "cast a word to a different length"
-  scast :: "'a :: len word => 'b :: len word"
-  "scast w == word_of_int (sint w)"
-  ucast :: "'a :: len0 word => 'b :: len0 word"
-  "ucast w == word_of_int (uint w)"
-
+definition source_size :: "('a :: len0 word => 'b) => nat" where
   -- "whether a cast (or other) function is to a longer or shorter length"
-  source_size :: "('a :: len0 word => 'b) => nat"
-  "source_size c == let arb = undefined ; x = c arb in size arb"  
-  target_size :: "('a => 'b :: len0 word) => nat"
-  "target_size c == size (c undefined)"
-  is_up :: "('a :: len0 word => 'b :: len0 word) => bool"
-  "is_up c == source_size c <= target_size c"
-  is_down :: "('a :: len0 word => 'b :: len0 word) => bool"
-  "is_down c == target_size c <= source_size c"
+  "source_size c = (let arb = undefined ; x = c arb in size arb)"  
 
-constdefs
-  of_bl :: "bool list => 'a :: len0 word" 
-  "of_bl bl == word_of_int (bl_to_bin bl)"
-  to_bl :: "'a :: len0 word => bool list"
-  "to_bl w == 
-  bin_to_bl (len_of TYPE ('a)) (uint w)"
+definition target_size :: "('a => 'b :: len0 word) => nat" where
+  "target_size c = size (c undefined)"
 
-  word_reverse :: "'a :: len0 word => 'a word"
-  "word_reverse w == of_bl (rev (to_bl w))"
+definition is_up :: "('a :: len0 word => 'b :: len0 word) => bool" where
+  "is_up c \<longleftrightarrow> source_size c <= target_size c"
 
-constdefs
-  word_int_case :: "(int => 'b) => ('a :: len0 word) => 'b"
-  "word_int_case f w == f (uint w)"
+definition is_down :: "('a :: len0 word => 'b :: len0 word) => bool" where
+  "is_down c \<longleftrightarrow> target_size c <= source_size c"
+
+definition of_bl :: "bool list => 'a :: len0 word" where
+  "of_bl bl = word_of_int (bl_to_bin bl)"
+
+definition to_bl :: "'a :: len0 word => bool list" where
+  "to_bl w = bin_to_bl (len_of TYPE ('a)) (uint w)"
+
+definition word_reverse :: "'a :: len0 word => 'a word" where
+  "word_reverse w = of_bl (rev (to_bl w))"
+
+definition word_int_case :: "(int => 'b) => ('a :: len0 word) => 'b" where
+  "word_int_case f w = f (uint w)"
 
 syntax
   of_int :: "int => 'a"
 translations
-  "case x of of_int y => b" == "word_int_case (%y. b) x"
+  "case x of of_int y => b" == "CONST word_int_case (%y. b) x"
 
 
 subsection  "Arithmetic operations"
-
-declare uint_def [code del]
-
-lemma [code]: "uint (word_of_int w \<Colon> 'a\<Colon>len0 word) = bintrunc (len_of TYPE('a)) w"
-  by (auto simp add: uint_def word_of_int_def intro!: Abs_word_inverse)
-    (insert range_bintrunc, auto)
 
 instantiation word :: (len0) "{number, uminus, minus, plus, one, zero, times, Divides.div, power, ord, bit}"
 begin
@@ -185,8 +182,6 @@ constdefs
 
 
 subsection "Bit-wise operations"
-
-
 
 instantiation word :: (len0) bits
 begin
@@ -337,21 +332,21 @@ lemma mod_in_reps: "m > 0 ==> y mod m : {0::int ..< m}"
   unfolding atLeastLessThan_alt by auto
 
 lemma 
-  Rep_word_0:"0 <= Rep_word x" and 
-  Rep_word_lt: "Rep_word (x::'a::len0 word) < 2 ^ len_of TYPE('a)"
-  by (auto simp: Rep_word [simplified])
+  uint_0:"0 <= uint x" and 
+  uint_lt: "uint (x::'a::len0 word) < 2 ^ len_of TYPE('a)"
+  by (auto simp: uint [simplified])
 
-lemma Rep_word_mod_same:
-  "Rep_word x mod 2 ^ len_of TYPE('a) = Rep_word (x::'a::len0 word)"
-  by (simp add: int_mod_eq Rep_word_lt Rep_word_0)
+lemma uint_mod_same:
+  "uint x mod 2 ^ len_of TYPE('a) = uint (x::'a::len0 word)"
+  by (simp add: int_mod_eq uint_lt uint_0)
 
 lemma td_ext_uint: 
   "td_ext (uint :: 'a word => int) word_of_int (uints (len_of TYPE('a::len0))) 
     (%w::int. w mod 2 ^ len_of TYPE('a))"
   apply (unfold td_ext_def')
-  apply (simp add: uints_num uint_def word_of_int_def bintrunc_mod2p)
-  apply (simp add: Rep_word_mod_same Rep_word_0 Rep_word_lt
-                   word.Rep_word_inverse word.Abs_word_inverse int_mod_lem)
+  apply (simp add: uints_num word_of_int_def bintrunc_mod2p)
+  apply (simp add: uint_mod_same uint_0 uint_lt
+                   word.uint_inverse word.Abs_word_inverse int_mod_lem)
   done
 
 lemmas int_word_uint = td_ext_uint [THEN td_ext.eq_norm, standard]
@@ -793,10 +788,7 @@ lemmas target_size = target_size_def [unfolded Let_def word_size]
 lemmas is_down = is_down_def [unfolded source_size target_size]
 lemmas is_up = is_up_def [unfolded source_size target_size]
 
-lemmas is_up_down = 
-  trans [OF is_up [THEN meta_eq_to_obj_eq] 
-            is_down [THEN meta_eq_to_obj_eq, symmetric], 
-         standard]
+lemmas is_up_down =  trans [OF is_up is_down [symmetric], standard]
 
 lemma down_cast_same': "uc = ucast ==> is_down uc ==> uc = scast"
   apply (unfold is_down)
@@ -949,5 +941,18 @@ lemmas test_bit_def' = word_test_bit_def [THEN fun_cong]
 
 lemmas word_log_defs = word_and_def word_or_def word_xor_def word_not_def
 lemmas word_log_bin_defs = word_log_defs
+
+text {* Executable equality *}
+
+instantiation word :: ("{len0}") eq
+begin
+
+definition eq_word :: "'a word \<Rightarrow> 'a word \<Rightarrow> bool" where
+  "eq_word k l \<longleftrightarrow> HOL.eq (uint k) (uint l)"
+
+instance proof
+qed (simp add: eq eq_word_def)
+
+end
 
 end

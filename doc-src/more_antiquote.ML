@@ -113,13 +113,13 @@ local
   val parse_const_terms = Scan.repeat1 Args.term
     >> (fn ts => fn thy => map (Code_Unit.check_const thy) ts);
   val parse_consts = Scan.lift (Args.parens (Args.$$$ "consts")) |-- parse_const_terms
-    >> (fn mk_cs => fn thy => fn naming => map (the o Code_Thingol.lookup_const naming) (mk_cs thy));
+    >> (fn mk_cs => fn thy => fn naming => map_filter (Code_Thingol.lookup_const naming) (mk_cs thy));
   val parse_types = Scan.lift (Args.parens (Args.$$$ "types") |-- Scan.repeat1 Args.name)
-    >> (fn tycos => fn thy => fn naming => map (the o Code_Thingol.lookup_tyco naming o Sign.intern_type thy) tycos);
+    >> (fn tycos => fn thy => fn naming => map_filter (Code_Thingol.lookup_tyco naming o Sign.intern_type thy) tycos);
   val parse_classes = Scan.lift (Args.parens (Args.$$$ "classes") |-- Scan.repeat1 Args.name)
-    >> (fn classes => fn thy => fn naming => map (the o Code_Thingol.lookup_class naming o Sign.intern_class thy) classes);
+    >> (fn classes => fn thy => fn naming => map_filter (Code_Thingol.lookup_class naming o Sign.intern_class thy) classes);
   val parse_instances = Scan.lift (Args.parens (Args.$$$ "instances") |-- Scan.repeat1 (Args.name --| Args.$$$ "::" -- Args.name))
-    >> (fn insts => fn thy => fn naming => map (the o Code_Thingol.lookup_instance naming o apsnd (Sign.intern_type thy) o apfst (Sign.intern_class thy) o swap) insts);
+    >> (fn insts => fn thy => fn naming => map_filter (Code_Thingol.lookup_instance naming o apsnd (Sign.intern_type thy) o apfst (Sign.intern_class thy) o swap) insts);
   val parse_names = parse_consts || parse_types || parse_classes || parse_instances; 
 
   fun code_stmts src ctxt ((mk_cs, mk_stmtss), target) =

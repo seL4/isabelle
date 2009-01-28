@@ -1,5 +1,4 @@
 (* 
-    ID:         $Id$
     Author:     John Matthews, Galois Connections, Inc., copyright 2006
 
     A typeclass for parameterizing types by size.

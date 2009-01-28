@@ -1,5 +1,4 @@
 (* 
-    ID:         $Id$
     Author:     Jeremy Dawson and Gerwin Klein, NICTA
 
   contains theorems to do with bit-wise (logical) operations on words

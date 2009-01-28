@@ -1,5 +1,4 @@
 (* 
-  ID:     $Id$
   Author: Jeremy Dawson, NICTA
 
   contains basic definition to do with integers

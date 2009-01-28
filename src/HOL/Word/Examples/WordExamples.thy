@@ -1,5 +1,4 @@
 (* 
-  ID:     $Id$
   Author: Gerwin Klein, NICTA
 
   Examples demonstrating and testing various word operations.
@@ -7,8 +6,13 @@
 
 header "Examples of word operations"
 
-theory WordExamples imports WordMain
+theory WordExamples
+imports Word
 begin
+
+types word32 = "32 word"
+types word8 = "8 word"
+types byte = word8
 
 -- "modulus"
 

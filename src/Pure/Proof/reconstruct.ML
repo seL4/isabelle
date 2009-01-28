@@ -358,7 +358,7 @@ fun expand_proof thy thms prf =
                     val _ = message ("Reconstructing proof of " ^ a);
                     val _ = message (Syntax.string_of_term_global thy prop);
                     val prf' = forall_intr_vfs_prf prop
-                      (reconstruct_proof thy prop (force_proof body));
+                      (reconstruct_proof thy prop (join_proof body));
                     val (maxidx', prfs', prf) = expand
                       (maxidx_proof prf' ~1) prfs prf'
                   in (maxidx' + maxidx + 1, inc (maxidx + 1) prf,
