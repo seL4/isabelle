@@ -193,6 +193,8 @@ syntax just like the Isar command 'by'.
 
 *** HOL ***
 
+* Theory "Reflection" now resides in HOL/Library.
+
 * Entry point to Word library now simply named "Word".  INCOMPATIBILITY.
 
 * Made source layout more coherent with logical distribution
