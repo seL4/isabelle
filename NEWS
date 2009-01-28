@@ -314,6 +314,11 @@ preorder_class.*.
 Occasionally this is more convenient than the old fold combinator which is
 now defined in terms of the new one and renamed to fold_image.
 
+* HOL/Ring_and_Field and HOL/OrderedGroup: The lemmas "group_simps" and
+"ring_simps" have been replaced by "algebra_simps" (which can be extended with
+further lemmas!). At the moment both still exist but the former will disappear
+at some point.
+
 * HOL/Ring_and_Field and HOL/Divides: Definition of "op dvd" has been
 moved to separate class dvd in Ring_and_Field; a couple of lemmas on
 dvd has been generalized to class comm_semiring_1.  Likewise a bunch
