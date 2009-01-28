@@ -55,7 +55,7 @@ lemma mult_Min_right: "x * Int.Min = - x" by (subst mult_commute, simp add: mult
 lemma multb0x: "(Int.Bit0 x) * y = Int.Bit0 (x * y)" by (rule mult_Bit0)
 lemma multxb0: "x * (Int.Bit0 y) = Int.Bit0 (x * y)" unfolding Bit0_def by simp
 lemma multb1: "(Int.Bit1 x) * (Int.Bit1 y) = Int.Bit1 (Int.Bit0 (x * y) + x + y)"
-  unfolding Bit0_def Bit1_def by (simp add: ring_simps)
+  unfolding Bit0_def Bit1_def by (simp add: algebra_simps)
 lemmas bitmul = mult_Pls mult_Min mult_Pls_right mult_Min_right multb0x multxb0 multb1
 
 lemmas bitarith = bitnorm bitiszero bitneg bitlezero biteq bitless bitle bitsucc bitpred bituminus bitadd bitmul 
@@ -193,6 +193,3 @@ lemmas compute_numeral = compute_if compute_let compute_pair compute_bool
                          compute_natarith compute_numberarith max_def min_def compute_num_conversions zpowerarith compute_div_mod compute_even
 
 end
-
-
-

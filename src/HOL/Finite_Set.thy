@@ -1033,12 +1033,12 @@ by (induct set: finite) auto
 lemma setsum_Un_nat: "finite A ==> finite B ==>
   (setsum f (A Un B) :: nat) = setsum f A + setsum f B - setsum f (A Int B)"
   -- {* For the natural numbers, we have subtraction. *}
-by (subst setsum_Un_Int [symmetric], auto simp add: ring_simps)
+by (subst setsum_Un_Int [symmetric], auto simp add: algebra_simps)
 
 lemma setsum_Un: "finite A ==> finite B ==>
   (setsum f (A Un B) :: 'a :: ab_group_add) =
    setsum f A + setsum f B - setsum f (A Int B)"
-by (subst setsum_Un_Int [symmetric], auto simp add: ring_simps)
+by (subst setsum_Un_Int [symmetric], auto simp add: algebra_simps)
 
 lemma setsum_diff1_nat: "(setsum f (A - {a}) :: nat) =
   (if a:A then setsum f A - f a else setsum f A)"
@@ -1711,7 +1711,7 @@ done
 lemma setsum_constant [simp]: "(\<Sum>x \<in> A. y) = of_nat(card A) * y"
 apply (cases "finite A")
 apply (erule finite_induct)
-apply (auto simp add: ring_simps)
+apply (auto simp add: algebra_simps)
 done
 
 lemma setprod_constant: "finite A ==> (\<Prod>x\<in> A. (y::'a::{recpower, comm_monoid_mult})) = y^(card A)"
@@ -2220,16 +2220,16 @@ proof -
     thus ?case
     proof
       assume "a = x" thus ?thesis using insert
-        by (simp add: mult_ac_idem)
+        by (simp add: mult_ac)
     next
       assume "a \<in> F"
       hence bel: "fold1 inf F \<le> a" by (rule insert)
       have "inf (fold1 inf (insert x F)) a = inf x (inf (fold1 inf F) a)"
-        using insert by (simp add: mult_ac_idem)
+        using insert by (simp add: mult_ac)
       also have "inf (fold1 inf F) a = fold1 inf F"
         using bel by (auto intro: antisym)
       also have "inf x \<dots> = fold1 inf (insert x F)"
-        using insert by (simp add: mult_ac_idem)
+        using insert by (simp add: mult_ac)
       finally have aux: "inf (fold1 inf (insert x F)) a = fold1 inf (insert x F)" .
       moreover have "inf (fold1 inf (insert x F)) a \<le> a" by simp
       ultimately show ?thesis by simp

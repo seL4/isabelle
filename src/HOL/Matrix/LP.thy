@@ -20,7 +20,7 @@ lemma linprog_dual_estimate:
 proof -
   from prems have 1: "y * b <= y * b'" by (simp add: mult_left_mono)
   from prems have 2: "y * (A * x) <= y * b" by (simp add: mult_left_mono) 
-  have 3: "y * (A * x) = c * x + (y * (A - A') + (y * A' - c') + (c'-c)) * x" by (simp add: ring_simps)  
+  have 3: "y * (A * x) = c * x + (y * (A - A') + (y * A' - c') + (c'-c)) * x" by (simp add: algebra_simps)  
   from 1 2 3 have 4: "c * x + (y * (A - A') + (y * A' - c') + (c'-c)) * x <= y * b'" by simp
   have 5: "c * x <= y * b' + abs((y * (A - A') + (y * A' - c') + (c'-c)) * x)"
     by (simp only: 4 estimate_by_abs)  
@@ -32,7 +32,7 @@ proof -
     by (simp add: abs_triangle_ineq mult_right_mono)    
   have 9: "(abs (y * (A-A')) + abs (y*A'-c') + abs(c'-c)) * abs x <= (abs y * abs (A-A') + abs (y*A'-c') + abs (c'-c)) * abs x"
     by (simp add: abs_le_mult mult_right_mono)  
-  have 10: "c'-c = -(c-c')" by (simp add: ring_simps)
+  have 10: "c'-c = -(c-c')" by (simp add: algebra_simps)
   have 11: "abs (c'-c) = abs (c-c')" 
     by (subst 10, subst abs_minus_cancel, simp)
   have 12: "(abs y * abs (A-A') + abs (y*A'-c') + abs (c'-c)) * abs x <= (abs y * abs (A-A') + abs (y*A'-c') + \<delta>c) * abs x"
@@ -85,7 +85,7 @@ proof -
     apply simp
     done
   then have "a * b = pprt a * pprt b + pprt a * nprt b + nprt a * pprt b + nprt a * nprt b"
-    by (simp add: ring_simps)
+    by (simp add: algebra_simps)
   moreover have "pprt a * pprt b <= pprt a2 * pprt b2"
     by (simp_all add: prems mult_mono)
   moreover have "pprt a * nprt b <= pprt a1 * nprt b2"
@@ -134,10 +134,10 @@ lemma mult_le_dual_prts:
   (is "_ <= _ + ?C")
 proof -
   from prems have "y * (A * x) <= y * b" by (simp add: mult_left_mono) 
-  moreover have "y * (A * x) = c * x + (y * A - c) * x" by (simp add: ring_simps)  
+  moreover have "y * (A * x) = c * x + (y * A - c) * x" by (simp add: algebra_simps)  
   ultimately have "c * x + (y * A - c) * x <= y * b" by simp
   then have "c * x <= y * b - (y * A - c) * x" by (simp add: le_diff_eq)
-  then have cx: "c * x <= y * b + (c - y * A) * x" by (simp add: ring_simps)
+  then have cx: "c * x <= y * b + (c - y * A) * x" by (simp add: algebra_simps)
   have s2: "c - y * A <= c2 - y * A1"
     by (simp add: diff_def prems add_mono mult_left_mono)
   have s1: "c1 - y * A2 <= c - y * A"

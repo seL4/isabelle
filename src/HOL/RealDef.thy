@@ -202,18 +202,17 @@ by (cases z, cases w, simp add: real_mult add_ac mult_ac)
 
 lemma real_mult_assoc: "((z1::real) * z2) * z3 = z1 * (z2 * z3)"
 apply (cases z1, cases z2, cases z3)
-apply (simp add: real_mult right_distrib add_ac mult_ac)
+apply (simp add: real_mult algebra_simps)
 done
 
 lemma real_mult_1: "(1::real) * z = z"
 apply (cases z)
-apply (simp add: real_mult real_one_def right_distrib
-                  mult_1_right mult_ac add_ac)
+apply (simp add: real_mult real_one_def algebra_simps)
 done
 
 lemma real_add_mult_distrib: "((z1::real) + z2) * w = (z1 * w) + (z2 * w)"
 apply (cases z1, cases z2, cases w)
-apply (simp add: real_add real_mult right_distrib add_ac mult_ac)
+apply (simp add: real_add real_mult algebra_simps)
 done
 
 text{*one and zero are distinct*}
@@ -253,7 +252,7 @@ apply (rule_tac
 apply (rule_tac [2]
         x = "Abs_Real (realrel``{(inverse (D) + 1, 1)})" 
        in exI)
-apply (auto simp add: real_mult preal_mult_inverse_right ring_simps)
+apply (auto simp add: real_mult preal_mult_inverse_right algebra_simps)
 done
 
 lemma real_mult_inverse_left: "x \<noteq> 0 ==> inverse(x)*x = (1::real)"
@@ -373,7 +372,7 @@ lemma real_add_left_mono:
   assumes le: "x \<le> y" shows "z + x \<le> z + (y::real)"
 proof -
   have "z + x - (z + y) = (z + -z) + (x - y)" 
-    by (simp add: diff_minus add_ac) 
+    by (simp add: algebra_simps) 
   with le show ?thesis 
     by (simp add: real_le_eq_diff[of x] real_le_eq_diff[of "z+x"] diff_minus)
 qed
@@ -391,8 +390,7 @@ apply (simp add: linorder_not_le [where 'a = real, symmetric]
                   real_zero_def real_le real_mult)
   --{*Reduce to the (simpler) @{text "\<le>"} relation *}
 apply (auto dest!: less_add_left_Ex
-     simp add: add_ac mult_ac
-          right_distrib preal_self_less_add_left)
+     simp add: algebra_simps preal_self_less_add_left)
 done
 
 lemma real_mult_less_mono2: "[| (0::real) < z; x < y |] ==> z * x < z * y"
@@ -437,11 +435,11 @@ positive reals.*}
 
 lemma real_of_preal_add:
      "real_of_preal ((x::preal) + y) = real_of_preal x + real_of_preal y"
-by (simp add: real_of_preal_def real_add left_distrib add_ac)
+by (simp add: real_of_preal_def real_add algebra_simps)
 
 lemma real_of_preal_mult:
      "real_of_preal ((x::preal) * y) = real_of_preal x* real_of_preal y"
-by (simp add: real_of_preal_def real_mult right_distrib add_ac mult_ac)
+by (simp add: real_of_preal_def real_mult algebra_simps)
 
 
 text{*Gleason prop 9-4.4 p 127*}
@@ -650,7 +648,7 @@ proof -
   then have "real x / real d = ... / real d"
     by simp
   then show ?thesis
-    by (auto simp add: add_divide_distrib ring_simps prems)
+    by (auto simp add: add_divide_distrib algebra_simps prems)
 qed
 
 lemma real_of_int_div: "(d::int) ~= 0 ==> d dvd n ==>
@@ -665,13 +663,13 @@ lemma real_of_int_div2:
   apply (case_tac "x = 0")
   apply simp
   apply (case_tac "0 < x")
-  apply (simp add: compare_rls)
+  apply (simp add: algebra_simps)
   apply (subst real_of_int_div_aux)
   apply simp
   apply simp
   apply (subst zero_le_divide_iff)
   apply auto
-  apply (simp add: compare_rls)
+  apply (simp add: algebra_simps)
   apply (subst real_of_int_div_aux)
   apply simp
   apply simp
@@ -683,7 +681,7 @@ lemma real_of_int_div3:
   "real (n::int) / real (x) - real (n div x) <= 1"
   apply(case_tac "x = 0")
   apply simp
-  apply (simp add: compare_rls)
+  apply (simp add: algebra_simps)
   apply (subst real_of_int_div_aux)
   apply assumption
   apply simp
@@ -795,7 +793,7 @@ proof -
   then have "real x / real d = \<dots> / real d"
     by simp
   then show ?thesis
-    by (auto simp add: add_divide_distrib ring_simps prems)
+    by (auto simp add: add_divide_distrib algebra_simps prems)
 qed
 
 lemma real_of_nat_div: "0 < (d::nat) ==> d dvd n ==>
@@ -810,7 +808,7 @@ lemma real_of_nat_div2:
   "0 <= real (n::nat) / real (x) - real (n div x)"
 apply(case_tac "x = 0")
  apply (simp)
-apply (simp add: compare_rls)
+apply (simp add: algebra_simps)
 apply (subst real_of_nat_div_aux)
  apply simp
 apply simp
@@ -822,14 +820,14 @@ lemma real_of_nat_div3:
   "real (n::nat) / real (x) - real (n div x) <= 1"
 apply(case_tac "x = 0")
 apply (simp)
-apply (simp add: compare_rls)
+apply (simp add: algebra_simps)
 apply (subst real_of_nat_div_aux)
  apply simp
 apply simp
 done
 
 lemma real_of_nat_div4: "real (n div x) <= real (n::nat) / real x" 
-  by (insert real_of_nat_div2 [of n x], simp)
+by (insert real_of_nat_div2 [of n x], simp)
 
 lemma real_of_int_real_of_nat: "real (int n) = real n"
 by (simp add: real_of_nat_def real_of_int_def int_eq_of_nat)

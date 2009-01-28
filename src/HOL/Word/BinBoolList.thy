@@ -281,7 +281,7 @@ lemma bl_to_bin_lt2p_aux [rule_format]:
   apply clarsimp
   apply safe
   apply (erule allE, erule xtr8 [rotated],
-         simp add: numeral_simps ring_simps cong add : number_of_False_cong)+
+         simp add: numeral_simps algebra_simps cong add : number_of_False_cong)+
   done
 
 lemma bl_to_bin_lt2p: "bl_to_bin bs < (2 ^ length bs)"
@@ -299,7 +299,7 @@ lemma bl_to_bin_ge2p_aux [rule_format] :
   apply clarsimp
   apply safe
    apply (erule allE, erule preorder_class.order_trans [rotated],
-          simp add: numeral_simps ring_simps cong add : number_of_False_cong)+
+          simp add: numeral_simps algebra_simps cong add : number_of_False_cong)+
   done
 
 lemma bl_to_bin_ge0: "bl_to_bin bs >= 0"
@@ -1138,4 +1138,3 @@ lemma bin_rsplit_len_indep:
   done
 
 end
-

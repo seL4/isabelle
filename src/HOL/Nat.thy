@@ -1254,7 +1254,7 @@ context ring_1
 begin
 
 lemma of_nat_diff: "n \<le> m \<Longrightarrow> of_nat (m - n) = of_nat m - of_nat n"
-  by (simp add: compare_rls of_nat_add [symmetric])
+by (simp add: algebra_simps of_nat_add [symmetric])
 
 end
 

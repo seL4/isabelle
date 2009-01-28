@@ -52,7 +52,7 @@ apply (rule LIM_I)
 apply (drule_tac r="r" in LIM_D, safe)
 apply (rule_tac x="s" in exI, safe)
 apply (drule_tac x="x + k" in spec)
-apply (simp add: compare_rls)
+apply (simp add: algebra_simps)
 done
 
 lemma LIM_offset_zero: "f -- a --> L \<Longrightarrow> (\<lambda>h. f (a + h)) -- 0 --> L"

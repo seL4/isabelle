@@ -223,10 +223,10 @@ qed
 end
 
 lemma mult_iSuc: "iSuc m * n = n + m * n"
-  unfolding iSuc_plus_1 by (simp add: ring_simps)
+  unfolding iSuc_plus_1 by (simp add: algebra_simps)
 
 lemma mult_iSuc_right: "m * iSuc n = m + m * n"
-  unfolding iSuc_plus_1 by (simp add: ring_simps)
+  unfolding iSuc_plus_1 by (simp add: algebra_simps)
 
 lemma of_nat_eq_Fin: "of_nat n = Fin n"
   apply (induct n)

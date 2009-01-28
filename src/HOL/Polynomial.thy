@@ -442,11 +442,11 @@ lemma smult_1_left [simp]: "smult (1::'a::comm_semiring_1) p = p"
 
 lemma smult_add_right:
   "smult a (p + q) = smult a p + smult a q"
-  by (rule poly_ext, simp add: ring_simps)
+  by (rule poly_ext, simp add: algebra_simps)
 
 lemma smult_add_left:
   "smult (a + b) p = smult a p + smult b p"
-  by (rule poly_ext, simp add: ring_simps)
+  by (rule poly_ext, simp add: algebra_simps)
 
 lemma smult_minus_right [simp]:
   "smult (a::'a::comm_ring) (- p) = - smult a p"
@@ -458,11 +458,11 @@ lemma smult_minus_left [simp]:
 
 lemma smult_diff_right:
   "smult (a::'a::comm_ring) (p - q) = smult a p - smult a q"
-  by (rule poly_ext, simp add: ring_simps)
+  by (rule poly_ext, simp add: algebra_simps)
 
 lemma smult_diff_left:
   "smult (a - b::'a::comm_ring) p = smult a p - smult b p"
-  by (rule poly_ext, simp add: ring_simps)
+  by (rule poly_ext, simp add: algebra_simps)
 
 lemmas smult_distribs =
   smult_add_left smult_add_right
@@ -517,7 +517,7 @@ lemma mult_poly_0_right: "p * (0::'a poly) = 0"
 
 lemma mult_pCons_right [simp]:
   "p * pCons a q = smult a p + pCons 0 (p * q)"
-  by (induct p, simp add: mult_poly_0_left, simp add: ring_simps)
+  by (induct p, simp add: mult_poly_0_left, simp add: algebra_simps)
 
 lemmas mult_poly_0 = mult_poly_0_left mult_poly_0_right
 
@@ -531,7 +531,7 @@ lemma mult_poly_add_left:
   fixes p q r :: "'a poly"
   shows "(p + q) * r = p * r + q * r"
   by (induct r, simp add: mult_poly_0,
-                simp add: smult_distribs group_simps)
+                simp add: smult_distribs algebra_simps)
 
 instance proof
   fix p q r :: "'a poly"
@@ -758,7 +758,7 @@ next
   from 2 have q2: "x = q2 * y + r2" and r2: "r2 = 0 \<or> degree r2 < degree y"
     unfolding pdivmod_rel_def by simp_all
   from q1 q2 have q3: "(q1 - q2) * y = r2 - r1"
-    by (simp add: ring_simps)
+    by (simp add: algebra_simps)
   from r1 r2 have r3: "(r2 - r1) = 0 \<or> degree (r2 - r1) < degree y"
     by (auto intro: degree_diff_less)
 
@@ -894,7 +894,7 @@ lemma poly_monom:
 
 lemma poly_add [simp]: "poly (p + q) x = poly p x + poly q x"
   apply (induct p arbitrary: q, simp)
-  apply (case_tac q, simp, simp add: ring_simps)
+  apply (case_tac q, simp, simp add: algebra_simps)
   done
 
 lemma poly_minus [simp]:
@@ -911,10 +911,10 @@ lemma poly_setsum: "poly (\<Sum>k\<in>A. p k) x = (\<Sum>k\<in>A. poly (p k) x)"
   by (cases "finite A", induct set: finite, simp_all)
 
 lemma poly_smult [simp]: "poly (smult a p) x = a * poly p x"
-  by (induct p, simp, simp add: ring_simps)
+  by (induct p, simp, simp add: algebra_simps)
 
 lemma poly_mult [simp]: "poly (p * q) x = poly p x * poly q x"
-  by (induct p, simp_all, simp add: ring_simps)
+  by (induct p, simp_all, simp add: algebra_simps)
 
 lemma poly_power [simp]:
   fixes p :: "'a::{comm_semiring_1,recpower} poly"
@@ -983,7 +983,7 @@ lemma synthetic_div_correct':
   fixes c :: "'a::comm_ring_1"
   shows "[:-c, 1:] * synthetic_div p c + [:poly p c:] = p"
   using synthetic_div_correct [of p c]
-  by (simp add: group_simps)
+  by (simp add: algebra_simps)
 
 lemma poly_eq_0_iff_dvd:
   fixes c :: "'a::idom"

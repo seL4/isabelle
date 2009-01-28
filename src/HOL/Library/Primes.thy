@@ -204,7 +204,7 @@ proof-
     from z have z': "?g > 0" by simp
     from bezout_gcd_strong[OF az, of b] 
     obtain x y where xy: "a*x = b*y + ?g" by blast
-    from xy a b have "?g * a'*x = ?g * (b'*y + 1)" by (simp add: ring_simps)
+    from xy a b have "?g * a'*x = ?g * (b'*y + 1)" by (simp add: algebra_simps)
     hence "?g * (a'*x) = ?g * (b'*y + 1)" by (simp add: mult_assoc)
     hence "a'*x = (b'*y + 1)"
       by (simp only: nat_mult_eq_cancel1[OF z']) 

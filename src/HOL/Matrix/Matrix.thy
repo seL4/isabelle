@@ -1573,17 +1573,17 @@ proof
   show "A * B * C = A * (B * C)"
     apply (simp add: times_matrix_def)
     apply (rule mult_matrix_assoc)
-    apply (simp_all add: associative_def ring_simps)
+    apply (simp_all add: associative_def algebra_simps)
     done
   show "(A + B) * C = A * C + B * C"
     apply (simp add: times_matrix_def plus_matrix_def)
     apply (rule l_distributive_matrix[simplified l_distributive_def, THEN spec, THEN spec, THEN spec])
-    apply (simp_all add: associative_def commutative_def ring_simps)
+    apply (simp_all add: associative_def commutative_def algebra_simps)
     done
   show "A * (B + C) = A * B + A * C"
     apply (simp add: times_matrix_def plus_matrix_def)
     apply (rule r_distributive_matrix[simplified r_distributive_def, THEN spec, THEN spec, THEN spec])
-    apply (simp_all add: associative_def commutative_def ring_simps)
+    apply (simp_all add: associative_def commutative_def algebra_simps)
     done
 qed  
 
@@ -1793,7 +1793,7 @@ lemma scalar_mult_zero[simp]: "scalar_mult y 0 = 0"
 by (simp add: scalar_mult_def)
 
 lemma scalar_mult_add: "scalar_mult y (a+b) = (scalar_mult y a) + (scalar_mult y b)"
-by (simp add: scalar_mult_def apply_matrix_add ring_simps)
+by (simp add: scalar_mult_def apply_matrix_add algebra_simps)
 
 lemma Rep_scalar_mult[simp]: "Rep_matrix (scalar_mult y a) j i = y * (Rep_matrix a j i)" 
 by (simp add: scalar_mult_def)

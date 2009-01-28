@@ -376,7 +376,7 @@ next
   hence "real (Suc n) * (inverse (real (Suc n)) * x) < real (Suc n) * 1"
     by (rule mult_strict_left_mono) simp
   hence "x < real (Suc n)"
-    by (simp add: ring_simps)
+    by (simp add: algebra_simps)
   thus "\<exists>(n::nat). x < real n" ..
 qed
 
@@ -391,9 +391,9 @@ proof
   hence "y * inverse x * x < real n * x"
     using x_greater_zero by (simp add: mult_strict_right_mono)
   hence "x * inverse x * y < x * real n"
-    by (simp add: ring_simps)
+    by (simp add: algebra_simps)
   hence "y < real (n::nat) * x"
-    using x_not_zero by (simp add: ring_simps)
+    using x_not_zero by (simp add: algebra_simps)
   thus "\<exists>(n::nat). y < real n * x" ..
 qed
 
@@ -1084,9 +1084,7 @@ lemma real_natfloor_add_one_gt: "x < real(natfloor x) + 1"
 done
 
 lemma real_natfloor_gt_diff_one: "x - 1 < real(natfloor x)"
-  apply (simp add: compare_rls)
-  apply (rule real_natfloor_add_one_gt)
-done
+using real_natfloor_add_one_gt by (simp add: algebra_simps)
 
 lemma ge_natfloor_plus_one_imp_gt: "natfloor z + 1 <= n ==> z < real n"
   apply (subgoal_tac "z < real(natfloor z) + 1")
@@ -1279,7 +1277,7 @@ proof -
     by simp
   also have "... = real((natfloor x) div y) + real((natfloor x) mod y) /
     real y + (x - real(natfloor x)) / real y"
-    by (auto simp add: ring_simps add_divide_distrib
+    by (auto simp add: algebra_simps add_divide_distrib
       diff_divide_distrib prems)
   finally have "natfloor (x / real y) = natfloor(...)" by simp
   also have "... = natfloor(real((natfloor x) mod y) /
@@ -1293,7 +1291,7 @@ proof -
     apply simp
     apply (simp add: prems)
     apply (rule divide_nonneg_pos)
-    apply (simp add: compare_rls)
+    apply (simp add: algebra_simps)
     apply (rule real_natfloor_le)
     apply (insert prems, auto)
     done
@@ -1306,7 +1304,7 @@ proof -
     apply force
     apply (force simp add: prems)
     apply (rule divide_nonneg_pos)
-    apply (simp add: compare_rls)
+    apply (simp add: algebra_simps)
     apply (rule real_natfloor_le)
     apply (auto simp add: prems)
     apply (insert prems, arith)
@@ -1314,8 +1312,8 @@ proof -
     apply (subgoal_tac "real y = real y - 1 + 1")
     apply (erule ssubst)
     apply (rule add_le_less_mono)
-    apply (simp add: compare_rls)
-    apply (subgoal_tac "real(natfloor x mod y) + 1 =
+    apply (simp add: algebra_simps)
+    apply (subgoal_tac "1 + real(natfloor x mod y) =
       real(natfloor x mod y + 1)")
     apply (erule ssubst)
     apply (subst real_of_nat_le_iff)
@@ -1323,9 +1321,8 @@ proof -
     apply arith
     apply (rule mod_less_divisor)
     apply auto
-    apply (simp add: compare_rls)
-    apply (subst add_commute)
-    apply (rule real_natfloor_add_one_gt)
+    using real_natfloor_add_one_gt
+    apply (simp add: algebra_simps)
     done
   finally show ?thesis by simp
 qed

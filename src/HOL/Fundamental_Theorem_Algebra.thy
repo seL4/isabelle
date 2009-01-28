@@ -45,7 +45,7 @@ proof-
     have th2: "2 *(y * sqrt ((sqrt (x * x + y * y) - x) * (sqrt (x * x + y * y) + x) / 4)) / \<bar>y\<bar> = y"
       using iffD2[OF real_sqrt_pow2_iff sum_power2_ge_zero[of x y]] y0
       unfolding power2_eq_square 
-      by (simp add: ring_simps real_sqrt_divide sqrt4)
+      by (simp add: algebra_simps real_sqrt_divide sqrt4)
      from y0 xy have ?thesis  apply (simp add: csqrt_def power2_eq_square)
        apply (simp add: real_sqrt_sum_squares_mult_ge_zero[of x y] real_sqrt_pow2[OF th(1)[of x y], unfolded power2_eq_square] real_sqrt_pow2[OF th(2)[of x y], unfolded power2_eq_square] real_sqrt_mult[symmetric])
       using th1 th2  ..}
@@ -109,7 +109,7 @@ by (simp add: offset_poly_pCons offset_poly_0)
 lemma poly_offset_poly: "poly (offset_poly p h) x = poly p (h + x)"
 apply (induct p)
 apply (simp add: offset_poly_0)
-apply (simp add: offset_poly_pCons ring_simps)
+apply (simp add: offset_poly_pCons algebra_simps)
 done
 
 lemma offset_poly_eq_0_lemma: "smult c p + pCons a p = 0 \<Longrightarrow> p = 0"
@@ -350,7 +350,7 @@ proof-
   from md z have xy: "x^2 + y^2 = 1" by (simp add: cmod_def)
   {assume C: "cmod (z + 1) \<ge> 1" "cmod (z - 1) \<ge> 1" "cmod (z + ii) \<ge> 1" "cmod (z - ii) \<ge> 1"
     from C z xy have "2*x \<le> 1" "2*x \<ge> -1" "2*y \<le> 1" "2*y \<ge> -1"
-      by (simp_all add: cmod_def power2_eq_square ring_simps)
+      by (simp_all add: cmod_def power2_eq_square algebra_simps)
     hence "abs (2*x) \<le> 1" "abs (2*y) \<le> 1" by simp_all
     hence "(abs (2 * x))^2 <= 1^2" "(abs (2 * y)) ^2 <= 1^2"
       by - (rule power_mono, simp, simp)+
@@ -391,9 +391,9 @@ proof(induct n rule: nat_less_induct)
     1" 
       apply (simp add: power2_eq_square norm_mult[symmetric] norm_inverse[symmetric])
       using right_inverse[OF b']
-      by (simp add: power2_eq_square[symmetric] power_inverse[symmetric] ring_simps)
+      by (simp add: power2_eq_square[symmetric] power_inverse[symmetric] algebra_simps)
     have th0: "cmod (complex_of_real (cmod b) / b) = 1"
-      apply (simp add: complex_Re_mult cmod_def power2_eq_square Re_complex_of_real Im_complex_of_real divide_inverse ring_simps )
+      apply (simp add: complex_Re_mult cmod_def power2_eq_square Re_complex_of_real Im_complex_of_real divide_inverse algebra_simps )
       by (simp add: real_sqrt_mult[symmetric] th0)        
     from o have "\<exists>m. n = Suc (2*m)" by presburger+
     then obtain m where m: "n = Suc (2*m)" by blast
@@ -667,10 +667,10 @@ proof(induct p arbitrary: a d)
       from h have z1: "cmod z \<ge> 1" by arith
       from order_trans[OF th0 mult_right_mono[OF z1 norm_ge_zero[of "poly (pCons c cs) z"]]]
       have th1: "d \<le> cmod(z * poly (pCons c cs) z) - cmod a"
-	unfolding norm_mult by (simp add: ring_simps)
+	unfolding norm_mult by (simp add: algebra_simps)
       from complex_mod_triangle_sub[of "z * poly (pCons c cs) z" a]
       have th2: "cmod(z * poly (pCons c cs) z) - cmod a \<le> cmod (poly (pCons a (pCons c cs)) z)" 
-	by (simp add: diff_le_eq ring_simps) 
+	by (simp add: diff_le_eq algebra_simps) 
       from th1 th2 have "d \<le> cmod (poly (pCons a (pCons c cs)) z)"  by arith}
     hence ?case by blast}
   moreover
@@ -685,7 +685,7 @@ proof(induct p arbitrary: a d)
       have ath: "\<And>mzh mazh ma. mzh <= mazh + ma ==> abs(d) + ma <= mzh ==> d <= mazh" by arith
       from complex_mod_triangle_sub[of "z*c" a ]
       have th1: "cmod (z * c) \<le> cmod (a + z * c) + cmod a"
-	by (simp add: ring_simps)
+	by (simp add: algebra_simps)
       from ath[OF th1 th0] have "d \<le> cmod (poly (pCons a (pCons c cs)) z)" 
         using cs0' by simp}
     then have ?case  by blast}
@@ -850,7 +850,7 @@ proof(induct n\<equiv> "psize p" arbitrary: p rule: nat_less_induct)
       with kas(3) lgqr[symmetric] q(1) n[symmetric] have s0:"s=0" by auto
       {fix w
 	have "cmod (poly ?r w) = cmod (1 + a * w ^ k)" 
-	  using kas(4)[rule_format, of w] s0 r01 by (simp add: ring_simps)}
+	  using kas(4)[rule_format, of w] s0 r01 by (simp add: algebra_simps)}
       note hth = this [symmetric]
 	from reduce_poly_simple[OF kas(1,2)] 
       have "\<exists>w. cmod (poly ?r w) < 1" unfolding hth by blast}
@@ -866,7 +866,7 @@ proof(induct n\<equiv> "psize p" arbitrary: p rule: nat_less_induct)
       from H[rule_format, OF k1n th01 th02]
       obtain w where w: "1 + w^k * a = 0"
 	unfolding poly_pCons poly_monom
-	using kas(2) by (cases k, auto simp add: ring_simps)
+	using kas(2) by (cases k, auto simp add: algebra_simps)
       from poly_bound_exists[of "cmod w" s] obtain m where 
 	m: "m > 0" "\<forall>z. cmod z \<le> cmod w \<longrightarrow> cmod (poly s z) \<le> m" by blast
       have w0: "w\<noteq>0" using kas(2) w by (auto simp add: power_0_left)
@@ -879,7 +879,7 @@ proof(induct n\<equiv> "psize p" arbitrary: p rule: nat_less_induct)
 	t: "t > 0" "t < 1" "t < inverse (cmod w ^ (k + 1) * m)" by blast
       let ?ct = "complex_of_real t"
       let ?w = "?ct * w"
-      have "1 + ?w^k * (a + ?w * poly s ?w) = 1 + ?ct^k * (w^k * a) + ?w^k * ?w * poly s ?w" using kas(1) by (simp add: ring_simps power_mult_distrib)
+      have "1 + ?w^k * (a + ?w * poly s ?w) = 1 + ?ct^k * (w^k * a) + ?w^k * ?w * poly s ?w" using kas(1) by (simp add: algebra_simps power_mult_distrib)
       also have "\<dots> = complex_of_real (1 - t^k) + ?w^k * ?w * poly s ?w"
 	unfolding wm1 by (simp)
       finally have "cmod (1 + ?w^k * (a + ?w * poly s ?w)) = cmod (complex_of_real (1 - t^k) + ?w^k * ?w * poly s ?w)" 
@@ -898,7 +898,7 @@ proof(induct n\<equiv> "psize p" arbitrary: p rule: nat_less_induct)
       have th30: "t^k * (t* (cmod w ^ (k + 1) * m)) < t^k * 1" 
 	apply - apply (rule mult_strict_left_mono) by simp_all
       have "cmod (?w^k * ?w * poly s ?w) = t^k * (t* (cmod w ^ (k+1) * cmod (poly s ?w)))"  using w0 t(1)
-	by (simp add: ring_simps power_mult_distrib norm_of_real norm_power norm_mult)
+	by (simp add: algebra_simps power_mult_distrib norm_of_real norm_power norm_mult)
       then have "cmod (?w^k * ?w * poly s ?w) \<le> t^k * (t* (cmod w ^ (k + 1) * m))"
 	using t(1,2) m(2)[rule_format, OF tw] w0
 	apply (simp only: )
@@ -1308,14 +1308,14 @@ proof-
   {assume l: ?lhs
     then obtain u where u: "q = p * u" ..
      have "r = p * (smult a u - t)"
-       using u qrp' [symmetric] t by (simp add: ring_simps mult_smult_right)
+       using u qrp' [symmetric] t by (simp add: algebra_simps mult_smult_right)
      then have ?rhs ..}
   moreover
   {assume r: ?rhs
     then obtain u where u: "r = p * u" ..
     from u [symmetric] t qrp' [symmetric] a0
     have "q = p * smult (1/a) (u + t)"
-      by (simp add: ring_simps mult_smult_right smult_smult)
+      by (simp add: algebra_simps mult_smult_right smult_smult)
     hence ?lhs ..}
   ultimately have "?lhs = ?rhs" by blast }
 thus "?lhs \<equiv> ?rhs"  by - (atomize(full), blast) 

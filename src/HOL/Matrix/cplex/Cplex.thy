@@ -34,8 +34,8 @@ lemma spm_mult_le_dual_prts:
   add_spmat (mult_spmat (nprt_spmat s2) (pprt_spmat r1), mult_spmat (nprt_spmat s1) (nprt_spmat r1)))))))"
   apply (simp add: Let_def)
   apply (insert assms)
-  apply (simp add: sparse_row_matrix_op_simps ring_simps)  
-  apply (rule mult_le_dual_prts[where A=A, simplified Let_def ring_simps])
+  apply (simp add: sparse_row_matrix_op_simps algebra_simps)  
+  apply (rule mult_le_dual_prts[where A=A, simplified Let_def algebra_simps])
   apply (auto)
   done
 

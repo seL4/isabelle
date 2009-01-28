@@ -157,13 +157,13 @@ proof
   show "i - j = i + - j"
     by (simp add: diff_int_def)
   show "(i * j) * k = i * (j * k)"
-    by (cases i, cases j, cases k) (simp add: mult ring_simps)
+    by (cases i, cases j, cases k) (simp add: mult algebra_simps)
   show "i * j = j * i"
-    by (cases i, cases j) (simp add: mult ring_simps)
+    by (cases i, cases j) (simp add: mult algebra_simps)
   show "1 * i = i"
     by (cases i) (simp add: One_int_def mult)
   show "(i + j) * k = i * k + j * k"
-    by (cases i, cases j, cases k) (simp add: add mult ring_simps)
+    by (cases i, cases j, cases k) (simp add: add mult algebra_simps)
   show "0 \<noteq> (1::int)"
     by (simp add: Zero_int_def One_int_def)
 qed
@@ -301,36 +301,35 @@ where
 lemma of_int: "of_int (Abs_Integ (intrel `` {(i,j)})) = of_nat i - of_nat j"
 proof -
   have "(\<lambda>(i,j). { of_nat i - (of_nat j :: 'a) }) respects intrel"
-    by (simp add: congruent_def compare_rls of_nat_add [symmetric]
+    by (simp add: congruent_def algebra_simps of_nat_add [symmetric]
             del: of_nat_add) 
   thus ?thesis
     by (simp add: of_int_def UN_equiv_class [OF equiv_intrel])
 qed
 
 lemma of_int_0 [simp]: "of_int 0 = 0"
-  by (simp add: of_int Zero_int_def)
+by (simp add: of_int Zero_int_def)
 
 lemma of_int_1 [simp]: "of_int 1 = 1"
-  by (simp add: of_int One_int_def)
+by (simp add: of_int One_int_def)
 
 lemma of_int_add [simp]: "of_int (w+z) = of_int w + of_int z"
-  by (cases w, cases z, simp add: compare_rls of_int OrderedGroup.compare_rls add)
+by (cases w, cases z, simp add: algebra_simps of_int add)
 
 lemma of_int_minus [simp]: "of_int (-z) = - (of_int z)"
-  by (cases z, simp add: compare_rls of_int minus)
+by (cases z, simp add: algebra_simps of_int minus)
 
 lemma of_int_diff [simp]: "of_int (w - z) = of_int w - of_int z"
-  by (simp add: OrderedGroup.diff_minus diff_minus)
+by (simp add: OrderedGroup.diff_minus diff_minus)
 
 lemma of_int_mult [simp]: "of_int (w*z) = of_int w * of_int z"
 apply (cases w, cases z)
-apply (simp add: compare_rls of_int left_diff_distrib right_diff_distrib
-                 mult add_ac of_nat_mult)
+apply (simp add: algebra_simps of_int mult of_nat_mult)
 done
 
 text{*Collapse nested embeddings*}
 lemma of_int_of_nat_eq [simp]: "of_int (of_nat n) = of_nat n"
-  by (induct n) auto
+by (induct n) auto
 
 end
 
@@ -339,7 +338,7 @@ begin
 
 lemma of_int_le_iff [simp]:
   "of_int w \<le> of_int z \<longleftrightarrow> w \<le> z"
-  by (cases w, cases z, simp add: of_int le minus compare_rls of_nat_add [symmetric] del: of_nat_add)
+by (cases w, cases z, simp add: of_int le minus algebra_simps of_nat_add [symmetric] del: of_nat_add)
 
 text{*Special cases where either operand is zero*}
 lemmas of_int_0_le_iff [simp] = of_int_le_iff [of 0, simplified]
@@ -511,7 +510,7 @@ proof -
   also have "\<dots> = (\<exists>n. z - w = of_nat n)"
     by (auto elim: zero_le_imp_eq_int)
   also have "\<dots> = (\<exists>n. z = w + of_nat n)"
-    by (simp only: group_simps)
+    by (simp only: algebra_simps)
   finally show ?thesis .
 qed
 
@@ -829,7 +828,7 @@ proof (cases z rule: int_cases)
 next
   case (neg n)
   thus ?thesis by (simp del: of_nat_Suc of_nat_add
-    add: compare_rls of_nat_1 [symmetric] of_nat_add [symmetric])
+    add: algebra_simps of_nat_1 [symmetric] of_nat_add [symmetric])
 qed
 
 lemma bin_less_0_simps:
@@ -1067,16 +1066,16 @@ by (simp add: iszero_def eq_commute)
 lemma eq_number_of_eq:
   "((number_of x::'a::number_ring) = number_of y) =
    iszero (number_of (x + uminus y) :: 'a)"
-  unfolding iszero_def number_of_add number_of_minus
-  by (simp add: compare_rls)
+unfolding iszero_def number_of_add number_of_minus
+by (simp add: algebra_simps)
 
 lemma iszero_number_of_Pls:
   "iszero ((number_of Pls)::'a::number_ring)"
-  unfolding iszero_def numeral_0_eq_0 ..
+unfolding iszero_def numeral_0_eq_0 ..
 
 lemma nonzero_number_of_Min:
   "~ iszero ((number_of Min)::'a::number_ring)"
-  unfolding iszero_def numeral_m1_eq_minus_1 by simp
+unfolding iszero_def numeral_m1_eq_minus_1 by simp
 
 
 subsubsection {* Comparisons, for Ordered Rings *}
@@ -1162,7 +1161,7 @@ proof (cases z rule: int_cases)
 next
   case (neg n)
   thus ?thesis by (simp del: of_nat_Suc of_nat_add
-    add: compare_rls of_nat_1 [symmetric] of_nat_add [symmetric])
+    add: algebra_simps of_nat_1 [symmetric] of_nat_add [symmetric])
 qed
 
 text {* Less-Than or Equals *}
@@ -1249,9 +1248,7 @@ lemma add_number_of_diff1:
 lemma add_number_of_diff2 [simp]:
   "number_of v + (c - number_of w) =
    number_of (v + uminus w) + (c::'a::number_ring)"
-apply (subst diff_number_of_eq [symmetric])
-apply (simp only: compare_rls)
-done
+by (simp add: algebra_simps diff_number_of_eq [symmetric])
 
 
 subsection {* The Set of Integers *}

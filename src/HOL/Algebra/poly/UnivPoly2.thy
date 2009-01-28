@@ -189,7 +189,7 @@ qed simp
 lemma coeff_smult [simp]: "coeff (a *s p) n = (a::'a::ring) * coeff p n"
 proof -
   have "!!f. f : UP ==> (%n. a * f n) : UP"
-    by (unfold UP_def) (force simp add: ring_simps)
+    by (unfold UP_def) (force simp add: algebra_simps)
 *)      (* this force step is slow *)
 (*  then show ?thesis
     apply (simp add: coeff_def smult_def Abs_UP_inverse Rep_UP)
@@ -198,7 +198,7 @@ qed
 lemma coeff_smult [simp]: "coeff (a *s p) n = (a::'a::ring) * coeff p n"
 proof -
   have "Rep_UP p : UP ==> (%n. a * Rep_UP p n) : UP"
-    by (unfold UP_def) (force simp add: ring_simps)
+    by (unfold UP_def) (force simp add: algebra_simps)
       (* this force step is slow *)
   then show ?thesis
     by (simp add: coeff_def smult_def Abs_UP_inverse Rep_UP)
@@ -220,7 +220,7 @@ proof -
 	fix i
 	assume "max n m < i"
 	with boundn and boundm show "f i + g i = 0"
-          by (fastsimp simp add: ring_simps)
+          by (fastsimp simp add: algebra_simps)
       qed
       then show "(%i. (f i + g i)) : UP"
 	by (unfold UP_def) fast
@@ -251,15 +251,15 @@ proof -
 	  have "f i * g (k-i) = 0"
 	  proof cases
 	    assume "n < i"
-	    with `bound n f` show ?thesis by (auto simp add: ring_simps)
+	    with `bound n f` show ?thesis by (auto simp add: algebra_simps)
 	  next
 	    assume "~ (n < i)"
 	    with bound have "m < k-i" by arith
-	    with `bound m g` show ?thesis by (auto simp add: ring_simps)
+	    with `bound m g` show ?thesis by (auto simp add: algebra_simps)
 	  qed
 	}
 	then show "setsum (%i. f i * g (k-i)) {..k} = 0"
-	  by (simp add: ring_simps)
+	  by (simp add: algebra_simps)
       qed
       then show "(%n. setsum (%i. f i * g (n-i)) {..n}) : UP"
 	by (unfold UP_def) fast
@@ -270,7 +270,7 @@ proof -
 qed
 
 lemma coeff_uminus [simp]: "coeff (-p) n = (-coeff p n::'a::ring)"
-by (unfold up_uminus_def) (simp add: ring_simps)
+by (unfold up_uminus_def) (simp add: algebra_simps)
 
 (* Other lemmas *)
 
@@ -388,7 +388,7 @@ proof (rule up_eqI)
   proof (cases k)
     case 0 then show ?thesis by simp ring
   next
-    case Suc then show ?thesis by (simp add: ring_simps) ring
+    case Suc then show ?thesis by (simp add: algebra_simps) ring
   qed
   then show "coeff (monom a 0 * p) k = coeff (a *s p) k" by ring
 qed

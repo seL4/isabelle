@@ -552,7 +552,7 @@ subsection {* Ferrante and Rackoff algorithm over ordered fields *}
 lemma neg_prod_lt:"(c\<Colon>'a\<Colon>ordered_field) < 0 \<Longrightarrow> ((c*x < 0) == (x > 0))"
 proof-
   assume H: "c < 0"
-  have "c*x < 0 = (0/c < x)" by (simp only: neg_divide_less_eq[OF H] ring_simps)
+  have "c*x < 0 = (0/c < x)" by (simp only: neg_divide_less_eq[OF H] algebra_simps)
   also have "\<dots> = (0 < x)" by simp
   finally show  "(c*x < 0) == (x > 0)" by simp
 qed
@@ -560,7 +560,7 @@ qed
 lemma pos_prod_lt:"(c\<Colon>'a\<Colon>ordered_field) > 0 \<Longrightarrow> ((c*x < 0) == (x < 0))"
 proof-
   assume H: "c > 0"
-  hence "c*x < 0 = (0/c > x)" by (simp only: pos_less_divide_eq[OF H] ring_simps)
+  hence "c*x < 0 = (0/c > x)" by (simp only: pos_less_divide_eq[OF H] algebra_simps)
   also have "\<dots> = (0 > x)" by simp
   finally show  "(c*x < 0) == (x < 0)" by simp
 qed
@@ -569,7 +569,7 @@ lemma neg_prod_sum_lt: "(c\<Colon>'a\<Colon>ordered_field) < 0 \<Longrightarrow>
 proof-
   assume H: "c < 0"
   have "c*x + t< 0 = (c*x < -t)" by (subst less_iff_diff_less_0 [of "c*x" "-t"], simp)
-  also have "\<dots> = (-t/c < x)" by (simp only: neg_divide_less_eq[OF H] ring_simps)
+  also have "\<dots> = (-t/c < x)" by (simp only: neg_divide_less_eq[OF H] algebra_simps)
   also have "\<dots> = ((- 1/c)*t < x)" by simp
   finally show  "(c*x + t < 0) == (x > (- 1/c)*t)" by simp
 qed
@@ -578,7 +578,7 @@ lemma pos_prod_sum_lt:"(c\<Colon>'a\<Colon>ordered_field) > 0 \<Longrightarrow> 
 proof-
   assume H: "c > 0"
   have "c*x + t< 0 = (c*x < -t)"  by (subst less_iff_diff_less_0 [of "c*x" "-t"], simp)
-  also have "\<dots> = (-t/c > x)" by (simp only: pos_less_divide_eq[OF H] ring_simps)
+  also have "\<dots> = (-t/c > x)" by (simp only: pos_less_divide_eq[OF H] algebra_simps)
   also have "\<dots> = ((- 1/c)*t > x)" by simp
   finally show  "(c*x + t < 0) == (x < (- 1/c)*t)" by simp
 qed
@@ -589,7 +589,7 @@ lemma sum_lt:"((x::'a::pordered_ab_group_add) + t < 0) == (x < - t)"
 lemma neg_prod_le:"(c\<Colon>'a\<Colon>ordered_field) < 0 \<Longrightarrow> ((c*x <= 0) == (x >= 0))"
 proof-
   assume H: "c < 0"
-  have "c*x <= 0 = (0/c <= x)" by (simp only: neg_divide_le_eq[OF H] ring_simps)
+  have "c*x <= 0 = (0/c <= x)" by (simp only: neg_divide_le_eq[OF H] algebra_simps)
   also have "\<dots> = (0 <= x)" by simp
   finally show  "(c*x <= 0) == (x >= 0)" by simp
 qed
@@ -597,7 +597,7 @@ qed
 lemma pos_prod_le:"(c\<Colon>'a\<Colon>ordered_field) > 0 \<Longrightarrow> ((c*x <= 0) == (x <= 0))"
 proof-
   assume H: "c > 0"
-  hence "c*x <= 0 = (0/c >= x)" by (simp only: pos_le_divide_eq[OF H] ring_simps)
+  hence "c*x <= 0 = (0/c >= x)" by (simp only: pos_le_divide_eq[OF H] algebra_simps)
   also have "\<dots> = (0 >= x)" by simp
   finally show  "(c*x <= 0) == (x <= 0)" by simp
 qed
@@ -606,7 +606,7 @@ lemma neg_prod_sum_le: "(c\<Colon>'a\<Colon>ordered_field) < 0 \<Longrightarrow>
 proof-
   assume H: "c < 0"
   have "c*x + t <= 0 = (c*x <= -t)"  by (subst le_iff_diff_le_0 [of "c*x" "-t"], simp)
-  also have "\<dots> = (-t/c <= x)" by (simp only: neg_divide_le_eq[OF H] ring_simps)
+  also have "\<dots> = (-t/c <= x)" by (simp only: neg_divide_le_eq[OF H] algebra_simps)
   also have "\<dots> = ((- 1/c)*t <= x)" by simp
   finally show  "(c*x + t <= 0) == (x >= (- 1/c)*t)" by simp
 qed
@@ -615,7 +615,7 @@ lemma pos_prod_sum_le:"(c\<Colon>'a\<Colon>ordered_field) > 0 \<Longrightarrow> 
 proof-
   assume H: "c > 0"
   have "c*x + t <= 0 = (c*x <= -t)" by (subst le_iff_diff_le_0 [of "c*x" "-t"], simp)
-  also have "\<dots> = (-t/c >= x)" by (simp only: pos_le_divide_eq[OF H] ring_simps)
+  also have "\<dots> = (-t/c >= x)" by (simp only: pos_le_divide_eq[OF H] algebra_simps)
   also have "\<dots> = ((- 1/c)*t >= x)" by simp
   finally show  "(c*x + t <= 0) == (x <= (- 1/c)*t)" by simp
 qed
@@ -628,7 +628,7 @@ lemma nz_prod_sum_eq: "(c\<Colon>'a\<Colon>ordered_field) \<noteq> 0 \<Longright
 proof-
   assume H: "c \<noteq> 0"
   have "c*x + t = 0 = (c*x = -t)" by (subst eq_iff_diff_eq_0 [of "c*x" "-t"], simp)
-  also have "\<dots> = (x = -t/c)" by (simp only: nonzero_eq_divide_eq[OF H] ring_simps)
+  also have "\<dots> = (x = -t/c)" by (simp only: nonzero_eq_divide_eq[OF H] algebra_simps)
   finally show  "(c*x + t = 0) == (x = (- 1/c)*t)" by simp
 qed
 lemma sum_eq:"((x::'a::pordered_ab_group_add) + t = 0) == (x = - t)"
