@@ -15,7 +15,6 @@ sig
   val make_cnf: thm list -> thm -> Proof.context -> thm list * Proof.context
   val finish_cnf: thm list -> thm list
   val make_nnf: thm -> thm
-  val make_nnf1: thm -> thm
   val skolemize: thm -> thm
   val is_fol_term: theory -> term -> bool
   val make_clauses: thm list -> thm list
@@ -296,7 +295,7 @@ fun resop nf [prem] = resolve_tac (nf prem) 1;
 (*Any need to extend this list with
   "HOL.type_class","HOL.eq_class","Pure.term"?*)
 val has_meta_conn =
-    exists_Const (member (op =) ["==", "==>", "all", "prop"] o #1);
+    exists_Const (member (op =) ["==", "==>", "=simp=>", "all", "prop"] o #1);
 
 fun apply_skolem_ths (th, rls) =
   let fun tryall [] = raise THM("apply_skolem_ths", 0, th::rls)
@@ -519,19 +518,21 @@ fun make_nnf th = case prems_of th of
 
 (*Pull existential quantifiers to front. This accomplishes Skolemization for
   clauses that arise from a subgoal.*)
-fun skolemize th =
+fun skolemize1 th =
   if not (has_conns ["Ex"] (prop_of th)) then th
-  else (skolemize (tryres(th, [choice, conj_exD1, conj_exD2,
+  else (skolemize1 (tryres(th, [choice, conj_exD1, conj_exD2,
                               disj_exD, disj_exD1, disj_exD2])))
     handle THM ("tryres", _, _) =>
-        skolemize (forward_res skolemize
+        skolemize1 (forward_res skolemize1
                    (tryres (th, [conj_forward, disj_forward, all_forward])))
     handle THM ("tryres", _, _) => 
-        forward_res skolemize (rename_bvs_RS th ex_forward);
+        forward_res skolemize1 (rename_bvs_RS th ex_forward);
+
+fun skolemize th = skolemize1 (make_nnf th);
 
 fun skolemize_nnf_list [] = []
   | skolemize_nnf_list (th::ths) = 
-      skolemize (make_nnf th) :: skolemize_nnf_list ths
+      skolemize th :: skolemize_nnf_list ths
       handle THM _ => (*RS can fail if Unify.search_bound is too small*)
        (warning ("Failed to Skolemize " ^ Display.string_of_thm th);
         skolemize_nnf_list ths);
