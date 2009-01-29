@@ -327,7 +327,7 @@ $(LOG)/HOL-Library.gz: $(OUT)/HOL Library/SetsAndFunctions.thy		\
   Library/Option_ord.thy Library/Sublist_Order.thy			\
   Library/List_lexord.thy Library/Commutative_Ring.thy			\
   Library/comm_ring.ML Library/Coinductive_List.thy			\
-  Library/AssocList.thy		\
+  Library/AssocList.thy	Library/Formal_Power_Series.thy	\
   Library/Binomial.thy Library/Eval_Witness.thy	\
   Library/Code_Index.thy Library/Code_Char.thy				\
   Library/Code_Char_chr.thy Library/Code_Integer.thy			\
