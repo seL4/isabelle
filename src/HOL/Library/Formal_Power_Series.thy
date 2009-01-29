@@ -1100,17 +1100,12 @@ lemma XD_mult_const[simp]:"XD (fps_const (c::'a::comm_ring_1) * a) = fps_const c
 lemma XD_linear[simp]: "XD (fps_const c * a + fps_const d * b) = fps_const c * XD a + fps_const d * XD (b :: ('a::comm_ring_1) fps)"
   by simp
 
-
-fun funpow :: "nat \<Rightarrow> ('a \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> 'a" where
-  "funpow 0 f = id"
-  | "funpow (Suc n) f = f o funpow n f"
-
-lemma XDN_linear: "(funpow n XD) (fps_const c * a + fps_const d * b) = fps_const c * (funpow n XD) a + fps_const d * (funpow n XD) (b :: ('a::comm_ring_1) fps)"
+lemma XDN_linear: "(XD^n) (fps_const c * a + fps_const d * b) = fps_const c * (XD^n) a + fps_const d * (XD^n) (b :: ('a::comm_ring_1) fps)"
   by (induct n, simp_all)
 
 lemma fps_mult_X_deriv_shift: "X* fps_deriv a = Abs_fps (\<lambda>n. of_nat n* a$n)" by (simp add: fps_eq_iff)
 
-lemma fps_mult_XD_shift: "funpow k XD (a:: ('a::{comm_ring_1, recpower, ring_char_0}) fps) = Abs_fps (\<lambda>n. (of_nat n ^ k) * a$n)"
+lemma fps_mult_XD_shift: "(XD ^k) (a:: ('a::{comm_ring_1, recpower, ring_char_0}) fps) = Abs_fps (\<lambda>n. (of_nat n ^ k) * a$n)"
 by (induct k arbitrary: a) (simp_all add: power_Suc XD_def fps_eq_iff ring_simps del: One_nat_def)
 
 subsection{* Rule 3 is trivial and is given by fps_times_def*}
