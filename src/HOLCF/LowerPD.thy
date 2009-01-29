@@ -258,9 +258,9 @@ by (rule aci_lower_plus.mult_left_commute)
 
 lemma lower_plus_left_absorb: "xs +\<flat> (xs +\<flat> ys) = xs +\<flat> ys"
 by (rule aci_lower_plus.mult_left_idem)
-
+(*
 lemmas lower_plus_aci = aci_lower_plus.mult_ac_idem
-
+*)
 lemma lower_plus_less1: "xs \<sqsubseteq> xs +\<flat> ys"
 apply (induct xs ys rule: lower_pd.principal_induct2, simp, simp)
 apply (simp add: PDPlus_lower_less)

@@ -256,9 +256,9 @@ by (rule aci_upper_plus.mult_left_commute)
 
 lemma upper_plus_left_absorb: "xs +\<sharp> (xs +\<sharp> ys) = xs +\<sharp> ys"
 by (rule aci_upper_plus.mult_left_idem)
-
+(*
 lemmas upper_plus_aci = aci_upper_plus.mult_ac_idem
-
+*)
 lemma upper_plus_less1: "xs +\<sharp> ys \<sqsubseteq> xs"
 apply (induct xs ys rule: upper_pd.principal_induct2, simp, simp)
 apply (simp add: PDPlus_upper_less)
