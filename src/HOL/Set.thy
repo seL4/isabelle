@@ -885,6 +885,10 @@ lemma UN_cong [cong]:
     "A = B ==> (!!x. x:B ==> C x = D x) ==> (UN x:A. C x) = (UN x:B. D x)"
   by (simp add: UNION_def)
 
+lemma strong_UN_cong:
+    "A = B ==> (!!x. x:B =simp=> C x = D x) ==> (UN x:A. C x) = (UN x:B. D x)"
+  by (simp add: UNION_def simp_implies_def)
+
 
 subsubsection {* Intersections of families *}
 
