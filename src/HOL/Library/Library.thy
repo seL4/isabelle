@@ -20,6 +20,7 @@ imports
   Eval_Witness
   Executable_Set
   Float
+  Formal_Power_Series
   FuncSet
   Infinite_Set
   ListVector
