@@ -304,9 +304,9 @@ by (rule aci_convex_plus.mult_left_commute)
 
 lemma convex_plus_left_absorb: "xs +\<natural> (xs +\<natural> ys) = xs +\<natural> ys"
 by (rule aci_convex_plus.mult_left_idem)
-
+(*
 lemmas convex_plus_aci = aci_convex_plus.mult_ac_idem
-
+*)
 lemma convex_unit_less_plus_iff [simp]:
   "{x}\<natural> \<sqsubseteq> ys +\<natural> zs \<longleftrightarrow> {x}\<natural> \<sqsubseteq> ys \<and> {x}\<natural> \<sqsubseteq> zs"
  apply (rule iffI)
