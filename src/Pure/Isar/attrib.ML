@@ -293,6 +293,8 @@ val eta_long =
 val rotated = syntax
   (Scan.lift (Scan.optional P.int 1) >> (fn n => Thm.rule_attribute (K (rotate_prems n))));
 
+val abs_def = no_args (Thm.rule_attribute (K Drule.abs_def));
+
 
 (* theory setup *)
 
@@ -321,7 +323,8 @@ val _ = Context.>> (Context.map_theory
     ("rule_format", rule_format, "result put into standard rule format"),
     ("rotated", rotated, "rotated theorem premises"),
     ("defn", add_del_args LocalDefs.defn_add LocalDefs.defn_del,
-      "declaration of definitional transformations")]));
+      "declaration of definitional transformations"),
+    ("abs_def", abs_def, "abstract over free variables of a definition")]));
 
 
 
