@@ -1108,7 +1108,7 @@ lemma fps_mult_X_deriv_shift: "X* fps_deriv a = Abs_fps (\<lambda>n. of_nat n* a
 lemma fps_mult_XD_shift: "(XD ^k) (a:: ('a::{comm_ring_1, recpower, ring_char_0}) fps) = Abs_fps (\<lambda>n. (of_nat n ^ k) * a$n)"
 by (induct k arbitrary: a) (simp_all add: power_Suc XD_def fps_eq_iff ring_simps del: One_nat_def)
 
-subsection{* Rule 3 is trivial and is given by fps_times_def*}
+subsection{* Rule 3 is trivial and is given by @{text fps_times_def}*}
 subsection{* Rule 5 --- summation and "division" by (1 - X)*}
 
 lemma fps_divide_X_minus1_setsum_lemma:
