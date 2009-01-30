@@ -73,7 +73,8 @@ use_thys [
   "MIR",
   "ReflectedFerrack",
   "Refute_Examples",
-  "Quickcheck_Examples"
+  "Quickcheck_Examples",
+  "Formal_Power_Series_Examples"
 ];
 
 setmp Proofterm.proofs 2 use_thy "Hilbert_Classical";
