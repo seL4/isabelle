@@ -7,7 +7,7 @@
 header{*Factorial Function*}
 
 theory Fact
-imports RealDef
+imports Nat
 begin
 
 consts fact :: "nat => nat"
@@ -22,13 +22,15 @@ by (induct n) auto
 lemma fact_not_eq_zero [simp]: "fact n \<noteq> 0"
 by simp
 
-lemma real_of_nat_fact_not_zero [simp]: "real (fact n) \<noteq> 0"
+lemma of_nat_fact_not_zero [simp]: "of_nat (fact n) \<noteq> (0::'a::semiring_char_0)"
 by auto
 
-lemma real_of_nat_fact_gt_zero [simp]: "0 < real(fact n)"
-by auto
+class ordered_semiring_1 = ordered_semiring + semiring_1
+class ordered_semiring_1_strict = ordered_semiring_strict + semiring_1
 
-lemma real_of_nat_fact_ge_zero [simp]: "0 \<le> real(fact n)"
+lemma of_nat_fact_gt_zero [simp]: "(0::'a::{ordered_semidom}) < of_nat(fact n)" by auto
+
+lemma of_nat_fact_ge_zero [simp]: "(0::'a::ordered_semidom) \<le> of_nat(fact n)"
 by simp
 
 lemma fact_ge_one [simp]: "1 \<le> fact n"
@@ -46,10 +48,10 @@ apply (drule_tac m = m in less_imp_Suc_add, auto)
 apply (induct_tac k, auto)
 done
 
-lemma inv_real_of_nat_fact_gt_zero [simp]: "0 < inverse (real (fact n))"
+lemma inv_of_nat_fact_gt_zero [simp]: "(0::'a::ordered_field) < inverse (of_nat (fact n))"
 by (auto simp add: positive_imp_inverse_positive)
 
-lemma inv_real_of_nat_fact_ge_zero [simp]: "0 \<le> inverse (real (fact n))"
+lemma inv_of_nat_fact_ge_zero [simp]: "(0::'a::ordered_field) \<le> inverse (of_nat (fact n))"
 by (auto intro: order_less_imp_le)
 
 lemma fact_diff_Suc [rule_format]:
@@ -59,7 +61,7 @@ apply auto
 apply (drule_tac x = "m - 1" in meta_spec, auto)
 done
 
-lemma fact_num0 [simp]: "fact 0 = 1"
+lemma fact_num0: "fact 0 = 1"
 by auto
 
 lemma fact_num_eq_if: "fact m = (if m=0 then 1 else m * fact (m - 1))"
