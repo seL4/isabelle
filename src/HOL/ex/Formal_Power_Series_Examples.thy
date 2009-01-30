@@ -5,7 +5,7 @@
 
 header{* Some applications of formal power series and some properties over complex numbers*}
 
-theory Formal_Ppower_Series_Examples
+theory Formal_Power_Series_Examples
   imports Formal_Power_Series Binomial Complex
 begin
 
