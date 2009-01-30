@@ -1,13 +1,13 @@
 (*  Title:      HOL/Binomial.thy
     ID:         $Id$
-    Author:     Lawrence C Paulson
+    Author:     Lawrence C Paulson, Amine Chaieb
     Copyright   1997  University of Cambridge
 *)
 
 header {* Binomial Coefficients *}
 
 theory Binomial
-imports Plain "~~/src/HOL/SetInterval"
+imports Fact Plain "~~/src/HOL/SetInterval" Presburger 
 begin
 
 text {* This development is based on the work of Andy Gordon and
@@ -180,6 +180,283 @@ next
   also have "\<dots> = (\<Sum>k=0..n+1. (n+1 choose k) * a^k * b^(n+1-k))"
     using decomp by simp
   finally show ?case by simp
+qed
+
+section{* Pochhammer's symbol : generalized raising factorial*}
+
+definition "pochhammer (a::'a::comm_semiring_1) n = (if n = 0 then 1 else setprod (\<lambda>n. a + of_nat n) {0 .. n - 1})"
+
+lemma pochhammer_0[simp]: "pochhammer a 0 = 1" 
+  by (simp add: pochhammer_def)
+
+lemma pochhammer_1[simp]: "pochhammer a 1 = a" by (simp add: pochhammer_def)
+lemma pochhammer_Suc0[simp]: "pochhammer a (Suc 0) = a" 
+  by (simp add: pochhammer_def)
+
+lemma pochhammer_Suc_setprod: "pochhammer a (Suc n) = setprod (\<lambda>n. a + of_nat n) {0 .. n}"
+  by (simp add: pochhammer_def)
+
+lemma setprod_nat_ivl_Suc: "setprod f {0 .. Suc n} = setprod f {0..n} * f (Suc n)"
+proof-
+  have th: "finite {0..n}" "finite {Suc n}" "{0..n} \<inter> {Suc n} = {}" by auto
+  have eq: "{0..Suc n} = {0..n} \<union> {Suc n}" by auto
+  show ?thesis unfolding eq setprod_Un_disjoint[OF th] by simp
+qed
+
+lemma setprod_nat_ivl_1_Suc: "setprod f {0 .. Suc n} = f 0 * setprod f {1.. Suc n}"
+proof-
+  have th: "finite {0}" "finite {1..Suc n}" "{0} \<inter> {1.. Suc n} = {}" by auto
+  have eq: "{0..Suc n} = {0} \<union> {1 .. Suc n}" by auto
+  show ?thesis unfolding eq setprod_Un_disjoint[OF th] by simp
+qed
+
+
+lemma pochhammer_Suc: "pochhammer a (Suc n) = pochhammer a n * (a + of_nat n)"
+proof-
+  {assume "n=0" then have ?thesis by simp}
+  moreover
+  {fix m assume m: "n = Suc m"
+    have ?thesis  unfolding m pochhammer_Suc_setprod setprod_nat_ivl_Suc ..}
+  ultimately show ?thesis by (cases n, auto)
+qed 
+
+lemma pochhammer_rec: "pochhammer a (Suc n) = a * pochhammer (a + 1) n"
+proof-
+  {assume "n=0" then have ?thesis by (simp add: pochhammer_Suc_setprod)}
+  moreover
+  {assume n0: "n \<noteq> 0"
+    have th0: "finite {1 .. n}" "0 \<notin> {1 .. n}" by auto
+    have eq: "insert 0 {1 .. n} = {0..n}" by auto
+    have th1: "(\<Prod>n\<in>{1\<Colon>nat..n}. a + of_nat n) =
+      (\<Prod>n\<in>{0\<Colon>nat..n - 1}. a + 1 + of_nat n)"
+      apply (rule setprod_reindex_cong[where f = "Suc"])
+      using n0 by (auto simp add: expand_fun_eq ring_simps)
+    have ?thesis apply (simp add: pochhammer_def)
+    unfolding setprod_insert[OF th0, unfolded eq]
+    using th1 by (simp add: ring_simps)}
+ultimately show ?thesis by blast
+qed
+
+lemma fact_setprod: "fact n = setprod id {1 .. n}"
+  apply (induct n, simp)
+  apply (simp only: fact_Suc atLeastAtMostSuc_conv)
+  apply (subst setprod_insert)
+  by simp_all
+
+lemma pochhammer_fact: "of_nat (fact n) = pochhammer 1 n"
+  unfolding fact_setprod
+  
+  apply (cases n, simp_all add: of_nat_setprod pochhammer_Suc_setprod)
+  apply (rule setprod_reindex_cong[where f=Suc])
+  by (auto simp add: expand_fun_eq)
+
+lemma pochhammer_of_nat_eq_0_lemma: assumes kn: "k > n"
+  shows "pochhammer (- (of_nat n :: 'a:: idom)) k = 0"
+proof-
+  from kn obtain h where h: "k = Suc h" by (cases k, auto)
+  {assume n0: "n=0" then have ?thesis using kn 
+      by (cases k, simp_all add: pochhammer_rec del: pochhammer_Suc)}
+  moreover
+  {assume n0: "n \<noteq> 0"
+    then have ?thesis apply (simp add: h pochhammer_Suc_setprod)
+  apply (rule iffD2[OF setprod_zero_eq])
+  apply auto
+  apply (rule_tac x="n" in bexI)
+  using h kn by auto}
+ultimately show ?thesis by blast
+qed
+
+lemma pochhammer_of_nat_eq_0_lemma': assumes kn: "k \<le> n"
+  shows "pochhammer (- (of_nat n :: 'a:: {idom, ring_char_0})) k \<noteq> 0"
+proof-
+  {assume "k=0" then have ?thesis by simp}
+  moreover
+  {fix h assume h: "k = Suc h"
+    then have ?thesis apply (simp add: pochhammer_Suc_setprod)
+      apply (subst setprod_zero_eq_field)
+      using h kn by (auto simp add: ring_simps)}
+  ultimately show ?thesis by (cases k, auto)
+qed
+
+lemma pochhammer_of_nat_eq_0_iff: 
+  shows "pochhammer (- (of_nat n :: 'a:: {idom, ring_char_0})) k = 0 \<longleftrightarrow> k > n"
+  (is "?l = ?r")
+  using pochhammer_of_nat_eq_0_lemma[of n k, where ?'a='a] 
+    pochhammer_of_nat_eq_0_lemma'[of k n, where ?'a = 'a]
+  by (auto simp add: not_le[symmetric])
+
+section{* Generalized binomial coefficients *}
+
+definition gbinomial :: "'a::{field, recpower,ring_char_0} \<Rightarrow> nat \<Rightarrow> 'a" (infixl "gchoose" 65)
+  where "a gchoose n = (if n = 0 then 1 else (setprod (\<lambda>i. a - of_nat i) {0 .. n - 1}) / of_nat (fact n))"
+
+lemma gbinomial_0[simp]: "a gchoose 0 = 1" "0 gchoose (Suc n) = 0"
+  apply (simp_all add: gbinomial_def)
+  apply (subgoal_tac "(\<Prod>i\<Colon>nat\<in>{0\<Colon>nat..n}. - of_nat i) = (0::'b)")
+  apply simp
+  apply (rule iffD2[OF setprod_zero_eq])
+  by auto
+
+lemma gbinomial_pochhammer: "a gchoose n = (- 1) ^ n * pochhammer (- a) n / of_nat (fact n)"
+proof-
+
+  {assume "n=0" then have ?thesis by simp}
+  moreover
+  {assume n0: "n\<noteq>0"
+    from n0 setprod_constant[of "{0 .. n - 1}" "- (1:: 'a)"]
+    have eq: "(- (1\<Colon>'a)) ^ n = setprod (\<lambda>i. - 1) {0 .. n - 1}"
+      by auto
+    from n0 have ?thesis 
+      by (simp add: pochhammer_def gbinomial_def field_simps eq setprod_timesf[symmetric])}
+  ultimately show ?thesis by blast
+qed
+
+lemma binomial_fact_lemma:
+  "k \<le> n \<Longrightarrow> fact k * fact (n - k) * (n choose k) = fact n"
+proof(induct n arbitrary: k rule: nat_less_induct)
+  fix n k assume H: "\<forall>m<n. \<forall>x\<le>m. fact x * fact (m - x) * (m choose x) =
+                      fact m" and kn: "k \<le> n"
+    let ?ths = "fact k * fact (n - k) * (n choose k) = fact n"
+  {assume "n=0" then have ?ths using kn by simp}
+  moreover
+  {assume "k=0" then have ?ths using kn by simp}
+  moreover
+  {assume nk: "n=k" then have ?ths by simp}
+  moreover
+  {fix m h assume n: "n = Suc m" and h: "k = Suc h" and hm: "h < m"
+    from n have mn: "m < n" by arith
+    from hm have hm': "h \<le> m" by arith
+    from hm h n kn have km: "k \<le> m" by arith
+    have "m - h = Suc (m - Suc h)" using  h km hm by arith 
+    with km h have th0: "fact (m - h) = (m - h) * fact (m - k)"
+      by simp
+    from n h th0 
+    have "fact k * fact (n - k) * (n choose k) = k * (fact h * fact (m - h) * (m choose h)) +  (m - h) * (fact k * fact (m - k) * (m choose k))"
+      by (simp add: ring_simps)
+    also have "\<dots> = (k + (m - h)) * fact m"
+      using H[rule_format, OF mn hm'] H[rule_format, OF mn km]
+      by (simp add: ring_simps)
+    finally have ?ths using h n km by simp}
+  moreover have "n=0 \<or> k = 0 \<or> k = n \<or> (EX m h. n=Suc m \<and> k = Suc h \<and> h < m)" using kn by presburger
+  ultimately show ?ths by blast
+qed
+  
+lemma binomial_fact: 
+  assumes kn: "k \<le> n" 
+  shows "(of_nat (n choose k) :: 'a::{field, ring_char_0}) = of_nat (fact n) / (of_nat (fact k) * of_nat (fact (n - k)))"
+  using binomial_fact_lemma[OF kn]
+  by (simp add: field_simps fact_not_eq_zero of_nat_mult[symmetric])
+
+
+lemma binomial_gbinomial: "of_nat (n choose k) = of_nat n gchoose k"
+proof-
+  {assume kn: "k > n" 
+    from kn binomial_eq_0[OF kn] have ?thesis 
+      by (simp add: gbinomial_pochhammer field_simps
+	pochhammer_of_nat_eq_0_iff)}
+  moreover
+  {assume "k=0" then have ?thesis by simp}
+  moreover
+  {assume kn: "k \<le> n" and k0: "k\<noteq> 0"
+    from k0 obtain h where h: "k = Suc h" by (cases k, auto)
+    from h
+    have eq:"(- 1 :: 'a) ^ k = setprod (\<lambda>i. - 1) {0..h}"
+      by (subst setprod_constant, auto)
+    have eq': "(\<Prod>i\<in>{0..h}. of_nat n + - (of_nat i :: 'a)) = (\<Prod>i\<in>{n - h..n}. of_nat i)"
+      apply (rule strong_setprod_reindex_cong[where f="op - n"])
+      using h kn 
+      apply (simp_all add: inj_on_def image_iff Bex_def expand_set_eq)
+      apply clarsimp
+      apply (presburger)
+      apply presburger
+      by (simp add: expand_fun_eq ring_simps of_nat_add[symmetric] del: of_nat_add)
+    have th0: "finite {1..n - Suc h}" "finite {n - h .. n}" 
+"{1..n - Suc h} \<inter> {n - h .. n} = {}" and eq3: "{1..n - Suc h} \<union> {n - h .. n} = {1..n}" using h kn by auto
+    from eq[symmetric]
+    have ?thesis using kn
+      apply (simp add: binomial_fact[OF kn, where ?'a = 'a] 
+	gbinomial_pochhammer field_simps pochhammer_Suc_setprod)
+      apply (simp add: pochhammer_Suc_setprod fact_setprod h of_nat_setprod setprod_timesf[symmetric] eq' del: One_nat_def)
+      unfolding setprod_Un_disjoint[OF th0, unfolded eq3, of "of_nat:: nat \<Rightarrow> 'a"] eq[unfolded h]
+      unfolding mult_assoc[symmetric] 
+      unfolding setprod_timesf[symmetric]
+      apply simp
+      apply (rule disjI2)
+      apply (rule strong_setprod_reindex_cong[where f= "op - n"])
+      apply (auto simp add: inj_on_def image_iff Bex_def)
+      apply presburger
+      apply (subgoal_tac "(of_nat (n - x) :: 'a) = of_nat n - of_nat x")
+      apply simp
+      by (rule of_nat_diff, simp)
+  }
+  moreover
+  have "k > n \<or> k = 0 \<or> (k \<le> n \<and> k \<noteq> 0)" by arith
+  ultimately show ?thesis by blast
+qed
+
+lemma gbinomial_1[simp]: "a gchoose 1 = a"
+  by (simp add: gbinomial_def)
+
+lemma gbinomial_Suc0[simp]: "a gchoose (Suc 0) = a"
+  by (simp add: gbinomial_def)
+
+lemma gbinomial_mult_1: "a * (a gchoose n) = of_nat n * (a gchoose n) + of_nat (Suc n) * (a gchoose (Suc n))" (is "?l = ?r")
+proof-
+  have "?r = ((- 1) ^n * pochhammer (- a) n / of_nat (fact n)) * (of_nat n - (- a + of_nat n))"
+    unfolding gbinomial_pochhammer
+    pochhammer_Suc fact_Suc of_nat_mult right_diff_distrib power_Suc
+    by (simp add:  field_simps del: of_nat_Suc)
+  also have "\<dots> = ?l" unfolding gbinomial_pochhammer
+    by (simp add: ring_simps)
+  finally show ?thesis ..
+qed
+
+lemma gbinomial_mult_1': "(a gchoose n) * a = of_nat n * (a gchoose n) + of_nat (Suc n) * (a gchoose (Suc n))"
+  by (simp add: mult_commute gbinomial_mult_1)
+
+lemma gbinomial_Suc: "a gchoose (Suc k) = (setprod (\<lambda>i. a - of_nat i) {0 .. k}) / of_nat (fact (Suc k))"
+  by (simp add: gbinomial_def)
+ 
+lemma gbinomial_mult_fact:
+  "(of_nat (fact (Suc k)) :: 'a) * ((a::'a::{field, ring_char_0,recpower}) gchoose (Suc k)) = (setprod (\<lambda>i. a - of_nat i) {0 .. k})"
+  unfolding gbinomial_Suc
+  by (simp_all add: field_simps del: fact_Suc)
+
+lemma gbinomial_mult_fact':
+  "((a::'a::{field, ring_char_0,recpower}) gchoose (Suc k)) * (of_nat (fact (Suc k)) :: 'a) = (setprod (\<lambda>i. a - of_nat i) {0 .. k})"
+  using gbinomial_mult_fact[of k a]
+  apply (subst mult_commute) .
+
+lemma gbinomial_Suc_Suc: "((a::'a::{field,recpower, ring_char_0}) + 1) gchoose (Suc k) = a gchoose k + (a gchoose (Suc k))"
+proof-
+  {assume "k = 0" then have ?thesis by simp}
+  moreover
+  {fix h assume h: "k = Suc h"
+   have eq0: "(\<Prod>i\<in>{1..k}. (a + 1) - of_nat i) = (\<Prod>i\<in>{0..h}. a - of_nat i)"
+     apply (rule strong_setprod_reindex_cong[where f = Suc])
+     using h by auto
+
+    have "of_nat (fact (Suc k)) * (a gchoose k + (a gchoose (Suc k))) = ((a gchoose Suc h) * of_nat (fact (Suc h)) * of_nat (Suc k)) + (\<Prod>i\<in>{0\<Colon>nat..Suc h}. a - of_nat i)" 
+      unfolding h
+      apply (simp add: ring_simps del: fact_Suc)
+      unfolding gbinomial_mult_fact'
+      apply (subst fact_Suc)
+      unfolding of_nat_mult 
+      apply (subst mult_commute)
+      unfolding mult_assoc
+      unfolding gbinomial_mult_fact
+      by (simp add: ring_simps)
+    also have "\<dots> = (\<Prod>i\<in>{0..h}. a - of_nat i) * (a + 1)"
+      unfolding gbinomial_mult_fact' setprod_nat_ivl_Suc
+      by (simp add: ring_simps h)
+    also have "\<dots> = (\<Prod>i\<in>{0..k}. (a + 1) - of_nat i)"
+      using eq0
+      unfolding h  setprod_nat_ivl_1_Suc
+      by simp
+    also have "\<dots> = of_nat (fact (Suc k)) * ((a + 1) gchoose (Suc k))"
+      unfolding gbinomial_mult_fact ..
+    finally have ?thesis by (simp del: fact_Suc) }
+  ultimately show ?thesis by (cases k, auto)
 qed
 
 end
