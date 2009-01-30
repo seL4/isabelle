@@ -415,6 +415,24 @@ proof (rule LIM_zero_cancel)
 qed
 
 
+subsection{* Some properties of factorials *}
+
+lemma real_of_nat_fact_not_zero [simp]: "real (fact n) \<noteq> 0"
+by auto
+
+lemma real_of_nat_fact_gt_zero [simp]: "0 < real(fact n)"
+by auto
+
+lemma real_of_nat_fact_ge_zero [simp]: "0 \<le> real(fact n)"
+by simp
+
+lemma inv_real_of_nat_fact_gt_zero [simp]: "0 < inverse (real (fact n))"
+by (auto simp add: positive_imp_inverse_positive)
+
+lemma inv_real_of_nat_fact_ge_zero [simp]: "0 \<le> inverse (real (fact n))"
+by (auto intro: order_less_imp_le)
+
+
 subsection {* Exponential Function *}
 
 definition
