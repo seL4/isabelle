@@ -1053,26 +1053,53 @@ by (insert mult_less_cancel_left [of c a 1], simp)
 
 lemma sgn_sgn [simp]:
   "sgn (sgn a) = sgn a"
-  unfolding sgn_if by simp
+unfolding sgn_if by simp
 
 lemma sgn_0_0:
   "sgn a = 0 \<longleftrightarrow> a = 0"
-  unfolding sgn_if by simp
+unfolding sgn_if by simp
 
 lemma sgn_1_pos:
   "sgn a = 1 \<longleftrightarrow> a > 0"
-  unfolding sgn_if by (simp add: neg_equal_zero)
+unfolding sgn_if by (simp add: neg_equal_zero)
 
 lemma sgn_1_neg:
   "sgn a = - 1 \<longleftrightarrow> a < 0"
-  unfolding sgn_if by (auto simp add: equal_neg_zero)
+unfolding sgn_if by (auto simp add: equal_neg_zero)
 
 lemma sgn_times:
   "sgn (a * b) = sgn a * sgn b"
 by (auto simp add: sgn_if zero_less_mult_iff)
 
 lemma abs_sgn: "abs k = k * sgn k"
-  unfolding sgn_if abs_if by auto
+unfolding sgn_if abs_if by auto
+
+(* The int instances are proved, these generic ones are tedious to prove here.
+And not very useful, as int seems to be the only instance.
+If needed, they should be proved later, when metis is available.
+lemma dvd_abs[simp]: "(abs m) dvd k \<longleftrightarrow> m dvd k"
+proof-
+  have "\<forall>k.\<exists>ka. - (m * k) = m * ka"
+    by(simp add: mult_minus_right[symmetric] del: mult_minus_right)
+  moreover
+  have "\<forall>k.\<exists>ka. m * k = - (m * ka)"
+    by(auto intro!: minus_minus[symmetric]
+         simp add: mult_minus_right[symmetric] simp del: mult_minus_right)
+  ultimately show ?thesis by (auto simp: abs_if dvd_def)
+qed
+
+lemma dvd_abs2[simp]: "m dvd (abs k) \<longleftrightarrow> m dvd k"
+proof-
+  have "\<forall>k.\<exists>ka. - (m * k) = m * ka"
+    by(simp add: mult_minus_right[symmetric] del: mult_minus_right)
+  moreover
+  have "\<forall>k.\<exists>ka. - (m * ka) = m * k"
+    by(auto intro!: minus_minus
+         simp add: mult_minus_right[symmetric] simp del: mult_minus_right)
+  ultimately show ?thesis
+    by (auto simp add:abs_if dvd_def minus_equation_iff[of k])
+qed
+*)
 
 end
 

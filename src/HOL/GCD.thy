@@ -562,25 +562,25 @@ definition
   "zgcd i j = int (gcd (nat (abs i)) (nat (abs j)))"
 
 lemma zgcd_zdvd1 [iff,simp, algebra]: "zgcd i j dvd i"
-  by (simp add: zgcd_def int_dvd_iff)
+by (simp add: zgcd_def int_dvd_iff)
 
 lemma zgcd_zdvd2 [iff,simp, algebra]: "zgcd i j dvd j"
-  by (simp add: zgcd_def int_dvd_iff)
+by (simp add: zgcd_def int_dvd_iff)
 
 lemma zgcd_pos: "zgcd i j \<ge> 0"
-  by (simp add: zgcd_def)
+by (simp add: zgcd_def)
 
 lemma zgcd0 [simp,algebra]: "(zgcd i j = 0) = (i = 0 \<and> j = 0)"
-  by (simp add: zgcd_def gcd_zero) arith
+by (simp add: zgcd_def gcd_zero)
 
 lemma zgcd_commute: "zgcd i j = zgcd j i"
-  unfolding zgcd_def by (simp add: gcd_commute)
+unfolding zgcd_def by (simp add: gcd_commute)
 
 lemma zgcd_zminus [simp, algebra]: "zgcd (- i) j = zgcd i j"
-  unfolding zgcd_def by simp
+unfolding zgcd_def by simp
 
 lemma zgcd_zminus2 [simp, algebra]: "zgcd i (- j) = zgcd i j"
-  unfolding zgcd_def by simp
+unfolding zgcd_def by simp
 
   (* should be solved by algebra*)
 lemma zrelprime_dvd_mult: "zgcd i j = 1 \<Longrightarrow> i dvd k * j \<Longrightarrow> i dvd k"

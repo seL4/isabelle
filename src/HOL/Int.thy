@@ -442,8 +442,11 @@ by (simp only: eq_commute [of m] nat_eq_iff)
 
 lemma nat_less_iff: "0 \<le> w ==> (nat w < m) = (w < of_nat m)"
 apply (cases w)
-apply (simp add: nat le int_def Zero_int_def linorder_not_le [symmetric], arith)
+apply (simp add: nat le int_def Zero_int_def linorder_not_le[symmetric], arith)
 done
+
+lemma nat_0_iff[simp]: "nat(i::int) = 0 \<longleftrightarrow> i\<le>0"
+by(simp add: nat_eq_iff) arith
 
 lemma int_eq_iff: "(of_nat m = z) = (m = nat z & 0 \<le> z)"
 by (auto simp add: nat_eq_iff2)

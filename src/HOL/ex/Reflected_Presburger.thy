@@ -995,7 +995,7 @@ next
     hence ?case using prems by (simp del: zlfm.simps add: zdvd_0_left)}
   moreover
   {assume "?c=0" and "j\<noteq>0" hence ?case 
-      using zsplit0_I[OF spl, where x="i" and bs="bs"] zdvd_abs1[where i="j"]
+      using zsplit0_I[OF spl, where x="i" and bs="bs"]
     apply (auto simp add: Let_def split_def algebra_simps) 
     apply (cases "?r",auto)
     apply (case_tac nat, auto)
@@ -1003,14 +1003,12 @@ next
   moreover
   {assume cp: "?c > 0" and jnz: "j\<noteq>0" hence l: "?L (?l (Dvd j a))" 
       by (simp add: nb Let_def split_def)
-    hence ?case using Ia cp jnz by (simp add: Let_def split_def 
-	zdvd_abs1[where i="j" and j="(?c*i) + ?N ?r", symmetric])}
+    hence ?case using Ia cp jnz by (simp add: Let_def split_def)}
   moreover
   {assume cn: "?c < 0" and jnz: "j\<noteq>0" hence l: "?L (?l (Dvd j a))" 
       by (simp add: nb Let_def split_def)
     hence ?case using Ia cn jnz zdvd_zminus_iff[where m="abs j" and n="?c*i + ?N ?r" ]
-      by (simp add: Let_def split_def 
-      zdvd_abs1[where i="j" and j="(?c*i) + ?N ?r", symmetric])}
+      by (simp add: Let_def split_def) }
   ultimately show ?case by blast
 next
   case (12 j a) 
@@ -1026,7 +1024,7 @@ next
     hence ?case using prems by (simp del: zlfm.simps add: zdvd_0_left)}
   moreover
   {assume "?c=0" and "j\<noteq>0" hence ?case 
-      using zsplit0_I[OF spl, where x="i" and bs="bs"] zdvd_abs1[where i="j"]
+      using zsplit0_I[OF spl, where x="i" and bs="bs"]
     apply (auto simp add: Let_def split_def algebra_simps) 
     apply (cases "?r",auto)
     apply (case_tac nat, auto)
@@ -1034,14 +1032,12 @@ next
   moreover
   {assume cp: "?c > 0" and jnz: "j\<noteq>0" hence l: "?L (?l (Dvd j a))" 
       by (simp add: nb Let_def split_def)
-    hence ?case using Ia cp jnz by (simp add: Let_def split_def 
-	zdvd_abs1[where i="j" and j="(?c*i) + ?N ?r", symmetric])}
+    hence ?case using Ia cp jnz by (simp add: Let_def split_def) }
   moreover
   {assume cn: "?c < 0" and jnz: "j\<noteq>0" hence l: "?L (?l (Dvd j a))" 
       by (simp add: nb Let_def split_def)
     hence ?case using Ia cn jnz zdvd_zminus_iff[where m="abs j" and n="?c*i + ?N ?r" ]
-      by (simp add: Let_def split_def 
-      zdvd_abs1[where i="j" and j="(?c*i) + ?N ?r", symmetric])}
+      by (simp add: Let_def split_def)}
   ultimately show ?case by blast
 qed auto
 
@@ -1210,7 +1206,7 @@ recdef mirror "measure size"
   "mirror p = p"
     (* Lemmas for the correctness of \<sigma>\<rho> *)
 lemma dvd1_eq1: "x >0 \<Longrightarrow> (x::int) dvd 1 = (x = 1)"
-by auto
+by simp
 
 lemma minusinf_inf:
   assumes linp: "iszlfm p"
@@ -1220,12 +1216,12 @@ lemma minusinf_inf:
 using linp u
 proof (induct p rule: minusinf.induct)
   case (1 p q) thus ?case 
-    by (auto simp add: dvd1_eq1) (rule_tac x="min z za" in exI,simp)
+    by auto (rule_tac x="min z za" in exI,simp)
 next
   case (2 p q) thus ?case 
-    by (auto simp add: dvd1_eq1) (rule_tac x="min z za" in exI,simp)
+    by auto (rule_tac x="min z za" in exI,simp)
 next
-  case (3 c e) hence c1: "c=1" and nb: "numbound0 e" using dvd1_eq1 by simp+
+  case (3 c e) hence c1: "c=1" and nb: "numbound0 e" by simp+
   fix a
   from 3 have "\<forall> x<(- Inum (a#bs) e). c*x + Inum (x#bs) e \<noteq> 0"
   proof(clarsimp)
@@ -1235,7 +1231,7 @@ next
   qed
   thus ?case by auto
 next
-  case (4 c e) hence c1: "c=1" and nb: "numbound0 e" using dvd1_eq1 by simp+
+  case (4 c e) hence c1: "c=1" and nb: "numbound0 e" by simp+
   fix a
   from 4 have "\<forall> x<(- Inum (a#bs) e). c*x + Inum (x#bs) e \<noteq> 0"
   proof(clarsimp)
@@ -1245,7 +1241,7 @@ next
   qed
   thus ?case by auto
 next
-  case (5 c e) hence c1: "c=1" and nb: "numbound0 e" using dvd1_eq1 by simp+
+  case (5 c e) hence c1: "c=1" and nb: "numbound0 e" by simp+
   fix a
   from 5 have "\<forall> x<(- Inum (a#bs) e). c*x + Inum (x#bs) e < 0"
   proof(clarsimp)
@@ -1255,7 +1251,7 @@ next
   qed
   thus ?case by auto
 next
-  case (6 c e) hence c1: "c=1" and nb: "numbound0 e" using dvd1_eq1 by simp+
+  case (6 c e) hence c1: "c=1" and nb: "numbound0 e" by simp+
   fix a
   from 6 have "\<forall> x<(- Inum (a#bs) e). c*x + Inum (x#bs) e \<le> 0"
   proof(clarsimp)
@@ -1265,7 +1261,7 @@ next
   qed
   thus ?case by auto
 next
-  case (7 c e) hence c1: "c=1" and nb: "numbound0 e" using dvd1_eq1 by simp+
+  case (7 c e) hence c1: "c=1" and nb: "numbound0 e" by simp+
   fix a
   from 7 have "\<forall> x<(- Inum (a#bs) e). \<not> (c*x + Inum (x#bs) e > 0)"
   proof(clarsimp)
@@ -1275,7 +1271,7 @@ next
   qed
   thus ?case by auto
 next
-  case (8 c e) hence c1: "c=1" and nb: "numbound0 e" using dvd1_eq1 by simp+
+  case (8 c e) hence c1: "c=1" and nb: "numbound0 e" by simp+
   fix a
   from 8 have "\<forall> x<(- Inum (a#bs) e). \<not> (c*x + Inum (x#bs) e \<ge> 0)"
   proof(clarsimp)
@@ -1595,15 +1591,15 @@ lemma \<beta>:
   shows "?P (x - d)"
 using lp u d dp nob p
 proof(induct p rule: iszlfm.induct)
-  case (5 c e) hence c1: "c=1" and  bn:"numbound0 e" using dvd1_eq1[where x="c"] by simp+
+  case (5 c e) hence c1: "c=1" and  bn:"numbound0 e" by simp+
     with dp p c1 numbound0_I[OF bn,where b="(x-d)" and b'="x" and bs="bs"] prems
     show ?case by simp
 next
-  case (6 c e)  hence c1: "c=1" and  bn:"numbound0 e" using dvd1_eq1[where x="c"] by simp+
+  case (6 c e)  hence c1: "c=1" and  bn:"numbound0 e" by simp+
     with dp p c1 numbound0_I[OF bn,where b="(x-d)" and b'="x" and bs="bs"] prems
     show ?case by simp
 next
-  case (7 c e) hence p: "Ifm bbs (x #bs) (Gt (CN 0 c e))" and c1: "c=1" and bn:"numbound0 e" using dvd1_eq1[where x="c"] by simp+
+  case (7 c e) hence p: "Ifm bbs (x #bs) (Gt (CN 0 c e))" and c1: "c=1" and bn:"numbound0 e" by simp+
     let ?e = "Inum (x # bs) e"
     {assume "(x-d) +?e > 0" hence ?case using c1 
       numbound0_I[OF bn,where b="(x-d)" and b'="x" and bs="bs"] by simp}
@@ -1622,7 +1618,7 @@ next
     ultimately show ?case by blast
 next
   case (8 c e) hence p: "Ifm bbs (x #bs) (Ge (CN 0 c e))" and c1: "c=1" and bn:"numbound0 e" 
-    using dvd1_eq1[where x="c"] by simp+
+    by simp+
     let ?e = "Inum (x # bs) e"
     {assume "(x-d) +?e \<ge> 0" hence ?case using  c1 
       numbound0_I[OF bn,where b="(x-d)" and b'="x" and bs="bs"]
@@ -1640,7 +1636,7 @@ next
       with nob have ?case by simp }
     ultimately show ?case by blast
 next
-  case (3 c e) hence p: "Ifm bbs (x #bs) (Eq (CN 0 c e))" (is "?p x") and c1: "c=1" and bn:"numbound0 e" using dvd1_eq1[where x="c"] by simp+
+  case (3 c e) hence p: "Ifm bbs (x #bs) (Eq (CN 0 c e))" (is "?p x") and c1: "c=1" and bn:"numbound0 e" by simp+
     let ?e = "Inum (x # bs) e"
     let ?v="(Sub (C -1) e)"
     have vb: "?v \<in> set (\<beta> (Eq (CN 0 c e)))" by simp
@@ -1648,7 +1644,7 @@ next
       by simp (erule ballE[where x="1"],
 	simp_all add:algebra_simps numbound0_I[OF bn,where b="x"and b'="a"and bs="bs"])
 next
-  case (4 c e)hence p: "Ifm bbs (x #bs) (NEq (CN 0 c e))" (is "?p x") and c1: "c=1" and bn:"numbound0 e" using dvd1_eq1[where x="c"] by simp+
+  case (4 c e)hence p: "Ifm bbs (x #bs) (NEq (CN 0 c e))" (is "?p x") and c1: "c=1" and bn:"numbound0 e" by simp+
     let ?e = "Inum (x # bs) e"
     let ?v="Neg e"
     have vb: "?v \<in> set (\<beta> (NEq (CN 0 c e)))" by simp
@@ -1662,7 +1658,7 @@ next
        with prems(11) have ?case using dp by simp}
   ultimately show ?case by blast
 next 
-  case (9 j c e) hence p: "Ifm bbs (x #bs) (Dvd j (CN 0 c e))" (is "?p x") and c1: "c=1" and bn:"numbound0 e" using dvd1_eq1[where x="c"] by simp+
+  case (9 j c e) hence p: "Ifm bbs (x #bs) (Dvd j (CN 0 c e))" (is "?p x") and c1: "c=1" and bn:"numbound0 e" by simp+
     let ?e = "Inum (x # bs) e"
     from prems have id: "j dvd d" by simp
     from c1 have "?p x = (j dvd (x+ ?e))" by simp
@@ -1671,7 +1667,7 @@ next
     finally show ?case 
       using numbound0_I[OF bn,where b="(x-d)" and b'="x" and bs="bs"] c1 p by simp
 next
-  case (10 j c e) hence p: "Ifm bbs (x #bs) (NDvd j (CN 0 c e))" (is "?p x") and c1: "c=1" and bn:"numbound0 e" using dvd1_eq1[where x="c"] by simp+
+  case (10 j c e) hence p: "Ifm bbs (x #bs) (NDvd j (CN 0 c e))" (is "?p x") and c1: "c=1" and bn:"numbound0 e" by simp+
     let ?e = "Inum (x # bs) e"
     from prems have id: "j dvd d" by simp
     from c1 have "?p x = (\<not> j dvd (x+ ?e))" by simp
