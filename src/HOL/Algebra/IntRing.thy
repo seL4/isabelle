@@ -265,6 +265,7 @@ apply (subst int_Idl[symmetric], rule principalidealI)
 apply fast
 done
 
+
 lemma prime_primeideal:
   assumes prime: "prime (nat p)"
   shows "primeideal (Idl\<^bsub>\<Z>\<^esub> {p}) \<Z>"
@@ -293,17 +294,7 @@ proof -
 
   assume "a * b = x * p"
   hence "p dvd a * b" by simp
-  hence "nat p dvd nat (abs (a * b))"
-  apply (subst nat_dvd_iff, clarsimp)
-  apply (rule conjI, clarsimp, simp add: zabs_def)
-  proof (clarsimp)
-    assume a: " ~ 0 <= p"
-    from prime
-        have "0 < p" by (simp add: prime_def)
-    from a and this
-        have "False" by simp
-    thus "nat (abs (a * b)) = 0" ..
-  qed
+  hence "nat p dvd nat (abs (a * b))" using ppos by (simp add: nat_dvd_iff)
   hence "nat p dvd (nat (abs a) * nat (abs b))" by (simp add: nat_abs_mult_distrib)
   hence "nat p dvd nat (abs a) | nat p dvd nat (abs b)" by (rule prime_dvd_mult[OF prime])
   hence "p dvd a | p dvd b" by (fast intro: unnat)

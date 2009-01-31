@@ -1173,16 +1173,16 @@ lemma zdvd_refl [simp]: "m dvd (m::int)"
 lemma zdvd_trans: "m dvd n ==> n dvd k ==> m dvd (k::int)"
   by (rule dvd_trans)
 
-lemma zdvd_zminus_iff: "m dvd -n \<longleftrightarrow> m dvd (n::int)"
+lemma zdvd_zminus_iff[simp]: "m dvd -n \<longleftrightarrow> m dvd (n::int)"
   by (rule dvd_minus_iff)
 
-lemma zdvd_zminus2_iff: "-m dvd n \<longleftrightarrow> m dvd (n::int)"
+lemma zdvd_zminus2_iff[simp]: "-m dvd n \<longleftrightarrow> m dvd (n::int)"
   by (rule minus_dvd_iff)
 
-lemma zdvd_abs1: "( \<bar>i::int\<bar> dvd j) = (i dvd j)" 
+lemma zdvd_abs1[simp]: "( \<bar>i::int\<bar> dvd j) = (i dvd j)" 
   by (cases "i > 0") (simp_all add: zdvd_zminus2_iff)
 
-lemma zdvd_abs2: "( (i::int) dvd \<bar>j\<bar>) = (i dvd j)" 
+lemma zdvd_abs2[simp]: "( (i::int) dvd \<bar>j\<bar>) = (i dvd j)" 
   by (cases "j > 0") (simp_all add: zdvd_zminus_iff)
 
 lemma zdvd_anti_sym:

@@ -1005,15 +1005,8 @@ lemma mult_matrix_singleton_right[simp]:
   apply (subst foldseq_almostzero[of _ j])
   apply (simp add: prems)+
   apply (auto)
-  proof -
-    fix k
-    fix l
-    assume a:"~neg(int l - int i)"
-    assume b:"nat (int l - int i) = 0"
-    from a b have a: "l = i" by(insert not_neg_nat[of "int l - int i"], simp add: a b)
-    assume c: "i \<noteq> l"
-    from c a show "fmul (Rep_matrix A k j) e = 0" by blast
-  qed
+  apply (metis comm_monoid_add.mult_1 le_anti_sym le_diff_eq not_neg_nat zero_le_imp_of_nat zle_int)
+  done
 
 lemma mult_matrix_ext:
   assumes
