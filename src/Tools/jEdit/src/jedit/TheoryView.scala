@@ -78,7 +78,7 @@ class TheoryView (text_area: JEditTextArea)
   private var col: Text.Changed = null
 
   private val col_timer = new Timer(300, new ActionListener() {
-    override def actionPerformed(e: ActionEvent) = commit()
+    override def actionPerformed(e: ActionEvent) = commit
   })
 
   col_timer.stop
@@ -172,7 +172,8 @@ class TheoryView (text_area: JEditTextArea)
       if (finish < buffer.getLength) text_area.offsetToXY(finish)
       else {
         val p = text_area.offsetToXY(finish - 1)
-        p.x = p.x + text_area.getPainter.getFontMetrics.charWidth(' ')
+        val metrics = text_area.getPainter.getFontMetrics
+        p.x = p.x + (metrics.charWidth(' ') max metrics.getMaxAdvance)
         p
       }
 
@@ -225,7 +226,7 @@ class TheoryView (text_area: JEditTextArea)
 
   /* BufferListener methods */
 
-  private def commit() {
+  private def commit {
     if (col != null)
       changes.event(col)
     col = null
@@ -233,7 +234,7 @@ class TheoryView (text_area: JEditTextArea)
       col_timer.stop()
   }
 
-  private def delay_commit() {
+  private def delay_commit {
     if (col_timer.isRunning())
       col_timer.restart()
     else
@@ -255,10 +256,10 @@ class TheoryView (text_area: JEditTextArea)
     else if (col.start <= offset && offset <= col.start + col.added)
       col = new Text.Changed(col.start, col.added + length, col.removed)
     else {
-      commit()
+      commit
       col = new Text.Changed(offset, length, 0)
     }
-    delay_commit()
+    delay_commit
   }
 
   override def preContentRemoved(buffer: JEditBuffer,
@@ -267,7 +268,7 @@ class TheoryView (text_area: JEditTextArea)
     if (col == null)
       col = new Text.Changed(start, 0, removed)
     else if (col.start > start + removed || start > col.start + col.added) {
-      commit()
+      commit
       col = new Text.Changed(start, 0, removed)
     }
     else {
@@ -280,7 +281,7 @@ class TheoryView (text_area: JEditTextArea)
           (diff - (offset min 0), offset min 0)
       col = new Text.Changed(start min col.start, added, col.removed - add_removed)
     }
-    delay_commit()
+    delay_commit
   }
 
   override def bufferLoaded(buffer: JEditBuffer) { }
