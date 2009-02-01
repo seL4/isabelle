@@ -128,12 +128,12 @@ fun prep_class_elems prep_decl thy supexpr sups proto_base_sort raw_elems =
       let val xs' = f xs in if eq_list (op =) (xs, xs') then NONE else SOME (xs', ctxt) end));
 
     (* preproceesing elements, retrieving base sort from type-checked elements *)
+    val init_class_body = fold (ProofContext.add_const_constraint o apsnd SOME) base_constraints
+      #> redeclare_operations thy sups
+      #> add_typ_check 10 "reject_bcd_etc" reject_bcd_etc
+      #> add_typ_check ~10 "singleton_fixate" (singleton_fixate thy (Sign.classes_of thy));
     val ((_, _, inferred_elems), _) = ProofContext.init thy
-      |> fold (ProofContext.add_const_constraint o apsnd SOME) base_constraints
-      |> redeclare_operations thy sups
-      |> add_typ_check 10 "reject_bcd_etc" reject_bcd_etc
-      |> add_typ_check ~10 "singleton_fixate" (singleton_fixate thy (Sign.classes_of thy))
-      |> prep_decl supexpr raw_elems;
+      |> prep_decl supexpr init_class_body raw_elems;
     fun fold_element_types f (Element.Fixes fxs) = fold (fn (_, SOME T, _) => f T) fxs
       | fold_element_types f (Element.Constrains cnstrs) = fold (f o snd) cnstrs
       | fold_element_types f (Element.Assumes assms) = fold (fold (fn (t, ts) =>
@@ -184,7 +184,7 @@ fun prep_class_spec prep_class prep_class_elems thy raw_supclasses raw_elems =
       (*#> fold (Variable.declare_constraints o Free) ((map o apsnd o map_atyps)
           (K (TFree (Name.aT, base_sort))) supparams) FIXME really necessary?*)
             (*FIXME should constraints be issued in begin?*)
-      |> Expression.cert_declaration supexpr inferred_elems;
+      |> Expression.cert_declaration supexpr I inferred_elems;
     fun check_vars e vs = if null vs
       then error ("No type variable in part of specification element "
         ^ (Pretty.output o Pretty.chunks) (Element.pretty_ctxt class_ctxt e))

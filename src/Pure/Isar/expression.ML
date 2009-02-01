@@ -19,15 +19,15 @@ sig
     Proof.context -> (term * term list) list list * Proof.context
 
   (* Declaring locales *)
-  val cert_declaration: expression_i -> Element.context_i list -> Proof.context ->
-    ((binding * typ option * mixfix) list * (string * morphism) list
+  val cert_declaration: expression_i -> (Proof.context -> Proof.context) -> Element.context_i list ->
+    Proof.context -> ((binding * typ option * mixfix) list * (string * morphism) list
       * Element.context_i list) * ((string * typ) list * Proof.context)
-  val cert_read_declaration: expression_i -> Element.context list -> Proof.context ->
-    ((binding * typ option * mixfix) list * (string * morphism) list
+  val cert_read_declaration: expression_i -> (Proof.context -> Proof.context) -> Element.context list ->
+    Proof.context -> ((binding * typ option * mixfix) list * (string * morphism) list
       * Element.context_i list) * ((string * typ) list * Proof.context)
       (*FIXME*)
-  val read_declaration: expression -> Element.context list -> Proof.context ->
-    ((binding * typ option * mixfix) list * (string * morphism) list
+  val read_declaration: expression -> (Proof.context -> Proof.context) -> Element.context list ->
+    Proof.context -> ((binding * typ option * mixfix) list * (string * morphism) list
       * Element.context_i list) * ((string * typ) list * Proof.context)
   val add_locale: bstring -> bstring -> expression_i -> Element.context_i list ->
     theory -> string * local_theory
@@ -351,7 +351,7 @@ fun finish ctxt parms do_close insts elems =
 local
 
 fun prep_full_context_statement parse_typ parse_prop prep_vars_elem parse_inst prep_vars_inst prep_expr
-    strict do_close raw_import raw_elems raw_concl ctxt1 =
+    strict do_close raw_import init_body raw_elems raw_concl ctxt1 =
   let
     val thy = ProofContext.theory_of ctxt1;
 
@@ -388,20 +388,21 @@ fun prep_full_context_statement parse_typ parse_prop prep_vars_elem parse_inst p
     val fors = prep_vars_inst fixed ctxt1 |> fst;
     val ctxt2 = ctxt1 |> ProofContext.add_fixes_i fors |> snd;
     val (_, insts', ctxt3) = fold prep_inst raw_insts (0, [], ctxt2);
-    val (elems, ctxt4) = fold (prep_elem insts') raw_elems ([], ctxt3);
-    val (insts, elems', concl, ctxt5) =
-      prep_concl raw_concl (insts', elems, ctxt4);
+    val ctxt4 = init_body ctxt3;
+    val (elems, ctxt5) = fold (prep_elem insts') raw_elems ([], ctxt4);
+    val (insts, elems', concl, ctxt6) =
+      prep_concl raw_concl (insts', elems, ctxt5);
 
     (* Retrieve parameter types *)
     val xs = fold (fn Fixes fixes => (fn ps => ps @ map (Binding.base_name o #1) fixes)
       | _ => fn ps => ps) (Fixes fors :: elems') [];
-    val (Ts, ctxt6) = fold_map ProofContext.inferred_param xs ctxt5; 
+    val (Ts, ctxt7) = fold_map ProofContext.inferred_param xs ctxt6; 
     val parms = xs ~~ Ts;  (* params from expression and elements *)
 
     val Fixes fors' = finish_primitive parms I (Fixes fors);
     val (deps, elems'') = finish ctxt6 parms do_close insts elems';
 
-  in ((fors', deps, elems'', concl), (parms, ctxt6)) end
+  in ((fors', deps, elems'', concl), (parms, ctxt7)) end
 
 in
 
@@ -425,7 +426,7 @@ local
 fun prep_statement prep activate raw_elems raw_concl context =
   let
      val ((_, _, elems, concl), _) =
-       prep true false ([], []) raw_elems raw_concl context;
+       prep true false ([], []) I raw_elems raw_concl context;
      val (_, context') = context |>
        ProofContext.set_stmt true |>
        activate elems;
@@ -443,10 +444,10 @@ end;
 
 local
 
-fun prep_declaration prep activate raw_import raw_elems context =
+fun prep_declaration prep activate raw_import init_body raw_elems context =
   let
     val ((fixed, deps, elems, _), (parms, ctxt')) =
-      prep false true raw_import raw_elems [] context ;
+      prep false true raw_import init_body raw_elems [] context ;
     (* Declare parameters and imported facts *)
     val context' = context |>
       ProofContext.add_fixes_i fixed |> snd |>
@@ -481,7 +482,7 @@ fun prep_goal_expression prep expression context =
     val thy = ProofContext.theory_of context;
 
     val ((fixed, deps, _, _), _) =
-      prep true true expression [] [] context;
+      prep true true expression I [] [] context;
     (* proof obligations *)
     val propss = map (props_of thy) deps;
 
@@ -732,7 +733,7 @@ fun gen_add_locale prep_decl
       error ("Duplicate definition of locale " ^ quote name);
 
     val ((fixed, deps, body_elems), (parms, ctxt')) =
-      prep_decl raw_imprt raw_body (ProofContext.init thy);
+      prep_decl raw_imprt I raw_body (ProofContext.init thy);
     val text as (((_, exts'), _), defs) = eval ctxt' deps body_elems;
 
     val predicate_bname = if raw_predicate_bname = "" then bname
