@@ -7,9 +7,9 @@ plugin.isabelle.jedit.Plugin.version=0.0.1
 plugin.isabelle.jedit.Plugin.description=Isabelle/Isar live document editing
 
 #system parameters
-plugin.isabelle.jedit.Plugin.activate=defer
+plugin.isabelle.jedit.Plugin.activate=startup
 plugin.isabelle.jedit.Plugin.usePluginHome=false
-plugin.isabelle.jedit.Plugin.jars=isabelle-Pure.jar core-renderer.jar scala-library.jar
+plugin.isabelle.jedit.Plugin.jars=Pure.jar core-renderer.jar scala-library.jar
 
 #dependencies
 plugin.isabelle.jedit.Plugin.depend.0=jdk 1.5
@@ -23,7 +23,7 @@ options.isabelle.label=Isabelle
 options.isabelle.code=new isabelle.jedit.OptionPane();
 options.isabelle.font-path.title=Font Path
 options.isabelle.font-size.title=Font Size
-options.isabelle.font-size=14
+options.isabelle.font-size=18
 
 #menu actions
 plugin.isabelle.jedit.Plugin.menu.label=Isabelle

@@ -72,4 +72,22 @@
       <copy file="plugin/actions.xml" todir="${build.classes.dir}" />
       <copy file="plugin/Isabelle.props" todir="${build.classes.dir}" />
     </target>
+    <target name="-post-jar">
+      <!-- jars -->
+      <delete file="${dist.dir}/jars/lib/jEdit.jar" />
+      <move todir="${dist.dir}/jars">
+        <fileset dir="${dist.dir}/jars/lib" />
+      </move>
+      <copy file="${scala.library}" todir="${dist.dir}/jars" />
+      <!-- clean up -->
+      <delete dir="{dist.dir}/jars/lib" />
+      <!-- dist-template -->
+      <copy file="dist-template/properties/jedit.props" tofile="${dist.dir}/properties" />
+      <copy todir="${dist.dir}/modes">
+        <fileset dir="dist-template/modes">
+          <exclude name="catalog-template" />
+        </fileset>
+      </copy>
+      <copy file="dist-template/modes/catalog-template" tofile="${dist.dir}/modes/catalog" />
+    </target>
 </project>
