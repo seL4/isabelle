@@ -203,10 +203,10 @@ class TheoryView (text_area: JEditTextArea)
       // paint details of command
       for (node <- e.root_node.dfs) {
         val begin = to_current(node.start + e.start)
-        val finish = to_current(node.end + e.start)
+        val finish = to_current(node.stop + e.start)
         if (finish > start && begin < end) {
           encolor(gfx, y + metrics.getHeight - 4, 2, begin max start, finish min end,
-            TheoryView.choose_color(node.short), true)
+            TheoryView.choose_color(node.kind), true)
         }
       }
       e = e.next
