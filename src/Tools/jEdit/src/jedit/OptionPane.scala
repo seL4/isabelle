@@ -44,7 +44,7 @@ class OptionPane extends AbstractOptionPane("isabelle") {
     addComponent(Isabelle.Property("font-size.title"), {
       try {
         if (Isabelle.Property("font-size") != null)
-          fontSize.setValue(Integer.valueOf(Isabelle.Property("font-size")))
+          fontSize.setValue(Isabelle.Property("font-size").toInt)
       }
       catch {
         case e : NumberFormatException => 

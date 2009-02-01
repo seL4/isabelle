@@ -11,7 +11,7 @@ import isabelle.IsabelleProcess.Result
 import isabelle.renderer.UserAgent
 
 
-import scala.collection.mutable.{ArrayBuffer, HashMap}
+import scala.collection.mutable
 
 import java.awt.{BorderLayout, Adjustable, Dimension}
 import java.awt.event.{ActionListener, ActionEvent, AdjustmentListener, AdjustmentEvent, ComponentListener, ComponentEvent}
@@ -60,7 +60,7 @@ class MessagePanel(cache: Rendered[_, XHTMLPanel]) extends JPanel {
         //panel has to be displayable before calculating preferred size!
         add(panel)
         // recalculate preferred size after resizing the message_view
-        if(panel.getPreferredSize.getWidth.toInt != getWidth){
+        if (panel.getPreferredSize.getWidth.toInt != getWidth) {
           cache.renderer.relayout (panel, getWidth)
         }
         val width = panel.getPreferredSize.getWidth.toInt
@@ -76,12 +76,12 @@ class MessagePanel(cache: Rendered[_, XHTMLPanel]) extends JPanel {
     removeAll()
     //calculate offset in pixel
     val panel = place_message(no, 0)
-    val pixeloffset = if(panel != null) panel.getHeight*offset/100 else 0
+    val pixeloffset = if (panel != null) panel.getHeight*offset/100 else 0
     var n = no
     var y:Int = getHeight + pixeloffset
-    while (y >= 0 && n >= 0){
+    while (y >= 0 && n >= 0) {
       val panel = place_message (n, y)
-      if(panel != null) {
+      if (panel != null) {
         panel.setBorder(javax.swing.border.LineBorder.createBlackLineBorder)
         y = y - panel.getHeight
       }
@@ -132,9 +132,9 @@ class ScrollerDockable(view : View, position : String) extends JPanel with Adjus
   // do not show every new message, wait a certain amount of time
   val message_ind_timer : Timer = new Timer(250, new ActionListener {
       // this method is called to indicate a new message
-      override def actionPerformed(e:ActionEvent){
+      override def actionPerformed(e:ActionEvent) {
         //fire scroll-event if necessary and wanted
-        if(message_panel.no != buffer.size*subunits - 1 && infopanel.isAutoScroll) {
+        if (message_panel.no != buffer.size*subunits - 1 && infopanel.isAutoScroll) {
           vscroll.setValue(buffer.size*subunits - 1)
         }
         infopanel.setIndicator(false)
@@ -147,15 +147,15 @@ class ScrollerDockable(view : View, position : String) extends JPanel with Adjus
     infopanel.setIndicator(true)
     infopanel.setText(buffer.size.toString)
 
-    if (! message_ind_timer.isRunning()){
-      if(infopanel.isAutoScroll){
+    if (!message_ind_timer.isRunning()) {
+      if (infopanel.isAutoScroll) {
         vscroll.setValue(buffer.size*subunits - 1)
       }
       message_ind_timer.setRepeats(false)
       message_ind_timer.start()
     }
 
-    if(message_panel.no == -1) {
+    if (message_panel.no == -1) {
       message_panel.no = 0
       message_panel.revalidate
     }
@@ -164,7 +164,7 @@ class ScrollerDockable(view : View, position : String) extends JPanel with Adjus
   override def adjustmentValueChanged (e : AdjustmentEvent) = {
     //event-handling has to be so general (without UNIT_INCR,...)
     // because all events could be sent as TRACK e.g. on my mac
-    if (e.getSource == vscroll){
+    if (e.getSource == vscroll) {
       message_panel.no = e.getValue / subunits
       message_panel.offset = 100 - 100 * (e.getValue % subunits) / subunits
       message_panel.revalidate
@@ -179,12 +179,12 @@ class ScrollerDockable(view : View, position : String) extends JPanel with Adjus
 //Concrete Implementations
 
 //containing the unrendered messages
-class MessageBuffer extends HashMap[Int,Result] with Unrendered[Result]{
+class MessageBuffer extends mutable.HashMap[Int,Result] with Unrendered[Result]{
   override def addUnrendered (id: Int, m: Result) {
     update(id, m)
   }
-  override def getUnrendered (id: Int): Option[Result] = {
-    if(id < size && id >= 0 && apply(id) != null) Some (apply(id))
+  override def getUnrendered(id: Int): Option[Result] = {
+    if (id < size && id >= 0 && apply(id) != null) Some (apply(id))
     else None
   }
   override def size = super.size
@@ -192,11 +192,11 @@ class MessageBuffer extends HashMap[Int,Result] with Unrendered[Result]{
 
 //containing the rendered messages
 class PanelCache (buffer: Unrendered[Result], val renderer: Renderer[Result, XHTMLPanel])
-  extends HashMap[Int, XHTMLPanel] with Rendered[Result, XHTMLPanel]{
+  extends mutable.HashMap[Int, XHTMLPanel] with Rendered[Result, XHTMLPanel]{
 
   override def getRendered (id: Int): Option[XHTMLPanel] = {
     //get message from buffer and render it if necessary
-    if(!isDefinedAt(id)){
+    if (!isDefinedAt(id)) {
       buffer.getUnrendered(id) match {
         case Some (message) =>
           update (id, renderer.render (message))
@@ -204,7 +204,7 @@ class PanelCache (buffer: Unrendered[Result], val renderer: Renderer[Result, XHT
       }
     }
     val result = try {
-      Some (apply(id))
+      Some(apply(id))
     } catch {
       case _ => {
           None

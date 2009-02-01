@@ -12,7 +12,7 @@ import java.io.{FileInputStream, IOException}
 import java.awt.Font
 import javax.swing.JScrollPane
 
-import scala.collection.mutable.HashMap
+import scala.collection.mutable
 
 import isabelle.prover.{Prover, Command}
 import isabelle.IsabelleSystem
@@ -38,6 +38,12 @@ object Isabelle {
   // Isabelle system instance
   var system: IsabelleSystem = null
   def symbols = system.symbols
+
+  // settings
+  def default_logic = {
+    val logic = Isabelle.Property("logic")
+    if (logic != null) logic else Isabelle.system.getenv_strict("ISABELLE_LOGIC")
+  }
 
   // plugin instance
   var plugin: Plugin = null
@@ -69,7 +75,7 @@ class Plugin extends EBPlugin {
 
   // mapping buffer <-> prover
 
-  private val mapping = new HashMap[JEditBuffer, ProverSetup]
+  private val mapping = new mutable.HashMap[JEditBuffer, ProverSetup]
 
   private def install(view: View) {
     val buffer = view.getBuffer
@@ -100,9 +106,9 @@ class Plugin extends EBPlugin {
           case Some(prover_setup) => 
             prover_setup.theory_view.activate
             val dockable = epu.getEditPane.getView.getDockableWindowManager.getDockable("isabelle-output")
-            if(dockable != null) {
+            if (dockable != null) {
               val output_dockable = dockable.asInstanceOf[OutputDockable]
-              if(output_dockable.getComponent(0) != prover_setup.output_text_view ) {
+              if (output_dockable.getComponent(0) != prover_setup.output_text_view ) {
                 output_dockable.asInstanceOf[OutputDockable].removeAll
                 output_dockable.asInstanceOf[OutputDockable].add(new JScrollPane(prover_setup.output_text_view))
                 output_dockable.revalidate
@@ -111,7 +117,7 @@ class Plugin extends EBPlugin {
         }
       case EditPaneUpdate.BUFFER_CHANGING =>
         val buffer = epu.getEditPane.getBuffer
-        if(buffer != null) mapping get buffer match {
+        if (buffer != null) mapping get buffer match {
           //only deactivate 'isabelle'-buffers!
           case None =>
           case Some(prover_setup) => prover_setup.theory_view.deactivate

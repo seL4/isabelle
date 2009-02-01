@@ -23,7 +23,7 @@ object MarkupNode {
       override def getShortString : String = node.short
       override def getLongString : String = node.long
       override def getName : String = node.name
-      override def setName (name : String) = ()
+      override def setName(name : String) = ()
       override def setStart(start : Position) = ()
       override def getStart : Position = node.base.start + node.start
       override def setEnd(end : Position) = ()
@@ -48,7 +48,7 @@ class MarkupNode (val base : Command, val start : Int, val end : Int,
   def children = children_cell
   def children_= (cs : List[MarkupNode]) = {
     swing_node.removeAllChildren
-    for(c <- cs) swing_node add c.swing_node
+    for (c <- cs) swing_node add c.swing_node
     children_cell = cs
   }
   
@@ -62,7 +62,7 @@ class MarkupNode (val base : Command, val start : Int, val end : Int,
   private def remove(nodes : List[MarkupNode]) {
     children_cell = children diff nodes
 
-      for(node <- nodes) try {
+      for (node <- nodes) try {
         swing_node remove node.swing_node
       } catch { case e : IllegalArgumentException =>
         System.err.println(e.toString)
@@ -72,23 +72,23 @@ class MarkupNode (val base : Command, val start : Int, val end : Int,
 
   def dfs : List[MarkupNode] = {
     var all = Nil : List[MarkupNode]
-    for(child <- children)
+    for (child <- children)
       all = child.dfs ::: all
     all = this :: all
     all
   }
 
   def insert(new_child : MarkupNode) : Unit = {
-    if(new_child fitting_into this){
-      for(child <- children){
-        if(new_child fitting_into child)
+    if (new_child fitting_into this) {
+      for (child <- children) {
+        if (new_child fitting_into child)
           child insert new_child
       }
-      if(new_child orphan){
+      if (new_child orphan) {
         // new_child did not fit into children of this
         // -> insert new_child between this and its children
-        for(child <- children){
-          if(child fitting_into new_child) {
+        for (child <- children) {
+          if (child fitting_into new_child) {
             new_child add child
           }
         }

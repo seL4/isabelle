@@ -22,7 +22,7 @@ import javax.swing.{JTextArea, JScrollPane}
 
 class ProverSetup(buffer: JEditBuffer)
 {
-  val prover = new Prover(Isabelle.system)
+  var prover: Prover = null
   var theory_view: TheoryView = null
 
   val state_update = new EventBus[Command]
@@ -34,7 +34,8 @@ class ProverSetup(buffer: JEditBuffer)
   val output_text_view = new JTextArea
 
   def activate(view: View) {
-    prover.start(Isabelle.Property("logic"))
+    prover = new Prover(Isabelle.system, Isabelle.default_logic)
+    
     val buffer = view.getBuffer
     val dir = buffer.getDirectory
 
@@ -49,9 +50,9 @@ class ProverSetup(buffer: JEditBuffer)
         output_text_view.append(text)
         val dockable = view.getDockableWindowManager.getDockable("isabelle-output")
         //link process output if dockable is active
-        if(dockable != null) {
+        if (dockable != null) {
           val output_dockable = dockable.asInstanceOf[OutputDockable]
-          if(output_dockable.getComponent(0) != output_text_view ) {
+          if (output_dockable.getComponent(0) != output_text_view ) {
             output_dockable.asInstanceOf[OutputDockable].removeAll
             output_dockable.asInstanceOf[OutputDockable].add(new JScrollPane(output_text_view))
             output_dockable.revalidate
@@ -65,7 +66,7 @@ class ProverSetup(buffer: JEditBuffer)
       val state_panel =
         if (state_view != null) state_view.asInstanceOf[StateViewDockable].panel
         else null
-      if (state_panel != null){
+      if (state_panel != null) {
         if (state == null)
           state_panel.setDocument(null: Document)
         else

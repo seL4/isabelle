@@ -22,7 +22,7 @@ class IsabelleSideKickParser extends SideKickParser("isabelle") {
   /* parsing */
 
   private var stopped = false
-  override def stop () = { stopped = true }
+  override def stop() = { stopped = true }
 
   def parse(buffer : Buffer, error_source : DefaultErrorSource): SideKickParsedData = {
     stopped = false
@@ -30,7 +30,7 @@ class IsabelleSideKickParser extends SideKickParser("isabelle") {
     val data = new SideKickParsedData(buffer.getName)
 
     val prover_setup = Isabelle.plugin.prover_setup(buffer)
-    if(prover_setup.isDefined){
+    if (prover_setup.isDefined) {
         val document = prover_setup.get.prover.document
         val commands = document.commands
         while (!stopped && commands.hasNext) {
@@ -54,7 +54,7 @@ class IsabelleSideKickParser extends SideKickParser("isabelle") {
   override def complete(pane: EditPane, caret: Int): SideKickCompletion = {
     val buffer = pane.getBuffer
     val ps = Isabelle.prover_setup(buffer)
-    if(ps.isDefined) {
+    if (ps.isDefined) {
       val completions = ps.get.prover.completions
       def before_caret(i : Int) = buffer.getText(0 max caret - i, i)
       def next_nonfitting(s : String) : String = {
@@ -64,9 +64,9 @@ class IsabelleSideKickParser extends SideKickParser("isabelle") {
       }
       def suggestions(i : Int) : (Set[String], String)= {
         val text = before_caret(i)
-        if(!text.matches("\\s") && i < 30){
+        if (!text.matches("\\s") && i < 30) {
           val larger_results = suggestions(i + 1)
-          if(larger_results._1.size > 0) larger_results
+          if (larger_results._1.size > 0) larger_results
           else (completions.range(text, next_nonfitting(text)), text)
         } else (Set[String](), text)
 
@@ -76,10 +76,10 @@ class IsabelleSideKickParser extends SideKickParser("isabelle") {
       val descriptions = new java.util.LinkedList[String]
       // compute suggestions
       val (suggs, text) = suggestions(1)
-      for(s <- suggs) {
+      for (s <- suggs) {
         val decoded = Isabelle.symbols.decode(s)
         list.add(decoded)
-        if(decoded != s) descriptions.add(s) else descriptions.add(null)
+        if (decoded != s) descriptions.add(s) else descriptions.add(null)
       }
       return new IsabelleSideKickCompletion(pane.getView, text, list, descriptions)
     } else return null

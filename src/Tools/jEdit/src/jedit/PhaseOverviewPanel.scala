@@ -31,7 +31,7 @@ class PhaseOverviewPanel(prover : isabelle.prover.Prover) extends JPanel(new Bor
   addMouseListener(new MouseAdapter {
     override def mousePressed(evt : MouseEvent) {
       val line = yToLine(evt.getY)
-      if(line >= 0 && line < textarea.getLineCount())
+      if (line >= 0 && line < textarea.getLineCount())
         textarea.setCaretPosition(textarea.getLineStartOffset(line))
     }
   })
@@ -52,7 +52,7 @@ class PhaseOverviewPanel(prover : isabelle.prover.Prover) extends JPanel(new Bor
 		val buffer = textarea.getBuffer
 		val lineCount = buffer.getLineCount
 		val line = yToLine(evt.getY())
-		if(line >= 0 && line < textarea.getLineCount)
+		if (line >= 0 && line < textarea.getLineCount)
 		{
       "TODO: Tooltip"
     } else ""
@@ -71,7 +71,7 @@ class PhaseOverviewPanel(prover : isabelle.prover.Prover) extends JPanel(new Bor
 
       gfx.setColor(light)
       gfx.fillRect(0, y, getWidth - 1, 1 max height)
-      if(height > 2){
+      if (height > 2) {
         gfx.setColor(dark)
         gfx.drawRect(0, y, getWidth - 1, height)
       }
@@ -82,7 +82,7 @@ class PhaseOverviewPanel(prover : isabelle.prover.Prover) extends JPanel(new Bor
 		super.paintComponent(gfx)
 
 		val buffer = textarea.getBuffer
-    for(c <- prover.document.commands)
+    for (c <- prover.document.commands)
       paintCommand(c, buffer, gfx)
     
 	}
