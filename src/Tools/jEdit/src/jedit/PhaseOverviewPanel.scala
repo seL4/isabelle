@@ -17,7 +17,7 @@ import org.gjt.sp.jedit.textarea.JEditTextArea;
 import org.gjt.sp.jedit.buffer.JEditBuffer;
 import org.gjt.sp.jedit._
 
-class PhaseOverviewPanel(prover : isabelle.prover.Prover) extends JPanel(new BorderLayout) {
+class PhaseOverviewPanel(prover: isabelle.prover.Prover, to_current: Int => Int) extends JPanel(new BorderLayout) {
 
   private val WIDTH = 10
 	private val HILITE_HEIGHT = 2
@@ -25,7 +25,7 @@ class PhaseOverviewPanel(prover : isabelle.prover.Prover) extends JPanel(new Bor
 
   val repaint_delay = new isabelle.utils.Delay(100, () => repaint())
   prover.command_info += (_ => repaint_delay.delay_or_ignore())
-    
+
   setRequestFocusEnabled(false);
 
   addMouseListener(new MouseAdapter {
@@ -59,8 +59,8 @@ class PhaseOverviewPanel(prover : isabelle.prover.Prover) extends JPanel(new Bor
 	}
 
   private def paintCommand(command : Command, buffer : JEditBuffer, gfx : Graphics) {
-      val line1 = buffer.getLineOfOffset(command.start)
-      val line2 = buffer.getLineOfOffset(command.stop - 1) + 1
+      val line1 = buffer.getLineOfOffset(to_current(command.start))
+      val line2 = buffer.getLineOfOffset(to_current(command.stop - 1)) + 1
       val y = lineToY(line1)
       val height = lineToY(line2) - y - 1
       val (light, dark) = command.status match {
@@ -84,7 +84,7 @@ class PhaseOverviewPanel(prover : isabelle.prover.Prover) extends JPanel(new Bor
 		val buffer = textarea.getBuffer
     for (c <- prover.document.commands)
       paintCommand(c, buffer, gfx)
-    
+
 	}
 
 	override def getPreferredSize : Dimension =

@@ -85,7 +85,7 @@ class TheoryView (text_area: JEditTextArea)
   col_timer.setRepeats(true)
 
 
-  private val phase_overview = new PhaseOverviewPanel(prover)
+  private val phase_overview = new PhaseOverviewPanel(prover, to_current(_))
 
 
   /* activation */
