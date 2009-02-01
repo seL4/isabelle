@@ -229,11 +229,13 @@ class ProofDocument(text: Text, is_command_keyword: String => Boolean)
 
   val structural_changes = new EventBus[StructureChange]
 
-  def commands = new Iterator[Command] {
-    var current = first_token
+  def commands_from(start: Token) = new Iterator[Command] {
+    var current = start
     def hasNext = current != null
-    def next() = { val s = current.command ; current = s.last.next ; s }
+    def next = { val s = current.command ; current = s.last.next ; s }
   }
+  def commands_from(start: Command): Iterator[Command] = commands_from(start.first)
+  def commands = commands_from(first_token)
 
   def find_command_at(pos: Int): Command = {
     for (cmd <- commands) { if (pos < cmd.stop) return cmd }
