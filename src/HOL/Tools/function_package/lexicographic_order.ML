@@ -8,8 +8,8 @@ Method for termination proofs with lexicographic orderings.
 signature LEXICOGRAPHIC_ORDER =
 sig
   val lexicographic_order : thm list -> Proof.context -> Method.method
+  val lexicographic_order_tac : Proof.context -> tactic -> tactic
 
-  (* exported for debugging *)
   val setup: theory -> theory
 end
 
