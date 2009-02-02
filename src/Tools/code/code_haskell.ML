@@ -336,11 +336,12 @@ fun haskell_program_of_program labelled_name module_name module_prefix reserved_
   in (deresolver, hs_program) end;
 
 fun serialize_haskell module_prefix raw_module_name string_classes labelled_name
-    reserved_names includes raw_module_alias
+    raw_reserved_names includes raw_module_alias
     syntax_class syntax_tyco syntax_const naming program cs destination =
   let
     val stmt_names = Code_Target.stmt_names_of_destination destination;
     val module_name = if null stmt_names then raw_module_name else SOME "Code";
+    val reserved_names = fold (insert (op =) o fst) includes raw_reserved_names;
     val (deresolver, hs_program) = haskell_program_of_program labelled_name
       module_name module_prefix reserved_names raw_module_alias program;
     val is_cons = Code_Thingol.is_cons program;
