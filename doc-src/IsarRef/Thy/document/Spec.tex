@@ -583,6 +583,7 @@ A class is a particular locale with \emph{exactly one} type variable
     \indexdef{}{command}{instance}\hypertarget{command.instance}{\hyperlink{command.instance}{\mbox{\isa{\isacommand{instance}}}}} & : & \isa{{\isachardoublequote}local{\isacharunderscore}theory\ {\isasymrightarrow}\ local{\isacharunderscore}theory{\isachardoublequote}} \\
     \indexdef{}{command}{subclass}\hypertarget{command.subclass}{\hyperlink{command.subclass}{\mbox{\isa{\isacommand{subclass}}}}} & : & \isa{{\isachardoublequote}local{\isacharunderscore}theory\ {\isasymrightarrow}\ local{\isacharunderscore}theory{\isachardoublequote}} \\
     \indexdef{}{command}{print\_classes}\hypertarget{command.print-classes}{\hyperlink{command.print-classes}{\mbox{\isa{\isacommand{print{\isacharunderscore}classes}}}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isa{{\isachardoublequote}context\ {\isasymrightarrow}{\isachardoublequote}} \\
+    \indexdef{}{command}{class\_deps}\hypertarget{command.class-deps}{\hyperlink{command.class-deps}{\mbox{\isa{\isacommand{class{\isacharunderscore}deps}}}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isa{{\isachardoublequote}context\ {\isasymrightarrow}{\isachardoublequote}} \\
     \indexdef{}{method}{intro\_classes}\hypertarget{method.intro-classes}{\hyperlink{method.intro-classes}{\mbox{\isa{intro{\isacharunderscore}classes}}}} & : & \isa{method} \\
   \end{matharray}
 
@@ -597,6 +598,8 @@ A class is a particular locale with \emph{exactly one} type variable
     'subclass' target? nameref
     ;
     'print\_classes'
+    ;
+    'class\_deps'
     ;
 
     superclassexpr: nameref | (nameref '+' superclassexpr)
@@ -642,6 +645,9 @@ A class is a particular locale with \emph{exactly one} type variable
 
   \item \hyperlink{command.print-classes}{\mbox{\isa{\isacommand{print{\isacharunderscore}classes}}}} prints all classes in the current
   theory.
+
+  \item \hyperlink{command.class-deps}{\mbox{\isa{\isacommand{class{\isacharunderscore}deps}}}} visualizes all classes and their
+  subclass relations as a Hasse diagram.
 
   \item \hyperlink{method.intro-classes}{\mbox{\isa{intro{\isacharunderscore}classes}}} repeatedly expands all class
   introduction rules of this theory.  Note that this method usually

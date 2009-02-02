@@ -569,6 +569,7 @@ text {*
     @{command_def "instance"} & : & @{text "local_theory \<rightarrow> local_theory"} \\
     @{command_def "subclass"} & : & @{text "local_theory \<rightarrow> local_theory"} \\
     @{command_def "print_classes"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow>"} \\
+    @{command_def "class_deps"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow>"} \\
     @{method_def intro_classes} & : & @{text method} \\
   \end{matharray}
 
@@ -583,6 +584,8 @@ text {*
     'subclass' target? nameref
     ;
     'print\_classes'
+    ;
+    'class\_deps'
     ;
 
     superclassexpr: nameref | (nameref '+' superclassexpr)
@@ -636,6 +639,9 @@ text {*
 
   \item @{command "print_classes"} prints all classes in the current
   theory.
+
+  \item @{command "class_deps"} visualizes all classes and their
+  subclass relations as a Hasse diagram.
 
   \item @{method intro_classes} repeatedly expands all class
   introduction rules of this theory.  Note that this method usually
