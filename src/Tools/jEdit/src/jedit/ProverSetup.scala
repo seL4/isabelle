@@ -35,7 +35,7 @@ class ProverSetup(buffer: JEditBuffer)
 
   def activate(view: View) {
     prover = new Prover(Isabelle.system, Isabelle.default_logic)
-    
+
     val buffer = view.getBuffer
     val dir = buffer.getDirectory
 
@@ -73,13 +73,6 @@ class ProverSetup(buffer: JEditBuffer)
           state_panel.setDocument(state.result_document, UserAgent.baseURL)
       }
     })
-  
-    // one independent token marker per prover
-    val token_marker = new DynamicTokenMarker
-    buffer.setTokenMarker(token_marker)
-
-    // register for new declarations
-    prover.decl_info += (pair => token_marker += (pair._1, pair._2))
 
   }
 

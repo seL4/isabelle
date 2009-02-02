@@ -94,12 +94,12 @@ class MarkupNode (val base : Command, val start : Int, val stop : Int,
       val filled_gaps = for {
         child <- children
         markups = if (next_x < child.start) {
-          new MarkupNode(base, next_x, child.start, id, kind, desc) :: child.flatten
+          new MarkupNode(base, next_x, child.start, id, kind, "") :: child.flatten
         } else child.flatten
         update = (next_x = child.stop)
         markup <- markups
       } yield markup
-      if (next_x <= stop) filled_gaps + new MarkupNode(base, next_x, stop, id, kind, desc)
+      if (next_x < stop) filled_gaps + new MarkupNode(base, next_x, stop, id, kind, "")
       else filled_gaps
     }
   }
@@ -131,4 +131,5 @@ class MarkupNode (val base : Command, val start : Int, val stop : Int,
   def fitting_into(node : MarkupNode) = node.start <= this.start &&
     node.stop >= this.stop
 
+  override def toString = "([" + start + " - " + stop + "] " + id + "( " + kind + "): " + desc
 }

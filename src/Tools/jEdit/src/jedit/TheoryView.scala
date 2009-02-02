@@ -35,35 +35,6 @@ object TheoryView {
         case _ => Color.red
       }
   }
-
-  def choose_color(markup: String): Color = {
-    // TODO: as properties
-    markup match {
-      // logical entities
-      case Markup.TCLASS | Markup.TYCON | Markup.FIXED_DECL | Markup.FIXED | Markup.CONST_DECL
-        | Markup.CONST | Markup.FACT_DECL | Markup.FACT | Markup.DYNAMIC_FACT
-        | Markup.LOCAL_FACT_DECL | Markup.LOCAL_FACT => new Color(255, 0, 255)
-      // inner syntax
-      case Markup.TFREE | Markup.FREE => Color.blue
-      case Markup.TVAR | Markup.SKOLEM | Markup.BOUND | Markup.VAR => Color.green
-      case Markup.NUM | Markup.FLOAT | Markup.XNUM | Markup.XSTR | Markup.LITERAL
-        | Markup.INNER_COMMENT => new Color(255, 128, 128)
-      case Markup.SORT | Markup.TYP | Markup.TERM | Markup.PROP
-        | Markup.ATTRIBUTE | Markup.METHOD => Color.yellow
-      // embedded source text
-      case Markup.ML_SOURCE | Markup.DOC_SOURCE | Markup.ANTIQ | Markup.ML_ANTIQ
-        | Markup.DOC_ANTIQ => new Color(0, 192, 0)
-      // outer syntax
-      case Markup.IDENT | Markup.COMMAND | Markup.KEYWORD => Color.blue
-      case Markup.VERBATIM => Color.green
-      case Markup.COMMENT => Color.gray
-      case Markup.CONTROL => Color.white
-      case Markup.MALFORMED => Color.red
-      case Markup.STRING | Markup.ALTSTRING => Color.orange
-      // other
-      case _ => Color.white
-    }
-  }
 }
 
 
@@ -90,17 +61,13 @@ class TheoryView (text_area: JEditTextArea)
 
   /* activation */
 
-  Isabelle.plugin.font_changed += (_ => update_font())
+  Isabelle.plugin.font_changed += (_ => update_styles)
 
-  private def update_font() = {
+  private def update_styles = {
     if (text_area != null) {
       if (Isabelle.plugin.font != null) {
-        val painter = text_area.getPainter
-        painter.setStyles(painter.getStyles.map(style =>
-          new SyntaxStyle(style.getForegroundColor, style.getBackgroundColor, Isabelle.plugin.font)
-        ))
-        painter.setFont(Isabelle.plugin.font)
-        repaint_all()
+        text_area.getPainter.setStyles(DynamicTokenMarker.styles)
+        repaint_all
       }
     }
   }
@@ -119,7 +86,8 @@ class TheoryView (text_area: JEditTextArea)
     phase_overview.textarea = text_area
     text_area.addLeftOfScrollBar(phase_overview)
     text_area.getPainter.addExtension(TextAreaPainter.LINE_BACKGROUND_LAYER + 1, this)
-    update_font()
+    buffer.setTokenMarker(new DynamicTokenMarker(buffer, prover.document))
+    update_styles
   }
 
   def deactivate() = {
@@ -134,13 +102,13 @@ class TheoryView (text_area: JEditTextArea)
   val repaint_delay = new isabelle.utils.Delay(100, () => repaint_all())
   prover.command_info += (_ => repaint_delay.delay_or_ignore())
 
-  private def from_current(pos: Int) =
+  def from_current (pos: Int) =
     if (col != null && col.start <= pos)
       if (pos < col.start + col.added) col.start
       else pos - col.added + col.removed
     else pos
 
-  private def to_current(pos : Int) =
+  def to_current (pos : Int) =
     if (col != null && col.start <= pos)
       if (pos < col.start + col.removed) col.start
       else pos + col.added - col.removed
@@ -206,8 +174,8 @@ class TheoryView (text_area: JEditTextArea)
         val begin = to_current(node.start + e.start)
         val finish = to_current(node.stop + e.start)
         if (finish > start && begin < end) {
-          encolor(gfx, y + metrics.getHeight - 4, 2, begin max start, finish min end,
-            TheoryView.choose_color(node.kind), true)
+          encolor(gfx, y + metrics.getHeight - 2, 1, begin max start, finish min end - 1,
+            DynamicTokenMarker.choose_color(node.kind), true)
         }
       }
       e = e.next
