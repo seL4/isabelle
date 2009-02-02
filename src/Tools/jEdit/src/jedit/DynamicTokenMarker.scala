@@ -2,8 +2,6 @@
  * include isabelle's command- and keyword-declarations
  * live in jEdits syntax-highlighting
  *
- * one TokenMarker per prover
- *
  * @author Fabian Immler, TU Munich
  */
 
