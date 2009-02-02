@@ -151,33 +151,33 @@ fun encode bits gp mu =
     val (ES,EW,WEAK,STRICT,P,GAM,EPS,_) = var_constrs gp
 
     fun encode_graph MAX (g, p, q, n, m, _) =
-        all [
+        And (
           Equiv (WEAK g,
             iforall m (fn j =>
               Implies (P (q, j),
                 iexists n (fn i =>
                   And (P (p, i), EW (g, i, j)))))),
           Equiv (STRICT g,
-            iforall m (fn j =>
-              Implies (P (q, j),
-                iexists n (fn i =>
-                  And (P (p, i), ES (g, i, j)))))),
-          iexists n (fn i => P (p, i))
-        ]
+            And (
+              iforall m (fn j =>
+                Implies (P (q, j),
+                  iexists n (fn i =>
+                    And (P (p, i), ES (g, i, j))))),
+              iexists n (fn i => P (p, i)))))
       | encode_graph MIN (g, p, q, n, m, _) =
-        all [
+        And (
           Equiv (WEAK g,
             iforall n (fn i =>
               Implies (P (p, i),
                 iexists m (fn j =>
                   And (P (q, j), EW (g, i, j)))))),
           Equiv (STRICT g,
-            iforall n (fn i =>
-              Implies (P (p, i),
-                iexists m (fn j =>
-                  And (P (q, j), ES (g, i, j)))))),
-          iexists m (fn j => P (q, j))
-        ]
+            And (
+              iforall n (fn i =>
+                Implies (P (p, i),
+                  iexists m (fn j =>
+                    And (P (q, j), ES (g, i, j))))),
+              iexists m (fn j => P (q, j)))))
       | encode_graph MS (g, p, q, n, m, _) =
         all [
           Equiv (WEAK g,
