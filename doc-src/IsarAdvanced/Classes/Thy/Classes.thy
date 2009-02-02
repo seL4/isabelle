@@ -106,7 +106,7 @@ text {*
   assumed to be associative:
 *}
 
-class %quote semigroup = type +
+class %quote semigroup =
   fixes mult :: "\<alpha> \<Rightarrow> \<alpha> \<Rightarrow> \<alpha>"    (infixl "\<otimes>" 70)
   assumes assoc: "(x \<otimes> y) \<otimes> z = x \<otimes> (y \<otimes> z)"
 
@@ -349,7 +349,7 @@ text {*
   is nothing else than a locale:
 *}
 
-class %quote idem = type +
+class %quote idem =
   fixes f :: "\<alpha> \<Rightarrow> \<alpha>"
   assumes idem: "f (f x) = f x"
 
@@ -541,7 +541,7 @@ text {*
      \label{fig:subclass}
    \end{center}
   \end{figure}
-
+7
   For illustration, a derived definition
   in @{text group} which uses @{text pow_nat}:
 *}
@@ -583,7 +583,9 @@ text {*
   to the polymorphic global class operation @{text "mult [?\<alpha> \<Colon> semigroup]"}.
 *}
 
-section {* Type classes and code generation *}
+section {* Further issues *}
+
+subsection {* Type classes and code generation *}
 
 text {*
   Turning back to the first motivation for type classes,
@@ -612,5 +614,22 @@ text {*
 *}
 
 text %quote {*@{code_stmts example (SML)}*}
+
+subsection {* Inspecting the type class universe *}
+
+text {*
+  To facilitate orientation in complex subclass structures,
+  two diagnostics commands are provided:
+
+  \begin{description}
+
+    \item[@{command "print_classes"}] print a list of all classes
+      together with associated operations etc.
+
+    \item[@{command "class_deps"}] visualizes the subclass relation
+      between all classes as a Hasse diagram.
+
+  \end{description}
+*}
 
 end

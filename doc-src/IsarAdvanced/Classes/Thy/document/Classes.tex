@@ -137,7 +137,7 @@ Depending on an arbitrary type \isa{{\isasymalpha}}, class \isa{semigroup} intro
 %
 \isatagquote
 \isacommand{class}\isamarkupfalse%
-\ semigroup\ {\isacharequal}\ type\ {\isacharplus}\isanewline
+\ semigroup\ {\isacharequal}\isanewline
 \ \ \isakeyword{fixes}\ mult\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isasymalpha}\ {\isasymRightarrow}\ {\isasymalpha}\ {\isasymRightarrow}\ {\isasymalpha}{\isachardoublequoteclose}\ \ \ \ {\isacharparenleft}\isakeyword{infixl}\ {\isachardoublequoteopen}{\isasymotimes}{\isachardoublequoteclose}\ {\isadigit{7}}{\isadigit{0}}{\isacharparenright}\isanewline
 \ \ \isakeyword{assumes}\ assoc{\isacharcolon}\ {\isachardoublequoteopen}{\isacharparenleft}x\ {\isasymotimes}\ y{\isacharparenright}\ {\isasymotimes}\ z\ {\isacharequal}\ x\ {\isasymotimes}\ {\isacharparenleft}y\ {\isasymotimes}\ z{\isacharparenright}{\isachardoublequoteclose}%
 \endisatagquote
@@ -583,7 +583,7 @@ The example above gives an impression how Isar type classes work
 %
 \isatagquote
 \isacommand{class}\isamarkupfalse%
-\ idem\ {\isacharequal}\ type\ {\isacharplus}\isanewline
+\ idem\ {\isacharequal}\isanewline
 \ \ \isakeyword{fixes}\ f\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isasymalpha}\ {\isasymRightarrow}\ {\isasymalpha}{\isachardoublequoteclose}\isanewline
 \ \ \isakeyword{assumes}\ idem{\isacharcolon}\ {\isachardoublequoteopen}f\ {\isacharparenleft}f\ x{\isacharparenright}\ {\isacharequal}\ f\ x{\isachardoublequoteclose}%
 \endisatagquote
@@ -1014,7 +1014,7 @@ Any \isa{group} is also a \isa{monoid};  this
      \label{fig:subclass}
    \end{center}
   \end{figure}
-
+7
   For illustration, a derived definition
   in \isa{group} which uses \isa{pow{\isacharunderscore}nat}:%
 \end{isamarkuptext}%
@@ -1099,7 +1099,11 @@ As a commodity, class context syntax allows to refer
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
-\isamarkupsection{Type classes and code generation%
+\isamarkupsection{Further issues%
+}
+\isamarkuptrue%
+%
+\isamarkupsubsection{Type classes and code generation%
 }
 \isamarkuptrue%
 %
@@ -1300,6 +1304,26 @@ Turning back to the first motivation for type classes,
 \isadelimquote
 %
 \endisadelimquote
+%
+\isamarkupsubsection{Inspecting the type class universe%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+To facilitate orientation in complex subclass structures,
+  two diagnostics commands are provided:
+
+  \begin{description}
+
+    \item[\hyperlink{command.print-classes}{\mbox{\isa{\isacommand{print{\isacharunderscore}classes}}}}] print a list of all classes
+      together with associated operations etc.
+
+    \item[\hyperlink{command.class-deps}{\mbox{\isa{\isacommand{class{\isacharunderscore}deps}}}}] visualizes the subclass relation
+      between all classes as a Hasse diagram.
+
+  \end{description}%
+\end{isamarkuptext}%
+\isamarkuptrue%
 %
 \isadelimtheory
 %
