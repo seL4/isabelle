@@ -24,6 +24,7 @@ imports
   FuncSet
   Infinite_Set
   ListVector
+  Mapping
   Multiset
   Nat_Infinity
   Nested_Environment
