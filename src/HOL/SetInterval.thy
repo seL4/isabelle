@@ -1,5 +1,4 @@
 (*  Title:      HOL/SetInterval.thy
-    ID:         $Id$
     Author:     Tobias Nipkow and Clemens Ballarin
                 Additions by Jeremy Avigad in March 2004
     Copyright   2000  TU Muenchen
@@ -138,7 +137,7 @@ lemma greaterThan_eq_iff [iff]:
      "(greaterThan x = greaterThan y) = (x = (y::'a::linorder))"
 apply (rule iffI)
  apply (erule equalityE)
- apply (simp_all add: greaterThan_subset_iff)
+ apply simp_all
 done
 
 lemma atMost_subset_iff [iff]: "(atMost x \<subseteq> atMost y) = (x \<le> (y::'a::order))"
@@ -157,7 +156,7 @@ lemma lessThan_eq_iff [iff]:
      "(lessThan x = lessThan y) = (x = (y::'a::linorder))"
 apply (rule iffI)
  apply (erule equalityE)
- apply (simp_all add: lessThan_subset_iff)
+ apply simp_all
 done
 
 
@@ -201,7 +200,7 @@ by (auto simp add: atLeastLessThan_def)
 lemma greaterThanAtMost_empty[simp]:"l \<le> k ==> {k<..l} = {}"
 by(auto simp:greaterThanAtMost_def greaterThan_def atMost_def)
 
-lemma greaterThanLessThan_empty[simp]:"l \<le> k ==> {k<..l} = {}"
+lemma greaterThanLessThan_empty[simp]:"l \<le> k ==> {k<..<l} = {}"
 by(auto simp:greaterThanLessThan_def greaterThan_def lessThan_def)
 
 lemma atLeastAtMost_singleton [simp]: "{a..a} = {a}"
