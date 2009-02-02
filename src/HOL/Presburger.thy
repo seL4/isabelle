@@ -1,5 +1,4 @@
 (* Title:      HOL/Presburger.thy
-   ID:         $Id$
    Author:     Amine Chaieb, TU Muenchen
 *)
 
