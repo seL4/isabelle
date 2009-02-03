@@ -317,12 +317,6 @@ text {*
   \end{itemize}
 *}
 
-code_datatype %invisible "0::nat" Suc
-declare %invisible plus_Dig [code del]
-declare %invisible One_nat_def [code inline]
-declare %invisible add_Suc_shift [code] 
-lemma %invisible [code]: "0 + n = (n \<Colon> nat)" by simp
-
 
 subsection {* Equality and wellsortedness *}
 
@@ -459,14 +453,14 @@ text {*
   in the following example, again for amortised queues:
 *}
 
-fun %quote strict_dequeue :: "'a queue \<Rightarrow> 'a \<times> 'a queue" where
-  "strict_dequeue (Queue xs (y # ys)) = (y, Queue xs ys)"
-  | "strict_dequeue (Queue xs []) =
-      (case rev xs of y # ys \<Rightarrow> (y, Queue [] ys))"
+fun %quote strict_dequeue :: "'a Introduction.queue \<Rightarrow> 'a \<times> 'a Introduction.queue" where
+  "strict_dequeue (Introduction.Queue xs (y # ys)) = (y, Introduction.Queue xs ys)"
+  | "strict_dequeue (Introduction.Queue xs []) =
+      (case rev xs of y # ys \<Rightarrow> (y, Introduction.Queue [] ys))"
 
 text {*
   \noindent In the corresponding code, there is no equation
-  for the pattern @{term "Queue [] []"}:
+  for the pattern @{term "Introduction.Queue [] []"}:
 *}
 
 text %quote {*@{code_stmts strict_dequeue (consts) strict_dequeue (Haskell)}*}
@@ -478,15 +472,15 @@ text {*
 
 axiomatization %quote empty_queue :: 'a
 
-function %quote strict_dequeue' :: "'a queue \<Rightarrow> 'a \<times> 'a queue" where
-  "strict_dequeue' (Queue xs []) = (if xs = [] then empty_queue
-     else strict_dequeue' (Queue [] (rev xs)))"
-  | "strict_dequeue' (Queue xs (y # ys)) =
-       (y, Queue xs ys)"
+function %quote strict_dequeue' :: "'a Introduction.queue \<Rightarrow> 'a \<times> 'a Introduction.queue" where
+  "strict_dequeue' (Introduction.Queue xs []) = (if xs = [] then empty_queue
+     else strict_dequeue' (Introduction.Queue [] (rev xs)))"
+  | "strict_dequeue' (Introduction.Queue xs (y # ys)) =
+       (y, Introduction.Queue xs ys)"
 by pat_completeness auto
 
 termination %quote strict_dequeue'
-by (relation "measure (\<lambda>q::'a queue. case q of Queue xs ys \<Rightarrow> length xs)") simp_all
+by (relation "measure (\<lambda>q::'a Introduction.queue. case q of Introduction.Queue xs ys \<Rightarrow> length xs)") simp_all
 
 text {*
   \noindent For technical reasons the definition of
