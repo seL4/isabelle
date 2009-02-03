@@ -1,15 +1,13 @@
-(*  Title:      HOL/ex/Reflected_Presburger.thy
+(*  Title:      HOL/Reflection/Cooper.thy
     Author:     Amine Chaieb
 *)
 
-theory Reflected_Presburger
-imports Main GCD Efficient_Nat
-uses ("coopertac.ML")
+theory Cooper
+imports Complex_Main Efficient_Nat
+uses ("cooper_tac.ML")
 begin
 
-function
-  iupt :: "int \<Rightarrow> int \<Rightarrow> int list"
-where
+function iupt :: "int \<Rightarrow> int \<Rightarrow> int list" where
   "iupt i j = (if j < i then [] else i # iupt (i+1) j)"
 by pat_completeness auto
 termination by (relation "measure (\<lambda> (i, j). nat (j-i+1))") auto
@@ -1982,7 +1980,7 @@ fun term_of_num vs (@{code C} i) = HOLogic.mk_number HOLogic.intT i
       term_of_num vs t1 $ term_of_num vs t2
   | term_of_num vs (@{code Mul} (i, t2)) = @{term "op * :: int \<Rightarrow> int \<Rightarrow> int"} $
       term_of_num vs (@{code C} i) $ term_of_num vs t2
-  | term_of_num vs (@{code CN} (n, i, t)) = term_of_num vs (@{code Add} (@{code Mul} (i, @{code Bound} n), t))
+  | term_of_num vs (@{code CN} (n, i, t)) = term_of_num vs (@{code Add} (@{code Mul} (i, @{code Bound} n), t));
 
 fun term_of_fm ps vs @{code T} = HOLogic.true_const 
   | term_of_fm ps vs @{code F} = HOLogic.false_const
@@ -2013,7 +2011,7 @@ fun term_of_fm ps vs @{code T} = HOLogic.true_const
   | term_of_fm ps vs (@{code Iff} (t1, t2)) =
       @{term "op = :: bool \<Rightarrow> bool \<Rightarrow> bool"} $ term_of_fm ps vs t1 $ term_of_fm ps vs t2
   | term_of_fm ps vs (@{code Closed} n) = (fst o the) (find_first (fn (_, m) => m = n) ps)
-  | term_of_fm ps vs (@{code NClosed} n) = term_of_fm ps vs (@{code NOT} (@{code Closed} n))
+  | term_of_fm ps vs (@{code NClosed} n) = term_of_fm ps vs (@{code NOT} (@{code Closed} n));
 
 fun term_bools acc t =
   let
@@ -2044,8 +2042,8 @@ in fn ct =>
 end;
 *}
 
-use "coopertac.ML"
-setup "LinZTac.setup"
+use "cooper_tac.ML"
+setup "Cooper_Tac.setup"
 
 text {* Tests *}
 

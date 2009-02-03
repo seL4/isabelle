@@ -1,4 +1,8 @@
-structure LinrTac =
+(*  Title:      HOL/Reflection/ferrack_tac.ML
+    Author:     Amine Chaieb, TU Muenchen
+*)
+
+structure Ferrack_Tac =
 struct
 
 val trace = ref false;

@@ -1,4 +1,8 @@
-structure LinZTac =
+(*  Title:      HOL/Reflection/cooper_tac.ML
+    Author:     Amine Chaieb, TU Muenchen
+*)
+
+structure Cooper_Tac =
 struct
 
 val trace = ref false;

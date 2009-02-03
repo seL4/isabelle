@@ -193,7 +193,8 @@ syntax just like the Isar command 'by'.
 
 *** HOL ***
 
-* Theory "Reflection" now resides in HOL/Library.
+* Theory "Reflection" now resides in HOL/Library.  Common reflection examples
+(Cooper, MIR, Ferrack) now in distinct session directory HOL/Reflection.
 
 * Entry point to Word library now simply named "Word".  INCOMPATIBILITY.
 

@@ -1,8 +1,8 @@
-(*  Title:      HOL/ex/mirtac.ML
+(*  Title:      HOL/Reflection/mir_tac.ML
     Author:     Amine Chaieb, TU Muenchen
 *)
 
-structure MirTac =
+structure Mir_Tac =
 struct
 
 val trace = ref false;

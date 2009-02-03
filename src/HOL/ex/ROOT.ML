@@ -15,8 +15,7 @@ no_document use_thys [
   "Codegenerator",
   "Codegenerator_Pretty",
   "NormalForm",
-  "../NumberTheory/Factorization",
-  "../Library/BigO"
+  "../NumberTheory/Factorization"
 ];
 
 use_thys [
@@ -62,16 +61,12 @@ use_thys [
   "Coherent",
   "Dense_Linear_Order_Ex",
   "PresburgerEx",
-  "Reflected_Presburger",
   "ReflectionEx",
   "BinEx",
   "Sqrt",
   "Sqrt_Script",
-  "BigO_Complex",
   "Arithmetic_Series_Complex",
   "HarmonicSeries",
-  "MIR",
-  "ReflectedFerrack",
   "Refute_Examples",
   "Quickcheck_Examples",
   "Formal_Power_Series_Examples"

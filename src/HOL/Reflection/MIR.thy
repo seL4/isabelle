@@ -1,10 +1,10 @@
-(*  Title:      HOL/ex/MIR.thy
+(*  Title:      HOL/Reflection/MIR.thy
     Author:     Amine Chaieb
 *)
 
 theory MIR
-imports Main RComplete Code_Integer Efficient_Nat
-uses ("mirtac.ML")
+imports Complex_Main Efficient_Nat
+uses ("mir_tac.ML")
 begin
 
 section {* Quantifier elimination for @{text "\<real> (0, 1, +, floor, <)"} *}
@@ -1488,7 +1488,7 @@ lemma list_conj_qf: " \<forall>p\<in> set ps. qfree p \<Longrightarrow> qfree (l
 lemma list_conj_nb: " \<forall>p\<in> set ps. bound0 p \<Longrightarrow> bound0 (list_conj ps)"
   by (induct ps, auto simp add: list_conj_def)
 constdefs CJNB:: "(fm \<Rightarrow> fm) \<Rightarrow> fm \<Rightarrow> fm"
-  "CJNB f p \<equiv> (let cjs = conjuncts p ; (yes,no) = partition bound0 cjs
+  "CJNB f p \<equiv> (let cjs = conjuncts p ; (yes,no) = List.partition bound0 cjs
                    in conj (decr (list_conj yes)) (f (list_conj no)))"
 
 lemma CJNB_qe: 
@@ -1498,11 +1498,11 @@ proof(clarify)
   fix bs p
   assume qfp: "qfree p"
   let ?cjs = "conjuncts p"
-  let ?yes = "fst (partition bound0 ?cjs)"
-  let ?no = "snd (partition bound0 ?cjs)"
+  let ?yes = "fst (List.partition bound0 ?cjs)"
+  let ?no = "snd (List.partition bound0 ?cjs)"
   let ?cno = "list_conj ?no"
   let ?cyes = "list_conj ?yes"
-  have part: "partition bound0 ?cjs = (?yes,?no)" by simp
+  have part: "List.partition bound0 ?cjs = (?yes,?no)" by simp
   from partition_P[OF part] have "\<forall> q\<in> set ?yes. bound0 q" by blast 
   hence yes_nb: "bound0 ?cyes" by (simp add: list_conj_nb) 
   hence yes_qf: "qfree (decr ?cyes )" by (simp add: decr_qf)
@@ -5907,8 +5907,8 @@ in
 end;
 *}
 
-use "mirtac.ML"
-setup "MirTac.setup"
+use "mir_tac.ML"
+setup "Mir_Tac.setup"
 
 lemma "ALL (x::real). (\<lfloor>x\<rfloor> = \<lceil>x\<rceil> = (x = real \<lfloor>x\<rfloor>))"
 apply mir
