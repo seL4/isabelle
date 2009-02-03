@@ -308,7 +308,7 @@ instance Integral Nat where {
 code_reserved Haskell Nat
 
 code_type nat
-  (Haskell "Nat")
+  (Haskell "Nat.Nat")
 
 code_instance nat :: eq
   (Haskell -)

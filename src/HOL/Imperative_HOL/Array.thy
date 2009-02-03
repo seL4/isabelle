@@ -198,12 +198,12 @@ code_reserved OCaml Array
 
 subsubsection {* Haskell *}
 
-code_type array (Haskell "STArray/ RealWorld/ _")
+code_type array (Haskell "Heap.STArray/ Heap.RealWorld/ _")
 code_const Array (Haskell "error/ \"bare Array\"")
-code_const Array.new' (Haskell "newArray/ (0,/ _)")
-code_const Array.of_list' (Haskell "newListArray/ (0,/ _)")
-code_const Array.length' (Haskell "lengthArray")
-code_const Array.nth' (Haskell "readArray")
-code_const Array.upd' (Haskell "writeArray")
+code_const Array.new' (Haskell "Heap.newArray/ (0,/ _)")
+code_const Array.of_list' (Haskell "Heap.newListArray/ (0,/ _)")
+code_const Array.length' (Haskell "Heap.lengthArray")
+code_const Array.nth' (Haskell "Heap.readArray")
+code_const Array.upd' (Haskell "Heap.writeArray")
 
 end

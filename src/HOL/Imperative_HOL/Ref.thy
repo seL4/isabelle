@@ -82,10 +82,10 @@ code_reserved OCaml ref
 
 subsubsection {* Haskell *}
 
-code_type ref (Haskell "STRef/ RealWorld/ _")
+code_type ref (Haskell "Heap.STRef/ Heap.RealWorld/ _")
 code_const Ref (Haskell "error/ \"bare Ref\"")
-code_const Ref.new (Haskell "newSTRef")
-code_const Ref.lookup (Haskell "readSTRef")
-code_const Ref.update (Haskell "writeSTRef")
+code_const Ref.new (Haskell "Heap.newSTRef")
+code_const Ref.lookup (Haskell "Heap.readSTRef")
+code_const Ref.update (Haskell "Heap.writeSTRef")
 
 end

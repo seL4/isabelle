@@ -1,5 +1,4 @@
 (*  Title:      HOL/Library/Heap_Monad.thy
-    ID:         $Id$
     Author:     John Matthews, Galois Connections; Alexander Krauss, Lukas Bulwahn & Florian Haftmann, TU Muenchen
 *)
 
@@ -375,7 +374,7 @@ subsubsection {* Haskell *}
 
 text {* Adaption layer *}
 
-code_include Haskell "STMonad"
+code_include Haskell "Heap"
 {*import qualified Control.Monad;
 import qualified Control.Monad.ST;
 import qualified Data.STRef;
@@ -385,9 +384,6 @@ type RealWorld = Control.Monad.ST.RealWorld;
 type ST s a = Control.Monad.ST.ST s a;
 type STRef s a = Data.STRef.STRef s a;
 type STArray s a = Data.Array.ST.STArray s Int a;
-
-runST :: (forall s. ST s a) -> a;
-runST s = Control.Monad.ST.runST s;
 
 newSTRef = Data.STRef.newSTRef;
 readSTRef = Data.STRef.readSTRef;
@@ -408,14 +404,11 @@ readArray = Data.Array.ST.readArray;
 writeArray :: STArray s a -> Int -> a -> ST s ();
 writeArray = Data.Array.ST.writeArray;*}
 
-code_reserved Haskell RealWorld ST STRef Array
-  runST
-  newSTRef reasSTRef writeSTRef
-  newArray newListArray lengthArray readArray writeArray
+code_reserved Haskell Heap
 
 text {* Monad *}
 
-code_type Heap (Haskell "ST/ RealWorld/ _")
+code_type Heap (Haskell "Heap.ST/ Heap.RealWorld/ _")
 code_const Heap (Haskell "error/ \"bare Heap\"")
 code_monad "op \<guillemotright>=" Haskell
 code_const return (Haskell "return")
