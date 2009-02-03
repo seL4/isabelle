@@ -385,7 +385,7 @@ fun serialize_haskell module_prefix raw_module_name string_classes labelled_name
         val imports = deps'
           |> map NameSpace.qualifier
           |> distinct (op =);
-        fun pr_import_include (name, _) = str ("import " ^ name ^ ";");
+        fun pr_import_include (name, _) = str ("import qualified " ^ name ^ ";");
         val pr_import_module = str o (if qualified
           then prefix "import qualified "
           else prefix "import ") o suffix ";";
