@@ -1,5 +1,4 @@
-(*  Title:      Doc/IsarAdvanced/Functions/Thy/Fundefs.thy
-    ID:         $Id$
+(*  Title:      doc-src/IsarAdvanced/Functions/Thy/Fundefs.thy
     Author:     Alexander Krauss, TU Muenchen
 
 Tutorial for function definitions with the new "function" package.
@@ -712,7 +711,7 @@ by pat_completeness auto
 
 text {*
   \noindent Clearly, any attempt of a termination proof must fail. And without
-  that, we do not get the usual rules @{text "findzero.simp"} and 
+  that, we do not get the usual rules @{text "findzero.simps"} and 
   @{text "findzero.induct"}. So what was the definition good for at all?
 *}
 
@@ -953,7 +952,7 @@ text {*
   The predicate @{term "accp findzero_rel"} is the accessible part of
   that relation. An argument belongs to the accessible part, if it can
   be reached in a finite number of steps (cf.~its definition in @{text
-  "Accessible_Part.thy"}).
+  "Wellfounded.thy"}).
 
   Since the domain predicate is just an abbreviation, you can use
   lemmas for @{const accp} and @{const findzero_rel} directly. Some
@@ -1136,7 +1135,7 @@ section {* Higher-Order Recursion *}
 
 text {*
   Higher-order recursion occurs when recursive calls
-  are passed as arguments to higher-order combinators such as @{term
+  are passed as arguments to higher-order combinators such as @{const
   map}, @{term filter} etc.
   As an example, imagine a datatype of n-ary trees:
 *}
@@ -1164,7 +1163,7 @@ termination proof
   As usual, we have to give a wellfounded relation, such that the
   arguments of the recursive calls get smaller. But what exactly are
   the arguments of the recursive calls when mirror is given as an
-  argument to map? Isabelle gives us the
+  argument to @{const map}? Isabelle gives us the
   subgoals
 
   @{subgoals[display,indent=0]} 
@@ -1173,9 +1172,9 @@ termination proof
   applies the recursive call @{term "mirror"} to elements
   of @{term "l"}, which is essential for the termination proof.
 
-  This knowledge about map is encoded in so-called congruence rules,
+  This knowledge about @{const map} is encoded in so-called congruence rules,
   which are special theorems known to the \cmd{function} command. The
-  rule for map is
+  rule for @{const map} is
 
   @{thm[display] map_cong}
 
