@@ -37,7 +37,7 @@ local
 
 val atps = ref "e remote_vampire";
 val max_atps = ref 5;   (* ~1 means infinite number of atps *)
-val timeout = ref 100;
+val timeout = ref 60;
 
 in
 
