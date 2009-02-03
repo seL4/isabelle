@@ -100,7 +100,7 @@ fun parameters_of thy strict (expr, fixed) =
       (* FIXME: cannot compare bindings for equality. *)
 
     fun params_loc loc =
-          (Locale.params_of thy loc |> map (fn (p, _, mx) => (p, mx)), loc);
+      (Locale.params_of thy loc |> map (fn (p, _, mx) => (p, mx)), loc);
     fun params_inst (expr as (loc, (prfx, Positional insts))) =
           let
             val (ps, loc') = params_loc loc;
@@ -150,14 +150,14 @@ fun parameters_of thy strict (expr, fixed) =
 
 local
 
-fun prep_inst parse_term ctxt parms (Positional insts) =
+fun prep_inst prep_term ctxt parms (Positional insts) =
       (insts ~~ parms) |> map (fn
-        (NONE, p) => Free (p, the (Variable.default_type ctxt p)) |
-        (SOME t, _) => parse_term ctxt t)
-  | prep_inst parse_term ctxt parms (Named insts) =
+        (NONE, p) => Free (p, dummyT) |
+        (SOME t, _) => prep_term ctxt t)
+  | prep_inst prep_term ctxt parms (Named insts) =
       parms |> map (fn p => case AList.lookup (op =) insts p of
-        SOME t => parse_term ctxt t |
-        NONE => Free (p, the (Variable.default_type ctxt p)));
+        SOME t => prep_term ctxt t |
+        NONE => Free (p, dummyT));
 
 in
 
@@ -350,19 +350,19 @@ fun finish ctxt parms do_close insts elems =
 
 local
 
-fun prep_full_context_statement parse_typ parse_prop prep_vars_elem parse_inst prep_vars_inst prep_expr
+fun prep_full_context_statement parse_typ parse_prop prep_vars_elem prep_inst prep_vars_inst prep_expr
     strict do_close raw_import init_body raw_elems raw_concl ctxt1 =
   let
     val thy = ProofContext.theory_of ctxt1;
 
     val (raw_insts, fixed) = parameters_of thy strict (apfst (prep_expr thy) raw_import);
 
-    fun prep_inst (loc, (prfx, inst)) (i, insts, ctxt) =
+    fun prep_insts (loc, (prfx, inst)) (i, insts, ctxt) =
       let
         val (parm_names, parm_types) = Locale.params_of thy loc |>
           map_split (fn (b, SOME T, _) => (Binding.base_name b, T))
             (*FIXME return value of Locale.params_of has strange type*)
-        val inst' = parse_inst ctxt parm_names inst;
+        val inst' = prep_inst ctxt parm_names inst;
         val parm_types' = map (TypeInfer.paramify_vars o
           Term.map_type_tvar (fn ((x, _), S) => TVar ((x, i), S)) o Logic.varifyT) parm_types;
         val inst'' = map2 TypeInfer.constrain parm_types' inst';
@@ -387,7 +387,7 @@ fun prep_full_context_statement parse_typ parse_prop prep_vars_elem parse_inst p
 
     val fors = prep_vars_inst fixed ctxt1 |> fst;
     val ctxt2 = ctxt1 |> ProofContext.add_fixes_i fors |> snd;
-    val (_, insts', ctxt3) = fold prep_inst raw_insts (0, [], ctxt2);
+    val (_, insts', ctxt3) = fold prep_insts raw_insts (0, [], ctxt2);
     val ctxt4 = init_body ctxt3;
     val (elems, ctxt5) = fold (prep_elem insts') raw_elems ([], ctxt4);
     val (insts, elems', concl, ctxt6) =

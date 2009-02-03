@@ -11,14 +11,14 @@ begin
 
 subsection {* Class @{text enum} *}
 
-class enum = itself +
+class enum =
   fixes enum :: "'a list"
   assumes UNIV_enum [code]: "UNIV = set enum"
     and enum_distinct: "distinct enum"
 begin
 
-lemma finite_enum: "finite (UNIV \<Colon> 'a set)"
-  unfolding UNIV_enum ..
+subclass finite proof
+qed (simp add: UNIV_enum)
 
 lemma enum_all: "set enum = UNIV" unfolding UNIV_enum ..
 

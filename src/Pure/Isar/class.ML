@@ -41,9 +41,16 @@ fun calculate thy class sups base_sort param_map assm_axiom =
       (Const o apsnd (map_atyps (K aT))) param_map;
     val const_morph = Element.inst_morphism thy
       (Symtab.empty, Symtab.make param_map_inst);
-    val (([props], [(_, inst_morph)], export_morph), _) = empty_ctxt
+    val typ_morph = Element.inst_morphism thy
+      (Symtab.empty |> Symtab.update (Name.aT, TFree (Name.aT, [class])), Symtab.empty);
+    val (([raw_props], [(_, raw_inst_morph)], export_morph), _) = empty_ctxt
       |> Expression.cert_goal_expression ([(class, (("", false),
            Expression.Named param_map_const))], []);
+    val (props, inst_morph) = if null param_map
+      then (raw_props |> map (Morphism.term typ_morph),
+        raw_inst_morph $> typ_morph)
+      else (raw_props, raw_inst_morph); (*FIXME proper handling in
+        locale.ML / expression.ML would be desirable*)
 
     (* witness for canonical interpretation *)
     val prop = try the_single props;
@@ -162,7 +169,7 @@ fun prep_class_spec prep_class prep_class_elems thy raw_supclasses raw_elems =
       |> Sign.minimize_sort thy;
     val _ = case filter_out (is_class thy) sups
      of [] => ()
-      | no_classes => error ("No proper classes: " ^ commas (map quote no_classes));
+      | no_classes => error ("No (proper) classes: " ^ commas (map quote no_classes));
           val supparams = (map o apsnd) (snd o snd) (these_params thy sups);
     val supparam_names = map fst supparams;
     val _ = if has_duplicates (op =) supparam_names

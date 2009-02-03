@@ -383,7 +383,7 @@ by(blast intro: finite_subset[OF subset_Pow_Union])
 subsection {* Class @{text finite}  *}
 
 setup {* Sign.add_path "finite" *} -- {*FIXME: name tweaking*}
-class finite = itself +
+class finite =
   assumes finite_UNIV: "finite (UNIV \<Colon> 'a set)"
 setup {* Sign.parent_path *}
 hide const finite

@@ -193,6 +193,9 @@ syntax just like the Isar command 'by'.
 
 *** HOL ***
 
+* Auxiliary class "itself" has disappeared -- classes without any parameter
+are treated as expected by the 'class' command.
+
 * Theory "Reflection" now resides in HOL/Library.  Common reflection examples
 (Cooper, MIR, Ferrack) now in distinct session directory HOL/Reflection.
 

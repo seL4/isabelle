@@ -10,7 +10,7 @@ begin
 
 subsection {* The class of countable types *}
 
-class countable = itself +
+class countable =
   assumes ex_inj: "\<exists>to_nat \<Colon> 'a \<Rightarrow> nat. inj to_nat"
 
 lemma countable_classI:
