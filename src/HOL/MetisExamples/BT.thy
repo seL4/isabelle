@@ -1,5 +1,4 @@
 (*  Title:      HOL/MetisTest/BT.thy
-    ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
 
 Testing the metis method
@@ -181,7 +180,7 @@ ML {*AtpWrapper.problem_name := "BT__preorder_reflect"*}
 lemma preorder_reflect: "preorder (reflect t) = rev (postorder t)"
   apply (induct t)
   apply (metis postorder.simps(1) preorder.simps(1) reflect.simps(1) rev_is_Nil_conv)
-  apply (metis Cons_eq_append_conv monoid_append.add_0_left postorder.simps(2) preorder.simps(2) reflect.simps(2) rev.simps(2) rev_append rev_rev_ident)
+  apply (metis append_Nil Cons_eq_append_conv postorder.simps(2) preorder.simps(2) reflect.simps(2) rev.simps(2) rev_append rev_rev_ident)
   done
 
 ML {*AtpWrapper.problem_name := "BT__inorder_reflect"*}
