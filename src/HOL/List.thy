@@ -547,11 +547,6 @@ by (induct xs) auto
 lemma append_Nil2 [simp]: "xs @ [] = xs"
 by (induct xs) auto
 
-interpretation semigroup_append!: semigroup_add "op @"
-  proof qed simp
-interpretation monoid_append!: monoid_add "[]" "op @"
-  proof qed simp+
-
 lemma append_is_Nil_conv [iff]: "(xs @ ys = []) = (xs = [] \<and> ys = [])"
 by (induct xs) auto
 
@@ -2082,12 +2077,18 @@ lemma foldl_invariant:
 
 text{* @{const foldl} and @{text concat} *}
 
-lemma concat_conv_foldl: "concat xss = foldl op@ [] xss"
-by (induct xss) (simp_all add:monoid_append.foldl_absorb0)
-
 lemma foldl_conv_concat:
-  "foldl (op @) xs xxs = xs @ (concat xxs)"
-by(simp add:concat_conv_foldl monoid_append.foldl_absorb0)
+  "foldl (op @) xs xss = xs @ concat xss"
+proof (induct xss arbitrary: xs)
+  case Nil show ?case by simp
+next
+  interpret monoid_add "[]" "op @" proof qed simp_all
+  case Cons then show ?case by (simp add: foldl_absorb0)
+qed
+
+lemma concat_conv_foldl: "concat xss = foldl (op @) [] xss"
+  by (simp add: foldl_conv_concat)
+
 
 subsubsection {* List summation: @{const listsum} and @{text"\<Sum>"}*}
 
