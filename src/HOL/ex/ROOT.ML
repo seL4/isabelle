@@ -3,8 +3,6 @@
 Miscellaneous examples for Higher-Order Logic.
 *)
 
-set Toplevel.timing;
-
 no_document use_thys [
   "State_Monad",
   "Efficient_Nat_examples",
