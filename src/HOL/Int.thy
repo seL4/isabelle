@@ -478,6 +478,9 @@ lemma of_nat_nat: "0 \<le> z \<Longrightarrow> of_nat (nat z) = of_int z"
 
 end
 
+text {* For termination proofs: *}
+lemma measure_function_int[measure_function]: "is_measure (nat o abs)" ..
+
 
 subsection{*Lemmas about the Function @{term of_nat} and Orderings*}
 
