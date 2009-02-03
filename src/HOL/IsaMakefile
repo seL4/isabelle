@@ -835,7 +835,6 @@ $(LOG)/HOL-ex.gz: $(OUT)/HOL Library/Commutative_Ring.thy		\
   ex/document/root.tex ex/Meson_Test.thy ex/set.thy	\
   ex/svc_funcs.ML ex/svc_test.thy	\
   ex/ImperativeQuicksort.thy	\
-  ex/BigO_Complex.thy			\
   ex/Arithmetic_Series_Complex.thy ex/HarmonicSeries.thy	\
   ex/Sqrt.thy ex/Sqrt_Script.thy
 	@$(ISABELLE_TOOL) usedir $(OUT)/HOL ex
