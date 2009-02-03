@@ -558,11 +558,11 @@ fun qf_of_term ps vs t =  case t
   | Const(@{const_name Ring_and_Field.dvd},_)$t1$t2 => 
       (Dvd(HOLogic.dest_number t1 |> snd, i_of_term vs t2) handle _ => cooper "Reification: unsupported dvd")  (* FIXME avoid handle _ *)
   | @{term "op = :: int => _"}$t1$t2 => Eq (Sub (i_of_term vs t1,i_of_term vs t2))
-  | @{term "op = :: bool => _ "}$t1$t2 => Iffa(qf_of_term ps vs t1,qf_of_term ps vs t2)
+  | @{term "op = :: bool => _ "}$t1$t2 => Iff(qf_of_term ps vs t1,qf_of_term ps vs t2)
   | Const("op &",_)$t1$t2 => And(qf_of_term ps vs t1,qf_of_term ps vs t2)
   | Const("op |",_)$t1$t2 => Or(qf_of_term ps vs t1,qf_of_term ps vs t2)
-  | Const("op -->",_)$t1$t2 => Impa(qf_of_term ps vs t1,qf_of_term ps vs t2)
-  | Const (@{const_name Not},_)$t' => Nota(qf_of_term ps vs t')
+  | Const("op -->",_)$t1$t2 => Imp(qf_of_term ps vs t1,qf_of_term ps vs t2)
+  | Const (@{const_name Not},_)$t' => Not(qf_of_term ps vs t')
   | Const("Ex",_)$Abs(xn,xT,p) => 
      let val (xn',p') = variant_abs (xn,xT,p)
          val vs' = (Free (xn',xT), 0) :: (map (fn(v,n) => (v,1+ n)) vs)
@@ -608,7 +608,7 @@ fun term_of_i vs t = case t
   | Sub (t1, t2) => @{term "op - :: int => _"} $ term_of_i vs t1 $ term_of_i vs t2
   | Mul (i, t2) => @{term "op * :: int => _"} $
       HOLogic.mk_number HOLogic.intT i $ term_of_i vs t2
-  | Cx (i, t') => term_of_i vs (Add (Mul (i, Bound 0), t'));
+  | Cn (n, i, t') => term_of_i vs (Add (Mul (i, Bound n), t'));
 
 fun term_of_qf ps vs t = 
  case t of 
@@ -619,18 +619,18 @@ fun term_of_qf ps vs t =
  | Gt t' => @{term "op < :: int => _ "}$ @{term "0::int"}$ term_of_i vs t'
  | Ge t' => @{term "op <= :: int => _ "}$ @{term "0::int"}$ term_of_i vs t'
  | Eq t' => @{term "op = :: int => _ "}$ term_of_i vs t'$ @{term "0::int"}
- | NEq t' => term_of_qf ps vs (Nota (Eq t'))
+ | NEq t' => term_of_qf ps vs (Not (Eq t'))
  | Dvd(i,t') => @{term "op dvd :: int => _ "} $ 
     HOLogic.mk_number HOLogic.intT i $ term_of_i vs t'
- | NDvd(i,t')=> term_of_qf ps vs (Nota(Dvd(i,t')))
- | Nota t' => HOLogic.Not$(term_of_qf ps vs t')
+ | NDvd(i,t')=> term_of_qf ps vs (Not(Dvd(i,t')))
+ | Not t' => HOLogic.Not$(term_of_qf ps vs t')
  | And(t1,t2) => HOLogic.conj$(term_of_qf ps vs t1)$(term_of_qf ps vs t2)
  | Or(t1,t2) => HOLogic.disj$(term_of_qf ps vs t1)$(term_of_qf ps vs t2)
- | Impa(t1,t2) => HOLogic.imp$(term_of_qf ps vs t1)$(term_of_qf ps vs t2)
- | Iffa(t1,t2) => @{term "op = :: bool => _"} $ term_of_qf ps vs t1 $ term_of_qf ps vs t2
+ | Imp(t1,t2) => HOLogic.imp$(term_of_qf ps vs t1)$(term_of_qf ps vs t2)
+ | Iff(t1,t2) => @{term "op = :: bool => _"} $ term_of_qf ps vs t1 $ term_of_qf ps vs t2
  | Closed n => the (myassoc2 ps n)
- | NClosed n => term_of_qf ps vs (Nota (Closed n))
- | _ => cooper "If this is raised, Isabelle/HOL or generate_code is inconsistent!";
+ | NClosed n => term_of_qf ps vs (Not (Closed n))
+ | _ => cooper "If this is raised, Isabelle/HOL or code generator is inconsistent!";
 
 fun cooper_oracle ct =
   let

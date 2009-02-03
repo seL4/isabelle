@@ -1,7 +1,6 @@
 (*  Title:      HOL/Tools/Qelim/generated_cooper.ML
-    ID:         $Id$
 
-This file is generated from HOL/ex/Reflected_Presburger.thy.  DO NOT EDIT.
+This file is generated from HOL/Reflection/Cooper.thy.  DO NOT EDIT.
 *)
 
 structure GeneratedCooper = 
@@ -10,7 +9,687 @@ struct
 type 'a eq = {eq : 'a -> 'a -> bool};
 fun eq (A_:'a eq) = #eq A_;
 
-datatype bit = B0 | B1;
+val eq_nat = {eq = (fn a => fn b => ((a : IntInf.int) = b))} : IntInf.int eq;
+
+fun eqop A_ a b = eq A_ a b;
+
+fun divmod n m = (if eqop eq_nat m 0 then (0, n) else IntInf.divMod (n, m));
+
+fun snd (a, y) = y;
+
+fun mod_nat m n = snd (divmod m n);
+
+fun gcd m n = (if eqop eq_nat n 0 then m else gcd n (mod_nat m n));
+
+fun fst (y, b) = y;
+
+fun div_nat m n = fst (divmod m n);
+
+fun lcm m n = div_nat (IntInf.* (m, n)) (gcd m n);
+
+fun leta s f = f s;
+
+fun suc n = IntInf.+ (n, 1);
+
+datatype num = Mul of IntInf.int * num | Sub of num * num | Add of num * num |
+  Neg of num | Cn of IntInf.int * IntInf.int * num | Bound of IntInf.int |
+  C of IntInf.int;
+
+datatype fm = NClosed of IntInf.int | Closed of IntInf.int | A of fm | E of fm |
+  Iff of fm * fm | Imp of fm * fm | Or of fm * fm | And of fm * fm | Not of fm |
+  NDvd of IntInf.int * num | Dvd of IntInf.int * num | NEq of num | Eq of num |
+  Ge of num | Gt of num | Le of num | Lt of num | F | T;
+
+fun abs_int i = (if IntInf.< (i, (0 : IntInf.int)) then IntInf.~ i else i);
+
+fun zlcm i j =
+  (lcm (IntInf.max (0, (abs_int i))) (IntInf.max (0, (abs_int j))));
+
+fun map f [] = []
+  | map f (x :: xs) = f x :: map f xs;
+
+fun append [] y = y
+  | append (x :: xs) ys = x :: append xs ys;
+
+fun disjuncts (Or (p, q)) = append (disjuncts p) (disjuncts q)
+  | disjuncts F = []
+  | disjuncts T = [T]
+  | disjuncts (Lt u) = [Lt u]
+  | disjuncts (Le v) = [Le v]
+  | disjuncts (Gt w) = [Gt w]
+  | disjuncts (Ge x) = [Ge x]
+  | disjuncts (Eq y) = [Eq y]
+  | disjuncts (NEq z) = [NEq z]
+  | disjuncts (Dvd (aa, ab)) = [Dvd (aa, ab)]
+  | disjuncts (NDvd (ac, ad)) = [NDvd (ac, ad)]
+  | disjuncts (Not ae) = [Not ae]
+  | disjuncts (And (af, ag)) = [And (af, ag)]
+  | disjuncts (Imp (aj, ak)) = [Imp (aj, ak)]
+  | disjuncts (Iff (al, am)) = [Iff (al, am)]
+  | disjuncts (E an) = [E an]
+  | disjuncts (A ao) = [A ao]
+  | disjuncts (Closed ap) = [Closed ap]
+  | disjuncts (NClosed aq) = [NClosed aq];
+
+fun fm_case f1 f2 f3 f4 f5 f6 f7 f8 f9 f10 f11 f12 f13 f14 f15 f16 f17 f18 f19
+  (NClosed nat) = f19 nat
+  | fm_case f1 f2 f3 f4 f5 f6 f7 f8 f9 f10 f11 f12 f13 f14 f15 f16 f17 f18 f19
+    (Closed nat) = f18 nat
+  | fm_case f1 f2 f3 f4 f5 f6 f7 f8 f9 f10 f11 f12 f13 f14 f15 f16 f17 f18 f19
+    (A fm) = f17 fm
+  | fm_case f1 f2 f3 f4 f5 f6 f7 f8 f9 f10 f11 f12 f13 f14 f15 f16 f17 f18 f19
+    (E fm) = f16 fm
+  | fm_case f1 f2 f3 f4 f5 f6 f7 f8 f9 f10 f11 f12 f13 f14 f15 f16 f17 f18 f19
+    (Iff (fm1, fm2)) = f15 fm1 fm2
+  | fm_case f1 f2 f3 f4 f5 f6 f7 f8 f9 f10 f11 f12 f13 f14 f15 f16 f17 f18 f19
+    (Imp (fm1, fm2)) = f14 fm1 fm2
+  | fm_case f1 f2 f3 f4 f5 f6 f7 f8 f9 f10 f11 f12 f13 f14 f15 f16 f17 f18 f19
+    (Or (fm1, fm2)) = f13 fm1 fm2
+  | fm_case f1 f2 f3 f4 f5 f6 f7 f8 f9 f10 f11 f12 f13 f14 f15 f16 f17 f18 f19
+    (And (fm1, fm2)) = f12 fm1 fm2
+  | fm_case f1 f2 f3 f4 f5 f6 f7 f8 f9 f10 f11 f12 f13 f14 f15 f16 f17 f18 f19
+    (Not fm) = f11 fm
+  | fm_case f1 f2 f3 f4 f5 f6 f7 f8 f9 f10 f11 f12 f13 f14 f15 f16 f17 f18 f19
+    (NDvd (inta, num)) = f10 inta num
+  | fm_case f1 f2 f3 f4 f5 f6 f7 f8 f9 f10 f11 f12 f13 f14 f15 f16 f17 f18 f19
+    (Dvd (inta, num)) = f9 inta num
+  | fm_case f1 f2 f3 f4 f5 f6 f7 f8 f9 f10 f11 f12 f13 f14 f15 f16 f17 f18 f19
+    (NEq num) = f8 num
+  | fm_case f1 f2 f3 f4 f5 f6 f7 f8 f9 f10 f11 f12 f13 f14 f15 f16 f17 f18 f19
+    (Eq num) = f7 num
+  | fm_case f1 f2 f3 f4 f5 f6 f7 f8 f9 f10 f11 f12 f13 f14 f15 f16 f17 f18 f19
+    (Ge num) = f6 num
+  | fm_case f1 f2 f3 f4 f5 f6 f7 f8 f9 f10 f11 f12 f13 f14 f15 f16 f17 f18 f19
+    (Gt num) = f5 num
+  | fm_case f1 f2 f3 f4 f5 f6 f7 f8 f9 f10 f11 f12 f13 f14 f15 f16 f17 f18 f19
+    (Le num) = f4 num
+  | fm_case f1 f2 f3 f4 f5 f6 f7 f8 f9 f10 f11 f12 f13 f14 f15 f16 f17 f18 f19
+    (Lt num) = f3 num
+  | fm_case f1 y f3 f4 f5 f6 f7 f8 f9 f10 f11 f12 f13 f14 f15 f16 f17 f18 f19 F
+    = y
+  | fm_case y f2 f3 f4 f5 f6 f7 f8 f9 f10 f11 f12 f13 f14 f15 f16 f17 f18 f19 T
+    = y;
+
+fun eq_num (Mul (cb, dc)) (Sub (ae, be)) = false
+  | eq_num (Mul (cb, dc)) (Add (ae, be)) = false
+  | eq_num (Sub (cc, dc)) (Add (ae, be)) = false
+  | eq_num (Mul (bd, cc)) (Neg ae) = false
+  | eq_num (Sub (be, cc)) (Neg ae) = false
+  | eq_num (Add (be, cc)) (Neg ae) = false
+  | eq_num (Mul (db, ea)) (Cn (ac, bd, cc)) = false
+  | eq_num (Sub (dc, ea)) (Cn (ac, bd, cc)) = false
+  | eq_num (Add (dc, ea)) (Cn (ac, bd, cc)) = false
+  | eq_num (Neg dc) (Cn (ac, bd, cc)) = false
+  | eq_num (Mul (bd, cc)) (Bound ac) = false
+  | eq_num (Sub (be, cc)) (Bound ac) = false
+  | eq_num (Add (be, cc)) (Bound ac) = false
+  | eq_num (Neg be) (Bound ac) = false
+  | eq_num (Cn (bc, cb, dc)) (Bound ac) = false
+  | eq_num (Mul (bd, cc)) (C ad) = false
+  | eq_num (Sub (be, cc)) (C ad) = false
+  | eq_num (Add (be, cc)) (C ad) = false
+  | eq_num (Neg be) (C ad) = false
+  | eq_num (Cn (bc, cb, dc)) (C ad) = false
+  | eq_num (Bound bc) (C ad) = false
+  | eq_num (Sub (ab, bb)) (Mul (c, da)) = false
+  | eq_num (Add (ab, bb)) (Mul (c, da)) = false
+  | eq_num (Add (ab, bb)) (Sub (ca, da)) = false
+  | eq_num (Neg ab) (Mul (ba, ca)) = false
+  | eq_num (Neg ab) (Sub (bb, ca)) = false
+  | eq_num (Neg ab) (Add (bb, ca)) = false
+  | eq_num (Cn (a, ba, ca)) (Mul (d, e)) = false
+  | eq_num (Cn (a, ba, ca)) (Sub (da, e)) = false
+  | eq_num (Cn (a, ba, ca)) (Add (da, e)) = false
+  | eq_num (Cn (a, ba, ca)) (Neg da) = false
+  | eq_num (Bound a) (Mul (ba, ca)) = false
+  | eq_num (Bound a) (Sub (bb, ca)) = false
+  | eq_num (Bound a) (Add (bb, ca)) = false
+  | eq_num (Bound a) (Neg bb) = false
+  | eq_num (Bound a) (Cn (b, c, da)) = false
+  | eq_num (C aa) (Mul (ba, ca)) = false
+  | eq_num (C aa) (Sub (bb, ca)) = false
+  | eq_num (C aa) (Add (bb, ca)) = false
+  | eq_num (C aa) (Neg bb) = false
+  | eq_num (C aa) (Cn (b, c, da)) = false
+  | eq_num (C aa) (Bound b) = false
+  | eq_num (Mul (inta, num)) (Mul (int', num')) =
+    ((inta : IntInf.int) = int') andalso eq_num num num'
+  | eq_num (Sub (num1, num2)) (Sub (num1', num2')) =
+    eq_num num1 num1' andalso eq_num num2 num2'
+  | eq_num (Add (num1, num2)) (Add (num1', num2')) =
+    eq_num num1 num1' andalso eq_num num2 num2'
+  | eq_num (Neg num) (Neg num') = eq_num num num'
+  | eq_num (Cn (nat, inta, num)) (Cn (nat', int', num')) =
+    ((nat : IntInf.int) = nat') andalso
+      (((inta : IntInf.int) = int') andalso eq_num num num')
+  | eq_num (Bound nat) (Bound nat') = ((nat : IntInf.int) = nat')
+  | eq_num (C inta) (C int') = ((inta : IntInf.int) = int');
+
+fun eq_fm (NClosed bd) (Closed ad) = false
+  | eq_fm (NClosed bd) (A af) = false
+  | eq_fm (Closed bd) (A af) = false
+  | eq_fm (NClosed bd) (E af) = false
+  | eq_fm (Closed bd) (E af) = false
+  | eq_fm (A bf) (E af) = false
+  | eq_fm (NClosed cd) (Iff (af, bf)) = false
+  | eq_fm (Closed cd) (Iff (af, bf)) = false
+  | eq_fm (A cf) (Iff (af, bf)) = false
+  | eq_fm (E cf) (Iff (af, bf)) = false
+  | eq_fm (NClosed cd) (Imp (af, bf)) = false
+  | eq_fm (Closed cd) (Imp (af, bf)) = false
+  | eq_fm (A cf) (Imp (af, bf)) = false
+  | eq_fm (E cf) (Imp (af, bf)) = false
+  | eq_fm (Iff (cf, db)) (Imp (af, bf)) = false
+  | eq_fm (NClosed cd) (Or (af, bf)) = false
+  | eq_fm (Closed cd) (Or (af, bf)) = false
+  | eq_fm (A cf) (Or (af, bf)) = false
+  | eq_fm (E cf) (Or (af, bf)) = false
+  | eq_fm (Iff (cf, db)) (Or (af, bf)) = false
+  | eq_fm (Imp (cf, db)) (Or (af, bf)) = false
+  | eq_fm (NClosed cd) (And (af, bf)) = false
+  | eq_fm (Closed cd) (And (af, bf)) = false
+  | eq_fm (A cf) (And (af, bf)) = false
+  | eq_fm (E cf) (And (af, bf)) = false
+  | eq_fm (Iff (cf, db)) (And (af, bf)) = false
+  | eq_fm (Imp (cf, db)) (And (af, bf)) = false
+  | eq_fm (Or (cf, db)) (And (af, bf)) = false
+  | eq_fm (NClosed bd) (Not af) = false
+  | eq_fm (Closed bd) (Not af) = false
+  | eq_fm (A bf) (Not af) = false
+  | eq_fm (E bf) (Not af) = false
+  | eq_fm (Iff (bf, cf)) (Not af) = false
+  | eq_fm (Imp (bf, cf)) (Not af) = false
+  | eq_fm (Or (bf, cf)) (Not af) = false
+  | eq_fm (And (bf, cf)) (Not af) = false
+  | eq_fm (NClosed cd) (NDvd (ae, bg)) = false
+  | eq_fm (Closed cd) (NDvd (ae, bg)) = false
+  | eq_fm (A cf) (NDvd (ae, bg)) = false
+  | eq_fm (E cf) (NDvd (ae, bg)) = false
+  | eq_fm (Iff (cf, db)) (NDvd (ae, bg)) = false
+  | eq_fm (Imp (cf, db)) (NDvd (ae, bg)) = false
+  | eq_fm (Or (cf, db)) (NDvd (ae, bg)) = false
+  | eq_fm (And (cf, db)) (NDvd (ae, bg)) = false
+  | eq_fm (Not cf) (NDvd (ae, bg)) = false
+  | eq_fm (NClosed cd) (Dvd (ae, bg)) = false
+  | eq_fm (Closed cd) (Dvd (ae, bg)) = false
+  | eq_fm (A cf) (Dvd (ae, bg)) = false
+  | eq_fm (E cf) (Dvd (ae, bg)) = false
+  | eq_fm (Iff (cf, db)) (Dvd (ae, bg)) = false
+  | eq_fm (Imp (cf, db)) (Dvd (ae, bg)) = false
+  | eq_fm (Or (cf, db)) (Dvd (ae, bg)) = false
+  | eq_fm (And (cf, db)) (Dvd (ae, bg)) = false
+  | eq_fm (Not cf) (Dvd (ae, bg)) = false
+  | eq_fm (NDvd (ce, dc)) (Dvd (ae, bg)) = false
+  | eq_fm (NClosed bd) (NEq ag) = false
+  | eq_fm (Closed bd) (NEq ag) = false
+  | eq_fm (A bf) (NEq ag) = false
+  | eq_fm (E bf) (NEq ag) = false
+  | eq_fm (Iff (bf, cf)) (NEq ag) = false
+  | eq_fm (Imp (bf, cf)) (NEq ag) = false
+  | eq_fm (Or (bf, cf)) (NEq ag) = false
+  | eq_fm (And (bf, cf)) (NEq ag) = false
+  | eq_fm (Not bf) (NEq ag) = false
+  | eq_fm (NDvd (be, cg)) (NEq ag) = false
+  | eq_fm (Dvd (be, cg)) (NEq ag) = false
+  | eq_fm (NClosed bd) (Eq ag) = false
+  | eq_fm (Closed bd) (Eq ag) = false
+  | eq_fm (A bf) (Eq ag) = false
+  | eq_fm (E bf) (Eq ag) = false
+  | eq_fm (Iff (bf, cf)) (Eq ag) = false
+  | eq_fm (Imp (bf, cf)) (Eq ag) = false
+  | eq_fm (Or (bf, cf)) (Eq ag) = false
+  | eq_fm (And (bf, cf)) (Eq ag) = false
+  | eq_fm (Not bf) (Eq ag) = false
+  | eq_fm (NDvd (be, cg)) (Eq ag) = false
+  | eq_fm (Dvd (be, cg)) (Eq ag) = false
+  | eq_fm (NEq bg) (Eq ag) = false
+  | eq_fm (NClosed bd) (Ge ag) = false
+  | eq_fm (Closed bd) (Ge ag) = false
+  | eq_fm (A bf) (Ge ag) = false
+  | eq_fm (E bf) (Ge ag) = false
+  | eq_fm (Iff (bf, cf)) (Ge ag) = false
+  | eq_fm (Imp (bf, cf)) (Ge ag) = false
+  | eq_fm (Or (bf, cf)) (Ge ag) = false
+  | eq_fm (And (bf, cf)) (Ge ag) = false
+  | eq_fm (Not bf) (Ge ag) = false
+  | eq_fm (NDvd (be, cg)) (Ge ag) = false
+  | eq_fm (Dvd (be, cg)) (Ge ag) = false
+  | eq_fm (NEq bg) (Ge ag) = false
+  | eq_fm (Eq bg) (Ge ag) = false
+  | eq_fm (NClosed bd) (Gt ag) = false
+  | eq_fm (Closed bd) (Gt ag) = false
+  | eq_fm (A bf) (Gt ag) = false
+  | eq_fm (E bf) (Gt ag) = false
+  | eq_fm (Iff (bf, cf)) (Gt ag) = false
+  | eq_fm (Imp (bf, cf)) (Gt ag) = false
+  | eq_fm (Or (bf, cf)) (Gt ag) = false
+  | eq_fm (And (bf, cf)) (Gt ag) = false
+  | eq_fm (Not bf) (Gt ag) = false
+  | eq_fm (NDvd (be, cg)) (Gt ag) = false
+  | eq_fm (Dvd (be, cg)) (Gt ag) = false
+  | eq_fm (NEq bg) (Gt ag) = false
+  | eq_fm (Eq bg) (Gt ag) = false
+  | eq_fm (Ge bg) (Gt ag) = false
+  | eq_fm (NClosed bd) (Le ag) = false
+  | eq_fm (Closed bd) (Le ag) = false
+  | eq_fm (A bf) (Le ag) = false
+  | eq_fm (E bf) (Le ag) = false
+  | eq_fm (Iff (bf, cf)) (Le ag) = false
+  | eq_fm (Imp (bf, cf)) (Le ag) = false
+  | eq_fm (Or (bf, cf)) (Le ag) = false
+  | eq_fm (And (bf, cf)) (Le ag) = false
+  | eq_fm (Not bf) (Le ag) = false
+  | eq_fm (NDvd (be, cg)) (Le ag) = false
+  | eq_fm (Dvd (be, cg)) (Le ag) = false
+  | eq_fm (NEq bg) (Le ag) = false
+  | eq_fm (Eq bg) (Le ag) = false
+  | eq_fm (Ge bg) (Le ag) = false
+  | eq_fm (Gt bg) (Le ag) = false
+  | eq_fm (NClosed bd) (Lt ag) = false
+  | eq_fm (Closed bd) (Lt ag) = false
+  | eq_fm (A bf) (Lt ag) = false
+  | eq_fm (E bf) (Lt ag) = false
+  | eq_fm (Iff (bf, cf)) (Lt ag) = false
+  | eq_fm (Imp (bf, cf)) (Lt ag) = false
+  | eq_fm (Or (bf, cf)) (Lt ag) = false
+  | eq_fm (And (bf, cf)) (Lt ag) = false
+  | eq_fm (Not bf) (Lt ag) = false
+  | eq_fm (NDvd (be, cg)) (Lt ag) = false
+  | eq_fm (Dvd (be, cg)) (Lt ag) = false
+  | eq_fm (NEq bg) (Lt ag) = false
+  | eq_fm (Eq bg) (Lt ag) = false
+  | eq_fm (Ge bg) (Lt ag) = false
+  | eq_fm (Gt bg) (Lt ag) = false
+  | eq_fm (Le bg) (Lt ag) = false
+  | eq_fm (NClosed ad) F = false
+  | eq_fm (Closed ad) F = false
+  | eq_fm (A af) F = false
+  | eq_fm (E af) F = false
+  | eq_fm (Iff (af, bf)) F = false
+  | eq_fm (Imp (af, bf)) F = false
+  | eq_fm (Or (af, bf)) F = false
+  | eq_fm (And (af, bf)) F = false
+  | eq_fm (Not af) F = false
+  | eq_fm (NDvd (ae, bg)) F = false
+  | eq_fm (Dvd (ae, bg)) F = false
+  | eq_fm (NEq ag) F = false
+  | eq_fm (Eq ag) F = false
+  | eq_fm (Ge ag) F = false
+  | eq_fm (Gt ag) F = false
+  | eq_fm (Le ag) F = false
+  | eq_fm (Lt ag) F = false
+  | eq_fm (NClosed ad) T = false
+  | eq_fm (Closed ad) T = false
+  | eq_fm (A af) T = false
+  | eq_fm (E af) T = false
+  | eq_fm (Iff (af, bf)) T = false
+  | eq_fm (Imp (af, bf)) T = false
+  | eq_fm (Or (af, bf)) T = false
+  | eq_fm (And (af, bf)) T = false
+  | eq_fm (Not af) T = false
+  | eq_fm (NDvd (ae, bg)) T = false
+  | eq_fm (Dvd (ae, bg)) T = false
+  | eq_fm (NEq ag) T = false
+  | eq_fm (Eq ag) T = false
+  | eq_fm (Ge ag) T = false
+  | eq_fm (Gt ag) T = false
+  | eq_fm (Le ag) T = false
+  | eq_fm (Lt ag) T = false
+  | eq_fm F T = false
+  | eq_fm (Closed a) (NClosed b) = false
+  | eq_fm (A ab) (NClosed b) = false
+  | eq_fm (A ab) (Closed b) = false
+  | eq_fm (E ab) (NClosed b) = false
+  | eq_fm (E ab) (Closed b) = false
+  | eq_fm (E ab) (A bb) = false
+  | eq_fm (Iff (ab, bb)) (NClosed c) = false
+  | eq_fm (Iff (ab, bb)) (Closed c) = false
+  | eq_fm (Iff (ab, bb)) (A cb) = false
+  | eq_fm (Iff (ab, bb)) (E cb) = false
+  | eq_fm (Imp (ab, bb)) (NClosed c) = false
+  | eq_fm (Imp (ab, bb)) (Closed c) = false
+  | eq_fm (Imp (ab, bb)) (A cb) = false
+  | eq_fm (Imp (ab, bb)) (E cb) = false
+  | eq_fm (Imp (ab, bb)) (Iff (cb, d)) = false
+  | eq_fm (Or (ab, bb)) (NClosed c) = false
+  | eq_fm (Or (ab, bb)) (Closed c) = false
+  | eq_fm (Or (ab, bb)) (A cb) = false
+  | eq_fm (Or (ab, bb)) (E cb) = false
+  | eq_fm (Or (ab, bb)) (Iff (cb, d)) = false
+  | eq_fm (Or (ab, bb)) (Imp (cb, d)) = false
+  | eq_fm (And (ab, bb)) (NClosed c) = false
+  | eq_fm (And (ab, bb)) (Closed c) = false
+  | eq_fm (And (ab, bb)) (A cb) = false
+  | eq_fm (And (ab, bb)) (E cb) = false
+  | eq_fm (And (ab, bb)) (Iff (cb, d)) = false
+  | eq_fm (And (ab, bb)) (Imp (cb, d)) = false
+  | eq_fm (And (ab, bb)) (Or (cb, d)) = false
+  | eq_fm (Not ab) (NClosed b) = false
+  | eq_fm (Not ab) (Closed b) = false
+  | eq_fm (Not ab) (A bb) = false
+  | eq_fm (Not ab) (E bb) = false
+  | eq_fm (Not ab) (Iff (bb, cb)) = false
+  | eq_fm (Not ab) (Imp (bb, cb)) = false
+  | eq_fm (Not ab) (Or (bb, cb)) = false
+  | eq_fm (Not ab) (And (bb, cb)) = false
+  | eq_fm (NDvd (aa, bc)) (NClosed c) = false
+  | eq_fm (NDvd (aa, bc)) (Closed c) = false
+  | eq_fm (NDvd (aa, bc)) (A cb) = false
+  | eq_fm (NDvd (aa, bc)) (E cb) = false
+  | eq_fm (NDvd (aa, bc)) (Iff (cb, d)) = false
+  | eq_fm (NDvd (aa, bc)) (Imp (cb, d)) = false
+  | eq_fm (NDvd (aa, bc)) (Or (cb, d)) = false
+  | eq_fm (NDvd (aa, bc)) (And (cb, d)) = false
+  | eq_fm (NDvd (aa, bc)) (Not cb) = false
+  | eq_fm (Dvd (aa, bc)) (NClosed c) = false
+  | eq_fm (Dvd (aa, bc)) (Closed c) = false
+  | eq_fm (Dvd (aa, bc)) (A cb) = false
+  | eq_fm (Dvd (aa, bc)) (E cb) = false
+  | eq_fm (Dvd (aa, bc)) (Iff (cb, d)) = false
+  | eq_fm (Dvd (aa, bc)) (Imp (cb, d)) = false
+  | eq_fm (Dvd (aa, bc)) (Or (cb, d)) = false
+  | eq_fm (Dvd (aa, bc)) (And (cb, d)) = false
+  | eq_fm (Dvd (aa, bc)) (Not cb) = false
+  | eq_fm (Dvd (aa, bc)) (NDvd (ca, da)) = false
+  | eq_fm (NEq ac) (NClosed b) = false
+  | eq_fm (NEq ac) (Closed b) = false
+  | eq_fm (NEq ac) (A bb) = false
+  | eq_fm (NEq ac) (E bb) = false
+  | eq_fm (NEq ac) (Iff (bb, cb)) = false
+  | eq_fm (NEq ac) (Imp (bb, cb)) = false
+  | eq_fm (NEq ac) (Or (bb, cb)) = false
+  | eq_fm (NEq ac) (And (bb, cb)) = false
+  | eq_fm (NEq ac) (Not bb) = false
+  | eq_fm (NEq ac) (NDvd (ba, cc)) = false
+  | eq_fm (NEq ac) (Dvd (ba, cc)) = false
+  | eq_fm (Eq ac) (NClosed b) = false
+  | eq_fm (Eq ac) (Closed b) = false
+  | eq_fm (Eq ac) (A bb) = false
+  | eq_fm (Eq ac) (E bb) = false
+  | eq_fm (Eq ac) (Iff (bb, cb)) = false
+  | eq_fm (Eq ac) (Imp (bb, cb)) = false
+  | eq_fm (Eq ac) (Or (bb, cb)) = false
+  | eq_fm (Eq ac) (And (bb, cb)) = false
+  | eq_fm (Eq ac) (Not bb) = false
+  | eq_fm (Eq ac) (NDvd (ba, cc)) = false
+  | eq_fm (Eq ac) (Dvd (ba, cc)) = false
+  | eq_fm (Eq ac) (NEq bc) = false
+  | eq_fm (Ge ac) (NClosed b) = false
+  | eq_fm (Ge ac) (Closed b) = false
+  | eq_fm (Ge ac) (A bb) = false
+  | eq_fm (Ge ac) (E bb) = false
+  | eq_fm (Ge ac) (Iff (bb, cb)) = false
+  | eq_fm (Ge ac) (Imp (bb, cb)) = false
+  | eq_fm (Ge ac) (Or (bb, cb)) = false
+  | eq_fm (Ge ac) (And (bb, cb)) = false
+  | eq_fm (Ge ac) (Not bb) = false
+  | eq_fm (Ge ac) (NDvd (ba, cc)) = false
+  | eq_fm (Ge ac) (Dvd (ba, cc)) = false
+  | eq_fm (Ge ac) (NEq bc) = false
+  | eq_fm (Ge ac) (Eq bc) = false
+  | eq_fm (Gt ac) (NClosed b) = false
+  | eq_fm (Gt ac) (Closed b) = false
+  | eq_fm (Gt ac) (A bb) = false
+  | eq_fm (Gt ac) (E bb) = false
+  | eq_fm (Gt ac) (Iff (bb, cb)) = false
+  | eq_fm (Gt ac) (Imp (bb, cb)) = false
+  | eq_fm (Gt ac) (Or (bb, cb)) = false
+  | eq_fm (Gt ac) (And (bb, cb)) = false
+  | eq_fm (Gt ac) (Not bb) = false
+  | eq_fm (Gt ac) (NDvd (ba, cc)) = false
+  | eq_fm (Gt ac) (Dvd (ba, cc)) = false
+  | eq_fm (Gt ac) (NEq bc) = false
+  | eq_fm (Gt ac) (Eq bc) = false
+  | eq_fm (Gt ac) (Ge bc) = false
+  | eq_fm (Le ac) (NClosed b) = false
+  | eq_fm (Le ac) (Closed b) = false
+  | eq_fm (Le ac) (A bb) = false
+  | eq_fm (Le ac) (E bb) = false
+  | eq_fm (Le ac) (Iff (bb, cb)) = false
+  | eq_fm (Le ac) (Imp (bb, cb)) = false
+  | eq_fm (Le ac) (Or (bb, cb)) = false
+  | eq_fm (Le ac) (And (bb, cb)) = false
+  | eq_fm (Le ac) (Not bb) = false
+  | eq_fm (Le ac) (NDvd (ba, cc)) = false
+  | eq_fm (Le ac) (Dvd (ba, cc)) = false
+  | eq_fm (Le ac) (NEq bc) = false
+  | eq_fm (Le ac) (Eq bc) = false
+  | eq_fm (Le ac) (Ge bc) = false
+  | eq_fm (Le ac) (Gt bc) = false
+  | eq_fm (Lt ac) (NClosed b) = false
+  | eq_fm (Lt ac) (Closed b) = false
+  | eq_fm (Lt ac) (A bb) = false
+  | eq_fm (Lt ac) (E bb) = false
+  | eq_fm (Lt ac) (Iff (bb, cb)) = false
+  | eq_fm (Lt ac) (Imp (bb, cb)) = false
+  | eq_fm (Lt ac) (Or (bb, cb)) = false
+  | eq_fm (Lt ac) (And (bb, cb)) = false
+  | eq_fm (Lt ac) (Not bb) = false
+  | eq_fm (Lt ac) (NDvd (ba, cc)) = false
+  | eq_fm (Lt ac) (Dvd (ba, cc)) = false
+  | eq_fm (Lt ac) (NEq bc) = false
+  | eq_fm (Lt ac) (Eq bc) = false
+  | eq_fm (Lt ac) (Ge bc) = false
+  | eq_fm (Lt ac) (Gt bc) = false
+  | eq_fm (Lt ac) (Le bc) = false
+  | eq_fm F (NClosed a) = false
+  | eq_fm F (Closed a) = false
+  | eq_fm F (A ab) = false
+  | eq_fm F (E ab) = false
+  | eq_fm F (Iff (ab, bb)) = false
+  | eq_fm F (Imp (ab, bb)) = false
+  | eq_fm F (Or (ab, bb)) = false
+  | eq_fm F (And (ab, bb)) = false
+  | eq_fm F (Not ab) = false
+  | eq_fm F (NDvd (aa, bc)) = false
+  | eq_fm F (Dvd (aa, bc)) = false
+  | eq_fm F (NEq ac) = false
+  | eq_fm F (Eq ac) = false
+  | eq_fm F (Ge ac) = false
+  | eq_fm F (Gt ac) = false
+  | eq_fm F (Le ac) = false
+  | eq_fm F (Lt ac) = false
+  | eq_fm T (NClosed a) = false
+  | eq_fm T (Closed a) = false
+  | eq_fm T (A ab) = false
+  | eq_fm T (E ab) = false
+  | eq_fm T (Iff (ab, bb)) = false
+  | eq_fm T (Imp (ab, bb)) = false
+  | eq_fm T (Or (ab, bb)) = false
+  | eq_fm T (And (ab, bb)) = false
+  | eq_fm T (Not ab) = false
+  | eq_fm T (NDvd (aa, bc)) = false
+  | eq_fm T (Dvd (aa, bc)) = false
+  | eq_fm T (NEq ac) = false
+  | eq_fm T (Eq ac) = false
+  | eq_fm T (Ge ac) = false
+  | eq_fm T (Gt ac) = false
+  | eq_fm T (Le ac) = false
+  | eq_fm T (Lt ac) = false
+  | eq_fm T F = false
+  | eq_fm (NClosed nat) (NClosed nat') = ((nat : IntInf.int) = nat')
+  | eq_fm (Closed nat) (Closed nat') = ((nat : IntInf.int) = nat')
+  | eq_fm (A fm) (A fm') = eq_fm fm fm'
+  | eq_fm (E fm) (E fm') = eq_fm fm fm'
+  | eq_fm (Iff (fm1, fm2)) (Iff (fm1', fm2')) =
+    eq_fm fm1 fm1' andalso eq_fm fm2 fm2'
+  | eq_fm (Imp (fm1, fm2)) (Imp (fm1', fm2')) =
+    eq_fm fm1 fm1' andalso eq_fm fm2 fm2'
+  | eq_fm (Or (fm1, fm2)) (Or (fm1', fm2')) =
+    eq_fm fm1 fm1' andalso eq_fm fm2 fm2'
+  | eq_fm (And (fm1, fm2)) (And (fm1', fm2')) =
+    eq_fm fm1 fm1' andalso eq_fm fm2 fm2'
+  | eq_fm (Not fm) (Not fm') = eq_fm fm fm'
+  | eq_fm (NDvd (inta, num)) (NDvd (int', num')) =
+    ((inta : IntInf.int) = int') andalso eq_num num num'
+  | eq_fm (Dvd (inta, num)) (Dvd (int', num')) =
+    ((inta : IntInf.int) = int') andalso eq_num num num'
+  | eq_fm (NEq num) (NEq num') = eq_num num num'
+  | eq_fm (Eq num) (Eq num') = eq_num num num'
+  | eq_fm (Ge num) (Ge num') = eq_num num num'
+  | eq_fm (Gt num) (Gt num') = eq_num num num'
+  | eq_fm (Le num) (Le num') = eq_num num num'
+  | eq_fm (Lt num) (Lt num') = eq_num num num'
+  | eq_fm F F = true
+  | eq_fm T T = true;
+
+val eq_fma = {eq = eq_fm} : fm eq;
+
+fun djf f p q =
+  (if eqop eq_fma q T then T
+    else (if eqop eq_fma q F then f p
+           else let
+                  val a = f p;
+                in
+                  (case a of T => T | F => q | Lt num => Or (f p, q)
+                     | Le num => Or (f p, q) | Gt num => Or (f p, q)
+                     | Ge num => Or (f p, q) | Eq num => Or (f p, q)
+                     | NEq num => Or (f p, q) | Dvd (inta, num) => Or (f p, q)
+                     | NDvd (inta, num) => Or (f p, q) | Not fm => Or (f p, q)
+                     | And (fm1, fm2) => Or (f p, q)
+                     | Or (fm1, fm2) => Or (f p, q)
+                     | Imp (fm1, fm2) => Or (f p, q)
+                     | Iff (fm1, fm2) => Or (f p, q) | E fm => Or (f p, q)
+                     | A fm => Or (f p, q) | Closed nat => Or (f p, q)
+                     | NClosed nat => Or (f p, q))
+                end));
+
+fun foldr f [] y = y
+  | foldr f (x :: xs) a = f x (foldr f xs a);
+
+fun evaldjf f ps = foldr (djf f) ps F;
+
+fun dj f p = evaldjf f (disjuncts p);
+
+fun disj p q =
+  (if eqop eq_fma p T orelse eqop eq_fma q T then T
+    else (if eqop eq_fma p F then q
+           else (if eqop eq_fma q F then p else Or (p, q))));
+
+fun minus_nat n m = IntInf.max (0, (IntInf.- (n, m)));
+
+fun decrnum (Bound n) = Bound (minus_nat n 1)
+  | decrnum (Neg a) = Neg (decrnum a)
+  | decrnum (Add (a, b)) = Add (decrnum a, decrnum b)
+  | decrnum (Sub (a, b)) = Sub (decrnum a, decrnum b)
+  | decrnum (Mul (c, a)) = Mul (c, decrnum a)
+  | decrnum (Cn (n, i, a)) = Cn (minus_nat n 1, i, decrnum a)
+  | decrnum (C u) = C u;
+
+fun decr (Lt a) = Lt (decrnum a)
+  | decr (Le a) = Le (decrnum a)
+  | decr (Gt a) = Gt (decrnum a)
+  | decr (Ge a) = Ge (decrnum a)
+  | decr (Eq a) = Eq (decrnum a)
+  | decr (NEq a) = NEq (decrnum a)
+  | decr (Dvd (i, a)) = Dvd (i, decrnum a)
+  | decr (NDvd (i, a)) = NDvd (i, decrnum a)
+  | decr (Not p) = Not (decr p)
+  | decr (And (p, q)) = And (decr p, decr q)
+  | decr (Or (p, q)) = Or (decr p, decr q)
+  | decr (Imp (p, q)) = Imp (decr p, decr q)
+  | decr (Iff (p, q)) = Iff (decr p, decr q)
+  | decr T = T
+  | decr F = F
+  | decr (E ao) = E ao
+  | decr (A ap) = A ap
+  | decr (Closed aq) = Closed aq
+  | decr (NClosed ar) = NClosed ar;
+
+fun concat [] = []
+  | concat (x :: xs) = append x (concat xs);
+
+fun split f (a, b) = f a b;
+
+fun numsubst0 t (C c) = C c
+  | numsubst0 t (Bound n) = (if eqop eq_nat n 0 then t else Bound n)
+  | numsubst0 t (Neg a) = Neg (numsubst0 t a)
+  | numsubst0 t (Add (a, b)) = Add (numsubst0 t a, numsubst0 t b)
+  | numsubst0 t (Sub (a, b)) = Sub (numsubst0 t a, numsubst0 t b)
+  | numsubst0 t (Mul (i, a)) = Mul (i, numsubst0 t a)
+  | numsubst0 ta (Cn (v, ia, aa)) =
+    (if eqop eq_nat v 0 then Add (Mul (ia, ta), numsubst0 ta aa)
+      else Cn (suc (minus_nat v 1), ia, numsubst0 ta aa));
+
+fun subst0 t T = T
+  | subst0 t F = F
+  | subst0 t (Lt a) = Lt (numsubst0 t a)
+  | subst0 t (Le a) = Le (numsubst0 t a)
+  | subst0 t (Gt a) = Gt (numsubst0 t a)
+  | subst0 t (Ge a) = Ge (numsubst0 t a)
+  | subst0 t (Eq a) = Eq (numsubst0 t a)
+  | subst0 t (NEq a) = NEq (numsubst0 t a)
+  | subst0 t (Dvd (i, a)) = Dvd (i, numsubst0 t a)
+  | subst0 t (NDvd (i, a)) = NDvd (i, numsubst0 t a)
+  | subst0 t (Not p) = Not (subst0 t p)
+  | subst0 t (And (p, q)) = And (subst0 t p, subst0 t q)
+  | subst0 t (Or (p, q)) = Or (subst0 t p, subst0 t q)
+  | subst0 t (Imp (p, q)) = Imp (subst0 t p, subst0 t q)
+  | subst0 t (Iff (p, q)) = Iff (subst0 t p, subst0 t q)
+  | subst0 t (Closed p) = Closed p
+  | subst0 t (NClosed p) = NClosed p;
+
+fun minusinf (And (p, q)) = And (minusinf p, minusinf q)
+  | minusinf (Or (p, q)) = Or (minusinf p, minusinf q)
+  | minusinf T = T
+  | minusinf F = F
+  | minusinf (Lt (C bo)) = Lt (C bo)
+  | minusinf (Lt (Bound bp)) = Lt (Bound bp)
+  | minusinf (Lt (Neg bt)) = Lt (Neg bt)
+  | minusinf (Lt (Add (bu, bv))) = Lt (Add (bu, bv))
+  | minusinf (Lt (Sub (bw, bx))) = Lt (Sub (bw, bx))
+  | minusinf (Lt (Mul (by, bz))) = Lt (Mul (by, bz))
+  | minusinf (Le (C co)) = Le (C co)
+  | minusinf (Le (Bound cp)) = Le (Bound cp)
+  | minusinf (Le (Neg ct)) = Le (Neg ct)
+  | minusinf (Le (Add (cu, cv))) = Le (Add (cu, cv))
+  | minusinf (Le (Sub (cw, cx))) = Le (Sub (cw, cx))
+  | minusinf (Le (Mul (cy, cz))) = Le (Mul (cy, cz))
+  | minusinf (Gt (C doa)) = Gt (C doa)
+  | minusinf (Gt (Bound dp)) = Gt (Bound dp)
+  | minusinf (Gt (Neg dt)) = Gt (Neg dt)
+  | minusinf (Gt (Add (du, dv))) = Gt (Add (du, dv))
+  | minusinf (Gt (Sub (dw, dx))) = Gt (Sub (dw, dx))
+  | minusinf (Gt (Mul (dy, dz))) = Gt (Mul (dy, dz))
+  | minusinf (Ge (C eo)) = Ge (C eo)
+  | minusinf (Ge (Bound ep)) = Ge (Bound ep)
+  | minusinf (Ge (Neg et)) = Ge (Neg et)
+  | minusinf (Ge (Add (eu, ev))) = Ge (Add (eu, ev))
+  | minusinf (Ge (Sub (ew, ex))) = Ge (Sub (ew, ex))
+  | minusinf (Ge (Mul (ey, ez))) = Ge (Mul (ey, ez))
+  | minusinf (Eq (C fo)) = Eq (C fo)
+  | minusinf (Eq (Bound fp)) = Eq (Bound fp)
+  | minusinf (Eq (Neg ft)) = Eq (Neg ft)
+  | minusinf (Eq (Add (fu, fv))) = Eq (Add (fu, fv))
+  | minusinf (Eq (Sub (fw, fx))) = Eq (Sub (fw, fx))
+  | minusinf (Eq (Mul (fy, fz))) = Eq (Mul (fy, fz))
+  | minusinf (NEq (C go)) = NEq (C go)
+  | minusinf (NEq (Bound gp)) = NEq (Bound gp)
+  | minusinf (NEq (Neg gt)) = NEq (Neg gt)
+  | minusinf (NEq (Add (gu, gv))) = NEq (Add (gu, gv))
+  | minusinf (NEq (Sub (gw, gx))) = NEq (Sub (gw, gx))
+  | minusinf (NEq (Mul (gy, gz))) = NEq (Mul (gy, gz))
+  | minusinf (Dvd (aa, ab)) = Dvd (aa, ab)
+  | minusinf (NDvd (ac, ad)) = NDvd (ac, ad)
+  | minusinf (Not ae) = Not ae
+  | minusinf (Imp (aj, ak)) = Imp (aj, ak)
+  | minusinf (Iff (al, am)) = Iff (al, am)
+  | minusinf (E an) = E an
+  | minusinf (A ao) = A ao
+  | minusinf (Closed ap) = Closed ap
+  | minusinf (NClosed aq) = NClosed aq
+  | minusinf (Lt (Cn (cm, c, e))) =
+    (if eqop eq_nat cm 0 then T else Lt (Cn (suc (minus_nat cm 1), c, e)))
+  | minusinf (Le (Cn (dm, c, e))) =
+    (if eqop eq_nat dm 0 then T else Le (Cn (suc (minus_nat dm 1), c, e)))
+  | minusinf (Gt (Cn (em, c, e))) =
+    (if eqop eq_nat em 0 then F else Gt (Cn (suc (minus_nat em 1), c, e)))
+  | minusinf (Ge (Cn (fm, c, e))) =
+    (if eqop eq_nat fm 0 then F else Ge (Cn (suc (minus_nat fm 1), c, e)))
+  | minusinf (Eq (Cn (gm, c, e))) =
+    (if eqop eq_nat gm 0 then F else Eq (Cn (suc (minus_nat gm 1), c, e)))
+  | minusinf (NEq (Cn (hm, c, e))) =
+    (if eqop eq_nat hm 0 then T else NEq (Cn (suc (minus_nat hm 1), c, e)));
 
 fun adjust b =
   (fn a as (q, r) =>
@@ -25,2216 +704,991 @@ fun negDivAlg a b =
     then ((~1 : IntInf.int), IntInf.+ (a, b))
     else adjust b (negDivAlg a (IntInf.* ((2 : IntInf.int), b))));
 
-val negateSnd : IntInf.int * IntInf.int -> IntInf.int * IntInf.int =
-  (fn a as (q, r) => (q, IntInf.~ r));
+fun apsnd f (x, y) = (x, f y);
+
+val eq_int = {eq = (fn a => fn b => ((a : IntInf.int) = b))} : IntInf.int eq;
 
 fun posDivAlg a b =
   (if IntInf.< (a, b) orelse IntInf.<= (b, (0 : IntInf.int))
     then ((0 : IntInf.int), a)
     else adjust b (posDivAlg a (IntInf.* ((2 : IntInf.int), b))));
 
-val divAlg : IntInf.int * IntInf.int -> IntInf.int * IntInf.int =
-  (fn a as (aa, b) =>
-    (if IntInf.<= ((0 : IntInf.int), aa)
-      then (if IntInf.<= ((0 : IntInf.int), b) then posDivAlg aa b
-             else (if ((aa : IntInf.int) = (0 : IntInf.int))
-                    then ((0 : IntInf.int), (0 : IntInf.int))
-                    else negateSnd (negDivAlg (IntInf.~ aa) (IntInf.~ b))))
-      else (if IntInf.< ((0 : IntInf.int), b) then negDivAlg aa b
-             else negateSnd (posDivAlg (IntInf.~ aa) (IntInf.~ b)))));
+fun divmoda a b =
+  (if IntInf.<= ((0 : IntInf.int), a)
+    then (if IntInf.<= ((0 : IntInf.int), b) then posDivAlg a b
+           else (if eqop eq_int a (0 : IntInf.int)
+                  then ((0 : IntInf.int), (0 : IntInf.int))
+                  else apsnd IntInf.~ (negDivAlg (IntInf.~ a) (IntInf.~ b))))
+    else (if IntInf.< ((0 : IntInf.int), b) then negDivAlg a b
+           else apsnd IntInf.~ (posDivAlg (IntInf.~ a) (IntInf.~ b))));
 
-fun snd (a, y) = y;
+fun mod_int a b = snd (divmoda a b);
 
-fun mod_nat m k = (snd (divAlg (m, k)));
+fun num_case f1 f2 f3 f4 f5 f6 f7 (Mul (inta, num)) = f7 inta num
+  | num_case f1 f2 f3 f4 f5 f6 f7 (Sub (num1, num2)) = f6 num1 num2
+  | num_case f1 f2 f3 f4 f5 f6 f7 (Add (num1, num2)) = f5 num1 num2
+  | num_case f1 f2 f3 f4 f5 f6 f7 (Neg num) = f4 num
+  | num_case f1 f2 f3 f4 f5 f6 f7 (Cn (nat, inta, num)) = f3 nat inta num
+  | num_case f1 f2 f3 f4 f5 f6 f7 (Bound nat) = f2 nat
+  | num_case f1 f2 f3 f4 f5 f6 f7 (C inta) = f1 inta;
 
-val zero_nat : IntInf.int = (0 : IntInf.int);
-
-fun gcd (m, n) =
-  (if ((n : IntInf.int) = zero_nat) then m else gcd (n, mod_nat m n));
-
-fun fst (y, b) = y;
-
-fun div_nat m k = (fst (divAlg (m, k)));
-
-val lcm : IntInf.int * IntInf.int -> IntInf.int =
-  (fn a as (m, n) => div_nat (IntInf.* (m, n)) (gcd (m, n)));
-
-fun suc n = (IntInf.+ (n, (1 : IntInf.int)));
-
-fun abs_int i = (if IntInf.< (i, (0 : IntInf.int)) then IntInf.~ i else i);
-
-fun nat k = (if IntInf.< (k, (0 : IntInf.int)) then zero_nat else k);
-
-fun int_aux i n =
-  (if ((n : IntInf.int) = (0 : IntInf.int)) then i
-    else int_aux (IntInf.+ (i, (1 : IntInf.int)))
-           (IntInf.- (n, (1 : IntInf.int))));
-
-val ilcm : IntInf.int -> IntInf.int -> IntInf.int =
-  (fn i => fn j =>
-    int_aux (0 : IntInf.int) (lcm (nat (abs_int i), nat (abs_int j))));
-
-type 'a zero = {zero : 'a};
-fun zero (A_:'a zero) = #zero A_;
-
-fun map f (x :: xs) = f x :: map f xs
-  | map f [] = [];
-
-type 'a times = {times : 'a -> 'a -> 'a};
-fun times (A_:'a times) = #times A_;
-
-fun foldr f (x :: xs) a = f x (foldr f xs a)
-  | foldr f [] y = y;
-
-type 'a diva = {div : 'a -> 'a -> 'a, mod : 'a -> 'a -> 'a};
-fun diva (A_:'a diva) = #div A_;
-fun moda (A_:'a diva) = #mod A_;
-
-type 'a dvd_mod =
-  {Divides__dvd_mod_div : 'a diva, Divides__dvd_mod_times : 'a times,
-    Divides__dvd_mod_zero : 'a zero};
-fun dvd_mod_div (A_:'a dvd_mod) = #Divides__dvd_mod_div A_;
-fun dvd_mod_times (A_:'a dvd_mod) = #Divides__dvd_mod_times A_;
-fun dvd_mod_zero (A_:'a dvd_mod) = #Divides__dvd_mod_zero A_;
-
-fun dvd (A1_, A2_) x y =
-  eq A2_ (moda (dvd_mod_div A1_) y x) (zero (dvd_mod_zero A1_));
-
-fun append (x :: xs) ys = x :: append xs ys
-  | append [] y = y;
-
-fun memberl A_ x (y :: ys) = eq A_ x y orelse memberl A_ x ys
-  | memberl A_ x [] = false;
-
-fun remdups A_ (x :: xs) =
-  (if memberl A_ x xs then remdups A_ xs else x :: remdups A_ xs)
-  | remdups A_ [] = [];
-
-fun mod_int a b = snd (divAlg (a, b));
-
-fun div_int a b = fst (divAlg (a, b));
-
-val div_inta = {div = div_int, mod = mod_int} : IntInf.int diva;
-
-fun allpairs f (x :: xs) ys = append (map (f x) ys) (allpairs f xs ys)
-  | allpairs f [] ys = [];
-
-val eq_int = {eq = (fn a => fn b => ((a : IntInf.int) = b))} : IntInf.int eq;
-
-val zero_int : IntInf.int = (0 : IntInf.int);
-
-val zero_inta = {zero = zero_int} : IntInf.int zero;
-
-fun size_list (a :: lista) = (IntInf.+ ((size_list lista), (suc zero_nat)))
-  | size_list [] = zero_nat;
-
-fun eq_bit B0 B0 = true
-  | eq_bit B1 B1 = true
-  | eq_bit B0 B1 = false
-  | eq_bit B1 B0 = false;
-
-val times_int = {times = (fn a => fn b => IntInf.* (a, b))} : IntInf.int times;
-
-val dvd_mod_int =
-  {Divides__dvd_mod_div = div_inta, Divides__dvd_mod_times = times_int,
-    Divides__dvd_mod_zero = zero_inta}
-  : IntInf.int dvd_mod;
-
-datatype num = C of IntInf.int | Bound of IntInf.int | Cx of IntInf.int * num |
-  Neg of num | Add of num * num | Sub of num * num | Mul of IntInf.int * num;
-
-datatype fm = T | F | Lt of num | Le of num | Gt of num | Ge of num | Eq of num
-  | NEq of num | Dvd of IntInf.int * num | NDvd of IntInf.int * num | Nota of fm
-  | And of fm * fm | Or of fm * fm | Impa of fm * fm | Iffa of fm * fm | E of fm
-  | A of fm | Closed of IntInf.int | NClosed of IntInf.int;
-
-fun disjuncts (NClosed aq) = [NClosed aq]
-  | disjuncts (Closed ap) = [Closed ap]
-  | disjuncts (A ao) = [A ao]
-  | disjuncts (E an) = [E an]
-  | disjuncts (Iffa (al, am)) = [Iffa (al, am)]
-  | disjuncts (Impa (aj, ak)) = [Impa (aj, ak)]
-  | disjuncts (And (af, ag)) = [And (af, ag)]
-  | disjuncts (Nota ae) = [Nota ae]
-  | disjuncts (NDvd (ac, ad)) = [NDvd (ac, ad)]
-  | disjuncts (Dvd (aa, ab)) = [Dvd (aa, ab)]
-  | disjuncts (NEq z) = [NEq z]
-  | disjuncts (Eq y) = [Eq y]
-  | disjuncts (Ge x) = [Ge x]
-  | disjuncts (Gt w) = [Gt w]
-  | disjuncts (Le v) = [Le v]
-  | disjuncts (Lt u) = [Lt u]
-  | disjuncts T = [T]
-  | disjuncts F = []
-  | disjuncts (Or (p, q)) = append (disjuncts p) (disjuncts q);
-
-fun eq_num (C int) (C int') = ((int : IntInf.int) = int')
-  | eq_num (Bound nat) (Bound nat') = ((nat : IntInf.int) = nat')
-  | eq_num (Cx (int, num)) (Cx (int', num')) =
-    ((int : IntInf.int) = int') andalso eq_num num num'
-  | eq_num (Neg num) (Neg num') = eq_num num num'
-  | eq_num (Add (num1, num2)) (Add (num1', num2')) =
-    eq_num num1 num1' andalso eq_num num2 num2'
-  | eq_num (Sub (num1, num2)) (Sub (num1', num2')) =
-    eq_num num1 num1' andalso eq_num num2 num2'
-  | eq_num (Mul (int, num)) (Mul (int', num')) =
-    ((int : IntInf.int) = int') andalso eq_num num num'
-  | eq_num (C a) (Bound b) = false
-  | eq_num (C a) (Cx (b, c)) = false
-  | eq_num (C a) (Neg b) = false
-  | eq_num (C a) (Add (b, c)) = false
-  | eq_num (C a) (Sub (b, c)) = false
-  | eq_num (C a) (Mul (b, c)) = false
-  | eq_num (Bound a) (Cx (b, c)) = false
-  | eq_num (Bound a) (Neg b) = false
-  | eq_num (Bound a) (Add (b, c)) = false
-  | eq_num (Bound a) (Sub (b, c)) = false
-  | eq_num (Bound a) (Mul (b, c)) = false
-  | eq_num (Cx (a, b)) (Neg c) = false
-  | eq_num (Cx (a, b)) (Add (c, d)) = false
-  | eq_num (Cx (a, b)) (Sub (c, d)) = false
-  | eq_num (Cx (a, b)) (Mul (c, d)) = false
-  | eq_num (Neg a) (Add (b, c)) = false
-  | eq_num (Neg a) (Sub (b, c)) = false
-  | eq_num (Neg a) (Mul (b, c)) = false
-  | eq_num (Add (a, b)) (Sub (c, d)) = false
-  | eq_num (Add (a, b)) (Mul (c, d)) = false
-  | eq_num (Sub (a, b)) (Mul (c, d)) = false
-  | eq_num (Bound b) (C a) = false
-  | eq_num (Cx (b, c)) (C a) = false
-  | eq_num (Neg b) (C a) = false
-  | eq_num (Add (b, c)) (C a) = false
-  | eq_num (Sub (b, c)) (C a) = false
-  | eq_num (Mul (b, c)) (C a) = false
-  | eq_num (Cx (b, c)) (Bound a) = false
-  | eq_num (Neg b) (Bound a) = false
-  | eq_num (Add (b, c)) (Bound a) = false
-  | eq_num (Sub (b, c)) (Bound a) = false
-  | eq_num (Mul (b, c)) (Bound a) = false
-  | eq_num (Neg c) (Cx (a, b)) = false
-  | eq_num (Add (c, d)) (Cx (a, b)) = false
-  | eq_num (Sub (c, d)) (Cx (a, b)) = false
-  | eq_num (Mul (c, d)) (Cx (a, b)) = false
-  | eq_num (Add (b, c)) (Neg a) = false
-  | eq_num (Sub (b, c)) (Neg a) = false
-  | eq_num (Mul (b, c)) (Neg a) = false
-  | eq_num (Sub (c, d)) (Add (a, b)) = false
-  | eq_num (Mul (c, d)) (Add (a, b)) = false
-  | eq_num (Mul (c, d)) (Sub (a, b)) = false;
-
-fun eq_fm T T = true
-  | eq_fm F F = true
-  | eq_fm (Lt num) (Lt num') = eq_num num num'
-  | eq_fm (Le num) (Le num') = eq_num num num'
-  | eq_fm (Gt num) (Gt num') = eq_num num num'
-  | eq_fm (Ge num) (Ge num') = eq_num num num'
-  | eq_fm (Eq num) (Eq num') = eq_num num num'
-  | eq_fm (NEq num) (NEq num') = eq_num num num'
-  | eq_fm (Dvd (int, num)) (Dvd (int', num')) =
-    ((int : IntInf.int) = int') andalso eq_num num num'
-  | eq_fm (NDvd (int, num)) (NDvd (int', num')) =
-    ((int : IntInf.int) = int') andalso eq_num num num'
-  | eq_fm (Nota fm) (Nota fm') = eq_fm fm fm'
-  | eq_fm (And (fm1, fm2)) (And (fm1', fm2')) =
-    eq_fm fm1 fm1' andalso eq_fm fm2 fm2'
-  | eq_fm (Or (fm1, fm2)) (Or (fm1', fm2')) =
-    eq_fm fm1 fm1' andalso eq_fm fm2 fm2'
-  | eq_fm (Impa (fm1, fm2)) (Impa (fm1', fm2')) =
-    eq_fm fm1 fm1' andalso eq_fm fm2 fm2'
-  | eq_fm (Iffa (fm1, fm2)) (Iffa (fm1', fm2')) =
-    eq_fm fm1 fm1' andalso eq_fm fm2 fm2'
-  | eq_fm (E fm) (E fm') = eq_fm fm fm'
-  | eq_fm (A fm) (A fm') = eq_fm fm fm'
-  | eq_fm (Closed nat) (Closed nat') = ((nat : IntInf.int) = nat')
-  | eq_fm (NClosed nat) (NClosed nat') = ((nat : IntInf.int) = nat')
-  | eq_fm T F = false
-  | eq_fm T (Lt a) = false
-  | eq_fm T (Le a) = false
-  | eq_fm T (Gt a) = false
-  | eq_fm T (Ge a) = false
-  | eq_fm T (Eq a) = false
-  | eq_fm T (NEq a) = false
-  | eq_fm T (Dvd (a, b)) = false
-  | eq_fm T (NDvd (a, b)) = false
-  | eq_fm T (Nota a) = false
-  | eq_fm T (And (a, b)) = false
-  | eq_fm T (Or (a, b)) = false
-  | eq_fm T (Impa (a, b)) = false
-  | eq_fm T (Iffa (a, b)) = false
-  | eq_fm T (E a) = false
-  | eq_fm T (A a) = false
-  | eq_fm T (Closed a) = false
-  | eq_fm T (NClosed a) = false
-  | eq_fm F (Lt a) = false
-  | eq_fm F (Le a) = false
-  | eq_fm F (Gt a) = false
-  | eq_fm F (Ge a) = false
-  | eq_fm F (Eq a) = false
-  | eq_fm F (NEq a) = false
-  | eq_fm F (Dvd (a, b)) = false
-  | eq_fm F (NDvd (a, b)) = false
-  | eq_fm F (Nota a) = false
-  | eq_fm F (And (a, b)) = false
-  | eq_fm F (Or (a, b)) = false
-  | eq_fm F (Impa (a, b)) = false
-  | eq_fm F (Iffa (a, b)) = false
-  | eq_fm F (E a) = false
-  | eq_fm F (A a) = false
-  | eq_fm F (Closed a) = false
-  | eq_fm F (NClosed a) = false
-  | eq_fm (Lt a) (Le b) = false
-  | eq_fm (Lt a) (Gt b) = false
-  | eq_fm (Lt a) (Ge b) = false
-  | eq_fm (Lt a) (Eq b) = false
-  | eq_fm (Lt a) (NEq b) = false
-  | eq_fm (Lt a) (Dvd (b, c)) = false
-  | eq_fm (Lt a) (NDvd (b, c)) = false
-  | eq_fm (Lt a) (Nota b) = false
-  | eq_fm (Lt a) (And (b, c)) = false
-  | eq_fm (Lt a) (Or (b, c)) = false
-  | eq_fm (Lt a) (Impa (b, c)) = false
-  | eq_fm (Lt a) (Iffa (b, c)) = false
-  | eq_fm (Lt a) (E b) = false
-  | eq_fm (Lt a) (A b) = false
-  | eq_fm (Lt a) (Closed b) = false
-  | eq_fm (Lt a) (NClosed b) = false
-  | eq_fm (Le a) (Gt b) = false
-  | eq_fm (Le a) (Ge b) = false
-  | eq_fm (Le a) (Eq b) = false
-  | eq_fm (Le a) (NEq b) = false
-  | eq_fm (Le a) (Dvd (b, c)) = false
-  | eq_fm (Le a) (NDvd (b, c)) = false
-  | eq_fm (Le a) (Nota b) = false
-  | eq_fm (Le a) (And (b, c)) = false
-  | eq_fm (Le a) (Or (b, c)) = false
-  | eq_fm (Le a) (Impa (b, c)) = false
-  | eq_fm (Le a) (Iffa (b, c)) = false
-  | eq_fm (Le a) (E b) = false
-  | eq_fm (Le a) (A b) = false
-  | eq_fm (Le a) (Closed b) = false
-  | eq_fm (Le a) (NClosed b) = false
-  | eq_fm (Gt a) (Ge b) = false
-  | eq_fm (Gt a) (Eq b) = false
-  | eq_fm (Gt a) (NEq b) = false
-  | eq_fm (Gt a) (Dvd (b, c)) = false
-  | eq_fm (Gt a) (NDvd (b, c)) = false
-  | eq_fm (Gt a) (Nota b) = false
-  | eq_fm (Gt a) (And (b, c)) = false
-  | eq_fm (Gt a) (Or (b, c)) = false
-  | eq_fm (Gt a) (Impa (b, c)) = false
-  | eq_fm (Gt a) (Iffa (b, c)) = false
-  | eq_fm (Gt a) (E b) = false
-  | eq_fm (Gt a) (A b) = false
-  | eq_fm (Gt a) (Closed b) = false
-  | eq_fm (Gt a) (NClosed b) = false
-  | eq_fm (Ge a) (Eq b) = false
-  | eq_fm (Ge a) (NEq b) = false
-  | eq_fm (Ge a) (Dvd (b, c)) = false
-  | eq_fm (Ge a) (NDvd (b, c)) = false
-  | eq_fm (Ge a) (Nota b) = false
-  | eq_fm (Ge a) (And (b, c)) = false
-  | eq_fm (Ge a) (Or (b, c)) = false
-  | eq_fm (Ge a) (Impa (b, c)) = false
-  | eq_fm (Ge a) (Iffa (b, c)) = false
-  | eq_fm (Ge a) (E b) = false
-  | eq_fm (Ge a) (A b) = false
-  | eq_fm (Ge a) (Closed b) = false
-  | eq_fm (Ge a) (NClosed b) = false
-  | eq_fm (Eq a) (NEq b) = false
-  | eq_fm (Eq a) (Dvd (b, c)) = false
-  | eq_fm (Eq a) (NDvd (b, c)) = false
-  | eq_fm (Eq a) (Nota b) = false
-  | eq_fm (Eq a) (And (b, c)) = false
-  | eq_fm (Eq a) (Or (b, c)) = false
-  | eq_fm (Eq a) (Impa (b, c)) = false
-  | eq_fm (Eq a) (Iffa (b, c)) = false
-  | eq_fm (Eq a) (E b) = false
-  | eq_fm (Eq a) (A b) = false
-  | eq_fm (Eq a) (Closed b) = false
-  | eq_fm (Eq a) (NClosed b) = false
-  | eq_fm (NEq a) (Dvd (b, c)) = false
-  | eq_fm (NEq a) (NDvd (b, c)) = false
-  | eq_fm (NEq a) (Nota b) = false
-  | eq_fm (NEq a) (And (b, c)) = false
-  | eq_fm (NEq a) (Or (b, c)) = false
-  | eq_fm (NEq a) (Impa (b, c)) = false
-  | eq_fm (NEq a) (Iffa (b, c)) = false
-  | eq_fm (NEq a) (E b) = false
-  | eq_fm (NEq a) (A b) = false
-  | eq_fm (NEq a) (Closed b) = false
-  | eq_fm (NEq a) (NClosed b) = false
-  | eq_fm (Dvd (a, b)) (NDvd (c, d)) = false
-  | eq_fm (Dvd (a, b)) (Nota c) = false
-  | eq_fm (Dvd (a, b)) (And (c, d)) = false
-  | eq_fm (Dvd (a, b)) (Or (c, d)) = false
-  | eq_fm (Dvd (a, b)) (Impa (c, d)) = false
-  | eq_fm (Dvd (a, b)) (Iffa (c, d)) = false
-  | eq_fm (Dvd (a, b)) (E c) = false
-  | eq_fm (Dvd (a, b)) (A c) = false
-  | eq_fm (Dvd (a, b)) (Closed c) = false
-  | eq_fm (Dvd (a, b)) (NClosed c) = false
-  | eq_fm (NDvd (a, b)) (Nota c) = false
-  | eq_fm (NDvd (a, b)) (And (c, d)) = false
-  | eq_fm (NDvd (a, b)) (Or (c, d)) = false
-  | eq_fm (NDvd (a, b)) (Impa (c, d)) = false
-  | eq_fm (NDvd (a, b)) (Iffa (c, d)) = false
-  | eq_fm (NDvd (a, b)) (E c) = false
-  | eq_fm (NDvd (a, b)) (A c) = false
-  | eq_fm (NDvd (a, b)) (Closed c) = false
-  | eq_fm (NDvd (a, b)) (NClosed c) = false
-  | eq_fm (Nota a) (And (b, c)) = false
-  | eq_fm (Nota a) (Or (b, c)) = false
-  | eq_fm (Nota a) (Impa (b, c)) = false
-  | eq_fm (Nota a) (Iffa (b, c)) = false
-  | eq_fm (Nota a) (E b) = false
-  | eq_fm (Nota a) (A b) = false
-  | eq_fm (Nota a) (Closed b) = false
-  | eq_fm (Nota a) (NClosed b) = false
-  | eq_fm (And (a, b)) (Or (c, d)) = false
-  | eq_fm (And (a, b)) (Impa (c, d)) = false
-  | eq_fm (And (a, b)) (Iffa (c, d)) = false
-  | eq_fm (And (a, b)) (E c) = false
-  | eq_fm (And (a, b)) (A c) = false
-  | eq_fm (And (a, b)) (Closed c) = false
-  | eq_fm (And (a, b)) (NClosed c) = false
-  | eq_fm (Or (a, b)) (Impa (c, d)) = false
-  | eq_fm (Or (a, b)) (Iffa (c, d)) = false
-  | eq_fm (Or (a, b)) (E c) = false
-  | eq_fm (Or (a, b)) (A c) = false
-  | eq_fm (Or (a, b)) (Closed c) = false
-  | eq_fm (Or (a, b)) (NClosed c) = false
-  | eq_fm (Impa (a, b)) (Iffa (c, d)) = false
-  | eq_fm (Impa (a, b)) (E c) = false
-  | eq_fm (Impa (a, b)) (A c) = false
-  | eq_fm (Impa (a, b)) (Closed c) = false
-  | eq_fm (Impa (a, b)) (NClosed c) = false
-  | eq_fm (Iffa (a, b)) (E c) = false
-  | eq_fm (Iffa (a, b)) (A c) = false
-  | eq_fm (Iffa (a, b)) (Closed c) = false
-  | eq_fm (Iffa (a, b)) (NClosed c) = false
-  | eq_fm (E a) (A b) = false
-  | eq_fm (E a) (Closed b) = false
-  | eq_fm (E a) (NClosed b) = false
-  | eq_fm (A a) (Closed b) = false
-  | eq_fm (A a) (NClosed b) = false
-  | eq_fm (Closed a) (NClosed b) = false
-  | eq_fm F T = false
-  | eq_fm (Lt a) T = false
-  | eq_fm (Le a) T = false
-  | eq_fm (Gt a) T = false
-  | eq_fm (Ge a) T = false
-  | eq_fm (Eq a) T = false
-  | eq_fm (NEq a) T = false
-  | eq_fm (Dvd (a, b)) T = false
-  | eq_fm (NDvd (a, b)) T = false
-  | eq_fm (Nota a) T = false
-  | eq_fm (And (a, b)) T = false
-  | eq_fm (Or (a, b)) T = false
-  | eq_fm (Impa (a, b)) T = false
-  | eq_fm (Iffa (a, b)) T = false
-  | eq_fm (E a) T = false
-  | eq_fm (A a) T = false
-  | eq_fm (Closed a) T = false
-  | eq_fm (NClosed a) T = false
-  | eq_fm (Lt a) F = false
-  | eq_fm (Le a) F = false
-  | eq_fm (Gt a) F = false
-  | eq_fm (Ge a) F = false
-  | eq_fm (Eq a) F = false
-  | eq_fm (NEq a) F = false
-  | eq_fm (Dvd (a, b)) F = false
-  | eq_fm (NDvd (a, b)) F = false
-  | eq_fm (Nota a) F = false
-  | eq_fm (And (a, b)) F = false
-  | eq_fm (Or (a, b)) F = false
-  | eq_fm (Impa (a, b)) F = false
-  | eq_fm (Iffa (a, b)) F = false
-  | eq_fm (E a) F = false
-  | eq_fm (A a) F = false
-  | eq_fm (Closed a) F = false
-  | eq_fm (NClosed a) F = false
-  | eq_fm (Le b) (Lt a) = false
-  | eq_fm (Gt b) (Lt a) = false
-  | eq_fm (Ge b) (Lt a) = false
-  | eq_fm (Eq b) (Lt a) = false
-  | eq_fm (NEq b) (Lt a) = false
-  | eq_fm (Dvd (b, c)) (Lt a) = false
-  | eq_fm (NDvd (b, c)) (Lt a) = false
-  | eq_fm (Nota b) (Lt a) = false
-  | eq_fm (And (b, c)) (Lt a) = false
-  | eq_fm (Or (b, c)) (Lt a) = false
-  | eq_fm (Impa (b, c)) (Lt a) = false
-  | eq_fm (Iffa (b, c)) (Lt a) = false
-  | eq_fm (E b) (Lt a) = false
-  | eq_fm (A b) (Lt a) = false
-  | eq_fm (Closed b) (Lt a) = false
-  | eq_fm (NClosed b) (Lt a) = false
-  | eq_fm (Gt b) (Le a) = false
-  | eq_fm (Ge b) (Le a) = false
-  | eq_fm (Eq b) (Le a) = false
-  | eq_fm (NEq b) (Le a) = false
-  | eq_fm (Dvd (b, c)) (Le a) = false
-  | eq_fm (NDvd (b, c)) (Le a) = false
-  | eq_fm (Nota b) (Le a) = false
-  | eq_fm (And (b, c)) (Le a) = false
-  | eq_fm (Or (b, c)) (Le a) = false
-  | eq_fm (Impa (b, c)) (Le a) = false
-  | eq_fm (Iffa (b, c)) (Le a) = false
-  | eq_fm (E b) (Le a) = false
-  | eq_fm (A b) (Le a) = false
-  | eq_fm (Closed b) (Le a) = false
-  | eq_fm (NClosed b) (Le a) = false
-  | eq_fm (Ge b) (Gt a) = false
-  | eq_fm (Eq b) (Gt a) = false
-  | eq_fm (NEq b) (Gt a) = false
-  | eq_fm (Dvd (b, c)) (Gt a) = false
-  | eq_fm (NDvd (b, c)) (Gt a) = false
-  | eq_fm (Nota b) (Gt a) = false
-  | eq_fm (And (b, c)) (Gt a) = false
-  | eq_fm (Or (b, c)) (Gt a) = false
-  | eq_fm (Impa (b, c)) (Gt a) = false
-  | eq_fm (Iffa (b, c)) (Gt a) = false
-  | eq_fm (E b) (Gt a) = false
-  | eq_fm (A b) (Gt a) = false
-  | eq_fm (Closed b) (Gt a) = false
-  | eq_fm (NClosed b) (Gt a) = false
-  | eq_fm (Eq b) (Ge a) = false
-  | eq_fm (NEq b) (Ge a) = false
-  | eq_fm (Dvd (b, c)) (Ge a) = false
-  | eq_fm (NDvd (b, c)) (Ge a) = false
-  | eq_fm (Nota b) (Ge a) = false
-  | eq_fm (And (b, c)) (Ge a) = false
-  | eq_fm (Or (b, c)) (Ge a) = false
-  | eq_fm (Impa (b, c)) (Ge a) = false
-  | eq_fm (Iffa (b, c)) (Ge a) = false
-  | eq_fm (E b) (Ge a) = false
-  | eq_fm (A b) (Ge a) = false
-  | eq_fm (Closed b) (Ge a) = false
-  | eq_fm (NClosed b) (Ge a) = false
-  | eq_fm (NEq b) (Eq a) = false
-  | eq_fm (Dvd (b, c)) (Eq a) = false
-  | eq_fm (NDvd (b, c)) (Eq a) = false
-  | eq_fm (Nota b) (Eq a) = false
-  | eq_fm (And (b, c)) (Eq a) = false
-  | eq_fm (Or (b, c)) (Eq a) = false
-  | eq_fm (Impa (b, c)) (Eq a) = false
-  | eq_fm (Iffa (b, c)) (Eq a) = false
-  | eq_fm (E b) (Eq a) = false
-  | eq_fm (A b) (Eq a) = false
-  | eq_fm (Closed b) (Eq a) = false
-  | eq_fm (NClosed b) (Eq a) = false
-  | eq_fm (Dvd (b, c)) (NEq a) = false
-  | eq_fm (NDvd (b, c)) (NEq a) = false
-  | eq_fm (Nota b) (NEq a) = false
-  | eq_fm (And (b, c)) (NEq a) = false
-  | eq_fm (Or (b, c)) (NEq a) = false
-  | eq_fm (Impa (b, c)) (NEq a) = false
-  | eq_fm (Iffa (b, c)) (NEq a) = false
-  | eq_fm (E b) (NEq a) = false
-  | eq_fm (A b) (NEq a) = false
-  | eq_fm (Closed b) (NEq a) = false
-  | eq_fm (NClosed b) (NEq a) = false
-  | eq_fm (NDvd (c, d)) (Dvd (a, b)) = false
-  | eq_fm (Nota c) (Dvd (a, b)) = false
-  | eq_fm (And (c, d)) (Dvd (a, b)) = false
-  | eq_fm (Or (c, d)) (Dvd (a, b)) = false
-  | eq_fm (Impa (c, d)) (Dvd (a, b)) = false
-  | eq_fm (Iffa (c, d)) (Dvd (a, b)) = false
-  | eq_fm (E c) (Dvd (a, b)) = false
-  | eq_fm (A c) (Dvd (a, b)) = false
-  | eq_fm (Closed c) (Dvd (a, b)) = false
-  | eq_fm (NClosed c) (Dvd (a, b)) = false
-  | eq_fm (Nota c) (NDvd (a, b)) = false
-  | eq_fm (And (c, d)) (NDvd (a, b)) = false
-  | eq_fm (Or (c, d)) (NDvd (a, b)) = false
-  | eq_fm (Impa (c, d)) (NDvd (a, b)) = false
-  | eq_fm (Iffa (c, d)) (NDvd (a, b)) = false
-  | eq_fm (E c) (NDvd (a, b)) = false
-  | eq_fm (A c) (NDvd (a, b)) = false
-  | eq_fm (Closed c) (NDvd (a, b)) = false
-  | eq_fm (NClosed c) (NDvd (a, b)) = false
-  | eq_fm (And (b, c)) (Nota a) = false
-  | eq_fm (Or (b, c)) (Nota a) = false
-  | eq_fm (Impa (b, c)) (Nota a) = false
-  | eq_fm (Iffa (b, c)) (Nota a) = false
-  | eq_fm (E b) (Nota a) = false
-  | eq_fm (A b) (Nota a) = false
-  | eq_fm (Closed b) (Nota a) = false
-  | eq_fm (NClosed b) (Nota a) = false
-  | eq_fm (Or (c, d)) (And (a, b)) = false
-  | eq_fm (Impa (c, d)) (And (a, b)) = false
-  | eq_fm (Iffa (c, d)) (And (a, b)) = false
-  | eq_fm (E c) (And (a, b)) = false
-  | eq_fm (A c) (And (a, b)) = false
-  | eq_fm (Closed c) (And (a, b)) = false
-  | eq_fm (NClosed c) (And (a, b)) = false
-  | eq_fm (Impa (c, d)) (Or (a, b)) = false
-  | eq_fm (Iffa (c, d)) (Or (a, b)) = false
-  | eq_fm (E c) (Or (a, b)) = false
-  | eq_fm (A c) (Or (a, b)) = false
-  | eq_fm (Closed c) (Or (a, b)) = false
-  | eq_fm (NClosed c) (Or (a, b)) = false
-  | eq_fm (Iffa (c, d)) (Impa (a, b)) = false
-  | eq_fm (E c) (Impa (a, b)) = false
-  | eq_fm (A c) (Impa (a, b)) = false
-  | eq_fm (Closed c) (Impa (a, b)) = false
-  | eq_fm (NClosed c) (Impa (a, b)) = false
-  | eq_fm (E c) (Iffa (a, b)) = false
-  | eq_fm (A c) (Iffa (a, b)) = false
-  | eq_fm (Closed c) (Iffa (a, b)) = false
-  | eq_fm (NClosed c) (Iffa (a, b)) = false
-  | eq_fm (A b) (E a) = false
-  | eq_fm (Closed b) (E a) = false
-  | eq_fm (NClosed b) (E a) = false
-  | eq_fm (Closed b) (A a) = false
-  | eq_fm (NClosed b) (A a) = false
-  | eq_fm (NClosed b) (Closed a) = false;
-
-fun djf f p q =
-  (if eq_fm q T then T
-    else (if eq_fm q F then f p
-           else (case f p of T => T | F => q | Lt num => Or (f p, q)
-                   | Le num => Or (f p, q) | Gt num => Or (f p, q)
-                   | Ge num => Or (f p, q) | Eq num => Or (f p, q)
-                   | NEq num => Or (f p, q) | Dvd (int, num) => Or (f p, q)
-                   | NDvd (int, num) => Or (f p, q) | Nota fm => Or (f p, q)
-                   | And (fm1, fm2) => Or (f p, q)
-                   | Or (fm1, fm2) => Or (f p, q)
-                   | Impa (fm1, fm2) => Or (f p, q)
-                   | Iffa (fm1, fm2) => Or (f p, q) | E fm => Or (f p, q)
-                   | A fm => Or (f p, q) | Closed nat => Or (f p, q)
-                   | NClosed nat => Or (f p, q))));
-
-fun evaldjf f ps = foldr (djf f) ps F;
-
-fun dj f p = evaldjf f (disjuncts p);
-
-fun zsplit0 (Mul (i, a)) =
-  let
-    val (i', a') = zsplit0 a;
-  in
-    (IntInf.* (i, i'), Mul (i, a'))
-  end
-  | zsplit0 (Sub (a, b)) =
-    let
-      val (ia, a') = zsplit0 a;
-      val (ib, b') = zsplit0 b;
-    in
-      (IntInf.- (ia, ib), Sub (a', b'))
-    end
-  | zsplit0 (Add (a, b)) =
-    let
-      val (ia, a') = zsplit0 a;
-      val (ib, b') = zsplit0 b;
-    in
-      (IntInf.+ (ia, ib), Add (a', b'))
-    end
-  | zsplit0 (Neg a) =
-    let
-      val (i', a') = zsplit0 a;
-    in
-      (IntInf.~ i', Neg a')
-    end
-  | zsplit0 (Cx (i, a)) =
-    let
-      val (i', aa) = zsplit0 a;
-    in
-      (IntInf.+ (i, i'), aa)
-    end
-  | zsplit0 (Bound n) =
-    (if ((n : IntInf.int) = zero_nat)
-      then ((1 : IntInf.int), C (0 : IntInf.int))
-      else ((0 : IntInf.int), Bound n))
-  | zsplit0 (C c) = ((0 : IntInf.int), C c);
-
-fun zlfm (NClosed ar) = NClosed ar
-  | zlfm (Closed aq) = Closed aq
-  | zlfm (A ap) = A ap
-  | zlfm (E ao) = E ao
-  | zlfm (Nota (A cj)) = Nota (A cj)
-  | zlfm (Nota (E ci)) = Nota (E ci)
-  | zlfm F = F
-  | zlfm T = T
-  | zlfm (Nota (NClosed p)) = Closed p
-  | zlfm (Nota (Closed p)) = NClosed p
-  | zlfm (Nota (NDvd (i, a))) = zlfm (Dvd (i, a))
-  | zlfm (Nota (Dvd (i, a))) = zlfm (NDvd (i, a))
-  | zlfm (Nota (NEq a)) = zlfm (Eq a)
-  | zlfm (Nota (Eq a)) = zlfm (NEq a)
-  | zlfm (Nota (Ge a)) = zlfm (Lt a)
-  | zlfm (Nota (Gt a)) = zlfm (Le a)
-  | zlfm (Nota (Le a)) = zlfm (Gt a)
-  | zlfm (Nota (Lt a)) = zlfm (Ge a)
-  | zlfm (Nota F) = T
-  | zlfm (Nota T) = F
-  | zlfm (Nota (Nota p)) = zlfm p
-  | zlfm (Nota (Iffa (p, q))) =
-    Or (And (zlfm p, zlfm (Nota q)), And (zlfm (Nota p), zlfm q))
-  | zlfm (Nota (Impa (p, q))) = And (zlfm p, zlfm (Nota q))
-  | zlfm (Nota (Or (p, q))) = And (zlfm (Nota p), zlfm (Nota q))
-  | zlfm (Nota (And (p, q))) = Or (zlfm (Nota p), zlfm (Nota q))
-  | zlfm (NDvd (i, a)) =
-    (if ((i : IntInf.int) = (0 : IntInf.int)) then zlfm (NEq a)
-      else let
-             val (c, r) = zsplit0 a;
-           in
-             (if ((c : IntInf.int) = (0 : IntInf.int)) then NDvd (abs_int i, r)
-               else (if IntInf.< ((0 : IntInf.int), c)
-                      then NDvd (abs_int i, Cx (c, r))
-                      else NDvd (abs_int i, Cx (IntInf.~ c, Neg r))))
-           end)
-  | zlfm (Dvd (i, a)) =
-    (if ((i : IntInf.int) = (0 : IntInf.int)) then zlfm (Eq a)
-      else let
-             val (c, r) = zsplit0 a;
-           in
-             (if ((c : IntInf.int) = (0 : IntInf.int)) then Dvd (abs_int i, r)
-               else (if IntInf.< ((0 : IntInf.int), c)
-                      then Dvd (abs_int i, Cx (c, r))
-                      else Dvd (abs_int i, Cx (IntInf.~ c, Neg r))))
-           end)
-  | zlfm (NEq a) =
-    let
-      val (c, r) = zsplit0 a;
-    in
-      (if ((c : IntInf.int) = (0 : IntInf.int)) then NEq r
-        else (if IntInf.< ((0 : IntInf.int), c) then NEq (Cx (c, r))
-               else NEq (Cx (IntInf.~ c, Neg r))))
-    end
-  | zlfm (Eq a) =
-    let
-      val (c, r) = zsplit0 a;
-    in
-      (if ((c : IntInf.int) = (0 : IntInf.int)) then Eq r
-        else (if IntInf.< ((0 : IntInf.int), c) then Eq (Cx (c, r))
-               else Eq (Cx (IntInf.~ c, Neg r))))
-    end
-  | zlfm (Ge a) =
-    let
-      val (c, r) = zsplit0 a;
-    in
-      (if ((c : IntInf.int) = (0 : IntInf.int)) then Ge r
-        else (if IntInf.< ((0 : IntInf.int), c) then Ge (Cx (c, r))
-               else Le (Cx (IntInf.~ c, Neg r))))
-    end
-  | zlfm (Gt a) =
-    let
-      val (c, r) = zsplit0 a;
-    in
-      (if ((c : IntInf.int) = (0 : IntInf.int)) then Gt r
-        else (if IntInf.< ((0 : IntInf.int), c) then Gt (Cx (c, r))
-               else Lt (Cx (IntInf.~ c, Neg r))))
-    end
-  | zlfm (Le a) =
-    let
-      val (c, r) = zsplit0 a;
-    in
-      (if ((c : IntInf.int) = (0 : IntInf.int)) then Le r
-        else (if IntInf.< ((0 : IntInf.int), c) then Le (Cx (c, r))
-               else Ge (Cx (IntInf.~ c, Neg r))))
-    end
-  | zlfm (Lt a) =
-    let
-      val (c, r) = zsplit0 a;
-    in
-      (if ((c : IntInf.int) = (0 : IntInf.int)) then Lt r
-        else (if IntInf.< ((0 : IntInf.int), c) then Lt (Cx (c, r))
-               else Gt (Cx (IntInf.~ c, Neg r))))
-    end
-  | zlfm (Iffa (p, q)) =
-    Or (And (zlfm p, zlfm q), And (zlfm (Nota p), zlfm (Nota q)))
-  | zlfm (Impa (p, q)) = Or (zlfm (Nota p), zlfm q)
-  | zlfm (Or (p, q)) = Or (zlfm p, zlfm q)
-  | zlfm (And (p, q)) = And (zlfm p, zlfm q);
-
-fun zeta (NClosed aq) = (1 : IntInf.int)
-  | zeta (Closed ap) = (1 : IntInf.int)
-  | zeta (A ao) = (1 : IntInf.int)
-  | zeta (E an) = (1 : IntInf.int)
-  | zeta (Iffa (al, am)) = (1 : IntInf.int)
-  | zeta (Impa (aj, ak)) = (1 : IntInf.int)
-  | zeta (Nota ae) = (1 : IntInf.int)
-  | zeta (NDvd (ac, Mul (hv, hw))) = (1 : IntInf.int)
-  | zeta (NDvd (ac, Sub (ht, hu))) = (1 : IntInf.int)
-  | zeta (NDvd (ac, Add (hr, hs))) = (1 : IntInf.int)
-  | zeta (NDvd (ac, Neg hq)) = (1 : IntInf.int)
-  | zeta (NDvd (ac, Bound hn)) = (1 : IntInf.int)
-  | zeta (NDvd (ac, C hm)) = (1 : IntInf.int)
-  | zeta (Dvd (aa, Mul (gz, ha))) = (1 : IntInf.int)
-  | zeta (Dvd (aa, Sub (gx, gy))) = (1 : IntInf.int)
-  | zeta (Dvd (aa, Add (gv, gw))) = (1 : IntInf.int)
-  | zeta (Dvd (aa, Neg gu)) = (1 : IntInf.int)
-  | zeta (Dvd (aa, Bound gr)) = (1 : IntInf.int)
-  | zeta (Dvd (aa, C gq)) = (1 : IntInf.int)
-  | zeta (NEq (Mul (gd, ge))) = (1 : IntInf.int)
-  | zeta (NEq (Sub (gb, gc))) = (1 : IntInf.int)
-  | zeta (NEq (Add (fz, ga))) = (1 : IntInf.int)
-  | zeta (NEq (Neg fy)) = (1 : IntInf.int)
-  | zeta (NEq (Bound fv)) = (1 : IntInf.int)
-  | zeta (NEq (C fu)) = (1 : IntInf.int)
-  | zeta (Eq (Mul (fh, fi))) = (1 : IntInf.int)
-  | zeta (Eq (Sub (ff, fg))) = (1 : IntInf.int)
-  | zeta (Eq (Add (fd, fe))) = (1 : IntInf.int)
-  | zeta (Eq (Neg fc)) = (1 : IntInf.int)
-  | zeta (Eq (Bound ez)) = (1 : IntInf.int)
-  | zeta (Eq (C ey)) = (1 : IntInf.int)
-  | zeta (Ge (Mul (el, em))) = (1 : IntInf.int)
-  | zeta (Ge (Sub (ej, ek))) = (1 : IntInf.int)
-  | zeta (Ge (Add (eh, ei))) = (1 : IntInf.int)
-  | zeta (Ge (Neg eg)) = (1 : IntInf.int)
-  | zeta (Ge (Bound ed)) = (1 : IntInf.int)
-  | zeta (Ge (C ec)) = (1 : IntInf.int)
-  | zeta (Gt (Mul (dp, dq))) = (1 : IntInf.int)
-  | zeta (Gt (Sub (dn, doa))) = (1 : IntInf.int)
-  | zeta (Gt (Add (dl, dm))) = (1 : IntInf.int)
-  | zeta (Gt (Neg dk)) = (1 : IntInf.int)
-  | zeta (Gt (Bound dh)) = (1 : IntInf.int)
-  | zeta (Gt (C dg)) = (1 : IntInf.int)
-  | zeta (Le (Mul (ct, cu))) = (1 : IntInf.int)
-  | zeta (Le (Sub (cr, cs))) = (1 : IntInf.int)
-  | zeta (Le (Add (cp, cq))) = (1 : IntInf.int)
-  | zeta (Le (Neg co)) = (1 : IntInf.int)
-  | zeta (Le (Bound cl)) = (1 : IntInf.int)
-  | zeta (Le (C ck)) = (1 : IntInf.int)
-  | zeta (Lt (Mul (bx, by))) = (1 : IntInf.int)
-  | zeta (Lt (Sub (bv, bw))) = (1 : IntInf.int)
-  | zeta (Lt (Add (bt, bu))) = (1 : IntInf.int)
-  | zeta (Lt (Neg bs)) = (1 : IntInf.int)
-  | zeta (Lt (Bound bp)) = (1 : IntInf.int)
-  | zeta (Lt (C bo)) = (1 : IntInf.int)
-  | zeta F = (1 : IntInf.int)
-  | zeta T = (1 : IntInf.int)
-  | zeta (NDvd (i, Cx (y, e))) = y
-  | zeta (Dvd (i, Cx (y, e))) = y
-  | zeta (Ge (Cx (y, e))) = y
-  | zeta (Gt (Cx (y, e))) = y
-  | zeta (Le (Cx (y, e))) = y
-  | zeta (Lt (Cx (y, e))) = y
-  | zeta (NEq (Cx (y, e))) = y
-  | zeta (Eq (Cx (y, e))) = y
-  | zeta (Or (p, q)) = ilcm (zeta p) (zeta q)
-  | zeta (And (p, q)) = ilcm (zeta p) (zeta q);
-
-fun a_beta (NClosed aq) = (fn k => NClosed aq)
-  | a_beta (Closed ap) = (fn k => Closed ap)
-  | a_beta (A ao) = (fn k => A ao)
-  | a_beta (E an) = (fn k => E an)
-  | a_beta (Iffa (al, am)) = (fn k => Iffa (al, am))
-  | a_beta (Impa (aj, ak)) = (fn k => Impa (aj, ak))
-  | a_beta (Nota ae) = (fn k => Nota ae)
-  | a_beta (NDvd (ac, Mul (hv, hw))) = (fn k => NDvd (ac, Mul (hv, hw)))
-  | a_beta (NDvd (ac, Sub (ht, hu))) = (fn k => NDvd (ac, Sub (ht, hu)))
-  | a_beta (NDvd (ac, Add (hr, hs))) = (fn k => NDvd (ac, Add (hr, hs)))
-  | a_beta (NDvd (ac, Neg hq)) = (fn k => NDvd (ac, Neg hq))
-  | a_beta (NDvd (ac, Bound hn)) = (fn k => NDvd (ac, Bound hn))
-  | a_beta (NDvd (ac, C hm)) = (fn k => NDvd (ac, C hm))
-  | a_beta (Dvd (aa, Mul (gz, ha))) = (fn k => Dvd (aa, Mul (gz, ha)))
-  | a_beta (Dvd (aa, Sub (gx, gy))) = (fn k => Dvd (aa, Sub (gx, gy)))
-  | a_beta (Dvd (aa, Add (gv, gw))) = (fn k => Dvd (aa, Add (gv, gw)))
-  | a_beta (Dvd (aa, Neg gu)) = (fn k => Dvd (aa, Neg gu))
-  | a_beta (Dvd (aa, Bound gr)) = (fn k => Dvd (aa, Bound gr))
-  | a_beta (Dvd (aa, C gq)) = (fn k => Dvd (aa, C gq))
-  | a_beta (NEq (Mul (gd, ge))) = (fn k => NEq (Mul (gd, ge)))
-  | a_beta (NEq (Sub (gb, gc))) = (fn k => NEq (Sub (gb, gc)))
-  | a_beta (NEq (Add (fz, ga))) = (fn k => NEq (Add (fz, ga)))
-  | a_beta (NEq (Neg fy)) = (fn k => NEq (Neg fy))
-  | a_beta (NEq (Bound fv)) = (fn k => NEq (Bound fv))
-  | a_beta (NEq (C fu)) = (fn k => NEq (C fu))
-  | a_beta (Eq (Mul (fh, fi))) = (fn k => Eq (Mul (fh, fi)))
-  | a_beta (Eq (Sub (ff, fg))) = (fn k => Eq (Sub (ff, fg)))
-  | a_beta (Eq (Add (fd, fe))) = (fn k => Eq (Add (fd, fe)))
-  | a_beta (Eq (Neg fc)) = (fn k => Eq (Neg fc))
-  | a_beta (Eq (Bound ez)) = (fn k => Eq (Bound ez))
-  | a_beta (Eq (C ey)) = (fn k => Eq (C ey))
-  | a_beta (Ge (Mul (el, em))) = (fn k => Ge (Mul (el, em)))
-  | a_beta (Ge (Sub (ej, ek))) = (fn k => Ge (Sub (ej, ek)))
-  | a_beta (Ge (Add (eh, ei))) = (fn k => Ge (Add (eh, ei)))
-  | a_beta (Ge (Neg eg)) = (fn k => Ge (Neg eg))
-  | a_beta (Ge (Bound ed)) = (fn k => Ge (Bound ed))
-  | a_beta (Ge (C ec)) = (fn k => Ge (C ec))
-  | a_beta (Gt (Mul (dp, dq))) = (fn k => Gt (Mul (dp, dq)))
-  | a_beta (Gt (Sub (dn, doa))) = (fn k => Gt (Sub (dn, doa)))
-  | a_beta (Gt (Add (dl, dm))) = (fn k => Gt (Add (dl, dm)))
-  | a_beta (Gt (Neg dk)) = (fn k => Gt (Neg dk))
-  | a_beta (Gt (Bound dh)) = (fn k => Gt (Bound dh))
-  | a_beta (Gt (C dg)) = (fn k => Gt (C dg))
-  | a_beta (Le (Mul (ct, cu))) = (fn k => Le (Mul (ct, cu)))
-  | a_beta (Le (Sub (cr, cs))) = (fn k => Le (Sub (cr, cs)))
-  | a_beta (Le (Add (cp, cq))) = (fn k => Le (Add (cp, cq)))
-  | a_beta (Le (Neg co)) = (fn k => Le (Neg co))
-  | a_beta (Le (Bound cl)) = (fn k => Le (Bound cl))
-  | a_beta (Le (C ck)) = (fn k => Le (C ck))
-  | a_beta (Lt (Mul (bx, by))) = (fn k => Lt (Mul (bx, by)))
-  | a_beta (Lt (Sub (bv, bw))) = (fn k => Lt (Sub (bv, bw)))
-  | a_beta (Lt (Add (bt, bu))) = (fn k => Lt (Add (bt, bu)))
-  | a_beta (Lt (Neg bs)) = (fn k => Lt (Neg bs))
-  | a_beta (Lt (Bound bp)) = (fn k => Lt (Bound bp))
-  | a_beta (Lt (C bo)) = (fn k => Lt (C bo))
-  | a_beta F = (fn k => F)
-  | a_beta T = (fn k => T)
-  | a_beta (NDvd (i, Cx (c, e))) =
-    (fn k =>
-      NDvd (IntInf.* (div_int k c, i),
-             Cx ((1 : IntInf.int), Mul (div_int k c, e))))
-  | a_beta (Dvd (i, Cx (c, e))) =
-    (fn k =>
-      Dvd (IntInf.* (div_int k c, i),
-            Cx ((1 : IntInf.int), Mul (div_int k c, e))))
-  | a_beta (Ge (Cx (c, e))) =
-    (fn k => Ge (Cx ((1 : IntInf.int), Mul (div_int k c, e))))
-  | a_beta (Gt (Cx (c, e))) =
-    (fn k => Gt (Cx ((1 : IntInf.int), Mul (div_int k c, e))))
-  | a_beta (Le (Cx (c, e))) =
-    (fn k => Le (Cx ((1 : IntInf.int), Mul (div_int k c, e))))
-  | a_beta (Lt (Cx (c, e))) =
-    (fn k => Lt (Cx ((1 : IntInf.int), Mul (div_int k c, e))))
-  | a_beta (NEq (Cx (c, e))) =
-    (fn k => NEq (Cx ((1 : IntInf.int), Mul (div_int k c, e))))
-  | a_beta (Eq (Cx (c, e))) =
-    (fn k => Eq (Cx ((1 : IntInf.int), Mul (div_int k c, e))))
-  | a_beta (Or (p, q)) = (fn k => Or (a_beta p k, a_beta q k))
-  | a_beta (And (p, q)) = (fn k => And (a_beta p k, a_beta q k));
-
-fun delta (NClosed aq) = (1 : IntInf.int)
-  | delta (Closed ap) = (1 : IntInf.int)
-  | delta (A ao) = (1 : IntInf.int)
-  | delta (E an) = (1 : IntInf.int)
-  | delta (Iffa (al, am)) = (1 : IntInf.int)
-  | delta (Impa (aj, ak)) = (1 : IntInf.int)
-  | delta (Nota ae) = (1 : IntInf.int)
-  | delta (NDvd (ac, Mul (ct, cu))) = (1 : IntInf.int)
-  | delta (NDvd (ac, Sub (cr, cs))) = (1 : IntInf.int)
-  | delta (NDvd (ac, Add (cp, cq))) = (1 : IntInf.int)
-  | delta (NDvd (ac, Neg co)) = (1 : IntInf.int)
-  | delta (NDvd (ac, Bound cl)) = (1 : IntInf.int)
-  | delta (NDvd (ac, C ck)) = (1 : IntInf.int)
-  | delta (Dvd (aa, Mul (bx, by))) = (1 : IntInf.int)
-  | delta (Dvd (aa, Sub (bv, bw))) = (1 : IntInf.int)
-  | delta (Dvd (aa, Add (bt, bu))) = (1 : IntInf.int)
-  | delta (Dvd (aa, Neg bs)) = (1 : IntInf.int)
-  | delta (Dvd (aa, Bound bp)) = (1 : IntInf.int)
-  | delta (Dvd (aa, C bo)) = (1 : IntInf.int)
-  | delta (NEq z) = (1 : IntInf.int)
-  | delta (Eq y) = (1 : IntInf.int)
-  | delta (Ge x) = (1 : IntInf.int)
-  | delta (Gt w) = (1 : IntInf.int)
-  | delta (Le v) = (1 : IntInf.int)
-  | delta (Lt u) = (1 : IntInf.int)
-  | delta F = (1 : IntInf.int)
-  | delta T = (1 : IntInf.int)
-  | delta (NDvd (y, Cx (c, e))) = y
-  | delta (Dvd (y, Cx (c, e))) = y
-  | delta (Or (p, q)) = ilcm (delta p) (delta q)
-  | delta (And (p, q)) = ilcm (delta p) (delta q);
-
-fun beta (NClosed aq) = []
-  | beta (Closed ap) = []
-  | beta (A ao) = []
-  | beta (E an) = []
-  | beta (Iffa (al, am)) = []
-  | beta (Impa (aj, ak)) = []
-  | beta (Nota ae) = []
-  | beta (NDvd (ac, ad)) = []
-  | beta (Dvd (aa, ab)) = []
-  | beta (NEq (Mul (gd, ge))) = []
-  | beta (NEq (Sub (gb, gc))) = []
-  | beta (NEq (Add (fz, ga))) = []
-  | beta (NEq (Neg fy)) = []
-  | beta (NEq (Bound fv)) = []
-  | beta (NEq (C fu)) = []
-  | beta (Eq (Mul (fh, fi))) = []
-  | beta (Eq (Sub (ff, fg))) = []
-  | beta (Eq (Add (fd, fe))) = []
-  | beta (Eq (Neg fc)) = []
-  | beta (Eq (Bound ez)) = []
-  | beta (Eq (C ey)) = []
-  | beta (Ge (Mul (el, em))) = []
-  | beta (Ge (Sub (ej, ek))) = []
-  | beta (Ge (Add (eh, ei))) = []
-  | beta (Ge (Neg eg)) = []
-  | beta (Ge (Bound ed)) = []
-  | beta (Ge (C ec)) = []
-  | beta (Gt (Mul (dp, dq))) = []
-  | beta (Gt (Sub (dn, doa))) = []
-  | beta (Gt (Add (dl, dm))) = []
-  | beta (Gt (Neg dk)) = []
-  | beta (Gt (Bound dh)) = []
-  | beta (Gt (C dg)) = []
-  | beta (Le (Mul (ct, cu))) = []
-  | beta (Le (Sub (cr, cs))) = []
-  | beta (Le (Add (cp, cq))) = []
-  | beta (Le (Neg co)) = []
-  | beta (Le (Bound cl)) = []
-  | beta (Le (C ck)) = []
-  | beta (Lt (Mul (bx, by))) = []
-  | beta (Lt (Sub (bv, bw))) = []
-  | beta (Lt (Add (bt, bu))) = []
-  | beta (Lt (Neg bs)) = []
-  | beta (Lt (Bound bp)) = []
-  | beta (Lt (C bo)) = []
-  | beta F = []
-  | beta T = []
-  | beta (Ge (Cx (c, e))) = [Sub (C (~1 : IntInf.int), e)]
-  | beta (Gt (Cx (c, e))) = [Neg e]
-  | beta (Le (Cx (c, e))) = []
-  | beta (Lt (Cx (c, e))) = []
-  | beta (NEq (Cx (c, e))) = [Neg e]
-  | beta (Eq (Cx (c, e))) = [Sub (C (~1 : IntInf.int), e)]
-  | beta (Or (p, q)) = append (beta p) (beta q)
-  | beta (And (p, q)) = append (beta p) (beta q);
-
-fun alpha (NClosed aq) = []
-  | alpha (Closed ap) = []
-  | alpha (A ao) = []
-  | alpha (E an) = []
-  | alpha (Iffa (al, am)) = []
-  | alpha (Impa (aj, ak)) = []
-  | alpha (Nota ae) = []
-  | alpha (NDvd (ac, ad)) = []
-  | alpha (Dvd (aa, ab)) = []
-  | alpha (NEq (Mul (gd, ge))) = []
-  | alpha (NEq (Sub (gb, gc))) = []
-  | alpha (NEq (Add (fz, ga))) = []
-  | alpha (NEq (Neg fy)) = []
-  | alpha (NEq (Bound fv)) = []
-  | alpha (NEq (C fu)) = []
-  | alpha (Eq (Mul (fh, fi))) = []
-  | alpha (Eq (Sub (ff, fg))) = []
-  | alpha (Eq (Add (fd, fe))) = []
-  | alpha (Eq (Neg fc)) = []
-  | alpha (Eq (Bound ez)) = []
-  | alpha (Eq (C ey)) = []
-  | alpha (Ge (Mul (el, em))) = []
-  | alpha (Ge (Sub (ej, ek))) = []
-  | alpha (Ge (Add (eh, ei))) = []
-  | alpha (Ge (Neg eg)) = []
-  | alpha (Ge (Bound ed)) = []
-  | alpha (Ge (C ec)) = []
-  | alpha (Gt (Mul (dp, dq))) = []
-  | alpha (Gt (Sub (dn, doa))) = []
-  | alpha (Gt (Add (dl, dm))) = []
-  | alpha (Gt (Neg dk)) = []
-  | alpha (Gt (Bound dh)) = []
-  | alpha (Gt (C dg)) = []
-  | alpha (Le (Mul (ct, cu))) = []
-  | alpha (Le (Sub (cr, cs))) = []
-  | alpha (Le (Add (cp, cq))) = []
-  | alpha (Le (Neg co)) = []
-  | alpha (Le (Bound cl)) = []
-  | alpha (Le (C ck)) = []
-  | alpha (Lt (Mul (bx, by))) = []
-  | alpha (Lt (Sub (bv, bw))) = []
-  | alpha (Lt (Add (bt, bu))) = []
-  | alpha (Lt (Neg bs)) = []
-  | alpha (Lt (Bound bp)) = []
-  | alpha (Lt (C bo)) = []
-  | alpha F = []
-  | alpha T = []
-  | alpha (Ge (Cx (c, e))) = []
-  | alpha (Gt (Cx (c, e))) = []
-  | alpha (Le (Cx (c, e))) = [Add (C (~1 : IntInf.int), e)]
-  | alpha (Lt (Cx (c, e))) = [e]
-  | alpha (NEq (Cx (c, e))) = [e]
-  | alpha (Eq (Cx (c, e))) = [Add (C (~1 : IntInf.int), e)]
-  | alpha (Or (p, q)) = append (alpha p) (alpha q)
-  | alpha (And (p, q)) = append (alpha p) (alpha q);
-
-fun numadd (Mul (ar, asa), Mul (aza, azb)) = Add (Mul (ar, asa), Mul (aza, azb))
-  | numadd (Mul (ar, asa), Sub (ayy, ayz)) = Add (Mul (ar, asa), Sub (ayy, ayz))
-  | numadd (Mul (ar, asa), Add (Mul (azw, Mul (bas, bat)), ayx)) =
-    Add (Mul (ar, asa), Add (Mul (azw, Mul (bas, bat)), ayx))
-  | numadd (Mul (ar, asa), Add (Mul (azw, Sub (baq, bar)), ayx)) =
-    Add (Mul (ar, asa), Add (Mul (azw, Sub (baq, bar)), ayx))
-  | numadd (Mul (ar, asa), Add (Mul (azw, Add (bao, bap)), ayx)) =
-    Add (Mul (ar, asa), Add (Mul (azw, Add (bao, bap)), ayx))
-  | numadd (Mul (ar, asa), Add (Mul (azw, Neg ban), ayx)) =
-    Add (Mul (ar, asa), Add (Mul (azw, Neg ban), ayx))
-  | numadd (Mul (ar, asa), Add (Mul (azw, Cx (bal, bam)), ayx)) =
-    Add (Mul (ar, asa), Add (Mul (azw, Cx (bal, bam)), ayx))
-  | numadd (Mul (ar, asa), Add (Mul (azw, C baj), ayx)) =
-    Add (Mul (ar, asa), Add (Mul (azw, C baj), ayx))
-  | numadd (Mul (ar, asa), Add (Sub (azu, azv), ayx)) =
-    Add (Mul (ar, asa), Add (Sub (azu, azv), ayx))
-  | numadd (Mul (ar, asa), Add (Add (azs, azt), ayx)) =
-    Add (Mul (ar, asa), Add (Add (azs, azt), ayx))
-  | numadd (Mul (ar, asa), Add (Neg azr, ayx)) =
-    Add (Mul (ar, asa), Add (Neg azr, ayx))
-  | numadd (Mul (ar, asa), Add (Cx (azp, azq), ayx)) =
-    Add (Mul (ar, asa), Add (Cx (azp, azq), ayx))
-  | numadd (Mul (ar, asa), Add (Bound azo, ayx)) =
-    Add (Mul (ar, asa), Add (Bound azo, ayx))
-  | numadd (Mul (ar, asa), Add (C azn, ayx)) =
-    Add (Mul (ar, asa), Add (C azn, ayx))
-  | numadd (Mul (ar, asa), Neg ayv) = Add (Mul (ar, asa), Neg ayv)
-  | numadd (Mul (ar, asa), Cx (ayt, ayu)) = Add (Mul (ar, asa), Cx (ayt, ayu))
-  | numadd (Mul (ar, asa), Bound ays) = Add (Mul (ar, asa), Bound ays)
-  | numadd (Mul (ar, asa), C ayr) = Add (Mul (ar, asa), C ayr)
-  | numadd (Sub (ap, aq), Mul (awm, awn)) = Add (Sub (ap, aq), Mul (awm, awn))
-  | numadd (Sub (ap, aq), Sub (awk, awl)) = Add (Sub (ap, aq), Sub (awk, awl))
-  | numadd (Sub (ap, aq), Add (Mul (axi, Mul (aye, ayf)), awj)) =
-    Add (Sub (ap, aq), Add (Mul (axi, Mul (aye, ayf)), awj))
-  | numadd (Sub (ap, aq), Add (Mul (axi, Sub (ayc, ayd)), awj)) =
-    Add (Sub (ap, aq), Add (Mul (axi, Sub (ayc, ayd)), awj))
-  | numadd (Sub (ap, aq), Add (Mul (axi, Add (aya, ayb)), awj)) =
-    Add (Sub (ap, aq), Add (Mul (axi, Add (aya, ayb)), awj))
-  | numadd (Sub (ap, aq), Add (Mul (axi, Neg axz), awj)) =
-    Add (Sub (ap, aq), Add (Mul (axi, Neg axz), awj))
-  | numadd (Sub (ap, aq), Add (Mul (axi, Cx (axx, axy)), awj)) =
-    Add (Sub (ap, aq), Add (Mul (axi, Cx (axx, axy)), awj))
-  | numadd (Sub (ap, aq), Add (Mul (axi, C axv), awj)) =
-    Add (Sub (ap, aq), Add (Mul (axi, C axv), awj))
-  | numadd (Sub (ap, aq), Add (Sub (axg, axh), awj)) =
-    Add (Sub (ap, aq), Add (Sub (axg, axh), awj))
-  | numadd (Sub (ap, aq), Add (Add (axe, axf), awj)) =
-    Add (Sub (ap, aq), Add (Add (axe, axf), awj))
-  | numadd (Sub (ap, aq), Add (Neg axd, awj)) =
-    Add (Sub (ap, aq), Add (Neg axd, awj))
-  | numadd (Sub (ap, aq), Add (Cx (axb, axc), awj)) =
-    Add (Sub (ap, aq), Add (Cx (axb, axc), awj))
-  | numadd (Sub (ap, aq), Add (Bound axa, awj)) =
-    Add (Sub (ap, aq), Add (Bound axa, awj))
-  | numadd (Sub (ap, aq), Add (C awz, awj)) =
-    Add (Sub (ap, aq), Add (C awz, awj))
-  | numadd (Sub (ap, aq), Neg awh) = Add (Sub (ap, aq), Neg awh)
-  | numadd (Sub (ap, aq), Cx (awf, awg)) = Add (Sub (ap, aq), Cx (awf, awg))
-  | numadd (Sub (ap, aq), Bound awe) = Add (Sub (ap, aq), Bound awe)
-  | numadd (Sub (ap, aq), C awd) = Add (Sub (ap, aq), C awd)
-  | numadd (Add (Mul (mc, Mul (acp, acq)), ao), Mul (aty, atz)) =
-    Add (Add (Mul (mc, Mul (acp, acq)), ao), Mul (aty, atz))
-  | numadd (Add (Mul (mc, Mul (acp, acq)), ao), Sub (atw, atx)) =
-    Add (Add (Mul (mc, Mul (acp, acq)), ao), Sub (atw, atx))
-  | numadd
-    (Add (Mul (mc, Mul (acp, acq)), ao), Add (Mul (auu, Mul (avq, avr)), atv)) =
-    Add (Add (Mul (mc, Mul (acp, acq)), ao),
-          Add (Mul (auu, Mul (avq, avr)), atv))
-  | numadd
-    (Add (Mul (mc, Mul (acp, acq)), ao), Add (Mul (auu, Sub (avo, avp)), atv)) =
-    Add (Add (Mul (mc, Mul (acp, acq)), ao),
-          Add (Mul (auu, Sub (avo, avp)), atv))
-  | numadd
-    (Add (Mul (mc, Mul (acp, acq)), ao), Add (Mul (auu, Add (avm, avn)), atv)) =
-    Add (Add (Mul (mc, Mul (acp, acq)), ao),
-          Add (Mul (auu, Add (avm, avn)), atv))
-  | numadd (Add (Mul (mc, Mul (acp, acq)), ao), Add (Mul (auu, Neg avl), atv)) =
-    Add (Add (Mul (mc, Mul (acp, acq)), ao), Add (Mul (auu, Neg avl), atv))
-  | numadd
-    (Add (Mul (mc, Mul (acp, acq)), ao), Add (Mul (auu, Cx (avj, avk)), atv)) =
-    Add (Add (Mul (mc, Mul (acp, acq)), ao),
-          Add (Mul (auu, Cx (avj, avk)), atv))
-  | numadd (Add (Mul (mc, Mul (acp, acq)), ao), Add (Mul (auu, C avh), atv)) =
-    Add (Add (Mul (mc, Mul (acp, acq)), ao), Add (Mul (auu, C avh), atv))
-  | numadd (Add (Mul (mc, Mul (acp, acq)), ao), Add (Sub (aus, aut), atv)) =
-    Add (Add (Mul (mc, Mul (acp, acq)), ao), Add (Sub (aus, aut), atv))
-  | numadd (Add (Mul (mc, Mul (acp, acq)), ao), Add (Add (auq, aur), atv)) =
-    Add (Add (Mul (mc, Mul (acp, acq)), ao), Add (Add (auq, aur), atv))
-  | numadd (Add (Mul (mc, Mul (acp, acq)), ao), Add (Neg aup, atv)) =
-    Add (Add (Mul (mc, Mul (acp, acq)), ao), Add (Neg aup, atv))
-  | numadd (Add (Mul (mc, Mul (acp, acq)), ao), Add (Cx (aun, auo), atv)) =
-    Add (Add (Mul (mc, Mul (acp, acq)), ao), Add (Cx (aun, auo), atv))
-  | numadd (Add (Mul (mc, Mul (acp, acq)), ao), Add (Bound aum, atv)) =
-    Add (Add (Mul (mc, Mul (acp, acq)), ao), Add (Bound aum, atv))
-  | numadd (Add (Mul (mc, Mul (acp, acq)), ao), Add (C aul, atv)) =
-    Add (Add (Mul (mc, Mul (acp, acq)), ao), Add (C aul, atv))
-  | numadd (Add (Mul (mc, Mul (acp, acq)), ao), Neg att) =
-    Add (Add (Mul (mc, Mul (acp, acq)), ao), Neg att)
-  | numadd (Add (Mul (mc, Mul (acp, acq)), ao), Cx (atr, ats)) =
-    Add (Add (Mul (mc, Mul (acp, acq)), ao), Cx (atr, ats))
-  | numadd (Add (Mul (mc, Mul (acp, acq)), ao), Bound atq) =
-    Add (Add (Mul (mc, Mul (acp, acq)), ao), Bound atq)
-  | numadd (Add (Mul (mc, Mul (acp, acq)), ao), C atp) =
-    Add (Add (Mul (mc, Mul (acp, acq)), ao), C atp)
-  | numadd (Add (Mul (mc, Sub (acn, aco)), ao), Mul (ark, arl)) =
-    Add (Add (Mul (mc, Sub (acn, aco)), ao), Mul (ark, arl))
-  | numadd (Add (Mul (mc, Sub (acn, aco)), ao), Sub (ari, arj)) =
-    Add (Add (Mul (mc, Sub (acn, aco)), ao), Sub (ari, arj))
-  | numadd
-    (Add (Mul (mc, Sub (acn, aco)), ao), Add (Mul (asg, Mul (atc, atd)), arh)) =
-    Add (Add (Mul (mc, Sub (acn, aco)), ao),
-          Add (Mul (asg, Mul (atc, atd)), arh))
-  | numadd
-    (Add (Mul (mc, Sub (acn, aco)), ao), Add (Mul (asg, Sub (ata, atb)), arh)) =
-    Add (Add (Mul (mc, Sub (acn, aco)), ao),
-          Add (Mul (asg, Sub (ata, atb)), arh))
-  | numadd
-    (Add (Mul (mc, Sub (acn, aco)), ao), Add (Mul (asg, Add (asy, asz)), arh)) =
-    Add (Add (Mul (mc, Sub (acn, aco)), ao),
-          Add (Mul (asg, Add (asy, asz)), arh))
-  | numadd (Add (Mul (mc, Sub (acn, aco)), ao), Add (Mul (asg, Neg asx), arh)) =
-    Add (Add (Mul (mc, Sub (acn, aco)), ao), Add (Mul (asg, Neg asx), arh))
-  | numadd
-    (Add (Mul (mc, Sub (acn, aco)), ao), Add (Mul (asg, Cx (asv, asw)), arh)) =
-    Add (Add (Mul (mc, Sub (acn, aco)), ao),
-          Add (Mul (asg, Cx (asv, asw)), arh))
-  | numadd (Add (Mul (mc, Sub (acn, aco)), ao), Add (Mul (asg, C ast), arh)) =
-    Add (Add (Mul (mc, Sub (acn, aco)), ao), Add (Mul (asg, C ast), arh))
-  | numadd (Add (Mul (mc, Sub (acn, aco)), ao), Add (Sub (ase, asf), arh)) =
-    Add (Add (Mul (mc, Sub (acn, aco)), ao), Add (Sub (ase, asf), arh))
-  | numadd (Add (Mul (mc, Sub (acn, aco)), ao), Add (Add (asc, asd), arh)) =
-    Add (Add (Mul (mc, Sub (acn, aco)), ao), Add (Add (asc, asd), arh))
-  | numadd (Add (Mul (mc, Sub (acn, aco)), ao), Add (Neg asb, arh)) =
-    Add (Add (Mul (mc, Sub (acn, aco)), ao), Add (Neg asb, arh))
-  | numadd (Add (Mul (mc, Sub (acn, aco)), ao), Add (Cx (arz, asa), arh)) =
-    Add (Add (Mul (mc, Sub (acn, aco)), ao), Add (Cx (arz, asa), arh))
-  | numadd (Add (Mul (mc, Sub (acn, aco)), ao), Add (Bound ary, arh)) =
-    Add (Add (Mul (mc, Sub (acn, aco)), ao), Add (Bound ary, arh))
-  | numadd (Add (Mul (mc, Sub (acn, aco)), ao), Add (C arx, arh)) =
-    Add (Add (Mul (mc, Sub (acn, aco)), ao), Add (C arx, arh))
-  | numadd (Add (Mul (mc, Sub (acn, aco)), ao), Neg arf) =
-    Add (Add (Mul (mc, Sub (acn, aco)), ao), Neg arf)
-  | numadd (Add (Mul (mc, Sub (acn, aco)), ao), Cx (ard, are)) =
-    Add (Add (Mul (mc, Sub (acn, aco)), ao), Cx (ard, are))
-  | numadd (Add (Mul (mc, Sub (acn, aco)), ao), Bound arc) =
-    Add (Add (Mul (mc, Sub (acn, aco)), ao), Bound arc)
-  | numadd (Add (Mul (mc, Sub (acn, aco)), ao), C arb) =
-    Add (Add (Mul (mc, Sub (acn, aco)), ao), C arb)
-  | numadd (Add (Mul (mc, Add (acl, acm)), ao), Mul (aow, aox)) =
-    Add (Add (Mul (mc, Add (acl, acm)), ao), Mul (aow, aox))
-  | numadd (Add (Mul (mc, Add (acl, acm)), ao), Sub (aou, aov)) =
-    Add (Add (Mul (mc, Add (acl, acm)), ao), Sub (aou, aov))
-  | numadd
-    (Add (Mul (mc, Add (acl, acm)), ao), Add (Mul (aps, Mul (aqo, aqp)), aot)) =
-    Add (Add (Mul (mc, Add (acl, acm)), ao),
-          Add (Mul (aps, Mul (aqo, aqp)), aot))
-  | numadd
-    (Add (Mul (mc, Add (acl, acm)), ao), Add (Mul (aps, Sub (aqm, aqn)), aot)) =
-    Add (Add (Mul (mc, Add (acl, acm)), ao),
-          Add (Mul (aps, Sub (aqm, aqn)), aot))
-  | numadd
-    (Add (Mul (mc, Add (acl, acm)), ao), Add (Mul (aps, Add (aqk, aql)), aot)) =
-    Add (Add (Mul (mc, Add (acl, acm)), ao),
-          Add (Mul (aps, Add (aqk, aql)), aot))
-  | numadd (Add (Mul (mc, Add (acl, acm)), ao), Add (Mul (aps, Neg aqj), aot)) =
-    Add (Add (Mul (mc, Add (acl, acm)), ao), Add (Mul (aps, Neg aqj), aot))
-  | numadd
-    (Add (Mul (mc, Add (acl, acm)), ao), Add (Mul (aps, Cx (aqh, aqi)), aot)) =
-    Add (Add (Mul (mc, Add (acl, acm)), ao),
-          Add (Mul (aps, Cx (aqh, aqi)), aot))
-  | numadd (Add (Mul (mc, Add (acl, acm)), ao), Add (Mul (aps, C aqf), aot)) =
-    Add (Add (Mul (mc, Add (acl, acm)), ao), Add (Mul (aps, C aqf), aot))
-  | numadd (Add (Mul (mc, Add (acl, acm)), ao), Add (Sub (apq, apr), aot)) =
-    Add (Add (Mul (mc, Add (acl, acm)), ao), Add (Sub (apq, apr), aot))
-  | numadd (Add (Mul (mc, Add (acl, acm)), ao), Add (Add (apo, app), aot)) =
-    Add (Add (Mul (mc, Add (acl, acm)), ao), Add (Add (apo, app), aot))
-  | numadd (Add (Mul (mc, Add (acl, acm)), ao), Add (Neg apn, aot)) =
-    Add (Add (Mul (mc, Add (acl, acm)), ao), Add (Neg apn, aot))
-  | numadd (Add (Mul (mc, Add (acl, acm)), ao), Add (Cx (apl, apm), aot)) =
-    Add (Add (Mul (mc, Add (acl, acm)), ao), Add (Cx (apl, apm), aot))
-  | numadd (Add (Mul (mc, Add (acl, acm)), ao), Add (Bound apk, aot)) =
-    Add (Add (Mul (mc, Add (acl, acm)), ao), Add (Bound apk, aot))
-  | numadd (Add (Mul (mc, Add (acl, acm)), ao), Add (C apj, aot)) =
-    Add (Add (Mul (mc, Add (acl, acm)), ao), Add (C apj, aot))
-  | numadd (Add (Mul (mc, Add (acl, acm)), ao), Neg aor) =
-    Add (Add (Mul (mc, Add (acl, acm)), ao), Neg aor)
-  | numadd (Add (Mul (mc, Add (acl, acm)), ao), Cx (aop, aoq)) =
-    Add (Add (Mul (mc, Add (acl, acm)), ao), Cx (aop, aoq))
-  | numadd (Add (Mul (mc, Add (acl, acm)), ao), Bound aoo) =
-    Add (Add (Mul (mc, Add (acl, acm)), ao), Bound aoo)
-  | numadd (Add (Mul (mc, Add (acl, acm)), ao), C aon) =
-    Add (Add (Mul (mc, Add (acl, acm)), ao), C aon)
-  | numadd (Add (Mul (mc, Neg ack), ao), Mul (ami, amj)) =
-    Add (Add (Mul (mc, Neg ack), ao), Mul (ami, amj))
-  | numadd (Add (Mul (mc, Neg ack), ao), Sub (amg, amh)) =
-    Add (Add (Mul (mc, Neg ack), ao), Sub (amg, amh))
-  | numadd (Add (Mul (mc, Neg ack), ao), Add (Mul (ane, Mul (aoa, aob)), amf)) =
-    Add (Add (Mul (mc, Neg ack), ao), Add (Mul (ane, Mul (aoa, aob)), amf))
-  | numadd (Add (Mul (mc, Neg ack), ao), Add (Mul (ane, Sub (any, anz)), amf)) =
-    Add (Add (Mul (mc, Neg ack), ao), Add (Mul (ane, Sub (any, anz)), amf))
-  | numadd (Add (Mul (mc, Neg ack), ao), Add (Mul (ane, Add (anw, anx)), amf)) =
-    Add (Add (Mul (mc, Neg ack), ao), Add (Mul (ane, Add (anw, anx)), amf))
-  | numadd (Add (Mul (mc, Neg ack), ao), Add (Mul (ane, Neg anv), amf)) =
-    Add (Add (Mul (mc, Neg ack), ao), Add (Mul (ane, Neg anv), amf))
-  | numadd (Add (Mul (mc, Neg ack), ao), Add (Mul (ane, Cx (ant, anu)), amf)) =
-    Add (Add (Mul (mc, Neg ack), ao), Add (Mul (ane, Cx (ant, anu)), amf))
-  | numadd (Add (Mul (mc, Neg ack), ao), Add (Mul (ane, C anr), amf)) =
-    Add (Add (Mul (mc, Neg ack), ao), Add (Mul (ane, C anr), amf))
-  | numadd (Add (Mul (mc, Neg ack), ao), Add (Sub (anc, anda), amf)) =
-    Add (Add (Mul (mc, Neg ack), ao), Add (Sub (anc, anda), amf))
-  | numadd (Add (Mul (mc, Neg ack), ao), Add (Add (ana, anb), amf)) =
-    Add (Add (Mul (mc, Neg ack), ao), Add (Add (ana, anb), amf))
-  | numadd (Add (Mul (mc, Neg ack), ao), Add (Neg amz, amf)) =
-    Add (Add (Mul (mc, Neg ack), ao), Add (Neg amz, amf))
-  | numadd (Add (Mul (mc, Neg ack), ao), Add (Cx (amx, amy), amf)) =
-    Add (Add (Mul (mc, Neg ack), ao), Add (Cx (amx, amy), amf))
-  | numadd (Add (Mul (mc, Neg ack), ao), Add (Bound amw, amf)) =
-    Add (Add (Mul (mc, Neg ack), ao), Add (Bound amw, amf))
-  | numadd (Add (Mul (mc, Neg ack), ao), Add (C amv, amf)) =
-    Add (Add (Mul (mc, Neg ack), ao), Add (C amv, amf))
-  | numadd (Add (Mul (mc, Neg ack), ao), Neg amd) =
-    Add (Add (Mul (mc, Neg ack), ao), Neg amd)
-  | numadd (Add (Mul (mc, Neg ack), ao), Cx (amb, amc)) =
-    Add (Add (Mul (mc, Neg ack), ao), Cx (amb, amc))
-  | numadd (Add (Mul (mc, Neg ack), ao), Bound ama) =
-    Add (Add (Mul (mc, Neg ack), ao), Bound ama)
-  | numadd (Add (Mul (mc, Neg ack), ao), C alz) =
-    Add (Add (Mul (mc, Neg ack), ao), C alz)
-  | numadd (Add (Mul (mc, Cx (aci, acj)), ao), Mul (aju, ajv)) =
-    Add (Add (Mul (mc, Cx (aci, acj)), ao), Mul (aju, ajv))
-  | numadd (Add (Mul (mc, Cx (aci, acj)), ao), Sub (ajs, ajt)) =
-    Add (Add (Mul (mc, Cx (aci, acj)), ao), Sub (ajs, ajt))
-  | numadd
-    (Add (Mul (mc, Cx (aci, acj)), ao), Add (Mul (akq, Mul (alm, aln)), ajr)) =
-    Add (Add (Mul (mc, Cx (aci, acj)), ao),
-          Add (Mul (akq, Mul (alm, aln)), ajr))
-  | numadd
-    (Add (Mul (mc, Cx (aci, acj)), ao), Add (Mul (akq, Sub (alk, all)), ajr)) =
-    Add (Add (Mul (mc, Cx (aci, acj)), ao),
-          Add (Mul (akq, Sub (alk, all)), ajr))
-  | numadd
-    (Add (Mul (mc, Cx (aci, acj)), ao), Add (Mul (akq, Add (ali, alj)), ajr)) =
-    Add (Add (Mul (mc, Cx (aci, acj)), ao),
-          Add (Mul (akq, Add (ali, alj)), ajr))
-  | numadd (Add (Mul (mc, Cx (aci, acj)), ao), Add (Mul (akq, Neg alh), ajr)) =
-    Add (Add (Mul (mc, Cx (aci, acj)), ao), Add (Mul (akq, Neg alh), ajr))
-  | numadd
-    (Add (Mul (mc, Cx (aci, acj)), ao), Add (Mul (akq, Cx (alf, alg)), ajr)) =
-    Add (Add (Mul (mc, Cx (aci, acj)), ao), Add (Mul (akq, Cx (alf, alg)), ajr))
-  | numadd (Add (Mul (mc, Cx (aci, acj)), ao), Add (Mul (akq, C ald), ajr)) =
-    Add (Add (Mul (mc, Cx (aci, acj)), ao), Add (Mul (akq, C ald), ajr))
-  | numadd (Add (Mul (mc, Cx (aci, acj)), ao), Add (Sub (ako, akp), ajr)) =
-    Add (Add (Mul (mc, Cx (aci, acj)), ao), Add (Sub (ako, akp), ajr))
-  | numadd (Add (Mul (mc, Cx (aci, acj)), ao), Add (Add (akm, akn), ajr)) =
-    Add (Add (Mul (mc, Cx (aci, acj)), ao), Add (Add (akm, akn), ajr))
-  | numadd (Add (Mul (mc, Cx (aci, acj)), ao), Add (Neg akl, ajr)) =
-    Add (Add (Mul (mc, Cx (aci, acj)), ao), Add (Neg akl, ajr))
-  | numadd (Add (Mul (mc, Cx (aci, acj)), ao), Add (Cx (akj, akk), ajr)) =
-    Add (Add (Mul (mc, Cx (aci, acj)), ao), Add (Cx (akj, akk), ajr))
-  | numadd (Add (Mul (mc, Cx (aci, acj)), ao), Add (Bound aki, ajr)) =
-    Add (Add (Mul (mc, Cx (aci, acj)), ao), Add (Bound aki, ajr))
-  | numadd (Add (Mul (mc, Cx (aci, acj)), ao), Add (C akh, ajr)) =
-    Add (Add (Mul (mc, Cx (aci, acj)), ao), Add (C akh, ajr))
-  | numadd (Add (Mul (mc, Cx (aci, acj)), ao), Neg ajp) =
-    Add (Add (Mul (mc, Cx (aci, acj)), ao), Neg ajp)
-  | numadd (Add (Mul (mc, Cx (aci, acj)), ao), Cx (ajn, ajo)) =
-    Add (Add (Mul (mc, Cx (aci, acj)), ao), Cx (ajn, ajo))
-  | numadd (Add (Mul (mc, Cx (aci, acj)), ao), Bound ajm) =
-    Add (Add (Mul (mc, Cx (aci, acj)), ao), Bound ajm)
-  | numadd (Add (Mul (mc, Cx (aci, acj)), ao), C ajl) =
-    Add (Add (Mul (mc, Cx (aci, acj)), ao), C ajl)
-  | numadd (Add (Mul (mc, C acg), ao), Mul (adl, adm)) =
-    Add (Add (Mul (mc, C acg), ao), Mul (adl, adm))
-  | numadd (Add (Mul (mc, C acg), ao), Sub (adj, adk)) =
-    Add (Add (Mul (mc, C acg), ao), Sub (adj, adk))
-  | numadd (Add (Mul (mc, C acg), ao), Add (Mul (aeh, Mul (afd, afe)), adi)) =
-    Add (Add (Mul (mc, C acg), ao), Add (Mul (aeh, Mul (afd, afe)), adi))
-  | numadd (Add (Mul (mc, C acg), ao), Add (Mul (aeh, Sub (afb, afc)), adi)) =
-    Add (Add (Mul (mc, C acg), ao), Add (Mul (aeh, Sub (afb, afc)), adi))
-  | numadd (Add (Mul (mc, C acg), ao), Add (Mul (aeh, Add (aez, afa)), adi)) =
-    Add (Add (Mul (mc, C acg), ao), Add (Mul (aeh, Add (aez, afa)), adi))
-  | numadd (Add (Mul (mc, C acg), ao), Add (Mul (aeh, Neg aey), adi)) =
-    Add (Add (Mul (mc, C acg), ao), Add (Mul (aeh, Neg aey), adi))
-  | numadd (Add (Mul (mc, C acg), ao), Add (Mul (aeh, Cx (aew, aex)), adi)) =
-    Add (Add (Mul (mc, C acg), ao), Add (Mul (aeh, Cx (aew, aex)), adi))
-  | numadd (Add (Mul (mc, C acg), ao), Add (Mul (aeh, C aeu), adi)) =
-    Add (Add (Mul (mc, C acg), ao), Add (Mul (aeh, C aeu), adi))
-  | numadd (Add (Mul (mc, C acg), ao), Add (Sub (aef, aeg), adi)) =
-    Add (Add (Mul (mc, C acg), ao), Add (Sub (aef, aeg), adi))
-  | numadd (Add (Mul (mc, C acg), ao), Add (Add (aed, aee), adi)) =
-    Add (Add (Mul (mc, C acg), ao), Add (Add (aed, aee), adi))
-  | numadd (Add (Mul (mc, C acg), ao), Add (Neg aec, adi)) =
-    Add (Add (Mul (mc, C acg), ao), Add (Neg aec, adi))
-  | numadd (Add (Mul (mc, C acg), ao), Add (Cx (aea, aeb), adi)) =
-    Add (Add (Mul (mc, C acg), ao), Add (Cx (aea, aeb), adi))
-  | numadd (Add (Mul (mc, C acg), ao), Add (Bound adz, adi)) =
-    Add (Add (Mul (mc, C acg), ao), Add (Bound adz, adi))
-  | numadd (Add (Mul (mc, C acg), ao), Add (C ady, adi)) =
-    Add (Add (Mul (mc, C acg), ao), Add (C ady, adi))
-  | numadd (Add (Mul (mc, C acg), ao), Neg adg) =
-    Add (Add (Mul (mc, C acg), ao), Neg adg)
-  | numadd (Add (Mul (mc, C acg), ao), Cx (ade, adf)) =
-    Add (Add (Mul (mc, C acg), ao), Cx (ade, adf))
-  | numadd (Add (Mul (mc, C acg), ao), Bound add) =
-    Add (Add (Mul (mc, C acg), ao), Bound add)
-  | numadd (Add (Mul (mc, C acg), ao), C adc) =
-    Add (Add (Mul (mc, C acg), ao), C adc)
-  | numadd (Add (Sub (ma, mb), ao), Mul (zq, zr)) =
-    Add (Add (Sub (ma, mb), ao), Mul (zq, zr))
-  | numadd (Add (Sub (ma, mb), ao), Sub (zo, zp)) =
-    Add (Add (Sub (ma, mb), ao), Sub (zo, zp))
-  | numadd (Add (Sub (ma, mb), ao), Add (Mul (aam, Mul (abi, abj)), zn)) =
-    Add (Add (Sub (ma, mb), ao), Add (Mul (aam, Mul (abi, abj)), zn))
-  | numadd (Add (Sub (ma, mb), ao), Add (Mul (aam, Sub (abg, abh)), zn)) =
-    Add (Add (Sub (ma, mb), ao), Add (Mul (aam, Sub (abg, abh)), zn))
-  | numadd (Add (Sub (ma, mb), ao), Add (Mul (aam, Add (abe, abf)), zn)) =
-    Add (Add (Sub (ma, mb), ao), Add (Mul (aam, Add (abe, abf)), zn))
-  | numadd (Add (Sub (ma, mb), ao), Add (Mul (aam, Neg abd), zn)) =
-    Add (Add (Sub (ma, mb), ao), Add (Mul (aam, Neg abd), zn))
-  | numadd (Add (Sub (ma, mb), ao), Add (Mul (aam, Cx (abb, abc)), zn)) =
-    Add (Add (Sub (ma, mb), ao), Add (Mul (aam, Cx (abb, abc)), zn))
-  | numadd (Add (Sub (ma, mb), ao), Add (Mul (aam, C aaz), zn)) =
-    Add (Add (Sub (ma, mb), ao), Add (Mul (aam, C aaz), zn))
-  | numadd (Add (Sub (ma, mb), ao), Add (Sub (aak, aal), zn)) =
-    Add (Add (Sub (ma, mb), ao), Add (Sub (aak, aal), zn))
-  | numadd (Add (Sub (ma, mb), ao), Add (Add (aai, aaj), zn)) =
-    Add (Add (Sub (ma, mb), ao), Add (Add (aai, aaj), zn))
-  | numadd (Add (Sub (ma, mb), ao), Add (Neg aah, zn)) =
-    Add (Add (Sub (ma, mb), ao), Add (Neg aah, zn))
-  | numadd (Add (Sub (ma, mb), ao), Add (Cx (aaf, aag), zn)) =
-    Add (Add (Sub (ma, mb), ao), Add (Cx (aaf, aag), zn))
-  | numadd (Add (Sub (ma, mb), ao), Add (Bound aae, zn)) =
-    Add (Add (Sub (ma, mb), ao), Add (Bound aae, zn))
-  | numadd (Add (Sub (ma, mb), ao), Add (C aad, zn)) =
-    Add (Add (Sub (ma, mb), ao), Add (C aad, zn))
-  | numadd (Add (Sub (ma, mb), ao), Neg zl) =
-    Add (Add (Sub (ma, mb), ao), Neg zl)
-  | numadd (Add (Sub (ma, mb), ao), Cx (zj, zk)) =
-    Add (Add (Sub (ma, mb), ao), Cx (zj, zk))
-  | numadd (Add (Sub (ma, mb), ao), Bound zi) =
-    Add (Add (Sub (ma, mb), ao), Bound zi)
-  | numadd (Add (Sub (ma, mb), ao), C zh) = Add (Add (Sub (ma, mb), ao), C zh)
-  | numadd (Add (Add (ly, lz), ao), Mul (xc, xd)) =
-    Add (Add (Add (ly, lz), ao), Mul (xc, xd))
-  | numadd (Add (Add (ly, lz), ao), Sub (xa, xb)) =
-    Add (Add (Add (ly, lz), ao), Sub (xa, xb))
-  | numadd (Add (Add (ly, lz), ao), Add (Mul (xy, Mul (yu, yv)), wz)) =
-    Add (Add (Add (ly, lz), ao), Add (Mul (xy, Mul (yu, yv)), wz))
-  | numadd (Add (Add (ly, lz), ao), Add (Mul (xy, Sub (ys, yt)), wz)) =
-    Add (Add (Add (ly, lz), ao), Add (Mul (xy, Sub (ys, yt)), wz))
-  | numadd (Add (Add (ly, lz), ao), Add (Mul (xy, Add (yq, yr)), wz)) =
-    Add (Add (Add (ly, lz), ao), Add (Mul (xy, Add (yq, yr)), wz))
-  | numadd (Add (Add (ly, lz), ao), Add (Mul (xy, Neg yp), wz)) =
-    Add (Add (Add (ly, lz), ao), Add (Mul (xy, Neg yp), wz))
-  | numadd (Add (Add (ly, lz), ao), Add (Mul (xy, Cx (yn, yo)), wz)) =
-    Add (Add (Add (ly, lz), ao), Add (Mul (xy, Cx (yn, yo)), wz))
-  | numadd (Add (Add (ly, lz), ao), Add (Mul (xy, C yl), wz)) =
-    Add (Add (Add (ly, lz), ao), Add (Mul (xy, C yl), wz))
-  | numadd (Add (Add (ly, lz), ao), Add (Sub (xw, xx), wz)) =
-    Add (Add (Add (ly, lz), ao), Add (Sub (xw, xx), wz))
-  | numadd (Add (Add (ly, lz), ao), Add (Add (xu, xv), wz)) =
-    Add (Add (Add (ly, lz), ao), Add (Add (xu, xv), wz))
-  | numadd (Add (Add (ly, lz), ao), Add (Neg xt, wz)) =
-    Add (Add (Add (ly, lz), ao), Add (Neg xt, wz))
-  | numadd (Add (Add (ly, lz), ao), Add (Cx (xr, xs), wz)) =
-    Add (Add (Add (ly, lz), ao), Add (Cx (xr, xs), wz))
-  | numadd (Add (Add (ly, lz), ao), Add (Bound xq, wz)) =
-    Add (Add (Add (ly, lz), ao), Add (Bound xq, wz))
-  | numadd (Add (Add (ly, lz), ao), Add (C xp, wz)) =
-    Add (Add (Add (ly, lz), ao), Add (C xp, wz))
-  | numadd (Add (Add (ly, lz), ao), Neg wx) =
-    Add (Add (Add (ly, lz), ao), Neg wx)
-  | numadd (Add (Add (ly, lz), ao), Cx (wv, ww)) =
-    Add (Add (Add (ly, lz), ao), Cx (wv, ww))
-  | numadd (Add (Add (ly, lz), ao), Bound wu) =
-    Add (Add (Add (ly, lz), ao), Bound wu)
-  | numadd (Add (Add (ly, lz), ao), C wt) = Add (Add (Add (ly, lz), ao), C wt)
-  | numadd (Add (Neg lx, ao), Mul (uo, up)) =
-    Add (Add (Neg lx, ao), Mul (uo, up))
-  | numadd (Add (Neg lx, ao), Sub (um, un)) =
-    Add (Add (Neg lx, ao), Sub (um, un))
-  | numadd (Add (Neg lx, ao), Add (Mul (vk, Mul (wg, wh)), ul)) =
-    Add (Add (Neg lx, ao), Add (Mul (vk, Mul (wg, wh)), ul))
-  | numadd (Add (Neg lx, ao), Add (Mul (vk, Sub (we, wf)), ul)) =
-    Add (Add (Neg lx, ao), Add (Mul (vk, Sub (we, wf)), ul))
-  | numadd (Add (Neg lx, ao), Add (Mul (vk, Add (wc, wd)), ul)) =
-    Add (Add (Neg lx, ao), Add (Mul (vk, Add (wc, wd)), ul))
-  | numadd (Add (Neg lx, ao), Add (Mul (vk, Neg wb), ul)) =
-    Add (Add (Neg lx, ao), Add (Mul (vk, Neg wb), ul))
-  | numadd (Add (Neg lx, ao), Add (Mul (vk, Cx (vz, wa)), ul)) =
-    Add (Add (Neg lx, ao), Add (Mul (vk, Cx (vz, wa)), ul))
-  | numadd (Add (Neg lx, ao), Add (Mul (vk, C vx), ul)) =
-    Add (Add (Neg lx, ao), Add (Mul (vk, C vx), ul))
-  | numadd (Add (Neg lx, ao), Add (Sub (vi, vj), ul)) =
-    Add (Add (Neg lx, ao), Add (Sub (vi, vj), ul))
-  | numadd (Add (Neg lx, ao), Add (Add (vg, vh), ul)) =
-    Add (Add (Neg lx, ao), Add (Add (vg, vh), ul))
-  | numadd (Add (Neg lx, ao), Add (Neg vf, ul)) =
-    Add (Add (Neg lx, ao), Add (Neg vf, ul))
-  | numadd (Add (Neg lx, ao), Add (Cx (vd, ve), ul)) =
-    Add (Add (Neg lx, ao), Add (Cx (vd, ve), ul))
-  | numadd (Add (Neg lx, ao), Add (Bound vc, ul)) =
-    Add (Add (Neg lx, ao), Add (Bound vc, ul))
-  | numadd (Add (Neg lx, ao), Add (C vb, ul)) =
-    Add (Add (Neg lx, ao), Add (C vb, ul))
-  | numadd (Add (Neg lx, ao), Neg uj) = Add (Add (Neg lx, ao), Neg uj)
-  | numadd (Add (Neg lx, ao), Cx (uh, ui)) = Add (Add (Neg lx, ao), Cx (uh, ui))
-  | numadd (Add (Neg lx, ao), Bound ug) = Add (Add (Neg lx, ao), Bound ug)
-  | numadd (Add (Neg lx, ao), C uf) = Add (Add (Neg lx, ao), C uf)
-  | numadd (Add (Cx (lv, lw), ao), Mul (sa, sb)) =
-    Add (Add (Cx (lv, lw), ao), Mul (sa, sb))
-  | numadd (Add (Cx (lv, lw), ao), Sub (ry, rz)) =
-    Add (Add (Cx (lv, lw), ao), Sub (ry, rz))
-  | numadd (Add (Cx (lv, lw), ao), Add (Mul (sw, Mul (ts, tt)), rx)) =
-    Add (Add (Cx (lv, lw), ao), Add (Mul (sw, Mul (ts, tt)), rx))
-  | numadd (Add (Cx (lv, lw), ao), Add (Mul (sw, Sub (tq, tr)), rx)) =
-    Add (Add (Cx (lv, lw), ao), Add (Mul (sw, Sub (tq, tr)), rx))
-  | numadd (Add (Cx (lv, lw), ao), Add (Mul (sw, Add (to, tp)), rx)) =
-    Add (Add (Cx (lv, lw), ao), Add (Mul (sw, Add (to, tp)), rx))
-  | numadd (Add (Cx (lv, lw), ao), Add (Mul (sw, Neg tn), rx)) =
-    Add (Add (Cx (lv, lw), ao), Add (Mul (sw, Neg tn), rx))
-  | numadd (Add (Cx (lv, lw), ao), Add (Mul (sw, Cx (tl, tm)), rx)) =
-    Add (Add (Cx (lv, lw), ao), Add (Mul (sw, Cx (tl, tm)), rx))
-  | numadd (Add (Cx (lv, lw), ao), Add (Mul (sw, C tj), rx)) =
-    Add (Add (Cx (lv, lw), ao), Add (Mul (sw, C tj), rx))
-  | numadd (Add (Cx (lv, lw), ao), Add (Sub (su, sv), rx)) =
-    Add (Add (Cx (lv, lw), ao), Add (Sub (su, sv), rx))
-  | numadd (Add (Cx (lv, lw), ao), Add (Add (ss, st), rx)) =
-    Add (Add (Cx (lv, lw), ao), Add (Add (ss, st), rx))
-  | numadd (Add (Cx (lv, lw), ao), Add (Neg sr, rx)) =
-    Add (Add (Cx (lv, lw), ao), Add (Neg sr, rx))
-  | numadd (Add (Cx (lv, lw), ao), Add (Cx (sp, sq), rx)) =
-    Add (Add (Cx (lv, lw), ao), Add (Cx (sp, sq), rx))
-  | numadd (Add (Cx (lv, lw), ao), Add (Bound so, rx)) =
-    Add (Add (Cx (lv, lw), ao), Add (Bound so, rx))
-  | numadd (Add (Cx (lv, lw), ao), Add (C sn, rx)) =
-    Add (Add (Cx (lv, lw), ao), Add (C sn, rx))
-  | numadd (Add (Cx (lv, lw), ao), Neg rv) = Add (Add (Cx (lv, lw), ao), Neg rv)
-  | numadd (Add (Cx (lv, lw), ao), Cx (rt, ru)) =
-    Add (Add (Cx (lv, lw), ao), Cx (rt, ru))
-  | numadd (Add (Cx (lv, lw), ao), Bound rs) =
-    Add (Add (Cx (lv, lw), ao), Bound rs)
-  | numadd (Add (Cx (lv, lw), ao), C rr) = Add (Add (Cx (lv, lw), ao), C rr)
-  | numadd (Add (Bound lu, ao), Mul (pm, pn)) =
-    Add (Add (Bound lu, ao), Mul (pm, pn))
-  | numadd (Add (Bound lu, ao), Sub (pk, pl)) =
-    Add (Add (Bound lu, ao), Sub (pk, pl))
-  | numadd (Add (Bound lu, ao), Add (Mul (qi, Mul (re, rf)), pj)) =
-    Add (Add (Bound lu, ao), Add (Mul (qi, Mul (re, rf)), pj))
-  | numadd (Add (Bound lu, ao), Add (Mul (qi, Sub (rc, rd)), pj)) =
-    Add (Add (Bound lu, ao), Add (Mul (qi, Sub (rc, rd)), pj))
-  | numadd (Add (Bound lu, ao), Add (Mul (qi, Add (ra, rb)), pj)) =
-    Add (Add (Bound lu, ao), Add (Mul (qi, Add (ra, rb)), pj))
-  | numadd (Add (Bound lu, ao), Add (Mul (qi, Neg qz), pj)) =
-    Add (Add (Bound lu, ao), Add (Mul (qi, Neg qz), pj))
-  | numadd (Add (Bound lu, ao), Add (Mul (qi, Cx (qx, qy)), pj)) =
-    Add (Add (Bound lu, ao), Add (Mul (qi, Cx (qx, qy)), pj))
-  | numadd (Add (Bound lu, ao), Add (Mul (qi, C qv), pj)) =
-    Add (Add (Bound lu, ao), Add (Mul (qi, C qv), pj))
-  | numadd (Add (Bound lu, ao), Add (Sub (qg, qh), pj)) =
-    Add (Add (Bound lu, ao), Add (Sub (qg, qh), pj))
-  | numadd (Add (Bound lu, ao), Add (Add (qe, qf), pj)) =
-    Add (Add (Bound lu, ao), Add (Add (qe, qf), pj))
-  | numadd (Add (Bound lu, ao), Add (Neg qd, pj)) =
-    Add (Add (Bound lu, ao), Add (Neg qd, pj))
-  | numadd (Add (Bound lu, ao), Add (Cx (qb, qc), pj)) =
-    Add (Add (Bound lu, ao), Add (Cx (qb, qc), pj))
-  | numadd (Add (Bound lu, ao), Add (Bound qa, pj)) =
-    Add (Add (Bound lu, ao), Add (Bound qa, pj))
-  | numadd (Add (Bound lu, ao), Add (C pz, pj)) =
-    Add (Add (Bound lu, ao), Add (C pz, pj))
-  | numadd (Add (Bound lu, ao), Neg ph) = Add (Add (Bound lu, ao), Neg ph)
-  | numadd (Add (Bound lu, ao), Cx (pf, pg)) =
-    Add (Add (Bound lu, ao), Cx (pf, pg))
-  | numadd (Add (Bound lu, ao), Bound pe) = Add (Add (Bound lu, ao), Bound pe)
-  | numadd (Add (Bound lu, ao), C pd) = Add (Add (Bound lu, ao), C pd)
-  | numadd (Add (C lt, ao), Mul (my, mz)) = Add (Add (C lt, ao), Mul (my, mz))
-  | numadd (Add (C lt, ao), Sub (mw, mx)) = Add (Add (C lt, ao), Sub (mw, mx))
-  | numadd (Add (C lt, ao), Add (Mul (nu, Mul (oq, or)), mv)) =
-    Add (Add (C lt, ao), Add (Mul (nu, Mul (oq, or)), mv))
-  | numadd (Add (C lt, ao), Add (Mul (nu, Sub (ooa, opa)), mv)) =
-    Add (Add (C lt, ao), Add (Mul (nu, Sub (ooa, opa)), mv))
-  | numadd (Add (C lt, ao), Add (Mul (nu, Add (om, on)), mv)) =
-    Add (Add (C lt, ao), Add (Mul (nu, Add (om, on)), mv))
-  | numadd (Add (C lt, ao), Add (Mul (nu, Neg ol), mv)) =
-    Add (Add (C lt, ao), Add (Mul (nu, Neg ol), mv))
-  | numadd (Add (C lt, ao), Add (Mul (nu, Cx (oj, ok)), mv)) =
-    Add (Add (C lt, ao), Add (Mul (nu, Cx (oj, ok)), mv))
-  | numadd (Add (C lt, ao), Add (Mul (nu, C oh), mv)) =
-    Add (Add (C lt, ao), Add (Mul (nu, C oh), mv))
-  | numadd (Add (C lt, ao), Add (Sub (ns, nt), mv)) =
-    Add (Add (C lt, ao), Add (Sub (ns, nt), mv))
-  | numadd (Add (C lt, ao), Add (Add (nq, nr), mv)) =
-    Add (Add (C lt, ao), Add (Add (nq, nr), mv))
-  | numadd (Add (C lt, ao), Add (Neg np, mv)) =
-    Add (Add (C lt, ao), Add (Neg np, mv))
-  | numadd (Add (C lt, ao), Add (Cx (nn, no), mv)) =
-    Add (Add (C lt, ao), Add (Cx (nn, no), mv))
-  | numadd (Add (C lt, ao), Add (Bound nm, mv)) =
-    Add (Add (C lt, ao), Add (Bound nm, mv))
-  | numadd (Add (C lt, ao), Add (C nl, mv)) =
-    Add (Add (C lt, ao), Add (C nl, mv))
-  | numadd (Add (C lt, ao), Neg mt) = Add (Add (C lt, ao), Neg mt)
-  | numadd (Add (C lt, ao), Cx (mr, ms)) = Add (Add (C lt, ao), Cx (mr, ms))
-  | numadd (Add (C lt, ao), Bound mq) = Add (Add (C lt, ao), Bound mq)
-  | numadd (Add (C lt, ao), C mp) = Add (Add (C lt, ao), C mp)
-  | numadd (Neg am, Mul (jd, je)) = Add (Neg am, Mul (jd, je))
-  | numadd (Neg am, Sub (jb, jc)) = Add (Neg am, Sub (jb, jc))
-  | numadd (Neg am, Add (Mul (jz, Mul (kv, kw)), ja)) =
-    Add (Neg am, Add (Mul (jz, Mul (kv, kw)), ja))
-  | numadd (Neg am, Add (Mul (jz, Sub (kt, ku)), ja)) =
-    Add (Neg am, Add (Mul (jz, Sub (kt, ku)), ja))
-  | numadd (Neg am, Add (Mul (jz, Add (kr, ks)), ja)) =
-    Add (Neg am, Add (Mul (jz, Add (kr, ks)), ja))
-  | numadd (Neg am, Add (Mul (jz, Neg kq), ja)) =
-    Add (Neg am, Add (Mul (jz, Neg kq), ja))
-  | numadd (Neg am, Add (Mul (jz, Cx (ko, kp)), ja)) =
-    Add (Neg am, Add (Mul (jz, Cx (ko, kp)), ja))
-  | numadd (Neg am, Add (Mul (jz, C km), ja)) =
-    Add (Neg am, Add (Mul (jz, C km), ja))
-  | numadd (Neg am, Add (Sub (jx, jy), ja)) =
-    Add (Neg am, Add (Sub (jx, jy), ja))
-  | numadd (Neg am, Add (Add (jv, jw), ja)) =
-    Add (Neg am, Add (Add (jv, jw), ja))
-  | numadd (Neg am, Add (Neg ju, ja)) = Add (Neg am, Add (Neg ju, ja))
-  | numadd (Neg am, Add (Cx (js, jt), ja)) = Add (Neg am, Add (Cx (js, jt), ja))
-  | numadd (Neg am, Add (Bound jr, ja)) = Add (Neg am, Add (Bound jr, ja))
-  | numadd (Neg am, Add (C jq, ja)) = Add (Neg am, Add (C jq, ja))
-  | numadd (Neg am, Neg iy) = Add (Neg am, Neg iy)
-  | numadd (Neg am, Cx (iw, ix)) = Add (Neg am, Cx (iw, ix))
-  | numadd (Neg am, Bound iv) = Add (Neg am, Bound iv)
-  | numadd (Neg am, C iu) = Add (Neg am, C iu)
-  | numadd (Cx (ak, al), Mul (gp, gq)) = Add (Cx (ak, al), Mul (gp, gq))
-  | numadd (Cx (ak, al), Sub (gn, go)) = Add (Cx (ak, al), Sub (gn, go))
-  | numadd (Cx (ak, al), Add (Mul (hl, Mul (ih, ii)), gm)) =
-    Add (Cx (ak, al), Add (Mul (hl, Mul (ih, ii)), gm))
-  | numadd (Cx (ak, al), Add (Mul (hl, Sub (ifa, ig)), gm)) =
-    Add (Cx (ak, al), Add (Mul (hl, Sub (ifa, ig)), gm))
-  | numadd (Cx (ak, al), Add (Mul (hl, Add (id, ie)), gm)) =
-    Add (Cx (ak, al), Add (Mul (hl, Add (id, ie)), gm))
-  | numadd (Cx (ak, al), Add (Mul (hl, Neg ic), gm)) =
-    Add (Cx (ak, al), Add (Mul (hl, Neg ic), gm))
-  | numadd (Cx (ak, al), Add (Mul (hl, Cx (ia, ib)), gm)) =
-    Add (Cx (ak, al), Add (Mul (hl, Cx (ia, ib)), gm))
-  | numadd (Cx (ak, al), Add (Mul (hl, C hy), gm)) =
-    Add (Cx (ak, al), Add (Mul (hl, C hy), gm))
-  | numadd (Cx (ak, al), Add (Sub (hj, hk), gm)) =
-    Add (Cx (ak, al), Add (Sub (hj, hk), gm))
-  | numadd (Cx (ak, al), Add (Add (hh, hi), gm)) =
-    Add (Cx (ak, al), Add (Add (hh, hi), gm))
-  | numadd (Cx (ak, al), Add (Neg hg, gm)) = Add (Cx (ak, al), Add (Neg hg, gm))
-  | numadd (Cx (ak, al), Add (Cx (he, hf), gm)) =
-    Add (Cx (ak, al), Add (Cx (he, hf), gm))
-  | numadd (Cx (ak, al), Add (Bound hd, gm)) =
-    Add (Cx (ak, al), Add (Bound hd, gm))
-  | numadd (Cx (ak, al), Add (C hc, gm)) = Add (Cx (ak, al), Add (C hc, gm))
-  | numadd (Cx (ak, al), Neg gk) = Add (Cx (ak, al), Neg gk)
-  | numadd (Cx (ak, al), Cx (gi, gj)) = Add (Cx (ak, al), Cx (gi, gj))
-  | numadd (Cx (ak, al), Bound gh) = Add (Cx (ak, al), Bound gh)
-  | numadd (Cx (ak, al), C gg) = Add (Cx (ak, al), C gg)
-  | numadd (Bound aj, Mul (eb, ec)) = Add (Bound aj, Mul (eb, ec))
-  | numadd (Bound aj, Sub (dz, ea)) = Add (Bound aj, Sub (dz, ea))
-  | numadd (Bound aj, Add (Mul (ex, Mul (ft, fu)), dy)) =
-    Add (Bound aj, Add (Mul (ex, Mul (ft, fu)), dy))
-  | numadd (Bound aj, Add (Mul (ex, Sub (fr, fs)), dy)) =
-    Add (Bound aj, Add (Mul (ex, Sub (fr, fs)), dy))
-  | numadd (Bound aj, Add (Mul (ex, Add (fp, fq)), dy)) =
-    Add (Bound aj, Add (Mul (ex, Add (fp, fq)), dy))
-  | numadd (Bound aj, Add (Mul (ex, Neg fo), dy)) =
-    Add (Bound aj, Add (Mul (ex, Neg fo), dy))
-  | numadd (Bound aj, Add (Mul (ex, Cx (fm, fna)), dy)) =
-    Add (Bound aj, Add (Mul (ex, Cx (fm, fna)), dy))
-  | numadd (Bound aj, Add (Mul (ex, C fk), dy)) =
-    Add (Bound aj, Add (Mul (ex, C fk), dy))
-  | numadd (Bound aj, Add (Sub (ev, ew), dy)) =
-    Add (Bound aj, Add (Sub (ev, ew), dy))
-  | numadd (Bound aj, Add (Add (et, eu), dy)) =
-    Add (Bound aj, Add (Add (et, eu), dy))
-  | numadd (Bound aj, Add (Neg es, dy)) = Add (Bound aj, Add (Neg es, dy))
-  | numadd (Bound aj, Add (Cx (eq, er), dy)) =
-    Add (Bound aj, Add (Cx (eq, er), dy))
-  | numadd (Bound aj, Add (Bound ep, dy)) = Add (Bound aj, Add (Bound ep, dy))
-  | numadd (Bound aj, Add (C eo, dy)) = Add (Bound aj, Add (C eo, dy))
-  | numadd (Bound aj, Neg dw) = Add (Bound aj, Neg dw)
-  | numadd (Bound aj, Cx (du, dv)) = Add (Bound aj, Cx (du, dv))
-  | numadd (Bound aj, Bound dt) = Add (Bound aj, Bound dt)
-  | numadd (Bound aj, C ds) = Add (Bound aj, C ds)
-  | numadd (C ai, Mul (bn, bo)) = Add (C ai, Mul (bn, bo))
-  | numadd (C ai, Sub (bl, bm)) = Add (C ai, Sub (bl, bm))
-  | numadd (C ai, Add (Mul (cj, Mul (df, dg)), bk)) =
-    Add (C ai, Add (Mul (cj, Mul (df, dg)), bk))
-  | numadd (C ai, Add (Mul (cj, Sub (dd, de)), bk)) =
-    Add (C ai, Add (Mul (cj, Sub (dd, de)), bk))
-  | numadd (C ai, Add (Mul (cj, Add (db, dc)), bk)) =
-    Add (C ai, Add (Mul (cj, Add (db, dc)), bk))
-  | numadd (C ai, Add (Mul (cj, Neg da), bk)) =
-    Add (C ai, Add (Mul (cj, Neg da), bk))
-  | numadd (C ai, Add (Mul (cj, Cx (cy, cz)), bk)) =
-    Add (C ai, Add (Mul (cj, Cx (cy, cz)), bk))
-  | numadd (C ai, Add (Mul (cj, C cw), bk)) =
-    Add (C ai, Add (Mul (cj, C cw), bk))
-  | numadd (C ai, Add (Sub (ch, ci), bk)) = Add (C ai, Add (Sub (ch, ci), bk))
-  | numadd (C ai, Add (Add (cf, cg), bk)) = Add (C ai, Add (Add (cf, cg), bk))
-  | numadd (C ai, Add (Neg ce, bk)) = Add (C ai, Add (Neg ce, bk))
-  | numadd (C ai, Add (Cx (cc, cd), bk)) = Add (C ai, Add (Cx (cc, cd), bk))
-  | numadd (C ai, Add (Bound cb, bk)) = Add (C ai, Add (Bound cb, bk))
-  | numadd (C ai, Add (C ca, bk)) = Add (C ai, Add (C ca, bk))
-  | numadd (C ai, Neg bi) = Add (C ai, Neg bi)
-  | numadd (C ai, Cx (bg, bh)) = Add (C ai, Cx (bg, bh))
-  | numadd (C ai, Bound bf) = Add (C ai, Bound bf)
-  | numadd (C b1, C b2) = C (IntInf.+ (b1, b2))
-  | numadd (Mul (ag, ah), Add (Mul (c2, Bound n2), r2)) =
-    Add (Mul (c2, Bound n2), numadd (Mul (ag, ah), r2))
-  | numadd (Sub (ae, af), Add (Mul (c2, Bound n2), r2)) =
-    Add (Mul (c2, Bound n2), numadd (Sub (ae, af), r2))
-  | numadd (Add (Mul (lr, Mul (ace, acf)), ad), Add (Mul (c2, Bound n2), r2)) =
-    Add (Mul (c2, Bound n2), numadd (Add (Mul (lr, Mul (ace, acf)), ad), r2))
-  | numadd (Add (Mul (lr, Sub (acc, acd)), ad), Add (Mul (c2, Bound n2), r2)) =
-    Add (Mul (c2, Bound n2), numadd (Add (Mul (lr, Sub (acc, acd)), ad), r2))
-  | numadd (Add (Mul (lr, Add (aca, acb)), ad), Add (Mul (c2, Bound n2), r2)) =
-    Add (Mul (c2, Bound n2), numadd (Add (Mul (lr, Add (aca, acb)), ad), r2))
-  | numadd (Add (Mul (lr, Neg abz), ad), Add (Mul (c2, Bound n2), r2)) =
-    Add (Mul (c2, Bound n2), numadd (Add (Mul (lr, Neg abz), ad), r2))
-  | numadd (Add (Mul (lr, Cx (abx, aby)), ad), Add (Mul (c2, Bound n2), r2)) =
-    Add (Mul (c2, Bound n2), numadd (Add (Mul (lr, Cx (abx, aby)), ad), r2))
-  | numadd (Add (Mul (lr, C abv), ad), Add (Mul (c2, Bound n2), r2)) =
-    Add (Mul (c2, Bound n2), numadd (Add (Mul (lr, C abv), ad), r2))
-  | numadd (Add (Sub (lp, lq), ad), Add (Mul (c2, Bound n2), r2)) =
-    Add (Mul (c2, Bound n2), numadd (Add (Sub (lp, lq), ad), r2))
-  | numadd (Add (Add (ln, lo), ad), Add (Mul (c2, Bound n2), r2)) =
-    Add (Mul (c2, Bound n2), numadd (Add (Add (ln, lo), ad), r2))
-  | numadd (Add (Neg lm, ad), Add (Mul (c2, Bound n2), r2)) =
-    Add (Mul (c2, Bound n2), numadd (Add (Neg lm, ad), r2))
-  | numadd (Add (Cx (lk, ll), ad), Add (Mul (c2, Bound n2), r2)) =
-    Add (Mul (c2, Bound n2), numadd (Add (Cx (lk, ll), ad), r2))
-  | numadd (Add (Bound lj, ad), Add (Mul (c2, Bound n2), r2)) =
-    Add (Mul (c2, Bound n2), numadd (Add (Bound lj, ad), r2))
-  | numadd (Add (C li, ad), Add (Mul (c2, Bound n2), r2)) =
-    Add (Mul (c2, Bound n2), numadd (Add (C li, ad), r2))
-  | numadd (Neg ab, Add (Mul (c2, Bound n2), r2)) =
-    Add (Mul (c2, Bound n2), numadd (Neg ab, r2))
-  | numadd (Cx (y, z), Add (Mul (c2, Bound n2), r2)) =
-    Add (Mul (c2, Bound n2), numadd (Cx (y, z), r2))
-  | numadd (Bound x, Add (Mul (c2, Bound n2), r2)) =
-    Add (Mul (c2, Bound n2), numadd (Bound x, r2))
-  | numadd (C w, Add (Mul (c2, Bound n2), r2)) =
-    Add (Mul (c2, Bound n2), numadd (C w, r2))
-  | numadd (Add (Mul (c1, Bound n1), r1), Mul (afz, aga)) =
-    Add (Mul (c1, Bound n1), numadd (r1, Mul (afz, aga)))
-  | numadd (Add (Mul (c1, Bound n1), r1), Sub (afx, afy)) =
-    Add (Mul (c1, Bound n1), numadd (r1, Sub (afx, afy)))
-  | numadd (Add (Mul (c1, Bound n1), r1), Add (Mul (ahg, Mul (ain, aio)), afw))
-    = Add (Mul (c1, Bound n1),
-            numadd (r1, Add (Mul (ahg, Mul (ain, aio)), afw)))
-  | numadd (Add (Mul (c1, Bound n1), r1), Add (Mul (ahg, Sub (ail, aim)), afw))
-    = Add (Mul (c1, Bound n1),
-            numadd (r1, Add (Mul (ahg, Sub (ail, aim)), afw)))
-  | numadd (Add (Mul (c1, Bound n1), r1), Add (Mul (ahg, Add (aij, aik)), afw))
-    = Add (Mul (c1, Bound n1),
-            numadd (r1, Add (Mul (ahg, Add (aij, aik)), afw)))
-  | numadd (Add (Mul (c1, Bound n1), r1), Add (Mul (ahg, Neg aii), afw)) =
-    Add (Mul (c1, Bound n1), numadd (r1, Add (Mul (ahg, Neg aii), afw)))
-  | numadd (Add (Mul (c1, Bound n1), r1), Add (Mul (ahg, Cx (aig, aih)), afw)) =
-    Add (Mul (c1, Bound n1), numadd (r1, Add (Mul (ahg, Cx (aig, aih)), afw)))
-  | numadd (Add (Mul (c1, Bound n1), r1), Add (Mul (ahg, C aie), afw)) =
-    Add (Mul (c1, Bound n1), numadd (r1, Add (Mul (ahg, C aie), afw)))
-  | numadd (Add (Mul (c1, Bound n1), r1), Add (Sub (ahe, ahf), afw)) =
-    Add (Mul (c1, Bound n1), numadd (r1, Add (Sub (ahe, ahf), afw)))
-  | numadd (Add (Mul (c1, Bound n1), r1), Add (Add (ahc, ahd), afw)) =
-    Add (Mul (c1, Bound n1), numadd (r1, Add (Add (ahc, ahd), afw)))
-  | numadd (Add (Mul (c1, Bound n1), r1), Add (Neg ahb, afw)) =
-    Add (Mul (c1, Bound n1), numadd (r1, Add (Neg ahb, afw)))
-  | numadd (Add (Mul (c1, Bound n1), r1), Add (Cx (agz, aha), afw)) =
-    Add (Mul (c1, Bound n1), numadd (r1, Add (Cx (agz, aha), afw)))
-  | numadd (Add (Mul (c1, Bound n1), r1), Add (Bound agy, afw)) =
-    Add (Mul (c1, Bound n1), numadd (r1, Add (Bound agy, afw)))
-  | numadd (Add (Mul (c1, Bound n1), r1), Add (C agx, afw)) =
-    Add (Mul (c1, Bound n1), numadd (r1, Add (C agx, afw)))
-  | numadd (Add (Mul (c1, Bound n1), r1), Neg afu) =
-    Add (Mul (c1, Bound n1), numadd (r1, Neg afu))
-  | numadd (Add (Mul (c1, Bound n1), r1), Cx (afs, aft)) =
-    Add (Mul (c1, Bound n1), numadd (r1, Cx (afs, aft)))
-  | numadd (Add (Mul (c1, Bound n1), r1), Bound afr) =
-    Add (Mul (c1, Bound n1), numadd (r1, Bound afr))
-  | numadd (Add (Mul (c1, Bound n1), r1), C afq) =
-    Add (Mul (c1, Bound n1), numadd (r1, C afq))
-  | numadd (Add (Mul (c1, Bound n1), r1), Add (Mul (c2, Bound n2), r2)) =
-    (if ((n1 : IntInf.int) = n2)
-      then let
-             val c = IntInf.+ (c1, c2);
-           in
-             (if ((c : IntInf.int) = (0 : IntInf.int)) then numadd (r1, r2)
-               else Add (Mul (c, Bound n1), numadd (r1, r2)))
-           end
-      else (if IntInf.<= (n1, n2)
-             then Add (Mul (c1, Bound n1),
-                        numadd (r1, Add (Mul (c2, Bound n2), r2)))
-             else Add (Mul (c2, Bound n2),
-                        numadd (Add (Mul (c1, Bound n1), r1), r2))));
-
-fun nummul i (Sub (v, va)) = Mul (i, Sub (v, va))
-  | nummul i (Neg v) = Mul (i, Neg v)
-  | nummul i (Cx (v, va)) = Mul (i, Cx (v, va))
+fun nummul i (C j) = C (IntInf.* (i, j))
+  | nummul i (Cn (n, c, t)) = Cn (n, IntInf.* (c, i), nummul i t)
   | nummul i (Bound v) = Mul (i, Bound v)
-  | nummul i (Mul (c, t)) = nummul (IntInf.* (i, c)) t
-  | nummul i (Add (a, b)) = numadd (nummul i a, nummul i b)
-  | nummul i (C j) = C (IntInf.* (i, j));
+  | nummul i (Neg v) = Mul (i, Neg v)
+  | nummul i (Add (v, va)) = Mul (i, Add (v, va))
+  | nummul i (Sub (v, va)) = Mul (i, Sub (v, va))
+  | nummul i (Mul (v, va)) = Mul (i, Mul (v, va));
 
 fun numneg t = nummul (IntInf.~ (1 : IntInf.int)) t;
 
-fun numsub s t =
-  (if eq_num s t then C (0 : IntInf.int) else numadd (s, numneg t));
-
-fun simpnum (Cx (v, va)) = Cx (v, va)
-  | simpnum (Mul (i, t)) =
-    (if ((i : IntInf.int) = (0 : IntInf.int)) then C (0 : IntInf.int)
-      else nummul i (simpnum t))
-  | simpnum (Sub (t, s)) = numsub (simpnum t) (simpnum s)
-  | simpnum (Add (t, s)) = numadd (simpnum t, simpnum s)
-  | simpnum (Neg t) = numneg (simpnum t)
-  | simpnum (Bound n) =
-    Add (Mul ((1 : IntInf.int), Bound n), C (0 : IntInf.int))
-  | simpnum (C j) = C j;
+fun numadd (Cn (n1, c1, r1), Cn (n2, c2, r2)) =
+  (if eqop eq_nat n1 n2
+    then let
+           val c = IntInf.+ (c1, c2);
+         in
+           (if eqop eq_int c (0 : IntInf.int) then numadd (r1, r2)
+             else Cn (n1, c, numadd (r1, r2)))
+         end
+    else (if IntInf.<= (n1, n2)
+           then Cn (n1, c1, numadd (r1, Add (Mul (c2, Bound n2), r2)))
+           else Cn (n2, c2, numadd (Add (Mul (c1, Bound n1), r1), r2))))
+  | numadd (Cn (n1, c1, r1), C dd) = Cn (n1, c1, numadd (r1, C dd))
+  | numadd (Cn (n1, c1, r1), Bound de) = Cn (n1, c1, numadd (r1, Bound de))
+  | numadd (Cn (n1, c1, r1), Neg di) = Cn (n1, c1, numadd (r1, Neg di))
+  | numadd (Cn (n1, c1, r1), Add (dj, dk)) =
+    Cn (n1, c1, numadd (r1, Add (dj, dk)))
+  | numadd (Cn (n1, c1, r1), Sub (dl, dm)) =
+    Cn (n1, c1, numadd (r1, Sub (dl, dm)))
+  | numadd (Cn (n1, c1, r1), Mul (dn, doa)) =
+    Cn (n1, c1, numadd (r1, Mul (dn, doa)))
+  | numadd (C w, Cn (n2, c2, r2)) = Cn (n2, c2, numadd (C w, r2))
+  | numadd (Bound x, Cn (n2, c2, r2)) = Cn (n2, c2, numadd (Bound x, r2))
+  | numadd (Neg ac, Cn (n2, c2, r2)) = Cn (n2, c2, numadd (Neg ac, r2))
+  | numadd (Add (ad, ae), Cn (n2, c2, r2)) =
+    Cn (n2, c2, numadd (Add (ad, ae), r2))
+  | numadd (Sub (af, ag), Cn (n2, c2, r2)) =
+    Cn (n2, c2, numadd (Sub (af, ag), r2))
+  | numadd (Mul (ah, ai), Cn (n2, c2, r2)) =
+    Cn (n2, c2, numadd (Mul (ah, ai), r2))
+  | numadd (C b1, C b2) = C (IntInf.+ (b1, b2))
+  | numadd (C aj, Bound bi) = Add (C aj, Bound bi)
+  | numadd (C aj, Neg bm) = Add (C aj, Neg bm)
+  | numadd (C aj, Add (bn, bo)) = Add (C aj, Add (bn, bo))
+  | numadd (C aj, Sub (bp, bq)) = Add (C aj, Sub (bp, bq))
+  | numadd (C aj, Mul (br, bs)) = Add (C aj, Mul (br, bs))
+  | numadd (Bound ak, C cf) = Add (Bound ak, C cf)
+  | numadd (Bound ak, Bound cg) = Add (Bound ak, Bound cg)
+  | numadd (Bound ak, Neg ck) = Add (Bound ak, Neg ck)
+  | numadd (Bound ak, Add (cl, cm)) = Add (Bound ak, Add (cl, cm))
+  | numadd (Bound ak, Sub (cn, co)) = Add (Bound ak, Sub (cn, co))
+  | numadd (Bound ak, Mul (cp, cq)) = Add (Bound ak, Mul (cp, cq))
+  | numadd (Neg ao, C en) = Add (Neg ao, C en)
+  | numadd (Neg ao, Bound eo) = Add (Neg ao, Bound eo)
+  | numadd (Neg ao, Neg es) = Add (Neg ao, Neg es)
+  | numadd (Neg ao, Add (et, eu)) = Add (Neg ao, Add (et, eu))
+  | numadd (Neg ao, Sub (ev, ew)) = Add (Neg ao, Sub (ev, ew))
+  | numadd (Neg ao, Mul (ex, ey)) = Add (Neg ao, Mul (ex, ey))
+  | numadd (Add (ap, aq), C fl) = Add (Add (ap, aq), C fl)
+  | numadd (Add (ap, aq), Bound fm) = Add (Add (ap, aq), Bound fm)
+  | numadd (Add (ap, aq), Neg fq) = Add (Add (ap, aq), Neg fq)
+  | numadd (Add (ap, aq), Add (fr, fs)) = Add (Add (ap, aq), Add (fr, fs))
+  | numadd (Add (ap, aq), Sub (ft, fu)) = Add (Add (ap, aq), Sub (ft, fu))
+  | numadd (Add (ap, aq), Mul (fv, fw)) = Add (Add (ap, aq), Mul (fv, fw))
+  | numadd (Sub (ar, asa), C gj) = Add (Sub (ar, asa), C gj)
+  | numadd (Sub (ar, asa), Bound gk) = Add (Sub (ar, asa), Bound gk)
+  | numadd (Sub (ar, asa), Neg go) = Add (Sub (ar, asa), Neg go)
+  | numadd (Sub (ar, asa), Add (gp, gq)) = Add (Sub (ar, asa), Add (gp, gq))
+  | numadd (Sub (ar, asa), Sub (gr, gs)) = Add (Sub (ar, asa), Sub (gr, gs))
+  | numadd (Sub (ar, asa), Mul (gt, gu)) = Add (Sub (ar, asa), Mul (gt, gu))
+  | numadd (Mul (at, au), C hh) = Add (Mul (at, au), C hh)
+  | numadd (Mul (at, au), Bound hi) = Add (Mul (at, au), Bound hi)
+  | numadd (Mul (at, au), Neg hm) = Add (Mul (at, au), Neg hm)
+  | numadd (Mul (at, au), Add (hn, ho)) = Add (Mul (at, au), Add (hn, ho))
+  | numadd (Mul (at, au), Sub (hp, hq)) = Add (Mul (at, au), Sub (hp, hq))
+  | numadd (Mul (at, au), Mul (hr, hs)) = Add (Mul (at, au), Mul (hr, hs));
 
 val eq_numa = {eq = eq_num} : num eq;
 
-fun mirror (NClosed aq) = NClosed aq
-  | mirror (Closed ap) = Closed ap
-  | mirror (A ao) = A ao
-  | mirror (E an) = E an
-  | mirror (Iffa (al, am)) = Iffa (al, am)
-  | mirror (Impa (aj, ak)) = Impa (aj, ak)
-  | mirror (Nota ae) = Nota ae
-  | mirror (NDvd (ac, Mul (hv, hw))) = NDvd (ac, Mul (hv, hw))
-  | mirror (NDvd (ac, Sub (ht, hu))) = NDvd (ac, Sub (ht, hu))
-  | mirror (NDvd (ac, Add (hr, hs))) = NDvd (ac, Add (hr, hs))
-  | mirror (NDvd (ac, Neg hq)) = NDvd (ac, Neg hq)
-  | mirror (NDvd (ac, Bound hn)) = NDvd (ac, Bound hn)
-  | mirror (NDvd (ac, C hm)) = NDvd (ac, C hm)
-  | mirror (Dvd (aa, Mul (gz, ha))) = Dvd (aa, Mul (gz, ha))
-  | mirror (Dvd (aa, Sub (gx, gy))) = Dvd (aa, Sub (gx, gy))
-  | mirror (Dvd (aa, Add (gv, gw))) = Dvd (aa, Add (gv, gw))
-  | mirror (Dvd (aa, Neg gu)) = Dvd (aa, Neg gu)
-  | mirror (Dvd (aa, Bound gr)) = Dvd (aa, Bound gr)
-  | mirror (Dvd (aa, C gq)) = Dvd (aa, C gq)
-  | mirror (NEq (Mul (gd, ge))) = NEq (Mul (gd, ge))
-  | mirror (NEq (Sub (gb, gc))) = NEq (Sub (gb, gc))
-  | mirror (NEq (Add (fz, ga))) = NEq (Add (fz, ga))
-  | mirror (NEq (Neg fy)) = NEq (Neg fy)
-  | mirror (NEq (Bound fv)) = NEq (Bound fv)
-  | mirror (NEq (C fu)) = NEq (C fu)
-  | mirror (Eq (Mul (fh, fi))) = Eq (Mul (fh, fi))
-  | mirror (Eq (Sub (ff, fg))) = Eq (Sub (ff, fg))
-  | mirror (Eq (Add (fd, fe))) = Eq (Add (fd, fe))
-  | mirror (Eq (Neg fc)) = Eq (Neg fc)
-  | mirror (Eq (Bound ez)) = Eq (Bound ez)
-  | mirror (Eq (C ey)) = Eq (C ey)
-  | mirror (Ge (Mul (el, em))) = Ge (Mul (el, em))
-  | mirror (Ge (Sub (ej, ek))) = Ge (Sub (ej, ek))
-  | mirror (Ge (Add (eh, ei))) = Ge (Add (eh, ei))
-  | mirror (Ge (Neg eg)) = Ge (Neg eg)
-  | mirror (Ge (Bound ed)) = Ge (Bound ed)
-  | mirror (Ge (C ec)) = Ge (C ec)
-  | mirror (Gt (Mul (dp, dq))) = Gt (Mul (dp, dq))
-  | mirror (Gt (Sub (dn, doa))) = Gt (Sub (dn, doa))
-  | mirror (Gt (Add (dl, dm))) = Gt (Add (dl, dm))
-  | mirror (Gt (Neg dk)) = Gt (Neg dk)
-  | mirror (Gt (Bound dh)) = Gt (Bound dh)
-  | mirror (Gt (C dg)) = Gt (C dg)
-  | mirror (Le (Mul (ct, cu))) = Le (Mul (ct, cu))
-  | mirror (Le (Sub (cr, cs))) = Le (Sub (cr, cs))
-  | mirror (Le (Add (cp, cq))) = Le (Add (cp, cq))
-  | mirror (Le (Neg co)) = Le (Neg co)
-  | mirror (Le (Bound cl)) = Le (Bound cl)
-  | mirror (Le (C ck)) = Le (C ck)
-  | mirror (Lt (Mul (bx, by))) = Lt (Mul (bx, by))
-  | mirror (Lt (Sub (bv, bw))) = Lt (Sub (bv, bw))
-  | mirror (Lt (Add (bt, bu))) = Lt (Add (bt, bu))
-  | mirror (Lt (Neg bs)) = Lt (Neg bs)
-  | mirror (Lt (Bound bp)) = Lt (Bound bp)
-  | mirror (Lt (C bo)) = Lt (C bo)
-  | mirror F = F
-  | mirror T = T
-  | mirror (NDvd (i, Cx (c, e))) = NDvd (i, Cx (c, Neg e))
-  | mirror (Dvd (i, Cx (c, e))) = Dvd (i, Cx (c, Neg e))
-  | mirror (Ge (Cx (c, e))) = Le (Cx (c, Neg e))
-  | mirror (Gt (Cx (c, e))) = Lt (Cx (c, Neg e))
-  | mirror (Le (Cx (c, e))) = Ge (Cx (c, Neg e))
-  | mirror (Lt (Cx (c, e))) = Gt (Cx (c, Neg e))
-  | mirror (NEq (Cx (c, e))) = NEq (Cx (c, Neg e))
-  | mirror (Eq (Cx (c, e))) = Eq (Cx (c, Neg e))
-  | mirror (Or (p, q)) = Or (mirror p, mirror q)
-  | mirror (And (p, q)) = And (mirror p, mirror q);
+fun numsub s t =
+  (if eqop eq_numa s t then C (0 : IntInf.int) else numadd (s, numneg t));
 
-fun unita p =
-  let
-    val p' = zlfm p;
-    val l = zeta p';
-    val q =
-      And (Dvd (l, Cx ((1 : IntInf.int), C (0 : IntInf.int))), a_beta p' l);
-    val d = delta q;
-    val b = remdups eq_numa (map simpnum (beta q));
-    val a = remdups eq_numa (map simpnum (alpha q));
-  in
-    (if IntInf.<= ((size_list b), (size_list a)) then (q, (b, d))
-      else (mirror q, (a, d)))
-  end;
+fun simpnum (C j) = C j
+  | simpnum (Bound n) = Cn (n, (1 : IntInf.int), C (0 : IntInf.int))
+  | simpnum (Neg t) = numneg (simpnum t)
+  | simpnum (Add (t, s)) = numadd (simpnum t, simpnum s)
+  | simpnum (Sub (t, s)) = numsub (simpnum t) (simpnum s)
+  | simpnum (Mul (i, t)) =
+    (if eqop eq_int i (0 : IntInf.int) then C (0 : IntInf.int)
+      else nummul i (simpnum t))
+  | simpnum (Cn (v, va, vb)) = Cn (v, va, vb);
 
-fun iupt i j =
-  (if IntInf.< (j, i) then []
-    else i :: iupt (IntInf.+ (i, (1 : IntInf.int))) j);
+fun nota (Not y) = y
+  | nota T = F
+  | nota F = T
+  | nota (Lt vc) = Not (Lt vc)
+  | nota (Le vc) = Not (Le vc)
+  | nota (Gt vc) = Not (Gt vc)
+  | nota (Ge vc) = Not (Ge vc)
+  | nota (Eq vc) = Not (Eq vc)
+  | nota (NEq vc) = Not (NEq vc)
+  | nota (Dvd (va, vab)) = Not (Dvd (va, vab))
+  | nota (NDvd (va, vab)) = Not (NDvd (va, vab))
+  | nota (And (vb, vaa)) = Not (And (vb, vaa))
+  | nota (Or (vb, vaa)) = Not (Or (vb, vaa))
+  | nota (Imp (vb, vaa)) = Not (Imp (vb, vaa))
+  | nota (Iff (vb, vaa)) = Not (Iff (vb, vaa))
+  | nota (E vb) = Not (E vb)
+  | nota (A vb) = Not (A vb)
+  | nota (Closed v) = Not (Closed v)
+  | nota (NClosed v) = Not (NClosed v);
 
-fun minusinf (NClosed aq) = NClosed aq
-  | minusinf (Closed ap) = Closed ap
-  | minusinf (A ao) = A ao
-  | minusinf (E an) = E an
-  | minusinf (Iffa (al, am)) = Iffa (al, am)
-  | minusinf (Impa (aj, ak)) = Impa (aj, ak)
-  | minusinf (Nota ae) = Nota ae
-  | minusinf (NDvd (ac, ad)) = NDvd (ac, ad)
-  | minusinf (Dvd (aa, ab)) = Dvd (aa, ab)
-  | minusinf (NEq (Mul (gd, ge))) = NEq (Mul (gd, ge))
-  | minusinf (NEq (Sub (gb, gc))) = NEq (Sub (gb, gc))
-  | minusinf (NEq (Add (fz, ga))) = NEq (Add (fz, ga))
-  | minusinf (NEq (Neg fy)) = NEq (Neg fy)
-  | minusinf (NEq (Bound fv)) = NEq (Bound fv)
-  | minusinf (NEq (C fu)) = NEq (C fu)
-  | minusinf (Eq (Mul (fh, fi))) = Eq (Mul (fh, fi))
-  | minusinf (Eq (Sub (ff, fg))) = Eq (Sub (ff, fg))
-  | minusinf (Eq (Add (fd, fe))) = Eq (Add (fd, fe))
-  | minusinf (Eq (Neg fc)) = Eq (Neg fc)
-  | minusinf (Eq (Bound ez)) = Eq (Bound ez)
-  | minusinf (Eq (C ey)) = Eq (C ey)
-  | minusinf (Ge (Mul (el, em))) = Ge (Mul (el, em))
-  | minusinf (Ge (Sub (ej, ek))) = Ge (Sub (ej, ek))
-  | minusinf (Ge (Add (eh, ei))) = Ge (Add (eh, ei))
-  | minusinf (Ge (Neg eg)) = Ge (Neg eg)
-  | minusinf (Ge (Bound ed)) = Ge (Bound ed)
-  | minusinf (Ge (C ec)) = Ge (C ec)
-  | minusinf (Gt (Mul (dp, dq))) = Gt (Mul (dp, dq))
-  | minusinf (Gt (Sub (dn, doa))) = Gt (Sub (dn, doa))
-  | minusinf (Gt (Add (dl, dm))) = Gt (Add (dl, dm))
-  | minusinf (Gt (Neg dk)) = Gt (Neg dk)
-  | minusinf (Gt (Bound dh)) = Gt (Bound dh)
-  | minusinf (Gt (C dg)) = Gt (C dg)
-  | minusinf (Le (Mul (ct, cu))) = Le (Mul (ct, cu))
-  | minusinf (Le (Sub (cr, cs))) = Le (Sub (cr, cs))
-  | minusinf (Le (Add (cp, cq))) = Le (Add (cp, cq))
-  | minusinf (Le (Neg co)) = Le (Neg co)
-  | minusinf (Le (Bound cl)) = Le (Bound cl)
-  | minusinf (Le (C ck)) = Le (C ck)
-  | minusinf (Lt (Mul (bx, by))) = Lt (Mul (bx, by))
-  | minusinf (Lt (Sub (bv, bw))) = Lt (Sub (bv, bw))
-  | minusinf (Lt (Add (bt, bu))) = Lt (Add (bt, bu))
-  | minusinf (Lt (Neg bs)) = Lt (Neg bs)
-  | minusinf (Lt (Bound bp)) = Lt (Bound bp)
-  | minusinf (Lt (C bo)) = Lt (C bo)
-  | minusinf F = F
-  | minusinf T = T
-  | minusinf (Ge (Cx (c, e))) = F
-  | minusinf (Gt (Cx (c, e))) = F
-  | minusinf (Le (Cx (c, e))) = T
-  | minusinf (Lt (Cx (c, e))) = T
-  | minusinf (NEq (Cx (c, e))) = T
-  | minusinf (Eq (Cx (c, e))) = F
-  | minusinf (Or (p, q)) = Or (minusinf p, minusinf q)
-  | minusinf (And (p, q)) = And (minusinf p, minusinf q);
+fun iffa p q =
+  (if eqop eq_fma p q then T
+    else (if eqop eq_fma p (nota q) orelse eqop eq_fma (nota p) q then F
+           else (if eqop eq_fma p F then nota q
+                  else (if eqop eq_fma q F then nota p
+                         else (if eqop eq_fma p T then q
+                                else (if eqop eq_fma q T then p
+                                       else Iff (p, q)))))));
 
-fun numsubst0 t (Mul (i, a)) = Mul (i, numsubst0 t a)
-  | numsubst0 t (Sub (a, b)) = Sub (numsubst0 t a, numsubst0 t b)
-  | numsubst0 t (Add (a, b)) = Add (numsubst0 t a, numsubst0 t b)
-  | numsubst0 t (Neg a) = Neg (numsubst0 t a)
-  | numsubst0 t (Cx (i, a)) = Add (Mul (i, t), numsubst0 t a)
-  | numsubst0 t (Bound n) =
-    (if ((n : IntInf.int) = zero_nat) then t else Bound n)
-  | numsubst0 t (C c) = C c;
-
-fun subst0 t (NClosed p) = NClosed p
-  | subst0 t (Closed p) = Closed p
-  | subst0 t (Iffa (p, q)) = Iffa (subst0 t p, subst0 t q)
-  | subst0 t (Impa (p, q)) = Impa (subst0 t p, subst0 t q)
-  | subst0 t (Or (p, q)) = Or (subst0 t p, subst0 t q)
-  | subst0 t (And (p, q)) = And (subst0 t p, subst0 t q)
-  | subst0 t (Nota p) = Nota (subst0 t p)
-  | subst0 t (NDvd (i, a)) = NDvd (i, numsubst0 t a)
-  | subst0 t (Dvd (i, a)) = Dvd (i, numsubst0 t a)
-  | subst0 t (NEq a) = NEq (numsubst0 t a)
-  | subst0 t (Eq a) = Eq (numsubst0 t a)
-  | subst0 t (Ge a) = Ge (numsubst0 t a)
-  | subst0 t (Gt a) = Gt (numsubst0 t a)
-  | subst0 t (Le a) = Le (numsubst0 t a)
-  | subst0 t (Lt a) = Lt (numsubst0 t a)
-  | subst0 t F = F
-  | subst0 t T = T;
+fun impa p q =
+  (if eqop eq_fma p F orelse eqop eq_fma q T then T
+    else (if eqop eq_fma p T then q
+           else (if eqop eq_fma q F then nota p else Imp (p, q))));
 
 fun conj p q =
-  (if eq_fm p F orelse eq_fm q F then F
-    else (if eq_fm p T then q else (if eq_fm q T then p else And (p, q))));
+  (if eqop eq_fma p F orelse eqop eq_fma q F then F
+    else (if eqop eq_fma p T then q
+           else (if eqop eq_fma q T then p else And (p, q))));
 
-fun disj p q =
-  (if eq_fm p T orelse eq_fm q T then T
-    else (if eq_fm p F then q else (if eq_fm q F then p else Or (p, q))));
-
-fun nota (NClosed v) = Nota (NClosed v)
-  | nota (Closed v) = Nota (Closed v)
-  | nota (A v) = Nota (A v)
-  | nota (E v) = Nota (E v)
-  | nota (Iffa (v, va)) = Nota (Iffa (v, va))
-  | nota (Impa (v, va)) = Nota (Impa (v, va))
-  | nota (Or (v, va)) = Nota (Or (v, va))
-  | nota (And (v, va)) = Nota (And (v, va))
-  | nota (NDvd (v, va)) = Nota (NDvd (v, va))
-  | nota (Dvd (v, va)) = Nota (Dvd (v, va))
-  | nota (NEq v) = Nota (NEq v)
-  | nota (Eq v) = Nota (Eq v)
-  | nota (Ge v) = Nota (Ge v)
-  | nota (Gt v) = Nota (Gt v)
-  | nota (Le v) = Nota (Le v)
-  | nota (Lt v) = Nota (Lt v)
-  | nota F = T
-  | nota T = F
-  | nota (Nota y) = y;
-
-fun imp p q =
-  (if eq_fm p F orelse eq_fm q T then T
-    else (if eq_fm p T then q
-           else (if eq_fm q F then nota p else Impa (p, q))));
-
-fun iff p q =
-  (if eq_fm p q then T
-    else (if eq_fm p (nota q) orelse eq_fm (nota p) q then F
-           else (if eq_fm p F then nota q
-                  else (if eq_fm q F then nota p
-                         else (if eq_fm p T then q
-                                else (if eq_fm q T then p
-                                       else Iffa (p, q)))))));
-
-fun simpfm (NClosed v) = NClosed v
-  | simpfm (Closed v) = Closed v
-  | simpfm (A v) = A v
-  | simpfm (E v) = E v
-  | simpfm F = F
-  | simpfm T = T
-  | simpfm (NDvd (i, a)) =
-    (if ((i : IntInf.int) = (0 : IntInf.int)) then simpfm (NEq a)
-      else (if (((abs_int i) : IntInf.int) = (1 : IntInf.int)) then F
-             else let
-                    val a' = simpnum a;
-                  in
-                    (case a'
-                       of C v =>
-                         (if not (dvd (dvd_mod_int, eq_int) i v) then T else F)
-                       | Bound nat => NDvd (i, a')
-                       | Cx (int, num) => NDvd (i, a') | Neg num => NDvd (i, a')
-                       | Add (num1, num2) => NDvd (i, a')
-                       | Sub (num1, num2) => NDvd (i, a')
-                       | Mul (int, num) => NDvd (i, a'))
-                  end))
-  | simpfm (Dvd (i, a)) =
-    (if ((i : IntInf.int) = (0 : IntInf.int)) then simpfm (Eq a)
-      else (if (((abs_int i) : IntInf.int) = (1 : IntInf.int)) then T
-             else let
-                    val a' = simpnum a;
-                  in
-                    (case a'
-                       of C v =>
-                         (if dvd (dvd_mod_int, eq_int) i v then T else F)
-                       | Bound nat => Dvd (i, a') | Cx (int, num) => Dvd (i, a')
-                       | Neg num => Dvd (i, a')
-                       | Add (num1, num2) => Dvd (i, a')
-                       | Sub (num1, num2) => Dvd (i, a')
-                       | Mul (int, num) => Dvd (i, a'))
-                  end))
-  | simpfm (NEq a) =
+fun simpfm (And (p, q)) = conj (simpfm p) (simpfm q)
+  | simpfm (Or (p, q)) = disj (simpfm p) (simpfm q)
+  | simpfm (Imp (p, q)) = impa (simpfm p) (simpfm q)
+  | simpfm (Iff (p, q)) = iffa (simpfm p) (simpfm q)
+  | simpfm (Not p) = nota (simpfm p)
+  | simpfm (Lt a) =
     let
       val a' = simpnum a;
     in
-      (case a'
-         of C v => (if not ((v : IntInf.int) = (0 : IntInf.int)) then T else F)
-         | Bound nat => NEq a' | Cx (int, num) => NEq a' | Neg num => NEq a'
-         | Add (num1, num2) => NEq a' | Sub (num1, num2) => NEq a'
-         | Mul (int, num) => NEq a')
-    end
-  | simpfm (Eq a) =
-    let
-      val a' = simpnum a;
-    in
-      (case a'
-         of C v => (if ((v : IntInf.int) = (0 : IntInf.int)) then T else F)
-         | Bound nat => Eq a' | Cx (int, num) => Eq a' | Neg num => Eq a'
-         | Add (num1, num2) => Eq a' | Sub (num1, num2) => Eq a'
-         | Mul (int, num) => Eq a')
-    end
-  | simpfm (Ge a) =
-    let
-      val a' = simpnum a;
-    in
-      (case a' of C v => (if IntInf.<= ((0 : IntInf.int), v) then T else F)
-         | Bound nat => Ge a' | Cx (int, num) => Ge a' | Neg num => Ge a'
-         | Add (num1, num2) => Ge a' | Sub (num1, num2) => Ge a'
-         | Mul (int, num) => Ge a')
-    end
-  | simpfm (Gt a) =
-    let
-      val a' = simpnum a;
-    in
-      (case a' of C v => (if IntInf.< ((0 : IntInf.int), v) then T else F)
-         | Bound nat => Gt a' | Cx (int, num) => Gt a' | Neg num => Gt a'
-         | Add (num1, num2) => Gt a' | Sub (num1, num2) => Gt a'
-         | Mul (int, num) => Gt a')
+      (case a' of C v => (if IntInf.< (v, (0 : IntInf.int)) then T else F)
+         | Bound nat => Lt a' | Cn (nat, inta, num) => Lt a' | Neg num => Lt a'
+         | Add (num1, num2) => Lt a' | Sub (num1, num2) => Lt a'
+         | Mul (inta, num) => Lt a')
     end
   | simpfm (Le a) =
     let
       val a' = simpnum a;
     in
       (case a' of C v => (if IntInf.<= (v, (0 : IntInf.int)) then T else F)
-         | Bound nat => Le a' | Cx (int, num) => Le a' | Neg num => Le a'
+         | Bound nat => Le a' | Cn (nat, inta, num) => Le a' | Neg num => Le a'
          | Add (num1, num2) => Le a' | Sub (num1, num2) => Le a'
-         | Mul (int, num) => Le a')
+         | Mul (inta, num) => Le a')
     end
-  | simpfm (Lt a) =
+  | simpfm (Gt a) =
     let
       val a' = simpnum a;
     in
-      (case a' of C v => (if IntInf.< (v, (0 : IntInf.int)) then T else F)
-         | Bound nat => Lt a' | Cx (int, num) => Lt a' | Neg num => Lt a'
-         | Add (num1, num2) => Lt a' | Sub (num1, num2) => Lt a'
-         | Mul (int, num) => Lt a')
+      (case a' of C v => (if IntInf.< ((0 : IntInf.int), v) then T else F)
+         | Bound nat => Gt a' | Cn (nat, inta, num) => Gt a' | Neg num => Gt a'
+         | Add (num1, num2) => Gt a' | Sub (num1, num2) => Gt a'
+         | Mul (inta, num) => Gt a')
     end
-  | simpfm (Nota p) = nota (simpfm p)
-  | simpfm (Iffa (p, q)) = iff (simpfm p) (simpfm q)
-  | simpfm (Impa (p, q)) = imp (simpfm p) (simpfm q)
-  | simpfm (Or (p, q)) = disj (simpfm p) (simpfm q)
-  | simpfm (And (p, q)) = conj (simpfm p) (simpfm q);
+  | simpfm (Ge a) =
+    let
+      val a' = simpnum a;
+    in
+      (case a' of C v => (if IntInf.<= ((0 : IntInf.int), v) then T else F)
+         | Bound nat => Ge a' | Cn (nat, inta, num) => Ge a' | Neg num => Ge a'
+         | Add (num1, num2) => Ge a' | Sub (num1, num2) => Ge a'
+         | Mul (inta, num) => Ge a')
+    end
+  | simpfm (Eq a) =
+    let
+      val a' = simpnum a;
+    in
+      (case a' of C v => (if eqop eq_int v (0 : IntInf.int) then T else F)
+         | Bound nat => Eq a' | Cn (nat, inta, num) => Eq a' | Neg num => Eq a'
+         | Add (num1, num2) => Eq a' | Sub (num1, num2) => Eq a'
+         | Mul (inta, num) => Eq a')
+    end
+  | simpfm (NEq a) =
+    let
+      val a' = simpnum a;
+    in
+      (case a' of C v => (if not (eqop eq_int v (0 : IntInf.int)) then T else F)
+         | Bound nat => NEq a' | Cn (nat, inta, num) => NEq a'
+         | Neg num => NEq a' | Add (num1, num2) => NEq a'
+         | Sub (num1, num2) => NEq a' | Mul (inta, num) => NEq a')
+    end
+  | simpfm (Dvd (i, a)) =
+    (if eqop eq_int i (0 : IntInf.int) then simpfm (Eq a)
+      else (if eqop eq_int (abs_int i) (1 : IntInf.int) then T
+             else let
+                    val a' = simpnum a;
+                  in
+                    (case a'
+                       of C v =>
+                         (if eqop eq_int (mod_int v i) (0 : IntInf.int) then T
+                           else F)
+                       | Bound nat => Dvd (i, a')
+                       | Cn (nat, inta, num) => Dvd (i, a')
+                       | Neg num => Dvd (i, a')
+                       | Add (num1, num2) => Dvd (i, a')
+                       | Sub (num1, num2) => Dvd (i, a')
+                       | Mul (inta, num) => Dvd (i, a'))
+                  end))
+  | simpfm (NDvd (i, a)) =
+    (if eqop eq_int i (0 : IntInf.int) then simpfm (NEq a)
+      else (if eqop eq_int (abs_int i) (1 : IntInf.int) then F
+             else let
+                    val a' = simpnum a;
+                  in
+                    (case a'
+                       of C v =>
+                         (if not (eqop eq_int (mod_int v i) (0 : IntInf.int))
+                           then T else F)
+                       | Bound nat => NDvd (i, a')
+                       | Cn (nat, inta, num) => NDvd (i, a')
+                       | Neg num => NDvd (i, a')
+                       | Add (num1, num2) => NDvd (i, a')
+                       | Sub (num1, num2) => NDvd (i, a')
+                       | Mul (inta, num) => NDvd (i, a'))
+                  end))
+  | simpfm T = T
+  | simpfm F = F
+  | simpfm (E v) = E v
+  | simpfm (A v) = A v
+  | simpfm (Closed v) = Closed v
+  | simpfm (NClosed v) = NClosed v;
 
-fun decrnum (Cx (w, x)) = Cx (w, x)
-  | decrnum (C u) = C u
-  | decrnum (Mul (c, a)) = Mul (c, decrnum a)
-  | decrnum (Sub (a, b)) = Sub (decrnum a, decrnum b)
-  | decrnum (Add (a, b)) = Add (decrnum a, decrnum b)
-  | decrnum (Neg a) = Neg (decrnum a)
-  | decrnum (Bound n) = Bound (nat (IntInf.- (n, (1 : IntInf.int))));
+fun iupt i j =
+  (if IntInf.< (j, i) then []
+    else i :: iupt (IntInf.+ (i, (1 : IntInf.int))) j);
 
-fun decr (NClosed ar) = NClosed ar
-  | decr (Closed aq) = Closed aq
-  | decr (A ap) = A ap
-  | decr (E ao) = E ao
-  | decr F = F
-  | decr T = T
-  | decr (Iffa (p, q)) = Iffa (decr p, decr q)
-  | decr (Impa (p, q)) = Impa (decr p, decr q)
-  | decr (Or (p, q)) = Or (decr p, decr q)
-  | decr (And (p, q)) = And (decr p, decr q)
-  | decr (Nota p) = Nota (decr p)
-  | decr (NDvd (i, a)) = NDvd (i, decrnum a)
-  | decr (Dvd (i, a)) = Dvd (i, decrnum a)
-  | decr (NEq a) = NEq (decrnum a)
-  | decr (Eq a) = Eq (decrnum a)
-  | decr (Ge a) = Ge (decrnum a)
-  | decr (Gt a) = Gt (decrnum a)
-  | decr (Le a) = Le (decrnum a)
-  | decr (Lt a) = Lt (decrnum a);
+fun mirror (And (p, q)) = And (mirror p, mirror q)
+  | mirror (Or (p, q)) = Or (mirror p, mirror q)
+  | mirror T = T
+  | mirror F = F
+  | mirror (Lt (C bo)) = Lt (C bo)
+  | mirror (Lt (Bound bp)) = Lt (Bound bp)
+  | mirror (Lt (Neg bt)) = Lt (Neg bt)
+  | mirror (Lt (Add (bu, bv))) = Lt (Add (bu, bv))
+  | mirror (Lt (Sub (bw, bx))) = Lt (Sub (bw, bx))
+  | mirror (Lt (Mul (by, bz))) = Lt (Mul (by, bz))
+  | mirror (Le (C co)) = Le (C co)
+  | mirror (Le (Bound cp)) = Le (Bound cp)
+  | mirror (Le (Neg ct)) = Le (Neg ct)
+  | mirror (Le (Add (cu, cv))) = Le (Add (cu, cv))
+  | mirror (Le (Sub (cw, cx))) = Le (Sub (cw, cx))
+  | mirror (Le (Mul (cy, cz))) = Le (Mul (cy, cz))
+  | mirror (Gt (C doa)) = Gt (C doa)
+  | mirror (Gt (Bound dp)) = Gt (Bound dp)
+  | mirror (Gt (Neg dt)) = Gt (Neg dt)
+  | mirror (Gt (Add (du, dv))) = Gt (Add (du, dv))
+  | mirror (Gt (Sub (dw, dx))) = Gt (Sub (dw, dx))
+  | mirror (Gt (Mul (dy, dz))) = Gt (Mul (dy, dz))
+  | mirror (Ge (C eo)) = Ge (C eo)
+  | mirror (Ge (Bound ep)) = Ge (Bound ep)
+  | mirror (Ge (Neg et)) = Ge (Neg et)
+  | mirror (Ge (Add (eu, ev))) = Ge (Add (eu, ev))
+  | mirror (Ge (Sub (ew, ex))) = Ge (Sub (ew, ex))
+  | mirror (Ge (Mul (ey, ez))) = Ge (Mul (ey, ez))
+  | mirror (Eq (C fo)) = Eq (C fo)
+  | mirror (Eq (Bound fp)) = Eq (Bound fp)
+  | mirror (Eq (Neg ft)) = Eq (Neg ft)
+  | mirror (Eq (Add (fu, fv))) = Eq (Add (fu, fv))
+  | mirror (Eq (Sub (fw, fx))) = Eq (Sub (fw, fx))
+  | mirror (Eq (Mul (fy, fz))) = Eq (Mul (fy, fz))
+  | mirror (NEq (C go)) = NEq (C go)
+  | mirror (NEq (Bound gp)) = NEq (Bound gp)
+  | mirror (NEq (Neg gt)) = NEq (Neg gt)
+  | mirror (NEq (Add (gu, gv))) = NEq (Add (gu, gv))
+  | mirror (NEq (Sub (gw, gx))) = NEq (Sub (gw, gx))
+  | mirror (NEq (Mul (gy, gz))) = NEq (Mul (gy, gz))
+  | mirror (Dvd (aa, C ho)) = Dvd (aa, C ho)
+  | mirror (Dvd (aa, Bound hp)) = Dvd (aa, Bound hp)
+  | mirror (Dvd (aa, Neg ht)) = Dvd (aa, Neg ht)
+  | mirror (Dvd (aa, Add (hu, hv))) = Dvd (aa, Add (hu, hv))
+  | mirror (Dvd (aa, Sub (hw, hx))) = Dvd (aa, Sub (hw, hx))
+  | mirror (Dvd (aa, Mul (hy, hz))) = Dvd (aa, Mul (hy, hz))
+  | mirror (NDvd (ac, C io)) = NDvd (ac, C io)
+  | mirror (NDvd (ac, Bound ip)) = NDvd (ac, Bound ip)
+  | mirror (NDvd (ac, Neg it)) = NDvd (ac, Neg it)
+  | mirror (NDvd (ac, Add (iu, iv))) = NDvd (ac, Add (iu, iv))
+  | mirror (NDvd (ac, Sub (iw, ix))) = NDvd (ac, Sub (iw, ix))
+  | mirror (NDvd (ac, Mul (iy, iz))) = NDvd (ac, Mul (iy, iz))
+  | mirror (Not ae) = Not ae
+  | mirror (Imp (aj, ak)) = Imp (aj, ak)
+  | mirror (Iff (al, am)) = Iff (al, am)
+  | mirror (E an) = E an
+  | mirror (A ao) = A ao
+  | mirror (Closed ap) = Closed ap
+  | mirror (NClosed aq) = NClosed aq
+  | mirror (Lt (Cn (cm, c, e))) =
+    (if eqop eq_nat cm 0 then Gt (Cn (0, c, Neg e))
+      else Lt (Cn (suc (minus_nat cm 1), c, e)))
+  | mirror (Le (Cn (dm, c, e))) =
+    (if eqop eq_nat dm 0 then Ge (Cn (0, c, Neg e))
+      else Le (Cn (suc (minus_nat dm 1), c, e)))
+  | mirror (Gt (Cn (em, c, e))) =
+    (if eqop eq_nat em 0 then Lt (Cn (0, c, Neg e))
+      else Gt (Cn (suc (minus_nat em 1), c, e)))
+  | mirror (Ge (Cn (fm, c, e))) =
+    (if eqop eq_nat fm 0 then Le (Cn (0, c, Neg e))
+      else Ge (Cn (suc (minus_nat fm 1), c, e)))
+  | mirror (Eq (Cn (gm, c, e))) =
+    (if eqop eq_nat gm 0 then Eq (Cn (0, c, Neg e))
+      else Eq (Cn (suc (minus_nat gm 1), c, e)))
+  | mirror (NEq (Cn (hm, c, e))) =
+    (if eqop eq_nat hm 0 then NEq (Cn (0, c, Neg e))
+      else NEq (Cn (suc (minus_nat hm 1), c, e)))
+  | mirror (Dvd (i, Cn (im, c, e))) =
+    (if eqop eq_nat im 0 then Dvd (i, Cn (0, c, Neg e))
+      else Dvd (i, Cn (suc (minus_nat im 1), c, e)))
+  | mirror (NDvd (i, Cn (jm, c, e))) =
+    (if eqop eq_nat jm 0 then NDvd (i, Cn (0, c, Neg e))
+      else NDvd (i, Cn (suc (minus_nat jm 1), c, e)));
+
+fun size_list [] = 0
+  | size_list (a :: lista) = IntInf.+ (size_list lista, suc 0);
+
+fun alpha (And (p, q)) = append (alpha p) (alpha q)
+  | alpha (Or (p, q)) = append (alpha p) (alpha q)
+  | alpha T = []
+  | alpha F = []
+  | alpha (Lt (C bo)) = []
+  | alpha (Lt (Bound bp)) = []
+  | alpha (Lt (Neg bt)) = []
+  | alpha (Lt (Add (bu, bv))) = []
+  | alpha (Lt (Sub (bw, bx))) = []
+  | alpha (Lt (Mul (by, bz))) = []
+  | alpha (Le (C co)) = []
+  | alpha (Le (Bound cp)) = []
+  | alpha (Le (Neg ct)) = []
+  | alpha (Le (Add (cu, cv))) = []
+  | alpha (Le (Sub (cw, cx))) = []
+  | alpha (Le (Mul (cy, cz))) = []
+  | alpha (Gt (C doa)) = []
+  | alpha (Gt (Bound dp)) = []
+  | alpha (Gt (Neg dt)) = []
+  | alpha (Gt (Add (du, dv))) = []
+  | alpha (Gt (Sub (dw, dx))) = []
+  | alpha (Gt (Mul (dy, dz))) = []
+  | alpha (Ge (C eo)) = []
+  | alpha (Ge (Bound ep)) = []
+  | alpha (Ge (Neg et)) = []
+  | alpha (Ge (Add (eu, ev))) = []
+  | alpha (Ge (Sub (ew, ex))) = []
+  | alpha (Ge (Mul (ey, ez))) = []
+  | alpha (Eq (C fo)) = []
+  | alpha (Eq (Bound fp)) = []
+  | alpha (Eq (Neg ft)) = []
+  | alpha (Eq (Add (fu, fv))) = []
+  | alpha (Eq (Sub (fw, fx))) = []
+  | alpha (Eq (Mul (fy, fz))) = []
+  | alpha (NEq (C go)) = []
+  | alpha (NEq (Bound gp)) = []
+  | alpha (NEq (Neg gt)) = []
+  | alpha (NEq (Add (gu, gv))) = []
+  | alpha (NEq (Sub (gw, gx))) = []
+  | alpha (NEq (Mul (gy, gz))) = []
+  | alpha (Dvd (aa, ab)) = []
+  | alpha (NDvd (ac, ad)) = []
+  | alpha (Not ae) = []
+  | alpha (Imp (aj, ak)) = []
+  | alpha (Iff (al, am)) = []
+  | alpha (E an) = []
+  | alpha (A ao) = []
+  | alpha (Closed ap) = []
+  | alpha (NClosed aq) = []
+  | alpha (Lt (Cn (cm, c, e))) = (if eqop eq_nat cm 0 then [e] else [])
+  | alpha (Le (Cn (dm, c, e))) =
+    (if eqop eq_nat dm 0 then [Add (C (~1 : IntInf.int), e)] else [])
+  | alpha (Gt (Cn (em, c, e))) = (if eqop eq_nat em 0 then [] else [])
+  | alpha (Ge (Cn (fm, c, e))) = (if eqop eq_nat fm 0 then [] else [])
+  | alpha (Eq (Cn (gm, c, e))) =
+    (if eqop eq_nat gm 0 then [Add (C (~1 : IntInf.int), e)] else [])
+  | alpha (NEq (Cn (hm, c, e))) = (if eqop eq_nat hm 0 then [e] else []);
+
+fun beta (And (p, q)) = append (beta p) (beta q)
+  | beta (Or (p, q)) = append (beta p) (beta q)
+  | beta T = []
+  | beta F = []
+  | beta (Lt (C bo)) = []
+  | beta (Lt (Bound bp)) = []
+  | beta (Lt (Neg bt)) = []
+  | beta (Lt (Add (bu, bv))) = []
+  | beta (Lt (Sub (bw, bx))) = []
+  | beta (Lt (Mul (by, bz))) = []
+  | beta (Le (C co)) = []
+  | beta (Le (Bound cp)) = []
+  | beta (Le (Neg ct)) = []
+  | beta (Le (Add (cu, cv))) = []
+  | beta (Le (Sub (cw, cx))) = []
+  | beta (Le (Mul (cy, cz))) = []
+  | beta (Gt (C doa)) = []
+  | beta (Gt (Bound dp)) = []
+  | beta (Gt (Neg dt)) = []
+  | beta (Gt (Add (du, dv))) = []
+  | beta (Gt (Sub (dw, dx))) = []
+  | beta (Gt (Mul (dy, dz))) = []
+  | beta (Ge (C eo)) = []
+  | beta (Ge (Bound ep)) = []
+  | beta (Ge (Neg et)) = []
+  | beta (Ge (Add (eu, ev))) = []
+  | beta (Ge (Sub (ew, ex))) = []
+  | beta (Ge (Mul (ey, ez))) = []
+  | beta (Eq (C fo)) = []
+  | beta (Eq (Bound fp)) = []
+  | beta (Eq (Neg ft)) = []
+  | beta (Eq (Add (fu, fv))) = []
+  | beta (Eq (Sub (fw, fx))) = []
+  | beta (Eq (Mul (fy, fz))) = []
+  | beta (NEq (C go)) = []
+  | beta (NEq (Bound gp)) = []
+  | beta (NEq (Neg gt)) = []
+  | beta (NEq (Add (gu, gv))) = []
+  | beta (NEq (Sub (gw, gx))) = []
+  | beta (NEq (Mul (gy, gz))) = []
+  | beta (Dvd (aa, ab)) = []
+  | beta (NDvd (ac, ad)) = []
+  | beta (Not ae) = []
+  | beta (Imp (aj, ak)) = []
+  | beta (Iff (al, am)) = []
+  | beta (E an) = []
+  | beta (A ao) = []
+  | beta (Closed ap) = []
+  | beta (NClosed aq) = []
+  | beta (Lt (Cn (cm, c, e))) = (if eqop eq_nat cm 0 then [] else [])
+  | beta (Le (Cn (dm, c, e))) = (if eqop eq_nat dm 0 then [] else [])
+  | beta (Gt (Cn (em, c, e))) = (if eqop eq_nat em 0 then [Neg e] else [])
+  | beta (Ge (Cn (fm, c, e))) =
+    (if eqop eq_nat fm 0 then [Sub (C (~1 : IntInf.int), e)] else [])
+  | beta (Eq (Cn (gm, c, e))) =
+    (if eqop eq_nat gm 0 then [Sub (C (~1 : IntInf.int), e)] else [])
+  | beta (NEq (Cn (hm, c, e))) = (if eqop eq_nat hm 0 then [Neg e] else []);
+
+fun member A_ x [] = false
+  | member A_ x (y :: ys) = eqop A_ x y orelse member A_ x ys;
+
+fun remdups A_ [] = []
+  | remdups A_ (x :: xs) =
+    (if member A_ x xs then remdups A_ xs else x :: remdups A_ xs);
+
+fun delta (And (p, q)) = zlcm (delta p) (delta q)
+  | delta (Or (p, q)) = zlcm (delta p) (delta q)
+  | delta T = (1 : IntInf.int)
+  | delta F = (1 : IntInf.int)
+  | delta (Lt u) = (1 : IntInf.int)
+  | delta (Le v) = (1 : IntInf.int)
+  | delta (Gt w) = (1 : IntInf.int)
+  | delta (Ge x) = (1 : IntInf.int)
+  | delta (Eq ya) = (1 : IntInf.int)
+  | delta (NEq z) = (1 : IntInf.int)
+  | delta (Dvd (aa, C bo)) = (1 : IntInf.int)
+  | delta (Dvd (aa, Bound bp)) = (1 : IntInf.int)
+  | delta (Dvd (aa, Neg bt)) = (1 : IntInf.int)
+  | delta (Dvd (aa, Add (bu, bv))) = (1 : IntInf.int)
+  | delta (Dvd (aa, Sub (bw, bx))) = (1 : IntInf.int)
+  | delta (Dvd (aa, Mul (by, bz))) = (1 : IntInf.int)
+  | delta (NDvd (ac, C co)) = (1 : IntInf.int)
+  | delta (NDvd (ac, Bound cp)) = (1 : IntInf.int)
+  | delta (NDvd (ac, Neg ct)) = (1 : IntInf.int)
+  | delta (NDvd (ac, Add (cu, cv))) = (1 : IntInf.int)
+  | delta (NDvd (ac, Sub (cw, cx))) = (1 : IntInf.int)
+  | delta (NDvd (ac, Mul (cy, cz))) = (1 : IntInf.int)
+  | delta (Not ae) = (1 : IntInf.int)
+  | delta (Imp (aj, ak)) = (1 : IntInf.int)
+  | delta (Iff (al, am)) = (1 : IntInf.int)
+  | delta (E an) = (1 : IntInf.int)
+  | delta (A ao) = (1 : IntInf.int)
+  | delta (Closed ap) = (1 : IntInf.int)
+  | delta (NClosed aq) = (1 : IntInf.int)
+  | delta (Dvd (b, Cn (cm, c, e))) =
+    (if eqop eq_nat cm 0 then b else (1 : IntInf.int))
+  | delta (NDvd (b, Cn (dm, c, e))) =
+    (if eqop eq_nat dm 0 then b else (1 : IntInf.int));
+
+fun div_int a b = fst (divmoda a b);
+
+fun a_beta (And (p, q)) = (fn k => And (a_beta p k, a_beta q k))
+  | a_beta (Or (p, q)) = (fn k => Or (a_beta p k, a_beta q k))
+  | a_beta T = (fn k => T)
+  | a_beta F = (fn k => F)
+  | a_beta (Lt (C bo)) = (fn k => Lt (C bo))
+  | a_beta (Lt (Bound bp)) = (fn k => Lt (Bound bp))
+  | a_beta (Lt (Neg bt)) = (fn k => Lt (Neg bt))
+  | a_beta (Lt (Add (bu, bv))) = (fn k => Lt (Add (bu, bv)))
+  | a_beta (Lt (Sub (bw, bx))) = (fn k => Lt (Sub (bw, bx)))
+  | a_beta (Lt (Mul (by, bz))) = (fn k => Lt (Mul (by, bz)))
+  | a_beta (Le (C co)) = (fn k => Le (C co))
+  | a_beta (Le (Bound cp)) = (fn k => Le (Bound cp))
+  | a_beta (Le (Neg ct)) = (fn k => Le (Neg ct))
+  | a_beta (Le (Add (cu, cv))) = (fn k => Le (Add (cu, cv)))
+  | a_beta (Le (Sub (cw, cx))) = (fn k => Le (Sub (cw, cx)))
+  | a_beta (Le (Mul (cy, cz))) = (fn k => Le (Mul (cy, cz)))
+  | a_beta (Gt (C doa)) = (fn k => Gt (C doa))
+  | a_beta (Gt (Bound dp)) = (fn k => Gt (Bound dp))
+  | a_beta (Gt (Neg dt)) = (fn k => Gt (Neg dt))
+  | a_beta (Gt (Add (du, dv))) = (fn k => Gt (Add (du, dv)))
+  | a_beta (Gt (Sub (dw, dx))) = (fn k => Gt (Sub (dw, dx)))
+  | a_beta (Gt (Mul (dy, dz))) = (fn k => Gt (Mul (dy, dz)))
+  | a_beta (Ge (C eo)) = (fn k => Ge (C eo))
+  | a_beta (Ge (Bound ep)) = (fn k => Ge (Bound ep))
+  | a_beta (Ge (Neg et)) = (fn k => Ge (Neg et))
+  | a_beta (Ge (Add (eu, ev))) = (fn k => Ge (Add (eu, ev)))
+  | a_beta (Ge (Sub (ew, ex))) = (fn k => Ge (Sub (ew, ex)))
+  | a_beta (Ge (Mul (ey, ez))) = (fn k => Ge (Mul (ey, ez)))
+  | a_beta (Eq (C fo)) = (fn k => Eq (C fo))
+  | a_beta (Eq (Bound fp)) = (fn k => Eq (Bound fp))
+  | a_beta (Eq (Neg ft)) = (fn k => Eq (Neg ft))
+  | a_beta (Eq (Add (fu, fv))) = (fn k => Eq (Add (fu, fv)))
+  | a_beta (Eq (Sub (fw, fx))) = (fn k => Eq (Sub (fw, fx)))
+  | a_beta (Eq (Mul (fy, fz))) = (fn k => Eq (Mul (fy, fz)))
+  | a_beta (NEq (C go)) = (fn k => NEq (C go))
+  | a_beta (NEq (Bound gp)) = (fn k => NEq (Bound gp))
+  | a_beta (NEq (Neg gt)) = (fn k => NEq (Neg gt))
+  | a_beta (NEq (Add (gu, gv))) = (fn k => NEq (Add (gu, gv)))
+  | a_beta (NEq (Sub (gw, gx))) = (fn k => NEq (Sub (gw, gx)))
+  | a_beta (NEq (Mul (gy, gz))) = (fn k => NEq (Mul (gy, gz)))
+  | a_beta (Dvd (aa, C ho)) = (fn k => Dvd (aa, C ho))
+  | a_beta (Dvd (aa, Bound hp)) = (fn k => Dvd (aa, Bound hp))
+  | a_beta (Dvd (aa, Neg ht)) = (fn k => Dvd (aa, Neg ht))
+  | a_beta (Dvd (aa, Add (hu, hv))) = (fn k => Dvd (aa, Add (hu, hv)))
+  | a_beta (Dvd (aa, Sub (hw, hx))) = (fn k => Dvd (aa, Sub (hw, hx)))
+  | a_beta (Dvd (aa, Mul (hy, hz))) = (fn k => Dvd (aa, Mul (hy, hz)))
+  | a_beta (NDvd (ac, C io)) = (fn k => NDvd (ac, C io))
+  | a_beta (NDvd (ac, Bound ip)) = (fn k => NDvd (ac, Bound ip))
+  | a_beta (NDvd (ac, Neg it)) = (fn k => NDvd (ac, Neg it))
+  | a_beta (NDvd (ac, Add (iu, iv))) = (fn k => NDvd (ac, Add (iu, iv)))
+  | a_beta (NDvd (ac, Sub (iw, ix))) = (fn k => NDvd (ac, Sub (iw, ix)))
+  | a_beta (NDvd (ac, Mul (iy, iz))) = (fn k => NDvd (ac, Mul (iy, iz)))
+  | a_beta (Not ae) = (fn k => Not ae)
+  | a_beta (Imp (aj, ak)) = (fn k => Imp (aj, ak))
+  | a_beta (Iff (al, am)) = (fn k => Iff (al, am))
+  | a_beta (E an) = (fn k => E an)
+  | a_beta (A ao) = (fn k => A ao)
+  | a_beta (Closed ap) = (fn k => Closed ap)
+  | a_beta (NClosed aq) = (fn k => NClosed aq)
+  | a_beta (Lt (Cn (cm, c, e))) =
+    (if eqop eq_nat cm 0
+      then (fn k => Lt (Cn (0, (1 : IntInf.int), Mul (div_int k c, e))))
+      else (fn k => Lt (Cn (suc (minus_nat cm 1), c, e))))
+  | a_beta (Le (Cn (dm, c, e))) =
+    (if eqop eq_nat dm 0
+      then (fn k => Le (Cn (0, (1 : IntInf.int), Mul (div_int k c, e))))
+      else (fn k => Le (Cn (suc (minus_nat dm 1), c, e))))
+  | a_beta (Gt (Cn (em, c, e))) =
+    (if eqop eq_nat em 0
+      then (fn k => Gt (Cn (0, (1 : IntInf.int), Mul (div_int k c, e))))
+      else (fn k => Gt (Cn (suc (minus_nat em 1), c, e))))
+  | a_beta (Ge (Cn (fm, c, e))) =
+    (if eqop eq_nat fm 0
+      then (fn k => Ge (Cn (0, (1 : IntInf.int), Mul (div_int k c, e))))
+      else (fn k => Ge (Cn (suc (minus_nat fm 1), c, e))))
+  | a_beta (Eq (Cn (gm, c, e))) =
+    (if eqop eq_nat gm 0
+      then (fn k => Eq (Cn (0, (1 : IntInf.int), Mul (div_int k c, e))))
+      else (fn k => Eq (Cn (suc (minus_nat gm 1), c, e))))
+  | a_beta (NEq (Cn (hm, c, e))) =
+    (if eqop eq_nat hm 0
+      then (fn k => NEq (Cn (0, (1 : IntInf.int), Mul (div_int k c, e))))
+      else (fn k => NEq (Cn (suc (minus_nat hm 1), c, e))))
+  | a_beta (Dvd (i, Cn (im, c, e))) =
+    (if eqop eq_nat im 0
+      then (fn k =>
+             Dvd (IntInf.* (div_int k c, i),
+                   Cn (0, (1 : IntInf.int), Mul (div_int k c, e))))
+      else (fn k => Dvd (i, Cn (suc (minus_nat im 1), c, e))))
+  | a_beta (NDvd (i, Cn (jm, c, e))) =
+    (if eqop eq_nat jm 0
+      then (fn k =>
+             NDvd (IntInf.* (div_int k c, i),
+                    Cn (0, (1 : IntInf.int), Mul (div_int k c, e))))
+      else (fn k => NDvd (i, Cn (suc (minus_nat jm 1), c, e))));
+
+fun zeta (And (p, q)) = zlcm (zeta p) (zeta q)
+  | zeta (Or (p, q)) = zlcm (zeta p) (zeta q)
+  | zeta T = (1 : IntInf.int)
+  | zeta F = (1 : IntInf.int)
+  | zeta (Lt (C bo)) = (1 : IntInf.int)
+  | zeta (Lt (Bound bp)) = (1 : IntInf.int)
+  | zeta (Lt (Neg bt)) = (1 : IntInf.int)
+  | zeta (Lt (Add (bu, bv))) = (1 : IntInf.int)
+  | zeta (Lt (Sub (bw, bx))) = (1 : IntInf.int)
+  | zeta (Lt (Mul (by, bz))) = (1 : IntInf.int)
+  | zeta (Le (C co)) = (1 : IntInf.int)
+  | zeta (Le (Bound cp)) = (1 : IntInf.int)
+  | zeta (Le (Neg ct)) = (1 : IntInf.int)
+  | zeta (Le (Add (cu, cv))) = (1 : IntInf.int)
+  | zeta (Le (Sub (cw, cx))) = (1 : IntInf.int)
+  | zeta (Le (Mul (cy, cz))) = (1 : IntInf.int)
+  | zeta (Gt (C doa)) = (1 : IntInf.int)
+  | zeta (Gt (Bound dp)) = (1 : IntInf.int)
+  | zeta (Gt (Neg dt)) = (1 : IntInf.int)
+  | zeta (Gt (Add (du, dv))) = (1 : IntInf.int)
+  | zeta (Gt (Sub (dw, dx))) = (1 : IntInf.int)
+  | zeta (Gt (Mul (dy, dz))) = (1 : IntInf.int)
+  | zeta (Ge (C eo)) = (1 : IntInf.int)
+  | zeta (Ge (Bound ep)) = (1 : IntInf.int)
+  | zeta (Ge (Neg et)) = (1 : IntInf.int)
+  | zeta (Ge (Add (eu, ev))) = (1 : IntInf.int)
+  | zeta (Ge (Sub (ew, ex))) = (1 : IntInf.int)
+  | zeta (Ge (Mul (ey, ez))) = (1 : IntInf.int)
+  | zeta (Eq (C fo)) = (1 : IntInf.int)
+  | zeta (Eq (Bound fp)) = (1 : IntInf.int)
+  | zeta (Eq (Neg ft)) = (1 : IntInf.int)
+  | zeta (Eq (Add (fu, fv))) = (1 : IntInf.int)
+  | zeta (Eq (Sub (fw, fx))) = (1 : IntInf.int)
+  | zeta (Eq (Mul (fy, fz))) = (1 : IntInf.int)
+  | zeta (NEq (C go)) = (1 : IntInf.int)
+  | zeta (NEq (Bound gp)) = (1 : IntInf.int)
+  | zeta (NEq (Neg gt)) = (1 : IntInf.int)
+  | zeta (NEq (Add (gu, gv))) = (1 : IntInf.int)
+  | zeta (NEq (Sub (gw, gx))) = (1 : IntInf.int)
+  | zeta (NEq (Mul (gy, gz))) = (1 : IntInf.int)
+  | zeta (Dvd (aa, C ho)) = (1 : IntInf.int)
+  | zeta (Dvd (aa, Bound hp)) = (1 : IntInf.int)
+  | zeta (Dvd (aa, Neg ht)) = (1 : IntInf.int)
+  | zeta (Dvd (aa, Add (hu, hv))) = (1 : IntInf.int)
+  | zeta (Dvd (aa, Sub (hw, hx))) = (1 : IntInf.int)
+  | zeta (Dvd (aa, Mul (hy, hz))) = (1 : IntInf.int)
+  | zeta (NDvd (ac, C io)) = (1 : IntInf.int)
+  | zeta (NDvd (ac, Bound ip)) = (1 : IntInf.int)
+  | zeta (NDvd (ac, Neg it)) = (1 : IntInf.int)
+  | zeta (NDvd (ac, Add (iu, iv))) = (1 : IntInf.int)
+  | zeta (NDvd (ac, Sub (iw, ix))) = (1 : IntInf.int)
+  | zeta (NDvd (ac, Mul (iy, iz))) = (1 : IntInf.int)
+  | zeta (Not ae) = (1 : IntInf.int)
+  | zeta (Imp (aj, ak)) = (1 : IntInf.int)
+  | zeta (Iff (al, am)) = (1 : IntInf.int)
+  | zeta (E an) = (1 : IntInf.int)
+  | zeta (A ao) = (1 : IntInf.int)
+  | zeta (Closed ap) = (1 : IntInf.int)
+  | zeta (NClosed aq) = (1 : IntInf.int)
+  | zeta (Lt (Cn (cm, b, e))) =
+    (if eqop eq_nat cm 0 then b else (1 : IntInf.int))
+  | zeta (Le (Cn (dm, b, e))) =
+    (if eqop eq_nat dm 0 then b else (1 : IntInf.int))
+  | zeta (Gt (Cn (em, b, e))) =
+    (if eqop eq_nat em 0 then b else (1 : IntInf.int))
+  | zeta (Ge (Cn (fm, b, e))) =
+    (if eqop eq_nat fm 0 then b else (1 : IntInf.int))
+  | zeta (Eq (Cn (gm, b, e))) =
+    (if eqop eq_nat gm 0 then b else (1 : IntInf.int))
+  | zeta (NEq (Cn (hm, b, e))) =
+    (if eqop eq_nat hm 0 then b else (1 : IntInf.int))
+  | zeta (Dvd (i, Cn (im, b, e))) =
+    (if eqop eq_nat im 0 then b else (1 : IntInf.int))
+  | zeta (NDvd (i, Cn (jm, b, e))) =
+    (if eqop eq_nat jm 0 then b else (1 : IntInf.int));
+
+fun zsplit0 (C c) = ((0 : IntInf.int), C c)
+  | zsplit0 (Bound n) =
+    (if eqop eq_nat n 0 then ((1 : IntInf.int), C (0 : IntInf.int))
+      else ((0 : IntInf.int), Bound n))
+  | zsplit0 (Cn (n, i, a)) =
+    let
+      val aa = zsplit0 a;
+      val (i', a') = aa;
+    in
+      (if eqop eq_nat n 0 then (IntInf.+ (i, i'), a') else (i', Cn (n, i, a')))
+    end
+  | zsplit0 (Neg a) =
+    let
+      val aa = zsplit0 a;
+      val (i', a') = aa;
+    in
+      (IntInf.~ i', Neg a')
+    end
+  | zsplit0 (Add (a, b)) =
+    let
+      val aa = zsplit0 a;
+      val (ia, a') = aa;
+      val ab = zsplit0 b;
+      val (ib, b') = ab;
+    in
+      (IntInf.+ (ia, ib), Add (a', b'))
+    end
+  | zsplit0 (Sub (a, b)) =
+    let
+      val aa = zsplit0 a;
+      val (ia, a') = aa;
+      val ab = zsplit0 b;
+      val (ib, b') = ab;
+    in
+      (IntInf.- (ia, ib), Sub (a', b'))
+    end
+  | zsplit0 (Mul (i, a)) =
+    let
+      val aa = zsplit0 a;
+      val (i', a') = aa;
+    in
+      (IntInf.* (i, i'), Mul (i, a'))
+    end;
+
+fun zlfm (And (p, q)) = And (zlfm p, zlfm q)
+  | zlfm (Or (p, q)) = Or (zlfm p, zlfm q)
+  | zlfm (Imp (p, q)) = Or (zlfm (Not p), zlfm q)
+  | zlfm (Iff (p, q)) =
+    Or (And (zlfm p, zlfm q), And (zlfm (Not p), zlfm (Not q)))
+  | zlfm (Lt a) =
+    let
+      val aa = zsplit0 a;
+      val (c, r) = aa;
+    in
+      (if eqop eq_int c (0 : IntInf.int) then Lt r
+        else (if IntInf.< ((0 : IntInf.int), c) then Lt (Cn (0, c, r))
+               else Gt (Cn (0, IntInf.~ c, Neg r))))
+    end
+  | zlfm (Le a) =
+    let
+      val aa = zsplit0 a;
+      val (c, r) = aa;
+    in
+      (if eqop eq_int c (0 : IntInf.int) then Le r
+        else (if IntInf.< ((0 : IntInf.int), c) then Le (Cn (0, c, r))
+               else Ge (Cn (0, IntInf.~ c, Neg r))))
+    end
+  | zlfm (Gt a) =
+    let
+      val aa = zsplit0 a;
+      val (c, r) = aa;
+    in
+      (if eqop eq_int c (0 : IntInf.int) then Gt r
+        else (if IntInf.< ((0 : IntInf.int), c) then Gt (Cn (0, c, r))
+               else Lt (Cn (0, IntInf.~ c, Neg r))))
+    end
+  | zlfm (Ge a) =
+    let
+      val aa = zsplit0 a;
+      val (c, r) = aa;
+    in
+      (if eqop eq_int c (0 : IntInf.int) then Ge r
+        else (if IntInf.< ((0 : IntInf.int), c) then Ge (Cn (0, c, r))
+               else Le (Cn (0, IntInf.~ c, Neg r))))
+    end
+  | zlfm (Eq a) =
+    let
+      val aa = zsplit0 a;
+      val (c, r) = aa;
+    in
+      (if eqop eq_int c (0 : IntInf.int) then Eq r
+        else (if IntInf.< ((0 : IntInf.int), c) then Eq (Cn (0, c, r))
+               else Eq (Cn (0, IntInf.~ c, Neg r))))
+    end
+  | zlfm (NEq a) =
+    let
+      val aa = zsplit0 a;
+      val (c, r) = aa;
+    in
+      (if eqop eq_int c (0 : IntInf.int) then NEq r
+        else (if IntInf.< ((0 : IntInf.int), c) then NEq (Cn (0, c, r))
+               else NEq (Cn (0, IntInf.~ c, Neg r))))
+    end
+  | zlfm (Dvd (i, a)) =
+    (if eqop eq_int i (0 : IntInf.int) then zlfm (Eq a)
+      else let
+             val aa = zsplit0 a;
+             val (c, r) = aa;
+           in
+             (if eqop eq_int c (0 : IntInf.int) then Dvd (abs_int i, r)
+               else (if IntInf.< ((0 : IntInf.int), c)
+                      then Dvd (abs_int i, Cn (0, c, r))
+                      else Dvd (abs_int i, Cn (0, IntInf.~ c, Neg r))))
+           end)
+  | zlfm (NDvd (i, a)) =
+    (if eqop eq_int i (0 : IntInf.int) then zlfm (NEq a)
+      else let
+             val aa = zsplit0 a;
+             val (c, r) = aa;
+           in
+             (if eqop eq_int c (0 : IntInf.int) then NDvd (abs_int i, r)
+               else (if IntInf.< ((0 : IntInf.int), c)
+                      then NDvd (abs_int i, Cn (0, c, r))
+                      else NDvd (abs_int i, Cn (0, IntInf.~ c, Neg r))))
+           end)
+  | zlfm (Not (And (p, q))) = Or (zlfm (Not p), zlfm (Not q))
+  | zlfm (Not (Or (p, q))) = And (zlfm (Not p), zlfm (Not q))
+  | zlfm (Not (Imp (p, q))) = And (zlfm p, zlfm (Not q))
+  | zlfm (Not (Iff (p, q))) =
+    Or (And (zlfm p, zlfm (Not q)), And (zlfm (Not p), zlfm q))
+  | zlfm (Not (Not p)) = zlfm p
+  | zlfm (Not T) = F
+  | zlfm (Not F) = T
+  | zlfm (Not (Lt a)) = zlfm (Ge a)
+  | zlfm (Not (Le a)) = zlfm (Gt a)
+  | zlfm (Not (Gt a)) = zlfm (Le a)
+  | zlfm (Not (Ge a)) = zlfm (Lt a)
+  | zlfm (Not (Eq a)) = zlfm (NEq a)
+  | zlfm (Not (NEq a)) = zlfm (Eq a)
+  | zlfm (Not (Dvd (i, a))) = zlfm (NDvd (i, a))
+  | zlfm (Not (NDvd (i, a))) = zlfm (Dvd (i, a))
+  | zlfm (Not (Closed p)) = NClosed p
+  | zlfm (Not (NClosed p)) = Closed p
+  | zlfm T = T
+  | zlfm F = F
+  | zlfm (Not (E ci)) = Not (E ci)
+  | zlfm (Not (A cj)) = Not (A cj)
+  | zlfm (E ao) = E ao
+  | zlfm (A ap) = A ap
+  | zlfm (Closed aq) = Closed aq
+  | zlfm (NClosed ar) = NClosed ar;
+
+fun unita p =
+  let
+    val p' = zlfm p;
+    val l = zeta p';
+    val q =
+      And (Dvd (l, Cn (0, (1 : IntInf.int), C (0 : IntInf.int))), a_beta p' l);
+    val d = delta q;
+    val b = remdups eq_numa (map simpnum (beta q));
+    val a = remdups eq_numa (map simpnum (alpha q));
+  in
+    (if IntInf.<= (size_list b, size_list a) then (q, (b, d))
+      else (mirror q, (a, d)))
+  end;
 
 fun cooper p =
   let
-    val (q, a) = unita p;
-    val (b, d) = a;
+    val a = unita p;
+    val (q, aa) = a;
+    val (b, d) = aa;
     val js = iupt (1 : IntInf.int) d;
     val mq = simpfm (minusinf q);
     val md = evaldjf (fn j => simpfm (subst0 (C j) mq)) js;
   in
-    (if eq_fm md T then T
+    (if eqop eq_fma md T then T
       else let
              val qd =
-               evaldjf (fn aa as (ba, j) => simpfm (subst0 (Add (ba, C j)) q))
-                 (allpairs (fn aa => fn ba => (aa, ba)) b js);
+               evaldjf (fn ab as (ba, j) => simpfm (subst0 (Add (ba, C j)) q))
+                 (concat (map (fn ba => map (fn ab => (ba, ab)) js) b));
            in
              decr (disj md qd)
            end)
   end;
 
-fun prep (NClosed aq) = NClosed aq
-  | prep (Closed ap) = Closed ap
-  | prep (NDvd (ac, ad)) = NDvd (ac, ad)
-  | prep (Dvd (aa, ab)) = Dvd (aa, ab)
-  | prep (NEq z) = NEq z
-  | prep (Eq y) = Eq y
-  | prep (Ge x) = Ge x
-  | prep (Gt w) = Gt w
-  | prep (Le v) = Le v
-  | prep (Lt u) = Lt u
-  | prep F = F
-  | prep T = T
-  | prep (Iffa (p, q)) = Or (prep (And (p, q)), prep (And (Nota p, Nota q)))
-  | prep (Impa (p, q)) = prep (Or (Nota p, q))
-  | prep (And (p, q)) = And (prep p, prep q)
-  | prep (Or (p, q)) = Or (prep p, prep q)
-  | prep (Nota (NClosed ck)) = Nota (prep (NClosed ck))
-  | prep (Nota (Closed cj)) = Nota (prep (Closed cj))
-  | prep (Nota (E ch)) = Nota (prep (E ch))
-  | prep (Nota (NDvd (bw, bx))) = Nota (prep (NDvd (bw, bx)))
-  | prep (Nota (Dvd (bu, bv))) = Nota (prep (Dvd (bu, bv)))
-  | prep (Nota (NEq bt)) = Nota (prep (NEq bt))
-  | prep (Nota (Eq bs)) = Nota (prep (Eq bs))
-  | prep (Nota (Ge br)) = Nota (prep (Ge br))
-  | prep (Nota (Gt bq)) = Nota (prep (Gt bq))
-  | prep (Nota (Le bp)) = Nota (prep (Le bp))
-  | prep (Nota (Lt bo)) = Nota (prep (Lt bo))
-  | prep (Nota F) = Nota (prep F)
-  | prep (Nota T) = Nota (prep T)
-  | prep (Nota (Iffa (p, q))) =
-    Or (prep (And (p, Nota q)), prep (And (Nota p, q)))
-  | prep (Nota (Impa (p, q))) = And (prep p, prep (Nota q))
-  | prep (Nota (Or (p, q))) = And (prep (Nota p), prep (Nota q))
-  | prep (Nota (A p)) = prep (E (Nota p))
-  | prep (Nota (And (p, q))) = Or (prep (Nota p), prep (Nota q))
-  | prep (Nota (Nota p)) = prep p
-  | prep (A (NClosed kj)) = prep (Nota (E (Nota (NClosed kj))))
-  | prep (A (Closed ki)) = prep (Nota (E (Nota (Closed ki))))
-  | prep (A (A kh)) = prep (Nota (E (Nota (A kh))))
-  | prep (A (E kg)) = prep (Nota (E (Nota (E kg))))
-  | prep (A (Iffa (ke, kf))) = prep (Nota (E (Nota (Iffa (ke, kf)))))
-  | prep (A (Impa (kc, kd))) = prep (Nota (E (Nota (Impa (kc, kd)))))
-  | prep (A (Or (ka, kb))) = prep (Nota (E (Nota (Or (ka, kb)))))
-  | prep (A (Nota jx)) = prep (Nota (E (Nota (Nota jx))))
-  | prep (A (NDvd (jv, jw))) = prep (Nota (E (Nota (NDvd (jv, jw)))))
-  | prep (A (Dvd (jt, ju))) = prep (Nota (E (Nota (Dvd (jt, ju)))))
-  | prep (A (NEq js)) = prep (Nota (E (Nota (NEq js))))
-  | prep (A (Eq jr)) = prep (Nota (E (Nota (Eq jr))))
-  | prep (A (Ge jq)) = prep (Nota (E (Nota (Ge jq))))
-  | prep (A (Gt jp)) = prep (Nota (E (Nota (Gt jp))))
-  | prep (A (Le jo)) = prep (Nota (E (Nota (Le jo))))
-  | prep (A (Lt jn)) = prep (Nota (E (Nota (Lt jn))))
-  | prep (A F) = prep (Nota (E (Nota F)))
-  | prep (A T) = prep (Nota (E (Nota T)))
-  | prep (A (And (p, q))) = And (prep (A p), prep (A q))
-  | prep (E (NClosed fb)) = E (prep (NClosed fb))
-  | prep (E (Closed fa)) = E (prep (Closed fa))
-  | prep (E (A ez)) = E (prep (A ez))
-  | prep (E (E ey)) = E (prep (E ey))
-  | prep (E (And (eq, er))) = E (prep (And (eq, er)))
-  | prep (E (Nota (NClosed hs))) = E (prep (Nota (NClosed hs)))
-  | prep (E (Nota (Closed hr))) = E (prep (Nota (Closed hr)))
-  | prep (E (Nota (A hq))) = E (prep (Nota (A hq)))
-  | prep (E (Nota (E hp))) = E (prep (Nota (E hp)))
-  | prep (E (Nota (Or (hj, hk)))) = E (prep (Nota (Or (hj, hk))))
-  | prep (E (Nota (Nota hg))) = E (prep (Nota (Nota hg)))
-  | prep (E (Nota (NDvd (he, hf)))) = E (prep (Nota (NDvd (he, hf))))
-  | prep (E (Nota (Dvd (hc, hd)))) = E (prep (Nota (Dvd (hc, hd))))
-  | prep (E (Nota (NEq hb))) = E (prep (Nota (NEq hb)))
-  | prep (E (Nota (Eq ha))) = E (prep (Nota (Eq ha)))
-  | prep (E (Nota (Ge gz))) = E (prep (Nota (Ge gz)))
-  | prep (E (Nota (Gt gy))) = E (prep (Nota (Gt gy)))
-  | prep (E (Nota (Le gx))) = E (prep (Nota (Le gx)))
-  | prep (E (Nota (Lt gw))) = E (prep (Nota (Lt gw)))
-  | prep (E (Nota F)) = E (prep (Nota F))
-  | prep (E (Nota T)) = E (prep (Nota T))
-  | prep (E (NDvd (en, eo))) = E (prep (NDvd (en, eo)))
-  | prep (E (Dvd (el, em))) = E (prep (Dvd (el, em)))
-  | prep (E (NEq ek)) = E (prep (NEq ek))
-  | prep (E (Eq ej)) = E (prep (Eq ej))
-  | prep (E (Ge ei)) = E (prep (Ge ei))
-  | prep (E (Gt eh)) = E (prep (Gt eh))
-  | prep (E (Le eg)) = E (prep (Le eg))
-  | prep (E (Lt ef)) = E (prep (Lt ef))
-  | prep (E (Nota (Iffa (p, q)))) =
-    Or (prep (E (And (p, Nota q))), prep (E (And (Nota p, q))))
-  | prep (E (Nota (Impa (p, q)))) = prep (E (And (p, Nota q)))
-  | prep (E (Nota (And (p, q)))) = Or (prep (E (Nota p)), prep (E (Nota q)))
-  | prep (E (Iffa (p, q))) =
-    Or (prep (E (And (p, q))), prep (E (And (Nota p, Nota q))))
-  | prep (E (Impa (p, q))) = Or (prep (E (Nota p)), prep (E q))
-  | prep (E (Or (p, q))) = Or (prep (E p), prep (E q))
+fun prep (E T) = T
   | prep (E F) = F
-  | prep (E T) = T;
+  | prep (E (Or (p, q))) = Or (prep (E p), prep (E q))
+  | prep (E (Imp (p, q))) = Or (prep (E (Not p)), prep (E q))
+  | prep (E (Iff (p, q))) =
+    Or (prep (E (And (p, q))), prep (E (And (Not p, Not q))))
+  | prep (E (Not (And (p, q)))) = Or (prep (E (Not p)), prep (E (Not q)))
+  | prep (E (Not (Imp (p, q)))) = prep (E (And (p, Not q)))
+  | prep (E (Not (Iff (p, q)))) =
+    Or (prep (E (And (p, Not q))), prep (E (And (Not p, q))))
+  | prep (E (Lt ef)) = E (prep (Lt ef))
+  | prep (E (Le eg)) = E (prep (Le eg))
+  | prep (E (Gt eh)) = E (prep (Gt eh))
+  | prep (E (Ge ei)) = E (prep (Ge ei))
+  | prep (E (Eq ej)) = E (prep (Eq ej))
+  | prep (E (NEq ek)) = E (prep (NEq ek))
+  | prep (E (Dvd (el, em))) = E (prep (Dvd (el, em)))
+  | prep (E (NDvd (en, eo))) = E (prep (NDvd (en, eo)))
+  | prep (E (Not T)) = E (prep (Not T))
+  | prep (E (Not F)) = E (prep (Not F))
+  | prep (E (Not (Lt gw))) = E (prep (Not (Lt gw)))
+  | prep (E (Not (Le gx))) = E (prep (Not (Le gx)))
+  | prep (E (Not (Gt gy))) = E (prep (Not (Gt gy)))
+  | prep (E (Not (Ge gz))) = E (prep (Not (Ge gz)))
+  | prep (E (Not (Eq ha))) = E (prep (Not (Eq ha)))
+  | prep (E (Not (NEq hb))) = E (prep (Not (NEq hb)))
+  | prep (E (Not (Dvd (hc, hd)))) = E (prep (Not (Dvd (hc, hd))))
+  | prep (E (Not (NDvd (he, hf)))) = E (prep (Not (NDvd (he, hf))))
+  | prep (E (Not (Not hg))) = E (prep (Not (Not hg)))
+  | prep (E (Not (Or (hj, hk)))) = E (prep (Not (Or (hj, hk))))
+  | prep (E (Not (E hp))) = E (prep (Not (E hp)))
+  | prep (E (Not (A hq))) = E (prep (Not (A hq)))
+  | prep (E (Not (Closed hr))) = E (prep (Not (Closed hr)))
+  | prep (E (Not (NClosed hs))) = E (prep (Not (NClosed hs)))
+  | prep (E (And (eq, er))) = E (prep (And (eq, er)))
+  | prep (E (E ey)) = E (prep (E ey))
+  | prep (E (A ez)) = E (prep (A ez))
+  | prep (E (Closed fa)) = E (prep (Closed fa))
+  | prep (E (NClosed fb)) = E (prep (NClosed fb))
+  | prep (A (And (p, q))) = And (prep (A p), prep (A q))
+  | prep (A T) = prep (Not (E (Not T)))
+  | prep (A F) = prep (Not (E (Not F)))
+  | prep (A (Lt jn)) = prep (Not (E (Not (Lt jn))))
+  | prep (A (Le jo)) = prep (Not (E (Not (Le jo))))
+  | prep (A (Gt jp)) = prep (Not (E (Not (Gt jp))))
+  | prep (A (Ge jq)) = prep (Not (E (Not (Ge jq))))
+  | prep (A (Eq jr)) = prep (Not (E (Not (Eq jr))))
+  | prep (A (NEq js)) = prep (Not (E (Not (NEq js))))
+  | prep (A (Dvd (jt, ju))) = prep (Not (E (Not (Dvd (jt, ju)))))
+  | prep (A (NDvd (jv, jw))) = prep (Not (E (Not (NDvd (jv, jw)))))
+  | prep (A (Not jx)) = prep (Not (E (Not (Not jx))))
+  | prep (A (Or (ka, kb))) = prep (Not (E (Not (Or (ka, kb)))))
+  | prep (A (Imp (kc, kd))) = prep (Not (E (Not (Imp (kc, kd)))))
+  | prep (A (Iff (ke, kf))) = prep (Not (E (Not (Iff (ke, kf)))))
+  | prep (A (E kg)) = prep (Not (E (Not (E kg))))
+  | prep (A (A kh)) = prep (Not (E (Not (A kh))))
+  | prep (A (Closed ki)) = prep (Not (E (Not (Closed ki))))
+  | prep (A (NClosed kj)) = prep (Not (E (Not (NClosed kj))))
+  | prep (Not (Not p)) = prep p
+  | prep (Not (And (p, q))) = Or (prep (Not p), prep (Not q))
+  | prep (Not (A p)) = prep (E (Not p))
+  | prep (Not (Or (p, q))) = And (prep (Not p), prep (Not q))
+  | prep (Not (Imp (p, q))) = And (prep p, prep (Not q))
+  | prep (Not (Iff (p, q))) = Or (prep (And (p, Not q)), prep (And (Not p, q)))
+  | prep (Not T) = Not (prep T)
+  | prep (Not F) = Not (prep F)
+  | prep (Not (Lt bo)) = Not (prep (Lt bo))
+  | prep (Not (Le bp)) = Not (prep (Le bp))
+  | prep (Not (Gt bq)) = Not (prep (Gt bq))
+  | prep (Not (Ge br)) = Not (prep (Ge br))
+  | prep (Not (Eq bs)) = Not (prep (Eq bs))
+  | prep (Not (NEq bt)) = Not (prep (NEq bt))
+  | prep (Not (Dvd (bu, bv))) = Not (prep (Dvd (bu, bv)))
+  | prep (Not (NDvd (bw, bx))) = Not (prep (NDvd (bw, bx)))
+  | prep (Not (E ch)) = Not (prep (E ch))
+  | prep (Not (Closed cj)) = Not (prep (Closed cj))
+  | prep (Not (NClosed ck)) = Not (prep (NClosed ck))
+  | prep (Or (p, q)) = Or (prep p, prep q)
+  | prep (And (p, q)) = And (prep p, prep q)
+  | prep (Imp (p, q)) = prep (Or (Not p, q))
+  | prep (Iff (p, q)) = Or (prep (And (p, q)), prep (And (Not p, Not q)))
+  | prep T = T
+  | prep F = F
+  | prep (Lt u) = Lt u
+  | prep (Le v) = Le v
+  | prep (Gt w) = Gt w
+  | prep (Ge x) = Ge x
+  | prep (Eq y) = Eq y
+  | prep (NEq z) = NEq z
+  | prep (Dvd (aa, ab)) = Dvd (aa, ab)
+  | prep (NDvd (ac, ad)) = NDvd (ac, ad)
+  | prep (Closed ap) = Closed ap
+  | prep (NClosed aq) = NClosed aq;
 
-fun qelim (NClosed aq) = (fn y => simpfm (NClosed aq))
-  | qelim (Closed ap) = (fn y => simpfm (Closed ap))
-  | qelim (NDvd (ac, ad)) = (fn y => simpfm (NDvd (ac, ad)))
-  | qelim (Dvd (aa, ab)) = (fn y => simpfm (Dvd (aa, ab)))
-  | qelim (NEq z) = (fn y => simpfm (NEq z))
-  | qelim (Eq y) = (fn ya => simpfm (Eq y))
-  | qelim (Ge x) = (fn y => simpfm (Ge x))
-  | qelim (Gt w) = (fn y => simpfm (Gt w))
-  | qelim (Le v) = (fn y => simpfm (Le v))
-  | qelim (Lt u) = (fn y => simpfm (Lt u))
-  | qelim F = (fn y => simpfm F)
-  | qelim T = (fn y => simpfm T)
-  | qelim (Iffa (p, q)) = (fn qe => iff (qelim p qe) (qelim q qe))
-  | qelim (Impa (p, q)) = (fn qe => imp (qelim p qe) (qelim q qe))
-  | qelim (Or (p, q)) = (fn qe => disj (qelim p qe) (qelim q qe))
+fun qelim (E p) = (fn qe => dj qe (qelim p qe))
+  | qelim (A p) = (fn qe => nota (qe (qelim (Not p) qe)))
+  | qelim (Not p) = (fn qe => nota (qelim p qe))
   | qelim (And (p, q)) = (fn qe => conj (qelim p qe) (qelim q qe))
-  | qelim (Nota p) = (fn qe => nota (qelim p qe))
-  | qelim (A p) = (fn qe => nota (qe (qelim (Nota p) qe)))
-  | qelim (E p) = (fn qe => dj qe (qelim p qe));
+  | qelim (Or (p, q)) = (fn qe => disj (qelim p qe) (qelim q qe))
+  | qelim (Imp (p, q)) = (fn qe => impa (qelim p qe) (qelim q qe))
+  | qelim (Iff (p, q)) = (fn qe => iffa (qelim p qe) (qelim q qe))
+  | qelim T = (fn y => simpfm T)
+  | qelim F = (fn y => simpfm F)
+  | qelim (Lt u) = (fn y => simpfm (Lt u))
+  | qelim (Le v) = (fn y => simpfm (Le v))
+  | qelim (Gt w) = (fn y => simpfm (Gt w))
+  | qelim (Ge x) = (fn y => simpfm (Ge x))
+  | qelim (Eq y) = (fn ya => simpfm (Eq y))
+  | qelim (NEq z) = (fn y => simpfm (NEq z))
+  | qelim (Dvd (aa, ab)) = (fn y => simpfm (Dvd (aa, ab)))
+  | qelim (NDvd (ac, ad)) = (fn y => simpfm (NDvd (ac, ad)))
+  | qelim (Closed ap) = (fn y => simpfm (Closed ap))
+  | qelim (NClosed aq) = (fn y => simpfm (NClosed aq));
 
-val pa : fm -> fm = (fn p => qelim (prep p) cooper);
+fun pa p = qelim (prep p) cooper;
+
+fun neg z = IntInf.< (z, (0 : IntInf.int));
+
+fun nat_aux i n =
+  (if IntInf.<= (i, (0 : IntInf.int)) then n
+    else nat_aux (IntInf.- (i, (1 : IntInf.int))) (suc n));
 
 end; (*struct GeneratedCooper*)
