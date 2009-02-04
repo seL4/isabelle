@@ -57,6 +57,23 @@ sig
 
   val setup : theory -> theory
 
+(* ------------------------------------------------------------------------- *)
+(* Additional functions used by Nitpick (to be factored out)                 *)
+(* ------------------------------------------------------------------------- *)
+
+  val close_form : Term.term -> Term.term
+  val get_classdef : theory -> string -> (string * Term.term) option
+  val get_def : theory -> string * Term.typ -> (string * Term.term) option
+  val get_typedef : theory -> Term.typ -> (string * Term.term) option
+  val is_IDT_constructor : theory -> string * Term.typ -> bool
+  val is_IDT_recursor : theory -> string * Term.typ -> bool
+  val is_const_of_class: theory -> string * Term.typ -> bool
+  val monomorphic_term : Type.tyenv -> Term.term -> Term.term
+  val specialize_type : theory -> (string * Term.typ) -> Term.term -> Term.term
+  val string_of_typ : Term.typ -> string
+  val typ_of_dtyp :
+    DatatypeAux.descr -> (DatatypeAux.dtyp * Term.typ) list -> DatatypeAux.dtyp
+    -> Term.typ
 end;  (* signature REFUTE *)
 
 structure Refute : REFUTE =
@@ -577,7 +594,7 @@ struct
 (* get_typedef: looks up the definition of a type, as created by "typedef"   *)
 (* ------------------------------------------------------------------------- *)
 
-  (* theory -> (string * Term.typ) -> (string * Term.term) option *)
+  (* theory -> Term.typ -> (string * Term.term) option *)
 
   fun get_typedef thy T =
   let
@@ -655,33 +672,32 @@ struct
     fun unfold_loop t =
       case t of
       (* Pure *)
-        Const ("all", _)                => t
-      | Const ("==", _)                 => t
-      | Const ("==>", _)                => t
-      | Const ("TYPE", _)               => t  (* axiomatic type classes *)
+        Const (@{const_name all}, _) => t
+      | Const (@{const_name "=="}, _) => t
+      | Const (@{const_name "==>"}, _) => t
+      | Const (@{const_name TYPE}, _) => t  (* axiomatic type classes *)
       (* HOL *)
-      | Const ("Trueprop", _)           => t
-      | Const ("Not", _)                => t
+      | Const (@{const_name Trueprop}, _) => t
+      | Const (@{const_name Not}, _) => t
       | (* redundant, since 'True' is also an IDT constructor *)
-        Const ("True", _)               => t
+        Const (@{const_name True}, _) => t
       | (* redundant, since 'False' is also an IDT constructor *)
-        Const ("False", _)              => t
-      | Const (@{const_name undefined}, _)          => t
-      | Const ("The", _)                => t
+        Const (@{const_name False}, _) => t
+      | Const (@{const_name undefined}, _) => t
+      | Const (@{const_name The}, _) => t
       | Const ("Hilbert_Choice.Eps", _) => t
-      | Const ("All", _)                => t
-      | Const ("Ex", _)                 => t
-      | Const ("op =", _)               => t
-      | Const ("op &", _)               => t
-      | Const ("op |", _)               => t
-      | Const ("op -->", _)             => t
+      | Const (@{const_name All}, _) => t
+      | Const (@{const_name Ex}, _) => t
+      | Const (@{const_name "op ="}, _) => t
+      | Const (@{const_name "op &"}, _) => t
+      | Const (@{const_name "op |"}, _) => t
+      | Const (@{const_name "op -->"}, _) => t
       (* sets *)
-      | Const ("Collect", _)            => t
-      | Const ("op :", _)               => t
+      | Const (@{const_name Collect}, _) => t
+      | Const (@{const_name "op :"}, _) => t
       (* other optimizations *)
-      | Const ("Finite_Set.card", _)    => t
-      | Const ("Finite_Set.Finites", _) => t
-      | Const ("Finite_Set.finite", _)  => t
+      | Const ("Finite_Set.card", _) => t
+      | Const ("Finite_Set.finite", _) => t
       | Const (@{const_name HOL.less}, Type ("fun", [Type ("nat", []),
         Type ("fun", [Type ("nat", []), Type ("bool", [])])])) => t
       | Const (@{const_name HOL.plus}, Type ("fun", [Type ("nat", []),
@@ -690,11 +706,11 @@ struct
         Type ("fun", [Type ("nat", []), Type ("nat", [])])])) => t
       | Const (@{const_name HOL.times}, Type ("fun", [Type ("nat", []),
         Type ("fun", [Type ("nat", []), Type ("nat", [])])])) => t
-      | Const ("List.append", _)        => t
-      | Const ("Lfp.lfp", _)            => t
-      | Const ("Gfp.gfp", _)            => t
-      | Const ("fst", _)                => t
-      | Const ("snd", _)                => t
+      | Const ("List.append", _) => t
+      | Const (@{const_name lfp}, _) => t
+      | Const (@{const_name gfp}, _) => t
+      | Const ("Product_Type.fst", _) => t
+      | Const ("Product_Type.snd", _) => t
       (* simply-typed lambda calculus *)
       | Const (s, T) =>
         (if is_IDT_constructor thy (s, T)
@@ -805,7 +821,6 @@ struct
         Type ("prop", [])      => axs
       | Type ("fun", [T1, T2]) => collect_type_axioms
         (collect_type_axioms (axs, T1), T2)
-      | Type ("set", [T1])     => collect_type_axioms (axs, T1)
       (* axiomatic type classes *)
       | Type ("itself", [T1])  => collect_type_axioms (axs, T1)
       | Type (s, Ts)           =>
@@ -829,22 +844,22 @@ struct
     and collect_term_axioms (axs, t) =
       case t of
       (* Pure *)
-        Const ("all", _)                => axs
-      | Const ("==", _)                 => axs
-      | Const ("==>", _)                => axs
+        Const (@{const_name all}, _) => axs
+      | Const (@{const_name "=="}, _) => axs
+      | Const (@{const_name "==>"}, _) => axs
       (* axiomatic type classes *)
-      | Const ("TYPE", T)               => collect_type_axioms (axs, T)
+      | Const (@{const_name TYPE}, T) => collect_type_axioms (axs, T)
       (* HOL *)
-      | Const ("Trueprop", _)           => axs
-      | Const ("Not", _)                => axs
+      | Const (@{const_name Trueprop}, _) => axs
+      | Const (@{const_name Not}, _) => axs
       (* redundant, since 'True' is also an IDT constructor *)
-      | Const ("True", _)               => axs
+      | Const (@{const_name True}, _) => axs
       (* redundant, since 'False' is also an IDT constructor *)
-      | Const ("False", _)              => axs
-      | Const (@{const_name undefined}, T)          => collect_type_axioms (axs, T)
-      | Const ("The", T)                =>
+      | Const (@{const_name False}, _) => axs
+      | Const (@{const_name undefined}, T) => collect_type_axioms (axs, T)
+      | Const (@{const_name The}, T) =>
         let
-          val ax = specialize_type thy ("The", T)
+          val ax = specialize_type thy (@{const_name The}, T)
             (the (AList.lookup (op =) axioms "HOL.the_eq_trivial"))
         in
           collect_this_axiom ("HOL.the_eq_trivial", ax) axs
@@ -856,19 +871,18 @@ struct
         in
           collect_this_axiom ("Hilbert_Choice.someI", ax) axs
         end
-      | Const ("All", T)                => collect_type_axioms (axs, T)
-      | Const ("Ex", T)                 => collect_type_axioms (axs, T)
-      | Const ("op =", T)               => collect_type_axioms (axs, T)
-      | Const ("op &", _)               => axs
-      | Const ("op |", _)               => axs
-      | Const ("op -->", _)             => axs
+      | Const (@{const_name All}, T) => collect_type_axioms (axs, T)
+      | Const (@{const_name Ex}, T) => collect_type_axioms (axs, T)
+      | Const (@{const_name "op ="}, T) => collect_type_axioms (axs, T)
+      | Const (@{const_name "op &"}, _) => axs
+      | Const (@{const_name "op |"}, _) => axs
+      | Const (@{const_name "op -->"}, _) => axs
       (* sets *)
-      | Const ("Collect", T)            => collect_type_axioms (axs, T)
-      | Const ("op :", T)               => collect_type_axioms (axs, T)
+      | Const (@{const_name Collect}, T) => collect_type_axioms (axs, T)
+      | Const (@{const_name "op :"}, T) => collect_type_axioms (axs, T)
       (* other optimizations *)
-      | Const ("Finite_Set.card", T)    => collect_type_axioms (axs, T)
-      | Const ("Finite_Set.Finites", T) => collect_type_axioms (axs, T)
-      | Const ("Finite_Set.finite", T)  => collect_type_axioms (axs, T)
+      | Const ("Finite_Set.card", T) => collect_type_axioms (axs, T)
+      | Const ("Finite_Set.finite", T) => collect_type_axioms (axs, T)
       | Const (@{const_name HOL.less}, T as Type ("fun", [Type ("nat", []),
         Type ("fun", [Type ("nat", []), Type ("bool", [])])])) =>
           collect_type_axioms (axs, T)
@@ -881,13 +895,13 @@ struct
       | Const (@{const_name HOL.times}, T as Type ("fun", [Type ("nat", []),
         Type ("fun", [Type ("nat", []), Type ("nat", [])])])) =>
           collect_type_axioms (axs, T)
-      | Const ("List.append", T)        => collect_type_axioms (axs, T)
-      | Const ("Lfp.lfp", T)            => collect_type_axioms (axs, T)
-      | Const ("Gfp.gfp", T)            => collect_type_axioms (axs, T)
-      | Const ("fst", T)                => collect_type_axioms (axs, T)
-      | Const ("snd", T)                => collect_type_axioms (axs, T)
+      | Const ("List.append", T) => collect_type_axioms (axs, T)
+      | Const (@{const_name lfp}, T) => collect_type_axioms (axs, T)
+      | Const (@{const_name gfp}, T) => collect_type_axioms (axs, T)
+      | Const ("Product_Type.fst", T) => collect_type_axioms (axs, T)
+      | Const ("Product_Type.snd", T) => collect_type_axioms (axs, T)
       (* simply-typed lambda calculus *)
-      | Const (s, T)                    =>
+      | Const (s, T) =>
           if is_const_of_class thy (s, T) then
             (* axiomatic type classes: add "OFCLASS(?'a::c, c_class)" *)
             (* and the class definition                               *)
@@ -943,7 +957,6 @@ struct
       (case T of
         Type ("fun", [T1, T2]) => collect_types T1 (collect_types T2 acc)
       | Type ("prop", [])      => acc
-      | Type ("set", [T1])     => collect_types T1 acc
       | Type (s, Ts)           =>
         (case DatatypePackage.get_datatype thy s of
           SOME info =>  (* inductive datatype *)
@@ -1303,18 +1316,18 @@ struct
     (* interpretation which includes values for the (formerly)           *)
     (* quantified variables.                                             *)
     (* maps  !!x1...xn. !xk...xm. t   to   t  *)
-    fun strip_all_body (Const ("all", _) $ Abs (_, _, t)) = strip_all_body t
-      | strip_all_body (Const ("Trueprop", _) $ t)        = strip_all_body t
-      | strip_all_body (Const ("All", _) $ Abs (_, _, t)) = strip_all_body t
-      | strip_all_body t                                  = t
+    fun strip_all_body (Const (@{const_name all}, _) $ Abs (_, _, t)) = strip_all_body t
+      | strip_all_body (Const (@{const_name Trueprop}, _) $ t) = strip_all_body t
+      | strip_all_body (Const (@{const_name All}, _) $ Abs (_, _, t)) = strip_all_body t
+      | strip_all_body t = t
     (* maps  !!x1...xn. !xk...xm. t   to   [x1, ..., xn, xk, ..., xm]  *)
-    fun strip_all_vars (Const ("all", _) $ Abs (a, T, t)) =
+    fun strip_all_vars (Const (@{const_name all}, _) $ Abs (a, T, t)) =
       (a, T) :: strip_all_vars t
-      | strip_all_vars (Const ("Trueprop", _) $ t)        =
+      | strip_all_vars (Const (@{const_name Trueprop}, _) $ t) =
       strip_all_vars t
-      | strip_all_vars (Const ("All", _) $ Abs (a, T, t)) =
+      | strip_all_vars (Const (@{const_name All}, _) $ Abs (a, T, t)) =
       (a, T) :: strip_all_vars t
-      | strip_all_vars t                                  =
+      | strip_all_vars t =
       [] : (string * typ) list
     val strip_t = strip_all_body ex_closure
     val frees   = Term.rename_wrt_term strip_t (strip_all_vars ex_closure)
@@ -1764,7 +1777,7 @@ struct
 
   fun Pure_interpreter thy model args t =
     case t of
-      Const ("all", _) $ t1 =>
+      Const (@{const_name all}, _) $ t1 =>
       let
         val (i, m, a) = interpret thy model args t1
       in
@@ -1781,9 +1794,9 @@ struct
           raise REFUTE ("Pure_interpreter",
             "\"all\" is followed by a non-function")
       end
-    | Const ("all", _) =>
+    | Const (@{const_name all}, _) =>
       SOME (interpret thy model args (eta_expand t 1))
-    | Const ("==", _) $ t1 $ t2 =>
+    | Const (@{const_name "=="}, _) $ t1 $ t2 =>
       let
         val (i1, m1, a1) = interpret thy model args t1
         val (i2, m2, a2) = interpret thy m1 a1 t2
@@ -1792,11 +1805,11 @@ struct
         SOME ((if #def_eq args then make_def_equality else make_equality)
           (i1, i2), m2, a2)
       end
-    | Const ("==", _) $ t1 =>
+    | Const (@{const_name "=="}, _) $ t1 =>
       SOME (interpret thy model args (eta_expand t 1))
-    | Const ("==", _) =>
+    | Const (@{const_name "=="}, _) =>
       SOME (interpret thy model args (eta_expand t 2))
-    | Const ("==>", _) $ t1 $ t2 =>
+    | Const (@{const_name "==>"}, _) $ t1 $ t2 =>
       (* 3-valued logic *)
       let
         val (i1, m1, a1) = interpret thy model args t1
@@ -1806,9 +1819,9 @@ struct
       in
         SOME (Leaf [fmTrue, fmFalse], m2, a2)
       end
-    | Const ("==>", _) $ t1 =>
+    | Const (@{const_name "==>"}, _) $ t1 =>
       SOME (interpret thy model args (eta_expand t 1))
-    | Const ("==>", _) =>
+    | Const (@{const_name "==>"}, _) =>
       SOME (interpret thy model args (eta_expand t 2))
     | _ => NONE;
 
@@ -1820,17 +1833,17 @@ struct
   (* logical constants.  In HOL however, logical constants can themselves be *)
   (* arguments.  They are then translated using eta-expansion.               *)
     case t of
-      Const ("Trueprop", _) =>
+      Const (@{const_name Trueprop}, _) =>
       SOME (Node [TT, FF], model, args)
-    | Const ("Not", _) =>
+    | Const (@{const_name Not}, _) =>
       SOME (Node [FF, TT], model, args)
     (* redundant, since 'True' is also an IDT constructor *)
-    | Const ("True", _) =>
+    | Const (@{const_name True}, _) =>
       SOME (TT, model, args)
     (* redundant, since 'False' is also an IDT constructor *)
-    | Const ("False", _) =>
+    | Const (@{const_name False}, _) =>
       SOME (FF, model, args)
-    | Const ("All", _) $ t1 =>  (* similar to "all" (Pure) *)
+    | Const (@{const_name All}, _) $ t1 =>  (* similar to "all" (Pure) *)
       let
         val (i, m, a) = interpret thy model args t1
       in
@@ -1847,9 +1860,9 @@ struct
           raise REFUTE ("HOLogic_interpreter",
             "\"All\" is followed by a non-function")
       end
-    | Const ("All", _) =>
+    | Const (@{const_name All}, _) =>
       SOME (interpret thy model args (eta_expand t 1))
-    | Const ("Ex", _) $ t1 =>
+    | Const (@{const_name Ex}, _) $ t1 =>
       let
         val (i, m, a) = interpret thy model args t1
       in
@@ -1866,20 +1879,20 @@ struct
           raise REFUTE ("HOLogic_interpreter",
             "\"Ex\" is followed by a non-function")
       end
-    | Const ("Ex", _) =>
+    | Const (@{const_name Ex}, _) =>
       SOME (interpret thy model args (eta_expand t 1))
-    | Const ("op =", _) $ t1 $ t2 =>  (* similar to "==" (Pure) *)
+    | Const (@{const_name "op ="}, _) $ t1 $ t2 =>  (* similar to "==" (Pure) *)
       let
         val (i1, m1, a1) = interpret thy model args t1
         val (i2, m2, a2) = interpret thy m1 a1 t2
       in
         SOME (make_equality (i1, i2), m2, a2)
       end
-    | Const ("op =", _) $ t1 =>
+    | Const (@{const_name "op ="}, _) $ t1 =>
       SOME (interpret thy model args (eta_expand t 1))
-    | Const ("op =", _) =>
+    | Const (@{const_name "op ="}, _) =>
       SOME (interpret thy model args (eta_expand t 2))
-    | Const ("op &", _) $ t1 $ t2 =>
+    | Const (@{const_name "op &"}, _) $ t1 $ t2 =>
       (* 3-valued logic *)
       let
         val (i1, m1, a1) = interpret thy model args t1
@@ -1889,14 +1902,14 @@ struct
       in
         SOME (Leaf [fmTrue, fmFalse], m2, a2)
       end
-    | Const ("op &", _) $ t1 =>
+    | Const (@{const_name "op &"}, _) $ t1 =>
       SOME (interpret thy model args (eta_expand t 1))
-    | Const ("op &", _) =>
+    | Const (@{const_name "op &"}, _) =>
       SOME (interpret thy model args (eta_expand t 2))
       (* this would make "undef" propagate, even for formulae like *)
       (* "False & undef":                                          *)
       (* SOME (Node [Node [TT, FF], Node [FF, FF]], model, args) *)
-    | Const ("op |", _) $ t1 $ t2 =>
+    | Const (@{const_name "op |"}, _) $ t1 $ t2 =>
       (* 3-valued logic *)
       let
         val (i1, m1, a1) = interpret thy model args t1
@@ -1906,14 +1919,14 @@ struct
       in
         SOME (Leaf [fmTrue, fmFalse], m2, a2)
       end
-    | Const ("op |", _) $ t1 =>
+    | Const (@{const_name "op |"}, _) $ t1 =>
       SOME (interpret thy model args (eta_expand t 1))
-    | Const ("op |", _) =>
+    | Const (@{const_name "op |"}, _) =>
       SOME (interpret thy model args (eta_expand t 2))
       (* this would make "undef" propagate, even for formulae like *)
       (* "True | undef":                                           *)
       (* SOME (Node [Node [TT, TT], Node [TT, FF]], model, args) *)
-    | Const ("op -->", _) $ t1 $ t2 =>  (* similar to "==>" (Pure) *)
+    | Const (@{const_name "op -->"}, _) $ t1 $ t2 =>  (* similar to "==>" (Pure) *)
       (* 3-valued logic *)
       let
         val (i1, m1, a1) = interpret thy model args t1
@@ -1923,64 +1936,14 @@ struct
       in
         SOME (Leaf [fmTrue, fmFalse], m2, a2)
       end
-    | Const ("op -->", _) $ t1 =>
+    | Const (@{const_name "op -->"}, _) $ t1 =>
       SOME (interpret thy model args (eta_expand t 1))
-    | Const ("op -->", _) =>
+    | Const (@{const_name "op -->"}, _) =>
       SOME (interpret thy model args (eta_expand t 2))
       (* this would make "undef" propagate, even for formulae like *)
       (* "False --> undef":                                        *)
       (* SOME (Node [Node [TT, FF], Node [TT, TT]], model, args) *)
     | _ => NONE;
-
-  (* theory -> model -> arguments -> Term.term ->
-    (interpretation * model * arguments) option *)
-
-  fun set_interpreter thy model args t =
-  (* "T set" is isomorphic to "T --> bool" *)
-  let
-    val (typs, terms) = model
-  in
-    case AList.lookup (op =) terms t of
-      SOME intr =>
-      (* return an existing interpretation *)
-      SOME (intr, model, args)
-    | NONE =>
-      (case t of
-        Free (x, Type ("set", [T])) =>
-        let
-          val (intr, _, args') =
-            interpret thy (typs, []) args (Free (x, T --> HOLogic.boolT))
-        in
-          SOME (intr, (typs, (t, intr)::terms), args')
-        end
-      | Var ((x, i), Type ("set", [T])) =>
-        let
-          val (intr, _, args') =
-            interpret thy (typs, []) args (Var ((x,i), T --> HOLogic.boolT))
-        in
-          SOME (intr, (typs, (t, intr)::terms), args')
-        end
-      | Const (s, Type ("set", [T])) =>
-        let
-          val (intr, _, args') =
-            interpret thy (typs, []) args (Const (s, T --> HOLogic.boolT))
-        in
-          SOME (intr, (typs, (t, intr)::terms), args')
-        end
-      (* 'Collect' == identity *)
-      | Const ("Collect", _) $ t1 =>
-        SOME (interpret thy model args t1)
-      | Const ("Collect", _) =>
-        SOME (interpret thy model args (eta_expand t 1))
-      (* 'op :' == application *)
-      | Const ("op :", _) $ t1 $ t2 =>
-        SOME (interpret thy model args (t2 $ t1))
-      | Const ("op :", _) $ t1 =>
-        SOME (interpret thy model args (eta_expand t 1))
-      | Const ("op :", _) =>
-        SOME (interpret thy model args (eta_expand t 2))
-      | _ => NONE)
-  end;
 
   (* theory -> model -> arguments -> Term.term ->
     (interpretation * model * arguments) option *)
@@ -2120,9 +2083,9 @@ struct
           val HOLogic_prodT = HOLogic.mk_prodT (T1, T2)
           val HOLogic_setT  = HOLogic.mk_setT HOLogic_prodT
           (* Term.term *)
-          val HOLogic_empty_set = Const ("{}", HOLogic_setT)
+          val HOLogic_empty_set = Const (@{const_name "{}"}, HOLogic_setT)
           val HOLogic_insert    =
-            Const ("insert", HOLogic_prodT --> HOLogic_setT --> HOLogic_setT)
+            Const (@{const_name insert}, HOLogic_prodT --> HOLogic_setT --> HOLogic_setT)
         in
           (* functions as graphs, i.e. as a (HOL) set of pairs "(x, y)" *)
           map (foldr (fn (pair, acc) => HOLogic_insert $ pair $ acc)
@@ -2688,6 +2651,8 @@ struct
     | _ =>  (* head of term is not a constant *)
       NONE;
 
+  (* TODO: Fix all occurrences of Type ("set", _). *)
+
   (* theory -> model -> arguments -> Term.term ->
     (interpretation * model * arguments) option *)
 
@@ -2731,26 +2696,6 @@ struct
         val set_constants = make_constants thy model (Type ("set", [T]))
       in
         SOME (Node (map card set_constants), model, args)
-      end
-    | _ =>
-      NONE;
-
-  (* theory -> model -> arguments -> Term.term ->
-    (interpretation * model * arguments) option *)
-
-  (* only an optimization: 'Finites' could in principle be interpreted with *)
-  (* interpreters available already (using its definition), but the code    *)
-  (* below is more efficient                                                *)
-
-  fun Finite_Set_Finites_interpreter thy model args t =
-    case t of
-      Const ("Finite_Set.Finites", Type ("set", [Type ("set", [T])])) =>
-      let
-        val size_of_set = size_of_type thy model (Type ("set", [T]))
-      in
-        (* we only consider finite models anyway, hence EVERY set is in *)
-        (* "Finites"                                                    *)
-        SOME (Node (replicate size_of_set TT), model, args)
       end
     | _ =>
       NONE;
@@ -2995,9 +2940,9 @@ struct
   (* interpreters available already (using its definition), but the code *)
   (* below is more efficient                                             *)
 
-  fun Lfp_lfp_interpreter thy model args t =
+  fun lfp_interpreter thy model args t =
     case t of
-      Const ("Lfp.lfp", Type ("fun", [Type ("fun",
+      Const (@{const_name lfp}, Type ("fun", [Type ("fun",
         [Type ("set", [T]), Type ("set", [_])]), Type ("set", [_])])) =>
       let
         val size_elem = size_of_type thy model T
@@ -3014,14 +2959,14 @@ struct
           List.all (fn (sub, sup) => (sub = FF) orelse (sup = TT))
             (subs ~~ sups)
           | is_subset (_, _) =
-          raise REFUTE ("Lfp_lfp_interpreter",
+          raise REFUTE ("lfp_interpreter",
             "is_subset: interpretation for set is not a node")
         (* interpretation * interpretation -> interpretation *)
         fun intersection (Node xs, Node ys) =
           Node (map (fn (x, y) => if x=TT andalso y=TT then TT else FF)
             (xs ~~ ys))
           | intersection (_, _) =
-          raise REFUTE ("Lfp_lfp_interpreter",
+          raise REFUTE ("lfp_interpreter",
             "intersection: interpretation for set is not a node")
         (* interpretation -> interpretaion *)
         fun lfp (Node resultsets) =
@@ -3031,7 +2976,7 @@ struct
             else
               acc) i_univ (i_sets ~~ resultsets)
           | lfp _ =
-            raise REFUTE ("Lfp_lfp_interpreter",
+            raise REFUTE ("lfp_interpreter",
               "lfp: interpretation for function is not a node")
       in
         SOME (Node (map lfp i_funs), model, args)
@@ -3046,9 +2991,9 @@ struct
   (* interpreters available already (using its definition), but the code *)
   (* below is more efficient                                             *)
 
-  fun Gfp_gfp_interpreter thy model args t =
+  fun gfp_interpreter thy model args t =
     case t of
-      Const ("Gfp.gfp", Type ("fun", [Type ("fun",
+      Const (@{const_name gfp}, Type ("fun", [Type ("fun",
         [Type ("set", [T]), Type ("set", [_])]), Type ("set", [_])])) =>
       let nonfix union (* because "union" is used below *)
         val size_elem = size_of_type thy model T
@@ -3065,14 +3010,14 @@ struct
           List.all (fn (sub, sup) => (sub = FF) orelse (sup = TT))
             (subs ~~ sups)
           | is_subset (_, _) =
-          raise REFUTE ("Gfp_gfp_interpreter",
+          raise REFUTE ("gfp_interpreter",
             "is_subset: interpretation for set is not a node")
         (* interpretation * interpretation -> interpretation *)
         fun union (Node xs, Node ys) =
             Node (map (fn (x,y) => if x=TT orelse y=TT then TT else FF)
                  (xs ~~ ys))
           | union (_, _) =
-          raise REFUTE ("Gfp_gfp_interpreter",
+          raise REFUTE ("gfp_interpreter",
             "union: interpretation for set is not a node")
         (* interpretation -> interpretaion *)
         fun gfp (Node resultsets) =
@@ -3082,7 +3027,7 @@ struct
             else
               acc) i_univ (i_sets ~~ resultsets)
           | gfp _ =
-            raise REFUTE ("Gfp_gfp_interpreter",
+            raise REFUTE ("gfp_interpreter",
               "gfp: interpretation for function is not a node")
       in
         SOME (Node (map gfp i_funs), model, args)
@@ -3099,7 +3044,7 @@ struct
 
   fun Product_Type_fst_interpreter thy model args t =
     case t of
-      Const ("fst", Type ("fun", [Type ("*", [T, U]), _])) =>
+      Const ("Product_Type.fst", Type ("fun", [Type ("*", [T, U]), _])) =>
       let
         val constants_T = make_constants thy model T
         val size_U      = size_of_type thy model U
@@ -3119,7 +3064,7 @@ struct
 
   fun Product_Type_snd_interpreter thy model args t =
     case t of
-      Const ("snd", Type ("fun", [Type ("*", [T, U]), _])) =>
+      Const ("Product_Type.snd", Type ("fun", [Type ("*", [T, U]), _])) =>
       let
         val size_T      = size_of_type thy model T
         val constants_U = make_constants thy model U
@@ -3175,9 +3120,9 @@ struct
         val HOLogic_prodT = HOLogic.mk_prodT (T1, T2)
         val HOLogic_setT  = HOLogic.mk_setT HOLogic_prodT
         (* Term.term *)
-        val HOLogic_empty_set = Const ("{}", HOLogic_setT)
+        val HOLogic_empty_set = Const (@{const_name "{}"}, HOLogic_setT)
         val HOLogic_insert    =
-          Const ("insert", HOLogic_prodT --> HOLogic_setT --> HOLogic_setT)
+          Const (@{const_name insert}, HOLogic_prodT --> HOLogic_setT --> HOLogic_setT)
       in
         SOME (foldr (fn (pair, acc) => HOLogic_insert $ pair $ acc)
           HOLogic_empty_set pairs)
@@ -3205,45 +3150,6 @@ struct
         SOME (Const (string_of_typ T ^
           string_of_int (index_from_interpretation intr), T))
   end;
-
-  (* theory -> model -> Term.typ -> interpretation -> (int -> bool) ->
-    Term.term option *)
-
-  fun set_printer thy model T intr assignment =
-    (case T of
-      Type ("set", [T1]) =>
-      let
-        (* create all constants of type 'T1' *)
-        val constants = make_constants thy model T1
-        (* interpretation list *)
-        val results = (case intr of
-            Node xs => xs
-          | _       => raise REFUTE ("set_printer",
-            "interpretation for set type is a leaf"))
-        (* Term.term list *)
-        val elements = List.mapPartial (fn (arg, result) =>
-          case result of
-            Leaf [fmTrue, fmFalse] =>
-            if PropLogic.eval assignment fmTrue then
-              SOME (print thy model T1 arg assignment)
-            else (* if PropLogic.eval assignment fmFalse then *)
-              NONE
-          | _ =>
-            raise REFUTE ("set_printer",
-              "illegal interpretation for a Boolean value"))
-          (constants ~~ results)
-        (* Term.typ *)
-        val HOLogic_setT1     = HOLogic.mk_setT T1
-        (* Term.term *)
-        val HOLogic_empty_set = Const ("{}", HOLogic_setT1)
-        val HOLogic_insert    =
-          Const ("insert", T1 --> HOLogic_setT1 --> HOLogic_setT1)
-      in
-        SOME (Library.foldl (fn (acc, elem) => HOLogic_insert $ elem $ acc)
-          (HOLogic_empty_set, elements))
-      end
-    | _ =>
-      NONE);
 
   (* theory -> model -> Term.typ -> interpretation -> (int -> bool) ->
     Term.term option *)
@@ -3359,24 +3265,21 @@ struct
      add_interpreter "stlc"    stlc_interpreter #>
      add_interpreter "Pure"    Pure_interpreter #>
      add_interpreter "HOLogic" HOLogic_interpreter #>
-     add_interpreter "set"     set_interpreter #>
      add_interpreter "IDT"             IDT_interpreter #>
      add_interpreter "IDT_constructor" IDT_constructor_interpreter #>
      add_interpreter "IDT_recursion"   IDT_recursion_interpreter #>
      add_interpreter "Finite_Set.card"    Finite_Set_card_interpreter #>
-     add_interpreter "Finite_Set.Finites" Finite_Set_Finites_interpreter #>
      add_interpreter "Finite_Set.finite"  Finite_Set_finite_interpreter #>
      add_interpreter "Nat_Orderings.less" Nat_less_interpreter #>
      add_interpreter "Nat_HOL.plus"       Nat_plus_interpreter #>
      add_interpreter "Nat_HOL.minus"      Nat_minus_interpreter #>
      add_interpreter "Nat_HOL.times"      Nat_times_interpreter #>
      add_interpreter "List.append" List_append_interpreter #>
-     add_interpreter "Lfp.lfp" Lfp_lfp_interpreter #>
-     add_interpreter "Gfp.gfp" Gfp_gfp_interpreter #>
+     add_interpreter "lfp" lfp_interpreter #>
+     add_interpreter "gfp" gfp_interpreter #>
      add_interpreter "fst" Product_Type_fst_interpreter #>
      add_interpreter "snd" Product_Type_snd_interpreter #>
      add_printer "stlc" stlc_printer #>
-     add_printer "set"  set_printer #>
      add_printer "IDT"  IDT_printer;
 
 end  (* structure Refute *)
