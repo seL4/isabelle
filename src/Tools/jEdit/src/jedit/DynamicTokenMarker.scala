@@ -22,7 +22,7 @@ object DynamicTokenMarker {
 
   def styles: Array[SyntaxStyle] = {
     val array = new Array[SyntaxStyle](256)
-    // array(0) won't be used: reserved for global default-font
+    array(0) = new SyntaxStyle(Color.black, Color.white, Isabelle.plugin.font)
     array(1) = new SyntaxStyle(Color.black, Color.white, Isabelle.plugin.font)
     array(2) = new SyntaxStyle(new Color(255, 0, 255), Color.white, Isabelle.plugin.font)
     array(3) = new SyntaxStyle(Color.blue, Color.white, Isabelle.plugin.font)
@@ -36,6 +36,7 @@ object DynamicTokenMarker {
     array(11) = new SyntaxStyle(Color.white, Color.white, Isabelle.plugin.font)
     array(12) = new SyntaxStyle(Color.red, Color.white, Isabelle.plugin.font)
     array(13) = new SyntaxStyle(Color.orange, Color.white, Isabelle.plugin.font)
+    for(i <- 14 to Token.ID_COUNT) array(i) = new SyntaxStyle(Color.black, Color.white, Isabelle.plugin.font)
     return array
   }
 
