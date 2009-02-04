@@ -712,7 +712,7 @@ fun mk_add th1 = combination(arg_cong_rule ring_add_tm th1);
 
 fun refute tm =
  if tm aconvc false_tm then assume_Trueprop tm else
-  let
+ ((let
    val (nths0,eths0) = List.partition (is_neg o concl) (HOLogic.conj_elims (assume_Trueprop tm))
    val  nths = filter (is_eq o dest_arg o concl) nths0
    val eths = filter (is_eq o concl) eths0
@@ -767,7 +767,7 @@ fun refute tm =
                         (equal_elim (arg_cong_rule cTrp (eqF_intr th4))
                    (reflexive l |> mk_object_eq))
    end
-  end
+  end) handle ERROR _ => raise CTERM ("Gorbner-refute: unable to refute",[tm]))
 
 fun ring tm =
  let
