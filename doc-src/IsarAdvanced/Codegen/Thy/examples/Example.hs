@@ -14,20 +14,20 @@ list_case :: forall t a. t -> (a -> [a] -> t) -> [a] -> t;
 list_case f1 f2 (a : list) = f2 a list;
 list_case f1 f2 [] = f1;
 
-data Queue a = Queue [a] [a];
+data Queue a = AQueue [a] [a];
 
 empty :: forall a. Queue a;
-empty = Queue [] [];
+empty = AQueue [] [];
 
 dequeue :: forall a. Queue a -> (Maybe a, Queue a);
-dequeue (Queue [] []) = (Nothing, Queue [] []);
-dequeue (Queue xs (y : ys)) = (Just y, Queue xs ys);
-dequeue (Queue (v : va) []) =
+dequeue (AQueue [] []) = (Nothing, AQueue [] []);
+dequeue (AQueue xs (y : ys)) = (Just y, AQueue xs ys);
+dequeue (AQueue (v : va) []) =
   let {
     (y : ys) = rev (v : va);
-  } in (Just y, Queue [] ys);
+  } in (Just y, AQueue [] ys);
 
 enqueue :: forall a. a -> Queue a -> Queue a;
-enqueue x (Queue xs ys) = Queue (x : xs) ys;
+enqueue x (AQueue xs ys) = AQueue (x : xs) ys;
 
 }

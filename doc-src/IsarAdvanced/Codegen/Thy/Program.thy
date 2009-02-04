@@ -26,11 +26,11 @@ text {*
 *}
 
 lemma %quote [code]:
-  "dequeue (Queue xs []) =
-     (if xs = [] then (None, Queue [] [])
-       else dequeue (Queue [] (rev xs)))"
-  "dequeue (Queue xs (y # ys)) =
-     (Some y, Queue xs ys)"
+  "dequeue (AQueue xs []) =
+     (if xs = [] then (None, AQueue [] [])
+       else dequeue (AQueue [] (rev xs)))"
+  "dequeue (AQueue xs (y # ys)) =
+     (Some y, AQueue xs ys)"
   by (cases xs, simp_all) (cases "rev xs", simp_all)
 
 text {*
@@ -258,7 +258,14 @@ definition %quote AQueue :: "'a list \<Rightarrow> 'a list \<Rightarrow> 'a queu
 
 code_datatype %quote AQueue
 
-text {* *}
+text {*
+  \noindent Here we define a \qt{constructor} @{const "AQueue"} which
+  is defined in terms of @{text "Queue"} and interprets its arguments
+  according to what the \emph{content} of an amortised queue is supposed
+  to be.  Equipped with this, we are able to prove the following equations
+  for our primitive queue operations which \qt{implement} the simple
+  queues in an amortised fashion:
+*}
 
 lemma %quote empty_AQueue [code]:
   "empty = AQueue [] []"
@@ -270,24 +277,30 @@ lemma %quote enqueue_AQueue [code]:
 
 lemma %quote dequeue_AQueue [code]:
   "dequeue (AQueue xs []) =
-    (if xs = [] then (None, AQueue [] []) else dequeue (AQueue [] (rev xs)))"
+    (if xs = [] then (None, AQueue [] [])
+    else dequeue (AQueue [] (rev xs)))"
   "dequeue (AQueue xs (y # ys)) = (Some y, AQueue xs ys)"
   unfolding AQueue_def by simp_all
 
-text {* *}
+text {*
+  \noindent For completeness, we provide a substitute for the
+  @{text case} combinator on queues:
+*}
 
-definition %quote aqueue_case [code inline]:
-  "aqueue_case = queue_case"
+definition %quote
+  aqueue_case_def: "aqueue_case = queue_case"
 
-lemma %quote case_AQueue1 [code]:
-  "queue_case f (AQueue xs ys) = f (ys @ rev xs)"
-  unfolding AQueue_def by simp
+lemma %quote aqueue_case [code, code inline]:
+  "queue_case = aqueue_case"
+  unfolding aqueue_case_def ..
 
-lemma %quote case_AQueue2 [code]:
+lemma %quote case_AQueue [code]:
   "aqueue_case f (AQueue xs ys) = f (ys @ rev xs)"
-  unfolding aqueue_case case_AQueue1 ..
+  unfolding aqueue_case_def AQueue_def by simp
 
-text {* *}
+text {*
+  \noindent The resulting code looks as expected:
+*}
 
 text %quote {*@{code_stmts empty enqueue dequeue (SML)}*}
 
@@ -453,14 +466,19 @@ text {*
   in the following example, again for amortised queues:
 *}
 
-fun %quote strict_dequeue :: "'a Introduction.queue \<Rightarrow> 'a \<times> 'a Introduction.queue" where
-  "strict_dequeue (Introduction.Queue xs (y # ys)) = (y, Introduction.Queue xs ys)"
-  | "strict_dequeue (Introduction.Queue xs []) =
-      (case rev xs of y # ys \<Rightarrow> (y, Introduction.Queue [] ys))"
+definition %quote strict_dequeue :: "'a queue \<Rightarrow> 'a \<times> 'a queue" where
+  "strict_dequeue q = (case dequeue q
+    of (Some x, q') \<Rightarrow> (x, q'))"
+
+lemma %quote strict_dequeue_AQueue [code]:
+  "strict_dequeue (AQueue xs (y # ys)) = (y, AQueue xs ys)"
+  "strict_dequeue (AQueue xs []) =
+    (case rev xs of y # ys \<Rightarrow> (y, AQueue [] ys))"
+  by (simp_all add: strict_dequeue_def dequeue_AQueue split: list.splits)
 
 text {*
   \noindent In the corresponding code, there is no equation
-  for the pattern @{term "Introduction.Queue [] []"}:
+  for the pattern @{term "AQueue [] []"}:
 *}
 
 text %quote {*@{code_stmts strict_dequeue (consts) strict_dequeue (Haskell)}*}
@@ -472,30 +490,28 @@ text {*
 
 axiomatization %quote empty_queue :: 'a
 
-function %quote strict_dequeue' :: "'a Introduction.queue \<Rightarrow> 'a \<times> 'a Introduction.queue" where
-  "strict_dequeue' (Introduction.Queue xs []) = (if xs = [] then empty_queue
-     else strict_dequeue' (Introduction.Queue [] (rev xs)))"
-  | "strict_dequeue' (Introduction.Queue xs (y # ys)) =
-       (y, Introduction.Queue xs ys)"
-by pat_completeness auto
+definition %quote strict_dequeue' :: "'a queue \<Rightarrow> 'a \<times> 'a queue" where
+  "strict_dequeue' q = (case dequeue q of (Some x, q') \<Rightarrow> (x, q') | _ \<Rightarrow> empty_queue)"
 
-termination %quote strict_dequeue'
-by (relation "measure (\<lambda>q::'a Introduction.queue. case q of Introduction.Queue xs ys \<Rightarrow> length xs)") simp_all
+lemma %quote strict_dequeue'_AQueue [code]:
+  "strict_dequeue' (AQueue xs []) = (if xs = [] then empty_queue
+     else strict_dequeue' (AQueue [] (rev xs)))"
+  "strict_dequeue' (AQueue xs (y # ys)) =
+     (y, AQueue xs ys)"
+  by (simp_all add: strict_dequeue'_def dequeue_AQueue split: list.splits)
 
 text {*
-  \noindent For technical reasons the definition of
-  @{const strict_dequeue'} is more involved since it requires
-  a manual termination proof.  Apart from that observe that
-  on the right hand side of its first equation the constant
-  @{const empty_queue} occurs which is unspecified.
+  Observe that on the right hand side of the definition of @{const
+  "strict_dequeue'"} the constant @{const empty_queue} occurs
+  which is unspecified.
 
-  Normally, if constants without any code equations occur in
-  a program, the code generator complains (since in most cases
-  this is not what the user expects).  But such constants can also
-  be thought of as function definitions with no equations which
-  always fail, since there is never a successful pattern match
-  on the left hand side.  In order to categorise a constant into
-  that category explicitly, use @{command "code_abort"}:
+  Normally, if constants without any code equations occur in a
+  program, the code generator complains (since in most cases this is
+  not what the user expects).  But such constants can also be thought
+  of as function definitions with no equations which always fail,
+  since there is never a successful pattern match on the left hand
+  side.  In order to categorise a constant into that category
+  explicitly, use @{command "code_abort"}:
 *}
 
 code_abort %quote empty_queue

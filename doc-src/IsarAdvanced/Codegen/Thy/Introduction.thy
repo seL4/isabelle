@@ -65,19 +65,19 @@ text {*
   For example, here a simple \qt{implementation} of amortised queues:
 *}
 
-datatype %quote 'a queue = Queue "'a list" "'a list"
+datatype %quote 'a queue = AQueue "'a list" "'a list"
 
 definition %quote empty :: "'a queue" where
-  "empty = Queue [] []"
+  "empty = AQueue [] []"
 
 primrec %quote enqueue :: "'a \<Rightarrow> 'a queue \<Rightarrow> 'a queue" where
-  "enqueue x (Queue xs ys) = Queue (x # xs) ys"
+  "enqueue x (AQueue xs ys) = AQueue (x # xs) ys"
 
 fun %quote dequeue :: "'a queue \<Rightarrow> 'a option \<times> 'a queue" where
-    "dequeue (Queue [] []) = (None, Queue [] [])"
-  | "dequeue (Queue xs (y # ys)) = (Some y, Queue xs ys)"
-  | "dequeue (Queue xs []) =
-      (case rev xs of y # ys \<Rightarrow> (Some y, Queue [] ys))"
+    "dequeue (AQueue [] []) = (None, AQueue [] [])"
+  | "dequeue (AQueue xs (y # ys)) = (Some y, AQueue xs ys)"
+  | "dequeue (AQueue xs []) =
+      (case rev xs of y # ys \<Rightarrow> (Some y, AQueue [] ys))"
 
 text {* \noindent Then we can generate code e.g.~for @{text SML} as follows: *}
 
