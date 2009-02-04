@@ -20,53 +20,48 @@ import javax.swing.text.Segment;
 
 object DynamicTokenMarker {
 
-  def styles: Array[SyntaxStyle] = {
-    val array = new Array[SyntaxStyle](256)
-    array(0) = new SyntaxStyle(Color.black, Color.white, Isabelle.plugin.font)
-    array(1) = new SyntaxStyle(Color.black, Color.white, Isabelle.plugin.font)
-    array(2) = new SyntaxStyle(new Color(255, 0, 255), Color.white, Isabelle.plugin.font)
-    array(3) = new SyntaxStyle(Color.blue, Color.white, Isabelle.plugin.font)
-    array(4) = new SyntaxStyle(Color.green, Color.white, Isabelle.plugin.font)
-    array(5) = new SyntaxStyle(new Color(255, 128, 128), Color.white,Isabelle.plugin.font)
-    array(6) = new SyntaxStyle(Color.yellow, Color.white, Isabelle.plugin.font)
-    array(7) = new SyntaxStyle( new Color(0, 192, 0), Color.white, Isabelle.plugin.font)
-    array(8) = new SyntaxStyle(Color.blue, Color.white, Isabelle.plugin.font)
-    array(9) = new SyntaxStyle(Color.green, Color.white, Isabelle.plugin.font)
-    array(10) = new SyntaxStyle(Color.gray, Color.white, Isabelle.plugin.font)
-    array(11) = new SyntaxStyle(Color.white, Color.white, Isabelle.plugin.font)
-    array(12) = new SyntaxStyle(Color.red, Color.white, Isabelle.plugin.font)
-    array(13) = new SyntaxStyle(Color.orange, Color.white, Isabelle.plugin.font)
-    for(i <- 14 to Token.ID_COUNT) array(i) = new SyntaxStyle(Color.black, Color.white, Isabelle.plugin.font)
-    return array
+  var styles : Array[SyntaxStyle] = null
+  def reload_styles: Array[SyntaxStyle] = {
+    styles = new Array[SyntaxStyle](256)
+    //jEdit styles
+    for(i <- 0 to Token.ID_COUNT) styles(i) = new SyntaxStyle(Color.black, Color.white, Isabelle.plugin.font)
+    //isabelle styles
+    def from_property(kind : String, spec : String, default : Color) : Color = 
+      try {Color.decode(Isabelle.Property("styles." + kind + "." + spec))} catch {case _ => default}
+
+    for((kind, i) <- kinds) styles(i + FIRST_BYTE) = new SyntaxStyle(
+      from_property(kind, "foreground", Color.black),
+      from_property(kind, "background", Color.white),
+      Isabelle.plugin.font)
+    return styles
   }
 
-  def choose_byte(kind: String): Byte = {
-    // TODO: as properties
-    kind match {
-      // logical entities
-      case Markup.TCLASS | Markup.TYCON | Markup.FIXED_DECL | Markup.FIXED | Markup.CONST_DECL
-        | Markup.CONST | Markup.FACT_DECL | Markup.FACT | Markup.DYNAMIC_FACT
-        | Markup.LOCAL_FACT_DECL | Markup.LOCAL_FACT => 2
-      // inner syntax
-      case Markup.TFREE | Markup.FREE => 3
-      case Markup.TVAR | Markup.SKOLEM | Markup.BOUND | Markup.VAR => 4
-      case Markup.NUM | Markup.FLOAT | Markup.XNUM | Markup.XSTR | Markup.LITERAL
-        | Markup.INNER_COMMENT => 5
-      case Markup.SORT | Markup.TYP | Markup.TERM | Markup.PROP
-        | Markup.ATTRIBUTE | Markup.METHOD => 6
-      // embedded source text
-      case Markup.ML_SOURCE | Markup.DOC_SOURCE | Markup.ANTIQ | Markup.ML_ANTIQ
-        | Markup.DOC_ANTIQ => 7
-      // outer syntax
-      case Markup.IDENT | Markup.COMMAND | Markup.KEYWORD => 8
-      case Markup.VERBATIM => 9
-      case Markup.COMMENT => 10
-      case Markup.CONTROL => 11
-      case Markup.MALFORMED => 12
-      case Markup.STRING | Markup.ALTSTRING => 13
-      // other
-      case _ => 1
-    }
+  private final val FIRST_BYTE : Byte = 30
+  val kinds = List(// TODO Markups as Enumeration?
+     // default style
+    null,
+    // logical entities
+    Markup.TCLASS, Markup.TYCON, Markup.FIXED_DECL, Markup.FIXED, Markup.CONST_DECL,
+    Markup.CONST, Markup.FACT_DECL, Markup.FACT, Markup.DYNAMIC_FACT,
+    Markup.LOCAL_FACT_DECL, Markup.LOCAL_FACT,
+    // inner syntax
+    Markup.TFREE, Markup.FREE,
+    Markup.TVAR, Markup.SKOLEM, Markup.BOUND, Markup.VAR,
+    Markup.NUM, Markup.FLOAT, Markup.XNUM, Markup.XSTR, Markup.LITERAL,
+    Markup.INNER_COMMENT,
+    Markup.SORT, Markup.TYP, Markup.TERM, Markup.PROP,
+    Markup.ATTRIBUTE, Markup.METHOD,
+    // embedded source text
+    Markup.ML_SOURCE, Markup.DOC_SOURCE, Markup.ANTIQ, Markup.ML_ANTIQ,
+    Markup.DOC_ANTIQ,
+    // outer syntax
+    Markup.IDENT, Markup.COMMAND, Markup.KEYWORD, Markup.VERBATIM, Markup.COMMENT,
+    Markup.CONTROL, Markup.MALFORMED, Markup.STRING, Markup.ALTSTRING
+  ).zipWithIndex
+
+  def choose_byte(kind : String) : Byte = (kinds.find (k => kind == k._1)) match {
+    case Some((kind, index)) => (index + FIRST_BYTE).asInstanceOf[Byte]
+    case _ => FIRST_BYTE
   }
 
   def choose_color(kind : String) : Color = styles((choose_byte(kind).asInstanceOf[Byte])).getForegroundColor

@@ -66,7 +66,7 @@ class TheoryView (text_area: JEditTextArea)
   private def update_styles = {
     if (text_area != null) {
       if (Isabelle.plugin.font != null) {
-        text_area.getPainter.setStyles(DynamicTokenMarker.styles)
+        text_area.getPainter.setStyles(DynamicTokenMarker.reload_styles)
         repaint_all
       }
     }
