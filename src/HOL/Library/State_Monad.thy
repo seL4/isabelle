@@ -1,5 +1,4 @@
 (*  Title:      HOL/Library/State_Monad.thy
-    ID:         $Id$
     Author:     Florian Haftmann, TU Muenchen
 *)
 
