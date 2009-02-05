@@ -67,7 +67,7 @@ fun inst_tvars [] thms = thms
 
 local
     val ths = ComputeHOL.prep_thms @{thms "ComputeHOL.compute_list_case" "ComputeHOL.compute_let"
-      "ComputeHOL.compute_if" "Float.arith" "SparseMatrix.sparse_row_matrix_arith_simps"
+      "ComputeHOL.compute_if" "ComputeFloat.arith" "SparseMatrix.sparse_row_matrix_arith_simps"
       "ComputeHOL.compute_bool" "ComputeHOL.compute_pair"
       "SparseMatrix.sorted_sp_simps" "ComputeNumeral.number_norm"
       "ComputeNumeral.natnorm"};

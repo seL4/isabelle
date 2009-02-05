@@ -335,7 +335,7 @@ $(LOG)/HOL-Library.gz: $(OUT)/HOL Library/SetsAndFunctions.thy		\
   Library/Mapping.thy	Library/Numeral_Type.thy	Library/Reflection.thy		\
   Library/Boolean_Algebra.thy Library/Countable.thy	\
   Library/RBT.thy	Library/Univ_Poly.thy	\
-  Library/Enum.thy Library/Float.thy $(SRC)/Tools/float.ML $(SRC)/HOL/Tools/float_arith.ML \
+  Library/Enum.thy Library/Float.thy $(SRC)/Tools/float.ML \
   Library/reify_data.ML Library/reflection.ML
 	@cd Library; $(ISABELLE_TOOL) usedir $(OUT)/HOL Library
 
@@ -883,6 +883,7 @@ $(LOG)/HOL-Matrix.gz: $(OUT)/HOL				\
   $(SRC)/Tools/Compute_Oracle/am_ghc.ML					\
   $(SRC)/Tools/Compute_Oracle/am_sml.ML					\
   $(SRC)/Tools/Compute_Oracle/compute.ML	\
+  Tools/ComputeFloat.thy Tools/float_arith.ML \
   Matrix/Matrix.thy Matrix/SparseMatrix.thy Matrix/LP.thy		\
   Matrix/document/root.tex Matrix/ROOT.ML Matrix/cplex/Cplex.thy	\
   Matrix/cplex/CplexMatrixConverter.ML Matrix/cplex/Cplex_tools.ML	\
