@@ -10,7 +10,7 @@ no_document use_thys [
   "FuncSet",
   "Word",
   "Eval_Examples",
-  "Quickcheck",
+  "Quickcheck_Generators",
   "Term_Of_Syntax",
   "Codegenerator",
   "Codegenerator_Pretty",

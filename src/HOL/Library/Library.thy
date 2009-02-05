@@ -34,9 +34,11 @@ imports
   Permutation
   Pocklington
   Primes
+  Quickcheck
   Quicksort
   Quotient
   Ramsey
+  Random
   Reflection
   RBT
   State_Monad
