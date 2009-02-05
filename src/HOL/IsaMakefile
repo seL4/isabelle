@@ -684,6 +684,7 @@ $(LOG)/HOL-Prolog.gz: $(OUT)/HOL Prolog/ROOT.ML Prolog/prolog.ML	\
 HOL-Reflection: HOL $(LOG)/HOL-Reflection.gz
 
 $(LOG)/HOL-Reflection.gz: $(OUT)/HOL \
+  Reflection/Approximation.thy \
   Reflection/Cooper.thy \
   Reflection/cooper_tac.ML \
   Reflection/Ferrack.thy \
@@ -836,7 +837,8 @@ $(LOG)/HOL-ex.gz: $(OUT)/HOL Library/Commutative_Ring.thy		\
   ex/svc_funcs.ML ex/svc_test.thy	\
   ex/ImperativeQuicksort.thy	\
   ex/Arithmetic_Series_Complex.thy ex/HarmonicSeries.thy	\
-  ex/Sqrt.thy ex/Sqrt_Script.thy
+  ex/Sqrt.thy ex/Sqrt_Script.thy \
+  ex/ApproximationEx.thy
 	@$(ISABELLE_TOOL) usedir $(OUT)/HOL ex
 
 
