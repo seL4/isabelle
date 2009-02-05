@@ -389,15 +389,6 @@ by (cut_tac diff = "%n. exp" and f = exp and x = x and n = n in Maclaurin_all_le
 
 subsection{*Version for Sine Function*}
 
-lemma MVT2:
-     "[| a < b; \<forall>x. a \<le> x & x \<le> b --> DERIV f x :> f'(x) |]
-      ==> \<exists>z::real. a < z & z < b & (f b - f a = (b - a) * f'(z))"
-apply (drule MVT)
-apply (blast intro: DERIV_isCont)
-apply (force dest: order_less_imp_le simp add: differentiable_def)
-apply (blast dest: DERIV_unique order_less_imp_le)
-done
-
 lemma mod_exhaust_less_4:
   "m mod 4 = 0 | m mod 4 = 1 | m mod 4 = 2 | m mod 4 = (3::nat)"
 by auto

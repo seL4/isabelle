@@ -140,6 +140,24 @@ lemma suminf_split_initial_segment: "summable f ==>
     suminf f = (SUM i = 0..< k. f i) + suminf (%n. f(n + k))"
 by (auto simp add: suminf_minus_initial_segment)
 
+lemma suminf_exist_split: fixes r :: real assumes "0 < r" and "summable a"
+  shows "\<exists> N. \<forall> n \<ge> N. \<bar> \<Sum> i. a (i + n) \<bar> < r"
+proof -
+  from LIMSEQ_D[OF summable_sumr_LIMSEQ_suminf[OF `summable a`] `0 < r`]
+  obtain N :: nat where "\<forall> n \<ge> N. norm (setsum a {0..<n} - suminf a) < r" by auto
+  thus ?thesis unfolding suminf_minus_initial_segment[OF `summable a` refl] abs_minus_commute real_norm_def
+    by auto
+qed
+
+lemma sums_Suc: assumes sumSuc: "(\<lambda> n. f (Suc n)) sums l" shows "f sums (l + f 0)"
+proof -
+  from sumSuc[unfolded sums_def]
+  have "(\<lambda>i. \<Sum>n = Suc 0..<Suc i. f n) ----> l" unfolding setsum_reindex[OF inj_Suc] image_Suc_atLeastLessThan[symmetric] comp_def .
+  from LIMSEQ_add_const[OF this, where b="f 0"] 
+  have "(\<lambda>i. \<Sum>n = 0..<Suc i. f n) ----> l + f 0" unfolding add_commute setsum_head_upt_Suc[OF zero_less_Suc] .
+  thus ?thesis unfolding sums_def by (rule LIMSEQ_imp_Suc)
+qed
+
 lemma series_zero: 
      "(\<forall>m. n \<le> m --> f(m) = 0) ==> f sums (setsum f {0..<n})"
 apply (simp add: sums_def LIMSEQ_def diff_minus[symmetric], safe)
