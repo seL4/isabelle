@@ -311,6 +311,7 @@ $(OUT)/HOL: ROOT.ML $(MAIN_DEPENDENCIES) \
 
 HOL-Library: HOL $(LOG)/HOL-Library.gz
 
+
 $(LOG)/HOL-Library.gz: $(OUT)/HOL Library/SetsAndFunctions.thy		\
   Library/Abstract_Rat.thy \
   Library/BigO.thy Library/ContNotDenum.thy Library/Efficient_Nat.thy	\
@@ -335,6 +336,7 @@ $(LOG)/HOL-Library.gz: $(OUT)/HOL Library/SetsAndFunctions.thy		\
   Library/Mapping.thy	Library/Numeral_Type.thy	Library/Reflection.thy		\
   Library/Boolean_Algebra.thy Library/Countable.thy	\
   Library/RBT.thy	Library/Univ_Poly.thy	\
+  Library/Random.thy	Library/Quickcheck.thy	\
   Library/Enum.thy Library/Float.thy $(SRC)/Tools/float.ML $(SRC)/HOL/Tools/float_arith.ML \
   Library/reify_data.ML Library/reflection.ML
 	@cd Library; $(ISABELLE_TOOL) usedir $(OUT)/HOL Library
@@ -814,7 +816,7 @@ $(LOG)/HOL-ex.gz: $(OUT)/HOL Library/Commutative_Ring.thy		\
   ex/Abstract_NAT.thy ex/Antiquote.thy ex/Arith_Examples.thy ex/BT.thy	\
   ex/BinEx.thy ex/CTL.thy ex/Chinese.thy ex/Classical.thy		\
   ex/Coherent.thy ex/Dense_Linear_Order_Ex.thy ex/Eval_Examples.thy	\
-  ex/Groebner_Examples.thy ex/Random.thy ex/Quickcheck.thy		\
+  ex/Groebner_Examples.thy ex/Quickcheck_Generators.thy		\
   ex/Codegenerator.thy ex/Codegenerator_Pretty.thy			\
   ex/CodegenSML_Test.thy ex/Formal_Power_Series_Examples.thy						\
   ex/Commutative_RingEx.thy ex/Efficient_Nat_examples.thy		\
