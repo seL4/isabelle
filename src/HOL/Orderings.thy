@@ -1033,7 +1033,6 @@ class dense_linear_order = linorder +
   assumes gt_ex: "\<exists>y. x < y" 
   and lt_ex: "\<exists>y. y < x"
   and dense: "x < y \<Longrightarrow> (\<exists>z. x < z \<and> z < y)"
-  (*see further theory Dense_Linear_Order*)
 
 
 subsection {* Wellorders *}

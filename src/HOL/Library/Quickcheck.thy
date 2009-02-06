@@ -17,7 +17,7 @@ instantiation itself :: ("{type, typerep}") random
 begin
 
 definition
-  "random _ = return (TYPE('a), \<lambda>u. Code_Eval.Const (STR ''TYPE'') TYPEREP('a))"
+  "random _ = Pair (TYPE('a), \<lambda>u. Code_Eval.Const (STR ''TYPE'') TYPEREP('a))"
 
 instance ..
 

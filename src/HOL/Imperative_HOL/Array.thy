@@ -32,15 +32,6 @@ where
                      else raise (''array lookup: index out of range''))
               done)"
 
--- {* FIXME adjustion for List theory *}
-no_syntax
-  nth  :: "'a list \<Rightarrow> nat \<Rightarrow> 'a" (infixl "!" 100)
-
-abbreviation
-  nth_list :: "'a list \<Rightarrow> nat \<Rightarrow> 'a" (infixl "!" 100)
-where
-  "nth_list \<equiv> List.nth"
-
 definition
   upd :: "nat \<Rightarrow> 'a \<Rightarrow> 'a\<Colon>heap array \<Rightarrow> 'a\<Colon>heap array Heap"
 where

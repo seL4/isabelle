@@ -1,12 +1,9 @@
-(*
-    ID:         $Id$
-    Author:     Amine Chaieb, TU Muenchen
-*)
+(* Author:     Amine Chaieb, TU Muenchen *)
 
 header {* Examples for Ferrante and Rackoff's quantifier elimination procedure *}
 
 theory Dense_Linear_Order_Ex
-imports Dense_Linear_Order Main
+imports "~~/src/HOL/Decision_Procs/Dense_Linear_Order" Main
 begin
 
 lemma

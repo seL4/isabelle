@@ -1,5 +1,4 @@
-(*  Title:      HOL/Library/Imperative_HOL.thy
-    ID:         $Id$
+(*  Title:      HOL/Imperative_HOL/Imperative_HOL.thy
     Author:     John Matthews, Galois Connections; Alexander Krauss, Lukas Bulwahn & Florian Haftmann, TU Muenchen
 *)
 

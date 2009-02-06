@@ -1,5 +1,4 @@
 (*  Title:      HOL/Extraction/Warshall.thy
-    ID:         $Id$
     Author:     Stefan Berghofer, TU Muenchen
 *)
 

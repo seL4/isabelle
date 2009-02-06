@@ -302,8 +302,8 @@ code_const "op * \<Colon> index \<Rightarrow> index \<Rightarrow> index"
   (Haskell infixl 7 "*")
 
 code_const div_mod_index
-  (SML "(fn n => fn m =>/ (n div m, n mod m))")
-  (OCaml "(fun n -> fun m ->/ (n '/ m, n mod m))")
+  (SML "(fn n => fn m =>/ if m = 0/ then (0, n) else/ (n div m, n mod m))")
+  (OCaml "(fun n -> fun m ->/ if m = 0/ then (0, n) else/ (n '/ m, n mod m))")
   (Haskell "divMod")
 
 code_const "eq_class.eq \<Colon> index \<Rightarrow> index \<Rightarrow> bool"

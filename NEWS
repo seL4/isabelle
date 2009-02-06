@@ -196,14 +196,17 @@ syntax just like the Isar command 'by'.
 * Auxiliary class "itself" has disappeared -- classes without any parameter
 are treated as expected by the 'class' command.
 
-* Theory "Reflection" now resides in HOL/Library.  Common reflection examples
-(Cooper, MIR, Ferrack, Approximation) now in distinct session directory
-HOL/Reflection. Here Approximation provides the new proof method
-"approximation". It proves formulas on real values by using interval arithmetic.
+* Leibnitz's Series for Pi and the arcus tangens and logarithm series.
+
+* Common decision procedures (Cooper, MIR, Ferrack, Approximation, Dense_Linear_Order)
+now in directory HOL/Decision_Procs.
+
+* Theory HOL/Decisioin_Procs/Approximation.thy provides the new proof method
+"approximation".  It proves formulas on real values by using interval arithmetic.
 In the formulas are also the transcendental functions sin, cos, tan, atan, ln,
-exp and the constant pi are allowed. For examples see
-src/HOL/ex/ApproximationEx.thy. To reach this the Leibnitz's Series for Pi and
-the arcus tangens and logarithm series is now proved in Isabelle.
+exp and the constant pi are allowed.  For examples see HOL/ex/ApproximationEx.thy.
+
+* Theory "Reflection" now resides in HOL/Library.
 
 * Entry point to Word library now simply named "Word".  INCOMPATIBILITY.
 
@@ -212,7 +215,6 @@ structure:
 
     src/HOL/Library/RType.thy ~> src/HOL/Typerep.thy
     src/HOL/Library/Code_Message.thy ~> src/HOL/
-    src/HOL/Library/Dense_Linear_Order.thy ~> src/HOL/
     src/HOL/Library/GCD.thy ~> src/HOL/
     src/HOL/Library/Order_Relation.thy ~> src/HOL/
     src/HOL/Library/Parity.thy ~> src/HOL/
