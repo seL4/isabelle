@@ -15,6 +15,7 @@ imports
   Continuity
   ContNotDenum
   Countable
+  Dense_Linear_Order
   Efficient_Nat
   Enum
   Eval_Witness
@@ -34,9 +35,11 @@ imports
   Permutation
   Pocklington
   Primes
+  Quickcheck
   Quicksort
   Quotient
   Ramsey
+  Random
   Reflection
   RBT
   State_Monad

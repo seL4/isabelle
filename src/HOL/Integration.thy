@@ -557,8 +557,8 @@ apply (auto dest: partition_gt)
 apply (drule_tac n = m in partition_lt_gen, auto)
 apply (frule partition_eq_bound)
 apply (drule_tac [2] partition_gt, auto)
-apply (metis dense_linear_order_class.dlo_simps(8) not_less partition_rhs partition_rhs2)
-apply (metis le_less_trans dense_linear_order_class.dlo_simps(8) nat_le_linear partition_eq_bound partition_rhs2)
+apply (metis linear not_less partition_rhs partition_rhs2)
+apply (metis add_diff_inverse diff_is_0_eq le0 le_diff_conv nat_add_commute partition partition_eq_bound partition_rhs real_less_def termination_basic_simps(5))
 done
 
 lemma lemma_additivity4_psize_eq:

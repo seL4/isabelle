@@ -306,8 +306,8 @@ end
 
 fun genreify_tac ctxt eqs to i = (fn st =>
   let
-    val P = HOLogic.dest_Trueprop (List.nth (prems_of st, i - 1))
-    val t = (case to of NONE => P | SOME x => x)
+    fun P () = HOLogic.dest_Trueprop (List.nth (prems_of st, i - 1))
+    val t = (case to of NONE => P () | SOME x => x)
     val th = (genreif ctxt eqs t) RS ssubst
   in rtac th i st
   end);

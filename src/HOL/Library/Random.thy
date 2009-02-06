@@ -1,6 +1,4 @@
-(*  ID:         $Id$
-    Author:     Florian Haftmann, TU Muenchen
-*)
+(* Author: Florian Haftmann, TU Muenchen *)
 
 header {* A HOL random engine *}
 
@@ -78,7 +76,7 @@ where
   in range_aux (k - 1) (v + l * 2147483561) s')"
 by pat_completeness auto
 termination
-  by (relation "measure (nat_of_index o fst)")
+  by (relation "measure (Code_Index.nat_of o fst)")
     (auto simp add: index)
 
 definition
@@ -104,19 +102,19 @@ definition
   select :: "'a list \<Rightarrow> seed \<Rightarrow> 'a \<times> seed"
 where
   "select xs = (do
-     k \<leftarrow> range (index_of_nat (length xs));
-     return (nth xs (nat_of_index k))
+     k \<leftarrow> range (Code_Index.of_nat (length xs));
+     return (nth xs (Code_Index.nat_of k))
    done)"
 
 lemma select:
   assumes "xs \<noteq> []"
   shows "fst (select xs s) \<in> set xs"
 proof -
-  from assms have "index_of_nat (length xs) > 0" by simp
+  from assms have "Code_Index.of_nat (length xs) > 0" by simp
   with range have
-    "fst (range (index_of_nat (length xs)) s) < index_of_nat (length xs)" by best
+    "fst (range (Code_Index.of_nat (length xs)) s) < Code_Index.of_nat (length xs)" by best
   then have
-    "nat_of_index (fst (range (index_of_nat (length xs)) s)) < length xs" by simp
+    "Code_Index.nat_of (fst (range (Code_Index.of_nat (length xs)) s)) < length xs" by simp
   then show ?thesis
     by (auto simp add: monad_collapse select_def)
 qed

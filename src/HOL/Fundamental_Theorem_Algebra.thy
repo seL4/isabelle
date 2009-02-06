@@ -3,7 +3,7 @@
 header{*Fundamental Theorem of Algebra*}
 
 theory Fundamental_Theorem_Algebra
-imports Polynomial Dense_Linear_Order Complex
+imports Polynomial Complex
 begin
 
 subsection {* Square root of complex numbers *}
@@ -59,7 +59,8 @@ lemma complex_of_real_power: "complex_of_real x ^ n = complex_of_real (x^n)"
   by (rule of_real_power [symmetric])
 
 lemma real_down2: "(0::real) < d1 \<Longrightarrow> 0 < d2 ==> EX e. 0 < e & e < d1 & e < d2"
-  apply ferrack apply arith done
+  apply (rule exI[where x = "min d1 d2 / 2"])
+  by (simp add: field_simps min_def)
 
 text{* The triangle inequality for cmod *}
 lemma complex_mod_triangle_sub: "cmod w \<le> cmod (w + z) + norm z"

@@ -346,6 +346,11 @@ by (rule_tac k="1" in LIMSEQ_offset, simp)
 lemma LIMSEQ_Suc_iff: "(\<lambda>n. f (Suc n)) ----> l = f ----> l"
 by (blast intro: LIMSEQ_imp_Suc LIMSEQ_Suc)
 
+lemma LIMSEQ_linear: "\<lbrakk> X ----> x ; l > 0 \<rbrakk> \<Longrightarrow> (\<lambda> n. X (n * l)) ----> x"
+  unfolding LIMSEQ_def
+  by (metis div_le_dividend div_mult_self1_is_m le_trans nat_mult_commute)
+
+
 lemma add_diff_add:
   fixes a b c d :: "'a::ab_group_add"
   shows "(a + c) - (b + d) = (a - b) + (c - d)"
@@ -677,6 +682,69 @@ by (simp add: monoseq_Suc)
 
 lemma mono_SucI2: "\<forall>n. X (Suc n) \<le> X n ==> monoseq X"
 by (simp add: monoseq_Suc)
+
+lemma monoseq_minus: assumes "monoseq a"
+  shows "monoseq (\<lambda> n. - a n)"
+proof (cases "\<forall> m. \<forall> n \<ge> m. a m \<le> a n")
+  case True
+  hence "\<forall> m. \<forall> n \<ge> m. - a n \<le> - a m" by auto
+  thus ?thesis by (rule monoI2)
+next
+  case False
+  hence "\<forall> m. \<forall> n \<ge> m. - a m \<le> - a n" using `monoseq a`[unfolded monoseq_def] by auto
+  thus ?thesis by (rule monoI1)
+qed
+
+lemma monoseq_le: assumes "monoseq a" and "a ----> x"
+  shows "((\<forall> n. a n \<le> x) \<and> (\<forall>m. \<forall>n\<ge>m. a m \<le> a n)) \<or> 
+         ((\<forall> n. x \<le> a n) \<and> (\<forall>m. \<forall>n\<ge>m. a n \<le> a m))"
+proof -
+  { fix x n fix a :: "nat \<Rightarrow> real"
+    assume "a ----> x" and "\<forall> m. \<forall> n \<ge> m. a m \<le> a n"
+    hence monotone: "\<And> m n. m \<le> n \<Longrightarrow> a m \<le> a n" by auto
+    have "a n \<le> x"
+    proof (rule ccontr)
+      assume "\<not> a n \<le> x" hence "x < a n" by auto
+      hence "0 < a n - x" by auto
+      from `a ----> x`[THEN LIMSEQ_D, OF this]
+      obtain no where "\<And>n'. no \<le> n' \<Longrightarrow> norm (a n' - x) < a n - x" by blast
+      hence "norm (a (max no n) - x) < a n - x" by auto
+      moreover
+      { fix n' have "n \<le> n' \<Longrightarrow> x < a n'" using monotone[where m=n and n=n'] and `x < a n` by auto }
+      hence "x < a (max no n)" by auto
+      ultimately
+      have "a (max no n) < a n" by auto
+      with monotone[where m=n and n="max no n"]
+      show False by auto
+    qed
+  } note top_down = this
+  { fix x n m fix a :: "nat \<Rightarrow> real"
+    assume "a ----> x" and "monoseq a" and "a m < x"
+    have "a n \<le> x \<and> (\<forall> m. \<forall> n \<ge> m. a m \<le> a n)"
+    proof (cases "\<forall> m. \<forall> n \<ge> m. a m \<le> a n")
+      case True with top_down and `a ----> x` show ?thesis by auto
+    next
+      case False with `monoseq a`[unfolded monoseq_def] have "\<forall> m. \<forall> n \<ge> m. - a m \<le> - a n" by auto
+      hence "- a m \<le> - x" using top_down[OF LIMSEQ_minus[OF `a ----> x`]] by blast
+      hence False using `a m < x` by auto
+      thus ?thesis ..
+    qed
+  } note when_decided = this
+
+  show ?thesis
+  proof (cases "\<exists> m. a m \<noteq> x")
+    case True then obtain m where "a m \<noteq> x" by auto
+    show ?thesis
+    proof (cases "a m < x")
+      case True with when_decided[OF `a ----> x` `monoseq a`, where m2=m]
+      show ?thesis by blast
+    next
+      case False hence "- a m < - x" using `a m \<noteq> x` by auto
+      with when_decided[OF LIMSEQ_minus[OF `a ----> x`] monoseq_minus[OF `monoseq a`], where m2=m]
+      show ?thesis by auto
+    qed
+  qed auto
+qed
 
 text{*Bounded Sequence*}
 

@@ -291,6 +291,40 @@ lemma power_minus_odd [simp]: "odd n ==>
   apply simp
   done
 
+lemma power_mono_even: fixes x y :: "'a :: {recpower, ordered_idom}"
+  assumes "even n" and "\<bar>x\<bar> \<le> \<bar>y\<bar>"
+  shows "x^n \<le> y^n"
+proof -
+  have "0 \<le> \<bar>x\<bar>" by auto
+  with `\<bar>x\<bar> \<le> \<bar>y\<bar>`
+  have "\<bar>x\<bar>^n \<le> \<bar>y\<bar>^n" by (rule power_mono)
+  thus ?thesis unfolding power_even_abs[OF `even n`] .
+qed
+
+lemma odd_pos: "odd (n::nat) \<Longrightarrow> 0 < n" by presburger
+
+lemma power_mono_odd: fixes x y :: "'a :: {recpower, ordered_idom}"
+  assumes "odd n" and "x \<le> y"
+  shows "x^n \<le> y^n"
+proof (cases "y < 0")
+  case True with `x \<le> y` have "-y \<le> -x" and "0 \<le> -y" by auto
+  hence "(-y)^n \<le> (-x)^n" by (rule power_mono)
+  thus ?thesis unfolding power_minus_odd[OF `odd n`] by auto
+next
+  case False
+  show ?thesis
+  proof (cases "x < 0")
+    case True hence "n \<noteq> 0" and "x \<le> 0" using `odd n`[THEN odd_pos] by auto
+    hence "x^n \<le> 0" unfolding power_le_zero_eq using `odd n` by auto
+    moreover
+    from `\<not> y < 0` have "0 \<le> y" by auto
+    hence "0 \<le> y^n" by auto
+    ultimately show ?thesis by auto
+  next
+    case False hence "0 \<le> x" by auto
+    with `x \<le> y` show ?thesis using power_mono by auto
+  qed
+qed
 
 subsection {* General Lemmas About Division *}
 
@@ -404,8 +438,6 @@ qed
 
 
 subsection {* Miscellaneous *}
-
-lemma odd_pos: "odd (n::nat) \<Longrightarrow> 0 < n" by presburger
 
 lemma [presburger]:"(x + 1) div 2 = x div 2 \<longleftrightarrow> even (x::int)" by presburger
 lemma [presburger]: "(x + 1) div 2 = x div 2 + 1 \<longleftrightarrow> odd (x::int)" by presburger

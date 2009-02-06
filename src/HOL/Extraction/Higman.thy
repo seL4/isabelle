@@ -1,5 +1,4 @@
 (*  Title:      HOL/Extraction/Higman.thy
-    ID:         $Id$
     Author:     Stefan Berghofer, TU Muenchen
                 Monika Seisenberger, LMU Muenchen
 *)
@@ -7,7 +6,7 @@
 header {* Higman's lemma *}
 
 theory Higman
-imports Main "~~/src/HOL/ex/Random"
+imports Main State_Monad Random
 begin
 
 text {*

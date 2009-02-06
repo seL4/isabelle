@@ -532,6 +532,44 @@ lemma isCont_power:
 lemma isCont_abs [simp]: "isCont abs (a::real)"
 by (rule isCont_rabs [OF isCont_ident])
 
+lemma isCont_setsum: fixes A :: "nat set" assumes "finite A"
+  shows "\<forall> i \<in> A. isCont (f i) x \<Longrightarrow> isCont (\<lambda> x. \<Sum> i \<in> A. f i x) x"
+  using `finite A`
+proof induct
+  case (insert a F) show "isCont (\<lambda> x. \<Sum> i \<in> (insert a F). f i x) x" 
+    unfolding setsum_insert[OF `finite F` `a \<notin> F`] by (rule isCont_add, auto simp add: insert)
+qed auto
+
+lemma LIM_less_bound: fixes f :: "real \<Rightarrow> real" assumes "b < x"
+  and all_le: "\<forall> x' \<in> { b <..< x}. 0 \<le> f x'" and isCont: "isCont f x"
+  shows "0 \<le> f x"
+proof (rule ccontr)
+  assume "\<not> 0 \<le> f x" hence "f x < 0" by auto
+  hence "0 < - f x / 2" by auto
+  from isCont[unfolded isCont_def, THEN LIM_D, OF this]
+  obtain s where "s > 0" and s_D: "\<And>x'. \<lbrakk> x' \<noteq> x ; \<bar> x' - x \<bar> < s \<rbrakk> \<Longrightarrow> \<bar> f x' - f x \<bar> < - f x / 2" by auto
+
+  let ?x = "x - min (s / 2) ((x - b) / 2)"
+  have "?x < x" and "\<bar> ?x - x \<bar> < s"
+    using `b < x` and `0 < s` by auto
+  have "b < ?x"
+  proof (cases "s < x - b")
+    case True thus ?thesis using `0 < s` by auto
+  next
+    case False hence "s / 2 \<ge> (x - b) / 2" by auto
+    from inf_absorb2[OF this, unfolded inf_real_def]
+    have "?x = (x + b) / 2" by auto
+    thus ?thesis using `b < x` by auto
+  qed
+  hence "0 \<le> f ?x" using all_le `?x < x` by auto
+  moreover have "\<bar>f ?x - f x\<bar> < - f x / 2"
+    using s_D[OF _ `\<bar> ?x - x \<bar> < s`] `?x < x` by auto
+  hence "f ?x - f x < - f x / 2" by auto
+  hence "f ?x < f x / 2" by auto
+  hence "f ?x < 0" using `f x < 0` by auto
+  thus False using `0 \<le> f ?x` by auto
+qed
+  
 
 subsection {* Uniform Continuity *}
 

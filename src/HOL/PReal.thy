@@ -9,7 +9,7 @@
 header {* Positive real numbers *}
 
 theory PReal
-imports Rational Dense_Linear_Order
+imports Rational 
 begin
 
 text{*Could be generalized and moved to @{text Ring_and_Field}*}
@@ -21,6 +21,11 @@ definition
   [code del]: "cut A = ({} \<subset> A &
             A < {r. 0 < r} &
             (\<forall>y \<in> A. ((\<forall>z. 0<z & z < y --> z \<in> A) & (\<exists>u \<in> A. y < u))))"
+
+lemma interval_empty_iff:
+  "{y. (x::'a::dense_linear_order) < y \<and> y < z} = {} \<longleftrightarrow> \<not> x < z"
+  by (auto dest: dense)
+
 
 lemma cut_of_rat: 
   assumes q: "0 < q" shows "cut {r::rat. 0 < r & r < q}" (is "cut ?A")

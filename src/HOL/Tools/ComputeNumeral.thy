@@ -1,5 +1,5 @@
 theory ComputeNumeral
-imports ComputeHOL Float
+imports ComputeHOL ComputeFloat
 begin
 
 (* normalization of bit strings *)
