@@ -685,7 +685,7 @@ struct
         Const (@{const_name False}, _) => t
       | Const (@{const_name undefined}, _) => t
       | Const (@{const_name The}, _) => t
-      | Const ("Hilbert_Choice.Eps", _) => t
+      | Const (@{const_name Hilbert_Choice.Eps}, _) => t
       | Const (@{const_name All}, _) => t
       | Const (@{const_name Ex}, _) => t
       | Const (@{const_name "op ="}, _) => t
@@ -696,8 +696,8 @@ struct
       | Const (@{const_name Collect}, _) => t
       | Const (@{const_name "op :"}, _) => t
       (* other optimizations *)
-      | Const ("Finite_Set.card", _) => t
-      | Const ("Finite_Set.finite", _) => t
+      | Const (@{const_name Finite_Set.card}, _) => t
+      | Const (@{const_name Finite_Set.finite}, _) => t
       | Const (@{const_name HOL.less}, Type ("fun", [Type ("nat", []),
         Type ("fun", [Type ("nat", []), Type ("bool", [])])])) => t
       | Const (@{const_name HOL.plus}, Type ("fun", [Type ("nat", []),
@@ -706,11 +706,11 @@ struct
         Type ("fun", [Type ("nat", []), Type ("nat", [])])])) => t
       | Const (@{const_name HOL.times}, Type ("fun", [Type ("nat", []),
         Type ("fun", [Type ("nat", []), Type ("nat", [])])])) => t
-      | Const ("List.append", _) => t
+      | Const (@{const_name List.append}, _) => t
       | Const (@{const_name lfp}, _) => t
       | Const (@{const_name gfp}, _) => t
-      | Const ("Product_Type.fst", _) => t
-      | Const ("Product_Type.snd", _) => t
+      | Const (@{const_name fst}, _) => t
+      | Const (@{const_name snd}, _) => t
       (* simply-typed lambda calculus *)
       | Const (s, T) =>
         (if is_IDT_constructor thy (s, T)
@@ -726,7 +726,8 @@ struct
           (* check this.  However, getting this really right seems   *)
           (* difficult because the user may state arbitrary axioms,  *)
           (* which could interact with overloading to create loops.  *)
-          ((*Output.immediate_output (" unfolding: " ^ axname);*)unfold_loop rhs)
+          ((*Output.immediate_output (" unfolding: " ^ axname);*)
+           unfold_loop rhs)
         | NONE => t)
       | Free _           => t
       | Var _            => t
@@ -864,9 +865,9 @@ struct
         in
           collect_this_axiom ("HOL.the_eq_trivial", ax) axs
         end
-      | Const ("Hilbert_Choice.Eps", T) =>
+      | Const (@{const_name Hilbert_Choice.Eps}, T) =>
         let
-          val ax = specialize_type thy ("Hilbert_Choice.Eps", T)
+          val ax = specialize_type thy (@{const_name Hilbert_Choice.Eps}, T)
             (the (AList.lookup (op =) axioms "Hilbert_Choice.someI"))
         in
           collect_this_axiom ("Hilbert_Choice.someI", ax) axs
@@ -881,8 +882,9 @@ struct
       | Const (@{const_name Collect}, T) => collect_type_axioms (axs, T)
       | Const (@{const_name "op :"}, T) => collect_type_axioms (axs, T)
       (* other optimizations *)
-      | Const ("Finite_Set.card", T) => collect_type_axioms (axs, T)
-      | Const ("Finite_Set.finite", T) => collect_type_axioms (axs, T)
+      | Const (@{const_name Finite_Set.card}, T) => collect_type_axioms (axs, T)
+      | Const (@{const_name Finite_Set.finite}, T) =>
+        collect_type_axioms (axs, T)
       | Const (@{const_name HOL.less}, T as Type ("fun", [Type ("nat", []),
         Type ("fun", [Type ("nat", []), Type ("bool", [])])])) =>
           collect_type_axioms (axs, T)
@@ -895,11 +897,11 @@ struct
       | Const (@{const_name HOL.times}, T as Type ("fun", [Type ("nat", []),
         Type ("fun", [Type ("nat", []), Type ("nat", [])])])) =>
           collect_type_axioms (axs, T)
-      | Const ("List.append", T) => collect_type_axioms (axs, T)
+      | Const (@{const_name List.append}, T) => collect_type_axioms (axs, T)
       | Const (@{const_name lfp}, T) => collect_type_axioms (axs, T)
       | Const (@{const_name gfp}, T) => collect_type_axioms (axs, T)
-      | Const ("Product_Type.fst", T) => collect_type_axioms (axs, T)
-      | Const ("Product_Type.snd", T) => collect_type_axioms (axs, T)
+      | Const (@{const_name fst}, T) => collect_type_axioms (axs, T)
+      | Const (@{const_name snd}, T) => collect_type_axioms (axs, T)
       (* simply-typed lambda calculus *)
       | Const (s, T) =>
           if is_const_of_class thy (s, T) then
@@ -1316,9 +1318,12 @@ struct
     (* interpretation which includes values for the (formerly)           *)
     (* quantified variables.                                             *)
     (* maps  !!x1...xn. !xk...xm. t   to   t  *)
-    fun strip_all_body (Const (@{const_name all}, _) $ Abs (_, _, t)) = strip_all_body t
-      | strip_all_body (Const (@{const_name Trueprop}, _) $ t) = strip_all_body t
-      | strip_all_body (Const (@{const_name All}, _) $ Abs (_, _, t)) = strip_all_body t
+    fun strip_all_body (Const (@{const_name all}, _) $ Abs (_, _, t)) =
+        strip_all_body t
+      | strip_all_body (Const (@{const_name Trueprop}, _) $ t) =
+        strip_all_body t
+      | strip_all_body (Const (@{const_name All}, _) $ Abs (_, _, t)) =
+        strip_all_body t
       | strip_all_body t = t
     (* maps  !!x1...xn. !xk...xm. t   to   [x1, ..., xn, xk, ..., xm]  *)
     fun strip_all_vars (Const (@{const_name all}, _) $ Abs (a, T, t)) =
@@ -1665,7 +1670,8 @@ struct
       fun interpret_groundtype () =
       let
         (* the model must specify a size for ground types *)
-        val size = if T = Term.propT then 2 else the (AList.lookup (op =) typs T)
+        val size = if T = Term.propT then 2
+          else the (AList.lookup (op =) typs T)
         val next = next_idx+size
         (* check if 'maxvars' is large enough *)
         val _    = (if next-1>maxvars andalso maxvars>0 then
@@ -2662,7 +2668,7 @@ struct
 
   fun Finite_Set_card_interpreter thy model args t =
     case t of
-      Const ("Finite_Set.card",
+      Const (@{const_name Finite_Set.card},
         Type ("fun", [Type ("set", [T]), Type ("nat", [])])) =>
       let
         (* interpretation -> int *)
@@ -2709,12 +2715,12 @@ struct
 
   fun Finite_Set_finite_interpreter thy model args t =
     case t of
-      Const ("Finite_Set.finite",
+      Const (@{const_name Finite_Set.finite},
         Type ("fun", [Type ("set", [T]), Type ("bool", [])])) $ _ =>
         (* we only consider finite models anyway, hence EVERY set is *)
         (* "finite"                                                  *)
         SOME (TT, model, args)
-    | Const ("Finite_Set.finite",
+    | Const (@{const_name Finite_Set.finite},
         Type ("fun", [Type ("set", [T]), Type ("bool", [])])) =>
       let
         val size_of_set = size_of_type thy model (Type ("set", [T]))
@@ -2848,7 +2854,7 @@ struct
 
   fun List_append_interpreter thy model args t =
     case t of
-      Const ("List.append", Type ("fun", [Type ("List.list", [T]), Type ("fun",
+      Const (@{const_name List.append}, Type ("fun", [Type ("List.list", [T]), Type ("fun",
         [Type ("List.list", [_]), Type ("List.list", [_])])])) =>
       let
         val size_elem   = size_of_type thy model T
@@ -3044,7 +3050,7 @@ struct
 
   fun Product_Type_fst_interpreter thy model args t =
     case t of
-      Const ("Product_Type.fst", Type ("fun", [Type ("*", [T, U]), _])) =>
+      Const (@{const_name fst}, Type ("fun", [Type ("*", [T, U]), _])) =>
       let
         val constants_T = make_constants thy model T
         val size_U      = size_of_type thy model U
@@ -3064,7 +3070,7 @@ struct
 
   fun Product_Type_snd_interpreter thy model args t =
     case t of
-      Const ("Product_Type.snd", Type ("fun", [Type ("*", [T, U]), _])) =>
+      Const (@{const_name snd}, Type ("fun", [Type ("*", [T, U]), _])) =>
       let
         val size_T      = size_of_type thy model T
         val constants_U = make_constants thy model U

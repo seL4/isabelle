@@ -1,7 +1,7 @@
 header {* Main HOL *}
 
 theory Main
-imports Plain Code_Eval Map Nat_Int_Bij Recdef
+imports Plain Code_Eval Map Nat_Int_Bij Recdef SAT
 begin
 
 text {*
