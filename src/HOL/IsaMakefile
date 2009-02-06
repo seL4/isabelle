@@ -284,7 +284,6 @@ $(OUT)/HOL: ROOT.ML $(MAIN_DEPENDENCIES) \
   Series.thy \
   Taylor.thy \
   Transcendental.thy \
-  Dense_Linear_Order.thy \
   GCD.thy \
   Order_Relation.thy \
   Parity.thy \
@@ -316,7 +315,7 @@ $(LOG)/HOL-Library.gz: $(OUT)/HOL Library/SetsAndFunctions.thy		\
   Library/Abstract_Rat.thy \
   Library/BigO.thy Library/ContNotDenum.thy Library/Efficient_Nat.thy	\
   Library/Executable_Set.thy Library/Infinite_Set.thy			\
-  Library/FuncSet.thy			\
+  Library/FuncSet.thy Library/Dense_Linear_Order.thy 	\
   Library/Library.thy Library/List_Prefix.thy Library/State_Monad.thy	\
   Library/Multiset.thy Library/Permutation.thy	\
   Library/Primes.thy Library/Pocklington.thy Library/Quotient.thy	\
