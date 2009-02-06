@@ -42,7 +42,8 @@ fun mk_defname fixes = fixes |> map (fst o fst) |> space_implode "_"
 
 fun add_simps fnames post sort extra_qualify label moreatts simps lthy =
     let
-      val atts = Attrib.internal (K Simplifier.simp_add) :: moreatts
+      val atts = Attrib.internal (K Simplifier.simp_add) ::
+                 Attrib.internal (K Nitpick_Const_Simps_Thms.add) :: moreatts
       val spec = post simps
                    |> map (apfst (apsnd (append atts)))
                    |> map (apfst (apfst extra_qualify))
