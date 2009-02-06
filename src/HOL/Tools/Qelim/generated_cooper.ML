@@ -1,6 +1,6 @@
 (*  Title:      HOL/Tools/Qelim/generated_cooper.ML
 
-This file is generated from HOL/Reflection/Cooper.thy.  DO NOT EDIT.
+This file is generated from HOL/Decision_Procs/Cooper.thy.  DO NOT EDIT.
 *)
 
 structure GeneratedCooper = 

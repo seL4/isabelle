@@ -15,6 +15,7 @@ test: \
   HOL-Auth \
   HOL-AxClasses \
   HOL-Bali \
+  HOL-Decision_Procs \
   HOL-Extraction \
   HOL-HahnBanach \
   HOL-Hoare \
@@ -36,7 +37,6 @@ test: \
   HOL-Nominal-Examples \
   HOL-NumberTheory \
   HOL-Prolog \
-  HOL-Reflection \
   HOL-SET-Protocol \
   HOL-SizeChange \
   HOL-Statespace \
@@ -315,7 +315,7 @@ $(LOG)/HOL-Library.gz: $(OUT)/HOL Library/SetsAndFunctions.thy		\
   Library/Abstract_Rat.thy \
   Library/BigO.thy Library/ContNotDenum.thy Library/Efficient_Nat.thy	\
   Library/Executable_Set.thy Library/Infinite_Set.thy			\
-  Library/FuncSet.thy Library/Dense_Linear_Order.thy 	\
+  Library/FuncSet.thy	\
   Library/Library.thy Library/List_Prefix.thy Library/State_Monad.thy	\
   Library/Multiset.thy Library/Permutation.thy	\
   Library/Primes.thy Library/Pocklington.thy Library/Quotient.thy	\
@@ -658,6 +658,24 @@ $(LOG)/HOL-SizeChange.gz: $(OUT)/HOL SizeChange/Kleene_Algebras.thy	\
 	@$(ISABELLE_TOOL) usedir $(OUT)/HOL SizeChange
 
 
+## HOL-Decision_Procs
+
+HOL-Decision_Procs: HOL $(LOG)/HOL-Decision_Procs.gz
+
+$(LOG)/HOL-Decision_Procs.gz: $(OUT)/HOL \
+  Decision_Procs/Approximation.thy \
+  Decision_Procs/Cooper.thy \
+  Decision_Procs/cooper_tac.ML \
+  Decision_Procs/Dense_Linear_Order.thy \
+  Decision_Procs/Ferrack.thy \
+  Decision_Procs/ferrack_tac.ML \
+  Decision_Procs/MIR.thy \
+  Decision_Procs/mir_tac.ML \
+  Decision_Procs/Decision_Procs.thy \
+  Decision_Procs/ROOT.ML
+	@$(ISABELLE_TOOL) usedir $(OUT)/HOL Decision_Procs
+
+
 ## HOL-Lambda
 
 HOL-Lambda: HOL $(LOG)/HOL-Lambda.gz
@@ -678,22 +696,6 @@ HOL-Prolog: HOL $(LOG)/HOL-Prolog.gz
 $(LOG)/HOL-Prolog.gz: $(OUT)/HOL Prolog/ROOT.ML Prolog/prolog.ML	\
   Prolog/HOHH.thy Prolog/Test.thy Prolog/Func.thy Prolog/Type.thy
 	@$(ISABELLE_TOOL) usedir $(OUT)/HOL Prolog
-
-
-## HOL-Reflection
-
-HOL-Reflection: HOL $(LOG)/HOL-Reflection.gz
-
-$(LOG)/HOL-Reflection.gz: $(OUT)/HOL \
-  Reflection/Approximation.thy \
-  Reflection/Cooper.thy \
-  Reflection/cooper_tac.ML \
-  Reflection/Ferrack.thy \
-  Reflection/ferrack_tac.ML \
-  Reflection/MIR.thy \
-  Reflection/mir_tac.ML \
-  Reflection/ROOT.ML
-	@$(ISABELLE_TOOL) usedir $(OUT)/HOL Reflection
 
 
 ## HOL-W0

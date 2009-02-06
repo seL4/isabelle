@@ -1,5 +1,4 @@
 (*  Title:      HOL/Extraction/Pigeonhole.thy
-    ID:         $Id$
     Author:     Stefan Berghofer, TU Muenchen
 *)
 

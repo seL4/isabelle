@@ -3,33 +3,29 @@
 header {* A HOL random engine *}
 
 theory Random
-imports State_Monad Code_Index
+imports Code_Index
 begin
+
+notation fcomp (infixl "o>" 60)
+notation scomp (infixl "o\<rightarrow>" 60)
+
 
 subsection {* Auxiliary functions *}
 
-definition
-  inc_shift :: "index \<Rightarrow> index \<Rightarrow> index"
-where
+definition inc_shift :: "index \<Rightarrow> index \<Rightarrow> index" where
   "inc_shift v k = (if v = k then 1 else k + 1)"
 
-definition
-  minus_shift :: "index \<Rightarrow> index \<Rightarrow> index \<Rightarrow> index"
-where
+definition minus_shift :: "index \<Rightarrow> index \<Rightarrow> index \<Rightarrow> index" where
   "minus_shift r k l = (if k < l then r + k - l else k - l)"
 
-fun
-  log :: "index \<Rightarrow> index \<Rightarrow> index"
-where
+fun log :: "index \<Rightarrow> index \<Rightarrow> index" where
   "log b i = (if b \<le> 1 \<or> i < b then 1 else 1 + log b (i div b))"
 
 subsection {* Random seeds *}
 
 types seed = "index \<times> index"
 
-primrec
-  "next" :: "seed \<Rightarrow> index \<times> seed"
-where
+primrec "next" :: "seed \<Rightarrow> index \<times> seed" where
   "next (v, w) = (let
      k =  v div 53668;
      v' = minus_shift 2147483563 (40014 * (v mod 53668)) (k * 12211);
@@ -40,22 +36,15 @@ where
 
 lemma next_not_0:
   "fst (next s) \<noteq> 0"
-apply (cases s)
-apply (auto simp add: minus_shift_def Let_def)
-done
+  by (cases s) (auto simp add: minus_shift_def Let_def)
 
-primrec
-  seed_invariant :: "seed \<Rightarrow> bool"
-where
+primrec seed_invariant :: "seed \<Rightarrow> bool" where
   "seed_invariant (v, w) \<longleftrightarrow> 0 < v \<and> v < 9438322952 \<and> 0 < w \<and> True"
 
-lemma if_same:
-  "(if b then f x else f y) = f (if b then x else y)"
+lemma if_same: "(if b then f x else f y) = f (if b then x else y)"
   by (cases b) simp_all
 
-definition
-  split_seed :: "seed \<Rightarrow> seed \<times> seed"
-where
+definition split_seed :: "seed \<Rightarrow> seed \<times> seed" where
   "split_seed s = (let
      (v, w) = s;
      (v', w') = snd (next s);
@@ -68,9 +57,7 @@ where
 
 subsection {* Base selectors *}
 
-function
-  range_aux :: "index \<Rightarrow> index \<Rightarrow> seed \<Rightarrow> index \<times> seed"
-where
+function range_aux :: "index \<Rightarrow> index \<Rightarrow> seed \<Rightarrow> index \<times> seed" where
   "range_aux k l s = (if k = 0 then (l, s) else
     let (v, s') = next s
   in range_aux (k - 1) (v + l * 2147483561) s')"
@@ -79,13 +66,9 @@ termination
   by (relation "measure (Code_Index.nat_of o fst)")
     (auto simp add: index)
 
-definition
-  range :: "index \<Rightarrow> seed \<Rightarrow> index \<times> seed"
-where
-  "range k = (do
-     v \<leftarrow> range_aux (log 2147483561 k) 1;
-     return (v mod k)
-   done)"
+definition range :: "index \<Rightarrow> seed \<Rightarrow> index \<times> seed" where
+  "range k = range_aux (log 2147483561 k) 1
+    o\<rightarrow> (\<lambda>v. Pair (v mod k))"
 
 lemma range:
   assumes "k > 0"
@@ -95,17 +78,13 @@ proof -
     "range_aux (log 2147483561 k) 1 s = (v, w)"
     by (cases "range_aux (log 2147483561 k) 1 s")
   with assms show ?thesis
-    by (simp add: monad_collapse range_def del: range_aux.simps log.simps)
+    by (simp add: scomp_apply range_def del: range_aux.simps log.simps)
 qed
 
-definition
-  select :: "'a list \<Rightarrow> seed \<Rightarrow> 'a \<times> seed"
-where
-  "select xs = (do
-     k \<leftarrow> range (Code_Index.of_nat (length xs));
-     return (nth xs (Code_Index.nat_of k))
-   done)"
-
+definition select :: "'a list \<Rightarrow> seed \<Rightarrow> 'a \<times> seed" where
+  "select xs = range (Code_Index.of_nat (length xs))
+    o\<rightarrow> (\<lambda>k. Pair (nth xs (Code_Index.nat_of k)))"
+     
 lemma select:
   assumes "xs \<noteq> []"
   shows "fst (select xs s) \<in> set xs"
@@ -116,34 +95,29 @@ proof -
   then have
     "Code_Index.nat_of (fst (range (Code_Index.of_nat (length xs)) s)) < length xs" by simp
   then show ?thesis
-    by (auto simp add: monad_collapse select_def)
+    by (simp add: scomp_apply split_beta select_def)
 qed
 
-definition
-  select_default :: "index \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> seed \<Rightarrow> 'a \<times> seed"
-where
-  [code del]: "select_default k x y = (do
-     l \<leftarrow> range k;
-     return (if l + 1 < k then x else y)
-   done)"
+definition select_default :: "index \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> seed \<Rightarrow> 'a \<times> seed" where
+  [code del]: "select_default k x y = range k
+     o\<rightarrow> (\<lambda>l. Pair (if l + 1 < k then x else y))"
 
 lemma select_default_zero:
   "fst (select_default 0 x y s) = y"
-  by (simp add: monad_collapse select_default_def)
+  by (simp add: scomp_apply split_beta select_default_def)
 
 lemma select_default_code [code]:
-  "select_default k x y = (if k = 0 then do
-     _ \<leftarrow> range 1;
-     return y
-   done else do
-     l \<leftarrow> range k;
-     return (if l + 1 < k then x else y)
-   done)"
-proof (cases "k = 0")
-  case False then show ?thesis by (simp add: select_default_def)
-next
-  case True then show ?thesis
-    by (simp add: monad_collapse select_default_def range_def)
+  "select_default k x y = (if k = 0
+    then range 1 o\<rightarrow> (\<lambda>_. Pair y)
+    else range k o\<rightarrow> (\<lambda>l. Pair (if l + 1 < k then x else y)))"
+proof
+  fix s
+  have "snd (range (Code_Index.of_nat 0) s) = snd (range (Code_Index.of_nat 1) s)"
+    by (simp add: range_def scomp_Pair scomp_apply split_beta)
+  then show "select_default k x y s = (if k = 0
+    then range 1 o\<rightarrow> (\<lambda>_. Pair y)
+    else range k o\<rightarrow> (\<lambda>l. Pair (if l + 1 < k then x else y))) s"
+    by (cases "k = 0") (simp_all add: select_default_def scomp_apply split_beta)
 qed
 
 
@@ -176,6 +150,9 @@ end;
 
 end;
 *}
+
+no_notation fcomp (infixl "o>" 60)
+no_notation scomp (infixl "o\<rightarrow>" 60)
 
 end
 
