@@ -1701,6 +1701,23 @@ setup {*
 *}
 
 
+subsection {* Nitpick theorem store *}
+
+ML {*
+structure Nitpick_Const_Simps_Thms = NamedThmsFun
+(
+  val name = "nitpick_const_simps"
+  val description = "Equational specification of constants as needed by Nitpick"
+)
+structure Nitpick_Ind_Intros_Thms = NamedThmsFun
+(
+  val name = "nitpick_ind_intros"
+  val description = "Introduction rules for inductive predicate as needed by Nitpick"
+)
+*}
+setup {* Nitpick_Const_Simps_Thms.setup
+         o Nitpick_Ind_Intros_Thms.setup *}
+
 subsection {* Legacy tactics and ML bindings *}
 
 ML {*
