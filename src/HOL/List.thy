@@ -27,7 +27,6 @@ consts
   set :: "'a list => 'a set"
   map :: "('a=>'b) => ('a list => 'b list)"
   listsum ::  "'a list => 'a::monoid_add"
-  nth :: "'a list => nat => 'a"    (infixl "!" 100)
   list_update :: "'a list => nat => 'a => 'a list"
   take:: "nat => 'a list => 'a list"
   drop:: "nat => 'a list => 'a list"
@@ -146,8 +145,8 @@ primrec
   -- {*Warning: simpset does not contain this definition, but separate
        theorems for @{text "n = 0"} and @{text "n = Suc k"} *}
 
-primrec
-  nth_Cons:"(x#xs)!n = (case n of 0 => x | (Suc k) => xs!k)"
+primrec nth :: "'a list => nat => 'a" (infixl "!" 100) where
+  nth_Cons: "(x#xs)!n = (case n of 0 => x | (Suc k) => xs!k)"
   -- {*Warning: simpset does not contain this definition, but separate
        theorems for @{text "n = 0"} and @{text "n = Suc k"} *}
 
