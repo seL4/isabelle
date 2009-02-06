@@ -6,7 +6,7 @@
 header{*MacLaurin Series*}
 
 theory MacLaurin
-imports Dense_Linear_Order Transcendental
+imports Transcendental
 begin
 
 subsection{*Maclaurin's Theorem with Lagrange Form of Remainder*}
