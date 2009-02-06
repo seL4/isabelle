@@ -1,6 +1,4 @@
-(*  ID:         $Id$
-    Author:     Florian Haftmann, TU Muenchen
-*)
+(* Author: Florian Haftmann, TU Muenchen *)
 
 header {* Type of indices *}
 
@@ -15,78 +13,77 @@ text {*
 
 subsection {* Datatype of indices *}
 
-typedef index = "UNIV \<Colon> nat set"
-  morphisms nat_of_index index_of_nat by rule
+typedef (open) index = "UNIV \<Colon> nat set"
+  morphisms nat_of of_nat by rule
 
-lemma index_of_nat_nat_of_index [simp]:
-  "index_of_nat (nat_of_index k) = k"
-  by (rule nat_of_index_inverse)
+lemma of_nat_nat_of [simp]:
+  "of_nat (nat_of k) = k"
+  by (rule nat_of_inverse)
 
-lemma nat_of_index_index_of_nat [simp]:
-  "nat_of_index (index_of_nat n) = n"
-  by (rule index_of_nat_inverse) 
-    (unfold index_def, rule UNIV_I)
+lemma nat_of_of_nat [simp]:
+  "nat_of (of_nat n) = n"
+  by (rule of_nat_inverse) (rule UNIV_I)
 
 lemma [measure_function]:
-  "is_measure nat_of_index" by (rule is_measure_trivial)
+  "is_measure nat_of" by (rule is_measure_trivial)
 
 lemma index:
-  "(\<And>n\<Colon>index. PROP P n) \<equiv> (\<And>n\<Colon>nat. PROP P (index_of_nat n))"
+  "(\<And>n\<Colon>index. PROP P n) \<equiv> (\<And>n\<Colon>nat. PROP P (of_nat n))"
 proof
   fix n :: nat
   assume "\<And>n\<Colon>index. PROP P n"
-  then show "PROP P (index_of_nat n)" .
+  then show "PROP P (of_nat n)" .
 next
   fix n :: index
-  assume "\<And>n\<Colon>nat. PROP P (index_of_nat n)"
-  then have "PROP P (index_of_nat (nat_of_index n))" .
+  assume "\<And>n\<Colon>nat. PROP P (of_nat n)"
+  then have "PROP P (of_nat (nat_of n))" .
   then show "PROP P n" by simp
 qed
 
 lemma index_case:
-  assumes "\<And>n. k = index_of_nat n \<Longrightarrow> P"
+  assumes "\<And>n. k = of_nat n \<Longrightarrow> P"
   shows P
-  by (rule assms [of "nat_of_index k"]) simp
+  by (rule assms [of "nat_of k"]) simp
 
 lemma index_induct_raw:
-  assumes "\<And>n. P (index_of_nat n)"
+  assumes "\<And>n. P (of_nat n)"
   shows "P k"
 proof -
-  from assms have "P (index_of_nat (nat_of_index k))" .
+  from assms have "P (of_nat (nat_of k))" .
   then show ?thesis by simp
 qed
 
-lemma nat_of_index_inject [simp]:
-  "nat_of_index k = nat_of_index l \<longleftrightarrow> k = l"
-  by (rule nat_of_index_inject)
+lemma nat_of_inject [simp]:
+  "nat_of k = nat_of l \<longleftrightarrow> k = l"
+  by (rule nat_of_inject)
 
-lemma index_of_nat_inject [simp]:
-  "index_of_nat n = index_of_nat m \<longleftrightarrow> n = m"
-  by (auto intro!: index_of_nat_inject simp add: index_def)
+lemma of_nat_inject [simp]:
+  "of_nat n = of_nat m \<longleftrightarrow> n = m"
+  by (rule of_nat_inject) (rule UNIV_I)+
 
 instantiation index :: zero
 begin
 
 definition [simp, code del]:
-  "0 = index_of_nat 0"
+  "0 = of_nat 0"
 
 instance ..
 
 end
 
 definition [simp]:
-  "Suc_index k = index_of_nat (Suc (nat_of_index k))"
+  "Suc_index k = of_nat (Suc (nat_of k))"
 
 rep_datatype "0 \<Colon> index" Suc_index
 proof -
   fix P :: "index \<Rightarrow> bool"
   fix k :: index
-  assume "P 0" then have init: "P (index_of_nat 0)" by simp
+  assume "P 0" then have init: "P (of_nat 0)" by simp
   assume "\<And>k. P k \<Longrightarrow> P (Suc_index k)"
-    then have "\<And>n. P (index_of_nat n) \<Longrightarrow> P (Suc_index (index_of_nat n))" .
-    then have step: "\<And>n. P (index_of_nat n) \<Longrightarrow> P (index_of_nat (Suc n))" by simp
-  from init step have "P (index_of_nat (nat_of_index k))"
-    by (induct "nat_of_index k") simp_all
+    then have "\<And>n. P (of_nat n) \<Longrightarrow> P (Suc_index (of_nat n))" .
+    then have step: "\<And>n. P (of_nat n) \<Longrightarrow> P (of_nat (Suc n))" by simp
+  from init step have "P (of_nat (nat_of k))"
+    by (induct "nat_of k") simp_all
   then show "P k" by simp
 qed simp_all
 
@@ -96,25 +93,25 @@ declare index_case [case_names nat, cases type: index]
 declare index.induct [case_names nat, induct type: index]
 
 lemma [code]:
-  "index_size = nat_of_index"
+  "index_size = nat_of"
 proof (rule ext)
   fix k
-  have "index_size k = nat_size (nat_of_index k)"
+  have "index_size k = nat_size (nat_of k)"
     by (induct k rule: index.induct) (simp_all del: zero_index_def Suc_index_def, simp_all)
-  also have "nat_size (nat_of_index k) = nat_of_index k" by (induct "nat_of_index k") simp_all
-  finally show "index_size k = nat_of_index k" .
+  also have "nat_size (nat_of k) = nat_of k" by (induct "nat_of k") simp_all
+  finally show "index_size k = nat_of k" .
 qed
 
 lemma [code]:
-  "size = nat_of_index"
+  "size = nat_of"
 proof (rule ext)
   fix k
-  show "size k = nat_of_index k"
+  show "size k = nat_of k"
   by (induct k) (simp_all del: zero_index_def Suc_index_def, simp_all)
 qed
 
 lemma [code]:
-  "eq_class.eq k l \<longleftrightarrow> eq_class.eq (nat_of_index k) (nat_of_index l)"
+  "eq_class.eq k l \<longleftrightarrow> eq_class.eq (nat_of k) (nat_of l)"
   by (cases k, cases l) (simp add: eq)
 
 lemma [code nbe]:
@@ -128,14 +125,14 @@ instantiation index :: number
 begin
 
 definition
-  "number_of = index_of_nat o nat"
+  "number_of = of_nat o nat"
 
 instance ..
 
 end
 
-lemma nat_of_index_number [simp]:
-  "nat_of_index (number_of k) = number_of k"
+lemma nat_of_number [simp]:
+  "nat_of (number_of k) = number_of k"
   by (simp add: number_of_index_def nat_number_of_def number_of_is_id)
 
 code_datatype "number_of \<Colon> int \<Rightarrow> index"
@@ -147,30 +144,31 @@ instantiation index :: "{minus, ordered_semidom, Divides.div, linorder}"
 begin
 
 definition [simp, code del]:
-  "(1\<Colon>index) = index_of_nat 1"
+  "(1\<Colon>index) = of_nat 1"
 
 definition [simp, code del]:
-  "n + m = index_of_nat (nat_of_index n + nat_of_index m)"
+  "n + m = of_nat (nat_of n + nat_of m)"
 
 definition [simp, code del]:
-  "n - m = index_of_nat (nat_of_index n - nat_of_index m)"
+  "n - m = of_nat (nat_of n - nat_of m)"
 
 definition [simp, code del]:
-  "n * m = index_of_nat (nat_of_index n * nat_of_index m)"
+  "n * m = of_nat (nat_of n * nat_of m)"
 
 definition [simp, code del]:
-  "n div m = index_of_nat (nat_of_index n div nat_of_index m)"
+  "n div m = of_nat (nat_of n div nat_of m)"
 
 definition [simp, code del]:
-  "n mod m = index_of_nat (nat_of_index n mod nat_of_index m)"
+  "n mod m = of_nat (nat_of n mod nat_of m)"
 
 definition [simp, code del]:
-  "n \<le> m \<longleftrightarrow> nat_of_index n \<le> nat_of_index m"
+  "n \<le> m \<longleftrightarrow> nat_of n \<le> nat_of m"
 
 definition [simp, code del]:
-  "n < m \<longleftrightarrow> nat_of_index n < nat_of_index m"
+  "n < m \<longleftrightarrow> nat_of n < nat_of m"
 
-instance by default (auto simp add: left_distrib index)
+instance proof
+qed (auto simp add: left_distrib)
 
 end
 
@@ -187,14 +185,14 @@ lemma [code post]: "Numeral1 = (1\<Colon>index)"
   using one_index_code ..
 
 lemma plus_index_code [code nbe]:
-  "index_of_nat n + index_of_nat m = index_of_nat (n + m)"
+  "of_nat n + of_nat m = of_nat (n + m)"
   by simp
 
 definition subtract_index :: "index \<Rightarrow> index \<Rightarrow> index" where
   [simp, code del]: "subtract_index = op -"
 
 lemma subtract_index_code [code nbe]:
-  "subtract_index (index_of_nat n) (index_of_nat m) = index_of_nat (n - m)"
+  "subtract_index (of_nat n) (of_nat m) = of_nat (n - m)"
   by simp
 
 lemma minus_index_code [code]:
@@ -202,42 +200,42 @@ lemma minus_index_code [code]:
   by simp
 
 lemma times_index_code [code nbe]:
-  "index_of_nat n * index_of_nat m = index_of_nat (n * m)"
+  "of_nat n * of_nat m = of_nat (n * m)"
   by simp
 
 lemma less_eq_index_code [code nbe]:
-  "index_of_nat n \<le> index_of_nat m \<longleftrightarrow> n \<le> m"
+  "of_nat n \<le> of_nat m \<longleftrightarrow> n \<le> m"
   by simp
 
 lemma less_index_code [code nbe]:
-  "index_of_nat n < index_of_nat m \<longleftrightarrow> n < m"
+  "of_nat n < of_nat m \<longleftrightarrow> n < m"
   by simp
 
 lemma Suc_index_minus_one: "Suc_index n - 1 = n" by simp
 
-lemma index_of_nat_code [code]:
-  "index_of_nat = of_nat"
+lemma of_nat_code [code]:
+  "of_nat = Nat.of_nat"
 proof
   fix n :: nat
-  have "of_nat n = index_of_nat n"
+  have "Nat.of_nat n = of_nat n"
     by (induct n) simp_all
-  then show "index_of_nat n = of_nat n"
+  then show "of_nat n = Nat.of_nat n"
     by (rule sym)
 qed
 
-lemma index_not_eq_zero: "i \<noteq> index_of_nat 0 \<longleftrightarrow> i \<ge> 1"
+lemma index_not_eq_zero: "i \<noteq> of_nat 0 \<longleftrightarrow> i \<ge> 1"
   by (cases i) auto
 
-definition nat_of_index_aux :: "index \<Rightarrow> nat \<Rightarrow> nat" where
-  "nat_of_index_aux i n = nat_of_index i + n"
+definition nat_of_aux :: "index \<Rightarrow> nat \<Rightarrow> nat" where
+  "nat_of_aux i n = nat_of i + n"
 
-lemma nat_of_index_aux_code [code]:
-  "nat_of_index_aux i n = (if i = 0 then n else nat_of_index_aux (i - 1) (Suc n))"
-  by (auto simp add: nat_of_index_aux_def index_not_eq_zero)
+lemma nat_of_aux_code [code]:
+  "nat_of_aux i n = (if i = 0 then n else nat_of_aux (i - 1) (Suc n))"
+  by (auto simp add: nat_of_aux_def index_not_eq_zero)
 
-lemma nat_of_index_code [code]:
-  "nat_of_index i = nat_of_index_aux i 0"
-  by (simp add: nat_of_index_aux_def)
+lemma nat_of_code [code]:
+  "nat_of i = nat_of_aux i 0"
+  by (simp add: nat_of_aux_def)
 
 definition div_mod_index ::  "index \<Rightarrow> index \<Rightarrow> index \<times> index" where
   [code del]: "div_mod_index n m = (n div m, n mod m)"
@@ -254,6 +252,7 @@ lemma [code]:
   "n mod m = snd (div_mod_index n m)"
   unfolding div_mod_index_def by simp
 
+hide (open) const of_nat nat_of
 
 subsection {* ML interface *}
 
