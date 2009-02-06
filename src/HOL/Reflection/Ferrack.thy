@@ -3,7 +3,7 @@
 *)
 
 theory Ferrack
-imports Complex_Main Dense_linear_Order Efficient_Nat
+imports Complex_Main Dense_Linear_Order Efficient_Nat
 uses ("ferrack_tac.ML")
 begin
 
