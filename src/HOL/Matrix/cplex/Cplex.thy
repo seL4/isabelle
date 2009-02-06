@@ -4,7 +4,7 @@
 *)
 
 theory Cplex 
-imports SparseMatrix LP "~~/src/HOL/Real/Float" "~~/src/HOL/Tools/ComputeNumeral"
+imports SparseMatrix LP "~~/src/HOL/Tools/ComputeFloat" "~~/src/HOL/Tools/ComputeNumeral"
 uses "Cplex_tools.ML" "CplexMatrixConverter.ML" "FloatSparseMatrixBuilder.ML"
   "fspmlp.ML" ("matrixlp.ML")
 begin

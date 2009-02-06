@@ -1,5 +1,4 @@
-(*  Title:  HOL/Real/float_arith.ML
-    ID:     $Id$
+(*  Title:  HOL/Tools/float_arith.ML
     Author: Steven Obua
 *)
 

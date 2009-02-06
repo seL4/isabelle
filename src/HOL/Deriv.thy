@@ -1038,6 +1038,15 @@ proof -
   qed
 qed
 
+lemma MVT2:
+     "[| a < b; \<forall>x. a \<le> x & x \<le> b --> DERIV f x :> f'(x) |]
+      ==> \<exists>z::real. a < z & z < b & (f b - f a = (b - a) * f'(z))"
+apply (drule MVT)
+apply (blast intro: DERIV_isCont)
+apply (force dest: order_less_imp_le simp add: differentiable_def)
+apply (blast dest: DERIV_unique order_less_imp_le)
+done
+
 
 text{*A function is constant if its derivative is 0 over an interval.*}
 
@@ -1072,6 +1081,30 @@ lemma DERIV_isconst2:
         ==> f x = f a"
 apply (blast dest: DERIV_isconst1)
 done
+
+lemma DERIV_isconst3: fixes a b x y :: real
+  assumes "a < b" and "x \<in> {a <..< b}" and "y \<in> {a <..< b}"
+  assumes derivable: "\<And>x. x \<in> {a <..< b} \<Longrightarrow> DERIV f x :> 0"
+  shows "f x = f y"
+proof (cases "x = y")
+  case False
+  let ?a = "min x y"
+  let ?b = "max x y"
+  
+  have "\<forall>z. ?a \<le> z \<and> z \<le> ?b \<longrightarrow> DERIV f z :> 0"
+  proof (rule allI, rule impI)
+    fix z :: real assume "?a \<le> z \<and> z \<le> ?b"
+    hence "a < z" and "z < b" using `x \<in> {a <..< b}` and `y \<in> {a <..< b}` by auto
+    hence "z \<in> {a<..<b}" by auto
+    thus "DERIV f z :> 0" by (rule derivable)
+  qed
+  hence isCont: "\<forall>z. ?a \<le> z \<and> z \<le> ?b \<longrightarrow> isCont f z"
+    and DERIV: "\<forall>z. ?a < z \<and> z < ?b \<longrightarrow> DERIV f z :> 0" using DERIV_isCont by auto
+
+  have "?a < ?b" using `x \<noteq> y` by auto
+  from DERIV_isconst2[OF this isCont DERIV, of x] and DERIV_isconst2[OF this isCont DERIV, of y]
+  show ?thesis by auto
+qed auto
 
 lemma DERIV_isconst_all:
   fixes f :: "real => real"

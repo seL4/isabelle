@@ -122,19 +122,19 @@ fun prep_class_elems prep_decl thy supexpr sups proto_base_sort raw_elems =
         val inferred_sort = extract
           (fn TVar (_, sort) => curry (Sorts.inter_sort algebra) sort | _ => I);
         val fixate_sort = if null tfrees then inferred_sort
-          else let val a_sort = (snd o the_single) tfrees
-          in if Sorts.sort_le algebra (a_sort, inferred_sort)
-            then Sorts.inter_sort algebra (a_sort, inferred_sort)
-            else error ("Type inference imposes additional sort constraint "
-              ^ Syntax.string_of_sort_global thy inferred_sort
-              ^ " of type parameter " ^ Name.aT ^ " of sort "
-              ^ Syntax.string_of_sort_global thy a_sort)
-          end
+          else case tfrees
+           of [(_, a_sort)] => if Sorts.sort_le algebra (a_sort, inferred_sort)
+                then Sorts.inter_sort algebra (a_sort, inferred_sort)
+                else error ("Type inference imposes additional sort constraint "
+                  ^ Syntax.string_of_sort_global thy inferred_sort
+                  ^ " of type parameter " ^ Name.aT ^ " of sort "
+                  ^ Syntax.string_of_sort_global thy a_sort ^ ".")
+            | _ => error "Multiple type variables in class specification.";
       in (map o map_atyps) (K (TFree (Name.aT, fixate_sort))) Ts end;
     fun add_typ_check level name f = Context.proof_map (Syntax.add_typ_check level name (fn xs => fn ctxt =>
       let val xs' = f xs in if eq_list (op =) (xs, xs') then NONE else SOME (xs', ctxt) end));
 
-    (* preproceesing elements, retrieving base sort from type-checked elements *)
+    (* preprocessing elements, retrieving base sort from type-checked elements *)
     val init_class_body = fold (ProofContext.add_const_constraint o apsnd SOME) base_constraints
       #> redeclare_operations thy sups
       #> add_typ_check 10 "reject_bcd_etc" reject_bcd_etc
@@ -188,9 +188,6 @@ fun prep_class_spec prep_class prep_class_elems thy raw_supclasses raw_elems =
     (* process elements as class specification *)
     val class_ctxt = begin sups base_sort (ProofContext.init thy)
     val ((_, _, syntax_elems), _) = class_ctxt
-      (*#> fold (Variable.declare_constraints o Free) ((map o apsnd o map_atyps)
-          (K (TFree (Name.aT, base_sort))) supparams) FIXME really necessary?*)
-            (*FIXME should constraints be issued in begin?*)
       |> Expression.cert_declaration supexpr I inferred_elems;
     fun check_vars e vs = if null vs
       then error ("No type variable in part of specification element "
@@ -210,7 +207,7 @@ fun prep_class_spec prep_class prep_class_elems thy raw_supclasses raw_elems =
     val (elems, global_syntax) = fold_map fork_syn syntax_elems [];
     val constrain = Element.Constrains ((map o apsnd o map_atyps)
       (K (TFree (Name.aT, base_sort))) supparams);
-      (*FIXME 2009 perhaps better: control type variable by explicit
+      (*FIXME perhaps better: control type variable by explicit
       parameter instantiation of import expression*)
 
   in (((sups, supparam_names), (sup_sort, base_sort, supexpr)), (constrain :: elems, global_syntax)) end;
@@ -223,7 +220,7 @@ val read_class_spec = prep_class_spec Sign.intern_class read_class_elems;
 
 fun add_consts bname class base_sort sups supparams global_syntax thy =
   let
-    (*FIXME 2009 simplify*)
+    (*FIXME simplify*)
     val supconsts = supparams
       |> AList.make (snd o the o AList.lookup (op =) (these_params thy sups))
       |> (map o apsnd o apsnd o map_atyps o K o TFree) (Name.aT, [class]);
@@ -253,7 +250,7 @@ fun add_consts bname class base_sort sups supparams global_syntax thy =
 
 fun adjungate_axclass bname class base_sort sups supsort supparams global_syntax thy =
   let
-    (*FIXME 2009 simplify*)
+    (*FIXME simplify*)
     fun globalize param_map = map_aterms
       (fn Free (v, ty) => Const ((fst o the o AList.lookup (op =) param_map) v, ty)
         | t => t);

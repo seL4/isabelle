@@ -33,6 +33,9 @@ subsection {* Derived operations *}
 definition size :: "('a, 'b) map \<Rightarrow> nat" where
   "size m = (if finite (keys m) then card (keys m) else 0)"
 
+definition replace :: "'a \<Rightarrow> 'b \<Rightarrow> ('a, 'b) map \<Rightarrow> ('a, 'b) map" where
+  "replace k v m = (if lookup m k = None then m else update k v m)"
+
 definition tabulate :: "'a list \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> ('a, 'b) map" where
   "tabulate ks f = Map (map_of (map (\<lambda>k. (k, f k)) ks))"
 
@@ -64,6 +67,11 @@ lemma update_update:
   "update k v (update k w m) = update k v m"
   "k \<noteq> l \<Longrightarrow> update k v (update l w m) = update l w (update k v m)"
   by (cases m, simp add: expand_fun_eq)+
+
+lemma replace_update:
+  "lookup m k = None \<Longrightarrow> replace k v m = m"
+  "lookup m k \<noteq> None \<Longrightarrow> replace k v m = update k v m"
+  by (auto simp add: replace_def)
 
 lemma delete_empty [simp]:
   "delete k empty = empty"

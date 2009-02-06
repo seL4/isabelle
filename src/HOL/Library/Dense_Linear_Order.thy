@@ -19,9 +19,9 @@ setup {* Langford_Data.setup #> Ferrante_Rackoff_Data.setup *}
 context linorder
 begin
 
-lemma less_not_permute: "\<not> (x < y \<and> y < x)" by (simp add: not_less linear)
+lemma less_not_permute[noatp]: "\<not> (x < y \<and> y < x)" by (simp add: not_less linear)
 
-lemma gather_simps: 
+lemma gather_simps[noatp]: 
   shows 
   "(\<exists>x. (\<forall>y \<in> L. y < x) \<and> (\<forall>y \<in> U. x < y) \<and> x < u \<and> P x) \<longleftrightarrow> (\<exists>x. (\<forall>y \<in> L. y < x) \<and> (\<forall>y \<in> (insert u U). x < y) \<and> P x)"
   and "(\<exists>x. (\<forall>y \<in> L. y < x) \<and> (\<forall>y \<in> U. x < y) \<and> l < x \<and> P x) \<longleftrightarrow> (\<exists>x. (\<forall>y \<in> (insert l L). y < x) \<and> (\<forall>y \<in> U. x < y) \<and> P x)"
@@ -29,61 +29,61 @@ lemma gather_simps:
   and "(\<exists>x. (\<forall>y \<in> L. y < x) \<and> (\<forall>y \<in> U. x < y) \<and> l < x) \<longleftrightarrow> (\<exists>x. (\<forall>y \<in> (insert l L). y < x) \<and> (\<forall>y \<in> U. x < y))"  by auto
 
 lemma 
-  gather_start: "(\<exists>x. P x) \<equiv> (\<exists>x. (\<forall>y \<in> {}. y < x) \<and> (\<forall>y\<in> {}. x < y) \<and> P x)" 
+  gather_start[noatp]: "(\<exists>x. P x) \<equiv> (\<exists>x. (\<forall>y \<in> {}. y < x) \<and> (\<forall>y\<in> {}. x < y) \<and> P x)" 
   by simp
 
 text{* Theorems for @{text "\<exists>z. \<forall>x. x < z \<longrightarrow> (P x \<longleftrightarrow> P\<^bsub>-\<infinity>\<^esub>)"}*}
-lemma minf_lt:  "\<exists>z . \<forall>x. x < z \<longrightarrow> (x < t \<longleftrightarrow> True)" by auto
-lemma minf_gt: "\<exists>z . \<forall>x. x < z \<longrightarrow>  (t < x \<longleftrightarrow>  False)"
+lemma minf_lt[noatp]:  "\<exists>z . \<forall>x. x < z \<longrightarrow> (x < t \<longleftrightarrow> True)" by auto
+lemma minf_gt[noatp]: "\<exists>z . \<forall>x. x < z \<longrightarrow>  (t < x \<longleftrightarrow>  False)"
   by (simp add: not_less) (rule exI[where x="t"], auto simp add: less_le)
 
-lemma minf_le: "\<exists>z. \<forall>x. x < z \<longrightarrow> (x \<le> t \<longleftrightarrow> True)" by (auto simp add: less_le)
-lemma minf_ge: "\<exists>z. \<forall>x. x < z \<longrightarrow> (t \<le> x \<longleftrightarrow> False)"
+lemma minf_le[noatp]: "\<exists>z. \<forall>x. x < z \<longrightarrow> (x \<le> t \<longleftrightarrow> True)" by (auto simp add: less_le)
+lemma minf_ge[noatp]: "\<exists>z. \<forall>x. x < z \<longrightarrow> (t \<le> x \<longleftrightarrow> False)"
   by (auto simp add: less_le not_less not_le)
-lemma minf_eq: "\<exists>z. \<forall>x. x < z \<longrightarrow> (x = t \<longleftrightarrow> False)" by auto
-lemma minf_neq: "\<exists>z. \<forall>x. x < z \<longrightarrow> (x \<noteq> t \<longleftrightarrow> True)" by auto
-lemma minf_P: "\<exists>z. \<forall>x. x < z \<longrightarrow> (P \<longleftrightarrow> P)" by blast
+lemma minf_eq[noatp]: "\<exists>z. \<forall>x. x < z \<longrightarrow> (x = t \<longleftrightarrow> False)" by auto
+lemma minf_neq[noatp]: "\<exists>z. \<forall>x. x < z \<longrightarrow> (x \<noteq> t \<longleftrightarrow> True)" by auto
+lemma minf_P[noatp]: "\<exists>z. \<forall>x. x < z \<longrightarrow> (P \<longleftrightarrow> P)" by blast
 
 text{* Theorems for @{text "\<exists>z. \<forall>x. x < z \<longrightarrow> (P x \<longleftrightarrow> P\<^bsub>+\<infinity>\<^esub>)"}*}
-lemma pinf_gt:  "\<exists>z . \<forall>x. z < x \<longrightarrow> (t < x \<longleftrightarrow> True)" by auto
-lemma pinf_lt: "\<exists>z . \<forall>x. z < x \<longrightarrow>  (x < t \<longleftrightarrow>  False)"
+lemma pinf_gt[noatp]:  "\<exists>z . \<forall>x. z < x \<longrightarrow> (t < x \<longleftrightarrow> True)" by auto
+lemma pinf_lt[noatp]: "\<exists>z . \<forall>x. z < x \<longrightarrow>  (x < t \<longleftrightarrow>  False)"
   by (simp add: not_less) (rule exI[where x="t"], auto simp add: less_le)
 
-lemma pinf_ge: "\<exists>z. \<forall>x. z < x \<longrightarrow> (t \<le> x \<longleftrightarrow> True)" by (auto simp add: less_le)
-lemma pinf_le: "\<exists>z. \<forall>x. z < x \<longrightarrow> (x \<le> t \<longleftrightarrow> False)"
+lemma pinf_ge[noatp]: "\<exists>z. \<forall>x. z < x \<longrightarrow> (t \<le> x \<longleftrightarrow> True)" by (auto simp add: less_le)
+lemma pinf_le[noatp]: "\<exists>z. \<forall>x. z < x \<longrightarrow> (x \<le> t \<longleftrightarrow> False)"
   by (auto simp add: less_le not_less not_le)
-lemma pinf_eq: "\<exists>z. \<forall>x. z < x \<longrightarrow> (x = t \<longleftrightarrow> False)" by auto
-lemma pinf_neq: "\<exists>z. \<forall>x. z < x \<longrightarrow> (x \<noteq> t \<longleftrightarrow> True)" by auto
-lemma pinf_P: "\<exists>z. \<forall>x. z < x \<longrightarrow> (P \<longleftrightarrow> P)" by blast
+lemma pinf_eq[noatp]: "\<exists>z. \<forall>x. z < x \<longrightarrow> (x = t \<longleftrightarrow> False)" by auto
+lemma pinf_neq[noatp]: "\<exists>z. \<forall>x. z < x \<longrightarrow> (x \<noteq> t \<longleftrightarrow> True)" by auto
+lemma pinf_P[noatp]: "\<exists>z. \<forall>x. z < x \<longrightarrow> (P \<longleftrightarrow> P)" by blast
 
-lemma nmi_lt: "t \<in> U \<Longrightarrow> \<forall>x. \<not>True \<and> x < t \<longrightarrow>  (\<exists> u\<in> U. u \<le> x)" by auto
-lemma nmi_gt: "t \<in> U \<Longrightarrow> \<forall>x. \<not>False \<and> t < x \<longrightarrow>  (\<exists> u\<in> U. u \<le> x)"
+lemma nmi_lt[noatp]: "t \<in> U \<Longrightarrow> \<forall>x. \<not>True \<and> x < t \<longrightarrow>  (\<exists> u\<in> U. u \<le> x)" by auto
+lemma nmi_gt[noatp]: "t \<in> U \<Longrightarrow> \<forall>x. \<not>False \<and> t < x \<longrightarrow>  (\<exists> u\<in> U. u \<le> x)"
   by (auto simp add: le_less)
-lemma  nmi_le: "t \<in> U \<Longrightarrow> \<forall>x. \<not>True \<and> x\<le> t \<longrightarrow>  (\<exists> u\<in> U. u \<le> x)" by auto
-lemma  nmi_ge: "t \<in> U \<Longrightarrow> \<forall>x. \<not>False \<and> t\<le> x \<longrightarrow>  (\<exists> u\<in> U. u \<le> x)" by auto
-lemma  nmi_eq: "t \<in> U \<Longrightarrow> \<forall>x. \<not>False \<and>  x = t \<longrightarrow>  (\<exists> u\<in> U. u \<le> x)" by auto
-lemma  nmi_neq: "t \<in> U \<Longrightarrow>\<forall>x. \<not>True \<and> x \<noteq> t \<longrightarrow>  (\<exists> u\<in> U. u \<le> x)" by auto
-lemma  nmi_P: "\<forall> x. ~P \<and> P \<longrightarrow>  (\<exists> u\<in> U. u \<le> x)" by auto
-lemma  nmi_conj: "\<lbrakk>\<forall>x. \<not>P1' \<and> P1 x \<longrightarrow>  (\<exists> u\<in> U. u \<le> x) ;
+lemma  nmi_le[noatp]: "t \<in> U \<Longrightarrow> \<forall>x. \<not>True \<and> x\<le> t \<longrightarrow>  (\<exists> u\<in> U. u \<le> x)" by auto
+lemma  nmi_ge[noatp]: "t \<in> U \<Longrightarrow> \<forall>x. \<not>False \<and> t\<le> x \<longrightarrow>  (\<exists> u\<in> U. u \<le> x)" by auto
+lemma  nmi_eq[noatp]: "t \<in> U \<Longrightarrow> \<forall>x. \<not>False \<and>  x = t \<longrightarrow>  (\<exists> u\<in> U. u \<le> x)" by auto
+lemma  nmi_neq[noatp]: "t \<in> U \<Longrightarrow>\<forall>x. \<not>True \<and> x \<noteq> t \<longrightarrow>  (\<exists> u\<in> U. u \<le> x)" by auto
+lemma  nmi_P[noatp]: "\<forall> x. ~P \<and> P \<longrightarrow>  (\<exists> u\<in> U. u \<le> x)" by auto
+lemma  nmi_conj[noatp]: "\<lbrakk>\<forall>x. \<not>P1' \<and> P1 x \<longrightarrow>  (\<exists> u\<in> U. u \<le> x) ;
   \<forall>x. \<not>P2' \<and> P2 x \<longrightarrow>  (\<exists> u\<in> U. u \<le> x)\<rbrakk> \<Longrightarrow>
   \<forall>x. \<not>(P1' \<and> P2') \<and> (P1 x \<and> P2 x) \<longrightarrow>  (\<exists> u\<in> U. u \<le> x)" by auto
-lemma  nmi_disj: "\<lbrakk>\<forall>x. \<not>P1' \<and> P1 x \<longrightarrow>  (\<exists> u\<in> U. u \<le> x) ;
+lemma  nmi_disj[noatp]: "\<lbrakk>\<forall>x. \<not>P1' \<and> P1 x \<longrightarrow>  (\<exists> u\<in> U. u \<le> x) ;
   \<forall>x. \<not>P2' \<and> P2 x \<longrightarrow>  (\<exists> u\<in> U. u \<le> x)\<rbrakk> \<Longrightarrow>
   \<forall>x. \<not>(P1' \<or> P2') \<and> (P1 x \<or> P2 x) \<longrightarrow>  (\<exists> u\<in> U. u \<le> x)" by auto
 
-lemma  npi_lt: "t \<in> U \<Longrightarrow> \<forall>x. \<not>False \<and>  x < t \<longrightarrow>  (\<exists> u\<in> U. x \<le> u)" by (auto simp add: le_less)
-lemma  npi_gt: "t \<in> U \<Longrightarrow> \<forall>x. \<not>True \<and> t < x \<longrightarrow>  (\<exists> u\<in> U. x \<le> u)" by auto
-lemma  npi_le: "t \<in> U \<Longrightarrow> \<forall>x. \<not>False \<and>  x \<le> t \<longrightarrow>  (\<exists> u\<in> U. x \<le> u)" by auto
-lemma  npi_ge: "t \<in> U \<Longrightarrow> \<forall>x. \<not>True \<and> t \<le> x \<longrightarrow>  (\<exists> u\<in> U. x \<le> u)" by auto
-lemma  npi_eq: "t \<in> U \<Longrightarrow> \<forall>x. \<not>False \<and>  x = t \<longrightarrow>  (\<exists> u\<in> U. x \<le> u)" by auto
-lemma  npi_neq: "t \<in> U \<Longrightarrow> \<forall>x. \<not>True \<and> x \<noteq> t \<longrightarrow>  (\<exists> u\<in> U. x \<le> u )" by auto
-lemma  npi_P: "\<forall> x. ~P \<and> P \<longrightarrow>  (\<exists> u\<in> U. x \<le> u)" by auto
-lemma  npi_conj: "\<lbrakk>\<forall>x. \<not>P1' \<and> P1 x \<longrightarrow>  (\<exists> u\<in> U. x \<le> u) ;  \<forall>x. \<not>P2' \<and> P2 x \<longrightarrow>  (\<exists> u\<in> U. x \<le> u)\<rbrakk>
+lemma  npi_lt[noatp]: "t \<in> U \<Longrightarrow> \<forall>x. \<not>False \<and>  x < t \<longrightarrow>  (\<exists> u\<in> U. x \<le> u)" by (auto simp add: le_less)
+lemma  npi_gt[noatp]: "t \<in> U \<Longrightarrow> \<forall>x. \<not>True \<and> t < x \<longrightarrow>  (\<exists> u\<in> U. x \<le> u)" by auto
+lemma  npi_le[noatp]: "t \<in> U \<Longrightarrow> \<forall>x. \<not>False \<and>  x \<le> t \<longrightarrow>  (\<exists> u\<in> U. x \<le> u)" by auto
+lemma  npi_ge[noatp]: "t \<in> U \<Longrightarrow> \<forall>x. \<not>True \<and> t \<le> x \<longrightarrow>  (\<exists> u\<in> U. x \<le> u)" by auto
+lemma  npi_eq[noatp]: "t \<in> U \<Longrightarrow> \<forall>x. \<not>False \<and>  x = t \<longrightarrow>  (\<exists> u\<in> U. x \<le> u)" by auto
+lemma  npi_neq[noatp]: "t \<in> U \<Longrightarrow> \<forall>x. \<not>True \<and> x \<noteq> t \<longrightarrow>  (\<exists> u\<in> U. x \<le> u )" by auto
+lemma  npi_P[noatp]: "\<forall> x. ~P \<and> P \<longrightarrow>  (\<exists> u\<in> U. x \<le> u)" by auto
+lemma  npi_conj[noatp]: "\<lbrakk>\<forall>x. \<not>P1' \<and> P1 x \<longrightarrow>  (\<exists> u\<in> U. x \<le> u) ;  \<forall>x. \<not>P2' \<and> P2 x \<longrightarrow>  (\<exists> u\<in> U. x \<le> u)\<rbrakk>
   \<Longrightarrow>  \<forall>x. \<not>(P1' \<and> P2') \<and> (P1 x \<and> P2 x) \<longrightarrow>  (\<exists> u\<in> U. x \<le> u)" by auto
-lemma  npi_disj: "\<lbrakk>\<forall>x. \<not>P1' \<and> P1 x \<longrightarrow>  (\<exists> u\<in> U. x \<le> u) ; \<forall>x. \<not>P2' \<and> P2 x \<longrightarrow>  (\<exists> u\<in> U. x \<le> u)\<rbrakk>
+lemma  npi_disj[noatp]: "\<lbrakk>\<forall>x. \<not>P1' \<and> P1 x \<longrightarrow>  (\<exists> u\<in> U. x \<le> u) ; \<forall>x. \<not>P2' \<and> P2 x \<longrightarrow>  (\<exists> u\<in> U. x \<le> u)\<rbrakk>
   \<Longrightarrow> \<forall>x. \<not>(P1' \<or> P2') \<and> (P1 x \<or> P2 x) \<longrightarrow>  (\<exists> u\<in> U. x \<le> u)" by auto
 
-lemma lin_dense_lt: "t \<in> U \<Longrightarrow> \<forall>x l u. (\<forall> t. l < t \<and> t < u \<longrightarrow> t \<notin> U) \<and> l< x \<and> x < u \<and> x < t \<longrightarrow> (\<forall> y. l < y \<and> y < u \<longrightarrow> y < t)"
+lemma lin_dense_lt[noatp]: "t \<in> U \<Longrightarrow> \<forall>x l u. (\<forall> t. l < t \<and> t < u \<longrightarrow> t \<notin> U) \<and> l< x \<and> x < u \<and> x < t \<longrightarrow> (\<forall> y. l < y \<and> y < u \<longrightarrow> y < t)"
 proof(clarsimp)
   fix x l u y  assume tU: "t \<in> U" and noU: "\<forall>t. l < t \<and> t < u \<longrightarrow> t \<notin> U" and lx: "l < x"
     and xu: "x<u"  and px: "x < t" and ly: "l<y" and yu:"y < u"
@@ -96,7 +96,7 @@ proof(clarsimp)
   thus "y < t" using tny by (simp add: less_le)
 qed
 
-lemma lin_dense_gt: "t \<in> U \<Longrightarrow> \<forall>x l u. (\<forall> t. l < t \<and> t< u \<longrightarrow> t \<notin> U) \<and> l < x \<and> x < u \<and> t < x \<longrightarrow> (\<forall> y. l < y \<and> y < u \<longrightarrow> t < y)"
+lemma lin_dense_gt[noatp]: "t \<in> U \<Longrightarrow> \<forall>x l u. (\<forall> t. l < t \<and> t< u \<longrightarrow> t \<notin> U) \<and> l < x \<and> x < u \<and> t < x \<longrightarrow> (\<forall> y. l < y \<and> y < u \<longrightarrow> t < y)"
 proof(clarsimp)
   fix x l u y
   assume tU: "t \<in> U" and noU: "\<forall>t. l < t \<and> t < u \<longrightarrow> t \<notin> U" and lx: "l < x" and xu: "x<u"
@@ -109,7 +109,7 @@ proof(clarsimp)
   thus "t < y" using tny by (simp add:less_le)
 qed
 
-lemma lin_dense_le: "t \<in> U \<Longrightarrow> \<forall>x l u. (\<forall> t. l < t \<and> t< u \<longrightarrow> t \<notin> U) \<and> l< x \<and> x < u \<and> x \<le> t \<longrightarrow> (\<forall> y. l < y \<and> y < u \<longrightarrow> y\<le> t)"
+lemma lin_dense_le[noatp]: "t \<in> U \<Longrightarrow> \<forall>x l u. (\<forall> t. l < t \<and> t< u \<longrightarrow> t \<notin> U) \<and> l< x \<and> x < u \<and> x \<le> t \<longrightarrow> (\<forall> y. l < y \<and> y < u \<longrightarrow> y\<le> t)"
 proof(clarsimp)
   fix x l u y
   assume tU: "t \<in> U" and noU: "\<forall>t. l < t \<and> t < u \<longrightarrow> t \<notin> U" and lx: "l < x" and xu: "x<u"
@@ -122,7 +122,7 @@ proof(clarsimp)
   hence "\<not> t < y"  by auto thus "y \<le> t" by (simp add: not_less)
 qed
 
-lemma lin_dense_ge: "t \<in> U \<Longrightarrow> \<forall>x l u. (\<forall> t. l < t \<and> t< u \<longrightarrow> t \<notin> U) \<and> l< x \<and> x < u \<and> t \<le> x \<longrightarrow> (\<forall> y. l < y \<and> y < u \<longrightarrow> t \<le> y)"
+lemma lin_dense_ge[noatp]: "t \<in> U \<Longrightarrow> \<forall>x l u. (\<forall> t. l < t \<and> t< u \<longrightarrow> t \<notin> U) \<and> l< x \<and> x < u \<and> t \<le> x \<longrightarrow> (\<forall> y. l < y \<and> y < u \<longrightarrow> t \<le> y)"
 proof(clarsimp)
   fix x l u y
   assume tU: "t \<in> U" and noU: "\<forall>t. l < t \<and> t < u \<longrightarrow> t \<notin> U" and lx: "l < x" and xu: "x<u"
@@ -134,11 +134,11 @@ proof(clarsimp)
     with tU noU have "False" by auto}
   hence "\<not> y<t"  by auto thus "t \<le> y" by (simp add: not_less)
 qed
-lemma lin_dense_eq: "t \<in> U \<Longrightarrow> \<forall>x l u. (\<forall> t. l < t \<and> t< u \<longrightarrow> t \<notin> U) \<and> l< x \<and> x < u \<and> x = t   \<longrightarrow> (\<forall> y. l < y \<and> y < u \<longrightarrow> y= t)"  by auto
-lemma lin_dense_neq: "t \<in> U \<Longrightarrow> \<forall>x l u. (\<forall> t. l < t \<and> t< u \<longrightarrow> t \<notin> U) \<and> l< x \<and> x < u \<and> x \<noteq> t   \<longrightarrow> (\<forall> y. l < y \<and> y < u \<longrightarrow> y\<noteq> t)"  by auto
-lemma lin_dense_P: "\<forall>x l u. (\<forall> t. l < t \<and> t< u \<longrightarrow> t \<notin> U) \<and> l< x \<and> x < u \<and> P   \<longrightarrow> (\<forall> y. l < y \<and> y < u \<longrightarrow> P)"  by auto
+lemma lin_dense_eq[noatp]: "t \<in> U \<Longrightarrow> \<forall>x l u. (\<forall> t. l < t \<and> t< u \<longrightarrow> t \<notin> U) \<and> l< x \<and> x < u \<and> x = t   \<longrightarrow> (\<forall> y. l < y \<and> y < u \<longrightarrow> y= t)"  by auto
+lemma lin_dense_neq[noatp]: "t \<in> U \<Longrightarrow> \<forall>x l u. (\<forall> t. l < t \<and> t< u \<longrightarrow> t \<notin> U) \<and> l< x \<and> x < u \<and> x \<noteq> t   \<longrightarrow> (\<forall> y. l < y \<and> y < u \<longrightarrow> y\<noteq> t)"  by auto
+lemma lin_dense_P[noatp]: "\<forall>x l u. (\<forall> t. l < t \<and> t< u \<longrightarrow> t \<notin> U) \<and> l< x \<and> x < u \<and> P   \<longrightarrow> (\<forall> y. l < y \<and> y < u \<longrightarrow> P)"  by auto
 
-lemma lin_dense_conj:
+lemma lin_dense_conj[noatp]:
   "\<lbrakk>\<forall>x l u. (\<forall> t. l < t \<and> t< u \<longrightarrow> t \<notin> U) \<and> l< x \<and> x < u \<and> P1 x
   \<longrightarrow> (\<forall> y. l < y \<and> y < u \<longrightarrow> P1 y) ;
   \<forall>x l u. (\<forall> t. l < t \<and> t< u \<longrightarrow> t \<notin> U) \<and> l< x \<and> x < u \<and> P2 x
@@ -146,7 +146,7 @@ lemma lin_dense_conj:
   \<forall>x l u. (\<forall> t. l < t \<and> t< u \<longrightarrow> t \<notin> U) \<and> l< x \<and> x < u \<and> (P1 x \<and> P2 x)
   \<longrightarrow> (\<forall> y. l < y \<and> y < u \<longrightarrow> (P1 y \<and> P2 y))"
   by blast
-lemma lin_dense_disj:
+lemma lin_dense_disj[noatp]:
   "\<lbrakk>\<forall>x l u. (\<forall> t. l < t \<and> t< u \<longrightarrow> t \<notin> U) \<and> l< x \<and> x < u \<and> P1 x
   \<longrightarrow> (\<forall> y. l < y \<and> y < u \<longrightarrow> P1 y) ;
   \<forall>x l u. (\<forall> t. l < t \<and> t< u \<longrightarrow> t \<notin> U) \<and> l< x \<and> x < u \<and> P2 x
@@ -155,11 +155,11 @@ lemma lin_dense_disj:
   \<longrightarrow> (\<forall> y. l < y \<and> y < u \<longrightarrow> (P1 y \<or> P2 y))"
   by blast
 
-lemma npmibnd: "\<lbrakk>\<forall>x. \<not> MP \<and> P x \<longrightarrow> (\<exists> u\<in> U. u \<le> x); \<forall>x. \<not>PP \<and> P x \<longrightarrow> (\<exists> u\<in> U. x \<le> u)\<rbrakk>
+lemma npmibnd[noatp]: "\<lbrakk>\<forall>x. \<not> MP \<and> P x \<longrightarrow> (\<exists> u\<in> U. u \<le> x); \<forall>x. \<not>PP \<and> P x \<longrightarrow> (\<exists> u\<in> U. x \<le> u)\<rbrakk>
   \<Longrightarrow> \<forall>x. \<not> MP \<and> \<not>PP \<and> P x \<longrightarrow> (\<exists> u\<in> U. \<exists> u' \<in> U. u \<le> x \<and> x \<le> u')"
 by auto
 
-lemma finite_set_intervals:
+lemma finite_set_intervals[noatp]:
   assumes px: "P x" and lx: "l \<le> x" and xu: "x \<le> u" and linS: "l\<in> S"
   and uinS: "u \<in> S" and fS:"finite S" and lS: "\<forall> x\<in> S. l \<le> x" and Su: "\<forall> x\<in> S. x \<le> u"
   shows "\<exists> a \<in> S. \<exists> b \<in> S. (\<forall> y. a < y \<and> y < b \<longrightarrow> y \<notin> S) \<and> a \<le> x \<and> x \<le> b \<and> P x"
@@ -191,7 +191,7 @@ proof-
   from ainS binS noy ax xb px show ?thesis by blast
 qed
 
-lemma finite_set_intervals2:
+lemma finite_set_intervals2[noatp]:
   assumes px: "P x" and lx: "l \<le> x" and xu: "x \<le> u" and linS: "l\<in> S"
   and uinS: "u \<in> S" and fS:"finite S" and lS: "\<forall> x\<in> S. l \<le> x" and Su: "\<forall> x\<in> S. x \<le> u"
   shows "(\<exists> s\<in> S. P s) \<or> (\<exists> a \<in> S. \<exists> b \<in> S. (\<forall> y. a < y \<and> y < b \<longrightarrow> y \<notin> S) \<and> a < x \<and> x < b \<and> P x)"
@@ -215,7 +215,7 @@ lemma interval_empty_iff:
   "{y. x < y \<and> y < z} = {} \<longleftrightarrow> \<not> x < z"
   by (auto dest: dense)
 
-lemma dlo_qe_bnds: 
+lemma dlo_qe_bnds[noatp]: 
   assumes ne: "L \<noteq> {}" and neU: "U \<noteq> {}" and fL: "finite L" and fU: "finite U"
   shows "(\<exists>x. (\<forall>y \<in> L. y < x) \<and> (\<forall>y \<in> U. x < y)) \<equiv> (\<forall> l \<in> L. \<forall>u \<in> U. l < u)"
 proof (simp only: atomize_eq, rule iffI)
@@ -239,7 +239,7 @@ next
   ultimately show "\<exists>x. (\<forall>y\<in>L. y < x) \<and> (\<forall>y\<in>U. x < y)" by auto
 qed
 
-lemma dlo_qe_noub: 
+lemma dlo_qe_noub[noatp]: 
   assumes ne: "L \<noteq> {}" and fL: "finite L"
   shows "(\<exists>x. (\<forall>y \<in> L. y < x) \<and> (\<forall>y \<in> {}. x < y)) \<equiv> True"
 proof(simp add: atomize_eq)
@@ -249,7 +249,7 @@ proof(simp add: atomize_eq)
   thus "\<exists>x. \<forall>y\<in>L. y < x" by blast
 qed
 
-lemma dlo_qe_nolb: 
+lemma dlo_qe_nolb[noatp]: 
   assumes ne: "U \<noteq> {}" and fU: "finite U"
   shows "(\<exists>x. (\<forall>y \<in> {}. y < x) \<and> (\<forall>y \<in> U. x < y)) \<equiv> True"
 proof(simp add: atomize_eq)
@@ -259,14 +259,14 @@ proof(simp add: atomize_eq)
   thus "\<exists>x. \<forall>y\<in>U. x < y" by blast
 qed
 
-lemma exists_neq: "\<exists>(x::'a). x \<noteq> t" "\<exists>(x::'a). t \<noteq> x" 
+lemma exists_neq[noatp]: "\<exists>(x::'a). x \<noteq> t" "\<exists>(x::'a). t \<noteq> x" 
   using gt_ex[of t] by auto
 
-lemmas dlo_simps = order_refl less_irrefl not_less not_le exists_neq 
+lemmas dlo_simps[noatp] = order_refl less_irrefl not_less not_le exists_neq 
   le_less neq_iff linear less_not_permute
 
-lemma axiom: "dense_linear_order (op \<le>) (op <)" by (rule dense_linear_order_axioms)
-lemma atoms:
+lemma axiom[noatp]: "dense_linear_order (op \<le>) (op <)" by (rule dense_linear_order_axioms)
+lemma atoms[noatp]:
   shows "TERM (less :: 'a \<Rightarrow> _)"
     and "TERM (less_eq :: 'a \<Rightarrow> _)"
     and "TERM (op = :: 'a \<Rightarrow> _)" .
@@ -277,21 +277,21 @@ declare dlo_simps[langfordsimp]
 end
 
 (* FIXME: Move to HOL -- together with the conj_aci_rule in langford.ML *)
-lemma dnf:
+lemma dnf[noatp]:
   "(P & (Q | R)) = ((P&Q) | (P&R))" 
   "((Q | R) & P) = ((Q&P) | (R&P))"
   by blast+
 
-lemmas weak_dnf_simps = simp_thms dnf
+lemmas weak_dnf_simps[noatp] = simp_thms dnf
 
-lemma nnf_simps:
+lemma nnf_simps[noatp]:
     "(\<not>(P \<and> Q)) = (\<not>P \<or> \<not>Q)" "(\<not>(P \<or> Q)) = (\<not>P \<and> \<not>Q)" "(P \<longrightarrow> Q) = (\<not>P \<or> Q)"
     "(P = Q) = ((P \<and> Q) \<or> (\<not>P \<and> \<not> Q))" "(\<not> \<not>(P)) = P"
   by blast+
 
-lemma ex_distrib: "(\<exists>x. P x \<or> Q x) \<longleftrightarrow> ((\<exists>x. P x) \<or> (\<exists>x. Q x))" by blast
+lemma ex_distrib[noatp]: "(\<exists>x. P x \<or> Q x) \<longleftrightarrow> ((\<exists>x. P x) \<or> (\<exists>x. Q x))" by blast
 
-lemmas dnf_simps = weak_dnf_simps nnf_simps ex_distrib
+lemmas dnf_simps[noatp] = weak_dnf_simps nnf_simps ex_distrib
 
 use "~~/src/HOL/Tools/Qelim/langford.ML"
 method_setup dlo = {*
@@ -316,10 +316,10 @@ end
 locale linorder_no_ub = linorder_stupid_syntax +
   assumes gt_ex: "\<exists>y. less x y"
 begin
-lemma ge_ex: "\<exists>y. x \<sqsubseteq> y" using gt_ex by auto
+lemma ge_ex[noatp]: "\<exists>y. x \<sqsubseteq> y" using gt_ex by auto
 
 text {* Theorems for @{text "\<exists>z. \<forall>x. z \<sqsubset> x \<longrightarrow> (P x \<longleftrightarrow> P\<^bsub>+\<infinity>\<^esub>)"} *}
-lemma pinf_conj:
+lemma pinf_conj[noatp]:
   assumes ex1: "\<exists>z1. \<forall>x. z1 \<sqsubset> x \<longrightarrow> (P1 x \<longleftrightarrow> P1')"
   and ex2: "\<exists>z2. \<forall>x. z2 \<sqsubset> x \<longrightarrow> (P2 x \<longleftrightarrow> P2')"
   shows "\<exists>z. \<forall>x. z \<sqsubset>  x \<longrightarrow> ((P1 x \<and> P2 x) \<longleftrightarrow> (P1' \<and> P2'))"
@@ -335,7 +335,7 @@ proof-
   thus ?thesis by blast
 qed
 
-lemma pinf_disj:
+lemma pinf_disj[noatp]:
   assumes ex1: "\<exists>z1. \<forall>x. z1 \<sqsubset> x \<longrightarrow> (P1 x \<longleftrightarrow> P1')"
   and ex2: "\<exists>z2. \<forall>x. z2 \<sqsubset> x \<longrightarrow> (P2 x \<longleftrightarrow> P2')"
   shows "\<exists>z. \<forall>x. z \<sqsubset>  x \<longrightarrow> ((P1 x \<or> P2 x) \<longleftrightarrow> (P1' \<or> P2'))"
@@ -351,7 +351,7 @@ proof-
   thus ?thesis by blast
 qed
 
-lemma pinf_ex: assumes ex:"\<exists>z. \<forall>x. z \<sqsubset> x \<longrightarrow> (P x \<longleftrightarrow> P1)" and p1: P1 shows "\<exists> x. P x"
+lemma pinf_ex[noatp]: assumes ex:"\<exists>z. \<forall>x. z \<sqsubset> x \<longrightarrow> (P x \<longleftrightarrow> P1)" and p1: P1 shows "\<exists> x. P x"
 proof-
   from ex obtain z where z: "\<forall>x. z \<sqsubset> x \<longrightarrow> (P x \<longleftrightarrow> P1)" by blast
   from gt_ex obtain x where x: "z \<sqsubset> x" by blast
@@ -365,11 +365,11 @@ text {* Linear order without upper bounds *}
 locale linorder_no_lb = linorder_stupid_syntax +
   assumes lt_ex: "\<exists>y. less y x"
 begin
-lemma le_ex: "\<exists>y. y \<sqsubseteq> x" using lt_ex by auto
+lemma le_ex[noatp]: "\<exists>y. y \<sqsubseteq> x" using lt_ex by auto
 
 
 text {* Theorems for @{text "\<exists>z. \<forall>x. x \<sqsubset> z \<longrightarrow> (P x \<longleftrightarrow> P\<^bsub>-\<infinity>\<^esub>)"} *}
-lemma minf_conj:
+lemma minf_conj[noatp]:
   assumes ex1: "\<exists>z1. \<forall>x. x \<sqsubset> z1 \<longrightarrow> (P1 x \<longleftrightarrow> P1')"
   and ex2: "\<exists>z2. \<forall>x. x \<sqsubset> z2 \<longrightarrow> (P2 x \<longleftrightarrow> P2')"
   shows "\<exists>z. \<forall>x. x \<sqsubset>  z \<longrightarrow> ((P1 x \<and> P2 x) \<longleftrightarrow> (P1' \<and> P2'))"
@@ -384,7 +384,7 @@ proof-
   thus ?thesis by blast
 qed
 
-lemma minf_disj:
+lemma minf_disj[noatp]:
   assumes ex1: "\<exists>z1. \<forall>x. x \<sqsubset> z1 \<longrightarrow> (P1 x \<longleftrightarrow> P1')"
   and ex2: "\<exists>z2. \<forall>x. x \<sqsubset> z2 \<longrightarrow> (P2 x \<longleftrightarrow> P2')"
   shows "\<exists>z. \<forall>x. x \<sqsubset>  z \<longrightarrow> ((P1 x \<or> P2 x) \<longleftrightarrow> (P1' \<or> P2'))"
@@ -399,7 +399,7 @@ proof-
   thus ?thesis by blast
 qed
 
-lemma minf_ex: assumes ex:"\<exists>z. \<forall>x. x \<sqsubset> z \<longrightarrow> (P x \<longleftrightarrow> P1)" and p1: P1 shows "\<exists> x. P x"
+lemma minf_ex[noatp]: assumes ex:"\<exists>z. \<forall>x. x \<sqsubset> z \<longrightarrow> (P x \<longleftrightarrow> P1)" and p1: P1 shows "\<exists> x. P x"
 proof-
   from ex obtain z where z: "\<forall>x. x \<sqsubset> z \<longrightarrow> (P x \<longleftrightarrow> P1)" by blast
   from lt_ex obtain x where x: "x \<sqsubset> z" by blast
@@ -422,7 +422,7 @@ sublocale  constr_dense_linear_order < dense_linear_order
 context  constr_dense_linear_order
 begin
 
-lemma rinf_U:
+lemma rinf_U[noatp]:
   assumes fU: "finite U"
   and lin_dense: "\<forall>x l u. (\<forall> t. l \<sqsubset> t \<and> t\<sqsubset> u \<longrightarrow> t \<notin> U) \<and> l\<sqsubset> x \<and> x \<sqsubset> u \<and> P x
   \<longrightarrow> (\<forall> y. l \<sqsubset> y \<and> y \<sqsubset> u \<longrightarrow> P y )"
@@ -465,7 +465,7 @@ proof-
     ultimately show ?thesis by blast
   qed
 
-theorem fr_eq:
+theorem fr_eq[noatp]:
   assumes fU: "finite U"
   and lin_dense: "\<forall>x l u. (\<forall> t. l \<sqsubset> t \<and> t\<sqsubset> u \<longrightarrow> t \<notin> U) \<and> l\<sqsubset> x \<and> x \<sqsubset> u \<and> P x
    \<longrightarrow> (\<forall> y. l \<sqsubset> y \<and> y \<sqsubset> u \<longrightarrow> P y )"
@@ -493,16 +493,16 @@ proof-
  ultimately have "?E = ?D" by blast thus "?E \<equiv> ?D" by simp
 qed
 
-lemmas minf_thms = minf_conj minf_disj minf_eq minf_neq minf_lt minf_le minf_gt minf_ge minf_P
-lemmas pinf_thms = pinf_conj pinf_disj pinf_eq pinf_neq pinf_lt pinf_le pinf_gt pinf_ge pinf_P
+lemmas minf_thms[noatp] = minf_conj minf_disj minf_eq minf_neq minf_lt minf_le minf_gt minf_ge minf_P
+lemmas pinf_thms[noatp] = pinf_conj pinf_disj pinf_eq pinf_neq pinf_lt pinf_le pinf_gt pinf_ge pinf_P
 
-lemmas nmi_thms = nmi_conj nmi_disj nmi_eq nmi_neq nmi_lt nmi_le nmi_gt nmi_ge nmi_P
-lemmas npi_thms = npi_conj npi_disj npi_eq npi_neq npi_lt npi_le npi_gt npi_ge npi_P
-lemmas lin_dense_thms = lin_dense_conj lin_dense_disj lin_dense_eq lin_dense_neq lin_dense_lt lin_dense_le lin_dense_gt lin_dense_ge lin_dense_P
+lemmas nmi_thms[noatp] = nmi_conj nmi_disj nmi_eq nmi_neq nmi_lt nmi_le nmi_gt nmi_ge nmi_P
+lemmas npi_thms[noatp] = npi_conj npi_disj npi_eq npi_neq npi_lt npi_le npi_gt npi_ge npi_P
+lemmas lin_dense_thms[noatp] = lin_dense_conj lin_dense_disj lin_dense_eq lin_dense_neq lin_dense_lt lin_dense_le lin_dense_gt lin_dense_ge lin_dense_P
 
-lemma ferrack_axiom: "constr_dense_linear_order less_eq less between"
+lemma ferrack_axiom[noatp]: "constr_dense_linear_order less_eq less between"
   by (rule constr_dense_linear_order_axioms)
-lemma atoms:
+lemma atoms[noatp]:
   shows "TERM (less :: 'a \<Rightarrow> _)"
     and "TERM (less_eq :: 'a \<Rightarrow> _)"
     and "TERM (op = :: 'a \<Rightarrow> _)" .

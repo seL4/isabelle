@@ -197,7 +197,13 @@ syntax just like the Isar command 'by'.
 are treated as expected by the 'class' command.
 
 * Theory "Reflection" now resides in HOL/Library.  Common reflection examples
-(Cooper, MIR, Ferrack) now in distinct session directory HOL/Reflection.
+(Cooper, MIR, Ferrack, Approximation) now in distinct session directory
+HOL/Reflection. Here Approximation provides the new proof method
+"approximation". It proves formulas on real values by using interval arithmetic.
+In the formulas are also the transcendental functions sin, cos, tan, atan, ln,
+exp and the constant pi are allowed. For examples see
+src/HOL/ex/ApproximationEx.thy. To reach this the Leibnitz's Series for Pi and
+the arcus tangens and logarithm series is now proved in Isabelle.
 
 * Entry point to Word library now simply named "Word".  INCOMPATIBILITY.
 

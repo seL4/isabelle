@@ -247,12 +247,12 @@ fun gen_primrec set_group prep_spec raw_fixes raw_spec lthy =
     val _ = if gen_eq_set (op =) (names1, names2) then ()
       else primrec_error ("functions " ^ commas_quote names2 ^
         "\nare not mutually recursive");
-    val qualify = Binding.qualify
-      (space_implode "_" (map (Sign.base_name o #1) defs));
-    val spec' = (map o apfst o apfst) qualify spec;
+    val prefix = space_implode "_" (map (Sign.base_name o #1) defs);
+    val qualify = Binding.qualify prefix;
+    val spec' = (map o apfst)
+      (fn (b, attrs) => (qualify b, Code.add_default_eqn_attrib :: attrs)) spec;
     val simp_atts = map (Attrib.internal o K)
-      [Simplifier.simp_add, Code.add_default_eqn_attribute,
-       Nitpick_Const_Simps_Thms.add];
+      [Simplifier.simp_add, Nitpick_Const_Simps_Thms.add];
   in
     lthy
     |> set_group ? LocalTheory.set_group (serial_string ())
