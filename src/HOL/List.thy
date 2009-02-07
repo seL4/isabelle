@@ -1852,6 +1852,15 @@ lemma in_set_zipE:
   "(x,y) : set(zip xs ys) \<Longrightarrow> (\<lbrakk> x : set xs; y : set ys \<rbrakk> \<Longrightarrow> R) \<Longrightarrow> R"
 by(blast dest: set_zip_leftD set_zip_rightD)
 
+lemma zip_map_fst_snd:
+  "zip (map fst zs) (map snd zs) = zs"
+  by (induct zs) simp_all
+
+lemma zip_eq_conv:
+  "length xs = length ys \<Longrightarrow> zip xs ys = zs \<longleftrightarrow> map fst zs = xs \<and> map snd zs = ys"
+  by (auto simp add: zip_map_fst_snd)
+
+
 subsubsection {* @{text list_all2} *}
 
 lemma list_all2_lengthD [intro?]: 
