@@ -1215,10 +1215,10 @@ by (induct xs) auto
 
 subsubsection {* @{text nth} *}
 
-lemma nth_Cons_0 [simp]: "(x # xs)!0 = x"
+lemma nth_Cons_0 [simp, code]: "(x # xs)!0 = x"
 by auto
 
-lemma nth_Cons_Suc [simp]: "(x # xs)!(Suc n) = xs!n"
+lemma nth_Cons_Suc [simp, code]: "(x # xs)!(Suc n) = xs!n"
 by auto
 
 declare nth.simps [simp del]
@@ -1374,6 +1374,12 @@ apply auto
 apply (case_tac i')
 apply auto
 done
+
+lemma list_update_code [code]:
+  "[][i := y] = []"
+  "(x # xs)[0 := y] = y # xs"
+  "(x # xs)[Suc i := y] = x # xs[i := y]"
+  by simp_all
 
 
 subsubsection {* @{text last} and @{text butlast} *}
