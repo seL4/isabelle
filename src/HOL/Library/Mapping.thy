@@ -39,6 +39,9 @@ definition replace :: "'a \<Rightarrow> 'b \<Rightarrow> ('a, 'b) map \<Rightarr
 definition tabulate :: "'a list \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> ('a, 'b) map" where
   "tabulate ks f = Map (map_of (map (\<lambda>k. (k, f k)) ks))"
 
+definition bulkload :: "'a list \<Rightarrow> (nat, 'a) map" where
+  "bulkload xs = Map (\<lambda>k. if k < length xs then Some (xs ! k) else None)"
+
 
 subsection {* Properties *}
 
@@ -62,6 +65,10 @@ lemma lookup_delete:
 lemma lookup_tabulate:
   "lookup (tabulate ks f) = (Some o f) |` set ks"
   by (induct ks) (auto simp add: tabulate_def restrict_map_def expand_fun_eq)
+
+lemma lookup_bulkload:
+  "lookup (bulkload xs) = (\<lambda>k. if k < length xs then Some (xs ! k) else None)"
+  unfolding bulkload_def by simp
 
 lemma update_update:
   "update k v (update k w m) = update k v m"
@@ -119,5 +126,25 @@ lemma size_delete:
 lemma size_tabulate:
   "size (tabulate ks f) = length (remdups ks)"
   by (simp add: size_def keys_tabulate distinct_card [of "remdups ks", symmetric])
+
+lemma zip_map_fst_snd: (*FIXME move*)
+  "zip (map fst zs) (map snd zs) = zs"
+  by (induct zs) simp_all
+
+lemma zip_eq_conv: (*FIXME move*)
+  "length xs = length ys \<Longrightarrow> zip xs ys = zs \<longleftrightarrow> map fst zs = xs \<and> map snd zs = ys"
+  by (auto simp add: zip_map_fst_snd)
+
+lemma bulkload_tabulate: (*FIXME Isar proof*)
+  "bulkload xs = tabulate [0..<length xs] (nth xs)"
+  unfolding bulkload_def tabulate_def apply simp
+  apply (rule sym)
+  apply (rule ext) apply auto
+  apply (subst map_of_eq_Some_iff)
+  apply (simp add: map_compose [symmetric] comp_def)
+  apply (simp add: image_def)
+  apply (subst map_of_eq_None_iff)
+  apply (simp add: image_def)
+  done
 
 end
