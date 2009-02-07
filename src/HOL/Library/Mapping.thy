@@ -127,14 +127,6 @@ lemma size_tabulate:
   "size (tabulate ks f) = length (remdups ks)"
   by (simp add: size_def keys_tabulate distinct_card [of "remdups ks", symmetric])
 
-lemma zip_map_fst_snd: (*FIXME move*)
-  "zip (map fst zs) (map snd zs) = zs"
-  by (induct zs) simp_all
-
-lemma zip_eq_conv: (*FIXME move*)
-  "length xs = length ys \<Longrightarrow> zip xs ys = zs \<longleftrightarrow> map fst zs = xs \<and> map snd zs = ys"
-  by (auto simp add: zip_map_fst_snd)
-
 lemma bulkload_tabulate: (*FIXME Isar proof*)
   "bulkload xs = tabulate [0..<length xs] (nth xs)"
   unfolding bulkload_def tabulate_def apply simp
