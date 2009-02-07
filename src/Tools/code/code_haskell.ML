@@ -407,6 +407,8 @@ fun serialize_haskell module_prefix raw_module_name string_classes labelled_name
           | (_, (_, NONE)) => NONE) stmts));
     val serialize_module =
       if null stmt_names then serialize_module1 else pair "" o serialize_module2;
+    fun check_destination destination =
+      (File.check destination; destination);
     fun write_module destination (modlname, content) =
       let
         val filename = case modlname
@@ -421,7 +423,8 @@ fun serialize_haskell module_prefix raw_module_name string_classes labelled_name
       end
   in
     Code_Target.mk_serialization target NONE
-      (fn NONE => K () o map (Code_Target.code_writeln o snd) | SOME file => K () o map (write_module file))
+      (fn NONE => K () o map (Code_Target.code_writeln o snd) | SOME file => K () o map
+        (write_module (check_destination file)))
       (rpair [] o cat_lines o map (Code_Target.code_of_pretty o snd))
       (map (uncurry pr_module) includes
         @ map serialize_module (Symtab.dest hs_program))
