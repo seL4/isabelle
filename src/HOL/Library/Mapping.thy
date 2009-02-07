@@ -127,16 +127,9 @@ lemma size_tabulate:
   "size (tabulate ks f) = length (remdups ks)"
   by (simp add: size_def keys_tabulate distinct_card [of "remdups ks", symmetric])
 
-lemma bulkload_tabulate: (*FIXME Isar proof*)
+lemma bulkload_tabulate:
   "bulkload xs = tabulate [0..<length xs] (nth xs)"
-  unfolding bulkload_def tabulate_def apply simp
-  apply (rule sym)
-  apply (rule ext) apply auto
-  apply (subst map_of_eq_Some_iff)
-  apply (simp add: map_compose [symmetric] comp_def)
-  apply (simp add: image_def)
-  apply (subst map_of_eq_None_iff)
-  apply (simp add: image_def)
-  done
+  by (rule sym)
+    (auto simp add: bulkload_def tabulate_def expand_fun_eq map_of_eq_None_iff map_compose [symmetric] comp_def)
 
 end
