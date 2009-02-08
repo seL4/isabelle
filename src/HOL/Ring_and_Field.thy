@@ -232,8 +232,8 @@ lemma minus_mult_right: "- (a * b) = a * - b"
 by (rule equals_zero_I) (simp add: right_distrib [symmetric]) 
 
 text{*Extract signs from products*}
-lemmas mult_minus_left [simp] = minus_mult_left [symmetric]
-lemmas mult_minus_right [simp] = minus_mult_right [symmetric]
+lemmas mult_minus_left [simp, noatp] = minus_mult_left [symmetric]
+lemmas mult_minus_right [simp,noatp] = minus_mult_right [symmetric]
 
 lemma minus_mult_minus [simp]: "- a * - b = a * b"
 by simp
@@ -247,11 +247,11 @@ by (simp add: right_distrib diff_minus)
 lemma left_diff_distrib[algebra_simps]: "(a - b) * c = a * c - b * c"
 by (simp add: left_distrib diff_minus)
 
-lemmas ring_distribs =
+lemmas ring_distribs[noatp] =
   right_distrib left_distrib left_diff_distrib right_diff_distrib
 
 text{*Legacy - use @{text algebra_simps} *}
-lemmas ring_simps = algebra_simps
+lemmas ring_simps[noatp] = algebra_simps
 
 lemma eq_add_iff1:
   "a * e + c = b * e + d \<longleftrightarrow> (a - b) * e + c = d"
@@ -263,7 +263,7 @@ by (simp add: algebra_simps)
 
 end
 
-lemmas ring_distribs =
+lemmas ring_distribs[noatp] =
   right_distrib left_distrib left_diff_distrib right_diff_distrib
 
 class comm_ring = comm_semiring + ab_group_add
@@ -751,7 +751,7 @@ begin
 subclass pordered_ab_group_add ..
 
 text{*Legacy - use @{text algebra_simps} *}
-lemmas ring_simps = algebra_simps
+lemmas ring_simps[noatp] = algebra_simps
 
 lemma less_add_iff1:
   "a * e + c < b * e + d \<longleftrightarrow> (a - b) * e + c < d"
@@ -960,7 +960,7 @@ by (simp add: not_less [symmetric] mult_less_cancel_left_disj)
 end
 
 text{*Legacy - use @{text algebra_simps} *}
-lemmas ring_simps = algebra_simps
+lemmas ring_simps[noatp] = algebra_simps
 
 
 class pordered_comm_ring = comm_ring + pordered_comm_semiring
@@ -1107,7 +1107,7 @@ class ordered_field = field + ordered_idom
 
 text {* Simprules for comparisons where common factors can be cancelled. *}
 
-lemmas mult_compare_simps =
+lemmas mult_compare_simps[noatp] =
     mult_le_cancel_right mult_le_cancel_left
     mult_le_cancel_right1 mult_le_cancel_right2
     mult_le_cancel_left1 mult_le_cancel_left2
@@ -1219,7 +1219,7 @@ by (simp add: divide_inverse mult_assoc)
 lemma times_divide_eq_left: "(b/c) * a = (b*a) / (c::'a::field)"
 by (simp add: divide_inverse mult_ac)
 
-lemmas times_divide_eq = times_divide_eq_right times_divide_eq_left
+lemmas times_divide_eq[noatp] = times_divide_eq_right times_divide_eq_left
 
 lemma divide_divide_eq_right [simp,noatp]:
   "a / (b/c) = (a*c) / (b::'a::{field,division_by_zero})"
@@ -1297,8 +1297,8 @@ by (simp add: divide_inverse)
 
 
 text{*The effect is to extract signs from divisions*}
-lemmas divide_minus_left = minus_divide_left [symmetric]
-lemmas divide_minus_right = minus_divide_right [symmetric]
+lemmas divide_minus_left[noatp] = minus_divide_left [symmetric]
+lemmas divide_minus_right[noatp] = minus_divide_right [symmetric]
 declare divide_minus_left [simp]   divide_minus_right [simp]
 
 lemma minus_divide_divide [simp]:
@@ -1359,7 +1359,7 @@ lemma eq_divide_imp: "(c::'a::{division_by_zero,field}) ~= 0 ==>
 by (subst eq_divide_eq, simp)
 
 
-lemmas field_eq_simps = algebra_simps
+lemmas field_eq_simps[noatp] = algebra_simps
   (* pull / out*)
   add_divide_eq_iff divide_add_eq_iff
   diff_divide_eq_iff divide_diff_eq_iff
@@ -1720,7 +1720,7 @@ if they can be proved to be non-zero (for equations) or positive/negative
 (for inequations). Can be too aggressive and is therefore separate from the
 more benign @{text algebra_simps}. *}
 
-lemmas field_simps = field_eq_simps
+lemmas field_simps[noatp] = field_eq_simps
   (* multiply ineqn *)
   pos_divide_less_eq neg_divide_less_eq
   pos_less_divide_eq neg_less_divide_eq
@@ -1732,7 +1732,7 @@ of positivity/negativity needed for @{text field_simps}. Have not added @{text
 sign_simps} to @{text field_simps} because the former can lead to case
 explosions. *}
 
-lemmas sign_simps = group_simps
+lemmas sign_simps[noatp] = group_simps
   zero_less_mult_iff  mult_less_0_iff
 
 (* Only works once linear arithmetic is installed:
@@ -1856,9 +1856,9 @@ lemmas divide_less_0_1_iff = divide_less_0_iff [of 1, simplified]
 lemmas zero_le_divide_1_iff = zero_le_divide_iff [of 1, simplified]
 lemmas divide_le_0_1_iff = divide_le_0_iff [of 1, simplified]
 
-declare zero_less_divide_1_iff [simp]
+declare zero_less_divide_1_iff [simp,noatp]
 declare divide_less_0_1_iff [simp,noatp]
-declare zero_le_divide_1_iff [simp]
+declare zero_le_divide_1_iff [simp,noatp]
 declare divide_le_0_1_iff [simp,noatp]
 
 
@@ -2234,7 +2234,7 @@ proof -
   thus ?thesis by (simp add: ac cpos mult_strict_mono) 
 qed
 
-lemmas eq_minus_self_iff = equal_neg_zero
+lemmas eq_minus_self_iff[noatp] = equal_neg_zero
 
 lemma less_minus_self_iff: "(a < -a) = (a < (0::'a::ordered_idom))"
   unfolding order_less_le less_eq_neg_nonpos equal_neg_zero ..

@@ -598,12 +598,12 @@ lemma le_iff_diff_le_0: "a \<le> b \<longleftrightarrow> a - b \<le> 0"
 by (simp add: algebra_simps)
 
 text{*Legacy - use @{text algebra_simps} *}
-lemmas group_simps = algebra_simps
+lemmas group_simps[noatp] = algebra_simps
 
 end
 
 text{*Legacy - use @{text algebra_simps} *}
-lemmas group_simps = algebra_simps
+lemmas group_simps[noatp] = algebra_simps
 
 class ordered_ab_semigroup_add =
   linorder + pordered_ab_semigroup_add
@@ -1310,9 +1310,9 @@ by (auto intro: add_strict_right_mono add_strict_left_mono
   add_less_le_mono add_le_less_mono add_strict_mono)
 
 text{*Simplification of @{term "x-y < 0"}, etc.*}
-lemmas diff_less_0_iff_less [simp] = less_iff_diff_less_0 [symmetric]
+lemmas diff_less_0_iff_less [simp, noatp] = less_iff_diff_less_0 [symmetric]
 lemmas diff_eq_0_iff_eq [simp, noatp] = eq_iff_diff_eq_0 [symmetric]
-lemmas diff_le_0_iff_le [simp] = le_iff_diff_le_0 [symmetric]
+lemmas diff_le_0_iff_le [simp, noatp] = le_iff_diff_le_0 [symmetric]
 
 ML {*
 structure ab_group_add_cancel = Abel_Cancel
