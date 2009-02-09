@@ -814,11 +814,14 @@ val init_arith_data =
       addsimprocs ArithData.nat_cancel_sums_add}) #>
   arith_discrete "nat";
 
-val lin_arith_simproc = Fast_Arith.lin_arith_simproc;
+fun add_arith_facts ss =
+  add_prems (ArithFacts.get (MetaSimplifier.the_context ss)) ss;
+
+val lin_arith_simproc = add_arith_facts #> Fast_Arith.lin_arith_simproc;
 
 val fast_nat_arith_simproc =
   Simplifier.simproc (the_context ()) "fast_nat_arith"
-    ["(m::nat) < n","(m::nat) <= n", "(m::nat) = n"] (K Fast_Arith.lin_arith_simproc);
+    ["(m::nat) < n","(m::nat) <= n", "(m::nat) = n"] (K lin_arith_simproc);
 
 (* Because of fast_nat_arith_simproc, the arithmetic solver is really only
 useful to detect inconsistencies among the premises for subgoals which are
@@ -912,7 +915,8 @@ fun silent_arith_tac ctxt = FIRST' [fast_arith_tac ctxt,
 fun arith_method src =
   Method.syntax Args.bang_facts src
   #> (fn (prems, ctxt) => Method.METHOD (fn facts =>
-      HEADGOAL (Method.insert_tac (prems @ facts) THEN' arith_tac ctxt)));
+      HEADGOAL (Method.insert_tac (prems @ ArithFacts.get ctxt @ facts)
+      THEN' arith_tac ctxt)));
 
 end;
 
