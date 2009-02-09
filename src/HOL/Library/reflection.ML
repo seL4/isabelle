@@ -86,6 +86,23 @@ processed recursively
 
 exception REIF of string;
 
+fun dest_listT (Type ("List.list", [T])) = T;
+
+fun partition P [] = ([],[])
+  | partition P (x::xs) = 
+     let val (yes,no) = partition P xs
+     in if P x then (x::yes,no) else (yes, x::no) end
+
+fun rearrange congs = 
+let 
+ fun P (_, th) = 
+  let val @{term "Trueprop"}$(Const ("op =",_) $l$_) = concl_of th
+  in can dest_Var l end
+ val (yes,no) = partition P congs 
+ in no @ yes end
+
+fun genreif ctxt raw_eqs t =
+ let
 val bds = ref ([]: (typ * ((term list) * (term list))) list);
 
 fun index_of t = 
@@ -105,8 +122,6 @@ fun index_of t =
 	    else i else j)
     end)
  end;
-
-fun dest_listT (Type ("List.list", [T])) = T;
 
 fun decomp_genreif da cgns (t,ctxt) =
  let 
@@ -151,8 +166,6 @@ fun decomp_genreif da cgns (t,ctxt) =
   end;
 
  (* looks for the atoms equation and instantiates it with the right number *)
-
-
 fun mk_decompatom eqs (t,ctxt) =
 let 
  val tT = fastype_of t
@@ -229,8 +242,8 @@ end;
   (* Generic reification procedure: *)
   (* creates all needed cong rules and then just uses the theorem synthesis *)
 
-  fun mk_congs ctxt raw_eqs = 
- let
+fun mk_congs ctxt raw_eqs = 
+let
   val fs = fold_rev (fn eq =>
 		     insert (op =) (eq |> prop_of |> HOLogic.dest_Trueprop 
 			 |> HOLogic.dest_eq |> fst |> strip_comb 
@@ -257,23 +270,6 @@ end;
 in ps ~~ (Variable.export ctxt' ctxt congs)
 end
 
-fun partition P [] = ([],[])
-  | partition P (x::xs) = 
-     let val (yes,no) = partition P xs
-     in if P x then (x::yes,no) else (yes, x::no) end
-
-fun rearrange congs = 
-let 
- fun P (_, th) = 
-  let val @{term "Trueprop"}$(Const ("op =",_) $l$_) = concl_of th
-  in can dest_Var l end
- val (yes,no) = partition P congs 
- in no @ yes end
-
-
-
-fun genreif ctxt raw_eqs t =
- let 
   val congs = rearrange (mk_congs ctxt raw_eqs)
   val th = divide_and_conquer (decomp_genreif (mk_decompatom raw_eqs) congs) (t,ctxt)
   fun is_listVar (Var (_,t)) = can dest_listT t
