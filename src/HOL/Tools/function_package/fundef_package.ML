@@ -71,8 +71,9 @@ fun fundef_afterqed do_print fixes post defname cont sort_cont cnames [[proof]] 
 
       val (((psimps', pinducts'), (_, [termination'])), lthy) =
           lthy
-            |> addsmps (NameSpace.qualified "partial") "psimps" [] psimps
-            ||> fold_option (snd oo addsmps I "simps" []) trsimps
+            |> addsmps (NameSpace.qualified "partial") "psimps"
+                       [Attrib.internal (K Nitpick_Const_Psimp_Thms.add)] psimps
+            ||> fold_option (snd oo addsmps I "simps" [Attrib.internal (K Nitpick_Const_Simp_Thms.add)]) trsimps
             ||>> note_theorem ((qualify "pinduct",
                    [Attrib.internal (K (RuleCases.case_names cnames)),
                     Attrib.internal (K (RuleCases.consumes 1)),
@@ -127,7 +128,8 @@ fun total_termination_afterqed data [[totality]] lthy =
       val tinduct = map remove_domain_condition pinducts
 
       val has_guards = exists ((fn (Const ("Trueprop", _) $ _) => false | _ => true) o prop_of) tsimps
-      val allatts = if has_guards then [] else [Code.add_default_eqn_attrib]
+      val allatts = (not has_guards ? cons Code.add_default_eqn_attrib)
+        [Attrib.internal (K Nitpick_Const_Simp_Thms.add)]
 
       val qualify = NameSpace.qualified defname;
     in

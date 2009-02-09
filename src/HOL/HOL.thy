@@ -1701,6 +1701,23 @@ setup {*
 *}
 
 
+subsection {* Nitpick theorem store *}
+
+ML {*
+structure Nitpick_Const_Simp_Thms = NamedThmsFun
+(
+  val name = "nitpick_const_simp"
+  val description = "Equational specification of constants as needed by Nitpick"
+)
+structure Nitpick_Const_Psimp_Thms = NamedThmsFun
+(
+  val name = "nitpick_const_psimp"
+  val description = "Partial equational specification of constants as needed by Nitpick"
+)
+*}
+setup {* Nitpick_Const_Simp_Thms.setup
+         #> Nitpick_Const_Psimp_Thms.setup *}
+
 subsection {* Legacy tactics and ML bindings *}
 
 ML {*
