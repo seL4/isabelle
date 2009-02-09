@@ -3986,8 +3986,7 @@ next
 	apply (rule setsum_0')
 	apply clarsimp
 	apply (rule C(4)[unfolded pairwise_def orthogonal_def, rule_format])
-	by auto
-      have "orthogonal x y" using xa ya sorry}
+	by auto}
     moreover
     {assume xa: "x \<in> C" and ya: "y \<in> C" 
       have "orthogonal x y" using xa ya xy C(4) unfolding pairwise_def by blast}
