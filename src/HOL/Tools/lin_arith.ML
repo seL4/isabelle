@@ -926,7 +926,8 @@ end;
 val setup =
   init_arith_data #>
   Simplifier.map_ss (fn ss => ss addsimprocs [fast_nat_arith_simproc]
-    addSolver (mk_solver' "lin_arith" Fast_Arith.cut_lin_arith_tac)) #>
+    addSolver (mk_solver' "lin_arith"
+      (add_arith_facts #> Fast_Arith.cut_lin_arith_tac))) #>
   Context.mapping
    (setup_options #>
     Method.add_methods
