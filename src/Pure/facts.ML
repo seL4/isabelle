@@ -20,6 +20,7 @@ sig
   val selections: string * thm list -> (ref * thm) list
   type T
   val empty: T
+  val space_of: T -> NameSpace.T
   val intern: T -> xstring -> string
   val extern: T -> string -> xstring
   val lookup: Context.generic -> T -> string -> (bool * thm list) option

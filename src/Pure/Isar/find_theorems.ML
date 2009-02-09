@@ -267,12 +267,7 @@ fun nicer_name (x, i) (y, j) =
     | ord => ord)
   | ord => ord) <> GREATER;
 
-fun nicer (Facts.Named ((x, _), i)) (Facts.Named ((y, _), j)) =
-      nicer_name (x, i) (y, j)
-  | nicer (Facts.Fact _) (Facts.Named _) = true
-  | nicer (Facts.Named _) (Facts.Fact _) = false;
-
-fun rem_cdups xs =
+fun rem_cdups nicer xs =
   let
     fun rem_c rev_seen [] = rev rev_seen
       | rem_c rev_seen [x] = rem_c (x :: rev_seen) []
@@ -284,10 +279,26 @@ fun rem_cdups xs =
 
 in
 
-fun rem_thm_dups xs =
+fun nicer_shortest ctxt = let
+    val ns = ProofContext.theory_of ctxt
+             |> PureThy.facts_of
+             |> Facts.space_of;
+
+    val len_sort = sort (int_ord o (pairself size));
+    fun shorten s = (case len_sort (NameSpace.get_accesses ns s) of
+                       [] => s
+                     | s'::_ => s');
+
+    fun nicer (Facts.Named ((x, _), i)) (Facts.Named ((y, _), j)) =
+          nicer_name (shorten x, i) (shorten y, j)
+      | nicer (Facts.Fact _) (Facts.Named _) = true
+      | nicer (Facts.Named _) (Facts.Fact _) = false;
+  in nicer end;
+
+fun rem_thm_dups nicer xs =
   xs ~~ (1 upto length xs)
   |> sort (TermOrd.fast_term_ord o pairself (Thm.prop_of o #2 o #1))
-  |> rem_cdups
+  |> rem_cdups nicer
   |> sort (int_ord o pairself #2)
   |> map #1;
 
@@ -313,7 +324,7 @@ fun print_theorems ctxt opt_goal opt_limit rem_dups raw_criteria =
 
     val matches =
       if rem_dups
-      then rem_thm_dups raw_matches
+      then rem_thm_dups (nicer_shortest ctxt) raw_matches
       else raw_matches;
 
     val len = length matches;
