@@ -1336,11 +1336,18 @@ lemma subst_equals:
 use "Tools/arith_data.ML"
 declaration {* K ArithData.setup *}
 
+ML{*
+structure ArithFacts =
+  NamedThmsFun(val name = "arith"
+               val description = "arith facts - only ground formulas");
+*}
+
+setup ArithFacts.setup
+
 use "Tools/lin_arith.ML"
 declaration {* K LinArith.setup *}
 
 lemmas [arith_split] = nat_diff_split split_min split_max
-
 
 context order
 begin
