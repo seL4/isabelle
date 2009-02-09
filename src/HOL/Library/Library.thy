@@ -17,9 +17,9 @@ imports
   Countable
   Efficient_Nat
   Enum
+  Euclidean_Space
   Eval_Witness
   Executable_Set
-  Finite_Cartesian_Product
   Float
   Formal_Power_Series
   FuncSet
