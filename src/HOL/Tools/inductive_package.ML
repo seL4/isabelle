@@ -691,7 +691,8 @@ fun declare_rules kind rec_binding coind no_ind cnames intrs intr_bindings intr_
       ctxt |>
       LocalTheory.notes kind
         (map rec_qualified intr_bindings ~~ intr_atts ~~ map (fn th => [([th],
-           [Attrib.internal (K (ContextRules.intro_query NONE))])]) intrs) |>>
+           [Attrib.internal (K (ContextRules.intro_query NONE)),
+            Attrib.internal (K Nitpick_Ind_Intro_Thms.add)])]) intrs) |>>
       map (hd o snd);
     val (((_, elims'), (_, [induct'])), ctxt2) =
       ctxt1 |>
