@@ -42,8 +42,7 @@ fun mk_defname fixes = fixes |> map (fst o fst) |> space_implode "_"
 
 fun add_simps fnames post sort extra_qualify label moreatts simps lthy =
     let
-      val atts = Attrib.internal (K Simplifier.simp_add) ::
-                 Attrib.internal (K Nitpick_Const_Simps_Thms.add) :: moreatts
+      val atts = Attrib.internal (K Simplifier.simp_add) :: moreatts
       val spec = post simps
                    |> map (apfst (apsnd (append atts)))
                    |> map (apfst (apfst extra_qualify))
@@ -72,8 +71,9 @@ fun fundef_afterqed do_print fixes post defname cont sort_cont cnames [[proof]] 
 
       val (((psimps', pinducts'), (_, [termination'])), lthy) =
           lthy
-            |> addsmps (NameSpace.qualified "partial") "psimps" [] psimps
-            ||> fold_option (snd oo addsmps I "simps" []) trsimps
+            |> addsmps (NameSpace.qualified "partial") "psimps"
+                       [Attrib.internal (K Nitpick_Const_Psimp_Thms.add)] psimps
+            ||> fold_option (snd oo addsmps I "simps" [Attrib.internal (K Nitpick_Const_Simp_Thms.add)]) trsimps
             ||>> note_theorem ((qualify "pinduct",
                    [Attrib.internal (K (RuleCases.case_names cnames)),
                     Attrib.internal (K (RuleCases.consumes 1)),
@@ -128,7 +128,8 @@ fun total_termination_afterqed data [[totality]] lthy =
       val tinduct = map remove_domain_condition pinducts
 
       val has_guards = exists ((fn (Const ("Trueprop", _) $ _) => false | _ => true) o prop_of) tsimps
-      val allatts = if has_guards then [] else [Code.add_default_eqn_attrib]
+      val allatts = (not has_guards ? cons Code.add_default_eqn_attrib)
+        [Attrib.internal (K Nitpick_Const_Simp_Thms.add)]
 
       val qualify = NameSpace.qualified defname;
     in
