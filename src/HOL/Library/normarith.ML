@@ -1043,7 +1043,7 @@ fun int_flip v eq =
   then Intfunc.update (v, Rat.neg (Intfunc.apply eq v)) eq else eq;
 
 local
- val pth_zero = @{thm "Vectors.norm_0"}
+ val pth_zero = @{thm "norm_0"}
  val tv_n = (hd o tl o dest_ctyp o ctyp_of_term o dest_arg o dest_arg1 o dest_arg o cprop_of)
              pth_zero
  val concl = dest_arg o cprop_of 
