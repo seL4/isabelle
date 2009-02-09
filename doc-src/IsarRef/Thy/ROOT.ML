@@ -1,4 +1,4 @@
-
+set quick_and_dirty;
 set ThyOutput.source;
 use "../../antiquote_setup.ML";
 
