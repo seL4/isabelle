@@ -15,9 +15,9 @@ imports
   Continuity
   ContNotDenum
   Countable
+  Determinants
   Efficient_Nat
   Enum
-  Euclidean_Space
   Eval_Witness
   Executable_Set
   Float

@@ -316,7 +316,7 @@ $(LOG)/HOL-Library.gz: $(OUT)/HOL Library/SetsAndFunctions.thy		\
   Library/BigO.thy Library/ContNotDenum.thy Library/Efficient_Nat.thy	\
   Library/Euclidean_Space.thy Library/Glbs.thy Library/normarith.ML \
   Library/Executable_Set.thy Library/Infinite_Set.thy			\
-  Library/FuncSet.thy \
+  Library/FuncSet.thy Library/Permutations.thy Library/Determinants.thy\
   Library/Finite_Cartesian_Product.thy \
   Library/Library.thy Library/List_Prefix.thy Library/State_Monad.thy	\
   Library/Multiset.thy Library/Permutation.thy	\
