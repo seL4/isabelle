@@ -1,5 +1,3 @@
-(* $Id$ *)
-
 theory Introduction
 imports Main
 begin
@@ -51,11 +49,11 @@ text {*
   debugging of structured proofs.  Isabelle/Isar supports a broad
   range of proof styles, both readable and unreadable ones.
 
-  \medskip The Isabelle/Isar framework \cite{Wenzel:2006:Festschrift}
-  is generic and should work reasonably well for any Isabelle
-  object-logic that conforms to the natural deduction view of the
-  Isabelle/Pure framework.  Specific language elements introduced by
-  the major object-logics are described in \chref{ch:hol}
+  \medskip The generic Isabelle/Isar framework (see
+  \chref{ch:isar-framework}) should work reasonably well for any
+  Isabelle object-logic that conforms to the natural deduction view of
+  the Isabelle/Pure framework.  Specific language elements introduced
+  by the major object-logics are described in \chref{ch:hol}
   (Isabelle/HOL), \chref{ch:holcf} (Isabelle/HOLCF), and \chref{ch:zf}
   (Isabelle/ZF).  The main language elements are already provided by
   the Isabelle/Pure framework. Nevertheless, examples given in the
