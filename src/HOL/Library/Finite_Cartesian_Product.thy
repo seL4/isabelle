@@ -6,7 +6,8 @@
 header {* Definition of finite Cartesian product types. *}
 
 theory Finite_Cartesian_Product
-imports Plain SetInterval ATP_Linkup
+  (* imports Plain SetInterval ATP_Linkup *)
+imports Main
 begin
 
   (* FIXME : ATP_Linkup is only needed for metis at a few places. We could dispense of that by changing the proofs*)

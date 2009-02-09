@@ -875,5 +875,58 @@ Ferrante_Rackoff_Data.funs @{thm "class_ordered_field_dense_linear_order.ferrack
 end
 *}
 
+lemma upper_bound_finite_set:
+  assumes fS: "finite S"
+  shows "\<exists>(a::'a::linorder). \<forall>x \<in> S. f x \<le> a"
+proof(induct rule: finite_induct[OF fS])
+  case 1 thus ?case by simp
+next
+  case (2 x F)
+  from "2.hyps" obtain a where a:"\<forall>x \<in>F. f x \<le> a" by blast
+  let ?a = "max a (f x)"
+  have m: "a \<le> ?a" "f x \<le> ?a" by simp_all
+  {fix y assume y: "y \<in> insert x F"
+    {assume "y = x" hence "f y \<le> ?a" using m by simp}
+    moreover
+    {assume yF: "y\<in> F" from a[rule_format, OF yF] m have "f y \<le> ?a" by (simp add: max_def)}
+    ultimately have "f y \<le> ?a" using y by blast}
+  then show ?case by blast
+qed
+
+lemma lower_bound_finite_set:
+  assumes fS: "finite S"
+  shows "\<exists>(a::'a::linorder). \<forall>x \<in> S. f x \<ge> a"
+proof(induct rule: finite_induct[OF fS])
+  case 1 thus ?case by simp
+next
+  case (2 x F)
+  from "2.hyps" obtain a where a:"\<forall>x \<in>F. f x \<ge> a" by blast
+  let ?a = "min a (f x)"
+  have m: "a \<ge> ?a" "f x \<ge> ?a" by simp_all
+  {fix y assume y: "y \<in> insert x F"
+    {assume "y = x" hence "f y \<ge> ?a" using m by simp}
+    moreover
+    {assume yF: "y\<in> F" from a[rule_format, OF yF] m have "f y \<ge> ?a" by (simp add: min_def)}
+    ultimately have "f y \<ge> ?a" using y by blast}
+  then show ?case by blast
+qed
+
+lemma bound_finite_set: assumes f: "finite S"
+  shows "\<exists>a. \<forall>x \<in>S. (f x:: 'a::linorder) \<le> a"
+proof-
+  let ?F = "f ` S"
+  from f have fF: "finite ?F" by simp
+  let ?a = "Max ?F"
+  {assume "S = {}" hence ?thesis by blast}
+  moreover
+  {assume Se: "S \<noteq> {}" hence Fe: "?F \<noteq> {}" by simp
+  {fix x assume x: "x \<in> S"
+    hence th0: "f x \<in> ?F" by simp
+    hence "f x \<le> ?a" using Max_ge[OF fF th0] ..}
+  hence ?thesis by blast}
+ultimately show ?thesis by blast
+qed
+
+
 
 end 
