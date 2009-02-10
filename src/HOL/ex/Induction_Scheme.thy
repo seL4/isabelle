@@ -15,8 +15,8 @@ lemma nat_standard_induct: (* cf. Nat.thy *)
   "\<lbrakk>P 0; \<And>n. P n \<Longrightarrow> P (Suc n)\<rbrakk> \<Longrightarrow> P x"
 by induct_scheme (pat_completeness, lexicographic_order)
 
-lemma nat_induct2: (* cf. Nat.thy *)
-  "\<lbrakk> P 0; P (Suc 0); \<And>k. P k ==> P (Suc (Suc k)) \<rbrakk>
+lemma nat_induct2:
+  "\<lbrakk> P 0; P (Suc 0); \<And>k. P k ==> P (Suc k) ==> P (Suc (Suc k)) \<rbrakk>
   \<Longrightarrow> P n"
 by induct_scheme (pat_completeness, lexicographic_order)
 
