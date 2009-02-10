@@ -846,13 +846,6 @@ proof -
   thus "P i j" by (simp add: j)
 qed
 
-lemma nat_induct2: "[|P 0; P (Suc 0); !!k. P k ==> P (Suc (Suc k))|] ==> P n"
-  apply (rule nat_less_induct)
-  apply (case_tac n)
-  apply (case_tac [2] nat)
-  apply (blast intro: less_trans)+
-  done
-
 text {* The method of infinite descent, frequently used in number theory.
 Provided by Roelof Oosterhuis.
 $P(n)$ is true for all $n\in\mathbb{N}$ if
