@@ -252,7 +252,9 @@ by (drule stream.finite_ind [of P _ x], auto)
 lemma stream_finite_ind2:
 "[| P UU; !! x. x ~= UU ==> P (x && UU); !! y z s. [| y ~= UU; z ~= UU; P s |] ==> P (y && z && s )|] ==>
                                  !s. P (stream_take n$s)"
-apply (rule nat_induct2 [of _ n],auto)
+apply (rule nat_less_induct [of _ n],auto)
+apply (case_tac n, auto) 
+apply (case_tac nat, auto) 
 apply (case_tac "s=UU",clarsimp)
 apply (drule stream_exhaust_eq [THEN iffD1],clarsimp)
 apply (case_tac "s=UU",clarsimp)
