@@ -963,7 +963,7 @@ text {*
   \begin{matharray}{l}
     @{text "\<langle>using b\<^sub>1 \<dots> b\<^sub>k\<rangle>"}~~@{command "obtain"}~@{text "x\<^sub>1 \<dots> x\<^sub>m \<WHERE> a: \<phi>\<^sub>1 \<dots> \<phi>\<^sub>n  \<langle>proof\<rangle> \<equiv>"} \\[1ex]
     \quad @{command "have"}~@{text "\<And>thesis. (\<And>x\<^sub>1 \<dots> x\<^sub>m. \<phi>\<^sub>1 \<Longrightarrow> \<dots> \<phi>\<^sub>n \<Longrightarrow> thesis) \<Longrightarrow> thesis"} \\
-    \quad @{command "proof"}~@{text succeed} \\
+    \quad @{command "proof"}~@{method succeed} \\
     \qquad @{command "fix"}~@{text thesis} \\
     \qquad @{command "assume"}~@{text "that [Pure.intro?]: \<And>x\<^sub>1 \<dots> x\<^sub>m. \<phi>\<^sub>1 \<Longrightarrow> \<dots> \<phi>\<^sub>n \<Longrightarrow> thesis"} \\
     \qquad @{command "then"}~@{command "show"}~@{text thesis} \\
