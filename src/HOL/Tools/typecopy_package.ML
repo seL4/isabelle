@@ -115,10 +115,8 @@ fun add_typecopy_default_code tyco thy =
     val SOME { constr = constr_name, proj = (proj, _), proj_def = proj_eq, vs = raw_vs,
       typ = raw_ty_rep, ... } =  get_info thy tyco;
     val inst_meet = Sorts.meet_sort_typ (Sign.classes_of thy)
-      (Logic.varifyT raw_ty_rep, [HOLogic.class_eq]);
-    val ty_inst = Logic.varifyT
-      #> inst_meet
-      #> Logic.unvarifyT;
+      (Logic.varifyT raw_ty_rep, [HOLogic.class_eq]) handle Sorts.CLASS_ERROR _ => I;
+    val ty_inst = Logic.unvarifyT o inst_meet o Logic.varifyT;
     val vs = (map dest_TFree o snd o dest_Type o ty_inst)
       (Type (tyco, map TFree raw_vs));
     val ty_rep = ty_inst raw_ty_rep;
@@ -131,7 +129,7 @@ fun add_typecopy_default_code tyco thy =
     fun mk_proj t = Const (proj, ty --> ty_rep) $ t;
     val (t_x, t_y) = (Free ("x", ty), Free ("y", ty));
     val def_eq = (HOLogic.mk_Trueprop o HOLogic.mk_eq)
-      (mk_eq ty t_x t_y, mk_eq ty_rep (mk_proj t_x) (mk_proj t_y));
+      (mk_eq ty t_x t_y, HOLogic.mk_eq (mk_proj t_x, mk_proj t_y));
     fun mk_eq_refl thy = @{thm HOL.eq_refl}
       |> Thm.instantiate
          ([pairself (Thm.ctyp_of thy) (TVar (("'a", 0), @{sort eq}), Logic.varifyT ty)], [])
@@ -155,11 +153,8 @@ fun add_typecopy_default_code tyco thy =
     |-> (fn refl_thm => Code.add_nonlinear_eqn refl_thm)
   end;
 
-fun perhaps_add_typecopy_default_code tyco thy =
-  add_typecopy_default_code tyco thy handle Sorts.CLASS_ERROR _ => thy;
-
 val setup =
   TypecopyInterpretation.init
-  #> interpretation perhaps_add_typecopy_default_code
+  #> interpretation add_typecopy_default_code
 
 end;
