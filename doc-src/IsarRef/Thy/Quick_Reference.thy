@@ -30,7 +30,7 @@ text {*
 
   \begin{tabular}{rcl}
     @{text "theory\<dash>stmt"} & = & @{command "theorem"}~@{text "name: props proof  |"}~~@{command "definition"}~@{text "\<dots>  |  \<dots>"} \\[1ex]
-    @{text "proof"} & = & @{text "prfx\<^sup>*"}~@{command "proof"}~@{text "method stmt\<^sup>*"}~@{command "qed"}~@{text method} \\
+    @{text "proof"} & = & @{text "prfx\<^sup>*"}~@{command "proof"}~@{text "method\<^sup>? stmt\<^sup>*"}~@{command "qed"}~@{text "method\<^sup>?"} \\
     & @{text "|"} & @{text "prfx\<^sup>*"}~@{command "done"} \\[1ex]
     @{text prfx} & = & @{command "apply"}~@{text method} \\
     & @{text "|"} & @{command "using"}~@{text "facts"} \\
