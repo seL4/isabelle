@@ -5,38 +5,8 @@
 header {* Orders as Relations *}
 
 theory Order_Relation
-imports Plain "~~/src/HOL/Hilbert_Choice" "~~/src/HOL/ATP_Linkup"
+imports Main
 begin
-
-text{* This prelude could be moved to theory Relation: *}
-
-definition "irrefl r \<equiv> \<forall>x. (x,x) \<notin> r"
-
-definition "total_on A r \<equiv> \<forall>x\<in>A.\<forall>y\<in>A. x\<noteq>y \<longrightarrow> (x,y)\<in>r \<or> (y,x)\<in>r"
-
-abbreviation "total \<equiv> total_on UNIV"
-
-
-lemma total_on_empty[simp]: "total_on {} r"
-by(simp add:total_on_def)
-
-lemma refl_on_converse[simp]: "refl A (r^-1) = refl A r"
-by(auto simp add:refl_def)
-
-lemma total_on_converse[simp]: "total_on A (r^-1) = total_on A r"
-by (auto simp: total_on_def)
-
-lemma irrefl_diff_Id[simp]: "irrefl(r-Id)"
-by(simp add:irrefl_def)
-
-declare [[simp_depth_limit = 2]]
-lemma trans_diff_Id: " trans r \<Longrightarrow> antisym r \<Longrightarrow> trans (r-Id)"
-by(simp add: antisym_def trans_def) blast
-declare [[simp_depth_limit = 50]]
-
-lemma total_on_diff_Id[simp]: "total_on A (r-Id) = total_on A r"
-by(simp add: total_on_def)
-
 
 subsection{* Orders on a set *}
 

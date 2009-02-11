@@ -285,7 +285,6 @@ $(OUT)/HOL: ROOT.ML $(MAIN_DEPENDENCIES) \
   Taylor.thy \
   Transcendental.thy \
   GCD.thy \
-  Order_Relation.thy \
   Parity.thy \
   Lubs.thy \
   Polynomial.thy \
@@ -322,7 +321,7 @@ $(LOG)/HOL-Library.gz: $(OUT)/HOL Library/SetsAndFunctions.thy		\
   Library/Multiset.thy Library/Permutation.thy	\
   Library/Primes.thy Library/Pocklington.thy Library/Quotient.thy	\
   Library/Quicksort.thy Library/Nat_Infinity.thy Library/Word.thy	\
-  Library/README.html Library/Continuity.thy				\
+  Library/README.html Library/Continuity.thy Library/Order_Relation.thy \
   Library/Nested_Environment.thy Library/Ramsey.thy Library/Zorn.thy	\
   Library/Library/ROOT.ML Library/Library/document/root.tex		\
   Library/Library/document/root.bib Library/While_Combinator.thy	\
