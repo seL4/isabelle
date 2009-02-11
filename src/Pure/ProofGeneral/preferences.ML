@@ -151,6 +151,12 @@ val tracing_preferences =
   nat_pref Quickcheck.auto_time_limit
     "auto-quickcheck-time-limit"
     "Time limit for automatic quickcheck (in milliseconds).",
+  bool_pref AutoSolve.auto
+    "auto-solve"
+    "Try to solve newly declared lemmas with existing theorems.",
+  nat_pref AutoSolve.auto_time_limit
+    "auto-solve-time-limit"
+    "Time limit for seeking automatic solutions (in milliseconds).",
   thm_deps_pref];
 
 val proof_preferences =

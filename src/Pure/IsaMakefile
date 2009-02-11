@@ -85,7 +85,7 @@ $(OUT)/Pure: Concurrent/ROOT.ML Concurrent/future.ML			\
   pure_setup.ML pure_thy.ML search.ML sign.ML simplifier.ML sorts.ML	\
   subgoal.ML tactic.ML tctical.ML term.ML term_ord.ML term_subst.ML	\
   theory.ML thm.ML type.ML type_infer.ML unify.ML variable.ML		\
-  ../Tools/quickcheck.ML
+  ../Tools/quickcheck.ML ../Tools/auto_solve.ML
 	@./mk
 
 

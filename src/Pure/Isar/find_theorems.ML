@@ -370,10 +370,6 @@ fun print_theorems ctxt opt_goal opt_limit rem_dups raw_criteria = let
     val lim = the_default (! limit) opt_limit;
     val thms = Library.drop (len - lim, matches);
 
-    fun prt_fact (thmref, thm) = Pretty.block
-      [Pretty.str (Facts.string_of_ref thmref), Pretty.str ":", Pretty.brk 1,
-        ProofContext.pretty_thm ctxt thm];
-
     val end_msg = " in " ^
                   (List.nth (String.tokens Char.isSpace (end_timing start), 3))
                   ^ " secs"
@@ -386,7 +382,7 @@ fun print_theorems ctxt opt_goal opt_limit rem_dups raw_criteria = let
           (if len <= lim then ""
            else " (" ^ string_of_int lim ^ " displayed)")
            ^ end_msg ^ ":"), Pretty.str ""] @
-        map prt_fact thms)
+        map Display.pretty_fact thms)
     |> Pretty.chunks |> Pretty.writeln
   end
 
