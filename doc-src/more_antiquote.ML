@@ -93,9 +93,10 @@ fun pretty_code_thm src ctxt raw_const =
     val thy = ProofContext.theory_of ctxt;
     val const = Code_Unit.check_const thy raw_const;
     val (_, funcgr) = Code_Funcgr.make thy [const];
+    fun holize thm = @{thm meta_eq_to_obj_eq} OF [thm];
     val thms = Code_Funcgr.eqns funcgr const
       |> map_filter (fn (thm, linear) => if linear then SOME thm else NONE)
-      |> map (no_vars ctxt o AxClass.overload thy);
+      |> map (holize o no_vars ctxt o AxClass.overload thy);
   in ThyOutput.output_list pretty_thm src ctxt thms end;
 
 in
