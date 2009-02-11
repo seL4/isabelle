@@ -673,6 +673,116 @@ lemma dvd_imp_degree_le:
   by (erule dvdE, simp add: degree_mult_eq)
 
 
+subsection {* Polynomials form an ordered integral domain *}
+
+definition
+  pos_poly :: "'a::ordered_idom poly \<Rightarrow> bool"
+where
+  "pos_poly p \<longleftrightarrow> 0 < coeff p (degree p)"
+
+lemma pos_poly_pCons:
+  "pos_poly (pCons a p) \<longleftrightarrow> pos_poly p \<or> (p = 0 \<and> 0 < a)"
+  unfolding pos_poly_def by simp
+
+lemma not_pos_poly_0 [simp]: "\<not> pos_poly 0"
+  unfolding pos_poly_def by simp
+
+lemma pos_poly_add: "\<lbrakk>pos_poly p; pos_poly q\<rbrakk> \<Longrightarrow> pos_poly (p + q)"
+  apply (induct p arbitrary: q, simp)
+  apply (case_tac q, force simp add: pos_poly_pCons add_pos_pos)
+  done
+
+lemma pos_poly_mult: "\<lbrakk>pos_poly p; pos_poly q\<rbrakk> \<Longrightarrow> pos_poly (p * q)"
+  unfolding pos_poly_def
+  apply (subgoal_tac "p \<noteq> 0 \<and> q \<noteq> 0")
+  apply (simp add: degree_mult_eq coeff_mult_degree_sum mult_pos_pos)
+  apply auto
+  done
+
+lemma pos_poly_total: "p = 0 \<or> pos_poly p \<or> pos_poly (- p)"
+by (induct p) (auto simp add: pos_poly_pCons)
+
+instantiation poly :: (ordered_idom) ordered_idom
+begin
+
+definition
+  [code del]:
+    "x < y \<longleftrightarrow> pos_poly (y - x)"
+
+definition
+  [code del]:
+    "x \<le> y \<longleftrightarrow> x = y \<or> pos_poly (y - x)"
+
+definition
+  [code del]:
+    "abs (x::'a poly) = (if x < 0 then - x else x)"
+
+definition
+  [code del]:
+    "sgn (x::'a poly) = (if x = 0 then 0 else if 0 < x then 1 else - 1)"
+
+instance proof
+  fix x y :: "'a poly"
+  show "x < y \<longleftrightarrow> x \<le> y \<and> \<not> y \<le> x"
+    unfolding less_eq_poly_def less_poly_def
+    apply safe
+    apply simp
+    apply (drule (1) pos_poly_add)
+    apply simp
+    done
+next
+  fix x :: "'a poly" show "x \<le> x"
+    unfolding less_eq_poly_def by simp
+next
+  fix x y z :: "'a poly"
+  assume "x \<le> y" and "y \<le> z" thus "x \<le> z"
+    unfolding less_eq_poly_def
+    apply safe
+    apply (drule (1) pos_poly_add)
+    apply (simp add: algebra_simps)
+    done
+next
+  fix x y :: "'a poly"
+  assume "x \<le> y" and "y \<le> x" thus "x = y"
+    unfolding less_eq_poly_def
+    apply safe
+    apply (drule (1) pos_poly_add)
+    apply simp
+    done
+next
+  fix x y z :: "'a poly"
+  assume "x \<le> y" thus "z + x \<le> z + y"
+    unfolding less_eq_poly_def
+    apply safe
+    apply (simp add: algebra_simps)
+    done
+next
+  fix x y :: "'a poly"
+  show "x \<le> y \<or> y \<le> x"
+    unfolding less_eq_poly_def
+    using pos_poly_total [of "x - y"]
+    by auto
+next
+  fix x y z :: "'a poly"
+  assume "x < y" and "0 < z"
+  thus "z * x < z * y"
+    unfolding less_poly_def
+    by (simp add: right_diff_distrib [symmetric] pos_poly_mult)
+next
+  fix x :: "'a poly"
+  show "\<bar>x\<bar> = (if x < 0 then - x else x)"
+    by (rule abs_poly_def)
+next
+  fix x :: "'a poly"
+  show "sgn x = (if x = 0 then 0 else if 0 < x then 1 else - 1)"
+    by (rule sgn_poly_def)
+qed
+
+end
+
+text {* TODO: Simplification rules for comparisons *}
+
+
 subsection {* Long division of polynomials *}
 
 definition
