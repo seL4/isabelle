@@ -8,6 +8,8 @@ Proof reconstruction for SCNP
 signature SCNP_RECONSTRUCT =
 sig
 
+  val sizechange_tac : Proof.context -> tactic -> tactic
+
   val decomp_scnp : ScnpSolve.label list -> Proof.context -> method
 
   val setup : theory -> theory
@@ -352,23 +354,23 @@ end
 
 fun single_scnp_tac use_tags orders ctxt cont err_cont D = Termination.CALLS (fn (cs, i) =>
   let
+    val ms_configured = is_some (MultisetSetup.get (ProofContext.theory_of ctxt))
+    val orders' = if ms_configured then orders
+                  else filter_out (curry op = MS) orders
     val gp = gen_probl D cs
 (*    val _ = TRACE ("SCNP instance: " ^ makestring gp)*)
-    val certificate = generate_certificate use_tags orders gp
+    val certificate = generate_certificate use_tags orders' gp
 (*    val _ = TRACE ("Certificate: " ^ makestring certificate)*)
 
-    val ms_configured = is_some (MultisetSetup.get (ProofContext.theory_of ctxt))
-    in
+  in
     case certificate
      of NONE => err_cont D i
       | SOME cert =>
-        if not ms_configured andalso #1 cert = MS
-        then err_cont D i
-        else SELECT_GOAL (reconstruct_tac ctxt D cs gp cert) i
-             THEN (rtac @{thm wf_empty} i ORELSE cont D i)
+          SELECT_GOAL (reconstruct_tac ctxt D cs gp cert) i
+          THEN (rtac @{thm wf_empty} i ORELSE cont D i)
   end)
 
-fun decomp_scnp_tac orders autom_tac ctxt err_cont =
+fun gen_decomp_scnp_tac orders autom_tac ctxt err_cont =
   let
     open Termination
     val derive_diag = Descent.derive_diag ctxt autom_tac
@@ -396,17 +398,23 @@ fun decomp_scnp_tac orders autom_tac ctxt err_cont =
     TERMINATION ctxt (strategy err_cont err_cont)
   end
 
+fun gen_sizechange_tac orders autom_tac ctxt err_cont =
+  TRY (FundefCommon.apply_termination_rule ctxt 1)
+  THEN TRY Termination.wf_union_tac
+  THEN
+   (rtac @{thm wf_empty} 1
+    ORELSE gen_decomp_scnp_tac orders autom_tac ctxt err_cont 1)
+
+fun sizechange_tac ctxt autom_tac =
+  gen_sizechange_tac [MAX, MS, MIN] autom_tac ctxt (K (K all_tac))
+
 fun decomp_scnp orders ctxt =
   let
     val extra_simps = FundefCommon.TerminationSimps.get ctxt
     val autom_tac = auto_tac (local_clasimpset_of ctxt addsimps2 extra_simps)
   in
     Method.SIMPLE_METHOD
-      (TRY (FundefCommon.apply_termination_rule ctxt 1)
-       THEN TRY Termination.wf_union_tac
-       THEN
-         (rtac @{thm wf_empty} 1
-          ORELSE decomp_scnp_tac orders autom_tac ctxt (print_error ctxt) 1))
+      (gen_sizechange_tac orders autom_tac ctxt (print_error ctxt))
   end
 
 
