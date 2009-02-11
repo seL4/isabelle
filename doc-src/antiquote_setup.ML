@@ -1,5 +1,4 @@
 (*  Title:      Doc/antiquote_setup.ML
-    ID:         $Id$
     Author:     Makarius
 
 Auxiliary antiquotations for the Isabelle manuals.
@@ -193,6 +192,7 @@ val _ = O.add_commands
   entity_antiqs no_check "" "case" @
   entity_antiqs (K ThyOutput.defined_command) "" "antiquotation" @
   entity_antiqs (fn _ => fn name => is_some (OS.Process.getEnv name)) "isatt" "setting" @
+  entity_antiqs no_check "" "inference" @
   entity_antiqs no_check "isatt" "executable" @
   entity_antiqs (K check_tool) "isatt" "tool" @
   entity_antiqs (K (File.exists o Path.explode)) "isatt" "file" @
