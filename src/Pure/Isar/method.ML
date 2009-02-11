@@ -38,6 +38,7 @@ sig
   val atomize: bool -> method
   val this: method
   val fact: thm list -> Proof.context -> method
+  val assumption_tac: Proof.context -> int -> tactic
   val assumption: Proof.context -> method
   val close: bool -> Proof.context -> method
   val trace: Proof.context -> thm list -> unit
@@ -222,22 +223,22 @@ fun cond_rtac cond rule = SUBGOAL (fn (prop, i) =>
   if cond (Logic.strip_assums_concl prop)
   then Tactic.rtac rule i else no_tac);
 
-fun assm_tac ctxt =
+in
+
+fun assumption_tac ctxt =
   assume_tac APPEND'
   Goal.assume_rule_tac ctxt APPEND'
   cond_rtac (can Logic.dest_equals) Drule.reflexive_thm APPEND'
   cond_rtac (can Logic.dest_term) Drule.termI;
 
-in
-
 fun assumption ctxt = METHOD (HEADGOAL o
-  (fn [] => assm_tac ctxt
+  (fn [] => assumption_tac ctxt
     | [fact] => solve_tac [fact]
     | _ => K no_tac));
 
 fun close immed ctxt = METHOD (K
   (FILTER Thm.no_prems
-    ((if immed then ALLGOALS (assm_tac ctxt) else all_tac) THEN flexflex_tac)));
+    ((if immed then ALLGOALS (assumption_tac ctxt) else all_tac) THEN flexflex_tac)));
 
 end;
 

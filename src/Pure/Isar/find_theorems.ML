@@ -7,9 +7,16 @@ Retrieve theorems from proof context.
 signature FIND_THEOREMS =
 sig
   val limit: int ref
+  val tac_limit: int ref
+
   datatype 'term criterion =
-    Name of string | Intro | Elim | Dest | Simp of 'term | Pattern of 'term
-  val print_theorems: Proof.context -> term option -> int option -> bool ->
+    Name of string | Intro | Elim | Dest | Solves | Simp of 'term |
+    Pattern of 'term
+
+  val find_theorems: Proof.context -> thm option -> bool ->
+    (bool * string criterion) list -> (Facts.ref * thm) list
+
+  val print_theorems: Proof.context -> thm option -> int option -> bool ->
     (bool * string criterion) list -> unit
 end;
 
@@ -19,12 +26,14 @@ struct
 (** search criteria **)
 
 datatype 'term criterion =
-  Name of string | Intro | Elim | Dest | Simp of 'term | Pattern of 'term;
+  Name of string | Intro | Elim | Dest | Solves | Simp of 'term |
+  Pattern of 'term;
 
 fun read_criterion _ (Name name) = Name name
   | read_criterion _ Intro = Intro
   | read_criterion _ Elim = Elim
   | read_criterion _ Dest = Dest
+  | read_criterion _ Solves = Solves
   | read_criterion ctxt (Simp str) = Simp (ProofContext.read_term_pattern ctxt str)
   | read_criterion ctxt (Pattern str) = Pattern (ProofContext.read_term_pattern ctxt str);
 
@@ -37,6 +46,7 @@ fun pretty_criterion ctxt (b, c) =
     | Intro => Pretty.str (prfx "intro")
     | Elim => Pretty.str (prfx "elim")
     | Dest => Pretty.str (prfx "dest")
+    | Solves => Pretty.str (prfx "solves")
     | Simp pat => Pretty.block [Pretty.str (prfx "simp:"), Pretty.brk 1,
         Pretty.quote (Syntax.pretty_term ctxt (Term.show_dummy_patterns pat))]
     | Pattern pat => Pretty.enclose (prfx " \"") "\""
@@ -108,7 +118,7 @@ fun filter_name str_pat (thmref, _) =
   then SOME (0, 0) else NONE;
 
 
-(* filter intro/elim/dest rules *)
+(* filter intro/elim/dest/solves rules *)
 
 fun filter_dest ctxt goal (_, thm) =
   let
@@ -159,6 +169,20 @@ fun filter_elim ctxt goal (_, thm) =
     end
   else NONE
 
+val tac_limit = ref 5;
+
+fun filter_solves ctxt goal = let
+    val baregoal = Logic.get_goal (prop_of goal) 1;
+
+    fun etacn thm i = Seq.take (!tac_limit) o etac thm i;
+    fun try_thm thm = if Thm.no_prems thm then rtac thm 1 goal
+                      else (etacn thm THEN_ALL_NEW
+                             (Goal.norm_hhf_tac THEN'
+                               Method.assumption_tac ctxt)) 1 goal;
+  in
+    fn (_, thm) => if (is_some o Seq.pull o try_thm) thm
+                   then SOME (Thm.nprems_of thm, 0) else NONE
+  end;
 
 (* filter_simp *)
 
@@ -176,26 +200,23 @@ fun filter_simp ctxt t (_, thm) =
 
 (* filter_pattern *)
 
-fun get_names (_, thm) =
-  fold_aterms (fn Const (c, _) => insert (op =) c | Free (x, _) => insert (op =) x | _ => I)
-    (Thm.full_prop_of thm) [];
-
-fun add_pat_names (t, cs) =
-      case strip_comb t of
-          (Const (c, _), args) => foldl add_pat_names (insert (op =) c cs) args
-        | (Free (c, _), args) => foldl add_pat_names (insert (op =) c cs) args
-        | (Abs (_, _, t), _) => add_pat_names (t, cs)
-        | _ => cs;
-    (* Only include constants and frees that cannot be thrown away.
-       for example, from "(% x y z. y + 1) 7 8 9" give [1].
-       The result [1, 8] would be more accurate, but only a
-       sound approximation is required and variables must
-       be ignored: e.g. "_ 7 8 9". *)
+fun get_names t = (Term.add_const_names t []) union (Term.add_free_names t []);
+fun get_thm_names (_, thm) = get_names (Thm.full_prop_of thm);
+  (* Including all constants and frees is only sound because
+     matching uses higher-order patterns. If full matching
+     were used, then constants that may be subject to
+     beta-reduction after substitution of frees should
+     not be included for LHS set because they could be
+     thrown away by the substituted function.
+     e.g. for (?F 1 2) do not include 1 or 2, if it were
+          possible for ?F to be (% x y. 3)
+     The largest possible set should always be included on
+     the RHS. *)
 
 fun filter_pattern ctxt pat = let
-    val pat_consts = add_pat_names (pat, []);
+    val pat_consts = get_names pat;
 
-    fun check (t, NONE) = check (t, SOME (get_names t))
+    fun check (t, NONE) = check (t, SOME (get_thm_names t))
       | check ((_, thm), c as SOME thm_consts) =
           (if pat_consts subset_string thm_consts
               andalso (Pattern.matches_subterm (ProofContext.theory_of ctxt)
@@ -210,13 +231,21 @@ local
 fun err_no_goal c =
   error ("Current goal required for " ^ c ^ " search criterion");
 
+val fix_goal = Thm.prop_of;
+val fix_goalo = Option.map fix_goal;
+
 fun filter_crit _ _ (Name name) = apfst (filter_name name)
   | filter_crit _ NONE Intro = err_no_goal "intro"
   | filter_crit _ NONE Elim = err_no_goal "elim"
   | filter_crit _ NONE Dest = err_no_goal "dest"
-  | filter_crit ctxt (SOME goal) Intro = apfst (filter_intro ctxt goal)
-  | filter_crit ctxt (SOME goal) Elim = apfst (filter_elim ctxt goal)
-  | filter_crit ctxt (SOME goal) Dest = apfst (filter_dest ctxt goal)
+  | filter_crit _ NONE Solves = err_no_goal "solves"
+  | filter_crit ctxt (SOME goal) Intro = apfst (filter_intro ctxt
+                                                  (fix_goal goal))
+  | filter_crit ctxt (SOME goal) Elim = apfst (filter_elim ctxt 
+                                                  (fix_goal goal))
+  | filter_crit ctxt (SOME goal) Dest = apfst (filter_dest ctxt
+                                                  (fix_goal goal))
+  | filter_crit ctxt (SOME goal) Solves = apfst (filter_solves ctxt goal)
   | filter_crit ctxt _ (Simp pat) = apfst (filter_simp ctxt pat)
   | filter_crit ctxt _ (Pattern pat) = filter_pattern ctxt pat;
 
@@ -314,11 +343,14 @@ fun all_facts_of ctxt =
 
 val limit = ref 40;
 
-fun print_theorems ctxt opt_goal opt_limit rem_dups raw_criteria =
+fun find_theorems ctxt opt_goal rem_dups raw_criteria =
   let
-    val start = start_timing ();
+    val add_prems = Seq.hd o (TRY (Method.insert_tac
+                                     (Assumption.prems_of ctxt) 1));
+    val opt_goal' = Option.map add_prems opt_goal;
+
     val criteria = map (apsnd (read_criterion ctxt)) raw_criteria;
-    val filters = map (filter_criterion ctxt opt_goal) criteria;
+    val filters = map (filter_criterion ctxt opt_goal') criteria;
 
     val raw_matches = all_filters filters (all_facts_of ctxt);
 
@@ -326,21 +358,28 @@ fun print_theorems ctxt opt_goal opt_limit rem_dups raw_criteria =
       if rem_dups
       then rem_thm_dups (nicer_shortest ctxt) raw_matches
       else raw_matches;
+  in matches end;
+
+fun print_theorems ctxt opt_goal opt_limit rem_dups raw_criteria = let
+    val start = start_timing ();
+
+    val criteria = map (apsnd (read_criterion ctxt)) raw_criteria;
+    val matches = find_theorems ctxt opt_goal rem_dups raw_criteria;
 
     val len = length matches;
     val lim = the_default (! limit) opt_limit;
     val thms = Library.drop (len - lim, matches);
 
-    val end_msg = " in " ^
-                  (List.nth (String.tokens Char.isSpace (end_timing start), 3))
-                  ^ " secs"
-
     fun prt_fact (thmref, thm) = Pretty.block
       [Pretty.str (Facts.string_of_ref thmref), Pretty.str ":", Pretty.brk 1,
         ProofContext.pretty_thm ctxt thm];
+
+    val end_msg = " in " ^
+                  (List.nth (String.tokens Char.isSpace (end_timing start), 3))
+                  ^ " secs"
   in
     Pretty.big_list "searched for:" (map (pretty_criterion ctxt) criteria)
-      :: Pretty.str "" ::
+        :: Pretty.str "" ::
      (if null thms then [Pretty.str ("nothing found" ^ end_msg)]
       else
         [Pretty.str ("found " ^ string_of_int len ^ " theorems" ^
@@ -349,6 +388,6 @@ fun print_theorems ctxt opt_goal opt_limit rem_dups raw_criteria =
            ^ end_msg ^ ":"), Pretty.str ""] @
         map prt_fact thms)
     |> Pretty.chunks |> Pretty.writeln
-  end;
+  end
 
 end;

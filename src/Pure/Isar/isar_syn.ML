@@ -860,6 +860,7 @@ val criterion =
   P.reserved "intro" >> K FindTheorems.Intro ||
   P.reserved "elim" >> K FindTheorems.Elim ||
   P.reserved "dest" >> K FindTheorems.Dest ||
+  P.reserved "solves" >> K FindTheorems.Solves ||
   P.reserved "simp" |-- P.!!! (P.$$$ ":" |-- P.term) >> FindTheorems.Simp ||
   P.term >> FindTheorems.Pattern;
 
