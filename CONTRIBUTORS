@@ -7,6 +7,9 @@ distribution.
 Contributions to this Isabelle version
 --------------------------------------
 
+* February 2008: Timothy Bourke, NICTA
+  "solves" criterion for find_theorems and auto_solve option
+
 * December 2008: Clemens Ballarin, TUM
   New locale implementation.
 
