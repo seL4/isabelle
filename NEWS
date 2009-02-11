@@ -184,7 +184,7 @@ INCOMPATIBILITY, use proper 'instantiation' target.
 context.  INCOMPATIBILITY.
 
 * New find_theorems criterion "solves" matching theorems that 
-  directly solve the current goal. Try "find_theorm solves".
+  directly solve the current goal. Try "find_theorems solves".
 
 * Added an auto solve option, which can be enabled through the
   ProofGeneral Isabelle settings menu (disabled by default).
