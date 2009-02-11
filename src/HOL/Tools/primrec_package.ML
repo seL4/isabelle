@@ -251,7 +251,8 @@ fun gen_primrec set_group prep_spec raw_fixes raw_spec lthy =
     val qualify = Binding.qualify prefix;
     val spec' = (map o apfst)
       (fn (b, attrs) => (qualify b, Code.add_default_eqn_attrib :: attrs)) spec;
-    val simp_att = (Attrib.internal o K) Simplifier.simp_add;
+    val simp_atts = map (Attrib.internal o K)
+      [Simplifier.simp_add, Nitpick_Const_Simp_Thms.add];
   in
     lthy
     |> set_group ? LocalTheory.set_group (serial_string ())
@@ -259,7 +260,7 @@ fun gen_primrec set_group prep_spec raw_fixes raw_spec lthy =
     |-> (fn defs => `(fn ctxt => prove_spec ctxt names1 rec_rewrites defs spec'))
     |-> (fn simps => fold_map (LocalTheory.note Thm.theoremK) simps)
     |-> (fn simps' => LocalTheory.note Thm.theoremK
-          ((qualify (Binding.name "simps"), [simp_att]), maps snd simps'))
+          ((qualify (Binding.name "simps"), simp_atts), maps snd simps'))
     |>> snd
   end handle PrimrecError (msg, some_eqn) =>
     error ("Primrec definition error:\n" ^ msg ^ (case some_eqn

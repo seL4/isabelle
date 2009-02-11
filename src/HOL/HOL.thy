@@ -932,7 +932,7 @@ ML_Antiquote.value "claset"
 
 structure ResAtpset = NamedThmsFun(val name = "atp" val description = "ATP rules");
 
-structure ResBlacklist = NamedThmsFun(val name = "noatp" val description = "Theorems blacklisted for ATP");
+structure ResBlacklist = NamedThmsFun(val name = "noatp" val description = "theorems blacklisted for ATP");
 *}
 
 text {*ResBlacklist holds theorems blacklisted to sledgehammer. 
@@ -1700,6 +1700,29 @@ setup {*
   #> RecfunCodegen.setup
 *}
 
+
+subsection {* Nitpick theorem store *}
+
+ML {*
+structure Nitpick_Const_Simp_Thms = NamedThmsFun
+(
+  val name = "nitpick_const_simp"
+  val description = "equational specification of constants as needed by Nitpick"
+)
+structure Nitpick_Const_Psimp_Thms = NamedThmsFun
+(
+  val name = "nitpick_const_psimp"
+  val description = "partial equational specification of constants as needed by Nitpick"
+)
+structure Nitpick_Ind_Intro_Thms = NamedThmsFun
+(
+  val name = "nitpick_ind_intro"
+  val description = "introduction rules for (co)inductive predicates as needed by Nitpick"
+)
+*}
+setup {* Nitpick_Const_Simp_Thms.setup
+         #> Nitpick_Const_Psimp_Thms.setup
+         #> Nitpick_Ind_Intro_Thms.setup *}
 
 subsection {* Legacy tactics and ML bindings *}
 

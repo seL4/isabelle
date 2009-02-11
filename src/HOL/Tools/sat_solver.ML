@@ -569,9 +569,10 @@ let
   fun minisat_with_proofs fm =
   let
     val _          = if (getenv "MINISAT_HOME") = "" then raise SatSolver.NOT_CONFIGURED else ()
-    val inpath     = File.tmp_path (Path.explode "isabelle.cnf")
-    val outpath    = File.tmp_path (Path.explode "result")
-    val proofpath  = File.tmp_path (Path.explode "result.prf")
+    val serial_str = serial_string ()
+    val inpath     = File.tmp_path (Path.explode ("isabelle" ^ serial_str ^ ".cnf"))
+    val outpath    = File.tmp_path (Path.explode ("result" ^ serial_str))
+    val proofpath  = File.tmp_path (Path.explode ("result" ^ serial_str ^ ".prf"))
     val cmd        = (getenv "MINISAT_HOME") ^ "/minisat " ^ (Path.implode inpath) ^ " -r " ^ (Path.implode outpath) ^ " -t " ^ (Path.implode proofpath) ^ "> /dev/null"
     fun writefn fm = SatSolver.write_dimacs_cnf_file inpath fm
     fun readfn ()  = SatSolver.read_std_result_file outpath ("SAT", "", "UNSAT")
@@ -754,8 +755,9 @@ let
   fun minisat fm =
   let
     val _          = if (getenv "MINISAT_HOME") = "" then raise SatSolver.NOT_CONFIGURED else ()
-    val inpath     = File.tmp_path (Path.explode "isabelle.cnf")
-    val outpath    = File.tmp_path (Path.explode "result")
+    val serial_str = serial_string ()
+    val inpath     = File.tmp_path (Path.explode ("isabelle" ^ serial_str ^ ".cnf"))
+    val outpath    = File.tmp_path (Path.explode ("result" ^ serial_str))
     val cmd        = (getenv "MINISAT_HOME") ^ "/minisat " ^ (Path.implode inpath) ^ " -r " ^ (Path.implode outpath) ^ " > /dev/null"
     fun writefn fm = SatSolver.write_dimacs_cnf_file inpath (PropLogic.defcnf fm)
     fun readfn ()  = SatSolver.read_std_result_file outpath ("SAT", "", "UNSAT")
@@ -916,8 +918,9 @@ let
                         (getenv "ZCHAFF_VERSION") <> "2004.11.15" then raise SatSolver.NOT_CONFIGURED else ()
       (* both versions of zChaff appear to have the same interface, so we do *)
       (* not actually need to distinguish between them in the following code *)
-    val inpath     = File.tmp_path (Path.explode "isabelle.cnf")
-    val outpath    = File.tmp_path (Path.explode "result")
+    val serial_str = serial_string ()
+    val inpath     = File.tmp_path (Path.explode ("isabelle" ^ serial_str ^ ".cnf"))
+    val outpath    = File.tmp_path (Path.explode ("result" ^ serial_str))
     val cmd        = (getenv "ZCHAFF_HOME") ^ "/zchaff " ^ (Path.implode inpath) ^ " > " ^ (Path.implode outpath)
     fun writefn fm = SatSolver.write_dimacs_cnf_file inpath (PropLogic.defcnf fm)
     fun readfn ()  = SatSolver.read_std_result_file outpath ("Instance Satisfiable", "", "Instance Unsatisfiable")
@@ -941,8 +944,9 @@ let
   fun berkmin fm =
   let
     val _          = if (getenv "BERKMIN_HOME") = "" orelse (getenv "BERKMIN_EXE") = "" then raise SatSolver.NOT_CONFIGURED else ()
-    val inpath     = File.tmp_path (Path.explode "isabelle.cnf")
-    val outpath    = File.tmp_path (Path.explode "result")
+    val serial_str = serial_string ()
+    val inpath     = File.tmp_path (Path.explode ("isabelle" ^ serial_str ^ ".cnf"))
+    val outpath    = File.tmp_path (Path.explode ("result" ^ serial_str))
     val cmd        = (getenv "BERKMIN_HOME") ^ "/" ^ (getenv "BERKMIN_EXE") ^ " " ^ (Path.implode inpath) ^ " > " ^ (Path.implode outpath)
     fun writefn fm = SatSolver.write_dimacs_cnf_file inpath (PropLogic.defcnf fm)
     fun readfn ()  = SatSolver.read_std_result_file outpath ("Satisfiable          !!", "solution =", "UNSATISFIABLE          !!")
@@ -966,8 +970,9 @@ let
   fun jerusat fm =
   let
     val _          = if (getenv "JERUSAT_HOME") = "" then raise SatSolver.NOT_CONFIGURED else ()
-    val inpath     = File.tmp_path (Path.explode "isabelle.cnf")
-    val outpath    = File.tmp_path (Path.explode "result")
+    val serial_str = serial_string ()
+    val inpath     = File.tmp_path (Path.explode ("isabelle" ^ serial_str ^ ".cnf"))
+    val outpath    = File.tmp_path (Path.explode ("result" ^ serial_str))
     val cmd        = (getenv "JERUSAT_HOME") ^ "/Jerusat1.3 " ^ (Path.implode inpath) ^ " > " ^ (Path.implode outpath)
     fun writefn fm = SatSolver.write_dimacs_cnf_file inpath (PropLogic.defcnf fm)
     fun readfn ()  = SatSolver.read_std_result_file outpath ("s SATISFIABLE", "v ", "s UNSATISFIABLE")
