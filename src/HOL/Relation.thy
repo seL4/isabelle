@@ -70,6 +70,16 @@ definition
   "trans r == (ALL x y z. (x,y):r --> (y,z):r --> (x,z):r)"
 
 definition
+irrefl :: "('a * 'a) set => bool" where
+"irrefl r \<equiv> \<forall>x. (x,x) \<notin> r"
+
+definition
+total_on :: "'a set => ('a * 'a) set => bool" where
+"total_on A r \<equiv> \<forall>x\<in>A.\<forall>y\<in>A. x\<noteq>y \<longrightarrow> (x,y)\<in>r \<or> (y,x)\<in>r"
+
+abbreviation "total \<equiv> total_on UNIV"
+
+definition
   single_valued :: "('a * 'b) set => bool" where
   "single_valued r == ALL x y. (x,y):r --> (ALL z. (x,z):r --> y=z)"
 
@@ -268,6 +278,21 @@ by (fast intro: transI elim: transD)
 lemma trans_diag [simp]: "trans (diag A)"
 by (fast intro: transI elim: transD)
 
+lemma trans_diff_Id: " trans r \<Longrightarrow> antisym r \<Longrightarrow> trans (r-Id)"
+unfolding antisym_def trans_def by blast
+
+subsection {* Irreflexivity *}
+
+lemma irrefl_diff_Id[simp]: "irrefl(r-Id)"
+by(simp add:irrefl_def)
+
+subsection {* Totality *}
+
+lemma total_on_empty[simp]: "total_on {} r"
+by(simp add:total_on_def)
+
+lemma total_on_diff_Id[simp]: "total_on A (r-Id) = total_on A r"
+by(simp add: total_on_def)
 
 subsection {* Converse *}
 
@@ -329,6 +354,9 @@ by (unfold sym_def) blast
 
 lemma sym_Int_converse: "sym (r \<inter> r^-1)"
 by (unfold sym_def) blast
+
+lemma total_on_converse[simp]: "total_on A (r^-1) = total_on A r"
+by (auto simp: total_on_def)
 
 
 subsection {* Domain *}
