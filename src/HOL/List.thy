@@ -509,11 +509,11 @@ of those of the other list and there are fewer Cons's in one than the other.
 
 let
 
-fun len (Const("List.list.Nil",_)) acc = acc
-  | len (Const("List.list.Cons",_) $ _ $ xs) (ts,n) = len xs (ts,n+1)
-  | len (Const("List.append",_) $ xs $ ys) acc = len xs (len ys acc)
-  | len (Const("List.rev",_) $ xs) acc = len xs acc
-  | len (Const("List.map",_) $ _ $ xs) acc = len xs acc
+fun len (Const(@{const_name Nil},_)) acc = acc
+  | len (Const(@{const_name Cons},_) $ _ $ xs) (ts,n) = len xs (ts,n+1)
+  | len (Const(@{const_name append},_) $ xs $ ys) acc = len xs (len ys acc)
+  | len (Const(@{const_name rev},_) $ xs) acc = len xs acc
+  | len (Const(@{const_name map},_) $ _ $ xs) acc = len xs acc
   | len t (ts,n) = (t::ts,n);
 
 fun list_neq _ ss ct =
@@ -639,18 +639,18 @@ Currently only tries to rearrange @{text "@"} to see if
 ML {*
 local
 
-fun last (cons as Const("List.list.Cons",_) $ _ $ xs) =
-  (case xs of Const("List.list.Nil",_) => cons | _ => last xs)
-  | last (Const("List.append",_) $ _ $ ys) = last ys
+fun last (cons as Const(@{const_name Cons},_) $ _ $ xs) =
+  (case xs of Const(@{const_name Nil},_) => cons | _ => last xs)
+  | last (Const(@{const_name append},_) $ _ $ ys) = last ys
   | last t = t;
 
-fun list1 (Const("List.list.Cons",_) $ _ $ Const("List.list.Nil",_)) = true
+fun list1 (Const(@{const_name Cons},_) $ _ $ Const(@{const_name Nil},_)) = true
   | list1 _ = false;
 
-fun butlast ((cons as Const("List.list.Cons",_) $ x) $ xs) =
-  (case xs of Const("List.list.Nil",_) => xs | _ => cons $ butlast xs)
-  | butlast ((app as Const("List.append",_) $ xs) $ ys) = app $ butlast ys
-  | butlast xs = Const("List.list.Nil",fastype_of xs);
+fun butlast ((cons as Const(@{const_name Cons},_) $ x) $ xs) =
+  (case xs of Const(@{const_name Nil},_) => xs | _ => cons $ butlast xs)
+  | butlast ((app as Const(@{const_name append},_) $ xs) $ ys) = app $ butlast ys
+  | butlast xs = Const(@{const_name Nil},fastype_of xs);
 
 val rearr_ss = HOL_basic_ss addsimps [@{thm append_assoc},
   @{thm append_Nil}, @{thm append_Cons}];
@@ -663,7 +663,7 @@ fun list_eq ss (F as (eq as Const(_,eqT)) $ lhs $ rhs) =
         val lhs1 = butlast lhs and rhs1 = butlast rhs;
         val Type(_,listT::_) = eqT
         val appT = [listT,listT] ---> listT
-        val app = Const("List.append",appT)
+        val app = Const(@{const_name append},appT)
         val F2 = eq $ (app$lhs1$lastl) $ (app$rhs1$lastr)
         val eq = HOLogic.mk_Trueprop (HOLogic.mk_eq (F,F2));
         val thm = Goal.prove (Simplifier.the_context ss) [] [] eq
