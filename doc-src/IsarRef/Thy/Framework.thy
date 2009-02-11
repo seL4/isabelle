@@ -155,18 +155,18 @@ text {*
   \medskip\noindent This Isar reasoning pattern again refers to the
   primitive rule depicted above.  The system determines it in the
   ``@{command "proof"}'' step, which could have been spelt out more
-  explicitly as ``@{command "proof"}~@{text "("}@{method rule}~@{fact
-  InterI}@{text ")"}''.  Note that this rule involves both a local
-  parameter @{term "A"} and an assumption @{prop "A \<in> \<A>"} in the
-  nested reasoning.  This kind of compound rule typically demands a
-  genuine sub-proof in Isar, working backwards rather than forwards as
-  seen before.  In the proof body we encounter the @{command
-  "fix"}-@{command "assume"}-@{command "show"} skeleton of nested
-  sub-proofs that is typical for Isar.  The final @{command "show"} is
-  like @{command "have"} followed by an additional refinement of the
-  enclosing claim, using the rule derived from the proof body.  The
-  @{command "sorry"} command stands for a hole in the proof -- it may
-  be understood as an excuse for not providing a proper proof yet.
+  explicitly as ``@{command "proof"}~@{text "(rule InterI)"}''.  Note
+  that this rule involves both a local parameter @{term "A"} and an
+  assumption @{prop "A \<in> \<A>"} in the nested reasoning.  This kind of
+  compound rule typically demands a genuine sub-proof in Isar, working
+  backwards rather than forwards as seen before.  In the proof body we
+  encounter the @{command "fix"}-@{command "assume"}-@{command "show"}
+  skeleton of nested sub-proofs that is typical for Isar.  The final
+  @{command "show"} is like @{command "have"} followed by an
+  additional refinement of the enclosing claim, using the rule derived
+  from the proof body.  The @{command "sorry"} command stands for a
+  hole in the proof --- it may be understood as an excuse for not
+  providing a proper proof yet.
 
   \medskip The next example involves @{term "\<Union>\<A>"}, which can be
   characterized as the set of all @{term "x"} such that @{prop "\<exists>A. x
@@ -227,6 +227,729 @@ text {*
   \noindent Here we avoid to mention the final conclusion @{prop "C"}
   and return to plain forward reasoning.  The rule involved in the
   ``@{command ".."}'' proof is the same as before.
+*}
+
+
+section {* The Pure framework \label{sec:framework-pure} *}
+
+text {*
+  The Pure logic \cite{paulson-found,paulson700} is an intuitionistic
+  fragment of higher-order logic \cite{church40}.  In type-theoretic
+  parlance, there are three levels of @{text "\<lambda>"}-calculus with
+  corresponding arrows: @{text "\<Rightarrow>"} for syntactic function space
+  (terms depending on terms), @{text "\<And>"} for universal quantification
+  (proofs depending on terms), and @{text "\<Longrightarrow>"} for implication (proofs
+  depending on proofs).
+
+  On top of this, Pure implements a generic calculus for nested
+  natural deduction rules, similar to \cite{Schroeder-Heister:1984}.
+  Here object-logic inferences are internalized as formulae over
+  @{text "\<And>"} and @{text "\<Longrightarrow>"}.  Combining such rule statements may
+  involve higher-order unification \cite{paulson-natural}.
+*}
+
+
+subsection {* Primitive inferences *}
+
+text {*
+  Term syntax provides explicit notation for abstraction @{text "\<lambda>x ::
+  \<alpha>. b(x)"} and application @{text "b a"}, while types are usually
+  implicit thanks to type-inference; terms of type @{text "prop"} are
+  called propositions.  Logical statements are composed via @{text "\<And>x
+  :: \<alpha>. B(x)"} and @{text "A \<Longrightarrow> B"}.  Primitive reasoning operates on
+  judgments of the form @{text "\<Gamma> \<turnstile> \<phi>"}, with standard introduction
+  and elimination rules for @{text "\<And>"} and @{text "\<Longrightarrow>"} that refer to
+  fixed parameters @{text "x\<^isub>1, \<dots>, x\<^isub>m"} and hypotheses
+  @{text "A\<^isub>1, \<dots>, A\<^isub>n"} from the context @{text "\<Gamma>"};
+  the corresponding proof terms are left implicit.  The subsequent
+  inference rules define @{text "\<Gamma> \<turnstile> \<phi>"} inductively, relative to a
+  collection of axioms:
+
+  \[
+  \infer{@{text "\<turnstile> A"}}{(@{text "A"} \text{~axiom})}
+  \qquad
+  \infer{@{text "A \<turnstile> A"}}{}
+  \]
+
+  \[
+  \infer{@{text "\<Gamma> \<turnstile> \<And>x. B(x)"}}{@{text "\<Gamma> \<turnstile> B(x)"} & @{text "x \<notin> \<Gamma>"}}
+  \qquad
+  \infer{@{text "\<Gamma> \<turnstile> B(a)"}}{@{text "\<Gamma> \<turnstile> \<And>x. B(x)"}}
+  \]
+
+  \[
+  \infer{@{text "\<Gamma> - A \<turnstile> A \<Longrightarrow> B"}}{@{text "\<Gamma> \<turnstile> B"}}
+  \qquad
+  \infer{@{text "\<Gamma>\<^sub>1 \<union> \<Gamma>\<^sub>2 \<turnstile> B"}}{@{text "\<Gamma>\<^sub>1 \<turnstile> A \<Longrightarrow> B"} & @{text "\<Gamma>\<^sub>2 \<turnstile> A"}}
+  \]
+
+  Furthermore, Pure provides a built-in equality @{text "\<equiv> :: \<alpha> \<Rightarrow> \<alpha> \<Rightarrow>
+  prop"} with axioms for reflexivity, substitution, extensionality,
+  and @{text "\<alpha>\<beta>\<eta>"}-conversion on @{text "\<lambda>"}-terms.
+
+  \medskip An object-logic introduces another layer on top of Pure,
+  e.g.\ with types @{text "i"} for individuals and @{text "o"} for
+  propositions, term constants @{text "Trueprop :: o \<Rightarrow> prop"} as
+  (implicit) derivability judgment and connectives like @{text "\<and> :: o
+  \<Rightarrow> o \<Rightarrow> o"} or @{text "\<forall> :: (i \<Rightarrow> o) \<Rightarrow> o"}, and axioms for object-level
+  rules such as @{text "conjI: A \<Longrightarrow> B \<Longrightarrow> A \<and> B"} or @{text "allI: (\<And>x. B
+  x) \<Longrightarrow> \<forall>x. B x"}.  Derived object rules are represented as theorems of
+  Pure.  After the initial object-logic setup, further axiomatizations
+  are usually avoided; plain definitions and derived principles are
+  used exclusively.
+*}
+
+
+subsection {* Reasoning with rules \label{sec:framework-resolution} *}
+
+text {*
+  Primitive inferences mostly serve foundational purposes.  The main
+  reasoning mechanisms of Pure operate on nested natural deduction
+  rules expressed as formulae, using @{text "\<And>"} to bind local
+  parameters and @{text "\<Longrightarrow>"} to express entailment.  Multiple
+  parameters and premises are represented by repeating these
+  connectives in a right-associative fashion.
+
+  Since @{text "\<And>"} and @{text "\<Longrightarrow>"} commute thanks to the theorem
+  @{prop "(A \<Longrightarrow> (\<And>x. B x)) \<equiv> (\<And>x. A \<Longrightarrow> B x)"}, we may assume w.l.o.g.\
+  that rule statements always observe the normal form where
+  quantifiers are pulled in front of implications at each level of
+  nesting.  This means that any Pure proposition may be presented as a
+  \emph{Hereditary Harrop Formula} \cite{Miller:1991} which is of the
+  form @{text "\<And>x\<^isub>1 \<dots> x\<^isub>m. H\<^isub>1 \<Longrightarrow> \<dots> H\<^isub>n \<Longrightarrow>
+  A"} for @{text "m, n \<ge> 0"}, and @{text "H\<^isub>1, \<dots>, H\<^isub>n"}
+  being recursively of the same format, and @{text "A"} atomic.
+  Following the convention that outermost quantifiers are implicit,
+  Horn clauses @{text "A\<^isub>1 \<Longrightarrow> \<dots> A\<^isub>n \<Longrightarrow> A"} are a special
+  case of this.
+
+  \medskip Goals are also represented as rules: @{text "A\<^isub>1 \<Longrightarrow>
+  \<dots> A\<^isub>n \<Longrightarrow> C"} states that the sub-goals @{text "A\<^isub>1, \<dots>,
+  A\<^isub>n"} entail the result @{text "C"}; for @{text "n = 0"} the
+  goal is finished.  To allow @{text "C"} being a rule statement
+  itself, we introduce the protective marker @{text "# :: prop \<Rightarrow>
+  prop"}, which is defined as identity and hidden from the user.  We
+  initialize and finish goal states as follows:
+
+  \[
+  \begin{array}{c@ {\qquad}c}
+  \infer[(@{inference_def init})]{@{text "C \<Longrightarrow> #C"}}{} &
+  \infer[(@{inference_def finish})]{@{text C}}{@{text "#C"}}
+  \end{array}
+  \]
+
+  Goal states are refined in intermediate proof steps until a finished
+  form is achieved.  Here the two main reasoning principles are
+  @{inference resolution}, for back-chaining a rule against a sub-goal
+  (replacing it by zero or more sub-goals), and @{inference
+  assumption}, for solving a sub-goal (finding a short-circuit with
+  local assumptions).  Below @{text "\<^vec>x"} stands for @{text
+  "x\<^isub>1, \<dots>, x\<^isub>n"} (@{text "n \<ge> 0"}).
+
+  \[
+  \infer[(@{inference_def resolution})]
+  {@{text "(\<And>\<^vec>x. \<^vec>H \<^vec>x \<Longrightarrow> \<^vec>A (\<^vec>a \<^vec>x))\<vartheta> \<Longrightarrow> C\<vartheta>"}}
+  {\begin{tabular}{rl}
+    @{text "rule:"} &
+    @{text "\<^vec>A \<^vec>a \<Longrightarrow> B \<^vec>a"} \\
+    @{text "goal:"} &
+    @{text "(\<And>\<^vec>x. \<^vec>H \<^vec>x \<Longrightarrow> B' \<^vec>x) \<Longrightarrow> C"} \\
+    @{text "goal unifier:"} &
+    @{text "(\<lambda>\<^vec>x. B (\<^vec>a \<^vec>x))\<vartheta> = B'\<vartheta>"} \\
+   \end{tabular}}
+  \]
+
+  \medskip
+
+  \[
+  \infer[(@{inference_def assumption})]{@{text "C\<vartheta>"}}
+  {\begin{tabular}{rl}
+    @{text "goal:"} &
+    @{text "(\<And>\<^vec>x. \<^vec>H \<^vec>x \<Longrightarrow> A \<^vec>x) \<Longrightarrow> C"} \\
+    @{text "assm unifier:"} & @{text "A\<vartheta> = H\<^sub>i\<vartheta>"}~~\text{(for some~@{text "H\<^sub>i"})} \\
+   \end{tabular}}
+  \]
+
+  The following trace illustrates goal-oriented reasoning in
+  Isabelle/Pure:
+
+  \medskip
+  \begin{tabular}{r@ {\qquad}l}
+  @{text "(A \<and> B \<Longrightarrow> B \<and> A) \<Longrightarrow> #(A \<and> B \<Longrightarrow> B \<and> A)"} & @{text "(init)"} \\
+  @{text "(A \<and> B \<Longrightarrow> B) \<Longrightarrow> (A \<and> B \<Longrightarrow> A) \<Longrightarrow> #\<dots>"} & @{text "(resolution B \<Longrightarrow> A \<Longrightarrow> B \<and> A)"} \\
+  @{text "(A \<and> B \<Longrightarrow> A \<and> B) \<Longrightarrow> (A \<and> B \<Longrightarrow> A) \<Longrightarrow> #\<dots>"} & @{text "(resolution A \<and> B \<Longrightarrow> B)"} \\
+  @{text "(A \<and> B \<Longrightarrow> A) \<Longrightarrow> #\<dots>"} & @{text "(assumption)"} \\
+  @{text "(A \<and> B \<Longrightarrow> B \<and> A) \<Longrightarrow> #\<dots>"} & @{text "(resolution A \<and> B \<Longrightarrow> A)"} \\
+  @{text "#\<dots>"} & @{text "(assumption)"} \\
+  @{text "A \<and> B \<Longrightarrow> B \<and> A"} & @{text "(finish)"} \\
+  \end{tabular}
+  \medskip
+
+  Compositions of @{inference assumption} after @{inference
+  resolution} occurs quite often, typically in elimination steps.
+  Traditional Isabelle tactics accommodate this by a combined
+  @{inference_def elim_resolution} principle.  In contrast, Isar uses
+  a slightly more refined combination, where the assumptions to be
+  closed are marked explicitly, using again the protective marker
+  @{text "#"}:
+
+  \[
+  \infer[(@{inference refinement})]
+  {@{text "(\<And>\<^vec>x. \<^vec>H \<^vec>x \<Longrightarrow> \<^vec>G' (\<^vec>a \<^vec>x))\<vartheta> \<Longrightarrow> C\<vartheta>"}}
+  {\begin{tabular}{rl}
+    @{text "sub\<dash>proof:"} &
+    @{text "\<^vec>G \<^vec>a \<Longrightarrow> B \<^vec>a"} \\
+    @{text "goal:"} &
+    @{text "(\<And>\<^vec>x. \<^vec>H \<^vec>x \<Longrightarrow> B' \<^vec>x) \<Longrightarrow> C"} \\
+    @{text "goal unifier:"} &
+    @{text "(\<lambda>\<^vec>x. B (\<^vec>a \<^vec>x))\<vartheta> = B'\<vartheta>"} \\
+    @{text "assm unifiers:"} &
+    @{text "(\<lambda>\<^vec>x. G\<^sub>j (\<^vec>a \<^vec>x))\<vartheta> = #H\<^sub>i\<vartheta>"} \\
+    & \quad (for each marked @{text "G\<^sub>j"} some @{text "#H\<^sub>i"}) \\
+   \end{tabular}}
+  \]
+
+  \noindent Here the @{text "sub\<dash>proof"} rule stems from the
+  main @{command "fix"}-@{command "assume"}-@{command "show"} skeleton
+  of Isar (cf.\ \secref{sec:framework-subproof}): each assumption
+  indicated in the text results in a marked premise @{text "G"} above.
+*}
+
+
+section {* The Isar proof language \label{sec:framework-isar} *}
+
+text {*
+  Structured proofs are presented as high-level expressions for
+  composing entities of Pure (propositions, facts, and goals).  The
+  Isar proof language allows to organize reasoning within the
+  underlying rule calculus of Pure, but Isar is not another logical
+  calculus!
+
+  Isar is an exercise in sound minimalism.  Approximately half of the
+  language is introduced as primitive, the rest defined as derived
+  concepts.  The following grammar describes the core language
+  (category @{text "proof"}), which is embedded into theory
+  specification elements such as @{command theorem}; see also
+  \secref{sec:framework-stmt} for the separate category @{text
+  "statement"}.
+
+  \medskip
+  \begin{tabular}{rcl}
+    @{text "theory\<dash>stmt"} & = & @{command "theorem"}~@{text "statement proof  |"}~~@{command "definition"}~@{text "\<dots>  |  \<dots>"} \\[1ex]
+
+    @{text "proof"} & = & @{text "prfx\<^sup>*"}~@{command "proof"}~@{text "method\<^sup>? stmt\<^sup>*"}~@{command "qed"}~@{text "method\<^sup>?"} \\[1ex]
+
+    @{text prfx} & = & @{command "using"}~@{text "facts"} \\
+    & @{text "|"} & @{command "unfolding"}~@{text "facts"} \\
+
+    @{text stmt} & = & @{command "{"}~@{text "stmt\<^sup>*"}~@{command "}"} \\
+    & @{text "|"} & @{command "next"} \\
+    & @{text "|"} & @{command "note"}~@{text "name = facts"} \\
+    & @{text "|"} & @{command "let"}~@{text "term = term"} \\
+    & @{text "|"} & @{command "fix"}~@{text "var\<^sup>+"} \\
+    & @{text "|"} & @{text "\<ASSM> \<guillemotleft>inference\<guillemotright> name: props"} \\
+    & @{text "|"} & @{command "then"}@{text "\<^sup>?"}~@{text goal} \\
+    @{text goal} & = & @{command "have"}~@{text "name: props proof"} \\
+    & @{text "|"} & @{command "show"}~@{text "name: props proof"} \\
+  \end{tabular}
+
+  \medskip Simultaneous propositions or facts may be separated by the
+  @{keyword "and"} keyword.
+
+  \medskip The syntax for terms and propositions is inherited from
+  Pure (and the object-logic).  A @{text "pattern"} is a @{text
+  "term"} with schematic variables, to be bound by higher-order
+  matching.
+
+  \medskip Facts may be referenced by name or proposition.  E.g.\ the
+  result of ``@{command "have"}~@{text "a: A \<langle>proof\<rangle>"}'' becomes
+  available both as @{text "a"} and \isacharbackquoteopen@{text
+  "A"}\isacharbackquoteclose.  Moreover, fact expressions may involve
+  attributes that modify either the theorem or the background context.
+  For example, the expression ``@{text "a [OF b]"}'' refers to the
+  composition of two facts according to the @{inference resolution}
+  inference of \secref{sec:framework-resolution}, while ``@{text "a
+  [intro]"}'' declares a fact as introduction rule in the context.
+
+  The special fact name ``@{fact this}'' always refers to the last
+  result, as produced by @{command note}, @{text "\<ASSM>"}, @{command
+  "have"}, or @{command "show"}.  Since @{command "note"} occurs
+  frequently together with @{command "then"} we provide some
+  abbreviations: ``@{command "from"}~@{text a}'' for ``@{command
+  "note"}~@{text a}~@{command "then"}'', and ``@{command
+  "with"}~@{text a}'' for ``@{command "from"}~@{text a}~@{keyword
+  "and"}~@{fact this}''.
+
+  \medskip The @{text "method"} category is essentially a parameter
+  and may be populated later.  Methods use the facts indicated by
+  @{command "then"} or @{command "using"}, and then operate on the
+  goal state.  Some basic methods are predefined: ``@{method "-"}''
+  leaves the goal unchanged, ``@{method this}'' applies the facts as
+  rules to the goal, ``@{method "rule"}'' applies the facts to another
+  rule and the result to the goal (both ``@{method this}'' and
+  ``@{method rule}'' refer to @{inference resolution} of
+  \secref{sec:framework-resolution}).  The secondary arguments to
+  ``@{method rule}'' may be specified explicitly as in ``@{text "(rule
+  a)"}'', or picked from the context.  In the latter case, the system
+  first tries rules declared as @{attribute (Pure) elim} or
+  @{attribute (Pure) dest}, followed by those declared as @{attribute
+  (Pure) intro}.
+
+  The default method for @{command "proof"} is ``@{method default}''
+  (arguments picked from the context), for @{command "qed"} it is
+  ``@{method "-"}''.  Further abbreviations for terminal proof steps
+  are ``@{command "by"}~@{text "method\<^sub>1 method\<^sub>2"}'' for
+  ``@{command "proof"}~@{text "method\<^sub>1"}~@{command
+  "qed"}~@{text "method\<^sub>2"}'', and ``@{command ".."}'' for
+  ``@{command "by"}~@{method default}, and ``@{command "."}'' for
+  ``@{command "by"}~@{method this}''.  The @{command "unfolding"}
+  element operates directly on the current facts and goal by applying
+  equalities.
+
+  \medskip Block structure can be indicated explicitly by
+  ``@{command "{"}~@{text "\<dots>"}~@{command "}"}'', although the body of
+  a sub-proof already involves implicit nesting.  In any case,
+  @{command "next"} jumps into the next section of a block, i.e.\ it
+  acts like closing an implicit block scope and opening another one;
+  there is no direct correspondence to subgoals here.
+
+  The remaining elements @{command "fix"} and @{text "\<ASSM>"} build
+  up a local context (see \secref{sec:framework-context}), while
+  @{command "show"} refines a pending sub-goal by the rule resulting
+  from a nested sub-proof (see \secref{sec:framework-subproof}).
+  Further derived concepts will support calculational reasoning (see
+  \secref{sec:framework-calc}).
+*}
+
+
+subsection {* Context elements \label{sec:framework-context} *}
+
+text {*
+  In judgments @{text "\<Gamma> \<turnstile> \<phi>"} of the primitive framework, @{text "\<Gamma>"}
+  essentially acts like a proof context.  Isar elaborates this idea
+  towards a higher-level notion, with separate information for
+  type-inference, term abbreviations, local facts, hypotheses etc.
+
+  The element @{command "fix"}~@{text "x :: \<alpha>"} declares a local
+  parameter, i.e.\ an arbitrary-but-fixed entity of a given type; in
+  results exported from the context, @{text "x"} may become anything.
+  The @{text "\<ASSM>"} element provides a general interface to
+  hypotheses: ``@{text "\<ASSM> \<guillemotleft>rule\<guillemotright> A"}'' produces @{text "A \<turnstile> A"}
+  locally, while the included inference rule tells how to discharge
+  @{text "A"} from results @{text "A \<turnstile> B"} later on.  There is no
+  user-syntax for @{text "\<guillemotleft>rule\<guillemotright>"}, i.e.\ @{text "\<ASSM>"} may only
+  occur in derived elements that provide a suitable inference
+  internally.  In particular, ``@{command "assume"}~@{text A}''
+  abbreviates ``@{text "\<ASSM> \<guillemotleft>discharge\<guillemotright> A"}'', and ``@{command
+  "def"}~@{text "x \<equiv> a"}'' abbreviates ``@{command "fix"}~@{text "x
+  \<ASSM> \<guillemotleft>expansion\<guillemotright> x \<equiv> a"}'', involving the following inferences:
+
+  \[
+  \infer[(@{inference_def "discharge"})]{@{text "\<strut>\<Gamma> - A \<turnstile> #A \<Longrightarrow> B"}}{@{text "\<strut>\<Gamma> \<turnstile> B"}}
+  \qquad
+  \infer[(@{inference_def expansion})]{@{text "\<strut>\<Gamma> - (x \<equiv> a) \<turnstile> B a"}}{@{text "\<strut>\<Gamma> \<turnstile> B x"}}
+  \]
+
+  \medskip The most interesting derived element in Isar is @{command
+  "obtain"} \cite[\S5.3]{Wenzel-PhD}, which supports generalized
+  elimination steps in a purely forward manner.
+
+  The @{command "obtain"} element takes a specification of parameters
+  @{text "\<^vec>x"} and assumptions @{text "\<^vec>A"} to be added to
+  the context, together with a proof of a case rule stating that this
+  extension is conservative (i.e.\ may be removed from closed results
+  later on):
+
+  \medskip
+  \begin{tabular}{l}
+  @{text "\<langle>facts\<rangle>"}~~@{command obtain}~@{text "\<^vec>x \<WHERE> \<^vec>A \<^vec>x  \<langle>proof\<rangle> \<equiv>"} \\[0.5ex]
+  \quad @{command have}~@{text "case: \<And>thesis. (\<And>\<^vec>x. \<^vec>A \<^vec>x \<Longrightarrow> thesis) \<Longrightarrow> thesis\<rangle>"} \\
+  \quad @{command proof}~@{method "-"} \\
+  \qquad @{command fix}~@{text thesis} \\
+  \qquad @{command assume}~@{text "[intro]: \<And>\<^vec>x. \<^vec>A \<^vec>x \<Longrightarrow> thesis"} \\
+  \qquad @{command show}~@{text thesis}~@{command using}@{text "\<langle>facts\<rangle> \<langle>proof\<rangle>"} \\
+  \quad @{command qed} \\
+  \quad @{command fix}~@{text "\<^vec>x \<ASSM> \<guillemotleft>elimination case\<guillemotright> \<^vec>A \<^vec>x"} \\
+  \end{tabular}
+  \medskip
+
+  \[
+  \infer[(@{inference elimination})]{@{text "\<Gamma> \<turnstile> B"}}{
+    \begin{tabular}{rl}
+    @{text "case:"} &
+    @{text "\<Gamma> \<turnstile> \<And>thesis. (\<And>\<^vec>x. \<^vec>A \<^vec>x \<Longrightarrow> thesis) \<Longrightarrow> thesis"} \\[0.2ex]
+    @{text "result:"} &
+    @{text "\<Gamma> \<union> \<^vec>A \<^vec>y \<turnstile> B"} \\[0.2ex]
+    \end{tabular}}
+  \]
+
+  \noindent Here the name ``@{text thesis}'' is a specific convention
+  for an arbitrary-but-fixed proposition; in the primitive natural
+  deduction rules shown before we have occasionally used @{text C}.
+  The whole statement of ``@{command "obtain"}~@{text x}~@{keyword
+  "where"}~@{text "A x"}'' may be read as a claim that @{text "A x"}
+  may be assumed for some arbitrary-but-fixed @{text "x"}.  Also note
+  that ``@{command "obtain"}~@{text A}~@{keyword "and"}~@{text B}''
+  without parameters is similar to ``@{command "have"}~@{text
+  A}~@{keyword "and"}~@{text B}'', but the latter involves multiple
+  sub-goals.
+
+  \medskip The subsequent Isar proof texts explain all context
+  elements introduced above using the formal proof language itself.
+  After finishing a local proof within a block, we indicate the
+  exported result via @{command "note"}.  This illustrates the meaning
+  of Isar context elements without goals getting in between.
+*}
+
+(*<*)
+theorem True
+proof
+(*>*)
+  txt_raw {* \begin{minipage}{0.22\textwidth} *}
+  {
+    fix x
+    have "B x"
+      sorry
+  }
+  note `\<And>x. B x`
+  txt_raw {* \end{minipage}\quad\begin{minipage}{0.22\textwidth} *}(*<*)next(*>*)
+  {
+    def x \<equiv> a
+    have "B x"
+      sorry
+  }
+  note `B a`
+  txt_raw {* \end{minipage}\quad\begin{minipage}{0.22\textwidth} *}(*<*)next(*>*)
+  {
+    assume A
+    have B
+      sorry
+  }
+  note `A \<Longrightarrow> B`
+  txt_raw {* \end{minipage}\quad\begin{minipage}{0.34\textwidth} *}(*<*)next(*>*)
+  {
+    obtain x
+      where "A x" sorry
+    have B sorry
+  }
+  note `B`
+  txt_raw {* \end{minipage} *}
+(*<*)
+qed
+(*>*)
+
+
+subsection {* Structured statements \label{sec:framework-stmt} *}
+
+text {*
+  The category @{text "statement"} of top-level theorem specifications
+  is defined as follows:
+
+  \medskip
+  \begin{tabular}{rcl}
+  @{text "statement"} & @{text "\<equiv>"} & @{text "name: props \<AND> \<dots>"} \\
+  & @{text "|"} & @{text "context\<^sup>* conclusion"} \\[0.5ex]
+
+  @{text "context"} & @{text "\<equiv>"} & @{text "\<FIXES> vars \<AND> \<dots>"} \\
+  & @{text "|"} & @{text "\<ASSUMES> name: props \<AND> \<dots>"} \\
+
+  @{text "conclusion"} & @{text "\<equiv>"} & @{text "\<SHOWS> name: props \<AND> \<dots>"} \\
+  & @{text "|"} & @{text "\<OBTAINS> vars \<AND> \<dots> \<WHERE> name: props \<AND> \<dots>   \<BBAR>   \<dots>"}
+  \end{tabular}
+
+  \medskip\noindent A simple @{text "statement"} consists of named
+  propositions.  The full form admits local context elements followed
+  by the actual conclusions, such as ``@{keyword "fixes"}~@{text
+  x}~@{keyword "assumes"}~@{text "A x"}~@{keyword "shows"}~@{text "B
+  x"}''.  The final result emerges as a Pure rule after discharging
+  the context: @{prop "\<And>x. A x \<Longrightarrow> B x"}.
+
+  The @{keyword "obtains"} variant is another abbreviation defined
+  below; unlike @{command obtain} (cf.\
+  \secref{sec:framework-context}) there may be several ``cases''
+  separated by ``@{text "\<BBAR>"}'', each consisting of several
+  parameters (@{text "vars"}) and several premises (@{text "props"}).
+  This specifies multi-branch elimination rules.
+
+  \medskip
+  \begin{tabular}{l}
+  @{text "\<OBTAINS> \<^vec>x \<WHERE> \<^vec>A \<^vec>x   \<BBAR>   \<dots>   \<equiv>"} \\[0.5ex]
+  \quad @{text "\<FIXES> thesis"} \\
+  \quad @{text "\<ASSUMES> [intro]: \<And>\<^vec>x. \<^vec>A \<^vec>x \<Longrightarrow> thesis  \<AND>  \<dots>"} \\
+  \quad @{text "\<SHOWS> thesis"} \\
+  \end{tabular}
+  \medskip
+
+  Presenting structured statements in such an ``open'' format usually
+  simplifies the subsequent proof, because the outer structure of the
+  problem is already laid out directly.  E.g.\ consider the following
+  canonical patterns for @{text "\<SHOWS>"} and @{text "\<OBTAINS>"},
+  respectively:
+*}
+
+text_raw {*\begin{minipage}{0.5\textwidth}*}
+
+theorem
+  fixes x and y
+  assumes "A x" and "B y"
+  shows "C x y"
+proof -
+  from `A x` and `B y`
+  show "C x y" sorry
+qed
+
+text_raw {*\end{minipage}\begin{minipage}{0.5\textwidth}*}
+
+theorem
+  obtains x and y
+  where "A x" and "B y"
+proof -
+  have "A a" and "B b" sorry
+  then show thesis ..
+qed
+
+text_raw {*\end{minipage}*}
+
+text {*
+  \medskip\noindent Here local facts \isacharbackquoteopen@{text "A
+  x"}\isacharbackquoteclose\ and \isacharbackquoteopen@{text "B
+  y"}\isacharbackquoteclose\ are referenced immediately; there is no
+  need to decompose the logical rule structure again.  In the second
+  proof the final ``@{command then}~@{command show}~@{text
+  thesis}~@{command ".."}''  involves the local rule case @{text "\<And>x
+  y. A x \<Longrightarrow> B y \<Longrightarrow> thesis"} for the particular instance of terms @{text
+  "a"} and @{text "b"} produced in the body.
+*}
+
+
+subsection {* Structured proof refinement \label{sec:framework-subproof} *}
+
+text {*
+  By breaking up the grammar for the Isar proof language, we may
+  understand a proof text as a linear sequence of individual proof
+  commands.  These are interpreted as transitions of the Isar virtual
+  machine (Isar/VM), which operates on a block-structured
+  configuration in single steps.  This allows users to write proof
+  texts in an incremental manner, and inspect intermediate
+  configurations for debugging.
+
+  The basic idea is analogous to evaluating algebraic expressions on a
+  stack machine: @{text "(a + b) \<cdot> c"} then corresponds to a sequence
+  of single transitions for each symbol @{text "(, a, +, b, ), \<cdot>, c"}.
+  In Isar the algebraic values are facts or goals, and the operations
+  are inferences.
+
+  \medskip The Isar/VM state maintains a stack of nodes, each node
+  contains the local proof context, the linguistic mode, and a pending
+  goal (optional).  The mode determines the type of transition that
+  may be performed next, it essentially alternates between forward and
+  backward reasoning.  For example, in @{text "state"} mode Isar acts
+  like a mathematical scratch-pad, accepting declarations like
+  @{command fix}, @{command assume}, and claims like @{command have},
+  @{command show}.  A goal statement changes the mode to @{text
+  "prove"}, which means that we may now refine the problem via
+  @{command unfolding} or @{command proof}.  Then we are again in
+  @{text "state"} mode of a proof body, which may issue @{command
+  show} statements to solve pending sub-goals.  A concluding @{command
+  qed} will return to the original @{text "state"} mode one level
+  upwards.  The subsequent Isar/VM trace indicates block structure,
+  linguistic mode, goal state, and inferences:
+*}
+
+(*<*)lemma True
+proof
+(*>*)
+  txt_raw {* \begin{minipage}[t]{0.15\textwidth} *}
+  have "A \<longrightarrow> B"
+  proof
+    assume A
+    show B
+      sorry
+  qed
+  txt_raw {* \end{minipage}\quad
+\begin{minipage}[t]{0.07\textwidth}
+@{text "begin"} \\
+\\
+\\
+@{text "begin"} \\
+@{text "end"} \\
+@{text "end"} \\
+\end{minipage}
+\begin{minipage}[t]{0.08\textwidth}
+@{text "prove"} \\
+@{text "state"} \\
+@{text "state"} \\
+@{text "prove"} \\
+@{text "state"} \\
+@{text "state"} \\
+\end{minipage}\begin{minipage}[t]{0.3\textwidth}
+@{text "(A \<longrightarrow> B) \<Longrightarrow> #(A \<longrightarrow> B)"} \\
+@{text "(A \<Longrightarrow> B) \<Longrightarrow> #(A \<longrightarrow> B)"} \\
+\\
+\\
+@{text "#(A \<longrightarrow> B)"} \\
+@{text "A \<longrightarrow> B"} \\
+\end{minipage}\begin{minipage}[t]{0.35\textwidth}
+@{text "(init)"} \\
+@{text "(resolution (A \<Longrightarrow> B) \<Longrightarrow> A \<longrightarrow> B)"} \\
+\\
+\\
+@{text "(refinement #A \<Longrightarrow> B)"} \\
+@{text "(finish)"} \\
+\end{minipage} *}
+(*<*)
+qed
+(*>*)
+
+text {*
+  Here the @{inference refinement} inference from
+  \secref{sec:framework-resolution} mediates composition of Isar
+  sub-proofs nicely.  Observe that this principle incorporates some
+  degree of freedom in proof composition.  In particular, the proof
+  body allows parameters and assumptions to be re-ordered, or commuted
+  according to Hereditary Harrop Form.  Moreover, context elements
+  that are not used in a sub-proof may be omitted altogether.  For
+  example:
+*}
+
+text_raw {*\begin{minipage}{0.5\textwidth}*}
+
+(*<*)
+lemma True
+proof
+(*>*)
+  have "\<And>x y. A x \<Longrightarrow> B y \<Longrightarrow> C x y"
+  proof -
+    fix x and y
+    assume "A x" and "B y"
+    show "C x y" sorry
+  qed
+
+txt_raw {*\end{minipage}\begin{minipage}{0.5\textwidth}*}
+
+(*<*)
+next
+(*>*)
+  have "\<And>x y. A x \<Longrightarrow> B y \<Longrightarrow> C x y"
+  proof -
+    fix x assume "A x"
+    fix y assume "B y"
+    show "C x y" sorry
+  qed
+
+txt_raw {*\end{minipage} \\[\medskipamount] \begin{minipage}{0.5\textwidth}*}
+
+(*<*)
+next
+(*>*)
+  have "\<And>x y. A x \<Longrightarrow> B y \<Longrightarrow> C x y"
+  proof -
+    fix y assume "B y"
+    fix x assume "A x"
+    show "C x y" sorry
+  qed
+
+txt_raw {*\end{minipage}\begin{minipage}{0.5\textwidth}*}
+(*<*)
+next
+(*>*)
+  have "\<And>x y. A x \<Longrightarrow> B y \<Longrightarrow> C x y"
+  proof -
+    fix y assume "B y"
+    fix x
+    show "C x y" sorry
+  qed
+(*<*)
+qed
+(*>*)
+
+text_raw {*\end{minipage}*}
+
+text {*
+  \medskip Such ``peephole optimizations'' of Isar texts are
+  practically important to improve readability, by rearranging
+  contexts elements according to the natural flow of reasoning in the
+  body, while still observing the overall scoping rules.
+
+  \medskip This illustrates the basic idea of structured proof
+  processing in Isar.  The main mechanisms are based on natural
+  deduction rule composition within the Pure framework.  In
+  particular, there are no direct operations on goal states within the
+  proof body.  Moreover, there is no hidden automated reasoning
+  involved, just plain unification.
+*}
+
+
+subsection {* Calculational reasoning \label{sec:framework-calc} *}
+
+text {*
+  The present Isar infrastructure is sufficiently flexible to support
+  calculational reasoning (chains of transitivity steps) as derived
+  concept.  The generic proof elements introduced below depend on
+  rules declared as @{text "[trans]"} in the context.  It is left to
+  the object-logic to provide a suitable rule collection for mixed
+  @{text "="}, @{text "<"}, @{text "\<le>"}, @{text "\<subset>"}, @{text "\<subseteq>"} etc.
+  Due to the flexibility of rule composition
+  (\secref{sec:framework-resolution}), substitution of equals by
+  equals is covered as well, even substitution of inequalities
+  involving monotonicity conditions; see also \cite[\S6]{Wenzel-PhD}
+  and \cite{Bauer-Wenzel:2001}.
+
+  The generic calculational mechanism is based on the observation that
+  rules such as @{text "x = y \<Longrightarrow> y = z \<Longrightarrow> x = z"} proceed from the
+  premises towards the conclusion in a deterministic fashion.  Thus we
+  may reason in forward mode, feeding intermediate results into rules
+  selected from the context.  The course of reasoning is organized by
+  maintaining a secondary fact called ``@{fact calculation}'', apart
+  from the primary ``@{fact this}'' already provided by the Isar
+  primitives.  In the definitions below, @{attribute OF} is
+  @{inference resolution} (\secref{sec:framework-resolution}) with
+  multiple rule arguments, and @{text "trans"} refers to a suitable
+  rule from the context:
+
+  \begin{matharray}{rcl}
+    @{command "also"}@{text "\<^sub>0"} & \equiv & @{command "note"}~@{text "calculation = this"} \\
+    @{command "also"}@{text "\<^sub>n\<^sub>+\<^sub>1"} & \equiv & @{command "note"}~@{text "calculation = trans [OF calculation this]"} \\[0.5ex]
+    @{command "finally"} & \equiv & @{command "also"}~@{command "from"}~@{text calculation} \\
+  \end{matharray}
+
+  \noindent The start of a calculation is determined implicitly in the
+  text: here @{command also} sets @{fact calculation} to the current
+  result; any subsequent occurrence will update @{fact calculation} by
+  combination with the next result and a transitivity rule.  The
+  calculational sequence is concluded via @{command finally}, where
+  the final result is exposed for use in a concluding claim.
+
+  Here is a canonical proof pattern, using @{command have} to
+  establish the intermediate results:
+*}
+
+(*<*)
+lemma True
+proof
+(*>*)
+  have "a = b" sorry
+  also have "\<dots> = c" sorry
+  also have "\<dots> = d" sorry
+  finally have "a = d" .
+(*<*)
+qed
+(*>*)
+
+text {*
+  \noindent The term ``@{text "\<dots>"}'' above is a special abbreviation
+  provided by the Isabelle/Isar syntax layer: it statically refers to
+  the right-hand side argument of the previous statement given in the
+  text.  Thus it happens to coincide with relevant sub-expressions in
+  the calculational chain, but the exact correspondence is dependent
+  on the transitivity rules being involved.
+
+  \medskip Symmetry rules such as @{prop "x = y \<Longrightarrow> y = x"} are like
+  transitivities with only one premise.  Isar maintains a separate
+  rule collection declared via the @{attribute sym} attribute, to be
+  used in fact expressions ``@{text "a [symmetric]"}'', or single-step
+  proofs ``@{command assume}~@{text "x = y"}~@{command then}~@{command
+  have}~@{text "y = x"}~@{command ".."}''.
 *}
 
 end
