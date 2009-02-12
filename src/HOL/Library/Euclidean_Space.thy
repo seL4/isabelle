@@ -84,7 +84,7 @@ definition vector_less_def: "less (x :: 'a ^'b) y = (ALL i : {1 ..
 instance by (intro_classes)
 end
 
-text{* Also the scalar-vector multiplication. FIXME: We should unify this with the scalar multiplication in real_vector *}
+text{* Also the scalar-vector multiplication. FIXME: We should unify this with the scalar multiplication in @{text real_vector} *}
 
 definition vector_scalar_mult:: "'a::times \<Rightarrow> 'a ^'n \<Rightarrow> 'a ^ 'n" (infixr "*s" 75)
   where "c *s x = (\<chi> i. c * (x$i))"
@@ -456,7 +456,7 @@ proof-
     ultimately show ?thesis using alb by metis
 qed
 
-text{* One immediately useful corollary is the existence of square roots! --- Should help to get rid of all the development of square-root for reals as a special case real ^1 *}
+text{* One immediately useful corollary is the existence of square roots! --- Should help to get rid of all the development of square-root for reals as a special case @{typ "real^1"} *}
 
 lemma square_bound_lemma: "(x::real) < (1 + x) * (1 + x)"
 proof-
@@ -1737,7 +1737,7 @@ lemma adjoint_unique:
   using u
   by (simp add: vector_eq_rdot[symmetric] adjoint_clauses[OF lf])
 
-text{* Matrix notation. NB: an MxN matrix is of type 'a^'n^'m, not 'a^'m^'n *}
+text{* Matrix notation. NB: an MxN matrix is of type @{typ "'a^'n^'m"}, not @{typ "'a^'m^'n"} *}
 
 consts generic_mult :: "'a \<Rightarrow> 'b \<Rightarrow> 'c" (infixr "\<star>" 75)
 
