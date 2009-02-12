@@ -183,15 +183,26 @@ INCOMPATIBILITY, use proper 'instantiation' target.
 * The 'axiomatization' command now only works within a global theory
 context.  INCOMPATIBILITY.
 
-* New find_theorems criterion "solves" matching theorems that 
-  directly solve the current goal. Try "find_theorems solves".
+* New find_theorems criterion "solves" matching theorems that
+directly solve the current goal. Try "find_theorems solves".
 
 * Added an auto solve option, which can be enabled through the
-  ProofGeneral Isabelle settings menu (disabled by default).
+ProofGeneral Isabelle settings menu (disabled by default).
  
-  When enabled, find_theorems solves is called whenever a new lemma
-  is stated. Any theorems that could solve the lemma directly are
-  listed underneath the goal.
+When enabled, find_theorems solves is called whenever a new lemma is
+stated. Any theorems that could solve the lemma directly are listed
+underneath the goal.
+
+* New command find_consts searches for constants based on type and name 
+patterns, e.g.
+
+    find_consts "_ => bool"
+
+By default, matching is against subtypes, but it may be restricted to the
+whole type. Searching by name is possible. Multiple queries are conjunctive
+and queries may be negated by prefixing them with a hyphen:
+
+    find_consts strict: "_ => bool" name: "Int" -"int => int"
 
 
 *** Document preparation ***
