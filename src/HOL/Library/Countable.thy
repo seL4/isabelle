@@ -5,7 +5,12 @@
 header {* Encoding (almost) everything into natural numbers *}
 
 theory Countable
-imports Plain "~~/src/HOL/List" "~~/src/HOL/Hilbert_Choice"
+imports
+  Plain
+  "~~/src/HOL/List"
+  "~~/src/HOL/Hilbert_Choice"
+  "~~/src/HOL/Nat_Int_Bij"
+  "~~/src/HOL/Rational"
 begin
 
 subsection {* The class of countable types *}
@@ -190,6 +195,57 @@ proof
   proof
     show "inj (\<lambda>f. to_nat (map f xs))"
       by (rule injI, simp add: xs expand_fun_eq)
+  qed
+qed
+
+
+subsection {* The Rationals are Countably Infinite *}
+
+definition nat_to_rat_surj :: "nat \<Rightarrow> rat" where
+"nat_to_rat_surj n = (let (a,b) = nat_to_nat2 n
+                      in Fract (nat_to_int_bij a) (nat_to_int_bij b))"
+
+lemma surj_nat_to_rat_surj: "surj nat_to_rat_surj"
+unfolding surj_def
+proof
+  fix r::rat
+  show "\<exists>n. r = nat_to_rat_surj n"
+  proof(cases r)
+    fix i j assume [simp]: "r = Fract i j" and "j \<noteq> 0"
+    have "r = (let m = inv nat_to_int_bij i; n = inv nat_to_int_bij j
+               in nat_to_rat_surj(nat2_to_nat (m,n)))"
+      using nat2_to_nat_inj surj_f_inv_f[OF surj_nat_to_int_bij]
+      by(simp add:Let_def nat_to_rat_surj_def nat_to_nat2_def)
+    thus "\<exists>n. r = nat_to_rat_surj n" by(auto simp:Let_def)
+  qed
+qed
+
+lemma Rats_eq_range_nat_to_rat_surj: "\<rat> = range nat_to_rat_surj"
+by (simp add: Rats_def surj_nat_to_rat_surj surj_range)
+
+context field_char_0
+begin
+
+lemma Rats_eq_range_of_rat_o_nat_to_rat_surj:
+  "\<rat> = range (of_rat o nat_to_rat_surj)"
+using surj_nat_to_rat_surj
+by (auto simp: Rats_def image_def surj_def)
+   (blast intro: arg_cong[where f = of_rat])
+
+lemma surj_of_rat_nat_to_rat_surj:
+  "r\<in>\<rat> \<Longrightarrow> \<exists>n. r = of_rat(nat_to_rat_surj n)"
+by(simp add: Rats_eq_range_of_rat_o_nat_to_rat_surj image_def)
+
+end
+
+instance rat :: countable
+proof
+  show "\<exists>to_nat::rat \<Rightarrow> nat. inj to_nat"
+  proof
+    have "surj nat_to_rat_surj"
+      by (rule surj_nat_to_rat_surj)
+    then show "inj (inv nat_to_rat_surj)"
+      by (rule surj_imp_inj_inv)
   qed
 qed
 
