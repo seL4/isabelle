@@ -64,6 +64,8 @@ sig
   val thm_deps: (Facts.ref * Attrib.src list) list -> Toplevel.transition -> Toplevel.transition
   val find_theorems: (int option * bool) * (bool * string FindTheorems.criterion) list
     -> Toplevel.transition -> Toplevel.transition
+  val find_consts: (bool * FindConsts.criterion) list ->
+                   Toplevel.transition -> Toplevel.transition
   val unused_thms: (string list * string list option) option ->
     Toplevel.transition -> Toplevel.transition
   val print_binds: Toplevel.transition -> Toplevel.transition
@@ -432,6 +434,12 @@ fun unused_thms opt_range = Toplevel.keep (fn state =>
     |> map pretty_thm |> Pretty.chunks |> Pretty.writeln
   end);
 
+(* retrieve constants *)
+
+fun find_consts spec =
+  Toplevel.unknown_theory o Toplevel.keep (fn state =>
+  let val ctxt = (Proof.context_of o Toplevel.enter_proof_body) state
+  in FindConsts.find_consts ctxt spec end);
 
 (* print proof context contents *)
 

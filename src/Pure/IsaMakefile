@@ -38,10 +38,10 @@ $(OUT)/Pure: Concurrent/ROOT.ML Concurrent/future.ML			\
   Isar/attrib.ML Isar/auto_bind.ML Isar/calculation.ML Isar/class.ML	\
   Isar/class_target.ML Isar/code.ML Isar/code_unit.ML			\
   Isar/constdefs.ML Isar/context_rules.ML Isar/element.ML		\
-  Isar/expression.ML Isar/find_theorems.ML Isar/isar.ML			\
-  Isar/isar_document.ML Isar/isar_cmd.ML Isar/isar_syn.ML		\
+  Isar/expression.ML Isar/find_theorems.ML Isar/find_consts.ML          \
+  Isar/isar.ML Isar/isar_document.ML Isar/isar_cmd.ML Isar/isar_syn.ML	\
   Isar/local_defs.ML Isar/local_syntax.ML Isar/local_theory.ML		\
-  Isar/locale.ML Isar/method.ML Isar/net_rules.ML	\
+  Isar/locale.ML Isar/method.ML Isar/net_rules.ML			\
   Isar/object_logic.ML Isar/obtain.ML Isar/outer_keyword.ML		\
   Isar/outer_lex.ML Isar/outer_parse.ML Isar/outer_syntax.ML		\
   Isar/overloading.ML Isar/proof.ML Isar/proof_context.ML		\

@@ -878,6 +878,22 @@ val _ =
 
 end;
 
+local
+
+val criterion =
+  P.reserved "strict" |-- P.!!! (P.$$$ ":" |-- P.xname) >> FindConsts.Strict ||
+  P.reserved "name" |-- P.!!! (P.$$$ ":" |-- P.xname) >> FindConsts.Name ||
+  P.xname >> FindConsts.Loose;
+
+in
+
+val _ =
+  OuterSyntax.improper_command "find_consts" "search constants by type pattern"
+    K.diag (Scan.repeat (((Scan.option P.minus >> is_none) -- criterion))
+            >> (Toplevel.no_timing oo IsarCmd.find_consts));
+
+end;
+
 val _ =
   OuterSyntax.improper_command "print_binds" "print term bindings of proof context" K.diag
     (Scan.succeed (Toplevel.no_timing o IsarCmd.print_binds));

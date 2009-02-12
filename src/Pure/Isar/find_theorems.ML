@@ -103,20 +103,9 @@ fun is_matching_thm (extract_terms, refine_term) ctxt po obj term_src =
 
 (* filter_name *)
 
-fun match_string pat str =
-  let
-    fun match [] _ = true
-      | match (p :: ps) s =
-          size p <= size s andalso
-            (case try (unprefix p) s of
-              SOME s' => match ps s'
-            | NONE => match (p :: ps) (String.substring (s, 1, size s - 1)));
-  in match (space_explode "*" pat) str end;
-
 fun filter_name str_pat (thmref, _) =
   if match_string str_pat (Facts.name_of_ref thmref)
   then SOME (0, 0) else NONE;
-
 
 (* filter intro/elim/dest/solves rules *)
 

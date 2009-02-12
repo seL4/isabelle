@@ -159,6 +159,7 @@ sig
   val replicate_string: int -> string -> string
   val translate_string: (string -> string) -> string -> string
   val multiply: 'a list -> 'a list list -> 'a list list
+  val match_string: string -> string -> bool
 
   (*lists as sets -- see also Pure/General/ord_list.ML*)
   val member: ('b * 'a -> bool) -> 'a list -> 'b -> bool
@@ -554,7 +555,6 @@ fun translate_string f = String.translate (f o String.str);
 fun multiply [] _ = []
   | multiply (x :: xs) yss = map (cons x) yss @ multiply xs yss;
 
-
 (* direct product *)
 
 fun map_product f _ [] = []
@@ -787,7 +787,16 @@ fun replicate_string (0: int) _ = ""
       if k mod 2 = 0 then replicate_string (k div 2) (a ^ a)
       else replicate_string (k div 2) (a ^ a) ^ a;
 
-
+(*crude matching of str against simple glob pat*)
+fun match_string pat str =
+  let
+    fun match [] _ = true
+      | match (p :: ps) s =
+          size p <= size s andalso
+            (case try (unprefix p) s of
+              SOME s' => match ps s'
+            | NONE => match (p :: ps) (String.substring (s, 1, size s - 1)));
+  in match (space_explode "*" pat) str end;
 
 (** lists as sets -- see also Pure/General/ord_list.ML **)
 

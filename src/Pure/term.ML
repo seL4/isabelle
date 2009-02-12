@@ -64,6 +64,7 @@ sig
   val strip_comb: term -> term * term list
   val head_of: term -> term
   val size_of_term: term -> int
+  val size_of_typ: typ -> int
   val map_atyps: (typ -> typ) -> typ -> typ
   val map_aterms: (term -> term) -> term -> term
   val map_type_tvar: (indexname * sort -> typ) -> typ -> typ
@@ -390,6 +391,13 @@ fun size_of_term tm =
       | add_size (Abs (_ ,_, t), n) = add_size (t, n + 1)
       | add_size (_, n) = n + 1;
   in add_size (tm, 0) end;
+
+(*number of tfrees, tvars, and constructors in a type*)
+fun size_of_typ ty =
+  let
+    fun add_size (Type (_, ars), n) = foldl add_size (n + 1) ars
+      | add_size (_, n) = n + 1;
+  in add_size (ty, 0) end;
 
 fun map_atyps f (Type (a, Ts)) = Type (a, map (map_atyps f) Ts)
   | map_atyps f T = f T;

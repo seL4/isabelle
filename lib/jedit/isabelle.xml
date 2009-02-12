@@ -135,6 +135,7 @@
       <KEYWORD4>file</KEYWORD4>
       <OPERATOR>finalconsts</OPERATOR>
       <OPERATOR>finally</OPERATOR>
+      <LABEL>find_consts</LABEL>
       <LABEL>find_theorems</LABEL>
       <KEYWORD2>fix</KEYWORD2>
       <KEYWORD4>fixes</KEYWORD4>
