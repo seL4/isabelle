@@ -137,7 +137,7 @@ proof
     proof
       fix A
       assume "A \<in> \<A>"
-      show "x \<in> A" sorry
+      show "x \<in> A" sorry %noproof
     qed
 (*<*)
 qed
@@ -164,9 +164,7 @@ text {*
   skeleton of nested sub-proofs that is typical for Isar.  The final
   @{command "show"} is like @{command "have"} followed by an
   additional refinement of the enclosing claim, using the rule derived
-  from the proof body.  The @{command "sorry"} command stands for a
-  hole in the proof --- it may be understood as an excuse for not
-  providing a proper proof yet.
+  from the proof body.
 
   \medskip The next example involves @{term "\<Union>\<A>"}, which can be
   characterized as the set of all @{term "x"} such that @{prop "\<exists>A. x
@@ -188,7 +186,7 @@ proof
     proof
       fix A
       assume "x \<in> A" and "A \<in> \<A>"
-      show C sorry
+      show C sorry %noproof
     qed
 (*<*)
 qed
@@ -567,7 +565,7 @@ text {*
   \quad @{command proof}~@{method "-"} \\
   \qquad @{command fix}~@{text thesis} \\
   \qquad @{command assume}~@{text "[intro]: \<And>\<^vec>x. \<^vec>A \<^vec>x \<Longrightarrow> thesis"} \\
-  \qquad @{command show}~@{text thesis}~@{command using}@{text "\<langle>facts\<rangle> \<langle>proof\<rangle>"} \\
+  \qquad @{command show}~@{text thesis}~@{command using}~@{text "\<langle>facts\<rangle> \<langle>proof\<rangle>"} \\
   \quad @{command qed} \\
   \quad @{command fix}~@{text "\<^vec>x \<ASSM> \<guillemotleft>elimination case\<guillemotright> \<^vec>A \<^vec>x"} \\
   \end{tabular}
@@ -609,28 +607,28 @@ proof
   {
     fix x
     have "B x"
-      sorry
+      sorry %noproof
   }
   note `\<And>x. B x`
   txt_raw {* \end{minipage}\quad\begin{minipage}{0.22\textwidth} *}(*<*)next(*>*)
   {
     def x \<equiv> a
     have "B x"
-      sorry
+      sorry %noproof
   }
   note `B a`
   txt_raw {* \end{minipage}\quad\begin{minipage}{0.22\textwidth} *}(*<*)next(*>*)
   {
     assume A
     have B
-      sorry
+      sorry %noproof
   }
   note `A \<Longrightarrow> B`
   txt_raw {* \end{minipage}\quad\begin{minipage}{0.34\textwidth} *}(*<*)next(*>*)
   {
     obtain x
-      where "A x" sorry
-    have B sorry
+      where "A x" sorry %noproof
+    have B sorry %noproof
   }
   note `B`
   txt_raw {* \end{minipage} *}
@@ -695,7 +693,7 @@ theorem
   shows "C x y"
 proof -
   from `A x` and `B y`
-  show "C x y" sorry
+  show "C x y" sorry %noproof
 qed
 
 text_raw {*\end{minipage}\begin{minipage}{0.5\textwidth}*}
@@ -704,7 +702,7 @@ theorem
   obtains x and y
   where "A x" and "B y"
 proof -
-  have "A a" and "B b" sorry
+  have "A a" and "B b" sorry %noproof
   then show thesis ..
 qed
 
@@ -764,7 +762,7 @@ proof
   proof
     assume A
     show B
-      sorry
+      sorry %noproof
   qed
   txt_raw {* \end{minipage}\quad
 \begin{minipage}[t]{0.07\textwidth}
@@ -822,7 +820,7 @@ proof
   proof -
     fix x and y
     assume "A x" and "B y"
-    show "C x y" sorry
+    show "C x y" sorry %noproof
   qed
 
 txt_raw {*\end{minipage}\begin{minipage}{0.5\textwidth}*}
@@ -834,7 +832,7 @@ next
   proof -
     fix x assume "A x"
     fix y assume "B y"
-    show "C x y" sorry
+    show "C x y" sorry %noproof
   qed
 
 txt_raw {*\end{minipage} \\[\medskipamount] \begin{minipage}{0.5\textwidth}*}
