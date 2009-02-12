@@ -23,6 +23,7 @@ imports
   Float
   Formal_Power_Series
   FuncSet
+  Fundamental_Theorem_Algebra
   Infinite_Set
   ListVector
   Mapping

@@ -195,26 +195,6 @@ apply (erule_tac x="n" in allE)
 apply (simp)
 done
 
- text{* An equivalent formulation of monotony -- Not used here, but might be useful *}
-lemma mono_Suc: "mono f = (\<forall>n. (f n :: 'a :: order) \<le> f (Suc n))"
-unfolding mono_def
-proof auto
-  fix A B :: nat
-  assume H: "\<forall>n. f n \<le> f (Suc n)" "A \<le> B"
-  hence "\<exists>k. B = A + k" apply -  apply (thin_tac "\<forall>n. f n \<le> f (Suc n)") 
-    by presburger
-  then obtain k where k: "B = A + k" by blast
-  {fix a k
-    have "f a \<le> f (a + k)"
-    proof (induct k)
-      case 0 thus ?case by simp
-    next
-      case (Suc k)
-      from Suc.hyps H(1)[rule_format, of "a + k"] show ?case by simp
-    qed}
-  with k show "f A \<le> f B" by blast
-qed
-
 text{* for any sequence, there is a mootonic subsequence *}
 lemma seq_monosub: "\<exists>f. subseq f \<and> monoseq (\<lambda> n. (s (f n)))"
 proof-
@@ -1036,35 +1016,12 @@ apply (simp only: order_def)
 apply (drule not_less_Least, simp)
 done
 
-lemma UNIV_nat_infinite:
-  "\<not> finite (UNIV :: nat set)" (is "\<not> finite ?U")
-proof
-  assume "finite ?U"
-  moreover have "Suc (Max ?U) \<in> ?U" ..
-  ultimately have "Suc (Max ?U) \<le> Max ?U" by (rule Max_ge)
-  then show "False" by simp
-qed
-
-lemma UNIV_char_0_infinite:
-  "\<not> finite (UNIV::'a::semiring_char_0 set)"
-proof
-  assume "finite (UNIV::'a set)"
-  with subset_UNIV have "finite (range of_nat::'a set)"
-    by (rule finite_subset)
-  moreover have "inj (of_nat::nat \<Rightarrow> 'a)"
-    by (simp add: inj_on_def)
-  ultimately have "finite (UNIV::nat set)"
-    by (rule finite_imageD)
-  then show "False"
-    by (simp add: UNIV_nat_infinite)
-qed
-
 lemma poly_zero:
   fixes p :: "'a::{idom,ring_char_0} poly"
   shows "poly p = poly 0 \<longleftrightarrow> p = 0"
 apply (cases "p = 0", simp_all)
 apply (drule poly_roots_finite)
-apply (auto simp add: UNIV_char_0_infinite)
+apply (auto simp add: infinite_UNIV_char_0)
 done
 
 lemma poly_eq_iff:

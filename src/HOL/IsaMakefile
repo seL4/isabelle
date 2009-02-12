@@ -270,7 +270,6 @@ $(OUT)/HOL-Main: main.ML $(MAIN_DEPENDENCIES)
 $(OUT)/HOL: ROOT.ML $(MAIN_DEPENDENCIES) \
   Complex_Main.thy \
   Complex.thy \
-  Fundamental_Theorem_Algebra.thy \
   Deriv.thy \
   Fact.thy \
   FrechetDeriv.thy \
@@ -317,6 +316,7 @@ $(LOG)/HOL-Library.gz: $(OUT)/HOL Library/SetsAndFunctions.thy		\
   Library/Executable_Set.thy Library/Infinite_Set.thy			\
   Library/FuncSet.thy Library/Permutations.thy Library/Determinants.thy\
   Library/Finite_Cartesian_Product.thy \
+  Library/Fundamental_Theorem_Algebra.thy \
   Library/Library.thy Library/List_Prefix.thy Library/State_Monad.thy	\
   Library/Multiset.thy Library/Permutation.thy	\
   Library/Primes.thy Library/Pocklington.thy Library/Quotient.thy	\

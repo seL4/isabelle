@@ -1367,6 +1367,9 @@ by(blast intro: less_asym' lift_Suc_mono_less[of f]
 
 end
 
+lemma mono_iff_le_Suc: "mono f = (\<forall>n. f n \<le> f (Suc n))"
+unfolding mono_def
+by (auto intro:lift_Suc_mono_le[of f])
 
 lemma mono_nat_linear_lb:
   "(!!m n::nat. m<n \<Longrightarrow> f m < f n) \<Longrightarrow> f(m)+k \<le> f(m+k)"

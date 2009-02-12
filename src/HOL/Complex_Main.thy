@@ -4,7 +4,7 @@ theory Complex_Main
 imports
   Main
   Real
-  Fundamental_Theorem_Algebra
+  Complex
   Log
   Ln
   Taylor

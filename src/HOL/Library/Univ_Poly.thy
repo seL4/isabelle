@@ -344,26 +344,6 @@ apply (auto simp add: image_iff)
 apply (erule_tac x="x" in allE, clarsimp)
 by (case_tac "n=length p", auto simp add: order_le_less)
 
-lemma UNIV_nat_infinite: "\<not> finite (UNIV :: nat set)"
-  unfolding finite_conv_nat_seg_image
-proof(auto simp add: expand_set_eq image_iff)
-  fix n::nat and f:: "nat \<Rightarrow> nat"
-  let ?N = "{i. i < n}"
-  let ?fN = "f ` ?N"
-  let ?y = "Max ?fN + 1"
-  from nat_seg_image_imp_finite[of "?fN" "f" n] 
-  have thfN: "finite ?fN" by simp
-  {assume "n =0" hence "\<exists>x. \<forall>xa<n. x \<noteq> f xa" by auto}
-  moreover
-  {assume nz: "n \<noteq> 0"
-    hence thne: "?fN \<noteq> {}" by (auto simp add: neq0_conv)
-    have "\<forall>x\<in> ?fN. Max ?fN \<ge> x" using nz Max_ge_iff[OF thfN thne] by auto
-    hence "\<forall>x\<in> ?fN. ?y > x" by auto
-    hence "?y \<notin> ?fN" by auto
-    hence "\<exists>x. \<forall>xa<n. x \<noteq> f xa" by auto }
-  ultimately show "\<exists>x. \<forall>xa<n. x \<noteq> f xa" by blast
-qed
-
 lemma (in ring_char_0) UNIV_ring_char_0_infinte: 
   "\<not> (finite (UNIV:: 'a set))" 
 proof
@@ -374,7 +354,7 @@ proof
     then show "finite (of_nat ` UNIV :: 'a set)" using F by (rule finite_subset)
     show "inj (of_nat :: nat \<Rightarrow> 'a)" by (simp add: inj_on_def)
   qed
-  with UNIV_nat_infinite show False ..
+  with infinite_UNIV_nat show False ..
 qed
 
 lemma (in idom_char_0) poly_roots_finite: "(poly p \<noteq> poly []) = 

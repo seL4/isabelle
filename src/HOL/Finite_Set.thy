@@ -2029,6 +2029,19 @@ proof
   show False by simp (blast dest: Suc_neq_Zero surjD)
 qed
 
+lemma infinite_UNIV_char_0:
+  "\<not> finite (UNIV::'a::semiring_char_0 set)"
+proof
+  assume "finite (UNIV::'a set)"
+  with subset_UNIV have "finite (range of_nat::'a set)"
+    by (rule finite_subset)
+  moreover have "inj (of_nat::nat \<Rightarrow> 'a)"
+    by (simp add: inj_on_def)
+  ultimately have "finite (UNIV::nat set)"
+    by (rule finite_imageD)
+  then show "False"
+    by (simp add: infinite_UNIV_nat)
+qed
 
 subsection{* A fold functional for non-empty sets *}
 
