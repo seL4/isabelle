@@ -22,10 +22,11 @@ USEDIR = $(ISABELLE_TOOL) usedir -v true -i false -d false -C false -D document
 HOL-IsarRef: $(LOG)/HOL-IsarRef.gz
 
 $(LOG)/HOL-IsarRef.gz: Thy/ROOT.ML ../antiquote_setup.ML		\
-  Thy/Framework.thy Thy/Inner_Syntax.thy Thy/Introduction.thy		\
-  Thy/Outer_Syntax.thy Thy/Spec.thy Thy/Proof.thy Thy/Misc.thy		\
-  Thy/Document_Preparation.thy Thy/Generic.thy Thy/HOL_Specific.thy	\
-  Thy/Quick_Reference.thy Thy/Symbols.thy Thy/ML_Tactic.thy
+  Thy/First_Order_Logic.thy Thy/Framework.thy Thy/Inner_Syntax.thy	\
+  Thy/Introduction.thy Thy/Outer_Syntax.thy Thy/Spec.thy Thy/Proof.thy	\
+  Thy/Misc.thy Thy/Document_Preparation.thy Thy/Generic.thy		\
+  Thy/HOL_Specific.thy Thy/Quick_Reference.thy Thy/Symbols.thy		\
+  Thy/ML_Tactic.thy
 	@$(USEDIR) -s IsarRef HOL Thy
 
 
