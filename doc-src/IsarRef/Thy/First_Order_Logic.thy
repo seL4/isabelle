@@ -168,7 +168,7 @@ text {*
 end
 
 
-subsection {* Propositional logic *}
+subsection {* Propositional logic \label{sec:framework-ex-prop} *}
 
 text {*
   We axiomatize basic connectives of propositional logic: implication,
@@ -183,15 +183,15 @@ axiomatization
 
 axiomatization
   disj :: "o \<Rightarrow> o \<Rightarrow> o"  (infixr "\<or>" 30) where
-  disjE [elim]: "A \<or> B \<Longrightarrow> (A \<Longrightarrow> C) \<Longrightarrow> (B \<Longrightarrow> C) \<Longrightarrow> C" and
   disjI\<^isub>1 [intro]: "A \<Longrightarrow> A \<or> B" and
-  disjI\<^isub>2 [intro]: "B \<Longrightarrow> A \<or> B"
+  disjI\<^isub>2 [intro]: "B \<Longrightarrow> A \<or> B" and
+  disjE [elim]: "A \<or> B \<Longrightarrow> (A \<Longrightarrow> C) \<Longrightarrow> (B \<Longrightarrow> C) \<Longrightarrow> C"
 
 axiomatization
   conj :: "o \<Rightarrow> o \<Rightarrow> o"  (infixr "\<and>" 35) where
   conjI [intro]: "A \<Longrightarrow> B \<Longrightarrow> A \<and> B" and
-  conjD\<^isub>1 [dest]: "A \<and> B \<Longrightarrow> A" and
-  conjD\<^isub>2 [dest]: "A \<and> B \<Longrightarrow> B"
+  conjD\<^isub>1: "A \<and> B \<Longrightarrow> A" and
+  conjD\<^isub>2: "A \<and> B \<Longrightarrow> B"
 
 text {*
   \noindent The conjunctive destructions have the disadvantage that
@@ -205,8 +205,8 @@ theorem conjE [elim]:
   assumes "A \<and> B"
   obtains A and B
 proof
-  from `A \<and> B` show A ..
-  from `A \<and> B` show B ..
+  from `A \<and> B` show A by (rule conjD\<^isub>1)
+  from `A \<and> B` show B by (rule conjD\<^isub>2)
 qed
 
 text {*
@@ -326,7 +326,7 @@ text {*
 end
 
 
-subsection {* Quantifiers *}
+subsection {* Quantifiers \label{sec:framework-ex-quant} *}
 
 text {*
   Representing quantifiers is easy, thanks to the higher-order nature
@@ -362,5 +362,157 @@ proof    -- {* @{text "\<forall>"} introduction *}
   fix y have "R x y" using `\<forall>y. R x y` ..    -- {* @{text "\<forall>"} destruction *}
   then show "\<exists>x. R x y" ..    -- {* @{text "\<exists>"} introduction *}
 qed
+
+
+subsection {* Canonical reasoning patterns *}
+
+text {*
+  The main rules of first-order predicate logic from
+  \secref{sec:framework-ex-prop} and \secref{sec:framework-ex-quant}
+  can now be summarized as follows, using the native Isar statement
+  format of \secref{sec:framework-stmt}.
+
+  \medskip
+  \begin{tabular}{l}
+  @{text "impI: \<ASSUMES> A \<Longrightarrow> B \<SHOWS> A \<longrightarrow> B"} \\
+  @{text "impD: \<ASSUMES> A \<longrightarrow> B \<AND> A \<SHOWS> B"} \\[1ex]
+
+  @{text "disjI\<^isub>1: \<ASSUMES> A \<SHOWS> A \<or> B"} \\
+  @{text "disjI\<^isub>2: \<ASSUMES> B \<SHOWS> A \<or> B"} \\
+  @{text "disjE: \<ASSUMES> A \<or> B \<OBTAINS> A \<BBAR> B"} \\[1ex]
+
+  @{text "conjI: \<ASSUMES> A \<AND> B \<SHOWS> A \<and> B"} \\
+  @{text "conjE: \<ASSUMES> A \<and> B \<OBTAINS> A \<AND> B"} \\[1ex]
+
+  @{text "falseE: \<ASSUMES> \<bottom> \<SHOWS> A"} \\
+  @{text "trueI: \<SHOWS> \<top>"} \\[1ex]
+
+  @{text "notI: \<ASSUMES> A \<Longrightarrow> \<bottom> \<SHOWS> \<not> A"} \\
+  @{text "notE: \<ASSUMES> \<not> A \<AND> A \<SHOWS> B"} \\[1ex]
+
+  @{text "allI: \<ASSUMES> \<And>x. B x \<SHOWS> \<forall>x. B x"} \\
+  @{text "allE: \<ASSUMES> \<forall>x. B x \<SHOWS> B a"} \\[1ex]
+
+  @{text "exI: \<ASSUMES> B a \<SHOWS> \<exists>x. B x"} \\
+  @{text "exE: \<ASSUMES> \<exists>x. B x \<OBTAINS> a \<WHERE> B a"}
+  \end{tabular}
+  \medskip
+
+  \noindent This essentially provides a declarative reading of Pure
+  rules as Isar reasoning patterns: the rule statements tells how a
+  canonical proof outline shall look like.  Since the above rules have
+  already been declared as @{attribute intro}, @{attribute elim},
+  @{attribute dest} --- each according to its particular shape --- we
+  can immediately write Isar proof texts as follows.
+*}
+
+(*<*)
+theorem "\<And>A. PROP A \<Longrightarrow> PROP A"
+proof -
+(*>*)
+
+  txt_raw {*\begin{minipage}[t]{0.4\textwidth}*}(*<*)next(*>*)
+
+  have "A \<longrightarrow> B"
+  proof
+    assume A
+    show B sorry %noproof
+  qed
+
+  txt_raw {*\end{minipage}\qquad\begin{minipage}[t]{0.4\textwidth}*}(*<*)next(*>*)
+
+  have "A \<longrightarrow> B" and A sorry %noproof
+  then have B ..
+
+  txt_raw {*\end{minipage}\\[3ex]\begin{minipage}[t]{0.4\textwidth}*}(*<*)next(*>*)
+
+  have A sorry %noproof
+  then have "A \<or> B" ..
+
+  have B sorry %noproof
+  then have "A \<or> B" ..
+
+  txt_raw {*\end{minipage}\qquad\begin{minipage}[t]{0.4\textwidth}*}(*<*)next(*>*)
+
+  have "A \<or> B" sorry %noproof
+  then have C
+  proof
+    assume A
+    then show C sorry %noproof
+  next
+    assume B
+    then show C sorry %noproof
+  qed
+
+  txt_raw {*\end{minipage}\\[3ex]\begin{minipage}[t]{0.4\textwidth}*}(*<*)next(*>*)
+
+  have A and B sorry %noproof
+  then have "A \<and> B" ..
+
+  txt_raw {*\end{minipage}\qquad\begin{minipage}[t]{0.4\textwidth}*}(*<*)next(*>*)
+
+  have "A \<and> B" sorry %noproof
+  then obtain A and B ..
+
+  txt_raw {*\end{minipage}\\[3ex]\begin{minipage}[t]{0.4\textwidth}*}(*<*)next(*>*)
+
+  have "\<bottom>" sorry %noproof
+  then have A ..
+
+  txt_raw {*\end{minipage}\qquad\begin{minipage}[t]{0.4\textwidth}*}(*<*)next(*>*)
+
+  have "\<top>" ..
+
+  txt_raw {*\end{minipage}\\[3ex]\begin{minipage}[t]{0.4\textwidth}*}(*<*)next(*>*)
+
+  have "\<not> A"
+  proof
+    assume A
+    then show "\<bottom>" sorry %noproof
+  qed
+
+  txt_raw {*\end{minipage}\qquad\begin{minipage}[t]{0.4\textwidth}*}(*<*)next(*>*)
+
+  have "\<not> A" and A sorry %noproof
+  then have B ..
+
+  txt_raw {*\end{minipage}\\[3ex]\begin{minipage}[t]{0.4\textwidth}*}(*<*)next(*>*)
+
+  have "\<forall>x. B x"
+  proof
+    fix x
+    show "B x" sorry %noproof
+  qed
+
+  txt_raw {*\end{minipage}\qquad\begin{minipage}[t]{0.4\textwidth}*}(*<*)next(*>*)
+
+  have "\<forall>x. B x" sorry %noproof
+  then have "B a" ..
+
+  txt_raw {*\end{minipage}\\[3ex]\begin{minipage}[t]{0.4\textwidth}*}(*<*)next(*>*)
+
+  have "\<exists>x. B x"
+  proof
+    show "B a" sorry %noproof
+  qed
+
+  txt_raw {*\end{minipage}\qquad\begin{minipage}[t]{0.4\textwidth}*}(*<*)next(*>*)
+
+  have "\<exists>x. B x" sorry %noproof
+  then obtain a where "B a" ..
+
+  txt_raw {*\end{minipage}*}
+
+(*<*)
+qed
+(*>*)
+
+text {*
+  \bigskip\noindent Of course, these proofs are merely examples.  As
+  sketched in \secref{sec:framework-subproof}, there is a fair amount
+  of flexibility in expressing Pure deductions in Isar.  Here the user
+  is asked to express himself adequately, aiming at proof texts of
+  literary quality.
+*}
 
 end %visible
