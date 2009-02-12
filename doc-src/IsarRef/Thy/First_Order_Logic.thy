@@ -6,11 +6,11 @@ imports Pure
 begin
 
 text {*
-  In order to commence a new object-logic within Isabelle/Pure we
-  introduce abstract syntactic categories @{text "i"} for individuals
-  and @{text "o"} for object-propositions.  The latter is embedded
-  into the language of Pure propositions by means of a separate
-  judgment.
+  \noindent In order to commence a new object-logic within
+  Isabelle/Pure we introduce abstract syntactic categories @{text "i"}
+  for individuals and @{text "o"} for object-propositions.  The latter
+  is embedded into the language of Pure propositions by means of a
+  separate judgment.
 *}
 
 typedecl i
@@ -124,9 +124,9 @@ proof -
 qed
 
 text {*
-  Reasoning from basic axioms is often tedious.  Our proofs work by
-  producing various instances of the given rules (potentially the
-  symmetric form) using the pattern ``@{command have}~@{text
+  \noindent Reasoning from basic axioms is often tedious.  Our proofs
+  work by producing various instances of the given rules (potentially
+  the symmetric form) using the pattern ``@{command have}~@{text
   eq}~@{command "by"}~@{text "(rule r)"}'' and composing the chain of
   results via @{command also}/@{command finally}.  These steps may
   involve any of the transitivity rules declared in
@@ -160,7 +160,7 @@ text {*
   definitions in order to normalize each equational problem.  A more
   realistic object-logic would include proper setup for the Simplifier
   (\secref{sec:simplifier}), the main automated tool for equational
-  reasoning in Isabelle.  Then ``@{command unfolding}~@{text
+  reasoning in Isabelle.  Then ``@{command unfolding}~@{thm
   left_inv}~@{command ".."}'' would become ``@{command "by"}~@{text
   "(simp add: left_inv)"}'' etc.
 *}
@@ -173,7 +173,7 @@ subsection {* Propositional logic *}
 text {*
   We axiomatize basic connectives of propositional logic: implication,
   disjunction, and conjunction.  The associated rules are modeled
-  after Gentzen's natural deduction \cite{Gentzen:1935}.
+  after Gentzen's system of Natural Deduction \cite{Gentzen:1935}.
 *}
 
 axiomatization
@@ -226,9 +226,9 @@ qed
 (*>*)
 
 text {*
-  Note that the analogous elimination for disjunction ``@{text
-  "\<ASSUMES> A \<or> B \<OBTAINS> A \<BBAR> B"}'' coincides with the
-  original axiomatization of @{text "disjE"}.
+  \noindent Note that the analogous elimination rule for disjunction
+  ``@{text "\<ASSUMES> A \<or> B \<OBTAINS> A \<BBAR> B"}'' coincides with
+  the original axiomatization of @{thm disjE}.
 
   \medskip We continue propositional logic by introducing absurdity
   with its characteristic elimination.  Plain truth may then be
@@ -247,7 +247,8 @@ theorem trueI [intro]: \<top>
   unfolding true_def ..
 
 text {*
-  \medskip Now negation represents an implication towards absurdity:
+  \medskip\noindent Now negation represents an implication towards
+  absurdity:
 *}
 
 definition
@@ -314,9 +315,9 @@ text {*
   propositional proofs in general.  All three rules characterize
   classical logic independently, but the original rule is already the
   most convenient to use, because it leaves the conclusion unchanged.
-  Note that @{text "(\<not> C \<Longrightarrow> C) \<Longrightarrow> C"} fits again into our format for
+  Note that @{prop "(\<not> C \<Longrightarrow> C) \<Longrightarrow> C"} fits again into our format for
   eliminations, despite the additional twist that the context refers
-  to the main conclusion.  So we may write @{text "classical"} as the
+  to the main conclusion.  So we may write @{thm classical} as the
   Isar statement ``@{text "\<OBTAINS> \<not> thesis"}''.  This also
   explains nicely how classical reasoning really works: whatever the
   main @{text thesis} might be, we may always assume its negation!
@@ -332,8 +333,8 @@ text {*
   of the underlying framework.  According to the well-known technique
   introduced by Church \cite{church40}, quantifiers are operators on
   predicates, which are syntactically represented as @{text "\<lambda>"}-terms
-  of type @{text "i \<Rightarrow> o"}.  Specific binder notation relates @{text
-  "All (\<lambda>x. B x)"} to @{text "\<forall>x. B x"} etc.
+  of type @{typ "i \<Rightarrow> o"}.  Binder notation turns @{text "All (\<lambda>x. B
+  x)"} into @{text "\<forall>x. B x"} etc.
 *}
 
 axiomatization

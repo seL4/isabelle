@@ -886,10 +886,10 @@ text {*
   The present Isar infrastructure is sufficiently flexible to support
   calculational reasoning (chains of transitivity steps) as derived
   concept.  The generic proof elements introduced below depend on
-  rules declared as @{text "[trans]"} in the context.  It is left to
+  rules declared as @{attribute trans} in the context.  It is left to
   the object-logic to provide a suitable rule collection for mixed
-  @{text "="}, @{text "<"}, @{text "\<le>"}, @{text "\<subset>"}, @{text "\<subseteq>"} etc.
-  Due to the flexibility of rule composition
+  relations of @{text "="}, @{text "<"}, @{text "\<le>"}, @{text "\<subset>"},
+  @{text "\<subseteq>"} etc.  Due to the flexibility of rule composition
   (\secref{sec:framework-resolution}), substitution of equals by
   equals is covered as well, even substitution of inequalities
   involving monotonicity conditions; see also \cite[\S6]{Wenzel-PhD}
@@ -902,10 +902,10 @@ text {*
   selected from the context.  The course of reasoning is organized by
   maintaining a secondary fact called ``@{fact calculation}'', apart
   from the primary ``@{fact this}'' already provided by the Isar
-  primitives.  In the definitions below, @{attribute OF} is
+  primitives.  In the definitions below, @{attribute OF} refers to
   @{inference resolution} (\secref{sec:framework-resolution}) with
-  multiple rule arguments, and @{text "trans"} refers to a suitable
-  rule from the context:
+  multiple rule arguments, and @{text "trans"} represents to a
+  suitable rule from the context:
 
   \begin{matharray}{rcl}
     @{command "also"}@{text "\<^sub>0"} & \equiv & @{command "note"}~@{text "calculation = this"} \\
