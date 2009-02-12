@@ -1,0 +1,771 @@
+%
+\begin{isabellebody}%
+\def\isabellecontext{First{\isacharunderscore}Order{\isacharunderscore}Logic}%
+%
+\isamarkupheader{Example: First-Order Logic%
+}
+\isamarkuptrue%
+%
+\isadelimvisible
+%
+\endisadelimvisible
+%
+\isatagvisible
+\isacommand{theory}\isamarkupfalse%
+\ First{\isacharunderscore}Order{\isacharunderscore}Logic\isanewline
+\isakeyword{imports}\ Pure\isanewline
+\isakeyword{begin}%
+\endisatagvisible
+{\isafoldvisible}%
+%
+\isadelimvisible
+%
+\endisadelimvisible
+%
+\begin{isamarkuptext}%
+In order to commence a new object-logic within Isabelle/Pure we
+  introduce abstract syntactic categories \isa{{\isachardoublequote}i{\isachardoublequote}} for individuals
+  and \isa{{\isachardoublequote}o{\isachardoublequote}} for object-propositions.  The latter is embedded
+  into the language of Pure propositions by means of a separate
+  judgment.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{typedecl}\isamarkupfalse%
+\ i\isanewline
+\isacommand{typedecl}\isamarkupfalse%
+\ o\isanewline
+\isanewline
+\isacommand{judgment}\isamarkupfalse%
+\isanewline
+\ \ Trueprop\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}o\ {\isasymRightarrow}\ prop{\isachardoublequoteclose}\ \ \ \ {\isacharparenleft}{\isachardoublequoteopen}{\isacharunderscore}{\isachardoublequoteclose}\ {\isadigit{5}}{\isacharparenright}%
+\begin{isamarkuptext}%
+\noindent Note that the object-logic judgement is implicit in the
+  syntax: writing \isa{A} produces \isa{{\isachardoublequote}Trueprop\ A{\isachardoublequote}} internally.
+  From the Pure perspective this means ``\isa{A} is derivable in the
+  object-logic''.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsubsection{Equational reasoning \label{sec:framework-ex-equal}%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+Equality is axiomatized as a binary predicate on individuals, with
+  reflexivity as introduction, and substitution as elimination
+  principle.  Note that the latter is particularly convenient in a
+  framework like Isabelle, because syntactic congruences are
+  implicitly produced by unification of \isa{{\isachardoublequote}B\ x{\isachardoublequote}} against
+  expressions containing occurrences of \isa{x}.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{axiomatization}\isamarkupfalse%
+\isanewline
+\ \ equal\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}i\ {\isasymRightarrow}\ i\ {\isasymRightarrow}\ o{\isachardoublequoteclose}\ \ {\isacharparenleft}\isakeyword{infix}\ {\isachardoublequoteopen}{\isacharequal}{\isachardoublequoteclose}\ {\isadigit{5}}{\isadigit{0}}{\isacharparenright}\isanewline
+\isakeyword{where}\isanewline
+\ \ refl\ {\isacharbrackleft}intro{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}x\ {\isacharequal}\ x{\isachardoublequoteclose}\ \isakeyword{and}\isanewline
+\ \ subst\ {\isacharbrackleft}elim{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}x\ {\isacharequal}\ y\ {\isasymLongrightarrow}\ B\ x\ {\isasymLongrightarrow}\ B\ y{\isachardoublequoteclose}%
+\begin{isamarkuptext}%
+\noindent Substitution is very powerful, but also hard to control in
+  full generality.  We derive some common symmetry~/ transitivity
+  schemes of as particular consequences.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{theorem}\isamarkupfalse%
+\ sym\ {\isacharbrackleft}sym{\isacharbrackright}{\isacharcolon}\isanewline
+\ \ \isakeyword{assumes}\ {\isachardoublequoteopen}x\ {\isacharequal}\ y{\isachardoublequoteclose}\isanewline
+\ \ \isakeyword{shows}\ {\isachardoublequoteopen}y\ {\isacharequal}\ x{\isachardoublequoteclose}\isanewline
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isatagproof
+\isacommand{proof}\isamarkupfalse%
+\ {\isacharminus}\isanewline
+\ \ \isacommand{have}\isamarkupfalse%
+\ {\isachardoublequoteopen}x\ {\isacharequal}\ x{\isachardoublequoteclose}\ \isacommand{{\isachardot}{\isachardot}}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{with}\isamarkupfalse%
+\ {\isacharbackquoteopen}x\ {\isacharequal}\ y{\isacharbackquoteclose}\ \isacommand{show}\isamarkupfalse%
+\ {\isachardoublequoteopen}y\ {\isacharequal}\ x{\isachardoublequoteclose}\ \isacommand{{\isachardot}{\isachardot}}\isamarkupfalse%
+\isanewline
+\isacommand{qed}\isamarkupfalse%
+%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+\isanewline
+%
+\endisadelimproof
+\isanewline
+\isacommand{theorem}\isamarkupfalse%
+\ forw{\isacharunderscore}subst\ {\isacharbrackleft}trans{\isacharbrackright}{\isacharcolon}\isanewline
+\ \ \isakeyword{assumes}\ {\isachardoublequoteopen}y\ {\isacharequal}\ x{\isachardoublequoteclose}\ \isakeyword{and}\ {\isachardoublequoteopen}B\ x{\isachardoublequoteclose}\isanewline
+\ \ \isakeyword{shows}\ {\isachardoublequoteopen}B\ y{\isachardoublequoteclose}\isanewline
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isatagproof
+\isacommand{proof}\isamarkupfalse%
+\ {\isacharminus}\isanewline
+\ \ \isacommand{from}\isamarkupfalse%
+\ {\isacharbackquoteopen}y\ {\isacharequal}\ x{\isacharbackquoteclose}\ \isacommand{have}\isamarkupfalse%
+\ {\isachardoublequoteopen}x\ {\isacharequal}\ y{\isachardoublequoteclose}\ \isacommand{{\isachardot}{\isachardot}}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{from}\isamarkupfalse%
+\ this\ \isakeyword{and}\ {\isacharbackquoteopen}B\ x{\isacharbackquoteclose}\ \isacommand{show}\isamarkupfalse%
+\ {\isachardoublequoteopen}B\ y{\isachardoublequoteclose}\ \isacommand{{\isachardot}{\isachardot}}\isamarkupfalse%
+\isanewline
+\isacommand{qed}\isamarkupfalse%
+%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+\isanewline
+%
+\endisadelimproof
+\isanewline
+\isacommand{theorem}\isamarkupfalse%
+\ back{\isacharunderscore}subst\ {\isacharbrackleft}trans{\isacharbrackright}{\isacharcolon}\isanewline
+\ \ \isakeyword{assumes}\ {\isachardoublequoteopen}B\ x{\isachardoublequoteclose}\ \isakeyword{and}\ {\isachardoublequoteopen}x\ {\isacharequal}\ y{\isachardoublequoteclose}\isanewline
+\ \ \isakeyword{shows}\ {\isachardoublequoteopen}B\ y{\isachardoublequoteclose}\isanewline
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isatagproof
+\isacommand{proof}\isamarkupfalse%
+\ {\isacharminus}\isanewline
+\ \ \isacommand{from}\isamarkupfalse%
+\ {\isacharbackquoteopen}x\ {\isacharequal}\ y{\isacharbackquoteclose}\ \isakeyword{and}\ {\isacharbackquoteopen}B\ x{\isacharbackquoteclose}\isanewline
+\ \ \isacommand{show}\isamarkupfalse%
+\ {\isachardoublequoteopen}B\ y{\isachardoublequoteclose}\ \isacommand{{\isachardot}{\isachardot}}\isamarkupfalse%
+\isanewline
+\isacommand{qed}\isamarkupfalse%
+%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+\isanewline
+%
+\endisadelimproof
+\isanewline
+\isacommand{theorem}\isamarkupfalse%
+\ trans\ {\isacharbrackleft}trans{\isacharbrackright}{\isacharcolon}\isanewline
+\ \ \isakeyword{assumes}\ {\isachardoublequoteopen}x\ {\isacharequal}\ y{\isachardoublequoteclose}\ \isakeyword{and}\ {\isachardoublequoteopen}y\ {\isacharequal}\ z{\isachardoublequoteclose}\isanewline
+\ \ \isakeyword{shows}\ {\isachardoublequoteopen}x\ {\isacharequal}\ z{\isachardoublequoteclose}\isanewline
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isatagproof
+\isacommand{proof}\isamarkupfalse%
+\ {\isacharminus}\isanewline
+\ \ \isacommand{from}\isamarkupfalse%
+\ {\isacharbackquoteopen}y\ {\isacharequal}\ z{\isacharbackquoteclose}\ \isakeyword{and}\ {\isacharbackquoteopen}x\ {\isacharequal}\ y{\isacharbackquoteclose}\isanewline
+\ \ \isacommand{show}\isamarkupfalse%
+\ {\isachardoublequoteopen}x\ {\isacharequal}\ z{\isachardoublequoteclose}\ \isacommand{{\isachardot}{\isachardot}}\isamarkupfalse%
+\isanewline
+\isacommand{qed}\isamarkupfalse%
+%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isamarkupsubsection{Basic group theory%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+As an example for equational reasoning we consider some bits of
+  group theory.  The subsequent locale definition postulates group
+  operations and axioms; we also derive some consequences of this
+  specification.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{locale}\isamarkupfalse%
+\ group\ {\isacharequal}\isanewline
+\ \ \isakeyword{fixes}\ prod\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}i\ {\isasymRightarrow}\ i\ {\isasymRightarrow}\ i{\isachardoublequoteclose}\ \ {\isacharparenleft}\isakeyword{infix}\ {\isachardoublequoteopen}{\isasymcirc}{\isachardoublequoteclose}\ {\isadigit{7}}{\isadigit{0}}{\isacharparenright}\isanewline
+\ \ \ \ \isakeyword{and}\ inv\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}i\ {\isasymRightarrow}\ i{\isachardoublequoteclose}\ \ {\isacharparenleft}{\isachardoublequoteopen}{\isacharparenleft}{\isacharunderscore}{\isasyminverse}{\isacharparenright}{\isachardoublequoteclose}\ {\isacharbrackleft}{\isadigit{1}}{\isadigit{0}}{\isadigit{0}}{\isadigit{0}}{\isacharbrackright}\ {\isadigit{9}}{\isadigit{9}}{\isadigit{9}}{\isacharparenright}\isanewline
+\ \ \ \ \isakeyword{and}\ unit\ {\isacharcolon}{\isacharcolon}\ i\ \ {\isacharparenleft}{\isachardoublequoteopen}{\isadigit{1}}{\isachardoublequoteclose}{\isacharparenright}\isanewline
+\ \ \isakeyword{assumes}\ assoc{\isacharcolon}\ {\isachardoublequoteopen}{\isacharparenleft}x\ {\isasymcirc}\ y{\isacharparenright}\ {\isasymcirc}\ z\ {\isacharequal}\ x\ {\isasymcirc}\ {\isacharparenleft}y\ {\isasymcirc}\ z{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\ \ \ \ \isakeyword{and}\ left{\isacharunderscore}unit{\isacharcolon}\ \ {\isachardoublequoteopen}{\isadigit{1}}\ {\isasymcirc}\ x\ {\isacharequal}\ x{\isachardoublequoteclose}\isanewline
+\ \ \ \ \isakeyword{and}\ left{\isacharunderscore}inv{\isacharcolon}\ {\isachardoublequoteopen}x{\isasyminverse}\ {\isasymcirc}\ x\ {\isacharequal}\ {\isadigit{1}}{\isachardoublequoteclose}\isanewline
+\isakeyword{begin}\isanewline
+\isanewline
+\isacommand{theorem}\isamarkupfalse%
+\ right{\isacharunderscore}inv{\isacharcolon}\ {\isachardoublequoteopen}x\ {\isasymcirc}\ x{\isasyminverse}\ {\isacharequal}\ {\isadigit{1}}{\isachardoublequoteclose}\isanewline
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isatagproof
+\isacommand{proof}\isamarkupfalse%
+\ {\isacharminus}\isanewline
+\ \ \isacommand{have}\isamarkupfalse%
+\ {\isachardoublequoteopen}x\ {\isasymcirc}\ x{\isasyminverse}\ {\isacharequal}\ {\isadigit{1}}\ {\isasymcirc}\ {\isacharparenleft}x\ {\isasymcirc}\ x{\isasyminverse}{\isacharparenright}{\isachardoublequoteclose}\ \isacommand{by}\isamarkupfalse%
+\ {\isacharparenleft}rule\ left{\isacharunderscore}unit\ {\isacharbrackleft}symmetric{\isacharbrackright}{\isacharparenright}\isanewline
+\ \ \isacommand{also}\isamarkupfalse%
+\ \isacommand{have}\isamarkupfalse%
+\ {\isachardoublequoteopen}{\isasymdots}\ {\isacharequal}\ {\isacharparenleft}{\isadigit{1}}\ {\isasymcirc}\ x{\isacharparenright}\ {\isasymcirc}\ x{\isasyminverse}{\isachardoublequoteclose}\ \isacommand{by}\isamarkupfalse%
+\ {\isacharparenleft}rule\ assoc\ {\isacharbrackleft}symmetric{\isacharbrackright}{\isacharparenright}\isanewline
+\ \ \isacommand{also}\isamarkupfalse%
+\ \isacommand{have}\isamarkupfalse%
+\ {\isachardoublequoteopen}{\isadigit{1}}\ {\isacharequal}\ {\isacharparenleft}x{\isasyminverse}{\isacharparenright}{\isasyminverse}\ {\isasymcirc}\ x{\isasyminverse}{\isachardoublequoteclose}\ \isacommand{by}\isamarkupfalse%
+\ {\isacharparenleft}rule\ left{\isacharunderscore}inv\ {\isacharbrackleft}symmetric{\isacharbrackright}{\isacharparenright}\isanewline
+\ \ \isacommand{also}\isamarkupfalse%
+\ \isacommand{have}\isamarkupfalse%
+\ {\isachardoublequoteopen}{\isasymdots}\ {\isasymcirc}\ x\ {\isacharequal}\ {\isacharparenleft}x{\isasyminverse}{\isacharparenright}{\isasyminverse}\ {\isasymcirc}\ {\isacharparenleft}x{\isasyminverse}\ {\isasymcirc}\ x{\isacharparenright}{\isachardoublequoteclose}\ \isacommand{by}\isamarkupfalse%
+\ {\isacharparenleft}rule\ assoc{\isacharparenright}\isanewline
+\ \ \isacommand{also}\isamarkupfalse%
+\ \isacommand{have}\isamarkupfalse%
+\ {\isachardoublequoteopen}x{\isasyminverse}\ {\isasymcirc}\ x\ {\isacharequal}\ {\isadigit{1}}{\isachardoublequoteclose}\ \isacommand{by}\isamarkupfalse%
+\ {\isacharparenleft}rule\ left{\isacharunderscore}inv{\isacharparenright}\isanewline
+\ \ \isacommand{also}\isamarkupfalse%
+\ \isacommand{have}\isamarkupfalse%
+\ {\isachardoublequoteopen}{\isacharparenleft}{\isacharparenleft}x{\isasyminverse}{\isacharparenright}{\isasyminverse}\ {\isasymcirc}\ {\isasymdots}{\isacharparenright}\ {\isasymcirc}\ x{\isasyminverse}\ {\isacharequal}\ {\isacharparenleft}x{\isasyminverse}{\isacharparenright}{\isasyminverse}\ {\isasymcirc}\ {\isacharparenleft}{\isadigit{1}}\ {\isasymcirc}\ x{\isasyminverse}{\isacharparenright}{\isachardoublequoteclose}\ \isacommand{by}\isamarkupfalse%
+\ {\isacharparenleft}rule\ assoc{\isacharparenright}\isanewline
+\ \ \isacommand{also}\isamarkupfalse%
+\ \isacommand{have}\isamarkupfalse%
+\ {\isachardoublequoteopen}{\isadigit{1}}\ {\isasymcirc}\ x{\isasyminverse}\ {\isacharequal}\ x{\isasyminverse}{\isachardoublequoteclose}\ \isacommand{by}\isamarkupfalse%
+\ {\isacharparenleft}rule\ left{\isacharunderscore}unit{\isacharparenright}\isanewline
+\ \ \isacommand{also}\isamarkupfalse%
+\ \isacommand{have}\isamarkupfalse%
+\ {\isachardoublequoteopen}{\isacharparenleft}x{\isasyminverse}{\isacharparenright}{\isasyminverse}\ {\isasymcirc}\ {\isasymdots}\ {\isacharequal}\ {\isadigit{1}}{\isachardoublequoteclose}\ \isacommand{by}\isamarkupfalse%
+\ {\isacharparenleft}rule\ left{\isacharunderscore}inv{\isacharparenright}\isanewline
+\ \ \isacommand{finally}\isamarkupfalse%
+\ \isacommand{show}\isamarkupfalse%
+\ {\isachardoublequoteopen}x\ {\isasymcirc}\ x{\isasyminverse}\ {\isacharequal}\ {\isadigit{1}}{\isachardoublequoteclose}\ \isacommand{{\isachardot}}\isamarkupfalse%
+\isanewline
+\isacommand{qed}\isamarkupfalse%
+%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+\isanewline
+%
+\endisadelimproof
+\isanewline
+\isacommand{theorem}\isamarkupfalse%
+\ right{\isacharunderscore}unit{\isacharcolon}\ {\isachardoublequoteopen}x\ {\isasymcirc}\ {\isadigit{1}}\ {\isacharequal}\ x{\isachardoublequoteclose}\isanewline
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isatagproof
+\isacommand{proof}\isamarkupfalse%
+\ {\isacharminus}\isanewline
+\ \ \isacommand{have}\isamarkupfalse%
+\ {\isachardoublequoteopen}{\isadigit{1}}\ {\isacharequal}\ x{\isasyminverse}\ {\isasymcirc}\ x{\isachardoublequoteclose}\ \isacommand{by}\isamarkupfalse%
+\ {\isacharparenleft}rule\ left{\isacharunderscore}inv\ {\isacharbrackleft}symmetric{\isacharbrackright}{\isacharparenright}\isanewline
+\ \ \isacommand{also}\isamarkupfalse%
+\ \isacommand{have}\isamarkupfalse%
+\ {\isachardoublequoteopen}x\ {\isasymcirc}\ {\isasymdots}\ {\isacharequal}\ {\isacharparenleft}x\ {\isasymcirc}\ x{\isasyminverse}{\isacharparenright}\ {\isasymcirc}\ x{\isachardoublequoteclose}\ \isacommand{by}\isamarkupfalse%
+\ {\isacharparenleft}rule\ assoc\ {\isacharbrackleft}symmetric{\isacharbrackright}{\isacharparenright}\isanewline
+\ \ \isacommand{also}\isamarkupfalse%
+\ \isacommand{have}\isamarkupfalse%
+\ {\isachardoublequoteopen}x\ {\isasymcirc}\ x{\isasyminverse}\ {\isacharequal}\ {\isadigit{1}}{\isachardoublequoteclose}\ \isacommand{by}\isamarkupfalse%
+\ {\isacharparenleft}rule\ right{\isacharunderscore}inv{\isacharparenright}\isanewline
+\ \ \isacommand{also}\isamarkupfalse%
+\ \isacommand{have}\isamarkupfalse%
+\ {\isachardoublequoteopen}{\isasymdots}\ {\isasymcirc}\ x\ {\isacharequal}\ x{\isachardoublequoteclose}\ \isacommand{by}\isamarkupfalse%
+\ {\isacharparenleft}rule\ left{\isacharunderscore}unit{\isacharparenright}\isanewline
+\ \ \isacommand{finally}\isamarkupfalse%
+\ \isacommand{show}\isamarkupfalse%
+\ {\isachardoublequoteopen}x\ {\isasymcirc}\ {\isadigit{1}}\ {\isacharequal}\ x{\isachardoublequoteclose}\ \isacommand{{\isachardot}}\isamarkupfalse%
+\isanewline
+\isacommand{qed}\isamarkupfalse%
+%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\begin{isamarkuptext}%
+Reasoning from basic axioms is often tedious.  Our proofs work by
+  producing various instances of the given rules (potentially the
+  symmetric form) using the pattern ``\hyperlink{command.have}{\mbox{\isa{\isacommand{have}}}}~\isa{eq}~\hyperlink{command.by}{\mbox{\isa{\isacommand{by}}}}~\isa{{\isachardoublequote}{\isacharparenleft}rule\ r{\isacharparenright}{\isachardoublequote}}'' and composing the chain of
+  results via \hyperlink{command.also}{\mbox{\isa{\isacommand{also}}}}/\hyperlink{command.finally}{\mbox{\isa{\isacommand{finally}}}}.  These steps may
+  involve any of the transitivity rules declared in
+  \secref{sec:framework-ex-equal}, namely \isa{trans} in combining
+  the first two results in \isa{right{\isacharunderscore}inv} and in the final steps of
+  both proofs, \isa{forw{\isacharunderscore}subst} in the first combination of \isa{right{\isacharunderscore}unit}, and \isa{back{\isacharunderscore}subst} in all other calculational steps.
+
+  Occasional substitutions in calculations are adequate, but should
+  not be over-emphasized.  The other extreme is to compose a chain by
+  plain transitivity only, with replacements occurring always in
+  topmost position. For example:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isatagproof
+\ \ \isacommand{have}\isamarkupfalse%
+\ {\isachardoublequoteopen}x\ {\isasymcirc}\ {\isadigit{1}}\ {\isacharequal}\ x\ {\isasymcirc}\ {\isacharparenleft}x{\isasyminverse}\ {\isasymcirc}\ x{\isacharparenright}{\isachardoublequoteclose}\ \isacommand{unfolding}\isamarkupfalse%
+\ left{\isacharunderscore}inv\ \isacommand{{\isachardot}{\isachardot}}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{also}\isamarkupfalse%
+\ \isacommand{have}\isamarkupfalse%
+\ {\isachardoublequoteopen}{\isasymdots}\ {\isacharequal}\ {\isacharparenleft}x\ {\isasymcirc}\ x{\isasyminverse}{\isacharparenright}\ {\isasymcirc}\ x{\isachardoublequoteclose}\ \isacommand{unfolding}\isamarkupfalse%
+\ assoc\ \isacommand{{\isachardot}{\isachardot}}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{also}\isamarkupfalse%
+\ \isacommand{have}\isamarkupfalse%
+\ {\isachardoublequoteopen}{\isasymdots}\ {\isacharequal}\ {\isadigit{1}}\ {\isasymcirc}\ x{\isachardoublequoteclose}\ \isacommand{unfolding}\isamarkupfalse%
+\ right{\isacharunderscore}inv\ \isacommand{{\isachardot}{\isachardot}}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{also}\isamarkupfalse%
+\ \isacommand{have}\isamarkupfalse%
+\ {\isachardoublequoteopen}{\isasymdots}\ {\isacharequal}\ x{\isachardoublequoteclose}\ \isacommand{unfolding}\isamarkupfalse%
+\ left{\isacharunderscore}unit\ \isacommand{{\isachardot}{\isachardot}}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{finally}\isamarkupfalse%
+\ \isacommand{have}\isamarkupfalse%
+\ {\isachardoublequoteopen}x\ {\isasymcirc}\ {\isadigit{1}}\ {\isacharequal}\ x{\isachardoublequoteclose}\ \isacommand{{\isachardot}}\isamarkupfalse%
+%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\begin{isamarkuptext}%
+\noindent Here we have re-used the built-in mechanism for unfolding
+  definitions in order to normalize each equational problem.  A more
+  realistic object-logic would include proper setup for the Simplifier
+  (\secref{sec:simplifier}), the main automated tool for equational
+  reasoning in Isabelle.  Then ``\hyperlink{command.unfolding}{\mbox{\isa{\isacommand{unfolding}}}}~\isa{left{\isacharunderscore}inv}~\hyperlink{command.ddot}{\mbox{\isa{\isacommand{{\isachardot}{\isachardot}}}}}'' would become ``\hyperlink{command.by}{\mbox{\isa{\isacommand{by}}}}~\isa{{\isachardoublequote}{\isacharparenleft}simp\ add{\isacharcolon}\ left{\isacharunderscore}inv{\isacharparenright}{\isachardoublequote}}'' etc.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{end}\isamarkupfalse%
+%
+\isamarkupsubsection{Propositional logic%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+We axiomatize basic connectives of propositional logic: implication,
+  disjunction, and conjunction.  The associated rules are modeled
+  after Gentzen's natural deduction \cite{Gentzen:1935}.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{axiomatization}\isamarkupfalse%
+\isanewline
+\ \ imp\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}o\ {\isasymRightarrow}\ o\ {\isasymRightarrow}\ o{\isachardoublequoteclose}\ \ {\isacharparenleft}\isakeyword{infixr}\ {\isachardoublequoteopen}{\isasymlongrightarrow}{\isachardoublequoteclose}\ {\isadigit{2}}{\isadigit{5}}{\isacharparenright}\ \isakeyword{where}\isanewline
+\ \ impI\ {\isacharbrackleft}intro{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharparenleft}A\ {\isasymLongrightarrow}\ B{\isacharparenright}\ {\isasymLongrightarrow}\ A\ {\isasymlongrightarrow}\ B{\isachardoublequoteclose}\ \isakeyword{and}\isanewline
+\ \ impD\ {\isacharbrackleft}dest{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharparenleft}A\ {\isasymlongrightarrow}\ B{\isacharparenright}\ {\isasymLongrightarrow}\ A\ {\isasymLongrightarrow}\ B{\isachardoublequoteclose}\isanewline
+\isanewline
+\isacommand{axiomatization}\isamarkupfalse%
+\isanewline
+\ \ disj\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}o\ {\isasymRightarrow}\ o\ {\isasymRightarrow}\ o{\isachardoublequoteclose}\ \ {\isacharparenleft}\isakeyword{infixr}\ {\isachardoublequoteopen}{\isasymor}{\isachardoublequoteclose}\ {\isadigit{3}}{\isadigit{0}}{\isacharparenright}\ \isakeyword{where}\isanewline
+\ \ disjE\ {\isacharbrackleft}elim{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}A\ {\isasymor}\ B\ {\isasymLongrightarrow}\ {\isacharparenleft}A\ {\isasymLongrightarrow}\ C{\isacharparenright}\ {\isasymLongrightarrow}\ {\isacharparenleft}B\ {\isasymLongrightarrow}\ C{\isacharparenright}\ {\isasymLongrightarrow}\ C{\isachardoublequoteclose}\ \isakeyword{and}\isanewline
+\ \ disjI\isactrlisub {\isadigit{1}}\ {\isacharbrackleft}intro{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}A\ {\isasymLongrightarrow}\ A\ {\isasymor}\ B{\isachardoublequoteclose}\ \isakeyword{and}\isanewline
+\ \ disjI\isactrlisub {\isadigit{2}}\ {\isacharbrackleft}intro{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}B\ {\isasymLongrightarrow}\ A\ {\isasymor}\ B{\isachardoublequoteclose}\isanewline
+\isanewline
+\isacommand{axiomatization}\isamarkupfalse%
+\isanewline
+\ \ conj\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}o\ {\isasymRightarrow}\ o\ {\isasymRightarrow}\ o{\isachardoublequoteclose}\ \ {\isacharparenleft}\isakeyword{infixr}\ {\isachardoublequoteopen}{\isasymand}{\isachardoublequoteclose}\ {\isadigit{3}}{\isadigit{5}}{\isacharparenright}\ \isakeyword{where}\isanewline
+\ \ conjI\ {\isacharbrackleft}intro{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}A\ {\isasymLongrightarrow}\ B\ {\isasymLongrightarrow}\ A\ {\isasymand}\ B{\isachardoublequoteclose}\ \isakeyword{and}\isanewline
+\ \ conjD\isactrlisub {\isadigit{1}}\ {\isacharbrackleft}dest{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}A\ {\isasymand}\ B\ {\isasymLongrightarrow}\ A{\isachardoublequoteclose}\ \isakeyword{and}\isanewline
+\ \ conjD\isactrlisub {\isadigit{2}}\ {\isacharbrackleft}dest{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}A\ {\isasymand}\ B\ {\isasymLongrightarrow}\ B{\isachardoublequoteclose}%
+\begin{isamarkuptext}%
+\noindent The conjunctive destructions have the disadvantage that
+  decomposing \isa{{\isachardoublequote}A\ {\isasymand}\ B{\isachardoublequote}} involves an immediate decision which
+  component should be projected.  The more convenient simultaneous
+  elimination \isa{{\isachardoublequote}A\ {\isasymand}\ B\ {\isasymLongrightarrow}\ {\isacharparenleft}A\ {\isasymLongrightarrow}\ B\ {\isasymLongrightarrow}\ C{\isacharparenright}\ {\isasymLongrightarrow}\ C{\isachardoublequote}} can be derived as
+  follows:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{theorem}\isamarkupfalse%
+\ conjE\ {\isacharbrackleft}elim{\isacharbrackright}{\isacharcolon}\isanewline
+\ \ \isakeyword{assumes}\ {\isachardoublequoteopen}A\ {\isasymand}\ B{\isachardoublequoteclose}\isanewline
+\ \ \isakeyword{obtains}\ A\ \isakeyword{and}\ B\isanewline
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isatagproof
+\isacommand{proof}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{from}\isamarkupfalse%
+\ {\isacharbackquoteopen}A\ {\isasymand}\ B{\isacharbackquoteclose}\ \isacommand{show}\isamarkupfalse%
+\ A\ \isacommand{{\isachardot}{\isachardot}}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{from}\isamarkupfalse%
+\ {\isacharbackquoteopen}A\ {\isasymand}\ B{\isacharbackquoteclose}\ \isacommand{show}\isamarkupfalse%
+\ B\ \isacommand{{\isachardot}{\isachardot}}\isamarkupfalse%
+\isanewline
+\isacommand{qed}\isamarkupfalse%
+%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\begin{isamarkuptext}%
+\noindent Here is an example of swapping conjuncts with a single
+  intermediate elimination step:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isatagproof
+\ \ \isacommand{assume}\isamarkupfalse%
+\ {\isachardoublequoteopen}A\ {\isasymand}\ B{\isachardoublequoteclose}\isanewline
+\ \ \isacommand{then}\isamarkupfalse%
+\ \isacommand{obtain}\isamarkupfalse%
+\ B\ \isakeyword{and}\ A\ \isacommand{{\isachardot}{\isachardot}}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{then}\isamarkupfalse%
+\ \isacommand{have}\isamarkupfalse%
+\ {\isachardoublequoteopen}B\ {\isasymand}\ A{\isachardoublequoteclose}\ \isacommand{{\isachardot}{\isachardot}}\isamarkupfalse%
+%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\begin{isamarkuptext}%
+Note that the analogous elimination for disjunction ``\isa{{\isachardoublequote}{\isasymASSUMES}\ A\ {\isasymor}\ B\ {\isasymOBTAINS}\ A\ {\isasymBBAR}\ B{\isachardoublequote}}'' coincides with the
+  original axiomatization of \isa{{\isachardoublequote}disjE{\isachardoublequote}}.
+
+  \medskip We continue propositional logic by introducing absurdity
+  with its characteristic elimination.  Plain truth may then be
+  defined as a proposition that is trivially true.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{axiomatization}\isamarkupfalse%
+\isanewline
+\ \ false\ {\isacharcolon}{\isacharcolon}\ o\ \ {\isacharparenleft}{\isachardoublequoteopen}{\isasymbottom}{\isachardoublequoteclose}{\isacharparenright}\ \isakeyword{where}\isanewline
+\ \ falseE\ {\isacharbrackleft}elim{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}{\isasymbottom}\ {\isasymLongrightarrow}\ A{\isachardoublequoteclose}\isanewline
+\isanewline
+\isacommand{definition}\isamarkupfalse%
+\isanewline
+\ \ true\ {\isacharcolon}{\isacharcolon}\ o\ \ {\isacharparenleft}{\isachardoublequoteopen}{\isasymtop}{\isachardoublequoteclose}{\isacharparenright}\ \isakeyword{where}\isanewline
+\ \ {\isachardoublequoteopen}{\isasymtop}\ {\isasymequiv}\ {\isasymbottom}\ {\isasymlongrightarrow}\ {\isasymbottom}{\isachardoublequoteclose}\isanewline
+\isanewline
+\isacommand{theorem}\isamarkupfalse%
+\ trueI\ {\isacharbrackleft}intro{\isacharbrackright}{\isacharcolon}\ {\isasymtop}\isanewline
+%
+\isadelimproof
+\ \ %
+\endisadelimproof
+%
+\isatagproof
+\isacommand{unfolding}\isamarkupfalse%
+\ true{\isacharunderscore}def\ \isacommand{{\isachardot}{\isachardot}}\isamarkupfalse%
+%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\begin{isamarkuptext}%
+\medskip Now negation represents an implication towards absurdity:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{definition}\isamarkupfalse%
+\isanewline
+\ \ not\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}o\ {\isasymRightarrow}\ o{\isachardoublequoteclose}\ \ {\isacharparenleft}{\isachardoublequoteopen}{\isasymnot}\ {\isacharunderscore}{\isachardoublequoteclose}\ {\isacharbrackleft}{\isadigit{4}}{\isadigit{0}}{\isacharbrackright}\ {\isadigit{4}}{\isadigit{0}}{\isacharparenright}\ \isakeyword{where}\isanewline
+\ \ {\isachardoublequoteopen}{\isasymnot}\ A\ {\isasymequiv}\ A\ {\isasymlongrightarrow}\ {\isasymbottom}{\isachardoublequoteclose}\isanewline
+\isanewline
+\isacommand{theorem}\isamarkupfalse%
+\ notI\ {\isacharbrackleft}intro{\isacharbrackright}{\isacharcolon}\isanewline
+\ \ \isakeyword{assumes}\ {\isachardoublequoteopen}A\ {\isasymLongrightarrow}\ {\isasymbottom}{\isachardoublequoteclose}\isanewline
+\ \ \isakeyword{shows}\ {\isachardoublequoteopen}{\isasymnot}\ A{\isachardoublequoteclose}\isanewline
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isatagproof
+\isacommand{unfolding}\isamarkupfalse%
+\ not{\isacharunderscore}def\isanewline
+\isacommand{proof}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{assume}\isamarkupfalse%
+\ A\isanewline
+\ \ \isacommand{then}\isamarkupfalse%
+\ \isacommand{show}\isamarkupfalse%
+\ {\isasymbottom}\ \isacommand{by}\isamarkupfalse%
+\ {\isacharparenleft}rule\ {\isacharbackquoteopen}A\ {\isasymLongrightarrow}\ {\isasymbottom}{\isacharbackquoteclose}{\isacharparenright}\isanewline
+\isacommand{qed}\isamarkupfalse%
+%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+\isanewline
+%
+\endisadelimproof
+\isanewline
+\isacommand{theorem}\isamarkupfalse%
+\ notE\ {\isacharbrackleft}elim{\isacharbrackright}{\isacharcolon}\isanewline
+\ \ \isakeyword{assumes}\ {\isachardoublequoteopen}{\isasymnot}\ A{\isachardoublequoteclose}\ \isakeyword{and}\ A\isanewline
+\ \ \isakeyword{shows}\ B\isanewline
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isatagproof
+\isacommand{proof}\isamarkupfalse%
+\ {\isacharminus}\isanewline
+\ \ \isacommand{from}\isamarkupfalse%
+\ {\isacharbackquoteopen}{\isasymnot}\ A{\isacharbackquoteclose}\ \isacommand{have}\isamarkupfalse%
+\ {\isachardoublequoteopen}A\ {\isasymlongrightarrow}\ {\isasymbottom}{\isachardoublequoteclose}\ \isacommand{unfolding}\isamarkupfalse%
+\ not{\isacharunderscore}def\ \isacommand{{\isachardot}}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{from}\isamarkupfalse%
+\ {\isacharbackquoteopen}A\ {\isasymlongrightarrow}\ {\isasymbottom}{\isacharbackquoteclose}\ \isakeyword{and}\ {\isacharbackquoteopen}A{\isacharbackquoteclose}\ \isacommand{have}\isamarkupfalse%
+\ {\isasymbottom}\ \isacommand{{\isachardot}{\isachardot}}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{then}\isamarkupfalse%
+\ \isacommand{show}\isamarkupfalse%
+\ B\ \isacommand{{\isachardot}{\isachardot}}\isamarkupfalse%
+\isanewline
+\isacommand{qed}\isamarkupfalse%
+%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isamarkupsubsection{Classical logic%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+Subsequently we state the principle of classical contradiction as a
+  local assumption.  Thus we refrain from forcing the object-logic
+  into the classical perspective.  Within that context, we may derive
+  well-known consequences of the classical principle.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{locale}\isamarkupfalse%
+\ classical\ {\isacharequal}\isanewline
+\ \ \isakeyword{assumes}\ classical{\isacharcolon}\ {\isachardoublequoteopen}{\isacharparenleft}{\isasymnot}\ C\ {\isasymLongrightarrow}\ C{\isacharparenright}\ {\isasymLongrightarrow}\ C{\isachardoublequoteclose}\isanewline
+\isakeyword{begin}\isanewline
+\isanewline
+\isacommand{theorem}\isamarkupfalse%
+\ double{\isacharunderscore}negation{\isacharcolon}\isanewline
+\ \ \isakeyword{assumes}\ {\isachardoublequoteopen}{\isasymnot}\ {\isasymnot}\ C{\isachardoublequoteclose}\isanewline
+\ \ \isakeyword{shows}\ C\isanewline
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isatagproof
+\isacommand{proof}\isamarkupfalse%
+\ {\isacharparenleft}rule\ classical{\isacharparenright}\isanewline
+\ \ \isacommand{assume}\isamarkupfalse%
+\ {\isachardoublequoteopen}{\isasymnot}\ C{\isachardoublequoteclose}\isanewline
+\ \ \isacommand{with}\isamarkupfalse%
+\ {\isacharbackquoteopen}{\isasymnot}\ {\isasymnot}\ C{\isacharbackquoteclose}\ \isacommand{show}\isamarkupfalse%
+\ C\ \isacommand{{\isachardot}{\isachardot}}\isamarkupfalse%
+\isanewline
+\isacommand{qed}\isamarkupfalse%
+%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+\isanewline
+%
+\endisadelimproof
+\isanewline
+\isacommand{theorem}\isamarkupfalse%
+\ tertium{\isacharunderscore}non{\isacharunderscore}datur{\isacharcolon}\ {\isachardoublequoteopen}C\ {\isasymor}\ {\isasymnot}\ C{\isachardoublequoteclose}\isanewline
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isatagproof
+\isacommand{proof}\isamarkupfalse%
+\ {\isacharparenleft}rule\ double{\isacharunderscore}negation{\isacharparenright}\isanewline
+\ \ \isacommand{show}\isamarkupfalse%
+\ {\isachardoublequoteopen}{\isasymnot}\ {\isasymnot}\ {\isacharparenleft}C\ {\isasymor}\ {\isasymnot}\ C{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\ \ \isacommand{proof}\isamarkupfalse%
+\isanewline
+\ \ \ \ \isacommand{assume}\isamarkupfalse%
+\ {\isachardoublequoteopen}{\isasymnot}\ {\isacharparenleft}C\ {\isasymor}\ {\isasymnot}\ C{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\ \ \ \ \isacommand{have}\isamarkupfalse%
+\ {\isachardoublequoteopen}{\isasymnot}\ C{\isachardoublequoteclose}\isanewline
+\ \ \ \ \isacommand{proof}\isamarkupfalse%
+\isanewline
+\ \ \ \ \ \ \isacommand{assume}\isamarkupfalse%
+\ C\ \isacommand{then}\isamarkupfalse%
+\ \isacommand{have}\isamarkupfalse%
+\ {\isachardoublequoteopen}C\ {\isasymor}\ {\isasymnot}\ C{\isachardoublequoteclose}\ \isacommand{{\isachardot}{\isachardot}}\isamarkupfalse%
+\isanewline
+\ \ \ \ \ \ \isacommand{with}\isamarkupfalse%
+\ {\isacharbackquoteopen}{\isasymnot}\ {\isacharparenleft}C\ {\isasymor}\ {\isasymnot}\ C{\isacharparenright}{\isacharbackquoteclose}\ \isacommand{show}\isamarkupfalse%
+\ {\isasymbottom}\ \isacommand{{\isachardot}{\isachardot}}\isamarkupfalse%
+\isanewline
+\ \ \ \ \isacommand{qed}\isamarkupfalse%
+\isanewline
+\ \ \ \ \isacommand{then}\isamarkupfalse%
+\ \isacommand{have}\isamarkupfalse%
+\ {\isachardoublequoteopen}C\ {\isasymor}\ {\isasymnot}\ C{\isachardoublequoteclose}\ \isacommand{{\isachardot}{\isachardot}}\isamarkupfalse%
+\isanewline
+\ \ \ \ \isacommand{with}\isamarkupfalse%
+\ {\isacharbackquoteopen}{\isasymnot}\ {\isacharparenleft}C\ {\isasymor}\ {\isasymnot}\ C{\isacharparenright}{\isacharbackquoteclose}\ \isacommand{show}\isamarkupfalse%
+\ {\isasymbottom}\ \isacommand{{\isachardot}{\isachardot}}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{qed}\isamarkupfalse%
+\isanewline
+\isacommand{qed}\isamarkupfalse%
+%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\begin{isamarkuptext}%
+These examples illustrate both classical reasoning and non-trivial
+  propositional proofs in general.  All three rules characterize
+  classical logic independently, but the original rule is already the
+  most convenient to use, because it leaves the conclusion unchanged.
+  Note that \isa{{\isachardoublequote}{\isacharparenleft}{\isasymnot}\ C\ {\isasymLongrightarrow}\ C{\isacharparenright}\ {\isasymLongrightarrow}\ C{\isachardoublequote}} fits again into our format for
+  eliminations, despite the additional twist that the context refers
+  to the main conclusion.  So we may write \isa{{\isachardoublequote}classical{\isachardoublequote}} as the
+  Isar statement ``\isa{{\isachardoublequote}{\isasymOBTAINS}\ {\isasymnot}\ thesis{\isachardoublequote}}''.  This also
+  explains nicely how classical reasoning really works: whatever the
+  main \isa{thesis} might be, we may always assume its negation!%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{end}\isamarkupfalse%
+%
+\isamarkupsubsection{Quantifiers%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+Representing quantifiers is easy, thanks to the higher-order nature
+  of the underlying framework.  According to the well-known technique
+  introduced by Church \cite{church40}, quantifiers are operators on
+  predicates, which are syntactically represented as \isa{{\isachardoublequote}{\isasymlambda}{\isachardoublequote}}-terms
+  of type \isa{{\isachardoublequote}i\ {\isasymRightarrow}\ o{\isachardoublequote}}.  Specific binder notation relates \isa{{\isachardoublequote}All\ {\isacharparenleft}{\isasymlambda}x{\isachardot}\ B\ x{\isacharparenright}{\isachardoublequote}} to \isa{{\isachardoublequote}{\isasymforall}x{\isachardot}\ B\ x{\isachardoublequote}} etc.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{axiomatization}\isamarkupfalse%
+\isanewline
+\ \ All\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharparenleft}i\ {\isasymRightarrow}\ o{\isacharparenright}\ {\isasymRightarrow}\ o{\isachardoublequoteclose}\ \ {\isacharparenleft}\isakeyword{binder}\ {\isachardoublequoteopen}{\isasymforall}{\isachardoublequoteclose}\ {\isadigit{1}}{\isadigit{0}}{\isacharparenright}\ \isakeyword{where}\isanewline
+\ \ allI\ {\isacharbrackleft}intro{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharparenleft}{\isasymAnd}x{\isachardot}\ B\ x{\isacharparenright}\ {\isasymLongrightarrow}\ {\isasymforall}x{\isachardot}\ B\ x{\isachardoublequoteclose}\ \isakeyword{and}\isanewline
+\ \ allD\ {\isacharbrackleft}dest{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharparenleft}{\isasymforall}x{\isachardot}\ B\ x{\isacharparenright}\ {\isasymLongrightarrow}\ B\ a{\isachardoublequoteclose}\isanewline
+\isanewline
+\isacommand{axiomatization}\isamarkupfalse%
+\isanewline
+\ \ Ex\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharparenleft}i\ {\isasymRightarrow}\ o{\isacharparenright}\ {\isasymRightarrow}\ o{\isachardoublequoteclose}\ \ {\isacharparenleft}\isakeyword{binder}\ {\isachardoublequoteopen}{\isasymexists}{\isachardoublequoteclose}\ {\isadigit{1}}{\isadigit{0}}{\isacharparenright}\ \isakeyword{where}\isanewline
+\ \ exI\ {\isacharbrackleft}intro{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}B\ a\ {\isasymLongrightarrow}\ {\isacharparenleft}{\isasymexists}x{\isachardot}\ B\ x{\isacharparenright}{\isachardoublequoteclose}\ \isakeyword{and}\isanewline
+\ \ exE\ {\isacharbrackleft}elim{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharparenleft}{\isasymexists}x{\isachardot}\ B\ x{\isacharparenright}\ {\isasymLongrightarrow}\ {\isacharparenleft}{\isasymAnd}x{\isachardot}\ B\ x\ {\isasymLongrightarrow}\ C{\isacharparenright}\ {\isasymLongrightarrow}\ C{\isachardoublequoteclose}%
+\begin{isamarkuptext}%
+\noindent The \isa{exE} rule corresponds to an Isar statement
+  ``\isa{{\isachardoublequote}{\isasymASSUMES}\ {\isasymexists}x{\isachardot}\ B\ x\ {\isasymOBTAINS}\ x\ {\isasymWHERE}\ B\ x{\isachardoublequote}}''.  In the
+  following example we illustrate quantifier reasoning with all four
+  rules:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+\isacommand{theorem}\isamarkupfalse%
+\isanewline
+\ \ \isakeyword{assumes}\ {\isachardoublequoteopen}{\isasymexists}x{\isachardot}\ {\isasymforall}y{\isachardot}\ R\ x\ y{\isachardoublequoteclose}\isanewline
+\ \ \isakeyword{shows}\ {\isachardoublequoteopen}{\isasymforall}y{\isachardot}\ {\isasymexists}x{\isachardot}\ R\ x\ y{\isachardoublequoteclose}\isanewline
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isatagproof
+\isacommand{proof}\isamarkupfalse%
+\ \ \ \ %
+\isamarkupcmt{\isa{{\isachardoublequote}{\isasymforall}{\isachardoublequote}} introduction%
+}
+\isanewline
+\ \ \isacommand{obtain}\isamarkupfalse%
+\ x\ \isakeyword{where}\ {\isachardoublequoteopen}{\isasymforall}y{\isachardot}\ R\ x\ y{\isachardoublequoteclose}\ \isacommand{using}\isamarkupfalse%
+\ {\isacharbackquoteopen}{\isasymexists}x{\isachardot}\ {\isasymforall}y{\isachardot}\ R\ x\ y{\isacharbackquoteclose}\ \isacommand{{\isachardot}{\isachardot}}\isamarkupfalse%
+\ \ \ \ %
+\isamarkupcmt{\isa{{\isachardoublequote}{\isasymexists}{\isachardoublequote}} elimination%
+}
+\isanewline
+\ \ \isacommand{fix}\isamarkupfalse%
+\ y\ \isacommand{have}\isamarkupfalse%
+\ {\isachardoublequoteopen}R\ x\ y{\isachardoublequoteclose}\ \isacommand{using}\isamarkupfalse%
+\ {\isacharbackquoteopen}{\isasymforall}y{\isachardot}\ R\ x\ y{\isacharbackquoteclose}\ \isacommand{{\isachardot}{\isachardot}}\isamarkupfalse%
+\ \ \ \ %
+\isamarkupcmt{\isa{{\isachardoublequote}{\isasymforall}{\isachardoublequote}} destruction%
+}
+\isanewline
+\ \ \isacommand{then}\isamarkupfalse%
+\ \isacommand{show}\isamarkupfalse%
+\ {\isachardoublequoteopen}{\isasymexists}x{\isachardot}\ R\ x\ y{\isachardoublequoteclose}\ \isacommand{{\isachardot}{\isachardot}}\isamarkupfalse%
+\ \ \ \ %
+\isamarkupcmt{\isa{{\isachardoublequote}{\isasymexists}{\isachardoublequote}} introduction%
+}
+\isanewline
+\isacommand{qed}\isamarkupfalse%
+%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+\isanewline
+%
+\endisadelimproof
+%
+\isadelimvisible
+\isanewline
+%
+\endisadelimvisible
+%
+\isatagvisible
+\isacommand{end}\isamarkupfalse%
+%
+\endisatagvisible
+{\isafoldvisible}%
+%
+\isadelimvisible
+\isanewline
+%
+\endisadelimvisible
+\end{isabellebody}%
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "root"
+%%% End:
