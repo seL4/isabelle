@@ -36,5 +36,5 @@ CMD="$1"
 THY=$(echo $THY | sed -e 's/\\/\\\\"/g; s/"/\\\"/g')
 ISAR="theory Codegen imports \"$THY\" begin export_code $CMD end"
 
-echo "$ISAR" | "$ISABELLE_TOOL" tty -l "$IMAGE" || exit 1
-
+echo "$ISAR" | "$ISABELLE_TOOL" tty -l "$IMAGE"
+exit ${PIPESTATUS[1]}
