@@ -216,7 +216,6 @@ MAIN_DEPENDENCIES = $(PLAIN_DEPENDENCIES) \
   Main.thy \
   Map.thy \
   NatBin.thy \
-  Nat_Int_Bij.thy \
   Presburger.thy \
   Recdef.thy \
   Relation_Power.thy \
@@ -318,7 +317,7 @@ $(LOG)/HOL-Library.gz: $(OUT)/HOL Library/SetsAndFunctions.thy		\
   Library/Finite_Cartesian_Product.thy \
   Library/Fundamental_Theorem_Algebra.thy \
   Library/Library.thy Library/List_Prefix.thy Library/State_Monad.thy	\
-  Library/Multiset.thy Library/Permutation.thy	\
+  Library/Nat_Int_Bij.thy Library/Multiset.thy Library/Permutation.thy	\
   Library/Primes.thy Library/Pocklington.thy Library/Quotient.thy	\
   Library/Quicksort.thy Library/Nat_Infinity.thy Library/Word.thy	\
   Library/README.html Library/Continuity.thy Library/Order_Relation.thy \
