@@ -452,6 +452,11 @@ lemma LIM_inverse:
   shows "\<lbrakk>f -- a --> L; L \<noteq> 0\<rbrakk> \<Longrightarrow> (\<lambda>x. inverse (f x)) -- a --> inverse L"
 by (rule LIM_inverse_fun [THEN LIM_compose])
 
+lemma LIM_sgn:
+  "\<lbrakk>f -- a --> l; l \<noteq> 0\<rbrakk> \<Longrightarrow> (\<lambda>x. sgn (f x)) -- a --> sgn l"
+unfolding sgn_div_norm
+by (simp add: LIM_scaleR LIM_inverse LIM_norm)
+
 
 subsection {* Continuity *}
 
@@ -528,6 +533,10 @@ lemma isCont_power:
   fixes f :: "'a::real_normed_vector \<Rightarrow> 'b::{recpower,real_normed_algebra}"
   shows "isCont f a \<Longrightarrow> isCont (\<lambda>x. f x ^ n) a"
   unfolding isCont_def by (rule LIM_power)
+
+lemma isCont_sgn:
+  "\<lbrakk>isCont f a; f a \<noteq> 0\<rbrakk> \<Longrightarrow> isCont (\<lambda>x. sgn (f x)) a"
+  unfolding isCont_def by (rule LIM_sgn)
 
 lemma isCont_abs [simp]: "isCont abs (a::real)"
 by (rule isCont_rabs [OF isCont_ident])
