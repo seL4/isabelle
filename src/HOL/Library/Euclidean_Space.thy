@@ -236,6 +236,7 @@ instance "^" :: (comm_semiring,type) comm_semiring
   apply (intro_classes) by (vector ring_simps)+
 
 instance "^" :: (comm_semiring_0,type) comm_semiring_0 by (intro_classes) 
+instance "^" :: (cancel_comm_monoid_add, type) cancel_comm_monoid_add ..
 instance "^" :: (semiring_0_cancel,type) semiring_0_cancel by (intro_classes) 
 instance "^" :: (comm_semiring_0_cancel,type) comm_semiring_0_cancel by (intro_classes) 
 instance "^" :: (ring,type) ring by (intro_classes) 
