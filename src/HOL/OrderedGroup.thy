@@ -478,6 +478,26 @@ proof -
   then show ?thesis by simp
 qed
 
+lemma add_nonneg_eq_0_iff:
+  assumes x: "0 \<le> x" and y: "0 \<le> y"
+  shows "x + y = 0 \<longleftrightarrow> x = 0 \<and> y = 0"
+proof (intro iffI conjI)
+  have "x = x + 0" by simp
+  also have "x + 0 \<le> x + y" using y by (rule add_left_mono)
+  also assume "x + y = 0"
+  also have "0 \<le> x" using x .
+  finally show "x = 0" .
+next
+  have "y = 0 + y" by simp
+  also have "0 + y \<le> x + y" using x by (rule add_right_mono)
+  also assume "x + y = 0"
+  also have "0 \<le> y" using y .
+  finally show "y = 0" .
+next
+  assume "x = 0 \<and> y = 0"
+  then show "x + y = 0" by simp
+qed
+
 end
 
 class pordered_ab_group_add =
