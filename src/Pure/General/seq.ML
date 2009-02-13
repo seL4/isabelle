@@ -89,17 +89,17 @@ fun try f x =
 (*the list of the first n elements, paired with rest of sequence;
   if length of list is less than n, then sequence had less than n elements*)
 fun chop n xq =
-  if n <= (0: int) then ([], xq)
+  if n <= (0 : int) then ([], xq)
   else
     (case pull xq of
       NONE => ([], xq)
     | SOME (x, xq') => apfst (Basics.cons x) (chop (n - 1) xq'));
 
-(* truncate the sequence after n elements *)
-fun take n s = let
-    fun f 0 _  () = NONE
-      | f n ss () = Option.map (apsnd (make o f (n - 1))) (pull ss);
-  in make (f n s) end;
+(*truncate the sequence after n elements*)
+fun take n xq =
+  if n <= (0 : int) then empty
+  else make (fn () =>
+    (Option.map o apsnd) (take (n - 1)) (pull xq));
 
 (*conversion from sequence to list*)
 fun list_of xq =
