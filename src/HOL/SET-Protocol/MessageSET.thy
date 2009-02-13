@@ -6,7 +6,7 @@
 header{*The Message Theory, Modified for SET*}
 
 theory MessageSET
-imports Main
+imports Main Nat_Int_Bij
 begin
 
 subsection{*General Lemmas*}
