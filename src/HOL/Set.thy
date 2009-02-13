@@ -787,6 +787,9 @@ lemma DiffE [elim!]: "c : A - B ==> (c:A ==> c~:B ==> P) ==> P"
 
 lemma set_diff_eq: "A - B = {x. x : A & ~ x : B}" by blast
 
+lemma Compl_eq_Diff_UNIV: "-A = (UNIV - A)"
+by blast
+
 
 subsubsection {* Augmenting a set -- insert *}
 

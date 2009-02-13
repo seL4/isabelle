@@ -88,10 +88,8 @@ by (simp add: multiset_def)
 
 lemma union_preserves_multiset:
   "M \<in> multiset ==> N \<in> multiset ==> (\<lambda>a. M a + N a) \<in> multiset"
-apply (simp add: multiset_def)
-apply (drule (1) finite_UnI)
-apply (simp del: finite_Un add: Un_def)
-done
+by (simp add: multiset_def)
+
 
 lemma diff_preserves_multiset:
   "M \<in> multiset ==> (\<lambda>a. M a - N a) \<in> multiset"
