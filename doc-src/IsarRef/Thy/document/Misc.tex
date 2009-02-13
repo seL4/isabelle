@@ -51,7 +51,7 @@
     thmcriterion: ('-'?) ('name' ':' nameref | 'intro' | 'elim' | 'dest' |
       'solves' | 'simp' ':' term | term)
     ;
-    'find\_consts' (constcriterion +)
+    'find\_consts' (constcriterion *)
     ;
     constcriterion: ('-'?) ('name' ':' nameref | 'strict' ':' type | type)
     ;
@@ -88,7 +88,7 @@
   contain ``\isa{{\isachardoublequote}{\isacharasterisk}{\isachardoublequote}}'' wildcards.  The criteria \isa{intro},
   \isa{elim}, and \isa{dest} select theorems that match the
   current goal as introduction, elimination or destruction rules,
-  respectively.  The criteria \isa{{\isachardoublequote}solves{\isachardoublequote}} returns all rules
+  respectively.  The criterion \isa{{\isachardoublequote}solves{\isachardoublequote}} returns all rules
   that would directly solve the current goal.  The criterion
   \isa{{\isachardoublequote}simp{\isacharcolon}\ t{\isachardoublequote}} selects all rewrite rules whose left-hand side
   matches the given term.  The criterion term \isa{t} selects all

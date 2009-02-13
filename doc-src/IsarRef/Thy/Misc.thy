@@ -68,7 +68,7 @@ text {*
   contain ``@{text "*"}'' wildcards.  The criteria @{text intro},
   @{text elim}, and @{text dest} select theorems that match the
   current goal as introduction, elimination or destruction rules,
-  respectively.  The criteria @{text "solves"} returns all rules
+  respectively.  The criterion @{text "solves"} returns all rules
   that would directly solve the current goal.  The criterion
   @{text "simp: t"} selects all rewrite rules whose left-hand side
   matches the given term.  The criterion term @{text t} selects all
