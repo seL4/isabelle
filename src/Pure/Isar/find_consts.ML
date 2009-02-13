@@ -44,7 +44,31 @@ fun check_const p (nm, (ty, _)) = if p (nm, ty)
 fun opt_not f (c as (_, (ty, _))) = if is_some (f c)
                                     then NONE else SOME (size_of_typ ty);
 
+fun filter_const (_, NONE) = NONE
+  | filter_const (f, (SOME (c, r))) = Option.map
+                                        (pair c o ((curry Int.min) r)) (f c);
+
+fun pretty_criterion (b, c) =
+  let
+    fun prfx s = if b then s else "-" ^ s;
+  in
+    (case c of
+      Strict pat => Pretty.str (prfx "strict: " ^ quote pat)
+    | Loose pat => Pretty.str (prfx (quote pat))
+    | Name name => Pretty.str (prfx "name: " ^ quote name))
+  end;
+
+fun pretty_const ctxt (nm, ty) = let
+    val ty' = Logic.unvarifyT ty;
+  in
+    Pretty.block [Pretty.quote (Pretty.str nm), Pretty.fbrk,
+                  Pretty.str "::", Pretty.brk 1,
+                  Pretty.quote (Syntax.pretty_typ ctxt ty')]
+  end;
+
 fun find_consts ctxt raw_criteria = let
+    val start = start_timing ();
+
     val thy = ProofContext.theory_of ctxt;
     val low_ranking = 10000;
 
@@ -68,28 +92,27 @@ fun find_consts ctxt raw_criteria = let
     val criteria = map make_criterion ((!default_criteria) @ raw_criteria);
 
     val (_, consts) = (#constants o Consts.dest o Sign.consts_of) thy;
-
-    fun filter_const (_, NONE) = NONE
-      | filter_const (f, (SOME (c, r))) = Option.map
-                                            (pair c o ((curry Int.min) r))
-                                            (f c);
-
     fun eval_entry c = foldl filter_const (SOME (c, low_ranking)) criteria;
 
-    fun show (nm, ty) = let
-        val ty' = Logic.unvarifyT ty;
-      in
-        (Pretty.block [Pretty.quote (Pretty.str nm), Pretty.fbrk,
-                       Pretty.str "::", Pretty.brk 1,
-                       Pretty.quote (Syntax.pretty_typ ctxt ty')])
-      end;
+    val matches = Symtab.fold (cons o eval_entry) consts []
+                  |> map_filter I
+                  |> sort (rev_order o int_ord o pairself snd)
+                  |> map ((apsnd fst) o fst);
+
+    val end_msg = " in " ^
+                  (List.nth (String.tokens Char.isSpace (end_timing start), 3))
+                  ^ " secs"
   in
-    Symtab.fold (cons o eval_entry) consts []
-    |> map_filter I
-    |> sort (rev_order o int_ord o pairself snd)
-    |> map ((apsnd fst) o fst)
-    |> map show
-    |> Pretty.big_list "results:"
+    Pretty.big_list "searched for:" (map pretty_criterion raw_criteria)
+      :: Pretty.str ""
+      :: (Pretty.str o concat)
+           (if null matches
+            then ["nothing found", end_msg]
+            else ["found ", (string_of_int o length) matches,
+                  " constants", end_msg, ":"])
+      :: Pretty.str ""
+      :: map (pretty_const ctxt) matches
+    |> Pretty.chunks
     |> Pretty.writeln
   end handle ERROR s => Output.error_msg s
 
