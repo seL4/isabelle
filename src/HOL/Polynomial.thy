@@ -293,8 +293,7 @@ qed
 
 end
 
-instance poly ::
-  ("{cancel_ab_semigroup_add,comm_monoid_add}") cancel_ab_semigroup_add
+instance poly :: (cancel_comm_monoid_add) cancel_comm_monoid_add
 proof
   fix p q r :: "'a poly"
   assume "p + q = p + r" thus "q = r"

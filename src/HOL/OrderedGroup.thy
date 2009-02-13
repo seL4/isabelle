@@ -147,6 +147,9 @@ qed
 
 end
 
+class cancel_comm_monoid_add = cancel_ab_semigroup_add + comm_monoid_add
+
+
 subsection {* Groups *}
 
 class group_add = minus + uminus + monoid_add +
@@ -261,7 +264,7 @@ begin
 subclass group_add
   proof qed (simp_all add: ab_left_minus ab_diff_minus)
 
-subclass cancel_ab_semigroup_add
+subclass cancel_comm_monoid_add
 proof
   fix a b c :: 'a
   assume "a + b = a + c"

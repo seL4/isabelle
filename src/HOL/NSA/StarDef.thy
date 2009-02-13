@@ -844,6 +844,8 @@ done
 instance star :: (cancel_ab_semigroup_add) cancel_ab_semigroup_add
 by (intro_classes, transfer, rule add_imp_eq)
 
+instance star :: (cancel_comm_monoid_add) cancel_comm_monoid_add ..
+
 instance star :: (ab_group_add) ab_group_add
 apply (intro_classes)
 apply (transfer, rule left_minus)

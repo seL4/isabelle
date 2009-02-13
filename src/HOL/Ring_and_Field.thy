@@ -41,7 +41,7 @@ class mult_zero = times + zero +
 
 class semiring_0 = semiring + comm_monoid_add + mult_zero
 
-class semiring_0_cancel = semiring + comm_monoid_add + cancel_ab_semigroup_add
+class semiring_0_cancel = semiring + cancel_comm_monoid_add
 begin
 
 subclass semiring_0
@@ -80,7 +80,7 @@ subclass semiring_0 ..
 
 end
 
-class comm_semiring_0_cancel = comm_semiring + comm_monoid_add + cancel_ab_semigroup_add
+class comm_semiring_0_cancel = comm_semiring + cancel_comm_monoid_add
 begin
 
 subclass semiring_0_cancel ..
@@ -198,8 +198,8 @@ end
 class no_zero_divisors = zero + times +
   assumes no_zero_divisors: "a \<noteq> 0 \<Longrightarrow> b \<noteq> 0 \<Longrightarrow> a * b \<noteq> 0"
 
-class semiring_1_cancel = semiring + comm_monoid_add + zero_neq_one
-  + cancel_ab_semigroup_add + monoid_mult
+class semiring_1_cancel = semiring + cancel_comm_monoid_add
+  + zero_neq_one + monoid_mult
 begin
 
 subclass semiring_0_cancel ..
@@ -208,8 +208,8 @@ subclass semiring_1 ..
 
 end
 
-class comm_semiring_1_cancel = comm_semiring + comm_monoid_add + comm_monoid_mult
-  + zero_neq_one + cancel_ab_semigroup_add
+class comm_semiring_1_cancel = comm_semiring + cancel_comm_monoid_add
+  + zero_neq_one + comm_monoid_mult
 begin
 
 subclass semiring_1_cancel ..
@@ -543,7 +543,7 @@ done
 end
 
 class pordered_cancel_semiring = mult_mono + pordered_ab_semigroup_add
-  + semiring + comm_monoid_add + cancel_ab_semigroup_add
+  + semiring + cancel_comm_monoid_add
 begin
 
 subclass semiring_0_cancel ..
