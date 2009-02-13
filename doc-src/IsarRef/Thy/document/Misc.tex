@@ -36,6 +36,7 @@
     \indexdef{}{command}{print\_attributes}\hypertarget{command.print-attributes}{\hyperlink{command.print-attributes}{\mbox{\isa{\isacommand{print{\isacharunderscore}attributes}}}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isa{{\isachardoublequote}context\ {\isasymrightarrow}{\isachardoublequote}} \\
     \indexdef{}{command}{print\_theorems}\hypertarget{command.print-theorems}{\hyperlink{command.print-theorems}{\mbox{\isa{\isacommand{print{\isacharunderscore}theorems}}}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isa{{\isachardoublequote}context\ {\isasymrightarrow}{\isachardoublequote}} \\
     \indexdef{}{command}{find\_theorems}\hypertarget{command.find-theorems}{\hyperlink{command.find-theorems}{\mbox{\isa{\isacommand{find{\isacharunderscore}theorems}}}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isa{{\isachardoublequote}context\ {\isasymrightarrow}{\isachardoublequote}} \\
+    \indexdef{}{command}{find\_consts}\hypertarget{command.find-consts}{\hyperlink{command.find-consts}{\mbox{\isa{\isacommand{find{\isacharunderscore}consts}}}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isa{{\isachardoublequote}context\ {\isasymrightarrow}{\isachardoublequote}} \\
     \indexdef{}{command}{thm\_deps}\hypertarget{command.thm-deps}{\hyperlink{command.thm-deps}{\mbox{\isa{\isacommand{thm{\isacharunderscore}deps}}}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isa{{\isachardoublequote}context\ {\isasymrightarrow}{\isachardoublequote}} \\
     \indexdef{}{command}{print\_facts}\hypertarget{command.print-facts}{\hyperlink{command.print-facts}{\mbox{\isa{\isacommand{print{\isacharunderscore}facts}}}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isa{{\isachardoublequote}context\ {\isasymrightarrow}{\isachardoublequote}} \\
     \indexdef{}{command}{print\_binds}\hypertarget{command.print-binds}{\hyperlink{command.print-binds}{\mbox{\isa{\isacommand{print{\isacharunderscore}binds}}}}}\isa{{\isachardoublequote}\isactrlsup {\isacharasterisk}{\isachardoublequote}} & : & \isa{{\isachardoublequote}context\ {\isasymrightarrow}{\isachardoublequote}} \\
@@ -45,10 +46,14 @@
     'print\_theory' ( '!'?)
     ;
 
-    'find\_theorems' (('(' (nat)? ('with\_dups')? ')')?) (criterion *)
+    'find\_theorems' (('(' (nat)? ('with\_dups')? ')')?) (thmcriterion *)
     ;
-    criterion: ('-'?) ('name' ':' nameref | 'intro' | 'elim' | 'dest' |
+    thmcriterion: ('-'?) ('name' ':' nameref | 'intro' | 'elim' | 'dest' |
       'solves' | 'simp' ':' term | term)
+    ;
+    'find\_consts' (constcriterion +)
+    ;
+    constcriterion: ('-'?) ('name' ':' nameref | 'strict' ':' type | type)
     ;
     'thm\_deps' thmrefs
     ;
@@ -97,7 +102,14 @@
   number of printed facts may be given; the default is 40.  By
   default, duplicates are removed from the search result. Use
   \isa{with{\isacharunderscore}dups} to display duplicates.
-  
+
+  \item \hyperlink{command.find-consts}{\mbox{\isa{\isacommand{find{\isacharunderscore}consts}}}}~\isa{criteria} prints all constants
+  whose type meets all of the given criteria. The criterion \isa{{\isachardoublequote}strict{\isacharcolon}\ ty{\isachardoublequote}} is met by any type that matches the type pattern
+  \isa{ty}.  Patterns may contain both the dummy type ``\isa{{\isacharunderscore}}''
+  and sort constraints. The criterion \isa{ty} is similar, but it
+  also matches against subtypes. The criterion \isa{{\isachardoublequote}name{\isacharcolon}\ p{\isachardoublequote}} and
+  the prefix ``\isa{{\isachardoublequote}{\isacharminus}{\isachardoublequote}}'' function as described for \hyperlink{command.find-theorems}{\mbox{\isa{\isacommand{find{\isacharunderscore}theorems}}}}.
+
   \item \hyperlink{command.thm-deps}{\mbox{\isa{\isacommand{thm{\isacharunderscore}deps}}}}~\isa{{\isachardoublequote}a\isactrlsub {\isadigit{1}}\ {\isasymdots}\ a\isactrlsub n{\isachardoublequote}}
   visualizes dependencies of facts, using Isabelle's graph browser
   tool (see also \cite{isabelle-sys}).

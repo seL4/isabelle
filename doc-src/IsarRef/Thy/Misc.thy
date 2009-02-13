@@ -16,6 +16,7 @@ text {*
     @{command_def "print_attributes"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow>"} \\
     @{command_def "print_theorems"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow>"} \\
     @{command_def "find_theorems"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow>"} \\
+    @{command_def "find_consts"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow>"} \\
     @{command_def "thm_deps"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow>"} \\
     @{command_def "print_facts"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow>"} \\
     @{command_def "print_binds"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow>"} \\
@@ -25,10 +26,14 @@ text {*
     'print\_theory' ( '!'?)
     ;
 
-    'find\_theorems' (('(' (nat)? ('with\_dups')? ')')?) (criterion *)
+    'find\_theorems' (('(' (nat)? ('with\_dups')? ')')?) (thmcriterion *)
     ;
-    criterion: ('-'?) ('name' ':' nameref | 'intro' | 'elim' | 'dest' |
+    thmcriterion: ('-'?) ('name' ':' nameref | 'intro' | 'elim' | 'dest' |
       'solves' | 'simp' ':' term | term)
+    ;
+    'find\_consts' (constcriterion *)
+    ;
+    constcriterion: ('-'?) ('name' ':' nameref | 'strict' ':' type | type)
     ;
     'thm\_deps' thmrefs
     ;
@@ -77,7 +82,16 @@ text {*
   number of printed facts may be given; the default is 40.  By
   default, duplicates are removed from the search result. Use
   @{text with_dups} to display duplicates.
-  
+
+  \item @{command "find_consts"}~@{text criteria} prints all constants
+  whose type meets all of the given criteria. The criterion @{text
+  "strict: ty"} is met by any type that matches the type pattern
+  @{text ty}.  Patterns may contain both the dummy type ``@{text _}''
+  and sort constraints. The criterion @{text ty} is similar, but it
+  also matches against subtypes. The criterion @{text "name: p"} and
+  the prefix ``@{text "-"}'' function as described for @{command
+  "find_theorems"}.
+
   \item @{command "thm_deps"}~@{text "a\<^sub>1 \<dots> a\<^sub>n"}
   visualizes dependencies of facts, using Isabelle's graph browser
   tool (see also \cite{isabelle-sys}).
