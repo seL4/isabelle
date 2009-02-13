@@ -28,7 +28,7 @@ text {*
     'find\_theorems' (('(' (nat)? ('with\_dups')? ')')?) (criterion *)
     ;
     criterion: ('-'?) ('name' ':' nameref | 'intro' | 'elim' | 'dest' |
-      'simp' ':' term | term)
+      'solves' | 'simp' ':' term | term)
     ;
     'thm\_deps' thmrefs
     ;
@@ -63,11 +63,13 @@ text {*
   contain ``@{text "*"}'' wildcards.  The criteria @{text intro},
   @{text elim}, and @{text dest} select theorems that match the
   current goal as introduction, elimination or destruction rules,
-  respectively.  The criterion @{text "simp: t"} selects all rewrite
-  rules whose left-hand side matches the given term.  The criterion
-  term @{text t} selects all theorems that contain the pattern @{text
-  t} -- as usual, patterns may contain occurrences of the dummy
-  ``@{text _}'', schematic variables, and type constraints.
+  respectively.  The criteria @{text "solves"} returns all rules
+  that would directly solve the current goal.  The criterion
+  @{text "simp: t"} selects all rewrite rules whose left-hand side
+  matches the given term.  The criterion term @{text t} selects all
+  theorems that contain the pattern @{text t} -- as usual, patterns
+  may contain occurrences of the dummy ``@{text _}'', schematic
+  variables, and type constraints.
   
   Criteria can be preceded by ``@{text "-"}'' to select theorems that
   do \emph{not} match. Note that giving the empty list of criteria
