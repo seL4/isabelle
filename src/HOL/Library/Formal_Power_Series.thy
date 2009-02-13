@@ -9,7 +9,7 @@ theory Formal_Power_Series
   imports Main Fact Parity
 begin
 
-section {* The type of formal power series*}
+subsection {* The type of formal power series*}
 
 typedef 'a fps = "{f :: nat \<Rightarrow> 'a. True}"
   by simp
@@ -94,7 +94,7 @@ lemma cond_value_iff: "f (if b then x else y) = (if b then f x else f y)"
 lemma cond_application_beta: "(if b then f else g) x = (if b then f x else g x)"
   by auto
 
-section{* Formal power series form a commutative ring with unity, if the range of sequences 
+subsection{* Formal power series form a commutative ring with unity, if the range of sequences 
   they represent is a commutative ring with unity*}
 
 instantiation fps :: (semigroup_add) semigroup_add
@@ -293,7 +293,7 @@ next
 qed
 end
   
-section {* Selection of the nth power of the implicit variable in the infinite sum*}
+subsection {* Selection of the nth power of the implicit variable in the infinite sum*}
 
 definition fps_nth:: "'a fps \<Rightarrow> nat \<Rightarrow> 'a" (infixl "$" 75)
   where "f $ n = Rep_fps f n"
@@ -358,7 +358,7 @@ proof-
   ultimately show ?thesis by blast
 qed
 
-section{* Injection of the basic ring elements and multiplication by scalars *}
+subsection{* Injection of the basic ring elements and multiplication by scalars *}
 
 definition "fps_const c = Abs_fps (\<lambda>n. if n = 0 then c else 0)"
 lemma fps_const_0_eq_0[simp]: "fps_const 0 = 0" by (simp add: fps_const_def fps_eq_iff)
@@ -391,7 +391,7 @@ lemma fps_mult_left_const_nth[simp]: "(fps_const (c::'a::semiring_1) * f)$n = c*
 lemma fps_mult_right_const_nth[simp]: "(f * fps_const (c::'a::semiring_1))$n = f$n * c"
   by (simp add: fps_mult_nth fps_const_nth cond_application_beta cond_value_iff setsum_delta' cong del: if_weak_cong)
 
-section {* Formal power series form an integral domain*}
+subsection {* Formal power series form an integral domain*}
 
 instantiation fps :: (ring_1) ring_1
 begin
@@ -442,7 +442,7 @@ begin
 instance ..
 end
 
-section{* Inverses of formal power series *}
+subsection{* Inverses of formal power series *}
 
 declare setsum_cong[fundef_cong]
 
@@ -561,7 +561,7 @@ proof(clarsimp)
     by(simp add: setsum_delta)
 qed
 
-section{* Formal Derivatives, and the McLauren theorem around 0*}
+subsection{* Formal Derivatives, and the McLauren theorem around 0*}
 
 definition "fps_deriv f = Abs_fps (\<lambda>n. of_nat (n + 1) * f $ (n + 1))"
 
@@ -730,7 +730,7 @@ qed
 lemma fps_deriv_maclauren_0: "(fps_nth_deriv k (f:: ('a::comm_semiring_1) fps)) $ 0 = of_nat (fact k) * f$(k)"
   by (induct k arbitrary: f) (auto simp add: ring_simps of_nat_mult)
 
-section {* Powers*}
+subsection {* Powers*}
 
 instantiation fps :: (semiring_1) power
 begin
@@ -945,7 +945,7 @@ lemma fps_divide_deriv:   fixes a:: "('a :: field) fps"
   using fps_inverse_deriv[OF a0]
   by (simp add: fps_divide_def ring_simps power2_eq_square fps_inverse_mult inverse_mult_eq_1'[OF a0])
   
-section{* The eXtractor series X*}
+subsection{* The eXtractor series X*}
 
 lemma minus_one_power_iff: "(- (1::'a :: {recpower, comm_ring_1})) ^ n = (if even n then 1 else - 1)"
   by (induct n, auto)
@@ -1015,7 +1015,7 @@ proof-
 qed
 
   
-section{* Integration *}
+subsection{* Integration *}
 definition "fps_integral a a0 = Abs_fps (\<lambda>n. if n = 0 then a0 else (a$(n - 1) / of_nat n))"
 
 lemma fps_deriv_fps_integral: "fps_deriv (fps_integral a (a0 :: 'a :: {field, ring_char_0})) = a"
@@ -1029,7 +1029,7 @@ proof-
     unfolding fps_deriv_eq_iff by auto
 qed
   
-section {* Composition of FPSs *}
+subsection {* Composition of FPSs *}
 definition fps_compose :: "('a::semiring_1) fps \<Rightarrow> 'a fps \<Rightarrow> 'a fps" (infixl "oo" 55) where
   fps_compose_def: "a oo b = Abs_fps (\<lambda>n. setsum (\<lambda>i. a$i * (b^i$n)) {0..n})"
 
@@ -1051,9 +1051,9 @@ lemma X_fps_compose_startby0[simp]: "a$0 = 0 \<Longrightarrow> X oo a = (a :: ('
   by simp_all
 
 
-section {* Rules from Herbert Wilf's Generatingfunctionology*}
+subsection {* Rules from Herbert Wilf's Generatingfunctionology*}
 
-subsection {* Rule 1 *}
+subsubsection {* Rule 1 *}
   (* {a_{n+k}}_0^infty Corresponds to (f - setsum (\<lambda>i. a_i * x^i))/x^h, for h>0*)
 
 lemma fps_power_mult_eq_shift: 
@@ -1083,7 +1083,7 @@ proof-
   then show ?thesis by (simp add: fps_eq_iff)
 qed
 
-subsection{* Rule 2*}
+subsubsection{* Rule 2*}
 
   (* We can not reach the form of Wilf, but still near to it using rewrite rules*)
   (* If f reprents {a_n} and P is a polynomial, then 
@@ -1108,8 +1108,8 @@ lemma fps_mult_X_deriv_shift: "X* fps_deriv a = Abs_fps (\<lambda>n. of_nat n* a
 lemma fps_mult_XD_shift: "(XD ^k) (a:: ('a::{comm_ring_1, recpower, ring_char_0}) fps) = Abs_fps (\<lambda>n. (of_nat n ^ k) * a$n)"
 by (induct k arbitrary: a) (simp_all add: power_Suc XD_def fps_eq_iff ring_simps del: One_nat_def)
 
-subsection{* Rule 3 is trivial and is given by @{text fps_times_def}*}
-subsection{* Rule 5 --- summation and "division" by (1 - X)*}
+subsubsection{* Rule 3 is trivial and is given by @{text fps_times_def}*}
+subsubsection{* Rule 5 --- summation and "division" by (1 - X)*}
 
 lemma fps_divide_X_minus1_setsum_lemma:
   "a = ((1::('a::comm_ring_1) fps) - X) * Abs_fps (\<lambda>n. setsum (\<lambda>i. a $ i) {0..n})"
@@ -1157,7 +1157,7 @@ proof-
   finally show ?thesis by (simp add: inverse_mult_eq_1[OF th0])
 qed
 
-subsection{* Rule 4 in its more general form: generalizes Rule 3 for an arbitrary 
+subsubsection{* Rule 4 in its more general form: generalizes Rule 3 for an arbitrary 
   finite product of FPS, also the relvant instance of powers of a FPS*}
 
 definition "natpermute n k = {l:: nat list. length l = k \<and> foldl op + 0 l = n}"
@@ -1447,7 +1447,7 @@ proof-
 qed
 
 
-section {* Radicals *}
+subsection {* Radicals *}
 
 declare setprod_cong[fundef_cong]
 function radical :: "(nat \<Rightarrow> 'a \<Rightarrow> 'a) \<Rightarrow> nat \<Rightarrow> ('a::{field, recpower}) fps \<Rightarrow> nat \<Rightarrow> 'a" where
@@ -1832,7 +1832,7 @@ proof-
 ultimately show ?thesis by blast
 qed
 
-section{* Derivative of composition *}
+subsection{* Derivative of composition *}
 
 lemma fps_compose_deriv: 
   fixes a:: "('a::idom) fps"
@@ -1898,7 +1898,7 @@ proof-
   ultimately show ?thesis by (cases n, auto)
 qed
 
-section{* Finite FPS (i.e. polynomials) and X *}
+subsection{* Finite FPS (i.e. polynomials) and X *}
 lemma fps_poly_sum_X:
   assumes z: "\<forall>i > n. a$i = (0::'a::comm_ring_1)" 
   shows "a = setsum (\<lambda>i. fps_const (a$i) * X^i) {0..n}" (is "a = ?r")
@@ -1911,7 +1911,7 @@ proof-
   then show ?thesis unfolding fps_eq_iff by blast
 qed
 
-section{* Compositional inverses *}
+subsection{* Compositional inverses *}
 
 
 fun compinv :: "'a fps \<Rightarrow> nat \<Rightarrow> 'a::{recpower,field}" where
@@ -2217,9 +2217,9 @@ proof-
   show "?dia = inverse ?d" by simp
 qed
 
-section{* Elementary series *}
+subsection{* Elementary series *}
 
-subsection{* Exponential series *}
+subsubsection{* Exponential series *}
 definition "E x = Abs_fps (\<lambda>n. x^n / of_nat (fact n))"   
 
 lemma E_deriv[simp]: "fps_deriv (E a) = fps_const (a::'a::{field, recpower, ring_char_0}) * E a" (is "?l = ?r")
@@ -2332,7 +2332,7 @@ qed
 lemma E_power_mult: "(E (c::'a::{field,recpower,ring_char_0}))^n = E (of_nat n * c)"
   by (induct n, auto simp add: ring_simps E_add_mult power_Suc)
 
-subsection{* Logarithmic series *}  
+subsubsection{* Logarithmic series *}  
 definition "(L::'a::{field, ring_char_0,recpower} fps) 
   = Abs_fps (\<lambda>n. (- 1) ^ Suc n / of_nat n)"
 
@@ -2366,7 +2366,7 @@ proof-
     by (simp add: L_nth fps_inv_def)
 qed
 
-subsection{* Formal trigonometric functions  *}
+subsubsection{* Formal trigonometric functions  *}
 
 definition "fps_sin (c::'a::{field, recpower, ring_char_0}) = 
   Abs_fps (\<lambda>n. if even n then 0 else (- 1) ^((n - 1) div 2) * c^n /(of_nat (fact n)))"

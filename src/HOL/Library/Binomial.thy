@@ -182,7 +182,7 @@ next
   finally show ?case by simp
 qed
 
-section{* Pochhammer's symbol : generalized raising factorial*}
+subsection{* Pochhammer's symbol : generalized raising factorial*}
 
 definition "pochhammer (a::'a::comm_semiring_1) n = (if n = 0 then 1 else setprod (\<lambda>n. a + of_nat n) {0 .. n - 1})"
 
@@ -285,7 +285,7 @@ lemma pochhammer_of_nat_eq_0_iff:
     pochhammer_of_nat_eq_0_lemma'[of k n, where ?'a = 'a]
   by (auto simp add: not_le[symmetric])
 
-section{* Generalized binomial coefficients *}
+subsection{* Generalized binomial coefficients *}
 
 definition gbinomial :: "'a::{field, recpower,ring_char_0} \<Rightarrow> nat \<Rightarrow> 'a" (infixl "gchoose" 65)
   where "a gchoose n = (if n = 0 then 1 else (setprod (\<lambda>i. a - of_nat i) {0 .. n - 1}) / of_nat (fact n))"

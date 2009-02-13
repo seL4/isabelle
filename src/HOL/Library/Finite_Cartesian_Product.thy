@@ -33,7 +33,7 @@ lemma dimindex_unique: " (UNIV :: 'a set) hassize n ==> DIM('a) = n"
 by (simp add: dimindex_def hassize_def)
 
 
-section{* An indexing type parametrized by base type. *}
+subsection{* An indexing type parametrized by base type. *}
 
 typedef 'a finite_image = "{1 .. DIM('a)}"
   using dimindex_ge_1 by auto

@@ -40,7 +40,7 @@ lemma setsum_2: "setsum f {1::nat..2} = f 1 + f 2"
 lemma setsum_3: "setsum f {1::nat..3} = f 1 + f 2 + f 3" 
   by (simp add: nat_number  atLeastAtMostSuc_conv add_commute)
 
-section{* Basic componentwise operations on vectors. *}
+subsection{* Basic componentwise operations on vectors. *}
 
 instantiation "^" :: (plus,type) plus
 begin
@@ -106,7 +106,7 @@ lemma dot_2[simp]: "(x::'a::{comm_monoid_add, times}^2) \<bullet> y = (x$1) * (y
 lemma dot_3[simp]: "(x::'a::{comm_monoid_add, times}^3) \<bullet> y = (x$1) * (y$1) + (x$2) * (y$2) + (x$3) * (y$3)"
   by (simp add: dot_def dimindex_def nat_number)
 
-section {* A naive proof procedure to lift really trivial arithmetic stuff from the basis of the vector space. *}
+subsection {* A naive proof procedure to lift really trivial arithmetic stuff from the basis of the vector space. *}
 
 lemmas Cart_lambda_beta' = Cart_lambda_beta[rule_format]
 method_setup vector = {*
