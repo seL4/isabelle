@@ -162,7 +162,7 @@ text {*
   (\secref{sec:simplifier}), the main automated tool for equational
   reasoning in Isabelle.  Then ``@{command unfolding}~@{thm
   left_inv}~@{command ".."}'' would become ``@{command "by"}~@{text
-  "(simp add: left_inv)"}'' etc.
+  "(simp only: left_inv)"}'' etc.
 *}
 
 end
@@ -311,16 +311,17 @@ proof (rule double_negation)
 qed
 
 text {*
-  These examples illustrate both classical reasoning and non-trivial
-  propositional proofs in general.  All three rules characterize
-  classical logic independently, but the original rule is already the
-  most convenient to use, because it leaves the conclusion unchanged.
-  Note that @{prop "(\<not> C \<Longrightarrow> C) \<Longrightarrow> C"} fits again into our format for
-  eliminations, despite the additional twist that the context refers
-  to the main conclusion.  So we may write @{thm classical} as the
-  Isar statement ``@{text "\<OBTAINS> \<not> thesis"}''.  This also
-  explains nicely how classical reasoning really works: whatever the
-  main @{text thesis} might be, we may always assume its negation!
+  \noindent These examples illustrate both classical reasoning and
+  non-trivial propositional proofs in general.  All three rules
+  characterize classical logic independently, but the original rule is
+  already the most convenient to use, because it leaves the conclusion
+  unchanged.  Note that @{prop "(\<not> C \<Longrightarrow> C) \<Longrightarrow> C"} fits again into our
+  format for eliminations, despite the additional twist that the
+  context refers to the main conclusion.  So we may write @{thm
+  classical} as the Isar statement ``@{text "\<OBTAINS> \<not> thesis"}''.
+  This also explains nicely how classical reasoning really works:
+  whatever the main @{text thesis} might be, we may always assume its
+  negation!
 *}
 
 end
@@ -348,10 +349,10 @@ axiomatization
   exE [elim]: "(\<exists>x. B x) \<Longrightarrow> (\<And>x. B x \<Longrightarrow> C) \<Longrightarrow> C"
 
 text {*
-  \noindent The @{thm exE} rule corresponds to an Isar statement
-  ``@{text "\<ASSUMES> \<exists>x. B x \<OBTAINS> x \<WHERE> B x"}''.  In the
-  following example we illustrate quantifier reasoning with all four
-  rules:
+  \noindent The statement of @{thm exE} corresponds to ``@{text
+  "\<ASSUMES> \<exists>x. B x \<OBTAINS> x \<WHERE> B x"}'' in Isar.  In the
+  subsequent example we illustrate quantifier reasoning involving all
+  four rules:
 *}
 
 theorem
@@ -401,9 +402,10 @@ text {*
   \noindent This essentially provides a declarative reading of Pure
   rules as Isar reasoning patterns: the rule statements tells how a
   canonical proof outline shall look like.  Since the above rules have
-  already been declared as @{attribute intro}, @{attribute elim},
-  @{attribute dest} --- each according to its particular shape --- we
-  can immediately write Isar proof texts as follows.
+  already been declared as @{attribute (Pure) intro}, @{attribute
+  (Pure) elim}, @{attribute (Pure) dest} --- each according to its
+  particular shape --- we can immediately write Isar proof texts as
+  follows:
 *}
 
 (*<*)
