@@ -558,12 +558,7 @@ lemma at_supp:
   fixes x :: "'x"
   assumes at: "at TYPE('x)"
   shows "supp x = {x}"
-proof (simp add: supp_def Collect_conj_eq Collect_imp_eq at_calc[OF at], auto)
-  assume f: "finite {b::'x. b \<noteq> x}"
-  have a1: "{b::'x. b \<noteq> x} = UNIV-{x}" by force
-  have a2: "infinite (UNIV::'x set)" by (rule at4[OF at])
-  from f a1 a2 show False by force
-qed
+by(auto simp: supp_def Collect_conj_eq Collect_imp_eq at_calc[OF at] at4[OF at])
 
 lemma at_fresh:
   fixes a :: "'x"
@@ -1791,8 +1786,8 @@ next
     by (simp add: finite_infinite[OF f3,OF at4[OF at], simplified])
   hence "infinite ({c. [(a,c)]\<bullet>x = x \<and> [(b,c)]\<bullet>x = x}-{a,b})" 
     by (force dest: Diff_infinite_finite)
-  hence "({c. [(a,c)]\<bullet>x = x \<and> [(b,c)]\<bullet>x = x}-{a,b}) \<noteq> {}" 
-    by (auto iff del: finite_Diff_insert Diff_eq_empty_iff)
+  hence "({c. [(a,c)]\<bullet>x = x \<and> [(b,c)]\<bullet>x = x}-{a,b}) \<noteq> {}"
+    by (metis Collect_def finite_set set_empty2)
   hence "\<exists>c. c\<in>({c. [(a,c)]\<bullet>x = x \<and> [(b,c)]\<bullet>x = x}-{a,b})" by (force)
   then obtain c 
     where eq1: "[(a,c)]\<bullet>x = x" 

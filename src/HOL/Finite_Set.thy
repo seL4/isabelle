@@ -144,8 +144,7 @@ by(blast intro: nat_seg_image_imp_finite dest: finite_imp_nat_seg_image_inj_on)
 subsubsection{* Finiteness and set theoretic constructions *}
 
 lemma finite_UnI: "finite F ==> finite G ==> finite (F Un G)"
-  -- {* The union of two finite sets is finite. *}
-  by (induct set: finite) simp_all
+by (induct set: finite) simp_all
 
 lemma finite_subset: "A \<subseteq> B ==> finite B ==> finite A"
   -- {* Every subset of a finite set is finite. *}
@@ -174,15 +173,21 @@ proof -
   qed
 qed
 
-lemma finite_Collect_subset[simp]: "finite A \<Longrightarrow> finite{x \<in> A. P x}"
-using finite_subset[of "{x \<in> A. P x}" "A"] by blast
-
 lemma finite_Un [iff]: "finite (F Un G) = (finite F & finite G)"
-  by (blast intro: finite_subset [of _ "X Un Y", standard] finite_UnI)
+by (blast intro: finite_subset [of _ "X Un Y", standard] finite_UnI)
+
+lemma finite_disjI[simp]:
+  "finite{x. P x | Q x} = (finite{x. P x} & finite{x. Q x})"
+by(simp add:Collect_disj_eq)
 
 lemma finite_Int [simp, intro]: "finite F | finite G ==> finite (F Int G)"
   -- {* The converse obviously fails. *}
-  by (blast intro: finite_subset)
+by (blast intro: finite_subset)
+
+lemma finite_conjI [simp, intro]:
+  "finite{x. P x} | finite{x. Q x} ==> finite{x. P x & Q x}"
+  -- {* The converse obviously fails. *}
+by(simp add:Collect_conj_eq)
 
 lemma finite_insert [simp]: "finite (insert a A) = finite A"
   apply (subst insert_is_Un)
@@ -227,8 +232,24 @@ proof -
   then show ?thesis by simp
 qed
 
-lemma finite_Diff [simp]: "finite B ==> finite (B - Ba)"
-  by (rule Diff_subset [THEN finite_subset])
+lemma finite_Diff [simp]: "finite A ==> finite (A - B)"
+by (rule Diff_subset [THEN finite_subset])
+
+lemma finite_Diff2 [simp]:
+  assumes "finite B" shows "finite (A - B) = finite A"
+proof -
+  have "finite A \<longleftrightarrow> finite((A-B) Un (A Int B))" by(simp add: Un_Diff_Int)
+  also have "\<dots> \<longleftrightarrow> finite(A-B)" using `finite B` by(simp)
+  finally show ?thesis ..
+qed
+
+lemma finite_compl[simp]:
+  "finite(A::'a set) \<Longrightarrow> finite(-A) = finite(UNIV::'a set)"
+by(simp add:Compl_eq_Diff_UNIV)
+
+lemma finite_not[simp]:
+  "finite{x::'a. P x} \<Longrightarrow> finite{x. ~P x} = finite(UNIV::'a set)"
+by(simp add:Collect_neg_eq)
 
 lemma finite_Diff_insert [iff]: "finite (A - insert a B) = finite (A - B)"
   apply (subst Diff_insert)
@@ -236,9 +257,6 @@ lemma finite_Diff_insert [iff]: "finite (A - insert a B) = finite (A - B)"
    apply (rule finite_insert [symmetric, THEN trans])
    apply (subst insert_Diff, simp_all)
   done
-
-lemma finite_Diff_singleton [simp]: "finite (A - {a}) = finite A"
-  by simp
 
 
 text {* Image and Inverse Image over Finite Sets *}
