@@ -104,6 +104,16 @@ declare atLeastAtMost_iff[presburger]
 declare Bex_def[presburger]
 declare Ball_def[presburger]
 
+lemma mult_delta_left:
+  fixes x y :: "'a::mult_zero"
+  shows "(if b then x else 0) * y = (if b then x * y else 0)"
+  by simp
+
+lemma mult_delta_right:
+  fixes x y :: "'a::mult_zero"
+  shows "x * (if b then y else 0) = (if b then x * y else 0)"
+  by simp
+
 lemma cond_value_iff: "f (if b then x else y) = (if b then f x else f y)"
   by auto
 lemma cond_application_beta: "(if b then f else g) x = (if b then f x else g x)"
@@ -196,14 +206,10 @@ qed
 instance fps :: (semiring_1) monoid_mult
 proof
   fix a :: "'a fps" show "1 * a = a"
-    apply (rule fps_ext)
-    apply (simp add: fps_mult_nth)
-    by (simp add: cond_value_iff cond_application_beta setsum_delta cong del: if_weak_cong)
+    by (simp add: fps_ext fps_mult_nth mult_delta_left setsum_delta)
 next
   fix a :: "'a fps" show "a * 1 = a"
-    apply (rule fps_ext)
-    apply (simp add: fps_mult_nth)
-    by (simp add: cond_value_iff cond_application_beta setsum_delta' cong del: if_weak_cong)
+    by (simp add: fps_ext fps_mult_nth mult_delta_right setsum_delta')
 qed
 
 instance fps :: (cancel_semigroup_add) cancel_semigroup_add
@@ -336,17 +342,17 @@ lemma fps_const_add_right: "f + fps_const (c::'a\<Colon>monoid_add) = Abs_fps (\
 
 lemma fps_const_mult_left: "fps_const (c::'a\<Colon>semiring_0) * f = Abs_fps (\<lambda>n. c * f$n)"
   unfolding fps_eq_iff fps_mult_nth
-  by (simp add: fps_const_def cond_application_beta cond_value_iff setsum_delta cong del: if_weak_cong)
+  by (simp add: fps_const_def mult_delta_left setsum_delta)
 
 lemma fps_const_mult_right: "f * fps_const (c::'a\<Colon>semiring_0) = Abs_fps (\<lambda>n. f$n * c)"
   unfolding fps_eq_iff fps_mult_nth
-  by (simp add: fps_const_def cond_application_beta cond_value_iff setsum_delta' cong del: if_weak_cong)
+  by (simp add: fps_const_def mult_delta_right setsum_delta')
 
 lemma fps_mult_left_const_nth [simp]: "(fps_const (c::'a::semiring_1) * f)$n = c* f$n"
-  by (simp add: fps_mult_nth cond_application_beta cond_value_iff setsum_delta cong del: if_weak_cong)
+  by (simp add: fps_mult_nth mult_delta_left setsum_delta)
 
 lemma fps_mult_right_const_nth [simp]: "(f * fps_const (c::'a::semiring_1))$n = f$n * c"
-  by (simp add: fps_mult_nth cond_application_beta cond_value_iff setsum_delta' cong del: if_weak_cong)
+  by (simp add: fps_mult_nth mult_delta_right setsum_delta')
 
 subsection {* Formal power series form an integral domain*}
 
@@ -896,9 +902,8 @@ proof-
   {assume n: "n \<noteq> 0"
     have fN: "finite {0 .. n}" by simp
     have "(X * f) $n = (\<Sum>i = 0..n. X $ i * f $ (n - i))" by (simp add: fps_mult_nth)
-    also have "\<dots> = f $ (n - 1)" 
-      using n by (simp add: X_def cond_value_iff cond_application_beta setsum_delta[OF fN] 
-	del: One_nat_def cong del:  if_weak_cong)
+    also have "\<dots> = f $ (n - 1)"
+      using n by (simp add: X_def mult_delta_left setsum_delta [OF fN])
   finally have ?thesis using n by simp }
   moreover
   {assume n: "n=0" hence ?thesis by (simp add: fps_mult_nth X_def)}
@@ -971,19 +976,15 @@ definition fps_compose :: "('a::semiring_1) fps \<Rightarrow> 'a fps \<Rightarro
 lemma fps_compose_nth: "(a oo b)$n = setsum (\<lambda>i. a$i * (b^i$n)) {0..n}" by (simp add: fps_compose_def)
 
 lemma fps_compose_X[simp]: "a oo X = (a :: ('a :: comm_ring_1) fps)"
-  by (auto simp add: fps_compose_def X_power_iff fps_eq_iff cond_application_beta cond_value_iff setsum_delta' cong del: if_weak_cong)
+  by (simp add: fps_ext fps_compose_def mult_delta_right setsum_delta')
  
 lemma fps_const_compose[simp]: 
   "fps_const (a::'a::{comm_ring_1}) oo b = fps_const (a)"
-  apply (auto simp add: fps_eq_iff fps_compose_nth fps_mult_nth
-  cond_application_beta cond_value_iff cong del: if_weak_cong)
-  by (simp add: setsum_delta )
+  by (simp add: fps_eq_iff fps_compose_nth mult_delta_left setsum_delta)
 
 lemma X_fps_compose_startby0[simp]: "a$0 = 0 \<Longrightarrow> X oo a = (a :: ('a :: comm_ring_1) fps)"
-  apply (auto simp add: fps_compose_def fps_eq_iff cond_application_beta cond_value_iff setsum_delta cong del: if_weak_cong)
-  apply (simp add: power_Suc)
-  apply (subgoal_tac "n = 0")
-  by simp_all
+  by (simp add: fps_eq_iff fps_compose_def mult_delta_left setsum_delta
+                power_Suc not_le)
 
 
 subsection {* Rules from Herbert Wilf's Generatingfunctionology*}
@@ -1785,8 +1786,8 @@ proof-
     unfolding fps_mult_nth ..
   also have "\<dots> = setsum (\<lambda>i. of_nat i * a$i * (setsum (\<lambda>j. (b^ (i - 1))$j * (fps_deriv b)$(n - j)) {0..n})) {1.. Suc n}"
     apply (rule setsum_mono_zero_right)
-    by (auto simp add: cond_value_iff cond_application_beta setsum_delta 
-      not_le cong del: if_weak_cong)
+    apply (auto simp add: mult_delta_left setsum_delta not_le)
+    done
   also have "\<dots> = setsum (\<lambda>i. of_nat (i + 1) * a$(i+1) * (setsum (\<lambda>j. (b^ i)$j * of_nat (n - j + 1) * b$(n - j + 1)) {0..n})) {0.. n}"
     unfolding fps_deriv_nth
     apply (rule setsum_reindex_cong[where f="Suc"])
@@ -1841,8 +1842,8 @@ proof-
   {fix i
     have "a$i = ?r$i" 
       unfolding fps_setsum_nth fps_mult_left_const_nth X_power_nth
-      apply (simp add: cond_application_beta cond_value_iff setsum_delta' cong del: if_weak_cong)
-      using z by auto}
+      by (simp add: mult_delta_right setsum_delta' z)
+  }
   then show ?thesis unfolding fps_eq_iff by blast
 qed
 
@@ -1917,19 +1918,16 @@ lemma fps_inv_ginv: "fps_inv = fps_ginv X"
   done
 
 lemma fps_compose_1[simp]: "1 oo a = 1"
-  apply (auto simp add: fps_eq_iff fps_compose_nth fps_power_def cond_value_iff cond_application_beta cong del: if_weak_cong)
-  apply (simp add: setsum_delta)
-  done
+  by (simp add: fps_eq_iff fps_compose_nth fps_power_def mult_delta_left setsum_delta)
 
 lemma fps_compose_0[simp]: "0 oo a = 0"
-  by (auto simp add: fps_eq_iff fps_compose_nth fps_power_def cond_value_iff cond_application_beta cong del: if_weak_cong)
+  by (simp add: fps_eq_iff fps_compose_nth)
 
 lemma fps_pow_0: "fps_pow n 0 = (if n = 0 then 1 else 0)"
   by (induct n, simp_all)
 
 lemma fps_compose_0_right[simp]: "a oo 0 = fps_const (a$0)"
-  apply (auto simp add: fps_eq_iff fps_compose_nth fps_power_def cond_value_iff cond_application_beta cong del: if_weak_cong)
-  by (case_tac n, auto simp add: fps_pow_0 intro: setsum_0')
+  by (auto simp add: fps_eq_iff fps_compose_nth fps_power_def fps_pow_0 setsum_0')
 
 lemma fps_compose_add_distrib: "(a + b) oo c = (a oo c) + (b oo c)"
   by (simp add: fps_eq_iff fps_compose_nth  ring_simps setsum_addf)
@@ -2112,8 +2110,8 @@ proof-
 	  by (simp add: fps_compose_nth)}
       moreover
       {assume kn: "k \<le> n"
-	hence "?l$n = ?r$n" apply (simp only: fps_compose_nth X_power_nth)
-	  by (simp add: cond_value_iff cond_application_beta setsum_delta cong del: if_weak_cong)}
+	hence "?l$n = ?r$n"
+          by (simp add: fps_compose_nth mult_delta_left setsum_delta)}
       moreover have "k >n \<or> k\<le> n"  by arith
       ultimately have "?l$n = ?r$n"  by blast}
     then have ?thesis unfolding fps_eq_iff by blast}
@@ -2228,8 +2226,7 @@ lemma fps_compose_sub_distrib:
   unfolding diff_minus fps_compose_uminus fps_compose_add_distrib ..
 
 lemma X_fps_compose:"X oo a = Abs_fps (\<lambda>n. if n = 0 then (0::'a::comm_ring_1) else a$n)"
-  apply (simp add: fps_eq_iff fps_compose_nth)
-  by (simp add: cond_value_iff cond_application_beta setsum_delta power_Suc cong del: if_weak_cong)
+  by (simp add: fps_eq_iff fps_compose_nth mult_delta_left setsum_delta power_Suc)
 
 lemma X_compose_E[simp]: "X oo E (a::'a::{field, recpower}) = E a - 1"
   by (simp add: fps_eq_iff X_fps_compose)
