@@ -790,17 +790,27 @@ text {*
   contains the local proof context, the linguistic mode, and a pending
   goal (optional).  The mode determines the type of transition that
   may be performed next, it essentially alternates between forward and
-  backward reasoning.  For example, in @{text "state"} mode Isar acts
-  like a mathematical scratch-pad, accepting declarations like
-  @{command fix}, @{command assume}, and claims like @{command have},
-  @{command show}.  A goal statement changes the mode to @{text
-  "prove"}, which means that we may now refine the problem via
-  @{command unfolding} or @{command proof}.  Then we are again in
-  @{text "state"} mode of a proof body, which may issue @{command
-  show} statements to solve pending sub-goals.  A concluding @{command
-  qed} will return to the original @{text "state"} mode one level
-  upwards.  The subsequent Isar/VM trace indicates block structure,
-  linguistic mode, goal state, and inferences:
+  backward reasoning, with an intermediate stage for chained facts
+  (see \figref{fig:isar-vm}).
+
+  \begin{figure}[htb]
+  \begin{center}
+  \includegraphics[width=0.8\textwidth]{Thy/document/isar-vm}
+  \end{center}
+  \caption{Isar/VM modes}\label{fig:isar-vm}
+  \end{figure}
+
+  For example, in @{text "state"} mode Isar acts like a mathematical
+  scratch-pad, accepting declarations like @{command fix}, @{command
+  assume}, and claims like @{command have}, @{command show}.  A goal
+  statement changes the mode to @{text "prove"}, which means that we
+  may now refine the problem via @{command unfolding} or @{command
+  proof}.  Then we are again in @{text "state"} mode of a proof body,
+  which may issue @{command show} statements to solve pending
+  sub-goals.  A concluding @{command qed} will return to the original
+  @{text "state"} mode one level upwards.  The subsequent Isar/VM
+  trace indicates block structure, linguistic mode, goal state, and
+  inferences:
 *}
 
 text_raw {* \begingroup\footnotesize *}
