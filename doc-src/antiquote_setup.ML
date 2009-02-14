@@ -12,13 +12,16 @@ structure O = ThyOutput;
 
 (* misc utils *)
 
-val clean_string = translate_string
+fun translate f = Symbol.explode #> map f #> implode;
+
+val clean_string = translate
   (fn "_" => "\\_"
     | "<" => "$<$"
     | ">" => "$>$"
     | "#" => "\\#"
     | "{" => "\\{"
     | "}" => "\\}"
+    | "\\<dash>" => "-"
     | c => c);
 
 fun clean_name "\\<dots>" = "dots"
@@ -27,7 +30,7 @@ fun clean_name "\\<dots>" = "dots"
   | clean_name "_" = "underscore"
   | clean_name "{" = "braceleft"
   | clean_name "}" = "braceright"
-  | clean_name s = s |> translate_string (fn "_" => "-" | c => c);
+  | clean_name s = s |> translate (fn "_" => "-" | "\\<dash>" => "-" | c => c);
 
 
 (* verbatim text *)
