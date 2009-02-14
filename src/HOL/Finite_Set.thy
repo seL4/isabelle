@@ -247,6 +247,10 @@ lemma finite_compl[simp]:
   "finite(A::'a set) \<Longrightarrow> finite(-A) = finite(UNIV::'a set)"
 by(simp add:Compl_eq_Diff_UNIV)
 
+lemma finite_not[simp]:
+  "finite{x::'a. P x} \<Longrightarrow> finite{x. ~P x} = finite(UNIV::'a set)"
+by(simp add:Collect_neg_eq)
+
 lemma finite_Diff_insert [iff]: "finite (A - insert a B) = finite (A - B)"
   apply (subst Diff_insert)
   apply (case_tac "a : A - B")
