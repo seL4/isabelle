@@ -97,9 +97,9 @@ text {*
 text_raw {*\end{minipage}*}
 
 text {*
-  \medskip\noindent Note that @{command "assume"} augments the proof
-  context, @{command "then"} indicates that the current fact shall be
-  used in the next step, and @{command "have"} states an intermediate
+  \medskip\noindent Note that @{command assume} augments the proof
+  context, @{command then} indicates that the current fact shall be
+  used in the next step, and @{command have} states an intermediate
   goal.  The two dots ``@{command ".."}'' refer to a complete proof of
   this claim, using the indicated facts and a canonical rule from the
   context.  We could have been more explicit here by spelling out the
@@ -154,17 +154,17 @@ text_raw {*\end{minipage}*}
 text {*
   \medskip\noindent This Isar reasoning pattern again refers to the
   primitive rule depicted above.  The system determines it in the
-  ``@{command "proof"}'' step, which could have been spelt out more
-  explicitly as ``@{command "proof"}~@{text "(rule InterI)"}''.  Note
+  ``@{command proof}'' step, which could have been spelt out more
+  explicitly as ``@{command proof}~@{text "(rule InterI)"}''.  Note
   that the rule involves both a local parameter @{term "A"} and an
   assumption @{prop "A \<in> \<A>"} in the nested reasoning.  This kind of
   compound rule typically demands a genuine sub-proof in Isar, working
   backwards rather than forwards as seen before.  In the proof body we
-  encounter the @{command "fix"}-@{command "assume"}-@{command "show"}
-  skeleton of nested sub-proofs that is typical for Isar.  The final
-  @{command "show"} is like @{command "have"} followed by an
-  additional refinement of the enclosing claim, using the rule derived
-  from the proof body.
+  encounter the @{command fix}-@{command assume}-@{command show}
+  outline of nested sub-proofs that is typical for Isar.  The final
+  @{command show} is like @{command have} followed by an additional
+  refinement of the enclosing claim, using the rule derived from the
+  proof body.
 
   \medskip The next example involves @{term "\<Union>\<A>"}, which can be
   characterized as the set of all @{term "x"} such that @{prop "\<exists>A. x
@@ -207,7 +207,7 @@ text {*
   conclusion @{prop "C"}, which represents the final result, but is
   irrelevant for now.  This issue arises for any elimination rule
   involving local parameters.  Isar provides the derived language
-  element @{command "obtain"}, which is able to perform the same
+  element @{command obtain}, which is able to perform the same
   elimination proof more conveniently:
 *}
 
@@ -437,14 +437,13 @@ text {*
   \]
 
   \noindent Here the @{text "sub\<dash>proof"} rule stems from the
-  main @{command "fix"}-@{command "assume"}-@{command "show"} skeleton
-  of Isar (cf.\ \secref{sec:framework-subproof}): each assumption
+  main @{command fix}-@{command assume}-@{command show} outline of
+  Isar (cf.\ \secref{sec:framework-subproof}): each assumption
   indicated in the text results in a marked premise @{text "G"} above.
   The marking enforces resolution against one of the sub-goal's
-  premises.  Consequently, @{command "fix"}-@{command
-  "assume"}-@{command "show"} enables to fit the result of a sub-proof
-  quite robustly into a pending sub-goal, while maintaining a good
-  measure of flexibility.
+  premises.  Consequently, @{command fix}-@{command assume}-@{command
+  show} enables to fit the result of a sub-proof quite robustly into a
+  pending sub-goal, while maintaining a good measure of flexibility.
 *}
 
 
@@ -479,7 +478,7 @@ text {*
     & @{text "|"} & @{command "note"}~@{text "name = facts"} \\
     & @{text "|"} & @{command "let"}~@{text "term = term"} \\
     & @{text "|"} & @{command "fix"}~@{text "var\<^sup>+"} \\
-    & @{text "|"} & @{text "\<ASSM> \<guillemotleft>inference\<guillemotright> name: props"} \\
+    & @{text "|"} & @{command assume}~@{text "\<guillemotleft>inference\<guillemotright> name: props"} \\
     & @{text "|"} & @{command "then"}@{text "\<^sup>?"}~@{text goal} \\
     @{text goal} & = & @{command "have"}~@{text "name: props proof"} \\
     & @{text "|"} & @{command "show"}~@{text "name: props proof"} \\
@@ -494,7 +493,7 @@ text {*
   matching.
 
   \medskip Facts may be referenced by name or proposition.  For
-  example, the result of ``@{command "have"}~@{text "a: A \<langle>proof\<rangle>"}''
+  example, the result of ``@{command have}~@{text "a: A \<langle>proof\<rangle>"}''
   becomes available both as @{text "a"} and
   \isacharbackquoteopen@{text "A"}\isacharbackquoteclose.  Moreover,
   fact expressions may involve attributes that modify either the
@@ -505,22 +504,26 @@ text {*
   declares a fact as introduction rule in the context.
 
   The special fact called ``@{fact this}'' always refers to the last
-  result, as produced by @{command note}, @{text "\<ASSM>"}, @{command
-  "have"}, or @{command "show"}.  Since @{command "note"} occurs
-  frequently together with @{command "then"} we provide some
-  abbreviations: ``@{command "from"}~@{text a}'' for ``@{command
-  "note"}~@{text a}~@{command "then"}'', and ``@{command
-  "with"}~@{text a}'' for ``@{command "from"}~@{text a}~@{keyword
-  "and"}~@{fact this}''.
+  result, as produced by @{command note}, @{command assume}, @{command
+  have}, or @{command show}.  Since @{command note} occurs
+  frequently together with @{command then} we provide some
+  abbreviations:
 
-  \medskip The @{text "method"} category is essentially a parameter
-  and may be populated later.  Methods use the facts indicated by
-  @{command "then"} or @{command "using"}, and then operate on the
-  goal state.  Some basic methods are predefined: ``@{method "-"}''
-  leaves the goal unchanged, ``@{method this}'' applies the facts as
-  rules to the goal, ``@{method "rule"}'' applies the facts to another
-  rule and the result to the goal (both ``@{method this}'' and
-  ``@{method rule}'' refer to @{inference resolution} of
+  \medskip
+  \begin{tabular}{rcl}
+    @{command from}~@{text a} & @{text "\<equiv>"} & @{command note}~@{text a}~@{command then} \\
+    @{command with}~@{text a} & @{text "\<equiv>"} & @{command from}~@{text "a \<AND> this"} \\
+  \end{tabular}
+  \medskip
+
+  The @{text "method"} category is essentially a parameter and may be
+  populated later.  Methods use the facts indicated by @{command
+  "then"} or @{command using}, and then operate on the goal state.
+  Some basic methods are predefined: ``@{method "-"}'' leaves the goal
+  unchanged, ``@{method this}'' applies the facts as rules to the
+  goal, ``@{method "rule"}'' applies the facts to another rule and the
+  result to the goal (both ``@{method this}'' and ``@{method rule}''
+  refer to @{inference resolution} of
   \secref{sec:framework-resolution}).  The secondary arguments to
   ``@{method rule}'' may be specified explicitly as in ``@{text "(rule
   a)"}'', or picked from the context.  In the latter case, the system
@@ -528,27 +531,26 @@ text {*
   @{attribute (Pure) dest}, followed by those declared as @{attribute
   (Pure) intro}.
 
-  The default method for @{command "proof"} is ``@{method rule}''
-  (arguments picked from the context), for @{command "qed"} it is
+  The default method for @{command proof} is ``@{method rule}''
+  (arguments picked from the context), for @{command qed} it is
   ``@{method "-"}''.  Further abbreviations for terminal proof steps
   are ``@{command "by"}~@{text "method\<^sub>1 method\<^sub>2"}'' for
-  ``@{command "proof"}~@{text "method\<^sub>1"}~@{command
-  "qed"}~@{text "method\<^sub>2"}'', and ``@{command ".."}'' for
-  ``@{command "by"}~@{method rule}, and ``@{command "."}'' for
-  ``@{command "by"}~@{method this}''.  The @{command "unfolding"}
-  element operates directly on the current facts and goal by applying
-  equalities.
+  ``@{command proof}~@{text "method\<^sub>1"}~@{command qed}~@{text
+  "method\<^sub>2"}'', and ``@{command ".."}'' for ``@{command
+  "by"}~@{method rule}, and ``@{command "."}'' for ``@{command
+  "by"}~@{method this}''.  The @{command unfolding} element operates
+  directly on the current facts and goal by applying equalities.
 
-  \medskip Block structure can be indicated explicitly by
-  ``@{command "{"}~@{text "\<dots>"}~@{command "}"}'', although the body of
-  a sub-proof already involves implicit nesting.  In any case,
-  @{command "next"} jumps into the next section of a block, i.e.\ it
-  acts like closing an implicit block scope and opening another one;
-  there is no direct correspondence to subgoals here.
+  \medskip Block structure can be indicated explicitly by ``@{command
+  "{"}~@{text "\<dots>"}~@{command "}"}'', although the body of a sub-proof
+  already involves implicit nesting.  In any case, @{command next}
+  jumps into the next section of a block, i.e.\ it acts like closing
+  an implicit block scope and opening another one; there is no direct
+  correspondence to subgoals here.
 
-  The remaining elements @{command "fix"} and @{text "\<ASSM>"} build
-  up a local context (see \secref{sec:framework-context}), while
-  @{command "show"} refines a pending sub-goal by the rule resulting
+  The remaining elements @{command fix} and @{command assume} build up
+  a local context (see \secref{sec:framework-context}), while
+  @{command show} refines a pending sub-goal by the rule resulting
   from a nested sub-proof (see \secref{sec:framework-subproof}).
   Further derived concepts will support calculational reasoning (see
   \secref{sec:framework-calc}).
@@ -563,35 +565,51 @@ text {*
   towards a higher-level notion, with additional information for
   type-inference, term abbreviations, local facts, hypotheses etc.
 
-  The element @{command "fix"}~@{text "x :: \<alpha>"} declares a local
+  The element @{command fix}~@{text "x :: \<alpha>"} declares a local
   parameter, i.e.\ an arbitrary-but-fixed entity of a given type; in
   results exported from the context, @{text "x"} may become anything.
-  The @{text "\<ASSM>"} element provides a general interface to
-  hypotheses: ``@{text "\<ASSM> \<guillemotleft>inference\<guillemotright> A"}'' produces @{text "A \<turnstile>
-  A"} locally, while the included inference tells how to discharge
-  @{text "A"} from results @{text "A \<turnstile> B"} later on.  There is no
-  user-syntax for @{text "\<guillemotleft>inference\<guillemotright>"}, i.e.\ @{text "\<ASSM>"} may
-  only occur in derived elements that provide a suitable inference
-  internally.  In particular, ``@{command "assume"}~@{text A}''
-  abbreviates ``@{text "\<ASSM> \<guillemotleft>discharge\<guillemotright> A"}'', and ``@{command
-  "def"}~@{text "x \<equiv> a"}'' abbreviates ``@{command "fix"}~@{text "x
-  \<ASSM> \<guillemotleft>expansion\<guillemotright> x \<equiv> a"}'', involving the following inferences:
+  The @{command assume}~@{text "\<guillemotleft>inference\<guillemotright>"} element provides a
+  general interface to hypotheses: ``@{command assume}~@{text
+  "\<guillemotleft>inference\<guillemotright> A"}'' produces @{text "A \<turnstile> A"} locally, while the
+  included inference tells how to discharge @{text A} from results
+  @{text "A \<turnstile> B"} later on.  There is no user-syntax for @{text
+  "\<guillemotleft>inference\<guillemotright>"}, i.e.\ it may only occur internally when derived
+  commands are defined in ML.
+
+  At the user-level, the default inference for @{command assume} is
+  @{inference discharge} as given below.  The additional variants
+  @{command presume} and @{command def} are defined as follows:
+
+  \medskip
+  \begin{tabular}{rcl}
+    @{command presume}~@{text A} & @{text "\<equiv>"} & @{command assume}~@{text "\<guillemotleft>weak\<dash>discharge\<guillemotright> A"} \\
+    @{command def}~@{text "x \<equiv> a"} & @{text "\<equiv>"} & @{command fix}~@{text x}~@{command assume}~@{text "\<guillemotleft>expansion\<guillemotright> x \<equiv> a"} \\
+  \end{tabular}
+  \medskip
 
   \[
-  \infer[(@{inference_def "discharge"})]{@{text "\<strut>\<Gamma> - A \<turnstile> #A \<Longrightarrow> B"}}{@{text "\<strut>\<Gamma> \<turnstile> B"}}
-  \qquad
+  \infer[(@{inference_def discharge})]{@{text "\<strut>\<Gamma> - A \<turnstile> #A \<Longrightarrow> B"}}{@{text "\<strut>\<Gamma> \<turnstile> B"}}
+  \]
+  \[
+  \infer[(@{inference_def "weak\<dash>discharge"})]{@{text "\<strut>\<Gamma> - A \<turnstile> A \<Longrightarrow> B"}}{@{text "\<strut>\<Gamma> \<turnstile> B"}}
+  \]
+  \[
   \infer[(@{inference_def expansion})]{@{text "\<strut>\<Gamma> - (x \<equiv> a) \<turnstile> B a"}}{@{text "\<strut>\<Gamma> \<turnstile> B x"}}
   \]
 
-  \medskip The most interesting derived element in Isar is @{command
-  "obtain"} \cite[\S5.3]{Wenzel-PhD}, which supports generalized
-  elimination steps in a purely forward manner.
+  \medskip Note that @{inference discharge} and @{inference
+  "weak\<dash>discharge"} differ in the marker for @{prop A}, which is
+  relevant when the result of a @{command fix}-@{command
+  assume}-@{command show} outline is composed with a pending goal,
+  cf.\ \secref{sec:framework-subproof}.
 
-  The @{command "obtain"} element takes a specification of parameters
-  @{text "\<^vec>x"} and assumptions @{text "\<^vec>A"} to be added to
-  the context, together with a proof of a case rule stating that this
-  extension is conservative (i.e.\ may be removed from closed results
-  later on):
+  The most interesting derived context element in Isar is @{command
+  obtain} \cite[\S5.3]{Wenzel-PhD}, which supports generalized
+  elimination steps in a purely forward manner.  The @{command obtain}
+  element takes a specification of parameters @{text "\<^vec>x"} and
+  assumptions @{text "\<^vec>A"} to be added to the context, together
+  with a proof of a case rule stating that this extension is
+  conservative (i.e.\ may be removed from closed results later on):
 
   \medskip
   \begin{tabular}{l}
@@ -602,7 +620,7 @@ text {*
   \qquad @{command assume}~@{text "[intro]: \<And>\<^vec>x. \<^vec>A \<^vec>x \<Longrightarrow> thesis"} \\
   \qquad @{command show}~@{text thesis}~@{command using}~@{text "\<langle>facts\<rangle> \<langle>proof\<rangle>"} \\
   \quad @{command qed} \\
-  \quad @{command fix}~@{text "\<^vec>x \<ASSM> \<guillemotleft>elimination case\<guillemotright> \<^vec>A \<^vec>x"} \\
+  \quad @{command fix}~@{text "\<^vec>x"}~@{command assume}~@{text "\<guillemotleft>elimination case\<guillemotright> \<^vec>A \<^vec>x"} \\
   \end{tabular}
   \medskip
 
@@ -619,18 +637,17 @@ text {*
   \noindent Here the name ``@{text thesis}'' is a specific convention
   for an arbitrary-but-fixed proposition; in the primitive natural
   deduction rules shown before we have occasionally used @{text C}.
-  The whole statement of ``@{command "obtain"}~@{text x}~@{keyword
+  The whole statement of ``@{command obtain}~@{text x}~@{keyword
   "where"}~@{text "A x"}'' may be read as a claim that @{text "A x"}
   may be assumed for some arbitrary-but-fixed @{text "x"}.  Also note
-  that ``@{command "obtain"}~@{text A}~@{keyword "and"}~@{text B}''
-  without parameters is similar to ``@{command "have"}~@{text
-  A}~@{keyword "and"}~@{text B}'', but the latter involves multiple
-  sub-goals.
+  that ``@{command obtain}~@{text "A \<AND> B"}'' without parameters
+  is similar to ``@{command have}~@{text "A \<AND> B"}'', but the
+  latter involves multiple sub-goals.
 
   \medskip The subsequent Isar proof texts explain all context
   elements introduced above using the formal proof language itself.
   After finishing a local proof within a block, we indicate the
-  exported result via @{command "note"}.  This illustrates the meaning
+  exported result via @{command note}.  This illustrates the meaning
   of Isar context elements without goals getting in between.
 *}
 
