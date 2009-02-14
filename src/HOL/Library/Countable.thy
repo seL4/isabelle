@@ -39,6 +39,9 @@ definition from_nat :: "nat \<Rightarrow> 'a\<Colon>countable" where
 lemma inj_to_nat [simp]: "inj to_nat"
   by (rule exE_some [OF ex_inj]) (simp add: to_nat_def)
 
+lemma surj_from_nat [simp]: "surj from_nat"
+  unfolding from_nat_def by (simp add: inj_imp_surj_inv)
+
 lemma to_nat_split [simp]: "to_nat x = to_nat y \<longleftrightarrow> x = y"
   using injD [OF inj_to_nat] by auto
 
