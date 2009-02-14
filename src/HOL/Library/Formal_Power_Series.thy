@@ -496,7 +496,7 @@ proof(clarsimp)
     by(simp add: setsum_delta)
 qed
 
-subsection{* Formal Derivatives, and the McLaurin theorem around 0*}
+subsection{* Formal Derivatives, and the MacLaurin theorem around 0*}
 
 definition "fps_deriv f = Abs_fps (\<lambda>n. of_nat (n + 1) * f $ (n + 1))"
 
@@ -695,7 +695,7 @@ proof-
   ultimately show ?thesis by blast
 qed
 
-lemma fps_sqrare_eq_iff: "(a:: 'a::idom fps)^ 2 = b^2  \<longleftrightarrow> (a = b \<or> a = -b)"
+lemma fps_square_eq_iff: "(a:: 'a::idom fps)^ 2 = b^2  \<longleftrightarrow> (a = b \<or> a = -b)"
 proof-
   {assume "a = b \<or> a = -b" hence "a^2 = b^2" by auto}
   moreover
