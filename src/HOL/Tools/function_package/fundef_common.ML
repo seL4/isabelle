@@ -254,8 +254,8 @@ fun check_defs ctxt fixes eqs =
                          ^ " occur" ^ plural "s" "" rvs ^ " on right hand side only:")
                                     
             val _ = forall (not o Term.exists_subterm 
-                             (fn Free (n, _) => n mem fnames | _ => false)) gs 
-                    orelse input_error "Recursive Calls not allowed in premises"
+                             (fn Free (n, _) => n mem fnames | _ => false)) (gs @ args)
+                    orelse input_error "Defined function may not occur in premises or arguments"
 
             val freeargs = map (fn t => subst_bounds (rev (map Free qs), t)) args
             val funvars = filter (fn q => exists (exists_subterm (fn (Free q') $ _ => q = q' | _ => false)) freeargs) qs
