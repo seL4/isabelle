@@ -176,7 +176,7 @@ qed
 lemma finite_Un [iff]: "finite (F Un G) = (finite F & finite G)"
 by (blast intro: finite_subset [of _ "X Un Y", standard] finite_UnI)
 
-lemma finite_disjI[simp]:
+lemma finite_Collect_disjI[simp]:
   "finite{x. P x | Q x} = (finite{x. P x} & finite{x. Q x})"
 by(simp add:Collect_disj_eq)
 
@@ -184,7 +184,7 @@ lemma finite_Int [simp, intro]: "finite F | finite G ==> finite (F Int G)"
   -- {* The converse obviously fails. *}
 by (blast intro: finite_subset)
 
-lemma finite_conjI [simp, intro]:
+lemma finite_Collect_conjI [simp, intro]:
   "finite{x. P x} | finite{x. Q x} ==> finite{x. P x & Q x}"
   -- {* The converse obviously fails. *}
 by(simp add:Collect_conj_eq)
@@ -247,7 +247,7 @@ lemma finite_compl[simp]:
   "finite(A::'a set) \<Longrightarrow> finite(-A) = finite(UNIV::'a set)"
 by(simp add:Compl_eq_Diff_UNIV)
 
-lemma finite_not[simp]:
+lemma finite_Collect_not[simp]:
   "finite{x::'a. P x} \<Longrightarrow> finite{x. ~P x} = finite(UNIV::'a set)"
 by(simp add:Collect_neg_eq)
 
@@ -325,9 +325,9 @@ text {*
   @{prop "finite C ==> ALL A B. (UNION A B) <= C --> finite {x. x:A & B x \<noteq> {}}"}
   by induction. *}
 
-lemma finite_UN [simp]: "finite A ==> finite (UNION A B) = (ALL x:A. finite (B x))"
-  by (blast intro: finite_UN_I finite_subset)
-
+lemma finite_UN [simp]:
+  "finite A ==> finite (UNION A B) = (ALL x:A. finite (B x))"
+by (blast intro: finite_UN_I finite_subset)
 
 lemma finite_Plus: "[| finite A; finite B |] ==> finite (A <+> B)"
 by (simp add: Plus_def)
@@ -393,6 +393,14 @@ next
     by induct (simp_all add: finite_UnI finite_imageI Pow_insert)
 qed
 
+lemma finite_Collect_subsets[simp,intro]: "finite A \<Longrightarrow> finite{B. B \<subseteq> A}"
+by(simp add: Pow_def[symmetric])
+
+lemma finite_bex_subset[simp]:
+  "finite B \<Longrightarrow> finite{x. EX A<=B. P x A} = (ALL A<=B. finite{x. P x A})"
+apply(subgoal_tac "{x. EX A<=B. P x A} = (UN A:Pow B. {x. P x A})")
+ apply auto
+done
 
 lemma finite_UnionD: "finite(\<Union>A) \<Longrightarrow> finite A"
 by(blast intro: finite_subset[OF subset_Pow_Union])

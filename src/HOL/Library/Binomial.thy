@@ -106,6 +106,21 @@ lemma choose_deconstruct: "finite M ==> x \<notin> M
   apply (erule rev_mp, subst card_Diff_singleton)
   apply (auto intro: finite_subset)
   done
+(*
+lemma "finite(UN y. {x. P x y})"
+apply simp
+lemma Collect_ex_eq
+
+lemma "{x. EX y. P x y} = (UN y. {x. P x y})"
+apply blast
+*)
+
+lemma finite_bex_subset[simp]:
+  "finite B \<Longrightarrow> (!!A. A<=B \<Longrightarrow> finite{x. P x A}) \<Longrightarrow> finite{x. EX A<=B. P x A}"
+apply(subgoal_tac "{x. EX A<=B. P x A} = (UN A:Pow B. {x. P x A})")
+ apply simp
+apply blast
+done
 
 text{*There are as many subsets of @{term A} having cardinality @{term k}
  as there are sets obtained from the former by inserting a fixed element
@@ -114,14 +129,10 @@ lemma constr_bij:
    "[|finite A; x \<notin> A|] ==>
     card {B. EX C. C <= A & card(C) = k & B = insert x C} =
     card {B. B <= A & card(B) = k}"
-  apply (rule_tac f = "%s. s - {x}" and g = "insert x" in card_bij_eq)
-       apply (auto elim!: equalityE simp add: inj_on_def)
-    apply (subst Diff_insert0, auto)
-   txt {* finiteness of the two sets *}
-   apply (rule_tac [2] B = "Pow (A)" in finite_subset)
-   apply (rule_tac B = "Pow (insert x A)" in finite_subset)
-   apply fast+
-  done
+apply (rule_tac f = "%s. s - {x}" and g = "insert x" in card_bij_eq)
+     apply (auto elim!: equalityE simp add: inj_on_def)
+apply (subst Diff_insert0, auto)
+done
 
 text {*
   Main theorem: combinatorial statement about number of subsets of a set.
