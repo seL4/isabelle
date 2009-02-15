@@ -606,7 +606,7 @@ text {*
   The most interesting derived context element in Isar is @{command
   obtain} \cite[\S5.3]{Wenzel-PhD}, which supports generalized
   elimination steps in a purely forward manner.  The @{command obtain}
-  element takes a specification of parameters @{text "\<^vec>x"} and
+  command takes a specification of parameters @{text "\<^vec>x"} and
   assumptions @{text "\<^vec>A"} to be added to the context, together
   with a proof of a case rule stating that this extension is
   conservative (i.e.\ may be removed from closed results later on):
@@ -647,8 +647,7 @@ text {*
   \medskip The subsequent Isar proof texts explain all context
   elements introduced above using the formal proof language itself.
   After finishing a local proof within a block, we indicate the
-  exported result via @{command note}.  This illustrates the meaning
-  of Isar context elements without goals getting in between.
+  exported result via @{command note}.
 *}
 
 (*<*)
@@ -684,6 +683,10 @@ proof
 qed
 (*>*)
 
+text {*
+  \bigskip\noindent This illustrates the meaning of Isar context
+  elements without goals getting in between.
+*}
 
 subsection {* Structured statements \label{sec:framework-stmt} *}
 
