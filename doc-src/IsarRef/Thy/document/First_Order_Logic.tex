@@ -23,11 +23,11 @@
 \endisadelimvisible
 %
 \begin{isamarkuptext}%
-In order to commence a new object-logic within Isabelle/Pure we
-  introduce abstract syntactic categories \isa{{\isachardoublequote}i{\isachardoublequote}} for individuals
-  and \isa{{\isachardoublequote}o{\isachardoublequote}} for object-propositions.  The latter is embedded
-  into the language of Pure propositions by means of a separate
-  judgment.%
+\noindent In order to commence a new object-logic within
+  Isabelle/Pure we introduce abstract syntactic categories \isa{{\isachardoublequote}i{\isachardoublequote}}
+  for individuals and \isa{{\isachardoublequote}o{\isachardoublequote}} for object-propositions.  The latter
+  is embedded into the language of Pure propositions by means of a
+  separate judgment.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{typedecl}\isamarkupfalse%
@@ -298,9 +298,9 @@ As an example for equational reasoning we consider some bits of
 \endisadelimproof
 %
 \begin{isamarkuptext}%
-Reasoning from basic axioms is often tedious.  Our proofs work by
-  producing various instances of the given rules (potentially the
-  symmetric form) using the pattern ``\hyperlink{command.have}{\mbox{\isa{\isacommand{have}}}}~\isa{eq}~\hyperlink{command.by}{\mbox{\isa{\isacommand{by}}}}~\isa{{\isachardoublequote}{\isacharparenleft}rule\ r{\isacharparenright}{\isachardoublequote}}'' and composing the chain of
+\noindent Reasoning from basic axioms is often tedious.  Our proofs
+  work by producing various instances of the given rules (potentially
+  the symmetric form) using the pattern ``\hyperlink{command.have}{\mbox{\isa{\isacommand{have}}}}~\isa{eq}~\hyperlink{command.by}{\mbox{\isa{\isacommand{by}}}}~\isa{{\isachardoublequote}{\isacharparenleft}rule\ r{\isacharparenright}{\isachardoublequote}}'' and composing the chain of
   results via \hyperlink{command.also}{\mbox{\isa{\isacommand{also}}}}/\hyperlink{command.finally}{\mbox{\isa{\isacommand{finally}}}}.  These steps may
   involve any of the transitivity rules declared in
   \secref{sec:framework-ex-equal}, namely \isa{trans} in combining
@@ -354,19 +354,19 @@ Reasoning from basic axioms is often tedious.  Our proofs work by
   definitions in order to normalize each equational problem.  A more
   realistic object-logic would include proper setup for the Simplifier
   (\secref{sec:simplifier}), the main automated tool for equational
-  reasoning in Isabelle.  Then ``\hyperlink{command.unfolding}{\mbox{\isa{\isacommand{unfolding}}}}~\isa{left{\isacharunderscore}inv}~\hyperlink{command.ddot}{\mbox{\isa{\isacommand{{\isachardot}{\isachardot}}}}}'' would become ``\hyperlink{command.by}{\mbox{\isa{\isacommand{by}}}}~\isa{{\isachardoublequote}{\isacharparenleft}simp\ add{\isacharcolon}\ left{\isacharunderscore}inv{\isacharparenright}{\isachardoublequote}}'' etc.%
+  reasoning in Isabelle.  Then ``\hyperlink{command.unfolding}{\mbox{\isa{\isacommand{unfolding}}}}~\isa{left{\isacharunderscore}inv}~\hyperlink{command.ddot}{\mbox{\isa{\isacommand{{\isachardot}{\isachardot}}}}}'' would become ``\hyperlink{command.by}{\mbox{\isa{\isacommand{by}}}}~\isa{{\isachardoublequote}{\isacharparenleft}simp\ only{\isacharcolon}\ left{\isacharunderscore}inv{\isacharparenright}{\isachardoublequote}}'' etc.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{end}\isamarkupfalse%
 %
-\isamarkupsubsection{Propositional logic%
+\isamarkupsubsection{Propositional logic \label{sec:framework-ex-prop}%
 }
 \isamarkuptrue%
 %
 \begin{isamarkuptext}%
 We axiomatize basic connectives of propositional logic: implication,
   disjunction, and conjunction.  The associated rules are modeled
-  after Gentzen's natural deduction \cite{Gentzen:1935}.%
+  after Gentzen's system of Natural Deduction \cite{Gentzen:1935}.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{axiomatization}\isamarkupfalse%
@@ -378,16 +378,16 @@ We axiomatize basic connectives of propositional logic: implication,
 \isacommand{axiomatization}\isamarkupfalse%
 \isanewline
 \ \ disj\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}o\ {\isasymRightarrow}\ o\ {\isasymRightarrow}\ o{\isachardoublequoteclose}\ \ {\isacharparenleft}\isakeyword{infixr}\ {\isachardoublequoteopen}{\isasymor}{\isachardoublequoteclose}\ {\isadigit{3}}{\isadigit{0}}{\isacharparenright}\ \isakeyword{where}\isanewline
-\ \ disjE\ {\isacharbrackleft}elim{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}A\ {\isasymor}\ B\ {\isasymLongrightarrow}\ {\isacharparenleft}A\ {\isasymLongrightarrow}\ C{\isacharparenright}\ {\isasymLongrightarrow}\ {\isacharparenleft}B\ {\isasymLongrightarrow}\ C{\isacharparenright}\ {\isasymLongrightarrow}\ C{\isachardoublequoteclose}\ \isakeyword{and}\isanewline
 \ \ disjI\isactrlisub {\isadigit{1}}\ {\isacharbrackleft}intro{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}A\ {\isasymLongrightarrow}\ A\ {\isasymor}\ B{\isachardoublequoteclose}\ \isakeyword{and}\isanewline
-\ \ disjI\isactrlisub {\isadigit{2}}\ {\isacharbrackleft}intro{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}B\ {\isasymLongrightarrow}\ A\ {\isasymor}\ B{\isachardoublequoteclose}\isanewline
+\ \ disjI\isactrlisub {\isadigit{2}}\ {\isacharbrackleft}intro{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}B\ {\isasymLongrightarrow}\ A\ {\isasymor}\ B{\isachardoublequoteclose}\ \isakeyword{and}\isanewline
+\ \ disjE\ {\isacharbrackleft}elim{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}A\ {\isasymor}\ B\ {\isasymLongrightarrow}\ {\isacharparenleft}A\ {\isasymLongrightarrow}\ C{\isacharparenright}\ {\isasymLongrightarrow}\ {\isacharparenleft}B\ {\isasymLongrightarrow}\ C{\isacharparenright}\ {\isasymLongrightarrow}\ C{\isachardoublequoteclose}\isanewline
 \isanewline
 \isacommand{axiomatization}\isamarkupfalse%
 \isanewline
 \ \ conj\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}o\ {\isasymRightarrow}\ o\ {\isasymRightarrow}\ o{\isachardoublequoteclose}\ \ {\isacharparenleft}\isakeyword{infixr}\ {\isachardoublequoteopen}{\isasymand}{\isachardoublequoteclose}\ {\isadigit{3}}{\isadigit{5}}{\isacharparenright}\ \isakeyword{where}\isanewline
 \ \ conjI\ {\isacharbrackleft}intro{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}A\ {\isasymLongrightarrow}\ B\ {\isasymLongrightarrow}\ A\ {\isasymand}\ B{\isachardoublequoteclose}\ \isakeyword{and}\isanewline
-\ \ conjD\isactrlisub {\isadigit{1}}\ {\isacharbrackleft}dest{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}A\ {\isasymand}\ B\ {\isasymLongrightarrow}\ A{\isachardoublequoteclose}\ \isakeyword{and}\isanewline
-\ \ conjD\isactrlisub {\isadigit{2}}\ {\isacharbrackleft}dest{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}A\ {\isasymand}\ B\ {\isasymLongrightarrow}\ B{\isachardoublequoteclose}%
+\ \ conjD\isactrlisub {\isadigit{1}}{\isacharcolon}\ {\isachardoublequoteopen}A\ {\isasymand}\ B\ {\isasymLongrightarrow}\ A{\isachardoublequoteclose}\ \isakeyword{and}\isanewline
+\ \ conjD\isactrlisub {\isadigit{2}}{\isacharcolon}\ {\isachardoublequoteopen}A\ {\isasymand}\ B\ {\isasymLongrightarrow}\ B{\isachardoublequoteclose}%
 \begin{isamarkuptext}%
 \noindent The conjunctive destructions have the disadvantage that
   decomposing \isa{{\isachardoublequote}A\ {\isasymand}\ B{\isachardoublequote}} involves an immediate decision which
@@ -410,12 +410,12 @@ We axiomatize basic connectives of propositional logic: implication,
 \isanewline
 \ \ \isacommand{from}\isamarkupfalse%
 \ {\isacharbackquoteopen}A\ {\isasymand}\ B{\isacharbackquoteclose}\ \isacommand{show}\isamarkupfalse%
-\ A\ \isacommand{{\isachardot}{\isachardot}}\isamarkupfalse%
-\isanewline
+\ A\ \isacommand{by}\isamarkupfalse%
+\ {\isacharparenleft}rule\ conjD\isactrlisub {\isadigit{1}}{\isacharparenright}\isanewline
 \ \ \isacommand{from}\isamarkupfalse%
 \ {\isacharbackquoteopen}A\ {\isasymand}\ B{\isacharbackquoteclose}\ \isacommand{show}\isamarkupfalse%
-\ B\ \isacommand{{\isachardot}{\isachardot}}\isamarkupfalse%
-\isanewline
+\ B\ \isacommand{by}\isamarkupfalse%
+\ {\isacharparenleft}rule\ conjD\isactrlisub {\isadigit{2}}{\isacharparenright}\isanewline
 \isacommand{qed}\isamarkupfalse%
 %
 \endisatagproof
@@ -454,8 +454,9 @@ We axiomatize basic connectives of propositional logic: implication,
 \endisadelimproof
 %
 \begin{isamarkuptext}%
-Note that the analogous elimination for disjunction ``\isa{{\isachardoublequote}{\isasymASSUMES}\ A\ {\isasymor}\ B\ {\isasymOBTAINS}\ A\ {\isasymBBAR}\ B{\isachardoublequote}}'' coincides with the
-  original axiomatization of \isa{{\isachardoublequote}disjE{\isachardoublequote}}.
+\noindent Note that the analogous elimination rule for disjunction
+  ``\isa{{\isachardoublequote}{\isasymASSUMES}\ A\ {\isasymor}\ B\ {\isasymOBTAINS}\ A\ {\isasymBBAR}\ B{\isachardoublequote}}'' coincides with
+  the original axiomatization of \isa{disjE}.
 
   \medskip We continue propositional logic by introducing absurdity
   with its characteristic elimination.  Plain truth may then be
@@ -491,7 +492,8 @@ Note that the analogous elimination for disjunction ``\isa{{\isachardoublequote}
 \endisadelimproof
 %
 \begin{isamarkuptext}%
-\medskip Now negation represents an implication towards absurdity:%
+\medskip\noindent Now negation represents an implication towards
+  absurdity:%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{definition}\isamarkupfalse%
@@ -658,21 +660,21 @@ Subsequently we state the principle of classical contradiction as a
 \endisadelimproof
 %
 \begin{isamarkuptext}%
-These examples illustrate both classical reasoning and non-trivial
-  propositional proofs in general.  All three rules characterize
-  classical logic independently, but the original rule is already the
-  most convenient to use, because it leaves the conclusion unchanged.
-  Note that \isa{{\isachardoublequote}{\isacharparenleft}{\isasymnot}\ C\ {\isasymLongrightarrow}\ C{\isacharparenright}\ {\isasymLongrightarrow}\ C{\isachardoublequote}} fits again into our format for
-  eliminations, despite the additional twist that the context refers
-  to the main conclusion.  So we may write \isa{{\isachardoublequote}classical{\isachardoublequote}} as the
-  Isar statement ``\isa{{\isachardoublequote}{\isasymOBTAINS}\ {\isasymnot}\ thesis{\isachardoublequote}}''.  This also
-  explains nicely how classical reasoning really works: whatever the
-  main \isa{thesis} might be, we may always assume its negation!%
+\noindent These examples illustrate both classical reasoning and
+  non-trivial propositional proofs in general.  All three rules
+  characterize classical logic independently, but the original rule is
+  already the most convenient to use, because it leaves the conclusion
+  unchanged.  Note that \isa{{\isachardoublequote}{\isacharparenleft}{\isasymnot}\ C\ {\isasymLongrightarrow}\ C{\isacharparenright}\ {\isasymLongrightarrow}\ C{\isachardoublequote}} fits again into our
+  format for eliminations, despite the additional twist that the
+  context refers to the main conclusion.  So we may write \isa{classical} as the Isar statement ``\isa{{\isachardoublequote}{\isasymOBTAINS}\ {\isasymnot}\ thesis{\isachardoublequote}}''.
+  This also explains nicely how classical reasoning really works:
+  whatever the main \isa{thesis} might be, we may always assume its
+  negation!%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{end}\isamarkupfalse%
 %
-\isamarkupsubsection{Quantifiers%
+\isamarkupsubsection{Quantifiers \label{sec:framework-ex-quant}%
 }
 \isamarkuptrue%
 %
@@ -681,7 +683,7 @@ Representing quantifiers is easy, thanks to the higher-order nature
   of the underlying framework.  According to the well-known technique
   introduced by Church \cite{church40}, quantifiers are operators on
   predicates, which are syntactically represented as \isa{{\isachardoublequote}{\isasymlambda}{\isachardoublequote}}-terms
-  of type \isa{{\isachardoublequote}i\ {\isasymRightarrow}\ o{\isachardoublequote}}.  Specific binder notation relates \isa{{\isachardoublequote}All\ {\isacharparenleft}{\isasymlambda}x{\isachardot}\ B\ x{\isacharparenright}{\isachardoublequote}} to \isa{{\isachardoublequote}{\isasymforall}x{\isachardot}\ B\ x{\isachardoublequote}} etc.%
+  of type \isa{{\isachardoublequote}i\ {\isasymRightarrow}\ o{\isachardoublequote}}.  Binder notation turns \isa{{\isachardoublequote}All\ {\isacharparenleft}{\isasymlambda}x{\isachardot}\ B\ x{\isacharparenright}{\isachardoublequote}} into \isa{{\isachardoublequote}{\isasymforall}x{\isachardot}\ B\ x{\isachardoublequote}} etc.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{axiomatization}\isamarkupfalse%
@@ -696,10 +698,9 @@ Representing quantifiers is easy, thanks to the higher-order nature
 \ \ exI\ {\isacharbrackleft}intro{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}B\ a\ {\isasymLongrightarrow}\ {\isacharparenleft}{\isasymexists}x{\isachardot}\ B\ x{\isacharparenright}{\isachardoublequoteclose}\ \isakeyword{and}\isanewline
 \ \ exE\ {\isacharbrackleft}elim{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharparenleft}{\isasymexists}x{\isachardot}\ B\ x{\isacharparenright}\ {\isasymLongrightarrow}\ {\isacharparenleft}{\isasymAnd}x{\isachardot}\ B\ x\ {\isasymLongrightarrow}\ C{\isacharparenright}\ {\isasymLongrightarrow}\ C{\isachardoublequoteclose}%
 \begin{isamarkuptext}%
-\noindent The \isa{exE} rule corresponds to an Isar statement
-  ``\isa{{\isachardoublequote}{\isasymASSUMES}\ {\isasymexists}x{\isachardot}\ B\ x\ {\isasymOBTAINS}\ x\ {\isasymWHERE}\ B\ x{\isachardoublequote}}''.  In the
-  following example we illustrate quantifier reasoning with all four
-  rules:%
+\noindent The statement of \isa{exE} corresponds to ``\isa{{\isachardoublequote}{\isasymASSUMES}\ {\isasymexists}x{\isachardot}\ B\ x\ {\isasymOBTAINS}\ x\ {\isasymWHERE}\ B\ x{\isachardoublequote}}'' in Isar.  In the
+  subsequent example we illustrate quantifier reasoning involving all
+  four rules:%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{theorem}\isamarkupfalse%
@@ -745,12 +746,657 @@ Representing quantifiers is easy, thanks to the higher-order nature
 {\isafoldproof}%
 %
 \isadelimproof
-\isanewline
 %
 \endisadelimproof
 %
-\isadelimvisible
+\isamarkupsubsection{Canonical reasoning patterns%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+The main rules of first-order predicate logic from
+  \secref{sec:framework-ex-prop} and \secref{sec:framework-ex-quant}
+  can now be summarized as follows, using the native Isar statement
+  format of \secref{sec:framework-stmt}.
+
+  \medskip
+  \begin{tabular}{l}
+  \isa{{\isachardoublequote}impI{\isacharcolon}\ {\isasymASSUMES}\ A\ {\isasymLongrightarrow}\ B\ {\isasymSHOWS}\ A\ {\isasymlongrightarrow}\ B{\isachardoublequote}} \\
+  \isa{{\isachardoublequote}impD{\isacharcolon}\ {\isasymASSUMES}\ A\ {\isasymlongrightarrow}\ B\ {\isasymAND}\ A\ {\isasymSHOWS}\ B{\isachardoublequote}} \\[1ex]
+
+  \isa{{\isachardoublequote}disjI\isactrlisub {\isadigit{1}}{\isacharcolon}\ {\isasymASSUMES}\ A\ {\isasymSHOWS}\ A\ {\isasymor}\ B{\isachardoublequote}} \\
+  \isa{{\isachardoublequote}disjI\isactrlisub {\isadigit{2}}{\isacharcolon}\ {\isasymASSUMES}\ B\ {\isasymSHOWS}\ A\ {\isasymor}\ B{\isachardoublequote}} \\
+  \isa{{\isachardoublequote}disjE{\isacharcolon}\ {\isasymASSUMES}\ A\ {\isasymor}\ B\ {\isasymOBTAINS}\ A\ {\isasymBBAR}\ B{\isachardoublequote}} \\[1ex]
+
+  \isa{{\isachardoublequote}conjI{\isacharcolon}\ {\isasymASSUMES}\ A\ {\isasymAND}\ B\ {\isasymSHOWS}\ A\ {\isasymand}\ B{\isachardoublequote}} \\
+  \isa{{\isachardoublequote}conjE{\isacharcolon}\ {\isasymASSUMES}\ A\ {\isasymand}\ B\ {\isasymOBTAINS}\ A\ {\isasymAND}\ B{\isachardoublequote}} \\[1ex]
+
+  \isa{{\isachardoublequote}falseE{\isacharcolon}\ {\isasymASSUMES}\ {\isasymbottom}\ {\isasymSHOWS}\ A{\isachardoublequote}} \\
+  \isa{{\isachardoublequote}trueI{\isacharcolon}\ {\isasymSHOWS}\ {\isasymtop}{\isachardoublequote}} \\[1ex]
+
+  \isa{{\isachardoublequote}notI{\isacharcolon}\ {\isasymASSUMES}\ A\ {\isasymLongrightarrow}\ {\isasymbottom}\ {\isasymSHOWS}\ {\isasymnot}\ A{\isachardoublequote}} \\
+  \isa{{\isachardoublequote}notE{\isacharcolon}\ {\isasymASSUMES}\ {\isasymnot}\ A\ {\isasymAND}\ A\ {\isasymSHOWS}\ B{\isachardoublequote}} \\[1ex]
+
+  \isa{{\isachardoublequote}allI{\isacharcolon}\ {\isasymASSUMES}\ {\isasymAnd}x{\isachardot}\ B\ x\ {\isasymSHOWS}\ {\isasymforall}x{\isachardot}\ B\ x{\isachardoublequote}} \\
+  \isa{{\isachardoublequote}allE{\isacharcolon}\ {\isasymASSUMES}\ {\isasymforall}x{\isachardot}\ B\ x\ {\isasymSHOWS}\ B\ a{\isachardoublequote}} \\[1ex]
+
+  \isa{{\isachardoublequote}exI{\isacharcolon}\ {\isasymASSUMES}\ B\ a\ {\isasymSHOWS}\ {\isasymexists}x{\isachardot}\ B\ x{\isachardoublequote}} \\
+  \isa{{\isachardoublequote}exE{\isacharcolon}\ {\isasymASSUMES}\ {\isasymexists}x{\isachardot}\ B\ x\ {\isasymOBTAINS}\ a\ {\isasymWHERE}\ B\ a{\isachardoublequote}}
+  \end{tabular}
+  \medskip
+
+  \noindent This essentially provides a declarative reading of Pure
+  rules as Isar reasoning patterns: the rule statements tells how a
+  canonical proof outline shall look like.  Since the above rules have
+  already been declared as \hyperlink{attribute.Pure.intro}{\mbox{\isa{intro}}}, \hyperlink{attribute.Pure.elim}{\mbox{\isa{elim}}}, \hyperlink{attribute.Pure.dest}{\mbox{\isa{dest}}} --- each according to its
+  particular shape --- we can immediately write Isar proof texts as
+  follows:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isatagproof
+%
+\begin{minipage}[t]{0.4\textwidth}
 \isanewline
+\ \ \isacommand{have}\isamarkupfalse%
+\ {\isachardoublequoteopen}A\ {\isasymlongrightarrow}\ B{\isachardoublequoteclose}\isanewline
+\ \ \isacommand{proof}\isamarkupfalse%
+\isanewline
+\ \ \ \ \isacommand{assume}\isamarkupfalse%
+\ A\isanewline
+\ \ \ \ \isacommand{show}\isamarkupfalse%
+\ B%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isadelimnoproof
+\ %
+\endisadelimnoproof
+%
+\isatagnoproof
+\isacommand{sorry}\isamarkupfalse%
+%
+\endisatagnoproof
+{\isafoldnoproof}%
+%
+\isadelimnoproof
+\isanewline
+%
+\endisadelimnoproof
+%
+\isadelimproof
+\ \ %
+\endisadelimproof
+%
+\isatagproof
+\isacommand{qed}\isamarkupfalse%
+%
+\end{minipage}\qquad\begin{minipage}[t]{0.4\textwidth}
+\isanewline
+\ \ \isacommand{have}\isamarkupfalse%
+\ {\isachardoublequoteopen}A\ {\isasymlongrightarrow}\ B{\isachardoublequoteclose}\ \isakeyword{and}\ A%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isadelimnoproof
+\ %
+\endisadelimnoproof
+%
+\isatagnoproof
+\isacommand{sorry}\isamarkupfalse%
+%
+\endisatagnoproof
+{\isafoldnoproof}%
+%
+\isadelimnoproof
+\isanewline
+%
+\endisadelimnoproof
+%
+\isadelimproof
+\ \ %
+\endisadelimproof
+%
+\isatagproof
+\isacommand{then}\isamarkupfalse%
+\ \isacommand{have}\isamarkupfalse%
+\ B\ \isacommand{{\isachardot}{\isachardot}}\isamarkupfalse%
+%
+\end{minipage}\\[3ex]\begin{minipage}[t]{0.4\textwidth}
+\isanewline
+\ \ \isacommand{have}\isamarkupfalse%
+\ A%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isadelimnoproof
+\ %
+\endisadelimnoproof
+%
+\isatagnoproof
+\isacommand{sorry}\isamarkupfalse%
+%
+\endisatagnoproof
+{\isafoldnoproof}%
+%
+\isadelimnoproof
+\isanewline
+%
+\endisadelimnoproof
+%
+\isadelimproof
+\ \ %
+\endisadelimproof
+%
+\isatagproof
+\isacommand{then}\isamarkupfalse%
+\ \isacommand{have}\isamarkupfalse%
+\ {\isachardoublequoteopen}A\ {\isasymor}\ B{\isachardoublequoteclose}\ \isacommand{{\isachardot}{\isachardot}}\isamarkupfalse%
+\isanewline
+\isanewline
+\ \ \isacommand{have}\isamarkupfalse%
+\ B%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isadelimnoproof
+\ %
+\endisadelimnoproof
+%
+\isatagnoproof
+\isacommand{sorry}\isamarkupfalse%
+%
+\endisatagnoproof
+{\isafoldnoproof}%
+%
+\isadelimnoproof
+\isanewline
+%
+\endisadelimnoproof
+%
+\isadelimproof
+\ \ %
+\endisadelimproof
+%
+\isatagproof
+\isacommand{then}\isamarkupfalse%
+\ \isacommand{have}\isamarkupfalse%
+\ {\isachardoublequoteopen}A\ {\isasymor}\ B{\isachardoublequoteclose}\ \isacommand{{\isachardot}{\isachardot}}\isamarkupfalse%
+%
+\end{minipage}\qquad\begin{minipage}[t]{0.4\textwidth}
+\isanewline
+\ \ \isacommand{have}\isamarkupfalse%
+\ {\isachardoublequoteopen}A\ {\isasymor}\ B{\isachardoublequoteclose}%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isadelimnoproof
+\ %
+\endisadelimnoproof
+%
+\isatagnoproof
+\isacommand{sorry}\isamarkupfalse%
+%
+\endisatagnoproof
+{\isafoldnoproof}%
+%
+\isadelimnoproof
+\isanewline
+%
+\endisadelimnoproof
+%
+\isadelimproof
+\ \ %
+\endisadelimproof
+%
+\isatagproof
+\isacommand{then}\isamarkupfalse%
+\ \isacommand{have}\isamarkupfalse%
+\ C\isanewline
+\ \ \isacommand{proof}\isamarkupfalse%
+\isanewline
+\ \ \ \ \isacommand{assume}\isamarkupfalse%
+\ A\isanewline
+\ \ \ \ \isacommand{then}\isamarkupfalse%
+\ \isacommand{show}\isamarkupfalse%
+\ C%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isadelimnoproof
+\ %
+\endisadelimnoproof
+%
+\isatagnoproof
+\isacommand{sorry}\isamarkupfalse%
+%
+\endisatagnoproof
+{\isafoldnoproof}%
+%
+\isadelimnoproof
+\isanewline
+%
+\endisadelimnoproof
+%
+\isadelimproof
+\ \ %
+\endisadelimproof
+%
+\isatagproof
+\isacommand{next}\isamarkupfalse%
+\isanewline
+\ \ \ \ \isacommand{assume}\isamarkupfalse%
+\ B\isanewline
+\ \ \ \ \isacommand{then}\isamarkupfalse%
+\ \isacommand{show}\isamarkupfalse%
+\ C%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isadelimnoproof
+\ %
+\endisadelimnoproof
+%
+\isatagnoproof
+\isacommand{sorry}\isamarkupfalse%
+%
+\endisatagnoproof
+{\isafoldnoproof}%
+%
+\isadelimnoproof
+\isanewline
+%
+\endisadelimnoproof
+%
+\isadelimproof
+\ \ %
+\endisadelimproof
+%
+\isatagproof
+\isacommand{qed}\isamarkupfalse%
+%
+\end{minipage}\\[3ex]\begin{minipage}[t]{0.4\textwidth}
+\isanewline
+\ \ \isacommand{have}\isamarkupfalse%
+\ A\ \isakeyword{and}\ B%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isadelimnoproof
+\ %
+\endisadelimnoproof
+%
+\isatagnoproof
+\isacommand{sorry}\isamarkupfalse%
+%
+\endisatagnoproof
+{\isafoldnoproof}%
+%
+\isadelimnoproof
+\isanewline
+%
+\endisadelimnoproof
+%
+\isadelimproof
+\ \ %
+\endisadelimproof
+%
+\isatagproof
+\isacommand{then}\isamarkupfalse%
+\ \isacommand{have}\isamarkupfalse%
+\ {\isachardoublequoteopen}A\ {\isasymand}\ B{\isachardoublequoteclose}\ \isacommand{{\isachardot}{\isachardot}}\isamarkupfalse%
+%
+\end{minipage}\qquad\begin{minipage}[t]{0.4\textwidth}
+\isanewline
+\ \ \isacommand{have}\isamarkupfalse%
+\ {\isachardoublequoteopen}A\ {\isasymand}\ B{\isachardoublequoteclose}%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isadelimnoproof
+\ %
+\endisadelimnoproof
+%
+\isatagnoproof
+\isacommand{sorry}\isamarkupfalse%
+%
+\endisatagnoproof
+{\isafoldnoproof}%
+%
+\isadelimnoproof
+\isanewline
+%
+\endisadelimnoproof
+%
+\isadelimproof
+\ \ %
+\endisadelimproof
+%
+\isatagproof
+\isacommand{then}\isamarkupfalse%
+\ \isacommand{obtain}\isamarkupfalse%
+\ A\ \isakeyword{and}\ B\ \isacommand{{\isachardot}{\isachardot}}\isamarkupfalse%
+%
+\end{minipage}\\[3ex]\begin{minipage}[t]{0.4\textwidth}
+\isanewline
+\ \ \isacommand{have}\isamarkupfalse%
+\ {\isachardoublequoteopen}{\isasymbottom}{\isachardoublequoteclose}%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isadelimnoproof
+\ %
+\endisadelimnoproof
+%
+\isatagnoproof
+\isacommand{sorry}\isamarkupfalse%
+%
+\endisatagnoproof
+{\isafoldnoproof}%
+%
+\isadelimnoproof
+\isanewline
+%
+\endisadelimnoproof
+%
+\isadelimproof
+\ \ %
+\endisadelimproof
+%
+\isatagproof
+\isacommand{then}\isamarkupfalse%
+\ \isacommand{have}\isamarkupfalse%
+\ A\ \isacommand{{\isachardot}{\isachardot}}\isamarkupfalse%
+%
+\end{minipage}\qquad\begin{minipage}[t]{0.4\textwidth}
+\isanewline
+\ \ \isacommand{have}\isamarkupfalse%
+\ {\isachardoublequoteopen}{\isasymtop}{\isachardoublequoteclose}\ \isacommand{{\isachardot}{\isachardot}}\isamarkupfalse%
+%
+\end{minipage}\\[3ex]\begin{minipage}[t]{0.4\textwidth}
+\isanewline
+\ \ \isacommand{have}\isamarkupfalse%
+\ {\isachardoublequoteopen}{\isasymnot}\ A{\isachardoublequoteclose}\isanewline
+\ \ \isacommand{proof}\isamarkupfalse%
+\isanewline
+\ \ \ \ \isacommand{assume}\isamarkupfalse%
+\ A\isanewline
+\ \ \ \ \isacommand{then}\isamarkupfalse%
+\ \isacommand{show}\isamarkupfalse%
+\ {\isachardoublequoteopen}{\isasymbottom}{\isachardoublequoteclose}%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isadelimnoproof
+\ %
+\endisadelimnoproof
+%
+\isatagnoproof
+\isacommand{sorry}\isamarkupfalse%
+%
+\endisatagnoproof
+{\isafoldnoproof}%
+%
+\isadelimnoproof
+\isanewline
+%
+\endisadelimnoproof
+%
+\isadelimproof
+\ \ %
+\endisadelimproof
+%
+\isatagproof
+\isacommand{qed}\isamarkupfalse%
+%
+\end{minipage}\qquad\begin{minipage}[t]{0.4\textwidth}
+\isanewline
+\ \ \isacommand{have}\isamarkupfalse%
+\ {\isachardoublequoteopen}{\isasymnot}\ A{\isachardoublequoteclose}\ \isakeyword{and}\ A%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isadelimnoproof
+\ %
+\endisadelimnoproof
+%
+\isatagnoproof
+\isacommand{sorry}\isamarkupfalse%
+%
+\endisatagnoproof
+{\isafoldnoproof}%
+%
+\isadelimnoproof
+\isanewline
+%
+\endisadelimnoproof
+%
+\isadelimproof
+\ \ %
+\endisadelimproof
+%
+\isatagproof
+\isacommand{then}\isamarkupfalse%
+\ \isacommand{have}\isamarkupfalse%
+\ B\ \isacommand{{\isachardot}{\isachardot}}\isamarkupfalse%
+%
+\end{minipage}\\[3ex]\begin{minipage}[t]{0.4\textwidth}
+\isanewline
+\ \ \isacommand{have}\isamarkupfalse%
+\ {\isachardoublequoteopen}{\isasymforall}x{\isachardot}\ B\ x{\isachardoublequoteclose}\isanewline
+\ \ \isacommand{proof}\isamarkupfalse%
+\isanewline
+\ \ \ \ \isacommand{fix}\isamarkupfalse%
+\ x\isanewline
+\ \ \ \ \isacommand{show}\isamarkupfalse%
+\ {\isachardoublequoteopen}B\ x{\isachardoublequoteclose}%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isadelimnoproof
+\ %
+\endisadelimnoproof
+%
+\isatagnoproof
+\isacommand{sorry}\isamarkupfalse%
+%
+\endisatagnoproof
+{\isafoldnoproof}%
+%
+\isadelimnoproof
+\isanewline
+%
+\endisadelimnoproof
+%
+\isadelimproof
+\ \ %
+\endisadelimproof
+%
+\isatagproof
+\isacommand{qed}\isamarkupfalse%
+%
+\end{minipage}\qquad\begin{minipage}[t]{0.4\textwidth}
+\isanewline
+\ \ \isacommand{have}\isamarkupfalse%
+\ {\isachardoublequoteopen}{\isasymforall}x{\isachardot}\ B\ x{\isachardoublequoteclose}%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isadelimnoproof
+\ %
+\endisadelimnoproof
+%
+\isatagnoproof
+\isacommand{sorry}\isamarkupfalse%
+%
+\endisatagnoproof
+{\isafoldnoproof}%
+%
+\isadelimnoproof
+\isanewline
+%
+\endisadelimnoproof
+%
+\isadelimproof
+\ \ %
+\endisadelimproof
+%
+\isatagproof
+\isacommand{then}\isamarkupfalse%
+\ \isacommand{have}\isamarkupfalse%
+\ {\isachardoublequoteopen}B\ a{\isachardoublequoteclose}\ \isacommand{{\isachardot}{\isachardot}}\isamarkupfalse%
+%
+\end{minipage}\\[3ex]\begin{minipage}[t]{0.4\textwidth}
+\isanewline
+\ \ \isacommand{have}\isamarkupfalse%
+\ {\isachardoublequoteopen}{\isasymexists}x{\isachardot}\ B\ x{\isachardoublequoteclose}\isanewline
+\ \ \isacommand{proof}\isamarkupfalse%
+\isanewline
+\ \ \ \ \isacommand{show}\isamarkupfalse%
+\ {\isachardoublequoteopen}B\ a{\isachardoublequoteclose}%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isadelimnoproof
+\ %
+\endisadelimnoproof
+%
+\isatagnoproof
+\isacommand{sorry}\isamarkupfalse%
+%
+\endisatagnoproof
+{\isafoldnoproof}%
+%
+\isadelimnoproof
+\isanewline
+%
+\endisadelimnoproof
+%
+\isadelimproof
+\ \ %
+\endisadelimproof
+%
+\isatagproof
+\isacommand{qed}\isamarkupfalse%
+%
+\end{minipage}\qquad\begin{minipage}[t]{0.4\textwidth}
+\isanewline
+\ \ \isacommand{have}\isamarkupfalse%
+\ {\isachardoublequoteopen}{\isasymexists}x{\isachardot}\ B\ x{\isachardoublequoteclose}%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isadelimnoproof
+\ %
+\endisadelimnoproof
+%
+\isatagnoproof
+\isacommand{sorry}\isamarkupfalse%
+%
+\endisatagnoproof
+{\isafoldnoproof}%
+%
+\isadelimnoproof
+\isanewline
+%
+\endisadelimnoproof
+%
+\isadelimproof
+\ \ %
+\endisadelimproof
+%
+\isatagproof
+\isacommand{then}\isamarkupfalse%
+\ \isacommand{obtain}\isamarkupfalse%
+\ a\ \isakeyword{where}\ {\isachardoublequoteopen}B\ a{\isachardoublequoteclose}\ \isacommand{{\isachardot}{\isachardot}}\isamarkupfalse%
+%
+\end{minipage}
+%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\begin{isamarkuptext}%
+\bigskip\noindent Of course, these proofs are merely examples.  As
+  sketched in \secref{sec:framework-subproof}, there is a fair amount
+  of flexibility in expressing Pure deductions in Isar.  Here the user
+  is asked to express himself adequately, aiming at proof texts of
+  literary quality.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isadelimvisible
 %
 \endisadelimvisible
 %
@@ -761,9 +1407,9 @@ Representing quantifiers is easy, thanks to the higher-order nature
 {\isafoldvisible}%
 %
 \isadelimvisible
-\isanewline
 %
 \endisadelimvisible
+\isanewline
 \end{isabellebody}%
 %%% Local Variables:
 %%% mode: latex
