@@ -93,6 +93,20 @@ proof -
   qed
 qed
 
+text{* A finite choice principle. Does not need the SOME choice operator. *}
+lemma finite_set_choice:
+  "finite A \<Longrightarrow> ALL x:A. (EX y. P x y) \<Longrightarrow> EX f. ALL x:A. P x (f x)"
+proof (induct set: finite)
+  case empty thus ?case by simp
+next
+  case (insert a A)
+  then obtain f b where f: "ALL x:A. P x (f x)" and ab: "P a b" by auto
+  show ?case (is "EX f. ?P f")
+  proof
+    show "?P(%x. if x = a then b else f x)" using f ab by auto
+  qed
+qed
+
 
 text{* Finite sets are the images of initial segments of natural numbers: *}
 
