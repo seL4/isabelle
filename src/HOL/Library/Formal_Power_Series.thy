@@ -691,16 +691,6 @@ instance
   by (simp_all add: fps_power_def)
 end
 
-lemma eq_neg_iff_add_eq_0: "(a::'a::ring) = -b \<longleftrightarrow> a + b = 0"
-proof-
-  {assume "a = -b" hence "b + a = b + -b" by simp
-    hence "a + b = 0" by (simp add: ring_simps)}
-  moreover
-  {assume "a + b = 0" hence "a + b - b = -b" by simp
-    hence "a = -b" by simp}
-  ultimately show ?thesis by blast
-qed
-
 lemma fps_square_eq_iff: "(a:: 'a::idom fps)^ 2 = b^2  \<longleftrightarrow> (a = b \<or> a = -b)"
 proof-
   {assume "a = b \<or> a = -b" hence "a^2 = b^2" by auto}

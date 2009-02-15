@@ -254,6 +254,16 @@ by (simp add: diff_minus add_assoc)
 
 declare diff_minus[symmetric, algebra_simps]
 
+lemma eq_neg_iff_add_eq_0: "a = - b \<longleftrightarrow> a + b = 0"
+proof
+  assume "a = - b" then show "a + b = 0" by simp
+next
+  assume "a + b = 0"
+  moreover have "a + (b + - b) = (a + b) + - b"
+    by (simp only: add_assoc)
+  ultimately show "a = - b" by simp
+qed
+
 end
 
 class ab_group_add = minus + uminus + comm_monoid_add +
