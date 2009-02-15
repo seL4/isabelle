@@ -140,6 +140,9 @@ lemma finite_conv_nat_seg_image:
   "finite A = (\<exists> (n::nat) f. A = f ` {i::nat. i<n})"
 by(blast intro: nat_seg_image_imp_finite dest: finite_imp_nat_seg_image_inj_on)
 
+lemma finite_Collect_less_nat[iff]: "finite{n::nat. n<k}"
+by(fastsimp simp: finite_conv_nat_seg_image)
+
 
 subsubsection{* Finiteness and set theoretic constructions *}
 
@@ -188,6 +191,9 @@ lemma finite_Collect_conjI [simp, intro]:
   "finite{x. P x} | finite{x. Q x} ==> finite{x. P x & Q x}"
   -- {* The converse obviously fails. *}
 by(simp add:Collect_conj_eq)
+
+lemma finite_Collect_le_nat[iff]: "finite{n::nat. n<=k}"
+by(simp add: le_eq_less_or_eq)
 
 lemma finite_insert [simp]: "finite (insert a A) = finite A"
   apply (subst insert_is_Un)
@@ -329,6 +335,19 @@ lemma finite_UN [simp]:
   "finite A ==> finite (UNION A B) = (ALL x:A. finite (B x))"
 by (blast intro: finite_UN_I finite_subset)
 
+lemma finite_Collect_bex[simp]: "finite A \<Longrightarrow>
+  finite{x. EX y:A. Q x y} = (ALL y:A. finite{x. Q x y})"
+apply(subgoal_tac "{x. EX y:A. Q x y} = UNION A (%y. {x. Q x y})")
+ apply auto
+done
+
+lemma finite_Collect_bounded_ex[simp]: "finite{y. P y} \<Longrightarrow>
+  finite{x. EX y. P y & Q x y} = (ALL y. P y \<longrightarrow> finite{x. Q x y})"
+apply(subgoal_tac "{x. EX y. P y & Q x y} = UNION {y. P y} (%y. {x. Q x y})")
+ apply auto
+done
+
+
 lemma finite_Plus: "[| finite A; finite B |] ==> finite (A <+> B)"
 by (simp add: Plus_def)
 
@@ -396,11 +415,6 @@ qed
 lemma finite_Collect_subsets[simp,intro]: "finite A \<Longrightarrow> finite{B. B \<subseteq> A}"
 by(simp add: Pow_def[symmetric])
 
-lemma finite_bex_subset[simp]:
-  "finite B \<Longrightarrow> finite{x. EX A<=B. P x A} = (ALL A<=B. finite{x. P x A})"
-apply(subgoal_tac "{x. EX A<=B. P x A} = (UN A:Pow B. {x. P x A})")
- apply auto
-done
 
 lemma finite_UnionD: "finite(\<Union>A) \<Longrightarrow> finite A"
 by(blast intro: finite_subset[OF subset_Pow_Union])

@@ -568,7 +568,6 @@ apply (case_tac xa)
 apply auto
 apply (case_tac xa)
 apply auto
-apply (auto simp add: finite_M_bounded_by_nat)
 done
 
 lemma card_less_Suc:

@@ -64,8 +64,6 @@ next
       apply (simp add: sublist_Cons)
       apply auto
       apply (auto simp add: nat.split)
-      apply (simp add: card_less)
-      apply (simp add: card_less)
       apply (simp add: card_less_Suc[symmetric])
       apply (simp add: card_less_Suc2)
       done

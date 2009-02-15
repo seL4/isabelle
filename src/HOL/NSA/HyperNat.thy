@@ -286,11 +286,10 @@ lemma HNatInfinite_whn [simp]: "whn \<in> HNatInfinite"
 by (simp add: HNatInfinite_def)
 
 lemma lemma_unbounded_set [simp]: "{n::nat. m < n} \<in> FreeUltrafilterNat"
-apply (insert finite_atMost [of m]) 
-apply (simp add: atMost_def)
+apply (insert finite_atMost [of m])
 apply (drule FreeUltrafilterNat.finite)
 apply (drule FreeUltrafilterNat.not_memD)
-apply (simp add: Collect_neg_eq [symmetric] linorder_not_le)
+apply (simp add: Collect_neg_eq [symmetric] linorder_not_le atMost_def)
 done
 
 lemma Compl_Collect_le: "- {n::nat. N \<le> n} = {n. n < N}"
