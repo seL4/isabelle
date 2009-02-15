@@ -691,17 +691,6 @@ instance
   by (simp_all add: fps_power_def)
 end
 
-lemma fps_square_eq_iff: "(a:: 'a::idom fps)^ 2 = b^2  \<longleftrightarrow> (a = b \<or> a = -b)"
-proof-
-  {assume "a = b \<or> a = -b" hence "a^2 = b^2" by auto}
-  moreover
-  {assume "a^2 = b^2 "
-    hence "a^2 - b^2 = 0" by simp
-    hence "(a-b) * (a+b) = 0" by (simp add: power2_eq_square ring_simps)
-    hence "a = b \<or> a = -b" by (simp add: eq_neg_iff_add_eq_0)}
-  ultimately show ?thesis by blast
-qed
-
 lemma fps_power_zeroth_eq_one: "a$0 =1 \<Longrightarrow> a^n $ 0 = (1::'a::semiring_1)"
   by (induct n, auto simp add: fps_power_def expand_fps_eq fps_mult_nth)
 

@@ -374,6 +374,18 @@ begin
 
 subclass ring_1_no_zero_divisors ..
 
+lemma square_eq_iff: "a * a = b * b \<longleftrightarrow> (a = b \<or> a = - b)"
+proof
+  assume "a * a = b * b"
+  then have "(a - b) * (a + b) = 0"
+    by (simp add: algebra_simps)
+  then show "a = b \<or> a = - b"
+    by (simp add: right_minus_eq eq_neg_iff_add_eq_0)
+next
+  assume "a = b \<or> a = - b"
+  then show "a * a = b * b" by auto
+qed
+
 end
 
 class division_ring = ring_1 + inverse +
