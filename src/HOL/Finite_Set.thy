@@ -325,9 +325,9 @@ text {*
   @{prop "finite C ==> ALL A B. (UNION A B) <= C --> finite {x. x:A & B x \<noteq> {}}"}
   by induction. *}
 
-lemma finite_UN [simp]: "finite A ==> finite (UNION A B) = (ALL x:A. finite (B x))"
-  by (blast intro: finite_UN_I finite_subset)
-
+lemma finite_UN [simp]:
+  "finite A ==> finite (UNION A B) = (ALL x:A. finite (B x))"
+by (blast intro: finite_UN_I finite_subset)
 
 lemma finite_Plus: "[| finite A; finite B |] ==> finite (A <+> B)"
 by (simp add: Plus_def)
@@ -395,6 +395,12 @@ qed
 
 lemma finite_Collect_subsets[simp,intro]: "finite A \<Longrightarrow> finite{B. B \<subseteq> A}"
 by(simp add: Pow_def[symmetric])
+
+lemma finite_bex_subset[simp]:
+  "finite B \<Longrightarrow> finite{x. EX A<=B. P x A} = (ALL A<=B. finite{x. P x A})"
+apply(subgoal_tac "{x. EX A<=B. P x A} = (UN A:Pow B. {x. P x A})")
+ apply auto
+done
 
 lemma finite_UnionD: "finite(\<Union>A) \<Longrightarrow> finite A"
 by(blast intro: finite_subset[OF subset_Pow_Union])
