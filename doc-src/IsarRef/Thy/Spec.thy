@@ -4,6 +4,24 @@ begin
 
 chapter {* Theory specifications *}
 
+text {*
+  The Isabelle/Isar theory format integrates specifications and
+  proofs, supporting interactive development with unlimited undo
+  operation.  There is an integrated document preparation system (see
+  \chref{ch:document-prep}), for typesetting formal developments
+  together with informal text.  The resulting hyper-linked PDF
+  documents can be used both for WWW presentation and printed copies.
+
+  The Isar proof language (see \chref{ch:proofs}) is embedded into the
+  theory language as a proper sub-language.  Proof mode is entered by
+  stating some @{command theorem} or @{command lemma} at the theory
+  level, and left again with the final conclusion (e.g.\ via @{command
+  qed}).  Some theory specification mechanisms also require a proof,
+  such as @{command typedef} in HOL, which demands non-emptiness of
+  the representing sets.
+*}
+
+
 section {* Defining theories \label{sec:begin-thy} *}
 
 text {*
@@ -106,9 +124,9 @@ text {*
   @{command (global) "end"} has a different meaning: it concludes the
   theory itself (\secref{sec:begin-thy}).
   
-  \item @{text "(\<IN> c)"} given after any local theory command
-  specifies an immediate target, e.g.\ ``@{command
-  "definition"}~@{text "(\<IN> c) \<dots>"}'' or ``@{command
+  \item @{text "("}@{keyword_def "in"}~@{text "c)"} given after any
+  local theory command specifies an immediate target, e.g.\
+  ``@{command "definition"}~@{text "(\<IN> c) \<dots>"}'' or ``@{command
   "theorem"}~@{text "(\<IN> c) \<dots>"}''.  This works both in a local or
   global theory context; the current target context will be suspended
   for this command only.  Note that ``@{text "(\<IN> -)"}'' will
