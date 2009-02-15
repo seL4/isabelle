@@ -2,7 +2,7 @@ theory Proof
 imports Main
 begin
 
-chapter {* Proofs *}
+chapter {* Proofs \label{ch:proofs} *}
 
 text {*
   Proof commands perform transitions of Isar/VM machine
