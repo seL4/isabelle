@@ -801,7 +801,7 @@ next
   then have "?c \<noteq> 0" by simp
   then have "Fract ?c ?c = Fract 1 1" by (simp add: eq_rat)
   moreover have "Fract (a div ?c * ?c + a mod ?c) (b div ?c * ?c + b mod ?c) = Fract a b"
-   by (simp add: semiring_div_class.mod_div_equality)
+    by (simp add: semiring_div_class.mod_div_equality)
   moreover have "a mod ?c = 0" by (simp add: dvd_eq_mod_eq_0 [symmetric])
   moreover have "b mod ?c = 0" by (simp add: dvd_eq_mod_eq_0 [symmetric])
   ultimately show ?thesis

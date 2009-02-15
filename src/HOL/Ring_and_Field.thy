@@ -122,7 +122,7 @@ begin
 
 subclass semiring_1 ..
 
-lemma dvd_refl: "a dvd a"
+lemma dvd_refl[simp]: "a dvd a"
 proof
   show "a = a * 1" by simp
 qed
@@ -182,18 +182,17 @@ lemma dvd_mult_right: "a * b dvd c \<Longrightarrow> b dvd c"
 lemma dvd_0_left: "0 dvd a \<Longrightarrow> a = 0"
 by simp
 
-lemma dvd_add:
-  assumes ab: "a dvd b"
-    and ac: "a dvd c"
-    shows "a dvd (b + c)"
+lemma dvd_add[simp]:
+  assumes "a dvd b" and "a dvd c" shows "a dvd (b + c)"
 proof -
-  from ab obtain b' where "b = a * b'" ..
-  moreover from ac obtain c' where "c = a * c'" ..
+  from `a dvd b` obtain b' where "b = a * b'" ..
+  moreover from `a dvd c` obtain c' where "c = a * c'" ..
   ultimately have "b + c = a * (b' + c')" by (simp add: right_distrib)
   then show ?thesis ..
 qed
 
 end
+
 
 class no_zero_divisors = zero + times +
   assumes no_zero_divisors: "a \<noteq> 0 \<Longrightarrow> b \<noteq> 0 \<Longrightarrow> a * b \<noteq> 0"

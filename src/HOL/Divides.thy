@@ -172,6 +172,22 @@ proof -
   finally show ?thesis .
 qed
 
+lemma dvd_imp_mod_0: "a dvd b \<Longrightarrow> b mod a = 0"
+by (unfold dvd_def, auto)
+
+lemma dvd_div_mult_self: "a dvd b \<Longrightarrow> (b div a) * a = b"
+by (subst (2) mod_div_equality [of b a, symmetric]) (simp add:dvd_imp_mod_0)
+
+lemma div_dvd_div[simp]:
+  "a dvd b \<Longrightarrow> a dvd c \<Longrightarrow> (b div a dvd c div a) = (b dvd c)"
+apply (cases "a = 0")
+ apply simp
+apply (unfold dvd_def)
+apply auto
+ apply(blast intro:mult_assoc[symmetric])
+apply(fastsimp simp add: mult_assoc)
+done
+
 text {* Addition respects modular equivalence. *}
 
 lemma mod_add_left_eq: "(a + b) mod c = (a mod c + b) mod c"

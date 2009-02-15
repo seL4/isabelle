@@ -144,12 +144,8 @@ lemma zcong_zdiff:
   done
 
 lemma zcong_trans:
-    "[a = b] (mod m) ==> [b = c] (mod m) ==> [a = c] (mod m)"
-  unfolding zcong_def
-  apply (auto elim!: dvdE simp add: algebra_simps)
-  unfolding left_distrib [symmetric]
-  apply (rule dvd_mult dvd_refl)+
-  done
+  "[a = b] (mod m) ==> [b = c] (mod m) ==> [a = c] (mod m)"
+unfolding zcong_def by (auto elim!: dvdE simp add: algebra_simps)
 
 lemma zcong_zmult:
     "[a = b] (mod m) ==> [c = d] (mod m) ==> [a * c = b * d] (mod m)"

@@ -1709,6 +1709,42 @@ apply (rule setprod_cong, rule refl)
 apply (subst divide_inverse, auto)
 done
 
+lemma setprod_dvd_setprod [rule_format]: 
+    "(ALL x : A. f x dvd g x) \<longrightarrow> setprod f A dvd setprod g A"
+  apply (cases "finite A")
+  apply (induct set: finite)
+  apply (auto simp add: dvd_def)
+  apply (rule_tac x = "k * ka" in exI)
+  apply (simp add: algebra_simps)
+done
+
+lemma setprod_dvd_setprod_subset:
+  "finite B \<Longrightarrow> A <= B \<Longrightarrow> setprod f A dvd setprod f B"
+  apply (subgoal_tac "setprod f B = setprod f A * setprod f (B - A)")
+  apply (unfold dvd_def, blast)
+  apply (subst setprod_Un_disjoint [symmetric])
+  apply (auto elim: finite_subset intro: setprod_cong)
+done
+
+lemma setprod_dvd_setprod_subset2:
+  "finite B \<Longrightarrow> A <= B \<Longrightarrow> ALL x : A. (f x::'a::comm_semiring_1) dvd g x \<Longrightarrow> 
+      setprod f A dvd setprod g B"
+  apply (rule dvd_trans)
+  apply (rule setprod_dvd_setprod, erule (1) bspec)
+  apply (erule (1) setprod_dvd_setprod_subset)
+done
+
+lemma dvd_setprod: "finite A \<Longrightarrow> i:A \<Longrightarrow> 
+    (f i ::'a::comm_semiring_1) dvd setprod f A"
+by (induct set: finite) (auto intro: dvd_mult)
+
+lemma dvd_setsum [rule_format]: "(ALL i : A. d dvd f i) \<longrightarrow> 
+    (d::'a::comm_semiring_1) dvd (SUM x : A. f x)"
+  apply (cases "finite A")
+  apply (induct set: finite)
+  apply auto
+done
+
 
 subsection {* Finite cardinality *}
 
