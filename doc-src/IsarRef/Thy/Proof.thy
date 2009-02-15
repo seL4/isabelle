@@ -1,5 +1,3 @@
-(* $Id$ *)
-
 theory Proof
 imports Main
 begin
@@ -10,8 +8,8 @@ text {*
   Proof commands perform transitions of Isar/VM machine
   configurations, which are block-structured, consisting of a stack of
   nodes with three main components: logical proof context, current
-  facts, and open goals.  Isar/VM transitions are \emph{typed}
-  according to the following three different modes of operation:
+  facts, and open goals.  Isar/VM transitions are typed according to
+  the following three different modes of operation:
 
   \begin{description}
 
@@ -32,13 +30,17 @@ text {*
 
   \end{description}
 
-  The proof mode indicator may be read as a verb telling the writer
-  what kind of operation may be performed next.  The corresponding
-  typings of proof commands restricts the shape of well-formed proof
-  texts to particular command sequences.  So dynamic arrangements of
-  commands eventually turn out as static texts of a certain structure.
-  \Appref{ap:refcard} gives a simplified grammar of the overall
-  (extensible) language emerging that way.
+  The proof mode indicator may be understood as an instruction to the
+  writer, telling what kind of operation may be performed next.  The
+  corresponding typings of proof commands restricts the shape of
+  well-formed proof texts to particular command sequences.  So dynamic
+  arrangements of commands eventually turn out as static texts of a
+  certain structure.
+
+  \Appref{ap:refcard} gives a simplified grammar of the (extensible)
+  language emerging that way from the different types of proof
+  commands.  The main ideas of the overall Isar framework are
+  explained in \chref{ch:isar-framework}.
 *}
 
 
