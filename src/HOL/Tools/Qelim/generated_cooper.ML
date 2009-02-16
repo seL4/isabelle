@@ -15,13 +15,13 @@ fun eqop A_ a b = eq A_ a b;
 
 fun divmod n m = (if eqop eq_nat m 0 then (0, n) else IntInf.divMod (n, m));
 
-fun snd (a, y) = y;
+fun snd (a, b) = b;
 
 fun mod_nat m n = snd (divmod m n);
 
 fun gcd m n = (if eqop eq_nat n 0 then m else gcd n (mod_nat m n));
 
-fun fst (y, b) = y;
+fun fst (a, b) = a;
 
 fun div_nat m n = fst (divmod m n);
 
@@ -48,7 +48,7 @@ fun zlcm i j =
 fun map f [] = []
   | map f (x :: xs) = f x :: map f xs;
 
-fun append [] y = y
+fun append [] ys = ys
   | append (x :: xs) ys = x :: append xs ys;
 
 fun disjuncts (Or (p, q)) = append (disjuncts p) (disjuncts q)
@@ -105,53 +105,53 @@ fun fm_case f1 f2 f3 f4 f5 f6 f7 f8 f9 f10 f11 f12 f13 f14 f15 f16 f17 f18 f19
     (Le num) = f4 num
   | fm_case f1 f2 f3 f4 f5 f6 f7 f8 f9 f10 f11 f12 f13 f14 f15 f16 f17 f18 f19
     (Lt num) = f3 num
-  | fm_case f1 y f3 f4 f5 f6 f7 f8 f9 f10 f11 f12 f13 f14 f15 f16 f17 f18 f19 F
-    = y
-  | fm_case y f2 f3 f4 f5 f6 f7 f8 f9 f10 f11 f12 f13 f14 f15 f16 f17 f18 f19 T
-    = y;
+  | fm_case f1 f2 f3 f4 f5 f6 f7 f8 f9 f10 f11 f12 f13 f14 f15 f16 f17 f18 f19 F
+    = f2
+  | fm_case f1 f2 f3 f4 f5 f6 f7 f8 f9 f10 f11 f12 f13 f14 f15 f16 f17 f18 f19 T
+    = f1;
 
-fun eq_num (Mul (cb, dc)) (Sub (ae, be)) = false
-  | eq_num (Mul (cb, dc)) (Add (ae, be)) = false
-  | eq_num (Sub (cc, dc)) (Add (ae, be)) = false
-  | eq_num (Mul (bd, cc)) (Neg ae) = false
-  | eq_num (Sub (be, cc)) (Neg ae) = false
-  | eq_num (Add (be, cc)) (Neg ae) = false
-  | eq_num (Mul (db, ea)) (Cn (ac, bd, cc)) = false
-  | eq_num (Sub (dc, ea)) (Cn (ac, bd, cc)) = false
-  | eq_num (Add (dc, ea)) (Cn (ac, bd, cc)) = false
-  | eq_num (Neg dc) (Cn (ac, bd, cc)) = false
-  | eq_num (Mul (bd, cc)) (Bound ac) = false
-  | eq_num (Sub (be, cc)) (Bound ac) = false
-  | eq_num (Add (be, cc)) (Bound ac) = false
-  | eq_num (Neg be) (Bound ac) = false
-  | eq_num (Cn (bc, cb, dc)) (Bound ac) = false
-  | eq_num (Mul (bd, cc)) (C ad) = false
-  | eq_num (Sub (be, cc)) (C ad) = false
-  | eq_num (Add (be, cc)) (C ad) = false
-  | eq_num (Neg be) (C ad) = false
-  | eq_num (Cn (bc, cb, dc)) (C ad) = false
-  | eq_num (Bound bc) (C ad) = false
-  | eq_num (Sub (ab, bb)) (Mul (c, da)) = false
-  | eq_num (Add (ab, bb)) (Mul (c, da)) = false
-  | eq_num (Add (ab, bb)) (Sub (ca, da)) = false
-  | eq_num (Neg ab) (Mul (ba, ca)) = false
-  | eq_num (Neg ab) (Sub (bb, ca)) = false
-  | eq_num (Neg ab) (Add (bb, ca)) = false
-  | eq_num (Cn (a, ba, ca)) (Mul (d, e)) = false
-  | eq_num (Cn (a, ba, ca)) (Sub (da, e)) = false
-  | eq_num (Cn (a, ba, ca)) (Add (da, e)) = false
-  | eq_num (Cn (a, ba, ca)) (Neg da) = false
-  | eq_num (Bound a) (Mul (ba, ca)) = false
-  | eq_num (Bound a) (Sub (bb, ca)) = false
-  | eq_num (Bound a) (Add (bb, ca)) = false
-  | eq_num (Bound a) (Neg bb) = false
-  | eq_num (Bound a) (Cn (b, c, da)) = false
-  | eq_num (C aa) (Mul (ba, ca)) = false
-  | eq_num (C aa) (Sub (bb, ca)) = false
-  | eq_num (C aa) (Add (bb, ca)) = false
-  | eq_num (C aa) (Neg bb) = false
-  | eq_num (C aa) (Cn (b, c, da)) = false
-  | eq_num (C aa) (Bound b) = false
+fun eq_num (Mul (c, d)) (Sub (a, b)) = false
+  | eq_num (Mul (c, d)) (Add (a, b)) = false
+  | eq_num (Sub (c, d)) (Add (a, b)) = false
+  | eq_num (Mul (b, c)) (Neg a) = false
+  | eq_num (Sub (b, c)) (Neg a) = false
+  | eq_num (Add (b, c)) (Neg a) = false
+  | eq_num (Mul (d, e)) (Cn (a, b, c)) = false
+  | eq_num (Sub (d, e)) (Cn (a, b, c)) = false
+  | eq_num (Add (d, e)) (Cn (a, b, c)) = false
+  | eq_num (Neg d) (Cn (a, b, c)) = false
+  | eq_num (Mul (b, c)) (Bound a) = false
+  | eq_num (Sub (b, c)) (Bound a) = false
+  | eq_num (Add (b, c)) (Bound a) = false
+  | eq_num (Neg b) (Bound a) = false
+  | eq_num (Cn (b, c, d)) (Bound a) = false
+  | eq_num (Mul (b, c)) (C a) = false
+  | eq_num (Sub (b, c)) (C a) = false
+  | eq_num (Add (b, c)) (C a) = false
+  | eq_num (Neg b) (C a) = false
+  | eq_num (Cn (b, c, d)) (C a) = false
+  | eq_num (Bound b) (C a) = false
+  | eq_num (Sub (a, b)) (Mul (c, d)) = false
+  | eq_num (Add (a, b)) (Mul (c, d)) = false
+  | eq_num (Add (a, b)) (Sub (c, d)) = false
+  | eq_num (Neg a) (Mul (b, c)) = false
+  | eq_num (Neg a) (Sub (b, c)) = false
+  | eq_num (Neg a) (Add (b, c)) = false
+  | eq_num (Cn (a, b, c)) (Mul (d, e)) = false
+  | eq_num (Cn (a, b, c)) (Sub (d, e)) = false
+  | eq_num (Cn (a, b, c)) (Add (d, e)) = false
+  | eq_num (Cn (a, b, c)) (Neg d) = false
+  | eq_num (Bound a) (Mul (b, c)) = false
+  | eq_num (Bound a) (Sub (b, c)) = false
+  | eq_num (Bound a) (Add (b, c)) = false
+  | eq_num (Bound a) (Neg b) = false
+  | eq_num (Bound a) (Cn (b, c, d)) = false
+  | eq_num (C a) (Mul (b, c)) = false
+  | eq_num (C a) (Sub (b, c)) = false
+  | eq_num (C a) (Add (b, c)) = false
+  | eq_num (C a) (Neg b) = false
+  | eq_num (C a) (Cn (b, c, d)) = false
+  | eq_num (C a) (Bound b) = false
   | eq_num (Mul (inta, num)) (Mul (int', num')) =
     ((inta : IntInf.int) = int') andalso eq_num num num'
   | eq_num (Sub (num1, num2)) (Sub (num1', num2')) =
@@ -165,347 +165,347 @@ fun eq_num (Mul (cb, dc)) (Sub (ae, be)) = false
   | eq_num (Bound nat) (Bound nat') = ((nat : IntInf.int) = nat')
   | eq_num (C inta) (C int') = ((inta : IntInf.int) = int');
 
-fun eq_fm (NClosed bd) (Closed ad) = false
-  | eq_fm (NClosed bd) (A af) = false
-  | eq_fm (Closed bd) (A af) = false
-  | eq_fm (NClosed bd) (E af) = false
-  | eq_fm (Closed bd) (E af) = false
-  | eq_fm (A bf) (E af) = false
-  | eq_fm (NClosed cd) (Iff (af, bf)) = false
-  | eq_fm (Closed cd) (Iff (af, bf)) = false
-  | eq_fm (A cf) (Iff (af, bf)) = false
-  | eq_fm (E cf) (Iff (af, bf)) = false
-  | eq_fm (NClosed cd) (Imp (af, bf)) = false
-  | eq_fm (Closed cd) (Imp (af, bf)) = false
-  | eq_fm (A cf) (Imp (af, bf)) = false
-  | eq_fm (E cf) (Imp (af, bf)) = false
-  | eq_fm (Iff (cf, db)) (Imp (af, bf)) = false
-  | eq_fm (NClosed cd) (Or (af, bf)) = false
-  | eq_fm (Closed cd) (Or (af, bf)) = false
-  | eq_fm (A cf) (Or (af, bf)) = false
-  | eq_fm (E cf) (Or (af, bf)) = false
-  | eq_fm (Iff (cf, db)) (Or (af, bf)) = false
-  | eq_fm (Imp (cf, db)) (Or (af, bf)) = false
-  | eq_fm (NClosed cd) (And (af, bf)) = false
-  | eq_fm (Closed cd) (And (af, bf)) = false
-  | eq_fm (A cf) (And (af, bf)) = false
-  | eq_fm (E cf) (And (af, bf)) = false
-  | eq_fm (Iff (cf, db)) (And (af, bf)) = false
-  | eq_fm (Imp (cf, db)) (And (af, bf)) = false
-  | eq_fm (Or (cf, db)) (And (af, bf)) = false
-  | eq_fm (NClosed bd) (Not af) = false
-  | eq_fm (Closed bd) (Not af) = false
-  | eq_fm (A bf) (Not af) = false
-  | eq_fm (E bf) (Not af) = false
-  | eq_fm (Iff (bf, cf)) (Not af) = false
-  | eq_fm (Imp (bf, cf)) (Not af) = false
-  | eq_fm (Or (bf, cf)) (Not af) = false
-  | eq_fm (And (bf, cf)) (Not af) = false
-  | eq_fm (NClosed cd) (NDvd (ae, bg)) = false
-  | eq_fm (Closed cd) (NDvd (ae, bg)) = false
-  | eq_fm (A cf) (NDvd (ae, bg)) = false
-  | eq_fm (E cf) (NDvd (ae, bg)) = false
-  | eq_fm (Iff (cf, db)) (NDvd (ae, bg)) = false
-  | eq_fm (Imp (cf, db)) (NDvd (ae, bg)) = false
-  | eq_fm (Or (cf, db)) (NDvd (ae, bg)) = false
-  | eq_fm (And (cf, db)) (NDvd (ae, bg)) = false
-  | eq_fm (Not cf) (NDvd (ae, bg)) = false
-  | eq_fm (NClosed cd) (Dvd (ae, bg)) = false
-  | eq_fm (Closed cd) (Dvd (ae, bg)) = false
-  | eq_fm (A cf) (Dvd (ae, bg)) = false
-  | eq_fm (E cf) (Dvd (ae, bg)) = false
-  | eq_fm (Iff (cf, db)) (Dvd (ae, bg)) = false
-  | eq_fm (Imp (cf, db)) (Dvd (ae, bg)) = false
-  | eq_fm (Or (cf, db)) (Dvd (ae, bg)) = false
-  | eq_fm (And (cf, db)) (Dvd (ae, bg)) = false
-  | eq_fm (Not cf) (Dvd (ae, bg)) = false
-  | eq_fm (NDvd (ce, dc)) (Dvd (ae, bg)) = false
-  | eq_fm (NClosed bd) (NEq ag) = false
-  | eq_fm (Closed bd) (NEq ag) = false
-  | eq_fm (A bf) (NEq ag) = false
-  | eq_fm (E bf) (NEq ag) = false
-  | eq_fm (Iff (bf, cf)) (NEq ag) = false
-  | eq_fm (Imp (bf, cf)) (NEq ag) = false
-  | eq_fm (Or (bf, cf)) (NEq ag) = false
-  | eq_fm (And (bf, cf)) (NEq ag) = false
-  | eq_fm (Not bf) (NEq ag) = false
-  | eq_fm (NDvd (be, cg)) (NEq ag) = false
-  | eq_fm (Dvd (be, cg)) (NEq ag) = false
-  | eq_fm (NClosed bd) (Eq ag) = false
-  | eq_fm (Closed bd) (Eq ag) = false
-  | eq_fm (A bf) (Eq ag) = false
-  | eq_fm (E bf) (Eq ag) = false
-  | eq_fm (Iff (bf, cf)) (Eq ag) = false
-  | eq_fm (Imp (bf, cf)) (Eq ag) = false
-  | eq_fm (Or (bf, cf)) (Eq ag) = false
-  | eq_fm (And (bf, cf)) (Eq ag) = false
-  | eq_fm (Not bf) (Eq ag) = false
-  | eq_fm (NDvd (be, cg)) (Eq ag) = false
-  | eq_fm (Dvd (be, cg)) (Eq ag) = false
-  | eq_fm (NEq bg) (Eq ag) = false
-  | eq_fm (NClosed bd) (Ge ag) = false
-  | eq_fm (Closed bd) (Ge ag) = false
-  | eq_fm (A bf) (Ge ag) = false
-  | eq_fm (E bf) (Ge ag) = false
-  | eq_fm (Iff (bf, cf)) (Ge ag) = false
-  | eq_fm (Imp (bf, cf)) (Ge ag) = false
-  | eq_fm (Or (bf, cf)) (Ge ag) = false
-  | eq_fm (And (bf, cf)) (Ge ag) = false
-  | eq_fm (Not bf) (Ge ag) = false
-  | eq_fm (NDvd (be, cg)) (Ge ag) = false
-  | eq_fm (Dvd (be, cg)) (Ge ag) = false
-  | eq_fm (NEq bg) (Ge ag) = false
-  | eq_fm (Eq bg) (Ge ag) = false
-  | eq_fm (NClosed bd) (Gt ag) = false
-  | eq_fm (Closed bd) (Gt ag) = false
-  | eq_fm (A bf) (Gt ag) = false
-  | eq_fm (E bf) (Gt ag) = false
-  | eq_fm (Iff (bf, cf)) (Gt ag) = false
-  | eq_fm (Imp (bf, cf)) (Gt ag) = false
-  | eq_fm (Or (bf, cf)) (Gt ag) = false
-  | eq_fm (And (bf, cf)) (Gt ag) = false
-  | eq_fm (Not bf) (Gt ag) = false
-  | eq_fm (NDvd (be, cg)) (Gt ag) = false
-  | eq_fm (Dvd (be, cg)) (Gt ag) = false
-  | eq_fm (NEq bg) (Gt ag) = false
-  | eq_fm (Eq bg) (Gt ag) = false
-  | eq_fm (Ge bg) (Gt ag) = false
-  | eq_fm (NClosed bd) (Le ag) = false
-  | eq_fm (Closed bd) (Le ag) = false
-  | eq_fm (A bf) (Le ag) = false
-  | eq_fm (E bf) (Le ag) = false
-  | eq_fm (Iff (bf, cf)) (Le ag) = false
-  | eq_fm (Imp (bf, cf)) (Le ag) = false
-  | eq_fm (Or (bf, cf)) (Le ag) = false
-  | eq_fm (And (bf, cf)) (Le ag) = false
-  | eq_fm (Not bf) (Le ag) = false
-  | eq_fm (NDvd (be, cg)) (Le ag) = false
-  | eq_fm (Dvd (be, cg)) (Le ag) = false
-  | eq_fm (NEq bg) (Le ag) = false
-  | eq_fm (Eq bg) (Le ag) = false
-  | eq_fm (Ge bg) (Le ag) = false
-  | eq_fm (Gt bg) (Le ag) = false
-  | eq_fm (NClosed bd) (Lt ag) = false
-  | eq_fm (Closed bd) (Lt ag) = false
-  | eq_fm (A bf) (Lt ag) = false
-  | eq_fm (E bf) (Lt ag) = false
-  | eq_fm (Iff (bf, cf)) (Lt ag) = false
-  | eq_fm (Imp (bf, cf)) (Lt ag) = false
-  | eq_fm (Or (bf, cf)) (Lt ag) = false
-  | eq_fm (And (bf, cf)) (Lt ag) = false
-  | eq_fm (Not bf) (Lt ag) = false
-  | eq_fm (NDvd (be, cg)) (Lt ag) = false
-  | eq_fm (Dvd (be, cg)) (Lt ag) = false
-  | eq_fm (NEq bg) (Lt ag) = false
-  | eq_fm (Eq bg) (Lt ag) = false
-  | eq_fm (Ge bg) (Lt ag) = false
-  | eq_fm (Gt bg) (Lt ag) = false
-  | eq_fm (Le bg) (Lt ag) = false
-  | eq_fm (NClosed ad) F = false
-  | eq_fm (Closed ad) F = false
-  | eq_fm (A af) F = false
-  | eq_fm (E af) F = false
-  | eq_fm (Iff (af, bf)) F = false
-  | eq_fm (Imp (af, bf)) F = false
-  | eq_fm (Or (af, bf)) F = false
-  | eq_fm (And (af, bf)) F = false
-  | eq_fm (Not af) F = false
-  | eq_fm (NDvd (ae, bg)) F = false
-  | eq_fm (Dvd (ae, bg)) F = false
-  | eq_fm (NEq ag) F = false
-  | eq_fm (Eq ag) F = false
-  | eq_fm (Ge ag) F = false
-  | eq_fm (Gt ag) F = false
-  | eq_fm (Le ag) F = false
-  | eq_fm (Lt ag) F = false
-  | eq_fm (NClosed ad) T = false
-  | eq_fm (Closed ad) T = false
-  | eq_fm (A af) T = false
-  | eq_fm (E af) T = false
-  | eq_fm (Iff (af, bf)) T = false
-  | eq_fm (Imp (af, bf)) T = false
-  | eq_fm (Or (af, bf)) T = false
-  | eq_fm (And (af, bf)) T = false
-  | eq_fm (Not af) T = false
-  | eq_fm (NDvd (ae, bg)) T = false
-  | eq_fm (Dvd (ae, bg)) T = false
-  | eq_fm (NEq ag) T = false
-  | eq_fm (Eq ag) T = false
-  | eq_fm (Ge ag) T = false
-  | eq_fm (Gt ag) T = false
-  | eq_fm (Le ag) T = false
-  | eq_fm (Lt ag) T = false
+fun eq_fm (NClosed b) (Closed a) = false
+  | eq_fm (NClosed b) (A a) = false
+  | eq_fm (Closed b) (A a) = false
+  | eq_fm (NClosed b) (E a) = false
+  | eq_fm (Closed b) (E a) = false
+  | eq_fm (A b) (E a) = false
+  | eq_fm (NClosed c) (Iff (a, b)) = false
+  | eq_fm (Closed c) (Iff (a, b)) = false
+  | eq_fm (A c) (Iff (a, b)) = false
+  | eq_fm (E c) (Iff (a, b)) = false
+  | eq_fm (NClosed c) (Imp (a, b)) = false
+  | eq_fm (Closed c) (Imp (a, b)) = false
+  | eq_fm (A c) (Imp (a, b)) = false
+  | eq_fm (E c) (Imp (a, b)) = false
+  | eq_fm (Iff (c, d)) (Imp (a, b)) = false
+  | eq_fm (NClosed c) (Or (a, b)) = false
+  | eq_fm (Closed c) (Or (a, b)) = false
+  | eq_fm (A c) (Or (a, b)) = false
+  | eq_fm (E c) (Or (a, b)) = false
+  | eq_fm (Iff (c, d)) (Or (a, b)) = false
+  | eq_fm (Imp (c, d)) (Or (a, b)) = false
+  | eq_fm (NClosed c) (And (a, b)) = false
+  | eq_fm (Closed c) (And (a, b)) = false
+  | eq_fm (A c) (And (a, b)) = false
+  | eq_fm (E c) (And (a, b)) = false
+  | eq_fm (Iff (c, d)) (And (a, b)) = false
+  | eq_fm (Imp (c, d)) (And (a, b)) = false
+  | eq_fm (Or (c, d)) (And (a, b)) = false
+  | eq_fm (NClosed b) (Not a) = false
+  | eq_fm (Closed b) (Not a) = false
+  | eq_fm (A b) (Not a) = false
+  | eq_fm (E b) (Not a) = false
+  | eq_fm (Iff (b, c)) (Not a) = false
+  | eq_fm (Imp (b, c)) (Not a) = false
+  | eq_fm (Or (b, c)) (Not a) = false
+  | eq_fm (And (b, c)) (Not a) = false
+  | eq_fm (NClosed c) (NDvd (a, b)) = false
+  | eq_fm (Closed c) (NDvd (a, b)) = false
+  | eq_fm (A c) (NDvd (a, b)) = false
+  | eq_fm (E c) (NDvd (a, b)) = false
+  | eq_fm (Iff (c, d)) (NDvd (a, b)) = false
+  | eq_fm (Imp (c, d)) (NDvd (a, b)) = false
+  | eq_fm (Or (c, d)) (NDvd (a, b)) = false
+  | eq_fm (And (c, d)) (NDvd (a, b)) = false
+  | eq_fm (Not c) (NDvd (a, b)) = false
+  | eq_fm (NClosed c) (Dvd (a, b)) = false
+  | eq_fm (Closed c) (Dvd (a, b)) = false
+  | eq_fm (A c) (Dvd (a, b)) = false
+  | eq_fm (E c) (Dvd (a, b)) = false
+  | eq_fm (Iff (c, d)) (Dvd (a, b)) = false
+  | eq_fm (Imp (c, d)) (Dvd (a, b)) = false
+  | eq_fm (Or (c, d)) (Dvd (a, b)) = false
+  | eq_fm (And (c, d)) (Dvd (a, b)) = false
+  | eq_fm (Not c) (Dvd (a, b)) = false
+  | eq_fm (NDvd (c, d)) (Dvd (a, b)) = false
+  | eq_fm (NClosed b) (NEq a) = false
+  | eq_fm (Closed b) (NEq a) = false
+  | eq_fm (A b) (NEq a) = false
+  | eq_fm (E b) (NEq a) = false
+  | eq_fm (Iff (b, c)) (NEq a) = false
+  | eq_fm (Imp (b, c)) (NEq a) = false
+  | eq_fm (Or (b, c)) (NEq a) = false
+  | eq_fm (And (b, c)) (NEq a) = false
+  | eq_fm (Not b) (NEq a) = false
+  | eq_fm (NDvd (b, c)) (NEq a) = false
+  | eq_fm (Dvd (b, c)) (NEq a) = false
+  | eq_fm (NClosed b) (Eq a) = false
+  | eq_fm (Closed b) (Eq a) = false
+  | eq_fm (A b) (Eq a) = false
+  | eq_fm (E b) (Eq a) = false
+  | eq_fm (Iff (b, c)) (Eq a) = false
+  | eq_fm (Imp (b, c)) (Eq a) = false
+  | eq_fm (Or (b, c)) (Eq a) = false
+  | eq_fm (And (b, c)) (Eq a) = false
+  | eq_fm (Not b) (Eq a) = false
+  | eq_fm (NDvd (b, c)) (Eq a) = false
+  | eq_fm (Dvd (b, c)) (Eq a) = false
+  | eq_fm (NEq b) (Eq a) = false
+  | eq_fm (NClosed b) (Ge a) = false
+  | eq_fm (Closed b) (Ge a) = false
+  | eq_fm (A b) (Ge a) = false
+  | eq_fm (E b) (Ge a) = false
+  | eq_fm (Iff (b, c)) (Ge a) = false
+  | eq_fm (Imp (b, c)) (Ge a) = false
+  | eq_fm (Or (b, c)) (Ge a) = false
+  | eq_fm (And (b, c)) (Ge a) = false
+  | eq_fm (Not b) (Ge a) = false
+  | eq_fm (NDvd (b, c)) (Ge a) = false
+  | eq_fm (Dvd (b, c)) (Ge a) = false
+  | eq_fm (NEq b) (Ge a) = false
+  | eq_fm (Eq b) (Ge a) = false
+  | eq_fm (NClosed b) (Gt a) = false
+  | eq_fm (Closed b) (Gt a) = false
+  | eq_fm (A b) (Gt a) = false
+  | eq_fm (E b) (Gt a) = false
+  | eq_fm (Iff (b, c)) (Gt a) = false
+  | eq_fm (Imp (b, c)) (Gt a) = false
+  | eq_fm (Or (b, c)) (Gt a) = false
+  | eq_fm (And (b, c)) (Gt a) = false
+  | eq_fm (Not b) (Gt a) = false
+  | eq_fm (NDvd (b, c)) (Gt a) = false
+  | eq_fm (Dvd (b, c)) (Gt a) = false
+  | eq_fm (NEq b) (Gt a) = false
+  | eq_fm (Eq b) (Gt a) = false
+  | eq_fm (Ge b) (Gt a) = false
+  | eq_fm (NClosed b) (Le a) = false
+  | eq_fm (Closed b) (Le a) = false
+  | eq_fm (A b) (Le a) = false
+  | eq_fm (E b) (Le a) = false
+  | eq_fm (Iff (b, c)) (Le a) = false
+  | eq_fm (Imp (b, c)) (Le a) = false
+  | eq_fm (Or (b, c)) (Le a) = false
+  | eq_fm (And (b, c)) (Le a) = false
+  | eq_fm (Not b) (Le a) = false
+  | eq_fm (NDvd (b, c)) (Le a) = false
+  | eq_fm (Dvd (b, c)) (Le a) = false
+  | eq_fm (NEq b) (Le a) = false
+  | eq_fm (Eq b) (Le a) = false
+  | eq_fm (Ge b) (Le a) = false
+  | eq_fm (Gt b) (Le a) = false
+  | eq_fm (NClosed b) (Lt a) = false
+  | eq_fm (Closed b) (Lt a) = false
+  | eq_fm (A b) (Lt a) = false
+  | eq_fm (E b) (Lt a) = false
+  | eq_fm (Iff (b, c)) (Lt a) = false
+  | eq_fm (Imp (b, c)) (Lt a) = false
+  | eq_fm (Or (b, c)) (Lt a) = false
+  | eq_fm (And (b, c)) (Lt a) = false
+  | eq_fm (Not b) (Lt a) = false
+  | eq_fm (NDvd (b, c)) (Lt a) = false
+  | eq_fm (Dvd (b, c)) (Lt a) = false
+  | eq_fm (NEq b) (Lt a) = false
+  | eq_fm (Eq b) (Lt a) = false
+  | eq_fm (Ge b) (Lt a) = false
+  | eq_fm (Gt b) (Lt a) = false
+  | eq_fm (Le b) (Lt a) = false
+  | eq_fm (NClosed a) F = false
+  | eq_fm (Closed a) F = false
+  | eq_fm (A a) F = false
+  | eq_fm (E a) F = false
+  | eq_fm (Iff (a, b)) F = false
+  | eq_fm (Imp (a, b)) F = false
+  | eq_fm (Or (a, b)) F = false
+  | eq_fm (And (a, b)) F = false
+  | eq_fm (Not a) F = false
+  | eq_fm (NDvd (a, b)) F = false
+  | eq_fm (Dvd (a, b)) F = false
+  | eq_fm (NEq a) F = false
+  | eq_fm (Eq a) F = false
+  | eq_fm (Ge a) F = false
+  | eq_fm (Gt a) F = false
+  | eq_fm (Le a) F = false
+  | eq_fm (Lt a) F = false
+  | eq_fm (NClosed a) T = false
+  | eq_fm (Closed a) T = false
+  | eq_fm (A a) T = false
+  | eq_fm (E a) T = false
+  | eq_fm (Iff (a, b)) T = false
+  | eq_fm (Imp (a, b)) T = false
+  | eq_fm (Or (a, b)) T = false
+  | eq_fm (And (a, b)) T = false
+  | eq_fm (Not a) T = false
+  | eq_fm (NDvd (a, b)) T = false
+  | eq_fm (Dvd (a, b)) T = false
+  | eq_fm (NEq a) T = false
+  | eq_fm (Eq a) T = false
+  | eq_fm (Ge a) T = false
+  | eq_fm (Gt a) T = false
+  | eq_fm (Le a) T = false
+  | eq_fm (Lt a) T = false
   | eq_fm F T = false
   | eq_fm (Closed a) (NClosed b) = false
-  | eq_fm (A ab) (NClosed b) = false
-  | eq_fm (A ab) (Closed b) = false
-  | eq_fm (E ab) (NClosed b) = false
-  | eq_fm (E ab) (Closed b) = false
-  | eq_fm (E ab) (A bb) = false
-  | eq_fm (Iff (ab, bb)) (NClosed c) = false
-  | eq_fm (Iff (ab, bb)) (Closed c) = false
-  | eq_fm (Iff (ab, bb)) (A cb) = false
-  | eq_fm (Iff (ab, bb)) (E cb) = false
-  | eq_fm (Imp (ab, bb)) (NClosed c) = false
-  | eq_fm (Imp (ab, bb)) (Closed c) = false
-  | eq_fm (Imp (ab, bb)) (A cb) = false
-  | eq_fm (Imp (ab, bb)) (E cb) = false
-  | eq_fm (Imp (ab, bb)) (Iff (cb, d)) = false
-  | eq_fm (Or (ab, bb)) (NClosed c) = false
-  | eq_fm (Or (ab, bb)) (Closed c) = false
-  | eq_fm (Or (ab, bb)) (A cb) = false
-  | eq_fm (Or (ab, bb)) (E cb) = false
-  | eq_fm (Or (ab, bb)) (Iff (cb, d)) = false
-  | eq_fm (Or (ab, bb)) (Imp (cb, d)) = false
-  | eq_fm (And (ab, bb)) (NClosed c) = false
-  | eq_fm (And (ab, bb)) (Closed c) = false
-  | eq_fm (And (ab, bb)) (A cb) = false
-  | eq_fm (And (ab, bb)) (E cb) = false
-  | eq_fm (And (ab, bb)) (Iff (cb, d)) = false
-  | eq_fm (And (ab, bb)) (Imp (cb, d)) = false
-  | eq_fm (And (ab, bb)) (Or (cb, d)) = false
-  | eq_fm (Not ab) (NClosed b) = false
-  | eq_fm (Not ab) (Closed b) = false
-  | eq_fm (Not ab) (A bb) = false
-  | eq_fm (Not ab) (E bb) = false
-  | eq_fm (Not ab) (Iff (bb, cb)) = false
-  | eq_fm (Not ab) (Imp (bb, cb)) = false
-  | eq_fm (Not ab) (Or (bb, cb)) = false
-  | eq_fm (Not ab) (And (bb, cb)) = false
-  | eq_fm (NDvd (aa, bc)) (NClosed c) = false
-  | eq_fm (NDvd (aa, bc)) (Closed c) = false
-  | eq_fm (NDvd (aa, bc)) (A cb) = false
-  | eq_fm (NDvd (aa, bc)) (E cb) = false
-  | eq_fm (NDvd (aa, bc)) (Iff (cb, d)) = false
-  | eq_fm (NDvd (aa, bc)) (Imp (cb, d)) = false
-  | eq_fm (NDvd (aa, bc)) (Or (cb, d)) = false
-  | eq_fm (NDvd (aa, bc)) (And (cb, d)) = false
-  | eq_fm (NDvd (aa, bc)) (Not cb) = false
-  | eq_fm (Dvd (aa, bc)) (NClosed c) = false
-  | eq_fm (Dvd (aa, bc)) (Closed c) = false
-  | eq_fm (Dvd (aa, bc)) (A cb) = false
-  | eq_fm (Dvd (aa, bc)) (E cb) = false
-  | eq_fm (Dvd (aa, bc)) (Iff (cb, d)) = false
-  | eq_fm (Dvd (aa, bc)) (Imp (cb, d)) = false
-  | eq_fm (Dvd (aa, bc)) (Or (cb, d)) = false
-  | eq_fm (Dvd (aa, bc)) (And (cb, d)) = false
-  | eq_fm (Dvd (aa, bc)) (Not cb) = false
-  | eq_fm (Dvd (aa, bc)) (NDvd (ca, da)) = false
-  | eq_fm (NEq ac) (NClosed b) = false
-  | eq_fm (NEq ac) (Closed b) = false
-  | eq_fm (NEq ac) (A bb) = false
-  | eq_fm (NEq ac) (E bb) = false
-  | eq_fm (NEq ac) (Iff (bb, cb)) = false
-  | eq_fm (NEq ac) (Imp (bb, cb)) = false
-  | eq_fm (NEq ac) (Or (bb, cb)) = false
-  | eq_fm (NEq ac) (And (bb, cb)) = false
-  | eq_fm (NEq ac) (Not bb) = false
-  | eq_fm (NEq ac) (NDvd (ba, cc)) = false
-  | eq_fm (NEq ac) (Dvd (ba, cc)) = false
-  | eq_fm (Eq ac) (NClosed b) = false
-  | eq_fm (Eq ac) (Closed b) = false
-  | eq_fm (Eq ac) (A bb) = false
-  | eq_fm (Eq ac) (E bb) = false
-  | eq_fm (Eq ac) (Iff (bb, cb)) = false
-  | eq_fm (Eq ac) (Imp (bb, cb)) = false
-  | eq_fm (Eq ac) (Or (bb, cb)) = false
-  | eq_fm (Eq ac) (And (bb, cb)) = false
-  | eq_fm (Eq ac) (Not bb) = false
-  | eq_fm (Eq ac) (NDvd (ba, cc)) = false
-  | eq_fm (Eq ac) (Dvd (ba, cc)) = false
-  | eq_fm (Eq ac) (NEq bc) = false
-  | eq_fm (Ge ac) (NClosed b) = false
-  | eq_fm (Ge ac) (Closed b) = false
-  | eq_fm (Ge ac) (A bb) = false
-  | eq_fm (Ge ac) (E bb) = false
-  | eq_fm (Ge ac) (Iff (bb, cb)) = false
-  | eq_fm (Ge ac) (Imp (bb, cb)) = false
-  | eq_fm (Ge ac) (Or (bb, cb)) = false
-  | eq_fm (Ge ac) (And (bb, cb)) = false
-  | eq_fm (Ge ac) (Not bb) = false
-  | eq_fm (Ge ac) (NDvd (ba, cc)) = false
-  | eq_fm (Ge ac) (Dvd (ba, cc)) = false
-  | eq_fm (Ge ac) (NEq bc) = false
-  | eq_fm (Ge ac) (Eq bc) = false
-  | eq_fm (Gt ac) (NClosed b) = false
-  | eq_fm (Gt ac) (Closed b) = false
-  | eq_fm (Gt ac) (A bb) = false
-  | eq_fm (Gt ac) (E bb) = false
-  | eq_fm (Gt ac) (Iff (bb, cb)) = false
-  | eq_fm (Gt ac) (Imp (bb, cb)) = false
-  | eq_fm (Gt ac) (Or (bb, cb)) = false
-  | eq_fm (Gt ac) (And (bb, cb)) = false
-  | eq_fm (Gt ac) (Not bb) = false
-  | eq_fm (Gt ac) (NDvd (ba, cc)) = false
-  | eq_fm (Gt ac) (Dvd (ba, cc)) = false
-  | eq_fm (Gt ac) (NEq bc) = false
-  | eq_fm (Gt ac) (Eq bc) = false
-  | eq_fm (Gt ac) (Ge bc) = false
-  | eq_fm (Le ac) (NClosed b) = false
-  | eq_fm (Le ac) (Closed b) = false
-  | eq_fm (Le ac) (A bb) = false
-  | eq_fm (Le ac) (E bb) = false
-  | eq_fm (Le ac) (Iff (bb, cb)) = false
-  | eq_fm (Le ac) (Imp (bb, cb)) = false
-  | eq_fm (Le ac) (Or (bb, cb)) = false
-  | eq_fm (Le ac) (And (bb, cb)) = false
-  | eq_fm (Le ac) (Not bb) = false
-  | eq_fm (Le ac) (NDvd (ba, cc)) = false
-  | eq_fm (Le ac) (Dvd (ba, cc)) = false
-  | eq_fm (Le ac) (NEq bc) = false
-  | eq_fm (Le ac) (Eq bc) = false
-  | eq_fm (Le ac) (Ge bc) = false
-  | eq_fm (Le ac) (Gt bc) = false
-  | eq_fm (Lt ac) (NClosed b) = false
-  | eq_fm (Lt ac) (Closed b) = false
-  | eq_fm (Lt ac) (A bb) = false
-  | eq_fm (Lt ac) (E bb) = false
-  | eq_fm (Lt ac) (Iff (bb, cb)) = false
-  | eq_fm (Lt ac) (Imp (bb, cb)) = false
-  | eq_fm (Lt ac) (Or (bb, cb)) = false
-  | eq_fm (Lt ac) (And (bb, cb)) = false
-  | eq_fm (Lt ac) (Not bb) = false
-  | eq_fm (Lt ac) (NDvd (ba, cc)) = false
-  | eq_fm (Lt ac) (Dvd (ba, cc)) = false
-  | eq_fm (Lt ac) (NEq bc) = false
-  | eq_fm (Lt ac) (Eq bc) = false
-  | eq_fm (Lt ac) (Ge bc) = false
-  | eq_fm (Lt ac) (Gt bc) = false
-  | eq_fm (Lt ac) (Le bc) = false
+  | eq_fm (A a) (NClosed b) = false
+  | eq_fm (A a) (Closed b) = false
+  | eq_fm (E a) (NClosed b) = false
+  | eq_fm (E a) (Closed b) = false
+  | eq_fm (E a) (A b) = false
+  | eq_fm (Iff (a, b)) (NClosed c) = false
+  | eq_fm (Iff (a, b)) (Closed c) = false
+  | eq_fm (Iff (a, b)) (A c) = false
+  | eq_fm (Iff (a, b)) (E c) = false
+  | eq_fm (Imp (a, b)) (NClosed c) = false
+  | eq_fm (Imp (a, b)) (Closed c) = false
+  | eq_fm (Imp (a, b)) (A c) = false
+  | eq_fm (Imp (a, b)) (E c) = false
+  | eq_fm (Imp (a, b)) (Iff (c, d)) = false
+  | eq_fm (Or (a, b)) (NClosed c) = false
+  | eq_fm (Or (a, b)) (Closed c) = false
+  | eq_fm (Or (a, b)) (A c) = false
+  | eq_fm (Or (a, b)) (E c) = false
+  | eq_fm (Or (a, b)) (Iff (c, d)) = false
+  | eq_fm (Or (a, b)) (Imp (c, d)) = false
+  | eq_fm (And (a, b)) (NClosed c) = false
+  | eq_fm (And (a, b)) (Closed c) = false
+  | eq_fm (And (a, b)) (A c) = false
+  | eq_fm (And (a, b)) (E c) = false
+  | eq_fm (And (a, b)) (Iff (c, d)) = false
+  | eq_fm (And (a, b)) (Imp (c, d)) = false
+  | eq_fm (And (a, b)) (Or (c, d)) = false
+  | eq_fm (Not a) (NClosed b) = false
+  | eq_fm (Not a) (Closed b) = false
+  | eq_fm (Not a) (A b) = false
+  | eq_fm (Not a) (E b) = false
+  | eq_fm (Not a) (Iff (b, c)) = false
+  | eq_fm (Not a) (Imp (b, c)) = false
+  | eq_fm (Not a) (Or (b, c)) = false
+  | eq_fm (Not a) (And (b, c)) = false
+  | eq_fm (NDvd (a, b)) (NClosed c) = false
+  | eq_fm (NDvd (a, b)) (Closed c) = false
+  | eq_fm (NDvd (a, b)) (A c) = false
+  | eq_fm (NDvd (a, b)) (E c) = false
+  | eq_fm (NDvd (a, b)) (Iff (c, d)) = false
+  | eq_fm (NDvd (a, b)) (Imp (c, d)) = false
+  | eq_fm (NDvd (a, b)) (Or (c, d)) = false
+  | eq_fm (NDvd (a, b)) (And (c, d)) = false
+  | eq_fm (NDvd (a, b)) (Not c) = false
+  | eq_fm (Dvd (a, b)) (NClosed c) = false
+  | eq_fm (Dvd (a, b)) (Closed c) = false
+  | eq_fm (Dvd (a, b)) (A c) = false
+  | eq_fm (Dvd (a, b)) (E c) = false
+  | eq_fm (Dvd (a, b)) (Iff (c, d)) = false
+  | eq_fm (Dvd (a, b)) (Imp (c, d)) = false
+  | eq_fm (Dvd (a, b)) (Or (c, d)) = false
+  | eq_fm (Dvd (a, b)) (And (c, d)) = false
+  | eq_fm (Dvd (a, b)) (Not c) = false
+  | eq_fm (Dvd (a, b)) (NDvd (c, d)) = false
+  | eq_fm (NEq a) (NClosed b) = false
+  | eq_fm (NEq a) (Closed b) = false
+  | eq_fm (NEq a) (A b) = false
+  | eq_fm (NEq a) (E b) = false
+  | eq_fm (NEq a) (Iff (b, c)) = false
+  | eq_fm (NEq a) (Imp (b, c)) = false
+  | eq_fm (NEq a) (Or (b, c)) = false
+  | eq_fm (NEq a) (And (b, c)) = false
+  | eq_fm (NEq a) (Not b) = false
+  | eq_fm (NEq a) (NDvd (b, c)) = false
+  | eq_fm (NEq a) (Dvd (b, c)) = false
+  | eq_fm (Eq a) (NClosed b) = false
+  | eq_fm (Eq a) (Closed b) = false
+  | eq_fm (Eq a) (A b) = false
+  | eq_fm (Eq a) (E b) = false
+  | eq_fm (Eq a) (Iff (b, c)) = false
+  | eq_fm (Eq a) (Imp (b, c)) = false
+  | eq_fm (Eq a) (Or (b, c)) = false
+  | eq_fm (Eq a) (And (b, c)) = false
+  | eq_fm (Eq a) (Not b) = false
+  | eq_fm (Eq a) (NDvd (b, c)) = false
+  | eq_fm (Eq a) (Dvd (b, c)) = false
+  | eq_fm (Eq a) (NEq b) = false
+  | eq_fm (Ge a) (NClosed b) = false
+  | eq_fm (Ge a) (Closed b) = false
+  | eq_fm (Ge a) (A b) = false
+  | eq_fm (Ge a) (E b) = false
+  | eq_fm (Ge a) (Iff (b, c)) = false
+  | eq_fm (Ge a) (Imp (b, c)) = false
+  | eq_fm (Ge a) (Or (b, c)) = false
+  | eq_fm (Ge a) (And (b, c)) = false
+  | eq_fm (Ge a) (Not b) = false
+  | eq_fm (Ge a) (NDvd (b, c)) = false
+  | eq_fm (Ge a) (Dvd (b, c)) = false
+  | eq_fm (Ge a) (NEq b) = false
+  | eq_fm (Ge a) (Eq b) = false
+  | eq_fm (Gt a) (NClosed b) = false
+  | eq_fm (Gt a) (Closed b) = false
+  | eq_fm (Gt a) (A b) = false
+  | eq_fm (Gt a) (E b) = false
+  | eq_fm (Gt a) (Iff (b, c)) = false
+  | eq_fm (Gt a) (Imp (b, c)) = false
+  | eq_fm (Gt a) (Or (b, c)) = false
+  | eq_fm (Gt a) (And (b, c)) = false
+  | eq_fm (Gt a) (Not b) = false
+  | eq_fm (Gt a) (NDvd (b, c)) = false
+  | eq_fm (Gt a) (Dvd (b, c)) = false
+  | eq_fm (Gt a) (NEq b) = false
+  | eq_fm (Gt a) (Eq b) = false
+  | eq_fm (Gt a) (Ge b) = false
+  | eq_fm (Le a) (NClosed b) = false
+  | eq_fm (Le a) (Closed b) = false
+  | eq_fm (Le a) (A b) = false
+  | eq_fm (Le a) (E b) = false
+  | eq_fm (Le a) (Iff (b, c)) = false
+  | eq_fm (Le a) (Imp (b, c)) = false
+  | eq_fm (Le a) (Or (b, c)) = false
+  | eq_fm (Le a) (And (b, c)) = false
+  | eq_fm (Le a) (Not b) = false
+  | eq_fm (Le a) (NDvd (b, c)) = false
+  | eq_fm (Le a) (Dvd (b, c)) = false
+  | eq_fm (Le a) (NEq b) = false
+  | eq_fm (Le a) (Eq b) = false
+  | eq_fm (Le a) (Ge b) = false
+  | eq_fm (Le a) (Gt b) = false
+  | eq_fm (Lt a) (NClosed b) = false
+  | eq_fm (Lt a) (Closed b) = false
+  | eq_fm (Lt a) (A b) = false
+  | eq_fm (Lt a) (E b) = false
+  | eq_fm (Lt a) (Iff (b, c)) = false
+  | eq_fm (Lt a) (Imp (b, c)) = false
+  | eq_fm (Lt a) (Or (b, c)) = false
+  | eq_fm (Lt a) (And (b, c)) = false
+  | eq_fm (Lt a) (Not b) = false
+  | eq_fm (Lt a) (NDvd (b, c)) = false
+  | eq_fm (Lt a) (Dvd (b, c)) = false
+  | eq_fm (Lt a) (NEq b) = false
+  | eq_fm (Lt a) (Eq b) = false
+  | eq_fm (Lt a) (Ge b) = false
+  | eq_fm (Lt a) (Gt b) = false
+  | eq_fm (Lt a) (Le b) = false
   | eq_fm F (NClosed a) = false
   | eq_fm F (Closed a) = false
-  | eq_fm F (A ab) = false
-  | eq_fm F (E ab) = false
-  | eq_fm F (Iff (ab, bb)) = false
-  | eq_fm F (Imp (ab, bb)) = false
-  | eq_fm F (Or (ab, bb)) = false
-  | eq_fm F (And (ab, bb)) = false
-  | eq_fm F (Not ab) = false
-  | eq_fm F (NDvd (aa, bc)) = false
-  | eq_fm F (Dvd (aa, bc)) = false
-  | eq_fm F (NEq ac) = false
-  | eq_fm F (Eq ac) = false
-  | eq_fm F (Ge ac) = false
-  | eq_fm F (Gt ac) = false
-  | eq_fm F (Le ac) = false
-  | eq_fm F (Lt ac) = false
+  | eq_fm F (A a) = false
+  | eq_fm F (E a) = false
+  | eq_fm F (Iff (a, b)) = false
+  | eq_fm F (Imp (a, b)) = false
+  | eq_fm F (Or (a, b)) = false
+  | eq_fm F (And (a, b)) = false
+  | eq_fm F (Not a) = false
+  | eq_fm F (NDvd (a, b)) = false
+  | eq_fm F (Dvd (a, b)) = false
+  | eq_fm F (NEq a) = false
+  | eq_fm F (Eq a) = false
+  | eq_fm F (Ge a) = false
+  | eq_fm F (Gt a) = false
+  | eq_fm F (Le a) = false
+  | eq_fm F (Lt a) = false
   | eq_fm T (NClosed a) = false
   | eq_fm T (Closed a) = false
-  | eq_fm T (A ab) = false
-  | eq_fm T (E ab) = false
-  | eq_fm T (Iff (ab, bb)) = false
-  | eq_fm T (Imp (ab, bb)) = false
-  | eq_fm T (Or (ab, bb)) = false
-  | eq_fm T (And (ab, bb)) = false
-  | eq_fm T (Not ab) = false
-  | eq_fm T (NDvd (aa, bc)) = false
-  | eq_fm T (Dvd (aa, bc)) = false
-  | eq_fm T (NEq ac) = false
-  | eq_fm T (Eq ac) = false
-  | eq_fm T (Ge ac) = false
-  | eq_fm T (Gt ac) = false
-  | eq_fm T (Le ac) = false
-  | eq_fm T (Lt ac) = false
+  | eq_fm T (A a) = false
+  | eq_fm T (E a) = false
+  | eq_fm T (Iff (a, b)) = false
+  | eq_fm T (Imp (a, b)) = false
+  | eq_fm T (Or (a, b)) = false
+  | eq_fm T (And (a, b)) = false
+  | eq_fm T (Not a) = false
+  | eq_fm T (NDvd (a, b)) = false
+  | eq_fm T (Dvd (a, b)) = false
+  | eq_fm T (NEq a) = false
+  | eq_fm T (Eq a) = false
+  | eq_fm T (Ge a) = false
+  | eq_fm T (Gt a) = false
+  | eq_fm T (Le a) = false
+  | eq_fm T (Lt a) = false
   | eq_fm T F = false
   | eq_fm (NClosed nat) (NClosed nat') = ((nat : IntInf.int) = nat')
   | eq_fm (Closed nat) (Closed nat') = ((nat : IntInf.int) = nat')
@@ -554,7 +554,7 @@ fun djf f p q =
                      | NClosed nat => Or (f p, q))
                 end));
 
-fun foldr f [] y = y
+fun foldr f [] a = a
   | foldr f (x :: xs) a = f x (foldr f xs a);
 
 fun evaldjf f ps = foldr (djf f) ps F;
@@ -607,9 +607,9 @@ fun numsubst0 t (C c) = C c
   | numsubst0 t (Add (a, b)) = Add (numsubst0 t a, numsubst0 t b)
   | numsubst0 t (Sub (a, b)) = Sub (numsubst0 t a, numsubst0 t b)
   | numsubst0 t (Mul (i, a)) = Mul (i, numsubst0 t a)
-  | numsubst0 ta (Cn (v, ia, aa)) =
-    (if eqop eq_nat v 0 then Add (Mul (ia, ta), numsubst0 ta aa)
-      else Cn (suc (minus_nat v 1), ia, numsubst0 ta aa));
+  | numsubst0 t (Cn (v, i, a)) =
+    (if eqop eq_nat v 0 then Add (Mul (i, t), numsubst0 t a)
+      else Cn (suc (minus_nat v 1), i, numsubst0 t a));
 
 fun subst0 t T = T
   | subst0 t F = F
@@ -691,36 +691,35 @@ fun minusinf (And (p, q)) = And (minusinf p, minusinf q)
   | minusinf (NEq (Cn (hm, c, e))) =
     (if eqop eq_nat hm 0 then T else NEq (Cn (suc (minus_nat hm 1), c, e)));
 
-fun adjust b =
-  (fn a as (q, r) =>
-    (if IntInf.<= ((0 : IntInf.int), IntInf.- (r, b))
-      then (IntInf.+ (IntInf.* ((2 : IntInf.int), q), (1 : IntInf.int)),
-             IntInf.- (r, b))
-      else (IntInf.* ((2 : IntInf.int), q), r)));
+val eq_int = {eq = (fn a => fn b => ((a : IntInf.int) = b))} : IntInf.int eq;
 
-fun negDivAlg a b =
-  (if IntInf.<= ((0 : IntInf.int), IntInf.+ (a, b)) orelse
-        IntInf.<= (b, (0 : IntInf.int))
-    then ((~1 : IntInf.int), IntInf.+ (a, b))
-    else adjust b (negDivAlg a (IntInf.* ((2 : IntInf.int), b))));
+fun sgn_int i =
+  (if eqop eq_int i (0 : IntInf.int) then (0 : IntInf.int)
+    else (if IntInf.< ((0 : IntInf.int), i) then (1 : IntInf.int)
+           else IntInf.~ (1 : IntInf.int)));
 
 fun apsnd f (x, y) = (x, f y);
 
-val eq_int = {eq = (fn a => fn b => ((a : IntInf.int) = b))} : IntInf.int eq;
-
-fun posDivAlg a b =
-  (if IntInf.< (a, b) orelse IntInf.<= (b, (0 : IntInf.int))
-    then ((0 : IntInf.int), a)
-    else adjust b (posDivAlg a (IntInf.* ((2 : IntInf.int), b))));
-
-fun divmoda a b =
-  (if IntInf.<= ((0 : IntInf.int), a)
-    then (if IntInf.<= ((0 : IntInf.int), b) then posDivAlg a b
-           else (if eqop eq_int a (0 : IntInf.int)
-                  then ((0 : IntInf.int), (0 : IntInf.int))
-                  else apsnd IntInf.~ (negDivAlg (IntInf.~ a) (IntInf.~ b))))
-    else (if IntInf.< ((0 : IntInf.int), b) then negDivAlg a b
-           else apsnd IntInf.~ (posDivAlg (IntInf.~ a) (IntInf.~ b))));
+fun divmoda k l =
+  (if eqop eq_int k (0 : IntInf.int) then ((0 : IntInf.int), (0 : IntInf.int))
+    else (if eqop eq_int l (0 : IntInf.int) then ((0 : IntInf.int), k)
+           else apsnd (fn a => IntInf.* (sgn_int l, a))
+                  (if eqop eq_int (sgn_int k) (sgn_int l)
+                    then (fn k => fn l => IntInf.divMod (IntInf.abs k,
+                           IntInf.abs l))
+                           k l
+                    else let
+                           val a =
+                             (fn k => fn l => IntInf.divMod (IntInf.abs k,
+                               IntInf.abs l))
+                               k l;
+                           val (r, s) = a;
+                         in
+                           (if eqop eq_int s (0 : IntInf.int)
+                             then (IntInf.~ r, (0 : IntInf.int))
+                             else (IntInf.- (IntInf.~ r, (1 : IntInf.int)),
+                                    IntInf.- (abs_int l, s)))
+                         end)));
 
 fun mod_int a b = snd (divmoda a b);
 
@@ -823,23 +822,23 @@ fun simpnum (C j) = C j
       else nummul i (simpnum t))
   | simpnum (Cn (v, va, vb)) = Cn (v, va, vb);
 
-fun nota (Not y) = y
+fun nota (Not p) = p
   | nota T = F
   | nota F = T
-  | nota (Lt vc) = Not (Lt vc)
-  | nota (Le vc) = Not (Le vc)
-  | nota (Gt vc) = Not (Gt vc)
-  | nota (Ge vc) = Not (Ge vc)
-  | nota (Eq vc) = Not (Eq vc)
-  | nota (NEq vc) = Not (NEq vc)
-  | nota (Dvd (va, vab)) = Not (Dvd (va, vab))
-  | nota (NDvd (va, vab)) = Not (NDvd (va, vab))
-  | nota (And (vb, vaa)) = Not (And (vb, vaa))
-  | nota (Or (vb, vaa)) = Not (Or (vb, vaa))
-  | nota (Imp (vb, vaa)) = Not (Imp (vb, vaa))
-  | nota (Iff (vb, vaa)) = Not (Iff (vb, vaa))
-  | nota (E vb) = Not (E vb)
-  | nota (A vb) = Not (A vb)
+  | nota (Lt v) = Not (Lt v)
+  | nota (Le v) = Not (Le v)
+  | nota (Gt v) = Not (Gt v)
+  | nota (Ge v) = Not (Ge v)
+  | nota (Eq v) = Not (Eq v)
+  | nota (NEq v) = Not (NEq v)
+  | nota (Dvd (v, va)) = Not (Dvd (v, va))
+  | nota (NDvd (v, va)) = Not (NDvd (v, va))
+  | nota (And (v, va)) = Not (And (v, va))
+  | nota (Or (v, va)) = Not (Or (v, va))
+  | nota (Imp (v, va)) = Not (Imp (v, va))
+  | nota (Iff (v, va)) = Not (Iff (v, va))
+  | nota (E v) = Not (E v)
+  | nota (A v) = Not (A v)
   | nota (Closed v) = Not (Closed v)
   | nota (NClosed v) = Not (NClosed v);
 
@@ -1184,7 +1183,7 @@ fun delta (And (p, q)) = zlcm (delta p) (delta q)
   | delta (Le v) = (1 : IntInf.int)
   | delta (Gt w) = (1 : IntInf.int)
   | delta (Ge x) = (1 : IntInf.int)
-  | delta (Eq ya) = (1 : IntInf.int)
+  | delta (Eq y) = (1 : IntInf.int)
   | delta (NEq z) = (1 : IntInf.int)
   | delta (Dvd (aa, C bo)) = (1 : IntInf.int)
   | delta (Dvd (aa, Bound bp)) = (1 : IntInf.int)
@@ -1205,10 +1204,10 @@ fun delta (And (p, q)) = zlcm (delta p) (delta q)
   | delta (A ao) = (1 : IntInf.int)
   | delta (Closed ap) = (1 : IntInf.int)
   | delta (NClosed aq) = (1 : IntInf.int)
-  | delta (Dvd (b, Cn (cm, c, e))) =
-    (if eqop eq_nat cm 0 then b else (1 : IntInf.int))
-  | delta (NDvd (b, Cn (dm, c, e))) =
-    (if eqop eq_nat dm 0 then b else (1 : IntInf.int));
+  | delta (Dvd (i, Cn (cm, c, e))) =
+    (if eqop eq_nat cm 0 then i else (1 : IntInf.int))
+  | delta (NDvd (i, Cn (dm, c, e))) =
+    (if eqop eq_nat dm 0 then i else (1 : IntInf.int));
 
 fun div_int a b = fst (divmoda a b);
 
@@ -1367,22 +1366,22 @@ fun zeta (And (p, q)) = zlcm (zeta p) (zeta q)
   | zeta (A ao) = (1 : IntInf.int)
   | zeta (Closed ap) = (1 : IntInf.int)
   | zeta (NClosed aq) = (1 : IntInf.int)
-  | zeta (Lt (Cn (cm, b, e))) =
-    (if eqop eq_nat cm 0 then b else (1 : IntInf.int))
-  | zeta (Le (Cn (dm, b, e))) =
-    (if eqop eq_nat dm 0 then b else (1 : IntInf.int))
-  | zeta (Gt (Cn (em, b, e))) =
-    (if eqop eq_nat em 0 then b else (1 : IntInf.int))
-  | zeta (Ge (Cn (fm, b, e))) =
-    (if eqop eq_nat fm 0 then b else (1 : IntInf.int))
-  | zeta (Eq (Cn (gm, b, e))) =
-    (if eqop eq_nat gm 0 then b else (1 : IntInf.int))
-  | zeta (NEq (Cn (hm, b, e))) =
-    (if eqop eq_nat hm 0 then b else (1 : IntInf.int))
-  | zeta (Dvd (i, Cn (im, b, e))) =
-    (if eqop eq_nat im 0 then b else (1 : IntInf.int))
-  | zeta (NDvd (i, Cn (jm, b, e))) =
-    (if eqop eq_nat jm 0 then b else (1 : IntInf.int));
+  | zeta (Lt (Cn (cm, c, e))) =
+    (if eqop eq_nat cm 0 then c else (1 : IntInf.int))
+  | zeta (Le (Cn (dm, c, e))) =
+    (if eqop eq_nat dm 0 then c else (1 : IntInf.int))
+  | zeta (Gt (Cn (em, c, e))) =
+    (if eqop eq_nat em 0 then c else (1 : IntInf.int))
+  | zeta (Ge (Cn (fm, c, e))) =
+    (if eqop eq_nat fm 0 then c else (1 : IntInf.int))
+  | zeta (Eq (Cn (gm, c, e))) =
+    (if eqop eq_nat gm 0 then c else (1 : IntInf.int))
+  | zeta (NEq (Cn (hm, c, e))) =
+    (if eqop eq_nat hm 0 then c else (1 : IntInf.int))
+  | zeta (Dvd (i, Cn (im, c, e))) =
+    (if eqop eq_nat im 0 then c else (1 : IntInf.int))
+  | zeta (NDvd (i, Cn (jm, c, e))) =
+    (if eqop eq_nat jm 0 then c else (1 : IntInf.int));
 
 fun zsplit0 (C c) = ((0 : IntInf.int), C c)
   | zsplit0 (Bound n) =
@@ -1690,5 +1689,17 @@ fun neg z = IntInf.< (z, (0 : IntInf.int));
 fun nat_aux i n =
   (if IntInf.<= (i, (0 : IntInf.int)) then n
     else nat_aux (IntInf.- (i, (1 : IntInf.int))) (suc n));
+
+fun adjust b =
+  (fn a as (q, r) =>
+    (if IntInf.<= ((0 : IntInf.int), IntInf.- (r, b))
+      then (IntInf.+ (IntInf.* ((2 : IntInf.int), q), (1 : IntInf.int)),
+             IntInf.- (r, b))
+      else (IntInf.* ((2 : IntInf.int), q), r)));
+
+fun posDivAlg a b =
+  (if IntInf.< (a, b) orelse IntInf.<= (b, (0 : IntInf.int))
+    then ((0 : IntInf.int), a)
+    else adjust b (posDivAlg a (IntInf.* ((2 : IntInf.int), b))));
 
 end; (*struct GeneratedCooper*)
