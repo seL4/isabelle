@@ -588,32 +588,18 @@ text {*
   Structures with subtraction @{term "op -"}.
 *}
 
-text {* A decrement function *}
+text {* A double-and-decrement function *}
 
-primrec dec :: "num \<Rightarrow> num" where
-  "dec 1 = 1"
-  | "dec (Dig0 n) = (case n of 1 \<Rightarrow> 1 | _ \<Rightarrow> Dig1 (dec n))"
-  | "dec (Dig1 n) = Dig0 n"
+primrec DigM :: "num \<Rightarrow> num" where
+  "DigM 1 = 1"
+  | "DigM (Dig0 n) = Dig1 (DigM n)"
+  | "DigM (Dig1 n) = Dig1 (Dig0 n)"
 
-declare dec.simps [simp del, code del]
+lemma DigM_plus_one: "DigM n + 1 = Dig0 n"
+  by (induct n) simp_all
 
-lemma Dig_dec [numeral, simp, code]:
-  "dec 1 = 1"
-  "dec (Dig0 1) = 1"
-  "dec (Dig0 (Dig0 n)) = Dig1 (dec (Dig0 n))"
-  "dec (Dig0 (Dig1 n)) = Dig1 (Dig0 n)"
-  "dec (Dig1 n) = Dig0 n"
-  by (simp_all add: dec.simps)
-
-lemma Dig_dec_plus_one:
-  "dec n + 1 = (if n = 1 then Dig0 1 else n)"
-  by (induct n)
-    (auto simp add: Dig_plus dec.simps,
-     auto simp add: Dig_plus split: num.splits)
-
-lemma Dig_one_plus_dec:
-  "1 + dec n = (if n = 1 then Dig0 1 else n)"
-  unfolding add_commute [of 1] Dig_dec_plus_one ..
+lemma one_plus_DigM: "1 + DigM n = Dig0 n"
+  unfolding add_commute [of 1] DigM_plus_one ..
 
 class semiring_minus = semiring + minus + zero +
   assumes minus_inverts_plus1: "a + b = c \<Longrightarrow> c - b = a"
@@ -684,14 +670,14 @@ lemma Dig_one_minus_one [numeral]:
   by (simp add: minus_inverts_plus1)
 
 lemma Dig_of_num_minus_one [numeral]:
-  "of_num (Dig0 n) - 1 = of_num (dec (Dig0 n))"
+  "of_num (Dig0 n) - 1 = of_num (DigM n)"
   "of_num (Dig1 n) - 1 = of_num (Dig0 n)"
-  by (auto intro: minus_inverts_plus1 simp add: Dig_dec_plus_one of_num.simps of_num_plus_one)
+  by (auto intro: minus_inverts_plus1 simp add: DigM_plus_one of_num.simps of_num_plus_one)
 
 lemma Dig_one_minus_of_num [numeral]:
-  "1 - of_num (Dig0 n) = 0 - of_num (dec (Dig0 n))"
+  "1 - of_num (Dig0 n) = 0 - of_num (DigM n)"
   "1 - of_num (Dig1 n) = 0 - of_num (Dig0 n)"
-  by (auto intro: minus_minus_zero_inverts_plus1 simp add: Dig_dec_plus_one of_num.simps of_num_plus_one)
+  by (auto intro: minus_minus_zero_inverts_plus1 simp add: DigM_plus_one of_num.simps of_num_plus_one)
 
 end
 
@@ -748,9 +734,9 @@ lemma Suc_of_num [numeral]: "Suc (of_num n) = of_num (n + 1)"
 lemma nat_number:
   "1 = Suc 0"
   "of_num 1 = Suc 0"
-  "of_num (Dig0 n) = Suc (of_num (dec (Dig0 n)))"
+  "of_num (Dig0 n) = Suc (of_num (DigM n))"
   "of_num (Dig1 n) = Suc (of_num (Dig0 n))"
-  by (simp_all add: of_num.simps Dig_dec_plus_one Suc_of_num)
+  by (simp_all add: of_num.simps DigM_plus_one Suc_of_num)
 
 declare diff_0_eq_0 [numeral]
 
@@ -775,16 +761,16 @@ definition dup :: "int \<Rightarrow> int" where
 
 lemma Dig_sub [code]:
   "sub 1 1 = 0"
-  "sub (Dig0 m) 1 = of_num (dec (Dig0 m))"
+  "sub (Dig0 m) 1 = of_num (DigM m)"
   "sub (Dig1 m) 1 = of_num (Dig0 m)"
-  "sub 1 (Dig0 n) = - of_num (dec (Dig0 n))"
+  "sub 1 (Dig0 n) = - of_num (DigM n)"
   "sub 1 (Dig1 n) = - of_num (Dig0 n)"
   "sub (Dig0 m) (Dig0 n) = dup (sub m n)"
   "sub (Dig1 m) (Dig1 n) = dup (sub m n)"
   "sub (Dig1 m) (Dig0 n) = dup (sub m n) + 1"
   "sub (Dig0 m) (Dig1 n) = dup (sub m n) - 1"
   apply (simp_all add: dup_def algebra_simps)
-  apply (simp_all add: of_num_plus Dig_one_plus_dec)[4]
+  apply (simp_all add: of_num_plus one_plus_DigM)[4]
   apply (simp_all add: of_num.simps)
   done
 
