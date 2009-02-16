@@ -67,7 +67,7 @@ lemma num_eq_iff: "x = y \<longleftrightarrow> nat_of_num x = nat_of_num y"
   apply (simp add: nat_of_num_inverse)
   done
 
-instantiation num :: "semiring"
+instantiation num :: "{plus,times}"
 begin
 
 definition plus_num :: "num \<Rightarrow> num \<Rightarrow> num" where
@@ -84,8 +84,7 @@ lemma nat_of_num_mult: "nat_of_num (x * y) = nat_of_num x * nat_of_num y"
   unfolding times_num_def
   by (intro num_of_nat_inverse mult_pos_pos nat_of_num_gt_0)
 
-instance proof
-qed (simp_all add: num_eq_iff nat_of_num_add nat_of_num_mult nat_distrib)
+instance ..
 
 end
 
@@ -389,7 +388,7 @@ proof -
   ultimately show ?thesis by (simp add: of_nat_of_num)
 qed
 
-instantiation num :: linorder
+instantiation num :: ord
 begin
 
 definition less_eq_num :: "num \<Rightarrow> num \<Rightarrow> bool" where
@@ -398,8 +397,7 @@ definition less_eq_num :: "num \<Rightarrow> num \<Rightarrow> bool" where
 definition less_num :: "num \<Rightarrow> num \<Rightarrow> bool" where
   [code del]: "m < n \<longleftrightarrow> nat_of_num m < nat_of_num n"
 
-instance proof
-qed (auto simp add: less_eq_num_def less_num_def num_eq_iff)
+instance ..
 
 end
 
@@ -487,8 +485,11 @@ primrec DigM :: "num \<Rightarrow> num" where
 lemma DigM_plus_one: "DigM n + One = Dig0 n"
   by (induct n) simp_all
 
+lemma add_One_commute: "One + n = n + One"
+  by (induct n) simp_all
+
 lemma one_plus_DigM: "One + DigM n = Dig0 n"
-  unfolding add_commute [of One] DigM_plus_one ..
+  unfolding add_One_commute DigM_plus_one ..
 
 class semiring_minus = semiring + minus + zero +
   assumes minus_inverts_plus1: "a + b = c \<Longrightarrow> c - b = a"
