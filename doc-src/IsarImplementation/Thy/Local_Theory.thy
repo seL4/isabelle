@@ -2,24 +2,17 @@ theory Local_Theory
 imports Base
 begin
 
-chapter {* Structured specifications *}
+chapter {* Local theory specifications *}
 
-section {* Specification elements *}
-
-text FIXME
-
-
-section {* Type-inference *}
-
-text FIXME
-
-
-section {* Local theories *}
+section {* Definitional elements *}
 
 text {*
   FIXME
-
-  \glossary{Local theory}{FIXME}
 *}
+
+
+section {* Morphisms and declarations *}
+
+text FIXME
 
 end
