@@ -27,15 +27,16 @@ text {*
   instantiated during the course of reasoning.}.  For @{text "n = 0"}
   a goal is called ``solved''.
 
-  The structure of each subgoal @{text "A\<^sub>i"} is that of a general
-  Hereditary Harrop Formula @{text "\<And>x\<^sub>1 \<dots> \<And>x\<^sub>k. H\<^sub>1 \<Longrightarrow> \<dots> \<Longrightarrow> H\<^sub>m \<Longrightarrow> B"} in
-  normal form.  Here @{text "x\<^sub>1, \<dots>, x\<^sub>k"} are goal parameters, i.e.\
-  arbitrary-but-fixed entities of certain types, and @{text "H\<^sub>1, \<dots>,
-  H\<^sub>m"} are goal hypotheses, i.e.\ facts that may be assumed locally.
-  Together, this forms the goal context of the conclusion @{text B} to
-  be established.  The goal hypotheses may be again arbitrary
-  Hereditary Harrop Formulas, although the level of nesting rarely
-  exceeds 1--2 in practice.
+  The structure of each subgoal @{text "A\<^sub>i"} is that of a
+  general Hereditary Harrop Formula @{text "\<And>x\<^sub>1 \<dots>
+  \<And>x\<^sub>k. H\<^sub>1 \<Longrightarrow> \<dots> \<Longrightarrow> H\<^sub>m \<Longrightarrow> B"}.  Here @{text
+  "x\<^sub>1, \<dots>, x\<^sub>k"} are goal parameters, i.e.\
+  arbitrary-but-fixed entities of certain types, and @{text
+  "H\<^sub>1, \<dots>, H\<^sub>m"} are goal hypotheses, i.e.\ facts that may
+  be assumed locally.  Together, this forms the goal context of the
+  conclusion @{text B} to be established.  The goal hypotheses may be
+  again arbitrary Hereditary Harrop Formulas, although the level of
+  nesting rarely exceeds 1--2 in practice.
 
   The main conclusion @{text C} is internally marked as a protected
   proposition, which is represented explicitly by the notation @{text

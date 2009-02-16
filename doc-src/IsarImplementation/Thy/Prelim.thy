@@ -74,7 +74,7 @@ text {*
 subsection {* Theory context \label{sec:context-theory} *}
 
 text {*
-  A \emph{theory} is a data container with explicit named and unique
+  A \emph{theory} is a data container with explicit name and unique
   identifier.  Theories are related by a (nominal) sub-theory
   relation, which corresponds to the dependency graph of the original
   construction; each theory is derived from a certain sub-graph of
@@ -178,7 +178,7 @@ text %mlref {*
 
   \item @{ML "Theory.copy"}~@{text "thy"} produces a variant of @{text
   "thy"} that holds a copy of the same data.  The result is not
-  related to the original; the original is unchanched.
+  related to the original; the original is unchanged.
 
   \item @{ML_type theory_ref} represents a sliding reference to an
   always valid theory; updates on the original are propagated
@@ -213,7 +213,7 @@ text {*
   identification as for theories.  For example, hypotheses used in
   primitive derivations (cf.\ \secref{sec:thms}) are recorded
   separately within the sequent @{text "\<Gamma> \<turnstile> \<phi>"}, just to make double
-  sure.  Results could still leak into an alien proof context do to
+  sure.  Results could still leak into an alien proof context due to
   programming errors, but Isabelle/Isar includes some extra validity
   checks in critical positions, notably at the end of a sub-proof.
 
@@ -353,7 +353,7 @@ text {*
 
   \medskip
   \begin{tabular}{ll}
-  @{text "init: theory \<rightarrow> theory"} \\
+  @{text "init: theory \<rightarrow> T"} \\
   @{text "get: context \<rightarrow> T"} \\
   @{text "put: T \<rightarrow> context \<rightarrow> context"} \\
   @{text "map: (T \<rightarrow> T) \<rightarrow> context \<rightarrow> context"} \\
@@ -505,10 +505,9 @@ subsection {* Basic names \label{sec:basic-names} *}
 text {*
   A \emph{basic name} essentially consists of a single Isabelle
   identifier.  There are conventions to mark separate classes of basic
-  names, by attaching a suffix of underscores (@{text "_"}): one
-  underscore means \emph{internal name}, two underscores means
-  \emph{Skolem name}, three underscores means \emph{internal Skolem
-  name}.
+  names, by attaching a suffix of underscores: one underscore means
+  \emph{internal name}, two underscores means \emph{Skolem name},
+  three underscores means \emph{internal Skolem name}.
 
   For example, the basic name @{text "foo"} has the internal version
   @{text "foo_"}, with Skolem versions @{text "foo__"} and @{text
@@ -568,7 +567,7 @@ text %mlref {*
   "n"} fresh names derived from @{text "name"}.
 
   \item @{ML Name.variants}~@{text "names context"} produces fresh
-  varians of @{text "names"}; the result is entered into the context.
+  variants of @{text "names"}; the result is entered into the context.
 
   \end{description}
 *}

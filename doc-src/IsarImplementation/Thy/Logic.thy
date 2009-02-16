@@ -191,9 +191,9 @@ section {* Terms \label{sec:terms} *}
 text {*
   The language of terms is that of simply-typed @{text "\<lambda>"}-calculus
   with de-Bruijn indices for bound variables (cf.\ \cite{debruijn72}
-  or \cite{paulson-ml2}), with the types being determined determined
-  by the corresponding binders.  In contrast, free variables and
-  constants are have an explicit name and type in each occurrence.
+  or \cite{paulson-ml2}), with the types being determined by the
+  corresponding binders.  In contrast, free variables and constants
+  are have an explicit name and type in each occurrence.
 
   \medskip A \emph{bound variable} is a natural number @{text "b"},
   which accounts for the number of intermediate binders between the

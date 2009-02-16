@@ -122,7 +122,7 @@ text {*
   Internally, Isar commands are put together from an empty transition
   extended by name and source position (and optional source text).  It
   is then left to the individual command parser to turn the given
-  concrete syntax into a suitable transition transformer that adjoin
+  concrete syntax into a suitable transition transformer that adjoins
   actual operations on a theory or proof state etc.
 *}
 

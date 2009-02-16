@@ -302,11 +302,11 @@ text %mlref {*
 
   \begin{description}
 
-  \item @{ML SUBPROOF}~@{text "tac"} decomposes the structure of a
-  particular sub-goal, producing an extended context and a reduced
-  goal, which needs to be solved by the given tactic.  All schematic
-  parameters of the goal are imported into the context as fixed ones,
-  which may not be instantiated in the sub-proof.
+  \item @{ML SUBPROOF}~@{text "tac ctxt i"} decomposes the structure
+  of the specified sub-goal, producing an extended context and a
+  reduced goal, which needs to be solved by the given tactic.  All
+  schematic parameters of the goal are imported into the context as
+  fixed ones, which may not be instantiated in the sub-proof.
 
   \item @{ML Goal.prove}~@{text "ctxt xs As C tac"} states goal @{text
   "C"} in the context augmented by fixed variables @{text "xs"} and
