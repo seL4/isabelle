@@ -1,5 +1,4 @@
 (*  Title:      HOL/ex/Numeral.thy
-    ID:         $Id$
     Author:     Florian Haftmann
 
 An experimental alternative numeral representation.
@@ -216,7 +215,7 @@ subsection {* Binary numerals *}
 
 text {*
   We embed binary representations into a generic algebraic
-  structure using @{text of_num}
+  structure using @{text of_num}.
 *}
 
 class semiring_numeral = semiring + monoid_mult
@@ -764,7 +763,7 @@ hide (open) const sub dup
 
 subsection {* Numeral equations as default simplification rules *}
 
-text {* TODO.  Be more precise here with respect to subsumed facts. *}
+text {* TODO.  Be more precise here with respect to subsumed facts.  Or use named theorems anyway. *}
 declare (in semiring_numeral) numeral [simp]
 declare (in semiring_1) numeral [simp]
 declare (in semiring_char_0) numeral [simp]

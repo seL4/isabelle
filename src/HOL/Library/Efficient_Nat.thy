@@ -105,12 +105,18 @@ text {*
   This can be accomplished by applying the following transformation rules:
 *}
 
-lemma Suc_if_eq: "(\<And>n. f (Suc n) = h n) \<Longrightarrow> f 0 = g \<Longrightarrow>
+lemma Suc_if_eq': "(\<And>n. f (Suc n) = h n) \<Longrightarrow> f 0 = g \<Longrightarrow>
   f n = (if n = 0 then g else h (n - 1))"
-  by (case_tac n) simp_all
+  by (cases n) simp_all
+
+lemma Suc_if_eq: "(\<And>n. f (Suc n) \<equiv> h n) \<Longrightarrow> f 0 \<equiv> g \<Longrightarrow>
+  f n \<equiv> if n = 0 then g else h (n - 1)"
+  by (rule eq_reflection, rule Suc_if_eq')
+    (rule meta_eq_to_obj_eq, assumption,
+     rule meta_eq_to_obj_eq, assumption)
 
 lemma Suc_clause: "(\<And>n. P n (Suc n)) \<Longrightarrow> n \<noteq> 0 \<Longrightarrow> P (n - 1) n"
-  by (case_tac n) simp_all
+  by (cases n) simp_all
 
 text {*
   The rules above are built into a preprocessor that is plugged into
@@ -123,16 +129,16 @@ text {*
 setup {*
 let
 
-fun remove_suc thy thms =
+fun gen_remove_suc Suc_if_eq dest_judgement thy thms =
   let
     val vname = Name.variant (map fst
-      (fold (Term.add_var_names o Thm.full_prop_of) thms [])) "x";
+      (fold (Term.add_var_names o Thm.full_prop_of) thms [])) "n";
     val cv = cterm_of thy (Var ((vname, 0), HOLogic.natT));
     fun lhs_of th = snd (Thm.dest_comb
-      (fst (Thm.dest_comb (snd (Thm.dest_comb (cprop_of th))))));
-    fun rhs_of th = snd (Thm.dest_comb (snd (Thm.dest_comb (cprop_of th))));
+      (fst (Thm.dest_comb (dest_judgement (cprop_of th)))));
+    fun rhs_of th = snd (Thm.dest_comb (dest_judgement (cprop_of th)));
     fun find_vars ct = (case term_of ct of
-        (Const ("Suc", _) $ Var _) => [(cv, snd (Thm.dest_comb ct))]
+        (Const (@{const_name Suc}, _) $ Var _) => [(cv, snd (Thm.dest_comb ct))]
       | _ $ _ =>
         let val (ct1, ct2) = Thm.dest_comb ct
         in 
@@ -150,7 +156,7 @@ fun remove_suc thy thms =
              (Drule.instantiate'
                [SOME (ctyp_of_term ct)] [SOME (Thm.cabs cv ct),
                  SOME (Thm.cabs cv' (rhs_of th)), NONE, SOME cv']
-               @{thm Suc_if_eq})) (Thm.forall_intr cv' th)
+               Suc_if_eq)) (Thm.forall_intr cv' th)
       in
         case map_filter (fn th'' =>
             SOME (th'', singleton
@@ -161,20 +167,26 @@ fun remove_suc thy thms =
               let val (ths1, ths2) = split_list thps
               in SOME (subtract Thm.eq_thm (th :: ths1) thms @ ths2) end
       end
-  in case get_first mk_thms eqs of
-      NONE => thms
-    | SOME x => remove_suc thy x
-  end;
+  in get_first mk_thms eqs end;
 
-fun eqn_suc_preproc thy ths =
+fun gen_eqn_suc_preproc Suc_if_eq dest_judgement dest_lhs thy thms =
   let
-    val dest = fst o HOLogic.dest_eq o HOLogic.dest_Trueprop o prop_of;
+    val dest = dest_lhs o prop_of;
     val contains_suc = exists_Const (fn (c, _) => c = @{const_name Suc});
   in
-    if forall (can dest) ths andalso
-      exists (contains_suc o dest) ths
-    then remove_suc thy ths else ths
+    if forall (can dest) thms andalso exists (contains_suc o dest) thms
+      then perhaps_loop (gen_remove_suc Suc_if_eq dest_judgement thy) thms
+       else NONE
   end;
+
+fun eqn_suc_preproc thy = map fst
+  #> gen_eqn_suc_preproc
+      @{thm Suc_if_eq} I (fst o Logic.dest_equals) thy
+  #> (Option.map o map) (Code_Unit.mk_eqn thy);
+
+fun eqn_suc_preproc' thy thms = gen_eqn_suc_preproc
+  @{thm Suc_if_eq'} (snd o Thm.dest_comb) (fst o HOLogic.dest_eq o HOLogic.dest_Trueprop) thy thms
+  |> the_default thms;
 
 fun remove_suc_clause thy thms =
   let
@@ -215,28 +227,11 @@ fun clause_suc_preproc thy ths =
         (map_filter (try dest) (concl_of th :: prems_of th))) ths
     then remove_suc_clause thy ths else ths
   end;
-
-fun lift f thy eqns1 =
-  let
-    val eqns2 = burrow_fst Drule.zero_var_indexes_list eqns1;
-    val thms3 = try (map fst
-      #> map (fn thm => thm RS @{thm meta_eq_to_obj_eq})
-      #> f thy
-      #> map (fn thm => thm RS @{thm eq_reflection})
-      #> map (Conv.fconv_rule Drule.beta_eta_conversion)) eqns2;
-    val thms4 = Option.map Drule.zero_var_indexes_list thms3;
-  in case thms4
-   of NONE => NONE
-    | SOME thms4 => if Thm.eq_thms (map fst eqns2, thms4)
-        then NONE else SOME (map (apfst (AxClass.overload thy) o Code_Unit.mk_eqn thy) thms4)
-  end
-
 in
 
-  Codegen.add_preprocessor eqn_suc_preproc
+  Codegen.add_preprocessor eqn_suc_preproc'
   #> Codegen.add_preprocessor clause_suc_preproc
-  #> Code.add_functrans ("eqn_Suc", lift eqn_suc_preproc)
-  #> Code.add_functrans ("clause_Suc", lift clause_suc_preproc)
+  #> Code.add_functrans ("eqn_Suc", eqn_suc_preproc)
 
 end;
 *}

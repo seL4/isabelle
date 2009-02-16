@@ -1,12 +1,11 @@
 (*  Title:      HOL/ex/Efficient_Nat_examples.thy
-    ID:         $Id$
     Author:     Florian Haftmann, TU Muenchen
 *)
 
 header {* Simple examples for Efficient\_Nat theory. *}
 
 theory Efficient_Nat_examples
-imports Main "~~/src/HOL/Real/RealDef" Efficient_Nat
+imports Complex_Main Efficient_Nat
 begin
 
 fun to_n :: "nat \<Rightarrow> nat list" where

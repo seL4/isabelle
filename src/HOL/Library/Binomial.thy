@@ -1,5 +1,4 @@
 (*  Title:      HOL/Binomial.thy
-    ID:         $Id$
     Author:     Lawrence C Paulson, Amine Chaieb
     Copyright   1997  University of Cambridge
 *)
@@ -13,11 +12,9 @@ begin
 text {* This development is based on the work of Andy Gordon and
   Florian Kammueller. *}
 
-consts
-  binomial :: "nat \<Rightarrow> nat \<Rightarrow> nat"      (infixl "choose" 65)
-primrec
+primrec binomial :: "nat \<Rightarrow> nat \<Rightarrow> nat" (infixl "choose" 65) where
   binomial_0: "(0 choose k) = (if k = 0 then 1 else 0)"
-  binomial_Suc: "(Suc n choose k) =
+  | binomial_Suc: "(Suc n choose k) =
                  (if k = 0 then 1 else (n choose (k - 1)) + (n choose k))"
 
 lemma binomial_n_0 [simp]: "(n choose 0) = 1"
