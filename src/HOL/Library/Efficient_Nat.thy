@@ -107,10 +107,10 @@ text {*
 
 lemma Suc_if_eq: "(\<And>n. f (Suc n) = h n) \<Longrightarrow> f 0 = g \<Longrightarrow>
   f n = (if n = 0 then g else h (n - 1))"
-  by (case_tac n) simp_all
+  by (cases n) simp_all
 
 lemma Suc_clause: "(\<And>n. P n (Suc n)) \<Longrightarrow> n \<noteq> 0 \<Longrightarrow> P (n - 1) n"
-  by (case_tac n) simp_all
+  by (cases n) simp_all
 
 text {*
   The rules above are built into a preprocessor that is plugged into
@@ -132,7 +132,7 @@ fun remove_suc thy thms =
       (fst (Thm.dest_comb (snd (Thm.dest_comb (cprop_of th))))));
     fun rhs_of th = snd (Thm.dest_comb (snd (Thm.dest_comb (cprop_of th))));
     fun find_vars ct = (case term_of ct of
-        (Const ("Suc", _) $ Var _) => [(cv, snd (Thm.dest_comb ct))]
+        (Const (@{const_name Suc}, _) $ Var _) => [(cv, snd (Thm.dest_comb ct))]
       | _ $ _ =>
         let val (ct1, ct2) = Thm.dest_comb ct
         in 
@@ -236,7 +236,6 @@ in
   Codegen.add_preprocessor eqn_suc_preproc
   #> Codegen.add_preprocessor clause_suc_preproc
   #> Code.add_functrans ("eqn_Suc", lift eqn_suc_preproc)
-  #> Code.add_functrans ("clause_Suc", lift clause_suc_preproc)
 
 end;
 *}

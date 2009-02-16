@@ -1,5 +1,4 @@
 (*  Title:      HOL/ex/Codegenerator_Pretty.thy
-    ID:         $Id$
     Author:     Florian Haftmann, TU Muenchen
 *)
 
