@@ -186,12 +186,9 @@ text %mlref {*
 *}
 
 
-
 section {* Terms \label{sec:terms} *}
 
 text {*
-  \glossary{Term}{FIXME}
-
   The language of terms is that of simply-typed @{text "\<lambda>"}-calculus
   with de-Bruijn indices for bound variables (cf.\ \cite{debruijn72}
   or \cite{paulson-ml2}), with the types being determined determined
@@ -392,42 +389,6 @@ text %mlref {*
 section {* Theorems \label{sec:thms} *}
 
 text {*
-  \glossary{Proposition}{FIXME A \seeglossary{term} of
-  \seeglossary{type} @{text "prop"}.  Internally, there is nothing
-  special about propositions apart from their type, but the concrete
-  syntax enforces a clear distinction.  Propositions are structured
-  via implication @{text "A \<Longrightarrow> B"} or universal quantification @{text
-  "\<And>x. B x"} --- anything else is considered atomic.  The canonical
-  form for propositions is that of a \seeglossary{Hereditary Harrop
-  Formula}. FIXME}
-
-  \glossary{Theorem}{A proven proposition within a certain theory and
-  proof context, formally @{text "\<Gamma> \<turnstile>\<^sub>\<Theta> \<phi>"}; both contexts are
-  rarely spelled out explicitly.  Theorems are usually normalized
-  according to the \seeglossary{HHF} format. FIXME}
-
-  \glossary{Fact}{Sometimes used interchangeably for
-  \seeglossary{theorem}.  Strictly speaking, a list of theorems,
-  essentially an extra-logical conjunction.  Facts emerge either as
-  local assumptions, or as results of local goal statements --- both
-  may be simultaneous, hence the list representation. FIXME}
-
-  \glossary{Schematic variable}{FIXME}
-
-  \glossary{Fixed variable}{A variable that is bound within a certain
-  proof context; an arbitrary-but-fixed entity within a portion of
-  proof text. FIXME}
-
-  \glossary{Free variable}{Synonymous for \seeglossary{fixed
-  variable}. FIXME}
-
-  \glossary{Bound variable}{FIXME}
-
-  \glossary{Variable}{See \seeglossary{schematic variable},
-  \seeglossary{fixed variable}, \seeglossary{bound variable}, or
-  \seeglossary{type variable}.  The distinguishing feature of
-  different variables is their binding scope. FIXME}
-
   A \emph{proposition} is a well-typed term of type @{text "prop"}, a
   \emph{theorem} is a proven proposition (depending on a context of
   hypotheses and the background theory).  Primitive inferences include
@@ -435,6 +396,7 @@ text {*
   "\<And>"} and @{text "\<Longrightarrow>"} of the framework.  There is also a builtin
   notion of equality/equivalence @{text "\<equiv>"}.
 *}
+
 
 subsection {* Primitive connectives and rules \label{sec:prim-rules} *}
 
@@ -801,16 +763,13 @@ FIXME
   expect a normal form: quantifiers @{text "\<And>"} before implications
   @{text "\<Longrightarrow>"} at each level of nesting.
 
-\glossary{Hereditary Harrop Formula}{The set of propositions in HHF
-format is defined inductively as @{text "H = (\<And>x\<^sup>*. H\<^sup>* \<Longrightarrow>
-A)"}, for variables @{text "x"} and atomic propositions @{text "A"}.
-Any proposition may be put into HHF form by normalizing with the rule
-@{text "(A \<Longrightarrow> (\<And>x. B x)) \<equiv> (\<And>x. A \<Longrightarrow> B x)"}.  In Isabelle, the outermost
-quantifier prefix is represented via \seeglossary{schematic
-variables}, such that the top-level structure is merely that of a
-\seeglossary{Horn Clause}}.
-
-\glossary{HHF}{See \seeglossary{Hereditary Harrop Formula}.}
+  The set of propositions in HHF format is defined inductively as
+  @{text "H = (\<And>x\<^sup>*. H\<^sup>* \<Longrightarrow> A)"}, for variables @{text "x"}
+  and atomic propositions @{text "A"}.  Any proposition may be put
+  into HHF form by normalizing with the rule @{text "(A \<Longrightarrow> (\<And>x. B x)) \<equiv>
+  (\<And>x. A \<Longrightarrow> B x)"}.  In Isabelle, the outermost quantifier prefix is
+  represented via schematic variables, such that the top-level
+  structure is merely that of a Horn Clause.
 
 
   \[

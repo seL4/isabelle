@@ -8,8 +8,6 @@ default: dvi
 
 include ../Makefile.in
 
-MAKEGLOSSARY = ./makeglossary
-
 NAME = implementation
 
 FILES = implementation.tex Thy/document/Prelim.tex			\
@@ -26,7 +24,6 @@ $(NAME).dvi: $(FILES) isabelle_isar.eps
 	$(BIBTEX) $(NAME)
 	$(LATEX) $(NAME)
 	$(LATEX) $(NAME)
-	$(MAKEGLOSSARY) $(NAME)
 	$(SEDINDEX) $(NAME)
 	$(LATEX) $(NAME)
 	$(LATEX) $(NAME)
@@ -38,7 +35,6 @@ $(NAME).pdf: $(FILES) isabelle_isar.pdf
 	$(BIBTEX) $(NAME)
 	$(PDFLATEX) $(NAME)
 	$(PDFLATEX) $(NAME)
-	$(MAKEGLOSSARY) $(NAME)
 	$(SEDINDEX) $(NAME)
 	$(FIXBOOKMARKS) $(NAME).out
 	$(PDFLATEX) $(NAME)

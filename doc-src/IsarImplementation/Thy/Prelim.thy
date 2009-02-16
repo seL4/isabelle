@@ -74,8 +74,6 @@ text {*
 subsection {* Theory context \label{sec:context-theory} *}
 
 text {*
-  \glossary{Theory}{FIXME}
-
   A \emph{theory} is a data container with explicit named and unique
   identifier.  Theories are related by a (nominal) sub-theory
   relation, which corresponds to the dependency graph of the original
@@ -201,13 +199,6 @@ text %mlref {*
 subsection {* Proof context \label{sec:context-proof} *}
 
 text {*
-  \glossary{Proof context}{The static context of a structured proof,
-  acts like a local ``theory'' of the current portion of Isar proof
-  text, generalizes the idea of local hypotheses @{text "\<Gamma>"} in
-  judgments @{text "\<Gamma> \<turnstile> \<phi>"} of natural deduction calculi.  There is a
-  generic notion of introducing and discharging hypotheses.
-  Arbritrary auxiliary context data may be adjoined.}
-
   A proof context is a container for pure data with a back-reference
   to the theory it belongs to.  The @{text "init"} operation creates a
   proof context from a given theory.  Modifications to draft theories
@@ -231,7 +222,7 @@ text {*
   context is extended consecutively, and results are exported back
   into the original context.  Note that the Isar proof states model
   block-structured reasoning explicitly, using a stack of proof
-  contexts internally, cf.\ \secref{sec:isar-proof-state}.
+  contexts internally.
 *}
 
 text %mlref {*
@@ -418,10 +409,6 @@ text {*
 subsection {* Strings of symbols *}
 
 text {*
-  \glossary{Symbol}{The smallest unit of text in Isabelle, subsumes
-  plain ASCII characters as well as an infinite collection of named
-  symbols (for greek, math etc.).}
-
   A \emph{symbol} constitutes the smallest textual unit in Isabelle
   --- raw characters are normally not encountered at all.  Isabelle
   strings consist of a sequence of symbols, represented as a packed
@@ -465,8 +452,8 @@ text {*
   link to the standard collection of Isabelle.
 
   \medskip Output of Isabelle symbols depends on the print mode
-  (\secref{FIXME}).  For example, the standard {\LaTeX} setup of the
-  Isabelle document preparation system would present
+  (\secref{print-mode}).  For example, the standard {\LaTeX} setup of
+  the Isabelle document preparation system would present
   ``\verb,\,\verb,<alpha>,'' as @{text "\<alpha>"}, and
   ``\verb,\,\verb,<^bold>,\verb,\,\verb,<alpha>,'' as @{text
   "\<^bold>\<alpha>"}.
