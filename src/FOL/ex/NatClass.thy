@@ -1,5 +1,4 @@
 (*  Title:      FOL/ex/NatClass.thy
-    ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
 *)
 
@@ -16,75 +15,74 @@ text {*
   because class axioms may not contain more than one type variable.
 *}
 
-consts
-  0 :: 'a    ("0")
-  Suc :: "'a => 'a"
-  rec :: "['a, 'a, ['a, 'a] => 'a] => 'a"
-
-axclass
-  nat < "term"
-  induct:        "[| P(0); !!x. P(x) ==> P(Suc(x)) |] ==> P(n)"
-  Suc_inject:    "Suc(m) = Suc(n) ==> m = n"
-  Suc_neq_0:     "Suc(m) = 0 ==> R"
-  rec_0:         "rec(0, a, f) = a"
-  rec_Suc:       "rec(Suc(m), a, f) = f(m, rec(m, a, f))"
+class nat =
+  fixes Zero :: 'a  ("0")
+    and Suc :: "'a => 'a"
+    and rec :: "'a \<Rightarrow> 'a \<Rightarrow> ('a \<Rightarrow> 'a \<Rightarrow> 'a) \<Rightarrow> 'a"
+  assumes induct: "P(0) \<Longrightarrow> (\<And>x. P(x) \<Longrightarrow> P(Suc(x))) \<Longrightarrow> P(n)"
+    and Suc_inject: "Suc(m) = Suc(n) \<Longrightarrow> m = n"
+    and Suc_neq_Zero: "Suc(m) = 0 \<Longrightarrow> R"
+    and rec_Zero: "rec(0, a, f) = a"
+    and rec_Suc: "rec(Suc(m), a, f) = f(m, rec(m, a, f))"
+begin
 
 definition
-  add :: "['a::nat, 'a] => 'a"  (infixl "+" 60) where
-  "m + n = rec(m, n, %x y. Suc(y))"
+  add :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"  (infixl "+" 60) where
+  "m + n = rec(m, n, \<lambda>x y. Suc(y))"
 
-lemma Suc_n_not_n: "Suc(k) ~= (k::'a::nat)"
-apply (rule_tac n = k in induct)
-apply (rule notI)
-apply (erule Suc_neq_0)
-apply (rule notI)
-apply (erule notE)
-apply (erule Suc_inject)
-done
+lemma Suc_n_not_n: "Suc(k) ~= (k::'a)"
+  apply (rule_tac n = k in induct)
+   apply (rule notI)
+   apply (erule Suc_neq_Zero)
+  apply (rule notI)
+  apply (erule notE)
+  apply (erule Suc_inject)
+  done
 
-lemma "(k+m)+n = k+(m+n)"
-apply (rule induct)
-back
-back
-back
-back
-back
-back
-oops
+lemma "(k + m) + n = k + (m + n)"
+  apply (rule induct)
+  back
+  back
+  back
+  back
+  back
+  oops
 
-lemma add_0 [simp]: "0+n = n"
-apply (unfold add_def)
-apply (rule rec_0)
-done
+lemma add_Zero [simp]: "0 + n = n"
+  apply (unfold add_def)
+  apply (rule rec_Zero)
+  done
 
-lemma add_Suc [simp]: "Suc(m)+n = Suc(m+n)"
-apply (unfold add_def)
-apply (rule rec_Suc)
-done
+lemma add_Suc [simp]: "Suc(m) + n = Suc(m + n)"
+  apply (unfold add_def)
+  apply (rule rec_Suc)
+  done
 
-lemma add_assoc: "(k+m)+n = k+(m+n)"
-apply (rule_tac n = k in induct)
-apply simp
-apply simp
-done
+lemma add_assoc: "(k + m) + n = k + (m + n)"
+  apply (rule_tac n = k in induct)
+   apply simp
+  apply simp
+  done
 
-lemma add_0_right: "m+0 = m"
-apply (rule_tac n = m in induct)
-apply simp
-apply simp
-done
+lemma add_Zero_right: "m + 0 = m"
+  apply (rule_tac n = m in induct)
+   apply simp
+  apply simp
+  done
 
-lemma add_Suc_right: "m+Suc(n) = Suc(m+n)"
-apply (rule_tac n = m in induct)
-apply simp_all
-done
+lemma add_Suc_right: "m + Suc(n) = Suc(m + n)"
+  apply (rule_tac n = m in induct)
+   apply simp_all
+  done
 
 lemma
-  assumes prem: "!!n. f(Suc(n)) = Suc(f(n))"
-  shows "f(i+j) = i+f(j)"
-apply (rule_tac n = i in induct)
-apply simp
-apply (simp add: prem)
-done
+  assumes prem: "\<And>n. f(Suc(n)) = Suc(f(n))"
+  shows "f(i + j) = i + f(j)"
+  apply (rule_tac n = i in induct)
+   apply simp
+  apply (simp add: prem)
+  done
+
+end
 
 end
