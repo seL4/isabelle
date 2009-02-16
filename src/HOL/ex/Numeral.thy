@@ -37,7 +37,7 @@ where
   "num_of_nat 0 = One"
 | "num_of_nat (Suc n) = (if 0 < n then inc (num_of_nat n) else One)"
 
-lemma nat_of_num_gt_0: "0 < nat_of_num x"
+lemma nat_of_num_pos: "0 < nat_of_num x"
   by (induct x) simp_all
 
 lemma nat_of_num_neq_0: " nat_of_num x \<noteq> 0"
@@ -56,7 +56,7 @@ text {*
 *}
 
 lemma nat_of_num_inverse: "num_of_nat (nat_of_num x) = x"
-  by (induct x) (simp_all add: num_of_nat_double nat_of_num_gt_0)
+  by (induct x) (simp_all add: num_of_nat_double nat_of_num_pos)
 
 lemma num_of_nat_inverse: "0 < n \<Longrightarrow> nat_of_num (num_of_nat n) = n"
   by (induct n) (simp_all add: nat_of_num_inc)
@@ -66,27 +66,6 @@ lemma num_eq_iff: "x = y \<longleftrightarrow> nat_of_num x = nat_of_num y"
   apply (drule arg_cong [where f=num_of_nat])
   apply (simp add: nat_of_num_inverse)
   done
-
-instantiation num :: "{plus,times}"
-begin
-
-definition plus_num :: "num \<Rightarrow> num \<Rightarrow> num" where
-  [code del]: "m + n = num_of_nat (nat_of_num m + nat_of_num n)"
-
-definition times_num :: "num \<Rightarrow> num \<Rightarrow> num" where
-  [code del]: "m * n = num_of_nat (nat_of_num m * nat_of_num n)"
-
-lemma nat_of_num_add: "nat_of_num (x + y) = nat_of_num x + nat_of_num y"
-  unfolding plus_num_def
-  by (intro num_of_nat_inverse add_pos_pos nat_of_num_gt_0)
-
-lemma nat_of_num_mult: "nat_of_num (x * y) = nat_of_num x * nat_of_num y"
-  unfolding times_num_def
-  by (intro num_of_nat_inverse mult_pos_pos nat_of_num_gt_0)
-
-instance ..
-
-end
 
 lemma num_induct [case_names One inc]:
   fixes P :: "num \<Rightarrow> bool"
@@ -118,12 +97,7 @@ text {*
 *}
 
 
-subsection {* Binary numerals *}
-
-text {*
-  We embed binary representations into a generic algebraic
-  structure using @{text of_num}
-*}
+subsection {* Numeral operations *}
 
 ML {*
 structure DigSimps =
@@ -131,6 +105,119 @@ structure DigSimps =
 *}
 
 setup DigSimps.setup
+
+instantiation num :: "{plus,times,ord}"
+begin
+
+definition plus_num :: "num \<Rightarrow> num \<Rightarrow> num" where
+  [code del]: "m + n = num_of_nat (nat_of_num m + nat_of_num n)"
+
+definition times_num :: "num \<Rightarrow> num \<Rightarrow> num" where
+  [code del]: "m * n = num_of_nat (nat_of_num m * nat_of_num n)"
+
+definition less_eq_num :: "num \<Rightarrow> num \<Rightarrow> bool" where
+  [code del]: "m \<le> n \<longleftrightarrow> nat_of_num m \<le> nat_of_num n"
+
+definition less_num :: "num \<Rightarrow> num \<Rightarrow> bool" where
+  [code del]: "m < n \<longleftrightarrow> nat_of_num m < nat_of_num n"
+
+instance ..
+
+end
+
+lemma nat_of_num_add: "nat_of_num (x + y) = nat_of_num x + nat_of_num y"
+  unfolding plus_num_def
+  by (intro num_of_nat_inverse add_pos_pos nat_of_num_pos)
+
+lemma nat_of_num_mult: "nat_of_num (x * y) = nat_of_num x * nat_of_num y"
+  unfolding times_num_def
+  by (intro num_of_nat_inverse mult_pos_pos nat_of_num_pos)
+
+lemma Dig_plus [numeral, simp, code]:
+  "One + One = Dig0 One"
+  "One + Dig0 m = Dig1 m"
+  "One + Dig1 m = Dig0 (m + One)"
+  "Dig0 n + One = Dig1 n"
+  "Dig0 n + Dig0 m = Dig0 (n + m)"
+  "Dig0 n + Dig1 m = Dig1 (n + m)"
+  "Dig1 n + One = Dig0 (n + One)"
+  "Dig1 n + Dig0 m = Dig1 (n + m)"
+  "Dig1 n + Dig1 m = Dig0 (n + m + One)"
+  by (simp_all add: num_eq_iff nat_of_num_add)
+
+lemma Dig_times [numeral, simp, code]:
+  "One * One = One"
+  "One * Dig0 n = Dig0 n"
+  "One * Dig1 n = Dig1 n"
+  "Dig0 n * One = Dig0 n"
+  "Dig0 n * Dig0 m = Dig0 (n * Dig0 m)"
+  "Dig0 n * Dig1 m = Dig0 (n * Dig1 m)"
+  "Dig1 n * One = Dig1 n"
+  "Dig1 n * Dig0 m = Dig0 (n * Dig0 m + m)"
+  "Dig1 n * Dig1 m = Dig1 (n * Dig1 m + m)"
+  by (simp_all add: num_eq_iff nat_of_num_add nat_of_num_mult
+                    left_distrib right_distrib)
+
+lemma less_eq_num_code [numeral, simp, code]:
+  "One \<le> n \<longleftrightarrow> True"
+  "Dig0 m \<le> One \<longleftrightarrow> False"
+  "Dig1 m \<le> One \<longleftrightarrow> False"
+  "Dig0 m \<le> Dig0 n \<longleftrightarrow> m \<le> n"
+  "Dig0 m \<le> Dig1 n \<longleftrightarrow> m \<le> n"
+  "Dig1 m \<le> Dig1 n \<longleftrightarrow> m \<le> n"
+  "Dig1 m \<le> Dig0 n \<longleftrightarrow> m < n"
+  using nat_of_num_pos [of n] nat_of_num_pos [of m]
+  by (auto simp add: less_eq_num_def less_num_def)
+
+lemma less_num_code [numeral, simp, code]:
+  "m < One \<longleftrightarrow> False"
+  "One < One \<longleftrightarrow> False"
+  "One < Dig0 n \<longleftrightarrow> True"
+  "One < Dig1 n \<longleftrightarrow> True"
+  "Dig0 m < Dig0 n \<longleftrightarrow> m < n"
+  "Dig0 m < Dig1 n \<longleftrightarrow> m \<le> n"
+  "Dig1 m < Dig1 n \<longleftrightarrow> m < n"
+  "Dig1 m < Dig0 n \<longleftrightarrow> m < n"
+  using nat_of_num_pos [of n] nat_of_num_pos [of m]
+  by (auto simp add: less_eq_num_def less_num_def)
+
+text {* Rules using @{text One} and @{text inc} as constructors *}
+
+lemma add_One: "x + One = inc x"
+  by (simp add: num_eq_iff nat_of_num_add nat_of_num_inc)
+
+lemma add_inc: "x + inc y = inc (x + y)"
+  by (simp add: num_eq_iff nat_of_num_add nat_of_num_inc)
+
+lemma mult_One: "x * One = x"
+  by (simp add: num_eq_iff nat_of_num_mult)
+
+lemma mult_inc: "x * inc y = x * y + x"
+  by (simp add: num_eq_iff nat_of_num_mult nat_of_num_add nat_of_num_inc)
+
+text {* A double-and-decrement function *}
+
+primrec DigM :: "num \<Rightarrow> num" where
+  "DigM One = One"
+  | "DigM (Dig0 n) = Dig1 (DigM n)"
+  | "DigM (Dig1 n) = Dig1 (Dig0 n)"
+
+lemma DigM_plus_one: "DigM n + One = Dig0 n"
+  by (induct n) simp_all
+
+lemma add_One_commute: "One + n = n + One"
+  by (induct n) simp_all
+
+lemma one_plus_DigM: "One + DigM n = Dig0 n"
+  unfolding add_One_commute DigM_plus_one ..
+
+
+subsection {* Binary numerals *}
+
+text {*
+  We embed binary representations into a generic algebraic
+  structure using @{text of_num}
+*}
 
 class semiring_numeral = semiring + monoid_mult
 begin
@@ -213,41 +300,13 @@ let
 in [(@{const_syntax of_num}, num_tr')] end
 *}
 
-
-subsection {* Numeral operations *}
-
-text {*
-  First, addition and multiplication on digits.
-*}
-
-lemma Dig_plus [numeral, simp, code]:
-  "One + One = Dig0 One"
-  "One + Dig0 m = Dig1 m"
-  "One + Dig1 m = Dig0 (m + One)"
-  "Dig0 n + One = Dig1 n"
-  "Dig0 n + Dig0 m = Dig0 (n + m)"
-  "Dig0 n + Dig1 m = Dig1 (n + m)"
-  "Dig1 n + One = Dig0 (n + One)"
-  "Dig1 n + Dig0 m = Dig1 (n + m)"
-  "Dig1 n + Dig1 m = Dig0 (n + m + One)"
-  by (simp_all add: num_eq_iff nat_of_num_add)
-
-lemma Dig_times [numeral, simp, code]:
-  "One * One = One"
-  "One * Dig0 n = Dig0 n"
-  "One * Dig1 n = Dig1 n"
-  "Dig0 n * One = Dig0 n"
-  "Dig0 n * Dig0 m = Dig0 (n * Dig0 m)"
-  "Dig0 n * Dig1 m = Dig0 (n * Dig1 m)"
-  "Dig1 n * One = Dig1 n"
-  "Dig1 n * Dig0 m = Dig0 (n * Dig0 m + m)"
-  "Dig1 n * Dig1 m = Dig1 (n * Dig1 m + m)"
-  by (simp_all add: num_eq_iff nat_of_num_add nat_of_num_mult
-                    left_distrib right_distrib)
+subsection {* Class-specific numeral rules *}
 
 text {*
   @{const of_num} is a morphism.
 *}
+
+subsubsection {* Class @{text semiring_numeral} *}
 
 context semiring_numeral
 begin
@@ -271,22 +330,6 @@ lemma of_num_one_plus [numeral]:
   "1 + of_num n = of_num (n + One)"
   unfolding of_num_plus_one [symmetric] add_commute ..
 
-text {* Rules for addition in the One/inc view *}
-
-lemma add_One: "x + One = inc x"
-  by (simp add: num_eq_iff nat_of_num_add nat_of_num_inc)
-
-lemma add_inc: "x + inc y = inc (x + y)"
-  by (simp add: num_eq_iff nat_of_num_add nat_of_num_inc)
-
-text {* Rules for multiplication in the One/inc view *}
-
-lemma mult_One: "x * One = x"
-  by (simp add: num_eq_iff nat_of_num_mult)
-
-lemma mult_inc: "x * inc y = x * y + x"
-  by (simp add: num_eq_iff nat_of_num_mult nat_of_num_add nat_of_num_inc)
-
 lemma of_num_plus [numeral]:
   "of_num m + of_num n = of_num (m + n)"
   by (induct n rule: num_induct)
@@ -308,8 +351,8 @@ lemma of_num_times [numeral]:
 
 end
 
-text {*
-  Structures with a @{term 0}.
+subsubsection {*
+  Structures with a @{term 0}: class @{text semiring_1}
 *}
 
 context semiring_1
@@ -347,8 +390,8 @@ proof
   then show "nat_of_num n = of_num n" by simp
 qed
 
-text {*
-  Equality.
+subsubsection {*
+  Equality: class @{text semiring_char_0}
 *}
 
 context semiring_char_0
@@ -372,9 +415,11 @@ lemma one_eq_of_num_iff [numeral]:
 
 end
 
-text {*
-  Comparisons.  Could be perhaps more general than here.
+subsubsection {*
+  Comparisons: class @{text ordered_semidom}
 *}
+
+text {*  Could be perhaps more general than here. *}
 
 lemma (in ordered_semidom) of_num_pos: "0 < of_num n"
 proof -
@@ -388,42 +433,6 @@ proof -
   ultimately show ?thesis by (simp add: of_nat_of_num)
 qed
 
-instantiation num :: ord
-begin
-
-definition less_eq_num :: "num \<Rightarrow> num \<Rightarrow> bool" where
-  [code del]: "m \<le> n \<longleftrightarrow> nat_of_num m \<le> nat_of_num n"
-
-definition less_num :: "num \<Rightarrow> num \<Rightarrow> bool" where
-  [code del]: "m < n \<longleftrightarrow> nat_of_num m < nat_of_num n"
-
-instance ..
-
-end
-
-lemma less_eq_num_code [numeral, simp, code]:
-  "One \<le> n \<longleftrightarrow> True"
-  "Dig0 m \<le> One \<longleftrightarrow> False"
-  "Dig1 m \<le> One \<longleftrightarrow> False"
-  "Dig0 m \<le> Dig0 n \<longleftrightarrow> m \<le> n"
-  "Dig0 m \<le> Dig1 n \<longleftrightarrow> m \<le> n"
-  "Dig1 m \<le> Dig1 n \<longleftrightarrow> m \<le> n"
-  "Dig1 m \<le> Dig0 n \<longleftrightarrow> m < n"
-  using of_num_pos [of n, where ?'a = nat] of_num_pos [of m, where ?'a = nat]
-  by (auto simp add: less_eq_num_def less_num_def nat_of_num_of_num of_num.simps)
-
-lemma less_num_code [numeral, simp, code]:
-  "m < One \<longleftrightarrow> False"
-  "One < One \<longleftrightarrow> False"
-  "One < Dig0 n \<longleftrightarrow> True"
-  "One < Dig1 n \<longleftrightarrow> True"
-  "Dig0 m < Dig0 n \<longleftrightarrow> m < n"
-  "Dig0 m < Dig1 n \<longleftrightarrow> m \<le> n"
-  "Dig1 m < Dig1 n \<longleftrightarrow> m < n"
-  "Dig1 m < Dig0 n \<longleftrightarrow> m < n"
-  using of_num_pos [of n, where ?'a = nat] of_num_pos [of m, where ?'a = nat]
-  by (auto simp add: less_eq_num_def less_num_def nat_of_num_of_num of_num.simps)
-  
 context ordered_semidom
 begin
 
@@ -471,25 +480,9 @@ qed
 
 end
 
-text {*
-  Structures with subtraction @{term "op -"}.
+subsubsection {*
+  Structures with subtraction @{term "op -"}: class @{text semiring_1_minus}
 *}
-
-text {* A double-and-decrement function *}
-
-primrec DigM :: "num \<Rightarrow> num" where
-  "DigM One = One"
-  | "DigM (Dig0 n) = Dig1 (DigM n)"
-  | "DigM (Dig1 n) = Dig1 (Dig0 n)"
-
-lemma DigM_plus_one: "DigM n + One = Dig0 n"
-  by (induct n) simp_all
-
-lemma add_One_commute: "One + n = n + One"
-  by (induct n) simp_all
-
-lemma one_plus_DigM: "One + DigM n = Dig0 n"
-  unfolding add_One_commute DigM_plus_one ..
 
 class semiring_minus = semiring + minus + zero +
   assumes minus_inverts_plus1: "a + b = c \<Longrightarrow> c - b = a"
@@ -571,6 +564,10 @@ lemma Dig_one_minus_of_num [numeral]:
 
 end
 
+subsubsection {*
+  Negation: class @{text ring_1}
+*}
+
 context ring_1
 begin
 
@@ -612,7 +609,7 @@ declare of_int_1 [numeral]
 
 end
 
-text {*
+subsubsection {*
   Greetings to @{typ nat}.
 *}
 
