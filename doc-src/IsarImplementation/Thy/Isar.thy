@@ -1,7 +1,6 @@
-
-(* $Id$ *)
-
-theory isar imports base begin
+theory Isar
+imports Base
+begin
 
 chapter {* Isar proof texts *}
 

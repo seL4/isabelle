@@ -1,7 +1,6 @@
-
-(* $Id$ *)
-
-theory integration imports base begin
+theory Integration
+imports Base
+begin
 
 chapter {* System integration *}
 

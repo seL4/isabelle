@@ -1,7 +1,6 @@
-
-(* $Id$ *)
-
-theory "proof" imports base begin
+theory Proof
+imports Base
+begin
 
 chapter {* Structured proofs *}
 

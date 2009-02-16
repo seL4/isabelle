@@ -1,4 +1,6 @@
-theory logic imports base begin
+theory Logic
+imports Base
+begin
 
 chapter {* Primitive logic \label{ch:logic} *}
 
@@ -846,6 +848,5 @@ variables}, such that the top-level structure is merely that of a
 
   FIXME @{text "elim_resolution"}, @{text "dest_resolution"}
 *}
-
 
 end

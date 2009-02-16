@@ -1,7 +1,6 @@
-
-(* $Id$ *)
-
-theory "locale" imports base begin
+theory Local_Theory
+imports Base
+begin
 
 chapter {* Structured specifications *}
 

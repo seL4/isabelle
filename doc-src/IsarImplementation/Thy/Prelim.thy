@@ -1,7 +1,6 @@
-
-(* $Id$ *)
-
-theory prelim imports base begin
+theory Prelim
+imports Base
+begin
 
 chapter {* Preliminaries *}
 

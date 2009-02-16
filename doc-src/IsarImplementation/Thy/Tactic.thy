@@ -1,7 +1,6 @@
-
-(* $Id$ *)
-
-theory tactic imports base begin
+theory Tactic
+imports Base
+begin
 
 chapter {* Tactical reasoning *}
 
@@ -417,4 +416,3 @@ Various search strategies may be expressed via tacticals.}
 *}
 
 end
-
