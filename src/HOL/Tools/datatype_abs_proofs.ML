@@ -262,7 +262,8 @@ fun prove_primrec_thms flat_names new_type_names descr sorts
   in
     thy2
     |> Sign.add_path (space_implode "_" new_type_names)
-    |> PureThy.add_thmss [((Binding.name "recs", rec_thms), [])]
+    |> PureThy.add_thmss [((Binding.name "recs", rec_thms),
+         [Nitpick_Const_Simp_Thms.add])]
     ||> Sign.parent_path
     ||> Theory.checkpoint
     |-> (fn thms => pair (reccomb_names, Library.flat thms))

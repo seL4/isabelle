@@ -257,7 +257,7 @@ text{*
 \caption{Characteristic examples}
 \label{fig:Characteristic}
 \end{figure}
-Figure~\ref{fig:Characteristic} shows charachteristic examples
+Figure~\ref{fig:Characteristic} shows characteristic examples
 that should give an intuitive understanding of the above functions.
 *}
 
