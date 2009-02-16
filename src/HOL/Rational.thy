@@ -886,14 +886,13 @@ proof -
   finally show ?thesis using assms by simp
 qed
 
-lemma rat_less_eq_code [code]:
-  "Fract a b \<le> Fract c d \<longleftrightarrow> (if b = 0
-       then sgn c * sgn d \<ge> 0
-     else if d = 0
-       then sgn a * sgn b \<le> 0
-     else a * \<bar>d\<bar> * sgn b \<le> c * \<bar>b\<bar> * sgn d)"
-by (auto simp add: sgn_times mult_le_0_iff zero_le_mult_iff le_rat' eq_rat simp del: le_rat)
-  (auto simp add: sgn_times sgn_0_0 le_less sgn_1_pos [symmetric] sgn_1_neg [symmetric])
+lemma (in ordered_idom) sgn_greater [simp]:
+  "0 < sgn a \<longleftrightarrow> 0 < a"
+  unfolding sgn_if by auto
+
+lemma (in ordered_idom) sgn_less [simp]:
+  "sgn a < 0 \<longleftrightarrow> a < 0"
+  unfolding sgn_if by auto
 
 lemma rat_le_eq_code [code]:
   "Fract a b < Fract c d \<longleftrightarrow> (if b = 0
@@ -901,9 +900,17 @@ lemma rat_le_eq_code [code]:
      else if d = 0
        then sgn a * sgn b < 0
      else a * \<bar>d\<bar> * sgn b < c * \<bar>b\<bar> * sgn d)"
-by (auto simp add: sgn_times mult_less_0_iff zero_less_mult_iff less_rat' eq_rat simp del: less_rat)
-   (auto simp add: sgn_times sgn_0_0 sgn_1_pos [symmetric] sgn_1_neg [symmetric],
-     auto simp add: sgn_1_pos)
+  by (auto simp add: sgn_times mult_less_0_iff zero_less_mult_iff less_rat' eq_rat simp del: less_rat)
+
+lemma rat_less_eq_code [code]:
+  "Fract a b \<le> Fract c d \<longleftrightarrow> (if b = 0
+       then sgn c * sgn d \<ge> 0
+     else if d = 0
+       then sgn a * sgn b \<le> 0
+     else a * \<bar>d\<bar> * sgn b \<le> c * \<bar>b\<bar> * sgn d)"
+  by (auto simp add: sgn_times mult_le_0_iff zero_le_mult_iff le_rat' eq_rat simp del: le_rat)
+    (auto simp add: le_less not_less sgn_0_0)
+
 
 lemma rat_plus_code [code]:
   "Fract a b + Fract c d = (if b = 0

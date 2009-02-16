@@ -1,5 +1,4 @@
 (*  Title:   HOL/Ring_and_Field.thy
-    ID:      $Id$
     Author:  Gertrud Bauer, Steven Obua, Tobias Nipkow, Lawrence C Paulson, and Markus Wenzel,
              with contributions by Jeremy Avigad
 *)
@@ -1078,12 +1077,28 @@ lemma sgn_1_neg:
   "sgn a = - 1 \<longleftrightarrow> a < 0"
 unfolding sgn_if by (auto simp add: equal_neg_zero)
 
+lemma sgn_pos [simp]:
+  "0 < a \<Longrightarrow> sgn a = 1"
+unfolding sgn_1_pos .
+
+lemma sgn_neg [simp]:
+  "a < 0 \<Longrightarrow> sgn a = - 1"
+unfolding sgn_1_neg .
+
 lemma sgn_times:
   "sgn (a * b) = sgn a * sgn b"
 by (auto simp add: sgn_if zero_less_mult_iff)
 
 lemma abs_sgn: "abs k = k * sgn k"
 unfolding sgn_if abs_if by auto
+
+lemma sgn_greater [simp]:
+  "0 < sgn a \<longleftrightarrow> 0 < a"
+  unfolding sgn_if by auto
+
+lemma sgn_less [simp]:
+  "sgn a < 0 \<longleftrightarrow> a < 0"
+  unfolding sgn_if by auto
 
 (* The int instances are proved, these generic ones are tedious to prove here.
 And not very useful, as int seems to be the only instance.
