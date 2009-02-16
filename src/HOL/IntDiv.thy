@@ -377,6 +377,11 @@ apply (case_tac "b = 0", simp)
 apply (blast intro: divmod_rel_div_mod [THEN zminus1_lemma, THEN divmod_rel_mod])
 done
 
+lemma zmod_zminus1_not_zero:
+  fixes k l :: int
+  shows "- k mod l \<noteq> 0 \<Longrightarrow> k mod l \<noteq> 0"
+  unfolding zmod_zminus1_eq_if by auto
+
 lemma zdiv_zminus2: "a div (-b) = (-a::int) div b"
 by (cut_tac a = "-a" in zdiv_zminus_zminus, auto)
 
@@ -392,6 +397,11 @@ by (simp add: zdiv_zminus1_eq_if zdiv_zminus2)
 lemma zmod_zminus2_eq_if:
      "a mod (-b::int) = (if a mod b = 0 then 0 else  (a mod b) - b)"
 by (simp add: zmod_zminus1_eq_if zmod_zminus2)
+
+lemma zmod_zminus2_not_zero:
+  fixes k l :: int
+  shows "k mod - l \<noteq> 0 \<Longrightarrow> k mod l \<noteq> 0"
+  unfolding zmod_zminus2_eq_if by auto 
 
 
 subsection{*Division of a Number by Itself*}
@@ -1521,6 +1531,40 @@ next
   assume ?rhs then obtain q1 q2 where q12: "x + n * q1 = y + n * q2" by blast
   hence "(x + n * q1) mod n = (y + n * q2) mod n" by simp
   thus  ?lhs by simp
+qed
+
+
+subsection {* Code generation *}
+
+definition pdivmod :: "int \<Rightarrow> int \<Rightarrow> int \<times> int" where
+  "pdivmod k l = (\<bar>k\<bar> div \<bar>l\<bar>, \<bar>k\<bar> mod \<bar>l\<bar>)"
+
+lemma pdivmod_posDivAlg [code]:
+  "pdivmod k l = (if l = 0 then (0, \<bar>k\<bar>) else posDivAlg \<bar>k\<bar> \<bar>l\<bar>)"
+by (subst posDivAlg_div_mod) (simp_all add: pdivmod_def)
+
+lemma divmod_pdivmod: "divmod k l = (if k = 0 then (0, 0) else if l = 0 then (0, k) else
+  apsnd ((op *) (sgn l)) (if 0 < l \<and> 0 \<le> k \<or> l < 0 \<and> k < 0
+    then pdivmod k l
+    else (let (r, s) = pdivmod k l in
+      if s = 0 then (- r, 0) else (- r - 1, \<bar>l\<bar> - s))))"
+proof -
+  have aux: "\<And>q::int. - k = l * q \<longleftrightarrow> k = l * - q" by auto
+  show ?thesis
+    by (simp add: divmod_mod_div pdivmod_def)
+      (auto simp add: aux not_less not_le zdiv_zminus1_eq_if
+      zmod_zminus1_eq_if zdiv_zminus2_eq_if zmod_zminus2_eq_if)
+qed
+
+lemma divmod_code [code]: "divmod k l = (if k = 0 then (0, 0) else if l = 0 then (0, k) else
+  apsnd ((op *) (sgn l)) (if sgn k = sgn l
+    then pdivmod k l
+    else (let (r, s) = pdivmod k l in
+      if s = 0 then (- r, 0) else (- r - 1, \<bar>l\<bar> - s))))"
+proof -
+  have "k \<noteq> 0 \<Longrightarrow> l \<noteq> 0 \<Longrightarrow> 0 < l \<and> 0 \<le> k \<or> l < 0 \<and> k < 0 \<longleftrightarrow> sgn k = sgn l"
+    by (auto simp add: not_less sgn_if)
+  then show ?thesis by (simp add: divmod_pdivmod)
 qed
 
 code_modulename SML

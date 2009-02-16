@@ -1,5 +1,4 @@
 (*  Title:      HOL/Library/Code_Integer.thy
-    ID:         $Id$
     Author:     Florian Haftmann, TU Muenchen
 *)
 
@@ -71,6 +70,11 @@ code_const "op * \<Colon> int \<Rightarrow> int \<Rightarrow> int"
   (SML "IntInf.* ((_), (_))")
   (OCaml "Big'_int.mult'_big'_int")
   (Haskell infixl 7 "*")
+
+code_const pdivmod
+  (SML "(fn k => fn l =>/ IntInf.divMod/ (IntInf.abs k,/ IntInf.abs l))")
+  (OCaml "(fun k -> fun l ->/ Big'_int.quomod'_big'_int/ (Big'_int.abs'_big'_int k)/ (Big'_int.abs'_big'_int l))")
+  (Haskell "(\\k l ->/ divMod/ (abs k)/ (abs l))")
 
 code_const "eq_class.eq \<Colon> int \<Rightarrow> int \<Rightarrow> bool"
   (SML "!((_ : IntInf.int) = _)")
