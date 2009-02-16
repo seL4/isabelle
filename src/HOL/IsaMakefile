@@ -13,7 +13,6 @@ test: \
   HOL-Library \
   HOL-ex \
   HOL-Auth \
-  HOL-AxClasses \
   HOL-Bali \
   HOL-Extraction \
   HOL-HahnBanach \
@@ -770,15 +769,6 @@ $(LOG)/HOL-IOA.gz: $(OUT)/HOL IOA/Asig.thy IOA/IOA.thy IOA/ROOT.ML	\
 	@$(ISABELLE_TOOL) usedir $(OUT)/HOL IOA
 
 
-## HOL-AxClasses
-
-HOL-AxClasses: HOL $(LOG)/HOL-AxClasses.gz
-
-$(LOG)/HOL-AxClasses.gz: $(OUT)/HOL AxClasses/Group.thy			\
-  AxClasses/Product.thy AxClasses/ROOT.ML AxClasses/Semigroups.thy
-	@$(ISABELLE_TOOL) usedir $(OUT)/HOL AxClasses
-
-
 ## HOL-Lattice
 
 HOL-Lattice: HOL $(LOG)/HOL-Lattice.gz
@@ -1045,22 +1035,22 @@ $(LOG)/HOL-NSA-Examples.gz: $(OUT)/HOL-NSA NSA/Examples/ROOT.ML	\
 ## clean
 
 clean:
-	@rm -f  $(OUT)/HOL-Plain $(OUT)/HOL-Main $(OUT)/HOL $(OUT)/HOL-Nominal $(OUT)/TLA \
-		$(LOG)/HOL.gz $(LOG)/TLA.gz \
-		$(LOG)/HOL-Isar_examples.gz $(LOG)/HOL-Induct.gz \
-		$(LOG)/HOL-ex.gz $(LOG)/HOL-Subst.gz $(LOG)/HOL-IMP.gz \
-		$(LOG)/HOL-IMPP.gz $(LOG)/HOL-Hoare.gz \
-		$(LOG)/HOL-HoareParallel.gz \
-		$(LOG)/HOL-Lex.gz $(LOG)/HOL-Algebra.gz \
-		$(LOG)/HOL-Auth.gz $(LOG)/HOL-UNITY.gz \
-		$(LOG)/HOL-Modelcheck.gz $(LOG)/HOL-Lambda.gz \
-                $(LOG)/HOL-Bali.gz \
-		$(LOG)/HOL-MicroJava.gz $(LOG)/HOL-NanoJava.gz \
-                $(LOG)/HOL-Nominal-Examples.gz \
-		$(LOG)/HOL-IOA.gz $(LOG)/HOL-AxClasses \
-		$(LOG)/HOL-Lattice $(LOG)/HOL-Matrix \
-		$(LOG)/HOL-HahnBanach.gz $(LOG)/HOL-SET-Protocol.gz \
-                $(LOG)/TLA-Inc.gz $(LOG)/TLA-Buffer.gz $(LOG)/TLA-Memory.gz \
-		$(LOG)/HOL-Library.gz $(LOG)/HOL-Unix.gz \
-                $(OUT)/HOL-Word $(LOG)/HOL-Word.gz $(LOG)/HOL-Word-Examples.gz \
-                $(OUT)/HOL-NSA $(LOG)/HOL-NSA.gz $(LOG)/HOL-NSA-Examples.gz
+	@rm -f $(OUT)/HOL-Plain $(OUT)/HOL-Main $(OUT)/HOL		\
+		$(OUT)/HOL-Nominal $(OUT)/TLA $(LOG)/HOL.gz		\
+		$(LOG)/TLA.gz $(LOG)/HOL-Isar_examples.gz		\
+		$(LOG)/HOL-Induct.gz $(LOG)/HOL-ex.gz			\
+		$(LOG)/HOL-Subst.gz $(LOG)/HOL-IMP.gz			\
+		$(LOG)/HOL-IMPP.gz $(LOG)/HOL-Hoare.gz			\
+		$(LOG)/HOL-HoareParallel.gz $(LOG)/HOL-Lex.gz		\
+		$(LOG)/HOL-Algebra.gz $(LOG)/HOL-Auth.gz		\
+		$(LOG)/HOL-UNITY.gz $(LOG)/HOL-Modelcheck.gz		\
+		$(LOG)/HOL-Lambda.gz $(LOG)/HOL-Bali.gz			\
+		$(LOG)/HOL-MicroJava.gz $(LOG)/HOL-NanoJava.gz		\
+		$(LOG)/HOL-Nominal-Examples.gz $(LOG)/HOL-IOA.gz	\
+		$(LOG)/HOL-Lattice $(LOG)/HOL-Matrix			\
+		$(LOG)/HOL-HahnBanach.gz $(LOG)/HOL-SET-Protocol.gz	\
+		$(LOG)/TLA-Inc.gz $(LOG)/TLA-Buffer.gz			\
+		$(LOG)/TLA-Memory.gz $(LOG)/HOL-Library.gz		\
+		$(LOG)/HOL-Unix.gz $(OUT)/HOL-Word $(LOG)/HOL-Word.gz	\
+		$(LOG)/HOL-Word-Examples.gz $(OUT)/HOL-NSA		\
+		$(LOG)/HOL-NSA.gz $(LOG)/HOL-NSA-Examples.gz
