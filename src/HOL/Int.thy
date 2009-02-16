@@ -1627,7 +1627,7 @@ qed
 context ring_1
 begin
 
-lemma of_int_of_nat:
+lemma of_int_of_nat [nitpick_const_simp]:
   "of_int k = (if k < 0 then - of_nat (nat (- k)) else of_nat (nat k))"
 proof (cases "k < 0")
   case True then have "0 \<le> - k" by simp
