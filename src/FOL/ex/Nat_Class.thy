@@ -7,7 +7,7 @@ imports FOL
 begin
 
 text {*
-  This is an abstract version of theory @{text "Nat"}. Instead of
+  This is an abstract version of theory @{text Nat}. Instead of
   axiomatizing a single type @{text nat} we define the class of all
   these types (up to isomorphism).
 
@@ -17,7 +17,7 @@ text {*
 
 class nat =
   fixes Zero :: 'a  ("0")
-    and Suc :: "'a => 'a"
+    and Suc :: "'a \<Rightarrow> 'a"
     and rec :: "'a \<Rightarrow> 'a \<Rightarrow> ('a \<Rightarrow> 'a \<Rightarrow> 'a) \<Rightarrow> 'a"
   assumes induct: "P(0) \<Longrightarrow> (\<And>x. P(x) \<Longrightarrow> P(Suc(x))) \<Longrightarrow> P(n)"
     and Suc_inject: "Suc(m) = Suc(n) \<Longrightarrow> m = n"
@@ -30,7 +30,7 @@ definition
   add :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"  (infixl "+" 60) where
   "m + n = rec(m, n, \<lambda>x y. Suc(y))"
 
-lemma Suc_n_not_n: "Suc(k) ~= (k::'a)"
+lemma Suc_n_not_n: "Suc(k) \<noteq> (k::'a)"
   apply (rule_tac n = k in induct)
    apply (rule notI)
    apply (erule Suc_neq_Zero)
