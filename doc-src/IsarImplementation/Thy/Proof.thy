@@ -173,8 +173,7 @@ text {*
   rules.  Note that the discharged portion is determined by the
   difference contexts, not the facts being exported!  There is a
   separate flag to indicate a goal context, where the result is meant
-  to refine an enclosing sub-goal of a structured proof state (cf.\
-  \secref{sec:isar-proof-state}).
+  to refine an enclosing sub-goal of a structured proof state.
 
   \medskip The most basic export rule discharges assumptions directly
   by means of the @{text "\<Longrightarrow>"} introduction rule:
