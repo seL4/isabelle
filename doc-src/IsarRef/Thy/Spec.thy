@@ -1182,7 +1182,7 @@ text {* Oracles allow Isabelle to take advantage of external reasoners
 
   \end{description}
 
-  See @{"file" "~~/src/FOL/ex/IffOracle.thy"} for a worked example of
+  See @{"file" "~~/src/FOL/ex/Iff_Oracle.thy"} for a worked example of
   defining a new primitive rule as oracle, and turning it into a proof
   method.
 *}

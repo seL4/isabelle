@@ -1,12 +1,11 @@
-(*  Title:      FOL/ex/IffOracle.thy
-    ID:         $Id$
+(*  Title:      FOL/ex/Iff_Oracle.thy
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1996  University of Cambridge
 *)
 
 header {* Example of Declaring an Oracle *}
 
-theory IffOracle
+theory Iff_Oracle
 imports FOL
 begin
 

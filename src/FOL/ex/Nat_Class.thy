@@ -1,8 +1,8 @@
-(*  Title:      FOL/ex/NatClass.thy
+(*  Title:      FOL/ex/Nat_Class.thy
     Author:     Markus Wenzel, TU Muenchen
 *)
 
-theory NatClass
+theory Nat_Class
 imports FOL
 begin
 
