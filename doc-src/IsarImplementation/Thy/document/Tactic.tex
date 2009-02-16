@@ -37,38 +37,25 @@ Tactical reasoning works by refining the initial claim in a
 \isamarkuptrue%
 %
 \begin{isamarkuptext}%
-Isabelle/Pure represents a goal\glossary{Tactical goal}{A theorem of
-  \seeglossary{Horn Clause} form stating that a number of subgoals
-  imply the main conclusion, which is marked as a protected
-  proposition.} as a theorem stating that the subgoals imply the main
-  goal: \isa{A\isactrlsub {\isadigit{1}}\ {\isasymLongrightarrow}\ {\isasymdots}\ {\isasymLongrightarrow}\ A\isactrlsub n\ {\isasymLongrightarrow}\ C}.  The outermost goal
-  structure is that of a Horn Clause\glossary{Horn Clause}{An iterated
-  implication \isa{A\isactrlsub {\isadigit{1}}\ {\isasymLongrightarrow}\ {\isasymdots}\ {\isasymLongrightarrow}\ A\isactrlsub n\ {\isasymLongrightarrow}\ C}, without any
-  outermost quantifiers.  Strictly speaking, propositions \isa{A\isactrlsub i} need to be atomic in Horn Clauses, but Isabelle admits
-  arbitrary substructure here (nested \isa{{\isasymLongrightarrow}} and \isa{{\isasymAnd}}
-  connectives).}: i.e.\ an iterated implication without any
-  quantifiers\footnote{Recall that outermost \isa{{\isasymAnd}x{\isachardot}\ {\isasymphi}{\isacharbrackleft}x{\isacharbrackright}} is
-  always represented via schematic variables in the body: \isa{{\isasymphi}{\isacharbrackleft}{\isacharquery}x{\isacharbrackright}}.  These variables may get instantiated during the course of
-  reasoning.}.  For \isa{n\ {\isacharequal}\ {\isadigit{0}}} a goal is called ``solved''.
+Isabelle/Pure represents a goal as a theorem stating that the
+  subgoals imply the main goal: \isa{A\isactrlsub {\isadigit{1}}\ {\isasymLongrightarrow}\ {\isasymdots}\ {\isasymLongrightarrow}\ A\isactrlsub n\ {\isasymLongrightarrow}\ C}.  The outermost goal structure is that of a Horn Clause: i.e.\
+  an iterated implication without any quantifiers\footnote{Recall that
+  outermost \isa{{\isasymAnd}x{\isachardot}\ {\isasymphi}{\isacharbrackleft}x{\isacharbrackright}} is always represented via schematic
+  variables in the body: \isa{{\isasymphi}{\isacharbrackleft}{\isacharquery}x{\isacharbrackright}}.  These variables may get
+  instantiated during the course of reasoning.}.  For \isa{n\ {\isacharequal}\ {\isadigit{0}}}
+  a goal is called ``solved''.
 
-  The structure of each subgoal \isa{A\isactrlsub i} is that of a general
-  Hereditary Harrop Formula \isa{{\isasymAnd}x\isactrlsub {\isadigit{1}}\ {\isasymdots}\ {\isasymAnd}x\isactrlsub k{\isachardot}\ H\isactrlsub {\isadigit{1}}\ {\isasymLongrightarrow}\ {\isasymdots}\ {\isasymLongrightarrow}\ H\isactrlsub m\ {\isasymLongrightarrow}\ B} in
-  normal form.  Here \isa{x\isactrlsub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ x\isactrlsub k} are goal parameters, i.e.\
-  arbitrary-but-fixed entities of certain types, and \isa{H\isactrlsub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ H\isactrlsub m} are goal hypotheses, i.e.\ facts that may be assumed locally.
-  Together, this forms the goal context of the conclusion \isa{B} to
-  be established.  The goal hypotheses may be again arbitrary
-  Hereditary Harrop Formulas, although the level of nesting rarely
-  exceeds 1--2 in practice.
+  The structure of each subgoal \isa{A\isactrlsub i} is that of a
+  general Hereditary Harrop Formula \isa{{\isasymAnd}x\isactrlsub {\isadigit{1}}\ {\isasymdots}\ {\isasymAnd}x\isactrlsub k{\isachardot}\ H\isactrlsub {\isadigit{1}}\ {\isasymLongrightarrow}\ {\isasymdots}\ {\isasymLongrightarrow}\ H\isactrlsub m\ {\isasymLongrightarrow}\ B}.  Here \isa{x\isactrlsub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ x\isactrlsub k} are goal parameters, i.e.\
+  arbitrary-but-fixed entities of certain types, and \isa{H\isactrlsub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ H\isactrlsub m} are goal hypotheses, i.e.\ facts that may
+  be assumed locally.  Together, this forms the goal context of the
+  conclusion \isa{B} to be established.  The goal hypotheses may be
+  again arbitrary Hereditary Harrop Formulas, although the level of
+  nesting rarely exceeds 1--2 in practice.
 
   The main conclusion \isa{C} is internally marked as a protected
-  proposition\glossary{Protected proposition}{An arbitrarily
-  structured proposition \isa{C} which is forced to appear as
-  atomic by wrapping it into a propositional identity operator;
-  notation \isa{{\isacharhash}C}.  Protecting a proposition prevents basic
-  inferences from entering into that structure for the time being.},
-  which is represented explicitly by the notation \isa{{\isacharhash}C}.  This
-  ensures that the decomposition into subgoals and main conclusion is
-  well-defined for arbitrarily structured claims.
+  proposition, which is represented explicitly by the notation \isa{{\isacharhash}C}.  This ensures that the decomposition into subgoals and main
+  conclusion is well-defined for arbitrarily structured claims.
 
   \medskip Basic goal management is performed via the following
   Isabelle/Pure rules:
@@ -480,12 +467,12 @@ The main resolution tactics (\secref{sec:resolve-assume-tac})
 \isamarkuptrue%
 %
 \begin{isamarkuptext}%
-FIXME
+A \emph{tactical} is a functional combinator for building up complex
+  tactics from simpler ones.  Typical tactical perform sequential
+  composition, disjunction (choice), iteration, or goal addressing.
+  Various search strategies may be expressed via tacticals.
 
-\glossary{Tactical}{A functional combinator for building up complex
-tactics from simpler ones.  Typical tactical perform sequential
-composition, disjunction (choice), iteration, or goal addressing.
-Various search strategies may be expressed via tacticals.}%
+  \medskip FIXME%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %

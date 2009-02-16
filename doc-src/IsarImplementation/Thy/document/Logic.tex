@@ -203,13 +203,11 @@ The language of types is an uninterpreted order-sorted first-order
 \isamarkuptrue%
 %
 \begin{isamarkuptext}%
-\glossary{Term}{FIXME}
-
-  The language of terms is that of simply-typed \isa{{\isasymlambda}}-calculus
+The language of terms is that of simply-typed \isa{{\isasymlambda}}-calculus
   with de-Bruijn indices for bound variables (cf.\ \cite{debruijn72}
-  or \cite{paulson-ml2}), with the types being determined determined
-  by the corresponding binders.  In contrast, free variables and
-  constants are have an explicit name and type in each occurrence.
+  or \cite{paulson-ml2}), with the types being determined by the
+  corresponding binders.  In contrast, free variables and constants
+  are have an explicit name and type in each occurrence.
 
   \medskip A \emph{bound variable} is a natural number \isa{b},
   which accounts for the number of intermediate binders between the
@@ -394,42 +392,7 @@ The language of types is an uninterpreted order-sorted first-order
 \isamarkuptrue%
 %
 \begin{isamarkuptext}%
-\glossary{Proposition}{FIXME A \seeglossary{term} of
-  \seeglossary{type} \isa{prop}.  Internally, there is nothing
-  special about propositions apart from their type, but the concrete
-  syntax enforces a clear distinction.  Propositions are structured
-  via implication \isa{A\ {\isasymLongrightarrow}\ B} or universal quantification \isa{{\isasymAnd}x{\isachardot}\ B\ x} --- anything else is considered atomic.  The canonical
-  form for propositions is that of a \seeglossary{Hereditary Harrop
-  Formula}. FIXME}
-
-  \glossary{Theorem}{A proven proposition within a certain theory and
-  proof context, formally \isa{{\isasymGamma}\ {\isasymturnstile}\isactrlsub {\isasymTheta}\ {\isasymphi}}; both contexts are
-  rarely spelled out explicitly.  Theorems are usually normalized
-  according to the \seeglossary{HHF} format. FIXME}
-
-  \glossary{Fact}{Sometimes used interchangeably for
-  \seeglossary{theorem}.  Strictly speaking, a list of theorems,
-  essentially an extra-logical conjunction.  Facts emerge either as
-  local assumptions, or as results of local goal statements --- both
-  may be simultaneous, hence the list representation. FIXME}
-
-  \glossary{Schematic variable}{FIXME}
-
-  \glossary{Fixed variable}{A variable that is bound within a certain
-  proof context; an arbitrary-but-fixed entity within a portion of
-  proof text. FIXME}
-
-  \glossary{Free variable}{Synonymous for \seeglossary{fixed
-  variable}. FIXME}
-
-  \glossary{Bound variable}{FIXME}
-
-  \glossary{Variable}{See \seeglossary{schematic variable},
-  \seeglossary{fixed variable}, \seeglossary{bound variable}, or
-  \seeglossary{type variable}.  The distinguishing feature of
-  different variables is their binding scope. FIXME}
-
-  A \emph{proposition} is a well-typed term of type \isa{prop}, a
+A \emph{proposition} is a well-typed term of type \isa{prop}, a
   \emph{theorem} is a proven proposition (depending on a context of
   hypotheses and the background theory).  Primitive inferences include
   plain natural deduction rules for the primary connectives \isa{{\isasymAnd}} and \isa{{\isasymLongrightarrow}} of the framework.  There is also a builtin
@@ -812,15 +775,12 @@ FIXME
   expect a normal form: quantifiers \isa{{\isasymAnd}} before implications
   \isa{{\isasymLongrightarrow}} at each level of nesting.
 
-\glossary{Hereditary Harrop Formula}{The set of propositions in HHF
-format is defined inductively as \isa{H\ {\isacharequal}\ {\isacharparenleft}{\isasymAnd}x\isactrlsup {\isacharasterisk}{\isachardot}\ H\isactrlsup {\isacharasterisk}\ {\isasymLongrightarrow}\ A{\isacharparenright}}, for variables \isa{x} and atomic propositions \isa{A}.
-Any proposition may be put into HHF form by normalizing with the rule
-\isa{{\isacharparenleft}A\ {\isasymLongrightarrow}\ {\isacharparenleft}{\isasymAnd}x{\isachardot}\ B\ x{\isacharparenright}{\isacharparenright}\ {\isasymequiv}\ {\isacharparenleft}{\isasymAnd}x{\isachardot}\ A\ {\isasymLongrightarrow}\ B\ x{\isacharparenright}}.  In Isabelle, the outermost
-quantifier prefix is represented via \seeglossary{schematic
-variables}, such that the top-level structure is merely that of a
-\seeglossary{Horn Clause}}.
-
-\glossary{HHF}{See \seeglossary{Hereditary Harrop Formula}.}
+  The set of propositions in HHF format is defined inductively as
+  \isa{H\ {\isacharequal}\ {\isacharparenleft}{\isasymAnd}x\isactrlsup {\isacharasterisk}{\isachardot}\ H\isactrlsup {\isacharasterisk}\ {\isasymLongrightarrow}\ A{\isacharparenright}}, for variables \isa{x}
+  and atomic propositions \isa{A}.  Any proposition may be put
+  into HHF form by normalizing with the rule \isa{{\isacharparenleft}A\ {\isasymLongrightarrow}\ {\isacharparenleft}{\isasymAnd}x{\isachardot}\ B\ x{\isacharparenright}{\isacharparenright}\ {\isasymequiv}\ {\isacharparenleft}{\isasymAnd}x{\isachardot}\ A\ {\isasymLongrightarrow}\ B\ x{\isacharparenright}}.  In Isabelle, the outermost quantifier prefix is
+  represented via schematic variables, such that the top-level
+  structure is merely that of a Horn Clause.
 
 
   \[

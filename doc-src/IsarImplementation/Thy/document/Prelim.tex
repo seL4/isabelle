@@ -93,9 +93,7 @@ A logical context represents the background that is required for
 \isamarkuptrue%
 %
 \begin{isamarkuptext}%
-\glossary{Theory}{FIXME}
-
-  A \emph{theory} is a data container with explicit named and unique
+A \emph{theory} is a data container with explicit name and unique
   identifier.  Theories are related by a (nominal) sub-theory
   relation, which corresponds to the dependency graph of the original
   construction; each theory is derived from a certain sub-graph of
@@ -204,7 +202,7 @@ A logical context represents the background that is required for
   update will result in two related, valid theories.
 
   \item \verb|Theory.copy|~\isa{thy} produces a variant of \isa{thy} that holds a copy of the same data.  The result is not
-  related to the original; the original is unchanched.
+  related to the original; the original is unchanged.
 
   \item \verb|theory_ref| represents a sliding reference to an
   always valid theory; updates on the original are propagated
@@ -231,14 +229,7 @@ A logical context represents the background that is required for
 \isamarkuptrue%
 %
 \begin{isamarkuptext}%
-\glossary{Proof context}{The static context of a structured proof,
-  acts like a local ``theory'' of the current portion of Isar proof
-  text, generalizes the idea of local hypotheses \isa{{\isasymGamma}} in
-  judgments \isa{{\isasymGamma}\ {\isasymturnstile}\ {\isasymphi}} of natural deduction calculi.  There is a
-  generic notion of introducing and discharging hypotheses.
-  Arbritrary auxiliary context data may be adjoined.}
-
-  A proof context is a container for pure data with a back-reference
+A proof context is a container for pure data with a back-reference
   to the theory it belongs to.  The \isa{init} operation creates a
   proof context from a given theory.  Modifications to draft theories
   are propagated to the proof context as usual, but there is also an
@@ -252,7 +243,7 @@ A logical context represents the background that is required for
   identification as for theories.  For example, hypotheses used in
   primitive derivations (cf.\ \secref{sec:thms}) are recorded
   separately within the sequent \isa{{\isasymGamma}\ {\isasymturnstile}\ {\isasymphi}}, just to make double
-  sure.  Results could still leak into an alien proof context do to
+  sure.  Results could still leak into an alien proof context due to
   programming errors, but Isabelle/Isar includes some extra validity
   checks in critical positions, notably at the end of a sub-proof.
 
@@ -261,7 +252,7 @@ A logical context represents the background that is required for
   context is extended consecutively, and results are exported back
   into the original context.  Note that the Isar proof states model
   block-structured reasoning explicitly, using a stack of proof
-  contexts internally, cf.\ \secref{sec:isar-proof-state}.%
+  contexts internally.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -418,7 +409,7 @@ The main purpose of theory and proof contexts is to manage arbitrary
 
   \medskip
   \begin{tabular}{ll}
-  \isa{init{\isacharcolon}\ theory\ {\isasymrightarrow}\ theory} \\
+  \isa{init{\isacharcolon}\ theory\ {\isasymrightarrow}\ T} \\
   \isa{get{\isacharcolon}\ context\ {\isasymrightarrow}\ T} \\
   \isa{put{\isacharcolon}\ T\ {\isasymrightarrow}\ context\ {\isasymrightarrow}\ context} \\
   \isa{map{\isacharcolon}\ {\isacharparenleft}T\ {\isasymrightarrow}\ T{\isacharparenright}\ {\isasymrightarrow}\ context\ {\isasymrightarrow}\ context} \\
@@ -491,11 +482,7 @@ In principle, a name is just a string, but there are various
 \isamarkuptrue%
 %
 \begin{isamarkuptext}%
-\glossary{Symbol}{The smallest unit of text in Isabelle, subsumes
-  plain ASCII characters as well as an infinite collection of named
-  symbols (for greek, math etc.).}
-
-  A \emph{symbol} constitutes the smallest textual unit in Isabelle
+A \emph{symbol} constitutes the smallest textual unit in Isabelle
   --- raw characters are normally not encountered at all.  Isabelle
   strings consist of a sequence of symbols, represented as a packed
   string or a list of strings.  Each symbol is in itself a small
@@ -535,8 +522,8 @@ In principle, a name is just a string, but there are various
   link to the standard collection of Isabelle.
 
   \medskip Output of Isabelle symbols depends on the print mode
-  (\secref{FIXME}).  For example, the standard {\LaTeX} setup of the
-  Isabelle document preparation system would present
+  (\secref{print-mode}).  For example, the standard {\LaTeX} setup of
+  the Isabelle document preparation system would present
   ``\verb,\,\verb,<alpha>,'' as \isa{{\isasymalpha}}, and
   ``\verb,\,\verb,<^bold>,\verb,\,\verb,<alpha>,'' as \isa{\isactrlbold {\isasymalpha}}.%
 \end{isamarkuptext}%
@@ -599,10 +586,9 @@ In principle, a name is just a string, but there are various
 \begin{isamarkuptext}%
 A \emph{basic name} essentially consists of a single Isabelle
   identifier.  There are conventions to mark separate classes of basic
-  names, by attaching a suffix of underscores (\isa{{\isacharunderscore}}): one
-  underscore means \emph{internal name}, two underscores means
-  \emph{Skolem name}, three underscores means \emph{internal Skolem
-  name}.
+  names, by attaching a suffix of underscores: one underscore means
+  \emph{internal name}, two underscores means \emph{Skolem name},
+  three underscores means \emph{internal Skolem name}.
 
   For example, the basic name \isa{foo} has the internal version
   \isa{foo{\isacharunderscore}}, with Skolem versions \isa{foo{\isacharunderscore}{\isacharunderscore}} and \isa{foo{\isacharunderscore}{\isacharunderscore}{\isacharunderscore}}, respectively.
@@ -663,7 +649,7 @@ A \emph{basic name} essentially consists of a single Isabelle
   \item \verb|Name.invents|~\isa{context\ name\ n} produces \isa{n} fresh names derived from \isa{name}.
 
   \item \verb|Name.variants|~\isa{names\ context} produces fresh
-  varians of \isa{names}; the result is entered into the context.
+  variants of \isa{names}; the result is entered into the context.
 
   \end{description}%
 \end{isamarkuptext}%

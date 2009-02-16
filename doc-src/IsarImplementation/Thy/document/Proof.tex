@@ -194,8 +194,7 @@ An \emph{assumption} is a proposition that it is postulated in the
   rules.  Note that the discharged portion is determined by the
   difference contexts, not the facts being exported!  There is a
   separate flag to indicate a goal context, where the result is meant
-  to refine an enclosing sub-goal of a structured proof state (cf.\
-  \secref{sec:isar-proof-state}).
+  to refine an enclosing sub-goal of a structured proof state.
 
   \medskip The most basic export rule discharges assumptions directly
   by means of the \isa{{\isasymLongrightarrow}} introduction rule:
@@ -342,11 +341,11 @@ Local results are established by monotonic reasoning from facts
 
   \begin{description}
 
-  \item \verb|SUBPROOF|~\isa{tac} decomposes the structure of a
-  particular sub-goal, producing an extended context and a reduced
-  goal, which needs to be solved by the given tactic.  All schematic
-  parameters of the goal are imported into the context as fixed ones,
-  which may not be instantiated in the sub-proof.
+  \item \verb|SUBPROOF|~\isa{tac\ ctxt\ i} decomposes the structure
+  of the specified sub-goal, producing an extended context and a
+  reduced goal, which needs to be solved by the given tactic.  All
+  schematic parameters of the goal are imported into the context as
+  fixed ones, which may not be instantiated in the sub-proof.
 
   \item \verb|Goal.prove|~\isa{ctxt\ xs\ As\ C\ tac} states goal \isa{C} in the context augmented by fixed variables \isa{xs} and
   assumptions \isa{As}, and applies tactic \isa{tac} to solve
