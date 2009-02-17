@@ -1,8 +1,8 @@
 (*  Title:      HOL/ex/Numeral.thy
     Author:     Florian Haftmann
-
-An experimental alternative numeral representation.
 *)
+
+header {* An experimental alternative numeral representation. *}
 
 theory Numeral
 imports Int Inductive
@@ -210,6 +210,17 @@ lemma add_One_commute: "One + n = n + One"
 lemma one_plus_DigM: "One + DigM n = Dig0 n"
   unfolding add_One_commute DigM_plus_one ..
 
+text {* A squaring function *}
+
+primrec square :: "num \<Rightarrow> num" where
+  "square One = One"
+| "square (Dig0 n) = Dig0 (Dig0 (square n))"
+| "square (Dig1 n) = Dig1 (Dig0 (square n + n))"
+
+lemma nat_of_num_square:
+  "nat_of_num (square n) = nat_of_num n * nat_of_num n"
+  by (induct n) (simp_all add: nat_of_num_add algebra_simps)
+
 
 subsection {* Binary numerals *}
 
@@ -351,7 +362,7 @@ lemma of_num_times [numeral]:
 end
 
 subsubsection {*
-  Structures with a @{term 0}: class @{text semiring_1}
+  Structures with a zero: class @{text semiring_1}
 *}
 
 context semiring_1
@@ -480,7 +491,7 @@ qed
 end
 
 subsubsection {*
-  Structures with subtraction @{term "op -"}: class @{text semiring_1_minus}
+  Structures with subtraction: class @{text semiring_1_minus}
 *}
 
 class semiring_minus = semiring + minus + zero +
@@ -564,7 +575,7 @@ lemma Dig_one_minus_of_num [numeral]:
 end
 
 subsubsection {*
-  Negation: class @{text ring_1}
+  Structures with negation: class @{text ring_1}
 *}
 
 context ring_1
