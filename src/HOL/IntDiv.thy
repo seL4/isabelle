@@ -1177,23 +1177,23 @@ lemma zdvd_0_left: "(0 dvd (m::int)) = (m = 0)"
 lemma zdvd_1_left: "1 dvd (m::int)"
   by (rule one_dvd) (* already declared [simp] *)
 
-lemma zdvd_refl [simp]: "m dvd (m::int)"
-  by (rule dvd_refl) (* TODO: declare generic dvd_refl [simp] *)
+lemma zdvd_refl: "m dvd (m::int)"
+  by (rule dvd_refl) (* already declared [simp] *)
 
 lemma zdvd_trans: "m dvd n ==> n dvd k ==> m dvd (k::int)"
   by (rule dvd_trans)
 
-lemma zdvd_zminus_iff[simp]: "m dvd -n \<longleftrightarrow> m dvd (n::int)"
-  by (rule dvd_minus_iff)
+lemma zdvd_zminus_iff: "m dvd -n \<longleftrightarrow> m dvd (n::int)"
+  by (rule dvd_minus_iff) (* already declared [simp] *)
 
-lemma zdvd_zminus2_iff[simp]: "-m dvd n \<longleftrightarrow> m dvd (n::int)"
-  by (rule minus_dvd_iff)
+lemma zdvd_zminus2_iff: "-m dvd n \<longleftrightarrow> m dvd (n::int)"
+  by (rule minus_dvd_iff) (* already declared [simp] *)
 
-lemma zdvd_abs1[simp]: "( \<bar>i::int\<bar> dvd j) = (i dvd j)" 
-  by (cases "i > 0") (simp_all add: zdvd_zminus2_iff)
+lemma zdvd_abs1: "( \<bar>i::int\<bar> dvd j) = (i dvd j)"
+  by (rule abs_dvd_iff) (* already declared [simp] *)
 
-lemma zdvd_abs2[simp]: "( (i::int) dvd \<bar>j\<bar>) = (i dvd j)" 
-  by (cases "j > 0") (simp_all add: zdvd_zminus_iff)
+lemma zdvd_abs2: "( (i::int) dvd \<bar>j\<bar>) = (i dvd j)" 
+  by (rule dvd_abs_iff) (* already declared [simp] *)
 
 lemma zdvd_anti_sym:
     "0 < m ==> 0 < n ==> m dvd n ==> n dvd m ==> m = (n::int)"
