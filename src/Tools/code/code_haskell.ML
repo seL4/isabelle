@@ -101,7 +101,7 @@ fun pr_haskell_stmt naming labelled_name syntax_class syntax_tyco syntax_const
     and pr_bind tyvars = pr_haskell_bind (pr_term tyvars)
     and pr_case tyvars thm vars fxy (cases as ((_, [_]), _)) =
           let
-            val (binds, t) = Code_Thingol.unfold_let (ICase cases);
+            val (binds, body) = Code_Thingol.unfold_let (ICase cases);
             fun pr ((pat, ty), t) vars =
               vars
               |> pr_bind tyvars thm BR ((NONE, SOME pat), ty)
@@ -110,20 +110,20 @@ fun pr_haskell_stmt naming labelled_name syntax_class syntax_tyco syntax_const
           in
             Pretty.block_enclose (
               str "let {",
-              concat [str "}", str "in", pr_term tyvars thm vars' NOBR t]
+              concat [str "}", str "in", pr_term tyvars thm vars' NOBR body]
             ) ps
           end
-      | pr_case tyvars thm vars fxy (((td, ty), bs as _ :: _), _) =
+      | pr_case tyvars thm vars fxy (((t, ty), clauses as _ :: _), _) =
           let
-            fun pr (pat, t) =
+            fun pr (pat, body) =
               let
                 val (p, vars') = pr_bind tyvars thm NOBR ((NONE, SOME pat), ty) vars;
-              in semicolon [p, str "->", pr_term tyvars thm vars' NOBR t] end;
+              in semicolon [p, str "->", pr_term tyvars thm vars' NOBR body] end;
           in
             Pretty.block_enclose (
-              concat [str "(case", pr_term tyvars thm vars NOBR td, str "of", str "{"],
+              concat [str "(case", pr_term tyvars thm vars NOBR t, str "of", str "{"],
               str "})"
-            ) (map pr bs)
+            ) (map pr clauses)
           end
       | pr_case tyvars thm vars fxy ((_, []), _) = str "error \"empty case\"";
     fun pr_stmt (name, Code_Thingol.Fun (_, ((vs, ty), []))) =
