@@ -53,7 +53,7 @@ lemma StandardRes_prop3: "(~[x = 0] (mod p)) = (~(StandardRes p x = 0))"
 lemma StandardRes_prop4: "2 < m 
      ==> [StandardRes m x * StandardRes m y = (x * y)] (mod m)"
   by (auto simp add: StandardRes_def zcong_zmod_eq 
-                     zmod_zmult_distrib [of x y m])
+                     mod_mult_eq [of x y m])
 
 lemma StandardRes_lbound: "0 < p ==> 0 \<le> StandardRes p x"
   by (auto simp add: StandardRes_def pos_mod_sign)

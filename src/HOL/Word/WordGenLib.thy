@@ -293,9 +293,9 @@ lemma mod_plus_cong:
   shows "(x + y) mod b = z' mod b'"
 proof -
   from 1 2[symmetric] 3[symmetric] have "(x + y) mod b = (x' mod b' + y' mod b') mod b'"
-    by (simp add: zmod_zadd1_eq[symmetric])
+    by (simp add: mod_add_eq[symmetric])
   also have "\<dots> = (x' + y') mod b'"
-    by (simp add: zmod_zadd1_eq[symmetric])
+    by (simp add: mod_add_eq[symmetric])
   finally show ?thesis by (simp add: 4)
 qed
 
