@@ -362,9 +362,14 @@ lemma power2_eq_imp_eq:
 unfolding numeral_2_eq_2 by (erule (2) power_eq_imp_eq_base, simp)
 
 lemma power_minus1_even[simp]: "(- 1) ^ (2*n) = (1::'a::{comm_ring_1,recpower})"
-apply (induct "n")
-apply (auto simp add: power_Suc power_add)
-done
+proof (induct n)
+  case 0 show ?case by simp
+next
+  case (Suc n) then show ?case by (simp add: power_Suc power_add)
+qed
+
+lemma power_minus1_odd: "(- 1) ^ Suc(2*n) = -(1::'a::{comm_ring_1,recpower})"
+  by (simp add: power_Suc) 
 
 lemma power_even_eq: "(a::'a::recpower) ^ (2*n) = (a^n)^2"
 by (subst mult_commute) (simp add: power_mult)
