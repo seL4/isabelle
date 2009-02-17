@@ -170,14 +170,14 @@ in
   THEN_ALL_NEW simp_tac ss
   THEN_ALL_NEW (TRY o generalize_tac (int_nat_terms ctxt))
   THEN_ALL_NEW ObjectLogic.full_atomize_tac
-  THEN_ALL_NEW (TRY o thin_prems_tac (is_relevant ctxt))
+  THEN_ALL_NEW (thin_prems_tac (is_relevant ctxt))
   THEN_ALL_NEW ObjectLogic.full_atomize_tac
   THEN_ALL_NEW div_mod_tac ctxt
   THEN_ALL_NEW splits_tac ctxt
   THEN_ALL_NEW simp_tac ss
   THEN_ALL_NEW CONVERSION Thm.eta_long_conversion
   THEN_ALL_NEW nat_to_int_tac ctxt
-  THEN_ALL_NEW core_cooper_tac ctxt
+  THEN_ALL_NEW (core_cooper_tac ctxt)
   THEN_ALL_NEW finish_tac elim
 end;
 
