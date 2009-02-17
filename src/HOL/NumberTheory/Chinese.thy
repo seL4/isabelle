@@ -101,7 +101,7 @@ lemma funsum_mod:
   apply (induct l)
    apply auto
   apply (rule trans)
-   apply (rule zmod_zadd1_eq)
+   apply (rule mod_add_eq)
   apply simp
   apply (rule zmod_zadd_right_eq [symmetric])
   done
@@ -237,10 +237,10 @@ lemma chinese_remainder:
   apply (unfold lincong_sol_def)
   apply safe
     apply (tactic {* stac (thm "zcong_zmod") 3 *})
-    apply (tactic {* stac (thm "zmod_zmult_distrib") 3 *})
+    apply (tactic {* stac (thm "mod_mult_eq") 3 *})
     apply (tactic {* stac (thm "zmod_zdvd_zmod") 3 *})
       apply (tactic {* stac (thm "x_sol_lin") 5 *})
-        apply (tactic {* stac (thm "zmod_zmult_distrib" RS sym) 7 *})
+        apply (tactic {* stac (thm "mod_mult_eq" RS sym) 7 *})
         apply (tactic {* stac (thm "zcong_zmod" RS sym) 7 *})
         apply (subgoal_tac [7]
           "0 \<le> xilin_sol i n kf bf mf \<and> xilin_sol i n kf bf mf < mf i

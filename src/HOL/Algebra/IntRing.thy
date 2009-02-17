@@ -407,7 +407,7 @@ proof -
 
   hence "b mod m = (x * m + a) mod m" by simp
   also
-      have "\<dots> = ((x * m) mod m) + (a mod m)" by (simp add: zmod_zadd1_eq)
+      have "\<dots> = ((x * m) mod m) + (a mod m)" by (simp add: mod_add_eq)
   also
       have "\<dots> = a mod m" by simp
   finally
