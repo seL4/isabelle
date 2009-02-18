@@ -302,11 +302,21 @@ fun merge_algebra pp
 
 (* algebra projections *)
 
-fun classrels_of (Algebra {classes, ...}) =
-  map (fn [c] => (c, Graph.imm_succs classes c)) (rev (Graph.strong_conn classes));
+val sorted_classes = rev o flat o Graph.strong_conn o classes_of;
 
-fun instances_of (Algebra {arities, ...}) =
-  Symtab.fold (fn (a, cs) => append (map (pair a o fst) cs)) arities [];
+fun classrels_of algebra = 
+  map (fn c => (c, Graph.imm_succs (classes_of algebra) c)) (sorted_classes algebra);
+
+fun instances_of algebra =
+  let
+    val arities = arities_of algebra;
+    val all_classes = sorted_classes algebra;
+    fun sort_classes cs = filter (member (op = o apsnd fst) cs)
+      all_classes;
+  in
+    Symtab.fold (fn (a, cs) => append ((map (pair a) o sort_classes) cs))
+      arities []
+  end;
 
 fun subalgebra pp P sargs (algebra as Algebra {classes, arities}) =
   let
