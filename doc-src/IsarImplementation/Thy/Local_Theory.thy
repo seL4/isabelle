@@ -26,29 +26,29 @@ text {*
   users can implement new targets as well, but this rather arcane
   discipline is beyond the scope of this manual.  In contrast,
   implementing derived definitional packages to be used within a local
-  theory context is quite easy: the interfaces are simpler and more
-  abstract than the underlying primitives for raw theories.
+  theory context is quite easy: the interfaces are even simpler and
+  more abstract than the underlying primitives for raw theories.
 
   Many definitional packages for local theories are available in
-  Isabelle/Pure and Isabelle/HOL.  Even though a few old packages that
-  only work for global theories might still persists, the local theory
-  interface is already the standard way of implementing definitional
-  packages in Isabelle.
+  Isabelle.  Although a few old packages only work for global
+  theories, the local theory interface is already the standard way of
+  implementing definitional packages in Isabelle.
 *}
 
 
 section {* Definitional elements *}
 
 text {*
-  There are separate definitional elements @{text "\<DEFINE> c \<equiv> t"}
-  for terms, and @{text "\<NOTE> b = thm"} for theorems.  Types are
-  treated implicitly, according to Hindley-Milner discipline (cf.\
+  There are separate elements @{text "\<DEFINE> c \<equiv> t"} for terms, and
+  @{text "\<NOTE> b = thm"} for theorems.  Types are treated
+  implicitly, according to Hindley-Milner discipline (cf.\
   \secref{sec:variables}).  These definitional primitives essentially
   act like @{text "let"}-bindings within a local context that may
-  already contain some @{text "\<lambda>"}-bindings.  Thus we gain
-  \emph{dependent definitions}, relatively to an initial axiomatic
-  context.  The following diagram illustrates this idea of axiomatic
-  elements versus definitional elements:
+  already contain earlier @{text "let"}-bindings and some initial
+  @{text "\<lambda>"}-bindings.  Thus we gain \emph{dependent definitions}
+  that are relative to an initial axiomatic context.  The following
+  diagram illustrates this idea of axiomatic elements versus
+  definitional elements:
 
   \begin{center}
   \begin{tabular}{|l|l|l|}
@@ -66,8 +66,8 @@ text {*
   and @{text "\<NOTE>"} elements according to the application.  For
   example, a package for inductive definitions might first @{text
   "\<DEFINE>"} a certain predicate as some fixed-point construction,
-  prove the monotonicity of the functor involved here and @{text
-  "\<NOTE>"} the result, and then produce further derived concepts via
+  then @{text "\<NOTE>"} a proven result about monotonicity of the
+  functor involved here, and then produce further derived concepts via
   additional @{text "\<DEFINE>"} and @{text "\<NOTE>"} elements.
 
   The cumulative sequence of @{text "\<DEFINE>"} and @{text "\<NOTE>"}
@@ -87,15 +87,17 @@ text {*
   \end{center}
 
   \noindent When a definitional package is finished, the auxiliary
-  context will be reset to the target context.  The target now holds
+  context is reset to the target context.  The target now holds
   definitions for terms and theorems that stem from the hypothetical
   @{text "\<DEFINE>"} and @{text "\<NOTE>"} elements, transformed by
-  the particular target policy (see \cite[\S4-5]{Haftmann-Wenzel:2009}
-  for details).
+  the particular target policy (see
+  \cite[\S4--5]{Haftmann-Wenzel:2009} for details).
 *}
 
 text %mlref {*
   \begin{mldecls}
+  @{index_ML_type local_theory: Proof.context} \\
+  @{index_ML TheoryTarget.init: "string option -> theory -> local_theory"} \\[1ex]
   @{index_ML LocalTheory.define: "string ->
     (binding * mixfix) * (Attrib.binding * term) -> local_theory ->
     (term * (string * thm)) * local_theory"} \\
@@ -106,9 +108,54 @@ text %mlref {*
 
   \begin{description}
 
-  \item @{ML LocalTheory.define}~@{text FIXME}
+  \item @{ML_type local_theory} represents local theories.  Although
+  this is merely an alias for @{ML_type Proof.context}, it is
+  semantically a subtype of the same: a @{ML_type local_theory} holds
+  target information as special context data.  Subtyping means that
+  any value @{text "lthy:"}~@{ML_type local_theory} can be also used
+  with operations on expecting a regular @{text "ctxt:"}~@{ML_type
+  Proof.context}.
 
-  \item @{ML LocalTheory.note}~@{text FIXME}
+  \item @{ML TheoryTarget.init}~@{text "NONE thy"} initializes a
+  trivial local theory from the given background theory.
+  Alternatively, @{text "SOME name"} may be given to initialize a
+  locale or class context (a fully-qualified internal name is expected
+  here).  This is useful for experimentation --- normally the Isar
+  toplevel already takes care to initialize particular local theory
+  contexts according to user specifications.
+
+  \item @{ML LocalTheory.define}~@{text "kind ((b, mx), (a, rhs))
+  lthy"} defines a local entity according to the specification that is
+  given relatively to the current @{text "lthy"} context.  In
+  particular the term of the RHS may refer to earlier local entities
+  from the auxiliary context or hypothetical parameters from the
+  target context.  The result is the newly defined term (which is
+  always a fixed variable with exactly the same name as specified for
+  the LHS), together with an equational theorem that states the
+  definition as a hypothetical fact.
+
+  Unless an explicit name binding is given for the RHS, the resulting
+  fact will be called @{text "b_def"}.  Any given attributes are
+  applied to that same fact --- immediately in the auxiliary context
+  \emph{and} in any transformations stemming from target-specific
+  policies or any later interpretations of results from the target
+  context (think of @{command locale} and @{command interpretation},
+  for example).  This means that attributes should be usually plain
+  declarations such as @{attribute simp}, while non-trivial rules like
+  @{attribute simplified} are better avoided.
+
+  The @{text kind} determines the theorem kind of the resulting fact.
+  Typical examples are @{ML Thm.definitionK}, @{ML Thm.theoremK}, or
+  @{ML Thm.internalK}.
+
+  \item @{ML LocalTheory.note}~@{text "kind (a, ths) lthy"} is
+  analogous to @{ML LocalTheory.define}, but defines facts instead of
+  terms.  There is also a slightly more general variant @{ML
+  LocalTheory.notes} that defines several facts (with attribute
+  expressions) simultaneously.
+
+  This is essentially the internal version of the @{command lemmas}
+  command, or @{command declare} if an empty name binding is given.
 
   \end{description}
 *}
