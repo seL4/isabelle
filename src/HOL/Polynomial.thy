@@ -611,6 +611,26 @@ lemma degree_1 [simp]: "degree 1 = 0"
   unfolding one_poly_def
   by (rule degree_pCons_0)
 
+text {* Lemmas about divisibility *}
+
+lemma dvd_smult: "p dvd q \<Longrightarrow> p dvd smult a q"
+proof -
+  assume "p dvd q"
+  then obtain k where "q = p * k" ..
+  then have "smult a q = p * smult a k" by simp
+  then show "p dvd smult a q" ..
+qed
+
+lemma dvd_smult_cancel:
+  fixes a :: "'a::field"
+  shows "p dvd smult a q \<Longrightarrow> a \<noteq> 0 \<Longrightarrow> p dvd q"
+  by (drule dvd_smult [where a="inverse a"]) simp
+
+lemma dvd_smult_iff:
+  fixes a :: "'a::field"
+  shows "a \<noteq> 0 \<Longrightarrow> p dvd smult a q \<longleftrightarrow> p dvd q"
+  by (safe elim!: dvd_smult dvd_smult_cancel)
+
 instantiation poly :: (comm_semiring_1) recpower
 begin
 
@@ -622,6 +642,9 @@ instance
   by default simp_all
 
 end
+
+lemma degree_power_le: "degree (p ^ n) \<le> degree p * n"
+by (induct n, simp, auto intro: order_trans degree_mult_le)
 
 instance poly :: (comm_ring) comm_ring ..
 
@@ -1208,20 +1231,31 @@ next
   qed
 qed
 
+lemma poly_zero:
+  fixes p :: "'a::{idom,ring_char_0} poly"
+  shows "poly p = poly 0 \<longleftrightarrow> p = 0"
+apply (cases "p = 0", simp_all)
+apply (drule poly_roots_finite)
+apply (auto simp add: infinite_UNIV_char_0)
+done
+
+lemma poly_eq_iff:
+  fixes p q :: "'a::{idom,ring_char_0} poly"
+  shows "poly p = poly q \<longleftrightarrow> p = q"
+  using poly_zero [of "p - q"]
+  by (simp add: expand_fun_eq)
+
 
 subsection {* Order of polynomial roots *}
 
 definition
-  order :: "'a::{idom,recpower} \<Rightarrow> 'a poly \<Rightarrow> nat"
+  order :: "'a::idom \<Rightarrow> 'a poly \<Rightarrow> nat"
 where
   [code del]:
   "order a p = (LEAST n. \<not> [:-a, 1:] ^ Suc n dvd p)"
 
-lemma degree_power_le: "degree (p ^ n) \<le> degree p * n"
-by (induct n, simp, auto intro: order_trans degree_mult_le)
-
 lemma coeff_linear_power:
-  fixes a :: "'a::{comm_semiring_1,recpower}"
+  fixes a :: "'a::comm_semiring_1"
   shows "coeff ([:a, 1:] ^ n) n = 1"
 apply (induct n, simp_all)
 apply (subst coeff_eq_0)
@@ -1229,7 +1263,7 @@ apply (auto intro: le_less_trans degree_power_le)
 done
 
 lemma degree_linear_power:
-  fixes a :: "'a::{comm_semiring_1,recpower}"
+  fixes a :: "'a::comm_semiring_1"
   shows "degree ([:a, 1:] ^ n) = n"
 apply (rule order_antisym)
 apply (rule ord_le_eq_trans [OF degree_power_le], simp)
@@ -1278,20 +1312,6 @@ apply (simp add: poly_eq_0_iff_dvd)
 apply (simp only: order_def)
 apply (drule not_less_Least, simp)
 done
-
-lemma poly_zero:
-  fixes p :: "'a::{idom,ring_char_0} poly"
-  shows "poly p = poly 0 \<longleftrightarrow> p = 0"
-apply (cases "p = 0", simp_all)
-apply (drule poly_roots_finite)
-apply (auto simp add: infinite_UNIV_char_0)
-done
-
-lemma poly_eq_iff:
-  fixes p q :: "'a::{idom,ring_char_0} poly"
-  shows "poly p = poly q \<longleftrightarrow> p = q"
-  using poly_zero [of "p - q"]
-  by (simp add: expand_fun_eq)
 
 
 subsection {* Configuration of the code generator *}
