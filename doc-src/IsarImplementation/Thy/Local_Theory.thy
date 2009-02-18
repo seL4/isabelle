@@ -119,16 +119,16 @@ text %mlref {*
   \item @{ML TheoryTarget.init}~@{text "NONE thy"} initializes a
   trivial local theory from the given background theory.
   Alternatively, @{text "SOME name"} may be given to initialize a
-  locale or class context (a fully-qualified internal name is expected
-  here).  This is useful for experimentation --- normally the Isar
-  toplevel already takes care to initialize particular local theory
-  contexts according to user specifications.
+  @{command locale} or @{command class} context (a fully-qualified
+  internal name is expected here).  This is useful for experimentation
+  --- normally the Isar toplevel already takes care to initialize the
+  local theory context.
 
   \item @{ML LocalTheory.define}~@{text "kind ((b, mx), (a, rhs))
   lthy"} defines a local entity according to the specification that is
   given relatively to the current @{text "lthy"} context.  In
   particular the term of the RHS may refer to earlier local entities
-  from the auxiliary context or hypothetical parameters from the
+  from the auxiliary context, or hypothetical parameters from the
   target context.  The result is the newly defined term (which is
   always a fixed variable with exactly the same name as specified for
   the LHS), together with an equational theorem that states the
@@ -137,16 +137,16 @@ text %mlref {*
   Unless an explicit name binding is given for the RHS, the resulting
   fact will be called @{text "b_def"}.  Any given attributes are
   applied to that same fact --- immediately in the auxiliary context
-  \emph{and} in any transformations stemming from target-specific
+  \emph{and} in any transformed versions stemming from target-specific
   policies or any later interpretations of results from the target
   context (think of @{command locale} and @{command interpretation},
   for example).  This means that attributes should be usually plain
   declarations such as @{attribute simp}, while non-trivial rules like
   @{attribute simplified} are better avoided.
 
-  The @{text kind} determines the theorem kind of the resulting fact.
-  Typical examples are @{ML Thm.definitionK}, @{ML Thm.theoremK}, or
-  @{ML Thm.internalK}.
+  The @{text kind} determines the theorem kind tag of the resulting
+  fact.  Typical examples are @{ML Thm.definitionK}, @{ML
+  Thm.theoremK}, or @{ML Thm.internalK}.
 
   \item @{ML LocalTheory.note}~@{text "kind (a, ths) lthy"} is
   analogous to @{ML LocalTheory.define}, but defines facts instead of
