@@ -461,12 +461,6 @@ fun not_wellsorted thy thm ty sort e =
 
 (* translation *)
 
-(*FIXME move to code(_unit).ML*)
-fun get_case_scheme thy c = case Code.get_case_data thy c
- of SOME (proto_case_scheme as (_, case_pats)) => 
-      SOME (1 + (if null case_pats then 1 else length case_pats), proto_case_scheme)
-  | NONE => NONE
-
 fun ensure_class thy (algbr as (_, algebra)) funcgr class =
   let
     val superclasses = (Sorts.minimize_sort algebra o Sorts.super_classes algebra) class;
@@ -638,7 +632,7 @@ and translate_const thy algbr funcgr thm (c, ty) =
     ##>> fold_map (translate_typ thy algbr funcgr) tys_args
     #>> (fn ((c, iss), tys) => IConst (c, (iss, tys)))
   end
-and translate_app_default thy algbr funcgr thm (c_ty, ts) =
+and translate_app_const thy algbr funcgr thm (c_ty, ts) =
   translate_const thy algbr funcgr thm c_ty
   ##>> fold_map (translate_term thy algbr funcgr thm) ts
   #>> (fn (t, ts) => t `$$ ts)
@@ -689,26 +683,30 @@ and translate_case thy algbr funcgr thm (num_args, (t_pos, case_pats)) (c_ty, ts
       #>> pair b) clauses
     #>> (fn (((const, t), ty), ds) => mk_icase const t ty ds)
   end
-and translate_app thy algbr funcgr thm ((c, ty), ts) = case get_case_scheme thy c
- of SOME (case_scheme as (num_args, _)) =>
-      if length ts < num_args then
-        let
-          val k = length ts;
-          val tys = (curry Library.take (num_args - k) o curry Library.drop k o fst o strip_type) ty;
-          val ctxt = (fold o fold_aterms) Term.declare_term_frees ts Name.context;
-          val vs = Name.names ctxt "a" tys;
-        in
-          fold_map (translate_typ thy algbr funcgr) tys
-          ##>> translate_case thy algbr funcgr thm case_scheme ((c, ty), ts @ map Free vs)
-          #>> (fn (tys, t) => map2 (fn (v, _) => pair v) vs tys `|--> t)
-        end
-      else if length ts > num_args then
-        translate_case thy algbr funcgr thm case_scheme ((c, ty), Library.take (num_args, ts))
-        ##>> fold_map (translate_term thy algbr funcgr thm) (Library.drop (num_args, ts))
-        #>> (fn (t, ts) => t `$$ ts)
-      else
-        translate_case thy algbr funcgr thm case_scheme ((c, ty), ts)
-  | NONE => translate_app_default thy algbr funcgr thm ((c, ty), ts);
+and translate_app_case thy algbr funcgr thm (case_scheme as (num_args, _)) ((c, ty), ts) =
+  if length ts < num_args then
+    let
+      val k = length ts;
+      val tys = (curry Library.take (num_args - k) o curry Library.drop k o fst o strip_type) ty;
+      val ctxt = (fold o fold_aterms) Term.declare_term_frees ts Name.context;
+      val vs = Name.names ctxt "a" tys;
+    in
+      fold_map (translate_typ thy algbr funcgr) tys
+      ##>> translate_case thy algbr funcgr thm case_scheme ((c, ty), ts @ map Free vs)
+      #>> (fn (tys, t) => map2 (fn (v, _) => pair v) vs tys `|--> t)
+    end
+  else if length ts > num_args then
+    translate_case thy algbr funcgr thm case_scheme ((c, ty), Library.take (num_args, ts))
+    ##>> fold_map (translate_term thy algbr funcgr thm) (Library.drop (num_args, ts))
+    #>> (fn (t, ts) => t `$$ ts)
+  else
+    translate_case thy algbr funcgr thm case_scheme ((c, ty), ts)
+and translate_app thy algbr funcgr thm (c_ty_ts as ((c, _), _)) =
+  case Code.get_case_scheme thy c
+   of SOME (base_case_scheme as (_, case_pats)) =>
+        translate_app_case thy algbr funcgr thm
+          (1 + Int.max (1, length case_pats), base_case_scheme) c_ty_ts
+    | NONE => translate_app_const thy algbr funcgr thm c_ty_ts;
 
 
 (* store *)
