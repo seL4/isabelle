@@ -210,16 +210,18 @@ lemma add_One_commute: "One + n = n + One"
 lemma one_plus_DigM: "One + DigM n = Dig0 n"
   unfolding add_One_commute DigM_plus_one ..
 
-text {* A squaring function *}
+text {* Squaring and exponentiation *}
 
 primrec square :: "num \<Rightarrow> num" where
   "square One = One"
 | "square (Dig0 n) = Dig0 (Dig0 (square n))"
 | "square (Dig1 n) = Dig1 (Dig0 (square n + n))"
 
-lemma nat_of_num_square:
-  "nat_of_num (square n) = nat_of_num n * nat_of_num n"
-  by (induct n) (simp_all add: nat_of_num_add algebra_simps)
+primrec pow :: "num \<Rightarrow> num \<Rightarrow> num"
+where
+  "pow x One = x"
+| "pow x (Dig0 y) = square (pow x y)"
+| "pow x (Dig1 y) = x * square (pow x y)"
 
 
 subsection {* Binary numerals *}
@@ -618,6 +620,48 @@ by (induct n)
 declare of_int_1 [numeral]
 
 end
+
+subsubsection {*
+  Structures with exponentiation
+*}
+
+lemma of_num_square: "of_num (square x) = of_num x * of_num x"
+by (induct x)
+   (simp_all add: of_num.simps of_num_plus [symmetric] algebra_simps)
+
+lemma of_num_pow:
+  "(of_num (pow x y)::'a::{semiring_numeral,recpower}) = of_num x ^ of_num y"
+by (induct y)
+   (simp_all add: of_num.simps of_num_square of_num_times [symmetric]
+                  power_Suc power_add)
+
+lemma power_of_num [numeral]:
+  "of_num x ^ of_num y = (of_num (pow x y)::'a::{semiring_numeral,recpower})"
+  by (rule of_num_pow [symmetric])
+
+lemma power_zero_of_num [numeral]:
+  "0 ^ of_num n = (0::'a::{semiring_0,recpower})"
+  using of_num_pos [where n=n and ?'a=nat]
+  by (simp add: power_0_left)
+
+lemma power_minus_one_double:
+  "(- 1) ^ (n + n) = (1::'a::{ring_1,recpower})"
+  by (induct n) (simp_all add: power_Suc)
+
+lemma power_minus_Dig0 [numeral]:
+  fixes x :: "'a::{ring_1,recpower}"
+  shows "(- x) ^ of_num (Dig0 n) = x ^ of_num (Dig0 n)"
+  by (subst power_minus)
+     (simp add: of_num.simps power_minus_one_double)
+
+lemma power_minus_Dig1 [numeral]:
+  fixes x :: "'a::{ring_1,recpower}"
+  shows "(- x) ^ of_num (Dig1 n) = - (x ^ of_num (Dig1 n))"
+  by (subst power_minus)
+     (simp add: of_num.simps power_Suc power_minus_one_double)
+
+declare power_one [numeral]
+
 
 subsubsection {*
   Greetings to @{typ nat}.
