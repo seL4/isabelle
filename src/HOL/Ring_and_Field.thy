@@ -384,6 +384,26 @@ next
   then show "a * a = b * b" by auto
 qed
 
+lemma dvd_mult_cancel_right [simp]:
+  "a * c dvd b * c \<longleftrightarrow> c = 0 \<or> a dvd b"
+proof -
+  have "a * c dvd b * c \<longleftrightarrow> (\<exists>k. b * c = (a * k) * c)"
+    unfolding dvd_def by (simp add: mult_ac)
+  also have "(\<exists>k. b * c = (a * k) * c) \<longleftrightarrow> c = 0 \<or> a dvd b"
+    unfolding dvd_def by simp
+  finally show ?thesis .
+qed
+
+lemma dvd_mult_cancel_left [simp]:
+  "c * a dvd c * b \<longleftrightarrow> c = 0 \<or> a dvd b"
+proof -
+  have "c * a dvd c * b \<longleftrightarrow> (\<exists>k. b * c = (a * k) * c)"
+    unfolding dvd_def by (simp add: mult_ac)
+  also have "(\<exists>k. b * c = (a * k) * c) \<longleftrightarrow> c = 0 \<or> a dvd b"
+    unfolding dvd_def by simp
+  finally show ?thesis .
+qed
+
 end
 
 class division_ring = ring_1 + inverse +

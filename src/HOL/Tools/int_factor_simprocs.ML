@@ -263,8 +263,8 @@ structure IntDvdCancelFactor = ExtractCommonTermFun
  (open CancelFactorCommon
   val prove_conv = Int_Numeral_Base_Simprocs.prove_conv
   val mk_bal   = HOLogic.mk_binrel @{const_name Ring_and_Field.dvd}
-  val dest_bal = HOLogic.dest_bin @{const_name Ring_and_Field.dvd} HOLogic.intT
-  val simplify_meta_eq  = cancel_simplify_meta_eq @{thm zdvd_zmult_cancel_disj}
+  val dest_bal = HOLogic.dest_bin @{const_name Ring_and_Field.dvd} Term.dummyT
+  val simplify_meta_eq  = cancel_simplify_meta_eq @{thm dvd_mult_cancel_left}
 );
 
 (*Version for all fields, including unordered ones (type complex).*)
@@ -288,8 +288,8 @@ val cancel_factors =
     ("int_mod_cancel_factor",
      ["((l::int) * m) mod n", "(l::int) mod (m * n)"],
      K IntModCancelFactor.proc),
-    ("int_dvd_cancel_factor",
-     ["((l::int) * m) dvd n", "(l::int) dvd (m * n)"],
+    ("dvd_cancel_factor",
+     ["((l::'a::idom) * m) dvd n", "(l::'a::idom) dvd (m * n)"],
      K IntDvdCancelFactor.proc),
     ("divide_cancel_factor",
      ["((l::'a::{division_by_zero,field}) * m) / n",

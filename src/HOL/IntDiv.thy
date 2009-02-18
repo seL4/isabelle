@@ -1265,9 +1265,9 @@ proof-
   thus ?thesis by simp
 qed
 
-lemma zdvd_zmult_cancel_disj[simp]:
+lemma zdvd_zmult_cancel_disj:
   "(k*m) dvd (k*n) = (k=0 | m dvd (n::int))"
-by (auto simp: zdvd_zmult_mono dest: zdvd_mult_cancel)
+by (rule dvd_mult_cancel_left) (* already declared [simp] *)
 
 
 theorem ex_nat: "(\<exists>x::nat. P x) = (\<exists>x::int. 0 <= x \<and> P (nat x))"
