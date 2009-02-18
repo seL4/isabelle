@@ -109,7 +109,7 @@ fun unfoldr dest x =
         let val (xs', x') = unfoldr dest x2 in (x1::xs', x') end;
 
 
-(** language core - types, patterns, expressions **)
+(** language core - types, terms **)
 
 type vname = string;
 
@@ -130,31 +130,6 @@ datatype iterm =
   | `|-> of (vname * itype) * iterm
   | ICase of ((iterm * itype) * (iterm * iterm) list) * iterm;
     (*see also signature*)
-
-(*
-  variable naming conventions
-
-  bare names:
-    variable names          v
-    class names             class
-    type constructor names  tyco
-    datatype names          dtco
-    const names (general)   c (const)
-    constructor names       co
-    class parameter names   classparam
-    arbitrary name          s
-
-    v, c, co, classparam also annotated with types etc.
-
-  constructs:
-    sort                    sort
-    type parameters         vs
-    type                    ty
-    type schemes            tysm
-    term                    t
-    (term as pattern)       p
-    instance (class, tyco)  inst
- *)
 
 val op `$$ = Library.foldl (op `$);
 val op `|--> = Library.foldr (op `|->);
@@ -543,16 +518,8 @@ and translate_dicts thy (algbr as (proj_sort, algebra)) funcgr thm (ty, sort) =
           Global ((class, tyco), yss)
       | class_relation (Local (classrels, v), subclass) superclass =
           Local ((subclass, superclass) :: classrels, v);
-    fun norm_typargs ys =
-      let
-        val raw_sort = map snd ys;
-        val sort = Sorts.minimize_sort algebra raw_sort;
-      in
-        map_filter (fn (y, class) =>
-          if member (op =) sort class then SOME y else NONE) ys
-      end;
     fun type_constructor tyco yss class =
-      Global ((class, tyco), map norm_typargs yss);
+      Global ((class, tyco), (map o map) fst yss);
     fun type_variable (TFree (v, sort)) =
       let
         val sort' = proj_sort sort;
