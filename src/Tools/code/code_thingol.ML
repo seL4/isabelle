@@ -109,7 +109,7 @@ fun unfoldr dest x =
         let val (xs', x') = unfoldr dest x2 in (x1::xs', x') end;
 
 
-(** language core - types, patterns, expressions **)
+(** language core - types, terms **)
 
 type vname = string;
 
@@ -130,31 +130,6 @@ datatype iterm =
   | `|-> of (vname * itype) * iterm
   | ICase of ((iterm * itype) * (iterm * iterm) list) * iterm;
     (*see also signature*)
-
-(*
-  variable naming conventions
-
-  bare names:
-    variable names          v
-    class names             class
-    type constructor names  tyco
-    datatype names          dtco
-    const names (general)   c (const)
-    constructor names       co
-    class parameter names   classparam
-    arbitrary name          s
-
-    v, c, co, classparam also annotated with types etc.
-
-  constructs:
-    sort                    sort
-    type parameters         vs
-    type                    ty
-    type schemes            tysm
-    term                    t
-    (term as pattern)       p
-    instance (class, tyco)  inst
- *)
 
 val op `$$ = Library.foldl (op `$);
 val op `|--> = Library.foldr (op `|->);
@@ -486,6 +461,12 @@ fun not_wellsorted thy thm ty sort e =
 
 (* translation *)
 
+(*FIXME move to code(_unit).ML*)
+fun get_case_scheme thy c = case Code.get_case_data thy c
+ of SOME (proto_case_scheme as (_, case_pats)) => 
+      SOME (1 + (if null case_pats then 1 else length case_pats), proto_case_scheme)
+  | NONE => NONE
+
 fun ensure_class thy (algbr as (_, algebra)) funcgr class =
   let
     val superclasses = (Sorts.minimize_sort algebra o Sorts.super_classes algebra) class;
@@ -537,16 +518,8 @@ and translate_dicts thy (algbr as (proj_sort, algebra)) funcgr thm (ty, sort) =
           Global ((class, tyco), yss)
       | class_relation (Local (classrels, v), subclass) superclass =
           Local ((subclass, superclass) :: classrels, v);
-    fun norm_typargs ys =
-      let
-        val raw_sort = map snd ys;
-        val sort = Sorts.minimize_sort algebra raw_sort;
-      in
-        map_filter (fn (y, class) =>
-          if member (op =) sort class then SOME y else NONE) ys
-      end;
     fun type_constructor tyco yss class =
-      Global ((class, tyco), map norm_typargs yss);
+      Global ((class, tyco), (map o map) fst yss);
     fun type_variable (TFree (v, sort)) =
       let
         val sort' = proj_sort sort;
@@ -669,58 +642,72 @@ and translate_app_default thy algbr funcgr thm (c_ty, ts) =
   translate_const thy algbr funcgr thm c_ty
   ##>> fold_map (translate_term thy algbr funcgr thm) ts
   #>> (fn (t, ts) => t `$$ ts)
-and translate_case thy algbr funcgr thm n cases (app as ((c, ty), ts)) =
+and translate_case thy algbr funcgr thm (num_args, (t_pos, case_pats)) (c_ty, ts) =
   let
-    val (tys, _) =
-      (chop (1 + (if null cases then 1 else length cases)) o fst o strip_type) ty;
-    val dt = nth ts n;
-    val dty = nth tys n;
-    fun is_undefined (Const (c, _)) = Code.is_undefined thy c
-      | is_undefined _ = false;
-    fun mk_case (co, n) t =
+    val (tys, _) = (chop num_args o fst o strip_type o snd) c_ty;
+    val t = nth ts t_pos;
+    val ty = nth tys t_pos;
+    val ts_clause = nth_drop t_pos ts;
+    fun mk_clause (co, num_co_args) t =
       let
         val _ = if (is_some o Code.get_datatype_of_constr thy) co then ()
           else error ("Non-constructor " ^ quote co
             ^ " encountered in case pattern"
             ^ (case thm of NONE => ""
               | SOME thm => ", in equation\n" ^ Display.string_of_thm thm))
-        val (vs, body) = Term.strip_abs_eta n t;
-        val selector = list_comb (Const (co, map snd vs ---> dty), map Free vs);
-      in if is_undefined body then NONE else SOME (selector, body) end;
-    fun mk_ds [] =
+        val (vs, body) = Term.strip_abs_eta num_co_args t;
+        val not_undefined = case body
+         of (Const (c, _)) => not (Code.is_undefined thy c)
+          | _ => true;
+        val pat = list_comb (Const (co, map snd vs ---> ty), map Free vs);
+      in (not_undefined, (pat, body)) end;
+    val clauses = if null case_pats then let val ([v_ty], body) =
+        Term.strip_abs_eta 1 (the_single ts_clause)
+      in [(true, (Free v_ty, body))] end
+      else map (uncurry mk_clause)
+        (AList.make (Code_Unit.no_args thy) case_pats ~~ ts_clause);
+    fun retermify ty (_, (IVar x, body)) =
+          (x, ty) `|-> body
+      | retermify _ (_, (pat, body)) =
           let
-            val ([v_ty], body) = Term.strip_abs_eta 1 (the_single (nth_drop n ts))
-          in [(Free v_ty, body)] end
-      | mk_ds cases = map_filter (uncurry mk_case)
-          (AList.make (Code_Unit.no_args thy) cases ~~ nth_drop n ts);
+            val (IConst (_, (_, tys)), ts) = unfold_app pat;
+            val vs = map2 (fn IVar x => fn ty => (x, ty)) ts tys;
+          in vs `|--> body end;
+    fun mk_icase const t ty clauses =
+      let
+        val (ts1, ts2) = chop t_pos (map (retermify ty) clauses);
+      in
+        ICase (((t, ty), map_filter (fn (b, d) => if b then SOME d else NONE) clauses),
+          const `$$ (ts1 @ t :: ts2))
+      end;
   in
-    translate_term thy algbr funcgr thm dt
-    ##>> translate_typ thy algbr funcgr dty
-    ##>> fold_map (fn (pat, body) => translate_term thy algbr funcgr thm pat
-          ##>> translate_term thy algbr funcgr thm body) (mk_ds cases)
-    ##>> translate_app_default thy algbr funcgr thm app
-    #>> (fn (((dt, dty), ds), t0) => ICase (((dt, dty), ds), t0))
+    translate_const thy algbr funcgr thm c_ty
+    ##>> translate_term thy algbr funcgr thm t
+    ##>> translate_typ thy algbr funcgr ty
+    ##>> fold_map (fn (b, (pat, body)) => translate_term thy algbr funcgr thm pat
+      ##>> translate_term thy algbr funcgr thm body
+      #>> pair b) clauses
+    #>> (fn (((const, t), ty), ds) => mk_icase const t ty ds)
   end
-and translate_app thy algbr funcgr thm ((c, ty), ts) = case Code.get_case_data thy c
- of SOME (n, cases) => let val i = 1 + (if null cases then 1 else length cases) in
-      if length ts < i then
+and translate_app thy algbr funcgr thm ((c, ty), ts) = case get_case_scheme thy c
+ of SOME (case_scheme as (num_args, _)) =>
+      if length ts < num_args then
         let
           val k = length ts;
-          val tys = (curry Library.take (i - k) o curry Library.drop k o fst o strip_type) ty;
+          val tys = (curry Library.take (num_args - k) o curry Library.drop k o fst o strip_type) ty;
           val ctxt = (fold o fold_aterms) Term.declare_term_frees ts Name.context;
           val vs = Name.names ctxt "a" tys;
         in
           fold_map (translate_typ thy algbr funcgr) tys
-          ##>> translate_case thy algbr funcgr thm n cases ((c, ty), ts @ map Free vs)
+          ##>> translate_case thy algbr funcgr thm case_scheme ((c, ty), ts @ map Free vs)
           #>> (fn (tys, t) => map2 (fn (v, _) => pair v) vs tys `|--> t)
         end
-      else if length ts > i then
-        translate_case thy algbr funcgr thm n cases ((c, ty), Library.take (i, ts))
-        ##>> fold_map (translate_term thy algbr funcgr thm) (Library.drop (i, ts))
+      else if length ts > num_args then
+        translate_case thy algbr funcgr thm case_scheme ((c, ty), Library.take (num_args, ts))
+        ##>> fold_map (translate_term thy algbr funcgr thm) (Library.drop (num_args, ts))
         #>> (fn (t, ts) => t `$$ ts)
       else
-        translate_case thy algbr funcgr thm n cases ((c, ty), ts)
-      end
+        translate_case thy algbr funcgr thm case_scheme ((c, ty), ts)
   | NONE => translate_app_default thy algbr funcgr thm ((c, ty), ts);
 
 

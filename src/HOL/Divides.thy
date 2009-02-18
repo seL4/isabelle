@@ -173,7 +173,7 @@ proof -
 qed
 
 lemma dvd_imp_mod_0: "a dvd b \<Longrightarrow> b mod a = 0"
-by (unfold dvd_def, auto)
+by (rule dvd_eq_mod_eq_0[THEN iffD1])
 
 lemma dvd_div_mult_self: "a dvd b \<Longrightarrow> (b div a) * a = b"
 by (subst (2) mod_div_equality [of b a, symmetric]) (simp add:dvd_imp_mod_0)

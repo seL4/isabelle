@@ -377,6 +377,11 @@ apply (case_tac "b = 0", simp)
 apply (blast intro: divmod_rel_div_mod [THEN zminus1_lemma, THEN divmod_rel_mod])
 done
 
+lemma zmod_zminus1_not_zero:
+  fixes k l :: int
+  shows "- k mod l \<noteq> 0 \<Longrightarrow> k mod l \<noteq> 0"
+  unfolding zmod_zminus1_eq_if by auto
+
 lemma zdiv_zminus2: "a div (-b) = (-a::int) div b"
 by (cut_tac a = "-a" in zdiv_zminus_zminus, auto)
 
@@ -392,6 +397,11 @@ by (simp add: zdiv_zminus1_eq_if zdiv_zminus2)
 lemma zmod_zminus2_eq_if:
      "a mod (-b::int) = (if a mod b = 0 then 0 else  (a mod b) - b)"
 by (simp add: zmod_zminus1_eq_if zmod_zminus2)
+
+lemma zmod_zminus2_not_zero:
+  fixes k l :: int
+  shows "k mod - l \<noteq> 0 \<Longrightarrow> k mod l \<noteq> 0"
+  unfolding zmod_zminus2_eq_if by auto 
 
 
 subsection{*Division of a Number by Itself*}
@@ -440,9 +450,6 @@ by (simp add: div_def divmod_def)
 
 lemma zmod_zero [simp]: "(0::int) mod b = 0"
 by (simp add: mod_def divmod_def)
-
-lemma zdiv_minus1: "(0::int) < b ==> -1 div b = -1"
-by (simp add: div_def divmod_def)
 
 lemma zmod_minus1: "(0::int) < b ==> -1 mod b = b - 1"
 by (simp add: mod_def divmod_def)
@@ -719,29 +726,12 @@ apply (case_tac "c = 0", simp)
 apply (blast intro: divmod_rel_div_mod [THEN zmult1_lemma, THEN divmod_rel_mod])
 done
 
-lemma zmod_zmult1_eq': "(a*b) mod (c::int) = ((a mod c) * b) mod c"
-apply (rule trans)
-apply (rule_tac s = "b*a mod c" in trans)
-apply (rule_tac [2] zmod_zmult1_eq)
-apply (simp_all add: mult_commute)
-done
-
-lemma zmod_zmult_distrib: "(a*b) mod (c::int) = ((a mod c) * (b mod c)) mod c"
-apply (rule zmod_zmult1_eq' [THEN trans])
-apply (rule zmod_zmult1_eq)
-done
-
 lemma zdiv_zmult_self1 [simp]: "b \<noteq> (0::int) ==> (a*b) div b = a"
 by (simp add: zdiv_zmult1_eq)
 
 lemma zmod_zdiv_trivial: "(a mod b) div b = (0::int)"
 apply (case_tac "b = 0", simp)
 apply (auto simp add: linorder_neq_iff div_pos_pos_trivial div_neg_neg_trivial)
-done
-
-lemma zmod_zmod_trivial: "(a mod b) mod b = a mod (b::int)"
-apply (case_tac "b = 0", simp)
-apply (force simp add: linorder_neq_iff mod_pos_pos_trivial mod_neg_neg_trivial)
 done
 
 text{*proving (a+b) div c = a div c + b div c + ((a mod c + b mod c) div c) *}
@@ -756,11 +746,6 @@ lemma zdiv_zadd1_eq:
      "(a+b) div (c::int) = a div c + b div c + ((a mod c + b mod c) div c)"
 apply (case_tac "c = 0", simp)
 apply (blast intro: zadd1_lemma [OF divmod_rel_div_mod divmod_rel_div_mod] divmod_rel_div)
-done
-
-lemma zmod_zadd1_eq: "(a+b) mod (c::int) = (a mod c + b mod c) mod c"
-apply (case_tac "c = 0", simp)
-apply (blast intro: zadd1_lemma [OF divmod_rel_div_mod divmod_rel_div_mod] divmod_rel_mod)
 done
 
 instance int :: ring_div
@@ -961,7 +946,7 @@ lemma split_pos_lemma:
     P(n div k :: int)(n mod k) = (\<forall>i j. 0\<le>j & j<k & n = k*i + j --> P i j)"
 apply (rule iffI, clarify)
  apply (erule_tac P="P ?x ?y" in rev_mp)  
- apply (subst zmod_zadd1_eq) 
+ apply (subst mod_add_eq) 
  apply (subst zdiv_zadd1_eq) 
  apply (simp add: div_pos_pos_trivial mod_pos_pos_trivial)  
 txt{*converse direction*}
@@ -974,7 +959,7 @@ lemma split_neg_lemma:
     P(n div k :: int)(n mod k) = (\<forall>i j. k<j & j\<le>0 & n = k*i + j --> P i j)"
 apply (rule iffI, clarify)
  apply (erule_tac P="P ?x ?y" in rev_mp)  
- apply (subst zmod_zadd1_eq) 
+ apply (subst mod_add_eq) 
  apply (subst zdiv_zadd1_eq) 
  apply (simp add: div_neg_neg_trivial mod_neg_neg_trivial)  
 txt{*converse direction*}
@@ -1047,11 +1032,6 @@ apply (simp only: zdiv_zminus_zminus diff_minus minus_add_distrib [symmetric],
        simp) 
 done
 
-(*Not clear why this must be proved separately; probably number_of causes
-  simplification problems*)
-lemma not_0_le_lemma: "~ 0 \<le> x ==> x \<le> (0::int)"
-by auto
-
 lemma zdiv_number_of_Bit0 [simp]:
      "number_of (Int.Bit0 v) div number_of (Int.Bit0 w) =  
           number_of v div (number_of w :: int)"
@@ -1078,7 +1058,7 @@ apply (subgoal_tac "2* (1 + b mod a) \<le> 2*a")
  apply (rule_tac [2] mult_left_mono)
 apply (auto simp add: add_commute [of 1] mult_commute add1_zle_eq 
                       pos_mod_bound)
-apply (subst zmod_zadd1_eq)
+apply (subst mod_add_eq)
 apply (simp add: zmod_zmult_zmult2 mod_pos_pos_trivial)
 apply (rule mod_pos_pos_trivial)
 apply (auto simp add: mod_pos_pos_trivial ring_distribs)
@@ -1101,7 +1081,7 @@ lemma zmod_number_of_Bit0 [simp]:
       (2::int) * (number_of v mod number_of w)"
 apply (simp only: number_of_eq numeral_simps) 
 apply (simp add: zmod_zmult_zmult1 pos_zmod_mult_2 
-                 not_0_le_lemma neg_zmod_mult_2 add_ac)
+                 neg_zmod_mult_2 add_ac)
 done
 
 lemma zmod_number_of_Bit1 [simp]:
@@ -1111,7 +1091,7 @@ lemma zmod_number_of_Bit1 [simp]:
                 else 2 * ((number_of v + (1::int)) mod number_of w) - 1)"
 apply (simp only: number_of_eq numeral_simps) 
 apply (simp add: zmod_zmult_zmult1 pos_zmod_mult_2 
-                 not_0_le_lemma neg_zmod_mult_2 add_ac)
+                 neg_zmod_mult_2 add_ac)
 done
 
 
@@ -1121,7 +1101,7 @@ lemma div_neg_pos_less0: "[| a < (0::int);  0 < b |] ==> a div b < 0"
 apply (subgoal_tac "a div b \<le> -1", force)
 apply (rule order_trans)
 apply (rule_tac a' = "-1" in zdiv_mono1)
-apply (auto simp add: zdiv_minus1)
+apply (auto simp add: div_eq_minus1)
 done
 
 lemma div_nonneg_neg_le0: "[| (0::int) \<le> a;  b < 0 |] ==> a div b \<le> 0"
@@ -1167,23 +1147,23 @@ lemma zdvd_0_left: "(0 dvd (m::int)) = (m = 0)"
 lemma zdvd_1_left: "1 dvd (m::int)"
   by (rule one_dvd) (* already declared [simp] *)
 
-lemma zdvd_refl [simp]: "m dvd (m::int)"
-  by (rule dvd_refl) (* TODO: declare generic dvd_refl [simp] *)
+lemma zdvd_refl: "m dvd (m::int)"
+  by (rule dvd_refl) (* already declared [simp] *)
 
 lemma zdvd_trans: "m dvd n ==> n dvd k ==> m dvd (k::int)"
   by (rule dvd_trans)
 
-lemma zdvd_zminus_iff[simp]: "m dvd -n \<longleftrightarrow> m dvd (n::int)"
-  by (rule dvd_minus_iff)
+lemma zdvd_zminus_iff: "m dvd -n \<longleftrightarrow> m dvd (n::int)"
+  by (rule dvd_minus_iff) (* already declared [simp] *)
 
-lemma zdvd_zminus2_iff[simp]: "-m dvd n \<longleftrightarrow> m dvd (n::int)"
-  by (rule minus_dvd_iff)
+lemma zdvd_zminus2_iff: "-m dvd n \<longleftrightarrow> m dvd (n::int)"
+  by (rule minus_dvd_iff) (* already declared [simp] *)
 
-lemma zdvd_abs1[simp]: "( \<bar>i::int\<bar> dvd j) = (i dvd j)" 
-  by (cases "i > 0") (simp_all add: zdvd_zminus2_iff)
+lemma zdvd_abs1: "( \<bar>i::int\<bar> dvd j) = (i dvd j)"
+  by (rule abs_dvd_iff) (* already declared [simp] *)
 
-lemma zdvd_abs2[simp]: "( (i::int) dvd \<bar>j\<bar>) = (i dvd j)" 
-  by (cases "j > 0") (simp_all add: zdvd_zminus_iff)
+lemma zdvd_abs2: "( (i::int) dvd \<bar>j\<bar>) = (i dvd j)" 
+  by (rule dvd_abs_iff) (* already declared [simp] *)
 
 lemma zdvd_anti_sym:
     "0 < m ==> 0 < n ==> m dvd n ==> n dvd m ==> m = (n::int)"
@@ -1369,7 +1349,7 @@ lemma zpower_zmod: "((x::int) mod m)^y mod m = x^y mod m"
 apply (induct "y", auto)
 apply (rule zmod_zmult1_eq [THEN trans])
 apply (simp (no_asm_simp))
-apply (rule zmod_zmult_distrib [symmetric])
+apply (rule mod_mult_eq [symmetric])
 done
 
 lemma zdiv_int: "int (a div b) = (int a) div (int b)"
@@ -1410,7 +1390,7 @@ lemmas zmod_simps =
   IntDiv.zmod_zadd_left_eq  [symmetric]
   IntDiv.zmod_zadd_right_eq [symmetric]
   IntDiv.zmod_zmult1_eq     [symmetric]
-  IntDiv.zmod_zmult1_eq'    [symmetric]
+  mod_mult_left_eq          [symmetric]
   IntDiv.zpower_zmod
   zminus_zmod zdiff_zmod_left zdiff_zmod_right
 
@@ -1521,6 +1501,40 @@ next
   assume ?rhs then obtain q1 q2 where q12: "x + n * q1 = y + n * q2" by blast
   hence "(x + n * q1) mod n = (y + n * q2) mod n" by simp
   thus  ?lhs by simp
+qed
+
+
+subsection {* Code generation *}
+
+definition pdivmod :: "int \<Rightarrow> int \<Rightarrow> int \<times> int" where
+  "pdivmod k l = (\<bar>k\<bar> div \<bar>l\<bar>, \<bar>k\<bar> mod \<bar>l\<bar>)"
+
+lemma pdivmod_posDivAlg [code]:
+  "pdivmod k l = (if l = 0 then (0, \<bar>k\<bar>) else posDivAlg \<bar>k\<bar> \<bar>l\<bar>)"
+by (subst posDivAlg_div_mod) (simp_all add: pdivmod_def)
+
+lemma divmod_pdivmod: "divmod k l = (if k = 0 then (0, 0) else if l = 0 then (0, k) else
+  apsnd ((op *) (sgn l)) (if 0 < l \<and> 0 \<le> k \<or> l < 0 \<and> k < 0
+    then pdivmod k l
+    else (let (r, s) = pdivmod k l in
+      if s = 0 then (- r, 0) else (- r - 1, \<bar>l\<bar> - s))))"
+proof -
+  have aux: "\<And>q::int. - k = l * q \<longleftrightarrow> k = l * - q" by auto
+  show ?thesis
+    by (simp add: divmod_mod_div pdivmod_def)
+      (auto simp add: aux not_less not_le zdiv_zminus1_eq_if
+      zmod_zminus1_eq_if zdiv_zminus2_eq_if zmod_zminus2_eq_if)
+qed
+
+lemma divmod_code [code]: "divmod k l = (if k = 0 then (0, 0) else if l = 0 then (0, k) else
+  apsnd ((op *) (sgn l)) (if sgn k = sgn l
+    then pdivmod k l
+    else (let (r, s) = pdivmod k l in
+      if s = 0 then (- r, 0) else (- r - 1, \<bar>l\<bar> - s))))"
+proof -
+  have "k \<noteq> 0 \<Longrightarrow> l \<noteq> 0 \<Longrightarrow> 0 < l \<and> 0 \<le> k \<or> l < 0 \<and> k < 0 \<longleftrightarrow> sgn k = sgn l"
+    by (auto simp add: not_less sgn_if)
+  then show ?thesis by (simp add: divmod_pdivmod)
 qed
 
 code_modulename SML

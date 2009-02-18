@@ -1,5 +1,4 @@
 (*  Title:   HOL/Ring_and_Field.thy
-    ID:      $Id$
     Author:  Gertrud Bauer, Steven Obua, Tobias Nipkow, Lawrence C Paulson, and Markus Wenzel,
              with contributions by Jeremy Avigad
 *)
@@ -1078,6 +1077,14 @@ lemma sgn_1_neg:
   "sgn a = - 1 \<longleftrightarrow> a < 0"
 unfolding sgn_if by (auto simp add: equal_neg_zero)
 
+lemma sgn_pos [simp]:
+  "0 < a \<Longrightarrow> sgn a = 1"
+unfolding sgn_1_pos .
+
+lemma sgn_neg [simp]:
+  "a < 0 \<Longrightarrow> sgn a = - 1"
+unfolding sgn_1_neg .
+
 lemma sgn_times:
   "sgn (a * b) = sgn a * sgn b"
 by (auto simp add: sgn_if zero_less_mult_iff)
@@ -1085,32 +1092,19 @@ by (auto simp add: sgn_if zero_less_mult_iff)
 lemma abs_sgn: "abs k = k * sgn k"
 unfolding sgn_if abs_if by auto
 
-(* The int instances are proved, these generic ones are tedious to prove here.
-And not very useful, as int seems to be the only instance.
-If needed, they should be proved later, when metis is available.
-lemma dvd_abs[simp]: "(abs m) dvd k \<longleftrightarrow> m dvd k"
-proof-
-  have "\<forall>k.\<exists>ka. - (m * k) = m * ka"
-    by(simp add: mult_minus_right[symmetric] del: mult_minus_right)
-  moreover
-  have "\<forall>k.\<exists>ka. m * k = - (m * ka)"
-    by(auto intro!: minus_minus[symmetric]
-         simp add: mult_minus_right[symmetric] simp del: mult_minus_right)
-  ultimately show ?thesis by (auto simp: abs_if dvd_def)
-qed
+lemma sgn_greater [simp]:
+  "0 < sgn a \<longleftrightarrow> 0 < a"
+  unfolding sgn_if by auto
 
-lemma dvd_abs2[simp]: "m dvd (abs k) \<longleftrightarrow> m dvd k"
-proof-
-  have "\<forall>k.\<exists>ka. - (m * k) = m * ka"
-    by(simp add: mult_minus_right[symmetric] del: mult_minus_right)
-  moreover
-  have "\<forall>k.\<exists>ka. - (m * ka) = m * k"
-    by(auto intro!: minus_minus
-         simp add: mult_minus_right[symmetric] simp del: mult_minus_right)
-  ultimately show ?thesis
-    by (auto simp add:abs_if dvd_def minus_equation_iff[of k])
-qed
-*)
+lemma sgn_less [simp]:
+  "sgn a < 0 \<longleftrightarrow> a < 0"
+  unfolding sgn_if by auto
+
+lemma abs_dvd_iff [simp]: "(abs m) dvd k \<longleftrightarrow> m dvd k"
+  by (simp add: abs_if)
+
+lemma dvd_abs_iff [simp]: "m dvd (abs k) \<longleftrightarrow> m dvd k"
+  by (simp add: abs_if)
 
 end
 

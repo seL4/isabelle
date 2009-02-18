@@ -1,8 +1,7 @@
 (*  Title:      Tools/code/code_funcgr.ML
-    ID:         $Id$
     Author:     Florian Haftmann, TU Muenchen
 
-Retrieving, normalizing and structuring defining equations in graph
+Retrieving, normalizing and structuring code equations in graph
 with explicit dependencies.
 *)
 

@@ -1,8 +1,8 @@
 (*  Title:      HOL/ex/Numeral.thy
     Author:     Florian Haftmann
-
-An experimental alternative numeral representation.
 *)
+
+header {* An experimental alternative numeral representation. *}
 
 theory Numeral
 imports Int Inductive
@@ -10,70 +10,103 @@ begin
 
 subsection {* The @{text num} type *}
 
+datatype num = One | Dig0 num | Dig1 num
+
+text {* Increment function for type @{typ num} *}
+
+primrec
+  inc :: "num \<Rightarrow> num"
+where
+  "inc One = Dig0 One"
+| "inc (Dig0 x) = Dig1 x"
+| "inc (Dig1 x) = Dig0 (inc x)"
+
+text {* Converting between type @{typ num} and type @{typ nat} *}
+
+primrec
+  nat_of_num :: "num \<Rightarrow> nat"
+where
+  "nat_of_num One = Suc 0"
+| "nat_of_num (Dig0 x) = nat_of_num x + nat_of_num x"
+| "nat_of_num (Dig1 x) = Suc (nat_of_num x + nat_of_num x)"
+
+primrec
+  num_of_nat :: "nat \<Rightarrow> num"
+where
+  "num_of_nat 0 = One"
+| "num_of_nat (Suc n) = (if 0 < n then inc (num_of_nat n) else One)"
+
+lemma nat_of_num_pos: "0 < nat_of_num x"
+  by (induct x) simp_all
+
+lemma nat_of_num_neq_0: " nat_of_num x \<noteq> 0"
+  by (induct x) simp_all
+
+lemma nat_of_num_inc: "nat_of_num (inc x) = Suc (nat_of_num x)"
+  by (induct x) simp_all
+
+lemma num_of_nat_double:
+  "0 < n \<Longrightarrow> num_of_nat (n + n) = Dig0 (num_of_nat n)"
+  by (induct n) simp_all
+
 text {*
-  We construct @{text num} as a copy of strictly positive
+  Type @{typ num} is isomorphic to the strictly positive
   natural numbers.
 *}
 
-typedef (open) num = "\<lambda>n\<Colon>nat. n > 0"
-  morphisms nat_of_num num_of_nat_abs
-  by (auto simp add: mem_def)
+lemma nat_of_num_inverse: "num_of_nat (nat_of_num x) = x"
+  by (induct x) (simp_all add: num_of_nat_double nat_of_num_pos)
 
-text {*
-  A totalized abstraction function.  It is not entirely clear
-  whether this is really useful.
-*}
+lemma num_of_nat_inverse: "0 < n \<Longrightarrow> nat_of_num (num_of_nat n) = n"
+  by (induct n) (simp_all add: nat_of_num_inc)
 
-definition num_of_nat :: "nat \<Rightarrow> num" where
-  "num_of_nat n = (if n = 0 then num_of_nat_abs 1 else num_of_nat_abs n)"
-
-lemma num_cases [case_names nat, cases type: num]:
-  assumes "(\<And>n\<Colon>nat. m = num_of_nat n \<Longrightarrow> 0 < n \<Longrightarrow> P)"
-  shows P
-apply (rule num_of_nat_abs_cases)
-apply (unfold mem_def)
-using assms unfolding num_of_nat_def
-apply auto
-done
-
-lemma num_of_nat_zero: "num_of_nat 0 = num_of_nat 1"
-  by (simp add: num_of_nat_def)
-
-lemma num_of_nat_inverse: "nat_of_num (num_of_nat n) = (if n = 0 then 1 else n)"
-  apply (simp add: num_of_nat_def)
-  apply (subst num_of_nat_abs_inverse)
-  apply (auto simp add: mem_def num_of_nat_abs_inverse)
+lemma num_eq_iff: "x = y \<longleftrightarrow> nat_of_num x = nat_of_num y"
+  apply safe
+  apply (drule arg_cong [where f=num_of_nat])
+  apply (simp add: nat_of_num_inverse)
   done
 
-lemma num_of_nat_inject:
-  "num_of_nat m = num_of_nat n \<longleftrightarrow> m = n \<or> (m = 0 \<or> m = 1) \<and> (n = 0 \<or> n = 1)"
-by (auto simp add: num_of_nat_def num_of_nat_abs_inject [unfolded mem_def])
-
-lemma split_num_all:
-  "(\<And>m. PROP P m) \<equiv> (\<And>n. PROP P (num_of_nat n))"
-proof
-  fix n
-  assume "\<And>m\<Colon>num. PROP P m"
-  then show "PROP P (num_of_nat n)" .
-next
-  fix m
-  have nat_of_num: "\<And>m. nat_of_num m \<noteq> 0"
-    using nat_of_num by (auto simp add: mem_def)
-  have nat_of_num_inverse: "\<And>m. num_of_nat (nat_of_num m) = m"
-    by (auto simp add: num_of_nat_def nat_of_num_inverse nat_of_num)
-  assume "\<And>n. PROP P (num_of_nat n)"
-  then have "PROP P (num_of_nat (nat_of_num m))" .
-  then show "PROP P m" unfolding nat_of_num_inverse .
+lemma num_induct [case_names One inc]:
+  fixes P :: "num \<Rightarrow> bool"
+  assumes One: "P One"
+    and inc: "\<And>x. P x \<Longrightarrow> P (inc x)"
+  shows "P x"
+proof -
+  obtain n where n: "Suc n = nat_of_num x"
+    by (cases "nat_of_num x", simp_all add: nat_of_num_neq_0)
+  have "P (num_of_nat (Suc n))"
+  proof (induct n)
+    case 0 show ?case using One by simp
+  next
+    case (Suc n)
+    then have "P (inc (num_of_nat (Suc n)))" by (rule inc)
+    then show "P (num_of_nat (Suc (Suc n)))" by simp
+  qed
+  with n show "P x"
+    by (simp add: nat_of_num_inverse)
 qed
 
+text {*
+  From now on, there are two possible models for @{typ num}:
+  as positive naturals (rule @{text "num_induct"})
+  and as digit representation (rules @{text "num.induct"}, @{text "num.cases"}).
 
-subsection {* Digit representation for @{typ num} *}
+  It is not entirely clear in which context it is better to use
+  the one or the other, or whether the construction should be reversed.
+*}
 
-instantiation num :: "{semiring, monoid_mult}"
+
+subsection {* Numeral operations *}
+
+ML {*
+structure DigSimps =
+  NamedThmsFun(val name = "numeral"; val description = "Simplification rules for numerals")
+*}
+
+setup DigSimps.setup
+
+instantiation num :: "{plus,times,ord}"
 begin
-
-definition one_num :: num where
-  [code del]: "1 = num_of_nat 1"
 
 definition plus_num :: "num \<Rightarrow> num \<Rightarrow> num" where
   [code del]: "m + n = num_of_nat (nat_of_num m + nat_of_num n)"
@@ -81,167 +114,114 @@ definition plus_num :: "num \<Rightarrow> num \<Rightarrow> num" where
 definition times_num :: "num \<Rightarrow> num \<Rightarrow> num" where
   [code del]: "m * n = num_of_nat (nat_of_num m * nat_of_num n)"
 
-definition Dig0 :: "num \<Rightarrow> num" where
-  [code del]: "Dig0 n = n + n"
+definition less_eq_num :: "num \<Rightarrow> num \<Rightarrow> bool" where
+  [code del]: "m \<le> n \<longleftrightarrow> nat_of_num m \<le> nat_of_num n"
 
-definition Dig1 :: "num \<Rightarrow> num" where
-  [code del]: "Dig1 n = n + n + 1"
+definition less_num :: "num \<Rightarrow> num \<Rightarrow> bool" where
+  [code del]: "m < n \<longleftrightarrow> nat_of_num m < nat_of_num n"
 
-instance proof
-qed (simp_all add: one_num_def plus_num_def times_num_def
-  split_num_all num_of_nat_inverse num_of_nat_zero add_ac mult_ac nat_distrib)
+instance ..
 
 end
 
-text {*
-  The following proofs seem horribly complicated.
-  Any room for simplification!?
-*}
+lemma nat_of_num_add: "nat_of_num (x + y) = nat_of_num x + nat_of_num y"
+  unfolding plus_num_def
+  by (intro num_of_nat_inverse add_pos_pos nat_of_num_pos)
 
-lemma nat_dig_cases [case_names 0 1 dig0 dig1]:
-  fixes n :: nat
-  assumes "n = 0 \<Longrightarrow> P"
-  and "n = 1 \<Longrightarrow> P"
-  and "\<And>m. m > 0 \<Longrightarrow> n = m + m \<Longrightarrow> P"
-  and "\<And>m. m > 0 \<Longrightarrow> n = Suc (m + m) \<Longrightarrow> P"
-  shows P
-using assms proof (induct n)
-  case 0 then show ?case by simp
-next
-  case (Suc n)
-  show P proof (rule Suc.hyps)
-    assume "n = 0"
-    then have "Suc n = 1" by simp
-    then show P by (rule Suc.prems(2))
-  next
-    assume "n = 1"
-    have "1 > (0\<Colon>nat)" by simp
-    moreover from `n = 1` have "Suc n = 1 + 1" by simp
-    ultimately show P by (rule Suc.prems(3))
-  next
-    fix m
-    assume "0 < m" and "n = m + m"
-    note `0 < m`
-    moreover from `n = m + m` have "Suc n = Suc (m + m)" by simp
-    ultimately show P by (rule Suc.prems(4))
-  next
-    fix m
-    assume "0 < m" and "n = Suc (m + m)"
-    have "0 < Suc m" by simp
-    moreover from `n = Suc (m + m)` have "Suc n = Suc m + Suc m" by simp
-    ultimately show P by (rule Suc.prems(3))
-  qed
-qed
+lemma nat_of_num_mult: "nat_of_num (x * y) = nat_of_num x * nat_of_num y"
+  unfolding times_num_def
+  by (intro num_of_nat_inverse mult_pos_pos nat_of_num_pos)
 
-lemma num_induct_raw:
-  fixes n :: nat
-  assumes not0: "n > 0"
-  assumes "P 1"
-  and "\<And>n. n > 0 \<Longrightarrow> P n \<Longrightarrow> P (n + n)"
-  and "\<And>n. n > 0 \<Longrightarrow> P n \<Longrightarrow> P (Suc (n + n))"
-  shows "P n"
-using not0 proof (induct n rule: less_induct)
-  case (less n)
-  show "P n" proof (cases n rule: nat_dig_cases)
-    case 0 then show ?thesis using less by simp
-  next
-    case 1 then show ?thesis using assms by simp
-  next
-    case (dig0 m)
-    then show ?thesis apply simp
-      apply (rule assms(3)) apply assumption
-      apply (rule less)
-      apply simp_all
-    done
-  next
-    case (dig1 m)
-    then show ?thesis apply simp
-      apply (rule assms(4)) apply assumption
-      apply (rule less)
-      apply simp_all
-    done
-  qed
-qed
+lemma Dig_plus [numeral, simp, code]:
+  "One + One = Dig0 One"
+  "One + Dig0 m = Dig1 m"
+  "One + Dig1 m = Dig0 (m + One)"
+  "Dig0 n + One = Dig1 n"
+  "Dig0 n + Dig0 m = Dig0 (n + m)"
+  "Dig0 n + Dig1 m = Dig1 (n + m)"
+  "Dig1 n + One = Dig0 (n + One)"
+  "Dig1 n + Dig0 m = Dig1 (n + m)"
+  "Dig1 n + Dig1 m = Dig0 (n + m + One)"
+  by (simp_all add: num_eq_iff nat_of_num_add)
 
-lemma num_of_nat_Suc: "num_of_nat (Suc n) = (if n = 0 then 1 else num_of_nat n + 1)"
-  by (cases n) (auto simp add: one_num_def plus_num_def num_of_nat_inverse)
+lemma Dig_times [numeral, simp, code]:
+  "One * One = One"
+  "One * Dig0 n = Dig0 n"
+  "One * Dig1 n = Dig1 n"
+  "Dig0 n * One = Dig0 n"
+  "Dig0 n * Dig0 m = Dig0 (n * Dig0 m)"
+  "Dig0 n * Dig1 m = Dig0 (n * Dig1 m)"
+  "Dig1 n * One = Dig1 n"
+  "Dig1 n * Dig0 m = Dig0 (n * Dig0 m + m)"
+  "Dig1 n * Dig1 m = Dig1 (n * Dig1 m + m)"
+  by (simp_all add: num_eq_iff nat_of_num_add nat_of_num_mult
+                    left_distrib right_distrib)
 
-lemma num_induct [case_names 1 Suc, induct type: num]:
-  fixes P :: "num \<Rightarrow> bool"
-  assumes 1: "P 1"
-    and Suc: "\<And>n. P n \<Longrightarrow> P (n + 1)"
-  shows "P n"
-proof (cases n)
-  case (nat m) then show ?thesis by (induct m arbitrary: n)
-    (auto simp: num_of_nat_Suc intro: 1 Suc split: split_if_asm)
-qed
+lemma less_eq_num_code [numeral, simp, code]:
+  "One \<le> n \<longleftrightarrow> True"
+  "Dig0 m \<le> One \<longleftrightarrow> False"
+  "Dig1 m \<le> One \<longleftrightarrow> False"
+  "Dig0 m \<le> Dig0 n \<longleftrightarrow> m \<le> n"
+  "Dig0 m \<le> Dig1 n \<longleftrightarrow> m \<le> n"
+  "Dig1 m \<le> Dig1 n \<longleftrightarrow> m \<le> n"
+  "Dig1 m \<le> Dig0 n \<longleftrightarrow> m < n"
+  using nat_of_num_pos [of n] nat_of_num_pos [of m]
+  by (auto simp add: less_eq_num_def less_num_def)
 
-rep_datatype "1::num" Dig0 Dig1 proof -
-  fix P m
-  assume 1: "P 1"
-    and Dig0: "\<And>m. P m \<Longrightarrow> P (Dig0 m)"
-    and Dig1: "\<And>m. P m \<Longrightarrow> P (Dig1 m)"
-  obtain n where "0 < n" and m: "m = num_of_nat n"
-    by (cases m) auto
-  from `0 < n` have "P (num_of_nat n)" proof (induct n rule: num_induct_raw)
-    case 1 from `0 < n` show ?case .
-  next
-    case 2 with 1 show ?case by (simp add: one_num_def)
-  next
-    case (3 n) then have "P (num_of_nat n)" by auto
-    then have "P (Dig0 (num_of_nat n))" by (rule Dig0)
-    with 3 show ?case by (simp add: Dig0_def plus_num_def num_of_nat_inverse)
-  next
-    case (4 n) then have "P (num_of_nat n)" by auto
-    then have "P (Dig1 (num_of_nat n))" by (rule Dig1)
-    with 4 show ?case by (simp add: Dig1_def one_num_def plus_num_def num_of_nat_inverse)
-  qed
-  with m show "P m" by simp
-next
-  fix m n
-  show "Dig0 m = Dig0 n \<longleftrightarrow> m = n"
-    apply (cases m) apply (cases n)
-    by (auto simp add: Dig0_def plus_num_def num_of_nat_inverse num_of_nat_inject)
-next
-  fix m n
-  show "Dig1 m = Dig1 n \<longleftrightarrow> m = n"
-    apply (cases m) apply (cases n)
-    by (auto simp add: Dig1_def plus_num_def num_of_nat_inverse num_of_nat_inject)
-next
-  fix n
-  show "1 \<noteq> Dig0 n"
-    apply (cases n)
-    by (auto simp add: Dig0_def one_num_def plus_num_def num_of_nat_inverse num_of_nat_inject)
-next
-  fix n
-  show "1 \<noteq> Dig1 n"
-    apply (cases n)
-    by (auto simp add: Dig1_def one_num_def plus_num_def num_of_nat_inverse num_of_nat_inject)
-next
-  fix m n
-  have "\<And>n m. n + n \<noteq> Suc (m + m)"
-  proof -
-    fix n m
-    show "n + n \<noteq> Suc (m + m)"
-    proof (induct m arbitrary: n)
-      case 0 then show ?case by (cases n) simp_all
-    next
-      case (Suc m) then show ?case by (cases n) simp_all
-    qed
-  qed
-  then show "Dig0 n \<noteq> Dig1 m"
-    apply (cases n) apply (cases m)
-    by (auto simp add: Dig0_def Dig1_def one_num_def plus_num_def num_of_nat_inverse num_of_nat_inject)
-qed
+lemma less_num_code [numeral, simp, code]:
+  "m < One \<longleftrightarrow> False"
+  "One < One \<longleftrightarrow> False"
+  "One < Dig0 n \<longleftrightarrow> True"
+  "One < Dig1 n \<longleftrightarrow> True"
+  "Dig0 m < Dig0 n \<longleftrightarrow> m < n"
+  "Dig0 m < Dig1 n \<longleftrightarrow> m \<le> n"
+  "Dig1 m < Dig1 n \<longleftrightarrow> m < n"
+  "Dig1 m < Dig0 n \<longleftrightarrow> m < n"
+  using nat_of_num_pos [of n] nat_of_num_pos [of m]
+  by (auto simp add: less_eq_num_def less_num_def)
 
-text {*
-  From now on, there are two possible models for @{typ num}:
-  as positive naturals (rules @{text "num_induct"}, @{text "num_cases"})
-  and as digit representation (rules @{text "num.induct"}, @{text "num.cases"}).
+text {* Rules using @{text One} and @{text inc} as constructors *}
 
-  It is not entirely clear in which context it is better to use
-  the one or the other, or whether the construction should be reversed.
-*}
+lemma add_One: "x + One = inc x"
+  by (simp add: num_eq_iff nat_of_num_add nat_of_num_inc)
+
+lemma add_inc: "x + inc y = inc (x + y)"
+  by (simp add: num_eq_iff nat_of_num_add nat_of_num_inc)
+
+lemma mult_One: "x * One = x"
+  by (simp add: num_eq_iff nat_of_num_mult)
+
+lemma mult_inc: "x * inc y = x * y + x"
+  by (simp add: num_eq_iff nat_of_num_mult nat_of_num_add nat_of_num_inc)
+
+text {* A double-and-decrement function *}
+
+primrec DigM :: "num \<Rightarrow> num" where
+  "DigM One = One"
+  | "DigM (Dig0 n) = Dig1 (DigM n)"
+  | "DigM (Dig1 n) = Dig1 (Dig0 n)"
+
+lemma DigM_plus_one: "DigM n + One = Dig0 n"
+  by (induct n) simp_all
+
+lemma add_One_commute: "One + n = n + One"
+  by (induct n) simp_all
+
+lemma one_plus_DigM: "One + DigM n = Dig0 n"
+  unfolding add_One_commute DigM_plus_one ..
+
+text {* Squaring and exponentiation *}
+
+primrec square :: "num \<Rightarrow> num" where
+  "square One = One"
+| "square (Dig0 n) = Dig0 (Dig0 (square n))"
+| "square (Dig1 n) = Dig1 (Dig0 (square n + n))"
+
+primrec pow :: "num \<Rightarrow> num \<Rightarrow> num"
+where
+  "pow x One = x"
+| "pow x (Dig0 y) = square (pow x y)"
+| "pow x (Dig1 y) = x * square (pow x y)"
 
 
 subsection {* Binary numerals *}
@@ -251,20 +231,16 @@ text {*
   structure using @{text of_num}.
 *}
 
-ML {*
-structure DigSimps =
-  NamedThmsFun(val name = "numeral"; val description = "Simplification rules for numerals")
-*}
-
-setup DigSimps.setup
-
 class semiring_numeral = semiring + monoid_mult
 begin
 
 primrec of_num :: "num \<Rightarrow> 'a" where
-  of_num_one [numeral]: "of_num 1 = 1"
+  of_num_one [numeral]: "of_num One = 1"
   | "of_num (Dig0 n) = of_num n + of_num n"
   | "of_num (Dig1 n) = of_num n + of_num n + 1"
+
+lemma of_num_inc: "of_num (inc x) = of_num x + 1"
+  by (induct x) (simp_all add: add_ac)
 
 declare of_num.simps [simp del]
 
@@ -275,14 +251,14 @@ text {*
 *}
 
 ML {*
-fun mk_num 1 = @{term "1::num"}
+fun mk_num 1 = @{term One}
   | mk_num k =
       let
         val (l, b) = Integer.div_mod k 2;
         val bit = (if b = 0 then @{term Dig0} else @{term Dig1});
       in bit $ (mk_num l) end;
 
-fun dest_num @{term "1::num"} = 1
+fun dest_num @{term One} = 1
   | dest_num (@{term Dig0} $ n) = 2 * dest_num n
   | dest_num (@{term Dig1} $ n) = 2 * dest_num n + 1;
 
@@ -301,7 +277,7 @@ syntax
 parse_translation {*
 let
   fun num_of_int n = if n > 0 then case IntInf.quotRem (n, 2)
-     of (0, 1) => Const (@{const_name HOL.one}, dummyT)
+     of (0, 1) => Const (@{const_name One}, dummyT)
       | (n, 0) => Const (@{const_name Dig0}, dummyT) $ num_of_int n
       | (n, 1) => Const (@{const_name Dig1}, dummyT) $ num_of_int n
     else raise Match;
@@ -322,7 +298,7 @@ let
         dig 0 (int_of_num' n)
     | int_of_num' (Const (@{const_syntax Dig1}, _) $ n) =
         dig 1 (int_of_num' n)
-    | int_of_num' (Const (@{const_syntax HOL.one}, _)) = 1;
+    | int_of_num' (Const (@{const_syntax One}, _)) = 1;
   fun num_tr' show_sorts T [n] =
     let
       val k = int_of_num' n;
@@ -336,45 +312,18 @@ let
 in [(@{const_syntax of_num}, num_tr')] end
 *}
 
-
-subsection {* Numeral operations *}
-
-text {*
-  First, addition and multiplication on digits.
-*}
-
-lemma Dig_plus [numeral, simp, code]:
-  "1 + 1 = Dig0 1"
-  "1 + Dig0 m = Dig1 m"
-  "1 + Dig1 m = Dig0 (m + 1)"
-  "Dig0 n + 1 = Dig1 n"
-  "Dig0 n + Dig0 m = Dig0 (n + m)"
-  "Dig0 n + Dig1 m = Dig1 (n + m)"
-  "Dig1 n + 1 = Dig0 (n + 1)"
-  "Dig1 n + Dig0 m = Dig1 (n + m)"
-  "Dig1 n + Dig1 m = Dig0 (n + m + 1)"
-  by (simp_all add: add_ac Dig0_def Dig1_def)
-
-lemma Dig_times [numeral, simp, code]:
-  "1 * 1 = (1::num)"
-  "1 * Dig0 n = Dig0 n"
-  "1 * Dig1 n = Dig1 n"
-  "Dig0 n * 1 = Dig0 n"
-  "Dig0 n * Dig0 m = Dig0 (n * Dig0 m)"
-  "Dig0 n * Dig1 m = Dig0 (n * Dig1 m)"
-  "Dig1 n * 1 = Dig1 n"
-  "Dig1 n * Dig0 m = Dig0 (n * Dig0 m + m)"
-  "Dig1 n * Dig1 m = Dig1 (n * Dig1 m + m)"
-  by (simp_all add: left_distrib right_distrib add_ac Dig0_def Dig1_def)
+subsection {* Class-specific numeral rules *}
 
 text {*
   @{const of_num} is a morphism.
 *}
 
+subsubsection {* Class @{text semiring_numeral} *}
+
 context semiring_numeral
 begin
 
-abbreviation "Num1 \<equiv> of_num 1"
+abbreviation "Num1 \<equiv> of_num One"
 
 text {*
   Alas, there is still the duplication of @{term 1},
@@ -386,18 +335,17 @@ text {*
 *}
 
 lemma of_num_plus_one [numeral]:
-  "of_num n + 1 = of_num (n + 1)"
-  by (rule sym, induct n) (simp_all add: Dig_plus of_num.simps add_ac)
+  "of_num n + 1 = of_num (n + One)"
+  by (rule sym, induct n) (simp_all add: of_num.simps add_ac)
 
 lemma of_num_one_plus [numeral]:
-  "1 + of_num n = of_num (n + 1)"
+  "1 + of_num n = of_num (n + One)"
   unfolding of_num_plus_one [symmetric] add_commute ..
 
 lemma of_num_plus [numeral]:
   "of_num m + of_num n = of_num (m + n)"
   by (induct n rule: num_induct)
-    (simp_all add: Dig_plus of_num_one semigroup_add_class.add_assoc [symmetric, of m]
-    add_ac of_num_plus_one [symmetric])
+     (simp_all add: add_One add_inc of_num_one of_num_inc add_ac)
 
 lemma of_num_times_one [numeral]:
   "of_num n * 1 = of_num n"
@@ -410,13 +358,13 @@ lemma of_num_one_times [numeral]:
 lemma of_num_times [numeral]:
   "of_num m * of_num n = of_num (m * n)"
   by (induct n rule: num_induct)
-    (simp_all add: of_num_plus [symmetric]
-    semiring_class.right_distrib right_distrib of_num_one)
+    (simp_all add: of_num_plus [symmetric] mult_One mult_inc
+    semiring_class.right_distrib right_distrib of_num_one of_num_inc)
 
 end
 
-text {*
-  Structures with a @{term 0}.
+subsubsection {*
+  Structures with a zero: class @{text semiring_1}
 *}
 
 context semiring_1
@@ -449,16 +397,13 @@ end
 lemma nat_of_num_of_num: "nat_of_num = of_num"
 proof
   fix n
-  have "of_num n = nat_of_num n" apply (induct n)
-    apply (simp_all add: of_num.simps)
-    using nat_of_num
-    apply (simp_all add: one_num_def plus_num_def Dig0_def Dig1_def num_of_nat_inverse mem_def)
-    done
+  have "of_num n = nat_of_num n"
+    by (induct n) (simp_all add: of_num.simps)
   then show "nat_of_num n = of_num n" by simp
 qed
 
-text {*
-  Equality.
+subsubsection {*
+  Equality: class @{text semiring_char_0}
 *}
 
 context semiring_char_0
@@ -467,24 +412,26 @@ begin
 lemma of_num_eq_iff [numeral]:
   "of_num m = of_num n \<longleftrightarrow> m = n"
   unfolding of_nat_of_num [symmetric] nat_of_num_of_num [symmetric]
-    of_nat_eq_iff nat_of_num_inject ..
+    of_nat_eq_iff num_eq_iff ..
 
 lemma of_num_eq_one_iff [numeral]:
-  "of_num n = 1 \<longleftrightarrow> n = 1"
+  "of_num n = 1 \<longleftrightarrow> n = One"
 proof -
-  have "of_num n = of_num 1 \<longleftrightarrow> n = 1" unfolding of_num_eq_iff ..
+  have "of_num n = of_num One \<longleftrightarrow> n = One" unfolding of_num_eq_iff ..
   then show ?thesis by (simp add: of_num_one)
 qed
 
 lemma one_eq_of_num_iff [numeral]:
-  "1 = of_num n \<longleftrightarrow> n = 1"
+  "1 = of_num n \<longleftrightarrow> n = One"
   unfolding of_num_eq_one_iff [symmetric] by auto
 
 end
 
-text {*
-  Comparisons.  Could be perhaps more general than here.
+subsubsection {*
+  Comparisons: class @{text ordered_semidom}
 *}
+
+text {*  Could be perhaps more general than here. *}
 
 lemma (in ordered_semidom) of_num_pos: "0 < of_num n"
 proof -
@@ -498,44 +445,6 @@ proof -
   ultimately show ?thesis by (simp add: of_nat_of_num)
 qed
 
-instantiation num :: linorder
-begin
-
-definition less_eq_num :: "num \<Rightarrow> num \<Rightarrow> bool" where
-  [code del]: "m \<le> n \<longleftrightarrow> nat_of_num m \<le> nat_of_num n"
-
-definition less_num :: "num \<Rightarrow> num \<Rightarrow> bool" where
-  [code del]: "m < n \<longleftrightarrow> nat_of_num m < nat_of_num n"
-
-instance proof
-qed (auto simp add: less_eq_num_def less_num_def
-  split_num_all num_of_nat_inverse num_of_nat_inject split: split_if_asm)
-
-end
-
-lemma less_eq_num_code [numeral, simp, code]:
-  "(1::num) \<le> n \<longleftrightarrow> True"
-  "Dig0 m \<le> 1 \<longleftrightarrow> False"
-  "Dig1 m \<le> 1 \<longleftrightarrow> False"
-  "Dig0 m \<le> Dig0 n \<longleftrightarrow> m \<le> n"
-  "Dig0 m \<le> Dig1 n \<longleftrightarrow> m \<le> n"
-  "Dig1 m \<le> Dig1 n \<longleftrightarrow> m \<le> n"
-  "Dig1 m \<le> Dig0 n \<longleftrightarrow> m < n"
-  using of_num_pos [of n, where ?'a = nat] of_num_pos [of m, where ?'a = nat]
-  by (auto simp add: less_eq_num_def less_num_def nat_of_num_of_num of_num.simps)
-
-lemma less_num_code [numeral, simp, code]:
-  "m < (1::num) \<longleftrightarrow> False"
-  "(1::num) < 1 \<longleftrightarrow> False"
-  "1 < Dig0 n \<longleftrightarrow> True"
-  "1 < Dig1 n \<longleftrightarrow> True"
-  "Dig0 m < Dig0 n \<longleftrightarrow> m < n"
-  "Dig0 m < Dig1 n \<longleftrightarrow> m \<le> n"
-  "Dig1 m < Dig1 n \<longleftrightarrow> m < n"
-  "Dig1 m < Dig0 n \<longleftrightarrow> m < n"
-  using of_num_pos [of n, where ?'a = nat] of_num_pos [of m, where ?'a = nat]
-  by (auto simp add: less_eq_num_def less_num_def nat_of_num_of_num of_num.simps)
-  
 context ordered_semidom
 begin
 
@@ -546,16 +455,16 @@ proof -
   then show ?thesis by (simp add: of_nat_of_num)
 qed
 
-lemma of_num_less_eq_one_iff [numeral]: "of_num n \<le> 1 \<longleftrightarrow> n = 1"
+lemma of_num_less_eq_one_iff [numeral]: "of_num n \<le> 1 \<longleftrightarrow> n = One"
 proof -
-  have "of_num n \<le> of_num 1 \<longleftrightarrow> n = 1"
+  have "of_num n \<le> of_num One \<longleftrightarrow> n = One"
     by (cases n) (simp_all add: of_num_less_eq_iff)
   then show ?thesis by (simp add: of_num_one)
 qed
 
 lemma one_less_eq_of_num_iff [numeral]: "1 \<le> of_num n"
 proof -
-  have "of_num 1 \<le> of_num n"
+  have "of_num One \<le> of_num n"
     by (cases n) (simp_all add: of_num_less_eq_iff)
   then show ?thesis by (simp add: of_num_one)
 qed
@@ -569,50 +478,23 @@ qed
 
 lemma of_num_less_one_iff [numeral]: "\<not> of_num n < 1"
 proof -
-  have "\<not> of_num n < of_num 1"
+  have "\<not> of_num n < of_num One"
     by (cases n) (simp_all add: of_num_less_iff)
   then show ?thesis by (simp add: of_num_one)
 qed
 
-lemma one_less_of_num_iff [numeral]: "1 < of_num n \<longleftrightarrow> n \<noteq> 1"
+lemma one_less_of_num_iff [numeral]: "1 < of_num n \<longleftrightarrow> n \<noteq> One"
 proof -
-  have "of_num 1 < of_num n \<longleftrightarrow> n \<noteq> 1"
+  have "of_num One < of_num n \<longleftrightarrow> n \<noteq> One"
     by (cases n) (simp_all add: of_num_less_iff)
   then show ?thesis by (simp add: of_num_one)
 qed
 
 end
 
-text {*
-  Structures with subtraction @{term "op -"}.
+subsubsection {*
+  Structures with subtraction: class @{text semiring_1_minus}
 *}
-
-text {* A decrement function *}
-
-primrec dec :: "num \<Rightarrow> num" where
-  "dec 1 = 1"
-  | "dec (Dig0 n) = (case n of 1 \<Rightarrow> 1 | _ \<Rightarrow> Dig1 (dec n))"
-  | "dec (Dig1 n) = Dig0 n"
-
-declare dec.simps [simp del, code del]
-
-lemma Dig_dec [numeral, simp, code]:
-  "dec 1 = 1"
-  "dec (Dig0 1) = 1"
-  "dec (Dig0 (Dig0 n)) = Dig1 (dec (Dig0 n))"
-  "dec (Dig0 (Dig1 n)) = Dig1 (Dig0 n)"
-  "dec (Dig1 n) = Dig0 n"
-  by (simp_all add: dec.simps)
-
-lemma Dig_dec_plus_one:
-  "dec n + 1 = (if n = 1 then Dig0 1 else n)"
-  by (induct n)
-    (auto simp add: Dig_plus dec.simps,
-     auto simp add: Dig_plus split: num.splits)
-
-lemma Dig_one_plus_dec:
-  "1 + dec n = (if n = 1 then Dig0 1 else n)"
-  unfolding add_commute [of 1] Dig_dec_plus_one ..
 
 class semiring_minus = semiring + minus + zero +
   assumes minus_inverts_plus1: "a + b = c \<Longrightarrow> c - b = a"
@@ -645,7 +527,7 @@ lemma Dig_of_num_neg:
   by (rule minus_minus_zero_inverts_plus1) (simp add: of_num_plus assms)
 
 lemmas Dig_plus_eval =
-  of_num_plus of_num_eq_iff Dig_plus refl [of "1::num", THEN eqTrueI] num.inject
+  of_num_plus of_num_eq_iff Dig_plus refl [of One, THEN eqTrueI] num.inject
 
 simproc_setup numeral_minus ("of_num m - of_num n") = {*
   let
@@ -683,16 +565,20 @@ lemma Dig_one_minus_one [numeral]:
   by (simp add: minus_inverts_plus1)
 
 lemma Dig_of_num_minus_one [numeral]:
-  "of_num (Dig0 n) - 1 = of_num (dec (Dig0 n))"
+  "of_num (Dig0 n) - 1 = of_num (DigM n)"
   "of_num (Dig1 n) - 1 = of_num (Dig0 n)"
-  by (auto intro: minus_inverts_plus1 simp add: Dig_dec_plus_one of_num.simps of_num_plus_one)
+  by (auto intro: minus_inverts_plus1 simp add: DigM_plus_one of_num.simps of_num_plus_one)
 
 lemma Dig_one_minus_of_num [numeral]:
-  "1 - of_num (Dig0 n) = 0 - of_num (dec (Dig0 n))"
+  "1 - of_num (Dig0 n) = 0 - of_num (DigM n)"
   "1 - of_num (Dig1 n) = 0 - of_num (Dig0 n)"
-  by (auto intro: minus_minus_zero_inverts_plus1 simp add: Dig_dec_plus_one of_num.simps of_num_plus_one)
+  by (auto intro: minus_minus_zero_inverts_plus1 simp add: DigM_plus_one of_num.simps of_num_plus_one)
 
 end
+
+subsubsection {*
+  Structures with negation: class @{text ring_1}
+*}
 
 context ring_1
 begin
@@ -735,21 +621,63 @@ declare of_int_1 [numeral]
 
 end
 
-text {*
+subsubsection {*
+  Structures with exponentiation
+*}
+
+lemma of_num_square: "of_num (square x) = of_num x * of_num x"
+by (induct x)
+   (simp_all add: of_num.simps of_num_plus [symmetric] algebra_simps)
+
+lemma of_num_pow:
+  "(of_num (pow x y)::'a::{semiring_numeral,recpower}) = of_num x ^ of_num y"
+by (induct y)
+   (simp_all add: of_num.simps of_num_square of_num_times [symmetric]
+                  power_Suc power_add)
+
+lemma power_of_num [numeral]:
+  "of_num x ^ of_num y = (of_num (pow x y)::'a::{semiring_numeral,recpower})"
+  by (rule of_num_pow [symmetric])
+
+lemma power_zero_of_num [numeral]:
+  "0 ^ of_num n = (0::'a::{semiring_0,recpower})"
+  using of_num_pos [where n=n and ?'a=nat]
+  by (simp add: power_0_left)
+
+lemma power_minus_one_double:
+  "(- 1) ^ (n + n) = (1::'a::{ring_1,recpower})"
+  by (induct n) (simp_all add: power_Suc)
+
+lemma power_minus_Dig0 [numeral]:
+  fixes x :: "'a::{ring_1,recpower}"
+  shows "(- x) ^ of_num (Dig0 n) = x ^ of_num (Dig0 n)"
+  by (subst power_minus)
+     (simp add: of_num.simps power_minus_one_double)
+
+lemma power_minus_Dig1 [numeral]:
+  fixes x :: "'a::{ring_1,recpower}"
+  shows "(- x) ^ of_num (Dig1 n) = - (x ^ of_num (Dig1 n))"
+  by (subst power_minus)
+     (simp add: of_num.simps power_Suc power_minus_one_double)
+
+declare power_one [numeral]
+
+
+subsubsection {*
   Greetings to @{typ nat}.
 *}
 
 instance nat :: semiring_1_minus proof qed simp_all
 
-lemma Suc_of_num [numeral]: "Suc (of_num n) = of_num (n + 1)"
+lemma Suc_of_num [numeral]: "Suc (of_num n) = of_num (n + One)"
   unfolding of_num_plus_one [symmetric] by simp
 
 lemma nat_number:
   "1 = Suc 0"
-  "of_num 1 = Suc 0"
-  "of_num (Dig0 n) = Suc (of_num (dec (Dig0 n)))"
+  "of_num One = Suc 0"
+  "of_num (Dig0 n) = Suc (of_num (DigM n))"
   "of_num (Dig1 n) = Suc (of_num (Dig0 n))"
-  by (simp_all add: of_num.simps Dig_dec_plus_one Suc_of_num)
+  by (simp_all add: of_num.simps DigM_plus_one Suc_of_num)
 
 declare diff_0_eq_0 [numeral]
 
@@ -773,17 +701,17 @@ definition dup :: "int \<Rightarrow> int" where
   [code del]: "dup k = 2 * k"
 
 lemma Dig_sub [code]:
-  "sub 1 1 = 0"
-  "sub (Dig0 m) 1 = of_num (dec (Dig0 m))"
-  "sub (Dig1 m) 1 = of_num (Dig0 m)"
-  "sub 1 (Dig0 n) = - of_num (dec (Dig0 n))"
-  "sub 1 (Dig1 n) = - of_num (Dig0 n)"
+  "sub One One = 0"
+  "sub (Dig0 m) One = of_num (DigM m)"
+  "sub (Dig1 m) One = of_num (Dig0 m)"
+  "sub One (Dig0 n) = - of_num (DigM n)"
+  "sub One (Dig1 n) = - of_num (Dig0 n)"
   "sub (Dig0 m) (Dig0 n) = dup (sub m n)"
   "sub (Dig1 m) (Dig1 n) = dup (sub m n)"
   "sub (Dig1 m) (Dig0 n) = dup (sub m n) + 1"
   "sub (Dig0 m) (Dig1 n) = dup (sub m n) - 1"
   apply (simp_all add: dup_def algebra_simps)
-  apply (simp_all add: of_num_plus Dig_one_plus_dec)[4]
+  apply (simp_all add: of_num_plus one_plus_DigM)[4]
   apply (simp_all add: of_num.simps)
   done
 
@@ -805,7 +733,7 @@ lemma [code, code del]:
   by rule+
 
 lemma one_int_code [code]:
-  "1 = Pls 1"
+  "1 = Pls One"
   by (simp add: of_num_one)
 
 lemma plus_int_code [code]:

@@ -88,7 +88,7 @@ lemma zprime_zdvd_zmult:
 
 lemma zgcd_zadd_zmult [simp]: "zgcd (m + n * k) n = zgcd m n"
   apply (rule zgcd_eq [THEN trans])
-  apply (simp add: zmod_zadd1_eq)
+  apply (simp add: mod_add_eq)
   apply (rule zgcd_eq [symmetric])
   done
 

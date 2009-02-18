@@ -130,7 +130,7 @@ fun pr_sml_stmt naming labelled_name syntax_tyco syntax_const reserved_names der
     and pr_bind is_closure = gen_pr_bind pr_bind' (pr_term is_closure)
     and pr_case is_closure thm vars fxy (cases as ((_, [_]), _)) =
           let
-            val (binds, t') = Code_Thingol.unfold_let (ICase cases);
+            val (binds, body) = Code_Thingol.unfold_let (ICase cases);
             fun pr ((pat, ty), t) vars =
               vars
               |> pr_bind is_closure thm NOBR ((NONE, SOME pat), ty)
@@ -139,24 +139,24 @@ fun pr_sml_stmt naming labelled_name syntax_tyco syntax_const reserved_names der
           in
             Pretty.chunks [
               [str ("let"), Pretty.fbrk, Pretty.chunks ps] |> Pretty.block,
-              [str ("in"), Pretty.fbrk, pr_term is_closure thm vars' NOBR t'] |> Pretty.block,
+              [str ("in"), Pretty.fbrk, pr_term is_closure thm vars' NOBR body] |> Pretty.block,
               str ("end")
             ]
           end
-      | pr_case is_closure thm vars fxy (((td, ty), b::bs), _) =
+      | pr_case is_closure thm vars fxy (((t, ty), clause :: clauses), _) =
           let
-            fun pr delim (pat, t) =
+            fun pr delim (pat, body) =
               let
                 val (p, vars') = pr_bind is_closure thm NOBR ((NONE, SOME pat), ty) vars;
               in
-                concat [str delim, p, str "=>", pr_term is_closure thm vars' NOBR t]
+                concat [str delim, p, str "=>", pr_term is_closure thm vars' NOBR body]
               end;
           in
             (Pretty.enclose "(" ")" o single o brackify fxy) (
               str "case"
-              :: pr_term is_closure thm vars NOBR td
-              :: pr "of" b
-              :: map (pr "|") bs
+              :: pr_term is_closure thm vars NOBR t
+              :: pr "of" clause
+              :: map (pr "|") clauses
             )
           end
       | pr_case is_closure thm vars fxy ((_, []), _) = str "raise Fail \"empty case\"";
@@ -434,26 +434,26 @@ fun pr_ocaml_stmt naming labelled_name syntax_tyco syntax_const reserved_names d
     and pr_bind is_closure = gen_pr_bind pr_bind' (pr_term is_closure)
     and pr_case is_closure thm vars fxy (cases as ((_, [_]), _)) =
           let
-            val (binds, t') = Code_Thingol.unfold_let (ICase cases);
+            val (binds, body) = Code_Thingol.unfold_let (ICase cases);
             fun pr ((pat, ty), t) vars =
               vars
               |> pr_bind is_closure thm NOBR ((NONE, SOME pat), ty)
               |>> (fn p => concat
                   [str "let", p, str "=", pr_term is_closure thm vars NOBR t, str "in"])
             val (ps, vars') = fold_map pr binds vars;
-          in Pretty.chunks (ps @| pr_term is_closure thm vars' NOBR t') end
-      | pr_case is_closure thm vars fxy (((td, ty), b::bs), _) =
+          in Pretty.chunks (ps @| pr_term is_closure thm vars' NOBR body) end
+      | pr_case is_closure thm vars fxy (((t, ty), clause :: clauses), _) =
           let
-            fun pr delim (pat, t) =
+            fun pr delim (pat, body) =
               let
                 val (p, vars') = pr_bind is_closure thm NOBR ((NONE, SOME pat), ty) vars;
-              in concat [str delim, p, str "->", pr_term is_closure thm vars' NOBR t] end;
+              in concat [str delim, p, str "->", pr_term is_closure thm vars' NOBR body] end;
           in
             (Pretty.enclose "(" ")" o single o brackify fxy) (
               str "match"
-              :: pr_term is_closure thm vars NOBR td
-              :: pr "with" b
-              :: map (pr "|") bs
+              :: pr_term is_closure thm vars NOBR t
+              :: pr "with" clause
+              :: map (pr "|") clauses
             )
           end
       | pr_case is_closure thm vars fxy ((_, []), _) = str "failwith \"empty case\"";
