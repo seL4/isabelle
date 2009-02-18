@@ -1,5 +1,4 @@
 (*  Title:      HOL/Library/Enum.thy
-    ID:         $Id$
     Author:     Florian Haftmann, TU Muenchen
 *)
 
