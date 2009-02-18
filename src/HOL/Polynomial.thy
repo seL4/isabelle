@@ -1120,6 +1120,11 @@ lemma poly_power [simp]:
 
 subsection {* Synthetic division *}
 
+text {*
+  Synthetic division is simply division by the
+  linear polynomial @{term "x - c"}.
+*}
+
 definition
   synthetic_divmod :: "'a::comm_semiring_0 poly \<Rightarrow> 'a \<Rightarrow> 'a poly \<times> 'a"
 where [code del]:
@@ -1244,6 +1249,32 @@ lemma poly_eq_iff:
   shows "poly p = poly q \<longleftrightarrow> p = q"
   using poly_zero [of "p - q"]
   by (simp add: expand_fun_eq)
+
+
+subsection {* Composition of polynomials *}
+
+definition
+  pcompose :: "'a::comm_semiring_0 poly \<Rightarrow> 'a poly \<Rightarrow> 'a poly"
+where
+  "pcompose p q = poly_rec 0 (\<lambda>a _ c. [:a:] + q * c) p"
+
+lemma pcompose_0 [simp]: "pcompose 0 q = 0"
+  unfolding pcompose_def by (simp add: poly_rec_0)
+
+lemma pcompose_pCons:
+  "pcompose (pCons a p) q = [:a:] + q * pcompose p q"
+  unfolding pcompose_def by (simp add: poly_rec_pCons)
+
+lemma poly_pcompose: "poly (pcompose p q) x = poly p (poly q x)"
+  by (induct p) (simp_all add: pcompose_pCons)
+
+lemma degree_pcompose_le:
+  "degree (pcompose p q) \<le> degree p * degree q"
+apply (induct p, simp)
+apply (simp add: pcompose_pCons, clarify)
+apply (rule degree_add_le, simp)
+apply (rule order_trans [OF degree_mult_le], simp)
+done
 
 
 subsection {* Order of polynomial roots *}
