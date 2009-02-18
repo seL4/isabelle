@@ -217,9 +217,7 @@ lemma DERIV_power:
 by (cases "n", simp, simp add: DERIV_power_Suc f)
 
 
-(* ------------------------------------------------------------------------ *)
-(* Caratheodory formulation of derivative at a point: standard proof        *)
-(* ------------------------------------------------------------------------ *)
+text {* Caratheodory formulation of derivative at a point *}
 
 lemma CARAT_DERIV:
      "(DERIV f x :> l) =
@@ -306,6 +304,9 @@ lemma DERIV_quotient:
   shows "[| DERIV f x :> d; DERIV g x :> e; g(x) \<noteq> 0 |]
        ==> DERIV (%y. f(y) / (g y)) x :> (d*g(x) - (e*f(x))) / (g(x) ^ Suc (Suc 0))"
 by (drule (2) DERIV_divide) (simp add: mult_commute power_Suc)
+
+lemma lemma_DERIV_subst: "[| DERIV f x :> D; D = E |] ==> DERIV f x :> E"
+by auto
 
 
 subsection {* Differentiability predicate *}
@@ -655,6 +656,9 @@ lemma IVT2_objl: "(f(b::real) \<le> (y::real) & y \<le> f(a) & a \<le> b &
 apply (blast intro: IVT2)
 done
 
+
+subsection {* Boundedness of continuous functions *}
+
 text{*By bisection, function continuous on closed interval is bounded above*}
 
 lemma isCont_bounded:
@@ -773,6 +777,8 @@ apply (rule_tac [4] x = xb in exI, simp_all)
 done
 
 
+subsection {* Local extrema *}
+
 text{*If @{term "0 < f'(x)"} then @{term x} is Locally Strictly Increasing At The Right*}
 
 lemma DERIV_left_inc:
@@ -876,6 +882,9 @@ lemma DERIV_local_const:
   fixes f :: "real => real"
   shows "[| DERIV f x :> l; 0 < d; \<forall>y. \<bar>x-y\<bar> < d --> f(x) = f(y) |] ==> l = 0"
 by (auto dest!: DERIV_local_max)
+
+
+subsection {* Rolle's Theorem *}
 
 text{*Lemma about introducing open ball in open interval*}
 lemma lemma_interval_lt:
@@ -1163,6 +1172,8 @@ next
 qed
 
 
+subsection {* Continuous injective functions *}
+
 text{*Dull lemma: an continuous injection on an interval must have a
 strict maximum at an end point, not in the middle.*}
 
@@ -1356,6 +1367,9 @@ next
     using neq by (rule LIM_inverse)
 qed
 
+
+subsection {* Generalized Mean Value Theorem *}
+
 theorem GMVT:
   fixes a b :: real
   assumes alb: "a < b"
@@ -1441,9 +1455,6 @@ proof -
 
   with g'cdef f'cdef cint show ?thesis by auto
 qed
-
-lemma lemma_DERIV_subst: "[| DERIV f x :> D; D = E |] ==> DERIV f x :> E"
-by auto
 
 
 subsection {* Derivatives of univariate polynomials *}
