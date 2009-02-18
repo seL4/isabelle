@@ -1,5 +1,4 @@
 (*  Title:      HOL/Induct/Common_Patterns.thy
-    ID:         $Id$
     Author:     Makarius
 *)
 

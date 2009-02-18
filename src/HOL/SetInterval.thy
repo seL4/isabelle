@@ -66,10 +66,10 @@ syntax (input)
   "@INTER_less" :: "nat => nat => 'b set => 'b set"       ("(3\<Inter> _<_./ _)" 10)
 
 syntax (xsymbols)
-  "@UNION_le"   :: "nat \<Rightarrow> nat => 'b set => 'b set"       ("(3\<Union>(00\<^bsub>_ \<le> _\<^esub>)/ _)" 10)
-  "@UNION_less" :: "nat \<Rightarrow> nat => 'b set => 'b set"       ("(3\<Union>(00\<^bsub>_ < _\<^esub>)/ _)" 10)
-  "@INTER_le"   :: "nat \<Rightarrow> nat => 'b set => 'b set"       ("(3\<Inter>(00\<^bsub>_ \<le> _\<^esub>)/ _)" 10)
-  "@INTER_less" :: "nat \<Rightarrow> nat => 'b set => 'b set"       ("(3\<Inter>(00\<^bsub>_ < _\<^esub>)/ _)" 10)
+  "@UNION_le"   :: "nat \<Rightarrow> nat => 'b set => 'b set"       ("(3\<Union>(00_ \<le> _)/ _)" 10)
+  "@UNION_less" :: "nat \<Rightarrow> nat => 'b set => 'b set"       ("(3\<Union>(00_ < _)/ _)" 10)
+  "@INTER_le"   :: "nat \<Rightarrow> nat => 'b set => 'b set"       ("(3\<Inter>(00_ \<le> _)/ _)" 10)
+  "@INTER_less" :: "nat \<Rightarrow> nat => 'b set => 'b set"       ("(3\<Inter>(00_ < _)/ _)" 10)
 
 translations
   "UN i<=n. A"  == "UN i:{..n}. A"
@@ -945,5 +945,38 @@ next
   ultimately
   show ?case by simp
 qed
+
+subsection {* Products indexed over intervals *}
+
+syntax
+  "_from_to_setprod" :: "idt \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> 'b" ("(PROD _ = _.._./ _)" [0,0,0,10] 10)
+  "_from_upto_setprod" :: "idt \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> 'b" ("(PROD _ = _..<_./ _)" [0,0,0,10] 10)
+  "_upt_setprod" :: "idt \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> 'b" ("(PROD _<_./ _)" [0,0,10] 10)
+  "_upto_setprod" :: "idt \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> 'b" ("(PROD _<=_./ _)" [0,0,10] 10)
+syntax (xsymbols)
+  "_from_to_setprod" :: "idt \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> 'b" ("(3\<Prod>_ = _.._./ _)" [0,0,0,10] 10)
+  "_from_upto_setprod" :: "idt \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> 'b" ("(3\<Prod>_ = _..<_./ _)" [0,0,0,10] 10)
+  "_upt_setprod" :: "idt \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> 'b" ("(3\<Prod>_<_./ _)" [0,0,10] 10)
+  "_upto_setprod" :: "idt \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> 'b" ("(3\<Prod>_\<le>_./ _)" [0,0,10] 10)
+syntax (HTML output)
+  "_from_to_setprod" :: "idt \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> 'b" ("(3\<Prod>_ = _.._./ _)" [0,0,0,10] 10)
+  "_from_upto_setprod" :: "idt \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> 'b" ("(3\<Prod>_ = _..<_./ _)" [0,0,0,10] 10)
+  "_upt_setprod" :: "idt \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> 'b" ("(3\<Prod>_<_./ _)" [0,0,10] 10)
+  "_upto_setprod" :: "idt \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> 'b" ("(3\<Prod>_\<le>_./ _)" [0,0,10] 10)
+syntax (latex_prod output)
+  "_from_to_setprod" :: "idt \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> 'b"
+ ("(3\<^raw:$\prod_{>_ = _\<^raw:}^{>_\<^raw:}$> _)" [0,0,0,10] 10)
+  "_from_upto_setprod" :: "idt \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> 'b"
+ ("(3\<^raw:$\prod_{>_ = _\<^raw:}^{<>_\<^raw:}$> _)" [0,0,0,10] 10)
+  "_upt_setprod" :: "idt \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> 'b"
+ ("(3\<^raw:$\prod_{>_ < _\<^raw:}$> _)" [0,0,10] 10)
+  "_upto_setprod" :: "idt \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> 'b"
+ ("(3\<^raw:$\prod_{>_ \<le> _\<^raw:}$> _)" [0,0,10] 10)
+
+translations
+  "\<Prod>x=a..b. t" == "CONST setprod (%x. t) {a..b}"
+  "\<Prod>x=a..<b. t" == "CONST setprod (%x. t) {a..<b}"
+  "\<Prod>i\<le>n. t" == "CONST setprod (\<lambda>i. t) {..n}"
+  "\<Prod>i<n. t" == "CONST setprod (\<lambda>i. t) {..<n}"
 
 end
