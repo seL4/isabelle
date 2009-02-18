@@ -2662,6 +2662,34 @@ struct
   (* theory -> model -> arguments -> Term.term ->
     (interpretation * model * arguments) option *)
 
+  fun set_interpreter thy model args t =
+  let
+    val (typs, terms) = model
+  in
+    case AList.lookup (op =) terms t of
+      SOME intr =>
+      (* return an existing interpretation *)
+      SOME (intr, model, args)
+    | NONE =>
+      (case t of
+      (* 'Collect' == identity *)
+        Const (@{const_name Collect}, _) $ t1 =>
+        SOME (interpret thy model args t1)
+      | Const (@{const_name Collect}, _) =>
+        SOME (interpret thy model args (eta_expand t 1))
+      (* 'op :' == application *)
+      | Const (@{const_name "op :"}, _) $ t1 $ t2 =>
+        SOME (interpret thy model args (t2 $ t1))
+      | Const (@{const_name "op :"}, _) $ t1 =>
+        SOME (interpret thy model args (eta_expand t 1))
+      | Const (@{const_name "op :"}, _) =>
+        SOME (interpret thy model args (eta_expand t 2))
+      | _ => NONE)
+  end;
+
+  (* theory -> model -> arguments -> Term.term ->
+    (interpretation * model * arguments) option *)
+
   (* only an optimization: 'card' could in principle be interpreted with *)
   (* interpreters available already (using its definition), but the code *)
   (* below is more efficient                                             *)
@@ -3271,6 +3299,7 @@ struct
      add_interpreter "stlc"    stlc_interpreter #>
      add_interpreter "Pure"    Pure_interpreter #>
      add_interpreter "HOLogic" HOLogic_interpreter #>
+     add_interpreter "set"     set_interpreter #>
      add_interpreter "IDT"             IDT_interpreter #>
      add_interpreter "IDT_constructor" IDT_constructor_interpreter #>
      add_interpreter "IDT_recursion"   IDT_recursion_interpreter #>
