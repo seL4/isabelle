@@ -324,6 +324,24 @@ lemma power_eq_imp_eq_base:
   shows "\<lbrakk>a ^ n = b ^ n; 0 \<le> a; 0 \<le> b; 0 < n\<rbrakk> \<Longrightarrow> a = b"
 by (cases n, simp_all, rule power_inject_base)
 
+text {* The divides relation *}
+
+lemma le_imp_power_dvd:
+  fixes a :: "'a::{comm_semiring_1,recpower}"
+  assumes "m \<le> n" shows "a^m dvd a^n"
+proof
+  have "a^n = a^(m + (n - m))"
+    using `m \<le> n` by simp
+  also have "\<dots> = a^m * a^(n - m)"
+    by (rule power_add)
+  finally show "a^n = a^m * a^(n - m)" .
+qed
+
+lemma power_le_dvd:
+  fixes a b :: "'a::{comm_semiring_1,recpower}"
+  shows "a^n dvd b \<Longrightarrow> m \<le> n \<Longrightarrow> a^m dvd b"
+  by (rule dvd_trans [OF le_imp_power_dvd])
+
 
 subsection{*Exponentiation for the Natural Numbers*}
 

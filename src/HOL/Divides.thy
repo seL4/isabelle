@@ -889,20 +889,8 @@ lemma dvd_mult_div_cancel: "n dvd m ==> n * (m div n) = (m::nat)"
   apply (simp only: dvd_eq_mod_eq_0)
   done
 
-lemma le_imp_power_dvd: "!!i::nat. m \<le> n ==> i^m dvd i^n"
-  apply (unfold dvd_def)
-  apply (erule linorder_not_less [THEN iffD2, THEN add_diff_inverse, THEN subst])
-  apply (simp add: power_add)
-  done
-
 lemma nat_zero_less_power_iff [simp]: "(x^n > 0) = (x > (0::nat) | n=0)"
   by (induct n) auto
-
-lemma power_le_dvd [rule_format]: "k^j dvd n --> i\<le>j --> k^i dvd (n::nat)"
-  apply (induct j)
-   apply (simp_all add: le_Suc_eq)
-  apply (blast dest!: dvd_mult_right)
-  done
 
 lemma power_dvd_imp_le: "[|i^m dvd i^n;  (1::nat) < i|] ==> m \<le> n"
   apply (rule power_le_imp_le_exp, assumption)
