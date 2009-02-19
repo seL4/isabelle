@@ -157,6 +157,18 @@ lemma Dig_times [numeral, simp, code]:
   by (simp_all add: num_eq_iff nat_of_num_add nat_of_num_mult
                     left_distrib right_distrib)
 
+lemma Dig_eq:
+  "One = One \<longleftrightarrow> True"
+  "One = Dig0 n \<longleftrightarrow> False"
+  "One = Dig1 n \<longleftrightarrow> False"
+  "Dig0 m = One \<longleftrightarrow> False"
+  "Dig1 m = One \<longleftrightarrow> False"
+  "Dig0 m = Dig0 n \<longleftrightarrow> m = n"
+  "Dig0 m = Dig1 n \<longleftrightarrow> False"
+  "Dig1 m = Dig0 n \<longleftrightarrow> False"
+  "Dig1 m = Dig1 n \<longleftrightarrow> m = n"
+  by simp_all
+
 lemma less_eq_num_code [numeral, simp, code]:
   "One \<le> n \<longleftrightarrow> True"
   "Dig0 m \<le> One \<longleftrightarrow> False"
@@ -433,20 +445,11 @@ subsubsection {*
 
 text {*  Could be perhaps more general than here. *}
 
-lemma (in ordered_semidom) of_num_pos: "0 < of_num n"
-proof -
-  have "(0::nat) < of_num n"
-    by (induct n) (simp_all add: semiring_numeral_class.of_num.simps)
-  then have "of_nat 0 \<noteq> of_nat (of_num n)" 
-    by (cases n) (simp_all only: semiring_numeral_class.of_num.simps of_nat_eq_iff)
-  then have "0 \<noteq> of_num n"
-    by (simp add: of_nat_of_num)
-  moreover have "0 \<le> of_nat (of_num n)" by simp
-  ultimately show ?thesis by (simp add: of_nat_of_num)
-qed
-
 context ordered_semidom
 begin
+
+lemma of_num_pos [numeral]: "0 < of_num n"
+  by (induct n) (simp_all add: of_num.simps add_pos_pos)
 
 lemma of_num_less_eq_iff [numeral]: "of_num m \<le> of_num n \<longleftrightarrow> m \<le> n"
 proof -
@@ -489,6 +492,68 @@ proof -
     by (cases n) (simp_all add: of_num_less_iff)
   then show ?thesis by (simp add: of_num_one)
 qed
+
+lemma of_num_nonneg [numeral]: "0 \<le> of_num n"
+  by (induct n) (simp_all add: of_num.simps add_nonneg_nonneg)
+
+lemma of_num_less_zero_iff [numeral]: "\<not> of_num n < 0"
+  by (simp add: not_less of_num_nonneg)
+
+lemma of_num_le_zero_iff [numeral]: "\<not> of_num n \<le> 0"
+  by (simp add: not_le of_num_pos)
+
+end
+
+context ordered_idom
+begin
+
+lemma minus_of_num_less_of_num_iff [numeral]: "- of_num m < of_num n"
+proof -
+  have "- of_num m < 0" by (simp add: of_num_pos)
+  also have "0 < of_num n" by (simp add: of_num_pos)
+  finally show ?thesis .
+qed
+
+lemma minus_of_num_less_one_iff [numeral]: "- of_num n < 1"
+proof -
+  have "- of_num n < 0" by (simp add: of_num_pos)
+  also have "0 < 1" by simp
+  finally show ?thesis .
+qed
+
+lemma minus_one_less_of_num_iff [numeral]: "- 1 < of_num n"
+proof -
+  have "- 1 < 0" by simp
+  also have "0 < of_num n" by (simp add: of_num_pos)
+  finally show ?thesis .
+qed
+
+lemma minus_of_num_le_of_num_iff [numeral]: "- of_num m \<le> of_num n"
+  by (simp add: less_imp_le minus_of_num_less_of_num_iff)
+
+lemma minus_of_num_le_one_iff [numeral]: "- of_num n \<le> 1"
+  by (simp add: less_imp_le minus_of_num_less_one_iff)
+
+lemma minus_one_le_of_num_iff [numeral]: "- 1 \<le> of_num n"
+  by (simp add: less_imp_le minus_one_less_of_num_iff)
+
+lemma of_num_le_minus_of_num_iff [numeral]: "\<not> of_num m \<le> - of_num n"
+  by (simp add: not_le minus_of_num_less_of_num_iff)
+
+lemma one_le_minus_of_num_iff [numeral]: "\<not> 1 \<le> - of_num n"
+  by (simp add: not_le minus_of_num_less_one_iff)
+
+lemma of_num_le_minus_one_iff [numeral]: "\<not> of_num n \<le> - 1"
+  by (simp add: not_le minus_one_less_of_num_iff)
+
+lemma of_num_less_minus_of_num_iff [numeral]: "\<not> of_num m < - of_num n"
+  by (simp add: not_less minus_of_num_le_of_num_iff)
+
+lemma one_less_minus_of_num_iff [numeral]: "\<not> 1 < - of_num n"
+  by (simp add: not_less minus_of_num_le_one_iff)
+
+lemma of_num_less_minus_one_iff [numeral]: "\<not> of_num n < - 1"
+  by (simp add: not_less minus_one_le_of_num_iff)
 
 end
 
