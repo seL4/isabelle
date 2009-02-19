@@ -5,6 +5,7 @@ imports
   AssocList
   BigO
   Binomial
+  Bit
   Boolean_Algebra
   Char_ord
   Code_Char_chr
