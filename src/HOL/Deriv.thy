@@ -9,7 +9,7 @@
 header{* Differentiation *}
 
 theory Deriv
-imports Lim Polynomial
+imports Lim
 begin
 
 text{*Standard Definitions*}

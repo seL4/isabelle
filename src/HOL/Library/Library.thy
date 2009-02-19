@@ -37,6 +37,7 @@ imports
   Permutation
   Pocklington
   Poly_Deriv
+  Polynomial
   Primes
   Quickcheck
   Quicksort

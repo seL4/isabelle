@@ -284,7 +284,6 @@ $(OUT)/HOL: ROOT.ML $(MAIN_DEPENDENCIES) \
   GCD.thy \
   Parity.thy \
   Lubs.thy \
-  Polynomial.thy \
   PReal.thy \
   Rational.thy \
   RComplete.thy \
@@ -337,6 +336,7 @@ $(LOG)/HOL-Library.gz: $(OUT)/HOL Library/SetsAndFunctions.thy		\
   Library/RBT.thy	Library/Univ_Poly.thy	\
   Library/Random.thy	Library/Quickcheck.thy	\
   Library/Poly_Deriv.thy \
+  Library/Polynomial.thy \
   Library/Enum.thy Library/Float.thy $(SRC)/Tools/float.ML $(SRC)/HOL/Tools/float_arith.ML \
   Library/reify_data.ML Library/reflection.ML
 	@cd Library; $(ISABELLE_TOOL) usedir $(OUT)/HOL Library
