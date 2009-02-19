@@ -26,6 +26,7 @@ imports
   FuncSet
   Fundamental_Theorem_Algebra
   Infinite_Set
+  Inner_Product
   ListVector
   Mapping
   Multiset
