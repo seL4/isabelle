@@ -245,22 +245,25 @@ apply (induct xs ys rule: lower_pd.principal_induct2, simp, simp)
 apply (simp add: PDPlus_commute)
 done
 
-lemma lower_plus_absorb: "xs +\<flat> xs = xs"
+lemma lower_plus_absorb [simp]: "xs +\<flat> xs = xs"
 apply (induct xs rule: lower_pd.principal_induct, simp)
 apply (simp add: PDPlus_absorb)
 done
 
-interpretation aci_lower_plus!: ab_semigroup_idem_mult "op +\<flat>"
-  proof qed (rule lower_plus_assoc lower_plus_commute lower_plus_absorb)+
-
 lemma lower_plus_left_commute: "xs +\<flat> (ys +\<flat> zs) = ys +\<flat> (xs +\<flat> zs)"
-by (rule aci_lower_plus.mult_left_commute)
+by (rule mk_left_commute [of "op +\<flat>", OF lower_plus_assoc lower_plus_commute])
 
-lemma lower_plus_left_absorb: "xs +\<flat> (xs +\<flat> ys) = xs +\<flat> ys"
-by (rule aci_lower_plus.mult_left_idem)
-(*
-lemmas lower_plus_aci = aci_lower_plus.mult_ac_idem
-*)
+lemma lower_plus_left_absorb [simp]: "xs +\<flat> (xs +\<flat> ys) = xs +\<flat> ys"
+by (simp only: lower_plus_assoc [symmetric] lower_plus_absorb)
+
+text {* Useful for @{text "simp add: lower_plus_ac"} *}
+lemmas lower_plus_ac =
+  lower_plus_assoc lower_plus_commute lower_plus_left_commute
+
+text {* Useful for @{text "simp only: lower_plus_aci"} *}
+lemmas lower_plus_aci =
+  lower_plus_ac lower_plus_absorb lower_plus_left_absorb
+
 lemma lower_plus_less1: "xs \<sqsubseteq> xs +\<flat> ys"
 apply (induct xs ys rule: lower_pd.principal_induct2, simp, simp)
 apply (simp add: PDPlus_lower_less)
@@ -315,14 +318,8 @@ lemmas lower_pd_less_simps =
   lower_plus_less_iff
   lower_unit_less_plus_iff
 
-lemma fooble:
-  fixes f :: "'a::po \<Rightarrow> 'b::po"
-  assumes f: "\<And>x y. f x \<sqsubseteq> f y \<longleftrightarrow> x \<sqsubseteq> y"
-  shows "f x = f y \<longleftrightarrow> x = y"
-unfolding po_eq_conv by (simp add: f)
-
 lemma lower_unit_eq_iff [simp]: "{x}\<flat> = {y}\<flat> \<longleftrightarrow> x = y"
-by (rule lower_unit_less_iff [THEN fooble])
+by (simp add: po_eq_conv)
 
 lemma lower_unit_strict [simp]: "{\<bottom>}\<flat> = \<bottom>"
 unfolding inst_lower_pd_pcpo Rep_compact_bot [symmetric] by simp
@@ -399,7 +396,7 @@ lemma ACI_lower_bind:
 apply unfold_locales
 apply (simp add: lower_plus_assoc)
 apply (simp add: lower_plus_commute)
-apply (simp add: lower_plus_absorb eta_cfun)
+apply (simp add: eta_cfun)
 done
 
 lemma lower_bind_basis_simps [simp]:

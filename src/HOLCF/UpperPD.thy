@@ -243,22 +243,25 @@ apply (induct xs ys rule: upper_pd.principal_induct2, simp, simp)
 apply (simp add: PDPlus_commute)
 done
 
-lemma upper_plus_absorb: "xs +\<sharp> xs = xs"
+lemma upper_plus_absorb [simp]: "xs +\<sharp> xs = xs"
 apply (induct xs rule: upper_pd.principal_induct, simp)
 apply (simp add: PDPlus_absorb)
 done
 
-interpretation aci_upper_plus!: ab_semigroup_idem_mult "op +\<sharp>"
-  proof qed (rule upper_plus_assoc upper_plus_commute upper_plus_absorb)+
-
 lemma upper_plus_left_commute: "xs +\<sharp> (ys +\<sharp> zs) = ys +\<sharp> (xs +\<sharp> zs)"
-by (rule aci_upper_plus.mult_left_commute)
+by (rule mk_left_commute [of "op +\<sharp>", OF upper_plus_assoc upper_plus_commute])
 
-lemma upper_plus_left_absorb: "xs +\<sharp> (xs +\<sharp> ys) = xs +\<sharp> ys"
-by (rule aci_upper_plus.mult_left_idem)
-(*
-lemmas upper_plus_aci = aci_upper_plus.mult_ac_idem
-*)
+lemma upper_plus_left_absorb [simp]: "xs +\<sharp> (xs +\<sharp> ys) = xs +\<sharp> ys"
+by (simp only: upper_plus_assoc [symmetric] upper_plus_absorb)
+
+text {* Useful for @{text "simp add: upper_plus_ac"} *}
+lemmas upper_plus_ac =
+  upper_plus_assoc upper_plus_commute upper_plus_left_commute
+
+text {* Useful for @{text "simp only: upper_plus_aci"} *}
+lemmas upper_plus_aci =
+  upper_plus_ac upper_plus_absorb upper_plus_left_absorb
+
 lemma upper_plus_less1: "xs +\<sharp> ys \<sqsubseteq> xs"
 apply (induct xs ys rule: upper_pd.principal_induct2, simp, simp)
 apply (simp add: PDPlus_upper_less)
@@ -388,7 +391,7 @@ lemma ACI_upper_bind:
 apply unfold_locales
 apply (simp add: upper_plus_assoc)
 apply (simp add: upper_plus_commute)
-apply (simp add: upper_plus_absorb eta_cfun)
+apply (simp add: eta_cfun)
 done
 
 lemma upper_bind_basis_simps [simp]:
