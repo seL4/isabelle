@@ -35,6 +35,7 @@ imports
   Option_ord
   Permutation
   Pocklington
+  Poly_Deriv
   Primes
   Quickcheck
   Quicksort
