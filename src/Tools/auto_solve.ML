@@ -23,7 +23,7 @@ struct
   structure FT = FindTheorems;
 
   val auto = ref false;
-  val auto_time_limit = ref 5000;
+  val auto_time_limit = ref 2500;
 
   fun seek_solution int state = let
       val ctxt = Proof.context_of state;
