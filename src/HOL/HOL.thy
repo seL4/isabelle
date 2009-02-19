@@ -290,7 +290,7 @@ translations
 typed_print_translation {*
 let
   fun tr' c = (c, fn show_sorts => fn T => fn ts =>
-    if T = dummyT orelse not (! show_types) andalso can Term.dest_Type T then raise Match
+    if (not o null) ts orelse T = dummyT orelse not (! show_types) andalso can Term.dest_Type T then raise Match
     else Syntax.const Syntax.constrainC $ Syntax.const c $ Syntax.term_of_typ show_sorts T);
 in map tr' [@{const_syntax HOL.one}, @{const_syntax HOL.zero}] end;
 *} -- {* show types that are presumably too general *}

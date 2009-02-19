@@ -13,7 +13,7 @@ sig
   val begin: string -> Proof.context -> local_theory
   val context: xstring -> theory -> local_theory
   val instantiation: string list * (string * sort) list * sort -> theory -> local_theory
-  val instantiation_cmd: xstring list * sort * xstring -> theory -> local_theory
+  val instantiation_cmd: xstring list * xstring list * xstring -> theory -> local_theory
   val overloading: (string * (string * typ) * bool) list -> theory -> local_theory
   val overloading_cmd: (string * string * bool) list -> theory -> local_theory
 end;

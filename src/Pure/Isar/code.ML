@@ -35,7 +35,7 @@ sig
   val these_raw_eqns: theory -> string -> (thm * bool) list
   val get_datatype: theory -> string -> ((string * sort) list * (string * typ list) list)
   val get_datatype_of_constr: theory -> string -> string option
-  val get_case_data: theory -> string -> (int * string list) option
+  val get_case_scheme: theory -> string -> (int * string list) option
   val is_undefined: theory -> string -> bool
   val default_typscheme: theory -> string -> (string * sort) list * typ
 
@@ -583,7 +583,7 @@ fun del_eqn thm thy = case mk_syntactic_eqn thy thm
 
 fun del_eqns c = change_eqns true c (K (false, Lazy.value []));
 
-val get_case_data = Symtab.lookup o fst o the_cases o the_exec;
+fun get_case_scheme thy = Symtab.lookup ((fst o the_cases o the_exec) thy);
 
 val is_undefined = Symtab.defined o snd o the_cases o the_exec;
 

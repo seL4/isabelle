@@ -205,16 +205,6 @@ fun dicts_of thy (proj_sort, algebra) (T, sort) =
        handle Sorts.CLASS_ERROR _ => [] (*permissive!*))
   end;
 
-fun instances_of (*FIXME move to sorts.ML*) algebra =
-  let
-    val { classes, arities } = Sorts.rep_algebra algebra;
-    val sort_classes = fn cs => filter (member (op = o apsnd fst) cs)
-      (flat (rev (Graph.strong_conn classes)));
-  in
-    Symtab.fold (fn (a, cs) => append ((map (pair a) o sort_classes) cs))
-      arities []
-  end;
-
 fun algebra_of thy vardeps =
   let
     val pp = Syntax.pp_global thy;
@@ -223,7 +213,7 @@ fun algebra_of thy vardeps =
     val classrels = Sorts.classrels_of thy_algebra
       |> filter (is_proper o fst)
       |> (map o apsnd) (filter is_proper);
-    val instances = instances_of thy_algebra
+    val instances = Sorts.instances_of thy_algebra
       |> filter (is_proper o snd);
     fun add_class (class, superclasses) algebra =
       Sorts.add_class pp (class, Sorts.minimize_sort algebra superclasses) algebra;
