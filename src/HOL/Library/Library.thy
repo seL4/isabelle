@@ -22,6 +22,7 @@ imports
   Executable_Set
   Float
   Formal_Power_Series
+  FrechetDeriv
   FuncSet
   Fundamental_Theorem_Algebra
   Infinite_Set
