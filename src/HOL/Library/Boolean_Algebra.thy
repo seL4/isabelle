@@ -223,7 +223,7 @@ by (simp only: xor_def conj_cancel_right conj_cancel_left disj_zero_right)
 lemma xor_left_self [simp]: "x \<oplus> (x \<oplus> y) = y"
 by (simp only: xor_assoc [symmetric] xor_self xor_zero_left)
 
-lemma xor_compl_left: "\<sim> x \<oplus> y = \<sim> (x \<oplus> y)"
+lemma xor_compl_left [simp]: "\<sim> x \<oplus> y = \<sim> (x \<oplus> y)"
 apply (simp only: xor_def de_Morgan_disj de_Morgan_conj double_compl)
 apply (simp only: conj_disj_distribs)
 apply (simp only: conj_cancel_right conj_cancel_left)
@@ -231,7 +231,7 @@ apply (simp only: disj_zero_left disj_zero_right)
 apply (simp only: disj_ac conj_ac)
 done
 
-lemma xor_compl_right: "x \<oplus> \<sim> y = \<sim> (x \<oplus> y)"
+lemma xor_compl_right [simp]: "x \<oplus> \<sim> y = \<sim> (x \<oplus> y)"
 apply (simp only: xor_def de_Morgan_disj de_Morgan_conj double_compl)
 apply (simp only: conj_disj_distribs)
 apply (simp only: conj_cancel_right conj_cancel_left)
@@ -239,11 +239,11 @@ apply (simp only: disj_zero_left disj_zero_right)
 apply (simp only: disj_ac conj_ac)
 done
 
-lemma xor_cancel_right [simp]: "x \<oplus> \<sim> x = \<one>"
+lemma xor_cancel_right: "x \<oplus> \<sim> x = \<one>"
 by (simp only: xor_compl_right xor_self compl_zero)
 
-lemma xor_cancel_left [simp]: "\<sim> x \<oplus> x = \<one>"
-by (subst xor_commute) (rule xor_cancel_right)
+lemma xor_cancel_left: "\<sim> x \<oplus> x = \<one>"
+by (simp only: xor_compl_left xor_self compl_zero)
 
 lemma conj_xor_distrib: "x \<sqinter> (y \<oplus> z) = (x \<sqinter> y) \<oplus> (x \<sqinter> z)"
 proof -
