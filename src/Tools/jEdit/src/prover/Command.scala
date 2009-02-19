@@ -29,40 +29,19 @@ object Command {
 }
 
 
-class Command(text: Text, val first: Token, val last: Token)
+class Command(val tokens: List[Token])
 {
   val id = Isabelle.plugin.id()
 
-
   /* content */
-
-  {
-    var t = first
-    while (t != null) {
-      t.command = this
-      t = if (t == last) null else t.next
-    }
-  }
 
   override def toString = name
 
-  val name = text.content(first.start, first.stop)
-  val content = text.content(proper_start, proper_stop)
+  val name = tokens.head.content
+  val content:String = Token.string_from_tokens(tokens.takeWhile(_.kind != Token.Kind.COMMENT))
 
-  def next = if (last.next != null) last.next.command else null
-  def prev = if (first.prev != null) first.prev.command else null
-
-  def start = first.start
-  def stop = last.stop
-
-  def proper_start = start
-  def proper_stop = {
-    var i = last
-    while (i != first && i.kind == Token.Kind.COMMENT)
-      i = i.prev
-    i.stop
-  }
-
+  def start = tokens.first.start
+  def stop = tokens.last.stop
 
   /* command status */
 

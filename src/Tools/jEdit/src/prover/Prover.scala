@@ -195,23 +195,19 @@ class Prover(isabelle_system: IsabelleSystem, logic: String)
     this.document = new ProofDocument(text, command_decls.contains(_))
     process.ML("ThyLoad.add_path " + IsabelleSyntax.encode_string(path))
 
-    document.structural_changes += (changes => {
+    document.structural_changes += (changes => if(initialized){
       for (cmd <- changes.removed_commands) remove(cmd)
-      for (cmd <- changes.added_commands) send(cmd)
+      changes.added_commands.foldLeft (changes.before_change) ((p, c) => {send(p, c); Some(c)})
     })
-    if (initialized) {
-      document.activate()
-      activated.event(())
-    }
   }
 
-  private def send(cmd: Command) {
+  private def send(prev: Option[Command], cmd: Command) {
     cmd.status = Command.Status.UNPROCESSED
     commands.put(cmd.id, cmd)
 
     val content = isabelle_system.symbols.encode(cmd.content)
     process.create_command(cmd.id, content)
-    process.insert_command(if (cmd.prev == null) "" else cmd.prev.id, cmd.id)
+    process.insert_command(prev match {case Some(c) => c.id case None => ""}, cmd.id)
   }
 
   def remove(cmd: Command) {
