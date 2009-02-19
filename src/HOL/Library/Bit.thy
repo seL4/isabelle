@@ -115,6 +115,9 @@ end
 
 text {* All numerals reduce to either 0 or 1. *}
 
+lemma bit_minus1 [simp]: "-1 = (1 :: bit)"
+  by (simp only: number_of_Min uminus_bit_def)
+
 lemma bit_number_of_even [simp]: "number_of (Int.Bit0 w) = (0 :: bit)"
   by (simp only: number_of_Bit0 add_0_left bit_add_self)
 
