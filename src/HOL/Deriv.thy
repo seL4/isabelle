@@ -1570,128 +1570,197 @@ done
 
 text{*Lemmas for Derivatives*}
 
-(* FIXME
-lemma lemma_order_pderiv [rule_format]:
-     "\<forall>p q a. 0 < n &
-       poly (pderiv p) \<noteq> poly [] &
-       poly p = poly ([- a, 1] %^ n *** q) & ~ [- a, 1] divides q
-       --> n = Suc (order a (pderiv p))"
-apply (induct "n", safe)
-apply (rule order_unique_lemma, rule conjI, assumption)
-apply (subgoal_tac "\<forall>r. r divides (pderiv p) = r divides (pderiv ([-a, 1] %^ Suc n *** q))")
-apply (drule_tac [2] poly_pderiv_welldef)
- prefer 2 apply (simp add: divides_def del: pmult_Cons pexp_Suc) 
-apply (simp del: pmult_Cons pexp_Suc) 
-apply (rule conjI)
-apply (simp add: divides_def fun_eq del: pmult_Cons pexp_Suc)
-apply (rule_tac x = "[-a, 1] *** (pderiv q) +++ real (Suc n) %* q" in exI)
-apply (simp add: poly_pderiv_mult poly_pderiv_exp_prime poly_add poly_mult poly_cmult right_distrib mult_ac del: pmult_Cons pexp_Suc)
-apply (simp add: poly_mult right_distrib left_distrib mult_ac del: pmult_Cons)
-apply (erule_tac V = "\<forall>r. r divides pderiv p = r divides pderiv ([- a, 1] %^ Suc n *** q)" in thin_rl)
-apply (unfold divides_def)
-apply (simp (no_asm) add: poly_pderiv_mult poly_pderiv_exp_prime fun_eq poly_add poly_mult del: pmult_Cons pexp_Suc)
-apply (rule contrapos_np, assumption)
-apply (rotate_tac 3, erule contrapos_np)
-apply (simp del: pmult_Cons pexp_Suc, safe)
-apply (rule_tac x = "inverse (real (Suc n)) %* (qa +++ -- (pderiv q))" in exI)
-apply (subgoal_tac "poly ([-a, 1] %^ n *** q) = poly ([-a, 1] %^ n *** ([-a, 1] *** (inverse (real (Suc n)) %* (qa +++ -- (pderiv q))))) ")
-apply (drule poly_mult_left_cancel [THEN iffD1], simp)
-apply (simp add: fun_eq poly_mult poly_add poly_cmult poly_minus del: pmult_Cons mult_cancel_left, safe)
-apply (rule_tac c1 = "real (Suc n)" in real_mult_left_cancel [THEN iffD1])
-apply (simp (no_asm))
-apply (subgoal_tac "real (Suc n) * (poly ([- a, 1] %^ n) xa * poly q xa) =
-          (poly qa xa + - poly (pderiv q) xa) *
-          (poly ([- a, 1] %^ n) xa *
-           ((- a + xa) * (inverse (real (Suc n)) * real (Suc n))))")
-apply (simp only: mult_ac)  
-apply (rotate_tac 2)
-apply (drule_tac x = xa in spec)
-apply (simp add: left_distrib mult_ac del: pmult_Cons)
+lemma order_unique_lemma:
+  fixes p :: "'a::idom poly"
+  assumes "[:-a, 1:] ^ n dvd p \<and> \<not> [:-a, 1:] ^ Suc n dvd p"
+  shows "n = order a p"
+unfolding Polynomial.order_def
+apply (rule Least_equality [symmetric])
+apply (rule assms [THEN conjunct2])
+apply (erule contrapos_np)
+apply (rule power_le_dvd)
+apply (rule assms [THEN conjunct1])
+apply simp
 done
 
-lemma order_pderiv: "[| poly (pderiv p) \<noteq> poly []; order a p \<noteq> 0 |]
+lemma lemma_order_pderiv1:
+  "pderiv ([:- a, 1:] ^ Suc n * q) = [:- a, 1:] ^ Suc n * pderiv q +
+    smult (of_nat (Suc n)) (q * [:- a, 1:] ^ n)"
+apply (simp only: pderiv_mult pderiv_power_Suc)
+apply (simp del: power_poly_Suc of_nat_Suc add: pderiv_pCons)
+done
+
+lemma dvd_add_cancel1:
+  fixes a b c :: "'a::comm_ring_1"
+  shows "a dvd b + c \<Longrightarrow> a dvd b \<Longrightarrow> a dvd c"
+  by (drule (1) Ring_and_Field.dvd_diff, simp)
+
+lemma lemma_order_pderiv [rule_format]:
+     "\<forall>p q a. 0 < n &
+       pderiv p \<noteq> 0 &
+       p = [:- a, 1:] ^ n * q & ~ [:- a, 1:] dvd q
+       --> n = Suc (order a (pderiv p))"
+ apply (cases "n", safe, rename_tac n p q a)
+ apply (rule order_unique_lemma)
+ apply (rule conjI)
+  apply (subst lemma_order_pderiv1)
+  apply (rule dvd_add)
+   apply (rule dvd_mult2)
+   apply (rule le_imp_power_dvd, simp)
+  apply (rule dvd_smult)
+  apply (rule dvd_mult)
+  apply (rule dvd_refl)
+ apply (subst lemma_order_pderiv1)
+ apply (erule contrapos_nn) back
+ apply (subgoal_tac "[:- a, 1:] ^ Suc n dvd q * [:- a, 1:] ^ n")
+  apply (simp del: mult_pCons_left)
+ apply (drule dvd_add_cancel1)
+  apply (simp del: mult_pCons_left)
+ apply (drule dvd_smult_cancel, simp del: of_nat_Suc)
+ apply assumption
+done
+
+lemma order_decomp:
+     "p \<noteq> 0
+      ==> \<exists>q. p = [:-a, 1:] ^ (order a p) * q &
+                ~([:-a, 1:] dvd q)"
+apply (drule order [where a=a])
+apply (erule conjE)
+apply (erule dvdE)
+apply (rule exI)
+apply (rule conjI, assumption)
+apply (erule contrapos_nn)
+apply (erule ssubst) back
+apply (subst power_Suc2)
+apply (erule mult_dvd_mono [OF dvd_refl])
+done
+
+lemma order_pderiv: "[| pderiv p \<noteq> 0; order a p \<noteq> 0 |]
       ==> (order a p = Suc (order a (pderiv p)))"
-apply (case_tac "poly p = poly []")
-apply (auto dest: pderiv_zero)
+apply (case_tac "p = 0", simp)
 apply (drule_tac a = a and p = p in order_decomp)
 using neq0_conv
 apply (blast intro: lemma_order_pderiv)
 done
 
+lemma order_mult: "p * q \<noteq> 0 \<Longrightarrow> order a (p * q) = order a p + order a q"
+proof -
+  def i \<equiv> "order a p"
+  def j \<equiv> "order a q"
+  def t \<equiv> "[:-a, 1:]"
+  have t_dvd_iff: "\<And>u. t dvd u \<longleftrightarrow> poly u a = 0"
+    unfolding t_def by (simp add: dvd_iff_poly_eq_0)
+  assume "p * q \<noteq> 0"
+  then show "order a (p * q) = i + j"
+    apply clarsimp
+    apply (drule order [where a=a and p=p, folded i_def t_def])
+    apply (drule order [where a=a and p=q, folded j_def t_def])
+    apply clarify
+    apply (rule order_unique_lemma [symmetric], fold t_def)
+    apply (erule dvdE)+
+    apply (simp add: power_add t_dvd_iff)
+    done
+qed
+
 text{*Now justify the standard squarefree decomposition, i.e. f / gcd(f,f'). *}
 
-lemma poly_squarefree_decomp_order: "[| poly (pderiv p) \<noteq> poly [];
-         poly p = poly (q *** d);
-         poly (pderiv p) = poly (e *** d);
-         poly d = poly (r *** p +++ s *** pderiv p)
-      |] ==> order a q = (if order a p = 0 then 0 else 1)"
-apply (subgoal_tac "order a p = order a q + order a d")
-apply (rule_tac [2] s = "order a (q *** d)" in trans)
-prefer 2 apply (blast intro: order_poly)
-apply (rule_tac [2] order_mult)
- prefer 2 apply force
-apply (case_tac "order a p = 0", simp)
-apply (subgoal_tac "order a (pderiv p) = order a e + order a d")
-apply (rule_tac [2] s = "order a (e *** d)" in trans)
-prefer 2 apply (blast intro: order_poly)
-apply (rule_tac [2] order_mult)
- prefer 2 apply force
-apply (case_tac "poly p = poly []")
-apply (drule_tac p = p in pderiv_zero, simp)
-apply (drule order_pderiv, assumption)
-apply (subgoal_tac "order a (pderiv p) \<le> order a d")
-apply (subgoal_tac [2] " ([-a, 1] %^ (order a (pderiv p))) divides d")
- prefer 2 apply (simp add: poly_entire order_divides)
-apply (subgoal_tac [2] " ([-a, 1] %^ (order a (pderiv p))) divides p & ([-a, 1] %^ (order a (pderiv p))) divides (pderiv p) ")
- prefer 3 apply (simp add: order_divides)
- prefer 2 apply (simp add: divides_def del: pexp_Suc pmult_Cons, safe)
-apply (rule_tac x = "r *** qa +++ s *** qaa" in exI)
-apply (simp add: fun_eq poly_add poly_mult left_distrib right_distrib mult_ac del: pexp_Suc pmult_Cons, auto)
+lemma order_divides: "[:-a, 1:] ^ n dvd p \<longleftrightarrow> p = 0 \<or> n \<le> order a p"
+apply (cases "p = 0", auto)
+apply (drule order_2 [where a=a and p=p])
+apply (erule contrapos_np)
+apply (erule power_le_dvd)
+apply simp
+apply (erule power_le_dvd [OF order_1])
 done
 
+lemma poly_squarefree_decomp_order:
+  assumes "pderiv p \<noteq> 0"
+  and p: "p = q * d"
+  and p': "pderiv p = e * d"
+  and d: "d = r * p + s * pderiv p"
+  shows "order a q = (if order a p = 0 then 0 else 1)"
+proof (rule classical)
+  assume 1: "order a q \<noteq> (if order a p = 0 then 0 else 1)"
+  from `pderiv p \<noteq> 0` have "p \<noteq> 0" by auto
+  with p have "order a p = order a q + order a d"
+    by (simp add: order_mult)
+  with 1 have "order a p \<noteq> 0" by (auto split: if_splits)
+  have "order a (pderiv p) = order a e + order a d"
+    using `pderiv p \<noteq> 0` `pderiv p = e * d` by (simp add: order_mult)
+  have "order a p = Suc (order a (pderiv p))"
+    using `pderiv p \<noteq> 0` `order a p \<noteq> 0` by (rule order_pderiv)
+  have "d \<noteq> 0" using `p \<noteq> 0` `p = q * d` by simp
+  have "([:-a, 1:] ^ (order a (pderiv p))) dvd d"
+    apply (simp add: d)
+    apply (rule dvd_add)
+    apply (rule dvd_mult)
+    apply (simp add: order_divides `p \<noteq> 0`
+           `order a p = Suc (order a (pderiv p))`)
+    apply (rule dvd_mult)
+    apply (simp add: order_divides)
+    done
+  then have "order a (pderiv p) \<le> order a d"
+    using `d \<noteq> 0` by (simp add: order_divides)
+  show ?thesis
+    using `order a p = order a q + order a d`
+    using `order a (pderiv p) = order a e + order a d`
+    using `order a p = Suc (order a (pderiv p))`
+    using `order a (pderiv p) \<le> order a d`
+    by auto
+qed
 
-lemma poly_squarefree_decomp_order2: "[| poly (pderiv p) \<noteq> poly [];
-         poly p = poly (q *** d);
-         poly (pderiv p) = poly (e *** d);
-         poly d = poly (r *** p +++ s *** pderiv p)
+lemma poly_squarefree_decomp_order2: "[| pderiv p \<noteq> 0;
+         p = q * d;
+         pderiv p = e * d;
+         d = r * p + s * pderiv p
       |] ==> \<forall>a. order a q = (if order a p = 0 then 0 else 1)"
 apply (blast intro: poly_squarefree_decomp_order)
 done
 
-lemma order_pderiv2: "[| poly (pderiv p) \<noteq> poly []; order a p \<noteq> 0 |]
+lemma order_pderiv2: "[| pderiv p \<noteq> 0; order a p \<noteq> 0 |]
       ==> (order a (pderiv p) = n) = (order a p = Suc n)"
 apply (auto dest: order_pderiv)
+done
+
+definition
+  rsquarefree :: "'a::idom poly => bool" where
+  "rsquarefree p = (p \<noteq> 0 & (\<forall>a. (order a p = 0) | (order a p = 1)))"
+
+lemma pderiv_iszero: "pderiv p = 0 \<Longrightarrow> \<exists>h. p = [:h:]"
+apply (simp add: pderiv_eq_0_iff)
+apply (case_tac p, auto split: if_splits)
 done
 
 lemma rsquarefree_roots:
   "rsquarefree p = (\<forall>a. ~(poly p a = 0 & poly (pderiv p) a = 0))"
 apply (simp add: rsquarefree_def)
-apply (case_tac "poly p = poly []", simp, simp)
-apply (case_tac "poly (pderiv p) = poly []")
+apply (case_tac "p = 0", simp, simp)
+apply (case_tac "pderiv p = 0")
 apply simp
 apply (drule pderiv_iszero, clarify)
-apply (subgoal_tac "\<forall>a. order a p = order a [h]")
-apply (simp add: fun_eq)
+apply simp
 apply (rule allI)
-apply (cut_tac p = "[h]" and a = a in order_root)
-apply (simp add: fun_eq)
-apply (blast intro: order_poly)
+apply (cut_tac p = "[:h:]" and a = a in order_root)
+apply simp
 apply (auto simp add: order_root order_pderiv2)
 apply (erule_tac x="a" in allE, simp)
 done
 
-lemma poly_squarefree_decomp: "[| poly (pderiv p) \<noteq> poly [];
-         poly p = poly (q *** d);
-         poly (pderiv p) = poly (e *** d);
-         poly d = poly (r *** p +++ s *** pderiv p)
-      |] ==> rsquarefree q & (\<forall>a. (poly q a = 0) = (poly p a = 0))"
-apply (frule poly_squarefree_decomp_order2, assumption+) 
-apply (case_tac "poly p = poly []")
-apply (blast dest: pderiv_zero)
-apply (simp (no_asm) add: rsquarefree_def order_root del: pmult_Cons)
-apply (simp add: poly_entire del: pmult_Cons)
-done
-*)
+lemma poly_squarefree_decomp:
+  assumes "pderiv p \<noteq> 0"
+    and "p = q * d"
+    and "pderiv p = e * d"
+    and "d = r * p + s * pderiv p"
+  shows "rsquarefree q & (\<forall>a. (poly q a = 0) = (poly p a = 0))"
+proof -
+  from `pderiv p \<noteq> 0` have "p \<noteq> 0" by auto
+  with `p = q * d` have "q \<noteq> 0" by simp
+  have "\<forall>a. order a q = (if order a p = 0 then 0 else 1)"
+    using assms by (rule poly_squarefree_decomp_order2)
+  with `p \<noteq> 0` `q \<noteq> 0` show ?thesis
+    by (simp add: rsquarefree_def order_root)
+qed
+
 
 subsection {* Theorems about Limits *}
 
