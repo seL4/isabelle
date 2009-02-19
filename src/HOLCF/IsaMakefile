@@ -89,6 +89,7 @@ HOLCF-ex: HOLCF $(LOG)/HOLCF-ex.gz
 
 $(LOG)/HOLCF-ex.gz: $(OUT)/HOLCF ex/Stream.thy ex/Dagstuhl.thy \
   ex/Dnat.thy ex/Fix2.thy ex/Focus_ex.thy ex/Hoare.thy ex/Loop.thy \
+  ex/Powerdomain_ex.thy \
   ex/ROOT.ML ex/Fixrec_ex.thy ../HOL/Library/Nat_Infinity.thy
 	@$(ISABELLE_TOOL) usedir $(OUT)/HOLCF ex
 
