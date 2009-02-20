@@ -1,5 +1,4 @@
 (*  Title:      HOL/Library/Code_Char.thy
-    ID:         $Id$
     Author:     Florian Haftmann
 *)
 
