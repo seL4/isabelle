@@ -41,7 +41,7 @@ imports
   Poly_Deriv
   Polynomial
   Primes
-  Product_plus
+  Product_Vector
   Quickcheck
   Quicksort
   Quotient
