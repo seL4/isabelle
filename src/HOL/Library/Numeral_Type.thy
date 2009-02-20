@@ -267,6 +267,22 @@ end
 
 subsection {* Number ring instances *}
 
+text {*
+  Unfortunately a number ring instance is not possible for
+  @{typ num1}, since 0 and 1 are not distinct.
+*}
+
+instantiation num1 :: "{comm_ring,comm_monoid_mult,number,recpower}"
+begin
+
+lemma num1_eq_iff: "(x::num1) = (y::num1) \<longleftrightarrow> True"
+  by (induct x, induct y) simp
+
+instance proof
+qed (simp_all add: num1_eq_iff)
+
+end
+
 instantiation
   bit0 and bit1 :: (finite) "{zero,one,plus,times,uminus,minus,power}"
 begin
