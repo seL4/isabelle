@@ -795,12 +795,6 @@ apply (simp add: linorder_not_less le_Suc_eq mod_geq)
 apply (auto simp add: Suc_diff_le le_mod_geq)
 done
 
-lemma nat_mod_div_trivial: "m mod n div n = (0 :: nat)"
-by simp
-
-lemma nat_mod_mod_trivial: "m mod n mod n = (m mod n :: nat)"
-by simp
-
 
 subsubsection {* The Divides Relation *}
 
