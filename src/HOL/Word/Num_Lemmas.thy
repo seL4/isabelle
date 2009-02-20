@@ -95,7 +95,7 @@ lemma z1pmod2:
 lemma z1pdiv2:
   "(2 * b + 1) div 2 = (b::int)" by arith
 
-lemmas zdiv_le_dividend = xtr3 [OF zdiv_1 [symmetric] zdiv_mono2,
+lemmas zdiv_le_dividend = xtr3 [OF div_by_1 [symmetric] zdiv_mono2,
   simplified int_one_le_iff_zero_less, simplified, standard]
   
 lemma axxbyy:

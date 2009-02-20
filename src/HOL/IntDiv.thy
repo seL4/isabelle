@@ -547,34 +547,6 @@ simproc_setup binary_int_div ("number_of m div number_of n :: int") =
 simproc_setup binary_int_mod ("number_of m mod number_of n :: int") =
   {* K (divmod_proc (@{thm divmod_rel_mod_eq})) *}
 
-(* The following 8 lemmas are made unnecessary by the above simprocs: *)
-
-lemmas div_pos_pos_number_of =
-    div_pos_pos [of "number_of v" "number_of w", standard]
-
-lemmas div_neg_pos_number_of =
-    div_neg_pos [of "number_of v" "number_of w", standard]
-
-lemmas div_pos_neg_number_of =
-    div_pos_neg [of "number_of v" "number_of w", standard]
-
-lemmas div_neg_neg_number_of =
-    div_neg_neg [of "number_of v" "number_of w", standard]
-
-
-lemmas mod_pos_pos_number_of =
-    mod_pos_pos [of "number_of v" "number_of w", standard]
-
-lemmas mod_neg_pos_number_of =
-    mod_neg_pos [of "number_of v" "number_of w", standard]
-
-lemmas mod_pos_neg_number_of =
-    mod_pos_neg [of "number_of v" "number_of w", standard]
-
-lemmas mod_neg_neg_number_of =
-    mod_neg_neg [of "number_of v" "number_of w", standard]
-
-
 lemmas posDivAlg_eqn_number_of [simp] =
     posDivAlg_eqn [of "number_of v" "number_of w", standard]
 
@@ -583,15 +555,6 @@ lemmas negDivAlg_eqn_number_of [simp] =
 
 
 text{*Special-case simplification *}
-
-lemma zmod_1 [simp]: "a mod (1::int) = 0"
-apply (cut_tac a = a and b = 1 in pos_mod_sign)
-apply (cut_tac [2] a = a and b = 1 in pos_mod_bound)
-apply (auto simp del:pos_mod_bound pos_mod_sign)
-done
-
-lemma zdiv_1 [simp]: "a div (1::int) = a"
-by (cut_tac a = a and b = 1 in zmod_zdiv_equality, auto)
 
 lemma zmod_minus1_right [simp]: "a mod (-1::int) = 0"
 apply (cut_tac a = a and b = "-1" in neg_mod_sign)
