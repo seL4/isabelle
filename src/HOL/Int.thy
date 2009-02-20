@@ -1547,7 +1547,7 @@ lemma abs_power_minus_one [simp]:
      "abs(-1 ^ n) = (1::'a::{ordered_idom,number_ring,recpower})"
 by (simp add: power_abs)
 
-lemma of_int_number_of_eq:
+lemma of_int_number_of_eq [simp]:
      "of_int (number_of v) = (number_of v :: 'a :: number_ring)"
 by (simp add: number_of_eq) 
 
