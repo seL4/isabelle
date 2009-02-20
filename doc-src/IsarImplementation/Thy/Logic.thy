@@ -764,7 +764,7 @@ text {*
   \]
 
   Nesting of rules means that the positions of @{text "A\<^sub>i"} may
-  hold compound rules of the same shape, not just atomic propositions.
+  again hold compound rules, not just atomic propositions.
   Propositions of this format are called \emph{Hereditary Harrop
   Formulae} in the literature \cite{Miller:1991}.  Here we give an
   inductive characterization as follows:
@@ -777,32 +777,31 @@ text {*
   \end{tabular}
   \medskip
 
-  \noindent Thus we essentially impose nesting levels on Pure
-  propositions.  At each level there is a local parameter prefix,
-  followed by premises, and concluding another atomic proposition.
-  Typical examples are implication introduction @{text "(A \<Longrightarrow> B) \<Longrightarrow> A \<longrightarrow>
-  B"} or mathematical induction @{text "P 0 \<Longrightarrow> (\<And>n. P n \<Longrightarrow> P (Suc n)) \<Longrightarrow>
-  P n"}.  Even deeper nesting occurs in well-founded induction @{text
-  "(\<And>x. (\<And>y. y \<prec> x \<Longrightarrow> P y) \<Longrightarrow> P x) \<Longrightarrow> P x"}, but this already marks the
-  limit of rule complexity seen in practice.
+  \noindent Thus we essentially impose nesting levels on propositions
+  formed from @{text "\<And>"} and @{text "\<Longrightarrow>"}.  At each level there is a
+  prefix of parameters and compound premises, concluding an atomic
+  proposition.  Typical examples are @{text "\<longrightarrow>"}-introduction @{text
+  "(A \<Longrightarrow> B) \<Longrightarrow> A \<longrightarrow> B"} or mathematical induction @{text "P 0 \<Longrightarrow> (\<And>n. P n
+  \<Longrightarrow> P (Suc n)) \<Longrightarrow> P n"}.  Even deeper nesting occurs in well-founded
+  induction @{text "(\<And>x. (\<And>y. y \<prec> x \<Longrightarrow> P y) \<Longrightarrow> P x) \<Longrightarrow> P x"}, but this
+  already marks the limit of rule complexity seen in practice.
 
-  \medskip The main inference system of Isabelle/Pure always maintains
-  the following canonical form of framework propositions:
+  \medskip Regular user-level inferences in Isabelle/Pure always
+  maintain the following canonical form of results:
 
   \begin{itemize}
 
-  \item Results are normalized by means of the equivalence @{prop
-  "(PROP A \<Longrightarrow> (\<And>x. PROP B x)) \<equiv> (\<And>x. PROP A \<Longrightarrow> PROP B x)"}, which is a
-  theorem of Pure.  By pushing quantifiers inside conclusions in front
-  of the implication, we arrive at a normal form that is always a
-  Hereditary Harrop Formula.
+  \item Normalization by the equivalence @{prop "(PROP A \<Longrightarrow> (\<And>x. PROP B
+  x)) \<equiv> (\<And>x. PROP A \<Longrightarrow> PROP B x)"}, which is a theorem of Pure, means
+  that quantifiers are pushed in front of implication at each level of
+  nesting.  The normal form is always a Hereditary Harrop Formula.
 
   \item The outermost prefix of parameters is represented via
-  schematic variables, i.e.\ instead of @{text "\<And>\<^vec>x. \<^vec>H
-  \<^vec>x \<Longrightarrow> A \<^vec>x"} we always work with @{text "\<^vec>H
-  ?\<^vec>x \<Longrightarrow> A ?\<^vec>x"}.  Note that this representation looses
-  information about the order of parameters, and vacuous quantifiers
-  vanish automatically.
+  schematic variables: instead of @{text "\<And>\<^vec>x. \<^vec>H \<^vec>x
+  \<Longrightarrow> A \<^vec>x"} we always have @{text "\<^vec>H ?\<^vec>x \<Longrightarrow> A
+  ?\<^vec>x"}.  Note that this representation looses information about
+  the order of parameters, and vacuous quantifiers vanish
+  automatically.
 
   \end{itemize}
 *}
