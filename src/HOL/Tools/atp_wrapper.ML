@@ -79,7 +79,7 @@ fun external_prover write_problem_files (cmd, args) find_failure produce_answer 
     val success = rc = 0 andalso is_none failure
     val message =
       if success then "Try this command: " ^ produce_answer (proof, thm_names, ctxt, goal, subgoalno)
-      else "Could not prove."
+      else "Could not prove goal."
     val _ = if isSome failure
       then Output.debug (fn () => "Sledgehammer failure: " ^ the failure ^ "\nOutput: " ^ proof)
       else ()
