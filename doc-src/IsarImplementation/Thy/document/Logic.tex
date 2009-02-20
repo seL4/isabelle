@@ -511,7 +511,7 @@ The theory \isa{Pure} contains constant declarations for the
   fly.  Logically, this is an instance of the \isa{axiom} rule
   (\figref{fig:prim-rules}), but there is an operational difference.
   The system always records oracle invocations within derivations of
-  theorems.  Tracing plain axioms (and named theorems) is optional.
+  theorems by a unique tag.
 
   Axiomatizations should be limited to the bare minimum, typically as
   part of the initial logical basis of an object-logic formalization.
@@ -572,9 +572,9 @@ The theory \isa{Pure} contains constant declarations for the
   well-typedness) checks, relative to the declarations of type
   constructors, constants etc. in the theory.
 
-  \item \verb|ctyp_of|~\isa{thy\ {\isasymtau}} and \verb|cterm_of|~\isa{thy\ t} explicitly checks types and terms, respectively.  This also
-  involves some basic normalizations, such expansion of type and term
-  abbreviations from the theory context.
+  \item \verb|Thm.ctyp_of|~\isa{thy\ {\isasymtau}} and \verb|Thm.cterm_of|~\isa{thy\ t} explicitly checks types and terms,
+  respectively.  This also involves some basic normalizations, such
+  expansion of type and term abbreviations from the theory context.
 
   Re-certification is relatively slow and should be avoided in tight
   reasoning loops.  There are separate operations to decompose
@@ -587,9 +587,10 @@ The theory \isa{Pure} contains constant declarations for the
   enclosing theory, cf.\ \secref{sec:context-theory}.
 
   \item \verb|proofs| determines the detail of proof recording within
-  \verb|thm| values: \verb|0| records only oracles, \verb|1| records
-  oracles, axioms and named theorems, \verb|2| records full proof
-  terms.
+  \verb|thm| values: \verb|0| records only the names of oracles,
+  \verb|1| records oracle names and propositions, \verb|2| additionally
+  records full proof terms.  Officially named theorems that contribute
+  to a result are always recorded.
 
   \item \verb|Thm.assume|, \verb|Thm.forall_intr|, \verb|Thm.forall_elim|, \verb|Thm.implies_intr|, and \verb|Thm.implies_elim|
   correspond to the primitive inferences of \figref{fig:prim-rules}.
@@ -735,78 +736,152 @@ Theory \isa{Pure} provides a few auxiliary definitions, see
 }
 \isamarkuptrue%
 %
-\isadelimFIXME
+\begin{isamarkuptext}%
+The primitive inferences covered so far mostly serve foundational
+  purposes.  User-level reasoning usually works via object-level rules
+  that are represented as theorems of Pure.  Composition of rules
+  involves \emph{backchaining}, \emph{higher-order unification} modulo
+  \isa{{\isasymalpha}{\isasymbeta}{\isasymeta}}-conversion of \isa{{\isasymlambda}}-terms, and so-called
+  \emph{lifting} of rules into a context of \isa{{\isasymAnd}} and \isa{{\isasymLongrightarrow}} connectives.  Thus the full power of higher-order natural
+  deduction in Isabelle/Pure becomes readily available.%
+\end{isamarkuptext}%
+\isamarkuptrue%
 %
-\endisadelimFIXME
-%
-\isatagFIXME
+\isamarkupsubsection{Hereditary Harrop Formulae%
+}
+\isamarkuptrue%
 %
 \begin{isamarkuptext}%
-FIXME
-
-  A \emph{rule} is any Pure theorem in HHF normal form; there is a
-  separate calculus for rule composition, which is modeled after
-  Gentzen's Natural Deduction \cite{Gentzen:1935}, but allows
-  rules to be nested arbitrarily, similar to \cite{extensions91}.
-
-  Normally, all theorems accessible to the user are proper rules.
-  Low-level inferences are occasional required internally, but the
-  result should be always presented in canonical form.  The higher
-  interfaces of Isabelle/Isar will always produce proper rules.  It is
-  important to maintain this invariant in add-on applications!
-
-  There are two main principles of rule composition: \isa{resolution} (i.e.\ backchaining of rules) and \isa{by{\isacharminus}assumption} (i.e.\ closing a branch); both principles are
-  combined in the variants of \isa{elim{\isacharminus}resolution} and \isa{dest{\isacharminus}resolution}.  Raw \isa{composition} is occasionally
-  useful as well, also it is strictly speaking outside of the proper
-  rule calculus.
-
-  Rules are treated modulo general higher-order unification, which is
-  unification modulo the equational theory of \isa{{\isasymalpha}{\isasymbeta}{\isasymeta}}-conversion
-  on \isa{{\isasymlambda}}-terms.  Moreover, propositions are understood modulo
-  the (derived) equivalence \isa{{\isacharparenleft}A\ {\isasymLongrightarrow}\ {\isacharparenleft}{\isasymAnd}x{\isachardot}\ B\ x{\isacharparenright}{\isacharparenright}\ {\isasymequiv}\ {\isacharparenleft}{\isasymAnd}x{\isachardot}\ A\ {\isasymLongrightarrow}\ B\ x{\isacharparenright}}.
-
-  This means that any operations within the rule calculus may be
-  subject to spontaneous \isa{{\isasymalpha}{\isasymbeta}{\isasymeta}}-HHF conversions.  It is common
-  practice not to contract or expand unnecessarily.  Some mechanisms
-  prefer an one form, others the opposite, so there is a potential
-  danger to produce some oscillation!
-
-  Only few operations really work \emph{modulo} HHF conversion, but
-  expect a normal form: quantifiers \isa{{\isasymAnd}} before implications
-  \isa{{\isasymLongrightarrow}} at each level of nesting.
-
-  The set of propositions in HHF format is defined inductively as
-  \isa{H\ {\isacharequal}\ {\isacharparenleft}{\isasymAnd}x\isactrlsup {\isacharasterisk}{\isachardot}\ H\isactrlsup {\isacharasterisk}\ {\isasymLongrightarrow}\ A{\isacharparenright}}, for variables \isa{x}
-  and atomic propositions \isa{A}.  Any proposition may be put
-  into HHF form by normalizing with the rule \isa{{\isacharparenleft}A\ {\isasymLongrightarrow}\ {\isacharparenleft}{\isasymAnd}x{\isachardot}\ B\ x{\isacharparenright}{\isacharparenright}\ {\isasymequiv}\ {\isacharparenleft}{\isasymAnd}x{\isachardot}\ A\ {\isasymLongrightarrow}\ B\ x{\isacharparenright}}.  In Isabelle, the outermost quantifier prefix is
-  represented via schematic variables, such that the top-level
-  structure is merely that of a Horn Clause.
-
-
+The idea of object-level rules is to model Natural Deduction
+  inferences in the style of Gentzen \cite{Gentzen:1935}, but we allow
+  arbitrary nesting similar to \cite{extensions91}.  The most basic
+  rule format is that of a \emph{Horn Clause}:
   \[
-  \infer[\isa{{\isacharparenleft}assumption{\isacharparenright}}]{\isa{C{\isasymvartheta}}}
-  {\isa{{\isacharparenleft}{\isasymAnd}\isactrlvec x{\isachardot}\ \isactrlvec H\ \isactrlvec x\ {\isasymLongrightarrow}\ A\ \isactrlvec x{\isacharparenright}\ {\isasymLongrightarrow}\ C} & \isa{A{\isasymvartheta}\ {\isacharequal}\ H\isactrlsub i{\isasymvartheta}}~~\text{(for some~\isa{i})}}
+  \infer{\isa{A}}{\isa{A\isactrlsub {\isadigit{1}}} & \isa{{\isasymdots}} & \isa{A\isactrlsub n}}
+  \]
+  where \isa{A{\isacharcomma}\ A\isactrlsub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ A\isactrlsub n} are atomic propositions
+  of the framework, usually of the form \isa{Trueprop\ B}, where
+  \isa{B} is a (compound) object-level statement.  This
+  object-level inference corresponds to an iterated implication in
+  Pure like this:
+  \[
+  \isa{A\isactrlsub {\isadigit{1}}\ {\isasymLongrightarrow}\ {\isasymdots}\ A\isactrlsub n\ {\isasymLongrightarrow}\ A}
+  \]
+  As an example consider conjunction introduction: \isa{A\ {\isasymLongrightarrow}\ B\ {\isasymLongrightarrow}\ A\ {\isasymand}\ B}.  Any parameters occurring in such rule statements are
+  conceptionally treated as arbitrary:
+  \[
+  \isa{{\isasymAnd}x\isactrlsub {\isadigit{1}}\ {\isasymdots}\ x\isactrlsub m{\isachardot}\ A\isactrlsub {\isadigit{1}}\ x\isactrlsub {\isadigit{1}}\ {\isasymdots}\ x\isactrlsub m\ {\isasymLongrightarrow}\ {\isasymdots}\ A\isactrlsub n\ x\isactrlsub {\isadigit{1}}\ {\isasymdots}\ x\isactrlsub m\ {\isasymLongrightarrow}\ A\ x\isactrlsub {\isadigit{1}}\ {\isasymdots}\ x\isactrlsub m}
   \]
 
+  Nesting of rules means that the positions of \isa{A\isactrlsub i} may
+  again hold compound rules, not just atomic propositions.
+  Propositions of this format are called \emph{Hereditary Harrop
+  Formulae} in the literature \cite{Miller:1991}.  Here we give an
+  inductive characterization as follows:
 
+  \medskip
+  \begin{tabular}{ll}
+  \isa{\isactrlbold x} & set of variables \\
+  \isa{\isactrlbold A} & set of atomic propositions \\
+  \isa{\isactrlbold H\ \ {\isacharequal}\ \ {\isasymAnd}\isactrlbold x\isactrlsup {\isacharasterisk}{\isachardot}\ \isactrlbold H\isactrlsup {\isacharasterisk}\ {\isasymLongrightarrow}\ \isactrlbold A} & set of Hereditary Harrop Formulas \\
+  \end{tabular}
+  \medskip
+
+  \noindent Thus we essentially impose nesting levels on propositions
+  formed from \isa{{\isasymAnd}} and \isa{{\isasymLongrightarrow}}.  At each level there is a
+  prefix of parameters and compound premises, concluding an atomic
+  proposition.  Typical examples are \isa{{\isasymlongrightarrow}}-introduction \isa{{\isacharparenleft}A\ {\isasymLongrightarrow}\ B{\isacharparenright}\ {\isasymLongrightarrow}\ A\ {\isasymlongrightarrow}\ B} or mathematical induction \isa{P\ {\isadigit{0}}\ {\isasymLongrightarrow}\ {\isacharparenleft}{\isasymAnd}n{\isachardot}\ P\ n\ {\isasymLongrightarrow}\ P\ {\isacharparenleft}Suc\ n{\isacharparenright}{\isacharparenright}\ {\isasymLongrightarrow}\ P\ n}.  Even deeper nesting occurs in well-founded
+  induction \isa{{\isacharparenleft}{\isasymAnd}x{\isachardot}\ {\isacharparenleft}{\isasymAnd}y{\isachardot}\ y\ {\isasymprec}\ x\ {\isasymLongrightarrow}\ P\ y{\isacharparenright}\ {\isasymLongrightarrow}\ P\ x{\isacharparenright}\ {\isasymLongrightarrow}\ P\ x}, but this
+  already marks the limit of rule complexity seen in practice.
+
+  \medskip Regular user-level inferences in Isabelle/Pure always
+  maintain the following canonical form of results:
+
+  \begin{itemize}
+
+  \item Normalization by the equivalence \isa{{\isacharparenleft}PROP\ A\ {\isasymLongrightarrow}\ {\isacharparenleft}{\isasymAnd}x{\isachardot}\ PROP\ B\ x{\isacharparenright}{\isacharparenright}\ {\isasymequiv}\ {\isacharparenleft}{\isasymAnd}x{\isachardot}\ PROP\ A\ {\isasymLongrightarrow}\ PROP\ B\ x{\isacharparenright}}, which is a theorem of Pure, means
+  that quantifiers are pushed in front of implication at each level of
+  nesting.  The normal form is always a Hereditary Harrop Formula.
+
+  \item The outermost prefix of parameters is represented via
+  schematic variables: instead of \isa{{\isasymAnd}\isactrlvec x{\isachardot}\ \isactrlvec H\ \isactrlvec x\ {\isasymLongrightarrow}\ A\ \isactrlvec x} we always have \isa{\isactrlvec H\ {\isacharquery}\isactrlvec x\ {\isasymLongrightarrow}\ A\ {\isacharquery}\isactrlvec x}.  Note that this representation looses information about
+  the order of parameters, and vacuous quantifiers vanish
+  automatically.
+
+  \end{itemize}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isadelimmlref
+%
+\endisadelimmlref
+%
+\isatagmlref
+%
+\begin{isamarkuptext}%
+\begin{mldecls}
+  \indexml{MetaSimplifier.norm\_hhf}\verb|MetaSimplifier.norm_hhf: thm -> thm| \\
+  \end{mldecls}
+
+  \begin{description}
+
+  \item \verb|MetaSimplifier.norm_hhf|~\isa{thm} normalizes the given
+  theorem according to the canonical form specified above.  This is
+  occasionally helpful to repair some low-level tools that do not
+  handle Hereditary Harrop Formulae properly.
+
+  \end{description}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\endisatagmlref
+{\isafoldmlref}%
+%
+\isadelimmlref
+%
+\endisadelimmlref
+%
+\isamarkupsubsection{Rule composition%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+The rule calculus of Isabelle/Pure provides two main inferences:
+  \hyperlink{inference.resolution}{\mbox{\isa{resolution}}} (i.e.\ back-chaining of rules) and
+  \hyperlink{inference.assumption}{\mbox{\isa{assumption}}} (i.e.\ closing a branch), both modulo
+  higher-order unification.  There are also combined variants, notably
+  \hyperlink{inference.elim-resolution}{\mbox{\isa{elim{\isacharunderscore}resolution}}} and \hyperlink{inference.dest-resolution}{\mbox{\isa{dest{\isacharunderscore}resolution}}}.
+
+  To understand the all-important \hyperlink{inference.resolution}{\mbox{\isa{resolution}}} principle,
+  we first consider raw \indexdef{}{inference}{composition}\hypertarget{inference.composition}{\hyperlink{inference.composition}{\mbox{\isa{composition}}}} (modulo
+  higher-order unification with substitution \isa{{\isasymvartheta}}):
   \[
-  \infer[\isa{{\isacharparenleft}compose{\isacharparenright}}]{\isa{\isactrlvec A{\isasymvartheta}\ {\isasymLongrightarrow}\ C{\isasymvartheta}}}
+  \infer[(\indexdef{}{inference}{composition}\hypertarget{inference.composition}{\hyperlink{inference.composition}{\mbox{\isa{composition}}}})]{\isa{\isactrlvec A{\isasymvartheta}\ {\isasymLongrightarrow}\ C{\isasymvartheta}}}
   {\isa{\isactrlvec A\ {\isasymLongrightarrow}\ B} & \isa{B{\isacharprime}\ {\isasymLongrightarrow}\ C} & \isa{B{\isasymvartheta}\ {\isacharequal}\ B{\isacharprime}{\isasymvartheta}}}
   \]
+  Here the conclusion of the first rule is unified with the premise of
+  the second; the resulting rule instance inherits the premises of the
+  first and conclusion of the second.  Note that \isa{C} can again
+  consist of iterated implications.  We can also permute the premises
+  of the second rule back-and-forth in order to compose with \isa{B{\isacharprime}} in any position (subsequently we shall always refer to
+  position 1 w.l.o.g.).
 
-
+  In raw \hyperlink{inference.composition}{\mbox{\isa{composition}}}, the internal structure of the
+  common part \isa{B} and \isa{B{\isacharprime}} is not taken into account.
+  For proper \hyperlink{inference.resolution}{\mbox{\isa{resolution}}} we require \isa{B} to be
+  atomic, and explicitly observe the structure \isa{{\isasymAnd}\isactrlvec x{\isachardot}\ \isactrlvec H\ \isactrlvec x\ {\isasymLongrightarrow}\ B{\isacharprime}\ \isactrlvec x} of the premise of the
+  second rule.  The idea is to adapt the first rule by ``lifting'' it
+  into this context, by means of iterated application of the following
+  inferences:
   \[
-  \infer[\isa{{\isacharparenleft}{\isasymAnd}{\isacharunderscore}lift{\isacharparenright}}]{\isa{{\isacharparenleft}{\isasymAnd}\isactrlvec x{\isachardot}\ \isactrlvec A\ {\isacharparenleft}{\isacharquery}\isactrlvec a\ \isactrlvec x{\isacharparenright}{\isacharparenright}\ {\isasymLongrightarrow}\ {\isacharparenleft}{\isasymAnd}\isactrlvec x{\isachardot}\ B\ {\isacharparenleft}{\isacharquery}\isactrlvec a\ \isactrlvec x{\isacharparenright}{\isacharparenright}}}{\isa{\isactrlvec A\ {\isacharquery}\isactrlvec a\ {\isasymLongrightarrow}\ B\ {\isacharquery}\isactrlvec a}}
+  \infer[(\indexdef{}{inference}{imp\_lift}\hypertarget{inference.imp-lift}{\hyperlink{inference.imp-lift}{\mbox{\isa{imp{\isacharunderscore}lift}}}})]{\isa{{\isacharparenleft}\isactrlvec H\ {\isasymLongrightarrow}\ \isactrlvec A{\isacharparenright}\ {\isasymLongrightarrow}\ {\isacharparenleft}\isactrlvec H\ {\isasymLongrightarrow}\ B{\isacharparenright}}}{\isa{\isactrlvec A\ {\isasymLongrightarrow}\ B}}
   \]
   \[
-  \infer[\isa{{\isacharparenleft}{\isasymLongrightarrow}{\isacharunderscore}lift{\isacharparenright}}]{\isa{{\isacharparenleft}\isactrlvec H\ {\isasymLongrightarrow}\ \isactrlvec A{\isacharparenright}\ {\isasymLongrightarrow}\ {\isacharparenleft}\isactrlvec H\ {\isasymLongrightarrow}\ B{\isacharparenright}}}{\isa{\isactrlvec A\ {\isasymLongrightarrow}\ B}}
+  \infer[(\indexdef{}{inference}{all\_lift}\hypertarget{inference.all-lift}{\hyperlink{inference.all-lift}{\mbox{\isa{all{\isacharunderscore}lift}}}})]{\isa{{\isacharparenleft}{\isasymAnd}\isactrlvec x{\isachardot}\ \isactrlvec A\ {\isacharparenleft}{\isacharquery}\isactrlvec a\ \isactrlvec x{\isacharparenright}{\isacharparenright}\ {\isasymLongrightarrow}\ {\isacharparenleft}{\isasymAnd}\isactrlvec x{\isachardot}\ B\ {\isacharparenleft}{\isacharquery}\isactrlvec a\ \isactrlvec x{\isacharparenright}{\isacharparenright}}}{\isa{\isactrlvec A\ {\isacharquery}\isactrlvec a\ {\isasymLongrightarrow}\ B\ {\isacharquery}\isactrlvec a}}
   \]
-
-  The \isa{resolve} scheme is now acquired from \isa{{\isasymAnd}{\isacharunderscore}lift},
-  \isa{{\isasymLongrightarrow}{\isacharunderscore}lift}, and \isa{compose}.
-
+  By combining raw composition with lifting, we get full \hyperlink{inference.resolution}{\mbox{\isa{resolution}}} as follows:
   \[
-  \infer[\isa{{\isacharparenleft}resolution{\isacharparenright}}]
+  \infer[(\indexdef{}{inference}{resolution}\hypertarget{inference.resolution}{\hyperlink{inference.resolution}{\mbox{\isa{resolution}}}})]
   {\isa{{\isacharparenleft}{\isasymAnd}\isactrlvec x{\isachardot}\ \isactrlvec H\ \isactrlvec x\ {\isasymLongrightarrow}\ \isactrlvec A\ {\isacharparenleft}{\isacharquery}\isactrlvec a\ \isactrlvec x{\isacharparenright}{\isacharparenright}{\isasymvartheta}\ {\isasymLongrightarrow}\ C{\isasymvartheta}}}
   {\begin{tabular}{l}
     \isa{\isactrlvec A\ {\isacharquery}\isactrlvec a\ {\isasymLongrightarrow}\ B\ {\isacharquery}\isactrlvec a} \\
@@ -815,17 +890,53 @@ FIXME
    \end{tabular}}
   \]
 
+  Continued resolution of rules allows to back-chain a problems
+  towards more and sub-problems.  Branches are closed either by
+  resolving with a rule of 0 premises, or by ``short-circuit'' within
+  a solved situation (again modulo unification):
+  \[
+  \infer[(\indexdef{}{inference}{assumption}\hypertarget{inference.assumption}{\hyperlink{inference.assumption}{\mbox{\isa{assumption}}}})]{\isa{C{\isasymvartheta}}}
+  {\isa{{\isacharparenleft}{\isasymAnd}\isactrlvec x{\isachardot}\ \isactrlvec H\ \isactrlvec x\ {\isasymLongrightarrow}\ A\ \isactrlvec x{\isacharparenright}\ {\isasymLongrightarrow}\ C} & \isa{A{\isasymvartheta}\ {\isacharequal}\ H\isactrlsub i{\isasymvartheta}}~~\text{(for some~\isa{i})}}
+  \]
 
-  FIXME \isa{elim{\isacharunderscore}resolution}, \isa{dest{\isacharunderscore}resolution}%
+  FIXME \indexdef{}{inference}{elim\_resolution}\hypertarget{inference.elim-resolution}{\hyperlink{inference.elim-resolution}{\mbox{\isa{elim{\isacharunderscore}resolution}}}}, \indexdef{}{inference}{dest\_resolution}\hypertarget{inference.dest-resolution}{\hyperlink{inference.dest-resolution}{\mbox{\isa{dest{\isacharunderscore}resolution}}}}%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
-\endisatagFIXME
-{\isafoldFIXME}%
+\isadelimmlref
 %
-\isadelimFIXME
+\endisadelimmlref
 %
-\endisadelimFIXME
+\isatagmlref
+%
+\begin{isamarkuptext}%
+\begin{mldecls}
+  \indexml{op RS}\verb|op RS: thm * thm -> thm| \\
+  \indexml{op OF}\verb|op OF: thm * thm list -> thm| \\
+  \end{mldecls}
+
+  \begin{description}
+
+  \item \isa{rule\isactrlsub {\isadigit{1}}\ RS\ rule\isactrlsub {\isadigit{2}}} resolves \isa{rule\isactrlsub {\isadigit{1}}} with \isa{rule\isactrlsub {\isadigit{2}}} according to the
+  \hyperlink{inference.resolution}{\mbox{\isa{resolution}}} principle explained above.  Note that the
+  corresponding attribute in the Isar language is called \hyperlink{attribute.THEN}{\mbox{\isa{THEN}}}.
+
+  \item \isa{rule\ OF\ rules} resolves a list of rules with the
+  first \isa{rule}, addressing its premises \isa{{\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ length\ rules} (operating from last to first).  This means the newly
+  emerging premises are all concatenated, without interfering.  Also
+  note that compared to \isa{RS}, the rule argument order is
+  swapped: \isa{rule\isactrlsub {\isadigit{1}}\ RS\ rule\isactrlsub {\isadigit{2}}\ {\isacharequal}\ rule\isactrlsub {\isadigit{2}}\ OF\ {\isacharbrackleft}rule\isactrlsub {\isadigit{1}}{\isacharbrackright}}.
+
+  \end{description}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\endisatagmlref
+{\isafoldmlref}%
+%
+\isadelimmlref
+%
+\endisadelimmlref
 %
 \isadelimtheory
 %
