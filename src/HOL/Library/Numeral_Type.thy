@@ -257,10 +257,10 @@ instantiation
 begin
 
 definition Abs_bit0' :: "int \<Rightarrow> 'a bit0" where
-  "Abs_bit0' x = Abs_bit0 (x mod (2 * int CARD('a)))"
+  "Abs_bit0' x = Abs_bit0 (x mod int CARD('a bit0))"
 
 definition Abs_bit1' :: "int \<Rightarrow> 'a bit1" where
-  "Abs_bit1' x = Abs_bit1 (x mod (1 + 2 * int CARD('a)))"
+  "Abs_bit1' x = Abs_bit1 (x mod int CARD('a bit1))"
 
 definition "0 = Abs_bit0 0"
 definition "1 = Abs_bit0 1"
@@ -283,11 +283,12 @@ instance ..
 end
 
 interpretation bit0!:
-  mod_type "2 * int CARD('a::finite)"
+  mod_type "int CARD('a::finite bit0)"
            "Rep_bit0 :: 'a::finite bit0 \<Rightarrow> int"
            "Abs_bit0 :: int \<Rightarrow> 'a::finite bit0"
 apply (rule mod_type.intro)
-apply (rule type_definition_bit0)
+apply (simp add: int_mult type_definition_bit0)
+apply simp
 using card_finite_pos [where ?'a='a] apply arith
 apply (rule zero_bit0_def)
 apply (rule one_bit0_def)
@@ -299,11 +300,11 @@ apply (rule power_bit0_def [unfolded Abs_bit0'_def])
 done
 
 interpretation bit1!:
-  mod_type "1 + 2 * int CARD('a::finite)"
+  mod_type "int CARD('a::finite bit1)"
            "Rep_bit1 :: 'a::finite bit1 \<Rightarrow> int"
            "Abs_bit1 :: int \<Rightarrow> 'a::finite bit1"
 apply (rule mod_type.intro)
-apply (rule type_definition_bit1)
+apply (simp add: int_mult type_definition_bit1)
 apply simp
 apply (rule zero_bit1_def)
 apply (rule one_bit1_def)
@@ -333,13 +334,13 @@ qed (rule number_of_bit0_def number_of_bit1_def)+
 end
 
 interpretation bit0!:
-  mod_ring "2 * int CARD('a::finite)"
+  mod_ring "int CARD('a::finite bit0)"
            "Rep_bit0 :: 'a::finite bit0 \<Rightarrow> int"
            "Abs_bit0 :: int \<Rightarrow> 'a::finite bit0"
   ..
 
 interpretation bit1!:
-  mod_ring "1 + 2 * int CARD('a::finite)"
+  mod_ring "int CARD('a::finite bit1)"
            "Rep_bit1 :: 'a::finite bit1 \<Rightarrow> int"
            "Abs_bit1 :: int \<Rightarrow> 'a::finite bit1"
   ..
