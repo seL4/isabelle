@@ -495,9 +495,8 @@ and ensure_tyco thy algbr funcgr tyco =
 and translate_tyvar_sort thy (algbr as (proj_sort, _)) funcgr (v, sort) =
   fold_map (ensure_class thy algbr funcgr) (proj_sort sort)
   #>> (fn sort => (unprefix "'" v, sort))
-and translate_typ thy algbr funcgr (TFree v_sort) =
-      translate_tyvar_sort thy algbr funcgr v_sort
-      #>> (fn (v, sort) => ITyVar v)
+and translate_typ thy algbr funcgr (TFree (v, _)) =
+      pair (ITyVar (unprefix "'" v))
   | translate_typ thy algbr funcgr (Type (tyco, tys)) =
       ensure_tyco thy algbr funcgr tyco
       ##>> fold_map (translate_typ thy algbr funcgr) tys
@@ -585,7 +584,7 @@ and ensure_const thy algbr funcgr c =
       #>> (fn class => Classparam (c, class));
     fun stmt_fun ((vs, raw_ty), raw_thms) =
       let
-        val ty = Logic.unvarifyT raw_ty;
+        val ty = Logic.unvarifyT raw_ty; (*FIXME change convention here*)
         val thms = if null (Term.add_tfreesT ty []) orelse (null o fst o strip_type) ty
           then raw_thms
           else (map o apfst) (Code_Unit.expand_eta thy 1) raw_thms;
