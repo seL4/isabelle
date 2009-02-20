@@ -730,11 +730,11 @@ text {*
   The primitive inferences covered so far mostly serve foundational
   purposes.  User-level reasoning usually works via object-level rules
   that are represented as theorems of Pure.  Composition of rules
-  works via \emph{higher-order backchaining}, which involves
-  unification module @{text "\<alpha>\<beta>\<eta>"}-conversion of @{text "\<lambda>"}-terms,
-  and so-called \emph{lifting} of rules into a context of @{text "\<And>"}
-  and @{text "\<Longrightarrow>"} connectives.  Thus the full power of higher-order
-  natural deduction in Isabelle/Pure becomes readily available.
+  involves \emph{backchaining}, \emph{higher-order unification} modulo
+  @{text "\<alpha>\<beta>\<eta>"}-conversion of @{text "\<lambda>"}-terms, and so-called
+  \emph{lifting} of rules into a context of @{text "\<And>"} and @{text
+  "\<Longrightarrow>"} connectives.  Thus the full power of higher-order natural
+  deduction in Isabelle/Pure becomes readily available.
 *}
 
 
@@ -806,49 +806,64 @@ text {*
   \end{itemize}
 *}
 
+text %mlref {*
+  \begin{mldecls}
+  @{index_ML MetaSimplifier.norm_hhf: "thm -> thm"} \\
+  \end{mldecls}
+
+  \begin{description}
+
+  \item @{ML MetaSimplifier.norm_hhf}~@{text thm} normalizes the given
+  theorem according to the canonical form specified above.  This is
+  occasionally helpful to repair some low-level tools that do not
+  handle Hereditary Harrop Formulae properly.
+
+  \end{description}
+*}
+
 
 subsection {* Rule composition *}
 
 text {*
-  There are two main principles of rule composition: @{inference
-  resolution} (i.e.\ backchaining of rules) and @{inference
-  assumption} (i.e.\ closing a branch); both principles are combined
-  in the variants of @{inference elim_resolution} and @{inference
-  dest_resolution}.  Raw @{inference composition} is occasionally
-  useful as well, also it is strictly speaking outside of the proper
-  rule calculus.
+  The rule calculus of Isabelle/Pure provides two main inferences:
+  @{inference resolution} (i.e.\ back-chaining of rules) and
+  @{inference assumption} (i.e.\ closing a branch), both modulo
+  higher-order unification.  There are also combined variants, notably
+  @{inference elim_resolution} and @{inference dest_resolution}.
 
-
-  This means that any operations within the rule calculus may be
-  subject to spontaneous @{text "\<alpha>\<beta>\<eta>"}-HHF conversions.  It is common
-  practice not to contract or expand unnecessarily.  Some mechanisms
-  prefer an one form, others the opposite, so there is a potential
-  danger to produce some oscillation!
-
+  To understand the all-important @{inference resolution} principle,
+  we first consider raw @{inference_def composition} (modulo
+  higher-order unification with substitution @{text "\<vartheta>"}):
   \[
-  \infer[(@{inference assumption})]{@{text "C\<vartheta>"}}
-  {@{text "(\<And>\<^vec>x. \<^vec>H \<^vec>x \<Longrightarrow> A \<^vec>x) \<Longrightarrow> C"} & @{text "A\<vartheta> = H\<^sub>i\<vartheta>"}~~\text{(for some~@{text i})}}
-  \]
-
-
-  \[
-  \infer[(@{inference composition})]{@{text "\<^vec>A\<vartheta> \<Longrightarrow> C\<vartheta>"}}
+  \infer[(@{inference_def composition})]{@{text "\<^vec>A\<vartheta> \<Longrightarrow> C\<vartheta>"}}
   {@{text "\<^vec>A \<Longrightarrow> B"} & @{text "B' \<Longrightarrow> C"} & @{text "B\<vartheta> = B'\<vartheta>"}}
   \]
+  Here the conclusion of the first rule is unified with the premise of
+  the second; the resulting rule instance inherits the premises of the
+  first and conclusion of the second.  Note that @{text "C"} can again
+  consist of iterated implications.  We can also permute the premises
+  of the second rule back-and-forth in order to compose with @{text
+  "B'"} in any position (subsequently we shall always refer to
+  position 1 w.l.o.g.).
 
-
+  In raw @{inference composition}, the internal structure of the
+  common part @{text "B"} and @{text "B'"} is not taken into account.
+  For proper @{inference resolution} we require @{text "B"} to be
+  atomic, and explicitly observe the structure @{text
+  "\<And>\<^vec>x. \<^vec>H \<^vec>x \<Longrightarrow> B' \<^vec>x"} of the premise of the
+  second rule.  The idea is to adapt the first rule by ``lifting'' it
+  into this context, by means of iterated application of the following
+  inferences:
   \[
-  \infer[@{text "(\<And>_lift)"}]{@{text "(\<And>\<^vec>x. \<^vec>A (?\<^vec>a \<^vec>x)) \<Longrightarrow> (\<And>\<^vec>x. B (?\<^vec>a \<^vec>x))"}}{@{text "\<^vec>A ?\<^vec>a \<Longrightarrow> B ?\<^vec>a"}}
+  \infer[(@{inference_def imp_lift})]{@{text "(\<^vec>H \<Longrightarrow> \<^vec>A) \<Longrightarrow> (\<^vec>H \<Longrightarrow> B)"}}{@{text "\<^vec>A \<Longrightarrow> B"}}
   \]
   \[
-  \infer[@{text "(\<Longrightarrow>_lift)"}]{@{text "(\<^vec>H \<Longrightarrow> \<^vec>A) \<Longrightarrow> (\<^vec>H \<Longrightarrow> B)"}}{@{text "\<^vec>A \<Longrightarrow> B"}}
+  \infer[(@{inference_def all_lift})]{@{text "(\<And>\<^vec>x. \<^vec>A (?\<^vec>a \<^vec>x)) \<Longrightarrow> (\<And>\<^vec>x. B (?\<^vec>a \<^vec>x))"}}{@{text "\<^vec>A ?\<^vec>a \<Longrightarrow> B ?\<^vec>a"}}
   \]
-
-  The @{text resolve} scheme is now acquired from @{text "\<And>_lift"},
-  @{text "\<Longrightarrow>_lift"}, and @{text compose}.
-
+  By combining raw composition with lifting, we get full @{inference
+  resolution} as follows:
   \[
-  \infer[(@{inference resolution})]
+  \infer[(@{inference_def resolution})]
   {@{text "(\<And>\<^vec>x. \<^vec>H \<^vec>x \<Longrightarrow> \<^vec>A (?\<^vec>a \<^vec>x))\<vartheta> \<Longrightarrow> C\<vartheta>"}}
   {\begin{tabular}{l}
     @{text "\<^vec>A ?\<^vec>a \<Longrightarrow> B ?\<^vec>a"} \\
@@ -857,28 +872,41 @@ text {*
    \end{tabular}}
   \]
 
+  Continued resolution of rules allows to back-chain a problems
+  towards more and sub-problems.  Branches are closed either by
+  resolving with a rule of 0 premises, or by ``short-circuit'' within
+  a solved situation (again modulo unification):
+  \[
+  \infer[(@{inference_def assumption})]{@{text "C\<vartheta>"}}
+  {@{text "(\<And>\<^vec>x. \<^vec>H \<^vec>x \<Longrightarrow> A \<^vec>x) \<Longrightarrow> C"} & @{text "A\<vartheta> = H\<^sub>i\<vartheta>"}~~\text{(for some~@{text i})}}
+  \]
 
-  FIXME @{inference elim_resolution}, @{inference dest_resolution}
+  FIXME @{inference_def elim_resolution}, @{inference_def dest_resolution}
 *}
-
 
 text %mlref {*
   \begin{mldecls}
   @{index_ML "op RS": "thm * thm -> thm"} \\
   @{index_ML "op OF": "thm * thm list -> thm"} \\
-  @{index_ML MetaSimplifier.norm_hhf: "thm -> thm"} \\
   \end{mldecls}
 
   \begin{description}
 
-  \item @{text "thm\<^sub>1 RS thm\<^sub>2"} FIXME
+  \item @{text "rule\<^sub>1 RS rule\<^sub>2"} resolves @{text
+  "rule\<^sub>1"} with @{text "rule\<^sub>2"} according to the
+  @{inference resolution} principle explained above.  Note that the
+  corresponding attribute in the Isar language is called @{attribute
+  THEN}.
 
-  \item @{text "thm OF thms"} FIXME
-
-  \item @{ML MetaSimplifier.norm_hhf}~@{text thm} FIXME
+  \item @{text "rule OF rules"} resolves a list of rules with the
+  first @{text "rule"}, addressing its premises @{text "1, \<dots>, length
+  rules"} (operating from last to first).  This means the newly
+  emerging premises are all concatenated, without interfering.  Also
+  note that compared to @{text "RS"}, the rule argument order is
+  swapped: @{text "rule\<^sub>1 RS rule\<^sub>2 = rule\<^sub>2 OF
+  [rule\<^sub>1]"}.
 
   \end{description}
 *}
-
 
 end
