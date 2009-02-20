@@ -42,31 +42,53 @@ in [(@{const_syntax card}, card_univ_tr')]
 end
 *}
 
-lemma card_unit: "CARD(unit) = 1"
+lemma card_unit [simp]: "CARD(unit) = 1"
   unfolding UNIV_unit by simp
 
-lemma card_bool: "CARD(bool) = 2"
+lemma card_bool [simp]: "CARD(bool) = 2"
   unfolding UNIV_bool by simp
 
-lemma card_prod: "CARD('a::finite \<times> 'b::finite) = CARD('a) * CARD('b)"
+lemma card_prod [simp]: "CARD('a \<times> 'b) = CARD('a::finite) * CARD('b::finite)"
   unfolding UNIV_Times_UNIV [symmetric] by (simp only: card_cartesian_product)
 
-lemma card_sum: "CARD('a::finite + 'b::finite) = CARD('a) + CARD('b)"
+lemma card_sum [simp]: "CARD('a + 'b) = CARD('a::finite) + CARD('b::finite)"
   unfolding UNIV_Plus_UNIV [symmetric] by (simp only: finite card_Plus)
 
-lemma card_option: "CARD('a::finite option) = Suc CARD('a)"
+lemma card_option [simp]: "CARD('a option) = Suc CARD('a::finite)"
   unfolding insert_None_conv_UNIV [symmetric]
   apply (subgoal_tac "(None::'a option) \<notin> range Some")
   apply (simp add: card_image)
   apply fast
   done
 
-lemma card_set: "CARD('a::finite set) = 2 ^ CARD('a)"
+lemma card_set [simp]: "CARD('a set) = 2 ^ CARD('a::finite)"
   unfolding Pow_UNIV [symmetric]
   by (simp only: card_Pow finite numeral_2_eq_2)
 
-lemma card_finite_pos [simp]: "0 < CARD('a::finite)"
+lemma card_nat [simp]: "CARD(nat) = 0"
+  by (simp add: infinite_UNIV_nat card_eq_0_iff)
+
+
+subsection {* Classes with at least 1 and 2  *}
+
+text {* Class finite already captures "at least 1" *}
+
+lemma zero_less_card_finite [simp]: "0 < CARD('a::finite)"
   unfolding neq0_conv [symmetric] by simp
+
+lemma one_le_card_finite [simp]: "Suc 0 \<le> CARD('a::finite)"
+  by (simp add: less_Suc_eq_le [symmetric])
+
+text {* Class for cardinality "at least 2" *}
+
+class card2 = finite + 
+  assumes two_le_card: "2 \<le> CARD('a)"
+
+lemma one_less_card: "Suc 0 < CARD('a::card2)"
+  using two_le_card [where 'a='a] by simp
+
+lemma one_less_int_card: "1 < int CARD('a::card2)"
+  using one_less_card [where 'a='a] by simp
 
 
 subsection {* Numeral Types *}
@@ -86,6 +108,22 @@ proof
     by simp
 qed
 
+lemma card_num0 [simp]: "CARD (num0) = 0"
+  unfolding type_definition.card [OF type_definition_num0]
+  by simp
+
+lemma card_num1 [simp]: "CARD(num1) = 1"
+  unfolding type_definition.card [OF type_definition_num1]
+  by (simp only: card_unit)
+
+lemma card_bit0 [simp]: "CARD('a bit0) = 2 * CARD('a::finite)"
+  unfolding type_definition.card [OF type_definition_bit0]
+  by simp
+
+lemma card_bit1 [simp]: "CARD('a bit1) = Suc (2 * CARD('a::finite))"
+  unfolding type_definition.card [OF type_definition_bit1]
+  by simp
+
 instance num1 :: finite
 proof
   show "finite (UNIV::num1 set)"
@@ -93,46 +131,23 @@ proof
     using finite by (rule finite_imageI)
 qed
 
-instance bit0 :: (finite) finite
+instance bit0 :: (finite) card2
 proof
   show "finite (UNIV::'a bit0 set)"
     unfolding type_definition.univ [OF type_definition_bit0]
     by simp
+  show "2 \<le> CARD('a bit0)"
+    by simp
 qed
 
-instance bit1 :: (finite) finite
+instance bit1 :: (finite) card2
 proof
   show "finite (UNIV::'a bit1 set)"
     unfolding type_definition.univ [OF type_definition_bit1]
     by simp
+  show "2 \<le> CARD('a bit1)"
+    by simp
 qed
-
-lemma card_num1: "CARD(num1) = 1"
-  unfolding type_definition.card [OF type_definition_num1]
-  by (simp only: card_unit)
-
-lemma card_bit0: "CARD('a::finite bit0) = 2 * CARD('a)"
-  unfolding type_definition.card [OF type_definition_bit0]
-  by simp
-
-lemma card_bit1: "CARD('a::finite bit1) = Suc (2 * CARD('a))"
-  unfolding type_definition.card [OF type_definition_bit1]
-  by simp
-
-lemma card_num0: "CARD (num0) = 0"
-  by (simp add: infinite_UNIV_nat card_eq_0_iff type_definition.card [OF type_definition_num0])
-
-lemmas card_univ_simps [simp] =
-  card_unit
-  card_bool
-  card_prod
-  card_sum
-  card_option
-  card_set
-  card_num1
-  card_bit0
-  card_bit1
-  card_num0
 
 
 subsection {* Locale for modular arithmetic subtypes *}
@@ -288,8 +303,7 @@ interpretation bit0!:
            "Abs_bit0 :: int \<Rightarrow> 'a::finite bit0"
 apply (rule mod_type.intro)
 apply (simp add: int_mult type_definition_bit0)
-apply simp
-using card_finite_pos [where ?'a='a] apply arith
+apply (rule one_less_int_card)
 apply (rule zero_bit0_def)
 apply (rule one_bit0_def)
 apply (rule plus_bit0_def [unfolded Abs_bit0'_def])
@@ -305,7 +319,7 @@ interpretation bit1!:
            "Abs_bit1 :: int \<Rightarrow> 'a::finite bit1"
 apply (rule mod_type.intro)
 apply (simp add: int_mult type_definition_bit1)
-apply simp
+apply (rule one_less_int_card)
 apply (rule zero_bit1_def)
 apply (rule one_bit1_def)
 apply (rule plus_bit1_def [unfolded Abs_bit1'_def])
@@ -421,39 +435,6 @@ fun bit_tr' b [t] =
 
 in [("bit0", bit_tr' 0), ("bit1", bit_tr' 1)] end;
 *}
-
-
-subsection {* Classes with at least 1 and 2  *}
-
-text {* Class finite already captures "at least 1" *}
-
-lemma zero_less_card_finite [simp]:
-  "0 < CARD('a::finite)"
-proof (cases "CARD('a::finite) = 0")
-  case False thus ?thesis by (simp del: card_0_eq)
-next
-  case True
-  thus ?thesis by (simp add: finite)
-qed
-
-lemma one_le_card_finite [simp]:
-  "Suc 0 <= CARD('a::finite)"
-  by (simp add: less_Suc_eq_le [symmetric] zero_less_card_finite)
-
-
-text {* Class for cardinality "at least 2" *}
-
-class card2 = finite + 
-  assumes two_le_card: "2 <= CARD('a)"
-
-lemma one_less_card: "Suc 0 < CARD('a::card2)"
-  using two_le_card [where 'a='a] by simp
-
-instance bit0 :: (finite) card2
-  by intro_classes (simp add: one_le_card_finite)
-
-instance bit1 :: (finite) card2
-  by intro_classes (simp add: one_le_card_finite)
 
 subsection {* Examples *}
 
