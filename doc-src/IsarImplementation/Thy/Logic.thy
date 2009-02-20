@@ -735,7 +735,12 @@ text {*
   and so-called \emph{lifting} of rules into a context of @{text "\<And>"}
   and @{text "\<Longrightarrow>"} connectives.  Thus the full power of higher-order
   natural deduction in Isabelle/Pure becomes readily available.
+*}
 
+
+subsection {* Hereditary Harrop Formulae *}
+
+text {*
   The idea of object-level rules is to model Natural Deduction
   inferences in the style of Gentzen \cite{Gentzen:1935}, but we allow
   arbitrary nesting similar to \cite{extensions91}.  The most basic
@@ -751,22 +756,18 @@ text {*
   \[
   @{text "A\<^sub>1 \<Longrightarrow> \<dots> A\<^sub>n \<Longrightarrow> A"}
   \]
-  Any parameters occurring in rule statement are conceptionally
-  treated as arbitrary:
+  As an example consider conjunction introduction: @{text "A \<Longrightarrow> B \<Longrightarrow> A \<and>
+  B"}.  Any parameters occurring in such rule statements are
+  conceptionally treated as arbitrary:
   \[
-  @{text "\<And>x\<^sub>1 \<dots> x\<^sub>m. A\<^sub>1 \<Longrightarrow> \<dots> A\<^sub>n \<Longrightarrow> A"}
+  @{text "\<And>x\<^sub>1 \<dots> x\<^sub>m. A\<^sub>1 x\<^sub>1 \<dots> x\<^sub>m \<Longrightarrow> \<dots> A\<^sub>n x\<^sub>1 \<dots> x\<^sub>m \<Longrightarrow> A x\<^sub>1 \<dots> x\<^sub>m"}
   \]
-  This outermost quantifier prefix via is represented in Isabelle via
-  schematic variables @{text "?x\<^sub>1, \<dots>, ?x\<^sub>m"} occurring in
-  the statement body.  Note that this representation lacks information
-  about the order of parameters, and vacuous quantifiers disappear
-  automatically.
 
-  \medskip Nesting of rules means that the positions of @{text
-  "A\<^sub>i"} may hold recursively rules of the same shape, not just
-  atomic propositions.  This format is called \emph{Hereditary Harrop
-  Form} in the literature \cite{Miller:1991} and may be characterized
-  inductively as follows:
+  Nesting of rules means that the positions of @{text "A\<^sub>i"} may
+  hold compound rules of the same shape, not just atomic propositions.
+  Propositions of this format are called \emph{Hereditary Harrop
+  Formulae} in the literature \cite{Miller:1991}.  Here we give an
+  inductive characterization as follows:
 
   \medskip
   \begin{tabular}{ll}
@@ -776,13 +777,40 @@ text {*
   \end{tabular}
   \medskip
 
-  \noindent Due to @{prop "(PROP A \<Longrightarrow> (\<And>x. PROP B x)) \<equiv> (\<And>x. PROP A \<Longrightarrow>
-  PROP B x)"} any Pure proposition can be seen a rule in HHF format.
-  Some operations in Isabelle already work modulo that equivalence, in
-  other places results are explicitly put into canonical form (e.g.\
-  when exporting results, notably at the end of a proof).  Regular
-  user-level results should always be in canonical HHF format.
+  \noindent Thus we essentially impose nesting levels on Pure
+  propositions.  At each level there is a local parameter prefix,
+  followed by premises, and concluding another atomic proposition.
+  Typical examples are implication introduction @{text "(A \<Longrightarrow> B) \<Longrightarrow> A \<longrightarrow>
+  B"} or mathematical induction @{text "P 0 \<Longrightarrow> (\<And>n. P n \<Longrightarrow> P (Suc n)) \<Longrightarrow>
+  P n"}.  Even deeper nesting occurs in well-founded induction @{text
+  "(\<And>x. (\<And>y. y \<prec> x \<Longrightarrow> P y) \<Longrightarrow> P x) \<Longrightarrow> P x"}, but this already marks the
+  limit of rule complexity seen in practice.
 
+  \medskip The main inference system of Isabelle/Pure always maintains
+  the following canonical form of framework propositions:
+
+  \begin{itemize}
+
+  \item Results are normalized by means of the equivalence @{prop
+  "(PROP A \<Longrightarrow> (\<And>x. PROP B x)) \<equiv> (\<And>x. PROP A \<Longrightarrow> PROP B x)"}, which is a
+  theorem of Pure.  By pushing quantifiers inside conclusions in front
+  of the implication, we arrive at a normal form that is always a
+  Hereditary Harrop Formula.
+
+  \item The outermost prefix of parameters is represented via
+  schematic variables, i.e.\ instead of @{text "\<And>\<^vec>x. \<^vec>H
+  \<^vec>x \<Longrightarrow> A \<^vec>x"} we always work with @{text "\<^vec>H
+  ?\<^vec>x \<Longrightarrow> A ?\<^vec>x"}.  Note that this representation looses
+  information about the order of parameters, and vacuous quantifiers
+  vanish automatically.
+
+  \end{itemize}
+*}
+
+
+subsection {* Rule composition *}
+
+text {*
   There are two main principles of rule composition: @{inference
   resolution} (i.e.\ backchaining of rules) and @{inference
   assumption} (i.e.\ closing a branch); both principles are combined
