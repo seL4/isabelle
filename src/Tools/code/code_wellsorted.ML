@@ -50,9 +50,9 @@ fun pretty thy eqngr =
 fun complete_proper_sort thy =
   Sign.complete_sort thy #> filter (can (AxClass.get_info thy));
 
-fun inst_params thy tyco class =
+fun inst_params thy tyco =
   map (fn (c, _) => AxClass.param_of_inst thy (c, tyco))
-    ((#params o AxClass.get_info thy) class);
+    o maps (#params o AxClass.get_info thy);
 
 fun consts_of thy eqns = [] |> (fold o fold o fold_aterms)
   (fn Const (c, ty) => insert (op =) (c, Sign.const_typargs thy (c, Logic.unvarifyT ty)) | _ => I)
@@ -100,12 +100,11 @@ fun obtain_instance thy arities (inst as (class, tyco)) =
   case AList.lookup (op =) arities inst
    of SOME classess => (classess, ([], []))
     | NONE => let
+        val all_classes = complete_proper_sort thy [class];
+        val superclasses = remove (op =) class all_classes
         val classess = map (complete_proper_sort thy)
           (Sign.arity_sorts thy tyco [class]);
-        val superclasses = [class]
-          |> complete_proper_sort thy
-          |> remove (op =) class;
-        val inst_params = inst_params thy tyco class;
+        val inst_params = inst_params thy tyco all_classes;
       in (classess, (superclasses, inst_params)) end;
 
 fun add_classes thy arities eqngr c_k new_classes vardeps_data =
@@ -225,7 +224,7 @@ fun dicts_of thy (proj_sort, algebra) (T, sort) =
   let
     fun class_relation (x, _) _ = x;
     fun type_constructor tyco xs class =
-      inst_params thy tyco class @ (maps o maps) fst xs;
+      inst_params thy tyco (Sorts.complete_sort algebra [class]) @ (maps o maps) fst xs;
     fun type_variable (TFree (_, sort)) = map (pair []) (proj_sort sort);
   in
     flat (Sorts.of_sort_derivation (Syntax.pp_global thy) algebra
