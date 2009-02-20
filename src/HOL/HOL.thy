@@ -28,7 +28,7 @@ uses
   ("~~/src/Tools/induct_tacs.ML")
   "~~/src/Tools/value.ML"
   "~~/src/Tools/code/code_name.ML"
-  "~~/src/Tools/code/code_funcgr.ML"
+  "~~/src/Tools/code/code_wellsorted.ML"
   "~~/src/Tools/code/code_thingol.ML"
   "~~/src/Tools/code/code_printer.ML"
   "~~/src/Tools/code/code_target.ML"
