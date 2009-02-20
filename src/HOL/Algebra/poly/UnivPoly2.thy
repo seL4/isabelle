@@ -1,6 +1,5 @@
 (*
   Title:     Univariate Polynomials
-  Id:        $Id$
   Author:    Clemens Ballarin, started 9 December 1996
   Copyright: Clemens Ballarin
 *)
@@ -388,7 +387,7 @@ proof (rule up_eqI)
   proof (cases k)
     case 0 then show ?thesis by simp ring
   next
-    case Suc then show ?thesis by (simp add: algebra_simps) ring
+    case Suc then show ?thesis by simp (ring, simp)
   qed
   then show "coeff (monom a 0 * p) k = coeff (a *s p) k" by ring
 qed
