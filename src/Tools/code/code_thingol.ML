@@ -453,7 +453,7 @@ fun not_wellsorted thy thm ty sort e =
   let
     val err_class = Sorts.class_error (Syntax.pp_global thy) e;
     val err_thm = case thm
-     of SOME thm => "\n(in defining equation " ^ Display.string_of_thm thm ^ ")" | NONE => "";
+     of SOME thm => "\n(in code equation " ^ Display.string_of_thm thm ^ ")" | NONE => "";
     val err_typ = "Type " ^ Syntax.string_of_typ_global thy ty ^ " not of sort "
       ^ Syntax.string_of_sort_global thy sort;
   in error ("Wellsortedness error" ^ err_thm ^ ":\n" ^ err_typ ^ "\n" ^ err_class) end;
@@ -582,9 +582,8 @@ and ensure_const thy algbr funcgr c =
     fun stmt_classparam class =
       ensure_class thy algbr funcgr class
       #>> (fn class => Classparam (c, class));
-    fun stmt_fun ((vs, raw_ty), raw_thms) =
+    fun stmt_fun ((vs, ty), raw_thms) =
       let
-        val ty = Logic.unvarifyT raw_ty; (*FIXME change convention here*)
         val thms = if null (Term.add_tfreesT ty []) orelse (null o fst o strip_type) ty
           then raw_thms
           else (map o apfst) (Code_Unit.expand_eta thy 1) raw_thms;
@@ -643,11 +642,6 @@ and translate_case thy algbr funcgr thm (num_args, (t_pos, case_pats)) (c_ty, ts
     val ts_clause = nth_drop t_pos ts;
     fun mk_clause (co, num_co_args) t =
       let
-        val _ = if (is_some o Code.get_datatype_of_constr thy) co then ()
-          else error ("Non-constructor " ^ quote co
-            ^ " encountered in case pattern"
-            ^ (case thm of NONE => ""
-              | SOME thm => ", in equation\n" ^ Display.string_of_thm thm))
         val (vs, body) = Term.strip_abs_eta num_co_args t;
         val not_undefined = case body
          of (Const (c, _)) => not (Code.is_undefined thy c)
@@ -702,9 +696,7 @@ and translate_app_case thy algbr funcgr thm (case_scheme as (num_args, _)) ((c, 
     translate_case thy algbr funcgr thm case_scheme ((c, ty), ts)
 and translate_app thy algbr funcgr thm (c_ty_ts as ((c, _), _)) =
   case Code.get_case_scheme thy c
-   of SOME (base_case_scheme as (_, case_pats)) =>
-        translate_app_case thy algbr funcgr thm
-          (1 + Int.max (1, length case_pats), base_case_scheme) c_ty_ts
+   of SOME case_scheme => translate_app_case thy algbr funcgr thm case_scheme c_ty_ts
     | NONE => translate_app_const thy algbr funcgr thm c_ty_ts;
 
 

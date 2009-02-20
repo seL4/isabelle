@@ -35,7 +35,7 @@ sig
   val these_raw_eqns: theory -> string -> (thm * bool) list
   val get_datatype: theory -> string -> ((string * sort) list * (string * typ list) list)
   val get_datatype_of_constr: theory -> string -> string option
-  val get_case_scheme: theory -> string -> (int * string list) option
+  val get_case_scheme: theory -> string -> (int * (int * string list)) option
   val is_undefined: theory -> string -> bool
   val default_typscheme: theory -> string -> (string * sort) list * typ
 
@@ -111,7 +111,7 @@ val _ =
 
 (** logical and syntactical specification of executable code **)
 
-(* defining equations *)
+(* code equations *)
 
 type eqns = bool * (thm * bool) list lazy;
   (*default flag, theorems with linear flag (perhaps lazy)*)
@@ -136,7 +136,7 @@ fun add_drop_redundant thy (thm, linear) thms =
       Pattern.matchess thy (args, (map incr_idx o curry Library.take (length args)) args');
     fun drop (thm', linear') = if (linear orelse not linear')
       andalso matches_args (args_of thm') then 
-        (warning ("Code generator: dropping redundant defining equation\n" ^ Display.string_of_thm thm'); true)
+        (warning ("Code generator: dropping redundant code equation\n" ^ Display.string_of_thm thm'); true)
       else false;
   in (thm, linear) :: filter_out drop thms end;
 
@@ -409,7 +409,7 @@ fun print_codesetup thy =
   in
     (Pretty.writeln o Pretty.chunks) [
       Pretty.block (
-        Pretty.str "defining equations:"
+        Pretty.str "code equations:"
         :: Pretty.fbrk
         :: (Pretty.fbreaks o map pretty_eqn) eqns
       ),
@@ -452,7 +452,7 @@ fun common_typ_eqns thy [] = []
         val ty1 :: tys = map (snd o Code_Unit.const_typ_eqn) thms';
         fun unify ty env = Sign.typ_unify thy (ty1, ty) env
           handle Type.TUNIFY =>
-            error ("Type unificaton failed, while unifying defining equations\n"
+            error ("Type unificaton failed, while unifying code equations\n"
             ^ (cat_lines o map Display.string_of_thm) thms
             ^ "\nwith types\n"
             ^ (cat_lines o map (Code_Unit.string_of_typ thy)) (ty1 :: tys));
@@ -463,7 +463,7 @@ fun common_typ_eqns thy [] = []
 
 fun check_linear (eqn as (thm, linear)) =
   if linear then eqn else Code_Unit.bad_thm
-    ("Duplicate variables on left hand side of defining equation:\n"
+    ("Duplicate variables on left hand side of code equation:\n"
       ^ Display.string_of_thm thm);
 
 fun mk_eqn thy linear =
@@ -525,22 +525,13 @@ fun get_datatype_of_constr thy c =
        then SOME tyco else NONE
     | _ => NONE;
 
-fun get_constr_typ thy c =
-  case get_datatype_of_constr thy c
-   of SOME tyco => let
-          val (vs, cos) = get_datatype thy tyco;
-          val SOME tys = AList.lookup (op =) cos c;
-          val ty = tys ---> Type (tyco, map TFree vs);
-        in SOME (Logic.varifyT ty) end
-    | NONE => NONE;
-
 fun recheck_eqn thy = Code_Unit.error_thm
   (Code_Unit.assert_linear (is_some o get_datatype_of_constr thy) o apfst (Code_Unit.assert_eqn thy));
 
 fun recheck_eqns_const thy c eqns =
   let
     fun cert (eqn as (thm, _)) = if c = Code_Unit.const_eqn thm
-      then eqn else error ("Wrong head of defining equation,\nexpected constant "
+      then eqn else error ("Wrong head of code equation,\nexpected constant "
         ^ Code_Unit.string_of_const thy c ^ "\n" ^ Display.string_of_thm thm)
   in map (cert o recheck_eqn thy) eqns end;
 
@@ -554,11 +545,11 @@ fun gen_add_eqn linear default thm thy =
         let
           val c = Code_Unit.const_eqn thm;
           val _ = if not default andalso (is_some o AxClass.class_of_param thy) c
-            then error ("Rejected polymorphic equation for overloaded constant:\n"
+            then error ("Rejected polymorphic code equation for overloaded constant:\n"
               ^ Display.string_of_thm thm)
             else ();
           val _ = if not default andalso (is_some o get_datatype_of_constr thy) c
-            then error ("Rejected equation for datatype constructor:\n"
+            then error ("Rejected code equation for datatype constructor:\n"
               ^ Display.string_of_thm thm)
             else ();
         in change_eqns false c (add_thm thy default (thm, linear)) thy end
@@ -583,7 +574,12 @@ fun del_eqn thm thy = case mk_syntactic_eqn thy thm
 
 fun del_eqns c = change_eqns true c (K (false, Lazy.value []));
 
-fun get_case_scheme thy = Symtab.lookup ((fst o the_cases o the_exec) thy);
+fun get_case_scheme thy c = case Symtab.lookup ((fst o the_cases o the_exec) thy) c
+ of SOME (base_case_scheme as (_, case_pats)) =>
+      if forall (is_some o get_datatype_of_constr thy) case_pats
+      then SOME (1 + Int.max (1, length case_pats), base_case_scheme)
+      else NONE
+  | NONE => NONE;
 
 val is_undefined = Symtab.defined o snd o the_cases o the_exec;
 
@@ -727,18 +723,16 @@ fun these_eqns thy c =
 
 fun default_typscheme thy c =
   let
-    val typscheme = curry (Code_Unit.typscheme thy) c
-    val the_const_type = snd o dest_Const o TermSubst.zero_var_indexes
-      o curry Const "" o Sign.the_const_type thy;
+    fun the_const_typscheme c = (curry (Code_Unit.typscheme thy) c o snd o dest_Const
+      o TermSubst.zero_var_indexes o curry Const "" o Sign.the_const_type thy) c;
+    fun strip_sorts (vs, ty) = (map (fn (v, _) => (v, [])) vs, ty);
   in case AxClass.class_of_param thy c
-   of SOME class => the_const_type c
-        |> Term.map_type_tvar (K (TVar ((Name.aT, 0), [class])))
-        |> typscheme
-    | NONE => (case get_constr_typ thy c
-       of SOME ty => typscheme ty
-        | NONE => (case get_eqns thy c
-           of (thm, _) :: _ => snd (Code_Unit.head_eqn thy (Drule.zero_var_indexes thm))
-            | [] => typscheme (the_const_type c))) end;
+   of SOME class => ([(Name.aT, [class])], snd (the_const_typscheme c))
+    | NONE => if is_some (get_datatype_of_constr thy c)
+        then strip_sorts (the_const_typscheme c)
+        else case get_eqns thy c
+         of (thm, _) :: _ => snd (Code_Unit.head_eqn thy (Drule.zero_var_indexes thm))
+          | [] => strip_sorts (the_const_typscheme c) end;
 
 end; (*local*)
 
