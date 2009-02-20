@@ -1,6 +1,4 @@
-(*  ID:         $Id$
-    Author:     Florian Haftmann, TU Muenchen
-*)
+(* Author: Florian Haftmann, TU Muenchen *)
 
 header {* Small examples for evaluation mechanisms *}
 
