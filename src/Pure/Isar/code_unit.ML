@@ -34,7 +34,7 @@ sig
   val constrset_of_consts: theory -> (string * typ) list
     -> string * ((string * sort) list * (string * typ list) list)
 
-  (*defining equations*)
+  (*code equations*)
   val assert_eqn: theory -> thm -> thm
   val mk_eqn: theory -> thm -> thm * bool
   val assert_linear: (string -> bool) -> thm * bool -> thm * bool
@@ -76,10 +76,11 @@ fun no_args thy = length o fst o strip_type o Sign.the_const_type thy;
 
 fun typscheme thy (c, ty) =
   let
-    fun dest (TVar ((v, 0), sort)) = (v, sort)
+    val ty' = Logic.unvarifyT ty;
+    fun dest (TFree (v, sort)) = (v, sort)
       | dest ty = error ("Illegal type parameter in type scheme: " ^ Syntax.string_of_typ_global thy ty);
-    val vs = map dest (Sign.const_typargs thy (c, ty));
-  in (vs, ty) end;
+    val vs = map dest (Sign.const_typargs thy (c, ty'));
+  in (vs, Type.strip_sorts ty') end;
 
 fun inst_thm thy tvars' thm =
   let
@@ -313,10 +314,10 @@ fun constrset_of_consts thy cs =
     val ((tyco, sorts), cs'') = fold add cs' (apsnd single c');
     val vs = Name.names Name.context Name.aT sorts;
     val cs''' = map (inst vs) cs'';
-  in (tyco, (vs, cs''')) end;
+  in (tyco, (vs, rev cs''')) end;
 
 
-(* defining equations *)
+(* code equations *)
 
 fun assert_eqn thy thm =
   let
@@ -351,7 +352,7 @@ fun assert_eqn thy thm =
             ^ Display.string_of_thm thm)
       | check 0 (Var _) = ()
       | check _ (Var _) = bad_thm
-          ("Variable with application on left hand side of defining equation\n"
+          ("Variable with application on left hand side of code equation\n"
             ^ Display.string_of_thm thm)
       | check n (t1 $ t2) = (check (n+1) t1; check 0 t2)
       | check n (Const (_, ty)) = if n <> (length o fst o strip_type) ty
@@ -363,7 +364,7 @@ fun assert_eqn thy thm =
     val ty_decl = Sign.the_const_type thy c;
     val _ = if Sign.typ_equiv thy (Type.strip_sorts ty_decl, Type.strip_sorts ty)
       then () else bad_thm ("Type\n" ^ string_of_typ thy ty
-           ^ "\nof defining equation\n"
+           ^ "\nof code equation\n"
            ^ Display.string_of_thm thm
            ^ "\nis incompatible with declared function type\n"
            ^ string_of_typ thy ty_decl)
@@ -388,7 +389,7 @@ fun assert_pat is_cons thm =
 fun assert_linear is_cons (thm, false) = (thm, false)
   | assert_linear is_cons (thm, true) = if snd (add_linear (assert_pat is_cons thm)) then (thm, true)
       else bad_thm
-        ("Duplicate variables on left hand side of defining equation:\n"
+        ("Duplicate variables on left hand side of code equation:\n"
           ^ Display.string_of_thm thm);
 
 
