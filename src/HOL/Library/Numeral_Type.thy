@@ -347,11 +347,11 @@ interpretation bit1!:
 
 text {* Set up cases, induction, and arithmetic *}
 
-lemmas bit0_cases [cases type: bit0, case_names of_int] = bit0.cases
-lemmas bit1_cases [cases type: bit1, case_names of_int] = bit1.cases
+lemmas bit0_cases [case_names of_int, cases type: bit0] = bit0.cases
+lemmas bit1_cases [case_names of_int, cases type: bit1] = bit1.cases
 
-lemmas bit0_induct [induct type: bit0, case_names of_int] = bit0.induct
-lemmas bit1_induct [induct type: bit1, case_names of_int] = bit1.induct
+lemmas bit0_induct [case_names of_int, induct type: bit0] = bit0.induct
+lemmas bit1_induct [case_names of_int, induct type: bit1] = bit1.induct
 
 lemmas bit0_iszero_number_of [simp] = bit0.iszero_number_of
 lemmas bit1_iszero_number_of [simp] = bit1.iszero_number_of
