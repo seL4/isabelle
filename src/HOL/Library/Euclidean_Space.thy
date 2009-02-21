@@ -84,7 +84,13 @@ definition vector_less_def: "less (x :: 'a ^'b) y = (ALL i : {1 ..
 instance by (intro_classes)
 end
 
-text{* Also the scalar-vector multiplication. FIXME: We should unify this with the scalar multiplication in @{text real_vector} *}
+instantiation "^" :: (scaleR, type) scaleR
+begin
+definition vector_scaleR_def: "scaleR = (\<lambda> r x.  (\<chi> i. scaleR r (x$i)))" 
+instance ..
+end
+
+text{* Also the scalar-vector multiplication. *}
 
 definition vector_scalar_mult:: "'a::times \<Rightarrow> 'a ^'n \<Rightarrow> 'a ^ 'n" (infixr "*s" 75)
   where "c *s x = (\<chi> i. c * (x$i))"
@@ -118,6 +124,7 @@ let
              [@{thm vector_add_def}, @{thm vector_mult_def},  
               @{thm vector_minus_def}, @{thm vector_uminus_def}, 
               @{thm vector_one_def}, @{thm vector_zero_def}, @{thm vec_def}, 
+              @{thm vector_scaleR_def},
               @{thm Cart_lambda_beta'}, @{thm vector_scalar_mult_def}]
  fun vector_arith_tac ths = 
    simp_tac ss1
@@ -166,9 +173,18 @@ lemma vector_uminus_component:
   shows "(- x)$i = - (x$i)"
   using i by vector
 
+lemma vector_scaleR_component:
+  fixes x :: "'a::scaleR ^ 'n"
+  assumes i: "i \<in> {1 .. dimindex(UNIV :: 'n set)}"
+  shows "(scaleR r x)$i = scaleR r (x$i)"
+  using i by vector
+
 lemma cond_component: "(if b then x else y)$i = (if b then x$i else y$i)" by vector
 
-lemmas vector_component = vec_component vector_add_component vector_mult_component vector_smult_component vector_minus_component vector_uminus_component cond_component 
+lemmas vector_component =
+  vec_component vector_add_component vector_mult_component
+  vector_smult_component vector_minus_component vector_uminus_component
+  vector_scaleR_component cond_component
 
 subsection {* Some frequently useful arithmetic lemmas over vectors. *}
 
@@ -198,6 +214,9 @@ instance "^" :: (cancel_semigroup_add,type) cancel_semigroup_add
 instance "^" :: (cancel_ab_semigroup_add,type) cancel_ab_semigroup_add
   apply (intro_classes)
   by (vector Cart_eq)
+
+instance "^" :: (real_vector, type) real_vector
+  by default (vector scaleR_left_distrib scaleR_right_distrib)+
 
 instance "^" :: (semigroup_mult,type) semigroup_mult 
   apply (intro_classes) by (vector mult_assoc)
@@ -242,6 +261,18 @@ instance "^" :: (comm_semiring_0_cancel,type) comm_semiring_0_cancel by (intro_c
 instance "^" :: (ring,type) ring by (intro_classes) 
 instance "^" :: (semiring_1_cancel,type) semiring_1_cancel by (intro_classes) 
 instance "^" :: (comm_semiring_1,type) comm_semiring_1 by (intro_classes)
+
+instance "^" :: (ring_1,type) ring_1 ..
+
+instance "^" :: (real_algebra,type) real_algebra
+  apply intro_classes
+  apply (simp_all add: vector_scaleR_def ring_simps)
+  apply vector
+  apply vector
+  done
+
+instance "^" :: (real_algebra_1,type) real_algebra_1 ..
+
 lemma of_nat_index: 
   "i\<in>{1 .. dimindex (UNIV :: 'n set)} \<Longrightarrow> (of_nat n :: 'a::semiring_1 ^'n)$i = of_nat n"
   apply (induct n)
@@ -290,8 +321,7 @@ proof (intro_classes)
 qed
 
 instance "^" :: (comm_ring_1,type) comm_ring_1 by intro_classes
-  (* FIXME!!! Why does the axclass package complain here !!*)
-(* instance "^" :: (ring_char_0,type) ring_char_0 by intro_classes *)
+instance "^" :: (ring_char_0,type) ring_char_0 by intro_classes
 
 lemma vector_smult_assoc: "a *s (b *s x) = ((a::'a::semigroup_mult) * b) *s x"  
   by (vector mult_assoc)
@@ -935,45 +965,6 @@ lemma real_setsum_norm_bound:
   shows "norm (setsum f S) \<le> of_nat (card S) * K"
   using real_setsum_norm_le[OF fS K] setsum_constant[symmetric]
   by simp
-
-instantiation "^" :: ("{scaleR, one, times}",type) scaleR
-begin
-
-definition vector_scaleR_def: "(scaleR :: real \<Rightarrow> 'a ^'b \<Rightarrow> 'a ^'b) \<equiv> (\<lambda> c x . (scaleR c 1) *s x)"
-instance ..
-end
-
-instantiation "^" :: ("ring_1",type) ring_1
-begin
-instance by intro_classes
-end
-
-instantiation "^" :: (real_algebra_1,type) real_vector
-begin
-
-instance
-  apply intro_classes
-  apply (simp_all  add: vector_scaleR_def)
-  apply (simp_all add: vector_sadd_rdistrib vector_add_ldistrib vector_smult_lid vector_smult_assoc scaleR_left_distrib mult_commute)
-  done
-end
-
-instantiation "^" :: (real_algebra_1,type) real_algebra
-begin
-
-instance
-  apply intro_classes
-  apply (simp_all add: vector_scaleR_def ring_simps)
-  apply vector
-  apply vector
-  done
-end
-
-instantiation "^" :: (real_algebra_1,type) real_algebra_1
-begin
-
-instance ..
-end
 
 lemma setsum_vmul:
   fixes f :: "'a \<Rightarrow> 'b::{real_normed_vector,semiring, mult_zero}"
