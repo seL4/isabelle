@@ -24,7 +24,7 @@
 %
 \begin{isamarkuptext}%
 The logical foundations of Isabelle/Isar are that of the Pure logic,
-  which has been introduced as a natural-deduction framework in
+  which has been introduced as a Natural Deduction framework in
   \cite{paulson700}.  This is essentially the same logic as ``\isa{{\isasymlambda}HOL}'' in the more abstract setting of Pure Type Systems (PTS)
   \cite{Barendregt-Geuvers:2001}, although there are some key
   differences in the specific treatment of simple types in
@@ -395,7 +395,7 @@ The language of terms is that of simply-typed \isa{{\isasymlambda}}-calculus
 A \emph{proposition} is a well-typed term of type \isa{prop}, a
   \emph{theorem} is a proven proposition (depending on a context of
   hypotheses and the background theory).  Primitive inferences include
-  plain natural deduction rules for the primary connectives \isa{{\isasymAnd}} and \isa{{\isasymLongrightarrow}} of the framework.  There is also a builtin
+  plain Natural Deduction rules for the primary connectives \isa{{\isasymAnd}} and \isa{{\isasymLongrightarrow}} of the framework.  There is also a builtin
   notion of equality/equivalence \isa{{\isasymequiv}}.%
 \end{isamarkuptext}%
 \isamarkuptrue%
@@ -742,8 +742,8 @@ The primitive inferences covered so far mostly serve foundational
   that are represented as theorems of Pure.  Composition of rules
   involves \emph{backchaining}, \emph{higher-order unification} modulo
   \isa{{\isasymalpha}{\isasymbeta}{\isasymeta}}-conversion of \isa{{\isasymlambda}}-terms, and so-called
-  \emph{lifting} of rules into a context of \isa{{\isasymAnd}} and \isa{{\isasymLongrightarrow}} connectives.  Thus the full power of higher-order natural
-  deduction in Isabelle/Pure becomes readily available.%
+  \emph{lifting} of rules into a context of \isa{{\isasymAnd}} and \isa{{\isasymLongrightarrow}} connectives.  Thus the full power of higher-order Natural
+  Deduction in Isabelle/Pure becomes readily available.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -799,14 +799,15 @@ The idea of object-level rules is to model Natural Deduction
 
   \begin{itemize}
 
-  \item Normalization by the equivalence \isa{{\isacharparenleft}PROP\ A\ {\isasymLongrightarrow}\ {\isacharparenleft}{\isasymAnd}x{\isachardot}\ PROP\ B\ x{\isacharparenright}{\isacharparenright}\ {\isasymequiv}\ {\isacharparenleft}{\isasymAnd}x{\isachardot}\ PROP\ A\ {\isasymLongrightarrow}\ PROP\ B\ x{\isacharparenright}}, which is a theorem of Pure, means
-  that quantifiers are pushed in front of implication at each level of
-  nesting.  The normal form is always a Hereditary Harrop Formula.
+  \item Normalization by \isa{{\isacharparenleft}A\ {\isasymLongrightarrow}\ {\isacharparenleft}{\isasymAnd}x{\isachardot}\ B\ x{\isacharparenright}{\isacharparenright}\ {\isasymequiv}\ {\isacharparenleft}{\isasymAnd}x{\isachardot}\ A\ {\isasymLongrightarrow}\ B\ x{\isacharparenright}},
+  which is a theorem of Pure, means that quantifiers are pushed in
+  front of implication at each level of nesting.  The normal form is a
+  Hereditary Harrop Formula.
 
   \item The outermost prefix of parameters is represented via
-  schematic variables: instead of \isa{{\isasymAnd}\isactrlvec x{\isachardot}\ \isactrlvec H\ \isactrlvec x\ {\isasymLongrightarrow}\ A\ \isactrlvec x} we always have \isa{\isactrlvec H\ {\isacharquery}\isactrlvec x\ {\isasymLongrightarrow}\ A\ {\isacharquery}\isactrlvec x}.  Note that this representation looses information about
-  the order of parameters, and vacuous quantifiers vanish
-  automatically.
+  schematic variables: instead of \isa{{\isasymAnd}\isactrlvec x{\isachardot}\ \isactrlvec H\ \isactrlvec x\ {\isasymLongrightarrow}\ A\ \isactrlvec x} we have \isa{\isactrlvec H\ {\isacharquery}\isactrlvec x\ {\isasymLongrightarrow}\ A\ {\isacharquery}\isactrlvec x}.
+  Note that this representation looses information about the order of
+  parameters, and vacuous quantifiers vanish automatically.
 
   \end{itemize}%
 \end{isamarkuptext}%
@@ -866,13 +867,12 @@ The rule calculus of Isabelle/Pure provides two main inferences:
   of the second rule back-and-forth in order to compose with \isa{B{\isacharprime}} in any position (subsequently we shall always refer to
   position 1 w.l.o.g.).
 
-  In raw \hyperlink{inference.composition}{\mbox{\isa{composition}}}, the internal structure of the
-  common part \isa{B} and \isa{B{\isacharprime}} is not taken into account.
-  For proper \hyperlink{inference.resolution}{\mbox{\isa{resolution}}} we require \isa{B} to be
-  atomic, and explicitly observe the structure \isa{{\isasymAnd}\isactrlvec x{\isachardot}\ \isactrlvec H\ \isactrlvec x\ {\isasymLongrightarrow}\ B{\isacharprime}\ \isactrlvec x} of the premise of the
-  second rule.  The idea is to adapt the first rule by ``lifting'' it
-  into this context, by means of iterated application of the following
-  inferences:
+  In \hyperlink{inference.composition}{\mbox{\isa{composition}}} the internal structure of the common
+  part \isa{B} and \isa{B{\isacharprime}} is not taken into account.  For
+  proper \hyperlink{inference.resolution}{\mbox{\isa{resolution}}} we require \isa{B} to be atomic,
+  and explicitly observe the structure \isa{{\isasymAnd}\isactrlvec x{\isachardot}\ \isactrlvec H\ \isactrlvec x\ {\isasymLongrightarrow}\ B{\isacharprime}\ \isactrlvec x} of the premise of the second rule.  The
+  idea is to adapt the first rule by ``lifting'' it into this context,
+  by means of iterated application of the following inferences:
   \[
   \infer[(\indexdef{}{inference}{imp\_lift}\hypertarget{inference.imp-lift}{\hyperlink{inference.imp-lift}{\mbox{\isa{imp{\isacharunderscore}lift}}}})]{\isa{{\isacharparenleft}\isactrlvec H\ {\isasymLongrightarrow}\ \isactrlvec A{\isacharparenright}\ {\isasymLongrightarrow}\ {\isacharparenleft}\isactrlvec H\ {\isasymLongrightarrow}\ B{\isacharparenright}}}{\isa{\isactrlvec A\ {\isasymLongrightarrow}\ B}}
   \]
@@ -890,10 +890,10 @@ The rule calculus of Isabelle/Pure provides two main inferences:
    \end{tabular}}
   \]
 
-  Continued resolution of rules allows to back-chain a problems
-  towards more and sub-problems.  Branches are closed either by
-  resolving with a rule of 0 premises, or by ``short-circuit'' within
-  a solved situation (again modulo unification):
+  Continued resolution of rules allows to back-chain a problem towards
+  more and sub-problems.  Branches are closed either by resolving with
+  a rule of 0 premises, or by producing a ``short-circuit'' within a
+  solved situation (again modulo unification):
   \[
   \infer[(\indexdef{}{inference}{assumption}\hypertarget{inference.assumption}{\hyperlink{inference.assumption}{\mbox{\isa{assumption}}}})]{\isa{C{\isasymvartheta}}}
   {\isa{{\isacharparenleft}{\isasymAnd}\isactrlvec x{\isachardot}\ \isactrlvec H\ \isactrlvec x\ {\isasymLongrightarrow}\ A\ \isactrlvec x{\isacharparenright}\ {\isasymLongrightarrow}\ C} & \isa{A{\isasymvartheta}\ {\isacharequal}\ H\isactrlsub i{\isasymvartheta}}~~\text{(for some~\isa{i})}}
@@ -922,10 +922,10 @@ The rule calculus of Isabelle/Pure provides two main inferences:
   corresponding attribute in the Isar language is called \hyperlink{attribute.THEN}{\mbox{\isa{THEN}}}.
 
   \item \isa{rule\ OF\ rules} resolves a list of rules with the
-  first \isa{rule}, addressing its premises \isa{{\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ length\ rules} (operating from last to first).  This means the newly
-  emerging premises are all concatenated, without interfering.  Also
-  note that compared to \isa{RS}, the rule argument order is
-  swapped: \isa{rule\isactrlsub {\isadigit{1}}\ RS\ rule\isactrlsub {\isadigit{2}}\ {\isacharequal}\ rule\isactrlsub {\isadigit{2}}\ OF\ {\isacharbrackleft}rule\isactrlsub {\isadigit{1}}{\isacharbrackright}}.
+  first rule, addressing its premises \isa{{\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ length\ rules}
+  (operating from last to first).  This means the newly emerging
+  premises are all concatenated, without interfering.  Also note that
+  compared to \isa{RS}, the rule argument order is swapped: \isa{rule\isactrlsub {\isadigit{1}}\ RS\ rule\isactrlsub {\isadigit{2}}\ {\isacharequal}\ rule\isactrlsub {\isadigit{2}}\ OF\ {\isacharbrackleft}rule\isactrlsub {\isadigit{1}}{\isacharbrackright}}.
 
   \end{description}%
 \end{isamarkuptext}%
