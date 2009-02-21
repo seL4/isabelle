@@ -6,7 +6,7 @@ chapter {* Primitive logic \label{ch:logic} *}
 
 text {*
   The logical foundations of Isabelle/Isar are that of the Pure logic,
-  which has been introduced as a natural-deduction framework in
+  which has been introduced as a Natural Deduction framework in
   \cite{paulson700}.  This is essentially the same logic as ``@{text
   "\<lambda>HOL"}'' in the more abstract setting of Pure Type Systems (PTS)
   \cite{Barendregt-Geuvers:2001}, although there are some key
@@ -392,7 +392,7 @@ text {*
   A \emph{proposition} is a well-typed term of type @{text "prop"}, a
   \emph{theorem} is a proven proposition (depending on a context of
   hypotheses and the background theory).  Primitive inferences include
-  plain natural deduction rules for the primary connectives @{text
+  plain Natural Deduction rules for the primary connectives @{text
   "\<And>"} and @{text "\<Longrightarrow>"} of the framework.  There is also a builtin
   notion of equality/equivalence @{text "\<equiv>"}.
 *}
@@ -733,8 +733,8 @@ text {*
   involves \emph{backchaining}, \emph{higher-order unification} modulo
   @{text "\<alpha>\<beta>\<eta>"}-conversion of @{text "\<lambda>"}-terms, and so-called
   \emph{lifting} of rules into a context of @{text "\<And>"} and @{text
-  "\<Longrightarrow>"} connectives.  Thus the full power of higher-order natural
-  deduction in Isabelle/Pure becomes readily available.
+  "\<Longrightarrow>"} connectives.  Thus the full power of higher-order Natural
+  Deduction in Isabelle/Pure becomes readily available.
 *}
 
 
@@ -791,17 +791,16 @@ text {*
 
   \begin{itemize}
 
-  \item Normalization by the equivalence @{prop "(PROP A \<Longrightarrow> (\<And>x. PROP B
-  x)) \<equiv> (\<And>x. PROP A \<Longrightarrow> PROP B x)"}, which is a theorem of Pure, means
-  that quantifiers are pushed in front of implication at each level of
-  nesting.  The normal form is always a Hereditary Harrop Formula.
+  \item Normalization by @{text "(A \<Longrightarrow> (\<And>x. B x)) \<equiv> (\<And>x. A \<Longrightarrow> B x)"},
+  which is a theorem of Pure, means that quantifiers are pushed in
+  front of implication at each level of nesting.  The normal form is a
+  Hereditary Harrop Formula.
 
   \item The outermost prefix of parameters is represented via
   schematic variables: instead of @{text "\<And>\<^vec>x. \<^vec>H \<^vec>x
-  \<Longrightarrow> A \<^vec>x"} we always have @{text "\<^vec>H ?\<^vec>x \<Longrightarrow> A
-  ?\<^vec>x"}.  Note that this representation looses information about
-  the order of parameters, and vacuous quantifiers vanish
-  automatically.
+  \<Longrightarrow> A \<^vec>x"} we have @{text "\<^vec>H ?\<^vec>x \<Longrightarrow> A ?\<^vec>x"}.
+  Note that this representation looses information about the order of
+  parameters, and vacuous quantifiers vanish automatically.
 
   \end{itemize}
 *}
@@ -846,14 +845,13 @@ text {*
   "B'"} in any position (subsequently we shall always refer to
   position 1 w.l.o.g.).
 
-  In raw @{inference composition}, the internal structure of the
-  common part @{text "B"} and @{text "B'"} is not taken into account.
-  For proper @{inference resolution} we require @{text "B"} to be
-  atomic, and explicitly observe the structure @{text
-  "\<And>\<^vec>x. \<^vec>H \<^vec>x \<Longrightarrow> B' \<^vec>x"} of the premise of the
-  second rule.  The idea is to adapt the first rule by ``lifting'' it
-  into this context, by means of iterated application of the following
-  inferences:
+  In @{inference composition} the internal structure of the common
+  part @{text "B"} and @{text "B'"} is not taken into account.  For
+  proper @{inference resolution} we require @{text "B"} to be atomic,
+  and explicitly observe the structure @{text "\<And>\<^vec>x. \<^vec>H
+  \<^vec>x \<Longrightarrow> B' \<^vec>x"} of the premise of the second rule.  The
+  idea is to adapt the first rule by ``lifting'' it into this context,
+  by means of iterated application of the following inferences:
   \[
   \infer[(@{inference_def imp_lift})]{@{text "(\<^vec>H \<Longrightarrow> \<^vec>A) \<Longrightarrow> (\<^vec>H \<Longrightarrow> B)"}}{@{text "\<^vec>A \<Longrightarrow> B"}}
   \]
@@ -872,10 +870,10 @@ text {*
    \end{tabular}}
   \]
 
-  Continued resolution of rules allows to back-chain a problems
-  towards more and sub-problems.  Branches are closed either by
-  resolving with a rule of 0 premises, or by ``short-circuit'' within
-  a solved situation (again modulo unification):
+  Continued resolution of rules allows to back-chain a problem towards
+  more and sub-problems.  Branches are closed either by resolving with
+  a rule of 0 premises, or by producing a ``short-circuit'' within a
+  solved situation (again modulo unification):
   \[
   \infer[(@{inference_def assumption})]{@{text "C\<vartheta>"}}
   {@{text "(\<And>\<^vec>x. \<^vec>H \<^vec>x \<Longrightarrow> A \<^vec>x) \<Longrightarrow> C"} & @{text "A\<vartheta> = H\<^sub>i\<vartheta>"}~~\text{(for some~@{text i})}}
@@ -899,12 +897,11 @@ text %mlref {*
   THEN}.
 
   \item @{text "rule OF rules"} resolves a list of rules with the
-  first @{text "rule"}, addressing its premises @{text "1, \<dots>, length
-  rules"} (operating from last to first).  This means the newly
-  emerging premises are all concatenated, without interfering.  Also
-  note that compared to @{text "RS"}, the rule argument order is
-  swapped: @{text "rule\<^sub>1 RS rule\<^sub>2 = rule\<^sub>2 OF
-  [rule\<^sub>1]"}.
+  first rule, addressing its premises @{text "1, \<dots>, length rules"}
+  (operating from last to first).  This means the newly emerging
+  premises are all concatenated, without interfering.  Also note that
+  compared to @{text "RS"}, the rule argument order is swapped: @{text
+  "rule\<^sub>1 RS rule\<^sub>2 = rule\<^sub>2 OF [rule\<^sub>1]"}.
 
   \end{description}
 *}
