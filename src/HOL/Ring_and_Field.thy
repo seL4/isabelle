@@ -147,10 +147,10 @@ qed
 lemma one_dvd [simp]: "1 dvd a"
 by (auto intro!: dvdI)
 
-lemma dvd_mult: "a dvd c \<Longrightarrow> a dvd (b * c)"
+lemma dvd_mult[simp]: "a dvd c \<Longrightarrow> a dvd (b * c)"
 by (auto intro!: mult_left_commute dvdI elim!: dvdE)
 
-lemma dvd_mult2: "a dvd b \<Longrightarrow> a dvd (b * c)"
+lemma dvd_mult2[simp]: "a dvd b \<Longrightarrow> a dvd (b * c)"
   apply (subst mult_commute)
   apply (erule dvd_mult)
   done
@@ -162,12 +162,12 @@ lemma dvd_triv_left [simp]: "a dvd a * b"
 by (rule dvd_mult2) (rule dvd_refl)
 
 lemma mult_dvd_mono:
-  assumes ab: "a dvd b"
-    and "cd": "c dvd d"
+  assumes "a dvd b"
+    and "c dvd d"
   shows "a * c dvd b * d"
 proof -
-  from ab obtain b' where "b = a * b'" ..
-  moreover from "cd" obtain d' where "d = c * d'" ..
+  from `a dvd b` obtain b' where "b = a * b'" ..
+  moreover from `c dvd d` obtain d' where "d = c * d'" ..
   ultimately have "b * d = (a * c) * (b' * d')" by (simp add: mult_ac)
   then show ?thesis ..
 qed
@@ -310,8 +310,8 @@ next
   then show "- x dvd y" ..
 qed
 
-lemma dvd_diff: "x dvd y \<Longrightarrow> x dvd z \<Longrightarrow> x dvd (y - z)"
-by (simp add: diff_minus dvd_add dvd_minus_iff)
+lemma dvd_diff[simp]: "x dvd y \<Longrightarrow> x dvd z \<Longrightarrow> x dvd (y - z)"
+by (simp add: diff_minus dvd_minus_iff)
 
 end
 

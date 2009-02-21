@@ -307,8 +307,8 @@ proof-
   {fix e assume H: "e dvd a^n" "e dvd b^n"
     from bezout_gcd_pow[of a n b] obtain x y 
       where xy: "a ^ n * x - b ^ n * y = ?gn \<or> b ^ n * x - a ^ n * y = ?gn" by blast
-    from dvd_diff [OF dvd_mult2[OF H(1), of x] dvd_mult2[OF H(2), of y]]
-      dvd_diff [OF dvd_mult2[OF H(2), of x] dvd_mult2[OF H(1), of y]] xy
+    from nat_dvd_diff [OF dvd_mult2[OF H(1), of x] dvd_mult2[OF H(2), of y]]
+      nat_dvd_diff [OF dvd_mult2[OF H(2), of x] dvd_mult2[OF H(1), of y]] xy
     have "e dvd ?gn" by (cases "a ^ n * x - b ^ n * y = gcd a b ^ n", simp_all)}
   hence th:  "\<forall>e. e dvd a^n \<and> e dvd b^n \<longrightarrow> e dvd ?gn" by blast
   from divides_exp[OF gcd_dvd1[of a b], of n] divides_exp[OF gcd_dvd2[of a b], of n] th

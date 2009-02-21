@@ -836,13 +836,6 @@ lemma zdiv_zmult_zmult1_if[simp]:
   "(k*m) div (k*n) = (if k = (0::int) then 0 else m div n)"
 by (simp add:zdiv_zmult_zmult1)
 
-(*
-lemma zdiv_zmult_zmult2: "c \<noteq> (0::int) ==> (a*c) div (b*c) = a div b"
-apply (drule zdiv_zmult_zmult1)
-apply (auto simp add: mult_commute)
-done
-*)
-
 
 subsection{*Distribution of Factors over mod*}
 
@@ -1001,7 +994,7 @@ lemma neg_zmod_mult_2:
 apply (subgoal_tac "(1 + 2* (-b - 1)) mod (2* (-a)) = 
                     1 + 2* ((-b - 1) mod (-a))")
 apply (rule_tac [2] pos_zmod_mult_2)
-apply (auto simp add: minus_mult_right [symmetric] right_diff_distrib)
+apply (auto simp add: right_diff_distrib)
 apply (subgoal_tac " (-1 - (2 * b)) = - (1 + (2 * b))")
  prefer 2 apply simp 
 apply (simp only: zmod_zminus_zminus diff_minus minus_add_distrib [symmetric])
@@ -1063,38 +1056,8 @@ by (simp add: linorder_not_le [symmetric] neg_imp_zdiv_nonneg_iff)
 
 subsection {* The Divides Relation *}
 
-lemma zdvd_iff_zmod_eq_0: "(m dvd n) = (n mod m = (0::int))"
-  by (rule dvd_eq_mod_eq_0)
-
 lemmas zdvd_iff_zmod_eq_0_number_of [simp] =
-  zdvd_iff_zmod_eq_0 [of "number_of x" "number_of y", standard]
-
-lemma zdvd_0_right: "(m::int) dvd 0"
-  by (rule dvd_0_right) (* already declared [iff] *)
-
-lemma zdvd_0_left: "(0 dvd (m::int)) = (m = 0)"
-  by (rule dvd_0_left_iff) (* already declared [noatp,simp] *)
-
-lemma zdvd_1_left: "1 dvd (m::int)"
-  by (rule one_dvd) (* already declared [simp] *)
-
-lemma zdvd_refl: "m dvd (m::int)"
-  by (rule dvd_refl) (* already declared [simp] *)
-
-lemma zdvd_trans: "m dvd n ==> n dvd k ==> m dvd (k::int)"
-  by (rule dvd_trans)
-
-lemma zdvd_zminus_iff: "m dvd -n \<longleftrightarrow> m dvd (n::int)"
-  by (rule dvd_minus_iff) (* already declared [simp] *)
-
-lemma zdvd_zminus2_iff: "-m dvd n \<longleftrightarrow> m dvd (n::int)"
-  by (rule minus_dvd_iff) (* already declared [simp] *)
-
-lemma zdvd_abs1: "( \<bar>i::int\<bar> dvd j) = (i dvd j)"
-  by (rule abs_dvd_iff) (* already declared [simp] *)
-
-lemma zdvd_abs2: "( (i::int) dvd \<bar>j\<bar>) = (i dvd j)" 
-  by (rule dvd_abs_iff) (* already declared [simp] *)
+  dvd_eq_mod_eq_0 [of "number_of x::int" "number_of y::int", standard]
 
 lemma zdvd_anti_sym:
     "0 < m ==> 0 < n ==> m dvd n ==> n dvd m ==> m = (n::int)"
@@ -1102,58 +1065,32 @@ lemma zdvd_anti_sym:
   apply (simp add: mult_assoc zero_less_mult_iff zmult_eq_1_iff)
   done
 
-lemma zdvd_zadd: "k dvd m ==> k dvd n ==> k dvd (m + n :: int)"
-  by (rule dvd_add)
-
-lemma zdvd_dvd_eq: assumes anz:"a \<noteq> 0" and ab: "(a::int) dvd b" and ba:"b dvd a" 
+lemma zdvd_dvd_eq: assumes "a \<noteq> 0" and "(a::int) dvd b" and "b dvd a" 
   shows "\<bar>a\<bar> = \<bar>b\<bar>"
 proof-
-  from ab obtain k where k:"b = a*k" unfolding dvd_def by blast 
-  from ba obtain k' where k':"a = b*k'" unfolding dvd_def by blast 
+  from `a dvd b` obtain k where k:"b = a*k" unfolding dvd_def by blast 
+  from `b dvd a` obtain k' where k':"a = b*k'" unfolding dvd_def by blast 
   from k k' have "a = a*k*k'" by simp
   with mult_cancel_left1[where c="a" and b="k*k'"]
-  have kk':"k*k' = 1" using anz by (simp add: mult_assoc)
+  have kk':"k*k' = 1" using `a\<noteq>0` by (simp add: mult_assoc)
   hence "k = 1 \<and> k' = 1 \<or> k = -1 \<and> k' = -1" by (simp add: zmult_eq_1_iff)
   thus ?thesis using k k' by auto
 qed
 
-lemma zdvd_zdiff: "k dvd m ==> k dvd n ==> k dvd (m - n :: int)"
-  by (rule Ring_and_Field.dvd_diff)
-
 lemma zdvd_zdiffD: "k dvd m - n ==> k dvd n ==> k dvd (m::int)"
   apply (subgoal_tac "m = n + (m - n)")
    apply (erule ssubst)
-   apply (blast intro: zdvd_zadd, simp)
+   apply (blast intro: dvd_add, simp)
   done
-
-lemma zdvd_zmult: "k dvd (n::int) ==> k dvd m * n"
-  by (rule dvd_mult)
-
-lemma zdvd_zmult2: "k dvd (m::int) ==> k dvd m * n"
-  by (rule dvd_mult2)
-
-lemma zdvd_triv_right: "(k::int) dvd m * k"
-  by (rule dvd_triv_right) (* already declared [simp] *)
-
-lemma zdvd_triv_left: "(k::int) dvd k * m"
-  by (rule dvd_triv_left) (* already declared [simp] *)
-
-lemma zdvd_zmultD2: "j * k dvd n ==> j dvd (n::int)"
-  by (rule dvd_mult_left)
-
-lemma zdvd_zmultD: "j * k dvd n ==> k dvd (n::int)"
-  by (rule dvd_mult_right)
-
-lemma zdvd_zmult_mono: "i dvd m ==> j dvd (n::int) ==> i * j dvd m * n"
-  by (rule mult_dvd_mono)
 
 lemma zdvd_reduce: "(k dvd n + k * m) = (k dvd (n::int))"
-  apply (rule iffI)
-   apply (erule_tac [2] zdvd_zadd)
-   apply (subgoal_tac "n = (n + k * m) - k * m")
-    apply (erule ssubst)
-    apply (erule zdvd_zdiff, simp_all)
-  done
+apply (rule iffI)
+ apply (erule_tac [2] dvd_add)
+ apply (subgoal_tac "n = (n + k * m) - k * m")
+  apply (erule ssubst)
+  apply (erule dvd_diff)
+  apply(simp_all)
+done
 
 lemma zdvd_zmod: "f dvd m ==> f dvd (n::int) ==> f dvd m mod n"
   apply (simp add: dvd_def)
@@ -1163,7 +1100,7 @@ lemma zdvd_zmod: "f dvd m ==> f dvd (n::int) ==> f dvd m mod n"
 lemma zdvd_zmod_imp_zdvd: "k dvd m mod n ==> k dvd n ==> k dvd (m::int)"
   apply (subgoal_tac "k dvd n * (m div n) + m mod n")
    apply (simp add: zmod_zdiv_equality [symmetric])
-  apply (simp only: zdvd_zadd zdvd_zmult2)
+  apply (simp only: dvd_add dvd_mult2)
   done
 
 lemma zdvd_not_zless: "0 < m ==> m < n ==> \<not> n dvd (m::int)"
@@ -1183,7 +1120,7 @@ lemma zmult_div_cancel: "(n::int) * (m div n) = m - (m mod n)"
 lemma zdvd_mult_div_cancel:"(n::int) dvd m \<Longrightarrow> n * (m div n) = m"
 apply (subgoal_tac "m mod n = 0")
  apply (simp add: zmult_div_cancel)
-apply (simp only: zdvd_iff_zmod_eq_0)
+apply (simp only: dvd_eq_mod_eq_0)
 done
 
 lemma zdvd_mult_cancel: assumes d:"k * m dvd k * n" and kz:"k \<noteq> (0::int)"
@@ -1195,10 +1132,6 @@ proof-
   hence "n = m * h" by blast
   thus ?thesis by simp
 qed
-
-lemma zdvd_zmult_cancel_disj:
-  "(k*m) dvd (k*n) = (k=0 | m dvd (n::int))"
-by (rule dvd_mult_cancel_left) (* already declared [simp] *)
 
 
 theorem ex_nat: "(\<exists>x::nat. P x) = (\<exists>x::int. 0 <= x \<and> P (nat x))"
@@ -1231,43 +1164,37 @@ proof -
       then show ?thesis by (simp only: negative_eq_positive) auto
     qed
   qed
-  then show ?thesis by (auto elim!: dvdE simp only: zdvd_triv_left int_mult)
+  then show ?thesis by (auto elim!: dvdE simp only: dvd_triv_left int_mult)
 qed
 
 lemma zdvd1_eq[simp]: "(x::int) dvd 1 = ( \<bar>x\<bar> = 1)"
 proof
-  assume d: "x dvd 1" hence "int (nat \<bar>x\<bar>) dvd int (nat 1)" by (simp add: zdvd_abs1)
+  assume d: "x dvd 1" hence "int (nat \<bar>x\<bar>) dvd int (nat 1)" by simp
   hence "nat \<bar>x\<bar> dvd 1" by (simp add: zdvd_int)
   hence "nat \<bar>x\<bar> = 1"  by simp
   thus "\<bar>x\<bar> = 1" by (cases "x < 0", auto)
 next
   assume "\<bar>x\<bar>=1" thus "x dvd 1" 
-    by(cases "x < 0",simp_all add: minus_equation_iff zdvd_iff_zmod_eq_0)
+    by(cases "x < 0",simp_all add: minus_equation_iff dvd_eq_mod_eq_0)
 qed
 lemma zdvd_mult_cancel1: 
   assumes mp:"m \<noteq>(0::int)" shows "(m * n dvd m) = (\<bar>n\<bar> = 1)"
 proof
   assume n1: "\<bar>n\<bar> = 1" thus "m * n dvd m" 
-    by (cases "n >0", auto simp add: zdvd_zminus2_iff minus_equation_iff)
+    by (cases "n >0", auto simp add: minus_dvd_iff minus_equation_iff)
 next
   assume H: "m * n dvd m" hence H2: "m * n dvd m * 1" by simp
   from zdvd_mult_cancel[OF H2 mp] show "\<bar>n\<bar> = 1" by (simp only: zdvd1_eq)
 qed
 
 lemma int_dvd_iff: "(int m dvd z) = (m dvd nat (abs z))"
-  unfolding zdvd_int by (cases "z \<ge> 0") (simp_all add: zdvd_zminus_iff)
+  unfolding zdvd_int by (cases "z \<ge> 0") simp_all
 
 lemma dvd_int_iff: "(z dvd int m) = (nat (abs z) dvd m)"
-  unfolding zdvd_int by (cases "z \<ge> 0") (simp_all add: zdvd_zminus2_iff)
+  unfolding zdvd_int by (cases "z \<ge> 0") simp_all
 
 lemma nat_dvd_iff: "(nat z dvd m) = (if 0 \<le> z then (z dvd int m) else m = 0)"
   by (auto simp add: dvd_int_iff)
-
-lemma zminus_dvd_iff [iff]: "(-z dvd w) = (z dvd (w::int))"
-  by (rule minus_dvd_iff)
-
-lemma dvd_zminus_iff [iff]: "(z dvd -w) = (z dvd (w::int))"
-  by (rule dvd_minus_iff)
 
 lemma zdvd_imp_le: "[| z dvd n; 0 < n |] ==> z \<le> (n::int)"
   apply (rule_tac z=n in int_cases)
@@ -1395,7 +1322,7 @@ proof
   hence "x mod n - y mod n = 0" by simp
   hence "(x mod n - y mod n) mod n = 0" by simp 
   hence "(x - y) mod n = 0" by (simp add: mod_diff_eq[symmetric])
-  thus "n dvd x - y" by (simp add: zdvd_iff_zmod_eq_0)
+  thus "n dvd x - y" by (simp add: dvd_eq_mod_eq_0)
 next
   assume H: "n dvd x - y"
   then obtain k where k: "x-y = n*k" unfolding dvd_def by blast

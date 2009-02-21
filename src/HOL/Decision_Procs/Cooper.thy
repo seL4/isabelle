@@ -620,7 +620,7 @@ next
   {assume "i=0" hence ?case using "12.hyps" by (simp add: dvd_def Let_def)}
   moreover 
   {assume i1: "abs i = 1"
-      from zdvd_1_left[where m = "Inum bs a"] uminus_dvd_conv[where d="1" and t="Inum bs a"]
+      from one_dvd[of "Inum bs a"] uminus_dvd_conv[where d="1" and t="Inum bs a"]
       have ?case using i1 apply (cases "i=0", simp_all add: Let_def) 
 	by (cases "i > 0", simp_all)}
   moreover   
@@ -640,7 +640,7 @@ next
   {assume "i=0" hence ?case using "13.hyps" by (simp add: dvd_def Let_def)}
   moreover 
   {assume i1: "abs i = 1"
-      from zdvd_1_left[where m = "Inum bs a"] uminus_dvd_conv[where d="1" and t="Inum bs a"]
+      from one_dvd[of "Inum bs a"] uminus_dvd_conv[where d="1" and t="Inum bs a"]
       have ?case using i1 apply (cases "i=0", simp_all add: Let_def)
       apply (cases "i > 0", simp_all) done}
   moreover   
@@ -990,7 +990,7 @@ next
   have "j=0 \<or> (j\<noteq>0 \<and> ?c = 0) \<or> (j\<noteq>0 \<and> ?c >0) \<or> (j\<noteq> 0 \<and> ?c<0)" by arith
   moreover
   {assume "j=0" hence z: "zlfm (Dvd j a) = (zlfm (Eq a))" by (simp add: Let_def) 
-    hence ?case using prems by (simp del: zlfm.simps add: zdvd_0_left)}
+    hence ?case using prems by (simp del: zlfm.simps)}
   moreover
   {assume "?c=0" and "j\<noteq>0" hence ?case 
       using zsplit0_I[OF spl, where x="i" and bs="bs"]
@@ -1005,7 +1005,7 @@ next
   moreover
   {assume cn: "?c < 0" and jnz: "j\<noteq>0" hence l: "?L (?l (Dvd j a))" 
       by (simp add: nb Let_def split_def)
-    hence ?case using Ia cn jnz zdvd_zminus_iff[where m="abs j" and n="?c*i + ?N ?r" ]
+    hence ?case using Ia cn jnz dvd_minus_iff[of "abs j" "?c*i + ?N ?r" ]
       by (simp add: Let_def split_def) }
   ultimately show ?case by blast
 next
@@ -1019,7 +1019,7 @@ next
   have "j=0 \<or> (j\<noteq>0 \<and> ?c = 0) \<or> (j\<noteq>0 \<and> ?c >0) \<or> (j\<noteq> 0 \<and> ?c<0)" by arith
   moreover
   {assume "j=0" hence z: "zlfm (NDvd j a) = (zlfm (NEq a))" by (simp add: Let_def) 
-    hence ?case using prems by (simp del: zlfm.simps add: zdvd_0_left)}
+    hence ?case using prems by (simp del: zlfm.simps)}
   moreover
   {assume "?c=0" and "j\<noteq>0" hence ?case 
       using zsplit0_I[OF spl, where x="i" and bs="bs"]
@@ -1034,7 +1034,7 @@ next
   moreover
   {assume cn: "?c < 0" and jnz: "j\<noteq>0" hence l: "?L (?l (Dvd j a))" 
       by (simp add: nb Let_def split_def)
-    hence ?case using Ia cn jnz zdvd_zminus_iff[where m="abs j" and n="?c*i + ?N ?r" ]
+    hence ?case using Ia cn jnz dvd_minus_iff[of "abs j" "?c*i + ?N ?r"]
       by (simp add: Let_def split_def)}
   ultimately show ?case by blast
 qed auto
@@ -1092,10 +1092,10 @@ lemma delta_mono:
   using lin ad d
 proof(induct p rule: iszlfm.induct)
   case (9 i c e)  thus ?case using d
-    by (simp add: zdvd_trans[where m="i" and n="d" and k="d'"])
+    by (simp add: dvd_trans[of "i" "d" "d'"])
 next
   case (10 i c e) thus ?case using d
-    by (simp add: zdvd_trans[where m="i" and n="d" and k="d'"])
+    by (simp add: dvd_trans[of "i" "d" "d'"])
 qed simp_all
 
 lemma \<delta> : assumes lin:"iszlfm p"
@@ -1354,7 +1354,7 @@ proof(induct p rule: iszlfm.induct)
   case (9 j c e) hence nb: "numbound0 e" by simp
   have "Ifm bbs (x#bs) (mirror (Dvd j (CN 0 c e))) = (j dvd c*x - Inum (x#bs) e)" (is "_ = (j dvd c*x - ?e)") by simp
     also have "\<dots> = (j dvd (- (c*x - ?e)))"
-    by (simp only: zdvd_zminus_iff)
+    by (simp only: dvd_minus_iff)
   also have "\<dots> = (j dvd (c* (- x)) + ?e)"
     apply (simp only: minus_mult_right[symmetric] minus_mult_left[symmetric] diff_def zadd_ac zminus_zadd_distrib)
     by (simp add: algebra_simps)
@@ -1366,7 +1366,7 @@ next
     case (10 j c e) hence nb: "numbound0 e" by simp
   have "Ifm bbs (x#bs) (mirror (Dvd j (CN 0 c e))) = (j dvd c*x - Inum (x#bs) e)" (is "_ = (j dvd c*x - ?e)") by simp
     also have "\<dots> = (j dvd (- (c*x - ?e)))"
-    by (simp only: zdvd_zminus_iff)
+    by (simp only: dvd_minus_iff)
   also have "\<dots> = (j dvd (c* (- x)) + ?e)"
     apply (simp only: minus_mult_right[symmetric] minus_mult_left[symmetric] diff_def zadd_ac zminus_zadd_distrib)
     by (simp add: algebra_simps)
@@ -1392,7 +1392,7 @@ lemma d\<beta>_mono:
   and dr: "d\<beta> p l"
   and d: "l dvd l'"
   shows "d\<beta> p l'"
-using dr linp zdvd_trans[where n="l" and k="l'", simplified d]
+using dr linp dvd_trans[of _ "l" "l'", simplified d]
 by (induct p rule: iszlfm.induct) simp_all
 
 lemma \<alpha>_l: assumes lp: "iszlfm p"
@@ -1431,7 +1431,7 @@ proof (induct p rule: iszlfm.induct)
       by (simp add: zdiv_mono1[OF clel cp])
     then have ldcp:"0 < l div c" 
       by (simp add: zdiv_self[OF cnz])
-    have "c * (l div c) = c* (l div c) + l mod c" using d' zdvd_iff_zmod_eq_0[where m="c" and n="l"] by simp
+    have "c * (l div c) = c* (l div c) + l mod c" using d' dvd_eq_mod_eq_0[of "c" "l"] by simp
     hence cl:"c * (l div c) =l" using zmod_zdiv_equality[where a="l" and b="c", symmetric] 
       by simp
     hence "(l*x + (l div c) * Inum (x # bs) e < 0) =
@@ -1449,7 +1449,7 @@ next
       by (simp add: zdiv_mono1[OF clel cp])
     then have ldcp:"0 < l div c" 
       by (simp add: zdiv_self[OF cnz])
-    have "c * (l div c) = c* (l div c) + l mod c" using d' zdvd_iff_zmod_eq_0[where m="c" and n="l"] by simp
+    have "c * (l div c) = c* (l div c) + l mod c" using d' dvd_eq_mod_eq_0[of "c" "l"] by simp
     hence cl:"c * (l div c) =l" using zmod_zdiv_equality[where a="l" and b="c", symmetric] 
       by simp
     hence "(l*x + (l div c) * Inum (x# bs) e \<le> 0) =
@@ -1467,7 +1467,7 @@ next
       by (simp add: zdiv_mono1[OF clel cp])
     then have ldcp:"0 < l div c" 
       by (simp add: zdiv_self[OF cnz])
-    have "c * (l div c) = c* (l div c) + l mod c" using d' zdvd_iff_zmod_eq_0[where m="c" and n="l"] by simp
+    have "c * (l div c) = c* (l div c) + l mod c" using d' dvd_eq_mod_eq_0[of "c" "l"] by simp
     hence cl:"c * (l div c) =l" using zmod_zdiv_equality[where a="l" and b="c", symmetric] 
       by simp
     hence "(l*x + (l div c)* Inum (x # bs) e > 0) =
@@ -1485,7 +1485,7 @@ next
       by (simp add: zdiv_mono1[OF clel cp])
     then have ldcp:"0 < l div c" 
       by (simp add: zdiv_self[OF cnz])
-    have "c * (l div c) = c* (l div c) + l mod c" using d' zdvd_iff_zmod_eq_0[where m="c" and n="l"] by simp
+    have "c * (l div c) = c* (l div c) + l mod c" using d' dvd_eq_mod_eq_0[of "c" "l"] by simp
     hence cl:"c * (l div c) =l" using zmod_zdiv_equality[where a="l" and b="c", symmetric] 
       by simp
     hence "(l*x + (l div c)* Inum (x # bs) e \<ge> 0) =
@@ -1505,7 +1505,7 @@ next
       by (simp add: zdiv_mono1[OF clel cp])
     then have ldcp:"0 < l div c" 
       by (simp add: zdiv_self[OF cnz])
-    have "c * (l div c) = c* (l div c) + l mod c" using d' zdvd_iff_zmod_eq_0[where m="c" and n="l"] by simp
+    have "c * (l div c) = c* (l div c) + l mod c" using d' dvd_eq_mod_eq_0[of "c" "l"] by simp
     hence cl:"c * (l div c) =l" using zmod_zdiv_equality[where a="l" and b="c", symmetric] 
       by simp
     hence "(l * x + (l div c) * Inum (x # bs) e = 0) =
@@ -1523,7 +1523,7 @@ next
       by (simp add: zdiv_mono1[OF clel cp])
     then have ldcp:"0 < l div c" 
       by (simp add: zdiv_self[OF cnz])
-    have "c * (l div c) = c* (l div c) + l mod c" using d' zdvd_iff_zmod_eq_0[where m="c" and n="l"] by simp
+    have "c * (l div c) = c* (l div c) + l mod c" using d' dvd_eq_mod_eq_0[of "c" "l"] by simp
     hence cl:"c * (l div c) =l" using zmod_zdiv_equality[where a="l" and b="c", symmetric] 
       by simp
     hence "(l * x + (l div c) * Inum (x # bs) e \<noteq> 0) =
@@ -1541,7 +1541,7 @@ next
       by (simp add: zdiv_mono1[OF clel cp])
     then have ldcp:"0 < l div c" 
       by (simp add: zdiv_self[OF cnz])
-    have "c * (l div c) = c* (l div c) + l mod c" using d' zdvd_iff_zmod_eq_0[where m="c" and n="l"] by simp
+    have "c * (l div c) = c* (l div c) + l mod c" using d' dvd_eq_mod_eq_0[of "c" "l"] by simp
     hence cl:"c * (l div c) =l" using zmod_zdiv_equality[where a="l" and b="c", symmetric] 
       by simp
     hence "(\<exists> (k::int). l * x + (l div c) * Inum (x # bs) e = ((l div c) * j) * k) = (\<exists> (k::int). (c * (l div c)) * x + (l div c) * Inum (x # bs) e = ((l div c) * j) * k)"  by simp
@@ -1558,7 +1558,7 @@ next
       by (simp add: zdiv_mono1[OF clel cp])
     then have ldcp:"0 < l div c" 
       by (simp add: zdiv_self[OF cnz])
-    have "c * (l div c) = c* (l div c) + l mod c" using d' zdvd_iff_zmod_eq_0[where m="c" and n="l"] by simp
+    have "c * (l div c) = c* (l div c) + l mod c" using d' dvd_eq_mod_eq_0[of "c" "l"] by simp
     hence cl:"c * (l div c) =l" using zmod_zdiv_equality[where a="l" and b="c", symmetric] 
       by simp
     hence "(\<exists> (k::int). l * x + (l div c) * Inum (x # bs) e = ((l div c) * j) * k) = (\<exists> (k::int). (c * (l div c)) * x + (l div c) * Inum (x # bs) e = ((l div c) * j) * k)"  by simp

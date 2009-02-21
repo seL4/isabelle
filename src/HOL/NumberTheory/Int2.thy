@@ -18,7 +18,7 @@ subsection {* Useful lemmas about dvd and powers *}
 
 lemma zpower_zdvd_prop1:
   "0 < n \<Longrightarrow> p dvd y \<Longrightarrow> p dvd ((y::int) ^ n)"
-  by (induct n) (auto simp add: zdvd_zmult zdvd_zmult2 [of p y])
+  by (induct n) (auto simp add: dvd_mult2 [of p y])
 
 lemma zdvd_bounds: "n dvd m ==> m \<le> (0::int) | n \<le> m"
 proof -
@@ -42,7 +42,7 @@ lemma zpower_zdvd_prop2:
    apply simp
   apply (frule zprime_zdvd_zmult_better)
    apply simp
-  apply force
+  apply (force simp del:dvd_mult)
   done
 
 lemma div_prop1: "[| 0 < z; (x::int) < y * z |] ==> x div z < y"
@@ -86,7 +86,7 @@ lemma zcong_eq_zdvd_prop: "[x = 0](mod p) = (p dvd x)"
   by (auto simp add: zcong_def)
 
 lemma zcong_id: "[m = 0] (mod m)"
-  by (auto simp add: zcong_def zdvd_0_right)
+  by (auto simp add: zcong_def)
 
 lemma zcong_shift: "[a = b] (mod m) ==> [a + c = b + c] (mod m)"
   by (auto simp add: zcong_refl zcong_zadd)

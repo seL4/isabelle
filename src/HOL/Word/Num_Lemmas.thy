@@ -314,7 +314,7 @@ lemma mod_power_lem:
   "a > 1 ==> a ^ n mod a ^ m = (if m <= n then 0 else (a :: int) ^ n)"
   apply clarsimp
   apply safe
-   apply (simp add: zdvd_iff_zmod_eq_0 [symmetric])
+   apply (simp add: dvd_eq_mod_eq_0 [symmetric])
    apply (drule le_iff_add [THEN iffD1])
    apply (force simp: zpower_zadd_distrib)
   apply (rule mod_pos_pos_trivial)

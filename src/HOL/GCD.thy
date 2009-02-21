@@ -156,7 +156,6 @@ lemma gcd_mult_cancel: "gcd k n = 1 ==> gcd (k * m) n = gcd m n"
      apply (simp add: gcd_assoc)
      apply (simp add: gcd_commute)
     apply (simp_all add: mult_commute)
-  apply (blast intro: dvd_mult)
   done
 
 
@@ -404,7 +403,7 @@ proof-
   {fix x y assume H: "a * x - b * y = d \<or> b * x - a * y = d"
     have dv: "?g dvd a*x" "?g dvd b * y" "?g dvd b*x" "?g dvd a * y"
       using dvd_mult2[OF gcd_dvd1[of a b]] dvd_mult2[OF gcd_dvd2[of a b]] by simp_all
-    from dvd_diff[OF dv(1,2)] dvd_diff[OF dv(3,4)] H
+    from nat_dvd_diff[OF dv(1,2)] nat_dvd_diff[OF dv(3,4)] H
     have ?rhs by auto}
   ultimately show ?thesis by blast
 qed
@@ -597,8 +596,8 @@ proof -
   from h' have "int (nat \<bar>k\<bar>) = int (nat \<bar>i\<bar> * h')" by simp
   then have "\<bar>k\<bar> = \<bar>i\<bar> * int h'" by (simp add: int_mult)
   then show ?thesis
-    apply (subst zdvd_abs1 [symmetric])
-    apply (subst zdvd_abs2 [symmetric])
+    apply (subst abs_dvd_iff [symmetric])
+    apply (subst dvd_abs_iff [symmetric])
     apply (unfold dvd_def)
     apply (rule_tac x = "int h'" in exI, simp)
     done
@@ -614,11 +613,11 @@ proof -
   let ?m' = "nat \<bar>m\<bar>"
   let ?n' = "nat \<bar>n\<bar>"
   from `k dvd m` and `k dvd n` have dvd': "?k' dvd ?m'" "?k' dvd ?n'"
-    unfolding zdvd_int by (simp_all only: int_nat_abs zdvd_abs1 zdvd_abs2)
+    unfolding zdvd_int by (simp_all only: int_nat_abs abs_dvd_iff dvd_abs_iff)
   from gcd_greatest [OF dvd'] have "int (nat \<bar>k\<bar>) dvd zgcd m n"
     unfolding zgcd_def by (simp only: zdvd_int)
   then have "\<bar>k\<bar> dvd zgcd m n" by (simp only: int_nat_abs)
-  then show "k dvd zgcd m n" by (simp add: zdvd_abs1)
+  then show "k dvd zgcd m n" by simp
 qed
 
 lemma div_zgcd_relprime:
@@ -721,7 +720,7 @@ lemma dvd_imp_dvd_zlcm1:
   assumes "k dvd i" shows "k dvd (zlcm i j)"
 proof -
   have "nat(abs k) dvd nat(abs i)" using `k dvd i`
-    by(simp add:int_dvd_iff[symmetric] dvd_int_iff[symmetric] zdvd_abs1)
+    by(simp add:int_dvd_iff[symmetric] dvd_int_iff[symmetric])
   thus ?thesis by(simp add:zlcm_def dvd_int_iff)(blast intro: dvd_trans)
 qed
 
@@ -729,7 +728,7 @@ lemma dvd_imp_dvd_zlcm2:
   assumes "k dvd j" shows "k dvd (zlcm i j)"
 proof -
   have "nat(abs k) dvd nat(abs j)" using `k dvd j`
-    by(simp add:int_dvd_iff[symmetric] dvd_int_iff[symmetric] zdvd_abs1)
+    by(simp add:int_dvd_iff[symmetric] dvd_int_iff[symmetric])
   thus ?thesis by(simp add:zlcm_def dvd_int_iff)(blast intro: dvd_trans)
 qed
 
