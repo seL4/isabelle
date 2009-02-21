@@ -217,7 +217,7 @@ lemma zcong_zless_imp_eq:
     a < m ==> 0 \<le> b ==> b < m ==> [a = b] (mod m) ==> a = b"
   apply (unfold zcong_def dvd_def, auto)
   apply (drule_tac f = "\<lambda>z. z mod m" in arg_cong)
-  apply (metis diff_add_cancel mod_pos_pos_trivial zadd_0 zadd_commute zmod_eq_0_iff zmod_zadd_right_eq)
+  apply (metis diff_add_cancel mod_pos_pos_trivial zadd_0 zadd_commute zmod_eq_0_iff mod_add_right_eq)
   done
 
 lemma zcong_square_zless:
@@ -237,7 +237,7 @@ lemma zcong_not:
 lemma zcong_zless_0:
     "0 \<le> a ==> a < m ==> [a = 0] (mod m) ==> a = 0"
   apply (unfold zcong_def dvd_def, auto)
-  apply (metis div_pos_pos_trivial linorder_not_less zdiv_zmult_self2 zle_refl zle_trans)
+  apply (metis div_pos_pos_trivial linorder_not_less div_mult_self1_is_id zle_refl zle_trans)
   done
 
 lemma zcong_zless_unique:
@@ -302,7 +302,7 @@ subsection {* Modulo *}
 
 lemma zmod_zdvd_zmod:
     "0 < (m::int) ==> m dvd b ==> (a mod b mod m) = (a mod m)"
-  by (rule zmod_zmod_cancel) 
+  by (rule mod_mod_cancel) 
 
 
 subsection {* Extended GCD *}
