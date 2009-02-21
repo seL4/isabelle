@@ -747,41 +747,12 @@ proof -
   show ?thesis by simp
 qed
 
-lemma zdiv_zadd_self1: "a \<noteq> (0::int) ==> (a+b) div a = b div a + 1"
-by (rule div_add_self1) (* already declared [simp] *)
-
-lemma zdiv_zadd_self2: "a \<noteq> (0::int) ==> (b+a) div a = b div a + 1"
-by (rule div_add_self2) (* already declared [simp] *)
-
-lemma zdiv_zmult_self2: "b \<noteq> (0::int) ==> (b*a) div b = a"
-by (rule div_mult_self1_is_id) (* already declared [simp] *)
-
-lemma zmod_zmult_self1: "(a*b) mod b = (0::int)"
-by (rule mod_mult_self2_is_0) (* already declared [simp] *)
-
-lemma zmod_zmult_self2: "(b*a) mod b = (0::int)"
-by (rule mod_mult_self1_is_0) (* already declared [simp] *)
-
 lemma zmod_eq_0_iff: "(m mod d = 0) = (EX q::int. m = d*q)"
 by (simp add: dvd_eq_mod_eq_0 [symmetric] dvd_def)
 
 (* REVISIT: should this be generalized to all semiring_div types? *)
 lemmas zmod_eq_0D [dest!] = zmod_eq_0_iff [THEN iffD1]
 
-lemma zmod_zadd_left_eq: "(a+b) mod (c::int) = ((a mod c) + b) mod c"
-by (rule mod_add_left_eq)
-
-lemma zmod_zadd_right_eq: "(a+b) mod (c::int) = (a + (b mod c)) mod c"
-by (rule mod_add_right_eq)
-
-lemma zmod_zadd_self1: "(a+b) mod a = b mod (a::int)"
-by (rule mod_add_self1) (* already declared [simp] *)
-
-lemma zmod_zadd_self2: "(b+a) mod a = b mod (a::int)"
-by (rule mod_add_self2) (* already declared [simp] *)
-
-lemma zmod_zdiff1_eq: "(a - b) mod c = (a mod c - b mod c) mod (c::int)"
-by (rule mod_diff_eq)
 
 subsection{*Proving  @{term "a div (b*c) = (a div b) div c"} *}
 
@@ -895,9 +866,6 @@ lemma zmod_zmult_zmult2: "(a*c) mod (b*c) = (a mod b) * (c::int)"
 apply (cut_tac c = c in zmod_zmult_zmult1)
 apply (auto simp add: mult_commute)
 done
-
-lemma zmod_zmod_cancel: "n dvd m \<Longrightarrow> (k::int) mod m mod n = k mod n"
-by (rule mod_mod_cancel)
 
 
 subsection {*Splitting Rules for div and mod*}
@@ -1350,8 +1318,8 @@ lemma zdiff_zmod_right: "(x - y mod m) mod m = (x - y) mod (m::int)"
 by (rule mod_diff_right_eq [symmetric])
 
 lemmas zmod_simps =
-  IntDiv.zmod_zadd_left_eq  [symmetric]
-  IntDiv.zmod_zadd_right_eq [symmetric]
+  mod_add_left_eq  [symmetric]
+  mod_add_right_eq [symmetric]
   IntDiv.zmod_zmult1_eq     [symmetric]
   mod_mult_left_eq          [symmetric]
   IntDiv.zpower_zmod
@@ -1426,14 +1394,14 @@ proof
   assume H: "x mod n = y mod n"
   hence "x mod n - y mod n = 0" by simp
   hence "(x mod n - y mod n) mod n = 0" by simp 
-  hence "(x - y) mod n = 0" by (simp add: zmod_zdiff1_eq[symmetric])
+  hence "(x - y) mod n = 0" by (simp add: mod_diff_eq[symmetric])
   thus "n dvd x - y" by (simp add: zdvd_iff_zmod_eq_0)
 next
   assume H: "n dvd x - y"
   then obtain k where k: "x-y = n*k" unfolding dvd_def by blast
   hence "x = n*k + y" by simp
   hence "x mod n = (n*k + y) mod n" by simp
-  thus "x mod n = y mod n" by (simp add: zmod_zadd_left_eq)
+  thus "x mod n = y mod n" by (simp add: mod_add_left_eq)
 qed
 
 lemma nat_mod_eq_lemma: assumes xyn: "(x::nat) mod n = y  mod n" and xy:"y \<le> x"

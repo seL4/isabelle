@@ -273,7 +273,7 @@ proof -
   have x: "2^len_of TYPE('a) - i = -i + 2^len_of TYPE('a)" by simp
   show ?thesis
     apply (subst x)
-    apply (subst word_uint.Abs_norm [symmetric], subst zmod_zadd_self2)
+    apply (subst word_uint.Abs_norm [symmetric], subst mod_add_self2)
     apply simp
     done
 qed

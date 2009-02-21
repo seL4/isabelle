@@ -433,7 +433,7 @@ lemma sbintrunc_mod2p:
   "!!w. sbintrunc n w = ((w + 2 ^ n) mod 2 ^ (Suc n) - 2 ^ n :: int)"
   apply (induct n)
    apply clarsimp
-   apply (subst zmod_zadd_left_eq)
+   apply (subst mod_add_left_eq)
    apply (simp add: bin_last_mod)
    apply (simp add: number_of_eq)
   apply clarsimp
@@ -767,23 +767,23 @@ lemmas zmod_uminus' = zmod_uminus [where b="c", standard]
 lemmas zpower_zmod' = zpower_zmod [where m="c" and y="k", standard]
 
 lemmas brdmod1s' [symmetric] = 
-  zmod_zadd_left_eq zmod_zadd_right_eq 
+  mod_add_left_eq mod_add_right_eq 
   zmod_zsub_left_eq zmod_zsub_right_eq 
   zmod_zmult1_eq zmod_zmult1_eq_rev 
 
 lemmas brdmods' [symmetric] = 
   zpower_zmod' [symmetric]
-  trans [OF zmod_zadd_left_eq zmod_zadd_right_eq] 
+  trans [OF mod_add_left_eq mod_add_right_eq] 
   trans [OF zmod_zsub_left_eq zmod_zsub_right_eq] 
   trans [OF zmod_zmult1_eq zmod_zmult1_eq_rev] 
   zmod_uminus' [symmetric]
-  zmod_zadd_left_eq [where b = "1"]
+  mod_add_left_eq [where b = "1::int"]
   zmod_zsub_left_eq [where b = "1"]
 
 lemmas bintr_arith1s =
-  brdmod1s' [where c="2^n", folded pred_def succ_def bintrunc_mod2p, standard]
+  brdmod1s' [where c="2^n::int", folded pred_def succ_def bintrunc_mod2p, standard]
 lemmas bintr_ariths =
-  brdmods' [where c="2^n", folded pred_def succ_def bintrunc_mod2p, standard]
+  brdmods' [where c="2^n::int", folded pred_def succ_def bintrunc_mod2p, standard]
 
 lemmas m2pths = pos_mod_sign pos_mod_bound [OF zless2p, standard] 
 

@@ -322,7 +322,7 @@ proof -
       by (rule zdiv_mono1) (insert p_g_2, auto)
     then show "b \<le> (q * a) div p"
       apply (subgoal_tac "p \<noteq> 0")
-      apply (frule zdiv_zmult_self2, force)
+      apply (frule div_mult_self1_is_id, force)
       apply (insert p_g_2, auto)
       done
   qed
@@ -356,7 +356,7 @@ proof -
       by (rule zdiv_mono1) (insert q_g_2, auto)
     then show "a \<le> (p * b) div q"
       apply (subgoal_tac "q \<noteq> 0")
-      apply (frule zdiv_zmult_self2, force)
+      apply (frule div_mult_self1_is_id, force)
       apply (insert q_g_2, auto)
       done
   qed
