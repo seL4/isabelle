@@ -412,19 +412,15 @@ lemma int_eq_number_of_eq:
   "(((number_of v)::int) = (number_of w)) = iszero ((number_of (v + (uminus w)))::int)"
   by (rule eq_number_of_eq)
 
-lemma mod_eq0_dvd_iff[presburger]: "(m::nat) mod n = 0 \<longleftrightarrow> n dvd m"
-unfolding dvd_eq_mod_eq_0[symmetric] ..
-
-lemma zmod_eq0_zdvd_iff[presburger]: "(m::int) mod n = 0 \<longleftrightarrow> n dvd m"
-unfolding zdvd_iff_zmod_eq_0[symmetric] ..
+declare dvd_eq_mod_eq_0[symmetric, presburger]
 declare mod_1[presburger] 
 declare mod_0[presburger]
-declare zmod_1[presburger]
+declare mod_by_1[presburger]
 declare zmod_zero[presburger]
 declare zmod_self[presburger]
 declare mod_self[presburger]
 declare mod_by_0[presburger]
-declare nat_mod_div_trivial[presburger]
+declare mod_div_trivial[presburger]
 declare div_mod_equality2[presburger]
 declare div_mod_equality[presburger]
 declare mod_div_equality2[presburger]

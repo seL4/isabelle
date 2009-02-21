@@ -216,7 +216,7 @@ fun find_first_t past u []         = raise TERM ("find_first_t", [])
 
 (** Final simplification for the CancelFactor simprocs **)
 val simplify_one = Int_Numeral_Simprocs.simplify_meta_eq  
-  [@{thm mult_1_left}, @{thm mult_1_right}, @{thm zdiv_1}, @{thm numeral_1_eq_1}];
+  [@{thm mult_1_left}, @{thm mult_1_right}, @{thm div_by_1}, @{thm numeral_1_eq_1}];
 
 fun cancel_simplify_meta_eq cancel_th ss th =
     simplify_one ss (([th, cancel_th]) MRS trans);

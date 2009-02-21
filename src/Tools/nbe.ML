@@ -389,8 +389,8 @@ fun term_of_univ thy program idx_tab t =
             val ts' = take_until is_dict ts;
             val c = const_of_idx idx;
             val (_, T) = Code.default_typscheme thy c;
-            val T' = map_type_tvar (fn ((v, i), S) => TypeInfer.param (typidx + i) (v, [])) T;
-            val typidx' = typidx + maxidx_of_typ T' + 1;
+            val T' = map_type_tfree (fn (v, _) => TypeInfer.param typidx (v, [])) T;
+            val typidx' = typidx + 1;
           in of_apps bounds (Term.Const (c, T'), ts') typidx' end
       | of_univ bounds (Free (name, ts)) typidx =
           of_apps bounds (Term.Free (name, dummyT), ts) typidx

@@ -659,7 +659,7 @@ fun pretty_datatype ctxt (dtco, (vs, cos)) =
       | pretty_constr (co, [ty']) =
           (Pretty.block o Pretty.breaks)
             [Syntax.pretty_term ctxt (Const (co, ty' --> ty)),
-              Syntax.pretty_typ ctxt ty']
+              pretty_typ_br ty']
       | pretty_constr (co, tys) =
           (Pretty.block o Pretty.breaks)
             (Syntax.pretty_term ctxt (Const (co, tys ---> ty)) ::

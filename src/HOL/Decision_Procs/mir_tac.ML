@@ -99,7 +99,7 @@ fun mir_tac ctxt q i =
                         addsimps [refl,nat_mod_add_eq, 
                                   @{thm "mod_self"}, @{thm "zmod_self"},
                                   @{thm "zdiv_zero"},@{thm "zmod_zero"},@{thm "div_0"}, @{thm "mod_0"},
-                                  @{thm "zdiv_1"}, @{thm "zmod_1"}, @{thm "div_1"}, @{thm "mod_1"},
+                                  @{thm "div_by_1"}, @{thm "mod_by_1"}, @{thm "div_1"}, @{thm "mod_1"},
                                   @{thm "Suc_plus1"}]
                         addsimps @{thms add_ac}
                         addsimprocs [cancel_div_mod_proc]

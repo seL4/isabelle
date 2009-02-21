@@ -77,7 +77,7 @@ fun linz_tac ctxt q i = ObjectLogic.atomize_prems_tac i THEN (fn st =>
 				  @{thm mod_self}, @{thm "zmod_self"},
 				  @{thm mod_by_0}, @{thm div_by_0},
 				  @{thm "zdiv_zero"}, @{thm "zmod_zero"}, @{thm "div_0"}, @{thm "mod_0"},
-				  @{thm "zdiv_1"}, @{thm "zmod_1"}, @{thm "div_1"}, @{thm "mod_1"},
+				  @{thm "div_by_1"}, @{thm "mod_by_1"}, @{thm "div_1"}, @{thm "mod_1"},
 				  Suc_plus1]
 			addsimps @{thms add_ac}
 			addsimprocs [cancel_div_mod_proc]
