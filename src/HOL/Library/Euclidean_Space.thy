@@ -8,6 +8,7 @@ header {* (Real) Vectors in Euclidean space, and elementary linear algebra.*}
 theory Euclidean_Space
   imports "~~/src/HOL/Decision_Procs/Dense_Linear_Order" Complex_Main 
   Finite_Cartesian_Product Glbs Infinite_Set Numeral_Type
+  Inner_Product
   uses ("normarith.ML")
 begin
 
@@ -543,6 +544,38 @@ instance proof
              cong: strong_setL2_cong)
   show "sgn x = scaleR (inverse (norm x)) x"
     by (rule vector_sgn_def)
+qed
+
+end
+
+subsection {* Inner products *}
+
+instantiation "^" :: (real_inner, type) real_inner
+begin
+
+definition vector_inner_def:
+  "inner x y = setsum (\<lambda>i. inner (x$i) (y$i)) {1 .. dimindex(UNIV::'b set)}"
+
+instance proof
+  fix r :: real and x y z :: "'a ^ 'b"
+  show "inner x y = inner y x"
+    unfolding vector_inner_def
+    by (simp add: inner_commute)
+  show "inner (x + y) z = inner x z + inner y z"
+    unfolding vector_inner_def
+    by (vector inner_left_distrib)
+  show "inner (scaleR r x) y = r * inner x y"
+    unfolding vector_inner_def
+    by (vector inner_scaleR_left)
+  show "0 \<le> inner x x"
+    unfolding vector_inner_def
+    by (simp add: setsum_nonneg)
+  show "inner x x = 0 \<longleftrightarrow> x = 0"
+    unfolding vector_inner_def
+    by (simp add: Cart_eq setsum_nonneg_eq_0_iff)
+  show "norm x = sqrt (inner x x)"
+    unfolding vector_inner_def vector_norm_def setL2_def
+    by (simp add: power2_norm_eq_inner)
 qed
 
 end
