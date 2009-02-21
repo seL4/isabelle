@@ -64,14 +64,14 @@ proof -
 qed
 
 lemma p_eq: "p = (2 * (p - 1) div 2) + 1"
-  using zdiv_zmult_self2 [of 2 "p - 1"] by auto
+  using div_mult_self1_is_id [of 2 "p - 1"] by auto
 
 
 lemma (in -) zodd_imp_zdiv_eq: "x \<in> zOdd ==> 2 * (x - 1) div 2 = 2 * ((x - 1) div 2)"
   apply (frule odd_minus_one_even)
   apply (simp add: zEven_def)
   apply (subgoal_tac "2 \<noteq> 0")
-  apply (frule_tac b = "2 :: int" and a = "x - 1" in zdiv_zmult_self2)
+  apply (frule_tac b = "2 :: int" and a = "x - 1" in div_mult_self1_is_id)
   apply (auto simp add: even_div_2_prop2)
   done
 

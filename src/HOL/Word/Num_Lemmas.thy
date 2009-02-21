@@ -127,12 +127,12 @@ lemma zmod_zsub_distrib: "((a::int) - b) mod c = (a mod c - b mod c) mod c"
 
 lemma zmod_zsub_right_eq: "((a::int) - b) mod c = (a - b mod c) mod c"
   apply (unfold diff_int_def)
-  apply (rule trans [OF _ zmod_zadd_right_eq [symmetric]])
-  apply (simp add : zmod_uminus zmod_zadd_right_eq [symmetric])
+  apply (rule trans [OF _ mod_add_right_eq [symmetric]])
+  apply (simp add : zmod_uminus mod_add_right_eq [symmetric])
   done
 
 lemma zmod_zsub_left_eq: "((a::int) - b) mod c = (a mod c - b) mod c"
-  by (rule zmod_zadd_left_eq [where b = "- b", simplified diff_int_def [symmetric]])
+  by (rule mod_add_left_eq [where b = "- b", simplified diff_int_def [symmetric]])
 
 lemma zmod_zsub_self [simp]: 
   "((b :: int) - a) mod a = b mod a"
@@ -146,8 +146,8 @@ lemma zmod_zmult1_eq_rev:
   done
 
 lemmas rdmods [symmetric] = zmod_uminus [symmetric]
-  zmod_zsub_left_eq zmod_zsub_right_eq zmod_zadd_left_eq
-  zmod_zadd_right_eq zmod_zmult1_eq zmod_zmult1_eq_rev
+  zmod_zsub_left_eq zmod_zsub_right_eq mod_add_left_eq
+  mod_add_right_eq zmod_zmult1_eq zmod_zmult1_eq_rev
 
 lemma mod_plus_right:
   "((a + x) mod m = (b + x) mod m) = (a mod m = b mod (m :: nat))"
@@ -169,7 +169,8 @@ lemmas push_mods' = mod_add_eq [standard]
 lemmas push_mods = push_mods' [THEN eq_reflection, standard]
 lemmas pull_mods = push_mods [symmetric] rdmods [THEN eq_reflection, standard]
 lemmas mod_simps = 
-  zmod_zmult_self1 [THEN eq_reflection] zmod_zmult_self2 [THEN eq_reflection]
+  mod_mult_self2_is_0 [THEN eq_reflection]
+  mod_mult_self1_is_0 [THEN eq_reflection]
   mod_mod_trivial [THEN eq_reflection]
 
 lemma nat_mod_eq:
