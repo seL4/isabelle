@@ -215,7 +215,7 @@ apply (subgoal_tac "p^r dvd p^a*m")
  prefer 2 apply (blast intro: dvd_mult2)
 apply (drule dvd_diffD1)
   apply assumption
- prefer 2 apply (blast intro: dvd_diff)
+ prefer 2 apply (blast intro: nat_dvd_diff)
 apply (drule gr0_implies_Suc, auto)
 done
 
@@ -231,7 +231,7 @@ apply (subgoal_tac "p^r dvd p^a*m")
  prefer 2 apply (blast intro: dvd_mult2)
 apply (drule dvd_diffD1)
   apply assumption
- prefer 2 apply (blast intro: dvd_diff)
+ prefer 2 apply (blast intro: nat_dvd_diff)
 apply (drule less_imp_Suc_add, auto)
 done
 

@@ -42,12 +42,12 @@ lemma cd_swap: "cd x m n = cd x n m"
 
 lemma cd_diff_l: "n<=m ==> cd x m n = cd x (m-n) n"
   apply (unfold cd_def)
-  apply (blast intro: dvd_diff dest: dvd_diffD)
+  apply (fastsimp dest: dvd_diffD)
   done
 
 lemma cd_diff_r: "m<=n ==> cd x m n = cd x m (n-m)"
   apply (unfold cd_def)
-  apply (blast intro: dvd_diff dest: dvd_diffD)
+  apply (fastsimp dest: dvd_diffD)
   done
 
 

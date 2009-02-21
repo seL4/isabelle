@@ -155,7 +155,7 @@ lemma norR_mem_unique:
     prefer 2
     apply (subst zdvd_iff_zgcd [symmetric])
      apply (rule_tac [4] zgcd_zcong_zgcd)
-       apply (simp_all add: zdvd_zminus_iff zcong_sym)
+       apply (simp_all add: zcong_sym)
   done
 
 

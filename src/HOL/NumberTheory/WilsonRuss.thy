@@ -68,7 +68,7 @@ lemma inv_not_0:
    apply (rule_tac [2] zdvd_not_zless)
     apply (subgoal_tac "p dvd 1")
      prefer 2
-     apply (subst zdvd_zminus_iff [symmetric], auto)
+     apply (subst dvd_minus_iff [symmetric], auto)
   done
 
 lemma inv_not_1:
@@ -87,7 +87,7 @@ lemma inv_not_p_minus_1_aux:
   apply (simp add: OrderedGroup.diff_diff_eq diff_diff_eq2 zdiff_zmult_distrib2)
   apply (rule_tac s = "p dvd -((a + 1) + (p * -a))" in trans)
    apply (simp add: mult_commute)
-  apply (subst zdvd_zminus_iff)
+  apply (subst dvd_minus_iff)
   apply (subst zdvd_reduce)
   apply (rule_tac s = "p dvd (a + 1) + (p * -1)" in trans)
    apply (subst zdvd_reduce, auto)

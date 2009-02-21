@@ -90,10 +90,8 @@ lemma funprod_zdvd [rule_format]:
     "k \<le> i --> i \<le> k + l --> mf i dvd funprod mf k l"
   apply (induct l)
    apply auto
-    apply (rule_tac [1] zdvd_zmult2)
-    apply (rule_tac [2] zdvd_zmult)
-    apply (subgoal_tac "i = Suc (k + l)")
-    apply (simp_all (no_asm_simp))
+  apply (subgoal_tac "i = Suc (k + l)")
+   apply (simp_all (no_asm_simp))
   done
 
 lemma funsum_mod:
@@ -196,8 +194,8 @@ lemma x_sol_lin_aux:
    apply (case_tac [2] "i = n")
     apply (simp_all (no_asm_simp))
     apply (case_tac [3] "j < i")
-     apply (rule_tac [3] zdvd_zmult2)
-     apply (rule_tac [4] zdvd_zmult)
+     apply (rule_tac [3] dvd_mult2)
+     apply (rule_tac [4] dvd_mult)
      apply (rule_tac [!] funprod_zdvd)
      apply arith
      apply arith
@@ -217,8 +215,8 @@ lemma x_sol_lin:
   apply (subst funsum_mod)
   apply (subst funsum_oneelem)
      apply auto
-  apply (subst zdvd_iff_zmod_eq_0 [symmetric])
-  apply (rule zdvd_zmult)
+  apply (subst dvd_eq_mod_eq_0 [symmetric])
+  apply (rule dvd_mult)
   apply (rule x_sol_lin_aux)
   apply auto
   done

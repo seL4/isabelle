@@ -655,7 +655,7 @@ lemma real_of_int_div: "(d::int) ~= 0 ==> d dvd n ==>
     real(n div d) = real n / real d"
   apply (frule real_of_int_div_aux [of d n])
   apply simp
-  apply (simp add: zdvd_iff_zmod_eq_0)
+  apply (simp add: dvd_eq_mod_eq_0)
 done
 
 lemma real_of_int_div2:

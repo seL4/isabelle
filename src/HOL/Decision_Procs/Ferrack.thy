@@ -501,9 +501,9 @@ lemma dvdnumcoeff_trans:
   assumes gdg: "g dvd g'" and dgt':"dvdnumcoeff t g'"
   shows "dvdnumcoeff t g"
   using dgt' gdg 
-  by (induct t rule: dvdnumcoeff.induct, simp_all add: gdg zdvd_trans[OF gdg])
+  by (induct t rule: dvdnumcoeff.induct, simp_all add: gdg dvd_trans[OF gdg])
 
-declare zdvd_trans [trans add]
+declare dvd_trans [trans add]
 
 lemma natabs0: "(nat (abs x) = 0) = (x = 0)"
 by arith

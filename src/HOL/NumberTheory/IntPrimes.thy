@@ -50,7 +50,7 @@ subsection {* Euclid's Algorithm and GCD *}
 
 lemma zrelprime_zdvd_zmult_aux:
      "zgcd n k = 1 ==> k dvd m * n ==> 0 \<le> m ==> k dvd m"
-    by (metis abs_of_nonneg zdvd_triv_right zgcd_greatest_iff zgcd_zmult_distrib2_abs zmult_1_right)
+    by (metis abs_of_nonneg dvd_triv_right zgcd_greatest_iff zgcd_zmult_distrib2_abs zmult_1_right)
 
 lemma zrelprime_zdvd_zmult: "zgcd n k = 1 ==> k dvd m * n ==> k dvd m"
   apply (case_tac "0 \<le> m")
@@ -73,7 +73,7 @@ lemma "zprime 2"
 lemma zprime_imp_zrelprime:
     "zprime p ==> \<not> p dvd n ==> zgcd n p = 1"
   apply (auto simp add: zprime_def)
-  apply (metis zgcd_commute zgcd_geq_zero zgcd_zdvd1 zgcd_zdvd2)
+  apply (metis zgcd_geq_zero zgcd_zdvd1 zgcd_zdvd2)
   done
 
 lemma zless_zprime_imp_zrelprime:
@@ -93,9 +93,7 @@ lemma zgcd_zadd_zmult [simp]: "zgcd (m + n * k) n = zgcd m n"
   done
 
 lemma zgcd_zdvd_zgcd_zmult: "zgcd m n dvd zgcd (k * m) n"
-  apply (simp add: zgcd_greatest_iff)
-  apply (blast intro: zdvd_trans dvd_triv_right)
-  done
+by (simp add: zgcd_greatest_iff)
 
 lemma zgcd_zmult_zdvd_zgcd:
     "zgcd k n = 1 ==> zgcd (k * m) n dvd zgcd m n"
@@ -127,20 +125,20 @@ lemma zcong_refl [simp]: "[k = k] (mod m)"
   by (unfold zcong_def, auto)
 
 lemma zcong_sym: "[a = b] (mod m) = [b = a] (mod m)"
-  unfolding zcong_def minus_diff_eq [of a, symmetric] zdvd_zminus_iff ..
+  unfolding zcong_def minus_diff_eq [of a, symmetric] dvd_minus_iff ..
 
 lemma zcong_zadd:
     "[a = b] (mod m) ==> [c = d] (mod m) ==> [a + c = b + d] (mod m)"
   apply (unfold zcong_def)
   apply (rule_tac s = "(a - b) + (c - d)" in subst)
-   apply (rule_tac [2] zdvd_zadd, auto)
+   apply (rule_tac [2] dvd_add, auto)
   done
 
 lemma zcong_zdiff:
     "[a = b] (mod m) ==> [c = d] (mod m) ==> [a - c = b - d] (mod m)"
   apply (unfold zcong_def)
   apply (rule_tac s = "(a - b) - (c - d)" in subst)
-   apply (rule_tac [2] zdvd_zdiff, auto)
+   apply (rule_tac [2] dvd_diff, auto)
   done
 
 lemma zcong_trans:
@@ -151,8 +149,8 @@ lemma zcong_zmult:
     "[a = b] (mod m) ==> [c = d] (mod m) ==> [a * c = b * d] (mod m)"
   apply (rule_tac b = "b * c" in zcong_trans)
    apply (unfold zcong_def)
-  apply (metis zdiff_zmult_distrib2 zdvd_zmult zmult_commute)
-  apply (metis zdiff_zmult_distrib2 zdvd_zmult)
+  apply (metis zdiff_zmult_distrib2 dvd_mult zmult_commute)
+  apply (metis zdiff_zmult_distrib2 dvd_mult)
   done
 
 lemma zcong_scalar: "[a = b] (mod m) ==> [a * k = b * k] (mod m)"
@@ -163,7 +161,7 @@ lemma zcong_scalar2: "[a = b] (mod m) ==> [k * a = k * b] (mod m)"
 
 lemma zcong_zmult_self: "[a * m = b * m] (mod m)"
   apply (unfold zcong_def)
-  apply (rule zdvd_zdiff, simp_all)
+  apply (rule dvd_diff, simp_all)
   done
 
 lemma zcong_square:
@@ -191,7 +189,7 @@ lemma zcong_cancel:
      apply (simp_all add: zdiff_zmult_distrib)
   apply (subgoal_tac "m dvd (-(a * k - b * k))")
    apply simp
-  apply (subst zdvd_zminus_iff, assumption)
+  apply (subst dvd_minus_iff, assumption)
   done
 
 lemma zcong_cancel2:
@@ -206,10 +204,10 @@ lemma zcong_zgcd_zmult_zmod:
   apply (subgoal_tac "m dvd n * ka")
    apply (subgoal_tac "m dvd ka")
     apply (case_tac [2] "0 \<le> ka")
-  apply (metis zdvd_mult_div_cancel zdvd_refl zdvd_zminus2_iff zdvd_zmultD2 zgcd_zminus zmult_commute zmult_zminus zrelprime_zdvd_zmult)
-  apply (metis IntDiv.zdvd_abs1 abs_of_nonneg zadd_0 zgcd_0_left zgcd_commute zgcd_zadd_zmult zgcd_zdvd_zgcd_zmult zgcd_zmult_distrib2_abs zmult_1_right zmult_commute)
-  apply (metis abs_eq_0 int_0_neq_1 mult_le_0_iff  zdvd_mono zdvd_mult_cancel zdvd_mult_cancel1 zdvd_refl zdvd_triv_left zdvd_zmult2 zero_le_mult_iff zgcd_greatest_iff zle_anti_sym zle_linear zle_refl zmult_commute zrelprime_zdvd_zmult)
-  apply (metis zdvd_triv_left)
+  apply (metis zdvd_mult_div_cancel dvd_refl dvd_mult_left zmult_commute zrelprime_zdvd_zmult)
+  apply (metis abs_dvd_iff abs_of_nonneg zadd_0 zgcd_0_left zgcd_commute zgcd_zadd_zmult zgcd_zdvd_zgcd_zmult zgcd_zmult_distrib2_abs zmult_1_right zmult_commute)
+  apply (metis mult_le_0_iff  zdvd_mono zdvd_mult_cancel dvd_triv_left zero_le_mult_iff zle_anti_sym zle_linear zle_refl zmult_commute zrelprime_zdvd_zmult)
+  apply (metis dvd_triv_left)
   done
 
 lemma zcong_zless_imp_eq:
@@ -237,7 +235,7 @@ lemma zcong_not:
 lemma zcong_zless_0:
     "0 \<le> a ==> a < m ==> [a = 0] (mod m) ==> a = 0"
   apply (unfold zcong_def dvd_def, auto)
-  apply (metis div_pos_pos_trivial linorder_not_less div_mult_self1_is_id zle_refl zle_trans)
+  apply (metis div_pos_pos_trivial linorder_not_less div_mult_self1_is_id)
   done
 
 lemma zcong_zless_unique:
@@ -403,7 +401,7 @@ lemma zcong_lineq_ex:
    prefer 2
    apply simp
   apply (unfold zcong_def)
-  apply (simp (no_asm) add: zmult_commute zdvd_zminus_iff)
+  apply (simp (no_asm) add: zmult_commute)
   done
 
 lemma zcong_lineq_unique:

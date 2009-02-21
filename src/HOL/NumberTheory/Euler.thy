@@ -272,7 +272,7 @@ lemma Euler_part2:
 text {* \medskip Prove the final part of Euler's Criterion: *}
 
 lemma aux__1: "[| ~([x = 0] (mod p)); [y ^ 2 = x] (mod p)|] ==> ~(p dvd y)"
-  by (metis dvdI power2_eq_square zcong_sym zcong_trans zcong_zero_equiv_div zdvd_trans)
+  by (metis dvdI power2_eq_square zcong_sym zcong_trans zcong_zero_equiv_div dvd_trans)
 
 lemma aux__2: "2 * nat((p - 1) div 2) =  nat (2 * ((p - 1) div 2))"
   by (auto simp add: nat_mult_distrib)

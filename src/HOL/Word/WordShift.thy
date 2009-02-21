@@ -530,7 +530,7 @@ lemma mask_eq_iff: "(w AND mask n) = w <-> uint w < 2 ^ n"
   done
 
 lemma and_mask_dvd: "2 ^ n dvd uint w = (w AND mask n = 0)"
-  apply (simp add: zdvd_iff_zmod_eq_0 and_mask_mod_2p)
+  apply (simp add: dvd_eq_mod_eq_0 and_mask_mod_2p)
   apply (simp add: word_uint.norm_eq_iff [symmetric] word_of_int_homs)
   apply (subst word_uint.norm_Rep [symmetric])
   apply (simp only: bintrunc_bintrunc_min bintrunc_mod2p [symmetric] min_def)
