@@ -683,13 +683,13 @@ lemma sign_idempotent: "sign p * sign p = 1" by (simp add: sign_def)
 (* ------------------------------------------------------------------------- *)
 
 lemma permutes_natset_le:
-  assumes p: "p permutes (S:: nat set)" and le: "\<forall>i \<in> S.  p i <= i" shows "p = id"
+  assumes p: "p permutes (S::'a::wellorder set)" and le: "\<forall>i \<in> S.  p i <= i" shows "p = id"
 proof-
   {fix n
     have "p n = n" 
       using p le
-    proof(induct n arbitrary: S rule: nat_less_induct)
-      fix n S assume H: "\<forall> m< n. \<forall>S. p permutes S \<longrightarrow> (\<forall>i\<in>S. p i \<le> i) \<longrightarrow> p m = m" 
+    proof(induct n arbitrary: S rule: less_induct)
+      fix n S assume H: "\<And>m S. \<lbrakk>m < n; p permutes S; \<forall>i\<in>S. p i \<le> i\<rbrakk> \<Longrightarrow> p m = m" 
 	"p permutes S" "\<forall>i \<in>S. p i \<le> i"
       {assume "n \<notin> S"
 	with H(2) have "p n = n" unfolding permutes_def by metis}
@@ -699,7 +699,7 @@ proof-
 	moreover{assume h: "p n < n"
 	  from H h have "p (p n) = p n" by metis
 	  with permutes_inj[OF H(2)] have "p n = n" unfolding inj_on_def by blast
-	  with h have False by arith}
+	  with h have False by simp}
 	ultimately have "p n = n" by blast }
       ultimately show "p n = n"  by blast
     qed}
@@ -707,7 +707,7 @@ proof-
 qed
 
 lemma permutes_natset_ge:
-  assumes p: "p permutes (S:: nat set)" and le: "\<forall>i \<in> S.  p i \<ge> i" shows "p = id"
+  assumes p: "p permutes (S::'a::wellorder set)" and le: "\<forall>i \<in> S.  p i \<ge> i" shows "p = id"
 proof-
   {fix i assume i: "i \<in> S"
     from i permutes_in_image[OF permutes_inv[OF p]] have "inv p i \<in> S" by simp
