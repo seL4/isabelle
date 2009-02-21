@@ -367,6 +367,49 @@ renames resulting from duplicate elimination:
     mult_div ~>             div_mult_self2_is_id
     mult_mod ~>             mod_mult_self2_is_0
 
+* HOL/IntDiv: removed most (all?) lemmas that are instances of class-based
+generalizations (from Divides and Ring_and_Field).
+INCOMPATIBILITY. Rename old lemmas as follows:
+
+dvd_diff               -> nat_dvd_diff
+dvd_zminus_iff         -> dvd_minus_iff
+nat_mod_add_left_eq    -> mod_add_left_eq
+nat_mod_add_right_eq   -> mod_add_right_eq
+nat_mod_div_trivial    -> mod_div_trivial
+nat_mod_mod_trivial    -> mod_mod_trivial
+zdiv_zadd_self1        -> div_add_self1
+zdiv_zadd_self2        -> div_add_self2
+zdiv_zmult_self2       -> div_mult_self1_is_id
+zdvd_triv_left         -> dvd_triv_left
+zdvd_triv_right        -> dvd_triv_right
+zdvd_zmult_cancel_disj -> dvd_mult_cancel_left
+zmod_zadd_left_eq      -> mod_add_left_eq
+zmod_zadd_right_eq     -> mod_add_right_eq
+zmod_zadd_self1        -> mod_add_self1
+zmod_zadd_self2        -> mod_add_self2
+zmod_zdiff1_eq         -> mod_diff_eq
+zmod_zdvd_zmod         -> mod_mod_cancel
+zmod_zmod_cancel       -> mod_mod_cancel
+zmod_zmult_self1       -> mod_mult_self2_is_0
+zmod_zmult_self2       -> mod_mult_self1_is_0
+zmod_1                 -> mod_by_1
+zdiv_1                 -> div_by_1
+zdvd_abs1              -> abs_dvd_iff
+zdvd_abs2              -> dvd_abs_iff
+zdvd_refl              -> dvd_refl
+zdvd_trans             -> dvd_trans
+zdvd_zadd              -> dvd_add
+zdvd_zdiff             -> dvd_diff
+zdvd_zminus_iff        -> dvd_minus_iff
+zdvd_zminus2_iff       -> minus_dvd_iff
+zdvd_zmultD            -> dvd_mult_right
+zdvd_zmultD2           -> dvd_mult_left
+zdvd_zmult_mono        -> mult_dvd_mono
+zdvd_0_right           -> dvd_0_right
+zdvd_0_left            -> dvd_0_left_iff
+zdvd_1_left            -> one_dvd
+zminus_dvd_iff         -> minus_dvd_iff
+
 * HOL/Library/GCD: Curried operations gcd, lcm (for nat) and zgcd,
 zlcm (for int); carried together from various gcd/lcm developements in
 the HOL Distribution.  zgcd and zlcm replace former igcd and ilcm;
