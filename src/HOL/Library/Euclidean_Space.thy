@@ -729,28 +729,16 @@ text{* Hence derive more interesting properties of the norm. *}
 lemma norm_0: "norm (0::real ^ 'n) = 0"
   by (rule norm_zero)
 
-lemma norm_pos_le: "0 <= norm (x::real^'n)"
-  by (rule norm_ge_zero)
-lemma norm_neg: " norm(-x) = norm (x:: real ^ 'n)" 
-  by (rule norm_minus_cancel)
-lemma norm_sub: "norm(x - y) = norm(y - (x::real ^ 'n))" 
-  by (rule norm_minus_commute)
 lemma norm_mul: "norm(a *s x) = abs(a) * norm x"
   by (simp add: vector_norm_def vector_component setL2_right_distrib
            abs_mult cong: strong_setL2_cong)
 lemma norm_eq_0_dot: "(norm x = 0) \<longleftrightarrow> (x \<bullet> x = (0::real))"
   by (simp add: vector_norm_def dot_def setL2_def power2_eq_square)
-lemma norm_eq_0: "norm x = 0 \<longleftrightarrow> x = (0::real ^ 'n)"
-  by (rule norm_eq_zero)
-lemma norm_pos_lt: "0 < norm x \<longleftrightarrow> x \<noteq> (0::real ^ 'n)"
-  by (rule zero_less_norm_iff)
 lemma real_vector_norm_def: "norm x = sqrt (x \<bullet> x)"
   by (simp add: vector_norm_def setL2_def dot_def power2_eq_square)
 lemma norm_pow_2: "norm x ^ 2 = x \<bullet> x"
   by (simp add: real_vector_norm_def)
-lemma norm_eq_0_imp: "norm x = 0 ==> x = (0::real ^'n)" by (metis norm_eq_0)
-lemma norm_le_0: "norm x <= 0 \<longleftrightarrow> x = (0::real ^'n)"
-  by (rule norm_le_zero_iff)
+lemma norm_eq_0_imp: "norm x = 0 ==> x = (0::real ^'n)" by (metis norm_eq_zero)
 lemma vector_mul_eq_0: "(a *s x = 0) \<longleftrightarrow> a = (0::'a::idom) \<or> x = 0"
   by vector
 lemma vector_mul_lcancel: "a *s x = a *s y \<longleftrightarrow> a = (0::real) \<or> x = y"
@@ -764,14 +752,14 @@ lemma vector_mul_rcancel_imp: "x \<noteq> 0 \<Longrightarrow> (a::real) *s x = b
 lemma norm_cauchy_schwarz: "x \<bullet> y <= norm x * norm y"
 proof-
   {assume "norm x = 0"
-    hence ?thesis by (simp add: norm_eq_0 dot_lzero dot_rzero norm_0)}
+    hence ?thesis by (simp add: dot_lzero dot_rzero)}
   moreover
   {assume "norm y = 0" 
-    hence ?thesis by (simp add: norm_eq_0 dot_lzero dot_rzero norm_0)}
+    hence ?thesis by (simp add: dot_lzero dot_rzero)}
   moreover
   {assume h: "norm x \<noteq> 0" "norm y \<noteq> 0"
     let ?z = "norm y *s x - norm x *s y"
-    from h have p: "norm x * norm y > 0" by (metis norm_pos_le le_less zero_compare_simps)
+    from h have p: "norm x * norm y > 0" by (metis norm_ge_zero le_less zero_compare_simps)
     from dot_pos_le[of ?z]
     have "(norm x * norm y) * (x \<bullet> y) \<le> norm x ^2 * norm y ^2"
       apply (simp add: dot_rsub dot_lsub dot_lmult dot_rmult ring_simps)
@@ -782,21 +770,16 @@ proof-
   ultimately show ?thesis by metis
 qed
 
-lemma norm_abs: "abs (norm x) = norm (x::real ^'n)"
-  by (rule abs_norm_cancel) (* already declared [simp] *)
-
 lemma norm_cauchy_schwarz_abs: "\<bar>x \<bullet> y\<bar> \<le> norm x * norm y"
   using norm_cauchy_schwarz[of x y] norm_cauchy_schwarz[of x "-y"]
-  by (simp add: real_abs_def dot_rneg norm_neg)
-lemma norm_triangle: "norm(x + y) <= norm x + norm (y::real ^'n)"
-  by (rule norm_triangle_ineq)
+  by (simp add: real_abs_def dot_rneg)
 
 lemma norm_triangle_sub: "norm (x::real ^'n) <= norm(y) + norm(x - y)"
-  using norm_triangle[of "y" "x - y"] by (simp add: ring_simps)
+  using norm_triangle_ineq[of "y" "x - y"] by (simp add: ring_simps)
 lemma norm_triangle_le: "norm(x::real ^'n) + norm y <= e ==> norm(x + y) <= e"
-  by (metis order_trans norm_triangle)
+  by (metis order_trans norm_triangle_ineq)
 lemma norm_triangle_lt: "norm(x::real ^'n) + norm(y) < e ==> norm(x + y) < e"
-  by (metis basic_trans_rules(21) norm_triangle)
+  by (metis basic_trans_rules(21) norm_triangle_ineq)
 
 lemma setsum_delta: 
   assumes fS: "finite S"
@@ -866,13 +849,13 @@ qed
 
 lemma norm_le_square: "norm(x) <= a \<longleftrightarrow> 0 <= a \<and> x \<bullet> x <= a^2"
   apply (simp add: dot_square_norm real_abs_le_square_iff[symmetric])
-  using norm_pos_le[of x]
+  using norm_ge_zero[of x]
   apply arith
   done
 
 lemma norm_ge_square: "norm(x) >= a \<longleftrightarrow> a <= 0 \<or> x \<bullet> x >= a ^ 2" 
   apply (simp add: dot_square_norm real_abs_le_square_iff[symmetric])
-  using norm_pos_le[of x]
+  using norm_ge_zero[of x]
   apply arith
   done
 
@@ -943,14 +926,14 @@ lemma pth_c: "(c::real) *s x + d *s y == d *s y + c *s x"
 lemma pth_d: "x + (0::real ^'n) == x" by (atomize (full)) vector
 
 lemma norm_imp_pos_and_ge: "norm (x::real ^ 'n) == n \<Longrightarrow> norm x \<ge> 0 \<and> n \<ge> norm x"
-  by (atomize) (auto simp add: norm_pos_le)
+  by (atomize) (auto simp add: norm_ge_zero)
 
 lemma real_eq_0_iff_le_ge_0: "(x::real) = 0 == x \<ge> 0 \<and> -x \<ge> 0" by arith
 
 lemma norm_pths: 
   "(x::real ^'n) = y \<longleftrightarrow> norm (x - y) \<le> 0"
   "x \<noteq> y \<longleftrightarrow> \<not> (norm (x - y) \<le> 0)"
-  using norm_pos_le[of "x - y"] by (auto simp add: norm_0 norm_eq_0)
+  using norm_ge_zero[of "x - y"] by auto
 
 use "normarith.ML"
 
@@ -1070,7 +1053,7 @@ lemma setsum_norm:
   assumes fS: "finite S"
   shows "norm (setsum f S) <= setsum (\<lambda>x. norm(f x)) S"
 proof(induct rule: finite_induct[OF fS])
-  case 1 thus ?case by (simp add: norm_zero)
+  case 1 thus ?case by simp
 next
   case (2 x S)
   from "2.hyps" have "norm (setsum f (insert x S)) \<le> norm (f x) + norm (setsum f S)" by (simp add: norm_triangle_ineq)
@@ -1369,7 +1352,7 @@ proof-
       by (auto simp add: setsum_component intro: abs_le_D1)
     have Pne: "setsum (\<lambda>x. \<bar>f x $ i\<bar>) ?Pn \<le> e"
       using i component_le_norm[OF i, of "setsum (\<lambda>x. - f x) ?Pn"]  fPs[OF PnP]
-      by (auto simp add: setsum_negf norm_neg setsum_component vector_component intro: abs_le_D1)
+      by (auto simp add: setsum_negf setsum_component vector_component intro: abs_le_D1)
     have "setsum (\<lambda>x. \<bar>f x $ i\<bar>) P = setsum (\<lambda>x. \<bar>f x $ i\<bar>) ?Pp + setsum (\<lambda>x. \<bar>f x $ i\<bar>) ?Pn" 
       apply (subst thp)
       apply (rule setsum_Un_nonzero) 
@@ -1693,7 +1676,7 @@ proof-
       unfolding norm_mul
       apply (simp only: mult_commute)
       apply (rule mult_mono)
-      by (auto simp add: ring_simps norm_pos_le) }
+      by (auto simp add: ring_simps norm_ge_zero) }
     then have th: "\<forall>i\<in> ?S. norm ((x$i) *s f (basis i :: real ^'m)) \<le> norm (f (basis i)) * norm x" by metis
     from real_setsum_norm_le[OF fS, of "\<lambda>i. (x$i) *s (f (basis i))", OF th]
     have "norm (f x) \<le> ?B * norm x" unfolding th0 setsum_left_distrib by metis}
@@ -1710,15 +1693,15 @@ proof-
   let ?K = "\<bar>B\<bar> + 1"
   have Kp: "?K > 0" by arith
     {assume C: "B < 0"
-      have "norm (1::real ^ 'n) > 0" by (simp add: norm_pos_lt)
+      have "norm (1::real ^ 'n) > 0" by (simp add: zero_less_norm_iff)
       with C have "B * norm (1:: real ^ 'n) < 0"
 	by (simp add: zero_compare_simps)
-      with B[rule_format, of 1] norm_pos_le[of "f 1"] have False by simp
+      with B[rule_format, of 1] norm_ge_zero[of "f 1"] have False by simp
     }
     then have Bp: "B \<ge> 0" by ferrack
     {fix x::"real ^ 'n"
       have "norm (f x) \<le> ?K *  norm x"
-      using B[rule_format, of x] norm_pos_le[of x] norm_pos_le[of "f x"] Bp
+      using B[rule_format, of x] norm_ge_zero[of x] norm_ge_zero[of "f x"] Bp
       apply (auto simp add: ring_simps split add: abs_split)
       apply (erule order_trans, simp)
       done
@@ -1801,9 +1784,9 @@ proof-
       apply simp
       apply (auto simp add: bilinear_rmul[OF bh] bilinear_lmul[OF bh] norm_mul ring_simps)
       apply (rule mult_mono)
-      apply (auto simp add: norm_pos_le zero_le_mult_iff component_le_norm)
+      apply (auto simp add: norm_ge_zero zero_le_mult_iff component_le_norm)
       apply (rule mult_mono)
-      apply (auto simp add: norm_pos_le zero_le_mult_iff component_le_norm)
+      apply (auto simp add: norm_ge_zero zero_le_mult_iff component_le_norm)
       done}
   then show ?thesis by metis
 qed
@@ -1823,7 +1806,7 @@ proof-
     have "B * norm x * norm y \<le> ?K * norm x * norm y"
       apply - 
       apply (rule mult_right_mono, rule mult_right_mono)
-      by (auto simp add: norm_pos_le)
+      by (auto simp add: norm_ge_zero)
     then have "norm (h x y) \<le> ?K * norm x * norm y"
       using B[rule_format, of x y] by simp} 
   with Kp show ?thesis by blast
@@ -2436,21 +2419,21 @@ proof-
   moreover
   {assume H: ?lhs
     from H[rule_format, of "basis 1"] 
-    have bp: "b \<ge> 0" using norm_pos_le[of "f (basis 1)"] dimindex_ge_1[of "UNIV:: 'n set"]
+    have bp: "b \<ge> 0" using norm_ge_zero[of "f (basis 1)"] dimindex_ge_1[of "UNIV:: 'n set"]
       by (auto simp add: norm_basis elim: order_trans [OF norm_ge_zero])
     {fix x :: "real ^'n"
       {assume "x = 0"
-	then have "norm (f x) \<le> b * norm x" by (simp add: linear_0[OF lf] norm_0 bp)}
+	then have "norm (f x) \<le> b * norm x" by (simp add: linear_0[OF lf] bp)}
       moreover
       {assume x0: "x \<noteq> 0"
-	hence n0: "norm x \<noteq> 0" by (metis norm_eq_0)
+	hence n0: "norm x \<noteq> 0" by (metis norm_eq_zero)
 	let ?c = "1/ norm x"
 	have "norm (?c*s x) = 1" using x0 by (simp add: n0 norm_mul)
 	with H have "norm (f(?c*s x)) \<le> b" by blast
 	hence "?c * norm (f x) \<le> b" 
 	  by (simp add: linear_cmul[OF lf] norm_mul)
 	hence "norm (f x) \<le> b * norm x" 
-	  using n0 norm_pos_le[of x] by (auto simp add: field_simps)}
+	  using n0 norm_ge_zero[of x] by (auto simp add: field_simps)}
       ultimately have "norm (f x) \<le> b * norm x" by blast}
     then have ?rhs by blast}
   ultimately show ?thesis by blast
@@ -2482,12 +2465,12 @@ proof-
 qed
 
 lemma onorm_pos_le: assumes lf: "linear (f::real ^'n \<Rightarrow> real ^'m)" shows "0 <= onorm f"
-  using order_trans[OF norm_pos_le onorm(1)[OF lf, of "basis 1"], unfolded norm_basis_1] by simp
+  using order_trans[OF norm_ge_zero onorm(1)[OF lf, of "basis 1"], unfolded norm_basis_1] by simp
 
 lemma onorm_eq_0: assumes lf: "linear (f::real ^'n \<Rightarrow> real ^'m)" 
   shows "onorm f = 0 \<longleftrightarrow> (\<forall>x. f x = 0)"
   using onorm[OF lf]
-  apply (auto simp add: norm_0 onorm_pos_le norm_le_0)
+  apply (auto simp add: onorm_pos_le)
   apply atomize
   apply (erule allE[where x="0::real"])
   using onorm_pos_le[OF lf]
@@ -2525,7 +2508,7 @@ lemma onorm_compose:
 lemma onorm_neg_lemma: assumes lf: "linear (f::real ^'n \<Rightarrow> real^'m)"
   shows "onorm (\<lambda>x. - f x) \<le> onorm f"
   using onorm[OF linear_compose_neg[OF lf]] onorm[OF lf]
-  unfolding norm_neg by metis
+  unfolding norm_minus_cancel by metis
 
 lemma onorm_neg: assumes lf: "linear (f::real ^'n \<Rightarrow> real^'m)"
   shows "onorm (\<lambda>x. - f x) = onorm f"
@@ -2537,7 +2520,7 @@ lemma onorm_triangle:
   shows "onorm (\<lambda>x. f x + g x) <= onorm f + onorm g"
   apply(rule onorm(2)[OF linear_compose_add[OF lf lg], rule_format])
   apply (rule order_trans)
-  apply (rule norm_triangle)
+  apply (rule norm_triangle_ineq)
   apply (simp add: distrib)
   apply (rule add_mono)
   apply (rule onorm(1)[OF lf])
@@ -5175,10 +5158,10 @@ qed
 lemma norm_cauchy_schwarz_eq: "(x::real ^'n) \<bullet> y = norm x * norm y \<longleftrightarrow> norm x *s y = norm y *s x" (is "?lhs \<longleftrightarrow> ?rhs")
 proof-
   {assume h: "x = 0"
-    hence ?thesis by (simp add: norm_0)}
+    hence ?thesis by simp}
   moreover
   {assume h: "y = 0"
-    hence ?thesis by (simp add: norm_0)}
+    hence ?thesis by simp}
   moreover
   {assume x: "x \<noteq> 0" and y: "y \<noteq> 0"
     from dot_eq_0[of "norm y *s x - norm x *s y"]
@@ -5192,7 +5175,7 @@ proof-
     also have "\<dots> \<longleftrightarrow> (2 * norm x * norm y * (norm x * norm y - x \<bullet> y) = 0)" using x y
       by (simp add: ring_simps dot_sym)
     also have "\<dots> \<longleftrightarrow> ?lhs" using x y
-      apply (simp add: norm_eq_0)
+      apply simp
       by metis
     finally have ?thesis by blast}
   ultimately show ?thesis by blast
@@ -5203,14 +5186,14 @@ lemma norm_cauchy_schwarz_abs_eq: "abs(x \<bullet> y) = norm x * norm y \<longle
 proof-
   have th: "\<And>(x::real) a. a \<ge> 0 \<Longrightarrow> abs x = a \<longleftrightarrow> x = a \<or> x = - a" by arith
   have "?rhs \<longleftrightarrow> norm x *s y = norm y *s x \<or> norm (- x) *s y = norm y *s (- x)"
-    apply (simp add: norm_neg) by vector
+    apply simp by vector
   also have "\<dots> \<longleftrightarrow>(x \<bullet> y = norm x * norm y \<or>
      (-x) \<bullet> y = norm x * norm y)"
     unfolding norm_cauchy_schwarz_eq[symmetric]
-    unfolding norm_neg
+    unfolding norm_minus_cancel
       norm_mul by blast
   also have "\<dots> \<longleftrightarrow> ?lhs"
-    unfolding th[OF mult_nonneg_nonneg, OF norm_pos_le[of x] norm_pos_le[of y]] dot_lneg
+    unfolding th[OF mult_nonneg_nonneg, OF norm_ge_zero[of x] norm_ge_zero[of y]] dot_lneg
     by arith
   finally show ?thesis ..
 qed
@@ -5218,17 +5201,17 @@ qed
 lemma norm_triangle_eq: "norm(x + y) = norm x + norm y \<longleftrightarrow> norm x *s y = norm y *s x"
 proof-
   {assume x: "x =0 \<or> y =0"
-    hence ?thesis by (cases "x=0", simp_all add: norm_0)}
+    hence ?thesis by (cases "x=0", simp_all)}
   moreover
   {assume x: "x \<noteq> 0" and y: "y \<noteq> 0"
     hence "norm x \<noteq> 0" "norm y \<noteq> 0"
-      by (simp_all add: norm_eq_0)
+      by simp_all
     hence n: "norm x > 0" "norm y > 0" 
-      using norm_pos_le[of x] norm_pos_le[of y]
+      using norm_ge_zero[of x] norm_ge_zero[of y]
       by arith+
     have th: "\<And>(a::real) b c. a + b + c \<noteq> 0 ==> (a = b + c \<longleftrightarrow> a^2 = (b + c)^2)" by algebra
     have "norm(x + y) = norm x + norm y \<longleftrightarrow> norm(x + y)^ 2 = (norm x + norm y) ^2"
-      apply (rule th) using n norm_pos_le[of "x + y"]
+      apply (rule th) using n norm_ge_zero[of "x + y"]
       by arith
     also have "\<dots> \<longleftrightarrow> norm x *s y = norm y *s x"
       unfolding norm_cauchy_schwarz_eq[symmetric]
@@ -5298,8 +5281,8 @@ qed
 
 lemma norm_cauchy_schwarz_equal: "abs(x \<bullet> y) = norm x * norm y \<longleftrightarrow> collinear {(0::real^'n),x,y}"
 unfolding norm_cauchy_schwarz_abs_eq
-apply (cases "x=0", simp_all add: collinear_2 norm_0)
-apply (cases "y=0", simp_all add: collinear_2 norm_0 insert_commute)
+apply (cases "x=0", simp_all add: collinear_2)
+apply (cases "y=0", simp_all add: collinear_2 insert_commute)
 unfolding collinear_lemma
 apply simp
 apply (subgoal_tac "norm x \<noteq> 0")
@@ -5324,8 +5307,8 @@ apply (case_tac "c <= 0", simp add: ring_simps)
 apply (simp add: ring_simps)
 apply (case_tac "c <= 0", simp add: ring_simps)
 apply (simp add: ring_simps)
-apply (simp add: norm_eq_0)
-apply (simp add: norm_eq_0)
+apply simp
+apply simp
 done
 
 end
