@@ -135,16 +135,6 @@ where
 
 end
 
-instantiation real :: scaleR
-begin
-
-definition
-  real_scaleR_def [simp]: "scaleR a x = a * x"
-
-instance ..
-
-end
-
 class real_vector = scaleR + ab_group_add +
   assumes scaleR_right_distrib: "scaleR a (x + y) = scaleR a x + scaleR a y"
   and scaleR_left_distrib: "scaleR (a + b) x = scaleR a x + scaleR b x"
@@ -185,7 +175,13 @@ class real_div_algebra = real_algebra_1 + division_ring
 
 class real_field = real_div_algebra + field
 
-instance real :: real_field
+instantiation real :: real_field
+begin
+
+definition
+  real_scaleR_def [simp]: "scaleR a x = a * x"
+
+instance
 apply (intro_classes, unfold real_scaleR_def)
 apply (rule right_distrib)
 apply (rule left_distrib)
@@ -194,6 +190,8 @@ apply (rule mult_1_left)
 apply (rule mult_assoc)
 apply (rule mult_left_commute)
 done
+
+end
 
 interpretation scaleR_left!: additive "(\<lambda>a. scaleR a x::'a::real_vector)"
 proof qed (rule scaleR_left_distrib)
@@ -421,16 +419,6 @@ subsection {* Real normed vector spaces *}
 class norm =
   fixes norm :: "'a \<Rightarrow> real"
 
-instantiation real :: norm
-begin
-
-definition
-  real_norm_def [simp]: "norm r \<equiv> \<bar>r\<bar>"
-
-instance ..
-
-end
-
 class sgn_div_norm = scaleR + norm + sgn +
   assumes sgn_div_norm: "sgn x = x /\<^sub>R norm x"
 
@@ -462,7 +450,13 @@ next
   thus "norm (1::'a) = 1" by simp
 qed
 
-instance real :: real_normed_field
+instantiation real :: real_normed_field
+begin
+
+definition
+  real_norm_def [simp]: "norm r = \<bar>r\<bar>"
+
+instance
 apply (intro_classes, unfold real_norm_def real_scaleR_def)
 apply (simp add: real_sgn_def)
 apply (rule abs_ge_zero)
@@ -471,6 +465,8 @@ apply (rule abs_triangle_ineq)
 apply (rule abs_mult)
 apply (rule abs_mult)
 done
+
+end
 
 lemma norm_zero [simp]: "norm (0::'a::real_normed_vector) = 0"
 by simp
