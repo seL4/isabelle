@@ -83,6 +83,11 @@ structure Vargraph =
 
 datatype styp = Tyco of string * styp list | Var of var;
 
+val empty_vardeps : ((string * styp list) list * class list) Vargraph.T
+    * (const list * ((string * sort) list * (thm * bool) list) Symtab.table) =
+  (Vargraph.empty, ([], Symtab.empty));
+  (*FIXME: user table with proto equations as assertor for functions,
+    add dummy to styp which allows to process consts of terms directly*)
 
 (* computing instantiations *)
 
@@ -270,18 +275,36 @@ and ensure_eqs thy (proj_sort, algebra) eqntab vardeps c gr =
    of SOME (tyscm, _) => (tyscm, gr)
     | NONE => add_eqs thy (proj_sort, algebra) eqntab vardeps c gr;
 
-fun extend_arities_eqngr thy cs (arities, eqngr) =
+fun extend_arities_eqngr thy cs insts (arities, eqngr) =
   let
-    val (vardeps, (_, eqntab)) = fold (assert thy arities eqngr o Fun)
-      cs (Vargraph.empty, ([], Symtab.empty));
+    val (vardeps, (_, eqntab)) = empty_vardeps
+      |> fold (assert thy arities eqngr o Fun) cs
+      |> fold (assert thy arities eqngr o Inst) insts;
     val arities' = add_arities thy vardeps arities;
     val algebra = build_algebra thy arities';
     val proj_sort = complete_proper_sort thy #> Sorts.minimize_sort algebra;
-    val (_, eqngr') = fold_map (ensure_eqs thy (proj_sort, algebra) eqntab vardeps) cs eqngr;
+    fun complete_inst_params (class, tyco) =
+      inst_params thy tyco (Sorts.complete_sort algebra [class]);
+    val cs' = maps complete_inst_params insts @ cs; (*FIXME*)
+    val (_, eqngr') =
+      fold_map (ensure_eqs thy (proj_sort, algebra) eqntab vardeps) cs' eqngr;
   in ((proj_sort, algebra), (arities', eqngr')) end;
 
 
 (** retrieval interfaces **)
+
+fun instance_dicts_of thy (proj_sort, algebra) (T, sort) = (*FIXME vs. consts_dicts_of *)
+  let
+    fun class_relation (x, _) _ = x;
+    fun type_constructor tyco xs class =
+      (class, tyco) :: (maps o maps) fst xs;
+    fun type_variable (TFree (_, sort)) = map (pair []) (proj_sort sort);
+  in
+    flat (Sorts.of_sort_derivation (Syntax.pp_global thy) algebra
+      { class_relation = class_relation, type_constructor = type_constructor,
+        type_variable = type_variable } (T, proj_sort sort)
+       handle Sorts.CLASS_ERROR _ => [] (*permissive!*))
+  end;
 
 fun proto_eval thy cterm_of evaluator_lift evaluator proto_ct arities_eqngr =
   let
@@ -294,7 +317,7 @@ fun proto_eval thy cterm_of evaluator_lift evaluator proto_ct arities_eqngr =
     val ct' = Thm.rhs_of thm;
     val t' = Thm.term_of ct';
     val consts = map fst (consts_of t');
-    val (algebra', arities_eqngr') = extend_arities_eqngr thy consts arities_eqngr;
+    val (algebra', arities_eqngr') = extend_arities_eqngr thy consts [] arities_eqngr;
     val (t'', evaluator_eqngr) = evaluator t';
     val consts' = consts_of t'';
     val const_matches = fold (fn (c, ty) =>
@@ -302,8 +325,8 @@ fun proto_eval thy cterm_of evaluator_lift evaluator proto_ct arities_eqngr =
     val typ_matches = maps (fn (tys, c) =>
       tys ~~ map snd (fst (fst (Graph.get_node (snd arities_eqngr') c))))
       const_matches;
-    val dicts = maps (dicts_of thy algebra') typ_matches;
-    val (algebra'', arities_eqngr'') = extend_arities_eqngr thy dicts arities_eqngr';
+    val insts = maps (instance_dicts_of thy algebra') typ_matches;
+    val (algebra'', arities_eqngr'') = extend_arities_eqngr thy [] insts arities_eqngr';
   in (evaluator_lift (evaluator_eqngr algebra'') thm (snd arities_eqngr''), arities_eqngr'') end;
 
 fun proto_eval_conv thy =
@@ -332,15 +355,18 @@ structure Wellsorted = CodeDataFun
     let
       val del_cs = ((Graph.all_preds eqngr
         o filter (can (Graph.get_node eqngr))) cs);
-      val del_arities =
-        map_filter (AxClass.inst_of_param thy) del_cs;
+      val del_arities = del_cs
+        |> map_filter (AxClass.inst_of_param thy)
+        |> maps (fn (c, tyco) =>
+             (map (rpair tyco) o Sign.complete_sort thy o the_list
+               o AxClass.class_of_param thy) c);
       val arities' = fold (AList.delete (op =)) del_arities arities;
       val eqngr' = Graph.del_nodes del_cs eqngr;
     in (arities', eqngr') end;
 );
 
-fun make thy = apsnd snd
-  o Wellsorted.change_yield thy o extend_arities_eqngr thy;
+fun make thy cs = apsnd snd
+  (Wellsorted.change_yield thy (extend_arities_eqngr thy cs []));
 
 fun eval_conv thy f =
   fst o Wellsorted.change_yield thy o proto_eval_conv thy f;

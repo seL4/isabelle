@@ -86,7 +86,7 @@ BASE_DEPENDENCIES = $(OUT)/Pure \
   Tools/simpdata.ML \
   $(SRC)/Tools/atomize_elim.ML \
   $(SRC)/Tools/code/code_funcgr.ML \
-  $(SRC)/Tools/code/code_funcgr.ML \
+  $(SRC)/Tools/code/code_wellsorted.ML \
   $(SRC)/Tools/code/code_name.ML \
   $(SRC)/Tools/code/code_printer.ML \
   $(SRC)/Tools/code/code_target.ML \
