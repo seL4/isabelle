@@ -21,19 +21,10 @@ class real_inner = real_vector + sgn_div_norm +
 begin
 
 lemma inner_zero_left [simp]: "inner 0 x = 0"
-proof -
-  have "inner 0 x = inner (0 + 0) x" by simp
-  also have "\<dots> = inner 0 x + inner 0 x" by (rule inner_left_distrib)
-  finally show "inner 0 x = 0" by simp
-qed
+  using inner_left_distrib [of 0 0 x] by simp
 
 lemma inner_minus_left [simp]: "inner (- x) y = - inner x y"
-proof -
-  have "inner (- x) y + inner x y = inner (- x + x) y"
-    by (rule inner_left_distrib [symmetric])
-  also have "\<dots> = - inner x y + inner x y" by simp
-  finally show "inner (- x) y = - inner x y" by simp
-qed
+  using inner_left_distrib [of x "- x" y] by simp
 
 lemma inner_diff_left: "inner (x - y) z = inner x z - inner y z"
   by (simp add: diff_minus inner_left_distrib)
