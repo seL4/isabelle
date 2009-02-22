@@ -65,7 +65,7 @@ lemma inner_gt_zero_iff [simp]: "0 < inner x x \<longleftrightarrow> x \<noteq> 
 lemma power2_norm_eq_inner: "(norm x)\<twosuperior> = inner x x"
   by (simp add: norm_eq_sqrt_inner)
 
-lemma Cauchy_Schwartz_ineq:
+lemma Cauchy_Schwarz_ineq:
   "(inner x y)\<twosuperior> \<le> inner x x * inner y y"
 proof (cases)
   assume "y = 0"
@@ -86,11 +86,11 @@ next
     by (simp add: pos_divide_le_eq y)
 qed
 
-lemma Cauchy_Schwartz_ineq2:
+lemma Cauchy_Schwarz_ineq2:
   "\<bar>inner x y\<bar> \<le> norm x * norm y"
 proof (rule power2_le_imp_le)
   have "(inner x y)\<twosuperior> \<le> inner x x * inner y y"
-    using Cauchy_Schwartz_ineq .
+    using Cauchy_Schwarz_ineq .
   thus "\<bar>inner x y\<bar>\<twosuperior> \<le> (norm x * norm y)\<twosuperior>"
     by (simp add: power_mult_distrib power2_norm_eq_inner)
   show "0 \<le> norm x * norm y"
@@ -108,7 +108,7 @@ proof
   show "norm (x + y) \<le> norm x + norm y"
     proof (rule power2_le_imp_le)
       have "inner x y \<le> norm x * norm y"
-        by (rule order_trans [OF abs_ge_self Cauchy_Schwartz_ineq2])
+        by (rule order_trans [OF abs_ge_self Cauchy_Schwarz_ineq2])
       thus "(norm (x + y))\<twosuperior> \<le> (norm x + norm y)\<twosuperior>"
         unfolding power2_sum power2_norm_eq_inner
         by (simp add: inner_distrib inner_commute)
@@ -140,7 +140,7 @@ proof
   show "\<exists>K. \<forall>x y::'a. norm (inner x y) \<le> norm x * norm y * K"
   proof
     show "\<forall>x y::'a. norm (inner x y) \<le> norm x * norm y * 1"
-      by (simp add: Cauchy_Schwartz_ineq2)
+      by (simp add: Cauchy_Schwarz_ineq2)
   qed
 qed
 
