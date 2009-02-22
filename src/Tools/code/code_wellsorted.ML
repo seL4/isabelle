@@ -1,7 +1,7 @@
 (*  Title:      Tools/code/code_wellsorted.ML
     Author:     Florian Haftmann, TU Muenchen
 
-Retrieving, well-sorting and structuring code equations in graph
+Producing well-sorted systems of code equations in a graph
 with explicit dependencies -- the Waisenhaus algorithm.
 *)
 
@@ -301,7 +301,7 @@ fun proto_eval thy cterm_of evaluator_lift evaluator proto_ct arities_eqngr =
     val consts = map fst (consts_of t');
     val consts' = consts_of t'';
     val const_matches' = fold (fn (c, ty) =>
-      insert (op =) (c, Sign.const_typargs thy (c, Logic.unvarifyT ty))) consts' [];
+      insert (op =) (c, Sign.const_typargs thy (c, ty))) consts' [];
     val (algebra', arities_eqngr') =
       extend_arities_eqngr thy consts const_matches' arities_eqngr;
   in
