@@ -46,8 +46,10 @@ subsection {* Vector spaces *}
 
 locale vector_space =
   fixes scale :: "'a::field \<Rightarrow> 'b::ab_group_add \<Rightarrow> 'b"
-  assumes scale_right_distrib: "scale a (x + y) = scale a x + scale a y"
-  and scale_left_distrib: "scale (a + b) x = scale a x + scale b x"
+  assumes scale_right_distrib [algebra_simps]:
+    "scale a (x + y) = scale a x + scale a y"
+  and scale_left_distrib [algebra_simps]:
+    "scale (a + b) x = scale a x + scale b x"
   and scale_scale [simp]: "scale a (scale b x) = scale (a * b) x"
   and scale_one [simp]: "scale 1 x = x"
 begin
@@ -58,7 +60,8 @@ by (simp add: mult_commute)
 
 lemma scale_zero_left [simp]: "scale 0 x = 0"
   and scale_minus_left [simp]: "scale (- a) x = - (scale a x)"
-  and scale_left_diff_distrib: "scale (a - b) x = scale a x - scale b x"
+  and scale_left_diff_distrib [algebra_simps]:
+        "scale (a - b) x = scale a x - scale b x"
 proof -
   interpret s: additive "\<lambda>a. scale a x"
     proof qed (rule scale_left_distrib)
@@ -69,7 +72,8 @@ qed
 
 lemma scale_zero_right [simp]: "scale a 0 = 0"
   and scale_minus_right [simp]: "scale a (- x) = - (scale a x)"
-  and scale_right_diff_distrib: "scale a (x - y) = scale a x - scale a y"
+  and scale_right_diff_distrib [algebra_simps]:
+        "scale a (x - y) = scale a x - scale a y"
 proof -
   interpret s: additive "\<lambda>x. scale a x"
     proof qed (rule scale_right_distrib)
@@ -138,8 +142,8 @@ end
 class real_vector = scaleR + ab_group_add +
   assumes scaleR_right_distrib: "scaleR a (x + y) = scaleR a x + scaleR a y"
   and scaleR_left_distrib: "scaleR (a + b) x = scaleR a x + scaleR b x"
-  and scaleR_scaleR [simp]: "scaleR a (scaleR b x) = scaleR (a * b) x"
-  and scaleR_one [simp]: "scaleR 1 x = x"
+  and scaleR_scaleR: "scaleR a (scaleR b x) = scaleR (a * b) x"
+  and scaleR_one: "scaleR 1 x = x"
 
 interpretation real_vector!:
   vector_space "scaleR :: real \<Rightarrow> 'a \<Rightarrow> 'a::real_vector"
@@ -181,15 +185,8 @@ begin
 definition
   real_scaleR_def [simp]: "scaleR a x = a * x"
 
-instance
-apply (intro_classes, unfold real_scaleR_def)
-apply (rule right_distrib)
-apply (rule left_distrib)
-apply (rule mult_assoc [symmetric])
-apply (rule mult_1_left)
-apply (rule mult_assoc)
-apply (rule mult_left_commute)
-done
+instance proof
+qed (simp_all add: algebra_simps)
 
 end
 
@@ -305,7 +302,7 @@ subsection {* The Set of Real Numbers *}
 
 definition
   Reals :: "'a::real_algebra_1 set" where
-  [code del]: "Reals \<equiv> range of_real"
+  [code del]: "Reals = range of_real"
 
 notation (xsymbols)
   Reals  ("\<real>")
