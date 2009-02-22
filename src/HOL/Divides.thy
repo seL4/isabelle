@@ -178,6 +178,12 @@ by (rule dvd_eq_mod_eq_0[THEN iffD1])
 lemma dvd_div_mult_self: "a dvd b \<Longrightarrow> (b div a) * a = b"
 by (subst (2) mod_div_equality [of b a, symmetric]) (simp add:dvd_imp_mod_0)
 
+lemma dvd_div_mult: "a dvd b \<Longrightarrow> (b div a) * c = b * c div a"
+apply (cases "a = 0")
+ apply simp
+apply (auto simp: dvd_def mult_assoc)
+done
+
 lemma div_dvd_div[simp]:
   "a dvd b \<Longrightarrow> a dvd c \<Longrightarrow> (b div a dvd c div a) = (b dvd c)"
 apply (cases "a = 0")
