@@ -45,12 +45,14 @@ lemma prime_dvd_power_two: "prime p ==> p dvd m\<twosuperior> ==> p dvd m"
   by (rule prime_dvd_square) (simp_all add: power2_eq_square)
 
 
-lemma exp_eq_1:"(x::nat)^n = 1 \<longleftrightarrow> x = 1 \<or> n = 0" by (induct n, auto)
+lemma exp_eq_1:"(x::nat)^n = 1 \<longleftrightarrow> x = 1 \<or> n = 0"
+by (induct n, auto)
+
 lemma exp_mono_lt: "(x::nat) ^ (Suc n) < y ^ (Suc n) \<longleftrightarrow> x < y"
-  using power_less_imp_less_base[of x "Suc n" y] power_strict_mono[of x y "Suc n"]
-    by auto
+by(metis linorder_not_less not_less0 power_le_imp_le_base power_less_imp_less_base)
+
 lemma exp_mono_le: "(x::nat) ^ (Suc n) \<le> y ^ (Suc n) \<longleftrightarrow> x \<le> y"
-  by (simp only: linorder_not_less[symmetric] exp_mono_lt)
+by (simp only: linorder_not_less[symmetric] exp_mono_lt)
 
 lemma exp_mono_eq: "(x::nat) ^ Suc n = y ^ Suc n \<longleftrightarrow> x = y"
 using power_inject_base[of x n y] by auto
