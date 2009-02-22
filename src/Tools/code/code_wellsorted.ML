@@ -99,7 +99,7 @@ val empty_vardeps_data : vardeps_data =
 
 fun obtain_eqns thy eqngr c =
   case try (Graph.get_node eqngr) c
-   of SOME ((lhs, _), eqns) => ((lhs, []), eqns)
+   of SOME ((lhs, _), eqns) => ((lhs, []), [])
     | NONE => let
         val eqns = Code.these_eqns thy c
           |> burrow_fst (Code_Unit.norm_args thy)
@@ -223,9 +223,10 @@ fun build_algebra thy arities =
       |> map swap (*FIXME*)
     fun add_class (class, superclasses) algebra =
       Sorts.add_class pp (class, Sorts.minimize_sort algebra superclasses) algebra;
-    fun add_arity (class, tyco) algebra = Sorts.add_arities pp
-      (tyco, [(class, ((map (Sorts.minimize_sort algebra) o the
-        o AList.lookup (op =) arities) (class, tyco)))]) algebra;
+    fun add_arity (class, tyco) algebra = case AList.lookup (op =) arities (class, tyco)
+     of SOME sorts => Sorts.add_arities pp
+         (tyco, [(class, map (Sorts.minimize_sort algebra) sorts)]) algebra
+      | NONE => algebra;
   in
     Sorts.empty_algebra
     |> fold add_class classrels
@@ -247,13 +248,14 @@ fun dicts_of thy (proj_sort, algebra) (T, sort) =
   end;
 
 fun add_arity thy vardeps (class, tyco) =
-  AList.update (op =)
+  AList.default (op =)
     ((class, tyco), map (fn k => (snd o Vargraph.get_node vardeps) (Inst (class, tyco), k))
       (0 upto Sign.arity_number thy tyco - 1));
 
 fun add_eqs thy (proj_sort, algebra) vardeps
     (c, (proto_lhs, proto_eqns)) (rhss, eqngr) =
-  let
+  if can (Graph.get_node eqngr) c then (rhss, eqngr)
+  else let
     val lhs = map_index (fn (k, (v, _)) =>
       (v, snd (Vargraph.get_node vardeps (Fun c, k)))) proto_lhs;
     val inst_tab = Vartab.empty |> fold (fn (v, sort) =>
