@@ -228,20 +228,9 @@ lemma zero_le_even_power: "even n ==>
 
 lemma zero_le_odd_power: "odd n ==>
     (0 <= (x::'a::{recpower,ordered_idom}) ^ n) = (0 <= x)"
-  apply (simp add: odd_nat_equiv_def2)
-  apply (erule exE)
-  apply (erule ssubst)
-  apply (subst power_Suc)
-  apply (subst power_add)
-  apply (subst zero_le_mult_iff)
-  apply auto
-  apply (subgoal_tac "x = 0 & y > 0")
-  apply (erule conjE, assumption)
-  apply (subst power_eq_0_iff [symmetric])
-  apply (subgoal_tac "0 <= x^y * x^y")
-  apply simp
-  apply (rule zero_le_square)+
-  done
+apply (auto simp: odd_nat_equiv_def2 power_Suc power_add zero_le_mult_iff)
+apply (metis field_power_not_zero no_zero_divirors_neq0 order_antisym_conv zero_le_square)
+done
 
 lemma zero_le_power_eq[presburger]: "(0 <= (x::'a::{recpower,ordered_idom}) ^ n) =
     (even n | (odd n & 0 <= x))"
