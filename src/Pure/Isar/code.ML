@@ -489,7 +489,7 @@ fun arity_constraints thy algebra (class, tyco) =
 
 fun retrieve_algebra thy operational =
   Sorts.subalgebra (Syntax.pp_global thy) operational
-    (arity_constraints thy (Sign.classes_of thy))
+    (SOME o arity_constraints thy (Sign.classes_of thy))
     (Sign.classes_of thy);
 
 in

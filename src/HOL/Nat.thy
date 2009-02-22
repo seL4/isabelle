@@ -735,6 +735,11 @@ proof
   show "i < j ==> 0 < k ==> k * i < k * j" by (simp add: mult_less_mono2)
 qed
 
+instance nat :: no_zero_divisors
+proof
+  fix a::nat and b::nat show "a ~= 0 \<Longrightarrow> b ~= 0 \<Longrightarrow> a * b ~= 0" by auto
+qed
+
 lemma nat_mult_1: "(1::nat) * n = n"
 by simp
 

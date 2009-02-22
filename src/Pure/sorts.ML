@@ -48,7 +48,7 @@ sig
   val merge_algebra: Pretty.pp -> algebra * algebra -> algebra
   val classrels_of: algebra -> (class * class list) list
   val instances_of: algebra -> (string * class) list
-  val subalgebra: Pretty.pp -> (class -> bool) -> (class * string -> sort list)
+  val subalgebra: Pretty.pp -> (class -> bool) -> (class * string -> sort list option)
     -> algebra -> (sort -> sort) * algebra
   type class_error
   val class_error: Pretty.pp -> class_error -> string
@@ -322,9 +322,10 @@ fun subalgebra pp P sargs (algebra as Algebra {classes, arities}) =
   let
     val restrict_sort = minimize_sort algebra o filter P o Graph.all_succs classes;
     fun restrict_arity tyco (c, (_, Ss)) =
-      if P c then
-        SOME (c, (c, Ss |> map2 (curry (inter_sort algebra)) (sargs (c, tyco))
+      if P c then case sargs (c, tyco)
+       of SOME sorts => SOME (c, (c, Ss |> map2 (curry (inter_sort algebra)) sorts
           |> map restrict_sort))
+        | NONE => NONE
       else NONE;
     val classes' = classes |> Graph.subgraph P;
     val arities' = arities |> Symtab.map' (map_filter o restrict_arity);
