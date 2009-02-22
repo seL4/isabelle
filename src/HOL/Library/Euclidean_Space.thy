@@ -1010,11 +1010,6 @@ lemma dist_triangle_add_half: " dist x x' < e / 2 \<Longrightarrow> dist y y' < 
 
 lemma dist_le_0: "dist x y <= 0 \<longleftrightarrow> x = y" by norm 
 
-instantiation "^" :: (monoid_add,type) monoid_add
-begin
-  instance by (intro_classes)
-end
-
 lemma setsum_eq: "setsum f S = (\<chi> i. setsum (\<lambda>x. (f x)$i ) S)"
   apply vector
   apply auto
