@@ -157,7 +157,7 @@ datatype spec = Spec of {
     (*with explicit history*),
   dtyps: ((serial * ((string * sort) list * (string * typ list) list)) list) Symtab.table
     (*with explicit history*),
-  cases: (int * string list) Symtab.table * unit Symtab.table
+  cases: (int * (int * string list)) Symtab.table * unit Symtab.table
 };
 
 fun mk_spec ((concluded_history, eqns), (dtyps, cases)) =
@@ -574,12 +574,7 @@ fun del_eqn thm thy = case mk_syntactic_eqn thy thm
 
 fun del_eqns c = change_eqns true c (K (false, Lazy.value []));
 
-fun get_case_scheme thy c = case Symtab.lookup ((fst o the_cases o the_exec) thy) c
- of SOME (base_case_scheme as (_, case_pats)) =>
-      if forall (is_some o get_datatype_of_constr thy) case_pats
-      then SOME (1 + Int.max (1, length case_pats), base_case_scheme)
-      else NONE
-  | NONE => NONE;
+fun get_case_scheme thy = Symtab.lookup ((fst o the_cases o the_exec) thy);
 
 val is_undefined = Symtab.defined o snd o the_cases o the_exec;
 
@@ -589,11 +584,17 @@ fun add_datatype raw_cs thy =
   let
     val cs = map (fn c_ty as (_, ty) => (AxClass.unoverload_const thy c_ty, ty)) raw_cs;
     val (tyco, vs_cos) = Code_Unit.constrset_of_consts thy cs;
+    val old_cs = (map fst o snd o get_datatype thy) tyco;
+    fun drop_outdated_cases cases = fold Symtab.delete_safe
+      (Symtab.fold (fn (c, (_, (_, cos))) =>
+        if exists (member (op =) old_cs) cos
+          then insert (op =) c else I) cases []) cases;
   in
     thy
     |> map_exec_purge NONE
         ((map_dtyps o Symtab.map_default (tyco, [])) (cons (serial (), vs_cos))
-        #> map_eqns (fold (Symtab.delete_safe o fst) cs))
+        #> map_eqns (fold (Symtab.delete_safe o fst) cs)
+        #> (map_cases o apfst) drop_outdated_cases)
     |> TypeInterpretation.data (tyco, serial ())
   end;
 
@@ -607,10 +608,12 @@ fun add_datatype_cmd raw_cs thy =
 
 fun add_case thm thy =
   let
-    val entry as (c, _) = Code_Unit.case_cert thm;
-  in
-    (map_exec_purge (SOME [c]) o map_cases o apfst) (Symtab.update entry) thy
-  end;
+    val (c, (k, case_pats)) = Code_Unit.case_cert thm;
+    val _ = case filter (is_none o get_datatype_of_constr thy) case_pats
+     of [] => ()
+      | cs => error ("Non-constructor(s) in case certificate: " ^ commas (map quote cs));
+    val entry = (1 + Int.max (1, length case_pats), (k, case_pats))
+  in (map_exec_purge (SOME [c]) o map_cases o apfst) (Symtab.update (c, entry)) thy end;
 
 fun add_undefined c thy =
   (map_exec_purge (SOME [c]) o map_cases o apsnd) (Symtab.update (c, ())) thy;

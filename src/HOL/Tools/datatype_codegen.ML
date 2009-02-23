@@ -6,8 +6,8 @@ Code generator facilities for inductive datatypes.
 
 signature DATATYPE_CODEGEN =
 sig
-  val get_eq: theory -> string -> thm list
-  val get_case_cert: theory -> string -> thm
+  val mk_eq: theory -> string -> thm list
+  val mk_case_cert: theory -> string -> thm
   val setup: theory -> theory
 end;
 
@@ -323,7 +323,7 @@ fun add_datatype_spec vs dtco cos thy =
 
 (* case certificates *)
 
-fun get_case_cert thy tyco =
+fun mk_case_cert thy tyco =
   let
     val raw_thms =
       (#case_rewrites o DatatypePackage.the_datatype thy) tyco;
@@ -357,10 +357,13 @@ fun get_case_cert thy tyco =
 fun add_datatype_cases dtco thy =
   let
     val {case_rewrites, ...} = DatatypePackage.the_datatype thy dtco;
-    val certs = get_case_cert thy dtco;
+    val cert = mk_case_cert thy dtco;
+    fun add_case_liberal thy = thy
+      |> try (Code.add_case cert)
+      |> the_default thy;
   in
     thy
-    |> Code.add_case certs
+    |> add_case_liberal
     |> fold_rev Code.add_default_eqn case_rewrites
   end;
 
@@ -369,10 +372,10 @@ fun add_datatype_cases dtco thy =
 
 local
 
-val not_sym = thm "HOL.not_sym";
-val not_false_true = iffD2 OF [nth (thms "HOL.simp_thms") 7, TrueI];
-val refl = thm "refl";
-val eqTrueI = thm "eqTrueI";
+val not_sym = @{thm HOL.not_sym};
+val not_false_true = iffD2 OF [nth @{thms HOL.simp_thms} 7, TrueI];
+val refl = @{thm refl};
+val eqTrueI = @{thm eqTrueI};
 
 fun mk_distinct cos =
   let
@@ -397,7 +400,7 @@ fun mk_distinct cos =
 
 in
 
-fun get_eq thy dtco =
+fun mk_eq thy dtco =
   let
     val (vs, cs) = DatatypePackage.the_datatype_spec thy dtco;
     fun mk_triv_inject co =
@@ -445,7 +448,7 @@ fun add_datatypes_equality vs dtcos thy =
       in (thm', lthy') end;
     fun tac thms = Class.intro_classes_tac []
       THEN ALLGOALS (ProofContext.fact_tac thms);
-    fun get_eq' thy dtco = get_eq thy dtco
+    fun mk_eq' thy dtco = mk_eq thy dtco
       |> map (Code_Unit.constrain_thm thy [HOLogic.class_eq])
       |> map Simpdata.mk_eq
       |> map (MetaSimplifier.rewrite_rule [Thm.transfer thy @{thm equals_eq}])
@@ -460,10 +463,10 @@ fun add_datatypes_equality vs dtcos thy =
               ([pairself (Thm.ctyp_of thy) (TVar (("'a", 0), @{sort eq}), Logic.varifyT ty)], [])
           |> Simpdata.mk_eq
           |> AxClass.unoverload thy;
-        fun get_thms () = (eq_refl, false)
-          :: rev (map (rpair true) (get_eq' (Theory.deref thy_ref) dtco));
+        fun mk_thms () = (eq_refl, false)
+          :: rev (map (rpair true) (mk_eq' (Theory.deref thy_ref) dtco));
       in
-        Code.add_eqnl (const, Lazy.lazy get_thms) thy
+        Code.add_eqnl (const, Lazy.lazy mk_thms) thy
       end;
   in
     thy
