@@ -46,8 +46,6 @@ sig
   val add_arities: Pretty.pp -> string * (class * sort list) list -> algebra -> algebra
   val empty_algebra: algebra
   val merge_algebra: Pretty.pp -> algebra * algebra -> algebra
-  val classrels_of: algebra -> (class * class list) list
-  val instances_of: algebra -> (string * class) list
   val subalgebra: Pretty.pp -> (class -> bool) -> (class * string -> sort list option)
     -> algebra -> (sort -> sort) * algebra
   type class_error
@@ -301,22 +299,6 @@ fun merge_algebra pp
 
 
 (* algebra projections *)
-
-val sorted_classes = rev o flat o Graph.strong_conn o classes_of;
-
-fun classrels_of algebra = 
-  map (fn c => (c, Graph.imm_succs (classes_of algebra) c)) (sorted_classes algebra);
-
-fun instances_of algebra =
-  let
-    val arities = arities_of algebra;
-    val all_classes = sorted_classes algebra;
-    fun sort_classes cs = filter (member (op = o apsnd fst) cs)
-      all_classes;
-  in
-    Symtab.fold (fn (a, cs) => append ((map (pair a) o sort_classes) cs))
-      arities []
-  end;
 
 fun subalgebra pp P sargs (algebra as Algebra {classes, arities}) =
   let
