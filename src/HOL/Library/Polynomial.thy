@@ -1020,6 +1020,16 @@ lemma div_smult_left: "(smult a x) div y = smult a (x div y)"
 lemma mod_smult_left: "(smult a x) mod y = smult a (x mod y)"
   by (rule mod_poly_eq, rule pdivmod_rel_smult_left, rule pdivmod_rel)
 
+lemma poly_div_minus_left [simp]:
+  fixes x y :: "'a::field poly"
+  shows "(- x) div y = - (x div y)"
+  using div_smult_left [of "- 1::'a"] by simp
+
+lemma poly_mod_minus_left [simp]:
+  fixes x y :: "'a::field poly"
+  shows "(- x) mod y = - (x mod y)"
+  using mod_smult_left [of "- 1::'a"] by simp
+
 lemma pdivmod_rel_smult_right:
   "\<lbrakk>a \<noteq> 0; pdivmod_rel x y q r\<rbrakk>
     \<Longrightarrow> pdivmod_rel x (smult a y) (smult (inverse a) q) r"
@@ -1031,6 +1041,17 @@ lemma div_smult_right:
 
 lemma mod_smult_right: "a \<noteq> 0 \<Longrightarrow> x mod (smult a y) = x mod y"
   by (rule mod_poly_eq, erule pdivmod_rel_smult_right, rule pdivmod_rel)
+
+lemma poly_div_minus_right [simp]:
+  fixes x y :: "'a::field poly"
+  shows "x div (- y) = - (x div y)"
+  using div_smult_right [of "- 1::'a"]
+  by (simp add: nonzero_inverse_minus_eq)
+
+lemma poly_mod_minus_right [simp]:
+  fixes x y :: "'a::field poly"
+  shows "x mod (- y) = x mod y"
+  using mod_smult_right [of "- 1::'a"] by simp
 
 lemma pdivmod_rel_mult:
   "\<lbrakk>pdivmod_rel x y q r; pdivmod_rel q z q' r'\<rbrakk>
