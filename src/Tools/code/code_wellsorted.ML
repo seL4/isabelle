@@ -210,29 +210,6 @@ and assert_fun thy arities eqngr c (vardeps_data as (_, (eqntab, _))) =
 
 (* applying instantiations *)
 
-fun build_algebra thy arities =
-  let
-    val pp = Syntax.pp_global thy;
-    val thy_algebra = Sign.classes_of thy;
-    val is_proper = can (AxClass.get_info thy);
-    val classrels = Sorts.classrels_of thy_algebra
-      |> filter (is_proper o fst)
-      |> (map o apsnd) (filter is_proper);
-    val instances = Sorts.instances_of thy_algebra
-      |> filter (is_proper o snd)
-      |> map swap (*FIXME*)
-    fun add_class (class, superclasses) algebra =
-      Sorts.add_class pp (class, Sorts.minimize_sort algebra superclasses) algebra;
-    fun add_arity (class, tyco) algebra = case AList.lookup (op =) arities (class, tyco)
-     of SOME sorts => Sorts.add_arities pp
-         (tyco, [(class, map (Sorts.minimize_sort algebra) sorts)]) algebra
-      | NONE => algebra;
-  in
-    Sorts.empty_algebra
-    |> fold add_class classrels
-    |> fold add_arity instances
-  end;
-
 fun dicts_of thy (proj_sort, algebra) (T, sort) =
   let
     fun class_relation (x, _) _ = x;
@@ -273,8 +250,10 @@ fun extend_arities_eqngr thy cs cs_rhss (arities, eqngr) =
       |> fold (assert_fun thy arities eqngr) cs
       |> fold (assert_rhs thy arities eqngr) cs_rhss';
     val arities' = fold (add_arity thy vardeps) insts arities;
-    val algebra = build_algebra thy arities';
-    val proj_sort = complete_proper_sort thy #> Sorts.minimize_sort algebra;
+    val pp = Syntax.pp_global thy;
+    val is_proper_class = can (AxClass.get_info thy);
+    val (proj_sort, algebra) = Sorts.subalgebra pp is_proper_class
+      (AList.lookup (op =) arities') (Sign.classes_of thy);
     val (rhss, eqngr') = Symtab.fold
       (add_eqs thy (proj_sort, algebra) vardeps) eqntab ([], eqngr);
     fun deps_of (c, rhs) = c ::
