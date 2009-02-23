@@ -194,6 +194,12 @@ apply auto
 apply(fastsimp simp add: mult_assoc)
 done
 
+lemma dvd_mod_imp_dvd: "[| k dvd m mod n;  k dvd n |] ==> k dvd m"
+  apply (subgoal_tac "k dvd (m div n) *n + m mod n")
+   apply (simp add: mod_div_equality)
+  apply (simp only: dvd_add dvd_mult)
+  done
+
 text {* Addition respects modular equivalence. *}
 
 lemma mod_add_left_eq: "(a + b) mod c = (a mod c + b) mod c"
@@ -846,12 +852,6 @@ lemma dvd_mod: "!!n::nat. [| f dvd m; f dvd n |] ==> f dvd m mod n"
   unfolding dvd_def
   apply (case_tac "n = 0", auto)
   apply (blast intro: mod_mult_distrib2 [symmetric])
-  done
-
-lemma dvd_mod_imp_dvd: "[| (k::nat) dvd m mod n;  k dvd n |] ==> k dvd m"
-  apply (subgoal_tac "k dvd (m div n) *n + m mod n")
-   apply (simp add: mod_div_equality)
-  apply (simp only: dvd_add dvd_mult)
   done
 
 lemma dvd_mod_iff: "k dvd n ==> ((k::nat) dvd m mod n) = (k dvd m)"
