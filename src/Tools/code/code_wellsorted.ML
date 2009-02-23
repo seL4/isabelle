@@ -166,11 +166,13 @@ and assert_inst thy arities eqngr (inst as (class, tyco)) (vardeps_data as (_, (
   in
     vardeps_data
     |> (apsnd o apsnd) (insert (op =) inst)
+    |> fold_index (fn (k, classes) =>
+         apfst (Vargraph.new_node ((Inst (class, tyco), k), ([] ,[])))
+         ) classess
     |> fold (fn superclass => assert_inst thy arities eqngr (superclass, tyco)) superclasses
     |> fold (assert_fun thy arities eqngr) inst_params
     |> fold_index (fn (k, classes) =>
-         apfst (Vargraph.new_node ((Inst (class, tyco), k), ([] ,[])))
-         #> add_classes thy arities eqngr (Inst (class, tyco), k) classes
+         add_classes thy arities eqngr (Inst (class, tyco), k) classes
          #> fold (fn superclass =>
              add_dep thy arities eqngr (Inst (superclass, tyco), k)
              (Inst (class, tyco), k)) superclasses
