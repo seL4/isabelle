@@ -914,10 +914,6 @@ let
   fun zchaff fm =
   let
     val _          = if (getenv "ZCHAFF_HOME") = "" then raise SatSolver.NOT_CONFIGURED else ()
-    val _          = if (getenv "ZCHAFF_VERSION") <> "2004.5.13" andalso
-                        (getenv "ZCHAFF_VERSION") <> "2004.11.15" then raise SatSolver.NOT_CONFIGURED else ()
-      (* both versions of zChaff appear to have the same interface, so we do *)
-      (* not actually need to distinguish between them in the following code *)
     val serial_str = serial_string ()
     val inpath     = File.tmp_path (Path.explode ("isabelle" ^ serial_str ^ ".cnf"))
     val outpath    = File.tmp_path (Path.explode ("result" ^ serial_str))
@@ -943,11 +939,12 @@ end;
 let
   fun berkmin fm =
   let
-    val _          = if (getenv "BERKMIN_HOME") = "" orelse (getenv "BERKMIN_EXE") = "" then raise SatSolver.NOT_CONFIGURED else ()
+    val _          = if (getenv "BERKMIN_HOME") = "" then raise SatSolver.NOT_CONFIGURED else ()
     val serial_str = serial_string ()
     val inpath     = File.tmp_path (Path.explode ("isabelle" ^ serial_str ^ ".cnf"))
     val outpath    = File.tmp_path (Path.explode ("result" ^ serial_str))
-    val cmd        = (getenv "BERKMIN_HOME") ^ "/" ^ (getenv "BERKMIN_EXE") ^ " " ^ (Path.implode inpath) ^ " > " ^ (Path.implode outpath)
+    val exec       = getenv "BERKMIN_EXE"
+    val cmd        = (getenv "BERKMIN_HOME") ^ "/" ^ (if exec = "" then "BerkMin561" else exec) ^ " " ^ (Path.implode inpath) ^ " > " ^ (Path.implode outpath)
     fun writefn fm = SatSolver.write_dimacs_cnf_file inpath (PropLogic.defcnf fm)
     fun readfn ()  = SatSolver.read_std_result_file outpath ("Satisfiable          !!", "solution =", "UNSATISFIABLE          !!")
     val _          = if File.exists inpath then warning ("overwriting existing file " ^ quote (Path.implode inpath)) else ()
