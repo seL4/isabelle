@@ -159,6 +159,21 @@ lemma add_nat_number_of [simp]:
   unfolding nat_number_of_def number_of_is_id numeral_simps
   by (simp add: nat_add_distrib)
 
+lemma nat_number_of_add_1 [simp]:
+  "number_of v + (1::nat) =
+    (if v < Int.Pls then 1 else number_of (Int.succ v))"
+  unfolding nat_number_of_def number_of_is_id numeral_simps
+  by (simp add: nat_add_distrib)
+
+lemma nat_1_add_number_of [simp]:
+  "(1::nat) + number_of v =
+    (if v < Int.Pls then 1 else number_of (Int.succ v))"
+  unfolding nat_number_of_def number_of_is_id numeral_simps
+  by (simp add: nat_add_distrib)
+
+lemma nat_1_add_1 [simp]: "1 + 1 = (2::nat)"
+  by (rule int_int_eq [THEN iffD1]) simp
+
 
 subsubsection{*Subtraction *}
 
@@ -176,6 +191,12 @@ lemma diff_nat_number_of [simp]:
          else let d = number_of (v + uminus v') in     
               if neg d then 0 else nat d)"
   unfolding nat_number_of_def number_of_is_id numeral_simps neg_def
+  by auto
+
+lemma nat_number_of_diff_1 [simp]:
+  "number_of v - (1::nat) =
+    (if v \<le> Int.Pls then 0 else number_of (Int.pred v))"
+  unfolding nat_number_of_def number_of_is_id numeral_simps
   by auto
 
 
