@@ -705,6 +705,9 @@ subsection{*Embedding the Naturals into the Reals*}
 lemma real_of_nat_zero [simp]: "real (0::nat) = 0"
 by (simp add: real_of_nat_def)
 
+lemma real_of_nat_1 [simp]: "real (1::nat) = 1"
+by (simp add: real_of_nat_def)
+
 lemma real_of_nat_one [simp]: "real (Suc 0) = (1::real)"
 by (simp add: real_of_nat_def)
 

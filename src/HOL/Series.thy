@@ -312,6 +312,7 @@ lemma sumr_pos_lt_pair:
   shows "\<lbrakk>summable f;
         \<forall>d. 0 < f (k + (Suc(Suc 0) * d)) + f (k + ((Suc(Suc 0) * d) + 1))\<rbrakk>
       \<Longrightarrow> setsum f {0..<k} < suminf f"
+unfolding One_nat_def
 apply (subst suminf_split_initial_segment [where k="k"])
 apply assumption
 apply simp
@@ -537,7 +538,7 @@ apply (simp add: summable_Cauchy)
 apply (safe, subgoal_tac "\<forall>n. N < n --> f (n) = 0")
  prefer 2
  apply clarify
- apply(erule_tac x = "n - 1" in allE)
+ apply(erule_tac x = "n - Suc 0" in allE)
  apply (simp add:diff_Suc split:nat.splits)
  apply (blast intro: norm_ratiotest_lemma)
 apply (rule_tac x = "Suc N" in exI, clarify)

@@ -134,7 +134,7 @@ lemma partition_le: "partition(a,b) D ==> a \<le> b"
 apply (frule partition [THEN iffD1], safe)
 apply (drule_tac x = "psize D" and P="%n. psize D \<le> n --> ?P n" in spec, safe)
 apply (case_tac "psize D = 0")
-apply (drule_tac [2] n = "psize D - 1" in partition_lt, auto)
+apply (drule_tac [2] n = "psize D - Suc 0" in partition_lt, auto)
 done
 
 lemma partition_gt: "[|partition(a,b) D; n < (psize D)|] ==> D(n) < D(psize D)"
@@ -145,7 +145,7 @@ apply (frule partition [THEN iffD1], safe)
 apply (rotate_tac 2)
 apply (drule_tac x = "psize D" in spec)
 apply (rule ccontr)
-apply (drule_tac n = "psize D - 1" in partition_lt)
+apply (drule_tac n = "psize D - Suc 0" in partition_lt)
 apply auto
 done
 

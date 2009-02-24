@@ -338,10 +338,10 @@ apply (simp add: le_diff_conv2)
 done
 
 lemma LIMSEQ_Suc: "f ----> l \<Longrightarrow> (\<lambda>n. f (Suc n)) ----> l"
-by (drule_tac k="1" in LIMSEQ_ignore_initial_segment, simp)
+by (drule_tac k="Suc 0" in LIMSEQ_ignore_initial_segment, simp)
 
 lemma LIMSEQ_imp_Suc: "(\<lambda>n. f (Suc n)) ----> l \<Longrightarrow> f ----> l"
-by (rule_tac k="1" in LIMSEQ_offset, simp)
+by (rule_tac k="Suc 0" in LIMSEQ_offset, simp)
 
 lemma LIMSEQ_Suc_iff: "(\<lambda>n. f (Suc n)) ----> l = f ----> l"
 by (blast intro: LIMSEQ_imp_Suc LIMSEQ_Suc)
