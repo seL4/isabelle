@@ -1228,7 +1228,7 @@ done
 text{*Suggested by Matthias Daum*}
 lemma int_power_div_base:
      "\<lbrakk>0 < m; 0 < k\<rbrakk> \<Longrightarrow> k ^ m div k = (k::int) ^ (m - Suc 0)"
-apply (subgoal_tac "k ^ m = k ^ ((m - 1) + 1)")
+apply (subgoal_tac "k ^ m = k ^ ((m - Suc 0) + Suc 0)")
  apply (erule ssubst)
  apply (simp only: power_add)
  apply simp_all

@@ -196,8 +196,8 @@ lemma add_mult_distrib: "(m + n) * k = (m * k) + ((n * k)::nat)"
 
 instance proof
   fix n m q :: nat
-  show "0 \<noteq> (1::nat)" by simp
-  show "1 * n = n" by simp
+  show "0 \<noteq> (1::nat)" unfolding One_nat_def by simp
+  show "1 * n = n" unfolding One_nat_def by simp
   show "n * m = m * n" by (induct n) simp_all
   show "(n * m) * q = n * (m * q)" by (induct n) (simp_all add: add_mult_distrib)
   show "(n + m) * q = n * q + m * q" by (rule add_mult_distrib)
@@ -307,17 +307,23 @@ lemma mult_is_0 [simp]: "((m::nat) * n = 0) = (m=0 | n=0)"
 lemmas nat_distrib =
   add_mult_distrib add_mult_distrib2 diff_mult_distrib diff_mult_distrib2
 
-lemma mult_eq_1_iff [simp]: "(m * n = Suc 0) = (m = 1 & n = 1)"
+lemma mult_eq_1_iff [simp]: "(m * n = Suc 0) = (m = Suc 0 & n = Suc 0)"
   apply (induct m)
    apply simp
   apply (induct n)
    apply auto
   done
 
-lemma one_eq_mult_iff [simp,noatp]: "(Suc 0 = m * n) = (m = 1 & n = 1)"
+lemma one_eq_mult_iff [simp,noatp]: "(Suc 0 = m * n) = (m = Suc 0 & n = Suc 0)"
   apply (rule trans)
   apply (rule_tac [2] mult_eq_1_iff, fastsimp)
   done
+
+lemma nat_mult_eq_1_iff [simp]: "m * n = (1::nat) \<longleftrightarrow> m = 1 \<and> n = 1"
+  unfolding One_nat_def by (rule mult_eq_1_iff)
+
+lemma nat_1_eq_mult_iff [simp]: "(1::nat) = m * n \<longleftrightarrow> m = 1 \<and> n = 1"
+  unfolding One_nat_def by (rule one_eq_mult_iff)
 
 lemma mult_cancel1 [simp]: "(k * m = k * n) = (m = n | (k = (0::nat)))"
 proof -
@@ -465,11 +471,11 @@ lemma less_zeroE: "(n::nat) < 0 ==> R"
 lemma less_Suc_eq: "(m < Suc n) = (m < n | m = n)"
   unfolding less_Suc_eq_le le_less ..
 
-lemma less_one [iff, noatp]: "(n < (1::nat)) = (n = 0)"
-  by (simp add: less_Suc_eq)
-
 lemma less_Suc0 [iff]: "(n < Suc 0) = (n = 0)"
   by (simp add: less_Suc_eq)
+
+lemma less_one [iff, noatp]: "(n < (1::nat)) = (n = 0)"
+  unfolding One_nat_def by (rule less_Suc0)
 
 lemma Suc_mono: "m < n ==> Suc m < Suc n"
   by simp
@@ -800,6 +806,7 @@ lemma ex_least_nat_le: "\<not>P(0) \<Longrightarrow> P(n::nat) \<Longrightarrow>
   done
 
 lemma ex_least_nat_less: "\<not>P(0) \<Longrightarrow> P(n::nat) \<Longrightarrow> \<exists>k<n. (\<forall>i\<le>k. \<not>P i) & P(k+1)"
+  unfolding One_nat_def
   apply (cases n)
    apply blast
   apply (frule (1) ex_least_nat_le)
@@ -1089,7 +1096,7 @@ lemma nat_0_less_mult_iff [simp]: "(0 < (m::nat) * n) = (0 < m & 0 < n)"
    apply simp_all
   done
 
-lemma one_le_mult_iff [simp]: "(Suc 0 \<le> m * n) = (1 \<le> m & 1 \<le> n)"
+lemma one_le_mult_iff [simp]: "(Suc 0 \<le> m * n) = (Suc 0 \<le> m & Suc 0 \<le> n)"
   apply (induct m)
    apply simp
   apply (case_tac n)
@@ -1125,7 +1132,7 @@ lemma le_cube: "(m::nat) \<le> m * (m * m)"
   by (cases m) (auto intro: le_add1)
 
 text {* Lemma for @{text gcd} *}
-lemma mult_eq_self_implies_10: "(m::nat) = m * n ==> n = 1 | m = 0"
+lemma mult_eq_self_implies_10: "(m::nat) = m * n ==> n = Suc 0 | m = 0"
   apply (drule sym)
   apply (rule disjCI)
   apply (rule nat_less_cases, erule_tac [2] _)
@@ -1164,7 +1171,7 @@ where
   | of_nat_Suc: "of_nat (Suc m) = 1 + of_nat m"
 
 lemma of_nat_1 [simp]: "of_nat 1 = 1"
-  by simp
+  unfolding One_nat_def by simp
 
 lemma of_nat_add [simp]: "of_nat (m + n) = of_nat m + of_nat n"
   by (induct m) (simp_all add: add_ac)
@@ -1276,7 +1283,7 @@ lemma abs_of_nat [simp]: "\<bar>of_nat n\<bar> = of_nat n"
 end
 
 lemma of_nat_id [simp]: "of_nat n = n"
-  by (induct n) auto
+  by (induct n) (auto simp add: One_nat_def)
 
 lemma of_nat_eq_id [simp]: "of_nat = id"
   by (auto simp add: expand_fun_eq)
@@ -1381,7 +1388,7 @@ lemma mono_nat_linear_lb:
 apply(induct_tac k)
  apply simp
 apply(erule_tac x="m+n" in meta_allE)
-apply(erule_tac x="m+n+1" in meta_allE)
+apply(erule_tac x="Suc(m+n)" in meta_allE)
 apply simp
 done
 

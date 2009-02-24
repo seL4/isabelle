@@ -61,16 +61,16 @@ lemma funpow_add: "f ^ (m+n) = f^m o f^n"
 
 lemma funpow_swap1: "f((f^n) x) = (f^n)(f x)"
 proof -
-  have "f((f^n) x) = (f^(n+1)) x" by simp
+  have "f((f^n) x) = (f^(n+1)) x" unfolding One_nat_def by simp
   also have "\<dots>  = (f^n o f^1) x" by (simp only: funpow_add)
-  also have "\<dots> = (f^n)(f x)" by simp
+  also have "\<dots> = (f^n)(f x)" unfolding One_nat_def by simp
   finally show ?thesis .
 qed
 
 lemma rel_pow_1 [simp]:
   fixes R :: "('a*'a)set"
   shows "R^1 = R"
-  by simp
+  unfolding One_nat_def by simp
 
 lemma rel_pow_0_I: "(x,x) : R^0"
   by simp

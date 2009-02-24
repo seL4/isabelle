@@ -832,8 +832,8 @@ proof (cases z rule: int_cases)
                              le_imp_0_less [THEN order_less_imp_le])  
 next
   case (neg n)
-  thus ?thesis by (simp del: of_nat_Suc of_nat_add
-    add: algebra_simps of_nat_1 [symmetric] of_nat_add [symmetric])
+  thus ?thesis by (simp del: of_nat_Suc of_nat_add of_nat_1
+    add: algebra_simps of_nat_1 [where 'a=int, symmetric] of_nat_add [symmetric])
 qed
 
 lemma bin_less_0_simps:
@@ -1165,8 +1165,8 @@ proof (cases z rule: int_cases)
                              le_imp_0_less [THEN order_less_imp_le])  
 next
   case (neg n)
-  thus ?thesis by (simp del: of_nat_Suc of_nat_add
-    add: algebra_simps of_nat_1 [symmetric] of_nat_add [symmetric])
+  thus ?thesis by (simp del: of_nat_Suc of_nat_add of_nat_1
+    add: algebra_simps of_nat_1 [where 'a=int, symmetric] of_nat_add [symmetric])
 qed
 
 text {* Less-Than or Equals *}
@@ -1785,11 +1785,12 @@ subsection{*Intermediate value theorems*}
 lemma int_val_lemma:
      "(\<forall>i<n::nat. abs(f(i+1) - f i) \<le> 1) -->  
       f 0 \<le> k --> k \<le> f n --> (\<exists>i \<le> n. f i = (k::int))"
+unfolding One_nat_def
 apply (induct n, simp)
 apply (intro strip)
 apply (erule impE, simp)
 apply (erule_tac x = n in allE, simp)
-apply (case_tac "k = f (n+1) ")
+apply (case_tac "k = f (Suc n)")
 apply force
 apply (erule impE)
  apply (simp add: abs_if split add: split_if_asm)
@@ -1803,6 +1804,7 @@ lemma nat_intermed_int_val:
          f m \<le> k; k \<le> f n |] ==> ? i. m \<le> i & i \<le> n & f i = (k::int)"
 apply (cut_tac n = "n-m" and f = "%i. f (i+m) " and k = k 
        in int_val_lemma)
+unfolding One_nat_def
 apply simp
 apply (erule exE)
 apply (rule_tac x = "i+m" in exI, arith)

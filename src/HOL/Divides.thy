@@ -490,9 +490,9 @@ proof -
   from divmod_rel have divmod_m_n: "divmod_rel m n (m div n) (m mod n)" .
   with assms have m_div_n: "m div n \<ge> 1"
     by (cases "m div n") (auto simp add: divmod_rel_def)
-  from assms divmod_m_n have "divmod_rel (m - n) n (m div n - 1) (m mod n)"
+  from assms divmod_m_n have "divmod_rel (m - n) n (m div n - Suc 0) (m mod n)"
     by (cases "m div n") (auto simp add: divmod_rel_def)
-  with divmod_eq have "divmod (m - n) n = (m div n - 1, m mod n)" by simp
+  with divmod_eq have "divmod (m - n) n = (m div n - Suc 0, m mod n)" by simp
   moreover from divmod_div_mod have "divmod (m - n) n = ((m - n) div n, (m - n) mod n)" .
   ultimately have "m div n = Suc ((m - n) div n)"
     and "m mod n = (m - n) mod n" using m_div_n by simp_all
@@ -814,6 +814,9 @@ lemma dvd_1_left [iff]: "Suc 0 dvd k"
   unfolding dvd_def by simp
 
 lemma dvd_1_iff_1 [simp]: "(m dvd Suc 0) = (m = Suc 0)"
+by (simp add: dvd_def)
+
+lemma nat_dvd_1_iff_1 [simp]: "m dvd (1::nat) \<longleftrightarrow> m = 1"
 by (simp add: dvd_def)
 
 lemma dvd_anti_sym: "[| m dvd n; n dvd m |] ==> m = (n::nat)"

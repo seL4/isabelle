@@ -442,19 +442,13 @@ by (simp add: numerals)
 (* These two can be useful when m = number_of... *)
 
 lemma add_eq_if: "(m::nat) + n = (if m=0 then n else Suc ((m - 1) + n))"
-apply (case_tac "m")
-apply (simp_all add: numerals)
-done
+  unfolding One_nat_def by (cases m) simp_all
 
 lemma mult_eq_if: "(m::nat) * n = (if m=0 then 0 else n + ((m - 1) * n))"
-apply (case_tac "m")
-apply (simp_all add: numerals)
-done
+  unfolding One_nat_def by (cases m) simp_all
 
 lemma power_eq_if: "(p ^ m :: nat) = (if m=0 then 1 else p * (p ^ (m - 1)))"
-apply (case_tac "m")
-apply (simp_all add: numerals)
-done
+  unfolding One_nat_def by (cases m) simp_all
 
 
 subsection{*Comparisons involving (0::nat) *}

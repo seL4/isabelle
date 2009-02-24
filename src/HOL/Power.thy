@@ -31,7 +31,7 @@ lemma power_one [simp]: "1^n = (1::'a::recpower)"
   by (induct n) (simp_all add: power_Suc)
 
 lemma power_one_right [simp]: "(a::'a::recpower) ^ 1 = a"
-  by (simp add: power_Suc)
+  unfolding One_nat_def by (simp add: power_Suc)
 
 lemma power_commutes: "(a::'a::recpower) ^ n * a = a * a ^ n"
   by (induct n) (simp_all add: power_Suc mult_assoc)
@@ -366,8 +366,8 @@ lemma of_nat_power:
   "of_nat (m ^ n) = (of_nat m::'a::{semiring_1,recpower}) ^ n"
 by (induct n, simp_all add: power_Suc of_nat_mult)
 
-lemma nat_one_le_power [simp]: "1 \<le> i ==> Suc 0 \<le> i^n"
-by (insert one_le_power [of i n], simp)
+lemma nat_one_le_power [simp]: "Suc 0 \<le> i ==> Suc 0 \<le> i^n"
+by (rule one_le_power [of i n, unfolded One_nat_def])
 
 lemma nat_zero_less_power_iff [simp]: "(x^n > 0) = (x > (0::nat) | n=0)"
 by (induct "n", auto)
@@ -452,4 +452,3 @@ val nat_zero_less_power_iff = thm"nat_zero_less_power_iff";
 *}
 
 end
-

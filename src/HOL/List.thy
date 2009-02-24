@@ -1438,10 +1438,10 @@ apply (induct xs arbitrary: n)
 apply (auto split:nat.split)
 done
 
-lemma last_conv_nth: "xs\<noteq>[] \<Longrightarrow> last xs = xs!(length xs - 1)"
+lemma last_conv_nth: "xs\<noteq>[] \<Longrightarrow> last xs = xs!(length xs - Suc 0)"
 by(induct xs)(auto simp:neq_Nil_conv)
 
-lemma butlast_conv_take: "butlast xs = take (length xs - 1) xs"
+lemma butlast_conv_take: "butlast xs = take (length xs - Suc 0) xs"
 by (induct xs, simp, case_tac xs, simp_all)
 
 
@@ -1588,7 +1588,7 @@ apply (case_tac xs, auto)
 done
 
 lemma butlast_take:
-  "n <= length xs ==> butlast (take n xs) = take (n - 1) xs"
+  "n <= length xs ==> butlast (take n xs) = take (n - Suc 0) xs"
 by (simp add: butlast_conv_take min_max.inf_absorb1 min_max.inf_absorb2)
 
 lemma butlast_drop: "butlast (drop n xs) = drop n (butlast xs)"
@@ -1639,7 +1639,7 @@ apply simp_all
 done
 
 lemma take_hd_drop:
-  "n < length xs \<Longrightarrow> take n xs @ [hd (drop n xs)] = take (n+1) xs"
+  "n < length xs \<Longrightarrow> take n xs @ [hd (drop n xs)] = take (Suc n) xs"
 apply(induct xs arbitrary: n)
 apply simp
 apply(simp add:drop_Cons split:nat.split)
@@ -2458,7 +2458,7 @@ apply blast
 done
 
 lemma length_remove1:
-  "length(remove1 x xs) = (if x : set xs then length xs - 1 else length xs)"
+  "length(remove1 x xs) = (if x : set xs then length xs - Suc 0 else length xs)"
 apply (induct xs)
  apply (auto dest!:length_pos_if_in_set)
 done
