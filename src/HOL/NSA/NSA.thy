@@ -157,7 +157,7 @@ lemma hnorm_divide:
 by transfer (rule norm_divide)
 
 lemma hypreal_hnorm_def [simp]:
-  "\<And>r::hypreal. hnorm r \<equiv> \<bar>r\<bar>"
+  "\<And>r::hypreal. hnorm r = \<bar>r\<bar>"
 by transfer (rule real_norm_def)
 
 lemma hnorm_add_less:
