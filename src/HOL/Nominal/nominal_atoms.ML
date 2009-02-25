@@ -1,5 +1,4 @@
 (*  title:      HOL/Nominal/nominal_atoms.ML
-    ID:         $Id$
     Author:     Christian Urban and Stefan Berghofer, TU Muenchen
 
 Declaration of atom types to be used in nominal datatypes.
@@ -784,6 +783,8 @@ fun create_nom_typedecls ak_names thy =
        val fresh_star_bij      = @{thms "Nominal.pt_fresh_star_bij"};
        val fresh_eqvt          = @{thm "Nominal.pt_fresh_eqvt"};
        val fresh_eqvt_ineq     = @{thm "Nominal.pt_fresh_eqvt_ineq"};
+       val fresh_star_eqvt     = @{thms "Nominal.pt_fresh_star_eqvt"};
+       val fresh_star_eqvt_ineq= @{thms "Nominal.pt_fresh_star_eqvt_ineq"};
        val set_diff_eqvt       = @{thm "Nominal.pt_set_diff_eqvt"};
        val in_eqvt             = @{thm "Nominal.pt_in_eqvt"};
        val eq_eqvt             = @{thm "Nominal.pt_eq_eqvt"};
@@ -947,12 +948,16 @@ fun create_nom_typedecls ak_names thy =
               in [(("fresh_bij", thms1 @ thms2),[])] end
             ||>> add_thmss_string
               let val thms1 = inst_pt_at fresh_star_bij
-                  and thms2 = flat (map (fn ti => inst_pt_pt_at_cp [ti]) fresh_star_bij_ineq);
+                  and thms2 = maps (fn ti => inst_pt_pt_at_cp [ti]) fresh_star_bij_ineq
               in [(("fresh_star_bij", thms1 @ thms2),[])] end
             ||>> add_thmss_string
               let val thms1 = inst_pt_at [fresh_eqvt]
                   and thms2 = inst_pt_pt_at_cp_dj [fresh_eqvt_ineq]
               in [(("fresh_eqvt", thms1 @ thms2),[NominalThmDecls.eqvt_add])] end
+            ||>> add_thmss_string
+              let val thms1 = inst_pt_at fresh_star_eqvt
+                  and thms2 = maps (fn ti => inst_pt_pt_at_cp_dj [ti]) fresh_star_eqvt_ineq
+              in [(("fresh_star_eqvt", thms1 @ thms2),[NominalThmDecls.eqvt_add])] end
             ||>> add_thmss_string
               let val thms1 = inst_pt_at [in_eqvt]
               in [(("in_eqvt", thms1),[NominalThmDecls.eqvt_add])] end
