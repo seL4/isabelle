@@ -280,6 +280,9 @@ lemma diff_cancel2: "(m + k) - (n + k) = m - (n::nat)"
 lemma diff_add_0: "n - (n + m) = (0::nat)"
   by (induct n) simp_all
 
+lemma diff_Suc_1 [simp]: "Suc n - 1 = n"
+  unfolding One_nat_def by simp
+
 text {* Difference distributes over multiplication *}
 
 lemma diff_mult_distrib: "((m::nat) - n) * k = (m * k) - (n * k)"
