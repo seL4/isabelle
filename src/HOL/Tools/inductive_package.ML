@@ -738,7 +738,7 @@ fun add_ind_def {quiet_mode, verbose, kind, alt_name, coind, no_elim, no_ind, sk
     val _ = message (quiet_mode andalso not verbose)
       ("Proofs for " ^ coind_prefix coind ^ "inductive predicate(s) " ^ commas_quote names);
 
-    val cnames = map (Sign.full_name (ProofContext.theory_of ctxt) o #1) cnames_syn;  (* FIXME *)
+    val cnames = map (LocalTheory.full_name ctxt o #1) cnames_syn;  (* FIXME *)
     val ((intr_names, intr_atts), intr_ts) =
       apfst split_list (split_list (map (check_rule ctxt cs params) intros));
 
