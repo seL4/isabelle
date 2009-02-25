@@ -267,6 +267,7 @@ $(OUT)/HOL-Main: main.ML $(MAIN_DEPENDENCIES)
 	@$(ISABELLE_TOOL) usedir -b -f main.ML -g true $(OUT)/Pure HOL-Main
 
 $(OUT)/HOL: ROOT.ML $(MAIN_DEPENDENCIES) \
+  Archimedean_Field.thy \
   Complex_Main.thy \
   Complex.thy \
   Deriv.thy \
