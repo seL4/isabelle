@@ -255,7 +255,6 @@ next
   with `b \<noteq> 0` have "a \<noteq> 0" by (simp add: Zero_rat_def eq_rat)
   with Fract `q = Fract a b` `b \<noteq> 0` show C by auto
 qed
-  
 
 
 subsubsection {* The field of rational numbers *}
@@ -532,8 +531,36 @@ proof (cases q)
 qed
 
 lemma zero_less_Fract_iff:
-  "0 < b ==> (0 < Fract a b) = (0 < a)"
-by (simp add: Zero_rat_def order_less_imp_not_eq2 zero_less_mult_iff)
+  "0 < b \<Longrightarrow> 0 < Fract a b \<longleftrightarrow> 0 < a"
+  by (simp add: Zero_rat_def zero_less_mult_iff)
+
+lemma Fract_less_zero_iff:
+  "0 < b \<Longrightarrow> Fract a b < 0 \<longleftrightarrow> a < 0"
+  by (simp add: Zero_rat_def mult_less_0_iff)
+
+lemma zero_le_Fract_iff:
+  "0 < b \<Longrightarrow> 0 \<le> Fract a b \<longleftrightarrow> 0 \<le> a"
+  by (simp add: Zero_rat_def zero_le_mult_iff)
+
+lemma Fract_le_zero_iff:
+  "0 < b \<Longrightarrow> Fract a b \<le> 0 \<longleftrightarrow> a \<le> 0"
+  by (simp add: Zero_rat_def mult_le_0_iff)
+
+lemma one_less_Fract_iff:
+  "0 < b \<Longrightarrow> 1 < Fract a b \<longleftrightarrow> b < a"
+  by (simp add: One_rat_def mult_less_cancel_right_disj)
+
+lemma Fract_less_one_iff:
+  "0 < b \<Longrightarrow> Fract a b < 1 \<longleftrightarrow> a < b"
+  by (simp add: One_rat_def mult_less_cancel_right_disj)
+
+lemma one_le_Fract_iff:
+  "0 < b \<Longrightarrow> 1 \<le> Fract a b \<longleftrightarrow> b \<le> a"
+  by (simp add: One_rat_def mult_le_cancel_right)
+
+lemma Fract_le_one_iff:
+  "0 < b \<Longrightarrow> Fract a b \<le> 1 \<longleftrightarrow> a \<le> b"
+  by (simp add: One_rat_def mult_le_cancel_right)
 
 
 subsection {* Arithmetic setup *}
