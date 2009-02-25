@@ -166,9 +166,8 @@ and assert_inst thy arities eqngr (inst as (class, tyco)) (vardeps_data as (_, (
   in
     vardeps_data
     |> (apsnd o apsnd) (insert (op =) inst)
-    |> fold_index (fn (k, classes) =>
-         apfst (Vargraph.new_node ((Inst (class, tyco), k), ([] ,[])))
-         ) classess
+    |> fold_index (fn (k, _) =>
+         apfst (Vargraph.new_node ((Inst (class, tyco), k), ([] ,[])))) classess
     |> fold (fn superclass => assert_inst thy arities eqngr (superclass, tyco)) superclasses
     |> fold (assert_fun thy arities eqngr) inst_params
     |> fold_index (fn (k, classes) =>
@@ -203,9 +202,10 @@ and assert_fun thy arities eqngr c (vardeps_data as (_, (eqntab, _))) =
   in
     vardeps_data
     |> (apsnd o apfst) (Symtab.update_new (c, (lhs, eqns)))
+    |> fold_index (fn (k, _) =>
+         apfst (Vargraph.new_node ((Fun c, k), ([] ,[])))) lhs
     |> fold_index (fn (k, (_, sort)) =>
-         apfst (Vargraph.new_node ((Fun c, k), ([] ,[])))
-         #> add_classes thy arities eqngr (Fun c, k) (complete_proper_sort thy sort)) lhs
+         add_classes thy arities eqngr (Fun c, k) (complete_proper_sort thy sort)) lhs
     |> fold (assert_rhs thy arities eqngr) rhss'
   end;
 
