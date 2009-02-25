@@ -1,5 +1,4 @@
-(* ID: "$Id$"
-   Authors: Julien Narboux and Christian Urban
+(* Authors: Julien Narboux and Christian Urban
 
    This file introduces the infrastructure for the lemma
    declaration "eqvts" "bijs" and "freshs".
@@ -63,10 +62,11 @@ fun tactic (msg,tac) =
     then tac THEN print_tac ("after "^msg)
     else tac
 
-fun tactic_eqvt ctx orig_thm pi typi =
+fun tactic_eqvt ctx orig_thm pi pi' =
     let
-        val mypi = Thm.cterm_of ctx (Var (pi,typi))
-        val mypifree = Thm.cterm_of ctx (Const ("List.rev",typi --> typi) $ Free (fst pi,typi))
+        val mypi = Thm.cterm_of ctx pi
+        val T = fastype_of pi'
+        val mypifree = Thm.cterm_of ctx (Const ("List.rev", T --> T) $ pi')
         val perm_pi_simp = PureThy.get_thms ctx "perm_pi_simp"
     in
         EVERY [tactic ("iffI applied",rtac iffI 1),
@@ -80,14 +80,19 @@ fun tactic_eqvt ctx orig_thm pi typi =
                           full_simp_tac (HOL_basic_ss addsimps perm_pi_simp) 1)]
     end;
 
-fun get_derived_thm thy hyp concl orig_thm pi typi =
-   let
-       val lhs = (Const("Nominal.perm", typi --> HOLogic.boolT --> HOLogic.boolT) $ Var(pi,typi) $ hyp)
-       val goal_term = Logic.unvarify (HOLogic.mk_Trueprop (HOLogic.mk_eq (lhs,concl)))
-       val _ = Display.print_cterm (cterm_of thy goal_term)
-   in
-     Goal.prove_global thy [] [] goal_term (fn _ => (tactic_eqvt thy orig_thm pi typi))
-   end
+fun get_derived_thm ctxt hyp concl orig_thm pi typi =
+  let
+    val thy = ProofContext.theory_of ctxt;
+    val pi' = Var (pi, typi);
+    val lhs = Const ("Nominal.perm", typi --> HOLogic.boolT --> HOLogic.boolT) $ pi' $ hyp;
+    val ([goal_term, pi''], ctxt') = Variable.import_terms false
+      [HOLogic.mk_Trueprop (HOLogic.mk_eq (lhs, concl)), pi'] ctxt
+    val _ = Display.print_cterm (cterm_of thy goal_term)
+  in
+    Goal.prove ctxt' [] [] goal_term
+      (fn _ => tactic_eqvt thy orig_thm pi' pi'') |>
+    singleton (ProofContext.export ctxt' ctxt)
+  end
 
 (* replaces every variable x in t with pi o x *)
 fun apply_pi trm (pi,typi) =
@@ -145,7 +150,8 @@ fun eqvt_add_del_aux flag orig_thm context =
              if (apply_pi hyp (pi,typi) = concl)
              then
                (warning ("equivariance lemma of the relational form");
-                [orig_thm, get_derived_thm thy hyp concl orig_thm pi typi])
+                [orig_thm,
+                 get_derived_thm (Context.proof_of context) hyp concl orig_thm pi typi])
              else raise EQVT_FORM "Type Implication"
           end
        (* case: eqvt-lemma is of the equational form *)
