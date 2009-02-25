@@ -59,14 +59,12 @@ val typ_level = ref T_CONST;
   use of the "apply" operator. Use of hBOOL is also minimized.*)
 val minimize_applies = ref true;
 
-val const_needs_hBOOL = ref (Symtab.empty : bool Symtab.table);
-
 fun min_arity_of const_min_arity c = getOpt (Symtab.lookup const_min_arity c, 0);
 
 (*True if the constant ever appears outside of the top-level position in literals.
   If false, the constant always receives all of its arguments and is used as a predicate.*)
-fun needs_hBOOL c = not (!minimize_applies) orelse
-                    getOpt (Symtab.lookup(!const_needs_hBOOL) c, false);
+fun needs_hBOOL const_needs_hBOOL c = not (!minimize_applies) orelse
+                    getOpt (Symtab.lookup const_needs_hBOOL c, false);
 
 
 (******************************************************)
@@ -216,8 +214,8 @@ fun strip_comb u =
 
 val type_wrapper = "ti";
 
-fun head_needs_hBOOL (CombConst(c,_,_)) = needs_hBOOL c
-  | head_needs_hBOOL _ = true;
+fun head_needs_hBOOL const_needs_hBOOL (CombConst(c,_,_)) = needs_hBOOL const_needs_hBOOL c
+  | head_needs_hBOOL const_needs_hBOOL _ = true;
 
 fun wrap_type (s, tp) =
   if !typ_level=T_FULL then
@@ -233,9 +231,9 @@ fun string_apply (v, args) = rev_apply (v, rev args);
 
 (*Apply an operator to the argument strings, using either the "apply" operator or
   direct function application.*)
-fun string_of_applic const_min_arity (CombConst(c,tp,tvars), args) =
+fun string_of_applic cma (CombConst(c,tp,tvars), args) =
       let val c = if c = "equal" then "c_fequal" else c
-          val nargs = min_arity_of const_min_arity c
+          val nargs = min_arity_of cma c
           val args1 = List.take(args, nargs)
             handle Subscript => error ("string_of_applic: " ^ c ^ " has arity " ^
                                          Int.toString nargs ^ " but is applied to " ^
@@ -246,30 +244,30 @@ fun string_of_applic const_min_arity (CombConst(c,tp,tvars), args) =
       in
           string_apply (c ^ RC.paren_pack (args1@targs), args2)
       end
-  | string_of_applic const_min_arity (CombVar(v,tp), args) = string_apply (v, args)
+  | string_of_applic cma (CombVar(v,tp), args) = string_apply (v, args)
   | string_of_applic _ _ = error "string_of_applic";
 
-fun wrap_type_if (head, s, tp) = if head_needs_hBOOL head then wrap_type (s, tp) else s;
+fun wrap_type_if cnh (head, s, tp) = if head_needs_hBOOL cnh head then wrap_type (s, tp) else s;
 
-fun string_of_combterm const_min_arity t =
+fun string_of_combterm cma cnh t =
   let val (head, args) = strip_comb t
-  in  wrap_type_if (head,
-                    string_of_applic const_min_arity (head, map (string_of_combterm const_min_arity) args),
+  in  wrap_type_if cnh (head,
+                    string_of_applic cma (head, map (string_of_combterm cma cnh) args),
                     type_of_combterm t)
   end;
 
 (*Boolean-valued terms are here converted to literals.*)
-fun boolify const_min_arity t = "hBOOL" ^ RC.paren_pack [string_of_combterm const_min_arity t];
+fun boolify cma cnh t = "hBOOL" ^ RC.paren_pack [string_of_combterm cma cnh t];
 
-fun string_of_predicate const_min_arity t =
+fun string_of_predicate cma cnh t =
   case t of
       (CombApp(CombApp(CombConst("equal",_,_), t1), t2)) =>
           (*DFG only: new TPTP prefers infix equality*)
-          ("equal" ^ RC.paren_pack [string_of_combterm const_min_arity t1, string_of_combterm const_min_arity t2])
+          ("equal" ^ RC.paren_pack [string_of_combterm cma cnh t1, string_of_combterm cma cnh t2])
     | _ =>
           case #1 (strip_comb t) of
-              CombConst(c,_,_) => if needs_hBOOL c then boolify const_min_arity t else string_of_combterm const_min_arity t
-            | _ => boolify const_min_arity t;
+              CombConst(c,_,_) => if needs_hBOOL cnh c then boolify cma cnh t else string_of_combterm cma cnh t
+            | _ => boolify cma cnh t;
 
 fun string_of_clausename (cls_id,ax_name) =
     RC.clause_prefix ^ RC.ascii_of ax_name ^ "_" ^ Int.toString cls_id;
@@ -280,23 +278,23 @@ fun string_of_type_clsname (cls_id,ax_name,idx) =
 
 (*** tptp format ***)
 
-fun tptp_of_equality const_min_arity pol (t1,t2) =
+fun tptp_of_equality cma cnh pol (t1,t2) =
   let val eqop = if pol then " = " else " != "
-  in  string_of_combterm const_min_arity t1 ^ eqop ^ string_of_combterm const_min_arity t2  end;
+  in  string_of_combterm cma cnh t1 ^ eqop ^ string_of_combterm cma cnh t2  end;
 
-fun tptp_literal const_min_arity (Literal(pol, CombApp(CombApp(CombConst("equal",_,_), t1), t2))) =
-      tptp_of_equality const_min_arity pol (t1,t2)
-  | tptp_literal const_min_arity (Literal(pol,pred)) =
-      RC.tptp_sign pol (string_of_predicate const_min_arity pred);
+fun tptp_literal cma cnh (Literal(pol, CombApp(CombApp(CombConst("equal",_,_), t1), t2))) =
+      tptp_of_equality cma cnh pol (t1,t2)
+  | tptp_literal cma cnh (Literal(pol,pred)) =
+      RC.tptp_sign pol (string_of_predicate cma cnh pred);
 
 (*Given a clause, returns its literals paired with a list of literals concerning TFrees;
   the latter should only occur in conjecture clauses.*)
-fun tptp_type_lits const_min_arity pos (Clause{literals, ctypes_sorts, ...}) =
-      (map (tptp_literal const_min_arity) literals, 
+fun tptp_type_lits cma cnh pos (Clause{literals, ctypes_sorts, ...}) =
+      (map (tptp_literal cma cnh) literals, 
        map (RC.tptp_of_typeLit pos) (RC.add_typs ctypes_sorts));
 
-fun clause2tptp const_min_arity (cls as Clause{axiom_name,clause_id,kind,ctypes_sorts,...}) =
-  let val (lits,tylits) = tptp_type_lits const_min_arity (kind = RC.Conjecture) cls
+fun clause2tptp cma cnh (cls as Clause{axiom_name,clause_id,kind,ctypes_sorts,...}) =
+  let val (lits,tylits) = tptp_type_lits cma cnh (kind = RC.Conjecture) cls
   in
       (RC.gen_tptp_cls(clause_id,axiom_name,kind,lits,tylits), tylits)
   end;
@@ -304,10 +302,10 @@ fun clause2tptp const_min_arity (cls as Clause{axiom_name,clause_id,kind,ctypes_
 
 (*** dfg format ***)
 
-fun dfg_literal const_min_arity (Literal(pol,pred)) = RC.dfg_sign pol (string_of_predicate const_min_arity pred);
+fun dfg_literal cma cnh (Literal(pol,pred)) = RC.dfg_sign pol (string_of_predicate cma cnh pred);
 
-fun dfg_type_lits const_min_arity pos (Clause{literals, ctypes_sorts, ...}) =
-      (map (dfg_literal const_min_arity) literals, 
+fun dfg_type_lits cma cnh pos (Clause{literals, ctypes_sorts, ...}) =
+      (map (dfg_literal cma cnh) literals, 
        map (RC.dfg_of_typeLit pos) (RC.add_typs ctypes_sorts));
 
 fun get_uvars (CombConst _) vars = vars
@@ -318,8 +316,8 @@ fun get_uvars_l (Literal(_,c)) = get_uvars c [];
 
 fun dfg_vars (Clause {literals,...}) = RC.union_all (map get_uvars_l literals);
 
-fun clause2dfg const_min_arity (cls as Clause{axiom_name,clause_id,kind,ctypes_sorts,...}) =
-  let val (lits,tylits) = dfg_type_lits const_min_arity (kind = RC.Conjecture) cls
+fun clause2dfg cma cnh (cls as Clause{axiom_name,clause_id,kind,ctypes_sorts,...}) =
+  let val (lits,tylits) = dfg_type_lits cma cnh (kind = RC.Conjecture) cls
       val vars = dfg_vars cls
       val tvars = RC.get_tvar_strs ctypes_sorts
   in
@@ -331,30 +329,30 @@ fun clause2dfg const_min_arity (cls as Clause{axiom_name,clause_id,kind,ctypes_s
 
 fun addtypes tvars tab = foldl RC.add_foltype_funcs tab tvars;
 
-fun add_decls const_min_arity (CombConst(c,tp,tvars), (funcs,preds)) =
+fun add_decls cma cnh (CombConst(c,tp,tvars), (funcs,preds)) =
       if c = "equal" then (addtypes tvars funcs, preds)
       else
-	let val arity = min_arity_of const_min_arity c
+	let val arity = min_arity_of cma c
 	    val ntys = if !typ_level = T_CONST then length tvars else 0
 	    val addit = Symtab.update(c, arity+ntys)
 	in
-	    if needs_hBOOL c then (addtypes tvars (addit funcs), preds)
+	    if needs_hBOOL cnh c then (addtypes tvars (addit funcs), preds)
 	    else (addtypes tvars funcs, addit preds)
 	end
-  | add_decls _ (CombVar(_,ctp), (funcs,preds)) =
+  | add_decls _ _ (CombVar(_,ctp), (funcs,preds)) =
       (RC.add_foltype_funcs (ctp,funcs), preds)
-  | add_decls const_min_arity (CombApp(P,Q),decls) = add_decls const_min_arity (P,add_decls const_min_arity (Q,decls));
+  | add_decls cma cnh (CombApp(P,Q),decls) = add_decls cma cnh (P,add_decls cma cnh (Q,decls));
 
-fun add_literal_decls const_min_arity (Literal(_,c), decls) = add_decls const_min_arity (c,decls);
+fun add_literal_decls cma cnh (Literal(_,c), decls) = add_decls cma cnh (c,decls);
 
-fun add_clause_decls const_min_arity (Clause {literals, ...}, decls) =
-    foldl (add_literal_decls const_min_arity) decls literals
+fun add_clause_decls cma cnh (Clause {literals, ...}, decls) =
+    foldl (add_literal_decls cma cnh) decls literals
     handle Symtab.DUP a => error ("function " ^ a ^ " has multiple arities")
 
-fun decls_of_clauses const_min_arity clauses arity_clauses =
+fun decls_of_clauses cma cnh clauses arity_clauses =
   let val init_functab = Symtab.update (type_wrapper,2) (Symtab.update ("hAPP",2) RC.init_functab)
       val init_predtab = Symtab.update ("hBOOL",1) Symtab.empty
-      val (functab,predtab) = (foldl (add_clause_decls const_min_arity) (init_functab, init_predtab) clauses)
+      val (functab,predtab) = (foldl (add_clause_decls cma cnh) (init_functab, init_predtab) clauses)
   in
       (Symtab.dest (foldl RC.add_arityClause_funcs functab arity_clauses),
        Symtab.dest predtab)
@@ -422,43 +420,42 @@ fun get_helper_clauses thy isFO (conjectures, axclauses, user_lemmas) =
 
 (*Find the minimal arity of each function mentioned in the term. Also, note which uses
   are not at top level, to see if hBOOL is needed.*)
-fun count_constants_term toplev t const_min_arity =
+fun count_constants_term toplev t (const_min_arity, const_needs_hBOOL) =
   let val (head, args) = strip_comb t
       val n = length args
-      val const_min_arity = fold (count_constants_term false) args const_min_arity
+      val (const_min_arity, const_needs_hBOOL) = fold (count_constants_term false) args (const_min_arity, const_needs_hBOOL)
   in
       case head of
           CombConst (a,_,_) => (*predicate or function version of "equal"?*)
             let val a = if a="equal" andalso not toplev then "c_fequal" else a
             val const_min_arity = Symtab.map_default (a,n) (curry Int.min n) const_min_arity
             in
-              if toplev then const_min_arity
-              else (const_needs_hBOOL := Symtab.update (a,true) (!const_needs_hBOOL);
-                const_min_arity)
+              if toplev then (const_min_arity, const_needs_hBOOL)
+              else (const_min_arity, Symtab.update (a,true) (const_needs_hBOOL))
             end
-        | ts => const_min_arity
+        | ts => (const_min_arity, const_needs_hBOOL)
   end;
 
 (*A literal is a top-level term*)
-fun count_constants_lit (Literal (_,t)) const_min_arity = count_constants_term true t const_min_arity;
+fun count_constants_lit (Literal (_,t)) (const_min_arity, const_needs_hBOOL) =
+  count_constants_term true t (const_min_arity, const_needs_hBOOL);
 
-fun count_constants_clause (Clause{literals,...}) const_min_arity =
-  fold count_constants_lit literals const_min_arity;
+fun count_constants_clause (Clause{literals,...}) (const_min_arity, const_needs_hBOOL) =
+  fold count_constants_lit literals (const_min_arity, const_needs_hBOOL);
 
-fun display_arity (c,n) =
+fun display_arity const_needs_hBOOL (c,n) =
   Output.debug (fn () => "Constant: " ^ c ^ " arity:\t" ^ Int.toString n ^
-                (if needs_hBOOL c then " needs hBOOL" else ""));
+                (if needs_hBOOL const_needs_hBOOL c then " needs hBOOL" else ""));
 
 fun count_constants (conjectures, axclauses, helper_clauses) =
   if !minimize_applies then
-    (const_needs_hBOOL := Symtab.empty;
-     let val const_min_arity =
-          fold count_constants_clause conjectures Symtab.empty
+     let val (const_min_arity, const_needs_hBOOL) =
+          fold count_constants_clause conjectures (Symtab.empty, Symtab.empty)
        |> fold count_constants_clause axclauses
        |> fold count_constants_clause helper_clauses
-     val _ = List.app display_arity (Symtab.dest (const_min_arity))
-     in const_min_arity end) 
-  else Symtab.empty;
+     val _ = List.app (display_arity const_needs_hBOOL) (Symtab.dest (const_min_arity))
+     in (const_min_arity, const_needs_hBOOL) end
+  else (Symtab.empty, Symtab.empty);
 
 (* tptp format *)
 
@@ -469,17 +466,17 @@ fun tptp_write_file thy isFO thms filename (ax_tuples,classrel_clauses,arity_cla
         val conjectures = make_conjecture_clauses thy thms
         val (clnames,axclauses) = ListPair.unzip (make_axiom_clauses thy ax_tuples)
         val helper_clauses = get_helper_clauses thy isFO (conjectures, axclauses, user_lemmas)
-        val const_min_arity = count_constants (conjectures, axclauses, helper_clauses);
-        val (tptp_clss,tfree_litss) = ListPair.unzip (map (clause2tptp const_min_arity) conjectures)
+        val (const_min_arity, const_needs_hBOOL) = count_constants (conjectures, axclauses, helper_clauses);
+        val (tptp_clss,tfree_litss) = ListPair.unzip (map (clause2tptp const_min_arity const_needs_hBOOL) conjectures)
         val tfree_clss = map RC.tptp_tfree_clause (foldl (op union_string) [] tfree_litss)
         val out = TextIO.openOut filename
     in
-        List.app (curry TextIO.output out o #1 o (clause2tptp const_min_arity)) axclauses;
+        List.app (curry TextIO.output out o #1 o (clause2tptp const_min_arity const_needs_hBOOL)) axclauses;
         RC.writeln_strs out tfree_clss;
         RC.writeln_strs out tptp_clss;
         List.app (curry TextIO.output out o RC.tptp_classrelClause) classrel_clauses;
         List.app (curry TextIO.output out o RC.tptp_arity_clause) arity_clauses;
-        List.app (curry TextIO.output out o #1 o (clause2tptp const_min_arity)) helper_clauses;
+        List.app (curry TextIO.output out o #1 o (clause2tptp const_min_arity const_needs_hBOOL)) helper_clauses;
         TextIO.closeOut out;
         clnames
     end;
@@ -493,14 +490,14 @@ fun dfg_write_file thy isFO thms filename (ax_tuples,classrel_clauses,arity_clau
         val conjectures = make_conjecture_clauses thy thms
         val (clnames,axclauses) = ListPair.unzip (make_axiom_clauses thy ax_tuples)
         val helper_clauses = get_helper_clauses thy isFO (conjectures, axclauses, user_lemmas)
-        val const_min_arity = count_constants (conjectures, axclauses, helper_clauses);
-        val (dfg_clss, tfree_litss) = ListPair.unzip (map (clause2dfg const_min_arity) conjectures)
+        val (const_min_arity, const_needs_hBOOL) = count_constants (conjectures, axclauses, helper_clauses);
+        val (dfg_clss, tfree_litss) = ListPair.unzip (map (clause2dfg const_min_arity const_needs_hBOOL) conjectures)
         and probname = Path.implode (Path.base (Path.explode filename))
-        val axstrs = map (#1 o (clause2dfg const_min_arity)) axclauses
+        val axstrs = map (#1 o (clause2dfg const_min_arity const_needs_hBOOL)) axclauses
         val tfree_clss = map RC.dfg_tfree_clause (RC.union_all tfree_litss)
         val out = TextIO.openOut filename
-        val helper_clauses_strs = map (#1 o (clause2dfg const_min_arity)) helper_clauses
-        val (funcs,cl_preds) = decls_of_clauses const_min_arity (helper_clauses @ conjectures @ axclauses) arity_clauses
+        val helper_clauses_strs = map (#1 o (clause2dfg const_min_arity const_needs_hBOOL)) helper_clauses
+        val (funcs,cl_preds) = decls_of_clauses const_min_arity const_needs_hBOOL (helper_clauses @ conjectures @ axclauses) arity_clauses
         and ty_preds = preds_of_clauses axclauses classrel_clauses arity_clauses
     in
         TextIO.output (out, RC.string_of_start probname);
