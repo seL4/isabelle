@@ -503,7 +503,7 @@ fun add_ind_set_def
       if Binding.is_empty alt_name then
         Binding.name (space_implode "_" (map (Binding.base_name o fst) cnames_syn))
       else alt_name;
-    val cnames = map (Sign.full_name (ProofContext.theory_of ctxt3) o #1) cnames_syn;  (* FIXME *)
+    val cnames = map (LocalTheory.full_name ctxt3 o #1) cnames_syn;  (* FIXME *)
     val (intr_names, intr_atts) = split_list (map fst intros);
     val raw_induct' = to_set [] (Context.Proof ctxt3) raw_induct;
     val (intrs', elims', induct, ctxt4) =
