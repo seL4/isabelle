@@ -1645,6 +1645,31 @@ apply(rule pt)
 apply(rule at)
 done
 
+lemma pt_fresh_star_eqvt:
+  fixes  pi :: "'x prm"
+  and     x :: "'a"
+  and     a :: "'x set"
+  and     b :: "'x list"
+  assumes pt: "pt TYPE('a) TYPE('x)"
+  and     at: "at TYPE('x)"
+  shows "pi\<bullet>(a\<sharp>*x) = (pi\<bullet>a)\<sharp>*(pi\<bullet>x)"
+  and   "pi\<bullet>(b\<sharp>*x) = (pi\<bullet>b)\<sharp>*(pi\<bullet>x)"
+  by (simp_all add: perm_bool pt_fresh_star_bij[OF pt, OF at])
+
+lemma pt_fresh_star_eqvt_ineq:
+  fixes pi::"'x prm"
+  and   a::"'y set"
+  and   b::"'y list"
+  and   x::"'a"
+  assumes pta: "pt TYPE('a) TYPE('x)"
+  and     ptb: "pt TYPE('y) TYPE('x)"
+  and     at:  "at TYPE('x)"
+  and     cp:  "cp TYPE('a) TYPE('x) TYPE('y)"
+  and     dj:  "disjoint TYPE('y) TYPE('x)"
+  shows "pi\<bullet>(a\<sharp>*x) = (pi\<bullet>a)\<sharp>*(pi\<bullet>x)"
+  and   "pi\<bullet>(b\<sharp>*x) = (pi\<bullet>b)\<sharp>*(pi\<bullet>x)"
+  by (simp_all add: pt_fresh_star_bij_ineq[OF pta, OF ptb, OF at, OF cp] dj_perm_forget[OF dj] perm_bool)
+
 lemma pt_fresh_bij1:
   fixes  pi :: "'x prm"
   and     x :: "'a"
