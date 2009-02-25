@@ -83,7 +83,7 @@ proof( auto)
   have "real (floor x) \<le> x" by simp 
   hence "real (floor x) < real (n + 1) " using ub by arith
   hence "floor x < n+1" by simp
-  moreover from lb have "n \<le> floor x" using floor_mono2[where x="real n" and y="x"] 
+  moreover from lb have "n \<le> floor x" using floor_mono[where x="real n" and y="x"] 
     by simp ultimately show "floor x = n" by simp
 qed
 
@@ -1775,11 +1775,11 @@ lemma split_int_le_real:
   "(real (a::int) \<le> b) = (a \<le> floor b \<or> (a = floor b \<and> real (floor b) < b))"
 proof( auto)
   assume alb: "real a \<le> b" and agb: "\<not> a \<le> floor b"
-  from alb have "floor (real a) \<le> floor b " by (simp only: floor_mono2) 
+  from alb have "floor (real a) \<le> floor b " by (simp only: floor_mono) 
   hence "a \<le> floor b" by simp with agb show "False" by simp
 next
   assume alb: "a \<le> floor b"
-  hence "real a \<le> real (floor b)" by (simp only: floor_mono2)
+  hence "real a \<le> real (floor b)" by (simp only: floor_mono)
   also have "\<dots>\<le> b" by simp  finally show  "real a \<le> b" . 
 qed
 
@@ -3697,7 +3697,7 @@ lemma real_in_int_intervals:
   assumes xb: "real m \<le> x \<and> x < real ((n::int) + 1)"
   shows "\<exists> j\<in> {m.. n}. real j \<le> x \<and> x < real (j+1)" (is "\<exists> j\<in> ?N. ?P j")
 by (rule bexI[where P="?P" and x="floor x" and A="?N"]) 
-(auto simp add: floor_less_eq[where x="x" and a="n+1", simplified] xb[simplified] floor_mono2[where x="real m" and y="x", OF conjunct1[OF xb], simplified floor_real_of_int[where n="m"]])
+(auto simp add: floor_less_eq[where x="x" and a="n+1", simplified] xb[simplified] floor_mono[where x="real m" and y="x", OF conjunct1[OF xb], simplified floor_real_of_int[where n="m"]])
 
 lemma rsplit0_complete:
   assumes xp:"0 \<le> x" and x1:"x < 1"

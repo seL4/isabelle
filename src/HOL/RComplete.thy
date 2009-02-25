@@ -380,33 +380,28 @@ next
   thus "\<exists>(n::nat). x < real n" ..
 qed
 
+instance real :: archimedean_field
+proof
+  fix r :: real
+  obtain n :: nat where "r < real n"
+    using reals_Archimedean2 ..
+  then have "r \<le> of_int (int n)"
+    unfolding real_eq_of_nat by simp
+  then show "\<exists>z. r \<le> of_int z" ..
+qed
+
 lemma reals_Archimedean3:
   assumes x_greater_zero: "0 < x"
   shows "\<forall>(y::real). \<exists>(n::nat). y < real n * x"
-proof
-  fix y
-  have x_not_zero: "x \<noteq> 0" using x_greater_zero by simp
-  obtain n where "y * inverse x < real (n::nat)"
-    using reals_Archimedean2 ..
-  hence "y * inverse x * x < real n * x"
-    using x_greater_zero by (simp add: mult_strict_right_mono)
-  hence "x * inverse x * y < x * real n"
-    by (simp add: algebra_simps)
-  hence "y < real (n::nat) * x"
-    using x_not_zero by (simp add: algebra_simps)
-  thus "\<exists>(n::nat). y < real n * x" ..
-qed
+  unfolding real_of_nat_def using `0 < x`
+  by (auto intro: ex_less_of_nat_mult)
 
 lemma reals_Archimedean6:
      "0 \<le> r ==> \<exists>(n::nat). real (n - 1) \<le> r & r < real (n)"
-apply (insert reals_Archimedean2 [of r], safe)
-apply (subgoal_tac "\<exists>x::nat. r < real x \<and> (\<forall>y. r < real y \<longrightarrow> x \<le> y)", auto)
-apply (rule_tac x = x in exI)
-apply (case_tac x, simp)
-apply (rename_tac x')
-apply (drule_tac x = x' in spec, simp)
-apply (rule_tac x="LEAST n. r < real n" in exI, safe)
-apply (erule LeastI, erule Least_le)
+unfolding real_of_nat_def
+apply (rule exI [where x="nat (floor r + 1)"])
+apply (insert floor_correct [of r])
+apply (simp add: nat_add_distrib of_nat_nat)
 done
 
 lemma reals_Archimedean6a: "0 \<le> r ==> \<exists>n. real (n) \<le> r & r < real (Suc n)"
@@ -414,19 +409,11 @@ lemma reals_Archimedean6a: "0 \<le> r ==> \<exists>n. real (n) \<le> r & r < rea
 
 lemma reals_Archimedean_6b_int:
      "0 \<le> r ==> \<exists>n::int. real n \<le> r & r < real (n+1)"
-apply (drule reals_Archimedean6a, auto)
-apply (rule_tac x = "int n" in exI)
-apply (simp add: real_of_int_real_of_nat real_of_nat_Suc)
-done
+  unfolding real_of_int_def by (rule floor_exists)
 
 lemma reals_Archimedean_6c_int:
      "r < 0 ==> \<exists>n::int. real n \<le> r & r < real (n+1)"
-apply (rule reals_Archimedean_6b_int [of "-r", THEN exE], simp, auto)
-apply (rename_tac n)
-apply (drule order_le_imp_less_or_eq, auto)
-apply (rule_tac x = "- n - 1" in exI)
-apply (rule_tac [2] x = "- n" in exI, auto)
-done
+  unfolding real_of_int_def by (rule floor_exists)
 
 
 subsection{*Density of the Rational Reals in the Reals*}
@@ -485,23 +472,6 @@ qed
 
 subsection{*Floor and Ceiling Functions from the Reals to the Integers*}
 
-definition
-  floor :: "real => int" where
-  [code del]: "floor r = (LEAST n::int. r < real (n+1))"
-
-definition
-  ceiling :: "real => int" where
-  "ceiling r = - floor (- r)"
-
-notation (xsymbols)
-  floor  ("\<lfloor>_\<rfloor>") and
-  ceiling  ("\<lceil>_\<rceil>")
-
-notation (HTML output)
-  floor  ("\<lfloor>_\<rfloor>") and
-  ceiling  ("\<lceil>_\<rceil>")
-
-
 lemma number_of_less_real_of_int_iff [simp]:
      "((number_of n) < real (m::int)) = (number_of n < m)"
 apply auto
@@ -524,51 +494,23 @@ lemma number_of_le_real_of_int_iff2 [simp]:
      "(real (m::int) \<le> (number_of n)) = (m \<le> number_of n)"
 by (simp add: linorder_not_less [symmetric])
 
-lemma floor_zero [simp]: "floor 0 = 0"
-apply (simp add: floor_def del: real_of_int_add)
-apply (rule Least_equality)
-apply simp_all
-done
-
-lemma floor_real_of_nat_zero [simp]: "floor (real (0::nat)) = 0"
-by auto
+lemma floor_real_of_nat_zero: "floor (real (0::nat)) = 0"
+by auto (* delete? *)
 
 lemma floor_real_of_nat [simp]: "floor (real (n::nat)) = int n"
-apply (simp only: floor_def)
-apply (rule Least_equality)
-apply (drule_tac [2] real_of_int_of_nat_eq [THEN ssubst])
-apply (drule_tac [2] real_of_int_less_iff [THEN iffD1])
-apply simp_all
-done
+unfolding real_of_nat_def by simp
 
 lemma floor_minus_real_of_nat [simp]: "floor (- real (n::nat)) = - int n"
-apply (simp only: floor_def)
-apply (rule Least_equality)
-apply (drule_tac [2] real_of_int_of_nat_eq [THEN ssubst])
-apply (drule_tac [2] real_of_int_minus [THEN sym, THEN subst])
-apply (drule_tac [2] real_of_int_less_iff [THEN iffD1])
-apply simp_all
-done
+unfolding real_of_nat_def by simp
 
 lemma floor_real_of_int [simp]: "floor (real (n::int)) = n"
-apply (simp only: floor_def)
-apply (rule Least_equality)
-apply auto
-done
+unfolding real_of_int_def by simp
 
 lemma floor_minus_real_of_int [simp]: "floor (- real (n::int)) = - n"
-apply (simp only: floor_def)
-apply (rule Least_equality)
-apply (drule_tac [2] real_of_int_minus [THEN sym, THEN subst])
-apply auto
-done
+unfolding real_of_int_def by simp
 
 lemma real_lb_ub_int: " \<exists>n::int. real n \<le> r & r < real (n+1)"
-apply (case_tac "r < 0")
-apply (blast intro: reals_Archimedean_6c_int)
-apply (simp only: linorder_not_less)
-apply (blast intro: reals_Archimedean_6b_int reals_Archimedean_6c_int)
-done
+unfolding real_of_int_def by (rule floor_exists)
 
 lemma lemma_floor:
   assumes a1: "real m \<le> r" and a2: "r < real n + 1"
@@ -581,48 +523,20 @@ proof -
 qed
 
 lemma real_of_int_floor_le [simp]: "real (floor r) \<le> r"
-apply (simp add: floor_def Least_def)
-apply (insert real_lb_ub_int [of r], safe)
-apply (rule theI2)
-apply auto
-done
-
-lemma floor_mono: "x < y ==> floor x \<le> floor y"
-apply (simp add: floor_def Least_def)
-apply (insert real_lb_ub_int [of x])
-apply (insert real_lb_ub_int [of y], safe)
-apply (rule theI2)
-apply (rule_tac [3] theI2)
-apply simp
-apply (erule conjI)
-apply (auto simp add: order_eq_iff int_le_real_less)
-done
-
-lemma floor_mono2: "x \<le> y ==> floor x \<le> floor y"
-by (auto dest: order_le_imp_less_or_eq simp add: floor_mono)
+unfolding real_of_int_def by (rule of_int_floor_le)
 
 lemma lemma_floor2: "real n < real (x::int) + 1 ==> n \<le> x"
 by (auto intro: lemma_floor)
 
 lemma real_of_int_floor_cancel [simp]:
     "(real (floor x) = x) = (\<exists>n::int. x = real n)"
-apply (simp add: floor_def Least_def)
-apply (insert real_lb_ub_int [of x], erule exE)
-apply (rule theI2)
-apply (auto intro: lemma_floor)
-done
+  using floor_real_of_int by metis
 
 lemma floor_eq: "[| real n < x; x < real n + 1 |] ==> floor x = n"
-apply (simp add: floor_def)
-apply (rule Least_equality)
-apply (auto intro: lemma_floor)
-done
+  unfolding real_of_int_def using floor_unique [of n x] by simp
 
 lemma floor_eq2: "[| real n \<le> x; x < real n + 1 |] ==> floor x = n"
-apply (simp add: floor_def)
-apply (rule Least_equality)
-apply (auto intro: lemma_floor)
-done
+  unfolding real_of_int_def by (rule floor_unique)
 
 lemma floor_eq3: "[| real n < x; x < real (Suc n) |] ==> nat(floor x) = n"
 apply (rule inj_int [THEN injD])
@@ -635,353 +549,205 @@ apply (drule order_le_imp_less_or_eq)
 apply (auto intro: floor_eq3)
 done
 
-lemma floor_number_of_eq [simp]:
+lemma floor_number_of_eq:
      "floor(number_of n :: real) = (number_of n :: int)"
-apply (subst real_number_of [symmetric])
-apply (rule floor_real_of_int)
-done
-
-lemma floor_one [simp]: "floor 1 = 1"
-  apply (rule trans)
-  prefer 2
-  apply (rule floor_real_of_int)
-  apply simp
-done
+  by (rule floor_number_of) (* already declared [simp] *)
 
 lemma real_of_int_floor_ge_diff_one [simp]: "r - 1 \<le> real(floor r)"
-apply (simp add: floor_def Least_def)
-apply (insert real_lb_ub_int [of r], safe)
-apply (rule theI2)
-apply (auto intro: lemma_floor)
-done
+  unfolding real_of_int_def using floor_correct [of r] by simp
 
 lemma real_of_int_floor_gt_diff_one [simp]: "r - 1 < real(floor r)"
-apply (simp add: floor_def Least_def)
-apply (insert real_lb_ub_int [of r], safe)
-apply (rule theI2)
-apply (auto intro: lemma_floor)
-done
+  unfolding real_of_int_def using floor_correct [of r] by simp
 
 lemma real_of_int_floor_add_one_ge [simp]: "r \<le> real(floor r) + 1"
-apply (insert real_of_int_floor_ge_diff_one [of r])
-apply (auto simp del: real_of_int_floor_ge_diff_one)
-done
+  unfolding real_of_int_def using floor_correct [of r] by simp
 
 lemma real_of_int_floor_add_one_gt [simp]: "r < real(floor r) + 1"
-apply (insert real_of_int_floor_gt_diff_one [of r])
-apply (auto simp del: real_of_int_floor_gt_diff_one)
-done
+  unfolding real_of_int_def using floor_correct [of r] by simp
 
 lemma le_floor: "real a <= x ==> a <= floor x"
-  apply (subgoal_tac "a < floor x + 1")
-  apply arith
-  apply (subst real_of_int_less_iff [THEN sym])
-  apply simp
-  apply (insert real_of_int_floor_add_one_gt [of x])
-  apply arith
-done
+  unfolding real_of_int_def by (simp add: le_floor_iff)
 
 lemma real_le_floor: "a <= floor x ==> real a <= x"
-  apply (rule order_trans)
-  prefer 2
-  apply (rule real_of_int_floor_le)
-  apply (subst real_of_int_le_iff)
-  apply assumption
-done
+  unfolding real_of_int_def by (simp add: le_floor_iff)
 
 lemma le_floor_eq: "(a <= floor x) = (real a <= x)"
-  apply (rule iffI)
-  apply (erule real_le_floor)
-  apply (erule le_floor)
-done
+  unfolding real_of_int_def by (rule le_floor_iff)
 
-lemma le_floor_eq_number_of [simp]:
+lemma le_floor_eq_number_of:
     "(number_of n <= floor x) = (number_of n <= x)"
-by (simp add: le_floor_eq)
+  by (rule number_of_le_floor) (* already declared [simp] *)
 
-lemma le_floor_eq_zero [simp]: "(0 <= floor x) = (0 <= x)"
-by (simp add: le_floor_eq)
+lemma le_floor_eq_zero: "(0 <= floor x) = (0 <= x)"
+  by (rule zero_le_floor) (* already declared [simp] *)
 
-lemma le_floor_eq_one [simp]: "(1 <= floor x) = (1 <= x)"
-by (simp add: le_floor_eq)
+lemma le_floor_eq_one: "(1 <= floor x) = (1 <= x)"
+  by (rule one_le_floor) (* already declared [simp] *)
 
 lemma floor_less_eq: "(floor x < a) = (x < real a)"
-  apply (subst linorder_not_le [THEN sym])+
-  apply simp
-  apply (rule le_floor_eq)
-done
+  unfolding real_of_int_def by (rule floor_less_iff)
 
-lemma floor_less_eq_number_of [simp]:
+lemma floor_less_eq_number_of:
     "(floor x < number_of n) = (x < number_of n)"
-by (simp add: floor_less_eq)
+  by (rule floor_less_number_of) (* already declared [simp] *)
 
-lemma floor_less_eq_zero [simp]: "(floor x < 0) = (x < 0)"
-by (simp add: floor_less_eq)
+lemma floor_less_eq_zero: "(floor x < 0) = (x < 0)"
+  by (rule floor_less_zero) (* already declared [simp] *)
 
-lemma floor_less_eq_one [simp]: "(floor x < 1) = (x < 1)"
-by (simp add: floor_less_eq)
+lemma floor_less_eq_one: "(floor x < 1) = (x < 1)"
+  by (rule floor_less_one) (* already declared [simp] *)
 
 lemma less_floor_eq: "(a < floor x) = (real a + 1 <= x)"
-  apply (insert le_floor_eq [of "a + 1" x])
-  apply auto
-done
+  unfolding real_of_int_def by (rule less_floor_iff)
 
-lemma less_floor_eq_number_of [simp]:
+lemma less_floor_eq_number_of:
     "(number_of n < floor x) = (number_of n + 1 <= x)"
-by (simp add: less_floor_eq)
+  by (rule number_of_less_floor) (* already declared [simp] *)
 
-lemma less_floor_eq_zero [simp]: "(0 < floor x) = (1 <= x)"
-by (simp add: less_floor_eq)
+lemma less_floor_eq_zero: "(0 < floor x) = (1 <= x)"
+  by (rule zero_less_floor) (* already declared [simp] *)
 
-lemma less_floor_eq_one [simp]: "(1 < floor x) = (2 <= x)"
-by (simp add: less_floor_eq)
+lemma less_floor_eq_one: "(1 < floor x) = (2 <= x)"
+  by (rule one_less_floor) (* already declared [simp] *)
 
 lemma floor_le_eq: "(floor x <= a) = (x < real a + 1)"
-  apply (insert floor_less_eq [of x "a + 1"])
-  apply auto
-done
+  unfolding real_of_int_def by (rule floor_le_iff)
 
-lemma floor_le_eq_number_of [simp]:
+lemma floor_le_eq_number_of:
     "(floor x <= number_of n) = (x < number_of n + 1)"
-by (simp add: floor_le_eq)
+  by (rule floor_le_number_of) (* already declared [simp] *)
 
-lemma floor_le_eq_zero [simp]: "(floor x <= 0) = (x < 1)"
-by (simp add: floor_le_eq)
+lemma floor_le_eq_zero: "(floor x <= 0) = (x < 1)"
+  by (rule floor_le_zero) (* already declared [simp] *)
 
-lemma floor_le_eq_one [simp]: "(floor x <= 1) = (x < 2)"
-by (simp add: floor_le_eq)
+lemma floor_le_eq_one: "(floor x <= 1) = (x < 2)"
+  by (rule floor_le_one) (* already declared [simp] *)
 
 lemma floor_add [simp]: "floor (x + real a) = floor x + a"
-  apply (subst order_eq_iff)
-  apply (rule conjI)
-  prefer 2
-  apply (subgoal_tac "floor x + a < floor (x + real a) + 1")
-  apply arith
-  apply (subst real_of_int_less_iff [THEN sym])
-  apply simp
-  apply (subgoal_tac "x + real a < real(floor(x + real a)) + 1")
-  apply (subgoal_tac "real (floor x) <= x")
-  apply arith
-  apply (rule real_of_int_floor_le)
-  apply (rule real_of_int_floor_add_one_gt)
-  apply (subgoal_tac "floor (x + real a) < floor x + a + 1")
-  apply arith
-  apply (subst real_of_int_less_iff [THEN sym])
-  apply simp
-  apply (subgoal_tac "real(floor(x + real a)) <= x + real a")
-  apply (subgoal_tac "x < real(floor x) + 1")
-  apply arith
-  apply (rule real_of_int_floor_add_one_gt)
-  apply (rule real_of_int_floor_le)
-done
-
-lemma floor_add_number_of [simp]:
-    "floor (x + number_of n) = floor x + number_of n"
-  apply (subst floor_add [THEN sym])
-  apply simp
-done
-
-lemma floor_add_one [simp]: "floor (x + 1) = floor x + 1"
-  apply (subst floor_add [THEN sym])
-  apply simp
-done
+  unfolding real_of_int_def by (rule floor_add_of_int)
 
 lemma floor_subtract [simp]: "floor (x - real a) = floor x - a"
-  apply (subst diff_minus)+
-  apply (subst real_of_int_minus [THEN sym])
-  apply (rule floor_add)
-done
+  unfolding real_of_int_def by (rule floor_diff_of_int)
 
-lemma floor_subtract_number_of [simp]: "floor (x - number_of n) =
+lemma floor_subtract_number_of: "floor (x - number_of n) =
     floor x - number_of n"
-  apply (subst floor_subtract [THEN sym])
-  apply simp
-done
+  by (rule floor_diff_number_of) (* already declared [simp] *)
 
-lemma floor_subtract_one [simp]: "floor (x - 1) = floor x - 1"
-  apply (subst floor_subtract [THEN sym])
-  apply simp
-done
-
-lemma ceiling_zero [simp]: "ceiling 0 = 0"
-by (simp add: ceiling_def)
+lemma floor_subtract_one: "floor (x - 1) = floor x - 1"
+  by (rule floor_diff_one) (* already declared [simp] *)
 
 lemma ceiling_real_of_nat [simp]: "ceiling (real (n::nat)) = int n"
-by (simp add: ceiling_def)
+  unfolding real_of_nat_def by simp
 
-lemma ceiling_real_of_nat_zero [simp]: "ceiling (real (0::nat)) = 0"
-by auto
+lemma ceiling_real_of_nat_zero: "ceiling (real (0::nat)) = 0"
+by auto (* delete? *)
 
 lemma ceiling_floor [simp]: "ceiling (real (floor r)) = floor r"
-by (simp add: ceiling_def)
+  unfolding real_of_int_def by simp
 
 lemma floor_ceiling [simp]: "floor (real (ceiling r)) = ceiling r"
-by (simp add: ceiling_def)
+  unfolding real_of_int_def by simp
 
 lemma real_of_int_ceiling_ge [simp]: "r \<le> real (ceiling r)"
-apply (simp add: ceiling_def)
-apply (subst le_minus_iff, simp)
-done
+  unfolding real_of_int_def by (rule le_of_int_ceiling)
 
-lemma ceiling_mono: "x < y ==> ceiling x \<le> ceiling y"
-by (simp add: floor_mono ceiling_def)
-
-lemma ceiling_mono2: "x \<le> y ==> ceiling x \<le> ceiling y"
-by (simp add: floor_mono2 ceiling_def)
+lemma ceiling_real_of_int [simp]: "ceiling (real (n::int)) = n"
+  unfolding real_of_int_def by simp
 
 lemma real_of_int_ceiling_cancel [simp]:
      "(real (ceiling x) = x) = (\<exists>n::int. x = real n)"
-apply (auto simp add: ceiling_def)
-apply (drule arg_cong [where f = uminus], auto)
-apply (rule_tac x = "-n" in exI, auto)
-done
+  using ceiling_real_of_int by metis
 
 lemma ceiling_eq: "[| real n < x; x < real n + 1 |] ==> ceiling x = n + 1"
-apply (simp add: ceiling_def)
-apply (rule minus_equation_iff [THEN iffD1])
-apply (simp add: floor_eq [where n = "-(n+1)"])
-done
+  unfolding real_of_int_def using ceiling_unique [of "n + 1" x] by simp
 
 lemma ceiling_eq2: "[| real n < x; x \<le> real n + 1 |] ==> ceiling x = n + 1"
-by (simp add: ceiling_def floor_eq2 [where n = "-(n+1)"])
+  unfolding real_of_int_def using ceiling_unique [of "n + 1" x] by simp
 
 lemma ceiling_eq3: "[| real n - 1 < x; x \<le> real n  |] ==> ceiling x = n"
-by (simp add: ceiling_def floor_eq2 [where n = "-n"])
+  unfolding real_of_int_def using ceiling_unique [of n x] by simp
 
-lemma ceiling_real_of_int [simp]: "ceiling (real (n::int)) = n"
-by (simp add: ceiling_def)
-
-lemma ceiling_number_of_eq [simp]:
+lemma ceiling_number_of_eq:
      "ceiling (number_of n :: real) = (number_of n)"
-apply (subst real_number_of [symmetric])
-apply (rule ceiling_real_of_int)
-done
-
-lemma ceiling_one [simp]: "ceiling 1 = 1"
-  by (unfold ceiling_def, simp)
+  by (rule ceiling_number_of) (* already declared [simp] *)
 
 lemma real_of_int_ceiling_diff_one_le [simp]: "real (ceiling r) - 1 \<le> r"
-apply (rule neg_le_iff_le [THEN iffD1])
-apply (simp add: ceiling_def diff_minus)
-done
+  unfolding real_of_int_def using ceiling_correct [of r] by simp
 
 lemma real_of_int_ceiling_le_add_one [simp]: "real (ceiling r) \<le> r + 1"
-apply (insert real_of_int_ceiling_diff_one_le [of r])
-apply (simp del: real_of_int_ceiling_diff_one_le)
-done
+  unfolding real_of_int_def using ceiling_correct [of r] by simp
 
 lemma ceiling_le: "x <= real a ==> ceiling x <= a"
-  apply (unfold ceiling_def)
-  apply (subgoal_tac "-a <= floor(- x)")
-  apply simp
-  apply (rule le_floor)
-  apply simp
-done
+  unfolding real_of_int_def by (simp add: ceiling_le_iff)
 
 lemma ceiling_le_real: "ceiling x <= a ==> x <= real a"
-  apply (unfold ceiling_def)
-  apply (subgoal_tac "real(- a) <= - x")
-  apply simp
-  apply (rule real_le_floor)
-  apply simp
-done
+  unfolding real_of_int_def by (simp add: ceiling_le_iff)
 
 lemma ceiling_le_eq: "(ceiling x <= a) = (x <= real a)"
-  apply (rule iffI)
-  apply (erule ceiling_le_real)
-  apply (erule ceiling_le)
-done
+  unfolding real_of_int_def by (rule ceiling_le_iff)
 
-lemma ceiling_le_eq_number_of [simp]:
+lemma ceiling_le_eq_number_of:
     "(ceiling x <= number_of n) = (x <= number_of n)"
-by (simp add: ceiling_le_eq)
+  by (rule ceiling_le_number_of) (* already declared [simp] *)
 
-lemma ceiling_le_zero_eq [simp]: "(ceiling x <= 0) = (x <= 0)"
-by (simp add: ceiling_le_eq)
+lemma ceiling_le_zero_eq: "(ceiling x <= 0) = (x <= 0)"
+  by (rule ceiling_le_zero) (* already declared [simp] *)
 
-lemma ceiling_le_eq_one [simp]: "(ceiling x <= 1) = (x <= 1)"
-by (simp add: ceiling_le_eq)
+lemma ceiling_le_eq_one: "(ceiling x <= 1) = (x <= 1)"
+  by (rule ceiling_le_one) (* already declared [simp] *)
 
 lemma less_ceiling_eq: "(a < ceiling x) = (real a < x)"
-  apply (subst linorder_not_le [THEN sym])+
-  apply simp
-  apply (rule ceiling_le_eq)
-done
+  unfolding real_of_int_def by (rule less_ceiling_iff)
 
-lemma less_ceiling_eq_number_of [simp]:
+lemma less_ceiling_eq_number_of:
     "(number_of n < ceiling x) = (number_of n < x)"
-by (simp add: less_ceiling_eq)
+  by (rule number_of_less_ceiling) (* already declared [simp] *)
 
-lemma less_ceiling_eq_zero [simp]: "(0 < ceiling x) = (0 < x)"
-by (simp add: less_ceiling_eq)
+lemma less_ceiling_eq_zero: "(0 < ceiling x) = (0 < x)"
+  by (rule zero_less_ceiling) (* already declared [simp] *)
 
-lemma less_ceiling_eq_one [simp]: "(1 < ceiling x) = (1 < x)"
-by (simp add: less_ceiling_eq)
+lemma less_ceiling_eq_one: "(1 < ceiling x) = (1 < x)"
+  by (rule one_less_ceiling) (* already declared [simp] *)
 
 lemma ceiling_less_eq: "(ceiling x < a) = (x <= real a - 1)"
-  apply (insert ceiling_le_eq [of x "a - 1"])
-  apply auto
-done
+  unfolding real_of_int_def by (rule ceiling_less_iff)
 
-lemma ceiling_less_eq_number_of [simp]:
+lemma ceiling_less_eq_number_of:
     "(ceiling x < number_of n) = (x <= number_of n - 1)"
-by (simp add: ceiling_less_eq)
+  by (rule ceiling_less_number_of) (* already declared [simp] *)
 
-lemma ceiling_less_eq_zero [simp]: "(ceiling x < 0) = (x <= -1)"
-by (simp add: ceiling_less_eq)
+lemma ceiling_less_eq_zero: "(ceiling x < 0) = (x <= -1)"
+  by (rule ceiling_less_zero) (* already declared [simp] *)
 
-lemma ceiling_less_eq_one [simp]: "(ceiling x < 1) = (x <= 0)"
-by (simp add: ceiling_less_eq)
+lemma ceiling_less_eq_one: "(ceiling x < 1) = (x <= 0)"
+  by (rule ceiling_less_one) (* already declared [simp] *)
 
 lemma le_ceiling_eq: "(a <= ceiling x) = (real a - 1 < x)"
-  apply (insert less_ceiling_eq [of "a - 1" x])
-  apply auto
-done
+  unfolding real_of_int_def by (rule le_ceiling_iff)
 
-lemma le_ceiling_eq_number_of [simp]:
+lemma le_ceiling_eq_number_of:
     "(number_of n <= ceiling x) = (number_of n - 1 < x)"
-by (simp add: le_ceiling_eq)
+  by (rule number_of_le_ceiling) (* already declared [simp] *)
 
-lemma le_ceiling_eq_zero [simp]: "(0 <= ceiling x) = (-1 < x)"
-by (simp add: le_ceiling_eq)
+lemma le_ceiling_eq_zero: "(0 <= ceiling x) = (-1 < x)"
+  by (rule zero_le_ceiling) (* already declared [simp] *)
 
-lemma le_ceiling_eq_one [simp]: "(1 <= ceiling x) = (0 < x)"
-by (simp add: le_ceiling_eq)
+lemma le_ceiling_eq_one: "(1 <= ceiling x) = (0 < x)"
+  by (rule one_le_ceiling) (* already declared [simp] *)
 
 lemma ceiling_add [simp]: "ceiling (x + real a) = ceiling x + a"
-  apply (unfold ceiling_def, simp)
-  apply (subst real_of_int_minus [THEN sym])
-  apply (subst floor_add)
-  apply simp
-done
-
-lemma ceiling_add_number_of [simp]: "ceiling (x + number_of n) =
-    ceiling x + number_of n"
-  apply (subst ceiling_add [THEN sym])
-  apply simp
-done
-
-lemma ceiling_add_one [simp]: "ceiling (x + 1) = ceiling x + 1"
-  apply (subst ceiling_add [THEN sym])
-  apply simp
-done
+  unfolding real_of_int_def by (rule ceiling_add_of_int)
 
 lemma ceiling_subtract [simp]: "ceiling (x - real a) = ceiling x - a"
-  apply (subst diff_minus)+
-  apply (subst real_of_int_minus [THEN sym])
-  apply (rule ceiling_add)
-done
+  unfolding real_of_int_def by (rule ceiling_diff_of_int)
 
-lemma ceiling_subtract_number_of [simp]: "ceiling (x - number_of n) =
+lemma ceiling_subtract_number_of: "ceiling (x - number_of n) =
     ceiling x - number_of n"
-  apply (subst ceiling_subtract [THEN sym])
-  apply simp
-done
+  by (rule ceiling_diff_number_of) (* already declared [simp] *)
 
-lemma ceiling_subtract_one [simp]: "ceiling (x - 1) = ceiling x - 1"
-  apply (subst ceiling_subtract [THEN sym])
-  apply simp
-done
+lemma ceiling_subtract_one: "ceiling (x - 1) = ceiling x - 1"
+  by (rule ceiling_diff_one) (* already declared [simp] *)
+
 
 subsection {* Versions for the natural numbers *}
 
@@ -1015,7 +781,7 @@ lemma natfloor_neg: "x <= 0 ==> natfloor x = 0"
   apply (unfold natfloor_def)
   apply (subgoal_tac "floor x <= floor 0")
   apply simp
-  apply (erule floor_mono2)
+  apply (erule floor_mono)
 done
 
 lemma natfloor_mono: "x <= y ==> natfloor x <= natfloor y"
@@ -1023,7 +789,7 @@ lemma natfloor_mono: "x <= y ==> natfloor x <= natfloor y"
   apply (subst natfloor_def)+
   apply (subst nat_le_eq_zle)
   apply force
-  apply (erule floor_mono2)
+  apply (erule floor_mono)
   apply (subst natfloor_neg)
   apply simp
   apply simp
@@ -1144,7 +910,7 @@ lemma real_natceiling_ge: "x <= real(natceiling x)"
   apply (subst real_nat_eq_real)
   apply (subgoal_tac "ceiling 0 <= ceiling x")
   apply simp
-  apply (rule ceiling_mono2)
+  apply (rule ceiling_mono)
   apply simp
   apply simp
 done
@@ -1165,7 +931,7 @@ lemma natceiling_mono: "x <= y ==> natceiling x <= natceiling y"
   apply simp
   apply (erule order_trans)
   apply simp
-  apply (erule ceiling_mono2)
+  apply (erule ceiling_mono)
   apply (subst natceiling_neg)
   apply simp_all
 done
@@ -1215,7 +981,7 @@ lemma natceiling_eq: "real n < x ==> x <= real n + 1 ==> natceiling x = n + 1"
   apply (subst eq_nat_nat_iff)
   apply (subgoal_tac "ceiling 0 <= ceiling x")
   apply simp
-  apply (rule ceiling_mono2)
+  apply (rule ceiling_mono)
   apply force
   apply force
   apply (rule ceiling_eq2)
@@ -1233,7 +999,7 @@ lemma natceiling_add [simp]: "0 <= x ==>
   apply (subst nat_add_distrib)
   apply (subgoal_tac "0 = ceiling 0")
   apply (erule ssubst)
-  apply (erule ceiling_mono2)
+  apply (erule ceiling_mono)
   apply simp_all
 done
 

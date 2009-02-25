@@ -5,7 +5,7 @@
 header {* Rational numbers *}
 
 theory Rational
-imports GCD
+imports GCD Archimedean_Field
 uses ("Tools/rat_arith.ML")
 begin
 
@@ -561,6 +561,37 @@ lemma one_le_Fract_iff:
 lemma Fract_le_one_iff:
   "0 < b \<Longrightarrow> Fract a b \<le> 1 \<longleftrightarrow> a \<le> b"
   by (simp add: One_rat_def mult_le_cancel_right)
+
+
+subsubsection {* Rationals are an Archimedean field *}
+
+lemma rat_floor_lemma:
+  assumes "0 < b"
+  shows "of_int (a div b) \<le> Fract a b \<and> Fract a b < of_int (a div b + 1)"
+proof -
+  have "Fract a b = of_int (a div b) + Fract (a mod b) b"
+    using `0 < b` by (simp add: of_int_rat)
+  moreover have "0 \<le> Fract (a mod b) b \<and> Fract (a mod b) b < 1"
+    using `0 < b` by (simp add: zero_le_Fract_iff Fract_less_one_iff)
+  ultimately show ?thesis by simp
+qed
+
+instance rat :: archimedean_field
+proof
+  fix r :: rat
+  show "\<exists>z. r \<le> of_int z"
+  proof (induct r)
+    case (Fract a b)
+    then have "Fract a b \<le> of_int (a div b + 1)"
+      using rat_floor_lemma [of b a] by simp
+    then show "\<exists>z. Fract a b \<le> of_int z" ..
+  qed
+qed
+
+lemma floor_Fract:
+  assumes "0 < b" shows "floor (Fract a b) = a div b"
+  using rat_floor_lemma [OF `0 < b`, of a]
+  by (simp add: floor_unique)
 
 
 subsection {* Arithmetic setup *}
