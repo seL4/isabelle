@@ -383,6 +383,7 @@ zdiv_zmult_self2       -> div_mult_self1_is_id
 zdvd_triv_left         -> dvd_triv_left
 zdvd_triv_right        -> dvd_triv_right
 zdvd_zmult_cancel_disj -> dvd_mult_cancel_left
+zmod_eq0_zdvd_iff      -> dvd_eq_mod_eq_0[symmetric]
 zmod_zadd_left_eq      -> mod_add_left_eq
 zmod_zadd_right_eq     -> mod_add_right_eq
 zmod_zadd_self1        -> mod_add_self1
