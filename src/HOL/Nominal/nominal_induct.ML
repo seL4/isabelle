@@ -1,5 +1,4 @@
-(*  ID:         $Id$
-    Author:     Christian Urban and Makarius
+(*  Author:     Christian Urban and Makarius
 
 The nominal induct proof method.
 *)
@@ -24,7 +23,8 @@ fun tuple_fun Ts (xi, T) =
 
 val split_all_tuples =
   Simplifier.full_simplify (HOL_basic_ss addsimps
-    [split_conv, split_paired_all, unit_all_eq1, thm "fresh_unit_elim", thm "fresh_prod_elim"]);
+    [split_conv, split_paired_all, unit_all_eq1, @{thm fresh_unit_elim}, @{thm fresh_prod_elim}] @
+    @{thms fresh_star_unit_elim} @ @{thms fresh_star_prod_elim});
 
 
 (* prepare rule *)

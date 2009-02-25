@@ -397,6 +397,18 @@ by (auto simp add: fresh_star_def fresh_prod)
 
 lemmas fresh_star_prod = fresh_star_prod_list fresh_star_prod_set
 
+text {* Normalization of freshness results; cf.\ @{text nominal_induct} *}
+
+lemma fresh_star_unit_elim: 
+  shows "((a::'a set)\<sharp>*() \<Longrightarrow> PROP C) \<equiv> PROP C"
+  and "((b::'a list)\<sharp>*() \<Longrightarrow> PROP C) \<equiv> PROP C"
+  by (simp_all add: fresh_star_def fresh_def supp_unit)
+
+lemma fresh_star_prod_elim: 
+  shows "((a::'a set)\<sharp>*(x,y) \<Longrightarrow> PROP C) \<equiv> (a\<sharp>*x \<Longrightarrow> a\<sharp>*y \<Longrightarrow> PROP C)"
+  and "((b::'a list)\<sharp>*(x,y) \<Longrightarrow> PROP C) \<equiv> (b\<sharp>*x \<Longrightarrow> b\<sharp>*y \<Longrightarrow> PROP C)"
+  by (rule, simp_all add: fresh_star_prod)+
+
 section {* Abstract Properties for Permutations and  Atoms *}
 (*=========================================================*)
 
