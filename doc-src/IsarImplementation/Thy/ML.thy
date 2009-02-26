@@ -1,6 +1,6 @@
-(* $Id$ *)
-
-theory "ML" imports base begin
+theory "ML"
+imports Base
+begin
 
 chapter {* Advanced ML programming *}
 
