@@ -1,0 +1,1518 @@
+%
+\begin{isabellebody}%
+\def\isabellecontext{Framework}%
+%
+\isadelimtheory
+%
+\endisadelimtheory
+%
+\isatagtheory
+\isacommand{theory}\isamarkupfalse%
+\ Framework\isanewline
+\isakeyword{imports}\ Main\isanewline
+\isakeyword{begin}%
+\endisatagtheory
+{\isafoldtheory}%
+%
+\isadelimtheory
+%
+\endisadelimtheory
+%
+\isamarkupchapter{The Isabelle/Isar Framework \label{ch:isar-framework}%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+Isabelle/Isar
+  \cite{Wenzel:1999:TPHOL,Wenzel-PhD,Nipkow-TYPES02,Wenzel-Paulson:2006,Wenzel:2006:Festschrift}
+  is intended as a generic framework for developing formal
+  mathematical documents with full proof checking.  Definitions and
+  proofs are organized as theories.  An assembly of theory sources may
+  be presented as a printed document; see also
+  \chref{ch:document-prep}.
+
+  The main objective of Isar is the design of a human-readable
+  structured proof language, which is called the ``primary proof
+  format'' in Isar terminology.  Such a primary proof language is
+  somewhere in the middle between the extremes of primitive proof
+  objects and actual natural language.  In this respect, Isar is a bit
+  more formalistic than Mizar
+  \cite{Trybulec:1993:MizarFeatures,Rudnicki:1992:MizarOverview,Wiedijk:1999:Mizar},
+  using logical symbols for certain reasoning schemes where Mizar
+  would prefer English words; see \cite{Wenzel-Wiedijk:2002} for
+  further comparisons of these systems.
+
+  So Isar challenges the traditional way of recording informal proofs
+  in mathematical prose, as well as the common tendency to see fully
+  formal proofs directly as objects of some logical calculus (e.g.\
+  \isa{{\isachardoublequote}{\isasymlambda}{\isachardoublequote}}-terms in a version of type theory).  In fact, Isar is
+  better understood as an interpreter of a simple block-structured
+  language for describing the data flow of local facts and goals,
+  interspersed with occasional invocations of proof methods.
+  Everything is reduced to logical inferences internally, but these
+  steps are somewhat marginal compared to the overall bookkeeping of
+  the interpretation process.  Thanks to careful design of the syntax
+  and semantics of Isar language elements, a formal record of Isar
+  instructions may later appear as an intelligible text to the
+  attentive reader.
+
+  The Isar proof language has emerged from careful analysis of some
+  inherent virtues of the existing logical framework of Isabelle/Pure
+  \cite{paulson-found,paulson700}, notably composition of higher-order
+  natural deduction rules, which is a generalization of Gentzen's
+  original calculus \cite{Gentzen:1935}.  The approach of generic
+  inference systems in Pure is continued by Isar towards actual proof
+  texts.
+
+  Concrete applications require another intermediate layer: an
+  object-logic.  Isabelle/HOL \cite{isa-tutorial} (simply-typed
+  set-theory) is being used most of the time; Isabelle/ZF
+  \cite{isabelle-ZF} is less extensively developed, although it would
+  probably fit better for classical mathematics.
+
+  \medskip In order to illustrate natural deduction in Isar, we shall
+  refer to the background theory and library of Isabelle/HOL.  This
+  includes common notions of predicate logic, naive set-theory etc.\
+  using fairly standard mathematical notation.  From the perspective
+  of generic natural deduction there is nothing special about the
+  logical connectives of HOL (\isa{{\isachardoublequote}{\isasymand}{\isachardoublequote}}, \isa{{\isachardoublequote}{\isasymor}{\isachardoublequote}}, \isa{{\isachardoublequote}{\isasymforall}{\isachardoublequote}},
+  \isa{{\isachardoublequote}{\isasymexists}{\isachardoublequote}}, etc.), only the resulting reasoning principles are
+  relevant to the user.  There are similar rules available for
+  set-theory operators (\isa{{\isachardoublequote}{\isasyminter}{\isachardoublequote}}, \isa{{\isachardoublequote}{\isasymunion}{\isachardoublequote}}, \isa{{\isachardoublequote}{\isasymInter}{\isachardoublequote}}, \isa{{\isachardoublequote}{\isasymUnion}{\isachardoublequote}}, etc.), or any other theory developed in the library (lattice
+  theory, topology etc.).
+
+  Subsequently we briefly review fragments of Isar proof texts
+  corresponding directly to such general deduction schemes.  The
+  examples shall refer to set-theory, to minimize the danger of
+  understanding connectives of predicate logic as something special.
+
+  \medskip The following deduction performs \isa{{\isachardoublequote}{\isasyminter}{\isachardoublequote}}-introduction,
+  working forwards from assumptions towards the conclusion.  We give
+  both the Isar text, and depict the primitive rule involved, as
+  determined by unification of the problem against rules that are
+  declared in the library context.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\medskip\begin{minipage}{0.6\textwidth}
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isatagproof
+\ \ \ \ \isacommand{assume}\isamarkupfalse%
+\ {\isachardoublequoteopen}x\ {\isasymin}\ A{\isachardoublequoteclose}\ \isakeyword{and}\ {\isachardoublequoteopen}x\ {\isasymin}\ B{\isachardoublequoteclose}\isanewline
+\ \ \ \ \isacommand{then}\isamarkupfalse%
+\ \isacommand{have}\isamarkupfalse%
+\ {\isachardoublequoteopen}x\ {\isasymin}\ A\ {\isasyminter}\ B{\isachardoublequoteclose}\ \isacommand{{\isachardot}{\isachardot}}\isamarkupfalse%
+%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\end{minipage}\begin{minipage}{0.4\textwidth}
+%
+\begin{isamarkuptext}%
+\infer{\isa{{\isachardoublequote}x\ {\isasymin}\ A\ {\isasyminter}\ B{\isachardoublequote}}}{\isa{{\isachardoublequote}x\ {\isasymin}\ A{\isachardoublequote}} & \isa{{\isachardoublequote}x\ {\isasymin}\ B{\isachardoublequote}}}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\end{minipage}
+%
+\begin{isamarkuptext}%
+\medskip\noindent Note that \hyperlink{command.assume}{\mbox{\isa{\isacommand{assume}}}} augments the proof
+  context, \hyperlink{command.then}{\mbox{\isa{\isacommand{then}}}} indicates that the current fact shall be
+  used in the next step, and \hyperlink{command.have}{\mbox{\isa{\isacommand{have}}}} states an intermediate
+  goal.  The two dots ``\hyperlink{command.ddot}{\mbox{\isa{\isacommand{{\isachardot}{\isachardot}}}}}'' refer to a complete proof of
+  this claim, using the indicated facts and a canonical rule from the
+  context.  We could have been more explicit here by spelling out the
+  final proof step via the \hyperlink{command.by}{\mbox{\isa{\isacommand{by}}}} command:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isatagproof
+\ \ \ \ \isacommand{assume}\isamarkupfalse%
+\ {\isachardoublequoteopen}x\ {\isasymin}\ A{\isachardoublequoteclose}\ \isakeyword{and}\ {\isachardoublequoteopen}x\ {\isasymin}\ B{\isachardoublequoteclose}\isanewline
+\ \ \ \ \isacommand{then}\isamarkupfalse%
+\ \isacommand{have}\isamarkupfalse%
+\ {\isachardoublequoteopen}x\ {\isasymin}\ A\ {\isasyminter}\ B{\isachardoublequoteclose}\ \isacommand{by}\isamarkupfalse%
+\ {\isacharparenleft}rule\ IntI{\isacharparenright}%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\begin{isamarkuptext}%
+\noindent The format of the \isa{{\isachardoublequote}{\isasyminter}{\isachardoublequote}}-introduction rule represents
+  the most basic inference, which proceeds from given premises to a
+  conclusion, without any nested proof context involved.
+
+  The next example performs backwards introduction on \isa{{\isachardoublequote}{\isasymInter}{\isasymA}{\isachardoublequote}},
+  the intersection of all sets within a given set.  This requires a
+  nested proof of set membership within a local context, where \isa{A} is an arbitrary-but-fixed member of the collection:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\medskip\begin{minipage}{0.6\textwidth}
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isatagproof
+\ \ \ \ \isacommand{have}\isamarkupfalse%
+\ {\isachardoublequoteopen}x\ {\isasymin}\ {\isasymInter}{\isasymA}{\isachardoublequoteclose}\isanewline
+\ \ \ \ \isacommand{proof}\isamarkupfalse%
+\isanewline
+\ \ \ \ \ \ \isacommand{fix}\isamarkupfalse%
+\ A\isanewline
+\ \ \ \ \ \ \isacommand{assume}\isamarkupfalse%
+\ {\isachardoublequoteopen}A\ {\isasymin}\ {\isasymA}{\isachardoublequoteclose}\isanewline
+\ \ \ \ \ \ \isacommand{show}\isamarkupfalse%
+\ {\isachardoublequoteopen}x\ {\isasymin}\ A{\isachardoublequoteclose}%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isadelimnoproof
+\ %
+\endisadelimnoproof
+%
+\isatagnoproof
+\isacommand{sorry}\isamarkupfalse%
+%
+\endisatagnoproof
+{\isafoldnoproof}%
+%
+\isadelimnoproof
+\isanewline
+%
+\endisadelimnoproof
+%
+\isadelimproof
+\ \ \ \ %
+\endisadelimproof
+%
+\isatagproof
+\isacommand{qed}\isamarkupfalse%
+%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\end{minipage}\begin{minipage}{0.4\textwidth}
+%
+\begin{isamarkuptext}%
+\infer{\isa{{\isachardoublequote}x\ {\isasymin}\ {\isasymInter}{\isasymA}{\isachardoublequote}}}{\infer*{\isa{{\isachardoublequote}x\ {\isasymin}\ A{\isachardoublequote}}}{\isa{{\isachardoublequote}{\isacharbrackleft}A{\isacharbrackright}{\isacharbrackleft}A\ {\isasymin}\ {\isasymA}{\isacharbrackright}{\isachardoublequote}}}}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\end{minipage}
+%
+\begin{isamarkuptext}%
+\medskip\noindent This Isar reasoning pattern again refers to the
+  primitive rule depicted above.  The system determines it in the
+  ``\hyperlink{command.proof}{\mbox{\isa{\isacommand{proof}}}}'' step, which could have been spelt out more
+  explicitly as ``\hyperlink{command.proof}{\mbox{\isa{\isacommand{proof}}}}~\isa{{\isachardoublequote}{\isacharparenleft}rule\ InterI{\isacharparenright}{\isachardoublequote}}''.  Note
+  that the rule involves both a local parameter \isa{{\isachardoublequote}A{\isachardoublequote}} and an
+  assumption \isa{{\isachardoublequote}A\ {\isasymin}\ {\isasymA}{\isachardoublequote}} in the nested reasoning.  This kind of
+  compound rule typically demands a genuine sub-proof in Isar, working
+  backwards rather than forwards as seen before.  In the proof body we
+  encounter the \hyperlink{command.fix}{\mbox{\isa{\isacommand{fix}}}}-\hyperlink{command.assume}{\mbox{\isa{\isacommand{assume}}}}-\hyperlink{command.show}{\mbox{\isa{\isacommand{show}}}}
+  outline of nested sub-proofs that is typical for Isar.  The final
+  \hyperlink{command.show}{\mbox{\isa{\isacommand{show}}}} is like \hyperlink{command.have}{\mbox{\isa{\isacommand{have}}}} followed by an additional
+  refinement of the enclosing claim, using the rule derived from the
+  proof body.
+
+  \medskip The next example involves \isa{{\isachardoublequote}{\isasymUnion}{\isasymA}{\isachardoublequote}}, which can be
+  characterized as the set of all \isa{{\isachardoublequote}x{\isachardoublequote}} such that \isa{{\isachardoublequote}{\isasymexists}A{\isachardot}\ x\ {\isasymin}\ A\ {\isasymand}\ A\ {\isasymin}\ {\isasymA}{\isachardoublequote}}.  The elimination rule for \isa{{\isachardoublequote}x\ {\isasymin}\ {\isasymUnion}{\isasymA}{\isachardoublequote}} does
+  not mention \isa{{\isachardoublequote}{\isasymexists}{\isachardoublequote}} and \isa{{\isachardoublequote}{\isasymand}{\isachardoublequote}} at all, but admits to obtain
+  directly a local \isa{{\isachardoublequote}A{\isachardoublequote}} such that \isa{{\isachardoublequote}x\ {\isasymin}\ A{\isachardoublequote}} and \isa{{\isachardoublequote}A\ {\isasymin}\ {\isasymA}{\isachardoublequote}} hold.  This corresponds to the following Isar proof and
+  inference rule, respectively:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\medskip\begin{minipage}{0.6\textwidth}
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isatagproof
+\ \ \ \ \isacommand{assume}\isamarkupfalse%
+\ {\isachardoublequoteopen}x\ {\isasymin}\ {\isasymUnion}{\isasymA}{\isachardoublequoteclose}\isanewline
+\ \ \ \ \isacommand{then}\isamarkupfalse%
+\ \isacommand{have}\isamarkupfalse%
+\ C\isanewline
+\ \ \ \ \isacommand{proof}\isamarkupfalse%
+\isanewline
+\ \ \ \ \ \ \isacommand{fix}\isamarkupfalse%
+\ A\isanewline
+\ \ \ \ \ \ \isacommand{assume}\isamarkupfalse%
+\ {\isachardoublequoteopen}x\ {\isasymin}\ A{\isachardoublequoteclose}\ \isakeyword{and}\ {\isachardoublequoteopen}A\ {\isasymin}\ {\isasymA}{\isachardoublequoteclose}\isanewline
+\ \ \ \ \ \ \isacommand{show}\isamarkupfalse%
+\ C%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isadelimnoproof
+\ %
+\endisadelimnoproof
+%
+\isatagnoproof
+\isacommand{sorry}\isamarkupfalse%
+%
+\endisatagnoproof
+{\isafoldnoproof}%
+%
+\isadelimnoproof
+\isanewline
+%
+\endisadelimnoproof
+%
+\isadelimproof
+\ \ \ \ %
+\endisadelimproof
+%
+\isatagproof
+\isacommand{qed}\isamarkupfalse%
+%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\end{minipage}\begin{minipage}{0.4\textwidth}
+%
+\begin{isamarkuptext}%
+\infer{\isa{{\isachardoublequote}C{\isachardoublequote}}}{\isa{{\isachardoublequote}x\ {\isasymin}\ {\isasymUnion}{\isasymA}{\isachardoublequote}} & \infer*{\isa{{\isachardoublequote}C{\isachardoublequote}}~}{\isa{{\isachardoublequote}{\isacharbrackleft}A{\isacharbrackright}{\isacharbrackleft}x\ {\isasymin}\ A{\isacharcomma}\ A\ {\isasymin}\ {\isasymA}{\isacharbrackright}{\isachardoublequote}}}}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\end{minipage}
+%
+\begin{isamarkuptext}%
+\medskip\noindent Although the Isar proof follows the natural
+  deduction rule closely, the text reads not as natural as
+  anticipated.  There is a double occurrence of an arbitrary
+  conclusion \isa{{\isachardoublequote}C{\isachardoublequote}}, which represents the final result, but is
+  irrelevant for now.  This issue arises for any elimination rule
+  involving local parameters.  Isar provides the derived language
+  element \hyperlink{command.obtain}{\mbox{\isa{\isacommand{obtain}}}}, which is able to perform the same
+  elimination proof more conveniently:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isatagproof
+\ \ \ \ \isacommand{assume}\isamarkupfalse%
+\ {\isachardoublequoteopen}x\ {\isasymin}\ {\isasymUnion}{\isasymA}{\isachardoublequoteclose}\isanewline
+\ \ \ \ \isacommand{then}\isamarkupfalse%
+\ \isacommand{obtain}\isamarkupfalse%
+\ A\ \isakeyword{where}\ {\isachardoublequoteopen}x\ {\isasymin}\ A{\isachardoublequoteclose}\ \isakeyword{and}\ {\isachardoublequoteopen}A\ {\isasymin}\ {\isasymA}{\isachardoublequoteclose}\ \isacommand{{\isachardot}{\isachardot}}\isamarkupfalse%
+%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\begin{isamarkuptext}%
+\noindent Here we avoid to mention the final conclusion \isa{{\isachardoublequote}C{\isachardoublequote}}
+  and return to plain forward reasoning.  The rule involved in the
+  ``\hyperlink{command.ddot}{\mbox{\isa{\isacommand{{\isachardot}{\isachardot}}}}}'' proof is the same as before.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsection{The Pure framework \label{sec:framework-pure}%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+The Pure logic \cite{paulson-found,paulson700} is an intuitionistic
+  fragment of higher-order logic \cite{church40}.  In type-theoretic
+  parlance, there are three levels of \isa{{\isachardoublequote}{\isasymlambda}{\isachardoublequote}}-calculus with
+  corresponding arrows \isa{{\isachardoublequote}{\isasymRightarrow}{\isachardoublequote}}/\isa{{\isachardoublequote}{\isasymAnd}{\isachardoublequote}}/\isa{{\isachardoublequote}{\isasymLongrightarrow}{\isachardoublequote}}:
+
+  \medskip
+  \begin{tabular}{ll}
+  \isa{{\isachardoublequote}{\isasymalpha}\ {\isasymRightarrow}\ {\isasymbeta}{\isachardoublequote}} & syntactic function space (terms depending on terms) \\
+  \isa{{\isachardoublequote}{\isasymAnd}x{\isachardot}\ B{\isacharparenleft}x{\isacharparenright}{\isachardoublequote}} & universal quantification (proofs depending on terms) \\
+  \isa{{\isachardoublequote}A\ {\isasymLongrightarrow}\ B{\isachardoublequote}} & implication (proofs depending on proofs) \\
+  \end{tabular}
+  \medskip
+
+  \noindent Here only the types of syntactic terms, and the
+  propositions of proof terms have been shown.  The \isa{{\isachardoublequote}{\isasymlambda}{\isachardoublequote}}-structure of proofs can be recorded as an optional feature of
+  the Pure inference kernel \cite{Berghofer-Nipkow:2000:TPHOL}, but
+  the formal system can never depend on them due to \emph{proof
+  irrelevance}.
+
+  On top of this most primitive layer of proofs, Pure implements a
+  generic calculus for nested natural deduction rules, similar to
+  \cite{Schroeder-Heister:1984}.  Here object-logic inferences are
+  internalized as formulae over \isa{{\isachardoublequote}{\isasymAnd}{\isachardoublequote}} and \isa{{\isachardoublequote}{\isasymLongrightarrow}{\isachardoublequote}}.
+  Combining such rule statements may involve higher-order unification
+  \cite{paulson-natural}.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsubsection{Primitive inferences%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+Term syntax provides explicit notation for abstraction \isa{{\isachardoublequote}{\isasymlambda}x\ {\isacharcolon}{\isacharcolon}\ {\isasymalpha}{\isachardot}\ b{\isacharparenleft}x{\isacharparenright}{\isachardoublequote}} and application \isa{{\isachardoublequote}b\ a{\isachardoublequote}}, while types are usually
+  implicit thanks to type-inference; terms of type \isa{{\isachardoublequote}prop{\isachardoublequote}} are
+  called propositions.  Logical statements are composed via \isa{{\isachardoublequote}{\isasymAnd}x\ {\isacharcolon}{\isacharcolon}\ {\isasymalpha}{\isachardot}\ B{\isacharparenleft}x{\isacharparenright}{\isachardoublequote}} and \isa{{\isachardoublequote}A\ {\isasymLongrightarrow}\ B{\isachardoublequote}}.  Primitive reasoning operates on
+  judgments of the form \isa{{\isachardoublequote}{\isasymGamma}\ {\isasymturnstile}\ {\isasymphi}{\isachardoublequote}}, with standard introduction
+  and elimination rules for \isa{{\isachardoublequote}{\isasymAnd}{\isachardoublequote}} and \isa{{\isachardoublequote}{\isasymLongrightarrow}{\isachardoublequote}} that refer to
+  fixed parameters \isa{{\isachardoublequote}x\isactrlisub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ x\isactrlisub m{\isachardoublequote}} and hypotheses
+  \isa{{\isachardoublequote}A\isactrlisub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ A\isactrlisub n{\isachardoublequote}} from the context \isa{{\isachardoublequote}{\isasymGamma}{\isachardoublequote}};
+  the corresponding proof terms are left implicit.  The subsequent
+  inference rules define \isa{{\isachardoublequote}{\isasymGamma}\ {\isasymturnstile}\ {\isasymphi}{\isachardoublequote}} inductively, relative to a
+  collection of axioms:
+
+  \[
+  \infer{\isa{{\isachardoublequote}{\isasymturnstile}\ A{\isachardoublequote}}}{(\isa{{\isachardoublequote}A{\isachardoublequote}} \text{~axiom})}
+  \qquad
+  \infer{\isa{{\isachardoublequote}A\ {\isasymturnstile}\ A{\isachardoublequote}}}{}
+  \]
+
+  \[
+  \infer{\isa{{\isachardoublequote}{\isasymGamma}\ {\isasymturnstile}\ {\isasymAnd}x{\isachardot}\ B{\isacharparenleft}x{\isacharparenright}{\isachardoublequote}}}{\isa{{\isachardoublequote}{\isasymGamma}\ {\isasymturnstile}\ B{\isacharparenleft}x{\isacharparenright}{\isachardoublequote}} & \isa{{\isachardoublequote}x\ {\isasymnotin}\ {\isasymGamma}{\isachardoublequote}}}
+  \qquad
+  \infer{\isa{{\isachardoublequote}{\isasymGamma}\ {\isasymturnstile}\ B{\isacharparenleft}a{\isacharparenright}{\isachardoublequote}}}{\isa{{\isachardoublequote}{\isasymGamma}\ {\isasymturnstile}\ {\isasymAnd}x{\isachardot}\ B{\isacharparenleft}x{\isacharparenright}{\isachardoublequote}}}
+  \]
+
+  \[
+  \infer{\isa{{\isachardoublequote}{\isasymGamma}\ {\isacharminus}\ A\ {\isasymturnstile}\ A\ {\isasymLongrightarrow}\ B{\isachardoublequote}}}{\isa{{\isachardoublequote}{\isasymGamma}\ {\isasymturnstile}\ B{\isachardoublequote}}}
+  \qquad
+  \infer{\isa{{\isachardoublequote}{\isasymGamma}\isactrlsub {\isadigit{1}}\ {\isasymunion}\ {\isasymGamma}\isactrlsub {\isadigit{2}}\ {\isasymturnstile}\ B{\isachardoublequote}}}{\isa{{\isachardoublequote}{\isasymGamma}\isactrlsub {\isadigit{1}}\ {\isasymturnstile}\ A\ {\isasymLongrightarrow}\ B{\isachardoublequote}} & \isa{{\isachardoublequote}{\isasymGamma}\isactrlsub {\isadigit{2}}\ {\isasymturnstile}\ A{\isachardoublequote}}}
+  \]
+
+  Furthermore, Pure provides a built-in equality \isa{{\isachardoublequote}{\isasymequiv}\ {\isacharcolon}{\isacharcolon}\ {\isasymalpha}\ {\isasymRightarrow}\ {\isasymalpha}\ {\isasymRightarrow}\ prop{\isachardoublequote}} with axioms for reflexivity, substitution, extensionality,
+  and \isa{{\isachardoublequote}{\isasymalpha}{\isasymbeta}{\isasymeta}{\isachardoublequote}}-conversion on \isa{{\isachardoublequote}{\isasymlambda}{\isachardoublequote}}-terms.
+
+  \medskip An object-logic introduces another layer on top of Pure,
+  e.g.\ with types \isa{{\isachardoublequote}i{\isachardoublequote}} for individuals and \isa{{\isachardoublequote}o{\isachardoublequote}} for
+  propositions, term constants \isa{{\isachardoublequote}Trueprop\ {\isacharcolon}{\isacharcolon}\ o\ {\isasymRightarrow}\ prop{\isachardoublequote}} as
+  (implicit) derivability judgment and connectives like \isa{{\isachardoublequote}{\isasymand}\ {\isacharcolon}{\isacharcolon}\ o\ {\isasymRightarrow}\ o\ {\isasymRightarrow}\ o{\isachardoublequote}} or \isa{{\isachardoublequote}{\isasymforall}\ {\isacharcolon}{\isacharcolon}\ {\isacharparenleft}i\ {\isasymRightarrow}\ o{\isacharparenright}\ {\isasymRightarrow}\ o{\isachardoublequote}}, and axioms for object-level
+  rules such as \isa{{\isachardoublequote}conjI{\isacharcolon}\ A\ {\isasymLongrightarrow}\ B\ {\isasymLongrightarrow}\ A\ {\isasymand}\ B{\isachardoublequote}} or \isa{{\isachardoublequote}allI{\isacharcolon}\ {\isacharparenleft}{\isasymAnd}x{\isachardot}\ B\ x{\isacharparenright}\ {\isasymLongrightarrow}\ {\isasymforall}x{\isachardot}\ B\ x{\isachardoublequote}}.  Derived object rules are represented as theorems of
+  Pure.  After the initial object-logic setup, further axiomatizations
+  are usually avoided; plain definitions and derived principles are
+  used exclusively.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsubsection{Reasoning with rules \label{sec:framework-resolution}%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+Primitive inferences mostly serve foundational purposes.  The main
+  reasoning mechanisms of Pure operate on nested natural deduction
+  rules expressed as formulae, using \isa{{\isachardoublequote}{\isasymAnd}{\isachardoublequote}} to bind local
+  parameters and \isa{{\isachardoublequote}{\isasymLongrightarrow}{\isachardoublequote}} to express entailment.  Multiple
+  parameters and premises are represented by repeating these
+  connectives in a right-associative manner.
+
+  Since \isa{{\isachardoublequote}{\isasymAnd}{\isachardoublequote}} and \isa{{\isachardoublequote}{\isasymLongrightarrow}{\isachardoublequote}} commute thanks to the theorem
+  \isa{{\isachardoublequote}{\isacharparenleft}A\ {\isasymLongrightarrow}\ {\isacharparenleft}{\isasymAnd}x{\isachardot}\ B\ x{\isacharparenright}{\isacharparenright}\ {\isasymequiv}\ {\isacharparenleft}{\isasymAnd}x{\isachardot}\ A\ {\isasymLongrightarrow}\ B\ x{\isacharparenright}{\isachardoublequote}}, we may assume w.l.o.g.\
+  that rule statements always observe the normal form where
+  quantifiers are pulled in front of implications at each level of
+  nesting.  This means that any Pure proposition may be presented as a
+  \emph{Hereditary Harrop Formula} \cite{Miller:1991} which is of the
+  form \isa{{\isachardoublequote}{\isasymAnd}x\isactrlisub {\isadigit{1}}\ {\isasymdots}\ x\isactrlisub m{\isachardot}\ H\isactrlisub {\isadigit{1}}\ {\isasymLongrightarrow}\ {\isasymdots}\ H\isactrlisub n\ {\isasymLongrightarrow}\ A{\isachardoublequote}} for \isa{{\isachardoublequote}m{\isacharcomma}\ n\ {\isasymge}\ {\isadigit{0}}{\isachardoublequote}}, and \isa{{\isachardoublequote}A{\isachardoublequote}} atomic, and \isa{{\isachardoublequote}H\isactrlisub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ H\isactrlisub n{\isachardoublequote}} being recursively of the same format.
+  Following the convention that outermost quantifiers are implicit,
+  Horn clauses \isa{{\isachardoublequote}A\isactrlisub {\isadigit{1}}\ {\isasymLongrightarrow}\ {\isasymdots}\ A\isactrlisub n\ {\isasymLongrightarrow}\ A{\isachardoublequote}} are a special
+  case of this.
+
+  For example, \isa{{\isachardoublequote}{\isasyminter}{\isachardoublequote}}-introduction rule encountered before is
+  represented as a Pure theorem as follows:
+  \[
+  \isa{{\isachardoublequote}IntI{\isacharcolon}{\isachardoublequote}}~\isa{{\isachardoublequote}x\ {\isasymin}\ A\ {\isasymLongrightarrow}\ x\ {\isasymin}\ B\ {\isasymLongrightarrow}\ x\ {\isasymin}\ A\ {\isasyminter}\ B{\isachardoublequote}}
+  \]
+
+  \noindent This is a plain Horn clause, since no further nesting on
+  the left is involved.  The general \isa{{\isachardoublequote}{\isasymInter}{\isachardoublequote}}-introduction
+  corresponds to a Hereditary Harrop Formula with one additional level
+  of nesting:
+  \[
+  \isa{{\isachardoublequote}InterI{\isacharcolon}{\isachardoublequote}}~\isa{{\isachardoublequote}{\isacharparenleft}{\isasymAnd}A{\isachardot}\ A\ {\isasymin}\ {\isasymA}\ {\isasymLongrightarrow}\ x\ {\isasymin}\ A{\isacharparenright}\ {\isasymLongrightarrow}\ x\ {\isasymin}\ {\isasymInter}{\isasymA}{\isachardoublequote}}
+  \]
+
+  \medskip Goals are also represented as rules: \isa{{\isachardoublequote}A\isactrlisub {\isadigit{1}}\ {\isasymLongrightarrow}\ {\isasymdots}\ A\isactrlisub n\ {\isasymLongrightarrow}\ C{\isachardoublequote}} states that the sub-goals \isa{{\isachardoublequote}A\isactrlisub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ A\isactrlisub n{\isachardoublequote}} entail the result \isa{{\isachardoublequote}C{\isachardoublequote}}; for \isa{{\isachardoublequote}n\ {\isacharequal}\ {\isadigit{0}}{\isachardoublequote}} the
+  goal is finished.  To allow \isa{{\isachardoublequote}C{\isachardoublequote}} being a rule statement
+  itself, we introduce the protective marker \isa{{\isachardoublequote}{\isacharhash}\ {\isacharcolon}{\isacharcolon}\ prop\ {\isasymRightarrow}\ prop{\isachardoublequote}}, which is defined as identity and hidden from the user.  We
+  initialize and finish goal states as follows:
+
+  \[
+  \begin{array}{c@ {\qquad}c}
+  \infer[(\indexdef{}{inference}{init}\hypertarget{inference.init}{\hyperlink{inference.init}{\mbox{\isa{init}}}})]{\isa{{\isachardoublequote}C\ {\isasymLongrightarrow}\ {\isacharhash}C{\isachardoublequote}}}{} &
+  \infer[(\indexdef{}{inference}{finish}\hypertarget{inference.finish}{\hyperlink{inference.finish}{\mbox{\isa{finish}}}})]{\isa{C}}{\isa{{\isachardoublequote}{\isacharhash}C{\isachardoublequote}}}
+  \end{array}
+  \]
+
+  \noindent Goal states are refined in intermediate proof steps until
+  a finished form is achieved.  Here the two main reasoning principles
+  are \hyperlink{inference.resolution}{\mbox{\isa{resolution}}}, for back-chaining a rule against a
+  sub-goal (replacing it by zero or more sub-goals), and \hyperlink{inference.assumption}{\mbox{\isa{assumption}}}, for solving a sub-goal (finding a short-circuit with
+  local assumptions).  Below \isa{{\isachardoublequote}\isactrlvec x{\isachardoublequote}} stands for \isa{{\isachardoublequote}x\isactrlisub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ x\isactrlisub n{\isachardoublequote}} (\isa{{\isachardoublequote}n\ {\isasymge}\ {\isadigit{0}}{\isachardoublequote}}).
+
+  \[
+  \infer[(\indexdef{}{inference}{resolution}\hypertarget{inference.resolution}{\hyperlink{inference.resolution}{\mbox{\isa{resolution}}}})]
+  {\isa{{\isachardoublequote}{\isacharparenleft}{\isasymAnd}\isactrlvec x{\isachardot}\ \isactrlvec H\ \isactrlvec x\ {\isasymLongrightarrow}\ \isactrlvec A\ {\isacharparenleft}\isactrlvec a\ \isactrlvec x{\isacharparenright}{\isacharparenright}{\isasymvartheta}\ {\isasymLongrightarrow}\ C{\isasymvartheta}{\isachardoublequote}}}
+  {\begin{tabular}{rl}
+    \isa{{\isachardoublequote}rule{\isacharcolon}{\isachardoublequote}} &
+    \isa{{\isachardoublequote}\isactrlvec A\ \isactrlvec a\ {\isasymLongrightarrow}\ B\ \isactrlvec a{\isachardoublequote}} \\
+    \isa{{\isachardoublequote}goal{\isacharcolon}{\isachardoublequote}} &
+    \isa{{\isachardoublequote}{\isacharparenleft}{\isasymAnd}\isactrlvec x{\isachardot}\ \isactrlvec H\ \isactrlvec x\ {\isasymLongrightarrow}\ B{\isacharprime}\ \isactrlvec x{\isacharparenright}\ {\isasymLongrightarrow}\ C{\isachardoublequote}} \\
+    \isa{{\isachardoublequote}goal\ unifier{\isacharcolon}{\isachardoublequote}} &
+    \isa{{\isachardoublequote}{\isacharparenleft}{\isasymlambda}\isactrlvec x{\isachardot}\ B\ {\isacharparenleft}\isactrlvec a\ \isactrlvec x{\isacharparenright}{\isacharparenright}{\isasymvartheta}\ {\isacharequal}\ B{\isacharprime}{\isasymvartheta}{\isachardoublequote}} \\
+   \end{tabular}}
+  \]
+
+  \medskip
+
+  \[
+  \infer[(\indexdef{}{inference}{assumption}\hypertarget{inference.assumption}{\hyperlink{inference.assumption}{\mbox{\isa{assumption}}}})]{\isa{{\isachardoublequote}C{\isasymvartheta}{\isachardoublequote}}}
+  {\begin{tabular}{rl}
+    \isa{{\isachardoublequote}goal{\isacharcolon}{\isachardoublequote}} &
+    \isa{{\isachardoublequote}{\isacharparenleft}{\isasymAnd}\isactrlvec x{\isachardot}\ \isactrlvec H\ \isactrlvec x\ {\isasymLongrightarrow}\ A\ \isactrlvec x{\isacharparenright}\ {\isasymLongrightarrow}\ C{\isachardoublequote}} \\
+    \isa{{\isachardoublequote}assm\ unifier{\isacharcolon}{\isachardoublequote}} & \isa{{\isachardoublequote}A{\isasymvartheta}\ {\isacharequal}\ H\isactrlsub i{\isasymvartheta}{\isachardoublequote}}~~\text{(for some~\isa{{\isachardoublequote}H\isactrlsub i{\isachardoublequote}})} \\
+   \end{tabular}}
+  \]
+
+  The following trace illustrates goal-oriented reasoning in
+  Isabelle/Pure:
+
+  {\footnotesize
+  \medskip
+  \begin{tabular}{r@ {\quad}l}
+  \isa{{\isachardoublequote}{\isacharparenleft}A\ {\isasymand}\ B\ {\isasymLongrightarrow}\ B\ {\isasymand}\ A{\isacharparenright}\ {\isasymLongrightarrow}\ {\isacharhash}{\isacharparenleft}A\ {\isasymand}\ B\ {\isasymLongrightarrow}\ B\ {\isasymand}\ A{\isacharparenright}{\isachardoublequote}} & \isa{{\isachardoublequote}{\isacharparenleft}init{\isacharparenright}{\isachardoublequote}} \\
+  \isa{{\isachardoublequote}{\isacharparenleft}A\ {\isasymand}\ B\ {\isasymLongrightarrow}\ B{\isacharparenright}\ {\isasymLongrightarrow}\ {\isacharparenleft}A\ {\isasymand}\ B\ {\isasymLongrightarrow}\ A{\isacharparenright}\ {\isasymLongrightarrow}\ {\isacharhash}{\isasymdots}{\isachardoublequote}} & \isa{{\isachardoublequote}{\isacharparenleft}resolution\ B\ {\isasymLongrightarrow}\ A\ {\isasymLongrightarrow}\ B\ {\isasymand}\ A{\isacharparenright}{\isachardoublequote}} \\
+  \isa{{\isachardoublequote}{\isacharparenleft}A\ {\isasymand}\ B\ {\isasymLongrightarrow}\ A\ {\isasymand}\ B{\isacharparenright}\ {\isasymLongrightarrow}\ {\isacharparenleft}A\ {\isasymand}\ B\ {\isasymLongrightarrow}\ A{\isacharparenright}\ {\isasymLongrightarrow}\ {\isacharhash}{\isasymdots}{\isachardoublequote}} & \isa{{\isachardoublequote}{\isacharparenleft}resolution\ A\ {\isasymand}\ B\ {\isasymLongrightarrow}\ B{\isacharparenright}{\isachardoublequote}} \\
+  \isa{{\isachardoublequote}{\isacharparenleft}A\ {\isasymand}\ B\ {\isasymLongrightarrow}\ A{\isacharparenright}\ {\isasymLongrightarrow}\ {\isacharhash}{\isasymdots}{\isachardoublequote}} & \isa{{\isachardoublequote}{\isacharparenleft}assumption{\isacharparenright}{\isachardoublequote}} \\
+  \isa{{\isachardoublequote}{\isacharparenleft}A\ {\isasymand}\ B\ {\isasymLongrightarrow}\ B\ {\isasymand}\ A{\isacharparenright}\ {\isasymLongrightarrow}\ {\isacharhash}{\isasymdots}{\isachardoublequote}} & \isa{{\isachardoublequote}{\isacharparenleft}resolution\ A\ {\isasymand}\ B\ {\isasymLongrightarrow}\ A{\isacharparenright}{\isachardoublequote}} \\
+  \isa{{\isachardoublequote}{\isacharhash}{\isasymdots}{\isachardoublequote}} & \isa{{\isachardoublequote}{\isacharparenleft}assumption{\isacharparenright}{\isachardoublequote}} \\
+  \isa{{\isachardoublequote}A\ {\isasymand}\ B\ {\isasymLongrightarrow}\ B\ {\isasymand}\ A{\isachardoublequote}} & \isa{{\isachardoublequote}{\isacharparenleft}finish{\isacharparenright}{\isachardoublequote}} \\
+  \end{tabular}
+  \medskip
+  }
+
+  Compositions of \hyperlink{inference.assumption}{\mbox{\isa{assumption}}} after \hyperlink{inference.resolution}{\mbox{\isa{resolution}}} occurs quite often, typically in elimination steps.
+  Traditional Isabelle tactics accommodate this by a combined
+  \indexdef{}{inference}{elim\_resolution}\hypertarget{inference.elim-resolution}{\hyperlink{inference.elim-resolution}{\mbox{\isa{elim{\isacharunderscore}resolution}}}} principle.  In contrast, Isar uses
+  a slightly more refined combination, where the assumptions to be
+  closed are marked explicitly, using again the protective marker
+  \isa{{\isachardoublequote}{\isacharhash}{\isachardoublequote}}:
+
+  \[
+  \infer[(\hyperlink{inference.refinement}{\mbox{\isa{refinement}}})]
+  {\isa{{\isachardoublequote}{\isacharparenleft}{\isasymAnd}\isactrlvec x{\isachardot}\ \isactrlvec H\ \isactrlvec x\ {\isasymLongrightarrow}\ \isactrlvec G{\isacharprime}\ {\isacharparenleft}\isactrlvec a\ \isactrlvec x{\isacharparenright}{\isacharparenright}{\isasymvartheta}\ {\isasymLongrightarrow}\ C{\isasymvartheta}{\isachardoublequote}}}
+  {\begin{tabular}{rl}
+    \isa{{\isachardoublequote}sub{\isasymdash}proof{\isacharcolon}{\isachardoublequote}} &
+    \isa{{\isachardoublequote}\isactrlvec G\ \isactrlvec a\ {\isasymLongrightarrow}\ B\ \isactrlvec a{\isachardoublequote}} \\
+    \isa{{\isachardoublequote}goal{\isacharcolon}{\isachardoublequote}} &
+    \isa{{\isachardoublequote}{\isacharparenleft}{\isasymAnd}\isactrlvec x{\isachardot}\ \isactrlvec H\ \isactrlvec x\ {\isasymLongrightarrow}\ B{\isacharprime}\ \isactrlvec x{\isacharparenright}\ {\isasymLongrightarrow}\ C{\isachardoublequote}} \\
+    \isa{{\isachardoublequote}goal\ unifier{\isacharcolon}{\isachardoublequote}} &
+    \isa{{\isachardoublequote}{\isacharparenleft}{\isasymlambda}\isactrlvec x{\isachardot}\ B\ {\isacharparenleft}\isactrlvec a\ \isactrlvec x{\isacharparenright}{\isacharparenright}{\isasymvartheta}\ {\isacharequal}\ B{\isacharprime}{\isasymvartheta}{\isachardoublequote}} \\
+    \isa{{\isachardoublequote}assm\ unifiers{\isacharcolon}{\isachardoublequote}} &
+    \isa{{\isachardoublequote}{\isacharparenleft}{\isasymlambda}\isactrlvec x{\isachardot}\ G\isactrlsub j\ {\isacharparenleft}\isactrlvec a\ \isactrlvec x{\isacharparenright}{\isacharparenright}{\isasymvartheta}\ {\isacharequal}\ {\isacharhash}H\isactrlsub i{\isasymvartheta}{\isachardoublequote}} \\
+    & \quad (for each marked \isa{{\isachardoublequote}G\isactrlsub j{\isachardoublequote}} some \isa{{\isachardoublequote}{\isacharhash}H\isactrlsub i{\isachardoublequote}}) \\
+   \end{tabular}}
+  \]
+
+  \noindent Here the \isa{{\isachardoublequote}sub{\isasymdash}proof{\isachardoublequote}} rule stems from the
+  main \hyperlink{command.fix}{\mbox{\isa{\isacommand{fix}}}}-\hyperlink{command.assume}{\mbox{\isa{\isacommand{assume}}}}-\hyperlink{command.show}{\mbox{\isa{\isacommand{show}}}} outline of
+  Isar (cf.\ \secref{sec:framework-subproof}): each assumption
+  indicated in the text results in a marked premise \isa{{\isachardoublequote}G{\isachardoublequote}} above.
+  The marking enforces resolution against one of the sub-goal's
+  premises.  Consequently, \hyperlink{command.fix}{\mbox{\isa{\isacommand{fix}}}}-\hyperlink{command.assume}{\mbox{\isa{\isacommand{assume}}}}-\hyperlink{command.show}{\mbox{\isa{\isacommand{show}}}} enables to fit the result of a sub-proof quite robustly into a
+  pending sub-goal, while maintaining a good measure of flexibility.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsection{The Isar proof language \label{sec:framework-isar}%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+Structured proofs are presented as high-level expressions for
+  composing entities of Pure (propositions, facts, and goals).  The
+  Isar proof language allows to organize reasoning within the
+  underlying rule calculus of Pure, but Isar is not another logical
+  calculus!
+
+  Isar is an exercise in sound minimalism.  Approximately half of the
+  language is introduced as primitive, the rest defined as derived
+  concepts.  The following grammar describes the core language
+  (category \isa{{\isachardoublequote}proof{\isachardoublequote}}), which is embedded into theory
+  specification elements such as \hyperlink{command.theorem}{\mbox{\isa{\isacommand{theorem}}}}; see also
+  \secref{sec:framework-stmt} for the separate category \isa{{\isachardoublequote}statement{\isachardoublequote}}.
+
+  \medskip
+  \begin{tabular}{rcl}
+    \isa{{\isachardoublequote}theory{\isasymdash}stmt{\isachardoublequote}} & = & \hyperlink{command.theorem}{\mbox{\isa{\isacommand{theorem}}}}~\isa{{\isachardoublequote}statement\ proof\ \ {\isacharbar}{\isachardoublequote}}~~\hyperlink{command.definition}{\mbox{\isa{\isacommand{definition}}}}~\isa{{\isachardoublequote}{\isasymdots}\ \ {\isacharbar}\ \ {\isasymdots}{\isachardoublequote}} \\[1ex]
+
+    \isa{{\isachardoublequote}proof{\isachardoublequote}} & = & \isa{{\isachardoublequote}prfx\isactrlsup {\isacharasterisk}{\isachardoublequote}}~\hyperlink{command.proof}{\mbox{\isa{\isacommand{proof}}}}~\isa{{\isachardoublequote}method\isactrlsup {\isacharquery}\ stmt\isactrlsup {\isacharasterisk}{\isachardoublequote}}~\hyperlink{command.qed}{\mbox{\isa{\isacommand{qed}}}}~\isa{{\isachardoublequote}method\isactrlsup {\isacharquery}{\isachardoublequote}} \\[1ex]
+
+    \isa{prfx} & = & \hyperlink{command.using}{\mbox{\isa{\isacommand{using}}}}~\isa{{\isachardoublequote}facts{\isachardoublequote}} \\
+    & \isa{{\isachardoublequote}{\isacharbar}{\isachardoublequote}} & \hyperlink{command.unfolding}{\mbox{\isa{\isacommand{unfolding}}}}~\isa{{\isachardoublequote}facts{\isachardoublequote}} \\
+
+    \isa{stmt} & = & \hyperlink{command.braceleft}{\mbox{\isa{\isacommand{{\isacharbraceleft}}}}}~\isa{{\isachardoublequote}stmt\isactrlsup {\isacharasterisk}{\isachardoublequote}}~\hyperlink{command.braceright}{\mbox{\isa{\isacommand{{\isacharbraceright}}}}} \\
+    & \isa{{\isachardoublequote}{\isacharbar}{\isachardoublequote}} & \hyperlink{command.next}{\mbox{\isa{\isacommand{next}}}} \\
+    & \isa{{\isachardoublequote}{\isacharbar}{\isachardoublequote}} & \hyperlink{command.note}{\mbox{\isa{\isacommand{note}}}}~\isa{{\isachardoublequote}name\ {\isacharequal}\ facts{\isachardoublequote}} \\
+    & \isa{{\isachardoublequote}{\isacharbar}{\isachardoublequote}} & \hyperlink{command.let}{\mbox{\isa{\isacommand{let}}}}~\isa{{\isachardoublequote}term\ {\isacharequal}\ term{\isachardoublequote}} \\
+    & \isa{{\isachardoublequote}{\isacharbar}{\isachardoublequote}} & \hyperlink{command.fix}{\mbox{\isa{\isacommand{fix}}}}~\isa{{\isachardoublequote}var\isactrlsup {\isacharplus}{\isachardoublequote}} \\
+    & \isa{{\isachardoublequote}{\isacharbar}{\isachardoublequote}} & \hyperlink{command.assume}{\mbox{\isa{\isacommand{assume}}}}~\isa{{\isachardoublequote}{\isasymguillemotleft}inference{\isasymguillemotright}\ name{\isacharcolon}\ props{\isachardoublequote}} \\
+    & \isa{{\isachardoublequote}{\isacharbar}{\isachardoublequote}} & \hyperlink{command.then}{\mbox{\isa{\isacommand{then}}}}\isa{{\isachardoublequote}\isactrlsup {\isacharquery}{\isachardoublequote}}~\isa{goal} \\
+    \isa{goal} & = & \hyperlink{command.have}{\mbox{\isa{\isacommand{have}}}}~\isa{{\isachardoublequote}name{\isacharcolon}\ props\ proof{\isachardoublequote}} \\
+    & \isa{{\isachardoublequote}{\isacharbar}{\isachardoublequote}} & \hyperlink{command.show}{\mbox{\isa{\isacommand{show}}}}~\isa{{\isachardoublequote}name{\isacharcolon}\ props\ proof{\isachardoublequote}} \\
+  \end{tabular}
+
+  \medskip Simultaneous propositions or facts may be separated by the
+  \hyperlink{keyword.and}{\mbox{\isa{\isakeyword{and}}}} keyword.
+
+  \medskip The syntax for terms and propositions is inherited from
+  Pure (and the object-logic).  A \isa{{\isachardoublequote}pattern{\isachardoublequote}} is a \isa{{\isachardoublequote}term{\isachardoublequote}} with schematic variables, to be bound by higher-order
+  matching.
+
+  \medskip Facts may be referenced by name or proposition.  For
+  example, the result of ``\hyperlink{command.have}{\mbox{\isa{\isacommand{have}}}}~\isa{{\isachardoublequote}a{\isacharcolon}\ A\ {\isasymlangle}proof{\isasymrangle}{\isachardoublequote}}''
+  becomes available both as \isa{{\isachardoublequote}a{\isachardoublequote}} and
+  \isacharbackquoteopen\isa{{\isachardoublequote}A{\isachardoublequote}}\isacharbackquoteclose.  Moreover,
+  fact expressions may involve attributes that modify either the
+  theorem or the background context.  For example, the expression
+  ``\isa{{\isachardoublequote}a\ {\isacharbrackleft}OF\ b{\isacharbrackright}{\isachardoublequote}}'' refers to the composition of two facts
+  according to the \hyperlink{inference.resolution}{\mbox{\isa{resolution}}} inference of
+  \secref{sec:framework-resolution}, while ``\isa{{\isachardoublequote}a\ {\isacharbrackleft}intro{\isacharbrackright}{\isachardoublequote}}''
+  declares a fact as introduction rule in the context.
+
+  The special fact called ``\hyperlink{fact.this}{\mbox{\isa{this}}}'' always refers to the last
+  result, as produced by \hyperlink{command.note}{\mbox{\isa{\isacommand{note}}}}, \hyperlink{command.assume}{\mbox{\isa{\isacommand{assume}}}}, \hyperlink{command.have}{\mbox{\isa{\isacommand{have}}}}, or \hyperlink{command.show}{\mbox{\isa{\isacommand{show}}}}.  Since \hyperlink{command.note}{\mbox{\isa{\isacommand{note}}}} occurs
+  frequently together with \hyperlink{command.then}{\mbox{\isa{\isacommand{then}}}} we provide some
+  abbreviations:
+
+  \medskip
+  \begin{tabular}{rcl}
+    \hyperlink{command.from}{\mbox{\isa{\isacommand{from}}}}~\isa{a} & \isa{{\isachardoublequote}{\isasymequiv}{\isachardoublequote}} & \hyperlink{command.note}{\mbox{\isa{\isacommand{note}}}}~\isa{a}~\hyperlink{command.then}{\mbox{\isa{\isacommand{then}}}} \\
+    \hyperlink{command.with}{\mbox{\isa{\isacommand{with}}}}~\isa{a} & \isa{{\isachardoublequote}{\isasymequiv}{\isachardoublequote}} & \hyperlink{command.from}{\mbox{\isa{\isacommand{from}}}}~\isa{{\isachardoublequote}a\ {\isasymAND}\ this{\isachardoublequote}} \\
+  \end{tabular}
+  \medskip
+
+  The \isa{{\isachardoublequote}method{\isachardoublequote}} category is essentially a parameter and may be
+  populated later.  Methods use the facts indicated by \hyperlink{command.then}{\mbox{\isa{\isacommand{then}}}} or \hyperlink{command.using}{\mbox{\isa{\isacommand{using}}}}, and then operate on the goal state.
+  Some basic methods are predefined: ``\hyperlink{method.-}{\mbox{\isa{{\isacharminus}}}}'' leaves the goal
+  unchanged, ``\hyperlink{method.this}{\mbox{\isa{this}}}'' applies the facts as rules to the
+  goal, ``\hyperlink{method.rule}{\mbox{\isa{rule}}}'' applies the facts to another rule and the
+  result to the goal (both ``\hyperlink{method.this}{\mbox{\isa{this}}}'' and ``\hyperlink{method.rule}{\mbox{\isa{rule}}}''
+  refer to \hyperlink{inference.resolution}{\mbox{\isa{resolution}}} of
+  \secref{sec:framework-resolution}).  The secondary arguments to
+  ``\hyperlink{method.rule}{\mbox{\isa{rule}}}'' may be specified explicitly as in ``\isa{{\isachardoublequote}{\isacharparenleft}rule\ a{\isacharparenright}{\isachardoublequote}}'', or picked from the context.  In the latter case, the system
+  first tries rules declared as \hyperlink{attribute.Pure.elim}{\mbox{\isa{elim}}} or
+  \hyperlink{attribute.Pure.dest}{\mbox{\isa{dest}}}, followed by those declared as \hyperlink{attribute.Pure.intro}{\mbox{\isa{intro}}}.
+
+  The default method for \hyperlink{command.proof}{\mbox{\isa{\isacommand{proof}}}} is ``\hyperlink{method.rule}{\mbox{\isa{rule}}}''
+  (arguments picked from the context), for \hyperlink{command.qed}{\mbox{\isa{\isacommand{qed}}}} it is
+  ``\hyperlink{method.-}{\mbox{\isa{{\isacharminus}}}}''.  Further abbreviations for terminal proof steps
+  are ``\hyperlink{command.by}{\mbox{\isa{\isacommand{by}}}}~\isa{{\isachardoublequote}method\isactrlsub {\isadigit{1}}\ method\isactrlsub {\isadigit{2}}{\isachardoublequote}}'' for
+  ``\hyperlink{command.proof}{\mbox{\isa{\isacommand{proof}}}}~\isa{{\isachardoublequote}method\isactrlsub {\isadigit{1}}{\isachardoublequote}}~\hyperlink{command.qed}{\mbox{\isa{\isacommand{qed}}}}~\isa{{\isachardoublequote}method\isactrlsub {\isadigit{2}}{\isachardoublequote}}'', and ``\hyperlink{command.ddot}{\mbox{\isa{\isacommand{{\isachardot}{\isachardot}}}}}'' for ``\hyperlink{command.by}{\mbox{\isa{\isacommand{by}}}}~\hyperlink{method.rule}{\mbox{\isa{rule}}}, and ``\hyperlink{command.dot}{\mbox{\isa{\isacommand{{\isachardot}}}}}'' for ``\hyperlink{command.by}{\mbox{\isa{\isacommand{by}}}}~\hyperlink{method.this}{\mbox{\isa{this}}}''.  The \hyperlink{command.unfolding}{\mbox{\isa{\isacommand{unfolding}}}} element operates
+  directly on the current facts and goal by applying equalities.
+
+  \medskip Block structure can be indicated explicitly by ``\hyperlink{command.braceleft}{\mbox{\isa{\isacommand{{\isacharbraceleft}}}}}~\isa{{\isachardoublequote}{\isasymdots}{\isachardoublequote}}~\hyperlink{command.braceright}{\mbox{\isa{\isacommand{{\isacharbraceright}}}}}'', although the body of a sub-proof
+  already involves implicit nesting.  In any case, \hyperlink{command.next}{\mbox{\isa{\isacommand{next}}}}
+  jumps into the next section of a block, i.e.\ it acts like closing
+  an implicit block scope and opening another one; there is no direct
+  correspondence to subgoals here.
+
+  The remaining elements \hyperlink{command.fix}{\mbox{\isa{\isacommand{fix}}}} and \hyperlink{command.assume}{\mbox{\isa{\isacommand{assume}}}} build up
+  a local context (see \secref{sec:framework-context}), while
+  \hyperlink{command.show}{\mbox{\isa{\isacommand{show}}}} refines a pending sub-goal by the rule resulting
+  from a nested sub-proof (see \secref{sec:framework-subproof}).
+  Further derived concepts will support calculational reasoning (see
+  \secref{sec:framework-calc}).%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsubsection{Context elements \label{sec:framework-context}%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+In judgments \isa{{\isachardoublequote}{\isasymGamma}\ {\isasymturnstile}\ {\isasymphi}{\isachardoublequote}} of the primitive framework, \isa{{\isachardoublequote}{\isasymGamma}{\isachardoublequote}}
+  essentially acts like a proof context.  Isar elaborates this idea
+  towards a higher-level notion, with additional information for
+  type-inference, term abbreviations, local facts, hypotheses etc.
+
+  The element \hyperlink{command.fix}{\mbox{\isa{\isacommand{fix}}}}~\isa{{\isachardoublequote}x\ {\isacharcolon}{\isacharcolon}\ {\isasymalpha}{\isachardoublequote}} declares a local
+  parameter, i.e.\ an arbitrary-but-fixed entity of a given type; in
+  results exported from the context, \isa{{\isachardoublequote}x{\isachardoublequote}} may become anything.
+  The \hyperlink{command.assume}{\mbox{\isa{\isacommand{assume}}}}~\isa{{\isachardoublequote}{\isasymguillemotleft}inference{\isasymguillemotright}{\isachardoublequote}} element provides a
+  general interface to hypotheses: ``\hyperlink{command.assume}{\mbox{\isa{\isacommand{assume}}}}~\isa{{\isachardoublequote}{\isasymguillemotleft}inference{\isasymguillemotright}\ A{\isachardoublequote}}'' produces \isa{{\isachardoublequote}A\ {\isasymturnstile}\ A{\isachardoublequote}} locally, while the
+  included inference tells how to discharge \isa{A} from results
+  \isa{{\isachardoublequote}A\ {\isasymturnstile}\ B{\isachardoublequote}} later on.  There is no user-syntax for \isa{{\isachardoublequote}{\isasymguillemotleft}inference{\isasymguillemotright}{\isachardoublequote}}, i.e.\ it may only occur internally when derived
+  commands are defined in ML.
+
+  At the user-level, the default inference for \hyperlink{command.assume}{\mbox{\isa{\isacommand{assume}}}} is
+  \hyperlink{inference.discharge}{\mbox{\isa{discharge}}} as given below.  The additional variants
+  \hyperlink{command.presume}{\mbox{\isa{\isacommand{presume}}}} and \hyperlink{command.def}{\mbox{\isa{\isacommand{def}}}} are defined as follows:
+
+  \medskip
+  \begin{tabular}{rcl}
+    \hyperlink{command.presume}{\mbox{\isa{\isacommand{presume}}}}~\isa{A} & \isa{{\isachardoublequote}{\isasymequiv}{\isachardoublequote}} & \hyperlink{command.assume}{\mbox{\isa{\isacommand{assume}}}}~\isa{{\isachardoublequote}{\isasymguillemotleft}weak{\isasymdash}discharge{\isasymguillemotright}\ A{\isachardoublequote}} \\
+    \hyperlink{command.def}{\mbox{\isa{\isacommand{def}}}}~\isa{{\isachardoublequote}x\ {\isasymequiv}\ a{\isachardoublequote}} & \isa{{\isachardoublequote}{\isasymequiv}{\isachardoublequote}} & \hyperlink{command.fix}{\mbox{\isa{\isacommand{fix}}}}~\isa{x}~\hyperlink{command.assume}{\mbox{\isa{\isacommand{assume}}}}~\isa{{\isachardoublequote}{\isasymguillemotleft}expansion{\isasymguillemotright}\ x\ {\isasymequiv}\ a{\isachardoublequote}} \\
+  \end{tabular}
+  \medskip
+
+  \[
+  \infer[(\indexdef{}{inference}{discharge}\hypertarget{inference.discharge}{\hyperlink{inference.discharge}{\mbox{\isa{discharge}}}})]{\isa{{\isachardoublequote}{\isasymstrut}{\isasymGamma}\ {\isacharminus}\ A\ {\isasymturnstile}\ {\isacharhash}A\ {\isasymLongrightarrow}\ B{\isachardoublequote}}}{\isa{{\isachardoublequote}{\isasymstrut}{\isasymGamma}\ {\isasymturnstile}\ B{\isachardoublequote}}}
+  \]
+  \[
+  \infer[(\indexdef{}{inference}{weak-discharge}\hypertarget{inference.weak-discharge}{\hyperlink{inference.weak-discharge}{\mbox{\isa{weak{\isasymdash}discharge}}}})]{\isa{{\isachardoublequote}{\isasymstrut}{\isasymGamma}\ {\isacharminus}\ A\ {\isasymturnstile}\ A\ {\isasymLongrightarrow}\ B{\isachardoublequote}}}{\isa{{\isachardoublequote}{\isasymstrut}{\isasymGamma}\ {\isasymturnstile}\ B{\isachardoublequote}}}
+  \]
+  \[
+  \infer[(\indexdef{}{inference}{expansion}\hypertarget{inference.expansion}{\hyperlink{inference.expansion}{\mbox{\isa{expansion}}}})]{\isa{{\isachardoublequote}{\isasymstrut}{\isasymGamma}\ {\isacharminus}\ {\isacharparenleft}x\ {\isasymequiv}\ a{\isacharparenright}\ {\isasymturnstile}\ B\ a{\isachardoublequote}}}{\isa{{\isachardoublequote}{\isasymstrut}{\isasymGamma}\ {\isasymturnstile}\ B\ x{\isachardoublequote}}}
+  \]
+
+  \medskip Note that \hyperlink{inference.discharge}{\mbox{\isa{discharge}}} and \hyperlink{inference.weak-discharge}{\mbox{\isa{weak{\isasymdash}discharge}}} differ in the marker for \isa{A}, which is
+  relevant when the result of a \hyperlink{command.fix}{\mbox{\isa{\isacommand{fix}}}}-\hyperlink{command.assume}{\mbox{\isa{\isacommand{assume}}}}-\hyperlink{command.show}{\mbox{\isa{\isacommand{show}}}} outline is composed with a pending goal,
+  cf.\ \secref{sec:framework-subproof}.
+
+  The most interesting derived context element in Isar is \hyperlink{command.obtain}{\mbox{\isa{\isacommand{obtain}}}} \cite[\S5.3]{Wenzel-PhD}, which supports generalized
+  elimination steps in a purely forward manner.  The \hyperlink{command.obtain}{\mbox{\isa{\isacommand{obtain}}}}
+  command takes a specification of parameters \isa{{\isachardoublequote}\isactrlvec x{\isachardoublequote}} and
+  assumptions \isa{{\isachardoublequote}\isactrlvec A{\isachardoublequote}} to be added to the context, together
+  with a proof of a case rule stating that this extension is
+  conservative (i.e.\ may be removed from closed results later on):
+
+  \medskip
+  \begin{tabular}{l}
+  \isa{{\isachardoublequote}{\isasymlangle}facts{\isasymrangle}{\isachardoublequote}}~~\hyperlink{command.obtain}{\mbox{\isa{\isacommand{obtain}}}}~\isa{{\isachardoublequote}\isactrlvec x\ {\isasymWHERE}\ \isactrlvec A\ \isactrlvec x\ \ {\isasymlangle}proof{\isasymrangle}\ {\isasymequiv}{\isachardoublequote}} \\[0.5ex]
+  \quad \hyperlink{command.have}{\mbox{\isa{\isacommand{have}}}}~\isa{{\isachardoublequote}case{\isacharcolon}\ {\isasymAnd}thesis{\isachardot}\ {\isacharparenleft}{\isasymAnd}\isactrlvec x{\isachardot}\ \isactrlvec A\ \isactrlvec x\ {\isasymLongrightarrow}\ thesis{\isacharparenright}\ {\isasymLongrightarrow}\ thesis{\isasymrangle}{\isachardoublequote}} \\
+  \quad \hyperlink{command.proof}{\mbox{\isa{\isacommand{proof}}}}~\hyperlink{method.-}{\mbox{\isa{{\isacharminus}}}} \\
+  \qquad \hyperlink{command.fix}{\mbox{\isa{\isacommand{fix}}}}~\isa{thesis} \\
+  \qquad \hyperlink{command.assume}{\mbox{\isa{\isacommand{assume}}}}~\isa{{\isachardoublequote}{\isacharbrackleft}intro{\isacharbrackright}{\isacharcolon}\ {\isasymAnd}\isactrlvec x{\isachardot}\ \isactrlvec A\ \isactrlvec x\ {\isasymLongrightarrow}\ thesis{\isachardoublequote}} \\
+  \qquad \hyperlink{command.show}{\mbox{\isa{\isacommand{show}}}}~\isa{thesis}~\hyperlink{command.using}{\mbox{\isa{\isacommand{using}}}}~\isa{{\isachardoublequote}{\isasymlangle}facts{\isasymrangle}\ {\isasymlangle}proof{\isasymrangle}{\isachardoublequote}} \\
+  \quad \hyperlink{command.qed}{\mbox{\isa{\isacommand{qed}}}} \\
+  \quad \hyperlink{command.fix}{\mbox{\isa{\isacommand{fix}}}}~\isa{{\isachardoublequote}\isactrlvec x{\isachardoublequote}}~\hyperlink{command.assume}{\mbox{\isa{\isacommand{assume}}}}~\isa{{\isachardoublequote}{\isasymguillemotleft}elimination\ case{\isasymguillemotright}\ \isactrlvec A\ \isactrlvec x{\isachardoublequote}} \\
+  \end{tabular}
+  \medskip
+
+  \[
+  \infer[(\hyperlink{inference.elimination}{\mbox{\isa{elimination}}})]{\isa{{\isachardoublequote}{\isasymGamma}\ {\isasymturnstile}\ B{\isachardoublequote}}}{
+    \begin{tabular}{rl}
+    \isa{{\isachardoublequote}case{\isacharcolon}{\isachardoublequote}} &
+    \isa{{\isachardoublequote}{\isasymGamma}\ {\isasymturnstile}\ {\isasymAnd}thesis{\isachardot}\ {\isacharparenleft}{\isasymAnd}\isactrlvec x{\isachardot}\ \isactrlvec A\ \isactrlvec x\ {\isasymLongrightarrow}\ thesis{\isacharparenright}\ {\isasymLongrightarrow}\ thesis{\isachardoublequote}} \\[0.2ex]
+    \isa{{\isachardoublequote}result{\isacharcolon}{\isachardoublequote}} &
+    \isa{{\isachardoublequote}{\isasymGamma}\ {\isasymunion}\ \isactrlvec A\ \isactrlvec y\ {\isasymturnstile}\ B{\isachardoublequote}} \\[0.2ex]
+    \end{tabular}}
+  \]
+
+  \noindent Here the name ``\isa{thesis}'' is a specific convention
+  for an arbitrary-but-fixed proposition; in the primitive natural
+  deduction rules shown before we have occasionally used \isa{C}.
+  The whole statement of ``\hyperlink{command.obtain}{\mbox{\isa{\isacommand{obtain}}}}~\isa{x}~\hyperlink{keyword.where}{\mbox{\isa{\isakeyword{where}}}}~\isa{{\isachardoublequote}A\ x{\isachardoublequote}}'' may be read as a claim that \isa{{\isachardoublequote}A\ x{\isachardoublequote}}
+  may be assumed for some arbitrary-but-fixed \isa{{\isachardoublequote}x{\isachardoublequote}}.  Also note
+  that ``\hyperlink{command.obtain}{\mbox{\isa{\isacommand{obtain}}}}~\isa{{\isachardoublequote}A\ {\isasymAND}\ B{\isachardoublequote}}'' without parameters
+  is similar to ``\hyperlink{command.have}{\mbox{\isa{\isacommand{have}}}}~\isa{{\isachardoublequote}A\ {\isasymAND}\ B{\isachardoublequote}}'', but the
+  latter involves multiple sub-goals.
+
+  \medskip The subsequent Isar proof texts explain all context
+  elements introduced above using the formal proof language itself.
+  After finishing a local proof within a block, we indicate the
+  exported result via \hyperlink{command.note}{\mbox{\isa{\isacommand{note}}}}.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isatagproof
+%
+\begin{minipage}[t]{0.4\textwidth}
+\ \ \isacommand{{\isacharbraceleft}}\isamarkupfalse%
+\isanewline
+\ \ \ \ \isacommand{fix}\isamarkupfalse%
+\ x\isanewline
+\ \ \ \ \isacommand{have}\isamarkupfalse%
+\ {\isachardoublequoteopen}B\ x{\isachardoublequoteclose}%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isadelimnoproof
+\ %
+\endisadelimnoproof
+%
+\isatagnoproof
+\isacommand{sorry}\isamarkupfalse%
+%
+\endisatagnoproof
+{\isafoldnoproof}%
+%
+\isadelimnoproof
+\isanewline
+%
+\endisadelimnoproof
+%
+\isadelimproof
+\ \ %
+\endisadelimproof
+%
+\isatagproof
+\isacommand{{\isacharbraceright}}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{note}\isamarkupfalse%
+\ {\isacharbackquoteopen}{\isasymAnd}x{\isachardot}\ B\ x{\isacharbackquoteclose}%
+\end{minipage}\quad\begin{minipage}[t]{0.4\textwidth}
+\ \ \isacommand{{\isacharbraceleft}}\isamarkupfalse%
+\isanewline
+\ \ \ \ \isacommand{assume}\isamarkupfalse%
+\ A\isanewline
+\ \ \ \ \isacommand{have}\isamarkupfalse%
+\ B%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isadelimnoproof
+\ %
+\endisadelimnoproof
+%
+\isatagnoproof
+\isacommand{sorry}\isamarkupfalse%
+%
+\endisatagnoproof
+{\isafoldnoproof}%
+%
+\isadelimnoproof
+\isanewline
+%
+\endisadelimnoproof
+%
+\isadelimproof
+\ \ %
+\endisadelimproof
+%
+\isatagproof
+\isacommand{{\isacharbraceright}}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{note}\isamarkupfalse%
+\ {\isacharbackquoteopen}A\ {\isasymLongrightarrow}\ B{\isacharbackquoteclose}%
+\end{minipage}\\[3ex]\begin{minipage}[t]{0.4\textwidth}
+\ \ \isacommand{{\isacharbraceleft}}\isamarkupfalse%
+\isanewline
+\ \ \ \ \isacommand{def}\isamarkupfalse%
+\ x\ {\isasymequiv}\ a\isanewline
+\ \ \ \ \isacommand{have}\isamarkupfalse%
+\ {\isachardoublequoteopen}B\ x{\isachardoublequoteclose}%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isadelimnoproof
+\ %
+\endisadelimnoproof
+%
+\isatagnoproof
+\isacommand{sorry}\isamarkupfalse%
+%
+\endisatagnoproof
+{\isafoldnoproof}%
+%
+\isadelimnoproof
+\isanewline
+%
+\endisadelimnoproof
+%
+\isadelimproof
+\ \ %
+\endisadelimproof
+%
+\isatagproof
+\isacommand{{\isacharbraceright}}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{note}\isamarkupfalse%
+\ {\isacharbackquoteopen}B\ a{\isacharbackquoteclose}%
+\end{minipage}\quad\begin{minipage}[t]{0.4\textwidth}
+\ \ \isacommand{{\isacharbraceleft}}\isamarkupfalse%
+\isanewline
+\ \ \ \ \isacommand{obtain}\isamarkupfalse%
+\ x\ \isakeyword{where}\ {\isachardoublequoteopen}A\ x{\isachardoublequoteclose}%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isadelimnoproof
+\ %
+\endisadelimnoproof
+%
+\isatagnoproof
+\isacommand{sorry}\isamarkupfalse%
+%
+\endisatagnoproof
+{\isafoldnoproof}%
+%
+\isadelimnoproof
+\isanewline
+%
+\endisadelimnoproof
+%
+\isadelimproof
+\ \ \ \ %
+\endisadelimproof
+%
+\isatagproof
+\isacommand{have}\isamarkupfalse%
+\ B%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isadelimnoproof
+\ %
+\endisadelimnoproof
+%
+\isatagnoproof
+\isacommand{sorry}\isamarkupfalse%
+%
+\endisatagnoproof
+{\isafoldnoproof}%
+%
+\isadelimnoproof
+\isanewline
+%
+\endisadelimnoproof
+%
+\isadelimproof
+\ \ %
+\endisadelimproof
+%
+\isatagproof
+\isacommand{{\isacharbraceright}}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{note}\isamarkupfalse%
+\ {\isacharbackquoteopen}B{\isacharbackquoteclose}%
+\end{minipage}
+%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\begin{isamarkuptext}%
+\bigskip\noindent This illustrates the meaning of Isar context
+  elements without goals getting in between.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsubsection{Structured statements \label{sec:framework-stmt}%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+The category \isa{{\isachardoublequote}statement{\isachardoublequote}} of top-level theorem specifications
+  is defined as follows:
+
+  \medskip
+  \begin{tabular}{rcl}
+  \isa{{\isachardoublequote}statement{\isachardoublequote}} & \isa{{\isachardoublequote}{\isasymequiv}{\isachardoublequote}} & \isa{{\isachardoublequote}name{\isacharcolon}\ props\ {\isasymAND}\ {\isasymdots}{\isachardoublequote}} \\
+  & \isa{{\isachardoublequote}{\isacharbar}{\isachardoublequote}} & \isa{{\isachardoublequote}context\isactrlsup {\isacharasterisk}\ conclusion{\isachardoublequote}} \\[0.5ex]
+
+  \isa{{\isachardoublequote}context{\isachardoublequote}} & \isa{{\isachardoublequote}{\isasymequiv}{\isachardoublequote}} & \isa{{\isachardoublequote}{\isasymFIXES}\ vars\ {\isasymAND}\ {\isasymdots}{\isachardoublequote}} \\
+  & \isa{{\isachardoublequote}{\isacharbar}{\isachardoublequote}} & \isa{{\isachardoublequote}{\isasymASSUMES}\ name{\isacharcolon}\ props\ {\isasymAND}\ {\isasymdots}{\isachardoublequote}} \\
+
+  \isa{{\isachardoublequote}conclusion{\isachardoublequote}} & \isa{{\isachardoublequote}{\isasymequiv}{\isachardoublequote}} & \isa{{\isachardoublequote}{\isasymSHOWS}\ name{\isacharcolon}\ props\ {\isasymAND}\ {\isasymdots}{\isachardoublequote}} \\
+  & \isa{{\isachardoublequote}{\isacharbar}{\isachardoublequote}} & \isa{{\isachardoublequote}{\isasymOBTAINS}\ vars\ {\isasymAND}\ {\isasymdots}\ {\isasymWHERE}\ name{\isacharcolon}\ props\ {\isasymAND}\ {\isasymdots}{\isachardoublequote}} \\
+  & & \quad \isa{{\isachardoublequote}{\isasymBBAR}\ {\isasymdots}{\isachardoublequote}} \\
+  \end{tabular}
+
+  \medskip\noindent A simple \isa{{\isachardoublequote}statement{\isachardoublequote}} consists of named
+  propositions.  The full form admits local context elements followed
+  by the actual conclusions, such as ``\hyperlink{keyword.fixes}{\mbox{\isa{\isakeyword{fixes}}}}~\isa{x}~\hyperlink{keyword.assumes}{\mbox{\isa{\isakeyword{assumes}}}}~\isa{{\isachardoublequote}A\ x{\isachardoublequote}}~\hyperlink{keyword.shows}{\mbox{\isa{\isakeyword{shows}}}}~\isa{{\isachardoublequote}B\ x{\isachardoublequote}}''.  The final result emerges as a Pure rule after discharging
+  the context: \isa{{\isachardoublequote}{\isasymAnd}x{\isachardot}\ A\ x\ {\isasymLongrightarrow}\ B\ x{\isachardoublequote}}.
+
+  The \hyperlink{keyword.obtains}{\mbox{\isa{\isakeyword{obtains}}}} variant is another abbreviation defined
+  below; unlike \hyperlink{command.obtain}{\mbox{\isa{\isacommand{obtain}}}} (cf.\
+  \secref{sec:framework-context}) there may be several ``cases''
+  separated by ``\isa{{\isachardoublequote}{\isasymBBAR}{\isachardoublequote}}'', each consisting of several
+  parameters (\isa{{\isachardoublequote}vars{\isachardoublequote}}) and several premises (\isa{{\isachardoublequote}props{\isachardoublequote}}).
+  This specifies multi-branch elimination rules.
+
+  \medskip
+  \begin{tabular}{l}
+  \isa{{\isachardoublequote}{\isasymOBTAINS}\ \isactrlvec x\ {\isasymWHERE}\ \isactrlvec A\ \isactrlvec x\ \ \ {\isasymBBAR}\ \ \ {\isasymdots}\ \ \ {\isasymequiv}{\isachardoublequote}} \\[0.5ex]
+  \quad \isa{{\isachardoublequote}{\isasymFIXES}\ thesis{\isachardoublequote}} \\
+  \quad \isa{{\isachardoublequote}{\isasymASSUMES}\ {\isacharbrackleft}intro{\isacharbrackright}{\isacharcolon}\ {\isasymAnd}\isactrlvec x{\isachardot}\ \isactrlvec A\ \isactrlvec x\ {\isasymLongrightarrow}\ thesis\ \ {\isasymAND}\ \ {\isasymdots}{\isachardoublequote}} \\
+  \quad \isa{{\isachardoublequote}{\isasymSHOWS}\ thesis{\isachardoublequote}} \\
+  \end{tabular}
+  \medskip
+
+  Presenting structured statements in such an ``open'' format usually
+  simplifies the subsequent proof, because the outer structure of the
+  problem is already laid out directly.  E.g.\ consider the following
+  canonical patterns for \isa{{\isachardoublequote}{\isasymSHOWS}{\isachardoublequote}} and \isa{{\isachardoublequote}{\isasymOBTAINS}{\isachardoublequote}},
+  respectively:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\begin{minipage}{0.5\textwidth}
+\isacommand{theorem}\isamarkupfalse%
+\isanewline
+\ \ \isakeyword{fixes}\ x\ \isakeyword{and}\ y\isanewline
+\ \ \isakeyword{assumes}\ {\isachardoublequoteopen}A\ x{\isachardoublequoteclose}\ \isakeyword{and}\ {\isachardoublequoteopen}B\ y{\isachardoublequoteclose}\isanewline
+\ \ \isakeyword{shows}\ {\isachardoublequoteopen}C\ x\ y{\isachardoublequoteclose}\isanewline
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isatagproof
+\isacommand{proof}\isamarkupfalse%
+\ {\isacharminus}\isanewline
+\ \ \isacommand{from}\isamarkupfalse%
+\ {\isacharbackquoteopen}A\ x{\isacharbackquoteclose}\ \isakeyword{and}\ {\isacharbackquoteopen}B\ y{\isacharbackquoteclose}\isanewline
+\ \ \isacommand{show}\isamarkupfalse%
+\ {\isachardoublequoteopen}C\ x\ y{\isachardoublequoteclose}%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isadelimnoproof
+\ %
+\endisadelimnoproof
+%
+\isatagnoproof
+\isacommand{sorry}\isamarkupfalse%
+%
+\endisatagnoproof
+{\isafoldnoproof}%
+%
+\isadelimnoproof
+\isanewline
+%
+\endisadelimnoproof
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isatagproof
+\isacommand{qed}\isamarkupfalse%
+%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\end{minipage}\begin{minipage}{0.5\textwidth}
+\isacommand{theorem}\isamarkupfalse%
+\isanewline
+\ \ \isakeyword{obtains}\ x\ \isakeyword{and}\ y\isanewline
+\ \ \isakeyword{where}\ {\isachardoublequoteopen}A\ x{\isachardoublequoteclose}\ \isakeyword{and}\ {\isachardoublequoteopen}B\ y{\isachardoublequoteclose}\isanewline
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isatagproof
+\isacommand{proof}\isamarkupfalse%
+\ {\isacharminus}\isanewline
+\ \ \isacommand{have}\isamarkupfalse%
+\ {\isachardoublequoteopen}A\ a{\isachardoublequoteclose}\ \isakeyword{and}\ {\isachardoublequoteopen}B\ b{\isachardoublequoteclose}%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isadelimnoproof
+\ %
+\endisadelimnoproof
+%
+\isatagnoproof
+\isacommand{sorry}\isamarkupfalse%
+%
+\endisatagnoproof
+{\isafoldnoproof}%
+%
+\isadelimnoproof
+\isanewline
+%
+\endisadelimnoproof
+%
+\isadelimproof
+\ \ %
+\endisadelimproof
+%
+\isatagproof
+\isacommand{then}\isamarkupfalse%
+\ \isacommand{show}\isamarkupfalse%
+\ thesis\ \isacommand{{\isachardot}{\isachardot}}\isamarkupfalse%
+\isanewline
+\isacommand{qed}\isamarkupfalse%
+%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\end{minipage}
+%
+\begin{isamarkuptext}%
+\medskip\noindent Here local facts \isacharbackquoteopen\isa{{\isachardoublequote}A\ x{\isachardoublequote}}\isacharbackquoteclose\ and \isacharbackquoteopen\isa{{\isachardoublequote}B\ y{\isachardoublequote}}\isacharbackquoteclose\ are referenced immediately; there is no
+  need to decompose the logical rule structure again.  In the second
+  proof the final ``\hyperlink{command.then}{\mbox{\isa{\isacommand{then}}}}~\hyperlink{command.show}{\mbox{\isa{\isacommand{show}}}}~\isa{thesis}~\hyperlink{command.ddot}{\mbox{\isa{\isacommand{{\isachardot}{\isachardot}}}}}''  involves the local rule case \isa{{\isachardoublequote}{\isasymAnd}x\ y{\isachardot}\ A\ x\ {\isasymLongrightarrow}\ B\ y\ {\isasymLongrightarrow}\ thesis{\isachardoublequote}} for the particular instance of terms \isa{{\isachardoublequote}a{\isachardoublequote}} and \isa{{\isachardoublequote}b{\isachardoublequote}} produced in the body.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsubsection{Structured proof refinement \label{sec:framework-subproof}%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+By breaking up the grammar for the Isar proof language, we may
+  understand a proof text as a linear sequence of individual proof
+  commands.  These are interpreted as transitions of the Isar virtual
+  machine (Isar/VM), which operates on a block-structured
+  configuration in single steps.  This allows users to write proof
+  texts in an incremental manner, and inspect intermediate
+  configurations for debugging.
+
+  The basic idea is analogous to evaluating algebraic expressions on a
+  stack machine: \isa{{\isachardoublequote}{\isacharparenleft}a\ {\isacharplus}\ b{\isacharparenright}\ {\isasymcdot}\ c{\isachardoublequote}} then corresponds to a sequence
+  of single transitions for each symbol \isa{{\isachardoublequote}{\isacharparenleft}{\isacharcomma}\ a{\isacharcomma}\ {\isacharplus}{\isacharcomma}\ b{\isacharcomma}\ {\isacharparenright}{\isacharcomma}\ {\isasymcdot}{\isacharcomma}\ c{\isachardoublequote}}.
+  In Isar the algebraic values are facts or goals, and the operations
+  are inferences.
+
+  \medskip The Isar/VM state maintains a stack of nodes, each node
+  contains the local proof context, the linguistic mode, and a pending
+  goal (optional).  The mode determines the type of transition that
+  may be performed next, it essentially alternates between forward and
+  backward reasoning, with an intermediate stage for chained facts
+  (see \figref{fig:isar-vm}).
+
+  \begin{figure}[htb]
+  \begin{center}
+  \includegraphics[width=0.8\textwidth]{Thy/document/isar-vm}
+  \end{center}
+  \caption{Isar/VM modes}\label{fig:isar-vm}
+  \end{figure}
+
+  For example, in \isa{{\isachardoublequote}state{\isachardoublequote}} mode Isar acts like a mathematical
+  scratch-pad, accepting declarations like \hyperlink{command.fix}{\mbox{\isa{\isacommand{fix}}}}, \hyperlink{command.assume}{\mbox{\isa{\isacommand{assume}}}}, and claims like \hyperlink{command.have}{\mbox{\isa{\isacommand{have}}}}, \hyperlink{command.show}{\mbox{\isa{\isacommand{show}}}}.  A goal
+  statement changes the mode to \isa{{\isachardoublequote}prove{\isachardoublequote}}, which means that we
+  may now refine the problem via \hyperlink{command.unfolding}{\mbox{\isa{\isacommand{unfolding}}}} or \hyperlink{command.proof}{\mbox{\isa{\isacommand{proof}}}}.  Then we are again in \isa{{\isachardoublequote}state{\isachardoublequote}} mode of a proof body,
+  which may issue \hyperlink{command.show}{\mbox{\isa{\isacommand{show}}}} statements to solve pending
+  sub-goals.  A concluding \hyperlink{command.qed}{\mbox{\isa{\isacommand{qed}}}} will return to the original
+  \isa{{\isachardoublequote}state{\isachardoublequote}} mode one level upwards.  The subsequent Isar/VM
+  trace indicates block structure, linguistic mode, goal state, and
+  inferences:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\begingroup\footnotesize
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isatagproof
+%
+\begin{minipage}[t]{0.18\textwidth}
+\ \ \isacommand{have}\isamarkupfalse%
+\ {\isachardoublequoteopen}A\ {\isasymlongrightarrow}\ B{\isachardoublequoteclose}\isanewline
+\ \ \isacommand{proof}\isamarkupfalse%
+\isanewline
+\ \ \ \ \isacommand{assume}\isamarkupfalse%
+\ A\isanewline
+\ \ \ \ \isacommand{show}\isamarkupfalse%
+\ B%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+\isanewline
+%
+\endisadelimproof
+%
+\isadelimnoproof
+\ \ \ \ \ \ %
+\endisadelimnoproof
+%
+\isatagnoproof
+\isacommand{sorry}\isamarkupfalse%
+%
+\endisatagnoproof
+{\isafoldnoproof}%
+%
+\isadelimnoproof
+\isanewline
+%
+\endisadelimnoproof
+%
+\isadelimproof
+\ \ %
+\endisadelimproof
+%
+\isatagproof
+\isacommand{qed}\isamarkupfalse%
+%
+\end{minipage}\quad
+\begin{minipage}[t]{0.06\textwidth}
+\isa{{\isachardoublequote}begin{\isachardoublequote}} \\
+\\
+\\
+\isa{{\isachardoublequote}begin{\isachardoublequote}} \\
+\isa{{\isachardoublequote}end{\isachardoublequote}} \\
+\isa{{\isachardoublequote}end{\isachardoublequote}} \\
+\end{minipage}
+\begin{minipage}[t]{0.08\textwidth}
+\isa{{\isachardoublequote}prove{\isachardoublequote}} \\
+\isa{{\isachardoublequote}state{\isachardoublequote}} \\
+\isa{{\isachardoublequote}state{\isachardoublequote}} \\
+\isa{{\isachardoublequote}prove{\isachardoublequote}} \\
+\isa{{\isachardoublequote}state{\isachardoublequote}} \\
+\isa{{\isachardoublequote}state{\isachardoublequote}} \\
+\end{minipage}\begin{minipage}[t]{0.35\textwidth}
+\isa{{\isachardoublequote}{\isacharparenleft}A\ {\isasymlongrightarrow}\ B{\isacharparenright}\ {\isasymLongrightarrow}\ {\isacharhash}{\isacharparenleft}A\ {\isasymlongrightarrow}\ B{\isacharparenright}{\isachardoublequote}} \\
+\isa{{\isachardoublequote}{\isacharparenleft}A\ {\isasymLongrightarrow}\ B{\isacharparenright}\ {\isasymLongrightarrow}\ {\isacharhash}{\isacharparenleft}A\ {\isasymlongrightarrow}\ B{\isacharparenright}{\isachardoublequote}} \\
+\\
+\\
+\isa{{\isachardoublequote}{\isacharhash}{\isacharparenleft}A\ {\isasymlongrightarrow}\ B{\isacharparenright}{\isachardoublequote}} \\
+\isa{{\isachardoublequote}A\ {\isasymlongrightarrow}\ B{\isachardoublequote}} \\
+\end{minipage}\begin{minipage}[t]{0.4\textwidth}
+\isa{{\isachardoublequote}{\isacharparenleft}init{\isacharparenright}{\isachardoublequote}} \\
+\isa{{\isachardoublequote}{\isacharparenleft}resolution\ impI{\isacharparenright}{\isachardoublequote}} \\
+\\
+\\
+\isa{{\isachardoublequote}{\isacharparenleft}refinement\ {\isacharhash}A\ {\isasymLongrightarrow}\ B{\isacharparenright}{\isachardoublequote}} \\
+\isa{{\isachardoublequote}{\isacharparenleft}finish{\isacharparenright}{\isachardoublequote}} \\
+\end{minipage}
+%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\endgroup
+%
+\begin{isamarkuptext}%
+\noindent Here the \hyperlink{inference.refinement}{\mbox{\isa{refinement}}} inference from
+  \secref{sec:framework-resolution} mediates composition of Isar
+  sub-proofs nicely.  Observe that this principle incorporates some
+  degree of freedom in proof composition.  In particular, the proof
+  body allows parameters and assumptions to be re-ordered, or commuted
+  according to Hereditary Harrop Form.  Moreover, context elements
+  that are not used in a sub-proof may be omitted altogether.  For
+  example:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\begin{minipage}{0.5\textwidth}
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isatagproof
+\ \ \isacommand{have}\isamarkupfalse%
+\ {\isachardoublequoteopen}{\isasymAnd}x\ y{\isachardot}\ A\ x\ {\isasymLongrightarrow}\ B\ y\ {\isasymLongrightarrow}\ C\ x\ y{\isachardoublequoteclose}\isanewline
+\ \ \isacommand{proof}\isamarkupfalse%
+\ {\isacharminus}\isanewline
+\ \ \ \ \isacommand{fix}\isamarkupfalse%
+\ x\ \isakeyword{and}\ y\isanewline
+\ \ \ \ \isacommand{assume}\isamarkupfalse%
+\ {\isachardoublequoteopen}A\ x{\isachardoublequoteclose}\ \isakeyword{and}\ {\isachardoublequoteopen}B\ y{\isachardoublequoteclose}\isanewline
+\ \ \ \ \isacommand{show}\isamarkupfalse%
+\ {\isachardoublequoteopen}C\ x\ y{\isachardoublequoteclose}%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isadelimnoproof
+\ %
+\endisadelimnoproof
+%
+\isatagnoproof
+\isacommand{sorry}\isamarkupfalse%
+%
+\endisatagnoproof
+{\isafoldnoproof}%
+%
+\isadelimnoproof
+\isanewline
+%
+\endisadelimnoproof
+%
+\isadelimproof
+\ \ %
+\endisadelimproof
+%
+\isatagproof
+\isacommand{qed}\isamarkupfalse%
+%
+\end{minipage}\begin{minipage}{0.5\textwidth}
+\ \ \isacommand{have}\isamarkupfalse%
+\ {\isachardoublequoteopen}{\isasymAnd}x\ y{\isachardot}\ A\ x\ {\isasymLongrightarrow}\ B\ y\ {\isasymLongrightarrow}\ C\ x\ y{\isachardoublequoteclose}\isanewline
+\ \ \isacommand{proof}\isamarkupfalse%
+\ {\isacharminus}\isanewline
+\ \ \ \ \isacommand{fix}\isamarkupfalse%
+\ x\ \isacommand{assume}\isamarkupfalse%
+\ {\isachardoublequoteopen}A\ x{\isachardoublequoteclose}\isanewline
+\ \ \ \ \isacommand{fix}\isamarkupfalse%
+\ y\ \isacommand{assume}\isamarkupfalse%
+\ {\isachardoublequoteopen}B\ y{\isachardoublequoteclose}\isanewline
+\ \ \ \ \isacommand{show}\isamarkupfalse%
+\ {\isachardoublequoteopen}C\ x\ y{\isachardoublequoteclose}%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isadelimnoproof
+\ %
+\endisadelimnoproof
+%
+\isatagnoproof
+\isacommand{sorry}\isamarkupfalse%
+%
+\endisatagnoproof
+{\isafoldnoproof}%
+%
+\isadelimnoproof
+\isanewline
+%
+\endisadelimnoproof
+%
+\isadelimproof
+\ \ %
+\endisadelimproof
+%
+\isatagproof
+\isacommand{qed}\isamarkupfalse%
+%
+\end{minipage}\\[3ex]\begin{minipage}{0.5\textwidth}
+\ \ \isacommand{have}\isamarkupfalse%
+\ {\isachardoublequoteopen}{\isasymAnd}x\ y{\isachardot}\ A\ x\ {\isasymLongrightarrow}\ B\ y\ {\isasymLongrightarrow}\ C\ x\ y{\isachardoublequoteclose}\isanewline
+\ \ \isacommand{proof}\isamarkupfalse%
+\ {\isacharminus}\isanewline
+\ \ \ \ \isacommand{fix}\isamarkupfalse%
+\ y\ \isacommand{assume}\isamarkupfalse%
+\ {\isachardoublequoteopen}B\ y{\isachardoublequoteclose}\isanewline
+\ \ \ \ \isacommand{fix}\isamarkupfalse%
+\ x\ \isacommand{assume}\isamarkupfalse%
+\ {\isachardoublequoteopen}A\ x{\isachardoublequoteclose}\isanewline
+\ \ \ \ \isacommand{show}\isamarkupfalse%
+\ {\isachardoublequoteopen}C\ x\ y{\isachardoublequoteclose}\ \isacommand{sorry}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{qed}\isamarkupfalse%
+%
+\end{minipage}\begin{minipage}{0.5\textwidth}
+\ \ \isacommand{have}\isamarkupfalse%
+\ {\isachardoublequoteopen}{\isasymAnd}x\ y{\isachardot}\ A\ x\ {\isasymLongrightarrow}\ B\ y\ {\isasymLongrightarrow}\ C\ x\ y{\isachardoublequoteclose}\isanewline
+\ \ \isacommand{proof}\isamarkupfalse%
+\ {\isacharminus}\isanewline
+\ \ \ \ \isacommand{fix}\isamarkupfalse%
+\ y\ \isacommand{assume}\isamarkupfalse%
+\ {\isachardoublequoteopen}B\ y{\isachardoublequoteclose}\isanewline
+\ \ \ \ \isacommand{fix}\isamarkupfalse%
+\ x\isanewline
+\ \ \ \ \isacommand{show}\isamarkupfalse%
+\ {\isachardoublequoteopen}C\ x\ y{\isachardoublequoteclose}\ \isacommand{sorry}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{qed}\isamarkupfalse%
+%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\end{minipage}
+%
+\begin{isamarkuptext}%
+\medskip\noindent Such ``peephole optimizations'' of Isar texts are
+  practically important to improve readability, by rearranging
+  contexts elements according to the natural flow of reasoning in the
+  body, while still observing the overall scoping rules.
+
+  \medskip This illustrates the basic idea of structured proof
+  processing in Isar.  The main mechanisms are based on natural
+  deduction rule composition within the Pure framework.  In
+  particular, there are no direct operations on goal states within the
+  proof body.  Moreover, there is no hidden automated reasoning
+  involved, just plain unification.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsubsection{Calculational reasoning \label{sec:framework-calc}%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+The existing Isar infrastructure is sufficiently flexible to support
+  calculational reasoning (chains of transitivity steps) as derived
+  concept.  The generic proof elements introduced below depend on
+  rules declared as \hyperlink{attribute.trans}{\mbox{\isa{trans}}} in the context.  It is left to
+  the object-logic to provide a suitable rule collection for mixed
+  relations of \isa{{\isachardoublequote}{\isacharequal}{\isachardoublequote}}, \isa{{\isachardoublequote}{\isacharless}{\isachardoublequote}}, \isa{{\isachardoublequote}{\isasymle}{\isachardoublequote}}, \isa{{\isachardoublequote}{\isasymsubset}{\isachardoublequote}},
+  \isa{{\isachardoublequote}{\isasymsubseteq}{\isachardoublequote}} etc.  Due to the flexibility of rule composition
+  (\secref{sec:framework-resolution}), substitution of equals by
+  equals is covered as well, even substitution of inequalities
+  involving monotonicity conditions; see also \cite[\S6]{Wenzel-PhD}
+  and \cite{Bauer-Wenzel:2001}.
+
+  The generic calculational mechanism is based on the observation that
+  rules such as \isa{{\isachardoublequote}trans{\isacharcolon}{\isachardoublequote}}~\isa{{\isachardoublequote}x\ {\isacharequal}\ y\ {\isasymLongrightarrow}\ y\ {\isacharequal}\ z\ {\isasymLongrightarrow}\ x\ {\isacharequal}\ z{\isachardoublequote}}
+  proceed from the premises towards the conclusion in a deterministic
+  fashion.  Thus we may reason in forward mode, feeding intermediate
+  results into rules selected from the context.  The course of
+  reasoning is organized by maintaining a secondary fact called
+  ``\hyperlink{fact.calculation}{\mbox{\isa{calculation}}}'', apart from the primary ``\hyperlink{fact.this}{\mbox{\isa{this}}}''
+  already provided by the Isar primitives.  In the definitions below,
+  \hyperlink{attribute.OF}{\mbox{\isa{OF}}} refers to \hyperlink{inference.resolution}{\mbox{\isa{resolution}}}
+  (\secref{sec:framework-resolution}) with multiple rule arguments,
+  and \isa{{\isachardoublequote}trans{\isachardoublequote}} represents to a suitable rule from the context:
+
+  \begin{matharray}{rcl}
+    \hyperlink{command.also}{\mbox{\isa{\isacommand{also}}}}\isa{{\isachardoublequote}\isactrlsub {\isadigit{0}}{\isachardoublequote}} & \equiv & \hyperlink{command.note}{\mbox{\isa{\isacommand{note}}}}~\isa{{\isachardoublequote}calculation\ {\isacharequal}\ this{\isachardoublequote}} \\
+    \hyperlink{command.also}{\mbox{\isa{\isacommand{also}}}}\isa{{\isachardoublequote}\isactrlsub n\isactrlsub {\isacharplus}\isactrlsub {\isadigit{1}}{\isachardoublequote}} & \equiv & \hyperlink{command.note}{\mbox{\isa{\isacommand{note}}}}~\isa{{\isachardoublequote}calculation\ {\isacharequal}\ trans\ {\isacharbrackleft}OF\ calculation\ this{\isacharbrackright}{\isachardoublequote}} \\[0.5ex]
+    \hyperlink{command.finally}{\mbox{\isa{\isacommand{finally}}}} & \equiv & \hyperlink{command.also}{\mbox{\isa{\isacommand{also}}}}~\hyperlink{command.from}{\mbox{\isa{\isacommand{from}}}}~\isa{calculation} \\
+  \end{matharray}
+
+  \noindent The start of a calculation is determined implicitly in the
+  text: here \hyperlink{command.also}{\mbox{\isa{\isacommand{also}}}} sets \hyperlink{fact.calculation}{\mbox{\isa{calculation}}} to the current
+  result; any subsequent occurrence will update \hyperlink{fact.calculation}{\mbox{\isa{calculation}}} by
+  combination with the next result and a transitivity rule.  The
+  calculational sequence is concluded via \hyperlink{command.finally}{\mbox{\isa{\isacommand{finally}}}}, where
+  the final result is exposed for use in a concluding claim.
+
+  Here is a canonical proof pattern, using \hyperlink{command.have}{\mbox{\isa{\isacommand{have}}}} to
+  establish the intermediate results:%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isatagproof
+\ \ \isacommand{have}\isamarkupfalse%
+\ {\isachardoublequoteopen}a\ {\isacharequal}\ b{\isachardoublequoteclose}\ \isacommand{sorry}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{also}\isamarkupfalse%
+\ \isacommand{have}\isamarkupfalse%
+\ {\isachardoublequoteopen}{\isasymdots}\ {\isacharequal}\ c{\isachardoublequoteclose}\ \isacommand{sorry}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{also}\isamarkupfalse%
+\ \isacommand{have}\isamarkupfalse%
+\ {\isachardoublequoteopen}{\isasymdots}\ {\isacharequal}\ d{\isachardoublequoteclose}\ \isacommand{sorry}\isamarkupfalse%
+\isanewline
+\ \ \isacommand{finally}\isamarkupfalse%
+\ \isacommand{have}\isamarkupfalse%
+\ {\isachardoublequoteopen}a\ {\isacharequal}\ d{\isachardoublequoteclose}\ \isacommand{{\isachardot}}\isamarkupfalse%
+%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\begin{isamarkuptext}%
+\noindent The term ``\isa{{\isachardoublequote}{\isasymdots}{\isachardoublequote}}'' above is a special abbreviation
+  provided by the Isabelle/Isar syntax layer: it statically refers to
+  the right-hand side argument of the previous statement given in the
+  text.  Thus it happens to coincide with relevant sub-expressions in
+  the calculational chain, but the exact correspondence is dependent
+  on the transitivity rules being involved.
+
+  \medskip Symmetry rules such as \isa{{\isachardoublequote}x\ {\isacharequal}\ y\ {\isasymLongrightarrow}\ y\ {\isacharequal}\ x{\isachardoublequote}} are like
+  transitivities with only one premise.  Isar maintains a separate
+  rule collection declared via the \hyperlink{attribute.sym}{\mbox{\isa{sym}}} attribute, to be
+  used in fact expressions ``\isa{{\isachardoublequote}a\ {\isacharbrackleft}symmetric{\isacharbrackright}{\isachardoublequote}}'', or single-step
+  proofs ``\hyperlink{command.assume}{\mbox{\isa{\isacommand{assume}}}}~\isa{{\isachardoublequote}x\ {\isacharequal}\ y{\isachardoublequote}}~\hyperlink{command.then}{\mbox{\isa{\isacommand{then}}}}~\hyperlink{command.have}{\mbox{\isa{\isacommand{have}}}}~\isa{{\isachardoublequote}y\ {\isacharequal}\ x{\isachardoublequote}}~\hyperlink{command.ddot}{\mbox{\isa{\isacommand{{\isachardot}{\isachardot}}}}}''.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isadelimtheory
+%
+\endisadelimtheory
+%
+\isatagtheory
+\isacommand{end}\isamarkupfalse%
+%
+\endisatagtheory
+{\isafoldtheory}%
+%
+\isadelimtheory
+%
+\endisadelimtheory
+\end{isabellebody}%
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "root"
+%%% End:

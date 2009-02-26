@@ -3,8 +3,6 @@
 \def\isabellecontext{Inner{\isacharunderscore}Syntax}%
 %
 \isadelimtheory
-\isanewline
-\isanewline
 %
 \endisadelimtheory
 %
@@ -392,7 +390,7 @@ Mixfix annotations specify concrete \emph{inner syntax} of
   \end{matharray}
 
   \begin{rail}
-    ('notation' | 'no\_notation') target? mode? (nameref structmixfix + 'and')
+    ('notation' | 'no\_notation') target? mode? \\ (nameref structmixfix + 'and')
     ;
   \end{rail}
 
@@ -551,13 +549,15 @@ The priority grammar of the \isa{{\isachardoublequote}Pure{\isachardoublequote}}
     & \isa{{\isachardoublequote}{\isacharbar}{\isachardoublequote}} & \isa{{\isachardoublequote}tid\ \ {\isacharbar}\ \ tvar\ \ {\isacharbar}\ \ {\isachardoublequote}}\verb|_| \\
     & \isa{{\isachardoublequote}{\isacharbar}{\isachardoublequote}} & \isa{{\isachardoublequote}tid{\isachardoublequote}} \verb|::| \isa{{\isachardoublequote}sort\ \ {\isacharbar}\ \ tvar\ \ {\isachardoublequote}}\verb|::| \isa{{\isachardoublequote}sort\ \ {\isacharbar}\ \ {\isachardoublequote}}\verb|_| \verb|::| \isa{{\isachardoublequote}sort{\isachardoublequote}} \\
     & \isa{{\isachardoublequote}{\isacharbar}{\isachardoublequote}} & \isa{{\isachardoublequote}id\ \ {\isacharbar}\ \ type\isactrlsup {\isacharparenleft}\isactrlsup {\isadigit{1}}\isactrlsup {\isadigit{0}}\isactrlsup {\isadigit{0}}\isactrlsup {\isadigit{0}}\isactrlsup {\isacharparenright}\ id\ \ {\isacharbar}\ \ {\isachardoublequote}}\verb|(| \isa{type} \verb|,| \isa{{\isachardoublequote}{\isasymdots}{\isachardoublequote}} \verb|,| \isa{type} \verb|)| \isa{id} \\
-    & \isa{{\isachardoublequote}{\isacharbar}{\isachardoublequote}} & \isa{{\isachardoublequote}longid\ \ {\isacharbar}\ \ type\isactrlsup {\isacharparenleft}\isactrlsup {\isadigit{1}}\isactrlsup {\isadigit{0}}\isactrlsup {\isadigit{0}}\isactrlsup {\isadigit{0}}\isactrlsup {\isacharparenright}\ longid\ \ {\isacharbar}\ \ {\isachardoublequote}}\verb|(| \isa{type} \verb|,| \isa{{\isachardoublequote}{\isasymdots}{\isachardoublequote}} \verb|,| \isa{type} \verb|)| \isa{longid} \\
+    & \isa{{\isachardoublequote}{\isacharbar}{\isachardoublequote}} & \isa{{\isachardoublequote}longid\ \ {\isacharbar}\ \ type\isactrlsup {\isacharparenleft}\isactrlsup {\isadigit{1}}\isactrlsup {\isadigit{0}}\isactrlsup {\isadigit{0}}\isactrlsup {\isadigit{0}}\isactrlsup {\isacharparenright}\ longid{\isachardoublequote}} \\
+    & \isa{{\isachardoublequote}{\isacharbar}{\isachardoublequote}} & \verb|(| \isa{type} \verb|,| \isa{{\isachardoublequote}{\isasymdots}{\isachardoublequote}} \verb|,| \isa{type} \verb|)| \isa{longid} \\
     & \isa{{\isachardoublequote}{\isacharbar}{\isachardoublequote}} & \isa{{\isachardoublequote}type\isactrlsup {\isacharparenleft}\isactrlsup {\isadigit{1}}\isactrlsup {\isacharparenright}{\isachardoublequote}} \verb|=>| \isa{type} & \isa{{\isachardoublequote}{\isacharparenleft}{\isadigit{0}}{\isacharparenright}{\isachardoublequote}} \\
     & \isa{{\isachardoublequote}{\isacharbar}{\isachardoublequote}} & \isa{{\isachardoublequote}type\isactrlsup {\isacharparenleft}\isactrlsup {\isadigit{1}}\isactrlsup {\isacharparenright}{\isachardoublequote}} \isa{{\isachardoublequote}{\isasymRightarrow}{\isachardoublequote}} \isa{type} & \isa{{\isachardoublequote}{\isacharparenleft}{\isadigit{0}}{\isacharparenright}{\isachardoublequote}} \\
     & \isa{{\isachardoublequote}{\isacharbar}{\isachardoublequote}} & \verb|[| \isa{type} \verb|,| \isa{{\isachardoublequote}{\isasymdots}{\isachardoublequote}} \verb|,| \isa{type} \verb|]| \verb|=>| \isa{type} & \isa{{\isachardoublequote}{\isacharparenleft}{\isadigit{0}}{\isacharparenright}{\isachardoublequote}} \\
     & \isa{{\isachardoublequote}{\isacharbar}{\isachardoublequote}} & \verb|[| \isa{type} \verb|,| \isa{{\isachardoublequote}{\isasymdots}{\isachardoublequote}} \verb|,| \isa{type} \verb|]| \isa{{\isachardoublequote}{\isasymRightarrow}{\isachardoublequote}} \isa{type} & \isa{{\isachardoublequote}{\isacharparenleft}{\isadigit{0}}{\isacharparenright}{\isachardoublequote}} \\\\
 
-  \indexdef{inner}{syntax}{sort}\hypertarget{syntax.inner.sort}{\hyperlink{syntax.inner.sort}{\mbox{\isa{sort}}}} & = & \isa{{\isachardoublequote}id\ \ {\isacharbar}\ \ longid\ \ {\isacharbar}\ \ {\isachardoublequote}}\verb|{}|\isa{{\isachardoublequote}\ \ {\isacharbar}\ \ {\isachardoublequote}}\verb|{| \isa{{\isachardoublequote}{\isacharparenleft}id\ {\isacharbar}\ longid{\isacharparenright}{\isachardoublequote}} \verb|,| \isa{{\isachardoublequote}{\isasymdots}{\isachardoublequote}} \verb|,| \isa{{\isachardoublequote}{\isacharparenleft}id\ {\isacharbar}\ longid{\isacharparenright}{\isachardoublequote}} \verb|}| \\
+  \indexdef{inner}{syntax}{sort}\hypertarget{syntax.inner.sort}{\hyperlink{syntax.inner.sort}{\mbox{\isa{sort}}}} & = & \isa{{\isachardoublequote}id\ \ {\isacharbar}\ \ longid\ \ {\isacharbar}\ \ {\isachardoublequote}}\verb|{}| \\
+    & \isa{{\isachardoublequote}{\isacharbar}{\isachardoublequote}} & \verb|{| \isa{{\isachardoublequote}{\isacharparenleft}id\ {\isacharbar}\ longid{\isacharparenright}{\isachardoublequote}} \verb|,| \isa{{\isachardoublequote}{\isasymdots}{\isachardoublequote}} \verb|,| \isa{{\isachardoublequote}{\isacharparenleft}id\ {\isacharbar}\ longid{\isacharparenright}{\isachardoublequote}} \verb|}| \\
   \end{supertabular}
   \end{center}
 

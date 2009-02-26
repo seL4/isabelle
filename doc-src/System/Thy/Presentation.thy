@@ -654,7 +654,7 @@ Usage: document [OPTIONS] [DIR]
   "-"}@{text foo}'' to drop, and ``@{verbatim "/"}@{text foo}'' to
   fold text tagged as @{text foo}.  The builtin default is equivalent
   to the tag specification ``@{verbatim
-  "/theory,/proof,/ML,+visible,-invisible"}''; see also the {\LaTeX}
+  "+theory,+proof,+ML,+visible,-invisible"}''; see also the {\LaTeX}
   macros @{verbatim "\\isakeeptag"}, @{verbatim "\\isadroptag"}, and
   @{verbatim "\\isafoldtag"}, in @{"file"
   "~~/lib/texinputs/isabelle.sty"}.

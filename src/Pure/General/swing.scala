@@ -10,9 +10,11 @@ import javax.swing.SwingUtilities
 
 object Swing
 {
-  def now(body: => Unit) {
-    if (SwingUtilities.isEventDispatchThread) body
-    else SwingUtilities.invokeAndWait(new Runnable { def run = body })
+  def now[A](body: => A): A = {
+    var result: Option[A] = None
+    if (SwingUtilities.isEventDispatchThread) { result = Some(body) }
+    else SwingUtilities.invokeAndWait(new Runnable { def run = { result = Some(body) } })
+    result.get
   }
 
   def later(body: => Unit) {

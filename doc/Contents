@@ -6,13 +6,16 @@ Learning and using Isabelle
   functions       Tutorial on Function Definitions
   codegen         Tutorial on Code Generation
   sugar           LaTeX sugar for proof documents
-  ind-defs        (Co)Inductive Definitions in ZF
 
 Reference Manuals
   isar-ref        The Isabelle/Isar Reference Manual
   implementation  The Isabelle/Isar Implementation Manual
   system          The Isabelle System Manual
+
+Old Manuals (outdated!)
+  intro           Introduction to Isabelle
   ref             The Isabelle Reference Manual
   logics          Isabelle's Logics: overview and misc logics
   logics-HOL      Isabelle's Logics: HOL
   logics-ZF       Isabelle's Logics: FOL and ZF
+  ind-defs        (Co)Inductive Definitions in ZF
