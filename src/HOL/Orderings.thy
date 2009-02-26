@@ -331,7 +331,7 @@ fun print_structures ctxt =
 
 fun struct_tac ((s, [eq, le, less]), thms) prems =
   let
-    fun decomp thy (Trueprop $ t) =
+    fun decomp thy (@{const Trueprop} $ t) =
       let
         fun excluded t =
           (* exclude numeric types: linear arithmetic subsumes transitivity *)
@@ -350,7 +350,8 @@ fun struct_tac ((s, [eq, le, less]), thms) prems =
 	      of NONE => NONE
 	       | SOME (t1, rel, t2) => SOME (t1, "~" ^ rel, t2))
           | dec x = rel x;
-      in dec t end;
+      in dec t end
+      | decomp thy _ = NONE;
   in
     case s of
       "order" => Order_Tac.partial_tac decomp thms prems
