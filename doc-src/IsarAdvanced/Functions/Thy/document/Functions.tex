@@ -1104,7 +1104,7 @@ In HOL, all functions are total. A function \isa{f} applied to
 %
 \begin{isamarkuptext}%
 \noindent Clearly, any attempt of a termination proof must fail. And without
-  that, we do not get the usual rules \isa{findzero{\isachardot}simp} and 
+  that, we do not get the usual rules \isa{findzero{\isachardot}simps} and 
   \isa{findzero{\isachardot}induct}. So what was the definition good for at all?%
 \end{isamarkuptext}%
 \isamarkuptrue%
@@ -1480,7 +1480,7 @@ findzero{\isacharunderscore}dom\ {\isasymequiv}\ accp\ findzero{\isacharundersco
 
   The predicate \isa{findzero{\isacharunderscore}dom} is the accessible part of
   that relation. An argument belongs to the accessible part, if it can
-  be reached in a finite number of steps (cf.~its definition in \isa{Accessible{\isacharunderscore}Part{\isachardot}thy}).
+  be reached in a finite number of steps (cf.~its definition in \isa{Wellfounded{\isachardot}thy}).
 
   Since the domain predicate is just an abbreviation, you can use
   lemmas for \isa{accp} and \isa{findzero{\isacharunderscore}rel} directly. Some
@@ -1823,7 +1823,7 @@ Although the definition is accepted without problems, let us look at the termina
 As usual, we have to give a wellfounded relation, such that the
   arguments of the recursive calls get smaller. But what exactly are
   the arguments of the recursive calls when mirror is given as an
-  argument to map? Isabelle gives us the
+  argument to \isa{map}? Isabelle gives us the
   subgoals
 
   \begin{isabelle}%
@@ -1835,9 +1835,9 @@ As usual, we have to give a wellfounded relation, such that the
   applies the recursive call \isa{mirror} to elements
   of \isa{l}, which is essential for the termination proof.
 
-  This knowledge about map is encoded in so-called congruence rules,
+  This knowledge about \isa{map} is encoded in so-called congruence rules,
   which are special theorems known to the \cmd{function} command. The
-  rule for map is
+  rule for \isa{map} is
 
   \begin{isabelle}%
 {\isasymlbrakk}{\isacharquery}xs\ {\isacharequal}\ {\isacharquery}ys{\isacharsemicolon}\ {\isasymAnd}x{\isachardot}\ x\ {\isasymin}\ set\ {\isacharquery}ys\ {\isasymLongrightarrow}\ {\isacharquery}f\ x\ {\isacharequal}\ {\isacharquery}g\ x{\isasymrbrakk}\ {\isasymLongrightarrow}\ map\ {\isacharquery}f\ {\isacharquery}xs\ {\isacharequal}\ map\ {\isacharquery}g\ {\isacharquery}ys%

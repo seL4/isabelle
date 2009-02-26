@@ -52,18 +52,18 @@ This Pure module implements the core notions of
 %
 \begin{isamarkuptext}%
 \begin{mldecls}
-  \indexml{Code.add\_eqn}\verb|Code.add_eqn: thm -> theory -> theory| \\
-  \indexml{Code.del\_eqn}\verb|Code.del_eqn: thm -> theory -> theory| \\
-  \indexml{Code.add\_eqnl}\verb|Code.add_eqnl: string * (thm * bool) list lazy -> theory -> theory| \\
-  \indexml{Code.map\_pre}\verb|Code.map_pre: (simpset -> simpset) -> theory -> theory| \\
-  \indexml{Code.map\_post}\verb|Code.map_post: (simpset -> simpset) -> theory -> theory| \\
-  \indexml{Code.add\_functrans}\verb|Code.add_functrans: string * (theory -> (thm * bool) list -> (thm * bool) list option)|\isasep\isanewline%
+  \indexdef{}{ML}{Code.add\_eqn}\verb|Code.add_eqn: thm -> theory -> theory| \\
+  \indexdef{}{ML}{Code.del\_eqn}\verb|Code.del_eqn: thm -> theory -> theory| \\
+  \indexdef{}{ML}{Code.add\_eqnl}\verb|Code.add_eqnl: string * (thm * bool) list lazy -> theory -> theory| \\
+  \indexdef{}{ML}{Code.map\_pre}\verb|Code.map_pre: (simpset -> simpset) -> theory -> theory| \\
+  \indexdef{}{ML}{Code.map\_post}\verb|Code.map_post: (simpset -> simpset) -> theory -> theory| \\
+  \indexdef{}{ML}{Code.add\_functrans}\verb|Code.add_functrans: string * (theory -> (thm * bool) list -> (thm * bool) list option)|\isasep\isanewline%
 \verb|    -> theory -> theory| \\
-  \indexml{Code.del\_functrans}\verb|Code.del_functrans: string -> theory -> theory| \\
-  \indexml{Code.add\_datatype}\verb|Code.add_datatype: (string * typ) list -> theory -> theory| \\
-  \indexml{Code.get\_datatype}\verb|Code.get_datatype: theory -> string|\isasep\isanewline%
+  \indexdef{}{ML}{Code.del\_functrans}\verb|Code.del_functrans: string -> theory -> theory| \\
+  \indexdef{}{ML}{Code.add\_datatype}\verb|Code.add_datatype: (string * typ) list -> theory -> theory| \\
+  \indexdef{}{ML}{Code.get\_datatype}\verb|Code.get_datatype: theory -> string|\isasep\isanewline%
 \verb|    -> (string * sort) list * (string * typ list) list| \\
-  \indexml{Code.get\_datatype\_of\_constr}\verb|Code.get_datatype_of_constr: theory -> string -> string option|
+  \indexdef{}{ML}{Code.get\_datatype\_of\_constr}\verb|Code.get_datatype_of_constr: theory -> string -> string option|
   \end{mldecls}
 
   \begin{description}
@@ -124,9 +124,9 @@ This Pure module implements the core notions of
 %
 \begin{isamarkuptext}%
 \begin{mldecls}
-  \indexml{Code\_Unit.read\_const}\verb|Code_Unit.read_const: theory -> string -> string| \\
-  \indexml{Code\_Unit.head\_eqn}\verb|Code_Unit.head_eqn: theory -> thm -> string * ((string * sort) list * typ)| \\
-  \indexml{Code\_Unit.rewrite\_eqn}\verb|Code_Unit.rewrite_eqn: simpset -> thm -> thm| \\
+  \indexdef{}{ML}{Code\_Unit.read\_const}\verb|Code_Unit.read_const: theory -> string -> string| \\
+  \indexdef{}{ML}{Code\_Unit.head\_eqn}\verb|Code_Unit.head_eqn: theory -> thm -> string * ((string * sort) list * typ)| \\
+  \indexdef{}{ML}{Code\_Unit.rewrite\_eqn}\verb|Code_Unit.rewrite_eqn: simpset -> thm -> thm| \\
   \end{mldecls}
 
   \begin{description}

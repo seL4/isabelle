@@ -1153,7 +1153,7 @@ Turning back to the first motivation for type classes,
 \hspace*{0pt}module Example where {\char123}\\
 \hspace*{0pt}\\
 \hspace*{0pt}\\
-\hspace*{0pt}data Nat = Suc Nat | Zero{\char95}nat;\\
+\hspace*{0pt}data Nat = Zero{\char95}nat | Suc Nat;\\
 \hspace*{0pt}\\
 \hspace*{0pt}nat{\char95}aux ::~Integer -> Nat -> Nat;\\
 \hspace*{0pt}nat{\char95}aux i n = (if i <= 0 then n else nat{\char95}aux (i - 1) (Suc n));\\
@@ -1240,7 +1240,7 @@ Turning back to the first motivation for type classes,
 \hspace*{0pt}structure Example = \\
 \hspace*{0pt}struct\\
 \hspace*{0pt}\\
-\hspace*{0pt}datatype nat = Suc of nat | Zero{\char95}nat;\\
+\hspace*{0pt}datatype nat = Zero{\char95}nat | Suc of nat;\\
 \hspace*{0pt}\\
 \hspace*{0pt}fun nat{\char95}aux i n =\\
 \hspace*{0pt} ~(if IntInf.<= (i,~(0 :~IntInf.int)) then n\\

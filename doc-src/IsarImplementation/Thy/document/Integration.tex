@@ -81,14 +81,14 @@ The Isar toplevel may be considered the centeral hub of the
 %
 \begin{isamarkuptext}%
 \begin{mldecls}
-  \indexmltype{Toplevel.state}\verb|type Toplevel.state| \\
-  \indexml{Toplevel.UNDEF}\verb|Toplevel.UNDEF: exn| \\
-  \indexml{Toplevel.is\_toplevel}\verb|Toplevel.is_toplevel: Toplevel.state -> bool| \\
-  \indexml{Toplevel.theory\_of}\verb|Toplevel.theory_of: Toplevel.state -> theory| \\
-  \indexml{Toplevel.proof\_of}\verb|Toplevel.proof_of: Toplevel.state -> Proof.state| \\
-  \indexml{Toplevel.debug}\verb|Toplevel.debug: bool ref| \\
-  \indexml{Toplevel.timing}\verb|Toplevel.timing: bool ref| \\
-  \indexml{Toplevel.profiling}\verb|Toplevel.profiling: int ref| \\
+  \indexdef{}{ML type}{Toplevel.state}\verb|type Toplevel.state| \\
+  \indexdef{}{ML}{Toplevel.UNDEF}\verb|Toplevel.UNDEF: exn| \\
+  \indexdef{}{ML}{Toplevel.is\_toplevel}\verb|Toplevel.is_toplevel: Toplevel.state -> bool| \\
+  \indexdef{}{ML}{Toplevel.theory\_of}\verb|Toplevel.theory_of: Toplevel.state -> theory| \\
+  \indexdef{}{ML}{Toplevel.proof\_of}\verb|Toplevel.proof_of: Toplevel.state -> Proof.state| \\
+  \indexdef{}{ML}{Toplevel.debug}\verb|Toplevel.debug: bool ref| \\
+  \indexdef{}{ML}{Toplevel.timing}\verb|Toplevel.timing: bool ref| \\
+  \indexdef{}{ML}{Toplevel.profiling}\verb|Toplevel.profiling: int ref| \\
   \end{mldecls}
 
   \begin{description}
@@ -171,19 +171,19 @@ An Isar toplevel transition consists of a partial function on the
 %
 \begin{isamarkuptext}%
 \begin{mldecls}
-  \indexml{Toplevel.print}\verb|Toplevel.print: Toplevel.transition -> Toplevel.transition| \\
-  \indexml{Toplevel.no\_timing}\verb|Toplevel.no_timing: Toplevel.transition -> Toplevel.transition| \\
-  \indexml{Toplevel.keep}\verb|Toplevel.keep: (Toplevel.state -> unit) ->|\isasep\isanewline%
+  \indexdef{}{ML}{Toplevel.print}\verb|Toplevel.print: Toplevel.transition -> Toplevel.transition| \\
+  \indexdef{}{ML}{Toplevel.no\_timing}\verb|Toplevel.no_timing: Toplevel.transition -> Toplevel.transition| \\
+  \indexdef{}{ML}{Toplevel.keep}\verb|Toplevel.keep: (Toplevel.state -> unit) ->|\isasep\isanewline%
 \verb|  Toplevel.transition -> Toplevel.transition| \\
-  \indexml{Toplevel.theory}\verb|Toplevel.theory: (theory -> theory) ->|\isasep\isanewline%
+  \indexdef{}{ML}{Toplevel.theory}\verb|Toplevel.theory: (theory -> theory) ->|\isasep\isanewline%
 \verb|  Toplevel.transition -> Toplevel.transition| \\
-  \indexml{Toplevel.theory\_to\_proof}\verb|Toplevel.theory_to_proof: (theory -> Proof.state) ->|\isasep\isanewline%
+  \indexdef{}{ML}{Toplevel.theory\_to\_proof}\verb|Toplevel.theory_to_proof: (theory -> Proof.state) ->|\isasep\isanewline%
 \verb|  Toplevel.transition -> Toplevel.transition| \\
-  \indexml{Toplevel.proof}\verb|Toplevel.proof: (Proof.state -> Proof.state) ->|\isasep\isanewline%
+  \indexdef{}{ML}{Toplevel.proof}\verb|Toplevel.proof: (Proof.state -> Proof.state) ->|\isasep\isanewline%
 \verb|  Toplevel.transition -> Toplevel.transition| \\
-  \indexml{Toplevel.proofs}\verb|Toplevel.proofs: (Proof.state -> Proof.state Seq.seq) ->|\isasep\isanewline%
+  \indexdef{}{ML}{Toplevel.proofs}\verb|Toplevel.proofs: (Proof.state -> Proof.state Seq.seq) ->|\isasep\isanewline%
 \verb|  Toplevel.transition -> Toplevel.transition| \\
-  \indexml{Toplevel.end\_proof}\verb|Toplevel.end_proof: (bool -> Proof.state -> Proof.context) ->|\isasep\isanewline%
+  \indexdef{}{ML}{Toplevel.end\_proof}\verb|Toplevel.end_proof: (bool -> Proof.state -> Proof.context) ->|\isasep\isanewline%
 \verb|  Toplevel.transition -> Toplevel.transition| \\
   \end{mldecls}
 
@@ -300,8 +300,8 @@ The {\ML} toplevel provides a read-compile-eval-print loop for {\ML}
 %
 \begin{isamarkuptext}%
 \begin{mldecls}
-  \indexml{the\_context}\verb|the_context: unit -> theory| \\
-  \indexml{Context.$>$$>$ }\verb|Context.>> : (Context.generic -> Context.generic) -> unit| \\
+  \indexdef{}{ML}{the\_context}\verb|the_context: unit -> theory| \\
+  \indexdef{}{ML}{Context.$>$$>$ }\verb|Context.>> : (Context.generic -> Context.generic) -> unit| \\
   \end{mldecls}
 
   \begin{description}
@@ -329,12 +329,12 @@ The {\ML} toplevel provides a read-compile-eval-print loop for {\ML}
   \bigskip
 
   \begin{mldecls}
-  \indexml{Isar.main}\verb|Isar.main: unit -> unit| \\
-  \indexml{Isar.loop}\verb|Isar.loop: unit -> unit| \\
-  \indexml{Isar.state}\verb|Isar.state: unit -> Toplevel.state| \\
-  \indexml{Isar.exn}\verb|Isar.exn: unit -> (exn * string) option| \\
-  \indexml{Isar.context}\verb|Isar.context: unit -> Proof.context| \\
-  \indexml{Isar.goal}\verb|Isar.goal: unit -> thm| \\
+  \indexdef{}{ML}{Isar.main}\verb|Isar.main: unit -> unit| \\
+  \indexdef{}{ML}{Isar.loop}\verb|Isar.loop: unit -> unit| \\
+  \indexdef{}{ML}{Isar.state}\verb|Isar.state: unit -> Toplevel.state| \\
+  \indexdef{}{ML}{Isar.exn}\verb|Isar.exn: unit -> (exn * string) option| \\
+  \indexdef{}{ML}{Isar.context}\verb|Isar.context: unit -> Proof.context| \\
+  \indexdef{}{ML}{Isar.goal}\verb|Isar.goal: unit -> thm| \\
   \end{mldecls}
 
   \begin{description}
@@ -434,16 +434,16 @@ The theory database maintains a collection of theories, together
 %
 \begin{isamarkuptext}%
 \begin{mldecls}
-  \indexml{theory}\verb|theory: string -> theory| \\
-  \indexml{use\_thy}\verb|use_thy: string -> unit| \\
-  \indexml{use\_thys}\verb|use_thys: string list -> unit| \\
-  \indexml{ThyInfo.touch\_thy}\verb|ThyInfo.touch_thy: string -> unit| \\
-  \indexml{ThyInfo.remove\_thy}\verb|ThyInfo.remove_thy: string -> unit| \\[1ex]
-  \indexml{ThyInfo.begin\_theory}\verb|ThyInfo.begin_theory|\verb|: ... -> bool -> theory| \\
-  \indexml{ThyInfo.end\_theory}\verb|ThyInfo.end_theory: theory -> unit| \\
-  \indexml{ThyInfo.register\_theory}\verb|ThyInfo.register_theory: theory -> unit| \\[1ex]
+  \indexdef{}{ML}{theory}\verb|theory: string -> theory| \\
+  \indexdef{}{ML}{use\_thy}\verb|use_thy: string -> unit| \\
+  \indexdef{}{ML}{use\_thys}\verb|use_thys: string list -> unit| \\
+  \indexdef{}{ML}{ThyInfo.touch\_thy}\verb|ThyInfo.touch_thy: string -> unit| \\
+  \indexdef{}{ML}{ThyInfo.remove\_thy}\verb|ThyInfo.remove_thy: string -> unit| \\[1ex]
+  \indexdef{}{ML}{ThyInfo.begin\_theory}\verb|ThyInfo.begin_theory|\verb|: ... -> bool -> theory| \\
+  \indexdef{}{ML}{ThyInfo.end\_theory}\verb|ThyInfo.end_theory: theory -> unit| \\
+  \indexdef{}{ML}{ThyInfo.register\_theory}\verb|ThyInfo.register_theory: theory -> unit| \\[1ex]
   \verb|datatype action = Update |\verb,|,\verb| Outdate |\verb,|,\verb| Remove| \\
-  \indexml{ThyInfo.add\_hook}\verb|ThyInfo.add_hook: (ThyInfo.action -> string -> unit) -> unit| \\
+  \indexdef{}{ML}{ThyInfo.add\_hook}\verb|ThyInfo.add_hook: (ThyInfo.action -> string -> unit) -> unit| \\
   \end{mldecls}
 
   \begin{description}
