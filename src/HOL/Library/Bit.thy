@@ -79,14 +79,8 @@ qed (unfold field_bit_defs, auto split: bit.split)
 
 end
 
-lemma bit_1_plus_1 [simp]: "1 + 1 = (0 :: bit)"
-  unfolding plus_bit_def by simp
-
-lemma bit_add_self [simp]: "x + x = (0 :: bit)"
-  by (cases x) simp_all
-
-lemma bit_add_self_left [simp]: "x + (x + y) = (y :: bit)"
-  by simp
+lemma bit_add_self: "x + x = (0 :: bit)"
+  unfolding plus_bit_def by (simp split: bit.split)
 
 lemma bit_mult_eq_1_iff [simp]: "x * y = (1 :: bit) \<longleftrightarrow> x = 1 \<and> y = 1"
   unfolding times_bit_def by (simp split: bit.split)
