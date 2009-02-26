@@ -1,6 +1,3 @@
-
-%% $Id$
-
 \documentclass[12pt,a4paper,fleqn]{report}
 \usepackage{latexsym,graphicx}
 \usepackage[refpage]{nomencl}
@@ -22,9 +19,6 @@
   Florian Haftmann
   and Larry Paulson
 }
-
-%FIXME
-%\makeglossary
 
 \makeindex
 
@@ -71,14 +65,13 @@
 \listoffigures
 \clearfirst
 
-%\input{intro.tex}
-\input{Thy/document/prelim.tex}
-\input{Thy/document/logic.tex}
-\input{Thy/document/tactic.tex}
-\input{Thy/document/proof.tex}
-\input{Thy/document/isar.tex}
-\input{Thy/document/locale.tex}
-\input{Thy/document/integration.tex}
+\input{Thy/document/Prelim.tex}
+\input{Thy/document/Logic.tex}
+\input{Thy/document/Tactic.tex}
+\input{Thy/document/Proof.tex}
+\input{Thy/document/Isar.tex}
+\input{Thy/document/Local_Theory.tex}
+\input{Thy/document/Integration.tex}
 
 \appendix
 \input{Thy/document/ML.tex}
@@ -88,10 +81,6 @@
 \bibliographystyle{plain} \small\raggedright\frenchspacing
 \bibliography{../manual}
 \endgroup
-
-%FIXME
-%\tocentry{\glossaryname}
-%\printglossary
 
 \tocentry{\indexname}
 \printindex

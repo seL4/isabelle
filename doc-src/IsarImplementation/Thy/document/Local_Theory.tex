@@ -1,0 +1,220 @@
+%
+\begin{isabellebody}%
+\def\isabellecontext{Local{\isacharunderscore}Theory}%
+%
+\isadelimtheory
+%
+\endisadelimtheory
+%
+\isatagtheory
+\isacommand{theory}\isamarkupfalse%
+\ Local{\isacharunderscore}Theory\isanewline
+\isakeyword{imports}\ Base\isanewline
+\isakeyword{begin}%
+\endisatagtheory
+{\isafoldtheory}%
+%
+\isadelimtheory
+%
+\endisadelimtheory
+%
+\isamarkupchapter{Local theory specifications%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+A \emph{local theory} combines aspects of both theory and proof
+  context (cf.\ \secref{sec:context}), such that definitional
+  specifications may be given relatively to parameters and
+  assumptions.  A local theory is represented as a regular proof
+  context, augmented by administrative data about the \emph{target
+  context}.
+
+  The target is usually derived from the background theory by adding
+  local \isa{{\isasymFIX}} and \isa{{\isasymASSUME}} elements, plus
+  suitable modifications of non-logical context data (e.g.\ a special
+  type-checking discipline).  Once initialized, the target is ready to
+  absorb definitional primitives: \isa{{\isasymDEFINE}} for terms and
+  \isa{{\isasymNOTE}} for theorems.  Such definitions may get
+  transformed in a target-specific way, but the programming interface
+  hides such details.
+
+  Isabelle/Pure provides target mechanisms for locales, type-classes,
+  type-class instantiations, and general overloading.  In principle,
+  users can implement new targets as well, but this rather arcane
+  discipline is beyond the scope of this manual.  In contrast,
+  implementing derived definitional packages to be used within a local
+  theory context is quite easy: the interfaces are even simpler and
+  more abstract than the underlying primitives for raw theories.
+
+  Many definitional packages for local theories are available in
+  Isabelle.  Although a few old packages only work for global
+  theories, the local theory interface is already the standard way of
+  implementing definitional packages in Isabelle.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsection{Definitional elements%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+There are separate elements \isa{{\isasymDEFINE}\ c\ {\isasymequiv}\ t} for terms, and
+  \isa{{\isasymNOTE}\ b\ {\isacharequal}\ thm} for theorems.  Types are treated
+  implicitly, according to Hindley-Milner discipline (cf.\
+  \secref{sec:variables}).  These definitional primitives essentially
+  act like \isa{let}-bindings within a local context that may
+  already contain earlier \isa{let}-bindings and some initial
+  \isa{{\isasymlambda}}-bindings.  Thus we gain \emph{dependent definitions}
+  that are relative to an initial axiomatic context.  The following
+  diagram illustrates this idea of axiomatic elements versus
+  definitional elements:
+
+  \begin{center}
+  \begin{tabular}{|l|l|l|}
+  \hline
+  & \isa{{\isasymlambda}}-binding & \isa{let}-binding \\
+  \hline
+  types & fixed \isa{{\isasymalpha}} & arbitrary \isa{{\isasymbeta}} \\
+  terms & \isa{{\isasymFIX}\ x\ {\isacharcolon}{\isacharcolon}\ {\isasymtau}} & \isa{{\isasymDEFINE}\ c\ {\isasymequiv}\ t} \\
+  theorems & \isa{{\isasymASSUME}\ a{\isacharcolon}\ A} & \isa{{\isasymNOTE}\ b\ {\isacharequal}\ \isactrlBG B\isactrlEN } \\
+  \hline
+  \end{tabular}
+  \end{center}
+
+  A user package merely needs to produce suitable \isa{{\isasymDEFINE}}
+  and \isa{{\isasymNOTE}} elements according to the application.  For
+  example, a package for inductive definitions might first \isa{{\isasymDEFINE}} a certain predicate as some fixed-point construction,
+  then \isa{{\isasymNOTE}} a proven result about monotonicity of the
+  functor involved here, and then produce further derived concepts via
+  additional \isa{{\isasymDEFINE}} and \isa{{\isasymNOTE}} elements.
+
+  The cumulative sequence of \isa{{\isasymDEFINE}} and \isa{{\isasymNOTE}}
+  produced at package runtime is managed by the local theory
+  infrastructure by means of an \emph{auxiliary context}.  Thus the
+  system holds up the impression of working within a fully abstract
+  situation with hypothetical entities: \isa{{\isasymDEFINE}\ c\ {\isasymequiv}\ t}
+  always results in a literal fact \isa{\isactrlBG c\ {\isasymequiv}\ t\isactrlEN }, where
+  \isa{c} is a fixed variable \isa{c}.  The details about
+  global constants, name spaces etc. are handled internally.
+
+  So the general structure of a local theory is a sandwich of three
+  layers:
+
+  \begin{center}
+  \framebox{\quad auxiliary context \quad\framebox{\quad target context \quad\framebox{\quad background theory\quad}}}
+  \end{center}
+
+  \noindent When a definitional package is finished, the auxiliary
+  context is reset to the target context.  The target now holds
+  definitions for terms and theorems that stem from the hypothetical
+  \isa{{\isasymDEFINE}} and \isa{{\isasymNOTE}} elements, transformed by
+  the particular target policy (see
+  \cite[\S4--5]{Haftmann-Wenzel:2009} for details).%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isadelimmlref
+%
+\endisadelimmlref
+%
+\isatagmlref
+%
+\begin{isamarkuptext}%
+\begin{mldecls}
+  \indexmltype{local\_theory}\verb|type local_theory = Proof.context| \\
+  \indexml{TheoryTarget.init}\verb|TheoryTarget.init: string option -> theory -> local_theory| \\[1ex]
+  \indexml{LocalTheory.define}\verb|LocalTheory.define: string ->|\isasep\isanewline%
+\verb|    (binding * mixfix) * (Attrib.binding * term) -> local_theory ->|\isasep\isanewline%
+\verb|    (term * (string * thm)) * local_theory| \\
+  \indexml{LocalTheory.note}\verb|LocalTheory.note: string ->|\isasep\isanewline%
+\verb|    Attrib.binding * thm list -> local_theory ->|\isasep\isanewline%
+\verb|    (string * thm list) * local_theory| \\
+  \end{mldecls}
+
+  \begin{description}
+
+  \item \verb|local_theory| represents local theories.  Although
+  this is merely an alias for \verb|Proof.context|, it is
+  semantically a subtype of the same: a \verb|local_theory| holds
+  target information as special context data.  Subtyping means that
+  any value \isa{lthy{\isacharcolon}}~\verb|local_theory| can be also used
+  with operations on expecting a regular \isa{ctxt{\isacharcolon}}~\verb|Proof.context|.
+
+  \item \verb|TheoryTarget.init|~\isa{NONE\ thy} initializes a
+  trivial local theory from the given background theory.
+  Alternatively, \isa{SOME\ name} may be given to initialize a
+  \hyperlink{command.locale}{\mbox{\isa{\isacommand{locale}}}} or \hyperlink{command.class}{\mbox{\isa{\isacommand{class}}}} context (a fully-qualified
+  internal name is expected here).  This is useful for experimentation
+  --- normally the Isar toplevel already takes care to initialize the
+  local theory context.
+
+  \item \verb|LocalTheory.define|~\isa{kind\ {\isacharparenleft}{\isacharparenleft}b{\isacharcomma}\ mx{\isacharparenright}{\isacharcomma}\ {\isacharparenleft}a{\isacharcomma}\ rhs{\isacharparenright}{\isacharparenright}\ lthy} defines a local entity according to the specification that is
+  given relatively to the current \isa{lthy} context.  In
+  particular the term of the RHS may refer to earlier local entities
+  from the auxiliary context, or hypothetical parameters from the
+  target context.  The result is the newly defined term (which is
+  always a fixed variable with exactly the same name as specified for
+  the LHS), together with an equational theorem that states the
+  definition as a hypothetical fact.
+
+  Unless an explicit name binding is given for the RHS, the resulting
+  fact will be called \isa{b{\isacharunderscore}def}.  Any given attributes are
+  applied to that same fact --- immediately in the auxiliary context
+  \emph{and} in any transformed versions stemming from target-specific
+  policies or any later interpretations of results from the target
+  context (think of \hyperlink{command.locale}{\mbox{\isa{\isacommand{locale}}}} and \hyperlink{command.interpretation}{\mbox{\isa{\isacommand{interpretation}}}},
+  for example).  This means that attributes should be usually plain
+  declarations such as \hyperlink{attribute.simp}{\mbox{\isa{simp}}}, while non-trivial rules like
+  \hyperlink{attribute.simplified}{\mbox{\isa{simplified}}} are better avoided.
+
+  The \isa{kind} determines the theorem kind tag of the resulting
+  fact.  Typical examples are \verb|Thm.definitionK|, \verb|Thm.theoremK|, or \verb|Thm.internalK|.
+
+  \item \verb|LocalTheory.note|~\isa{kind\ {\isacharparenleft}a{\isacharcomma}\ ths{\isacharparenright}\ lthy} is
+  analogous to \verb|LocalTheory.define|, but defines facts instead of
+  terms.  There is also a slightly more general variant \verb|LocalTheory.notes| that defines several facts (with attribute
+  expressions) simultaneously.
+
+  This is essentially the internal version of the \hyperlink{command.lemmas}{\mbox{\isa{\isacommand{lemmas}}}}
+  command, or \hyperlink{command.declare}{\mbox{\isa{\isacommand{declare}}}} if an empty name binding is given.
+
+  \end{description}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\endisatagmlref
+{\isafoldmlref}%
+%
+\isadelimmlref
+%
+\endisadelimmlref
+%
+\isamarkupsection{Morphisms and declarations%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+FIXME%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isadelimtheory
+%
+\endisadelimtheory
+%
+\isatagtheory
+\isacommand{end}\isamarkupfalse%
+%
+\endisatagtheory
+{\isafoldtheory}%
+%
+\isadelimtheory
+%
+\endisadelimtheory
+\isanewline
+\end{isabellebody}%
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "root"
+%%% End:

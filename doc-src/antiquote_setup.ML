@@ -1,5 +1,4 @@
 (*  Title:      Doc/antiquote_setup.ML
-    ID:         $Id$
     Author:     Makarius
 
 Auxiliary antiquotations for the Isabelle manuals.
@@ -13,13 +12,16 @@ structure O = ThyOutput;
 
 (* misc utils *)
 
-val clean_string = translate_string
+fun translate f = Symbol.explode #> map f #> implode;
+
+val clean_string = translate
   (fn "_" => "\\_"
     | "<" => "$<$"
     | ">" => "$>$"
     | "#" => "\\#"
     | "{" => "\\{"
     | "}" => "\\}"
+    | "\\<dash>" => "-"
     | c => c);
 
 fun clean_name "\\<dots>" = "dots"
@@ -28,7 +30,7 @@ fun clean_name "\\<dots>" = "dots"
   | clean_name "_" = "underscore"
   | clean_name "{" = "braceleft"
   | clean_name "}" = "braceright"
-  | clean_name s = s |> translate_string (fn "_" => "-" | c => c);
+  | clean_name s = s |> translate (fn "_" => "-" | "\\<dash>" => "-" | c => c);
 
 
 (* verbatim text *)
@@ -193,6 +195,7 @@ val _ = O.add_commands
   entity_antiqs no_check "" "case" @
   entity_antiqs (K ThyOutput.defined_command) "" "antiquotation" @
   entity_antiqs (fn _ => fn name => is_some (OS.Process.getEnv name)) "isatt" "setting" @
+  entity_antiqs no_check "" "inference" @
   entity_antiqs no_check "isatt" "executable" @
   entity_antiqs (K check_tool) "isatt" "tool" @
   entity_antiqs (K (File.exists o Path.explode)) "isatt" "file" @

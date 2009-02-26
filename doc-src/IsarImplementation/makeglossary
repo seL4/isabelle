@@ -1,6 +1,0 @@
-#!/bin/sh
-# $Id$
-
-NAME="$1"
-makeindex -s nomencl -o "${NAME}.gls" "${NAME}.glo"
-./checkglossary "${NAME}.glo"

@@ -1,0 +1,520 @@
+%
+\begin{isabellebody}%
+\def\isabellecontext{Integration}%
+%
+\isadelimtheory
+%
+\endisadelimtheory
+%
+\isatagtheory
+\isacommand{theory}\isamarkupfalse%
+\ Integration\isanewline
+\isakeyword{imports}\ Base\isanewline
+\isakeyword{begin}%
+\endisatagtheory
+{\isafoldtheory}%
+%
+\isadelimtheory
+%
+\endisadelimtheory
+%
+\isamarkupchapter{System integration%
+}
+\isamarkuptrue%
+%
+\isamarkupsection{Isar toplevel \label{sec:isar-toplevel}%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+The Isar toplevel may be considered the centeral hub of the
+  Isabelle/Isar system, where all key components and sub-systems are
+  integrated into a single read-eval-print loop of Isar commands.  We
+  shall even incorporate the existing {\ML} toplevel of the compiler
+  and run-time system (cf.\ \secref{sec:ML-toplevel}).
+
+  Isabelle/Isar departs from the original ``LCF system architecture''
+  where {\ML} was really The Meta Language for defining theories and
+  conducting proofs.  Instead, {\ML} now only serves as the
+  implementation language for the system (and user extensions), while
+  the specific Isar toplevel supports the concepts of theory and proof
+  development natively.  This includes the graph structure of theories
+  and the block structure of proofs, support for unlimited undo,
+  facilities for tracing, debugging, timing, profiling etc.
+
+  \medskip The toplevel maintains an implicit state, which is
+  transformed by a sequence of transitions -- either interactively or
+  in batch-mode.  In interactive mode, Isar state transitions are
+  encapsulated as safe transactions, such that both failure and undo
+  are handled conveniently without destroying the underlying draft
+  theory (cf.~\secref{sec:context-theory}).  In batch mode,
+  transitions operate in a linear (destructive) fashion, such that
+  error conditions abort the present attempt to construct a theory or
+  proof altogether.
+
+  The toplevel state is a disjoint sum of empty \isa{toplevel}, or
+  \isa{theory}, or \isa{proof}.  On entering the main Isar loop we
+  start with an empty toplevel.  A theory is commenced by giving a
+  \isa{{\isasymTHEORY}} header; within a theory we may issue theory
+  commands such as \isa{{\isasymDEFINITION}}, or state a \isa{{\isasymTHEOREM}} to be proven.  Now we are within a proof state, with a
+  rich collection of Isar proof commands for structured proof
+  composition, or unstructured proof scripts.  When the proof is
+  concluded we get back to the theory, which is then updated by
+  storing the resulting fact.  Further theory declarations or theorem
+  statements with proofs may follow, until we eventually conclude the
+  theory development by issuing \isa{{\isasymEND}}.  The resulting theory
+  is then stored within the theory database and we are back to the
+  empty toplevel.
+
+  In addition to these proper state transformations, there are also
+  some diagnostic commands for peeking at the toplevel state without
+  modifying it (e.g.\ \isakeyword{thm}, \isakeyword{term},
+  \isakeyword{print-cases}).%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isadelimmlref
+%
+\endisadelimmlref
+%
+\isatagmlref
+%
+\begin{isamarkuptext}%
+\begin{mldecls}
+  \indexmltype{Toplevel.state}\verb|type Toplevel.state| \\
+  \indexml{Toplevel.UNDEF}\verb|Toplevel.UNDEF: exn| \\
+  \indexml{Toplevel.is\_toplevel}\verb|Toplevel.is_toplevel: Toplevel.state -> bool| \\
+  \indexml{Toplevel.theory\_of}\verb|Toplevel.theory_of: Toplevel.state -> theory| \\
+  \indexml{Toplevel.proof\_of}\verb|Toplevel.proof_of: Toplevel.state -> Proof.state| \\
+  \indexml{Toplevel.debug}\verb|Toplevel.debug: bool ref| \\
+  \indexml{Toplevel.timing}\verb|Toplevel.timing: bool ref| \\
+  \indexml{Toplevel.profiling}\verb|Toplevel.profiling: int ref| \\
+  \end{mldecls}
+
+  \begin{description}
+
+  \item \verb|Toplevel.state| represents Isar toplevel states,
+  which are normally manipulated through the concept of toplevel
+  transitions only (\secref{sec:toplevel-transition}).  Also note that
+  a raw toplevel state is subject to the same linearity restrictions
+  as a theory context (cf.~\secref{sec:context-theory}).
+
+  \item \verb|Toplevel.UNDEF| is raised for undefined toplevel
+  operations.  Many operations work only partially for certain cases,
+  since \verb|Toplevel.state| is a sum type.
+
+  \item \verb|Toplevel.is_toplevel|~\isa{state} checks for an empty
+  toplevel state.
+
+  \item \verb|Toplevel.theory_of|~\isa{state} selects the theory of
+  a theory or proof (!), otherwise raises \verb|Toplevel.UNDEF|.
+
+  \item \verb|Toplevel.proof_of|~\isa{state} selects the Isar proof
+  state if available, otherwise raises \verb|Toplevel.UNDEF|.
+
+  \item \verb|set Toplevel.debug| makes the toplevel print further
+  details about internal error conditions, exceptions being raised
+  etc.
+
+  \item \verb|set Toplevel.timing| makes the toplevel print timing
+  information for each Isar command being executed.
+
+  \item \verb|Toplevel.profiling|~\verb|:=|~\isa{n} controls
+  low-level profiling of the underlying {\ML} runtime system.  For
+  Poly/ML, \isa{n\ {\isacharequal}\ {\isadigit{1}}} means time and \isa{n\ {\isacharequal}\ {\isadigit{2}}} space
+  profiling.
+
+  \end{description}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\endisatagmlref
+{\isafoldmlref}%
+%
+\isadelimmlref
+%
+\endisadelimmlref
+%
+\isamarkupsubsection{Toplevel transitions \label{sec:toplevel-transition}%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+An Isar toplevel transition consists of a partial function on the
+  toplevel state, with additional information for diagnostics and
+  error reporting: there are fields for command name, source position,
+  optional source text, as well as flags for interactive-only commands
+  (which issue a warning in batch-mode), printing of result state,
+  etc.
+
+  The operational part is represented as the sequential union of a
+  list of partial functions, which are tried in turn until the first
+  one succeeds.  This acts like an outer case-expression for various
+  alternative state transitions.  For example, \isakeyword{qed} acts
+  differently for a local proofs vs.\ the global ending of the main
+  proof.
+
+  Toplevel transitions are composed via transition transformers.
+  Internally, Isar commands are put together from an empty transition
+  extended by name and source position (and optional source text).  It
+  is then left to the individual command parser to turn the given
+  concrete syntax into a suitable transition transformer that adjoins
+  actual operations on a theory or proof state etc.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isadelimmlref
+%
+\endisadelimmlref
+%
+\isatagmlref
+%
+\begin{isamarkuptext}%
+\begin{mldecls}
+  \indexml{Toplevel.print}\verb|Toplevel.print: Toplevel.transition -> Toplevel.transition| \\
+  \indexml{Toplevel.no\_timing}\verb|Toplevel.no_timing: Toplevel.transition -> Toplevel.transition| \\
+  \indexml{Toplevel.keep}\verb|Toplevel.keep: (Toplevel.state -> unit) ->|\isasep\isanewline%
+\verb|  Toplevel.transition -> Toplevel.transition| \\
+  \indexml{Toplevel.theory}\verb|Toplevel.theory: (theory -> theory) ->|\isasep\isanewline%
+\verb|  Toplevel.transition -> Toplevel.transition| \\
+  \indexml{Toplevel.theory\_to\_proof}\verb|Toplevel.theory_to_proof: (theory -> Proof.state) ->|\isasep\isanewline%
+\verb|  Toplevel.transition -> Toplevel.transition| \\
+  \indexml{Toplevel.proof}\verb|Toplevel.proof: (Proof.state -> Proof.state) ->|\isasep\isanewline%
+\verb|  Toplevel.transition -> Toplevel.transition| \\
+  \indexml{Toplevel.proofs}\verb|Toplevel.proofs: (Proof.state -> Proof.state Seq.seq) ->|\isasep\isanewline%
+\verb|  Toplevel.transition -> Toplevel.transition| \\
+  \indexml{Toplevel.end\_proof}\verb|Toplevel.end_proof: (bool -> Proof.state -> Proof.context) ->|\isasep\isanewline%
+\verb|  Toplevel.transition -> Toplevel.transition| \\
+  \end{mldecls}
+
+  \begin{description}
+
+  \item \verb|Toplevel.print|~\isa{tr} sets the print flag, which
+  causes the toplevel loop to echo the result state (in interactive
+  mode).
+
+  \item \verb|Toplevel.no_timing|~\isa{tr} indicates that the
+  transition should never show timing information, e.g.\ because it is
+  a diagnostic command.
+
+  \item \verb|Toplevel.keep|~\isa{tr} adjoins a diagnostic
+  function.
+
+  \item \verb|Toplevel.theory|~\isa{tr} adjoins a theory
+  transformer.
+
+  \item \verb|Toplevel.theory_to_proof|~\isa{tr} adjoins a global
+  goal function, which turns a theory into a proof state.  The theory
+  may be changed before entering the proof; the generic Isar goal
+  setup includes an argument that specifies how to apply the proven
+  result to the theory, when the proof is finished.
+
+  \item \verb|Toplevel.proof|~\isa{tr} adjoins a deterministic
+  proof command, with a singleton result.
+
+  \item \verb|Toplevel.proofs|~\isa{tr} adjoins a general proof
+  command, with zero or more result states (represented as a lazy
+  list).
+
+  \item \verb|Toplevel.end_proof|~\isa{tr} adjoins a concluding
+  proof command, that returns the resulting theory, after storing the
+  resulting facts in the context etc.
+
+  \end{description}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\endisatagmlref
+{\isafoldmlref}%
+%
+\isadelimmlref
+%
+\endisadelimmlref
+%
+\isamarkupsubsection{Toplevel control%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+There are a few special control commands that modify the behavior
+  the toplevel itself, and only make sense in interactive mode.  Under
+  normal circumstances, the user encounters these only implicitly as
+  part of the protocol between the Isabelle/Isar system and a
+  user-interface such as ProofGeneral.
+
+  \begin{description}
+
+  \item \isacommand{undo} follows the three-level hierarchy of empty
+  toplevel vs.\ theory vs.\ proof: undo within a proof reverts to the
+  previous proof context, undo after a proof reverts to the theory
+  before the initial goal statement, undo of a theory command reverts
+  to the previous theory value, undo of a theory header discontinues
+  the current theory development and removes it from the theory
+  database (\secref{sec:theory-database}).
+
+  \item \isacommand{kill} aborts the current level of development:
+  kill in a proof context reverts to the theory before the initial
+  goal statement, kill in a theory context aborts the current theory
+  development, removing it from the database.
+
+  \item \isacommand{exit} drops out of the Isar toplevel into the
+  underlying {\ML} toplevel (\secref{sec:ML-toplevel}).  The Isar
+  toplevel state is preserved and may be continued later.
+
+  \item \isacommand{quit} terminates the Isabelle/Isar process without
+  saving.
+
+  \end{description}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsection{ML toplevel \label{sec:ML-toplevel}%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+The {\ML} toplevel provides a read-compile-eval-print loop for {\ML}
+  values, types, structures, and functors.  {\ML} declarations operate
+  on the global system state, which consists of the compiler
+  environment plus the values of {\ML} reference variables.  There is
+  no clean way to undo {\ML} declarations, except for reverting to a
+  previously saved state of the whole Isabelle process.  {\ML} input
+  is either read interactively from a TTY, or from a string (usually
+  within a theory text), or from a source file (usually loaded from a
+  theory).
+
+  Whenever the {\ML} toplevel is active, the current Isabelle theory
+  context is passed as an internal reference variable.  Thus {\ML}
+  code may access the theory context during compilation, it may even
+  change the value of a theory being under construction --- while
+  observing the usual linearity restrictions
+  (cf.~\secref{sec:context-theory}).%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isadelimmlref
+%
+\endisadelimmlref
+%
+\isatagmlref
+%
+\begin{isamarkuptext}%
+\begin{mldecls}
+  \indexml{the\_context}\verb|the_context: unit -> theory| \\
+  \indexml{Context.$>$$>$ }\verb|Context.>> : (Context.generic -> Context.generic) -> unit| \\
+  \end{mldecls}
+
+  \begin{description}
+
+  \item \verb|the_context ()| refers to the theory context of the
+  {\ML} toplevel --- at compile time!  {\ML} code needs to take care
+  to refer to \verb|the_context ()| correctly.  Recall that
+  evaluation of a function body is delayed until actual runtime.
+  Moreover, persistent {\ML} toplevel bindings to an unfinished theory
+  should be avoided: code should either project out the desired
+  information immediately, or produce an explicit \verb|theory_ref| (cf.\ \secref{sec:context-theory}).
+
+  \item \verb|Context.>>|~\isa{f} applies context transformation
+  \isa{f} to the implicit context of the {\ML} toplevel.
+
+  \end{description}
+
+  It is very important to note that the above functions are really
+  restricted to the compile time, even though the {\ML} compiler is
+  invoked at runtime!  The majority of {\ML} code uses explicit
+  functional arguments of a theory or proof context instead.  Thus it
+  may be invoked for an arbitrary context later on, without having to
+  worry about any operational details.
+
+  \bigskip
+
+  \begin{mldecls}
+  \indexml{Isar.main}\verb|Isar.main: unit -> unit| \\
+  \indexml{Isar.loop}\verb|Isar.loop: unit -> unit| \\
+  \indexml{Isar.state}\verb|Isar.state: unit -> Toplevel.state| \\
+  \indexml{Isar.exn}\verb|Isar.exn: unit -> (exn * string) option| \\
+  \indexml{Isar.context}\verb|Isar.context: unit -> Proof.context| \\
+  \indexml{Isar.goal}\verb|Isar.goal: unit -> thm| \\
+  \end{mldecls}
+
+  \begin{description}
+
+  \item \verb|Isar.main ()| invokes the Isar toplevel from {\ML},
+  initializing an empty toplevel state.
+
+  \item \verb|Isar.loop ()| continues the Isar toplevel with the
+  current state, after having dropped out of the Isar toplevel loop.
+
+  \item \verb|Isar.state ()| and \verb|Isar.exn ()| get current
+  toplevel state and error condition, respectively.  This only works
+  after having dropped out of the Isar toplevel loop.
+
+  \item \verb|Isar.context ()| produces the proof context from \verb|Isar.state ()|, analogous to \verb|Context.proof_of|
+  (\secref{sec:generic-context}).
+
+  \item \verb|Isar.goal ()| picks the tactical goal from \verb|Isar.state ()|, represented as a theorem according to
+  \secref{sec:tactical-goals}.
+
+  \end{description}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\endisatagmlref
+{\isafoldmlref}%
+%
+\isadelimmlref
+%
+\endisadelimmlref
+%
+\isamarkupsection{Theory database \label{sec:theory-database}%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+The theory database maintains a collection of theories, together
+  with some administrative information about their original sources,
+  which are held in an external store (i.e.\ some directory within the
+  regular file system).
+
+  The theory database is organized as a directed acyclic graph;
+  entries are referenced by theory name.  Although some additional
+  interfaces allow to include a directory specification as well, this
+  is only a hint to the underlying theory loader.  The internal theory
+  name space is flat!
+
+  Theory \isa{A} is associated with the main theory file \isa{A}\verb,.thy,, which needs to be accessible through the theory
+  loader path.  Any number of additional {\ML} source files may be
+  associated with each theory, by declaring these dependencies in the
+  theory header as \isa{{\isasymUSES}}, and loading them consecutively
+  within the theory context.  The system keeps track of incoming {\ML}
+  sources and associates them with the current theory.  The file
+  \isa{A}\verb,.ML, is loaded after a theory has been concluded, in
+  order to support legacy proof {\ML} proof scripts.
+
+  The basic internal actions of the theory database are \isa{update}, \isa{outdate}, and \isa{remove}:
+
+  \begin{itemize}
+
+  \item \isa{update\ A} introduces a link of \isa{A} with a
+  \isa{theory} value of the same name; it asserts that the theory
+  sources are now consistent with that value;
+
+  \item \isa{outdate\ A} invalidates the link of a theory database
+  entry to its sources, but retains the present theory value;
+
+  \item \isa{remove\ A} deletes entry \isa{A} from the theory
+  database.
+  
+  \end{itemize}
+
+  These actions are propagated to sub- or super-graphs of a theory
+  entry as expected, in order to preserve global consistency of the
+  state of all loaded theories with the sources of the external store.
+  This implies certain causalities between actions: \isa{update}
+  or \isa{outdate} of an entry will \isa{outdate} all
+  descendants; \isa{remove} will \isa{remove} all descendants.
+
+  \medskip There are separate user-level interfaces to operate on the
+  theory database directly or indirectly.  The primitive actions then
+  just happen automatically while working with the system.  In
+  particular, processing a theory header \isa{{\isasymTHEORY}\ A\ {\isasymIMPORTS}\ B\isactrlsub {\isadigit{1}}\ {\isasymdots}\ B\isactrlsub n\ {\isasymBEGIN}} ensures that the
+  sub-graph of the collective imports \isa{B\isactrlsub {\isadigit{1}}\ {\isasymdots}\ B\isactrlsub n}
+  is up-to-date, too.  Earlier theories are reloaded as required, with
+  \isa{update} actions proceeding in topological order according to
+  theory dependencies.  There may be also a wave of implied \isa{outdate} actions for derived theory nodes until a stable situation
+  is achieved eventually.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isadelimmlref
+%
+\endisadelimmlref
+%
+\isatagmlref
+%
+\begin{isamarkuptext}%
+\begin{mldecls}
+  \indexml{theory}\verb|theory: string -> theory| \\
+  \indexml{use\_thy}\verb|use_thy: string -> unit| \\
+  \indexml{use\_thys}\verb|use_thys: string list -> unit| \\
+  \indexml{ThyInfo.touch\_thy}\verb|ThyInfo.touch_thy: string -> unit| \\
+  \indexml{ThyInfo.remove\_thy}\verb|ThyInfo.remove_thy: string -> unit| \\[1ex]
+  \indexml{ThyInfo.begin\_theory}\verb|ThyInfo.begin_theory|\verb|: ... -> bool -> theory| \\
+  \indexml{ThyInfo.end\_theory}\verb|ThyInfo.end_theory: theory -> unit| \\
+  \indexml{ThyInfo.register\_theory}\verb|ThyInfo.register_theory: theory -> unit| \\[1ex]
+  \verb|datatype action = Update |\verb,|,\verb| Outdate |\verb,|,\verb| Remove| \\
+  \indexml{ThyInfo.add\_hook}\verb|ThyInfo.add_hook: (ThyInfo.action -> string -> unit) -> unit| \\
+  \end{mldecls}
+
+  \begin{description}
+
+  \item \verb|theory|~\isa{A} retrieves the theory value presently
+  associated with name \isa{A}.  Note that the result might be
+  outdated.
+
+  \item \verb|use_thy|~\isa{A} ensures that theory \isa{A} is fully
+  up-to-date wrt.\ the external file store, reloading outdated
+  ancestors as required.
+
+  \item \verb|use_thys| is similar to \verb|use_thy|, but handles
+  several theories simultaneously.  Thus it acts like processing the
+  import header of a theory, without performing the merge of the
+  result, though.
+
+  \item \verb|ThyInfo.touch_thy|~\isa{A} performs and \isa{outdate} action
+  on theory \isa{A} and all descendants.
+
+  \item \verb|ThyInfo.remove_thy|~\isa{A} deletes theory \isa{A} and all
+  descendants from the theory database.
+
+  \item \verb|ThyInfo.begin_theory| is the basic operation behind a
+  \isa{{\isasymTHEORY}} header declaration.  This is {\ML} functions is
+  normally not invoked directly.
+
+  \item \verb|ThyInfo.end_theory| concludes the loading of a theory
+  proper and stores the result in the theory database.
+
+  \item \verb|ThyInfo.register_theory|~\isa{text\ thy} registers an
+  existing theory value with the theory loader database.  There is no
+  management of associated sources.
+
+  \item \verb|ThyInfo.add_hook|~\isa{f} registers function \isa{f} as a hook for theory database actions.  The function will be
+  invoked with the action and theory name being involved; thus derived
+  actions may be performed in associated system components, e.g.\
+  maintaining the state of an editor for the theory sources.
+
+  The kind and order of actions occurring in practice depends both on
+  user interactions and the internal process of resolving theory
+  imports.  Hooks should not rely on a particular policy here!  Any
+  exceptions raised by the hook are ignored.
+
+  \end{description}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\endisatagmlref
+{\isafoldmlref}%
+%
+\isadelimmlref
+%
+\endisadelimmlref
+%
+\isadelimtheory
+%
+\endisadelimtheory
+%
+\isatagtheory
+\isacommand{end}\isamarkupfalse%
+%
+\endisatagtheory
+{\isafoldtheory}%
+%
+\isadelimtheory
+%
+\endisadelimtheory
+\isanewline
+\end{isabellebody}%
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "root"
+%%% End:

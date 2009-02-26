@@ -1,0 +1,394 @@
+%
+\begin{isabellebody}%
+\def\isabellecontext{Proof}%
+%
+\isadelimtheory
+%
+\endisadelimtheory
+%
+\isatagtheory
+\isacommand{theory}\isamarkupfalse%
+\ Proof\isanewline
+\isakeyword{imports}\ Base\isanewline
+\isakeyword{begin}%
+\endisatagtheory
+{\isafoldtheory}%
+%
+\isadelimtheory
+%
+\endisadelimtheory
+%
+\isamarkupchapter{Structured proofs%
+}
+\isamarkuptrue%
+%
+\isamarkupsection{Variables \label{sec:variables}%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+Any variable that is not explicitly bound by \isa{{\isasymlambda}}-abstraction
+  is considered as ``free''.  Logically, free variables act like
+  outermost universal quantification at the sequent level: \isa{A\isactrlisub {\isadigit{1}}{\isacharparenleft}x{\isacharparenright}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ A\isactrlisub n{\isacharparenleft}x{\isacharparenright}\ {\isasymturnstile}\ B{\isacharparenleft}x{\isacharparenright}} means that the result
+  holds \emph{for all} values of \isa{x}.  Free variables for
+  terms (not types) can be fully internalized into the logic: \isa{{\isasymturnstile}\ B{\isacharparenleft}x{\isacharparenright}} and \isa{{\isasymturnstile}\ {\isasymAnd}x{\isachardot}\ B{\isacharparenleft}x{\isacharparenright}} are interchangeable, provided
+  that \isa{x} does not occur elsewhere in the context.
+  Inspecting \isa{{\isasymturnstile}\ {\isasymAnd}x{\isachardot}\ B{\isacharparenleft}x{\isacharparenright}} more closely, we see that inside the
+  quantifier, \isa{x} is essentially ``arbitrary, but fixed'',
+  while from outside it appears as a place-holder for instantiation
+  (thanks to \isa{{\isasymAnd}} elimination).
+
+  The Pure logic represents the idea of variables being either inside
+  or outside the current scope by providing separate syntactic
+  categories for \emph{fixed variables} (e.g.\ \isa{x}) vs.\
+  \emph{schematic variables} (e.g.\ \isa{{\isacharquery}x}).  Incidently, a
+  universal result \isa{{\isasymturnstile}\ {\isasymAnd}x{\isachardot}\ B{\isacharparenleft}x{\isacharparenright}} has the HHF normal form \isa{{\isasymturnstile}\ B{\isacharparenleft}{\isacharquery}x{\isacharparenright}}, which represents its generality nicely without requiring
+  an explicit quantifier.  The same principle works for type
+  variables: \isa{{\isasymturnstile}\ B{\isacharparenleft}{\isacharquery}{\isasymalpha}{\isacharparenright}} represents the idea of ``\isa{{\isasymturnstile}\ {\isasymforall}{\isasymalpha}{\isachardot}\ B{\isacharparenleft}{\isasymalpha}{\isacharparenright}}'' without demanding a truly polymorphic framework.
+
+  \medskip Additional care is required to treat type variables in a
+  way that facilitates type-inference.  In principle, term variables
+  depend on type variables, which means that type variables would have
+  to be declared first.  For example, a raw type-theoretic framework
+  would demand the context to be constructed in stages as follows:
+  \isa{{\isasymGamma}\ {\isacharequal}\ {\isasymalpha}{\isacharcolon}\ type{\isacharcomma}\ x{\isacharcolon}\ {\isasymalpha}{\isacharcomma}\ a{\isacharcolon}\ A{\isacharparenleft}x\isactrlisub {\isasymalpha}{\isacharparenright}}.
+
+  We allow a slightly less formalistic mode of operation: term
+  variables \isa{x} are fixed without specifying a type yet
+  (essentially \emph{all} potential occurrences of some instance
+  \isa{x\isactrlisub {\isasymtau}} are fixed); the first occurrence of \isa{x}
+  within a specific term assigns its most general type, which is then
+  maintained consistently in the context.  The above example becomes
+  \isa{{\isasymGamma}\ {\isacharequal}\ x{\isacharcolon}\ term{\isacharcomma}\ {\isasymalpha}{\isacharcolon}\ type{\isacharcomma}\ A{\isacharparenleft}x\isactrlisub {\isasymalpha}{\isacharparenright}}, where type \isa{{\isasymalpha}} is fixed \emph{after} term \isa{x}, and the constraint
+  \isa{x\ {\isacharcolon}{\isacharcolon}\ {\isasymalpha}} is an implicit consequence of the occurrence of
+  \isa{x\isactrlisub {\isasymalpha}} in the subsequent proposition.
+
+  This twist of dependencies is also accommodated by the reverse
+  operation of exporting results from a context: a type variable
+  \isa{{\isasymalpha}} is considered fixed as long as it occurs in some fixed
+  term variable of the context.  For example, exporting \isa{x{\isacharcolon}\ term{\isacharcomma}\ {\isasymalpha}{\isacharcolon}\ type\ {\isasymturnstile}\ x\isactrlisub {\isasymalpha}\ {\isacharequal}\ x\isactrlisub {\isasymalpha}} produces in the first step
+  \isa{x{\isacharcolon}\ term\ {\isasymturnstile}\ x\isactrlisub {\isasymalpha}\ {\isacharequal}\ x\isactrlisub {\isasymalpha}} for fixed \isa{{\isasymalpha}},
+  and only in the second step \isa{{\isasymturnstile}\ {\isacharquery}x\isactrlisub {\isacharquery}\isactrlisub {\isasymalpha}\ {\isacharequal}\ {\isacharquery}x\isactrlisub {\isacharquery}\isactrlisub {\isasymalpha}} for schematic \isa{{\isacharquery}x} and \isa{{\isacharquery}{\isasymalpha}}.
+
+  \medskip The Isabelle/Isar proof context manages the gory details of
+  term vs.\ type variables, with high-level principles for moving the
+  frontier between fixed and schematic variables.
+
+  The \isa{add{\isacharunderscore}fixes} operation explictly declares fixed
+  variables; the \isa{declare{\isacharunderscore}term} operation absorbs a term into
+  a context by fixing new type variables and adding syntactic
+  constraints.
+
+  The \isa{export} operation is able to perform the main work of
+  generalizing term and type variables as sketched above, assuming
+  that fixing variables and terms have been declared properly.
+
+  There \isa{import} operation makes a generalized fact a genuine
+  part of the context, by inventing fixed variables for the schematic
+  ones.  The effect can be reversed by using \isa{export} later,
+  potentially with an extended context; the result is equivalent to
+  the original modulo renaming of schematic variables.
+
+  The \isa{focus} operation provides a variant of \isa{import}
+  for nested propositions (with explicit quantification): \isa{{\isasymAnd}x\isactrlisub {\isadigit{1}}\ {\isasymdots}\ x\isactrlisub n{\isachardot}\ B{\isacharparenleft}x\isactrlisub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ x\isactrlisub n{\isacharparenright}} is
+  decomposed by inventing fixed variables \isa{x\isactrlisub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ x\isactrlisub n} for the body.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isadelimmlref
+%
+\endisadelimmlref
+%
+\isatagmlref
+%
+\begin{isamarkuptext}%
+\begin{mldecls}
+  \indexml{Variable.add\_fixes}\verb|Variable.add_fixes: |\isasep\isanewline%
+\verb|  string list -> Proof.context -> string list * Proof.context| \\
+  \indexml{Variable.variant\_fixes}\verb|Variable.variant_fixes: |\isasep\isanewline%
+\verb|  string list -> Proof.context -> string list * Proof.context| \\
+  \indexml{Variable.declare\_term}\verb|Variable.declare_term: term -> Proof.context -> Proof.context| \\
+  \indexml{Variable.declare\_constraints}\verb|Variable.declare_constraints: term -> Proof.context -> Proof.context| \\
+  \indexml{Variable.export}\verb|Variable.export: Proof.context -> Proof.context -> thm list -> thm list| \\
+  \indexml{Variable.polymorphic}\verb|Variable.polymorphic: Proof.context -> term list -> term list| \\
+  \indexml{Variable.import\_thms}\verb|Variable.import_thms: bool -> thm list -> Proof.context ->|\isasep\isanewline%
+\verb|  ((ctyp list * cterm list) * thm list) * Proof.context| \\
+  \indexml{Variable.focus}\verb|Variable.focus: cterm -> Proof.context -> (cterm list * cterm) * Proof.context| \\
+  \end{mldecls}
+
+  \begin{description}
+
+  \item \verb|Variable.add_fixes|~\isa{xs\ ctxt} fixes term
+  variables \isa{xs}, returning the resulting internal names.  By
+  default, the internal representation coincides with the external
+  one, which also means that the given variables must not be fixed
+  already.  There is a different policy within a local proof body: the
+  given names are just hints for newly invented Skolem variables.
+
+  \item \verb|Variable.variant_fixes| is similar to \verb|Variable.add_fixes|, but always produces fresh variants of the given
+  names.
+
+  \item \verb|Variable.declare_term|~\isa{t\ ctxt} declares term
+  \isa{t} to belong to the context.  This automatically fixes new
+  type variables, but not term variables.  Syntactic constraints for
+  type and term variables are declared uniformly, though.
+
+  \item \verb|Variable.declare_constraints|~\isa{t\ ctxt} declares
+  syntactic constraints from term \isa{t}, without making it part
+  of the context yet.
+
+  \item \verb|Variable.export|~\isa{inner\ outer\ thms} generalizes
+  fixed type and term variables in \isa{thms} according to the
+  difference of the \isa{inner} and \isa{outer} context,
+  following the principles sketched above.
+
+  \item \verb|Variable.polymorphic|~\isa{ctxt\ ts} generalizes type
+  variables in \isa{ts} as far as possible, even those occurring
+  in fixed term variables.  The default policy of type-inference is to
+  fix newly introduced type variables, which is essentially reversed
+  with \verb|Variable.polymorphic|: here the given terms are detached
+  from the context as far as possible.
+
+  \item \verb|Variable.import_thms|~\isa{open\ thms\ ctxt} invents fixed
+  type and term variables for the schematic ones occurring in \isa{thms}.  The \isa{open} flag indicates whether the fixed names
+  should be accessible to the user, otherwise newly introduced names
+  are marked as ``internal'' (\secref{sec:names}).
+
+  \item \verb|Variable.focus|~\isa{B} decomposes the outermost \isa{{\isasymAnd}} prefix of proposition \isa{B}.
+
+  \end{description}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\endisatagmlref
+{\isafoldmlref}%
+%
+\isadelimmlref
+%
+\endisadelimmlref
+%
+\isamarkupsection{Assumptions \label{sec:assumptions}%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+An \emph{assumption} is a proposition that it is postulated in the
+  current context.  Local conclusions may use assumptions as
+  additional facts, but this imposes implicit hypotheses that weaken
+  the overall statement.
+
+  Assumptions are restricted to fixed non-schematic statements, i.e.\
+  all generality needs to be expressed by explicit quantifiers.
+  Nevertheless, the result will be in HHF normal form with outermost
+  quantifiers stripped.  For example, by assuming \isa{{\isasymAnd}x\ {\isacharcolon}{\isacharcolon}\ {\isasymalpha}{\isachardot}\ P\ x} we get \isa{{\isasymAnd}x\ {\isacharcolon}{\isacharcolon}\ {\isasymalpha}{\isachardot}\ P\ x\ {\isasymturnstile}\ P\ {\isacharquery}x} for schematic \isa{{\isacharquery}x}
+  of fixed type \isa{{\isasymalpha}}.  Local derivations accumulate more and
+  more explicit references to hypotheses: \isa{A\isactrlisub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ A\isactrlisub n\ {\isasymturnstile}\ B} where \isa{A\isactrlisub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ A\isactrlisub n} needs to
+  be covered by the assumptions of the current context.
+
+  \medskip The \isa{add{\isacharunderscore}assms} operation augments the context by
+  local assumptions, which are parameterized by an arbitrary \isa{export} rule (see below).
+
+  The \isa{export} operation moves facts from a (larger) inner
+  context into a (smaller) outer context, by discharging the
+  difference of the assumptions as specified by the associated export
+  rules.  Note that the discharged portion is determined by the
+  difference contexts, not the facts being exported!  There is a
+  separate flag to indicate a goal context, where the result is meant
+  to refine an enclosing sub-goal of a structured proof state.
+
+  \medskip The most basic export rule discharges assumptions directly
+  by means of the \isa{{\isasymLongrightarrow}} introduction rule:
+  \[
+  \infer[(\isa{{\isasymLongrightarrow}{\isacharunderscore}intro})]{\isa{{\isasymGamma}\ {\isacharbackslash}\ A\ {\isasymturnstile}\ A\ {\isasymLongrightarrow}\ B}}{\isa{{\isasymGamma}\ {\isasymturnstile}\ B}}
+  \]
+
+  The variant for goal refinements marks the newly introduced
+  premises, which causes the canonical Isar goal refinement scheme to
+  enforce unification with local premises within the goal:
+  \[
+  \infer[(\isa{{\isacharhash}{\isasymLongrightarrow}{\isacharunderscore}intro})]{\isa{{\isasymGamma}\ {\isacharbackslash}\ A\ {\isasymturnstile}\ {\isacharhash}A\ {\isasymLongrightarrow}\ B}}{\isa{{\isasymGamma}\ {\isasymturnstile}\ B}}
+  \]
+
+  \medskip Alternative versions of assumptions may perform arbitrary
+  transformations on export, as long as the corresponding portion of
+  hypotheses is removed from the given facts.  For example, a local
+  definition works by fixing \isa{x} and assuming \isa{x\ {\isasymequiv}\ t},
+  with the following export rule to reverse the effect:
+  \[
+  \infer[(\isa{{\isasymequiv}{\isacharminus}expand})]{\isa{{\isasymGamma}\ {\isacharbackslash}\ x\ {\isasymequiv}\ t\ {\isasymturnstile}\ B\ t}}{\isa{{\isasymGamma}\ {\isasymturnstile}\ B\ x}}
+  \]
+  This works, because the assumption \isa{x\ {\isasymequiv}\ t} was introduced in
+  a context with \isa{x} being fresh, so \isa{x} does not
+  occur in \isa{{\isasymGamma}} here.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isadelimmlref
+%
+\endisadelimmlref
+%
+\isatagmlref
+%
+\begin{isamarkuptext}%
+\begin{mldecls}
+  \indexmltype{Assumption.export}\verb|type Assumption.export| \\
+  \indexml{Assumption.assume}\verb|Assumption.assume: cterm -> thm| \\
+  \indexml{Assumption.add\_assms}\verb|Assumption.add_assms: Assumption.export ->|\isasep\isanewline%
+\verb|  cterm list -> Proof.context -> thm list * Proof.context| \\
+  \indexml{Assumption.add\_assumes}\verb|Assumption.add_assumes: |\isasep\isanewline%
+\verb|  cterm list -> Proof.context -> thm list * Proof.context| \\
+  \indexml{Assumption.export}\verb|Assumption.export: bool -> Proof.context -> Proof.context -> thm -> thm| \\
+  \end{mldecls}
+
+  \begin{description}
+
+  \item \verb|Assumption.export| represents arbitrary export
+  rules, which is any function of type \verb|bool -> cterm list -> thm -> thm|,
+  where the \verb|bool| indicates goal mode, and the \verb|cterm list| the collection of assumptions to be discharged
+  simultaneously.
+
+  \item \verb|Assumption.assume|~\isa{A} turns proposition \isa{A} into a raw assumption \isa{A\ {\isasymturnstile}\ A{\isacharprime}}, where the conclusion
+  \isa{A{\isacharprime}} is in HHF normal form.
+
+  \item \verb|Assumption.add_assms|~\isa{r\ As} augments the context
+  by assumptions \isa{As} with export rule \isa{r}.  The
+  resulting facts are hypothetical theorems as produced by the raw
+  \verb|Assumption.assume|.
+
+  \item \verb|Assumption.add_assumes|~\isa{As} is a special case of
+  \verb|Assumption.add_assms| where the export rule performs \isa{{\isasymLongrightarrow}{\isacharunderscore}intro} or \isa{{\isacharhash}{\isasymLongrightarrow}{\isacharunderscore}intro}, depending on goal mode.
+
+  \item \verb|Assumption.export|~\isa{is{\isacharunderscore}goal\ inner\ outer\ thm}
+  exports result \isa{thm} from the the \isa{inner} context
+  back into the \isa{outer} one; \isa{is{\isacharunderscore}goal\ {\isacharequal}\ true} means
+  this is a goal context.  The result is in HHF normal form.  Note
+  that \verb|ProofContext.export| combines \verb|Variable.export|
+  and \verb|Assumption.export| in the canonical way.
+
+  \end{description}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\endisatagmlref
+{\isafoldmlref}%
+%
+\isadelimmlref
+%
+\endisadelimmlref
+%
+\isamarkupsection{Results \label{sec:results}%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+Local results are established by monotonic reasoning from facts
+  within a context.  This allows common combinations of theorems,
+  e.g.\ via \isa{{\isasymAnd}{\isacharslash}{\isasymLongrightarrow}} elimination, resolution rules, or equational
+  reasoning, see \secref{sec:thms}.  Unaccounted context manipulations
+  should be avoided, notably raw \isa{{\isasymAnd}{\isacharslash}{\isasymLongrightarrow}} introduction or ad-hoc
+  references to free variables or assumptions not present in the proof
+  context.
+
+  \medskip The \isa{SUBPROOF} combinator allows to structure a
+  tactical proof recursively by decomposing a selected sub-goal:
+  \isa{{\isacharparenleft}{\isasymAnd}x{\isachardot}\ A{\isacharparenleft}x{\isacharparenright}\ {\isasymLongrightarrow}\ B{\isacharparenleft}x{\isacharparenright}{\isacharparenright}\ {\isasymLongrightarrow}\ {\isasymdots}} is turned into \isa{B{\isacharparenleft}x{\isacharparenright}\ {\isasymLongrightarrow}\ {\isasymdots}}
+  after fixing \isa{x} and assuming \isa{A{\isacharparenleft}x{\isacharparenright}}.  This means
+  the tactic needs to solve the conclusion, but may use the premise as
+  a local fact, for locally fixed variables.
+
+  The \isa{prove} operation provides an interface for structured
+  backwards reasoning under program control, with some explicit sanity
+  checks of the result.  The goal context can be augmented by
+  additional fixed variables (cf.\ \secref{sec:variables}) and
+  assumptions (cf.\ \secref{sec:assumptions}), which will be available
+  as local facts during the proof and discharged into implications in
+  the result.  Type and term variables are generalized as usual,
+  according to the context.
+
+  The \isa{obtain} operation produces results by eliminating
+  existing facts by means of a given tactic.  This acts like a dual
+  conclusion: the proof demonstrates that the context may be augmented
+  by certain fixed variables and assumptions.  See also
+  \cite{isabelle-isar-ref} for the user-level \isa{{\isasymOBTAIN}} and
+  \isa{{\isasymGUESS}} elements.  Final results, which may not refer to
+  the parameters in the conclusion, need to exported explicitly into
+  the original context.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isadelimmlref
+%
+\endisadelimmlref
+%
+\isatagmlref
+%
+\begin{isamarkuptext}%
+\begin{mldecls}
+  \indexml{SUBPROOF}\verb|SUBPROOF: ({context: Proof.context, schematics: ctyp list * cterm list,|\isasep\isanewline%
+\verb|    params: cterm list, asms: cterm list, concl: cterm,|\isasep\isanewline%
+\verb|    prems: thm list} -> tactic) -> Proof.context -> int -> tactic| \\
+  \end{mldecls}
+  \begin{mldecls}
+  \indexml{Goal.prove}\verb|Goal.prove: Proof.context -> string list -> term list -> term ->|\isasep\isanewline%
+\verb|  ({prems: thm list, context: Proof.context} -> tactic) -> thm| \\
+  \indexml{Goal.prove\_multi}\verb|Goal.prove_multi: Proof.context -> string list -> term list -> term list ->|\isasep\isanewline%
+\verb|  ({prems: thm list, context: Proof.context} -> tactic) -> thm list| \\
+  \end{mldecls}
+  \begin{mldecls}
+  \indexml{Obtain.result}\verb|Obtain.result: (Proof.context -> tactic) ->|\isasep\isanewline%
+\verb|  thm list -> Proof.context -> (cterm list * thm list) * Proof.context| \\
+  \end{mldecls}
+
+  \begin{description}
+
+  \item \verb|SUBPROOF|~\isa{tac\ ctxt\ i} decomposes the structure
+  of the specified sub-goal, producing an extended context and a
+  reduced goal, which needs to be solved by the given tactic.  All
+  schematic parameters of the goal are imported into the context as
+  fixed ones, which may not be instantiated in the sub-proof.
+
+  \item \verb|Goal.prove|~\isa{ctxt\ xs\ As\ C\ tac} states goal \isa{C} in the context augmented by fixed variables \isa{xs} and
+  assumptions \isa{As}, and applies tactic \isa{tac} to solve
+  it.  The latter may depend on the local assumptions being presented
+  as facts.  The result is in HHF normal form.
+
+  \item \verb|Goal.prove_multi| is simular to \verb|Goal.prove|, but
+  states several conclusions simultaneously.  The goal is encoded by
+  means of Pure conjunction; \verb|Goal.conjunction_tac| will turn this
+  into a collection of individual subgoals.
+
+  \item \verb|Obtain.result|~\isa{tac\ thms\ ctxt} eliminates the
+  given facts using a tactic, which results in additional fixed
+  variables and assumptions in the context.  Final results need to be
+  exported explicitly.
+
+  \end{description}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\endisatagmlref
+{\isafoldmlref}%
+%
+\isadelimmlref
+%
+\endisadelimmlref
+%
+\isadelimtheory
+%
+\endisadelimtheory
+%
+\isatagtheory
+\isacommand{end}\isamarkupfalse%
+%
+\endisatagtheory
+{\isafoldtheory}%
+%
+\isadelimtheory
+%
+\endisadelimtheory
+\isanewline
+\end{isabellebody}%
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "root"
+%%% End:
