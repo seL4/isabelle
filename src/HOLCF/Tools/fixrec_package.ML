@@ -8,6 +8,7 @@ signature FIXREC_PACKAGE =
 sig
   val legacy_infer_term: theory -> term -> term
   val legacy_infer_prop: theory -> term -> term
+
   val add_fixrec: bool -> (Attrib.binding * string) list list -> theory -> theory
   val add_fixrec_i: bool -> ((binding * attribute list) * term) list list -> theory -> theory
   val add_fixpat: Attrib.binding * string list -> theory -> theory
@@ -20,7 +21,7 @@ structure FixrecPackage: FIXREC_PACKAGE =
 struct
 
 (* legacy type inference *)
-
+(* used by the domain package *)
 fun legacy_infer_term thy t =
   singleton (Syntax.check_terms (ProofContext.init thy)) (Sign.intern_term thy t);
 
@@ -35,15 +36,41 @@ fun fixrec_err s = error ("fixrec definition error:\n" ^ s);
 fun fixrec_eq_err thy s eq =
   fixrec_err (s ^ "\nin\n" ^ quote (Syntax.string_of_term_global thy eq));
 
-(* ->> is taken from holcf_logic.ML *)
-(* TODO: fix dependencies so we can import HOLCFLogic here *)
-infixr 6 ->>;
-fun S ->> T = Type (@{type_name "->"},[S,T]);
+(*************************************************************************)
+(***************************** building types ****************************)
+(*************************************************************************)
 
-(* extern_name is taken from domain/library.ML *)
-fun extern_name con = case Symbol.explode con of 
-		   ("o"::"p"::" "::rest) => implode rest
-		   | _ => con;
+(* ->> is taken from holcf_logic.ML *)
+fun cfunT (T, U) = Type(@{type_name "->"}, [T, U]);
+
+infixr 6 ->>; val (op ->>) = cfunT;
+
+fun dest_cfunT (Type(@{type_name "->"}, [T, U])) = (T, U)
+  | dest_cfunT T = raise TYPE ("dest_cfunT", [T], []);
+
+fun binder_cfun (Type(@{type_name "->"},[T, U])) = T :: binder_cfun U
+  | binder_cfun _   =  [];
+
+fun body_cfun (Type(@{type_name "->"},[T, U])) = body_cfun U
+  | body_cfun T   =  T;
+
+fun strip_cfun T : typ list * typ =
+  (binder_cfun T, body_cfun T);
+
+fun maybeT T = Type(@{type_name "maybe"}, [T]);
+
+fun dest_maybeT (Type(@{type_name "maybe"}, [T])) = T
+  | dest_maybeT T = raise TYPE ("dest_maybeT", [T], []);
+
+fun tupleT [] = @{typ "unit"}
+  | tupleT [T] = T
+  | tupleT (T :: Ts) = HOLogic.mk_prodT (T, tupleT Ts);
+
+fun matchT T = body_cfun T ->> maybeT (tupleT (binder_cfun T));
+
+(*************************************************************************)
+(***************************** building terms ****************************)
+(*************************************************************************)
 
 val mk_trp = HOLogic.mk_Trueprop;
 
@@ -54,30 +81,86 @@ fun dest_eqs t = HOLogic.dest_eq (HOLogic.dest_Trueprop t);
 fun chead_of (Const(@{const_name Rep_CFun},_)$f$t) = chead_of f
   | chead_of u = u;
 
-(* these are helpful functions copied from HOLCF/domain/library.ML *)
-fun %: s = Free(s,dummyT);
-fun %%: s = Const(s,dummyT);
-infix 0 ==;  fun S ==  T = %%:"==" $ S $ T;
-infix 1 ===; fun S === T = %%:"op =" $ S $ T;
-infix 9 `  ; fun f ` x = %%:@{const_name Rep_CFun} $ f $ x;
+fun capply_const (S, T) =
+  Const(@{const_name Rep_CFun}, (S ->> T) --> (S --> T));
+
+fun cabs_const (S, T) =
+  Const(@{const_name Abs_CFun}, (S --> T) --> (S ->> T));
+
+fun mk_capply (t, u) =
+  let val (S, T) =
+    case Term.fastype_of t of
+        Type(@{type_name "->"}, [S, T]) => (S, T)
+      | _ => raise TERM ("mk_capply " ^ ML_Syntax.print_list ML_Syntax.print_term [t, u], [t, u]);
+  in capply_const (S, T) $ t $ u end;
+
+infix 0 ==;  val (op ==) = Logic.mk_equals;
+infix 1 ===; val (op ===) = HOLogic.mk_eq;
+infix 9 `  ; val (op `) = mk_capply;
+
+
+fun mk_cpair (t, u) =
+  let val T = Term.fastype_of t
+      val U = Term.fastype_of u
+      val cpairT = T ->> U ->> HOLogic.mk_prodT (T, U)
+  in Const(@{const_name cpair}, cpairT) ` t ` u end;
+
+fun mk_cfst t =
+  let val T = Term.fastype_of t;
+      val (U, _) = HOLogic.dest_prodT T;
+  in Const(@{const_name cfst}, T ->> U) ` t end;
+
+fun mk_csnd t =
+  let val T = Term.fastype_of t;
+      val (_, U) = HOLogic.dest_prodT T;
+  in Const(@{const_name csnd}, T ->> U) ` t end;
+
+fun mk_csplit t =
+  let val (S, TU) = dest_cfunT (Term.fastype_of t);
+      val (T, U) = dest_cfunT TU;
+      val csplitT = (S ->> T ->> U) ->> HOLogic.mk_prodT (S, T) ->> U;
+  in Const(@{const_name csplit}, csplitT) ` t end;
 
 (* builds the expression (LAM v. rhs) *)
-fun big_lambda v rhs = %%:@{const_name Abs_CFun}$(Term.lambda v rhs);
+fun big_lambda v rhs =
+  cabs_const (Term.fastype_of v, Term.fastype_of rhs) $ Term.lambda v rhs;
 
 (* builds the expression (LAM v1 v2 .. vn. rhs) *)
 fun big_lambdas [] rhs = rhs
   | big_lambdas (v::vs) rhs = big_lambda v (big_lambdas vs rhs);
 
 (* builds the expression (LAM <v1,v2,..,vn>. rhs) *)
-fun lambda_ctuple [] rhs = big_lambda (%:"unit") rhs
+fun lambda_ctuple [] rhs = big_lambda (Free("unit", HOLogic.unitT)) rhs
   | lambda_ctuple (v::[]) rhs = big_lambda v rhs
   | lambda_ctuple (v::vs) rhs =
-      %%:@{const_name csplit}`(big_lambda v (lambda_ctuple vs rhs));
+      mk_csplit (big_lambda v (lambda_ctuple vs rhs));
 
 (* builds the expression <v1,v2,..,vn> *)
-fun mk_ctuple [] = %%:"UU"
+fun mk_ctuple [] = @{term "UU::unit"}
 |   mk_ctuple (t::[]) = t
-|   mk_ctuple (t::ts) = %%:@{const_name cpair}`t`(mk_ctuple ts);
+|   mk_ctuple (t::ts) = mk_cpair (t, mk_ctuple ts);
+
+fun mk_return t =
+  let val T = Term.fastype_of t
+  in Const(@{const_name Fixrec.return}, T ->> maybeT T) ` t end;
+
+fun mk_bind (t, u) =
+  let val (T, mU) = dest_cfunT (Term.fastype_of u);
+      val bindT = maybeT T ->> (T ->> mU) ->> mU;
+  in Const(@{const_name Fixrec.bind}, bindT) ` t ` u end;
+
+fun mk_mplus (t, u) =
+  let val mT = Term.fastype_of t
+  in Const(@{const_name Fixrec.mplus}, mT ->> mT ->> mT) ` t ` u end;
+
+fun mk_run t =
+  let val mT = Term.fastype_of t
+      val T = dest_maybeT mT
+  in Const(@{const_name Fixrec.run}, mT ->> T) ` t end;
+
+fun mk_fix t =
+  let val (T, _) = dest_cfunT (Term.fastype_of t)
+  in Const(@{const_name fix}, (T ->> T) ->> T) ` t end;
 
 (*************************************************************************)
 (************* fixed-point definitions and unfolding theorems ************)
@@ -86,22 +169,21 @@ fun mk_ctuple [] = %%:"UU"
 fun add_fixdefs eqs thy =
   let
     val (lhss,rhss) = ListPair.unzip (map dest_eqs eqs);
-    val fixpoint = %%:@{const_name fix}`lambda_ctuple lhss (mk_ctuple rhss);
+    val fixpoint = mk_fix (lambda_ctuple lhss (mk_ctuple rhss));
     
     fun one_def (l as Const(n,T)) r =
           let val b = Sign.base_name n in (b, (b^"_def", l == r)) end
       | one_def _ _ = fixrec_err "fixdefs: lhs not of correct form";
     fun defs [] _ = []
       | defs (l::[]) r = [one_def l r]
-      | defs (l::ls) r = one_def l (%%:@{const_name cfst}`r) :: defs ls (%%:@{const_name csnd}`r);
-    val (names, pre_fixdefs) = ListPair.unzip (defs lhss fixpoint);
+      | defs (l::ls) r = one_def l (mk_cfst r) :: defs ls (mk_csnd r);
+    val (names, fixdefs) = ListPair.unzip (defs lhss fixpoint);
     
-    val fixdefs = map (apsnd (legacy_infer_prop thy)) pre_fixdefs;
     val (fixdef_thms, thy') =
       PureThy.add_defs false (map (Thm.no_attributes o apfst Binding.name) fixdefs) thy;
     val ctuple_fixdef_thm = foldr1 (fn (x,y) => @{thm cpair_equalI} OF [x,y]) fixdef_thms;
     
-    val ctuple_unfold = legacy_infer_term thy' (mk_trp (mk_ctuple lhss === mk_ctuple rhss));
+    val ctuple_unfold = mk_trp (mk_ctuple lhss === mk_ctuple rhss);
     val ctuple_unfold_thm = Goal.prove_global thy' [] [] ctuple_unfold
           (fn _ => EVERY [rtac (ctuple_fixdef_thm RS fix_eq2 RS trans) 1,
                     simp_tac (simpset_of thy') 1]);
@@ -158,10 +240,10 @@ fun pre_build match_name pat rhs vs taken =
         fun result_type (Type(@{type_name "->"},[_,T])) (x::xs) = result_type T xs
           | result_type T _ = T;
         val v = Free(n, result_type T vs);
-        val m = match_name c;
+        val m = Const(match_name c, matchT T);
         val k = lambda_ctuple vs rhs;
       in
-        (%%:@{const_name Fixrec.bind}`(%%:m`v)`k, v, n::taken)
+        (mk_bind (m`v, k), v, n::taken)
       end
   | Free(n,_) => fixrec_err ("expected constructor, found free variable " ^ quote n)
   | _ => fixrec_err "pre_build: invalid pattern";
@@ -175,13 +257,13 @@ fun building match_name pat rhs vs taken =
   | Const(@{const_name Rep_CFun}, _)$f$x =>
       let val (rhs', v, taken') = pre_build match_name x rhs [] taken;
       in building match_name f rhs' (v::vs) taken' end
-  | Const(name,_) => (name, length vs, big_lambdas vs rhs)
+  | Const(name,_) => (pat, length vs, big_lambdas vs rhs)
   | _ => fixrec_err "function is not declared as constant in theory";
 
 fun match_eq match_name eq = 
   let val (lhs,rhs) = dest_eqs eq;
   in
-    building match_name lhs (%%:@{const_name Fixrec.return}`rhs) []
+    building match_name lhs (mk_return rhs) []
       (add_terms [eq] [])
   end;
 
@@ -189,15 +271,19 @@ fun match_eq match_name eq =
 (* also applies "run" to the result! *)
 fun fatbar arity ms =
   let
+    fun LAM_Ts 0 t = ([], Term.fastype_of t)
+      | LAM_Ts n (_ $ Abs(_,T,t)) =
+          let val (Ts, U) = LAM_Ts (n-1) t in (T::Ts, U) end
+      | LAM_Ts _ _ = fixrec_err "fatbar: internal error, not enough LAMs";
     fun unLAM 0 t = t
       | unLAM n (_$Abs(_,_,t)) = unLAM (n-1) t
       | unLAM _ _ = fixrec_err "fatbar: internal error, not enough LAMs";
-    fun reLAM 0 t = t
-      | reLAM n t = reLAM (n-1) (%%:@{const_name Abs_CFun} $ Abs("",dummyT,t));
-    fun mplus (x,y) = %%:@{const_name Fixrec.mplus}`x`y;
-    val msum = foldr1 mplus (map (unLAM arity) ms);
+    fun reLAM ([], U) t = t
+      | reLAM (T::Ts, U) t = reLAM (Ts, T ->> U) (cabs_const(T,U)$Abs("",T,t));
+    val msum = foldr1 mk_mplus (map (unLAM arity) ms);
+    val (Ts, U) = LAM_Ts arity (hd ms)
   in
-    reLAM arity (%%:@{const_name Fixrec.run}`msum)
+    reLAM (rev Ts, dest_maybeT U) (mk_run msum)
   end;
 
 fun unzip3 [] = ([],[],[])
@@ -215,7 +301,7 @@ fun compile_pats match_name eqs =
           else fixrec_err "all equations in block must have the same arity";
     val rhs = fatbar arity mats;
   in
-    mk_trp (%%:cname === rhs)
+    mk_trp (cname === rhs)
   end;
 
 (*************************************************************************)
@@ -258,7 +344,7 @@ fun gen_add_fixrec prep_prop prep_attrib strict blocks thy =
 
     val pattern_blocks = unconcat lengths (map Logic.strip_imp_concl eqn_ts');
     val compiled_ts =
-          map (legacy_infer_term thy o compile_pats match_name) pattern_blocks;
+          map (compile_pats match_name) pattern_blocks;
     val (thy', cnames, fixdef_thms, unfold_thms) = add_fixdefs compiled_ts thy;
   in
     if strict then let (* only prove simp rules if strict = true *)
