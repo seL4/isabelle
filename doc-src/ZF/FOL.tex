@@ -1,4 +1,4 @@
-%% $Id$
+%!TEX root = logics-ZF.tex
 \chapter{First-Order Logic}
 \index{first-order logic|(}
 
@@ -360,7 +360,8 @@ The theory header specifies that we are working in intuitionistic
 logic by designating \isa{IFOL} rather than \isa{FOL} as the parent
 theory:
 \begin{isabelle}
-\isacommand{theory}\ IFOL\_examples\ =\ IFOL:
+\isacommand{theory}\ IFOL\_examples\ \isacommand{imports}\ IFOL\isanewline
+\isacommand{begin}
 \end{isabelle}
 The proof begins by entering the goal, then applying the rule $({\imp}I)$.
 \begin{isabelle}
@@ -441,7 +442,7 @@ abandoned ones.  But proof checking is tedious, and the \ML{} tactic
 \ 1.\ (\isasymexists y.\ \isasymforall x.\ Q(x,\ y))\
 \isasymlongrightarrow \ (\isasymforall x.\ \isasymexists y.\ Q(x,\ y))
 \isanewline
-\isacommand{by} (tactic {*IntPr.fast_tac 1*})\isanewline
+\isacommand{by} (tactic \ttlbrace*IntPr.fast_tac 1*\ttrbrace)\isanewline
 No\ subgoals!
 \end{isabelle}
 
@@ -529,7 +530,8 @@ follows.  Choose~$y$ such that~$\neg P(y)$, if such exists; otherwise
 $\all{x}P(x)$ is true.  Either way the theorem holds.  First, we must
 work in a theory based on classical logic, the theory \isa{FOL}:
 \begin{isabelle}
-\isacommand{theory}\ FOL\_examples\ =\ FOL:
+\isacommand{theory}\ FOL\_examples\ \isacommand{imports}\ FOL\isanewline
+\isacommand{begin}
 \end{isabelle}
 
 The formal proof does not conform in any obvious way to the sketch given
@@ -631,7 +633,8 @@ classical logic, \texttt{FOL}, is extended with the constant
 $if::[o,o,o]\To o$.  The axiom \tdx{if_def} asserts the
 equation~$(if)$.
 \begin{isabelle}
-\isacommand{theory}\ If\ =\ FOL:\isanewline
+\isacommand{theory}\ If\ \isacommand{imports}\ FOL\isanewline
+\isacommand{begin}\isanewline
 \isacommand{constdefs}\isanewline
 \ \ if\ ::\ "[o,o,o]=>o"\isanewline
 \ \ \ "if(P,Q,R)\ ==\ P\&Q\ |\ \isachartilde P\&R"
