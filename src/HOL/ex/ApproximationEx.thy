@@ -1,6 +1,7 @@
-(* Title:    HOL/ex/ApproximationEx.thy
-   Author:   Johannes Hoelzl <hoelzl@in.tum.de> 2009
+(*  Title:      HOL/ex/ApproximationEx.thy
+    Author:     Johannes Hoelzl <hoelzl@in.tum.de> 2009
 *)
+
 theory ApproximationEx
 imports "~~/src/HOL/Reflection/Approximation"
 begin

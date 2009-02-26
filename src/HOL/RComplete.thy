@@ -1,8 +1,8 @@
-(*  Title       : HOL/RComplete.thy
-    Author      : Jacques D. Fleuriot, University of Edinburgh
-    Author      : Larry Paulson, University of Cambridge
-    Author      : Jeremy Avigad, Carnegie Mellon University
-    Author      : Florian Zuleger, Johannes Hoelzl, and Simon Funke, TU Muenchen
+(*  Title:      HOL/RComplete.thy
+    Author:     Jacques D. Fleuriot, University of Edinburgh
+    Author:     Larry Paulson, University of Cambridge
+    Author:     Jeremy Avigad, Carnegie Mellon University
+    Author:     Florian Zuleger, Johannes Hoelzl, and Simon Funke, TU Muenchen
 *)
 
 header {* Completeness of the Reals; Floor and Ceiling Functions *}
