@@ -6,10 +6,7 @@ sig
   val tvar_classes_of_terms : term list -> string list
   val tfree_classes_of_terms : term list -> string list
   val type_consts_of_terms : theory -> term list -> string list
-  val write_problem_files : (theory -> bool -> Thm.thm list -> string ->
-  (thm * (ResHolClause.axiom_name * ResHolClause.clause_id)) list * ResClause.classrelClause list *
-    ResClause.arityClause list -> string list -> ResHolClause.axiom_name list)
-    -> int -> bool
+  val write_problem_files : bool -> int -> bool
     -> (int -> Path.T) -> Proof.context * thm list * thm
     -> string list * ResHolClause.axiom_name Vector.vector list
 end;
@@ -524,11 +521,10 @@ fun remove_unwanted_clauses cls = filter (not o unwanted o prop_of o fst) cls;
 (* TODO: problem file for *one* subgoal would be sufficient *)
 (*Write out problem files for each subgoal.
   Argument probfile generates filenames from subgoal-number
-  Argument writer is either a tptp_write_file or dfg_write_file from ResHolClause
   Arguments max_new and theory_const are booleans controlling relevance_filter
     (necessary for different provers)
-  *)
-fun write_problem_files writer max_new theory_const probfile (ctxt, chain_ths, th) =
+*)
+fun write_problem_files dfg max_new theory_const probfile (ctxt, chain_ths, th) =
   let val goals = Thm.prems_of th
       val thy = ProofContext.theory_of ctxt
       fun get_neg_subgoals [] _ = []
@@ -548,6 +544,7 @@ fun write_problem_files writer max_new theory_const probfile (ctxt, chain_ths, t
       val white_cls = ResAxioms.cnf_rules_pairs thy white_thms
       (*clauses relevant to goal gl*)
       val axcls_list = map (fn ngcls => white_cls @ relevance_filter max_new theory_const thy included_cls (map prop_of ngcls)) goal_cls
+      val writer = if dfg then ResHolClause.dfg_write_file else ResHolClause.tptp_write_file
       fun write_all [] [] _ = []
         | write_all (ccls::ccls_list) (axcls::axcls_list) k =
             let val fname = File.platform_path (probfile k)
@@ -561,7 +558,7 @@ fun write_problem_files writer max_new theory_const probfile (ctxt, chain_ths, t
                 and supers = tvar_classes_of_terms axtms
                 and tycons = type_consts_of_terms thy (ccltms@axtms)
                 (*TFrees in conjecture clauses; TVars in axiom clauses*)
-                val (supers',arity_clauses) = ResClause.make_arity_clauses thy tycons supers
+                val (supers',arity_clauses) = ResClause.make_arity_clauses_dfg dfg thy tycons supers
                 val classrel_clauses = ResClause.make_classrel_clauses thy subs supers'
                 val clnames = writer thy isFO ccls fname (axcls,classrel_clauses,arity_clauses) []
                 val thm_names = Vector.fromList clnames
