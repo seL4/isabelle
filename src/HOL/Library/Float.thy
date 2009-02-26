@@ -1,7 +1,7 @@
-(* Title:    HOL/Library/Float.thy
- * Author:   Steven Obua 2008
- *           Johannes HÃ\<paragraph>lzl, TU Muenchen <hoelzl@in.tum.de> 2008 / 2009
- *)
+(*  Title:      HOL/Library/Float.thy
+    Author:     Steven Obua 2008
+    Author:     Johannes Hoelzl, TU Muenchen <hoelzl@in.tum.de> 2008 / 2009
+*)
 
 header {* Floating-Point Numbers *}
 

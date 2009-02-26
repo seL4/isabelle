@@ -267,9 +267,9 @@ Consider the following function and its corresponding
 \hspace*{0pt}structure Example = \\
 \hspace*{0pt}struct\\
 \hspace*{0pt}\\
-\hspace*{0pt}datatype nat = Suc of nat | Zero{\char95}nat;\\
+\hspace*{0pt}datatype nat = Zero{\char95}nat | Suc of nat;\\
 \hspace*{0pt}\\
-\hspace*{0pt}datatype boola = False | True;\\
+\hspace*{0pt}datatype boola = True | False;\\
 \hspace*{0pt}\\
 \hspace*{0pt}fun anda x True = x\\
 \hspace*{0pt} ~| anda x False = False\\
@@ -350,7 +350,7 @@ Consider the following function and its corresponding
 \hspace*{0pt}structure Example = \\
 \hspace*{0pt}struct\\
 \hspace*{0pt}\\
-\hspace*{0pt}datatype nat = Suc of nat | Zero{\char95}nat;\\
+\hspace*{0pt}datatype nat = Zero{\char95}nat | Suc of nat;\\
 \hspace*{0pt}\\
 \hspace*{0pt}fun less{\char95}nat m (Suc n) = less{\char95}eq{\char95}nat m n\\
 \hspace*{0pt} ~| less{\char95}nat n Zero{\char95}nat = false\\
@@ -407,7 +407,7 @@ Consider the following function and its corresponding
 \hspace*{0pt}structure Example = \\
 \hspace*{0pt}struct\\
 \hspace*{0pt}\\
-\hspace*{0pt}datatype nat = Suc of nat | Zero{\char95}nat;\\
+\hspace*{0pt}datatype nat = Zero{\char95}nat | Suc of nat;\\
 \hspace*{0pt}\\
 \hspace*{0pt}fun less{\char95}nat m (Suc n) = less{\char95}eq{\char95}nat m n\\
 \hspace*{0pt} ~| less{\char95}nat n Zero{\char95}nat = false\\

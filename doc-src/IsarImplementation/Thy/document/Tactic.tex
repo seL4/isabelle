@@ -83,10 +83,10 @@ Isabelle/Pure represents a goal as a theorem stating that the
 %
 \begin{isamarkuptext}%
 \begin{mldecls}
-  \indexml{Goal.init}\verb|Goal.init: cterm -> thm| \\
-  \indexml{Goal.finish}\verb|Goal.finish: thm -> thm| \\
-  \indexml{Goal.protect}\verb|Goal.protect: thm -> thm| \\
-  \indexml{Goal.conclude}\verb|Goal.conclude: thm -> thm| \\
+  \indexdef{}{ML}{Goal.init}\verb|Goal.init: cterm -> thm| \\
+  \indexdef{}{ML}{Goal.finish}\verb|Goal.finish: thm -> thm| \\
+  \indexdef{}{ML}{Goal.protect}\verb|Goal.protect: thm -> thm| \\
+  \indexdef{}{ML}{Goal.conclude}\verb|Goal.conclude: thm -> thm| \\
   \end{mldecls}
 
   \begin{description}
@@ -207,13 +207,13 @@ A \isa{tactic} is a function \isa{goal\ {\isasymrightarrow}\ goal\isactrlsup {\i
 %
 \begin{isamarkuptext}%
 \begin{mldecls}
-  \indexmltype{tactic}\verb|type tactic = thm -> thm Seq.seq| \\
-  \indexml{no\_tac}\verb|no_tac: tactic| \\
-  \indexml{all\_tac}\verb|all_tac: tactic| \\
-  \indexml{print\_tac}\verb|print_tac: string -> tactic| \\[1ex]
-  \indexml{PRIMITIVE}\verb|PRIMITIVE: (thm -> thm) -> tactic| \\[1ex]
-  \indexml{SUBGOAL}\verb|SUBGOAL: (term * int -> tactic) -> int -> tactic| \\
-  \indexml{CSUBGOAL}\verb|CSUBGOAL: (cterm * int -> tactic) -> int -> tactic| \\
+  \indexdef{}{ML type}{tactic}\verb|type tactic = thm -> thm Seq.seq| \\
+  \indexdef{}{ML}{no\_tac}\verb|no_tac: tactic| \\
+  \indexdef{}{ML}{all\_tac}\verb|all_tac: tactic| \\
+  \indexdef{}{ML}{print\_tac}\verb|print_tac: string -> tactic| \\[1ex]
+  \indexdef{}{ML}{PRIMITIVE}\verb|PRIMITIVE: (thm -> thm) -> tactic| \\[1ex]
+  \indexdef{}{ML}{SUBGOAL}\verb|SUBGOAL: (term * int -> tactic) -> int -> tactic| \\
+  \indexdef{}{ML}{CSUBGOAL}\verb|CSUBGOAL: (cterm * int -> tactic) -> int -> tactic| \\
   \end{mldecls}
 
   \begin{description}
@@ -316,15 +316,15 @@ A \isa{tactic} is a function \isa{goal\ {\isasymrightarrow}\ goal\isactrlsup {\i
 %
 \begin{isamarkuptext}%
 \begin{mldecls}
-  \indexml{resolve\_tac}\verb|resolve_tac: thm list -> int -> tactic| \\
-  \indexml{eresolve\_tac}\verb|eresolve_tac: thm list -> int -> tactic| \\
-  \indexml{dresolve\_tac}\verb|dresolve_tac: thm list -> int -> tactic| \\
-  \indexml{forward\_tac}\verb|forward_tac: thm list -> int -> tactic| \\[1ex]
-  \indexml{assume\_tac}\verb|assume_tac: int -> tactic| \\
-  \indexml{eq\_assume\_tac}\verb|eq_assume_tac: int -> tactic| \\[1ex]
-  \indexml{match\_tac}\verb|match_tac: thm list -> int -> tactic| \\
-  \indexml{ematch\_tac}\verb|ematch_tac: thm list -> int -> tactic| \\
-  \indexml{dmatch\_tac}\verb|dmatch_tac: thm list -> int -> tactic| \\
+  \indexdef{}{ML}{resolve\_tac}\verb|resolve_tac: thm list -> int -> tactic| \\
+  \indexdef{}{ML}{eresolve\_tac}\verb|eresolve_tac: thm list -> int -> tactic| \\
+  \indexdef{}{ML}{dresolve\_tac}\verb|dresolve_tac: thm list -> int -> tactic| \\
+  \indexdef{}{ML}{forward\_tac}\verb|forward_tac: thm list -> int -> tactic| \\[1ex]
+  \indexdef{}{ML}{assume\_tac}\verb|assume_tac: int -> tactic| \\
+  \indexdef{}{ML}{eq\_assume\_tac}\verb|eq_assume_tac: int -> tactic| \\[1ex]
+  \indexdef{}{ML}{match\_tac}\verb|match_tac: thm list -> int -> tactic| \\
+  \indexdef{}{ML}{ematch\_tac}\verb|ematch_tac: thm list -> int -> tactic| \\
+  \indexdef{}{ML}{dmatch\_tac}\verb|dmatch_tac: thm list -> int -> tactic| \\
   \end{mldecls}
 
   \begin{description}
@@ -426,11 +426,11 @@ The main resolution tactics (\secref{sec:resolve-assume-tac})
 %
 \begin{isamarkuptext}%
 \begin{mldecls}
-  \indexml{res\_inst\_tac}\verb|res_inst_tac: Proof.context -> (indexname * string) list -> thm -> int -> tactic| \\
-  \indexml{eres\_inst\_tac}\verb|eres_inst_tac: Proof.context -> (indexname * string) list -> thm -> int -> tactic| \\
-  \indexml{dres\_inst\_tac}\verb|dres_inst_tac: Proof.context -> (indexname * string) list -> thm -> int -> tactic| \\
-  \indexml{forw\_inst\_tac}\verb|forw_inst_tac: Proof.context -> (indexname * string) list -> thm -> int -> tactic| \\[1ex]
-  \indexml{rename\_tac}\verb|rename_tac: string list -> int -> tactic| \\
+  \indexdef{}{ML}{res\_inst\_tac}\verb|res_inst_tac: Proof.context -> (indexname * string) list -> thm -> int -> tactic| \\
+  \indexdef{}{ML}{eres\_inst\_tac}\verb|eres_inst_tac: Proof.context -> (indexname * string) list -> thm -> int -> tactic| \\
+  \indexdef{}{ML}{dres\_inst\_tac}\verb|dres_inst_tac: Proof.context -> (indexname * string) list -> thm -> int -> tactic| \\
+  \indexdef{}{ML}{forw\_inst\_tac}\verb|forw_inst_tac: Proof.context -> (indexname * string) list -> thm -> int -> tactic| \\[1ex]
+  \indexdef{}{ML}{rename\_tac}\verb|rename_tac: string list -> int -> tactic| \\
   \end{mldecls}
 
   \begin{description}

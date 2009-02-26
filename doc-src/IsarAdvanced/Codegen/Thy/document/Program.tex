@@ -276,7 +276,7 @@ Concerning type classes and code generation, let us examine an example
 \hspace*{0pt}module Example where {\char123}\\
 \hspace*{0pt}\\
 \hspace*{0pt}\\
-\hspace*{0pt}data Nat = Suc Nat | Zero{\char95}nat;\\
+\hspace*{0pt}data Nat = Zero{\char95}nat | Suc Nat;\\
 \hspace*{0pt}\\
 \hspace*{0pt}class Semigroup a where {\char123}\\
 \hspace*{0pt} ~mult ::~a -> a -> a;\\
@@ -341,7 +341,7 @@ Concerning type classes and code generation, let us examine an example
 \hspace*{0pt}structure Example = \\
 \hspace*{0pt}struct\\
 \hspace*{0pt}\\
-\hspace*{0pt}datatype nat = Suc of nat | Zero{\char95}nat;\\
+\hspace*{0pt}datatype nat = Zero{\char95}nat | Suc of nat;\\
 \hspace*{0pt}\\
 \hspace*{0pt}type 'a semigroup = {\char123}mult :~'a -> 'a -> 'a{\char125};\\
 \hspace*{0pt}fun mult (A{\char95}:'a semigroup) = {\char35}mult A{\char95};\\
@@ -1032,7 +1032,7 @@ In some cases, the automatically derived code equations
 \hspace*{0pt}structure Example = \\
 \hspace*{0pt}struct\\
 \hspace*{0pt}\\
-\hspace*{0pt}datatype nat = Suc of nat | Zero{\char95}nat;\\
+\hspace*{0pt}datatype nat = Zero{\char95}nat | Suc of nat;\\
 \hspace*{0pt}\\
 \hspace*{0pt}fun null [] = true\\
 \hspace*{0pt} ~| null (x ::~xs) = false;\\
