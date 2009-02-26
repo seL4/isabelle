@@ -28,6 +28,11 @@ val atomize_intr = Conv.fconv_rule (Conv.prems_conv ~1 atomize_conv);
 fun atomize_induct ctxt = Conv.fconv_rule (Conv.prems_conv ~1
   (Conv.params_conv ~1 (K (Conv.prems_conv ~1 atomize_conv)) ctxt));
 
+val fresh_postprocess =
+  Simplifier.full_simplify (HOL_basic_ss addsimps
+    [@{thm fresh_star_set_eq}, @{thm fresh_star_Un_elim},
+     @{thm fresh_star_insert_elim}, @{thm fresh_star_empty_elim}]);
+
 fun preds_of ps t = gen_inter (op = o apfst dest_Free) (ps, Term.add_frees t []);
 
 val perm_bool = mk_meta_eq (thm "perm_bool");
@@ -192,12 +197,15 @@ fun prove_strong_ind s avoids ctxt =
           handle TERM _ =>
             error ("Expression " ^ quote s ^ " to be avoided in case " ^
               quote name ^ " is not a set type");
-        val ps = map mk sets
+        fun add_set p [] = [p]
+          | add_set (t, T) ((u, U) :: ps) =
+              if T = U then
+                let val S = HOLogic.mk_setT T
+                in (Const (@{const_name "op Un"}, S --> S --> S) $ u $ t, T) :: ps
+                end
+              else (u, U) :: add_set (t, T) ps
       in
-        case duplicates op = (map snd ps) of
-          [] => ps
-        | Ts => error ("More than one set in case " ^ quote name ^
-            " for type(s) " ^ commas_quote (map (Syntax.string_of_typ ctxt') Ts))
+        fold (mk #> add_set) sets []
       end;
 
     val prems = map (fn (prem, name) =>
@@ -436,7 +444,9 @@ fun prove_strong_ind s avoids ctxt =
           REPEAT (REPEAT (resolve_tac [conjI, impI] 1) THEN
             etac impE 1 THEN atac 1 THEN REPEAT (etac @{thm allE_Nil} 1) THEN
             asm_full_simp_tac (simpset_of thy) 1)
-        end) |> singleton (ProofContext.export ctxt' ctxt);
+        end) |>
+        fresh_postprocess |>
+        singleton (ProofContext.export ctxt' ctxt);
 
   in
     ctxt'' |>

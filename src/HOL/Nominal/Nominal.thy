@@ -397,6 +397,25 @@ by (auto simp add: fresh_star_def fresh_prod)
 
 lemmas fresh_star_prod = fresh_star_prod_list fresh_star_prod_set
 
+lemma fresh_star_set_eq: "set xs \<sharp>* c = xs \<sharp>* c"
+  by (simp add: fresh_star_def)
+
+lemma fresh_star_Un_elim:
+  "((S \<union> T) \<sharp>* c \<Longrightarrow> PROP C) \<equiv> (S \<sharp>* c \<Longrightarrow> T \<sharp>* c \<Longrightarrow> PROP C)"
+  apply rule
+  apply (simp_all add: fresh_star_def)
+  apply (erule meta_mp)
+  apply blast
+  done
+
+lemma fresh_star_insert_elim:
+  "(insert x S \<sharp>* c \<Longrightarrow> PROP C) \<equiv> (x \<sharp> c \<Longrightarrow> S \<sharp>* c \<Longrightarrow> PROP C)"
+  by rule (simp_all add: fresh_star_def)
+
+lemma fresh_star_empty_elim:
+  "({} \<sharp>* c \<Longrightarrow> PROP C) \<equiv> PROP C"
+  by (simp add: fresh_star_def)
+
 text {* Normalization of freshness results; cf.\ @{text nominal_induct} *}
 
 lemma fresh_star_unit_elim: 
