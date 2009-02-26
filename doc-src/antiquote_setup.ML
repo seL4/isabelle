@@ -16,10 +16,11 @@ fun translate f = Symbol.explode #> map f #> implode;
 
 val clean_string = translate
   (fn "_" => "\\_"
+    | "#" => "\\#"
     | "<" => "$<$"
     | ">" => "$>$"
-    | "#" => "\\#"
     | "{" => "\\{"
+    | "|" => "$\\mid$"
     | "}" => "\\}"
     | "\\<dash>" => "-"
     | c => c);
@@ -68,8 +69,9 @@ fun index_ml kind ml src ctxt (txt1, txt2) =
     val txt' = if kind = "" then txt else kind ^ " " ^ txt;
     val _ = writeln (ml (txt1, txt2));
     val _ = ML_Context.eval_in (SOME ctxt) false Position.none (ml (txt1, txt2));
+    val kind' = if kind = "" then "ML" else "ML " ^ kind;
   in
-    "\\indexml" ^ kind ^ enclose "{" "}" (clean_string txt1) ^
+    "\\indexdef{}{" ^ kind' ^ "}{" ^ clean_string txt1 ^ "}" ^
     (txt'
     |> (if ! O.quotes then quote else I)
     |> (if ! O.display then enclose "\\begin{verbatim}\n" "\n\\end{verbatim}"

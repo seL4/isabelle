@@ -103,17 +103,17 @@ Any variable that is not explicitly bound by \isa{{\isasymlambda}}-abstraction
 %
 \begin{isamarkuptext}%
 \begin{mldecls}
-  \indexml{Variable.add\_fixes}\verb|Variable.add_fixes: |\isasep\isanewline%
+  \indexdef{}{ML}{Variable.add\_fixes}\verb|Variable.add_fixes: |\isasep\isanewline%
 \verb|  string list -> Proof.context -> string list * Proof.context| \\
-  \indexml{Variable.variant\_fixes}\verb|Variable.variant_fixes: |\isasep\isanewline%
+  \indexdef{}{ML}{Variable.variant\_fixes}\verb|Variable.variant_fixes: |\isasep\isanewline%
 \verb|  string list -> Proof.context -> string list * Proof.context| \\
-  \indexml{Variable.declare\_term}\verb|Variable.declare_term: term -> Proof.context -> Proof.context| \\
-  \indexml{Variable.declare\_constraints}\verb|Variable.declare_constraints: term -> Proof.context -> Proof.context| \\
-  \indexml{Variable.export}\verb|Variable.export: Proof.context -> Proof.context -> thm list -> thm list| \\
-  \indexml{Variable.polymorphic}\verb|Variable.polymorphic: Proof.context -> term list -> term list| \\
-  \indexml{Variable.import\_thms}\verb|Variable.import_thms: bool -> thm list -> Proof.context ->|\isasep\isanewline%
+  \indexdef{}{ML}{Variable.declare\_term}\verb|Variable.declare_term: term -> Proof.context -> Proof.context| \\
+  \indexdef{}{ML}{Variable.declare\_constraints}\verb|Variable.declare_constraints: term -> Proof.context -> Proof.context| \\
+  \indexdef{}{ML}{Variable.export}\verb|Variable.export: Proof.context -> Proof.context -> thm list -> thm list| \\
+  \indexdef{}{ML}{Variable.polymorphic}\verb|Variable.polymorphic: Proof.context -> term list -> term list| \\
+  \indexdef{}{ML}{Variable.import\_thms}\verb|Variable.import_thms: bool -> thm list -> Proof.context ->|\isasep\isanewline%
 \verb|  ((ctyp list * cterm list) * thm list) * Proof.context| \\
-  \indexml{Variable.focus}\verb|Variable.focus: cterm -> Proof.context -> (cterm list * cterm) * Proof.context| \\
+  \indexdef{}{ML}{Variable.focus}\verb|Variable.focus: cterm -> Proof.context -> (cterm list * cterm) * Proof.context| \\
   \end{mldecls}
 
   \begin{description}
@@ -231,13 +231,13 @@ An \emph{assumption} is a proposition that it is postulated in the
 %
 \begin{isamarkuptext}%
 \begin{mldecls}
-  \indexmltype{Assumption.export}\verb|type Assumption.export| \\
-  \indexml{Assumption.assume}\verb|Assumption.assume: cterm -> thm| \\
-  \indexml{Assumption.add\_assms}\verb|Assumption.add_assms: Assumption.export ->|\isasep\isanewline%
+  \indexdef{}{ML type}{Assumption.export}\verb|type Assumption.export| \\
+  \indexdef{}{ML}{Assumption.assume}\verb|Assumption.assume: cterm -> thm| \\
+  \indexdef{}{ML}{Assumption.add\_assms}\verb|Assumption.add_assms: Assumption.export ->|\isasep\isanewline%
 \verb|  cterm list -> Proof.context -> thm list * Proof.context| \\
-  \indexml{Assumption.add\_assumes}\verb|Assumption.add_assumes: |\isasep\isanewline%
+  \indexdef{}{ML}{Assumption.add\_assumes}\verb|Assumption.add_assumes: |\isasep\isanewline%
 \verb|  cterm list -> Proof.context -> thm list * Proof.context| \\
-  \indexml{Assumption.export}\verb|Assumption.export: bool -> Proof.context -> Proof.context -> thm -> thm| \\
+  \indexdef{}{ML}{Assumption.export}\verb|Assumption.export: bool -> Proof.context -> Proof.context -> thm -> thm| \\
   \end{mldecls}
 
   \begin{description}
@@ -324,18 +324,18 @@ Local results are established by monotonic reasoning from facts
 %
 \begin{isamarkuptext}%
 \begin{mldecls}
-  \indexml{SUBPROOF}\verb|SUBPROOF: ({context: Proof.context, schematics: ctyp list * cterm list,|\isasep\isanewline%
+  \indexdef{}{ML}{SUBPROOF}\verb|SUBPROOF: ({context: Proof.context, schematics: ctyp list * cterm list,|\isasep\isanewline%
 \verb|    params: cterm list, asms: cterm list, concl: cterm,|\isasep\isanewline%
 \verb|    prems: thm list} -> tactic) -> Proof.context -> int -> tactic| \\
   \end{mldecls}
   \begin{mldecls}
-  \indexml{Goal.prove}\verb|Goal.prove: Proof.context -> string list -> term list -> term ->|\isasep\isanewline%
+  \indexdef{}{ML}{Goal.prove}\verb|Goal.prove: Proof.context -> string list -> term list -> term ->|\isasep\isanewline%
 \verb|  ({prems: thm list, context: Proof.context} -> tactic) -> thm| \\
-  \indexml{Goal.prove\_multi}\verb|Goal.prove_multi: Proof.context -> string list -> term list -> term list ->|\isasep\isanewline%
+  \indexdef{}{ML}{Goal.prove\_multi}\verb|Goal.prove_multi: Proof.context -> string list -> term list -> term list ->|\isasep\isanewline%
 \verb|  ({prems: thm list, context: Proof.context} -> tactic) -> thm list| \\
   \end{mldecls}
   \begin{mldecls}
-  \indexml{Obtain.result}\verb|Obtain.result: (Proof.context -> tactic) ->|\isasep\isanewline%
+  \indexdef{}{ML}{Obtain.result}\verb|Obtain.result: (Proof.context -> tactic) ->|\isasep\isanewline%
 \verb|  thm list -> Proof.context -> (cterm list * thm list) * Proof.context| \\
   \end{mldecls}
 
