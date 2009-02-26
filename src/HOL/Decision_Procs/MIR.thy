@@ -5926,7 +5926,7 @@ lemma "ALL (x::real). \<exists>y \<le> x. (\<lfloor>x\<rfloor> = \<lceil>y\<rcei
 apply mir
 done
 
-lemma "ALL x y. \<lfloor>x\<rfloor> = \<lfloor>y\<rfloor> \<longrightarrow> 0 \<le> abs (y - x) \<and> abs (y - x) \<le> 1"
+lemma "ALL (x::real) (y::real). \<lfloor>x\<rfloor> = \<lfloor>y\<rfloor> \<longrightarrow> 0 \<le> abs (y - x) \<and> abs (y - x) \<le> 1"
 apply mir
 done
 
