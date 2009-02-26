@@ -391,10 +391,10 @@ lemma ceiling_diff_one [simp]: "ceiling (x - 1) = ceiling x - 1"
 
 subsection {* Negation *}
 
-lemma floor_minus [simp]: "floor (- x) = - ceiling x"
+lemma floor_minus: "floor (- x) = - ceiling x"
   unfolding ceiling_def by simp
 
-lemma ceiling_minus [simp]: "ceiling (- x) = - floor x"
+lemma ceiling_minus: "ceiling (- x) = - floor x"
   unfolding ceiling_def by simp
 
 end

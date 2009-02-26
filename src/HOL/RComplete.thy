@@ -501,13 +501,13 @@ lemma floor_real_of_nat [simp]: "floor (real (n::nat)) = int n"
 unfolding real_of_nat_def by simp
 
 lemma floor_minus_real_of_nat [simp]: "floor (- real (n::nat)) = - int n"
-unfolding real_of_nat_def by simp
+unfolding real_of_nat_def by (simp add: floor_minus)
 
 lemma floor_real_of_int [simp]: "floor (real (n::int)) = n"
 unfolding real_of_int_def by simp
 
 lemma floor_minus_real_of_int [simp]: "floor (- real (n::int)) = - n"
-unfolding real_of_int_def by simp
+unfolding real_of_int_def by (simp add: floor_minus)
 
 lemma real_lb_ub_int: " \<exists>n::int. real n \<le> r & r < real (n+1)"
 unfolding real_of_int_def by (rule floor_exists)
