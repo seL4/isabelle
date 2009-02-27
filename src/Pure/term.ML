@@ -387,17 +387,17 @@ fun head_of (f$t) = head_of f
 (*number of atoms and abstractions in a term*)
 fun size_of_term tm =
   let
-    fun add_size (t $ u, n) = add_size (t, add_size (u, n))
-      | add_size (Abs (_ ,_, t), n) = add_size (t, n + 1)
-      | add_size (_, n) = n + 1;
-  in add_size (tm, 0) end;
+    fun add_size (t $ u) n = add_size t (add_size u n)
+      | add_size (Abs (_ ,_, t)) n = add_size t (n + 1)
+      | add_size _ n = n + 1;
+  in add_size tm 0 end;
 
-(*number of tfrees, tvars, and constructors in a type*)
+(*number of atoms and constructors in a type*)
 fun size_of_typ ty =
   let
-    fun add_size (Type (_, ars), n) = foldl add_size (n + 1) ars
-      | add_size (_, n) = n + 1;
-  in add_size (ty, 0) end;
+    fun add_size (Type (_, tys)) n = fold add_size tys (n + 1)
+      | add_size _ n = n + 1;
+  in add_size ty 0 end;
 
 fun map_atyps f (Type (a, Ts)) = Type (a, map (map_atyps f) Ts)
   | map_atyps f T = f T;
