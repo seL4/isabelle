@@ -106,6 +106,7 @@ syntax
 translations
   "[:x, xs:]" == "CONST pCons x [:xs:]"
   "[:x:]" == "CONST pCons x 0"
+  "[:x:]" <= "CONST pCons x (_constrain 0 t)"
 
 lemma Poly_nat_case: "f \<in> Poly \<Longrightarrow> nat_case a f \<in> Poly"
   unfolding Poly_def by (auto split: nat.split)
