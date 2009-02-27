@@ -39,7 +39,7 @@ let
     fun one_con (con,args) =
         foldr /\# (list_ccomb (%%:con, mapn (idxs (length args)) 1 args)) args;
   in ("copy_def", %%:(dname^"_copy") ==
-       /\"f" (list_ccomb (%%:(dname^"_when"), map one_con cons))) end;
+       /\ "f" (list_ccomb (%%:(dname^"_when"), map one_con cons))) end;
 
 (* -- definitions concerning the constructors, discriminators and selectors - *)
 
@@ -107,7 +107,7 @@ in (dnam,
     [when_def, copy_def] @
      con_defs @ dis_defs @ mat_defs @ pat_defs @ sel_defs @
     [take_def, finite_def])
-end; (* let *)
+end; (* let (calc_axioms) *)
 
 fun infer_props thy = map (apsnd (FixrecPackage.legacy_infer_prop thy));
 
@@ -117,6 +117,14 @@ fun add_axioms_infer axms thy = add_axioms_i (infer_props thy axms) thy;
 fun add_defs_i x = snd o (PureThy.add_defs false) (map (Thm.no_attributes o apfst Binding.name) x);
 fun add_defs_infer defs thy = add_defs_i (infer_props thy defs) thy;
 
+fun add_matchers (((dname,_),cons) : eq) thy =
+  let
+    val con_names = map fst cons;
+    val mat_names = map mat_name con_names;
+    fun qualify n = Sign.full_name thy (Binding.name n);
+    val ms = map qualify con_names ~~ map qualify mat_names;
+  in FixrecPackage.add_matchers ms thy end;
+
 in (* local *)
 
 fun add_axioms (comp_dnam, eqs : eq list) thy' = let
@@ -125,7 +133,7 @@ fun add_axioms (comp_dnam, eqs : eq list) thy' = let
   val x_name = idx_name dnames "x"; 
   fun copy_app dname = %%:(dname^"_copy")`Bound 0;
   val copy_def = ("copy_def" , %%:(comp_dname^"_copy") ==
-				    /\"f"(mk_ctuple (map copy_app dnames)));
+				    /\ "f"(mk_ctuple (map copy_app dnames)));
   val bisim_def = ("bisim_def",%%:(comp_dname^"_bisim")==mk_lam("R",
     let
       fun one_con (con,args) = let
@@ -164,7 +172,8 @@ fun add_axioms (comp_dnam, eqs : eq list) thy' = let
 in thy |> Sign.add_path comp_dnam  
        |> add_defs_infer (bisim_def::(if length eqs>1 then [copy_def] else []))
        |> Sign.parent_path
-end;
+       |> fold add_matchers eqs
+end; (* let (add_axioms) *)
 
 end; (* local *)
 end; (* struct *)

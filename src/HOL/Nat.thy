@@ -701,6 +701,9 @@ subsubsection {* Monotonicity of Addition *}
 lemma Suc_pred [simp]: "n>0 ==> Suc (n - Suc 0) = n"
 by (simp add: diff_Suc split: nat.split)
 
+lemma Suc_diff_1 [simp]: "0 < n ==> Suc (n - 1) = n"
+unfolding One_nat_def by (rule Suc_pred)
+
 lemma nat_add_left_cancel_le [simp]: "(k + m \<le> k + n) = (m\<le>(n::nat))"
 by (induct k) simp_all
 
@@ -1135,7 +1138,7 @@ lemma le_cube: "(m::nat) \<le> m * (m * m)"
   by (cases m) (auto intro: le_add1)
 
 text {* Lemma for @{text gcd} *}
-lemma mult_eq_self_implies_10: "(m::nat) = m * n ==> n = Suc 0 | m = 0"
+lemma mult_eq_self_implies_10: "(m::nat) = m * n ==> n = 1 | m = 0"
   apply (drule sym)
   apply (rule disjCI)
   apply (rule nat_less_cases, erule_tac [2] _)

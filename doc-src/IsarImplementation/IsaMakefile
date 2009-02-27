@@ -23,7 +23,8 @@ Thy: $(LOG)/Pure-Thy.gz
 
 $(LOG)/Pure-Thy.gz: Thy/ROOT.ML Thy/Base.thy Thy/Integration.thy	\
   Thy/Isar.thy Thy/Local_Theory.thy Thy/Logic.thy Thy/Prelim.thy	\
-  Thy/Proof.thy Thy/Tactic.thy Thy/ML.thy ../antiquote_setup.ML
+  Thy/Proof.thy Thy/Syntax.thy Thy/Tactic.thy Thy/ML.thy		\
+  ../antiquote_setup.ML
 	@$(USEDIR) Pure Thy
 
 

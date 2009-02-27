@@ -127,22 +127,22 @@ The language of types is an uninterpreted order-sorted first-order
 %
 \begin{isamarkuptext}%
 \begin{mldecls}
-  \indexmltype{class}\verb|type class| \\
-  \indexmltype{sort}\verb|type sort| \\
-  \indexmltype{arity}\verb|type arity| \\
-  \indexmltype{typ}\verb|type typ| \\
-  \indexml{map\_atyps}\verb|map_atyps: (typ -> typ) -> typ -> typ| \\
-  \indexml{fold\_atyps}\verb|fold_atyps: (typ -> 'a -> 'a) -> typ -> 'a -> 'a| \\
+  \indexdef{}{ML type}{class}\verb|type class| \\
+  \indexdef{}{ML type}{sort}\verb|type sort| \\
+  \indexdef{}{ML type}{arity}\verb|type arity| \\
+  \indexdef{}{ML type}{typ}\verb|type typ| \\
+  \indexdef{}{ML}{map\_atyps}\verb|map_atyps: (typ -> typ) -> typ -> typ| \\
+  \indexdef{}{ML}{fold\_atyps}\verb|fold_atyps: (typ -> 'a -> 'a) -> typ -> 'a -> 'a| \\
   \end{mldecls}
   \begin{mldecls}
-  \indexml{Sign.subsort}\verb|Sign.subsort: theory -> sort * sort -> bool| \\
-  \indexml{Sign.of\_sort}\verb|Sign.of_sort: theory -> typ * sort -> bool| \\
-  \indexml{Sign.add\_types}\verb|Sign.add_types: (string * int * mixfix) list -> theory -> theory| \\
-  \indexml{Sign.add\_tyabbrs\_i}\verb|Sign.add_tyabbrs_i: |\isasep\isanewline%
+  \indexdef{}{ML}{Sign.subsort}\verb|Sign.subsort: theory -> sort * sort -> bool| \\
+  \indexdef{}{ML}{Sign.of\_sort}\verb|Sign.of_sort: theory -> typ * sort -> bool| \\
+  \indexdef{}{ML}{Sign.add\_types}\verb|Sign.add_types: (string * int * mixfix) list -> theory -> theory| \\
+  \indexdef{}{ML}{Sign.add\_tyabbrs\_i}\verb|Sign.add_tyabbrs_i: |\isasep\isanewline%
 \verb|  (string * string list * typ * mixfix) list -> theory -> theory| \\
-  \indexml{Sign.primitive\_class}\verb|Sign.primitive_class: string * class list -> theory -> theory| \\
-  \indexml{Sign.primitive\_classrel}\verb|Sign.primitive_classrel: class * class -> theory -> theory| \\
-  \indexml{Sign.primitive\_arity}\verb|Sign.primitive_arity: arity -> theory -> theory| \\
+  \indexdef{}{ML}{Sign.primitive\_class}\verb|Sign.primitive_class: string * class list -> theory -> theory| \\
+  \indexdef{}{ML}{Sign.primitive\_classrel}\verb|Sign.primitive_classrel: class * class -> theory -> theory| \\
+  \indexdef{}{ML}{Sign.primitive\_arity}\verb|Sign.primitive_arity: arity -> theory -> theory| \\
   \end{mldecls}
 
   \begin{description}
@@ -314,23 +314,23 @@ The language of terms is that of simply-typed \isa{{\isasymlambda}}-calculus
 %
 \begin{isamarkuptext}%
 \begin{mldecls}
-  \indexmltype{term}\verb|type term| \\
-  \indexml{op aconv}\verb|op aconv: term * term -> bool| \\
-  \indexml{map\_types}\verb|map_types: (typ -> typ) -> term -> term| \\
-  \indexml{fold\_types}\verb|fold_types: (typ -> 'a -> 'a) -> term -> 'a -> 'a| \\
-  \indexml{map\_aterms}\verb|map_aterms: (term -> term) -> term -> term| \\
-  \indexml{fold\_aterms}\verb|fold_aterms: (term -> 'a -> 'a) -> term -> 'a -> 'a| \\
+  \indexdef{}{ML type}{term}\verb|type term| \\
+  \indexdef{}{ML}{op aconv}\verb|op aconv: term * term -> bool| \\
+  \indexdef{}{ML}{map\_types}\verb|map_types: (typ -> typ) -> term -> term| \\
+  \indexdef{}{ML}{fold\_types}\verb|fold_types: (typ -> 'a -> 'a) -> term -> 'a -> 'a| \\
+  \indexdef{}{ML}{map\_aterms}\verb|map_aterms: (term -> term) -> term -> term| \\
+  \indexdef{}{ML}{fold\_aterms}\verb|fold_aterms: (term -> 'a -> 'a) -> term -> 'a -> 'a| \\
   \end{mldecls}
   \begin{mldecls}
-  \indexml{fastype\_of}\verb|fastype_of: term -> typ| \\
-  \indexml{lambda}\verb|lambda: term -> term -> term| \\
-  \indexml{betapply}\verb|betapply: term * term -> term| \\
-  \indexml{Sign.declare\_const}\verb|Sign.declare_const: Properties.T -> (binding * typ) * mixfix ->|\isasep\isanewline%
+  \indexdef{}{ML}{fastype\_of}\verb|fastype_of: term -> typ| \\
+  \indexdef{}{ML}{lambda}\verb|lambda: term -> term -> term| \\
+  \indexdef{}{ML}{betapply}\verb|betapply: term * term -> term| \\
+  \indexdef{}{ML}{Sign.declare\_const}\verb|Sign.declare_const: Properties.T -> (binding * typ) * mixfix ->|\isasep\isanewline%
 \verb|  theory -> term * theory| \\
-  \indexml{Sign.add\_abbrev}\verb|Sign.add_abbrev: string -> Properties.T -> binding * term ->|\isasep\isanewline%
+  \indexdef{}{ML}{Sign.add\_abbrev}\verb|Sign.add_abbrev: string -> Properties.T -> binding * term ->|\isasep\isanewline%
 \verb|  theory -> (term * term) * theory| \\
-  \indexml{Sign.const\_typargs}\verb|Sign.const_typargs: theory -> string * typ -> typ list| \\
-  \indexml{Sign.const\_instance}\verb|Sign.const_instance: theory -> string * typ list -> typ| \\
+  \indexdef{}{ML}{Sign.const\_typargs}\verb|Sign.const_typargs: theory -> string * typ -> typ list| \\
+  \indexdef{}{ML}{Sign.const\_instance}\verb|Sign.const_instance: theory -> string * typ list -> typ| \\
   \end{mldecls}
 
   \begin{description}
@@ -539,29 +539,29 @@ The theory \isa{Pure} contains constant declarations for the
 %
 \begin{isamarkuptext}%
 \begin{mldecls}
-  \indexmltype{ctyp}\verb|type ctyp| \\
-  \indexmltype{cterm}\verb|type cterm| \\
-  \indexml{Thm.ctyp\_of}\verb|Thm.ctyp_of: theory -> typ -> ctyp| \\
-  \indexml{Thm.cterm\_of}\verb|Thm.cterm_of: theory -> term -> cterm| \\
+  \indexdef{}{ML type}{ctyp}\verb|type ctyp| \\
+  \indexdef{}{ML type}{cterm}\verb|type cterm| \\
+  \indexdef{}{ML}{Thm.ctyp\_of}\verb|Thm.ctyp_of: theory -> typ -> ctyp| \\
+  \indexdef{}{ML}{Thm.cterm\_of}\verb|Thm.cterm_of: theory -> term -> cterm| \\
   \end{mldecls}
   \begin{mldecls}
-  \indexmltype{thm}\verb|type thm| \\
-  \indexml{proofs}\verb|proofs: int ref| \\
-  \indexml{Thm.assume}\verb|Thm.assume: cterm -> thm| \\
-  \indexml{Thm.forall\_intr}\verb|Thm.forall_intr: cterm -> thm -> thm| \\
-  \indexml{Thm.forall\_elim}\verb|Thm.forall_elim: cterm -> thm -> thm| \\
-  \indexml{Thm.implies\_intr}\verb|Thm.implies_intr: cterm -> thm -> thm| \\
-  \indexml{Thm.implies\_elim}\verb|Thm.implies_elim: thm -> thm -> thm| \\
-  \indexml{Thm.generalize}\verb|Thm.generalize: string list * string list -> int -> thm -> thm| \\
-  \indexml{Thm.instantiate}\verb|Thm.instantiate: (ctyp * ctyp) list * (cterm * cterm) list -> thm -> thm| \\
-  \indexml{Thm.axiom}\verb|Thm.axiom: theory -> string -> thm| \\
-  \indexml{Thm.add\_oracle}\verb|Thm.add_oracle: bstring * ('a -> cterm) -> theory|\isasep\isanewline%
+  \indexdef{}{ML type}{thm}\verb|type thm| \\
+  \indexdef{}{ML}{proofs}\verb|proofs: int ref| \\
+  \indexdef{}{ML}{Thm.assume}\verb|Thm.assume: cterm -> thm| \\
+  \indexdef{}{ML}{Thm.forall\_intr}\verb|Thm.forall_intr: cterm -> thm -> thm| \\
+  \indexdef{}{ML}{Thm.forall\_elim}\verb|Thm.forall_elim: cterm -> thm -> thm| \\
+  \indexdef{}{ML}{Thm.implies\_intr}\verb|Thm.implies_intr: cterm -> thm -> thm| \\
+  \indexdef{}{ML}{Thm.implies\_elim}\verb|Thm.implies_elim: thm -> thm -> thm| \\
+  \indexdef{}{ML}{Thm.generalize}\verb|Thm.generalize: string list * string list -> int -> thm -> thm| \\
+  \indexdef{}{ML}{Thm.instantiate}\verb|Thm.instantiate: (ctyp * ctyp) list * (cterm * cterm) list -> thm -> thm| \\
+  \indexdef{}{ML}{Thm.axiom}\verb|Thm.axiom: theory -> string -> thm| \\
+  \indexdef{}{ML}{Thm.add\_oracle}\verb|Thm.add_oracle: bstring * ('a -> cterm) -> theory|\isasep\isanewline%
 \verb|  -> (string * ('a -> thm)) * theory| \\
   \end{mldecls}
   \begin{mldecls}
-  \indexml{Theory.add\_axioms\_i}\verb|Theory.add_axioms_i: (binding * term) list -> theory -> theory| \\
-  \indexml{Theory.add\_deps}\verb|Theory.add_deps: string -> string * typ -> (string * typ) list -> theory -> theory| \\
-  \indexml{Theory.add\_defs\_i}\verb|Theory.add_defs_i: bool -> bool -> (binding * term) list -> theory -> theory| \\
+  \indexdef{}{ML}{Theory.add\_axioms\_i}\verb|Theory.add_axioms_i: (binding * term) list -> theory -> theory| \\
+  \indexdef{}{ML}{Theory.add\_deps}\verb|Theory.add_deps: string -> string * typ -> (string * typ) list -> theory -> theory| \\
+  \indexdef{}{ML}{Theory.add\_defs\_i}\verb|Theory.add_defs_i: bool -> bool -> (binding * term) list -> theory -> theory| \\
   \end{mldecls}
 
   \begin{description}
@@ -697,12 +697,12 @@ Theory \isa{Pure} provides a few auxiliary definitions, see
 %
 \begin{isamarkuptext}%
 \begin{mldecls}
-  \indexml{Conjunction.intr}\verb|Conjunction.intr: thm -> thm -> thm| \\
-  \indexml{Conjunction.elim}\verb|Conjunction.elim: thm -> thm * thm| \\
-  \indexml{Drule.mk\_term}\verb|Drule.mk_term: cterm -> thm| \\
-  \indexml{Drule.dest\_term}\verb|Drule.dest_term: thm -> cterm| \\
-  \indexml{Logic.mk\_type}\verb|Logic.mk_type: typ -> term| \\
-  \indexml{Logic.dest\_type}\verb|Logic.dest_type: term -> typ| \\
+  \indexdef{}{ML}{Conjunction.intr}\verb|Conjunction.intr: thm -> thm -> thm| \\
+  \indexdef{}{ML}{Conjunction.elim}\verb|Conjunction.elim: thm -> thm * thm| \\
+  \indexdef{}{ML}{Drule.mk\_term}\verb|Drule.mk_term: cterm -> thm| \\
+  \indexdef{}{ML}{Drule.dest\_term}\verb|Drule.dest_term: thm -> cterm| \\
+  \indexdef{}{ML}{Logic.mk\_type}\verb|Logic.mk_type: typ -> term| \\
+  \indexdef{}{ML}{Logic.dest\_type}\verb|Logic.dest_type: term -> typ| \\
   \end{mldecls}
 
   \begin{description}
@@ -821,7 +821,7 @@ The idea of object-level rules is to model Natural Deduction
 %
 \begin{isamarkuptext}%
 \begin{mldecls}
-  \indexml{MetaSimplifier.norm\_hhf}\verb|MetaSimplifier.norm_hhf: thm -> thm| \\
+  \indexdef{}{ML}{MetaSimplifier.norm\_hhf}\verb|MetaSimplifier.norm_hhf: thm -> thm| \\
   \end{mldecls}
 
   \begin{description}
@@ -911,8 +911,8 @@ The rule calculus of Isabelle/Pure provides two main inferences:
 %
 \begin{isamarkuptext}%
 \begin{mldecls}
-  \indexml{op RS}\verb|op RS: thm * thm -> thm| \\
-  \indexml{op OF}\verb|op OF: thm * thm list -> thm| \\
+  \indexdef{}{ML}{op RS}\verb|op RS: thm * thm -> thm| \\
+  \indexdef{}{ML}{op OF}\verb|op OF: thm * thm list -> thm| \\
   \end{mldecls}
 
   \begin{description}

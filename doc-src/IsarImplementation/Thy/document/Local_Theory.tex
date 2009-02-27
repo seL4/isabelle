@@ -122,12 +122,12 @@ There are separate elements \isa{{\isasymDEFINE}\ c\ {\isasymequiv}\ t} for term
 %
 \begin{isamarkuptext}%
 \begin{mldecls}
-  \indexmltype{local\_theory}\verb|type local_theory = Proof.context| \\
-  \indexml{TheoryTarget.init}\verb|TheoryTarget.init: string option -> theory -> local_theory| \\[1ex]
-  \indexml{LocalTheory.define}\verb|LocalTheory.define: string ->|\isasep\isanewline%
+  \indexdef{}{ML type}{local\_theory}\verb|type local_theory = Proof.context| \\
+  \indexdef{}{ML}{TheoryTarget.init}\verb|TheoryTarget.init: string option -> theory -> local_theory| \\[1ex]
+  \indexdef{}{ML}{LocalTheory.define}\verb|LocalTheory.define: string ->|\isasep\isanewline%
 \verb|    (binding * mixfix) * (Attrib.binding * term) -> local_theory ->|\isasep\isanewline%
 \verb|    (term * (string * thm)) * local_theory| \\
-  \indexml{LocalTheory.note}\verb|LocalTheory.note: string ->|\isasep\isanewline%
+  \indexdef{}{ML}{LocalTheory.note}\verb|LocalTheory.note: string ->|\isasep\isanewline%
 \verb|    Attrib.binding * thm list -> local_theory ->|\isasep\isanewline%
 \verb|    (string * thm list) * local_theory| \\
   \end{mldecls}
