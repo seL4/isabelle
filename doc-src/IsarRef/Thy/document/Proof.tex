@@ -3,8 +3,6 @@
 \def\isabellecontext{Proof}%
 %
 \isadelimtheory
-\isanewline
-\isanewline
 %
 \endisadelimtheory
 %
@@ -20,7 +18,7 @@
 %
 \endisadelimtheory
 %
-\isamarkupchapter{Proofs%
+\isamarkupchapter{Proofs \label{ch:proofs}%
 }
 \isamarkuptrue%
 %
@@ -28,8 +26,8 @@
 Proof commands perform transitions of Isar/VM machine
   configurations, which are block-structured, consisting of a stack of
   nodes with three main components: logical proof context, current
-  facts, and open goals.  Isar/VM transitions are \emph{typed}
-  according to the following three different modes of operation:
+  facts, and open goals.  Isar/VM transitions are typed according to
+  the following three different modes of operation:
 
   \begin{description}
 
@@ -49,13 +47,17 @@ Proof commands perform transitions of Isar/VM machine
 
   \end{description}
 
-  The proof mode indicator may be read as a verb telling the writer
-  what kind of operation may be performed next.  The corresponding
-  typings of proof commands restricts the shape of well-formed proof
-  texts to particular command sequences.  So dynamic arrangements of
-  commands eventually turn out as static texts of a certain structure.
-  \Appref{ap:refcard} gives a simplified grammar of the overall
-  (extensible) language emerging that way.%
+  The proof mode indicator may be understood as an instruction to the
+  writer, telling what kind of operation may be performed next.  The
+  corresponding typings of proof commands restricts the shape of
+  well-formed proof texts to particular command sequences.  So dynamic
+  arrangements of commands eventually turn out as static texts of a
+  certain structure.
+
+  \Appref{ap:refcard} gives a simplified grammar of the (extensible)
+  language emerging that way from the different types of proof
+  commands.  The main ideas of the overall Isar framework are
+  explained in \chref{ch:isar-framework}.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -966,7 +968,7 @@ The Isar provides separate commands to accommodate tactic-style
   \begin{matharray}{l}
     \isa{{\isachardoublequote}{\isasymlangle}using\ b\isactrlsub {\isadigit{1}}\ {\isasymdots}\ b\isactrlsub k{\isasymrangle}{\isachardoublequote}}~~\hyperlink{command.obtain}{\mbox{\isa{\isacommand{obtain}}}}~\isa{{\isachardoublequote}x\isactrlsub {\isadigit{1}}\ {\isasymdots}\ x\isactrlsub m\ {\isasymWHERE}\ a{\isacharcolon}\ {\isasymphi}\isactrlsub {\isadigit{1}}\ {\isasymdots}\ {\isasymphi}\isactrlsub n\ \ {\isasymlangle}proof{\isasymrangle}\ {\isasymequiv}{\isachardoublequote}} \\[1ex]
     \quad \hyperlink{command.have}{\mbox{\isa{\isacommand{have}}}}~\isa{{\isachardoublequote}{\isasymAnd}thesis{\isachardot}\ {\isacharparenleft}{\isasymAnd}x\isactrlsub {\isadigit{1}}\ {\isasymdots}\ x\isactrlsub m{\isachardot}\ {\isasymphi}\isactrlsub {\isadigit{1}}\ {\isasymLongrightarrow}\ {\isasymdots}\ {\isasymphi}\isactrlsub n\ {\isasymLongrightarrow}\ thesis{\isacharparenright}\ {\isasymLongrightarrow}\ thesis{\isachardoublequote}} \\
-    \quad \hyperlink{command.proof}{\mbox{\isa{\isacommand{proof}}}}~\isa{succeed} \\
+    \quad \hyperlink{command.proof}{\mbox{\isa{\isacommand{proof}}}}~\hyperlink{method.succeed}{\mbox{\isa{succeed}}} \\
     \qquad \hyperlink{command.fix}{\mbox{\isa{\isacommand{fix}}}}~\isa{thesis} \\
     \qquad \hyperlink{command.assume}{\mbox{\isa{\isacommand{assume}}}}~\isa{{\isachardoublequote}that\ {\isacharbrackleft}Pure{\isachardot}intro{\isacharquery}{\isacharbrackright}{\isacharcolon}\ {\isasymAnd}x\isactrlsub {\isadigit{1}}\ {\isasymdots}\ x\isactrlsub m{\isachardot}\ {\isasymphi}\isactrlsub {\isadigit{1}}\ {\isasymLongrightarrow}\ {\isasymdots}\ {\isasymphi}\isactrlsub n\ {\isasymLongrightarrow}\ thesis{\isachardoublequote}} \\
     \qquad \hyperlink{command.then}{\mbox{\isa{\isacommand{then}}}}~\hyperlink{command.show}{\mbox{\isa{\isacommand{show}}}}~\isa{thesis} \\

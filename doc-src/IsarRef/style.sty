@@ -1,6 +1,3 @@
-
-%% $Id$
-
 %% toc
 \newcommand{\tocentry}[1]{\cleardoublepage\phantomsection\addcontentsline{toc}{chapter}{#1}
 \@mkboth{\MakeUppercase{#1}}{\MakeUppercase{#1}}}
@@ -18,12 +15,17 @@
 
 %% ML
 \newenvironment{mldecls}{\par\noindent\begingroup\def\isanewline{\\}\begin{tabular}{ll}}{\end{tabular}\medskip\endgroup}
-\newcommand{\indexml}[1]{\index{#1 (ML value)|bold}}
+
+%% Isar
+\newcommand{\isasymBBAR}{{\,\newdimen{\tmpheight}\settoheight\tmpheight{\isacharbar}\rule{1pt}{\tmpheight}\,}}
+\isafoldtag{noproof}\def\isafoldnoproof{~\isafold{proof}}
 
 %% math
+\newcommand{\isasymstrut}{\isamath{\mathstrut}}
+\newcommand{\isasymvartheta}{\isamath{\,\theta}}
 \newcommand{\isactrlvec}[1]{\emph{$\overline{#1}$}}
 \renewcommand{\isadigit}[1]{\isamath{#1}}
-
+\newcommand{\text}[1]{\mbox{#1}}
 
 %% global style options
 \pagestyle{headings}

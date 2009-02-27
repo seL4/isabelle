@@ -349,15 +349,13 @@ fun SUBGOAL goalfun =
 (*Returns all states that have changed in subgoal i, counted from the LAST
   subgoal.  For stac, for example.*)
 fun CHANGED_GOAL tac i st =
-    let val np = nprems_of st
+    let val np = Thm.nprems_of st
         val d = np-i                 (*distance from END*)
-        val t = List.nth(prems_of st, i-1)
+        val t = Thm.term_of (Thm.cprem_of st i)
         fun diff st' =
-            nprems_of st' - d <= 0   (*the subgoal no longer exists*)
+            Thm.nprems_of st' - d <= 0   (*the subgoal no longer exists*)
             orelse
-             not (Pattern.aeconv (t,
-                                  List.nth(prems_of st',
-                                           nprems_of st' - d - 1)))
+             not (Pattern.aeconv (t, Thm.term_of (Thm.cprem_of st' (Thm.nprems_of st' - d))))
     in  Seq.filter diff (tac i st)  end
     handle Subscript => Seq.empty  (*no subgoal i*);
 

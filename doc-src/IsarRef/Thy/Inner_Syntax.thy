@@ -1,5 +1,3 @@
-(* $Id$ *)
-
 theory Inner_Syntax
 imports Main
 begin
@@ -370,7 +368,7 @@ text {*
   \end{matharray}
 
   \begin{rail}
-    ('notation' | 'no\_notation') target? mode? (nameref structmixfix + 'and')
+    ('notation' | 'no\_notation') target? mode? \\ (nameref structmixfix + 'and')
     ;
   \end{rail}
 
@@ -525,13 +523,15 @@ text {*
     & @{text "|"} & @{text "tid  |  tvar  |  "}@{verbatim "_"} \\
     & @{text "|"} & @{text "tid"} @{verbatim "::"} @{text "sort  |  tvar  "}@{verbatim "::"} @{text "sort  |  "}@{verbatim "_"} @{verbatim "::"} @{text "sort"} \\
     & @{text "|"} & @{text "id  |  type\<^sup>(\<^sup>1\<^sup>0\<^sup>0\<^sup>0\<^sup>) id  |  "}@{verbatim "("} @{text type} @{verbatim ","} @{text "\<dots>"} @{verbatim ","} @{text type} @{verbatim ")"} @{text id} \\
-    & @{text "|"} & @{text "longid  |  type\<^sup>(\<^sup>1\<^sup>0\<^sup>0\<^sup>0\<^sup>) longid  |  "}@{verbatim "("} @{text type} @{verbatim ","} @{text "\<dots>"} @{verbatim ","} @{text type} @{verbatim ")"} @{text longid} \\
+    & @{text "|"} & @{text "longid  |  type\<^sup>(\<^sup>1\<^sup>0\<^sup>0\<^sup>0\<^sup>) longid"} \\
+    & @{text "|"} & @{verbatim "("} @{text type} @{verbatim ","} @{text "\<dots>"} @{verbatim ","} @{text type} @{verbatim ")"} @{text longid} \\
     & @{text "|"} & @{text "type\<^sup>(\<^sup>1\<^sup>)"} @{verbatim "=>"} @{text type} & @{text "(0)"} \\
     & @{text "|"} & @{text "type\<^sup>(\<^sup>1\<^sup>)"} @{text "\<Rightarrow>"} @{text type} & @{text "(0)"} \\
     & @{text "|"} & @{verbatim "["} @{text type} @{verbatim ","} @{text "\<dots>"} @{verbatim ","} @{text type} @{verbatim "]"} @{verbatim "=>"} @{text type} & @{text "(0)"} \\
     & @{text "|"} & @{verbatim "["} @{text type} @{verbatim ","} @{text "\<dots>"} @{verbatim ","} @{text type} @{verbatim "]"} @{text "\<Rightarrow>"} @{text type} & @{text "(0)"} \\\\
 
-  @{syntax_def (inner) sort} & = & @{text "id  |  longid  |  "}@{verbatim "{}"}@{text "  |  "}@{verbatim "{"} @{text "(id | longid)"} @{verbatim ","} @{text "\<dots>"} @{verbatim ","} @{text "(id | longid)"} @{verbatim "}"} \\
+  @{syntax_def (inner) sort} & = & @{text "id  |  longid  |  "}@{verbatim "{}"} \\
+    & @{text "|"} & @{verbatim "{"} @{text "(id | longid)"} @{verbatim ","} @{text "\<dots>"} @{verbatim ","} @{text "(id | longid)"} @{verbatim "}"} \\
   \end{supertabular}
   \end{center}
 

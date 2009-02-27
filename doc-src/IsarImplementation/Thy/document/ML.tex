@@ -3,14 +3,14 @@
 \def\isabellecontext{ML}%
 %
 \isadelimtheory
-\isanewline
-\isanewline
 %
 \endisadelimtheory
 %
 \isatagtheory
 \isacommand{theory}\isamarkupfalse%
-\ {\isachardoublequoteopen}ML{\isachardoublequoteclose}\ \isakeyword{imports}\ base\ \isakeyword{begin}%
+\ {\isachardoublequoteopen}ML{\isachardoublequoteclose}\isanewline
+\isakeyword{imports}\ Base\isanewline
+\isakeyword{begin}%
 \endisatagtheory
 {\isafoldtheory}%
 %
@@ -275,9 +275,9 @@ Recent versions of Poly/ML (5.2.1 or later) support robust
 %
 \begin{isamarkuptext}%
 \begin{mldecls}
-  \indexml{NAMED\_CRITICAL}\verb|NAMED_CRITICAL: string -> (unit -> 'a) -> 'a| \\
-  \indexml{CRITICAL}\verb|CRITICAL: (unit -> 'a) -> 'a| \\
-  \indexml{setmp}\verb|setmp: 'a ref -> 'a -> ('b -> 'c) -> 'b -> 'c| \\
+  \indexdef{}{ML}{NAMED\_CRITICAL}\verb|NAMED_CRITICAL: string -> (unit -> 'a) -> 'a| \\
+  \indexdef{}{ML}{CRITICAL}\verb|CRITICAL: (unit -> 'a) -> 'a| \\
+  \indexdef{}{ML}{setmp}\verb|setmp: 'a ref -> 'a -> ('b -> 'c) -> 'b -> 'c| \\
   \end{mldecls}
 
   \begin{description}
@@ -331,7 +331,7 @@ Beyond the proposal of the SML/NJ basis library, Isabelle comes
 %
 \begin{isamarkuptext}%
 \begin{mldecls}
-  \indexml{op |$>$ }\verb|op |\verb,|,\verb|> : 'a * ('a -> 'b) -> 'b| \\
+  \indexdef{}{ML}{op $\mid$$>$ }\verb|op |\verb,|,\verb|> : 'a * ('a -> 'b) -> 'b| \\
   \end{mldecls}%
 \end{isamarkuptext}%
 \isamarkuptrue%
@@ -410,10 +410,10 @@ Beyond the proposal of the SML/NJ basis library, Isabelle comes
 %
 \begin{isamarkuptext}%
 \begin{mldecls}
-  \indexml{op |-$>$ }\verb|op |\verb,|,\verb|-> : ('c * 'a) * ('c -> 'a -> 'b) -> 'b| \\
-  \indexml{op |$>$$>$ }\verb|op |\verb,|,\verb|>> : ('a * 'c) * ('a -> 'b) -> 'b * 'c| \\
-  \indexml{op ||$>$ }\verb|op |\verb,|,\verb||\verb,|,\verb|> : ('c * 'a) * ('a -> 'b) -> 'c * 'b| \\
-  \indexml{op ||$>$$>$ }\verb|op |\verb,|,\verb||\verb,|,\verb|>> : ('c * 'a) * ('a -> 'd * 'b) -> ('c * 'd) * 'b| \\
+  \indexdef{}{ML}{op $\mid$-$>$ }\verb|op |\verb,|,\verb|-> : ('c * 'a) * ('c -> 'a -> 'b) -> 'b| \\
+  \indexdef{}{ML}{op $\mid$$>$$>$ }\verb|op |\verb,|,\verb|>> : ('a * 'c) * ('a -> 'b) -> 'b * 'c| \\
+  \indexdef{}{ML}{op $\mid$$\mid$$>$ }\verb|op |\verb,|,\verb||\verb,|,\verb|> : ('c * 'a) * ('a -> 'b) -> 'c * 'b| \\
+  \indexdef{}{ML}{op $\mid$$\mid$$>$$>$ }\verb|op |\verb,|,\verb||\verb,|,\verb|>> : ('c * 'a) * ('a -> 'd * 'b) -> ('c * 'd) * 'b| \\
   \end{mldecls}%
 \end{isamarkuptext}%
 \isamarkuptrue%
@@ -483,8 +483,8 @@ Beyond the proposal of the SML/NJ basis library, Isabelle comes
 %
 \begin{isamarkuptext}%
 \begin{mldecls}
-  \indexml{fold}\verb|fold: ('a -> 'b -> 'b) -> 'a list -> 'b -> 'b| \\
-  \indexml{fold\_map}\verb|fold_map: ('a -> 'b -> 'c * 'b) -> 'a list -> 'b -> 'c list * 'b| \\
+  \indexdef{}{ML}{fold}\verb|fold: ('a -> 'b -> 'b) -> 'a list -> 'b -> 'b| \\
+  \indexdef{}{ML}{fold\_map}\verb|fold_map: ('a -> 'b -> 'c * 'b) -> 'a list -> 'b -> 'c list * 'b| \\
   \end{mldecls}%
 \end{isamarkuptext}%
 \isamarkuptrue%
@@ -545,11 +545,11 @@ Beyond the proposal of the SML/NJ basis library, Isabelle comes
 %
 \begin{isamarkuptext}%
 \begin{mldecls}
-  \indexml{op \#$>$ }\verb|op #> : ('a -> 'b) * ('b -> 'c) -> 'a -> 'c| \\
-  \indexml{op \#-$>$ }\verb|op #-> : ('a -> 'c * 'b) * ('c -> 'b -> 'd) -> 'a -> 'd| \\
-  \indexml{op \#$>$$>$ }\verb|op #>> : ('a -> 'c * 'b) * ('c -> 'd) -> 'a -> 'd * 'b| \\
-  \indexml{op \#\#$>$ }\verb|op ##> : ('a -> 'c * 'b) * ('b -> 'd) -> 'a -> 'c * 'd| \\
-  \indexml{op \#\#$>$$>$ }\verb|op ##>> : ('a -> 'c * 'b) * ('b -> 'e * 'd) -> 'a -> ('c * 'e) * 'd| \\
+  \indexdef{}{ML}{op \#$>$ }\verb|op #> : ('a -> 'b) * ('b -> 'c) -> 'a -> 'c| \\
+  \indexdef{}{ML}{op \#-$>$ }\verb|op #-> : ('a -> 'c * 'b) * ('c -> 'b -> 'd) -> 'a -> 'd| \\
+  \indexdef{}{ML}{op \#$>$$>$ }\verb|op #>> : ('a -> 'c * 'b) * ('c -> 'd) -> 'a -> 'd * 'b| \\
+  \indexdef{}{ML}{op \#\#$>$ }\verb|op ##> : ('a -> 'c * 'b) * ('b -> 'd) -> 'a -> 'c * 'd| \\
+  \indexdef{}{ML}{op \#\#$>$$>$ }\verb|op ##>> : ('a -> 'c * 'b) * ('b -> 'e * 'd) -> 'a -> ('c * 'e) * 'd| \\
   \end{mldecls}%
 \end{isamarkuptext}%
 \isamarkuptrue%
@@ -576,8 +576,8 @@ Beyond the proposal of the SML/NJ basis library, Isabelle comes
 %
 \begin{isamarkuptext}%
 \begin{mldecls}
-  \indexml{op ` }\verb|op ` : ('b -> 'a) -> 'b -> 'a * 'b| \\
-  \indexml{tap}\verb|tap: ('b -> 'a) -> 'b -> 'b| \\
+  \indexdef{}{ML}{op ` }\verb|op ` : ('b -> 'a) -> 'b -> 'a * 'b| \\
+  \indexdef{}{ML}{tap}\verb|tap: ('b -> 'a) -> 'b -> 'b| \\
   \end{mldecls}%
 \end{isamarkuptext}%
 \isamarkuptrue%
@@ -619,14 +619,14 @@ Beyond the proposal of the SML/NJ basis library, Isabelle comes
 %
 \begin{isamarkuptext}%
 \begin{mldecls}
-  \indexml{is\_some}\verb|is_some: 'a option -> bool| \\
-  \indexml{is\_none}\verb|is_none: 'a option -> bool| \\
-  \indexml{the}\verb|the: 'a option -> 'a| \\
-  \indexml{these}\verb|these: 'a list option -> 'a list| \\
-  \indexml{the\_list}\verb|the_list: 'a option -> 'a list| \\
-  \indexml{the\_default}\verb|the_default: 'a -> 'a option -> 'a| \\
-  \indexml{try}\verb|try: ('a -> 'b) -> 'a -> 'b option| \\
-  \indexml{can}\verb|can: ('a -> 'b) -> 'a -> bool| \\
+  \indexdef{}{ML}{is\_some}\verb|is_some: 'a option -> bool| \\
+  \indexdef{}{ML}{is\_none}\verb|is_none: 'a option -> bool| \\
+  \indexdef{}{ML}{the}\verb|the: 'a option -> 'a| \\
+  \indexdef{}{ML}{these}\verb|these: 'a list option -> 'a list| \\
+  \indexdef{}{ML}{the\_list}\verb|the_list: 'a option -> 'a list| \\
+  \indexdef{}{ML}{the\_default}\verb|the_default: 'a -> 'a option -> 'a| \\
+  \indexdef{}{ML}{try}\verb|try: ('a -> 'b) -> 'a -> 'b option| \\
+  \indexdef{}{ML}{can}\verb|can: ('a -> 'b) -> 'a -> bool| \\
   \end{mldecls}%
 \end{isamarkuptext}%
 \isamarkuptrue%
@@ -659,10 +659,10 @@ Standard selector functions on \isa{option}s are provided.  The
 %
 \begin{isamarkuptext}%
 \begin{mldecls}
-  \indexml{member}\verb|member: ('b * 'a -> bool) -> 'a list -> 'b -> bool| \\
-  \indexml{insert}\verb|insert: ('a * 'a -> bool) -> 'a -> 'a list -> 'a list| \\
-  \indexml{remove}\verb|remove: ('b * 'a -> bool) -> 'b -> 'a list -> 'a list| \\
-  \indexml{merge}\verb|merge: ('a * 'a -> bool) -> 'a list * 'a list -> 'a list| \\
+  \indexdef{}{ML}{member}\verb|member: ('b * 'a -> bool) -> 'a list -> 'b -> bool| \\
+  \indexdef{}{ML}{insert}\verb|insert: ('a * 'a -> bool) -> 'a -> 'a list -> 'a list| \\
+  \indexdef{}{ML}{remove}\verb|remove: ('b * 'a -> bool) -> 'b -> 'a list -> 'a list| \\
+  \indexdef{}{ML}{merge}\verb|merge: ('a * 'a -> bool) -> 'a list * 'a list -> 'a list| \\
   \end{mldecls}%
 \end{isamarkuptext}%
 \isamarkuptrue%
@@ -690,19 +690,19 @@ Lists are often used as set-like data structures -- set-like in
 %
 \begin{isamarkuptext}%
 \begin{mldecls}
-  \indexmlexception{AList.DUP}\verb|exception AList.DUP| \\
-  \indexml{AList.lookup}\verb|AList.lookup: ('a * 'b -> bool) -> ('b * 'c) list -> 'a -> 'c option| \\
-  \indexml{AList.defined}\verb|AList.defined: ('a * 'b -> bool) -> ('b * 'c) list -> 'a -> bool| \\
-  \indexml{AList.update}\verb|AList.update: ('a * 'a -> bool) -> ('a * 'b) -> ('a * 'b) list -> ('a * 'b) list| \\
-  \indexml{AList.default}\verb|AList.default: ('a * 'a -> bool) -> ('a * 'b) -> ('a * 'b) list -> ('a * 'b) list| \\
-  \indexml{AList.delete}\verb|AList.delete: ('a * 'b -> bool) -> 'a -> ('b * 'c) list -> ('b * 'c) list| \\
-  \indexml{AList.map\_entry}\verb|AList.map_entry: ('a * 'b -> bool) -> 'a|\isasep\isanewline%
+  \indexdef{}{ML exception}{AList.DUP}\verb|exception AList.DUP| \\
+  \indexdef{}{ML}{AList.lookup}\verb|AList.lookup: ('a * 'b -> bool) -> ('b * 'c) list -> 'a -> 'c option| \\
+  \indexdef{}{ML}{AList.defined}\verb|AList.defined: ('a * 'b -> bool) -> ('b * 'c) list -> 'a -> bool| \\
+  \indexdef{}{ML}{AList.update}\verb|AList.update: ('a * 'a -> bool) -> ('a * 'b) -> ('a * 'b) list -> ('a * 'b) list| \\
+  \indexdef{}{ML}{AList.default}\verb|AList.default: ('a * 'a -> bool) -> ('a * 'b) -> ('a * 'b) list -> ('a * 'b) list| \\
+  \indexdef{}{ML}{AList.delete}\verb|AList.delete: ('a * 'b -> bool) -> 'a -> ('b * 'c) list -> ('b * 'c) list| \\
+  \indexdef{}{ML}{AList.map\_entry}\verb|AList.map_entry: ('a * 'b -> bool) -> 'a|\isasep\isanewline%
 \verb|    -> ('c -> 'c) -> ('b * 'c) list -> ('b * 'c) list| \\
-  \indexml{AList.map\_default}\verb|AList.map_default: ('a * 'a -> bool) -> 'a * 'b -> ('b -> 'b)|\isasep\isanewline%
+  \indexdef{}{ML}{AList.map\_default}\verb|AList.map_default: ('a * 'a -> bool) -> 'a * 'b -> ('b -> 'b)|\isasep\isanewline%
 \verb|    -> ('a * 'b) list -> ('a * 'b) list| \\
-  \indexml{AList.join}\verb|AList.join: ('a * 'a -> bool) -> ('a -> 'b * 'b -> 'b) (*exception DUP*)|\isasep\isanewline%
+  \indexdef{}{ML}{AList.join}\verb|AList.join: ('a * 'a -> bool) -> ('a -> 'b * 'b -> 'b) (*exception DUP*)|\isasep\isanewline%
 \verb|    -> ('a * 'b) list * ('a * 'b) list -> ('a * 'b) list (*exception AList.DUP*)| \\
-  \indexml{AList.merge}\verb|AList.merge: ('a * 'a -> bool) -> ('b * 'b -> bool)|\isasep\isanewline%
+  \indexdef{}{ML}{AList.merge}\verb|AList.merge: ('a * 'a -> bool) -> ('b * 'b -> bool)|\isasep\isanewline%
 \verb|    -> ('a * 'b) list * ('a * 'b) list -> ('a * 'b) list (*exception AList.DUP*)|
   \end{mldecls}%
 \end{isamarkuptext}%
@@ -732,25 +732,25 @@ Association lists can be seens as an extension of set-like lists:
 %
 \begin{isamarkuptext}%
 \begin{mldecls}
-  \indexmltype{'a Symtab.table}\verb|type 'a Symtab.table| \\
-  \indexmlexception{Symtab.DUP}\verb|exception Symtab.DUP of string| \\
-  \indexmlexception{Symtab.SAME}\verb|exception Symtab.SAME| \\
-  \indexmlexception{Symtab.UNDEF}\verb|exception Symtab.UNDEF of string| \\
-  \indexml{Symtab.empty}\verb|Symtab.empty: 'a Symtab.table| \\
-  \indexml{Symtab.lookup}\verb|Symtab.lookup: 'a Symtab.table -> string -> 'a option| \\
-  \indexml{Symtab.defined}\verb|Symtab.defined: 'a Symtab.table -> string -> bool| \\
-  \indexml{Symtab.update}\verb|Symtab.update: (string * 'a) -> 'a Symtab.table -> 'a Symtab.table| \\
-  \indexml{Symtab.default}\verb|Symtab.default: string * 'a -> 'a Symtab.table -> 'a Symtab.table| \\
-  \indexml{Symtab.delete}\verb|Symtab.delete: string|\isasep\isanewline%
+  \indexdef{}{ML type}{'a Symtab.table}\verb|type 'a Symtab.table| \\
+  \indexdef{}{ML exception}{Symtab.DUP}\verb|exception Symtab.DUP of string| \\
+  \indexdef{}{ML exception}{Symtab.SAME}\verb|exception Symtab.SAME| \\
+  \indexdef{}{ML exception}{Symtab.UNDEF}\verb|exception Symtab.UNDEF of string| \\
+  \indexdef{}{ML}{Symtab.empty}\verb|Symtab.empty: 'a Symtab.table| \\
+  \indexdef{}{ML}{Symtab.lookup}\verb|Symtab.lookup: 'a Symtab.table -> string -> 'a option| \\
+  \indexdef{}{ML}{Symtab.defined}\verb|Symtab.defined: 'a Symtab.table -> string -> bool| \\
+  \indexdef{}{ML}{Symtab.update}\verb|Symtab.update: (string * 'a) -> 'a Symtab.table -> 'a Symtab.table| \\
+  \indexdef{}{ML}{Symtab.default}\verb|Symtab.default: string * 'a -> 'a Symtab.table -> 'a Symtab.table| \\
+  \indexdef{}{ML}{Symtab.delete}\verb|Symtab.delete: string|\isasep\isanewline%
 \verb|    -> 'a Symtab.table -> 'a Symtab.table (*exception Symtab.UNDEF*)| \\
-  \indexml{Symtab.map\_entry}\verb|Symtab.map_entry: string -> ('a -> 'a)|\isasep\isanewline%
+  \indexdef{}{ML}{Symtab.map\_entry}\verb|Symtab.map_entry: string -> ('a -> 'a)|\isasep\isanewline%
 \verb|    -> 'a Symtab.table -> 'a Symtab.table| \\
-  \indexml{Symtab.map\_default}\verb|Symtab.map_default: (string * 'a) -> ('a -> 'a)|\isasep\isanewline%
+  \indexdef{}{ML}{Symtab.map\_default}\verb|Symtab.map_default: (string * 'a) -> ('a -> 'a)|\isasep\isanewline%
 \verb|    -> 'a Symtab.table -> 'a Symtab.table| \\
-  \indexml{Symtab.join}\verb|Symtab.join: (string -> 'a * 'a -> 'a) (*exception Symtab.DUP/Symtab.SAME*)|\isasep\isanewline%
+  \indexdef{}{ML}{Symtab.join}\verb|Symtab.join: (string -> 'a * 'a -> 'a) (*exception Symtab.DUP/Symtab.SAME*)|\isasep\isanewline%
 \verb|    -> 'a Symtab.table * 'a Symtab.table|\isasep\isanewline%
 \verb|    -> 'a Symtab.table (*exception Symtab.DUP*)| \\
-  \indexml{Symtab.merge}\verb|Symtab.merge: ('a * 'a -> bool)|\isasep\isanewline%
+  \indexdef{}{ML}{Symtab.merge}\verb|Symtab.merge: ('a * 'a -> bool)|\isasep\isanewline%
 \verb|    -> 'a Symtab.table * 'a Symtab.table|\isasep\isanewline%
 \verb|    -> 'a Symtab.table (*exception Symtab.DUP*)|
   \end{mldecls}%

@@ -44,7 +44,8 @@ lemma realpow_Suc_le_self: "[| 0 \<le> r; r \<le> (1::real) |] ==> r ^ Suc n \<l
 by (insert power_decreasing [of 1 "Suc n" r], simp)
 
 lemma realpow_minus_mult [rule_format]:
-     "0 < n --> (x::real) ^ (n - 1) * x = x ^ n" 
+     "0 < n --> (x::real) ^ (n - 1) * x = x ^ n"
+unfolding One_nat_def
 apply (simp split add: nat_diff_split)
 done
 

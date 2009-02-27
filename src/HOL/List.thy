@@ -1438,10 +1438,10 @@ apply (induct xs arbitrary: n)
 apply (auto split:nat.split)
 done
 
-lemma last_conv_nth: "xs\<noteq>[] \<Longrightarrow> last xs = xs!(length xs - Suc 0)"
+lemma last_conv_nth: "xs\<noteq>[] \<Longrightarrow> last xs = xs!(length xs - 1)"
 by(induct xs)(auto simp:neq_Nil_conv)
 
-lemma butlast_conv_take: "butlast xs = take (length xs - Suc 0) xs"
+lemma butlast_conv_take: "butlast xs = take (length xs - 1) xs"
 by (induct xs, simp, case_tac xs, simp_all)
 
 
@@ -1460,6 +1460,12 @@ lemma drop_Suc_Cons [simp]: "drop (Suc n) (x # xs) = drop n xs"
 by simp
 
 declare take_Cons [simp del] and drop_Cons [simp del]
+
+lemma take_1_Cons [simp]: "take 1 (x # xs) = [x]"
+  unfolding One_nat_def by simp
+
+lemma drop_1_Cons [simp]: "drop 1 (x # xs) = xs"
+  unfolding One_nat_def by simp
 
 lemma take_Suc: "xs ~= [] ==> take (Suc n) xs = hd xs # take n (tl xs)"
 by(clarsimp simp add:neq_Nil_conv)
@@ -1588,17 +1594,17 @@ apply (case_tac xs, auto)
 done
 
 lemma butlast_take:
-  "n <= length xs ==> butlast (take n xs) = take (n - Suc 0) xs"
+  "n <= length xs ==> butlast (take n xs) = take (n - 1) xs"
 by (simp add: butlast_conv_take min_max.inf_absorb1 min_max.inf_absorb2)
 
 lemma butlast_drop: "butlast (drop n xs) = drop n (butlast xs)"
-by (simp add: butlast_conv_take drop_take)
+by (simp add: butlast_conv_take drop_take add_ac)
 
 lemma take_butlast: "n < length xs ==> take n (butlast xs) = take n xs"
 by (simp add: butlast_conv_take min_max.inf_absorb1)
 
 lemma drop_butlast: "drop n (butlast xs) = butlast (drop n xs)"
-by (simp add: butlast_conv_take drop_take)
+by (simp add: butlast_conv_take drop_take add_ac)
 
 lemma hd_drop_conv_nth: "\<lbrakk> xs \<noteq> []; n < length xs \<rbrakk> \<Longrightarrow> hd(drop n xs) = xs!n"
 by(simp add: hd_conv_nth)
@@ -2458,7 +2464,7 @@ apply blast
 done
 
 lemma length_remove1:
-  "length(remove1 x xs) = (if x : set xs then length xs - Suc 0 else length xs)"
+  "length(remove1 x xs) = (if x : set xs then length xs - 1 else length xs)"
 apply (induct xs)
  apply (auto dest!:length_pos_if_in_set)
 done

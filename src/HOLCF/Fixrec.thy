@@ -583,6 +583,20 @@ subsection {* Initializing the fixrec package *}
 
 use "Tools/fixrec_package.ML"
 
+setup {* FixrecPackage.setup *}
+
+setup {*
+  FixrecPackage.add_matchers
+    [ (@{const_name up}, @{const_name match_up}),
+      (@{const_name sinl}, @{const_name match_sinl}),
+      (@{const_name sinr}, @{const_name match_sinr}),
+      (@{const_name spair}, @{const_name match_spair}),
+      (@{const_name cpair}, @{const_name match_cpair}),
+      (@{const_name ONE}, @{const_name match_ONE}),
+      (@{const_name TT}, @{const_name match_TT}),
+      (@{const_name FF}, @{const_name match_FF}) ]
+*}
+
 hide (open) const return bind fail run cases
 
 end

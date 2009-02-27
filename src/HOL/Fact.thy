@@ -58,7 +58,7 @@ lemma fact_diff_Suc [rule_format]:
   "n < Suc m ==> fact (Suc m - n) = (Suc m - n) * fact (m - n)"
 apply (induct n arbitrary: m)
 apply auto
-apply (drule_tac x = "m - 1" in meta_spec, auto)
+apply (drule_tac x = "m - Suc 0" in meta_spec, auto)
 done
 
 lemma fact_num0: "fact 0 = 1"

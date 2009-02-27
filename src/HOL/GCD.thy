@@ -60,8 +60,11 @@ lemma gcd_0_left [simp,algebra]: "gcd 0 m = m"
 lemma gcd_non_0: "n > 0 \<Longrightarrow> gcd m n = gcd n (m mod n)"
   by simp
 
-lemma gcd_1 [simp, algebra]: "gcd m (Suc 0) = 1"
+lemma gcd_1 [simp, algebra]: "gcd m (Suc 0) = Suc 0"
   by simp
+
+lemma nat_gcd_1_right [simp, algebra]: "gcd m 1 = 1"
+  unfolding One_nat_def by (rule gcd_1)
 
 declare gcd.simps [simp del]
 
@@ -116,8 +119,11 @@ lemma gcd_assoc: "gcd (gcd k m) n = gcd k (gcd m n)"
   apply (blast intro: dvd_trans)
   done
 
-lemma gcd_1_left [simp, algebra]: "gcd (Suc 0) m = 1"
+lemma gcd_1_left [simp, algebra]: "gcd (Suc 0) m = Suc 0"
   by (simp add: gcd_commute)
+
+lemma nat_gcd_1_left [simp, algebra]: "gcd 1 m = 1"
+  unfolding One_nat_def by (rule gcd_1_left)
 
 text {*
   \medskip Multiplication laws

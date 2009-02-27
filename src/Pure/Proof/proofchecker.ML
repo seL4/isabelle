@@ -56,7 +56,7 @@ fun thm_of_proof thy prf =
       | thm_of _ _ (PAxm (name, _, SOME Ts)) =
           thm_of_atom (Thm.axiom thy name) Ts
 
-      | thm_of _ Hs (PBound i) = List.nth (Hs, i)
+      | thm_of _ Hs (PBound i) = nth Hs i
 
       | thm_of (vs, names) Hs (Abst (s, SOME T, prf)) =
           let

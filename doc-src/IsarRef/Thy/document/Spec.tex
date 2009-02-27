@@ -22,6 +22,23 @@
 }
 \isamarkuptrue%
 %
+\begin{isamarkuptext}%
+The Isabelle/Isar theory format integrates specifications and
+  proofs, supporting interactive development with unlimited undo
+  operation.  There is an integrated document preparation system (see
+  \chref{ch:document-prep}), for typesetting formal developments
+  together with informal text.  The resulting hyper-linked PDF
+  documents can be used both for WWW presentation and printed copies.
+
+  The Isar proof language (see \chref{ch:proofs}) is embedded into the
+  theory language as a proper sub-language.  Proof mode is entered by
+  stating some \hyperlink{command.theorem}{\mbox{\isa{\isacommand{theorem}}}} or \hyperlink{command.lemma}{\mbox{\isa{\isacommand{lemma}}}} at the theory
+  level, and left again with the final conclusion (e.g.\ via \hyperlink{command.qed}{\mbox{\isa{\isacommand{qed}}}}).  Some theory specification mechanisms also require a proof,
+  such as \hyperlink{command.typedef}{\mbox{\isa{\isacommand{typedef}}}} in HOL, which demands non-emptiness of
+  the representing sets.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
 \isamarkupsection{Defining theories \label{sec:begin-thy}%
 }
 \isamarkuptrue%
@@ -127,8 +144,9 @@ A local theory target is a context managed separately within the
   \hyperlink{command.global.end}{\mbox{\isa{\isacommand{end}}}} has a different meaning: it concludes the
   theory itself (\secref{sec:begin-thy}).
   
-  \item \isa{{\isachardoublequote}{\isacharparenleft}{\isasymIN}\ c{\isacharparenright}{\isachardoublequote}} given after any local theory command
-  specifies an immediate target, e.g.\ ``\hyperlink{command.definition}{\mbox{\isa{\isacommand{definition}}}}~\isa{{\isachardoublequote}{\isacharparenleft}{\isasymIN}\ c{\isacharparenright}\ {\isasymdots}{\isachardoublequote}}'' or ``\hyperlink{command.theorem}{\mbox{\isa{\isacommand{theorem}}}}~\isa{{\isachardoublequote}{\isacharparenleft}{\isasymIN}\ c{\isacharparenright}\ {\isasymdots}{\isachardoublequote}}''.  This works both in a local or
+  \item \isa{{\isachardoublequote}{\isacharparenleft}{\isachardoublequote}}\indexdef{}{keyword}{in}\hypertarget{keyword.in}{\hyperlink{keyword.in}{\mbox{\isa{\isakeyword{in}}}}}~\isa{{\isachardoublequote}c{\isacharparenright}{\isachardoublequote}} given after any
+  local theory command specifies an immediate target, e.g.\
+  ``\hyperlink{command.definition}{\mbox{\isa{\isacommand{definition}}}}~\isa{{\isachardoublequote}{\isacharparenleft}{\isasymIN}\ c{\isacharparenright}\ {\isasymdots}{\isachardoublequote}}'' or ``\hyperlink{command.theorem}{\mbox{\isa{\isacommand{theorem}}}}~\isa{{\isachardoublequote}{\isacharparenleft}{\isasymIN}\ c{\isacharparenright}\ {\isasymdots}{\isachardoublequote}}''.  This works both in a local or
   global theory context; the current target context will be suspended
   for this command only.  Note that ``\isa{{\isachardoublequote}{\isacharparenleft}{\isasymIN}\ {\isacharminus}{\isacharparenright}{\isachardoublequote}}'' will
   always produce a global result independently of the current target
@@ -792,8 +810,8 @@ Isabelle/Pure's definitional schemes support certain forms of
   \end{matharray}
 
   \begin{mldecls}
-    \indexml{bind\_thms}\verb|bind_thms: string * thm list -> unit| \\
-    \indexml{bind\_thm}\verb|bind_thm: string * thm -> unit| \\
+    \indexdef{}{ML}{bind\_thms}\verb|bind_thms: string * thm list -> unit| \\
+    \indexdef{}{ML}{bind\_thm}\verb|bind_thm: string * thm -> unit| \\
   \end{mldecls}
 
   \begin{rail}
@@ -1178,7 +1196,7 @@ Oracles allow Isabelle to take advantage of external reasoners
 
   \end{description}
 
-  See \hyperlink{file.~~/src/FOL/ex/IffOracle.thy}{\mbox{\isa{\isatt{{\isachartilde}{\isachartilde}{\isacharslash}src{\isacharslash}FOL{\isacharslash}ex{\isacharslash}IffOracle{\isachardot}thy}}}} for a worked example of
+  See \hyperlink{file.~~/src/FOL/ex/Iff-Oracle.thy}{\mbox{\isa{\isatt{{\isachartilde}{\isachartilde}{\isacharslash}src{\isacharslash}FOL{\isacharslash}ex{\isacharslash}Iff{\isacharunderscore}Oracle{\isachardot}thy}}}} for a worked example of
   defining a new primitive rule as oracle, and turning it into a proof
   method.%
 \end{isamarkuptext}%

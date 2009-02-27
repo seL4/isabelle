@@ -4,7 +4,7 @@
 
 ## global settings
 
-REPOS="https://isabelle.in.tum.de/repos/isabelle"
+REPOS="http://isabelle.in.tum.de/repos/isabelle"
 
 DISTPREFIX=${DISTPREFIX:-~/tmp/isadist}
 
@@ -156,7 +156,7 @@ rm doc/Isa-logics.eps
 rm doc/codegen_process.pdf
 rm -rf doc-src
 
-mkdir contrib
+mkdir -p contrib
 
 cp doc/isabelle*.eps lib/logo
 

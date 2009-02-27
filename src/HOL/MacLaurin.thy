@@ -81,7 +81,7 @@ unfolding difg
   prefer 2 apply simp
  apply (frule less_iff_Suc_add [THEN iffD1], clarify)
  apply (simp del: setsum_op_ivl_Suc)
- apply (insert sumr_offset4 [of 1])
+ apply (insert sumr_offset4 [of "Suc 0"])
  apply (simp del: setsum_op_ivl_Suc fact_Suc realpow_Suc)
  apply (rule lemma_DERIV_subst)
   apply (rule DERIV_add)
@@ -124,7 +124,7 @@ proof -
 
   have g2: "g 0 = 0 & g h = 0"
     apply (simp add: m f_h g_def del: setsum_op_ivl_Suc)
-    apply (cut_tac n = m and k = 1 in sumr_offset2)
+    apply (cut_tac n = m and k = "Suc 0" in sumr_offset2)
     apply (simp add: eq_diff_eq' diff_0 del: setsum_op_ivl_Suc)
     done
 
@@ -144,7 +144,7 @@ proof -
     apply (simp add: m difg_def)
     apply (frule less_iff_Suc_add [THEN iffD1], clarify)
     apply (simp del: setsum_op_ivl_Suc)
-    apply (insert sumr_offset4 [of 1])
+    apply (insert sumr_offset4 [of "Suc 0"])
     apply (simp del: setsum_op_ivl_Suc fact_Suc realpow_Suc)
     done
 
@@ -551,6 +551,10 @@ done
 lemma sin_bound_lemma:
     "[|x = y; abs u \<le> (v::real) |] ==> \<bar>(x + u) - y\<bar> \<le> v"
 by auto
+
+text {* TODO: move to Parity.thy *}
+lemma nat_odd_1 [simp]: "odd (1::nat)"
+  unfolding even_nat_def by simp
 
 lemma Maclaurin_sin_bound:
   "abs(sin x - (\<Sum>m=0..<n. (if even m then 0 else (-1 ^ ((m - Suc 0) div 2)) / real (fact m)) *

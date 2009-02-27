@@ -16,6 +16,7 @@ ISABELLE_SESSIONS="\
   HOL-Algebra \
   HOL-Auth \
   HOL-Bali \
+  HOL-Decision_Procs \
   HOL-Extraction \
   HOL-Hoare \
   HOL-HoareParallel \

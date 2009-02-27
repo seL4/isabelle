@@ -338,7 +338,7 @@ fun type_check pp tm =
     fun typ_of (_, Const (_, T)) = T
       | typ_of (_, Free  (_, T)) = T
       | typ_of (_, Var (_, T)) = T
-      | typ_of (bs, Bound i) = snd (List.nth (bs, i) handle Subscript =>
+      | typ_of (bs, Bound i) = snd (nth bs i handle Subscript =>
           raise TYPE ("Loose bound variable: B." ^ string_of_int i, [], [Bound i]))
       | typ_of (bs, Abs (x, T, body)) = T --> typ_of ((x, T) :: bs, body)
       | typ_of (bs, t $ u) =

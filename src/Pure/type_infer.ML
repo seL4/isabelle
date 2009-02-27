@@ -369,7 +369,7 @@ fun infer pp tsig =
     fun inf _ (PConst (_, T)) = T
       | inf _ (PFree (_, T)) = T
       | inf _ (PVar (_, T)) = T
-      | inf bs (PBound i) = snd (List.nth (bs, i) handle Subscript => err_loose i)
+      | inf bs (PBound i) = snd (nth bs i handle Subscript => err_loose i)
       | inf bs (PAbs (x, T, t)) = PType ("fun", [T, inf ((x, T) :: bs) t])
       | inf bs (PAppl (t, u)) =
           let

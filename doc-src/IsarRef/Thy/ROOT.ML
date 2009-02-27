@@ -1,10 +1,10 @@
-
-(* $Id$ *)
-
+set quick_and_dirty;
 set ThyOutput.source;
 use "../../antiquote_setup.ML";
 
 use_thy "Introduction";
+use_thy "Framework";
+use_thy "First_Order_Logic";
 use_thy "Outer_Syntax";
 use_thy "Document_Preparation";
 use_thy "Spec";

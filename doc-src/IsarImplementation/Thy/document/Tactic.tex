@@ -1,0 +1,497 @@
+%
+\begin{isabellebody}%
+\def\isabellecontext{Tactic}%
+%
+\isadelimtheory
+%
+\endisadelimtheory
+%
+\isatagtheory
+\isacommand{theory}\isamarkupfalse%
+\ Tactic\isanewline
+\isakeyword{imports}\ Base\isanewline
+\isakeyword{begin}%
+\endisatagtheory
+{\isafoldtheory}%
+%
+\isadelimtheory
+%
+\endisadelimtheory
+%
+\isamarkupchapter{Tactical reasoning%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+Tactical reasoning works by refining the initial claim in a
+  backwards fashion, until a solved form is reached.  A \isa{goal}
+  consists of several subgoals that need to be solved in order to
+  achieve the main statement; zero subgoals means that the proof may
+  be finished.  A \isa{tactic} is a refinement operation that maps
+  a goal to a lazy sequence of potential successors.  A \isa{tactical} is a combinator for composing tactics.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsection{Goals \label{sec:tactical-goals}%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+Isabelle/Pure represents a goal as a theorem stating that the
+  subgoals imply the main goal: \isa{A\isactrlsub {\isadigit{1}}\ {\isasymLongrightarrow}\ {\isasymdots}\ {\isasymLongrightarrow}\ A\isactrlsub n\ {\isasymLongrightarrow}\ C}.  The outermost goal structure is that of a Horn Clause: i.e.\
+  an iterated implication without any quantifiers\footnote{Recall that
+  outermost \isa{{\isasymAnd}x{\isachardot}\ {\isasymphi}{\isacharbrackleft}x{\isacharbrackright}} is always represented via schematic
+  variables in the body: \isa{{\isasymphi}{\isacharbrackleft}{\isacharquery}x{\isacharbrackright}}.  These variables may get
+  instantiated during the course of reasoning.}.  For \isa{n\ {\isacharequal}\ {\isadigit{0}}}
+  a goal is called ``solved''.
+
+  The structure of each subgoal \isa{A\isactrlsub i} is that of a
+  general Hereditary Harrop Formula \isa{{\isasymAnd}x\isactrlsub {\isadigit{1}}\ {\isasymdots}\ {\isasymAnd}x\isactrlsub k{\isachardot}\ H\isactrlsub {\isadigit{1}}\ {\isasymLongrightarrow}\ {\isasymdots}\ {\isasymLongrightarrow}\ H\isactrlsub m\ {\isasymLongrightarrow}\ B}.  Here \isa{x\isactrlsub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ x\isactrlsub k} are goal parameters, i.e.\
+  arbitrary-but-fixed entities of certain types, and \isa{H\isactrlsub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ H\isactrlsub m} are goal hypotheses, i.e.\ facts that may
+  be assumed locally.  Together, this forms the goal context of the
+  conclusion \isa{B} to be established.  The goal hypotheses may be
+  again arbitrary Hereditary Harrop Formulas, although the level of
+  nesting rarely exceeds 1--2 in practice.
+
+  The main conclusion \isa{C} is internally marked as a protected
+  proposition, which is represented explicitly by the notation \isa{{\isacharhash}C}.  This ensures that the decomposition into subgoals and main
+  conclusion is well-defined for arbitrarily structured claims.
+
+  \medskip Basic goal management is performed via the following
+  Isabelle/Pure rules:
+
+  \[
+  \infer[\isa{{\isacharparenleft}init{\isacharparenright}}]{\isa{C\ {\isasymLongrightarrow}\ {\isacharhash}C}}{} \qquad
+  \infer[\isa{{\isacharparenleft}finish{\isacharparenright}}]{\isa{C}}{\isa{{\isacharhash}C}}
+  \]
+
+  \medskip The following low-level variants admit general reasoning
+  with protected propositions:
+
+  \[
+  \infer[\isa{{\isacharparenleft}protect{\isacharparenright}}]{\isa{{\isacharhash}C}}{\isa{C}} \qquad
+  \infer[\isa{{\isacharparenleft}conclude{\isacharparenright}}]{\isa{A\isactrlsub {\isadigit{1}}\ {\isasymLongrightarrow}\ {\isasymdots}\ {\isasymLongrightarrow}\ A\isactrlsub n\ {\isasymLongrightarrow}\ C}}{\isa{A\isactrlsub {\isadigit{1}}\ {\isasymLongrightarrow}\ {\isasymdots}\ {\isasymLongrightarrow}\ A\isactrlsub n\ {\isasymLongrightarrow}\ {\isacharhash}C}}
+  \]%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isadelimmlref
+%
+\endisadelimmlref
+%
+\isatagmlref
+%
+\begin{isamarkuptext}%
+\begin{mldecls}
+  \indexdef{}{ML}{Goal.init}\verb|Goal.init: cterm -> thm| \\
+  \indexdef{}{ML}{Goal.finish}\verb|Goal.finish: thm -> thm| \\
+  \indexdef{}{ML}{Goal.protect}\verb|Goal.protect: thm -> thm| \\
+  \indexdef{}{ML}{Goal.conclude}\verb|Goal.conclude: thm -> thm| \\
+  \end{mldecls}
+
+  \begin{description}
+
+  \item \verb|Goal.init|~\isa{C} initializes a tactical goal from
+  the well-formed proposition \isa{C}.
+
+  \item \verb|Goal.finish|~\isa{thm} checks whether theorem
+  \isa{thm} is a solved goal (no subgoals), and concludes the
+  result by removing the goal protection.
+
+  \item \verb|Goal.protect|~\isa{thm} protects the full statement
+  of theorem \isa{thm}.
+
+  \item \verb|Goal.conclude|~\isa{thm} removes the goal
+  protection, even if there are pending subgoals.
+
+  \end{description}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\endisatagmlref
+{\isafoldmlref}%
+%
+\isadelimmlref
+%
+\endisadelimmlref
+%
+\isamarkupsection{Tactics%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+A \isa{tactic} is a function \isa{goal\ {\isasymrightarrow}\ goal\isactrlsup {\isacharasterisk}\isactrlsup {\isacharasterisk}} that
+  maps a given goal state (represented as a theorem, cf.\
+  \secref{sec:tactical-goals}) to a lazy sequence of potential
+  successor states.  The underlying sequence implementation is lazy
+  both in head and tail, and is purely functional in \emph{not}
+  supporting memoing.\footnote{The lack of memoing and the strict
+  nature of SML requires some care when working with low-level
+  sequence operations, to avoid duplicate or premature evaluation of
+  results.}
+
+  An \emph{empty result sequence} means that the tactic has failed: in
+  a compound tactic expressions other tactics might be tried instead,
+  or the whole refinement step might fail outright, producing a
+  toplevel error message.  When implementing tactics from scratch, one
+  should take care to observe the basic protocol of mapping regular
+  error conditions to an empty result; only serious faults should
+  emerge as exceptions.
+
+  By enumerating \emph{multiple results}, a tactic can easily express
+  the potential outcome of an internal search process.  There are also
+  combinators for building proof tools that involve search
+  systematically, see also \secref{sec:tacticals}.
+
+  \medskip As explained in \secref{sec:tactical-goals}, a goal state
+  essentially consists of a list of subgoals that imply the main goal
+  (conclusion).  Tactics may operate on all subgoals or on a
+  particularly specified subgoal, but must not change the main
+  conclusion (apart from instantiating schematic goal variables).
+
+  Tactics with explicit \emph{subgoal addressing} are of the form
+  \isa{int\ {\isasymrightarrow}\ tactic} and may be applied to a particular subgoal
+  (counting from 1).  If the subgoal number is out of range, the
+  tactic should fail with an empty result sequence, but must not raise
+  an exception!
+
+  Operating on a particular subgoal means to replace it by an interval
+  of zero or more subgoals in the same place; other subgoals must not
+  be affected, apart from instantiating schematic variables ranging
+  over the whole goal state.
+
+  A common pattern of composing tactics with subgoal addressing is to
+  try the first one, and then the second one only if the subgoal has
+  not been solved yet.  Special care is required here to avoid bumping
+  into unrelated subgoals that happen to come after the original
+  subgoal.  Assuming that there is only a single initial subgoal is a
+  very common error when implementing tactics!
+
+  Tactics with internal subgoal addressing should expose the subgoal
+  index as \isa{int} argument in full generality; a hardwired
+  subgoal 1 inappropriate.
+  
+  \medskip The main well-formedness conditions for proper tactics are
+  summarized as follows.
+
+  \begin{itemize}
+
+  \item General tactic failure is indicated by an empty result, only
+  serious faults may produce an exception.
+
+  \item The main conclusion must not be changed, apart from
+  instantiating schematic variables.
+
+  \item A tactic operates either uniformly on all subgoals, or
+  specifically on a selected subgoal (without bumping into unrelated
+  subgoals).
+
+  \item Range errors in subgoal addressing produce an empty result.
+
+  \end{itemize}
+
+  Some of these conditions are checked by higher-level goal
+  infrastructure (\secref{sec:results}); others are not checked
+  explicitly, and violating them merely results in ill-behaved tactics
+  experienced by the user (e.g.\ tactics that insist in being
+  applicable only to singleton goals, or disallow composition with
+  basic tacticals).%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isadelimmlref
+%
+\endisadelimmlref
+%
+\isatagmlref
+%
+\begin{isamarkuptext}%
+\begin{mldecls}
+  \indexdef{}{ML type}{tactic}\verb|type tactic = thm -> thm Seq.seq| \\
+  \indexdef{}{ML}{no\_tac}\verb|no_tac: tactic| \\
+  \indexdef{}{ML}{all\_tac}\verb|all_tac: tactic| \\
+  \indexdef{}{ML}{print\_tac}\verb|print_tac: string -> tactic| \\[1ex]
+  \indexdef{}{ML}{PRIMITIVE}\verb|PRIMITIVE: (thm -> thm) -> tactic| \\[1ex]
+  \indexdef{}{ML}{SUBGOAL}\verb|SUBGOAL: (term * int -> tactic) -> int -> tactic| \\
+  \indexdef{}{ML}{CSUBGOAL}\verb|CSUBGOAL: (cterm * int -> tactic) -> int -> tactic| \\
+  \end{mldecls}
+
+  \begin{description}
+
+  \item \verb|tactic| represents tactics.  The well-formedness
+  conditions described above need to be observed.  See also \hyperlink{file.~~/src/Pure/General/seq.ML}{\mbox{\isa{\isatt{{\isachartilde}{\isachartilde}{\isacharslash}src{\isacharslash}Pure{\isacharslash}General{\isacharslash}seq{\isachardot}ML}}}} for the underlying implementation of
+  lazy sequences.
+
+  \item \verb|int -> tactic| represents tactics with explicit
+  subgoal addressing, with well-formedness conditions as described
+  above.
+
+  \item \verb|no_tac| is a tactic that always fails, returning the
+  empty sequence.
+
+  \item \verb|all_tac| is a tactic that always succeeds, returning a
+  singleton sequence with unchanged goal state.
+
+  \item \verb|print_tac|~\isa{message} is like \verb|all_tac|, but
+  prints a message together with the goal state on the tracing
+  channel.
+
+  \item \verb|PRIMITIVE|~\isa{rule} turns a primitive inference rule
+  into a tactic with unique result.  Exception \verb|THM| is considered
+  a regular tactic failure and produces an empty result; other
+  exceptions are passed through.
+
+  \item \verb|SUBGOAL|~\isa{{\isacharparenleft}fn\ {\isacharparenleft}subgoal{\isacharcomma}\ i{\isacharparenright}\ {\isacharequal}{\isachargreater}\ tactic{\isacharparenright}} is the
+  most basic form to produce a tactic with subgoal addressing.  The
+  given abstraction over the subgoal term and subgoal number allows to
+  peek at the relevant information of the full goal state.  The
+  subgoal range is checked as required above.
+
+  \item \verb|CSUBGOAL| is similar to \verb|SUBGOAL|, but passes the
+  subgoal as \verb|cterm| instead of raw \verb|term|.  This
+  avoids expensive re-certification in situations where the subgoal is
+  used directly for primitive inferences.
+
+  \end{description}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\endisatagmlref
+{\isafoldmlref}%
+%
+\isadelimmlref
+%
+\endisadelimmlref
+%
+\isamarkupsubsection{Resolution and assumption tactics \label{sec:resolve-assume-tac}%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+\emph{Resolution} is the most basic mechanism for refining a
+  subgoal using a theorem as object-level rule.
+  \emph{Elim-resolution} is particularly suited for elimination rules:
+  it resolves with a rule, proves its first premise by assumption, and
+  finally deletes that assumption from any new subgoals.
+  \emph{Destruct-resolution} is like elim-resolution, but the given
+  destruction rules are first turned into canonical elimination
+  format.  \emph{Forward-resolution} is like destruct-resolution, but
+  without deleting the selected assumption.  The \isa{r{\isacharslash}e{\isacharslash}d{\isacharslash}f}
+  naming convention is maintained for several different kinds of
+  resolution rules and tactics.
+
+  Assumption tactics close a subgoal by unifying some of its premises
+  against its conclusion.
+
+  \medskip All the tactics in this section operate on a subgoal
+  designated by a positive integer.  Other subgoals might be affected
+  indirectly, due to instantiation of schematic variables.
+
+  There are various sources of non-determinism, the tactic result
+  sequence enumerates all possibilities of the following choices (if
+  applicable):
+
+  \begin{enumerate}
+
+  \item selecting one of the rules given as argument to the tactic;
+
+  \item selecting a subgoal premise to eliminate, unifying it against
+  the first premise of the rule;
+
+  \item unifying the conclusion of the subgoal to the conclusion of
+  the rule.
+
+  \end{enumerate}
+
+  Recall that higher-order unification may produce multiple results
+  that are enumerated here.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isadelimmlref
+%
+\endisadelimmlref
+%
+\isatagmlref
+%
+\begin{isamarkuptext}%
+\begin{mldecls}
+  \indexdef{}{ML}{resolve\_tac}\verb|resolve_tac: thm list -> int -> tactic| \\
+  \indexdef{}{ML}{eresolve\_tac}\verb|eresolve_tac: thm list -> int -> tactic| \\
+  \indexdef{}{ML}{dresolve\_tac}\verb|dresolve_tac: thm list -> int -> tactic| \\
+  \indexdef{}{ML}{forward\_tac}\verb|forward_tac: thm list -> int -> tactic| \\[1ex]
+  \indexdef{}{ML}{assume\_tac}\verb|assume_tac: int -> tactic| \\
+  \indexdef{}{ML}{eq\_assume\_tac}\verb|eq_assume_tac: int -> tactic| \\[1ex]
+  \indexdef{}{ML}{match\_tac}\verb|match_tac: thm list -> int -> tactic| \\
+  \indexdef{}{ML}{ematch\_tac}\verb|ematch_tac: thm list -> int -> tactic| \\
+  \indexdef{}{ML}{dmatch\_tac}\verb|dmatch_tac: thm list -> int -> tactic| \\
+  \end{mldecls}
+
+  \begin{description}
+
+  \item \verb|resolve_tac|~\isa{thms\ i} refines the goal state
+  using the given theorems, which should normally be introduction
+  rules.  The tactic resolves a rule's conclusion with subgoal \isa{i}, replacing it by the corresponding versions of the rule's
+  premises.
+
+  \item \verb|eresolve_tac|~\isa{thms\ i} performs elim-resolution
+  with the given theorems, which should normally be elimination rules.
+
+  \item \verb|dresolve_tac|~\isa{thms\ i} performs
+  destruct-resolution with the given theorems, which should normally
+  be destruction rules.  This replaces an assumption by the result of
+  applying one of the rules.
+
+  \item \verb|forward_tac| is like \verb|dresolve_tac| except that the
+  selected assumption is not deleted.  It applies a rule to an
+  assumption, adding the result as a new assumption.
+
+  \item \verb|assume_tac|~\isa{i} attempts to solve subgoal \isa{i}
+  by assumption (modulo higher-order unification).
+
+  \item \verb|eq_assume_tac| is similar to \verb|assume_tac|, but checks
+  only for immediate \isa{{\isasymalpha}}-convertibility instead of using
+  unification.  It succeeds (with a unique next state) if one of the
+  assumptions is equal to the subgoal's conclusion.  Since it does not
+  instantiate variables, it cannot make other subgoals unprovable.
+
+  \item \verb|match_tac|, \verb|ematch_tac|, and \verb|dmatch_tac| are
+  similar to \verb|resolve_tac|, \verb|eresolve_tac|, and \verb|dresolve_tac|, respectively, but do not instantiate schematic
+  variables in the goal state.
+
+  Flexible subgoals are not updated at will, but are left alone.
+  Strictly speaking, matching means to treat the unknowns in the goal
+  state as constants; these tactics merely discard unifiers that would
+  update the goal state.
+
+  \end{description}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\endisatagmlref
+{\isafoldmlref}%
+%
+\isadelimmlref
+%
+\endisadelimmlref
+%
+\isamarkupsubsection{Explicit instantiation within a subgoal context%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+The main resolution tactics (\secref{sec:resolve-assume-tac})
+  use higher-order unification, which works well in many practical
+  situations despite its daunting theoretical properties.
+  Nonetheless, there are important problem classes where unguided
+  higher-order unification is not so useful.  This typically involves
+  rules like universal elimination, existential introduction, or
+  equational substitution.  Here the unification problem involves
+  fully flexible \isa{{\isacharquery}P\ {\isacharquery}x} schemes, which are hard to manage
+  without further hints.
+
+  By providing a (small) rigid term for \isa{{\isacharquery}x} explicitly, the
+  remaining unification problem is to assign a (large) term to \isa{{\isacharquery}P}, according to the shape of the given subgoal.  This is
+  sufficiently well-behaved in most practical situations.
+
+  \medskip Isabelle provides separate versions of the standard \isa{r{\isacharslash}e{\isacharslash}d{\isacharslash}f} resolution tactics that allow to provide explicit
+  instantiations of unknowns of the given rule, wrt.\ terms that refer
+  to the implicit context of the selected subgoal.
+
+  An instantiation consists of a list of pairs of the form \isa{{\isacharparenleft}{\isacharquery}x{\isacharcomma}\ t{\isacharparenright}}, where \isa{{\isacharquery}x} is a schematic variable occurring in
+  the given rule, and \isa{t} is a term from the current proof
+  context, augmented by the local goal parameters of the selected
+  subgoal; cf.\ the \isa{focus} operation described in
+  \secref{sec:variables}.
+
+  Entering the syntactic context of a subgoal is a brittle operation,
+  because its exact form is somewhat accidental, and the choice of
+  bound variable names depends on the presence of other local and
+  global names.  Explicit renaming of subgoal parameters prior to
+  explicit instantiation might help to achieve a bit more robustness.
+
+  Type instantiations may be given as well, via pairs like \isa{{\isacharparenleft}{\isacharquery}{\isacharprime}a{\isacharcomma}\ {\isasymtau}{\isacharparenright}}.  Type instantiations are distinguished from term
+  instantiations by the syntactic form of the schematic variable.
+  Types are instantiated before terms are.  Since term instantiation
+  already performs type-inference as expected, explicit type
+  instantiations are seldom necessary.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isadelimmlref
+%
+\endisadelimmlref
+%
+\isatagmlref
+%
+\begin{isamarkuptext}%
+\begin{mldecls}
+  \indexdef{}{ML}{res\_inst\_tac}\verb|res_inst_tac: Proof.context -> (indexname * string) list -> thm -> int -> tactic| \\
+  \indexdef{}{ML}{eres\_inst\_tac}\verb|eres_inst_tac: Proof.context -> (indexname * string) list -> thm -> int -> tactic| \\
+  \indexdef{}{ML}{dres\_inst\_tac}\verb|dres_inst_tac: Proof.context -> (indexname * string) list -> thm -> int -> tactic| \\
+  \indexdef{}{ML}{forw\_inst\_tac}\verb|forw_inst_tac: Proof.context -> (indexname * string) list -> thm -> int -> tactic| \\[1ex]
+  \indexdef{}{ML}{rename\_tac}\verb|rename_tac: string list -> int -> tactic| \\
+  \end{mldecls}
+
+  \begin{description}
+
+  \item \verb|res_inst_tac|~\isa{ctxt\ insts\ thm\ i} instantiates the
+  rule \isa{thm} with the instantiations \isa{insts}, as described
+  above, and then performs resolution on subgoal \isa{i}.
+  
+  \item \verb|eres_inst_tac| is like \verb|res_inst_tac|, but performs
+  elim-resolution.
+
+  \item \verb|dres_inst_tac| is like \verb|res_inst_tac|, but performs
+  destruct-resolution.
+
+  \item \verb|forw_inst_tac| is like \verb|dres_inst_tac| except that
+  the selected assumption is not deleted.
+
+  \item \verb|rename_tac|~\isa{names\ i} renames the innermost
+  parameters of subgoal \isa{i} according to the provided \isa{names} (which need to be distinct indentifiers).
+
+  \end{description}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\endisatagmlref
+{\isafoldmlref}%
+%
+\isadelimmlref
+%
+\endisadelimmlref
+%
+\isamarkupsection{Tacticals \label{sec:tacticals}%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+A \emph{tactical} is a functional combinator for building up complex
+  tactics from simpler ones.  Typical tactical perform sequential
+  composition, disjunction (choice), iteration, or goal addressing.
+  Various search strategies may be expressed via tacticals.
+
+  \medskip FIXME%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isadelimtheory
+%
+\endisadelimtheory
+%
+\isatagtheory
+\isacommand{end}\isamarkupfalse%
+%
+\endisatagtheory
+{\isafoldtheory}%
+%
+\isadelimtheory
+%
+\endisadelimtheory
+\isanewline
+\end{isabellebody}%
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "root"
+%%% End:

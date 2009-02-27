@@ -397,6 +397,37 @@ by (auto simp add: fresh_star_def fresh_prod)
 
 lemmas fresh_star_prod = fresh_star_prod_list fresh_star_prod_set
 
+lemma fresh_star_set_eq: "set xs \<sharp>* c = xs \<sharp>* c"
+  by (simp add: fresh_star_def)
+
+lemma fresh_star_Un_elim:
+  "((S \<union> T) \<sharp>* c \<Longrightarrow> PROP C) \<equiv> (S \<sharp>* c \<Longrightarrow> T \<sharp>* c \<Longrightarrow> PROP C)"
+  apply rule
+  apply (simp_all add: fresh_star_def)
+  apply (erule meta_mp)
+  apply blast
+  done
+
+lemma fresh_star_insert_elim:
+  "(insert x S \<sharp>* c \<Longrightarrow> PROP C) \<equiv> (x \<sharp> c \<Longrightarrow> S \<sharp>* c \<Longrightarrow> PROP C)"
+  by rule (simp_all add: fresh_star_def)
+
+lemma fresh_star_empty_elim:
+  "({} \<sharp>* c \<Longrightarrow> PROP C) \<equiv> PROP C"
+  by (simp add: fresh_star_def)
+
+text {* Normalization of freshness results; cf.\ @{text nominal_induct} *}
+
+lemma fresh_star_unit_elim: 
+  shows "((a::'a set)\<sharp>*() \<Longrightarrow> PROP C) \<equiv> PROP C"
+  and "((b::'a list)\<sharp>*() \<Longrightarrow> PROP C) \<equiv> PROP C"
+  by (simp_all add: fresh_star_def fresh_def supp_unit)
+
+lemma fresh_star_prod_elim: 
+  shows "((a::'a set)\<sharp>*(x,y) \<Longrightarrow> PROP C) \<equiv> (a\<sharp>*x \<Longrightarrow> a\<sharp>*y \<Longrightarrow> PROP C)"
+  and "((b::'a list)\<sharp>*(x,y) \<Longrightarrow> PROP C) \<equiv> (b\<sharp>*x \<Longrightarrow> b\<sharp>*y \<Longrightarrow> PROP C)"
+  by (rule, simp_all add: fresh_star_prod)+
+
 section {* Abstract Properties for Permutations and  Atoms *}
 (*=========================================================*)
 
@@ -1644,6 +1675,31 @@ apply(rule cp_pt_inst)
 apply(rule pt)
 apply(rule at)
 done
+
+lemma pt_fresh_star_eqvt:
+  fixes  pi :: "'x prm"
+  and     x :: "'a"
+  and     a :: "'x set"
+  and     b :: "'x list"
+  assumes pt: "pt TYPE('a) TYPE('x)"
+  and     at: "at TYPE('x)"
+  shows "pi\<bullet>(a\<sharp>*x) = (pi\<bullet>a)\<sharp>*(pi\<bullet>x)"
+  and   "pi\<bullet>(b\<sharp>*x) = (pi\<bullet>b)\<sharp>*(pi\<bullet>x)"
+  by (simp_all add: perm_bool pt_fresh_star_bij[OF pt, OF at])
+
+lemma pt_fresh_star_eqvt_ineq:
+  fixes pi::"'x prm"
+  and   a::"'y set"
+  and   b::"'y list"
+  and   x::"'a"
+  assumes pta: "pt TYPE('a) TYPE('x)"
+  and     ptb: "pt TYPE('y) TYPE('x)"
+  and     at:  "at TYPE('x)"
+  and     cp:  "cp TYPE('a) TYPE('x) TYPE('y)"
+  and     dj:  "disjoint TYPE('y) TYPE('x)"
+  shows "pi\<bullet>(a\<sharp>*x) = (pi\<bullet>a)\<sharp>*(pi\<bullet>x)"
+  and   "pi\<bullet>(b\<sharp>*x) = (pi\<bullet>b)\<sharp>*(pi\<bullet>x)"
+  by (simp_all add: pt_fresh_star_bij_ineq[OF pta, OF ptb, OF at, OF cp] dj_perm_forget[OF dj] perm_bool)
 
 lemma pt_fresh_bij1:
   fixes  pi :: "'x prm"
