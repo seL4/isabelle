@@ -537,7 +537,7 @@ text {*
      \end{picture}
      \caption{Subclass relationship of monoids and groups:
         before and after establishing the relationship
-        @{text "group \<subseteq> monoid"};  transitive edges left out.}
+        @{text "group \<subseteq> monoid"};  transitive edges are left out.}
      \label{fig:subclass}
    \end{center}
   \end{figure}
