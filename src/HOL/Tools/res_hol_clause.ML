@@ -13,8 +13,8 @@ sig
   val comb_C: thm
   val comb_S: thm
   datatype type_level = T_FULL | T_CONST
-  val typ_level: type_level ref
-  val minimize_applies: bool ref
+  val typ_level: type_level
+  val minimize_applies: bool
   type axiom_name = string
   type polarity = bool
   type clause_id = int
@@ -53,17 +53,17 @@ val equal_imp_fequal = thm "ATP_Linkup.equal_imp_fequal";
 (*The different translations of types*)
 datatype type_level = T_FULL | T_CONST;
 
-val typ_level = ref T_CONST;
+val typ_level = T_CONST;
 
 (*If true, each function will be directly applied to as many arguments as possible, avoiding
   use of the "apply" operator. Use of hBOOL is also minimized.*)
-val minimize_applies = ref true;
+val minimize_applies = true;
 
 fun min_arity_of const_min_arity c = getOpt (Symtab.lookup const_min_arity c, 0);
 
 (*True if the constant ever appears outside of the top-level position in literals.
   If false, the constant always receives all of its arguments and is used as a predicate.*)
-fun needs_hBOOL const_needs_hBOOL c = not (!minimize_applies) orelse
+fun needs_hBOOL const_needs_hBOOL c = not minimize_applies orelse
                     getOpt (Symtab.lookup const_needs_hBOOL c, false);
 
 
@@ -219,7 +219,7 @@ fun head_needs_hBOOL const_needs_hBOOL (CombConst(c,_,_)) = needs_hBOOL const_ne
   | head_needs_hBOOL const_needs_hBOOL _ = true;
 
 fun wrap_type (s, tp) =
-  if !typ_level=T_FULL then
+  if typ_level=T_FULL then
       type_wrapper ^ RC.paren_pack [s, RC.string_of_fol_type tp]
   else s;
 
@@ -240,7 +240,7 @@ fun string_of_applic cma (CombConst(c,tp,tvars), args) =
                                          Int.toString nargs ^ " but is applied to " ^
                                          space_implode ", " args)
           val args2 = List.drop(args, nargs)
-          val targs = if !typ_level = T_CONST then map RC.string_of_fol_type tvars
+          val targs = if typ_level = T_CONST then map RC.string_of_fol_type tvars
                       else []
       in
           string_apply (c ^ RC.paren_pack (args1@targs), args2)
@@ -334,7 +334,7 @@ fun add_decls cma cnh (CombConst(c,tp,tvars), (funcs,preds)) =
       if c = "equal" then (addtypes tvars funcs, preds)
       else
 	let val arity = min_arity_of cma c
-	    val ntys = if !typ_level = T_CONST then length tvars else 0
+	    val ntys = if typ_level = T_CONST then length tvars else 0
 	    val addit = Symtab.update(c, arity+ntys)
 	in
 	    if needs_hBOOL cnh c then (addtypes tvars (addit funcs), preds)
@@ -449,7 +449,7 @@ fun display_arity const_needs_hBOOL (c,n) =
                 (if needs_hBOOL const_needs_hBOOL c then " needs hBOOL" else ""));
 
 fun count_constants (conjectures, axclauses, helper_clauses) =
-  if !minimize_applies then
+  if minimize_applies then
      let val (const_min_arity, const_needs_hBOOL) =
           fold count_constants_clause conjectures (Symtab.empty, Symtab.empty)
        |> fold count_constants_clause axclauses
