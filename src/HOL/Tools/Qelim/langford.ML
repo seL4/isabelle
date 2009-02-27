@@ -113,11 +113,6 @@ fun conj_aci_rule eq =
   val eqI = instantiate' [] [SOME ll, SOME rr] @{thm iffI}
  in implies_elim (implies_elim eqI thl) thr |> mk_meta_eq end;
 
-fun partition f [] = ([],[])
-  | partition f (x::xs) = 
-      let val (yes,no) = partition f xs 
-      in if f x then (x::yes,no) else (yes, x::no) end;
-
 fun contains x ct = member (op aconv) (OldTerm.term_frees (term_of ct)) (term_of x);
 
 fun is_eqx x eq = case term_of eq of
@@ -132,11 +127,11 @@ fun proc ct =
     val e = Thm.dest_fun ct
     val (x,p) = Thm.dest_abs (SOME xn) (Thm.dest_arg ct)
     val Pp = Thm.capply @{cterm "Trueprop"} p 
-    val (eqs,neqs) = partition (is_eqx x) (all_conjuncts p)
+    val (eqs,neqs) = List.partition (is_eqx x) (all_conjuncts p)
    in case eqs of
       [] => 
         let 
-         val (dx,ndx) = partition (contains x) neqs
+         val (dx,ndx) = List.partition (contains x) neqs
          in case ndx of [] => NONE
                       | _ =>
             conj_aci_rule (Thm.mk_binop @{cterm "op == :: prop => _"} Pp 

@@ -297,7 +297,7 @@ fun strip_type T : typ list * typ =
   Ts = [T0,T1,...] holds types of bound variables 0, 1, ...*)
 fun type_of1 (Ts, Const (_,T)) = T
   | type_of1 (Ts, Free  (_,T)) = T
-  | type_of1 (Ts, Bound i) = (List.nth (Ts,i)
+  | type_of1 (Ts, Bound i) = (nth Ts i
         handle Subscript => raise TYPE("type_of: bound variable", [], [Bound i]))
   | type_of1 (Ts, Var (_,T)) = T
   | type_of1 (Ts, Abs (_,T,body)) = T --> type_of1(T::Ts, body)
@@ -322,7 +322,7 @@ fun fastype_of1 (Ts, f$u) =
         | _ => raise TERM("fastype_of: expected function type", [f$u]))
   | fastype_of1 (_, Const (_,T)) = T
   | fastype_of1 (_, Free (_,T)) = T
-  | fastype_of1 (Ts, Bound i) = (List.nth(Ts,i)
+  | fastype_of1 (Ts, Bound i) = (nth Ts i
          handle Subscript => raise TERM("fastype_of: Bound", [Bound i]))
   | fastype_of1 (_, Var (_,T)) = T
   | fastype_of1 (Ts, Abs (_,T,u)) = T --> fastype_of1 (T::Ts, u);
@@ -387,17 +387,17 @@ fun head_of (f$t) = head_of f
 (*number of atoms and abstractions in a term*)
 fun size_of_term tm =
   let
-    fun add_size (t $ u, n) = add_size (t, add_size (u, n))
-      | add_size (Abs (_ ,_, t), n) = add_size (t, n + 1)
-      | add_size (_, n) = n + 1;
-  in add_size (tm, 0) end;
+    fun add_size (t $ u) n = add_size t (add_size u n)
+      | add_size (Abs (_ ,_, t)) n = add_size t (n + 1)
+      | add_size _ n = n + 1;
+  in add_size tm 0 end;
 
-(*number of tfrees, tvars, and constructors in a type*)
+(*number of atoms and constructors in a type*)
 fun size_of_typ ty =
   let
-    fun add_size (Type (_, ars), n) = foldl add_size (n + 1) ars
-      | add_size (_, n) = n + 1;
-  in add_size (ty, 0) end;
+    fun add_size (Type (_, tys)) n = fold add_size tys (n + 1)
+      | add_size _ n = n + 1;
+  in add_size ty 0 end;
 
 fun map_atyps f (Type (a, Ts)) = Type (a, map (map_atyps f) Ts)
   | map_atyps f T = f T;
@@ -638,7 +638,7 @@ fun subst_bounds (args: term list, t) : term =
     val n = length args;
     fun subst (t as Bound i, lev) =
          (if i < lev then raise SAME   (*var is locally bound*)
-          else incr_boundvars lev (List.nth (args, i - lev))
+          else incr_boundvars lev (nth args (i - lev))
             handle Subscript => Bound (i - n))  (*loose: change it*)
       | subst (Abs (a, T, body), lev) = Abs (a, T, subst (body, lev + 1))
       | subst (f $ t, lev) =

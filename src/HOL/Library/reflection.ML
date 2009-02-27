@@ -88,17 +88,12 @@ exception REIF of string;
 
 fun dest_listT (Type ("List.list", [T])) = T;
 
-fun partition P [] = ([],[])
-  | partition P (x::xs) = 
-     let val (yes,no) = partition P xs
-     in if P x then (x::yes,no) else (yes, x::no) end
-
 fun rearrange congs = 
 let 
  fun P (_, th) = 
   let val @{term "Trueprop"}$(Const ("op =",_) $l$_) = concl_of th
   in can dest_Var l end
- val (yes,no) = partition P congs 
+ val (yes,no) = List.partition P congs 
  in no @ yes end
 
 fun genreif ctxt raw_eqs t =

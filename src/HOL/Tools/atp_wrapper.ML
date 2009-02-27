@@ -96,7 +96,7 @@ fun external_prover write_problem_files (cmd, args) find_failure produce_answer 
 
 fun tptp_prover_opts_full max_new theory_const full command =
   external_prover
-    (ResAtp.write_problem_files ResHolClause.tptp_write_file max_new theory_const)
+    (ResAtp.write_problem_files false max_new theory_const)
     command
     ResReconstruct.find_failure_e_vamp_spass
     (if full then ResReconstruct.structured_proof else ResReconstruct.lemma_list_tstp);
@@ -153,7 +153,7 @@ val eprover_full = eprover_opts_full 100 false;
 (* SPASS *)
 
 fun spass_opts max_new theory_const = external_prover
-  (ResAtp.write_problem_files ResHolClause.dfg_write_file max_new theory_const)
+  (ResAtp.write_problem_files true max_new theory_const)
   (Path.explode "$SPASS_HOME/SPASS", "-Auto -SOS=1 -PGiven=0 -PProblem=0 -Splits=0 -FullRed=0 -DocProof")
   ResReconstruct.find_failure_e_vamp_spass
   ResReconstruct.lemma_list_dfg;

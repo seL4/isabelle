@@ -7,6 +7,9 @@ distribution.
 Contributions to this Isabelle version
 --------------------------------------
 
+* February 2008: Jasmin Christian Blanchette, TUM
+  Misc cleanup of HOL/refute.
+
 * February 2008: Timothy Bourke, NICTA
   New find_consts command.
 
