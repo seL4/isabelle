@@ -1,7 +1,9 @@
-(* Title:     HOL/Reflection/Approximation.thy
- * Author:    Johannes Hölzl <hoelzl@in.tum.de> 2008 / 2009
- *)
+(*  Title:      HOL/Reflection/Approximation.thy
+    Author:     Johannes Hoelzl <hoelzl@in.tum.de> 2008 / 2009
+*)
+
 header {* Prove unequations about real numbers by computation *}
+
 theory Approximation
 imports Complex_Main Float Reflection Dense_Linear_Order Efficient_Nat
 begin

@@ -13,8 +13,8 @@ Reference Manuals
   system          The Isabelle System Manual
 
 Old Manuals (outdated!)
-  intro           Introduction to Isabelle
-  ref             The Isabelle Reference Manual
+  intro           Old Introduction to Isabelle
+  ref             Old Isabelle Reference Manual
   logics          Isabelle's Logics: overview and misc logics
   logics-HOL      Isabelle's Logics: HOL
   logics-ZF       Isabelle's Logics: FOL and ZF
