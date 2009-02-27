@@ -470,8 +470,8 @@ fun prf_subst_bounds args prf =
     val n = length args;
     fun subst' lev (Bound i) =
          (if i<lev then raise SAME    (*var is locally bound*)
-          else  incr_boundvars lev (List.nth (args, i-lev))
-                  handle Subscript => Bound (i-n)  (*loose: change it*))
+          else  incr_boundvars lev (nth args (i-lev))
+                  handle Subscript => Bound (i-n))  (*loose: change it*)
       | subst' lev (Abs (a, T, body)) = Abs (a, T,  subst' (lev+1) body)
       | subst' lev (f $ t) = (subst' lev f $ substh' lev t
           handle SAME => f $ subst' lev t)
@@ -494,7 +494,7 @@ fun prf_subst_pbounds args prf =
     val n = length args;
     fun subst (PBound i) Plev tlev =
          (if i < Plev then raise SAME    (*var is locally bound*)
-          else incr_pboundvars Plev tlev (List.nth (args, i-Plev))
+          else incr_pboundvars Plev tlev (nth args (i-Plev))
                  handle Subscript => PBound (i-n)  (*loose: change it*))
       | subst (AbsP (a, t, body)) Plev tlev = AbsP (a, t, subst body (Plev+1) tlev)
       | subst (Abst (a, T, body)) Plev tlev = Abst (a, T, subst body Plev (tlev+1))
@@ -935,7 +935,7 @@ fun shrink_proof thy =
           in (is, ch orelse ch', ts',
               if ch orelse ch' then prf' % t' else prf) end
       | shrink' ls lev ts prfs (prf as PBound i) =
-          (if exists (fn SOME (Bound j) => lev-j <= List.nth (ls, i) | _ => true) ts
+          (if exists (fn SOME (Bound j) => lev-j <= nth ls i | _ => true) ts
              orelse has_duplicates (op =)
                (Library.foldl (fn (js, SOME (Bound j)) => j :: js | (js, _) => js) ([], ts))
              orelse exists #1 prfs then [i] else [], false, map (pair false) ts, prf)

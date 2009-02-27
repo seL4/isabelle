@@ -297,7 +297,7 @@ fun strip_type T : typ list * typ =
   Ts = [T0,T1,...] holds types of bound variables 0, 1, ...*)
 fun type_of1 (Ts, Const (_,T)) = T
   | type_of1 (Ts, Free  (_,T)) = T
-  | type_of1 (Ts, Bound i) = (List.nth (Ts,i)
+  | type_of1 (Ts, Bound i) = (nth Ts i
         handle Subscript => raise TYPE("type_of: bound variable", [], [Bound i]))
   | type_of1 (Ts, Var (_,T)) = T
   | type_of1 (Ts, Abs (_,T,body)) = T --> type_of1(T::Ts, body)
@@ -322,7 +322,7 @@ fun fastype_of1 (Ts, f$u) =
         | _ => raise TERM("fastype_of: expected function type", [f$u]))
   | fastype_of1 (_, Const (_,T)) = T
   | fastype_of1 (_, Free (_,T)) = T
-  | fastype_of1 (Ts, Bound i) = (List.nth(Ts,i)
+  | fastype_of1 (Ts, Bound i) = (nth Ts i
          handle Subscript => raise TERM("fastype_of: Bound", [Bound i]))
   | fastype_of1 (_, Var (_,T)) = T
   | fastype_of1 (Ts, Abs (_,T,u)) = T --> fastype_of1 (T::Ts, u);
@@ -638,7 +638,7 @@ fun subst_bounds (args: term list, t) : term =
     val n = length args;
     fun subst (t as Bound i, lev) =
          (if i < lev then raise SAME   (*var is locally bound*)
-          else incr_boundvars lev (List.nth (args, i - lev))
+          else incr_boundvars lev (nth args (i - lev))
             handle Subscript => Bound (i - n))  (*loose: change it*)
       | subst (Abs (a, T, body), lev) = Abs (a, T, subst (body, lev + 1))
       | subst (f $ t, lev) =
