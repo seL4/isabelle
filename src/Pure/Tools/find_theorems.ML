@@ -1,4 +1,4 @@
-(*  Title:      Pure/Isar/find_theorems.ML
+(*  Title:      Pure/Tools/find_theorems.ML
     Author:     Rafal Kolanski and Gerwin Klein, NICTA
 
 Retrieve theorems from proof context.
@@ -163,17 +163,20 @@ fun filter_elim ctxt goal (_, thm) =
 
 val tac_limit = ref 5;
 
-fun filter_solves ctxt goal = let
-    val baregoal = Logic.get_goal (prop_of goal) 1;
+fun filter_solves ctxt goal =
+  let
+    val baregoal = Logic.get_goal (Thm.prop_of goal) 1;
 
-    fun etacn thm i = Seq.take (!tac_limit) o etac thm i;
-    fun try_thm thm = if Thm.no_prems thm then rtac thm 1 goal
-                      else (etacn thm THEN_ALL_NEW
-                             (Goal.norm_hhf_tac THEN'
-                               Method.assumption_tac ctxt)) 1 goal;
+    fun etacn thm i = Seq.take (! tac_limit) o etac thm i;
+    fun try_thm thm =
+      if Thm.no_prems thm then rtac thm 1 goal
+      else (etacn thm THEN_ALL_NEW
+             (Goal.norm_hhf_tac THEN'
+               Method.assumption_tac ctxt)) 1 goal;
   in
-    fn (_, thm) => if (is_some o Seq.pull o try_thm) thm
-                   then SOME (Thm.nprems_of thm, 0) else NONE
+    fn (_, thm) =>
+      if (is_some o Seq.pull o try_thm) thm
+      then SOME (Thm.nprems_of thm, 0) else NONE
   end;
 
 
@@ -195,18 +198,20 @@ fun filter_simp ctxt t (_, thm) =
 
 fun get_names t = (Term.add_const_names t []) union (Term.add_free_names t []);
 fun get_thm_names (_, thm) = get_names (Thm.full_prop_of thm);
-  (* Including all constants and frees is only sound because
-     matching uses higher-order patterns. If full matching
-     were used, then constants that may be subject to
-     beta-reduction after substitution of frees should
-     not be included for LHS set because they could be
-     thrown away by the substituted function.
-     e.g. for (?F 1 2) do not include 1 or 2, if it were
-          possible for ?F to be (% x y. 3)
-     The largest possible set should always be included on
-     the RHS. *)
 
-fun filter_pattern ctxt pat = let
+(*Including all constants and frees is only sound because
+  matching uses higher-order patterns. If full matching
+  were used, then constants that may be subject to
+  beta-reduction after substitution of frees should
+  not be included for LHS set because they could be
+  thrown away by the substituted function.
+  e.g. for (?F 1 2) do not include 1 or 2, if it were
+       possible for ?F to be (% x y. 3)
+  The largest possible set should always be included on
+  the RHS.*)
+
+fun filter_pattern ctxt pat =
+  let
     val pat_consts = get_names pat;
 
     fun check (t, NONE) = check (t, SOME (get_thm_names t))
@@ -233,12 +238,9 @@ fun filter_crit _ _ (Name name) = apfst (filter_name name)
   | filter_crit _ NONE Elim = err_no_goal "elim"
   | filter_crit _ NONE Dest = err_no_goal "dest"
   | filter_crit _ NONE Solves = err_no_goal "solves"
-  | filter_crit ctxt (SOME goal) Intro = apfst (filter_intro ctxt
-                                                  (fix_goal goal))
-  | filter_crit ctxt (SOME goal) Elim = apfst (filter_elim ctxt 
-                                                  (fix_goal goal))
-  | filter_crit ctxt (SOME goal) Dest = apfst (filter_dest ctxt
-                                                  (fix_goal goal))
+  | filter_crit ctxt (SOME goal) Intro = apfst (filter_intro ctxt (fix_goal goal))
+  | filter_crit ctxt (SOME goal) Elim = apfst (filter_elim ctxt (fix_goal goal))
+  | filter_crit ctxt (SOME goal) Dest = apfst (filter_dest ctxt (fix_goal goal))
   | filter_crit ctxt (SOME goal) Solves = apfst (filter_solves ctxt goal)
   | filter_crit ctxt _ (Simp pat) = apfst (filter_simp ctxt pat)
   | filter_crit ctxt _ (Pattern pat) = filter_pattern ctxt pat;
@@ -248,11 +250,13 @@ fun opt_not x = if is_some x then NONE else SOME (0, 0);
 fun opt_add (SOME (a, x)) (SOME (b, y)) = SOME (Int.max (a, b), x + y : int)
   | opt_add _ _ = NONE;
 
-fun app_filters thm = let
+fun app_filters thm =
+  let
     fun app (NONE, _, _) = NONE
       | app (SOME v, consts, []) = SOME (v, thm)
-      | app (r, consts, f::fs) = let val (r', consts') = f (thm, consts)
-                                 in app (opt_add r r', consts', fs) end;
+      | app (r, consts, f :: fs) =
+          let val (r', consts') = f (thm, consts)
+          in app (opt_add r r', consts', fs) end;
   in app end;
 
 in
@@ -302,7 +306,8 @@ fun rem_cdups nicer xs =
 
 in
 
-fun nicer_shortest ctxt = let
+fun nicer_shortest ctxt =
+  let
     val ns = ProofContext.theory_of ctxt
              |> PureThy.facts_of
              |> Facts.space_of;
@@ -354,7 +359,8 @@ fun find_theorems ctxt opt_goal rem_dups raw_criteria =
       else raw_matches;
   in matches end;
 
-fun print_theorems ctxt opt_goal opt_limit rem_dups raw_criteria = let
+fun print_theorems ctxt opt_goal opt_limit rem_dups raw_criteria =
+  let
     val start = start_timing ();
 
     val criteria = map (apsnd (read_criterion ctxt)) raw_criteria;
