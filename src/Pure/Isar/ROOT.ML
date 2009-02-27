@@ -89,7 +89,5 @@ use "isar_document.ML";
 (*theory and proof operations*)
 use "rule_insts.ML";
 use "../Thy/thm_deps.ML";
-use "find_theorems.ML";
-use "find_consts.ML";
 use "isar_cmd.ML";
 use "isar_syn.ML";

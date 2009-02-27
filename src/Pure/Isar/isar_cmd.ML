@@ -62,10 +62,6 @@ sig
   val class_deps: Toplevel.transition -> Toplevel.transition
   val thy_deps: Toplevel.transition -> Toplevel.transition
   val thm_deps: (Facts.ref * Attrib.src list) list -> Toplevel.transition -> Toplevel.transition
-  val find_theorems: (int option * bool) * (bool * string FindTheorems.criterion) list
-    -> Toplevel.transition -> Toplevel.transition
-  val find_consts: (bool * FindConsts.criterion) list ->
-                   Toplevel.transition -> Toplevel.transition
   val unused_thms: (string list * string list option) option ->
     Toplevel.transition -> Toplevel.transition
   val print_binds: Toplevel.transition -> Toplevel.transition
@@ -403,19 +399,8 @@ val class_deps = Toplevel.unknown_theory o Toplevel.keep (fn state =>
       |> sort (int_ord o pairself #1) |> map #2;
   in Present.display_graph gr end);
 
-
-(* retrieve theorems *)
-
 fun thm_deps args = Toplevel.unknown_theory o Toplevel.keep (fn state =>
   ThmDeps.thm_deps (Proof.get_thmss (Toplevel.enter_proof_body state) args));
-
-fun find_theorems ((opt_lim, rem_dups), spec) =
-  Toplevel.unknown_theory o Toplevel.keep (fn state =>
-  let
-    val proof_state = Toplevel.enter_proof_body state;
-    val ctxt = Proof.context_of proof_state;
-    val opt_goal = try Proof.get_goal proof_state |> Option.map (#2 o #2);
-  in FindTheorems.print_theorems ctxt opt_goal opt_lim rem_dups spec end);
 
 
 (* find unused theorems *)
@@ -434,12 +419,6 @@ fun unused_thms opt_range = Toplevel.keep (fn state =>
     |> map pretty_thm |> Pretty.chunks |> Pretty.writeln
   end);
 
-(* retrieve constants *)
-
-fun find_consts spec =
-  Toplevel.unknown_theory o Toplevel.keep (fn state =>
-  let val ctxt = (Proof.context_of o Toplevel.enter_proof_body) state
-  in FindConsts.find_consts ctxt spec end);
 
 (* print proof context contents *)
 

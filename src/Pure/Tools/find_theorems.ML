@@ -53,6 +53,8 @@ fun pretty_criterion ctxt (b, c) =
         [Syntax.pretty_term ctxt (Term.show_dummy_patterns pat)])
   end;
 
+
+
 (** search criterion filters **)
 
 (*generated filters are to be of the form
@@ -106,6 +108,7 @@ fun is_matching_thm (extract_terms, refine_term) ctxt po obj term_src =
 fun filter_name str_pat (thmref, _) =
   if match_string str_pat (Facts.name_of_ref thmref)
   then SOME (0, 0) else NONE;
+
 
 (* filter intro/elim/dest/solves rules *)
 
@@ -173,6 +176,7 @@ fun filter_solves ctxt goal = let
                    then SOME (Thm.nprems_of thm, 0) else NONE
   end;
 
+
 (* filter_simp *)
 
 fun filter_simp ctxt t (_, thm) =
@@ -212,6 +216,7 @@ fun filter_pattern ctxt pat = let
                                                (pat, Thm.full_prop_of thm))
            then SOME (0, 0) else NONE, c);
   in check end;
+
 
 (* interpret criteria as filters *)
 
@@ -373,6 +378,45 @@ fun print_theorems ctxt opt_goal opt_limit rem_dups raw_criteria = let
            ^ end_msg ^ ":"), Pretty.str ""] @
         map Display.pretty_fact thms)
     |> Pretty.chunks |> Pretty.writeln
-  end
+  end;
+
+
+
+(** command syntax **)
+
+fun find_theorems_cmd ((opt_lim, rem_dups), spec) =
+  Toplevel.unknown_theory o Toplevel.keep (fn state =>
+  let
+    val proof_state = Toplevel.enter_proof_body state;
+    val ctxt = Proof.context_of proof_state;
+    val opt_goal = try Proof.get_goal proof_state |> Option.map (#2 o #2);
+  in print_theorems ctxt opt_goal opt_lim rem_dups spec end);
+
+local
+
+structure P = OuterParse and K = OuterKeyword;
+
+val criterion =
+  P.reserved "name" |-- P.!!! (P.$$$ ":" |-- P.xname) >> Name ||
+  P.reserved "intro" >> K Intro ||
+  P.reserved "elim" >> K Elim ||
+  P.reserved "dest" >> K Dest ||
+  P.reserved "solves" >> K Solves ||
+  P.reserved "simp" |-- P.!!! (P.$$$ ":" |-- P.term) >> Simp ||
+  P.term >> Pattern;
+
+val options =
+  Scan.optional
+    (P.$$$ "(" |--
+      P.!!! (Scan.option P.nat -- Scan.optional (P.reserved "with_dups" >> K false) true
+        --| P.$$$ ")")) (NONE, true);
+in
+
+val _ =
+  OuterSyntax.improper_command "find_theorems" "print theorems meeting specified criteria" K.diag
+    (options -- Scan.repeat (((Scan.option P.minus >> is_none) -- criterion))
+      >> (Toplevel.no_timing oo find_theorems_cmd));
+
+end;
 
 end;
