@@ -775,7 +775,7 @@ section {* Intuitionistic proof search *}
 
 text {*
   \begin{matharray}{rcl}
-    @{method_def (HOL) "iprover"} & : & @{text method} \\
+    @{method_def (HOL) iprover} & : & @{text method} \\
   \end{matharray}
 
   \begin{rail}
@@ -783,11 +783,11 @@ text {*
     ;
   \end{rail}
 
-  The @{method iprover} method performs intuitionistic proof search,
-  depending on specifically declared rules from the context, or given
-  as explicit arguments.  Chained facts are inserted into the goal
-  before commencing proof search; ``@{method iprover}@{text "!"}''
-  means to include the current @{fact prems} as well.
+  The @{method (HOL) iprover} method performs intuitionistic proof
+  search, depending on specifically declared rules from the context,
+  or given as explicit arguments.  Chained facts are inserted into the
+  goal before commencing proof search; ``@{method (HOL) iprover}@{text
+  "!"}''  means to include the current @{fact prems} as well.
   
   Rules need to be classified as @{attribute (Pure) intro},
   @{attribute (Pure) elim}, or @{attribute (Pure) dest}; here the
@@ -797,6 +797,26 @@ text {*
   single-step @{method rule} method still observes these).  An
   explicit weight annotation may be given as well; otherwise the
   number of rule premises will be taken into account here.
+*}
+
+
+section {* Coherent Logic *}
+
+text {*
+  \begin{matharray}{rcl}
+    @{method_def (HOL) "coherent"} & : & @{text method} \\
+  \end{matharray}
+
+  \begin{rail}
+    'coherent' thmrefs?
+    ;
+  \end{rail}
+
+  The @{method (HOL) coherent} method solves problems of
+  \emph{Coherent Logic} \cite{Bezem-Coquand:2005}, which covers
+  applications in confluence theory, lattice theory and projective
+  geometry.  See @{"file" "~~/src/HOL/ex/Coherent.thy"} for some
+  examples.
 *}
 
 
