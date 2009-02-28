@@ -7,6 +7,9 @@ distribution.
 Contributions to this Isabelle version
 --------------------------------------
 
+* February 2009: Filip Maric, Univ. of Belgrade
+  A Serbian theory.
+
 * February 2009: Jasmin Christian Blanchette, TUM
   Misc cleanup of HOL/refute.
 
@@ -52,7 +55,7 @@ Contributions to Isabelle2008
   HOLCF library improvements.
 
 * 2007/2008: Stefan Berghofer, TUM
-  HOL-Nominal package improvements.  
+  HOL-Nominal package improvements.
 
 * March 2008: Markus Reiter, TUM
   HOL/Library/RBT: red-black trees.

@@ -93,4 +93,5 @@ if getenv "ZCHAFF_HOME" <> "" then
   use_thy "Sudoku"
 else ();
 
-HTML.with_charset "utf-8" (no_document use_thys) ["Hebrew", "Chinese"];
+HTML.with_charset "utf-8" (no_document use_thys)
+  ["Hebrew", "Chinese", "Serbian"];
