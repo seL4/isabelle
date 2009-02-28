@@ -1,15 +1,10 @@
-(* *********************************************************************** *)
-(*                                                                         *)
-(* Title:      SList.thy (Extended List Theory)                            *)
-(* Based on:   $Id$      *)
-(* Author:     Lawrence C Paulson, Cambridge University Computer Laboratory*)
-(* Author:     B. Wolff, University of Bremen                              *)
-(* Purpose:    Enriched theory of lists                                    *)
-(*	       mutual indirect recursive data-types                        *)
-(*                                                                         *)
-(* *********************************************************************** *)
+(*  Title:      SList.thy
+    Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
+    Author:     B. Wolff, University of Bremen
 
-(* Definition of type 'a list (strict lists) by a least fixed point
+Enriched theory of lists; mutual indirect recursive data-types.
+
+Definition of type 'a list (strict lists) by a least fixed point
 
 We use          list(A) == lfp(%Z. {NUMB(0)} <+> A <*> Z)
 and not         list    == lfp(%Z. {NUMB(0)} <+> range(Leaf) <*> Z)
@@ -23,6 +18,8 @@ datatype 'a m = Node 'a * ('a m) list
 
 Tidied by lcp.  Still needs removal of nat_rec.
 *)
+
+header {* Extended List Theory (old) *}
 
 theory SList
 imports Sexp
@@ -79,12 +76,12 @@ definition
 
 (*Declaring the abstract list constructors*)
 
-(*<*)no_translations
+no_translations
   "[x, xs]" == "x#[xs]"
   "[x]" == "x#[]"
-no_syntax
-  Nil :: "'a list"  ("[]")
-  Cons :: "'a \<Rightarrow> 'a list \<Rightarrow> 'a list"  (infixr "#" 65)(*>*)
+no_notation
+  Nil  ("[]") and
+  Cons (infixr "#" 65)
 
 definition
   Nil       :: "'a list"                               ("[]") where
@@ -149,8 +146,8 @@ definition
   ttl       :: "'a list => 'a list" where
   "ttl xs   = list_rec xs [] (%x xs r. xs)"
 
-(*<*)no_syntax
-    member :: "'a \<Rightarrow> 'a list \<Rightarrow> bool" (infixl "mem" 55)(*>*)
+no_notation member  (infixl "mem" 55)
+
 definition
   member :: "['a, 'a list] => bool"    (infixl "mem" 55) where
   "x mem xs = list_rec xs False (%y ys r. if y=x then True else r)"
@@ -163,8 +160,8 @@ definition
   map       :: "('a=>'b) => ('a list => 'b list)" where
   "map f xs = list_rec xs [] (%x l r. f(x)#r)"
 
-(*<*)no_syntax
-  "\<^const>List.append" :: "'a list => 'a list => 'a list" (infixr "@" 65)(*>*)
+no_notation append  (infixr "@" 65)
+
 definition
   append    :: "['a list, 'a list] => 'a list"   (infixr "@" 65) where
   "xs@ys = list_rec xs ys (%x l r. x#r)"
@@ -342,14 +339,14 @@ done
 
 
 lemma not_CONS_self: "N: list(A) ==> !M. N ~= CONS M N"
-by (erule list.induct, simp_all)
+apply (erule list.induct) apply simp_all done
 
 lemma not_Cons_self2: "\<forall>x. l ~= x#l"
-by (induct_tac "l" rule: list_induct, simp_all)
+by (induct l rule: list_induct) simp_all
 
 
 lemma neq_Nil_conv2: "(xs ~= []) = (\<exists>y ys. xs = y#ys)"
-by (induct_tac "xs" rule: list_induct, auto)
+by (induct xs rule: list_induct) auto
 
 (** Conversion rules for List_case: case analysis operator **)
 
@@ -491,7 +488,7 @@ declare def_list_rec_NilCons [OF list_case_def, simp]
 
 lemma expand_list_case: 
  "P(list_case a f xs) = ((xs=[] --> P a ) & (!y ys. xs=y#ys --> P(f y ys)))"
-by (induct_tac "xs" rule: list_induct, simp_all)
+by (induct xs rule: list_induct) simp_all
 
 
 (**** Function definitions ****)
@@ -533,41 +530,44 @@ by (simp add: length_def)
 (** @ - append **)
 
 lemma append_assoc [simp]: "(xs@ys)@zs = xs@(ys@zs)"
-by (induct_tac "xs" rule: list_induct, simp_all)
+by (induct xs rule: list_induct) simp_all
 
 lemma append_Nil2 [simp]: "xs @ [] = xs"
-by (induct_tac "xs" rule: list_induct, simp_all)
+by (induct xs rule: list_induct) simp_all
 
 (** mem **)
 
 lemma mem_append [simp]: "x mem (xs@ys) = (x mem xs | x mem ys)"
-by (induct_tac "xs" rule: list_induct, simp_all)
+by (induct xs rule: list_induct) simp_all
 
 lemma mem_filter [simp]: "x mem [x\<leftarrow>xs. P x ] = (x mem xs & P(x))"
-by (induct_tac "xs" rule: list_induct, simp_all)
+by (induct xs rule: list_induct) simp_all
 
 (** list_all **)
 
 lemma list_all_True [simp]: "(Alls x:xs. True) = True"
-by (induct_tac "xs" rule: list_induct, simp_all)
+by (induct xs rule: list_induct) simp_all
 
 lemma list_all_conj [simp]:
      "list_all p (xs@ys) = ((list_all p xs) & (list_all p ys))"
-by (induct_tac "xs" rule: list_induct, simp_all)
+by (induct xs rule: list_induct) simp_all
 
 lemma list_all_mem_conv: "(Alls x:xs. P(x)) = (!x. x mem xs --> P(x))"
-apply (induct_tac "xs" rule: list_induct, simp_all)
+apply (induct xs rule: list_induct)
+apply simp_all
 apply blast 
 done
 
 lemma nat_case_dist : "(! n. P n) = (P 0 & (! n. P (Suc n)))"
 apply auto
-apply (induct_tac "n", auto)
+apply (induct_tac n)
+apply auto
 done
 
 
 lemma alls_P_eq_P_nth: "(Alls u:A. P u) = (!n. n < length A --> P(nth n A))"
-apply (induct_tac "A" rule: list_induct, simp_all)
+apply (induct_tac A rule: list_induct)
+apply simp_all
 apply (rule trans)
 apply (rule_tac [2] nat_case_dist [symmetric], simp_all)
 done
@@ -583,7 +583,7 @@ by (simp add: list_all_mem_conv)
 lemma Abs_Rep_map: 
      "(!!x. f(x): sexp) ==>  
         Abs_map g (Rep_map f xs) = map (%t. g(f(t))) xs"
-apply (induct_tac "xs" rule: list_induct)
+apply (induct xs rule: list_induct)
 apply (simp_all add: Rep_map_type list_sexp [THEN subsetD])
 done
 
@@ -591,24 +591,25 @@ done
 (** Additional mapping lemmas **)
 
 lemma map_ident [simp]: "map(%x. x)(xs) = xs"
-by (induct_tac "xs" rule: list_induct, simp_all)
+by (induct xs rule: list_induct) simp_all
 
 lemma map_append [simp]: "map f (xs@ys) = map f xs  @ map f ys"
-by (induct_tac "xs" rule: list_induct, simp_all)
+by (induct xs rule: list_induct) simp_all
 
 lemma map_compose: "map(f o g)(xs) = map f (map g xs)"
 apply (simp add: o_def)
-apply (induct_tac "xs" rule: list_induct, simp_all)
+apply (induct xs rule: list_induct)
+apply simp_all
 done
 
 
 lemma mem_map_aux1 [rule_format]:
      "x mem (map f q) --> (\<exists>y. y mem q & x = f y)"
-by (induct_tac "q" rule: list_induct, simp_all, blast)
+by (induct q rule: list_induct) auto
 
 lemma mem_map_aux2 [rule_format]: 
      "(\<exists>y. y mem q & x = f y) --> x mem (map f q)"
-by (induct_tac "q" rule: list_induct, auto)
+by (induct q rule: list_induct) auto
 
 lemma mem_map: "x mem (map f q) = (\<exists>y. y mem q & x = f y)"
 apply (rule iffI)
@@ -617,10 +618,10 @@ apply (erule mem_map_aux2)
 done
 
 lemma hd_append [rule_format]: "A ~= [] --> hd(A @ B) = hd(A)"
-by (induct_tac "A" rule: list_induct, auto)
+by (induct A rule: list_induct) auto
 
 lemma tl_append [rule_format]: "A ~= [] --> tl(A @ B) = tl(A) @ B"
-by (induct_tac "A" rule: list_induct, auto)
+by (induct A rule: list_induct) auto
 
 
 (** take **)
@@ -638,8 +639,8 @@ lemma drop_0 [simp]: "drop xs 0 = xs"
 by (simp add: drop_def)
 
 lemma drop_Suc1 [simp]: "drop [] (Suc x) = []"
-apply (simp add: drop_def)
-apply (induct_tac "x", auto) 
+apply (induct x) 
+apply (simp_all add: drop_def)
 done
 
 lemma drop_Suc2 [simp]: "drop(a#xs)(Suc x) = drop xs x"
@@ -698,9 +699,7 @@ by (simp add: zipWith_def)
 
 
 lemma zipWith_Cons_Nil [simp]: "zipWith f (x,[])  = []"
-apply (simp add: zipWith_def)
-apply (induct_tac "x" rule: list_induct, simp_all)
-done
+by (induct x rule: list_induct) (simp_all add: zipWith_def)
 
 
 lemma zipWith_Nil_Cons [simp]: "zipWith f ([],x) = []"
@@ -722,23 +721,23 @@ apply (simp add: map_compose [symmetric] o_def)
 done
 
 lemma map_flat: "map f (flat S) = flat(map (map f) S)"
-by (induct_tac "S" rule: list_induct, simp_all)
+by (induct S rule: list_induct) simp_all
 
 lemma list_all_map_eq: "(Alls u:xs. f(u) = g(u)) --> map f xs = map g xs"
-by (induct_tac "xs" rule: list_induct, simp_all)
+by (induct xs rule: list_induct) simp_all
 
 lemma filter_map_d: "filter p (map f xs) = map f (filter(p o f)(xs))"
-by (induct_tac "xs" rule: list_induct, simp_all)
+by (induct xs rule: list_induct) simp_all
 
 lemma filter_compose: "filter p (filter q xs) = filter(%x. p x & q x) xs"
-by (induct_tac "xs" rule: list_induct, simp_all)
+by (induct xs rule: list_induct) simp_all
 
 (* "filter(p, filter(q,xs)) = filter(q, filter(p,xs))",
    "filter(p, filter(p,xs)) = filter(p,xs)" BIRD's thms.*)
  
 lemma filter_append [rule_format, simp]:
      "\<forall>B. filter p (A @ B) = (filter p A @ filter p B)"
-by (induct_tac "A" rule: list_induct, simp_all)
+by (induct A rule: list_induct) simp_all
 
 
 (* inits(xs) == map(fst,splits(xs)), 
@@ -749,44 +748,50 @@ by (induct_tac "A" rule: list_induct, simp_all)
    x mem xs & y mem ys = <x,y> mem diag(xs,ys) *)
 
 lemma length_append: "length(xs@ys) = length(xs)+length(ys)"
-by (induct_tac "xs" rule: list_induct, simp_all)
+by (induct xs rule: list_induct) simp_all
 
 lemma length_map: "length(map f xs) = length(xs)"
-by (induct_tac "xs" rule: list_induct, simp_all)
+by (induct xs rule: list_induct) simp_all
 
 
 lemma take_Nil [simp]: "take [] n = []"
-by (induct_tac "n", simp_all)
+by (induct n) simp_all
 
 lemma take_take_eq [simp]: "\<forall>n. take (take xs n) n = take xs n"
-apply (induct_tac "xs" rule: list_induct, simp_all)
+apply (induct xs rule: list_induct)
+apply simp_all
 apply (rule allI)
-apply (induct_tac "n", auto)
+apply (induct_tac n)
+apply auto
 done
 
 lemma take_take_Suc_eq1 [rule_format]:
      "\<forall>n. take (take xs(Suc(n+m))) n = take xs n"
-apply (induct_tac "xs" rule: list_induct, simp_all)
+apply (induct_tac xs rule: list_induct)
+apply simp_all
 apply (rule allI)
-apply (induct_tac "n", auto)
+apply (induct_tac n)
+apply auto
 done
 
 declare take_Suc [simp del]
 
 lemma take_take_1: "take (take xs (n+m)) n = take xs n"
-apply (induct_tac "m")
+apply (induct m)
 apply (simp_all add: take_take_Suc_eq1)
 done
 
 lemma take_take_Suc_eq2 [rule_format]:
      "\<forall>n. take (take xs n)(Suc(n+m)) = take xs n"
-apply (induct_tac "xs" rule: list_induct, simp_all)
+apply (induct_tac xs rule: list_induct)
+apply simp_all
 apply (rule allI)
-apply (induct_tac "n", auto)
+apply (induct_tac n)
+apply auto
 done
 
 lemma take_take_2: "take(take xs n)(n+m) = take xs n"
-apply (induct_tac "m")
+apply (induct m)
 apply (simp_all add: take_take_Suc_eq2)
 done
 
@@ -794,29 +799,33 @@ done
 (* length(drop(xs,n)) = length(xs) - n *)
 
 lemma drop_Nil [simp]: "drop  [] n  = []"
-by (induct_tac "n", auto)
+by (induct n) auto
 
 lemma drop_drop [rule_format]: "\<forall>xs. drop (drop xs m) n = drop xs(m+n)"
-apply (induct_tac "m", auto) 
-apply (induct_tac "xs" rule: list_induct, auto) 
+apply (induct_tac m)
+apply auto
+apply (induct_tac xs rule: list_induct)
+apply auto
 done
 
 lemma take_drop [rule_format]: "\<forall>xs. (take xs n) @ (drop xs n) = xs"
-apply (induct_tac "n", auto) 
-apply (induct_tac "xs" rule: list_induct, auto) 
+apply (induct_tac n)
+apply auto
+apply (induct_tac xs rule: list_induct)
+apply auto
 done
 
 lemma copy_copy: "copy x n @ copy x m = copy x (n+m)"
-by (induct_tac "n", auto)
+by (induct n) auto
 
 lemma length_copy: "length(copy x n)  = n"
-by (induct_tac "n", auto)
+by (induct n) auto
 
 lemma length_take [rule_format, simp]:
      "\<forall>xs. length(take xs n) = min (length xs) n"
-apply (induct_tac "n")
+apply (induct n)
  apply auto
-apply (induct_tac "xs" rule: list_induct)
+apply (induct_tac xs rule: list_induct)
  apply auto
 done
 
@@ -824,85 +833,93 @@ lemma length_take_drop: "length(take A k) + length(drop A k) = length(A)"
 by (simp only: length_append [symmetric] take_drop)
 
 lemma take_append [rule_format]: "\<forall>A. length(A) = n --> take(A@B) n = A"
-apply (induct_tac "n")
+apply (induct n)
 apply (rule allI)
 apply (rule_tac [2] allI)
-apply (induct_tac "A" rule: list_induct)
-apply (induct_tac [3] "A" rule: list_induct, simp_all)
+apply (induct_tac A rule: list_induct)
+apply (induct_tac [3] A rule: list_induct, simp_all)
 done
 
 lemma take_append2 [rule_format]:
      "\<forall>A. length(A) = n --> take(A@B) (n+k) = A @ take B k"
-apply (induct_tac "n")
+apply (induct n)
 apply (rule allI)
 apply (rule_tac [2] allI)
-apply (induct_tac "A" rule: list_induct)
-apply (induct_tac [3] "A" rule: list_induct, simp_all)
+apply (induct_tac A rule: list_induct)
+apply (induct_tac [3] A rule: list_induct, simp_all)
 done
 
 lemma take_map [rule_format]: "\<forall>n. take (map f A) n = map f (take A n)"
-apply (induct_tac "A" rule: list_induct, simp_all)
+apply (induct A rule: list_induct)
+apply simp_all
 apply (rule allI)
-apply (induct_tac "n", simp_all)
+apply (induct_tac n)
+apply simp_all
 done
 
 lemma drop_append [rule_format]: "\<forall>A. length(A) = n --> drop(A@B)n = B"
-apply (induct_tac "n")
+apply (induct n)
 apply (rule allI)
 apply (rule_tac [2] allI)
-apply (induct_tac "A" rule: list_induct)
-apply (induct_tac [3] "A" rule: list_induct, simp_all)
+apply (induct_tac A rule: list_induct)
+apply (induct_tac [3] A rule: list_induct)
+apply simp_all
 done
 
 lemma drop_append2 [rule_format]:
      "\<forall>A. length(A) = n --> drop(A@B)(n+k) = drop B k"
-apply (induct_tac "n")
+apply (induct n)
 apply (rule allI)
 apply (rule_tac [2] allI)
-apply (induct_tac "A" rule: list_induct)
-apply (induct_tac [3] "A" rule: list_induct, simp_all)
+apply (induct_tac A rule: list_induct)
+apply (induct_tac [3] A rule: list_induct)
+apply simp_all
 done
 
 
 lemma drop_all [rule_format]: "\<forall>A. length(A) = n --> drop A n = []"
-apply (induct_tac "n")
+apply (induct n)
 apply (rule allI)
 apply (rule_tac [2] allI)
-apply (induct_tac "A" rule: list_induct)
-apply (induct_tac [3] "A" rule: list_induct, auto)
+apply (induct_tac A rule: list_induct)
+apply (induct_tac [3] A rule: list_induct)
+apply auto
 done
 
 lemma drop_map [rule_format]: "\<forall>n. drop (map f A) n = map f (drop A n)"
-apply (induct_tac "A" rule: list_induct, simp_all)
+apply (induct A rule: list_induct)
+apply simp_all
 apply (rule allI)
-apply (induct_tac "n", simp_all)
+apply (induct_tac n)
+apply simp_all
 done
 
 lemma take_all [rule_format]: "\<forall>A. length(A) = n --> take A n = A"
-apply (induct_tac "n")
+apply (induct n)
 apply (rule allI)
 apply (rule_tac [2] allI)
-apply (induct_tac "A" rule: list_induct)
-apply (induct_tac [3] "A" rule: list_induct, auto) 
+apply (induct_tac A rule: list_induct)
+apply (induct_tac [3] A rule: list_induct)
+apply auto
 done
 
 lemma foldl_single: "foldl f a [b] = f a b"
 by simp_all
 
-lemma foldl_append [rule_format, simp]:
-     "\<forall>a. foldl f a (A @ B) = foldl f (foldl f a A) B"
-by (induct_tac "A" rule: list_induct, simp_all)
+lemma foldl_append [simp]:
+  "\<And>a. foldl f a (A @ B) = foldl f (foldl f a A) B"
+by (induct A rule: list_induct) simp_all
 
-lemma foldl_map [rule_format]:
-     "\<forall>e. foldl f e (map g S) = foldl (%x y. f x (g y)) e S"
-by (induct_tac "S" rule: list_induct, simp_all)
+lemma foldl_map:
+  "\<And>e. foldl f e (map g S) = foldl (%x y. f x (g y)) e S"
+by (induct S rule: list_induct) simp_all
 
 lemma foldl_neutr_distr [rule_format]:
   assumes r_neutr: "\<forall>a. f a e = a" 
       and r_neutl: "\<forall>a. f e a = a"
       and assoc:   "\<forall>a b c. f a (f b c) = f(f a b) c"
   shows "\<forall>y. f y (foldl f e A) = foldl f y A"
-apply (induct_tac "A" rule: list_induct)
+apply (induct A rule: list_induct)
 apply (simp_all add: r_neutr r_neutl, clarify) 
 apply (erule all_dupE) 
 apply (rule trans) 
@@ -923,95 +940,98 @@ done
 
 lemma foldr_append [rule_format, simp]:
      "\<forall>a. foldr f a (A @ B) = foldr f (foldr f a B) A"
-apply (induct_tac "A" rule: list_induct, simp_all)
-done
+by (induct A rule: list_induct) simp_all
 
 
-lemma foldr_map [rule_format]: "\<forall>e. foldr f e (map g S) = foldr (f o g) e S"
-apply (simp add: o_def)
-apply (induct_tac "S" rule: list_induct, simp_all)
-done
+lemma foldr_map: "\<And>e. foldr f e (map g S) = foldr (f o g) e S"
+by (induct S rule: list_induct) (simp_all add: o_def)
 
 lemma foldr_Un_eq_UN: "foldr op Un {} S = (UN X: {t. t mem S}.X)"
-by (induct_tac "S" rule: list_induct, auto)
+by (induct S rule: list_induct) auto
 
 lemma foldr_neutr_distr:
      "[| !a. f e a = a; !a b c. f a (f b c) = f(f a b) c |]    
       ==> foldr f y S = f (foldr f e S) y"
-by (induct_tac "S" rule: list_induct, auto)
+by (induct S rule: list_induct) auto
 
 lemma foldr_append2: 
     "[| !a. f e a = a; !a b c. f a (f b c) = f(f a b) c |]
      ==> foldr f e (A @ B) = f (foldr f e A) (foldr f e B)"
 apply auto
-apply (rule foldr_neutr_distr, auto)
+apply (rule foldr_neutr_distr)
+apply auto
 done
 
 lemma foldr_flat: 
     "[| !a. f e a = a; !a b c. f a (f b c) = f(f a b) c |] ==>  
       foldr f e (flat S) = (foldr f e)(map (foldr f e) S)"
-apply (induct_tac "S" rule: list_induct)
+apply (induct S rule: list_induct)
 apply (simp_all del: foldr_append add: foldr_append2)
 done
 
 
 lemma list_all_map: "(Alls x:map f xs .P(x)) = (Alls x:xs.(P o f)(x))"
-by (induct_tac "xs" rule: list_induct, auto)
+by (induct xs rule: list_induct) auto
 
 lemma list_all_and: 
      "(Alls x:xs. P(x)&Q(x)) = ((Alls x:xs. P(x))&(Alls x:xs. Q(x)))"
-by (induct_tac "xs" rule: list_induct, auto)
+by (induct xs rule: list_induct) auto
 
 
 lemma nth_map [rule_format]:
      "\<forall>i. i < length(A)  --> nth i (map f A) = f(nth i A)"
-apply (induct_tac "A" rule: list_induct, simp_all)
+apply (induct A rule: list_induct)
+apply simp_all
 apply (rule allI)
-apply (induct_tac "i", auto) 
+apply (induct_tac i)
+apply auto
 done
 
 lemma nth_app_cancel_right [rule_format]:
      "\<forall>i. i < length(A)  --> nth i(A@B) = nth i A"
-apply (induct_tac "A" rule: list_induct, simp_all)
+apply (induct A rule: list_induct)
+apply simp_all
 apply (rule allI)
-apply (induct_tac "i", simp_all)
+apply (induct_tac i)
+apply simp_all
 done
 
 lemma nth_app_cancel_left [rule_format]:
      "\<forall>n. n = length(A) --> nth(n+i)(A@B) = nth i B"
-by (induct_tac "A" rule: list_induct, simp_all)
+by (induct A rule: list_induct) simp_all
 
 
 (** flat **)
 
 lemma flat_append [simp]: "flat(xs@ys) = flat(xs) @ flat(ys)"
-by (induct_tac "xs" rule: list_induct, auto)
+by (induct xs rule: list_induct) auto
 
 lemma filter_flat: "filter p (flat S) = flat(map (filter p) S)"
-by (induct_tac "S" rule: list_induct, auto)
+by (induct S rule: list_induct) auto
 
 
 (** rev **)
 
 lemma rev_append [simp]: "rev(xs@ys) = rev(ys) @ rev(xs)"
-by (induct_tac "xs" rule: list_induct, auto)
+by (induct xs rule: list_induct) auto
 
 lemma rev_rev_ident [simp]: "rev(rev l) = l"
-by (induct_tac "l" rule: list_induct, auto)
+by (induct l rule: list_induct) auto
 
 lemma rev_flat: "rev(flat ls) = flat (map rev (rev ls))"
-by (induct_tac "ls" rule: list_induct, auto)
+by (induct ls rule: list_induct) auto
 
 lemma rev_map_distrib: "rev(map f l) = map f (rev l)"
-by (induct_tac "l" rule: list_induct, auto)
+by (induct l rule: list_induct) auto
 
 lemma foldl_rev: "foldl f b (rev l) = foldr (%x y. f y x) b l"
-by (induct_tac "l" rule: list_induct, auto)
+by (induct l rule: list_induct) auto
 
 lemma foldr_rev: "foldr f b (rev l) = foldl (%x y. f y x) b l"
 apply (rule sym)
 apply (rule trans)
-apply (rule_tac [2] foldl_rev, simp)
+apply (rule_tac [2] foldl_rev)
+apply simp
 done
 
 end
