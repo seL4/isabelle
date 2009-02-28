@@ -1,4 +1,4 @@
-(*  Title:      Provers/coherent.ML
+(*  Title:      Tools/coherent.ML
     Author:     Stefan Berghofer, TU Muenchen
     Author:     Marc Bezem, Institutt for Informatikk, Universitetet i Bergen 
 

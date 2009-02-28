@@ -1,4 +1,4 @@
-(*  Title:      Provers/eqsubst.ML
+(*  Title:      Tools/eqsubst.ML
     Author:     Lucas Dixon, University of Edinburgh
 
 A proof method to perform a substiution using an equation.

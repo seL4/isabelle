@@ -32,9 +32,9 @@ $(OUT)/FOL: $(OUT)/Pure $(SRC)/Provers/blast.ML				\
   $(SRC)/Provers/clasimp.ML $(SRC)/Provers/classical.ML			\
   $(SRC)/Tools/IsaPlanner/zipper.ML $(SRC)/Tools/IsaPlanner/isand.ML	\
   $(SRC)/Tools/IsaPlanner/rw_tools.ML					\
-  $(SRC)/Tools/IsaPlanner/rw_inst.ML $(SRC)/Provers/eqsubst.ML		\
+  $(SRC)/Tools/IsaPlanner/rw_inst.ML $(SRC)/Tools/eqsubst.ML		\
   $(SRC)/Provers/hypsubst.ML $(SRC)/Tools/induct.ML			\
-  $(SRC)/Tools/atomize_elim.ML $(SRC)/Provers/project_rule.ML		\
+  $(SRC)/Tools/atomize_elim.ML $(SRC)/Tools/project_rule.ML		\
   $(SRC)/Provers/quantifier1.ML $(SRC)/Provers/splitter.ML FOL.thy	\
   IFOL.thy ROOT.ML blastdata.ML cladata.ML document/root.tex		\
   fologic.ML hypsubstdata.ML intprover.ML simpdata.ML

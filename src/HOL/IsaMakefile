@@ -78,38 +78,38 @@ Pure:
 $(OUT)/Pure: Pure
 
 BASE_DEPENDENCIES = $(OUT)/Pure \
+  $(SRC)/Provers/blast.ML \
+  $(SRC)/Provers/clasimp.ML \
+  $(SRC)/Provers/classical.ML \
+  $(SRC)/Provers/hypsubst.ML \
+  $(SRC)/Provers/quantifier1.ML \
+  $(SRC)/Provers/splitter.ML \
+  $(SRC)/Tools/IsaPlanner/isand.ML \
+  $(SRC)/Tools/IsaPlanner/rw_inst.ML \
+  $(SRC)/Tools/IsaPlanner/rw_tools.ML \
+  $(SRC)/Tools/IsaPlanner/zipper.ML \
+  $(SRC)/Tools/atomize_elim.ML \
+  $(SRC)/Tools/code/code_funcgr.ML \
+  $(SRC)/Tools/code/code_haskell.ML \
+  $(SRC)/Tools/code/code_ml.ML \
+  $(SRC)/Tools/code/code_name.ML \
+  $(SRC)/Tools/code/code_printer.ML \
+  $(SRC)/Tools/code/code_target.ML \
+  $(SRC)/Tools/code/code_thingol.ML \
+  $(SRC)/Tools/code/code_wellsorted.ML \
+  $(SRC)/Tools/coherent.ML \
+  $(SRC)/Tools/eqsubst.ML \
+  $(SRC)/Tools/induct.ML \
+  $(SRC)/Tools/induct_tacs.ML \
+  $(SRC)/Tools/nbe.ML \
+  $(SRC)/Tools/project_rule.ML \
+  $(SRC)/Tools/random_word.ML \
+  $(SRC)/Tools/value.ML \
   Code_Setup.thy \
   HOL.thy \
   Tools/hologic.ML \
   Tools/recfun_codegen.ML \
   Tools/simpdata.ML \
-  $(SRC)/Tools/atomize_elim.ML \
-  $(SRC)/Tools/code/code_funcgr.ML \
-  $(SRC)/Tools/code/code_wellsorted.ML \
-  $(SRC)/Tools/code/code_name.ML \
-  $(SRC)/Tools/code/code_printer.ML \
-  $(SRC)/Tools/code/code_target.ML \
-  $(SRC)/Tools/code/code_ml.ML \
-  $(SRC)/Tools/code/code_haskell.ML \
-  $(SRC)/Tools/code/code_thingol.ML \
-  $(SRC)/Tools/induct.ML \
-  $(SRC)/Tools/induct_tacs.ML \
-  $(SRC)/Tools/IsaPlanner/isand.ML \
-  $(SRC)/Tools/IsaPlanner/rw_inst.ML \
-  $(SRC)/Tools/IsaPlanner/rw_tools.ML \
-  $(SRC)/Tools/IsaPlanner/zipper.ML \
-  $(SRC)/Tools/nbe.ML \
-  $(SRC)/Tools/random_word.ML \
-  $(SRC)/Tools/value.ML \
-  $(SRC)/Provers/blast.ML \
-  $(SRC)/Provers/clasimp.ML \
-  $(SRC)/Provers/classical.ML \
-  $(SRC)/Provers/coherent.ML \
-  $(SRC)/Provers/eqsubst.ML \
-  $(SRC)/Provers/hypsubst.ML \
-  $(SRC)/Provers/project_rule.ML \
-  $(SRC)/Provers/quantifier1.ML \
-  $(SRC)/Provers/splitter.ML \
 
 $(OUT)/HOL-Base: base.ML $(BASE_DEPENDENCIES)
 	@$(ISABELLE_TOOL) usedir -b -f base.ML -d false -g false $(OUT)/Pure HOL-Base

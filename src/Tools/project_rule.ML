@@ -1,10 +1,12 @@
-(*  Title:      Provers/project_rule.ML
-    ID:         $Id$
+(*  Title:      Tools/project_rule.ML
     Author:     Makarius
 
 Transform mutual rule:
+
   HH ==> (x1:A1 --> P1 x1) & ... & (xn:An --> Pn xn)
+
 into projection:
+
   xi:Ai ==> HH ==> Pi xi
 *)
 
