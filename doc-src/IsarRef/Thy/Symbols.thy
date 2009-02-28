@@ -1,5 +1,3 @@
-(* $Id$ *)
-
 theory Symbols
 imports Pure
 begin

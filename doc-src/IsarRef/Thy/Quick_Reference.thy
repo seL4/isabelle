@@ -1,5 +1,3 @@
-(* $Id$ *)
-
 theory Quick_Reference
 imports Main
 begin

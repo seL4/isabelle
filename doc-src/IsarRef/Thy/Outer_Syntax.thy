@@ -1,5 +1,3 @@
-(* $Id$ *)
-
 theory Outer_Syntax
 imports Main
 begin

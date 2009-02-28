@@ -1,6 +1,3 @@
-
-(* $Id$ *)
-
 set ThyOutput.source;
 use "../../antiquote_setup.ML";
 
