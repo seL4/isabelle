@@ -1,4 +1,4 @@
-(*  Title:      Pure/Isar/isar.ML
+(*  Title:      Pure/System/isar.ML
     Author:     Makarius
 
 The global Isabelle/Isar state and main read-eval-print loop.
@@ -350,14 +350,50 @@ fun remove_command id = NAMED_CRITICAL "Isar" (fn () =>
   in descendant_commands nexts end) |> rerun_commands;
 
 
-(* concrete syntax *)
+
+(** command syntax **)
 
 local
 
-structure P = OuterParse;
+structure P = OuterParse and K = OuterKeyword;
 val op >> = Scan.>>;
 
 in
+
+(* global history *)
+
+val _ =
+  OuterSyntax.improper_command "init_toplevel" "init toplevel point-of-interest" K.control
+    (Scan.succeed (Toplevel.no_timing o Toplevel.imperative init));
+
+val _ =
+  OuterSyntax.improper_command "linear_undo" "undo commands" K.control
+    (Scan.optional P.nat 1 >>
+      (fn n => Toplevel.no_timing o Toplevel.imperative (fn () => linear_undo n)));
+
+val _ =
+  OuterSyntax.improper_command "undo" "undo commands (skipping closed proofs)" K.control
+    (Scan.optional P.nat 1 >>
+      (fn n => Toplevel.no_timing o Toplevel.imperative (fn () => undo n)));
+
+val _ =
+  OuterSyntax.improper_command "undos_proof" "undo commands (skipping closed proofs)" K.control
+    (Scan.optional P.nat 1 >> (fn n => Toplevel.no_timing o
+      Toplevel.keep (fn state =>
+        if Toplevel.is_proof state then (undo n; print ()) else raise Toplevel.UNDEF)));
+
+val _ =
+  OuterSyntax.improper_command "cannot_undo" "partial undo -- Proof General legacy" K.control
+    (P.name >>
+      (fn "end" => Toplevel.no_timing o Toplevel.imperative (fn () => undo 1)
+        | txt => Toplevel.imperative (fn () => error ("Cannot undo " ^ quote txt))));
+
+val _ =
+  OuterSyntax.improper_command "kill" "kill partial proof or theory development" K.control
+    (Scan.succeed (Toplevel.no_timing o Toplevel.imperative kill));
+
+
+(* editor model *)
 
 val _ =
   OuterSyntax.internal_command "Isar.command"

@@ -1,4 +1,4 @@
-/*  Title:      Pure/Tools/isabelle_system.scala
+/*  Title:      Pure/System/isabelle_system.scala
     Author:     Makarius
 
 Isabelle system support -- basic Cygwin/Posix compatibility.

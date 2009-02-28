@@ -1,4 +1,4 @@
-(*  Title:      Pure/Tools/isabelle_process.ML
+(*  Title:      Pure/System/isabelle_process.ML
     Author:     Makarius
 
 Isabelle process wrapper -- interaction via external program.
