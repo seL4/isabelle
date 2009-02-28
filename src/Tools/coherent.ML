@@ -228,6 +228,6 @@ fun coherent_meth rules ctxt =
   Method.METHOD (fn facts => coherent_tac (facts @ rules) ctxt 1);
 
 val setup = Method.add_method
-  ("coherent", Method.thms_ctxt_args coherent_meth, "Prove coherent formula");
+  ("coherent", Method.thms_ctxt_args coherent_meth, "prove coherent formula");
 
 end;
