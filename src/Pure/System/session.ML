@@ -1,4 +1,4 @@
-(*  Title:      Pure/Isar/session.ML
+(*  Title:      Pure/System/session.ML
     Author:     Markus Wenzel, TU Muenchen
 
 Session management -- maintain state of logic images.
@@ -36,12 +36,19 @@ fun str_of [] = Context.PureN
 
 fun name () = "Isabelle/" ^ str_of (path ());
 
+
+(* welcome *)
+
 fun welcome () =
   if Distribution.is_official then
     "Welcome to " ^ name () ^ " (" ^ Distribution.version ^ ")"
   else
     "Unofficial version of " ^ name () ^ " (" ^ Distribution.version ^ ")" ^
     (if Distribution.changelog <> "" then "\nSee also " ^ Distribution.changelog else "");
+
+val _ =
+  OuterSyntax.improper_command "welcome" "print welcome message" OuterKeyword.diag
+    (Scan.succeed (Toplevel.no_timing o Toplevel.imperative (writeln o welcome)));
 
 
 (* add_path *)

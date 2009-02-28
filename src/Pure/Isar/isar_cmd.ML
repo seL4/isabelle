@@ -32,7 +32,6 @@ sig
   val skip_proof: Toplevel.transition -> Toplevel.transition
   val init_theory: string * string list * (string * bool) list ->
     Toplevel.transition -> Toplevel.transition
-  val welcome: Toplevel.transition -> Toplevel.transition
   val exit: Toplevel.transition -> Toplevel.transition
   val quit: Toplevel.transition -> Toplevel.transition
   val pr: string list * (int option * int option) -> Toplevel.transition -> Toplevel.transition
@@ -264,8 +263,6 @@ fun init_theory (name, imports, uses) =
     (fn thy =>
       if ThyInfo.check_known_thy (Context.theory_name thy)
       then ThyInfo.end_theory thy else ());
-
-val welcome = Toplevel.imperative (writeln o Session.welcome);
 
 val exit = Toplevel.keep (fn state =>
  (Context.set_thread_data (try Toplevel.generic_theory_of state);

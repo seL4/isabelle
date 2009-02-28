@@ -81,12 +81,18 @@ use "assumption.ML";
 use "goal.ML";
 use "axclass.ML";
 
-(*the main Isar system*)
+(*main Isar stuff*)
 cd "Isar"; use "ROOT.ML"; cd "..";
 use "subgoal.ML";
 
 use "Proof/extraction.ML";
 
+(*Isabelle/Isar system*)
+use "System/session.ML";
+use "System/isar.ML";
+use "System/isabelle_process.ML";
+
+(*additional tools*)
 cd "Tools"; use "ROOT.ML"; cd "..";
 
 use "codegen.ML";
