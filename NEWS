@@ -246,7 +246,7 @@ structure:
     src/HOL/Library/Order_Relation.thy ~> src/HOL/
     src/HOL/Library/Parity.thy ~> src/HOL/
     src/HOL/Library/Univ_Poly.thy ~> src/HOL/
-    src/HOL/Real/ContNotDenum.thy ~> src/HOL/
+    src/HOL/Real/ContNotDenum.thy ~> src/HOL/Library/
     src/HOL/Real/Lubs.thy ~> src/HOL/
     src/HOL/Real/PReal.thy ~> src/HOL/
     src/HOL/Real/Rational.thy ~> src/HOL/
@@ -256,8 +256,8 @@ structure:
     src/HOL/Real/Real.thy ~> src/HOL/
     src/HOL/Complex/Complex_Main.thy ~> src/HOL/
     src/HOL/Complex/Complex.thy ~> src/HOL/
-    src/HOL/Complex/FrechetDeriv.thy ~> src/HOL/
-    src/HOL/Complex/Fundamental_Theorem_Algebra.thy ~> src/HOL/
+    src/HOL/Complex/FrechetDeriv.thy ~> src/HOL/Library/
+    src/HOL/Complex/Fundamental_Theorem_Algebra.thy ~> src/HOL/Library/
     src/HOL/Hyperreal/Deriv.thy ~> src/HOL/
     src/HOL/Hyperreal/Fact.thy ~> src/HOL/
     src/HOL/Hyperreal/Integration.thy ~> src/HOL/
@@ -420,7 +420,7 @@ zminus_dvd_iff         -> minus_dvd_iff
 * HOL/Library/GCD: Curried operations gcd, lcm (for nat) and zgcd,
 zlcm (for int); carried together from various gcd/lcm developements in
 the HOL Distribution.  zgcd and zlcm replace former igcd and ilcm;
-corresponding theorems renamed accordingly.  INCOMPATIBILY.  To
+corresponding theorems renamed accordingly.  INCOMPATIBILITY.  To
 recover tupled syntax, use syntax declarations like:
 
     hide (open) const gcd
@@ -434,7 +434,7 @@ recover tupled syntax, use syntax declarations like:
 * HOL/Real/Rational: 'Fract k 0' now equals '0'.  INCOMPATIBILITY.
 
 * The real numbers offer decimal input syntax: 12.34 is translated into
-  1234/10^4. This translation is not reversed upon output.
+  1234/10^2. This translation is not reversed upon output.
 
 * New ML antiquotation @{code}: takes constant as argument, generates
 corresponding code in background and inserts name of the corresponding
@@ -532,6 +532,23 @@ Complex_Main.thy should now use new entry point Hypercomplex.thy.
 *** ZF ***
 
 * Proof of Zorn's Lemma for partial orders.
+
+
+*** HOLCF ***
+
+* Reimplemented the simplification procedure for proving continuity
+subgoals.  The new simproc is extensible; users can declare additional
+continuity introduction rules with the attribute [cont2cont].
+
+* The continuity simproc now uses a different introduction rule for
+solving continuity subgoals on terms with lambda abstractions.  In
+some rare cases the new simproc may fail to solve subgoals that the
+old one could solve, and "simp add: cont2cont_LAM" may be necessary.
+Potential INCOMPATIBILITY.
+
+* The syntax of the fixrec package has changed.  The specification
+syntax now conforms in style to definition, primrec, function, etc.
+See HOLCF/ex/Fixrec_ex.thy for examples.  INCOMPATIBILITY.
 
 
 *** ML ***
