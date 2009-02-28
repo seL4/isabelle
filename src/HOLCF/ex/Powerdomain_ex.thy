@@ -53,20 +53,20 @@ domain 'a tree =
   Node (lazy "'a tree") (lazy "'a tree") |
   Leaf (lazy "'a")
 
-consts
-  mirror :: "'a tree \<rightarrow> 'a tree"
-  pick :: "'a tree \<rightarrow> 'a convex_pd"
-
 fixrec
+  mirror :: "'a tree \<rightarrow> 'a tree"
+where
   mirror_Leaf: "mirror\<cdot>(Leaf\<cdot>a) = Leaf\<cdot>a"
-  mirror_Node: "mirror\<cdot>(Node\<cdot>l\<cdot>r) = Node\<cdot>(mirror\<cdot>r)\<cdot>(mirror\<cdot>l)"
+| mirror_Node: "mirror\<cdot>(Node\<cdot>l\<cdot>r) = Node\<cdot>(mirror\<cdot>r)\<cdot>(mirror\<cdot>l)"
 
 fixpat
   mirror_strict [simp]: "mirror\<cdot>\<bottom>"
 
 fixrec
+  pick :: "'a tree \<rightarrow> 'a convex_pd"
+where
   pick_Leaf: "pick\<cdot>(Leaf\<cdot>a) = {a}\<natural>"
-  pick_Node: "pick\<cdot>(Node\<cdot>l\<cdot>r) = pick\<cdot>l +\<natural> pick\<cdot>r"
+| pick_Node: "pick\<cdot>(Node\<cdot>l\<cdot>r) = pick\<cdot>l +\<natural> pick\<cdot>r"
 
 fixpat
   pick_strict [simp]: "pick\<cdot>\<bottom>"
@@ -75,22 +75,17 @@ lemma pick_mirror: "pick\<cdot>(mirror\<cdot>t) = pick\<cdot>t"
 by (induct t rule: tree.ind)
    (simp_all add: convex_plus_ac)
 
-consts
-  tree1 :: "int lift tree"
-  tree2 :: "int lift tree"
-  tree3 :: "int lift tree"
+fixrec tree1 :: "int lift tree"
+where "tree1 = Node\<cdot>(Node\<cdot>(Leaf\<cdot>(Def 1))\<cdot>(Leaf\<cdot>(Def 2)))
+                   \<cdot>(Node\<cdot>(Leaf\<cdot>(Def 3))\<cdot>(Leaf\<cdot>(Def 4)))"
 
-fixrec
-  "tree1 = Node\<cdot>(Node\<cdot>(Leaf\<cdot>(Def 1))\<cdot>(Leaf\<cdot>(Def 2)))
-               \<cdot>(Node\<cdot>(Leaf\<cdot>(Def 3))\<cdot>(Leaf\<cdot>(Def 4)))"
+fixrec tree2 :: "int lift tree"
+where "tree2 = Node\<cdot>(Node\<cdot>(Leaf\<cdot>(Def 1))\<cdot>(Leaf\<cdot>(Def 2)))
+                   \<cdot>(Node\<cdot>\<bottom>\<cdot>(Leaf\<cdot>(Def 4)))"
 
-fixrec
-  "tree2 = Node\<cdot>(Node\<cdot>(Leaf\<cdot>(Def 1))\<cdot>(Leaf\<cdot>(Def 2)))
-               \<cdot>(Node\<cdot>\<bottom>\<cdot>(Leaf\<cdot>(Def 4)))"
-
-fixrec
-  "tree3 = Node\<cdot>(Node\<cdot>(Leaf\<cdot>(Def 1))\<cdot>tree3)
-               \<cdot>(Node\<cdot>(Leaf\<cdot>(Def 3))\<cdot>(Leaf\<cdot>(Def 4)))"
+fixrec tree3 :: "int lift tree"
+where "tree3 = Node\<cdot>(Node\<cdot>(Leaf\<cdot>(Def 1))\<cdot>tree3)
+                   \<cdot>(Node\<cdot>(Leaf\<cdot>(Def 3))\<cdot>(Leaf\<cdot>(Def 4)))"
 
 declare tree1_simps tree2_simps tree3_simps [simp del]
 
