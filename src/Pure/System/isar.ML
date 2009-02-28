@@ -1,4 +1,4 @@
-(*  Title:      Pure/Isar/isar.ML
+(*  Title:      Pure/System/isar.ML
     Author:     Makarius
 
 The global Isabelle/Isar state and main read-eval-print loop.
