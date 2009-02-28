@@ -64,6 +64,8 @@ interface instead.
 * There is a new syntactic category "float_const" for signed decimal
 fractions (e.g. 123.45 or -123.45).
 
+* New prover for coherent logic (see src/Tools/coherent.ML).
+
 
 *** Pure ***
 
