@@ -218,13 +218,16 @@ structure FixrecMatchData = TheoryDataFun (
 (* associate match functions with pattern constants *)
 fun add_matchers ms = FixrecMatchData.map (fold Symtab.update ms);
 
-fun add_names (Const(a,_), bs) = insert (op =) (Sign.base_name a) bs
-  | add_names (Free(a,_) , bs) = insert (op =) a bs
-  | add_names (f $ u     , bs) = add_names (f, add_names(u, bs))
-  | add_names (Abs(a,_,t), bs) = add_names (t, insert (op =) a bs)
-  | add_names (_         , bs) = bs;
-
-fun add_terms ts xs = foldr add_names xs ts;
+fun taken_names (t : term) : bstring list =
+  let
+    fun taken (Const(a,_), bs) = insert (op =) (Sign.base_name a) bs
+      | taken (Free(a,_) , bs) = insert (op =) a bs
+      | taken (f $ u     , bs) = taken (f, taken (u, bs))
+      | taken (Abs(a,_,t), bs) = taken (t, insert (op =) a bs)
+      | taken (_         , bs) = bs;
+  in
+    taken (t, [])
+  end;
 
 (* builds a monadic term for matching a constructor pattern *)
 fun pre_build match_name pat rhs vs taken =
@@ -263,8 +266,7 @@ fun building match_name pat rhs vs taken =
 fun match_eq match_name eq = 
   let val (lhs,rhs) = dest_eqs eq;
   in
-    building match_name lhs (mk_return rhs) []
-      (add_terms [eq] [])
+    building match_name lhs (mk_return rhs) [] (taken_names eq)
   end;
 
 (* returns the sum (using +++) of the terms in ms *)
