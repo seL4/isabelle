@@ -15,6 +15,7 @@ uses
   "~~/src/Tools/IsaPlanner/rw_inst.ML"
   "~~/src/Tools/eqsubst.ML"
   "~~/src/Provers/quantifier1.ML"
+  "~~/src/Tools/intuitionistic.ML"
   "~~/src/Tools/project_rule.ML"
   "~~/src/Tools/atomize_elim.ML"
   ("fologic.ML")
@@ -608,6 +609,8 @@ use "intprover.ML"
 
 
 subsection {* Intuitionistic Reasoning *}
+
+setup {* Intuitionistic.method_setup "iprover" *}
 
 lemma impE':
   assumes 1: "P --> Q"

@@ -12,6 +12,7 @@ uses
   "~~/src/Tools/IsaPlanner/isand.ML"
   "~~/src/Tools/IsaPlanner/rw_tools.ML"
   "~~/src/Tools/IsaPlanner/rw_inst.ML"
+  "~~/src/Tools/intuitionistic.ML"
   "~~/src/Tools/project_rule.ML"
   "~~/src/Provers/hypsubst.ML"
   "~~/src/Provers/splitter.ML"
@@ -38,6 +39,9 @@ uses
   "~~/src/Tools/nbe.ML"
   ("Tools/recfun_codegen.ML")
 begin
+
+setup {* Intuitionistic.method_setup "iprover" *}
+
 
 subsection {* Primitive logic *}
 
