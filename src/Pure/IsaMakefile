@@ -20,14 +20,13 @@ LOG = $(OUT)/log
 ## Pure
 
 BOOTSTRAP_FILES = ML-Systems/alice.ML ML-Systems/exn.ML			\
-  ML-Systems/install_pp_polyml.ML ML-Systems/ml_name_space.ML		\
-  ML-Systems/mosml.ML ML-Systems/multithreading.ML			\
-  ML-Systems/multithreading_polyml.ML ML-Systems/overloading_smlnj.ML	\
-  ML-Systems/polyml-4.1.3.ML ML-Systems/polyml-4.1.4.ML			\
-  ML-Systems/polyml-4.2.0.ML ML-Systems/polyml-5.0.ML			\
-  ML-Systems/polyml-5.1.ML ML-Systems/polyml-experimental.ML		\
-  ML-Systems/polyml.ML ML-Systems/polyml_common.ML			\
-  ML-Systems/polyml_old_compiler4.ML					\
+  ML-Systems/ml_name_space.ML ML-Systems/mosml.ML			\
+  ML-Systems/multithreading.ML ML-Systems/multithreading_polyml.ML	\
+  ML-Systems/overloading_smlnj.ML ML-Systems/polyml-4.1.3.ML		\
+  ML-Systems/polyml-4.1.4.ML ML-Systems/polyml-4.2.0.ML			\
+  ML-Systems/polyml-5.0.ML ML-Systems/polyml-5.1.ML			\
+  ML-Systems/polyml-experimental.ML ML-Systems/polyml.ML		\
+  ML-Systems/polyml_common.ML ML-Systems/polyml_old_compiler4.ML	\
   ML-Systems/polyml_old_compiler5.ML ML-Systems/proper_int.ML		\
   ML-Systems/smlnj.ML ML-Systems/system_shell.ML			\
   ML-Systems/thread_dummy.ML ML-Systems/time_limit.ML			\
@@ -69,7 +68,8 @@ $(OUT)/Pure: $(BOOTSTRAP_FILES) ../Tools/auto_solve.ML			\
   Isar/rule_insts.ML Isar/skip_proof.ML Isar/spec_parse.ML		\
   Isar/specification.ML Isar/theory_target.ML Isar/toplevel.ML		\
   Isar/value_parse.ML ML/ml_antiquote.ML ML/ml_context.ML ML/ml_lex.ML	\
-  ML/ml_parse.ML ML/ml_syntax.ML ML/ml_thms.ML Proof/extraction.ML	\
+  ML/ml_parse.ML ML/ml_syntax.ML ML/ml_thms.ML				\
+  ML-Systems/install_pp_polyml.ML Proof/extraction.ML			\
   Proof/proof_rewrite_rules.ML Proof/proof_syntax.ML			\
   Proof/proofchecker.ML Proof/reconstruct.ML ProofGeneral/ROOT.ML	\
   ProofGeneral/pgip.ML ProofGeneral/pgip_input.ML			\
