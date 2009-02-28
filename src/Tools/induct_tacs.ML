@@ -1,5 +1,4 @@
 (*  Title:      Tools/induct_tacs.ML
-    ID:         $Id$
     Author:     Makarius
 
 Unstructured induction and cases analysis.

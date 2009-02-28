@@ -1,5 +1,4 @@
 (*  Title:      Tools/Compute_Oracle/am_interpreter.ML
-    ID:         $Id$
     Author:     Steven Obua
 *)
 

@@ -1,5 +1,4 @@
 (*  Title:      Tools/rat.ML
-    ID:         $Id$
     Author:     Tobias Nipkow, Florian Haftmann, TU Muenchen
 
 Canonical implementation of exact rational numbers.

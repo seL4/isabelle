@@ -1,5 +1,4 @@
 (*  Title:      Tools/random_word.ML
-    ID:         $Id$
     Author:     Makarius
 
 Simple generator for pseudo-random numbers, using unboxed word

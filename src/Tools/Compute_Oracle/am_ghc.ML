@@ -1,5 +1,4 @@
 (*  Title:      Tools/Compute_Oracle/am_ghc.ML
-    ID:         $Id$
     Author:     Steven Obua
 *)
 

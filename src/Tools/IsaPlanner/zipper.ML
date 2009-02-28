@@ -1,5 +1,4 @@
 (*  Title:      Tools/IsaPlanner/zipper.ML
-    ID:		$Id$
     Author:     Lucas Dixon, University of Edinburgh
 
 A notion roughly based on Huet's Zippers for Isabelle terms.

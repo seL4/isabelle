@@ -1,5 +1,4 @@
 (*  Title:      Tools/atomize_elim.ML
-    ID:         $Id$
     Author:     Alexander Krauss, TU Muenchen
 
 Turn elimination rules into atomic expressions in the object logic.

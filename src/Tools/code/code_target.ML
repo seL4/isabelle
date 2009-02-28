@@ -1,5 +1,4 @@
 (*  Title:      Tools/code/code_target.ML
-    ID:         $Id$
     Author:     Florian Haftmann, TU Muenchen
 
 Serializer from intermediate language ("Thin-gol") to target languages.
