@@ -913,7 +913,7 @@ and matchs [] [] = true
 
 fun printStats (State {ntried, nclosed, ...}) (b, start, tacs) =
   if b then
-    writeln (end_timing start ^ " for search.  Closed: "
+    writeln (#message (end_timing start) ^ " for search.  Closed: "
              ^ Int.toString (!nclosed) ^
              " tried: " ^ Int.toString (!ntried) ^
              " tactics: " ^ Int.toString (length tacs))
@@ -1264,7 +1264,7 @@ fun timing_depth_tac start cs lim i st0 =
                        else ();
                        backtrack choices)
             | cell => (if (!trace orelse !stats)
-                       then writeln (end_timing start ^ " for reconstruction")
+                       then writeln (#message (end_timing start) ^ " for reconstruction")
                        else ();
                        Seq.make(fn()=> cell))
           end

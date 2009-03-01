@@ -47,18 +47,19 @@ val implode = SML90.implode;
 (* compiler-independent timing functions *)
 
 fun start_timing () =
-  let val CPUtimer = Timer.startCPUTimer();
-      val time = Timer.checkCPUTimer(CPUtimer)
-  in  (CPUtimer,time)  end;
+  let
+    val timer = Timer.startCPUTimer ();
+    val time = Timer.checkCPUTimer timer;
+  in (timer, time) end;
 
-fun end_timing (CPUtimer, {sys,usr}) =
-  let open Time  (*...for Time.toString, Time.+ and Time.- *)
-      val {sys=sys2,usr=usr2} = Timer.checkCPUTimer(CPUtimer)
-  in  "User " ^ toString (usr2-usr) ^
-      "  All "^ toString (sys2-sys + usr2-usr) ^
-      " secs"
-      handle Time => ""
-  end;
+fun end_timing (timer, {sys, usr}) =
+  let
+    open Time;  (*...for Time.toString, Time.+ and Time.- *)
+    val {sys = sys2, usr = usr2} = Timer.checkCPUTimer timer;
+    val user = usr2 - usr;
+    val all = user + sys2 - sys;
+    val message = "User " ^ toString user ^ "  All "^ toString all ^ " secs" handle Time => "";
+  in {message = message, user = user, all = all} end;
 
 fun check_timer timer =
   let
