@@ -177,7 +177,7 @@ fun store_thm_open (b, th) =
 
 fun add_thms_atts pre_name ((b, thms), atts) =
   enter_thms pre_name (name_thms false true Position.none)
-    (foldl_map (Thm.theory_attributes atts)) (b, thms);
+    (Library.foldl_map (Thm.theory_attributes atts)) (b, thms);
 
 fun gen_add_thmss pre_name =
   fold_map (add_thms_atts pre_name);
@@ -207,9 +207,9 @@ fun gen_note_thmss tag = fold_map (fn ((b, more_atts), ths_atts) => fn thy =>
     val name = Sign.full_name thy b;
     val _ = Position.report (Markup.fact_decl name) pos;
 
-    fun app (x, (ths, atts)) = foldl_map (Thm.theory_attributes atts) (x, ths);
+    fun app (x, (ths, atts)) = Library.foldl_map (Thm.theory_attributes atts) (x, ths);
     val (thms, thy') = thy |> enter_thms
-      (name_thmss true pos) (name_thms false true pos) (apsnd flat o foldl_map app)
+      (name_thmss true pos) (name_thms false true pos) (apsnd flat o Library.foldl_map app)
       (b, map (fn (ths, atts) => (ths, surround tag (atts @ more_atts))) ths_atts);
   in ((name, thms), thy') end);
 

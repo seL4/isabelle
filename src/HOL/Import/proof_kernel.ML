@@ -777,7 +777,7 @@ fun xml_to_proof thyname types terms prf thy =
                 val (c,asl) = case terms of
                                   [] => raise ERR "x2p" "Bad oracle description"
                                 | (hd::tl) => (hd,tl)
-                val tg = foldr (fn (oracle,tg) => Tag.merge (Tag.read oracle) tg) Tag.empty_tag ors
+                val tg = List.foldr (fn (oracle,tg) => Tag.merge (Tag.read oracle) tg) Tag.empty_tag ors
             in
                 mk_proof (POracle(tg,map xml_to_term asl,xml_to_term c))
             end
@@ -1840,7 +1840,7 @@ fun GEN_ABS copt vlist hth thy =
                       | inst_type ty1 ty2 (ty as Type(name,tys)) =
                         Type(name,map (inst_type ty1 ty2) tys)
                 in
-                    foldr (fn (v,th) =>
+                    List.foldr (fn (v,th) =>
                               let
                                   val cdom = fst (dom_rng (fst (dom_rng cty)))
                                   val vty  = type_of v
@@ -1852,7 +1852,7 @@ fun GEN_ABS copt vlist hth thy =
                 end
               | SOME _ => raise ERR "GEN_ABS" "Bad constant"
               | NONE =>
-                foldr (fn (v,th) => mk_ABS v th thy) th vlist'
+                List.foldr (fn (v,th) => mk_ABS v th thy) th vlist'
         val res = HOLThm(rens_of info',th1)
         val _ = message "RESULT:"
         val _ = if_debug pth res
@@ -2020,7 +2020,7 @@ fun new_specification thyname thmname names hth thy =
                                Sign.add_consts_i consts thy'
                            end
 
-            val thy1 = foldr (fn(name,thy)=>
+            val thy1 = List.foldr (fn(name,thy)=>
                                 snd (get_defname thyname name thy)) thy1 names
             fun new_name name = fst (get_defname thyname name thy1)
             val names' = map (fn name => (new_name name,name,false)) names
@@ -2041,7 +2041,7 @@ fun new_specification thyname thmname names hth thy =
                      then quotename name
                      else (quotename newname) ^ ": " ^ (quotename name),thy')
                 end
-            val (new_names,thy') = foldr (fn(name,(names,thy)) =>
+            val (new_names,thy') = List.foldr (fn(name,(names,thy)) =>
                                             let
                                                 val (name',thy') = handle_const (name,thy)
                                             in

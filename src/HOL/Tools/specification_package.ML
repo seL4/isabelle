@@ -120,7 +120,7 @@ fun process_spec axiomatic cos alt_props thy =
                 val frees = OldTerm.term_frees prop
                 val _ = forall (fn v => Sign.of_sort thy (type_of v,HOLogic.typeS)) frees
                   orelse error "Specificaton: Only free variables of sort 'type' allowed"
-                val prop_closed = foldr (fn ((vname,T),prop) => HOLogic.mk_all (vname,T,prop)) prop (map dest_Free frees)
+                val prop_closed = List.foldr (fn ((vname,T),prop) => HOLogic.mk_all (vname,T,prop)) prop (map dest_Free frees)
             in
                 (prop_closed,frees)
             end
@@ -161,7 +161,7 @@ fun process_spec axiomatic cos alt_props thy =
             in
                 HOLogic.exists_const T $ Abs(vname,T,Term.abstract_over (c,prop))
             end
-        val ex_prop = foldr mk_exist prop proc_consts
+        val ex_prop = List.foldr mk_exist prop proc_consts
         val cnames = map (fst o dest_Const) proc_consts
         fun post_process (arg as (thy,thm)) =
             let

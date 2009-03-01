@@ -83,7 +83,7 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
     val branchT = if null branchTs then HOLogic.unitT
       else BalancedTree.make (fn (T, U) => Type ("+", [T, U])) branchTs;
     val arities = get_arities descr' \ 0;
-    val unneeded_vars = hd tyvars \\ foldr OldTerm.add_typ_tfree_names [] (leafTs' @ branchTs);
+    val unneeded_vars = hd tyvars \\ List.foldr OldTerm.add_typ_tfree_names [] (leafTs' @ branchTs);
     val leafTs = leafTs' @ (map (fn n => TFree (n, (the o AList.lookup (op =) sorts) n)) unneeded_vars);
     val recTs = get_rec_types descr' sorts;
     val newTs = Library.take (length (hd descr), recTs);
@@ -143,7 +143,7 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
       in mk_inj branchT (length branchTs) (1 + find_index_eq T' branchTs)
       end;
 
-    val mk_lim = foldr (fn (T, t) => Lim $ mk_fun_inj T (Abs ("x", T, t)));
+    val mk_lim = List.foldr (fn (T, t) => Lim $ mk_fun_inj T (Abs ("x", T, t)));
 
     (************** generate introduction rules for representing set **********)
 
@@ -169,7 +169,7 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
               in (j + 1, prems, (Leaf $ mk_inj T (mk_Free "x" T j))::ts)
               end);
 
-        val (_, prems, ts) = foldr mk_prem (1, [], []) cargs;
+        val (_, prems, ts) = List.foldr mk_prem (1, [], []) cargs;
         val concl = HOLogic.mk_Trueprop
           (Free (s, UnivT') $ mk_univ_inj ts n i)
       in Logic.list_implies (prems, concl)
@@ -229,7 +229,7 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
             | _ => (j + 1, free_t::l_args, (Leaf $ mk_inj T free_t)::r_args))
           end;
 
-        val (_, l_args, r_args) = foldr constr_arg (1, [], []) cargs;
+        val (_, l_args, r_args) = List.foldr constr_arg (1, [], []) cargs;
         val constrT = (map (typ_of_dtyp descr' sorts) cargs) ---> T;
         val abs_name = Sign.intern_const thy ("Abs_" ^ tname);
         val rep_name = Sign.intern_const thy ("Rep_" ^ tname);
@@ -357,7 +357,7 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
 
       in (thy', char_thms' @ char_thms) end;
 
-    val (thy5, iso_char_thms) = apfst Theory.checkpoint (foldr make_iso_defs
+    val (thy5, iso_char_thms) = apfst Theory.checkpoint (List.foldr make_iso_defs
       (add_path flat_names big_name thy4, []) (tl descr));
 
     (* prove isomorphism properties *)
@@ -447,7 +447,7 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
       in (inj_thms'' @ inj_thms, elem_thms @ (split_conj_thm elem_thm))
       end;
 
-    val (iso_inj_thms_unfolded, iso_elem_thms) = foldr prove_iso_thms
+    val (iso_inj_thms_unfolded, iso_elem_thms) = List.foldr prove_iso_thms
       ([], map #3 newT_iso_axms) (tl descr);
     val iso_inj_thms = map snd newT_iso_inj_thms @
       map (fn r => r RS @{thm injD}) iso_inj_thms_unfolded;

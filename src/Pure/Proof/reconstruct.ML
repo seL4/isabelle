@@ -106,7 +106,7 @@ fun cantunify thy (t, u) = error ("Non-unifiable terms:\n" ^
 
 fun decompose thy Ts (env, p as (t, u)) =
   let fun rigrig (a, T) (b, U) uT ts us = if a <> b then cantunify thy p
-    else apsnd flat (foldl_map (decompose thy Ts) (uT env T U, ts ~~ us))
+    else apsnd flat (Library.foldl_map (decompose thy Ts) (uT env T U, ts ~~ us))
   in case pairself (strip_comb o Envir.head_norm env) p of
       ((Const c, ts), (Const d, us)) => rigrig c d (unifyT thy) ts us
     | ((Free c, ts), (Free d, us)) => rigrig c d (unifyT thy) ts us
@@ -141,7 +141,7 @@ fun make_constraints_cprf thy env cprf =
             val tvars = OldTerm.term_tvars prop;
             val tfrees = OldTerm.term_tfrees prop;
             val (env', Ts) = (case opTs of
-                NONE => foldl_map mk_tvar (env, map snd tvars @ map snd tfrees)
+                NONE => Library.foldl_map mk_tvar (env, map snd tvars @ map snd tfrees)
               | SOME Ts => (env, Ts));
             val prop' = subst_atomic_types (map TVar tvars @ map TFree tfrees ~~ Ts)
               (forall_intr_vfs prop) handle Library.UnequalLengths =>

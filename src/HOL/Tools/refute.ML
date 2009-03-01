@@ -985,7 +985,7 @@ struct
                 DatatypeAux.DtTFree _ =>
                 collect_types dT acc
               | DatatypeAux.DtType (_, ds) =>
-                collect_types dT (foldr collect_dtyp acc ds)
+                collect_types dT (List.foldr collect_dtyp acc ds)
               | DatatypeAux.DtRec i =>
                 if dT mem acc then
                   acc  (* prevent infinite recursion *)
@@ -999,9 +999,9 @@ struct
                         insert (op =) dT acc
                       else acc
                     (* collect argument types *)
-                    val acc_dtyps = foldr collect_dtyp acc_dT dtyps
+                    val acc_dtyps = List.foldr collect_dtyp acc_dT dtyps
                     (* collect constructor types *)
-                    val acc_dconstrs = foldr collect_dtyp acc_dtyps
+                    val acc_dconstrs = List.foldr collect_dtyp acc_dtyps
                       (List.concat (map snd dconstrs))
                   in
                     acc_dconstrs
@@ -1102,7 +1102,7 @@ struct
     case next (maxsize-minsize) 0 0 diffs of
       SOME diffs' =>
       (* merge with those types for which the size is fixed *)
-      SOME (snd (foldl_map (fn (ds, (T, _)) =>
+      SOME (snd (Library.foldl_map (fn (ds, (T, _)) =>
         case AList.lookup (op =) sizes (string_of_typ T) of
         (* return the fixed size *)
           SOME n => (ds, (T, n))
@@ -1196,7 +1196,7 @@ struct
         val _          = Output.immediate_output ("Translating term (sizes: "
           ^ commas (map (fn (_, n) => string_of_int n) universe) ^ ") ...")
         (* translate 'u' and all axioms *)
-        val ((model, args), intrs) = foldl_map (fn ((m, a), t') =>
+        val ((model, args), intrs) = Library.foldl_map (fn ((m, a), t') =>
           let
             val (i, m', a') = interpret thy m a t'
           in
@@ -1612,7 +1612,7 @@ struct
     val Ts = Term.binder_types (Term.fastype_of t)
     val t' = Term.incr_boundvars i t
   in
-    foldr (fn (T, term) => Abs ("<eta_expand>", T, term))
+    List.foldr (fn (T, term) => Abs ("<eta_expand>", T, term))
       (Term.list_comb (t', map Bound (i-1 downto 0))) (List.take (Ts, i))
   end;
 
@@ -1622,7 +1622,7 @@ struct
 
   (* int list -> int *)
 
-  fun sum xs = foldl op+ 0 xs;
+  fun sum xs = List.foldl op+ 0 xs;
 
 (* ------------------------------------------------------------------------- *)
 (* product: returns the product of a list 'xs' of integers                   *)
@@ -1630,7 +1630,7 @@ struct
 
   (* int list -> int *)
 
-  fun product xs = foldl op* 1 xs;
+  fun product xs = List.foldl op* 1 xs;
 
 (* ------------------------------------------------------------------------- *)
 (* size_of_dtyp: the size of (an initial fragment of) an inductive data type *)
@@ -1750,7 +1750,7 @@ struct
           (* create all constants of type 'T' *)
           val constants = make_constants thy model T
           (* interpret the 'body' separately for each constant *)
-          val ((model', args'), bodies) = foldl_map
+          val ((model', args'), bodies) = Library.foldl_map
             (fn ((m, a), c) =>
               let
                 (* add 'c' to 'bounds' *)
@@ -2094,7 +2094,7 @@ struct
             Const (@{const_name insert}, HOLogic_prodT --> HOLogic_setT --> HOLogic_setT)
         in
           (* functions as graphs, i.e. as a (HOL) set of pairs "(x, y)" *)
-          map (foldr (fn (pair, acc) => HOLogic_insert $ pair $ acc)
+          map (List.foldr (fn (pair, acc) => HOLogic_insert $ pair $ acc)
             HOLogic_empty_set) pairss
         end
       | Type (s, Ts) =>
@@ -2286,7 +2286,7 @@ struct
                             | search [] _ = ()
                         in  search terms' terms  end
                       (* int * interpretation list *)
-                      val (new_offset, intrs) = foldl_map (fn (off, t_elem) =>
+                      val (new_offset, intrs) = Library.foldl_map (fn (off, t_elem) =>
                         (* if 't_elem' existed at the previous depth,    *)
                         (* proceed recursively, otherwise map the entire *)
                         (* subtree to "undefined"                        *)
@@ -2352,7 +2352,7 @@ struct
               else  (* mconstrs_count = length params *)
                 let
                   (* interpret each parameter separately *)
-                  val ((model', args'), p_intrs) = foldl_map (fn ((m, a), p) =>
+                  val ((model', args'), p_intrs) = Library.foldl_map (fn ((m, a), p) =>
                     let
                       val (i, m', a') = interpret thy m a p
                     in
@@ -2464,7 +2464,7 @@ struct
                     end) descr
                   (* associate constructors with corresponding parameters *)
                   (* (int * (interpretation * interpretation) list) list *)
-                  val (p_intrs', mc_p_intrs) = foldl_map
+                  val (p_intrs', mc_p_intrs) = Library.foldl_map
                     (fn (p_intrs', (idx, c_intrs)) =>
                       let
                         val len = length c_intrs
@@ -2630,7 +2630,7 @@ struct
                         (* interpretation list *)
                         val arg_intrs = map (uncurry rec_intr) rec_dtyps_intrs
                         (* apply 'intr' to all recursive arguments *)
-                        val result = foldl (fn (arg_i, i) =>
+                        val result = List.foldl (fn (arg_i, i) =>
                           interpretation_apply (i, arg_i)) intr arg_intrs
                         (* update 'REC_OPERATORS' *)
                         val _ = Array.update (arr, elem, (true, result))
@@ -2910,7 +2910,7 @@ struct
         (* of width 'size_elem' and depth 'length_list' (with 'size_list'    *)
         (* nodes total)                                                      *)
         (* (int * (int * int)) list *)
-        val (_, lenoff_lists) = foldl_map (fn ((offsets, off), elem) =>
+        val (_, lenoff_lists) = Library.foldl_map (fn ((offsets, off), elem) =>
           (* corresponds to a pre-order traversal of the tree *)
           let
             val len = length offsets
@@ -3004,7 +3004,7 @@ struct
             "intersection: interpretation for set is not a node")
         (* interpretation -> interpretaion *)
         fun lfp (Node resultsets) =
-          foldl (fn ((set, resultset), acc) =>
+          List.foldl (fn ((set, resultset), acc) =>
             if is_subset (resultset, set) then
               intersection (acc, set)
             else
@@ -3055,7 +3055,7 @@ struct
             "union: interpretation for set is not a node")
         (* interpretation -> interpretaion *)
         fun gfp (Node resultsets) =
-          foldl (fn ((set, resultset), acc) =>
+          List.foldl (fn ((set, resultset), acc) =>
             if is_subset (set, resultset) then
               union (acc, set)
             else
@@ -3158,7 +3158,7 @@ struct
         val HOLogic_insert    =
           Const (@{const_name insert}, HOLogic_prodT --> HOLogic_setT --> HOLogic_setT)
       in
-        SOME (foldr (fn (pair, acc) => HOLogic_insert $ pair $ acc)
+        SOME (List.foldr (fn (pair, acc) => HOLogic_insert $ pair $ acc)
           HOLogic_empty_set pairs)
       end
     | Type ("prop", [])      =>
@@ -3292,8 +3292,6 @@ struct
 (*       applied before the 'stlc_interpreter' breaks the term apart into    *)
 (*       subterms that are then passed to other interpreters!                *)
 (* ------------------------------------------------------------------------- *)
-
-  (* (theory -> theory) list *)
 
   val setup =
      add_interpreter "stlc"    stlc_interpreter #>

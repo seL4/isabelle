@@ -46,7 +46,7 @@ fun graph_at (GP (_, gs), i) = nth gs i ;
 fun num_prog_pts (GP (arities, _)) = length arities ;
 fun num_graphs (GP (_, gs)) = length gs ;
 fun arity (GP (arities, gl)) i = nth arities i ;
-fun ndigits (GP (arities, _)) = IntInf.log2 (foldl (op +) 0 arities) + 1
+fun ndigits (GP (arities, _)) = IntInf.log2 (List.foldl (op +) 0 arities) + 1
 
 
 (** Propositional formulas **)
@@ -79,7 +79,7 @@ fun sat_solver x =
 fun var_constrs (gp as GP (arities, gl)) =
   let
     val n = Int.max (num_graphs gp, num_prog_pts gp)
-    val k = foldl Int.max 1 arities
+    val k = List.foldl Int.max 1 arities
 
     (* Injective, provided  a < 8, x < n, and i < k. *)
     fun prod a x i j = ((j * k + i) * n + x) * 8 + a + 1

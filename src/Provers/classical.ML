@@ -223,7 +223,7 @@ fun swap_res_tac rls =
     let fun addrl (rl,brls) = (false, rl) :: (true, rl RSN (2, Data.swap)) :: brls
     in  assume_tac      ORELSE'
         contr_tac       ORELSE'
-        biresolve_tac (foldr addrl [] rls)
+        biresolve_tac (List.foldr addrl [] rls)
     end;
 
 (*Duplication of hazardous rules, for complete provers*)

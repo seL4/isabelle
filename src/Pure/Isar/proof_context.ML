@@ -975,7 +975,7 @@ fun gen_note_thmss get k = fold_map (fn ((b, more_attrs), raw_facts) => fn ctxt 
 
     val facts = PureThy.name_thmss false pos name (map (apfst (get ctxt)) raw_facts);
     fun app (th, attrs) x =
-      swap (foldl_map (Thm.proof_attributes (surround (Thm.kind k) (attrs @ more_attrs))) (x, th));
+      swap (Library.foldl_map (Thm.proof_attributes (surround (Thm.kind k) (attrs @ more_attrs))) (x, th));
     val (res, ctxt') = fold_map app facts ctxt;
     val thms = PureThy.name_thms false false pos name (flat res);
     val Mode {stmt, ...} = get_mode ctxt;

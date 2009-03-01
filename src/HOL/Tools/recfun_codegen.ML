@@ -143,7 +143,7 @@ fun add_rec_funs thy defs dep module eqs gr =
                  val eqs'' = map (dest_eq o prop_of) (List.concat (map fst thmss));
                  val (fundef', gr3) = mk_fundef module' "" true eqs''
                    (add_edge (dname, dep)
-                     (foldr (uncurry new_node) (del_nodes xs gr2)
+                     (List.foldr (uncurry new_node) (del_nodes xs gr2)
                        (map (fn k =>
                          (k, (SOME (EQN ("", dummyT, dname)), module', ""))) xs)))
                in (module', put_code module' fundef' gr3) end

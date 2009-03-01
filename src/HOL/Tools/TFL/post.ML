@@ -1,5 +1,4 @@
 (*  Title:      HOL/Tools/TFL/post.ML
-    ID:         $Id$
     Author:     Konrad Slind, Cambridge University Computer Laboratory
     Copyright   1997  University of Cambridge
 
@@ -31,7 +30,7 @@ structure S = USyntax
  *--------------------------------------------------------------------------*)
 fun termination_goals rules =
     map (Type.freeze o HOLogic.dest_Trueprop)
-      (foldr (fn (th,A) => gen_union (op aconv) (prems_of th, A)) [] rules);
+      (List.foldr (fn (th,A) => gen_union (op aconv) (prems_of th, A)) [] rules);
 
 (*---------------------------------------------------------------------------
  * Finds the termination conditions in (highly massaged) definition and

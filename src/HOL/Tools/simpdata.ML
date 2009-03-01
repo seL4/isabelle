@@ -1,5 +1,4 @@
 (*  Title:      HOL/simpdata.ML
-    ID:         $Id$
     Author:     Tobias Nipkow
     Copyright   1991  University of Cambridge
 
@@ -65,7 +64,7 @@ fun lift_meta_eq_to_obj_eq i st =
     else
       let
         val Ps = map (fn k => Free ("P" ^ string_of_int k, propT)) (1 upto j);
-        fun mk_simp_implies Q = foldr (fn (R, S) =>
+        fun mk_simp_implies Q = List.foldr (fn (R, S) =>
           Const ("HOL.simp_implies", propT --> propT --> propT) $ R $ S) Q Ps
         val aT = TFree ("'a", HOLogic.typeS);
         val x = Free ("x", aT);

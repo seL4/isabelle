@@ -37,8 +37,8 @@ fun unify_consts thy cs intr_ts =
     fun varify (t, (i, ts)) =
       let val t' = map_types (Logic.incr_tvar (i + 1)) (snd (Type.varify [] t))
       in (maxidx_of_term t', t'::ts) end;
-    val (i, cs') = foldr varify (~1, []) cs;
-    val (i', intr_ts') = foldr varify (i, []) intr_ts;
+    val (i, cs') = List.foldr varify (~1, []) cs;
+    val (i', intr_ts') = List.foldr varify (i, []) intr_ts;
     val rec_consts = fold Term.add_consts cs' [];
     val intr_consts = fold Term.add_consts intr_ts' [];
     fun unify (cname, cT) =

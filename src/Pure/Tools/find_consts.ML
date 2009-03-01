@@ -111,7 +111,7 @@ fun find_consts ctxt raw_criteria =
     val criteria = map make_criterion (! default_criteria @ raw_criteria);
 
     val (_, consts) = (#constants o Consts.dest o Sign.consts_of) thy;
-    fun eval_entry c = foldl filter_const (SOME (c, low_ranking)) criteria;
+    fun eval_entry c = List.foldl filter_const (SOME (c, low_ranking)) criteria;
 
     val matches =
       Symtab.fold (cons o eval_entry) consts []

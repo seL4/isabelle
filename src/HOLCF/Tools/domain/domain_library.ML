@@ -1,5 +1,4 @@
 (*  Title:      HOLCF/Tools/domain/domain_library.ML
-    ID:         $Id$
     Author:     David von Oheimb
 
 Library for domain command.
@@ -15,7 +14,7 @@ fun foldr'' f (l,f2) = let fun itr []  = raise Fail "foldr''"
 			     | itr [a] = f2 a
 			     | itr (a::l) = f(a, itr l)
 in  itr l  end;
-fun map_cumulr f start xs = foldr (fn (x,(ys,res))=>case f(x,res) of (y,res2) =>
+fun map_cumulr f start xs = List.foldr (fn (x,(ys,res))=>case f(x,res) of (y,res2) =>
 						  (y::ys,res2)) ([],start) xs;
 
 

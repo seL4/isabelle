@@ -85,7 +85,7 @@ fun add_dt_defs thy defs dep module (descr: DatatypeAux.descr) sorts gr =
             val dts' = map (DatatypeAux.typ_of_dtyp descr sorts) dts;
             val T = Type (tname, dts');
             val rest = mk_term_of_def gr "and " xs;
-            val (_, eqs) = foldl_map (fn (prfx, (cname, Ts)) =>
+            val (_, eqs) = Library.foldl_map (fn (prfx, (cname, Ts)) =>
               let val args = map (fn i =>
                 str ("x" ^ string_of_int i)) (1 upto length Ts)
               in ("  | ", Pretty.blk (4,
@@ -216,8 +216,8 @@ fun pretty_case thy defs dep module brack constrs (c as Const (_, T)) ts gr =
       let
         val ts1 = Library.take (i, ts);
         val t :: ts2 = Library.drop (i, ts);
-        val names = foldr OldTerm.add_term_names
-          (map (fst o fst o dest_Var) (foldr OldTerm.add_term_vars [] ts1)) ts1;
+        val names = List.foldr OldTerm.add_term_names
+          (map (fst o fst o dest_Var) (List.foldr OldTerm.add_term_vars [] ts1)) ts1;
         val (Ts, dT) = split_last (Library.take (i+1, fst (strip_type T)));
 
         fun pcase [] [] [] gr = ([], gr)

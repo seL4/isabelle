@@ -132,7 +132,7 @@ fun allify_conditions ctermify Ts th =
       fun allify_prem_var (vt as (n,ty),t)  = 
           (Term.all ty) $ (Abs(n,ty,Term.abstract_over (Free vt, t)))
 
-      fun allify_prem Ts p = foldr allify_prem_var p Ts
+      fun allify_prem Ts p = List.foldr allify_prem_var p Ts
 
       val cTs = map (ctermify o Free) Ts
       val cterm_asms = map (ctermify o allify_prem Ts) premts
@@ -306,7 +306,7 @@ fun allify_term (v, t) =
     in (Term.all ty) $ (Abs(n,ty,Term.abstract_over (vt, t))) end;
 
 fun allify_for_sg_term ctermify vs t =
-    let val t_alls = foldr allify_term t vs;
+    let val t_alls = List.foldr allify_term t vs;
         val ct_alls = ctermify t_alls; 
     in 
       (ct_alls, Drule.forall_elim_list vs (Thm.assume ct_alls))
@@ -394,7 +394,7 @@ fun export_solution (export {fixes = cfvs, assumes = hcprems,
                 |> Drule.forall_intr_list cfvs
     in Drule.compose_single (solth', i, gth) end;
 
-fun export_solutions (xs,th) = foldr (uncurry export_solution) th xs;
+fun export_solutions (xs,th) = List.foldr (uncurry export_solution) th xs;
 
 
 (* fix parameters of a subgoal "i", as free variables, and create an

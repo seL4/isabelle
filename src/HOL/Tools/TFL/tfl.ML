@@ -330,7 +330,7 @@ fun mk_functional thy clauses =
      val dummy = map (no_repeat_vars thy) pats
      val rows = ListPair.zip (map (fn x => ([]:term list,[x])) pats,
                               map (fn (t,i) => (t,(i,true))) (enumerate R))
-     val names = foldr OldTerm.add_term_names [] R
+     val names = List.foldr OldTerm.add_term_names [] R
      val atype = type_of(hd pats)
      and aname = Name.variant names "a"
      val a = Free(aname,atype)
@@ -492,7 +492,7 @@ fun wfrec_eqns thy fid tflCongs eqns =
      val tych = Thry.typecheck thy
      val WFREC_THM0 = R.ISPEC (tych functional) Thms.WFREC_COROLLARY
      val Const("All",_) $ Abs(Rname,Rtype,_) = concl WFREC_THM0
-     val R = Free (Name.variant (foldr OldTerm.add_term_names [] eqns) Rname,
+     val R = Free (Name.variant (List.foldr OldTerm.add_term_names [] eqns) Rname,
                    Rtype)
      val WFREC_THM = R.ISPECL [tych R, tych g] WFREC_THM0
      val ([proto_def, WFR],_) = S.strip_imp(concl WFREC_THM)
@@ -533,7 +533,7 @@ fun lazyR_def thy fid tflCongs eqns =
                        Display.prths extractants;
                        ())
                  else ()
-     val TCs = foldr (gen_union (op aconv)) [] TCl
+     val TCs = List.foldr (gen_union (op aconv)) [] TCl
      val full_rqt = WFR::TCs
      val R' = S.mk_select{Bvar=R1, Body=S.list_mk_conj full_rqt}
      val R'abs = S.rand R'
@@ -690,7 +690,7 @@ fun complete_cases thy =
  let val tych = Thry.typecheck thy
      val ty_info = Thry.induct_info thy
  in fn pats =>
- let val names = foldr OldTerm.add_term_names [] pats
+ let val names = List.foldr OldTerm.add_term_names [] pats
      val T = type_of (hd pats)
      val aname = Name.variant names "a"
      val vname = Name.variant (aname::names) "v"
@@ -843,7 +843,7 @@ let val tych = Thry.typecheck thy
     val (pats,TCsl) = ListPair.unzip pat_TCs_list
     val case_thm = complete_cases thy pats
     val domain = (type_of o hd) pats
-    val Pname = Name.variant (foldr (Library.foldr OldTerm.add_term_names)
+    val Pname = Name.variant (List.foldr (Library.foldr OldTerm.add_term_names)
                               [] (pats::TCsl)) "P"
     val P = Free(Pname, domain --> HOLogic.boolT)
     val Sinduct = R.SPEC (tych P) Sinduction
@@ -854,7 +854,7 @@ let val tych = Thry.typecheck thy
     val cases = map (fn pat => Term.betapply (Sinduct_assumf, pat)) pats
     val tasks = U.zip3 cases TCl' (R.CONJUNCTS Rinduct_assum)
     val proved_cases = map (prove_case fconst thy) tasks
-    val v = Free (Name.variant (foldr OldTerm.add_term_names [] (map concl proved_cases))
+    val v = Free (Name.variant (List.foldr OldTerm.add_term_names [] (map concl proved_cases))
                     "v",
                   domain)
     val vtyped = tych v

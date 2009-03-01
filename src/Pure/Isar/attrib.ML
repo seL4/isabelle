@@ -198,7 +198,7 @@ fun gen_thm pick = Scan.depend (fn context =>
       let
         val ths = Facts.select thmref fact;
         val atts = map (attribute_i thy) srcs;
-        val (context', ths') = foldl_map (Library.apply atts) (context, ths);
+        val (context', ths') = Library.foldl_map (Library.apply atts) (context, ths);
       in (context', pick name ths') end)
   end);
 
