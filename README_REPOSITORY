@@ -32,9 +32,9 @@ than the corresponding operations of CVS or SVN.
 Initial configuration
 ---------------------
 
-Always use Mercurial version 1.0 or later, such as 1.0.1 or 1.0.2.
+Always use Mercurial versions from the 1.0 or 1.1 branch, or later.
 The old 0.9.x versions do not work in a multi-user environment with
-shared file spaces.
+shared file spaces!
 
 
 The official Isabelle repository can be cloned like this:
@@ -62,7 +62,8 @@ may persist indefinitely in the public flow of changesets.
 
 In principle, user names can be chosen freely, but for longterm
 committers of the Isabelle repository the obvious choice is to keep
-with the old CVS naming scheme.
+with the old CVS naming scheme.  Others should use their regular "full
+name"; including an email address is optional.
 
 
 There are other useful configuration to go into $HOME/.hgrc,
@@ -135,6 +136,29 @@ place, to get exactly to the same point:
   hg clone ssh://wenzelm@atbroy100//home/isabelle-repository/repos/isabelle
 
 
+Simplified merges
+-----------------
+
+The main idea of Mercurial is to let individual users produce
+independent branches of development first, but merge with others
+frequently.  The basic hg merge operation is more general than
+required for the mode of operation with a shared pull/push area.  The
+hg fetch extension accommodates this case nicely, automating trivial
+merges and requiring manual intervention for actual conflicts only.
+
+The fetch extension can be configured via the user's ~/.hgrc like
+this:
+
+  [extensions]
+  hgext.fetch =
+
+  [defaults]
+  fetch = -m "merged"
+
+Note that the potential for merge conflicts can be greatly reduced by
+doing "hg fetch" before any starting local changes!
+
+
 Content discipline
 ------------------
 
@@ -172,7 +196,9 @@ changesets that might become public at some point.
     Mercurial provides nice web presentation of incoming changes with
     a digest of log entries; this also includes RSS/Atom news feeds.
     Users should be aware that others will actually read what is
-    written into log messages.
+    written into log messages.  There are also add-on browsers,
+    notably hgtk that is part of the TortoiseHg distribution and works
+    for generic Python/GTk platforms.
 
     The usual changelog presentation style for the Isabelle repository
     admits log entries that consist of several lines, but without the
@@ -194,6 +220,3 @@ Isabelle from sources apply.
 
 Needless to say, the results from the build process must not be added
 to the repository!
-
-
-Makarius 30-Nov-2008
