@@ -726,14 +726,14 @@ fun defines_to_notes thy (Defines defs) =
   | defines_to_notes _ e = e;
 
 fun gen_add_locale prep_decl
-    bname raw_predicate_bname raw_imprt raw_body thy =
+    bname raw_predicate_bname raw_import raw_body thy =
   let
     val name = Sign.full_bname thy bname;
     val _ = Locale.defined thy name andalso
       error ("Duplicate definition of locale " ^ quote name);
 
     val ((fixed, deps, body_elems), (parms, ctxt')) =
-      prep_decl raw_imprt I raw_body (ProofContext.init thy);
+      prep_decl raw_import I raw_body (ProofContext.init thy);
     val text as (((_, exts'), _), defs) = eval ctxt' deps body_elems;
 
     val predicate_bname = if raw_predicate_bname = "" then bname

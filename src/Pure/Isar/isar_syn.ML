@@ -693,7 +693,7 @@ val _ =
 val _ =
   OuterSyntax.command "finally" "combine calculation and current facts, exhibit result"
     (K.tag_proof K.prf_chain)
-    (calc_args >> (Toplevel.proofs' o Calculation.finally_));
+    (calc_args >> (Toplevel.proofs' o Calculation.finally));
 
 val _ =
   OuterSyntax.command "moreover" "augment calculation by current facts"

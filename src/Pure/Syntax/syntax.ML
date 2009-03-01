@@ -390,7 +390,7 @@ val basic_syn =
 val basic_nonterms =
   (Lexicon.terminals @ [SynExt.logic, "type", "types", "sort", "classes",
     SynExt.args, SynExt.cargs, "pttrn", "pttrns", "idt", "idts", "aprop",
-    "asms", SynExt.any_, SynExt.sprop, "num_const", "float_const",
+    "asms", SynExt.any, SynExt.sprop, "num_const", "float_const",
     "index", "struct"]);
 
 

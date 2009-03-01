@@ -73,10 +73,10 @@ fun add_prods _ chains lambdas prod_count [] = (chains, lambdas, prod_count)
       val chain_from = case (pri, rhs) of (~1, [Nonterminal (id, ~1)]) => SOME id | _ => NONE;
 
       (*store chain if it does not already exist*)
-      val (new_chain, chains') = case chain_from of NONE => (NONE, chains) | SOME from_ =>
-        let val old_tos = these (AList.lookup (op =) chains from_) in
+      val (new_chain, chains') = case chain_from of NONE => (NONE, chains) | SOME from =>
+        let val old_tos = these (AList.lookup (op =) chains from) in
           if member (op =) old_tos lhs then (NONE, chains)
-          else (SOME from_, AList.update (op =) (from_, insert (op =) lhs old_tos) chains)
+          else (SOME from, AList.update (op =) (from, insert (op =) lhs old_tos) chains)
         end;
 
       (*propagate new chain in lookahead and lambda lists;
@@ -410,7 +410,7 @@ fun pretty_gram (Gram {tags, prods, chains, ...}) =
 
     fun pretty_nt (name, tag) =
       let
-        fun prod_of_chain from_ = ([Nonterminal (from_, ~1)], "", ~1);
+        fun prod_of_chain from = ([Nonterminal (from, ~1)], "", ~1);
 
         val nt_prods =
           Library.foldl (gen_union op =) ([], map snd (snd (Array.sub (prods, tag)))) @
@@ -552,8 +552,8 @@ fun merge_grams gram_a gram_b =
           val to_tag = convert_tag to;
 
           fun make [] result = result
-            | make (from_ :: froms) result = make froms ((to_tag,
-                ([Nonterminal (convert_tag from_, ~1)], "", ~1)) :: result);
+            | make (from :: froms) result = make froms ((to_tag,
+                ([Nonterminal (convert_tag from, ~1)], "", ~1)) :: result);
         in mk_chain_prods cs (make froms [] @ result) end;
 
     val chain_prods = mk_chain_prods chains2 [];

@@ -60,12 +60,6 @@ ML_DBASE=""
 #ML_OPTIONS=""
 #ML_PLATFORM=""
 
-# Alice 1.4 (experimental!)
-#ML_SYSTEM=alice
-#ML_HOME="/usr/local/alice/bin"
-#ML_OPTIONS=""
-#ML_PLATFORM=""
-
 
 ###
 ### JVM components (Scala or Java)
