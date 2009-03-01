@@ -20,7 +20,6 @@ sig
   val pretty_thm_aux: Pretty.pp -> bool -> bool -> term list -> thm -> Pretty.T
   val pretty_thm: thm -> Pretty.T
   val string_of_thm: thm -> string
-  val pretty_fact: Facts.ref * thm -> Pretty.T
   val pretty_thms: thm list -> Pretty.T
   val pretty_thm_sg: theory -> thm -> Pretty.T
   val pretty_thms_sg: theory -> thm list -> Pretty.T
@@ -92,10 +91,6 @@ fun pretty_thm th =
   pretty_thm_aux (Syntax.pp_global (Thm.theory_of_thm th)) true false [] th;
 
 val string_of_thm = Pretty.string_of o pretty_thm;
-
-fun pretty_fact (thmref, thm) = Pretty.block
-  [Pretty.str (Facts.string_of_ref thmref), Pretty.str ":", Pretty.brk 1,
-   pretty_thm thm];
 
 fun pretty_thms [th] = pretty_thm th
   | pretty_thms ths = Pretty.block (Pretty.fbreaks (map pretty_thm ths));

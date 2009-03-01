@@ -45,7 +45,7 @@ fun seek_solution int state =
                   | SOME g => Syntax.string_of_term ctxt (term_of g);
       in
         Pretty.big_list (msg ^ " could be solved directly with:")
-                        (map Display.pretty_fact results)
+                        (map (FindTheorems.pretty_thm ctxt) results)
       end;
 
     fun seek_against_goal () =

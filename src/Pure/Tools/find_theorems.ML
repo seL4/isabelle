@@ -6,16 +6,14 @@ Retrieve theorems from proof context.
 
 signature FIND_THEOREMS =
 sig
-  val limit: int ref
-  val tac_limit: int ref
-
   datatype 'term criterion =
     Name of string | Intro | Elim | Dest | Solves | Simp of 'term |
     Pattern of 'term
-
+  val tac_limit: int ref
+  val limit: int ref
   val find_theorems: Proof.context -> thm option -> bool ->
     (bool * string criterion) list -> (Facts.ref * thm) list
-
+  val pretty_thm: Proof.context -> Facts.ref * thm -> Pretty.T
   val print_theorems: Proof.context -> thm option -> int option -> bool ->
     (bool * string criterion) list -> unit
 end;
@@ -344,8 +342,7 @@ val limit = ref 40;
 
 fun find_theorems ctxt opt_goal rem_dups raw_criteria =
   let
-    val add_prems = Seq.hd o (TRY (Method.insert_tac
-                                     (Assumption.prems_of ctxt) 1));
+    val add_prems = Seq.hd o (TRY (Method.insert_tac (Assumption.prems_of ctxt) 1));
     val opt_goal' = Option.map add_prems opt_goal;
 
     val criteria = map (apsnd (read_criterion ctxt)) raw_criteria;
@@ -358,6 +355,11 @@ fun find_theorems ctxt opt_goal rem_dups raw_criteria =
       then rem_thm_dups (nicer_shortest ctxt) raw_matches
       else raw_matches;
   in matches end;
+
+
+fun pretty_thm ctxt (thmref, thm) = Pretty.block
+  [Pretty.str (Facts.string_of_ref thmref), Pretty.str ":", Pretty.brk 1,
+    ProofContext.pretty_thm ctxt thm];
 
 fun print_theorems ctxt opt_goal opt_limit rem_dups raw_criteria =
   let
@@ -382,7 +384,7 @@ fun print_theorems ctxt opt_goal opt_limit rem_dups raw_criteria =
           (if len <= lim then ""
            else " (" ^ string_of_int lim ^ " displayed)")
            ^ end_msg ^ ":"), Pretty.str ""] @
-        map Display.pretty_fact thms)
+        map (pretty_thm ctxt) thms)
     |> Pretty.chunks |> Pretty.writeln
   end;
 
