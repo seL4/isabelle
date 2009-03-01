@@ -372,9 +372,7 @@ fun print_theorems ctxt opt_goal opt_limit rem_dups raw_criteria =
     val lim = the_default (! limit) opt_limit;
     val thms = Library.drop (len - lim, matches);
 
-    val end_msg = " in " ^
-                  (List.nth (String.tokens Char.isSpace (end_timing start), 3))
-                  ^ " secs"
+    val end_msg = " in " ^ Time.toString (#all (end_timing start)) ^ " secs";
   in
     Pretty.big_list "searched for:" (map (pretty_criterion ctxt) criteria)
         :: Pretty.str "" ::

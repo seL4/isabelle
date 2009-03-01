@@ -119,9 +119,7 @@ fun find_consts ctxt raw_criteria =
       |> sort (rev_order o int_ord o pairself snd)
       |> map ((apsnd fst) o fst);
 
-    val end_msg = " in " ^
-                  (List.nth (String.tokens Char.isSpace (end_timing start), 3))
-                  ^ " secs"
+    val end_msg = " in " ^ Time.toString (#all (end_timing start)) ^ " secs";
   in
     Pretty.big_list "searched for:" (map pretty_criterion raw_criteria)
       :: Pretty.str ""
