@@ -1225,6 +1225,9 @@ apply (rule_tac a="int (b * i) + int j" and b="int b" and q="int i" and q'=ia
 apply (auto simp add: IntDiv.divmod_rel_def of_nat_mult)
 done
 
+lemma abs_div: "(y::int) dvd x \<Longrightarrow> abs (x div y) = abs x div abs y"
+by (unfold dvd_def, cases "y=0", auto simp add: abs_mult)
+
 text{*Suggested by Matthias Daum*}
 lemma int_power_div_base:
      "\<lbrakk>0 < m; 0 < k\<rbrakk> \<Longrightarrow> k ^ m div k = (k::int) ^ (m - Suc 0)"

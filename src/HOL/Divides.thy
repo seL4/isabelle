@@ -44,10 +44,10 @@ lemma div_mod_equality2: "(b * (a div b) + a mod b) + c = a + c"
 by (simp add: mod_div_equality2)
 
 lemma mod_by_0 [simp]: "a mod 0 = a"
-  using mod_div_equality [of a zero] by simp
+using mod_div_equality [of a zero] by simp
 
 lemma mod_0 [simp]: "0 mod a = 0"
-  using mod_div_equality [of zero a] div_0 by simp 
+using mod_div_equality [of zero a] div_0 by simp
 
 lemma div_mult_self2 [simp]:
   assumes "b \<noteq> 0"
@@ -341,6 +341,25 @@ lemma mod_diff_cong:
   shows "(a - b) mod c = (a' - b') mod c"
   unfolding diff_minus using assms
   by (intro mod_add_cong mod_minus_cong)
+
+lemma dvd_neg_div: "y dvd x \<Longrightarrow> -x div y = - (x div y)"
+apply (case_tac "y = 0") apply simp
+apply (auto simp add: dvd_def)
+apply (subgoal_tac "-(y * k) = y * - k")
+ apply (erule ssubst)
+ apply (erule div_mult_self1_is_id)
+apply simp
+done
+
+lemma dvd_div_neg: "y dvd x \<Longrightarrow> x div -y = - (x div y)"
+apply (case_tac "y = 0") apply simp
+apply (auto simp add: dvd_def)
+apply (subgoal_tac "y * k = -y * -k")
+ apply (erule ssubst)
+ apply (rule div_mult_self1_is_id)
+ apply simp
+apply simp
+done
 
 end
 
