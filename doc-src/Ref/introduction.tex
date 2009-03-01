@@ -1,23 +1,5 @@
 
-%% $Id$
-
 \chapter{Basic Use of Isabelle}\index{sessions|(} 
-The Reference Manual is a comprehensive description of Isabelle
-proper, including all \ML{} commands, functions and packages.  It
-really is intended for reference, perhaps for browsing, but not for
-reading through.  It is not a tutorial, but assumes familiarity with
-the basic logical concepts of Isabelle.
-
-When you are looking for a way of performing some task, scan the Table of
-Contents for a relevant heading.  Functions are organized by their purpose,
-by their operands (subgoals, tactics, theorems), and by their usefulness.
-In each section, basic functions appear first, then advanced functions, and
-finally esoteric functions.  Use the Index when you are looking for the
-definition of a particular Isabelle function.
-
-A few examples are presented.  Many example files are distributed with
-Isabelle, however; please experiment interactively.
-
 
 \section{Basic interaction with Isabelle}
 \index{starting up|bold}\nobreak
@@ -217,109 +199,6 @@ These are some shorthands for manipulating boolean references.  The new
 value is returned.
 
 
-\section{Printing of terms and theorems}\label{sec:printing-control}
-\index{printing control|(}
-Isabelle's pretty printer is controlled by a number of parameters.
-
-\subsection{Printing limits}
-\begin{ttbox} 
-Pretty.setdepth  : int -> unit
-Pretty.setmargin : int -> unit
-print_depth      : int -> unit
-\end{ttbox}
-These set limits for terminal output.  See also {\tt goals_limit},
-which limits the number of subgoals printed
-(\S\ref{sec:goals-printing}).
-
-\begin{ttdescription}
-\item[\ttindexbold{Pretty.setdepth} \(d\);] tells Isabelle's pretty printer to
-  limit the printing depth to~$d$.  This affects the display of theorems and
-  terms.  The default value is~0, which permits printing to an arbitrary
-  depth.  Useful values for $d$ are~10 and~20.
-
-\item[\ttindexbold{Pretty.setmargin} \(m\);]  
-  tells Isabelle's pretty printer to assume a right margin (page width)
-  of~$m$.  The initial margin is~76.
-
-\item[\ttindexbold{print_depth} \(n\);]  
-  limits the printing depth of complex \ML{} values, such as theorems and
-  terms.  This command affects the \ML{} top level and its effect is
-  compiler-dependent.  Typically $n$ should be less than~10.
-\end{ttdescription}
-
-
-\subsection{Printing of hypotheses, brackets, types etc.}
-\index{meta-assumptions!printing of}
-\index{types!printing of}\index{sorts!printing of}
-\begin{ttbox} 
-show_hyps     : bool ref \hfill{\bf initially false}
-show_tags     : bool ref \hfill{\bf initially false}
-show_brackets : bool ref \hfill{\bf initially false}
-show_types    : bool ref \hfill{\bf initially false}
-show_sorts    : bool ref \hfill{\bf initially false}
-show_consts   : bool ref \hfill{\bf initially false}
-long_names    : bool ref \hfill{\bf initially false}
-\end{ttbox}
-These flags allow you to control how much information is displayed for
-types, terms and theorems.  The hypotheses of theorems \emph{are}
-normally shown.  Superfluous parentheses of types and terms are not.
-Types and sorts of variables are normally hidden.
-
-Note that displaying types and sorts may explain why a polymorphic
-inference rule fails to resolve with some goal, or why a rewrite rule
-does not apply as expected.
-
-\begin{ttdescription}
-
-\item[reset \ttindexbold{show_hyps};] makes Isabelle show each
-  meta-level hypothesis as a dot.
-  
-\item[set \ttindexbold{show_tags};] makes Isabelle show tags of theorems
-  (which are basically just comments that may be attached by some tools).
-  
-\item[set \ttindexbold{show_brackets};] makes Isabelle show full
-  bracketing.  In particular, this reveals the grouping of infix
-  operators.
-  
-\item[set \ttindexbold{show_types};] makes Isabelle show types when
-  printing a term or theorem.
-  
-\item[set \ttindexbold{show_sorts};] makes Isabelle show both types
-  and the sorts of type variables, independently of the value of
-  \texttt{show_types}.
-  
-\item[set \ttindexbold{show_consts};] makes Isabelle show types of constants
-  when printing proof states.  Note that the output can be enormous as
-  polymorphic constants often occur at several different type instances.
-
-\item[set \ttindexbold{long_names};] forces names of all objects
-  (types, constants, theorems, etc.) to be printed in their fully
-  qualified internal form.
-
-\end{ttdescription}
-
-
-\subsection{Eta-contraction before printing}
-\begin{ttbox} 
-eta_contract: bool ref
-\end{ttbox}
-The {\bf $\eta$-contraction law} asserts $(\lambda x.f(x))\equiv f$,
-provided $x$ is not free in ~$f$.  It asserts {\bf extensionality} of
-functions: $f\equiv g$ if $f(x)\equiv g(x)$ for all~$x$.  Higher-order
-unification frequently puts terms into a fully $\eta$-expanded form.  For
-example, if $F$ has type $(\tau\To\tau)\To\tau$ then its expanded form is
-$\lambda h.F(\lambda x.h(x))$.  By default, the user sees this expanded
-form.
-
-\begin{ttdescription}
-\item[set \ttindexbold{eta_contract};]
-makes Isabelle perform $\eta$-contractions before printing, so that
-$\lambda h.F(\lambda x.h(x))$ appears simply as~$F$.  The
-distinction between a term and its $\eta$-expanded form occasionally
-matters.
-\end{ttdescription}
-\index{printing control|)}
-
 \section{Diagnostic messages}
 \index{error messages}
 \index{warnings}
@@ -351,40 +230,16 @@ after having output the text, while \ttindex{writeln} and
 \ttindex{warning} resume normal program execution.
 
 
-\section{Displaying exceptions as error messages}
-\index{exceptions!printing of}
+\section{Timing}
+\index{timing statistics}\index{proofs!timing}
 \begin{ttbox} 
-print_exn: exn -> 'a
+timing: bool ref \hfill{\bf initially false}
 \end{ttbox}
-Certain Isabelle primitives, such as the forward proof functions {\tt RS}
-and {\tt RSN}, are called both interactively and from programs.  They
-indicate errors not by printing messages, but by raising exceptions.  For
-interactive use, \ML's reporting of an uncaught exception may be
-uninformative.  The Poly/ML function {\tt exception_trace} can generate a
-backtrace.\index{Poly/{\ML} compiler}
 
 \begin{ttdescription}
-\item[\ttindexbold{print_exn} $e$] 
-displays the exception~$e$ in a readable manner, and then re-raises~$e$.
-Typical usage is~\hbox{\tt $EXP$ handle e => print_exn e;}, where
-$EXP$ is an expression that may raise an exception.
-
-{\tt print_exn} can display the following common exceptions, which concern
-types, terms, theorems and theories, respectively.  Each carries a message
-and related information.
-\begin{ttbox} 
-exception TYPE   of string * typ list * term list
-exception TERM   of string * term list
-exception THM    of string * int * thm list
-exception THEORY of string * theory list
-\end{ttbox}
+\item[set \ttindexbold{timing};] enables global timing in Isabelle.
+  This information is compiler-dependent.
 \end{ttdescription}
-\begin{warn}
-  {\tt print_exn} prints terms by calling \ttindex{prin}, which obtains
-  pretty printing information from the proof state last stored in the
-  subgoal module.  The appearance of the output thus depends upon the
-  theory used in the last interactive proof.
-\end{warn}
 
 \index{sessions|)}
 

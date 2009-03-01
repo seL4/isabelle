@@ -1,6 +1,3 @@
-#
-# $Id$
-#
 
 ## targets
 
@@ -12,16 +9,15 @@ default: dvi
 include ../Makefile.in
 
 NAME = ref
-FILES = ref.tex introduction.tex goals.tex tactic.tex tctical.tex \
-	thm.tex theories.tex defining.tex syntax.tex substitution.tex \
-	simplifier.tex classical.tex theory-syntax.tex \
-	../rail.sty ../proof.sty ../iman.sty ../extra.sty ../ttbox.sty ../manual.bib
+FILES = ref.tex introduction.tex tactic.tex tctical.tex thm.tex	\
+	theories.tex defining.tex syntax.tex substitution.tex	\
+	simplifier.tex classical.tex ../proof.sty ../iman.sty	\
+	../extra.sty ../ttbox.sty ../manual.bib
 
 dvi: $(NAME).dvi
 
 $(NAME).dvi: $(FILES) isabelle.eps
 	$(LATEX) $(NAME)
-	$(RAIL) $(NAME)
 	$(BIBTEX) $(NAME)
 	$(LATEX) $(NAME)
 	$(LATEX) $(NAME)
@@ -32,7 +28,6 @@ pdf: $(NAME).pdf
 
 $(NAME).pdf: $(FILES) isabelle.pdf
 	$(PDFLATEX) $(NAME)
-	$(RAIL) $(NAME)
 	$(BIBTEX) $(NAME)
 	$(PDFLATEX) $(NAME)
 	$(PDFLATEX) $(NAME)

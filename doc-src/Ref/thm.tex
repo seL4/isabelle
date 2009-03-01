@@ -1,4 +1,4 @@
-%% $Id$
+
 \chapter{Theorems and Forward Proof}
 \index{theorems|(}
 
@@ -12,19 +12,6 @@ which have the \ML{} types {\tt Sign.sg}, {\tt cterm} and {\tt ctyp}
 and are discussed in Chapter~\ref{theories}.  Beginning users should
 ignore such complexities --- and skip all but the first section of
 this chapter.
-
-The theorem operations do not print error messages.  Instead, they raise
-exception~\xdx{THM}\@.  Use \ttindex{print_exn} to display
-exceptions nicely:
-\begin{ttbox} 
-allI RS mp  handle e => print_exn e;
-{\out Exception THM raised:}
-{\out RSN: no unifiers -- premise 1}
-{\out (!!x. ?P(x)) ==> ALL x. ?P(x)}
-{\out [| ?P --> ?Q; ?P |] ==> ?Q}
-{\out}
-{\out uncaught exception THM}
-\end{ttbox}
 
 
 \section{Basic operations on theorems}
