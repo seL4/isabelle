@@ -689,9 +689,6 @@ apply (case_tac "c = 0", simp)
 apply (blast intro: divmod_rel_div_mod [THEN zmult1_lemma, THEN divmod_rel_mod])
 done
 
-lemma zdiv_zmult_self1 [simp]: "b \<noteq> (0::int) ==> (a*b) div b = a"
-by (simp add: zdiv_zmult1_eq)
-
 lemma zmod_zdiv_trivial: "(a mod b) div b = (0::int)"
 apply (case_tac "b = 0", simp)
 apply (auto simp add: linorder_neq_iff div_pos_pos_trivial div_neg_neg_trivial)
@@ -717,7 +714,7 @@ proof
   assume not0: "b \<noteq> 0"
   show "(a + c * b) div b = c + a div b"
     unfolding zdiv_zadd1_eq [of a "c * b"] using not0 
-      by (simp add: zmod_zmult1_eq zmod_zdiv_trivial)
+      by (simp add: zmod_zmult1_eq zmod_zdiv_trivial zdiv_zmult1_eq)
 qed auto
 
 lemma posDivAlg_div_mod:

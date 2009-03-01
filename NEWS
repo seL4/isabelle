@@ -385,6 +385,7 @@ nat_mod_div_trivial    -> mod_div_trivial
 nat_mod_mod_trivial    -> mod_mod_trivial
 zdiv_zadd_self1        -> div_add_self1
 zdiv_zadd_self2        -> div_add_self2
+zdiv_zmult_self1       -> div_mult_self2_is_id
 zdiv_zmult_self2       -> div_mult_self1_is_id
 zdvd_triv_left         -> dvd_triv_left
 zdvd_triv_right        -> dvd_triv_right
