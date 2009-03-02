@@ -12,8 +12,6 @@ sig
     | Loose of string
     | Name of string
 
-  val default_criteria : (bool * criterion) list ref
-
   val find_consts : Proof.context -> (bool * criterion) list -> unit
 end;
 
@@ -26,9 +24,6 @@ datatype criterion =
     Strict of string
   | Loose of string
   | Name of string;
-
-val default_criteria = ref [(false, Name ".sko_")];
-
 
 (* matching types/consts *)
 
@@ -54,8 +49,8 @@ fun opt_not f (c as (_, (ty, _))) =
   if is_some (f c)
   then NONE else SOME (Term.size_of_typ ty);
 
-fun filter_const (_, NONE) = NONE
-  | filter_const (f, (SOME (c, r))) =
+fun filter_const _ NONE = NONE
+  | filter_const f (SOME (c, r)) =
       Option.map (pair c o (curry Int.min r)) (f c);
 
 
@@ -81,7 +76,6 @@ fun pretty_const ctxt (nm, ty) =
       Pretty.quote (Syntax.pretty_typ ctxt ty')]
   end;
 
-
 (* find_consts *)
 
 fun find_consts ctxt raw_criteria =
@@ -91,7 +85,11 @@ fun find_consts ctxt raw_criteria =
     val thy = ProofContext.theory_of ctxt;
     val low_ranking = 10000;
 
-    fun make_pattern crit = ProofContext.read_term_pattern ctxt ("_::" ^ crit) |> Term.type_of;
+    fun not_internal consts (nm, _) = 
+      if member (op =) (Consts.the_tags consts nm) Markup.property_internal
+      then NONE else SOME low_ranking;
+
+    fun make_pattern crit = ProofContext.read_term_pattern ctxt ("_::" ^ crit) |> type_of;
 
     fun make_match (Strict arg) =
           let val qty = make_pattern arg; in
@@ -108,13 +106,15 @@ fun find_consts ctxt raw_criteria =
       | make_match (Name arg) = check_const (match_string arg o fst);
 
     fun make_criterion (b, crit) = (if b then I else opt_not) (make_match crit);
-    val criteria = map make_criterion (! default_criteria @ raw_criteria);
+    val criteria = map make_criterion raw_criteria;
 
-    val (_, consts) = (#constants o Consts.dest o Sign.consts_of) thy;
-    fun eval_entry c = List.foldl filter_const (SOME (c, low_ranking)) criteria;
+    val consts = Sign.consts_of thy;
+    val (_, consts_tab) = (#constants o Consts.dest) consts;
+    fun eval_entry c = fold filter_const (not_internal consts::criteria)
+                                         (SOME (c, low_ranking));
 
     val matches =
-      Symtab.fold (cons o eval_entry) consts []
+      Symtab.fold (cons o eval_entry) consts_tab []
       |> map_filter I
       |> sort (rev_order o int_ord o pairself snd)
       |> map ((apsnd fst) o fst);
@@ -132,7 +132,7 @@ fun find_consts ctxt raw_criteria =
       :: map (pretty_const ctxt) matches
     |> Pretty.chunks
     |> Pretty.writeln
-  end handle ERROR s => Output.error_msg s;
+  end;
 
 
 (* command syntax *)
