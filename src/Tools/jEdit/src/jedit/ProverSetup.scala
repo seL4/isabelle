@@ -37,17 +37,17 @@ class ProverSetup(buffer: JEditBuffer)
     prover = new Prover(Isabelle.system, Isabelle.default_logic)
     
     val buffer = view.getBuffer
-    val dir = buffer.getDirectory
+    val path = buffer.getPath
 
     theory_view = new TheoryView(view.getTextArea)
     prover.set_document(theory_view,
-        if (dir.startsWith(Isabelle.VFS_PREFIX)) dir.substring(Isabelle.VFS_PREFIX.length) else dir)
+      if (path.startsWith(Isabelle.VFS_PREFIX)) path.substring(Isabelle.VFS_PREFIX.length) else path)
     theory_view.activate
 
     //register output-view
     prover.output_info += (text =>
       {
-        output_text_view.append(text)
+        output_text_view.append(text + "\n")
         val dockable = view.getDockableWindowManager.getDockable("isabelle-output")
         //link process output if dockable is active
         if (dockable != null) {

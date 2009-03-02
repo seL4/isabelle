@@ -219,7 +219,8 @@ class ProofDocument(text: Text, is_command_keyword: String => Boolean)
       else if (after_change != null)
         after_change.prev = before_change
     }
-    
+
+    System.err.println("token_changed: " + before_change + " " + after_change + " " + first_removed)
     token_changed(before_change, after_change, first_removed)
   }
   

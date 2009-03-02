@@ -242,14 +242,9 @@ class TheoryView (text_area: JEditTextArea)
 
 
   override def contentInserted(buffer: JEditBuffer,
-    start_line: Int, offset: Int, num_lines: Int, length: Int) { }
-
-  override def contentRemoved(buffer: JEditBuffer,
-    start_line: Int, offset: Int, num_lines: Int, length: Int) { }
-
-  override def preContentInserted(buffer: JEditBuffer,
-    start_line: Int, offset: Int, num_lines: Int, length: Int) =
+    start_line: Int, offset: Int, num_lines: Int, length: Int)
   {
+/*
     if (col == null)
       col = new Text.Changed(offset, length, 0)
     else if (col.start <= offset && offset <= col.start + col.added)
@@ -259,11 +254,14 @@ class TheoryView (text_area: JEditTextArea)
       col = new Text.Changed(offset, length, 0)
     }
     delay_commit()
+*/
+    changes.event(new Text.Changed(offset, length, 0))
   }
 
   override def preContentRemoved(buffer: JEditBuffer,
     start_line: Int, start: Int, num_lines: Int, removed: Int) =
   {
+/*
     if (col == null)
       col = new Text.Changed(start, 0, removed)
     else if (col.start > start + removed || start > col.start + col.added) {
@@ -281,8 +279,14 @@ class TheoryView (text_area: JEditTextArea)
       col = new Text.Changed(start min col.start, added, col.removed - add_removed)
     }
     delay_commit()
+*/
+    changes.event(new Text.Changed(start, 0, removed))
   }
 
+  override def contentRemoved(buffer: JEditBuffer,
+    start_line: Int, offset: Int, num_lines: Int, length: Int) { }
+  override def preContentInserted(buffer: JEditBuffer,
+    start_line: Int, offset: Int, num_lines: Int, length: Int) { }
   override def bufferLoaded(buffer: JEditBuffer) { }
   override def foldHandlerChanged(buffer: JEditBuffer) { }
   override def foldLevelChanged(buffer: JEditBuffer, start_line: Int, end_line: Int) { }

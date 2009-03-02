@@ -72,6 +72,7 @@ class Command(text: Text, val first: Token, val last: Token)
   def status = _status
   def status_=(st: Command.Status.Value) {
     if (st == Command.Status.UNPROCESSED) {
+      state_results.clear
       // delete markup
       for (child <- root_node.children) {
         child.children = Nil
@@ -85,7 +86,7 @@ class Command(text: Text, val first: Token, val last: Token)
 
   private val results = new mutable.ListBuffer[XML.Tree]
   private val state_results = new mutable.ListBuffer[XML.Tree]
-  def add_result(running: Boolean, tree: XML.Tree) {
+  def add_result(running: Boolean, tree: XML.Tree) = synchronized {
     (if (running) state_results else results) += tree
   }
 
