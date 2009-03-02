@@ -631,8 +631,8 @@ val add_datatype_cmd = gen_add_datatype read_typ true;
 
 local
 
-val sym_datatype = Pretty.str "\\isacommand{datatype}";
-val sym_binder = Pretty.str "\\ {\\isacharequal}";
+val sym_datatype = Pretty.command "datatype";
+val sym_binder = Pretty.str "\\ {\\isacharequal}"; (*FIXME use proper symbol*)
 val sym_sep = Pretty.str "{\\isacharbar}\\ ";
 
 in
