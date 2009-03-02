@@ -3,9 +3,11 @@
 
 Retrieving, normalizing and structuring code equations in graph
 with explicit dependencies.
+
+Legacy.  To be replaced by Tools/code/code_wellsorted.ML
 *)
 
-signature CODE_FUNCGR =
+signature CODE_WELLSORTED =
 sig
   type T
   val eqns: T -> string -> (thm * bool) list
@@ -21,7 +23,7 @@ sig
   val timing: bool ref
 end
 
-structure Code_Funcgr : CODE_FUNCGR =
+structure Code_Wellsorted : CODE_WELLSORTED =
 struct
 
 (** the graph type **)

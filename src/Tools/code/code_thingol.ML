@@ -597,7 +597,7 @@ and ensure_const thy algbr funcgr c =
      of SOME tyco => stmt_datatypecons tyco
       | NONE => (case AxClass.class_of_param thy c
          of SOME class => stmt_classparam class
-          | NONE => stmt_fun (Code_Funcgr.typ funcgr c, Code_Funcgr.eqns funcgr c))
+          | NONE => stmt_fun (Code_Wellsorted.typ funcgr c, Code_Wellsorted.eqns funcgr c))
   in ensure_stmt lookup_const (declare_const thy) stmt_const c end
 and translate_term thy algbr funcgr thm (Const (c, ty)) =
       translate_app thy algbr funcgr thm ((c, ty), [])
@@ -622,7 +622,7 @@ and translate_term thy algbr funcgr thm (Const (c, ty)) =
 and translate_const thy algbr funcgr thm (c, ty) =
   let
     val tys = Sign.const_typargs thy (c, ty);
-    val sorts = (map snd o fst o Code_Funcgr.typ funcgr) c;
+    val sorts = (map snd o fst o Code_Wellsorted.typ funcgr) c;
     val tys_args = (fst o Term.strip_type) ty;
   in
     ensure_const thy algbr funcgr c
@@ -735,7 +735,7 @@ fun consts_program thy cs =
     fun generate_consts thy algebra funcgr =
       fold_map (ensure_const thy algebra funcgr);
   in
-    invoke_generation thy (Code_Funcgr.make thy cs) generate_consts cs
+    invoke_generation thy (Code_Wellsorted.make thy cs) generate_consts cs
     |-> project_consts
   end;
 
@@ -778,8 +778,8 @@ fun eval thy evaluator t =
       in evaluator'' naming program vs_ty_t deps end;
   in (t', evaluator') end
 
-fun eval_conv thy = Code_Funcgr.eval_conv thy o eval thy;
-fun eval_term thy = Code_Funcgr.eval_term thy o eval thy;
+fun eval_conv thy = Code_Wellsorted.eval_conv thy o eval thy;
+fun eval_term thy = Code_Wellsorted.eval_term thy o eval thy;
 
 end; (*struct*)
 
