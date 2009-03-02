@@ -847,7 +847,7 @@ typedef Pg = "UNIV//eq_game_rel"
   by (auto simp add: quotient_def)
 
 lemma equiv_eq_game[simp]: "equiv UNIV eq_game_rel"
-  by (auto simp add: equiv_def refl_def sym_def trans_def eq_game_rel_def
+  by (auto simp add: equiv_def refl_on_def sym_def trans_def eq_game_rel_def
     eq_game_sym intro: eq_game_refl eq_game_trans)
 
 instantiation Pg :: "{ord, zero, plus, minus, uminus}"

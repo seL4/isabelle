@@ -21,8 +21,8 @@ lemma ratrel_iff [simp]:
   "(x, y) \<in> ratrel \<longleftrightarrow> snd x \<noteq> 0 \<and> snd y \<noteq> 0 \<and> fst x * snd y = fst y * snd x"
   by (simp add: ratrel_def)
 
-lemma refl_ratrel: "refl {x. snd x \<noteq> 0} ratrel"
-  by (auto simp add: refl_def ratrel_def)
+lemma refl_on_ratrel: "refl_on {x. snd x \<noteq> 0} ratrel"
+  by (auto simp add: refl_on_def ratrel_def)
 
 lemma sym_ratrel: "sym ratrel"
   by (simp add: ratrel_def sym_def)
@@ -44,7 +44,7 @@ proof (rule transI, unfold split_paired_all)
 qed
   
 lemma equiv_ratrel: "equiv {x. snd x \<noteq> 0} ratrel"
-  by (rule equiv.intro [OF refl_ratrel sym_ratrel trans_ratrel])
+  by (rule equiv.intro [OF refl_on_ratrel sym_ratrel trans_ratrel])
 
 lemmas UN_ratrel = UN_equiv_class [OF equiv_ratrel]
 lemmas UN_ratrel2 = UN_equiv_class2 [OF equiv_ratrel equiv_ratrel]

@@ -34,8 +34,8 @@ definition
   "Id == {p. EX x. p = (x,x)}"
 
 definition
-  diag  :: "'a set => ('a * 'a) set" where -- {* diagonal: identity over a set *}
-  "diag A == \<Union>x\<in>A. {(x,x)}"
+  Id_on  :: "'a set => ('a * 'a) set" where -- {* diagonal: identity over a set *}
+  "Id_on A == \<Union>x\<in>A. {(x,x)}"
 
 definition
   Domain :: "('a * 'b) set => 'a set" where
@@ -50,12 +50,12 @@ definition
   "Field r == Domain r \<union> Range r"
 
 definition
-  refl :: "['a set, ('a * 'a) set] => bool" where -- {* reflexivity over a set *}
-  "refl A r == r \<subseteq> A \<times> A & (ALL x: A. (x,x) : r)"
+  refl_on :: "['a set, ('a * 'a) set] => bool" where -- {* reflexivity over a set *}
+  "refl_on A r == r \<subseteq> A \<times> A & (ALL x: A. (x,x) : r)"
 
 abbreviation
-  reflexive :: "('a * 'a) set => bool" where -- {* reflexivity over a type *}
-  "reflexive == refl UNIV"
+  refl :: "('a * 'a) set => bool" where -- {* reflexivity over a type *}
+  "refl == refl_on UNIV"
 
 definition
   sym :: "('a * 'a) set => bool" where -- {* symmetry predicate *}
@@ -99,8 +99,8 @@ by (unfold Id_def) (iprover elim: CollectE)
 lemma pair_in_Id_conv [iff]: "((a, b) : Id) = (a = b)"
 by (unfold Id_def) blast
 
-lemma reflexive_Id: "reflexive Id"
-by (simp add: refl_def)
+lemma refl_Id: "refl Id"
+by (simp add: refl_on_def)
 
 lemma antisym_Id: "antisym Id"
   -- {* A strange result, since @{text Id} is also symmetric. *}
@@ -115,24 +115,24 @@ by (simp add: trans_def)
 
 subsection {* Diagonal: identity over a set *}
 
-lemma diag_empty [simp]: "diag {} = {}"
-by (simp add: diag_def) 
+lemma Id_on_empty [simp]: "Id_on {} = {}"
+by (simp add: Id_on_def) 
 
-lemma diag_eqI: "a = b ==> a : A ==> (a, b) : diag A"
-by (simp add: diag_def)
+lemma Id_on_eqI: "a = b ==> a : A ==> (a, b) : Id_on A"
+by (simp add: Id_on_def)
 
-lemma diagI [intro!,noatp]: "a : A ==> (a, a) : diag A"
-by (rule diag_eqI) (rule refl)
+lemma Id_onI [intro!,noatp]: "a : A ==> (a, a) : Id_on A"
+by (rule Id_on_eqI) (rule refl)
 
-lemma diagE [elim!]:
-  "c : diag A ==> (!!x. x : A ==> c = (x, x) ==> P) ==> P"
+lemma Id_onE [elim!]:
+  "c : Id_on A ==> (!!x. x : A ==> c = (x, x) ==> P) ==> P"
   -- {* The general elimination rule. *}
-by (unfold diag_def) (iprover elim!: UN_E singletonE)
+by (unfold Id_on_def) (iprover elim!: UN_E singletonE)
 
-lemma diag_iff: "((x, y) : diag A) = (x = y & x : A)"
+lemma Id_on_iff: "((x, y) : Id_on A) = (x = y & x : A)"
 by blast
 
-lemma diag_subset_Times: "diag A \<subseteq> A \<times> A"
+lemma Id_on_subset_Times: "Id_on A \<subseteq> A \<times> A"
 by blast
 
 
@@ -184,37 +184,37 @@ by auto
 
 subsection {* Reflexivity *}
 
-lemma reflI: "r \<subseteq> A \<times> A ==> (!!x. x : A ==> (x, x) : r) ==> refl A r"
-by (unfold refl_def) (iprover intro!: ballI)
+lemma refl_onI: "r \<subseteq> A \<times> A ==> (!!x. x : A ==> (x, x) : r) ==> refl_on A r"
+by (unfold refl_on_def) (iprover intro!: ballI)
 
-lemma reflD: "refl A r ==> a : A ==> (a, a) : r"
-by (unfold refl_def) blast
+lemma refl_onD: "refl_on A r ==> a : A ==> (a, a) : r"
+by (unfold refl_on_def) blast
 
-lemma reflD1: "refl A r ==> (x, y) : r ==> x : A"
-by (unfold refl_def) blast
+lemma refl_onD1: "refl_on A r ==> (x, y) : r ==> x : A"
+by (unfold refl_on_def) blast
 
-lemma reflD2: "refl A r ==> (x, y) : r ==> y : A"
-by (unfold refl_def) blast
+lemma refl_onD2: "refl_on A r ==> (x, y) : r ==> y : A"
+by (unfold refl_on_def) blast
 
-lemma refl_Int: "refl A r ==> refl B s ==> refl (A \<inter> B) (r \<inter> s)"
-by (unfold refl_def) blast
+lemma refl_on_Int: "refl_on A r ==> refl_on B s ==> refl_on (A \<inter> B) (r \<inter> s)"
+by (unfold refl_on_def) blast
 
-lemma refl_Un: "refl A r ==> refl B s ==> refl (A \<union> B) (r \<union> s)"
-by (unfold refl_def) blast
+lemma refl_on_Un: "refl_on A r ==> refl_on B s ==> refl_on (A \<union> B) (r \<union> s)"
+by (unfold refl_on_def) blast
 
-lemma refl_INTER:
-  "ALL x:S. refl (A x) (r x) ==> refl (INTER S A) (INTER S r)"
-by (unfold refl_def) fast
+lemma refl_on_INTER:
+  "ALL x:S. refl_on (A x) (r x) ==> refl_on (INTER S A) (INTER S r)"
+by (unfold refl_on_def) fast
 
-lemma refl_UNION:
-  "ALL x:S. refl (A x) (r x) \<Longrightarrow> refl (UNION S A) (UNION S r)"
-by (unfold refl_def) blast
+lemma refl_on_UNION:
+  "ALL x:S. refl_on (A x) (r x) \<Longrightarrow> refl_on (UNION S A) (UNION S r)"
+by (unfold refl_on_def) blast
 
-lemma refl_empty[simp]: "refl {} {}"
-by(simp add:refl_def)
+lemma refl_on_empty[simp]: "refl_on {} {}"
+by(simp add:refl_on_def)
 
-lemma refl_diag: "refl A (diag A)"
-by (rule reflI [OF diag_subset_Times diagI])
+lemma refl_on_Id_on: "refl_on A (Id_on A)"
+by (rule refl_onI [OF Id_on_subset_Times Id_onI])
 
 
 subsection {* Antisymmetry *}
@@ -232,7 +232,7 @@ by (unfold antisym_def) blast
 lemma antisym_empty [simp]: "antisym {}"
 by (unfold antisym_def) blast
 
-lemma antisym_diag [simp]: "antisym (diag A)"
+lemma antisym_Id_on [simp]: "antisym (Id_on A)"
 by (unfold antisym_def) blast
 
 
@@ -256,7 +256,7 @@ by (fast intro: symI dest: symD)
 lemma sym_UNION: "ALL x:S. sym (r x) ==> sym (UNION S r)"
 by (fast intro: symI dest: symD)
 
-lemma sym_diag [simp]: "sym (diag A)"
+lemma sym_Id_on [simp]: "sym (Id_on A)"
 by (rule symI) clarify
 
 
@@ -275,7 +275,7 @@ by (fast intro: transI elim: transD)
 lemma trans_INTER: "ALL x:S. trans (r x) ==> trans (INTER S r)"
 by (fast intro: transI elim: transD)
 
-lemma trans_diag [simp]: "trans (diag A)"
+lemma trans_Id_on [simp]: "trans (Id_on A)"
 by (fast intro: transI elim: transD)
 
 lemma trans_diff_Id: " trans r \<Longrightarrow> antisym r \<Longrightarrow> trans (r-Id)"
@@ -331,11 +331,11 @@ by blast
 lemma converse_Id [simp]: "Id^-1 = Id"
 by blast
 
-lemma converse_diag [simp]: "(diag A)^-1 = diag A"
+lemma converse_Id_on [simp]: "(Id_on A)^-1 = Id_on A"
 by blast
 
-lemma refl_converse [simp]: "refl A (converse r) = refl A r"
-by (unfold refl_def) auto
+lemma refl_on_converse [simp]: "refl_on A (converse r) = refl_on A r"
+by (unfold refl_on_def) auto
 
 lemma sym_converse [simp]: "sym (converse r) = sym r"
 by (unfold sym_def) blast
@@ -382,7 +382,7 @@ by blast
 lemma Domain_Id [simp]: "Domain Id = UNIV"
 by blast
 
-lemma Domain_diag [simp]: "Domain (diag A) = A"
+lemma Domain_Id_on [simp]: "Domain (Id_on A) = A"
 by blast
 
 lemma Domain_Un_eq: "Domain(A \<union> B) = Domain(A) \<union> Domain(B)"
@@ -433,7 +433,7 @@ by blast
 lemma Range_Id [simp]: "Range Id = UNIV"
 by blast
 
-lemma Range_diag [simp]: "Range (diag A) = A"
+lemma Range_Id_on [simp]: "Range (Id_on A) = A"
 by auto
 
 lemma Range_Un_eq: "Range(A \<union> B) = Range(A) \<union> Range(B)"
@@ -506,7 +506,7 @@ by blast
 lemma Image_Id [simp]: "Id `` A = A"
 by blast
 
-lemma Image_diag [simp]: "diag A `` B = A \<inter> B"
+lemma Image_Id_on [simp]: "Id_on A `` B = A \<inter> B"
 by blast
 
 lemma Image_Int_subset: "R `` (A \<inter> B) \<subseteq> R `` A \<inter> R `` B"
@@ -571,7 +571,7 @@ by (unfold single_valued_def) blast
 lemma single_valued_Id [simp]: "single_valued Id"
 by (unfold single_valued_def) blast
 
-lemma single_valued_diag [simp]: "single_valued (diag A)"
+lemma single_valued_Id_on [simp]: "single_valued (Id_on A)"
 by (unfold single_valued_def) blast
 
 

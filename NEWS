@@ -348,6 +348,9 @@ INCOMPATIBILITY: Instantiation proofs for order, linorder
 etc. slightly changed.  Some theorems named order_class.* now named
 preorder_class.*.
 
+* HOL/Relation:
+Renamed "refl" to "refl_on", "reflexive" to "refl, "diag" to "Id_on".
+
 * HOL/Finite_Set: added a new fold combinator of type
   ('a => 'b => 'b) => 'b => 'a set => 'b
 Occasionally this is more convenient than the old fold combinator which is

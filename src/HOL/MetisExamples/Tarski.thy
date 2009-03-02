@@ -61,7 +61,7 @@ constdefs
   "Top po == greatest (%x. True) po"
 
   PartialOrder :: "('a potype) set"
-  "PartialOrder == {P. refl (pset P) (order P) & antisym (order P) &
+  "PartialOrder == {P. refl_on (pset P) (order P) & antisym (order P) &
                        trans (order P)}"
 
   CompleteLattice :: "('a potype) set"
@@ -126,7 +126,7 @@ locale Tarski = CLF +
 
 subsection {* Partial Order *}
 
-lemma (in PO) PO_imp_refl: "refl A r"
+lemma (in PO) PO_imp_refl_on: "refl_on A r"
 apply (insert cl_po)
 apply (simp add: PartialOrder_def A_def r_def)
 done
@@ -143,7 +143,7 @@ done
 
 lemma (in PO) reflE: "x \<in> A ==> (x, x) \<in> r"
 apply (insert cl_po)
-apply (simp add: PartialOrder_def refl_def A_def r_def)
+apply (simp add: PartialOrder_def refl_on_def A_def r_def)
 done
 
 lemma (in PO) antisymE: "[| (a, b) \<in> r; (b, a) \<in> r |] ==> a = b"
@@ -166,7 +166,7 @@ lemma (in PO) po_subset_po:
 apply (simp (no_asm) add: PartialOrder_def)
 apply auto
 -- {* refl *}
-apply (simp add: refl_def induced_def)
+apply (simp add: refl_on_def induced_def)
 apply (blast intro: reflE)
 -- {* antisym *}
 apply (simp add: antisym_def induced_def)
@@ -203,7 +203,7 @@ by (simp add: isLub_def isGlb_def dual_def converse_def)
 
 lemma (in PO) dualPO: "dual cl \<in> PartialOrder"
 apply (insert cl_po)
-apply (simp add: PartialOrder_def dual_def refl_converse
+apply (simp add: PartialOrder_def dual_def refl_on_converse
                  trans_converse antisym_converse)
 done
 
@@ -230,12 +230,12 @@ by (simp add: PartialOrder_def CompleteLattice_def, fast)
 
 lemmas CL_imp_PO = CL_subset_PO [THEN subsetD]
 
-declare PO.PO_imp_refl  [OF PO.intro [OF CL_imp_PO], simp]
+declare PO.PO_imp_refl_on  [OF PO.intro [OF CL_imp_PO], simp]
 declare PO.PO_imp_sym   [OF PO.intro [OF CL_imp_PO], simp]
 declare PO.PO_imp_trans [OF PO.intro [OF CL_imp_PO], simp]
 
-lemma (in CL) CO_refl: "refl A r"
-by (rule PO_imp_refl)
+lemma (in CL) CO_refl_on: "refl_on A r"
+by (rule PO_imp_refl_on)
 
 lemma (in CL) CO_antisym: "antisym r"
 by (rule PO_imp_sym)
@@ -501,10 +501,10 @@ apply (rule CollectI)
 apply (rule conjI)
 ML_command{*AtpWrapper.problem_name:="Tarski__CLF_flubH_le_lubH_simpler"*}
 (*??no longer terminates, with combinators
-apply (metis CO_refl lubH_le_flubH monotone_def monotone_f reflD1 reflD2) 
+apply (metis CO_refl_on lubH_le_flubH monotone_def monotone_f reflD1 reflD2) 
 *)
-apply (metis CO_refl lubH_le_flubH monotoneE [OF monotone_f] reflD1 reflD2)
-apply (metis CO_refl lubH_le_flubH reflD2)
+apply (metis CO_refl_on lubH_le_flubH monotoneE [OF monotone_f] refl_onD1 refl_onD2)
+apply (metis CO_refl_on lubH_le_flubH refl_onD2)
 done
   declare CLF.f_in_funcset[rule del] funcset_mem[rule del] 
           CL.lub_in_lattice[rule del] PO.monotoneE[rule del] 
@@ -542,12 +542,12 @@ have 6: "lub H cl = f (lub H cl)"
   by (metis 5 3)
 have 7: "(lub H cl, lub H cl) \<in> r"
   by (metis 6 4)
-have 8: "\<And>X1. lub H cl \<in> X1 \<or> \<not> refl X1 r"
-  by (metis 7 reflD2)
-have 9: "\<not> refl A r"
+have 8: "\<And>X1. lub H cl \<in> X1 \<or> \<not> refl_on X1 r"
+  by (metis 7 refl_onD2)
+have 9: "\<not> refl_on A r"
   by (metis 8 2)
 show "False"
-  by (metis CO_refl 9);
+  by (metis CO_refl_on 9);
 next --{*apparently the way to insert a second structured proof*}
   show "H = {x. (x, f x) \<in> r \<and> x \<in> A} \<Longrightarrow>
   f (lub {x. (x, f x) \<in> r \<and> x \<in> A} cl) = lub {x. (x, f x) \<in> r \<and> x \<in> A} cl"
@@ -589,13 +589,13 @@ lemma (in CLF) (*lubH_is_fixp:*)
 apply (simp add: fix_def)
 apply (rule conjI)
 ML_command{*AtpWrapper.problem_name:="Tarski__CLF_lubH_is_fixp_simpler"*} 
-apply (metis CO_refl lubH_le_flubH reflD1)
+apply (metis CO_refl_on lubH_le_flubH refl_onD1)
 apply (metis antisymE flubH_le_lubH lubH_le_flubH)
 done
 
 lemma (in CLF) fix_in_H:
      "[| H = {x. (x, f x) \<in> r & x \<in> A};  x \<in> P |] ==> x \<in> H"
-by (simp add: P_def fix_imp_eq [of _ f A] reflE CO_refl
+by (simp add: P_def fix_imp_eq [of _ f A] reflE CO_refl_on
                     fix_subset [of f A, THEN subsetD])
 
 
@@ -678,16 +678,16 @@ subsection {* interval *}
 
 
 ML{*AtpWrapper.problem_name:="Tarski__rel_imp_elem"*}
-  declare (in CLF) CO_refl[simp] refl_def [simp]
+  declare (in CLF) CO_refl_on[simp] refl_on_def [simp]
 lemma (in CLF) rel_imp_elem: "(x, y) \<in> r ==> x \<in> A"
-by (metis CO_refl reflD1)
-  declare (in CLF) CO_refl[simp del]  refl_def [simp del]
+by (metis CO_refl_on refl_onD1)
+  declare (in CLF) CO_refl_on[simp del]  refl_on_def [simp del]
 
 ML{*AtpWrapper.problem_name:="Tarski__interval_subset"*}
   declare (in CLF) rel_imp_elem[intro] 
   declare interval_def [simp]
 lemma (in CLF) interval_subset: "[| a \<in> A; b \<in> A |] ==> interval r a b \<subseteq> A"
-by (metis CO_refl interval_imp_mem reflD reflD2 rel_imp_elem subset_eq)
+by (metis CO_refl_on interval_imp_mem refl_onD refl_onD2 rel_imp_elem subset_eq)
   declare (in CLF) rel_imp_elem[rule del] 
   declare interval_def [simp del]
 

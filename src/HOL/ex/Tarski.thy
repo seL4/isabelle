@@ -73,7 +73,7 @@ definition
 
 definition
   PartialOrder :: "('a potype) set" where
-  "PartialOrder = {P. refl (pset P) (order P) & antisym (order P) &
+  "PartialOrder = {P. refl_on (pset P) (order P) & antisym (order P) &
                        trans (order P)}"
 
 definition
@@ -158,7 +158,7 @@ using cl_po
 unfolding PartialOrder_def dual_def
 by auto
 
-lemma (in PO) PO_imp_refl [simp]: "refl A r"
+lemma (in PO) PO_imp_refl_on [simp]: "refl_on A r"
 apply (insert cl_po)
 apply (simp add: PartialOrder_def A_def r_def)
 done
@@ -175,7 +175,7 @@ done
 
 lemma (in PO) reflE: "x \<in> A ==> (x, x) \<in> r"
 apply (insert cl_po)
-apply (simp add: PartialOrder_def refl_def A_def r_def)
+apply (simp add: PartialOrder_def refl_on_def A_def r_def)
 done
 
 lemma (in PO) antisymE: "[| (a, b) \<in> r; (b, a) \<in> r |] ==> a = b"
@@ -198,7 +198,7 @@ lemma (in PO) po_subset_po:
 apply (simp (no_asm) add: PartialOrder_def)
 apply auto
 -- {* refl *}
-apply (simp add: refl_def induced_def)
+apply (simp add: refl_on_def induced_def)
 apply (blast intro: reflE)
 -- {* antisym *}
 apply (simp add: antisym_def induced_def)
@@ -235,7 +235,7 @@ by (simp add: isLub_def isGlb_def dual_def converse_def)
 
 lemma (in PO) dualPO: "dual cl \<in> PartialOrder"
 apply (insert cl_po)
-apply (simp add: PartialOrder_def dual_def refl_converse
+apply (simp add: PartialOrder_def dual_def refl_on_converse
                  trans_converse antisym_converse)
 done
 
@@ -266,8 +266,8 @@ lemmas CL_imp_PO = CL_subset_PO [THEN subsetD]
 declare CL_imp_PO [THEN PO.PO_imp_sym, simp]
 declare CL_imp_PO [THEN PO.PO_imp_trans, simp]*)
 
-lemma (in CL) CO_refl: "refl A r"
-by (rule PO_imp_refl)
+lemma (in CL) CO_refl_on: "refl_on A r"
+by (rule PO_imp_refl_on)
 
 lemma (in CL) CO_antisym: "antisym r"
 by (rule PO_imp_sym)
@@ -533,7 +533,7 @@ done
 
 lemma (in CLF) fix_in_H:
      "[| H = {x. (x, f x) \<in> r & x \<in> A};  x \<in> P |] ==> x \<in> H"
-by (simp add: P_def fix_imp_eq [of _ f A] reflE CO_refl
+by (simp add: P_def fix_imp_eq [of _ f A] reflE CO_refl_on
                     fix_subset [of f A, THEN subsetD])
 
 lemma (in CLF) fixf_le_lubH:
@@ -583,8 +583,8 @@ done
 subsection {* interval *}
 
 lemma (in CLF) rel_imp_elem: "(x, y) \<in> r ==> x \<in> A"
-apply (insert CO_refl)
-apply (simp add: refl_def, blast)
+apply (insert CO_refl_on)
+apply (simp add: refl_on_def, blast)
 done
 
 lemma (in CLF) interval_subset: "[| a \<in> A; b \<in> A |] ==> interval r a b \<subseteq> A"
@@ -754,7 +754,7 @@ lemma (in CLF) Top_intv_not_empty: "x \<in> A  ==> interval r x (Top cl) \<noteq
 apply (rule notI)
 apply (drule_tac a = "Top cl" in equals0D)
 apply (simp add: interval_def)
-apply (simp add: refl_def Top_in_lattice Top_prop)
+apply (simp add: refl_on_def Top_in_lattice Top_prop)
 done
 
 lemma (in CLF) Bot_intv_not_empty: "x \<in> A ==> interval r (Bot cl) x \<noteq> {}"

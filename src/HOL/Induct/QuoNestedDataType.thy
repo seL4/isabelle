@@ -44,7 +44,7 @@ lemma exprel_refl: "X \<sim> X"
 
 theorem equiv_exprel: "equiv UNIV exprel"
 proof -
-  have "reflexive exprel" by (simp add: refl_def exprel_refl)
+  have "refl exprel" by (simp add: refl_on_def exprel_refl)
   moreover have "sym exprel" by (simp add: sym_def, blast intro: exprel.SYM)
   moreover have "trans exprel" by (simp add: trans_def, blast intro: exprel.TRANS)
   ultimately show ?thesis by (simp add: equiv_def)

@@ -3226,7 +3226,7 @@ by (unfold lenlex_def) blast
 lemma lenlex_conv:
     "lenlex r = {(xs,ys). length xs < length ys |
                  length xs = length ys \<and> (xs, ys) : lex r}"
-by (simp add: lenlex_def diag_def lex_prod_def inv_image_def)
+by (simp add: lenlex_def Id_on_def lex_prod_def inv_image_def)
 
 lemma Nil_notin_lex [iff]: "([], ys) \<notin> lex r"
 by (simp add: lex_conv)
@@ -3392,8 +3392,8 @@ apply clarify
 apply (erule listrel.induct, auto) 
 done
 
-lemma listrel_refl: "refl A r \<Longrightarrow> refl (lists A) (listrel r)" 
-apply (simp add: refl_def listrel_subset Ball_def)
+lemma listrel_refl_on: "refl_on A r \<Longrightarrow> refl_on (lists A) (listrel r)" 
+apply (simp add: refl_on_def listrel_subset Ball_def)
 apply (rule allI) 
 apply (induct_tac x) 
 apply (auto intro: listrel.intros)
@@ -3414,7 +3414,7 @@ apply (blast intro: listrel.intros)+
 done
 
 theorem equiv_listrel: "equiv A r \<Longrightarrow> equiv (lists A) (listrel r)"
-by (simp add: equiv_def listrel_refl listrel_sym listrel_trans) 
+by (simp add: equiv_def listrel_refl_on listrel_sym listrel_trans) 
 
 lemma listrel_Nil [simp]: "listrel r `` {[]} = {[]}"
 by (blast intro: listrel.intros)
