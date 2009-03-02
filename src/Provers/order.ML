@@ -639,7 +639,7 @@ fun transpose eq_comp g =
 
    (* Compute, for each adjacency list, the list with reversed edges,
       and concatenate these lists. *)
-   val flipped = foldr (op @) nil (map flip g)
+   val flipped = List.foldr (op @) nil (map flip g)
  
  in assemble g flipped end    
       
@@ -677,7 +677,7 @@ fun scc_term G =
       let
    val _ = visited := u :: !visited
    val descendents =
-       foldr (fn ((v,l),ds) => if been_visited v then ds
+       List.foldr (fn ((v,l),ds) => if been_visited v then ds
             else v :: dfs_visit g v @ ds)
         nil (adjacent (op aconv) g u)
       in
@@ -727,7 +727,7 @@ fun dfs_int_reachable g u =
       let
    val _ = visited := u :: !visited
    val descendents =
-       foldr (fn ((v,l),ds) => if been_visited v then ds
+       List.foldr (fn ((v,l),ds) => if been_visited v then ds
             else v :: dfs_visit g v @ ds)
         nil (adjacent (op =) g u)
    in  descendents end

@@ -1,5 +1,4 @@
 (*  Author: Jia Meng, Cambridge University Computer Laboratory
-    ID: $Id$
     Copyright 2004 University of Cambridge
 
 Storing/printing FOL clauses and arity clauses.
@@ -95,7 +94,7 @@ val const_prefix = "c_";
 val tconst_prefix = "tc_";
 val class_prefix = "class_";
 
-fun union_all xss = foldl (op union) [] xss;
+fun union_all xss = List.foldl (op union) [] xss;
 
 (*Provide readable names for the more common symbolic functions*)
 val const_trans_table =
@@ -275,7 +274,7 @@ fun pred_of_sort (LTVar (s,ty)) = (s,1)
   | pred_of_sort (LTFree (s,ty)) = (s,1)
 
 (*Given a list of sorted type variables, return a list of type literals.*)
-fun add_typs Ts = foldl (op union) [] (map sorts_on_typs Ts);
+fun add_typs Ts = List.foldl (op union) [] (map sorts_on_typs Ts);
 
 (*The correct treatment of TFrees like 'a in lemmas (axiom clauses) is not clear.
   * Ignoring them leads to unsound proofs, since we do nothing to ensure that 'a
@@ -338,8 +337,8 @@ fun class_pairs thy [] supers = []
       let val class_less = Sorts.class_less(Sign.classes_of thy)
           fun add_super sub (super,pairs) =
                 if class_less (sub,super) then (sub,super)::pairs else pairs
-          fun add_supers (sub,pairs) = foldl (add_super sub) pairs supers
-      in  foldl add_supers [] subs  end;
+          fun add_supers (sub,pairs) = List.foldl (add_super sub) pairs supers
+      in  List.foldl add_supers [] subs  end;
 
 fun make_classrelClause (sub,super) =
   ClassrelClause {axiom_name = clrelclause_prefix ^ ascii_of sub ^ "_" ^ ascii_of super,
@@ -375,7 +374,7 @@ fun type_class_pairs thy tycons classes =
       fun add_class tycon (class,pairs) =
             (class, domain_sorts(tycon,class))::pairs
             handle Sorts.CLASS_ERROR _ => pairs
-      fun try_classes tycon = (tycon, foldl (add_class tycon) [] classes)
+      fun try_classes tycon = (tycon, List.foldl (add_class tycon) [] classes)
   in  map try_classes tycons  end;
 
 (*Proving one (tycon, class) membership may require proving others, so iterate.*)
@@ -398,7 +397,7 @@ val make_arity_clauses = make_arity_clauses_dfg false;
 (*FIXME: multiple-arity checking doesn't work, as update_new is the wrong
   function (it flags repeated declarations of a function, even with the same arity)*)
 
-fun update_many (tab, keypairs) = foldl (uncurry Symtab.update) tab keypairs;
+fun update_many (tab, keypairs) = List.foldl (uncurry Symtab.update) tab keypairs;
 
 fun add_type_sort_preds (T, preds) =
       update_many (preds, map pred_of_sort (sorts_on_typs T));
@@ -412,14 +411,14 @@ fun class_of_arityLit (TConsLit (tclass, _, _)) = tclass
 fun add_arityClause_preds (ArityClause {conclLit,premLits,...}, preds) =
   let val classes = map (make_type_class o class_of_arityLit) (conclLit::premLits)
       fun upd (class,preds) = Symtab.update (class,1) preds
-  in  foldl upd preds classes  end;
+  in  List.foldl upd preds classes  end;
 
 (*** Find occurrences of functions in clauses ***)
 
 fun add_foltype_funcs (AtomV _, funcs) = funcs
   | add_foltype_funcs (AtomF a, funcs) = Symtab.update (a,0) funcs
   | add_foltype_funcs (Comp(a,tys), funcs) =
-      foldl add_foltype_funcs (Symtab.update (a, length tys) funcs) tys;
+      List.foldl add_foltype_funcs (Symtab.update (a, length tys) funcs) tys;
 
 (*TFrees are recorded as constants*)
 fun add_type_sort_funcs (TVar _, funcs) = funcs

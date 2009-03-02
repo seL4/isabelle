@@ -1778,7 +1778,7 @@ fun record_definition (args, bname) parent (parents: parent_info list) raw_field
     val names = map fst fields;
     val extN = full bname;
     val types = map snd fields;
-    val alphas_fields = foldr OldTerm.add_typ_tfree_names [] types;
+    val alphas_fields = List.foldr OldTerm.add_typ_tfree_names [] types;
     val alphas_ext = alphas inter alphas_fields;
     val len = length fields;
     val variants = Name.variant_list (moreN::rN::rN ^ "'"::wN::parent_variants) (map fst bfields);
@@ -1835,7 +1835,7 @@ fun record_definition (args, bname) parent (parents: parent_info list) raw_field
       let val (args',more) = chop_last args;
           fun mk_ext' (((name,T),args),more) = mk_ext (name,T) (args@[more]);
           fun build Ts =
-           foldr mk_ext' more (prune n (extension_names ~~ Ts ~~ (chunks parent_chunks args')))
+           List.foldr mk_ext' more (prune n (extension_names ~~ Ts ~~ (chunks parent_chunks args')))
       in
         if more = HOLogic.unit
         then build (map recT (0 upto parent_len))
@@ -2003,13 +2003,13 @@ fun record_definition (args, bname) parent (parents: parent_info list) raw_field
       end;
 
     val split_object_prop =
-      let fun ALL vs t = foldr (fn ((v,T),t) => HOLogic.mk_all (v,T,t)) t vs
+      let fun ALL vs t = List.foldr (fn ((v,T),t) => HOLogic.mk_all (v,T,t)) t vs
       in (ALL [dest_Free r0] (P $ r0)) === (ALL (map dest_Free all_vars_more) (P $ r_rec0))
       end;
 
 
     val split_ex_prop =
-      let fun EX vs t = foldr (fn ((v,T),t) => HOLogic.mk_exists (v,T,t)) t vs
+      let fun EX vs t = List.foldr (fn ((v,T),t) => HOLogic.mk_exists (v,T,t)) t vs
       in (EX [dest_Free r0] (P $ r0)) === (EX (map dest_Free all_vars_more) (P $ r_rec0))
       end;
 
@@ -2228,7 +2228,7 @@ fun gen_add_record prep_typ prep_raw_parent quiet_mode (params, bname) raw_paren
     val init_env =
       (case parent of
         NONE => []
-      | SOME (types, _) => foldr OldTerm.add_typ_tfrees [] types);
+      | SOME (types, _) => List.foldr OldTerm.add_typ_tfrees [] types);
 
 
     (* fields *)

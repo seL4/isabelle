@@ -51,7 +51,7 @@ datatype stree = Int of int | Br of string * stree list;
 fun atom x = Br(x,[]);
 
 fun scons (x,y) = Br("cons", [x,y]);
-val listof = foldl scons (atom "nil");
+val listof = List.foldl scons (atom "nil");
 
 (*Strings enclosed in single quotes, e.g. filenames*)
 val quoted = $$"'" |-- Scan.repeat (~$$"'") --| $$"'" >> implode;
@@ -243,7 +243,7 @@ fun clause_of_strees ctxt vt0 ts =
 fun gen_all_vars t = fold_rev Logic.all (OldTerm.term_vars t) t;
 
 fun ints_of_stree_aux (Int n, ns) = n::ns
-  | ints_of_stree_aux (Br(_,ts), ns) = foldl ints_of_stree_aux ns ts;
+  | ints_of_stree_aux (Br(_,ts), ns) = List.foldl ints_of_stree_aux ns ts;
 
 fun ints_of_stree t = ints_of_stree_aux (t, []);
 
@@ -362,7 +362,7 @@ fun eq_types t = t aconv HOLogic.true_const;
 fun replace_dep (old:int, new) dep = if dep=old then new else [dep];
 
 fun replace_deps (old:int, new) (lno, t, deps) =
-      (lno, t, foldl (op union_int) [] (map (replace_dep (old, new)) deps));
+      (lno, t, List.foldl (op union_int) [] (map (replace_dep (old, new)) deps));
 
 (*Discard axioms; consolidate adjacent lines that prove the same clause, since they differ
   only in type information.*)
@@ -392,7 +392,7 @@ fun add_nonnull_prfline ((lno, t, []), lines) = (*no dependencies, so a conjectu
      then delete_dep lno lines
      else (lno, t, []) :: lines
   | add_nonnull_prfline ((lno, t, deps), lines) = (lno, t, deps) :: lines
-and delete_dep lno lines = foldr add_nonnull_prfline [] (map (replace_deps (lno, [])) lines);
+and delete_dep lno lines = List.foldr add_nonnull_prfline [] (map (replace_deps (lno, [])) lines);
 
 fun bad_free (Free (a,_)) = String.isPrefix "sko_" a
   | bad_free _ = false;
@@ -435,11 +435,11 @@ fun decode_tstp_file cnfs ctxt th sgno thm_names =
       val tuples = map (dest_tstp o tstp_line o explode) cnfs
       val _ = trace (Int.toString (length tuples) ^ " tuples extracted\n")
       val ctxt = ProofContext.set_mode ProofContext.mode_schematic ctxt
-      val raw_lines = foldr add_prfline [] (decode_tstp_list ctxt tuples)
+      val raw_lines = List.foldr add_prfline [] (decode_tstp_list ctxt tuples)
       val _ = trace (Int.toString (length raw_lines) ^ " raw_lines extracted\n")
-      val nonnull_lines = foldr add_nonnull_prfline [] raw_lines
+      val nonnull_lines = List.foldr add_nonnull_prfline [] raw_lines
       val _ = trace (Int.toString (length nonnull_lines) ^ " nonnull_lines extracted\n")
-      val (_,lines) = foldr (add_wanted_prfline ctxt) (0,[]) nonnull_lines
+      val (_,lines) = List.foldr (add_wanted_prfline ctxt) (0,[]) nonnull_lines
       val _ = trace (Int.toString (length lines) ^ " lines extracted\n")
       val (ccls,fixes) = ResAxioms.neg_conjecture_clauses th sgno
       val _ = trace (Int.toString (length ccls) ^ " conjecture clauses\n")

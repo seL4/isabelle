@@ -1,5 +1,4 @@
 (*  Title:      HOL/Import/lazy_seq.ML
-    ID:         $Id$
     Author:     Sebastian Skalberg, TU Muenchen
 
 Alternative version of lazy sequences.
@@ -408,8 +407,8 @@ fun op APPEND (f, g) x =
 	make (fn () => copy (f x))
     end
 
-fun EVERY fs = foldr (op THEN) succeed fs
-fun FIRST fs = foldr (op ORELSE) fail fs
+fun EVERY fs = List.foldr (op THEN) succeed fs
+fun FIRST fs = List.foldr (op ORELSE) fail fs
 
 fun TRY f x =
     make (fn () =>

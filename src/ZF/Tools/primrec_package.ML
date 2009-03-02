@@ -120,7 +120,7 @@ fun process_fun thy (fname, ftype, ls, rs, con_info: constructor_info, eqns) =
               | SOME (rhs, cargs', eq) =>
                     (rhs, inst_recursor (recursor_pair, cargs'), eq)
           val allowed_terms = map use_fabs (#2 (strip_comb recursor_rhs))
-          val abs = foldr absterm rhs allowed_terms
+          val abs = List.foldr absterm rhs allowed_terms
       in
           if !Ind_Syntax.trace then
               writeln ("recursor_rhs = " ^
@@ -145,7 +145,7 @@ fun process_fun thy (fname, ftype, ls, rs, con_info: constructor_info, eqns) =
     val def_tm = Logic.mk_equals
                     (subst_bound (rec_arg, fabs),
                      list_comb (recursor,
-                                foldr add_case [] (cnames ~~ recursor_pairs))
+                                List.foldr add_case [] (cnames ~~ recursor_pairs))
                      $ rec_arg)
 
   in
@@ -164,7 +164,7 @@ fun add_primrec_i args thy =
   let
     val ((eqn_names, eqn_terms), eqn_atts) = apfst split_list (split_list args);
     val SOME (fname, ftype, ls, rs, con_info, eqns) =
-      foldr (process_eqn thy) NONE eqn_terms;
+      List.foldr (process_eqn thy) NONE eqn_terms;
     val def = process_fun thy (fname, ftype, ls, rs, con_info, eqns);
 
     val ([def_thm], thy1) = thy

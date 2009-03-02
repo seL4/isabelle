@@ -71,7 +71,7 @@ fun add optmod optnparms = Thm.declaration_attribute (fn thm => Context.mapping 
           {intros = intros |>
            Symtab.update (s, (AList.update Thm.eq_thm_prop
              (thm, (thyname_of s, nparms)) rules)),
-           graph = foldr (uncurry (Graph.add_edge o pair s))
+           graph = List.foldr (uncurry (Graph.add_edge o pair s))
              (Library.foldl add_node (graph, s :: cs)) cs,
            eqns = eqns} thy
         end
@@ -152,7 +152,7 @@ fun subsets i j = if i <= j then
 fun cprod ([], ys) = []
   | cprod (x :: xs, ys) = map (pair x) ys @ cprod (xs, ys);
 
-fun cprods xss = foldr (map op :: o cprod) [[]] xss;
+fun cprods xss = List.foldr (map op :: o cprod) [[]] xss;
 
 datatype mode = Mode of (int list option list * int list) * int list * mode option list;
 
@@ -357,7 +357,7 @@ fun compile_clause thy defs dep module all_vs arg_vs modes (iss, is) (ts, ps) in
 
     val (in_ts, out_ts) = get_args is 1 ts;
     val ((all_vs', eqs), in_ts') =
-      foldl_map check_constrt ((all_vs, []), in_ts);
+      Library.foldl_map check_constrt ((all_vs, []), in_ts);
 
     fun compile_prems out_ts' vs names [] gr =
           let
@@ -365,8 +365,8 @@ fun compile_clause thy defs dep module all_vs arg_vs modes (iss, is) (ts, ps) in
               (invoke_codegen thy defs dep module false) out_ts gr;
             val (eq_ps, gr3) = fold_map compile_eq eqs gr2;
             val ((names', eqs'), out_ts'') =
-              foldl_map check_constrt ((names, []), out_ts');
-            val (nvs, out_ts''') = foldl_map distinct_v
+              Library.foldl_map check_constrt ((names, []), out_ts');
+            val (nvs, out_ts''') = Library.foldl_map distinct_v
               ((names', map (fn x => (x, [x])) vs), out_ts'');
             val (out_ps', gr4) = fold_map
               (invoke_codegen thy defs dep module false) (out_ts''') gr3;
@@ -383,8 +383,8 @@ fun compile_clause thy defs dep module all_vs arg_vs modes (iss, is) (ts, ps) in
               select_mode_prem thy modes' vs' ps;
             val ps' = filter_out (equal p) ps;
             val ((names', eqs), out_ts') =
-              foldl_map check_constrt ((names, []), out_ts);
-            val (nvs, out_ts'') = foldl_map distinct_v
+              Library.foldl_map check_constrt ((names, []), out_ts);
+            val (nvs, out_ts'') = Library.foldl_map distinct_v
               ((names', map (fn x => (x, [x])) vs), out_ts');
             val (out_ps, gr0) = fold_map
               (invoke_codegen thy defs dep module false) out_ts'' gr;

@@ -433,7 +433,7 @@ fun add_asms(ss,thm,a,anet,ats,cs) =
         val thms = map (trivial o cterm_of(Thm.theory_of_thm thm)) As;
         val new_rws = List.concat(map mk_rew_rules thms);
         val rwrls = map mk_trans (List.concat(map mk_rew_rules thms));
-        val anet' = foldr lhs_insert_thm anet rwrls
+        val anet' = List.foldr lhs_insert_thm anet rwrls
     in  if !tracing andalso not(null new_rws)
         then (writeln"Adding rewrites:";  Display.prths new_rws;  ())
         else ();

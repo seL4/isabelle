@@ -205,7 +205,7 @@ fun make_primrecs new_type_names descr sorts thy =
   let
     val descr' = List.concat descr;
     val recTs = get_rec_types descr' sorts;
-    val used = foldr OldTerm.add_typ_tfree_names [] recTs;
+    val used = List.foldr OldTerm.add_typ_tfree_names [] recTs;
 
     val (rec_result_Ts, reccomb_fn_Ts) = make_primrec_Ts descr sorts used;
 
@@ -255,7 +255,7 @@ fun make_case_combs new_type_names descr sorts thy fname =
   let
     val descr' = List.concat descr;
     val recTs = get_rec_types descr' sorts;
-    val used = foldr OldTerm.add_typ_tfree_names [] recTs;
+    val used = List.foldr OldTerm.add_typ_tfree_names [] recTs;
     val newTs = Library.take (length (hd descr), recTs);
     val T' = TFree (Name.variant used "'t", HOLogic.typeS);
 
@@ -302,7 +302,7 @@ fun make_splits new_type_names descr sorts thy =
   let
     val descr' = List.concat descr;
     val recTs = get_rec_types descr' sorts;
-    val used' = foldr OldTerm.add_typ_tfree_names [] recTs;
+    val used' = List.foldr OldTerm.add_typ_tfree_names [] recTs;
     val newTs = Library.take (length (hd descr), recTs);
     val T' = TFree (Name.variant used' "'t", HOLogic.typeS);
     val P = Free ("P", T' --> HOLogic.boolT);
@@ -319,13 +319,13 @@ fun make_splits new_type_names descr sorts thy =
             val eqn = HOLogic.mk_eq (Free ("x", T),
               list_comb (Const (cname, Ts ---> T), frees));
             val P' = P $ list_comb (f, frees)
-          in ((foldr (fn (Free (s, T), t) => HOLogic.mk_all (s, T, t))
+          in ((List.foldr (fn (Free (s, T), t) => HOLogic.mk_all (s, T, t))
                 (HOLogic.imp $ eqn $ P') frees)::t1s,
-              (foldr (fn (Free (s, T), t) => HOLogic.mk_exists (s, T, t))
+              (List.foldr (fn (Free (s, T), t) => HOLogic.mk_exists (s, T, t))
                 (HOLogic.conj $ eqn $ (HOLogic.Not $ P')) frees)::t2s)
           end;
 
-        val (t1s, t2s) = foldr process_constr ([], []) (constrs ~~ fs);
+        val (t1s, t2s) = List.foldr process_constr ([], []) (constrs ~~ fs);
         val lhs = P $ (comb_t $ Free ("x", T))
       in
         (HOLogic.mk_Trueprop (HOLogic.mk_eq (lhs, mk_conj t1s)),
@@ -422,7 +422,7 @@ fun make_nchotomys descr sorts =
         val tnames = Name.variant_list ["v"] (make_tnames Ts);
         val frees = tnames ~~ Ts
       in
-        foldr (fn ((s, T'), t) => HOLogic.mk_exists (s, T', t))
+        List.foldr (fn ((s, T'), t) => HOLogic.mk_exists (s, T', t))
           (HOLogic.mk_eq (Free ("v", T),
             list_comb (Const (cname, Ts ---> T), map Free frees))) frees
       end

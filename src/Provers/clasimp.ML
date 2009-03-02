@@ -1,5 +1,4 @@
 (*  Title:      Provers/clasimp.ML
-    ID:         $Id$
     Author:     David von Oheimb, TU Muenchen
 
 Combination of classical reasoner and simplifier (depends on
@@ -153,7 +152,7 @@ fun delIff delcs delss ((cs, ss), th) =
   end;
 
 fun modifier att (x, ths) =
-  fst (foldl_map (Library.apply [att]) (x, rev ths));
+  fst (Library.foldl_map (Library.apply [att]) (x, rev ths));
 
 val addXIs = modifier (ContextRules.intro_query NONE);
 val addXEs = modifier (ContextRules.elim_query NONE);

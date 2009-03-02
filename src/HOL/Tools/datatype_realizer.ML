@@ -1,5 +1,4 @@
 (*  Title:      HOL/Tools/datatype_realizer.ML
-    ID:         $Id$
     Author:     Stefan Berghofer, TU Muenchen
 
 Porgram extraction from proofs involving datatypes:
@@ -57,8 +56,8 @@ fun make_ind sorts ({descr, rec_names, rec_rewrites, induction, ...} : datatype_
     fun mk_all i s T t =
       if i mem is then list_all_free ([(s, T)], t) else t;
 
-    val (prems, rec_fns) = split_list (List.concat (snd (foldl_map
-      (fn (j, ((i, (_, _, constrs)), T)) => foldl_map (fn (j, (cname, cargs)) =>
+    val (prems, rec_fns) = split_list (List.concat (snd (Library.foldl_map
+      (fn (j, ((i, (_, _, constrs)), T)) => Library.foldl_map (fn (j, (cname, cargs)) =>
         let
           val Ts = map (typ_of_dtyp descr sorts) cargs;
           val tnames = Name.variant_list pnames (DatatypeProp.make_tnames Ts);
@@ -139,8 +138,8 @@ fun make_ind sorts ({descr, rec_names, rec_rewrites, induction, ...} : datatype_
       tname_of (body_type T) mem ["set", "bool"]) ivs);
     val ivs2 = map (fn (ixn, _) => Var (ixn, valOf (AList.lookup (op =) rvs ixn))) ivs;
 
-    val prf = foldr forall_intr_prf
-     (foldr (fn ((f, p), prf) =>
+    val prf = List.foldr forall_intr_prf
+     (List.foldr (fn ((f, p), prf) =>
         (case head_of (strip_abs_body f) of
            Free (s, T) =>
              let val T' = Logic.varifyT T
@@ -151,7 +150,7 @@ fun make_ind sorts ({descr, rec_names, rec_rewrites, induction, ...} : datatype_
            (Proofterm.proof_combP
              (prf_of thm', map PBound (length prems - 1 downto 0))) (rec_fns ~~ prems_of thm)) ivs2;
 
-    val r' = if null is then r else Logic.varify (foldr (uncurry lambda)
+    val r' = if null is then r else Logic.varify (List.foldr (uncurry lambda)
       r (map Logic.unvarify ivs1 @ filter_out is_unit
           (map (head_of o strip_abs_body) rec_fns)));
 
@@ -201,7 +200,7 @@ fun make_casedists sorts ({index, descr, case_name, case_rewrites, exhaustion, .
 
     val P = Var (("P", 0), rT' --> HOLogic.boolT);
     val prf = forall_intr_prf (y, forall_intr_prf (P,
-      foldr (fn ((p, r), prf) =>
+      List.foldr (fn ((p, r), prf) =>
         forall_intr_prf (Logic.legacy_varify r, AbsP ("H", SOME (Logic.varify p),
           prf))) (Proofterm.proof_combP (prf_of thm',
             map PBound (length prems - 1 downto 0))) (prems ~~ rs)));

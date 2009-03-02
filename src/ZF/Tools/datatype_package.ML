@@ -1,5 +1,4 @@
 (*  Title:      ZF/Tools/datatype_package.ML
-    ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1994  University of Cambridge
 
@@ -140,11 +139,11 @@ fun add_datatype_i (dom_sum, rec_tms) con_ty_lists (monos, type_intrs, type_elim
   (*Treatment of a list of constructors, for one part
     Result adds a list of terms, each a function variable with arguments*)
   fun add_case_list (con_ty_list, (opno, case_lists)) =
-    let val (opno', case_list) = foldr add_case (opno, []) con_ty_list
+    let val (opno', case_list) = List.foldr add_case (opno, []) con_ty_list
     in (opno', case_list :: case_lists) end;
 
   (*Treatment of all parts*)
-  val (_, case_lists) = foldr add_case_list (1,[]) con_ty_lists;
+  val (_, case_lists) = List.foldr add_case_list (1,[]) con_ty_lists;
 
   (*extract the types of all the variables*)
   val case_typ = List.concat (map (map (#2 o #1)) con_ty_lists) ---> @{typ "i => i"};
@@ -184,7 +183,7 @@ fun add_datatype_i (dom_sum, rec_tms) con_ty_lists (monos, type_intrs, type_elim
           val rec_args = map (make_rec_call (rev case_args,0))
                          (List.drop(recursor_args, ncase_args))
       in
-          foldr add_abs
+          List.foldr add_abs
             (list_comb (recursor_var,
                         bound_args @ rec_args)) case_args
       end
@@ -216,7 +215,7 @@ fun add_datatype_i (dom_sum, rec_tms) con_ty_lists (monos, type_intrs, type_elim
   val rec_ty_lists = (map (map rec_ty_elem) con_ty_lists);
 
   (*Treatment of all parts*)
-  val (_, recursor_lists) = foldr add_case_list (1,[]) rec_ty_lists;
+  val (_, recursor_lists) = List.foldr add_case_list (1,[]) rec_ty_lists;
 
   (*extract the types of all the variables*)
   val recursor_typ = List.concat (map (map (#2 o #1)) rec_ty_lists) ---> @{typ "i => i"};

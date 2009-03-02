@@ -92,7 +92,7 @@ fun flexflex_first_order th =
     | pairs =>
         let val thy = theory_of_thm th
             val (tyenv,tenv) =
-                  foldl (uncurry (Pattern.first_order_match thy)) (tyenv0,tenv0) pairs
+                  List.foldl (uncurry (Pattern.first_order_match thy)) (tyenv0,tenv0) pairs
             val t_pairs = map term_pair_of (Vartab.dest tenv)
             val th' = Thm.instantiate ([], map (pairself (cterm_of thy)) t_pairs) th
         in  th'  end
@@ -428,7 +428,7 @@ fun add_contras crules (th,hcs) =
 fun name_thms label =
     let fun name1 (th, (k,ths)) =
           (k-1, Thm.put_name_hint (label ^ string_of_int k) th :: ths)
-    in  fn ths => #2 (foldr name1 (length ths, []) ths)  end;
+    in  fn ths => #2 (List.foldr name1 (length ths, []) ths)  end;
 
 (*Is the given disjunction an all-negative support clause?*)
 fun is_negative th = forall (not o #1) (literals (prop_of th));
@@ -477,7 +477,7 @@ fun prolog_step_tac horns i =
 (*Sums the sizes of the subgoals, ignoring hypotheses (ancestors)*)
 fun addconcl(prem,sz) = size_of_term(Logic.strip_assums_concl prem) + sz
 
-fun size_of_subgoals st = foldr addconcl 0 (prems_of st);
+fun size_of_subgoals st = List.foldr addconcl 0 (prems_of st);
 
 
 (*Negation Normal Form*)
@@ -544,12 +544,12 @@ fun add_clauses (th,cls) =
 
 (*Make clauses from a list of theorems, previously Skolemized and put into nnf.
   The resulting clauses are HOL disjunctions.*)
-fun make_clauses ths = sort_clauses (foldr add_clauses [] ths);
+fun make_clauses ths = sort_clauses (List.foldr add_clauses [] ths);
 
 (*Convert a list of clauses (disjunctions) to Horn clauses (contrapositives)*)
 fun make_horns ths =
     name_thms "Horn#"
-      (distinct Thm.eq_thm_prop (foldr (add_contras clause_rules) [] ths));
+      (distinct Thm.eq_thm_prop (List.foldr (add_contras clause_rules) [] ths));
 
 (*Could simply use nprems_of, which would count remaining subgoals -- no
   discrimination as to their size!  With BEST_FIRST, fails for problem 41.*)

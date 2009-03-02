@@ -517,7 +517,7 @@ fun prove_indrule quiet_mode cs argTs bs xs rec_const params intr_ts mono
           (HOLogic.dest_Trueprop (Logic.strip_assums_concl r))
 
       in list_all_free (Logic.strip_params r,
-        Logic.list_implies (map HOLogic.mk_Trueprop (foldr mk_prem
+        Logic.list_implies (map HOLogic.mk_Trueprop (List.foldr mk_prem
           [] (map HOLogic.dest_Trueprop (Logic.strip_assums_hyp r))),
             HOLogic.mk_Trueprop (list_comb (List.nth (preds, i), ys))))
       end;
@@ -541,7 +541,7 @@ fun prove_indrule quiet_mode cs argTs bs xs rec_const params intr_ts mono
     (* make predicate for instantiation of abstract induction rule *)
 
     val ind_pred = fold_rev lambda (bs @ xs) (foldr1 HOLogic.mk_conj
-      (map_index (fn (i, P) => foldr HOLogic.mk_imp
+      (map_index (fn (i, P) => List.foldr HOLogic.mk_imp
          (list_comb (P, make_args' argTs xs (binder_types (fastype_of P))))
          (make_bool_args HOLogic.mk_not I bs i)) preds));
 
@@ -624,7 +624,7 @@ fun mk_ind_def quiet_mode skip_mono fork_mono alt_name coind cs intr_ts monos pa
           map HOLogic.mk_eq (make_args' argTs xs Ts ~~ ts) @
           map (subst o HOLogic.dest_Trueprop)
             (Logic.strip_assums_hyp r)
-      in foldr (fn ((x, T), P) => HOLogic.exists_const T $ (Abs (x, T, P)))
+      in List.foldr (fn ((x, T), P) => HOLogic.exists_const T $ (Abs (x, T, P)))
         (if null ps then HOLogic.true_const else foldr1 HOLogic.mk_conj ps)
         (Logic.strip_params r)
       end

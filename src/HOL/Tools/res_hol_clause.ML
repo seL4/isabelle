@@ -1,4 +1,4 @@
-(* ID: $Id$
+(*
    Author: Jia Meng, NICTA
 
 FOL clauses translated from HOL formulae.
@@ -183,7 +183,7 @@ fun add_axiom_clause dfg thy ((th,(name,id)), pairs) =
       if isTaut cls then pairs else (name,cls)::pairs
   end;
 
-fun make_axiom_clauses dfg thy = foldl (add_axiom_clause dfg thy) [];
+fun make_axiom_clauses dfg thy = List.foldl (add_axiom_clause dfg thy) [];
 
 fun make_conjecture_clauses_aux dfg _ _ [] = []
   | make_conjecture_clauses_aux dfg thy n (th::ths) =
@@ -328,7 +328,7 @@ fun clause2dfg cma cnh (cls as Clause{axiom_name,clause_id,kind,ctypes_sorts,...
 
 (** For DFG format: accumulate function and predicate declarations **)
 
-fun addtypes tvars tab = foldl RC.add_foltype_funcs tab tvars;
+fun addtypes tvars tab = List.foldl RC.add_foltype_funcs tab tvars;
 
 fun add_decls cma cnh (CombConst(c,tp,tvars), (funcs,preds)) =
       if c = "equal" then (addtypes tvars funcs, preds)
@@ -347,28 +347,28 @@ fun add_decls cma cnh (CombConst(c,tp,tvars), (funcs,preds)) =
 fun add_literal_decls cma cnh (Literal(_,c), decls) = add_decls cma cnh (c,decls);
 
 fun add_clause_decls cma cnh (Clause {literals, ...}, decls) =
-    foldl (add_literal_decls cma cnh) decls literals
+    List.foldl (add_literal_decls cma cnh) decls literals
     handle Symtab.DUP a => error ("function " ^ a ^ " has multiple arities")
 
 fun decls_of_clauses cma cnh clauses arity_clauses =
   let val init_functab = Symtab.update (type_wrapper,2) (Symtab.update ("hAPP",2) RC.init_functab)
       val init_predtab = Symtab.update ("hBOOL",1) Symtab.empty
-      val (functab,predtab) = (foldl (add_clause_decls cma cnh) (init_functab, init_predtab) clauses)
+      val (functab,predtab) = (List.foldl (add_clause_decls cma cnh) (init_functab, init_predtab) clauses)
   in
-      (Symtab.dest (foldl RC.add_arityClause_funcs functab arity_clauses),
+      (Symtab.dest (List.foldl RC.add_arityClause_funcs functab arity_clauses),
        Symtab.dest predtab)
   end;
 
 fun add_clause_preds (Clause {ctypes_sorts, ...}, preds) =
-  foldl RC.add_type_sort_preds preds ctypes_sorts
+  List.foldl RC.add_type_sort_preds preds ctypes_sorts
   handle Symtab.DUP a => error ("predicate " ^ a ^ " has multiple arities")
 
 (*Higher-order clauses have only the predicates hBOOL and type classes.*)
 fun preds_of_clauses clauses clsrel_clauses arity_clauses =
     Symtab.dest
-        (foldl RC.add_classrelClause_preds
-               (foldl RC.add_arityClause_preds
-                      (foldl add_clause_preds Symtab.empty clauses)
+        (List.foldl RC.add_classrelClause_preds
+               (List.foldl RC.add_arityClause_preds
+                      (List.foldl add_clause_preds Symtab.empty clauses)
                       arity_clauses)
                clsrel_clauses)
 
@@ -390,10 +390,10 @@ fun count_combterm (CombConst(c,tp,_), ct) =
 
 fun count_literal (Literal(_,t), ct) = count_combterm(t,ct);
 
-fun count_clause (Clause{literals,...}, ct) = foldl count_literal ct literals;
+fun count_clause (Clause{literals,...}, ct) = List.foldl count_literal ct literals;
 
 fun count_user_clause user_lemmas (Clause{axiom_name,literals,...}, ct) =
-  if axiom_name mem_string user_lemmas then foldl count_literal ct literals
+  if axiom_name mem_string user_lemmas then List.foldl count_literal ct literals
   else ct;
 
 fun cnf_helper_thms thy =
@@ -402,8 +402,8 @@ fun cnf_helper_thms thy =
 fun get_helper_clauses dfg thy isFO (conjectures, axclauses, user_lemmas) =
   if isFO then []  (*first-order*)
   else
-    let val ct0 = foldl count_clause init_counters conjectures
-        val ct = foldl (count_user_clause user_lemmas) ct0 axclauses
+    let val ct0 = List.foldl count_clause init_counters conjectures
+        val ct = List.foldl (count_user_clause user_lemmas) ct0 axclauses
         fun needed c = valOf (Symtab.lookup ct c) > 0
         val IK = if needed "c_COMBI" orelse needed "c_COMBK"
                  then (Output.debug (fn () => "Include combinator I K"); cnf_helper_thms thy [comb_I,comb_K])
@@ -468,7 +468,7 @@ fun tptp_write_file thy isFO thms filename (ax_tuples,classrel_clauses,arity_cla
         val helper_clauses = get_helper_clauses false thy isFO (conjectures, axclauses, user_lemmas)
         val (const_min_arity, const_needs_hBOOL) = count_constants (conjectures, axclauses, helper_clauses);
         val (tptp_clss,tfree_litss) = ListPair.unzip (map (clause2tptp const_min_arity const_needs_hBOOL) conjectures)
-        val tfree_clss = map RC.tptp_tfree_clause (foldl (op union_string) [] tfree_litss)
+        val tfree_clss = map RC.tptp_tfree_clause (List.foldl (op union_string) [] tfree_litss)
         val out = TextIO.openOut filename
     in
         List.app (curry TextIO.output out o #1 o (clause2tptp const_min_arity const_needs_hBOOL)) axclauses;
