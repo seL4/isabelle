@@ -45,7 +45,8 @@ class Token(var start: Int, var stop: Int, val kind: Token.Kind.Value)
     start = bottom_clamp max (start + offset)
     stop = bottom_clamp max (stop + offset)
   }
-  
+
+  override def toString: String = "[" + start + ":" + stop + "]"
   override def hashCode: Int = (31 + start) * 31 + stop
 
   override def equals(obj: Any): Boolean =
