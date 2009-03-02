@@ -147,8 +147,8 @@ Division, remainder of negatives
 @{thm[display] zdiv_zadd1_eq[no_vars]}
 \rulename{zdiv_zadd1_eq}
 
-@{thm[display] zmod_zadd1_eq[no_vars]}
-\rulename{zmod_zadd1_eq}
+@{thm[display] mod_add1_eq[no_vars]}
+\rulename{mod_add1_eq}
 
 @{thm[display] zdiv_zmult1_eq[no_vars]}
 \rulename{zdiv_zmult1_eq}

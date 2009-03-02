@@ -398,6 +398,7 @@ zmod_zadd_left_eq      -> mod_add_left_eq
 zmod_zadd_right_eq     -> mod_add_right_eq
 zmod_zadd_self1        -> mod_add_self1
 zmod_zadd_self2        -> mod_add_self2
+zmod_zadd1_eq          -> mod_add1_eq
 zmod_zdiff1_eq         -> mod_diff_eq
 zmod_zdvd_zmod         -> mod_mod_cancel
 zmod_zmod_cancel       -> mod_mod_cancel
