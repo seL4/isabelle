@@ -344,8 +344,8 @@ apply (simp add: relcl_def)
 apply (blast intro: clD cl_in_lattice)
 done
 
-lemma refl_relcl: "lattice L ==> refl UNIV (relcl L)"
-by (simp add: reflI relcl_def subset_cl [THEN subsetD])
+lemma refl_relcl: "lattice L ==> refl (relcl L)"
+by (simp add: refl_onI relcl_def subset_cl [THEN subsetD])
 
 lemma trans_relcl: "lattice L ==> trans (relcl L)"
 by (blast intro: relcl_trans transI)
@@ -362,12 +362,12 @@ done
 
 text{*Equation (4.71) of Meier's thesis.  He gives no proof.*}
 lemma cl_latticeof:
-     "[|refl UNIV r; trans r|] 
+     "[|refl r; trans r|] 
       ==> cl (latticeof r) X = {t. \<exists>s. s\<in>X & (s,t) \<in> r}" 
 apply (rule equalityI) 
  apply (rule cl_least) 
   apply (simp (no_asm_use) add: latticeof_def trans_def, blast)
- apply (simp add: latticeof_def refl_def, blast)
+ apply (simp add: latticeof_def refl_on_def, blast)
 apply (simp add: latticeof_def, clarify)
 apply (unfold cl_def, blast) 
 done
@@ -400,7 +400,7 @@ apply (simp add: relcl_def)
 done
 
 theorem relcl_latticeof_eq:
-     "[|refl UNIV r; trans r|] ==> relcl (latticeof r) = r"
+     "[|refl r; trans r|] ==> relcl (latticeof r) = r"
 by (simp add: relcl_def cl_latticeof)
 
 

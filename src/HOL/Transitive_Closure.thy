@@ -64,8 +64,8 @@ notation (HTML output)
 
 subsection {* Reflexive closure *}
 
-lemma reflexive_reflcl[simp]: "reflexive(r^=)"
-by(simp add:refl_def)
+lemma refl_reflcl[simp]: "refl(r^=)"
+by(simp add:refl_on_def)
 
 lemma antisym_reflcl[simp]: "antisym(r^=) = antisym r"
 by(simp add:antisym_def)
@@ -118,8 +118,8 @@ lemmas rtrancl_induct2 =
   rtrancl_induct[of "(ax,ay)" "(bx,by)", split_format (complete),
                  consumes 1, case_names refl step]
 
-lemma reflexive_rtrancl: "reflexive (r^*)"
-  by (unfold refl_def) fast
+lemma refl_rtrancl: "refl (r^*)"
+by (unfold refl_on_def) fast
 
 text {* Transitivity of transitive closure. *}
 lemma trans_rtrancl: "trans (r^*)"

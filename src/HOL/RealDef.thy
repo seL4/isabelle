@@ -94,7 +94,7 @@ lemma realrel_iff [simp]: "(((x1,y1),(x2,y2)) \<in> realrel) = (x1 + y2 = x2 + y
 by (simp add: realrel_def)
 
 lemma equiv_realrel: "equiv UNIV realrel"
-apply (auto simp add: equiv_def refl_def sym_def trans_def realrel_def)
+apply (auto simp add: equiv_def refl_on_def sym_def trans_def realrel_def)
 apply (blast dest: preal_trans_lemma) 
 done
 

@@ -8,7 +8,7 @@ Still needs flatten function -- hard because it need
 bounds on the amount of lookahead required.
 
 Could try (but would it work for the gfp analogue of term?)
-  LListD_Fun_def "LListD_Fun(A) == (%Z. diag({Numb(0)}) <++> diag(A) <**> Z)"
+  LListD_Fun_def "LListD_Fun(A) == (%Z. Id_on({Numb(0)}) <++> Id_on(A) <**> Z)"
 
 A nice but complex example would be [ML for the Working Programmer, page 176]
   from(1) = enumerate (Lmap (Lmap(pack), makeqq(from(1),from(1))))
@@ -95,7 +95,7 @@ definition
   llistD_Fun :: "('a llist * 'a llist)set => ('a llist * 'a llist)set" where
     "llistD_Fun(r) =   
         prod_fun Abs_LList Abs_LList `         
-                LListD_Fun (diag(range Leaf))   
+                LListD_Fun (Id_on(range Leaf))   
                             (prod_fun Rep_LList Rep_LList ` r)"
 
 
@@ -265,12 +265,12 @@ done
 subsection{* @{text llist} equality as a @{text gfp}; the bisimulation principle *}
 
 text{*This theorem is actually used, unlike the many similar ones in ZF*}
-lemma LListD_unfold: "LListD r = dsum (diag {Numb 0}) (dprod r (LListD r))"
+lemma LListD_unfold: "LListD r = dsum (Id_on {Numb 0}) (dprod r (LListD r))"
   by (fast intro!: LListD.intros [unfolded NIL_def CONS_def]
            elim: LListD.cases [unfolded NIL_def CONS_def])
 
 lemma LListD_implies_ntrunc_equality [rule_format]:
-     "\<forall>M N. (M,N) \<in> LListD(diag A) --> ntrunc k M = ntrunc k N"
+     "\<forall>M N. (M,N) \<in> LListD(Id_on A) --> ntrunc k M = ntrunc k N"
 apply (induct_tac "k" rule: nat_less_induct) 
 apply (safe del: equalityI)
 apply (erule LListD.cases)
@@ -283,7 +283,7 @@ done
 
 text{*The domain of the @{text LListD} relation*}
 lemma Domain_LListD: 
-    "Domain (LListD(diag A)) \<subseteq> llist(A)"
+    "Domain (LListD(Id_on A)) \<subseteq> llist(A)"
 apply (rule subsetI)
 apply (erule llist.coinduct)
 apply (simp add: NIL_def CONS_def)
@@ -291,10 +291,10 @@ apply (drule_tac P = "%x. xa \<in> Domain x" in LListD_unfold [THEN subst], auto
 done
 
 text{*This inclusion justifies the use of coinduction to show @{text "M = N"}*}
-lemma LListD_subset_diag: "LListD(diag A) \<subseteq> diag(llist(A))"
+lemma LListD_subset_Id_on: "LListD(Id_on A) \<subseteq> Id_on(llist(A))"
 apply (rule subsetI)
 apply (rule_tac p = x in PairE, safe)
-apply (rule diag_eqI)
+apply (rule Id_on_eqI)
 apply (rule LListD_implies_ntrunc_equality [THEN ntrunc_equality], assumption) 
 apply (erule DomainI [THEN Domain_LListD [THEN subsetD]])
 done
@@ -321,7 +321,7 @@ lemma LListD_Fun_NIL_I: "(NIL,NIL) \<in> LListD_Fun r s"
 by (simp add: LListD_Fun_def NIL_def)
 
 lemma LListD_Fun_CONS_I: 
-     "[| x\<in>A;  (M,N):s |] ==> (CONS x M, CONS x N) \<in> LListD_Fun (diag A) s"
+     "[| x\<in>A;  (M,N):s |] ==> (CONS x M, CONS x N) \<in> LListD_Fun (Id_on A) s"
 by (simp add: LListD_Fun_def CONS_def, blast)
 
 text{*Utilise the "strong" part, i.e. @{text "gfp(f)"}*}
@@ -335,24 +335,24 @@ done
 
 
 text{*This converse inclusion helps to strengthen @{text LList_equalityI}*}
-lemma diag_subset_LListD: "diag(llist(A)) \<subseteq> LListD(diag A)"
+lemma Id_on_subset_LListD: "Id_on(llist(A)) \<subseteq> LListD(Id_on A)"
 apply (rule subsetI)
 apply (erule LListD_coinduct)
 apply (rule subsetI)
-apply (erule diagE)
+apply (erule Id_onE)
 apply (erule ssubst)
 apply (erule llist.cases)
-apply (simp_all add: diagI LListD_Fun_NIL_I LListD_Fun_CONS_I)
+apply (simp_all add: Id_onI LListD_Fun_NIL_I LListD_Fun_CONS_I)
 done
 
-lemma LListD_eq_diag: "LListD(diag A) = diag(llist(A))"
-apply (rule equalityI LListD_subset_diag diag_subset_LListD)+
+lemma LListD_eq_Id_on: "LListD(Id_on A) = Id_on(llist(A))"
+apply (rule equalityI LListD_subset_Id_on Id_on_subset_LListD)+
 done
 
-lemma LListD_Fun_diag_I: "M \<in> llist(A) ==> (M,M) \<in> LListD_Fun (diag A) (X Un diag(llist(A)))"
-apply (rule LListD_eq_diag [THEN subst])
+lemma LListD_Fun_Id_on_I: "M \<in> llist(A) ==> (M,M) \<in> LListD_Fun (Id_on A) (X Un Id_on(llist(A)))"
+apply (rule LListD_eq_Id_on [THEN subst])
 apply (rule LListD_Fun_LListD_I)
-apply (simp add: LListD_eq_diag diagI)
+apply (simp add: LListD_eq_Id_on Id_onI)
 done
 
 
@@ -360,11 +360,11 @@ subsubsection{* To show two LLists are equal, exhibit a bisimulation!
       [also admits true equality]
    Replace @{text A} by some particular set, like @{text "{x. True}"}??? *}
 lemma LList_equalityI:
-     "[| (M,N) \<in> r;  r \<subseteq> LListD_Fun (diag A) (r Un diag(llist(A))) |] 
+     "[| (M,N) \<in> r;  r \<subseteq> LListD_Fun (Id_on A) (r Un Id_on(llist(A))) |] 
       ==>  M=N"
-apply (rule LListD_subset_diag [THEN subsetD, THEN diagE])
+apply (rule LListD_subset_Id_on [THEN subsetD, THEN Id_onE])
 apply (erule LListD_coinduct)
-apply (simp add: LListD_eq_diag, safe)
+apply (simp add: LListD_eq_Id_on, safe)
 done
 
 
@@ -525,14 +525,14 @@ lemma LList_fun_equalityI:
      f(NIL)=g(NIL);                                              
      !!x l. [| x\<in>A;  l \<in> llist(A) |] ==>                          
             (f(CONS x l),g(CONS x l)) \<in>                          
-                LListD_Fun (diag A) ((%u.(f(u),g(u)))`llist(A) Un   
-                                    diag(llist(A)))              
+                LListD_Fun (Id_on A) ((%u.(f(u),g(u)))`llist(A) Un   
+                                    Id_on(llist(A)))              
   |] ==> f(M) = g(M)"
 apply (rule LList_equalityI)
 apply (erule imageI)
 apply (rule image_subsetI)
 apply (erule_tac a=x in llist.cases)
-apply (erule ssubst, erule ssubst, erule LListD_Fun_diag_I, blast) 
+apply (erule ssubst, erule ssubst, erule LListD_Fun_Id_on_I, blast) 
 done
 
 
@@ -687,7 +687,7 @@ subsection{* Deriving @{text llist_equalityI} -- @{text llist} equality is a bis
 
 lemma LListD_Fun_subset_Times_llist: 
     "r \<subseteq> (llist A) <*> (llist A) 
-     ==> LListD_Fun (diag A) r \<subseteq> (llist A) <*> (llist A)"
+     ==> LListD_Fun (Id_on A) r \<subseteq> (llist A) <*> (llist A)"
 by (auto simp add: LListD_Fun_def)
 
 lemma subset_Times_llist:
@@ -703,9 +703,9 @@ apply (erule subsetD [THEN SigmaE2], assumption)
 apply (simp add: LListI [THEN Abs_LList_inverse])
 done
 
-lemma prod_fun_range_eq_diag:
+lemma prod_fun_range_eq_Id_on:
      "prod_fun Rep_LList  Rep_LList ` range(%x. (x, x)) =  
-      diag(llist(range Leaf))"
+      Id_on(llist(range Leaf))"
 apply (rule equalityI, blast) 
 apply (fast elim: LListI [THEN Abs_LList_inverse, THEN subst])
 done
@@ -730,10 +730,10 @@ apply (erule image_mono [THEN subset_trans])
 apply (rule image_compose [THEN subst])
 apply (rule prod_fun_compose [THEN subst])
 apply (subst image_Un)
-apply (subst prod_fun_range_eq_diag)
+apply (subst prod_fun_range_eq_Id_on)
 apply (rule LListD_Fun_subset_Times_llist [THEN prod_fun_lemma])
 apply (rule subset_Times_llist [THEN Un_least])
-apply (rule diag_subset_Times)
+apply (rule Id_on_subset_Times)
 done
 
 subsubsection{* Rules to prove the 2nd premise of @{text llist_equalityI} *}
@@ -755,8 +755,8 @@ apply (simp add: llistD_Fun_def)
 apply (rule Rep_LList_inverse [THEN subst])
 apply (rule prod_fun_imageI)
 apply (subst image_Un)
-apply (subst prod_fun_range_eq_diag)
-apply (rule Rep_LList [THEN LListD, THEN LListD_Fun_diag_I])
+apply (subst prod_fun_range_eq_Id_on)
+apply (rule Rep_LList [THEN LListD, THEN LListD_Fun_Id_on_I])
 done
 
 text{*A special case of @{text list_equality} for functions over lazy lists*}

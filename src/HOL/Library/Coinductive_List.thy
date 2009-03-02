@@ -298,12 +298,12 @@ where EqNIL: "(NIL, NIL) \<in> EqLList r"
       (CONS a M, CONS b N) \<in> EqLList r"
 
 lemma EqLList_unfold:
-    "EqLList r = dsum (diag {Datatype.Numb 0}) (dprod r (EqLList r))"
+    "EqLList r = dsum (Id_on {Datatype.Numb 0}) (dprod r (EqLList r))"
   by (fast intro!: EqLList.intros [unfolded NIL_def CONS_def]
            elim: EqLList.cases [unfolded NIL_def CONS_def])
 
 lemma EqLList_implies_ntrunc_equality:
-    "(M, N) \<in> EqLList (diag A) \<Longrightarrow> ntrunc k M = ntrunc k N"
+    "(M, N) \<in> EqLList (Id_on A) \<Longrightarrow> ntrunc k M = ntrunc k N"
   apply (induct k arbitrary: M N rule: nat_less_induct)
   apply (erule EqLList.cases)
    apply (safe del: equalityI)
@@ -314,28 +314,28 @@ lemma EqLList_implies_ntrunc_equality:
    apply (simp_all add: CONS_def less_Suc_eq)
   done
 
-lemma Domain_EqLList: "Domain (EqLList (diag A)) \<subseteq> LList A"
+lemma Domain_EqLList: "Domain (EqLList (Id_on A)) \<subseteq> LList A"
   apply (rule subsetI)
   apply (erule LList.coinduct)
   apply (subst (asm) EqLList_unfold)
   apply (auto simp add: NIL_def CONS_def)
   done
 
-lemma EqLList_diag: "EqLList (diag A) = diag (LList A)"
+lemma EqLList_Id_on: "EqLList (Id_on A) = Id_on (LList A)"
   (is "?lhs = ?rhs")
 proof
   show "?lhs \<subseteq> ?rhs"
     apply (rule subsetI)
     apply (rule_tac p = x in PairE)
     apply clarify
-    apply (rule diag_eqI)
+    apply (rule Id_on_eqI)
      apply (rule EqLList_implies_ntrunc_equality [THEN ntrunc_equality],
        assumption)
     apply (erule DomainI [THEN Domain_EqLList [THEN subsetD]])
     done
   {
-    fix M N assume "(M, N) \<in> diag (LList A)"
-    then have "(M, N) \<in> EqLList (diag A)"
+    fix M N assume "(M, N) \<in> Id_on (LList A)"
+    then have "(M, N) \<in> EqLList (Id_on A)"
     proof coinduct
       case (EqLList M N)
       then obtain L where L: "L \<in> LList A" and MN: "M = L" "N = L" by blast
@@ -344,7 +344,7 @@ proof
         case NIL with MN have ?EqNIL by simp
         then show ?thesis ..
       next
-        case CONS with MN have ?EqCONS by (simp add: diagI)
+        case CONS with MN have ?EqCONS by (simp add: Id_onI)
         then show ?thesis ..
       qed
     qed
@@ -352,8 +352,8 @@ proof
   then show "?rhs \<subseteq> ?lhs" by auto
 qed
 
-lemma EqLList_diag_iff [iff]: "(p \<in> EqLList (diag A)) = (p \<in> diag (LList A))"
-  by (simp only: EqLList_diag)
+lemma EqLList_Id_on_iff [iff]: "(p \<in> EqLList (Id_on A)) = (p \<in> Id_on (LList A))"
+  by (simp only: EqLList_Id_on)
 
 
 text {*
@@ -367,11 +367,11 @@ lemma LList_equalityI
     and step: "\<And>M N. (M, N) \<in> r \<Longrightarrow>
       M = NIL \<and> N = NIL \<or>
         (\<exists>a b M' N'.
-          M = CONS a M' \<and> N = CONS b N' \<and> (a, b) \<in> diag A \<and>
-            ((M', N') \<in> r \<or> (M', N') \<in> EqLList (diag A)))"
+          M = CONS a M' \<and> N = CONS b N' \<and> (a, b) \<in> Id_on A \<and>
+            ((M', N') \<in> r \<or> (M', N') \<in> EqLList (Id_on A)))"
   shows "M = N"
 proof -
-  from r have "(M, N) \<in> EqLList (diag A)"
+  from r have "(M, N) \<in> EqLList (Id_on A)"
   proof coinduct
     case EqLList
     then show ?case by (rule step)
@@ -387,8 +387,8 @@ lemma LList_fun_equalityI
             (f (CONS x l), g (CONS x l)) = (NIL, NIL) \<or>
             (\<exists>M N a b.
               (f (CONS x l), g (CONS x l)) = (CONS a M, CONS b N) \<and>
-                (a, b) \<in> diag A \<and>
-                (M, N) \<in> {(f u, g u) | u. u \<in> LList A} \<union> diag (LList A))"
+                (a, b) \<in> Id_on A \<and>
+                (M, N) \<in> {(f u, g u) | u. u \<in> LList A} \<union> Id_on (LList A))"
       (is "\<And>x l. _ \<Longrightarrow> _ \<Longrightarrow> ?fun_CONS x l")
   shows "f M = g M"
 proof -
@@ -401,8 +401,8 @@ proof -
     from L show ?case
     proof (cases L)
       case NIL
-      with fun_NIL and MN have "(M, N) \<in> diag (LList A)" by auto
-      then have "(M, N) \<in> EqLList (diag A)" ..
+      with fun_NIL and MN have "(M, N) \<in> Id_on (LList A)" by auto
+      then have "(M, N) \<in> EqLList (Id_on A)" ..
       then show ?thesis by cases simp_all
     next
       case (CONS a K)
@@ -411,23 +411,23 @@ proof -
       then show ?thesis
       proof
         assume ?NIL
-        with MN CONS have "(M, N) \<in> diag (LList A)" by auto
-        then have "(M, N) \<in> EqLList (diag A)" ..
+        with MN CONS have "(M, N) \<in> Id_on (LList A)" by auto
+        then have "(M, N) \<in> EqLList (Id_on A)" ..
         then show ?thesis by cases simp_all
       next
         assume ?CONS
         with CONS obtain a b M' N' where
             fg: "(f L, g L) = (CONS a M', CONS b N')"
-          and ab: "(a, b) \<in> diag A"
-          and M'N': "(M', N') \<in> ?bisim \<union> diag (LList A)"
+          and ab: "(a, b) \<in> Id_on A"
+          and M'N': "(M', N') \<in> ?bisim \<union> Id_on (LList A)"
           by blast
         from M'N' show ?thesis
         proof
           assume "(M', N') \<in> ?bisim"
           with MN fg ab show ?thesis by simp
         next
-          assume "(M', N') \<in> diag (LList A)"
-          then have "(M', N') \<in> EqLList (diag A)" ..
+          assume "(M', N') \<in> Id_on (LList A)"
+          then have "(M', N') \<in> EqLList (Id_on A)" ..
           with MN fg ab show ?thesis by simp
         qed
       qed
@@ -463,7 +463,7 @@ proof -
       with h h' MN have "M = CONS (fst p) (h (snd p))"
 	and "N = CONS (fst p) (h' (snd p))"
         by (simp_all split: prod.split)
-      then have ?EqCONS by (auto iff: diag_iff)
+      then have ?EqCONS by (auto iff: Id_on_iff)
       then show ?thesis ..
     qed
   qed
@@ -498,7 +498,7 @@ proof -
     next
       assume "?EqLCons (l1, l2)"
       with MN have ?EqCONS
-        by (force simp add: Rep_llist_LCons EqLList_diag intro: Rep_llist_UNIV)
+        by (force simp add: Rep_llist_LCons EqLList_Id_on intro: Rep_llist_UNIV)
       then show ?thesis ..
     qed
   qed

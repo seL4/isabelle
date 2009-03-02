@@ -20,8 +20,8 @@ locale sylow = group +
       and "RelM == {(N1,N2). N1 \<in> calM & N2 \<in> calM &
                              (\<exists>g \<in> carrier(G). N1 = (N2 #> g) )}"
 
-lemma (in sylow) RelM_refl: "refl calM RelM"
-apply (auto simp add: refl_def RelM_def calM_def)
+lemma (in sylow) RelM_refl_on: "refl_on calM RelM"
+apply (auto simp add: refl_on_def RelM_def calM_def)
 apply (blast intro!: coset_mult_one [symmetric])
 done
 
@@ -40,7 +40,7 @@ by (auto simp add: trans_def RelM_def calM_def coset_mult_assoc)
 
 lemma (in sylow) RelM_equiv: "equiv calM RelM"
 apply (unfold equiv_def)
-apply (blast intro: RelM_refl RelM_sym RelM_trans)
+apply (blast intro: RelM_refl_on RelM_sym RelM_trans)
 done
 
 lemma (in sylow) M_subset_calM_prep: "M' \<in> calM // RelM  ==> M' \<subseteq> calM"

@@ -64,7 +64,7 @@ by (simp add: starrel_def)
 
 lemma equiv_starrel: "equiv UNIV starrel"
 proof (rule equiv.intro)
-  show "reflexive starrel" by (simp add: refl_def)
+  show "refl starrel" by (simp add: refl_on_def)
   show "sym starrel" by (simp add: sym_def eq_commute)
   show "trans starrel" by (auto intro: transI elim!: ultra)
 qed

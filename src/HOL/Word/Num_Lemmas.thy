@@ -260,7 +260,7 @@ lemma zdiv_mult_self: "m ~= (0 :: int) ==> (a + m * n) div m = a div m + n"
 
 (** Rep_Integ **)
 lemma eqne: "equiv A r ==> X : A // r ==> X ~= {}"
-  unfolding equiv_def refl_def quotient_def Image_def by auto
+  unfolding equiv_def refl_on_def quotient_def Image_def by auto
 
 lemmas Rep_Integ_ne = Integ.Rep_Integ 
   [THEN equiv_intrel [THEN eqne, simplified Integ_def [symmetric]], standard]

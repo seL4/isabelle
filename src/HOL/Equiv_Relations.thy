@@ -12,7 +12,7 @@ subsection {* Equivalence relations *}
 
 locale equiv =
   fixes A and r
-  assumes refl: "refl A r"
+  assumes refl_on: "refl_on A r"
     and sym: "sym r"
     and trans: "trans r"
 
@@ -27,21 +27,21 @@ lemma sym_trans_comp_subset:
     "sym r ==> trans r ==> r\<inverse> O r \<subseteq> r"
   by (unfold trans_def sym_def converse_def) blast
 
-lemma refl_comp_subset: "refl A r ==> r \<subseteq> r\<inverse> O r"
-  by (unfold refl_def) blast
+lemma refl_on_comp_subset: "refl_on A r ==> r \<subseteq> r\<inverse> O r"
+  by (unfold refl_on_def) blast
 
 lemma equiv_comp_eq: "equiv A r ==> r\<inverse> O r = r"
   apply (unfold equiv_def)
   apply clarify
   apply (rule equalityI)
-   apply (iprover intro: sym_trans_comp_subset refl_comp_subset)+
+   apply (iprover intro: sym_trans_comp_subset refl_on_comp_subset)+
   done
 
 text {* Second half. *}
 
 lemma comp_equivI:
     "r\<inverse> O r = r ==> Domain r = A ==> equiv A r"
-  apply (unfold equiv_def refl_def sym_def trans_def)
+  apply (unfold equiv_def refl_on_def sym_def trans_def)
   apply (erule equalityE)
   apply (subgoal_tac "\<forall>x y. (x, y) \<in> r --> (y, x) \<in> r")
    apply fast
@@ -63,12 +63,12 @@ theorem equiv_class_eq: "equiv A r ==> (a, b) \<in> r ==> r``{a} = r``{b}"
   done
 
 lemma equiv_class_self: "equiv A r ==> a \<in> A ==> a \<in> r``{a}"
-  by (unfold equiv_def refl_def) blast
+  by (unfold equiv_def refl_on_def) blast
 
 lemma subset_equiv_class:
     "equiv A r ==> r``{b} \<subseteq> r``{a} ==> b \<in> A ==> (a,b) \<in> r"
   -- {* lemma for the next result *}
-  by (unfold equiv_def refl_def) blast
+  by (unfold equiv_def refl_on_def) blast
 
 lemma eq_equiv_class:
     "r``{a} = r``{b} ==> equiv A r ==> b \<in> A ==> (a, b) \<in> r"
@@ -79,7 +79,7 @@ lemma equiv_class_nondisjoint:
   by (unfold equiv_def trans_def sym_def) blast
 
 lemma equiv_type: "equiv A r ==> r \<subseteq> A \<times> A"
-  by (unfold equiv_def refl_def) blast
+  by (unfold equiv_def refl_on_def) blast
 
 theorem equiv_class_eq_iff:
   "equiv A r ==> ((x, y) \<in> r) = (r``{x} = r``{y} & x \<in> A & y \<in> A)"
@@ -103,7 +103,7 @@ lemma quotientE:
   by (unfold quotient_def) blast
 
 lemma Union_quotient: "equiv A r ==> Union (A//r) = A"
-  by (unfold equiv_def refl_def quotient_def) blast
+  by (unfold equiv_def refl_on_def quotient_def) blast
 
 lemma quotient_disj:
   "equiv A r ==> X \<in> A//r ==> Y \<in> A//r ==> X = Y | (X \<inter> Y = {})"
@@ -228,7 +228,7 @@ abbreviation
 
 lemma congruent2_implies_congruent:
     "equiv A r1 ==> congruent2 r1 r2 f ==> a \<in> A ==> congruent r2 (f a)"
-  by (unfold congruent_def congruent2_def equiv_def refl_def) blast
+  by (unfold congruent_def congruent2_def equiv_def refl_on_def) blast
 
 lemma congruent2_implies_congruent_UN:
   "equiv A1 r1 ==> equiv A2 r2 ==> congruent2 r1 r2 f ==> a \<in> A2 ==>
@@ -237,7 +237,7 @@ lemma congruent2_implies_congruent_UN:
   apply clarify
   apply (rule equiv_type [THEN subsetD, THEN SigmaE2], assumption+)
   apply (simp add: UN_equiv_class congruent2_implies_congruent)
-  apply (unfold congruent2_def equiv_def refl_def)
+  apply (unfold congruent2_def equiv_def refl_on_def)
   apply (blast del: equalityI)
   done
 
@@ -272,7 +272,7 @@ lemma congruent2I:
     ==> congruent2 r1 r2 f"
   -- {* Suggested by John Harrison -- the two subproofs may be *}
   -- {* \emph{much} simpler than the direct proof. *}
-  apply (unfold congruent2_def equiv_def refl_def)
+  apply (unfold congruent2_def equiv_def refl_on_def)
   apply clarify
   apply (blast intro: trans)
   done
