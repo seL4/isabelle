@@ -5,7 +5,7 @@ Producing well-sorted systems of code equations in a graph
 with explicit dependencies -- the Waisenhaus algorithm.
 *)
 
-signature CODE_FUNCGR =
+signature CODE_WELLSORTED =
 sig
   type T
   val eqns: T -> string -> (thm * bool) list
@@ -20,7 +20,7 @@ sig
     -> (term -> term * (((sort -> sort) * Sorts.algebra) -> T -> 'a)) -> term -> 'a
 end
 
-structure Code_Funcgr : CODE_FUNCGR =
+structure Code_Wellsorted : CODE_WELLSORTED =
 struct
 
 (** the equation graph type **)
