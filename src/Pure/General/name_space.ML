@@ -9,9 +9,16 @@ Cf. Pure/General/binding.ML
 type bstring = string;    (*simple names to be bound -- legacy*)
 type xstring = string;    (*external names*)
 
+signature BASIC_NAME_SPACE =
+sig
+  val long_names: bool ref
+  val short_names: bool ref
+  val unique_names: bool ref
+end;
+
 signature NAME_SPACE =
 sig
-  include BASIC_BINDING
+  include BASIC_NAME_SPACE
   val hidden: string -> string
   val is_hidden: string -> bool
   val separator: string                 (*single char*)
@@ -27,8 +34,9 @@ sig
   val empty: T
   val intern: T -> xstring -> string
   val extern: T -> string -> xstring
+  val extern_flags: {long_names: bool, short_names: bool, unique_names: bool} ->
+    T -> string -> xstring
   val hide: bool -> string -> T -> T
-  val get_accesses: T -> string -> xstring list
   val merge: T * T -> T
   type naming
   val default_naming: naming
@@ -53,9 +61,6 @@ end;
 
 structure NameSpace: NAME_SPACE =
 struct
-
-open Basic_Binding;
-
 
 (** long identifiers **)
 
@@ -149,19 +154,29 @@ fun valid_accesses (NameSpace (tab, _)) name = Symtab.fold (fn (xname, ((names, 
 
 fun intern space xname = #1 (lookup space xname);
 
-fun extern space name =
+fun extern_flags {long_names, short_names, unique_names} space name =
   let
     fun valid unique xname =
       let val (name', uniq) = lookup space xname
       in name = name' andalso (uniq orelse not unique) end;
 
     fun ext [] = if valid false name then name else hidden name
-      | ext (nm :: nms) = if valid (! unique_names) nm then nm else ext nms;
+      | ext (nm :: nms) = if valid unique_names nm then nm else ext nms;
   in
-    if ! long_names then name
-    else if ! short_names then base name
+    if long_names then name
+    else if short_names then base name
     else ext (get_accesses space name)
   end;
+
+val long_names = ref false;
+val short_names = ref false;
+val unique_names = ref true;
+
+fun extern space name =
+  extern_flags
+   {long_names = ! long_names,
+    short_names = ! short_names,
+    unique_names = ! unique_names} space name;
 
 
 (* basic operations *)
@@ -322,3 +337,7 @@ val implode = implode_name;
 val explode = explode_name;
 
 end;
+
+structure BasicNameSpace: BASIC_NAME_SPACE = NameSpace;
+open BasicNameSpace;
+
