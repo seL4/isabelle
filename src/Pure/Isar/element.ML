@@ -125,11 +125,9 @@ fun pretty_items _ _ [] = []
         map (fn y => Pretty.block [Pretty.str "  ", Pretty.keyword sep, Pretty.brk 1, y]) ys;
 
 fun pretty_name_atts ctxt (b, atts) sep =
-  let val name = Binding.display b in
-    if name = "" andalso null atts then []
-    else [Pretty.block
-      (Pretty.breaks (Pretty.str name :: Attrib.pretty_attribs ctxt atts @ [Pretty.str sep]))]
-  end;
+  if Binding.is_empty b andalso null atts then []
+  else [Pretty.block (Pretty.breaks
+    (Pretty.str (Binding.str_of b) :: Attrib.pretty_attribs ctxt atts @ [Pretty.str sep]))];
 
 
 (* pretty_stmt *)
