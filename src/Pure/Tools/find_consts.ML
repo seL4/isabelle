@@ -89,7 +89,13 @@ fun find_consts ctxt raw_criteria =
       if member (op =) (Consts.the_tags consts nm) Markup.property_internal
       then NONE else SOME low_ranking;
 
-    fun make_pattern crit = ProofContext.read_term_pattern ctxt ("_::" ^ crit) |> type_of;
+    fun make_pattern crit =
+      let
+        val raw_T = Syntax.parse_typ ctxt crit;
+        val t = Syntax.check_term
+                  (ProofContext.set_mode ProofContext.mode_pattern ctxt)
+                  (Term.dummy_pattern raw_T);
+      in Term.type_of t end;
 
     fun make_match (Strict arg) =
           let val qty = make_pattern arg; in
