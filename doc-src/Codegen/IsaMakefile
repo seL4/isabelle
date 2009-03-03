@@ -23,7 +23,7 @@ THY = $(LOG)/HOL-Thy.gz
 
 Thy: $(THY)
 
-$(THY): Thy/ROOT.ML Thy/Setup.thy Thy/Classes.thy
+$(THY): Thy/ROOT.ML Thy/*.thy ../antiquote_setup.ML ../more_antiquote.ML
 	@$(USEDIR) HOL Thy
 
 

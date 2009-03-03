@@ -323,7 +323,6 @@ definition %quote "eq_class.eq (x\<Colon>bar) y \<longleftrightarrow> x = y"
 instance %quote by default (simp add: eq_bar_def)
 
 end %quote
-
 code_type %quotett bar
   (Haskell "Integer")
 

@@ -1,6 +1,3 @@
-#
-# $Id$
-#
 
 ## targets
 
@@ -11,12 +8,12 @@ default: dvi
 
 include ../Makefile.in
 
-NAME = functions
+NAME = classes
 
-FILES = $(NAME).tex Thy/document/Functions.tex intro.tex conclusion.tex \
-  style.sty ../../iman.sty ../../extra.sty ../../isar.sty \
-  ../../isabelle.sty ../../isabellesym.sty ../../pdfsetup.sty \
-  ../../manual.bib ../../proof.sty
+FILES = $(NAME).tex classes.tex Thy/document/Classes.tex \
+  style.sty ../iman.sty ../extra.sty ../isar.sty \
+  ../isabelle.sty ../isabellesym.sty ../pdfsetup.sty \
+  ../manual.bib ../proof.sty
 
 dvi: $(NAME).dvi
 
