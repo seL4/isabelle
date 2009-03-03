@@ -59,12 +59,13 @@ val value = declaration "val";
 
 
 
-(** concrete antiquotations **)
+(** misc antiquotations **)
 
 structure P = OuterParse;
 
-
-(* misc *)
+val _ = inline "binding" (Scan.lift (P.position Args.name) >> (fn b =>
+  ML_Syntax.atomic ("Binding.make " ^
+    ML_Syntax.print_pair ML_Syntax.print_string ML_Syntax.print_position b)));
 
 val _ = value "theory"
   (Scan.lift Args.name >> (fn name => "ThyInfo.get_theory " ^ ML_Syntax.print_string name)
