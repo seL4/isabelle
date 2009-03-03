@@ -133,19 +133,10 @@ fun lookup (NameSpace (tab, _)) xname =
   | SOME ((name :: _, _), _) => (name, false)
   | SOME (([], name' :: _), _) => (hidden name', true));
 
-fun ex_mapsto_in (NameSpace (tab, _)) name xname =
-    (case Symtab.lookup tab xname of
-      SOME ((name'::_, _), _) => name' = name
-    | _ => false);
-
-fun get_accesses' valid_only (ns as (NameSpace (_, tab))) name =
+fun get_accesses (NameSpace (_, tab)) name =
   (case Symtab.lookup tab name of
     NONE => [name]
-  | SOME (xnames, _) => if valid_only
-                        then filter (ex_mapsto_in ns name) xnames
-                        else xnames);
-
-val get_accesses = get_accesses' true;
+  | SOME (xnames, _) => xnames);
 
 fun put_accesses name xnames (NameSpace (tab, xtab)) =
   NameSpace (tab, Symtab.update (name, (xnames, stamp ())) xtab);
@@ -169,7 +160,7 @@ fun extern space name =
   in
     if ! long_names then name
     else if ! short_names then base name
-    else ext (get_accesses' false space name)
+    else ext (get_accesses space name)
   end;
 
 
@@ -203,7 +194,7 @@ fun hide fully name space =
       space
       |> add_name' name name
       |> fold (del_name name) (if fully then names else names inter_string [base name])
-      |> fold (del_name_extra name) (get_accesses' false space name)
+      |> fold (del_name_extra name) (get_accesses space name)
     end;
 
 
