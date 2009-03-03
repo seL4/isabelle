@@ -6,7 +6,6 @@ are considered global; no support for absolute addressing.
 Cf. Pure/General/binding.ML
 *)
 
-type bstring = string;    (*simple names to be bound -- legacy*)
 type xstring = string;    (*external names*)
 
 signature BASIC_NAME_SPACE =
@@ -67,8 +66,8 @@ struct
 fun hidden name = "??." ^ name;
 val is_hidden = String.isPrefix "??.";
 
-val separator = Binding.separator;
-val is_qualified = Binding.is_qualified;
+val separator = ".";
+val is_qualified = exists_string (fn s => s = separator);
 
 val implode_name = space_implode separator;
 val explode_name = space_explode separator;
@@ -295,13 +294,13 @@ fun declare_internal naming name space =
     in space |> fold (add_name name) accs |> put_accesses name accs' end;
 
 fun full_name naming b =
-  let val (prefix, bname) = Binding.dest b
-  in full_internal (apply_prefix prefix naming) bname end;
+  let val (prefix, qualifier, bname) = Binding.dest b
+  in full_internal (apply_prefix (prefix @ qualifier) naming) bname end;
 
 fun declare bnaming b =
   let
-    val (prefix, bname) = Binding.dest b;
-    val naming = apply_prefix prefix bnaming;
+    val (prefix, qualifier, bname) = Binding.dest b;
+    val naming = apply_prefix (prefix @ qualifier) bnaming;
     val name = full_internal naming bname;
   in declare_internal naming name #> pair name end;
 
