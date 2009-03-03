@@ -11,6 +11,7 @@ signature BINDING =
 sig
   type binding
   val dest: binding -> (string * bool) list * (string * bool) list * bstring
+  val verbose: bool ref
   val str_of: binding -> string
   val make: bstring * Position.T -> binding
   val name: bstring -> binding
@@ -50,13 +51,17 @@ fun dest (Binding {prefix, qualifier, name, ...}) = (prefix, qualifier, name);
 
 (* diagnostic output *)
 
+val verbose = ref false;
+
 val str_of_components = implode o map (fn (s, true) => s ^ "!" | (s, false) => s ^ "?");
 
 fun str_of (Binding {prefix, qualifier, name, pos}) =
   let
     val text =
-      (if null prefix then "" else enclose "(" ")" (str_of_components prefix)) ^
-      str_of_components qualifier ^ ":" ^ name;
+      if ! verbose then
+        (if null prefix then "" else enclose "(" ")" (str_of_components prefix)) ^
+          str_of_components qualifier ^ name
+      else name;
     val props = Position.properties_of pos;
   in Markup.markup (Markup.properties props (Markup.binding name)) text end;
 
