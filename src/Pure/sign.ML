@@ -512,7 +512,7 @@ fun gen_add_consts parse_typ authentic tags raw_args thy =
         val c = full_name thy b;
         val c_syn = if authentic then Syntax.constN ^ c else Binding.base_name b;
         val T = (prepT raw_T handle TYPE (msg, _, _) => error msg) handle ERROR msg =>
-          cat_error msg ("in declaration of constant " ^ quote (Binding.display b));
+          cat_error msg ("in declaration of constant " ^ quote (Binding.str_of b));
         val T' = Logic.varifyT T;
       in ((b, T'), (c_syn, T', mx), Const (c, T)) end;
     val args = map prep raw_args;
@@ -549,7 +549,7 @@ fun add_abbrev mode tags (b, raw_t) thy =
     val pp = Syntax.pp_global thy;
     val prep_tm = no_frees pp o Term.no_dummy_patterns o cert_term_abbrev thy;
     val t = (prep_tm raw_t handle TYPE (msg, _, _) => error msg | TERM (msg, _) => error msg)
-      handle ERROR msg => cat_error msg ("in constant abbreviation " ^ quote (Binding.display b));
+      handle ERROR msg => cat_error msg ("in constant abbreviation " ^ quote (Binding.str_of b));
     val (res, consts') = consts_of thy
       |> Consts.abbreviate pp (tsig_of thy) (naming_of thy) mode tags (b, t);
   in (res, thy |> map_consts (K consts')) end;

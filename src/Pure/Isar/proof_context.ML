@@ -1091,7 +1091,7 @@ fun add_const_constraint (c, opt_T) ctxt =
 fun add_abbrev mode tags (b, raw_t) ctxt =
   let
     val t0 = cert_term (ctxt |> set_mode mode_abbrev) raw_t
-      handle ERROR msg => cat_error msg ("in constant abbreviation " ^ quote (Binding.display b));
+      handle ERROR msg => cat_error msg ("in constant abbreviation " ^ quote (Binding.str_of b));
     val [t] = Variable.exportT_terms (Variable.declare_term t0 ctxt) ctxt [t0];
     val ((lhs, rhs), consts') = consts_of ctxt
       |> Consts.abbreviate (Syntax.pp ctxt) (tsig_of ctxt) (naming_of ctxt) mode tags (b, t);

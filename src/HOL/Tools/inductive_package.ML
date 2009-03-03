@@ -260,7 +260,7 @@ in
 
 fun check_rule ctxt cs params ((binding, att), rule) =
   let
-    val err_name = Binding.display binding;
+    val err_name = Binding.str_of binding;
     val params' = Term.variant_frees rule (Logic.strip_params rule);
     val frees = rev (map Free params');
     val concl = subst_bounds (frees, Logic.strip_assums_concl rule);
