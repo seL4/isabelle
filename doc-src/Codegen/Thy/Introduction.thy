@@ -2,8 +2,6 @@ theory Introduction
 imports Setup
 begin
 
-chapter {* Code generation from @{text "Isabelle/HOL"} theories *}
-
 section {* Introduction and Overview *}
 
 text {*

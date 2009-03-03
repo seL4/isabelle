@@ -287,16 +287,9 @@ text {*
   @{text case} combinator on queues:
 *}
 
-definition %quote
-  aqueue_case_def: "aqueue_case = queue_case"
-
-lemma %quote aqueue_case [code, code inline]:
-  "queue_case = aqueue_case"
-  unfolding aqueue_case_def ..
-
-lemma %quote case_AQueue [code]:
-  "aqueue_case f (AQueue xs ys) = f (ys @ rev xs)"
-  unfolding aqueue_case_def AQueue_def by simp
+lemma %quote queue_case_AQueue [code]:
+  "queue_case f (AQueue xs ys) = f (ys @ rev xs)"
+  unfolding AQueue_def by simp
 
 text {*
   \noindent The resulting code looks as expected:
@@ -313,8 +306,7 @@ text {*
   \begin{itemize}
 
     \item When changing the constructor set for datatypes, take care
-      to provide an alternative for the @{text case} combinator
-      (e.g.~by replacing it using the preprocessor).
+      to provide alternative equations for the @{text case} combinator.
 
     \item Values in the target language need not to be normalised --
       different values in the target language may represent the same

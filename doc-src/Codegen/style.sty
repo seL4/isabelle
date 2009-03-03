@@ -3,6 +3,9 @@
 \newcommand{\tocentry}[1]{\cleardoublepage\phantomsection\addcontentsline{toc}{chapter}{#1}
 \@mkboth{\MakeUppercase{#1}}{\MakeUppercase{#1}}}
 
+%% paragraphs
+\setlength{\parindent}{1em}
+
 %% references
 \newcommand{\secref}[1]{\S\ref{#1}}
 
@@ -16,17 +19,18 @@
 %% verbatim text
 \newcommand{\isatypewriter}{\fontsize{9pt}{0pt}\tt\renewcommand{\baselinestretch}{1}\setlength{\baselineskip}{9pt}}
 
-%% quoted segments
-\makeatletter
+%% quote environment
 \isakeeptag{quote}
-\newenvironment{quotesegment}{\begin{quote}\isa@parindent\parindent\parindent0pt\isa@parskip\parskip\parskip0pt}{\end{quote}}
-\renewcommand{\isatagquote}{\begin{quotesegment}}
-\renewcommand{\endisatagquote}{\end{quotesegment}}
-\makeatother
+\renewenvironment{quote}
+  {\list{}{\leftmargin2em\rightmargin0pt}\parindent0pt\parskip0pt\item\relax}
+  {\endlist}
+\renewcommand{\isatagquote}{\begin{quote}}
+\renewcommand{\endisatagquote}{\end{quote}}
+\newcommand{\quotebreak}{\\[1.2ex]}
 
 \isakeeptag{quotett}
-\renewcommand{\isatagquotett}{\begin{quotesegment}\isabellestyle{tt}\isastyle}
-\renewcommand{\endisatagquotett}{\end{quotesegment}\isabellestyle{it}\isastyle}
+\renewcommand{\isatagquotett}{\begin{quote}\isabellestyle{tt}\isastyle}
+\renewcommand{\endisatagquotett}{\end{quote}\isabellestyle{it}\isastyle}
 
 %% a trick
 \newcommand{\isasymSML}{SML}
@@ -34,11 +38,14 @@
 %% presentation
 \setcounter{secnumdepth}{2} \setcounter{tocdepth}{2}
 
-\pagestyle{headings}
+%% character detail
+\renewcommand{\isadigit}[1]{\isamath{#1}}
 \binperiod
 \underscoreoff
 
-\renewcommand{\isadigit}[1]{\isamath{#1}}
+%% format
+\pagestyle{headings}
+\isabellestyle{it}
 
 %% ml reference
 \newenvironment{mldecls}{\par\noindent\begingroup\footnotesize\def\isanewline{\\}\begin{tabular}{l}}{\end{tabular}\smallskip\endgroup}

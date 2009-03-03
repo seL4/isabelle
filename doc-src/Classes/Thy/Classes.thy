@@ -2,8 +2,6 @@ theory Classes
 imports Main Setup
 begin
 
-chapter {* Haskell-style classes with Isabelle/Isar *}
-
 section {* Introduction *}
 
 text {*
@@ -17,10 +15,11 @@ text {*
   types for @{text "\<alpha>"}, which is achieved by splitting introduction
   of the @{text eq} function from its overloaded definitions by means
   of @{text class} and @{text instance} declarations:
+  \footnote{syntax here is a kind of isabellized Haskell}
 
   \begin{quote}
 
-  \noindent@{text "class eq where"}\footnote{syntax here is a kind of isabellized Haskell} \\
+  \noindent@{text "class eq where"} \\
   \hspace*{2ex}@{text "eq \<Colon> \<alpha> \<Rightarrow> \<alpha> \<Rightarrow> bool"}
 
   \medskip\noindent@{text "instance nat \<Colon> eq where"} \\
@@ -355,8 +354,8 @@ class %quote idem =
 
 text {*
   \noindent essentially introduces the locale
-*} setup %invisible {* Sign.add_path "foo" *}
-
+*} (*<*)setup %invisible {* Sign.add_path "foo" *}
+(*>*)
 locale %quote idem =
   fixes f :: "\<alpha> \<Rightarrow> \<alpha>"
   assumes idem: "f (f x) = f x"
@@ -368,10 +367,10 @@ consts %quote f :: "\<alpha> \<Rightarrow> \<alpha>"
 text {*
   \noindent The connection to the type system is done by means
   of a primitive axclass
-*} setup %invisible {* Sign.add_path "foo" *}
-
+*} (*<*)setup %invisible {* Sign.add_path "foo" *}
+(*>*)
 axclass %quote idem < type
-  idem: "f (f x) = f x" setup %invisible {* Sign.parent_path *}
+  idem: "f (f x) = f x" (*<*)setup %invisible {* Sign.parent_path *}(*>*)
 
 text {* \noindent together with a corresponding interpretation: *}
 
@@ -383,8 +382,8 @@ text {*
   \noindent This gives you at hand the full power of the Isabelle module system;
   conclusions in locale @{text idem} are implicitly propagated
   to class @{text idem}.
-*} setup %invisible {* Sign.parent_path *}
-
+*} (*<*)setup %invisible {* Sign.parent_path *}
+(*>*)
 subsection {* Abstract reasoning *}
 
 text {*
@@ -505,7 +504,7 @@ proof
 qed
 
 text {*
-  \noindent The logical proof is carried out on the locale level.
+  The logical proof is carried out on the locale level.
   Afterwards it is propagated
   to the type system, making @{text group} an instance of
   @{text monoid} by adding an additional edge
@@ -541,7 +540,7 @@ text {*
      \label{fig:subclass}
    \end{center}
   \end{figure}
-7
+
   For illustration, a derived definition
   in @{text group} which uses @{text pow_nat}:
 *}

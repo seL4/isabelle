@@ -573,7 +573,7 @@ Conceptually, any datatype is spanned by a set of
 \endisadelimquote
 %
 \begin{isamarkuptext}%
-\noindent Here we define a \qt{constructor} \isa{Program{\isachardot}AQueue} which
+\noindent Here we define a \qt{constructor} \isa{AQueue} which
   is defined in terms of \isa{Queue} and interprets its arguments
   according to what the \emph{content} of an amortised queue is supposed
   to be.  Equipped with this, we are able to prove the following equations
@@ -628,22 +628,11 @@ Conceptually, any datatype is spanned by a set of
 \endisadelimquote
 %
 \isatagquote
-\isacommand{definition}\isamarkupfalse%
-\isanewline
-\ \ aqueue{\isacharunderscore}case{\isacharunderscore}def{\isacharcolon}\ {\isachardoublequoteopen}aqueue{\isacharunderscore}case\ {\isacharequal}\ queue{\isacharunderscore}case{\isachardoublequoteclose}\isanewline
-\isanewline
 \isacommand{lemma}\isamarkupfalse%
-\ aqueue{\isacharunderscore}case\ {\isacharbrackleft}code{\isacharcomma}\ code\ inline{\isacharbrackright}{\isacharcolon}\isanewline
-\ \ {\isachardoublequoteopen}queue{\isacharunderscore}case\ {\isacharequal}\ aqueue{\isacharunderscore}case{\isachardoublequoteclose}\isanewline
+\ queue{\isacharunderscore}case{\isacharunderscore}AQueue\ {\isacharbrackleft}code{\isacharbrackright}{\isacharcolon}\isanewline
+\ \ {\isachardoublequoteopen}queue{\isacharunderscore}case\ f\ {\isacharparenleft}AQueue\ xs\ ys{\isacharparenright}\ {\isacharequal}\ f\ {\isacharparenleft}ys\ {\isacharat}\ rev\ xs{\isacharparenright}{\isachardoublequoteclose}\isanewline
 \ \ \isacommand{unfolding}\isamarkupfalse%
-\ aqueue{\isacharunderscore}case{\isacharunderscore}def\ \isacommand{{\isachardot}{\isachardot}}\isamarkupfalse%
-\isanewline
-\isanewline
-\isacommand{lemma}\isamarkupfalse%
-\ case{\isacharunderscore}AQueue\ {\isacharbrackleft}code{\isacharbrackright}{\isacharcolon}\isanewline
-\ \ {\isachardoublequoteopen}aqueue{\isacharunderscore}case\ f\ {\isacharparenleft}AQueue\ xs\ ys{\isacharparenright}\ {\isacharequal}\ f\ {\isacharparenleft}ys\ {\isacharat}\ rev\ xs{\isacharparenright}{\isachardoublequoteclose}\isanewline
-\ \ \isacommand{unfolding}\isamarkupfalse%
-\ aqueue{\isacharunderscore}case{\isacharunderscore}def\ AQueue{\isacharunderscore}def\ \isacommand{by}\isamarkupfalse%
+\ AQueue{\isacharunderscore}def\ \isacommand{by}\isamarkupfalse%
 \ simp%
 \endisatagquote
 {\isafoldquote}%
@@ -708,8 +697,7 @@ Conceptually, any datatype is spanned by a set of
   \begin{itemize}
 
     \item When changing the constructor set for datatypes, take care
-      to provide an alternative for the \isa{case} combinator
-      (e.g.~by replacing it using the preprocessor).
+      to provide alternative equations for the \isa{case} combinator.
 
     \item Values in the target language need not to be normalised --
       different values in the target language may represent the same
@@ -1098,7 +1086,7 @@ Partiality usually enters the game by partial patterns, as
 %
 \begin{isamarkuptext}%
 \noindent In the corresponding code, there is no equation
-  for the pattern \isa{Program{\isachardot}AQueue\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharbrackleft}{\isacharbrackright}}:%
+  for the pattern \isa{AQueue\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharbrackleft}{\isacharbrackright}}:%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
