@@ -40,11 +40,9 @@ signature OBTAIN =
 sig
   val thatN: string
   val obtain: string -> (binding * string option * mixfix) list ->
-    (Attrib.binding * (string * string list) list) list ->
-    bool -> Proof.state -> Proof.state
+    (Attrib.binding * (string * string list) list) list -> bool -> Proof.state -> Proof.state
   val obtain_i: string -> (binding * typ option * mixfix) list ->
-    ((binding * attribute list) * (term * term list) list) list ->
-    bool -> Proof.state -> Proof.state
+    (Thm.binding * (term * term list) list) list -> bool -> Proof.state -> Proof.state
   val result: (Proof.context -> tactic) -> thm list -> Proof.context ->
     (cterm list * thm list) * Proof.context
   val guess: (binding * string option * mixfix) list -> bool -> Proof.state -> Proof.state
@@ -155,14 +153,14 @@ fun gen_obtain prep_att prep_vars prep_propp
   in
     state
     |> Proof.enter_forward
-    |> Proof.have_i NONE (K I) [((Binding.empty, []), [(obtain_prop, [])])] int
+    |> Proof.have_i NONE (K I) [(Thm.empty_binding, [(obtain_prop, [])])] int
     |> Proof.proof (SOME Method.succeed_text) |> Seq.hd
     |> Proof.fix_i [(Binding.name thesisN, NONE, NoSyn)]
     |> Proof.assume_i
       [((Binding.name that_name, [ContextRules.intro_query NONE]), [(that_prop, [])])]
     |> `Proof.the_facts
     ||> Proof.chain_facts chain_facts
-    ||> Proof.show_i NONE after_qed [((Binding.empty, []), [(thesis, [])])] false
+    ||> Proof.show_i NONE after_qed [(Thm.empty_binding, [(thesis, [])])] false
     |-> Proof.refine_insert
   end;
 
@@ -295,7 +293,7 @@ fun gen_guess prep_vars raw_vars int state =
         |> Proof.map_context (K ctxt')
         |> Proof.fix_i (map (fn ((x, T), mx) => (Binding.name x, SOME T, mx)) parms)
         |> `Proof.context_of |-> (fn fix_ctxt => Proof.assm_i
-          (obtain_export fix_ctxt rule (map cert ts)) [((Binding.empty, []), asms)])
+          (obtain_export fix_ctxt rule (map cert ts)) [(Thm.empty_binding, asms)])
         |> Proof.add_binds_i AutoBind.no_facts
       end;
 
@@ -313,7 +311,7 @@ fun gen_guess prep_vars raw_vars int state =
     |> Proof.fix_i [(Binding.name AutoBind.thesisN, NONE, NoSyn)]
     |> Proof.chain_facts chain_facts
     |> Proof.local_goal print_result (K I) (apsnd (rpair I))
-      "guess" before_qed after_qed [((Binding.empty, []), [Logic.mk_term goal, goal])]
+      "guess" before_qed after_qed [(Thm.empty_binding, [Logic.mk_term goal, goal])]
     |> Proof.refine (Method.primitive_text (K (Goal.init (cert thesis)))) |> Seq.hd
   end;
 

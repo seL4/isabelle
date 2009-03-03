@@ -103,12 +103,10 @@ sig
   val sticky_prefix: string -> Proof.context -> Proof.context
   val restore_naming: Proof.context -> Proof.context -> Proof.context
   val reset_naming: Proof.context -> Proof.context
-  val note_thmss: string ->
-    ((binding * attribute list) * (Facts.ref * attribute list) list) list ->
-      Proof.context -> (string * thm list) list * Proof.context
-  val note_thmss_i: string ->
-    ((binding * attribute list) * (thm list * attribute list) list) list ->
-      Proof.context -> (string * thm list) list * Proof.context
+  val note_thmss: string -> (Thm.binding * (Facts.ref * attribute list) list) list ->
+    Proof.context -> (string * thm list) list * Proof.context
+  val note_thmss_i: string -> (Thm.binding * (thm list * attribute list) list) list ->
+    Proof.context -> (string * thm list) list * Proof.context
   val put_thms: bool -> string * thm list option -> Proof.context -> Proof.context
   val read_vars: (binding * string option * mixfix) list -> Proof.context ->
     (binding * typ option * mixfix) list * Proof.context
@@ -121,10 +119,10 @@ sig
   val auto_fixes: Proof.context * (term list list * 'a) -> Proof.context * (term list list * 'a)
   val bind_fixes: string list -> Proof.context -> (term -> term) * Proof.context
   val add_assms: Assumption.export ->
-    ((binding * attribute list) * (string * string list) list) list ->
+    (Thm.binding * (string * string list) list) list ->
     Proof.context -> (string * thm list) list * Proof.context
   val add_assms_i: Assumption.export ->
-    ((binding * attribute list) * (term * term list) list) list ->
+    (Thm.binding * (term * term list) list) list ->
     Proof.context -> (string * thm list) list * Proof.context
   val add_cases: bool -> (string * RuleCases.T option) list -> Proof.context -> Proof.context
   val apply_case: RuleCases.T -> Proof.context -> (string * term list) list * Proof.context

@@ -9,11 +9,9 @@ dependencies; no support for overloading.
 signature CONSTDEFS =
 sig
   val add_constdefs: (binding * string option) list *
-    ((binding * string option * mixfix) option *
-      (Attrib.binding * string)) list -> theory -> theory
+    ((binding * string option * mixfix) option * (Attrib.binding * string)) list -> theory -> theory
   val add_constdefs_i: (binding * typ option) list *
-    ((binding * typ option * mixfix) option *
-      ((binding * attribute list) * term)) list -> theory -> theory
+    ((binding * typ option * mixfix) option * (Thm.binding * term)) list -> theory -> theory
 end;
 
 structure Constdefs: CONSTDEFS =

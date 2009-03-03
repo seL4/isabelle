@@ -16,7 +16,7 @@ sig
     -> (Attrib.binding * term) list -> local_theory -> local_theory
 
   val add_fixpat: Attrib.binding * string list -> theory -> theory
-  val add_fixpat_i: (binding * attribute list) * term list -> theory -> theory
+  val add_fixpat_i: Thm.binding * term list -> theory -> theory
   val add_matchers: (string * string) list -> theory -> theory
   val setup: theory -> theory
 end;
