@@ -194,7 +194,7 @@ fun make_def ctxt fixes fs (fname, ls, rec_name, tname) =
     val def_name = Thm.def_name (Sign.base_name fname);
     val rhs = singleton (Syntax.check_terms ctxt) raw_rhs;
     val SOME var = get_first (fn ((b, _), mx) =>
-      if Binding.base_name b = fname then SOME (b, mx) else NONE) fixes;
+      if Binding.name_of b = fname then SOME (b, mx) else NONE) fixes;
   in (var, ((Binding.name def_name, []), rhs)) end;
 
 
@@ -231,7 +231,7 @@ fun gen_primrec set_group prep_spec raw_fixes raw_spec lthy =
   let
     val (fixes, spec) = prepare_spec prep_spec lthy raw_fixes raw_spec;
     val eqns = fold_rev (process_eqn (fn v => Variable.is_fixed lthy v
-      orelse exists (fn ((w, _), _) => v = Binding.base_name w) fixes) o snd) spec [];
+      orelse exists (fn ((w, _), _) => v = Binding.name_of w) fixes) o snd) spec [];
     val tnames = distinct (op =) (map (#1 o snd) eqns);
     val dts = find_dts (DatatypePackage.get_datatypes (ProofContext.theory_of lthy)) tnames tnames;
     val main_fns = map (fn (tname, {index, ...}) =>
@@ -248,7 +248,7 @@ fun gen_primrec set_group prep_spec raw_fixes raw_spec lthy =
       else primrec_error ("functions " ^ commas_quote names2 ^
         "\nare not mutually recursive");
     val prefix = space_implode "_" (map (Sign.base_name o #1) defs);
-    val qualify = Binding.qualify prefix;
+    val qualify = Binding.qualify false prefix;
     val spec' = (map o apfst)
       (fn (b, attrs) => (qualify b, Code.add_default_eqn_attrib :: attrs)) spec;
     val simp_atts = map (Attrib.internal o K)
@@ -299,7 +299,7 @@ val opt_unchecked_name =
       P.name >> pair false) --| P.$$$ ")")) (false, "");
 
 val old_primrec_decl =
-  opt_unchecked_name -- Scan.repeat1 ((SpecParse.opt_thm_name ":" >> apfst Binding.base_name) -- P.prop);
+  opt_unchecked_name -- Scan.repeat1 ((SpecParse.opt_thm_name ":" >> apfst Binding.name_of) -- P.prop);
 
 fun pipe_error t = P.!!! (Scan.fail_with (K
   (cat_lines ["Equations must be separated by " ^ quote "|", quote t])));

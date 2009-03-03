@@ -201,7 +201,7 @@ fun prep_class_spec prep_class prep_class_elems thy raw_supclasses raw_elems =
       | check_element e = [()];
     val _ = map check_element syntax_elems;
     fun fork_syn (Element.Fixes xs) =
-          fold_map (fn (c, ty, syn) => cons (Binding.base_name c, syn) #> pair (c, ty, NoSyn)) xs
+          fold_map (fn (c, ty, syn) => cons (Binding.name_of c, syn) #> pair (c, ty, NoSyn)) xs
           #>> Element.Fixes
       | fork_syn x = pair x;
     val (elems, global_syntax) = fold_map fork_syn syntax_elems [];
@@ -228,7 +228,7 @@ fun add_consts bname class base_sort sups supparams global_syntax thy =
     val raw_params = (snd o chop (length supparams)) all_params;
     fun add_const (b, SOME raw_ty, _) thy =
       let
-        val v = Binding.base_name b;
+        val v = Binding.name_of b;
         val c = Sign.full_bname thy v;
         val ty = map_atyps (K (TFree (Name.aT, base_sort))) raw_ty;
         val ty0 = Type.strip_sorts ty;

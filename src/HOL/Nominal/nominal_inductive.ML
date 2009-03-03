@@ -546,7 +546,7 @@ fun prove_strong_ind s avoids ctxt =
     Proof.theorem_i NONE (fn thss => fn ctxt =>
       let
         val rec_name = space_implode "_" (map Sign.base_name names);
-        val rec_qualified = Binding.qualify rec_name;
+        val rec_qualified = Binding.qualify false rec_name;
         val ind_case_names = RuleCases.case_names induct_cases;
         val induct_cases' = InductivePackage.partition_rules' raw_induct
           (intrs ~~ induct_cases); 

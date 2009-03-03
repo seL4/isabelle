@@ -175,7 +175,7 @@ fun add_fixdefs
   (spec : (Attrib.binding * term) list)
   (lthy : local_theory) =
   let
-    val names = map (Binding.base_name o fst o fst) fixes;
+    val names = map (Binding.name_of o fst o fst) fixes;
     val all_names = space_implode "_" names;
     val (lhss,rhss) = ListPair.unzip (map (dest_eqs o snd) spec);
     val fixpoint = mk_fix (lambda_ctuple lhss (mk_ctuple rhss));
