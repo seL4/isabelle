@@ -7,7 +7,10 @@ Structured name bindings.
 
 signature BINDING =
 sig
+  val separator: string
+  val is_qualified: string -> bool
   type binding
+  val str_of: binding -> string
   val name_pos: string * Position.T -> binding
   val name: string -> binding
   val empty: binding
@@ -19,12 +22,9 @@ sig
   val base_name: binding -> string
   val pos_of: binding -> Position.T
   val dest: binding -> (string * bool) list * string
-  val separator: string
-  val is_qualified: string -> bool
-  val display: binding -> string
 end;
 
-structure Binding : BINDING =
+structure Binding: BINDING =
 struct
 
 (** qualification **)
@@ -42,6 +42,13 @@ fun reject_qualified kind s =
 
 datatype binding = Binding of ((string * bool) list * string) * Position.T;
   (* (prefix components (with mandatory flag), base name, position) *)
+
+fun str_of (Binding ((prefix, name), _)) =
+  let
+    fun mk_prefix (prfx, true) = prfx
+      | mk_prefix (prfx, false) = enclose "(" ")" prfx
+  in space_implode "." (map mk_prefix prefix) ^ ":" ^ name end;
+
 
 fun name_pos (name, pos) = Binding (([], name), pos);
 fun name name = name_pos (name, Position.none);
@@ -69,12 +76,6 @@ fun is_empty (Binding ((_, name), _)) = name = "";
 fun base_name (Binding ((_, name), _)) = name;
 fun pos_of (Binding (_, pos)) = pos;
 fun dest (Binding (prefix_name, _)) = prefix_name;
-
-fun display (Binding ((prefix, name), _)) =
-  let
-    fun mk_prefix (prfx, true) = prfx
-      | mk_prefix (prfx, false) = enclose "(" ")" prfx
-  in space_implode "." (map mk_prefix prefix) ^ ":" ^ name end;
 
 end;
 
