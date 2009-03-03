@@ -296,7 +296,7 @@ fun witness_local_proof after_qed cmd wit_propss goal_ctxt int =
   gen_witness_proof (fn after_qed' => fn propss =>
     Proof.map_context (K goal_ctxt)
     #> Proof.local_goal (ProofDisplay.print_results int) (K I) ProofContext.bind_propp_i
-      cmd NONE after_qed' (map (pair (Binding.empty, [])) propss))
+      cmd NONE after_qed' (map (pair Thm.empty_binding) propss))
     (fn wits => fn _ => after_qed wits) wit_propss [];
 
 end;

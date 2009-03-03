@@ -265,8 +265,7 @@ fun adjungate_axclass bname class base_sort sups supsort supparams global_syntax
     |> add_consts bname class base_sort sups supparams global_syntax
     |-> (fn (param_map, params) => AxClass.define_class (bname, supsort)
           (map (fst o snd) params)
-          [((Binding.empty, []),
-            Option.map (globalize param_map) raw_pred |> the_list)]
+          [(Thm.empty_binding, Option.map (globalize param_map) raw_pred |> the_list)]
     #> snd
     #> `get_axiom
     #-> (fn assm_axiom => fold (Sign.add_const_constraint o apsnd SOME o snd) params

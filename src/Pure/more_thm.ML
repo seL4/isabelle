@@ -40,6 +40,8 @@ sig
   val close_derivation: thm -> thm
   val add_axiom: binding * term -> theory -> thm * theory
   val add_def: bool -> bool -> binding * term -> theory -> thm * theory
+  type binding = binding * attribute list
+  val empty_binding: binding
   val rule_attribute: (Context.generic -> thm -> thm) -> attribute
   val declaration_attribute: (thm -> Context.generic -> Context.generic) -> attribute
   val theory_attributes: attribute list -> theory * thm -> theory * thm
@@ -300,6 +302,9 @@ fun add_def unchecked overloaded (b, prop) thy =
 
 
 (** attributes **)
+
+type binding = binding * attribute list;
+val empty_binding: binding = (Binding.empty, []);
 
 fun rule_attribute f (x, th) = (x, f x th);
 fun declaration_attribute f (x, th) = (f th x, th);
