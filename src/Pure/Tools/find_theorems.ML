@@ -169,8 +169,7 @@ fun filter_solves ctxt goal =
     fun try_thm thm =
       if Thm.no_prems thm then rtac thm 1 goal
       else (etacn thm THEN_ALL_NEW
-             (Goal.norm_hhf_tac THEN'
-               Method.assumption_tac ctxt)) 1 goal;
+             (Goal.norm_hhf_tac THEN' Method.assm_tac ctxt)) 1 goal;
   in
     fn (_, thm) =>
       if (is_some o Seq.pull o try_thm) thm
