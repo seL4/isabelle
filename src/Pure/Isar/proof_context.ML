@@ -103,12 +103,10 @@ sig
   val sticky_prefix: string -> Proof.context -> Proof.context
   val restore_naming: Proof.context -> Proof.context -> Proof.context
   val reset_naming: Proof.context -> Proof.context
-  val note_thmss: string ->
-    ((binding * attribute list) * (Facts.ref * attribute list) list) list ->
-      Proof.context -> (string * thm list) list * Proof.context
-  val note_thmss_i: string ->
-    ((binding * attribute list) * (thm list * attribute list) list) list ->
-      Proof.context -> (string * thm list) list * Proof.context
+  val note_thmss: string -> (Thm.binding * (Facts.ref * attribute list) list) list ->
+    Proof.context -> (string * thm list) list * Proof.context
+  val note_thmss_i: string -> (Thm.binding * (thm list * attribute list) list) list ->
+    Proof.context -> (string * thm list) list * Proof.context
   val put_thms: bool -> string * thm list option -> Proof.context -> Proof.context
   val read_vars: (binding * string option * mixfix) list -> Proof.context ->
     (binding * typ option * mixfix) list * Proof.context
@@ -121,10 +119,10 @@ sig
   val auto_fixes: Proof.context * (term list list * 'a) -> Proof.context * (term list list * 'a)
   val bind_fixes: string list -> Proof.context -> (term -> term) * Proof.context
   val add_assms: Assumption.export ->
-    ((binding * attribute list) * (string * string list) list) list ->
+    (Thm.binding * (string * string list) list) list ->
     Proof.context -> (string * thm list) list * Proof.context
   val add_assms_i: Assumption.export ->
-    ((binding * attribute list) * (term * term list) list) list ->
+    (Thm.binding * (term * term list) list) list ->
     Proof.context -> (string * thm list) list * Proof.context
   val add_cases: bool -> (string * RuleCases.T option) list -> Proof.context -> Proof.context
   val apply_case: RuleCases.T -> Proof.context -> (string * term list) list * Proof.context
@@ -1010,7 +1008,7 @@ local
 fun prep_vars prep_typ internal =
   fold_map (fn (raw_b, raw_T, raw_mx) => fn ctxt =>
     let
-      val raw_x = Binding.base_name raw_b;
+      val raw_x = Binding.name_of raw_b;
       val (x, mx) = Syntax.const_mixfix raw_x raw_mx;
       val _ = Syntax.is_identifier (no_skolem internal x) orelse
         error ("Illegal variable name: " ^ quote x);
@@ -1019,7 +1017,7 @@ fun prep_vars prep_typ internal =
         if internal then T
         else Type.no_tvars T handle TYPE (msg, _, _) => error msg;
       val opt_T = Option.map (cond_tvars o cert_typ ctxt o prep_typ ctxt) raw_T;
-      val var = (Binding.map_base (K x) raw_b, opt_T, mx);
+      val var = (Binding.map_name (K x) raw_b, opt_T, mx);
     in (var, ctxt |> declare_var (x, opt_T, mx) |> #2) end);
 
 in
@@ -1093,7 +1091,7 @@ fun add_const_constraint (c, opt_T) ctxt =
 fun add_abbrev mode tags (b, raw_t) ctxt =
   let
     val t0 = cert_term (ctxt |> set_mode mode_abbrev) raw_t
-      handle ERROR msg => cat_error msg ("in constant abbreviation " ^ quote (Binding.display b));
+      handle ERROR msg => cat_error msg ("in constant abbreviation " ^ quote (Binding.str_of b));
     val [t] = Variable.exportT_terms (Variable.declare_term t0 ctxt) ctxt [t0];
     val ((lhs, rhs), consts') = consts_of ctxt
       |> Consts.abbreviate (Syntax.pp ctxt) (tsig_of ctxt) (naming_of ctxt) mode tags (b, t);
@@ -1120,7 +1118,7 @@ fun prep_mixfix (x, T, mx) =
 fun gen_fixes prep raw_vars ctxt =
   let
     val (vars, _) = prep raw_vars ctxt;
-    val (xs', ctxt') = Variable.add_fixes (map (Binding.base_name o #1) vars) ctxt;
+    val (xs', ctxt') = Variable.add_fixes (map (Binding.name_of o #1) vars) ctxt;
     val ctxt'' =
       ctxt'
       |> fold_map declare_var (map2 (fn x' => fn (_, T, mx) => (x', T, mx)) xs' vars)

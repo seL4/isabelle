@@ -170,7 +170,7 @@ val name_source = named >> T.source_of;
 val name_source_position = named >> T.source_position_of;
 
 val name = named >> T.content_of;
-val binding = P.position name >> Binding.name_pos;
+val binding = P.position name >> Binding.make;
 val alt_name = alt_string >> T.content_of;
 val symbol = symbolic >> T.content_of;
 val liberal_name = symbol || name;

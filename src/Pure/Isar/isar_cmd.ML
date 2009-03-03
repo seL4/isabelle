@@ -161,7 +161,7 @@ fun oracle name (oracle_txt, pos) =
 (* axioms *)
 
 fun add_axms f args thy =
-  f (map (fn ((b, ax), srcs) => ((Binding.base_name b, ax), map (Attrib.attribute thy) srcs)) args) thy;
+  f (map (fn ((b, ax), srcs) => ((Binding.name_of b, ax), map (Attrib.attribute thy) srcs)) args) thy;
 
 val add_axioms = add_axms (snd oo PureThy.add_axioms_cmd);
 

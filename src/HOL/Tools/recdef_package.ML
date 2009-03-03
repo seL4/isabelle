@@ -320,7 +320,7 @@ val _ =
 val _ =
   OuterSyntax.local_theory_to_proof' "recdef_tc" "recommence proof of termination condition (TFL)"
     K.thy_goal
-    ((SpecParse.opt_thm_name ":" >> apfst Binding.base_name) -- P.xname --
+    ((SpecParse.opt_thm_name ":" >> apfst Binding.name_of) -- P.xname --
         Scan.option (P.$$$ "(" |-- P.nat --| P.$$$ ")")
       >> (fn ((thm_name, name), i) => recdef_tc thm_name name i));
 

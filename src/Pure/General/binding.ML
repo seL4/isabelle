@@ -1,98 +1,99 @@
 (*  Title:      Pure/General/binding.ML
     Author:     Florian Haftmann, TU Muenchen
+    Author:     Makarius
 
 Structured name bindings.
 *)
 
-signature BASIC_BINDING =
-sig
-  type binding
-  val long_names: bool ref
-  val short_names: bool ref
-  val unique_names: bool ref
-end;
+type bstring = string;    (*primitive names to be bound*)
 
 signature BINDING =
 sig
-  include BASIC_BINDING
-  val name_pos: string * Position.T -> binding
-  val name: string -> binding
-  val empty: binding
-  val map_base: (string -> string) -> binding -> binding
-  val qualify: string -> binding -> binding
-  val add_prefix: bool -> string -> binding -> binding
-  val map_prefix: ((string * bool) list -> binding -> binding) -> binding -> binding
-  val is_empty: binding -> bool
-  val base_name: binding -> string
+  type binding
+  val dest: binding -> (string * bool) list * (string * bool) list * bstring
+  val str_of: binding -> string
+  val make: bstring * Position.T -> binding
+  val name: bstring -> binding
   val pos_of: binding -> Position.T
-  val dest: binding -> (string * bool) list * string
-  val separator: string
-  val is_qualified: string -> bool
-  val display: binding -> string
+  val name_of: binding -> string
+  val map_name: (bstring -> bstring) -> binding -> binding
+  val empty: binding
+  val is_empty: binding -> bool
+  val qualify: bool -> string -> binding -> binding
+  val map_prefix: ((string * bool) list -> (string * bool) list) -> binding -> binding
+  val add_prefix: bool -> string -> binding -> binding
 end;
 
-structure Binding : BINDING =
+structure Binding: BINDING =
 struct
 
-(** global flags **)
+(** representation **)
 
-val long_names = ref false;
-val short_names = ref false;
-val unique_names = ref true;
+(* datatype *)
+
+type component = string * bool;   (*name with mandatory flag*)
+
+datatype binding = Binding of
+ {prefix: component list,         (*system prefix*)
+  qualifier: component list,      (*user qualifier*)
+  name: bstring,                  (*base name*)
+  pos: Position.T};               (*source position*)
+
+fun make_binding (prefix, qualifier, name, pos) =
+  Binding {prefix = prefix, qualifier = qualifier, name = name, pos = pos};
+
+fun map_binding f (Binding {prefix, qualifier, name, pos}) =
+  make_binding (f (prefix, qualifier, name, pos));
+
+fun dest (Binding {prefix, qualifier, name, ...}) = (prefix, qualifier, name);
 
 
-(** qualification **)
+(* diagnostic output *)
 
-val separator = ".";
-val is_qualified = exists_string (fn s => s = separator);
+val str_of_components = implode o map (fn (s, true) => s ^ "!" | (s, false) => s ^ "?");
 
-fun reject_qualified kind s =
-  if is_qualified s then
-    error ("Attempt to declare qualified " ^ kind ^ " " ^ quote s)
-  else s;
-
-
-(** binding representation **)
-
-datatype binding = Binding of ((string * bool) list * string) * Position.T;
-  (* (prefix components (with mandatory flag), base name, position) *)
-
-fun name_pos (name, pos) = Binding (([], name), pos);
-fun name name = name_pos (name, Position.none);
-val empty = name "";
-
-fun map_binding f (Binding (prefix_name, pos)) = Binding (f prefix_name, pos);
-
-val map_base = map_binding o apsnd;
-
-fun qualify_base path name =
-  if path = "" orelse name = "" then name
-  else path ^ separator ^ name;
-
-val qualify = map_base o qualify_base;
-  (*FIXME should all operations on bare names move here from name_space.ML ?*)
-
-fun add_prefix sticky "" b = b
-  | add_prefix sticky prfx b = (map_binding o apfst)
-      (cons ((*reject_qualified "prefix"*) prfx, sticky)) b;
-
-fun map_prefix f (Binding ((prefix, name), pos)) =
-  f prefix (name_pos (name, pos));
-
-fun is_empty (Binding ((_, name), _)) = name = "";
-fun base_name (Binding ((_, name), _)) = name;
-fun pos_of (Binding (_, pos)) = pos;
-fun dest (Binding (prefix_name, _)) = prefix_name;
-
-fun display (Binding ((prefix, name), _)) =
+fun str_of (Binding {prefix, qualifier, name, pos}) =
   let
-    fun mk_prefix (prfx, true) = prfx
-      | mk_prefix (prfx, false) = enclose "(" ")" prfx
-  in if not (! long_names) orelse null prefix orelse name = "" then name
-    else space_implode "." (map mk_prefix prefix) ^ ":" ^ name
-  end;
+    val text =
+      (if null prefix then "" else enclose "(" ")" (str_of_components prefix)) ^
+      str_of_components qualifier ^ ":" ^ name;
+    val props = Position.properties_of pos;
+  in Markup.markup (Markup.properties props (Markup.binding name)) text end;
+
+
+
+(** basic operations **)
+
+(* name and position *)
+
+fun make (name, pos) = make_binding ([], [], name, pos);
+fun name name = make (name, Position.none);
+
+fun pos_of (Binding {pos, ...}) = pos;
+fun name_of (Binding {name, ...}) = name;
+
+fun map_name f = map_binding (fn (prefix, qualifier, name, pos) => (prefix, qualifier, f name, pos));
+
+val empty = name "";
+fun is_empty b = name_of b = "";
+
+
+(* user qualifier *)
+
+fun qualify _ "" = I
+  | qualify mandatory qual = map_binding (fn (prefix, qualifier, name, pos) =>
+      (prefix, (qual, mandatory) :: qualifier, name, pos));
+
+
+(* system prefix *)
+
+fun map_prefix f = map_binding (fn (prefix, qualifier, name, pos) =>
+  (f prefix, qualifier, name, pos));
+
+fun add_prefix _ "" = I
+  | add_prefix mandatory prfx = map_prefix (cons (prfx, mandatory));
 
 end;
 
-structure Basic_Binding : BASIC_BINDING = Binding;
-open Basic_Binding;
+type binding = Binding.binding;
+

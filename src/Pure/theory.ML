@@ -258,7 +258,7 @@ fun check_def thy unchecked overloaded (b, tm) defs =
     val _ = check_overloading thy overloaded lhs_const;
   in defs |> dependencies thy unchecked true name lhs_const rhs_consts end
   handle ERROR msg => cat_error msg (Pretty.string_of (Pretty.block
-   [Pretty.str ("The error(s) above occurred in definition " ^ quote (Binding.display b) ^ ":"),
+   [Pretty.str ("The error(s) above occurred in definition " ^ quote (Binding.str_of b) ^ ":"),
     Pretty.fbrk, Pretty.quote (Syntax.pretty_term_global thy tm)]));
 
 
