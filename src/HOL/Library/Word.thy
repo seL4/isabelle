@@ -575,7 +575,7 @@ proof (cases x)
     have "?lhs = (1 + 2 * bv_to_nat w) mod 2"
       by (simp add: add_commute)
     also have "... = 1"
-      by (subst mod_add1_eq) simp
+      by (subst mod_add_eq) simp
     finally have eq1: "?lhs = 1" .
     have "?rhs  = 0" by simp
     with orig and eq1

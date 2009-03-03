@@ -27,10 +27,9 @@ val split_div' = @{thm split_div'};
 val Suc_plus1 = @{thm Suc_plus1};
 val imp_le_cong = @{thm imp_le_cong};
 val conj_le_cong = @{thm conj_le_cong};
-val nat_mod_add_eq = @{thm mod_add1_eq} RS sym;
 val mod_add_left_eq = @{thm mod_add_left_eq} RS sym;
 val mod_add_right_eq = @{thm mod_add_right_eq} RS sym;
-val int_mod_add_eq = @{thm mod_add_eq} RS sym;
+val mod_add_eq = @{thm mod_add_eq} RS sym;
 val nat_div_add_eq = @{thm div_add1_eq} RS sym;
 val int_div_add_eq = @{thm zdiv_zadd1_eq} RS sym;
 
@@ -68,8 +67,8 @@ fun linz_tac ctxt q i = ObjectLogic.atomize_prems_tac i THEN (fn st =>
     val (t,np,nh) = prepare_for_linz q g
     (* Some simpsets for dealing with mod div abs and nat*)
     val mod_div_simpset = HOL_basic_ss 
-			addsimps [refl,nat_mod_add_eq, mod_add_left_eq, 
-				  mod_add_right_eq, int_mod_add_eq, 
+			addsimps [refl,mod_add_eq, mod_add_left_eq, 
+				  mod_add_right_eq,
 				  nat_div_add_eq, int_div_add_eq,
 				  @{thm mod_self}, @{thm "zmod_self"},
 				  @{thm mod_by_0}, @{thm div_by_0},

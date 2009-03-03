@@ -100,8 +100,8 @@ text{*
 @{thm[display] div_mult1_eq[no_vars]}
 \rulename{div_mult1_eq}
 
-@{thm[display] mod_mult1_eq[no_vars]}
-\rulename{mod_mult1_eq}
+@{thm[display] mod_mult_right_eq[no_vars]}
+\rulename{mod_mult_right_eq}
 
 @{thm[display] div_mult2_eq[no_vars]}
 \rulename{div_mult2_eq}
@@ -147,8 +147,8 @@ Division, remainder of negatives
 @{thm[display] zdiv_zadd1_eq[no_vars]}
 \rulename{zdiv_zadd1_eq}
 
-@{thm[display] mod_add1_eq[no_vars]}
-\rulename{mod_add1_eq}
+@{thm[display] mod_add_eq[no_vars]}
+\rulename{mod_add_eq}
 
 @{thm[display] zdiv_zmult1_eq[no_vars]}
 \rulename{zdiv_zmult1_eq}

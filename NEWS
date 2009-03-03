@@ -376,12 +376,16 @@ renames resulting from duplicate elimination:
     mult_div ~>             div_mult_self2_is_id
     mult_mod ~>             mod_mult_self2_is_0
 
-* HOL/IntDiv: removed most (all?) lemmas that are instances of class-based
+* HOL/IntDiv: removed many lemmas that are instances of class-based
 generalizations (from Divides and Ring_and_Field).
 INCOMPATIBILITY. Rename old lemmas as follows:
 
 dvd_diff               -> nat_dvd_diff
 dvd_zminus_iff         -> dvd_minus_iff
+mod_add1_eq            -> mod_add_eq
+mod_mult1_eq           -> mod_mult_right_eq
+mod_mult1_eq'          -> mod_mult_left_eq
+mod_mult_distrib_mod   -> mod_mult_eq
 nat_mod_add_left_eq    -> mod_add_left_eq
 nat_mod_add_right_eq   -> mod_add_right_eq
 nat_mod_div_trivial    -> mod_div_trivial
@@ -398,7 +402,7 @@ zmod_zadd_left_eq      -> mod_add_left_eq
 zmod_zadd_right_eq     -> mod_add_right_eq
 zmod_zadd_self1        -> mod_add_self1
 zmod_zadd_self2        -> mod_add_self2
-zmod_zadd1_eq          -> mod_add1_eq
+zmod_zadd1_eq          -> mod_add_eq
 zmod_zdiff1_eq         -> mod_diff_eq
 zmod_zdvd_zmod         -> mod_mod_cancel
 zmod_zmod_cancel       -> mod_mod_cancel

@@ -132,7 +132,7 @@ definition
 lemma Char_char_of_nat:
   "Char n m = char_of_nat (nat_of_nibble n * 16 + nat_of_nibble m)"
   unfolding char_of_nat_def Let_def nibble_pair_of_nat_def
-  by (auto simp add: div_add1_eq mod_add1_eq nat_of_nibble_div_16 nibble_of_nat_norm nibble_of_nat_of_nibble)
+  by (auto simp add: div_add1_eq mod_add_eq nat_of_nibble_div_16 nibble_of_nat_norm nibble_of_nat_of_nibble)
 
 lemma char_of_nat_of_char:
   "char_of_nat (nat_of_char c) = c"
@@ -165,7 +165,7 @@ proof -
   show ?thesis
     by (simp add: nat_of_char.simps char_of_nat_def nibble_of_pair
       nat_of_nibble_of_nat mod_mult_distrib
-      n aux3 mod_mult_self3 l_256 aux4 mod_add1_eq [of "256 * k"] l_div_256)
+      n aux3 mod_mult_self3 l_256 aux4 mod_add_eq [of "256 * k"] l_div_256)
 qed
 
 lemma nibble_pair_of_nat_char:
