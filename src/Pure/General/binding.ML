@@ -1,20 +1,13 @@
 (*  Title:      Pure/General/binding.ML
     Author:     Florian Haftmann, TU Muenchen
+    Author:     Makarius
 
 Structured name bindings.
 *)
 
-signature BASIC_BINDING =
-sig
-  type binding
-  val long_names: bool ref
-  val short_names: bool ref
-  val unique_names: bool ref
-end;
-
 signature BINDING =
 sig
-  include BASIC_BINDING
+  type binding
   val name_pos: string * Position.T -> binding
   val name: string -> binding
   val empty: binding
@@ -33,13 +26,6 @@ end;
 
 structure Binding : BINDING =
 struct
-
-(** global flags **)
-
-val long_names = ref false;
-val short_names = ref false;
-val unique_names = ref true;
-
 
 (** qualification **)
 
@@ -88,11 +74,9 @@ fun display (Binding ((prefix, name), _)) =
   let
     fun mk_prefix (prfx, true) = prfx
       | mk_prefix (prfx, false) = enclose "(" ")" prfx
-  in if not (! long_names) orelse null prefix orelse name = "" then name
-    else space_implode "." (map mk_prefix prefix) ^ ":" ^ name
-  end;
+  in space_implode "." (map mk_prefix prefix) ^ ":" ^ name end;
 
 end;
 
-structure Basic_Binding : BASIC_BINDING = Binding;
-open Basic_Binding;
+type binding = Binding.binding;
+
