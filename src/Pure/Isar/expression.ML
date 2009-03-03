@@ -91,14 +91,10 @@ fun parameters_of thy strict (expr, fixed) =
     fun match_bind (n, b) = (n = Binding.base_name b);
     fun parm_eq ((b1, mx1: mixfix), (b2, mx2)) =
       (* FIXME: cannot compare bindings for equality, instead check for equal name and syntax *)
-      (Binding.base_name b1 = Binding.base_name b2) andalso
-      (if mx1 = mx2 then true
-      else error ("Conflicting syntax for parameter" ^ quote (Binding.display b1) ^
-                    " in expression."));
+      Binding.base_name b1 = Binding.base_name b2 andalso
+        (mx1 = mx2 orelse
+          error ("Conflicting syntax for parameter " ^ quote (Binding.str_of b1) ^ " in expression"));
       
-    fun bind_eq (b1, b2) = (Binding.base_name b1 = Binding.base_name b2);
-      (* FIXME: cannot compare bindings for equality. *)
-
     fun params_loc loc =
       (Locale.params_of thy loc |> map (fn (p, _, mx) => (p, mx)), loc);
     fun params_inst (expr as (loc, (prfx, Positional insts))) =
