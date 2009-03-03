@@ -1,6 +1,3 @@
-#
-# $Id$
-#
 
 ## targets
 
@@ -14,9 +11,9 @@ include ../Makefile.in
 NAME = codegen
 
 FILES = $(NAME).tex Thy/document/*.tex \
-  style.sty ../../iman.sty ../../extra.sty ../../isar.sty \
-  ../../isabelle.sty ../../isabellesym.sty ../../pdfsetup.sty \
-  ../../manual.bib ../../proof.sty
+  style.sty ../iman.sty ../extra.sty ../isar.sty \
+  ../isabelle.sty ../isabellesym.sty ../pdfsetup.sty \
+  ../manual.bib ../proof.sty
 
 dvi: $(NAME).dvi
 
