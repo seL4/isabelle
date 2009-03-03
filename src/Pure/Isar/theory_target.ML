@@ -188,8 +188,8 @@ fun locale_const (Target {target, is_class, ...}) (prmode as (mode, _)) tags ((b
     val arg = (b', Term.close_schematic_term rhs');
     val similar_body = Type.similar_types (rhs, rhs');
     (* FIXME workaround based on educated guess *)
-    val (prefix', _) = Binding.dest b';
-    val class_global = Binding.base_name b = Binding.base_name b'
+    val (prefix', _, _) = Binding.dest b';
+    val class_global = Binding.name_of b = Binding.name_of b'
       andalso not (null prefix')
       andalso (fst o snd o split_last) prefix' = Class_Target.class_prefix target;
   in
@@ -206,14 +206,15 @@ fun locale_const (Target {target, is_class, ...}) (prmode as (mode, _)) tags ((b
              Morphism.form (ProofContext.target_notation true prmode [(lhs', mx)]))))
   end;
 
+fun syntax_error c = error ("Illegal mixfix syntax for overloaded constant " ^ quote c);
+
 fun declare_const (ta as Target {target, is_locale, is_class, ...}) depends ((b, T), mx) lthy =
   let
-    val c = Binding.base_name b;
+    val c = Binding.name_of b;
     val tags = LocalTheory.group_position_of lthy;
     val xs = filter depends (#1 (ProofContext.inferred_fixes (LocalTheory.target_of lthy)));
     val U = map #2 xs ---> T;
     val (mx1, mx2, mx3) = fork_mixfix ta mx;
-    fun syntax_error c = error ("Illegal mixfix syntax for overloaded constant " ^ quote c);
     val declare_const =
       (case Class_Target.instantiation_param lthy c of
         SOME c' =>
@@ -241,7 +242,7 @@ fun declare_const (ta as Target {target, is_locale, is_class, ...}) depends ((b,
 
 fun abbrev (ta as Target {target, is_locale, is_class, ...}) prmode ((b, mx), t) lthy =
   let
-    val c = Binding.base_name b;
+    val c = Binding.name_of b;
     val tags = LocalTheory.group_position_of lthy;
     val thy_ctxt = ProofContext.init (ProofContext.theory_of lthy);
     val target_ctxt = LocalTheory.target_of lthy;
@@ -278,8 +279,8 @@ fun define (ta as Target {target, is_locale, is_class, ...})
     val thy = ProofContext.theory_of lthy;
     val thy_ctxt = ProofContext.init thy;
 
-    val c = Binding.base_name b;
-    val name' = Binding.map_base (Thm.def_name_optional c) name;
+    val c = Binding.name_of b;
+    val name' = Binding.map_name (Thm.def_name_optional c) name;
     val (rhs', rhs_conv) =
       LocalDefs.export_cterm lthy thy_ctxt (Thm.cterm_of thy rhs) |>> Thm.term_of;
     val xs = Variable.add_fixed (LocalTheory.target_of lthy) rhs' [];
@@ -299,7 +300,7 @@ fun define (ta as Target {target, is_locale, is_class, ...})
           then (fn name => fn eq => Thm.add_def false false (Binding.name name, Logic.mk_equals eq))
           else (fn name => fn (Const (c, _), rhs) => AxClass.define_overloaded name (c, rhs)));
     val (global_def, lthy3) = lthy2
-      |> LocalTheory.theory_result (define_const (Binding.base_name name') (lhs', rhs'));
+      |> LocalTheory.theory_result (define_const (Binding.name_of name') (lhs', rhs'));
     val def = LocalDefs.trans_terms lthy3
       [(*c == global.c xs*)     local_def,
        (*global.c xs == rhs'*)  global_def,

@@ -306,14 +306,11 @@ in
 
 fun nicer_shortest ctxt =
   let
-    val ns = ProofContext.theory_of ctxt
-             |> PureThy.facts_of
-             |> Facts.space_of;
+    (* FIXME global name space!? *)
+    val space = Facts.space_of (PureThy.facts_of (ProofContext.theory_of ctxt));
 
-    val len_sort = sort (int_ord o (pairself size));
-    fun shorten s = (case len_sort (NameSpace.get_accesses ns s) of
-                       [] => s
-                     | s'::_ => s');
+    val shorten =
+      NameSpace.extern_flags {long_names = false, short_names = false, unique_names = false} space;
 
     fun nicer (Facts.Named ((x, _), i)) (Facts.Named ((y, _), j)) =
           nicer_name (shorten x, i) (shorten y, j)

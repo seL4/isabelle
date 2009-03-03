@@ -65,7 +65,7 @@ let
   val _ = Theory.requires thy "Inductive_ZF" "(co)inductive definitions";
   val ctxt = ProofContext.init thy;
 
-  val intr_specs = map (apfst (apfst Binding.base_name)) raw_intr_specs;
+  val intr_specs = map (apfst (apfst Binding.name_of)) raw_intr_specs;
   val (intr_names, intr_tms) = split_list (map fst intr_specs);
   val case_names = RuleCases.case_names intr_names;
 

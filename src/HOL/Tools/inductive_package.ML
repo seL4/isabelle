@@ -260,7 +260,7 @@ in
 
 fun check_rule ctxt cs params ((binding, att), rule) =
   let
-    val err_name = Binding.display binding;
+    val err_name = Binding.str_of binding;
     val params' = Term.variant_frees rule (Logic.strip_params rule);
     val frees = rev (map Free params');
     val concl = subst_bounds (frees, Logic.strip_assums_concl rule);
@@ -639,7 +639,7 @@ fun mk_ind_def quiet_mode skip_mono fork_mono alt_name coind cs intr_ts monos pa
 
     val rec_name =
       if Binding.is_empty alt_name then
-        Binding.name (space_implode "_" (map (Binding.base_name o fst) cnames_syn))
+        Binding.name (space_implode "_" (map (Binding.name_of o fst) cnames_syn))
       else alt_name;
 
     val ((rec_const, (_, fp_def)), ctxt') = ctxt |>
@@ -674,9 +674,9 @@ fun mk_ind_def quiet_mode skip_mono fork_mono alt_name coind cs intr_ts monos pa
 fun declare_rules kind rec_binding coind no_ind cnames intrs intr_bindings intr_atts
       elims raw_induct ctxt =
   let
-    val rec_name = Binding.base_name rec_binding;
-    val rec_qualified = Binding.qualify rec_name;
-    val intr_names = map Binding.base_name intr_bindings;
+    val rec_name = Binding.name_of rec_binding;
+    val rec_qualified = Binding.qualify false rec_name;
+    val intr_names = map Binding.name_of intr_bindings;
     val ind_case_names = RuleCases.case_names intr_names;
     val induct =
       if coind then
@@ -734,7 +734,7 @@ fun add_ind_def {quiet_mode, verbose, kind, alt_name, coind, no_elim, no_ind, sk
     cs intros monos params cnames_syn ctxt =
   let
     val _ = null cnames_syn andalso error "No inductive predicates given";
-    val names = map (Binding.base_name o fst) cnames_syn;
+    val names = map (Binding.name_of o fst) cnames_syn;
     val _ = message (quiet_mode andalso not verbose)
       ("Proofs for " ^ coind_prefix coind ^ "inductive predicate(s) " ^ commas_quote names);
 
@@ -749,7 +749,7 @@ fun add_ind_def {quiet_mode, verbose, kind, alt_name, coind, no_elim, no_ind, sk
     val (intrs, unfold) = prove_intrs quiet_mode coind mono fp_def (length bs + length xs)
       params intr_ts rec_preds_defs ctxt1;
     val elims = if no_elim then [] else
-      prove_elims quiet_mode cs params intr_ts (map Binding.base_name intr_names)
+      prove_elims quiet_mode cs params intr_ts (map Binding.name_of intr_names)
         unfold rec_preds_defs ctxt1;
     val raw_induct = zero_var_indexes
       (if no_ind then Drule.asm_rl else
@@ -793,7 +793,7 @@ fun gen_add_inductive_i mk_def
 
     (* abbrevs *)
 
-    val (_, ctxt1) = Variable.add_fixes (map (Binding.base_name o fst o fst) cnames_syn) lthy;
+    val (_, ctxt1) = Variable.add_fixes (map (Binding.name_of o fst o fst) cnames_syn) lthy;
 
     fun get_abbrev ((name, atts), t) =
       if can (Logic.strip_assums_concl #> Logic.dest_equals) t then
@@ -802,7 +802,7 @@ fun gen_add_inductive_i mk_def
             error "Abbreviations may not have names or attributes";
           val ((x, T), rhs) = LocalDefs.abs_def (snd (LocalDefs.cert_def ctxt1 t));
           val var =
-            (case find_first (fn ((c, _), _) => Binding.base_name c = x) cnames_syn of
+            (case find_first (fn ((c, _), _) => Binding.name_of c = x) cnames_syn of
               NONE => error ("Undeclared head of abbreviation " ^ quote x)
             | SOME ((b, T'), mx) =>
                 if T <> T' then error ("Bad type specification for abbreviation " ^ quote x)
@@ -811,17 +811,17 @@ fun gen_add_inductive_i mk_def
       else NONE;
 
     val abbrevs = map_filter get_abbrev spec;
-    val bs = map (Binding.base_name o fst o fst) abbrevs;
+    val bs = map (Binding.name_of o fst o fst) abbrevs;
 
 
     (* predicates *)
 
     val pre_intros = filter_out (is_some o get_abbrev) spec;
-    val cnames_syn' = filter_out (member (op =) bs o Binding.base_name o fst o fst) cnames_syn;
-    val cs = map (Free o apfst Binding.base_name o fst) cnames_syn';
+    val cnames_syn' = filter_out (member (op =) bs o Binding.name_of o fst o fst) cnames_syn;
+    val cs = map (Free o apfst Binding.name_of o fst) cnames_syn';
     val ps = map Free pnames;
 
-    val (_, ctxt2) = lthy |> Variable.add_fixes (map (Binding.base_name o fst o fst) cnames_syn');
+    val (_, ctxt2) = lthy |> Variable.add_fixes (map (Binding.name_of o fst o fst) cnames_syn');
     val _ = map (fn abbr => LocalDefs.fixed_abbrev abbr ctxt2) abbrevs;
     val ctxt3 = ctxt2 |> fold (snd oo LocalDefs.fixed_abbrev) abbrevs;
     val expand = Assumption.export_term ctxt3 lthy #> ProofContext.cert_term lthy;
@@ -854,7 +854,7 @@ fun gen_add_inductive mk_def verbose coind cnames_syn pnames_syn intro_srcs raw_
   in
     lthy
     |> LocalTheory.set_group (serial_string ())
-    |> gen_add_inductive_i mk_def flags cs (map (apfst Binding.base_name o fst) ps) intrs monos
+    |> gen_add_inductive_i mk_def flags cs (map (apfst Binding.name_of o fst) ps) intrs monos
   end;
 
 val add_inductive_i = gen_add_inductive_i add_ind_def;
@@ -954,7 +954,7 @@ fun flatten_specification specs = specs |> maps
               else if Binding.is_empty b then ((a, atts), B)
               else error "Illegal nested case names"
           | ((b, _), _) => error "Illegal simultaneous specification")
-    | (a, _) => error ("Illegal local specification parameters for " ^ quote (Binding.base_name a)));
+    | (a, _) => error ("Illegal local specification parameters for " ^ quote (Binding.str_of a)));
 
 fun gen_ind_decl mk_def coind =
   P.fixes -- P.for_fixes --

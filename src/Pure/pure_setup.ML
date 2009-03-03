@@ -33,7 +33,7 @@ install_pp (make_pp ["Position", "T"] (Pretty.pprint o Pretty.enum "," "{" "}" o
   map (fn (x, y) => Pretty.str (x ^ "=" ^ y)) o Position.properties_of));
 install_pp (make_pp ["Thm", "thm"] ProofDisplay.pprint_thm);
 install_pp (make_pp ["Thm", "cterm"] ProofDisplay.pprint_cterm);
-install_pp (make_pp ["Binding", "binding"] (Pretty.pprint o Pretty.str o Binding.display));
+install_pp (make_pp ["Binding", "binding"] (Pretty.pprint o Pretty.str o Binding.str_of));
 install_pp (make_pp ["Thm", "ctyp"] ProofDisplay.pprint_ctyp);
 install_pp (make_pp ["Context", "theory"] Context.pprint_thy);
 install_pp (make_pp ["Context", "theory_ref"] Context.pprint_thy_ref);

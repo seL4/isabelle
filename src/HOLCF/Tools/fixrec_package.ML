@@ -16,7 +16,7 @@ sig
     -> (Attrib.binding * term) list -> local_theory -> local_theory
 
   val add_fixpat: Attrib.binding * string list -> theory -> theory
-  val add_fixpat_i: (binding * attribute list) * term list -> theory -> theory
+  val add_fixpat_i: Thm.binding * term list -> theory -> theory
   val add_matchers: (string * string) list -> theory -> theory
   val setup: theory -> theory
 end;
@@ -175,7 +175,7 @@ fun add_fixdefs
   (spec : (Attrib.binding * term) list)
   (lthy : local_theory) =
   let
-    val names = map (Binding.base_name o fst o fst) fixes;
+    val names = map (Binding.name_of o fst o fst) fixes;
     val all_names = space_implode "_" names;
     val (lhss,rhss) = ListPair.unzip (map (dest_eqs o snd) spec);
     val fixpoint = mk_fix (lambda_ctuple lhss (mk_ctuple rhss));

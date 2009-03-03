@@ -9,11 +9,9 @@ dependencies; no support for overloading.
 signature CONSTDEFS =
 sig
   val add_constdefs: (binding * string option) list *
-    ((binding * string option * mixfix) option *
-      (Attrib.binding * string)) list -> theory -> theory
+    ((binding * string option * mixfix) option * (Attrib.binding * string)) list -> theory -> theory
   val add_constdefs_i: (binding * typ option) list *
-    ((binding * typ option * mixfix) option *
-      ((binding * attribute list) * term)) list -> theory -> theory
+    ((binding * typ option * mixfix) option * (Thm.binding * term)) list -> theory -> theory
 end;
 
 structure Constdefs: CONSTDEFS =
@@ -38,7 +36,7 @@ fun gen_constdef prep_vars prep_prop prep_att
     val prop = prep_prop var_ctxt raw_prop;
     val (c, T) = #1 (LocalDefs.cert_def thy_ctxt (Logic.strip_imp_concl prop));
     val _ =
-      (case Option.map Binding.base_name d of
+      (case Option.map Binding.name_of d of
         NONE => ()
       | SOME c' =>
           if c <> c' then
@@ -46,7 +44,7 @@ fun gen_constdef prep_vars prep_prop prep_att
           else ());
 
     val def = Term.subst_atomic [(Free (c, T), Const (Sign.full_bname thy c, T))] prop;
-    val name = Thm.def_name_optional c (Binding.base_name raw_name);
+    val name = Thm.def_name_optional c (Binding.name_of raw_name);
     val atts = map (prep_att thy) raw_atts;
 
     val thy' =

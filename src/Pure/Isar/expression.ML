@@ -88,17 +88,13 @@ fun parameters_of thy strict (expr, fixed) =
         if null dups then () else error (message ^ commas dups)
       end;
 
-    fun match_bind (n, b) = (n = Binding.base_name b);
+    fun match_bind (n, b) = (n = Binding.name_of b);
     fun parm_eq ((b1, mx1: mixfix), (b2, mx2)) =
       (* FIXME: cannot compare bindings for equality, instead check for equal name and syntax *)
-      (Binding.base_name b1 = Binding.base_name b2) andalso
-      (if mx1 = mx2 then true
-      else error ("Conflicting syntax for parameter" ^ quote (Binding.display b1) ^
-                    " in expression."));
+      Binding.name_of b1 = Binding.name_of b2 andalso
+        (mx1 = mx2 orelse
+          error ("Conflicting syntax for parameter " ^ quote (Binding.str_of b1) ^ " in expression"));
       
-    fun bind_eq (b1, b2) = (Binding.base_name b1 = Binding.base_name b2);
-      (* FIXME: cannot compare bindings for equality. *)
-
     fun params_loc loc =
       (Locale.params_of thy loc |> map (fn (p, _, mx) => (p, mx)), loc);
     fun params_inst (expr as (loc, (prfx, Positional insts))) =
@@ -133,8 +129,8 @@ fun parameters_of thy strict (expr, fixed) =
 
     val (implicit, expr') = params_expr expr;
 
-    val implicit' = map (#1 #> Binding.base_name) implicit;
-    val fixed' = map (#1 #> Binding.base_name) fixed;
+    val implicit' = map (#1 #> Binding.name_of) implicit;
+    val fixed' = map (#1 #> Binding.name_of) fixed;
     val _ = reject_dups "Duplicate fixed parameter(s): " fixed';
     val implicit'' = if strict then []
       else let val _ = reject_dups
@@ -310,14 +306,12 @@ fun closeup _ _ false elem = elem
             (a, map (fn (t, ps) => (close_frees t, no_binds ps)) propps)))
         | Defines defs => Defines (defs |> map (fn ((name, atts), (t, ps)) =>
             let val ((c, _), t') = LocalDefs.cert_def ctxt (close_frees t)
-            in
-              ((Binding.map_base (Thm.def_name_optional c) name, atts), (t', no_binds ps))
-            end))
+            in ((Binding.map_name (Thm.def_name_optional c) name, atts), (t', no_binds ps)) end))
         | e => e)
       end;
 
 fun finish_primitive parms _ (Fixes fixes) = Fixes (map (fn (binding, _, mx) =>
-      let val x = Binding.base_name binding
+      let val x = Binding.name_of binding
       in (binding, AList.lookup (op =) parms x, mx) end) fixes)
   | finish_primitive _ _ (Constrains _) = Constrains []
   | finish_primitive _ close (Assumes asms) = close (Assumes asms)
@@ -328,7 +322,7 @@ fun finish_inst ctxt parms do_close (loc, (prfx, inst)) =
   let
     val thy = ProofContext.theory_of ctxt;
     val (parm_names, parm_types) = Locale.params_of thy loc |>
-      map_split (fn (b, SOME T, _) => (Binding.base_name b, T));
+      map_split (fn (b, SOME T, _) => (Binding.name_of b, T));
     val (morph, _) = inst_morph (parm_names, parm_types) (prfx, inst) ctxt;
   in (loc, morph) end;
 
@@ -360,7 +354,7 @@ fun prep_full_context_statement parse_typ parse_prop prep_vars_elem prep_inst pr
     fun prep_insts (loc, (prfx, inst)) (i, insts, ctxt) =
       let
         val (parm_names, parm_types) = Locale.params_of thy loc |>
-          map_split (fn (b, SOME T, _) => (Binding.base_name b, T))
+          map_split (fn (b, SOME T, _) => (Binding.name_of b, T))
             (*FIXME return value of Locale.params_of has strange type*)
         val inst' = prep_inst ctxt parm_names inst;
         val parm_types' = map (TypeInfer.paramify_vars o
@@ -394,7 +388,7 @@ fun prep_full_context_statement parse_typ parse_prop prep_vars_elem prep_inst pr
       prep_concl raw_concl (insts', elems, ctxt5);
 
     (* Retrieve parameter types *)
-    val xs = fold (fn Fixes fixes => (fn ps => ps @ map (Binding.base_name o #1) fixes)
+    val xs = fold (fn Fixes fixes => (fn ps => ps @ map (Binding.name_of o #1) fixes)
       | _ => fn ps => ps) (Fixes fors :: elems') [];
     val (Ts, ctxt7) = fold_map ProofContext.inferred_param xs ctxt6; 
     val parms = xs ~~ Ts;  (* params from expression and elements *)

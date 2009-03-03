@@ -6,12 +6,18 @@ are considered global; no support for absolute addressing.
 Cf. Pure/General/binding.ML
 *)
 
-type bstring = string;    (*simple names to be bound -- legacy*)
 type xstring = string;    (*external names*)
+
+signature BASIC_NAME_SPACE =
+sig
+  val long_names: bool ref
+  val short_names: bool ref
+  val unique_names: bool ref
+end;
 
 signature NAME_SPACE =
 sig
-  include BASIC_BINDING
+  include BASIC_NAME_SPACE
   val hidden: string -> string
   val is_hidden: string -> bool
   val separator: string                 (*single char*)
@@ -27,8 +33,9 @@ sig
   val empty: T
   val intern: T -> xstring -> string
   val extern: T -> string -> xstring
+  val extern_flags: {long_names: bool, short_names: bool, unique_names: bool} ->
+    T -> string -> xstring
   val hide: bool -> string -> T -> T
-  val get_accesses: T -> string -> xstring list
   val merge: T * T -> T
   type naming
   val default_naming: naming
@@ -54,16 +61,13 @@ end;
 structure NameSpace: NAME_SPACE =
 struct
 
-open Basic_Binding;
-
-
 (** long identifiers **)
 
 fun hidden name = "??." ^ name;
 val is_hidden = String.isPrefix "??.";
 
-val separator = Binding.separator;
-val is_qualified = Binding.is_qualified;
+val separator = ".";
+val is_qualified = exists_string (fn s => s = separator);
 
 val implode_name = space_implode separator;
 val explode_name = space_explode separator;
@@ -133,19 +137,10 @@ fun lookup (NameSpace (tab, _)) xname =
   | SOME ((name :: _, _), _) => (name, false)
   | SOME (([], name' :: _), _) => (hidden name', true));
 
-fun ex_mapsto_in (NameSpace (tab, _)) name xname =
-    (case Symtab.lookup tab xname of
-      SOME ((name'::_, _), _) => name' = name
-    | _ => false);
-
-fun get_accesses' valid_only (ns as (NameSpace (_, tab))) name =
+fun get_accesses (NameSpace (_, tab)) name =
   (case Symtab.lookup tab name of
     NONE => [name]
-  | SOME (xnames, _) => if valid_only
-                        then filter (ex_mapsto_in ns name) xnames
-                        else xnames);
-
-val get_accesses = get_accesses' true;
+  | SOME (xnames, _) => xnames);
 
 fun put_accesses name xnames (NameSpace (tab, xtab)) =
   NameSpace (tab, Symtab.update (name, (xnames, stamp ())) xtab);
@@ -158,19 +153,29 @@ fun valid_accesses (NameSpace (tab, _)) name = Symtab.fold (fn (xname, ((names, 
 
 fun intern space xname = #1 (lookup space xname);
 
-fun extern space name =
+fun extern_flags {long_names, short_names, unique_names} space name =
   let
     fun valid unique xname =
       let val (name', uniq) = lookup space xname
       in name = name' andalso (uniq orelse not unique) end;
 
     fun ext [] = if valid false name then name else hidden name
-      | ext (nm :: nms) = if valid (! unique_names) nm then nm else ext nms;
+      | ext (nm :: nms) = if valid unique_names nm then nm else ext nms;
   in
-    if ! long_names then name
-    else if ! short_names then base name
-    else ext (get_accesses' false space name)
+    if long_names then name
+    else if short_names then base name
+    else ext (get_accesses space name)
   end;
+
+val long_names = ref false;
+val short_names = ref false;
+val unique_names = ref true;
+
+fun extern space name =
+  extern_flags
+   {long_names = ! long_names,
+    short_names = ! short_names,
+    unique_names = ! unique_names} space name;
 
 
 (* basic operations *)
@@ -203,7 +208,7 @@ fun hide fully name space =
       space
       |> add_name' name name
       |> fold (del_name name) (if fully then names else names inter_string [base name])
-      |> fold (del_name_extra name) (get_accesses' false space name)
+      |> fold (del_name_extra name) (get_accesses space name)
     end;
 
 
@@ -289,13 +294,13 @@ fun declare_internal naming name space =
     in space |> fold (add_name name) accs |> put_accesses name accs' end;
 
 fun full_name naming b =
-  let val (prefix, bname) = Binding.dest b
-  in full_internal (apply_prefix prefix naming) bname end;
+  let val (prefix, qualifier, bname) = Binding.dest b
+  in full_internal (apply_prefix (prefix @ qualifier) naming) bname end;
 
 fun declare bnaming b =
   let
-    val (prefix, bname) = Binding.dest b;
-    val naming = apply_prefix prefix bnaming;
+    val (prefix, qualifier, bname) = Binding.dest b;
+    val naming = apply_prefix (prefix @ qualifier) bnaming;
     val name = full_internal naming bname;
   in declare_internal naming name #> pair name end;
 
@@ -331,3 +336,7 @@ val implode = implode_name;
 val explode = explode_name;
 
 end;
+
+structure BasicNameSpace: BASIC_NAME_SPACE = NameSpace;
+open BasicNameSpace;
+

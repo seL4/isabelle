@@ -118,8 +118,7 @@ fun attribute_i thy =
 fun attribute thy = attribute_i thy o intern_src thy;
 
 fun eval_thms ctxt args = ProofContext.note_thmss Thm.theoremK
-    [((Binding.empty, []),
-      map (apsnd (map (attribute (ProofContext.theory_of ctxt)))) args)] ctxt
+    [(Thm.empty_binding, map (apsnd (map (attribute (ProofContext.theory_of ctxt)))) args)] ctxt
   |> fst |> maps snd;
 
 

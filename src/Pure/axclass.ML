@@ -8,7 +8,7 @@ parameters.
 signature AX_CLASS =
 sig
   val define_class: bstring * class list -> string list ->
-    ((binding * attribute list) * term list) list -> theory -> class * theory
+    (Thm.binding * term list) list -> theory -> class * theory
   val add_classrel: thm -> theory -> theory
   val add_arity: thm -> theory -> theory
   val prove_classrel: class * class -> tactic -> theory -> theory

@@ -210,7 +210,7 @@ fun make_def ctxt fixes fs (fname, ls, rs, rec_name, tname) =
     val def_name = Thm.def_name (Sign.base_name fname);
     val rhs = singleton (Syntax.check_terms ctxt) raw_rhs;
     val SOME var = get_first (fn ((b, _), mx) =>
-      if Binding.base_name b = fname then SOME (b, mx) else NONE) fixes;
+      if Binding.name_of b = fname then SOME (b, mx) else NONE) fixes;
   in
     ((var, ((Binding.name def_name, []), rhs)),
      subst_bounds (rev (map Free frees), strip_abs_body rhs))
@@ -248,7 +248,7 @@ fun gen_primrec set_group prep_spec prep_term invs fctxt raw_fixes raw_params ra
     val (names_atts, spec') = split_list spec;
     val eqns' = map unquantify spec'
     val eqns = fold_rev (process_eqn lthy (fn v => Variable.is_fixed lthy v
-      orelse exists (fn ((w, _), _) => v = Binding.base_name w) fixes)) spec' [];
+      orelse exists (fn ((w, _), _) => v = Binding.name_of w) fixes)) spec' [];
     val dt_info = NominalPackage.get_nominal_datatypes (ProofContext.theory_of lthy);
     val lsrs :: lsrss = maps (fn (_, (_, _, eqns)) =>
       map (fn (_, (ls, _, rs, _, _)) => ls @ rs) eqns) eqns
@@ -285,7 +285,7 @@ fun gen_primrec set_group prep_spec prep_term invs fctxt raw_fixes raw_params ra
       set_group ? LocalTheory.set_group (serial_string ()) |>
       fold_map (apfst (snd o snd) oo
         LocalTheory.define Thm.definitionK o fst) defs';
-    val qualify = Binding.qualify
+    val qualify = Binding.qualify false
       (space_implode "_" (map (Sign.base_name o #1) defs));
     val names_atts' = map (apfst qualify) names_atts;
     val cert = cterm_of (ProofContext.theory_of lthy');
