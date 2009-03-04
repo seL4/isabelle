@@ -626,7 +626,7 @@ proof-
   ultimately show ?thesis by metis
 qed
 
-lemma dot_pos_lt: "(0 < x \<bullet> x) \<longleftrightarrow> (x::'a::{ordered_ring_strict,ring_no_zero_divisors} ^ 'n) \<noteq> 0" using dot_eq_0[of x] dot_pos_le[of x] 
+lemma dot_pos_lt[simp]: "(0 < x \<bullet> x) \<longleftrightarrow> (x::'a::{ordered_ring_strict,ring_no_zero_divisors} ^ 'n) \<noteq> 0" using dot_eq_0[of x] dot_pos_le[of x] 
   by (auto simp add: le_less) 
 
 subsection{* The collapse of the general concepts to dimension one. *}
@@ -759,10 +759,10 @@ lemma real_div_sqrt: "0 <= x ==> x / sqrt(x) = sqrt(x)"
 
 text{* Hence derive more interesting properties of the norm. *}
 
-lemma norm_0: "norm (0::real ^ 'n) = 0"
+lemma norm_0[simp]: "norm (0::real ^ 'n) = 0"
   by (rule norm_zero)
 
-lemma norm_mul: "norm(a *s x) = abs(a) * norm x"
+lemma norm_mul[simp]: "norm(a *s x) = abs(a) * norm x"
   by (simp add: vector_norm_def vector_component setL2_right_distrib
            abs_mult cong: strong_setL2_cong)
 lemma norm_eq_0_dot: "(norm x = 0) \<longleftrightarrow> (x \<bullet> x = (0::real))"
@@ -772,11 +772,11 @@ lemma real_vector_norm_def: "norm x = sqrt (x \<bullet> x)"
 lemma norm_pow_2: "norm x ^ 2 = x \<bullet> x"
   by (simp add: real_vector_norm_def)
 lemma norm_eq_0_imp: "norm x = 0 ==> x = (0::real ^'n)" by (metis norm_eq_zero)
-lemma vector_mul_eq_0: "(a *s x = 0) \<longleftrightarrow> a = (0::'a::idom) \<or> x = 0"
+lemma vector_mul_eq_0[simp]: "(a *s x = 0) \<longleftrightarrow> a = (0::'a::idom) \<or> x = 0"
   by vector
-lemma vector_mul_lcancel: "a *s x = a *s y \<longleftrightarrow> a = (0::real) \<or> x = y"
+lemma vector_mul_lcancel[simp]: "a *s x = a *s y \<longleftrightarrow> a = (0::real) \<or> x = y"
   by (metis eq_iff_diff_eq_0 vector_mul_eq_0 vector_ssub_ldistrib)
-lemma vector_mul_rcancel: "a *s x = b *s x \<longleftrightarrow> (a::real) = b \<or> x = 0"
+lemma vector_mul_rcancel[simp]: "a *s x = b *s x \<longleftrightarrow> (a::real) = b \<or> x = 0"
   by (metis eq_iff_diff_eq_0 vector_mul_eq_0 vector_sub_rdistrib)
 lemma vector_mul_lcancel_imp: "a \<noteq> (0::real) ==>  a *s x = a *s y ==> (x = y)"
   by (metis vector_mul_lcancel)
@@ -814,28 +814,6 @@ lemma norm_triangle_le: "norm(x::real ^'n) + norm y <= e ==> norm(x + y) <= e"
 lemma norm_triangle_lt: "norm(x::real ^'n) + norm(y) < e ==> norm(x + y) < e"
   by (metis basic_trans_rules(21) norm_triangle_ineq)
 
-lemma setsum_delta: 
-  assumes fS: "finite S"
-  shows "setsum (\<lambda>k. if k=a then b k else 0) S = (if a \<in> S then b a else 0)"
-proof-
-  let ?f = "(\<lambda>k. if k=a then b k else 0)"
-  {assume a: "a \<notin> S"
-    hence "\<forall> k\<in> S. ?f k = 0" by simp
-    hence ?thesis  using a by simp}
-  moreover 
-  {assume a: "a \<in> S"
-    let ?A = "S - {a}"
-    let ?B = "{a}"
-    have eq: "S = ?A \<union> ?B" using a by blast 
-    have dj: "?A \<inter> ?B = {}" by simp
-    from fS have fAB: "finite ?A" "finite ?B" by auto  
-    have "setsum ?f S = setsum ?f ?A + setsum ?f ?B"
-      using setsum_Un_disjoint[OF fAB dj, of ?f, unfolded eq[symmetric]]
-      by simp
-    then have ?thesis  using a by simp}
-  ultimately show ?thesis by blast
-qed
-  
 lemma component_le_norm: "i \<in> {1 .. dimindex(UNIV :: 'n set)} ==> \<bar>x$i\<bar> <= norm (x::real ^ 'n)"
   apply (simp add: vector_norm_def)
   apply (rule member_le_setL2, simp_all)
@@ -852,7 +830,7 @@ lemma norm_bound_component_lt: "norm(x::real ^ 'n) < e
 lemma norm_le_l1: "norm (x:: real ^'n) <= setsum(\<lambda>i. \<bar>x$i\<bar>) {1..dimindex(UNIV::'n set)}"
   by (simp add: vector_norm_def setL2_le_setsum)
 
-lemma real_abs_norm: "\<bar> norm x\<bar> = norm (x :: real ^'n)" 
+lemma real_abs_norm[simp]: "\<bar> norm x\<bar> = norm (x :: real ^'n)" 
   by (rule abs_norm_cancel)
 lemma real_abs_sub_norm: "\<bar>norm(x::real ^'n) - norm y\<bar> <= norm(x - y)"
   by (rule norm_triangle_ineq3)
@@ -929,6 +907,7 @@ lemma norm_cmul_rule_thm: "b >= norm(x) ==> \<bar>c\<bar> * b >= norm(c *s x)"
   apply simp_all
   done
 
+  (* FIXME: Move all these theorems into the ML code using lemma antiquotation *)
 lemma norm_add_rule_thm: "b1 >= norm(x1 :: real ^'n) \<Longrightarrow> b2 >= norm(x2) ==> b1 + b2 >= norm(x1 + x2)"
   apply (rule norm_triangle_le) by simp
 
@@ -977,17 +956,17 @@ method_setup norm = {* Method.ctxt_args (Method.SIMPLE_METHOD' o NormArith.norm_
 
 text{* Hence more metric properties. *}
 
-lemma dist_refl: "dist x x = 0" by norm
+lemma dist_refl[simp]: "dist x x = 0" by norm
 
 lemma dist_sym: "dist x y = dist y x"by norm
 
-lemma dist_pos_le: "0 <= dist x y" by norm
+lemma dist_pos_le[simp]: "0 <= dist x y" by norm
 
 lemma dist_triangle: "dist x z <= dist x y + dist y z" by norm
 
 lemma dist_triangle_alt: "dist y z <= dist x y + dist x z" by norm
 
-lemma dist_eq_0: "dist x y = 0 \<longleftrightarrow> x = y" by norm
+lemma dist_eq_0[simp]: "dist x y = 0 \<longleftrightarrow> x = y" by norm
 
 lemma dist_pos_lt: "x \<noteq> y ==> 0 < dist x y" by norm 
 lemma dist_nz:  "x \<noteq> y \<longleftrightarrow> 0 < dist x y" by norm 
@@ -1003,12 +982,12 @@ lemma dist_triangle_half_r: "dist y x1 < e / 2 \<Longrightarrow> dist y x2 < e /
 lemma dist_triangle_add: "dist (x + y) (x' + y') <= dist x x' + dist y y'"
   by norm 
 
-lemma dist_mul: "dist (c *s x) (c *s y) = \<bar>c\<bar> * dist x y" 
+lemma dist_mul[simp]: "dist (c *s x) (c *s y) = \<bar>c\<bar> * dist x y" 
   unfolding dist_def vector_ssub_ldistrib[symmetric] norm_mul .. 
 
 lemma dist_triangle_add_half: " dist x x' < e / 2 \<Longrightarrow> dist y y' < e / 2 ==> dist(x + y) (x' + y') < e" by norm 
 
-lemma dist_le_0: "dist x y <= 0 \<longleftrightarrow> x = y" by norm 
+lemma dist_le_0[simp]: "dist x y <= 0 \<longleftrightarrow> x = y" by norm 
 
 lemma setsum_eq: "setsum f S = (\<chi> i. setsum (\<lambda>x. (f x)$i ) S)"
   apply vector
@@ -1034,47 +1013,6 @@ lemma setsum_component:
   assumes i: "i \<in> {1 .. dimindex(UNIV:: 'n set)}"
   shows "(setsum f S)$i = setsum (\<lambda>x. (f x)$i) S"
   using i by (simp add: setsum_eq Cart_lambda_beta)
-
-  (* This needs finiteness assumption due to the definition of fold!!! *)
-
-lemma setsum_superset:
-  assumes fb: "finite B" and ab: "A \<subseteq> B" 
-  and f0: "\<forall>x \<in> B - A. f x = 0"
-  shows "setsum f B = setsum f A"
-proof-
-  from ab fb have fa: "finite A" by (metis finite_subset)
-  from fb have fba: "finite (B - A)" by (metis finite_Diff)
-  have d: "A \<inter> (B - A) = {}" by blast
-  from ab have b: "B = A \<union> (B - A)" by blast
-  from setsum_Un_disjoint[OF fa fba d, of f] b
-    setsum_0'[OF f0]
-  show "setsum f B = setsum f A" by simp
-qed
-
-lemma setsum_restrict_set:
-  assumes fA: "finite A"
-  shows "setsum f (A \<inter> B) = setsum (\<lambda>x. if x \<in> B then f x else 0) A"
-proof-
-  from fA have fab: "finite (A \<inter> B)" by auto
-  have aba: "A \<inter> B \<subseteq> A" by blast
-  let ?g = "\<lambda>x. if x \<in> A\<inter>B then f x else 0"
-  from setsum_superset[OF fA aba, of ?g]
-  show ?thesis by simp
-qed
-
-lemma setsum_cases:
-  assumes fA: "finite A"
-  shows "setsum (\<lambda>x. if x \<in> B then f x else g x) A =
-         setsum f (A \<inter> B) + setsum g (A \<inter> - B)"
-proof-
-  have a: "A = A \<inter> B \<union> A \<inter> -B" "(A \<inter> B) \<inter> (A \<inter> -B) = {}" 
-    by blast+
-  from fA 
-  have f: "finite (A \<inter> B)" "finite (A \<inter> -B)" by auto
-  let ?g = "\<lambda>x. if x \<in> B then f x else g x"
-  from setsum_Un_disjoint[OF f a(2), of ?g] a(1)
-  show ?thesis by simp
-qed
 
 lemma setsum_norm: 
   fixes f :: "'a \<Rightarrow> 'b::real_normed_vector"
@@ -1173,41 +1111,6 @@ proof-
   from setsum_Un_disjoint[of "?A" "?B" f] eq d show ?thesis by auto
 qed
 
-lemma setsum_reindex_nonzero: 
-  assumes fS: "finite S"
-  and nz: "\<And> x y. x \<in> S \<Longrightarrow> y \<in> S \<Longrightarrow> x \<noteq> y \<Longrightarrow> f x = f y \<Longrightarrow> h (f x) = 0"
-  shows "setsum h (f ` S) = setsum (h o f) S"
-using nz
-proof(induct rule: finite_induct[OF fS])
-  case 1 thus ?case by simp
-next
-  case (2 x F) 
-  {assume fxF: "f x \<in> f ` F" hence "\<exists>y \<in> F . f y = f x" by auto
-    then obtain y where y: "y \<in> F" "f x = f y" by auto 
-    from "2.hyps" y have xy: "x \<noteq> y" by auto
-    
-    from "2.prems"[of x y] "2.hyps" xy y have h0: "h (f x) = 0" by simp
-    have "setsum h (f ` insert x F) = setsum h (f ` F)" using fxF by auto
-    also have "\<dots> = setsum (h o f) (insert x F)" 
-      using "2.hyps" "2.prems" h0  by auto 
-    finally have ?case .}
-  moreover
-  {assume fxF: "f x \<notin> f ` F"
-    have "setsum h (f ` insert x F) = h (f x) + setsum h (f ` F)" 
-      using fxF "2.hyps" by simp 
-    also have "\<dots> = setsum (h o f) (insert x F)"  
-      using "2.hyps" "2.prems" fxF
-      apply auto apply metis done
-    finally have ?case .}
-  ultimately show ?case by blast
-qed
-
-lemma setsum_Un_nonzero:
-  assumes fS: "finite S" and fF: "finite F"
-  and f: "\<forall> x\<in> S \<inter> F . f x = (0::'a::ab_group_add)"
-  shows "setsum f (S \<union> F) = setsum f S + setsum f F"
-  using setsum_Un[OF fS fF, of f] setsum_0'[OF f] by simp
-
 lemma setsum_natinterval_left:
   assumes mn: "(m::nat) <= n" 
   shows "setsum f {m..n} = f m + setsum f {m + 1..n}"
@@ -1249,108 +1152,8 @@ lemma setsum_group:
   shows "setsum (\<lambda>y. setsum g {x. x\<in> S \<and> f x = y}) T = setsum g S"
   
 apply (subst setsum_image_gen[OF fS, of g f])
-apply (rule setsum_superset[OF fT fST])
+apply (rule setsum_mono_zero_right[OF fT fST])
 by (auto intro: setsum_0')
-
-(* FIXME: Change the name to fold_image\<dots> *)
-lemma (in comm_monoid_mult) fold_1': "finite S \<Longrightarrow> (\<forall>x\<in>S. f x = 1) \<Longrightarrow> fold_image op * f 1 S = 1"
-  apply (induct set: finite)
-  apply simp by (auto simp add: fold_image_insert)
-
-lemma (in comm_monoid_mult) fold_union_nonzero:
-  assumes fS: "finite S" and fT: "finite T"
-  and I0: "\<forall>x \<in> S\<inter>T. f x = 1"
-  shows "fold_image (op *) f 1 (S \<union> T) = fold_image (op *) f 1 S * fold_image (op *) f 1 T"
-proof-
-  have "fold_image op * f 1 (S \<inter> T) = 1" 
-    apply (rule fold_1')
-    using fS fT I0 by auto 
-  with fold_image_Un_Int[OF fS fT] show ?thesis by simp
-qed
-
-lemma setsum_union_nonzero:  
-  assumes fS: "finite S" and fT: "finite T"
-  and I0: "\<forall>x \<in> S\<inter>T. f x = 0"
-  shows "setsum f (S \<union> T) = setsum f S  + setsum f T"
-  using fS fT
-  apply (simp add: setsum_def)
-  apply (rule comm_monoid_add.fold_union_nonzero)
-  using I0 by auto
-
-lemma setprod_union_nonzero:  
-  assumes fS: "finite S" and fT: "finite T"
-  and I0: "\<forall>x \<in> S\<inter>T. f x = 1"
-  shows "setprod f (S \<union> T) = setprod f S  * setprod f T"
-  using fS fT
-  apply (simp add: setprod_def)
-  apply (rule fold_union_nonzero)
-  using I0 by auto
-
-lemma setsum_unions_nonzero: 
-  assumes fS: "finite S" and fSS: "\<forall>T \<in> S. finite T"
-  and f0: "\<And>T1 T2 x. T1\<in>S \<Longrightarrow> T2\<in>S \<Longrightarrow> T1 \<noteq> T2 \<Longrightarrow> x \<in> T1 \<Longrightarrow> x \<in> T2 \<Longrightarrow> f x = 0"
-  shows "setsum f (\<Union>S) = setsum (\<lambda>T. setsum f T) S"
-  using fSS f0
-proof(induct rule: finite_induct[OF fS])
-  case 1 thus ?case by simp
-next
-  case (2 T F)
-  then have fTF: "finite T" "\<forall>T\<in>F. finite T" "finite F" and TF: "T \<notin> F" 
-    and H: "setsum f (\<Union> F) = setsum (setsum f) F" by (auto simp add: finite_insert)
-  from fTF have fUF: "finite (\<Union>F)" by (auto intro: finite_Union)
-  from "2.prems" TF fTF
-  show ?case 
-    by (auto simp add: H[symmetric] intro: setsum_union_nonzero[OF fTF(1) fUF, of f])
-qed
-
-  (* FIXME : Copied from Pocklington --- should be moved to Finite_Set!!!!!!!! *)
-
-
-lemma (in comm_monoid_mult) fold_related: 
-  assumes Re: "R e e" 
-  and Rop: "\<forall>x1 y1 x2 y2. R x1 x2 \<and> R y1 y2 \<longrightarrow> R (x1 * y1) (x2 * y2)" 
-  and fS: "finite S" and Rfg: "\<forall>x\<in>S. R (h x) (g x)"
-  shows "R (fold_image (op *) h e S) (fold_image (op *) g e S)"
-  using fS by (rule finite_subset_induct) (insert assms, auto)
-
-  (* FIXME: I think we can get rid of the finite assumption!! *)	
-lemma (in comm_monoid_mult) 
-  fold_eq_general:
-  assumes fS: "finite S"
-  and h: "\<forall>y\<in>S'. \<exists>!x. x\<in> S \<and> h(x) = y" 
-  and f12:  "\<forall>x\<in>S. h x \<in> S' \<and> f2(h x) = f1 x"
-  shows "fold_image (op *) f1 e S = fold_image (op *) f2 e S'"
-proof-
-  from h f12 have hS: "h ` S = S'" by auto
-  {fix x y assume H: "x \<in> S" "y \<in> S" "h x = h y"
-    from f12 h H  have "x = y" by auto }
-  hence hinj: "inj_on h S" unfolding inj_on_def Ex1_def by blast
-  from f12 have th: "\<And>x. x \<in> S \<Longrightarrow> (f2 \<circ> h) x = f1 x" by auto 
-  from hS have "fold_image (op *) f2 e S' = fold_image (op *) f2 e (h ` S)" by simp
-  also have "\<dots> = fold_image (op *) (f2 o h) e S" 
-    using fold_image_reindex[OF fS hinj, of f2 e] .
-  also have "\<dots> = fold_image (op *) f1 e S " using th fold_image_cong[OF fS, of "f2 o h" f1 e]
-    by blast
-  finally show ?thesis ..
-qed
-
-lemma (in comm_monoid_mult) fold_eq_general_inverses:
-  assumes fS: "finite S" 
-  and kh: "\<And>y. y \<in> T \<Longrightarrow> k y \<in> S \<and> h (k y) = y"
-  and hk: "\<And>x. x \<in> S \<Longrightarrow> h x \<in> T \<and> k (h x) = x  \<and> g (h x) = f x"
-  shows "fold_image (op *) f e S = fold_image (op *) g e T"
-  using fold_eq_general[OF fS, of T h g f e] kh hk by metis
-
-lemma setsum_eq_general_reverses:
-  assumes fS: "finite S" and fT: "finite T"
-  and kh: "\<And>y. y \<in> T \<Longrightarrow> k y \<in> S \<and> h (k y) = y"
-  and hk: "\<And>x. x \<in> S \<Longrightarrow> h x \<in> T \<and> k (h x) = x  \<and> g (h x) = f x"
-  shows "setsum f S = setsum g T"
-  apply (simp add: setsum_def fS fT)
-  apply (rule comm_monoid_add.fold_eq_general_inverses[OF fS])
-  apply (erule kh)
-  apply (erule hk)
-  done
 
 lemma vsum_norm_allsubsets_bound:
   fixes f:: "'a \<Rightarrow> real ^'n"
@@ -1383,7 +1186,7 @@ proof-
       by (auto simp add: setsum_negf setsum_component vector_component intro: abs_le_D1)
     have "setsum (\<lambda>x. \<bar>f x $ i\<bar>) P = setsum (\<lambda>x. \<bar>f x $ i\<bar>) ?Pp + setsum (\<lambda>x. \<bar>f x $ i\<bar>) ?Pn" 
       apply (subst thp)
-      apply (rule setsum_Un_nonzero) 
+      apply (rule setsum_Un_zero) 
       using fP thp0 by auto
     also have "\<dots> \<le> 2*e" using Pne Ppe by arith
     finally show "setsum (\<lambda>x. \<bar>f x $ i\<bar>) P \<le> 2*e" .
@@ -1392,7 +1195,7 @@ proof-
 qed
 
 lemma dot_lsum: "finite S \<Longrightarrow> setsum f S \<bullet> (y::'a::{comm_ring}^'n) = setsum (\<lambda>x. f x \<bullet> y) S "
-  by (induct rule: finite_induct, auto simp add: dot_lzero dot_ladd)
+  by (induct rule: finite_induct, auto simp add: dot_lzero dot_ladd dot_radd)
 
 lemma dot_rsum: "finite S \<Longrightarrow> (y::'a::{comm_ring}^'n) \<bullet> setsum f S = setsum (\<lambda>x. y \<bullet> f x) S "
   by (induct rule: finite_induct, auto simp add: dot_rzero dot_radd)
@@ -4137,7 +3940,8 @@ next
 	apply (subst Cy)
 	using C(1) fth
 	apply (simp only: setsum_clauses)
-	apply (auto simp add: dot_ladd dot_lmult dot_eq_0 dot_sym[of y a] dot_lsum[OF fth])
+	thm dot_ladd
+	apply (auto simp add: dot_ladd dot_radd dot_lmult dot_rmult dot_eq_0 dot_sym[of y a] dot_lsum[OF fth])
 	apply (rule setsum_0')
 	apply clarsimp
 	apply (rule C(4)[unfolded pairwise_def orthogonal_def, rule_format])
@@ -5294,14 +5098,11 @@ proof-
       have ?lhs unfolding collinear_def c
 	apply (rule exI[where x=x])
 	apply auto
-	apply (rule exI[where x=0], simp)
 	apply (rule exI[where x="- 1"], simp only: vector_smult_lneg vector_smult_lid)
 	apply (rule exI[where x= "-c"], simp only: vector_smult_lneg)
 	apply (rule exI[where x=1], simp)
-	apply (rule exI[where x=0], simp)
 	apply (rule exI[where x="1 - c"], simp add: vector_smult_lneg vector_sub_rdistrib)
 	apply (rule exI[where x="c - 1"], simp add: vector_smult_lneg vector_sub_rdistrib)
-	apply (rule exI[where x=0], simp)
 	done}
     ultimately have ?thesis by blast}
   ultimately show ?thesis by blast

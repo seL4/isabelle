@@ -176,7 +176,7 @@ proof-
     from ld[OF i(1) piU i(2)] i(1) have ex:"\<exists>i \<in> ?U. A$i$p i = 0" by blast
     from setprod_zero[OF fU ex] have "?pp p = 0" by simp}
   then have p0: "\<forall>p \<in> ?PU -{id}. ?pp p = 0"  by blast
-  from setsum_superset[OF fPU id0 p0] show ?thesis
+  from setsum_mono_zero_cong_left[OF fPU id0 p0] show ?thesis
     unfolding det_def by (simp add: sign_id)
 qed
 
@@ -199,7 +199,7 @@ proof-
     from ld[OF i(1) piU i(2)] i(1) have ex:"\<exists>i \<in> ?U. A$i$p i = 0" by blast
     from setprod_zero[OF fU ex] have "?pp p = 0" by simp}
   then have p0: "\<forall>p \<in> ?PU -{id}. ?pp p = 0"  by blast
-  from setsum_superset[OF fPU id0 p0] show ?thesis
+  from   setsum_mono_zero_cong_left[OF fPU id0 p0] show ?thesis
     unfolding det_def by (simp add: sign_id)
 qed
 
@@ -750,8 +750,8 @@ proof-
   have "det (A**B) = setsum (\<lambda>f.  det (\<chi> i. A $ i $ f i *s B $ f i)) ?F"
     unfolding matrix_mul_setsum_alt det_linear_rows_setsum[OF fU] .. 
   also have "\<dots> = setsum (\<lambda>f. det (\<chi> i. A$i$f i *s B$f i)) ?PU"
-    unfolding setsum_superset[OF fF PUF zth, symmetric] 
-    unfolding det_rows_mul ..
+    using setsum_mono_zero_cong_left[OF fF PUF zth, symmetric] 
+    unfolding det_rows_mul by auto
   finally show ?thesis unfolding th2 .
 qed  
 

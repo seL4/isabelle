@@ -50,6 +50,7 @@ imports
   Reflection
   RBT
   State_Monad
+  Topology_Euclidean_Space
   Univ_Poly
   While_Combinator
   Word
