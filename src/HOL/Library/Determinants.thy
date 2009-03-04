@@ -1,5 +1,4 @@
 (* Title:      Determinants
-   ID:         $Id: 
    Author:     Amine Chaieb, University of Cambridge
 *)
 

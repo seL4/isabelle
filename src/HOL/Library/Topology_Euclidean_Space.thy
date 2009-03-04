@@ -1,7 +1,7 @@
 (* Title:      Topology
-   ID:         $Id: 
    Author:     Amine Chaieb, University of Cambridge
-               Robert Himmelmann, TU Muenchen*)
+   Author:     Robert Himmelmann, TU Muenchen
+*)
 
 header {* Elementary topology in Euclidean space. *}
 

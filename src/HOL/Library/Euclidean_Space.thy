@@ -1,5 +1,4 @@
 (* Title:      Library/Euclidean_Space
-   ID:         $Id: 
    Author:     Amine Chaieb, University of Cambridge
 *)
 
