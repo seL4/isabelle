@@ -1709,6 +1709,11 @@ setup {*
 subsection {* Nitpick theorem store *}
 
 ML {*
+structure Nitpick_Const_Def_Thms = NamedThmsFun
+(
+  val name = "nitpick_const_def"
+  val description = "alternative definitions of constants as needed by Nitpick"
+)
 structure Nitpick_Const_Simp_Thms = NamedThmsFun
 (
   val name = "nitpick_const_simp"
@@ -1725,7 +1730,8 @@ structure Nitpick_Ind_Intro_Thms = NamedThmsFun
   val description = "introduction rules for (co)inductive predicates as needed by Nitpick"
 )
 *}
-setup {* Nitpick_Const_Simp_Thms.setup
+setup {* Nitpick_Const_Def_Thms.setup
+         #> Nitpick_Const_Simp_Thms.setup
          #> Nitpick_Const_Psimp_Thms.setup
          #> Nitpick_Ind_Intro_Thms.setup *}
 
