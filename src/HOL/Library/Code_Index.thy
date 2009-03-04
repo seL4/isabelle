@@ -87,12 +87,14 @@ proof -
   then show "P k" by simp
 qed simp_all
 
-lemmas [code del] = index.recs index.cases
-
 declare index_case [case_names nat, cases type: index]
 declare index.induct [case_names nat, induct type: index]
 
-lemma [code]:
+lemma index_decr [termination_simp]:
+  "k \<noteq> Code_Index.of_nat 0 \<Longrightarrow> Code_Index.nat_of k - Suc 0 < Code_Index.nat_of k"
+  by (cases k) simp
+
+lemma [simp, code]:
   "index_size = nat_of"
 proof (rule ext)
   fix k
@@ -102,13 +104,15 @@ proof (rule ext)
   finally show "index_size k = nat_of k" .
 qed
 
-lemma [code]:
+lemma [simp, code]:
   "size = nat_of"
 proof (rule ext)
   fix k
   show "size k = nat_of k"
   by (induct k) (simp_all del: zero_index_def Suc_index_def, simp_all)
 qed
+
+lemmas [code del] = index.recs index.cases
 
 lemma [code]:
   "eq_class.eq k l \<longleftrightarrow> eq_class.eq (nat_of k) (nat_of l)"
