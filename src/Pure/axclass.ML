@@ -234,7 +234,10 @@ val get_inst_params = #2 o #2 o AxClassData.get;
 val map_inst_params = AxClassData.map o apsnd o apsnd;
 
 fun get_inst_param thy (c, tyco) =
-  (the o Symtab.lookup ((the o Symtab.lookup (fst (get_inst_params thy))) c)) tyco;
+  case Symtab.lookup ((the_default Symtab.empty o Symtab.lookup (fst (get_inst_params thy))) c) tyco
+   of SOME c' => c'
+    | NONE => error ("No instance parameter for constant " ^ quote c
+        ^ " on type constructor " ^ quote tyco);
 
 fun add_inst_param (c, tyco) inst = (map_inst_params o apfst
       o Symtab.map_default (c, Symtab.empty)) (Symtab.update_new (tyco, inst))
