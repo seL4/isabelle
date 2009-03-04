@@ -236,7 +236,7 @@ constdefs
           under  (\<lambda> new old. accmodi old \<noteq> Private)
           entails (\<lambda>new old. G\<turnstile>resTy new\<preceq>resTy old \<and> 
                              is_static new = is_static old)) \<and> 
-        (o2s \<circ> table_of (imethods i) 
+        (Option.set \<circ> table_of (imethods i) 
                hidings Un_tables((\<lambda>J.(imethds G J))`set (isuperIfs i))
 	       entails (\<lambda>new old. G\<turnstile>resTy new\<preceq>resTy old))"
 
@@ -248,7 +248,7 @@ done
 
 lemma wf_idecl_hidings: 
 "wf_idecl G (I, i) \<Longrightarrow> 
-  (\<lambda>s. o2s (table_of (imethods i) s)) 
+  (\<lambda>s. Option.set (table_of (imethods i) s)) 
   hidings Un_tables ((\<lambda>J. imethds G J) ` set (isuperIfs i))  
   entails \<lambda>new old. G\<turnstile>resTy new\<preceq>resTy old"
 apply (unfold wf_idecl_def o_def)
@@ -751,7 +751,7 @@ proof -
     show "\<not>is_static im \<and> accmodi im = Public" 
     proof -
       let ?inherited = "Un_tables (imethds G ` set (isuperIfs i))"
-      let ?new = "(o2s \<circ> table_of (map (\<lambda>(s, mh). (s, I, mh)) (imethods i)))"
+      let ?new = "(Option.set \<circ> table_of (map (\<lambda>(s, mh). (s, I, mh)) (imethods i)))"
       from if_I wf im have imethds:"im \<in> (?inherited \<oplus>\<oplus> ?new) sig"
 	by (simp add: imethds_rec)
       from wf if_I have 
@@ -1783,7 +1783,7 @@ proof -
       by (blast dest: subint1D)
 
     let ?newMethods 
-          = "(o2s \<circ> table_of (map (\<lambda>(sig, mh). (sig, I, mh)) (imethods i)))"
+          = "(Option.set \<circ> table_of (map (\<lambda>(sig, mh). (sig, I, mh)) (imethods i)))"
     show "?Concl I"
     proof (cases "?newMethods sig = {}")
       case True
@@ -1864,7 +1864,7 @@ apply (unfold overrides_t_def)
 apply (drule (1) wf_prog_idecl)
 apply (frule (3) imethds_wf_mhead [OF _ _ wf_idecl_supD [THEN conjunct1 
                                        [THEN is_acc_ifaceD [THEN conjunct1]]]])
-apply (case_tac "(o2s \<circ> table_of (map (\<lambda>(s, mh). (s, y, mh)) (imethods i)))
+apply (case_tac "(Option.set \<circ> table_of (map (\<lambda>(s, mh). (s, y, mh)) (imethods i)))
                   sig ={}")
 apply   force
 

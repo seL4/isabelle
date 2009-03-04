@@ -1,0 +1,53 @@
+
+\documentclass[12pt,a4paper,fleqn]{article}
+\usepackage{latexsym,graphicx}
+\usepackage[refpage]{nomencl}
+\usepackage{../iman,../extra,../isar,../proof}
+\usepackage{../isabelle,../isabellesym}
+\usepackage{style}
+\usepackage{pgf}
+\usepackage{pgflibraryshapes}
+\usepackage{tikz}
+\usepackage{../pdfsetup}
+
+\hyphenation{Isabelle}
+\hyphenation{Isar}
+\isadroptag{theory}
+
+\title{\includegraphics[scale=0.5]{isabelle_isar}
+  \\[4ex] Code generation from Isabelle/HOL theories}
+\author{\emph{Florian Haftmann}}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+  \noindent This tutorial gives an introduction to a generic code generator framework in Isabelle
+  for generating executable code in functional programming languages from logical
+  specifications in Isabelle/HOL.
+\end{abstract}
+
+\thispagestyle{empty}\clearpage
+
+\pagenumbering{roman}
+\clearfirst
+
+\input{Thy/document/Introduction.tex}
+\input{Thy/document/Program.tex}
+\input{Thy/document/Adaption.tex}
+\input{Thy/document/Further.tex}
+\input{Thy/document/ML.tex}
+
+\begingroup
+\bibliographystyle{plain} \small\raggedright\frenchspacing
+\bibliography{../manual}
+\endgroup
+
+\end{document}
+
+
+%%% Local Variables: 
+%%% mode: latex
+%%% TeX-master: t
+%%% End: 

@@ -1,6 +1,3 @@
-#
-# $Id$
-#
 
 ## targets
 
@@ -11,16 +8,14 @@ default: dvi
 
 include ../Makefile.in
 
-MAKEGLOSSARY = ./makeglossary
-
 NAME = implementation
 
-FILES = implementation.tex intro.tex Thy/document/prelim.tex		\
-  Thy/document/logic.tex Thy/document/tactic.tex			\
-  Thy/document/proof.tex Thy/document/locale.tex			\
-  Thy/document/integration.tex style.sty ../iman.sty ../extra.sty	\
-  ../isar.sty ../isabelle.sty ../isabellesym.sty ../pdfsetup.sty	\
-  ../manual.bib ../proof.sty
+FILES = ../extra.sty ../iman.sty ../isabelle.sty ../isabellesym.sty	\
+  ../isar.sty ../manual.bib ../pdfsetup.sty ../proof.sty		\
+  Thy/document/Integration.tex Thy/document/Local_Theory.tex		\
+  Thy/document/Logic.tex Thy/document/Prelim.tex			\
+  Thy/document/Proof.tex Thy/document/Syntax.tex			\
+  Thy/document/Tactic.tex implementation.tex style.sty
 
 dvi: $(NAME).dvi
 
@@ -29,7 +24,6 @@ $(NAME).dvi: $(FILES) isabelle_isar.eps
 	$(BIBTEX) $(NAME)
 	$(LATEX) $(NAME)
 	$(LATEX) $(NAME)
-	$(MAKEGLOSSARY) $(NAME)
 	$(SEDINDEX) $(NAME)
 	$(LATEX) $(NAME)
 	$(LATEX) $(NAME)
@@ -41,7 +35,6 @@ $(NAME).pdf: $(FILES) isabelle_isar.pdf
 	$(BIBTEX) $(NAME)
 	$(PDFLATEX) $(NAME)
 	$(PDFLATEX) $(NAME)
-	$(MAKEGLOSSARY) $(NAME)
 	$(SEDINDEX) $(NAME)
 	$(FIXBOOKMARKS) $(NAME).out
 	$(PDFLATEX) $(NAME)

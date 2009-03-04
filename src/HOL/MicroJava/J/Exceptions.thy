@@ -21,7 +21,7 @@ consts
   cname_of :: "aheap \<Rightarrow> val \<Rightarrow> cname"
 
 translations
-  "cname_of hp v" == "fst (the (hp (the_Addr v)))"
+  "cname_of hp v" == "fst (CONST the (hp (the_Addr v)))"
 
 
 constdefs

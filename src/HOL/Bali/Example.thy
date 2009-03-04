@@ -458,7 +458,7 @@ lemmas imethds_rec' = imethds_rec [OF _ ws_tprg]
 lemmas methd_rec'  = methd_rec  [OF _ ws_tprg]
 
 lemma imethds_HasFoo [simp]: 
-  "imethds tprg HasFoo = o2s \<circ> empty(foo_sig\<mapsto>(HasFoo, foo_mhead))"
+  "imethds tprg HasFoo = Option.set \<circ> empty(foo_sig\<mapsto>(HasFoo, foo_mhead))"
 apply (rule trans)
 apply (rule imethds_rec')
 apply  (auto simp add: HasFooInt_def)

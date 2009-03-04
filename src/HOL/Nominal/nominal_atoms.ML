@@ -539,7 +539,7 @@ fun create_nom_typedecls ak_names thy =
         thy
         |> AxClass.prove_arity ("fun",[[cls_name],[cls_name]],[cls_name]) (pt_proof pt_thm_fun)
         |> AxClass.prove_arity ("Nominal.noption",[[cls_name]],[cls_name]) (pt_proof pt_thm_noptn) 
-        |> AxClass.prove_arity ("Datatype.option",[[cls_name]],[cls_name]) (pt_proof pt_thm_optn)
+        |> AxClass.prove_arity ("Option.option",[[cls_name]],[cls_name]) (pt_proof pt_thm_optn)
         |> AxClass.prove_arity ("List.list",[[cls_name]],[cls_name]) (pt_proof pt_thm_list)
         |> AxClass.prove_arity ("*",[[cls_name],[cls_name]],[cls_name]) (pt_proof pt_thm_prod)
         |> AxClass.prove_arity ("Nominal.nprod",[[cls_name],[cls_name]],[cls_name]) 
@@ -606,7 +606,7 @@ fun create_nom_typedecls ak_names thy =
          |> AxClass.prove_arity ("Nominal.nprod",[[cls_name],[cls_name]],[cls_name]) 
                                      (fs_proof fs_thm_nprod) 
          |> AxClass.prove_arity ("List.list",[[cls_name]],[cls_name]) (fs_proof fs_thm_list)
-         |> AxClass.prove_arity ("Datatype.option",[[cls_name]],[cls_name]) (fs_proof fs_thm_optn)
+         |> AxClass.prove_arity ("Option.option",[[cls_name]],[cls_name]) (fs_proof fs_thm_optn)
         end) ak_names thy20;
 
        (********  cp_<ak>_<ai> class instances  ********)
@@ -687,7 +687,7 @@ fun create_nom_typedecls ak_names thy =
          |> AxClass.prove_arity ("*",[[cls_name],[cls_name]],[cls_name]) (cp_proof cp_thm_prod)
          |> AxClass.prove_arity ("List.list",[[cls_name]],[cls_name]) (cp_proof cp_thm_list)
          |> AxClass.prove_arity ("fun",[[cls_name],[cls_name]],[cls_name]) (cp_proof cp_thm_fun)
-         |> AxClass.prove_arity ("Datatype.option",[[cls_name]],[cls_name]) (cp_proof cp_thm_optn)
+         |> AxClass.prove_arity ("Option.option",[[cls_name]],[cls_name]) (cp_proof cp_thm_optn)
          |> AxClass.prove_arity ("Nominal.noption",[[cls_name]],[cls_name]) (cp_proof cp_thm_noptn)
         end) ak_names thy) ak_names thy25;
 

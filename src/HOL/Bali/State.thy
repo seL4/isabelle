@@ -146,7 +146,7 @@ constdefs
   fields_table::
     "prog \<Rightarrow> qtname \<Rightarrow> (fspec \<Rightarrow> field \<Rightarrow> bool)  \<Rightarrow> (fspec, ty) table"
  "fields_table G C P 
-    \<equiv> option_map type \<circ> table_of (filter (split P) (DeclConcepts.fields G C))"
+    \<equiv> Option.map type \<circ> table_of (filter (split P) (DeclConcepts.fields G C))"
 
 lemma fields_table_SomeI: 
 "\<lbrakk>table_of (DeclConcepts.fields G C) n = Some f; P n f\<rbrakk> 
@@ -258,8 +258,8 @@ syntax
   lookup_obj   :: "st \<Rightarrow> val \<Rightarrow> obj"
 
 translations
- "val_this s"       == "the (locals s This)" 
- "lookup_obj s a'"  == "the (heap s (the_Addr a'))"
+ "val_this s"       == "CONST the (locals s This)" 
+ "lookup_obj s a'"  == "CONST the (heap s (the_Addr a'))"
 
 subsection "memory allocation"
 
@@ -290,7 +290,7 @@ syntax
   init_vals     :: "('a, ty) table \<Rightarrow> ('a, val) table"
 
 translations
- "init_vals vs"    == "CONST option_map default_val \<circ> vs"
+ "init_vals vs"    == "CONST Option.map default_val \<circ> vs"
 
 lemma init_arr_comps_base [simp]: "init_vals (arr_comps T 0) = empty"
 apply (unfold arr_comps_def in_bounds_def)
@@ -315,12 +315,12 @@ constdefs
   lupd       :: "lname \<Rightarrow> val \<Rightarrow> st \<Rightarrow> st"        ("lupd'(_\<mapsto>_')"[10,10]1000)
  "lupd vn v   \<equiv> st_case (\<lambda>g l. st g (l(vn\<mapsto>v)))"
 
-  upd_gobj   :: "oref \<Rightarrow> vn \<Rightarrow> val \<Rightarrow> st \<Rightarrow> st" 
+  upd_gobj   :: "oref \<Rightarrow> vn \<Rightarrow> val \<Rightarrow> st \<Rightarrow> st"
  "upd_gobj r n v \<equiv> st_case (\<lambda>g l. st (chg_map (upd_obj n v) r g) l)"
 
   set_locals  :: "locals \<Rightarrow> st \<Rightarrow> st"
  "set_locals l \<equiv> st_case (\<lambda>g l'. st g l)"
-  
+
   init_obj    :: "prog \<Rightarrow> obj_tag \<Rightarrow> oref \<Rightarrow> st \<Rightarrow> st"
  "init_obj G oi r \<equiv> gupd(r\<mapsto>\<lparr>tag=oi, values=init_vals (var_tys G oi r)\<rparr>)"
 

@@ -7,10 +7,16 @@ distribution.
 Contributions to this Isabelle version
 --------------------------------------
 
-* February 2008: Timothy Bourke, NICTA
+* February 2009: Filip Maric, Univ. of Belgrade
+  A Serbian theory.
+
+* February 2009: Jasmin Christian Blanchette, TUM
+  Misc cleanup of HOL/refute.
+
+* February 2009: Timothy Bourke, NICTA
   New find_consts command.
 
-* February 2008: Timothy Bourke, NICTA
+* February 2009: Timothy Bourke, NICTA
   "solves" criterion for find_theorems and auto_solve option
 
 * December 2008: Clemens Ballarin, TUM
@@ -31,6 +37,9 @@ Contributions to this Isabelle version
   processes.  Additional ATP wrappers, including remote SystemOnTPTP
   services.
 
+* September 2008: Stefan Berghofer, TUM and Marc Bezem, Univ. Bergen
+  Prover for coherent logic.
+
 * August 2008: Fabian Immler, TUM
   Vampire wrapper script for remote SystemOnTPTP service.
 
@@ -46,7 +55,7 @@ Contributions to Isabelle2008
   HOLCF library improvements.
 
 * 2007/2008: Stefan Berghofer, TUM
-  HOL-Nominal package improvements.  
+  HOL-Nominal package improvements.
 
 * March 2008: Markus Reiter, TUM
   HOL/Library/RBT: red-black trees.

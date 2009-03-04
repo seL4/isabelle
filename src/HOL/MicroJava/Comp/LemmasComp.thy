@@ -271,7 +271,7 @@ translations
 lemma map_of_map_fst: "\<lbrakk> inj f;
   \<forall>x\<in>set xs. fst (f x) = fst x; \<forall>x\<in>set xs. fst (g x) = fst x \<rbrakk>
   \<Longrightarrow>  map_of (map g xs) k 
-  = option_map (\<lambda> e. (snd (g ((inv f) (k, e))))) (map_of (map f xs) k)"
+  = Option.map (\<lambda> e. (snd (g ((inv f) (k, e))))) (map_of (map f xs) k)"
 apply (induct xs)
 apply simp
 apply (simp del: split_paired_All)
@@ -288,13 +288,13 @@ done
 
 lemma comp_method [rule_format (no_asm)]: "\<lbrakk> ws_prog G; is_class G C\<rbrakk> \<Longrightarrow> 
   ((method (comp G, C) S) = 
-  option_map (\<lambda> (D,rT,b).  (D, rT, mtd_mb (compMethod G D (S, rT, b))))
+  Option.map (\<lambda> (D,rT,b).  (D, rT, mtd_mb (compMethod G D (S, rT, b))))
              (method (G, C) S))"
 apply (simp add: method_def)
 apply (frule wf_subcls1)
 apply (simp add: comp_class_rec)
 apply (simp add: map_compose [THEN sym] split_iter split_compose del: map_compose)
-apply (rule_tac R="%x y. ((x S) = (option_map (\<lambda>(D, rT, b). 
+apply (rule_tac R="%x y. ((x S) = (Option.map (\<lambda>(D, rT, b). 
   (D, rT, snd (snd (compMethod G D (S, rT, b))))) (y S)))" 
   in class_rec_relation)
 apply assumption

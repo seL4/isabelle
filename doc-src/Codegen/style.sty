@@ -1,0 +1,63 @@
+
+%% toc
+\newcommand{\tocentry}[1]{\cleardoublepage\phantomsection\addcontentsline{toc}{chapter}{#1}
+\@mkboth{\MakeUppercase{#1}}{\MakeUppercase{#1}}}
+
+%% paragraphs
+\setlength{\parindent}{1em}
+
+%% references
+\newcommand{\secref}[1]{\S\ref{#1}}
+
+%% logical markup
+\newcommand{\strong}[1]{{\bfseries {#1}}}
+\newcommand{\qn}[1]{\emph{#1}}
+
+%% typographic conventions
+\newcommand{\qt}[1]{``{#1}''}
+
+%% verbatim text
+\newcommand{\isatypewriter}{\fontsize{9pt}{0pt}\tt\renewcommand{\baselinestretch}{1}\setlength{\baselineskip}{9pt}}
+
+%% quote environment
+\isakeeptag{quote}
+\renewenvironment{quote}
+  {\list{}{\leftmargin2em\rightmargin0pt}\parindent0pt\parskip0pt\item\relax}
+  {\endlist}
+\renewcommand{\isatagquote}{\begin{quote}}
+\renewcommand{\endisatagquote}{\end{quote}}
+\newcommand{\quotebreak}{\\[1.2ex]}
+
+\isakeeptag{quotett}
+\renewcommand{\isatagquotett}{\begin{quote}\isabellestyle{tt}\isastyle}
+\renewcommand{\endisatagquotett}{\end{quote}\isabellestyle{it}\isastyle}
+
+%% a trick
+\newcommand{\isasymSML}{SML}
+
+%% presentation
+\setcounter{secnumdepth}{2} \setcounter{tocdepth}{2}
+
+%% character detail
+\renewcommand{\isadigit}[1]{\isamath{#1}}
+\binperiod
+\underscoreoff
+
+%% format
+\pagestyle{headings}
+\isabellestyle{it}
+
+%% ml reference
+\newenvironment{mldecls}{\par\noindent\begingroup\footnotesize\def\isanewline{\\}\begin{tabular}{l}}{\end{tabular}\smallskip\endgroup}
+
+\isakeeptag{mlref}
+\renewcommand{\isatagmlref}{\subsection*{\makebox[0pt][r]{\fbox{\ML}~~}Reference}\begingroup\def\isastyletext{\rm}\small}
+\renewcommand{\endisatagmlref}{\endgroup}
+
+\isabellestyle{it}
+
+
+%%% Local Variables: 
+%%% mode: latex
+%%% TeX-master: "implementation"
+%%% End: 
