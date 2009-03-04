@@ -501,7 +501,7 @@ have disappeared in favour of existing ones:
     Suc_not_Zero Zero_not_Suc   ~> nat.distinct
 
 * The option datatype has been moved to a new theory HOL/Option.thy.
-Renamed option_map to Option.map.
+Renamed option_map to Option.map, and o2s to Option.set.
 
 * Library/Nat_Infinity: added addition, numeral syntax and more
 instantiations for algebraic structures.  Removed some duplicate
