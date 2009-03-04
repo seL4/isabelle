@@ -63,6 +63,7 @@ sig
 
   val close_form : Term.term -> Term.term
   val get_classdef : theory -> string -> (string * Term.term) option
+  val norm_rhs : Term.term -> Term.term
   val get_def : theory -> string * Term.typ -> (string * Term.term) option
   val get_typedef : theory -> Term.typ -> (string * Term.term) option
   val is_IDT_constructor : theory -> string * Term.typ -> bool
@@ -548,6 +549,21 @@ struct
   end;
 
 (* ------------------------------------------------------------------------- *)
+(* norm_rhs: maps  f ?t1 ... ?tn == rhs  to  %t1...tn. rhs                   *)
+(* ------------------------------------------------------------------------- *)
+
+  (* Term.term -> Term.term *)
+  fun norm_rhs eqn =
+  let
+    fun lambda (v as Var ((x, _), T)) t = Abs (x, T, abstract_over (v, t))
+      | lambda v t                      = raise TERM ("lambda", [v, t])
+    val (lhs, rhs) = Logic.dest_equals eqn
+    val (_, args)  = Term.strip_comb lhs
+  in
+    fold lambda (rev args) rhs
+  end
+
+(* ------------------------------------------------------------------------- *)
 (* get_def: looks up the definition of a constant, as created by "constdefs" *)
 (* ------------------------------------------------------------------------- *)
 
@@ -555,16 +571,6 @@ struct
 
   fun get_def thy (s, T) =
   let
-    (* maps  f ?t1 ... ?tn == rhs  to  %t1...tn. rhs *)
-    fun norm_rhs eqn =
-    let
-      fun lambda (v as Var ((x, _), T)) t = Abs (x, T, abstract_over (v, t))
-        | lambda v t                      = raise TERM ("lambda", [v, t])
-      val (lhs, rhs) = Logic.dest_equals eqn
-      val (_, args)  = Term.strip_comb lhs
-    in
-      fold lambda (rev args) rhs
-    end
     (* (string * Term.term) list -> (string * Term.term) option *)
     fun get_def_ax [] = NONE
       | get_def_ax ((axname, ax) :: axioms) =
