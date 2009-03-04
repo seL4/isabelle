@@ -891,7 +891,7 @@ lemma mapwk_inv2: "inv2 (mapwithkey f t) = inv2 t" "bh (mapwithkey f t) = bh t" 
 theorem mapwk_isrbt[simp]: "isrbt (mapwithkey f t) = isrbt t" 
 unfolding isrbt_def by (simp add: mapwk_inv1 mapwk_inv2 mapwk_st mapwk_treec)
 
-theorem map_of_mapwk[simp]: "map_of (mapwithkey f t) x = option_map (f x) (map_of t x)"
+theorem map_of_mapwk[simp]: "map_of (mapwithkey f t) x = Option.map (f x) (map_of t x)"
 by (induct t) auto
 
 definition map
@@ -899,7 +899,7 @@ where map_def: "map f == mapwithkey (\<lambda>_. f)"
 
 theorem map_keys[simp]: "keys (map f t) = keys t" unfolding map_def by simp
 theorem map_isrbt[simp]: "isrbt (map f t) = isrbt t" unfolding map_def by simp
-theorem map_of_map[simp]: "map_of (map f t) = option_map f o map_of t"
+theorem map_of_map[simp]: "map_of (map f t) = Option.map f o map_of t"
   by (rule ext) (simp add:map_def)
 
 subsection {* Fold *}

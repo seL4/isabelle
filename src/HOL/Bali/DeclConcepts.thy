@@ -1385,7 +1385,7 @@ imethds:: "prog \<Rightarrow> qtname \<Rightarrow> (sig,qtname \<times> mhead) t
 "imethds G I 
   \<equiv> iface_rec (G,I)  
               (\<lambda>I i ts. (Un_tables ts) \<oplus>\<oplus> 
-                        (o2s \<circ> table_of (map (\<lambda>(s,m). (s,I,m)) (imethods i))))"
+                        (Option.set \<circ> table_of (map (\<lambda>(s,m). (s,I,m)) (imethods i))))"
 text {* methods of an interface, with overriding and inheritance, cf. 9.2 *}
 
 constdefs
@@ -1528,7 +1528,7 @@ subsection "imethds"
 
 lemma imethds_rec: "\<lbrakk>iface G I = Some i; ws_prog G\<rbrakk> \<Longrightarrow>  
   imethds G I = Un_tables ((\<lambda>J. imethds  G J)`set (isuperIfs i)) \<oplus>\<oplus>  
-                      (o2s \<circ> table_of (map (\<lambda>(s,mh). (s,I,mh)) (imethods i)))"
+                      (Option.set \<circ> table_of (map (\<lambda>(s,mh). (s,I,mh)) (imethods i)))"
 apply (unfold imethds_def)
 apply (rule iface_rec [THEN trans])
 apply auto

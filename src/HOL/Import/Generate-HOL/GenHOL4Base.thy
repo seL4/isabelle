@@ -88,14 +88,14 @@ end_import;
 import_theory option;
 
 type_maps
-    option > Datatype.option;
+    option > Option.option;
 
 const_maps
-    NONE        > Datatype.option.None
-    SOME        > Datatype.option.Some
-    option_case > Datatype.option.option_case
-    OPTION_MAP  > Datatype.option_map
-    THE         > Datatype.the
+    NONE        > Option.option.None
+    SOME        > Option.option.Some
+    option_case > Option.option.option_case
+    OPTION_MAP  > Option.map
+    THE         > Option.the
     IS_SOME     > HOL4Compat.IS_SOME
     IS_NONE     > HOL4Compat.IS_NONE
     OPTION_JOIN > HOL4Compat.OPTION_JOIN;
