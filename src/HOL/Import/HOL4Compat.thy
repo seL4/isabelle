@@ -73,7 +73,7 @@ lemma one: "ALL v. v = ()"
 lemma option_case_def: "(!u f. option_case u f None = u) & (!u f x. option_case u f (Some x) = f x)"
   by simp
 
-lemma OPTION_MAP_DEF: "(!f x. option_map f (Some x) = Some (f x)) & (!f. option_map f None = None)"
+lemma OPTION_MAP_DEF: "(!f x. Option.map f (Some x) = Some (f x)) & (!f. Option.map f None = None)"
   by simp
 
 consts

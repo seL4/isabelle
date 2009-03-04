@@ -251,8 +251,8 @@ syntax (symbols)
   Oex  :: "[pttrn, 'a option, bool] => bool"   ("(3\<exists>_\<in>_:/ _)"  [0,0,10] 10)
 
 translations
-  "! x:A: P"    == "! x:o2s A. P"
-  "? x:A: P"    == "? x:o2s A. P"
+  "! x:A: P"    == "! x:CONST Option.set A. P"
+  "? x:A: P"    == "? x:CONST Option.set A. P"
 
 section "Special map update"
 

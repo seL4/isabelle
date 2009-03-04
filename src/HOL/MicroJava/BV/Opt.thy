@@ -286,8 +286,8 @@ done
 
 lemma option_map_in_optionI:
   "\<lbrakk> ox : opt S; !x:S. ox = Some x \<longrightarrow> f x : S \<rbrakk> 
-  \<Longrightarrow> option_map f ox : opt S";
-apply (unfold option_map_def)
+  \<Longrightarrow> Option.map f ox : opt S";
+apply (unfold Option.map_def)
 apply (simp split: option.split)
 apply blast
 done 

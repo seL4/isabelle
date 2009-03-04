@@ -33,7 +33,7 @@ translations
 constdefs
 
   init_vars:: "('a \<rightharpoonup> 'b) => ('a \<rightharpoonup> val)"
- "init_vars m == option_map (\<lambda>T. Null) o m"
+ "init_vars m == Option.map (\<lambda>T. Null) o m"
   
 text {* private: *}
 types	heap   = "loc   \<rightharpoonup> obj"

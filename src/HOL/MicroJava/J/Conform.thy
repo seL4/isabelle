@@ -17,7 +17,7 @@ constdefs
 
   conf :: "'c prog => aheap => val => ty => bool" 
                                    ("_,_ |- _ ::<= _"  [51,51,51,51] 50)
- "G,h|-v::<=T == \<exists>T'. typeof (option_map obj_ty o h) v = Some T' \<and> G\<turnstile>T'\<preceq>T"
+ "G,h|-v::<=T == \<exists>T'. typeof (Option.map obj_ty o h) v = Some T' \<and> G\<turnstile>T'\<preceq>T"
 
   lconf :: "'c prog => aheap => ('a \<rightharpoonup> val) => ('a \<rightharpoonup> ty) => bool"
                                    ("_,_ |- _ [::<=] _" [51,51,51,51] 50)

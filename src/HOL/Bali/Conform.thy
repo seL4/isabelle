@@ -102,7 +102,7 @@ section "value conformance"
 constdefs
 
   conf  :: "prog \<Rightarrow> st \<Rightarrow> val \<Rightarrow> ty \<Rightarrow> bool"    ("_,_\<turnstile>_\<Colon>\<preceq>_"   [71,71,71,71] 70)
-	   "G,s\<turnstile>v\<Colon>\<preceq>T \<equiv> \<exists>T'\<in>typeof (\<lambda>a. option_map obj_ty (heap s a)) v:G\<turnstile>T'\<preceq>T"
+	   "G,s\<turnstile>v\<Colon>\<preceq>T \<equiv> \<exists>T'\<in>typeof (\<lambda>a. Option.map obj_ty (heap s a)) v:G\<turnstile>T'\<preceq>T"
 
 lemma conf_cong [simp]: "G,set_locals l s\<turnstile>v\<Colon>\<preceq>T = G,s\<turnstile>v\<Colon>\<preceq>T"
 by (auto simp: conf_def)

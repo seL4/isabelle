@@ -194,7 +194,7 @@ apply auto
 done
 
 lemma Ball_set_tableD: 
-  "\<lbrakk>(\<forall> (x,y)\<in> set l. P x y); x \<in> o2s (table_of l xa)\<rbrakk> \<Longrightarrow> P xa x"
+  "\<lbrakk>(\<forall> (x,y)\<in> set l. P x y); x \<in> Option.set (table_of l xa)\<rbrakk> \<Longrightarrow> P xa x"
 apply (frule Ball_set_table)
 by auto
 

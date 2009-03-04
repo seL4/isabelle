@@ -127,6 +127,7 @@ PLAIN_DEPENDENCIES = $(BASE_DEPENDENCIES)\
   Nat.thy \
   OrderedGroup.thy \
   Orderings.thy \
+  Option.thy \
   Plain.thy \
   Power.thy \
   Predicate.thy \

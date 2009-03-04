@@ -242,17 +242,17 @@ lemma map_of_filter_in:
   "map_of xs k = Some z \<Longrightarrow> P k z \<Longrightarrow> map_of (filter (split P) xs) k = Some z"
 by (induct xs) auto
 
-lemma map_of_map: "map_of (map (%(a,b). (a,f b)) xs) x = option_map f (map_of xs x)"
+lemma map_of_map: "map_of (map (%(a,b). (a,f b)) xs) x = Option.map f (map_of xs x)"
 by (induct xs) auto
 
 
-subsection {* @{term [source] option_map} related *}
+subsection {* @{const Option.map} related *}
 
-lemma option_map_o_empty [simp]: "option_map f o empty = empty"
+lemma option_map_o_empty [simp]: "Option.map f o empty = empty"
 by (rule ext) simp
 
 lemma option_map_o_map_upd [simp]:
-  "option_map f o m(a|->b) = (option_map f o m)(a|->f b)"
+  "Option.map f o m(a|->b) = (Option.map f o m)(a|->f b)"
 by (rule ext) simp
 
 

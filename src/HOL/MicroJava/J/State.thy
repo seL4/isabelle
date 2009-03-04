@@ -41,7 +41,7 @@ translations
   "Norm s" == "(None,s)"
   "abrupt"     => "fst"
   "store"      => "snd"
- "lookup_obj s a'"  == "the (heap s (the_Addr a'))"
+ "lookup_obj s a'"  == "CONST the (heap s (the_Addr a'))"
 
 
 constdefs

@@ -87,11 +87,11 @@ consts
 defs
  cmheads_def:
 "cmheads G S C 
-  \<equiv> \<lambda>sig. (\<lambda>(Cls,mthd). (ClassT Cls,(mhead mthd))) ` o2s (accmethd G S C sig)"
+  \<equiv> \<lambda>sig. (\<lambda>(Cls,mthd). (ClassT Cls,(mhead mthd))) ` Option.set (accmethd G S C sig)"
   Objectmheads_def:
 "Objectmheads G S  
   \<equiv> \<lambda>sig. (\<lambda>(Cls,mthd). (ClassT Cls,(mhead mthd))) 
-    ` o2s (filter_tab (\<lambda>sig m. accmodi m \<noteq> Private) (accmethd G S Object) sig)"
+    ` Option.set (filter_tab (\<lambda>sig m. accmodi m \<noteq> Private) (accmethd G S Object) sig)"
   accObjectmheads_def:
 "accObjectmheads G S T
    \<equiv> if G\<turnstile>RefT T accessible_in (pid S)

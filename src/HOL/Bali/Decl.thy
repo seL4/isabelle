@@ -801,7 +801,7 @@ imethds:: "prog \<Rightarrow> qtname \<Rightarrow> (sig,qtname \<times> mhead) t
 "imethds G I 
   \<equiv> iface_rec (G,I)  
               (\<lambda>I i ts. (Un_tables ts) \<oplus>\<oplus> 
-                        (o2s \<circ> table_of (map (\<lambda>(s,m). (s,I,m)) (imethods i))))"
+                        (Option.set \<circ> table_of (map (\<lambda>(s,m). (s,I,m)) (imethods i))))"
 	
 
 

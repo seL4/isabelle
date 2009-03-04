@@ -126,11 +126,11 @@ lemma map_of_map_prop [rule_format (no_asm)]:
 by (induct xs,auto)
 
 lemma map_of_map2: "\<forall> x \<in> set xs. (fst (f x)) = (fst x) \<Longrightarrow>
-  map_of (map f xs) a = option_map (\<lambda> b. (snd (f (a, b)))) (map_of xs a)"
+  map_of (map f xs) a = Option.map (\<lambda> b. (snd (f (a, b)))) (map_of xs a)"
 by (induct xs, auto)
 
-lemma option_map_of [simp]: "(option_map f (map_of xs k) = None) = ((map_of xs k) = None)"
-by (simp add: option_map_def split: option.split)
+lemma option_map_of [simp]: "(Option.map f (map_of xs k) = None) = ((map_of xs k) = None)"
+by (simp add: Option.map_def split: option.split)
 
 
 
