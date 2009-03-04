@@ -1,4 +1,4 @@
-/*  Title:      linear_set.scala
+/*  Title:      LinearSet.scala
     Author:     Makarius
 
 Sets with canonical linear order, or immutable linked-lists.
