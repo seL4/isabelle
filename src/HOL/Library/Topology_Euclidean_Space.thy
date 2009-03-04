@@ -2421,7 +2421,7 @@ proof(rule, rule, rule ccontr)
     using x[THEN spec[where x="r (N+1)"], THEN spec[where x="r (N)"]] by auto
 qed
 
-subsection{* Heine-Borel theorem (following Burkill & Burkill vol. 2) *}
+subsection{* Heine-Borel theorem (following Burkill \& Burkill vol. 2) *}
 
 lemma heine_borel_lemma: fixes s::"(real^'n) set"
   assumes "compact s"  "s \<subseteq> (\<Union> t)"  "\<forall>b \<in> t. open b"
