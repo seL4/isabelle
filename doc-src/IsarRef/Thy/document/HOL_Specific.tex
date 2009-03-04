@@ -779,6 +779,58 @@ Each theory contains a default set of theorems that are used in
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
+\isamarkupsection{Intuitionistic proof search%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+\begin{matharray}{rcl}
+    \indexdef{HOL}{method}{iprover}\hypertarget{method.HOL.iprover}{\hyperlink{method.HOL.iprover}{\mbox{\isa{iprover}}}} & : & \isa{method} \\
+  \end{matharray}
+
+  \begin{rail}
+    'iprover' ('!' ?) (rulemod *)
+    ;
+  \end{rail}
+
+  The \hyperlink{method.HOL.iprover}{\mbox{\isa{iprover}}} method performs intuitionistic proof
+  search, depending on specifically declared rules from the context,
+  or given as explicit arguments.  Chained facts are inserted into the
+  goal before commencing proof search; ``\hyperlink{method.HOL.iprover}{\mbox{\isa{iprover}}}\isa{{\isachardoublequote}{\isacharbang}{\isachardoublequote}}''  means to include the current \hyperlink{fact.prems}{\mbox{\isa{prems}}} as well.
+  
+  Rules need to be classified as \hyperlink{attribute.Pure.intro}{\mbox{\isa{intro}}},
+  \hyperlink{attribute.Pure.elim}{\mbox{\isa{elim}}}, or \hyperlink{attribute.Pure.dest}{\mbox{\isa{dest}}}; here the
+  ``\isa{{\isachardoublequote}{\isacharbang}{\isachardoublequote}}'' indicator refers to ``safe'' rules, which may be
+  applied aggressively (without considering back-tracking later).
+  Rules declared with ``\isa{{\isachardoublequote}{\isacharquery}{\isachardoublequote}}'' are ignored in proof search (the
+  single-step \hyperlink{method.rule}{\mbox{\isa{rule}}} method still observes these).  An
+  explicit weight annotation may be given as well; otherwise the
+  number of rule premises will be taken into account here.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsection{Coherent Logic%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+\begin{matharray}{rcl}
+    \indexdef{HOL}{method}{coherent}\hypertarget{method.HOL.coherent}{\hyperlink{method.HOL.coherent}{\mbox{\isa{coherent}}}} & : & \isa{method} \\
+  \end{matharray}
+
+  \begin{rail}
+    'coherent' thmrefs?
+    ;
+  \end{rail}
+
+  The \hyperlink{method.HOL.coherent}{\mbox{\isa{coherent}}} method solves problems of
+  \emph{Coherent Logic} \cite{Bezem-Coquand:2005}, which covers
+  applications in confluence theory, lattice theory and projective
+  geometry.  See \hyperlink{file.~~/src/HOL/ex/Coherent.thy}{\mbox{\isa{\isatt{{\isachartilde}{\isachartilde}{\isacharslash}src{\isacharslash}HOL{\isacharslash}ex{\isacharslash}Coherent{\isachardot}thy}}}} for some
+  examples.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
 \isamarkupsection{Invoking automated reasoning tools -- The Sledgehammer%
 }
 \isamarkuptrue%

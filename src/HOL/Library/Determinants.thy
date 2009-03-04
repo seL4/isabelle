@@ -1048,7 +1048,7 @@ proof-
   note th0 = this
   let ?g = "\<lambda>x. if x = 0 then 0 else norm x *s f (inverse (norm x) *s x)"
   {fix x:: "real ^'n" assume nx: "norm x = 1"
-    have "?g x = f x" using nx by (simp add: norm_eq_0[symmetric])}
+    have "?g x = f x" using nx by auto}
   hence thfg: "\<forall>x. norm x = 1 \<longrightarrow> ?g x = f x" by blast
   have g0: "?g 0 = 0" by simp
   {fix x y :: "real ^'n"
@@ -1057,15 +1057,15 @@ proof-
     moreover
     {assume "x = 0" "y \<noteq> 0"
       then have "dist (?g x) (?g y) = dist x y" 
-	apply (simp add: dist_def norm_neg norm_mul norm_eq_0)
+	apply (simp add: dist_def norm_mul)
 	apply (rule f1[rule_format])
-	by(simp add: norm_mul norm_eq_0 field_simps)}
+	by(simp add: norm_mul field_simps)}
     moreover
     {assume "x \<noteq> 0" "y = 0"
       then have "dist (?g x) (?g y) = dist x y" 
-	apply (simp add: dist_def norm_neg norm_mul norm_eq_0)
+	apply (simp add: dist_def norm_mul)
 	apply (rule f1[rule_format])
-	by(simp add: norm_mul norm_eq_0 field_simps)}
+	by(simp add: norm_mul field_simps)}
     moreover
     {assume z: "x \<noteq> 0" "y \<noteq> 0"
       have th00: "x = norm x *s inverse (norm x) *s x" "y = norm y *s inverse (norm y) *s y" "norm x *s f (inverse (norm x) *s x) = norm x *s f (inverse (norm x) *s x)"
@@ -1077,7 +1077,7 @@ proof-
 	"norm (f (inverse (norm x) *s x) - f (inverse (norm y) *s y)) =
 	norm (inverse (norm x) *s x - inverse (norm y) *s y)"
 	using z
-	by (auto simp add: norm_eq_0 vector_smult_assoc field_simps norm_mul intro: f1[rule_format] fd1[rule_format, unfolded dist_def])
+	by (auto simp add: vector_smult_assoc field_simps norm_mul intro: f1[rule_format] fd1[rule_format, unfolded dist_def])
       from z th0[OF th00] have "dist (?g x) (?g y) = dist x y" 
 	by (simp add: dist_def)}
     ultimately have "dist (?g x) (?g y) = dist x y" by blast}

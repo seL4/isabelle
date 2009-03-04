@@ -55,7 +55,7 @@ fun strip_one name (Const ("all", _) $ Abs (s, T, Const ("==>", _) $ P $ Q)) =
       (subst_bound (Free (name, T), P), subst_bound (Free (name, T), Q))
   | strip_one _ (Const ("==>", _) $ P $ Q) = (P, Q);
 
-fun relevant_vars prop = foldr (fn
+fun relevant_vars prop = List.foldr (fn
       (Var ((a, i), T), vs) => (case strip_type T of
         (_, Type (s, _)) => if s mem ["bool"] then (a, T) :: vs else vs
       | _ => vs)
@@ -264,7 +264,7 @@ fun mk_realizer thy vs (name, rule, rrule, rlz, rt) =
     val rlz'' = fold_rev Logic.all vs2 rlz
   in (name, (vs,
     if rt = Extraction.nullt then rt else
-      foldr (uncurry lambda) rt vs1,
+      List.foldr (uncurry lambda) rt vs1,
     ProofRewriteRules.un_hhf_proof rlz' rlz''
       (fold_rev forall_intr_prf (vs2 @ rs) (prf_of rrule))))
   end;
@@ -315,7 +315,7 @@ fun add_ind_realizer rsets intrs induct raw_induct elims (thy, vs) =
     fun get f = (these oo Option.map) f;
     val rec_names = distinct (op =) (map (fst o dest_Const o head_of o fst o
       HOLogic.dest_eq o HOLogic.dest_Trueprop o prop_of) (get #rec_thms dt_info));
-    val (_, constrss) = foldl_map (fn ((recs, dummies), (s, rs)) =>
+    val (_, constrss) = Library.foldl_map (fn ((recs, dummies), (s, rs)) =>
       if s mem rsets then
         let
           val (d :: dummies') = dummies;

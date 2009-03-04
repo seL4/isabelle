@@ -64,8 +64,8 @@ notation (HTML output)
 
 subsection {* Reflexive closure *}
 
-lemma reflexive_reflcl[simp]: "reflexive(r^=)"
-by(simp add:refl_def)
+lemma refl_reflcl[simp]: "refl(r^=)"
+by(simp add:refl_on_def)
 
 lemma antisym_reflcl[simp]: "antisym(r^=) = antisym r"
 by(simp add:antisym_def)
@@ -118,8 +118,8 @@ lemmas rtrancl_induct2 =
   rtrancl_induct[of "(ax,ay)" "(bx,by)", split_format (complete),
                  consumes 1, case_names refl step]
 
-lemma reflexive_rtrancl: "reflexive (r^*)"
-  by (unfold refl_def) fast
+lemma refl_rtrancl: "refl (r^*)"
+by (unfold refl_on_def) fast
 
 text {* Transitivity of transitive closure. *}
 lemma trans_rtrancl: "trans (r^*)"
@@ -646,7 +646,7 @@ structure Trancl_Tac = Trancl_Tac_Fun (
     val trancl_rtrancl_trancl = @{thm trancl_rtrancl_trancl};
     val rtrancl_trans = @{thm rtrancl_trans};
 
-  fun decomp (Trueprop $ t) =
+  fun decomp (@{const Trueprop} $ t) =
     let fun dec (Const ("op :", _) $ (Const ("Pair", _) $ a $ b) $ rel ) =
         let fun decr (Const ("Transitive_Closure.rtrancl", _ ) $ r) = (r,"r*")
               | decr (Const ("Transitive_Closure.trancl", _ ) $ r)  = (r,"r+")
@@ -654,7 +654,8 @@ structure Trancl_Tac = Trancl_Tac_Fun (
             val (rel,r) = decr (Envir.beta_eta_contract rel);
         in SOME (a,b,rel,r) end
       | dec _ =  NONE
-    in dec t end;
+    in dec t end
+    | decomp _ = NONE;
 
   end);
 
@@ -669,7 +670,7 @@ structure Tranclp_Tac = Trancl_Tac_Fun (
     val trancl_rtrancl_trancl = @{thm tranclp_rtranclp_tranclp};
     val rtrancl_trans = @{thm rtranclp_trans};
 
-  fun decomp (Trueprop $ t) =
+  fun decomp (@{const Trueprop} $ t) =
     let fun dec (rel $ a $ b) =
         let fun decr (Const ("Transitive_Closure.rtranclp", _ ) $ r) = (r,"r*")
               | decr (Const ("Transitive_Closure.tranclp", _ ) $ r)  = (r,"r+")
@@ -677,7 +678,8 @@ structure Tranclp_Tac = Trancl_Tac_Fun (
             val (rel,r) = decr rel;
         in SOME (a, b, rel, r) end
       | dec _ =  NONE
-    in dec t end;
+    in dec t end
+    | decomp _ = NONE;
 
   end);
 *}

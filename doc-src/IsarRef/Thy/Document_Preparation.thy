@@ -1,5 +1,3 @@
-(* $Id$ *)
-
 theory Document_Preparation
 imports Main
 begin

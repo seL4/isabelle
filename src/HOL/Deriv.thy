@@ -9,7 +9,7 @@
 header{* Differentiation *}
 
 theory Deriv
-imports Lim Polynomial
+imports Lim
 begin
 
 text{*Standard Definitions*}
@@ -217,9 +217,7 @@ lemma DERIV_power:
 by (cases "n", simp, simp add: DERIV_power_Suc f)
 
 
-(* ------------------------------------------------------------------------ *)
-(* Caratheodory formulation of derivative at a point: standard proof        *)
-(* ------------------------------------------------------------------------ *)
+text {* Caratheodory formulation of derivative at a point *}
 
 lemma CARAT_DERIV:
      "(DERIV f x :> l) =
@@ -306,6 +304,9 @@ lemma DERIV_quotient:
   shows "[| DERIV f x :> d; DERIV g x :> e; g(x) \<noteq> 0 |]
        ==> DERIV (%y. f(y) / (g y)) x :> (d*g(x) - (e*f(x))) / (g(x) ^ Suc (Suc 0))"
 by (drule (2) DERIV_divide) (simp add: mult_commute power_Suc)
+
+lemma lemma_DERIV_subst: "[| DERIV f x :> D; D = E |] ==> DERIV f x :> E"
+by auto
 
 
 subsection {* Differentiability predicate *}
@@ -655,6 +656,9 @@ lemma IVT2_objl: "(f(b::real) \<le> (y::real) & y \<le> f(a) & a \<le> b &
 apply (blast intro: IVT2)
 done
 
+
+subsection {* Boundedness of continuous functions *}
+
 text{*By bisection, function continuous on closed interval is bounded above*}
 
 lemma isCont_bounded:
@@ -773,6 +777,8 @@ apply (rule_tac [4] x = xb in exI, simp_all)
 done
 
 
+subsection {* Local extrema *}
+
 text{*If @{term "0 < f'(x)"} then @{term x} is Locally Strictly Increasing At The Right*}
 
 lemma DERIV_left_inc:
@@ -876,6 +882,9 @@ lemma DERIV_local_const:
   fixes f :: "real => real"
   shows "[| DERIV f x :> l; 0 < d; \<forall>y. \<bar>x-y\<bar> < d --> f(x) = f(y) |] ==> l = 0"
 by (auto dest!: DERIV_local_max)
+
+
+subsection {* Rolle's Theorem *}
 
 text{*Lemma about introducing open ball in open interval*}
 lemma lemma_interval_lt:
@@ -1163,6 +1172,8 @@ next
 qed
 
 
+subsection {* Continuous injective functions *}
+
 text{*Dull lemma: an continuous injection on an interval must have a
 strict maximum at an end point, not in the middle.*}
 
@@ -1356,6 +1367,9 @@ next
     using neq by (rule LIM_inverse)
 qed
 
+
+subsection {* Generalized Mean Value Theorem *}
+
 theorem GMVT:
   fixes a b :: real
   assumes alb: "a < b"
@@ -1442,245 +1456,6 @@ proof -
   with g'cdef f'cdef cint show ?thesis by auto
 qed
 
-lemma lemma_DERIV_subst: "[| DERIV f x :> D; D = E |] ==> DERIV f x :> E"
-by auto
-
-
-subsection {* Derivatives of univariate polynomials *}
-
-definition
-  pderiv :: "'a::real_normed_field poly \<Rightarrow> 'a poly" where
-  "pderiv = poly_rec 0 (\<lambda>a p p'. p + pCons 0 p')"
-
-lemma pderiv_0 [simp]: "pderiv 0 = 0"
-  unfolding pderiv_def by (simp add: poly_rec_0)
-
-lemma pderiv_pCons: "pderiv (pCons a p) = p + pCons 0 (pderiv p)"
-  unfolding pderiv_def by (simp add: poly_rec_pCons)
-
-lemma coeff_pderiv: "coeff (pderiv p) n = of_nat (Suc n) * coeff p (Suc n)"
-  apply (induct p arbitrary: n, simp)
-  apply (simp add: pderiv_pCons coeff_pCons algebra_simps split: nat.split)
-  done
-
-lemma pderiv_eq_0_iff: "pderiv p = 0 \<longleftrightarrow> degree p = 0"
-  apply (rule iffI)
-  apply (cases p, simp)
-  apply (simp add: expand_poly_eq coeff_pderiv del: of_nat_Suc)
-  apply (simp add: expand_poly_eq coeff_pderiv coeff_eq_0)
-  done
-
-lemma degree_pderiv: "degree (pderiv p) = degree p - 1"
-  apply (rule order_antisym [OF degree_le])
-  apply (simp add: coeff_pderiv coeff_eq_0)
-  apply (cases "degree p", simp)
-  apply (rule le_degree)
-  apply (simp add: coeff_pderiv del: of_nat_Suc)
-  apply (rule subst, assumption)
-  apply (rule leading_coeff_neq_0, clarsimp)
-  done
-
-lemma pderiv_singleton [simp]: "pderiv [:a:] = 0"
-by (simp add: pderiv_pCons)
-
-lemma pderiv_add: "pderiv (p + q) = pderiv p + pderiv q"
-by (rule poly_ext, simp add: coeff_pderiv algebra_simps)
-
-lemma pderiv_minus: "pderiv (- p) = - pderiv p"
-by (rule poly_ext, simp add: coeff_pderiv)
-
-lemma pderiv_diff: "pderiv (p - q) = pderiv p - pderiv q"
-by (rule poly_ext, simp add: coeff_pderiv algebra_simps)
-
-lemma pderiv_smult: "pderiv (smult a p) = smult a (pderiv p)"
-by (rule poly_ext, simp add: coeff_pderiv algebra_simps)
-
-lemma pderiv_mult: "pderiv (p * q) = p * pderiv q + q * pderiv p"
-apply (induct p)
-apply simp
-apply (simp add: pderiv_add pderiv_smult pderiv_pCons algebra_simps)
-done
-
-lemma pderiv_power_Suc:
-  "pderiv (p ^ Suc n) = smult (of_nat (Suc n)) (p ^ n) * pderiv p"
-apply (induct n)
-apply simp
-apply (subst power_Suc)
-apply (subst pderiv_mult)
-apply (erule ssubst)
-apply (simp add: smult_add_left algebra_simps)
-done
-
-lemma DERIV_cmult2: "DERIV f x :> D ==> DERIV (%x. (f x) * c :: real) x :> D * c"
-by (simp add: DERIV_cmult mult_commute [of _ c])
-
-lemma DERIV_pow2: "DERIV (%x. x ^ Suc n) x :> real (Suc n) * (x ^ n)"
-by (rule lemma_DERIV_subst, rule DERIV_pow, simp)
-declare DERIV_pow2 [simp] DERIV_pow [simp]
-
-lemma DERIV_add_const: "DERIV f x :> D ==>  DERIV (%x. a + f x :: 'a::real_normed_field) x :> D"
-by (rule lemma_DERIV_subst, rule DERIV_add, auto)
-
-lemma poly_DERIV[simp]: "DERIV (%x. poly p x) x :> poly (pderiv p) x"
-apply (induct p)
-apply simp
-apply (simp add: pderiv_pCons)
-apply (rule lemma_DERIV_subst)
-apply (rule DERIV_add DERIV_mult DERIV_const DERIV_ident | assumption)+
-apply simp
-done
-
-text{* Consequences of the derivative theorem above*}
-
-lemma poly_differentiable[simp]: "(%x. poly p x) differentiable (x::real)"
-apply (simp add: differentiable_def)
-apply (blast intro: poly_DERIV)
-done
-
-lemma poly_isCont[simp]: "isCont (%x. poly p x) (x::real)"
-by (rule poly_DERIV [THEN DERIV_isCont])
-
-lemma poly_IVT_pos: "[| a < b; poly p (a::real) < 0; 0 < poly p b |]
-      ==> \<exists>x. a < x & x < b & (poly p x = 0)"
-apply (cut_tac f = "%x. poly p x" and a = a and b = b and y = 0 in IVT_objl)
-apply (auto simp add: order_le_less)
-done
-
-lemma poly_IVT_neg: "[| (a::real) < b; 0 < poly p a; poly p b < 0 |]
-      ==> \<exists>x. a < x & x < b & (poly p x = 0)"
-by (insert poly_IVT_pos [where p = "- p" ]) simp
-
-lemma poly_MVT: "(a::real) < b ==>
-     \<exists>x. a < x & x < b & (poly p b - poly p a = (b - a) * poly (pderiv p) x)"
-apply (drule_tac f = "poly p" in MVT, auto)
-apply (rule_tac x = z in exI)
-apply (auto simp add: real_mult_left_cancel poly_DERIV [THEN DERIV_unique])
-done
-
-text{*Lemmas for Derivatives*}
-
-(* FIXME
-lemma lemma_order_pderiv [rule_format]:
-     "\<forall>p q a. 0 < n &
-       poly (pderiv p) \<noteq> poly [] &
-       poly p = poly ([- a, 1] %^ n *** q) & ~ [- a, 1] divides q
-       --> n = Suc (order a (pderiv p))"
-apply (induct "n", safe)
-apply (rule order_unique_lemma, rule conjI, assumption)
-apply (subgoal_tac "\<forall>r. r divides (pderiv p) = r divides (pderiv ([-a, 1] %^ Suc n *** q))")
-apply (drule_tac [2] poly_pderiv_welldef)
- prefer 2 apply (simp add: divides_def del: pmult_Cons pexp_Suc) 
-apply (simp del: pmult_Cons pexp_Suc) 
-apply (rule conjI)
-apply (simp add: divides_def fun_eq del: pmult_Cons pexp_Suc)
-apply (rule_tac x = "[-a, 1] *** (pderiv q) +++ real (Suc n) %* q" in exI)
-apply (simp add: poly_pderiv_mult poly_pderiv_exp_prime poly_add poly_mult poly_cmult right_distrib mult_ac del: pmult_Cons pexp_Suc)
-apply (simp add: poly_mult right_distrib left_distrib mult_ac del: pmult_Cons)
-apply (erule_tac V = "\<forall>r. r divides pderiv p = r divides pderiv ([- a, 1] %^ Suc n *** q)" in thin_rl)
-apply (unfold divides_def)
-apply (simp (no_asm) add: poly_pderiv_mult poly_pderiv_exp_prime fun_eq poly_add poly_mult del: pmult_Cons pexp_Suc)
-apply (rule contrapos_np, assumption)
-apply (rotate_tac 3, erule contrapos_np)
-apply (simp del: pmult_Cons pexp_Suc, safe)
-apply (rule_tac x = "inverse (real (Suc n)) %* (qa +++ -- (pderiv q))" in exI)
-apply (subgoal_tac "poly ([-a, 1] %^ n *** q) = poly ([-a, 1] %^ n *** ([-a, 1] *** (inverse (real (Suc n)) %* (qa +++ -- (pderiv q))))) ")
-apply (drule poly_mult_left_cancel [THEN iffD1], simp)
-apply (simp add: fun_eq poly_mult poly_add poly_cmult poly_minus del: pmult_Cons mult_cancel_left, safe)
-apply (rule_tac c1 = "real (Suc n)" in real_mult_left_cancel [THEN iffD1])
-apply (simp (no_asm))
-apply (subgoal_tac "real (Suc n) * (poly ([- a, 1] %^ n) xa * poly q xa) =
-          (poly qa xa + - poly (pderiv q) xa) *
-          (poly ([- a, 1] %^ n) xa *
-           ((- a + xa) * (inverse (real (Suc n)) * real (Suc n))))")
-apply (simp only: mult_ac)  
-apply (rotate_tac 2)
-apply (drule_tac x = xa in spec)
-apply (simp add: left_distrib mult_ac del: pmult_Cons)
-done
-
-lemma order_pderiv: "[| poly (pderiv p) \<noteq> poly []; order a p \<noteq> 0 |]
-      ==> (order a p = Suc (order a (pderiv p)))"
-apply (case_tac "poly p = poly []")
-apply (auto dest: pderiv_zero)
-apply (drule_tac a = a and p = p in order_decomp)
-using neq0_conv
-apply (blast intro: lemma_order_pderiv)
-done
-
-text{*Now justify the standard squarefree decomposition, i.e. f / gcd(f,f'). *}
-
-lemma poly_squarefree_decomp_order: "[| poly (pderiv p) \<noteq> poly [];
-         poly p = poly (q *** d);
-         poly (pderiv p) = poly (e *** d);
-         poly d = poly (r *** p +++ s *** pderiv p)
-      |] ==> order a q = (if order a p = 0 then 0 else 1)"
-apply (subgoal_tac "order a p = order a q + order a d")
-apply (rule_tac [2] s = "order a (q *** d)" in trans)
-prefer 2 apply (blast intro: order_poly)
-apply (rule_tac [2] order_mult)
- prefer 2 apply force
-apply (case_tac "order a p = 0", simp)
-apply (subgoal_tac "order a (pderiv p) = order a e + order a d")
-apply (rule_tac [2] s = "order a (e *** d)" in trans)
-prefer 2 apply (blast intro: order_poly)
-apply (rule_tac [2] order_mult)
- prefer 2 apply force
-apply (case_tac "poly p = poly []")
-apply (drule_tac p = p in pderiv_zero, simp)
-apply (drule order_pderiv, assumption)
-apply (subgoal_tac "order a (pderiv p) \<le> order a d")
-apply (subgoal_tac [2] " ([-a, 1] %^ (order a (pderiv p))) divides d")
- prefer 2 apply (simp add: poly_entire order_divides)
-apply (subgoal_tac [2] " ([-a, 1] %^ (order a (pderiv p))) divides p & ([-a, 1] %^ (order a (pderiv p))) divides (pderiv p) ")
- prefer 3 apply (simp add: order_divides)
- prefer 2 apply (simp add: divides_def del: pexp_Suc pmult_Cons, safe)
-apply (rule_tac x = "r *** qa +++ s *** qaa" in exI)
-apply (simp add: fun_eq poly_add poly_mult left_distrib right_distrib mult_ac del: pexp_Suc pmult_Cons, auto)
-done
-
-
-lemma poly_squarefree_decomp_order2: "[| poly (pderiv p) \<noteq> poly [];
-         poly p = poly (q *** d);
-         poly (pderiv p) = poly (e *** d);
-         poly d = poly (r *** p +++ s *** pderiv p)
-      |] ==> \<forall>a. order a q = (if order a p = 0 then 0 else 1)"
-apply (blast intro: poly_squarefree_decomp_order)
-done
-
-lemma order_pderiv2: "[| poly (pderiv p) \<noteq> poly []; order a p \<noteq> 0 |]
-      ==> (order a (pderiv p) = n) = (order a p = Suc n)"
-apply (auto dest: order_pderiv)
-done
-
-lemma rsquarefree_roots:
-  "rsquarefree p = (\<forall>a. ~(poly p a = 0 & poly (pderiv p) a = 0))"
-apply (simp add: rsquarefree_def)
-apply (case_tac "poly p = poly []", simp, simp)
-apply (case_tac "poly (pderiv p) = poly []")
-apply simp
-apply (drule pderiv_iszero, clarify)
-apply (subgoal_tac "\<forall>a. order a p = order a [h]")
-apply (simp add: fun_eq)
-apply (rule allI)
-apply (cut_tac p = "[h]" and a = a in order_root)
-apply (simp add: fun_eq)
-apply (blast intro: order_poly)
-apply (auto simp add: order_root order_pderiv2)
-apply (erule_tac x="a" in allE, simp)
-done
-
-lemma poly_squarefree_decomp: "[| poly (pderiv p) \<noteq> poly [];
-         poly p = poly (q *** d);
-         poly (pderiv p) = poly (e *** d);
-         poly d = poly (r *** p +++ s *** pderiv p)
-      |] ==> rsquarefree q & (\<forall>a. (poly q a = 0) = (poly p a = 0))"
-apply (frule poly_squarefree_decomp_order2, assumption+) 
-apply (case_tac "poly p = poly []")
-apply (blast dest: pderiv_zero)
-apply (simp (no_asm) add: rsquarefree_def order_root del: pmult_Cons)
-apply (simp add: poly_entire del: pmult_Cons)
-done
-*)
 
 subsection {* Theorems about Limits *}
 

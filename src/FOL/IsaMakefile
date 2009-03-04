@@ -32,12 +32,13 @@ $(OUT)/FOL: $(OUT)/Pure $(SRC)/Provers/blast.ML				\
   $(SRC)/Provers/clasimp.ML $(SRC)/Provers/classical.ML			\
   $(SRC)/Tools/IsaPlanner/zipper.ML $(SRC)/Tools/IsaPlanner/isand.ML	\
   $(SRC)/Tools/IsaPlanner/rw_tools.ML					\
-  $(SRC)/Tools/IsaPlanner/rw_inst.ML $(SRC)/Provers/eqsubst.ML		\
+  $(SRC)/Tools/IsaPlanner/rw_inst.ML $(SRC)/Tools/eqsubst.ML		\
   $(SRC)/Provers/hypsubst.ML $(SRC)/Tools/induct.ML			\
-  $(SRC)/Tools/atomize_elim.ML $(SRC)/Provers/project_rule.ML		\
-  $(SRC)/Provers/quantifier1.ML $(SRC)/Provers/splitter.ML FOL.thy	\
-  IFOL.thy ROOT.ML blastdata.ML cladata.ML document/root.tex		\
-  fologic.ML hypsubstdata.ML intprover.ML simpdata.ML
+  $(SRC)/Tools/intuitionistic.ML $(SRC)/Tools/atomize_elim.ML		\
+  $(SRC)/Tools/project_rule.ML $(SRC)/Provers/quantifier1.ML		\
+  $(SRC)/Provers/splitter.ML FOL.thy IFOL.thy ROOT.ML blastdata.ML	\
+  cladata.ML document/root.tex fologic.ML hypsubstdata.ML intprover.ML	\
+  simpdata.ML
 	@$(ISABELLE_TOOL) usedir -p 2 -b $(OUT)/Pure FOL
 
 
@@ -46,12 +47,12 @@ $(OUT)/FOL: $(OUT)/Pure $(SRC)/Provers/blast.ML				\
 FOL-ex: FOL $(LOG)/FOL-ex.gz
 
 $(LOG)/FOL-ex.gz: $(OUT)/FOL ex/First_Order_Logic.thy ex/If.thy		\
-  ex/IffOracle.thy ex/Nat.thy ex/Natural_Numbers.thy	\
-  ex/LocaleTest.thy    \
-  ex/Miniscope.thy ex/Prolog.thy ex/ROOT.ML ex/Classical.thy		\
-  ex/document/root.tex ex/Foundation.thy ex/Intuitionistic.thy		\
-  ex/Intro.thy ex/Propositional_Int.thy ex/Propositional_Cla.thy	\
-  ex/Quantifiers_Int.thy ex/Quantifiers_Cla.thy
+  ex/Iff_Oracle.thy ex/Nat.thy ex/Nat_Class.thy ex/Natural_Numbers.thy	\
+  ex/LocaleTest.thy ex/Miniscope.thy ex/Prolog.thy ex/ROOT.ML		\
+  ex/Classical.thy ex/document/root.tex ex/Foundation.thy		\
+  ex/Intuitionistic.thy ex/Intro.thy ex/Propositional_Int.thy		\
+  ex/Propositional_Cla.thy ex/Quantifiers_Int.thy			\
+  ex/Quantifiers_Cla.thy
 	@$(ISABELLE_TOOL) usedir $(OUT)/FOL ex
 
 

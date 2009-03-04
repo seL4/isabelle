@@ -12,9 +12,9 @@ sig
   val properties: (string * string) list -> T -> T
   val nameN: string
   val name: string -> T -> T
+  val bindingN: string val binding: string -> T
   val groupN: string
   val theory_nameN: string
-  val idN: string
   val kindN: string
   val internalK: string
   val property_internal: Properties.property
@@ -25,6 +25,7 @@ sig
   val end_columnN: string
   val end_offsetN: string
   val fileN: string
+  val idN: string
   val position_properties': string list
   val position_properties: string list
   val positionN: string val position: T
@@ -107,6 +108,8 @@ end;
 structure Markup: MARKUP =
 struct
 
+(** markup elements **)
+
 (* basic markup *)
 
 type T = string * Properties.T;
@@ -129,6 +132,8 @@ fun markup_int elem prop = (elem, fn i => (elem, [(prop, Int.toString i)]): T);
 
 val nameN = "name";
 fun name a = properties [(nameN, a)];
+
+val (bindingN, binding) = markup_string "binding" nameN;
 
 val groupN = "group";
 val theory_nameN = "theory_name";
@@ -278,7 +283,7 @@ val (promptN, prompt) = markup_elem "prompt";
 
 
 
-(* print mode operations *)
+(** print mode operations **)
 
 val no_output = ("", "");
 fun default_output (_: T) = no_output;

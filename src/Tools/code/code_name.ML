@@ -1,5 +1,4 @@
 (*  Title:      Tools/code/code_name.ML
-    ID:         $Id$
     Author:     Florian Haftmann, TU Muenchen
 
 Some code generator infrastructure concerning names.

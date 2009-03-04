@@ -155,7 +155,7 @@ fun exh_tac exh_thm_of i state =
     val prem' = hd (prems_of exhaustion);
     val _ $ (_ $ lhs $ _) = hd (rev (Logic.strip_assums_hyp prem'));
     val exhaustion' = cterm_instantiate [(cterm_of thy (head_of lhs),
-      cterm_of thy (foldr (fn ((_, T), t) => Abs ("z", T, t))
+      cterm_of thy (List.foldr (fn ((_, T), t) => Abs ("z", T, t))
         (Bound 0) params))] exhaustion
   in compose_tac (false, exhaustion', nprems_of exhaustion) i state
   end;

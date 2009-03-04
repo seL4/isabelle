@@ -120,7 +120,7 @@ fun process_spec axiomatic cos alt_props thy =
                 val frees = OldTerm.term_frees prop
                 val _ = forall (fn v => Sign.of_sort thy (type_of v,HOLogic.typeS)) frees
                   orelse error "Specificaton: Only free variables of sort 'type' allowed"
-                val prop_closed = foldr (fn ((vname,T),prop) => HOLogic.mk_all (vname,T,prop)) prop (map dest_Free frees)
+                val prop_closed = List.foldr (fn ((vname,T),prop) => HOLogic.mk_all (vname,T,prop)) prop (map dest_Free frees)
             in
                 (prop_closed,frees)
             end
@@ -161,7 +161,7 @@ fun process_spec axiomatic cos alt_props thy =
             in
                 HOLogic.exists_const T $ Abs(vname,T,Term.abstract_over (c,prop))
             end
-        val ex_prop = foldr mk_exist prop proc_consts
+        val ex_prop = List.foldr mk_exist prop proc_consts
         val cnames = map (fst o dest_Const) proc_consts
         fun post_process (arg as (thy,thm)) =
             let
@@ -232,7 +232,7 @@ val opt_overloaded = P.opt_keyword "overloaded";
 
 val specification_decl =
   P.$$$ "(" |-- Scan.repeat1 (opt_name -- P.term -- opt_overloaded) --| P.$$$ ")" --
-          Scan.repeat1 ((SpecParse.opt_thm_name ":" >> apfst Binding.base_name) -- P.prop)
+          Scan.repeat1 ((SpecParse.opt_thm_name ":" >> apfst Binding.name_of) -- P.prop)
 
 val _ =
   OuterSyntax.command "specification" "define constants by specification" K.thy_goal
@@ -243,7 +243,7 @@ val _ =
 val ax_specification_decl =
     P.name --
     (P.$$$ "(" |-- Scan.repeat1 (opt_name -- P.term -- opt_overloaded) --| P.$$$ ")" --
-           Scan.repeat1 ((SpecParse.opt_thm_name ":" >> apfst Binding.base_name) -- P.prop))
+           Scan.repeat1 ((SpecParse.opt_thm_name ":" >> apfst Binding.name_of) -- P.prop))
 
 val _ =
   OuterSyntax.command "ax_specification" "define constants by specification" K.thy_goal

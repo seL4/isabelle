@@ -552,7 +552,7 @@ fun add_defs def_insts =
   let
     fun add (SOME (SOME x, t)) ctxt =
           let val ([(lhs, (_, th))], ctxt') =
-            LocalDefs.add_defs [((x, NoSyn), ((Binding.empty, []), t))] ctxt
+            LocalDefs.add_defs [((x, NoSyn), (Thm.empty_binding, t))] ctxt
           in ((SOME lhs, [th]), ctxt') end
       | add (SOME (NONE, t)) ctxt = ((SOME t, []), ctxt)
       | add NONE ctxt = ((NONE, []), ctxt);

@@ -1,17 +1,15 @@
-(* $Id$ *)
-
 theory Proof
 imports Main
 begin
 
-chapter {* Proofs *}
+chapter {* Proofs \label{ch:proofs} *}
 
 text {*
   Proof commands perform transitions of Isar/VM machine
   configurations, which are block-structured, consisting of a stack of
   nodes with three main components: logical proof context, current
-  facts, and open goals.  Isar/VM transitions are \emph{typed}
-  according to the following three different modes of operation:
+  facts, and open goals.  Isar/VM transitions are typed according to
+  the following three different modes of operation:
 
   \begin{description}
 
@@ -32,13 +30,17 @@ text {*
 
   \end{description}
 
-  The proof mode indicator may be read as a verb telling the writer
-  what kind of operation may be performed next.  The corresponding
-  typings of proof commands restricts the shape of well-formed proof
-  texts to particular command sequences.  So dynamic arrangements of
-  commands eventually turn out as static texts of a certain structure.
-  \Appref{ap:refcard} gives a simplified grammar of the overall
-  (extensible) language emerging that way.
+  The proof mode indicator may be understood as an instruction to the
+  writer, telling what kind of operation may be performed next.  The
+  corresponding typings of proof commands restricts the shape of
+  well-formed proof texts to particular command sequences.  So dynamic
+  arrangements of commands eventually turn out as static texts of a
+  certain structure.
+
+  \Appref{ap:refcard} gives a simplified grammar of the (extensible)
+  language emerging that way from the different types of proof
+  commands.  The main ideas of the overall Isar framework are
+  explained in \chref{ch:isar-framework}.
 *}
 
 
@@ -681,7 +683,6 @@ text {*
     @{method_def "assumption"} & : & @{text method} \\
     @{method_def "this"} & : & @{text method} \\
     @{method_def "rule"} & : & @{text method} \\
-    @{method_def "iprover"} & : & @{text method} \\[0.5ex]
     @{attribute_def (Pure) "intro"} & : & @{text attribute} \\
     @{attribute_def (Pure) "elim"} & : & @{text attribute} \\
     @{attribute_def (Pure) "dest"} & : & @{text attribute} \\
@@ -695,8 +696,6 @@ text {*
     'fact' thmrefs?
     ;
     'rule' thmrefs?
-    ;
-    'iprover' ('!' ?) (rulemod *)
     ;
     rulemod: ('intro' | 'elim' | 'dest') ((('!' | () | '?') nat?) | 'del') ':' thmrefs
     ;
@@ -756,27 +755,11 @@ text {*
   default behavior of @{command "proof"} and ``@{command ".."}'' 
   (double-dot) steps (see \secref{sec:proof-steps}).
   
-  \item @{method iprover} performs intuitionistic proof search,
-  depending on specifically declared rules from the context, or given
-  as explicit arguments.  Chained facts are inserted into the goal
-  before commencing proof search; ``@{method iprover}@{text "!"}''
-  means to include the current @{fact prems} as well.
-  
-  Rules need to be classified as @{attribute (Pure) intro},
-  @{attribute (Pure) elim}, or @{attribute (Pure) dest}; here the
-  ``@{text "!"}'' indicator refers to ``safe'' rules, which may be
-  applied aggressively (without considering back-tracking later).
-  Rules declared with ``@{text "?"}'' are ignored in proof search (the
-  single-step @{method rule} method still observes these).  An
-  explicit weight annotation may be given as well; otherwise the
-  number of rule premises will be taken into account here.
-  
   \item @{attribute (Pure) intro}, @{attribute (Pure) elim}, and
   @{attribute (Pure) dest} declare introduction, elimination, and
-  destruct rules, to be used with the @{method rule} and @{method
-  iprover} methods.  Note that the latter will ignore rules declared
-  with ``@{text "?"}'', while ``@{text "!"}''  are used most
-  aggressively.
+  destruct rules, to be used with method @{method rule}, and similar
+  tools.  Note that the latter will ignore rules declared with
+  ``@{text "?"}'', while ``@{text "!"}''  are used most aggressively.
   
   The classical reasoner (see \secref{sec:classical}) introduces its
   own variants of these attributes; use qualified names to access the
@@ -963,7 +946,7 @@ text {*
   \begin{matharray}{l}
     @{text "\<langle>using b\<^sub>1 \<dots> b\<^sub>k\<rangle>"}~~@{command "obtain"}~@{text "x\<^sub>1 \<dots> x\<^sub>m \<WHERE> a: \<phi>\<^sub>1 \<dots> \<phi>\<^sub>n  \<langle>proof\<rangle> \<equiv>"} \\[1ex]
     \quad @{command "have"}~@{text "\<And>thesis. (\<And>x\<^sub>1 \<dots> x\<^sub>m. \<phi>\<^sub>1 \<Longrightarrow> \<dots> \<phi>\<^sub>n \<Longrightarrow> thesis) \<Longrightarrow> thesis"} \\
-    \quad @{command "proof"}~@{text succeed} \\
+    \quad @{command "proof"}~@{method succeed} \\
     \qquad @{command "fix"}~@{text thesis} \\
     \qquad @{command "assume"}~@{text "that [Pure.intro?]: \<And>x\<^sub>1 \<dots> x\<^sub>m. \<phi>\<^sub>1 \<Longrightarrow> \<dots> \<phi>\<^sub>n \<Longrightarrow> thesis"} \\
     \qquad @{command "then"}~@{command "show"}~@{text thesis} \\

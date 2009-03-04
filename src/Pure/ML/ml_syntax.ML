@@ -18,6 +18,8 @@ sig
   val print_char: string -> string
   val print_string: string -> string
   val print_strings: string list -> string
+  val print_properties: Properties.T -> string
+  val print_position: Position.T -> string
   val print_indexname: indexname -> string
   val print_class: class -> string
   val print_sort: sort -> string
@@ -67,6 +69,9 @@ fun print_char s =
 
 val print_string = quote o translate_string print_char;
 val print_strings = print_list print_string;
+
+val print_properties = print_list (print_pair print_string print_string);
+fun print_position pos = "Position.of_properties " ^ print_properties (Position.properties_of pos);
 
 val print_indexname = print_pair print_string print_int;
 

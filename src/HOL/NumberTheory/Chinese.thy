@@ -90,10 +90,8 @@ lemma funprod_zdvd [rule_format]:
     "k \<le> i --> i \<le> k + l --> mf i dvd funprod mf k l"
   apply (induct l)
    apply auto
-    apply (rule_tac [1] zdvd_zmult2)
-    apply (rule_tac [2] zdvd_zmult)
-    apply (subgoal_tac "i = Suc (k + l)")
-    apply (simp_all (no_asm_simp))
+  apply (subgoal_tac "i = Suc (k + l)")
+   apply (simp_all (no_asm_simp))
   done
 
 lemma funsum_mod:
@@ -103,7 +101,7 @@ lemma funsum_mod:
   apply (rule trans)
    apply (rule mod_add_eq)
   apply simp
-  apply (rule zmod_zadd_right_eq [symmetric])
+  apply (rule mod_add_right_eq [symmetric])
   done
 
 lemma funsum_zero [rule_format (no_asm)]:
@@ -196,8 +194,8 @@ lemma x_sol_lin_aux:
    apply (case_tac [2] "i = n")
     apply (simp_all (no_asm_simp))
     apply (case_tac [3] "j < i")
-     apply (rule_tac [3] zdvd_zmult2)
-     apply (rule_tac [4] zdvd_zmult)
+     apply (rule_tac [3] dvd_mult2)
+     apply (rule_tac [4] dvd_mult)
      apply (rule_tac [!] funprod_zdvd)
      apply arith
      apply arith
@@ -217,8 +215,8 @@ lemma x_sol_lin:
   apply (subst funsum_mod)
   apply (subst funsum_oneelem)
      apply auto
-  apply (subst zdvd_iff_zmod_eq_0 [symmetric])
-  apply (rule zdvd_zmult)
+  apply (subst dvd_eq_mod_eq_0 [symmetric])
+  apply (rule dvd_mult)
   apply (rule x_sol_lin_aux)
   apply auto
   done
@@ -238,20 +236,20 @@ lemma chinese_remainder:
   apply safe
     apply (tactic {* stac (thm "zcong_zmod") 3 *})
     apply (tactic {* stac (thm "mod_mult_eq") 3 *})
-    apply (tactic {* stac (thm "zmod_zdvd_zmod") 3 *})
-      apply (tactic {* stac (thm "x_sol_lin") 5 *})
-        apply (tactic {* stac (thm "mod_mult_eq" RS sym) 7 *})
-        apply (tactic {* stac (thm "zcong_zmod" RS sym) 7 *})
-        apply (subgoal_tac [7]
+    apply (tactic {* stac (thm "mod_mod_cancel") 3 *})
+      apply (tactic {* stac (thm "x_sol_lin") 4 *})
+        apply (tactic {* stac (thm "mod_mult_eq" RS sym) 6 *})
+        apply (tactic {* stac (thm "zcong_zmod" RS sym) 6 *})
+        apply (subgoal_tac [6]
           "0 \<le> xilin_sol i n kf bf mf \<and> xilin_sol i n kf bf mf < mf i
           \<and> [kf i * mhf mf n i * xilin_sol i n kf bf mf = bf i] (mod mf i)")
-         prefer 7
+         prefer 6
          apply (simp add: zmult_ac)
         apply (unfold xilin_sol_def)
-        apply (tactic {* asm_simp_tac @{simpset} 7 *})
-        apply (rule_tac [7] ex1_implies_ex [THEN someI_ex])
-        apply (rule_tac [7] unique_xi_sol)
-           apply (rule_tac [4] funprod_zdvd)
+        apply (tactic {* asm_simp_tac @{simpset} 6 *})
+        apply (rule_tac [6] ex1_implies_ex [THEN someI_ex])
+        apply (rule_tac [6] unique_xi_sol)
+           apply (rule_tac [3] funprod_zdvd)
             apply (unfold m_cond_def)
             apply (rule funprod_pos [THEN pos_mod_sign])
             apply (rule_tac [2] funprod_pos [THEN pos_mod_bound])

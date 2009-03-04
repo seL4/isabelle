@@ -1,12 +1,13 @@
 (*  Title:      Tools/code/code_funcgr.ML
-    ID:         $Id$
     Author:     Florian Haftmann, TU Muenchen
 
-Retrieving, normalizing and structuring defining equations in graph
+Retrieving, normalizing and structuring code equations in graph
 with explicit dependencies.
+
+Legacy.  To be replaced by Tools/code/code_wellsorted.ML
 *)
 
-signature CODE_FUNCGR =
+signature CODE_WELLSORTED =
 sig
   type T
   val eqns: T -> string -> (thm * bool) list
@@ -22,7 +23,7 @@ sig
   val timing: bool ref
 end
 
-structure Code_Funcgr : CODE_FUNCGR =
+structure Code_Wellsorted : CODE_WELLSORTED =
 struct
 
 (** the graph type **)
@@ -318,13 +319,13 @@ fun code_deps_cmd thy = code_deps thy o op @ o Code_Name.read_const_exprs thy;
 in
 
 val _ =
-  OuterSyntax.improper_command "code_thms" "print system of defining equations for code" OuterKeyword.diag
+  OuterSyntax.improper_command "code_thms" "print system of code equations for code" OuterKeyword.diag
     (Scan.repeat P.term_group
       >> (fn cs => Toplevel.no_timing o Toplevel.unknown_theory
         o Toplevel.keep ((fn thy => code_thms_cmd thy cs) o Toplevel.theory_of)));
 
 val _ =
-  OuterSyntax.improper_command "code_deps" "visualize dependencies of defining equations for code" OuterKeyword.diag
+  OuterSyntax.improper_command "code_deps" "visualize dependencies of code equations for code" OuterKeyword.diag
     (Scan.repeat P.term_group
       >> (fn cs => Toplevel.no_timing o Toplevel.unknown_theory
         o Toplevel.keep ((fn thy => code_deps_cmd thy cs) o Toplevel.theory_of)));

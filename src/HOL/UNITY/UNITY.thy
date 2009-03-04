@@ -359,7 +359,7 @@ subsection{*Partial versus Total Transitions*}
 
 constdefs
   totalize_act :: "('a * 'a)set => ('a * 'a)set"
-    "totalize_act act == act \<union> diag (-(Domain act))"
+    "totalize_act act == act \<union> Id_on (-(Domain act))"
 
   totalize :: "'a program => 'a program"
     "totalize F == mk_program (Init F,

@@ -1,5 +1,4 @@
 (*  Title:      Tools/Compute_Oracle/am_sml.ML
-    ID:         $Id$
     Author:     Steven Obua
 
     ToDO: "parameterless rewrite cannot be used in pattern": In a lot of cases it CAN be used, and these cases should be handled properly; 

@@ -12,14 +12,15 @@ uses
   "~~/src/Tools/IsaPlanner/isand.ML"
   "~~/src/Tools/IsaPlanner/rw_tools.ML"
   "~~/src/Tools/IsaPlanner/rw_inst.ML"
-  "~~/src/Provers/project_rule.ML"
+  "~~/src/Tools/intuitionistic.ML"
+  "~~/src/Tools/project_rule.ML"
   "~~/src/Provers/hypsubst.ML"
   "~~/src/Provers/splitter.ML"
   "~~/src/Provers/classical.ML"
   "~~/src/Provers/blast.ML"
   "~~/src/Provers/clasimp.ML"
-  "~~/src/Provers/coherent.ML"
-  "~~/src/Provers/eqsubst.ML"
+  "~~/src/Tools/coherent.ML"
+  "~~/src/Tools/eqsubst.ML"
   "~~/src/Provers/quantifier1.ML"
   ("Tools/simpdata.ML")
   "~~/src/Tools/random_word.ML"
@@ -28,7 +29,8 @@ uses
   ("~~/src/Tools/induct_tacs.ML")
   "~~/src/Tools/value.ML"
   "~~/src/Tools/code/code_name.ML"
-  "~~/src/Tools/code/code_funcgr.ML"
+  "~~/src/Tools/code/code_funcgr.ML" (*formal dependency*)
+  "~~/src/Tools/code/code_wellsorted.ML" 
   "~~/src/Tools/code/code_thingol.ML"
   "~~/src/Tools/code/code_printer.ML"
   "~~/src/Tools/code/code_target.ML"
@@ -37,6 +39,9 @@ uses
   "~~/src/Tools/nbe.ML"
   ("Tools/recfun_codegen.ML")
 begin
+
+setup {* Intuitionistic.method_setup "iprover" *}
+
 
 subsection {* Primitive logic *}
 
@@ -290,7 +295,7 @@ translations
 typed_print_translation {*
 let
   fun tr' c = (c, fn show_sorts => fn T => fn ts =>
-    if T = dummyT orelse not (! show_types) andalso can Term.dest_Type T then raise Match
+    if (not o null) ts orelse T = dummyT orelse not (! show_types) andalso can Term.dest_Type T then raise Match
     else Syntax.const Syntax.constrainC $ Syntax.const c $ Syntax.term_of_typ show_sorts T);
 in map tr' [@{const_syntax HOL.one}, @{const_syntax HOL.zero}] end;
 *} -- {* show types that are presumably too general *}
@@ -1704,11 +1709,6 @@ setup {*
 subsection {* Nitpick theorem store *}
 
 ML {*
-structure Nitpick_Const_Def_Thms = NamedThmsFun
-(
-  val name = "nitpick_const_def"
-  val description = "pseudo-definition of constants as needed by Nitpick"
-)
 structure Nitpick_Const_Simp_Thms = NamedThmsFun
 (
   val name = "nitpick_const_simp"
@@ -1725,8 +1725,7 @@ structure Nitpick_Ind_Intro_Thms = NamedThmsFun
   val description = "introduction rules for (co)inductive predicates as needed by Nitpick"
 )
 *}
-setup {* Nitpick_Const_Def_Thms.setup
-         #> Nitpick_Const_Simp_Thms.setup
+setup {* Nitpick_Const_Simp_Thms.setup
          #> Nitpick_Const_Psimp_Thms.setup
          #> Nitpick_Ind_Intro_Thms.setup *}
 

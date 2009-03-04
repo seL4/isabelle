@@ -68,8 +68,9 @@ lemma nat_case_add_eq_if [simp]:
 apply (subst add_eq_if)
 apply (simp split add: nat.split
             del: nat_numeral_1_eq_1
-            add: numeral_1_eq_Suc_0 [symmetric] Let_def
-                 neg_imp_number_of_eq_0 neg_number_of_pred_iff_0)
+            add: nat_numeral_1_eq_1 [symmetric]
+                 numeral_1_eq_Suc_0 [symmetric]
+                 neg_number_of_pred_iff_0)
 done
 
 lemma nat_rec_number_of [simp]:
@@ -89,7 +90,8 @@ lemma nat_rec_add_eq_if [simp]:
 apply (subst add_eq_if)
 apply (simp split add: nat.split
             del: nat_numeral_1_eq_1
-            add: numeral_1_eq_Suc_0 [symmetric] Let_def neg_imp_number_of_eq_0
+            add: nat_numeral_1_eq_1 [symmetric]
+                 numeral_1_eq_Suc_0 [symmetric]
                  neg_number_of_pred_iff_0)
 done
 

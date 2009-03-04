@@ -247,7 +247,7 @@ lemma of_int_div: "(d::int) ~= 0 ==> d dvd n ==>
     (of_int(n div d)::'a::{field, ring_char_0}) = of_int n / of_int d"
   apply (frule of_int_div_aux [of d n, where ?'a = 'a])
   apply simp
-  apply (simp add: zdvd_iff_zmod_eq_0)
+  apply (simp add: dvd_eq_mod_eq_0)
 done
 
 

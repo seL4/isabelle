@@ -1,5 +1,4 @@
 (*  Author: Jia Meng, Cambridge University Computer Laboratory
-    ID: $Id$
     Copyright 2004 University of Cambridge
 
 Storing/printing FOL clauses and arity clauses.
@@ -27,9 +26,8 @@ sig
   val make_fixed_var : string -> string
   val make_schematic_type_var : string * int -> string
   val make_fixed_type_var : string -> string
-  val dfg_format: bool ref
-  val make_fixed_const : string -> string
-  val make_fixed_type_const : string -> string
+  val make_fixed_const : bool -> string -> string
+  val make_fixed_type_const : bool -> string -> string
   val make_type_class : string -> string
   datatype kind = Axiom | Conjecture
   type axiom_name = string
@@ -50,6 +48,7 @@ sig
   datatype classrelClause = ClassrelClause of
    {axiom_name: axiom_name, subclass: class, superclass: class}
   val make_classrel_clauses: theory -> class list -> class list -> classrelClause list
+  val make_arity_clauses_dfg: bool -> theory -> string list -> class list -> class list * arityClause list
   val make_arity_clauses: theory -> string list -> class list -> class list * arityClause list
   val add_type_sort_preds: typ * int Symtab.table -> int Symtab.table
   val add_classrelClause_preds : classrelClause * int Symtab.table -> int Symtab.table
@@ -95,7 +94,7 @@ val const_prefix = "c_";
 val tconst_prefix = "tc_";
 val class_prefix = "class_";
 
-fun union_all xss = foldl (op union) [] xss;
+fun union_all xss = List.foldl (op union) [] xss;
 
 (*Provide readable names for the more common symbolic functions*)
 val const_trans_table =
@@ -197,28 +196,26 @@ fun make_schematic_type_var (x,i) =
 fun make_fixed_type_var x = tfree_prefix ^ (ascii_of (trim_type_var x));
 
 (*HACK because SPASS truncates identifiers to 63 characters :-(( *)
-val dfg_format = ref false;
-
 (*32-bit hash,so we expect no collisions unless there are around 65536 long identifiers...*)
-fun controlled_length s =
-  if size s > 60 andalso !dfg_format
+fun controlled_length dfg_format s =
+  if size s > 60 andalso dfg_format
   then Word.toString (Polyhash.hashw_string(s,0w0))
   else s;
 
-fun lookup_const c =
+fun lookup_const dfg c =
     case Symtab.lookup const_trans_table c of
         SOME c' => c'
-      | NONE => controlled_length (ascii_of c);
+      | NONE => controlled_length dfg (ascii_of c);
 
-fun lookup_type_const c =
+fun lookup_type_const dfg c =
     case Symtab.lookup type_const_trans_table c of
         SOME c' => c'
-      | NONE => controlled_length (ascii_of c);
+      | NONE => controlled_length dfg (ascii_of c);
 
-fun make_fixed_const "op =" = "equal"   (*MUST BE "equal" because it's built-in to ATPs*)
-  | make_fixed_const c      = const_prefix ^ lookup_const c;
+fun make_fixed_const _ "op =" = "equal"   (*MUST BE "equal" because it's built-in to ATPs*)
+  | make_fixed_const dfg c      = const_prefix ^ lookup_const dfg c;
 
-fun make_fixed_type_const c = tconst_prefix ^ lookup_type_const c;
+fun make_fixed_type_const dfg c = tconst_prefix ^ lookup_type_const dfg c;
 
 fun make_type_class clas = class_prefix ^ ascii_of clas;
 
@@ -251,13 +248,13 @@ fun atomic_type (TFree (a,_)) = AtomF(make_fixed_type_var a)
 
 (*Flatten a type to a fol_type while accumulating sort constraints on the TFrees and
   TVars it contains.*)
-fun type_of (Type (a, Ts)) =
-      let val (folTyps, ts) = types_of Ts
-          val t = make_fixed_type_const a
+fun type_of dfg (Type (a, Ts)) =
+      let val (folTyps, ts) = types_of dfg Ts
+          val t = make_fixed_type_const dfg a
       in (Comp(t,folTyps), ts) end
-  | type_of T = (atomic_type T, [T])
-and types_of Ts =
-      let val (folTyps,ts) = ListPair.unzip (map type_of Ts)
+  | type_of dfg T = (atomic_type T, [T])
+and types_of dfg Ts =
+      let val (folTyps,ts) = ListPair.unzip (map (type_of dfg) Ts)
       in (folTyps, union_all ts) end;
 
 (*Make literals for sorted type variables*)
@@ -277,7 +274,7 @@ fun pred_of_sort (LTVar (s,ty)) = (s,1)
   | pred_of_sort (LTFree (s,ty)) = (s,1)
 
 (*Given a list of sorted type variables, return a list of type literals.*)
-fun add_typs Ts = foldl (op union) [] (map sorts_on_typs Ts);
+fun add_typs Ts = List.foldl (op union) [] (map sorts_on_typs Ts);
 
 (*The correct treatment of TFrees like 'a in lemmas (axiom clauses) is not clear.
   * Ignoring them leads to unsound proofs, since we do nothing to ensure that 'a
@@ -317,12 +314,12 @@ fun pack_sort(_,[])  = []
   | pack_sort(tvar, cls::srt) =  (cls, tvar) :: pack_sort(tvar, srt);
 
 (*Arity of type constructor tcon :: (arg1,...,argN)res*)
-fun make_axiom_arity_clause (tcons, axiom_name, (cls,args)) =
+fun make_axiom_arity_clause dfg (tcons, axiom_name, (cls,args)) =
    let val tvars = gen_TVars (length args)
        val tvars_srts = ListPair.zip (tvars,args)
    in
       ArityClause {axiom_name = axiom_name, 
-                   conclLit = TConsLit (cls, make_fixed_type_const tcons, tvars),
+                   conclLit = TConsLit (cls, make_fixed_type_const dfg tcons, tvars),
                    premLits = map TVarLit (union_all(map pack_sort tvars_srts))}
    end;
 
@@ -340,8 +337,8 @@ fun class_pairs thy [] supers = []
       let val class_less = Sorts.class_less(Sign.classes_of thy)
           fun add_super sub (super,pairs) =
                 if class_less (sub,super) then (sub,super)::pairs else pairs
-          fun add_supers (sub,pairs) = foldl (add_super sub) pairs supers
-      in  foldl add_supers [] subs  end;
+          fun add_supers (sub,pairs) = List.foldl (add_super sub) pairs supers
+      in  List.foldl add_supers [] subs  end;
 
 fun make_classrelClause (sub,super) =
   ClassrelClause {axiom_name = clrelclause_prefix ^ ascii_of sub ^ "_" ^ ascii_of super,
@@ -354,20 +351,20 @@ fun make_classrel_clauses thy subs supers =
 
 (** Isabelle arities **)
 
-fun arity_clause _ _ (tcons, []) = []
-  | arity_clause seen n (tcons, ("HOL.type",_)::ars) =  (*ignore*)
-      arity_clause seen n (tcons,ars)
-  | arity_clause seen n (tcons, (ar as (class,_)) :: ars) =
+fun arity_clause dfg _ _ (tcons, []) = []
+  | arity_clause dfg seen n (tcons, ("HOL.type",_)::ars) =  (*ignore*)
+      arity_clause dfg seen n (tcons,ars)
+  | arity_clause dfg seen n (tcons, (ar as (class,_)) :: ars) =
       if class mem_string seen then (*multiple arities for the same tycon, class pair*)
-          make_axiom_arity_clause (tcons, lookup_type_const tcons ^ "_" ^ class ^ "_" ^ Int.toString n, ar) ::
-          arity_clause seen (n+1) (tcons,ars)
+          make_axiom_arity_clause dfg (tcons, lookup_type_const dfg tcons ^ "_" ^ class ^ "_" ^ Int.toString n, ar) ::
+          arity_clause dfg seen (n+1) (tcons,ars)
       else
-          make_axiom_arity_clause (tcons, lookup_type_const tcons ^ "_" ^ class, ar) ::
-          arity_clause (class::seen) n (tcons,ars)
+          make_axiom_arity_clause dfg (tcons, lookup_type_const dfg tcons ^ "_" ^ class, ar) ::
+          arity_clause dfg (class::seen) n (tcons,ars)
 
-fun multi_arity_clause [] = []
-  | multi_arity_clause ((tcons,ars) :: tc_arlists) =
-      arity_clause [] 1 (tcons, ars)  @  multi_arity_clause tc_arlists
+fun multi_arity_clause dfg [] = []
+  | multi_arity_clause dfg ((tcons,ars) :: tc_arlists) =
+      arity_clause dfg [] 1 (tcons, ars)  @  multi_arity_clause dfg tc_arlists
 
 (*Generate all pairs (tycon,class,sorts) such that tycon belongs to class in theory thy
   provided its arguments have the corresponding sorts.*)
@@ -377,7 +374,7 @@ fun type_class_pairs thy tycons classes =
       fun add_class tycon (class,pairs) =
             (class, domain_sorts(tycon,class))::pairs
             handle Sorts.CLASS_ERROR _ => pairs
-      fun try_classes tycon = (tycon, foldl (add_class tycon) [] classes)
+      fun try_classes tycon = (tycon, List.foldl (add_class tycon) [] classes)
   in  map try_classes tycons  end;
 
 (*Proving one (tycon, class) membership may require proving others, so iterate.*)
@@ -390,17 +387,17 @@ fun iter_type_class_pairs thy tycons [] = ([], [])
           val (classes', cpairs') = iter_type_class_pairs thy tycons newclasses
       in  (classes' union classes, cpairs' union cpairs)  end;
 
-fun make_arity_clauses thy tycons classes =
+fun make_arity_clauses_dfg dfg thy tycons classes =
   let val (classes', cpairs) = iter_type_class_pairs thy tycons classes
-  in  (classes', multi_arity_clause cpairs)  end;
-
+  in  (classes', multi_arity_clause dfg cpairs)  end;
+val make_arity_clauses = make_arity_clauses_dfg false;
 
 (**** Find occurrences of predicates in clauses ****)
 
 (*FIXME: multiple-arity checking doesn't work, as update_new is the wrong
   function (it flags repeated declarations of a function, even with the same arity)*)
 
-fun update_many (tab, keypairs) = foldl (uncurry Symtab.update) tab keypairs;
+fun update_many (tab, keypairs) = List.foldl (uncurry Symtab.update) tab keypairs;
 
 fun add_type_sort_preds (T, preds) =
       update_many (preds, map pred_of_sort (sorts_on_typs T));
@@ -414,14 +411,14 @@ fun class_of_arityLit (TConsLit (tclass, _, _)) = tclass
 fun add_arityClause_preds (ArityClause {conclLit,premLits,...}, preds) =
   let val classes = map (make_type_class o class_of_arityLit) (conclLit::premLits)
       fun upd (class,preds) = Symtab.update (class,1) preds
-  in  foldl upd preds classes  end;
+  in  List.foldl upd preds classes  end;
 
 (*** Find occurrences of functions in clauses ***)
 
 fun add_foltype_funcs (AtomV _, funcs) = funcs
   | add_foltype_funcs (AtomF a, funcs) = Symtab.update (a,0) funcs
   | add_foltype_funcs (Comp(a,tys), funcs) =
-      foldl add_foltype_funcs (Symtab.update (a, length tys) funcs) tys;
+      List.foldl add_foltype_funcs (Symtab.update (a, length tys) funcs) tys;
 
 (*TFrees are recorded as constants*)
 fun add_type_sort_funcs (TVar _, funcs) = funcs

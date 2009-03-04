@@ -47,7 +47,7 @@ lemma msgrel_refl: "X \<sim> X"
 
 theorem equiv_msgrel: "equiv UNIV msgrel"
 proof -
-  have "reflexive msgrel" by (simp add: refl_def msgrel_refl)
+  have "refl msgrel" by (simp add: refl_on_def msgrel_refl)
   moreover have "sym msgrel" by (simp add: sym_def, blast intro: msgrel.SYM)
   moreover have "trans msgrel" by (simp add: trans_def, blast intro: msgrel.TRANS)
   ultimately show ?thesis by (simp add: equiv_def)

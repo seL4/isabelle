@@ -6,10 +6,7 @@ sig
   val tvar_classes_of_terms : term list -> string list
   val tfree_classes_of_terms : term list -> string list
   val type_consts_of_terms : theory -> term list -> string list
-  val write_problem_files : (theory -> bool -> Thm.thm list -> string ->
-  (thm * (ResHolClause.axiom_name * ResHolClause.clause_id)) list * ResClause.classrelClause list *
-    ResClause.arityClause list -> string list -> ResHolClause.axiom_name list)
-    -> int -> bool
+  val write_problem_files : bool -> int -> bool
     -> (int -> Path.T) -> Proof.context * thm list * thm
     -> string list * ResHolClause.axiom_name Vector.vector list
 end;
@@ -118,9 +115,9 @@ fun add_term_consts_typs_rm thy (Const(c, typ), tab) =
 fun add_standard_const (s,tab) = Symtab.update (s,[]) tab;
 
 val null_const_tab : const_typ list list Symtab.table = 
-    foldl add_standard_const Symtab.empty standard_consts;
+    List.foldl add_standard_const Symtab.empty standard_consts;
 
-fun get_goal_consts_typs thy = foldl (add_term_consts_typs_rm thy) null_const_tab;
+fun get_goal_consts_typs thy = List.foldl (add_term_consts_typs_rm thy) null_const_tab;
 
 (*Inserts a dummy "constant" referring to the theory name, so that relevance
   takes the given theory into account.*)
@@ -193,7 +190,7 @@ fun clause_weight ctab gctyps consts_typs =
     end;
     
 (*Multiplies out to a list of pairs: 'a * 'b list -> ('a * 'b) list -> ('a * 'b) list*)
-fun add_expand_pairs (x,ys) xys = foldl (fn (y,acc) => (x,y)::acc) xys ys;
+fun add_expand_pairs (x,ys) xys = List.foldl (fn (y,acc) => (x,y)::acc) xys ys;
 
 fun consts_typs_of_term thy t = 
   let val tab = add_term_consts_typs_rm thy (t, null_const_tab)
@@ -253,7 +250,7 @@ fun relevant_clauses max_new thy ctab p rel_consts =
 	| relevant (newpairs,rejects) [] =
 	    let val (newrels,more_rejects) = take_best max_new newpairs
 		val new_consts = List.concat (map #2 newrels)
-		val rel_consts' = foldl add_const_typ_table rel_consts new_consts
+		val rel_consts' = List.foldl add_const_typ_table rel_consts new_consts
 		val newp = p + (1.0-p) / convergence
 	    in
               Output.debug (fn () => ("relevant this iteration: " ^ Int.toString (length newrels)));
@@ -379,7 +376,7 @@ fun multi_name a (th, (n,pairs)) =
 
 fun add_single_names ((a, []), pairs) = pairs
   | add_single_names ((a, [th]), pairs) = (a,th)::pairs
-  | add_single_names ((a, ths), pairs) = #2 (foldl (multi_name a) (1,pairs) ths);
+  | add_single_names ((a, ths), pairs) = #2 (List.foldl (multi_name a) (1,pairs) ths);
 
 (*Ignore blacklisted basenames*)
 fun add_multi_names ((a, ths), pairs) =
@@ -396,7 +393,7 @@ fun name_thm_pairs ctxt =
   in
       app (fn th => ignore (Polyhash.peekInsert ht (th,()))) (ResBlacklist.get ctxt);
       filter (not o blacklisted o #2)
-        (foldl add_single_names (foldl add_multi_names [] mults) singles)
+        (List.foldl add_single_names (List.foldl add_multi_names [] mults) singles)
   end;
 
 fun check_named ("",th) = (warning ("No name for theorem " ^ Display.string_of_thm th); false)
@@ -434,18 +431,18 @@ fun get_clasimp_atp_lemmas ctxt user_thms =
 (* Type Classes Present in the Axiom or Conjecture Clauses     *)
 (***************************************************************)
 
-fun add_classes (sorts, cset) = foldl setinsert cset (List.concat sorts);
+fun add_classes (sorts, cset) = List.foldl setinsert cset (List.concat sorts);
 
 (*Remove this trivial type class*)
 fun delete_type cset = Symtab.delete_safe "HOL.type" cset;
 
 fun tvar_classes_of_terms ts =
   let val sorts_list = map (map #2 o OldTerm.term_tvars) ts
-  in  Symtab.keys (delete_type (foldl add_classes Symtab.empty sorts_list))  end;
+  in  Symtab.keys (delete_type (List.foldl add_classes Symtab.empty sorts_list))  end;
 
 fun tfree_classes_of_terms ts =
   let val sorts_list = map (map #2 o OldTerm.term_tfrees) ts
-  in  Symtab.keys (delete_type (foldl add_classes Symtab.empty sorts_list))  end;
+  in  Symtab.keys (delete_type (List.foldl add_classes Symtab.empty sorts_list))  end;
 
 (*fold type constructors*)
 fun fold_type_consts f (Type (a, Ts)) x = fold (fold_type_consts f) Ts (f (a,x))
@@ -524,11 +521,10 @@ fun remove_unwanted_clauses cls = filter (not o unwanted o prop_of o fst) cls;
 (* TODO: problem file for *one* subgoal would be sufficient *)
 (*Write out problem files for each subgoal.
   Argument probfile generates filenames from subgoal-number
-  Argument writer is either a tptp_write_file or dfg_write_file from ResHolClause
   Arguments max_new and theory_const are booleans controlling relevance_filter
     (necessary for different provers)
-  *)
-fun write_problem_files writer max_new theory_const probfile (ctxt, chain_ths, th) =
+*)
+fun write_problem_files dfg max_new theory_const probfile (ctxt, chain_ths, th) =
   let val goals = Thm.prems_of th
       val thy = ProofContext.theory_of ctxt
       fun get_neg_subgoals [] _ = []
@@ -548,6 +544,7 @@ fun write_problem_files writer max_new theory_const probfile (ctxt, chain_ths, t
       val white_cls = ResAxioms.cnf_rules_pairs thy white_thms
       (*clauses relevant to goal gl*)
       val axcls_list = map (fn ngcls => white_cls @ relevance_filter max_new theory_const thy included_cls (map prop_of ngcls)) goal_cls
+      val writer = if dfg then ResHolClause.dfg_write_file else ResHolClause.tptp_write_file
       fun write_all [] [] _ = []
         | write_all (ccls::ccls_list) (axcls::axcls_list) k =
             let val fname = File.platform_path (probfile k)
@@ -561,7 +558,7 @@ fun write_problem_files writer max_new theory_const probfile (ctxt, chain_ths, t
                 and supers = tvar_classes_of_terms axtms
                 and tycons = type_consts_of_terms thy (ccltms@axtms)
                 (*TFrees in conjecture clauses; TVars in axiom clauses*)
-                val (supers',arity_clauses) = ResClause.make_arity_clauses thy tycons supers
+                val (supers',arity_clauses) = ResClause.make_arity_clauses_dfg dfg thy tycons supers
                 val classrel_clauses = ResClause.make_classrel_clauses thy subs supers'
                 val clnames = writer thy isFO ccls fname (axcls,classrel_clauses,arity_clauses) []
                 val thm_names = Vector.fromList clnames

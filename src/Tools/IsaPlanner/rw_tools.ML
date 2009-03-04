@@ -1,5 +1,4 @@
 (*  Title:      Tools/IsaPlanner/rw_tools.ML
-    ID:		$Id$
     Author:     Lucas Dixon, University of Edinburgh
 
 Term related tools used for rewriting.

@@ -360,8 +360,8 @@ text {*
   @{verbatim "-W"} option makes Isabelle enter a special process
   wrapper for interaction via an external program; the protocol is a
   stripped-down version of Proof General the interaction mode, see
-  also @{"file" "~~/src/Pure/Tools/isabelle_process.ML"} and @{"file"
-  "~~/src/Pure/Tools/isabelle_process.scala"}.
+  also @{"file" "~~/src/Pure/System/isabelle_process.ML"} and @{"file"
+  "~~/src/Pure/System/isabelle_process.scala"}.
 
   \medskip The @{verbatim "-S"} option makes the Isabelle process more
   secure by disabling some critical operations, notably runtime

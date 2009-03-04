@@ -26,7 +26,7 @@ sig
   val logic: string
   val args: string
   val cargs: string
-  val any_: string
+  val any: string
   val sprop: string
   val typ_to_nonterm: typ -> string
   datatype xsymb =
@@ -108,8 +108,8 @@ val typeT = Type ("type", []);
 val sprop = "#prop";
 val spropT = Type (sprop, []);
 
-val any_ = "any";
-val anyT = Type (any_, []);
+val any = "any";
+val anyT = Type (any, []);
 
 
 
@@ -181,7 +181,7 @@ fun typ_to_nt _ (Type (c, _)) = c
   | typ_to_nt default _ = default;
 
 (*get nonterminal for rhs*)
-val typ_to_nonterm = typ_to_nt any_;
+val typ_to_nonterm = typ_to_nt any;
 
 (*get nonterminal for lhs*)
 val typ_to_nonterm1 = typ_to_nt logic;

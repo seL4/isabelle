@@ -32,7 +32,6 @@ sig
   val skip_proof: Toplevel.transition -> Toplevel.transition
   val init_theory: string * string list * (string * bool) list ->
     Toplevel.transition -> Toplevel.transition
-  val welcome: Toplevel.transition -> Toplevel.transition
   val exit: Toplevel.transition -> Toplevel.transition
   val quit: Toplevel.transition -> Toplevel.transition
   val pr: string list * (int option * int option) -> Toplevel.transition -> Toplevel.transition
@@ -62,10 +61,6 @@ sig
   val class_deps: Toplevel.transition -> Toplevel.transition
   val thy_deps: Toplevel.transition -> Toplevel.transition
   val thm_deps: (Facts.ref * Attrib.src list) list -> Toplevel.transition -> Toplevel.transition
-  val find_theorems: (int option * bool) * (bool * string FindTheorems.criterion) list
-    -> Toplevel.transition -> Toplevel.transition
-  val find_consts: (bool * FindConsts.criterion) list ->
-                   Toplevel.transition -> Toplevel.transition
   val unused_thms: (string list * string list option) option ->
     Toplevel.transition -> Toplevel.transition
   val print_binds: Toplevel.transition -> Toplevel.transition
@@ -166,7 +161,7 @@ fun oracle name (oracle_txt, pos) =
 (* axioms *)
 
 fun add_axms f args thy =
-  f (map (fn ((b, ax), srcs) => ((Binding.base_name b, ax), map (Attrib.attribute thy) srcs)) args) thy;
+  f (map (fn ((b, ax), srcs) => ((Binding.name_of b, ax), map (Attrib.attribute thy) srcs)) args) thy;
 
 val add_axioms = add_axms (snd oo PureThy.add_axioms_cmd);
 
@@ -268,8 +263,6 @@ fun init_theory (name, imports, uses) =
     (fn thy =>
       if ThyInfo.check_known_thy (Context.theory_name thy)
       then ThyInfo.end_theory thy else ());
-
-val welcome = Toplevel.imperative (writeln o Session.welcome);
 
 val exit = Toplevel.keep (fn state =>
  (Context.set_thread_data (try Toplevel.generic_theory_of state);
@@ -403,19 +396,8 @@ val class_deps = Toplevel.unknown_theory o Toplevel.keep (fn state =>
       |> sort (int_ord o pairself #1) |> map #2;
   in Present.display_graph gr end);
 
-
-(* retrieve theorems *)
-
 fun thm_deps args = Toplevel.unknown_theory o Toplevel.keep (fn state =>
   ThmDeps.thm_deps (Proof.get_thmss (Toplevel.enter_proof_body state) args));
-
-fun find_theorems ((opt_lim, rem_dups), spec) =
-  Toplevel.unknown_theory o Toplevel.keep (fn state =>
-  let
-    val proof_state = Toplevel.enter_proof_body state;
-    val ctxt = Proof.context_of proof_state;
-    val opt_goal = try Proof.get_goal proof_state |> Option.map (#2 o #2);
-  in FindTheorems.print_theorems ctxt opt_goal opt_lim rem_dups spec end);
 
 
 (* find unused theorems *)
@@ -434,12 +416,6 @@ fun unused_thms opt_range = Toplevel.keep (fn state =>
     |> map pretty_thm |> Pretty.chunks |> Pretty.writeln
   end);
 
-(* retrieve constants *)
-
-fun find_consts spec =
-  Toplevel.unknown_theory o Toplevel.keep (fn state =>
-  let val ctxt = (Proof.context_of o Toplevel.enter_proof_body) state
-  in FindConsts.find_consts ctxt spec end);
 
 (* print proof context contents *)
 

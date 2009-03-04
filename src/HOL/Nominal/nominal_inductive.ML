@@ -7,8 +7,8 @@ for inductive predicates involving nominal datatypes.
 
 signature NOMINAL_INDUCTIVE =
 sig
-  val prove_strong_ind: string -> (string * string list) list -> theory -> Proof.state
-  val prove_eqvt: string -> string list -> theory -> theory
+  val prove_strong_ind: string -> (string * string list) list -> local_theory -> Proof.state
+  val prove_eqvt: string -> string list -> local_theory -> local_theory
 end
 
 structure NominalInductive : NOMINAL_INDUCTIVE =
@@ -27,6 +27,8 @@ val atomize_conv =
 val atomize_intr = Conv.fconv_rule (Conv.prems_conv ~1 atomize_conv);
 fun atomize_induct ctxt = Conv.fconv_rule (Conv.prems_conv ~1
   (Conv.params_conv ~1 (K (Conv.prems_conv ~1 atomize_conv)) ctxt));
+
+fun preds_of ps t = gen_inter (op = o apfst dest_Free) (ps, Term.add_frees t []);
 
 val fresh_prod = thm "fresh_prod";
 
@@ -142,9 +144,9 @@ fun first_order_matchs pats objs = Thm.first_order_match
 fun first_order_mrs ths th = ths MRS
   Thm.instantiate (first_order_matchs (cprems_of th) (map cprop_of ths)) th;
 
-fun prove_strong_ind s avoids thy =
+fun prove_strong_ind s avoids ctxt =
   let
-    val ctxt = ProofContext.init thy;
+    val thy = ProofContext.theory_of ctxt;
     val ({names, ...}, {raw_induct, intrs, elims, ...}) =
       InductivePackage.the_inductive ctxt (Sign.intern_const thy s);
     val ind_params = InductivePackage.params_of raw_induct;
@@ -158,8 +160,7 @@ fun prove_strong_ind s avoids thy =
           commas_quote xs));
     val induct_cases = map fst (fst (RuleCases.get (the
       (Induct.lookup_inductP ctxt (hd names)))));
-    val raw_induct' = Logic.unvarify (prop_of raw_induct);
-    val elims' = map (Logic.unvarify o prop_of) elims;
+    val ([raw_induct'], ctxt') = Variable.import_terms false [prop_of raw_induct] ctxt;
     val concls = raw_induct' |> Logic.strip_imp_concl |> HOLogic.dest_Trueprop |>
       HOLogic.dest_conj |> map (HOLogic.dest_imp ##> strip_comb);
     val ps = map (fst o snd) concls;
@@ -199,8 +200,8 @@ fun prove_strong_ind s avoids thy =
     val ind_sort = if null atomTs then HOLogic.typeS
       else Sign.certify_sort thy (map (fn T => Sign.intern_class thy
         ("fs_" ^ Sign.base_name (fst (dest_Type T)))) atomTs);
-    val fs_ctxt_tyname = Name.variant (map fst (OldTerm.term_tfrees raw_induct')) "'n";
-    val fs_ctxt_name = Name.variant (OldTerm.add_term_names (raw_induct', [])) "z";
+    val ([fs_ctxt_tyname], _) = Name.variants ["'n"] (Variable.names_of ctxt');
+    val ([fs_ctxt_name], ctxt'') = Variable.variant_fixes ["z"] ctxt';
     val fsT = TFree (fs_ctxt_tyname, ind_sort);
 
     val inductive_forall_def' = Drule.instantiate'
@@ -237,7 +238,7 @@ fun prove_strong_ind s avoids thy =
         val prem = Logic.list_implies
           (map mk_fresh bvars @ mk_distinct bvars @
            map (fn prem =>
-             if null (OldTerm.term_frees prem inter ps) then prem
+             if null (preds_of ps prem) then prem
              else lift_prem prem) prems,
            HOLogic.mk_Trueprop (lift_pred p ts));
         val vs = map (Var o apfst (rpair 0)) (Term.rename_wrt_term prem params')
@@ -263,7 +264,7 @@ fun prove_strong_ind s avoids thy =
     val vc_compat = map (fn (params, bvars, prems, (p, ts)) =>
       map (fn q => list_all (params, incr_boundvars ~1 (Logic.list_implies
           (List.mapPartial (fn prem =>
-             if null (ps inter OldTerm.term_frees prem) then SOME prem
+             if null (preds_of ps prem) then SOME prem
              else map_term (split_conj (K o I) names) prem prem) prems, q))))
         (mk_distinct bvars @
          maps (fn (t, T) => map (fn (u, U) => HOLogic.mk_Trueprop
@@ -309,8 +310,8 @@ fun prove_strong_ind s avoids thy =
           [ex] ctxt
       in (freshs1 @ [term_of cx], freshs2 @ ths, ctxt') end;
 
-    fun mk_ind_proof thy thss =
-      Goal.prove_global thy [] prems' concl' (fn {prems = ihyps, context = ctxt} =>
+    fun mk_ind_proof ctxt' thss =
+      Goal.prove ctxt' [] prems' concl' (fn {prems = ihyps, context = ctxt} =>
         let val th = Goal.prove ctxt [] [] concl (fn {context, ...} =>
           rtac raw_induct 1 THEN
           EVERY (maps (fn ((((_, bvars, oprems, _), vc_compat_ths), ihyp), (vs, ihypt)) =>
@@ -352,7 +353,7 @@ fun prove_strong_ind s avoids thy =
                          (rev pis' @ pis) th));
                  val (gprems1, gprems2) = split_list
                    (map (fn (th, t) =>
-                      if null (OldTerm.term_frees t inter ps) then (SOME th, mk_pi th)
+                      if null (preds_of ps t) then (SOME th, mk_pi th)
                       else
                         (map_thm ctxt (split_conj (K o I) names)
                            (etac conjunct1 1) monos NONE th,
@@ -403,42 +404,42 @@ fun prove_strong_ind s avoids thy =
           REPEAT (REPEAT (resolve_tac [conjI, impI] 1) THEN
             etac impE 1 THEN atac 1 THEN REPEAT (etac @{thm allE_Nil} 1) THEN
             asm_full_simp_tac (simpset_of thy) 1)
-        end);
+        end) |> singleton (ProofContext.export ctxt' ctxt);
 
     (** strong case analysis rule **)
 
     val cases_prems = map (fn ((name, avoids), rule) =>
       let
-        val prem :: prems = Logic.strip_imp_prems rule;
-        val concl = Logic.strip_imp_concl rule;
-        val used = Term.add_free_names rule [];
+        val ([rule'], ctxt') = Variable.import_terms false [prop_of rule] ctxt;
+        val prem :: prems = Logic.strip_imp_prems rule';
+        val concl = Logic.strip_imp_concl rule'
       in
         (prem,
          List.drop (snd (strip_comb (HOLogic.dest_Trueprop prem)), length ind_params),
          concl,
-         fst (fold_map (fn (prem, (_, avoid)) => fn used =>
+         fold_map (fn (prem, (_, avoid)) => fn ctxt =>
            let
              val prems = Logic.strip_assums_hyp prem;
              val params = Logic.strip_params prem;
              val bnds = fold (add_binders thy 0) prems [] @ mk_avoids params avoid;
-             fun mk_subst (p as (s, T)) (i, j, used, ps, qs, is, ts) =
+             fun mk_subst (p as (s, T)) (i, j, ctxt, ps, qs, is, ts) =
                if member (op = o apsnd fst) bnds (Bound i) then
                  let
-                   val s' = Name.variant used s;
+                   val ([s'], ctxt') = Variable.variant_fixes [s] ctxt;
                    val t = Free (s', T)
-                 in (i + 1, j, s' :: used, ps, (t, T) :: qs, i :: is, t :: ts) end
-               else (i + 1, j + 1, used, p :: ps, qs, is, Bound j :: ts);
-             val (_, _, used', ps, qs, is, ts) = fold_rev mk_subst params
-               (0, 0, used, [], [], [], [])
+                 in (i + 1, j, ctxt', ps, (t, T) :: qs, i :: is, t :: ts) end
+               else (i + 1, j + 1, ctxt, p :: ps, qs, is, Bound j :: ts);
+             val (_, _, ctxt', ps, qs, is, ts) = fold_rev mk_subst params
+               (0, 0, ctxt, [], [], [], [])
            in
-             ((ps, qs, is, map (curry subst_bounds (rev ts)) prems), used')
-           end) (prems ~~ avoids) used))
+             ((ps, qs, is, map (curry subst_bounds (rev ts)) prems), ctxt')
+           end) (prems ~~ avoids) ctxt')
       end)
         (InductivePackage.partition_rules' raw_induct (intrs ~~ avoids') ~~
-         elims');
+         elims);
 
     val cases_prems' =
-      map (fn (prem, args, concl, prems) =>
+      map (fn (prem, args, concl, (prems, _)) =>
         let
           fun mk_prem (ps, [], _, prems) =
                 list_all (ps, Logic.list_implies (prems, concl))
@@ -462,9 +463,9 @@ fun prove_strong_ind s avoids thy =
     val simp_fresh_atm = map
       (Simplifier.simplify (HOL_basic_ss addsimps fresh_atm));
 
-    fun mk_cases_proof thy ((((name, thss), elim), (prem, args, concl, prems)),
+    fun mk_cases_proof ((((name, thss), elim), (prem, args, concl, (prems, ctxt'))),
         prems') =
-      (name, Goal.prove_global thy [] (prem :: prems') concl
+      (name, Goal.prove ctxt' [] (prem :: prems') concl
         (fn {prems = hyp :: hyps, context = ctxt1} =>
         EVERY (rtac (hyp RS elim) 1 ::
           map (fn (((_, vc_compat_ths), case_hyp), (_, qs, is, _)) =>
@@ -537,52 +538,54 @@ fun prove_strong_ind s avoids thy =
                          end) ctxt4 1)
                   val final = ProofContext.export ctxt3 ctxt2 [th]
                 in resolve_tac final 1 end) ctxt1 1)
-                  (thss ~~ hyps ~~ prems))))
+                  (thss ~~ hyps ~~ prems))) |>
+                  singleton (ProofContext.export ctxt' ctxt))
 
   in
-    thy |>
-    ProofContext.init |>
-    Proof.theorem_i NONE (fn thss => ProofContext.theory (fn thy =>
+    ctxt'' |>
+    Proof.theorem_i NONE (fn thss => fn ctxt =>
       let
-        val ctxt = ProofContext.init thy;
         val rec_name = space_implode "_" (map Sign.base_name names);
+        val rec_qualified = Binding.qualify false rec_name;
         val ind_case_names = RuleCases.case_names induct_cases;
         val induct_cases' = InductivePackage.partition_rules' raw_induct
           (intrs ~~ induct_cases); 
         val thss' = map (map atomize_intr) thss;
         val thsss = InductivePackage.partition_rules' raw_induct (intrs ~~ thss');
         val strong_raw_induct =
-          mk_ind_proof thy thss' |> InductivePackage.rulify;
-        val strong_cases = map (mk_cases_proof thy ##> InductivePackage.rulify)
+          mk_ind_proof ctxt thss' |> InductivePackage.rulify;
+        val strong_cases = map (mk_cases_proof ##> InductivePackage.rulify)
           (thsss ~~ elims ~~ cases_prems ~~ cases_prems');
         val strong_induct =
           if length names > 1 then
             (strong_raw_induct, [ind_case_names, RuleCases.consumes 0])
           else (strong_raw_induct RSN (2, rev_mp),
             [ind_case_names, RuleCases.consumes 1]);
-        val ([strong_induct'], thy') = thy |>
-          Sign.add_path rec_name |>
-          PureThy.add_thms [((Binding.name "strong_induct", #1 strong_induct), #2 strong_induct)];
+        val ((_, [strong_induct']), ctxt') = LocalTheory.note Thm.theoremK
+          ((rec_qualified (Binding.name "strong_induct"),
+            map (Attrib.internal o K) (#2 strong_induct)), [#1 strong_induct])
+          ctxt;
         val strong_inducts =
           ProjectRule.projects ctxt (1 upto length names) strong_induct'
       in
-        thy' |>
-        PureThy.add_thmss [((Binding.name "strong_inducts", strong_inducts),
-          [ind_case_names, RuleCases.consumes 1])] |> snd |>
-        Sign.parent_path |>
-        fold (fn ((name, elim), (_, cases)) =>
-          Sign.add_path (Sign.base_name name) #>
-          PureThy.add_thms [((Binding.name "strong_cases", elim),
-            [RuleCases.case_names (map snd cases),
-             RuleCases.consumes 1])] #> snd #>
-          Sign.parent_path) (strong_cases ~~ induct_cases')
-      end))
+        ctxt' |>
+        LocalTheory.note Thm.theoremK
+          ((rec_qualified (Binding.name "strong_inducts"),
+            [Attrib.internal (K ind_case_names),
+             Attrib.internal (K (RuleCases.consumes 1))]),
+           strong_inducts) |> snd |>
+        LocalTheory.notes Thm.theoremK (map (fn ((name, elim), (_, cases)) =>
+            ((Binding.name (NameSpace.qualified (Sign.base_name name) "strong_cases"),
+              [Attrib.internal (K (RuleCases.case_names (map snd cases))),
+               Attrib.internal (K (RuleCases.consumes 1))]), [([elim], [])]))
+          (strong_cases ~~ induct_cases')) |> snd
+      end)
       (map (map (rulify_term thy #> rpair [])) vc_compat)
   end;
 
-fun prove_eqvt s xatoms thy =
+fun prove_eqvt s xatoms ctxt =
   let
-    val ctxt = ProofContext.init thy;
+    val thy = ProofContext.theory_of ctxt;
     val ({names, ...}, {raw_induct, intrs, elims, ...}) =
       InductivePackage.the_inductive ctxt (Sign.intern_const thy s);
     val raw_induct = atomize_induct ctxt raw_induct;
@@ -594,6 +597,7 @@ fun prove_eqvt s xatoms thy =
            (s, ths ~~ InductivePackage.infer_intro_vars th k ths))
          (InductivePackage.partition_rules raw_induct intrs ~~
           InductivePackage.arities_of raw_induct ~~ elims));
+    val k = length (InductivePackage.params_of raw_induct);
     val atoms' = NominalAtoms.atoms_of thy;
     val atoms =
       if null xatoms then atoms' else
@@ -612,19 +616,21 @@ fun prove_eqvt s xatoms thy =
       (NominalThmDecls.get_eqvt_thms ctxt @ perm_pi_simp) addsimprocs
       [mk_perm_bool_simproc names,
        NominalPermeq.perm_simproc_app, NominalPermeq.perm_simproc_fun];
-    val t = Logic.unvarify (concl_of raw_induct);
-    val pi = Name.variant (OldTerm.add_term_names (t, [])) "pi";
+    val (([t], [pi]), ctxt') = ctxt |>
+      Variable.import_terms false [concl_of raw_induct] ||>>
+      Variable.variant_fixes ["pi"];
     val ps = map (fst o HOLogic.dest_imp)
       (HOLogic.dest_conj (HOLogic.dest_Trueprop t));
-    fun eqvt_tac pi (intr, vs) st =
+    fun eqvt_tac ctxt'' pi (intr, vs) st =
       let
-        fun eqvt_err s = error
-          ("Could not prove equivariance for introduction rule\n" ^
-           Syntax.string_of_term_global (theory_of_thm intr)
-             (Logic.unvarify (prop_of intr)) ^ "\n" ^ s);
+        fun eqvt_err s =
+          let val ([t], ctxt''') = Variable.import_terms true [prop_of intr] ctxt
+          in error ("Could not prove equivariance for introduction rule\n" ^
+            Syntax.string_of_term ctxt''' t ^ "\n" ^ s)
+          end;
         val res = SUBPROOF (fn {prems, params, ...} =>
           let
-            val prems' = map (fn th => the_default th (map_thm ctxt
+            val prems' = map (fn th => the_default th (map_thm ctxt'
               (split_conj (K I) names) (etac conjunct2 1) monos NONE th)) prems;
             val prems'' = map (fn th => Simplifier.simplify eqvt_ss
               (mk_perm_bool (cterm_of thy pi) th)) prems';
@@ -632,29 +638,36 @@ fun prove_eqvt s xatoms thy =
                map (cterm_of thy o NominalPackage.mk_perm [] pi o term_of) params)
                intr
           in (rtac intr' THEN_ALL_NEW (TRY o resolve_tac prems'')) 1
-          end) ctxt 1 st
+          end) ctxt' 1 st
       in
         case (Seq.pull res handle THM (s, _, _) => eqvt_err s) of
           NONE => eqvt_err ("Rule does not match goal\n" ^
-            Syntax.string_of_term_global (theory_of_thm st) (hd (prems_of st)))
+            Syntax.string_of_term ctxt'' (hd (prems_of st)))
         | SOME (th, _) => Seq.single th
       end;
     val thss = map (fn atom =>
       let val pi' = Free (pi, NominalAtoms.mk_permT (Type (atom, [])))
       in map (fn th => zero_var_indexes (th RS mp))
-        (DatatypeAux.split_conj_thm (Goal.prove_global thy [] []
+        (DatatypeAux.split_conj_thm (Goal.prove ctxt' [] []
           (HOLogic.mk_Trueprop (foldr1 HOLogic.mk_conj (map (fn p =>
-            HOLogic.mk_imp (p, list_comb
-             (apsnd (map (NominalPackage.mk_perm [] pi')) (strip_comb p)))) ps)))
-          (fn _ => EVERY (rtac raw_induct 1 :: map (fn intr_vs =>
+            let
+              val (h, ts) = strip_comb p;
+              val (ts1, ts2) = chop k ts
+            in
+              HOLogic.mk_imp (p, list_comb (h, ts1 @
+                map (NominalPackage.mk_perm [] pi') ts2))
+            end) ps)))
+          (fn {context, ...} => EVERY (rtac raw_induct 1 :: map (fn intr_vs =>
               full_simp_tac eqvt_ss 1 THEN
-              eqvt_tac pi' intr_vs) intrs'))))
+              eqvt_tac context pi' intr_vs) intrs')) |>
+          singleton (ProofContext.export ctxt' ctxt)))
       end) atoms
   in
-    fold (fn (name, ths) =>
-      Sign.add_path (Sign.base_name name) #>
-      PureThy.add_thmss [((Binding.name "eqvt", ths), [NominalThmDecls.eqvt_add])] #> snd #>
-      Sign.parent_path) (names ~~ transp thss) thy
+    ctxt |>
+    LocalTheory.notes Thm.theoremK (map (fn (name, ths) =>
+        ((Binding.name (NameSpace.qualified (Sign.base_name name) "eqvt"),
+          [Attrib.internal (K NominalThmDecls.eqvt_add)]), [(ths, [])]))
+      (names ~~ transp thss)) |> snd
   end;
 
 
@@ -665,17 +678,17 @@ local structure P = OuterParse and K = OuterKeyword in
 val _ = OuterKeyword.keyword "avoids";
 
 val _ =
-  OuterSyntax.command "nominal_inductive"
+  OuterSyntax.local_theory_to_proof "nominal_inductive"
     "prove equivariance and strong induction theorem for inductive predicate involving nominal datatypes" K.thy_goal
-    (P.name -- Scan.optional (P.$$$ "avoids" |-- P.and_list1 (P.name --
+    (P.xname -- Scan.optional (P.$$$ "avoids" |-- P.and_list1 (P.name --
       (P.$$$ ":" |-- Scan.repeat1 P.name))) [] >> (fn (name, avoids) =>
-        Toplevel.print o Toplevel.theory_to_proof (prove_strong_ind name avoids)));
+        prove_strong_ind name avoids));
 
 val _ =
-  OuterSyntax.command "equivariance"
+  OuterSyntax.local_theory "equivariance"
     "prove equivariance for inductive predicate involving nominal datatypes" K.thy_decl
-    (P.name -- Scan.optional (P.$$$ "[" |-- P.list1 P.name --| P.$$$ "]") [] >>
-      (fn (name, atoms) => Toplevel.theory (prove_eqvt name atoms)));
+    (P.xname -- Scan.optional (P.$$$ "[" |-- P.list1 P.name --| P.$$$ "]") [] >>
+      (fn (name, atoms) => prove_eqvt name atoms));
 
 end;
 

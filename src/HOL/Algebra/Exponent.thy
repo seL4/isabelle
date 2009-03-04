@@ -210,12 +210,12 @@ done
 
 lemma p_fac_forw: "[| (m::nat) > 0; k>0; k < p^a; (p^r) dvd (p^a)* m - k |]  
   ==> (p^r) dvd (p^a) - k"
-apply (frule_tac k1 = k and i = p in p_fac_forw_lemma [THEN le_imp_power_dvd], auto)
+apply (frule p_fac_forw_lemma [THEN le_imp_power_dvd, of _ k p], auto)
 apply (subgoal_tac "p^r dvd p^a*m")
  prefer 2 apply (blast intro: dvd_mult2)
 apply (drule dvd_diffD1)
   apply assumption
- prefer 2 apply (blast intro: dvd_diff)
+ prefer 2 apply (blast intro: nat_dvd_diff)
 apply (drule gr0_implies_Suc, auto)
 done
 
@@ -226,12 +226,12 @@ by (rule_tac m = "Suc 0" in p_fac_forw_lemma, auto)
 
 lemma p_fac_backw: "[| m>0; k>0; (p::nat)\<noteq>0;  k < p^a;  (p^r) dvd p^a - k |]  
   ==> (p^r) dvd (p^a)*m - k"
-apply (frule_tac k1 = k and i = p in r_le_a_forw [THEN le_imp_power_dvd], auto)
+apply (frule_tac k1 = k and p1 = p in r_le_a_forw [THEN le_imp_power_dvd], auto)
 apply (subgoal_tac "p^r dvd p^a*m")
  prefer 2 apply (blast intro: dvd_mult2)
 apply (drule dvd_diffD1)
   apply assumption
- prefer 2 apply (blast intro: dvd_diff)
+ prefer 2 apply (blast intro: nat_dvd_diff)
 apply (drule less_imp_Suc_add, auto)
 done
 

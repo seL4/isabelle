@@ -1,4 +1,4 @@
-%% $Id$
+
 \chapter{The Classical Reasoner}\label{chap:classical}
 \index{classical reasoner|(}
 \newcommand\ainfer[2]{\begin{array}{r@{\,}l}#2\\ \hline#1\end{array}}
@@ -27,29 +27,6 @@ have been heavily used in the development of Isabelle's set theory.  Few
 interactive proof assistants provide this much automation.  The tactics can
 be traced, and their components can be called directly; in this manner,
 any proof can be viewed interactively.
-
-The simplest way to apply the classical reasoner (to subgoal~$i$) is to type
-\begin{ttbox}
-by (Blast_tac \(i\));
-\end{ttbox}
-This command quickly proves most simple formulas of the predicate calculus or
-set theory.  To attempt to prove subgoals using a combination of
-rewriting and classical reasoning, try
-\begin{ttbox}
-auto();                         \emph{\textrm{applies to all subgoals}}
-force i;                        \emph{\textrm{applies to one subgoal}}
-\end{ttbox}
-To do all obvious logical steps, even if they do not prove the
-subgoal, type one of the following:
-\begin{ttbox}
-by Safe_tac;                   \emph{\textrm{applies to all subgoals}}
-by (Clarify_tac \(i\));            \emph{\textrm{applies to one subgoal}}
-\end{ttbox}
-
-
-You need to know how the classical reasoner works in order to use it
-effectively.  There are many tactics to choose from, including 
-{\tt Fast_tac} and \texttt{Best_tac}.
 
 We shall first discuss the underlying principles, then present the classical
 reasoner.  Finally, we shall see how to instantiate it for new logics.  The

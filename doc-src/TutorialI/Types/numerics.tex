@@ -154,7 +154,7 @@ Here is a selection:
 a\ *\ b\ div\ c\ =\ a\ *\ (b\ div\ c)\ +\ a\ *\ (b\ mod\ c)\ div\ c%
 \rulename{div_mult1_eq}\isanewline
 a\ *\ b\ mod\ c\ =\ a\ *\ (b\ mod\ c)\ mod\ c%
-\rulename{mod_mult1_eq}\isanewline
+\rulename{mod_mult_right_eq}\isanewline
 a\ div\ (b*c)\ =\ a\ div\ b\ div\ c%
 \rulename{div_mult2_eq}\isanewline
 a\ mod\ (b*c)\ =\ b * (a\ div\ b\ mod\ c)\ +\ a\ mod\ b%
@@ -276,7 +276,7 @@ a\ div\ c\ +\ b\ div\ c\ +\ (a\ mod\ c\ +\ b\ mod\ c)\ div\ c%
 \rulename{zdiv_zadd1_eq}
 \par\smallskip
 (a\ +\ b)\ mod\ c\ =\ (a\ mod\ c\ +\ b\ mod\ c)\ mod\ c%
-\rulename{zmod_zadd1_eq}
+\rulename{mod_add_eq}
 \end{isabelle}
 
 \begin{isabelle}

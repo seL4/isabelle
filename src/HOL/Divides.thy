@@ -44,10 +44,10 @@ lemma div_mod_equality2: "(b * (a div b) + a mod b) + c = a + c"
 by (simp add: mod_div_equality2)
 
 lemma mod_by_0 [simp]: "a mod 0 = a"
-  using mod_div_equality [of a zero] by simp
+using mod_div_equality [of a zero] by simp
 
 lemma mod_0 [simp]: "0 mod a = 0"
-  using mod_div_equality [of zero a] div_0 by simp 
+using mod_div_equality [of zero a] div_0 by simp
 
 lemma div_mult_self2 [simp]:
   assumes "b \<noteq> 0"
@@ -178,6 +178,12 @@ by (rule dvd_eq_mod_eq_0[THEN iffD1])
 lemma dvd_div_mult_self: "a dvd b \<Longrightarrow> (b div a) * a = b"
 by (subst (2) mod_div_equality [of b a, symmetric]) (simp add:dvd_imp_mod_0)
 
+lemma dvd_div_mult: "a dvd b \<Longrightarrow> (b div a) * c = b * c div a"
+apply (cases "a = 0")
+ apply simp
+apply (auto simp: dvd_def mult_assoc)
+done
+
 lemma div_dvd_div[simp]:
   "a dvd b \<Longrightarrow> a dvd c \<Longrightarrow> (b div a dvd c div a) = (b dvd c)"
 apply (cases "a = 0")
@@ -187,6 +193,12 @@ apply auto
  apply(blast intro:mult_assoc[symmetric])
 apply(fastsimp simp add: mult_assoc)
 done
+
+lemma dvd_mod_imp_dvd: "[| k dvd m mod n;  k dvd n |] ==> k dvd m"
+  apply (subgoal_tac "k dvd (m div n) *n + m mod n")
+   apply (simp add: mod_div_equality)
+  apply (simp only: dvd_add dvd_mult)
+  done
 
 text {* Addition respects modular equivalence. *}
 
@@ -329,6 +341,25 @@ lemma mod_diff_cong:
   shows "(a - b) mod c = (a' - b') mod c"
   unfolding diff_minus using assms
   by (intro mod_add_cong mod_minus_cong)
+
+lemma dvd_neg_div: "y dvd x \<Longrightarrow> -x div y = - (x div y)"
+apply (case_tac "y = 0") apply simp
+apply (auto simp add: dvd_def)
+apply (subgoal_tac "-(y * k) = y * - k")
+ apply (erule ssubst)
+ apply (erule div_mult_self1_is_id)
+apply simp
+done
+
+lemma dvd_div_neg: "y dvd x \<Longrightarrow> x div -y = - (x div y)"
+apply (case_tac "y = 0") apply simp
+apply (auto simp add: dvd_def)
+apply (subgoal_tac "y * k = -y * -k")
+ apply (erule ssubst)
+ apply (rule div_mult_self1_is_id)
+ apply simp
+apply simp
+done
 
 end
 
@@ -478,9 +509,9 @@ proof -
   from divmod_rel have divmod_m_n: "divmod_rel m n (m div n) (m mod n)" .
   with assms have m_div_n: "m div n \<ge> 1"
     by (cases "m div n") (auto simp add: divmod_rel_def)
-  from assms divmod_m_n have "divmod_rel (m - n) n (m div n - 1) (m mod n)"
+  from assms divmod_m_n have "divmod_rel (m - n) n (m div n - Suc 0) (m mod n)"
     by (cases "m div n") (auto simp add: divmod_rel_def)
-  with divmod_eq have "divmod (m - n) n = (m div n - 1, m mod n)" by simp
+  with divmod_eq have "divmod (m - n) n = (m div n - Suc 0, m mod n)" by simp
   moreover from divmod_div_mod have "divmod (m - n) n = ((m - n) div n, (m - n) mod n)" .
   ultimately have "m div n = Suc ((m - n) div n)"
     and "m mod n = (m - n) mod n" using m_div_n by simp_all
@@ -653,16 +684,6 @@ apply (cases "c = 0", simp)
 apply (blast intro: divmod_rel [THEN divmod_rel_mult1_eq, THEN div_eq])
 done
 
-lemma mod_mult1_eq: "(a*b) mod c = a*(b mod c) mod (c::nat)"
-by (rule mod_mult_right_eq)
-
-lemma mod_mult1_eq': "(a*b) mod (c::nat) = ((a mod c) * b) mod c"
-by (rule mod_mult_left_eq)
-
-lemma mod_mult_distrib_mod:
-  "(a*b) mod (c::nat) = ((a mod c) * (b mod c)) mod c"
-by (rule mod_mult_eq)
-
 lemma divmod_rel_add1_eq:
   "[| divmod_rel a c aq ar; divmod_rel b c bq br;  c > 0 |]
    ==> divmod_rel (a + b) c (aq + bq + (ar+br) div c) ((ar + br) mod c)"
@@ -674,9 +695,6 @@ lemma div_add1_eq:
 apply (cases "c = 0", simp)
 apply (blast intro: divmod_rel_add1_eq [THEN div_eq] divmod_rel)
 done
-
-lemma mod_add1_eq: "(a+b) mod (c::nat) = (a mod c + b mod c) mod c"
-by (rule mod_add_eq)
 
 lemma mod_lemma: "[| (0::nat) < c; r < b |] ==> b * (q mod c) + r < b * c"
   apply (cut_tac m = q and n = c in mod_less_divisor)
@@ -795,12 +813,6 @@ apply (simp add: linorder_not_less le_Suc_eq mod_geq)
 apply (auto simp add: Suc_diff_le le_mod_geq)
 done
 
-lemma nat_mod_div_trivial: "m mod n div n = (0 :: nat)"
-by simp
-
-lemma nat_mod_mod_trivial: "m mod n mod n = (m mod n :: nat)"
-by simp
-
 
 subsubsection {* The Divides Relation *}
 
@@ -808,6 +820,9 @@ lemma dvd_1_left [iff]: "Suc 0 dvd k"
   unfolding dvd_def by simp
 
 lemma dvd_1_iff_1 [simp]: "(m dvd Suc 0) = (m = Suc 0)"
+by (simp add: dvd_def)
+
+lemma nat_dvd_1_iff_1 [simp]: "m dvd (1::nat) \<longleftrightarrow> m = 1"
 by (simp add: dvd_def)
 
 lemma dvd_anti_sym: "[| m dvd n; n dvd m |] ==> m = (n::nat)"
@@ -819,9 +834,9 @@ text {* @{term "op dvd"} is a partial order *}
 interpretation dvd!: order "op dvd" "\<lambda>n m \<Colon> nat. n dvd m \<and> \<not> m dvd n"
   proof qed (auto intro: dvd_refl dvd_trans dvd_anti_sym)
 
-lemma dvd_diff: "[| k dvd m; k dvd n |] ==> k dvd (m-n :: nat)"
-  unfolding dvd_def
-  by (blast intro: diff_mult_distrib2 [symmetric])
+lemma nat_dvd_diff[simp]: "[| k dvd m; k dvd n |] ==> k dvd (m-n :: nat)"
+unfolding dvd_def
+by (blast intro: diff_mult_distrib2 [symmetric])
 
 lemma dvd_diffD: "[| k dvd m-n; k dvd n; n\<le>m |] ==> k dvd (m::nat)"
   apply (erule linorder_not_less [THEN iffD2, THEN add_diff_inverse, THEN subst])
@@ -829,7 +844,7 @@ lemma dvd_diffD: "[| k dvd m-n; k dvd n; n\<le>m |] ==> k dvd (m::nat)"
   done
 
 lemma dvd_diffD1: "[| k dvd m-n; k dvd m; n\<le>m |] ==> k dvd (n::nat)"
-by (drule_tac m = m in dvd_diff, auto)
+by (drule_tac m = m in nat_dvd_diff, auto)
 
 lemma dvd_reduce: "(k dvd n + k) = (k dvd (n::nat))"
   apply (rule iffI)
@@ -838,7 +853,7 @@ lemma dvd_reduce: "(k dvd n + k) = (k dvd (n::nat))"
   apply (subgoal_tac "n = (n+k) -k")
    prefer 2 apply simp
   apply (erule ssubst)
-  apply (erule dvd_diff)
+  apply (erule nat_dvd_diff)
   apply (rule dvd_refl)
   done
 
@@ -846,12 +861,6 @@ lemma dvd_mod: "!!n::nat. [| f dvd m; f dvd n |] ==> f dvd m mod n"
   unfolding dvd_def
   apply (case_tac "n = 0", auto)
   apply (blast intro: mod_mult_distrib2 [symmetric])
-  done
-
-lemma dvd_mod_imp_dvd: "[| (k::nat) dvd m mod n;  k dvd n |] ==> k dvd m"
-  apply (subgoal_tac "k dvd (m div n) *n + m mod n")
-   apply (simp add: mod_div_equality)
-  apply (simp only: dvd_add dvd_mult)
   done
 
 lemma dvd_mod_iff: "k dvd n ==> ((k::nat) dvd m mod n) = (k dvd m)"
@@ -889,20 +898,8 @@ lemma dvd_mult_div_cancel: "n dvd m ==> n * (m div n) = (m::nat)"
   apply (simp only: dvd_eq_mod_eq_0)
   done
 
-lemma le_imp_power_dvd: "!!i::nat. m \<le> n ==> i^m dvd i^n"
-  apply (unfold dvd_def)
-  apply (erule linorder_not_less [THEN iffD2, THEN add_diff_inverse, THEN subst])
-  apply (simp add: power_add)
-  done
-
 lemma nat_zero_less_power_iff [simp]: "(x^n > 0) = (x > (0::nat) | n=0)"
   by (induct n) auto
-
-lemma power_le_dvd [rule_format]: "k^j dvd n --> i\<le>j --> k^i dvd (n::nat)"
-  apply (induct j)
-   apply (simp_all add: le_Suc_eq)
-  apply (blast dest!: dvd_mult_right)
-  done
 
 lemma power_dvd_imp_le: "[|i^m dvd i^n;  (1::nat) < i|] ==> m \<le> n"
   apply (rule power_le_imp_le_exp, assumption)

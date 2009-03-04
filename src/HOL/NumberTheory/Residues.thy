@@ -48,7 +48,7 @@ lemma StandardRes_prop2: "0 < m ==> (StandardRes m x1 = StandardRes m x2)
   by (auto simp add: StandardRes_def zcong_zmod_eq)
 
 lemma StandardRes_prop3: "(~[x = 0] (mod p)) = (~(StandardRes p x = 0))"
-  by (auto simp add: StandardRes_def zcong_def zdvd_iff_zmod_eq_0)
+  by (auto simp add: StandardRes_def zcong_def dvd_eq_mod_eq_0)
 
 lemma StandardRes_prop4: "2 < m 
      ==> [StandardRes m x * StandardRes m y = (x * y)] (mod m)"

@@ -136,7 +136,7 @@ variables *)
 fun mk_renamings tgt rule_inst = 
     let
       val rule_conds = Thm.prems_of rule_inst
-      val names = foldr OldTerm.add_term_names [] (tgt :: rule_conds);
+      val names = List.foldr OldTerm.add_term_names [] (tgt :: rule_conds);
       val (conds_tyvs,cond_vs) = 
           Library.foldl (fn ((tyvs, vs), t) => 
                     (Library.union
@@ -147,7 +147,7 @@ fun mk_renamings tgt rule_inst =
       val termvars = map Term.dest_Var (OldTerm.term_vars tgt); 
       val vars_to_fix = Library.union (termvars, cond_vs);
       val (renamings, names2) = 
-          foldr (fn (((n,i),ty), (vs, names')) => 
+          List.foldr (fn (((n,i),ty), (vs, names')) => 
                     let val n' = Name.variant names' n in
                       ((((n,i),ty), Free (n', ty)) :: vs, n'::names')
                     end)
@@ -166,13 +166,13 @@ fun mk_fixtvar_tyinsts ignore_insts ts =
     let 
       val ignore_ixs = map fst ignore_insts;
       val (tvars, tfrees) = 
-            foldr (fn (t, (varixs, tfrees)) => 
+            List.foldr (fn (t, (varixs, tfrees)) => 
                       (OldTerm.add_term_tvars (t,varixs),
                        OldTerm.add_term_tfrees (t,tfrees)))
                   ([],[]) ts;
         val unfixed_tvars = 
             List.filter (fn (ix,s) => not (member (op =) ignore_ixs ix)) tvars;
-        val (fixtyinsts, _) = foldr new_tfree ([], map fst tfrees) unfixed_tvars
+        val (fixtyinsts, _) = List.foldr new_tfree ([], map fst tfrees) unfixed_tvars
     in (fixtyinsts, tfrees) end;
 
 
@@ -248,7 +248,7 @@ fun rw ((nonfixed_typinsts, unprepinsts), FakeTs, Ts, outerterm) rule target_thm
                           Ts;
 
       (* type-instantiate the var instantiations *)
-      val insts_tyinst = foldr (fn ((ix,(ty,t)),insts_tyinst) => 
+      val insts_tyinst = List.foldr (fn ((ix,(ty,t)),insts_tyinst) => 
                             (ix, (Term.typ_subst_TVars term_typ_inst ty, 
                                   Term.subst_TVars term_typ_inst t))
                             :: insts_tyinst)

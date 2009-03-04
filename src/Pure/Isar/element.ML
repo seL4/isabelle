@@ -96,7 +96,7 @@ fun facts_map f facts = Notes ("", facts) |> f |> (fn Notes (_, facts') => facts
 fun map_ctxt {binding, typ, term, pattern, fact, attrib} =
   fn Fixes fixes => Fixes (fixes |> map (fn (x, T, mx) => (binding x, Option.map typ T, mx)))
    | Constrains xs => Constrains (xs |> map (fn (x, T) =>
-      (Binding.base_name (binding (Binding.name x)), typ T)))
+      (Binding.name_of (binding (Binding.name x)), typ T)))
    | Assumes asms => Assumes (asms |> map (fn ((a, atts), propps) =>
       ((binding a, map attrib atts), propps |> map (fn (t, ps) => (term t, map pattern ps)))))
    | Defines defs => Defines (defs |> map (fn ((a, atts), (t, ps)) =>
@@ -125,11 +125,9 @@ fun pretty_items _ _ [] = []
         map (fn y => Pretty.block [Pretty.str "  ", Pretty.keyword sep, Pretty.brk 1, y]) ys;
 
 fun pretty_name_atts ctxt (b, atts) sep =
-  let val name = Binding.display b in
-    if name = "" andalso null atts then []
-    else [Pretty.block
-      (Pretty.breaks (Pretty.str name :: Attrib.pretty_attribs ctxt atts @ [Pretty.str sep]))]
-  end;
+  if Binding.is_empty b andalso null atts then []
+  else [Pretty.block (Pretty.breaks
+    (Pretty.str (Binding.str_of b) :: Attrib.pretty_attribs ctxt atts @ [Pretty.str sep]))];
 
 
 (* pretty_stmt *)
@@ -145,8 +143,8 @@ fun pretty_stmt ctxt =
       Pretty.block (Pretty.breaks (prt_name_atts a ":" @ prt_terms (map fst ts)));
 
     fun prt_var (x, SOME T) = Pretty.block
-          [Pretty.str (Binding.base_name x ^ " ::"), Pretty.brk 1, prt_typ T]
-      | prt_var (x, NONE) = Pretty.str (Binding.base_name x);
+          [Pretty.str (Binding.name_of x ^ " ::"), Pretty.brk 1, prt_typ T]
+      | prt_var (x, NONE) = Pretty.str (Binding.name_of x);
     val prt_vars = separate (Pretty.keyword "and") o map prt_var;
 
     fun prt_obtain (_, ([], ts)) = Pretty.block (Pretty.breaks (prt_terms ts))
@@ -170,9 +168,9 @@ fun pretty_ctxt ctxt =
     fun prt_mixfix NoSyn = []
       | prt_mixfix mx = [Pretty.brk 2, Syntax.pretty_mixfix mx];
 
-    fun prt_fix (x, SOME T, mx) = Pretty.block (Pretty.str (Binding.base_name x ^ " ::") ::
+    fun prt_fix (x, SOME T, mx) = Pretty.block (Pretty.str (Binding.name_of x ^ " ::") ::
           Pretty.brk 1 :: prt_typ T :: Pretty.brk 1 :: prt_mixfix mx)
-      | prt_fix (x, NONE, mx) = Pretty.block (Pretty.str (Binding.base_name x) ::
+      | prt_fix (x, NONE, mx) = Pretty.block (Pretty.str (Binding.name_of x) ::
           Pretty.brk 1 :: prt_mixfix mx);
     fun prt_constrain (x, T) = prt_fix (Binding.name x, SOME T, NoSyn);
 
@@ -296,7 +294,7 @@ fun witness_local_proof after_qed cmd wit_propss goal_ctxt int =
   gen_witness_proof (fn after_qed' => fn propss =>
     Proof.map_context (K goal_ctxt)
     #> Proof.local_goal (ProofDisplay.print_results int) (K I) ProofContext.bind_propp_i
-      cmd NONE after_qed' (map (pair (Binding.empty, [])) propss))
+      cmd NONE after_qed' (map (pair Thm.empty_binding) propss))
     (fn wits => fn _ => after_qed wits) wit_propss [];
 
 end;
@@ -504,7 +502,7 @@ fun activate_elem (Fixes fixes) ctxt =
         val defs' = Attrib.map_specs (Attrib.attribute_i (ProofContext.theory_of ctxt)) defs;
         val asms = defs' |> map (fn ((name, atts), (t, ps)) =>
             let val ((c, _), t') = LocalDefs.cert_def ctxt t
-            in (t', ((Binding.map_base (Thm.def_name_optional c) name, atts), [(t', ps)])) end);
+            in (t', ((Binding.map_name (Thm.def_name_optional c) name, atts), [(t', ps)])) end);
         val (_, ctxt') =
           ctxt |> fold (Variable.auto_fixes o #1) asms
           |> ProofContext.add_assms_i LocalDefs.def_export (map #2 asms);
@@ -529,7 +527,7 @@ fun check_name name =
 
 fun prep_facts prep_name get intern ctxt =
   map_ctxt
-   {binding = Binding.map_base prep_name,
+   {binding = Binding.map_name prep_name,
     typ = I,
     term = I,
     pattern = I,

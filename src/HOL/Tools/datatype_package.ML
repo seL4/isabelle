@@ -631,8 +631,8 @@ val add_datatype_cmd = gen_add_datatype read_typ true;
 
 local
 
-val sym_datatype = Pretty.str "\\isacommand{datatype}";
-val sym_binder = Pretty.str "\\ {\\isacharequal}";
+val sym_datatype = Pretty.command "datatype";
+val sym_binder = Pretty.str "\\ {\\isacharequal}"; (*FIXME use proper symbol*)
 val sym_sep = Pretty.str "{\\isacharbar}\\ ";
 
 in
@@ -659,7 +659,7 @@ fun pretty_datatype ctxt (dtco, (vs, cos)) =
       | pretty_constr (co, [ty']) =
           (Pretty.block o Pretty.breaks)
             [Syntax.pretty_term ctxt (Const (co, ty' --> ty)),
-              Syntax.pretty_typ ctxt ty']
+              pretty_typ_br ty']
       | pretty_constr (co, tys) =
           (Pretty.block o Pretty.breaks)
             (Syntax.pretty_term ctxt (Const (co, tys ---> ty)) ::

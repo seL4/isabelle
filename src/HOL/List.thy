@@ -1461,6 +1461,12 @@ by simp
 
 declare take_Cons [simp del] and drop_Cons [simp del]
 
+lemma take_1_Cons [simp]: "take 1 (x # xs) = [x]"
+  unfolding One_nat_def by simp
+
+lemma drop_1_Cons [simp]: "drop 1 (x # xs) = xs"
+  unfolding One_nat_def by simp
+
 lemma take_Suc: "xs ~= [] ==> take (Suc n) xs = hd xs # take n (tl xs)"
 by(clarsimp simp add:neq_Nil_conv)
 
@@ -1592,13 +1598,13 @@ lemma butlast_take:
 by (simp add: butlast_conv_take min_max.inf_absorb1 min_max.inf_absorb2)
 
 lemma butlast_drop: "butlast (drop n xs) = drop n (butlast xs)"
-by (simp add: butlast_conv_take drop_take)
+by (simp add: butlast_conv_take drop_take add_ac)
 
 lemma take_butlast: "n < length xs ==> take n (butlast xs) = take n xs"
 by (simp add: butlast_conv_take min_max.inf_absorb1)
 
 lemma drop_butlast: "drop n (butlast xs) = butlast (drop n xs)"
-by (simp add: butlast_conv_take drop_take)
+by (simp add: butlast_conv_take drop_take add_ac)
 
 lemma hd_drop_conv_nth: "\<lbrakk> xs \<noteq> []; n < length xs \<rbrakk> \<Longrightarrow> hd(drop n xs) = xs!n"
 by(simp add: hd_conv_nth)
@@ -1639,7 +1645,7 @@ apply simp_all
 done
 
 lemma take_hd_drop:
-  "n < length xs \<Longrightarrow> take n xs @ [hd (drop n xs)] = take (n+1) xs"
+  "n < length xs \<Longrightarrow> take n xs @ [hd (drop n xs)] = take (Suc n) xs"
 apply(induct xs arbitrary: n)
 apply simp
 apply(simp add:drop_Cons split:nat.split)
@@ -3220,7 +3226,7 @@ by (unfold lenlex_def) blast
 lemma lenlex_conv:
     "lenlex r = {(xs,ys). length xs < length ys |
                  length xs = length ys \<and> (xs, ys) : lex r}"
-by (simp add: lenlex_def diag_def lex_prod_def inv_image_def)
+by (simp add: lenlex_def Id_on_def lex_prod_def inv_image_def)
 
 lemma Nil_notin_lex [iff]: "([], ys) \<notin> lex r"
 by (simp add: lex_conv)
@@ -3386,8 +3392,8 @@ apply clarify
 apply (erule listrel.induct, auto) 
 done
 
-lemma listrel_refl: "refl A r \<Longrightarrow> refl (lists A) (listrel r)" 
-apply (simp add: refl_def listrel_subset Ball_def)
+lemma listrel_refl_on: "refl_on A r \<Longrightarrow> refl_on (lists A) (listrel r)" 
+apply (simp add: refl_on_def listrel_subset Ball_def)
 apply (rule allI) 
 apply (induct_tac x) 
 apply (auto intro: listrel.intros)
@@ -3408,7 +3414,7 @@ apply (blast intro: listrel.intros)+
 done
 
 theorem equiv_listrel: "equiv A r \<Longrightarrow> equiv (lists A) (listrel r)"
-by (simp add: equiv_def listrel_refl listrel_sym listrel_trans) 
+by (simp add: equiv_def listrel_refl_on listrel_sym listrel_trans) 
 
 lemma listrel_Nil [simp]: "listrel r `` {[]} = {[]}"
 by (blast intro: listrel.intros)
@@ -3564,52 +3570,51 @@ local
 
 open Basic_Code_Thingol;
 
-fun implode_list (nil', cons') t =
-  let
-    fun dest_cons (IConst (c, _) `$ t1 `$ t2) =
-          if c = cons'
-          then SOME (t1, t2)
-          else NONE
-      | dest_cons _ = NONE;
-    val (ts, t') = Code_Thingol.unfoldr dest_cons t;
-  in case t'
-   of IConst (c, _) => if c = nil' then SOME ts else NONE
+fun implode_list naming t = case pairself
+  (Code_Thingol.lookup_const naming) (@{const_name Nil}, @{const_name Cons})
+   of (SOME nil', SOME cons') => let
+          fun dest_cons (IConst (c, _) `$ t1 `$ t2) =
+                if c = cons'
+                then SOME (t1, t2)
+                else NONE
+            | dest_cons _ = NONE;
+          val (ts, t') = Code_Thingol.unfoldr dest_cons t;
+        in case t'
+         of IConst (c, _) => if c = nil' then SOME ts else NONE
+          | _ => NONE
+        end
     | _ => NONE
-  end;
 
-fun decode_char nibbles' (IConst (c1, _), IConst (c2, _)) =
-      let
-        fun idx c = find_index (curry (op =) c) nibbles';
-        fun decode ~1 _ = NONE
-          | decode _ ~1 = NONE
-          | decode n m = SOME (chr (n * 16 + m));
-      in decode (idx c1) (idx c2) end
-  | decode_char _ _ = NONE;
-
-fun implode_string (char', nibbles') mk_char mk_string ts =
-  let
-    fun implode_char (IConst (c, _) `$ t1 `$ t2) =
-          if c = char' then decode_char nibbles' (t1, t2) else NONE
-      | implode_char _ = NONE;
-    val ts' = map implode_char ts;
-  in if forall is_some ts'
-    then (SOME o Code_Printer.str o mk_string o implode o map_filter I) ts'
-    else NONE
-  end;
-
-fun list_names naming = pairself (the o Code_Thingol.lookup_const naming)
-  (@{const_name Nil}, @{const_name Cons});
-fun char_name naming = (the o Code_Thingol.lookup_const naming)
-  @{const_name Char}
-fun nibble_names naming = map (the o Code_Thingol.lookup_const naming)
-  [@{const_name Nibble0}, @{const_name Nibble1},
+fun decode_char naming (IConst (c1, _), IConst (c2, _)) = (case map_filter
+  (Code_Thingol.lookup_const naming)[@{const_name Nibble0}, @{const_name Nibble1},
    @{const_name Nibble2}, @{const_name Nibble3},
    @{const_name Nibble4}, @{const_name Nibble5},
    @{const_name Nibble6}, @{const_name Nibble7},
    @{const_name Nibble8}, @{const_name Nibble9},
    @{const_name NibbleA}, @{const_name NibbleB},
    @{const_name NibbleC}, @{const_name NibbleD},
-   @{const_name NibbleE}, @{const_name NibbleF}];
+   @{const_name NibbleE}, @{const_name NibbleF}]
+   of nibbles' as [_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _] => let
+          fun idx c = find_index (curry (op =) c) nibbles';
+          fun decode ~1 _ = NONE
+            | decode _ ~1 = NONE
+            | decode n m = SOME (chr (n * 16 + m));
+        in decode (idx c1) (idx c2) end
+    | _ => NONE)
+ | decode_char _ _ = NONE
+   
+fun implode_string naming mk_char mk_string ts = case
+  Code_Thingol.lookup_const naming @{const_name Char}
+   of SOME char' => let
+        fun implode_char (IConst (c, _) `$ t1 `$ t2) =
+              if c = char' then decode_char naming (t1, t2) else NONE
+          | implode_char _ = NONE;
+        val ts' = map implode_char ts;
+      in if forall is_some ts'
+        then (SOME o Code_Printer.str o mk_string o implode o map_filter I) ts'
+        else NONE
+      end
+    | _ => NONE;
 
 fun default_list (target_fxy, target_cons) pr fxy t1 t2 =
   Code_Printer.brackify_infix (target_fxy, Code_Printer.R) fxy [
@@ -3622,7 +3627,7 @@ fun pretty_list literals =
   let
     val mk_list = Code_Printer.literal_list literals;
     fun pretty pr naming thm vars fxy [(t1, _), (t2, _)] =
-      case Option.map (cons t1) (implode_list (list_names naming) t2)
+      case Option.map (cons t1) (implode_list naming t2)
        of SOME ts => mk_list (map (pr vars Code_Printer.NOBR) ts)
         | NONE => default_list (Code_Printer.infix_cons literals) (pr vars) fxy t1 t2;
   in (2, pretty) end;
@@ -3633,8 +3638,8 @@ fun pretty_list_string literals =
     val mk_char = Code_Printer.literal_char literals;
     val mk_string = Code_Printer.literal_string literals;
     fun pretty pr naming thm vars fxy [(t1, _), (t2, _)] =
-      case Option.map (cons t1) (implode_list (list_names naming) t2)
-       of SOME ts => (case implode_string (char_name naming, nibble_names naming) mk_char mk_string ts
+      case Option.map (cons t1) (implode_list naming t2)
+       of SOME ts => (case implode_string naming mk_char mk_string ts
            of SOME p => p
             | NONE => mk_list (map (pr vars Code_Printer.NOBR) ts))
         | NONE => default_list (Code_Printer.infix_cons literals) (pr vars) fxy t1 t2;
@@ -3644,7 +3649,7 @@ fun pretty_char literals =
   let
     val mk_char = Code_Printer.literal_char literals;
     fun pretty _ naming thm _ _ [(t1, _), (t2, _)] =
-      case decode_char (nibble_names naming) (t1, t2)
+      case decode_char naming (t1, t2)
        of SOME c => (Code_Printer.str o mk_char) c
         | NONE => Code_Printer.nerror thm "Illegal character expression";
   in (2, pretty) end;
@@ -3654,8 +3659,8 @@ fun pretty_message literals =
     val mk_char = Code_Printer.literal_char literals;
     val mk_string = Code_Printer.literal_string literals;
     fun pretty _ naming thm _ _ [(t, _)] =
-      case implode_list (list_names naming) t
-       of SOME ts => (case implode_string (char_name naming, nibble_names naming) mk_char mk_string ts
+      case implode_list naming t
+       of SOME ts => (case implode_string naming mk_char mk_string ts
            of SOME p => p
             | NONE => Code_Printer.nerror thm "Illegal message expression")
         | NONE => Code_Printer.nerror thm "Illegal message expression";

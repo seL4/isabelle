@@ -222,7 +222,7 @@ fun index_tr (*"_index"*) [t] = t
 (* implicit structures *)
 
 fun the_struct structs i =
-  if 1 <= i andalso i <= length structs then List.nth (structs, i - 1)
+  if 1 <= i andalso i <= length structs then nth structs (i - 1)
   else raise error ("Illegal reference to implicit structure #" ^ string_of_int i);
 
 fun struct_tr structs (*"_struct"*) [Const ("_indexdefault", _)] =

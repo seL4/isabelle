@@ -1,5 +1,4 @@
 (*  Title:      Tools/code/code_printer.ML
-    ID:         $Id$
     Author:     Florian Haftmann, TU Muenchen
 
 Generic operations for pretty printing of target language code.

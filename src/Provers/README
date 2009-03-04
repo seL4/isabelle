@@ -2,19 +2,13 @@
 
 This directory contains ML sources of generic theorem proving tools.
 Typically, they can be applied to various logics, provided rules of a
-certain form are derivable.  Some of these are documented in the
-Reference Manual.
+certain form are derivable.
 
   blast.ML              generic tableau prover with proof reconstruction
   clasimp.ML		combination of classical reasoner and simplifier
   classical.ML          theorem prover for classical logics
   hypsubst.ML           tactic to substitute in the hypotheses
-  ind.ML                a simple induction package
-  induct_method.ML      proof by cases and induction on sets and types (Isar)
-  linorder.ML		transitivity reasoner for linear (total) orders
   quantifier1.ML	simplification procedures for "1 point rules"
-  simp.ML               powerful but slow simplifier
-  split_paired_all.ML	turn surjective pairing into split rule
   splitter.ML           performs case splits for simplifier
   typedsimp.ML          basic simplifier for explicitly typed logics
 

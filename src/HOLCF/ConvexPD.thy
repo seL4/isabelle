@@ -291,22 +291,26 @@ apply (induct xs ys rule: convex_pd.principal_induct2, simp, simp)
 apply (simp add: PDPlus_commute)
 done
 
-lemma convex_plus_absorb: "xs +\<natural> xs = xs"
+lemma convex_plus_absorb [simp]: "xs +\<natural> xs = xs"
 apply (induct xs rule: convex_pd.principal_induct, simp)
 apply (simp add: PDPlus_absorb)
 done
 
-interpretation aci_convex_plus!: ab_semigroup_idem_mult "op +\<natural>"
-  proof qed (rule convex_plus_assoc convex_plus_commute convex_plus_absorb)+
-
 lemma convex_plus_left_commute: "xs +\<natural> (ys +\<natural> zs) = ys +\<natural> (xs +\<natural> zs)"
-by (rule aci_convex_plus.mult_left_commute)
+by (rule mk_left_commute
+    [of "op +\<natural>", OF convex_plus_assoc convex_plus_commute])
 
-lemma convex_plus_left_absorb: "xs +\<natural> (xs +\<natural> ys) = xs +\<natural> ys"
-by (rule aci_convex_plus.mult_left_idem)
-(*
-lemmas convex_plus_aci = aci_convex_plus.mult_ac_idem
-*)
+lemma convex_plus_left_absorb [simp]: "xs +\<natural> (xs +\<natural> ys) = xs +\<natural> ys"
+by (simp only: convex_plus_assoc [symmetric] convex_plus_absorb)
+
+text {* Useful for @{text "simp add: convex_plus_ac"} *}
+lemmas convex_plus_ac =
+  convex_plus_assoc convex_plus_commute convex_plus_left_commute
+
+text {* Useful for @{text "simp only: convex_plus_aci"} *}
+lemmas convex_plus_aci =
+  convex_plus_ac convex_plus_absorb convex_plus_left_absorb
+
 lemma convex_unit_less_plus_iff [simp]:
   "{x}\<natural> \<sqsubseteq> ys +\<natural> zs \<longleftrightarrow> {x}\<natural> \<sqsubseteq> ys \<and> {x}\<natural> \<sqsubseteq> zs"
  apply (rule iffI)
@@ -413,7 +417,7 @@ lemma ACI_convex_bind:
 apply unfold_locales
 apply (simp add: convex_plus_assoc)
 apply (simp add: convex_plus_commute)
-apply (simp add: convex_plus_absorb eta_cfun)
+apply (simp add: eta_cfun)
 done
 
 lemma convex_bind_basis_simps [simp]:

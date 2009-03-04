@@ -1,5 +1,3 @@
-(* $Id$ *)
-
 theory ZF_Specific
 imports Main
 begin

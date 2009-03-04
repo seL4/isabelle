@@ -99,8 +99,8 @@ fun gen_add_fundef is_external prep default_constraint fixspec eqnss config flag
       val constrn_fxs = map (fn (b, T, mx) => (b, SOME (the_default default_constraint T), mx))
       val ((fixes0, spec0), ctxt') = 
         prep (constrn_fxs fixspec) (map (single o apsnd single) eqnss) lthy
-      val fixes = map (apfst (apfst Binding.base_name)) fixes0;
-      val spec = map (apfst (apfst Binding.base_name)) spec0;
+      val fixes = map (apfst (apfst Binding.name_of)) fixes0;
+      val spec = map (apfst (apfst Binding.name_of)) spec0;
       val (eqs, post, sort_cont, cnames) = FundefCommon.get_preproc lthy config flags ctxt' fixes spec
 
       val defname = mk_defname fixes

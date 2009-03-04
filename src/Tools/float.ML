@@ -1,5 +1,4 @@
 (*  Title:      Tools/float.ML
-    ID:         $Id$
     Author:     Steven Obua, Florian Haftmann, TU Muenchen
 
 Implementation of real numbers as mantisse-exponent pairs.

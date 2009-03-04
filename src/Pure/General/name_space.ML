@@ -3,15 +3,20 @@
 
 Generic name spaces with declared and hidden entries.  Unknown names
 are considered global; no support for absolute addressing.
-Cf. Pure/General/binding.ML
 *)
 
-type bstring = string;    (*simple names to be bound -- legacy*)
 type xstring = string;    (*external names*)
+
+signature BASIC_NAME_SPACE =
+sig
+  val long_names: bool ref
+  val short_names: bool ref
+  val unique_names: bool ref
+end;
 
 signature NAME_SPACE =
 sig
-  include BASIC_BINDING
+  include BASIC_NAME_SPACE
   val hidden: string -> string
   val is_hidden: string -> bool
   val separator: string                 (*single char*)
@@ -27,8 +32,9 @@ sig
   val empty: T
   val intern: T -> xstring -> string
   val extern: T -> string -> xstring
+  val extern_flags: {long_names: bool, short_names: bool, unique_names: bool} ->
+    T -> string -> xstring
   val hide: bool -> string -> T -> T
-  val get_accesses: T -> string -> xstring list
   val merge: T * T -> T
   type naming
   val default_naming: naming
@@ -41,12 +47,11 @@ sig
   val qualified_names: naming -> naming
   val sticky_prefix: string -> naming -> naming
   type 'a table = T * 'a Symtab.table
+  val bind: naming -> binding * 'a -> 'a table -> string * 'a table       (*exception Symtab.DUP*)
   val empty_table: 'a table
-  val bind: naming -> binding * 'a
-    -> 'a table -> string * 'a table (*exception Symtab.DUP*)
-  val merge_tables: ('a * 'a -> bool) -> 'a table * 'a table -> 'a table
-  val join_tables: (string -> 'a * 'a -> 'a)
-    -> 'a table * 'a table -> 'a table
+  val merge_tables: ('a * 'a -> bool) -> 'a table * 'a table -> 'a table  (*exception Symtab.DUP*)
+  val join_tables: (string -> 'a * 'a -> 'a) (*exception Symtab.DUP/Symtab.SAME*) ->
+    'a table * 'a table -> 'a table                                       (*exception Symtab.DUP*)
   val dest_table: 'a table -> (string * 'a) list
   val extern_table: 'a table -> (xstring * 'a) list
 end;
@@ -54,16 +59,13 @@ end;
 structure NameSpace: NAME_SPACE =
 struct
 
-open Basic_Binding;
-
-
 (** long identifiers **)
 
 fun hidden name = "??." ^ name;
 val is_hidden = String.isPrefix "??.";
 
-val separator = Binding.separator;
-val is_qualified = Binding.is_qualified;
+val separator = ".";
+val is_qualified = exists_string (fn s => s = separator);
 
 val implode_name = space_implode separator;
 val explode_name = space_explode separator;
@@ -120,37 +122,28 @@ fun suffixes_prefixes_split i k list =
 
 datatype T =
   NameSpace of
-    ((string list * string list) * stamp) Symtab.table *   (*internals, hidden internals*)
-    (string list * stamp) Symtab.table;                    (*externals*)
+    (string list * string list) Symtab.table *   (*internals, hidden internals*)
+    string list Symtab.table;                    (*externals*)
 
 val empty = NameSpace (Symtab.empty, Symtab.empty);
 
 fun lookup (NameSpace (tab, _)) xname =
   (case Symtab.lookup tab xname of
     NONE => (xname, true)
-  | SOME (([], []), _) => (xname, true)
-  | SOME (([name], _), _) => (name, true)
-  | SOME ((name :: _, _), _) => (name, false)
-  | SOME (([], name' :: _), _) => (hidden name', true));
+  | SOME ([], []) => (xname, true)
+  | SOME ([name], _) => (name, true)
+  | SOME (name :: _, _) => (name, false)
+  | SOME ([], name' :: _) => (hidden name', true));
 
-fun ex_mapsto_in (NameSpace (tab, _)) name xname =
-    (case Symtab.lookup tab xname of
-      SOME ((name'::_, _), _) => name' = name
-    | _ => false);
-
-fun get_accesses' valid_only (ns as (NameSpace (_, tab))) name =
-  (case Symtab.lookup tab name of
+fun get_accesses (NameSpace (_, xtab)) name =
+  (case Symtab.lookup xtab name of
     NONE => [name]
-  | SOME (xnames, _) => if valid_only
-                        then filter (ex_mapsto_in ns name) xnames
-                        else xnames);
-
-val get_accesses = get_accesses' true;
+  | SOME xnames => xnames);
 
 fun put_accesses name xnames (NameSpace (tab, xtab)) =
-  NameSpace (tab, Symtab.update (name, (xnames, stamp ())) xtab);
+  NameSpace (tab, Symtab.update (name, xnames) xtab);
 
-fun valid_accesses (NameSpace (tab, _)) name = Symtab.fold (fn (xname, ((names, _), _)) =>
+fun valid_accesses (NameSpace (tab, _)) name = Symtab.fold (fn (xname, (names, _)) =>
   if not (null names) andalso hd names = name then cons xname else I) tab [];
 
 
@@ -158,19 +151,29 @@ fun valid_accesses (NameSpace (tab, _)) name = Symtab.fold (fn (xname, ((names, 
 
 fun intern space xname = #1 (lookup space xname);
 
-fun extern space name =
+fun extern_flags {long_names, short_names, unique_names} space name =
   let
     fun valid unique xname =
       let val (name', uniq) = lookup space xname
       in name = name' andalso (uniq orelse not unique) end;
 
     fun ext [] = if valid false name then name else hidden name
-      | ext (nm :: nms) = if valid (! unique_names) nm then nm else ext nms;
+      | ext (nm :: nms) = if valid unique_names nm then nm else ext nms;
   in
-    if ! long_names then name
-    else if ! short_names then base name
-    else ext (get_accesses' false space name)
+    if long_names then name
+    else if short_names then base name
+    else ext (get_accesses space name)
   end;
+
+val long_names = ref false;
+val short_names = ref false;
+val unique_names = ref true;
+
+fun extern space name =
+  extern_flags
+   {long_names = ! long_names,
+    short_names = ! short_names,
+    unique_names = ! unique_names} space name;
 
 
 (* basic operations *)
@@ -178,8 +181,7 @@ fun extern space name =
 local
 
 fun map_space f xname (NameSpace (tab, xtab)) =
-  NameSpace (Symtab.map_default (xname, (([], []), stamp ()))
-    (fn (entry, _) => (f entry, stamp ())) tab, xtab);
+  NameSpace (Symtab.map_default (xname, ([], [])) f tab, xtab);
 
 in
 
@@ -203,7 +205,7 @@ fun hide fully name space =
       space
       |> add_name' name name
       |> fold (del_name name) (if fully then names else names inter_string [base name])
-      |> fold (del_name_extra name) (get_accesses' false space name)
+      |> fold (del_name_extra name) (get_accesses space name)
     end;
 
 
@@ -212,15 +214,13 @@ fun hide fully name space =
 fun merge (NameSpace (tab1, xtab1), NameSpace (tab2, xtab2)) =
   let
     val tab' = (tab1, tab2) |> Symtab.join
-      (K (fn (((names1, names1'), stamp1), ((names2, names2'), stamp2)) =>
-        if stamp1 = stamp2 then raise Symtab.SAME
-        else
-          ((Library.merge (op =) (names1, names2),
-            Library.merge (op =) (names1', names2')), stamp ())));
+      (K (fn names as ((names1, names1'), (names2, names2')) =>
+        if pointer_eq names then raise Symtab.SAME
+        else (Library.merge (op =) (names1, names2), Library.merge (op =) (names1', names2'))));
     val xtab' = (xtab1, xtab2) |> Symtab.join
-      (K (fn ((xnames1, stamp1), (xnames2, stamp2)) =>
-        if stamp1 = stamp2 then raise Symtab.SAME
-        else (Library.merge (op =) (xnames1, xnames2), stamp ())));
+      (K (fn xnames =>
+        if pointer_eq xnames then raise Symtab.SAME
+        else (Library.merge (op =) xnames)));
   in NameSpace (tab', xtab') end;
 
 
@@ -272,32 +272,33 @@ val apply_prefix =
   in fold mk_prefix end;
 
 
-(* declarations *)
+(* full name *)
 
-fun full_internal (Naming (path, (qualify, _))) = qualify path;
+fun full (Naming (path, (qualify, _))) = qualify path;
 
-fun declare_internal naming name space =
-  if is_hidden name then
-    error ("Attempt to declare hidden name " ^ quote name)
-  else
-    let
-      val names = explode_name name;
-      val _ = (null names orelse exists (fn s => s = "") names
-          orelse exists_string (fn s => s = "\"") name) andalso
-        error ("Bad name declaration " ^ quote name);
-      val (accs, accs') = pairself (map implode_name) (accesses naming names);
-    in space |> fold (add_name name) accs |> put_accesses name accs' end;
-
-fun full_name naming b =
-  let val (prefix, bname) = Binding.dest b
-  in full_internal (apply_prefix prefix naming) bname end;
-
-fun declare bnaming b =
+fun full_name naming binding =
   let
-    val (prefix, bname) = Binding.dest b;
-    val naming = apply_prefix prefix bnaming;
-    val name = full_internal naming bname;
-  in declare_internal naming name #> pair name end;
+    val (prefix, qualifier, bname) = Binding.dest binding;
+    val naming' = apply_prefix (prefix @ qualifier) naming;
+  in full naming' bname end;
+
+
+(* declaration *)
+
+fun declare naming binding space =
+  let
+    val (prefix, qualifier, bname) = Binding.dest binding;
+    val naming' = apply_prefix (prefix @ qualifier) naming;
+    val name = full naming' bname;
+    val names = explode_name name;
+
+    val _ = (null names orelse exists (fn s => s = "" orelse s = "??") names
+        orelse exists_string (fn s => s = "\"") name) andalso
+      error ("Bad name declaration " ^ quote (Binding.str_of binding));
+
+    val (accs, accs') = pairself (map implode_name) (accesses naming' names);
+    val space' = space |> fold (add_name name) accs |> put_accesses name accs';
+  in (name, space') end;
 
 
 
@@ -305,12 +306,11 @@ fun declare bnaming b =
 
 type 'a table = T * 'a Symtab.table;
 
-val empty_table = (empty, Symtab.empty);
-
-fun bind naming (b, x) (space, tab) =
-  let
-    val (name, space') = declare naming b space;
+fun bind naming (binding, x) (space, tab) =
+  let val (name, space') = declare naming binding space
   in (name, (space', Symtab.update_new (name, x) tab)) end;
+
+val empty_table = (empty, Symtab.empty);
 
 fun merge_tables eq ((space1, tab1), (space2, tab2)) =
   (merge (space1, space2), Symtab.merge eq (tab1, tab2));
@@ -331,3 +331,7 @@ val implode = implode_name;
 val explode = explode_name;
 
 end;
+
+structure BasicNameSpace: BASIC_NAME_SPACE = NameSpace;
+open BasicNameSpace;
+

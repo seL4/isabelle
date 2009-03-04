@@ -159,6 +159,21 @@ lemma add_nat_number_of [simp]:
   unfolding nat_number_of_def number_of_is_id numeral_simps
   by (simp add: nat_add_distrib)
 
+lemma nat_number_of_add_1 [simp]:
+  "number_of v + (1::nat) =
+    (if v < Int.Pls then 1 else number_of (Int.succ v))"
+  unfolding nat_number_of_def number_of_is_id numeral_simps
+  by (simp add: nat_add_distrib)
+
+lemma nat_1_add_number_of [simp]:
+  "(1::nat) + number_of v =
+    (if v < Int.Pls then 1 else number_of (Int.succ v))"
+  unfolding nat_number_of_def number_of_is_id numeral_simps
+  by (simp add: nat_add_distrib)
+
+lemma nat_1_add_1 [simp]: "1 + 1 = (2::nat)"
+  by (rule int_int_eq [THEN iffD1]) simp
+
 
 subsubsection{*Subtraction *}
 
@@ -176,6 +191,12 @@ lemma diff_nat_number_of [simp]:
          else let d = number_of (v + uminus v') in     
               if neg d then 0 else nat d)"
   unfolding nat_number_of_def number_of_is_id numeral_simps neg_def
+  by auto
+
+lemma nat_number_of_diff_1 [simp]:
+  "number_of v - (1::nat) =
+    (if v \<le> Int.Pls then 0 else number_of (Int.pred v))"
+  unfolding nat_number_of_def number_of_is_id numeral_simps
   by auto
 
 
@@ -362,9 +383,14 @@ lemma power2_eq_imp_eq:
 unfolding numeral_2_eq_2 by (erule (2) power_eq_imp_eq_base, simp)
 
 lemma power_minus1_even[simp]: "(- 1) ^ (2*n) = (1::'a::{comm_ring_1,recpower})"
-apply (induct "n")
-apply (auto simp add: power_Suc power_add)
-done
+proof (induct n)
+  case 0 show ?case by simp
+next
+  case (Suc n) then show ?case by (simp add: power_Suc power_add)
+qed
+
+lemma power_minus1_odd: "(- 1) ^ Suc(2*n) = -(1::'a::{comm_ring_1,recpower})"
+  by (simp add: power_Suc) 
 
 lemma power_even_eq: "(a::'a::recpower) ^ (2*n) = (a^n)^2"
 by (subst mult_commute) (simp add: power_mult)
@@ -437,19 +463,13 @@ by (simp add: numerals)
 (* These two can be useful when m = number_of... *)
 
 lemma add_eq_if: "(m::nat) + n = (if m=0 then n else Suc ((m - 1) + n))"
-apply (case_tac "m")
-apply (simp_all add: numerals)
-done
+  unfolding One_nat_def by (cases m) simp_all
 
 lemma mult_eq_if: "(m::nat) * n = (if m=0 then 0 else n + ((m - 1) * n))"
-apply (case_tac "m")
-apply (simp_all add: numerals)
-done
+  unfolding One_nat_def by (cases m) simp_all
 
 lemma power_eq_if: "(p ^ m :: nat) = (if m=0 then 1 else p * (p ^ (m - 1)))"
-apply (case_tac "m")
-apply (simp_all add: numerals)
-done
+  unfolding One_nat_def by (cases m) simp_all
 
 
 subsection{*Comparisons involving (0::nat) *}

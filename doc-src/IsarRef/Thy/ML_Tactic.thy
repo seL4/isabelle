@@ -1,5 +1,3 @@
-(* $Id$ *)
-
 theory ML_Tactic
 imports Main
 begin

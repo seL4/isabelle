@@ -1,5 +1,4 @@
 (*  Title:      Tools/code/code_target.ML
-    ID:         $Id$
     Author:     Florian Haftmann, TU Muenchen
 
 Serializer from intermediate language ("Thin-gol") to target languages.
@@ -418,7 +417,7 @@ fun invoke_serializer thy abortable serializer reserved abs_includes
     val program4 = Graph.subgraph (member (op =) names_all) program3;
     val empty_funs = filter_out (member (op =) abortable)
       (Code_Thingol.empty_funs program3);
-    val _ = if null empty_funs then () else error ("No defining equations for "
+    val _ = if null empty_funs then () else error ("No code equations for "
       ^ commas (map (Sign.extern_const thy) empty_funs));
   in
     serializer module args (labelled_name thy program2) reserved includes

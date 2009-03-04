@@ -338,7 +338,7 @@ fun type_check pp tm =
     fun typ_of (_, Const (_, T)) = T
       | typ_of (_, Free  (_, T)) = T
       | typ_of (_, Var (_, T)) = T
-      | typ_of (bs, Bound i) = snd (List.nth (bs, i) handle Subscript =>
+      | typ_of (bs, Bound i) = snd (nth bs i handle Subscript =>
           raise TYPE ("Loose bound variable: B." ^ string_of_int i, [], [Bound i]))
       | typ_of (bs, Abs (x, T, body)) = T --> typ_of ((x, T) :: bs, body)
       | typ_of (bs, t $ u) =
@@ -507,12 +507,12 @@ fun gen_add_consts parse_typ authentic tags raw_args thy =
     val prepT = Type.no_tvars o Term.no_dummyT o certify_typ thy o parse_typ ctxt;
     fun prep (raw_b, raw_T, raw_mx) =
       let
-        val (mx_name, mx) = Syntax.const_mixfix (Binding.base_name raw_b) raw_mx;
-        val b = Binding.map_base (K mx_name) raw_b;
+        val (mx_name, mx) = Syntax.const_mixfix (Binding.name_of raw_b) raw_mx;
+        val b = Binding.map_name (K mx_name) raw_b;
         val c = full_name thy b;
-        val c_syn = if authentic then Syntax.constN ^ c else Binding.base_name b;
+        val c_syn = if authentic then Syntax.constN ^ c else Binding.name_of b;
         val T = (prepT raw_T handle TYPE (msg, _, _) => error msg) handle ERROR msg =>
-          cat_error msg ("in declaration of constant " ^ quote (Binding.display b));
+          cat_error msg ("in declaration of constant " ^ quote (Binding.str_of b));
         val T' = Logic.varifyT T;
       in ((b, T'), (c_syn, T', mx), Const (c, T)) end;
     val args = map prep raw_args;
@@ -549,7 +549,7 @@ fun add_abbrev mode tags (b, raw_t) thy =
     val pp = Syntax.pp_global thy;
     val prep_tm = no_frees pp o Term.no_dummy_patterns o cert_term_abbrev thy;
     val t = (prep_tm raw_t handle TYPE (msg, _, _) => error msg | TERM (msg, _) => error msg)
-      handle ERROR msg => cat_error msg ("in constant abbreviation " ^ quote (Binding.display b));
+      handle ERROR msg => cat_error msg ("in constant abbreviation " ^ quote (Binding.str_of b));
     val (res, consts') = consts_of thy
       |> Consts.abbreviate pp (tsig_of thy) (naming_of thy) mode tags (b, t);
   in (res, thy |> map_consts (K consts')) end;

@@ -9,7 +9,6 @@ imports
   Ln
   Taylor
   Integration
-  FrechetDeriv
 begin
 
 end

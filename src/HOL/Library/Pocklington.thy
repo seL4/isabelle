@@ -142,10 +142,10 @@ lemma cong_mult: assumes xx': "[x = x'] (mod n)" and yy':"[y = y'] (mod n)"
   shows "[x * y = x' * y'] (mod n)"
 proof-
   have "(x * y) mod n = (x mod n) * (y mod n) mod n"  
-    by (simp add: mod_mult1_eq'[of x y n] mod_mult1_eq[of "x mod n" y n])
+    by (simp add: mod_mult_left_eq[of x y n] mod_mult_right_eq[of "x mod n" y n])
   also have "\<dots> = (x' mod n) * (y' mod n) mod n" using xx'[unfolded modeq_def] yy'[unfolded modeq_def] by simp  
   also have "\<dots> = (x' * y') mod n"
-    by (simp add: mod_mult1_eq'[of x' y' n] mod_mult1_eq[of "x' mod n" y' n])
+    by (simp add: mod_mult_left_eq[of x' y' n] mod_mult_right_eq[of "x' mod n" y' n])
   finally show ?thesis unfolding modeq_def . 
 qed
 
@@ -296,7 +296,7 @@ proof-
   from cong_solve[OF an] obtain x where x: "[a*x = b] (mod n)" by blast
   let ?x = "x mod n"
   from x have th: "[a * ?x = b] (mod n)"
-    by (simp add: modeq_def mod_mult1_eq[of a x n])
+    by (simp add: modeq_def mod_mult_right_eq[of a x n])
   from mod_less_divisor[ of n x] nz th have Px: "?P ?x" by simp
   {fix y assume Py: "y < n" "[a * y = b] (mod n)"
     from Py(2) th have "[a * y = a*?x] (mod n)" by (simp add: modeq_def)
@@ -753,10 +753,10 @@ proof(induct n)
 next
   case (Suc n) 
   have "(x mod m)^(Suc n) mod m = ((x mod m) * (((x mod m) ^ n) mod m)) mod m" 
-    by (simp add: mod_mult1_eq[symmetric])
+    by (simp add: mod_mult_right_eq[symmetric])
   also have "\<dots> = ((x mod m) * (x^n mod m)) mod m" using Suc.hyps by simp
   also have "\<dots> = x^(Suc n) mod m"
-    by (simp add: mod_mult1_eq'[symmetric] mod_mult1_eq[symmetric])
+    by (simp add: mod_mult_left_eq[symmetric] mod_mult_right_eq[symmetric])
   finally show ?case .
 qed
 
@@ -873,7 +873,7 @@ next
       from lh[unfolded nat_mod] 
       obtain q1 q2 where q12:"a ^ d + n * q1 = 1 + n * q2" by blast
       hence "a ^ d + n * q1 - n * q2 = 1" by simp
-      with dvd_diff [OF dvd_add [OF divides_rexp[OF p(2), of d'] dvd_mult2[OF p(1), of q1]] dvd_mult2[OF p(1), of q2]] d' have "p dvd 1" by simp 
+      with nat_dvd_diff [OF dvd_add [OF divides_rexp[OF p(2), of d'] dvd_mult2[OF p(1), of q1]] dvd_mult2[OF p(1), of q2]] d' have "p dvd 1" by simp
       with p(3) have False by simp
       hence ?rhs ..}
     ultimately have ?rhs by blast}
@@ -891,9 +891,9 @@ next
     hence "[(a^?o)^?q * (a^?r) = 1] (mod n)" 
       by (simp add: modeq_def power_mult[symmetric] power_add[symmetric])
     hence th: "[a^?r = 1] (mod n)"
-      using eqo mod_mult1_eq'[of "(a^?o)^?q" "a^?r" n]
+      using eqo mod_mult_left_eq[of "(a^?o)^?q" "a^?r" n]
       apply (simp add: modeq_def del: One_nat_def)
-      by (simp add: mod_mult1_eq'[symmetric])
+      by (simp add: mod_mult_left_eq[symmetric])
     {assume r: "?r = 0" hence ?rhs by (simp add: dvd_eq_mod_eq_0)}
     moreover
     {assume r: "?r \<noteq> 0" 

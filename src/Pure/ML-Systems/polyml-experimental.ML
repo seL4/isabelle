@@ -49,16 +49,17 @@ fun use_text (tune: string -> string) str_of_pos
       | c :: cs =>
           (in_buffer := cs; if c = #"\n" then current_line := ! current_line + 1 else (); SOME c));
     fun put s = out_buffer := s :: ! out_buffer;
-    fun put_message (prt, is_err, {file, line, offset}) =
-     (put (if is_err then "Error: " else "Warning: ");
-      PolyML.prettyPrint (put, 76) prt;
+    fun put_message {message, hard, location = {startLine = line, ...}, context} =
+     (put (if hard then "Error: " else "Warning: ");
+      PolyML.prettyPrint (put, 76) message;
       put (str_of_pos line name ^ "\n"));
 
     val parameters =
      [PolyML.Compiler.CPOutStream put,
       PolyML.Compiler.CPLineNo (fn () => ! current_line),
       PolyML.Compiler.CPErrorMessageProc put_message,
-      PolyML.Compiler.CPNameSpace name_space];
+      PolyML.Compiler.CPNameSpace name_space,
+      PolyML.Compiler.CPPrintInAlphabeticalOrder false];
     val _ =
       (while not (List.null (! in_buffer)) do
         PolyML.compiler (get, parameters) ())

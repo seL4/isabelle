@@ -228,7 +228,7 @@ fun list scan = enum "," scan;
 (* names and text *)
 
 val name = group "name declaration" (short_ident || sym_ident || string || number);
-val binding = position name >> Binding.name_pos;
+val binding = position name >> Binding.make;
 val xname = group "name reference" (short_ident || long_ident || sym_ident || string || number);
 val text = group "text" (short_ident || long_ident || sym_ident || string || number || verbatim);
 val path = group "file name/path specification" name >> Path.explode;

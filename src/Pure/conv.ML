@@ -7,12 +7,17 @@ Conversions: primitive equality reasoning.
 infix 1 then_conv;
 infix 0 else_conv;
 
-signature CONV =
+signature BASIC_CONV =
 sig
-  val no_conv: conv
-  val all_conv: conv
   val then_conv: conv * conv -> conv
   val else_conv: conv * conv -> conv
+end;
+
+signature CONV =
+sig
+  include BASIC_CONV
+  val no_conv: conv
+  val all_conv: conv
   val first_conv: conv list -> conv
   val every_conv: conv list -> conv
   val try_conv: conv -> conv
@@ -171,3 +176,6 @@ fun gconv_rule cv i th =
   | NONE => raise THM ("gconv_rule", i, [th]));
 
 end;
+
+structure BasicConv: BASIC_CONV = Conv;
+open BasicConv;

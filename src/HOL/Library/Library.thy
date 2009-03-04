@@ -5,6 +5,7 @@ imports
   AssocList
   BigO
   Binomial
+  Bit
   Boolean_Algebra
   Char_ord
   Code_Char_chr
@@ -22,9 +23,11 @@ imports
   Executable_Set
   Float
   Formal_Power_Series
+  FrechetDeriv
   FuncSet
   Fundamental_Theorem_Algebra
   Infinite_Set
+  Inner_Product
   ListVector
   Mapping
   Multiset
@@ -35,7 +38,10 @@ imports
   Option_ord
   Permutation
   Pocklington
+  Poly_Deriv
+  Polynomial
   Primes
+  Product_Vector
   Quickcheck
   Quicksort
   Quotient

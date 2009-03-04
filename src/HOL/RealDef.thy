@@ -94,7 +94,7 @@ lemma realrel_iff [simp]: "(((x1,y1),(x2,y2)) \<in> realrel) = (x1 + y2 = x2 + y
 by (simp add: realrel_def)
 
 lemma equiv_realrel: "equiv UNIV realrel"
-apply (auto simp add: equiv_def refl_def sym_def trans_def realrel_def)
+apply (auto simp add: equiv_def refl_on_def sym_def trans_def realrel_def)
 apply (blast dest: preal_trans_lemma) 
 done
 
@@ -655,7 +655,7 @@ lemma real_of_int_div: "(d::int) ~= 0 ==> d dvd n ==>
     real(n div d) = real n / real d"
   apply (frule real_of_int_div_aux [of d n])
   apply simp
-  apply (simp add: zdvd_iff_zmod_eq_0)
+  apply (simp add: dvd_eq_mod_eq_0)
 done
 
 lemma real_of_int_div2:
@@ -703,6 +703,9 @@ by (insert real_of_int_div2 [of n x], simp)
 subsection{*Embedding the Naturals into the Reals*}
 
 lemma real_of_nat_zero [simp]: "real (0::nat) = 0"
+by (simp add: real_of_nat_def)
+
+lemma real_of_nat_1 [simp]: "real (1::nat) = 1"
 by (simp add: real_of_nat_def)
 
 lemma real_of_nat_one [simp]: "real (Suc 0) = (1::real)"

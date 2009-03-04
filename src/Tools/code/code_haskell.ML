@@ -1,5 +1,4 @@
 (*  Title:      Tools/code/code_haskell.ML
-    ID:         $Id$
     Author:     Florian Haftmann, TU Muenchen
 
 Serializer for Haskell.

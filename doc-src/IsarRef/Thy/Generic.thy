@@ -1,5 +1,3 @@
-(* $Id$ *)
-
 theory Generic
 imports Main
 begin

@@ -1,5 +1,4 @@
 (*  Title:      FOL/IFOL.thy
-    ID:         $Id$
     Author:     Lawrence C Paulson and Markus Wenzel
 *)
 
@@ -14,9 +13,10 @@ uses
   "~~/src/Tools/IsaPlanner/isand.ML"
   "~~/src/Tools/IsaPlanner/rw_tools.ML"
   "~~/src/Tools/IsaPlanner/rw_inst.ML"
-  "~~/src/Provers/eqsubst.ML"
+  "~~/src/Tools/eqsubst.ML"
   "~~/src/Provers/quantifier1.ML"
-  "~~/src/Provers/project_rule.ML"
+  "~~/src/Tools/intuitionistic.ML"
+  "~~/src/Tools/project_rule.ML"
   "~~/src/Tools/atomize_elim.ML"
   ("fologic.ML")
   ("hypsubstdata.ML")
@@ -609,6 +609,8 @@ use "intprover.ML"
 
 
 subsection {* Intuitionistic Reasoning *}
+
+setup {* Intuitionistic.method_setup "iprover" *}
 
 lemma impE':
   assumes 1: "P --> Q"

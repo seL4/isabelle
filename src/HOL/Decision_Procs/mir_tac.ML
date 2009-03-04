@@ -46,12 +46,9 @@ val split_div' = @{thm "split_div'"};
 val Suc_plus1 = @{thm "Suc_plus1"};
 val imp_le_cong = @{thm "imp_le_cong"};
 val conj_le_cong = @{thm "conj_le_cong"};
-val nat_mod_add_eq = @{thm "mod_add1_eq"} RS sym;
-val nat_mod_add_left_eq = @{thm "mod_add_left_eq"} RS sym;
-val nat_mod_add_right_eq = @{thm "mod_add_right_eq"} RS sym;
-val int_mod_add_eq = @{thm "mod_add_eq"} RS sym;
-val int_mod_add_left_eq = @{thm "zmod_zadd_left_eq"} RS sym;
-val int_mod_add_right_eq = @{thm "zmod_zadd_right_eq"} RS sym;
+val mod_add_eq = @{thm "mod_add_eq"} RS sym;
+val mod_add_left_eq = @{thm "mod_add_left_eq"} RS sym;
+val mod_add_right_eq = @{thm "mod_add_right_eq"} RS sym;
 val nat_div_add_eq = @{thm "div_add1_eq"} RS sym;
 val int_div_add_eq = @{thm "zdiv_zadd1_eq"} RS sym;
 val ZDIVISION_BY_ZERO_MOD = @{thm "DIVISION_BY_ZERO"} RS conjunct2;
@@ -96,10 +93,10 @@ fun mir_tac ctxt q i =
     val (t,np,nh) = prepare_for_mir thy q g
     (* Some simpsets for dealing with mod div abs and nat*)
     val mod_div_simpset = HOL_basic_ss 
-                        addsimps [refl,nat_mod_add_eq, 
+                        addsimps [refl, mod_add_eq, 
                                   @{thm "mod_self"}, @{thm "zmod_self"},
                                   @{thm "zdiv_zero"},@{thm "zmod_zero"},@{thm "div_0"}, @{thm "mod_0"},
-                                  @{thm "zdiv_1"}, @{thm "zmod_1"}, @{thm "div_1"}, @{thm "mod_1"},
+                                  @{thm "div_by_1"}, @{thm "mod_by_1"}, @{thm "div_1"}, @{thm "mod_1"},
                                   @{thm "Suc_plus1"}]
                         addsimps @{thms add_ac}
                         addsimprocs [cancel_div_mod_proc]

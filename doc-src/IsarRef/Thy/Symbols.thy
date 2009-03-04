@@ -1,10 +1,8 @@
-(* $Id$ *)
-
 theory Symbols
 imports Pure
 begin
 
-chapter {* Standard Isabelle symbols \label{app:symbols} *}
+chapter {* Predefined Isabelle symbols \label{app:symbols} *}
 
 text {*
   Isabelle supports an infinite number of non-ASCII symbols, which are

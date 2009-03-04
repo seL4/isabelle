@@ -11,8 +11,8 @@ sig
   val mk_def: Proof.context -> (string * term) list -> term list
   val expand: cterm list -> thm -> thm
   val def_export: Assumption.export
-  val add_defs: ((binding * mixfix) * ((binding * attribute list) * term)) list ->
-    Proof.context -> (term * (string * thm)) list * Proof.context
+  val add_defs: ((binding * mixfix) * (Thm.binding * term)) list -> Proof.context ->
+    (term * (string * thm)) list * Proof.context
   val add_def: (binding * mixfix) * term -> Proof.context -> (term * thm) * Proof.context
   val fixed_abbrev: (binding * mixfix) * term -> Proof.context ->
     (term * term) * Proof.context
@@ -90,8 +90,8 @@ fun add_defs defs ctxt =
   let
     val ((bvars, mxs), specs) = defs |> split_list |>> split_list;
     val ((bfacts, atts), rhss) = specs |> split_list |>> split_list;
-    val xs = map Binding.base_name bvars;
-    val names = map2 (Binding.map_base o Thm.def_name_optional) xs bfacts;
+    val xs = map Binding.name_of bvars;
+    val names = map2 (Binding.map_name o Thm.def_name_optional) xs bfacts;
     val eqs = mk_def ctxt (xs ~~ rhss);
     val lhss = map (fst o Logic.dest_equals) eqs;
   in
@@ -104,7 +104,7 @@ fun add_defs defs ctxt =
   end;
 
 fun add_def (var, rhs) ctxt =
-  let val ([(lhs, (_, th))], ctxt') = add_defs [(var, ((Binding.empty, []), rhs))] ctxt
+  let val ([(lhs, (_, th))], ctxt') = add_defs [(var, (Thm.empty_binding, rhs))] ctxt
   in ((lhs, th), ctxt') end;
 
 

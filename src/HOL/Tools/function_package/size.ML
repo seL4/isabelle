@@ -115,7 +115,7 @@ fun prove_size_thms (info : datatype_info) new_type_names thy =
           then HOLogic.zero
           else foldl1 plus (ts @ [HOLogic.Suc_zero])
       in
-        foldr (fn (T, t') => Abs ("x", T, t')) t (Ts @ replicate k HOLogic.natT)
+        List.foldr (fn (T, t') => Abs ("x", T, t')) t (Ts @ replicate k HOLogic.natT)
       end;
 
     val fs = maps (fn (_, (name, _, constrs)) =>

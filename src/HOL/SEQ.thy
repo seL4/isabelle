@@ -338,10 +338,10 @@ apply (simp add: le_diff_conv2)
 done
 
 lemma LIMSEQ_Suc: "f ----> l \<Longrightarrow> (\<lambda>n. f (Suc n)) ----> l"
-by (drule_tac k="1" in LIMSEQ_ignore_initial_segment, simp)
+by (drule_tac k="Suc 0" in LIMSEQ_ignore_initial_segment, simp)
 
 lemma LIMSEQ_imp_Suc: "(\<lambda>n. f (Suc n)) ----> l \<Longrightarrow> f ----> l"
-by (rule_tac k="1" in LIMSEQ_offset, simp)
+by (rule_tac k="Suc 0" in LIMSEQ_offset, simp)
 
 lemma LIMSEQ_Suc_iff: "(\<lambda>n. f (Suc n)) ----> l = f ----> l"
 by (blast intro: LIMSEQ_imp_Suc LIMSEQ_Suc)
@@ -646,8 +646,21 @@ apply (auto dest: LIMSEQ_minus)
 apply (drule LIMSEQ_minus, auto)
 done
 
+text{* Given a binary function @{text "f:: nat \<Rightarrow> 'a \<Rightarrow> 'a"}, its values are uniquely determined by a function g *}
 
-subsection {* Bounded Monotonic Sequences *}
+lemma nat_function_unique: "EX! g. g 0 = e \<and> (\<forall>n. g (Suc n) = f n (g n))"
+  unfolding Ex1_def
+  apply (rule_tac x="nat_rec e f" in exI)
+  apply (rule conjI)+
+apply (rule def_nat_rec_0, simp)
+apply (rule allI, rule def_nat_rec_Suc, simp)
+apply (rule allI, rule impI, rule ext)
+apply (erule conjE)
+apply (induct_tac x)
+apply (simp add: nat_rec_0)
+apply (erule_tac x="n" in allE)
+apply (simp)
+done
 
 text{*Subsequence (alternative definition, (e.g. Hoskins)*}
 
@@ -745,6 +758,136 @@ proof -
     qed
   qed auto
 qed
+
+text{* for any sequence, there is a mootonic subsequence *}
+lemma seq_monosub: "\<exists>f. subseq f \<and> monoseq (\<lambda> n. (s (f n)))"
+proof-
+  {assume H: "\<forall>n. \<exists>p >n. \<forall> m\<ge>p. s m \<le> s p"
+    let ?P = "\<lambda> p n. p > n \<and> (\<forall>m \<ge> p. s m \<le> s p)"
+    from nat_function_unique[of "SOME p. ?P p 0" "\<lambda>p n. SOME p. ?P p n"]
+    obtain f where f: "f 0 = (SOME p. ?P p 0)" "\<forall>n. f (Suc n) = (SOME p. ?P p (f n))" by blast
+    have "?P (f 0) 0"  unfolding f(1) some_eq_ex[of "\<lambda>p. ?P p 0"]
+      using H apply - 
+      apply (erule allE[where x=0], erule exE, rule_tac x="p" in exI) 
+      unfolding order_le_less by blast 
+    hence f0: "f 0 > 0" "\<forall>m \<ge> f 0. s m \<le> s (f 0)" by blast+
+    {fix n
+      have "?P (f (Suc n)) (f n)" 
+	unfolding f(2)[rule_format, of n] some_eq_ex[of "\<lambda>p. ?P p (f n)"]
+	using H apply - 
+      apply (erule allE[where x="f n"], erule exE, rule_tac x="p" in exI) 
+      unfolding order_le_less by blast 
+    hence "f (Suc n) > f n" "\<forall>m \<ge> f (Suc n). s m \<le> s (f (Suc n))" by blast+}
+  note fSuc = this
+    {fix p q assume pq: "p \<ge> f q"
+      have "s p \<le> s(f(q))"  using f0(2)[rule_format, of p] pq fSuc
+	by (cases q, simp_all) }
+    note pqth = this
+    {fix q
+      have "f (Suc q) > f q" apply (induct q) 
+	using f0(1) fSuc(1)[of 0] apply simp by (rule fSuc(1))}
+    note fss = this
+    from fss have th1: "subseq f" unfolding subseq_Suc_iff ..
+    {fix a b 
+      have "f a \<le> f (a + b)"
+      proof(induct b)
+	case 0 thus ?case by simp
+      next
+	case (Suc b)
+	from fSuc(1)[of "a + b"] Suc.hyps show ?case by simp
+      qed}
+    note fmon0 = this
+    have "monoseq (\<lambda>n. s (f n))" 
+    proof-
+      {fix n
+	have "s (f n) \<ge> s (f (Suc n))" 
+	proof(cases n)
+	  case 0
+	  assume n0: "n = 0"
+	  from fSuc(1)[of 0] have th0: "f 0 \<le> f (Suc 0)" by simp
+	  from f0(2)[rule_format, OF th0] show ?thesis  using n0 by simp
+	next
+	  case (Suc m)
+	  assume m: "n = Suc m"
+	  from fSuc(1)[of n] m have th0: "f (Suc m) \<le> f (Suc (Suc m))" by simp
+	  from m fSuc(2)[rule_format, OF th0] show ?thesis by simp 
+	qed}
+      thus "monoseq (\<lambda>n. s (f n))" unfolding monoseq_Suc by blast 
+    qed
+    with th1 have ?thesis by blast}
+  moreover
+  {fix N assume N: "\<forall>p >N. \<exists> m\<ge>p. s m > s p"
+    {fix p assume p: "p \<ge> Suc N" 
+      hence pN: "p > N" by arith with N obtain m where m: "m \<ge> p" "s m > s p" by blast
+      have "m \<noteq> p" using m(2) by auto 
+      with m have "\<exists>m>p. s p < s m" by - (rule exI[where x=m], auto)}
+    note th0 = this
+    let ?P = "\<lambda>m x. m > x \<and> s x < s m"
+    from nat_function_unique[of "SOME x. ?P x (Suc N)" "\<lambda>m x. SOME y. ?P y x"]
+    obtain f where f: "f 0 = (SOME x. ?P x (Suc N))" 
+      "\<forall>n. f (Suc n) = (SOME m. ?P m (f n))" by blast
+    have "?P (f 0) (Suc N)"  unfolding f(1) some_eq_ex[of "\<lambda>p. ?P p (Suc N)"]
+      using N apply - 
+      apply (erule allE[where x="Suc N"], clarsimp)
+      apply (rule_tac x="m" in exI)
+      apply auto
+      apply (subgoal_tac "Suc N \<noteq> m")
+      apply simp
+      apply (rule ccontr, simp)
+      done
+    hence f0: "f 0 > Suc N" "s (Suc N) < s (f 0)" by blast+
+    {fix n
+      have "f n > N \<and> ?P (f (Suc n)) (f n)"
+	unfolding f(2)[rule_format, of n] some_eq_ex[of "\<lambda>p. ?P p (f n)"]
+      proof (induct n)
+	case 0 thus ?case
+	  using f0 N apply auto 
+	  apply (erule allE[where x="f 0"], clarsimp) 
+	  apply (rule_tac x="m" in exI, simp)
+	  by (subgoal_tac "f 0 \<noteq> m", auto)
+      next
+	case (Suc n)
+	from Suc.hyps have Nfn: "N < f n" by blast
+	from Suc.hyps obtain m where m: "m > f n" "s (f n) < s m" by blast
+	with Nfn have mN: "m > N" by arith
+	note key = Suc.hyps[unfolded some_eq_ex[of "\<lambda>p. ?P p (f n)", symmetric] f(2)[rule_format, of n, symmetric]]
+	
+	from key have th0: "f (Suc n) > N" by simp
+	from N[rule_format, OF th0]
+	obtain m' where m': "m' \<ge> f (Suc n)" "s (f (Suc n)) < s m'" by blast
+	have "m' \<noteq> f (Suc (n))" apply (rule ccontr) using m'(2) by auto
+	hence "m' > f (Suc n)" using m'(1) by simp
+	with key m'(2) show ?case by auto
+      qed}
+    note fSuc = this
+    {fix n
+      have "f n \<ge> Suc N \<and> f(Suc n) > f n \<and> s(f n) < s(f(Suc n))" using fSuc[of n] by auto 
+      hence "f n \<ge> Suc N" "f(Suc n) > f n" "s(f n) < s(f(Suc n))" by blast+}
+    note thf = this
+    have sqf: "subseq f" unfolding subseq_Suc_iff using thf by simp
+    have "monoseq (\<lambda>n. s (f n))"  unfolding monoseq_Suc using thf
+      apply -
+      apply (rule disjI1)
+      apply auto
+      apply (rule order_less_imp_le)
+      apply blast
+      done
+    then have ?thesis  using sqf by blast}
+  ultimately show ?thesis unfolding linorder_not_less[symmetric] by blast
+qed
+
+lemma seq_suble: assumes sf: "subseq f" shows "n \<le> f n"
+proof(induct n)
+  case 0 thus ?case by simp
+next
+  case (Suc n)
+  from sf[unfolded subseq_Suc_iff, rule_format, of n] Suc.hyps
+  have "n < f (Suc n)" by arith 
+  thus ?case by arith
+qed
+
+subsection {* Bounded Monotonic Sequences *}
+
 
 text{*Bounded Sequence*}
 

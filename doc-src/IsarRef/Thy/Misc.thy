@@ -1,5 +1,3 @@
-(* $Id$ *)
-
 theory Misc
 imports Main
 begin

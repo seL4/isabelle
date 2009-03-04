@@ -187,9 +187,8 @@ next
     "nd = nlen (m div 10) \<Longrightarrow>
     m div 10 = (\<Sum>x<nd. m div 10 div 10^x mod 10 * 10^x)"
     by blast
-  have "\<exists>c. m = 10*(m div 10) + c \<and> c < 10" by presburger
-  then obtain c where mexp: "m = 10*(m div 10) + c \<and> c < 10" ..
-  then have cdef: "c = m mod 10" by arith
+  obtain c where mexp: "m = 10*(m div 10) + c \<and> c < 10"
+    and cdef: "c = m mod 10" by simp
   show "m = (\<Sum>x<nlen m. m div 10^x mod 10 * 10^x)"
   proof -
     from `Suc nd = nlen m`

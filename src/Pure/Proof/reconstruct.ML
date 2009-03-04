@@ -98,7 +98,7 @@ fun infer_type thy (env as Envir.Envir {maxidx, asol, iTs}) Ts vTs
           let val (env3, V) = mk_tvar (env2, [])
           in (t' $ u', V, vTs2, unifyT thy env3 T (U --> V)) end)
       end
-  | infer_type thy env Ts vTs (t as Bound i) = ((t, List.nth (Ts, i), vTs, env)
+  | infer_type thy env Ts vTs (t as Bound i) = ((t, nth Ts i, vTs, env)
       handle Subscript => error ("infer_type: bad variable index " ^ string_of_int i));
 
 fun cantunify thy (t, u) = error ("Non-unifiable terms:\n" ^
@@ -106,7 +106,7 @@ fun cantunify thy (t, u) = error ("Non-unifiable terms:\n" ^
 
 fun decompose thy Ts (env, p as (t, u)) =
   let fun rigrig (a, T) (b, U) uT ts us = if a <> b then cantunify thy p
-    else apsnd flat (foldl_map (decompose thy Ts) (uT env T U, ts ~~ us))
+    else apsnd flat (Library.foldl_map (decompose thy Ts) (uT env T U, ts ~~ us))
   in case pairself (strip_comb o Envir.head_norm env) p of
       ((Const c, ts), (Const d, us)) => rigrig c d (unifyT thy) ts us
     | ((Free c, ts), (Free d, us)) => rigrig c d (unifyT thy) ts us
@@ -141,7 +141,7 @@ fun make_constraints_cprf thy env cprf =
             val tvars = OldTerm.term_tvars prop;
             val tfrees = OldTerm.term_tfrees prop;
             val (env', Ts) = (case opTs of
-                NONE => foldl_map mk_tvar (env, map snd tvars @ map snd tfrees)
+                NONE => Library.foldl_map mk_tvar (env, map snd tvars @ map snd tfrees)
               | SOME Ts => (env, Ts));
             val prop' = subst_atomic_types (map TVar tvars @ map TFree tfrees ~~ Ts)
               (forall_intr_vfs prop) handle Library.UnequalLengths =>
@@ -152,7 +152,7 @@ fun make_constraints_cprf thy env cprf =
     fun head_norm (prop, prf, cnstrts, env, vTs) =
       (Envir.head_norm env prop, prf, cnstrts, env, vTs);
 
-    fun mk_cnstrts env _ Hs vTs (PBound i) = ((List.nth (Hs, i), PBound i, [], env, vTs)
+    fun mk_cnstrts env _ Hs vTs (PBound i) = ((nth Hs i, PBound i, [], env, vTs)
           handle Subscript => error ("mk_cnstrts: bad variable index " ^ string_of_int i))
       | mk_cnstrts env Ts Hs vTs (Abst (s, opT, cprf)) =
           let
@@ -304,7 +304,7 @@ fun prop_of_atom prop Ts = subst_atomic_types
 
 val head_norm = Envir.head_norm (Envir.empty 0);
 
-fun prop_of0 Hs (PBound i) = List.nth (Hs, i)
+fun prop_of0 Hs (PBound i) = nth Hs i
   | prop_of0 Hs (Abst (s, SOME T, prf)) =
       Term.all T $ (Abs (s, T, prop_of0 Hs prf))
   | prop_of0 Hs (AbsP (s, SOME t, prf)) =

@@ -120,7 +120,7 @@ proof (induct n)
   case (Suc n)
   have "(\<Sum> i = 0 ..< 2 * Suc n. if even i then f i else g i) = 
         (\<Sum> i = 0 ..< n. f (2 * i)) + (\<Sum> i = 0 ..< n. g (2 * i + 1)) + (f (2 * n) + g (2 * n + 1))"
-    using Suc.hyps by auto
+    using Suc.hyps unfolding One_nat_def by auto
   also have "\<dots> = (\<Sum> i = 0 ..< Suc n. f (2 * i)) + (\<Sum> i = 0 ..< Suc n. g (2 * i + 1))" by auto
   finally show ?case .
 qed auto
@@ -187,16 +187,18 @@ lemma sums_alternating_upper_lower:
              ((\<forall>n. l \<le> (\<Sum>i=0..<2*n + 1. -1^i*a i)) \<and> (\<lambda> n. \<Sum>i=0..<2*n + 1. -1^i*a i) ----> l)"
   (is "\<exists>l. ((\<forall>n. ?f n \<le> l) \<and> _) \<and> ((\<forall>n. l \<le> ?g n) \<and> _)")
 proof -
-  have fg_diff: "\<And>n. ?f n - ?g n = - a (2 * n)" by auto
+  have fg_diff: "\<And>n. ?f n - ?g n = - a (2 * n)" unfolding One_nat_def by auto
 
   have "\<forall> n. ?f n \<le> ?f (Suc n)"
   proof fix n show "?f n \<le> ?f (Suc n)" using mono[of "2*n"] by auto qed
   moreover
   have "\<forall> n. ?g (Suc n) \<le> ?g n"
-  proof fix n show "?g (Suc n) \<le> ?g n" using mono[of "Suc (2*n)"] by auto qed
+  proof fix n show "?g (Suc n) \<le> ?g n" using mono[of "Suc (2*n)"]
+    unfolding One_nat_def by auto qed
   moreover
   have "\<forall> n. ?f n \<le> ?g n" 
-  proof fix n show "?f n \<le> ?g n" using fg_diff a_pos by auto qed
+  proof fix n show "?f n \<le> ?g n" using fg_diff a_pos
+    unfolding One_nat_def by auto qed
   moreover
   have "(\<lambda> n. ?f n - ?g n) ----> 0" unfolding fg_diff
   proof (rule LIMSEQ_I)
@@ -904,7 +906,7 @@ lemma powser_zero:
 proof -
   have "(\<Sum>n = 0..<1. f n * 0 ^ n) = (\<Sum>n. f n * 0 ^ n)"
     by (rule sums_unique [OF series_zero], simp add: power_0_left)
-  thus ?thesis by simp
+  thus ?thesis unfolding One_nat_def by simp
 qed
 
 lemma exp_zero [simp]: "exp 0 = 1"
@@ -1234,10 +1236,11 @@ proof -
       show "x - 1 \<in> {- 1<..<1}" and "(0 :: real) < 1" using `0 < x` `x < 2` by auto
       { fix x :: real assume "x \<in> {- 1<..<1}" hence "norm (-x) < 1" by auto
 	show "summable (\<lambda>n. -1 ^ n * (1 / real (n + 1)) * real (Suc n) * x ^ n)"
+          unfolding One_nat_def
 	  by (auto simp del: power_mult_distrib simp add: power_mult_distrib[symmetric] summable_geometric[OF `norm (-x) < 1`])
       }
     qed
-    hence "DERIV (\<lambda>x. suminf (?f x)) (x - 1) :> suminf (?f' x)" by auto
+    hence "DERIV (\<lambda>x. suminf (?f x)) (x - 1) :> suminf (?f' x)" unfolding One_nat_def by auto
     hence "DERIV (\<lambda>x. suminf (?f (x - 1))) x :> suminf (?f' x)" unfolding DERIV_iff repos .
     ultimately have "DERIV (\<lambda>x. ln x - suminf (?f (x - 1))) x :> (suminf (?f' x) - suminf (?f' x))"
       by (rule DERIV_diff)
@@ -1514,6 +1517,7 @@ done
 
 lemma DERIV_fun_pow: "DERIV g x :> m ==>  
       DERIV (%x. (g x) ^ n) x :> real n * (g x) ^ (n - 1) * m"
+unfolding One_nat_def
 apply (rule lemma_DERIV_subst)
 apply (rule_tac f = "(%x. x ^ n)" in DERIV_chain2)
 apply (rule DERIV_pow, auto)
@@ -1635,7 +1639,7 @@ proof -
 	sums sin x"
     unfolding sin_def
     by (rule sin_converges [THEN sums_summable, THEN sums_group], simp) 
-  thus ?thesis by (simp add: mult_ac)
+  thus ?thesis unfolding One_nat_def by (simp add: mult_ac)
 qed
 
 lemma sin_gt_zero: "[|0 < x; x < 2 |] ==> 0 < sin x"
@@ -1647,6 +1651,7 @@ apply (subgoal_tac
  apply (rule sin_paired [THEN sums_summable, THEN sums_group], simp) 
 apply (rotate_tac 2)
 apply (drule sin_paired [THEN sums_unique, THEN ssubst])
+unfolding One_nat_def
 apply (auto simp del: fact_Suc realpow_Suc)
 apply (frule sums_unique)
 apply (auto simp del: fact_Suc realpow_Suc)
@@ -1720,6 +1725,7 @@ apply (simp (no_asm) add: fact_num_eq_if realpow_num_eq_if del: fact_Suc realpow
 apply (simp (no_asm) add: mult_assoc del: setsum_op_ivl_Suc)
 apply (rule sumr_pos_lt_pair)
 apply (erule sums_summable, safe)
+unfolding One_nat_def
 apply (simp (no_asm) add: divide_inverse real_0_less_add_iff mult_assoc [symmetric] 
             del: fact_Suc)
 apply (rule real_mult_inverse_cancel2)
@@ -2792,7 +2798,7 @@ subsection {* Introducing the arcus tangens power series *}
 
 lemma monoseq_arctan_series: fixes x :: real
   assumes "\<bar>x\<bar> \<le> 1" shows "monoseq (\<lambda> n. 1 / real (n*2+1) * x^(n*2+1))" (is "monoseq ?a")
-proof (cases "x = 0") case True thus ?thesis unfolding monoseq_def by auto
+proof (cases "x = 0") case True thus ?thesis unfolding monoseq_def One_nat_def by auto
 next
   case False
   have "norm x \<le> 1" and "x \<le> 1" and "-1 \<le> x" using assms by auto
@@ -2823,7 +2829,7 @@ qed
 
 lemma zeroseq_arctan_series: fixes x :: real
   assumes "\<bar>x\<bar> \<le> 1" shows "(\<lambda> n. 1 / real (n*2+1) * x^(n*2+1)) ----> 0" (is "?a ----> 0")
-proof (cases "x = 0") case True thus ?thesis by (auto simp add: LIMSEQ_const)
+proof (cases "x = 0") case True thus ?thesis unfolding One_nat_def by (auto simp add: LIMSEQ_const)
 next
   case False
   have "norm x \<le> 1" and "x \<le> 1" and "-1 \<le> x" using assms by auto
@@ -2831,12 +2837,14 @@ next
   proof (cases "\<bar>x\<bar> < 1")
     case True hence "norm x < 1" by auto
     from LIMSEQ_mult[OF LIMSEQ_inverse_real_of_nat LIMSEQ_power_zero[OF `norm x < 1`, THEN LIMSEQ_Suc]]
-    show ?thesis unfolding inverse_eq_divide Suc_plus1 using LIMSEQ_linear[OF _ pos2] by auto
+    have "(\<lambda>n. 1 / real (n + 1) * x ^ (n + 1)) ----> 0"
+      unfolding inverse_eq_divide Suc_plus1 by simp
+    then show ?thesis using pos2 by (rule LIMSEQ_linear)
   next
     case False hence "x = -1 \<or> x = 1" using `\<bar>x\<bar> \<le> 1` by auto
-    hence n_eq: "\<And> n. x ^ (n * 2 + 1) = x" by auto
+    hence n_eq: "\<And> n. x ^ (n * 2 + 1) = x" unfolding One_nat_def by auto
     from LIMSEQ_mult[OF LIMSEQ_inverse_real_of_nat[THEN LIMSEQ_linear, OF pos2, unfolded inverse_eq_divide] LIMSEQ_const[of x]]
-    show ?thesis unfolding n_eq by auto
+    show ?thesis unfolding n_eq Suc_plus1 by auto
   qed
 qed
 
@@ -2989,7 +2997,7 @@ proof -
 	  from `even n` obtain m where "2 * m = n" unfolding even_mult_two_ex by auto
 	  from bounds[of m, unfolded this atLeastAtMost_iff]
 	  have "\<bar>arctan x - (\<Sum>i = 0..<n. (?c x i))\<bar> \<le> (\<Sum>i = 0..<n + 1. (?c x i)) - (\<Sum>i = 0..<n. (?c x i))" by auto
-	  also have "\<dots> = ?c x n" by auto
+	  also have "\<dots> = ?c x n" unfolding One_nat_def by auto
 	  also have "\<dots> = ?a x n" unfolding sgn_pos a_pos by auto
 	  finally show ?thesis .
 	next
@@ -2998,7 +3006,7 @@ proof -
 	  hence m_plus: "2 * (m + 1) = n + 1" by auto
 	  from bounds[of "m + 1", unfolded this atLeastAtMost_iff, THEN conjunct1] bounds[of m, unfolded m_def atLeastAtMost_iff, THEN conjunct2]
 	  have "\<bar>arctan x - (\<Sum>i = 0..<n. (?c x i))\<bar> \<le> (\<Sum>i = 0..<n. (?c x i)) - (\<Sum>i = 0..<n+1. (?c x i))" by auto
-	  also have "\<dots> = - ?c x n" by auto
+	  also have "\<dots> = - ?c x n" unfolding One_nat_def by auto
 	  also have "\<dots> = ?a x n" unfolding sgn_neg a_pos by auto
 	  finally show ?thesis .
 	qed
@@ -3011,7 +3019,9 @@ proof -
       ultimately have "0 \<le> ?a 1 n - ?diff 1 n" by (rule LIM_less_bound)
       hence "?diff 1 n \<le> ?a 1 n" by auto
     }
-    have "?a 1 ----> 0" unfolding LIMSEQ_rabs_zero power_one divide_inverse by (auto intro!: LIMSEQ_mult LIMSEQ_linear LIMSEQ_inverse_real_of_nat)
+    have "?a 1 ----> 0"
+      unfolding LIMSEQ_rabs_zero power_one divide_inverse One_nat_def
+      by (auto intro!: LIMSEQ_mult LIMSEQ_linear LIMSEQ_inverse_real_of_nat)
     have "?diff 1 ----> 0"
     proof (rule LIMSEQ_I)
       fix r :: real assume "0 < r"
@@ -3031,7 +3041,7 @@ proof -
       have "- (pi / 2) < 0" using pi_gt_zero by auto
       have "- (2 * pi) < 0" using pi_gt_zero by auto
       
-      have c_minus_minus: "\<And> i. ?c (- 1) i = - ?c 1 i" by auto
+      have c_minus_minus: "\<And> i. ?c (- 1) i = - ?c 1 i" unfolding One_nat_def by auto
     
       have "arctan (- 1) = arctan (tan (-(pi / 4)))" unfolding tan_45 tan_minus ..
       also have "\<dots> = - (pi / 4)" by (rule arctan_tan, auto simp add: order_less_trans[OF `- (pi / 2) < 0` pi_gt_zero])
@@ -3179,4 +3189,4 @@ apply (rule_tac x=x in exI, rule_tac x=0 in exI, simp)
 apply (erule polar_ex2)
 done
 
-end 
+end

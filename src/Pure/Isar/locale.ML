@@ -194,7 +194,7 @@ fun intros_of thy = #intros o the_locale thy;
 fun axioms_of thy = #axioms o the_locale thy;
 
 fun instance_of thy name morph = params_of thy name |>
-  map ((fn (b, T, _) => Free (Binding.base_name b, the T)) #> Morphism.term morph);
+  map ((fn (b, T, _) => Free (Binding.name_of b, the T)) #> Morphism.term morph);
 
 fun specification_of thy = #spec o the_locale thy;
 
@@ -464,8 +464,7 @@ local
 fun decl_attrib decl phi = Thm.declaration_attribute (K (decl phi));
 
 fun add_decls add loc decl =
-  ProofContext.theory ((change_locale loc o apfst o apfst) (add (decl, stamp ())))
-    #>
+  ProofContext.theory ((change_locale loc o apfst o apfst) (add (decl, stamp ()))) #>
   add_thmss loc Thm.internalK
     [((Binding.empty, [Attrib.internal (decl_attrib decl)]), [([Drule.dummy_thm], [])])];
 

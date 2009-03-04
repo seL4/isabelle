@@ -493,7 +493,7 @@ fun resort_terms pp algebra consts constraints ts =
 fun init_instantiation (tycos, vs, sort) thy =
   let
     val _ = if null tycos then error "At least one arity must be given" else ();
-    val params = these_params thy sort;
+    val params = these_params thy (filter (can (AxClass.get_info thy)) sort);
     fun get_param tyco (param, (_, (c, ty))) =
       if can (AxClass.param_of_inst thy) (c, tyco)
       then NONE else SOME ((c, tyco),
@@ -513,7 +513,8 @@ fun init_instantiation (tycos, vs, sort) thy =
       | SOME ts' => SOME (ts', ctxt);
     fun improve (c, ty) = case AxClass.inst_tyco_of thy (c, ty)
      of SOME tyco => (case AList.lookup (op =) inst_params (c, tyco)
-         of SOME (_, ty') => if Type.raw_instance (ty', ty) then SOME (ty, ty') else NONE
+         of SOME (_, ty') => if Type.typ_instance (Sign.tsig_of thy) (ty', ty)
+              then SOME (ty, ty') else NONE
           | NONE => NONE)
       | NONE => NONE;
   in
@@ -523,8 +524,7 @@ fun init_instantiation (tycos, vs, sort) thy =
     |> fold (Variable.declare_typ o TFree) vs
     |> fold (Variable.declare_names o Free o snd) inst_params
     |> (Overloading.map_improvable_syntax o apfst)
-         (fn ((_, _), ((_, subst), unchecks)) =>
-            ((primary_constraints, []), (((improve, K NONE), false), [])))
+         (K ((primary_constraints, []), (((improve, K NONE), false), [])))
     |> Overloading.add_improvable_syntax
     |> Context.proof_map (Syntax.add_term_check 0 "resorting" resort_check)
     |> synchronize_inst_syntax

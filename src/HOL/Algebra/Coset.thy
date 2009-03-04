@@ -602,8 +602,8 @@ proof -
   interpret group G by fact
   show ?thesis
   proof (intro equiv.intro)
-    show "refl (carrier G) (rcong H)"
-      by (auto simp add: r_congruent_def refl_def) 
+    show "refl_on (carrier G) (rcong H)"
+      by (auto simp add: r_congruent_def refl_on_def) 
   next
     show "sym (rcong H)"
     proof (simp add: r_congruent_def sym_def, clarify)

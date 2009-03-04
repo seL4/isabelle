@@ -6,7 +6,7 @@
 header {* Permutations, both general and specifically on finite sets.*}
 
 theory Permutations
-imports Main Finite_Cartesian_Product Parity 
+imports Main Finite_Cartesian_Product Parity Fact
 begin
 
   (* Why should I import Main just to solve the Typerep problem! *)
@@ -683,13 +683,13 @@ lemma sign_idempotent: "sign p * sign p = 1" by (simp add: sign_def)
 (* ------------------------------------------------------------------------- *)
 
 lemma permutes_natset_le:
-  assumes p: "p permutes (S:: nat set)" and le: "\<forall>i \<in> S.  p i <= i" shows "p = id"
+  assumes p: "p permutes (S::'a::wellorder set)" and le: "\<forall>i \<in> S.  p i <= i" shows "p = id"
 proof-
   {fix n
     have "p n = n" 
       using p le
-    proof(induct n arbitrary: S rule: nat_less_induct)
-      fix n S assume H: "\<forall> m< n. \<forall>S. p permutes S \<longrightarrow> (\<forall>i\<in>S. p i \<le> i) \<longrightarrow> p m = m" 
+    proof(induct n arbitrary: S rule: less_induct)
+      fix n S assume H: "\<And>m S. \<lbrakk>m < n; p permutes S; \<forall>i\<in>S. p i \<le> i\<rbrakk> \<Longrightarrow> p m = m" 
 	"p permutes S" "\<forall>i \<in>S. p i \<le> i"
       {assume "n \<notin> S"
 	with H(2) have "p n = n" unfolding permutes_def by metis}
@@ -699,7 +699,7 @@ proof-
 	moreover{assume h: "p n < n"
 	  from H h have "p (p n) = p n" by metis
 	  with permutes_inj[OF H(2)] have "p n = n" unfolding inj_on_def by blast
-	  with h have False by arith}
+	  with h have False by simp}
 	ultimately have "p n = n" by blast }
       ultimately show "p n = n"  by blast
     qed}
@@ -707,7 +707,7 @@ proof-
 qed
 
 lemma permutes_natset_ge:
-  assumes p: "p permutes (S:: nat set)" and le: "\<forall>i \<in> S.  p i \<ge> i" shows "p = id"
+  assumes p: "p permutes (S::'a::wellorder set)" and le: "\<forall>i \<in> S.  p i \<ge> i" shows "p = id"
 proof-
   {fix i assume i: "i \<in> S"
     from i permutes_in_image[OF permutes_inv[OF p]] have "inv p i \<in> S" by simp
@@ -757,13 +757,13 @@ apply metis
 done
 
 term setsum
-lemma setsum_permutations_inverse: "setsum f {p. p permutes {m..n}} = setsum (\<lambda>p. f(inv p)) {p. p permutes {m..n}}" (is "?lhs = ?rhs")
+lemma setsum_permutations_inverse: "setsum f {p. p permutes S} = setsum (\<lambda>p. f(inv p)) {p. p permutes S}" (is "?lhs = ?rhs")
 proof-
-  let ?S = "{p . p permutes {m .. n}}"
+  let ?S = "{p . p permutes S}"
 have th0: "inj_on inv ?S" 
 proof(auto simp add: inj_on_def)
   fix q r
-  assume q: "q permutes {m .. n}" and r: "r permutes {m .. n}" and qr: "inv q = inv r"
+  assume q: "q permutes S" and r: "r permutes S" and qr: "inv q = inv r"
   hence "inv (inv q) = inv (inv r)" by simp
   with permutes_inv_inv[OF q] permutes_inv_inv[OF r]
   show "q = r" by metis
@@ -774,17 +774,17 @@ qed
 qed
 
 lemma setum_permutations_compose_left:
-  assumes q: "q permutes {m..n}"
-  shows "setsum f {p. p permutes {m..n}} =
-            setsum (\<lambda>p. f(q o p)) {p. p permutes {m..n}}" (is "?lhs = ?rhs")
+  assumes q: "q permutes S"
+  shows "setsum f {p. p permutes S} =
+            setsum (\<lambda>p. f(q o p)) {p. p permutes S}" (is "?lhs = ?rhs")
 proof-
-  let ?S = "{p. p permutes {m..n}}"
+  let ?S = "{p. p permutes S}"
   have th0: "?rhs = setsum (f o (op o q)) ?S" by (simp add: o_def)
   have th1: "inj_on (op o q) ?S"
     apply (auto simp add: inj_on_def)
   proof-
     fix p r
-    assume "p permutes {m..n}" and r:"r permutes {m..n}" and rp: "q \<circ> p = q \<circ> r"
+    assume "p permutes S" and r:"r permutes S" and rp: "q \<circ> p = q \<circ> r"
     hence "inv q o q o p = inv q o q o r" by (simp add: o_assoc[symmetric])
     with permutes_inj[OF q, unfolded inj_iff]
 
@@ -796,17 +796,17 @@ proof-
 qed
 
 lemma sum_permutations_compose_right:
-  assumes q: "q permutes {m..n}"
-  shows "setsum f {p. p permutes {m..n}} =
-            setsum (\<lambda>p. f(p o q)) {p. p permutes {m..n}}" (is "?lhs = ?rhs")
+  assumes q: "q permutes S"
+  shows "setsum f {p. p permutes S} =
+            setsum (\<lambda>p. f(p o q)) {p. p permutes S}" (is "?lhs = ?rhs")
 proof-
-  let ?S = "{p. p permutes {m..n}}"
+  let ?S = "{p. p permutes S}"
   have th0: "?rhs = setsum (f o (\<lambda>p. p o q)) ?S" by (simp add: o_def)
   have th1: "inj_on (\<lambda>p. p o q) ?S"
     apply (auto simp add: inj_on_def)
   proof-
     fix p r
-    assume "p permutes {m..n}" and r:"r permutes {m..n}" and rp: "p o q = r o q"
+    assume "p permutes S" and r:"r permutes S" and rp: "p o q = r o q"
     hence "p o (q o inv q)  = r o (q o inv q)" by (simp add: o_assoc)
     with permutes_surj[OF q, unfolded surj_iff]
 

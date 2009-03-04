@@ -543,9 +543,9 @@ fun infer_types ctxt =
         val all_thms_FO = forall (Meson.is_fol_term thy o prop_of)
         val isFO = (mode = ResAtp.Fol) orelse
                    (mode <> ResAtp.Hol andalso all_thms_FO (cls @ ths))
-        val lmap0 = foldl (add_thm true ctxt)
+        val lmap0 = List.foldl (add_thm true ctxt)
                           {isFO = isFO, axioms = [], tfrees = init_tfrees ctxt} cls
-        val lmap = foldl (add_thm false ctxt) (add_tfrees lmap0) ths
+        val lmap = List.foldl (add_thm false ctxt) (add_tfrees lmap0) ths
         val clause_lists = map (Metis.Thm.clause o #1) (#axioms lmap)
         fun used c = exists (Metis.LiteralSet.exists (const_in_metis c)) clause_lists
         (*Now check for the existence of certain combinators*)
@@ -556,7 +556,7 @@ fun infer_types ctxt =
         val thS   = if used "c_COMBS" then [comb_S] else []
         val thEQ  = if used "c_fequal" then [fequal_imp_equal', equal_imp_fequal'] else []
         val lmap' = if isFO then lmap
-                    else foldl (add_thm false ctxt) lmap (thEQ @ thS @ thC @ thB @ thK @ thI)
+                    else List.foldl (add_thm false ctxt) lmap (thEQ @ thS @ thC @ thB @ thK @ thI)
     in
         add_type_thm (type_ext thy (map prop_of (cls @ ths))) lmap'
     end;

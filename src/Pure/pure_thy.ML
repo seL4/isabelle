@@ -31,10 +31,10 @@ sig
   val add_thm: (binding * thm) * attribute list -> theory -> thm * theory
   val add_thmss: ((binding * thm list) * attribute list) list -> theory -> thm list list * theory
   val add_thms_dynamic: binding * (Context.generic -> thm list) -> theory -> theory
-  val note_thmss: string -> ((binding * attribute list) *
-    (thm list * attribute list) list) list -> theory -> (string * thm list) list * theory
-  val note_thmss_grouped: string -> string -> ((binding * attribute list) *
-    (thm list * attribute list) list) list -> theory -> (string * thm list) list * theory
+  val note_thmss: string -> (Thm.binding *
+      (thm list * attribute list) list) list -> theory -> (string * thm list) list * theory
+  val note_thmss_grouped: string -> string -> (Thm.binding *
+      (thm list * attribute list) list) list -> theory -> (string * thm list) list * theory
   val add_axioms: ((binding * term) * attribute list) list -> theory -> thm list * theory
   val add_axioms_cmd: ((bstring * string) * attribute list) list -> theory -> thm list * theory
   val add_defs: bool -> ((binding * term) * attribute list) list ->
@@ -151,14 +151,15 @@ fun enter_proofs (thy, thms) =
 fun enter_thms pre_name post_name app_att (b, thms) thy =
   if Binding.is_empty b
   then swap (enter_proofs (app_att (thy, thms)))
-  else let
-    val naming = Sign.naming_of thy;
-    val name = NameSpace.full_name naming b;
-    val (thy', thms') =
-      enter_proofs (apsnd (post_name name) (app_att (thy, pre_name name thms)));
-    val thms'' = map (Thm.transfer thy') thms';
-    val thy'' = thy' |> (FactsData.map o apfst) (Facts.add_global naming (b, thms'') #> snd);
-  in (thms'', thy'') end;
+  else
+    let
+      val naming = Sign.naming_of thy;
+      val name = NameSpace.full_name naming b;
+      val (thy', thms') =
+        enter_proofs (apsnd (post_name name) (app_att (thy, pre_name name thms)));
+      val thms'' = map (Thm.transfer thy') thms';
+      val thy'' = thy' |> (FactsData.map o apfst) (Facts.add_global naming (b, thms'') #> snd);
+    in (thms'', thy'') end;
 
 
 (* store_thm(s) *)
@@ -177,7 +178,7 @@ fun store_thm_open (b, th) =
 
 fun add_thms_atts pre_name ((b, thms), atts) =
   enter_thms pre_name (name_thms false true Position.none)
-    (foldl_map (Thm.theory_attributes atts)) (b, thms);
+    (Library.foldl_map (Thm.theory_attributes atts)) (b, thms);
 
 fun gen_add_thmss pre_name =
   fold_map (add_thms_atts pre_name);
@@ -207,9 +208,9 @@ fun gen_note_thmss tag = fold_map (fn ((b, more_atts), ths_atts) => fn thy =>
     val name = Sign.full_name thy b;
     val _ = Position.report (Markup.fact_decl name) pos;
 
-    fun app (x, (ths, atts)) = foldl_map (Thm.theory_attributes atts) (x, ths);
+    fun app (x, (ths, atts)) = Library.foldl_map (Thm.theory_attributes atts) (x, ths);
     val (thms, thy') = thy |> enter_thms
-      (name_thmss true pos) (name_thms false true pos) (apsnd flat o foldl_map app)
+      (name_thmss true pos) (name_thms false true pos) (apsnd flat o Library.foldl_map app)
       (b, map (fn (ths, atts) => (ths, surround tag (atts @ more_atts))) ths_atts);
   in ((name, thms), thy') end);
 

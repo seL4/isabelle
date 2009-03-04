@@ -1,5 +1,4 @@
 (*  Title:      HOLCF/Tools/domain/domain_axioms.ML
-    ID:         $Id$
     Author:     David von Oheimb
 
 Syntax generator for domain command.
@@ -29,7 +28,7 @@ let
   val rep_iso_ax = ("rep_iso", mk_trp(dc_abs`(dc_rep`%x_name') === %:x_name'));
 
   val when_def = ("when_def",%%:(dname^"_when") == 
-     foldr (uncurry /\ ) (/\x_name'((when_body cons (fn (x,y) =>
+     List.foldr (uncurry /\ ) (/\x_name'((when_body cons (fn (x,y) =>
 				Bound(1+length cons+x-y)))`(dc_rep`Bound 0))) (when_funs cons));
   
   val copy_def = let
@@ -37,9 +36,9 @@ let
 			 then (cproj (Bound z) eqs (rec_of arg))`Bound(z-x)
 			 else Bound(z-x);
     fun one_con (con,args) =
-        foldr /\# (list_ccomb (%%:con, mapn (idxs (length args)) 1 args)) args;
+        List.foldr /\# (list_ccomb (%%:con, mapn (idxs (length args)) 1 args)) args;
   in ("copy_def", %%:(dname^"_copy") ==
-       /\"f" (list_ccomb (%%:(dname^"_when"), map one_con cons))) end;
+       /\ "f" (list_ccomb (%%:(dname^"_when"), map one_con cons))) end;
 
 (* -- definitions concerning the constructors, discriminators and selectors - *)
 
@@ -49,7 +48,7 @@ let
     fun inj y 1 _ = y
     |   inj y _ 0 = mk_sinl y
     |   inj y i j = mk_sinr (inj y (i-1) (j-1));
-  in foldr /\# (dc_abs`(inj (parms args) m n)) args end;
+  in List.foldr /\# (dc_abs`(inj (parms args) m n)) args end;
   
   val con_defs = mapn (fn n => fn (con,args) =>
     (extern_name con ^"_def", %%:con == con_def (length cons) n (con,args))) 0 cons;
@@ -57,14 +56,14 @@ let
   val dis_defs = let
 	fun ddef (con,_) = (dis_name con ^"_def",%%:(dis_name con) == 
 		 list_ccomb(%%:(dname^"_when"),map 
-			(fn (con',args) => (foldr /\#
+			(fn (con',args) => (List.foldr /\#
 			   (if con'=con then TT else FF) args)) cons))
 	in map ddef cons end;
 
   val mat_defs = let
 	fun mdef (con,_) = (mat_name con ^"_def",%%:(mat_name con) == 
 		 list_ccomb(%%:(dname^"_when"),map 
-			(fn (con',args) => (foldr /\#
+			(fn (con',args) => (List.foldr /\#
 			   (if con'=con
                                then mk_return (mk_ctuple (map (bound_arg args) args))
                                else mk_fail) args)) cons))
@@ -79,7 +78,7 @@ let
           val r = Bound (length args);
           val rhs = case args of [] => mk_return HOLogic.unit
                                 | _ => mk_ctuple_pat ps ` mk_ctuple xs;
-          fun one_con (con',args') = foldr /\# (if con'=con then rhs else mk_fail) args';
+          fun one_con (con',args') = List.foldr /\# (if con'=con then rhs else mk_fail) args';
         in (pat_name con ^"_def", list_comb (%%:(pat_name con), ps) == 
                list_ccomb(%%:(dname^"_when"), map one_con cons))
         end
@@ -89,7 +88,7 @@ let
 	fun sdef con n arg = Option.map (fn sel => (sel^"_def",%%:sel == 
 		 list_ccomb(%%:(dname^"_when"),map 
 			(fn (con',args) => if con'<>con then UU else
-			 foldr /\# (Bound (length args - n)) args) cons))) (sel_of arg);
+			 List.foldr /\# (Bound (length args - n)) args) cons))) (sel_of arg);
 	in List.mapPartial I (List.concat(map (fn (con,args) => mapn (sdef con) 1 args) cons)) end;
 
 
@@ -107,7 +106,7 @@ in (dnam,
     [when_def, copy_def] @
      con_defs @ dis_defs @ mat_defs @ pat_defs @ sel_defs @
     [take_def, finite_def])
-end; (* let *)
+end; (* let (calc_axioms) *)
 
 fun infer_props thy = map (apsnd (FixrecPackage.legacy_infer_prop thy));
 
@@ -117,6 +116,14 @@ fun add_axioms_infer axms thy = add_axioms_i (infer_props thy axms) thy;
 fun add_defs_i x = snd o (PureThy.add_defs false) (map (Thm.no_attributes o apfst Binding.name) x);
 fun add_defs_infer defs thy = add_defs_i (infer_props thy defs) thy;
 
+fun add_matchers (((dname,_),cons) : eq) thy =
+  let
+    val con_names = map fst cons;
+    val mat_names = map mat_name con_names;
+    fun qualify n = Sign.full_name thy (Binding.name n);
+    val ms = map qualify con_names ~~ map qualify mat_names;
+  in FixrecPackage.add_matchers ms thy end;
+
 in (* local *)
 
 fun add_axioms (comp_dnam, eqs : eq list) thy' = let
@@ -125,7 +132,7 @@ fun add_axioms (comp_dnam, eqs : eq list) thy' = let
   val x_name = idx_name dnames "x"; 
   fun copy_app dname = %%:(dname^"_copy")`Bound 0;
   val copy_def = ("copy_def" , %%:(comp_dname^"_copy") ==
-				    /\"f"(mk_ctuple (map copy_app dnames)));
+				    /\ "f"(mk_ctuple (map copy_app dnames)));
   val bisim_def = ("bisim_def",%%:(comp_dname^"_bisim")==mk_lam("R",
     let
       fun one_con (con,args) = let
@@ -144,11 +151,11 @@ fun add_axioms (comp_dnam, eqs : eq list) thy' = let
 					 (allargs~~((allargs_cnt-1) downto 0)));
 	fun rel_app i ra = proj (Bound(allargs_cnt+2)) eqs (rec_of ra) $ 
 			   Bound (2*recs_cnt-i) $ Bound (recs_cnt-i);
-	val capps = foldr mk_conj (mk_conj(
+	val capps = List.foldr mk_conj (mk_conj(
 	   Bound(allargs_cnt+1)===list_ccomb(%%:con,map (bound_arg allvns) vns1),
 	   Bound(allargs_cnt+0)===list_ccomb(%%:con,map (bound_arg allvns) vns2)))
            (mapn rel_app 1 rec_args);
-        in foldr mk_ex (Library.foldr mk_conj 
+        in List.foldr mk_ex (Library.foldr mk_conj 
 			      (map (defined o Bound) nonlazy_idxs,capps)) allvns end;
       fun one_comp n (_,cons) =mk_all(x_name(n+1),mk_all(x_name(n+1)^"'",mk_imp(
 	 		proj (Bound 2) eqs n $ Bound 1 $ Bound 0,
@@ -164,7 +171,8 @@ fun add_axioms (comp_dnam, eqs : eq list) thy' = let
 in thy |> Sign.add_path comp_dnam  
        |> add_defs_infer (bisim_def::(if length eqs>1 then [copy_def] else []))
        |> Sign.parent_path
-end;
+       |> fold add_matchers eqs
+end; (* let (add_axioms) *)
 
 end; (* local *)
 end; (* struct *)

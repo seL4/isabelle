@@ -1,5 +1,3 @@
-(* $Id$ *)
-
 theory Outer_Syntax
 imports Main
 begin
@@ -170,10 +168,10 @@ text {* The outer lexical syntax consists of three main categories of
   Isabelle as @{verbatim \<forall>}.  There are infinitely many Isabelle
   symbols like this, although proper presentation is left to front-end
   tools such as {\LaTeX} or Proof~General with the X-Symbol package.
-  A list of standard Isabelle symbols that work well with these tools
-  is given in \appref{app:symbols}.  Note that @{verbatim "\<lambda>"} does
-  not belong to the @{text letter} category, since it is already used
-  differently in the Pure term language.
+  A list of predefined Isabelle symbols that work well with these
+  tools is given in \appref{app:symbols}.  Note that @{verbatim "\<lambda>"}
+  does not belong to the @{text letter} category, since it is already
+  used differently in the Pure term language.
 *}
 
 

@@ -265,7 +265,7 @@ let val funerr = "fastype: expected function type";
       | fast Ts (Const (_, T)) = T
       | fast Ts (Free (_, T)) = T
       | fast Ts (Bound i) =
-        (List.nth (Ts, i)
+        (nth Ts i
          handle Subscript => raise TERM ("fastype: Bound", [Bound i]))
       | fast Ts (Var (_, T)) = T
       | fast Ts (Abs (_, T, u)) = T --> fast (T :: Ts) u

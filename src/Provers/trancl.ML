@@ -1,8 +1,6 @@
 (*
-  Title:	Transitivity reasoner for transitive closures of relations
-  Id:		$Id$
-  Author:	Oliver Kutter
-  Copyright:	TU Muenchen
+    Title:      Transitivity reasoner for transitive closures of relations
+    Author:     Oliver Kutter, TU Muenchen
 *)
 
 (*
@@ -335,7 +333,7 @@ fun transpose eq_comp g =
 
    (* Compute, for each adjacency list, the list with reversed edges,
       and concatenate these lists. *)
-   val flipped = foldr (op @) nil (map flip g)
+   val flipped = List.foldr (op @) nil (map flip g)
  
  in assemble g flipped end    
  
@@ -359,7 +357,7 @@ fun dfs_reachable eq_comp g u =
       let
    val _ = visited := u :: !visited
    val descendents =
-       foldr (fn ((v,l),ds) => if been_visited v then ds
+       List.foldr (fn ((v,l),ds) => if been_visited v then ds
             else v :: dfs_visit g v @ ds)
         nil (adjacent eq_comp g u)
    in  descendents end

@@ -147,7 +147,7 @@ next show "mul x x = pwr x 2" by (simp add: nat_number pwr_Suc pwr_0 mul_1 mul_c
 next show "pwr (mul x y) q = mul (pwr x q) (pwr y q)" by (rule pwr_mul)
 next show "pwr (pwr x p) q = pwr x (p * q)" by (rule pwr_pwr)
 next show "pwr x 0 = r1" using pwr_0 .
-next show "pwr x 1 = x" by (simp add: nat_number pwr_Suc pwr_0 mul_1 mul_c)
+next show "pwr x 1 = x" unfolding One_nat_def by (simp add: nat_number pwr_Suc pwr_0 mul_1 mul_c)
 next show "mul x (add y z) = add (mul x y) (mul x z)" using mul_d by simp
 next show "pwr x (Suc q) = mul x (pwr x q)" using pwr_Suc by simp
 next show "pwr x (2 * n) = mul (pwr x n) (pwr x n)" by (simp add: nat_number mul_pwr)
@@ -436,8 +436,8 @@ end
 *} "solve polynomial equations over (semi)rings and ideal membership problems using Groebner bases"
 declare dvd_def[algebra]
 declare dvd_eq_mod_eq_0[symmetric, algebra]
-declare nat_mod_div_trivial[algebra]
-declare nat_mod_mod_trivial[algebra]
+declare mod_div_trivial[algebra]
+declare mod_mod_trivial[algebra]
 declare conjunct1[OF DIVISION_BY_ZERO, algebra]
 declare conjunct2[OF DIVISION_BY_ZERO, algebra]
 declare zmod_zdiv_equality[symmetric,algebra]
@@ -448,16 +448,16 @@ declare zdiv_zminus2[algebra]
 declare zmod_zminus2[algebra]
 declare zdiv_zero[algebra]
 declare zmod_zero[algebra]
-declare zmod_1[algebra]
-declare zdiv_1[algebra]
+declare mod_by_1[algebra]
+declare div_by_1[algebra]
 declare zmod_minus1_right[algebra]
 declare zdiv_minus1_right[algebra]
 declare mod_div_trivial[algebra]
 declare mod_mod_trivial[algebra]
-declare zmod_zmult_self1[algebra]
-declare zmod_zmult_self2[algebra]
+declare mod_mult_self2_is_0[algebra]
+declare mod_mult_self1_is_0[algebra]
 declare zmod_eq_0_iff[algebra]
-declare zdvd_0_left[algebra]
+declare dvd_0_left_iff[algebra]
 declare zdvd1_eq[algebra]
 declare zmod_eq_dvd_iff[algebra]
 declare nat_mod_eq_iff[algebra]

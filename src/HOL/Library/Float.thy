@@ -1,7 +1,10 @@
-(* Title:    HOL/Library/Float.thy
- * Author:   Steven Obua 2008
- *           Johannes Hölzl, TU Muenchen <hoelzl@in.tum.de> 2008 / 2009
- *)
+(*  Title:      HOL/Library/Float.thy
+    Author:     Steven Obua 2008
+    Author:     Johannes Hoelzl, TU Muenchen <hoelzl@in.tum.de> 2008 / 2009
+*)
+
+header {* Floating-Point Numbers *}
+
 theory Float
 imports Complex_Main
 begin
@@ -792,7 +795,7 @@ proof -
     have "x \<noteq> y"
     proof (rule ccontr)
       assume "\<not> x \<noteq> y" hence "x = y" by auto
-      have "?X mod y = 0" unfolding `x = y` using zmod_zmult_self2 by auto
+      have "?X mod y = 0" unfolding `x = y` using mod_mult_self1_is_0 by auto
       thus False using False by auto
     qed
     hence "x < y" using `x \<le> y` by auto
@@ -1090,7 +1093,7 @@ proof (cases x)
   { have "2^(prec - 1) * m \<le> 2^(prec - 1) * 2^?b" using `m < 2^?b`[THEN less_imp_le] by (rule mult_left_mono, auto)
     also have "\<dots> = 2 ^ nat (int prec + bitlen m - 1)" unfolding pow_split zpower_zadd_distrib by auto
     finally have "2^(prec - 1) * m div m \<le> 2 ^ nat (int prec + bitlen m - 1) div m" using `0 < m` by (rule zdiv_mono1)
-    hence "2^(prec - 1) \<le> 2 ^ nat (int prec + bitlen m - 1) div m" unfolding zdiv_zmult_self1[OF `m \<noteq> 0`] .
+    hence "2^(prec - 1) \<le> 2 ^ nat (int prec + bitlen m - 1) div m" unfolding div_mult_self2_is_id[OF `m \<noteq> 0`] .
     hence "2^(prec - 1) * inverse (2 ^ nat (int prec + bitlen m - 1)) \<le> ?d"
       unfolding real_of_int_le_iff[of "2^(prec - 1)", symmetric] by auto }
   from mult_left_mono[OF this[unfolded pow_split power_add inverse_mult_distrib real_mult_assoc[symmetric] right_inverse[OF pow_not0] real_mult_1], of "2^?e"]

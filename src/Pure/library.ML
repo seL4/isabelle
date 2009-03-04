@@ -76,7 +76,6 @@ sig
   val perhaps_loop: ('a -> 'a option) -> 'a -> 'a option
   val foldl1: ('a * 'a -> 'a) -> 'a list -> 'a
   val foldr1: ('a * 'a -> 'a) -> 'a list -> 'a
-  val foldl_map: ('a * 'b -> 'a * 'c) -> 'a * 'b list -> 'a * 'c list
   val flat: 'a list list -> 'a list
   val unflat: 'a list list -> 'b list -> 'b list list
   val burrow: ('a list -> 'b list) -> 'a list list -> 'b list list
@@ -238,6 +237,7 @@ sig
   include BASIC_LIBRARY
   val foldl: ('a * 'b -> 'a) -> 'a * 'b list -> 'a
   val foldr: ('a * 'b -> 'b) -> 'a list * 'b -> 'b
+  val foldl_map: ('a * 'b -> 'a * 'c) -> 'a * 'b list -> 'a * 'c list
   val take: int * 'a list -> 'a list
   val drop: int * 'a list -> 'a list
   val last_elem: 'a list -> 'a

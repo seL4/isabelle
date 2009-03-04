@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
 #
-# $Id$
-#
 # make-metis - turn original Metis files into Isabelle ML source.
 #
 # Structure declarations etc. are made local by wrapping into a
@@ -11,8 +9,6 @@
 THIS=$(cd "$(dirname "$0")"; echo $PWD)
 
 (
-  echo -n '(* $'
-  echo 'Id$ *)'
   cat <<EOF
 (******************************************************************)
 (* GENERATED FILE -- DO NOT EDIT -- GENERATED FILE -- DO NOT EDIT *)

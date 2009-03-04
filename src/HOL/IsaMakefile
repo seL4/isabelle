@@ -13,7 +13,6 @@ test: \
   HOL-Library \
   HOL-ex \
   HOL-Auth \
-  HOL-AxClasses \
   HOL-Bali \
   HOL-Decision_Procs \
   HOL-Extraction \
@@ -79,38 +78,39 @@ Pure:
 $(OUT)/Pure: Pure
 
 BASE_DEPENDENCIES = $(OUT)/Pure \
+  $(SRC)/Provers/blast.ML \
+  $(SRC)/Provers/clasimp.ML \
+  $(SRC)/Provers/classical.ML \
+  $(SRC)/Provers/hypsubst.ML \
+  $(SRC)/Provers/quantifier1.ML \
+  $(SRC)/Provers/splitter.ML \
+  $(SRC)/Tools/IsaPlanner/isand.ML \
+  $(SRC)/Tools/IsaPlanner/rw_inst.ML \
+  $(SRC)/Tools/IsaPlanner/rw_tools.ML \
+  $(SRC)/Tools/IsaPlanner/zipper.ML \
+  $(SRC)/Tools/atomize_elim.ML \
+  $(SRC)/Tools/code/code_funcgr.ML \
+  $(SRC)/Tools/code/code_haskell.ML \
+  $(SRC)/Tools/code/code_ml.ML \
+  $(SRC)/Tools/code/code_name.ML \
+  $(SRC)/Tools/code/code_printer.ML \
+  $(SRC)/Tools/code/code_target.ML \
+  $(SRC)/Tools/code/code_thingol.ML \
+  $(SRC)/Tools/code/code_wellsorted.ML \
+  $(SRC)/Tools/coherent.ML \
+  $(SRC)/Tools/eqsubst.ML \
+  $(SRC)/Tools/induct.ML \
+  $(SRC)/Tools/intuitionistic.ML \
+  $(SRC)/Tools/induct_tacs.ML \
+  $(SRC)/Tools/nbe.ML \
+  $(SRC)/Tools/project_rule.ML \
+  $(SRC)/Tools/random_word.ML \
+  $(SRC)/Tools/value.ML \
   Code_Setup.thy \
   HOL.thy \
   Tools/hologic.ML \
   Tools/recfun_codegen.ML \
   Tools/simpdata.ML \
-  $(SRC)/Tools/atomize_elim.ML \
-  $(SRC)/Tools/code/code_funcgr.ML \
-  $(SRC)/Tools/code/code_funcgr.ML \
-  $(SRC)/Tools/code/code_name.ML \
-  $(SRC)/Tools/code/code_printer.ML \
-  $(SRC)/Tools/code/code_target.ML \
-  $(SRC)/Tools/code/code_ml.ML \
-  $(SRC)/Tools/code/code_haskell.ML \
-  $(SRC)/Tools/code/code_thingol.ML \
-  $(SRC)/Tools/induct.ML \
-  $(SRC)/Tools/induct_tacs.ML \
-  $(SRC)/Tools/IsaPlanner/isand.ML \
-  $(SRC)/Tools/IsaPlanner/rw_inst.ML \
-  $(SRC)/Tools/IsaPlanner/rw_tools.ML \
-  $(SRC)/Tools/IsaPlanner/zipper.ML \
-  $(SRC)/Tools/nbe.ML \
-  $(SRC)/Tools/random_word.ML \
-  $(SRC)/Tools/value.ML \
-  $(SRC)/Provers/blast.ML \
-  $(SRC)/Provers/clasimp.ML \
-  $(SRC)/Provers/classical.ML \
-  $(SRC)/Provers/coherent.ML \
-  $(SRC)/Provers/eqsubst.ML \
-  $(SRC)/Provers/hypsubst.ML \
-  $(SRC)/Provers/project_rule.ML \
-  $(SRC)/Provers/quantifier1.ML \
-  $(SRC)/Provers/splitter.ML \
 
 $(OUT)/HOL-Base: base.ML $(BASE_DEPENDENCIES)
 	@$(ISABELLE_TOOL) usedir -b -f base.ML -d false -g false $(OUT)/Pure HOL-Base
@@ -267,11 +267,11 @@ $(OUT)/HOL-Main: main.ML $(MAIN_DEPENDENCIES)
 	@$(ISABELLE_TOOL) usedir -b -f main.ML -g true $(OUT)/Pure HOL-Main
 
 $(OUT)/HOL: ROOT.ML $(MAIN_DEPENDENCIES) \
+  Archimedean_Field.thy \
   Complex_Main.thy \
   Complex.thy \
   Deriv.thy \
   Fact.thy \
-  FrechetDeriv.thy \
   Integration.thy \
   Lim.thy \
   Ln.thy \
@@ -285,7 +285,6 @@ $(OUT)/HOL: ROOT.ML $(MAIN_DEPENDENCIES) \
   GCD.thy \
   Parity.thy \
   Lubs.thy \
-  Polynomial.thy \
   PReal.thy \
   Rational.thy \
   RComplete.thy \
@@ -314,8 +313,11 @@ $(LOG)/HOL-Library.gz: $(OUT)/HOL Library/SetsAndFunctions.thy		\
   Library/Euclidean_Space.thy Library/Glbs.thy Library/normarith.ML \
   Library/Executable_Set.thy Library/Infinite_Set.thy			\
   Library/FuncSet.thy Library/Permutations.thy Library/Determinants.thy\
+  Library/Bit.thy \
   Library/Finite_Cartesian_Product.thy \
+  Library/FrechetDeriv.thy \
   Library/Fundamental_Theorem_Algebra.thy \
+  Library/Inner_Product.thy \
   Library/Library.thy Library/List_Prefix.thy Library/State_Monad.thy	\
   Library/Nat_Int_Bij.thy Library/Multiset.thy Library/Permutation.thy	\
   Library/Primes.thy Library/Pocklington.thy Library/Quotient.thy	\
@@ -336,6 +338,10 @@ $(LOG)/HOL-Library.gz: $(OUT)/HOL Library/SetsAndFunctions.thy		\
   Library/Boolean_Algebra.thy Library/Countable.thy	\
   Library/RBT.thy	Library/Univ_Poly.thy	\
   Library/Random.thy	Library/Quickcheck.thy	\
+  Library/Poly_Deriv.thy \
+  Library/Polynomial.thy \
+  Library/Product_plus.thy \
+  Library/Product_Vector.thy \
   Library/Enum.thy Library/Float.thy $(SRC)/Tools/float.ML $(SRC)/HOL/Tools/float_arith.ML \
   Library/reify_data.ML Library/reflection.ML
 	@cd Library; $(ISABELLE_TOOL) usedir $(OUT)/HOL Library
@@ -790,15 +796,6 @@ $(LOG)/HOL-IOA.gz: $(OUT)/HOL IOA/Asig.thy IOA/IOA.thy IOA/ROOT.ML	\
 	@$(ISABELLE_TOOL) usedir $(OUT)/HOL IOA
 
 
-## HOL-AxClasses
-
-HOL-AxClasses: HOL $(LOG)/HOL-AxClasses.gz
-
-$(LOG)/HOL-AxClasses.gz: $(OUT)/HOL AxClasses/Group.thy			\
-  AxClasses/Product.thy AxClasses/ROOT.ML AxClasses/Semigroups.thy
-	@$(ISABELLE_TOOL) usedir $(OUT)/HOL AxClasses
-
-
 ## HOL-Lattice
 
 HOL-Lattice: HOL $(LOG)/HOL-Lattice.gz
@@ -814,34 +811,31 @@ $(LOG)/HOL-Lattice.gz: $(OUT)/HOL Lattice/Bounds.thy			\
 HOL-ex: HOL $(LOG)/HOL-ex.gz
 
 $(LOG)/HOL-ex.gz: $(OUT)/HOL Library/Commutative_Ring.thy		\
-  Library/Primes.thy							\
-  ex/Abstract_NAT.thy ex/Antiquote.thy ex/Arith_Examples.thy ex/BT.thy	\
-  ex/BinEx.thy ex/CTL.thy ex/Chinese.thy ex/Classical.thy		\
-  ex/Coherent.thy ex/Dense_Linear_Order_Ex.thy ex/Eval_Examples.thy	\
-  ex/Groebner_Examples.thy ex/Quickcheck_Generators.thy		\
-  ex/Codegenerator.thy ex/Codegenerator_Pretty.thy			\
-  ex/CodegenSML_Test.thy ex/Formal_Power_Series_Examples.thy						\
-  ex/Commutative_RingEx.thy ex/Efficient_Nat_examples.thy		\
-  ex/Hex_Bin_Examples.thy ex/Commutative_Ring_Complete.thy		\
-  ex/ExecutableContent.thy ex/Fundefs.thy ex/Guess.thy ex/Hebrew.thy	\
-  ex/Binary.thy ex/Higher_Order_Logic.thy ex/Hilbert_Classical.thy	\
+  Library/Primes.thy ex/Abstract_NAT.thy ex/Antiquote.thy		\
+  ex/ApproximationEx.thy ex/Arith_Examples.thy				\
+  ex/Arithmetic_Series_Complex.thy ex/BT.thy ex/BinEx.thy		\
+  ex/Binary.thy ex/CTL.thy ex/Chinese.thy ex/Classical.thy		\
+  ex/CodegenSML_Test.thy ex/Codegenerator.thy				\
+  ex/Codegenerator_Pretty.thy ex/Coherent.thy				\
+  ex/Commutative_RingEx.thy ex/Commutative_Ring_Complete.thy		\
+  ex/Dense_Linear_Order_Ex.thy ex/Efficient_Nat_examples.thy		\
+  ex/Eval_Examples.thy ex/ExecutableContent.thy				\
+  ex/Formal_Power_Series_Examples.thy ex/Fundefs.thy			\
+  ex/Groebner_Examples.thy ex/Guess.thy ex/HarmonicSeries.thy		\
+  ex/Hebrew.thy ex/Hex_Bin_Examples.thy ex/Higher_Order_Logic.thy	\
+  ex/Hilbert_Classical.thy ex/ImperativeQuicksort.thy			\
   ex/Induction_Scheme.thy ex/InductiveInvariant.thy			\
   ex/InductiveInvariant_examples.thy ex/Intuitionistic.thy		\
-  ex/Lagrange.thy ex/LocaleTest2.thy ex/MT.thy		\
-  ex/MergeSort.thy ex/MonoidGroup.thy ex/Multiquote.thy ex/NatSum.thy	\
+  ex/Lagrange.thy ex/LocaleTest2.thy ex/MT.thy ex/MergeSort.thy		\
+  ex/Meson_Test.thy ex/MonoidGroup.thy ex/Multiquote.thy ex/NatSum.thy	\
   ex/Numeral.thy ex/PER.thy ex/PresburgerEx.thy ex/Primrec.thy		\
-  ex/Quickcheck_Examples.thy	\
-  ex/ReflectionEx.thy ex/ROOT.ML ex/Recdefs.thy ex/Records.thy		\
+  ex/Quickcheck_Examples.thy ex/Quickcheck_Generators.thy ex/ROOT.ML	\
+  ex/Recdefs.thy ex/Records.thy ex/ReflectionEx.thy			\
   ex/Refute_Examples.thy ex/SAT_Examples.thy ex/SVC_Oracle.thy		\
-  ex/Subarray.thy ex/Sublist.thy                                        \
-  ex/Sudoku.thy ex/Tarski.thy ex/Termination.thy ex/Term_Of_Syntax.thy	\
-  ex/Unification.thy ex/document/root.bib			        \
-  ex/document/root.tex ex/Meson_Test.thy ex/set.thy	\
-  ex/svc_funcs.ML ex/svc_test.thy	\
-  ex/ImperativeQuicksort.thy	\
-  ex/Arithmetic_Series_Complex.thy ex/HarmonicSeries.thy	\
-  ex/Sqrt.thy ex/Sqrt_Script.thy \
-  ex/ApproximationEx.thy
+  ex/Serbian.thy ex/Sqrt.thy ex/Sqrt_Script.thy ex/Subarray.thy		\
+  ex/Sublist.thy ex/Sudoku.thy ex/Tarski.thy ex/Term_Of_Syntax.thy	\
+  ex/Termination.thy ex/Unification.thy ex/document/root.bib		\
+  ex/document/root.tex ex/set.thy ex/svc_funcs.ML ex/svc_test.thy
 	@$(ISABELLE_TOOL) usedir $(OUT)/HOL ex
 
 
@@ -1062,22 +1056,22 @@ $(LOG)/HOL-NSA-Examples.gz: $(OUT)/HOL-NSA NSA/Examples/ROOT.ML	\
 ## clean
 
 clean:
-	@rm -f  $(OUT)/HOL-Plain $(OUT)/HOL-Main $(OUT)/HOL $(OUT)/HOL-Nominal $(OUT)/TLA \
-		$(LOG)/HOL.gz $(LOG)/TLA.gz \
-		$(LOG)/HOL-Isar_examples.gz $(LOG)/HOL-Induct.gz \
-		$(LOG)/HOL-ex.gz $(LOG)/HOL-Subst.gz $(LOG)/HOL-IMP.gz \
-		$(LOG)/HOL-IMPP.gz $(LOG)/HOL-Hoare.gz \
-		$(LOG)/HOL-HoareParallel.gz \
-		$(LOG)/HOL-Lex.gz $(LOG)/HOL-Algebra.gz \
-		$(LOG)/HOL-Auth.gz $(LOG)/HOL-UNITY.gz \
-		$(LOG)/HOL-Modelcheck.gz $(LOG)/HOL-Lambda.gz \
-                $(LOG)/HOL-Bali.gz \
-		$(LOG)/HOL-MicroJava.gz $(LOG)/HOL-NanoJava.gz \
-                $(LOG)/HOL-Nominal-Examples.gz \
-		$(LOG)/HOL-IOA.gz $(LOG)/HOL-AxClasses \
-		$(LOG)/HOL-Lattice $(LOG)/HOL-Matrix \
-		$(LOG)/HOL-HahnBanach.gz $(LOG)/HOL-SET-Protocol.gz \
-                $(LOG)/TLA-Inc.gz $(LOG)/TLA-Buffer.gz $(LOG)/TLA-Memory.gz \
-		$(LOG)/HOL-Library.gz $(LOG)/HOL-Unix.gz \
-                $(OUT)/HOL-Word $(LOG)/HOL-Word.gz $(LOG)/HOL-Word-Examples.gz \
-                $(OUT)/HOL-NSA $(LOG)/HOL-NSA.gz $(LOG)/HOL-NSA-Examples.gz
+	@rm -f $(OUT)/HOL-Plain $(OUT)/HOL-Main $(OUT)/HOL		\
+		$(OUT)/HOL-Nominal $(OUT)/TLA $(LOG)/HOL.gz		\
+		$(LOG)/TLA.gz $(LOG)/HOL-Isar_examples.gz		\
+		$(LOG)/HOL-Induct.gz $(LOG)/HOL-ex.gz			\
+		$(LOG)/HOL-Subst.gz $(LOG)/HOL-IMP.gz			\
+		$(LOG)/HOL-IMPP.gz $(LOG)/HOL-Hoare.gz			\
+		$(LOG)/HOL-HoareParallel.gz $(LOG)/HOL-Lex.gz		\
+		$(LOG)/HOL-Algebra.gz $(LOG)/HOL-Auth.gz		\
+		$(LOG)/HOL-UNITY.gz $(LOG)/HOL-Modelcheck.gz		\
+		$(LOG)/HOL-Lambda.gz $(LOG)/HOL-Bali.gz			\
+		$(LOG)/HOL-MicroJava.gz $(LOG)/HOL-NanoJava.gz		\
+		$(LOG)/HOL-Nominal-Examples.gz $(LOG)/HOL-IOA.gz	\
+		$(LOG)/HOL-Lattice $(LOG)/HOL-Matrix			\
+		$(LOG)/HOL-HahnBanach.gz $(LOG)/HOL-SET-Protocol.gz	\
+		$(LOG)/TLA-Inc.gz $(LOG)/TLA-Buffer.gz			\
+		$(LOG)/TLA-Memory.gz $(LOG)/HOL-Library.gz		\
+		$(LOG)/HOL-Unix.gz $(OUT)/HOL-Word $(LOG)/HOL-Word.gz	\
+		$(LOG)/HOL-Word-Examples.gz $(OUT)/HOL-NSA		\
+		$(LOG)/HOL-NSA.gz $(LOG)/HOL-NSA-Examples.gz

@@ -90,16 +90,15 @@ by (blast intro: genPrefix.prepend)
 
 subsection{*genPrefix is a partial order*}
 
-lemma refl_genPrefix: "reflexive r ==> reflexive (genPrefix r)"
-
-apply (unfold refl_def, auto)
+lemma refl_genPrefix: "refl r ==> refl (genPrefix r)"
+apply (unfold refl_on_def, auto)
 apply (induct_tac "x")
 prefer 2 apply (blast intro: genPrefix.prepend)
 apply (blast intro: genPrefix.Nil)
 done
 
-lemma genPrefix_refl [simp]: "reflexive r ==> (l,l) : genPrefix r"
-by (erule reflD [OF refl_genPrefix UNIV_I])
+lemma genPrefix_refl [simp]: "refl r ==> (l,l) : genPrefix r"
+by (erule refl_onD [OF refl_genPrefix UNIV_I])
 
 lemma genPrefix_mono: "r<=s ==> genPrefix r <= genPrefix s"
 apply clarify
@@ -178,8 +177,8 @@ apply simp
 done
 
 lemma same_genPrefix_genPrefix [simp]: 
-    "reflexive r ==> ((xs@ys, xs@zs) : genPrefix r) = ((ys,zs) : genPrefix r)"
-apply (unfold refl_def)
+    "refl r ==> ((xs@ys, xs@zs) : genPrefix r) = ((ys,zs) : genPrefix r)"
+apply (unfold refl_on_def)
 apply (induct_tac "xs")
 apply (simp_all (no_asm_simp))
 done
@@ -190,7 +189,7 @@ lemma genPrefix_Cons:
 by (case_tac "xs", auto)
 
 lemma genPrefix_take_append:
-     "[| reflexive r;  (xs,ys) : genPrefix r |]  
+     "[| refl r;  (xs,ys) : genPrefix r |]  
       ==>  (xs@zs, take (length xs) ys @ zs) : genPrefix r"
 apply (erule genPrefix.induct)
 apply (frule_tac [3] genPrefix_length_le)
@@ -198,7 +197,7 @@ apply (simp_all (no_asm_simp) add: diff_is_0_eq [THEN iffD2])
 done
 
 lemma genPrefix_append_both:
-     "[| reflexive r;  (xs,ys) : genPrefix r;  length xs = length ys |]  
+     "[| refl r;  (xs,ys) : genPrefix r;  length xs = length ys |]  
       ==>  (xs@zs, ys @ zs) : genPrefix r"
 apply (drule genPrefix_take_append, assumption)
 apply (simp add: take_all)
@@ -210,7 +209,7 @@ lemma append_cons_eq: "xs @ y # ys = (xs @ [y]) @ ys"
 by auto
 
 lemma aolemma:
-     "[| (xs,ys) : genPrefix r;  reflexive r |]  
+     "[| (xs,ys) : genPrefix r;  refl r |]  
       ==> length xs < length ys --> (xs @ [ys ! length xs], ys) : genPrefix r"
 apply (erule genPrefix.induct)
   apply blast
@@ -225,7 +224,7 @@ apply (subst append_cons_eq, fast intro: genPrefix_append_both genPrefix.append)
 done
 
 lemma append_one_genPrefix:
-     "[| (xs,ys) : genPrefix r;  length xs < length ys;  reflexive r |]  
+     "[| (xs,ys) : genPrefix r;  length xs < length ys;  refl r |]  
       ==> (xs @ [ys ! length xs], ys) : genPrefix r"
 by (blast intro: aolemma [THEN mp])
 
@@ -259,7 +258,7 @@ done
 
 subsection{*The type of lists is partially ordered*}
 
-declare reflexive_Id [iff] 
+declare refl_Id [iff] 
         antisym_Id [iff] 
         trans_Id [iff]
 
@@ -383,8 +382,8 @@ subsection{*pfixLe, pfixGe: properties inherited from the translations*}
 
 (** pfixLe **)
 
-lemma reflexive_Le [iff]: "reflexive Le"
-by (unfold refl_def Le_def, auto)
+lemma refl_Le [iff]: "refl Le"
+by (unfold refl_on_def Le_def, auto)
 
 lemma antisym_Le [iff]: "antisym Le"
 by (unfold antisym_def Le_def, auto)
@@ -406,8 +405,8 @@ apply (unfold prefix_def Le_def)
 apply (blast intro: genPrefix_mono [THEN [2] rev_subsetD])
 done
 
-lemma reflexive_Ge [iff]: "reflexive Ge"
-by (unfold refl_def Ge_def, auto)
+lemma refl_Ge [iff]: "refl Ge"
+by (unfold refl_on_def Ge_def, auto)
 
 lemma antisym_Ge [iff]: "antisym Ge"
 by (unfold antisym_def Ge_def, auto)

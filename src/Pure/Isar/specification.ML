@@ -140,7 +140,7 @@ end;
 fun gen_axioms do_print prep raw_vars raw_specs thy =
   let
     val ((vars, specs), _) = prep raw_vars [raw_specs] (ProofContext.init thy);
-    val xs = map (fn ((b, T), _) => (Binding.base_name b, T)) vars;
+    val xs = map (fn ((b, T), _) => (Binding.name_of b, T)) vars;
 
     (*consts*)
     val (consts, consts_thy) = thy |> fold_map (Theory.specify_const []) vars;
@@ -148,8 +148,8 @@ fun gen_axioms do_print prep raw_vars raw_specs thy =
 
     (*axioms*)
     val (axioms, axioms_thy) = consts_thy |> fold_map (fn ((b, atts), props) =>
-        fold_map Thm.add_axiom
-          ((map o apfst) Binding.name (PureThy.name_multi (Binding.base_name b) (map subst props)))
+        fold_map Thm.add_axiom  (* FIXME proper use of binding!? *)
+          ((map o apfst) Binding.name (PureThy.name_multi (Binding.name_of b) (map subst props)))
         #>> (fn ths => ((b, atts), [(map Drule.standard' ths, [])]))) specs;
     val (facts, thy') = axioms_thy |> PureThy.note_thmss Thm.axiomK
       (Attrib.map_facts (Attrib.attribute_i axioms_thy) axioms);
@@ -169,19 +169,19 @@ fun gen_def do_print prep (raw_var, (raw_a, raw_prop)) lthy =
     val (vars, [((raw_name, atts), [prop])]) =
       fst (prep (the_list raw_var) [(raw_a, [raw_prop])] lthy);
     val (((x, T), rhs), prove) = LocalDefs.derived_def lthy true prop;
-    val name = Binding.map_base (Thm.def_name_optional x) raw_name;
+    val name = Binding.map_name (Thm.def_name_optional x) raw_name;
     val var =
       (case vars of
         [] => (Binding.name x, NoSyn)
       | [((b, _), mx)] =>
           let
-            val y = Binding.base_name b;
+            val y = Binding.name_of b;
             val _ = x = y orelse
               error ("Head of definition " ^ quote x ^ " differs from declaration " ^ quote y ^
                 Position.str_of (Binding.pos_of b));
           in (b, mx) end);
     val ((lhs, (_, th)), lthy2) = lthy |> LocalTheory.define Thm.definitionK
-        (var, ((Binding.map_base (suffix "_raw") name, []), rhs));
+        (var, ((Binding.map_name (suffix "_raw") name, []), rhs));
     val ((def_name, [th']), lthy3) = lthy2 |> LocalTheory.note Thm.definitionK
         ((name, Code.add_default_eqn_attrib :: atts), [prove lthy2 th]);
 
@@ -208,7 +208,7 @@ fun gen_abbrev do_print prep mode (raw_var, raw_prop) lthy =
         [] => (Binding.name x, NoSyn)
       | [((b, _), mx)] =>
           let
-            val y = Binding.base_name b;
+            val y = Binding.name_of b;
             val _ = x = y orelse
               error ("Head of abbreviation " ^ quote x ^ " differs from declaration " ^ quote y ^
                 Position.str_of (Binding.pos_of b));
@@ -269,11 +269,10 @@ fun prep_statement prep_att prep_stmt elems concl ctxt =
   | Element.Obtains obtains =>
       let
         val case_names = obtains |> map_index (fn (i, (b, _)) =>
-          let val name = Binding.base_name b
-          in if name = "" then string_of_int (i + 1) else name end);
+          if Binding.is_empty b then string_of_int (i + 1) else Binding.name_of b);
         val constraints = obtains |> map (fn (_, (vars, _)) =>
           Element.Constrains
-            (vars |> map_filter (fn (x, SOME T) => SOME (Binding.base_name x, T) | _ => NONE)));
+            (vars |> map_filter (fn (x, SOME T) => SOME (Binding.name_of x, T) | _ => NONE)));
 
         val raw_propp = obtains |> map (fn (_, (_, props)) => map (rpair []) props);
         val (propp, elems_ctxt) = prep_stmt (elems @ constraints) raw_propp ctxt;
@@ -283,7 +282,7 @@ fun prep_statement prep_att prep_stmt elems concl ctxt =
         fun assume_case ((name, (vars, _)), asms) ctxt' =
           let
             val bs = map fst vars;
-            val xs = map Binding.base_name bs;
+            val xs = map Binding.name_of bs;
             val props = map fst asms;
             val (Ts, _) = ctxt'
               |> fold Variable.declare_term props

@@ -1,5 +1,4 @@
 (*  Title:      Tools/Compute_Oracle/Compute_Oracle.thy
-    ID:         $Id$
     Author:     Steven Obua, TU Munich
 
 Steven Obua's evaluator.

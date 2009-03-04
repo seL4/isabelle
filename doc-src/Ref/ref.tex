@@ -1,13 +1,12 @@
 \documentclass[12pt,a4paper]{report}
-\usepackage{graphicx,../iman,../extra,../ttbox,../proof,../rail,../pdfsetup}
+\usepackage{graphicx,../iman,../extra,../ttbox,../proof,../pdfsetup}
 
-%% $Id$
 %%\includeonly{}
 %%% to index ids: \[\\tt \([a-zA-Z0-9][a-zA-Z0-9_'.]*\)    [\\ttindexbold{\1}
 %%% to delete old ones:  \\indexbold{\*[^}]*}
 %% run    sedindex ref    to prepare index file
 %%% needs chapter on Provers/typedsimp.ML?
-\title{\includegraphics[scale=0.5]{isabelle} \\[4ex] The Isabelle Reference Manual}
+\title{\includegraphics[scale=0.5]{isabelle} \\[4ex] Old Isabelle Reference Manual}
 
 \author{{\em Lawrence C. Paulson}\\
         Computer Laboratory \\ University of Cambridge \\
@@ -22,10 +21,6 @@
 \sloppy
 \binperiod     %%%treat . like a binary operator
 
-\railalias{lbrace}{\ttlbrace}
-\railalias{rbrace}{\ttrbrace}
-\railterm{lbrace,rbrace}
-
 \begin{document}
 \underscoreoff
 
@@ -34,17 +29,10 @@
 \index{meta-rules|see{meta-rules}}
 
 \maketitle 
-\emph{Note}: this document is part of the earlier Isabelle documentation, 
-which is somewhat superseded by the Isabelle/HOL
-\emph{Tutorial}~\cite{isa-tutorial}. Much of it is concerned with 
-the old-style theory syntax and the primitives for conducting proofs 
-using the ML top level. This style of interaction is largely obsolete:
-most Isabelle proofs are now written using the Isar 
-language and the Proof General interface. However, this is the only
-comprehensive Isabelle reference manual.  
-
-See also the \emph{Introduction to Isabelle}, which has tutorial examples
-on conducting proofs using the ML top-level.
+\emph{Note}: this document is part of the earlier Isabelle
+documentation and is mostly outdated.  Fully obsolete parts of the
+original text have already been removed.  The remaining material
+covers some aspects that did not make it into the newer manuals yet.
 
 \subsubsection*{Acknowledgements} 
 Tobias Nipkow, of T. U. Munich, wrote most of
@@ -62,7 +50,6 @@ Tobias Nipkow, of T. U. Munich, wrote most of
 \pagenumbering{roman} \tableofcontents \clearfirst
 
 \include{introduction}
-\include{goals}
 \include{tactic}
 \include{tctical}
 \include{thm}

@@ -1,7 +1,7 @@
 header {* Plain HOL *}
 
 theory Plain
-imports Datatype FunDef Record Extraction Divides Fact
+imports Datatype FunDef Record Extraction Divides
 begin
 
 text {*

@@ -1,6 +1,3 @@
-
-%% $Id$
-
 \documentclass[12pt,a4paper,fleqn]{report}
 \usepackage{amssymb}
 \usepackage[greek,english]{babel}
@@ -27,12 +24,13 @@
   With Contributions by
   Clemens Ballarin,
   Stefan Berghofer, \\
+  Timothy Bourke
   Lucas Dixon,
-  Florian Haftmann,
-  Gerwin Klein, \\
+  Florian Haftmann, \\
+  Gerwin Klein,
   Alexander Krauss,
-  Tobias Nipkow,
-  David von Oheimb, \\
+  Tobias Nipkow, \\
+  David von Oheimb,
   Larry Paulson,
   and Sebastian Skalberg
 }
@@ -82,7 +80,11 @@
 
 \pagenumbering{roman} \tableofcontents \clearfirst
 
+\part{Basic Concepts}
 \input{Thy/document/Introduction.tex}
+\input{Thy/document/Framework.tex}
+\input{Thy/document/First_Order_Logic.tex}
+\part{General Language Elements}
 \input{Thy/document/Outer_Syntax.tex}
 \input{Thy/document/Document_Preparation.tex}
 \input{Thy/document/Spec.tex}
@@ -90,10 +92,12 @@
 \input{Thy/document/Inner_Syntax.tex}
 \input{Thy/document/Misc.tex}
 \input{Thy/document/Generic.tex}
+\part{Object-Logics}
 \input{Thy/document/HOL_Specific.tex}
 \input{Thy/document/HOLCF_Specific.tex}
 \input{Thy/document/ZF_Specific.tex}
 
+\part{Appendix}
 \appendix
 \input{Thy/document/Quick_Reference.tex}
 \let\int\intorig
@@ -101,7 +105,7 @@
 \input{Thy/document/ML_Tactic.tex}
 
 \begingroup
-  \bibliographystyle{plain} \small\raggedright\frenchspacing
+  \bibliographystyle{abbrv} \small\raggedright\frenchspacing
   \bibliography{../manual}
 \endgroup
 
