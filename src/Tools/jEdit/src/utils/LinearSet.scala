@@ -55,9 +55,22 @@ class LinearSet[A] extends scala.collection.immutable.Set[A]
     
   def +(elem: A): LinearSet[A] = insert_after(last_elem, elem)
 
+  def delete_after(elem: Option[A]): LinearSet[A] =
+    elem match {
+      case Some(elem) =>
+        if (!contains(elem)) throw new LinearSet.Undefined(elem.toString)
+        else if (!body.isDefinedAt(elem)) throw new LinearSet.Undefined(null)
+        else if (body(elem) == last_elem.get) LinearSet.make(first_elem, Some(elem), body - elem)
+        else LinearSet.make(first_elem, last_elem, body - elem - body(elem) + (elem -> body(body(elem))))
+      case None =>
+        if (isEmpty) throw new LinearSet.Undefined(null)
+        else if (size == 1) empty
+        else LinearSet.make(Some(body(first_elem.get)), last_elem, body - first_elem.get)
+    }
+    
   def -(elem: A): LinearSet[A] =
     if (!contains(elem)) throw new LinearSet.Undefined(elem.toString)
-    else error("FIXME")
+    else delete_after(body find (p => p._2 == elem) map (p => p._1))
 
   def elements = new Iterator[A] {
     private var next_elem = first_elem
