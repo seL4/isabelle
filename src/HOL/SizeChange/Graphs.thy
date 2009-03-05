@@ -351,7 +351,7 @@ lemma tcl_is_SUP:
 
 lemma in_tcl: 
   "has_edge (tcl G) a x b = (\<exists>n>0. has_edge (G ^ n) a x b)"
-  apply (auto simp: tcl_is_SUP in_SUP simp del: power_graph.simps)
+  apply (auto simp: tcl_is_SUP in_SUP simp del: power_graph.simps power_Suc)
   apply (rule_tac x = "n - 1" in exI, auto)
   done
 
