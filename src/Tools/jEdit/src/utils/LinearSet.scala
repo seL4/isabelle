@@ -40,10 +40,20 @@ class LinearSet[A] extends scala.collection.immutable.Set[A]
   def contains(elem: A): Boolean =
     !isEmpty && (last_elem.get == elem || body.isDefinedAt(elem))
 
-  def +(elem: A): LinearSet[A] =
+  def insert_after(hook: Option[A], elem: A): LinearSet[A] =
     if (contains(elem)) throw new LinearSet.Duplicate(elem.toString)
-    else if (isEmpty) LinearSet.make(Some(elem), Some(elem), Map.empty)
-    else LinearSet.make(first_elem, Some(elem), body + (last_elem.get -> elem))
+    else hook match {
+      case Some(hook) =>
+        if (!contains(hook)) throw new LinearSet.Undefined(hook.toString)
+        else if (body.isDefinedAt(hook))
+          LinearSet.make(first_elem, last_elem, body - hook + (hook -> elem) + (elem -> body(hook)))
+        else LinearSet.make(first_elem, Some(elem), body + (hook -> elem))
+      case None =>
+        if (isEmpty) LinearSet.make(Some(elem), Some(elem), Map.empty)
+        else LinearSet.make(Some(elem), last_elem, body + (elem -> first_elem.get))
+    }
+    
+  def +(elem: A): LinearSet[A] = insert_after(last_elem, elem)
 
   def -(elem: A): LinearSet[A] =
     if (!contains(elem)) throw new LinearSet.Undefined(elem.toString)
