@@ -4396,7 +4396,7 @@ lemma linear_independent_extend:
   assumes iB: "independent (B:: (real ^'n) set)"
   shows "\<exists>g. linear g \<and> (\<forall>x\<in>B. g x = f x)"
 proof-
-  from maximal_independent_subset_extend[of B "UNIV"] iB
+  from maximal_independent_subset_extend[of B UNIV] iB
   obtain C where C: "B \<subseteq> C" "independent C" "\<And>x. x \<in> span C" by auto
   
   from C(2) independent_bound[of C] linear_independent_extend_lemma[of C f]
