@@ -10,17 +10,18 @@ type bstring = string;    (*primitive names to be bound*)
 signature BINDING =
 sig
   type binding
-  val dest: binding -> (string * bool) list * (string * bool) list * bstring
+  val dest: binding -> (string * bool) list * bstring
   val verbose: bool ref
   val str_of: binding -> string
   val make: bstring * Position.T -> binding
-  val name: bstring -> binding
   val pos_of: binding -> Position.T
+  val name: bstring -> binding
   val name_of: binding -> string
   val map_name: (bstring -> bstring) -> binding -> binding
   val empty: binding
   val is_empty: binding -> bool
   val qualify: bool -> string -> binding -> binding
+  val prefix_of: binding -> (string * bool) list
   val map_prefix: ((string * bool) list -> (string * bool) list) -> binding -> binding
   val add_prefix: bool -> string -> binding -> binding
 end;
@@ -32,13 +33,11 @@ struct
 
 (* datatype *)
 
-type component = string * bool;   (*name with mandatory flag*)
-
 datatype binding = Binding of
- {prefix: component list,         (*system prefix*)
-  qualifier: component list,      (*user qualifier*)
-  name: bstring,                  (*base name*)
-  pos: Position.T};               (*source position*)
+ {prefix: (string * bool) list,     (*system prefix*)
+  qualifier: (string * bool) list,  (*user qualifier*)
+  name: bstring,                    (*base name*)
+  pos: Position.T};                 (*source position*)
 
 fun make_binding (prefix, qualifier, name, pos) =
   Binding {prefix = prefix, qualifier = qualifier, name = name, pos = pos};
@@ -46,7 +45,7 @@ fun make_binding (prefix, qualifier, name, pos) =
 fun map_binding f (Binding {prefix, qualifier, name, pos}) =
   make_binding (f (prefix, qualifier, name, pos));
 
-fun dest (Binding {prefix, qualifier, name, ...}) = (prefix, qualifier, name);
+fun dest (Binding {prefix, qualifier, name, ...}) = (prefix @ qualifier, name);
 
 
 (* diagnostic output *)
@@ -91,6 +90,8 @@ fun qualify _ "" = I
 
 
 (* system prefix *)
+
+fun prefix_of (Binding {prefix, ...}) = prefix;
 
 fun map_prefix f = map_binding (fn (prefix, qualifier, name, pos) =>
   (f prefix, qualifier, name, pos));
