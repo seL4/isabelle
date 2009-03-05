@@ -262,8 +262,6 @@ SPASS_HOME=$(choosefrom \
 
 # zChaff (SAT Solver, cf. Isabelle/src/HOL/Tools/sat_solver.ML)
 #ZCHAFF_HOME=/usr/local/bin
-#ZCHAFF_VERSION=2004.5.13
-#ZCHAFF_VERSION=2004.11.15
 
 # BerkMin561 (SAT Solver, cf. Isabelle/src/HOL/Tools/sat_solver.ML)
 #BERKMIN_HOME=/usr/local/bin
