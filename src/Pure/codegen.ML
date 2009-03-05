@@ -938,7 +938,7 @@ fun eval_term thy t =
   in e () end;
 
 val (_, evaluation_conv) = Context.>>> (Context.map_theory_result
-  (Thm.add_oracle ("evaluation", fn ct =>
+  (Thm.add_oracle (Binding.name "evaluation", fn ct =>
     let
       val thy = Thm.theory_of_cterm ct;
       val t = Thm.term_of ct;

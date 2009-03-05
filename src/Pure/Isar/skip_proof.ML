@@ -20,7 +20,7 @@ struct
 (* oracle setup *)
 
 val (_, skip_proof) = Context.>>> (Context.map_theory_result
-  (Thm.add_oracle ("skip_proof", fn (thy, prop) =>
+  (Thm.add_oracle (Binding.name "skip_proof", fn (thy, prop) =>
     if ! quick_and_dirty then Thm.cterm_of thy prop
     else error "Proof may be skipped in quick_and_dirty mode only!")));
 

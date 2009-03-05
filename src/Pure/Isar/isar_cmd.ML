@@ -150,10 +150,12 @@ fun oracle name (oracle_txt, pos) =
     val oracle = SymbolPos.content (SymbolPos.explode (oracle_txt, pos));
     val txt =
       "local\n\
-      \  val name = " ^ quote name ^ ";\n\
+      \  val name = " ^ ML_Syntax.print_string name ^ ";\n\
+      \  val pos = " ^ ML_Syntax.print_position pos ^ ";\n\
+      \  val binding = Binding.make (name, pos);\n\
       \  val oracle = " ^ oracle ^ ";\n\
       \in\n\
-      \  val " ^ name ^ " = snd (Context.>>> (Context.map_theory_result (Thm.add_oracle (name, oracle))));\n\
+      \  val " ^ name ^ " = snd (Context.>>> (Context.map_theory_result (Thm.add_oracle (binding, oracle))));\n\
       \end;\n";
   in Context.theory_map (ML_Context.exec (fn () => ML_Context.eval false pos txt)) end;
 

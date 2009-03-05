@@ -151,7 +151,7 @@ sig
   val proof_of: thm -> proof
   val join_proof: thm -> unit
   val extern_oracles: theory -> xstring list
-  val add_oracle: bstring * ('a -> cterm) -> theory -> (string * ('a -> thm)) * theory
+  val add_oracle: binding * ('a -> cterm) -> theory -> (string * ('a -> thm)) * theory
 end;
 
 structure Thm:> THM =
@@ -1698,7 +1698,7 @@ fun err_dup_ora dup = error ("Duplicate oracle: " ^ quote dup);
 
 structure Oracles = TheoryDataFun
 (
-  type T = stamp NameSpace.table;
+  type T = serial NameSpace.table;
   val empty = NameSpace.empty_table;
   val copy = I;
   val extend = I;
@@ -1708,13 +1708,12 @@ structure Oracles = TheoryDataFun
 
 val extern_oracles = map #1 o NameSpace.extern_table o Oracles.get;
 
-fun add_oracle (bname, oracle) thy =
+fun add_oracle (b, oracle) thy =
   let
     val naming = Sign.naming_of thy;
-    val name = NameSpace.full_name naming (Binding.name bname);
-    val thy' = thy |> Oracles.map (fn (space, tab) =>
-      (NameSpace.declare naming (Binding.name bname) space |> snd,
-        Symtab.update_new (name, stamp ()) tab handle Symtab.DUP dup => err_dup_ora dup));
+    val (name, tab') = NameSpace.bind naming (b, serial ()) (Oracles.get thy)
+      handle Symtab.DUP _ => err_dup_ora (Binding.str_of b);
+    val thy' = Oracles.put tab' thy;
   in ((name, invoke_oracle (Theory.check_thy thy') name oracle), thy') end;
 
 end;

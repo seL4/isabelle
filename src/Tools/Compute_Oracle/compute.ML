@@ -371,7 +371,7 @@ fun add_shyps shyps tab = fold (fn h => fn tab => Sorttab.update (h, ()) tab) sh
 fun merge_shyps shyps1 shyps2 = Sorttab.keys (add_shyps shyps2 (add_shyps shyps1 Sorttab.empty))
 
 val (_, export_oracle) = Context.>>> (Context.map_theory_result
-  (Thm.add_oracle ("compute", fn (thy, hyps, shyps, prop) =>
+  (Thm.add_oracle (Binding.name "compute", fn (thy, hyps, shyps, prop) =>
     let
         val shyptab = add_shyps shyps Sorttab.empty
         fun delete s shyptab = Sorttab.delete s shyptab handle Sorttab.UNDEF _ => shyptab

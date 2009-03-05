@@ -466,7 +466,7 @@ fun eval thy t naming program vs_ty_t deps =
 (* evaluation oracle *)
 
 val (_, norm_oracle) = Context.>>> (Context.map_theory_result
-  (Thm.add_oracle ("norm", fn (thy, t, naming, program, vs_ty_t, deps) =>
+  (Thm.add_oracle (Binding.name "norm", fn (thy, t, naming, program, vs_ty_t, deps) =>
     Thm.cterm_of thy (Logic.mk_equals (t, eval thy t naming program vs_ty_t deps)))));
 
 fun add_triv_classes thy =

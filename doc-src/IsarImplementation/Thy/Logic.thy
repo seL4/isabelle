@@ -556,7 +556,7 @@ text %mlref {*
   @{index_ML Thm.generalize: "string list * string list -> int -> thm -> thm"} \\
   @{index_ML Thm.instantiate: "(ctyp * ctyp) list * (cterm * cterm) list -> thm -> thm"} \\
   @{index_ML Thm.axiom: "theory -> string -> thm"} \\
-  @{index_ML Thm.add_oracle: "bstring * ('a -> cterm) -> theory
+  @{index_ML Thm.add_oracle: "binding * ('a -> cterm) -> theory
   -> (string * ('a -> thm)) * theory"} \\
   \end{mldecls}
   \begin{mldecls}
@@ -613,7 +613,7 @@ text %mlref {*
   \item @{ML Thm.axiom}~@{text "thy name"} retrieves a named
   axiom, cf.\ @{text "axiom"} in \figref{fig:prim-rules}.
 
-  \item @{ML Thm.add_oracle}~@{text "(name, oracle)"} produces a named
+  \item @{ML Thm.add_oracle}~@{text "(binding, oracle)"} produces a named
   oracle rule, essentially generating arbitrary axioms on the fly,
   cf.\ @{text "axiom"} in \figref{fig:prim-rules}.
 
