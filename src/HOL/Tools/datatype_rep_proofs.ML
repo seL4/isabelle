@@ -461,7 +461,7 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
           (if i < length newTs then Const ("True", HOLogic.boolT)
            else HOLogic.mk_mem (mk_Free "x" Univ_elT i,
              Const ("image", [isoT, HOLogic.mk_setT T] ---> UnivT) $
-               Const (iso_name, isoT) $ Const ("UNIV", HOLogic.mk_setT T)))
+               Const (iso_name, isoT) $ Const (@{const_name UNIV}, HOLogic.mk_setT T)))
       end;
 
     val iso_t = HOLogic.mk_Trueprop (mk_conj (map mk_iso_t

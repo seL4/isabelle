@@ -30,7 +30,7 @@ translations
 
 (* empty set *)
 notation (latex)
-  "{}" ("\<emptyset>")
+  "Set.empty" ("\<emptyset>")
 
 (* insert *)
 translations 

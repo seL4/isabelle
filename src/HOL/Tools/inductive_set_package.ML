@@ -73,8 +73,8 @@ fun strong_ind_simproc tab =
         in Drule.instantiate' [] (rev (map (SOME o cterm_of thy o Var) vs))
           (p (fold (Logic.all o Var) vs t) f)
         end;
-      fun mkop "op &" T x = SOME (Const ("op Int", T --> T --> T), x)
-        | mkop "op |" T x = SOME (Const ("op Un", T --> T --> T), x)
+      fun mkop "op &" T x = SOME (Const (@{const_name "Int"}, T --> T --> T), x)
+        | mkop "op |" T x = SOME (Const (@{const_name "Un"}, T --> T --> T), x)
         | mkop _ _ _ = NONE;
       fun mk_collect p T t =
         let val U = HOLogic.dest_setT T
