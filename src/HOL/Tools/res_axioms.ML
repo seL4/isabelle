@@ -342,7 +342,7 @@ fun name_or_string th =
 
 (*Skolemize a named theorem, with Skolem functions as additional premises.*)
 fun skolem_thm (s, th) =
-  if member (op =) multi_base_blacklist (Sign.base_name s) orelse bad_for_atp th then []
+  if member (op =) multi_base_blacklist (NameSpace.base_name s) orelse bad_for_atp th then []
   else
     let
       val ctxt0 = Variable.thm_context th
@@ -444,7 +444,7 @@ fun saturate_skolem_cache thy =
     val new_facts = (PureThy.facts_of thy, []) |-> Facts.fold_static (fn (name, ths) =>
       if already_seen thy name then I else cons (name, ths));
     val new_thms = (new_facts, []) |-> fold (fn (name, ths) =>
-      if member (op =) multi_base_blacklist (Sign.base_name name) then I
+      if member (op =) multi_base_blacklist (NameSpace.base_name name) then I
       else fold_index (fn (i, th) =>
         if bad_for_atp th orelse is_some (lookup_cache thy th) then I
         else cons (name ^ "_" ^ string_of_int (i + 1), Thm.transfer thy th)) ths);

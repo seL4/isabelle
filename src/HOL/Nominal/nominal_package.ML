@@ -49,9 +49,9 @@ fun dt_recs (DtTFree _) = []
 
 fun dt_cases (descr: descr) (_, args, constrs) =
   let
-    fun the_bname i = Sign.base_name (#1 (valOf (AList.lookup (op =) descr i)));
+    fun the_bname i = NameSpace.base_name (#1 (valOf (AList.lookup (op =) descr i)));
     val bnames = map the_bname (distinct op = (List.concat (map dt_recs args)));
-  in map (fn (c, _) => space_implode "_" (Sign.base_name c :: bnames)) constrs end;
+  in map (fn (c, _) => space_implode "_" (NameSpace.base_name c :: bnames)) constrs end;
 
 
 fun induct_cases descr =
@@ -364,7 +364,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
         val pi2 = Free ("pi2", permT);
         val pt_inst = pt_inst_of thy2 a;
         val pt2' = pt_inst RS pt2;
-        val pt2_ax = PureThy.get_thm thy2 (NameSpace.map_base (fn s => "pt_" ^ s ^ "2") a);
+        val pt2_ax = PureThy.get_thm thy2 (NameSpace.map_base_name (fn s => "pt_" ^ s ^ "2") a);
       in List.take (map standard (split_conj_thm
         (Goal.prove_global thy2 [] []
            (augment_sort thy2 [pt_class_of thy2 a]
@@ -399,7 +399,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
         val pt_inst = pt_inst_of thy2 a;
         val pt3' = pt_inst RS pt3;
         val pt3_rev' = at_inst RS (pt_inst RS pt3_rev);
-        val pt3_ax = PureThy.get_thm thy2 (NameSpace.map_base (fn s => "pt_" ^ s ^ "3") a);
+        val pt3_ax = PureThy.get_thm thy2 (NameSpace.map_base_name (fn s => "pt_" ^ s ^ "3") a);
       in List.take (map standard (split_conj_thm
         (Goal.prove_global thy2 [] []
           (augment_sort thy2 [pt_class_of thy2 a] (Logic.mk_implies
@@ -664,7 +664,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
               asm_full_simp_tac (simpset_of thy addsimps
                 [Rep RS perm_closed RS Abs_inverse]) 1,
               asm_full_simp_tac (HOL_basic_ss addsimps [PureThy.get_thm thy
-                ("pt_" ^ Sign.base_name atom ^ "3")]) 1]) thy
+                ("pt_" ^ NameSpace.base_name atom ^ "3")]) 1]) thy
           end)
         (Abs_inverse_thms ~~ Rep_inverse_thms ~~ Rep_thms ~~ perm_defs ~~
            new_type_names ~~ tyvars ~~ perm_closed_thms);
@@ -798,7 +798,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
         val def = Logic.mk_equals (lhs, Const (abs_name, T' --> T) $ rhs);
         val eqn = HOLogic.mk_Trueprop (HOLogic.mk_eq
           (Const (rep_name, T --> T') $ lhs, rhs));
-        val def_name = (Sign.base_name cname) ^ "_def";
+        val def_name = (NameSpace.base_name cname) ^ "_def";
         val ([def_thm], thy') = thy |>
           Sign.add_consts_i [(cname', constrT, mx)] |>
           (PureThy.add_defs false o map Thm.no_attributes) [(Binding.name def_name, def)]
@@ -889,7 +889,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
           map (fn ((cname, dts), constr_rep_thm) =>
         let
           val cname = Sign.intern_const thy8
-            (NameSpace.append tname (Sign.base_name cname));
+            (NameSpace.append tname (NameSpace.base_name cname));
           val permT = mk_permT (Type (atom, []));
           val pi = Free ("pi", permT);
 
@@ -945,7 +945,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
         if null dts then NONE else SOME
         let
           val cname = Sign.intern_const thy8
-            (NameSpace.append tname (Sign.base_name cname));
+            (NameSpace.append tname (NameSpace.base_name cname));
 
           fun make_inj ((dts, dt), (j, args1, args2, eqs)) =
             let
@@ -987,7 +987,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
       in List.concat (map (fn (cname, dts) => map (fn atom =>
         let
           val cname = Sign.intern_const thy8
-            (NameSpace.append tname (Sign.base_name cname));
+            (NameSpace.append tname (NameSpace.base_name cname));
           val atomT = Type (atom, []);
 
           fun process_constr ((dts, dt), (j, args1, args2)) =
@@ -1100,7 +1100,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
            (fn _ => indtac dt_induct indnames 1 THEN
             ALLGOALS (asm_full_simp_tac (simpset_of thy8 addsimps
               (abs_supp @ supp_atm @
-               PureThy.get_thms thy8 ("fs_" ^ Sign.base_name atom ^ "1") @
+               PureThy.get_thms thy8 ("fs_" ^ NameSpace.base_name atom ^ "1") @
                List.concat supp_thms))))),
          length new_type_names))
       end) atoms;
@@ -1232,9 +1232,9 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
     val fin_set_fresh = map (fn s =>
       at_inst_of thy9 s RS at_fin_set_fresh) dt_atoms;
     val pt1_atoms = map (fn Type (s, _) =>
-      PureThy.get_thm thy9 ("pt_" ^ Sign.base_name s ^ "1")) dt_atomTs;
+      PureThy.get_thm thy9 ("pt_" ^ NameSpace.base_name s ^ "1")) dt_atomTs;
     val pt2_atoms = map (fn Type (s, _) =>
-      PureThy.get_thm thy9 ("pt_" ^ Sign.base_name s ^ "2") RS sym) dt_atomTs;
+      PureThy.get_thm thy9 ("pt_" ^ NameSpace.base_name s ^ "2") RS sym) dt_atomTs;
     val exists_fresh' = PureThy.get_thms thy9 "exists_fresh'";
     val fs_atoms = PureThy.get_thms thy9 "fin_supp";
     val abs_supp = PureThy.get_thms thy9 "abs_supp";
@@ -1559,7 +1559,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
 
     val rec_fin_supp_thms = map (fn aT =>
       let
-        val name = Sign.base_name (fst (dest_Type aT));
+        val name = NameSpace.base_name (fst (dest_Type aT));
         val fs_name = PureThy.get_thm thy11 ("fs_" ^ name ^ "1");
         val aset = HOLogic.mk_setT aT;
         val finite = Const ("Finite_Set.finite", aset --> HOLogic.boolT);
@@ -1598,7 +1598,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
 
     val rec_fresh_thms = map (fn ((aT, eqvt_ths), finite_prems) =>
       let
-        val name = Sign.base_name (fst (dest_Type aT));
+        val name = NameSpace.base_name (fst (dest_Type aT));
         val fs_name = PureThy.get_thm thy11 ("fs_" ^ name ^ "1");
         val a = Free ("a", aT);
         val freshs = map (fn (f, fT) => HOLogic.mk_Trueprop
@@ -2012,10 +2012,10 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
     val (reccomb_defs, thy12) =
       thy11
       |> Sign.add_consts_i (map (fn ((name, T), T') =>
-          (Sign.base_name name, rec_fn_Ts @ [T] ---> T', NoSyn))
+          (NameSpace.base_name name, rec_fn_Ts @ [T] ---> T', NoSyn))
           (reccomb_names ~~ recTs ~~ rec_result_Ts))
       |> (PureThy.add_defs false o map Thm.no_attributes) (map (fn ((((name, comb), set), T), T') =>
-          (Binding.name (Sign.base_name name ^ "_def"), Logic.mk_equals (comb, absfree ("x", T,
+          (Binding.name (NameSpace.base_name name ^ "_def"), Logic.mk_equals (comb, absfree ("x", T,
            Const ("The", (T' --> HOLogic.boolT) --> T') $ absfree ("y", T',
              set $ Free ("x", T) $ Free ("y", T'))))))
                (reccomb_names ~~ reccombs ~~ rec_sets ~~ recTs ~~ rec_result_Ts));

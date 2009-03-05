@@ -330,7 +330,7 @@ fun init_ctxt (Target {target, is_locale, is_class, instantiation, overloading})
 
 fun init_lthy (ta as Target {target, instantiation, overloading, ...}) =
   Data.put ta #>
-  LocalTheory.init (NameSpace.base target)
+  LocalTheory.init (NameSpace.base_name target)
    {pretty = pretty ta,
     abbrev = abbrev ta,
     define = define ta,

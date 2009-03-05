@@ -74,7 +74,7 @@ fun add_datatype_i (dom_sum, rec_tms) con_ty_lists (monos, type_intrs, type_elim
                    Syntax.string_of_term_global thy t);
 
   val rec_names = map (#1 o dest_Const) rec_hds
-  val rec_base_names = map Sign.base_name rec_names
+  val rec_base_names = map NameSpace.base_name rec_names
   val big_rec_base_name = space_implode "_" rec_base_names
 
   val thy_path = thy |> Sign.add_path big_rec_base_name

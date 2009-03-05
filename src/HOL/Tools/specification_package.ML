@@ -24,7 +24,7 @@ local
                 val ctype = domain_type (type_of P)
                 val cname_full = Sign.intern_const thy cname
                 val cdefname = if thname = ""
-                               then Thm.def_name (Sign.base_name cname)
+                               then Thm.def_name (NameSpace.base_name cname)
                                else thname
                 val def_eq = Logic.mk_equals (Const(cname_full,ctype),
                                               HOLogic.choice_const ctype $  P)
@@ -50,7 +50,7 @@ local
                         val ctype = domain_type (type_of P)
                         val cname_full = Sign.intern_const thy cname
                         val cdefname = if thname = ""
-                                       then Thm.def_name (Sign.base_name cname)
+                                       then Thm.def_name (NameSpace.base_name cname)
                                        else thname
                         val co = Const(cname_full,ctype)
                         val thy' = Theory.add_finals_i covld [co] thy
@@ -154,7 +154,7 @@ fun process_spec axiomatic cos alt_props thy =
         fun mk_exist (c,prop) =
             let
                 val T = type_of c
-                val cname = Sign.base_name (fst (dest_Const c))
+                val cname = NameSpace.base_name (fst (dest_Const c))
                 val vname = if Syntax.is_identifier cname
                             then cname
                             else "x"

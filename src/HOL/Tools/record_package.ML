@@ -122,7 +122,7 @@ fun timing_msg s = if !timing then warning s else ();
 (* syntax *)
 
 fun prune n xs = Library.drop (n, xs);
-fun prefix_base s = NameSpace.map_base (fn bname => s ^ bname);
+fun prefix_base s = NameSpace.map_base_name (fn bname => s ^ bname);
 
 val Trueprop = HOLogic.mk_Trueprop;
 fun All xs t = Term.list_all_free (xs, t);
@@ -702,7 +702,7 @@ fun record_tr' sep mark record record_scheme unit ctxt t =
                      SOME flds
                      => (let
                           val (f::fs) = but_last (map fst flds);
-                          val flds' = Sign.extern_const thy f :: map NameSpace.base fs;
+                          val flds' = Sign.extern_const thy f :: map NameSpace.base_name fs;
                           val (args',more) = split_last args;
                          in (flds'~~args')@field_lst more end
                          handle Library.UnequalLengths => [("",t)])
@@ -804,7 +804,7 @@ fun record_type_tr' sep mark record record_scheme ctxt t =
                            => (let
                                 val (f :: fs) = but_last flds;
                                 val flds' = apfst (Sign.extern_const thy) f
-                                  :: map (apfst NameSpace.base) fs;
+                                  :: map (apfst NameSpace.base_name) fs;
                                 val (args', more) = split_last args;
                                 val alphavars = map varifyT (but_last alphas);
                                 val subst = fold2 (curry (Sign.typ_match thy))
@@ -1069,7 +1069,7 @@ val record_upd_simproc =
              val {sel_upd={selectors,updates,...},extfields,...} = RecordsData.get thy;
 
              (*fun mk_abs_var x t = (x, fastype_of t);*)
-             fun sel_name u = NameSpace.base (unsuffix updateN u);
+             fun sel_name u = NameSpace.base_name (unsuffix updateN u);
 
              fun seed s (upd as Const (more,Type(_,[mT,_]))$ k $ r) =
                   if has_field extfields s (domain_type' mT) then upd else seed s r
@@ -1463,7 +1463,7 @@ fun extension_typedef name repT alphas thy =
       in map rewrite_rule [abs_inject, abs_inverse, abs_induct] end;
   in
     thy
-    |> TypecopyPackage.add_typecopy (suffix ext_typeN (Sign.base_name name), alphas) repT NONE
+    |> TypecopyPackage.add_typecopy (suffix ext_typeN (NameSpace.base_name name), alphas) repT NONE
     |-> (fn (name, _) => `(fn thy => get_thms thy name))
   end;
 
@@ -1474,7 +1474,7 @@ fun mixit convs refls =
 
 fun extension_definition full name fields names alphas zeta moreT more vars thy =
   let
-    val base = Sign.base_name;
+    val base = NameSpace.base_name;
     val fieldTs = (map snd fields);
     val alphas_zeta = alphas@[zeta];
     val alphas_zetaTs = map (fn n => TFree (n, HOLogic.typeS)) alphas_zeta;
@@ -1760,7 +1760,7 @@ fun record_definition (args, bname) parent (parents: parent_info list) raw_field
     val alphas = map fst args;
     val name = Sign.full_bname thy bname;
     val full = Sign.full_bname_path thy bname;
-    val base = Sign.base_name;
+    val base = NameSpace.base_name;
 
     val (bfields, field_syntax) = split_list (map (fn (x, T, mx) => ((x, T), mx)) raw_fields);
 

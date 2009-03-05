@@ -174,9 +174,9 @@ fun dt_recs (DtTFree _) = []
 
 fun dt_cases (descr: descr) (_, args, constrs) =
   let
-    fun the_bname i = Sign.base_name (#1 (the (AList.lookup (op =) descr i)));
+    fun the_bname i = NameSpace.base_name (#1 (the (AList.lookup (op =) descr i)));
     val bnames = map the_bname (distinct (op =) (maps dt_recs args));
-  in map (fn (c, _) => space_implode "_" (Sign.base_name c :: bnames)) constrs end;
+  in map (fn (c, _) => space_implode "_" (NameSpace.base_name c :: bnames)) constrs end;
 
 
 fun induct_cases descr =
@@ -519,7 +519,7 @@ fun gen_rep_datatype prep_term after_qed alt_names raw_ts thy =
     val cs = map (apsnd (map norm_constr)) raw_cs;
     val dtyps_of_typ = map (dtyp_of_typ (map (rpair (map fst vs) o fst) cs))
       o fst o strip_type;
-    val new_type_names = map NameSpace.base (the_default (map fst cs) alt_names);
+    val new_type_names = map NameSpace.base_name (the_default (map fst cs) alt_names);
 
     fun mk_spec (i, (tyco, constr)) = (i, (tyco,
       map (DtTFree o fst) vs,

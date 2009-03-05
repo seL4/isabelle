@@ -336,17 +336,17 @@ fun mkUpper str =
     [] => ""
    | c::cs => String.implode (Char.toUpper c::cs ))
 
-fun mkName (Type (T,args)) = concat (map mkName args) ^ mkUpper (NameSpace.base T)
-  | mkName (TFree (x,_)) = mkUpper (NameSpace.base x)
-  | mkName (TVar ((x,_),_)) = mkUpper (NameSpace.base x);
+fun mkName (Type (T,args)) = concat (map mkName args) ^ mkUpper (NameSpace.base_name T)
+  | mkName (TFree (x,_)) = mkUpper (NameSpace.base_name x)
+  | mkName (TVar ((x,_),_)) = mkUpper (NameSpace.base_name x);
 
 fun is_datatype thy n = is_some (Symtab.lookup (DatatypePackage.get_datatypes thy) n);
 
-fun mk_map ("List.list") = Syntax.const "List.map"
-  | mk_map n = Syntax.const ("StateFun." ^  "map_" ^ NameSpace.base n);
+fun mk_map "List.list" = Syntax.const "List.map"
+  | mk_map n = Syntax.const ("StateFun.map_" ^ NameSpace.base_name n);
 
 fun gen_constr_destr comp prfx thy (Type (T,[])) = 
-      Syntax.const (deco prfx (mkUpper (NameSpace.base T)))
+      Syntax.const (deco prfx (mkUpper (NameSpace.base_name T)))
   | gen_constr_destr comp prfx thy (T as Type ("fun",_)) =
      let val (argTs,rangeT) = strip_type T;
      in comp 
@@ -360,11 +360,11 @@ fun gen_constr_destr comp prfx thy (Type (T,[])) =
      then (* datatype args are recursively embedded into val *)
          (case argTs of
            [argT] => comp 
-                     ((Syntax.const (deco prfx (mkUpper (NameSpace.base T)))))
+                     ((Syntax.const (deco prfx (mkUpper (NameSpace.base_name T)))))
                      ((mk_map T $ gen_constr_destr comp prfx thy argT))
           | _ => raise (TYPE ("StateFun.gen_constr_destr",[T'],[])))
      else (* type args are not recursively embedded into val *)
-           Syntax.const (deco prfx (concat (map mkName argTs) ^ mkUpper (NameSpace.base T)))
+           Syntax.const (deco prfx (concat (map mkName argTs) ^ mkUpper (NameSpace.base_name T)))
   | gen_constr_destr thy _ _ T = raise (TYPE ("StateFun.gen_constr_destr",[T],[]));
                    
 val mk_constr = gen_constr_destr (fn a => fn b => Syntax.const "Fun.comp" $ a $ b) ""

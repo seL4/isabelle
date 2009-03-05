@@ -47,7 +47,7 @@ fun make_tnames Ts =
   let
     fun type_name (TFree (name, _)) = implode (tl (explode name))
       | type_name (Type (name, _)) = 
-          let val name' = Sign.base_name name
+          let val name' = NameSpace.base_name name
           in if Syntax.is_identifier name' then name' else "x" end;
   in indexify_names (map type_name Ts) end;
 

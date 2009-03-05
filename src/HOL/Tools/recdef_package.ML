@@ -193,7 +193,7 @@ fun gen_add_recdef tfl_fn prep_att prep_hints not_permissive raw_name R eq_srcs 
     val _ = requires_recdef thy;
 
     val name = Sign.intern_const thy raw_name;
-    val bname = Sign.base_name name;
+    val bname = NameSpace.base_name name;
     val _ = writeln ("Defining recursive function " ^ quote name ^ " ...");
 
     val ((eq_names, eqs), raw_eq_atts) = apfst split_list (split_list eq_srcs);
@@ -233,7 +233,7 @@ fun add_recdef_i x y z w = gen_add_recdef Tfl.define_i (K I) prepare_hints_i x y
 fun gen_defer_recdef tfl_fn eval_thms raw_name eqs raw_congs thy =
   let
     val name = Sign.intern_const thy raw_name;
-    val bname = Sign.base_name name;
+    val bname = NameSpace.base_name name;
 
     val _ = requires_recdef thy;
     val _ = writeln ("Deferred recursive function " ^ quote name ^ " ...");

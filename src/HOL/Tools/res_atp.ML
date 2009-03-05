@@ -380,7 +380,7 @@ fun add_single_names ((a, []), pairs) = pairs
 
 (*Ignore blacklisted basenames*)
 fun add_multi_names ((a, ths), pairs) =
-  if (Sign.base_name a) mem_string ResAxioms.multi_base_blacklist  then pairs
+  if (NameSpace.base_name a) mem_string ResAxioms.multi_base_blacklist  then pairs
   else add_single_names ((a, ths), pairs);
 
 fun is_multi (a, ths) = length ths > 1 orelse String.isSuffix ".axioms" a;

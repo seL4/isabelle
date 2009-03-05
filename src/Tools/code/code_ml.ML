@@ -47,7 +47,7 @@ fun pr_sml_stmt naming labelled_name syntax_tyco syntax_const reserved_names der
   let
     val pr_label_classrel = translate_string (fn "." => "__" | c => c)
       o NameSpace.qualifier;
-    val pr_label_classparam = NameSpace.base o NameSpace.qualifier;
+    val pr_label_classparam = NameSpace.base_name o NameSpace.qualifier;
     fun pr_dicts fxy ds =
       let
         fun pr_dictvar (v, (_, 1)) = Code_Name.first_upper v ^ "_"
@@ -163,7 +163,7 @@ fun pr_sml_stmt naming labelled_name syntax_tyco syntax_const reserved_names der
     fun pr_stmt (MLExc (name, n)) =
           let
             val exc_str =
-              (ML_Syntax.print_string o NameSpace.base o NameSpace.qualifier) name;
+              (ML_Syntax.print_string o NameSpace.base_name o NameSpace.qualifier) name;
           in
             concat (
               str (if n = 0 then "val" else "fun")
@@ -179,7 +179,7 @@ fun pr_sml_stmt naming labelled_name syntax_tyco syntax_const reserved_names der
           let
             val consts = map_filter
               (fn c => if (is_some o syntax_const) c
-                then NONE else (SOME o NameSpace.base o deresolve) c)
+                then NONE else (SOME o NameSpace.base_name o deresolve) c)
                 (Code_Thingol.fold_constnames (insert (op =)) t []);
             val vars = reserved_names
               |> Code_Name.intro_vars consts;
@@ -204,7 +204,7 @@ fun pr_sml_stmt naming labelled_name syntax_tyco syntax_const reserved_names der
                   let
                     val consts = map_filter
                       (fn c => if (is_some o syntax_const) c
-                        then NONE else (SOME o NameSpace.base o deresolve) c)
+                        then NONE else (SOME o NameSpace.base_name o deresolve) c)
                         ((fold o Code_Thingol.fold_constnames) (insert (op =)) (t :: ts) []);
                     val vars = reserved_names
                       |> Code_Name.intro_vars consts
@@ -473,7 +473,7 @@ fun pr_ocaml_stmt naming labelled_name syntax_tyco syntax_const reserved_names d
     fun pr_stmt (MLExc (name, n)) =
           let
             val exc_str =
-              (ML_Syntax.print_string o NameSpace.base o NameSpace.qualifier) name;
+              (ML_Syntax.print_string o NameSpace.base_name o NameSpace.qualifier) name;
           in
             concat (
               str "let"
@@ -488,7 +488,7 @@ fun pr_ocaml_stmt naming labelled_name syntax_tyco syntax_const reserved_names d
           let
             val consts = map_filter
               (fn c => if (is_some o syntax_const) c
-                then NONE else (SOME o NameSpace.base o deresolve) c)
+                then NONE else (SOME o NameSpace.base_name o deresolve) c)
                 (Code_Thingol.fold_constnames (insert (op =)) t []);
             val vars = reserved_names
               |> Code_Name.intro_vars consts;
@@ -508,7 +508,7 @@ fun pr_ocaml_stmt naming labelled_name syntax_tyco syntax_const reserved_names d
               let
                 val consts = map_filter
                   (fn c => if (is_some o syntax_const) c
-                    then NONE else (SOME o NameSpace.base o deresolve) c)
+                    then NONE else (SOME o NameSpace.base_name o deresolve) c)
                     ((fold o Code_Thingol.fold_constnames) (insert (op =)) (t :: ts) []);
                 val vars = reserved_names
                   |> Code_Name.intro_vars consts
@@ -524,7 +524,7 @@ fun pr_ocaml_stmt naming labelled_name syntax_tyco syntax_const reserved_names d
                   let
                     val consts = map_filter
                       (fn c => if (is_some o syntax_const) c
-                        then NONE else (SOME o NameSpace.base o deresolve) c)
+                        then NONE else (SOME o NameSpace.base_name o deresolve) c)
                         ((fold o Code_Thingol.fold_constnames) (insert (op =)) (t :: ts) []);
                     val vars = reserved_names
                       |> Code_Name.intro_vars consts
@@ -552,7 +552,7 @@ fun pr_ocaml_stmt naming labelled_name syntax_tyco syntax_const reserved_names d
                   let
                     val consts = map_filter
                       (fn c => if (is_some o syntax_const) c
-                        then NONE else (SOME o NameSpace.base o deresolve) c)
+                        then NONE else (SOME o NameSpace.base_name o deresolve) c)
                         ((fold o Code_Thingol.fold_constnames)
                           (insert (op =)) (map (snd o fst) eqs) []);
                     val vars = reserved_names

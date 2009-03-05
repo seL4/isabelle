@@ -80,7 +80,7 @@ let
   val rec_names = map (#1 o dest_Const) rec_hds
   and (Const(_,recT),rec_params) = strip_comb (hd rec_tms);
 
-  val rec_base_names = map Sign.base_name rec_names;
+  val rec_base_names = map NameSpace.base_name rec_names;
   val dummy = assert_all Syntax.is_identifier rec_base_names
     (fn a => "Base name of recursive set not an identifier: " ^ a);
 
@@ -377,7 +377,7 @@ let
        mutual recursion to invariably be a disjoint sum.*)
      fun mk_predpair rec_tm =
        let val rec_name = (#1 o dest_Const o head_of) rec_tm
-           val pfree = Free(pred_name ^ "_" ^ Sign.base_name rec_name,
+           val pfree = Free(pred_name ^ "_" ^ NameSpace.base_name rec_name,
                             elem_factors ---> FOLogic.oT)
            val qconcl =
              List.foldr FOLogic.mk_all

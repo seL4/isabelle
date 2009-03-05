@@ -230,7 +230,7 @@ fun dest_inclass (t as Const (c_class, _) $ ty) = (dest_type ty, class_of_const 
 (* class relations *)
 
 fun name_classrel (c1, c2) =
-  NameSpace.base c1 ^ "_" ^ NameSpace.base c2;
+  NameSpace.base_name c1 ^ "_" ^ NameSpace.base_name c2;
 
 fun mk_classrel (c1, c2) = mk_inclass (Term.aT [c1], c2);
 
@@ -243,8 +243,8 @@ fun dest_classrel tm =
 (* type arities *)
 
 fun name_arities (t, _, S) =
-  let val b = NameSpace.base t
-  in S |> map (fn c => NameSpace.base c ^ "_" ^ b) end;
+  let val b = NameSpace.base_name t
+  in S |> map (fn c => NameSpace.base_name c ^ "_" ^ b) end;
 
 fun name_arity (t, dom, c) = hd (name_arities (t, dom, [c]));
 

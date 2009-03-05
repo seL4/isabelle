@@ -115,7 +115,7 @@ fun get_pi t thy =
                (Var (n,ty))) =>
              let
                 (* FIXME: this should be an operation the library *)
-                val class_name = (NameSpace.map_base (fn s => "pt_"^s) tyatm)
+                val class_name = (NameSpace.map_base_name (fn s => "pt_"^s) tyatm)
              in
                 if (Sign.of_sort thy (ty,[class_name]))
                 then [(pi,typi)]

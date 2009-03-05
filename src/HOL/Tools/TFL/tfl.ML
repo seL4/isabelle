@@ -349,7 +349,7 @@ fun mk_functional thy clauses =
           | L => mk_functional_err
  ("The following clauses are redundant (covered by preceding clauses): " ^
                    commas (map (fn i => Int.toString (i + 1)) L))
- in {functional = Abs(Sign.base_name fname, ftype,
+ in {functional = Abs(NameSpace.base_name fname, ftype,
                       abstract_over (atom,
                                      absfree(aname,atype, case_tm))),
      pats = patts2}

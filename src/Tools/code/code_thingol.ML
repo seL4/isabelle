@@ -246,15 +246,15 @@ local
     in NameSpace.append prefix base end;
 in
 
-fun namify_class thy = namify thy NameSpace.base thyname_of_class;
+fun namify_class thy = namify thy NameSpace.base_name thyname_of_class;
 fun namify_classrel thy = namify thy (fn (class1, class2) => 
-  NameSpace.base class2 ^ "_" ^ NameSpace.base class1) (fn thy => thyname_of_class thy o fst);
+  NameSpace.base_name class2 ^ "_" ^ NameSpace.base_name class1) (fn thy => thyname_of_class thy o fst);
   (*order fits nicely with composed projections*)
 fun namify_tyco thy "fun" = "Pure.fun"
-  | namify_tyco thy tyco = namify thy NameSpace.base thyname_of_tyco tyco;
+  | namify_tyco thy tyco = namify thy NameSpace.base_name thyname_of_tyco tyco;
 fun namify_instance thy = namify thy (fn (class, tyco) => 
-  NameSpace.base class ^ "_" ^ NameSpace.base tyco) thyname_of_instance;
-fun namify_const thy = namify thy NameSpace.base thyname_of_const;
+  NameSpace.base_name class ^ "_" ^ NameSpace.base_name tyco) thyname_of_instance;
+fun namify_const thy = namify thy NameSpace.base_name thyname_of_const;
 
 end; (* local *)
 

@@ -33,7 +33,7 @@ fun thm_deps thms =
                | _ => ["global"]);
             val parents = filter_out (fn s => s = "") (map (#1 o #2) thms');
             val entry =
-              {name = Sign.base_name name,
+              {name = NameSpace.base_name name,
                ID = name,
                dir = space_implode "/" (session @ prefix),
                unfold = false,

@@ -72,7 +72,7 @@ fun generate_fresh_tac atom_name i thm =
  let 
    val thy = theory_of_thm thm;
 (* the parsing function returns a qualified name, we get back the base name *)
-   val atom_basename = Sign.base_name atom_name;
+   val atom_basename = NameSpace.base_name atom_name;
    val goal = List.nth(prems_of thm, i-1);
    val ps = Logic.strip_params goal;
    val Ts = rev (map snd ps);
@@ -159,7 +159,7 @@ fun fresh_fun_tac no_asm i thm =
     NONE => all_tac thm
   | SOME atom_name  =>    
   let 
-    val atom_basename = Sign.base_name atom_name;
+    val atom_basename = NameSpace.base_name atom_name;
     val pt_name_inst = get_dyn_thm thy ("pt_"^atom_basename^"_inst") atom_basename;
     val at_name_inst = get_dyn_thm thy ("at_"^atom_basename^"_inst") atom_basename;
     fun inst_fresh vars params i st =

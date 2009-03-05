@@ -300,7 +300,7 @@ fun these_unchecks thy =
   map (fn (c, (_, (ty, t))) => (t, Const (c, ty))) o these_operations thy;
 
 fun redeclare_const thy c =
-  let val b = Sign.base_name c
+  let val b = NameSpace.base_name c
   in Sign.intern_const thy b = c ? Variable.declare_const (b, c) end;
 
 fun synchronize_class_syntax sort base_sort ctxt =
@@ -358,7 +358,7 @@ fun init class thy =
 
 (* class target *)
 
-val class_prefix = Logic.const_of_class o Sign.base_name;
+val class_prefix = Logic.const_of_class o NameSpace.base_name;
 
 fun declare class pos ((c, mx), dict) thy =
   let
@@ -475,7 +475,7 @@ val sanatize_name = (*FIXME*)
 
 fun type_name "*" = "prod"
   | type_name "+" = "sum"
-  | type_name s = sanatize_name (NameSpace.base s);
+  | type_name s = sanatize_name (NameSpace.base_name s);
 
 fun resort_terms pp algebra consts constraints ts =
   let

@@ -68,8 +68,8 @@ fun dt_of_intrs thy vs nparms intrs =
     val (Const (s, _), ts) = strip_comb (HOLogic.dest_Trueprop
       (Logic.strip_imp_concl (prop_of (hd intrs))));
     val params = map dest_Var (Library.take (nparms, ts));
-    val tname = space_implode "_" (Sign.base_name s ^ "T" :: vs);
-    fun constr_of_intr intr = (Sign.base_name (name_of_thm intr),
+    val tname = space_implode "_" (NameSpace.base_name s ^ "T" :: vs);
+    fun constr_of_intr intr = (NameSpace.base_name (name_of_thm intr),
       map (Logic.unvarifyT o snd) (rev (Term.add_vars (prop_of intr) []) \\ params) @
         filter_out (equal Extraction.nullT) (map
           (Logic.unvarifyT o Extraction.etype_of thy vs []) (prems_of intr)),
@@ -112,7 +112,7 @@ fun mk_realizes_eqn n vs nparms intrs =
     val rT = if n then Extraction.nullT
       else Type (space_implode "_" (s ^ "T" :: vs),
         map (fn a => TVar (("'" ^ a, 0), HOLogic.typeS)) vs @ Tvs);
-    val r = if n then Extraction.nullt else Var ((Sign.base_name s, 0), rT);
+    val r = if n then Extraction.nullt else Var ((NameSpace.base_name s, 0), rT);
     val S = list_comb (h, params @ xs);
     val rvs = relevant_vars S;
     val vs' = map fst rvs \\ vs;
@@ -195,7 +195,7 @@ fun fun_of_prem thy rsets vs params rule ivs intr =
           in if conclT = Extraction.nullT
             then list_abs_free (map dest_Free xs, HOLogic.unit)
             else list_abs_free (map dest_Free xs, list_comb
-              (Free ("r" ^ Sign.base_name (name_of_thm intr),
+              (Free ("r" ^ NameSpace.base_name (name_of_thm intr),
                 map fastype_of (rev args) ---> conclT), rev args))
           end
 
@@ -217,7 +217,7 @@ fun indrule_realizer thy induct raw_induct rsets params vs rec_names rss intrs d
       end) (premss ~~ dummies);
     val frees = fold Term.add_frees fs [];
     val Ts = map fastype_of fs;
-    fun name_of_fn intr = "r" ^ Sign.base_name (name_of_thm intr)
+    fun name_of_fn intr = "r" ^ NameSpace.base_name (name_of_thm intr)
   in
     fst (fold_map (fn concl => fn names =>
       let val T = Extraction.etype_of thy vs [] concl
@@ -245,7 +245,7 @@ fun add_dummies f [] _ thy =
       |-> (fn dtinfo => pair ((map fst dts), SOME dtinfo))
     handle DatatypeAux.Datatype_Empty name' =>
       let
-        val name = Sign.base_name name';
+        val name = NameSpace.base_name name';
         val dname = Name.variant used "Dummy"
       in
         thy
@@ -296,7 +296,7 @@ fun add_ind_realizer rsets intrs induct raw_induct elims (thy, vs) =
 
     val thy1' = thy1 |>
       Theory.copy |>
-      Sign.add_types (map (fn s => (Sign.base_name s, ar, NoSyn)) tnames) |>
+      Sign.add_types (map (fn s => (NameSpace.base_name s, ar, NoSyn)) tnames) |>
       fold (fn s => AxClass.axiomatize_arity
         (s, replicate ar HOLogic.typeS, HOLogic.typeS)) tnames |>
         Extraction.add_typeof_eqns_i ty_eqs;
@@ -335,7 +335,7 @@ fun add_ind_realizer rsets intrs induct raw_induct elims (thy, vs) =
         let
           val Const (s, T) = head_of (HOLogic.dest_Trueprop
             (Logic.strip_assums_concl rintr));
-          val s' = Sign.base_name s;
+          val s' = NameSpace.base_name s;
           val T' = Logic.unvarifyT T
         in (((Binding.name s', T'), NoSyn), (Const (s, T'), Free (s', T'))) end) rintrs));
     val rlzparams = map (fn Var ((s, _), T) => (s, Logic.unvarifyT T))
@@ -349,7 +349,7 @@ fun add_ind_realizer rsets intrs induct raw_induct elims (thy, vs) =
         {quiet_mode = false, verbose = false, kind = Thm.theoremK, alt_name = Binding.empty,
           coind = false, no_elim = false, no_ind = false, skip_mono = false, fork_mono = false}
         rlzpreds rlzparams (map (fn (rintr, intr) =>
-          ((Binding.name (Sign.base_name (name_of_thm intr)), []),
+          ((Binding.name (NameSpace.base_name (name_of_thm intr)), []),
            subst_atomic rlzpreds' (Logic.unvarify rintr)))
              (rintrs ~~ maps snd rss)) [] ||>
       Sign.absolute_path;

@@ -645,7 +645,7 @@ fun gen_update_tr id ctxt n v s =
 fun update_tr ctxt [s,Free (n,_),v] = gen_update_tr false ctxt n v s;
 
 fun update_tr' ctxt [_$Free (prj,_),_$Free (inj,_),n as (_$Free (name,_)),(Const (k,_)$v),s] =
-     if NameSpace.base k = NameSpace.base KN then
+     if NameSpace.base_name k = NameSpace.base_name KN then
         (case get_comp (Context.Proof ctxt) name of
           SOME (T,_) => if inj=inject_name T andalso prj=project_name T then
                            Syntax.const "_statespace_update" $ s $ n $ v
