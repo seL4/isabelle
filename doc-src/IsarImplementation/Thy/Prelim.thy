@@ -682,7 +682,7 @@ text {*
 
 text %mlref {*
   \begin{mldecls}
-  @{index_ML NameSpace.base: "string -> string"} \\
+  @{index_ML NameSpace.base_name: "string -> string"} \\
   @{index_ML NameSpace.qualifier: "string -> string"} \\
   @{index_ML NameSpace.append: "string -> string -> string"} \\
   @{index_ML NameSpace.implode: "string list -> string"} \\
@@ -698,14 +698,15 @@ text %mlref {*
   @{index_ML_type NameSpace.T} \\
   @{index_ML NameSpace.empty: NameSpace.T} \\
   @{index_ML NameSpace.merge: "NameSpace.T * NameSpace.T -> NameSpace.T"} \\
-  @{index_ML NameSpace.declare: "NameSpace.naming -> binding -> NameSpace.T -> string * NameSpace.T"} \\
+  @{index_ML NameSpace.declare: "NameSpace.naming -> binding -> NameSpace.T ->
+  string * NameSpace.T"} \\
   @{index_ML NameSpace.intern: "NameSpace.T -> string -> string"} \\
   @{index_ML NameSpace.extern: "NameSpace.T -> string -> string"} \\
   \end{mldecls}
 
   \begin{description}
 
-  \item @{ML NameSpace.base}~@{text "name"} returns the base name of a
+  \item @{ML NameSpace.base_name}~@{text "name"} returns the base name of a
   qualified name.
 
   \item @{ML NameSpace.qualifier}~@{text "name"} returns the qualifier
@@ -728,8 +729,8 @@ text %mlref {*
   \item @{ML NameSpace.add_path}~@{text "path naming"} augments the
   naming policy by extending its path component.
 
-  \item @{ML NameSpace.full_name}@{text "naming binding"} turns a name
-  binding (usually a basic name) into the fully qualified
+  \item @{ML NameSpace.full_name}~@{text "naming binding"} turns a
+  name binding (usually a basic name) into the fully qualified
   internal name, according to the given naming policy.
 
   \item @{ML_type NameSpace.T} represents name spaces.
@@ -755,8 +756,8 @@ text %mlref {*
   \item @{ML NameSpace.extern}~@{text "space name"} externalizes a
   (fully qualified) internal name.
 
-  This operation is mostly for printing!  Note unqualified names are
-  produced via @{ML NameSpace.base}.
+  This operation is mostly for printing!  User code should not rely on
+  the precise result too much.
 
   \end{description}
 *}
