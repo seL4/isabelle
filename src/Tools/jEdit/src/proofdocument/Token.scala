@@ -38,8 +38,9 @@ object Token {
 
 }
 
-class Token(var start: Int, val content: String, val kind: Token.Kind.Value) {
+class Token(val start: Int, val content: String, val kind: Token.Kind.Value) {
   val length = content.length
-  def stop = start + length
+  val stop = start + length
   override def toString = content + "(" + kind + ")"
+  def shift(i: Int) = new Token(start + i, content, kind)
 }

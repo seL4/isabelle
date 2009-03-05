@@ -10,7 +10,7 @@ package isabelle.proofdocument
 import scala.collection.mutable.ListBuffer
 import java.util.regex.Pattern
 import isabelle.prover.{Prover, Command}
-
+import isabelle.utils.LinearSet
 
 case class StructureChange(
   val before_change: Option[Command],
@@ -49,16 +49,17 @@ class ProofDocument(text: Text, is_command_keyword: String => Boolean)
 
   text.changes += (change => text_changed(change))
 
-  var tokens = Nil : List[Token]
-  var commands = Nil : List[Command]
-  def content = Token.string_from_tokens(tokens)
+  var tokens = LinearSet.empty[Token]
+  var commands = LinearSet.empty[Command]
+  def content = Token.string_from_tokens(List() ++ tokens)
   /** token view **/
 
   private def text_changed(change: Text.Change)
   {
+    val tokens = List() ++ this.tokens
     val (begin, remaining) = tokens.span(_.stop < change.start)
-    val (removed, end) = remaining.span(_.start <= change.start + change.removed)
-    for (t <- end) t.start += (change.added.length - change.removed)
+    val (removed, end_unshifted) = remaining.span(_.start <= change.start + change.removed)
+    val end = for (t <- end_unshifted) yield t.shift(change.added.length - change.removed)
 
     val split_begin = removed.takeWhile(_.start < change.start).
       map (t => new Token(t.start,
@@ -99,7 +100,7 @@ class ProofDocument(text: Text, is_command_keyword: String => Boolean)
       }
     }
     val insert = new_tokens.reverse
-    tokens = begin ::: insert ::: old_suffix
+    this.tokens = (new LinearSet() ++ (begin ::: insert ::: old_suffix)).asInstanceOf[LinearSet[Token]]
 
     token_changed(begin.lastOption,
                   insert,
@@ -121,6 +122,7 @@ class ProofDocument(text: Text, is_command_keyword: String => Boolean)
                             removed_tokens: List[Token],
                             after_change: Option[Token])
   {
+    val commands = List() ++ this.commands
     val (begin, remaining) =
       before_change match {
         case None => (Nil, commands)
@@ -162,12 +164,8 @@ class ProofDocument(text: Text, is_command_keyword: String => Boolean)
     val new_commands = tokens_to_commands(pseudo_new_pre ::: inserted_tokens ::: pseudo_new_post)
     System.err.println("new_commands: " + new_commands)
 
-    commands = begin ::: new_commands ::: end
+    this.commands = (LinearSet() ++ (begin ::: new_commands ::: end)).asInstanceOf[LinearSet[Command]]
     val before = begin match {case Nil => None case _ => Some (begin.last)}
     structural_changes.event(new StructureChange(before, new_commands, removed))
-/*
-    val old = commands
-    commands = tokens_to_commands(tokens)
-    structural_changes.event(new StructureChange(None, commands, old)) */
   }
 }

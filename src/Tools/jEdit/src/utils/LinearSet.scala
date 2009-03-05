@@ -3,6 +3,7 @@
 
 Sets with canonical linear order, or immutable linked-lists.
 */
+package isabelle.utils
 
 object LinearSet
 {
@@ -32,6 +33,8 @@ class LinearSet[A] extends scala.collection.immutable.Set[A]
 
   /* basic methods */
 
+  def next(elem: A) = body.get(elem)
+  
   override def isEmpty: Boolean = !last_elem.isDefined
   def size: Int = if (isEmpty) 0 else body.size + 1
 
