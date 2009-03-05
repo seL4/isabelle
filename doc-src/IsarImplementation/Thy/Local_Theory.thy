@@ -164,5 +164,5 @@ text %mlref {*
 section {* Morphisms and declarations *}
 
 text FIXME
- 
+
 end
