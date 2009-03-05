@@ -503,7 +503,7 @@ The following improper proof methods emulate traditional tactics.
   \item \hyperlink{command.simproc-setup}{\mbox{\isa{\isacommand{simproc{\isacharunderscore}setup}}}} defines a named simplification
   procedure that is invoked by the Simplifier whenever any of the
   given term patterns match the current redex.  The implementation,
-  which is provided as ML source text, needs to be of type \verb|"morphism -> simpset -> cterm -> thm option"|, where the \verb|cterm| represents the current redex \isa{r} and the result is
+  which is provided as ML source text, needs to be of type \verb|morphism -> simpset -> cterm -> thm option|, where the \verb|cterm| represents the current redex \isa{r} and the result is
   supposed to be some proven rewrite rule \isa{{\isachardoublequote}r\ {\isasymequiv}\ r{\isacharprime}{\isachardoublequote}} (or a
   generalized version), or \verb|NONE| to indicate failure.  The
   \verb|simpset| argument holds the full context of the current
