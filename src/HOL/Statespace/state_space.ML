@@ -611,7 +611,7 @@ fun gen_lookup_tr ctxt s n =
            Syntax.const "StateFun.lookup"$Syntax.free (project_name T)$Syntax.free n$s
        | NONE =>
            if get_silent (Context.Proof ctxt)
-	   then Syntax.const "StateFun.lookup"$Syntax.const "arbitrary"$Syntax.free n$s
+	   then Syntax.const "StateFun.lookup" $ Syntax.const "undefined" $ Syntax.free n $ s
            else raise TERM ("StateSpace.gen_lookup_tr: component " ^ n ^ " not defined",[]));
 
 fun lookup_tr ctxt [s,Free (n,_)] = gen_lookup_tr ctxt s n;
@@ -637,8 +637,8 @@ fun gen_update_tr id ctxt n v s =
       | NONE =>
          if get_silent (Context.Proof ctxt)
          then Syntax.const "StateFun.update"$
-                   Syntax.const "arbitrary"$Syntax.const "arbitrary"$
-                   Syntax.free n$(Syntax.const KN $ v)$s
+                   Syntax.const "undefined" $ Syntax.const "undefined" $
+                   Syntax.free n $ (Syntax.const KN $ v) $ s
          else raise TERM ("StateSpace.gen_update_tr: component " ^ n ^ " not defined",[]))
    end;
 

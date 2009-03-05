@@ -878,8 +878,53 @@ lemma fold_image_distrib: "finite A \<Longrightarrow>
    fold_image times g 1 A *  fold_image times h 1 A"
 by (erule finite_induct) (simp_all add: mult_ac)
 
-end
+lemma fold_image_related: 
+  assumes Re: "R e e" 
+  and Rop: "\<forall>x1 y1 x2 y2. R x1 x2 \<and> R y1 y2 \<longrightarrow> R (x1 * y1) (x2 * y2)" 
+  and fS: "finite S" and Rfg: "\<forall>x\<in>S. R (h x) (g x)"
+  shows "R (fold_image (op *) h e S) (fold_image (op *) g e S)"
+  using fS by (rule finite_subset_induct) (insert assms, auto)
 
+lemma  fold_image_eq_general:
+  assumes fS: "finite S"
+  and h: "\<forall>y\<in>S'. \<exists>!x. x\<in> S \<and> h(x) = y" 
+  and f12:  "\<forall>x\<in>S. h x \<in> S' \<and> f2(h x) = f1 x"
+  shows "fold_image (op *) f1 e S = fold_image (op *) f2 e S'"
+proof-
+  from h f12 have hS: "h ` S = S'" by auto
+  {fix x y assume H: "x \<in> S" "y \<in> S" "h x = h y"
+    from f12 h H  have "x = y" by auto }
+  hence hinj: "inj_on h S" unfolding inj_on_def Ex1_def by blast
+  from f12 have th: "\<And>x. x \<in> S \<Longrightarrow> (f2 \<circ> h) x = f1 x" by auto 
+  from hS have "fold_image (op *) f2 e S' = fold_image (op *) f2 e (h ` S)" by simp
+  also have "\<dots> = fold_image (op *) (f2 o h) e S" 
+    using fold_image_reindex[OF fS hinj, of f2 e] .
+  also have "\<dots> = fold_image (op *) f1 e S " using th fold_image_cong[OF fS, of "f2 o h" f1 e]
+    by blast
+  finally show ?thesis ..
+qed
+
+lemma fold_image_eq_general_inverses:
+  assumes fS: "finite S" 
+  and kh: "\<And>y. y \<in> T \<Longrightarrow> k y \<in> S \<and> h (k y) = y"
+  and hk: "\<And>x. x \<in> S \<Longrightarrow> h x \<in> T \<and> k (h x) = x  \<and> g (h x) = f x"
+  shows "fold_image (op *) f e S = fold_image (op *) g e T"
+  (* metis solves it, but not yet available here *)
+  apply (rule fold_image_eq_general[OF fS, of T h g f e])
+  apply (rule ballI)
+  apply (frule kh)
+  apply (rule ex1I[])
+  apply blast
+  apply clarsimp
+  apply (drule hk) apply simp
+  apply (rule sym)
+  apply (erule conjunct1[OF conjunct2[OF hk]])
+  apply (rule ballI)
+  apply (drule  hk)
+  apply blast
+  done
+
+end
 
 subsection {* Generalized summation over a set *}
 
@@ -1092,6 +1137,31 @@ lemma setsum_delta':
   using setsum_delta[OF fS, of a b, symmetric] 
   by (auto intro: setsum_cong)
 
+lemma setsum_restrict_set:
+  assumes fA: "finite A"
+  shows "setsum f (A \<inter> B) = setsum (\<lambda>x. if x \<in> B then f x else 0) A"
+proof-
+  from fA have fab: "finite (A \<inter> B)" by auto
+  have aba: "A \<inter> B \<subseteq> A" by blast
+  let ?g = "\<lambda>x. if x \<in> A\<inter>B then f x else 0"
+  from setsum_mono_zero_left[OF fA aba, of ?g]
+  show ?thesis by simp
+qed
+
+lemma setsum_cases:
+  assumes fA: "finite A"
+  shows "setsum (\<lambda>x. if x \<in> B then f x else g x) A =
+         setsum f (A \<inter> B) + setsum g (A \<inter> - B)"
+proof-
+  have a: "A = A \<inter> B \<union> A \<inter> -B" "(A \<inter> B) \<inter> (A \<inter> -B) = {}" 
+    by blast+
+  from fA 
+  have f: "finite (A \<inter> B)" "finite (A \<inter> -B)" by auto
+  let ?g = "\<lambda>x. if x \<in> B then f x else g x"
+  from setsum_Un_disjoint[OF f a(2), of ?g] a(1)
+  show ?thesis by simp
+qed
+
 
 (*But we can't get rid of finite I. If infinite, although the rhs is 0, 
   the lhs need not be, since UNION I A could still be finite.*)
@@ -1157,6 +1227,62 @@ lemma setsum_Un: "finite A ==> finite B ==>
   (setsum f (A Un B) :: 'a :: ab_group_add) =
    setsum f A + setsum f B - setsum f (A Int B)"
 by (subst setsum_Un_Int [symmetric], auto simp add: algebra_simps)
+
+lemma (in comm_monoid_mult) fold_image_1: "finite S \<Longrightarrow> (\<forall>x\<in>S. f x = 1) \<Longrightarrow> fold_image op * f 1 S = 1"
+  apply (induct set: finite)
+  apply simp by (auto simp add: fold_image_insert)
+
+lemma (in comm_monoid_mult) fold_image_Un_one:
+  assumes fS: "finite S" and fT: "finite T"
+  and I0: "\<forall>x \<in> S\<inter>T. f x = 1"
+  shows "fold_image (op *) f 1 (S \<union> T) = fold_image (op *) f 1 S * fold_image (op *) f 1 T"
+proof-
+  have "fold_image op * f 1 (S \<inter> T) = 1" 
+    apply (rule fold_image_1)
+    using fS fT I0 by auto 
+  with fold_image_Un_Int[OF fS fT] show ?thesis by simp
+qed
+
+lemma setsum_eq_general_reverses:
+  assumes fS: "finite S" and fT: "finite T"
+  and kh: "\<And>y. y \<in> T \<Longrightarrow> k y \<in> S \<and> h (k y) = y"
+  and hk: "\<And>x. x \<in> S \<Longrightarrow> h x \<in> T \<and> k (h x) = x \<and> g (h x) = f x"
+  shows "setsum f S = setsum g T"
+  apply (simp add: setsum_def fS fT)
+  apply (rule comm_monoid_add.fold_image_eq_general_inverses[OF fS])
+  apply (erule kh)
+  apply (erule hk)
+  done
+
+
+
+lemma setsum_Un_zero:  
+  assumes fS: "finite S" and fT: "finite T"
+  and I0: "\<forall>x \<in> S\<inter>T. f x = 0"
+  shows "setsum f (S \<union> T) = setsum f S  + setsum f T"
+  using fS fT
+  apply (simp add: setsum_def)
+  apply (rule comm_monoid_add.fold_image_Un_one)
+  using I0 by auto
+
+
+lemma setsum_UNION_zero: 
+  assumes fS: "finite S" and fSS: "\<forall>T \<in> S. finite T"
+  and f0: "\<And>T1 T2 x. T1\<in>S \<Longrightarrow> T2\<in>S \<Longrightarrow> T1 \<noteq> T2 \<Longrightarrow> x \<in> T1 \<Longrightarrow> x \<in> T2 \<Longrightarrow> f x = 0"
+  shows "setsum f (\<Union>S) = setsum (\<lambda>T. setsum f T) S"
+  using fSS f0
+proof(induct rule: finite_induct[OF fS])
+  case 1 thus ?case by simp
+next
+  case (2 T F)
+  then have fTF: "finite T" "\<forall>T\<in>F. finite T" "finite F" and TF: "T \<notin> F" 
+    and H: "setsum f (\<Union> F) = setsum (setsum f) F" by (auto simp add: finite_insert)
+  from fTF have fUF: "finite (\<Union>F)" by (auto intro: finite_Union)
+  from "2.prems" TF fTF
+  show ?case 
+    by (auto simp add: H[symmetric] intro: setsum_Un_zero[OF fTF(1) fUF, of f])
+qed
+
 
 lemma setsum_diff1_nat: "(setsum f (A - {a}) :: nat) =
   (if a:A then setsum f A - f a else setsum f A)"
@@ -1538,6 +1664,15 @@ proof-
       apply simp
       by (erule eq[symmetric])
 qed
+
+lemma setprod_Un_one:  
+  assumes fS: "finite S" and fT: "finite T"
+  and I0: "\<forall>x \<in> S\<inter>T. f x = 1"
+  shows "setprod f (S \<union> T) = setprod f S  * setprod f T"
+  using fS fT
+  apply (simp add: setprod_def)
+  apply (rule fold_image_Un_one)
+  using I0 by auto
 
 
 lemma setprod_1: "setprod (%i. 1) A = 1"

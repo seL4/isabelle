@@ -48,25 +48,30 @@ val _ = thm_antiq "thms" Attrib.thms;
 
 (* ad-hoc goals *)
 
+val and_ = Args.$$$ "and";
 val by = Args.$$$ "by";
-val goal = Scan.unless (Scan.lift by) Args.prop;
+val goal = Scan.unless (by || and_) Args.name;
 
 val _ = ML_Context.add_antiq "lemma"
-  (fn pos => Args.context -- Args.mode "open" -- Scan.repeat1 goal --
-      Scan.lift (by |-- Method.parse -- Scan.option Method.parse) >>
-    (fn (((ctxt, is_open), props), methods) => fn {struct_name, background} =>
+  (fn pos => Args.context -- Args.mode "open" --
+      Scan.lift (OuterParse.and_list1 (Scan.repeat1 goal) --
+        (by |-- Method.parse -- Scan.option Method.parse)) >>
+    (fn ((ctxt, is_open), (raw_propss, methods)) => fn {struct_name, background} =>
       let
+        val propss = burrow (map (rpair []) o Syntax.read_props ctxt) raw_propss;
         val i = serial ();
         val prep_result =
           Goal.norm_result #> Thm.default_position pos #> not is_open ? Thm.close_derivation;
-        fun after_qed [res] goal_ctxt =
-          put_thms (i, map prep_result (ProofContext.export goal_ctxt ctxt res)) goal_ctxt;
+        fun after_qed res goal_ctxt =
+          put_thms (i, map prep_result (ProofContext.export goal_ctxt ctxt (flat res))) goal_ctxt;
         val ctxt' = ctxt
-          |> Proof.theorem_i NONE after_qed [map (rpair []) props]
+          |> Proof.theorem_i NONE after_qed propss
           |> Proof.global_terminal_proof methods;
         val (a, background') = background
           |> ML_Antiquote.variant "lemma" ||> put_thms (i, the_thms ctxt' i);
-        val ml = (thm_bind (if length props = 1 then "thm" else "thms") a i, struct_name ^ "." ^ a);
+        val ml =
+         (thm_bind (if length (flat propss) = 1 then "thm" else "thms") a i,
+          struct_name ^ "." ^ a);
       in (K ml, background') end));
 
 end;

@@ -629,14 +629,6 @@ val add_datatype_cmd = gen_add_datatype read_typ true;
 
 (** a datatype antiquotation **)
 
-local
-
-val sym_datatype = Pretty.command "datatype";
-val sym_binder = Pretty.str "\\ {\\isacharequal}"; (*FIXME use proper symbol*)
-val sym_sep = Pretty.str "{\\isacharbar}\\ ";
-
-in
-
 fun args_datatype (ctxt, args) =
   let
     val (tyco, (ctxt', args')) = Args.tyname (ctxt, args);
@@ -654,26 +646,19 @@ fun pretty_datatype ctxt (dtco, (vs, cos)) =
       in if member (op =) s " " then Pretty.enclose "(" ")" [p]
         else p
       end;
-    fun pretty_constr (co, []) =
-          Syntax.pretty_term ctxt (Const (co, ty))
-      | pretty_constr (co, [ty']) =
-          (Pretty.block o Pretty.breaks)
-            [Syntax.pretty_term ctxt (Const (co, ty' --> ty)),
-              pretty_typ_br ty']
-      | pretty_constr (co, tys) =
-          (Pretty.block o Pretty.breaks)
-            (Syntax.pretty_term ctxt (Const (co, tys ---> ty)) ::
-              map pretty_typ_br tys);
+    fun pretty_constr (co, tys) =
+      (Pretty.block o Pretty.breaks)
+        (Syntax.pretty_term ctxt (Const (co, tys ---> ty)) ::
+          map pretty_typ_br tys);
   in
     Pretty.block
-      (sym_datatype :: Pretty.brk 1 ::
+      (Pretty.command "datatype" :: Pretty.brk 1 ::
        Syntax.pretty_typ ctxt ty ::
-       sym_binder :: Pretty.brk 1 ::
-       flat (separate [Pretty.brk 1, sym_sep]
+       Pretty.str " =" :: Pretty.brk 1 ::
+       flat (separate [Pretty.brk 1, Pretty.str "| "]
          (map (single o pretty_constr) cos)))
   end
 
-end;
 
 (** package setup **)
 

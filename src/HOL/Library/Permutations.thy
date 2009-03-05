@@ -1,5 +1,4 @@
 (* Title:      Library/Permutations
-   ID:         $Id: 
    Author:     Amine Chaieb, University of Cambridge
 *)
 
