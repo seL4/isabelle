@@ -34,8 +34,6 @@ val pass_mark = 0.5;
 val convergence = 3.2;    (*Higher numbers allow longer inference chains*)
 val follow_defs = false;  (*Follow definitions. Makes problems bigger.*)
 val include_all = true;
-val include_simpset = false;
-val include_claset = false;
 val include_atpset = true;
   
 (***************************************************************)
@@ -409,17 +407,11 @@ fun get_clasimp_atp_lemmas ctxt user_thms =
                      (fn () => ("Including all " ^ Int.toString (length ths) ^ " theorems")))
                   (name_thm_pairs ctxt))
         else
-        let val claset_thms =
-                if include_claset then ResAxioms.claset_rules_of ctxt
-                else []
-            val simpset_thms =
-                if include_simpset then ResAxioms.simpset_rules_of ctxt
-                else []
-            val atpset_thms =
+        let val atpset_thms =
                 if include_atpset then ResAxioms.atpset_rules_of ctxt
                 else []
             val _ = (Output.debug (fn () => "ATP theorems: ");  app display_thm atpset_thms)
-        in  claset_thms @ simpset_thms @ atpset_thms  end
+        in  atpset_thms  end
       val user_rules = filter check_named
                          (map ResAxioms.pairname
                            (if null user_thms then whitelist else user_thms))
