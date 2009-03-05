@@ -144,7 +144,7 @@ echo "### Preparing distribution $DISTNAME"
 echo "###"
 
 find . -name .cvsignore -print | xargs rm -rf
-find . "(" -name \*.thy -o -name \*.ML ")" -perm +111 -print | xargs chmod -x
+find . "(" -name \*.thy -o -name \*.ML ")" -perm +111 -print | xargs chmod -f -x
 find . -print | xargs chmod u+rw
 
 ./Admin/build all || fail "Failed to build distribution"
