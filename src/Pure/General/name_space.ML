@@ -123,7 +123,7 @@ fun suffixes_prefixes_split i k list =
 datatype T =
   NameSpace of
     (string list * string list) Symtab.table *   (*internals, hidden internals*)
-    string list Symtab.table;                    (*externals*)
+    xstring list Symtab.table;                   (*externals*)
 
 val empty = NameSpace (Symtab.empty, Symtab.empty);
 
@@ -153,9 +153,9 @@ fun intern space xname = #1 (lookup space xname);
 
 fun extern_flags {long_names, short_names, unique_names} space name =
   let
-    fun valid unique xname =
-      let val (name', uniq) = lookup space xname
-      in name = name' andalso (uniq orelse not unique) end;
+    fun valid require_unique xname =
+      let val (name', is_unique) = lookup space xname
+      in name = name' andalso (not require_unique orelse is_unique) end;
 
     fun ext [] = if valid false name then name else hidden name
       | ext (nm :: nms) = if valid unique_names nm then nm else ext nms;
@@ -278,8 +278,8 @@ fun full (Naming (path, (qualify, _))) = qualify path;
 
 fun full_name naming binding =
   let
-    val (prefix, qualifier, bname) = Binding.dest binding;
-    val naming' = apply_prefix (prefix @ qualifier) naming;
+    val (prfx, bname) = Binding.dest binding;
+    val naming' = apply_prefix prfx naming;
   in full naming' bname end;
 
 
@@ -287,8 +287,8 @@ fun full_name naming binding =
 
 fun declare naming binding space =
   let
-    val (prefix, qualifier, bname) = Binding.dest binding;
-    val naming' = apply_prefix (prefix @ qualifier) naming;
+    val (prfx, bname) = Binding.dest binding;
+    val naming' = apply_prefix prfx naming;
     val name = full naming' bname;
     val names = explode_name name;
 
