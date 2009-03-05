@@ -263,11 +263,9 @@ val cases_of = #cases o rep_context;
 
 fun transfer_syntax thy =
   map_syntax (LocalSyntax.rebuild thy) #>
-  map_consts (fn consts as (local_consts, global_consts) =>
-    let val thy_consts = Sign.consts_of thy in
-      if Consts.eq_consts (thy_consts, global_consts) then consts
-      else (Consts.merge (local_consts, thy_consts), thy_consts)
-    end);
+  map_consts (fn (local_consts, _) =>
+    let val thy_consts = Sign.consts_of thy
+    in (Consts.merge (local_consts, thy_consts), thy_consts) end);
 
 fun transfer thy = Context.transfer_proof thy #> transfer_syntax thy;
 

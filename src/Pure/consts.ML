@@ -8,7 +8,6 @@ constraints.
 signature CONSTS =
 sig
   type T
-  val eq_consts: T * T -> bool
   val abbrevs_of: T -> string list -> (term * term) list
   val dest: T ->
    {constants: (typ * term option) NameSpace.table,
@@ -52,23 +51,21 @@ type abbrev = {rhs: term, normal_rhs: term, force_expand: bool};
 datatype T = Consts of
  {decls: ((decl * abbrev option) * serial) NameSpace.table,
   constraints: typ Symtab.table,
-  rev_abbrevs: (term * term) list Symtab.table} * stamp;
-
-fun eq_consts (Consts (_, s1), Consts (_, s2)) = s1 = s2;
+  rev_abbrevs: (term * term) list Symtab.table};
 
 fun make_consts (decls, constraints, rev_abbrevs) =
-  Consts ({decls = decls, constraints = constraints, rev_abbrevs = rev_abbrevs}, stamp ());
+  Consts {decls = decls, constraints = constraints, rev_abbrevs = rev_abbrevs};
 
-fun map_consts f (Consts ({decls, constraints, rev_abbrevs}, _)) =
+fun map_consts f (Consts {decls, constraints, rev_abbrevs}) =
   make_consts (f (decls, constraints, rev_abbrevs));
 
-fun abbrevs_of (Consts ({rev_abbrevs, ...}, _)) modes =
+fun abbrevs_of (Consts {rev_abbrevs, ...}) modes =
   maps (Symtab.lookup_list rev_abbrevs) modes;
 
 
 (* dest consts *)
 
-fun dest (Consts ({decls = (space, decls), constraints, ...}, _)) =
+fun dest (Consts {decls = (space, decls), constraints, ...}) =
  {constants = (space,
     Symtab.fold (fn (c, (({T, ...}, abbr), _)) =>
       Symtab.update (c, (T, Option.map #rhs abbr))) decls Symtab.empty),
@@ -77,7 +74,7 @@ fun dest (Consts ({decls = (space, decls), constraints, ...}, _)) =
 
 (* lookup consts *)
 
-fun the_const (Consts ({decls = (_, tab), ...}, _)) c =
+fun the_const (Consts {decls = (_, tab), ...}) c =
   (case Symtab.lookup tab c of
     SOME (decl, _) => decl
   | NONE => raise TYPE ("Unknown constant: " ^ quote c, [], []));
@@ -99,7 +96,7 @@ val the_tags = #tags oo the_decl;
 
 val is_monomorphic = null oo type_arguments;
 
-fun the_constraint (consts as Consts ({constraints, ...}, _)) c =
+fun the_constraint (consts as Consts {constraints, ...}) c =
   (case Symtab.lookup constraints c of
     SOME T => T
   | NONE => type_scheme consts c);
@@ -107,7 +104,7 @@ fun the_constraint (consts as Consts ({constraints, ...}, _)) c =
 
 (* name space and syntax *)
 
-fun space_of (Consts ({decls = (space, _), ...}, _)) = space;
+fun space_of (Consts {decls = (space, _), ...}) = space;
 
 val intern = NameSpace.intern o space_of;
 val extern = NameSpace.extern o space_of;
@@ -307,8 +304,8 @@ end;
 val empty = make_consts (NameSpace.empty_table, Symtab.empty, Symtab.empty);
 
 fun merge
-   (Consts ({decls = decls1, constraints = constraints1, rev_abbrevs = rev_abbrevs1}, _),
-    Consts ({decls = decls2, constraints = constraints2, rev_abbrevs = rev_abbrevs2}, _)) =
+   (Consts {decls = decls1, constraints = constraints1, rev_abbrevs = rev_abbrevs1},
+    Consts {decls = decls2, constraints = constraints2, rev_abbrevs = rev_abbrevs2}) =
   let
     val decls' = NameSpace.merge_tables (eq_snd (op =)) (decls1, decls2)
       handle Symtab.DUP c => err_dup_const c;
