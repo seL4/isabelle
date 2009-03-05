@@ -5,5 +5,5 @@ begin
 chapter {* Syntax and type-checking *}
 
 text FIXME
-
+ 
 end
