@@ -19,7 +19,7 @@ lemma lemma_realpow_diff:
 proof -
   assume "p \<le> n"
   hence "Suc n - p = Suc (n - p)" by (rule Suc_diff_le)
-  thus ?thesis by (simp add: power_Suc power_commutes)
+  thus ?thesis by (simp add: power_commutes)
 qed
 
 lemma lemma_realpow_diff_sumr:
@@ -33,14 +33,14 @@ lemma lemma_realpow_diff_sumr2:
   fixes y :: "'a::{recpower,comm_ring}" shows
      "x ^ (Suc n) - y ^ (Suc n) =  
       (x - y) * (\<Sum>p=0..<Suc n. (x ^ p) * y ^ (n - p))"
-apply (induct n, simp add: power_Suc)
-apply (simp add: power_Suc del: setsum_op_ivl_Suc)
+apply (induct n, simp)
+apply (simp del: setsum_op_ivl_Suc)
 apply (subst setsum_op_ivl_Suc)
 apply (subst lemma_realpow_diff_sumr)
 apply (simp add: right_distrib del: setsum_op_ivl_Suc)
 apply (subst mult_left_commute [where a="x - y"])
 apply (erule subst)
-apply (simp add: power_Suc algebra_simps)
+apply (simp add: algebra_simps)
 done
 
 lemma lemma_realpow_rev_sumr:
@@ -368,7 +368,7 @@ apply (simp add: mult_assoc [symmetric])
 apply (cases "n", simp)
 apply (simp add: lemma_realpow_diff_sumr2 h
                  right_diff_distrib [symmetric] mult_assoc
-            del: realpow_Suc setsum_op_ivl_Suc of_nat_Suc)
+            del: power_Suc setsum_op_ivl_Suc of_nat_Suc)
 apply (subst lemma_realpow_rev_sumr)
 apply (subst sumr_diff_mult_const2)
 apply simp
@@ -377,7 +377,7 @@ apply (rule setsum_cong [OF refl])
 apply (simp add: diff_minus [symmetric] less_iff_Suc_add)
 apply (clarify)
 apply (simp add: setsum_right_distrib lemma_realpow_diff_sumr2 mult_ac
-            del: setsum_op_ivl_Suc realpow_Suc)
+            del: setsum_op_ivl_Suc power_Suc)
 apply (subst mult_assoc [symmetric], subst power_add [symmetric])
 apply (simp add: mult_ac)
 done
@@ -831,7 +831,7 @@ lemma summable_exp_generic:
   shows "summable S"
 proof -
   have S_Suc: "\<And>n. S (Suc n) = (x * S n) /\<^sub>R real (Suc n)"
-    unfolding S_def by (simp add: power_Suc del: mult_Suc)
+    unfolding S_def by (simp del: mult_Suc)
   obtain r :: real where r0: "0 < r" and r1: "r < 1"
     using dense [OF zero_less_one] by fast
   obtain N :: nat where N: "norm x < real N * r"
@@ -928,7 +928,7 @@ proof (induct n)
 next
   case (Suc n)
   have S_Suc: "\<And>x n. S x (Suc n) = (x * S x n) /\<^sub>R real (Suc n)"
-    unfolding S_def by (simp add: power_Suc del: mult_Suc)
+    unfolding S_def by (simp del: mult_Suc)
   hence times_S: "\<And>x n. x * S x n = real (Suc n) *\<^sub>R S x (Suc n)"
     by simp
 
@@ -1471,22 +1471,22 @@ done
 
 lemma sin_cos_squared_add2 [simp]: "((cos x)\<twosuperior>) + ((sin x)\<twosuperior>) = 1"
 apply (subst add_commute)
-apply (simp (no_asm) del: realpow_Suc)
+apply (rule sin_cos_squared_add)
 done
 
 lemma sin_cos_squared_add3 [simp]: "cos x * cos x + sin x * sin x = 1"
 apply (cut_tac x = x in sin_cos_squared_add2)
-apply (auto simp add: numeral_2_eq_2)
+apply (simp add: power2_eq_square)
 done
 
 lemma sin_squared_eq: "(sin x)\<twosuperior> = 1 - (cos x)\<twosuperior>"
 apply (rule_tac a1 = "(cos x)\<twosuperior>" in add_right_cancel [THEN iffD1])
-apply (simp del: realpow_Suc)
+apply simp
 done
 
 lemma cos_squared_eq: "(cos x)\<twosuperior> = 1 - (sin x)\<twosuperior>"
 apply (rule_tac a1 = "(sin x)\<twosuperior>" in add_right_cancel [THEN iffD1])
-apply (simp del: realpow_Suc)
+apply simp
 done
 
 lemma abs_sin_le_one [simp]: "\<bar>sin x\<bar> \<le> 1"
@@ -1642,6 +1642,7 @@ proof -
   thus ?thesis unfolding One_nat_def by (simp add: mult_ac)
 qed
 
+text {* FIXME: This is a long, ugly proof! *}
 lemma sin_gt_zero: "[|0 < x; x < 2 |] ==> 0 < sin x"
 apply (subgoal_tac 
        "(\<lambda>n. \<Sum>k = n * 2..<n * 2 + 2.
@@ -1652,11 +1653,11 @@ apply (subgoal_tac
 apply (rotate_tac 2)
 apply (drule sin_paired [THEN sums_unique, THEN ssubst])
 unfolding One_nat_def
-apply (auto simp del: fact_Suc realpow_Suc)
+apply (auto simp del: fact_Suc)
 apply (frule sums_unique)
-apply (auto simp del: fact_Suc realpow_Suc)
+apply (auto simp del: fact_Suc)
 apply (rule_tac n1 = 0 in series_pos_less [THEN [2] order_le_less_trans])
-apply (auto simp del: fact_Suc realpow_Suc)
+apply (auto simp del: fact_Suc)
 apply (erule sums_summable)
 apply (case_tac "m=0")
 apply (simp (no_asm_simp))
@@ -1721,7 +1722,7 @@ apply (frule sums_unique, auto)
 apply (rule_tac y =
  "\<Sum>n=0..< Suc(Suc(Suc 0)). - (-1 ^ n / (real(fact (2*n))) * 2 ^ (2*n))"
        in order_less_trans)
-apply (simp (no_asm) add: fact_num_eq_if realpow_num_eq_if del: fact_Suc realpow_Suc)
+apply (simp (no_asm) add: fact_num_eq_if realpow_num_eq_if del: fact_Suc)
 apply (simp (no_asm) add: mult_assoc del: setsum_op_ivl_Suc)
 apply (rule sumr_pos_lt_pair)
 apply (erule sums_summable, safe)
@@ -2456,8 +2457,7 @@ apply (rule power_inverse [THEN subst])
 apply (rule_tac c1 = "(cos x)\<twosuperior>" in real_mult_right_cancel [THEN iffD1])
 apply (auto dest: field_power_not_zero
         simp add: power_mult_distrib left_distrib power_divide tan_def 
-                  mult_assoc power_inverse [symmetric] 
-        simp del: realpow_Suc)
+                  mult_assoc power_inverse [symmetric])
 done
 
 lemma isCont_inverse_function2:

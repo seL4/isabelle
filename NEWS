@@ -361,6 +361,19 @@ now defined in terms of the new one and renamed to fold_image.
 further lemmas!). At the moment both still exist but the former will disappear
 at some point.
 
+* HOL/Power: Lemma power_Suc is now declared as a simp rule in class
+recpower.  Type-specific simp rules for various recpower types have
+been removed.  INCOMPATIBILITY.  Rename old lemmas as follows:
+
+rat_power_0    -> power_0
+rat_power_Suc  -> power_Suc
+realpow_0      -> power_0
+realpow_Suc    -> power_Suc
+complexpow_0   -> power_0
+complexpow_Suc -> power_Suc
+power_poly_0   -> power_0
+power_poly_Suc -> power_Suc
+
 * HOL/Ring_and_Field and HOL/Divides: Definition of "op dvd" has been
 moved to separate class dvd in Ring_and_Field; a couple of lemmas on
 dvd has been generalized to class comm_semiring_1.  Likewise a bunch

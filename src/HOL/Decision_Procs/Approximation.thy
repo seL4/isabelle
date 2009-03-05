@@ -619,7 +619,7 @@ proof -
 	using arctan_0_1_bounds[OF `0 \<le> Ifloat ?DIV` `Ifloat ?DIV \<le> 1`] by auto
       also have "\<dots> \<le> 2 * arctan (Ifloat x / ?R)"
 	using arctan_monotone'[OF monotone] by (auto intro!: mult_left_mono)
-      also have "2 * arctan (Ifloat x / ?R) = arctan (Ifloat x)" using arctan_half[symmetric] unfolding numeral_2_eq_2 power_Suc2 realpow_0 real_mult_1 . 
+      also have "2 * arctan (Ifloat x / ?R) = arctan (Ifloat x)" using arctan_half[symmetric] unfolding numeral_2_eq_2 power_Suc2 power_0 real_mult_1 . 
       finally show ?thesis unfolding lb_arctan.simps Let_def if_not_P[OF `\<not> x < 0`] if_not_P[OF `\<not> x \<le> Float 1 -1`] if_P[OF True] .
     next
       case False
@@ -708,7 +708,7 @@ proof -
 	have "0 \<le> Ifloat x / ?R" using `0 \<le> Ifloat x` `0 < ?R` unfolding real_0_le_divide_iff by auto
 	hence "0 \<le> Ifloat ?DIV" using monotone by (rule order_trans)
 
-	have "arctan (Ifloat x) = 2 * arctan (Ifloat x / ?R)" using arctan_half unfolding numeral_2_eq_2 power_Suc2 realpow_0 real_mult_1 .
+	have "arctan (Ifloat x) = 2 * arctan (Ifloat x / ?R)" using arctan_half unfolding numeral_2_eq_2 power_Suc2 power_0 real_mult_1 .
 	also have "\<dots> \<le> 2 * arctan (Ifloat ?DIV)"
 	  using arctan_monotone'[OF monotone] by (auto intro!: mult_left_mono)
 	also have "\<dots> \<le> Ifloat (Float 1 1 * ?ub_horner ?DIV)" unfolding Ifloat_mult[of "Float 1 1"] Float_num
@@ -1285,7 +1285,7 @@ proof -
 	have "sin (Ifloat x) = sqrt (1 - cos (Ifloat x) ^ 2)" unfolding sin_squared_eq[symmetric] real_sqrt_abs using `0 \<le> sin (Ifloat x)` by auto
 	also have "\<dots> \<le> sqrt (Ifloat (1 - lb_cos prec x * lb_cos prec x))" 
 	proof (rule real_sqrt_le_mono)
-	  have "Ifloat (lb_cos prec x * lb_cos prec x) \<le> cos (Ifloat x) ^ 2" unfolding numeral_2_eq_2 power_Suc2 realpow_0 Ifloat_mult
+	  have "Ifloat (lb_cos prec x * lb_cos prec x) \<le> cos (Ifloat x) ^ 2" unfolding numeral_2_eq_2 power_Suc2 power_0 Ifloat_mult
 	    using `0 \<le> Ifloat (lb_cos prec x)` lb_cos[OF `0 \<le> Ifloat x` `Ifloat x \<le> pi`] `0 \<le> cos (Ifloat x)` by(auto intro!: mult_mono)
 	  thus "1 - cos (Ifloat x) ^ 2 \<le> Ifloat (1 - lb_cos prec x * lb_cos prec x)" unfolding Ifloat_sub Ifloat_1 by auto
 	qed
@@ -1317,7 +1317,7 @@ proof -
 	qed
 	also have "\<dots> \<le> sqrt (1 - cos (Ifloat x) ^ 2)"
 	proof (rule real_sqrt_le_mono)
-	  have "cos (Ifloat x) ^ 2 \<le> Ifloat (ub_cos prec x * ub_cos prec x)" unfolding numeral_2_eq_2 power_Suc2 realpow_0 Ifloat_mult
+	  have "cos (Ifloat x) ^ 2 \<le> Ifloat (ub_cos prec x * ub_cos prec x)" unfolding numeral_2_eq_2 power_Suc2 power_0 Ifloat_mult
 	    using `0 \<le> Ifloat (ub_cos prec x)` lb_cos[OF `0 \<le> Ifloat x` `Ifloat x \<le> pi`] `0 \<le> cos (Ifloat x)` by(auto intro!: mult_mono)
 	  thus "Ifloat (1 - ub_cos prec x * ub_cos prec x) \<le> 1 - cos (Ifloat x) ^ 2" unfolding Ifloat_sub Ifloat_1 by auto
 	qed
@@ -1814,7 +1814,7 @@ next
 
     {
       have "Ifloat (lb_ln2 prec * ?s) \<le> ln 2 * real (e + (bitlen m - 1))" (is "?lb2 \<le> _")
-	unfolding Ifloat_mult Ifloat_ge0_exp[OF order_refl] nat_0 realpow_0 mult_1_right
+	unfolding Ifloat_mult Ifloat_ge0_exp[OF order_refl] nat_0 power_0 mult_1_right
 	using lb_ln2[of prec]
       proof (rule mult_right_mono)
 	have "1 \<le> Float m e" using `1 \<le> x` Float unfolding le_float_def by auto
@@ -1837,7 +1837,7 @@ next
       have "ln (Ifloat ?x) \<le> Ifloat ((?x - 1) * ub_ln_horner prec (get_odd prec) 1 (?x - 1))" (is "_ \<le> ?ub_horner") by auto
       moreover
       have "ln 2 * real (e + (bitlen m - 1)) \<le> Ifloat (ub_ln2 prec * ?s)" (is "_ \<le> ?ub2")
-	unfolding Ifloat_mult Ifloat_ge0_exp[OF order_refl] nat_0 realpow_0 mult_1_right
+	unfolding Ifloat_mult Ifloat_ge0_exp[OF order_refl] nat_0 power_0 mult_1_right
 	using ub_ln2[of prec] 
       proof (rule mult_right_mono)
 	have "1 \<le> Float m e" using `1 \<le> x` Float unfolding le_float_def by auto

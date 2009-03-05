@@ -82,13 +82,13 @@ unfolding difg
  apply (frule less_iff_Suc_add [THEN iffD1], clarify)
  apply (simp del: setsum_op_ivl_Suc)
  apply (insert sumr_offset4 [of "Suc 0"])
- apply (simp del: setsum_op_ivl_Suc fact_Suc realpow_Suc)
+ apply (simp del: setsum_op_ivl_Suc fact_Suc power_Suc)
  apply (rule lemma_DERIV_subst)
   apply (rule DERIV_add)
    apply (rule_tac [2] DERIV_const)
   apply (rule DERIV_sumr, clarify)
   prefer 2 apply simp
- apply (simp (no_asm) add: divide_inverse mult_assoc del: fact_Suc realpow_Suc)
+ apply (simp (no_asm) add: divide_inverse mult_assoc del: fact_Suc power_Suc)
  apply (rule DERIV_cmult)
  apply (rule lemma_DERIV_subst)
   apply (best intro: DERIV_chain2 intro!: DERIV_intros)
@@ -145,7 +145,7 @@ proof -
     apply (frule less_iff_Suc_add [THEN iffD1], clarify)
     apply (simp del: setsum_op_ivl_Suc)
     apply (insert sumr_offset4 [of "Suc 0"])
-    apply (simp del: setsum_op_ivl_Suc fact_Suc realpow_Suc)
+    apply (simp del: setsum_op_ivl_Suc fact_Suc)
     done
 
   have isCont_difg: "\<And>m x. \<lbrakk>m < n; 0 \<le> x; x \<le> h\<rbrakk> \<Longrightarrow> isCont (difg m) x"
@@ -205,7 +205,7 @@ proof -
       (\<Sum>m = 0..<n. diff m 0 / real (fact m) * h ^ m) +
       diff n t / real (fact n) * h ^ n"
       using `difg (Suc m) t = 0`
-      by (simp add: m f_h difg_def del: realpow_Suc fact_Suc)
+      by (simp add: m f_h difg_def del: fact_Suc)
   qed
 
 qed

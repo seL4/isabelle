@@ -128,7 +128,7 @@ proof
     apply (rule plus_leI, simp)
     apply (simp add:star_cont[of 1 a a, simplified])
     apply (simp add:star_cont[of 1 a 1, simplified])
-    by (auto intro: SUP_leI le_SUPI UNIV_I simp add: power_Suc[symmetric] power_commutes)
+    by (auto intro: SUP_leI le_SUPI simp add: power_Suc[symmetric] power_commutes simp del: power_Suc)
 
   show "a * x \<le> x \<Longrightarrow> star a * x \<le> x"
   proof -
@@ -138,13 +138,13 @@ proof
       fix n
       have "a ^ (Suc n) * x \<le> a ^ n * x"
       proof (induct n)
-        case 0 thus ?case by (simp add:a power_Suc)
+        case 0 thus ?case by (simp add: a)
       next
         case (Suc n)
         hence "a * (a ^ Suc n * x) \<le> a * (a ^ n * x)"
           by (auto intro: mult_mono)
         thus ?case
-          by (simp add:power_Suc mult_assoc)
+          by (simp add: mult_assoc)
       qed
     }
     note a = this
@@ -173,13 +173,13 @@ proof
       fix n
       have "x * a ^ (Suc n) \<le> x * a ^ n"
       proof (induct n)
-        case 0 thus ?case by (simp add:a power_Suc)
+        case 0 thus ?case by (simp add: a)
       next
         case (Suc n)
         hence "(x * a ^ Suc n) * a  \<le> (x * a ^ n) * a"
           by (auto intro: mult_mono)
         thus ?case
-          by (simp add:power_Suc power_commutes mult_assoc)
+          by (simp add: power_commutes mult_assoc)
       qed
     }
     note a = this

@@ -386,7 +386,7 @@ lemma LIM_power:
   fixes f :: "'a::real_normed_vector \<Rightarrow> 'b::{recpower,real_normed_algebra}"
   assumes f: "f -- a --> l"
   shows "(\<lambda>x. f x ^ n) -- a --> l ^ n"
-by (induct n, simp, simp add: power_Suc LIM_mult f)
+by (induct n, simp, simp add: LIM_mult f)
 
 subsubsection {* Derived theorems about @{term LIM} *}
 

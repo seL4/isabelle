@@ -419,13 +419,13 @@ lemma odd_power_less_zero:
      "(a::'a::{ordered_idom,recpower}) < 0 ==> a ^ Suc(2*n) < 0"
 proof (induct "n")
   case 0
-  then show ?case by (simp add: Power.power_Suc)
+  then show ?case by simp
 next
   case (Suc n)
-  have "a ^ Suc (2 * Suc n) = (a*a) * a ^ Suc(2*n)" 
-    by (simp add: mult_ac power_add power2_eq_square Power.power_Suc)
+  have "a ^ Suc (2 * Suc n) = (a*a) * a ^ Suc(2*n)"
+    by (simp add: mult_ac power_add power2_eq_square)
   thus ?case
-    by (simp add: prems mult_less_0_iff mult_neg_neg)
+    by (simp del: power_Suc add: prems mult_less_0_iff mult_neg_neg)
 qed
 
 lemma odd_0_le_power_imp_0_le:

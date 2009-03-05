@@ -613,7 +613,7 @@ apply (rule power2_le_imp_le)
 apply (auto simp add: real_0_le_divide_iff power_divide)
 apply (rule_tac t = "u\<twosuperior>" in real_sum_of_halves [THEN subst])
 apply (rule add_mono)
-apply (auto simp add: four_x_squared simp del: realpow_Suc intro: power_mono)
+apply (auto simp add: four_x_squared intro: power_mono)
 done
 
 text "Legacy theorem names:"

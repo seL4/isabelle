@@ -139,7 +139,7 @@ lemma lemma_order_pderiv1:
   "pderiv ([:- a, 1:] ^ Suc n * q) = [:- a, 1:] ^ Suc n * pderiv q +
     smult (of_nat (Suc n)) (q * [:- a, 1:] ^ n)"
 apply (simp only: pderiv_mult pderiv_power_Suc)
-apply (simp del: power_poly_Suc of_nat_Suc add: pderiv_pCons)
+apply (simp del: power_Suc of_nat_Suc add: pderiv_pCons)
 done
 
 lemma dvd_add_cancel1:

@@ -397,7 +397,7 @@ lemma FDERIV_power:
   shows "FDERIV (\<lambda>x. x ^ n) x :> (\<lambda>h. of_nat n * x ^ (n - 1) * h)"
   apply (cases n)
    apply (simp add: FDERIV_const)
-  apply (simp add: FDERIV_power_Suc)
+  apply (simp add: FDERIV_power_Suc del: power_Suc)
   done
 
 

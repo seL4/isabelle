@@ -38,7 +38,7 @@ by (simp add: starfun star_n_one_num)
 lemma hypreal_sqrt_pow2_iff: "(( *f* sqrt)(x) ^ 2 = x) = (0 \<le> x)"
 apply (cases x)
 apply (auto simp add: star_n_le star_n_zero_num starfun hrealpow star_n_eq_iff
-            simp del: hpowr_Suc realpow_Suc)
+            simp del: hpowr_Suc power_Suc)
 done
 
 lemma hypreal_sqrt_gt_zero_pow2: "!!x. 0 < x ==> ( *f* sqrt) (x) ^ 2 = x"

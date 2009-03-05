@@ -476,7 +476,7 @@ by (simp add: LIMSEQ_mult LIMSEQ_inverse divide_inverse)
 lemma LIMSEQ_pow:
   fixes a :: "'a::{real_normed_algebra,recpower}"
   shows "X ----> a \<Longrightarrow> (\<lambda>n. (X n) ^ m) ----> a ^ m"
-by (induct m) (simp_all add: power_Suc LIMSEQ_const LIMSEQ_mult)
+by (induct m) (simp_all add: LIMSEQ_const LIMSEQ_mult)
 
 lemma LIMSEQ_setsum:
   assumes n: "\<And>n. n \<in> S \<Longrightarrow> X n ----> L n"

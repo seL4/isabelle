@@ -16,8 +16,8 @@ instantiation real :: recpower
 begin
 
 primrec power_real where
-  realpow_0:     "r ^ 0     = (1\<Colon>real)"
-  | realpow_Suc: "r ^ Suc n = (r\<Colon>real) * r ^ n"
+  "r ^ 0     = (1\<Colon>real)"
+| "r ^ Suc n = (r\<Colon>real) * r ^ n"
 
 instance proof
   fix z :: real
@@ -25,6 +25,8 @@ instance proof
   show "z^0 = 1" by simp
   show "z^(Suc n) = z * (z^n)" by simp
 qed
+
+declare power_real.simps [simp del]
 
 end
 
@@ -65,7 +67,7 @@ done
 lemma realpow_two_disj:
      "((x::real)^Suc (Suc 0) = y^Suc (Suc 0)) = (x = y | x = -y)"
 apply (cut_tac x = x and y = y in realpow_two_diff)
-apply (auto simp del: realpow_Suc)
+apply auto
 done
 
 lemma realpow_real_of_nat: "real (m::nat) ^ n = real (m ^ n)"

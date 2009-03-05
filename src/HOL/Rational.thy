@@ -158,8 +158,8 @@ qed
 
 primrec power_rat
 where
-  rat_power_0:     "q ^ 0 = (1\<Colon>rat)"
-  | rat_power_Suc: "q ^ Suc n = (q\<Colon>rat) * (q ^ n)"
+  "q ^ 0 = (1\<Colon>rat)"
+| "q ^ Suc n = (q\<Colon>rat) * (q ^ n)"
 
 instance proof
   fix q r s :: rat show "(q * r) * s = q * (r * s)" 
@@ -199,6 +199,8 @@ next
   show "q ^ 0 = 1" by simp
   show "q ^ (Suc n) = q * (q ^ n)" by simp
 qed
+
+declare power_rat.simps [simp del]
 
 end
 
@@ -666,7 +668,7 @@ by (cases "b = 0") (simp_all add: nonzero_of_rat_divide)
 
 lemma of_rat_power:
   "(of_rat (a ^ n)::'a::{field_char_0,recpower}) = of_rat a ^ n"
-by (induct n) (simp_all add: of_rat_mult power_Suc)
+by (induct n) (simp_all add: of_rat_mult)
 
 lemma of_rat_eq_iff [simp]: "(of_rat a = of_rat b) = (a = b)"
 apply (induct a, induct b)

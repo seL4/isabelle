@@ -512,11 +512,11 @@ lemma hypreal_mult_less_mono:
 
 lemma hyperpow_two_gt_one:
   "\<And>r::'a::{recpower,ordered_semidom} star. 1 < r \<Longrightarrow> 1 < r pow (1 + 1)"
-by transfer (simp add: power_gt1)
+by transfer (simp add: power_gt1 del: power_Suc)
 
 lemma hyperpow_two_ge_one:
   "\<And>r::'a::{recpower,ordered_semidom} star. 1 \<le> r \<Longrightarrow> 1 \<le> r pow (1 + 1)"
-by transfer (simp add: one_le_power)
+by transfer (simp add: one_le_power del: power_Suc)
 
 lemma two_hyperpow_ge_one [simp]: "(1::hypreal) \<le> 2 pow n"
 apply (rule_tac y = "1 pow n" in order_trans)

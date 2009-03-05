@@ -163,10 +163,13 @@ instantiation complex :: recpower
 begin
 
 primrec power_complex where
-  complexpow_0:     "z ^ 0     = (1\<Colon>complex)"
-  | complexpow_Suc: "z ^ Suc n = (z\<Colon>complex) * z ^ n"
+  "z ^ 0     = (1\<Colon>complex)"
+| "z ^ Suc n = (z\<Colon>complex) * z ^ n"
 
-instance by intro_classes simp_all
+instance proof
+qed simp_all
+
+declare power_complex.simps [simp del]
 
 end
 

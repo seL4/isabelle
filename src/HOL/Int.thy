@@ -1870,6 +1870,8 @@ instance proof
   show "z ^ Suc n = z * (z ^ n)" by simp
 qed
 
+declare power_int.simps [simp del]
+
 end
 
 lemma zpower_zadd_distrib: "x ^ (y + z) = ((x ^ y) * (x ^ z)::int)"
@@ -1887,7 +1889,7 @@ lemma zero_le_zpower_abs [simp]: "(0::int) \<le> abs x ^ n"
 
 lemma of_int_power:
   "of_int (z ^ n) = (of_int z ^ n :: 'a::{recpower, ring_1})"
-  by (induct n) (simp_all add: power_Suc)
+  by (induct n) simp_all
 
 lemma int_power: "int (m^n) = (int m) ^ n"
   by (rule of_nat_power)

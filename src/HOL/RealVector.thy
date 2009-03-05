@@ -260,7 +260,7 @@ by (simp add: divide_inverse)
 
 lemma of_real_power [simp]:
   "of_real (x ^ n) = (of_real x :: 'a::{real_algebra_1,recpower}) ^ n"
-by (induct n) (simp_all add: power_Suc)
+by (induct n) simp_all
 
 lemma of_real_eq_iff [simp]: "(of_real x = of_real y) = (x = y)"
 by (simp add: of_real_def scaleR_cancel_right)
@@ -624,13 +624,13 @@ next
   also from Suc have "\<dots> \<le> norm x * norm x ^ n"
     using norm_ge_zero by (rule mult_left_mono)
   finally show "norm (x ^ Suc n) \<le> norm x ^ Suc n"
-    by (simp add: power_Suc)
+    by simp
 qed
 
 lemma norm_power:
   fixes x :: "'a::{real_normed_div_algebra,recpower}"
   shows "norm (x ^ n) = norm x ^ n"
-by (induct n) (simp_all add: power_Suc norm_mult)
+by (induct n) (simp_all add: norm_mult)
 
 
 subsection {* Sign function *}

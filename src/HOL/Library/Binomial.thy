@@ -355,7 +355,6 @@ lemma binomial_fact:
   using binomial_fact_lemma[OF kn]
   by (simp add: field_simps fact_not_eq_zero of_nat_mult[symmetric])
 
-
 lemma binomial_gbinomial: "of_nat (n choose k) = of_nat n gchoose k"
 proof-
   {assume kn: "k > n" 
@@ -384,7 +383,7 @@ proof-
     have ?thesis using kn
       apply (simp add: binomial_fact[OF kn, where ?'a = 'a] 
 	gbinomial_pochhammer field_simps pochhammer_Suc_setprod)
-      apply (simp add: pochhammer_Suc_setprod fact_setprod h of_nat_setprod setprod_timesf[symmetric] eq' del: One_nat_def)
+      apply (simp add: pochhammer_Suc_setprod fact_setprod h of_nat_setprod setprod_timesf[symmetric] eq' del: One_nat_def power_Suc)
       unfolding setprod_Un_disjoint[OF th0, unfolded eq3, of "of_nat:: nat \<Rightarrow> 'a"] eq[unfolded h]
       unfolding mult_assoc[symmetric] 
       unfolding setprod_timesf[symmetric]

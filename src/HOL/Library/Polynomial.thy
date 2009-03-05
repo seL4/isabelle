@@ -636,11 +636,13 @@ instantiation poly :: (comm_semiring_1) recpower
 begin
 
 primrec power_poly where
-  power_poly_0: "(p::'a poly) ^ 0 = 1"
-| power_poly_Suc: "(p::'a poly) ^ (Suc n) = p * p ^ n"
+  "(p::'a poly) ^ 0 = 1"
+| "(p::'a poly) ^ (Suc n) = p * p ^ n"
 
 instance
   by default simp_all
+
+declare power_poly.simps [simp del]
 
 end
 

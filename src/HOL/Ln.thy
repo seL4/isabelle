@@ -98,7 +98,7 @@ next
     also have "... = x ^ 2 / 2 * (1 / 2 * (1 / 2) ^ n)"
       by auto
     also have "(1::real) / 2 * (1 / 2) ^ n = (1 / 2) ^ (Suc n)"
-      by (rule realpow_Suc [THEN sym])
+      by (rule power_Suc [THEN sym])
     finally show ?thesis .
   qed
 qed

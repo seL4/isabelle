@@ -386,7 +386,7 @@ lemma NSDERIV_inverse_fun:
   fixes x :: "'a::{real_normed_field,recpower}"
   shows "[| NSDERIV f x :> d; f(x) \<noteq> 0 |]
       ==> NSDERIV (%x. inverse(f x)) x :> (- (d * inverse(f(x) ^ Suc (Suc 0))))"
-by (simp add: NSDERIV_DERIV_iff DERIV_inverse_fun del: realpow_Suc)
+by (simp add: NSDERIV_DERIV_iff DERIV_inverse_fun del: power_Suc)
 
 text{*Derivative of quotient*}
 
@@ -395,7 +395,7 @@ lemma NSDERIV_quotient:
   shows "[| NSDERIV f x :> d; NSDERIV g x :> e; g(x) \<noteq> 0 |]
        ==> NSDERIV (%y. f(y) / (g y)) x :> (d*g(x)
                             - (e*f(x))) / (g(x) ^ Suc (Suc 0))"
-by (simp add: NSDERIV_DERIV_iff DERIV_quotient del: realpow_Suc)
+by (simp add: NSDERIV_DERIV_iff DERIV_quotient del: power_Suc)
 
 lemma CARAT_NSDERIV: "NSDERIV f x :> l ==>
       \<exists>g. (\<forall>z. f z - f x = g z * (z-x)) & isNSCont g x & g x = l"

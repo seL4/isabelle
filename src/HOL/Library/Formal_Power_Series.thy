@@ -1303,7 +1303,7 @@ qed
 lemma fps_power_nth:
   fixes m :: nat and a :: "('a::comm_ring_1) fps"
   shows "(a ^m)$n = (if m=0 then 1$n else setsum (\<lambda>v. setprod (\<lambda>j. a $ (v!j)) {0..m - 1}) (natpermute n m))"
-  by (cases m, simp_all add: fps_power_nth_Suc)
+  by (cases m, simp_all add: fps_power_nth_Suc del: power_Suc)
 
 lemma fps_nth_power_0: 
   fixes m :: nat and a :: "('a::{comm_ring_1, recpower}) fps"
@@ -1314,7 +1314,7 @@ proof-
   {fix n assume m: "m = Suc n"
     have c: "m = card {0..n}" using m by simp
    have "(a ^m)$0 = setprod (\<lambda>i. a$0) {0..n}"
-     apply (simp add: m fps_power_nth del: replicate.simps)
+     apply (simp add: m fps_power_nth del: replicate.simps power_Suc)
      apply (rule setprod_cong)
      by (simp_all del: replicate.simps)
    also have "\<dots> = (a$0) ^ m"
@@ -1613,7 +1613,7 @@ lemma radical_power:
   shows "(fps_radical r (Suc k) (a ^ Suc k)) = a"
 proof-
   let ?ak = "a^ Suc k"
-  have ak0: "?ak $ 0 = (a$0) ^ Suc k" by (simp add: fps_nth_power_0)
+  have ak0: "?ak $ 0 = (a$0) ^ Suc k" by (simp add: fps_nth_power_0 del: power_Suc)
   from r0 have th0: "r (Suc k) (a ^ Suc k $ 0) ^ Suc k = a ^ Suc k $ 0" using ak0 by auto
   from r0 ak0 have th1: "r (Suc k) (a ^ Suc k $ 0) = a $ 0" by auto
   from ak0 a0 have ak00: "?ak $ 0 \<noteq>0 " by auto
@@ -1634,7 +1634,7 @@ proof-
   from power_radical[of r, OF r0 a0]
   have "fps_deriv (?r ^ Suc k) = fps_deriv a" by simp
   hence "fps_deriv ?r * ?w = fps_deriv a"
-    by (simp add: fps_deriv_power mult_ac)
+    by (simp add: fps_deriv_power mult_ac del: power_Suc)
   hence "?iw * fps_deriv ?r * ?w = ?iw * fps_deriv a" by simp
   hence "fps_deriv ?r * (?iw * ?w) = fps_deriv a / ?w"
     by (simp add: fps_divide_def)
@@ -1663,7 +1663,7 @@ proof-
   have ab0: "(a*b) $ 0 \<noteq> 0" using a0 b0 by (simp add: fps_mult_nth)
   from radical_unique[of r h "a*b" "fps_radical r (Suc h) a * fps_radical r (Suc h) b", OF r0[unfolded k] th0 ab0, symmetric] 
     power_radical[of r, OF ra0[unfolded k] a0] power_radical[of r, OF rb0[unfolded k] b0] k
-  have ?thesis by (auto simp add: power_mult_distrib)}
+  have ?thesis by (auto simp add: power_mult_distrib simp del: power_Suc)}
 ultimately show ?thesis by (cases k, auto)
 qed
 
@@ -1684,7 +1684,8 @@ proof-
     from ra0 a0 have th00: "r (Suc h) (a$0) \<noteq> 0" by auto
     have ria0': "r (Suc h) (inverse a $ 0) ^ Suc h = inverse a$0"
     using ria0 ra0 a0
-    by (simp add: fps_inverse_def  nonzero_power_inverse[OF th00, symmetric])
+    by (simp add: fps_inverse_def  nonzero_power_inverse[OF th00, symmetric]
+             del: power_Suc)
   from inverse_mult_eq_1[OF a0] have th0: "a * inverse a = 1" 
     by (simp add: mult_commute)
   from radical_unique[where a=1 and b=1 and r=r and k=h, simplified, OF r1[unfolded k]]
@@ -1848,7 +1849,8 @@ proof-
       moreover
       {fix n1 assume n1: "n = Suc n1"
 	have "?i $ n = setsum (\<lambda>i. (fps_inv a $ i) * (a^i)$n) {0 .. n1} + fps_inv a $ Suc n1 * (a $ 1)^ Suc n1"
-	  by (simp add: fps_compose_nth n1 startsby_zero_power_nth_same[OF a0])
+	  by (simp add: fps_compose_nth n1 startsby_zero_power_nth_same[OF a0]
+                   del: power_Suc)
 	also have "\<dots> = setsum (\<lambda>i. (fps_inv a $ i) * (a^i)$n) {0 .. n1} + (X$ Suc n1 - setsum (\<lambda>i. (fps_inv a $ i) * (a^i)$n) {0 .. n1})"
 	  using a0 a1 n1 by (simp add: fps_inv_def)
 	also have "\<dots> = X$n" using n1 by simp 
@@ -1878,7 +1880,8 @@ proof-
       moreover
       {fix n1 assume n1: "n = Suc n1"
 	have "?i $ n = setsum (\<lambda>i. (fps_ginv b a $ i) * (a^i)$n) {0 .. n1} + fps_ginv b a $ Suc n1 * (a $ 1)^ Suc n1"
-	  by (simp add: fps_compose_nth n1 startsby_zero_power_nth_same[OF a0])
+	  by (simp add: fps_compose_nth n1 startsby_zero_power_nth_same[OF a0]
+                   del: power_Suc)
 	also have "\<dots> = setsum (\<lambda>i. (fps_ginv b a $ i) * (a^i)$n) {0 .. n1} + (b$ Suc n1 - setsum (\<lambda>i. (fps_ginv b a $ i) * (a^i)$n) {0 .. n1})"
 	  using a0 a1 n1 by (simp add: fps_ginv_def)
 	also have "\<dots> = b$n" using n1 by simp 
@@ -2086,7 +2089,7 @@ proof-
   {fix h assume h: "k = Suc h"
     {fix n
       {assume kn: "k>n" hence "?l $ n = ?r $n" using a0 startsby_zero_power_prefix[OF a0] h 
-	  by (simp add: fps_compose_nth)}
+	  by (simp add: fps_compose_nth del: power_Suc)}
       moreover
       {assume kn: "k \<le> n"
 	hence "?l$n = ?r$n"
@@ -2138,7 +2141,7 @@ lemma E_deriv[simp]: "fps_deriv (E a) = fps_const (a::'a::{field, recpower, ring
 proof-
   {fix n
     have "?l$n = ?r $ n"
-  apply (auto simp add: E_def field_simps power_Suc[symmetric]simp del: fact_Suc of_nat_Suc)
+  apply (auto simp add: E_def field_simps power_Suc[symmetric]simp del: fact_Suc of_nat_Suc power_Suc)
   by (simp add: of_nat_mult ring_simps)}
 then show ?thesis by (simp add: fps_eq_iff)
 qed

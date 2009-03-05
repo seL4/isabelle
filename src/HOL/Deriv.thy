@@ -202,7 +202,7 @@ lemma DERIV_power_Suc:
   shows "DERIV (\<lambda>x. f x ^ Suc n) x :> (1 + of_nat n) * (D * f x ^ n)"
 proof (induct n)
 case 0
-  show ?case by (simp add: power_Suc f)
+  show ?case by (simp add: f)
 case (Suc k)
   from DERIV_mult' [OF f Suc] show ?case
     apply (simp only: of_nat_Suc ring_distribs mult_1_left)
@@ -214,7 +214,7 @@ lemma DERIV_power:
   fixes f :: "'a \<Rightarrow> 'a::{real_normed_field,recpower}"
   assumes f: "DERIV f x :> D"
   shows "DERIV (\<lambda>x. f x ^ n) x :> of_nat n * (D * f x ^ (n - Suc 0))"
-by (cases "n", simp, simp add: DERIV_power_Suc f)
+by (cases "n", simp, simp add: DERIV_power_Suc f del: power_Suc)
 
 
 text {* Caratheodory formulation of derivative at a point *}
@@ -289,21 +289,21 @@ text{*Power of -1*}
 lemma DERIV_inverse:
   fixes x :: "'a::{real_normed_field,recpower}"
   shows "x \<noteq> 0 ==> DERIV (%x. inverse(x)) x :> (-(inverse x ^ Suc (Suc 0)))"
-by (drule DERIV_inverse' [OF DERIV_ident]) (simp add: power_Suc)
+by (drule DERIV_inverse' [OF DERIV_ident]) simp
 
 text{*Derivative of inverse*}
 lemma DERIV_inverse_fun:
   fixes x :: "'a::{real_normed_field,recpower}"
   shows "[| DERIV f x :> d; f(x) \<noteq> 0 |]
       ==> DERIV (%x. inverse(f x)) x :> (- (d * inverse(f(x) ^ Suc (Suc 0))))"
-by (drule (1) DERIV_inverse') (simp add: mult_ac power_Suc nonzero_inverse_mult_distrib)
+by (drule (1) DERIV_inverse') (simp add: mult_ac nonzero_inverse_mult_distrib)
 
 text{*Derivative of quotient*}
 lemma DERIV_quotient:
   fixes x :: "'a::{real_normed_field,recpower}"
   shows "[| DERIV f x :> d; DERIV g x :> e; g(x) \<noteq> 0 |]
        ==> DERIV (%y. f(y) / (g y)) x :> (d*g(x) - (e*f(x))) / (g(x) ^ Suc (Suc 0))"
-by (drule (2) DERIV_divide) (simp add: mult_commute power_Suc)
+by (drule (2) DERIV_divide) (simp add: mult_commute)
 
 lemma lemma_DERIV_subst: "[| DERIV f x :> D; D = E |] ==> DERIV f x :> E"
 by auto
@@ -407,7 +407,7 @@ lemma differentiable_power [simp]:
   fixes f :: "'a::{recpower,real_normed_field} \<Rightarrow> 'a"
   assumes "f differentiable x"
   shows "(\<lambda>x. f x ^ n) differentiable x"
-  by (induct n, simp, simp add: power_Suc prems)
+  by (induct n, simp, simp add: prems)
 
 
 subsection {* Nested Intervals and Bisection *}

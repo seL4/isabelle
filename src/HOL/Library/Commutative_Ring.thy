@@ -291,7 +291,8 @@ proof (induct n arbitrary: P rule: nat_less_induct)
 	  then have "Ipol ls P * Ipol ls P = Ipol ls P ^ 2"
 	    by (simp add: numerals)
           with Suc show ?thesis
-            by (auto simp add: power_mult [symmetric, of _ 2 _] two_times mul_ci sqr_ci)
+            by (auto simp add: power_mult [symmetric, of _ 2 _] two_times mul_ci sqr_ci
+                     simp del: power_Suc)
         qed
       } with 1 Suc `odd l` show ?thesis by simp
     qed
