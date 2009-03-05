@@ -39,7 +39,7 @@ and render_tree (XML.Text s) = Buffer.add s
           then XML.output_markup (name, props)
           else Markup.no_output;
         val (bg2, en2) =
-          if (case ts of [XML.Text _] => false | _ => true) then Markup.no_output
+          if null ts then Markup.no_output
           else if name = Markup.stateN then (special "O" ^ "\n", "\n" ^ special "P")
           else if name = Markup.sendbackN then (special "W", special "X")
           else if name = Markup.hiliteN then (special "0", special "1")
