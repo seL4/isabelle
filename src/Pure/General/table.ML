@@ -366,7 +366,7 @@ fun make entries = fold update_new entries empty;
 
 fun join f (table1, table2) =
   let fun add (key, y) tab = modify key (fn NONE => y | SOME x => f key (x, y)) tab;
-  in fold_table add table2 table1 end;
+  in if pointer_eq (table1, table2) then table1 else fold_table add table2 table1 end;
 
 fun merge eq = join (fn key => fn xy => if eq xy then raise SAME else raise DUP key);
 
