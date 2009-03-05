@@ -23,7 +23,6 @@ sig
   val set_stmt: bool -> Proof.context -> Proof.context
   val naming_of: Proof.context -> NameSpace.naming
   val full_name: Proof.context -> binding -> string
-  val full_bname: Proof.context -> bstring -> string
   val consts_of: Proof.context -> Consts.T
   val const_syntax_name: Proof.context -> string -> string
   val the_const_constraint: Proof.context -> string -> typ
@@ -243,9 +242,7 @@ fun set_stmt stmt =
   map_mode (fn (_, pattern, schematic, abbrev) => (stmt, pattern, schematic, abbrev));
 
 val naming_of = #naming o rep_context;
-
 val full_name = NameSpace.full_name o naming_of;
-fun full_bname thy = NameSpace.full_name (naming_of thy) o Binding.name;
 
 val syntax_of = #syntax o rep_context;
 val syn_of = LocalSyntax.syn_of o syntax_of;

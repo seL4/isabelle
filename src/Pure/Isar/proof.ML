@@ -1006,7 +1006,7 @@ fun future_proof done get_context fork_proof state =
     fun after_local' [[th]] = put_thms false (AutoBind.thisN, SOME [th]);
     fun after_global' [[th]] = ProofContext.put_thms false (AutoBind.thisN, SOME [th]);
     val after_qed' = (after_local', after_global');
-    val this_name = ProofContext.full_bname goal_ctxt AutoBind.thisN;
+    val this_name = ProofContext.full_name goal_ctxt (Binding.name AutoBind.thisN);
 
     val result_ctxt =
       state

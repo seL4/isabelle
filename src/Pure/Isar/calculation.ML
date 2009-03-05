@@ -114,7 +114,7 @@ fun maintain_calculation false calc = put_calculation (SOME calc)
 
 fun print_calculation false _ _ = ()
   | print_calculation true ctxt calc = Pretty.writeln
-      (ProofContext.pretty_fact ctxt (ProofContext.full_bname ctxt calculationN, calc));
+      (ProofContext.pretty_fact ctxt (ProofContext.full_name ctxt (Binding.name calculationN), calc));
 
 
 (* also and finally *)
