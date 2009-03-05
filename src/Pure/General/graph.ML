@@ -21,7 +21,6 @@ sig
   val maximals: 'a T -> key list
   val subgraph: (key -> bool) -> 'a T -> 'a T
   val map_nodes: ('a -> 'b) -> 'a T -> 'b T
-  val fold_map_nodes: (key * 'a -> 'b -> 'c * 'b) -> 'a T -> 'b -> 'c T * 'b
   val get_node: 'a T -> key -> 'a                                     (*exception UNDEF*)
   val map_node: key -> ('a -> 'a) -> 'a T -> 'a T
   val map_node_yield: key -> ('a -> 'b * 'a) -> 'a T -> 'b * 'a T
@@ -115,9 +114,6 @@ fun map_entry_yield x f (G as Graph tab) =
 (* nodes *)
 
 fun map_nodes f (Graph tab) = Graph (Table.map (fn (i, ps) => (f i, ps)) tab);
-
-fun fold_map_nodes f (Graph tab) =
-  apfst Graph o Table.fold_map (fn (k, (i, ps)) => f (k, i) #> apfst (rpair ps)) tab;
 
 fun get_node G = #1 o get_entry G;
 
