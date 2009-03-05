@@ -236,14 +236,14 @@ fun distinctTree_tac ctxt
   | distinctTree_tac _ _ = no_tac;
 
 val distinctNameSolver = mk_solver' "distinctNameSolver"
-     (fn ss => case #context (#1 (rep_ss ss)) of
+     (fn ss => case try Simplifier.the_context ss of
                  SOME ctxt => SUBGOAL (distinctTree_tac ctxt)
                 | NONE => fn i => no_tac)
 
 val distinct_simproc =
   Simplifier.simproc @{theory HOL} "StateSpace.distinct_simproc" ["x = y"]
     (fn thy => fn ss => (fn (Const ("op =",_)$(x as Free _)$(y as Free _)) =>
-        (case #context (#1 (rep_ss ss)) of
+        (case try Simplifier.the_context ss of
           SOME ctxt => Option.map (fn neq => DistinctTreeProver.neq_to_eq_False OF [neq])
                        (neq_x_y ctxt x y)
         | NONE => NONE)

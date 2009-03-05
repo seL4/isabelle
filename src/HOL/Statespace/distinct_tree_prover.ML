@@ -352,14 +352,14 @@ fun distinctTree_tac names ctxt
   | distinctTree_tac _ _ _ = no_tac;
 
 fun distinctFieldSolver names = mk_solver' "distinctFieldSolver"
-     (fn ss => case #context (#1 (rep_ss ss)) of
+     (fn ss => case try Simplifier.the_context ss of
                  SOME ctxt => SUBGOAL (distinctTree_tac names ctxt)
                 | NONE => fn i => no_tac)
 
 fun distinct_simproc names =
   Simplifier.simproc @{theory HOL} "DistinctTreeProver.distinct_simproc" ["x = y"]
     (fn thy => fn ss => fn (Const ("op =",_)$x$y) =>
-        case #context (#1 (rep_ss ss)) of
+        case try Simplifier.the_context ss of
         SOME ctxt => Option.map (fn neq => neq_to_eq_False OF [neq]) 
                       (get_fst_success (neq_x_y ctxt x y) names)
        | NONE => NONE

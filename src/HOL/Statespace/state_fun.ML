@@ -146,7 +146,7 @@ val lookup_simproc =
           
           val ct = cterm_of thy 
                     (Const ("StateFun.lookup",lT)$destr$n$(fst (mk_upds s)));
-          val ctxt = the (#context (#1 (rep_ss ss)));
+          val ctxt = Simplifier.the_context ss;
           val basic_ss = #1 (StateFunData.get (Context.Proof ctxt));
           val ss' = Simplifier.context 
                      (Config.map MetaSimplifier.simp_depth_limit (K 100) ctxt) basic_ss;
@@ -241,7 +241,7 @@ val update_simproc =
                       end
                | mk_updterm _ t = init_seed t;
 
-	     val ctxt = the (#context (#1 (rep_ss ss))) |>
+	     val ctxt = Simplifier.the_context ss |>
                         Config.map MetaSimplifier.simp_depth_limit (K 100);
              val ss1 = Simplifier.context ctxt ss';
              val ss2 = Simplifier.context ctxt 
