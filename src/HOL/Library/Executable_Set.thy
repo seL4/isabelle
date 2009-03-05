@@ -178,7 +178,7 @@ lemma iso_member:
 
 lemma iso_insert:
   "set (insertl x xs) = insert x (set xs)"
-  unfolding insertl_def iso_member by (simp add: Set.insert_absorb)
+  unfolding insertl_def iso_member by (simp add: insert_absorb)
 
 lemma iso_remove1:
   assumes distnct: "distinct xs"
@@ -261,7 +261,7 @@ nonfix subset;
 subsubsection {* const serializations *}
 
 consts_code
-  "{}" ("{*[]*}")
+  "Set.empty" ("{*[]*}")
   insert ("{*insertl*}")
   is_empty ("{*null*}")
   "op \<union>" ("{*unionl*}")

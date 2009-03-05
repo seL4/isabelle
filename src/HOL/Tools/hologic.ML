@@ -225,7 +225,7 @@ fun mk_mem (x, A) =
 fun dest_mem (Const ("op :", _) $ x $ A) = (x, A)
   | dest_mem t = raise TERM ("dest_mem", [t]);
 
-fun mk_UNIV T = Const ("UNIV", mk_setT T);
+fun mk_UNIV T = Const ("Set.UNIV", mk_setT T);
 
 
 (* binary operations and relations *)

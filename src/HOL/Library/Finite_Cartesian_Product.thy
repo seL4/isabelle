@@ -1,5 +1,4 @@
 (* Title:      HOL/Library/Finite_Cartesian_Product
-   ID:         $Id: Finite_Cartesian_Product.thy,v 1.5 2009/01/29 22:59:46 chaieb Exp $
    Author:     Amine Chaieb, University of Cambridge
 *)
 
@@ -16,7 +15,7 @@ subsection{* Dimention of sets *}
 definition "dimindex (S:: 'a set) = (if finite (UNIV::'a set) then card (UNIV:: 'a set) else 1)"
 
 syntax "_type_dimindex" :: "type => nat" ("(1DIM/(1'(_')))")
-translations "DIM(t)" => "CONST dimindex (UNIV :: t set)"
+translations "DIM(t)" => "CONST dimindex (CONST UNIV :: t set)"
 
 lemma dimindex_nonzero: "dimindex S \<noteq>  0"
 unfolding dimindex_def 

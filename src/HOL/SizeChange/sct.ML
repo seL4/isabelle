@@ -266,12 +266,12 @@ fun setup_probe_goal thy domT Dtab Mtab (i, j) =
 
 fun mk_edge m G n = HOLogic.mk_prod (m, HOLogic.mk_prod (G, n))
 
-fun mk_set T [] = Const ("{}", HOLogic.mk_setT T)
-  | mk_set T (x :: xs) = Const ("insert",
+fun mk_set T [] = Const (@{const_name Set.empty}, HOLogic.mk_setT T)
+  | mk_set T (x :: xs) = Const (@{const_name insert},
       T --> HOLogic.mk_setT T --> HOLogic.mk_setT T) $ x $ mk_set T xs
 
-fun dest_set (Const ("{}", _)) = []
-  | dest_set (Const ("insert", _) $ x $ xs) = x :: dest_set xs
+fun dest_set (Const (@{const_name Set.empty}, _)) = []
+  | dest_set (Const (@{const_name insert}, _) $ x $ xs) = x :: dest_set xs
 
 val in_graph_tac =
     simp_tac (HOL_basic_ss addsimps has_edge_simps) 1
