@@ -264,17 +264,16 @@ fun abbreviate pp tsig naming mode tags (b, raw_rhs) consts =
     val expand_term = certify pp tsig true consts;
     val force_expand = mode = PrintMode.internal;
 
+    val _ = Term.exists_subterm Term.is_Var raw_rhs andalso
+      error ("Illegal schematic variables on rhs of abbreviation: " ^ Binding.str_of b);
+
     val rhs = raw_rhs
       |> Term.map_types (Type.cert_typ tsig)
-      |> cert_term;
+      |> cert_term
+      |> Term.close_schematic_term;
     val normal_rhs = expand_term rhs;
     val T = Term.fastype_of rhs;
     val lhs = Const (NameSpace.full_name naming b, T);
-
-    fun err msg = (warning (* FIXME should be error *) (msg ^ " on rhs of abbreviation:\n" ^
-      Pretty.string_of_term pp (Logic.mk_equals (lhs, rhs))); true);
-    val _ = Term.exists_subterm Term.is_Var rhs andalso err "Illegal schematic variables";
-    val _ = null (Term.hidden_polymorphism rhs) orelse err "Extra type variables";
   in
     consts |> map_consts (fn (decls, constraints, rev_abbrevs) =>
       let
