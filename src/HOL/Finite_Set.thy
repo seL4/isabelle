@@ -3060,6 +3060,30 @@ proof -
     by (simp add: Max fold1_strict_below_iff [folded dual_max])
 qed
 
+lemma Min_eqI:
+  assumes "finite A"
+  assumes "\<And>y. y \<in> A \<Longrightarrow> y \<ge> x"
+    and "x \<in> A"
+  shows "Min A = x"
+proof (rule antisym)
+  from `x \<in> A` have "A \<noteq> {}" by auto
+  with assms show "Min A \<ge> x" by simp
+next
+  from assms show "x \<ge> Min A" by simp
+qed
+
+lemma Max_eqI:
+  assumes "finite A"
+  assumes "\<And>y. y \<in> A \<Longrightarrow> y \<le> x"
+    and "x \<in> A"
+  shows "Max A = x"
+proof (rule antisym)
+  from `x \<in> A` have "A \<noteq> {}" by auto
+  with assms show "Max A \<le> x" by simp
+next
+  from assms show "x \<le> Max A" by simp
+qed
+
 lemma Min_antimono:
   assumes "M \<subseteq> N" and "M \<noteq> {}" and "finite N"
   shows "Min N \<le> Min M"
