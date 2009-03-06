@@ -318,7 +318,7 @@ $(LOG)/HOL-Library.gz: $(OUT)/HOL Library/SetsAndFunctions.thy		\
   Library/Finite_Cartesian_Product.thy \
   Library/FrechetDeriv.thy \
   Library/Fundamental_Theorem_Algebra.thy \
-  Library/Inner_Product.thy \
+  Library/Inner_Product.thy Library/Lattice_Syntax.thy \
   Library/Library.thy Library/List_Prefix.thy Library/State_Monad.thy	\
   Library/Nat_Int_Bij.thy Library/Multiset.thy Library/Permutation.thy	\
   Library/Primes.thy Library/Pocklington.thy Library/Quotient.thy	\
@@ -332,13 +332,13 @@ $(LOG)/HOL-Library.gz: $(OUT)/HOL Library/SetsAndFunctions.thy		\
   Library/List_lexord.thy Library/Commutative_Ring.thy			\
   Library/comm_ring.ML Library/Coinductive_List.thy			\
   Library/AssocList.thy	Library/Formal_Power_Series.thy	\
-  Library/Binomial.thy Library/Eval_Witness.thy	\
+  Library/Binomial.thy Library/Eval_Witness.thy				\
   Library/Code_Index.thy Library/Code_Char.thy				\
   Library/Code_Char_chr.thy Library/Code_Integer.thy			\
-  Library/Mapping.thy	Library/Numeral_Type.thy	Library/Reflection.thy		\
-  Library/Boolean_Algebra.thy Library/Countable.thy	\
-  Library/RBT.thy	Library/Univ_Poly.thy	\
-  Library/Random.thy	Library/Quickcheck.thy	\
+  Library/Mapping.thy Library/Numeral_Type.thy Library/Reflection.thy	\
+  Library/Boolean_Algebra.thy Library/Countable.thy			\
+  Library/Diagonalize.thy Library/RBT.thy Library/Univ_Poly.thy		\
+  Library/Random.thy Library/Quickcheck.thy	\
   Library/Poly_Deriv.thy \
   Library/Polynomial.thy \
   Library/Product_plus.thy \
