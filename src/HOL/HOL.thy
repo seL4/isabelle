@@ -1706,7 +1706,11 @@ setup {*
 *}
 
 
-subsection {* Nitpick theorem store *}
+subsection {* Nitpick hooks *}
+
+text {* This will be relocated once Nitpick is moved to HOL. *}
+
+consts nitpick_maybe :: "'a \<Rightarrow> 'a" ("_\<^isub>?" [40] 40)
 
 ML {*
 structure Nitpick_Const_Def_Thms = NamedThmsFun
