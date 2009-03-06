@@ -342,6 +342,36 @@ Type @{typ int}
 \end{supertabular}
 
 
+\section{Set\_Interval}
+
+\begin{supertabular}{@ {} l @ {~::~} l @ {}}
+@{const lessThan} & @{typeof lessThan}\\
+@{const atMost} & @{typeof atMost}\\
+@{const greaterThan} & @{typeof greaterThan}\\
+@{const atLeast} & @{typeof atLeast}\\
+@{const greaterThanLessThan} & @{typeof greaterThanLessThan}\\
+@{const atLeastLessThan} & @{typeof atLeastLessThan}\\
+@{const greaterThanAtMost} & @{typeof greaterThanAtMost}\\
+@{const atLeastAtMost} & @{typeof atLeastAtMost}\\
+\end{supertabular}
+
+\subsubsection*{Syntax}
+
+\begin{supertabular}{@ {} l @ {\quad$\equiv$\quad} l @ {}}
+@{term "lessThan y"} & @{term[source] "lessThan y"}\\
+@{term "atMost y"} & @{term[source] "atMost y"}\\
+@{term "greaterThan x"} & @{term[source] "greaterThan x"}\\
+@{term "atLeast x"} & @{term[source] "atLeast x"}\\
+@{term "greaterThanLessThan x y"} & @{term[source] "greaterThanLessThan x y"}\\
+@{term "atLeastLessThan x y"} & @{term[source] "atLeastLessThan x y"}\\
+@{term "greaterThanAtMost x y"} & @{term[source] "greaterThanAtMost x y"}\\
+@{term "atLeastAtMost x y"} & @{term[source] "atLeastAtMost x y"}\\
+@{term "UN i:{..n}. A"} & @{term[source] "\<Union> i \<in> {..n}. A"}\\
+@{term "setsum (%x. t) {a..b}"} & @{term[source] "setsum (\<lambda>x. t) {a..b}"}\\
+\end{supertabular}
+
+???????
+
 \section{Power}
 
 \begin{tabular}{@ {} l @ {~::~} l @ {}}
