@@ -968,9 +968,7 @@ subsection {* Monotonicity, least value operator and min/max *}
 context order
 begin
 
-definition
-  mono :: "('a \<Rightarrow> 'b\<Colon>order) \<Rightarrow> bool"
-where
+definition mono :: "('a \<Rightarrow> 'b\<Colon>order) \<Rightarrow> bool" where
   "mono f \<longleftrightarrow> (\<forall>x y. x \<le> y \<longrightarrow> f x \<le> f y)"
 
 lemma monoI [intro?]:
@@ -983,10 +981,75 @@ lemma monoD [dest?]:
   shows "mono f \<Longrightarrow> x \<le> y \<Longrightarrow> f x \<le> f y"
   unfolding mono_def by iprover
 
+definition strict_mono :: "('a \<Rightarrow> 'b\<Colon>order) \<Rightarrow> bool" where
+  "strict_mono f \<longleftrightarrow> (\<forall>x y. x < y \<longrightarrow> f x < f y)"
+
+lemma strict_monoI [intro?]:
+  assumes "\<And>x y. x < y \<Longrightarrow> f x < f y"
+  shows "strict_mono f"
+  using assms unfolding strict_mono_def by auto
+
+lemma strict_monoD [dest?]:
+  "strict_mono f \<Longrightarrow> x < y \<Longrightarrow> f x < f y"
+  unfolding strict_mono_def by auto
+
+lemma strict_mono_mono [dest?]:
+  assumes "strict_mono f"
+  shows "mono f"
+proof (rule monoI)
+  fix x y
+  assume "x \<le> y"
+  show "f x \<le> f y"
+  proof (cases "x = y")
+    case True then show ?thesis by simp
+  next
+    case False with `x \<le> y` have "x < y" by simp
+    with assms strict_monoD have "f x < f y" by auto
+    then show ?thesis by simp
+  qed
+qed
+
 end
 
 context linorder
 begin
+
+lemma strict_mono_eq:
+  assumes "strict_mono f"
+  shows "f x = f y \<longleftrightarrow> x = y"
+proof
+  assume "f x = f y"
+  show "x = y" proof (cases x y rule: linorder_cases)
+    case less with assms strict_monoD have "f x < f y" by auto
+    with `f x = f y` show ?thesis by simp
+  next
+    case equal then show ?thesis .
+  next
+    case greater with assms strict_monoD have "f y < f x" by auto
+    with `f x = f y` show ?thesis by simp
+  qed
+qed simp
+
+lemma strict_mono_less_eq:
+  assumes "strict_mono f"
+  shows "f x \<le> f y \<longleftrightarrow> x \<le> y"
+proof
+  assume "x \<le> y"
+  with assms strict_mono_mono monoD show "f x \<le> f y" by auto
+next
+  assume "f x \<le> f y"
+  show "x \<le> y" proof (rule ccontr)
+    assume "\<not> x \<le> y" then have "y < x" by simp
+    with assms strict_monoD have "f y < f x" by auto
+    with `f x \<le> f y` show False by simp
+  qed
+qed
+  
+lemma strict_mono_less:
+  assumes "strict_mono f"
+  shows "f x < f y \<longleftrightarrow> x < y"
+  using assms
+    by (auto simp add: less_le Orderings.less_le strict_mono_eq strict_mono_less_eq)
 
 lemma min_of_mono:
   fixes f :: "'a \<Rightarrow> 'b\<Colon>linorder"
