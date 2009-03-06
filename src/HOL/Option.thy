@@ -5,7 +5,7 @@
 header {* Datatype option *}
 
 theory Option
-imports Datatype
+imports Datatype Finite_Set
 begin
 
 datatype 'a option = None | Some 'a
@@ -29,6 +29,9 @@ lemma option_caseE:
 
 lemma insert_None_conv_UNIV: "insert None (range Some) = UNIV"
   by (rule set_ext, case_tac x) auto
+
+instance option :: (finite) finite proof
+qed (simp add: insert_None_conv_UNIV [symmetric])
 
 lemma inj_Some [simp]: "inj_on Some A"
   by (rule inj_onI) simp
