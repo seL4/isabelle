@@ -338,6 +338,24 @@ lemma power_le_dvd:
   by (rule dvd_trans [OF le_imp_power_dvd])
 
 
+lemma dvd_power_same:
+  "(x::'a::{comm_semiring_1,recpower}) dvd y \<Longrightarrow> x^n dvd y^n"
+by (induct n) (auto simp add: mult_dvd_mono)
+
+lemma dvd_power_le:
+  "(x::'a::{comm_semiring_1,recpower}) dvd y \<Longrightarrow> m >= n \<Longrightarrow> x^n dvd y^m"
+by(rule power_le_dvd[OF dvd_power_same])
+
+lemma dvd_power [simp]:
+  "n > 0 | (x::'a::{comm_semiring_1,recpower}) = 1 \<Longrightarrow> x dvd x^n"
+apply (erule disjE)
+ apply (subgoal_tac "x ^ n = x^(Suc (n - 1))")
+  apply (erule ssubst)
+  apply (subst power_Suc)
+  apply auto
+done
+
+
 subsection{*Exponentiation for the Natural Numbers*}
 
 instantiation nat :: recpower
