@@ -168,8 +168,7 @@ fun filter_solves ctxt goal =
     fun etacn thm i = Seq.take (! tac_limit) o etac thm i;
     fun try_thm thm =
       if Thm.no_prems thm then rtac thm 1 goal
-      else (etacn thm THEN_ALL_NEW
-             (Goal.norm_hhf_tac THEN' Method.assm_tac ctxt)) 1 goal;
+      else (etacn thm THEN_ALL_NEW (Goal.norm_hhf_tac THEN' Method.assm_tac ctxt)) 1 goal;
   in
     fn (_, thm) =>
       if (is_some o Seq.pull o try_thm) thm
@@ -181,11 +180,10 @@ fun filter_solves ctxt goal =
 
 fun filter_simp ctxt t (_, thm) =
   let
-    val (_, {mk_rews = {mk, ...}, ...}) =
-      Simplifier.rep_ss (Simplifier.local_simpset_of ctxt);
+    val mksimps = Simplifier.mksimps (Simplifier.local_simpset_of ctxt);
     val extract_simp =
-      (map Thm.full_prop_of o mk, #1 o Logic.dest_equals o Logic.strip_imp_concl);
-    val ss = is_matching_thm extract_simp ctxt false t thm
+      (map Thm.full_prop_of o mksimps, #1 o Logic.dest_equals o Logic.strip_imp_concl);
+    val ss = is_matching_thm extract_simp ctxt false t thm;
   in
     if is_some ss then SOME (Thm.nprems_of thm, the ss) else NONE
   end;
