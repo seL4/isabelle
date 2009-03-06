@@ -24,6 +24,8 @@ imports
   "~~/src/HOL/ex/Records"
 begin
 
+lemma [code, code del]: "(term_of \<Colon> 'a Predicate.pred \<Rightarrow> term) = term_of" ..
+
 text {* However, some aren't executable *}
 
 declare pair_leq_def[code del]
