@@ -144,7 +144,7 @@ struct
 (*         formula/model generation                                          *)
 (*                                                                           *)
 (* The following parameters are supported (and required (!), except for      *)
-(* "sizes"):                                                                 *)
+(* "sizes" and "expect"):                                                    *)
 (*                                                                           *)
 (* Name          Type    Description                                         *)
 (*                                                                           *)
@@ -157,6 +157,8 @@ struct
 (*                       formula.                                            *)
 (* "maxtime"     int     If >0, terminate after at most 'maxtime' seconds.   *)
 (* "satsolver"   string  SAT solver to be used.                              *)
+(* "expect"      string  Expected result ("genuine", "potential", "none", or *)
+(*                       "unknown")                                          *)
 (* ------------------------------------------------------------------------- *)
 
   type params =
@@ -166,7 +168,8 @@ struct
       maxsize  : int,
       maxvars  : int,
       maxtime  : int,
-      satsolver: string
+      satsolver: string,
+      expect   : string
     };
 
 (* ------------------------------------------------------------------------- *)
@@ -387,6 +390,7 @@ struct
     val maxtime   = read_int (allparams, "maxtime")
     (* string *)
     val satsolver = read_string (allparams, "satsolver")
+    val expect = the_default "" (AList.lookup (op =) allparams "expect")
     (* all remaining parameters of the form "string=int" are collected in *)
     (* 'sizes'                                                            *)
     (* TODO: it is currently not possible to specify a size for a type    *)
@@ -399,7 +403,7 @@ struct
         andalso name<>"satsolver") allparams)
   in
     {sizes=sizes, minsize=minsize, maxsize=maxsize, maxvars=maxvars,
-      maxtime=maxtime, satsolver=satsolver}
+      maxtime=maxtime, satsolver=satsolver, expect=expect}
   end;
 
 
@@ -731,7 +735,7 @@ struct
           (* check this.  However, getting this really right seems   *)
           (* difficult because the user may state arbitrary axioms,  *)
           (* which could interact with overloading to create loops.  *)
-          ((*Output.immediate_output (" unfolding: " ^ axname);*)
+          ((*Output.tracing (" unfolding: " ^ axname);*)
            unfold_loop rhs)
         | NONE => t)
       | Free _           => t
@@ -771,7 +775,7 @@ struct
 
   fun collect_axioms thy t =
   let
-    val _ = Output.immediate_output "Adding axioms..."
+    val _ = Output.tracing "Adding axioms..."
     (* (string * Term.term) list *)
     val axioms = Theory.all_axioms_of thy
     (* string * Term.term -> Term.term list -> Term.term list *)
@@ -782,7 +786,7 @@ struct
       if member (op aconv) axs ax' then
         axs
       else (
-        Output.immediate_output (" " ^ axname);
+        Output.tracing axname;
         collect_term_axioms (ax' :: axs, ax')
       )
     end
@@ -945,7 +949,7 @@ struct
         (collect_term_axioms (axs, t1), t2)
     (* Term.term list *)
     val result = map close_form (collect_term_axioms ([], t))
-    val _ = writeln " ...done."
+    val _ = Output.tracing " ...done."
   in
     result
   end;
@@ -1155,25 +1159,26 @@ struct
 
   (* theory -> params -> Term.term -> bool -> unit *)
 
-  fun find_model thy {sizes, minsize, maxsize, maxvars, maxtime, satsolver} t
-    negate =
+  fun find_model thy {sizes, minsize, maxsize, maxvars, maxtime, satsolver,
+    expect} t negate =
   let
     (* unit -> unit *)
     fun wrapper () =
     let
       val u      = unfold_defs thy t
-      val _      = writeln ("Unfolded term: " ^ Syntax.string_of_term_global thy u)
+      val _      = Output.tracing ("Unfolded term: " ^
+                                   Syntax.string_of_term_global thy u)
       val axioms = collect_axioms thy u
       (* Term.typ list *)
       val types = Library.foldl (fn (acc, t') =>
         acc union (ground_types thy t')) ([], u :: axioms)
-      val _     = writeln ("Ground types: "
+      val _     = Output.tracing ("Ground types: "
         ^ (if null types then "none."
            else commas (map (Syntax.string_of_typ_global thy) types)))
       (* we can only consider fragments of recursive IDTs, so we issue a  *)
       (* warning if the formula contains a recursive IDT                  *)
       (* TODO: no warning needed for /positive/ occurrences of IDTs       *)
-      val _ = if Library.exists (fn
+      val maybe_spurious = Library.exists (fn
           Type (s, _) =>
           (case DatatypePackage.get_datatype thy s of
             SOME info =>  (* inductive datatype *)
@@ -1187,18 +1192,19 @@ struct
                 Library.exists DatatypeAux.is_rec_type ds) constrs
             end
           | NONE => false)
-        | _ => false) types then
+        | _ => false) types
+      val _ = if maybe_spurious then
           warning ("Term contains a recursive datatype; "
             ^ "countermodel(s) may be spurious!")
         else
           ()
-      (* (Term.typ * int) list -> unit *)
+      (* (Term.typ * int) list -> string *)
       fun find_model_loop universe =
       let
         val init_model = (universe, [])
         val init_args  = {maxvars = maxvars, def_eq = false, next_idx = 1,
           bounds = [], wellformed = True}
-        val _          = Output.immediate_output ("Translating term (sizes: "
+        val _          = Output.tracing ("Translating term (sizes: "
           ^ commas (map (fn (_, n) => string_of_int n) universe) ^ ") ...")
         (* translate 'u' and all axioms *)
         val ((model, args), intrs) = Library.foldl_map (fn ((m, a), t') =>
@@ -1216,31 +1222,37 @@ struct
         val fm_ax = PropLogic.all (map toTrue (tl intrs))
         val fm    = PropLogic.all [#wellformed args, fm_ax, fm_u]
       in
-        Output.immediate_output " invoking SAT solver...";
+        Output.priority "Invoking SAT solver...";
         (case SatSolver.invoke_solver satsolver fm of
           SatSolver.SATISFIABLE assignment =>
-          (writeln " model found!";
-          writeln ("*** Model found: ***\n" ^ print_model thy model
-            (fn i => case assignment i of SOME b => b | NONE => true)))
+          (Output.priority ("*** Model found: ***\n" ^ print_model thy model
+            (fn i => case assignment i of SOME b => b | NONE => true));
+           "genuine")
         | SatSolver.UNSATISFIABLE _ =>
-          (Output.immediate_output " no model exists.\n";
+          (Output.priority "No model exists.";
           case next_universe universe sizes minsize maxsize of
             SOME universe' => find_model_loop universe'
-          | NONE           => writeln
-            "Search terminated, no larger universe within the given limits.")
+          | NONE           => (Output.priority
+            "Search terminated, no larger universe within the given limits.";
+            "none"))
         | SatSolver.UNKNOWN =>
-          (Output.immediate_output " no model found.\n";
+          (Output.priority "No model found.";
           case next_universe universe sizes minsize maxsize of
             SOME universe' => find_model_loop universe'
-          | NONE           => writeln
-            "Search terminated, no larger universe within the given limits.")
+          | NONE           => (Output.priority
+            "Search terminated, no larger universe within the given limits.";
+            "unknown"))
         ) handle SatSolver.NOT_CONFIGURED =>
-          error ("SAT solver " ^ quote satsolver ^ " is not configured.")
+          (error ("SAT solver " ^ quote satsolver ^ " is not configured.");
+           "unknown")
       end handle MAXVARS_EXCEEDED =>
-        writeln ("\nSearch terminated, number of Boolean variables ("
-          ^ string_of_int maxvars ^ " allowed) exceeded.")
+        (Output.priority ("Search terminated, number of Boolean variables ("
+          ^ string_of_int maxvars ^ " allowed) exceeded.");
+          "unknown")
+        val outcome_code = find_model_loop (first_universe types sizes minsize)
       in
-        find_model_loop (first_universe types sizes minsize)
+        if expect = "" orelse outcome_code = expect then ()
+        else error ("Unexpected outcome: " ^ quote outcome_code ^ ".")
       end
     in
       (* some parameter sanity checks *)
@@ -1256,14 +1268,15 @@ struct
       maxtime>=0 orelse
         error ("\"maxtime\" is " ^ string_of_int maxtime ^ ", must be at least 0");
       (* enter loop with or without time limit *)
-      writeln ("Trying to find a model that "
+      Output.priority ("Trying to find a model that "
         ^ (if negate then "refutes" else "satisfies") ^ ": "
         ^ Syntax.string_of_term_global thy t);
       if maxtime>0 then (
         TimeLimit.timeLimit (Time.fromSeconds maxtime)
           wrapper ()
         handle TimeLimit.TimeOut =>
-          writeln ("\nSearch terminated, time limit (" ^ string_of_int maxtime
+          Output.priority ("Search terminated, time limit (" ^
+            string_of_int maxtime
             ^ (if maxtime=1 then " second" else " seconds") ^ ") exceeded.")
       ) else
         wrapper ()
