@@ -220,6 +220,10 @@ syntax just like the Isar command 'by'.
 
 *** HOL ***
 
+* New predicate "strict_mono" classifies strict functions on partial orders.
+With strict functions on linear orders, reasoning about (in)equalities is
+facilitated by theorems "strict_mono_eq", "strict_mono_eq" and "strict_mono_eq".
+
 * Auxiliary class "itself" has disappeared -- classes without any parameter
 are treated as expected by the 'class' command.
 
