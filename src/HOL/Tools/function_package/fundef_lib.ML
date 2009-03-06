@@ -139,7 +139,7 @@ fun dest_binop_list cn (t as (Const (n, _) $ a $ b)) =
 
    Here, + can be any binary operation that is AC.
 
-   cn - The name of the binop-constructor (e.g. @{const_name "op Un"})
+   cn - The name of the binop-constructor (e.g. @{const_name Un})
    ac - the AC rewrite rules for cn
    is - the list of indices of the expressions that should become the first part
         (e.g. [0,1,3] in the above example)
@@ -168,8 +168,8 @@ fun regroup_conv neu cn ac is ct =
 
 (* instance for unions *)
 fun regroup_union_conv t =
-    regroup_conv (@{const_name "{}"})
-                  @{const_name "op Un"}
+    regroup_conv (@{const_name Set.empty})
+                  @{const_name Un}
        (map (fn t => t RS eq_reflection) (@{thms "Un_ac"} @
                                           @{thms "Un_empty_right"} @
                                           @{thms "Un_empty_left"})) t

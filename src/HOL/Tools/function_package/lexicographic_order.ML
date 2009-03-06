@@ -24,7 +24,7 @@ fun mk_measures domT mfuns =
     let 
         val relT = HOLogic.mk_setT (HOLogic.mk_prodT (domT, domT))
         val mlexT = (domT --> HOLogic.natT) --> relT --> relT
-        fun mk_ms [] = Const (@{const_name "{}"}, relT)
+        fun mk_ms [] = Const (@{const_name Set.empty}, relT)
           | mk_ms (f::fs) = 
             Const (@{const_name "mlex_prod"}, mlexT) $ f $ mk_ms fs
     in

@@ -5,7 +5,7 @@
 header {* Abstract lattices *}
 
 theory Lattices
-imports Fun
+imports Orderings
 begin
 
 subsection {* Lattices *}
@@ -328,135 +328,6 @@ lemmas [rule del] = min_max.le_infI min_max.le_supI
   min_max.le_infI1 min_max.le_infI2
 
 
-subsection {* Complete lattices *}
-
-class complete_lattice = lattice + bot + top +
-  fixes Inf :: "'a set \<Rightarrow> 'a" ("\<Sqinter>_" [900] 900)
-    and Sup :: "'a set \<Rightarrow> 'a" ("\<Squnion>_" [900] 900)
-  assumes Inf_lower: "x \<in> A \<Longrightarrow> \<Sqinter>A \<sqsubseteq> x"
-     and Inf_greatest: "(\<And>x. x \<in> A \<Longrightarrow> z \<sqsubseteq> x) \<Longrightarrow> z \<sqsubseteq> \<Sqinter>A"
-  assumes Sup_upper: "x \<in> A \<Longrightarrow> x \<sqsubseteq> \<Squnion>A"
-     and Sup_least: "(\<And>x. x \<in> A \<Longrightarrow> x \<sqsubseteq> z) \<Longrightarrow> \<Squnion>A \<sqsubseteq> z"
-begin
-
-lemma Inf_Sup: "\<Sqinter>A = \<Squnion>{b. \<forall>a \<in> A. b \<le> a}"
-  by (auto intro: antisym Inf_lower Inf_greatest Sup_upper Sup_least)
-
-lemma Sup_Inf:  "\<Squnion>A = \<Sqinter>{b. \<forall>a \<in> A. a \<le> b}"
-  by (auto intro: antisym Inf_lower Inf_greatest Sup_upper Sup_least)
-
-lemma Inf_Univ: "\<Sqinter>UNIV = \<Squnion>{}"
-  unfolding Sup_Inf by auto
-
-lemma Sup_Univ: "\<Squnion>UNIV = \<Sqinter>{}"
-  unfolding Inf_Sup by auto
-
-lemma Inf_insert: "\<Sqinter>insert a A = a \<sqinter> \<Sqinter>A"
-  by (auto intro: antisym Inf_greatest Inf_lower)
-
-lemma Sup_insert: "\<Squnion>insert a A = a \<squnion> \<Squnion>A"
-  by (auto intro: antisym Sup_least Sup_upper)
-
-lemma Inf_singleton [simp]:
-  "\<Sqinter>{a} = a"
-  by (auto intro: antisym Inf_lower Inf_greatest)
-
-lemma Sup_singleton [simp]:
-  "\<Squnion>{a} = a"
-  by (auto intro: antisym Sup_upper Sup_least)
-
-lemma Inf_insert_simp:
-  "\<Sqinter>insert a A = (if A = {} then a else a \<sqinter> \<Sqinter>A)"
-  by (cases "A = {}") (simp_all, simp add: Inf_insert)
-
-lemma Sup_insert_simp:
-  "\<Squnion>insert a A = (if A = {} then a else a \<squnion> \<Squnion>A)"
-  by (cases "A = {}") (simp_all, simp add: Sup_insert)
-
-lemma Inf_binary:
-  "\<Sqinter>{a, b} = a \<sqinter> b"
-  by (simp add: Inf_insert_simp)
-
-lemma Sup_binary:
-  "\<Squnion>{a, b} = a \<squnion> b"
-  by (simp add: Sup_insert_simp)
-
-lemma bot_def:
-  "bot = \<Squnion>{}"
-  by (auto intro: antisym Sup_least)
-
-lemma top_def:
-  "top = \<Sqinter>{}"
-  by (auto intro: antisym Inf_greatest)
-
-lemma sup_bot [simp]:
-  "x \<squnion> bot = x"
-  using bot_least [of x] by (simp add: le_iff_sup sup_commute)
-
-lemma inf_top [simp]:
-  "x \<sqinter> top = x"
-  using top_greatest [of x] by (simp add: le_iff_inf inf_commute)
-
-definition SUPR :: "'b set \<Rightarrow> ('b \<Rightarrow> 'a) \<Rightarrow> 'a" where
-  "SUPR A f == \<Squnion> (f ` A)"
-
-definition INFI :: "'b set \<Rightarrow> ('b \<Rightarrow> 'a) \<Rightarrow> 'a" where
-  "INFI A f == \<Sqinter> (f ` A)"
-
-end
-
-syntax
-  "_SUP1"     :: "pttrns => 'b => 'b"           ("(3SUP _./ _)" [0, 10] 10)
-  "_SUP"      :: "pttrn => 'a set => 'b => 'b"  ("(3SUP _:_./ _)" [0, 10] 10)
-  "_INF1"     :: "pttrns => 'b => 'b"           ("(3INF _./ _)" [0, 10] 10)
-  "_INF"      :: "pttrn => 'a set => 'b => 'b"  ("(3INF _:_./ _)" [0, 10] 10)
-
-translations
-  "SUP x y. B"   == "SUP x. SUP y. B"
-  "SUP x. B"     == "CONST SUPR UNIV (%x. B)"
-  "SUP x. B"     == "SUP x:UNIV. B"
-  "SUP x:A. B"   == "CONST SUPR A (%x. B)"
-  "INF x y. B"   == "INF x. INF y. B"
-  "INF x. B"     == "CONST INFI UNIV (%x. B)"
-  "INF x. B"     == "INF x:UNIV. B"
-  "INF x:A. B"   == "CONST INFI A (%x. B)"
-
-(* To avoid eta-contraction of body: *)
-print_translation {*
-let
-  fun btr' syn (A :: Abs abs :: ts) =
-    let val (x,t) = atomic_abs_tr' abs
-    in list_comb (Syntax.const syn $ x $ A $ t, ts) end
-  val const_syntax_name = Sign.const_syntax_name @{theory} o fst o dest_Const
-in
-[(const_syntax_name @{term SUPR}, btr' "_SUP"),(const_syntax_name @{term "INFI"}, btr' "_INF")]
-end
-*}
-
-context complete_lattice
-begin
-
-lemma le_SUPI: "i : A \<Longrightarrow> M i \<le> (SUP i:A. M i)"
-  by (auto simp add: SUPR_def intro: Sup_upper)
-
-lemma SUP_leI: "(\<And>i. i : A \<Longrightarrow> M i \<le> u) \<Longrightarrow> (SUP i:A. M i) \<le> u"
-  by (auto simp add: SUPR_def intro: Sup_least)
-
-lemma INF_leI: "i : A \<Longrightarrow> (INF i:A. M i) \<le> M i"
-  by (auto simp add: INFI_def intro: Inf_lower)
-
-lemma le_INFI: "(\<And>i. i : A \<Longrightarrow> u \<le> M i) \<Longrightarrow> u \<le> (INF i:A. M i)"
-  by (auto simp add: INFI_def intro: Inf_greatest)
-
-lemma SUP_const[simp]: "A \<noteq> {} \<Longrightarrow> (SUP i:A. M) = M"
-  by (auto intro: antisym SUP_leI le_SUPI)
-
-lemma INF_const[simp]: "A \<noteq> {} \<Longrightarrow> (INF i:A. M) = M"
-  by (auto intro: antisym INF_leI le_INFI)
-
-end
-
-
 subsection {* Bool as lattice *}
 
 instantiation bool :: distrib_lattice
@@ -472,28 +343,6 @@ instance
   by intro_classes (auto simp add: inf_bool_eq sup_bool_eq le_bool_def)
 
 end
-
-instantiation bool :: complete_lattice
-begin
-
-definition
-  Inf_bool_def: "\<Sqinter>A \<longleftrightarrow> (\<forall>x\<in>A. x)"
-
-definition
-  Sup_bool_def: "\<Squnion>A \<longleftrightarrow> (\<exists>x\<in>A. x)"
-
-instance
-  by intro_classes (auto simp add: Inf_bool_def Sup_bool_def le_bool_def)
-
-end
-
-lemma Inf_empty_bool [simp]:
-  "\<Sqinter>{}"
-  unfolding Inf_bool_def by auto
-
-lemma not_Sup_empty_bool [simp]:
-  "\<not> Sup {}"
-  unfolding Sup_bool_def by auto
 
 
 subsection {* Fun as lattice *}
@@ -522,85 +371,6 @@ end
 instance "fun" :: (type, distrib_lattice) distrib_lattice
   by default (auto simp add: inf_fun_eq sup_fun_eq sup_inf_distrib1)
 
-instantiation "fun" :: (type, complete_lattice) complete_lattice
-begin
-
-definition
-  Inf_fun_def [code del]: "\<Sqinter>A = (\<lambda>x. \<Sqinter>{y. \<exists>f\<in>A. y = f x})"
-
-definition
-  Sup_fun_def [code del]: "\<Squnion>A = (\<lambda>x. \<Squnion>{y. \<exists>f\<in>A. y = f x})"
-
-instance
-  by intro_classes
-    (auto simp add: Inf_fun_def Sup_fun_def le_fun_def
-      intro: Inf_lower Sup_upper Inf_greatest Sup_least)
-
-end
-
-lemma Inf_empty_fun:
-  "\<Sqinter>{} = (\<lambda>_. \<Sqinter>{})"
-  by rule (auto simp add: Inf_fun_def)
-
-lemma Sup_empty_fun:
-  "\<Squnion>{} = (\<lambda>_. \<Squnion>{})"
-  by rule (auto simp add: Sup_fun_def)
-
-
-subsection {* Set as lattice *}
-
-lemma inf_set_eq: "A \<sqinter> B = A \<inter> B"
-  apply (rule subset_antisym)
-  apply (rule Int_greatest)
-  apply (rule inf_le1)
-  apply (rule inf_le2)
-  apply (rule inf_greatest)
-  apply (rule Int_lower1)
-  apply (rule Int_lower2)
-  done
-
-lemma sup_set_eq: "A \<squnion> B = A \<union> B"
-  apply (rule subset_antisym)
-  apply (rule sup_least)
-  apply (rule Un_upper1)
-  apply (rule Un_upper2)
-  apply (rule Un_least)
-  apply (rule sup_ge1)
-  apply (rule sup_ge2)
-  done
-
-lemma mono_Int: "mono f \<Longrightarrow> f (A \<inter> B) \<subseteq> f A \<inter> f B"
-  apply (fold inf_set_eq sup_set_eq)
-  apply (erule mono_inf)
-  done
-
-lemma mono_Un: "mono f \<Longrightarrow> f A \<union> f B \<subseteq> f (A \<union> B)"
-  apply (fold inf_set_eq sup_set_eq)
-  apply (erule mono_sup)
-  done
-
-lemma Inf_set_eq: "\<Sqinter>S = \<Inter>S"
-  apply (rule subset_antisym)
-  apply (rule Inter_greatest)
-  apply (erule Inf_lower)
-  apply (rule Inf_greatest)
-  apply (erule Inter_lower)
-  done
-
-lemma Sup_set_eq: "\<Squnion>S = \<Union>S"
-  apply (rule subset_antisym)
-  apply (rule Sup_least)
-  apply (erule Union_upper)
-  apply (rule Union_least)
-  apply (erule Sup_upper)
-  done
-  
-lemma top_set_eq: "top = UNIV"
-  by (iprover intro!: subset_antisym subset_UNIV top_greatest)
-
-lemma bot_set_eq: "bot = {}"
-  by (iprover intro!: subset_antisym empty_subsetI bot_least)
-
 
 text {* redundant bindings *}
 
@@ -611,8 +381,6 @@ no_notation
   less_eq  (infix "\<sqsubseteq>" 50) and
   less (infix "\<sqsubset>" 50) and
   inf  (infixl "\<sqinter>" 70) and
-  sup  (infixl "\<squnion>" 65) and
-  Inf  ("\<Sqinter>_" [900] 900) and
-  Sup  ("\<Squnion>_" [900] 900)
+  sup  (infixl "\<squnion>" 65)
 
 end

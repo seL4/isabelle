@@ -224,6 +224,21 @@ syntax just like the Isar command 'by'.
 With strict functions on linear orders, reasoning about (in)equalities is
 facilitated by theorems "strict_mono_eq", "strict_mono_less_eq" and "strict_mono_less".
 
+* Some set operations are now proper qualified constants with authentic syntax.
+INCOMPATIBILITY:
+
+    op Int ~>   Set.Int
+    op Un ~>    Set.Un
+    INTER ~>    Set.INTER
+    UNION ~>    Set.UNION
+    Inter ~>    Set.Inter
+    Union ~>    Set.Union
+    {} ~>       Set.empty
+    UNIV ~>     Set.UNIV
+
+* Class complete_lattice with operations Inf, Sup, INFI, SUPR now in theory
+Set.
+
 * Auxiliary class "itself" has disappeared -- classes without any parameter
 are treated as expected by the 'class' command.
 
@@ -301,7 +316,7 @@ with !!/==>, only the conclusion is evaluated to True (if possible),
 avoiding strange error messages.
 
 * Simplifier: simproc for let expressions now unfolds if bound variable
-occurs at most one time in let expression body.  INCOMPATIBILITY.
+occurs at most once in let expression body.  INCOMPATIBILITY.
 
 * New classes "top" and "bot" with corresponding operations "top" and "bot"
 in theory Orderings;  instantiation of class "complete_lattice" requires

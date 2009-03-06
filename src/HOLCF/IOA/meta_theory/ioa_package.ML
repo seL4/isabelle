@@ -159,7 +159,8 @@ constructor_head_list thy atypstr (a::r) =
  (constructor_head thy atypstr a)::(constructor_head_list thy atypstr r);
 
 (* producing an action set *)
-fun action_set_string thy atyp [] = "{}" |
+(*FIXME*)
+fun action_set_string thy atyp [] = "Set.empty" |
 action_set_string thy atyp [a] = constr_set_string thy atyp (strip_quote a) |
 action_set_string thy atyp (a::r) = (constr_set_string thy atyp (strip_quote a)) ^
          " Un " ^ (action_set_string thy atyp r);

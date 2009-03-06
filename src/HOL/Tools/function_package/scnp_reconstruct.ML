@@ -142,7 +142,7 @@ fun rem_inv_img ctxt =
 
 val setT = HOLogic.mk_setT
 
-fun mk_set T [] = Const (@{const_name "{}"}, setT T)
+fun mk_set T [] = Const (@{const_name Set.empty}, setT T)
   | mk_set T (x :: xs) =
       Const (@{const_name insert}, T --> setT T --> setT T) $
             x $ mk_set T xs

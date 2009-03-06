@@ -14,9 +14,9 @@ struct
 val dest_set =
  let 
   fun h acc ct = 
-   case (term_of ct) of
-     Const("{}",_) => acc
-   | Const("insert",_)$_$t => h (Thm.dest_arg1 ct :: acc) (Thm.dest_arg ct)
+   case term_of ct of
+     Const (@{const_name Set.empty}, _) => acc
+   | Const (@{const_name insert}, _) $ _ $ t => h (Thm.dest_arg1 ct :: acc) (Thm.dest_arg ct)
 in h [] end;
 
 fun prove_finite cT u = 
@@ -48,11 +48,11 @@ fun basic_dloqe ctxt stupid dlo_qeth dlo_qeth_nolb dlo_qeth_noub gather ep =
        in (ne, f) end
 
      val qe = case (term_of L, term_of U) of 
-      (Const("{}",_),_) =>  
+      (Const (@{const_name Set.empty}, _),_) =>  
         let
           val (neU,fU) = proveneF U 
         in simp_rule (transitive ths (dlo_qeth_nolb OF [neU, fU])) end
-    | (_,Const("{}",_)) =>  
+    | (_,Const (@{const_name Set.empty}, _)) =>  
         let
           val (neL,fL) = proveneF L
         in simp_rule (transitive ths (dlo_qeth_noub OF [neL, fL])) end

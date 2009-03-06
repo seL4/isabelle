@@ -43,7 +43,7 @@ syntax
 translations
   "JN x : A. B"   == "JOIN A (%x. B)"
   "JN x y. B"   == "JN x. JN y. B"
-  "JN x. B"     == "JOIN UNIV (%x. B)"
+  "JN x. B"     == "JOIN CONST UNIV (%x. B)"
 
 syntax (xsymbols)
   SKIP     :: "'a program"                              ("\<bottom>")

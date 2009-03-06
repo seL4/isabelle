@@ -102,7 +102,7 @@ constdefs
   "SEM c S \<equiv> \<Union>sem c ` S "
 
 syntax "_Omega" :: "'a com"    ("\<Omega>" 63)
-translations  "\<Omega>" \<rightleftharpoons> "While UNIV UNIV (Basic id)"
+translations  "\<Omega>" \<rightleftharpoons> "While CONST UNIV CONST UNIV (Basic id)"
 
 consts fwhile :: "'a bexp \<Rightarrow> 'a com \<Rightarrow> nat \<Rightarrow> 'a com"
 primrec 

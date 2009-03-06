@@ -2094,7 +2094,7 @@ struct
           val HOLogic_prodT = HOLogic.mk_prodT (T1, T2)
           val HOLogic_setT  = HOLogic.mk_setT HOLogic_prodT
           (* Term.term *)
-          val HOLogic_empty_set = Const (@{const_name "{}"}, HOLogic_setT)
+          val HOLogic_empty_set = Const (@{const_name Set.empty}, HOLogic_setT)
           val HOLogic_insert    =
             Const (@{const_name insert}, HOLogic_prodT --> HOLogic_setT --> HOLogic_setT)
         in
@@ -3159,7 +3159,7 @@ struct
         val HOLogic_prodT = HOLogic.mk_prodT (T1, T2)
         val HOLogic_setT  = HOLogic.mk_setT HOLogic_prodT
         (* Term.term *)
-        val HOLogic_empty_set = Const (@{const_name "{}"}, HOLogic_setT)
+        val HOLogic_empty_set = Const (@{const_name Set.empty}, HOLogic_setT)
         val HOLogic_insert    =
           Const (@{const_name insert}, HOLogic_prodT --> HOLogic_setT --> HOLogic_setT)
       in
