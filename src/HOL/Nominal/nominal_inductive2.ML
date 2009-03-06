@@ -75,7 +75,7 @@ fun add_binders thy i (t as (_ $ _)) bs = (case strip_comb t of
   | add_binders thy i (Abs (_, _, t)) bs = add_binders thy (i + 1) t bs
   | add_binders thy i _ bs = bs;
 
-fun mk_set T [] = Const ("{}", HOLogic.mk_setT T)
+fun mk_set T [] = Const (@{const_name Set.empty}, HOLogic.mk_setT T)
   | mk_set T (x :: xs) =
       Const ("insert", T --> HOLogic.mk_setT T --> HOLogic.mk_setT T) $ x $
         mk_set T xs;
@@ -201,7 +201,7 @@ fun prove_strong_ind s avoids ctxt =
           | add_set (t, T) ((u, U) :: ps) =
               if T = U then
                 let val S = HOLogic.mk_setT T
-                in (Const (@{const_name "op Un"}, S --> S --> S) $ u $ t, T) :: ps
+                in (Const (@{const_name "Un"}, S --> S --> S) $ u $ t, T) :: ps
                 end
               else (u, U) :: add_set (t, T) ps
       in

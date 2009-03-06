@@ -99,8 +99,8 @@ let
    in
     fun provein x S =
      case term_of S of
-        Const("{}",_) => raise CTERM ("provein : not a member!", [S])
-      | Const("insert",_)$y$_ =>
+        Const(@{const_name Set.empty}, _) => raise CTERM ("provein : not a member!", [S])
+      | Const(@{const_name insert}, _) $ y $_ =>
          let val (cy,S') = Thm.dest_binop S
          in if term_of x aconv y then instantiate' [] [SOME x, SOME S'] insI1
          else implies_elim (instantiate' [] [SOME x, SOME S', SOME cy] insI2)
