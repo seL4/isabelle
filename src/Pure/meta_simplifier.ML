@@ -59,6 +59,7 @@ sig
   val delcongs: simpset * thm list -> simpset
   val addsimprocs: simpset * simproc list -> simpset
   val delsimprocs: simpset * simproc list -> simpset
+  val mksimps: simpset -> thm -> thm list
   val setmksimps: simpset * (thm -> thm list) -> simpset
   val setmkcong: simpset * (thm -> thm) -> simpset
   val setmksym: simpset * (thm -> thm option) -> simpset
@@ -547,6 +548,7 @@ fun ss delsimps thms =
 fun add_simp thm ss = ss addsimps [thm];
 fun del_simp thm ss = ss delsimps [thm];
 
+
 (* congs *)
 
 fun cong_name (Const (a, _)) = SOME a
@@ -693,6 +695,8 @@ fun map_mk_rews f = map_simpset2 (fn (congs, procs, {mk, mk_cong, mk_sym, mk_eq_
   in (congs, procs, mk_rews', termless, subgoal_tac, loop_tacs, solvers) end);
 
 in
+
+val mksimps = #mk o #mk_rews o #2 o rep_ss;
 
 fun ss setmksimps mk = ss |> map_mk_rews (fn (_, mk_cong, mk_sym, mk_eq_True, reorient) =>
   (mk, mk_cong, mk_sym, mk_eq_True, reorient));

@@ -383,7 +383,12 @@ fun schedule_futures task_graph =
 
 fun schedule_seq tasks =
   Graph.topological_order tasks
-  |> List.app (fn name => (case Graph.get_node tasks name of Task body => body () () | _ => ()));
+  |> List.app (fn name =>
+    (case Graph.get_node tasks name of
+      Task body =>
+        let val after_load = body ()
+        in after_load () handle exn => (kill_thy name; raise exn) end
+    | _ => ()));
 
 in
 

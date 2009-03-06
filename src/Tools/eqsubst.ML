@@ -128,8 +128,7 @@ structure Z = Zipper;
 
 (* changes object "=" to meta "==" which prepares a given rewrite rule *)
 fun prep_meta_eq ctxt =
-  let val (_, {mk_rews = {mk, ...}, ...}) = Simplifier.rep_ss (Simplifier.local_simpset_of ctxt)
-  in mk #> map Drule.zero_var_indexes end;
+  Simplifier.mksimps (Simplifier.local_simpset_of ctxt) #> map Drule.zero_var_indexes;
 
 
   (* a type abriviation for match information *)

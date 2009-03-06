@@ -643,13 +643,13 @@ fun traceTerm thy t =
 
 (*Print tracing information at each iteration of prover*)
 fun tracing (State {thy, fullTrace, ...}) brs =
-  let fun printPairs (((G,_)::_,_)::_)  = Output.immediate_output(traceTerm thy G)
-        | printPairs (([],(H,_)::_)::_) = Output.immediate_output(traceTerm thy H ^ "\t (Unsafe)")
+  let fun printPairs (((G,_)::_,_)::_)  = Output.tracing (traceTerm thy G)
+        | printPairs (([],(H,_)::_)::_) = Output.tracing (traceTerm thy H ^ "\t (Unsafe)")
         | printPairs _                 = ()
       fun printBrs (brs0 as {pairs, lits, lim, ...} :: brs) =
             (fullTrace := brs0 :: !fullTrace;
-             List.app (fn _ => Output.immediate_output "+") brs;
-             Output.immediate_output (" [" ^ Int.toString lim ^ "] ");
+             List.app (fn _ => Output.tracing "+") brs;
+             Output.tracing (" [" ^ Int.toString lim ^ "] ");
              printPairs pairs;
              writeln"")
   in if !trace then printBrs (map normBr brs) else ()
@@ -662,10 +662,10 @@ fun traceVars (State {thy, ntrail, trail, ...}) ntrl =
   if !trace then
       (case !ntrail-ntrl of
             0 => ()
-          | 1 => Output.immediate_output"\t1 variable UPDATED:"
-          | n => Output.immediate_output("\t" ^ Int.toString n ^ " variables UPDATED:");
+          | 1 => Output.tracing "\t1 variable UPDATED:"
+          | n => Output.tracing ("\t" ^ Int.toString n ^ " variables UPDATED:");
        (*display the instantiations themselves, though no variable names*)
-       List.app (fn v => Output.immediate_output("   " ^ string_of thy 4 (the (!v))))
+       List.app (fn v => Output.tracing ("   " ^ string_of thy 4 (the (!v))))
            (List.take(!trail, !ntrail-ntrl));
        writeln"")
     else ();
@@ -674,9 +674,9 @@ fun traceVars (State {thy, ntrail, trail, ...}) ntrl =
 fun traceNew prems =
     if !trace then
         case length prems of
-            0 => Output.immediate_output"branch closed by rule"
-          | 1 => Output.immediate_output"branch extended (1 new subgoal)"
-          | n => Output.immediate_output("branch split: "^ Int.toString n ^ " new subgoals")
+            0 => Output.tracing "branch closed by rule"
+          | 1 => Output.tracing "branch extended (1 new subgoal)"
+          | n => Output.tracing ("branch split: "^ Int.toString n ^ " new subgoals")
     else ();
 
 
@@ -1005,7 +1005,7 @@ fun prove (state, start, cs, brs, cont) =
                         NONE     => closeF Ls
                       | SOME tac =>
                             let val choices' =
-                                    (if !trace then (Output.immediate_output"branch closed";
+                                    (if !trace then (Output.tracing "branch closed";
                                                      traceVars state ntrl)
                                                else ();
                                      prune state (nbrs, nxtVars,
@@ -1136,9 +1136,9 @@ fun prove (state, start, cs, brs, cont) =
                             clearTo state ntrl;  raise NEWBRANCHES)
                        else
                          traceNew prems;
-                         if !trace andalso dup then Output.immediate_output" (duplicating)"
+                         if !trace andalso dup then Output.tracing " (duplicating)"
                                                  else ();
-                         if !trace andalso recur then Output.immediate_output" (recursive)"
+                         if !trace andalso recur then Output.tracing " (recursive)"
                                                  else ();
                          traceVars state ntrl;
                          if null prems then nclosed := !nclosed + 1
