@@ -78,8 +78,12 @@ fun defined_option name = Symtab.defined (! global_options) name;
 fun command src =
   let val ((name, _), pos) = Args.dest_src src in
     (case Symtab.lookup (! global_commands) name of
-      NONE => error ("Unknown document antiquotation command: " ^ quote name ^ Position.str_of pos)
-    | SOME f => (Position.report (Markup.doc_antiq name) pos; f src))
+      NONE => error ("Unknown document antiquotation: " ^ quote name ^ Position.str_of pos)
+    | SOME f =>
+       (Position.report (Markup.doc_antiq name) pos;
+        (fn node => f src node handle ERROR msg =>
+          cat_error msg ("The error(s) above occurred in document antiquotation: " ^
+            quote name ^ Position.str_of pos))))
   end;
 
 fun option (name, s) f () =
