@@ -1025,8 +1025,11 @@ apply (rule_tac a' = "-1" in zdiv_mono1)
 apply (auto simp add: div_eq_minus1)
 done
 
-lemma div_nonneg_neg_le0: "[| (0::int) \<le> a;  b < 0 |] ==> a div b \<le> 0"
+lemma div_nonneg_neg_le0: "[| (0::int) \<le> a; b < 0 |] ==> a div b \<le> 0"
 by (drule zdiv_mono1_neg, auto)
+
+lemma div_nonpos_pos_le0: "[| (a::int) \<le> 0; b > 0 |] ==> a div b \<le> 0"
+by (drule zdiv_mono1, auto)
 
 lemma pos_imp_zdiv_nonneg_iff: "(0::int) < b ==> (0 \<le> a div b) = (0 \<le> a)"
 apply auto
