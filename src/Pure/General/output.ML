@@ -32,7 +32,6 @@ sig
   val escape: output -> string
   val std_output: output -> unit
   val std_error: output -> unit
-  val immediate_output: string -> unit
   val writeln_default: output -> unit
   val writeln_fn: (output -> unit) ref
   val priority_fn: (output -> unit) ref
@@ -88,8 +87,6 @@ fun std_output s = NAMED_CRITICAL "IO" (fn () =>
 
 fun std_error s = NAMED_CRITICAL "IO" (fn () =>
   (TextIO.output (TextIO.stdErr, s); TextIO.flushOut TextIO.stdErr));
-
-val immediate_output = std_output o output;
 
 fun writeln_default "" = ()
   | writeln_default s = std_output (suffix "\n" s);
