@@ -2662,8 +2662,6 @@ struct
     | _ =>  (* head of term is not a constant *)
       NONE;
 
-  (* TODO: Fix all occurrences of Type ("set", _). *)
-
   (* theory -> model -> arguments -> Term.term ->
     (interpretation * model * arguments) option *)
 
@@ -2702,7 +2700,8 @@ struct
   fun Finite_Set_card_interpreter thy model args t =
     case t of
       Const (@{const_name Finite_Set.card},
-        Type ("fun", [Type ("set", [T]), Type ("nat", [])])) =>
+        Type ("fun", [Type ("fun", [T, Type ("bool", [])]),
+                      Type ("nat", [])])) =>
       let
         (* interpretation -> int *)
         fun number_of_elements (Node xs) =
@@ -2732,7 +2731,8 @@ struct
             else
               Leaf (replicate size_of_nat False)
           end
-        val set_constants = make_constants thy model (Type ("set", [T]))
+        val set_constants =
+          make_constants thy model (Type ("fun", [T, Type ("bool", [])]))
       in
         SOME (Node (map card set_constants), model, args)
       end
@@ -2749,14 +2749,17 @@ struct
   fun Finite_Set_finite_interpreter thy model args t =
     case t of
       Const (@{const_name Finite_Set.finite},
-        Type ("fun", [Type ("set", [T]), Type ("bool", [])])) $ _ =>
+        Type ("fun", [Type ("fun", [T, Type ("bool", [])]),
+                      Type ("bool", [])])) $ _ =>
         (* we only consider finite models anyway, hence EVERY set is *)
         (* "finite"                                                  *)
         SOME (TT, model, args)
     | Const (@{const_name Finite_Set.finite},
-        Type ("fun", [Type ("set", [T]), Type ("bool", [])])) =>
+        Type ("fun", [Type ("fun", [T, Type ("bool", [])]),
+                      Type ("bool", [])])) =>
       let
-        val size_of_set = size_of_type thy model (Type ("set", [T]))
+        val size_of_set =
+          size_of_type thy model (Type ("fun", [T, Type ("bool", [])]))
       in
         (* we only consider finite models anyway, hence EVERY set is *)
         (* "finite"                                                  *)
@@ -2982,16 +2985,20 @@ struct
   fun lfp_interpreter thy model args t =
     case t of
       Const (@{const_name lfp}, Type ("fun", [Type ("fun",
-        [Type ("set", [T]), Type ("set", [_])]), Type ("set", [_])])) =>
+        [Type ("fun", [T, Type ("bool", [])]),
+         Type ("fun", [_, Type ("bool", [])])]),
+         Type ("fun", [_, Type ("bool", [])])])) =>
       let
         val size_elem = size_of_type thy model T
         (* the universe (i.e. the set that contains every element) *)
         val i_univ = Node (replicate size_elem TT)
         (* all sets with elements from type 'T' *)
-        val i_sets = make_constants thy model (Type ("set", [T]))
+        val i_sets =
+          make_constants thy model (Type ("fun", [T, Type ("bool", [])]))
         (* all functions that map sets to sets *)
         val i_funs = make_constants thy model (Type ("fun",
-          [Type ("set", [T]), Type ("set", [T])]))
+          [Type ("fun", [T, Type ("bool", [])]),
+           Type ("fun", [T, Type ("bool", [])])]))
         (* "lfp(f) == Inter({u. f(u) <= u})" *)
         (* interpretation * interpretation -> bool *)
         fun is_subset (Node subs, Node sups) =
@@ -3033,16 +3040,20 @@ struct
   fun gfp_interpreter thy model args t =
     case t of
       Const (@{const_name gfp}, Type ("fun", [Type ("fun",
-        [Type ("set", [T]), Type ("set", [_])]), Type ("set", [_])])) =>
+        [Type ("fun", [T, Type ("bool", [])]),
+         Type ("fun", [_, Type ("bool", [])])]),
+         Type ("fun", [_, Type ("bool", [])])])) =>
       let nonfix union (* because "union" is used below *)
         val size_elem = size_of_type thy model T
         (* the universe (i.e. the set that contains every element) *)
         val i_univ = Node (replicate size_elem TT)
         (* all sets with elements from type 'T' *)
-        val i_sets = make_constants thy model (Type ("set", [T]))
+        val i_sets =
+          make_constants thy model (Type ("fun", [T, Type ("bool", [])]))
         (* all functions that map sets to sets *)
         val i_funs = make_constants thy model (Type ("fun",
-          [Type ("set", [T]), Type ("set", [T])]))
+          [Type ("fun", [T, Type ("bool", [])]),
+           Type ("fun", [T, Type ("bool", [])])]))
         (* "gfp(f) == Union({u. u <= f(u)})" *)
         (* interpretation * interpretation -> bool *)
         fun is_subset (Node subs, Node sups) =
