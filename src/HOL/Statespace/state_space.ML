@@ -154,13 +154,13 @@ fun prove_interpretation_in ctxt_tac (name, expr) thy =
 
 fun add_locale name expr elems thy =
   thy 
-  |> Expression.add_locale name name expr elems
+  |> Expression.add_locale (Binding.name name) (Binding.name name) expr elems
   |> snd
   |> LocalTheory.exit;
 
 fun add_locale_cmd name expr elems thy =
   thy 
-  |> Expression.add_locale_cmd name "" expr elems
+  |> Expression.add_locale_cmd (Binding.name name) Binding.empty expr elems
   |> snd
   |> LocalTheory.exit;
 
