@@ -29,10 +29,10 @@ sig
   val begin_theory: string -> theory list -> theory
   val end_theory: theory -> theory
   val add_axioms_i: (binding * term) list -> theory -> theory
-  val add_axioms: (bstring * string) list -> theory -> theory
+  val add_axioms: (binding * string) list -> theory -> theory
   val add_deps: string -> string * typ -> (string * typ) list -> theory -> theory
   val add_defs_i: bool -> bool -> (binding * term) list -> theory -> theory
-  val add_defs: bool -> bool -> (bstring * string) list -> theory -> theory
+  val add_defs: bool -> bool -> (binding * string) list -> theory -> theory
   val add_finals_i: bool -> term list -> theory -> theory
   val add_finals: bool -> string list -> theory -> theory
   val specify_const: Properties.T -> (binding * typ) * mixfix -> theory -> term * theory
@@ -153,9 +153,6 @@ fun end_theory thy =
 
 (* prepare axioms *)
 
-fun err_in_axm msg name =
-  cat_error msg ("The error(s) above occurred in axiom " ^ quote name);
-
 fun cert_axm thy (b, raw_tm) =
   let
     val (t, T, _) = Sign.certify_prop thy raw_tm
@@ -166,9 +163,9 @@ fun cert_axm thy (b, raw_tm) =
     (b, Sign.no_vars (Syntax.pp_global thy) t)
   end;
 
-fun read_axm thy (bname, str) =
-  cert_axm thy (Binding.name bname, Syntax.read_prop_global thy str)
-    handle ERROR msg => err_in_axm msg bname;
+fun read_axm thy (b, str) =
+  cert_axm thy (b, Syntax.read_prop_global thy str) handle ERROR msg =>
+    cat_error msg ("The error(s) above occurred in axiom: " ^ quote (Binding.str_of b));
 
 
 (* add_axioms(_i) *)
