@@ -11,22 +11,24 @@ signature BINDING =
 sig
   type binding
   val dest: binding -> (string * bool) list * bstring
-  val verbose: bool ref
   val str_of: binding -> string
   val make: bstring * Position.T -> binding
   val pos_of: binding -> Position.T
   val name: bstring -> binding
   val name_of: binding -> string
   val map_name: (bstring -> bstring) -> binding -> binding
+  val prefix_name: string -> binding -> binding
+  val suffix_name: string -> binding -> binding
+  val eq_name: binding * binding -> bool
   val empty: binding
   val is_empty: binding -> bool
   val qualify: bool -> string -> binding -> binding
   val prefix_of: binding -> (string * bool) list
   val map_prefix: ((string * bool) list -> (string * bool) list) -> binding -> binding
-  val add_prefix: bool -> string -> binding -> binding
+  val prefix: bool -> string -> binding -> binding
 end;
 
-structure Binding: BINDING =
+structure Binding:> BINDING =
 struct
 
 (** representation **)
@@ -47,20 +49,9 @@ fun map_binding f (Binding {prefix, qualifier, name, pos}) =
 
 fun dest (Binding {prefix, qualifier, name, ...}) = (prefix @ qualifier, name);
 
-
-(* diagnostic output *)
-
-val verbose = ref false;
-
-val str_of_components = implode o map (fn (s, true) => s ^ "!" | (s, false) => s ^ "?");
-
 fun str_of (Binding {prefix, qualifier, name, pos}) =
   let
-    val text =
-      if ! verbose then
-        (if null prefix then "" else enclose "(" ")" (str_of_components prefix)) ^
-          str_of_components qualifier ^ name
-      else name;
+    val text = space_implode "." (map #1 qualifier @ [name]);
     val props = Position.properties_of pos;
   in Markup.markup (Markup.properties props (Markup.binding name)) text end;
 
@@ -76,7 +67,11 @@ fun name name = make (name, Position.none);
 fun pos_of (Binding {pos, ...}) = pos;
 fun name_of (Binding {name, ...}) = name;
 
+fun eq_name (b, b') = name_of b = name_of b';
+
 fun map_name f = map_binding (fn (prefix, qualifier, name, pos) => (prefix, qualifier, f name, pos));
+val prefix_name = map_name o prefix;
+val suffix_name = map_name o suffix;
 
 val empty = name "";
 fun is_empty b = name_of b = "";
@@ -85,8 +80,8 @@ fun is_empty b = name_of b = "";
 (* user qualifier *)
 
 fun qualify _ "" = I
-  | qualify mandatory qual = map_binding (fn (prefix, qualifier, name, pos) =>
-      (prefix, (qual, mandatory) :: qualifier, name, pos));
+  | qualify strict qual = map_binding (fn (prefix, qualifier, name, pos) =>
+      (prefix, (qual, strict) :: qualifier, name, pos));
 
 
 (* system prefix *)
@@ -96,8 +91,8 @@ fun prefix_of (Binding {prefix, ...}) = prefix;
 fun map_prefix f = map_binding (fn (prefix, qualifier, name, pos) =>
   (f prefix, qualifier, name, pos));
 
-fun add_prefix _ "" = I
-  | add_prefix mandatory prfx = map_prefix (cons (prfx, mandatory));
+fun prefix _ "" = I
+  | prefix strict prfx = map_prefix (cons (prfx, strict));
 
 end;
 

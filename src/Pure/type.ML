@@ -69,12 +69,12 @@ sig
   val eq_type: tyenv -> typ * typ -> bool
 
   (*extend and merge type signatures*)
-  val add_class: Pretty.pp -> NameSpace.naming -> bstring * class list -> tsig -> tsig
+  val add_class: Pretty.pp -> NameSpace.naming -> binding * class list -> tsig -> tsig
   val hide_class: bool -> string -> tsig -> tsig
   val set_defsort: sort -> tsig -> tsig
-  val add_type: NameSpace.naming -> Properties.T -> bstring * int -> tsig -> tsig
-  val add_abbrev: NameSpace.naming -> Properties.T -> string * string list * typ -> tsig -> tsig
-  val add_nonterminal: NameSpace.naming -> Properties.T -> string -> tsig -> tsig
+  val add_type: NameSpace.naming -> Properties.T -> binding * int -> tsig -> tsig
+  val add_abbrev: NameSpace.naming -> Properties.T -> binding * string list * typ -> tsig -> tsig
+  val add_nonterminal: NameSpace.naming -> Properties.T -> binding -> tsig -> tsig
   val hide_type: bool -> string -> tsig -> tsig
   val add_arity: Pretty.pp -> arity -> tsig -> tsig
   val add_classrel: Pretty.pp -> class * class -> tsig -> tsig
@@ -511,7 +511,7 @@ fun add_class pp naming (c, cs) tsig =
     let
       val cs' = map (cert_class tsig) cs
         handle TYPE (msg, _, _) => error msg;
-      val (c', space') = space |> NameSpace.declare naming (Binding.name c);
+      val (c', space') = space |> NameSpace.declare naming c;
       val classes' = classes |> Sorts.add_class pp (c', cs');
     in ((space', classes'), default, types) end);
 
@@ -555,9 +555,6 @@ fun set_defsort S tsig = tsig |> map_tsig (fn (classes, _, types) =>
 
 local
 
-fun err_neg_args c =
-  error ("Negative number of arguments in type constructor declaration: " ^ quote c);
-
 fun err_in_decls c decl decl' =
   let val s = str_of_decl decl and s' = str_of_decl decl' in
     if s = s' then error ("Duplicate declaration of " ^ s ^ ": " ^ quote c)
@@ -567,7 +564,7 @@ fun err_in_decls c decl decl' =
 fun new_decl naming tags (c, decl) (space, types) =
   let
     val tags' = tags |> Position.default_properties (Position.thread_data ());
-    val (c', space') = NameSpace.declare naming (Binding.name c) space;
+    val (c', space') = NameSpace.declare naming c space;
     val types' =
       (case Symtab.lookup types c' of
         SOME ((decl', _), _) => err_in_decls c' decl decl'
@@ -590,12 +587,14 @@ fun syntactic types (Type (c, Ts)) =
 
 in
 
-fun add_type naming tags (c, n) = if n < 0 then err_neg_args c else
-  map_types (new_decl naming tags (c, LogicalType n));
+fun add_type naming tags (c, n) =
+  if n < 0 then error ("Bad type constructor declaration: " ^ quote (Binding.str_of c))
+  else map_types (new_decl naming tags (c, LogicalType n));
 
 fun add_abbrev naming tags (a, vs, rhs) tsig = tsig |> map_types (fn types =>
   let
-    fun err msg = cat_error msg ("The error(s) above occurred in type abbreviation: " ^ quote a);
+    fun err msg =
+      cat_error msg ("The error(s) above occurred in type abbreviation: " ^ quote (Binding.str_of a));
     val rhs' = strip_sorts (no_tvars (cert_typ_mode mode_syntax tsig rhs))
       handle TYPE (msg, _, _) => err msg;
   in

@@ -14,6 +14,7 @@ sig
     consts: Consts.T}
   val naming_of: theory -> NameSpace.naming
   val full_name: theory -> binding -> string
+  val full_name_path: theory -> string -> binding -> string
   val full_bname: theory -> bstring -> string
   val full_bname_path: theory -> string -> bstring -> string
   val syn_of: theory -> Syntax.syntax
@@ -78,24 +79,24 @@ sig
   val cert_arity: theory -> arity -> arity
   val add_defsort: string -> theory -> theory
   val add_defsort_i: sort -> theory -> theory
-  val add_types: (bstring * int * mixfix) list -> theory -> theory
-  val add_nonterminals: bstring list -> theory -> theory
-  val add_tyabbrs: (bstring * string list * string * mixfix) list -> theory -> theory
-  val add_tyabbrs_i: (bstring * string list * typ * mixfix) list -> theory -> theory
-  val add_syntax: (bstring * string * mixfix) list -> theory -> theory
-  val add_syntax_i: (bstring * typ * mixfix) list -> theory -> theory
-  val add_modesyntax: Syntax.mode -> (bstring * string * mixfix) list -> theory -> theory
-  val add_modesyntax_i: Syntax.mode -> (bstring * typ * mixfix) list -> theory -> theory
-  val del_modesyntax: Syntax.mode -> (bstring * string * mixfix) list -> theory -> theory
-  val del_modesyntax_i: Syntax.mode -> (bstring * typ * mixfix) list -> theory -> theory
+  val add_types: (binding * int * mixfix) list -> theory -> theory
+  val add_nonterminals: binding list -> theory -> theory
+  val add_tyabbrs: (binding * string list * string * mixfix) list -> theory -> theory
+  val add_tyabbrs_i: (binding * string list * typ * mixfix) list -> theory -> theory
+  val add_syntax: (string * string * mixfix) list -> theory -> theory
+  val add_syntax_i: (string * typ * mixfix) list -> theory -> theory
+  val add_modesyntax: Syntax.mode -> (string * string * mixfix) list -> theory -> theory
+  val add_modesyntax_i: Syntax.mode -> (string * typ * mixfix) list -> theory -> theory
+  val del_modesyntax: Syntax.mode -> (string * string * mixfix) list -> theory -> theory
+  val del_modesyntax_i: Syntax.mode -> (string * typ * mixfix) list -> theory -> theory
   val notation: bool -> Syntax.mode -> (term * mixfix) list -> theory -> theory
   val declare_const: Properties.T -> (binding * typ) * mixfix -> theory -> term * theory
-  val add_consts: (bstring * string * mixfix) list -> theory -> theory
-  val add_consts_i: (bstring * typ * mixfix) list -> theory -> theory
+  val add_consts: (binding * string * mixfix) list -> theory -> theory
+  val add_consts_i: (binding * typ * mixfix) list -> theory -> theory
   val add_abbrev: string -> Properties.T -> binding * term -> theory -> (term * term) * theory
   val revert_abbrev: string -> string -> theory -> theory
   val add_const_constraint: string * typ option -> theory -> theory
-  val primitive_class: string * class list -> theory -> theory
+  val primitive_class: binding * class list -> theory -> theory
   val primitive_classrel: class * class -> theory -> theory
   val primitive_arity: arity -> theory -> theory
   val add_trfuns:
@@ -186,9 +187,10 @@ fun map_consts f = map_sign (fn (naming, syn, tsig, consts) => (naming, syn, tsi
 val naming_of = #naming o rep_sg;
 
 val full_name = NameSpace.full_name o naming_of;
+fun full_name_path thy path = NameSpace.full_name (NameSpace.add_path path (naming_of thy));
+
 fun full_bname thy = NameSpace.full_name (naming_of thy) o Binding.name;
-fun full_bname_path thy elems =
-  NameSpace.full_name (NameSpace.add_path elems (naming_of thy)) o Binding.name;
+fun full_bname_path thy path = full_name_path thy path o Binding.name;
 
 
 (* syntax *)
@@ -435,8 +437,8 @@ val add_defsort_i = gen_add_defsort certify_sort;
 
 fun add_types types thy = thy |> map_sign (fn (naming, syn, tsig, consts) =>
   let
-    val syn' = Syntax.update_type_gram types syn;
-    val decls = map (fn (a, n, mx) => (Syntax.type_name a mx, n)) types;
+    val syn' = Syntax.update_type_gram (map (fn (a, n, mx) => (Binding.name_of a, n, mx)) types) syn;
+    val decls = map (fn (a, n, mx) => (Binding.map_name (Syntax.type_name mx) a, n)) types;
     val tags = [(Markup.theory_nameN, Context.theory_name thy)];
     val tsig' = fold (Type.add_type naming tags) decls tsig;
   in (naming, syn', tsig', consts) end);
@@ -446,7 +448,7 @@ fun add_types types thy = thy |> map_sign (fn (naming, syn, tsig, consts) =>
 
 fun add_nonterminals ns thy = thy |> map_sign (fn (naming, syn, tsig, consts) =>
   let
-    val syn' = Syntax.update_consts ns syn;
+    val syn' = Syntax.update_consts (map Binding.name_of ns) syn;
     val tsig' = fold (Type.add_nonterminal naming []) ns tsig;
   in (naming, syn', tsig', consts) end);
 
@@ -457,10 +459,10 @@ fun gen_add_tyabbr parse_typ (a, vs, rhs, mx) thy =
   thy |> map_sign (fn (naming, syn, tsig, consts) =>
     let
       val ctxt = ProofContext.init thy;
-      val syn' = Syntax.update_type_gram [(a, length vs, mx)] syn;
-      val a' = Syntax.type_name a mx;
-      val abbr = (a', vs, certify_typ_mode Type.mode_syntax thy (parse_typ ctxt rhs))
-        handle ERROR msg => cat_error msg ("in type abbreviation " ^ quote a');
+      val syn' = Syntax.update_type_gram [(Binding.name_of a, length vs, mx)] syn;
+      val b = Binding.map_name (Syntax.type_name mx) a;
+      val abbr = (b, vs, certify_typ_mode Type.mode_syntax thy (parse_typ ctxt rhs))
+        handle ERROR msg => cat_error msg ("in type abbreviation " ^ quote (Binding.str_of b));
       val tsig' = Type.add_abbrev naming [] abbr tsig;
     in (naming, syn', tsig', consts) end);
 
@@ -475,7 +477,7 @@ fun gen_syntax change_gram parse_typ mode args thy =
     val ctxt = ProofContext.init thy;
     fun prep (c, T, mx) = (c, certify_typ_mode Type.mode_syntax thy (parse_typ ctxt T), mx)
       handle ERROR msg =>
-        cat_error msg ("in syntax declaration " ^ quote (Syntax.const_name c mx));
+        cat_error msg ("in syntax declaration " ^ quote (Syntax.const_name mx c));
   in thy |> map_syn (change_gram (is_logtype thy) mode (map prep args)) end;
 
 fun gen_add_syntax x = gen_syntax Syntax.update_const_gram x;
@@ -522,12 +524,10 @@ fun gen_add_consts parse_typ authentic tags raw_args thy =
     |> pair (map #3 args)
   end;
 
-fun bindify (name, T, mx) = (Binding.name name, T, mx);
-
 in
 
-fun add_consts args = snd o gen_add_consts Syntax.parse_typ false [] (map bindify args);
-fun add_consts_i args = snd o gen_add_consts (K I) false [] (map bindify args);
+fun add_consts args = snd o gen_add_consts Syntax.parse_typ false [] args;
+fun add_consts_i args = snd o gen_add_consts (K I) false [] args;
 
 fun declare_const tags ((b, T), mx) thy =
   let
@@ -571,10 +571,10 @@ fun add_const_constraint (c, opt_T) thy =
 fun primitive_class (bclass, classes) thy =
   thy |> map_sign (fn (naming, syn, tsig, consts) =>
     let
-      val syn' = Syntax.update_consts [bclass] syn;
+      val syn' = Syntax.update_consts [Binding.name_of bclass] syn;
       val tsig' = Type.add_class (Syntax.pp_global thy) naming (bclass, classes) tsig;
     in (naming, syn', tsig', consts) end)
-  |> add_consts_i [(Logic.const_of_class bclass, Term.a_itselfT --> propT, NoSyn)];
+  |> add_consts_i [(Binding.map_name Logic.const_of_class bclass, Term.a_itselfT --> propT, NoSyn)];
 
 fun primitive_classrel arg thy = thy |> map_tsig (Type.add_classrel (Syntax.pp_global thy) arg);
 fun primitive_arity arg thy = thy |> map_tsig (Type.add_arity (Syntax.pp_global thy) arg);

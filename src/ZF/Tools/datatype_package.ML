@@ -245,14 +245,14 @@ fun add_datatype_i (dom_sum, rec_tms) con_ty_lists (monos, type_intrs, type_elim
   fun add_recursor thy =
       if need_recursor then
            thy |> Sign.add_consts_i
-                    [(recursor_base_name, recursor_typ, NoSyn)]
+                    [(Binding.name recursor_base_name, recursor_typ, NoSyn)]
                |> (snd o PureThy.add_defs false [(Thm.no_attributes o apfst Binding.name) recursor_def])
       else thy;
 
   val (con_defs, thy0) = thy_path
              |> Sign.add_consts_i
-                 ((case_base_name, case_typ, NoSyn) ::
-                  map #1 (List.concat con_ty_lists))
+                 (map (fn (c, T, mx) => (Binding.name c, T, mx))
+                  ((case_base_name, case_typ, NoSyn) :: map #1 (List.concat con_ty_lists)))
              |> PureThy.add_defs false
                  (map (Thm.no_attributes o apfst Binding.name)
                   (case_def ::
@@ -302,7 +302,7 @@ fun add_datatype_i (dom_sum, rec_tms) con_ty_lists (monos, type_intrs, type_elim
 
   (*** Prove the recursor theorems ***)
 
-  val recursor_eqns = case try (Thm.get_def thy1) recursor_base_name of
+  val recursor_eqns = case try (Drule.get_def thy1) recursor_base_name of
      NONE => (writeln "  [ No recursion operator ]";
               [])
    | SOME recursor_def =>

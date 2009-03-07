@@ -334,7 +334,7 @@ fun replay_chached_thm int_thms thyname thmname =
 	    add_hol4_mapping thyname thmname isaname thy
 	  | delta (Hol_pending (thyname, thmname, th)) thy = 
 	    add_hol4_pending thyname thmname ([], th_of thy th) thy
-	  | delta (Consts cs) thy = Sign.add_consts_i cs thy
+	  | delta (Consts cs) thy = Sign.add_consts_i (map (fn (c, T, mx) => (Binding.name c, T, mx)) cs) thy
 	  | delta (Hol_const_mapping (thyname, constname, fullcname)) thy = 
 	    add_hol4_const_mapping thyname constname true fullcname thy
 	  | delta (Hol_move (fullname, moved_thmname)) thy = 
@@ -343,8 +343,9 @@ fun replay_chached_thm int_thms thyname thmname =
 	    snd (PureThy.add_defs false [((Binding.name thmname, eq), [])] thy)
 	  | delta (Hol_theorem (thyname, thmname, th)) thy =
 	    add_hol4_theorem thyname thmname ([], th_of thy th) thy
-	  | delta (Typedef (thmname, typ, c, repabs, th)) thy = 
-	    snd (TypedefPackage.add_typedef false thmname typ c repabs (rtac (th_of thy th) 1) thy)
+	  | delta (Typedef (thmname, (t, vs, mx), c, repabs, th)) thy = 
+	    snd (TypedefPackage.add_typedef false (Option.map Binding.name thmname) (Binding.name t, vs, mx) c
+        (Option.map (pairself Binding.name) repabs) (rtac (th_of thy th) 1) thy)
 	  | delta (Hol_type_mapping (thyname, tycname, fulltyname)) thy =  
 	    add_hol4_type_mapping thyname tycname true fulltyname thy
 	  | delta (Indexed_theorem (i, th)) thy = 

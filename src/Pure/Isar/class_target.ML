@@ -24,9 +24,9 @@ sig
   val begin: class list -> sort -> Proof.context -> Proof.context
   val init: class -> theory -> Proof.context
   val declare: class -> Properties.T
-    -> (string * mixfix) * term -> theory -> theory
+    -> (binding * mixfix) * term -> theory -> theory
   val abbrev: class -> Syntax.mode -> Properties.T
-    -> (string * mixfix) * term -> theory -> theory
+    -> (binding * mixfix) * term -> theory -> theory
   val class_prefix: string -> string
   val refresh_syntax: class -> Proof.context -> Proof.context
   val redeclare_operations: theory -> sort -> Proof.context -> Proof.context
@@ -52,12 +52,12 @@ sig
   val default_intro_tac: Proof.context -> thm list -> tactic
 
   (*old axclass layer*)
-  val axclass_cmd: bstring * xstring list
+  val axclass_cmd: binding * xstring list
     -> (Attrib.binding * string list) list
     -> theory -> class * theory
   val classrel_cmd: xstring * xstring -> theory -> Proof.state
   val instance_arity: (theory -> theory) -> arity -> theory -> Proof.state
-  val instance_arity_cmd: bstring * xstring list * xstring -> theory -> Proof.state
+  val instance_arity_cmd: xstring * xstring list * xstring -> theory -> Proof.state
 end;
 
 structure Class_Target : CLASS_TARGET =
@@ -363,8 +363,8 @@ val class_prefix = Logic.const_of_class o NameSpace.base_name;
 fun declare class pos ((c, mx), dict) thy =
   let
     val morph = morphism thy class;
-    val b = Morphism.binding morph (Binding.name c);
-    val b_def = Morphism.binding morph (Binding.name (c ^ "_dict"));
+    val b = Morphism.binding morph c;
+    val b_def = Morphism.binding morph (Binding.suffix_name "_dict" b);
     val c' = Sign.full_name thy b;
     val dict' = Morphism.term morph dict;
     val ty' = Term.fastype_of dict';
@@ -386,7 +386,7 @@ fun abbrev class prmode pos ((c, mx), rhs) thy =
   let
     val morph = morphism thy class;
     val unchecks = these_unchecks thy [class];
-    val b = Morphism.binding morph (Binding.name c);
+    val b = Morphism.binding morph c;
     val c' = Sign.full_name thy b;
     val rhs' = Pattern.rewrite_term thy unchecks [] rhs;
     val ty' = Term.fastype_of rhs';

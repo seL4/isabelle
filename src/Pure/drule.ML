@@ -77,6 +77,7 @@ sig
   val beta_conv: cterm -> cterm -> cterm
   val types_sorts: thm -> (indexname-> typ option) * (indexname-> sort option)
   val flexflex_unique: thm -> thm
+  val get_def: theory -> xstring -> thm
   val store_thm: bstring -> thm -> thm
   val store_standard_thm: bstring -> thm -> thm
   val store_thm_open: bstring -> thm -> thm
@@ -458,6 +459,8 @@ val size_of_thm = size_of_term o Thm.full_prop_of;
 (*** Meta-Rewriting Rules ***)
 
 val read_prop = certify o SimpleSyntax.read_prop;
+
+fun get_def thy = Thm.axiom thy o NameSpace.intern (Theory.axiom_space thy) o Thm.def_name;
 
 fun store_thm name th =
   Context.>>> (Context.map_theory_result (PureThy.store_thm (Binding.name name, th)));

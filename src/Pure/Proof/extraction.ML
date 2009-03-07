@@ -37,12 +37,12 @@ fun add_syntax thy =
   thy
   |> Theory.copy
   |> Sign.root_path
-  |> Sign.add_types [("Type", 0, NoSyn), ("Null", 0, NoSyn)]
+  |> Sign.add_types [(Binding.name "Type", 0, NoSyn), (Binding.name "Null", 0, NoSyn)]
   |> Sign.add_consts
-      [("typeof", "'b::{} => Type", NoSyn),
-       ("Type", "'a::{} itself => Type", NoSyn),
-       ("Null", "Null", NoSyn),
-       ("realizes", "'a::{} => 'b::{} => 'b", NoSyn)];
+      [(Binding.name "typeof", "'b::{} => Type", NoSyn),
+       (Binding.name "Type", "'a::{} itself => Type", NoSyn),
+       (Binding.name "Null", "Null", NoSyn),
+       (Binding.name "realizes", "'a::{} => 'b::{} => 'b", NoSyn)];
 
 val nullT = Type ("Null", []);
 val nullt = Const ("Null", nullT);
@@ -732,7 +732,7 @@ fun extract thms thy =
              val fu = Type.freeze u;
              val (def_thms, thy') = if t = nullt then ([], thy) else
                thy
-               |> Sign.add_consts_i [(extr_name s vs, fastype_of ft, NoSyn)]
+               |> Sign.add_consts_i [(Binding.name (extr_name s vs), fastype_of ft, NoSyn)]
                |> PureThy.add_defs false [((Binding.name (extr_name s vs ^ "_def"),
                     Logic.mk_equals (head_of (strip_abs_body fu), ft)), [])]
            in

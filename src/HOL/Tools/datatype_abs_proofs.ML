@@ -235,7 +235,7 @@ fun prove_primrec_thms flat_names new_type_names descr sorts
     val (reccomb_defs, thy2) =
       thy1
       |> Sign.add_consts_i (map (fn ((name, T), T') =>
-          (NameSpace.base_name name, reccomb_fn_Ts @ [T] ---> T', NoSyn))
+          (Binding.name (NameSpace.base_name name), reccomb_fn_Ts @ [T] ---> T', NoSyn))
           (reccomb_names ~~ recTs ~~ rec_result_Ts))
       |> (PureThy.add_defs false o map Thm.no_attributes) (map (fn ((((name, comb), set), T), T') =>
           (Binding.name (NameSpace.base_name name ^ "_def"), Logic.mk_equals (comb, absfree ("x", T,

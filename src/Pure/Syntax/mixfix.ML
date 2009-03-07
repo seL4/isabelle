@@ -27,8 +27,8 @@ sig
   val literal: string -> mixfix
   val no_syn: 'a * 'b -> 'a * 'b * mixfix
   val pretty_mixfix: mixfix -> Pretty.T
-  val type_name: string -> mixfix -> string
-  val const_name: string -> mixfix -> string
+  val type_name: mixfix -> string -> string
+  val const_name: mixfix -> string -> string
   val const_mixfix: string -> mixfix -> string * mixfix
   val mixfix_args: mixfix -> int
   val mixfixT: mixfix -> typ
@@ -105,28 +105,28 @@ val strip_esc = implode o strip o Symbol.explode;
 
 fun deprecated c = (legacy_feature ("Unnamed infix operator " ^ quote c); c);
 
-fun type_name t (InfixName _) = t
-  | type_name t (InfixlName _) = t
-  | type_name t (InfixrName _) = t
-  | type_name t (Infix _) = deprecated (strip_esc t)
-  | type_name t (Infixl _) = deprecated (strip_esc t)
-  | type_name t (Infixr _) = deprecated (strip_esc t)
-  | type_name t _ = t;
+fun type_name (InfixName _) = I
+  | type_name (InfixlName _) = I
+  | type_name (InfixrName _) = I
+  | type_name (Infix _) = deprecated o strip_esc
+  | type_name (Infixl _) = deprecated o strip_esc
+  | type_name (Infixr _) = deprecated o strip_esc
+  | type_name _ = I;
 
-fun const_name c (InfixName _) = c
-  | const_name c (InfixlName _) = c
-  | const_name c (InfixrName _) = c
-  | const_name c (Infix _) = "op " ^ deprecated (strip_esc c)
-  | const_name c (Infixl _) = "op " ^ deprecated (strip_esc c)
-  | const_name c (Infixr _) = "op " ^ deprecated (strip_esc c)
-  | const_name c _ = c;
+fun const_name (InfixName _) = I
+  | const_name (InfixlName _) = I
+  | const_name (InfixrName _) = I
+  | const_name (Infix _) = prefix "op " o deprecated o strip_esc
+  | const_name (Infixl _) = prefix "op " o deprecated o strip_esc
+  | const_name (Infixr _) = prefix "op " o deprecated o strip_esc
+  | const_name _ = I;
 
 fun fix_mixfix c (Infix p) = InfixName (c, p)
   | fix_mixfix c (Infixl p) = InfixlName (c, p)
   | fix_mixfix c (Infixr p) = InfixrName (c, p)
   | fix_mixfix _ mx = mx;
 
-fun const_mixfix c mx = (const_name c mx, fix_mixfix c mx);
+fun const_mixfix c mx = (const_name mx c, fix_mixfix c mx);
 
 fun map_mixfix _ NoSyn = NoSyn
   | map_mixfix f (Mixfix (sy, ps, p)) = Mixfix (f sy, ps, p)
@@ -158,7 +158,7 @@ fun mixfixT (Binder _) = (dummyT --> dummyT) --> dummyT
 
 fun syn_ext_types type_decls =
   let
-    fun name_of (t, _, mx) = type_name t mx;
+    fun name_of (t, _, mx) = type_name mx t;
 
     fun mk_infix sy t p1 p2 p3 =
       SynExt.Mfix ("(_ " ^ sy ^ "/ _)",
@@ -189,7 +189,7 @@ val binder_name = suffix "_binder";
 
 fun syn_ext_consts is_logtype const_decls =
   let
-    fun name_of (c, _, mx) = const_name c mx;
+    fun name_of (c, _, mx) = const_name mx c;
 
     fun mk_infix sy ty c p1 p2 p3 =
       [SynExt.Mfix ("op " ^ sy, ty, c, [], SynExt.max_pri),

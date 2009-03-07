@@ -68,8 +68,8 @@ fun dt_of_intrs thy vs nparms intrs =
     val (Const (s, _), ts) = strip_comb (HOLogic.dest_Trueprop
       (Logic.strip_imp_concl (prop_of (hd intrs))));
     val params = map dest_Var (Library.take (nparms, ts));
-    val tname = space_implode "_" (NameSpace.base_name s ^ "T" :: vs);
-    fun constr_of_intr intr = (NameSpace.base_name (name_of_thm intr),
+    val tname = Binding.name (space_implode "_" (NameSpace.base_name s ^ "T" :: vs));
+    fun constr_of_intr intr = (Binding.name (NameSpace.base_name (name_of_thm intr)),
       map (Logic.unvarifyT o snd) (rev (Term.add_vars (prop_of intr) []) \\ params) @
         filter_out (equal Extraction.nullT) (map
           (Logic.unvarifyT o Extraction.etype_of thy vs []) (prems_of intr)),
@@ -234,7 +234,7 @@ fun indrule_realizer thy induct raw_induct rsets params vs rec_names rss intrs d
   end;
 
 fun add_dummy name dname (x as (_, (vs, s, mfx, cs))) =
-  if (name: string) = s then (true, (vs, s, mfx, (dname, [HOLogic.unitT], NoSyn) :: cs))
+  if Binding.eq_name (name, s) then (true, (vs, s, mfx, (dname, [HOLogic.unitT], NoSyn) :: cs))
   else x;
 
 fun add_dummies f [] _ thy =
@@ -242,14 +242,14 @@ fun add_dummies f [] _ thy =
   | add_dummies f dts used thy =
       thy
       |> f (map snd dts)
-      |-> (fn dtinfo => pair ((map fst dts), SOME dtinfo))
+      |-> (fn dtinfo => pair (map fst dts, SOME dtinfo))
     handle DatatypeAux.Datatype_Empty name' =>
       let
         val name = NameSpace.base_name name';
-        val dname = Name.variant used "Dummy"
+        val dname = Name.variant used "Dummy";
       in
         thy
-        |> add_dummies f (map (add_dummy name dname) dts) (dname :: used)
+        |> add_dummies f (map (add_dummy (Binding.name name) (Binding.name dname)) dts) (dname :: used)
       end;
 
 fun mk_realizer thy vs (name, rule, rrule, rlz, rt) =
@@ -296,7 +296,7 @@ fun add_ind_realizer rsets intrs induct raw_induct elims (thy, vs) =
 
     val thy1' = thy1 |>
       Theory.copy |>
-      Sign.add_types (map (fn s => (NameSpace.base_name s, ar, NoSyn)) tnames) |>
+      Sign.add_types (map (fn s => (Binding.name (NameSpace.base_name s), ar, NoSyn)) tnames) |>
       fold (fn s => AxClass.axiomatize_arity
         (s, replicate ar HOLogic.typeS, HOLogic.typeS)) tnames |>
         Extraction.add_typeof_eqns_i ty_eqs;
@@ -308,7 +308,7 @@ fun add_ind_realizer rsets intrs induct raw_induct elims (thy, vs) =
     val ((dummies, dt_info), thy2) =
       thy1
       |> add_dummies
-           (DatatypePackage.add_datatype false false (map #2 dts))
+           (DatatypePackage.add_datatype false false (map (Binding.name_of o #2) dts))
            (map (pair false) dts) []
       ||> Extraction.add_typeof_eqns_i ty_eqs
       ||> Extraction.add_realizes_eqns_i rlz_eqs;
@@ -330,14 +330,17 @@ fun add_ind_realizer rsets intrs induct raw_induct elims (thy, vs) =
         (if c = Extraction.nullt then c else list_comb (c, map Var (rev
           (Term.add_vars (prop_of intr) []) \\ params'))) (prop_of intr)))
             (maps snd rss ~~ List.concat constrss);
-    val (rlzpreds, rlzpreds') = split_list
-      (distinct (op = o pairself (#1 o #1)) (map (fn rintr =>
+    val (rlzpreds, rlzpreds') =
+      rintrs |> map (fn rintr =>
         let
-          val Const (s, T) = head_of (HOLogic.dest_Trueprop
-            (Logic.strip_assums_concl rintr));
+          val Const (s, T) = head_of (HOLogic.dest_Trueprop (Logic.strip_assums_concl rintr));
           val s' = NameSpace.base_name s;
-          val T' = Logic.unvarifyT T
-        in (((Binding.name s', T'), NoSyn), (Const (s, T'), Free (s', T'))) end) rintrs));
+          val T' = Logic.unvarifyT T;
+        in (((s', T'), NoSyn), (Const (s, T'), Free (s', T'))) end)
+      |> distinct (op = o pairself (#1 o #1))
+      |> map (apfst (apfst (apfst Binding.name)))
+      |> split_list;
+
     val rlzparams = map (fn Var ((s, _), T) => (s, Logic.unvarifyT T))
       (List.take (snd (strip_comb
         (HOLogic.dest_Trueprop (Logic.strip_assums_concl (hd rintrs)))), nparms));

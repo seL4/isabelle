@@ -55,6 +55,8 @@ sig
   val position_of: thm -> Position.T
   val default_position: Position.T -> thm -> thm
   val default_position_of: thm -> thm -> thm
+  val def_name: string -> string
+  val def_name_optional: string -> string -> string
   val has_name_hint: thm -> bool
   val get_name_hint: thm -> string
   val put_name_hint: string -> thm -> thm
@@ -278,6 +280,8 @@ fun close_derivation thm =
 
 (** specification primitives **)
 
+(* rules *)
+
 fun add_axiom (b, prop) thy =
   let
     val b' = if Binding.is_empty b
@@ -340,6 +344,14 @@ val position_of = Position.of_properties o Thm.get_tags;
 
 fun default_position pos = Thm.map_tags (Position.default_properties pos);
 val default_position_of = default_position o position_of;
+
+
+(* def_name *)
+
+fun def_name c = c ^ "_def";
+
+fun def_name_optional c "" = def_name c
+  | def_name_optional _ name = name;
 
 
 (* unofficial theorem names *)

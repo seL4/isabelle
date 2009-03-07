@@ -13,12 +13,12 @@ sig
     Abs_inverse: thm, Rep_inject: thm, Abs_inject: thm, Rep_cases: thm, Abs_cases: thm,
     Rep_induct: thm, Abs_induct: thm}
   val get_info: theory -> string -> info option
-  val add_typedef: bool -> string option -> bstring * string list * mixfix ->
-    term -> (bstring * bstring) option -> tactic -> theory -> (string * info) * theory
-  val typedef: (bool * string) * (bstring * string list * mixfix) * term
-    * (string * string) option -> theory -> Proof.state
-  val typedef_cmd: (bool * string) * (bstring * string list * mixfix) * string
-    * (string * string) option -> theory -> Proof.state
+  val add_typedef: bool -> binding option -> binding * string list * mixfix ->
+    term -> (binding * binding) option -> tactic -> theory -> (string * info) * theory
+  val typedef: (bool * binding) * (binding * string list * mixfix) * term
+    * (binding * binding) option -> theory -> Proof.state
+  val typedef_cmd: (bool * binding) * (binding * string list * mixfix) * string
+    * (binding * binding) option -> theory -> Proof.state
   val interpretation: (string -> theory -> theory) -> theory -> theory
   val setup: theory -> theory
 end;
@@ -51,9 +51,6 @@ fun put_info name info = TypedefData.map (Symtab.update (name, info));
 
 (* prepare_typedef *)
 
-fun err_in_typedef msg name =
-  cat_error msg ("The error(s) above occurred in typedef " ^ quote name);
-
 fun declare_type_name a = Variable.declare_constraints (Logic.mk_type (TFree (a, dummyS)));
 
 structure TypedefInterpretation = InterpretationFun(type T = string val eq = op =);
@@ -63,10 +60,12 @@ fun prepare_typedef prep_term def name (t, vs, mx) raw_set opt_morphs thy =
   let
     val _ = Theory.requires thy "Typedef" "typedefs";
     val ctxt = ProofContext.init thy;
-    val full = Sign.full_bname thy;
+
+    val full = Sign.full_name thy;
+    val full_name = full name;
+    val bname = Binding.name_of name;
 
     (*rhs*)
-    val full_name = full name;
     val set = prep_term (ctxt |> fold declare_type_name vs) raw_set;
     val setT = Term.fastype_of set;
     val rhs_tfrees = Term.add_tfrees set [];
@@ -81,11 +80,14 @@ fun prepare_typedef prep_term def name (t, vs, mx) raw_set opt_morphs thy =
       |> filter (member (op =) rhs_tfrees andf (not o member (op =) rhs_tfreesT))
       |> map TFree;
 
-    val tname = Syntax.type_name t mx;
+    val tname = Binding.map_name (Syntax.type_name mx) t;
     val full_tname = full tname;
     val newT = Type (full_tname, map TFree lhs_tfrees);
 
-    val (Rep_name, Abs_name) = the_default ("Rep_" ^ name, "Abs_" ^ name) opt_morphs;
+    val (Rep_name, Abs_name) =
+      (case opt_morphs of
+        NONE => (Binding.prefix_name "Rep_" name, Binding.prefix_name "Abs_" name)
+      | SOME morphs => morphs);
     val setT' = map Term.itselfT args_setT ---> setT;
     val setC = Term.list_comb (Const (full_name, setT'), map Logic.mk_type args_setT);
     val RepC = Const (full Rep_name, newT --> oldT);
@@ -97,15 +99,15 @@ fun prepare_typedef prep_term def name (t, vs, mx) raw_set opt_morphs thy =
     val set' = if def then setC else set;
     val goal' = mk_inhabited set';
     val goal = mk_inhabited set;
-    val goal_pat = mk_inhabited (Var (the_default (name, 0) (Syntax.read_variable name), setT));
+    val goal_pat = mk_inhabited (Var (the_default (bname, 0) (Syntax.read_variable bname), setT));
 
     (*axiomatization*)
-    val typedef_name = "type_definition_" ^ name;
+    val typedef_name = Binding.prefix_name "type_definition_" name;
     val typedefC =
       Const (@{const_name type_definition},
         (newT --> oldT) --> (oldT --> newT) --> setT --> HOLogic.boolT);
     val typedef_prop = Logic.mk_implies (goal', HOLogic.mk_Trueprop (typedefC $ RepC $ AbsC $ set'));
-    val typedef_deps = Term.fold_aterms (fn Const c => insert (op =) c | _ => I) set' [];
+    val typedef_deps = Term.add_consts set' [];
 
     (*set definition*)
     fun add_def theory =
@@ -131,7 +133,7 @@ fun prepare_typedef prep_term def name (t, vs, mx) raw_set opt_morphs thy =
          (Abs_name, oldT --> newT, NoSyn)]
       #> add_def
       #-> (fn set_def =>
-        PureThy.add_axioms [((Binding.name typedef_name, typedef_prop),
+        PureThy.add_axioms [((typedef_name, typedef_prop),
           [Thm.rule_attribute (K (fn cond_axm => contract_def set_def inhabited RS cond_axm))])]
         ##>> pair set_def)
       ##> Theory.add_deps "" (dest_Const RepC) typedef_deps
@@ -142,21 +144,21 @@ fun prepare_typedef prep_term def name (t, vs, mx) raw_set opt_morphs thy =
           val ([Rep, Rep_inverse, Abs_inverse, Rep_inject, Abs_inject,
               Rep_cases, Abs_cases, Rep_induct, Abs_induct], thy2) =
             thy1
-            |> Sign.add_path name
+            |> Sign.add_path (Binding.name_of name)
             |> PureThy.add_thms
-              ((map o apfst o apfst) Binding.name [((Rep_name, make @{thm type_definition.Rep}), []),
-                ((Rep_name ^ "_inverse", make @{thm type_definition.Rep_inverse}), []),
-                ((Abs_name ^ "_inverse", make @{thm type_definition.Abs_inverse}), []),
-                ((Rep_name ^ "_inject", make @{thm type_definition.Rep_inject}), []),
-                ((Abs_name ^ "_inject", make @{thm type_definition.Abs_inject}), []),
-                ((Rep_name ^ "_cases", make @{thm type_definition.Rep_cases}),
-                  [RuleCases.case_names [Rep_name], Induct.cases_pred full_name]),
-                ((Abs_name ^ "_cases", make @{thm type_definition.Abs_cases}),
-                  [RuleCases.case_names [Abs_name], Induct.cases_type full_tname]),
-                ((Rep_name ^ "_induct", make @{thm type_definition.Rep_induct}),
-                  [RuleCases.case_names [Rep_name], Induct.induct_pred full_name]),
-                ((Abs_name ^ "_induct", make @{thm type_definition.Abs_induct}),
-                  [RuleCases.case_names [Abs_name], Induct.induct_type full_tname])])
+              [((Rep_name, make @{thm type_definition.Rep}), []),
+                ((Binding.suffix_name "_inverse" Rep_name, make @{thm type_definition.Rep_inverse}), []),
+                ((Binding.suffix_name "_inverse" Abs_name, make @{thm type_definition.Abs_inverse}), []),
+                ((Binding.suffix_name "_inject" Rep_name, make @{thm type_definition.Rep_inject}), []),
+                ((Binding.suffix_name "_inject" Abs_name, make @{thm type_definition.Abs_inject}), []),
+                ((Binding.suffix_name "_cases" Rep_name, make @{thm type_definition.Rep_cases}),
+                  [RuleCases.case_names [Binding.name_of Rep_name], Induct.cases_pred full_name]),
+                ((Binding.suffix_name "_cases" Abs_name, make @{thm type_definition.Abs_cases}),
+                  [RuleCases.case_names [Binding.name_of Abs_name], Induct.cases_type full_tname]),
+                ((Binding.suffix_name "_induct" Rep_name, make @{thm type_definition.Rep_induct}),
+                  [RuleCases.case_names [Binding.name_of Rep_name], Induct.induct_pred full_name]),
+                ((Binding.suffix_name "_induct" Abs_name, make @{thm type_definition.Abs_induct}),
+                  [RuleCases.case_names [Binding.name_of Abs_name], Induct.induct_type full_tname])]
             ||> Sign.parent_path;
           val info = {rep_type = oldT, abs_type = newT,
             Rep_name = full Rep_name, Abs_name = full Abs_name,
@@ -201,7 +203,8 @@ fun prepare_typedef prep_term def name (t, vs, mx) raw_set opt_morphs thy =
       |> typedef_result (setmp quick_and_dirty true (SkipProof.make_thm test_thy) goal);
 
   in (set, goal, goal_pat, typedef_result) end
-  handle ERROR msg => err_in_typedef msg name;
+  handle ERROR msg =>
+    cat_error msg ("The error(s) above occurred in typedef " ^ quote (Binding.str_of name));
 
 
 (* add_typedef: tactic interface *)
@@ -245,13 +248,14 @@ val _ = OuterKeyword.keyword "morphisms";
 
 val typedef_decl =
   Scan.optional (P.$$$ "(" |--
-      ((P.$$$ "open" >> K false) -- Scan.option P.name || P.name >> (fn s => (true, SOME s)))
+      ((P.$$$ "open" >> K false) -- Scan.option P.binding || P.binding >> (fn s => (true, SOME s)))
         --| P.$$$ ")") (true, NONE) --
-    (P.type_args -- P.name) -- P.opt_infix -- (P.$$$ "=" |-- P.term) --
-    Scan.option (P.$$$ "morphisms" |-- P.!!! (P.name -- P.name));
+    (P.type_args -- P.binding) -- P.opt_infix -- (P.$$$ "=" |-- P.term) --
+    Scan.option (P.$$$ "morphisms" |-- P.!!! (P.binding -- P.binding));
 
 fun mk_typedef ((((((def, opt_name), (vs, t)), mx), A), morphs)) =
-  typedef_cmd ((def, the_default (Syntax.type_name t mx) opt_name), (t, vs, mx), A, morphs);
+  typedef_cmd ((def, the_default (Binding.map_name (Syntax.type_name mx) t) opt_name),
+    (t, vs, mx), A, morphs);
 
 val _ =
   OuterSyntax.command "typedef" "HOL type definition (requires non-emptiness proof)"

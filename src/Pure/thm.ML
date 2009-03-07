@@ -128,9 +128,6 @@ sig
   val hyps_of: thm -> term list
   val full_prop_of: thm -> term
   val axiom: theory -> string -> thm
-  val def_name: string -> string
-  val def_name_optional: string -> string -> string
-  val get_def: theory -> xstring -> thm
   val axioms_of: theory -> (string * thm) list
   val get_name: thm -> string
   val put_name: string -> thm -> thm
@@ -557,14 +554,6 @@ fun axiom theory name =
       SOME thm => thm
     | NONE => raise THEORY ("No axiom " ^ quote name, [theory]))
   end;
-
-fun def_name c = c ^ "_def";
-
-fun def_name_optional c "" = def_name c
-  | def_name_optional _ name = name;
-
-fun get_def thy = axiom thy o NameSpace.intern (Theory.axiom_space thy) o def_name;
-
 
 (*return additional axioms of this theory node*)
 fun axioms_of thy =

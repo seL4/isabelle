@@ -30,7 +30,7 @@ See also:
 signature LOCALE =
 sig
   (* Locale specification *)
-  val register_locale: bstring ->
+  val register_locale: binding ->
     (string * sort) list * (binding * typ option * mixfix) list ->
     term option * term list ->
     thm option * thm option -> thm list ->
@@ -78,7 +78,7 @@ sig
 
   (* Diagnostic *)
   val print_locales: theory -> unit
-  val print_locale: theory -> bool -> bstring -> unit
+  val print_locale: theory -> bool -> xstring -> unit
 end;
 
 
@@ -173,8 +173,8 @@ fun the_locale thy name = case get_locale thy name
  of SOME (Loc loc) => loc
   | NONE => error ("Unknown locale " ^ quote name);
 
-fun register_locale bname parameters spec intros axioms decls notes dependencies thy =
-  thy |> LocalesData.map (NameSpace.bind (Sign.naming_of thy) (Binding.name bname,
+fun register_locale binding parameters spec intros axioms decls notes dependencies thy =
+  thy |> LocalesData.map (NameSpace.bind (Sign.naming_of thy) (binding,
     mk_locale ((parameters, spec, intros, axioms), ((decls, notes), dependencies))) #> snd);
 
 fun change_locale name =
