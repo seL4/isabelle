@@ -12,7 +12,7 @@ sig
   val print_translation: bool * (string * Position.T) -> theory -> theory
   val typed_print_translation: bool * (string * Position.T) -> theory -> theory
   val print_ast_translation: bool * (string * Position.T) -> theory -> theory
-  val oracle: bstring -> SymbolPos.text * Position.T -> theory -> theory
+  val oracle: bstring * Position.T -> SymbolPos.text * Position.T -> theory -> theory
   val add_axioms: ((binding * string) * Attrib.src list) list -> theory -> theory
   val add_defs: (bool * bool) * ((binding * string) * Attrib.src list) list -> theory -> theory
   val declaration: string * Position.T -> local_theory -> local_theory
@@ -145,19 +145,19 @@ end;
 
 (* oracles *)
 
-fun oracle name (oracle_txt, pos) =
+fun oracle (name, pos) (body_txt, body_pos) =
   let
-    val oracle = SymbolPos.content (SymbolPos.explode (oracle_txt, pos));
+    val body = SymbolPos.content (SymbolPos.explode (body_txt, body_pos));
     val txt =
       "local\n\
       \  val name = " ^ ML_Syntax.print_string name ^ ";\n\
       \  val pos = " ^ ML_Syntax.print_position pos ^ ";\n\
       \  val binding = Binding.make (name, pos);\n\
-      \  val oracle = " ^ oracle ^ ";\n\
+      \  val body = " ^ body ^ ";\n\
       \in\n\
-      \  val " ^ name ^ " = snd (Context.>>> (Context.map_theory_result (Thm.add_oracle (binding, oracle))));\n\
+      \  val " ^ name ^ " = snd (Context.>>> (Context.map_theory_result (Thm.add_oracle (binding, body))));\n\
       \end;\n";
-  in Context.theory_map (ML_Context.exec (fn () => ML_Context.eval false pos txt)) end;
+  in Context.theory_map (ML_Context.exec (fn () => ML_Context.eval false body_pos txt)) end;
 
 
 (* axioms *)

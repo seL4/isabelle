@@ -371,7 +371,8 @@ val _ =
 
 val _ =
   OuterSyntax.command "oracle" "declare oracle" (K.tag_ml K.thy_decl)
-    (P.name -- (P.$$$ "=" |-- P.ML_source) >> (fn (x, y) => Toplevel.theory (IsarCmd.oracle x y)));
+    (P.position P.name -- (P.$$$ "=" |-- P.ML_source) >>
+      (fn (x, y) => Toplevel.theory (IsarCmd.oracle x y)));
 
 
 (* local theories *)
