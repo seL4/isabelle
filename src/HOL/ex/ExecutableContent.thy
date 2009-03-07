@@ -24,6 +24,19 @@ imports
   "~~/src/HOL/ex/Records"
 begin
 
+lemma [code, code del]:
+  "(size :: 'a::size Predicate.pred => nat) = size" ..
+lemma [code, code del]:
+  "pred_size = pred_size" ..
+lemma [code, code del]:
+  "pred_case = pred_case" ..
+lemma [code, code del]:
+  "pred_rec = pred_rec" ..
+lemma [code, code del]:
+  "(Code_Eval.term_of \<Colon> 'a::{type, term_of} Predicate.pred \<Rightarrow> Code_Eval.term) = Code_Eval.term_of" ..
+lemma [code, code del]:
+  "(Code_Eval.term_of \<Colon> 'a::{type, term_of} Predicate.seq \<Rightarrow> Code_Eval.term) = Code_Eval.term_of" ..
+
 text {* However, some aren't executable *}
 
 declare pair_leq_def[code del]

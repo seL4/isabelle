@@ -220,6 +220,9 @@ syntax just like the Isar command 'by'.
 
 *** HOL ***
 
+* Theory Library/Diagonalize.thy provides constructive version of
+Cantor's first diagonalization argument.
+
 * New predicate "strict_mono" classifies strict functions on partial orders.
 With strict functions on linear orders, reasoning about (in)equalities is
 facilitated by theorems "strict_mono_eq", "strict_mono_less_eq" and "strict_mono_less".

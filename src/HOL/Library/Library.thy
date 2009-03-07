@@ -17,6 +17,7 @@ imports
   ContNotDenum
   Countable
   Determinants
+  Diagonalize
   Efficient_Nat
   Enum
   Eval_Witness
@@ -28,6 +29,7 @@ imports
   Fundamental_Theorem_Algebra
   Infinite_Set
   Inner_Product
+  Lattice_Syntax
   ListVector
   Mapping
   Multiset
