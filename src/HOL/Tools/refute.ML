@@ -1165,6 +1165,7 @@ struct
     (* unit -> unit *)
     fun wrapper () =
     let
+      val timer  = Timer.startRealTimer ()
       val u      = unfold_defs thy t
       val _      = Output.tracing ("Unfolded term: " ^
                                    Syntax.string_of_term_global thy u)
@@ -1201,6 +1202,9 @@ struct
       (* (Term.typ * int) list -> string *)
       fun find_model_loop universe =
       let
+        val msecs_spent = Time.toMilliseconds (Timer.checkRealTimer timer)
+        val _ = maxtime = 0 orelse msecs_spent < 1000 * maxtime
+                orelse raise TimeLimit.TimeOut
         val init_model = (universe, [])
         val init_args  = {maxvars = maxvars, def_eq = false, next_idx = 1,
           bounds = [], wellformed = True}
