@@ -1461,9 +1461,10 @@ fun extension_typedef name repT alphas thy =
           Abs_inject=abs_inject, Abs_inverse = abs_inverse, ...} = TypedefPackage.get_info thy name;
         val rewrite_rule = MetaSimplifier.rewrite_rule [rec_UNIV_I, rec_True_simp];
       in map rewrite_rule [abs_inject, abs_inverse, abs_induct] end;
+    val tname = Binding.name (NameSpace.base_name name);
   in
     thy
-    |> TypecopyPackage.add_typecopy (suffix ext_typeN (NameSpace.base_name name), alphas) repT NONE
+    |> TypecopyPackage.add_typecopy (Binding.suffix_name ext_typeN tname, alphas) repT NONE
     |-> (fn (name, _) => `(fn thy => get_thms thy name))
   end;
 
@@ -1531,9 +1532,9 @@ fun extension_definition full name fields names alphas zeta moreT more vars thy 
     (* 1st stage: defs_thy *)
     fun mk_defs () =
       thy
-      |> extension_typedef name repT (alphas@[zeta])
+      |> extension_typedef name repT (alphas @ [zeta])
       ||> Sign.add_consts_i
-            (map Syntax.no_syn ((apfst base ext_decl)::dest_decls@upd_decls))
+            (map (Syntax.no_syn o apfst Binding.name) (apfst base ext_decl :: dest_decls @ upd_decls))
       ||>> PureThy.add_defs false
             (map (Thm.no_attributes o apfst Binding.name) (ext_spec :: dest_specs))
       ||>> PureThy.add_defs false
@@ -1895,8 +1896,8 @@ fun record_definition (args, bname) parent (parents: parent_info list) raw_field
 
     (*record (scheme) type abbreviation*)
     val recordT_specs =
-      [(suffix schemeN bname, alphas @ [zeta], rec_schemeT0, Syntax.NoSyn),
-        (bname, alphas, recT0, Syntax.NoSyn)];
+      [(Binding.name (suffix schemeN bname), alphas @ [zeta], rec_schemeT0, Syntax.NoSyn),
+        (Binding.name bname, alphas, recT0, Syntax.NoSyn)];
 
     (*selectors*)
     fun mk_sel_spec (c,T) =
@@ -1937,8 +1938,9 @@ fun record_definition (args, bname) parent (parents: parent_info list) raw_field
       |> Sign.add_tyabbrs_i recordT_specs
       |> Sign.add_path bname
       |> Sign.add_consts_i
-          (map2 (fn (x, T) => fn mx => (x, T, mx)) sel_decls (field_syntax @ [Syntax.NoSyn]))
-      |> (Sign.add_consts_i o map Syntax.no_syn)
+          (map2 (fn (x, T) => fn mx => (Binding.name x, T, mx))
+            sel_decls (field_syntax @ [Syntax.NoSyn]))
+      |> (Sign.add_consts_i o map (fn (x, T) => (Binding.name x, T, Syntax.NoSyn)))
           (upd_decls @ [make_decl, fields_decl, extend_decl, truncate_decl])
       |> ((PureThy.add_defs false o map (Thm.no_attributes o apfst Binding.name)) sel_specs)
       ||>> ((PureThy.add_defs false o map (Thm.no_attributes o apfst Binding.name)) upd_specs)

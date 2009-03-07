@@ -140,7 +140,7 @@ fun prove_size_thms (info : datatype_info) new_type_names thy =
     val ((size_def_thms, size_def_thms'), thy') =
       thy
       |> Sign.add_consts_i (map (fn (s, T) =>
-           (NameSpace.base_name s, param_size_fTs @ [T] ---> HOLogic.natT, NoSyn))
+           (Binding.name (NameSpace.base_name s), param_size_fTs @ [T] ---> HOLogic.natT, NoSyn))
            (size_names ~~ recTs1))
       |> PureThy.add_defs false
         (map (Thm.no_attributes o apsnd (Logic.mk_equals o apsnd (app fs)))

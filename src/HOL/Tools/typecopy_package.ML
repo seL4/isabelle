@@ -14,7 +14,7 @@ sig
     proj: string * typ,
     proj_def: thm
   }
-  val add_typecopy: bstring * string list -> typ -> (bstring * bstring) option
+  val add_typecopy: binding * string list -> typ -> (binding * binding) option
     -> theory -> (string * info) * theory
   val get_typecopies: theory -> string list
   val get_info: theory -> string -> info option

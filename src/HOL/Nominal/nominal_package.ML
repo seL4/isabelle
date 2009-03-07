@@ -197,7 +197,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
     val tmp_thy = thy |>
       Theory.copy |>
       Sign.add_types (map (fn (tvs, tname, mx, _) =>
-        (tname, length tvs, mx)) dts);
+        (Binding.name tname, length tvs, mx)) dts);
 
     val atoms = atoms_of thy;
 
@@ -235,8 +235,8 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
           Type (getOpt (AList.lookup op = ps s, s), map replace_types Ts)
       | replace_types T = T;
 
-    val dts'' = map (fn (tvs, tname, mx, constrs) => (tvs, tname ^ "_Rep", NoSyn,
-      map (fn (cname, cargs, mx) => (cname ^ "_Rep",
+    val dts'' = map (fn (tvs, tname, mx, constrs) => (tvs, Binding.name (tname ^ "_Rep"), NoSyn,
+      map (fn (cname, cargs, mx) => (Binding.name (cname ^ "_Rep"),
         map replace_types cargs, NoSyn)) constrs)) dts';
 
     val new_type_names' = map (fn n => n ^ "_Rep") new_type_names;
@@ -615,7 +615,8 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
     val (typedefs, thy6) =
       thy4
       |> fold_map (fn ((((name, mx), tvs), (cname, U)), name') => fn thy =>
-          TypedefPackage.add_typedef false (SOME name') (name, map fst tvs, mx)
+          TypedefPackage.add_typedef false (SOME (Binding.name name'))
+            (Binding.name name, map fst tvs, mx)
             (Const ("Collect", (U --> HOLogic.boolT) --> HOLogic.mk_setT U) $
                Const (cname, U --> HOLogic.boolT)) NONE
             (rtac exI 1 THEN rtac CollectI 1 THEN
@@ -800,7 +801,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
           (Const (rep_name, T --> T') $ lhs, rhs));
         val def_name = (NameSpace.base_name cname) ^ "_def";
         val ([def_thm], thy') = thy |>
-          Sign.add_consts_i [(cname', constrT, mx)] |>
+          Sign.add_consts_i [(Binding.name cname', constrT, mx)] |>
           (PureThy.add_defs false o map Thm.no_attributes) [(Binding.name def_name, def)]
       in (thy', defs @ [def_thm], eqns @ [eqn]) end;
 
@@ -2012,7 +2013,7 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
     val (reccomb_defs, thy12) =
       thy11
       |> Sign.add_consts_i (map (fn ((name, T), T') =>
-          (NameSpace.base_name name, rec_fn_Ts @ [T] ---> T', NoSyn))
+          (Binding.name (NameSpace.base_name name), rec_fn_Ts @ [T] ---> T', NoSyn))
           (reccomb_names ~~ recTs ~~ rec_result_Ts))
       |> (PureThy.add_defs false o map Thm.no_attributes) (map (fn ((((name, comb), set), T), T') =>
           (Binding.name (NameSpace.base_name name ^ "_def"), Logic.mk_equals (comb, absfree ("x", T,

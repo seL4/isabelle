@@ -464,7 +464,7 @@ fun add_ind_set_def
            | NONE => u)) |>
         Pattern.rewrite_term thy [] [to_pred_proc thy eqns'] |>
         eta_contract (member op = cs' orf is_pred pred_arities))) intros;
-    val cnames_syn' = map (fn (b, _) => (Binding.map_name (suffix "p") b, NoSyn)) cnames_syn;
+    val cnames_syn' = map (fn (b, _) => (Binding.suffix_name "p" b, NoSyn)) cnames_syn;
     val monos' = map (to_pred [] (Context.Proof ctxt)) monos;
     val ({preds, intrs, elims, raw_induct, ...}, ctxt1) =
       InductivePackage.add_ind_def
