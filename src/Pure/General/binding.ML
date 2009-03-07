@@ -17,6 +17,9 @@ sig
   val name: bstring -> binding
   val name_of: binding -> string
   val map_name: (bstring -> bstring) -> binding -> binding
+  val prefix_name: string -> binding -> binding
+  val suffix_name: string -> binding -> binding
+  val eq_name: binding * binding -> bool
   val empty: binding
   val is_empty: binding -> bool
   val qualify: bool -> string -> binding -> binding
@@ -25,7 +28,7 @@ sig
   val prefix: bool -> string -> binding -> binding
 end;
 
-structure Binding: BINDING =
+structure Binding:> BINDING =
 struct
 
 (** representation **)
@@ -64,7 +67,11 @@ fun name name = make (name, Position.none);
 fun pos_of (Binding {pos, ...}) = pos;
 fun name_of (Binding {name, ...}) = name;
 
+fun eq_name (b, b') = name_of b = name_of b';
+
 fun map_name f = map_binding (fn (prefix, qualifier, name, pos) => (prefix, qualifier, f name, pos));
+val prefix_name = map_name o prefix;
+val suffix_name = map_name o suffix;
 
 val empty = name "";
 fun is_empty b = name_of b = "";
