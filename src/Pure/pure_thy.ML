@@ -290,11 +290,11 @@ val old_appl_syntax_setup =
 val _ = Context.>> (Context.map_theory
   (OldApplSyntax.init #>
    Sign.add_types
-   [("fun", 2, NoSyn),
-    ("prop", 0, NoSyn),
-    ("itself", 1, NoSyn),
-    ("dummy", 0, NoSyn)]
-  #> Sign.add_nonterminals Syntax.basic_nonterms
+   [(Binding.name "fun", 2, NoSyn),
+    (Binding.name "prop", 0, NoSyn),
+    (Binding.name "itself", 1, NoSyn),
+    (Binding.name "dummy", 0, NoSyn)]
+  #> Sign.add_nonterminals (map Binding.name Syntax.basic_nonterms)
   #> Sign.add_syntax_i
    [("_lambda",     typ "pttrns => 'a => logic",       Mixfix ("(3%_./ _)", [0, 3], 3)),
     ("_abs",        typ "'a",                          NoSyn),
@@ -360,12 +360,12 @@ val _ = Context.>> (Context.map_theory
   #> Sign.add_modesyntax_i ("HTML", false)
    [("_lambda", typ "pttrns => 'a => logic", Mixfix ("(3\\<lambda>_./ _)", [0, 3], 3))]
   #> Sign.add_consts_i
-   [("==", typ "'a => 'a => prop", InfixrName ("==", 2)),
-    ("==>", typ "prop => prop => prop", Mixfix ("(_/ ==> _)", [2, 1], 1)),
-    ("all", typ "('a => prop) => prop", Binder ("!!", 0, 0)),
-    ("prop", typ "prop => prop", NoSyn),
-    ("TYPE", typ "'a itself", NoSyn),
-    (Term.dummy_patternN, typ "'a", Delimfix "'_")]
+   [(Binding.name "==", typ "'a => 'a => prop", InfixrName ("==", 2)),
+    (Binding.name "==>", typ "prop => prop => prop", Mixfix ("(_/ ==> _)", [2, 1], 1)),
+    (Binding.name "all", typ "('a => prop) => prop", Binder ("!!", 0, 0)),
+    (Binding.name "prop", typ "prop => prop", NoSyn),
+    (Binding.name "TYPE", typ "'a itself", NoSyn),
+    (Binding.name Term.dummy_patternN, typ "'a", Delimfix "'_")]
   #> Theory.add_deps "==" ("==", typ "'a => 'a => prop") []
   #> Theory.add_deps "==>" ("==>", typ "prop => prop => prop") []
   #> Theory.add_deps "all" ("all", typ "('a => prop) => prop") []
@@ -375,9 +375,9 @@ val _ = Context.>> (Context.map_theory
   #> Sign.add_trfunsT Syntax.pure_trfunsT
   #> Sign.local_path
   #> Sign.add_consts_i
-   [("term", typ "'a => prop", NoSyn),
-    ("sort_constraint", typ "'a itself => prop", NoSyn),
-    ("conjunction", typ "prop => prop => prop", NoSyn)]
+   [(Binding.name "term", typ "'a => prop", NoSyn),
+    (Binding.name "sort_constraint", typ "'a itself => prop", NoSyn),
+    (Binding.name "conjunction", typ "prop => prop => prop", NoSyn)]
   #> (add_defs false o map Thm.no_attributes)
    [(Binding.name "prop_def", prop "(CONST prop :: prop => prop) (A::prop) == A::prop"),
     (Binding.name "term_def", prop "(CONST Pure.term :: 'a => prop) (x::'a) == (!!A::prop. A ==> A)"),

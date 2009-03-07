@@ -44,13 +44,13 @@ fun gen_constdef prep_vars prep_prop prep_att
           else ());
 
     val def = Term.subst_atomic [(Free (c, T), Const (Sign.full_bname thy c, T))] prop;
-    val name = Thm.def_name_optional c (Binding.name_of raw_name);
+    val name = Binding.map_name (Thm.def_name_optional c) raw_name;
     val atts = map (prep_att thy) raw_atts;
 
     val thy' =
       thy
-      |> Sign.add_consts_i [(c, T, mx)]
-      |> PureThy.add_defs false [((Binding.name name, def), atts)]
+      |> Sign.add_consts_i [(Binding.name c, T, mx)]
+      |> PureThy.add_defs false [((name, def), atts)]
       |-> (fn [thm] => Code.add_default_eqn thm);
   in ((c, T), thy') end;
 

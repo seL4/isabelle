@@ -8,9 +8,9 @@ signature OBJECT_LOGIC =
 sig
   val get_base_sort: theory -> sort option
   val add_base_sort: sort -> theory -> theory
-  val typedecl: bstring * string list * mixfix -> theory -> typ * theory
-  val add_judgment: bstring * string * mixfix -> theory -> theory
-  val add_judgment_i: bstring * typ * mixfix -> theory -> theory
+  val typedecl: binding * string list * mixfix -> theory -> typ * theory
+  val add_judgment: binding * typ * mixfix -> theory -> theory
+  val add_judgment_cmd: binding * string * mixfix -> theory -> theory
   val judgment_name: theory -> string
   val is_judgment: theory -> term -> bool
   val drop_judgment: theory -> term -> term
@@ -85,17 +85,18 @@ fun add_base_sort S = map_data (fn (base_sort, judgment, atomize_rulify) =>
 
 (* typedecl *)
 
-fun typedecl (raw_name, vs, mx) thy =
+fun typedecl (a, vs, mx) thy =
   let
     val base_sort = get_base_sort thy;
-    val name = Sign.full_bname thy (Syntax.type_name raw_name mx);
+    val b = Binding.map_name (Syntax.type_name mx) a;
     val _ = has_duplicates (op =) vs andalso
-      error ("Duplicate parameters in type declaration: " ^ quote name);
+      error ("Duplicate parameters in type declaration: " ^ quote (Binding.str_of b));
+    val name = Sign.full_name thy b;
     val n = length vs;
     val T = Type (name, map (fn v => TFree (v, [])) vs);
   in
     thy
-    |> Sign.add_types [(raw_name, n, mx)]
+    |> Sign.add_types [(a, n, mx)]
     |> (case base_sort of NONE => I | SOME S => AxClass.axiomatize_arity (name, replicate n S, S))
     |> pair T
   end;
@@ -105,10 +106,10 @@ fun typedecl (raw_name, vs, mx) thy =
 
 local
 
-fun gen_add_judgment add_consts (bname, T, mx) thy =
-  let val c = Sign.full_bname thy (Syntax.const_name bname mx) in
+fun gen_add_judgment add_consts (b, T, mx) thy =
+  let val c = Sign.full_name thy (Binding.map_name (Syntax.const_name mx) b) in
     thy
-    |> add_consts [(bname, T, mx)]
+    |> add_consts [(b, T, mx)]
     |> (fn thy' => Theory.add_deps c (c, Sign.the_const_type thy' c) [] thy')
     |> map_data (fn (base_sort, judgment, atomize_rulify) =>
         if is_some judgment then error "Attempt to redeclare object-logic judgment"
@@ -117,8 +118,8 @@ fun gen_add_judgment add_consts (bname, T, mx) thy =
 
 in
 
-val add_judgment = gen_add_judgment Sign.add_consts;
-val add_judgment_i = gen_add_judgment Sign.add_consts_i;
+val add_judgment = gen_add_judgment Sign.add_consts_i;
+val add_judgment_cmd = gen_add_judgment Sign.add_consts;
 
 end;
 
