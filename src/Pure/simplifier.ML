@@ -217,14 +217,14 @@ end;
 
 fun solve_all_tac solvers ss =
   let
-    val (_, {subgoal_tac, ...}) = MetaSimplifier.rep_ss ss;
+    val (_, {subgoal_tac, ...}) = MetaSimplifier.internal_ss ss;
     val solve_tac = subgoal_tac (MetaSimplifier.set_solvers solvers ss) THEN_ALL_NEW (K no_tac);
   in DEPTH_SOLVE (solve_tac 1) end;
 
 (*NOTE: may instantiate unknowns that appear also in other subgoals*)
 fun generic_simp_tac safe mode ss =
   let
-    val (_, {loop_tacs, solvers = (unsafe_solvers, solvers), ...}) = MetaSimplifier.rep_ss ss;
+    val (_, {loop_tacs, solvers = (unsafe_solvers, solvers), ...}) = MetaSimplifier.internal_ss ss;
     val loop_tac = FIRST' (map (fn (_, tac) => tac ss) (rev loop_tacs));
     val solve_tac = FIRST' (map (MetaSimplifier.solver ss)
       (rev (if safe then solvers else unsafe_solvers)));
@@ -238,7 +238,7 @@ local
 
 fun simp rew mode ss thm =
   let
-    val (_, {solvers = (unsafe_solvers, _), ...}) = MetaSimplifier.rep_ss ss;
+    val (_, {solvers = (unsafe_solvers, _), ...}) = MetaSimplifier.internal_ss ss;
     val tacf = solve_all_tac (rev unsafe_solvers);
     fun prover s th = Option.map #1 (Seq.pull (tacf s th));
   in rew mode prover ss thm end;

@@ -22,24 +22,6 @@ sig
   type solver
   val mk_solver': string -> (simpset -> int -> tactic) -> solver
   val mk_solver: string -> (thm list -> int -> tactic) -> solver
-  val rep_ss: simpset ->
-   {rules: rrule Net.net,
-    prems: thm list,
-    bounds: int * ((string * typ) * string) list,
-    depth: int * bool ref,
-    context: Proof.context option} *
-   {congs: (string * cong) list * string list,
-    procs: proc Net.net,
-    mk_rews:
-     {mk: thm -> thm list,
-      mk_cong: thm -> thm,
-      mk_sym: thm -> thm option,
-      mk_eq_True: thm -> thm option,
-      reorient: theory -> term list -> term -> term -> bool},
-    termless: term * term -> bool,
-    subgoal_tac: simpset -> int -> tactic,
-    loop_tacs: (string * (simpset -> int -> tactic)) list,
-    solvers: solver list * solver list}
   val empty_ss: simpset
   val merge_ss: simpset * simpset -> simpset
   val pretty_ss: simpset -> Pretty.T
@@ -90,6 +72,24 @@ signature META_SIMPLIFIER =
 sig
   include BASIC_META_SIMPLIFIER
   exception SIMPLIFIER of string * thm
+  val internal_ss: simpset ->
+   {rules: rrule Net.net,
+    prems: thm list,
+    bounds: int * ((string * typ) * string) list,
+    depth: int * bool ref,
+    context: Proof.context option} *
+   {congs: (string * cong) list * string list,
+    procs: proc Net.net,
+    mk_rews:
+     {mk: thm -> thm list,
+      mk_cong: thm -> thm,
+      mk_sym: thm -> thm option,
+      mk_eq_True: thm -> thm option,
+      reorient: theory -> term list -> term -> term -> bool},
+    termless: term * term -> bool,
+    subgoal_tac: simpset -> int -> tactic,
+    loop_tacs: (string * (simpset -> int -> tactic)) list,
+    solvers: solver list * solver list}
   val add_simp: thm -> simpset -> simpset
   val del_simp: thm -> simpset -> simpset
   val solver: simpset -> solver -> int -> tactic
@@ -214,7 +214,7 @@ and solver =
     id: stamp};
 
 
-fun rep_ss (Simpset args) = args;
+fun internal_ss (Simpset args) = args;
 
 fun make_ss1 (rules, prems, bounds, depth, context) =
   {rules = rules, prems = prems, bounds = bounds, depth = depth, context = context};
@@ -696,7 +696,7 @@ fun map_mk_rews f = map_simpset2 (fn (congs, procs, {mk, mk_cong, mk_sym, mk_eq_
 
 in
 
-val mksimps = #mk o #mk_rews o #2 o rep_ss;
+fun mksimps (Simpset (_, {mk_rews = {mk, ...}, ...})) = mk;
 
 fun ss setmksimps mk = ss |> map_mk_rews (fn (_, mk_cong, mk_sym, mk_eq_True, reorient) =>
   (mk, mk_cong, mk_sym, mk_eq_True, reorient));
