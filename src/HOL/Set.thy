@@ -8,26 +8,27 @@ theory Set
 imports Lattices
 begin
 
+subsection {* Basic operations *}
+
+subsubsection {* Comprehension and membership *}
+
 text {* A set in HOL is simply a predicate. *}
-
-
-subsection {* Basic syntax *}
 
 global
 
 types 'a set = "'a => bool"
 
 consts
-  Collect       :: "('a => bool) => 'a set"              -- "comprehension"
-  "op :"        :: "'a => 'a set => bool"                -- "membership"
-  insert        :: "'a => 'a set => 'a set"
-  Ball          :: "'a set => ('a => bool) => bool"      -- "bounded universal quantifiers"
-  Bex           :: "'a set => ('a => bool) => bool"      -- "bounded existential quantifiers"
-  Bex1          :: "'a set => ('a => bool) => bool"      -- "bounded unique existential quantifiers"
-  Pow           :: "'a set => 'a set set"                -- "powerset"
-  image         :: "('a => 'b) => 'a set => 'b set"      (infixr "`" 90)
+  Collect :: "('a \<Rightarrow> bool) \<Rightarrow> 'a set"
+  "op :" :: "'a => 'a set => bool"
 
 local
+
+syntax
+  "@Coll"       :: "pttrn => bool => 'a set"              ("(1{_./ _})")
+
+translations
+  "{x. P}"      == "Collect (%x. P)"
 
 notation
   "op :"  ("op :") and
@@ -52,126 +53,51 @@ notation (HTML output)
   not_mem  ("op \<notin>") and
   not_mem  ("(_/ \<notin> _)" [50, 51] 50)
 
-syntax
-  "@Coll"       :: "pttrn => bool => 'a set"              ("(1{_./ _})")
+defs
+  Collect_def [code]: "Collect P \<equiv> P"
+  mem_def [code]: "x \<in> S \<equiv> S x"
 
-translations
-  "{x. P}"      == "Collect (%x. P)"
+text {* Relating predicates and sets *}
 
-definition empty :: "'a set" ("{}") where
-  "empty \<equiv> {x. False}"
+lemma mem_Collect_eq [iff]: "(a : {x. P(x)}) = P(a)"
+  by (simp add: Collect_def mem_def)
 
-definition UNIV :: "'a set" where
-  "UNIV \<equiv> {x. True}"
+lemma Collect_mem_eq [simp]: "{x. x:A} = A"
+  by (simp add: Collect_def mem_def)
 
-syntax
-  "@Finset"     :: "args => 'a set"                       ("{(_)}")
+lemma CollectI: "P(a) ==> a : {x. P(x)}"
+  by simp
 
-translations
-  "{x, xs}"     == "insert x {xs}"
-  "{x}"         == "insert x {}"
+lemma CollectD: "a : {x. P(x)} ==> P(a)"
+  by simp
 
-definition Int :: "'a set \<Rightarrow> 'a set \<Rightarrow> 'a set" (infixl "Int" 70) where
-  "A Int B \<equiv> {x. x \<in> A \<and> x \<in> B}"
+lemma Collect_cong: "(!!x. P x = Q x) ==> {x. P(x)} = {x. Q(x)}"
+  by simp
 
-definition Un :: "'a set \<Rightarrow> 'a set \<Rightarrow> 'a set" (infixl "Un" 65) where
-  "A Un B \<equiv> {x. x \<in> A \<or> x \<in> B}"
+lemmas CollectE = CollectD [elim_format]
 
-notation (xsymbols)
-  "Int"  (infixl "\<inter>" 70) and
-  "Un"  (infixl "\<union>" 65)
+lemma set_ext: assumes prem: "(!!x. (x:A) = (x:B))" shows "A = B"
+  apply (rule prem [THEN ext, THEN arg_cong, THEN box_equals])
+   apply (rule Collect_mem_eq)
+  apply (rule Collect_mem_eq)
+  done
 
-notation (HTML output)
-  "Int"  (infixl "\<inter>" 70) and
-  "Un"  (infixl "\<union>" 65)
+(* Due to Brian Huffman *)
+lemma expand_set_eq: "(A = B) = (ALL x. (x:A) = (x:B))"
+by(auto intro:set_ext)
 
-syntax
-  "_Ball"       :: "pttrn => 'a set => bool => bool"      ("(3ALL _:_./ _)" [0, 0, 10] 10)
-  "_Bex"        :: "pttrn => 'a set => bool => bool"      ("(3EX _:_./ _)" [0, 0, 10] 10)
-  "_Bex1"       :: "pttrn => 'a set => bool => bool"      ("(3EX! _:_./ _)" [0, 0, 10] 10)
-  "_Bleast"     :: "id => 'a set => bool => 'a"           ("(3LEAST _:_./ _)" [0, 0, 10] 10)
+lemma equalityCE [elim]:
+    "A = B ==> (c \<in> A ==> c \<in> B ==> P) ==> (c \<notin> A ==> c \<notin> B ==> P) ==> P"
+  by blast
 
-syntax (HOL)
-  "_Ball"       :: "pttrn => 'a set => bool => bool"      ("(3! _:_./ _)" [0, 0, 10] 10)
-  "_Bex"        :: "pttrn => 'a set => bool => bool"      ("(3? _:_./ _)" [0, 0, 10] 10)
-  "_Bex1"       :: "pttrn => 'a set => bool => bool"      ("(3?! _:_./ _)" [0, 0, 10] 10)
+lemma eqset_imp_iff: "A = B ==> (x : A) = (x : B)"
+  by simp
 
-syntax (xsymbols)
-  "_Ball"       :: "pttrn => 'a set => bool => bool"      ("(3\<forall>_\<in>_./ _)" [0, 0, 10] 10)
-  "_Bex"        :: "pttrn => 'a set => bool => bool"      ("(3\<exists>_\<in>_./ _)" [0, 0, 10] 10)
-  "_Bex1"       :: "pttrn => 'a set => bool => bool"      ("(3\<exists>!_\<in>_./ _)" [0, 0, 10] 10)
-  "_Bleast"     :: "id => 'a set => bool => 'a"           ("(3LEAST_\<in>_./ _)" [0, 0, 10] 10)
-
-syntax (HTML output)
-  "_Ball"       :: "pttrn => 'a set => bool => bool"      ("(3\<forall>_\<in>_./ _)" [0, 0, 10] 10)
-  "_Bex"        :: "pttrn => 'a set => bool => bool"      ("(3\<exists>_\<in>_./ _)" [0, 0, 10] 10)
-  "_Bex1"       :: "pttrn => 'a set => bool => bool"      ("(3\<exists>!_\<in>_./ _)" [0, 0, 10] 10)
-
-translations
-  "ALL x:A. P"  == "Ball A (%x. P)"
-  "EX x:A. P"   == "Bex A (%x. P)"
-  "EX! x:A. P"  == "Bex1 A (%x. P)"
-  "LEAST x:A. P" => "LEAST x. x:A & P"
-
-definition INTER :: "'a set \<Rightarrow> ('a \<Rightarrow> 'b set) \<Rightarrow> 'b set" where
-  "INTER A B \<equiv> {y. \<forall>x\<in>A. y \<in> B x}"
-
-definition UNION :: "'a set \<Rightarrow> ('a \<Rightarrow> 'b set) \<Rightarrow> 'b set" where
-  "UNION A B \<equiv> {y. \<exists>x\<in>A. y \<in> B x}"
-
-definition Inter :: "'a set set \<Rightarrow> 'a set" where
-  "Inter S \<equiv> INTER S (\<lambda>x. x)"
-
-definition Union :: "'a set set \<Rightarrow> 'a set" where
-  "Union S \<equiv> UNION S (\<lambda>x. x)"
-
-notation (xsymbols)
-  Inter  ("\<Inter>_" [90] 90) and
-  Union  ("\<Union>_" [90] 90)
+lemma eqelem_imp_iff: "x = y ==> (x : A) = (y : A)"
+  by simp
 
 
-subsection {* Additional concrete syntax *}
-
-syntax
-  "@SetCompr"   :: "'a => idts => bool => 'a set"         ("(1{_ |/_./ _})")
-  "@Collect"    :: "idt => 'a set => bool => 'a set"      ("(1{_ :/ _./ _})")
-  "@INTER1"     :: "pttrns => 'b set => 'b set"           ("(3INT _./ _)" [0, 10] 10)
-  "@UNION1"     :: "pttrns => 'b set => 'b set"           ("(3UN _./ _)" [0, 10] 10)
-  "@INTER"      :: "pttrn => 'a set => 'b set => 'b set"  ("(3INT _:_./ _)" [0, 10] 10)
-  "@UNION"      :: "pttrn => 'a set => 'b set => 'b set"  ("(3UN _:_./ _)" [0, 10] 10)
-
-syntax (xsymbols)
-  "@Collect"    :: "idt => 'a set => bool => 'a set"      ("(1{_ \<in>/ _./ _})")
-  "@INTER1"     :: "pttrns => 'b set => 'b set"           ("(3\<Inter>_./ _)" [0, 10] 10)
-  "@UNION1"     :: "pttrns => 'b set => 'b set"           ("(3\<Union>_./ _)" [0, 10] 10)
-  "@INTER"      :: "pttrn => 'a set => 'b set => 'b set"  ("(3\<Inter>_\<in>_./ _)" [0, 10] 10)
-  "@UNION"      :: "pttrn => 'a set => 'b set => 'b set"  ("(3\<Union>_\<in>_./ _)" [0, 10] 10)
-
-syntax (latex output)
-  "@INTER1"     :: "pttrns => 'b set => 'b set"           ("(3\<Inter>(00\<^bsub>_\<^esub>)/ _)" [0, 10] 10)
-  "@UNION1"     :: "pttrns => 'b set => 'b set"           ("(3\<Union>(00\<^bsub>_\<^esub>)/ _)" [0, 10] 10)
-  "@INTER"      :: "pttrn => 'a set => 'b set => 'b set"  ("(3\<Inter>(00\<^bsub>_\<in>_\<^esub>)/ _)" [0, 10] 10)
-  "@UNION"      :: "pttrn => 'a set => 'b set => 'b set"  ("(3\<Union>(00\<^bsub>_\<in>_\<^esub>)/ _)" [0, 10] 10)
-
-translations
-  "{x:A. P}"    => "{x. x:A & P}"
-  "INT x y. B"  == "INT x. INT y. B"
-  "INT x. B"    == "CONST INTER CONST UNIV (%x. B)"
-  "INT x. B"    == "INT x:CONST UNIV. B"
-  "INT x:A. B"  == "CONST INTER A (%x. B)"
-  "UN x y. B"   == "UN x. UN y. B"
-  "UN x. B"     == "CONST UNION CONST UNIV (%x. B)"
-  "UN x. B"     == "UN x:CONST UNIV. B"
-  "UN x:A. B"   == "CONST UNION A (%x. B)"
-
-text {*
-  Note the difference between ordinary xsymbol syntax of indexed
-  unions and intersections (e.g.\ @{text"\<Union>a\<^isub>1\<in>A\<^isub>1. B"})
-  and their \LaTeX\ rendition: @{term"\<Union>a\<^isub>1\<in>A\<^isub>1. B"}. The
-  former does not make the index expression a subscript of the
-  union/intersection symbol because this leads to problems with nested
-  subscripts in Proof General.
-*}
+subsubsection {* Subset relation, empty and universal set *}
 
 abbreviation
   subset :: "'a set \<Rightarrow> 'a set \<Rightarrow> bool" where
@@ -213,12 +139,557 @@ notation (xsymbols)
   supset_eq  ("op \<supseteq>") and
   supset_eq  ("(_/ \<supseteq> _)" [50, 51] 50)
 
-abbreviation
-  range :: "('a => 'b) => 'b set" where -- "of function"
-  "range f == f ` UNIV"
+definition empty :: "'a set" ("{}") where
+  "empty \<equiv> {x. False}"
+
+definition UNIV :: "'a set" where
+  "UNIV \<equiv> {x. True}"
+ 
+lemma subsetI [atp,intro!]: "(!!x. x:A ==> x:B) ==> A \<subseteq> B"
+  by (auto simp add: mem_def intro: predicate1I)
+
+text {*
+  \medskip Map the type @{text "'a set => anything"} to just @{typ
+  'a}; for overloading constants whose first argument has type @{typ
+  "'a set"}.
+*}
+
+lemma subsetD [elim]: "A \<subseteq> B ==> c \<in> A ==> c \<in> B"
+  -- {* Rule in Modus Ponens style. *}
+  by (unfold mem_def) blast
+
+declare subsetD [intro?] -- FIXME
+
+lemma rev_subsetD: "c \<in> A ==> A \<subseteq> B ==> c \<in> B"
+  -- {* The same, with reversed premises for use with @{text erule} --
+      cf @{text rev_mp}. *}
+  by (rule subsetD)
+
+declare rev_subsetD [intro?] -- FIXME
+
+text {*
+  \medskip Converts @{prop "A \<subseteq> B"} to @{prop "x \<in> A ==> x \<in> B"}.
+*}
+
+ML {*
+  fun impOfSubs th = th RSN (2, @{thm rev_subsetD})
+*}
+
+lemma subsetCE [elim]: "A \<subseteq>  B ==> (c \<notin> A ==> P) ==> (c \<in> B ==> P) ==> P"
+  -- {* Classical elimination rule. *}
+  by (unfold mem_def) blast
+
+text {*
+  \medskip Takes assumptions @{prop "A \<subseteq> B"}; @{prop "c \<in> A"} and
+  creates the assumption @{prop "c \<in> B"}.
+*}
+
+ML {*
+  fun set_mp_tac i = etac @{thm subsetCE} i THEN mp_tac i
+*}
+
+lemma contra_subsetD: "A \<subseteq> B ==> c \<notin> B ==> c \<notin> A"
+  by blast
+
+lemma subset_refl [simp,atp]: "A \<subseteq> A"
+  by fast
+
+lemma subset_trans: "A \<subseteq> B ==> B \<subseteq> C ==> A \<subseteq> C"
+  by blast
+
+lemma subset_antisym [intro!]: "A \<subseteq> B ==> B \<subseteq> A ==> A = B"
+  -- {* Anti-symmetry of the subset relation. *}
+  by (iprover intro: set_ext subsetD)
+
+text {*
+  \medskip Equality rules from ZF set theory -- are they appropriate
+  here?
+*}
+
+lemma equalityD1: "A = B ==> A \<subseteq> B"
+  by (simp add: subset_refl)
+
+lemma equalityD2: "A = B ==> B \<subseteq> A"
+  by (simp add: subset_refl)
+
+text {*
+  \medskip Be careful when adding this to the claset as @{text
+  subset_empty} is in the simpset: @{prop "A = {}"} goes to @{prop "{}
+  \<subseteq> A"} and @{prop "A \<subseteq> {}"} and then back to @{prop "A = {}"}!
+*}
+
+lemma equalityE: "A = B ==> (A \<subseteq> B ==> B \<subseteq> A ==> P) ==> P"
+  by (simp add: subset_refl)
+
+lemma empty_iff [simp]: "(c : {}) = False"
+  by (simp add: empty_def)
+
+lemma emptyE [elim!]: "a : {} ==> P"
+  by simp
+
+lemma empty_subsetI [iff]: "{} \<subseteq> A"
+    -- {* One effect is to delete the ASSUMPTION @{prop "{} \<subseteq> A"} *}
+  by blast
+
+lemma bot_set_eq: "bot = {}"
+  by (iprover intro!: subset_antisym empty_subsetI bot_least)
+
+lemma equals0I: "(!!y. y \<in> A ==> False) ==> A = {}"
+  by blast
+
+lemma equals0D: "A = {} ==> a \<notin> A"
+    -- {* Use for reasoning about disjointness *}
+  by blast
+
+lemma UNIV_I [simp]: "x : UNIV"
+  by (simp add: UNIV_def)
+
+declare UNIV_I [intro]  -- {* unsafe makes it less likely to cause problems *}
+
+lemma UNIV_witness [intro?]: "EX x. x : UNIV"
+  by simp
+
+lemma subset_UNIV [simp]: "A \<subseteq> UNIV"
+  by (rule subsetI) (rule UNIV_I)
+
+lemma top_set_eq: "top = UNIV"
+  by (iprover intro!: subset_antisym subset_UNIV top_greatest)
+
+lemma UNIV_eq_I: "(\<And>x. x \<in> A) \<Longrightarrow> UNIV = A"
+  by auto
+
+lemma UNIV_not_empty [iff]: "UNIV ~= {}"
+  by blast
+
+lemma psubsetI [intro!,noatp]: "A \<subseteq> B ==> A \<noteq> B ==> A \<subset> B"
+  by (unfold less_le) blast
+
+lemma psubsetE [elim!,noatp]: 
+    "[|A \<subset> B;  [|A \<subseteq> B; ~ (B\<subseteq>A)|] ==> R|] ==> R"
+  by (unfold less_le) blast
+
+lemma psubset_eq: "(A \<subset> B) = (A \<subseteq> B & A \<noteq> B)"
+  by (simp only: less_le)
+
+lemma psubset_imp_subset: "A \<subset> B ==> A \<subseteq> B"
+  by (simp add: psubset_eq)
+
+lemma psubset_trans: "[| A \<subset> B; B \<subset> C |] ==> A \<subset> C"
+apply (unfold less_le)
+apply (auto dest: subset_antisym)
+done
+
+lemma psubsetD: "[| A \<subset> B; c \<in> A |] ==> c \<in> B"
+apply (unfold less_le)
+apply (auto dest: subsetD)
+done
+
+lemma psubset_subset_trans: "A \<subset> B ==> B \<subseteq> C ==> A \<subset> C"
+  by (auto simp add: psubset_eq)
+
+lemma subset_psubset_trans: "A \<subseteq> B ==> B \<subset> C ==> A \<subset> C"
+  by (auto simp add: psubset_eq)
+
+lemma Collect_empty_eq [simp]: "(Collect P = {}) = (\<forall>x. \<not> P x)"
+by blast
+
+lemma empty_Collect_eq [simp]: "({} = Collect P) = (\<forall>x. \<not> P x)"
+by blast
+
+subsubsection {* Intersection and union *}
+
+definition Int :: "'a set \<Rightarrow> 'a set \<Rightarrow> 'a set" (infixl "Int" 70) where
+  "A Int B \<equiv> {x. x \<in> A \<and> x \<in> B}"
+
+definition Un :: "'a set \<Rightarrow> 'a set \<Rightarrow> 'a set" (infixl "Un" 65) where
+  "A Un B \<equiv> {x. x \<in> A \<or> x \<in> B}"
+
+notation (xsymbols)
+  "Int"  (infixl "\<inter>" 70) and
+  "Un"  (infixl "\<union>" 65)
+
+notation (HTML output)
+  "Int"  (infixl "\<inter>" 70) and
+  "Un"  (infixl "\<union>" 65)
+
+lemma Int_iff [simp]: "(c : A Int B) = (c:A & c:B)"
+  by (unfold Int_def) blast
+
+lemma IntI [intro!]: "c:A ==> c:B ==> c : A Int B"
+  by simp
+
+lemma IntD1: "c : A Int B ==> c:A"
+  by simp
+
+lemma IntD2: "c : A Int B ==> c:B"
+  by simp
+
+lemma IntE [elim!]: "c : A Int B ==> (c:A ==> c:B ==> P) ==> P"
+  by simp
+
+lemma Un_iff [simp]: "(c : A Un B) = (c:A | c:B)"
+  by (unfold Un_def) blast
+
+lemma UnI1 [elim?]: "c:A ==> c : A Un B"
+  by simp
+
+lemma UnI2 [elim?]: "c:B ==> c : A Un B"
+  by simp
+
+text {*
+  \medskip Classical introduction rule: no commitment to @{prop A} vs
+  @{prop B}.
+*}
+
+lemma UnCI [intro!]: "(c~:B ==> c:A) ==> c : A Un B"
+  by auto
+
+lemma UnE [elim!]: "c : A Un B ==> (c:A ==> P) ==> (c:B ==> P) ==> P"
+  by (unfold Un_def) blast
+
+lemma Int_lower1: "A \<inter> B \<subseteq> A"
+  by blast
+
+lemma Int_lower2: "A \<inter> B \<subseteq> B"
+  by blast
+
+lemma Int_greatest: "C \<subseteq> A ==> C \<subseteq> B ==> C \<subseteq> A \<inter> B"
+  by blast
+
+lemma inf_set_eq: "inf A B = A \<inter> B"
+  apply (rule subset_antisym)
+  apply (rule Int_greatest)
+  apply (rule inf_le1)
+  apply (rule inf_le2)
+  apply (rule inf_greatest)
+  apply (rule Int_lower1)
+  apply (rule Int_lower2)
+  done
+
+lemma Un_upper1: "A \<subseteq> A \<union> B"
+  by blast
+
+lemma Un_upper2: "B \<subseteq> A \<union> B"
+  by blast
+
+lemma Un_least: "A \<subseteq> C ==> B \<subseteq> C ==> A \<union> B \<subseteq> C"
+  by blast
+
+lemma sup_set_eq: "sup A B = A \<union> B"
+  apply (rule subset_antisym)
+  apply (rule sup_least)
+  apply (rule Un_upper1)
+  apply (rule Un_upper2)
+  apply (rule Un_least)
+  apply (rule sup_ge1)
+  apply (rule sup_ge2)
+  done
+
+lemma Collect_conj_eq: "{x. P x & Q x} = {x. P x} \<inter> {x. Q x}"
+  by blast
+
+lemma Collect_disj_eq: "{x. P x | Q x} = {x. P x} \<union> {x. Q x}"
+  by blast
+
+lemma subset_empty [simp]: "(A \<subseteq> {}) = (A = {})"
+  by blast
+
+lemma not_psubset_empty [iff]: "\<not> (A \<subset> {})"
+  by (unfold less_le) blast
+
+lemma Collect_const [simp]: "{s. P} = (if P then UNIV else {})"
+  -- {* supersedes @{text "Collect_False_empty"} *}
+  by auto
 
 
-subsubsection "Bounded quantifiers"
+subsubsection {* Complement and set difference *}
+
+instantiation bool :: minus
+begin
+
+definition
+  bool_diff_def: "A - B \<longleftrightarrow> A \<and> \<not> B"
+
+instance ..
+
+end
+
+instantiation "fun" :: (type, minus) minus
+begin
+
+definition
+  fun_diff_def: "A - B = (\<lambda>x. A x - B x)"
+
+instance ..
+
+end
+
+instantiation bool :: uminus
+begin
+
+definition
+  bool_Compl_def: "- A \<longleftrightarrow> \<not> A"
+
+instance ..
+
+end
+
+instantiation "fun" :: (type, uminus) uminus
+begin
+
+definition
+  fun_Compl_def: "- A = (\<lambda>x. - A x)"
+
+instance ..
+
+end
+
+lemma Compl_iff [simp]: "(c \<in> -A) = (c \<notin> A)"
+  by (simp add: mem_def fun_Compl_def bool_Compl_def)
+
+lemma ComplI [intro!]: "(c \<in> A ==> False) ==> c \<in> -A"
+  by (unfold mem_def fun_Compl_def bool_Compl_def) blast
+
+text {*
+  \medskip This form, with negated conclusion, works well with the
+  Classical prover.  Negated assumptions behave like formulae on the
+  right side of the notional turnstile ... *}
+
+lemma ComplD [dest!]: "c : -A ==> c~:A"
+  by (simp add: mem_def fun_Compl_def bool_Compl_def)
+
+lemmas ComplE = ComplD [elim_format]
+
+lemma Compl_eq: "- A = {x. ~ x : A}" by blast
+
+lemma Diff_iff [simp]: "(c : A - B) = (c:A & c~:B)"
+  by (simp add: mem_def fun_diff_def bool_diff_def)
+
+lemma DiffI [intro!]: "c : A ==> c ~: B ==> c : A - B"
+  by simp
+
+lemma DiffD1: "c : A - B ==> c : A"
+  by simp
+
+lemma DiffD2: "c : A - B ==> c : B ==> P"
+  by simp
+
+lemma DiffE [elim!]: "c : A - B ==> (c:A ==> c~:B ==> P) ==> P"
+  by simp
+
+lemma set_diff_eq: "A - B = {x. x : A & ~ x : B}" by blast
+
+lemma Compl_eq_Diff_UNIV: "-A = (UNIV - A)"
+by blast
+
+lemma psubset_imp_ex_mem: "A \<subset> B ==> \<exists>b. b \<in> (B - A)"
+  by (unfold less_le) blast
+
+lemma Diff_subset: "A - B \<subseteq> A"
+  by blast
+
+lemma Diff_subset_conv: "(A - B \<subseteq> C) = (A \<subseteq> B \<union> C)"
+by blast
+
+lemma Collect_imp_eq: "{x. P x --> Q x} = -{x. P x} \<union> {x. Q x}"
+  by blast
+
+lemma Collect_neg_eq: "{x. \<not> P x} = - {x. P x}"
+  by blast
+
+
+subsubsection {* Set enumerations *}
+
+global
+
+consts
+  insert        :: "'a => 'a set => 'a set"
+
+local
+
+defs
+  insert_def:   "insert a B == {x. x=a} Un B"
+
+syntax
+  "@Finset"     :: "args => 'a set"                       ("{(_)}")
+
+translations
+  "{x, xs}"     == "insert x {xs}"
+  "{x}"         == "insert x {}"
+
+lemma insert_iff [simp]: "(a : insert b A) = (a = b | a:A)"
+  by (unfold insert_def) blast
+
+lemma insertI1: "a : insert a B"
+  by simp
+
+lemma insertI2: "a : B ==> a : insert b B"
+  by simp
+
+lemma insertE [elim!]: "a : insert b A ==> (a = b ==> P) ==> (a:A ==> P) ==> P"
+  by (unfold insert_def) blast
+
+lemma insertCI [intro!]: "(a~:B ==> a = b) ==> a: insert b B"
+  -- {* Classical introduction rule. *}
+  by auto
+
+lemma subset_insert_iff: "(A \<subseteq> insert x B) = (if x:A then A - {x} \<subseteq> B else A \<subseteq> B)"
+  by auto
+
+lemma set_insert:
+  assumes "x \<in> A"
+  obtains B where "A = insert x B" and "x \<notin> B"
+proof
+  from assms show "A = insert x (A - {x})" by blast
+next
+  show "x \<notin> A - {x}" by blast
+qed
+
+lemma insert_ident: "x ~: A ==> x ~: B ==> (insert x A = insert x B) = (A = B)"
+by auto
+
+lemma insert_is_Un: "insert a A = {a} Un A"
+  -- {* NOT SUITABLE FOR REWRITING since @{text "{a} == insert a {}"} *}
+  by blast
+
+lemma insert_not_empty [simp]: "insert a A \<noteq> {}"
+  by blast
+
+lemmas empty_not_insert = insert_not_empty [symmetric, standard]
+declare empty_not_insert [simp]
+
+lemma insert_absorb: "a \<in> A ==> insert a A = A"
+  -- {* @{text "[simp]"} causes recursive calls when there are nested inserts *}
+  -- {* with \emph{quadratic} running time *}
+  by blast
+
+lemma insert_absorb2 [simp]: "insert x (insert x A) = insert x A"
+  by blast
+
+lemma insert_commute: "insert x (insert y A) = insert y (insert x A)"
+  by blast
+
+lemma insert_subset [simp]: "(insert x A \<subseteq> B) = (x \<in> B & A \<subseteq> B)"
+  by blast
+
+lemma mk_disjoint_insert: "a \<in> A ==> \<exists>B. A = insert a B & a \<notin> B"
+  -- {* use new @{text B} rather than @{text "A - {a}"} to avoid infinite unfolding *}
+  apply (rule_tac x = "A - {a}" in exI, blast)
+  done
+
+lemma insert_Collect: "insert a (Collect P) = {u. u \<noteq> a --> P u}"
+  by auto
+
+lemma insert_inter_insert[simp]: "insert a A \<inter> insert a B = insert a (A \<inter> B)"
+  by blast
+
+lemma insert_disjoint [simp,noatp]:
+ "(insert a A \<inter> B = {}) = (a \<notin> B \<and> A \<inter> B = {})"
+ "({} = insert a A \<inter> B) = (a \<notin> B \<and> {} = A \<inter> B)"
+  by auto
+
+lemma disjoint_insert [simp,noatp]:
+ "(B \<inter> insert a A = {}) = (a \<notin> B \<and> B \<inter> A = {})"
+ "({} = A \<inter> insert b B) = (b \<notin> A \<and> {} = A \<inter> B)"
+  by auto
+
+text {* Singletons, using insert *}
+
+lemma singletonI [intro!,noatp]: "a : {a}"
+    -- {* Redundant? But unlike @{text insertCI}, it proves the subgoal immediately! *}
+  by (rule insertI1)
+
+lemma singletonD [dest!,noatp]: "b : {a} ==> b = a"
+  by blast
+
+lemmas singletonE = singletonD [elim_format]
+
+lemma singleton_iff: "(b : {a}) = (b = a)"
+  by blast
+
+lemma singleton_inject [dest!]: "{a} = {b} ==> a = b"
+  by blast
+
+lemma singleton_insert_inj_eq [iff,noatp]:
+     "({b} = insert a A) = (a = b & A \<subseteq> {b})"
+  by blast
+
+lemma singleton_insert_inj_eq' [iff,noatp]:
+     "(insert a A = {b}) = (a = b & A \<subseteq> {b})"
+  by blast
+
+lemma subset_singletonD: "A \<subseteq> {x} ==> A = {} | A = {x}"
+  by fast
+
+lemma singleton_conv [simp]: "{x. x = a} = {a}"
+  by blast
+
+lemma singleton_conv2 [simp]: "{x. a = x} = {a}"
+  by blast
+
+lemma diff_single_insert: "A - {x} \<subseteq> B ==> x \<in> A ==> A \<subseteq> insert x B"
+  by blast
+
+lemma doubleton_eq_iff: "({a,b} = {c,d}) = (a=c & b=d | a=d & b=c)"
+  by (blast elim: equalityE)
+
+lemma psubset_insert_iff:
+  "(A \<subset> insert x B) = (if x \<in> B then A \<subset> B else if x \<in> A then A - {x} \<subset> B else A \<subseteq> B)"
+  by (auto simp add: less_le subset_insert_iff)
+
+lemma subset_insertI: "B \<subseteq> insert a B"
+  by (rule subsetI) (erule insertI2)
+
+lemma subset_insertI2: "A \<subseteq> B \<Longrightarrow> A \<subseteq> insert b B"
+  by blast
+
+lemma subset_insert: "x \<notin> A ==> (A \<subseteq> insert x B) = (A \<subseteq> B)"
+  by blast
+
+
+subsubsection {* Bounded quantifiers and operators *}
+
+global
+
+consts
+  Ball          :: "'a set => ('a => bool) => bool"      -- "bounded universal quantifiers"
+  Bex           :: "'a set => ('a => bool) => bool"      -- "bounded existential quantifiers"
+  Bex1          :: "'a set => ('a => bool) => bool"      -- "bounded unique existential quantifiers"
+
+local
+
+defs
+  Ball_def:     "Ball A P       == ALL x. x:A --> P(x)"
+  Bex_def:      "Bex A P        == EX x. x:A & P(x)"
+  Bex1_def:     "Bex1 A P       == EX! x. x:A & P(x)"
+
+syntax
+  "_Ball"       :: "pttrn => 'a set => bool => bool"      ("(3ALL _:_./ _)" [0, 0, 10] 10)
+  "_Bex"        :: "pttrn => 'a set => bool => bool"      ("(3EX _:_./ _)" [0, 0, 10] 10)
+  "_Bex1"       :: "pttrn => 'a set => bool => bool"      ("(3EX! _:_./ _)" [0, 0, 10] 10)
+  "_Bleast"     :: "id => 'a set => bool => 'a"           ("(3LEAST _:_./ _)" [0, 0, 10] 10)
+
+syntax (HOL)
+  "_Ball"       :: "pttrn => 'a set => bool => bool"      ("(3! _:_./ _)" [0, 0, 10] 10)
+  "_Bex"        :: "pttrn => 'a set => bool => bool"      ("(3? _:_./ _)" [0, 0, 10] 10)
+  "_Bex1"       :: "pttrn => 'a set => bool => bool"      ("(3?! _:_./ _)" [0, 0, 10] 10)
+
+syntax (xsymbols)
+  "_Ball"       :: "pttrn => 'a set => bool => bool"      ("(3\<forall>_\<in>_./ _)" [0, 0, 10] 10)
+  "_Bex"        :: "pttrn => 'a set => bool => bool"      ("(3\<exists>_\<in>_./ _)" [0, 0, 10] 10)
+  "_Bex1"       :: "pttrn => 'a set => bool => bool"      ("(3\<exists>!_\<in>_./ _)" [0, 0, 10] 10)
+  "_Bleast"     :: "id => 'a set => bool => 'a"           ("(3LEAST_\<in>_./ _)" [0, 0, 10] 10)
+
+syntax (HTML output)
+  "_Ball"       :: "pttrn => 'a set => bool => bool"      ("(3\<forall>_\<in>_./ _)" [0, 0, 10] 10)
+  "_Bex"        :: "pttrn => 'a set => bool => bool"      ("(3\<exists>_\<in>_./ _)" [0, 0, 10] 10)
+  "_Bex1"       :: "pttrn => 'a set => bool => bool"      ("(3\<exists>!_\<in>_./ _)" [0, 0, 10] 10)
+
+translations
+  "ALL x:A. P"  == "Ball A (%x. P)"
+  "EX x:A. P"   == "Bex A (%x. P)"
+  "EX! x:A. P"  == "Bex1 A (%x. P)"
+  "LEAST x:A. P" => "LEAST x. x:A & P"
 
 syntax (output)
   "_setlessAll" :: "[idt, 'a, bool] => bool"  ("(3ALL _<_./ _)"  [0, 0, 10] 10)
@@ -249,11 +720,11 @@ syntax (HTML output)
   "_setleEx1"   :: "[idt, 'a, bool] => bool"   ("(3\<exists>!_\<subseteq>_./ _)" [0, 0, 10] 10)
 
 translations
- "\<forall>A\<subset>B. P"   =>  "ALL A. A \<subset> B --> P"
- "\<exists>A\<subset>B. P"   =>  "EX A. A \<subset> B & P"
- "\<forall>A\<subseteq>B. P"   =>  "ALL A. A \<subseteq> B --> P"
- "\<exists>A\<subseteq>B. P"   =>  "EX A. A \<subseteq> B & P"
- "\<exists>!A\<subseteq>B. P"  =>  "EX! A. A \<subseteq> B & P"
+  "\<forall>A\<subset>B. P"   =>  "ALL A. A \<subset> B --> P"
+  "\<exists>A\<subset>B. P"   =>  "EX A. A \<subset> B & P"
+  "\<forall>A\<subseteq>B. P"   =>  "ALL A. A \<subseteq> B --> P"
+  "\<exists>A\<subseteq>B. P"   =>  "EX A. A \<subseteq> B & P"
+  "\<exists>!A\<subseteq>B. P"  =>  "EX! A. A \<subseteq> B & P"
 
 print_translation {*
 let
@@ -287,12 +758,21 @@ in
 end
 *}
 
-
 text {*
   \medskip Translate between @{text "{e | x1...xn. P}"} and @{text
   "{u. EX x1..xn. u = e & P}"}; @{text "{y. EX x1..xn. y = e & P}"} is
   only translated if @{text "[0..n] subset bvs(e)"}.
 *}
+
+syntax
+  "@SetCompr"   :: "'a => idts => bool => 'a set"         ("(1{_ |/_./ _})")
+  "@Collect"    :: "idt => 'a set => bool => 'a set"      ("(1{_ :/ _./ _})")
+
+syntax (xsymbols)
+  "@Collect"    :: "idt => 'a set => bool => 'a set"      ("(1{_ \<in>/ _./ _})")
+
+translations
+  "{x:A. P}"    => "{x. x:A & P}"
 
 parse_translation {*
   let
@@ -309,18 +789,6 @@ parse_translation {*
       in Syntax.const "Collect" $ Term.absdummy (dummyT, exP) end;
 
   in [("@SetCompr", setcompr_tr)] end;
-*}
-
-(* To avoid eta-contraction of body: *)
-print_translation {*
-let
-  fun btr' syn [A, Abs abs] =
-    let val (x, t) = atomic_abs_tr' abs
-    in Syntax.const syn $ x $ A $ t end
-in
-[(@{const_syntax Ball}, btr' "_Ball"), (@{const_syntax Bex}, btr' "_Bex"),
- (@{const_syntax UNION}, btr' "@UNION"),(@{const_syntax INTER}, btr' "@INTER")]
-end
 *}
 
 print_translation {*
@@ -351,90 +819,6 @@ let
     end;
   in [("Collect", setcompr_tr')] end;
 *}
-
-
-subsection {* Rules and definitions *}
-
-text {* Isomorphisms between predicates and sets. *}
-
-defs
-  mem_def [code]: "x : S == S x"
-  Collect_def [code]: "Collect P == P"
-
-defs
-  Ball_def:     "Ball A P       == ALL x. x:A --> P(x)"
-  Bex_def:      "Bex A P        == EX x. x:A & P(x)"
-  Bex1_def:     "Bex1 A P       == EX! x. x:A & P(x)"
-
-instantiation "fun" :: (type, minus) minus
-begin
-
-definition
-  fun_diff_def: "A - B = (%x. A x - B x)"
-
-instance ..
-
-end
-
-instantiation bool :: minus
-begin
-
-definition
-  bool_diff_def: "A - B = (A & ~ B)"
-
-instance ..
-
-end
-
-instantiation "fun" :: (type, uminus) uminus
-begin
-
-definition
-  fun_Compl_def: "- A = (%x. - A x)"
-
-instance ..
-
-end
-
-instantiation bool :: uminus
-begin
-
-definition
-  bool_Compl_def: "- A = (~ A)"
-
-instance ..
-
-end
-
-defs
-  Pow_def:      "Pow A          == {B. B <= A}"
-  insert_def:   "insert a B     == {x. x=a} Un B"
-  image_def:    "f`A            == {y. EX x:A. y = f(x)}"
-
-
-subsection {* Lemmas and proof tool setup *}
-
-subsubsection {* Relating predicates and sets *}
-
-lemma mem_Collect_eq [iff]: "(a : {x. P(x)}) = P(a)"
-  by (simp add: Collect_def mem_def)
-
-lemma Collect_mem_eq [simp]: "{x. x:A} = A"
-  by (simp add: Collect_def mem_def)
-
-lemma CollectI: "P(a) ==> a : {x. P(x)}"
-  by simp
-
-lemma CollectD: "a : {x. P(x)} ==> P(a)"
-  by simp
-
-lemma Collect_cong: "(!!x. P x = Q x) ==> {x. P(x)} = {x. Q(x)}"
-  by simp
-
-lemmas CollectE = CollectD [elim_format]
-
-
-subsubsection {* Bounded quantifiers *}
 
 lemma ballI [intro!]: "(!!x. x:A ==> P x) ==> ALL x:A. P x"
   by (simp add: Ball_def)
@@ -526,8 +910,25 @@ ML {*
   Addsimprocs [defBALL_regroup, defBEX_regroup];
 *}
 
+text {*
+  \medskip Eta-contracting these four rules (to remove @{text P})
+  causes them to be ignored because of their interaction with
+  congruence rules.
+*}
 
-subsubsection {* Congruence rules *}
+lemma ball_UNIV [simp]: "Ball UNIV P = All P"
+  by (simp add: Ball_def)
+
+lemma bex_UNIV [simp]: "Bex UNIV P = Ex P"
+  by (simp add: Bex_def)
+
+lemma ball_empty [simp]: "Ball {} P = True"
+  by (simp add: Ball_def)
+
+lemma bex_empty [simp]: "Bex {} P = False"
+  by (simp add: Bex_def)
+
+text {* Congruence rules *}
 
 lemma ball_cong:
   "A = B ==> (!!x. x:B ==> P x = Q x) ==>
@@ -549,347 +950,423 @@ lemma strong_bex_cong [cong]:
     (EX x:A. P x) = (EX x:B. Q x)"
   by (simp add: simp_implies_def Bex_def cong: conj_cong)
 
-
-subsubsection {* Subsets *}
-
-lemma subsetI [atp,intro!]: "(!!x. x:A ==> x:B) ==> A \<subseteq> B"
-  by (auto simp add: mem_def intro: predicate1I)
-
-text {*
-  \medskip Map the type @{text "'a set => anything"} to just @{typ
-  'a}; for overloading constants whose first argument has type @{typ
-  "'a set"}.
-*}
-
-lemma subsetD [elim]: "A \<subseteq> B ==> c \<in> A ==> c \<in> B"
-  -- {* Rule in Modus Ponens style. *}
-  by (unfold mem_def) blast
-
-declare subsetD [intro?] -- FIXME
-
-lemma rev_subsetD: "c \<in> A ==> A \<subseteq> B ==> c \<in> B"
-  -- {* The same, with reversed premises for use with @{text erule} --
-      cf @{text rev_mp}. *}
-  by (rule subsetD)
-
-declare rev_subsetD [intro?] -- FIXME
-
-text {*
-  \medskip Converts @{prop "A \<subseteq> B"} to @{prop "x \<in> A ==> x \<in> B"}.
-*}
-
-ML {*
-  fun impOfSubs th = th RSN (2, @{thm rev_subsetD})
-*}
-
-lemma subsetCE [elim]: "A \<subseteq>  B ==> (c \<notin> A ==> P) ==> (c \<in> B ==> P) ==> P"
-  -- {* Classical elimination rule. *}
-  by (unfold mem_def) blast
-
 lemma subset_eq: "A \<le> B = (\<forall>x\<in>A. x \<in> B)" by blast
 
+lemma atomize_ball:
+    "(!!x. x \<in> A ==> P x) == Trueprop (\<forall>x\<in>A. P x)"
+  by (simp only: Ball_def atomize_all atomize_imp)
+
+lemmas [symmetric, rulify] = atomize_ball
+  and [symmetric, defn] = atomize_ball
+
+
+subsubsection {* Image of a set under a function. *}
+
 text {*
-  \medskip Takes assumptions @{prop "A \<subseteq> B"}; @{prop "c \<in> A"} and
-  creates the assumption @{prop "c \<in> B"}.
+  Frequently @{term b} does not have the syntactic form of @{term "f x"}.
 *}
 
-ML {*
-  fun set_mp_tac i = etac @{thm subsetCE} i THEN mp_tac i
-*}
+global
 
-lemma contra_subsetD: "A \<subseteq> B ==> c \<notin> B ==> c \<notin> A"
+consts
+  image         :: "('a => 'b) => 'a set => 'b set"      (infixr "`" 90)
+
+local
+
+defs
+  image_def [noatp]:    "f`A == {y. EX x:A. y = f(x)}"
+
+lemma image_eqI [simp, intro]: "b = f x ==> x:A ==> b : f`A"
+  by (unfold image_def) blast
+
+lemma imageI: "x : A ==> f x : f ` A"
+  by (rule image_eqI) (rule refl)
+
+lemma rev_image_eqI: "x:A ==> b = f x ==> b : f`A"
+  -- {* This version's more effective when we already have the
+    required @{term x}. *}
+  by (unfold image_def) blast
+
+lemma imageE [elim!]:
+  "b : (%x. f x)`A ==> (!!x. b = f x ==> x:A ==> P) ==> P"
+  -- {* The eta-expansion gives variable-name preservation. *}
+  by (unfold image_def) blast
+
+lemma image_Un: "f`(A Un B) = f`A Un f`B"
   by blast
 
-lemma subset_refl [simp,atp]: "A \<subseteq> A"
-  by fast
-
-lemma subset_trans: "A \<subseteq> B ==> B \<subseteq> C ==> A \<subseteq> C"
+lemma image_iff: "(z : f`A) = (EX x:A. z = f x)"
   by blast
 
+lemma image_subset_iff: "(f`A \<subseteq> B) = (\<forall>x\<in>A. f x \<in> B)"
+  -- {* This rewrite rule would confuse users if made default. *}
+  by blast
 
-subsubsection {* Equality *}
-
-lemma set_ext: assumes prem: "(!!x. (x:A) = (x:B))" shows "A = B"
-  apply (rule prem [THEN ext, THEN arg_cong, THEN box_equals])
-   apply (rule Collect_mem_eq)
-  apply (rule Collect_mem_eq)
+lemma subset_image_iff: "(B \<subseteq> f`A) = (EX AA. AA \<subseteq> A & B = f`AA)"
+  apply safe
+   prefer 2 apply fast
+  apply (rule_tac x = "{a. a : A & f a : B}" in exI, fast)
   done
 
-(* Due to Brian Huffman *)
-lemma expand_set_eq: "(A = B) = (ALL x. (x:A) = (x:B))"
-by(auto intro:set_ext)
-
-lemma subset_antisym [intro!]: "A \<subseteq> B ==> B \<subseteq> A ==> A = B"
-  -- {* Anti-symmetry of the subset relation. *}
-  by (iprover intro: set_ext subsetD)
-
-lemmas equalityI [intro!] = subset_antisym
-
-text {*
-  \medskip Equality rules from ZF set theory -- are they appropriate
-  here?
-*}
-
-lemma equalityD1: "A = B ==> A \<subseteq> B"
-  by (simp add: subset_refl)
-
-lemma equalityD2: "A = B ==> B \<subseteq> A"
-  by (simp add: subset_refl)
-
-text {*
-  \medskip Be careful when adding this to the claset as @{text
-  subset_empty} is in the simpset: @{prop "A = {}"} goes to @{prop "{}
-  \<subseteq> A"} and @{prop "A \<subseteq> {}"} and then back to @{prop "A = {}"}!
-*}
-
-lemma equalityE: "A = B ==> (A \<subseteq> B ==> B \<subseteq> A ==> P) ==> P"
-  by (simp add: subset_refl)
-
-lemma equalityCE [elim]:
-    "A = B ==> (c \<in> A ==> c \<in> B ==> P) ==> (c \<notin> A ==> c \<notin> B ==> P) ==> P"
+lemma image_subsetI: "(!!x. x \<in> A ==> f x \<in> B) ==> f`A \<subseteq> B"
+  -- {* Replaces the three steps @{text subsetI}, @{text imageE},
+    @{text hypsubst}, but breaks too many existing proofs. *}
   by blast
 
-lemma eqset_imp_iff: "A = B ==> (x : A) = (x : B)"
-  by simp
-
-lemma eqelem_imp_iff: "x = y ==> (x : A) = (y : A)"
-  by simp
-
-
-subsubsection {* The universal set -- UNIV *}
-
-lemma UNIV_I [simp]: "x : UNIV"
-  by (simp add: UNIV_def)
-
-declare UNIV_I [intro]  -- {* unsafe makes it less likely to cause problems *}
-
-lemma UNIV_witness [intro?]: "EX x. x : UNIV"
-  by simp
-
-lemma subset_UNIV [simp]: "A \<subseteq> UNIV"
-  by (rule subsetI) (rule UNIV_I)
-
-text {*
-  \medskip Eta-contracting these two rules (to remove @{text P})
-  causes them to be ignored because of their interaction with
-  congruence rules.
-*}
-
-lemma ball_UNIV [simp]: "Ball UNIV P = All P"
-  by (simp add: Ball_def)
-
-lemma bex_UNIV [simp]: "Bex UNIV P = Ex P"
-  by (simp add: Bex_def)
-
-lemma UNIV_eq_I: "(\<And>x. x \<in> A) \<Longrightarrow> UNIV = A"
-  by auto
-
-
-subsubsection {* The empty set *}
-
-lemma empty_iff [simp]: "(c : {}) = False"
-  by (simp add: empty_def)
-
-lemma emptyE [elim!]: "a : {} ==> P"
-  by simp
-
-lemma empty_subsetI [iff]: "{} \<subseteq> A"
-    -- {* One effect is to delete the ASSUMPTION @{prop "{} <= A"} *}
+lemma image_empty [simp]: "f`{} = {}"
   by blast
 
-lemma equals0I: "(!!y. y \<in> A ==> False) ==> A = {}"
+lemma image_insert [simp]: "f ` insert a B = insert (f a) (f`B)"
   by blast
 
-lemma equals0D: "A = {} ==> a \<notin> A"
-    -- {* Use for reasoning about disjointness: @{prop "A Int B = {}"} *}
-  by blast
-
-lemma ball_empty [simp]: "Ball {} P = True"
-  by (simp add: Ball_def)
-
-lemma bex_empty [simp]: "Bex {} P = False"
-  by (simp add: Bex_def)
-
-lemma UNIV_not_empty [iff]: "UNIV ~= {}"
-  by (blast elim: equalityE)
-
-
-subsubsection {* The Powerset operator -- Pow *}
-
-lemma Pow_iff [iff]: "(A \<in> Pow B) = (A \<subseteq> B)"
-  by (simp add: Pow_def)
-
-lemma PowI: "A \<subseteq> B ==> A \<in> Pow B"
-  by (simp add: Pow_def)
-
-lemma PowD: "A \<in> Pow B ==> A \<subseteq> B"
-  by (simp add: Pow_def)
-
-lemma Pow_bottom: "{} \<in> Pow B"
-  by simp
-
-lemma Pow_top: "A \<in> Pow A"
-  by (simp add: subset_refl)
-
-
-subsubsection {* Set complement *}
-
-lemma Compl_iff [simp]: "(c \<in> -A) = (c \<notin> A)"
-  by (simp add: mem_def fun_Compl_def bool_Compl_def)
-
-lemma ComplI [intro!]: "(c \<in> A ==> False) ==> c \<in> -A"
-  by (unfold mem_def fun_Compl_def bool_Compl_def) blast
-
-text {*
-  \medskip This form, with negated conclusion, works well with the
-  Classical prover.  Negated assumptions behave like formulae on the
-  right side of the notional turnstile ... *}
-
-lemma ComplD [dest!]: "c : -A ==> c~:A"
-  by (simp add: mem_def fun_Compl_def bool_Compl_def)
-
-lemmas ComplE = ComplD [elim_format]
-
-lemma Compl_eq: "- A = {x. ~ x : A}" by blast
-
-
-subsubsection {* Binary union -- Un *}
-
-lemma Un_iff [simp]: "(c : A Un B) = (c:A | c:B)"
-  by (unfold Un_def) blast
-
-lemma UnI1 [elim?]: "c:A ==> c : A Un B"
-  by simp
-
-lemma UnI2 [elim?]: "c:B ==> c : A Un B"
-  by simp
-
-text {*
-  \medskip Classical introduction rule: no commitment to @{prop A} vs
-  @{prop B}.
-*}
-
-lemma UnCI [intro!]: "(c~:B ==> c:A) ==> c : A Un B"
+lemma image_constant: "x \<in> A ==> (\<lambda>x. c) ` A = {c}"
   by auto
 
-lemma UnE [elim!]: "c : A Un B ==> (c:A ==> P) ==> (c:B ==> P) ==> P"
-  by (unfold Un_def) blast
-
-
-subsubsection {* Binary intersection -- Int *}
-
-lemma Int_iff [simp]: "(c : A Int B) = (c:A & c:B)"
-  by (unfold Int_def) blast
-
-lemma IntI [intro!]: "c:A ==> c:B ==> c : A Int B"
-  by simp
-
-lemma IntD1: "c : A Int B ==> c:A"
-  by simp
-
-lemma IntD2: "c : A Int B ==> c:B"
-  by simp
-
-lemma IntE [elim!]: "c : A Int B ==> (c:A ==> c:B ==> P) ==> P"
-  by simp
-
-
-subsubsection {* Set difference *}
-
-lemma Diff_iff [simp]: "(c : A - B) = (c:A & c~:B)"
-  by (simp add: mem_def fun_diff_def bool_diff_def)
-
-lemma DiffI [intro!]: "c : A ==> c ~: B ==> c : A - B"
-  by simp
-
-lemma DiffD1: "c : A - B ==> c : A"
-  by simp
-
-lemma DiffD2: "c : A - B ==> c : B ==> P"
-  by simp
-
-lemma DiffE [elim!]: "c : A - B ==> (c:A ==> c~:B ==> P) ==> P"
-  by simp
-
-lemma set_diff_eq: "A - B = {x. x : A & ~ x : B}" by blast
-
-lemma Compl_eq_Diff_UNIV: "-A = (UNIV - A)"
-by blast
-
-
-subsubsection {* Augmenting a set -- insert *}
-
-lemma insert_iff [simp]: "(a : insert b A) = (a = b | a:A)"
-  by (unfold insert_def) blast
-
-lemma insertI1: "a : insert a B"
-  by simp
-
-lemma insertI2: "a : B ==> a : insert b B"
-  by simp
-
-lemma insertE [elim!]: "a : insert b A ==> (a = b ==> P) ==> (a:A ==> P) ==> P"
-  by (unfold insert_def) blast
-
-lemma insertCI [intro!]: "(a~:B ==> a = b) ==> a: insert b B"
-  -- {* Classical introduction rule. *}
-  by auto
-
-lemma subset_insert_iff: "(A \<subseteq> insert x B) = (if x:A then A - {x} \<subseteq> B else A \<subseteq> B)"
-  by auto
-
-lemma set_insert:
-  assumes "x \<in> A"
-  obtains B where "A = insert x B" and "x \<notin> B"
-proof
-  from assms show "A = insert x (A - {x})" by blast
-next
-  show "x \<notin> A - {x}" by blast
-qed
-
-lemma insert_ident: "x ~: A ==> x ~: B ==> (insert x A = insert x B) = (A = B)"
+lemma image_constant_conv: "(%x. c) ` A = (if A = {} then {} else {c})"
 by auto
 
-subsubsection {* Singletons, using insert *}
-
-lemma singletonI [intro!,noatp]: "a : {a}"
-    -- {* Redundant? But unlike @{text insertCI}, it proves the subgoal immediately! *}
-  by (rule insertI1)
-
-lemma singletonD [dest!,noatp]: "b : {a} ==> b = a"
+lemma image_image: "f ` (g ` A) = (\<lambda>x. f (g x)) ` A"
   by blast
 
-lemmas singletonE = singletonD [elim_format]
-
-lemma singleton_iff: "(b : {a}) = (b = a)"
+lemma insert_image [simp]: "x \<in> A ==> insert (f x) (f`A) = f`A"
   by blast
 
-lemma singleton_inject [dest!]: "{a} = {b} ==> a = b"
+lemma image_is_empty [iff]: "(f`A = {}) = (A = {})"
   by blast
 
-lemma singleton_insert_inj_eq [iff,noatp]:
-     "({b} = insert a A) = (a = b & A \<subseteq> {b})"
+
+lemma image_Collect [noatp]: "f ` {x. P x} = {f x | x. P x}"
+  -- {* NOT suitable as a default simprule: the RHS isn't simpler than the LHS,
+      with its implicit quantifier and conjunction.  Also image enjoys better
+      equational properties than does the RHS. *}
   by blast
 
-lemma singleton_insert_inj_eq' [iff,noatp]:
-     "(insert a A = {b}) = (a = b & A \<subseteq> {b})"
-  by blast
+lemma if_image_distrib [simp]:
+  "(\<lambda>x. if P x then f x else g x) ` S
+    = (f ` (S \<inter> {x. P x})) \<union> (g ` (S \<inter> {x. \<not> P x}))"
+  by (auto simp add: image_def)
 
-lemma subset_singletonD: "A \<subseteq> {x} ==> A = {} | A = {x}"
-  by fast
+lemma image_cong: "M = N ==> (!!x. x \<in> N ==> f x = g x) ==> f`M = g`N"
+  by (simp add: image_def)
 
-lemma singleton_conv [simp]: "{x. x = a} = {a}"
-  by blast
 
-lemma singleton_conv2 [simp]: "{x. a = x} = {a}"
-  by blast
+subsection {* Set reasoning tools *}
 
-lemma diff_single_insert: "A - {x} \<subseteq> B ==> x \<in> A ==> A \<subseteq> insert x B"
-  by blast
+text {*
+  Rewrite rules for boolean case-splitting: faster than @{text
+  "split_if [split]"}.
+*}
 
-lemma doubleton_eq_iff: "({a,b} = {c,d}) = (a=c & b=d | a=d & b=c)"
-  by (blast elim: equalityE)
+lemma split_if_eq1: "((if Q then x else y) = b) = ((Q --> x = b) & (~ Q --> y = b))"
+  by (rule split_if)
 
+lemma split_if_eq2: "(a = (if Q then x else y)) = ((Q --> a = x) & (~ Q --> a = y))"
+  by (rule split_if)
+
+text {*
+  Split ifs on either side of the membership relation.  Not for @{text
+  "[simp]"} -- can cause goals to blow up!
+*}
+
+lemma split_if_mem1: "((if Q then x else y) : b) = ((Q --> x : b) & (~ Q --> y : b))"
+  by (rule split_if)
+
+lemma split_if_mem2: "(a : (if Q then x else y)) = ((Q --> a : x) & (~ Q --> a : y))"
+  by (rule split_if [where P="%S. a : S"])
+
+lemmas split_ifs = if_bool_eq_conj split_if_eq1 split_if_eq2 split_if_mem1 split_if_mem2
+
+(*Would like to add these, but the existing code only searches for the
+  outer-level constant, which in this case is just "op :"; we instead need
+  to use term-nets to associate patterns with rules.  Also, if a rule fails to
+  apply, then the formula should be kept.
+  [("HOL.uminus", Compl_iff RS iffD1), ("HOL.minus", [Diff_iff RS iffD1]),
+   ("Int", [IntD1,IntD2]),
+   ("Collect", [CollectD]), ("Inter", [InterD]), ("INTER", [INT_D])]
+ *)
+
+ML {*
+  val mksimps_pairs = [(@{const_name Ball}, @{thms bspec})] @ mksimps_pairs;
+*}
+declaration {* fn _ =>
+  Simplifier.map_ss (fn ss => ss setmksimps (mksimps mksimps_pairs))
+*}
+
+text {* Transitivity rules for calculational reasoning *}
+
+lemma set_rev_mp: "x:A ==> A \<subseteq> B ==> x:B"
+  by (rule subsetD)
+
+lemma set_mp: "A \<subseteq> B ==> x:A ==> x:B"
+  by (rule subsetD)
+
+lemmas basic_trans_rules [trans] =
+  order_trans_rules set_rev_mp set_mp
+
+
+subsection {* Complete lattices *}
+
+notation
+  less_eq  (infix "\<sqsubseteq>" 50) and
+  less (infix "\<sqsubset>" 50) and
+  inf  (infixl "\<sqinter>" 70) and
+  sup  (infixl "\<squnion>" 65)
+
+class complete_lattice = lattice + bot + top +
+  fixes Inf :: "'a set \<Rightarrow> 'a" ("\<Sqinter>_" [900] 900)
+    and Sup :: "'a set \<Rightarrow> 'a" ("\<Squnion>_" [900] 900)
+  assumes Inf_lower: "x \<in> A \<Longrightarrow> \<Sqinter>A \<sqsubseteq> x"
+    and Inf_greatest: "(\<And>x. x \<in> A \<Longrightarrow> z \<sqsubseteq> x) \<Longrightarrow> z \<sqsubseteq> \<Sqinter>A"
+  assumes Sup_upper: "x \<in> A \<Longrightarrow> x \<sqsubseteq> \<Squnion>A"
+    and Sup_least: "(\<And>x. x \<in> A \<Longrightarrow> x \<sqsubseteq> z) \<Longrightarrow> \<Squnion>A \<sqsubseteq> z"
+begin
+
+lemma Inf_Sup: "\<Sqinter>A = \<Squnion>{b. \<forall>a \<in> A. b \<le> a}"
+  by (auto intro: antisym Inf_lower Inf_greatest Sup_upper Sup_least)
+
+lemma Sup_Inf:  "\<Squnion>A = \<Sqinter>{b. \<forall>a \<in> A. a \<le> b}"
+  by (auto intro: antisym Inf_lower Inf_greatest Sup_upper Sup_least)
+
+lemma Inf_Univ: "\<Sqinter>UNIV = \<Squnion>{}"
+  unfolding Sup_Inf by auto
+
+lemma Sup_Univ: "\<Squnion>UNIV = \<Sqinter>{}"
+  unfolding Inf_Sup by auto
+
+lemma Inf_insert: "\<Sqinter>insert a A = a \<sqinter> \<Sqinter>A"
+  by (auto intro: antisym Inf_greatest Inf_lower)
+
+lemma Sup_insert: "\<Squnion>insert a A = a \<squnion> \<Squnion>A"
+  by (auto intro: antisym Sup_least Sup_upper)
+
+lemma Inf_singleton [simp]:
+  "\<Sqinter>{a} = a"
+  by (auto intro: antisym Inf_lower Inf_greatest)
+
+lemma Sup_singleton [simp]:
+  "\<Squnion>{a} = a"
+  by (auto intro: antisym Sup_upper Sup_least)
+
+lemma Inf_insert_simp:
+  "\<Sqinter>insert a A = (if A = {} then a else a \<sqinter> \<Sqinter>A)"
+  by (cases "A = {}") (simp_all, simp add: Inf_insert)
+
+lemma Sup_insert_simp:
+  "\<Squnion>insert a A = (if A = {} then a else a \<squnion> \<Squnion>A)"
+  by (cases "A = {}") (simp_all, simp add: Sup_insert)
+
+lemma Inf_binary:
+  "\<Sqinter>{a, b} = a \<sqinter> b"
+  by (simp add: Inf_insert_simp)
+
+lemma Sup_binary:
+  "\<Squnion>{a, b} = a \<squnion> b"
+  by (simp add: Sup_insert_simp)
+
+lemma bot_def:
+  "bot = \<Squnion>{}"
+  by (auto intro: antisym Sup_least)
+
+lemma top_def:
+  "top = \<Sqinter>{}"
+  by (auto intro: antisym Inf_greatest)
+
+lemma sup_bot [simp]:
+  "x \<squnion> bot = x"
+  using bot_least [of x] by (simp add: le_iff_sup sup_commute)
+
+lemma inf_top [simp]:
+  "x \<sqinter> top = x"
+  using top_greatest [of x] by (simp add: le_iff_inf inf_commute)
+
+definition SUPR :: "'b set \<Rightarrow> ('b \<Rightarrow> 'a) \<Rightarrow> 'a" where
+  "SUPR A f == \<Squnion> (f ` A)"
+
+definition INFI :: "'b set \<Rightarrow> ('b \<Rightarrow> 'a) \<Rightarrow> 'a" where
+  "INFI A f == \<Sqinter> (f ` A)"
+
+end
+
+syntax
+  "_SUP1"     :: "pttrns => 'b => 'b"           ("(3SUP _./ _)" [0, 10] 10)
+  "_SUP"      :: "pttrn => 'a set => 'b => 'b"  ("(3SUP _:_./ _)" [0, 10] 10)
+  "_INF1"     :: "pttrns => 'b => 'b"           ("(3INF _./ _)" [0, 10] 10)
+  "_INF"      :: "pttrn => 'a set => 'b => 'b"  ("(3INF _:_./ _)" [0, 10] 10)
+
+translations
+  "SUP x y. B"   == "SUP x. SUP y. B"
+  "SUP x. B"     == "CONST SUPR CONST UNIV (%x. B)"
+  "SUP x. B"     == "SUP x:CONST UNIV. B"
+  "SUP x:A. B"   == "CONST SUPR A (%x. B)"
+  "INF x y. B"   == "INF x. INF y. B"
+  "INF x. B"     == "CONST INFI CONST UNIV (%x. B)"
+  "INF x. B"     == "INF x:CONST UNIV. B"
+  "INF x:A. B"   == "CONST INFI A (%x. B)"
+
+(* To avoid eta-contraction of body: *)
+print_translation {*
+let
+  fun btr' syn (A :: Abs abs :: ts) =
+    let val (x,t) = atomic_abs_tr' abs
+    in list_comb (Syntax.const syn $ x $ A $ t, ts) end
+  val const_syntax_name = Sign.const_syntax_name @{theory} o fst o dest_Const
+in
+[(const_syntax_name @{term SUPR}, btr' "_SUP"),(const_syntax_name @{term "INFI"}, btr' "_INF")]
+end
+*}
+
+context complete_lattice
+begin
+
+lemma le_SUPI: "i : A \<Longrightarrow> M i \<le> (SUP i:A. M i)"
+  by (auto simp add: SUPR_def intro: Sup_upper)
+
+lemma SUP_leI: "(\<And>i. i : A \<Longrightarrow> M i \<le> u) \<Longrightarrow> (SUP i:A. M i) \<le> u"
+  by (auto simp add: SUPR_def intro: Sup_least)
+
+lemma INF_leI: "i : A \<Longrightarrow> (INF i:A. M i) \<le> M i"
+  by (auto simp add: INFI_def intro: Inf_lower)
+
+lemma le_INFI: "(\<And>i. i : A \<Longrightarrow> u \<le> M i) \<Longrightarrow> u \<le> (INF i:A. M i)"
+  by (auto simp add: INFI_def intro: Inf_greatest)
+
+lemma SUP_const[simp]: "A \<noteq> {} \<Longrightarrow> (SUP i:A. M) = M"
+  by (auto intro: antisym SUP_leI le_SUPI)
+
+lemma INF_const[simp]: "A \<noteq> {} \<Longrightarrow> (INF i:A. M) = M"
+  by (auto intro: antisym INF_leI le_INFI)
+
+end
+
+subsubsection {* Bool as complete lattice *}
+
+instantiation bool :: complete_lattice
+begin
+
+definition
+  Inf_bool_def: "\<Sqinter>A \<longleftrightarrow> (\<forall>x\<in>A. x)"
+
+definition
+  Sup_bool_def: "\<Squnion>A \<longleftrightarrow> (\<exists>x\<in>A. x)"
+
+instance
+  by intro_classes (auto simp add: Inf_bool_def Sup_bool_def le_bool_def)
+
+end
+
+lemma Inf_empty_bool [simp]:
+  "\<Sqinter>{}"
+  unfolding Inf_bool_def by auto
+
+lemma not_Sup_empty_bool [simp]:
+  "\<not> Sup {}"
+  unfolding Sup_bool_def by auto
+
+
+subsubsection {* Fun as complete lattice *}
+
+instantiation "fun" :: (type, complete_lattice) complete_lattice
+begin
+
+definition
+  Inf_fun_def [code del]: "\<Sqinter>A = (\<lambda>x. \<Sqinter>{y. \<exists>f\<in>A. y = f x})"
+
+definition
+  Sup_fun_def [code del]: "\<Squnion>A = (\<lambda>x. \<Squnion>{y. \<exists>f\<in>A. y = f x})"
+
+instance
+  by intro_classes
+    (auto simp add: Inf_fun_def Sup_fun_def le_fun_def
+      intro: Inf_lower Sup_upper Inf_greatest Sup_least)
+
+end
+
+lemma Inf_empty_fun:
+  "\<Sqinter>{} = (\<lambda>_. \<Sqinter>{})"
+  by rule (auto simp add: Inf_fun_def)
+
+lemma Sup_empty_fun:
+  "\<Squnion>{} = (\<lambda>_. \<Squnion>{})"
+  by rule (auto simp add: Sup_fun_def)
+
+no_notation
+  less_eq  (infix "\<sqsubseteq>" 50) and
+  less (infix "\<sqsubset>" 50) and
+  inf  (infixl "\<sqinter>" 70) and
+  sup  (infixl "\<squnion>" 65) and
+  Inf  ("\<Sqinter>_" [900] 900) and
+  Sup  ("\<Squnion>_" [900] 900)
+
+
+subsection {* Further operations *}
+
+subsubsection {* Big families as specialisation of lattice operations *}
+
+definition INTER :: "'a set \<Rightarrow> ('a \<Rightarrow> 'b set) \<Rightarrow> 'b set" where
+  "INTER A B \<equiv> {y. \<forall>x\<in>A. y \<in> B x}"
+
+definition UNION :: "'a set \<Rightarrow> ('a \<Rightarrow> 'b set) \<Rightarrow> 'b set" where
+  "UNION A B \<equiv> {y. \<exists>x\<in>A. y \<in> B x}"
+
+definition Inter :: "'a set set \<Rightarrow> 'a set" where
+  "Inter S \<equiv> INTER S (\<lambda>x. x)"
+
+definition Union :: "'a set set \<Rightarrow> 'a set" where
+  "Union S \<equiv> UNION S (\<lambda>x. x)"
+
+notation (xsymbols)
+  Inter  ("\<Inter>_" [90] 90) and
+  Union  ("\<Union>_" [90] 90)
+
+syntax
+  "@INTER1"     :: "pttrns => 'b set => 'b set"           ("(3INT _./ _)" [0, 10] 10)
+  "@UNION1"     :: "pttrns => 'b set => 'b set"           ("(3UN _./ _)" [0, 10] 10)
+  "@INTER"      :: "pttrn => 'a set => 'b set => 'b set"  ("(3INT _:_./ _)" [0, 10] 10)
+  "@UNION"      :: "pttrn => 'a set => 'b set => 'b set"  ("(3UN _:_./ _)" [0, 10] 10)
+
+syntax (xsymbols)
+  "@INTER1"     :: "pttrns => 'b set => 'b set"           ("(3\<Inter>_./ _)" [0, 10] 10)
+  "@UNION1"     :: "pttrns => 'b set => 'b set"           ("(3\<Union>_./ _)" [0, 10] 10)
+  "@INTER"      :: "pttrn => 'a set => 'b set => 'b set"  ("(3\<Inter>_\<in>_./ _)" [0, 10] 10)
+  "@UNION"      :: "pttrn => 'a set => 'b set => 'b set"  ("(3\<Union>_\<in>_./ _)" [0, 10] 10)
+
+syntax (latex output)
+  "@INTER1"     :: "pttrns => 'b set => 'b set"           ("(3\<Inter>(00\<^bsub>_\<^esub>)/ _)" [0, 10] 10)
+  "@UNION1"     :: "pttrns => 'b set => 'b set"           ("(3\<Union>(00\<^bsub>_\<^esub>)/ _)" [0, 10] 10)
+  "@INTER"      :: "pttrn => 'a set => 'b set => 'b set"  ("(3\<Inter>(00\<^bsub>_\<in>_\<^esub>)/ _)" [0, 10] 10)
+  "@UNION"      :: "pttrn => 'a set => 'b set => 'b set"  ("(3\<Union>(00\<^bsub>_\<in>_\<^esub>)/ _)" [0, 10] 10)
+
+translations
+  "INT x y. B"  == "INT x. INT y. B"
+  "INT x. B"    == "CONST INTER CONST UNIV (%x. B)"
+  "INT x. B"    == "INT x:CONST UNIV. B"
+  "INT x:A. B"  == "CONST INTER A (%x. B)"
+  "UN x y. B"   == "UN x. UN y. B"
+  "UN x. B"     == "CONST UNION CONST UNIV (%x. B)"
+  "UN x. B"     == "UN x:CONST UNIV. B"
+  "UN x:A. B"   == "CONST UNION A (%x. B)"
+
+text {*
+  Note the difference between ordinary xsymbol syntax of indexed
+  unions and intersections (e.g.\ @{text"\<Union>a\<^isub>1\<in>A\<^isub>1. B"})
+  and their \LaTeX\ rendition: @{term"\<Union>a\<^isub>1\<in>A\<^isub>1. B"}. The
+  former does not make the index expression a subscript of the
+  union/intersection symbol because this leads to problems with nested
+  subscripts in Proof General.
+*}
+
+(* To avoid eta-contraction of body: *)
+(*FIXME  integrate with / factor out from similar situations*)
+print_translation {*
+let
+  fun btr' syn [A, Abs abs] =
+    let val (x, t) = atomic_abs_tr' abs
+    in Syntax.const syn $ x $ A $ t end
+in
+[(@{const_syntax Ball}, btr' "_Ball"), (@{const_syntax Bex}, btr' "_Bex"),
+ (@{const_syntax UNION}, btr' "@UNION"),(@{const_syntax INTER}, btr' "@INTER")]
+end
+*}
 
 subsubsection {* Unions of families *}
 
@@ -917,6 +1394,9 @@ lemma UN_cong [cong]:
 lemma strong_UN_cong:
     "A = B ==> (!!x. x:B =simp=> C x = D x) ==> (UN x:A. C x) = (UN x:B. D x)"
   by (simp add: UNION_def simp_implies_def)
+
+lemma image_eq_UN: "f`A = (UN x:A. {f x})"
+  by blast
 
 
 subsubsection {* Intersections of families *}
@@ -977,175 +1457,6 @@ lemma InterE [elim]: "A : Inter C ==> (X~:C ==> R) ==> (A:X ==> R) ==> R"
     @{prop "X:C"}. *}
   by (unfold Inter_def) blast
 
-text {*
-  \medskip Image of a set under a function.  Frequently @{term b} does
-  not have the syntactic form of @{term "f x"}.
-*}
-
-declare image_def [noatp]
-
-lemma image_eqI [simp, intro]: "b = f x ==> x:A ==> b : f`A"
-  by (unfold image_def) blast
-
-lemma imageI: "x : A ==> f x : f ` A"
-  by (rule image_eqI) (rule refl)
-
-lemma rev_image_eqI: "x:A ==> b = f x ==> b : f`A"
-  -- {* This version's more effective when we already have the
-    required @{term x}. *}
-  by (unfold image_def) blast
-
-lemma imageE [elim!]:
-  "b : (%x. f x)`A ==> (!!x. b = f x ==> x:A ==> P) ==> P"
-  -- {* The eta-expansion gives variable-name preservation. *}
-  by (unfold image_def) blast
-
-lemma image_Un: "f`(A Un B) = f`A Un f`B"
-  by blast
-
-lemma image_eq_UN: "f`A = (UN x:A. {f x})"
-  by blast
-
-lemma image_iff: "(z : f`A) = (EX x:A. z = f x)"
-  by blast
-
-lemma image_subset_iff: "(f`A \<subseteq> B) = (\<forall>x\<in>A. f x \<in> B)"
-  -- {* This rewrite rule would confuse users if made default. *}
-  by blast
-
-lemma subset_image_iff: "(B \<subseteq> f`A) = (EX AA. AA \<subseteq> A & B = f`AA)"
-  apply safe
-   prefer 2 apply fast
-  apply (rule_tac x = "{a. a : A & f a : B}" in exI, fast)
-  done
-
-lemma image_subsetI: "(!!x. x \<in> A ==> f x \<in> B) ==> f`A \<subseteq> B"
-  -- {* Replaces the three steps @{text subsetI}, @{text imageE},
-    @{text hypsubst}, but breaks too many existing proofs. *}
-  by blast
-
-text {*
-  \medskip Range of a function -- just a translation for image!
-*}
-
-lemma range_eqI: "b = f x ==> b \<in> range f"
-  by simp
-
-lemma rangeI: "f x \<in> range f"
-  by simp
-
-lemma rangeE [elim?]: "b \<in> range (\<lambda>x. f x) ==> (!!x. b = f x ==> P) ==> P"
-  by blast
-
-
-subsubsection {* Set reasoning tools *}
-
-text {*
-  Rewrite rules for boolean case-splitting: faster than @{text
-  "split_if [split]"}.
-*}
-
-lemma split_if_eq1: "((if Q then x else y) = b) = ((Q --> x = b) & (~ Q --> y = b))"
-  by (rule split_if)
-
-lemma split_if_eq2: "(a = (if Q then x else y)) = ((Q --> a = x) & (~ Q --> a = y))"
-  by (rule split_if)
-
-text {*
-  Split ifs on either side of the membership relation.  Not for @{text
-  "[simp]"} -- can cause goals to blow up!
-*}
-
-lemma split_if_mem1: "((if Q then x else y) : b) = ((Q --> x : b) & (~ Q --> y : b))"
-  by (rule split_if)
-
-lemma split_if_mem2: "(a : (if Q then x else y)) = ((Q --> a : x) & (~ Q --> a : y))"
-  by (rule split_if [where P="%S. a : S"])
-
-lemmas split_ifs = if_bool_eq_conj split_if_eq1 split_if_eq2 split_if_mem1 split_if_mem2
-
-lemmas mem_simps =
-  insert_iff empty_iff Un_iff Int_iff Compl_iff Diff_iff
-  mem_Collect_eq UN_iff Union_iff INT_iff Inter_iff
-  -- {* Each of these has ALREADY been added @{text "[simp]"} above. *}
-
-(*Would like to add these, but the existing code only searches for the
-  outer-level constant, which in this case is just "op :"; we instead need
-  to use term-nets to associate patterns with rules.  Also, if a rule fails to
-  apply, then the formula should be kept.
-  [("HOL.uminus", Compl_iff RS iffD1), ("HOL.minus", [Diff_iff RS iffD1]),
-   ("Int", [IntD1,IntD2]),
-   ("Collect", [CollectD]), ("Inter", [InterD]), ("INTER", [INT_D])]
- *)
-
-ML {*
-  val mksimps_pairs = [(@{const_name Ball}, @{thms bspec})] @ mksimps_pairs;
-*}
-declaration {* fn _ =>
-  Simplifier.map_ss (fn ss => ss setmksimps (mksimps mksimps_pairs))
-*}
-
-
-subsubsection {* The ``proper subset'' relation *}
-
-lemma psubsetI [intro!,noatp]: "A \<subseteq> B ==> A \<noteq> B ==> A \<subset> B"
-  by (unfold less_le) blast
-
-lemma psubsetE [elim!,noatp]: 
-    "[|A \<subset> B;  [|A \<subseteq> B; ~ (B\<subseteq>A)|] ==> R|] ==> R"
-  by (unfold less_le) blast
-
-lemma psubset_insert_iff:
-  "(A \<subset> insert x B) = (if x \<in> B then A \<subset> B else if x \<in> A then A - {x} \<subset> B else A \<subseteq> B)"
-  by (auto simp add: less_le subset_insert_iff)
-
-lemma psubset_eq: "(A \<subset> B) = (A \<subseteq> B & A \<noteq> B)"
-  by (simp only: less_le)
-
-lemma psubset_imp_subset: "A \<subset> B ==> A \<subseteq> B"
-  by (simp add: psubset_eq)
-
-lemma psubset_trans: "[| A \<subset> B; B \<subset> C |] ==> A \<subset> C"
-apply (unfold less_le)
-apply (auto dest: subset_antisym)
-done
-
-lemma psubsetD: "[| A \<subset> B; c \<in> A |] ==> c \<in> B"
-apply (unfold less_le)
-apply (auto dest: subsetD)
-done
-
-lemma psubset_subset_trans: "A \<subset> B ==> B \<subseteq> C ==> A \<subset> C"
-  by (auto simp add: psubset_eq)
-
-lemma subset_psubset_trans: "A \<subseteq> B ==> B \<subset> C ==> A \<subset> C"
-  by (auto simp add: psubset_eq)
-
-lemma psubset_imp_ex_mem: "A \<subset> B ==> \<exists>b. b \<in> (B - A)"
-  by (unfold less_le) blast
-
-lemma atomize_ball:
-    "(!!x. x \<in> A ==> P x) == Trueprop (\<forall>x\<in>A. P x)"
-  by (simp only: Ball_def atomize_all atomize_imp)
-
-lemmas [symmetric, rulify] = atomize_ball
-  and [symmetric, defn] = atomize_ball
-
-
-subsection {* Further set-theory lemmas *}
-
-subsubsection {* Derived rules involving subsets. *}
-
-text {* @{text insert}. *}
-
-lemma subset_insertI: "B \<subseteq> insert a B"
-  by (rule subsetI) (erule insertI2)
-
-lemma subset_insertI2: "A \<subseteq> B \<Longrightarrow> A \<subseteq> insert b B"
-  by blast
-
-lemma subset_insert: "x \<notin> A ==> (A \<subseteq> insert x B) = (A \<subseteq> B)"
-  by blast
 
 
 text {* \medskip Big Union -- least upper bound of a set. *}
@@ -1155,6 +1466,14 @@ lemma Union_upper: "B \<in> A ==> B \<subseteq> Union A"
 
 lemma Union_least: "(!!X. X \<in> A ==> X \<subseteq> C) ==> Union A \<subseteq> C"
   by (iprover intro: subsetI elim: UnionE dest: subsetD)
+
+lemma Sup_set_eq: "Sup S = \<Union>S"
+  apply (rule subset_antisym)
+  apply (rule Sup_least)
+  apply (erule Union_upper)
+  apply (rule Union_least)
+  apply (erule Sup_upper)
+  done
 
 
 text {* \medskip General union. *}
@@ -1178,76 +1497,21 @@ lemma Inter_subset:
 lemma Inter_greatest: "(!!X. X \<in> A ==> C \<subseteq> X) ==> C \<subseteq> Inter A"
   by (iprover intro: InterI subsetI dest: subsetD)
 
+lemma Inf_set_eq: "Inf S = \<Inter>S"
+  apply (rule subset_antisym)
+  apply (rule Inter_greatest)
+  apply (erule Inf_lower)
+  apply (rule Inf_greatest)
+  apply (erule Inter_lower)
+  done
+
 lemma INT_lower: "a \<in> A ==> (\<Inter>x\<in>A. B x) \<subseteq> B a"
   by blast
 
 lemma INT_greatest: "(!!x. x \<in> A ==> C \<subseteq> B x) ==> C \<subseteq> (\<Inter>x\<in>A. B x)"
   by (iprover intro: INT_I subsetI dest: subsetD)
 
-
-text {* \medskip Finite Union -- the least upper bound of two sets. *}
-
-lemma Un_upper1: "A \<subseteq> A \<union> B"
-  by blast
-
-lemma Un_upper2: "B \<subseteq> A \<union> B"
-  by blast
-
-lemma Un_least: "A \<subseteq> C ==> B \<subseteq> C ==> A \<union> B \<subseteq> C"
-  by blast
-
-
-text {* \medskip Finite Intersection -- the greatest lower bound of two sets. *}
-
-lemma Int_lower1: "A \<inter> B \<subseteq> A"
-  by blast
-
-lemma Int_lower2: "A \<inter> B \<subseteq> B"
-  by blast
-
-lemma Int_greatest: "C \<subseteq> A ==> C \<subseteq> B ==> C \<subseteq> A \<inter> B"
-  by blast
-
-
-text {* \medskip Set difference. *}
-
-lemma Diff_subset: "A - B \<subseteq> A"
-  by blast
-
-lemma Diff_subset_conv: "(A - B \<subseteq> C) = (A \<subseteq> B \<union> C)"
-by blast
-
-
-subsubsection {* Equalities involving union, intersection, inclusion, etc. *}
-
-text {* @{text "{}"}. *}
-
-lemma Collect_const [simp]: "{s. P} = (if P then UNIV else {})"
-  -- {* supersedes @{text "Collect_False_empty"} *}
-  by auto
-
-lemma subset_empty [simp]: "(A \<subseteq> {}) = (A = {})"
-  by blast
-
-lemma not_psubset_empty [iff]: "\<not> (A < {})"
-  by (unfold less_le) blast
-
-lemma Collect_empty_eq [simp]: "(Collect P = {}) = (\<forall>x. \<not> P x)"
-by blast
-
-lemma empty_Collect_eq [simp]: "({} = Collect P) = (\<forall>x. \<not> P x)"
-by blast
-
-lemma Collect_neg_eq: "{x. \<not> P x} = - {x. P x}"
-  by blast
-
-lemma Collect_disj_eq: "{x. P x | Q x} = {x. P x} \<union> {x. Q x}"
-  by blast
-
-lemma Collect_imp_eq: "{x. P x --> Q x} = -{x. P x} \<union> {x. Q x}"
-  by blast
-
-lemma Collect_conj_eq: "{x. P x & Q x} = {x. P x} \<inter> {x. Q x}"
+lemma UN_insert_distrib: "u \<in> A ==> (\<Union>x\<in>A. insert a (B x)) = insert a (\<Union>x\<in>A. B x)"
   by blast
 
 lemma Collect_all_eq: "{x. \<forall>y. P x y} = (\<Inter>y. {x. P x y})"
@@ -1263,96 +1527,58 @@ lemma Collect_bex_eq [noatp]: "{x. \<exists>y\<in>A. P x y} = (\<Union>y\<in>A. 
   by blast
 
 
-text {* \medskip @{text insert}. *}
+subsubsection {* The Powerset operator -- Pow *}
 
-lemma insert_is_Un: "insert a A = {a} Un A"
-  -- {* NOT SUITABLE FOR REWRITING since @{text "{a} == insert a {}"} *}
+global
+
+consts
+  Pow           :: "'a set => 'a set set"
+
+local
+
+defs
+  Pow_def:      "Pow A          == {B. B <= A}"
+
+lemma Pow_iff [iff]: "(A \<in> Pow B) = (A \<subseteq> B)"
+  by (simp add: Pow_def)
+
+lemma PowI: "A \<subseteq> B ==> A \<in> Pow B"
+  by (simp add: Pow_def)
+
+lemma PowD: "A \<in> Pow B ==> A \<subseteq> B"
+  by (simp add: Pow_def)
+
+lemma Pow_bottom: "{} \<in> Pow B"
+  by simp
+
+lemma Pow_top: "A \<in> Pow A"
+  by (simp add: subset_refl)
+
+
+
+subsubsection {* Getting the Contents of a Singleton Set *}
+
+definition contents :: "'a set \<Rightarrow> 'a" where
+  [code del]: "contents X = (THE x. X = {x})"
+
+lemma contents_eq [simp]: "contents {x} = x"
+  by (simp add: contents_def)
+
+
+subsubsection {* Range of a function -- just a translation for image! *}
+
+abbreviation
+  range :: "('a => 'b) => 'b set" where -- "of function"
+  "range f == f ` UNIV"
+
+lemma range_eqI: "b = f x ==> b \<in> range f"
+  by simp
+
+lemma rangeI: "f x \<in> range f"
+  by simp
+
+lemma rangeE [elim?]: "b \<in> range (\<lambda>x. f x) ==> (!!x. b = f x ==> P) ==> P"
   by blast
-
-lemma insert_not_empty [simp]: "insert a A \<noteq> {}"
-  by blast
-
-lemmas empty_not_insert = insert_not_empty [symmetric, standard]
-declare empty_not_insert [simp]
-
-lemma insert_absorb: "a \<in> A ==> insert a A = A"
-  -- {* @{text "[simp]"} causes recursive calls when there are nested inserts *}
-  -- {* with \emph{quadratic} running time *}
-  by blast
-
-lemma insert_absorb2 [simp]: "insert x (insert x A) = insert x A"
-  by blast
-
-lemma insert_commute: "insert x (insert y A) = insert y (insert x A)"
-  by blast
-
-lemma insert_subset [simp]: "(insert x A \<subseteq> B) = (x \<in> B & A \<subseteq> B)"
-  by blast
-
-lemma mk_disjoint_insert: "a \<in> A ==> \<exists>B. A = insert a B & a \<notin> B"
-  -- {* use new @{text B} rather than @{text "A - {a}"} to avoid infinite unfolding *}
-  apply (rule_tac x = "A - {a}" in exI, blast)
-  done
-
-lemma insert_Collect: "insert a (Collect P) = {u. u \<noteq> a --> P u}"
-  by auto
-
-lemma UN_insert_distrib: "u \<in> A ==> (\<Union>x\<in>A. insert a (B x)) = insert a (\<Union>x\<in>A. B x)"
-  by blast
-
-lemma insert_inter_insert[simp]: "insert a A \<inter> insert a B = insert a (A \<inter> B)"
-  by blast
-
-lemma insert_disjoint [simp,noatp]:
- "(insert a A \<inter> B = {}) = (a \<notin> B \<and> A \<inter> B = {})"
- "({} = insert a A \<inter> B) = (a \<notin> B \<and> {} = A \<inter> B)"
-  by auto
-
-lemma disjoint_insert [simp,noatp]:
- "(B \<inter> insert a A = {}) = (a \<notin> B \<and> B \<inter> A = {})"
- "({} = A \<inter> insert b B) = (b \<notin> A \<and> {} = A \<inter> B)"
-  by auto
-
-text {* \medskip @{text image}. *}
-
-lemma image_empty [simp]: "f`{} = {}"
-  by blast
-
-lemma image_insert [simp]: "f ` insert a B = insert (f a) (f`B)"
-  by blast
-
-lemma image_constant: "x \<in> A ==> (\<lambda>x. c) ` A = {c}"
-  by auto
-
-lemma image_constant_conv: "(%x. c) ` A = (if A = {} then {} else {c})"
-by auto
-
-lemma image_image: "f ` (g ` A) = (\<lambda>x. f (g x)) ` A"
-  by blast
-
-lemma insert_image [simp]: "x \<in> A ==> insert (f x) (f`A) = f`A"
-  by blast
-
-lemma image_is_empty [iff]: "(f`A = {}) = (A = {})"
-  by blast
-
-
-lemma image_Collect [noatp]: "f ` {x. P x} = {f x | x. P x}"
-  -- {* NOT suitable as a default simprule: the RHS isn't simpler than the LHS,
-      with its implicit quantifier and conjunction.  Also image enjoys better
-      equational properties than does the RHS. *}
-  by blast
-
-lemma if_image_distrib [simp]:
-  "(\<lambda>x. if P x then f x else g x) ` S
-    = (f ` (S \<inter> {x. P x})) \<union> (g ` (S \<inter> {x. \<not> P x}))"
-  by (auto simp add: image_def)
-
-lemma image_cong: "M = N ==> (!!x. x \<in> N ==> f x = g x) ==> f`M = g`N"
-  by (simp add: image_def)
-
-
-text {* \medskip @{text range}. *}
 
 lemma full_SetCompr_eq [noatp]: "{u. \<exists>x. u = f x} = range f"
   by auto
@@ -1360,6 +1586,8 @@ lemma full_SetCompr_eq [noatp]: "{u. \<exists>x. u = f x} = range f"
 lemma range_composition: "range (\<lambda>x. f (g x)) = f`range g"
 by (subst image_image, simp)
 
+
+subsection {* Further rules and properties *}
 
 text {* \medskip @{text Int} *}
 
@@ -2048,6 +2276,16 @@ lemma Diff_mono: "A \<subseteq> C ==> D \<subseteq> B ==> A - B \<subseteq> C - 
 lemma Compl_anti_mono: "A \<subseteq> B ==> -B \<subseteq> -A"
   by blast
 
+lemma mono_Int: "mono f \<Longrightarrow> f (A \<inter> B) \<subseteq> f A \<inter> f B"
+  apply (fold inf_set_eq sup_set_eq)
+  apply (erule mono_inf)
+  done
+
+lemma mono_Un: "mono f \<Longrightarrow> f A \<union> f B \<subseteq> f (A \<union> B)"
+  apply (fold inf_set_eq sup_set_eq)
+  apply (erule mono_sup)
+  done
+
 text {* \medskip Monotonicity of implications. *}
 
 lemma in_mono: "A \<subseteq> B ==> x \<in> A --> x \<in> B"
@@ -2090,14 +2328,11 @@ lemma eq_to_mono2: "a = b ==> c = d ==> ~ b --> ~ d ==> ~ a --> ~ c"
   by iprover
 
 
-subsection {* Inverse image of a function *}
+subsubsection {* Inverse image of a function *}
 
 constdefs
   vimage :: "('a => 'b) => 'b set => 'a set"    (infixr "-`" 90)
   [code del]: "f -` B == {x. f x : B}"
-
-
-subsubsection {* Basic rules *}
 
 lemma vimage_eq [simp]: "(a : f -` B) = (f a : B)"
   by (unfold vimage_def) blast
@@ -2116,9 +2351,6 @@ lemma vimageE [elim!]: "a: f -` B ==> (!!x. f a = x ==> x:B ==> P) ==> P"
 
 lemma vimageD: "a : f -` A ==> f a : A"
   by (unfold vimage_def) fast
-
-
-subsubsection {* Equations *}
 
 lemma vimage_empty [simp]: "f -` {} = {}"
   by blast
@@ -2184,28 +2416,7 @@ lemma image_UN: "(f ` (UNION A B)) = (UN x:A.(f ` (B x)))"
 by blast
 
 
-subsection {* Getting the Contents of a Singleton Set *}
-
-definition contents :: "'a set \<Rightarrow> 'a" where
-  [code del]: "contents X = (THE x. X = {x})"
-
-lemma contents_eq [simp]: "contents {x} = x"
-  by (simp add: contents_def)
-
-
-subsection {* Transitivity rules for calculational reasoning *}
-
-lemma set_rev_mp: "x:A ==> A \<subseteq> B ==> x:B"
-  by (rule subsetD)
-
-lemma set_mp: "A \<subseteq> B ==> x:A ==> x:B"
-  by (rule subsetD)
-
-lemmas basic_trans_rules [trans] =
-  order_trans_rules set_rev_mp set_mp
-
-
-subsection {* Least value operator *}
+subsubsection {* Least value operator *}
 
 lemma Least_mono:
   "mono (f::'a::order => 'b::order) ==> EX x:S. ALL y:S. x <= y
@@ -2218,7 +2429,7 @@ lemma Least_mono:
   done
 
 
-subsection {* Rudimentary code generation *}
+subsubsection {* Rudimentary code generation *}
 
 lemma empty_code [code]: "{} x \<longleftrightarrow> False"
   unfolding empty_def Collect_def ..
@@ -2239,257 +2450,13 @@ lemma vimage_code [code]: "(f -` A) x = A (f x)"
   unfolding vimage_def Collect_def mem_def ..
 
 
-subsection {* Complete lattices *}
+subsection {* Misc theorem and ML bindings *}
 
-notation
-  less_eq  (infix "\<sqsubseteq>" 50) and
-  less (infix "\<sqsubset>" 50) and
-  inf  (infixl "\<sqinter>" 70) and
-  sup  (infixl "\<squnion>" 65)
-
-class complete_lattice = lattice + bot + top +
-  fixes Inf :: "'a set \<Rightarrow> 'a" ("\<Sqinter>_" [900] 900)
-    and Sup :: "'a set \<Rightarrow> 'a" ("\<Squnion>_" [900] 900)
-  assumes Inf_lower: "x \<in> A \<Longrightarrow> \<Sqinter>A \<sqsubseteq> x"
-     and Inf_greatest: "(\<And>x. x \<in> A \<Longrightarrow> z \<sqsubseteq> x) \<Longrightarrow> z \<sqsubseteq> \<Sqinter>A"
-  assumes Sup_upper: "x \<in> A \<Longrightarrow> x \<sqsubseteq> \<Squnion>A"
-     and Sup_least: "(\<And>x. x \<in> A \<Longrightarrow> x \<sqsubseteq> z) \<Longrightarrow> \<Squnion>A \<sqsubseteq> z"
-begin
-
-lemma Inf_Sup: "\<Sqinter>A = \<Squnion>{b. \<forall>a \<in> A. b \<le> a}"
-  by (auto intro: antisym Inf_lower Inf_greatest Sup_upper Sup_least)
-
-lemma Sup_Inf:  "\<Squnion>A = \<Sqinter>{b. \<forall>a \<in> A. a \<le> b}"
-  by (auto intro: antisym Inf_lower Inf_greatest Sup_upper Sup_least)
-
-lemma Inf_Univ: "\<Sqinter>UNIV = \<Squnion>{}"
-  unfolding Sup_Inf by auto
-
-lemma Sup_Univ: "\<Squnion>UNIV = \<Sqinter>{}"
-  unfolding Inf_Sup by auto
-
-lemma Inf_insert: "\<Sqinter>insert a A = a \<sqinter> \<Sqinter>A"
-  by (auto intro: antisym Inf_greatest Inf_lower)
-
-lemma Sup_insert: "\<Squnion>insert a A = a \<squnion> \<Squnion>A"
-  by (auto intro: antisym Sup_least Sup_upper)
-
-lemma Inf_singleton [simp]:
-  "\<Sqinter>{a} = a"
-  by (auto intro: antisym Inf_lower Inf_greatest)
-
-lemma Sup_singleton [simp]:
-  "\<Squnion>{a} = a"
-  by (auto intro: antisym Sup_upper Sup_least)
-
-lemma Inf_insert_simp:
-  "\<Sqinter>insert a A = (if A = {} then a else a \<sqinter> \<Sqinter>A)"
-  by (cases "A = {}") (simp_all, simp add: Inf_insert)
-
-lemma Sup_insert_simp:
-  "\<Squnion>insert a A = (if A = {} then a else a \<squnion> \<Squnion>A)"
-  by (cases "A = {}") (simp_all, simp add: Sup_insert)
-
-lemma Inf_binary:
-  "\<Sqinter>{a, b} = a \<sqinter> b"
-  by (simp add: Inf_insert_simp)
-
-lemma Sup_binary:
-  "\<Squnion>{a, b} = a \<squnion> b"
-  by (simp add: Sup_insert_simp)
-
-lemma bot_def:
-  "bot = \<Squnion>{}"
-  by (auto intro: antisym Sup_least)
-
-lemma top_def:
-  "top = \<Sqinter>{}"
-  by (auto intro: antisym Inf_greatest)
-
-lemma sup_bot [simp]:
-  "x \<squnion> bot = x"
-  using bot_least [of x] by (simp add: le_iff_sup sup_commute)
-
-lemma inf_top [simp]:
-  "x \<sqinter> top = x"
-  using top_greatest [of x] by (simp add: le_iff_inf inf_commute)
-
-definition SUPR :: "'b set \<Rightarrow> ('b \<Rightarrow> 'a) \<Rightarrow> 'a" where
-  "SUPR A f == \<Squnion> (f ` A)"
-
-definition INFI :: "'b set \<Rightarrow> ('b \<Rightarrow> 'a) \<Rightarrow> 'a" where
-  "INFI A f == \<Sqinter> (f ` A)"
-
-end
-
-syntax
-  "_SUP1"     :: "pttrns => 'b => 'b"           ("(3SUP _./ _)" [0, 10] 10)
-  "_SUP"      :: "pttrn => 'a set => 'b => 'b"  ("(3SUP _:_./ _)" [0, 10] 10)
-  "_INF1"     :: "pttrns => 'b => 'b"           ("(3INF _./ _)" [0, 10] 10)
-  "_INF"      :: "pttrn => 'a set => 'b => 'b"  ("(3INF _:_./ _)" [0, 10] 10)
-
-translations
-  "SUP x y. B"   == "SUP x. SUP y. B"
-  "SUP x. B"     == "CONST SUPR CONST UNIV (%x. B)"
-  "SUP x. B"     == "SUP x:CONST UNIV. B"
-  "SUP x:A. B"   == "CONST SUPR A (%x. B)"
-  "INF x y. B"   == "INF x. INF y. B"
-  "INF x. B"     == "CONST INFI CONST UNIV (%x. B)"
-  "INF x. B"     == "INF x:CONST UNIV. B"
-  "INF x:A. B"   == "CONST INFI A (%x. B)"
-
-(* To avoid eta-contraction of body: *)
-print_translation {*
-let
-  fun btr' syn (A :: Abs abs :: ts) =
-    let val (x,t) = atomic_abs_tr' abs
-    in list_comb (Syntax.const syn $ x $ A $ t, ts) end
-  val const_syntax_name = Sign.const_syntax_name @{theory} o fst o dest_Const
-in
-[(const_syntax_name @{term SUPR}, btr' "_SUP"),(const_syntax_name @{term "INFI"}, btr' "_INF")]
-end
-*}
-
-context complete_lattice
-begin
-
-lemma le_SUPI: "i : A \<Longrightarrow> M i \<le> (SUP i:A. M i)"
-  by (auto simp add: SUPR_def intro: Sup_upper)
-
-lemma SUP_leI: "(\<And>i. i : A \<Longrightarrow> M i \<le> u) \<Longrightarrow> (SUP i:A. M i) \<le> u"
-  by (auto simp add: SUPR_def intro: Sup_least)
-
-lemma INF_leI: "i : A \<Longrightarrow> (INF i:A. M i) \<le> M i"
-  by (auto simp add: INFI_def intro: Inf_lower)
-
-lemma le_INFI: "(\<And>i. i : A \<Longrightarrow> u \<le> M i) \<Longrightarrow> u \<le> (INF i:A. M i)"
-  by (auto simp add: INFI_def intro: Inf_greatest)
-
-lemma SUP_const[simp]: "A \<noteq> {} \<Longrightarrow> (SUP i:A. M) = M"
-  by (auto intro: antisym SUP_leI le_SUPI)
-
-lemma INF_const[simp]: "A \<noteq> {} \<Longrightarrow> (INF i:A. M) = M"
-  by (auto intro: antisym INF_leI le_INFI)
-
-end
-
-
-subsection {* Bool as complete lattice *}
-
-instantiation bool :: complete_lattice
-begin
-
-definition
-  Inf_bool_def: "\<Sqinter>A \<longleftrightarrow> (\<forall>x\<in>A. x)"
-
-definition
-  Sup_bool_def: "\<Squnion>A \<longleftrightarrow> (\<exists>x\<in>A. x)"
-
-instance
-  by intro_classes (auto simp add: Inf_bool_def Sup_bool_def le_bool_def)
-
-end
-
-lemma Inf_empty_bool [simp]:
-  "\<Sqinter>{}"
-  unfolding Inf_bool_def by auto
-
-lemma not_Sup_empty_bool [simp]:
-  "\<not> Sup {}"
-  unfolding Sup_bool_def by auto
-
-
-subsection {* Fun as complete lattice *}
-
-instantiation "fun" :: (type, complete_lattice) complete_lattice
-begin
-
-definition
-  Inf_fun_def [code del]: "\<Sqinter>A = (\<lambda>x. \<Sqinter>{y. \<exists>f\<in>A. y = f x})"
-
-definition
-  Sup_fun_def [code del]: "\<Squnion>A = (\<lambda>x. \<Squnion>{y. \<exists>f\<in>A. y = f x})"
-
-instance
-  by intro_classes
-    (auto simp add: Inf_fun_def Sup_fun_def le_fun_def
-      intro: Inf_lower Sup_upper Inf_greatest Sup_least)
-
-end
-
-lemma Inf_empty_fun:
-  "\<Sqinter>{} = (\<lambda>_. \<Sqinter>{})"
-  by rule (auto simp add: Inf_fun_def)
-
-lemma Sup_empty_fun:
-  "\<Squnion>{} = (\<lambda>_. \<Squnion>{})"
-  by rule (auto simp add: Sup_fun_def)
-
-
-subsection {* Set as lattice *}
-
-lemma inf_set_eq: "A \<sqinter> B = A \<inter> B"
-  apply (rule subset_antisym)
-  apply (rule Int_greatest)
-  apply (rule inf_le1)
-  apply (rule inf_le2)
-  apply (rule inf_greatest)
-  apply (rule Int_lower1)
-  apply (rule Int_lower2)
-  done
-
-lemma sup_set_eq: "A \<squnion> B = A \<union> B"
-  apply (rule subset_antisym)
-  apply (rule sup_least)
-  apply (rule Un_upper1)
-  apply (rule Un_upper2)
-  apply (rule Un_least)
-  apply (rule sup_ge1)
-  apply (rule sup_ge2)
-  done
-
-lemma mono_Int: "mono f \<Longrightarrow> f (A \<inter> B) \<subseteq> f A \<inter> f B"
-  apply (fold inf_set_eq sup_set_eq)
-  apply (erule mono_inf)
-  done
-
-lemma mono_Un: "mono f \<Longrightarrow> f A \<union> f B \<subseteq> f (A \<union> B)"
-  apply (fold inf_set_eq sup_set_eq)
-  apply (erule mono_sup)
-  done
-
-lemma Inf_set_eq: "\<Sqinter>S = \<Inter>S"
-  apply (rule subset_antisym)
-  apply (rule Inter_greatest)
-  apply (erule Inf_lower)
-  apply (rule Inf_greatest)
-  apply (erule Inter_lower)
-  done
-
-lemma Sup_set_eq: "\<Squnion>S = \<Union>S"
-  apply (rule subset_antisym)
-  apply (rule Sup_least)
-  apply (erule Union_upper)
-  apply (rule Union_least)
-  apply (erule Sup_upper)
-  done
-  
-lemma top_set_eq: "top = UNIV"
-  by (iprover intro!: subset_antisym subset_UNIV top_greatest)
-
-lemma bot_set_eq: "bot = {}"
-  by (iprover intro!: subset_antisym empty_subsetI bot_least)
-
-no_notation
-  less_eq  (infix "\<sqsubseteq>" 50) and
-  less (infix "\<sqsubset>" 50) and
-  inf  (infixl "\<sqinter>" 70) and
-  sup  (infixl "\<squnion>" 65) and
-  Inf  ("\<Sqinter>_" [900] 900) and
-  Sup  ("\<Squnion>_" [900] 900)
-
-
-subsection {* Basic ML bindings *}
+lemmas equalityI = subset_antisym
+lemmas mem_simps =
+  insert_iff empty_iff Un_iff Int_iff Compl_iff Diff_iff
+  mem_Collect_eq UN_iff Union_iff INT_iff Inter_iff
+  -- {* Each of these has ALREADY been added @{text "[simp]"} above. *}
 
 ML {*
 val Ball_def = @{thm Ball_def}
