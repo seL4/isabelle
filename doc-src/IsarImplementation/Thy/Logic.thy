@@ -126,10 +126,10 @@ text %mlref {*
   \begin{mldecls}
   @{index_ML Sign.subsort: "theory -> sort * sort -> bool"} \\
   @{index_ML Sign.of_sort: "theory -> typ * sort -> bool"} \\
-  @{index_ML Sign.add_types: "(string * int * mixfix) list -> theory -> theory"} \\
+  @{index_ML Sign.add_types: "(binding * int * mixfix) list -> theory -> theory"} \\
   @{index_ML Sign.add_tyabbrs_i: "
-  (string * string list * typ * mixfix) list -> theory -> theory"} \\
-  @{index_ML Sign.primitive_class: "string * class list -> theory -> theory"} \\
+  (binding * string list * typ * mixfix) list -> theory -> theory"} \\
+  @{index_ML Sign.primitive_class: "binding * class list -> theory -> theory"} \\
   @{index_ML Sign.primitive_classrel: "class * class -> theory -> theory"} \\
   @{index_ML Sign.primitive_arity: "arity -> theory -> theory"} \\
   \end{mldecls}

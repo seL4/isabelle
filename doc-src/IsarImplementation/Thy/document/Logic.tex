@@ -137,10 +137,10 @@ The language of types is an uninterpreted order-sorted first-order
   \begin{mldecls}
   \indexdef{}{ML}{Sign.subsort}\verb|Sign.subsort: theory -> sort * sort -> bool| \\
   \indexdef{}{ML}{Sign.of\_sort}\verb|Sign.of_sort: theory -> typ * sort -> bool| \\
-  \indexdef{}{ML}{Sign.add\_types}\verb|Sign.add_types: (string * int * mixfix) list -> theory -> theory| \\
+  \indexdef{}{ML}{Sign.add\_types}\verb|Sign.add_types: (binding * int * mixfix) list -> theory -> theory| \\
   \indexdef{}{ML}{Sign.add\_tyabbrs\_i}\verb|Sign.add_tyabbrs_i: |\isasep\isanewline%
-\verb|  (string * string list * typ * mixfix) list -> theory -> theory| \\
-  \indexdef{}{ML}{Sign.primitive\_class}\verb|Sign.primitive_class: string * class list -> theory -> theory| \\
+\verb|  (binding * string list * typ * mixfix) list -> theory -> theory| \\
+  \indexdef{}{ML}{Sign.primitive\_class}\verb|Sign.primitive_class: binding * class list -> theory -> theory| \\
   \indexdef{}{ML}{Sign.primitive\_classrel}\verb|Sign.primitive_classrel: class * class -> theory -> theory| \\
   \indexdef{}{ML}{Sign.primitive\_arity}\verb|Sign.primitive_arity: arity -> theory -> theory| \\
   \end{mldecls}
