@@ -1227,7 +1227,7 @@ struct
           SatSolver.SATISFIABLE assignment =>
           (Output.priority ("*** Model found: ***\n" ^ print_model thy model
             (fn i => case assignment i of SOME b => b | NONE => true));
-           "genuine")
+           if maybe_spurious then "potential" else "genuine")
         | SatSolver.UNSATISFIABLE _ =>
           (Output.priority "No model exists.";
           case next_universe universe sizes minsize maxsize of
