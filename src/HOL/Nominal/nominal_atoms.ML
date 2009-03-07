@@ -100,7 +100,7 @@ fun create_nom_typedecls ak_names thy =
     
     val (_,thy1) = 
     fold_map (fn ak => fn thy => 
-          let val dt = ([],ak,NoSyn,[(ak,[@{typ nat}],NoSyn)]) 
+          let val dt = ([], Binding.name ak, NoSyn, [(Binding.name ak, [@{typ nat}], NoSyn)])
               val ({inject,case_thms,...},thy1) = DatatypePackage.add_datatype true false [ak] [dt] thy
               val inject_flat = Library.flat inject
               val ak_type = Type (Sign.intern_type thy1 ak,[])
@@ -187,7 +187,7 @@ fun create_nom_typedecls ak_names thy =
                     cif $ HOLogic.mk_eq (a,c) $ b $ (cif $ HOLogic.mk_eq (b,c) $ a $ c)))
         val def2 = Logic.mk_equals (cswap $ ab $ c, cswap_akname $ ab $ c)
       in
-        thy |> Sign.add_consts_i [("swap_" ^ ak_name, swapT, NoSyn)] 
+        thy |> Sign.add_consts_i [(Binding.name ("swap_" ^ ak_name), swapT, NoSyn)] 
             |> PureThy.add_defs_unchecked true [((Binding.name name, def2),[])]
             |> snd
             |> OldPrimrecPackage.add_primrec_unchecked_i "" [(("", def1),[])]
@@ -217,7 +217,7 @@ fun create_nom_typedecls ak_names thy =
                    (Const (qu_prm_name, prmT) $ mk_Cons x xs $ a,
                     Const (swap_name, swapT) $ x $ (Const (qu_prm_name, prmT) $ xs $ a)));
       in
-        thy |> Sign.add_consts_i [(prm_name, mk_permT T --> T --> T, NoSyn)] 
+        thy |> Sign.add_consts_i [(Binding.name prm_name, mk_permT T --> T --> T, NoSyn)] 
             |> OldPrimrecPackage.add_primrec_unchecked_i "" [(("", def1), []),(("", def2), [])]
       end) ak_names_types thy3;
     
@@ -300,7 +300,7 @@ fun create_nom_typedecls ak_names thy =
                        (HOLogic.mk_Trueprop (cprm_eq $ pi1 $ pi2),
                         HOLogic.mk_Trueprop (HOLogic.mk_eq (cperm $ pi1 $ x, cperm $ pi2 $ x)));
       in
-          AxClass.define_class (cl_name, ["HOL.type"]) []
+          AxClass.define_class (Binding.name cl_name, ["HOL.type"]) []
                 [((Binding.name (cl_name ^ "1"), [Simplifier.simp_add]), [axiom1]),
                  ((Binding.name (cl_name ^ "2"), []), [axiom2]),                           
                  ((Binding.name (cl_name ^ "3"), []), [axiom3])] thy
@@ -349,7 +349,8 @@ fun create_nom_typedecls ak_names thy =
           val axiom1   = HOLogic.mk_Trueprop (cfinite $ (csupp $ x));
 
        in  
-        AxClass.define_class (cl_name, [pt_name]) [] [((Binding.name (cl_name ^ "1"), []), [axiom1])] thy            
+        AxClass.define_class (Binding.name cl_name, [pt_name]) []
+          [((Binding.name (cl_name ^ "1"), []), [axiom1])] thy
        end) ak_names_types thy8; 
          
      (* proves that every fs_<ak>-type together with <ak>-type   *)
@@ -398,7 +399,7 @@ fun create_nom_typedecls ak_names thy =
                            (HOLogic.mk_eq (cperm1 $ pi1 $ (cperm2 $ pi2 $ x), 
                                            cperm2 $ (cperm3 $ pi1 $ pi2) $ (cperm1 $ pi1 $ x)));
                in  
-                 AxClass.define_class (cl_name, ["HOL.type"]) []
+                 AxClass.define_class (Binding.name cl_name, ["HOL.type"]) []
                    [((Binding.name (cl_name ^ "1"), []), [ax1])] thy'  
                end) ak_names_types thy) ak_names_types thy12;
 

@@ -10,9 +10,9 @@ sig
     (*FIXME the split into class_target.ML, theory_target.ML and
       class.ML is artificial*)
 
-  val class: bstring -> class list -> Element.context_i list
+  val class: binding -> class list -> Element.context_i list
     -> theory -> string * local_theory
-  val class_cmd: bstring -> xstring list -> Element.context list
+  val class_cmd: binding -> xstring list -> Element.context list
     -> theory -> string * local_theory
   val prove_subclass: tactic -> class -> local_theory -> local_theory
   val subclass: class -> local_theory -> Proof.state
@@ -66,15 +66,14 @@ fun calculate thy class sups base_sort param_map assm_axiom =
 
     (* canonical interpretation *)
     val base_morph = inst_morph
-      $> Morphism.binding_morphism
-           (Binding.add_prefix false (class_prefix class))
+      $> Morphism.binding_morphism (Binding.prefix false (class_prefix class))
       $> Element.satisfy_morphism (the_list wit);
     val defs = these_defs thy sups;
     val eq_morph = Element.eq_morphism thy defs;
     val morph = base_morph $> eq_morph;
 
     (* assm_intro *)
-    fun prove_assm_intro thm = 
+    fun prove_assm_intro thm =
       let
         val ((_, [thm']), _) = Variable.import_thms true [thm] empty_ctxt;
         val thm'' = Morphism.thm (const_morph $> eq_morph) thm';
@@ -170,7 +169,7 @@ fun prep_class_spec prep_class prep_class_elems thy raw_supclasses raw_elems =
     val _ = case filter_out (is_class thy) sups
      of [] => ()
       | no_classes => error ("No (proper) classes: " ^ commas (map quote no_classes));
-          val supparams = (map o apsnd) (snd o snd) (these_params thy sups);
+    val supparams = (map o apsnd) (snd o snd) (these_params thy sups);
     val supparam_names = map fst supparams;
     val _ = if has_duplicates (op =) supparam_names
       then error ("Duplicate parameter(s) in superclasses: "
@@ -201,7 +200,7 @@ fun prep_class_spec prep_class prep_class_elems thy raw_supclasses raw_elems =
       | check_element e = [()];
     val _ = map check_element syntax_elems;
     fun fork_syn (Element.Fixes xs) =
-          fold_map (fn (c, ty, syn) => cons (Binding.name_of c, syn) #> pair (c, ty, NoSyn)) xs
+          fold_map (fn (c, ty, syn) => cons (c, syn) #> pair (c, ty, NoSyn)) xs
           #>> Element.Fixes
       | fork_syn x = pair x;
     val (elems, global_syntax) = fold_map fork_syn syntax_elems [];
@@ -218,7 +217,7 @@ val read_class_spec = prep_class_spec Sign.intern_class read_class_elems;
 
 (* class establishment *)
 
-fun add_consts bname class base_sort sups supparams global_syntax thy =
+fun add_consts class base_sort sups supparams global_syntax thy =
   let
     (*FIXME simplify*)
     val supconsts = supparams
@@ -228,17 +227,16 @@ fun add_consts bname class base_sort sups supparams global_syntax thy =
     val raw_params = (snd o chop (length supparams)) all_params;
     fun add_const (b, SOME raw_ty, _) thy =
       let
-        val v = Binding.name_of b;
-        val c = Sign.full_bname thy v;
+        val c = Sign.full_name thy b;
         val ty = map_atyps (K (TFree (Name.aT, base_sort))) raw_ty;
         val ty0 = Type.strip_sorts ty;
         val ty' = map_atyps (K (TFree (Name.aT, [class]))) ty0;
-        val syn = (the_default NoSyn o AList.lookup (op =) global_syntax) v;
+        val syn = (the_default NoSyn o AList.lookup Binding.eq_name global_syntax) b;
       in
         thy
-        |> Sign.declare_const [] ((Binding.name v, ty0), syn)
+        |> Sign.declare_const [] ((b, ty0), syn)
         |> snd
-        |> pair ((v, ty), (c, ty'))
+        |> pair ((Binding.name_of b, ty), (c, ty'))
       end;
   in
     thy
@@ -262,7 +260,7 @@ fun adjungate_axclass bname class base_sort sups supsort supparams global_syntax
       | [thm] => SOME thm;
   in
     thy
-    |> add_consts bname class base_sort sups supparams global_syntax
+    |> add_consts class base_sort sups supparams global_syntax
     |-> (fn (param_map, params) => AxClass.define_class (bname, supsort)
           (map (fst o snd) params)
           [(Thm.empty_binding, Option.map (globalize param_map) raw_pred |> the_list)]
@@ -274,12 +272,12 @@ fun adjungate_axclass bname class base_sort sups supsort supparams global_syntax
 
 fun gen_class prep_spec bname raw_supclasses raw_elems thy =
   let
-    val class = Sign.full_bname thy bname;
+    val class = Sign.full_name thy bname;
     val (((sups, supparams), (supsort, base_sort, supexpr)), (elems, global_syntax)) =
       prep_spec thy raw_supclasses raw_elems;
   in
     thy
-    |> Expression.add_locale bname "" supexpr elems
+    |> Expression.add_locale bname Binding.empty supexpr elems
     |> snd |> LocalTheory.exit_global
     |> adjungate_axclass bname class base_sort sups supsort supparams global_syntax
     |-> (fn (param_map, params, assm_axiom) =>

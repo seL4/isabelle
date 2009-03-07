@@ -7,7 +7,7 @@ parameters.
 
 signature AX_CLASS =
 sig
-  val define_class: bstring * class list -> string list ->
+  val define_class: binding * class list -> string list ->
     (Thm.binding * term list) list -> theory -> class * theory
   val add_classrel: thm -> theory -> theory
   val add_arity: thm -> theory -> theory
@@ -19,8 +19,8 @@ sig
   val class_of_param: theory -> string -> class option
   val cert_classrel: theory -> class * class -> class * class
   val read_classrel: theory -> xstring * xstring -> class * class
-  val axiomatize_class: bstring * class list -> theory -> theory
-  val axiomatize_class_cmd: bstring * xstring list -> theory -> theory
+  val axiomatize_class: binding * class list -> theory -> theory
+  val axiomatize_class_cmd: binding * xstring list -> theory -> theory
   val axiomatize_classrel: (class * class) list -> theory -> theory
   val axiomatize_classrel_cmd: (xstring * xstring) list -> theory -> theory
   val axiomatize_arity: arity -> theory -> theory
@@ -325,8 +325,7 @@ fun prove_classrel raw_rel tac thy =
   let
     val ctxt = ProofContext.init thy;
     val (c1, c2) = cert_classrel thy raw_rel;
-    val th = Goal.prove ctxt [] []
-        (Logic.mk_classrel (c1, c2)) (fn _ => tac) handle ERROR msg =>
+    val th = Goal.prove ctxt [] [] (Logic.mk_classrel (c1, c2)) (K tac) handle ERROR msg =>
       cat_error msg ("The error(s) above occurred while trying to prove class relation " ^
         quote (Syntax.string_of_classrel ctxt [c1, c2]));
   in
@@ -374,14 +373,15 @@ fun declare_overloaded (c, T) thy =
     |> Sign.sticky_prefix name_inst
     |> Sign.no_base_names
     |> Sign.declare_const [] ((Binding.name c', T'), NoSyn)
-    |-> (fn const' as Const (c'', _) => Thm.add_def false true
-          (Binding.name (Thm.def_name c'), Logic.mk_equals (Const (c, T'), const'))
-    #>> Thm.varifyT
-    #-> (fn thm => add_inst_param (c, tyco) (c'', thm)
-    #> PureThy.add_thm ((Binding.name c', thm), [Thm.kind_internal])
-    #> snd
-    #> Sign.restore_naming thy
-    #> pair (Const (c, T))))
+    |-> (fn const' as Const (c'', _) =>
+      Thm.add_def false true
+        (Binding.name (Thm.def_name c'), Logic.mk_equals (Const (c, T'), const'))
+      #>> Thm.varifyT
+      #-> (fn thm => add_inst_param (c, tyco) (c'', thm)
+      #> PureThy.add_thm ((Binding.name c', thm), [Thm.kind_internal])
+      #> snd
+      #> Sign.restore_naming thy
+      #> pair (Const (c, T))))
   end;
 
 fun define_overloaded name (c, t) thy =
@@ -390,8 +390,7 @@ fun define_overloaded name (c, t) thy =
     val SOME tyco = inst_tyco_of thy (c, T);
     val (c', eq) = get_inst_param thy (c, tyco);
     val prop = Logic.mk_equals (Const (c', T), t);
-    val name' = Thm.def_name_optional
-      (NameSpace.base_name c ^ "_" ^ NameSpace.base_name tyco) name;
+    val name' = Thm.def_name_optional (NameSpace.base_name c ^ "_" ^ NameSpace.base_name tyco) name;
   in
     thy
     |> Thm.add_def false false (Binding.name name', prop)
@@ -424,8 +423,8 @@ fun define_class (bclass, raw_super) raw_params raw_specs thy =
 
     (* class *)
 
-    val bconst = Logic.const_of_class bclass;
-    val class = Sign.full_bname thy bclass;
+    val bconst = Binding.map_name Logic.const_of_class bclass;
+    val class = Sign.full_name thy bclass;
     val super = Sign.minimize_sort thy (Sign.certify_sort thy raw_super);
 
     fun check_constraint (a, S) =
@@ -472,7 +471,7 @@ fun define_class (bclass, raw_super) raw_params raw_specs thy =
     val ([def], def_thy) =
       thy
       |> Sign.primitive_class (bclass, super)
-      |> PureThy.add_defs false [((Binding.name (Thm.def_name bconst), class_eq), [])];
+      |> PureThy.add_defs false [((Binding.map_name Thm.def_name bconst, class_eq), [])];
     val (raw_intro, (raw_classrel, raw_axioms)) =
       split_defined (length conjs) def ||> chop (length super);
 
@@ -482,7 +481,7 @@ fun define_class (bclass, raw_super) raw_params raw_specs thy =
     val class_triv = Thm.class_triv def_thy class;
     val ([(_, [intro]), (_, classrel), (_, axioms)], facts_thy) =
       def_thy
-      |> Sign.add_path bconst
+      |> Sign.add_path (Binding.name_of bconst)
       |> Sign.no_base_names
       |> PureThy.note_thmss ""
         [((Binding.name introN, []), [([Drule.standard raw_intro], [])]),
@@ -498,7 +497,7 @@ fun define_class (bclass, raw_super) raw_params raw_specs thy =
     val result_thy =
       facts_thy
       |> fold put_classrel (map (pair class) super ~~ classrel)
-      |> Sign.add_path bconst
+      |> Sign.add_path (Binding.name_of bconst)
       |> PureThy.note_thmss "" (name_atts ~~ map Thm.simple_fact (unflat axiomss axioms)) |> snd
       |> Sign.restore_naming facts_thy
       |> map_axclasses (fn (axclasses, parameters) =>
@@ -537,7 +536,7 @@ fun class_const c =
 
 fun ax_class prep_class prep_classrel (bclass, raw_super) thy =
   let
-    val class = Sign.full_bname thy bclass;
+    val class = Sign.full_name thy bclass;
     val super = map (prep_class thy) raw_super |> Sign.minimize_sort thy;
   in
     thy

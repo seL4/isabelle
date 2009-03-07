@@ -86,7 +86,7 @@ val _ = OuterSyntax.markup_command ThyOutput.Verbatim "txt_raw"
 
 val _ =
   OuterSyntax.command "classes" "declare type classes" K.thy_decl
-    (Scan.repeat1 (P.name -- Scan.optional ((P.$$$ "\\<subseteq>" || P.$$$ "<") |--
+    (Scan.repeat1 (P.binding -- Scan.optional ((P.$$$ "\\<subseteq>" || P.$$$ "<") |--
         P.!!! (P.list1 P.xname)) []) >> (Toplevel.theory o fold AxClass.axiomatize_class_cmd));
 
 val _ =
@@ -100,7 +100,7 @@ val _ =
 
 val _ =
   OuterSyntax.command "axclass" "define axiomatic type class" K.thy_decl
-    (P.name -- Scan.optional ((P.$$$ "\\<subseteq>" || P.$$$ "<") |--
+    (P.binding -- Scan.optional ((P.$$$ "\\<subseteq>" || P.$$$ "<") |--
         P.!!! (P.list1 P.xname)) []
         -- Scan.repeat (SpecParse.thm_name ":" -- (P.prop >> single))
       >> (fn (x, y) => Toplevel.theory (snd o Class.axclass_cmd x y)));
@@ -110,19 +110,19 @@ val _ =
 
 val _ =
   OuterSyntax.command "typedecl" "type declaration" K.thy_decl
-    (P.type_args -- P.name -- P.opt_infix >> (fn ((args, a), mx) =>
+    (P.type_args -- P.binding -- P.opt_infix >> (fn ((args, a), mx) =>
       Toplevel.theory (ObjectLogic.typedecl (a, args, mx) #> snd)));
 
 val _ =
   OuterSyntax.command "types" "declare type abbreviations" K.thy_decl
     (Scan.repeat1
-      (P.type_args -- P.name -- (P.$$$ "=" |-- P.!!! (P.typ -- P.opt_infix')))
+      (P.type_args -- P.binding -- (P.$$$ "=" |-- P.!!! (P.typ -- P.opt_infix')))
       >> (Toplevel.theory o Sign.add_tyabbrs o
         map (fn ((args, a), (T, mx)) => (a, args, T, mx))));
 
 val _ =
   OuterSyntax.command "nonterminals" "declare types treated as grammar nonterminal symbols"
-    K.thy_decl (Scan.repeat1 P.name >> (Toplevel.theory o Sign.add_nonterminals));
+    K.thy_decl (Scan.repeat1 P.binding >> (Toplevel.theory o Sign.add_nonterminals));
 
 val _ =
   OuterSyntax.command "arities" "state type arities (axiomatic!)" K.thy_decl
@@ -133,11 +133,11 @@ val _ =
 
 val _ =
   OuterSyntax.command "judgment" "declare object-logic judgment" K.thy_decl
-    (P.const >> (Toplevel.theory o ObjectLogic.add_judgment));
+    (P.const_binding >> (Toplevel.theory o ObjectLogic.add_judgment_cmd));
 
 val _ =
   OuterSyntax.command "consts" "declare constants" K.thy_decl
-    (Scan.repeat1 P.const >> (Toplevel.theory o Sign.add_consts));
+    (Scan.repeat1 P.const_binding >> (Toplevel.theory o Sign.add_consts));
 
 val opt_overloaded = P.opt_keyword "overloaded";
 
@@ -371,7 +371,8 @@ val _ =
 
 val _ =
   OuterSyntax.command "oracle" "declare oracle" (K.tag_ml K.thy_decl)
-    (P.name -- (P.$$$ "=" |-- P.ML_source) >> (fn (x, y) => Toplevel.theory (IsarCmd.oracle x y)));
+    (P.position P.name -- (P.$$$ "=" |-- P.ML_source) >>
+      (fn (x, y) => Toplevel.theory (IsarCmd.oracle x y)));
 
 
 (* local theories *)
@@ -391,10 +392,10 @@ val locale_val =
 
 val _ =
   OuterSyntax.command "locale" "define named proof context" K.thy_decl
-    (P.name -- Scan.optional (P.$$$ "=" |-- P.!!! locale_val) (([], []), []) -- P.opt_begin
+    (P.binding -- Scan.optional (P.$$$ "=" |-- P.!!! locale_val) (([], []), []) -- P.opt_begin
       >> (fn ((name, (expr, elems)), begin) =>
           (begin ? Toplevel.print) o Toplevel.begin_local_theory begin
-            (Expression.add_locale_cmd name "" expr elems #> snd)));
+            (Expression.add_locale_cmd name Binding.empty expr elems #> snd)));
 
 val _ =
   OuterSyntax.command "sublocale"
@@ -429,7 +430,7 @@ val class_val =
 
 val _ =
   OuterSyntax.command "class" "define type class" K.thy_decl
-   (P.name -- Scan.optional (P.$$$ "=" |-- class_val) ([], []) -- P.opt_begin
+   (P.binding -- Scan.optional (P.$$$ "=" |-- class_val) ([], []) -- P.opt_begin
     >> (fn ((name, (supclasses, elems)), begin) =>
         (begin ? Toplevel.print) o Toplevel.begin_local_theory begin
           (Class.class_cmd name supclasses elems #> snd)));

@@ -36,14 +36,14 @@ sig
   val note_thmss_grouped: string -> string -> (Thm.binding *
       (thm list * attribute list) list) list -> theory -> (string * thm list) list * theory
   val add_axioms: ((binding * term) * attribute list) list -> theory -> thm list * theory
-  val add_axioms_cmd: ((bstring * string) * attribute list) list -> theory -> thm list * theory
+  val add_axioms_cmd: ((binding * string) * attribute list) list -> theory -> thm list * theory
   val add_defs: bool -> ((binding * term) * attribute list) list ->
     theory -> thm list * theory
   val add_defs_unchecked: bool -> ((binding * term) * attribute list) list ->
     theory -> thm list * theory
-  val add_defs_cmd: bool -> ((bstring * string) * attribute list) list ->
+  val add_defs_cmd: bool -> ((binding * string) * attribute list) list ->
     theory -> thm list * theory
-  val add_defs_unchecked_cmd: bool -> ((bstring * string) * attribute list) list ->
+  val add_defs_unchecked_cmd: bool -> ((binding * string) * attribute list) list ->
     theory -> thm list * theory
   val old_appl_syntax: theory -> bool
   val old_appl_syntax_setup: theory -> theory
@@ -227,19 +227,19 @@ end;
 local
   fun get_ax thy (b, _) = Thm.axiom thy (Sign.full_name thy b);
   fun get_axs thy named_axs = map (Thm.forall_elim_vars 0 o get_ax thy) named_axs;
-  fun add_axm prep_b add = fold_map (fn ((b, ax), atts) => fn thy =>
+  fun add_axm add = fold_map (fn ((b, ax), atts) => fn thy =>
     let
       val named_ax = [(b, ax)];
       val thy' = add named_ax thy;
-      val thm = hd (get_axs thy' ((map o apfst) prep_b named_ax));
-    in apfst hd (gen_add_thms (K I) [((prep_b b, thm), atts)] thy') end);
+      val thm = hd (get_axs thy' named_ax);
+    in apfst hd (gen_add_thms (K I) [((b, thm), atts)] thy') end);
 in
-  val add_defs               = add_axm I o Theory.add_defs_i false;
-  val add_defs_unchecked     = add_axm I o Theory.add_defs_i true;
-  val add_axioms             = add_axm I Theory.add_axioms_i;
-  val add_defs_cmd           = add_axm Binding.name o Theory.add_defs false;
-  val add_defs_unchecked_cmd = add_axm Binding.name o Theory.add_defs true;
-  val add_axioms_cmd         = add_axm Binding.name Theory.add_axioms;
+  val add_defs               = add_axm o Theory.add_defs_i false;
+  val add_defs_unchecked     = add_axm o Theory.add_defs_i true;
+  val add_axioms             = add_axm Theory.add_axioms_i;
+  val add_defs_cmd           = add_axm o Theory.add_defs false;
+  val add_defs_unchecked_cmd = add_axm o Theory.add_defs true;
+  val add_axioms_cmd         = add_axm Theory.add_axioms;
 end;
 
 
@@ -290,11 +290,11 @@ val old_appl_syntax_setup =
 val _ = Context.>> (Context.map_theory
   (OldApplSyntax.init #>
    Sign.add_types
-   [("fun", 2, NoSyn),
-    ("prop", 0, NoSyn),
-    ("itself", 1, NoSyn),
-    ("dummy", 0, NoSyn)]
-  #> Sign.add_nonterminals Syntax.basic_nonterms
+   [(Binding.name "fun", 2, NoSyn),
+    (Binding.name "prop", 0, NoSyn),
+    (Binding.name "itself", 1, NoSyn),
+    (Binding.name "dummy", 0, NoSyn)]
+  #> Sign.add_nonterminals (map Binding.name Syntax.basic_nonterms)
   #> Sign.add_syntax_i
    [("_lambda",     typ "pttrns => 'a => logic",       Mixfix ("(3%_./ _)", [0, 3], 3)),
     ("_abs",        typ "'a",                          NoSyn),
@@ -360,12 +360,12 @@ val _ = Context.>> (Context.map_theory
   #> Sign.add_modesyntax_i ("HTML", false)
    [("_lambda", typ "pttrns => 'a => logic", Mixfix ("(3\\<lambda>_./ _)", [0, 3], 3))]
   #> Sign.add_consts_i
-   [("==", typ "'a => 'a => prop", InfixrName ("==", 2)),
-    ("==>", typ "prop => prop => prop", Mixfix ("(_/ ==> _)", [2, 1], 1)),
-    ("all", typ "('a => prop) => prop", Binder ("!!", 0, 0)),
-    ("prop", typ "prop => prop", NoSyn),
-    ("TYPE", typ "'a itself", NoSyn),
-    (Term.dummy_patternN, typ "'a", Delimfix "'_")]
+   [(Binding.name "==", typ "'a => 'a => prop", InfixrName ("==", 2)),
+    (Binding.name "==>", typ "prop => prop => prop", Mixfix ("(_/ ==> _)", [2, 1], 1)),
+    (Binding.name "all", typ "('a => prop) => prop", Binder ("!!", 0, 0)),
+    (Binding.name "prop", typ "prop => prop", NoSyn),
+    (Binding.name "TYPE", typ "'a itself", NoSyn),
+    (Binding.name Term.dummy_patternN, typ "'a", Delimfix "'_")]
   #> Theory.add_deps "==" ("==", typ "'a => 'a => prop") []
   #> Theory.add_deps "==>" ("==>", typ "prop => prop => prop") []
   #> Theory.add_deps "all" ("all", typ "('a => prop) => prop") []
@@ -375,9 +375,9 @@ val _ = Context.>> (Context.map_theory
   #> Sign.add_trfunsT Syntax.pure_trfunsT
   #> Sign.local_path
   #> Sign.add_consts_i
-   [("term", typ "'a => prop", NoSyn),
-    ("sort_constraint", typ "'a itself => prop", NoSyn),
-    ("conjunction", typ "prop => prop => prop", NoSyn)]
+   [(Binding.name "term", typ "'a => prop", NoSyn),
+    (Binding.name "sort_constraint", typ "'a itself => prop", NoSyn),
+    (Binding.name "conjunction", typ "prop => prop => prop", NoSyn)]
   #> (add_defs false o map Thm.no_attributes)
    [(Binding.name "prop_def", prop "(CONST prop :: prop => prop) (A::prop) == A::prop"),
     (Binding.name "term_def", prop "(CONST Pure.term :: 'a => prop) (x::'a) == (!!A::prop. A ==> A)"),
@@ -389,6 +389,6 @@ val _ = Context.>> (Context.map_theory
   #> Sign.hide_const false "Pure.sort_constraint"
   #> Sign.hide_const false "Pure.conjunction"
   #> add_thmss [((Binding.name "nothing", []), [])] #> snd
-  #> Theory.add_axioms_i ((map o apfst) Binding.name Proofterm.equality_axms)));
+  #> Theory.add_axioms_i (map (apfst Binding.name) Proofterm.equality_axms)));
 
 end;

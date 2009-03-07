@@ -189,7 +189,7 @@ fun locale_const (Target {target, is_class, ...}) (prmode as (mode, _)) tags ((b
     val similar_body = Type.similar_types (rhs, rhs');
     (* FIXME workaround based on educated guess *)
     val prefix' = Binding.prefix_of b';
-    val class_global = Binding.name_of b = Binding.name_of b'
+    val class_global = Binding.eq_name (b, b')
       andalso not (null prefix')
       andalso (fst o snd o split_last) prefix' = Class_Target.class_prefix target;
   in
@@ -210,7 +210,7 @@ fun syntax_error c = error ("Illegal mixfix syntax for overloaded constant " ^ q
 
 fun declare_const (ta as Target {target, is_locale, is_class, ...}) depends ((b, T), mx) lthy =
   let
-    val c = Binding.name_of b;
+    val c = Binding.name_of b;  (* FIXME Binding.qualified_name_of *)
     val tags = LocalTheory.group_position_of lthy;
     val xs = filter depends (#1 (ProofContext.inferred_fixes (LocalTheory.target_of lthy)));
     val U = map #2 xs ---> T;
@@ -233,7 +233,7 @@ fun declare_const (ta as Target {target, is_locale, is_class, ...}) depends ((b,
   in
     lthy'
     |> is_locale ? term_syntax ta (locale_const ta Syntax.mode_default tags ((b, mx2), t))
-    |> is_class ? class_target ta (Class_Target.declare target tags ((c, mx1), t))
+    |> is_class ? class_target ta (Class_Target.declare target tags ((b, mx1), t))
     |> LocalDefs.add_def ((b, NoSyn), t)
   end;
 
@@ -242,7 +242,6 @@ fun declare_const (ta as Target {target, is_locale, is_class, ...}) depends ((b,
 
 fun abbrev (ta as Target {target, is_locale, is_class, ...}) prmode ((b, mx), t) lthy =
   let
-    val c = Binding.name_of b;
     val tags = LocalTheory.group_position_of lthy;
     val thy_ctxt = ProofContext.init (ProofContext.theory_of lthy);
     val target_ctxt = LocalTheory.target_of lthy;
@@ -260,7 +259,7 @@ fun abbrev (ta as Target {target, is_locale, is_class, ...}) prmode ((b, mx), t)
         #-> (fn (lhs, _) =>
           let val lhs' = Term.list_comb (Logic.unvarify lhs, xs) in
             term_syntax ta (locale_const ta prmode tags ((b, mx2), lhs')) #>
-            is_class ? class_target ta (Class_Target.abbrev target prmode tags ((c, mx1), t'))
+            is_class ? class_target ta (Class_Target.abbrev target prmode tags ((b, mx1), t'))
           end)
       else
         LocalTheory.theory
@@ -279,8 +278,8 @@ fun define (ta as Target {target, is_locale, is_class, ...})
     val thy = ProofContext.theory_of lthy;
     val thy_ctxt = ProofContext.init thy;
 
-    val c = Binding.name_of b;
-    val name' = Binding.map_name (Thm.def_name_optional c) name;
+    val c = Binding.name_of b;   (* FIXME Binding.qualified_name_of (!?) *)
+    val name' = Binding.map_name (Thm.def_name_optional (Binding.name_of b)) name;
     val (rhs', rhs_conv) =
       LocalDefs.export_cterm lthy thy_ctxt (Thm.cterm_of thy rhs) |>> Thm.term_of;
     val xs = Variable.add_fixed (LocalTheory.target_of lthy) rhs' [];

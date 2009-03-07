@@ -181,7 +181,7 @@ fun gen_def do_print prep (raw_var, (raw_a, raw_prop)) lthy =
                 Position.str_of (Binding.pos_of b));
           in (b, mx) end);
     val ((lhs, (_, th)), lthy2) = lthy |> LocalTheory.define Thm.definitionK
-        (var, ((Binding.map_name (suffix "_raw") name, []), rhs));
+        (var, ((Binding.suffix_name "_raw" name, []), rhs));
     val ((def_name, [th']), lthy3) = lthy2 |> LocalTheory.note Thm.definitionK
         ((name, Code.add_default_eqn_attrib :: atts), [prove lthy2 th]);
 

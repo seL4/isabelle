@@ -103,7 +103,7 @@ fun gen_add_domain prep_typ (comp_dnam, eqs''') thy''' =
 			 (Sign.full_bname thy''' dname, map (Syntax.read_typ_global thy''') vs))
                    o fst) eqs''';
     val cons''' = map snd eqs''';
-    fun thy_type  (dname,tvars)  = (NameSpace.base_name dname, length tvars, NoSyn);
+    fun thy_type  (dname,tvars)  = (Binding.name (NameSpace.base_name dname), length tvars, NoSyn);
     fun thy_arity (dname,tvars)  = (dname, map (snd o dest_TFree) tvars, pcpoS);
     val thy'' = thy''' |> Sign.add_types     (map thy_type  dtnvs)
 		       |> fold (AxClass.axiomatize_arity o thy_arity) dtnvs;
@@ -119,7 +119,7 @@ fun gen_add_domain prep_typ (comp_dnam, eqs''') thy''' =
       | typid (TFree (id,_)   ) = hd (strip (tl (Symbol.explode id)))
       | typid (TVar ((id,_),_)) = hd (tl (Symbol.explode id));
     fun one_con (con,mx,args) =
-	((Syntax.const_name con mx),
+	((Syntax.const_name mx con),
 	 ListPair.map (fn ((lazy,sel,tp),vn) => ((lazy,
 					find_index_eq tp dts,
 					DatatypeAux.dtyp_of_typ new_dts tp),

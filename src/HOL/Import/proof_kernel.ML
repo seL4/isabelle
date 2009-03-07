@@ -1926,7 +1926,8 @@ fun new_definition thyname constname rhs thy =
         val csyn = mk_syn thy constname
         val thy1 = case HOL4DefThy.get thy of
                        Replaying _ => thy
-                     | _ => (ImportRecorder.add_consts [(constname, ctype, csyn)]; Sign.add_consts_i [(constname,ctype,csyn)] thy)
+                     | _ => (ImportRecorder.add_consts [(constname, ctype, csyn)];
+                              Sign.add_consts_i [(Binding.name constname,ctype,csyn)] thy)
         val eq = mk_defeq constname rhs' thy1
         val (thms, thy2) = PureThy.add_defs false [((Binding.name thmname,eq),[])] thy1
         val _ = ImportRecorder.add_defs thmname eq
@@ -2017,7 +2018,7 @@ fun new_specification thyname thmname names hth thy =
                                val thy' = add_dump str thy
                                val _ = ImportRecorder.add_consts consts
                            in
-                               Sign.add_consts_i consts thy'
+                               Sign.add_consts_i (map (fn (c, T, mx) => (Binding.name c, T, mx)) consts) thy'
                            end
 
             val thy1 = List.foldr (fn(name,thy)=>
@@ -2093,7 +2094,9 @@ fun new_type_definition thyname thmname tycname hth thy =
             val tnames = map fst tfrees
             val tsyn = mk_syn thy tycname
             val typ = (tycname,tnames,tsyn)
-            val ((_, typedef_info), thy') = TypedefPackage.add_typedef false (SOME thmname) typ c NONE (rtac th2 1) thy
+            val ((_, typedef_info), thy') =
+              TypedefPackage.add_typedef false (SOME (Binding.name thmname))
+                (Binding.name tycname, tnames, tsyn) c NONE (rtac th2 1) thy
             val _ = ImportRecorder.add_typedef (SOME thmname) typ c NONE th2
 
             val th3 = (#type_definition typedef_info) RS typedef_hol2hol4
@@ -2179,7 +2182,9 @@ fun type_introduction thyname thmname tycname abs_name rep_name (P,t) hth thy =
             val tnames = sort string_ord (map fst tfrees)
             val tsyn = mk_syn thy tycname
             val typ = (tycname,tnames,tsyn)
-            val ((_, typedef_info), thy') = TypedefPackage.add_typedef false NONE typ c (SOME(rep_name,abs_name)) (rtac th2 1) thy
+            val ((_, typedef_info), thy') =
+              TypedefPackage.add_typedef false NONE (Binding.name tycname,tnames,tsyn) c
+                (SOME(Binding.name rep_name,Binding.name abs_name)) (rtac th2 1) thy
             val _ = ImportRecorder.add_typedef NONE typ c (SOME(rep_name,abs_name)) th2
             val fulltyname = Sign.intern_type thy' tycname
             val aty = Type (fulltyname, map mk_vartype tnames)

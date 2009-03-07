@@ -15,7 +15,7 @@ sig
   val distinctness_limit_setup : theory -> theory
   val representation_proofs : bool -> DatatypeAux.datatype_info Symtab.table ->
     string list -> DatatypeAux.descr list -> (string * sort) list ->
-      (string * mixfix) list -> (string * mixfix) list list -> attribute
+      (binding * mixfix) list -> (binding * mixfix) list list -> attribute
         -> theory -> (thm list list * thm list list * thm list list *
           DatatypeAux.simproc_dist list * thm) * theory
 end;
@@ -192,7 +192,7 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
     val (typedefs, thy3) = thy2 |>
       parent_path flat_names |>
       fold_map (fn ((((name, mx), tvs), c), name') =>
-          TypedefPackage.add_typedef false (SOME name') (name, tvs, mx)
+          TypedefPackage.add_typedef false (SOME (Binding.name name')) (name, tvs, mx)
             (Collect $ Const (c, UnivT')) NONE
             (rtac exI 1 THEN rtac CollectI 1 THEN
               QUIET_BREADTH_FIRST (has_fewer_prems 1)
@@ -212,7 +212,7 @@ fun representation_proofs flat_names (dt_info : datatype_info Symtab.table)
 
     (* isomorphism declarations *)
 
-    val iso_decls = map (fn (T, s) => (s, T --> Univ_elT, NoSyn))
+    val iso_decls = map (fn (T, s) => (Binding.name s, T --> Univ_elT, NoSyn))
       (oldTs ~~ rep_names');
 
     (* constructor definitions *)

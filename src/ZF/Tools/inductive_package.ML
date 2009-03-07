@@ -180,7 +180,7 @@ let
 
   (*fetch fp definitions from the theory*)
   val big_rec_def::part_rec_defs =
-    map (Thm.get_def thy1)
+    map (Drule.get_def thy1)
         (case rec_names of [_] => rec_names
                          | _   => big_rec_base_name::rec_names);
 

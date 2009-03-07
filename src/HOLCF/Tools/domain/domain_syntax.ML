@@ -75,7 +75,7 @@ end;
 
 local open Syntax in
   local
-    fun c_ast con mx = Constant (const_name con mx);
+    fun c_ast con mx = Constant (Syntax.const_name mx con);
     fun expvar n     = Variable ("e"^(string_of_int n));
     fun argvar n m _ = Variable ("a"^(string_of_int n)^"_"^
 				     (string_of_int m));

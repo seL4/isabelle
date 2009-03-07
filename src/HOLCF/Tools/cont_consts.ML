@@ -52,11 +52,11 @@ fun trans_rules name2 name1 n mx = let
    is generated and connected to the other declaration via some translation.
 *)
 fun fix_mixfix (syn                     , T, mx as Infix           p ) =
-               (Syntax.const_name syn mx, T,       InfixName (syn, p))
+               (Syntax.const_name mx syn, T,       InfixName (syn, p))
   | fix_mixfix (syn                     , T, mx as Infixl           p ) =
-               (Syntax.const_name syn mx, T,       InfixlName (syn, p))
+               (Syntax.const_name mx syn, T,       InfixlName (syn, p))
   | fix_mixfix (syn                     , T, mx as Infixr           p ) =
-               (Syntax.const_name syn mx, T,       InfixrName (syn, p))
+               (Syntax.const_name mx syn, T,       InfixrName (syn, p))
   | fix_mixfix decl = decl;
 fun transform decl = let
         val (c, T, mx) = fix_mixfix decl;
@@ -73,7 +73,7 @@ fun is_contconst (_,_,NoSyn   ) = false
 |   is_contconst (_,_,Binder _) = false
 |   is_contconst (c,T,mx      ) = cfun_arity T >= Syntax.mixfix_args mx
                          handle ERROR msg => cat_error msg ("in mixfix annotation for " ^
-                                               quote (Syntax.const_name c mx));
+                                               quote (Syntax.const_name mx c));
 
 
 (* add_consts(_i) *)
@@ -85,10 +85,9 @@ fun gen_add_consts prep_typ raw_decls thy =
     val transformed_decls = map transform contconst_decls;
   in
     thy
-    |> Sign.add_consts_i normal_decls
-    |> Sign.add_consts_i (map first transformed_decls)
-    |> Sign.add_syntax_i (map second transformed_decls)
-    |> Sign.add_trrules_i (List.concat (map third transformed_decls))
+    |> (Sign.add_consts_i o map (upd_first Binding.name))
+      (normal_decls @ map first transformed_decls @ map second transformed_decls)
+    |> Sign.add_trrules_i (maps third transformed_decls)
   end;
 
 val add_consts = gen_add_consts Syntax.read_typ_global;

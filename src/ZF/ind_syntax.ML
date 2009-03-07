@@ -73,7 +73,7 @@ fun read_construct ctxt (id, sprems, syn) =
         val T = (map (#2 o dest_Free) args) ---> iT
                 handle TERM _ => error
                     "Bad variable in constructor specification"
-        val name = Syntax.const_name id syn  (*handle infix constructors*)
+        val name = Syntax.const_name syn id
     in ((id,T,syn), name, args, prems) end;
 
 val read_constructs = map o map o read_construct;

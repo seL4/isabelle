@@ -37,7 +37,7 @@ val aT = TFree (Name.aT, []);
 fun add_proof_atom_consts names thy =
   thy
   |> Sign.absolute_path
-  |> Sign.add_consts_i (map (fn name => (name, proofT, NoSyn)) names);
+  |> Sign.add_consts_i (map (fn name => (Binding.name name, proofT, NoSyn)) names);
 
 (** constants for application and abstraction **)
 
@@ -46,16 +46,16 @@ fun add_proof_syntax thy =
   |> Theory.copy
   |> Sign.root_path
   |> Sign.add_defsort_i []
-  |> Sign.add_types [("proof", 0, NoSyn)]
+  |> Sign.add_types [(Binding.name "proof", 0, NoSyn)]
   |> Sign.add_consts_i
-      [("Appt", [proofT, aT] ---> proofT, Mixfix ("(1_ %/ _)", [4, 5], 4)),
-       ("AppP", [proofT, proofT] ---> proofT, Mixfix ("(1_ %%/ _)", [4, 5], 4)),
-       ("Abst", (aT --> proofT) --> proofT, NoSyn),
-       ("AbsP", [propT, proofT --> proofT] ---> proofT, NoSyn),
-       ("Hyp", propT --> proofT, NoSyn),
-       ("Oracle", propT --> proofT, NoSyn),
-       ("MinProof", proofT, Delimfix "?")]
-  |> Sign.add_nonterminals ["param", "params"]
+      [(Binding.name "Appt", [proofT, aT] ---> proofT, Mixfix ("(1_ %/ _)", [4, 5], 4)),
+       (Binding.name "AppP", [proofT, proofT] ---> proofT, Mixfix ("(1_ %%/ _)", [4, 5], 4)),
+       (Binding.name "Abst", (aT --> proofT) --> proofT, NoSyn),
+       (Binding.name "AbsP", [propT, proofT --> proofT] ---> proofT, NoSyn),
+       (Binding.name "Hyp", propT --> proofT, NoSyn),
+       (Binding.name "Oracle", propT --> proofT, NoSyn),
+       (Binding.name "MinProof", proofT, Delimfix "?")]
+  |> Sign.add_nonterminals [Binding.name "param", Binding.name "params"]
   |> Sign.add_syntax_i
       [("_Lam", [paramsT, proofT] ---> proofT, Mixfix ("(1Lam _./ _)", [0, 3], 3)),
        ("_Lam0", [paramT, paramsT] ---> paramsT, Mixfix ("_/ _", [1, 0], 0)),
