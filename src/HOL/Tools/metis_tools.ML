@@ -608,7 +608,7 @@ fun infer_types ctxt =
 	          val unused = filter (fn (a,cls) => not (common_thm used cls)) th_cls_pairs
               in
                   if null unused then ()
-                  else warning ("Unused theorems: " ^ commas (map #1 unused));
+                  else warning ("Metis: unused theorems " ^ commas_quote (map #1 unused));
                   case result of
                       (_,ith)::_ => 
                           (Output.debug (fn () => "success: " ^ Display.string_of_thm ith); 
