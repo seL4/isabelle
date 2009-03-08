@@ -282,8 +282,8 @@ constdefs (structure L)
   greatest :: "[_, 'a, 'a set] => bool"
   "greatest L g A == A \<subseteq> carrier L & g \<in> A & (ALL x : A. x \<sqsubseteq> g)"
 
-text {* Could weaken these to @{term [locale=weak_partial_order] "l \<in> carrier L \<and> l
-  .\<in> A"} and @{term [locale=weak_partial_order] "g \<in> carrier L \<and> g .\<in> A"}. *}
+text (in weak_partial_order) {* Could weaken these to @{term "l \<in> carrier L \<and> l
+  .\<in> A"} and @{term "g \<in> carrier L \<and> g .\<in> A"}. *}
 
 lemma least_closed [intro, simp]:
   "least L l A ==> l \<in> carrier L"
@@ -306,8 +306,8 @@ lemma (in weak_partial_order) least_cong:
   "[| x .= x'; x \<in> carrier L; x' \<in> carrier L; is_closed A |] ==> least L x A = least L x' A"
   by (unfold least_def) (auto dest: sym)
 
-text {* @{const least} is not congruent in the second parameter for 
-  @{term [locale=weak_partial_order] "A {.=} A'"} *}
+text (in weak_partial_order) {* @{const least} is not congruent in the second parameter for 
+  @{term "A {.=} A'"} *}
 
 lemma (in weak_partial_order) least_Upper_cong_l:
   assumes "x .= x'"
@@ -363,8 +363,8 @@ lemma (in weak_partial_order) greatest_cong:
   greatest L x A = greatest L x' A"
   by (unfold greatest_def) (auto dest: sym)
 
-text {* @{const greatest} is not congruent in the second parameter for 
-  @{term [locale=weak_partial_order] "A {.=} A'"} *}
+text (in weak_partial_order) {* @{const greatest} is not congruent in the second parameter for 
+  @{term "A {.=} A'"} *}
 
 lemma (in weak_partial_order) greatest_Lower_cong_l:
   assumes "x .= x'"

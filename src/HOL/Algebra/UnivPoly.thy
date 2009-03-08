@@ -190,7 +190,7 @@ sublocale UP_domain < UP_cring
 context UP
 begin
 
-text {*Temporarily declare @{thm [locale=UP] P_def} as simp rule.*}
+text {*Temporarily declare @{thm P_def} as simp rule.*}
 
 declare P_def [simp]
 
@@ -638,8 +638,8 @@ next
   }
 qed
 
-text{*The following corollary follows from lemmas @{thm [locale=UP_ring] "monom_one_Suc"} 
-  and @{thm [locale=UP_ring] "monom_one_Suc2"}, and is trivial in @{term UP_cring}*}
+text{*The following corollary follows from lemmas @{thm "monom_one_Suc"} 
+  and @{thm "monom_one_Suc2"}, and is trivial in @{term UP_cring}*}
 
 corollary monom_one_comm: shows "monom P \<one> k \<otimes>\<^bsub>P\<^esub> monom P \<one> 1 = monom P \<one> 1 \<otimes>\<^bsub>P\<^esub> monom P \<one> k"
   unfolding monom_one_Suc [symmetric] monom_one_Suc2 [symmetric] ..
