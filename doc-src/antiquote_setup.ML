@@ -7,9 +7,6 @@ Auxiliary antiquotations for the Isabelle manuals.
 structure AntiquoteSetup: sig end =
 struct
 
-structure O = ThyOutput;
-
-
 (* misc utils *)
 
 fun translate f = Symbol.explode #> map f #> implode;
@@ -38,9 +35,8 @@ fun clean_name "\\<dots>" = "dots"
 
 val verbatim = space_implode "\\verb,|," o map (enclose "\\verb|" "|") o space_explode "|";
 
-val _ = O.add_commands
- [("verbatim", O.args (Scan.lift Args.name) (fn _ => fn _ =>
-      split_lines #> map verbatim #> space_implode "\\isasep\\isanewline%\n"))];
+val _ = ThyOutput.antiquotation "verbatim" (fn _ => fn _ =>
+  Scan.lift Args.name >> (split_lines #> map verbatim #> space_implode "\\isasep\\isanewline%\n"));
 
 
 (* ML text *)
@@ -72,30 +68,30 @@ fun index_ml kind ml src ctxt (txt1, txt2) =
   in
     "\\indexdef{}{" ^ kind' ^ "}{" ^ clean_string txt1 ^ "}" ^
     (txt'
-    |> (if ! O.quotes then quote else I)
-    |> (if ! O.display then enclose "\\begin{verbatim}\n" "\n\\end{verbatim}"
+    |> (if ! ThyOutput.quotes then quote else I)
+    |> (if ! ThyOutput.display then enclose "\\begin{verbatim}\n" "\n\\end{verbatim}"
         else split_lines #> map verbatim #> space_implode "\\isasep\\isanewline%\n"))
   end;
 
 fun output_ml ctxt src =
-  if ! O.display then enclose "\\begin{verbatim}\n" "\n\\end{verbatim}"
+  if ! ThyOutput.display then enclose "\\begin{verbatim}\n" "\n\\end{verbatim}"
   else
     split_lines
     #> map (space_implode "\\verb,|," o map (enclose "\\verb|" "|") o space_explode "|")
     #> space_implode "\\isasep\\isanewline%\n";
 
-fun ml_args x = O.args (Scan.lift (Args.name -- Scan.optional (Args.colon |-- Args.name) "")) x;
+fun ml_args x = ThyOutput.args (Scan.lift (Args.name -- Scan.optional (Args.colon |-- Args.name) "")) x;
 
 in
 
-val _ = O.add_commands
+val _ = ThyOutput.add_commands
  [("index_ML", ml_args (index_ml "" ml_val)),
   ("index_ML_type", ml_args (index_ml "type" ml_type)),
   ("index_ML_exn", ml_args (index_ml "exception" ml_exn)),
   ("index_ML_structure", ml_args (index_ml "structure" ml_structure)),
   ("index_ML_functor", ml_args (index_ml "functor" ml_functor)),
-  ("ML_functor", O.args (Scan.lift Args.name) output_ml),
-  ("ML_text", O.args (Scan.lift Args.name) output_ml)];
+  ("ML_functor", ThyOutput.args (Scan.lift Args.name) output_ml),
+  ("ML_text", ThyOutput.args (Scan.lift Args.name) output_ml)];
 
 end;
 
@@ -106,10 +102,10 @@ local
 
 fun output_named_thms src ctxt xs =
   map (apfst (ThyOutput.pretty_thm ctxt)) xs        (*always pretty in order to exhibit errors!*)
-  |> (if ! O.quotes then map (apfst Pretty.quote) else I)
-  |> (if ! O.display then
+  |> (if ! ThyOutput.quotes then map (apfst Pretty.quote) else I)
+  |> (if ! ThyOutput.display then
     map (fn (p, name) =>
-      Output.output (Pretty.string_of (Pretty.indent (! O.indent) p)) ^
+      Output.output (Pretty.string_of (Pretty.indent (! ThyOutput.indent) p)) ^
       "\\rulename{" ^ Output.output (Pretty.str_of (ThyOutput.pretty_text name)) ^ "}")
     #> space_implode "\\par\\smallskip%\n"
     #> enclose "\\begin{isabelle}%\n" "%\n\\end{isabelle}"
@@ -122,8 +118,8 @@ fun output_named_thms src ctxt xs =
 
 in
 
-val _ = O.add_commands
- [("named_thms", O.args (Scan.repeat (Attrib.thm --
+val _ = ThyOutput.add_commands
+ [("named_thms", ThyOutput.args (Scan.repeat (Attrib.thm --
       Scan.lift (Args.parens Args.name))) output_named_thms)];
 
 end;
@@ -131,8 +127,8 @@ end;
 
 (* theory files *)
 
-val _ = O.add_commands
- [("thy_file", O.args (Scan.lift Args.name) (O.output (fn _ => fn name =>
+val _ = ThyOutput.add_commands
+ [("thy_file", ThyOutput.args (Scan.lift Args.name) (ThyOutput.output (fn _ => fn name =>
       (ThyLoad.check_thy Path.current name; Pretty.str name))))];
 
 
@@ -167,14 +163,14 @@ fun output_entity check markup index kind ctxt (logic, name) =
       idx ^
       (Output.output name
         |> (if markup = "" then I else enclose ("\\" ^ markup ^ "{") "}")
-        |> (if ! O.quotes then quote else I)
-        |> (if ! O.display then enclose "\\begin{isabelle}%\n" "%\n\\end{isabelle}"
+        |> (if ! ThyOutput.quotes then quote else I)
+        |> (if ! ThyOutput.display then enclose "\\begin{isabelle}%\n" "%\n\\end{isabelle}"
             else hyper o enclose "\\mbox{\\isa{" "}}"))
     else error ("Bad " ^ kind ^ " " ^ quote name)
   end;
 
 fun entity check markup index kind =
-  O.args (Scan.lift (Scan.optional (Args.parens Args.name) "" -- Args.name))
+  ThyOutput.args (Scan.lift (Scan.optional (Args.parens Args.name) "" -- Args.name))
     (K (output_entity check markup index kind));
 
 fun entity_antiqs check markup kind =
@@ -184,7 +180,7 @@ fun entity_antiqs check markup kind =
 
 in
 
-val _ = O.add_commands
+val _ = ThyOutput.add_commands
  (entity_antiqs no_check "" "syntax" @
   entity_antiqs (K (is_some o OuterKeyword.command_keyword)) "isacommand" "command" @
   entity_antiqs (K OuterKeyword.is_keyword) "isakeyword" "keyword" @
