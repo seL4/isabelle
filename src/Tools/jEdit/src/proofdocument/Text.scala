@@ -12,7 +12,3 @@ object Text {
     override def toString = "start: " + start + " added: " + added + " removed: " + removed
   }
 }
-
-trait Text {
-  def changes: EventBus[Text.Change]
-}

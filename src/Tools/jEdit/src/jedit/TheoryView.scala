@@ -8,6 +8,7 @@
 
 package isabelle.jedit
 
+import scala.actors.Actor
 
 import isabelle.proofdocument.Text
 import isabelle.prover.{Prover, Command}
@@ -38,8 +39,8 @@ object TheoryView {
 }
 
 
-class TheoryView (text_area: JEditTextArea)
-    extends TextAreaExtension with Text with BufferListener {
+class TheoryView (text_area: JEditTextArea, document_actor: Actor)
+    extends TextAreaExtension with BufferListener {
 
   private val buffer = text_area.getBuffer
   private val prover = Isabelle.prover_setup(buffer).get.prover
@@ -88,7 +89,7 @@ class TheoryView (text_area: JEditTextArea)
     text_area.getPainter.addExtension(TextAreaPainter.LINE_BACKGROUND_LAYER + 1, this)
     buffer.setTokenMarker(new DynamicTokenMarker(buffer, prover.document))
     update_styles
-    changes.event(new Text.Change(0,buffer.getText(0, buffer.getLength),0))
+    document_actor ! new Text.Change(0,buffer.getText(0, buffer.getLength),0)
   }
 
   def deactivate() = {
@@ -185,19 +186,11 @@ class TheoryView (text_area: JEditTextArea)
     gfx.setColor(saved_color)
   }
 
-
-  /* Text methods */
-
-  def content(start: Int, stop: Int) = buffer.getText(start, stop - start)
-  def length = buffer.getLength
-  val changes = new EventBus[Text.Change]
-
-
   /* BufferListener methods */
 
   private def commit {
     if (col != null)
-      changes.event(col)
+      document_actor ! col
     col = null
     if (col_timer.isRunning())
       col_timer.stop()

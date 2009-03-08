@@ -15,7 +15,7 @@ import scala.collection.immutable.{TreeSet}
 import org.gjt.sp.util.Log
 
 import isabelle.jedit.Isabelle
-import isabelle.proofdocument.{ProofDocument, Text, Token}
+import isabelle.proofdocument.{DocumentActor, ProofDocument, Text, Token}
 import isabelle.IsarDocument
 
 
@@ -81,8 +81,8 @@ class Prover(isabelle_system: IsabelleSystem, logic: String)
   val activated = new EventBus[Unit]
   val command_info = new EventBus[Command]
   val output_info = new EventBus[String]
-  var document: ProofDocument = null
-
+  var document_actor: DocumentActor = null
+  def document = document_actor.get
 
   def command_change(c: Command) = Swing.now { command_info.event(c) }
 
@@ -101,12 +101,7 @@ class Prover(isabelle_system: IsabelleSystem, logic: String)
       Swing.now { output_info.event(result.result) }
     else if (result.kind == IsabelleProcess.Kind.WRITELN && !initialized) {  // FIXME !?
       initialized = true
-      Swing.now {
-        if (document != null) {
-          document.activate()
-          activated.event(())
-        }
-      }
+      Swing.now { document_actor ! DocumentActor.Activate }
     }
     else {
       result.kind match {
@@ -191,11 +186,16 @@ class Prover(isabelle_system: IsabelleSystem, logic: String)
     }
   }
 
-  def set_document(text: Text, path: String) {
-    this.document = new ProofDocument(text, command_decls.contains(_))
+  def set_document(document_actor: isabelle.proofdocument.DocumentActor, path: String) {
+    val structural_changes = new EventBus[isabelle.proofdocument.StructureChange]
+
+    this.document_actor = document_actor
+    document_actor ! DocumentActor.SetEventBus(structural_changes)
+    document_actor ! DocumentActor.SetIsCommandKeyword(command_decls.contains)
+
     process.ML("ThyLoad.add_path " + IsabelleSyntax.encode_string(path))
 
-    document.structural_changes += (changes => if(initialized){
+    structural_changes += (changes => if(initialized){
       for (cmd <- changes.removed_commands) remove(cmd)
       changes.added_commands.foldLeft (changes.before_change) ((p, c) => {send(p, c); Some(c)})
     })
