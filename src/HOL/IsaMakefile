@@ -836,7 +836,8 @@ $(LOG)/HOL-ex.gz: $(OUT)/HOL Library/Commutative_Ring.thy		\
   ex/Serbian.thy ex/Sqrt.thy ex/Sqrt_Script.thy ex/Subarray.thy		\
   ex/Sublist.thy ex/Sudoku.thy ex/Tarski.thy ex/Term_Of_Syntax.thy	\
   ex/Termination.thy ex/Unification.thy ex/document/root.bib		\
-  ex/document/root.tex ex/set.thy ex/svc_funcs.ML ex/svc_test.thy
+  ex/document/root.tex ex/set.thy ex/svc_funcs.ML ex/svc_test.thy \
+  ex/Predicate_Compile.thy ex/predicate_compile.ML
 	@$(ISABELLE_TOOL) usedir $(OUT)/HOL ex
 
 
