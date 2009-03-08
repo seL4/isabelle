@@ -22,6 +22,7 @@ sig
   val eq_name: binding * binding -> bool
   val empty: binding
   val is_empty: binding -> bool
+  val qualified_name: bstring -> binding
   val qualify: bool -> string -> binding -> binding
   val prefix_of: binding -> (string * bool) list
   val map_prefix: ((string * bool) list -> (string * bool) list) -> binding -> binding
@@ -51,7 +52,7 @@ fun dest (Binding {prefix, qualifier, name, ...}) = (prefix @ qualifier, name);
 
 fun str_of (Binding {prefix, qualifier, name, pos}) =
   let
-    val text = space_implode "." (map #1 qualifier @ [name]);
+    val text = Long_Name.implode (map #1 qualifier @ [name]);
     val props = Position.properties_of pos;
   in Markup.markup (Markup.properties props (Markup.binding name)) text end;
 
@@ -78,6 +79,11 @@ fun is_empty b = name_of b = "";
 
 
 (* user qualifier *)
+
+fun qualified_name "" = empty
+  | qualified_name s =
+      let val (qualifier, name) = split_last (Long_Name.explode s)
+      in make_binding ([], map (rpair false) qualifier, name, Position.none) end;
 
 fun qualify _ "" = I
   | qualify strict qual = map_binding (fn (prefix, qualifier, name, pos) =>
