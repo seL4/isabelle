@@ -416,12 +416,12 @@ fun print_codesetup thy =
       Pretty.block [
         Pretty.str "preprocessing simpset:",
         Pretty.fbrk,
-        Simplifier.pretty_ss pre
+        Simplifier.pretty_ss ctxt pre
       ],
       Pretty.block [
         Pretty.str "postprocessing simpset:",
         Pretty.fbrk,
-        Simplifier.pretty_ss post
+        Simplifier.pretty_ss ctxt post
       ],
       Pretty.block (
         Pretty.str "function transformers:"
