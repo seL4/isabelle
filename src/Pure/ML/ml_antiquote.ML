@@ -110,7 +110,7 @@ val _ = value "cpat"
 
 fun type_ syn = (Args.context -- Scan.lift Args.name_source >> (fn (ctxt, c) =>
     #1 (Term.dest_Type (ProofContext.read_tyname ctxt c))
-    |> syn ? NameSpace.base_name
+    |> syn ? Long_Name.base_name
     |> ML_Syntax.print_string));
 
 val _ = inline "type_name" (type_ false);

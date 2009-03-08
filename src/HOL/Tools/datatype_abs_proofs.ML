@@ -235,10 +235,10 @@ fun prove_primrec_thms flat_names new_type_names descr sorts
     val (reccomb_defs, thy2) =
       thy1
       |> Sign.add_consts_i (map (fn ((name, T), T') =>
-          (Binding.name (NameSpace.base_name name), reccomb_fn_Ts @ [T] ---> T', NoSyn))
+          (Binding.name (Long_Name.base_name name), reccomb_fn_Ts @ [T] ---> T', NoSyn))
           (reccomb_names ~~ recTs ~~ rec_result_Ts))
       |> (PureThy.add_defs false o map Thm.no_attributes) (map (fn ((((name, comb), set), T), T') =>
-          (Binding.name (NameSpace.base_name name ^ "_def"), Logic.mk_equals (comb, absfree ("x", T,
+          (Binding.name (Long_Name.base_name name ^ "_def"), Logic.mk_equals (comb, absfree ("x", T,
            Const ("The", (T' --> HOLogic.boolT) --> T') $ absfree ("y", T',
              set $ Free ("x", T) $ Free ("y", T'))))))
                (reccomb_names ~~ reccombs ~~ rec_sets ~~ recTs ~~ rec_result_Ts))
@@ -316,8 +316,8 @@ fun prove_case_thms flat_names new_type_names descr sorts reccomb_names primrec_
           val fns = (List.concat (Library.take (i, case_dummy_fns))) @
             fns2 @ (List.concat (Library.drop (i + 1, case_dummy_fns)));
           val reccomb = Const (recname, (map fastype_of fns) @ [T] ---> T');
-          val decl = ((Binding.name (NameSpace.base_name name), caseT), NoSyn);
-          val def = (Binding.name (NameSpace.base_name name ^ "_def"),
+          val decl = ((Binding.name (Long_Name.base_name name), caseT), NoSyn);
+          val def = (Binding.name (Long_Name.base_name name ^ "_def"),
             Logic.mk_equals (list_comb (Const (name, caseT), fns1),
               list_comb (reccomb, (List.concat (Library.take (i, case_dummy_fns))) @
                 fns2 @ (List.concat (Library.drop (i + 1, case_dummy_fns))) )));

@@ -103,7 +103,7 @@ fun gen_add_domain prep_typ (comp_dnam, eqs''') thy''' =
 			 (Sign.full_bname thy''' dname, map (Syntax.read_typ_global thy''') vs))
                    o fst) eqs''';
     val cons''' = map snd eqs''';
-    fun thy_type  (dname,tvars)  = (Binding.name (NameSpace.base_name dname), length tvars, NoSyn);
+    fun thy_type  (dname,tvars)  = (Binding.name (Long_Name.base_name dname), length tvars, NoSyn);
     fun thy_arity (dname,tvars)  = (dname, map (snd o dest_TFree) tvars, pcpoS);
     val thy'' = thy''' |> Sign.add_types     (map thy_type  dtnvs)
 		       |> fold (AxClass.axiomatize_arity o thy_arity) dtnvs;
@@ -114,7 +114,7 @@ fun gen_add_domain prep_typ (comp_dnam, eqs''') thy''' =
     val new_dts = map (fn ((s,Ts),_) => (s, map (fst o dest_TFree) Ts)) eqs';
     fun strip ss = Library.drop (find_index_eq "'" ss +1, ss);
     fun typid (Type  (id,_)) =
-          let val c = hd (Symbol.explode (NameSpace.base_name id))
+          let val c = hd (Symbol.explode (Long_Name.base_name id))
           in if Symbol.is_letter c then c else "t" end
       | typid (TFree (id,_)   ) = hd (strip (tl (Symbol.explode id)))
       | typid (TVar ((id,_),_)) = hd (tl (Symbol.explode id));
@@ -133,7 +133,7 @@ fun gen_add_domain prep_typ (comp_dnam, eqs''') thy''' =
       ||>> Domain_Theorems.comp_theorems (comp_dnam, eqs);
   in
     theorems_thy
-    |> Sign.add_path (NameSpace.base_name comp_dnam)
+    |> Sign.add_path (Long_Name.base_name comp_dnam)
     |> (snd o (PureThy.add_thmss [((Binding.name "rews", List.concat rewss @ take_rews), [])]))
     |> Sign.parent_path
   end;

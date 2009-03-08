@@ -46,8 +46,8 @@ fun stmt_names_of (MLExc (name, _)) = [name]
 fun pr_sml_stmt naming labelled_name syntax_tyco syntax_const reserved_names deresolve is_cons =
   let
     val pr_label_classrel = translate_string (fn "." => "__" | c => c)
-      o NameSpace.qualifier;
-    val pr_label_classparam = NameSpace.base_name o NameSpace.qualifier;
+      o Long_Name.qualifier;
+    val pr_label_classparam = Long_Name.base_name o Long_Name.qualifier;
     fun pr_dicts fxy ds =
       let
         fun pr_dictvar (v, (_, 1)) = Code_Name.first_upper v ^ "_"
@@ -163,7 +163,7 @@ fun pr_sml_stmt naming labelled_name syntax_tyco syntax_const reserved_names der
     fun pr_stmt (MLExc (name, n)) =
           let
             val exc_str =
-              (ML_Syntax.print_string o NameSpace.base_name o NameSpace.qualifier) name;
+              (ML_Syntax.print_string o Long_Name.base_name o Long_Name.qualifier) name;
           in
             concat (
               str (if n = 0 then "val" else "fun")
@@ -179,7 +179,7 @@ fun pr_sml_stmt naming labelled_name syntax_tyco syntax_const reserved_names der
           let
             val consts = map_filter
               (fn c => if (is_some o syntax_const) c
-                then NONE else (SOME o NameSpace.base_name o deresolve) c)
+                then NONE else (SOME o Long_Name.base_name o deresolve) c)
                 (Code_Thingol.fold_constnames (insert (op =)) t []);
             val vars = reserved_names
               |> Code_Name.intro_vars consts;
@@ -204,7 +204,7 @@ fun pr_sml_stmt naming labelled_name syntax_tyco syntax_const reserved_names der
                   let
                     val consts = map_filter
                       (fn c => if (is_some o syntax_const) c
-                        then NONE else (SOME o NameSpace.base_name o deresolve) c)
+                        then NONE else (SOME o Long_Name.base_name o deresolve) c)
                         ((fold o Code_Thingol.fold_constnames) (insert (op =)) (t :: ts) []);
                     val vars = reserved_names
                       |> Code_Name.intro_vars consts
@@ -473,7 +473,7 @@ fun pr_ocaml_stmt naming labelled_name syntax_tyco syntax_const reserved_names d
     fun pr_stmt (MLExc (name, n)) =
           let
             val exc_str =
-              (ML_Syntax.print_string o NameSpace.base_name o NameSpace.qualifier) name;
+              (ML_Syntax.print_string o Long_Name.base_name o Long_Name.qualifier) name;
           in
             concat (
               str "let"
@@ -488,7 +488,7 @@ fun pr_ocaml_stmt naming labelled_name syntax_tyco syntax_const reserved_names d
           let
             val consts = map_filter
               (fn c => if (is_some o syntax_const) c
-                then NONE else (SOME o NameSpace.base_name o deresolve) c)
+                then NONE else (SOME o Long_Name.base_name o deresolve) c)
                 (Code_Thingol.fold_constnames (insert (op =)) t []);
             val vars = reserved_names
               |> Code_Name.intro_vars consts;
@@ -508,7 +508,7 @@ fun pr_ocaml_stmt naming labelled_name syntax_tyco syntax_const reserved_names d
               let
                 val consts = map_filter
                   (fn c => if (is_some o syntax_const) c
-                    then NONE else (SOME o NameSpace.base_name o deresolve) c)
+                    then NONE else (SOME o Long_Name.base_name o deresolve) c)
                     ((fold o Code_Thingol.fold_constnames) (insert (op =)) (t :: ts) []);
                 val vars = reserved_names
                   |> Code_Name.intro_vars consts
@@ -524,7 +524,7 @@ fun pr_ocaml_stmt naming labelled_name syntax_tyco syntax_const reserved_names d
                   let
                     val consts = map_filter
                       (fn c => if (is_some o syntax_const) c
-                        then NONE else (SOME o NameSpace.base_name o deresolve) c)
+                        then NONE else (SOME o Long_Name.base_name o deresolve) c)
                         ((fold o Code_Thingol.fold_constnames) (insert (op =)) (t :: ts) []);
                     val vars = reserved_names
                       |> Code_Name.intro_vars consts
@@ -552,7 +552,7 @@ fun pr_ocaml_stmt naming labelled_name syntax_tyco syntax_const reserved_names d
                   let
                     val consts = map_filter
                       (fn c => if (is_some o syntax_const) c
-                        then NONE else (SOME o NameSpace.base_name o deresolve) c)
+                        then NONE else (SOME o Long_Name.base_name o deresolve) c)
                         ((fold o Code_Thingol.fold_constnames)
                           (insert (op =)) (map (snd o fst) eqs) []);
                     val vars = reserved_names
@@ -860,7 +860,7 @@ fun ml_node_of_program labelled_name module_name reserved_names raw_module_alias
               ^ commas (map labelled_name names)
               ^ "\n"
               ^ commas module_names);
-        val module_name_path = NameSpace.explode module_name;
+        val module_name_path = Long_Name.explode module_name;
         fun add_dep name name' =
           let
             val module_name' = (mk_name_module o fst o Code_Name.dest_name) name';
@@ -868,7 +868,7 @@ fun ml_node_of_program labelled_name module_name reserved_names raw_module_alias
             map_node module_name_path (Graph.add_edge (name, name'))
           else let
             val (common, (diff1 :: _, diff2 :: _)) = chop_prefix (op =)
-              (module_name_path, NameSpace.explode module_name');
+              (module_name_path, Long_Name.explode module_name');
           in
             map_node common
               (fn node => Graph.add_edge_acyclic (diff1, diff2) node
@@ -892,7 +892,7 @@ fun ml_node_of_program labelled_name module_name reserved_names raw_module_alias
     fun deresolver prefix name = 
       let
         val module_name = (fst o Code_Name.dest_name) name;
-        val module_name' = (NameSpace.explode o mk_name_module) module_name;
+        val module_name' = (Long_Name.explode o mk_name_module) module_name;
         val (_, (_, remainder)) = chop_prefix (op =) (prefix, module_name');
         val stmt_name =
           nodes
@@ -901,7 +901,7 @@ fun ml_node_of_program labelled_name module_name reserved_names raw_module_alias
           |> (fn node => case Graph.get_node node name of Stmt (stmt_name, _) => stmt_name
                | Dummy stmt_name => stmt_name);
       in
-        NameSpace.implode (remainder @ [stmt_name])
+        Long_Name.implode (remainder @ [stmt_name])
       end handle Graph.UNDEF _ =>
         error ("Unknown statement name: " ^ labelled_name name);
   in (deresolver, nodes) end;
@@ -1011,7 +1011,7 @@ fun print_code struct_name is_first const ctxt =
   let
     val (consts, (_, (struct_code_name, acc_code))) = CodeAntiqData.get ctxt;
     val (raw_ml_code, consts_map) = Lazy.force acc_code;
-    val const'' = NameSpace.append (NameSpace.append struct_name struct_code_name)
+    val const'' = Long_Name.append (Long_Name.append struct_name struct_code_name)
       ((the o AList.lookup (op =) consts_map) const);
     val ml_code = if is_first then "\nstructure " ^ struct_code_name
         ^ " =\nstruct\n\n" ^ raw_ml_code ^ "\nend;\n\n"

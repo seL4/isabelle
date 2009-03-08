@@ -129,7 +129,7 @@ fun decode_term get_sort map_const map_free map_type map_sort tm =
           (case (map_free a, map_const a) of
             (SOME x, _) => Free (x, map_type T)
           | (_, (true, c)) => Const (c, map_type T)
-          | (_, (false, c)) => (if NameSpace.is_qualified c then Const else Free) (c, map_type T))
+          | (_, (false, c)) => (if Long_Name.is_qualified c then Const else Free) (c, map_type T))
       | decode (Var (xi, T)) = Var (xi, map_type T)
       | decode (t as Bound _) = t;
   in decode tm end;

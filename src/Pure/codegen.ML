@@ -378,7 +378,7 @@ fun mk_id s = if s = "" then "" else
             | (true, "isup") => "" :: check_str zs
             | (ctrl, s') => (if ctrl then "ctrl_" ^ s' else s') :: check_str zs)
         | (ys, zs) => implode ys :: check_str zs);
-    val s' = space_implode "_" (maps (check_str o Symbol.explode) (NameSpace.explode s))
+    val s' = space_implode "_" (maps (check_str o Symbol.explode) (Long_Name.explode s))
   in
     if Symbol.is_ascii_letter (hd (explode s')) then s' else "id_" ^ s'
   end;
@@ -388,8 +388,8 @@ fun mk_long_id (p as (tab, used)) module s =
     fun find_name [] = sys_error "mk_long_id"
       | find_name (ys :: yss) =
           let
-            val s' = NameSpace.implode ys
-            val s'' = NameSpace.append module s'
+            val s' = Long_Name.implode ys
+            val s'' = Long_Name.append module s'
           in case Symtab.lookup used s'' of
               NONE => ((module, s'),
                 (Symtab.update_new (s, (module, s')) tab,
@@ -397,7 +397,7 @@ fun mk_long_id (p as (tab, used)) module s =
             | SOME _ => find_name yss
           end
   in case Symtab.lookup tab s of
-      NONE => find_name (Library.suffixes1 (NameSpace.explode s))
+      NONE => find_name (Library.suffixes1 (Long_Name.explode s))
     | SOME name => (name, p)
   end;
 

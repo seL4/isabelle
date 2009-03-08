@@ -202,7 +202,7 @@ fun thm_name kind th prts =
   let val head =
     if Thm.has_name_hint th then
       Pretty.block [Pretty.command kind,
-        Pretty.brk 1, Pretty.str (NameSpace.base_name (Thm.get_name_hint th) ^ ":")]
+        Pretty.brk 1, Pretty.str (Long_Name.base_name (Thm.get_name_hint th) ^ ":")]
     else Pretty.command kind
   in Pretty.block (Pretty.fbreaks (head :: prts)) end;
 
@@ -522,7 +522,7 @@ fun gen_activate prep_facts raw_elems ctxt =
   in (elems |> map (map_ctxt_attrib Args.closure), ProofContext.restore_naming ctxt ctxt') end;
 
 fun check_name name =
-  if NameSpace.is_qualified name then error ("Illegal qualified name: " ^ quote name)
+  if Long_Name.is_qualified name then error ("Illegal qualified name: " ^ quote name)
   else name;
 
 fun prep_facts prep_name get intern ctxt =

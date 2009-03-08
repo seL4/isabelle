@@ -158,7 +158,7 @@ fun class_of_param thy = AList.lookup (op =) (#2 (get_axclasses thy));
 
 (* maintain instances *)
 
-fun instance_name (a, c) = NameSpace.base_name c ^ "_" ^ NameSpace.base_name a;
+fun instance_name (a, c) = Long_Name.base_name c ^ "_" ^ Long_Name.base_name a;
 
 val get_instances = #1 o #2 o AxClassData.get;
 val map_instances = AxClassData.map o apsnd o apfst;
@@ -366,7 +366,7 @@ fun declare_overloaded (c, T) thy =
       | NONE => error ("Illegal type for instantiation of class parameter: "
         ^ quote (c ^ " :: " ^ Syntax.string_of_typ_global thy T));
     val name_inst = instance_name (tyco, class) ^ "_inst";
-    val c' = NameSpace.base_name c ^ "_" ^ NameSpace.base_name tyco;
+    val c' = Long_Name.base_name c ^ "_" ^ Long_Name.base_name tyco;
     val T' = Type.strip_sorts T;
   in
     thy
@@ -390,7 +390,7 @@ fun define_overloaded name (c, t) thy =
     val SOME tyco = inst_tyco_of thy (c, T);
     val (c', eq) = get_inst_param thy (c, tyco);
     val prop = Logic.mk_equals (Const (c', T), t);
-    val name' = Thm.def_name_optional (NameSpace.base_name c ^ "_" ^ NameSpace.base_name tyco) name;
+    val name' = Thm.def_name_optional (Long_Name.base_name c ^ "_" ^ Long_Name.base_name tyco) name;
   in
     thy
     |> Thm.add_def false false (Binding.name name', prop)

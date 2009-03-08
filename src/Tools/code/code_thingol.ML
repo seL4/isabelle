@@ -243,18 +243,18 @@ local
     let
       val prefix = get_thyname thy name;
       val base = (Code_Name.purify_base true o get_basename) name;
-    in NameSpace.append prefix base end;
+    in Long_Name.append prefix base end;
 in
 
-fun namify_class thy = namify thy NameSpace.base_name thyname_of_class;
+fun namify_class thy = namify thy Long_Name.base_name thyname_of_class;
 fun namify_classrel thy = namify thy (fn (class1, class2) => 
-  NameSpace.base_name class2 ^ "_" ^ NameSpace.base_name class1) (fn thy => thyname_of_class thy o fst);
+  Long_Name.base_name class2 ^ "_" ^ Long_Name.base_name class1) (fn thy => thyname_of_class thy o fst);
   (*order fits nicely with composed projections*)
 fun namify_tyco thy "fun" = "Pure.fun"
-  | namify_tyco thy tyco = namify thy NameSpace.base_name thyname_of_tyco tyco;
+  | namify_tyco thy tyco = namify thy Long_Name.base_name thyname_of_tyco tyco;
 fun namify_instance thy = namify thy (fn (class, tyco) => 
-  NameSpace.base_name class ^ "_" ^ NameSpace.base_name tyco) thyname_of_instance;
-fun namify_const thy = namify thy NameSpace.base_name thyname_of_const;
+  Long_Name.base_name class ^ "_" ^ Long_Name.base_name tyco) thyname_of_instance;
+fun namify_const thy = namify thy Long_Name.base_name thyname_of_const;
 
 end; (* local *)
 
@@ -327,7 +327,7 @@ val suffix_instance = "inst";
 val suffix_const = "const";
 
 fun add_suffix nsp NONE = NONE
-  | add_suffix nsp (SOME name) = SOME (NameSpace.append name nsp);
+  | add_suffix nsp (SOME name) = SOME (Long_Name.append name nsp);
 
 in
 

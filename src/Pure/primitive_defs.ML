@@ -81,7 +81,7 @@ fun abs_def eq =
 fun mk_defpair (lhs, rhs) =
   (case Term.head_of lhs of
     Const (name, _) =>
-      (NameSpace.base_name name ^ "_def", Logic.mk_equals (lhs, rhs))
+      (Long_Name.base_name name ^ "_def", Logic.mk_equals (lhs, rhs))
   | _ => raise TERM ("Malformed definition: head of lhs not a constant", [lhs, rhs]));
 
 end;

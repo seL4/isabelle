@@ -138,7 +138,7 @@ let
     let
       val this_ty = Type (hd tycos, map TFree vs);
       val this_ty' = StateMonad.liftT (term_ty this_ty) @{typ seed};
-      val random_name = NameSpace.base_name @{const_name random};
+      val random_name = Long_Name.base_name @{const_name random};
       val random'_name = random_name ^ "_" ^ Class.type_name (hd tycos) ^ "'";
       fun random ty = Sign.mk_const thy (@{const_name random}, [ty]);
       val random' = Free (random'_name,

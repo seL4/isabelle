@@ -199,7 +199,7 @@ fun prove_strong_ind s avoids ctxt =
     val atomTs = distinct op = (maps (map snd o #2) prems);
     val ind_sort = if null atomTs then HOLogic.typeS
       else Sign.certify_sort thy (map (fn T => Sign.intern_class thy
-        ("fs_" ^ NameSpace.base_name (fst (dest_Type T)))) atomTs);
+        ("fs_" ^ Long_Name.base_name (fst (dest_Type T)))) atomTs);
     val ([fs_ctxt_tyname], _) = Name.variants ["'n"] (Variable.names_of ctxt');
     val ([fs_ctxt_name], ctxt'') = Variable.variant_fixes ["z"] ctxt';
     val fsT = TFree (fs_ctxt_tyname, ind_sort);
@@ -273,7 +273,7 @@ fun prove_strong_ind s avoids ctxt =
 
     val perm_pi_simp = PureThy.get_thms thy "perm_pi_simp";
     val pt2_atoms = map (fn aT => PureThy.get_thm thy
-      ("pt_" ^ NameSpace.base_name (fst (dest_Type aT)) ^ "2")) atomTs;
+      ("pt_" ^ Long_Name.base_name (fst (dest_Type aT)) ^ "2")) atomTs;
     val eqvt_ss = Simplifier.theory_context thy HOL_basic_ss
       addsimps (eqvt_thms @ perm_pi_simp @ pt2_atoms)
       addsimprocs [mk_perm_bool_simproc ["Fun.id"],
@@ -281,7 +281,7 @@ fun prove_strong_ind s avoids ctxt =
     val fresh_bij = PureThy.get_thms thy "fresh_bij";
     val perm_bij = PureThy.get_thms thy "perm_bij";
     val fs_atoms = map (fn aT => PureThy.get_thm thy
-      ("fs_" ^ NameSpace.base_name (fst (dest_Type aT)) ^ "1")) atomTs;
+      ("fs_" ^ Long_Name.base_name (fst (dest_Type aT)) ^ "1")) atomTs;
     val exists_fresh' = PureThy.get_thms thy "exists_fresh'";
     val fresh_atm = PureThy.get_thms thy "fresh_atm";
     val swap_simps = PureThy.get_thms thy "swap_simps";
@@ -545,7 +545,7 @@ fun prove_strong_ind s avoids ctxt =
     ctxt'' |>
     Proof.theorem_i NONE (fn thss => fn ctxt =>
       let
-        val rec_name = space_implode "_" (map NameSpace.base_name names);
+        val rec_name = space_implode "_" (map Long_Name.base_name names);
         val rec_qualified = Binding.qualify false rec_name;
         val ind_case_names = RuleCases.case_names induct_cases;
         val induct_cases' = InductivePackage.partition_rules' raw_induct
@@ -575,7 +575,7 @@ fun prove_strong_ind s avoids ctxt =
              Attrib.internal (K (RuleCases.consumes 1))]),
            strong_inducts) |> snd |>
         LocalTheory.notes Thm.theoremK (map (fn ((name, elim), (_, cases)) =>
-            ((Binding.name (NameSpace.qualified (NameSpace.base_name name) "strong_cases"),
+            ((Binding.name (Long_Name.qualify (Long_Name.base_name name) "strong_cases"),
               [Attrib.internal (K (RuleCases.case_names (map snd cases))),
                Attrib.internal (K (RuleCases.consumes 1))]), [([elim], [])]))
           (strong_cases ~~ induct_cases')) |> snd
@@ -665,7 +665,7 @@ fun prove_eqvt s xatoms ctxt =
   in
     ctxt |>
     LocalTheory.notes Thm.theoremK (map (fn (name, ths) =>
-        ((Binding.name (NameSpace.qualified (NameSpace.base_name name) "eqvt"),
+        ((Binding.name (Long_Name.qualify (Long_Name.base_name name) "eqvt"),
           [Attrib.internal (K NominalThmDecls.eqvt_add)]), [(ths, [])]))
       (names ~~ transp thss)) |> snd
   end;

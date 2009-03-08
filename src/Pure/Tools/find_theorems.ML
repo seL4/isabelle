@@ -279,7 +279,7 @@ local
 
 val index_ord = option_ord (K EQUAL);
 val hidden_ord = bool_ord o pairself NameSpace.is_hidden;
-val qual_ord = int_ord o pairself (length o NameSpace.explode);
+val qual_ord = int_ord o pairself (length o Long_Name.explode);
 val txt_ord = int_ord o pairself size;
 
 fun nicer_name (x, i) (y, j) =

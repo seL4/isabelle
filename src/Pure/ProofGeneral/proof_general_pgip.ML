@@ -543,8 +543,8 @@ fun askids (Askids vs) =
         fun setids t = issue_pgip (Setids {idtables = [t]})
 
         (* fake one-level nested "subtheories" by picking apart names. *)
-        val immed_thms_of_thy = filter_out NameSpace.is_qualified o thms_of_thy
-        fun thy_prefix s = case space_explode NameSpace.separator s of
+        val immed_thms_of_thy = filter_out Long_Name.is_qualified o thms_of_thy
+        fun thy_prefix s = case Long_Name.explode s of
                                     x::_::_ => SOME x  (* String.find? *)
                                   | _ => NONE
         fun subthys_of_thy s =
@@ -553,7 +553,7 @@ fun askids (Askids vs) =
         fun subthms_of_thy thy =
             (case thy_prefix thy of
                  NONE => immed_thms_of_thy thy
-               | SOME prf => filter (String.isPrefix (unprefix (prf ^ NameSpace.separator) thy))
+               | SOME prf => filter (String.isPrefix (unprefix (prf ^ Long_Name.separator) thy))
                                     (thms_of_thy prf))
     in
         case (thyname,objtype) of
@@ -642,7 +642,7 @@ fun showid (Showid vs) =
         val topthy = Toplevel.theory_of o Isar.state
 
         fun splitthy id =
-            let val comps = NameSpace.explode id
+            let val comps = Long_Name.explode id
             in case comps of
                    (thy::(rest as _::_)) => (ThyInfo.get_theory thy, space_implode "." rest)
                  | [plainid] => (topthy(),plainid)

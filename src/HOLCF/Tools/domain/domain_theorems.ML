@@ -606,7 +606,7 @@ val copy_rews = copy_strict :: copy_apps @ copy_stricts;
 
 in
   thy
-    |> Sign.add_path (NameSpace.base_name dname)
+    |> Sign.add_path (Long_Name.base_name dname)
     |> (snd o (PureThy.add_thmss (map (Thm.no_attributes o apfst Binding.name) [
         ("iso_rews" , iso_rews  ),
         ("exhaust"  , [exhaust] ),

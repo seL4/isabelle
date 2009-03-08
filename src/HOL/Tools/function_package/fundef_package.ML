@@ -54,7 +54,7 @@ fun add_simps fnames post sort extra_qualify label moreatts simps lthy =
       val simps_by_f = sort saved_simps
 
       fun add_for_f fname simps =
-        note_theorem ((NameSpace.qualified fname label, []), simps) #> snd
+        note_theorem ((Long_Name.qualify fname label, []), simps) #> snd
     in
       (saved_simps,
        fold2 add_for_f fnames simps_by_f lthy)
@@ -66,12 +66,12 @@ fun fundef_afterqed do_print fixes post defname cont sort_cont cnames [[proof]] 
           cont (Thm.close_derivation proof)
 
       val fnames = map (fst o fst) fixes
-      val qualify = NameSpace.qualified defname
+      val qualify = Long_Name.qualify defname
       val addsmps = add_simps fnames post sort_cont
 
       val (((psimps', pinducts'), (_, [termination'])), lthy) =
           lthy
-            |> addsmps (NameSpace.qualified "partial") "psimps"
+            |> addsmps (Long_Name.qualify "partial") "psimps"
                        [Attrib.internal (K Nitpick_Const_Psimp_Thms.add)] psimps
             ||> fold_option (snd oo addsmps I "simps" [Attrib.internal (K Nitpick_Const_Simp_Thms.add)]) trsimps
             ||>> note_theorem ((qualify "pinduct",
@@ -131,7 +131,7 @@ fun total_termination_afterqed data [[totality]] lthy =
       val allatts = (not has_guards ? cons Code.add_default_eqn_attrib)
         [Attrib.internal (K Nitpick_Const_Simp_Thms.add)]
 
-      val qualify = NameSpace.qualified defname;
+      val qualify = Long_Name.qualify defname;
     in
       lthy
         |> add_simps I "simps" allatts tsimps |> snd

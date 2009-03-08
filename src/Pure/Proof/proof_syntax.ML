@@ -97,16 +97,16 @@ fun proof_of_term thy ty =
     fun prf_of [] (Bound i) = PBound i
       | prf_of Ts (Const (s, Type ("proof", _))) =
           change_type (if ty then SOME Ts else NONE)
-            (case NameSpace.explode s of
+            (case Long_Name.explode s of
                "axm" :: xs =>
                  let
-                   val name = NameSpace.implode xs;
+                   val name = Long_Name.implode xs;
                    val prop = (case AList.lookup (op =) axms name of
                        SOME prop => prop
                      | NONE => error ("Unknown axiom " ^ quote name))
                  in PAxm (name, prop, NONE) end
              | "thm" :: xs =>
-                 let val name = NameSpace.implode xs;
+                 let val name = Long_Name.implode xs;
                  in (case AList.lookup (op =) thms name of
                      SOME thm => fst (strip_combt (Thm.proof_of thm))
                    | NONE => error ("Unknown theorem " ^ quote name))
@@ -147,12 +147,12 @@ val mk_tyapp = fold (fn T => fn prf => Const ("Appt",
   [proofT, Term.itselfT T] ---> proofT) $ prf $ Logic.mk_type T);
 
 fun term_of _ (PThm (_, ((name, _, NONE), _))) =
-      Const (NameSpace.append "thm" name, proofT)
+      Const (Long_Name.append "thm" name, proofT)
   | term_of _ (PThm (_, ((name, _, SOME Ts), _))) =
-      mk_tyapp Ts (Const (NameSpace.append "thm" name, proofT))
-  | term_of _ (PAxm (name, _, NONE)) = Const (NameSpace.append "axm" name, proofT)
+      mk_tyapp Ts (Const (Long_Name.append "thm" name, proofT))
+  | term_of _ (PAxm (name, _, NONE)) = Const (Long_Name.append "axm" name, proofT)
   | term_of _ (PAxm (name, _, SOME Ts)) =
-      mk_tyapp Ts (Const (NameSpace.append "axm" name, proofT))
+      mk_tyapp Ts (Const (Long_Name.append "axm" name, proofT))
   | term_of _ (PBound i) = Bound i
   | term_of Ts (Abst (s, opT, prf)) =
       let val T = the_default dummyT opT
@@ -183,7 +183,7 @@ fun cterm_of_proof thy prf =
     val thy' = thy
       |> add_proof_syntax
       |> add_proof_atom_consts
-        (map (NameSpace.append "axm") axm_names @ map (NameSpace.append "thm") thm_names);
+        (map (Long_Name.append "axm") axm_names @ map (Long_Name.append "thm") thm_names);
   in
     (cterm_of thy' (term_of_proof prf), proof_of_term thy true o Thm.term_of)
   end;
@@ -195,7 +195,7 @@ fun read_term thy =
     val ctxt = thy
       |> add_proof_syntax
       |> add_proof_atom_consts
-        (map (NameSpace.append "axm") axm_names @ map (NameSpace.append "thm") thm_names)
+        (map (Long_Name.append "axm") axm_names @ map (Long_Name.append "thm") thm_names)
       |> ProofContext.init
       |> ProofContext.allow_dummies
       |> ProofContext.set_mode ProofContext.mode_schematic;
@@ -219,7 +219,7 @@ fun proof_syntax prf =
   in
     add_proof_syntax #>
     add_proof_atom_consts
-      (map (NameSpace.append "thm") thm_names @ map (NameSpace.append "axm") axm_names)
+      (map (Long_Name.append "thm") thm_names @ map (Long_Name.append "axm") axm_names)
   end;
 
 fun proof_of full thm =

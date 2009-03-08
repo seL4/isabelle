@@ -303,7 +303,7 @@ fun setinsert (x,s) = Symtab.update (x,()) s;
 (*Reject theorems with names like "List.filter.filter_list_def" or
   "Accessible_Part.acc.defs", as these are definitions arising from packages.*)
 fun is_package_def a =
-  let val names = NameSpace.explode a
+  let val names = Long_Name.explode a
   in
      length names > 2 andalso
      not (hd names = "local") andalso
@@ -378,7 +378,7 @@ fun add_single_names ((a, []), pairs) = pairs
 
 (*Ignore blacklisted basenames*)
 fun add_multi_names ((a, ths), pairs) =
-  if (NameSpace.base_name a) mem_string ResAxioms.multi_base_blacklist  then pairs
+  if (Long_Name.base_name a) mem_string ResAxioms.multi_base_blacklist  then pairs
   else add_single_names ((a, ths), pairs);
 
 fun is_multi (a, ths) = length ths > 1 orelse String.isSuffix ".axioms" a;

@@ -87,7 +87,7 @@ fun prove_size_thms (info : datatype_info) new_type_names thy =
       recTs1 ~~ alt_names' |>
       map (fn (T as Type (s, _), optname) =>
         let
-          val s' = the_default (NameSpace.base_name s) optname ^ "_size";
+          val s' = the_default (Long_Name.base_name s) optname ^ "_size";
           val s'' = Sign.full_bname thy s'
         in
           (s'',
@@ -140,7 +140,7 @@ fun prove_size_thms (info : datatype_info) new_type_names thy =
     val ((size_def_thms, size_def_thms'), thy') =
       thy
       |> Sign.add_consts_i (map (fn (s, T) =>
-           (Binding.name (NameSpace.base_name s), param_size_fTs @ [T] ---> HOLogic.natT, NoSyn))
+           (Binding.name (Long_Name.base_name s), param_size_fTs @ [T] ---> HOLogic.natT, NoSyn))
            (size_names ~~ recTs1))
       |> PureThy.add_defs false
         (map (Thm.no_attributes o apsnd (Logic.mk_equals o apsnd (app fs)))
@@ -221,8 +221,8 @@ fun prove_size_thms (info : datatype_info) new_type_names thy =
 fun add_size_thms (new_type_names as name :: _) thy =
   let
     val info as {descr, alt_names, ...} = DatatypePackage.the_datatype thy name;
-    val prefix = NameSpace.map_base_name (K (space_implode "_"
-      (the_default (map NameSpace.base_name new_type_names) alt_names))) name;
+    val prefix = Long_Name.map_base_name (K (space_implode "_"
+      (the_default (map Long_Name.base_name new_type_names) alt_names))) name;
     val no_size = exists (fn (_, (_, _, constrs)) => exists (fn (_, cargs) => exists (fn dt =>
       is_rec_type dt andalso not (null (fst (strip_dtyp dt)))) cargs) constrs) descr
   in if no_size then thy

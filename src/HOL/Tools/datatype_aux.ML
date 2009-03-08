@@ -224,7 +224,7 @@ fun mk_fun_dtyp [] U = U
   | mk_fun_dtyp (T :: Ts) U = DtType ("fun", [T, mk_fun_dtyp Ts U]);
 
 fun name_of_typ (Type (s, Ts)) =
-      let val s' = NameSpace.base_name s
+      let val s' = Long_Name.base_name s
       in space_implode "_" (List.filter (not o equal "") (map name_of_typ Ts) @
         [if Syntax.is_identifier s' then s' else "x"])
       end

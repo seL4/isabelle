@@ -75,7 +75,7 @@ local
 
 fun pretty_fact_name (kind, "") = Pretty.str kind
   | pretty_fact_name (kind, name) = Pretty.block [Pretty.str kind, Pretty.brk 1,
-      Pretty.str (NameSpace.base_name name), Pretty.str ":"];
+      Pretty.str (Long_Name.base_name name), Pretty.str ":"];
 
 fun pretty_facts ctxt =
   flat o (separate [Pretty.fbrk, Pretty.str "and "]) o

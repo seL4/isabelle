@@ -25,7 +25,7 @@ local
 in
   val dtype  = Type(dname,typevars);
   val dtype2 = foldr1 mk_ssumT (map prod cons');
-  val dnam = NameSpace.base_name dname;
+  val dnam = Long_Name.base_name dname;
   val const_rep  = (dnam^"_rep" ,              dtype  ->> dtype2, NoSyn);
   val const_abs  = (dnam^"_abs" ,              dtype2 ->> dtype , NoSyn);
   val const_when = (dnam^"_when", List.foldr (op ->>) (dtype ->> freetvar "t") (map when_type cons'), NoSyn);

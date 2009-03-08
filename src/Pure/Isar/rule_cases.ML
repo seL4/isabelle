@@ -105,7 +105,7 @@ fun extract_case is_open thy (case_outline, raw_prop) name concls =
           if not nested then abs_fixes t
           else abs fixes1 (app (map (Term.dummy_pattern o #2) fixes2) (abs fixes2 t));
 
-        val (assumes1, assumes2) = extract_assumes (NameSpace.qualified name) case_outline prop
+        val (assumes1, assumes2) = extract_assumes (Long_Name.qualify name) case_outline prop
           |> pairself (map (apsnd (maps Logic.dest_conjunctions)));
 
         val concl = ObjectLogic.drop_judgment thy (Logic.strip_assums_concl prop);

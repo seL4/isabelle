@@ -207,7 +207,7 @@ fun make_def ctxt fixes fs (fname, ls, rs, rec_name, tname) =
     val frees = ls @ x :: rs;
     val raw_rhs = list_abs_free (frees,
       list_comb (Const (rec_name, dummyT), fs @ [Free x]))
-    val def_name = Thm.def_name (NameSpace.base_name fname);
+    val def_name = Thm.def_name (Long_Name.base_name fname);
     val rhs = singleton (Syntax.check_terms ctxt) raw_rhs;
     val SOME var = get_first (fn ((b, _), mx) =>
       if Binding.name_of b = fname then SOME (b, mx) else NONE) fixes;
@@ -286,7 +286,7 @@ fun gen_primrec set_group prep_spec prep_term invs fctxt raw_fixes raw_params ra
       fold_map (apfst (snd o snd) oo
         LocalTheory.define Thm.definitionK o fst) defs';
     val qualify = Binding.qualify false
-      (space_implode "_" (map (NameSpace.base_name o #1) defs));
+      (space_implode "_" (map (Long_Name.base_name o #1) defs));
     val names_atts' = map (apfst qualify) names_atts;
     val cert = cterm_of (ProofContext.theory_of lthy');
 

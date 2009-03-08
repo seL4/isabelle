@@ -590,7 +590,7 @@ fun intern_skolem ctxt def_type x =
   let
     val _ = no_skolem false x;
     val sko = lookup_skolem ctxt x;
-    val is_const = can (read_const_proper ctxt) x orelse NameSpace.is_qualified x;
+    val is_const = can (read_const_proper ctxt) x orelse Long_Name.is_qualified x;
     val is_declared = is_some (def_type (x, ~1));
   in
     if Variable.is_const ctxt x then NONE

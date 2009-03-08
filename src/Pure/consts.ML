@@ -117,7 +117,7 @@ fun extern_early consts c =
 fun syntax consts (c, mx) =
   let
     val ({T, authentic, ...}, _) = the_const consts c handle TYPE (msg, _, _) => error msg;
-    val c' = if authentic then Syntax.constN ^ c else NameSpace.base_name c;
+    val c' = if authentic then Syntax.constN ^ c else Long_Name.base_name c;
   in (c', T, mx) end;
 
 fun syntax_name consts c = #1 (syntax consts (c, NoSyn));

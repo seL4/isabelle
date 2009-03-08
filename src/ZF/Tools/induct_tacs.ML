@@ -157,7 +157,7 @@ fun rep_datatype_i elim induct case_eqns recursor_eqns thy =
 
   in
     thy
-    |> Sign.add_path (NameSpace.base_name big_rec_name)
+    |> Sign.add_path (Long_Name.base_name big_rec_name)
     |> PureThy.add_thmss [((Binding.name "simps", simps), [Simplifier.simp_add])] |> snd
     |> DatatypesData.put (Symtab.update (big_rec_name, dt_info) (DatatypesData.get thy))
     |> ConstructorsData.put (fold_rev Symtab.update con_pairs (ConstructorsData.get thy))

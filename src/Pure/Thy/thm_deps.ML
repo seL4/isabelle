@@ -20,7 +20,7 @@ fun thm_deps thms =
     fun add_dep ("", _, _) = I
       | add_dep (name, _, PBody {thms = thms', ...}) =
           let
-            val prefix = #1 (Library.split_last (NameSpace.explode name));
+            val prefix = #1 (Library.split_last (Long_Name.explode name));
             val session =
               (case prefix of
                 a :: _ =>
@@ -33,7 +33,7 @@ fun thm_deps thms =
                | _ => ["global"]);
             val parents = filter_out (fn s => s = "") (map (#1 o #2) thms');
             val entry =
-              {name = NameSpace.base_name name,
+              {name = Long_Name.base_name name,
                ID = name,
                dir = space_implode "/" (session @ prefix),
                unfold = false,

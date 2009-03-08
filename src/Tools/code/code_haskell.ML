@@ -34,7 +34,7 @@ fun pr_haskell_bind pr_term =
 fun pr_haskell_stmt naming labelled_name syntax_class syntax_tyco syntax_const
     init_syms deresolve is_cons contr_classparam_typs deriving_show =
   let
-    val deresolve_base = NameSpace.base_name o deresolve;
+    val deresolve_base = Long_Name.base_name o deresolve;
     fun class_name class = case syntax_class class
      of NONE => deresolve class
       | SOME class => class;
@@ -143,7 +143,7 @@ fun pr_haskell_stmt naming labelled_name syntax_class syntax_tyco syntax_const
                 @ str "="
                 :: str "error"
                 @@ (str o (fn s => s ^ ";") o ML_Syntax.print_string
-                    o NameSpace.base_name o NameSpace.qualifier) name
+                    o Long_Name.base_name o Long_Name.qualifier) name
               )
             ]
           end
@@ -155,7 +155,7 @@ fun pr_haskell_stmt naming labelled_name syntax_class syntax_tyco syntax_const
               let
                 val consts = map_filter
                   (fn c => if (is_some o syntax_const) c
-                    then NONE else (SOME o NameSpace.base_name o deresolve) c)
+                    then NONE else (SOME o Long_Name.base_name o deresolve) c)
                     ((fold o Code_Thingol.fold_constnames) (insert (op =)) (t :: ts) []);
                 val vars = init_syms
                   |> Code_Name.intro_vars consts
@@ -255,7 +255,7 @@ fun pr_haskell_stmt naming labelled_name syntax_class syntax_tyco syntax_const
                   let
                     val (c_inst_name, (_, tys)) = c_inst;
                     val const = if (is_some o syntax_const) c_inst_name
-                      then NONE else (SOME o NameSpace.base_name o deresolve) c_inst_name;
+                      then NONE else (SOME o Long_Name.base_name o deresolve) c_inst_name;
                     val proto_rhs = Code_Thingol.eta_expand k (c_inst, []);
                     val (vs, rhs) = unfold_abs_pure proto_rhs;
                     val vars = init_syms
@@ -313,11 +313,11 @@ fun haskell_program_of_program labelled_name module_name module_prefix reserved_
           | Code_Thingol.Classinst _ => pair base;
         fun add_stmt' base' = case stmt
          of Code_Thingol.Datatypecons _ =>
-              cons (name, (NameSpace.append module_name' base', NONE))
+              cons (name, (Long_Name.append module_name' base', NONE))
           | Code_Thingol.Classrel _ => I
           | Code_Thingol.Classparam _ =>
-              cons (name, (NameSpace.append module_name' base', NONE))
-          | _ => cons (name, (NameSpace.append module_name' base', SOME stmt));
+              cons (name, (Long_Name.append module_name' base', NONE))
+          | _ => cons (name, (Long_Name.append module_name' base', SOME stmt));
       in
         Symtab.map_default (module_name', ([], ([], (reserved_names, reserved_names))))
               (apfst (fold (insert (op = : string * string -> bool)) deps))
@@ -360,7 +360,7 @@ fun serialize_haskell module_prefix raw_module_name string_classes labelled_name
     val reserved_names = Code_Name.make_vars reserved_names;
     fun pr_stmt qualified = pr_haskell_stmt naming labelled_name
       syntax_class syntax_tyco syntax_const reserved_names
-      (if qualified then deresolver else NameSpace.base_name o deresolver)
+      (if qualified then deresolver else Long_Name.base_name o deresolver)
       is_cons contr_classparam_typs
       (if string_classes then deriving_show else K false);
     fun pr_module name content =
@@ -379,10 +379,10 @@ fun serialize_haskell module_prefix raw_module_name string_classes labelled_name
           |> map_filter (try deresolver);
         val qualified = is_none module_name andalso
           map deresolver stmt_names @ deps'
-          |> map NameSpace.base_name
+          |> map Long_Name.base_name
           |> has_duplicates (op =);
         val imports = deps'
-          |> map NameSpace.qualifier
+          |> map Long_Name.qualifier
           |> distinct (op =);
         fun pr_import_include (name, _) = str ("import qualified " ^ name ^ ";");
         val pr_import_module = str o (if qualified
@@ -413,7 +413,7 @@ fun serialize_haskell module_prefix raw_module_name string_classes labelled_name
         val filename = case modlname
          of "" => Path.explode "Main.hs"
           | _ => (Path.ext "hs" o Path.explode o implode o separate "/"
-                o NameSpace.explode) modlname;
+                o Long_Name.explode) modlname;
         val pathname = Path.append destination filename;
         val _ = File.mkdir (Path.dir pathname);
       in File.write pathname

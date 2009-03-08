@@ -212,7 +212,7 @@ fun make_def thy fs (fname, ls, rec_name, tname) =
                     ((map snd ls) @ [dummyT])
                     (list_comb (Const (rec_name, dummyT),
                                 fs @ map Bound (0 ::(length ls downto 1))))
-    val def_name = NameSpace.base_name fname ^ "_" ^ NameSpace.base_name tname ^ "_def";
+    val def_name = Long_Name.base_name fname ^ "_" ^ Long_Name.base_name tname ^ "_def";
     val def_prop =
       singleton (Syntax.check_terms (ProofContext.init thy))
         (Logic.mk_equals (Const (fname, dummyT), rhs));
@@ -269,7 +269,7 @@ fun gen_primrec_i note def alt_name eqns_atts thy =
             else primrec_err ("functions " ^ commas_quote (map fst nameTs2) ^
               "\nare not mutually recursive");
     val primrec_name =
-      if alt_name = "" then (space_implode "_" (map (NameSpace.base_name o #1) defs)) else alt_name;
+      if alt_name = "" then (space_implode "_" (map (Long_Name.base_name o #1) defs)) else alt_name;
     val (defs_thms', thy') =
       thy
       |> Sign.add_path primrec_name

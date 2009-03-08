@@ -119,7 +119,7 @@ fun condrew thy rules procs =
 
 val chtype = change_type o SOME;
 
-fun extr_name s vs = NameSpace.append "extr" (space_implode "_" (s :: vs));
+fun extr_name s vs = Long_Name.append "extr" (space_implode "_" (s :: vs));
 fun corr_name s vs = extr_name s vs ^ "_correctness";
 
 fun msg d s = priority (Symbol.spaces d ^ s);

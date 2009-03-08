@@ -490,7 +490,7 @@ val declare_typ_names = fold_atyps (fn TFree (a, _) => Name.declare a | _ => I);
 
 fun declare_term_names tm =
   fold_aterms
-    (fn Const (a, _) => Name.declare (NameSpace.base_name a)
+    (fn Const (a, _) => Name.declare (Long_Name.base_name a)
       | Free (a, _) => Name.declare a
       | _ => I) tm #>
   fold_types declare_typ_names tm;
@@ -721,7 +721,7 @@ fun abstract_over (v, body) =
 fun lambda v t =
   let val x =
     (case v of
-      Const (x, _) => NameSpace.base_name x
+      Const (x, _) => Long_Name.base_name x
     | Free (x, _) => x
     | Var ((x, _), _) => x
     | _ => Name.uu)

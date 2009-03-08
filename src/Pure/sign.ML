@@ -355,7 +355,7 @@ fun err msg = raise TYPE (msg, [], []);
 fun check_vars (t $ u) = (check_vars t; check_vars u)
   | check_vars (Abs (_, _, t)) = check_vars t
   | check_vars (Free (x, _)) =
-      if NameSpace.is_qualified x then err ("Malformed variable: " ^ quote x) else ()
+      if Long_Name.is_qualified x then err ("Malformed variable: " ^ quote x) else ()
   | check_vars (Var (xi as (_, i), _)) =
       if i < 0 then err ("Malformed variable: " ^ quote (Term.string_of_vname xi)) else ()
   | check_vars _ = ();

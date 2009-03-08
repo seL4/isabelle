@@ -301,7 +301,7 @@ fun update_syntax (mode, inout) syn_ext (Syntax (tabs, _)) =
       lexicon =
         if changed then fold Scan.extend_lexicon (SynExt.delims_of xprods) lexicon else lexicon,
       gram = if changed then Parser.extend_gram gram xprods else gram,
-      consts = Library.merge (op =) (consts1, filter_out NameSpace.is_qualified consts2),
+      consts = Library.merge (op =) (consts1, filter_out Long_Name.is_qualified consts2),
       prmodes = insert (op =) mode (Library.merge (op =) (prmodes1, prmodes2)),
       parse_ast_trtab =
         update_trtab "parse ast translation" (if_inout parse_ast_translation) parse_ast_trtab,
@@ -607,7 +607,7 @@ fun read_pattern ctxt is_logtype syn (root, str) =
 
     fun constify (ast as Ast.Constant _) = ast
       | constify (ast as Ast.Variable x) =
-          if member (op =) consts x orelse NameSpace.is_qualified x then Ast.Constant x
+          if member (op =) consts x orelse Long_Name.is_qualified x then Ast.Constant x
           else ast
       | constify (Ast.Appl asts) = Ast.Appl (map constify asts);
 

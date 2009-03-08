@@ -22,7 +22,7 @@ let
   val dc_rep = %%:(dname^"_rep");
   val x_name'= "x";
   val x_name = idx_name eqs x_name' (n+1);
-  val dnam = NameSpace.base_name dname;
+  val dnam = Long_Name.base_name dname;
 
   val abs_iso_ax = ("abs_iso", mk_trp(dc_rep`(dc_abs`%x_name') === %:x_name'));
   val rep_iso_ax = ("rep_iso", mk_trp(dc_abs`(dc_rep`%x_name') === %:x_name'));

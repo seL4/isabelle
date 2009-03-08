@@ -191,7 +191,7 @@ fun make_def ctxt fixes fs (fname, ls, rec_name, tname) =
                     (map snd ls @ [dummyT])
                     (list_comb (Const (rec_name, dummyT),
                                 fs @ map Bound (0 :: (length ls downto 1))))
-    val def_name = Thm.def_name (NameSpace.base_name fname);
+    val def_name = Thm.def_name (Long_Name.base_name fname);
     val rhs = singleton (Syntax.check_terms ctxt) raw_rhs;
     val SOME var = get_first (fn ((b, _), mx) =>
       if Binding.name_of b = fname then SOME (b, mx) else NONE) fixes;
@@ -247,7 +247,7 @@ fun gen_primrec set_group prep_spec raw_fixes raw_spec lthy =
     val _ = if gen_eq_set (op =) (names1, names2) then ()
       else primrec_error ("functions " ^ commas_quote names2 ^
         "\nare not mutually recursive");
-    val prefix = space_implode "_" (map (NameSpace.base_name o #1) defs);
+    val prefix = space_implode "_" (map (Long_Name.base_name o #1) defs);
     val qualify = Binding.qualify false prefix;
     val spec' = (map o apfst)
       (fn (b, attrs) => (qualify b, Code.add_default_eqn_attrib :: attrs)) spec;

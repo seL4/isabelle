@@ -181,7 +181,7 @@ fun add_fixdefs
     val fixpoint = mk_fix (lambda_ctuple lhss (mk_ctuple rhss));
     
     fun one_def (l as Free(n,_)) r =
-          let val b = NameSpace.base_name n
+          let val b = Long_Name.base_name n
           in ((Binding.name (b^"_def"), []), r) end
       | one_def _ _ = fixrec_err "fixdefs: lhs not of correct form";
     fun defs [] _ = []
@@ -230,7 +230,7 @@ fun add_matchers ms = FixrecMatchData.map (fold Symtab.update ms);
 
 fun taken_names (t : term) : bstring list =
   let
-    fun taken (Const(a,_), bs) = insert (op =) (NameSpace.base_name a) bs
+    fun taken (Const(a,_), bs) = insert (op =) (Long_Name.base_name a) bs
       | taken (Free(a,_) , bs) = insert (op =) a bs
       | taken (f $ u     , bs) = taken (f, taken (u, bs))
       | taken (Abs(a,_,t), bs) = taken (t, insert (op =) a bs)

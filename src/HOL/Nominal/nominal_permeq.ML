@@ -110,7 +110,7 @@ fun perm_simproc_app' sg ss redex =
           Type("fun",[Type("List.list",[Type("*",[Type(n,_),_])]),_])) $ pi $ (f $ x)) => 
             (if (applicable_app f) then
               let
-                val name = NameSpace.base_name n
+                val name = Long_Name.base_name n
                 val at_inst = PureThy.get_thm sg ("at_" ^ name ^ "_inst")
                 val pt_inst = PureThy.get_thm sg ("pt_" ^ name ^ "_inst")
               in SOME ((at_inst RS (pt_inst RS perm_eq_app)) RS eq_reflection) end
@@ -198,8 +198,8 @@ fun perm_compose_simproc' sg ss redex =
          Type ("fun", [Type ("List.list", [Type ("*", [U as Type (uname,_),_])]),_])) $ 
           pi2 $ t)) =>
     let
-      val tname' = NameSpace.base_name tname
-      val uname' = NameSpace.base_name uname
+      val tname' = Long_Name.base_name tname
+      val uname' = Long_Name.base_name uname
     in
       if pi1 <> pi2 then  (* only apply the composition rule in this case *)
         if T = U then    

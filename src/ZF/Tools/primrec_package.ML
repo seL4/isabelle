@@ -139,7 +139,7 @@ fun process_fun thy (fname, ftype, ls, rs, con_info: constructor_info, eqns) =
     (** make definition **)
 
     (*the recursive argument*)
-    val rec_arg = Free (Name.variant (map #1 (ls@rs)) (NameSpace.base_name big_rec_name),
+    val rec_arg = Free (Name.variant (map #1 (ls@rs)) (Long_Name.base_name big_rec_name),
                         Ind_Syntax.iT)
 
     val def_tm = Logic.mk_equals
@@ -153,7 +153,7 @@ fun process_fun thy (fname, ftype, ls, rs, con_info: constructor_info, eqns) =
             writeln ("primrec def:\n" ^
                      Syntax.string_of_term_global thy def_tm)
       else();
-      (NameSpace.base_name fname ^ "_" ^ NameSpace.base_name big_rec_name ^ "_def",
+      (Long_Name.base_name fname ^ "_" ^ Long_Name.base_name big_rec_name ^ "_def",
        def_tm)
   end;
 
@@ -168,7 +168,7 @@ fun add_primrec_i args thy =
     val def = process_fun thy (fname, ftype, ls, rs, con_info, eqns);
 
     val ([def_thm], thy1) = thy
-      |> Sign.add_path (NameSpace.base_name fname)
+      |> Sign.add_path (Long_Name.base_name fname)
       |> PureThy.add_defs false [Thm.no_attributes (apfst Binding.name def)];
 
     val rewrites = def_thm :: map mk_meta_eq (#rec_rewrites con_info)

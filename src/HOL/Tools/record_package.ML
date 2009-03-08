@@ -122,7 +122,7 @@ fun timing_msg s = if !timing then warning s else ();
 (* syntax *)
 
 fun prune n xs = Library.drop (n, xs);
-fun prefix_base s = NameSpace.map_base_name (fn bname => s ^ bname);
+fun prefix_base s = Long_Name.map_base_name (fn bname => s ^ bname);
 
 val Trueprop = HOLogic.mk_Trueprop;
 fun All xs t = Term.list_all_free (xs, t);
@@ -433,8 +433,8 @@ val get_extfields = Symtab.lookup o #extfields o RecordsData.get;
 fun get_extT_fields thy T =
   let
     val ((name,Ts),moreT) = dest_recT T;
-    val recname = let val (nm::recn::rst) = rev (NameSpace.explode name)
-                  in NameSpace.implode (rev (nm::rst)) end;
+    val recname = let val (nm::recn::rst) = rev (Long_Name.explode name)
+                  in Long_Name.implode (rev (nm::rst)) end;
     val midx = maxidx_of_typs (moreT::Ts);
     val varifyT = varifyT midx;
     val {records,extfields,...} = RecordsData.get thy;
@@ -702,7 +702,7 @@ fun record_tr' sep mark record record_scheme unit ctxt t =
                      SOME flds
                      => (let
                           val (f::fs) = but_last (map fst flds);
-                          val flds' = Sign.extern_const thy f :: map NameSpace.base_name fs;
+                          val flds' = Sign.extern_const thy f :: map Long_Name.base_name fs;
                           val (args',more) = split_last args;
                          in (flds'~~args')@field_lst more end
                          handle Library.UnequalLengths => [("",t)])
@@ -804,7 +804,7 @@ fun record_type_tr' sep mark record record_scheme ctxt t =
                            => (let
                                 val (f :: fs) = but_last flds;
                                 val flds' = apfst (Sign.extern_const thy) f
-                                  :: map (apfst NameSpace.base_name) fs;
+                                  :: map (apfst Long_Name.base_name) fs;
                                 val (args', more) = split_last args;
                                 val alphavars = map varifyT (but_last alphas);
                                 val subst = fold2 (curry (Sign.typ_match thy))
@@ -1069,7 +1069,7 @@ val record_upd_simproc =
              val {sel_upd={selectors,updates,...},extfields,...} = RecordsData.get thy;
 
              (*fun mk_abs_var x t = (x, fastype_of t);*)
-             fun sel_name u = NameSpace.base_name (unsuffix updateN u);
+             fun sel_name u = Long_Name.base_name (unsuffix updateN u);
 
              fun seed s (upd as Const (more,Type(_,[mT,_]))$ k $ r) =
                   if has_field extfields s (domain_type' mT) then upd else seed s r
@@ -1461,7 +1461,7 @@ fun extension_typedef name repT alphas thy =
           Abs_inject=abs_inject, Abs_inverse = abs_inverse, ...} = TypedefPackage.get_info thy name;
         val rewrite_rule = MetaSimplifier.rewrite_rule [rec_UNIV_I, rec_True_simp];
       in map rewrite_rule [abs_inject, abs_inverse, abs_induct] end;
-    val tname = Binding.name (NameSpace.base_name name);
+    val tname = Binding.name (Long_Name.base_name name);
   in
     thy
     |> TypecopyPackage.add_typecopy (Binding.suffix_name ext_typeN tname, alphas) repT NONE
@@ -1475,7 +1475,7 @@ fun mixit convs refls =
 
 fun extension_definition full name fields names alphas zeta moreT more vars thy =
   let
-    val base = NameSpace.base_name;
+    val base = Long_Name.base_name;
     val fieldTs = (map snd fields);
     val alphas_zeta = alphas@[zeta];
     val alphas_zetaTs = map (fn n => TFree (n, HOLogic.typeS)) alphas_zeta;
@@ -1761,7 +1761,7 @@ fun record_definition (args, bname) parent (parents: parent_info list) raw_field
     val alphas = map fst args;
     val name = Sign.full_bname thy bname;
     val full = Sign.full_bname_path thy bname;
-    val base = NameSpace.base_name;
+    val base = Long_Name.base_name;
 
     val (bfields, field_syntax) = split_list (map (fn (x, T, mx) => ((x, T), mx)) raw_fields);
 
@@ -1887,11 +1887,11 @@ fun record_definition (args, bname) parent (parents: parent_info list) raw_field
 
     fun parent_more s =
          if null parents then s
-         else mk_sel s (NameSpace.qualified (#name (List.last parents)) moreN, extT);
+         else mk_sel s (Long_Name.qualify (#name (List.last parents)) moreN, extT);
 
     fun parent_more_upd v s =
       if null parents then v$s
-      else let val mp = NameSpace.qualified (#name (List.last parents)) moreN;
+      else let val mp = Long_Name.qualify (#name (List.last parents)) moreN;
            in mk_upd updateN mp v s end;
 
     (*record (scheme) type abbreviation*)

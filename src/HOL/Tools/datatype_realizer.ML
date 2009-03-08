@@ -168,7 +168,7 @@ fun make_casedists sorts ({index, descr, case_name, case_rewrites, exhaustion, .
         val Ts = map (typ_of_dtyp descr sorts) cargs;
         val frees = Name.variant_list ["P", "y"] (DatatypeProp.make_tnames Ts) ~~ Ts;
         val free_ts = map Free frees;
-        val r = Free ("r" ^ NameSpace.base_name cname, Ts ---> rT)
+        val r = Free ("r" ^ Long_Name.base_name cname, Ts ---> rT)
       in (r, list_all_free (frees, Logic.mk_implies (HOLogic.mk_Trueprop
         (HOLogic.mk_eq (Free ("y", T), list_comb (Const (cname, Ts ---> T), free_ts))),
           HOLogic.mk_Trueprop (Free ("P", rT --> HOLogic.boolT) $

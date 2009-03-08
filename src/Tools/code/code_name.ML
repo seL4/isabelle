@@ -39,7 +39,7 @@ val first_upper = implode o nth_map 0 Symbol.to_ascii_upper o explode;
 val first_lower = implode o nth_map 0 Symbol.to_ascii_lower o explode;
 
 val dest_name =
-  apfst NameSpace.implode o split_last o fst o split_last o NameSpace.explode;
+  apfst Long_Name.implode o split_last o fst o split_last o Long_Name.explode;
 
 
 (** purification **)
@@ -80,7 +80,7 @@ val purify_prefix =
   #> Symbol.scanner "Malformed name"
       (Scan.repeat ($$ "_" |-- $$ "_" >> (fn _ => ".") || Scan.one Symbol.is_regular))
   #> implode
-  #> NameSpace.explode
+  #> Long_Name.explode
   #> map (purify_name true false);
 
 (*FIMXE non-canonical function treating non-canonical names*)
@@ -101,11 +101,11 @@ val purify_sym = purify_base false;
 
 fun check_modulename mn =
   let
-    val mns = NameSpace.explode mn;
+    val mns = Long_Name.explode mn;
     val mns' = map (purify_name true false) mns;
   in
     if mns' = mns then mn else error ("Invalid module name: " ^ quote mn ^ "\n"
-      ^ "perhaps try " ^ quote (NameSpace.implode mns'))
+      ^ "perhaps try " ^ quote (Long_Name.implode mns'))
   end;
 
 
@@ -155,11 +155,11 @@ fun mk_name_module reserved_names module_prefix module_alias program =
     fun mk_alias name = case module_alias name
      of SOME name' => name'
       | NONE => name
-          |> NameSpace.explode
+          |> Long_Name.explode
           |> map (fn name => (the_single o fst) (Name.variants [name] reserved_names))
-          |> NameSpace.implode;
+          |> Long_Name.implode;
     fun mk_prefix name = case module_prefix
-     of SOME module_prefix => NameSpace.append module_prefix name
+     of SOME module_prefix => Long_Name.append module_prefix name
       | NONE => name;
     val tab =
       Symtab.empty

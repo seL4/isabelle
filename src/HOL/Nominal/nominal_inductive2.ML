@@ -229,7 +229,7 @@ fun prove_strong_ind s avoids ctxt =
     val atoms = map (fst o dest_Type) atomTs;
     val ind_sort = if null atomTs then HOLogic.typeS
       else Sign.certify_sort thy (map (fn a => Sign.intern_class thy
-        ("fs_" ^ NameSpace.base_name a)) atoms);
+        ("fs_" ^ Long_Name.base_name a)) atoms);
     val ([fs_ctxt_tyname], _) = Name.variants ["'n"] (Variable.names_of ctxt');
     val ([fs_ctxt_name], ctxt'') = Variable.variant_fixes ["z"] ctxt';
     val fsT = TFree (fs_ctxt_tyname, ind_sort);
@@ -296,7 +296,7 @@ fun prove_strong_ind s avoids ctxt =
 
     val perm_pi_simp = PureThy.get_thms thy "perm_pi_simp";
     val pt2_atoms = map (fn a => PureThy.get_thm thy
-      ("pt_" ^ NameSpace.base_name a ^ "2")) atoms;
+      ("pt_" ^ Long_Name.base_name a ^ "2")) atoms;
     val eqvt_ss = Simplifier.theory_context thy HOL_basic_ss
       addsimps (eqvt_thms @ perm_pi_simp @ pt2_atoms)
       addsimprocs [mk_perm_bool_simproc ["Fun.id"],
@@ -324,7 +324,7 @@ fun prove_strong_ind s avoids ctxt =
         val atom = fst (dest_Type T);
         val {at_inst, ...} = NominalAtoms.the_atom_info thy atom;
         val fs_atom = PureThy.get_thm thy
-          ("fs_" ^ NameSpace.base_name atom ^ "1");
+          ("fs_" ^ Long_Name.base_name atom ^ "1");
         val avoid_th = Drule.instantiate'
           [SOME (ctyp_of thy (fastype_of p))] [SOME (cterm_of thy p)]
           ([at_inst, fin, fs_atom] MRS @{thm at_set_avoiding});
@@ -452,7 +452,7 @@ fun prove_strong_ind s avoids ctxt =
     ctxt'' |>
     Proof.theorem_i NONE (fn thss => fn ctxt =>
       let
-        val rec_name = space_implode "_" (map NameSpace.base_name names);
+        val rec_name = space_implode "_" (map Long_Name.base_name names);
         val rec_qualified = Binding.qualify false rec_name;
         val ind_case_names = RuleCases.case_names induct_cases;
         val induct_cases' = InductivePackage.partition_rules' raw_induct
