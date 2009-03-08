@@ -67,7 +67,6 @@ fun index_ml kind ml src ctxt (txt1, txt2) =
       else if kind = "exception" then txt1 ^ " of " ^ txt2
       else txt1 ^ ": " ^ txt2;
     val txt' = if kind = "" then txt else kind ^ " " ^ txt;
-    val _ = writeln (ml (txt1, txt2));
     val _ = ML_Context.eval_in (SOME ctxt) false Position.none (ml (txt1, txt2));
     val kind' = if kind = "" then "ML" else "ML " ^ kind;
   in
