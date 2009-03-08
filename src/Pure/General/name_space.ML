@@ -19,15 +19,6 @@ sig
   include BASIC_NAME_SPACE
   val hidden: string -> string
   val is_hidden: string -> bool
-  val separator: string                 (*single char*)
-  val is_qualified: string -> bool
-  val implode: string list -> string
-  val explode: string -> string list
-  val append: string -> string -> string
-  val qualified: string -> string -> string
-  val base_name: string -> string
-  val qualifier: string -> string
-  val map_base_name: (string -> string) -> string -> string
   type T
   val empty: T
   val intern: T -> xstring -> string
@@ -63,32 +54,6 @@ struct
 
 fun hidden name = "??." ^ name;
 val is_hidden = String.isPrefix "??.";
-
-val separator = ".";
-val is_qualified = exists_string (fn s => s = separator);
-
-val implode_name = space_implode separator;
-val explode_name = space_explode separator;
-
-fun append name1 "" = name1
-  | append "" name2 = name2
-  | append name1 name2 = name1 ^ separator ^ name2;
-
-fun qualified path name =
-  if path = "" orelse name = "" then name
-  else path ^ separator ^ name;
-
-fun base_name "" = ""
-  | base_name name = List.last (explode_name name);
-
-fun qualifier "" = ""
-  | qualifier name = implode_name (#1 (split_last (explode_name name)));
-
-fun map_base_name _ "" = ""
-  | map_base_name f name =
-      let val names = explode_name name
-      in implode_name (nth_map (length names - 1) f names) end;
-
 
 (* standard accesses *)
 
@@ -161,7 +126,7 @@ fun extern_flags {long_names, short_names, unique_names} space name =
       | ext (nm :: nms) = if valid unique_names nm then nm else ext nms;
   in
     if long_names then name
-    else if short_names then base_name name
+    else if short_names then Long_Name.base_name name
     else ext (get_accesses space name)
   end;
 
@@ -196,7 +161,7 @@ end;
 (* hide *)
 
 fun hide fully name space =
-  if not (is_qualified name) then
+  if not (Long_Name.is_qualified name) then
     error ("Attempt to hide global name " ^ quote name)
   else if is_hidden name then
     error ("Attempt to hide hidden name " ^ quote name)
@@ -204,7 +169,8 @@ fun hide fully name space =
     let val names = valid_accesses space name in
       space
       |> add_name' name name
-      |> fold (del_name name) (if fully then names else names inter_string [base_name name])
+      |> fold (del_name name)
+        (if fully then names else names inter_string [Long_Name.base_name name])
       |> fold (del_name_extra name) (get_accesses space name)
     end;
 
@@ -237,33 +203,34 @@ datatype naming = Naming of
 fun path_of (Naming (path, _)) = path;
 fun accesses (Naming (_, (_, accs))) = accs;
 
-fun external_names naming = map implode_name o #2 o accesses naming o explode_name;
+fun external_names naming = map Long_Name.implode o #2 o accesses naming o Long_Name.explode;
 
 
 (* manipulate namings *)
 
 fun reject_qualified name =
-  if is_qualified name then
+  if Long_Name.is_qualified name then
     error ("Attempt to declare qualified name " ^ quote name)
   else name;
 
 val default_naming =
-  Naming ("", (fn path => qualified path o reject_qualified, suffixes_prefixes));
+  Naming ("", (fn path => Long_Name.qualify path o reject_qualified, suffixes_prefixes));
 
 fun add_path elems (Naming (path, policy)) =
-  if elems = "//" then Naming ("", (qualified, #2 policy))
+  if elems = "//" then Naming ("", (Long_Name.qualify, #2 policy))
   else if elems = "/" then Naming ("", policy)
-  else if elems = ".." then Naming (qualifier path, policy)
-  else Naming (append path elems, policy);
+  else if elems = ".." then Naming (Long_Name.qualifier path, policy)
+  else Naming (Long_Name.append path elems, policy);
 
 fun no_base_names (Naming (path, (qualify, accs))) =
   Naming (path, (qualify, pairself (filter_out (fn [_] => true | _ => false)) o accs));
 
-fun qualified_names (Naming (path, (_, accs))) = Naming (path, (qualified, accs));
+fun qualified_names (Naming (path, (_, accs))) = Naming (path, (Long_Name.qualify, accs));
 
 fun sticky_prefix prfx (Naming (path, (qualify, _))) =
-  Naming (append path prfx,
-    (qualify, suffixes_prefixes_split (length (explode_name path)) (length (explode_name prfx))));
+  Naming (Long_Name.append path prfx,
+    (qualify,
+      suffixes_prefixes_split (length (Long_Name.explode path)) (length (Long_Name.explode prfx))));
 
 val apply_prefix =
   let
@@ -290,13 +257,13 @@ fun declare naming binding space =
     val (prfx, bname) = Binding.dest binding;
     val naming' = apply_prefix prfx naming;
     val name = full naming' bname;
-    val names = explode_name name;
+    val names = Long_Name.explode name;
 
     val _ = (null names orelse exists (fn s => s = "" orelse s = "??") names
         orelse exists_string (fn s => s = "\"") name) andalso
       error ("Bad name declaration " ^ quote (Binding.str_of binding));
 
-    val (accs, accs') = pairself (map implode_name) (accesses naming' names);
+    val (accs, accs') = pairself (map Long_Name.implode) (accesses naming' names);
     val space' = space |> fold (add_name name) accs |> put_accesses name accs';
   in (name, space') end;
 
@@ -324,11 +291,6 @@ fun ext_table (space, tab) =
 
 fun dest_table tab = map (apfst #1) (ext_table tab);
 fun extern_table tab = map (apfst #2) (ext_table tab);
-
-
-(*final declarations of this structure!*)
-val implode = implode_name;
-val explode = explode_name;
 
 end;
 
