@@ -682,11 +682,11 @@ text {*
 
 text %mlref {*
   \begin{mldecls}
-  @{index_ML NameSpace.base_name: "string -> string"} \\
-  @{index_ML NameSpace.qualifier: "string -> string"} \\
-  @{index_ML NameSpace.append: "string -> string -> string"} \\
-  @{index_ML NameSpace.implode: "string list -> string"} \\
-  @{index_ML NameSpace.explode: "string -> string list"} \\
+  @{index_ML Long_Name.base_name: "string -> string"} \\
+  @{index_ML Long_Name.qualifier: "string -> string"} \\
+  @{index_ML Long_Name.append: "string -> string -> string"} \\
+  @{index_ML Long_Name.implode: "string list -> string"} \\
+  @{index_ML Long_Name.explode: "string -> string list"} \\
   \end{mldecls}
   \begin{mldecls}
   @{index_ML_type NameSpace.naming} \\
@@ -706,17 +706,17 @@ text %mlref {*
 
   \begin{description}
 
-  \item @{ML NameSpace.base_name}~@{text "name"} returns the base name of a
+  \item @{ML Long_Name.base_name}~@{text "name"} returns the base name of a
   qualified name.
 
-  \item @{ML NameSpace.qualifier}~@{text "name"} returns the qualifier
+  \item @{ML Long_Name.qualifier}~@{text "name"} returns the qualifier
   of a qualified name.
 
-  \item @{ML NameSpace.append}~@{text "name\<^isub>1 name\<^isub>2"}
+  \item @{ML Long_Name.append}~@{text "name\<^isub>1 name\<^isub>2"}
   appends two qualified names.
 
-  \item @{ML NameSpace.implode}~@{text "name"} and @{ML
-  NameSpace.explode}~@{text "names"} convert between the packed string
+  \item @{ML Long_Name.implode}~@{text "names"} and @{ML
+  Long_Name.explode}~@{text "name"} convert between the packed string
   representation and the explicit list form of qualified names.
 
   \item @{ML_type NameSpace.naming} represents the abstract concept of

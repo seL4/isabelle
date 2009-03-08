@@ -791,11 +791,11 @@ A \emph{qualified name} consists of a non-empty sequence of basic
 %
 \begin{isamarkuptext}%
 \begin{mldecls}
-  \indexdef{}{ML}{NameSpace.base\_name}\verb|NameSpace.base_name: string -> string| \\
-  \indexdef{}{ML}{NameSpace.qualifier}\verb|NameSpace.qualifier: string -> string| \\
-  \indexdef{}{ML}{NameSpace.append}\verb|NameSpace.append: string -> string -> string| \\
-  \indexdef{}{ML}{NameSpace.implode}\verb|NameSpace.implode: string list -> string| \\
-  \indexdef{}{ML}{NameSpace.explode}\verb|NameSpace.explode: string -> string list| \\
+  \indexdef{}{ML}{Long\_Name.base\_name}\verb|Long_Name.base_name: string -> string| \\
+  \indexdef{}{ML}{Long\_Name.qualifier}\verb|Long_Name.qualifier: string -> string| \\
+  \indexdef{}{ML}{Long\_Name.append}\verb|Long_Name.append: string -> string -> string| \\
+  \indexdef{}{ML}{Long\_Name.implode}\verb|Long_Name.implode: string list -> string| \\
+  \indexdef{}{ML}{Long\_Name.explode}\verb|Long_Name.explode: string -> string list| \\
   \end{mldecls}
   \begin{mldecls}
   \indexdef{}{ML type}{NameSpace.naming}\verb|type NameSpace.naming| \\
@@ -815,16 +815,16 @@ A \emph{qualified name} consists of a non-empty sequence of basic
 
   \begin{description}
 
-  \item \verb|NameSpace.base_name|~\isa{name} returns the base name of a
+  \item \verb|Long_Name.base_name|~\isa{name} returns the base name of a
   qualified name.
 
-  \item \verb|NameSpace.qualifier|~\isa{name} returns the qualifier
+  \item \verb|Long_Name.qualifier|~\isa{name} returns the qualifier
   of a qualified name.
 
-  \item \verb|NameSpace.append|~\isa{name\isactrlisub {\isadigit{1}}\ name\isactrlisub {\isadigit{2}}}
+  \item \verb|Long_Name.append|~\isa{name\isactrlisub {\isadigit{1}}\ name\isactrlisub {\isadigit{2}}}
   appends two qualified names.
 
-  \item \verb|NameSpace.implode|~\isa{name} and \verb|NameSpace.explode|~\isa{names} convert between the packed string
+  \item \verb|Long_Name.implode|~\isa{names} and \verb|Long_Name.explode|~\isa{name} convert between the packed string
   representation and the explicit list form of qualified names.
 
   \item \verb|NameSpace.naming| represents the abstract concept of

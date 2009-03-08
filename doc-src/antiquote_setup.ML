@@ -153,7 +153,7 @@ val arg = enclose "{" "}" o clean_string;
 
 fun output_entity check markup index kind ctxt (logic, name) =
   let
-    val hyper_name = "{" ^ NameSpace.append kind (NameSpace.append logic (clean_name name)) ^ "}";
+    val hyper_name = "{" ^ Long_Name.append kind (Long_Name.append logic (clean_name name)) ^ "}";
     val hyper =
       enclose ("\\hyperlink" ^ hyper_name ^ "{") "}" #>
       index = SOME true ? enclose ("\\hypertarget" ^ hyper_name ^ "{") "}";
