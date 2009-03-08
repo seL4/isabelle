@@ -11,7 +11,7 @@ sig
   val indent: int ref
   val source: bool ref
   val break: bool ref
-  val add_commands: (string * (Args.src -> Toplevel.node option -> string)) list -> unit
+  val add_commands: (string * (Args.src -> Toplevel.state -> string)) list -> unit
   val add_options: (string * (string -> (unit -> string) -> unit -> string)) list -> unit
   val defined_command: string -> bool
   val defined_option: string -> bool
@@ -19,10 +19,10 @@ sig
   val boolean: string -> bool
   val integer: string -> int
   val args: (Context.generic * Args.T list -> 'a * (Context.generic * Args.T list)) ->
-    (Args.src -> Proof.context -> 'a -> string) -> Args.src -> Toplevel.node option -> string
+    (Args.src -> Proof.context -> 'a -> string) -> Args.src -> Toplevel.state -> string
   datatype markup = Markup | MarkupEnv | Verbatim
   val modes: string list ref
-  val eval_antiquote: Scan.lexicon -> Toplevel.node option -> SymbolPos.text * Position.T -> string
+  val eval_antiquote: Scan.lexicon -> Toplevel.state -> SymbolPos.text * Position.T -> string
   val present_thy: Scan.lexicon -> (string -> string list) -> (markup -> string -> bool) ->
     (Toplevel.transition * Toplevel.state) list -> (OuterLex.token, 'a) Source.source -> Buffer.T
   val str_of_source: Args.src -> string
@@ -57,7 +57,7 @@ val break = ref false;
 local
 
 val global_commands =
-  ref (Symtab.empty: (Args.src -> Toplevel.node option -> string) Symtab.table);
+  ref (Symtab.empty: (Args.src -> Toplevel.state -> string) Symtab.table);
 
 val global_options =
   ref (Symtab.empty: (string -> (unit -> string) -> unit -> string) Symtab.table);
@@ -81,7 +81,7 @@ fun command src =
       NONE => error ("Unknown document antiquotation: " ^ quote name ^ Position.str_of pos)
     | SOME f =>
        (Position.report (Markup.doc_antiq name) pos;
-        (fn node => f src node handle ERROR msg =>
+        (fn state => f src state handle ERROR msg =>
           cat_error msg ("The error(s) above occurred in document antiquotation: " ^
             quote name ^ Position.str_of pos))))
   end;
@@ -127,10 +127,10 @@ fun integer s =
 
 fun syntax scan = Args.context_syntax "document antiquotation" scan;
 
-fun args scan f src node : string =
+fun args scan f src state : string =
   let
     val loc = if ! locale = "" then NONE else SOME (! locale);
-    val (x, ctxt) = syntax scan src (Toplevel.presentation_context node loc);
+    val (x, ctxt) = syntax scan src (Toplevel.presentation_context_of state loc);
   in f src ctxt x end;
 
 
@@ -153,20 +153,20 @@ end;
 
 val modes = ref ([]: string list);
 
-fun eval_antiquote lex node (txt, pos) =
+fun eval_antiquote lex state (txt, pos) =
   let
     fun expand (Antiquote.Text s) = s
       | expand (Antiquote.Antiq x) =
           let val (opts, src) = Antiquote.read_antiq lex antiq x in
-            options opts (fn () => command src node) ();  (*preview errors!*)
+            options opts (fn () => command src state) ();  (*preview errors!*)
             PrintMode.with_modes (! modes @ Latex.modes)
-              (Output.no_warnings (options opts (fn () => command src node))) ()
+              (Output.no_warnings (options opts (fn () => command src state))) ()
           end
       | expand (Antiquote.Open _) = ""
       | expand (Antiquote.Close _) = "";
     val ants = Antiquote.read (SymbolPos.explode (txt, pos), pos);
   in
-    if is_none node andalso exists Antiquote.is_antiq ants then
+    if Toplevel.is_toplevel state andalso exists Antiquote.is_antiq ants then
       error ("Unknown context -- cannot expand document antiquotations" ^ Position.str_of pos)
     else implode (map expand ants)
   end;
@@ -187,9 +187,7 @@ datatype token =
   | VerbatimToken of string * Position.T;
 
 fun output_token lex state =
-  let
-    val eval = eval_antiquote lex (try Toplevel.node_of state)
-  in
+  let val eval = eval_antiquote lex state in
     fn NoToken => ""
      | BasicToken tok => Latex.output_basic tok
      | MarkupToken (cmd, txt) => Latex.output_markup cmd (eval txt)
@@ -511,13 +509,13 @@ fun output_list pretty src ctxt xs =
 
 fun output pretty src ctxt = output_list pretty src ctxt o single;
 
-fun proof_state node =
-  (case Option.map Toplevel.proof_node node of
-    SOME (SOME prf) => ProofNode.current prf
+fun proof_state state =
+  (case try Toplevel.proof_of state of
+    SOME prf => prf
   | _ => error "No proof state");
 
-fun output_goals main_goal src node = args (Scan.succeed ()) (output (fn _ => fn _ =>
-  Pretty.chunks (Proof.pretty_goals main_goal (proof_state node)))) src node;
+fun output_goals main_goal src state = args (Scan.succeed ()) (output (fn _ => fn _ =>
+  Pretty.chunks (Proof.pretty_goals main_goal (proof_state state)))) src state;
 
 fun ml_val txt = "fn _ => (" ^ txt ^ ");";
 fun ml_type txt = "val _ = NONE : (" ^ txt ^ ") option;";

@@ -503,15 +503,15 @@ end;
 
 (* markup commands *)
 
-fun check_text (txt, pos) opt_node =
+fun check_text (txt, pos) state =
  (Position.report Markup.doc_source pos;
-  ignore (ThyOutput.eval_antiquote (#1 (OuterKeyword.get_lexicons ())) opt_node (txt, pos)));
+  ignore (ThyOutput.eval_antiquote (#1 (OuterKeyword.get_lexicons ())) state (txt, pos)));
 
 fun header_markup txt = Toplevel.keep (fn state =>
-  if Toplevel.is_toplevel state then check_text txt NONE
+  if Toplevel.is_toplevel state then check_text txt state
   else raise Toplevel.UNDEF);
 
-fun local_theory_markup (loc, txt) = Toplevel.present_local_theory loc (check_text txt o SOME);
-fun proof_markup txt = Toplevel.present_proof (check_text txt o SOME);
+fun local_theory_markup (loc, txt) = Toplevel.present_local_theory loc (check_text txt);
+val proof_markup = Toplevel.present_proof o check_text;
 
 end;
