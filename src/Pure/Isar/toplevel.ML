@@ -13,7 +13,6 @@ sig
   val proof_node: node -> ProofNode.T option
   val cases_node: (generic_theory -> 'a) -> (Proof.state -> 'a) -> node -> 'a
   val context_node: node -> Proof.context
-  val presentation_context: node option -> xstring option -> Proof.context
   type state
   val toplevel: state
   val is_toplevel: state -> bool
@@ -23,6 +22,7 @@ sig
   val previous_node_of: state -> node option
   val node_of: state -> node
   val node_case: (generic_theory -> 'a) -> (Proof.state -> 'a) -> state -> 'a
+  val presentation_context_of: state -> xstring option -> Proof.context
   val context_of: state -> Proof.context
   val generic_theory_of: state -> generic_theory
   val theory_of: state -> theory
@@ -68,7 +68,7 @@ sig
   val local_theory': xstring option -> (bool -> local_theory -> local_theory) ->
     transition -> transition
   val local_theory: xstring option -> (local_theory -> local_theory) -> transition -> transition
-  val present_local_theory: xstring option -> (node -> unit) -> transition -> transition
+  val present_local_theory: xstring option -> (state -> unit) -> transition -> transition
   val local_theory_to_proof': xstring option -> (bool -> local_theory -> Proof.state) ->
     transition -> transition
   val local_theory_to_proof: xstring option -> (local_theory -> Proof.state) ->
@@ -76,7 +76,7 @@ sig
   val theory_to_proof: (theory -> Proof.state) -> transition -> transition
   val end_proof: (bool -> Proof.state -> Proof.context) -> transition -> transition
   val forget_proof: transition -> transition
-  val present_proof: (node -> unit) -> transition -> transition
+  val present_proof: (state -> unit) -> transition -> transition
   val proofs': (bool -> Proof.state -> Proof.state Seq.seq) -> transition -> transition
   val proof': (bool -> Proof.state -> Proof.state) -> transition -> transition
   val proofs: (Proof.state -> Proof.state Seq.seq) -> transition -> transition
@@ -145,15 +145,6 @@ fun cases_node f _ (Theory (gthy, _)) = f gthy
 
 val context_node = cases_node Context.proof_of Proof.context_of;
 
-fun presentation_context (SOME (Theory (_, SOME ctxt))) NONE = ctxt
-  | presentation_context (SOME node) NONE = context_node node
-  | presentation_context (SOME node) (SOME loc) =
-      loc_init loc (cases_node Context.theory_of Proof.theory_of node)
-  | presentation_context NONE _ = raise UNDEF;
-
-fun reset_presentation (Theory (gthy, _)) = Theory (gthy, NONE)
-  | reset_presentation node = node;
-
 
 (* datatype state *)
 
@@ -188,6 +179,13 @@ fun is_theory state = not (is_toplevel state) andalso is_some (theory_node (node
 fun is_proof state = not (is_toplevel state) andalso is_some (proof_node (node_of state));
 
 fun node_case f g state = cases_node f g (node_of state);
+
+fun presentation_context_of state opt_loc =
+  (case (try node_of state, opt_loc) of
+    (SOME (Theory (_, SOME ctxt)), NONE) => ctxt
+  | (SOME node, NONE) => context_node node
+  | (SOME node, SOME loc) => loc_init loc (cases_node Context.theory_of Proof.theory_of node)
+  | (NONE, _) => raise UNDEF);
 
 val context_of = node_case Context.proof_of Proof.context_of;
 val generic_theory_of = node_case I (Context.Proof o Proof.context_of);
@@ -324,6 +322,9 @@ end;
 
 local
 
+fun reset_presentation (Theory (gthy, _)) = Theory (gthy, NONE)
+  | reset_presentation node = node;
+
 fun is_draft_theory (Theory (gthy, _)) = Context.is_draft (Context.theory_of gthy)
   | is_draft_theory _ = false;
 
@@ -338,7 +339,7 @@ fun map_theory f (Theory (gthy, ctxt)) =
 
 in
 
-fun apply_transaction pos f (node, exit) =
+fun apply_transaction pos f g (node, exit) =
   let
     val _ = is_draft_theory node andalso error "Illegal draft theory in toplevel state";
     val cont_node = reset_presentation node;
@@ -357,7 +358,7 @@ fun apply_transaction pos f (node, exit) =
       else (result, err);
   in
     (case err' of
-      NONE => result'
+      NONE => tap g result'
     | SOME exn => raise FAILURE (result', exn))
   end;
 
@@ -371,7 +372,7 @@ datatype trans =
   Exit |                                         (*formal exit of theory -- without committing*)
   CommitExit |                                   (*exit and commit final theory*)
   Keep of bool -> state -> unit |                (*peek at state*)
-  Transaction of bool -> node -> node;           (*node transaction*)
+  Transaction of (bool -> node -> node) * (state -> unit);  (*node transaction and presentation*)
 
 local
 
@@ -383,8 +384,8 @@ fun apply_tr int _ (Init (_, f, exit)) (State (NONE, _)) =
       (controlled_execution exit thy; toplevel)
   | apply_tr int _ (Keep f) state =
       controlled_execution (fn x => tap (f int) x) state
-  | apply_tr int pos (Transaction f) (State (SOME state, _)) =
-      apply_transaction pos (fn x => f int x) state
+  | apply_tr int pos (Transaction (f, g)) (State (SOME state, _)) =
+      apply_transaction pos (fn x => f int x) g state
   | apply_tr _ _ _ _ = raise UNDEF;
 
 fun apply_union _ _ [] state = raise FAILURE (state, UNDEF)
@@ -470,7 +471,9 @@ val print = set_print true;
 fun init_theory name f exit = add_trans (Init (name, f, exit));
 val exit = add_trans Exit;
 val keep' = add_trans o Keep;
-fun transaction f = add_trans (Transaction f);
+
+fun present_transaction f g = add_trans (Transaction (f, g));
+fun transaction f = present_transaction f (K ());
 
 fun keep f = add_trans (Keep (fn _ => f));
 fun imperative f = keep (fn _ => f ());
@@ -510,19 +513,19 @@ val end_local_theory = transaction (fn _ =>
 
 local
 
-fun local_theory_presentation loc f g = transaction (fn int =>
+fun local_theory_presentation loc f = present_transaction (fn int =>
   (fn Theory (gthy, _) =>
         let
           val finish = loc_finish loc gthy;
           val lthy' = f int (loc_begin loc gthy);
         in Theory (finish lthy', SOME lthy') end
-    | _ => raise UNDEF) #> tap g);
+    | _ => raise UNDEF));
 
 in
 
-fun local_theory' loc f = local_theory_presentation loc f (K I);
+fun local_theory' loc f = local_theory_presentation loc f (K ());
 fun local_theory loc f = local_theory' loc (K f);
-fun present_local_theory loc g = local_theory_presentation loc (K I) g;
+fun present_local_theory loc = local_theory_presentation loc (K I);
 
 end;
 
@@ -579,10 +582,10 @@ val forget_proof = transaction (fn _ =>
     | SkipProof (_, (_, orig_gthy)) => Theory (orig_gthy, NONE)
     | _ => raise UNDEF));
 
-fun present_proof f = transaction (fn _ =>
+val present_proof = present_transaction (fn _ =>
   (fn Proof (prf, x) => Proof (ProofNode.apply I prf, x)
     | skip as SkipProof _ => skip
-    | _ => raise UNDEF) #> tap f);
+    | _ => raise UNDEF));
 
 fun proofs' f = transaction (fn int =>
   (fn Proof (prf, x) => Proof (ProofNode.applys (f int) prf, x)
@@ -734,18 +737,18 @@ fun proof_result immediate (tr, proof_trs) st =
         val future_proof = Proof.global_future_proof
           (fn prf =>
             Future.fork_pri ~1 (fn () =>
-              let val (states, State (result_node, _)) =
+              let val (states, result_state) =
                 (case st' of State (SOME (Proof (_, (_, orig_gthy)), exit), prev)
                   => State (SOME (Proof (ProofNode.init prf, (finish, orig_gthy)), exit), prev))
                 |> fold_map command_result body_trs
                 ||> command (end_tr |> set_print false);
-              in (states, presentation_context (Option.map #1 result_node) NONE) end))
+              in (states, presentation_context_of result_state NONE) end))
           #> (fn (states, ctxt) => States.put (SOME states) ctxt);
 
         val st'' = st' |> command (end_tr |> reset_trans |> end_proof (K future_proof));
 
         val states =
-          (case States.get (presentation_context (SOME (node_of st'')) NONE) of
+          (case States.get (presentation_context_of st'' NONE) of
             NONE => sys_error ("No future states for " ^ name_of tr ^ Position.str_of (pos_of tr))
           | SOME states => states);
         val result = Lazy.lazy
