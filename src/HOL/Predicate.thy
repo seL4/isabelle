@@ -568,15 +568,24 @@ lemma bot_set_code [code]:
   "\<bottom> = Seq (\<lambda>u. Empty)"
   unfolding Seq_def by simp
 
+primrec adjunct :: "'a pred \<Rightarrow> 'a seq \<Rightarrow> 'a seq" where
+    "adjunct P Empty = Join P Empty"
+  | "adjunct P (Insert x Q) = Insert x (Q \<squnion> P)"
+  | "adjunct P (Join Q xq) = Join Q (adjunct P xq)"
+
+lemma adjunct_sup:
+  "pred_of_seq (adjunct P xq) = P \<squnion> pred_of_seq xq"
+  by (induct xq) (simp_all add: sup_assoc sup_commute sup_left_commute)
+
 lemma sup_code [code]:
   "Seq f \<squnion> Seq g = Seq (\<lambda>u. case f ()
     of Empty \<Rightarrow> g ()
      | Insert x P \<Rightarrow> Insert x (P \<squnion> Seq g)
-     | Join P xq \<Rightarrow> Join (Seq g) (Join P xq))" (*FIXME order!?*)
+     | Join P xq \<Rightarrow> adjunct (Seq g) (Join P xq))"
 proof (cases "f ()")
   case Empty
   thus ?thesis
-    unfolding Seq_def by (simp add: sup_commute [of "\<bottom>"] sup_bot)
+    unfolding Seq_def by (simp add: sup_commute [of "\<bottom>"]  sup_bot)
 next
   case Insert
   thus ?thesis
@@ -584,9 +593,9 @@ next
 next
   case Join
   thus ?thesis
-    unfolding Seq_def by (simp add: sup_commute [of "pred_of_seq (g ())"] sup_assoc)
+    unfolding Seq_def
+    by (simp add: adjunct_sup sup_assoc sup_commute sup_left_commute)
 qed
-
 
 declare eq_pred_def [code, code del]
 
@@ -601,6 +610,6 @@ no_notation
 
 hide (open) type pred seq
 hide (open) const Pred eval single bind if_pred eq_pred not_pred
-  Empty Insert Join Seq member "apply"
+  Empty Insert Join Seq member "apply" adjunct
 
 end
