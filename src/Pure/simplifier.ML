@@ -42,6 +42,7 @@ end;
 signature SIMPLIFIER =
 sig
   include BASIC_SIMPLIFIER
+  val pretty_ss: Proof.context -> simpset -> Pretty.T
   val clear_ss: simpset -> simpset
   val debug_bounds: bool ref
   val inherit_context: simpset -> simpset -> simpset
@@ -84,6 +85,29 @@ structure Simplifier: SIMPLIFIER =
 struct
 
 open MetaSimplifier;
+
+
+(** pretty printing **)
+
+fun pretty_ss ctxt ss =
+  let
+    val pretty_cterm = Syntax.pretty_term ctxt o Thm.term_of;
+    val pretty_thm = ProofContext.pretty_thm ctxt;
+    fun pretty_proc (name, lhss) = Pretty.big_list (name ^ ":") (map pretty_cterm lhss);
+    fun pretty_cong (name, thm) =
+      Pretty.block [Pretty.str (name ^ ":"), Pretty.brk 1, pretty_thm thm];
+
+    val {simps, procs, congs, loopers, unsafe_solvers, safe_solvers, ...} = dest_ss ss;
+  in
+    [Pretty.big_list "simplification rules:" (map (pretty_thm o #2) simps),
+      Pretty.big_list "simplification procedures:" (map pretty_proc (sort_wrt #1 procs)),
+      Pretty.big_list "congruences:" (map pretty_cong congs),
+      Pretty.strs ("loopers:" :: map quote loopers),
+      Pretty.strs ("unsafe solvers:" :: map quote unsafe_solvers),
+      Pretty.strs ("safe solvers:" :: map quote safe_solvers)]
+    |> Pretty.chunks
+  end;
+
 
 
 (** simpset data **)

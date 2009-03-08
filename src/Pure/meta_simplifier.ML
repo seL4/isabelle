@@ -24,7 +24,14 @@ sig
   val mk_solver: string -> (thm list -> int -> tactic) -> solver
   val empty_ss: simpset
   val merge_ss: simpset * simpset -> simpset
-  val pretty_ss: simpset -> Pretty.T
+  val dest_ss: simpset ->
+   {simps: (string * thm) list,
+    procs: (string * cterm list) list,
+    congs: (string * thm) list,
+    weak_congs: string list,
+    loopers: string list,
+    unsafe_solvers: string list,
+    safe_solvers: string list}
   type simproc
   val eq_simproc: simproc * simproc -> bool
   val morph_simproc: morphism -> simproc -> simproc
@@ -323,35 +330,6 @@ fun cond_warn_thm a (ss as Simpset ({context, ...}, _)) th =
   if is_some context then () else warn_thm a ss th;
 
 end;
-
-
-(* print simpsets *)
-
-fun pretty_ss ss =
-  let
-    val pretty_thms = map Display.pretty_thm;
-
-    fun pretty_cong (name, {thm, lhs}) =
-      Pretty.block [Pretty.str (name ^ ":"), Pretty.brk 1, Display.pretty_thm thm];
-    fun pretty_proc (name, lhss) =
-      Pretty.big_list (name ^ ":") (map Display.pretty_cterm lhss);
-
-    val Simpset ({rules, ...}, {congs, procs, loop_tacs, solvers, ...}) = ss;
-    val smps = map #thm (Net.entries rules);
-    val prcs = Net.entries procs |>
-      map (fn Proc {name, lhs, id, ...} => ((name, lhs), id))
-      |> partition_eq (eq_snd eq_procid)
-      |> map (fn ps => (fst (fst (hd ps)), map (snd o fst) ps))
-      |> Library.sort_wrt fst;
-  in
-    [Pretty.big_list "simplification rules:" (pretty_thms smps),
-      Pretty.big_list "simplification procedures:" (map pretty_proc prcs),
-      Pretty.big_list "congruences:" (map pretty_cong (fst congs)),
-      Pretty.strs ("loopers:" :: map (quote o fst) loop_tacs),
-      Pretty.strs ("unsafe solvers:" :: map (quote o solver_name) (#1 solvers)),
-      Pretty.strs ("safe solvers:" :: map (quote o solver_name) (#2 solvers))]
-    |> Pretty.chunks
-  end;
 
 
 
@@ -806,7 +784,7 @@ fun merge_ss (ss1, ss2) =
       val Simpset ({rules = rules2, prems = prems2, bounds = bounds2, depth = depth2, context = _},
        {congs = (congs2, weak2), procs = procs2, mk_rews = _, termless = _, subgoal_tac = _,
         loop_tacs = loop_tacs2, solvers = (unsafe_solvers2, solvers2)}) = ss2;
-  
+
       val rules' = Net.merge eq_rrule (rules1, rules2);
       val prems' = merge Thm.eq_thm_prop (prems1, prems2);
       val bounds' = if #1 bounds1 < #1 bounds2 then bounds2 else bounds1;
@@ -821,6 +799,22 @@ fun merge_ss (ss1, ss2) =
       make_simpset ((rules', prems', bounds', depth', NONE), ((congs', weak'), procs',
         mk_rews, termless, subgoal_tac, loop_tacs', (unsafe_solvers', solvers')))
     end;
+
+
+(* dest_ss *)
+
+fun dest_ss (Simpset ({rules, ...}, {congs, procs, loop_tacs, solvers, ...})) =
+ {simps = Net.entries rules
+    |> map (fn {name, thm, ...} => (name, thm)),
+  procs = Net.entries procs
+    |> map (fn Proc {name, lhs, id, ...} => ((name, lhs), id))
+    |> partition_eq (eq_snd eq_procid)
+    |> map (fn ps => (fst (fst (hd ps)), map (snd o fst) ps)),
+  congs = map (fn (name, {thm, ...}) => (name, thm)) (#1 congs),
+  weak_congs = #2 congs,
+  loopers = map fst loop_tacs,
+  unsafe_solvers = map solver_name (#1 solvers),
+  safe_solvers = map solver_name (#2 solvers)};
 
 
 
