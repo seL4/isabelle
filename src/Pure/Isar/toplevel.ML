@@ -22,7 +22,7 @@ sig
   val previous_node_of: state -> node option
   val node_of: state -> node
   val node_case: (generic_theory -> 'a) -> (Proof.state -> 'a) -> state -> 'a
-  val presentation_context_of: state -> xstring option -> Proof.context
+  val presentation_context_of: state -> Proof.context
   val context_of: state -> Proof.context
   val generic_theory_of: state -> generic_theory
   val theory_of: state -> theory
@@ -180,12 +180,11 @@ fun is_proof state = not (is_toplevel state) andalso is_some (proof_node (node_o
 
 fun node_case f g state = cases_node f g (node_of state);
 
-fun presentation_context_of state opt_loc =
-  (case (try node_of state, opt_loc) of
-    (SOME (Theory (_, SOME ctxt)), NONE) => ctxt
-  | (SOME node, NONE) => context_node node
-  | (SOME node, SOME loc) => loc_init loc (cases_node Context.theory_of Proof.theory_of node)
-  | (NONE, _) => raise UNDEF);
+fun presentation_context_of state =
+  (case try node_of state of
+    SOME (Theory (_, SOME ctxt)) => ctxt
+  | SOME node => context_node node
+  | NONE => raise UNDEF);
 
 val context_of = node_case Context.proof_of Proof.context_of;
 val generic_theory_of = node_case I (Context.Proof o Proof.context_of);
@@ -742,13 +741,13 @@ fun proof_result immediate (tr, proof_trs) st =
                   => State (SOME (Proof (ProofNode.init prf, (finish, orig_gthy)), exit), prev))
                 |> fold_map command_result body_trs
                 ||> command (end_tr |> set_print false);
-              in (states, presentation_context_of result_state NONE) end))
+              in (states, presentation_context_of result_state) end))
           #> (fn (states, ctxt) => States.put (SOME states) ctxt);
 
         val st'' = st' |> command (end_tr |> reset_trans |> end_proof (K future_proof));
 
         val states =
-          (case States.get (presentation_context_of st'' NONE) of
+          (case States.get (presentation_context_of st'') of
             NONE => sys_error ("No future states for " ^ name_of tr ^ Position.str_of (pos_of tr))
           | SOME states => states);
         val result = Lazy.lazy

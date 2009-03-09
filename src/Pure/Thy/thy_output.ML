@@ -105,7 +105,7 @@ end;
 
 fun antiquotation name scan out = add_commands [(name, fn src => fn state =>
   let val (x, ctxt) = Args.context_syntax "document antiquotation"
-    scan src (Toplevel.presentation_context_of state NONE)
+    scan src (Toplevel.presentation_context_of state)
   in out {source = src, state = state, context = ctxt} x end)];
 
 
