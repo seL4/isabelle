@@ -628,38 +628,6 @@ val add_datatype = gen_add_datatype cert_typ;
 val add_datatype_cmd = gen_add_datatype read_typ true;
 
 
-(** a datatype antiquotation **)
-
-fun args_datatype (ctxt, args) =
-  let
-    val (tyco, (ctxt', args')) = Args.tyname (ctxt, args);
-    val thy = Context.theory_of ctxt';
-    val spec = the_datatype_spec thy tyco;
-  in ((tyco, spec), (ctxt', args')) end;
-
-fun pretty_datatype ctxt (dtco, (vs, cos)) =
-  let
-    val ty = Type (dtco, map TFree vs);
-    fun pretty_typ_br ty =
-      let
-        val p = Syntax.pretty_typ ctxt ty;
-        val s = explode (Pretty.str_of p);
-      in if member (op =) s " " then Pretty.enclose "(" ")" [p]
-        else p
-      end;
-    fun pretty_constr (co, tys) =
-      (Pretty.block o Pretty.breaks)
-        (Syntax.pretty_term ctxt (Const (co, tys ---> ty)) ::
-          map pretty_typ_br tys);
-  in
-    Pretty.block
-      (Pretty.command "datatype" :: Pretty.brk 1 ::
-       Syntax.pretty_typ ctxt ty ::
-       Pretty.str " =" :: Pretty.brk 1 ::
-       flat (separate [Pretty.brk 1, Pretty.str "| "]
-         (map (single o pretty_constr) cos)))
-  end
-
 
 (** package setup **)
 
@@ -698,11 +666,34 @@ val _ =
       >> (fn (alt_names, ts) => Toplevel.print
            o Toplevel.theory_to_proof (rep_datatype_cmd alt_names ts)));
 
-val _ =
-  ThyOutput.add_commands [("datatype",
-    ThyOutput.args args_datatype (ThyOutput.output pretty_datatype))];
-
 end;
+
+
+(* document antiquotation *)
+
+val _ = ThyOutput.antiquotation "datatype" Args.tyname
+  (fn {source = src, context = ctxt, ...} => fn dtco =>
+    let
+      val thy = ProofContext.theory_of ctxt;
+      val (vs, cos) = the_datatype_spec thy dtco;
+      val ty = Type (dtco, map TFree vs);
+      fun pretty_typ_br ty =
+        let
+          val p = Syntax.pretty_typ ctxt ty;
+          val s = explode (Pretty.str_of p);  (* FIXME do not inspect pretty output! *)
+        in if member (op =) s " " then Pretty.enclose "(" ")" [p] else p end;
+      fun pretty_constr (co, tys) =
+        (Pretty.block o Pretty.breaks)
+          (Syntax.pretty_term ctxt (Const (co, tys ---> ty)) ::
+            map pretty_typ_br tys);
+      val pretty_datatype =
+        Pretty.block
+          (Pretty.command "datatype" :: Pretty.brk 1 ::
+           Syntax.pretty_typ ctxt ty ::
+           Pretty.str " =" :: Pretty.brk 1 ::
+           flat (separate [Pretty.brk 1, Pretty.str "| "]
+             (map (single o pretty_constr) cos)));
+    in ThyOutput.output (ThyOutput.maybe_pretty_source (K pretty_datatype) src [()]) end);
 
 end;
 
