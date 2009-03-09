@@ -314,8 +314,8 @@ text {* This example reveals that there is no infix syntax for the strict
   abbreviation (in order_preserving)
     less' (infixl "\<prec>" 50) where "less' \<equiv> partial_order.less le'"
 
-text {* Now the theorem is displayed nicely as
-  @{thm [locale=order_preserving] le'.less_le_trans}.  *}
+text (in order_preserving) {* Now the theorem is displayed nicely as
+  @{thm le'.less_le_trans}.  *}
 
 text {* Not only names of theorems are qualified.  In fact, all names
   are qualified, in particular names introduced by definitions and
@@ -399,12 +399,12 @@ text {* It can be shown easily that a lattice homomorphism is order
     then show "\<phi> x \<preceq> \<phi> y" by (simp add: le'.join_connection)
   qed
 
-text {* Theorems and other declarations --- syntax, in particular ---
-  from the locale @{text order_preserving} are now active in @{text
+text (in lattice_hom) {*
+  Theorems and other declarations --- syntax, in particular --- from
+  the locale @{text order_preserving} are now active in @{text
   lattice_hom}, for example
-
-  @{thm [locale=lattice_hom, source] le'.less_le_trans}:
-  @{thm [locale=lattice_hom] le'.less_le_trans}
+  @{thm [source] le'.less_le_trans}:
+  @{thm le'.less_le_trans}
   *}
 
 

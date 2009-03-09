@@ -142,8 +142,13 @@ A definition in a locale depends on the locale parameters.
   At the same time, the locale is extended by syntax information
   hiding this construction in the context of the locale.  That is,
   \isa{partial{\isacharunderscore}order{\isachardot}less\ le} is printed and parsed as infix
-  \isa{{\isasymsqsubset}}.  Finally, the conclusion of the definition is added to
-  the locale, \isa{less{\isacharunderscore}def}:
+  \isa{{\isasymsqsubset}}.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+Finally, the conclusion of the definition
+  is added to the locale, \isa{less{\isacharunderscore}def}:
   \begin{isabelle}%
 \ \ {\isacharparenleft}{\isacharquery}x\ {\isasymsqsubset}\ {\isacharquery}y{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}{\isacharquery}x\ {\isasymsqsubseteq}\ {\isacharquery}y\ {\isasymand}\ {\isacharquery}x\ {\isasymnoteq}\ {\isacharquery}y{\isacharparenright}%
 \end{isabelle}%

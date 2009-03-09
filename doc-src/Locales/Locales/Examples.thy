@@ -109,9 +109,11 @@ text {* A definition in a locale depends on the locale parameters.
   At the same time, the locale is extended by syntax information
   hiding this construction in the context of the locale.  That is,
   @{term "partial_order.less le"} is printed and parsed as infix
-  @{text \<sqsubset>}.  Finally, the conclusion of the definition is added to
-  the locale, @{thm [locale=partial_order, source] less_def}:
-  @{thm [locale=partial_order, display, indent=2] less_def}
+  @{text \<sqsubset>}. *}
+
+text (in partial_order) {* Finally, the conclusion of the definition
+  is added to the locale, @{thm [source] less_def}:
+  @{thm [display, indent=2] less_def}
   *}
 
 text {* As an example of a theorem statement in the locale, here is the
