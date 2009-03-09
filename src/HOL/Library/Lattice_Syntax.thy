@@ -11,7 +11,9 @@ notation
   inf  (infixl "\<sqinter>" 70) and
   sup  (infixl "\<squnion>" 65) and
   Inf  ("\<Sqinter>_" [900] 900) and
-  Sup  ("\<Squnion>_" [900] 900)
+  Sup  ("\<Squnion>_" [900] 900) and
+  top ("\<top>") and
+  bot ("\<bottom>")
 
 end
 (*>*)
