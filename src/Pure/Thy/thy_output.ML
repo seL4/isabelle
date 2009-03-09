@@ -18,10 +18,9 @@ sig
   val print_antiquotations: unit -> unit
   val boolean: string -> bool
   val integer: string -> int
-  val raw_antiquotation: string -> (Args.src -> Toplevel.state ->
-    Context.generic * Args.T list -> string * (Context.generic * Args.T list)) -> unit
-  val antiquotation: string -> (Args.src -> Proof.context ->
-    Context.generic * Args.T list -> string * (Context.generic * Args.T list)) -> unit
+  val antiquotation: string ->
+    (Context.generic * Args.T list -> 'a * (Context.generic * Args.T list)) ->
+    ({state: Toplevel.state, source: Args.src, context: Proof.context} -> 'a -> string) -> unit
   val args: (Context.generic * Args.T list -> 'a * (Context.generic * Args.T list)) ->
     (Args.src -> Proof.context -> 'a -> string) -> Args.src -> Toplevel.state -> string
   datatype markup = Markup | MarkupEnv | Verbatim
@@ -131,13 +130,10 @@ fun integer s =
 
 fun syntax scan = Args.context_syntax "document antiquotation" scan;
 
-fun raw_antiquotation name scan =
+fun antiquotation name scan output =
   add_commands [(name, fn src => fn state =>
-    #1 (syntax (scan src state) src (Toplevel.presentation_context_of state NONE)))];
-
-fun antiquotation name scan =
-  raw_antiquotation name (fn src => fn state =>
-    scan src (Toplevel.presentation_context_of state NONE));
+    let val (x, ctxt) = syntax scan src (Toplevel.presentation_context_of state NONE);
+    in output {source = src, state = state, context = ctxt} x end)];
 
 fun args scan f src state : string =
   let

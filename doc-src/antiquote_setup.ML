@@ -35,8 +35,8 @@ fun clean_name "\\<dots>" = "dots"
 
 val verbatim = space_implode "\\verb,|," o map (enclose "\\verb|" "|") o space_explode "|";
 
-val _ = ThyOutput.antiquotation "verbatim" (fn _ => fn _ =>
-  Scan.lift Args.name >> (split_lines #> map verbatim #> space_implode "\\isasep\\isanewline%\n"));
+val _ = ThyOutput.antiquotation "verbatim" (Scan.lift Args.name)
+  (K (split_lines #> map verbatim #> space_implode "\\isasep\\isanewline%\n"));
 
 
 (* ML text *)
