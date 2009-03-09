@@ -677,7 +677,7 @@ fun create_definitions preds nparams (name, modes) thy =
       val lhs = list_comb (Const (mode_id, funT), xparams @ xins)
       val def = Logic.mk_equals (lhs, predterm)
       val ([defthm], thy') = thy |>
-        Sign.add_consts_i [(NameSpace.base_name mode_id, funT, NoSyn)] |>
+        Sign.add_consts_i [(Binding.name (NameSpace.base_name mode_id), funT, NoSyn)] |>
         PureThy.add_defs false [((Binding.name (NameSpace.base_name mode_id ^ "_def"), def), [])]
       in thy' |> map_names (PredModetab.update_new ((name, mode), mode_id))
            |> map_function_defs (Symtab.update_new (mode_id, defthm))
