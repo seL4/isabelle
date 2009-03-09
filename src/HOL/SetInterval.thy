@@ -54,22 +54,22 @@ nat}: it is equivalent to @{term"{0::nat..<n}"} but some lemmas involving
 @{term"{m..<n}"} may not exist in @{term"{..<n}"}-form as well. *}
 
 syntax
-  "@UNION_le"   :: "nat => nat => 'b set => 'b set"       ("(3UN _<=_./ _)" 10)
-  "@UNION_less" :: "nat => nat => 'b set => 'b set"       ("(3UN _<_./ _)" 10)
-  "@INTER_le"   :: "nat => nat => 'b set => 'b set"       ("(3INT _<=_./ _)" 10)
-  "@INTER_less" :: "nat => nat => 'b set => 'b set"       ("(3INT _<_./ _)" 10)
+  "@UNION_le"   :: "'a => 'a => 'b set => 'b set"       ("(3UN _<=_./ _)" 10)
+  "@UNION_less" :: "'a => 'a => 'b set => 'b set"       ("(3UN _<_./ _)" 10)
+  "@INTER_le"   :: "'a => 'a => 'b set => 'b set"       ("(3INT _<=_./ _)" 10)
+  "@INTER_less" :: "'a => 'a => 'b set => 'b set"       ("(3INT _<_./ _)" 10)
 
 syntax (xsymbols)
-  "@UNION_le"   :: "nat => nat => 'b set => 'b set"       ("(3\<Union> _\<le>_./ _)" 10)
-  "@UNION_less" :: "nat => nat => 'b set => 'b set"       ("(3\<Union> _<_./ _)" 10)
-  "@INTER_le"   :: "nat => nat => 'b set => 'b set"       ("(3\<Inter> _\<le>_./ _)" 10)
-  "@INTER_less" :: "nat => nat => 'b set => 'b set"       ("(3\<Inter> _<_./ _)" 10)
+  "@UNION_le"   :: "'a => 'a => 'b set => 'b set"       ("(3\<Union> _\<le>_./ _)" 10)
+  "@UNION_less" :: "'a => 'a => 'b set => 'b set"       ("(3\<Union> _<_./ _)" 10)
+  "@INTER_le"   :: "'a => 'a => 'b set => 'b set"       ("(3\<Inter> _\<le>_./ _)" 10)
+  "@INTER_less" :: "'a => 'a => 'b set => 'b set"       ("(3\<Inter> _<_./ _)" 10)
 
 syntax (latex output)
-  "@UNION_le"   :: "nat \<Rightarrow> nat => 'b set => 'b set"       ("(3\<Union>(00_ \<le> _)/ _)" 10)
-  "@UNION_less" :: "nat \<Rightarrow> nat => 'b set => 'b set"       ("(3\<Union>(00_ < _)/ _)" 10)
-  "@INTER_le"   :: "nat \<Rightarrow> nat => 'b set => 'b set"       ("(3\<Inter>(00_ \<le> _)/ _)" 10)
-  "@INTER_less" :: "nat \<Rightarrow> nat => 'b set => 'b set"       ("(3\<Inter>(00_ < _)/ _)" 10)
+  "@UNION_le"   :: "'a \<Rightarrow> 'a => 'b set => 'b set"       ("(3\<Union>(00_ \<le> _)/ _)" 10)
+  "@UNION_less" :: "'a \<Rightarrow> 'a => 'b set => 'b set"       ("(3\<Union>(00_ < _)/ _)" 10)
+  "@INTER_le"   :: "'a \<Rightarrow> 'a => 'b set => 'b set"       ("(3\<Inter>(00_ \<le> _)/ _)" 10)
+  "@INTER_less" :: "'a \<Rightarrow> 'a => 'b set => 'b set"       ("(3\<Inter>(00_ < _)/ _)" 10)
 
 translations
   "UN i<=n. A"  == "UN i:{..n}. A"
