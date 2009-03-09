@@ -78,13 +78,14 @@ text {*
   into all goals of the proof state.  Note that current facts
   indicated for forward chaining are ignored.
 
-  \item @{method erule}~@{text "a\<^sub>1 \<dots> a\<^sub>n"}, @{method drule}~@{text "a\<^sub>1
-  \<dots> a\<^sub>n"}, and @{method frule}~@{text "a\<^sub>1 \<dots> a\<^sub>n"} are similar to the
-  basic @{method rule} method (see \secref{sec:pure-meth-att}), but
-  apply rules by elim-resolution, destruct-resolution, and
-  forward-resolution, respectively \cite{isabelle-ref}.  The optional
-  natural number argument (default 0) specifies additional assumption
-  steps to be performed here.
+  \item @{method erule}~@{text "a\<^sub>1 \<dots> a\<^sub>n"}, @{method
+  drule}~@{text "a\<^sub>1 \<dots> a\<^sub>n"}, and @{method frule}~@{text
+  "a\<^sub>1 \<dots> a\<^sub>n"} are similar to the basic @{method rule}
+  method (see \secref{sec:pure-meth-att}), but apply rules by
+  elim-resolution, destruct-resolution, and forward-resolution,
+  respectively \cite{isabelle-implementation}.  The optional natural
+  number argument (default 0) specifies additional assumption steps to
+  be performed here.
 
   Note that these methods are improper ones, mainly serving for
   experimentation and tactic script emulation.  Different modes of
@@ -143,7 +144,7 @@ text {*
   specified); the @{attribute COMP} version skips the automatic
   lifting process that is normally intended (cf.\ @{ML [source=false]
   "op RS"} and @{ML [source=false] "op COMP"} in
-  \cite[\S5]{isabelle-ref}).
+  \cite{isabelle-implementation}).
   
   \item @{attribute unfolded}~@{text "a\<^sub>1 \<dots> a\<^sub>n"} and @{attribute
   folded}~@{text "a\<^sub>1 \<dots> a\<^sub>n"} expand and fold back again the given
@@ -304,26 +305,26 @@ text {*
 
   \item @{method rule_tac} etc. do resolution of rules with explicit
   instantiation.  This works the same way as the ML tactics @{ML
-  res_inst_tac} etc. (see \cite[\S3]{isabelle-ref})
+  res_inst_tac} etc. (see \cite{isabelle-implementation})
 
   Multiple rules may be only given if there is no instantiation; then
   @{method rule_tac} is the same as @{ML resolve_tac} in ML (see
-  \cite[\S3]{isabelle-ref}).
+  \cite{isabelle-implementation}).
 
   \item @{method cut_tac} inserts facts into the proof state as
   assumption of a subgoal, see also @{ML Tactic.cut_facts_tac} in
-  \cite[\S3]{isabelle-ref}.  Note that the scope of schematic
+  \cite{isabelle-implementation}.  Note that the scope of schematic
   variables is spread over the main goal statement.  Instantiations
   may be given as well, see also ML tactic @{ML cut_inst_tac} in
-  \cite[\S3]{isabelle-ref}.
+  \cite{isabelle-implementation}.
 
   \item @{method thin_tac}~@{text \<phi>} deletes the specified assumption
   from a subgoal; note that @{text \<phi>} may contain schematic variables.
-  See also @{ML thin_tac} in \cite[\S3]{isabelle-ref}.
+  See also @{ML thin_tac} in \cite{isabelle-implementation}.
 
   \item @{method subgoal_tac}~@{text \<phi>} adds @{text \<phi>} as an
   assumption to a subgoal.  See also @{ML subgoal_tac} and @{ML
-  subgoals_tac} in \cite[\S3]{isabelle-ref}.
+  subgoals_tac} in \cite{isabelle-implementation}.
 
   \item @{method rename_tac}~@{text "x\<^sub>1 \<dots> x\<^sub>n"} renames parameters of a
   goal according to the list @{text "x\<^sub>1, \<dots>, x\<^sub>n"}, which refers to the
@@ -333,7 +334,7 @@ text {*
   goal by @{text n} positions: from right to left if @{text n} is
   positive, and from left to right if @{text n} is negative; the
   default value is 1.  See also @{ML rotate_tac} in
-  \cite[\S3]{isabelle-ref}.
+  \cite{isabelle-implementation}.
 
   \item @{method tactic}~@{text "text"} produces a proof method from
   any ML text of type @{ML_type tactic}.  Apart from the usual ML
@@ -400,13 +401,13 @@ text {*
   By default the Simplifier methods take local assumptions fully into
   account, using equational assumptions in the subsequent
   normalization process, or simplifying assumptions themselves (cf.\
-  @{ML asm_full_simp_tac} in \cite[\S10]{isabelle-ref}).  In
-  structured proofs this is usually quite well behaved in practice:
-  just the local premises of the actual goal are involved, additional
-  facts may be inserted via explicit forward-chaining (via @{command
-  "then"}, @{command "from"}, @{command "using"} etc.).  The full
-  context of premises is only included if the ``@{text "!"}'' (bang)
-  argument is given, which should be used with some care, though.
+  @{ML asm_full_simp_tac} in \cite{isabelle-ref}).  In structured
+  proofs this is usually quite well behaved in practice: just the
+  local premises of the actual goal are involved, additional facts may
+  be inserted via explicit forward-chaining (via @{command "then"},
+  @{command "from"}, @{command "using"} etc.).  The full context of
+  premises is only included if the ``@{text "!"}'' (bang) argument is
+  given, which should be used with some care, though.
 
   Additional Simplifier options may be specified to tune the behavior
   further (mostly for unstructured scripts with many accidental local
@@ -615,14 +616,14 @@ text {*
   \begin{description}
 
   \item @{method blast} refers to the classical tableau prover (see
-  @{ML blast_tac} in \cite[\S11]{isabelle-ref}).  The optional
-  argument specifies a user-supplied search bound (default 20).
+  @{ML blast_tac} in \cite{isabelle-ref}).  The optional argument
+  specifies a user-supplied search bound (default 20).
 
   \item @{method fast}, @{method slow}, @{method best}, @{method
   safe}, and @{method clarify} refer to the generic classical
   reasoner.  See @{ML fast_tac}, @{ML slow_tac}, @{ML best_tac}, @{ML
-  safe_tac}, and @{ML clarify_tac} in \cite[\S11]{isabelle-ref} for
-  more information.
+  safe_tac}, and @{ML clarify_tac} in \cite{isabelle-ref} for more
+  information.
 
   \end{description}
 
@@ -667,8 +668,8 @@ text {*
   to Isabelle's combined simplification and classical reasoning
   tactics.  These correspond to @{ML auto_tac}, @{ML force_tac}, @{ML
   clarsimp_tac}, and Classical Reasoner tactics with the Simplifier
-  added as wrapper, see \cite[\S11]{isabelle-ref} for more
-  information.  The modifier arguments correspond to those given in
+  added as wrapper, see \cite{isabelle-ref} for more information.  The
+  modifier arguments correspond to those given in
   \secref{sec:simplifier} and \secref{sec:classical}.  Just note that
   the ones related to the Simplifier are prefixed by \railtterm{simp}
   here.

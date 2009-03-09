@@ -317,61 +317,63 @@ text {* The following options are available to tune the printed output
 
   \begin{description}
 
-  \item @{text "show_types = bool"} and @{text "show_sorts = bool"}
-  control printing of explicit type and sort constraints.
+  \item @{antiquotation_option_def show_types}~@{text "= bool"} and
+  @{antiquotation_option_def show_sorts}~@{text "= bool"} control
+  printing of explicit type and sort constraints.
 
-  \item @{text "show_structs = bool"} controls printing of implicit
-  structures.
+  \item @{antiquotation_option_def show_structs}~@{text "= bool"}
+  controls printing of implicit structures.
 
-  \item @{text "long_names = bool"} forces names of types and
-  constants etc.\ to be printed in their fully qualified internal
-  form.
+  \item @{antiquotation_option_def long_names}~@{text "= bool"} forces
+  names of types and constants etc.\ to be printed in their fully
+  qualified internal form.
 
-  \item @{text "short_names = bool"} forces names of types and
-  constants etc.\ to be printed unqualified.  Note that internalizing
-  the output again in the current context may well yield a different
-  result.
+  \item @{antiquotation_option_def short_names}~@{text "= bool"}
+  forces names of types and constants etc.\ to be printed unqualified.
+  Note that internalizing the output again in the current context may
+  well yield a different result.
 
-  \item @{text "unique_names = bool"} determines whether the printed
-  version of qualified names should be made sufficiently long to avoid
-  overlap with names declared further back.  Set to @{text false} for
-  more concise output.
+  \item @{antiquotation_option_def unique_names}~@{text "= bool"}
+  determines whether the printed version of qualified names should be
+  made sufficiently long to avoid overlap with names declared further
+  back.  Set to @{text false} for more concise output.
 
-  \item @{text "eta_contract = bool"} prints terms in @{text
-  \<eta>}-contracted form.
+  \item @{antiquotation_option_def eta_contract}~@{text "= bool"}
+  prints terms in @{text \<eta>}-contracted form.
 
-  \item @{text "display = bool"} indicates if the text is to be output
-  as multi-line ``display material'', rather than a small piece of
-  text without line breaks (which is the default).
+  \item @{antiquotation_option_def display}~@{text "= bool"} indicates
+  if the text is to be output as multi-line ``display material'',
+  rather than a small piece of text without line breaks (which is the
+  default).
 
   In this mode the embedded entities are printed in the same style as
   the main theory text.
 
-  \item @{text "break = bool"} controls line breaks in non-display
-  material.
+  \item @{antiquotation_option_def break}~@{text "= bool"} controls
+  line breaks in non-display material.
 
-  \item @{text "quotes = bool"} indicates if the output should be
-  enclosed in double quotes.
+  \item @{antiquotation_option_def quotes}~@{text "= bool"} indicates
+  if the output should be enclosed in double quotes.
 
-  \item @{text "mode = name"} adds @{text name} to the print mode to
-  be used for presentation (see also \cite{isabelle-ref}).  Note that
-  the standard setup for {\LaTeX} output is already present by
-  default, including the modes @{text latex} and @{text xsymbols}.
+  \item @{antiquotation_option_def mode}~@{text "= name"} adds @{text
+  name} to the print mode to be used for presentation.  Note that the
+  standard setup for {\LaTeX} output is already present by default,
+  including the modes @{text latex} and @{text xsymbols}.
 
-  \item @{text "margin = nat"} and @{text "indent = nat"} change the
-  margin or indentation for pretty printing of display material.
+  \item @{antiquotation_option_def margin}~@{text "= nat"} and
+  @{antiquotation_option_def indent}~@{text "= nat"} change the margin
+  or indentation for pretty printing of display material.
 
-  \item @{text "goals_limit = nat"} determines the maximum number of
-  goals to be printed (for goal-based antiquotation).
+  \item @{antiquotation_option_def goals_limit}~@{text "= nat"}
+  determines the maximum number of goals to be printed (for goal-based
+  antiquotation).
 
-  \item @{text "locale = name"} specifies an alternative locale
-  context used for evaluating and printing the subsequent argument.
-
-  \item @{text "source = bool"} prints the original source text of the
-  antiquotation arguments, rather than its internal representation.
-  Note that formal checking of @{antiquotation "thm"}, @{antiquotation
-  "term"}, etc. is still enabled; use the @{antiquotation "text"}
-  antiquotation for unchecked output.
+  \item @{antiquotation_option_def source}~@{text "= bool"} prints the
+  original source text of the antiquotation arguments, rather than its
+  internal representation.  Note that formal checking of
+  @{antiquotation "thm"}, @{antiquotation "term"}, etc. is still
+  enabled; use the @{antiquotation "text"} antiquotation for unchecked
+  output.
 
   Regular @{text "term"} and @{text "typ"} antiquotations with @{text
   "source = false"} involve a full round-trip from the original source
@@ -380,9 +382,10 @@ text {* The following options are available to tune the printed output
   not under direct control of the author, it may even fluctuate a bit
   as the underlying theory is changed later on.
 
-  In contrast, @{text "source = true"} admits direct printing of the
-  given source text, with the desirable well-formedness check in the
-  background, but without modification of the printed text.
+  In contrast, @{antiquotation_option_def source}~@{text "= true"}
+  admits direct printing of the given source text, with the desirable
+  well-formedness check in the background, but without modification of
+  the printed text.
 
   \end{description}
 

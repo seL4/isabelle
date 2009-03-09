@@ -99,12 +99,12 @@ Isabelle/Pure maintains a record of named configuration options
   into all goals of the proof state.  Note that current facts
   indicated for forward chaining are ignored.
 
-  \item \hyperlink{method.erule}{\mbox{\isa{erule}}}~\isa{{\isachardoublequote}a\isactrlsub {\isadigit{1}}\ {\isasymdots}\ a\isactrlsub n{\isachardoublequote}}, \hyperlink{method.drule}{\mbox{\isa{drule}}}~\isa{{\isachardoublequote}a\isactrlsub {\isadigit{1}}\ {\isasymdots}\ a\isactrlsub n{\isachardoublequote}}, and \hyperlink{method.frule}{\mbox{\isa{frule}}}~\isa{{\isachardoublequote}a\isactrlsub {\isadigit{1}}\ {\isasymdots}\ a\isactrlsub n{\isachardoublequote}} are similar to the
-  basic \hyperlink{method.rule}{\mbox{\isa{rule}}} method (see \secref{sec:pure-meth-att}), but
-  apply rules by elim-resolution, destruct-resolution, and
-  forward-resolution, respectively \cite{isabelle-ref}.  The optional
-  natural number argument (default 0) specifies additional assumption
-  steps to be performed here.
+  \item \hyperlink{method.erule}{\mbox{\isa{erule}}}~\isa{{\isachardoublequote}a\isactrlsub {\isadigit{1}}\ {\isasymdots}\ a\isactrlsub n{\isachardoublequote}}, \hyperlink{method.drule}{\mbox{\isa{drule}}}~\isa{{\isachardoublequote}a\isactrlsub {\isadigit{1}}\ {\isasymdots}\ a\isactrlsub n{\isachardoublequote}}, and \hyperlink{method.frule}{\mbox{\isa{frule}}}~\isa{{\isachardoublequote}a\isactrlsub {\isadigit{1}}\ {\isasymdots}\ a\isactrlsub n{\isachardoublequote}} are similar to the basic \hyperlink{method.rule}{\mbox{\isa{rule}}}
+  method (see \secref{sec:pure-meth-att}), but apply rules by
+  elim-resolution, destruct-resolution, and forward-resolution,
+  respectively \cite{isabelle-implementation}.  The optional natural
+  number argument (default 0) specifies additional assumption steps to
+  be performed here.
 
   Note that these methods are improper ones, mainly serving for
   experimentation and tactic script emulation.  Different modes of
@@ -161,7 +161,7 @@ Isabelle/Pure maintains a record of named configuration options
   first premise of \isa{a} (an alternative position may be also
   specified); the \hyperlink{attribute.COMP}{\mbox{\isa{COMP}}} version skips the automatic
   lifting process that is normally intended (cf.\ \verb|op RS| and \verb|op COMP| in
-  \cite[\S5]{isabelle-ref}).
+  \cite{isabelle-implementation}).
   
   \item \hyperlink{attribute.unfolded}{\mbox{\isa{unfolded}}}~\isa{{\isachardoublequote}a\isactrlsub {\isadigit{1}}\ {\isasymdots}\ a\isactrlsub n{\isachardoublequote}} and \hyperlink{attribute.folded}{\mbox{\isa{folded}}}~\isa{{\isachardoublequote}a\isactrlsub {\isadigit{1}}\ {\isasymdots}\ a\isactrlsub n{\isachardoublequote}} expand and fold back again the given
   definitions throughout a rule.
@@ -321,25 +321,25 @@ The following improper proof methods emulate traditional tactics.
 \begin{description}
 
   \item \hyperlink{method.rule-tac}{\mbox{\isa{rule{\isacharunderscore}tac}}} etc. do resolution of rules with explicit
-  instantiation.  This works the same way as the ML tactics \verb|res_inst_tac| etc. (see \cite[\S3]{isabelle-ref})
+  instantiation.  This works the same way as the ML tactics \verb|res_inst_tac| etc. (see \cite{isabelle-implementation})
 
   Multiple rules may be only given if there is no instantiation; then
   \hyperlink{method.rule-tac}{\mbox{\isa{rule{\isacharunderscore}tac}}} is the same as \verb|resolve_tac| in ML (see
-  \cite[\S3]{isabelle-ref}).
+  \cite{isabelle-implementation}).
 
   \item \hyperlink{method.cut-tac}{\mbox{\isa{cut{\isacharunderscore}tac}}} inserts facts into the proof state as
   assumption of a subgoal, see also \verb|Tactic.cut_facts_tac| in
-  \cite[\S3]{isabelle-ref}.  Note that the scope of schematic
+  \cite{isabelle-implementation}.  Note that the scope of schematic
   variables is spread over the main goal statement.  Instantiations
   may be given as well, see also ML tactic \verb|cut_inst_tac| in
-  \cite[\S3]{isabelle-ref}.
+  \cite{isabelle-implementation}.
 
   \item \hyperlink{method.thin-tac}{\mbox{\isa{thin{\isacharunderscore}tac}}}~\isa{{\isasymphi}} deletes the specified assumption
   from a subgoal; note that \isa{{\isasymphi}} may contain schematic variables.
-  See also \verb|thin_tac| in \cite[\S3]{isabelle-ref}.
+  See also \verb|thin_tac| in \cite{isabelle-implementation}.
 
   \item \hyperlink{method.subgoal-tac}{\mbox{\isa{subgoal{\isacharunderscore}tac}}}~\isa{{\isasymphi}} adds \isa{{\isasymphi}} as an
-  assumption to a subgoal.  See also \verb|subgoal_tac| and \verb|subgoals_tac| in \cite[\S3]{isabelle-ref}.
+  assumption to a subgoal.  See also \verb|subgoal_tac| and \verb|subgoals_tac| in \cite{isabelle-implementation}.
 
   \item \hyperlink{method.rename-tac}{\mbox{\isa{rename{\isacharunderscore}tac}}}~\isa{{\isachardoublequote}x\isactrlsub {\isadigit{1}}\ {\isasymdots}\ x\isactrlsub n{\isachardoublequote}} renames parameters of a
   goal according to the list \isa{{\isachardoublequote}x\isactrlsub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ x\isactrlsub n{\isachardoublequote}}, which refers to the
@@ -349,7 +349,7 @@ The following improper proof methods emulate traditional tactics.
   goal by \isa{n} positions: from right to left if \isa{n} is
   positive, and from left to right if \isa{n} is negative; the
   default value is 1.  See also \verb|rotate_tac| in
-  \cite[\S3]{isabelle-ref}.
+  \cite{isabelle-implementation}.
 
   \item \hyperlink{method.tactic}{\mbox{\isa{tactic}}}~\isa{{\isachardoublequote}text{\isachardoublequote}} produces a proof method from
   any ML text of type \verb|tactic|.  Apart from the usual ML
@@ -420,12 +420,13 @@ The following improper proof methods emulate traditional tactics.
   By default the Simplifier methods take local assumptions fully into
   account, using equational assumptions in the subsequent
   normalization process, or simplifying assumptions themselves (cf.\
-  \verb|asm_full_simp_tac| in \cite[\S10]{isabelle-ref}).  In
-  structured proofs this is usually quite well behaved in practice:
-  just the local premises of the actual goal are involved, additional
-  facts may be inserted via explicit forward-chaining (via \hyperlink{command.then}{\mbox{\isa{\isacommand{then}}}}, \hyperlink{command.from}{\mbox{\isa{\isacommand{from}}}}, \hyperlink{command.using}{\mbox{\isa{\isacommand{using}}}} etc.).  The full
-  context of premises is only included if the ``\isa{{\isachardoublequote}{\isacharbang}{\isachardoublequote}}'' (bang)
-  argument is given, which should be used with some care, though.
+  \verb|asm_full_simp_tac| in \cite{isabelle-ref}).  In structured
+  proofs this is usually quite well behaved in practice: just the
+  local premises of the actual goal are involved, additional facts may
+  be inserted via explicit forward-chaining (via \hyperlink{command.then}{\mbox{\isa{\isacommand{then}}}},
+  \hyperlink{command.from}{\mbox{\isa{\isacommand{from}}}}, \hyperlink{command.using}{\mbox{\isa{\isacommand{using}}}} etc.).  The full context of
+  premises is only included if the ``\isa{{\isachardoublequote}{\isacharbang}{\isachardoublequote}}'' (bang) argument is
+  given, which should be used with some care, though.
 
   Additional Simplifier options may be specified to tune the behavior
   further (mostly for unstructured scripts with many accidental local
@@ -637,12 +638,12 @@ The following improper proof methods emulate traditional tactics.
   \begin{description}
 
   \item \hyperlink{method.blast}{\mbox{\isa{blast}}} refers to the classical tableau prover (see
-  \verb|blast_tac| in \cite[\S11]{isabelle-ref}).  The optional
-  argument specifies a user-supplied search bound (default 20).
+  \verb|blast_tac| in \cite{isabelle-ref}).  The optional argument
+  specifies a user-supplied search bound (default 20).
 
   \item \hyperlink{method.fast}{\mbox{\isa{fast}}}, \hyperlink{method.slow}{\mbox{\isa{slow}}}, \hyperlink{method.best}{\mbox{\isa{best}}}, \hyperlink{method.safe}{\mbox{\isa{safe}}}, and \hyperlink{method.clarify}{\mbox{\isa{clarify}}} refer to the generic classical
-  reasoner.  See \verb|fast_tac|, \verb|slow_tac|, \verb|best_tac|, \verb|safe_tac|, and \verb|clarify_tac| in \cite[\S11]{isabelle-ref} for
-  more information.
+  reasoner.  See \verb|fast_tac|, \verb|slow_tac|, \verb|best_tac|, \verb|safe_tac|, and \verb|clarify_tac| in \cite{isabelle-ref} for more
+  information.
 
   \end{description}
 
@@ -686,8 +687,8 @@ The following improper proof methods emulate traditional tactics.
   \item \hyperlink{method.auto}{\mbox{\isa{auto}}}, \hyperlink{method.force}{\mbox{\isa{force}}}, \hyperlink{method.clarsimp}{\mbox{\isa{clarsimp}}}, \hyperlink{method.fastsimp}{\mbox{\isa{fastsimp}}}, \hyperlink{method.slowsimp}{\mbox{\isa{slowsimp}}}, and \hyperlink{method.bestsimp}{\mbox{\isa{bestsimp}}} provide access
   to Isabelle's combined simplification and classical reasoning
   tactics.  These correspond to \verb|auto_tac|, \verb|force_tac|, \verb|clarsimp_tac|, and Classical Reasoner tactics with the Simplifier
-  added as wrapper, see \cite[\S11]{isabelle-ref} for more
-  information.  The modifier arguments correspond to those given in
+  added as wrapper, see \cite{isabelle-ref} for more information.  The
+  modifier arguments correspond to those given in
   \secref{sec:simplifier} and \secref{sec:classical}.  Just note that
   the ones related to the Simplifier are prefixed by \railtterm{simp}
   here.

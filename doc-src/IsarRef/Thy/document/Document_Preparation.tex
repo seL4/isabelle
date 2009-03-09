@@ -335,59 +335,62 @@ The following options are available to tune the printed output
 
   \begin{description}
 
-  \item \isa{{\isachardoublequote}show{\isacharunderscore}types\ {\isacharequal}\ bool{\isachardoublequote}} and \isa{{\isachardoublequote}show{\isacharunderscore}sorts\ {\isacharequal}\ bool{\isachardoublequote}}
-  control printing of explicit type and sort constraints.
+  \item \indexdef{}{antiquotation option}{show\_types}\hypertarget{antiquotation option.show-types}{\hyperlink{antiquotation option.show-types}{\mbox{\isa{show{\isacharunderscore}types}}}}~\isa{{\isachardoublequote}{\isacharequal}\ bool{\isachardoublequote}} and
+  \indexdef{}{antiquotation option}{show\_sorts}\hypertarget{antiquotation option.show-sorts}{\hyperlink{antiquotation option.show-sorts}{\mbox{\isa{show{\isacharunderscore}sorts}}}}~\isa{{\isachardoublequote}{\isacharequal}\ bool{\isachardoublequote}} control
+  printing of explicit type and sort constraints.
 
-  \item \isa{{\isachardoublequote}show{\isacharunderscore}structs\ {\isacharequal}\ bool{\isachardoublequote}} controls printing of implicit
-  structures.
+  \item \indexdef{}{antiquotation option}{show\_structs}\hypertarget{antiquotation option.show-structs}{\hyperlink{antiquotation option.show-structs}{\mbox{\isa{show{\isacharunderscore}structs}}}}~\isa{{\isachardoublequote}{\isacharequal}\ bool{\isachardoublequote}}
+  controls printing of implicit structures.
 
-  \item \isa{{\isachardoublequote}long{\isacharunderscore}names\ {\isacharequal}\ bool{\isachardoublequote}} forces names of types and
-  constants etc.\ to be printed in their fully qualified internal
-  form.
+  \item \indexdef{}{antiquotation option}{long\_names}\hypertarget{antiquotation option.long-names}{\hyperlink{antiquotation option.long-names}{\mbox{\isa{long{\isacharunderscore}names}}}}~\isa{{\isachardoublequote}{\isacharequal}\ bool{\isachardoublequote}} forces
+  names of types and constants etc.\ to be printed in their fully
+  qualified internal form.
 
-  \item \isa{{\isachardoublequote}short{\isacharunderscore}names\ {\isacharequal}\ bool{\isachardoublequote}} forces names of types and
-  constants etc.\ to be printed unqualified.  Note that internalizing
-  the output again in the current context may well yield a different
-  result.
+  \item \indexdef{}{antiquotation option}{short\_names}\hypertarget{antiquotation option.short-names}{\hyperlink{antiquotation option.short-names}{\mbox{\isa{short{\isacharunderscore}names}}}}~\isa{{\isachardoublequote}{\isacharequal}\ bool{\isachardoublequote}}
+  forces names of types and constants etc.\ to be printed unqualified.
+  Note that internalizing the output again in the current context may
+  well yield a different result.
 
-  \item \isa{{\isachardoublequote}unique{\isacharunderscore}names\ {\isacharequal}\ bool{\isachardoublequote}} determines whether the printed
-  version of qualified names should be made sufficiently long to avoid
-  overlap with names declared further back.  Set to \isa{false} for
-  more concise output.
+  \item \indexdef{}{antiquotation option}{unique\_names}\hypertarget{antiquotation option.unique-names}{\hyperlink{antiquotation option.unique-names}{\mbox{\isa{unique{\isacharunderscore}names}}}}~\isa{{\isachardoublequote}{\isacharequal}\ bool{\isachardoublequote}}
+  determines whether the printed version of qualified names should be
+  made sufficiently long to avoid overlap with names declared further
+  back.  Set to \isa{false} for more concise output.
 
-  \item \isa{{\isachardoublequote}eta{\isacharunderscore}contract\ {\isacharequal}\ bool{\isachardoublequote}} prints terms in \isa{{\isasymeta}}-contracted form.
+  \item \indexdef{}{antiquotation option}{eta\_contract}\hypertarget{antiquotation option.eta-contract}{\hyperlink{antiquotation option.eta-contract}{\mbox{\isa{eta{\isacharunderscore}contract}}}}~\isa{{\isachardoublequote}{\isacharequal}\ bool{\isachardoublequote}}
+  prints terms in \isa{{\isasymeta}}-contracted form.
 
-  \item \isa{{\isachardoublequote}display\ {\isacharequal}\ bool{\isachardoublequote}} indicates if the text is to be output
-  as multi-line ``display material'', rather than a small piece of
-  text without line breaks (which is the default).
+  \item \indexdef{}{antiquotation option}{display}\hypertarget{antiquotation option.display}{\hyperlink{antiquotation option.display}{\mbox{\isa{display}}}}~\isa{{\isachardoublequote}{\isacharequal}\ bool{\isachardoublequote}} indicates
+  if the text is to be output as multi-line ``display material'',
+  rather than a small piece of text without line breaks (which is the
+  default).
 
   In this mode the embedded entities are printed in the same style as
   the main theory text.
 
-  \item \isa{{\isachardoublequote}break\ {\isacharequal}\ bool{\isachardoublequote}} controls line breaks in non-display
-  material.
+  \item \indexdef{}{antiquotation option}{break}\hypertarget{antiquotation option.break}{\hyperlink{antiquotation option.break}{\mbox{\isa{break}}}}~\isa{{\isachardoublequote}{\isacharequal}\ bool{\isachardoublequote}} controls
+  line breaks in non-display material.
 
-  \item \isa{{\isachardoublequote}quotes\ {\isacharequal}\ bool{\isachardoublequote}} indicates if the output should be
-  enclosed in double quotes.
+  \item \indexdef{}{antiquotation option}{quotes}\hypertarget{antiquotation option.quotes}{\hyperlink{antiquotation option.quotes}{\mbox{\isa{quotes}}}}~\isa{{\isachardoublequote}{\isacharequal}\ bool{\isachardoublequote}} indicates
+  if the output should be enclosed in double quotes.
 
-  \item \isa{{\isachardoublequote}mode\ {\isacharequal}\ name{\isachardoublequote}} adds \isa{name} to the print mode to
-  be used for presentation (see also \cite{isabelle-ref}).  Note that
-  the standard setup for {\LaTeX} output is already present by
-  default, including the modes \isa{latex} and \isa{xsymbols}.
+  \item \indexdef{}{antiquotation option}{mode}\hypertarget{antiquotation option.mode}{\hyperlink{antiquotation option.mode}{\mbox{\isa{mode}}}}~\isa{{\isachardoublequote}{\isacharequal}\ name{\isachardoublequote}} adds \isa{name} to the print mode to be used for presentation.  Note that the
+  standard setup for {\LaTeX} output is already present by default,
+  including the modes \isa{latex} and \isa{xsymbols}.
 
-  \item \isa{{\isachardoublequote}margin\ {\isacharequal}\ nat{\isachardoublequote}} and \isa{{\isachardoublequote}indent\ {\isacharequal}\ nat{\isachardoublequote}} change the
-  margin or indentation for pretty printing of display material.
+  \item \indexdef{}{antiquotation option}{margin}\hypertarget{antiquotation option.margin}{\hyperlink{antiquotation option.margin}{\mbox{\isa{margin}}}}~\isa{{\isachardoublequote}{\isacharequal}\ nat{\isachardoublequote}} and
+  \indexdef{}{antiquotation option}{indent}\hypertarget{antiquotation option.indent}{\hyperlink{antiquotation option.indent}{\mbox{\isa{indent}}}}~\isa{{\isachardoublequote}{\isacharequal}\ nat{\isachardoublequote}} change the margin
+  or indentation for pretty printing of display material.
 
-  \item \isa{{\isachardoublequote}goals{\isacharunderscore}limit\ {\isacharequal}\ nat{\isachardoublequote}} determines the maximum number of
-  goals to be printed (for goal-based antiquotation).
+  \item \indexdef{}{antiquotation option}{goals\_limit}\hypertarget{antiquotation option.goals-limit}{\hyperlink{antiquotation option.goals-limit}{\mbox{\isa{goals{\isacharunderscore}limit}}}}~\isa{{\isachardoublequote}{\isacharequal}\ nat{\isachardoublequote}}
+  determines the maximum number of goals to be printed (for goal-based
+  antiquotation).
 
-  \item \isa{{\isachardoublequote}locale\ {\isacharequal}\ name{\isachardoublequote}} specifies an alternative locale
-  context used for evaluating and printing the subsequent argument.
-
-  \item \isa{{\isachardoublequote}source\ {\isacharequal}\ bool{\isachardoublequote}} prints the original source text of the
-  antiquotation arguments, rather than its internal representation.
-  Note that formal checking of \hyperlink{antiquotation.thm}{\mbox{\isa{thm}}}, \hyperlink{antiquotation.term}{\mbox{\isa{term}}}, etc. is still enabled; use the \hyperlink{antiquotation.text}{\mbox{\isa{text}}}
-  antiquotation for unchecked output.
+  \item \indexdef{}{antiquotation option}{source}\hypertarget{antiquotation option.source}{\hyperlink{antiquotation option.source}{\mbox{\isa{source}}}}~\isa{{\isachardoublequote}{\isacharequal}\ bool{\isachardoublequote}} prints the
+  original source text of the antiquotation arguments, rather than its
+  internal representation.  Note that formal checking of
+  \hyperlink{antiquotation.thm}{\mbox{\isa{thm}}}, \hyperlink{antiquotation.term}{\mbox{\isa{term}}}, etc. is still
+  enabled; use the \hyperlink{antiquotation.text}{\mbox{\isa{text}}} antiquotation for unchecked
+  output.
 
   Regular \isa{{\isachardoublequote}term{\isachardoublequote}} and \isa{{\isachardoublequote}typ{\isachardoublequote}} antiquotations with \isa{{\isachardoublequote}source\ {\isacharequal}\ false{\isachardoublequote}} involve a full round-trip from the original source
   to an internalized logical entity back to a source form, according
@@ -395,9 +398,10 @@ The following options are available to tune the printed output
   not under direct control of the author, it may even fluctuate a bit
   as the underlying theory is changed later on.
 
-  In contrast, \isa{{\isachardoublequote}source\ {\isacharequal}\ true{\isachardoublequote}} admits direct printing of the
-  given source text, with the desirable well-formedness check in the
-  background, but without modification of the printed text.
+  In contrast, \indexdef{}{antiquotation option}{source}\hypertarget{antiquotation option.source}{\hyperlink{antiquotation option.source}{\mbox{\isa{source}}}}~\isa{{\isachardoublequote}{\isacharequal}\ true{\isachardoublequote}}
+  admits direct printing of the given source text, with the desirable
+  well-formedness check in the background, but without modification of
+  the printed text.
 
   \end{description}
 

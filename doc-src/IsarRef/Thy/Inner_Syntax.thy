@@ -799,8 +799,8 @@ val print_ast_translation   : (string * (ast list -> ast)) list
   translations functions may refer to specific theory declarations or
   auxiliary proof data.
 
-  See also \cite[\S8]{isabelle-ref} for more information on the
-  general concept of syntax transformations in Isabelle.
+  See also \cite{isabelle-ref} for more information on the general
+  concept of syntax transformations in Isabelle.
 
 %FIXME proper antiquotations
 \begin{ttbox}
