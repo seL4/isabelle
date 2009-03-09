@@ -624,13 +624,13 @@ theory state.
 
 * More systematic treatment of long names, abstract name bindings, and
 name space operations.  Basic operations on qualified names have been
-move from structure NameSpace to Long_Name, e.g.  Long_Name.base_name,
+move from structure NameSpace to Long_Name, e.g. Long_Name.base_name,
 Long_Name.append.  Old type bstring has been mostly replaced by
 abstract type binding (see structure Binding), which supports precise
-qualification (by packages and local theory), and proper tracking of
-source positions.  INCOMPATIBILITY, need to wrap old bstring values
-into Binding.name, or better pass through abstract bindings
-everywhere.  See further src/Pure/General/long_name.ML,
+qualification (by packages and local theory targets), as well as
+proper tracking of source positions.  INCOMPATIBILITY, need to wrap
+old bstring values into Binding.name, or better pass through abstract
+bindings everywhere.  See further src/Pure/General/long_name.ML,
 src/Pure/General/binding.ML and src/Pure/General/name_space.ML
 
 * Simplified interface for defining document antiquotations via
