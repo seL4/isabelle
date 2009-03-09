@@ -132,7 +132,8 @@ val arg = enclose "{" "}" o clean_string;
 
 fun entity check markup kind index =
   ThyOutput.antiquotation
-    (case index of NONE => kind | SOME true => kind ^ "_def" | SOME false => kind ^ "_ref")
+    (translate (fn " " => "_" | c => c) kind ^
+      (case index of NONE => "" | SOME true => "_def" | SOME false => "_ref"))
     (Scan.lift (Scan.optional (Args.parens Args.name) "" -- Args.name))
     (fn {context = ctxt, ...} => fn (logic, name) =>
       let
@@ -174,6 +175,7 @@ val _ = entity_antiqs no_check "" "fact";
 val _ = entity_antiqs no_check "" "variable";
 val _ = entity_antiqs no_check "" "case";
 val _ = entity_antiqs (K ThyOutput.defined_command) "" "antiquotation";
+val _ = entity_antiqs (K ThyOutput.defined_option) "" "antiquotation option";
 val _ = entity_antiqs (fn _ => fn name => is_some (OS.Process.getEnv name)) "isatt" "setting";
 val _ = entity_antiqs no_check "" "inference";
 val _ = entity_antiqs no_check "isatt" "executable";
