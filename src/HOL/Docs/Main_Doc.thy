@@ -541,7 +541,7 @@ the domain of a map may be infinite.
 \subsubsection*{Syntax}
 
 \begin{tabular}{@ {} l @ {\quad$\equiv$\quad} l @ {}}
-@{text"empty"} & @{term"\<lambda>x. None"}\\
+@{term"Map.empty"} & @{term"\<lambda>x. None"}\\
 @{term"m(x:=Some y)"} & @{term[source]"m(x:=Some y)"}\\
 @{text"m(x\<^isub>1\<mapsto>y\<^isub>1,\<dots>,x\<^isub>n\<mapsto>y\<^isub>n)"} & @{text[source]"m(x\<^isub>1\<mapsto>y\<^isub>1)\<dots>(x\<^isub>n\<mapsto>y\<^isub>n)"}\\
 @{term"map_upds m xs ys"} & @{term[source]"map_upds m xs ys"}\\
