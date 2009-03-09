@@ -71,10 +71,7 @@ preorders, partial orders, linear orders, dense linear orders and wellorders.
 @{term[source]"x \<ge> y"} & @{term"x \<ge> y"}\\
 @{term[source]"x > y"} & @{term"x > y"}\\
 @{term"ALL x<=y. P"} & @{term[source]"\<forall>x. x \<le> y \<longrightarrow> P"}\\
-@{term"ALL x<y. P"} & @{term[source]"\<forall>x. x < y \<longrightarrow> P"}\\
-@{term"ALL x>=y. P"} & @{term[source]"\<forall>x. x \<ge> y \<longrightarrow> P"}\\
-@{term"ALL x>y. P"} & @{term[source]"\<forall>x. x > y \<longrightarrow> P"}\\
-\multicolumn{2}{@ {}l@ {}}{Similarly for @{text"\<exists>"} instead of @{text"\<forall>"}}\\
+\multicolumn{2}{@ {}l@ {}}{Similarly for $<$, $\ge$ and $>$, and for @{text"\<exists>"}}\\
 @{term"LEAST x. P"} & @{term[source]"Least (\<lambda>x. P)"}\\
 \end{supertabular}
 
@@ -370,10 +367,11 @@ Type @{typ int}
 \multicolumn{2}{@ {}l@ {}}{Similarly for @{text"\<Inter>"} instead of @{text"\<Union>"}}\\
 @{term "setsum (%x. t) {a..b}"} & @{term[source] "setsum (\<lambda>x. t) {a..b}"}\\
 @{term "setsum (%x. t) {a..<b}"} & @{term[source] "setsum (\<lambda>x. t) {a..<b}"}\\
+@{term "setsum (%x. t) {..b}"} & @{term[source] "setsum (\<lambda>x. t) {..b}"}\\
+@{term "setsum (%x. t) {..<b}"} & @{term[source] "setsum (\<lambda>x. t) {..<b}"}\\
 \multicolumn{2}{@ {}l@ {}}{Similarly for @{text"\<Prod>"} instead of @{text"\<Sum>"}}\\
 \end{supertabular}
 
-???????
 
 \section{Power}
 
