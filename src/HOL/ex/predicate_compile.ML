@@ -639,8 +639,8 @@ let
 in
   map_function_intros (Symtab.update_new (mode_id, introthm)) thy
   |> map_function_elims (Symtab.update_new (mode_id, elimthm))
-  |> PureThy.store_thm (Binding.name (NameSpace.base_name mode_id ^ "I"), introthm) |> snd
-  |> PureThy.store_thm (Binding.name (NameSpace.base_name mode_id ^ "E"), elimthm)  |> snd
+  |> PureThy.store_thm (Binding.name (Long_Name.base_name mode_id ^ "I"), introthm) |> snd
+  |> PureThy.store_thm (Binding.name (Long_Name.base_name mode_id ^ "E"), elimthm)  |> snd
 end;
 
 fun create_definitions preds nparams (name, modes) thy =
@@ -673,12 +673,12 @@ fun create_definitions preds nparams (name, modes) thy =
          in mk_split_lambda' xs t end;
       val predterm = mk_Enum (mk_split_lambda xouts (list_comb (Const (name, T), xparams' @ xargs)))
       val funT = (Ts1' @ Us1) ---> (mk_pred_enumT (mk_tupleT Us2))
-      val mode_id = Sign.full_bname thy (NameSpace.base_name mode_id)
+      val mode_id = Sign.full_bname thy (Long_Name.base_name mode_id)
       val lhs = list_comb (Const (mode_id, funT), xparams @ xins)
       val def = Logic.mk_equals (lhs, predterm)
       val ([defthm], thy') = thy |>
-        Sign.add_consts_i [(Binding.name (NameSpace.base_name mode_id), funT, NoSyn)] |>
-        PureThy.add_defs false [((Binding.name (NameSpace.base_name mode_id ^ "_def"), def), [])]
+        Sign.add_consts_i [(Binding.name (Long_Name.base_name mode_id), funT, NoSyn)] |>
+        PureThy.add_defs false [((Binding.name (Long_Name.base_name mode_id ^ "_def"), def), [])]
       in thy' |> map_names (PredModetab.update_new ((name, mode), mode_id))
            |> map_function_defs (Symtab.update_new (mode_id, defthm))
            |> create_intro_rule nparams mode defthm mode_id funT (Const (name, T))
@@ -1304,7 +1304,7 @@ let
   val _ = tracing "starting proof"
   val result_thms = prove_preds thy''' all_vs param_vs (extra_modes @ modes) clauses (pred_mode ~~ (flat ts))
   val (_, thy'''') = yield_singleton PureThy.add_thmss
-    ((Binding.name (NameSpace.base_name ind_name ^ "_codegen" (*FIXME other suffix*)), result_thms),
+    ((Binding.name (Long_Name.base_name ind_name ^ "_codegen" (*FIXME other suffix*)), result_thms),
       [Attrib.attribute_i thy''' Code.add_default_eqn_attrib]) thy'''
 in
   thy''''
