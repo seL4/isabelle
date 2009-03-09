@@ -74,10 +74,9 @@ preorders, partial orders, linear orders, dense linear orders and wellorders.
 @{term"ALL x<y. P"} & @{term[source]"\<forall>x. x < y \<longrightarrow> P"}\\
 @{term"ALL x>=y. P"} & @{term[source]"\<forall>x. x \<ge> y \<longrightarrow> P"}\\
 @{term"ALL x>y. P"} & @{term[source]"\<forall>x. x > y \<longrightarrow> P"}\\
+\multicolumn{2}{@ {}l@ {}}{Similarly for @{text"\<exists>"} instead of @{text"\<forall>"}}\\
 @{term"LEAST x. P"} & @{term[source]"Least (\<lambda>x. P)"}\\
 \end{supertabular}
-
-Similar for @{text"\<exists>"} instead of @{text"\<forall>"}.
 
 \section{Set}
 
@@ -85,12 +84,12 @@ Sets are predicates: @{text[source]"'a set  =  'a \<Rightarrow> bool"}
 \bigskip
 
 \begin{supertabular}{@ {} l @ {~::~} l @ {}}
-@{const "{}"} & @{term_type_only "{}" "'a set"}\\
+@{const Set.empty} & @{term_type_only "Set.empty" "'a set"}\\
 @{const insert} & @{term_type_only insert "'a\<Rightarrow>'a set\<Rightarrow>'a set"}\\
 @{const Collect} & @{term_type_only Collect "('a\<Rightarrow>bool)\<Rightarrow>'a set"}\\
-@{const "op :"} & @{term_type_only "op :" "'a\<Rightarrow>'a set\<Rightarrow>bool"}\\
-@{const "op Un"} & @{term_type_only "op Un" "'a set\<Rightarrow>'a set \<Rightarrow> 'a set"}\\
-@{const "op Int"} & @{term_type_only "op Int" "'a set\<Rightarrow>'a set \<Rightarrow> 'a set"}\\
+@{const "op :"} & @{term_type_only "op :" "'a\<Rightarrow>'a set\<Rightarrow>bool"} \qquad(\textsc{ascii} @{text":"})\\
+@{const Set.Un} & @{term_type_only Set.Un "'a set\<Rightarrow>'a set \<Rightarrow> 'a set"} \qquad(\textsc{ascii} @{text"Un"})\\
+@{const Set.Int} & @{term_type_only Set.Int "'a set\<Rightarrow>'a set \<Rightarrow> 'a set"} \qquad(\textsc{ascii} @{text"Int"})\\
 @{const UNION} & @{term_type_only UNION "'a set\<Rightarrow>('a \<Rightarrow> 'b set) \<Rightarrow> 'b set"}\\
 @{const INTER} & @{term_type_only INTER "'a set\<Rightarrow>('a \<Rightarrow> 'b set) \<Rightarrow> 'b set"}\\
 @{const Union} & @{term_type_only Union "'a set set\<Rightarrow>'a set"}\\
@@ -112,10 +111,10 @@ Sets are predicates: @{text[source]"'a set  =  'a \<Rightarrow> bool"}
 @{term[source]"A \<supseteq> B"} & @{term[source]"B \<le> A"}\\
 @{term[source]"A \<supset> B"} & @{term[source]"B < A"}\\
 @{term"{x. P}"} & @{term[source]"Collect(\<lambda>x. P)"}\\
-@{term"UN x:I. A"} & @{term[source]"UNION I (\<lambda>x. A)"}\\
-@{term"UN x. A"} & @{term[source]"UNION UNIV (\<lambda>x. A)"}\\
-@{term"INT x:I. A"} & @{term[source]"INTER I (\<lambda>x. A)"}\\
-@{term"INT x. A"} & @{term[source]"INTER UNIV (\<lambda>x. A)"}\\
+@{term[mode=xsymbols]"UN x:I. A"} & @{term[source]"UNION I (\<lambda>x. A)"}\\
+@{term[mode=xsymbols]"UN x. A"} & @{term[source]"UNION UNIV (\<lambda>x. A)"}\\
+@{term[mode=xsymbols]"INT x:I. A"} & @{term[source]"INTER I (\<lambda>x. A)"}\\
+@{term[mode=xsymbols]"INT x. A"} & @{term[source]"INTER UNIV (\<lambda>x. A)"}\\
 @{term"ALL x:A. P"} & @{term[source]"Ball A (\<lambda>x. P)"}\\
 @{term"EX x:A. P"} & @{term[source]"Bex A (\<lambda>x. P)"}\\
 @{term"range f"} & @{term[source]"f ` UNIV"}\\
@@ -345,14 +344,14 @@ Type @{typ int}
 \section{Set\_Interval}
 
 \begin{supertabular}{@ {} l @ {~::~} l @ {}}
-@{const lessThan} & @{typeof lessThan}\\
-@{const atMost} & @{typeof atMost}\\
-@{const greaterThan} & @{typeof greaterThan}\\
-@{const atLeast} & @{typeof atLeast}\\
-@{const greaterThanLessThan} & @{typeof greaterThanLessThan}\\
-@{const atLeastLessThan} & @{typeof atLeastLessThan}\\
-@{const greaterThanAtMost} & @{typeof greaterThanAtMost}\\
-@{const atLeastAtMost} & @{typeof atLeastAtMost}\\
+@{const lessThan} & @{term_type_only lessThan "'a::ord \<Rightarrow> 'a set"}\\
+@{const atMost} & @{term_type_only atMost "'a::ord \<Rightarrow> 'a set"}\\
+@{const greaterThan} & @{term_type_only greaterThan "'a::ord \<Rightarrow> 'a set"}\\
+@{const atLeast} & @{term_type_only atLeast "'a::ord \<Rightarrow> 'a set"}\\
+@{const greaterThanLessThan} & @{term_type_only greaterThanLessThan "'a::ord \<Rightarrow> 'a \<Rightarrow> 'a set"}\\
+@{const atLeastLessThan} & @{term_type_only atLeastLessThan "'a::ord \<Rightarrow> 'a \<Rightarrow> 'a set"}\\
+@{const greaterThanAtMost} & @{term_type_only greaterThanAtMost "'a::ord \<Rightarrow> 'a \<Rightarrow> 'a set"}\\
+@{const atLeastAtMost} & @{term_type_only atLeastAtMost "'a::ord \<Rightarrow> 'a \<Rightarrow> 'a set"}\\
 \end{supertabular}
 
 \subsubsection*{Syntax}
@@ -366,8 +365,11 @@ Type @{typ int}
 @{term "atLeastLessThan x y"} & @{term[source] "atLeastLessThan x y"}\\
 @{term "greaterThanAtMost x y"} & @{term[source] "greaterThanAtMost x y"}\\
 @{term "atLeastAtMost x y"} & @{term[source] "atLeastAtMost x y"}\\
-@{term "UN i:{..n}. A"} & @{term[source] "\<Union> i \<in> {..n}. A"}\\
+@{term[mode=xsymbols] "UN i:{..n}. A"} & @{term[source] "\<Union> i \<in> {..n}. A"}\\
+@{term[mode=xsymbols] "UN i:{..<n}. A"} & @{term[source] "\<Union> i \<in> {..<n}. A"}\\
+\multicolumn{2}{@ {}l@ {}}{Similarly for @{text"\<Inter>"} instead of @{text"\<Union>"}}\\
 @{term "setsum (%x. t) {a..b}"} & @{term[source] "setsum (\<lambda>x. t) {a..b}"}\\
+@{term "setsum (%x. t) {a..<b}"} & @{term[source] "setsum (\<lambda>x. t) {a..<b}"}\\
 \end{supertabular}
 
 ???????
