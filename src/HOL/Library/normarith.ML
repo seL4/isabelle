@@ -873,7 +873,7 @@ fun evaluate env lin =
 fun solve (vs,eqs) = case (vs,eqs) of
   ([],[]) => SOME (Intfunc.onefunc (0,Rat.one))
  |(_,eq::oeqs) => 
-   (case vs inter (Intfunc.dom eq) of
+   (case filter (member (op =) vs) (Intfunc.dom eq) of (*FIXME use find_first here*)
      [] => NONE
     | v::_ => 
        if Intfunc.defined eq v 
