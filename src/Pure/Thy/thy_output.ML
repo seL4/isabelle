@@ -1,7 +1,7 @@
 (*  Title:      Pure/Thy/thy_output.ML
     Author:     Markus Wenzel, TU Muenchen
 
-Theory document output.
+Theory document output with antiquotations.
 *)
 
 signature THY_OUTPUT =
@@ -21,20 +21,17 @@ sig
   val antiquotation: string ->
     (Context.generic * Args.T list -> 'a * (Context.generic * Args.T list)) ->
     ({state: Toplevel.state, source: Args.src, context: Proof.context} -> 'a -> string) -> unit
-  val args: (Context.generic * Args.T list -> 'a * (Context.generic * Args.T list)) ->
-    (Args.src -> Proof.context -> 'a -> string) -> Args.src -> Toplevel.state -> string
   datatype markup = Markup | MarkupEnv | Verbatim
   val modes: string list ref
   val eval_antiquote: Scan.lexicon -> Toplevel.state -> SymbolPos.text * Position.T -> string
   val present_thy: Scan.lexicon -> (string -> string list) -> (markup -> string -> bool) ->
     (Toplevel.transition * Toplevel.state) list -> (OuterLex.token, 'a) Source.source -> Buffer.T
-  val str_of_source: Args.src -> string
   val pretty_text: string -> Pretty.T
   val pretty_term: Proof.context -> term -> Pretty.T
   val pretty_thm: Proof.context -> thm -> Pretty.T
-  val output_list: (Proof.context -> 'a -> Pretty.T) -> Args.src ->
-    Proof.context -> 'a list -> string
-  val output: (Proof.context -> 'a -> Pretty.T) -> Args.src -> Proof.context -> 'a -> string
+  val str_of_source: Args.src -> string
+  val maybe_pretty_source: ('a -> Pretty.T) -> Args.src -> 'a list -> Pretty.T list
+  val output: Pretty.T list -> string
 end;
 
 structure ThyOutput: THY_OUTPUT =
@@ -46,7 +43,6 @@ structure P = OuterParse;
 
 (** global options **)
 
-val locale = ref "";
 val display = ref false;
 val quotes = ref false;
 val indent = ref 0;
@@ -55,7 +51,7 @@ val break = ref false;
 
 
 
-(** maintain global commands **)
+(** maintain global antiquotations **)
 
 local
 
@@ -107,6 +103,11 @@ fun print_antiquotations () =
 
 end;
 
+fun antiquotation name scan out = add_commands [(name, fn src => fn state =>
+  let val (x, ctxt) = Args.context_syntax "document antiquotation"
+    scan src (Toplevel.presentation_context_of state NONE)
+  in out {source = src, state = state, context = ctxt} x end)];
+
 
 
 (** syntax of antiquotations **)
@@ -124,22 +125,6 @@ fun integer s =
       (case Library.read_int ss of (i, []) => i
       | _ => error ("Bad integer value: " ^ quote s));
   in (case Symbol.explode s of "-" :: ss => ~ (int ss) | ss => int ss) end;
-
-
-(* args syntax *)
-
-fun syntax scan = Args.context_syntax "document antiquotation" scan;
-
-fun antiquotation name scan output =
-  add_commands [(name, fn src => fn state =>
-    let val (x, ctxt) = syntax scan src (Toplevel.presentation_context_of state NONE);
-    in output {source = src, state = state, context = ctxt} x end)];
-
-fun args scan f src state : string =
-  let
-    val loc = if ! locale = "" then NONE else SOME (! locale);
-    val (x, ctxt) = syntax scan src (Toplevel.presentation_context_of state loc);
-  in f src ctxt x end;
 
 
 (* outer syntax *)
@@ -438,7 +423,6 @@ val _ = add_options
   ("short_names", Library.setmp NameSpace.short_names o boolean),
   ("unique_names", Library.setmp NameSpace.unique_names o boolean),
   ("eta_contract", Library.setmp Syntax.eta_contract o boolean),
-  ("locale", Library.setmp locale),
   ("display", Library.setmp display o boolean),
   ("break", Library.setmp break o boolean),
   ("quotes", Library.setmp quotes o boolean),
@@ -450,8 +434,6 @@ val _ = add_options
 
 
 (* basic pretty printing *)
-
-val str_of_source = space_implode " " o map T.unparse o #2 o #1 o Args.dest_src;
 
 fun tweak_line s =
   if ! display then s else Symbol.strip_blanks s;
@@ -493,18 +475,22 @@ fun pretty_term_style ctxt (name, t) =
 fun pretty_thm_style ctxt (name, th) =
   pretty_term_style ctxt (name, Thm.full_prop_of th);
 
-fun pretty_prf full ctxt thms =
-  Pretty.chunks (map (ProofSyntax.pretty_proof_of ctxt full) thms);
+fun pretty_prf full ctxt = ProofSyntax.pretty_proof_of ctxt full;
 
 fun pretty_theory ctxt name =
   (Theory.requires (ProofContext.theory_of ctxt) name "presentation"; Pretty.str name);
 
 
-(* Isar output *)
+(* default output *)
 
-fun output_list pretty src ctxt xs =
-  map (pretty ctxt) xs        (*always pretty in order to exhibit errors!*)
-  |> (if ! source then K [pretty_text (str_of_source src)] else I)
+val str_of_source = space_implode " " o map T.unparse o #2 o #1 o Args.dest_src;
+
+fun maybe_pretty_source pretty src xs =
+  map pretty xs  (*always pretty in order to exhibit errors!*)
+  |> (if ! source then K [pretty_text (str_of_source src)] else I);
+
+fun output prts =
+  prts
   |> (if ! quotes then map Pretty.quote else I)
   |> (if ! display then
     map (Output.output o Pretty.string_of o Pretty.indent (! indent))
@@ -515,69 +501,98 @@ fun output_list pretty src ctxt xs =
     #> space_implode "\\isasep\\isanewline%\n"
     #> enclose "\\isa{" "}");
 
-fun output pretty src ctxt = output_list pretty src ctxt o single;
+
+
+(** concrete antiquotations **)
+
+(* basic entities *)
+
+local
+
+fun basic_entities name scan pretty = antiquotation name scan
+  (fn {source, context, ...} => output o maybe_pretty_source (pretty context) source);
+
+fun basic_entity name scan = basic_entities name (scan >> single);
+
+in
+
+val _ = basic_entities "thm" Attrib.thms pretty_thm;
+val _ = basic_entity "thm_style" (Scan.lift Args.liberal_name -- Attrib.thm) pretty_thm_style;
+val _ = basic_entity "prop" Args.prop pretty_term;
+val _ = basic_entity "term" Args.term pretty_term;
+val _ = basic_entity "term_style" (Scan.lift Args.liberal_name -- Args.term) pretty_term_style;
+val _ = basic_entity "term_type" Args.term pretty_term_typ;
+val _ = basic_entity "typeof" Args.term pretty_term_typeof;
+val _ = basic_entity "const" Args.const_proper pretty_const;
+val _ = basic_entity "abbrev" (Scan.lift Args.name_source) pretty_abbrev;
+val _ = basic_entity "typ" Args.typ_abbrev Syntax.pretty_typ;
+val _ = basic_entity "text" (Scan.lift Args.name) (K pretty_text);
+val _ = basic_entities "prf" Attrib.thms (pretty_prf false);
+val _ = basic_entities "full_prf" Attrib.thms (pretty_prf true);
+val _ = basic_entity "theory" (Scan.lift Args.name) pretty_theory;
+
+end;
+
+
+(* goal state *)
+
+local
 
 fun proof_state state =
   (case try Toplevel.proof_of state of
     SOME prf => prf
   | _ => error "No proof state");
 
-fun output_goals main_goal src state = args (Scan.succeed ()) (output (fn _ => fn _ =>
-  Pretty.chunks (Proof.pretty_goals main_goal (proof_state state)))) src state;
+fun goal_state name main_goal = antiquotation name (Scan.succeed ())
+  (fn {state, ...} => fn () => output
+    [Pretty.chunks (Proof.pretty_goals main_goal (proof_state state))]);
 
-fun ml_val txt = "fn _ => (" ^ txt ^ ");";
-fun ml_type txt = "val _ = NONE : (" ^ txt ^ ") option;";
-fun ml_struct txt = "functor DUMMY_FUNCTOR() = struct structure DUMMY = " ^ txt ^ " end;"
+in
 
-fun output_ml ml _ ctxt (txt, pos) =
- (ML_Context.eval_in (SOME ctxt) false pos (ml txt);
-  SymbolPos.content (SymbolPos.explode (txt, pos))
-  |> (if ! quotes then quote else I)
-  |> (if ! display then enclose "\\begin{verbatim}\n" "\n\\end{verbatim}"
-  else
-    split_lines
-    #> map (space_implode "\\verb,|," o map (enclose "\\verb|" "|") o space_explode "|")
-    #> space_implode "\\isasep\\isanewline%\n"));
+val _ = goal_state "goals" true;
+val _ = goal_state "subgoals" false;
+
+end;
 
 
-(* embedded lemmas *)
-
-fun pretty_lemma ctxt (prop, methods) =
-  let
-    val _ = ctxt
-      |> Proof.theorem_i NONE (K I) [[(prop, [])]]
-      |> Proof.global_terminal_proof methods;
-  in pretty_term ctxt prop end;
-
-val embedded_lemma =
-  args (Args.prop -- Scan.lift (Args.$$$ "by" |-- Method.parse -- Scan.option Method.parse))
-    (output pretty_lemma o (fn ((a, arg :: _), p) => (Args.src ((a, [arg]), p))) o Args.dest_src);
-
-
-(* commands *)
+(* embedded lemma *)
 
 val _ = OuterKeyword.keyword "by";
 
-val _ = add_commands
- [("thm", args Attrib.thms (output_list pretty_thm)),
-  ("thm_style", args (Scan.lift Args.liberal_name -- Attrib.thm) (output pretty_thm_style)),
-  ("prop", args Args.prop (output pretty_term)),
-  ("lemma", embedded_lemma),
-  ("term", args Args.term (output pretty_term)),
-  ("term_style", args (Scan.lift Args.liberal_name -- Args.term) (output pretty_term_style)),
-  ("term_type", args Args.term (output pretty_term_typ)),
-  ("typeof", args Args.term (output pretty_term_typeof)),
-  ("const", args Args.const_proper (output pretty_const)),
-  ("abbrev", args (Scan.lift Args.name_source) (output pretty_abbrev)),
-  ("typ", args Args.typ_abbrev (output Syntax.pretty_typ)),
-  ("text", args (Scan.lift Args.name) (output (K pretty_text))),
-  ("goals", output_goals true),
-  ("subgoals", output_goals false),
-  ("prf", args Attrib.thms (output (pretty_prf false))),
-  ("full_prf", args Attrib.thms (output (pretty_prf true))),
-  ("theory", args (Scan.lift Args.name) (output pretty_theory)),
-  ("ML", args (Scan.lift Args.name_source_position) (output_ml ml_val)),
-  ("ML_type", args (Scan.lift Args.name_source_position) (output_ml ml_type)),
-  ("ML_struct", args (Scan.lift Args.name_source_position) (output_ml ml_struct))];
+val _ = antiquotation "lemma"
+  (Args.prop -- Scan.lift (Args.$$$ "by" |-- Method.parse -- Scan.option Method.parse))
+  (fn {source, context, ...} => fn (prop, methods) =>
+    let
+      val prop_src =
+        (case Args.dest_src source of ((a, arg :: _), pos) => Args.src ((a, [arg]), pos));
+      val _ = context
+        |> Proof.theorem_i NONE (K I) [[(prop, [])]]
+        |> Proof.global_terminal_proof methods;
+    in output (maybe_pretty_source (pretty_term context) prop_src [prop]) end);
+
+
+(* ML text *)
+
+local
+
+fun ml_text name ml = antiquotation name (Scan.lift Args.name_source_position)
+  (fn {context, ...} => fn (txt, pos) =>
+   (ML_Context.eval_in (SOME context) false pos (ml txt);
+    SymbolPos.content (SymbolPos.explode (txt, pos))
+    |> (if ! quotes then quote else I)
+    |> (if ! display then enclose "\\begin{verbatim}\n" "\n\\end{verbatim}"
+    else
+      split_lines
+      #> map (space_implode "\\verb,|," o map (enclose "\\verb|" "|") o space_explode "|")
+      #> space_implode "\\isasep\\isanewline%\n")));
+
+in
+
+val _ = ml_text "ML" (fn txt => "fn _ => (" ^ txt ^ ");");
+val _ = ml_text "ML_type" (fn txt => "val _ = NONE : (" ^ txt ^ ") option;");
+val _ = ml_text "ML_struct"
+  (fn txt => "functor DUMMY_FUNCTOR() = struct structure DUMMY = " ^ txt ^ " end;");
+
+end;
 
 end;
