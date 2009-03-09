@@ -75,18 +75,6 @@ write
 
     class foo = ...     instead of      class foo = type + ...
 
-* Type binding gradually replaces formerly used type bstring for names
-to be bound.  Name space interface for declarations has been simplified:
-
-  NameSpace.declare: NameSpace.naming
-    -> binding -> NameSpace.T -> string * NameSpace.T
-  NameSpace.bind: NameSpace.naming
-    -> binding * 'a -> 'a NameSpace.table -> string * 'a NameSpace.table
-         (*exception Symtab.DUP*)
-
-See further modules src/Pure/General/binding.ML and
-src/Pure/General/name_space.ML
-
 * Module moves in repository:
     src/Pure/Tools/value.ML ~> src/Tools/
     src/Pure/Tools/quickcheck.ML ~> src/Tools/
@@ -634,13 +622,22 @@ transactions.  E.g. see src/Pure/ProofGeneral/proof_general_pgip.ML
 for theorem dependency output of transactions resulting in a new
 theory state.
 
-* Name bindings in higher specification mechanisms (notably
-LocalTheory.define, LocalTheory.note, and derived packages) are now
-formalized as type Name.binding, replacing old bstring.
-INCOMPATIBILITY, need to wrap strings via Name.binding function, see
-also Name.name_of.  Packages should pass name bindings given by the
-user to underlying specification mechanisms; this enables precise
-tracking of source positions, for example.
+* More systematic treatment of long names, abstract name bindings, and
+name space operations.  Basic operations on qualified names have been
+move from structure NameSpace to Long_Name, e.g.  Long_Name.base_name,
+Long_Name.append.  Old type bstring has been mostly replaced by
+abstract type binding (see structure Binding), which supports precise
+qualification (by packages and local theory), and proper tracking of
+source positions.  INCOMPATIBILITY, need to wrap old bstring values
+into Binding.name, or better pass through abstract bindings
+everywhere.  See further src/Pure/General/long_name.ML,
+src/Pure/General/binding.ML and src/Pure/General/name_space.ML
+
+* Simplified interface for defining document antiquotations via
+ThyOutput.antiquotation, ThyOutput.output, and optionally
+ThyOutput.maybe_pretty_source.  INCOMPATIBILITY, need to simplify user
+antiquotations accordingly, see src/Pure/Thy/thy_output.ML for common
+examples.
 
 * Result facts (from PureThy.note_thms, ProofContext.note_thms,
 LocalTheory.note etc.) now refer to the *full* internal name, not the
