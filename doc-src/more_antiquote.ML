@@ -1,4 +1,4 @@
-(*  Title:      Doc/more_antiquote.ML
+(*  Title:      doc-src/more_antiquote.ML
     Author:     Florian Haftmann, TU Muenchen
 
 More antiquotations.
@@ -12,15 +12,13 @@ end;
 structure More_Antiquote : MORE_ANTIQUOTE =
 struct
 
-structure O = ThyOutput;
-
 (* printing typewriter lines *)
 
 fun typewriter s =
   let
     val parse = Scan.repeat
       (Scan.this_string "\n" |-- Scan.succeed "\\\\\n\\hspace*{0pt}"
-        || (Scan.this_string " " 
+        || (Scan.this_string " "
           || Scan.this_string "."
           || Scan.this_string ","
           || Scan.this_string ":"
@@ -66,9 +64,8 @@ fun pr_type ctxt = Sign.intern_type (ProofContext.theory_of ctxt)
 
 in
 
-val _ = O.add_commands
-  [("class", ThyOutput.args (Scan.lift Args.name) (K pr_class)),
-    ("type", ThyOutput.args (Scan.lift Args.name) (K pr_type))]
+val _ = ThyOutput.antiquotation "class" (Scan.lift Args.name) (pr_class o #context);
+val _ = ThyOutput.antiquotation "type" (Scan.lift Args.name) (pr_type o #context);
 
 end;
 
@@ -96,12 +93,12 @@ fun pretty_code_thm src ctxt raw_const =
     val thms = Code_Wellsorted.eqns funcgr const
       |> map_filter (fn (thm, linear) => if linear then SOME thm else NONE)
       |> map (holize o no_vars ctxt o AxClass.overload thy);
-  in ThyOutput.output_list pretty_thm src ctxt thms end;
+  in ThyOutput.output (ThyOutput.maybe_pretty_source (pretty_thm ctxt) src thms) end;
 
 in
 
-val _ = O.add_commands
-  [("code_thms", ThyOutput.args Args.term pretty_code_thm)];
+val _ = ThyOutput.antiquotation "code_thms" Args.term
+  (fn {source, context, ...} => pretty_code_thm source context);
 
 end;
 
@@ -120,21 +117,20 @@ local
     >> (fn classes => fn thy => fn naming => map_filter (Code_Thingol.lookup_class naming o Sign.intern_class thy) classes);
   val parse_instances = Scan.lift (Args.parens (Args.$$$ "instances") |-- Scan.repeat1 (Args.name --| Args.$$$ "::" -- Args.name))
     >> (fn insts => fn thy => fn naming => map_filter (Code_Thingol.lookup_instance naming o apsnd (Sign.intern_type thy) o apfst (Sign.intern_class thy) o swap) insts);
-  val parse_names = parse_consts || parse_types || parse_classes || parse_instances; 
-
-  fun code_stmts src ctxt ((mk_cs, mk_stmtss), target) =
-    Code_Target.code_of (ProofContext.theory_of ctxt)
-      target "Example" (mk_cs (ProofContext.theory_of ctxt))
-        (fn naming => maps (fn f => f (ProofContext.theory_of ctxt) naming) mk_stmtss)
-    |> typewriter;
+  val parse_names = parse_consts || parse_types || parse_classes || parse_instances;
 
 in
 
-val _ = O.add_commands
-  [("code_stmts", O.args
-      (parse_const_terms -- Scan.repeat parse_names -- Scan.lift (Args.parens Args.name))
-        code_stmts)]
+val _ = ThyOutput.antiquotation "code_stmts"
+  (parse_const_terms -- Scan.repeat parse_names -- Scan.lift (Args.parens Args.name))
+  (fn {context = ctxt, ...} => fn ((mk_cs, mk_stmtss), target) =>
+    let val thy = ProofContext.theory_of ctxt in
+      Code_Target.code_of thy
+        target "Example" (mk_cs thy)
+        (fn naming => maps (fn f => f thy naming) mk_stmtss)
+      |> typewriter
+    end);
 
-end
+end;
 
 end;

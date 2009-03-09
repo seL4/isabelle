@@ -590,8 +590,9 @@ in
 
 val _ = ml_text "ML" (fn txt => "fn _ => (" ^ txt ^ ");");
 val _ = ml_text "ML_type" (fn txt => "val _ = NONE : (" ^ txt ^ ") option;");
-val _ = ml_text "ML_struct"
-  (fn txt => "functor DUMMY_FUNCTOR() = struct structure DUMMY = " ^ txt ^ " end;");
+val _ = ml_text "ML_struct" (fn txt => "functor XXX() = struct structure XX = " ^ txt ^ " end;");
+val _ = ml_text "ML_functor" (K "");  (*no check!*)
+val _ = ml_text "ML_text" (K "");
 
 end;
 
