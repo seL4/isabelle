@@ -470,9 +470,6 @@ subsubsection {* Derived operations *}
 definition if_pred :: "bool \<Rightarrow> unit pred" where
   if_pred_eq: "if_pred b = (if b then single () else \<bottom>)"
 
-definition eq_pred :: "'a \<Rightarrow> 'a \<Rightarrow> unit pred" where
-  eq_pred_eq: "eq_pred a b = if_pred (a = b)"
-
 definition not_pred :: "unit pred \<Rightarrow> unit pred" where
   not_pred_eq: "not_pred P = (if eval P () then \<bottom> else single ())"
 
@@ -481,12 +478,6 @@ lemma if_predI: "P \<Longrightarrow> eval (if_pred P) ()"
 
 lemma if_predE: "eval (if_pred b) x \<Longrightarrow> (b \<Longrightarrow> x = () \<Longrightarrow> P) \<Longrightarrow> P"
   unfolding if_pred_eq by (cases b) (auto elim: botE)
-
-lemma eq_predI: "eval (eq_pred a a) ()"
-  unfolding eq_pred_eq if_pred_eq by (auto intro: singleI)
-
-lemma eq_predE: "eval (eq_pred a b) x \<Longrightarrow> (a = b \<Longrightarrow> x = () \<Longrightarrow> P) \<Longrightarrow> P"
-  unfolding eq_pred_eq by (erule if_predE)
 
 lemma not_predI: "\<not> P \<Longrightarrow> eval (not_pred (Pred (\<lambda>u. P))) ()"
   unfolding not_pred_eq eval_pred by (auto intro: singleI)
@@ -609,7 +600,7 @@ no_notation
   bind (infixl "\<guillemotright>=" 70)
 
 hide (open) type pred seq
-hide (open) const Pred eval single bind if_pred eq_pred not_pred
+hide (open) const Pred eval single bind if_pred not_pred
   Empty Insert Join Seq member "apply" adjunct
 
 end
