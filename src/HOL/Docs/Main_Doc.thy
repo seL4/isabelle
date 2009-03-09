@@ -58,7 +58,7 @@ Overloaded operators:
 \section{Orderings}
 
 A collection of classes constraining @{text"\<le>"} and @{text"<"}:
-preorders, partial orders, linear orders, dense linear orders and wellorders.
+preorder, partial order, linear order, dense linear order and wellorder.
 
 \begin{tabular}{@ {} l @ {~::~} l @ {}}
 @{const Orderings.Least} & @{typeof Orderings.Least}\\
@@ -76,6 +76,33 @@ preorders, partial orders, linear orders, dense linear orders and wellorders.
 \multicolumn{2}{@ {}l@ {}}{Similarly for $<$, $\ge$ and $>$, and for @{text"\<exists>"}}\\
 @{term"LEAST x. P"} & @{term[source]"Least (\<lambda>x. P)"}\\
 \end{supertabular}
+
+
+\section{Lattices}
+
+Classes semilattice, lattice, distributive lattice and complete lattice (the
+latter in theory @{theory Set}).
+
+\begin{tabular}{@ {} l @ {~::~} l @ {}}
+@{const Lattices.inf} & @{typeof Lattices.inf}\\
+@{const Lattices.sup} & @{typeof Lattices.sup}\\
+@{const Set.Inf} & @{term_type_only Set.Inf "'a set \<Rightarrow> 'a::complete_lattice"}\\
+@{const Set.Sup} & @{term_type_only Set.Sup "'a set \<Rightarrow> 'a::complete_lattice"}\\
+\end{tabular}
+
+\subsubsection*{Syntax}
+
+Only available locally:
+
+\begin{supertabular}{@ {} l @ {\quad$\equiv$\quad} l @ {}}
+@{text[source]"x \<sqsubseteq> y"} & @{term"x \<le> y"}\\
+@{text[source]"x \<sqsubset> y"} & @{term"x < y"}\\
+@{text[source]"x \<sqinter> y"} & @{term"inf x y"}\\
+@{text[source]"x \<squnion> y"} & @{term"sup x y"}\\
+@{text[source]"\<Sqinter> A"} & @{term"Sup A"}\\
+@{text[source]"\<Squnion> A"} & @{term"Inf A"}\\
+\end{supertabular}
+
 
 \section{Set}
 
@@ -195,7 +222,7 @@ e.g.\ @{prop"ALL (x,y):A. P"}, @{term"{(x,y). P}"}, etc.
 
 \section{Relation}
 
-\begin{supertabular}{@ {} l @ {~::~} l @ {}}
+\begin{tabular}{@ {} l @ {~::~} l @ {}}
 @{const Relation.converse} & @{term_type_only Relation.converse "('a * 'b)set \<Rightarrow> ('b*'a)set"}\\
 @{const Relation.rel_comp} & @{term_type_only Relation.rel_comp "('a*'b)set\<Rightarrow>('c*'a)set\<Rightarrow>('c*'b)set"}\\
 @{const Relation.Image} & @{term_type_only Relation.Image "('a*'b)set\<Rightarrow>'a set\<Rightarrow>'b set"}\\
@@ -212,8 +239,8 @@ e.g.\ @{prop"ALL (x,y):A. P"}, @{term"{(x,y). P}"}, etc.
 @{const Relation.trans} & @{term_type_only Relation.trans "('a*'a)set\<Rightarrow>bool"}\\
 @{const Relation.irrefl} & @{term_type_only Relation.irrefl "('a*'a)set\<Rightarrow>bool"}\\
 @{const Relation.total_on} & @{term_type_only Relation.total_on "'a set\<Rightarrow>('a*'a)set\<Rightarrow>bool"}\\
-@{const Relation.total} & @{term_type_only Relation.total "('a*'a)set\<Rightarrow>bool"}\\
-\end{supertabular}
+@{const Relation.total} & @{term_type_only Relation.total "('a*'a)set\<Rightarrow>bool"}
+\end{tabular}
 
 \subsubsection*{Syntax}
 
@@ -324,6 +351,29 @@ Type @{typ int}
 \begin{tabular}{@ {} l @ {\quad$\equiv$\quad} l @ {}}
 @{term"of_nat::nat\<Rightarrow>int"} & @{term[source]"of_nat"}\\
 \end{tabular}
+
+
+\section{Finite\_Set}
+
+
+\begin{supertabular}{@ {} l @ {~::~} l @ {}}
+@{const Finite_Set.finite} & @{term_type_only Finite_Set.finite "'a set\<Rightarrow>bool"}\\
+@{const Finite_Set.card} & @{term_type_only Finite_Set.card "'a set => nat"}\\
+@{const Finite_Set.fold} & @{term_type_only Finite_Set.fold "('a \<Rightarrow> 'b \<Rightarrow> 'b) \<Rightarrow> 'b \<Rightarrow> 'a set \<Rightarrow> 'b"}\\
+@{const Finite_Set.fold_image} & @{typ "('b \<Rightarrow> 'b \<Rightarrow> 'b) \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> 'b \<Rightarrow> 'a set \<Rightarrow> 'b"}\\
+@{const Finite_Set.setsum} & @{term_type_only Finite_Set.setsum "('a => 'b) => 'a set => 'b::comm_monoid_add"}\\
+@{const Finite_Set.setprod} & @{term_type_only Finite_Set.setprod "('a => 'b) => 'a set => 'b::comm_monoid_mult"}\\
+\end{supertabular}
+
+
+\subsubsection*{Syntax}
+
+\begin{supertabular}{@ {} l @ {\quad$\equiv$\quad} l @ {}}
+@{term"setsum (%x. x) A"} & @{term[source]"setsum (\<lambda>x. x) A"}\\
+@{term"setsum (%x. t) A"} & @{term[source]"setsum (\<lambda>x. t) A"}\\
+@{term[source]"\<Sum>x|P. t"} & @{term"\<Sum>x|P. t"}\\
+\multicolumn{2}{@ {}l@ {}}{Similarly for @{text"\<Prod>"} instead of @{text"\<Sum>"}}\\
+\end{supertabular}
 
 
 \section{Wellfounded}
