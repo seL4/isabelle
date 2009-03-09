@@ -1,2 +1,2 @@
-use_thy "MainDoc";
+use_thy "Main_Doc";
 
