@@ -341,7 +341,7 @@ Type @{typ int}
 \end{supertabular}
 
 
-\section{Set\_Interval}
+\section{SetInterval}
 
 \begin{supertabular}{@ {} l @ {~::~} l @ {}}
 @{const lessThan} & @{term_type_only lessThan "'a::ord \<Rightarrow> 'a set"}\\
