@@ -11,7 +11,6 @@ signature BINDING =
 sig
   type binding
   val dest: binding -> (string * bool) list * bstring
-  val str_of: binding -> string
   val make: bstring * Position.T -> binding
   val pos_of: binding -> Position.T
   val name: bstring -> binding
@@ -22,11 +21,13 @@ sig
   val eq_name: binding * binding -> bool
   val empty: binding
   val is_empty: binding -> bool
-  val qualified_name: bstring -> binding
   val qualify: bool -> string -> binding -> binding
+  val qualified_name: bstring -> binding
+  val qualified_name_of: binding -> bstring
   val prefix_of: binding -> (string * bool) list
   val map_prefix: ((string * bool) list -> (string * bool) list) -> binding -> binding
   val prefix: bool -> string -> binding -> binding
+  val str_of: binding -> string
 end;
 
 structure Binding:> BINDING =
@@ -49,12 +50,6 @@ fun map_binding f (Binding {prefix, qualifier, name, pos}) =
   make_binding (f (prefix, qualifier, name, pos));
 
 fun dest (Binding {prefix, qualifier, name, ...}) = (prefix @ qualifier, name);
-
-fun str_of (Binding {prefix, qualifier, name, pos}) =
-  let
-    val text = Long_Name.implode (map #1 qualifier @ [name]);
-    val props = Position.properties_of pos;
-  in Markup.markup (Markup.properties props (Markup.binding name)) text end;
 
 
 
@@ -80,14 +75,17 @@ fun is_empty b = name_of b = "";
 
 (* user qualifier *)
 
+fun qualify _ "" = I
+  | qualify mandatory qual = map_binding (fn (prefix, qualifier, name, pos) =>
+      (prefix, (qual, mandatory) :: qualifier, name, pos));
+
 fun qualified_name "" = empty
   | qualified_name s =
       let val (qualifier, name) = split_last (Long_Name.explode s)
       in make_binding ([], map (rpair false) qualifier, name, Position.none) end;
 
-fun qualify _ "" = I
-  | qualify strict qual = map_binding (fn (prefix, qualifier, name, pos) =>
-      (prefix, (qual, strict) :: qualifier, name, pos));
+fun qualified_name_of (Binding {qualifier, name, ...}) =
+  Long_Name.implode (map #1 qualifier @ [name]);
 
 
 (* system prefix *)
@@ -98,7 +96,16 @@ fun map_prefix f = map_binding (fn (prefix, qualifier, name, pos) =>
   (f prefix, qualifier, name, pos));
 
 fun prefix _ "" = I
-  | prefix strict prfx = map_prefix (cons (prfx, strict));
+  | prefix mandatory prfx = map_prefix (cons (prfx, mandatory));
+
+
+(* str_of *)
+
+fun str_of binding =
+  let
+    val text = qualified_name_of binding;
+    val props = Position.properties_of (pos_of binding);
+  in Markup.markup (Markup.properties props (Markup.binding (name_of binding))) text end;
 
 end;
 

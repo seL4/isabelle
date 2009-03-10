@@ -32,7 +32,6 @@ sig
   val declare: naming -> binding -> T -> string * T
   val full_name: naming -> binding -> string
   val external_names: naming -> string -> string list
-  val path_of: naming -> string
   val add_path: string -> naming -> naming
   val no_base_names: naming -> naming
   val qualified_names: naming -> naming
@@ -50,38 +49,14 @@ end;
 structure NameSpace: NAME_SPACE =
 struct
 
-(** long identifiers **)
+
+(** name spaces **)
+
+(* hidden entries *)
 
 fun hidden name = "??." ^ name;
 val is_hidden = String.isPrefix "??.";
 
-(* standard accesses *)
-
-infixr 6 @@;
-fun ([] @@ yss) = []
-  | ((xs :: xss) @@ yss) = map (fn ys => xs @ ys) yss @ (xss @@ yss);
-
-fun suffixes_prefixes list =
-  let
-    val (xs, ws) = chop (length list - 1) list;
-    val sfxs = suffixes xs @@ [ws];
-    val pfxs = prefixes1 xs @@ [ws];
-  in (sfxs @ pfxs, sfxs) end;
-
-fun suffixes_prefixes_split i k list =
-  let
-    val (((xs, ys), zs), ws) = list |> chop i ||>> chop k ||>> chop (length list - (i + k + 1));
-    val sfxs =
-      [ys] @@ suffixes zs @@ [ws] @
-      suffixes1 xs @@ [ys @ zs @ ws];
-    val pfxs =
-      prefixes1 xs @@ [ys @ ws] @
-      [xs @ ys] @@ prefixes1 zs @@ [ws];
-  in (sfxs @ pfxs, sfxs) end;
-
-
-
-(** name spaces **)
 
 (* datatype T *)
 
@@ -196,74 +171,95 @@ fun merge (NameSpace (tab1, xtab1), NameSpace (tab2, xtab2)) =
 (* datatype naming *)
 
 datatype naming = Naming of
-  string *                                                 (*path*)
-  ((string -> string -> string) *                          (*qualify*)
-   (string list -> string list list * string list list));  (*accesses*)
+ {path: (string * bool) list,
+  no_base_names: bool,
+  qualified_names: bool};
 
-fun path_of (Naming (path, _)) = path;
-fun accesses (Naming (_, (_, accs))) = accs;
+fun make_naming (path, no_base_names, qualified_names) =
+  Naming {path = path, no_base_names = no_base_names, qualified_names = qualified_names};
 
-fun external_names naming = map Long_Name.implode o #2 o accesses naming o Long_Name.explode;
+fun map_naming f (Naming {path, no_base_names, qualified_names}) =
+  make_naming (f (path, no_base_names, qualified_names));
+
+fun path_of (Naming {path, ...}) = path;
 
 
-(* manipulate namings *)
+(* configure naming *)
 
-fun reject_qualified name =
-  if Long_Name.is_qualified name then
-    error ("Attempt to declare qualified name " ^ quote name)
-  else name;
+val default_naming = make_naming ([], false, false);
 
-val default_naming =
-  Naming ("", (fn path => Long_Name.qualify path o reject_qualified, suffixes_prefixes));
+fun add_path elems = map_naming (fn (path, no_base_names, qualified_names) =>
+  if elems = "//" then ([], no_base_names, true)
+  else if elems = "/" then ([], no_base_names, qualified_names)
+  else if elems = ".." then (perhaps (try (#1 o split_last)) path, no_base_names, qualified_names)
+  else (path @ map (rpair false) (Long_Name.explode elems), no_base_names, qualified_names));
 
-fun add_path elems (Naming (path, policy)) =
-  if elems = "//" then Naming ("", (Long_Name.qualify, #2 policy))
-  else if elems = "/" then Naming ("", policy)
-  else if elems = ".." then Naming (Long_Name.qualifier path, policy)
-  else Naming (Long_Name.append path elems, policy);
+fun sticky_prefix elems = map_naming (fn (path, no_base_names, qualified_names) =>
+  (path @ map (rpair true) (Long_Name.explode elems), no_base_names, qualified_names));
 
-fun no_base_names (Naming (path, (qualify, accs))) =
-  Naming (path, (qualify, pairself (filter_out (fn [_] => true | _ => false)) o accs));
-
-fun qualified_names (Naming (path, (_, accs))) = Naming (path, (Long_Name.qualify, accs));
-
-fun sticky_prefix prfx (Naming (path, (qualify, _))) =
-  Naming (Long_Name.append path prfx,
-    (qualify,
-      suffixes_prefixes_split (length (Long_Name.explode path)) (length (Long_Name.explode prfx))));
-
-val apply_prefix =
-  let
-    fun mk_prefix (prfx, true) = sticky_prefix prfx
-      | mk_prefix (prfx, false) = add_path prfx;
-  in fold mk_prefix end;
+val no_base_names = map_naming (fn (path, _, qualified_names) => (path, true, qualified_names));
+val qualified_names = map_naming (fn (path, no_base_names, _) => (path, no_base_names, true));
 
 
 (* full name *)
 
-fun full (Naming (path, (qualify, _))) = qualify path;
+fun err_bad binding = error ("Bad name declaration " ^ quote (Binding.str_of binding));
 
-fun full_name naming binding =
+fun name_spec (Naming {path, qualified_names, ...}) binding =
   let
-    val (prfx, bname) = Binding.dest binding;
-    val naming' = apply_prefix prfx naming;
-  in full naming' bname end;
+    val (prefix, name) = Binding.dest binding;
+    val _ = not qualified_names andalso Long_Name.is_qualified name andalso err_bad binding;
+
+    val spec1 = maps (fn (a, b) => map (rpair b) (Long_Name.explode a)) (path @ prefix);
+    val spec2 =
+      (case try split_last (Long_Name.explode name) of
+        NONE => []
+      | SOME (qual, base) => map (rpair false) qual @ [(base, true)]);
+
+    val spec = spec1 @ spec2;
+    val _ =
+      exists (fn (a, _) => a = "" orelse a = "??" orelse exists_string (fn s => s = "\"") a) spec
+      andalso err_bad binding;
+  in if null spec2 then [] else spec end;
+
+fun full naming = name_spec naming #> map fst;
+fun full_name naming = full naming #> Long_Name.implode;
+
+
+(* accesses *)
+
+fun mandatory xs = map_filter (fn (x, true) => SOME x | _ => NONE) xs;
+
+fun mandatory_prefixes xs = mandatory xs :: mandatory_prefixes1 xs
+and mandatory_prefixes1 [] = []
+  | mandatory_prefixes1 ((x, true) :: xs) = map (cons x) (mandatory_prefixes1 xs)
+  | mandatory_prefixes1 ((x, false) :: xs) = map (cons x) (mandatory_prefixes xs);
+
+fun mandatory_suffixes1 xs = map rev (mandatory_prefixes1 (rev xs));
+fun mandatory_suffixes xs = map rev (mandatory_prefixes (rev xs));
+
+fun accesses (naming as Naming {no_base_names, ...}) binding =
+  let
+    val spec = name_spec naming binding;
+    val sfxs = mandatory_suffixes spec;
+    val pfxs = mandatory_prefixes spec;
+  in
+    (sfxs @ pfxs, sfxs)
+    |> pairself (no_base_names ? filter (fn [_] => false | _ => true))
+    |> pairself (map Long_Name.implode)
+  end;
+
+fun external_names naming = #2 o accesses naming o Binding.qualified_name;
 
 
 (* declaration *)
 
 fun declare naming binding space =
   let
-    val (prfx, bname) = Binding.dest binding;
-    val naming' = apply_prefix prfx naming;
-    val name = full naming' bname;
-    val names = Long_Name.explode name;
-
-    val _ = (null names orelse exists (fn s => s = "" orelse s = "??") names
-        orelse exists_string (fn s => s = "\"") name) andalso
-      error ("Bad name declaration " ^ quote (Binding.str_of binding));
-
-    val (accs, accs') = pairself (map Long_Name.implode) (accesses naming' names);
+    val names = full naming binding;
+    val name = Long_Name.implode names;
+    val _ = name = "" andalso err_bad binding;
+    val (accs, accs') = accesses naming binding;
     val space' = space |> fold (add_name name) accs |> put_accesses name accs';
   in (name, space') end;
 
