@@ -619,7 +619,7 @@ For variables n of type nat, a constraint 0 <= n is added.
 (*        failure as soon as a case could not be refuted; i.e. delay further *)
 (*        splitting until after a refutation for other cases has been found. *)
 
-fun split_items ctxt do_pre (Ts, terms) : (typ list * (LA_Data.decomp * int) list) list =
+fun split_items ctxt do_pre split_neq (Ts, terms) : (typ list * (LA_Data.decomp * int) list) list =
 let
   (* splits inequalities '~=' into '<' and '>'; this corresponds to *)
   (* 'REPEAT_DETERM (eresolve_tac neqE i)' at the theorem/tactic    *)
@@ -649,6 +649,10 @@ let
           |> maps (elim_neq' false)
   end
 
+  fun ignore_neq (NONE, bool) = (NONE, bool)
+    | ignore_neq (ineq as SOME (_, _, rel, _, _, _), bool) =
+      if rel = "~=" then (NONE, bool) else (ineq, bool)
+
   fun number_hyps _ []             = []
     | number_hyps n (NONE::xs)     = number_hyps (n+1) xs
     | number_hyps n ((SOME x)::xs) = (x, n) :: number_hyps (n+1) xs
@@ -661,7 +665,8 @@ let
     |> (* produce the internal encoding of (in-)equalities *)
        map (apsnd (map (fn t => (LA_Data.decomp ctxt t, LA_Data.domain_is_nat t))))
     |> (* splitting of inequalities *)
-       map (apsnd elim_neq)
+       map (apsnd (if split_neq then elim_neq else
+                     Library.single o map ignore_neq))
     |> maps (fn (Ts, subgoals) => map (pair Ts o map fst) subgoals)
     |> (* numbering of hypotheses, ignoring irrelevant ones *)
        map (apsnd (number_hyps 0))
@@ -712,12 +717,13 @@ fun refutes ctxt params show_ex :
       | refute [] js = SOME js
   in refute end;
 
-fun refute ctxt params show_ex do_pre terms : injust list option =
-  refutes ctxt params show_ex (split_items ctxt do_pre (map snd params, terms)) [];
+fun refute ctxt params show_ex do_pre split_neq terms : injust list option =
+  refutes ctxt params show_ex (split_items ctxt do_pre split_neq
+    (map snd params, terms)) [];
 
 fun count P xs = length (filter P xs);
 
-fun prove ctxt params show_ex do_pre Hs concl : injust list option =
+fun prove ctxt params show_ex do_pre Hs concl : bool * injust list option =
   let
     val _ = trace_msg "prove:"
     (* append the negated conclusion to 'Hs' -- this corresponds to     *)
@@ -726,21 +732,23 @@ fun prove ctxt params show_ex do_pre Hs concl : injust list option =
     val Hs' = Hs @ [LA_Logic.neg_prop concl]
     fun is_neq NONE                 = false
       | is_neq (SOME (_,_,r,_,_,_)) = (r = "~=")
-    val neq_limit = Config.get ctxt LA_Data.fast_arith_neq_limit;
+    val neq_limit = Config.get ctxt LA_Data.fast_arith_neq_limit
+    val split_neq = count is_neq (map (LA_Data.decomp ctxt) Hs') <= neq_limit
   in
-    if count is_neq (map (LA_Data.decomp ctxt) Hs') > neq_limit then
-     (trace_msg ("fast_arith_neq_limit exceeded (current value is " ^
-        string_of_int neq_limit ^ ")"); NONE)
+    if split_neq then ()
     else
-      refute ctxt params show_ex do_pre Hs'
+      trace_msg ("fast_arith_neq_limit exceeded (current value is " ^
+        string_of_int neq_limit ^ "), ignoring all inequalities");
+    (split_neq, refute ctxt params show_ex do_pre split_neq Hs')
   end handle TERM ("neg_prop", _) =>
     (* since no meta-logic negation is available, we can only fail if   *)
     (* the conclusion is not of the form 'Trueprop $ _' (simply         *)
     (* dropping the conclusion doesn't work either, because even        *)
     (* 'False' does not imply arbitrary 'concl::prop')                  *)
-    (trace_msg "prove failed (cannot negate conclusion)."; NONE);
+    (trace_msg "prove failed (cannot negate conclusion).";
+      (false, NONE));
 
-fun refute_tac ss (i, justs) =
+fun refute_tac ss (i, split_neq, justs) =
   fn state =>
     let
       val ctxt = Simplifier.the_context ss;
@@ -749,7 +757,10 @@ fun refute_tac ss (i, justs) =
       val {neqE, ...} = get_data ctxt;
       fun just1 j =
         (* eliminate inequalities *)
-        REPEAT_DETERM (eresolve_tac neqE i) THEN
+        (if split_neq then
+          REPEAT_DETERM (eresolve_tac neqE i)
+        else
+          all_tac) THEN
           PRIMITIVE (trace_thm "State after neqE:") THEN
           (* use theorems generated from the actual justifications *)
           METAHYPS (fn asms => rtac (mkthm ss asms j) 1) i
@@ -776,8 +787,9 @@ fun simpset_lin_arith_tac ss show_ex = SUBGOAL (fn (A, i) =>
     val _ = trace_term ctxt ("Trying to refute subgoal " ^ string_of_int i) A
   in
     case prove ctxt params show_ex true Hs concl of
-      NONE => (trace_msg "Refutation failed."; no_tac)
-    | SOME js => (trace_msg "Refutation succeeded."; refute_tac ss (i, js))
+      (_, NONE) => (trace_msg "Refutation failed."; no_tac)
+    | (split_neq, SOME js) => (trace_msg "Refutation succeeded.";
+                               refute_tac ss (i, split_neq, js))
   end);
 
 fun cut_lin_arith_tac ss =
@@ -835,14 +847,14 @@ fun fwdproof ss (Tip asms : splittree) (j::js : injust list) = (mkthm ss asms j,
       in (thm2' COMP (thm1' COMP thm), js2) end;
       (* FIXME needs handle THM _ => NONE ? *)
 
-fun prover ss thms Tconcl (js : injust list) pos : thm option =
+fun prover ss thms Tconcl (js : injust list) split_neq pos : thm option =
   let
     val ctxt = Simplifier.the_context ss
     val thy = ProofContext.theory_of ctxt
     val nTconcl = LA_Logic.neg_prop Tconcl
     val cnTconcl = cterm_of thy nTconcl
     val nTconclthm = assume cnTconcl
-    val tree = splitasms ctxt (thms @ [nTconclthm])
+    val tree = (if split_neq then splitasms ctxt else Tip) (thms @ [nTconclthm])
     val (Falsethm, _) = fwdproof ss tree js
     val contr = if pos then LA_Logic.ccontr else LA_Logic.notI
     val concl = implies_intr cnTconcl Falsethm COMP contr
@@ -864,12 +876,12 @@ fun lin_arith_simproc ss concl =
     val Tconcl = LA_Logic.mk_Trueprop concl
   in
     case prove ctxt [] false false Hs Tconcl of (* concl provable? *)
-      SOME js => prover ss thms Tconcl js true
-    | NONE =>
+      (split_neq, SOME js) => prover ss thms Tconcl js split_neq true
+    | (_, NONE) =>
         let val nTconcl = LA_Logic.neg_prop Tconcl in
           case prove ctxt [] false false Hs nTconcl of (* ~concl provable? *)
-            SOME js => prover ss thms nTconcl js false
-          | NONE => NONE
+            (split_neq, SOME js) => prover ss thms nTconcl js split_neq false
+          | (_, NONE) => NONE
         end
   end;
 
