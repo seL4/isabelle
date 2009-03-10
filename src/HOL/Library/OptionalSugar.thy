@@ -9,7 +9,7 @@ begin
 
 (* set *)
 translations
-  "xs" <= "set xs"
+  "xs" <= "CONST set xs"
 
 (* append *)
 syntax (latex output)
@@ -26,15 +26,15 @@ notation (tab output)
 
 (* Let *)
 translations 
-  "_bind (p,DUMMY) e" <= "_bind p (fst e)"
-  "_bind (DUMMY,p) e" <= "_bind p (snd e)"
+  "_bind (p,DUMMY) e" <= "_bind p (CONST fst e)"
+  "_bind (DUMMY,p) e" <= "_bind p (CONST snd e)"
 
   "_tuple_args x (_tuple_args y z)" ==
     "_tuple_args x (_tuple_arg (_tuple y z))"
 
-  "_bind (Some p) e" <= "_bind p (the e)"
-  "_bind (p#DUMMY) e" <= "_bind p (hd e)"
-  "_bind (DUMMY#p) e" <= "_bind p (tl e)"
+  "_bind (Some p) e" <= "_bind p (CONST the e)"
+  "_bind (p#DUMMY) e" <= "_bind p (CONST hd e)"
+  "_bind (DUMMY#p) e" <= "_bind p (CONST tl e)"
 
 (* type constraints with spacing *)
 setup {*
