@@ -1,6 +1,5 @@
 (*  Title:      HOL/ex/Sqrt.thy
     Author:     Markus Wenzel, TU Muenchen
-
 *)
 
 header {*  Square roots of primes are irrational *}
@@ -8,13 +7,6 @@ header {*  Square roots of primes are irrational *}
 theory Sqrt
 imports Complex_Main Primes
 begin
-
-text {* The definition and the key representation theorem for the set of
-rational numbers has been moved to a core theory.  *}
-
-declare Rats_abs_nat_div_natE[elim?]
-
-subsection {* Main theorem *}
 
 text {*
   The square root of any prime number (including @{text 2}) is
@@ -29,7 +21,7 @@ proof
   assume "sqrt (real p) \<in> \<rat>"
   then obtain m n where
       n: "n \<noteq> 0" and sqrt_rat: "\<bar>sqrt (real p)\<bar> = real m / real n"
-    and gcd: "gcd m n = 1" ..
+    and gcd: "gcd m n = 1" by (rule Rats_abs_nat_div_natE)
   have eq: "m\<twosuperior> = p * n\<twosuperior>"
   proof -
     from n and sqrt_rat have "real m = \<bar>sqrt (real p)\<bar> * real n" by simp
@@ -75,7 +67,7 @@ proof
   assume "sqrt (real p) \<in> \<rat>"
   then obtain m n where
       n: "n \<noteq> 0" and sqrt_rat: "\<bar>sqrt (real p)\<bar> = real m / real n"
-    and gcd: "gcd m n = 1" ..
+    and gcd: "gcd m n = 1" by (rule Rats_abs_nat_div_natE)
   from n and sqrt_rat have "real m = \<bar>sqrt (real p)\<bar> * real n" by simp
   then have "real (m\<twosuperior>) = (sqrt (real p))\<twosuperior> * real (n\<twosuperior>)"
     by (auto simp add: power2_eq_square)
