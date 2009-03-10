@@ -293,7 +293,10 @@ end;
 local
 
 fun debugging f x =
-  if ! debug then exception_trace (fn () => f x)
+  if ! debug then
+    (case exception_trace (fn () => SOME (f x) handle UNDEF => NONE) of
+      SOME y => y
+    | NONE => raise UNDEF)
   else f x;
 
 fun toplevel_error f x =
