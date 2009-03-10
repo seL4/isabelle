@@ -2422,10 +2422,6 @@ lemma "d * (i div d) + i mod d = (i::int)" by auto
 lemma "0 < (d :: int) \<Longrightarrow> 0 \<le> i mod d \<and> i mod d < d" by auto
 lemma "(d :: int) < 0 \<Longrightarrow> d < i mod d \<and> i mod d \<le> 0" by auto
 
-code_const "op div :: int \<Rightarrow> int \<Rightarrow> int" (SML "(fn i => fn d => if d = 0 then 0 else i div d)")
-code_const "op mod :: int \<Rightarrow> int \<Rightarrow> int" (SML "(fn i => fn d => if d = 0 then i else i mod d)")
-code_const "divmod :: int \<Rightarrow> int \<Rightarrow> (int * int)" (SML "(fn i => fn d => if d = 0 then (0, i) else IntInf.divMod (i, d))")
-
 ML {*
   val uneq_equations = PureThy.get_thms @{theory} "uneq_equations";
   val bounded_by_equations = PureThy.get_thms @{theory} "bounded_by_equations";
@@ -2448,7 +2444,7 @@ ML {*
     fun bot_float (Const (@{const_name "times"}, _) $ mantisse $ (Const (@{const_name "pow2"}, _) $ exp))
                    = @{term "Float"} $ to_int mantisse $ to_int exp
       | bot_float (Const (@{const_name "divide"}, _) $ mantisse $ (Const (@{const_name "power"}, _) $ ten $ exp))
-                   = @{term "float_divl"} $ prec' $ (@{term "Float"} $ to_int mantisse $ @{term "0 :: int"}) $ (@{term "power_float (Float 5 1)"} $ to_nat exp)
+                   = @{term "float_divl"} $ prec' $ (@{term "Float"} $ to_int mantisse $ @{term "0 :: int"}) $ (@{term "power (Float 5 1)"} $ to_nat exp)
       | bot_float (Const (@{const_name "divide"}, _) $ mantisse $ ten)
                    = @{term "float_divl"} $ prec' $ (@{term "Float"} $ to_int mantisse $ @{term "0 :: int"}) $ @{term "Float 5 1"}
       | bot_float mantisse = @{term "Float"} $ to_int mantisse $ @{term "0 :: int"}
@@ -2456,7 +2452,7 @@ ML {*
     fun top_float (Const (@{const_name "times"}, _) $ mantisse $ (Const (@{const_name "pow2"}, _) $ exp))
                    = @{term "Float"} $ to_int mantisse $ to_int exp
       | top_float (Const (@{const_name "divide"}, _) $ mantisse $ (Const (@{const_name "power"}, _) $ ten $ exp))
-                   = @{term "float_divr"} $ prec' $ (@{term "Float"} $ to_int mantisse $ @{term "0 :: int"}) $ (@{term "power_float (Float 5 1)"} $ to_nat exp)
+                   = @{term "float_divr"} $ prec' $ (@{term "Float"} $ to_int mantisse $ @{term "0 :: int"}) $ (@{term "power (Float 5 1)"} $ to_nat exp)
       | top_float (Const (@{const_name "divide"}, _) $ mantisse $ ten)
                    = @{term "float_divr"} $ prec' $ (@{term "Float"} $ to_int mantisse $ @{term "0 :: int"}) $ @{term "Float 5 1"}
       | top_float mantisse = @{term "Float"} $ to_int mantisse $ @{term "0 :: int"}
