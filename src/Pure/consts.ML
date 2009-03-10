@@ -8,6 +8,7 @@ constraints.
 signature CONSTS =
 sig
   type T
+  val eq_consts: T * T -> bool
   val abbrevs_of: T -> string list -> (term * term) list
   val dest: T ->
    {constants: (typ * term option) NameSpace.table,
@@ -52,6 +53,13 @@ datatype T = Consts of
  {decls: ((decl * abbrev option) * serial) NameSpace.table,
   constraints: typ Symtab.table,
   rev_abbrevs: (term * term) list Symtab.table};
+
+fun eq_consts
+   (Consts {decls = decls1, constraints = constraints1, rev_abbrevs = rev_abbrevs1},
+    Consts {decls = decls2, constraints = constraints2, rev_abbrevs = rev_abbrevs2}) =
+  pointer_eq (decls1, decls2) andalso
+  pointer_eq (constraints1, constraints2) andalso
+  pointer_eq (rev_abbrevs1, rev_abbrevs2);
 
 fun make_consts (decls, constraints, rev_abbrevs) =
   Consts {decls = decls, constraints = constraints, rev_abbrevs = rev_abbrevs};
