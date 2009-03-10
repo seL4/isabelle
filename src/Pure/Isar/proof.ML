@@ -677,18 +677,19 @@ end;
 
 local
 
+fun qualified_binding a =
+  Binding.qualify true (Long_Name.qualifier a) (Binding.name (Long_Name.base_name a));
+
 fun gen_invoke_case prep_att (name, xs, raw_atts) state =
   let
     val atts = map (prep_att (theory_of state)) raw_atts;
     val (asms, state') = state |> map_context_result (fn ctxt =>
       ctxt |> ProofContext.apply_case (ProofContext.get_case ctxt name xs));
-    val assumptions = asms |> map (fn (a, ts) => ((Binding.name a, atts), map (rpair []) ts));
+    val assumptions = asms |> map (fn (a, ts) => ((qualified_binding a, atts), map (rpair []) ts));
   in
     state'
-    |> map_context (ProofContext.qualified_names #> ProofContext.no_base_names)
     |> assume_i assumptions
     |> add_binds_i AutoBind.no_facts
-    |> map_context (ProofContext.restore_naming (context_of state))
     |> `the_facts |-> (fn thms => note_thmss_i [((Binding.name name, []), [(thms, [])])])
   end;
 

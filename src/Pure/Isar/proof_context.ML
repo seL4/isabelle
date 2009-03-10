@@ -97,9 +97,8 @@ sig
   val get_thms: Proof.context -> xstring -> thm list
   val get_thm: Proof.context -> xstring -> thm
   val add_path: string -> Proof.context -> Proof.context
-  val no_base_names: Proof.context -> Proof.context
-  val qualified_names: Proof.context -> Proof.context
   val sticky_prefix: string -> Proof.context -> Proof.context
+  val qualified_names: Proof.context -> Proof.context
   val restore_naming: Proof.context -> Proof.context -> Proof.context
   val reset_naming: Proof.context -> Proof.context
   val note_thmss: string -> (Thm.binding * (Facts.ref * attribute list) list) list ->
@@ -263,9 +262,11 @@ val cases_of = #cases o rep_context;
 
 fun transfer_syntax thy =
   map_syntax (LocalSyntax.rebuild thy) #>
-  map_consts (fn (local_consts, _) =>
-    let val thy_consts = Sign.consts_of thy
-    in (Consts.merge (local_consts, thy_consts), thy_consts) end);
+  map_consts (fn consts as (local_consts, global_consts) =>
+    let val thy_consts = Sign.consts_of thy in
+      if Consts.eq_consts (thy_consts, global_consts) then consts
+      else (Consts.merge (local_consts, thy_consts), thy_consts)
+    end);
 
 fun transfer thy = Context.transfer_proof thy #> transfer_syntax thy;
 
@@ -945,9 +946,8 @@ end;
 (* name space operations *)
 
 val add_path        = map_naming o NameSpace.add_path;
-val no_base_names   = map_naming NameSpace.no_base_names;
-val qualified_names = map_naming NameSpace.qualified_names;
 val sticky_prefix   = map_naming o NameSpace.sticky_prefix;
+val qualified_names = map_naming NameSpace.qualified_names;
 val restore_naming  = map_naming o K o naming_of;
 val reset_naming    = map_naming (K local_naming);
 
