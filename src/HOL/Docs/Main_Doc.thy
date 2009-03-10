@@ -18,16 +18,16 @@ val _ = ThyOutput.antiquotation "term_type_only" (Args.term -- Args.typ_abbrev)
 text{*
 
 \begin{abstract}
-This document lists the main types, functions and syntax provided by theory @{theory Main}. It is meant as a quick overview of what is available. The sophisicated class structure is only hinted at.
+This document lists the main types, functions and syntax provided by theory @{theory Main}. It is meant as a quick overview of what is available. The sophisticated class structure is only hinted at.
 \end{abstract}
 
 \section{HOL}
 
-The basic logic: @{prop "x = y"}, @{const True}, @{const False}, @{prop"Not P"}, @{prop"P & Q"}, @{prop "P | Q"}, @{prop "P --> Q"}, @{prop"ALL x. P"}, @{prop"EX x. P"}, @{prop"EX! x. P"}, @{term"THE x. P"}.
+The basic logic: @{prop "x = y"}, @{const True}, @{const False}, @{prop"Not P"}, @{prop"P & Q"}, @{prop "P | Q"}, @{prop "P --> Q"}, @{prop"ALL x. P"}, @{prop"EX x. P"}, @{prop"EX! x. P"}, @{term"THE x. P"}. (\textsc{ascii}: \verb$~$, \verb$&$, \verb$|$, \verb$-->$, \texttt{ALL}, \texttt{EX})
 
 Overloaded operators:
 
-\begin{supertabular}{@ {} l @ {~::~} l @ {}}
+\begin{supertabular}{@ {} l @ {~::~} l l @ {}}
 @{text "0"} & @{typeof HOL.zero}\\
 @{text "1"} & @{typeof HOL.one}\\
 @{const HOL.plus} & @{typeof HOL.plus}\\
@@ -38,7 +38,7 @@ Overloaded operators:
 @{const HOL.divide} & @{typeof HOL.divide}\\
 @{const HOL.abs} & @{typeof HOL.abs}\\
 @{const HOL.sgn} & @{typeof HOL.sgn}\\
-@{const HOL.less_eq} & @{typeof HOL.less_eq}\\
+@{const HOL.less_eq} & @{typeof HOL.less_eq} & (\verb$<=$)\\
 @{const HOL.less} & @{typeof HOL.less}\\
 @{const HOL.default} & @{typeof HOL.default}\\
 @{const HOL.undefined} & @{typeof HOL.undefined}\\
@@ -109,13 +109,13 @@ Only available locally:
 Sets are predicates: @{text[source]"'a set  =  'a \<Rightarrow> bool"}
 \bigskip
 
-\begin{supertabular}{@ {} l @ {~::~} l @ {}}
+\begin{supertabular}{@ {} l @ {~::~} l l @ {}}
 @{const Set.empty} & @{term_type_only "Set.empty" "'a set"}\\
 @{const insert} & @{term_type_only insert "'a\<Rightarrow>'a set\<Rightarrow>'a set"}\\
 @{const Collect} & @{term_type_only Collect "('a\<Rightarrow>bool)\<Rightarrow>'a set"}\\
-@{const "op :"} & @{term_type_only "op :" "'a\<Rightarrow>'a set\<Rightarrow>bool"} \qquad(\textsc{ascii} @{text":"})\\
-@{const Set.Un} & @{term_type_only Set.Un "'a set\<Rightarrow>'a set \<Rightarrow> 'a set"} \qquad(\textsc{ascii} @{text"Un"})\\
-@{const Set.Int} & @{term_type_only Set.Int "'a set\<Rightarrow>'a set \<Rightarrow> 'a set"} \qquad(\textsc{ascii} @{text"Int"})\\
+@{const "op :"} & @{term_type_only "op :" "'a\<Rightarrow>'a set\<Rightarrow>bool"} & (\texttt{:})\\
+@{const Set.Un} & @{term_type_only Set.Un "'a set\<Rightarrow>'a set \<Rightarrow> 'a set"} & (\texttt{Un})\\
+@{const Set.Int} & @{term_type_only Set.Int "'a set\<Rightarrow>'a set \<Rightarrow> 'a set"} & (\texttt{Int})\\
 @{const UNION} & @{term_type_only UNION "'a set\<Rightarrow>('a \<Rightarrow> 'b set) \<Rightarrow> 'b set"}\\
 @{const INTER} & @{term_type_only INTER "'a set\<Rightarrow>('a \<Rightarrow> 'b set) \<Rightarrow> 'b set"}\\
 @{const Union} & @{term_type_only Union "'a set set\<Rightarrow>'a set"}\\
@@ -129,7 +129,7 @@ Sets are predicates: @{text[source]"'a set  =  'a \<Rightarrow> bool"}
 
 \subsubsection*{Syntax}
 
-\begin{supertabular}{@ {} l @ {\quad$\equiv$\quad} l @ {}}
+\begin{supertabular}{@ {} l @ {\quad$\equiv$\quad} l l @ {}}
 @{text"{x\<^isub>1,\<dots>,x\<^isub>n}"} & @{text"insert x\<^isub>1 (\<dots> (insert x\<^isub>n {})\<dots>)"}\\
 @{term"x ~: A"} & @{term[source]"\<not>(x \<in> A)"}\\
 @{term"A \<subseteq> B"} & @{term[source]"A \<le> B"}\\
@@ -137,9 +137,9 @@ Sets are predicates: @{text[source]"'a set  =  'a \<Rightarrow> bool"}
 @{term[source]"A \<supseteq> B"} & @{term[source]"B \<le> A"}\\
 @{term[source]"A \<supset> B"} & @{term[source]"B < A"}\\
 @{term"{x. P}"} & @{term[source]"Collect(\<lambda>x. P)"}\\
-@{term[mode=xsymbols]"UN x:I. A"} & @{term[source]"UNION I (\<lambda>x. A)"}\\
+@{term[mode=xsymbols]"UN x:I. A"} & @{term[source]"UNION I (\<lambda>x. A)"} & (\texttt{UN})\\
 @{term[mode=xsymbols]"UN x. A"} & @{term[source]"UNION UNIV (\<lambda>x. A)"}\\
-@{term[mode=xsymbols]"INT x:I. A"} & @{term[source]"INTER I (\<lambda>x. A)"}\\
+@{term[mode=xsymbols]"INT x:I. A"} & @{term[source]"INTER I (\<lambda>x. A)"} & (\texttt{INT})\\
 @{term[mode=xsymbols]"INT x. A"} & @{term[source]"INTER UNIV (\<lambda>x. A)"}\\
 @{term"ALL x:A. P"} & @{term[source]"Ball A (\<lambda>x. P)"}\\
 @{term"EX x:A. P"} & @{term[source]"Bex A (\<lambda>x. P)"}\\
