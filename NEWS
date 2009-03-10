@@ -198,6 +198,9 @@ hyphen:
 
     find_consts strict: "_ => bool" name: "Int" -"int => int"
 
+* Linear arithmetic now ignores all inequalities when fast_arith_neq_limit
+is exceeded, instead of giving up entirely.
+
 
 *** Document preparation ***
 
