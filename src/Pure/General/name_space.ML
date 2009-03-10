@@ -33,6 +33,8 @@ sig
   val full_name: naming -> binding -> string
   val external_names: naming -> string -> string list
   val add_path: string -> naming -> naming
+  val root_path: naming -> naming
+  val parent_path: naming -> naming
   val no_base_names: naming -> naming
   val qualified_names: naming -> naming
   val sticky_prefix: string -> naming -> naming
@@ -189,10 +191,13 @@ fun path_of (Naming {path, ...}) = path;
 val default_naming = make_naming ([], false, false);
 
 fun add_path elems = map_naming (fn (path, no_base_names, qualified_names) =>
-  if elems = "//" then ([], no_base_names, true)
-  else if elems = "/" then ([], no_base_names, qualified_names)
-  else if elems = ".." then (perhaps (try (#1 o split_last)) path, no_base_names, qualified_names)
-  else (path @ map (rpair false) (Long_Name.explode elems), no_base_names, qualified_names));
+  (path @ map (rpair false) (Long_Name.explode elems), no_base_names, qualified_names));
+
+val root_path = map_naming (fn (_, no_base_names, qualified_names) =>
+  ([], no_base_names, qualified_names));
+
+val parent_path = map_naming (fn (path, no_base_names, qualified_names) =>
+  (perhaps (try (#1 o split_last)) path, no_base_names, qualified_names));
 
 fun sticky_prefix elems = map_naming (fn (path, no_base_names, qualified_names) =>
   (path @ map (rpair true) (Long_Name.explode elems), no_base_names, qualified_names));
