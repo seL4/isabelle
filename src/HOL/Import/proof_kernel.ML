@@ -264,7 +264,6 @@ fun set_disk_info_of (Proof(Info{disk_info,...},_)) thyname thmname =
 
 structure Lib =
 struct
-fun wrap b e s = String.concat[b,s,e]
 
 fun assoc x =
     let
@@ -279,9 +278,6 @@ fun i mem L =
     let fun itr [] = false
           | itr (a::rst) = i=a orelse itr rst
     in itr L end;
-
-fun mk_set [] = []
-  | mk_set (a::rst) = insert (op =) a (mk_set rst)
 
 fun [] union S = S
   | S union [] = S
