@@ -428,7 +428,7 @@ let
    in
     fun provein x S = 
      case term_of S of
-        Const(@{const_name Set.empty}, _) => error "Unexpected error in Cooper please email Amine Chaieb"
+        Const(@{const_name Set.empty}, _) => error "Unexpected error in Cooper, please email Amine Chaieb"
       | Const(@{const_name insert}, _) $ y $ _ => 
          let val (cy,S') = Thm.dest_binop S
          in if term_of x aconv y then instantiate' [] [SOME x, SOME S'] insI1
