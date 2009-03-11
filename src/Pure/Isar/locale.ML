@@ -107,19 +107,6 @@ struct
 
 datatype ctxt = datatype Element.ctxt;
 
-fun global_note_qualified kind facts thy = (*FIXME*)
-  thy
-  |> Sign.qualified_names
-  |> PureThy.note_thmss kind facts
-  ||> Sign.restore_naming thy;
-
-fun local_note_qualified kind facts ctxt = (*FIXME*)
-  ctxt
-  |> ProofContext.qualified_names
-  |> ProofContext.note_thmss_i kind facts
-  ||> ProofContext.restore_naming ctxt;
-
-
 
 (*** Theory data ***)
 
@@ -337,7 +324,7 @@ local
 fun init_global_elem (Notes (kind, facts)) thy =
   let
     val facts' = Attrib.map_facts (Attrib.attribute_i thy) facts
-  in global_note_qualified kind facts' thy |> snd end
+  in PureThy.note_thmss kind facts' thy |> snd end
 
 fun init_local_elem (Fixes fixes) ctxt = ctxt |>
       ProofContext.add_fixes_i fixes |> snd
@@ -359,7 +346,7 @@ fun init_local_elem (Fixes fixes) ctxt = ctxt |>
   | init_local_elem (Notes (kind, facts)) ctxt =
       let
         val facts' = Attrib.map_facts (Attrib.attribute_i (ProofContext.theory_of ctxt)) facts
-      in local_note_qualified kind facts' ctxt |> snd end
+      in ProofContext.note_thmss_i kind facts' ctxt |> snd end
 
 fun cons_elem false (Notes notes) elems = elems
   | cons_elem _ elem elems = elem :: elems
@@ -452,7 +439,7 @@ fun add_thmss loc kind args ctxt =
             let
               val args'' = snd args' |> Element.facts_map (Element.morph_ctxt morph) |>
                 Attrib.map_facts (Attrib.attribute_i thy)
-            in global_note_qualified kind args'' #> snd end)
+            in PureThy.note_thmss kind args'' #> snd end)
         (get_registrations thy |> filter (fn (name, _) => name = loc)) thy))
   in ctxt'' end;
 
