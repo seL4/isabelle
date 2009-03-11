@@ -1,4 +1,4 @@
-(*  Title:      HOL/Reflection/cooper_tac.ML
+(*  Title:      HOL/Decision_Procs/cooper_tac.ML
     Author:     Amine Chaieb, TU Muenchen
 *)
 

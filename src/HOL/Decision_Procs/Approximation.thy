@@ -1,4 +1,4 @@
-(*  Title:      HOL/Reflection/Approximation.thy
+(*  Title:      HOL/Decision_Procs/Approximation.thy
     Author:     Johannes Hoelzl <hoelzl@in.tum.de> 2008 / 2009
 *)
 

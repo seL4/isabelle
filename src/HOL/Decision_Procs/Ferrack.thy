@@ -1,4 +1,4 @@
-(*  Title:      HOL/Reflection/Ferrack.thy
+(*  Title:      HOL/Decision_Procs/Ferrack.thy
     Author:     Amine Chaieb
 *)
 

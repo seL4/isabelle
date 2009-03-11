@@ -1,4 +1,4 @@
-(*  Title:      HOL/Reflection/MIR.thy
+(*  Title:      HOL/Decision_Procs/MIR.thy
     Author:     Amine Chaieb
 *)
 

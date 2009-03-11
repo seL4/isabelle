@@ -1,4 +1,4 @@
-(*  Title:      HOL/Reflection/mir_tac.ML
+(*  Title:      HOL/Decision_Procs/mir_tac.ML
     Author:     Amine Chaieb, TU Muenchen
 *)
 

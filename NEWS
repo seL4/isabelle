@@ -244,7 +244,8 @@ now in directory HOL/Decision_Procs.
 * Theory HOL/Decisioin_Procs/Approximation.thy provides the new proof method
 "approximation".  It proves formulas on real values by using interval arithmetic.
 In the formulas are also the transcendental functions sin, cos, tan, atan, ln,
-exp and the constant pi are allowed.  For examples see HOL/ex/ApproximationEx.thy.
+exp and the constant pi are allowed. For examples see
+HOL/Descision_Procs/ex/Approximation_Ex.thy.
 
 * Theory "Reflection" now resides in HOL/Library.
 
