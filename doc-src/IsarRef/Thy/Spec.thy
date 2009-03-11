@@ -799,6 +799,7 @@ text {*
     @{command_def "ML_val"} & : & @{text "any \<rightarrow>"} \\
     @{command_def "ML_command"} & : & @{text "any \<rightarrow>"} \\
     @{command_def "setup"} & : & @{text "theory \<rightarrow> theory"} \\
+    @{command_def "local_setup"} & : & @{text "local_theory \<rightarrow> local_theory"} \\
   \end{matharray}
 
   \begin{mldecls}
@@ -809,7 +810,7 @@ text {*
   \begin{rail}
     'use' name
     ;
-    ('ML' | 'ML\_prf' | 'ML\_val' | 'ML\_command' | 'setup') text
+    ('ML' | 'ML\_prf' | 'ML\_val' | 'ML\_command' | 'setup' | 'local\_setup') text
     ;
   \end{rail}
 
@@ -817,7 +818,7 @@ text {*
 
   \item @{command "use"}~@{text "file"} reads and executes ML
   commands from @{text "file"}.  The current theory context is passed
-  down to the ML toplevel and may be modified, using @{ML [source=false]
+  down to the ML toplevel and may be modified, using @{ML
   "Context.>>"} or derived ML commands.  The file name is checked with
   the @{keyword_ref "uses"} dependency declaration given in the theory
   header (see also \secref{sec:begin-thy}).
@@ -845,9 +846,15 @@ text {*
   
   \item @{command "setup"}~@{text "text"} changes the current theory
   context by applying @{text "text"}, which refers to an ML expression
-  of type @{ML_type [source=false] "theory -> theory"}.  This enables
-  to initialize any object-logic specific tools and packages written
-  in ML, for example.
+  of type @{ML_type "theory -> theory"}.  This enables to initialize
+  any object-logic specific tools and packages written in ML, for
+  example.
+
+  \item @{command "local_setup"} is similar to @{command "setup"} for
+  a local theory context, and an ML expression of type @{ML_type
+  "local_theory -> local_theory"}.  This allows to
+  invoke local theory specification packages without going through
+  concrete outer syntax, for example.
 
   \item @{ML bind_thms}~@{text "(name, thms)"} stores a list of
   theorems produced in ML both in the theory context and the ML

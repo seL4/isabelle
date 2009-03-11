@@ -318,8 +318,12 @@ val _ =
     (P.ML_source >> (Toplevel.no_timing oo IsarCmd.ml_diag false));
 
 val _ =
-  OuterSyntax.command "setup" "apply ML theory setup" (K.tag_ml K.thy_decl)
-    (P.ML_source >> (Toplevel.theory o IsarCmd.generic_setup));
+  OuterSyntax.command "setup" "ML theory setup" (K.tag_ml K.thy_decl)
+    (P.ML_source >> (Toplevel.theory o IsarCmd.global_setup));
+
+val _ =
+  OuterSyntax.local_theory "local_setup" "ML local theory setup" (K.tag_ml K.thy_decl)
+    (P.ML_source >> IsarCmd.local_setup);
 
 val _ =
   OuterSyntax.command "method_setup" "define proof method in ML" (K.tag_ml K.thy_decl)

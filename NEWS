@@ -186,7 +186,7 @@ When enabled, find_theorems solves is called whenever a new lemma is
 stated. Any theorems that could solve the lemma directly are listed
 underneath the goal.
 
-* New command find_consts searches for constants based on type and
+* New command 'find_consts' searches for constants based on type and
 name patterns, e.g.
 
     find_consts "_ => bool"
@@ -198,8 +198,8 @@ hyphen:
 
     find_consts strict: "_ => bool" name: "Int" -"int => int"
 
-* Linear arithmetic now ignores all inequalities when fast_arith_neq_limit
-is exceeded, instead of giving up entirely.
+* New command 'local_setup' is similar to 'setup', but operates on a
+local theory context.
 
 
 *** Document preparation ***
@@ -536,6 +536,9 @@ theorems.  Changes in simp rules.  INCOMPATIBILITY.
 
 * ATP selection (E/Vampire/Spass) is now via Proof General's settings
 menu.
+
+* Linear arithmetic now ignores all inequalities when
+fast_arith_neq_limit is exceeded, instead of giving up entirely.
 
 
 *** HOL-Algebra ***
