@@ -169,8 +169,7 @@ fun gen_def do_print prep (raw_var, (raw_a, raw_prop)) lthy =
     val (vars, [((raw_name, atts), [prop])]) =
       fst (prep (the_list raw_var) [(raw_a, [raw_prop])] lthy);
     val (((x, T), rhs), prove) = LocalDefs.derived_def lthy true prop;
-    val name = Binding.map_name (Thm.def_name_optional x) raw_name;
-    val var =
+    val var as (b, _) =
       (case vars of
         [] => (Binding.name x, NoSyn)
       | [((b, _), mx)] =>
@@ -180,9 +179,12 @@ fun gen_def do_print prep (raw_var, (raw_a, raw_prop)) lthy =
               error ("Head of definition " ^ quote x ^ " differs from declaration " ^ quote y ^
                 Position.str_of (Binding.pos_of b));
           in (b, mx) end);
-    val ((lhs, (_, th)), lthy2) = lthy |> LocalTheory.define Thm.definitionK
+    val name = Thm.def_binding_optional b raw_name;
+    val ((lhs, (_, th)), lthy2) = lthy
+      |> LocalTheory.define Thm.definitionK
         (var, ((Binding.suffix_name "_raw" name, []), rhs));
-    val ((def_name, [th']), lthy3) = lthy2 |> LocalTheory.note Thm.definitionK
+    val ((def_name, [th']), lthy3) = lthy2
+      |> LocalTheory.note Thm.definitionK
         ((name, Code.add_default_eqn_attrib :: atts), [prove lthy2 th]);
 
     val lhs' = Morphism.term (LocalTheory.target_morphism lthy3) lhs;

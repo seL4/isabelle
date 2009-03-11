@@ -304,7 +304,7 @@ fun closeup _ _ false elem = elem
             (a, map (fn (t, ps) => (close_frees t, no_binds ps)) propps)))
         | Defines defs => Defines (defs |> map (fn ((name, atts), (t, ps)) =>
             let val ((c, _), t') = LocalDefs.cert_def ctxt (close_frees t)
-            in ((Binding.map_name (Thm.def_name_optional c) name, atts), (t', no_binds ps)) end))
+            in ((Thm.def_binding_optional (Binding.name c) name, atts), (t', no_binds ps)) end))
         | e => e)
       end;
 

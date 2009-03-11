@@ -42,14 +42,15 @@ fun gen_constdef prep_vars prep_prop prep_att
           if c <> c' then
             err ("Head of definition " ^ quote c ^ " differs from declaration " ^ quote c') []
           else ());
+    val b = Binding.name c;
 
     val def = Term.subst_atomic [(Free (c, T), Const (Sign.full_bname thy c, T))] prop;
-    val name = Binding.map_name (Thm.def_name_optional c) raw_name;
+    val name = Thm.def_binding_optional b raw_name;
     val atts = map (prep_att thy) raw_atts;
 
     val thy' =
       thy
-      |> Sign.add_consts_i [(Binding.name c, T, mx)]
+      |> Sign.add_consts_i [(b, T, mx)]
       |> PureThy.add_defs false [((name, def), atts)]
       |-> (fn [thm] => Code.add_default_eqn thm);
   in ((c, T), thy') end;

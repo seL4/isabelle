@@ -502,7 +502,7 @@ fun activate_elem (Fixes fixes) ctxt =
         val defs' = Attrib.map_specs (Attrib.attribute_i (ProofContext.theory_of ctxt)) defs;
         val asms = defs' |> map (fn ((name, atts), (t, ps)) =>
             let val ((c, _), t') = LocalDefs.cert_def ctxt t
-            in (t', ((Binding.map_name (Thm.def_name_optional c) name, atts), [(t', ps)])) end);
+            in (t', ((Thm.def_binding_optional (Binding.name c) name, atts), [(t', ps)])) end);
         val (_, ctxt') =
           ctxt |> fold (Variable.auto_fixes o #1) asms
           |> ProofContext.add_assms_i LocalDefs.def_export (map #2 asms);
