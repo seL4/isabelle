@@ -11,9 +11,9 @@ begin
 lemma contentsI: "y = {x} ==> contents y = x" 
   unfolding contents_def by auto -- {* FIXME move *}
 
-lemmas split_split = prod.split [unfolded prod_case_split] 
+lemmas split_split = prod.split [unfolded prod_case_split]
 lemmas split_split_asm = prod.split_asm [unfolded prod_case_split]
-lemmas "split.splits" = split_split split_split_asm 
+lemmas split_splits = split_split split_split_asm
 
 lemmas funpow_0 = funpow.simps(1)
 lemmas funpow_Suc = funpow.simps(2)
