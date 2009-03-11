@@ -185,6 +185,7 @@
       <OPERATOR>let</OPERATOR>
       <INVALID>linear_undo</INVALID>
       <OPERATOR>local</OPERATOR>
+      <OPERATOR>local_setup</OPERATOR>
       <OPERATOR>locale</OPERATOR>
       <OPERATOR>method_setup</OPERATOR>
       <KEYWORD4>module_name</KEYWORD4>

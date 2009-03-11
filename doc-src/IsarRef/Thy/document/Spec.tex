@@ -807,6 +807,7 @@ Isabelle/Pure's definitional schemes support certain forms of
     \indexdef{}{command}{ML\_val}\hypertarget{command.ML-val}{\hyperlink{command.ML-val}{\mbox{\isa{\isacommand{ML{\isacharunderscore}val}}}}} & : & \isa{{\isachardoublequote}any\ {\isasymrightarrow}{\isachardoublequote}} \\
     \indexdef{}{command}{ML\_command}\hypertarget{command.ML-command}{\hyperlink{command.ML-command}{\mbox{\isa{\isacommand{ML{\isacharunderscore}command}}}}} & : & \isa{{\isachardoublequote}any\ {\isasymrightarrow}{\isachardoublequote}} \\
     \indexdef{}{command}{setup}\hypertarget{command.setup}{\hyperlink{command.setup}{\mbox{\isa{\isacommand{setup}}}}} & : & \isa{{\isachardoublequote}theory\ {\isasymrightarrow}\ theory{\isachardoublequote}} \\
+    \indexdef{}{command}{local\_setup}\hypertarget{command.local-setup}{\hyperlink{command.local-setup}{\mbox{\isa{\isacommand{local{\isacharunderscore}setup}}}}} & : & \isa{{\isachardoublequote}local{\isacharunderscore}theory\ {\isasymrightarrow}\ local{\isacharunderscore}theory{\isachardoublequote}} \\
   \end{matharray}
 
   \begin{mldecls}
@@ -817,7 +818,7 @@ Isabelle/Pure's definitional schemes support certain forms of
   \begin{rail}
     'use' name
     ;
-    ('ML' | 'ML\_prf' | 'ML\_val' | 'ML\_command' | 'setup') text
+    ('ML' | 'ML\_prf' | 'ML\_val' | 'ML\_command' | 'setup' | 'local\_setup') text
     ;
   \end{rail}
 
@@ -852,9 +853,14 @@ Isabelle/Pure's definitional schemes support certain forms of
   
   \item \hyperlink{command.setup}{\mbox{\isa{\isacommand{setup}}}}~\isa{{\isachardoublequote}text{\isachardoublequote}} changes the current theory
   context by applying \isa{{\isachardoublequote}text{\isachardoublequote}}, which refers to an ML expression
-  of type \verb|theory -> theory|.  This enables
-  to initialize any object-logic specific tools and packages written
-  in ML, for example.
+  of type \verb|theory -> theory|.  This enables to initialize
+  any object-logic specific tools and packages written in ML, for
+  example.
+
+  \item \hyperlink{command.local-setup}{\mbox{\isa{\isacommand{local{\isacharunderscore}setup}}}} is similar to \hyperlink{command.setup}{\mbox{\isa{\isacommand{setup}}}} for
+  a local theory context, and an ML expression of type \verb|local_theory -> local_theory|.  This allows to
+  invoke local theory specification packages without going through
+  concrete outer syntax, for example.
 
   \item \verb|bind_thms|~\isa{{\isachardoublequote}{\isacharparenleft}name{\isacharcomma}\ thms{\isacharparenright}{\isachardoublequote}} stores a list of
   theorems produced in ML both in the theory context and the ML

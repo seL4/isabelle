@@ -774,11 +774,11 @@ The following proof methods and attributes refer to basic logical
   \item \hyperlink{attribute.rule}{\mbox{\isa{rule}}}~\isa{del} undeclares introduction,
   elimination, or destruct rules.
   
-  \item \hyperlink{attribute.OF}{\mbox{\isa{OF}}}~\isa{{\isachardoublequote}a\isactrlsub {\isadigit{1}}\ {\isasymdots}\ a\isactrlsub n{\isachardoublequote}} applies some theorem to all
-  of the given rules \isa{{\isachardoublequote}a\isactrlsub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ a\isactrlsub n{\isachardoublequote}} (in parallel).  This
-  corresponds to the \verb|op MRS| operation in ML,
-  but note the reversed order.  Positions may be effectively skipped
-  by including ``\isa{{\isacharunderscore}}'' (underscore) as argument.
+  \item \hyperlink{attribute.OF}{\mbox{\isa{OF}}}~\isa{{\isachardoublequote}a\isactrlsub {\isadigit{1}}\ {\isasymdots}\ a\isactrlsub n{\isachardoublequote}} applies some
+  theorem to all of the given rules \isa{{\isachardoublequote}a\isactrlsub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ a\isactrlsub n{\isachardoublequote}}
+  (in parallel).  This corresponds to the \verb|op MRS| operation in
+  ML, but note the reversed order.  Positions may be effectively
+  skipped by including ``\isa{{\isacharunderscore}}'' (underscore) as argument.
   
   \item \hyperlink{attribute.of}{\mbox{\isa{of}}}~\isa{{\isachardoublequote}t\isactrlsub {\isadigit{1}}\ {\isasymdots}\ t\isactrlsub n{\isachardoublequote}} performs positional
   instantiation of term variables.  The terms \isa{{\isachardoublequote}t\isactrlsub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ t\isactrlsub n{\isachardoublequote}} are
@@ -890,10 +890,11 @@ The Isar provides separate commands to accommodate tactic-style
   \begin{description}
 
   \item \hyperlink{command.method-setup}{\mbox{\isa{\isacommand{method{\isacharunderscore}setup}}}}~\isa{{\isachardoublequote}name\ {\isacharequal}\ text\ description{\isachardoublequote}}
-  defines a proof method in the current theory.  The given \isa{{\isachardoublequote}text{\isachardoublequote}} has to be an ML expression of type \verb|Args.src -> Proof.context -> Proof.method|.  Parsing concrete
-  method syntax from \verb|Args.src| input can be quite tedious in
-  general.  The following simple examples are for methods without any
-  explicit arguments, or a list of theorems, respectively.
+  defines a proof method in the current theory.  The given \isa{{\isachardoublequote}text{\isachardoublequote}} has to be an ML expression of type \verb|Args.src ->|\isasep\isanewline%
+\verb|  Proof.context -> Proof.method|.  Parsing concrete method syntax
+  from \verb|Args.src| input can be quite tedious in general.  The
+  following simple examples are for methods without any explicit
+  arguments, or a list of theorems, respectively.
 
 %FIXME proper antiquotations
 {\footnotesize
