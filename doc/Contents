@@ -8,6 +8,7 @@ Learning and using Isabelle
   sugar           LaTeX sugar for proof documents
 
 Reference Manuals
+  main            What's in Main
   isar-ref        The Isabelle/Isar Reference Manual
   implementation  The Isabelle/Isar Implementation Manual
   system          The Isabelle System Manual

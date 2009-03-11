@@ -15,7 +15,6 @@ test: \
   HOL-Auth \
   HOL-Bali \
   HOL-Decision_Procs \
-  HOL-Docs \
   HOL-Extraction \
   HOL-HahnBanach \
   HOL-Hoare \
