@@ -17,7 +17,7 @@ LOG = $(OUT)/log
 USEDIR = $(ISABELLE_TOOL) usedir -v true -i false -d false -C false -D document
 
 
-## Thy
+## sessions
 
 Thy: $(LOG)/Pure-Thy.gz
 
