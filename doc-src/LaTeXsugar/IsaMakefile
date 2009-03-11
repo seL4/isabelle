@@ -25,6 +25,8 @@ $(LOG)/HOL-Sugar.gz: Sugar/ROOT.ML Sugar/Sugar.thy \
   Sugar/document/root.tex Sugar/document/root.bib \
   $(SRC)/HOL/Library/LaTeXsugar.thy $(SRC)/HOL/Library/OptionalSugar.thy 
 	@$(USEDIR) HOL Sugar
+	@rm -f Sugar/document/isabelle.sty Sugar/document/isabellesym.sty \
+	 Sugar/document/pdfsetup.sty Sugar/document/session.tex
 
 
 ## clean

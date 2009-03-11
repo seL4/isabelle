@@ -27,6 +27,8 @@ $(LOG)/HOL-Locales.gz: $(OUT)/HOL Locales/ROOT.ML Locales/Examples.thy \
   Locales/Examples1.thy Locales/Examples2.thy Locales/Examples3.thy \
   Locales/document/root.tex Locales/document/root.bib
 	@$(USEDIR) $(OUT)/HOL Locales
+	@rm -f Locales/document/isabelle.sty Locales/document/isabellesym.sty \
+	 Locales/document/pdfsetup.sty
 
 
 ## clean

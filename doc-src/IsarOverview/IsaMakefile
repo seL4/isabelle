@@ -17,6 +17,8 @@ Isar: $(LOG)/HOL-Isar.gz
 $(LOG)/HOL-Isar.gz: Isar/ROOT.ML Isar/document/intro.tex \
   Isar/document/root.tex Isar/document/root.bib Isar/*.thy
 	@$(USEDIR) HOL Isar
+	@rm -f Isar/document/isabelle.sty Isar/document/isabellesym.sty \
+	 Isar/document/pdfsetup.sty Isar/document/session.tex
 
 
 ## clean

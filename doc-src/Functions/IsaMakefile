@@ -25,6 +25,8 @@ Thy: $(THY)
 
 $(THY): Thy/ROOT.ML Thy/Functions.thy
 	@$(USEDIR) HOL Thy
+	@rm -f Thy/document/isabelle.sty Thy/document/isabellesym.sty \
+	 Thy/document/pdfsetup.sty Thy/document/session.tex
 
 
 ## clean

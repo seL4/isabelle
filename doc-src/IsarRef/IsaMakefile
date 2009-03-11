@@ -28,6 +28,8 @@ $(LOG)/HOL-IsarRef.gz: Thy/ROOT.ML ../antiquote_setup.ML		\
   Thy/HOL_Specific.thy Thy/Quick_Reference.thy Thy/Symbols.thy		\
   Thy/ML_Tactic.thy
 	@$(USEDIR) -s IsarRef HOL Thy
+	@rm -f Thy/document/isabelle.sty Thy/document/isabellesym.sty \
+	 Thy/document/pdfsetup.sty Thy/document/session.tex
 
 
 HOLCF-IsarRef: $(LOG)/HOLCF-IsarRef.gz
@@ -35,6 +37,8 @@ HOLCF-IsarRef: $(LOG)/HOLCF-IsarRef.gz
 $(LOG)/HOLCF-IsarRef.gz: Thy/ROOT-HOLCF.ML ../antiquote_setup.ML	\
   Thy/HOLCF_Specific.thy
 	@$(USEDIR) -s IsarRef -f ROOT-HOLCF.ML HOLCF Thy
+	@rm -f Thy/document/isabelle.sty Thy/document/isabellesym.sty \
+	 Thy/document/pdfsetup.sty Thy/document/session.tex
 
 
 ZF-IsarRef: $(LOG)/ZF-IsarRef.gz
@@ -42,6 +46,8 @@ ZF-IsarRef: $(LOG)/ZF-IsarRef.gz
 $(LOG)/ZF-IsarRef.gz: Thy/ROOT-ZF.ML ../antiquote_setup.ML 		\
   Thy/ZF_Specific.thy
 	@$(USEDIR) -s IsarRef -f ROOT-ZF.ML ZF Thy
+	@rm -f Thy/document/isabelle.sty Thy/document/isabellesym.sty \
+	 Thy/document/pdfsetup.sty Thy/document/session.tex
 
 
 ## clean

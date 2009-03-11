@@ -26,6 +26,8 @@ $(LOG)/Pure-Thy.gz: Thy/ROOT.ML Thy/Base.thy Thy/Integration.thy	\
   Thy/Proof.thy Thy/Syntax.thy Thy/Tactic.thy Thy/ML.thy		\
   ../antiquote_setup.ML
 	@$(USEDIR) Pure Thy
+	@rm -f Thy/document/isabelle.sty Thy/document/isabellesym.sty \
+	 Thy/document/pdfsetup.sty Thy/document/session.tex
 
 
 ## clean
