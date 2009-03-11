@@ -1,6 +1,4 @@
-(*  Title:      HOL/Decision_Procs/Approximation.thy
-    Author:     Johannes Hoelzl <hoelzl@in.tum.de> 2008 / 2009
-*)
+(* Author:     Johannes Hoelzl <hoelzl@in.tum.de> 2008 / 2009 *)
 
 header {* Prove unequations about real numbers by computation *}
 
@@ -2408,19 +2406,14 @@ lemma bounded_divl: assumes "Ifloat a / Ifloat b \<le> x" shows "Ifloat (float_d
 lemma bounded_divr: assumes "x \<le> Ifloat a / Ifloat b" shows "x \<le> Ifloat (float_divr p a b)" by (rule order_trans[OF assms _], rule float_divr)
 lemma bounded_num: shows "Ifloat (Float 5 1) = 10" and "Ifloat (Float 0 0) = 0" and "Ifloat (Float 1 0) = 1" and "Ifloat (Float (number_of n) 0) = (number_of n)"
                      and "0 * pow2 e = Ifloat (Float 0 e)" and "1 * pow2 e = Ifloat (Float 1 e)" and "number_of m * pow2 e = Ifloat (Float (number_of m) e)"
-  by (auto simp add: Ifloat.simps pow2_def)
+                     and "Ifloat (Float (number_of A) (int B)) = (number_of A) * 2^B"
+                     and "Ifloat (Float 1 (int B)) = 2^B"
+                     and "Ifloat (Float (number_of A) (- int B)) = (number_of A) / 2^B"
+                     and "Ifloat (Float 1 (- int B)) = 1 / 2^B"
+  by (auto simp add: Ifloat.simps pow2_def real_divide_def)
 
 lemmas bounded_by_equations = bounded_by_Cons bounded_by_Nil float_power bounded_divl bounded_divr bounded_num HOL.simp_thms
 lemmas uneq_equations = uneq.simps Ifloatarith.simps Ifloatarith_num Ifloatarith_divide Ifloatarith_diff Ifloatarith_tan Ifloatarith_powr Ifloatarith_log
-
-lemma "x div (0::int) = 0" by auto -- "What happens in the zero case for div"
-lemma "x mod (0::int) = x" by auto -- "What happens in the zero case for mod"
-
-text {* The following equations must hold for div & mod 
-        -- see "The Definition of Standard ML" by R. Milner, M. Tofte and R. Harper (pg. 79) *}
-lemma "d * (i div d) + i mod d = (i::int)" by auto
-lemma "0 < (d :: int) \<Longrightarrow> 0 \<le> i mod d \<and> i mod d < d" by auto
-lemma "(d :: int) < 0 \<Longrightarrow> d < i mod d \<and> i mod d \<le> 0" by auto
 
 ML {*
   val uneq_equations = PureThy.get_thms @{theory} "uneq_equations";
@@ -2438,24 +2431,37 @@ ML {*
     val to_natc = conv_num @{typ "nat"} #> Thm.cterm_of (ProofContext.theory_of ctxt)
     val to_nat = conv_num @{typ "nat"}
     val to_int = conv_num @{typ "int"}
+    fun int_to_float A = @{term "Float"} $ to_int A $ @{term "0 :: int"}
 
     val prec' = to_nat prec
 
     fun bot_float (Const (@{const_name "times"}, _) $ mantisse $ (Const (@{const_name "pow2"}, _) $ exp))
                    = @{term "Float"} $ to_int mantisse $ to_int exp
-      | bot_float (Const (@{const_name "divide"}, _) $ mantisse $ (Const (@{const_name "power"}, _) $ ten $ exp))
-                   = @{term "float_divl"} $ prec' $ (@{term "Float"} $ to_int mantisse $ @{term "0 :: int"}) $ (@{term "power (Float 5 1)"} $ to_nat exp)
-      | bot_float (Const (@{const_name "divide"}, _) $ mantisse $ ten)
-                   = @{term "float_divl"} $ prec' $ (@{term "Float"} $ to_int mantisse $ @{term "0 :: int"}) $ @{term "Float 5 1"}
-      | bot_float mantisse = @{term "Float"} $ to_int mantisse $ @{term "0 :: int"}
+      | bot_float (Const (@{const_name "divide"}, _) $ mantisse $ (@{term "power 2 :: nat \<Rightarrow> real"} $ exp))
+                   = @{term "Float"} $ to_int mantisse $ (@{term "uminus :: int \<Rightarrow> int"} $ (@{term "int :: nat \<Rightarrow> int"} $ to_nat exp))
+      | bot_float (Const (@{const_name "times"}, _) $ mantisse $ (@{term "power 2 :: nat \<Rightarrow> real"} $ exp))
+                   = @{term "Float"} $ to_int mantisse $ (@{term "int :: nat \<Rightarrow> int"} $ to_nat exp)
+      | bot_float (Const (@{const_name "divide"}, _) $ A $ (@{term "power 10 :: nat \<Rightarrow> real"} $ exp))
+                   = @{term "float_divl"} $ prec' $ (int_to_float A) $ (@{term "power (Float 5 1)"} $ to_nat exp)
+      | bot_float (Const (@{const_name "divide"}, _) $ A $ B)
+                   = @{term "float_divl"} $ prec' $ int_to_float A $ int_to_float B
+      | bot_float (@{term "power 2 :: nat \<Rightarrow> real"} $ exp)
+                   = @{term "Float 1"} $ (@{term "int :: nat \<Rightarrow> int"} $ to_nat exp)
+      | bot_float A = int_to_float A
 
     fun top_float (Const (@{const_name "times"}, _) $ mantisse $ (Const (@{const_name "pow2"}, _) $ exp))
                    = @{term "Float"} $ to_int mantisse $ to_int exp
-      | top_float (Const (@{const_name "divide"}, _) $ mantisse $ (Const (@{const_name "power"}, _) $ ten $ exp))
-                   = @{term "float_divr"} $ prec' $ (@{term "Float"} $ to_int mantisse $ @{term "0 :: int"}) $ (@{term "power (Float 5 1)"} $ to_nat exp)
-      | top_float (Const (@{const_name "divide"}, _) $ mantisse $ ten)
-                   = @{term "float_divr"} $ prec' $ (@{term "Float"} $ to_int mantisse $ @{term "0 :: int"}) $ @{term "Float 5 1"}
-      | top_float mantisse = @{term "Float"} $ to_int mantisse $ @{term "0 :: int"}
+      | top_float (Const (@{const_name "divide"}, _) $ mantisse $ (@{term "power 2 :: nat \<Rightarrow> real"} $ exp))
+                   = @{term "Float"} $ to_int mantisse $ (@{term "uminus :: int \<Rightarrow> int"} $ (@{term "int :: nat \<Rightarrow> int"} $ to_nat exp))
+      | top_float (Const (@{const_name "times"}, _) $ mantisse $ (@{term "power 2 :: nat \<Rightarrow> real"} $ exp))
+                   = @{term "Float"} $ to_int mantisse $ (@{term "int :: nat \<Rightarrow> int"} $ to_nat exp)
+      | top_float (Const (@{const_name "divide"}, _) $ A $ (@{term "power 10 :: nat \<Rightarrow> real"} $ exp))
+                   = @{term "float_divr"} $ prec' $ (int_to_float A) $ (@{term "power (Float 5 1)"} $ to_nat exp)
+      | top_float (Const (@{const_name "divide"}, _) $ A $ B)
+                   = @{term "float_divr"} $ prec' $ int_to_float A $ int_to_float B
+      | top_float (@{term "power 2 :: nat \<Rightarrow> real"} $ exp)
+                   = @{term "Float 1"} $ (@{term "int :: nat \<Rightarrow> int"} $ to_nat exp)
+      | top_float A = int_to_float A
 
     val goal' : term = List.nth (prems_of thm, i - 1)
 
@@ -2464,7 +2470,7 @@ ML {*
                          bottom $ (Free (name, _))) $ 
                         (Const (@{const_name "less_eq"}, _) $ _ $ top)))
          = ((name, HOLogic.mk_prod (bot_float bottom, top_float top))
-            handle TERM (txt, ts) => raise TERM ("Premisse needs format '<num> <= <var> & <var> <= <num>', but found " ^
+            handle TERM (txt, ts) => raise TERM ("Invalid bound number format: " ^
                                   (Syntax.string_of_term ctxt t), [t]))
       | lift_bnd t = raise TERM ("Premisse needs format '<num> <= <var> & <var> <= <num>', but found " ^
                                  (Syntax.string_of_term ctxt t), [t])
@@ -2501,5 +2507,5 @@ method_setup approximation = {* fn src =>
       THEN (gen_eval_tac eval_oracle ctxt) i))
    end)
 *} "real number approximation"
-
+ 
 end

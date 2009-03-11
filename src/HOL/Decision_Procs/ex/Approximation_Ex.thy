@@ -1,6 +1,4 @@
-(*  Title:      HOL/ex/ApproximationEx.thy
-    Author:     Johannes Hoelzl <hoelzl@in.tum.de> 2009
-*)
+(* Author:     Johannes Hoelzl <hoelzl@in.tum.de> 2009 *)
 
 theory Approximation_Ex
 imports Complex_Main "~~/src/HOL/Decision_Procs/Approximation"
@@ -42,7 +40,7 @@ lemma "0.5 \<le> x \<and> x \<le> 4.5 \<Longrightarrow> \<bar> arctan x - 0.91 \
 lemma "0.49 \<le> x \<and> x \<le> 4.49 \<Longrightarrow> \<bar> arctan x - 0.91 \<bar> < 0.455"
   by (approximation 20)
 
-lemma "1 * pow2 -1 \<le> x \<and> x \<le> 9 * pow2 -1 \<Longrightarrow> \<bar> arctan x - 0.91 \<bar> < 0.455"
+lemma "1 / 2^1 \<le> x \<and> x \<le> 9 / 2^1 \<Longrightarrow> \<bar> arctan x - 0.91 \<bar> < 0.455"
   by (approximation 10)
 
 lemma "0 \<le> x \<and> x \<le> 1 \<Longrightarrow> 0 \<le> sin x"
