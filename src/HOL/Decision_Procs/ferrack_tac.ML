@@ -1,4 +1,4 @@
-(*  Title:      HOL/Reflection/ferrack_tac.ML
+(*  Title:      HOL/Decision_Procs/ferrack_tac.ML
     Author:     Amine Chaieb, TU Muenchen
 *)
 

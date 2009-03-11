@@ -1,4 +1,4 @@
-(*  Title:      HOL/Reflection/Cooper.thy
+(*  Title:      HOL/Decision_Procs/Cooper.thy
     Author:     Amine Chaieb
 *)
 

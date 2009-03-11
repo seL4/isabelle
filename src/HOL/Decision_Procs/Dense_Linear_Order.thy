@@ -1,4 +1,4 @@
-(*  Title       : HOL/Dense_Linear_Order.thy
+(*  Title       : HOL/Decision_Procs/Dense_Linear_Order.thy
     Author      : Amine Chaieb, TU Muenchen
 *)
 
