@@ -260,7 +260,7 @@ fun gen_primrec set_group prep_spec raw_fixes raw_spec lthy =
     |-> (fn defs => `(fn ctxt => prove_spec ctxt names1 rec_rewrites defs spec'))
     |-> (fn simps => fold_map (LocalTheory.note Thm.theoremK) simps)
     |-> (fn simps' => LocalTheory.note Thm.theoremK
-          ((qualify (Binding.name "simps"), simp_atts), maps snd simps'))
+          ((qualify (Binding.qualified_name "simps"), simp_atts), maps snd simps'))
     |>> snd
   end handle PrimrecError (msg, some_eqn) =>
     error ("Primrec definition error:\n" ^ msg ^ (case some_eqn

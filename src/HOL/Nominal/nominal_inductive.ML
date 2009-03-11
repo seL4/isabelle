@@ -575,7 +575,7 @@ fun prove_strong_ind s avoids ctxt =
              Attrib.internal (K (RuleCases.consumes 1))]),
            strong_inducts) |> snd |>
         LocalTheory.notes Thm.theoremK (map (fn ((name, elim), (_, cases)) =>
-            ((Binding.name (Long_Name.qualify (Long_Name.base_name name) "strong_cases"),
+            ((Binding.qualified_name (Long_Name.qualify (Long_Name.base_name name) "strong_cases"),
               [Attrib.internal (K (RuleCases.case_names (map snd cases))),
                Attrib.internal (K (RuleCases.consumes 1))]), [([elim], [])]))
           (strong_cases ~~ induct_cases')) |> snd
@@ -665,7 +665,7 @@ fun prove_eqvt s xatoms ctxt =
   in
     ctxt |>
     LocalTheory.notes Thm.theoremK (map (fn (name, ths) =>
-        ((Binding.name (Long_Name.qualify (Long_Name.base_name name) "eqvt"),
+        ((Binding.qualified_name (Long_Name.qualify (Long_Name.base_name name) "eqvt"),
           [Attrib.internal (K NominalThmDecls.eqvt_add)]), [(ths, [])]))
       (names ~~ transp thss)) |> snd
   end;

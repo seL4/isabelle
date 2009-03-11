@@ -1,10 +1,8 @@
 (*  Title:      HOL/Tools/function_package/fundef_package.ML
-    ID:         $Id$
     Author:     Alexander Krauss, TU Muenchen
 
 A package for general recursive function definitions.
 Isar commands.
-
 *)
 
 signature FUNDEF_PACKAGE =
@@ -36,7 +34,8 @@ struct
 open FundefLib
 open FundefCommon
 
-fun note_theorem ((name, atts), ths) = LocalTheory.note Thm.theoremK ((Binding.name name, atts), ths)
+fun note_theorem ((name, atts), ths) =
+  LocalTheory.note Thm.theoremK ((Binding.qualified_name name, atts), ths)
 
 fun mk_defname fixes = fixes |> map (fst o fst) |> space_implode "_" 
 
