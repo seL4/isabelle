@@ -24,6 +24,4 @@ imports
   "~~/src/HOL/ex/Records"
 begin
 
-declare min_weak_def [code del]
-
 end
