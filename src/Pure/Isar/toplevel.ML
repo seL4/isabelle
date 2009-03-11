@@ -294,9 +294,10 @@ local
 
 fun debugging f x =
   if ! debug then
-    (case exception_trace (fn () => SOME (f x) handle UNDEF => NONE) of
-      SOME y => y
-    | NONE => raise UNDEF)
+    Exn.release (exception_trace (fn () =>
+      Exn.Result (f x) handle
+        exn as UNDEF => Exn.Exn exn
+      | exn as EXCURSION_FAIL _ => Exn.Exn exn))
   else f x;
 
 fun toplevel_error f x =
