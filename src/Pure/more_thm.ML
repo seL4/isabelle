@@ -57,6 +57,7 @@ sig
   val default_position_of: thm -> thm -> thm
   val def_name: string -> string
   val def_name_optional: string -> string -> string
+  val def_binding_optional: Binding.binding -> Binding.binding -> Binding.binding
   val has_name_hint: thm -> bool
   val get_name_hint: thm -> string
   val put_name_hint: string -> thm -> thm
@@ -352,6 +353,9 @@ fun def_name c = c ^ "_def";
 
 fun def_name_optional c "" = def_name c
   | def_name_optional _ name = name;
+
+fun def_binding_optional b name =
+  if Binding.is_empty name then Binding.map_name def_name b else name;
 
 
 (* unofficial theorem names *)
