@@ -692,7 +692,7 @@ HOL-Docs: HOL $(LOG)/HOL-Docs.gz
 
 $(LOG)/HOL-Docs.gz: $(OUT)/HOL Docs/Main_Doc.thy Docs/ROOT.ML	\
   Docs/document/root.tex
-	@$(ISABELLE_TOOL) usedir $(OUT)/HOL Docs
+	@$(ISABELLE_TOOL) usedir -D generated $(OUT)/HOL Docs
 
 
 ## HOL-Lambda
