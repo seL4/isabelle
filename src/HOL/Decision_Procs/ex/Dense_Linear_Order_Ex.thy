@@ -3,7 +3,7 @@
 header {* Examples for Ferrante and Rackoff's quantifier elimination procedure *}
 
 theory Dense_Linear_Order_Ex
-imports "~~/src/HOL/Decision_Procs/Dense_Linear_Order" Main
+imports Complex_Main "~~/src/HOL/Decision_Procs/Dense_Linear_Order"
 begin
 
 lemma
