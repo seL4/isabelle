@@ -769,11 +769,11 @@ text {*
   \item @{attribute rule}~@{text del} undeclares introduction,
   elimination, or destruct rules.
   
-  \item @{attribute OF}~@{text "a\<^sub>1 \<dots> a\<^sub>n"} applies some theorem to all
-  of the given rules @{text "a\<^sub>1, \<dots>, a\<^sub>n"} (in parallel).  This
-  corresponds to the @{ML [source=false] "op MRS"} operation in ML,
-  but note the reversed order.  Positions may be effectively skipped
-  by including ``@{text _}'' (underscore) as argument.
+  \item @{attribute OF}~@{text "a\<^sub>1 \<dots> a\<^sub>n"} applies some
+  theorem to all of the given rules @{text "a\<^sub>1, \<dots>, a\<^sub>n"}
+  (in parallel).  This corresponds to the @{ML "op MRS"} operation in
+  ML, but note the reversed order.  Positions may be effectively
+  skipped by including ``@{text _}'' (underscore) as argument.
   
   \item @{attribute of}~@{text "t\<^sub>1 \<dots> t\<^sub>n"} performs positional
   instantiation of term variables.  The terms @{text "t\<^sub>1, \<dots>, t\<^sub>n"} are
@@ -886,11 +886,11 @@ text {*
 
   \item @{command "method_setup"}~@{text "name = text description"}
   defines a proof method in the current theory.  The given @{text
-  "text"} has to be an ML expression of type @{ML_type [source=false]
-  "Args.src -> Proof.context -> Proof.method"}.  Parsing concrete
-  method syntax from @{ML_type Args.src} input can be quite tedious in
-  general.  The following simple examples are for methods without any
-  explicit arguments, or a list of theorems, respectively.
+  "text"} has to be an ML expression of type @{ML_type "Args.src ->
+  Proof.context -> Proof.method"}.  Parsing concrete method syntax
+  from @{ML_type Args.src} input can be quite tedious in general.  The
+  following simple examples are for methods without any explicit
+  arguments, or a list of theorems, respectively.
 
 %FIXME proper antiquotations
 {\footnotesize
