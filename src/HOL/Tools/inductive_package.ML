@@ -698,7 +698,7 @@ fun declare_rules kind rec_binding coind no_ind cnames intrs intr_bindings intr_
       ctxt1 |>
       LocalTheory.note kind ((rec_qualified (Binding.name "intros"), []), intrs') ||>>
       fold_map (fn (name, (elim, cases)) =>
-        LocalTheory.note kind ((Binding.name (Long_Name.qualify (Long_Name.base_name name) "cases"),
+        LocalTheory.note kind ((Binding.qualified_name (Long_Name.qualify (Long_Name.base_name name) "cases"),
           [Attrib.internal (K (RuleCases.case_names cases)),
            Attrib.internal (K (RuleCases.consumes 1)),
            Attrib.internal (K (Induct.cases_pred name)),

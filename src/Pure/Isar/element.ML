@@ -502,7 +502,7 @@ fun activate_elem (Fixes fixes) ctxt =
         val defs' = Attrib.map_specs (Attrib.attribute_i (ProofContext.theory_of ctxt)) defs;
         val asms = defs' |> map (fn ((name, atts), (t, ps)) =>
             let val ((c, _), t') = LocalDefs.cert_def ctxt t
-            in (t', ((Binding.map_name (Thm.def_name_optional c) name, atts), [(t', ps)])) end);
+            in (t', ((Thm.def_binding_optional (Binding.name c) name, atts), [(t', ps)])) end);
         val (_, ctxt') =
           ctxt |> fold (Variable.auto_fixes o #1) asms
           |> ProofContext.add_assms_i LocalDefs.def_export (map #2 asms);
@@ -518,8 +518,8 @@ fun gen_activate prep_facts raw_elems ctxt =
     fun activate elem ctxt =
       let val elem' = (map_ctxt_attrib Args.assignable o prep_facts ctxt) elem
       in (elem', activate_elem elem' ctxt) end
-    val (elems, ctxt') = fold_map activate raw_elems (ProofContext.qualified_names ctxt);
-  in (elems |> map (map_ctxt_attrib Args.closure), ProofContext.restore_naming ctxt ctxt') end;
+    val (elems, ctxt') = fold_map activate raw_elems ctxt;
+  in (elems |> map (map_ctxt_attrib Args.closure), ctxt') end;
 
 fun check_name name =
   if Long_Name.is_qualified name then error ("Illegal qualified name: " ^ quote name)

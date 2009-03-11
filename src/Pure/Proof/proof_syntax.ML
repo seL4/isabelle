@@ -36,8 +36,8 @@ val aT = TFree (Name.aT, []);
 
 fun add_proof_atom_consts names thy =
   thy
-  |> Sign.absolute_path
-  |> Sign.add_consts_i (map (fn name => (Binding.name name, proofT, NoSyn)) names);
+  |> Sign.root_path
+  |> Sign.add_consts_i (map (fn name => (Binding.qualified_name name, proofT, NoSyn)) names);
 
 (** constants for application and abstraction **)
 

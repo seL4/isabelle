@@ -1,5 +1,6 @@
 (*  Title:      Pure/Isar/theory_target.ML
     Author:     Makarius
+    Author:     Florian Haftmann, TU Muenchen
 
 Common theory/locale/class/instantiation/overloading targets.
 *)
@@ -48,10 +49,10 @@ fun pretty_thy ctxt target is_locale is_class =
   let
     val thy = ProofContext.theory_of ctxt;
     val target_name = (if is_class then "class " else "locale ") ^ Locale.extern thy target;
-    val fixes = map (fn (x, T) => (Binding.name x, SOME T, NoSyn))
-      (#1 (ProofContext.inferred_fixes ctxt));
-    val assumes = map (fn A => (Attrib.empty_binding, [(Thm.term_of A, [])]))
-      (Assumption.assms_of ctxt);
+    val fixes =
+      map (fn (x, T) => (Binding.name x, SOME T, NoSyn)) (#1 (ProofContext.inferred_fixes ctxt));
+    val assumes =
+      map (fn A => (Attrib.empty_binding, [(Thm.term_of A, [])])) (Assumption.assms_of ctxt);
     val elems =
       (if null fixes then [] else [Element.Fixes fixes]) @
       (if null assumes then [] else [Element.Assumes assumes]);
@@ -143,12 +144,6 @@ fun import_export_proof ctxt (name, raw_th) =
 
   in (result'', result) end;
 
-fun note_local kind facts ctxt =
-  ctxt
-  |> ProofContext.qualified_names
-  |> ProofContext.note_thmss_i kind facts
-  ||> ProofContext.restore_naming ctxt;
-
 fun notes (Target {target, is_locale, ...}) kind facts lthy =
   let
     val thy = ProofContext.theory_of lthy;
@@ -164,12 +159,10 @@ fun notes (Target {target, is_locale, ...}) kind facts lthy =
       |> Attrib.map_facts (if is_locale then K I else Attrib.attribute_i thy);
   in
     lthy |> LocalTheory.theory
-      (Sign.qualified_names
-        #> PureThy.note_thmss_grouped kind (LocalTheory.group_of lthy) global_facts #> snd
-        #> Sign.restore_naming thy)
-    |> not is_locale ? LocalTheory.target (note_local kind global_facts #> snd)
+      (PureThy.note_thmss_grouped kind (LocalTheory.group_of lthy) global_facts #> snd)
+    |> not is_locale ? LocalTheory.target (ProofContext.note_thmss_i kind global_facts #> snd)
     |> is_locale ? LocalTheory.target (Locale.add_thmss target kind target_facts)
-    |> note_local kind local_facts
+    |> ProofContext.note_thmss_i kind local_facts
   end;
 
 
@@ -195,8 +188,8 @@ fun locale_const (Target {target, is_class, ...}) (prmode as (mode, _)) tags ((b
   in
     not (is_class andalso (similar_body orelse class_global)) ?
       (Context.mapping_result
-        (fn thy => thy |> 
-          Sign.no_base_names
+        (fn thy => thy
+          |> Sign.no_base_names
           |> Sign.add_abbrev PrintMode.internal tags legacy_arg
           ||> Sign.restore_naming thy)
         (ProofContext.add_abbrev PrintMode.internal tags arg)
@@ -210,7 +203,7 @@ fun syntax_error c = error ("Illegal mixfix syntax for overloaded constant " ^ q
 
 fun declare_const (ta as Target {target, is_locale, is_class, ...}) depends ((b, T), mx) lthy =
   let
-    val c = Binding.name_of b;  (* FIXME Binding.qualified_name_of *)
+    val c = Binding.qualified_name_of b;
     val tags = LocalTheory.group_position_of lthy;
     val xs = filter depends (#1 (ProofContext.inferred_fixes (LocalTheory.target_of lthy)));
     val U = map #2 xs ---> T;
@@ -278,8 +271,7 @@ fun define (ta as Target {target, is_locale, is_class, ...})
     val thy = ProofContext.theory_of lthy;
     val thy_ctxt = ProofContext.init thy;
 
-    val c = Binding.name_of b;   (* FIXME Binding.qualified_name_of (!?) *)
-    val name' = Binding.map_name (Thm.def_name_optional (Binding.name_of b)) name;
+    val name' = Thm.def_binding_optional b name;
     val (rhs', rhs_conv) =
       LocalDefs.export_cterm lthy thy_ctxt (Thm.cterm_of thy rhs) |>> Thm.term_of;
     val xs = Variable.add_fixed (LocalTheory.target_of lthy) rhs' [];
@@ -290,6 +282,7 @@ fun define (ta as Target {target, is_locale, is_class, ...})
     val (_, lhs') = Logic.dest_equals (Thm.prop_of local_def);
 
     (*def*)
+    val c = Binding.qualified_name_of b;
     val define_const =
       (case Overloading.operation lthy c of
         SOME (_, checked) =>

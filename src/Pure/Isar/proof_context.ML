@@ -98,7 +98,6 @@ sig
   val get_thm: Proof.context -> xstring -> thm
   val add_path: string -> Proof.context -> Proof.context
   val sticky_prefix: string -> Proof.context -> Proof.context
-  val qualified_names: Proof.context -> Proof.context
   val restore_naming: Proof.context -> Proof.context -> Proof.context
   val reset_naming: Proof.context -> Proof.context
   val note_thmss: string -> (Thm.binding * (Facts.ref * attribute list) list) list ->
@@ -947,7 +946,6 @@ end;
 
 val add_path        = map_naming o NameSpace.add_path;
 val sticky_prefix   = map_naming o NameSpace.sticky_prefix;
-val qualified_names = map_naming NameSpace.qualified_names;
 val restore_naming  = map_naming o K o naming_of;
 val reset_naming    = map_naming (K local_naming);
 
