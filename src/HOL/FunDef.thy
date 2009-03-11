@@ -225,10 +225,10 @@ lemma rp_inv_image_rp:
 subsection {* Concrete orders for SCNP termination proofs *}
 
 definition "pair_less = less_than <*lex*> less_than"
-definition "pair_leq = pair_less^="
+definition [code del]: "pair_leq = pair_less^="
 definition "max_strict = max_ext pair_less"
-definition "max_weak = max_ext pair_leq \<union> {({}, {})}"
-definition "min_strict = min_ext pair_less"
+definition [code del]: "max_weak = max_ext pair_leq \<union> {({}, {})}"
+definition [code del]: "min_strict = min_ext pair_less"
 definition "min_weak = min_ext pair_leq \<union> {({}, {})}"
 
 lemma wf_pair_less[simp]: "wf pair_less"

@@ -60,7 +60,6 @@ use_thys [
   "Code_Antiq",
   "Termination",
   "Coherent",
-  "Dense_Linear_Order_Ex",
   "PresburgerEx",
   "ReflectionEx",
   "BinEx",

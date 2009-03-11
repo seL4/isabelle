@@ -134,6 +134,10 @@ lemma [code, code del]: "eq_class.eq (t1\<Colon>term) t2 \<longleftrightarrow> e
 lemma [code, code del]: "(term_of \<Colon> typerep \<Rightarrow> term) = term_of" ..
 lemma [code, code del]: "(term_of \<Colon> term \<Rightarrow> term) = term_of" ..
 lemma [code, code del]: "(term_of \<Colon> message_string \<Rightarrow> term) = term_of" ..
+lemma [code, code del]:
+  "(Code_Eval.term_of \<Colon> 'a::{type, term_of} Predicate.pred \<Rightarrow> Code_Eval.term) = Code_Eval.term_of" ..
+lemma [code, code del]:
+  "(Code_Eval.term_of \<Colon> 'a::{type, term_of} Predicate.seq \<Rightarrow> Code_Eval.term) = Code_Eval.term_of" ..
 
 lemma term_of_char [unfolded typerep_fun_def typerep_char_def typerep_nibble_def, code]: "Code_Eval.term_of c =
     (let (n, m) = nibble_pair_of_char c

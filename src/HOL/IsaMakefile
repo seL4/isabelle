@@ -680,6 +680,8 @@ $(LOG)/HOL-Decision_Procs.gz: $(OUT)/HOL \
   Decision_Procs/MIR.thy \
   Decision_Procs/mir_tac.ML \
   Decision_Procs/Decision_Procs.thy \
+  Decision_Procs/ex/Dense_Linear_Order_Ex.thy \
+  Decision_Procs/ex/Approximation_Ex.thy \
   Decision_Procs/ROOT.ML
 	@$(ISABELLE_TOOL) usedir $(OUT)/HOL Decision_Procs
 
@@ -823,13 +825,13 @@ HOL-ex: HOL $(LOG)/HOL-ex.gz
 
 $(LOG)/HOL-ex.gz: $(OUT)/HOL Library/Commutative_Ring.thy		\
   Library/Primes.thy ex/Abstract_NAT.thy ex/Antiquote.thy		\
-  ex/ApproximationEx.thy ex/Arith_Examples.thy				\
+  ex/Arith_Examples.thy				\
   ex/Arithmetic_Series_Complex.thy ex/BT.thy ex/BinEx.thy		\
   ex/Binary.thy ex/CTL.thy ex/Chinese.thy ex/Classical.thy		\
   ex/CodegenSML_Test.thy ex/Codegenerator.thy				\
   ex/Codegenerator_Pretty.thy ex/Coherent.thy				\
   ex/Commutative_RingEx.thy ex/Commutative_Ring_Complete.thy		\
-  ex/Dense_Linear_Order_Ex.thy ex/Efficient_Nat_examples.thy		\
+  ex/Efficient_Nat_examples.thy		\
   ex/Eval_Examples.thy ex/ExecutableContent.thy				\
   ex/Formal_Power_Series_Examples.thy ex/Fundefs.thy			\
   ex/Groebner_Examples.thy ex/Guess.thy ex/HarmonicSeries.thy		\

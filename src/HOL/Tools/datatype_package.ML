@@ -677,15 +677,14 @@ val _ = ThyOutput.antiquotation "datatype" Args.tyname
       val thy = ProofContext.theory_of ctxt;
       val (vs, cos) = the_datatype_spec thy dtco;
       val ty = Type (dtco, map TFree vs);
-      fun pretty_typ_br ty =
-        let
-          val p = Syntax.pretty_typ ctxt ty;
-          val s = explode (Pretty.str_of p);  (* FIXME do not inspect pretty output! *)
-        in if member (op =) s " " then Pretty.enclose "(" ")" [p] else p end;
+      fun pretty_typ_bracket (ty as Type (_, _ :: _)) =
+            Pretty.enclose "(" ")" [Syntax.pretty_typ ctxt ty]
+        | pretty_typ_bracket ty =
+            Syntax.pretty_typ ctxt ty;
       fun pretty_constr (co, tys) =
         (Pretty.block o Pretty.breaks)
           (Syntax.pretty_term ctxt (Const (co, tys ---> ty)) ::
-            map pretty_typ_br tys);
+            map pretty_typ_bracket tys);
       val pretty_datatype =
         Pretty.block
           (Pretty.command "datatype" :: Pretty.brk 1 ::

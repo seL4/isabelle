@@ -588,7 +588,39 @@ next
     by (simp add: adjunct_sup sup_assoc sup_commute sup_left_commute)
 qed
 
-declare eq_pred_def [code, code del]
+primrec contained :: "'a seq \<Rightarrow> 'a pred \<Rightarrow> bool" where
+    "contained Empty Q \<longleftrightarrow> True"
+  | "contained (Insert x P) Q \<longleftrightarrow> eval Q x \<and> P \<le> Q"
+  | "contained (Join P xq) Q \<longleftrightarrow> P \<le> Q \<and> contained xq Q"
+
+lemma single_less_eq_eval:
+  "single x \<le> P \<longleftrightarrow> eval P x"
+  by (auto simp add: single_def less_eq_pred_def mem_def)
+
+lemma contained_less_eq:
+  "contained xq Q \<longleftrightarrow> pred_of_seq xq \<le> Q"
+  by (induct xq) (simp_all add: single_less_eq_eval)
+
+lemma less_eq_pred_code [code]:
+  "Seq f \<le> Q = (case f ()
+   of Empty \<Rightarrow> True
+    | Insert x P \<Rightarrow> eval Q x \<and> P \<le> Q
+    | Join P xq \<Rightarrow> P \<le> Q \<and> contained xq Q)"
+  by (cases "f ()")
+    (simp_all add: Seq_def single_less_eq_eval contained_less_eq)
+
+lemma eq_pred_code [code]:
+  fixes P Q :: "'a::eq pred"
+  shows "eq_class.eq P Q \<longleftrightarrow> P \<le> Q \<and> Q \<le> P"
+  unfolding eq by auto
+
+lemma [code]:
+  "pred_case f P = f (eval P)"
+  by (cases P) simp
+
+lemma [code]:
+  "pred_rec f P = f (eval P)"
+  by (cases P) simp
 
 no_notation
   inf (infixl "\<sqinter>" 70) and
@@ -601,6 +633,6 @@ no_notation
 
 hide (open) type pred seq
 hide (open) const Pred eval single bind if_pred not_pred
-  Empty Insert Join Seq member "apply" adjunct
+  Empty Insert Join Seq member pred_of_seq "apply" adjunct
 
 end

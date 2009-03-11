@@ -1487,7 +1487,7 @@ lemma multi_member_skip: "x \<in># XS \<Longrightarrow> x \<in># {# y #} + XS"
   by auto
 
 definition "ms_strict = mult pair_less"
-definition "ms_weak = ms_strict \<union> Id"
+definition [code del]: "ms_weak = ms_strict \<union> Id"
 
 lemma ms_reduction_pair: "reduction_pair (ms_strict, ms_weak)"
 unfolding reduction_pair_def ms_strict_def ms_weak_def pair_less_def
