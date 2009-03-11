@@ -1,5 +1,4 @@
 (*  Title:      HOL/hologic.ML
-    ID:         $Id$
     Author:     Lawrence C Paulson and Markus Wenzel
 
 Abstract syntax operations for HOL.
@@ -144,7 +143,7 @@ fun dest_setT (Type ("fun", [T, Type ("bool", [])])) = T
 fun mk_set T ts =
   let
     val sT = mk_setT T;
-    val empty = Const ("Orderings.bot", sT);
+    val empty = Const ("Set.empty", sT);
     fun insert t u = Const ("insert", T --> sT --> sT) $ t $ u;
   in fold_rev insert ts empty end;
 
