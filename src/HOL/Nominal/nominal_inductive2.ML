@@ -75,11 +75,6 @@ fun add_binders thy i (t as (_ $ _)) bs = (case strip_comb t of
   | add_binders thy i (Abs (_, _, t)) bs = add_binders thy (i + 1) t bs
   | add_binders thy i _ bs = bs;
 
-fun mk_set T [] = Const (@{const_name Set.empty}, HOLogic.mk_setT T)
-  | mk_set T (x :: xs) =
-      Const ("insert", T --> HOLogic.mk_setT T --> HOLogic.mk_setT T) $ x $
-        mk_set T xs;
-
 fun split_conj f names (Const ("op &", _) $ p $ q) _ = (case head_of p of
       Const (name, _) =>
         if name mem names then SOME (f p q) else NONE
@@ -216,7 +211,7 @@ fun prove_strong_ind s avoids ctxt =
       in
         (params,
          if null avoids then
-           map (fn (T, ts) => (mk_set T ts, T))
+           map (fn (T, ts) => (HOLogic.mk_set T ts, T))
              (fold (add_binders thy 0) (prems @ [concl]) [])
          else case AList.lookup op = avoids name of
            NONE => []

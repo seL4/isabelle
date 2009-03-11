@@ -142,11 +142,6 @@ fun rem_inv_img ctxt =
 
 val setT = HOLogic.mk_setT
 
-fun mk_set T [] = Const (@{const_name Set.empty}, setT T)
-  | mk_set T (x :: xs) =
-      Const (@{const_name insert}, T --> setT T --> setT T) $
-            x $ mk_set T xs
-
 fun set_member_tac m i =
   if m = 0 then rtac @{thm insertI1} i
   else rtac @{thm insertI2} i THEN set_member_tac (m - 1) i
@@ -276,7 +271,7 @@ fun reconstruct_tac ctxt D cs (gp as GP (_, gs)) certificate =
         THEN steps_tac label strict (nth lev q) (nth lev p)
       end
 
-    val (mk_set, setT) = if label = MS then (mk_mset, msetT) else (mk_set, setT)
+    val (mk_set, setT) = if label = MS then (mk_mset, msetT) else (HOLogic.mk_set, setT)
 
     fun tag_pair p (i, tag) =
       HOLogic.pair_const natT natT $

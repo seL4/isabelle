@@ -11,13 +11,20 @@ sig
   val typeT: typ
   val boolN: string
   val boolT: typ
+  val Trueprop: term
+  val mk_Trueprop: term -> term
+  val dest_Trueprop: term -> term
   val true_const: term
   val false_const: term
   val mk_setT: typ -> typ
   val dest_setT: typ -> typ
-  val Trueprop: term
-  val mk_Trueprop: term -> term
-  val dest_Trueprop: term -> term
+  val Collect_const: typ -> term
+  val mk_Collect: string * typ * term -> term
+  val mk_mem: term * term -> term
+  val dest_mem: term -> term * term
+  val mk_set: typ -> term list -> term
+  val dest_set: term -> term list
+  val mk_UNIV: typ -> term
   val conj_intr: thm -> thm -> thm
   val conj_elim: thm -> thm * thm
   val conj_elims: thm -> thm list
@@ -43,12 +50,7 @@ sig
   val exists_const: typ -> term
   val mk_exists: string * typ * term -> term
   val choice_const: typ -> term
-  val Collect_const: typ -> term
-  val mk_Collect: string * typ * term -> term
   val class_eq: string
-  val mk_mem: term * term -> term
-  val dest_mem: term -> term * term
-  val mk_UNIV: typ -> term
   val mk_binop: string -> term * term -> term
   val mk_binrel: string -> term * term -> term
   val dest_bin: string -> typ -> term -> term * term
@@ -139,6 +141,30 @@ fun mk_setT T = T --> boolT;
 fun dest_setT (Type ("fun", [T, Type ("bool", [])])) = T
   | dest_setT T = raise TYPE ("dest_setT: set type expected", [T], []);
 
+fun mk_set T ts =
+  let
+    val sT = mk_setT T;
+    val empty = Const ("Orderings.bot", sT);
+    fun insert t u = Const ("insert", T --> sT --> sT) $ t $ u;
+  in fold_rev insert ts empty end;
+
+fun mk_UNIV T = Const ("Set.UNIV", mk_setT T);
+
+fun dest_set (Const ("Orderings.bot", _)) = []
+  | dest_set (Const ("insert", _) $ t $ u) = t :: dest_set u
+  | dest_set t = raise TERM ("dest_set", [t]);
+
+fun Collect_const T = Const ("Collect", (T --> boolT) --> mk_setT T);
+fun mk_Collect (a, T, t) = Collect_const T $ absfree (a, T, t);
+
+fun mk_mem (x, A) =
+  let val setT = fastype_of A in
+    Const ("op :", dest_setT setT --> setT --> boolT) $ x $ A
+  end;
+
+fun dest_mem (Const ("op :", _) $ x $ A) = (x, A)
+  | dest_mem t = raise TERM ("dest_mem", [t]);
+
 
 (* logic *)
 
@@ -212,20 +238,7 @@ fun mk_exists (x, T, P) = exists_const T $ absfree (x, T, P);
 
 fun choice_const T = Const("Hilbert_Choice.Eps", (T --> boolT) --> T);
 
-fun Collect_const T = Const ("Collect", [T --> boolT] ---> mk_setT T);
-fun mk_Collect (a, T, t) = Collect_const T $ absfree (a, T, t);
-
 val class_eq = "HOL.eq";
-
-fun mk_mem (x, A) =
-  let val setT = fastype_of A in
-    Const ("op :", [dest_setT setT, setT] ---> boolT) $ x $ A
-  end;
-
-fun dest_mem (Const ("op :", _) $ x $ A) = (x, A)
-  | dest_mem t = raise TERM ("dest_mem", [t]);
-
-fun mk_UNIV T = Const ("Set.UNIV", mk_setT T);
 
 
 (* binary operations and relations *)

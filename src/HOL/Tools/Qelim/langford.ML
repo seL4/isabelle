@@ -11,14 +11,6 @@ end
 structure LangfordQE :LANGFORD_QE = 
 struct
 
-val dest_set =
- let 
-  fun h acc ct = 
-   case term_of ct of
-     Const (@{const_name Set.empty}, _) => acc
-   | Const (@{const_name insert}, _) $ _ $ t => h (Thm.dest_arg1 ct :: acc) (Thm.dest_arg ct)
-in h [] end;
-
 fun prove_finite cT u = 
 let val [th0,th1] = map (instantiate' [SOME cT] []) @{thms "finite.intros"}
     fun ins x th =
@@ -44,7 +36,7 @@ fun basic_dloqe ctxt stupid dlo_qeth dlo_qeth_nolb dlo_qeth_noub gather ep =
            val cT = ctyp_of_term a
            val ne = instantiate' [SOME cT] [SOME a, SOME A] 
                     @{thm insert_not_empty}
-           val f = prove_finite cT (dest_set S)
+           val f = prove_finite cT (HOLogic.dest_set S)
        in (ne, f) end
 
      val qe = case (term_of L, term_of U) of 

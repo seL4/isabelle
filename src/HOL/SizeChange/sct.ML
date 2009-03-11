@@ -266,13 +266,6 @@ fun setup_probe_goal thy domT Dtab Mtab (i, j) =
 
 fun mk_edge m G n = HOLogic.mk_prod (m, HOLogic.mk_prod (G, n))
 
-fun mk_set T [] = Const (@{const_name Set.empty}, HOLogic.mk_setT T)
-  | mk_set T (x :: xs) = Const (@{const_name insert},
-      T --> HOLogic.mk_setT T --> HOLogic.mk_setT T) $ x $ mk_set T xs
-
-fun dest_set (Const (@{const_name Set.empty}, _)) = []
-  | dest_set (Const (@{const_name insert}, _) $ x $ xs) = x :: dest_set xs
-
 val in_graph_tac =
     simp_tac (HOL_basic_ss addsimps has_edge_simps) 1
     THEN SIMPSET (fn x => simp_tac x 1) (* FIXME reduce simpset *)
@@ -333,7 +326,7 @@ fun mk_call_graph ctxt (st : thm) =
 
 
       val ACG = map_filter (fn (Graph (G, _),(m, n)) => SOME (mk_edge (mk_number m) G (mk_number n)) | _ => NONE) (flat parts ~~ flat pairs)
-                    |> mk_set (edgeT HOLogic.natT scgT)
+                    |> HOLogic.mk_set (edgeT HOLogic.natT scgT)
                     |> curry op $ (graph_const HOLogic.natT scgT)
 
 
