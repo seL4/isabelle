@@ -1,0 +1,597 @@
+%
+\begin{isabellebody}%
+\def\isabellecontext{Main{\isacharunderscore}Doc}%
+%
+\isadelimtheory
+%
+\endisadelimtheory
+%
+\isatagtheory
+%
+\endisatagtheory
+{\isafoldtheory}%
+%
+\isadelimtheory
+%
+\endisadelimtheory
+%
+\isadelimML
+%
+\endisadelimML
+%
+\isatagML
+%
+\endisatagML
+{\isafoldML}%
+%
+\isadelimML
+%
+\endisadelimML
+%
+\begin{isamarkuptext}%
+\begin{abstract}
+This document lists the main types, functions and syntax provided by theory \isa{Main}. It is meant as a quick overview of what is available. The sophisticated class structure is only hinted at. For details see \url{http://isabelle.in.tum.de/dist/library/HOL/}.
+\end{abstract}
+
+\section{HOL}
+
+The basic logic: \isa{x\ {\isacharequal}\ y}, \isa{True}, \isa{False}, \isa{{\isasymnot}\ P}, \isa{P\ {\isasymand}\ Q}, \isa{P\ {\isasymor}\ Q}, \isa{P\ {\isasymlongrightarrow}\ Q}, \isa{{\isasymforall}x{\isachardot}\ P}, \isa{{\isasymexists}x{\isachardot}\ P}, \isa{{\isasymexists}{\isacharbang}x{\isachardot}\ P}, \isa{THE\ x{\isachardot}\ P}.
+\smallskip
+
+\begin{tabular}{@ {} l @ {~::~} l @ {}}
+\isa{undefined} & \isa{{\isacharprime}a}\\
+\isa{default} & \isa{{\isacharprime}a}\\
+\end{tabular}
+
+\subsubsection*{Syntax}
+
+\begin{supertabular}{@ {} l @ {\quad$\equiv$\quad} l l @ {}}
+\isa{x\ {\isasymnoteq}\ y} & \isa{{\isachardoublequote}{\isasymnot}\ {\isacharparenleft}x\ {\isacharequal}\ y{\isacharparenright}{\isachardoublequote}} & (\verb$~=$)\\
+\isa{{\isachardoublequote}P\ {\isasymlongleftrightarrow}\ Q{\isachardoublequote}} & \isa{P\ {\isacharequal}\ Q} \\
+\isa{if\ x\ then\ y\ else\ z} & \isa{{\isachardoublequote}If\ x\ y\ z{\isachardoublequote}}\\
+\isa{let\ x\ {\isacharequal}\ e\isactrlisub {\isadigit{1}}\ in\ e\isactrlisub {\isadigit{2}}} & \isa{{\isachardoublequote}Let\ e\isactrlisub {\isadigit{1}}\ {\isacharparenleft}{\isasymlambda}x{\isachardot}\ e\isactrlisub {\isadigit{2}}{\isacharparenright}{\isachardoublequote}}\\
+\end{supertabular}
+
+
+\section{Orderings}
+
+A collection of classes defining basic orderings:
+preorder, partial order, linear order, dense linear order and wellorder.
+\smallskip
+
+\begin{supertabular}{@ {} l @ {~::~} l l @ {}}
+\isa{op\ {\isasymle}} & \isa{{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a\ {\isasymRightarrow}\ bool} & (\verb$<=$)\\
+\isa{op\ {\isacharless}} & \isa{{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a\ {\isasymRightarrow}\ bool}\\
+\isa{Least} & \isa{{\isacharparenleft}{\isacharprime}a\ {\isasymRightarrow}\ bool{\isacharparenright}\ {\isasymRightarrow}\ {\isacharprime}a}\\
+\isa{min} & \isa{{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a}\\
+\isa{max} & \isa{{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a}\\
+\isa{top} & \isa{{\isacharprime}a}\\
+\isa{bot} & \isa{{\isacharprime}a}\\
+\isa{mono} & \isa{{\isacharparenleft}{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}b{\isacharparenright}\ {\isasymRightarrow}\ bool}\\
+\isa{strict{\isacharunderscore}mono} & \isa{{\isacharparenleft}{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}b{\isacharparenright}\ {\isasymRightarrow}\ bool}\\
+\end{supertabular}
+
+\subsubsection*{Syntax}
+
+\begin{supertabular}{@ {} l @ {\quad$\equiv$\quad} l l @ {}}
+\isa{{\isachardoublequote}x\ {\isasymge}\ y{\isachardoublequote}} & \isa{y\ {\isasymle}\ x} & (\verb$>=$)\\
+\isa{{\isachardoublequote}x\ {\isachargreater}\ y{\isachardoublequote}} & \isa{y\ {\isacharless}\ x}\\
+\isa{{\isasymforall}x{\isasymle}y{\isachardot}\ P} & \isa{{\isachardoublequote}{\isasymforall}x{\isachardot}\ x\ {\isasymle}\ y\ {\isasymlongrightarrow}\ P{\isachardoublequote}}\\
+\isa{{\isasymexists}x{\isasymle}y{\isachardot}\ P} & \isa{{\isachardoublequote}{\isasymexists}x{\isachardot}\ x\ {\isasymle}\ y\ {\isasymand}\ P{\isachardoublequote}}\\
+\multicolumn{2}{@ {}l@ {}}{Similarly for $<$, $\ge$ and $>$}\\
+\isa{LEAST\ x{\isachardot}\ P} & \isa{{\isachardoublequote}Least\ {\isacharparenleft}{\isasymlambda}x{\isachardot}\ P{\isacharparenright}{\isachardoublequote}}\\
+\end{supertabular}
+
+
+\section{Lattices}
+
+Classes semilattice, lattice, distributive lattice and complete lattice (the
+latter in theory \isa{Set}).
+
+\begin{tabular}{@ {} l @ {~::~} l @ {}}
+\isa{inf} & \isa{{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a}\\
+\isa{sup} & \isa{{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a}\\
+\isa{Inf} & \isa{{\isacharprime}a\ set\ {\isasymRightarrow}\ {\isacharprime}a}\\
+\isa{Sup} & \isa{{\isacharprime}a\ set\ {\isasymRightarrow}\ {\isacharprime}a}\\
+\end{tabular}
+
+\subsubsection*{Syntax}
+
+Available by loading theory \isa{Lattice{\isacharunderscore}Syntax} in directory \isa{Library}.
+
+\begin{supertabular}{@ {} l @ {\quad$\equiv$\quad} l @ {}}
+\isa{{\isachardoublequote}x\ {\isasymsqsubseteq}\ y{\isachardoublequote}} & \isa{x\ {\isasymle}\ y}\\
+\isa{{\isachardoublequote}x\ {\isasymsqsubset}\ y{\isachardoublequote}} & \isa{x\ {\isacharless}\ y}\\
+\isa{{\isachardoublequote}x\ {\isasymsqinter}\ y{\isachardoublequote}} & \isa{inf\ x\ y}\\
+\isa{{\isachardoublequote}x\ {\isasymsqunion}\ y{\isachardoublequote}} & \isa{sup\ x\ y}\\
+\isa{{\isachardoublequote}{\isasymSqinter}\ A{\isachardoublequote}} & \isa{Sup\ A}\\
+\isa{{\isachardoublequote}{\isasymSqunion}\ A{\isachardoublequote}} & \isa{Inf\ A}\\
+\isa{{\isachardoublequote}{\isasymtop}{\isachardoublequote}} & \isa{top}\\
+\isa{{\isachardoublequote}{\isasymbottom}{\isachardoublequote}} & \isa{bot}\\
+\end{supertabular}
+
+
+\section{Set}
+
+Sets are predicates: \isa{{\isachardoublequote}{\isacharprime}a\ set\ \ {\isacharequal}\ \ {\isacharprime}a\ {\isasymRightarrow}\ bool{\isachardoublequote}}
+\bigskip
+
+\begin{supertabular}{@ {} l @ {~::~} l l @ {}}
+\isa{{\isacharbraceleft}{\isacharbraceright}} & \isa{{\isacharprime}a\ set}\\
+\isa{insert} & \isa{{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a\ set\ {\isasymRightarrow}\ {\isacharprime}a\ set}\\
+\isa{Collect} & \isa{{\isacharparenleft}{\isacharprime}a\ {\isasymRightarrow}\ bool{\isacharparenright}\ {\isasymRightarrow}\ {\isacharprime}a\ set}\\
+\isa{op\ {\isasymin}} & \isa{{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a\ set\ {\isasymRightarrow}\ bool} & (\texttt{:})\\
+\isa{op\ {\isasymunion}} & \isa{{\isacharprime}a\ set\ {\isasymRightarrow}\ {\isacharprime}a\ set\ {\isasymRightarrow}\ {\isacharprime}a\ set} & (\texttt{Un})\\
+\isa{op\ {\isasyminter}} & \isa{{\isacharprime}a\ set\ {\isasymRightarrow}\ {\isacharprime}a\ set\ {\isasymRightarrow}\ {\isacharprime}a\ set} & (\texttt{Int})\\
+\isa{UNION} & \isa{{\isacharprime}a\ set\ {\isasymRightarrow}\ {\isacharparenleft}{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}b\ set{\isacharparenright}\ {\isasymRightarrow}\ {\isacharprime}b\ set}\\
+\isa{INTER} & \isa{{\isacharprime}a\ set\ {\isasymRightarrow}\ {\isacharparenleft}{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}b\ set{\isacharparenright}\ {\isasymRightarrow}\ {\isacharprime}b\ set}\\
+\isa{Union} & \isa{{\isacharprime}a\ set\ set\ {\isasymRightarrow}\ {\isacharprime}a\ set}\\
+\isa{Inter} & \isa{{\isacharprime}a\ set\ set\ {\isasymRightarrow}\ {\isacharprime}a\ set}\\
+\isa{Pow} & \isa{{\isacharprime}a\ set\ {\isasymRightarrow}\ {\isacharprime}a\ set\ set}\\
+\isa{UNIV} & \isa{{\isacharprime}a\ set}\\
+\isa{op\ {\isacharbackquote}} & \isa{{\isacharparenleft}{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}b{\isacharparenright}\ {\isasymRightarrow}\ {\isacharprime}a\ set\ {\isasymRightarrow}\ {\isacharprime}b\ set}\\
+\isa{Ball} & \isa{{\isacharprime}a\ set\ {\isasymRightarrow}\ {\isacharparenleft}{\isacharprime}a\ {\isasymRightarrow}\ bool{\isacharparenright}\ {\isasymRightarrow}\ bool}\\
+\isa{Bex} & \isa{{\isacharprime}a\ set\ {\isasymRightarrow}\ {\isacharparenleft}{\isacharprime}a\ {\isasymRightarrow}\ bool{\isacharparenright}\ {\isasymRightarrow}\ bool}\\
+\end{supertabular}
+
+\subsubsection*{Syntax}
+
+\begin{supertabular}{@ {} l @ {\quad$\equiv$\quad} l l @ {}}
+\isa{{\isacharbraceleft}x\isactrlisub {\isadigit{1}}{\isacharcomma}{\isasymdots}{\isacharcomma}x\isactrlisub n{\isacharbraceright}} & \isa{insert\ x\isactrlisub {\isadigit{1}}\ {\isacharparenleft}{\isasymdots}\ {\isacharparenleft}insert\ x\isactrlisub n\ {\isacharbraceleft}{\isacharbraceright}{\isacharparenright}{\isasymdots}{\isacharparenright}}\\
+\isa{x\ {\isasymnotin}\ A} & \isa{{\isachardoublequote}{\isasymnot}{\isacharparenleft}x\ {\isasymin}\ A{\isacharparenright}{\isachardoublequote}}\\
+\isa{A\ {\isasymsubseteq}\ B} & \isa{{\isachardoublequote}A\ {\isasymle}\ B{\isachardoublequote}}\\
+\isa{A\ {\isasymsubset}\ B} & \isa{{\isachardoublequote}A\ {\isacharless}\ B{\isachardoublequote}}\\
+\isa{{\isachardoublequote}A\ {\isasymsupseteq}\ B{\isachardoublequote}} & \isa{{\isachardoublequote}B\ {\isasymle}\ A{\isachardoublequote}}\\
+\isa{{\isachardoublequote}A\ {\isasymsupset}\ B{\isachardoublequote}} & \isa{{\isachardoublequote}B\ {\isacharless}\ A{\isachardoublequote}}\\
+\isa{{\isacharbraceleft}x{\isachardot}\ P{\isacharbraceright}} & \isa{{\isachardoublequote}Collect\ {\isacharparenleft}{\isasymlambda}x{\isachardot}\ P{\isacharparenright}{\isachardoublequote}}\\
+\isa{{\isasymUnion}x{\isasymin}I{\isachardot}\ A} & \isa{{\isachardoublequote}UNION\ I\ {\isacharparenleft}{\isasymlambda}x{\isachardot}\ A{\isacharparenright}{\isachardoublequote}} & (\texttt{UN})\\
+\isa{{\isasymUnion}x{\isachardot}\ A} & \isa{{\isachardoublequote}UNION\ UNIV\ {\isacharparenleft}{\isasymlambda}x{\isachardot}\ A{\isacharparenright}{\isachardoublequote}}\\
+\isa{{\isasymInter}x{\isasymin}I{\isachardot}\ A} & \isa{{\isachardoublequote}INTER\ I\ {\isacharparenleft}{\isasymlambda}x{\isachardot}\ A{\isacharparenright}{\isachardoublequote}} & (\texttt{INT})\\
+\isa{{\isasymInter}x{\isachardot}\ A} & \isa{{\isachardoublequote}INTER\ UNIV\ {\isacharparenleft}{\isasymlambda}x{\isachardot}\ A{\isacharparenright}{\isachardoublequote}}\\
+\isa{{\isasymforall}x{\isasymin}A{\isachardot}\ P} & \isa{{\isachardoublequote}Ball\ A\ {\isacharparenleft}{\isasymlambda}x{\isachardot}\ P{\isacharparenright}{\isachardoublequote}}\\
+\isa{{\isasymexists}x{\isasymin}A{\isachardot}\ P} & \isa{{\isachardoublequote}Bex\ A\ {\isacharparenleft}{\isasymlambda}x{\isachardot}\ P{\isacharparenright}{\isachardoublequote}}\\
+\isa{range\ f} & \isa{{\isachardoublequote}f\ {\isacharbackquote}\ UNIV{\isachardoublequote}}\\
+\end{supertabular}
+
+
+\section{Fun}
+
+\begin{supertabular}{@ {} l @ {~::~} l @ {}}
+\isa{id} & \isa{{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a}\\
+\isa{op\ {\isasymcirc}} & \isa{{\isacharparenleft}{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}b{\isacharparenright}\ {\isasymRightarrow}\ {\isacharparenleft}{\isacharprime}c\ {\isasymRightarrow}\ {\isacharprime}a{\isacharparenright}\ {\isasymRightarrow}\ {\isacharprime}c\ {\isasymRightarrow}\ {\isacharprime}b}\\
+\isa{inj{\isacharunderscore}on} & \isa{{\isacharparenleft}{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}b{\isacharparenright}\ {\isasymRightarrow}\ {\isacharprime}a\ set\ {\isasymRightarrow}\ bool}\\
+\isa{inj} & \isa{{\isacharparenleft}{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}b{\isacharparenright}\ {\isasymRightarrow}\ bool}\\
+\isa{surj} & \isa{{\isacharparenleft}{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}b{\isacharparenright}\ {\isasymRightarrow}\ bool}\\
+\isa{bij} & \isa{{\isacharparenleft}{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}b{\isacharparenright}\ {\isasymRightarrow}\ bool}\\
+\isa{bij{\isacharunderscore}betw} & \isa{{\isacharparenleft}{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}b{\isacharparenright}\ {\isasymRightarrow}\ {\isacharprime}a\ set\ {\isasymRightarrow}\ {\isacharprime}b\ set\ {\isasymRightarrow}\ bool}\\
+\isa{fun{\isacharunderscore}upd} & \isa{{\isacharparenleft}{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}b{\isacharparenright}\ {\isasymRightarrow}\ {\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}b\ {\isasymRightarrow}\ {\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}b}\\
+\end{supertabular}
+
+\subsubsection*{Syntax}
+
+\begin{tabular}{@ {} l @ {\quad$\equiv$\quad} l @ {}}
+\isa{f{\isacharparenleft}x\ {\isacharcolon}{\isacharequal}\ y{\isacharparenright}} & \isa{{\isachardoublequote}fun{\isacharunderscore}upd\ f\ x\ y{\isachardoublequote}}\\
+\isa{f{\isacharparenleft}x\isactrlisub {\isadigit{1}}{\isacharcolon}{\isacharequal}y\isactrlisub {\isadigit{1}}{\isacharcomma}{\isasymdots}{\isacharcomma}x\isactrlisub n{\isacharcolon}{\isacharequal}y\isactrlisub n{\isacharparenright}} & \isa{f{\isacharparenleft}x\isactrlisub {\isadigit{1}}{\isacharcolon}{\isacharequal}y\isactrlisub {\isadigit{1}}{\isacharparenright}{\isasymdots}{\isacharparenleft}x\isactrlisub n{\isacharcolon}{\isacharequal}y\isactrlisub n{\isacharparenright}}\\
+\end{tabular}
+
+
+\section{Fixed Points}
+
+Theory: \isa{Inductive}.
+
+Least and greatest fixed points in a complete lattice \isa{{\isacharprime}a}:
+
+\begin{tabular}{@ {} l @ {~::~} l @ {}}
+\isa{lfp} & \isa{{\isacharparenleft}{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a{\isacharparenright}\ {\isasymRightarrow}\ {\isacharprime}a}\\
+\isa{gfp} & \isa{{\isacharparenleft}{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a{\isacharparenright}\ {\isasymRightarrow}\ {\isacharprime}a}\\
+\end{tabular}
+
+Note that in particular sets (\isa{{\isacharprime}a\ {\isasymRightarrow}\ bool}) are complete lattices.
+
+\section{Sum\_Type}
+
+Type constructor \isa{{\isacharplus}}.
+
+\begin{tabular}{@ {} l @ {~::~} l @ {}}
+\isa{Inl} & \isa{{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a\ {\isacharplus}\ {\isacharprime}b}\\
+\isa{Inr} & \isa{{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}b\ {\isacharplus}\ {\isacharprime}a}\\
+\isa{op\ {\isacharless}{\isacharplus}{\isachargreater}} & \isa{{\isacharprime}a\ set\ {\isasymRightarrow}\ {\isacharprime}b\ set\ {\isasymRightarrow}\ {\isacharparenleft}{\isacharprime}a\ {\isacharplus}\ {\isacharprime}b{\isacharparenright}\ set}
+\end{tabular}
+
+
+\section{Product\_Type}
+
+Types \isa{unit} and \isa{{\isasymtimes}}.
+
+\begin{supertabular}{@ {} l @ {~::~} l @ {}}
+\isa{{\isacharparenleft}{\isacharparenright}} & \isa{unit}\\
+\isa{Pair} & \isa{{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}b\ {\isasymRightarrow}\ {\isacharprime}a\ {\isasymtimes}\ {\isacharprime}b}\\
+\isa{fst} & \isa{{\isacharprime}a\ {\isasymtimes}\ {\isacharprime}b\ {\isasymRightarrow}\ {\isacharprime}a}\\
+\isa{snd} & \isa{{\isacharprime}a\ {\isasymtimes}\ {\isacharprime}b\ {\isasymRightarrow}\ {\isacharprime}b}\\
+\isa{split} & \isa{{\isacharparenleft}{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}b\ {\isasymRightarrow}\ {\isacharprime}c{\isacharparenright}\ {\isasymRightarrow}\ {\isacharprime}a\ {\isasymtimes}\ {\isacharprime}b\ {\isasymRightarrow}\ {\isacharprime}c}\\
+\isa{curry} & \isa{{\isacharparenleft}{\isacharprime}a\ {\isasymtimes}\ {\isacharprime}b\ {\isasymRightarrow}\ {\isacharprime}c{\isacharparenright}\ {\isasymRightarrow}\ {\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}b\ {\isasymRightarrow}\ {\isacharprime}c}\\
+\isa{Sigma} & \isa{{\isacharprime}a\ set\ {\isasymRightarrow}\ {\isacharparenleft}{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}b\ set{\isacharparenright}\ {\isasymRightarrow}\ {\isacharparenleft}{\isacharprime}a\ {\isasymtimes}\ {\isacharprime}b{\isacharparenright}\ set}\\
+\end{supertabular}
+
+\subsubsection*{Syntax}
+
+\begin{tabular}{@ {} l @ {\quad$\equiv$\quad} ll @ {}}
+\isa{{\isacharparenleft}a{\isacharcomma}\ b{\isacharparenright}} & \isa{{\isachardoublequote}Pair\ a\ b{\isachardoublequote}}\\
+\isa{{\isasymlambda}{\isacharparenleft}x{\isacharcomma}\ y{\isacharparenright}{\isachardot}\ t} & \isa{{\isachardoublequote}split\ {\isacharparenleft}{\isasymlambda}x\ y{\isachardot}\ t{\isacharparenright}{\isachardoublequote}}\\
+\isa{A\ {\isasymtimes}\ B} &  \isa{Sigma\ A\ {\isacharparenleft}{\isasymlambda}\_{\isachardot}\ B{\isacharparenright}} & (\verb$<*>$)
+\end{tabular}
+
+Pairs may be nested. Nesting to the right is printed as a tuple,
+e.g.\ \mbox{\isa{{\isacharparenleft}a{\isacharcomma}\ b{\isacharcomma}\ c{\isacharparenright}}} is really \mbox{\isa{{\isacharparenleft}a{\isacharcomma}\ {\isacharparenleft}b{\isacharcomma}\ c{\isacharparenright}{\isacharparenright}}.}
+Pattern matching with pairs and tuples extends to all binders,
+e.g.\ \mbox{\isa{{\isasymforall}{\isacharparenleft}x{\isacharcomma}\ y{\isacharparenright}{\isasymin}A{\isachardot}\ P},} \isa{{\isacharbraceleft}{\isacharparenleft}x{\isacharcomma}\ y{\isacharparenright}{\isachardot}\ P{\isacharbraceright}}, etc.
+
+
+\section{Relation}
+
+\begin{supertabular}{@ {} l @ {~::~} l @ {}}
+\isa{converse} & \isa{{\isacharparenleft}{\isacharprime}a\ {\isasymtimes}\ {\isacharprime}b{\isacharparenright}\ set\ {\isasymRightarrow}\ {\isacharparenleft}{\isacharprime}b\ {\isasymtimes}\ {\isacharprime}a{\isacharparenright}\ set}\\
+\isa{op\ O} & \isa{{\isacharparenleft}{\isacharprime}a\ {\isasymtimes}\ {\isacharprime}b{\isacharparenright}\ set\ {\isasymRightarrow}\ {\isacharparenleft}{\isacharprime}c\ {\isasymtimes}\ {\isacharprime}a{\isacharparenright}\ set\ {\isasymRightarrow}\ {\isacharparenleft}{\isacharprime}c\ {\isasymtimes}\ {\isacharprime}b{\isacharparenright}\ set}\\
+\isa{op\ {\isacharbackquote}{\isacharbackquote}} & \isa{{\isacharparenleft}{\isacharprime}a\ {\isasymtimes}\ {\isacharprime}b{\isacharparenright}\ set\ {\isasymRightarrow}\ {\isacharprime}a\ set\ {\isasymRightarrow}\ {\isacharprime}b\ set}\\
+\isa{inv{\isacharunderscore}image} & \isa{{\isacharparenleft}{\isacharprime}a\ {\isasymtimes}\ {\isacharprime}a{\isacharparenright}\ set\ {\isasymRightarrow}\ {\isacharparenleft}{\isacharprime}b\ {\isasymRightarrow}\ {\isacharprime}a{\isacharparenright}\ {\isasymRightarrow}\ {\isacharparenleft}{\isacharprime}b\ {\isasymtimes}\ {\isacharprime}b{\isacharparenright}\ set}\\
+\isa{Id{\isacharunderscore}on} & \isa{{\isacharprime}a\ set\ {\isasymRightarrow}\ {\isacharparenleft}{\isacharprime}a\ {\isasymtimes}\ {\isacharprime}a{\isacharparenright}\ set}\\
+\isa{Id} & \isa{{\isacharparenleft}{\isacharprime}a\ {\isasymtimes}\ {\isacharprime}a{\isacharparenright}\ set}\\
+\isa{Domain} & \isa{{\isacharparenleft}{\isacharprime}a\ {\isasymtimes}\ {\isacharprime}b{\isacharparenright}\ set\ {\isasymRightarrow}\ {\isacharprime}a\ set}\\
+\isa{Range} & \isa{{\isacharparenleft}{\isacharprime}a\ {\isasymtimes}\ {\isacharprime}b{\isacharparenright}\ set\ {\isasymRightarrow}\ {\isacharprime}b\ set}\\
+\isa{Field} & \isa{{\isacharparenleft}{\isacharprime}a\ {\isasymtimes}\ {\isacharprime}a{\isacharparenright}\ set\ {\isasymRightarrow}\ {\isacharprime}a\ set}\\
+\isa{refl{\isacharunderscore}on} & \isa{{\isacharprime}a\ set\ {\isasymRightarrow}\ {\isacharparenleft}{\isacharprime}a\ {\isasymtimes}\ {\isacharprime}a{\isacharparenright}\ set\ {\isasymRightarrow}\ bool}\\
+\isa{refl} & \isa{{\isacharparenleft}{\isacharprime}a\ {\isasymtimes}\ {\isacharprime}a{\isacharparenright}\ set\ {\isasymRightarrow}\ bool}\\
+\isa{sym} & \isa{{\isacharparenleft}{\isacharprime}a\ {\isasymtimes}\ {\isacharprime}a{\isacharparenright}\ set\ {\isasymRightarrow}\ bool}\\
+\isa{antisym} & \isa{{\isacharparenleft}{\isacharprime}a\ {\isasymtimes}\ {\isacharprime}a{\isacharparenright}\ set\ {\isasymRightarrow}\ bool}\\
+\isa{trans} & \isa{{\isacharparenleft}{\isacharprime}a\ {\isasymtimes}\ {\isacharprime}a{\isacharparenright}\ set\ {\isasymRightarrow}\ bool}\\
+\isa{irrefl} & \isa{{\isacharparenleft}{\isacharprime}a\ {\isasymtimes}\ {\isacharprime}a{\isacharparenright}\ set\ {\isasymRightarrow}\ bool}\\
+\isa{total{\isacharunderscore}on} & \isa{{\isacharprime}a\ set\ {\isasymRightarrow}\ {\isacharparenleft}{\isacharprime}a\ {\isasymtimes}\ {\isacharprime}a{\isacharparenright}\ set\ {\isasymRightarrow}\ bool}\\
+\isa{total} & \isa{{\isacharparenleft}{\isacharprime}a\ {\isasymtimes}\ {\isacharprime}a{\isacharparenright}\ set\ {\isasymRightarrow}\ bool}\\
+\end{supertabular}
+
+\subsubsection*{Syntax}
+
+\begin{tabular}{@ {} l @ {\quad$\equiv$\quad} l l @ {}}
+\isa{r{\isasyminverse}} & \isa{{\isachardoublequote}converse\ r{\isachardoublequote}} & (\verb$^-1$)
+\end{tabular}
+
+\section{Equiv\_Relations}
+
+\begin{supertabular}{@ {} l @ {~::~} l @ {}}
+\isa{equiv} & \isa{{\isacharprime}a\ set\ {\isasymRightarrow}\ {\isacharparenleft}{\isacharprime}a\ {\isasymtimes}\ {\isacharprime}a{\isacharparenright}\ set\ {\isasymRightarrow}\ bool}\\
+\isa{op\ {\isacharslash}{\isacharslash}} & \isa{{\isacharprime}a\ set\ {\isasymRightarrow}\ {\isacharparenleft}{\isacharprime}a\ {\isasymtimes}\ {\isacharprime}a{\isacharparenright}\ set\ {\isasymRightarrow}\ {\isacharprime}a\ set\ set}\\
+\isa{congruent} & \isa{{\isacharparenleft}{\isacharprime}a\ {\isasymtimes}\ {\isacharprime}a{\isacharparenright}\ set\ {\isasymRightarrow}\ {\isacharparenleft}{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}b{\isacharparenright}\ {\isasymRightarrow}\ bool}\\
+\isa{congruent{\isadigit{2}}} & \isa{{\isacharparenleft}{\isacharprime}a\ {\isasymtimes}\ {\isacharprime}a{\isacharparenright}\ set\ {\isasymRightarrow}\ {\isacharparenleft}{\isacharprime}b\ {\isasymtimes}\ {\isacharprime}b{\isacharparenright}\ set\ {\isasymRightarrow}\ {\isacharparenleft}{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}b\ {\isasymRightarrow}\ {\isacharprime}c{\isacharparenright}\ {\isasymRightarrow}\ bool}\\
+%@ {const Equiv_Relations.} & @ {term_type_only Equiv_Relations. ""}\\
+\end{supertabular}
+
+\subsubsection*{Syntax}
+
+\begin{tabular}{@ {} l @ {\quad$\equiv$\quad} l @ {}}
+\isa{f\ respects\ r} & \isa{{\isachardoublequote}congruent\ r\ f{\isachardoublequote}}\\
+\isa{f\ respects{\isadigit{2}}\ r} & \isa{{\isachardoublequote}congruent{\isadigit{2}}\ r\ r\ f{\isachardoublequote}}\\
+\end{tabular}
+
+
+\section{Transitive\_Closure}
+
+\begin{tabular}{@ {} l @ {~::~} l @ {}}
+\isa{rtrancl} & \isa{{\isacharparenleft}{\isacharprime}a\ {\isasymtimes}\ {\isacharprime}a{\isacharparenright}\ set\ {\isasymRightarrow}\ {\isacharparenleft}{\isacharprime}a\ {\isasymtimes}\ {\isacharprime}a{\isacharparenright}\ set}\\
+\isa{trancl} & \isa{{\isacharparenleft}{\isacharprime}a\ {\isasymtimes}\ {\isacharprime}a{\isacharparenright}\ set\ {\isasymRightarrow}\ {\isacharparenleft}{\isacharprime}a\ {\isasymtimes}\ {\isacharprime}a{\isacharparenright}\ set}\\
+\isa{reflcl} & \isa{{\isacharparenleft}{\isacharprime}a\ {\isasymtimes}\ {\isacharprime}a{\isacharparenright}\ set\ {\isasymRightarrow}\ {\isacharparenleft}{\isacharprime}a\ {\isasymtimes}\ {\isacharprime}a{\isacharparenright}\ set}\\
+\end{tabular}
+
+\subsubsection*{Syntax}
+
+\begin{tabular}{@ {} l @ {\quad$\equiv$\quad} l l @ {}}
+\isa{r\isactrlsup {\isacharasterisk}} & \isa{{\isachardoublequote}rtrancl\ r{\isachardoublequote}} & (\verb$^*$)\\
+\isa{r\isactrlsup {\isacharplus}} & \isa{{\isachardoublequote}trancl\ r{\isachardoublequote}} & (\verb$^+$)\\
+\isa{r\isactrlsup {\isacharequal}} & \isa{{\isachardoublequote}reflcl\ r{\isachardoublequote}} & (\verb$^=$)
+\end{tabular}
+
+
+\section{Algebra}
+
+Theories \isa{OrderedGroup}, \isa{Ring{\isacharunderscore}and{\isacharunderscore}Field} and \isa{Divides} define a large collection of classes describing common algebraic
+structures from semigroups up to fields. Everything is done in terms of
+overloaded operators:
+
+\begin{supertabular}{@ {} l @ {~::~} l l @ {}}
+\isa{{\isadigit{0}}} & \isa{{\isacharprime}a}\\
+\isa{{\isadigit{1}}} & \isa{{\isacharprime}a}\\
+\isa{op\ {\isacharplus}} & \isa{{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a}\\
+\isa{op\ {\isacharminus}} & \isa{{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a}\\
+\isa{uminus} & \isa{{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a} & (\verb$-$)\\
+\isa{op\ {\isacharasterisk}} & \isa{{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a}\\
+\isa{inverse} & \isa{{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a}\\
+\isa{op\ {\isacharslash}} & \isa{{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a}\\
+\isa{abs} & \isa{{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a}\\
+\isa{sgn} & \isa{{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a}\\
+\isa{op\ dvd} & \isa{{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a\ {\isasymRightarrow}\ bool}\\
+\isa{op\ div} & \isa{{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a}\\
+\isa{op\ mod} & \isa{{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a}\\
+\end{supertabular}
+
+\subsubsection*{Syntax}
+
+\begin{tabular}{@ {} l @ {\quad$\equiv$\quad} l @ {}}
+\isa{{\isasymbar}x{\isasymbar}} & \isa{{\isachardoublequote}abs\ x{\isachardoublequote}}
+\end{tabular}
+
+
+\section{Nat}
+
+\isa{\isacommand{datatype}\ nat\ {\isacharequal}\ {\isadigit{0}}\ {\isacharbar}\ Suc\ nat}
+\bigskip
+
+\begin{tabular}{@ {} lllllll @ {}}
+\isa{op\ {\isacharplus}} &
+\isa{op\ {\isacharminus}} &
+\isa{op\ {\isacharasterisk}} &
+\isa{op\ {\isacharcircum}} &
+\isa{op\ div}&
+\isa{op\ mod}&
+\isa{op\ dvd}\\
+\isa{op\ {\isasymle}} &
+\isa{op\ {\isacharless}} &
+\isa{min} &
+\isa{max} &
+\isa{Min} &
+\isa{Max}\\
+\end{tabular}
+
+\begin{tabular}{@ {} l @ {~::~} l @ {}}
+\isa{of{\isacharunderscore}nat} & \isa{nat\ {\isasymRightarrow}\ {\isacharprime}a}
+\end{tabular}
+
+\section{Int}
+
+Type \isa{int}
+\bigskip
+
+\begin{tabular}{@ {} llllllll @ {}}
+\isa{op\ {\isacharplus}} &
+\isa{op\ {\isacharminus}} &
+\isa{uminus} &
+\isa{op\ {\isacharasterisk}} &
+\isa{op\ {\isacharcircum}} &
+\isa{op\ div}&
+\isa{op\ mod}&
+\isa{op\ dvd}\\
+\isa{op\ {\isasymle}} &
+\isa{op\ {\isacharless}} &
+\isa{min} &
+\isa{max} &
+\isa{Min} &
+\isa{Max}\\
+\isa{abs} &
+\isa{sgn}\\
+\end{tabular}
+
+\begin{tabular}{@ {} l @ {~::~} l l @ {}}
+\isa{nat} & \isa{int\ {\isasymRightarrow}\ nat}\\
+\isa{of{\isacharunderscore}int} & \isa{int\ {\isasymRightarrow}\ {\isacharprime}a}\\
+\isa{{\isasymint}} & \isa{{\isacharprime}a\ set} & (\verb$Ints$)
+\end{tabular}
+
+\subsubsection*{Syntax}
+
+\begin{tabular}{@ {} l @ {\quad$\equiv$\quad} l @ {}}
+\isa{int} & \isa{{\isachardoublequote}of{\isacharunderscore}nat{\isachardoublequote}}\\
+\end{tabular}
+
+
+\section{Finite\_Set}
+
+
+\begin{supertabular}{@ {} l @ {~::~} l @ {}}
+\isa{finite} & \isa{{\isacharprime}a\ set\ {\isasymRightarrow}\ bool}\\
+\isa{card} & \isa{{\isacharprime}a\ set\ {\isasymRightarrow}\ nat}\\
+\isa{fold} & \isa{{\isacharparenleft}{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}b\ {\isasymRightarrow}\ {\isacharprime}b{\isacharparenright}\ {\isasymRightarrow}\ {\isacharprime}b\ {\isasymRightarrow}\ {\isacharprime}a\ set\ {\isasymRightarrow}\ {\isacharprime}b}\\
+\isa{fold{\isacharunderscore}image} & \isa{{\isacharparenleft}{\isacharprime}b\ {\isasymRightarrow}\ {\isacharprime}b\ {\isasymRightarrow}\ {\isacharprime}b{\isacharparenright}\ {\isasymRightarrow}\ {\isacharparenleft}{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}b{\isacharparenright}\ {\isasymRightarrow}\ {\isacharprime}b\ {\isasymRightarrow}\ {\isacharprime}a\ set\ {\isasymRightarrow}\ {\isacharprime}b}\\
+\isa{setsum} & \isa{{\isacharparenleft}{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}b{\isacharparenright}\ {\isasymRightarrow}\ {\isacharprime}a\ set\ {\isasymRightarrow}\ {\isacharprime}b}\\
+\isa{setprod} & \isa{{\isacharparenleft}{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}b{\isacharparenright}\ {\isasymRightarrow}\ {\isacharprime}a\ set\ {\isasymRightarrow}\ {\isacharprime}b}\\
+\end{supertabular}
+
+
+\subsubsection*{Syntax}
+
+\begin{supertabular}{@ {} l @ {\quad$\equiv$\quad} l l @ {}}
+\isa{{\isasymSum}A} & \isa{{\isachardoublequote}setsum\ {\isacharparenleft}{\isasymlambda}x{\isachardot}\ x{\isacharparenright}\ A{\isachardoublequote}} & (\verb$SUM$)\\
+\isa{{\isasymSum}x{\isasymin}A{\isachardot}\ t} & \isa{{\isachardoublequote}setsum\ {\isacharparenleft}{\isasymlambda}x{\isachardot}\ t{\isacharparenright}\ A{\isachardoublequote}}\\
+\isa{{\isachardoublequote}{\isasymSum}x{\isacharbar}P{\isachardot}\ t{\isachardoublequote}} & \isa{{\isasymSum}x{\isasymin}{\isacharbraceleft}x{\isachardot}\ P{\isacharbraceright}{\isachardot}\ t}\\
+\multicolumn{2}{@ {}l@ {}}{Similarly for \isa{{\isasymProd}} instead of \isa{{\isasymSum}}} & (\verb$PROD$)\\
+\end{supertabular}
+
+
+\section{Wellfounded}
+
+\begin{supertabular}{@ {} l @ {~::~} l @ {}}
+\isa{wf} & \isa{{\isacharparenleft}{\isacharprime}a\ {\isasymtimes}\ {\isacharprime}a{\isacharparenright}\ set\ {\isasymRightarrow}\ bool}\\
+\isa{acyclic} & \isa{{\isacharparenleft}{\isacharprime}a\ {\isasymtimes}\ {\isacharprime}a{\isacharparenright}\ set\ {\isasymRightarrow}\ bool}\\
+\isa{acc} & \isa{{\isacharparenleft}{\isacharprime}a\ {\isasymtimes}\ {\isacharprime}a{\isacharparenright}\ set\ {\isasymRightarrow}\ {\isacharprime}a\ set}\\
+\isa{measure} & \isa{{\isacharparenleft}{\isacharprime}a\ {\isasymRightarrow}\ nat{\isacharparenright}\ {\isasymRightarrow}\ {\isacharparenleft}{\isacharprime}a\ {\isasymtimes}\ {\isacharprime}a{\isacharparenright}\ set}\\
+\isa{op\ {\isacharless}{\isacharasterisk}lex{\isacharasterisk}{\isachargreater}} & \isa{{\isacharparenleft}{\isacharprime}a\ {\isasymtimes}\ {\isacharprime}a{\isacharparenright}\ set\ {\isasymRightarrow}\ {\isacharparenleft}{\isacharprime}b\ {\isasymtimes}\ {\isacharprime}b{\isacharparenright}\ set\ {\isasymRightarrow}\ {\isacharparenleft}{\isacharparenleft}{\isacharprime}a\ {\isasymtimes}\ {\isacharprime}b{\isacharparenright}\ {\isasymtimes}\ {\isacharprime}a\ {\isasymtimes}\ {\isacharprime}b{\isacharparenright}\ set}\\
+\isa{op\ {\isacharless}{\isacharasterisk}mlex{\isacharasterisk}{\isachargreater}} & \isa{{\isacharparenleft}{\isacharprime}a\ {\isasymRightarrow}\ nat{\isacharparenright}\ {\isasymRightarrow}\ {\isacharparenleft}{\isacharprime}a\ {\isasymtimes}\ {\isacharprime}a{\isacharparenright}\ set\ {\isasymRightarrow}\ {\isacharparenleft}{\isacharprime}a\ {\isasymtimes}\ {\isacharprime}a{\isacharparenright}\ set}\\
+\isa{less{\isacharunderscore}than} & \isa{{\isacharparenleft}nat\ {\isasymtimes}\ nat{\isacharparenright}\ set}\\
+\isa{pred{\isacharunderscore}nat} & \isa{{\isacharparenleft}nat\ {\isasymtimes}\ nat{\isacharparenright}\ set}\\
+\end{supertabular}
+
+
+\section{SetInterval}
+
+\begin{supertabular}{@ {} l @ {~::~} l @ {}}
+\isa{lessThan} & \isa{{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a\ set}\\
+\isa{atMost} & \isa{{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a\ set}\\
+\isa{greaterThan} & \isa{{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a\ set}\\
+\isa{atLeast} & \isa{{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a\ set}\\
+\isa{greaterThanLessThan} & \isa{{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a\ set}\\
+\isa{atLeastLessThan} & \isa{{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a\ set}\\
+\isa{greaterThanAtMost} & \isa{{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a\ set}\\
+\isa{atLeastAtMost} & \isa{{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a\ set}\\
+\end{supertabular}
+
+\subsubsection*{Syntax}
+
+\begin{supertabular}{@ {} l @ {\quad$\equiv$\quad} l @ {}}
+\isa{{\isacharbraceleft}{\isachardot}{\isachardot}{\isacharless}y{\isacharbraceright}} & \isa{{\isachardoublequote}lessThan\ y{\isachardoublequote}}\\
+\isa{{\isacharbraceleft}{\isachardot}{\isachardot}y{\isacharbraceright}} & \isa{{\isachardoublequote}atMost\ y{\isachardoublequote}}\\
+\isa{{\isacharbraceleft}x{\isacharless}{\isachardot}{\isachardot}{\isacharbraceright}} & \isa{{\isachardoublequote}greaterThan\ x{\isachardoublequote}}\\
+\isa{{\isacharbraceleft}x{\isachardot}{\isachardot}{\isacharbraceright}} & \isa{{\isachardoublequote}atLeast\ x{\isachardoublequote}}\\
+\isa{{\isacharbraceleft}x{\isacharless}{\isachardot}{\isachardot}{\isacharless}y{\isacharbraceright}} & \isa{{\isachardoublequote}greaterThanLessThan\ x\ y{\isachardoublequote}}\\
+\isa{{\isacharbraceleft}x{\isachardot}{\isachardot}{\isacharless}y{\isacharbraceright}} & \isa{{\isachardoublequote}atLeastLessThan\ x\ y{\isachardoublequote}}\\
+\isa{{\isacharbraceleft}x{\isacharless}{\isachardot}{\isachardot}y{\isacharbraceright}} & \isa{{\isachardoublequote}greaterThanAtMost\ x\ y{\isachardoublequote}}\\
+\isa{{\isacharbraceleft}x{\isachardot}{\isachardot}y{\isacharbraceright}} & \isa{{\isachardoublequote}atLeastAtMost\ x\ y{\isachardoublequote}}\\
+\isa{{\isasymUnion}\ i{\isasymle}n{\isachardot}\ A} & \isa{{\isachardoublequote}{\isasymUnion}\ i\ {\isasymin}\ {\isacharbraceleft}{\isachardot}{\isachardot}n{\isacharbraceright}{\isachardot}\ A{\isachardoublequote}}\\
+\isa{{\isasymUnion}\ i{\isacharless}n{\isachardot}\ A} & \isa{{\isachardoublequote}{\isasymUnion}\ i\ {\isasymin}\ {\isacharbraceleft}{\isachardot}{\isachardot}{\isacharless}n{\isacharbraceright}{\isachardot}\ A{\isachardoublequote}}\\
+\multicolumn{2}{@ {}l@ {}}{Similarly for \isa{{\isasymInter}} instead of \isa{{\isasymUnion}}}\\
+\isa{{\isasymSum}x\ {\isacharequal}\ a{\isachardot}{\isachardot}b{\isachardot}\ t} & \isa{{\isachardoublequote}setsum\ {\isacharparenleft}{\isasymlambda}x{\isachardot}\ t{\isacharparenright}\ {\isacharbraceleft}a{\isachardot}{\isachardot}b{\isacharbraceright}{\isachardoublequote}}\\
+\isa{{\isasymSum}x\ {\isacharequal}\ a{\isachardot}{\isachardot}{\isacharless}b{\isachardot}\ t} & \isa{{\isachardoublequote}setsum\ {\isacharparenleft}{\isasymlambda}x{\isachardot}\ t{\isacharparenright}\ {\isacharbraceleft}a{\isachardot}{\isachardot}{\isacharless}b{\isacharbraceright}{\isachardoublequote}}\\
+\isa{{\isasymSum}x{\isasymle}b{\isachardot}\ t} & \isa{{\isachardoublequote}setsum\ {\isacharparenleft}{\isasymlambda}x{\isachardot}\ t{\isacharparenright}\ {\isacharbraceleft}{\isachardot}{\isachardot}b{\isacharbraceright}{\isachardoublequote}}\\
+\isa{{\isasymSum}x{\isacharless}b{\isachardot}\ t} & \isa{{\isachardoublequote}setsum\ {\isacharparenleft}{\isasymlambda}x{\isachardot}\ t{\isacharparenright}\ {\isacharbraceleft}{\isachardot}{\isachardot}{\isacharless}b{\isacharbraceright}{\isachardoublequote}}\\
+\multicolumn{2}{@ {}l@ {}}{Similarly for \isa{{\isasymProd}} instead of \isa{{\isasymSum}}}\\
+\end{supertabular}
+
+
+\section{Power}
+
+\begin{tabular}{@ {} l @ {~::~} l @ {}}
+\isa{op\ {\isacharcircum}} & \isa{{\isacharprime}a\ {\isasymRightarrow}\ nat\ {\isasymRightarrow}\ {\isacharprime}a}
+\end{tabular}
+
+
+\section{Iterated Functions and Relations}
+
+Theory: \isa{Relation{\isacharunderscore}Power}
+
+Iterated functions \ \isa{{\isachardoublequote}{\isacharparenleft}f{\isacharcolon}{\isacharcolon}{\isacharprime}a{\isasymRightarrow}{\isacharprime}a{\isacharparenright}\ {\isacharcircum}\ n{\isachardoublequote}} \
+and relations \ \isa{{\isachardoublequote}{\isacharparenleft}r{\isacharcolon}{\isacharcolon}{\isacharparenleft}{\isacharprime}a{\isasymtimes}{\isacharprime}a{\isacharparenright}set{\isacharparenright}\ {\isacharcircum}\ n{\isachardoublequote}}.
+
+
+\section{Option}
+
+\isa{\isacommand{datatype}\ {\isacharprime}a\ option\ {\isacharequal}\ None\ {\isacharbar}\ Some\ {\isacharprime}a}
+\bigskip
+
+\begin{tabular}{@ {} l @ {~::~} l @ {}}
+\isa{the} & \isa{{\isacharprime}a\ option\ {\isasymRightarrow}\ {\isacharprime}a}\\
+\isa{Option{\isachardot}map} & \isa{{\isachardoublequote}{\isacharparenleft}{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}b{\isacharparenright}\ {\isasymRightarrow}\ {\isacharprime}a\ option\ {\isasymRightarrow}\ {\isacharprime}b\ option{\isachardoublequote}}\\
+\isa{Option{\isachardot}set} & \isa{{\isacharprime}a\ option\ {\isasymRightarrow}\ {\isacharprime}a\ set}
+\end{tabular}
+
+\section{List}
+
+\isa{\isacommand{datatype}\ {\isacharprime}a\ list\ {\isacharequal}\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharbar}\ op\ {\isacharhash}\ {\isacharprime}a\ {\isacharparenleft}{\isacharprime}a\ list{\isacharparenright}}
+\bigskip
+
+\begin{supertabular}{@ {} l @ {~::~} l @ {}}
+\isa{op\ {\isacharat}} & \isa{{\isacharprime}a\ list\ {\isasymRightarrow}\ {\isacharprime}a\ list\ {\isasymRightarrow}\ {\isacharprime}a\ list}\\
+\isa{butlast} & \isa{{\isacharprime}a\ list\ {\isasymRightarrow}\ {\isacharprime}a\ list}\\
+\isa{concat} & \isa{{\isacharprime}a\ list\ list\ {\isasymRightarrow}\ {\isacharprime}a\ list}\\
+\isa{distinct} & \isa{{\isacharprime}a\ list\ {\isasymRightarrow}\ bool}\\
+\isa{drop} & \isa{nat\ {\isasymRightarrow}\ {\isacharprime}a\ list\ {\isasymRightarrow}\ {\isacharprime}a\ list}\\
+\isa{dropWhile} & \isa{{\isacharparenleft}{\isacharprime}a\ {\isasymRightarrow}\ bool{\isacharparenright}\ {\isasymRightarrow}\ {\isacharprime}a\ list\ {\isasymRightarrow}\ {\isacharprime}a\ list}\\
+\isa{filter} & \isa{{\isacharparenleft}{\isacharprime}a\ {\isasymRightarrow}\ bool{\isacharparenright}\ {\isasymRightarrow}\ {\isacharprime}a\ list\ {\isasymRightarrow}\ {\isacharprime}a\ list}\\
+\isa{foldl} & \isa{{\isacharparenleft}{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}b\ {\isasymRightarrow}\ {\isacharprime}a{\isacharparenright}\ {\isasymRightarrow}\ {\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}b\ list\ {\isasymRightarrow}\ {\isacharprime}a}\\
+\isa{foldr} & \isa{{\isacharparenleft}{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}b\ {\isasymRightarrow}\ {\isacharprime}b{\isacharparenright}\ {\isasymRightarrow}\ {\isacharprime}a\ list\ {\isasymRightarrow}\ {\isacharprime}b\ {\isasymRightarrow}\ {\isacharprime}b}\\
+\isa{hd} & \isa{{\isacharprime}a\ list\ {\isasymRightarrow}\ {\isacharprime}a}\\
+\isa{last} & \isa{{\isacharprime}a\ list\ {\isasymRightarrow}\ {\isacharprime}a}\\
+\isa{length} & \isa{{\isacharprime}a\ list\ {\isasymRightarrow}\ nat}\\
+\isa{lenlex} & \isa{{\isacharparenleft}{\isacharprime}a\ {\isasymtimes}\ {\isacharprime}a{\isacharparenright}\ set\ {\isasymRightarrow}\ {\isacharparenleft}{\isacharprime}a\ list\ {\isasymtimes}\ {\isacharprime}a\ list{\isacharparenright}\ set}\\
+\isa{lex} & \isa{{\isacharparenleft}{\isacharprime}a\ {\isasymtimes}\ {\isacharprime}a{\isacharparenright}\ set\ {\isasymRightarrow}\ {\isacharparenleft}{\isacharprime}a\ list\ {\isasymtimes}\ {\isacharprime}a\ list{\isacharparenright}\ set}\\
+\isa{lexn} & \isa{{\isacharparenleft}{\isacharprime}a\ {\isasymtimes}\ {\isacharprime}a{\isacharparenright}\ set\ {\isasymRightarrow}\ nat\ {\isasymRightarrow}\ {\isacharparenleft}{\isacharprime}a\ list\ {\isasymtimes}\ {\isacharprime}a\ list{\isacharparenright}\ set}\\
+\isa{lexord} & \isa{{\isacharparenleft}{\isacharprime}a\ {\isasymtimes}\ {\isacharprime}a{\isacharparenright}\ set\ {\isasymRightarrow}\ {\isacharparenleft}{\isacharprime}a\ list\ {\isasymtimes}\ {\isacharprime}a\ list{\isacharparenright}\ set}\\
+\isa{listrel} & \isa{{\isacharparenleft}{\isacharprime}a\ {\isasymtimes}\ {\isacharprime}a{\isacharparenright}\ set\ {\isasymRightarrow}\ {\isacharparenleft}{\isacharprime}a\ list\ {\isasymtimes}\ {\isacharprime}a\ list{\isacharparenright}\ set}\\
+\isa{lists} & \isa{{\isacharprime}a\ set\ {\isasymRightarrow}\ {\isacharprime}a\ list\ set}\\
+\isa{listset} & \isa{{\isacharprime}a\ set\ list\ {\isasymRightarrow}\ {\isacharprime}a\ list\ set}\\
+\isa{listsum} & \isa{{\isacharprime}a\ list\ {\isasymRightarrow}\ {\isacharprime}a}\\
+\isa{list{\isacharunderscore}all{\isadigit{2}}} & \isa{{\isacharparenleft}{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}b\ {\isasymRightarrow}\ bool{\isacharparenright}\ {\isasymRightarrow}\ {\isacharprime}a\ list\ {\isasymRightarrow}\ {\isacharprime}b\ list\ {\isasymRightarrow}\ bool}\\
+\isa{list{\isacharunderscore}update} & \isa{{\isacharprime}a\ list\ {\isasymRightarrow}\ nat\ {\isasymRightarrow}\ {\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a\ list}\\
+\isa{map} & \isa{{\isacharparenleft}{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}b{\isacharparenright}\ {\isasymRightarrow}\ {\isacharprime}a\ list\ {\isasymRightarrow}\ {\isacharprime}b\ list}\\
+\isa{measures} & \isa{{\isacharparenleft}{\isacharprime}a\ {\isasymRightarrow}\ nat{\isacharparenright}\ list\ {\isasymRightarrow}\ {\isacharparenleft}{\isacharprime}a\ {\isasymtimes}\ {\isacharprime}a{\isacharparenright}\ set}\\
+\isa{remdups} & \isa{{\isacharprime}a\ list\ {\isasymRightarrow}\ {\isacharprime}a\ list}\\
+\isa{removeAll} & \isa{{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a\ list\ {\isasymRightarrow}\ {\isacharprime}a\ list}\\
+\isa{remove{\isadigit{1}}} & \isa{{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a\ list\ {\isasymRightarrow}\ {\isacharprime}a\ list}\\
+\isa{replicate} & \isa{nat\ {\isasymRightarrow}\ {\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a\ list}\\
+\isa{rev} & \isa{{\isacharprime}a\ list\ {\isasymRightarrow}\ {\isacharprime}a\ list}\\
+\isa{rotate} & \isa{nat\ {\isasymRightarrow}\ {\isacharprime}a\ list\ {\isasymRightarrow}\ {\isacharprime}a\ list}\\
+\isa{rotate{\isadigit{1}}} & \isa{{\isacharprime}a\ list\ {\isasymRightarrow}\ {\isacharprime}a\ list}\\
+\isa{set} & \isa{{\isacharprime}a\ list\ {\isasymRightarrow}\ {\isacharprime}a\ set}\\
+\isa{sort} & \isa{{\isacharprime}a\ list\ {\isasymRightarrow}\ {\isacharprime}a\ list}\\
+\isa{sorted} & \isa{{\isacharprime}a\ list\ {\isasymRightarrow}\ bool}\\
+\isa{splice} & \isa{{\isacharprime}a\ list\ {\isasymRightarrow}\ {\isacharprime}a\ list\ {\isasymRightarrow}\ {\isacharprime}a\ list}\\
+\isa{sublist} & \isa{{\isacharprime}a\ list\ {\isasymRightarrow}\ {\isacharparenleft}nat\ {\isasymRightarrow}\ bool{\isacharparenright}\ {\isasymRightarrow}\ {\isacharprime}a\ list}\\
+\isa{take} & \isa{nat\ {\isasymRightarrow}\ {\isacharprime}a\ list\ {\isasymRightarrow}\ {\isacharprime}a\ list}\\
+\isa{takeWhile} & \isa{{\isacharparenleft}{\isacharprime}a\ {\isasymRightarrow}\ bool{\isacharparenright}\ {\isasymRightarrow}\ {\isacharprime}a\ list\ {\isasymRightarrow}\ {\isacharprime}a\ list}\\
+\isa{tl} & \isa{{\isacharprime}a\ list\ {\isasymRightarrow}\ {\isacharprime}a\ list}\\
+\isa{upt} & \isa{nat\ {\isasymRightarrow}\ nat\ {\isasymRightarrow}\ nat\ list}\\
+\isa{upto} & \isa{{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a\ list}\\
+\isa{zip} & \isa{{\isacharprime}a\ list\ {\isasymRightarrow}\ {\isacharprime}b\ list\ {\isasymRightarrow}\ {\isacharparenleft}{\isacharprime}a\ {\isasymtimes}\ {\isacharprime}b{\isacharparenright}\ list}\\
+\end{supertabular}
+
+\subsubsection*{Syntax}
+
+\begin{supertabular}{@ {} l @ {\quad$\equiv$\quad} l @ {}}
+\isa{{\isacharbrackleft}x\isactrlisub {\isadigit{1}}{\isacharcomma}{\isasymdots}{\isacharcomma}x\isactrlisub n{\isacharbrackright}} & \isa{x\isactrlisub {\isadigit{1}}\ {\isacharhash}\ {\isasymdots}\ {\isacharhash}\ x\isactrlisub n\ {\isacharhash}\ {\isacharbrackleft}{\isacharbrackright}}\\
+\isa{{\isacharbrackleft}m{\isachardot}{\isachardot}{\isacharless}n{\isacharbrackright}} & \isa{{\isachardoublequote}upt\ m\ n{\isachardoublequote}}\\
+\isa{{\isacharbrackleft}i{\isachardot}{\isachardot}j{\isacharbrackright}} & \isa{{\isachardoublequote}upto\ i\ j{\isachardoublequote}}\\
+\isa{{\isacharbrackleft}e{\isachardot}\ x\ {\isasymleftarrow}\ xs{\isacharbrackright}} & \isa{map\ {\isacharparenleft}{\isasymlambda}x{\isachardot}\ e{\isacharparenright}\ xs}\\
+\isa{{\isacharbrackleft}x{\isasymleftarrow}xs\ {\isachardot}\ b{\isacharbrackright}} & \isa{{\isachardoublequote}filter\ {\isacharparenleft}{\isasymlambda}x{\isachardot}\ b{\isacharparenright}\ xs{\isachardoublequote}} \\
+\isa{xs{\isacharbrackleft}n\ {\isacharcolon}{\isacharequal}\ x{\isacharbrackright}} & \isa{{\isachardoublequote}list{\isacharunderscore}update\ xs\ n\ x{\isachardoublequote}}\\
+\isa{{\isasymSum}x{\isasymleftarrow}xs{\isachardot}\ e} & \isa{{\isachardoublequote}listsum\ {\isacharparenleft}map\ {\isacharparenleft}{\isasymlambda}x{\isachardot}\ e{\isacharparenright}\ xs{\isacharparenright}{\isachardoublequote}}\\
+\end{supertabular}
+\medskip
+
+List comprehension: \isa{{\isacharbrackleft}e{\isachardot}\ q\isactrlisub {\isadigit{1}}{\isacharcomma}\ {\isasymdots}{\isacharcomma}\ q\isactrlisub n{\isacharbrackright}} where each
+qualifier \isa{q\isactrlisub i} is either a generator \mbox{\isa{pat\ {\isasymleftarrow}\ e}} or a
+guard, i.e.\ boolean expression.
+
+\section{Map}
+
+Maps model partial functions and are often used as finite tables. However,
+the domain of a map may be infinite.
+
+\isa{{\isacharprime}a\ {\isasymrightharpoonup}\ {\isacharprime}b\ \ {\isacharequal}\ \ {\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}b\ option}
+\bigskip
+
+\begin{supertabular}{@ {} l @ {~::~} l @ {}}
+\isa{Map{\isachardot}empty} & \isa{{\isacharprime}a\ {\isasymrightharpoonup}\ {\isacharprime}b}\\
+\isa{op\ {\isacharplus}{\isacharplus}} & \isa{{\isacharparenleft}{\isacharprime}a\ {\isasymrightharpoonup}\ {\isacharprime}b{\isacharparenright}\ {\isasymRightarrow}\ {\isacharparenleft}{\isacharprime}a\ {\isasymrightharpoonup}\ {\isacharprime}b{\isacharparenright}\ {\isasymRightarrow}\ {\isacharprime}a\ {\isasymrightharpoonup}\ {\isacharprime}b}\\
+\isa{op\ {\isasymcirc}\isactrlsub m} & \isa{{\isacharparenleft}{\isacharprime}a\ {\isasymrightharpoonup}\ {\isacharprime}b{\isacharparenright}\ {\isasymRightarrow}\ {\isacharparenleft}{\isacharprime}c\ {\isasymrightharpoonup}\ {\isacharprime}a{\isacharparenright}\ {\isasymRightarrow}\ {\isacharprime}c\ {\isasymrightharpoonup}\ {\isacharprime}b}\\
+\isa{op\ {\isacharbar}{\isacharbackquote}} & \isa{{\isacharparenleft}{\isacharprime}a\ {\isasymrightharpoonup}\ {\isacharprime}b{\isacharparenright}\ {\isasymRightarrow}\ {\isacharprime}a\ set\ {\isasymRightarrow}\ {\isacharprime}a\ {\isasymrightharpoonup}\ {\isacharprime}b}\\
+\isa{dom} & \isa{{\isacharparenleft}{\isacharprime}a\ {\isasymrightharpoonup}\ {\isacharprime}b{\isacharparenright}\ {\isasymRightarrow}\ {\isacharprime}a\ set}\\
+\isa{ran} & \isa{{\isacharparenleft}{\isacharprime}a\ {\isasymrightharpoonup}\ {\isacharprime}b{\isacharparenright}\ {\isasymRightarrow}\ {\isacharprime}b\ set}\\
+\isa{op\ {\isasymsubseteq}\isactrlsub m} & \isa{{\isacharparenleft}{\isacharprime}a\ {\isasymrightharpoonup}\ {\isacharprime}b{\isacharparenright}\ {\isasymRightarrow}\ {\isacharparenleft}{\isacharprime}a\ {\isasymrightharpoonup}\ {\isacharprime}b{\isacharparenright}\ {\isasymRightarrow}\ bool}\\
+\isa{map{\isacharunderscore}of} & \isa{{\isacharparenleft}{\isacharprime}a\ {\isasymtimes}\ {\isacharprime}b{\isacharparenright}\ list\ {\isasymRightarrow}\ {\isacharprime}a\ {\isasymrightharpoonup}\ {\isacharprime}b}\\
+\isa{map{\isacharunderscore}upds} & \isa{{\isacharparenleft}{\isacharprime}a\ {\isasymrightharpoonup}\ {\isacharprime}b{\isacharparenright}\ {\isasymRightarrow}\ {\isacharprime}a\ list\ {\isasymRightarrow}\ {\isacharprime}b\ list\ {\isasymRightarrow}\ {\isacharprime}a\ {\isasymrightharpoonup}\ {\isacharprime}b}\\
+\end{supertabular}
+
+\subsubsection*{Syntax}
+
+\begin{tabular}{@ {} l @ {\quad$\equiv$\quad} l @ {}}
+\isa{Map{\isachardot}empty} & \isa{{\isasymlambda}x{\isachardot}\ None}\\
+\isa{m{\isacharparenleft}x\ {\isasymmapsto}\ y{\isacharparenright}} & \isa{{\isachardoublequote}m{\isacharparenleft}x{\isacharcolon}{\isacharequal}Some\ y{\isacharparenright}{\isachardoublequote}}\\
+\isa{m{\isacharparenleft}x\isactrlisub {\isadigit{1}}{\isasymmapsto}y\isactrlisub {\isadigit{1}}{\isacharcomma}{\isasymdots}{\isacharcomma}x\isactrlisub n{\isasymmapsto}y\isactrlisub n{\isacharparenright}} & \isa{{\isachardoublequote}m{\isacharparenleft}x\isactrlisub {\isadigit{1}}{\isasymmapsto}y\isactrlisub {\isadigit{1}}{\isacharparenright}{\isasymdots}{\isacharparenleft}x\isactrlisub n{\isasymmapsto}y\isactrlisub n{\isacharparenright}{\isachardoublequote}}\\
+\isa{{\isacharbrackleft}x\isactrlisub {\isadigit{1}}{\isasymmapsto}y\isactrlisub {\isadigit{1}}{\isacharcomma}{\isasymdots}{\isacharcomma}x\isactrlisub n{\isasymmapsto}y\isactrlisub n{\isacharbrackright}} & \isa{{\isachardoublequote}Map{\isachardot}empty{\isacharparenleft}x\isactrlisub {\isadigit{1}}{\isasymmapsto}y\isactrlisub {\isadigit{1}}{\isacharcomma}{\isasymdots}{\isacharcomma}x\isactrlisub n{\isasymmapsto}y\isactrlisub n{\isacharparenright}{\isachardoublequote}}\\
+\isa{m{\isacharparenleft}xs\ {\isacharbrackleft}{\isasymmapsto}{\isacharbrackright}\ ys{\isacharparenright}} & \isa{{\isachardoublequote}map{\isacharunderscore}upds\ m\ xs\ ys{\isachardoublequote}}\\
+\end{tabular}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isadelimtheory
+%
+\endisadelimtheory
+%
+\isatagtheory
+%
+\endisatagtheory
+{\isafoldtheory}%
+%
+\isadelimtheory
+%
+\endisadelimtheory
+\end{isabellebody}%
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "root"
+%%% End:
