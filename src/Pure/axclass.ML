@@ -371,7 +371,6 @@ fun declare_overloaded (c, T) thy =
   in
     thy
     |> Sign.sticky_prefix name_inst
-    |> Sign.no_base_names
     |> Sign.declare_const [] ((Binding.name c', T'), NoSyn)
     |-> (fn const' as Const (c'', _) =>
       Thm.add_def false true
@@ -481,8 +480,7 @@ fun define_class (bclass, raw_super) raw_params raw_specs thy =
     val class_triv = Thm.class_triv def_thy class;
     val ([(_, [intro]), (_, classrel), (_, axioms)], facts_thy) =
       def_thy
-      |> Sign.add_path (Binding.name_of bconst)
-      |> Sign.no_base_names
+      |> Sign.sticky_prefix (Binding.name_of bconst)
       |> PureThy.note_thmss ""
         [((Binding.name introN, []), [([Drule.standard raw_intro], [])]),
          ((Binding.name superN, []), [(map Drule.standard raw_classrel, [])]),
