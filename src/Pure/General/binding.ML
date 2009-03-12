@@ -14,7 +14,7 @@ sig
   val make: bstring * Position.T -> binding
   val pos_of: binding -> Position.T
   val name: bstring -> binding
-  val name_of: binding -> string
+  val name_of: binding -> bstring
   val map_name: (bstring -> bstring) -> binding -> binding
   val prefix_name: string -> binding -> binding
   val suffix_name: string -> binding -> binding
@@ -22,8 +22,8 @@ sig
   val empty: binding
   val is_empty: binding -> bool
   val qualify: bool -> string -> binding -> binding
-  val qualified_name: bstring -> binding
-  val qualified_name_of: binding -> bstring
+  val qualified_name: string -> binding
+  val qualified_name_of: binding -> string
   val prefix_of: binding -> (string * bool) list
   val map_prefix: ((string * bool) list -> (string * bool) list) -> binding -> binding
   val prefix: bool -> string -> binding -> binding
