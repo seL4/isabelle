@@ -359,7 +359,7 @@ local
                          >> (fn sow => (map (snd o snd) sow, map (apsnd fst) sow))
 in
   fun fundef_parser default_cfg = 
-      config_parser default_cfg -- P.fixes --| P.$$$ "where" -- flags_statements
+      config_parser default_cfg -- P.fixes --| P.where_ -- flags_statements
 end
 
 

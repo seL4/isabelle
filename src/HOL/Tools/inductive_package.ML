@@ -842,11 +842,10 @@ fun gen_add_inductive_i mk_def
 
 fun gen_add_inductive mk_def verbose coind cnames_syn pnames_syn intro_srcs raw_monos int lthy =
   let
-    val ((vars, specs), _) = lthy |> ProofContext.set_mode ProofContext.mode_abbrev
-      |> Specification.read_specification
-          (cnames_syn @ pnames_syn) (map (fn (a, s) => [(a, [s])]) intro_srcs);
+    val ((vars, intrs), _) = lthy
+      |> ProofContext.set_mode ProofContext.mode_abbrev
+      |> Specification.read_spec (cnames_syn @ pnames_syn) intro_srcs;
     val (cs, ps) = chop (length cnames_syn) vars;
-    val intrs = map (apsnd the_single) specs;
     val monos = Attrib.eval_thms lthy raw_monos;
     val flags = {quiet_mode = false, verbose = verbose, kind = Thm.theoremK,
       alt_name = Binding.empty, coind = coind, no_elim = false, no_ind = false,
@@ -946,22 +945,12 @@ local structure P = OuterParse and K = OuterKeyword in
 
 val _ = OuterKeyword.keyword "monos";
 
-(* FIXME eliminate *)
-fun flatten_specification specs = specs |> maps
-  (fn (a, (concl, [])) => concl |> map
-        (fn ((b, atts), [B]) =>
-              if Binding.is_empty a then ((b, atts), B)
-              else if Binding.is_empty b then ((a, atts), B)
-              else error "Illegal nested case names"
-          | ((b, _), _) => error "Illegal simultaneous specification")
-    | (a, _) => error ("Illegal local specification parameters for " ^ quote (Binding.str_of a)));
-
 fun gen_ind_decl mk_def coind =
   P.fixes -- P.for_fixes --
-  Scan.optional (P.$$$ "where" |-- P.!!! SpecParse.specification) [] --
+  Scan.optional SpecParse.where_alt_specs [] --
   Scan.optional (P.$$$ "monos" |-- P.!!! SpecParse.xthms1) []
   >> (fn (((preds, params), specs), monos) =>
-      (snd oo gen_add_inductive mk_def true coind preds params (flatten_specification specs) monos));
+      (snd oo gen_add_inductive mk_def true coind preds params specs monos));
 
 val ind_decl = gen_ind_decl add_ind_def;
 
@@ -971,7 +960,7 @@ val _ = OuterSyntax.local_theory' "coinductive" "define coinductive predicates" 
 val _ =
   OuterSyntax.local_theory "inductive_cases"
     "create simplified instances of elimination rules (improper)" K.thy_script
-    (P.and_list1 SpecParse.spec >> (fn specs => snd o inductive_cases specs));
+    (P.and_list1 SpecParse.specs >> (snd oo inductive_cases));
 
 end;
 
