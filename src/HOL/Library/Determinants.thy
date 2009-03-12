@@ -40,7 +40,7 @@ lemma setprod_singleton: "setprod f {x} = f x" by simp
 lemma setprod_singleton_nat_seg: "setprod f {n..n} = f (n::'a::order)" by simp
 
 lemma setprod_numseg: "setprod f {m..0} = (if m=0 then f 0 else 1)"
-  "setprod f {m .. Suc n} = (if m \<le> Suc n then f (Suc n) * setprod f {m..n} 
+  "setprod f {m .. Suc n} = (if m \<le> Suc n then f (Suc n) * setprod f {m..n}
                              else setprod f {m..n})"
   by (auto simp add: atLeastAtMostSuc_conv)
 
@@ -98,20 +98,20 @@ definition det:: "'a::comm_ring_1^'n^'n \<Rightarrow> 'a" where
 (* A few general lemmas we need below.                                       *)
 (* ------------------------------------------------------------------------- *)
 
-lemma Cart_lambda_beta_perm: assumes p: "p permutes {1..dimindex(UNIV::'n set)}" 
-  and i: "i \<in> {1..dimindex(UNIV::'n set)}" 
+lemma Cart_lambda_beta_perm: assumes p: "p permutes {1..dimindex(UNIV::'n set)}"
+  and i: "i \<in> {1..dimindex(UNIV::'n set)}"
   shows "Cart_nth (Cart_lambda g ::'a^'n) (p i) = g(p i)"
   using permutes_in_image[OF p] i
   by (simp add:  Cart_lambda_beta permutes_in_image[OF p])
 
 lemma setprod_permute:
-  assumes p: "p permutes S" 
+  assumes p: "p permutes S"
   shows "setprod f S = setprod (f o p) S"
 proof-
   {assume "\<not> finite S" hence ?thesis by simp}
   moreover
   {assume fS: "finite S"
-    then have ?thesis 
+    then have ?thesis
       apply (simp add: setprod_def)
       apply (rule ab_semigroup_mult.fold_image_permute)
       apply (auto simp add: p)
@@ -134,9 +134,9 @@ proof-
   have fU: "finite ?U" by blast
   {fix p assume p: "p \<in> {p. p permutes ?U}"
     from p have pU: "p permutes ?U" by blast
-    have sth: "sign (inv p) = sign p" 
+    have sth: "sign (inv p) = sign p"
       by (metis sign_inverse fU p mem_def Collect_def permutation_permutes)
-    from permutes_inj[OF pU] 
+    from permutes_inj[OF pU]
     have pi: "inj_on p ?U" by (blast intro: subset_inj_on)
     from permutes_image[OF pU]
     have "setprod (\<lambda>i. ?di (transp A) i (inv p i)) ?U = setprod (\<lambda>i. ?di (transp A) i (inv p i)) (p ` ?U)" by simp
@@ -148,7 +148,7 @@ proof-
 	from i permutes_inv_o[OF pU] permutes_in_image[OF pU]
 	have "((\<lambda>i. ?di (transp A) i (inv p i)) o p) i = ?di A i (p i)"
 	  unfolding transp_def by (simp add: Cart_lambda_beta expand_fun_eq)}
-      then show "setprod ((\<lambda>i. ?di (transp A) i (inv p i)) o p) ?U = setprod (\<lambda>i. ?di A i (p i)) ?U" by (auto intro: setprod_cong)  
+      then show "setprod ((\<lambda>i. ?di (transp A) i (inv p i)) o p) ?U = setprod (\<lambda>i. ?di A i (p i)) ?U" by (auto intro: setprod_cong)
     qed
     finally have "of_int (sign (inv p)) * (setprod (\<lambda>i. ?di (transp A) i (inv p i)) ?U) = of_int (sign p) * (setprod (\<lambda>i. ?di A i (p i)) ?U)" using sth
       by simp}
@@ -156,7 +156,7 @@ proof-
   apply (rule setsum_cong2) by blast
 qed
 
-lemma det_lowerdiagonal: 
+lemma det_lowerdiagonal:
   fixes A :: "'a::comm_ring_1^'n^'n"
   assumes ld: "\<And>i j. i \<in> {1 .. dimindex (UNIV:: 'n set)} \<Longrightarrow> j \<in> {1 .. dimindex(UNIV:: 'n set)} \<Longrightarrow> i < j \<Longrightarrow> A$i$j = 0"
   shows "det A = setprod (\<lambda>i. A$i$i) {1..dimindex(UNIV:: 'n set)}"
@@ -179,7 +179,7 @@ proof-
     unfolding det_def by (simp add: sign_id)
 qed
 
-lemma det_upperdiagonal: 
+lemma det_upperdiagonal:
   fixes A :: "'a::comm_ring_1^'n^'n"
   assumes ld: "\<And>i j. i \<in> {1 .. dimindex (UNIV:: 'n set)} \<Longrightarrow> j \<in> {1 .. dimindex(UNIV:: 'n set)} \<Longrightarrow> i > j \<Longrightarrow> A$i$j = 0"
   shows "det A = setprod (\<lambda>i. A$i$i) {1..dimindex(UNIV:: 'n set)}"
@@ -216,7 +216,7 @@ proof-
   then have "det ?A = setprod (\<lambda>i. ?f i i) ?U" using det_lowerdiagonal
     by blast
   also have "\<dots> = 1" unfolding th setprod_1 ..
-  finally show ?thesis . 
+  finally show ?thesis .
 qed
 
 lemma det_0: "det (mat 0 :: 'a::comm_ring_1^'n^'n) = 0"
@@ -235,7 +235,7 @@ proof-
   then have "det ?A = setprod (\<lambda>i. ?f i i) ?U" using det_lowerdiagonal
     by blast
   also have "\<dots> = 0" unfolding th  ..
-  finally show ?thesis . 
+  finally show ?thesis .
 qed
 
 lemma det_permute_rows:
@@ -243,7 +243,7 @@ lemma det_permute_rows:
   assumes p: "p permutes {1 .. dimindex (UNIV :: 'n set)}"
   shows "det(\<chi> i. A$p i :: 'a^'n^'n) = of_int (sign p) * det A"
   apply (simp add: det_def setsum_right_distrib mult_assoc[symmetric] del: One_nat_def)
-  apply (subst sum_permutations_compose_right[OF p])  
+  apply (subst sum_permutations_compose_right[OF p])
 proof(rule setsum_cong2)
   let ?U = "{1 .. dimindex (UNIV :: 'n set)}"
   let ?PU = "{p. p permutes ?U}"
@@ -259,14 +259,14 @@ proof(rule setsum_cong2)
       have "?Ap$i$ (q o p) i = A $ p i $ (q o p) i " by simp}
     hence "setprod (\<lambda>i. ?Ap$i$ (q o p) i) ?U = setprod (\<lambda>i. A$p i$(q o p) i) ?U"
       by (auto intro: setprod_cong)
-    also have "\<dots> = setprod ((\<lambda>i. A$p i$(q o p) i) o inv p) ?U" 
+    also have "\<dots> = setprod ((\<lambda>i. A$p i$(q o p) i) o inv p) ?U"
       by (simp only: setprod_permute[OF ip, symmetric])
     also have "\<dots> = setprod (\<lambda>i. A $ (p o inv p) i $ (q o (p o inv p)) i) ?U"
       by (simp only: o_def)
     also have "\<dots> = setprod (\<lambda>i. A$i$q i) ?U" by (simp only: o_def permutes_inverses[OF p])
-    finally   have thp: "setprod (\<lambda>i. ?Ap$i$ (q o p) i) ?U = setprod (\<lambda>i. A$i$q i) ?U" 
+    finally   have thp: "setprod (\<lambda>i. ?Ap$i$ (q o p) i) ?U = setprod (\<lambda>i. A$i$q i) ?U"
       by blast
-  show "of_int (sign (q o p)) * setprod (\<lambda>i. ?Ap$i$ (q o p) i) ?U = of_int (sign p) * of_int (sign q) * setprod (\<lambda>i. A$i$q i) ?U" 
+  show "of_int (sign (q o p)) * setprod (\<lambda>i. ?Ap$i$ (q o p) i) ?U = of_int (sign p) * of_int (sign q) * setprod (\<lambda>i. A$i$q i) ?U"
     by (simp only: thp sign_compose[OF qp pp] mult_commute of_int_mult)
 qed
 
@@ -282,18 +282,18 @@ proof-
   moreover
   have "?Ap = transp (\<chi> i. transp A $ p i)"
     by (simp add: transp_def Cart_eq Cart_lambda_beta Cart_lambda_beta_perm[OF p])
-  ultimately show ?thesis by simp 
+  ultimately show ?thesis by simp
 qed
 
 lemma det_identical_rows:
   fixes A :: "'a::ordered_idom^'n^'n"
-  assumes i: "i\<in>{1 .. dimindex (UNIV :: 'n set)}" 
+  assumes i: "i\<in>{1 .. dimindex (UNIV :: 'n set)}"
   and j: "j\<in>{1 .. dimindex (UNIV :: 'n set)}"
   and ij: "i \<noteq> j"
   and r: "row i A = row j A"
   shows	"det A = 0"
 proof-
-  have tha: "\<And>(a::'a) b. a = b ==> b = - a ==> a = 0" 
+  have tha: "\<And>(a::'a) b. a = b ==> b = - a ==> a = 0"
     by simp
   have th1: "of_int (-1) = - 1" by (metis of_int_1 of_int_minus number_of_Min)
   let ?p = "Fun.swap i j id"
@@ -302,12 +302,12 @@ proof-
   hence "det A = det ?A" by simp
   moreover have "det A = - det ?A"
     by (simp add: det_permute_rows[OF permutes_swap_id[OF i j]] sign_swap_id ij th1)
-  ultimately show "det A = 0" by (metis tha) 
+  ultimately show "det A = 0" by (metis tha)
 qed
 
 lemma det_identical_columns:
   fixes A :: "'a::ordered_idom^'n^'n"
-  assumes i: "i\<in>{1 .. dimindex (UNIV :: 'n set)}" 
+  assumes i: "i\<in>{1 .. dimindex (UNIV :: 'n set)}"
   and j: "j\<in>{1 .. dimindex (UNIV :: 'n set)}"
   and ij: "i \<noteq> j"
   and r: "column i A = column j A"
@@ -316,9 +316,9 @@ apply (subst det_transp[symmetric])
 apply (rule det_identical_rows[OF i j ij])
 by (metis row_transp i j r)
 
-lemma det_zero_row: 
+lemma det_zero_row:
   fixes A :: "'a::{idom, ring_char_0}^'n^'n"
-  assumes i: "i\<in>{1 .. dimindex (UNIV :: 'n set)}" 
+  assumes i: "i\<in>{1 .. dimindex (UNIV :: 'n set)}"
   and r: "row i A = 0"
   shows "det A = 0"
 using i r
@@ -332,16 +332,16 @@ apply (erule_tac x="a i" in ballE)
 apply (subgoal_tac "(0\<Colon>'a ^ 'n) $ a i = 0")
 apply simp
 apply (rule zero_index)
-apply (drule permutes_in_image[of _ _ i]) 
+apply (drule permutes_in_image[of _ _ i])
 apply simp
-apply (drule permutes_in_image[of _ _ i]) 
+apply (drule permutes_in_image[of _ _ i])
 apply simp
 apply simp
 done
 
 lemma det_zero_column:
   fixes A :: "'a::{idom,ring_char_0}^'n^'n"
-  assumes i: "i\<in>{1 .. dimindex (UNIV :: 'n set)}" 
+  assumes i: "i\<in>{1 .. dimindex (UNIV :: 'n set)}"
   and r: "column i A = 0"
   shows "det A = 0"
   apply (subst det_transp[symmetric])
@@ -361,7 +361,7 @@ lemma setprod_lambda_beta2[simp]: "setprod (\<lambda>i. ((\<chi> i. g i) :: 'a::
 proof(rule setprod_cong[OF refl])
   let ?U = "{1 .. dimindex (UNIV :: 'n set)}"
   fix i assume i: "i \<in> ?U"
-  from Cart_lambda_beta'[OF i, of g] have 
+  from Cart_lambda_beta'[OF i, of g] have
     "((\<chi> i. g i) :: 'a^'n^'n) $ i = g i" .
   hence "((\<chi> i. g i) :: 'a^'n^'n) $ i $ f i = g i $ f i" by simp
   then
@@ -369,7 +369,7 @@ proof(rule setprod_cong[OF refl])
 qed
 
 lemma det_row_add:
-  assumes k: "k \<in> {1 .. dimindex (UNIV :: 'n set)}" 
+  assumes k: "k \<in> {1 .. dimindex (UNIV :: 'n set)}"
   shows "det((\<chi> i. if i = k then a i + b i else c i)::'a::comm_ring_1^'n^'n) =
              det((\<chi> i. if i = k then a i else c i)::'a::comm_ring_1^'n^'n) +
              det((\<chi> i. if i = k then b i else c i)::'a::comm_ring_1^'n^'n)"
@@ -387,7 +387,7 @@ proof (rule setsum_cong2)
   note pin[simp] = permutes_in_image[OF pU]
   have kU: "?U = insert k ?Uk" using k by blast
   {fix j assume j: "j \<in> ?Uk"
-    from j have "?f j $ p j = ?g j $ p j" and "?f j $ p j= ?h j $ p j" 
+    from j have "?f j $ p j = ?g j $ p j" and "?f j $ p j= ?h j $ p j"
       by simp_all}
   then have th1: "setprod (\<lambda>i. ?f i $ p i) ?Uk = setprod (\<lambda>i. ?g i $ p i) ?Uk"
     and th2: "setprod (\<lambda>i. ?f i $ p i) ?Uk = setprod (\<lambda>i. ?h i $ p i) ?Uk"
@@ -411,7 +411,7 @@ proof (rule setsum_cong2)
 qed
 
 lemma det_row_mul:
-  assumes k: "k \<in> {1 .. dimindex (UNIV :: 'n set)}" 
+  assumes k: "k \<in> {1 .. dimindex (UNIV :: 'n set)}"
   shows "det((\<chi> i. if i = k then c *s a i else b i)::'a::comm_ring_1^'n^'n) =
              c* det((\<chi> i. if i = k then a i else b i)::'a::comm_ring_1^'n^'n)"
 
@@ -451,7 +451,7 @@ proof (rule setsum_cong2)
 qed
 
 lemma det_row_0:
-  assumes k: "k \<in> {1 .. dimindex (UNIV :: 'n set)}" 
+  assumes k: "k \<in> {1 .. dimindex (UNIV :: 'n set)}"
   shows "det((\<chi> i. if i = k then 0 else b i)::'a::comm_ring_1^'n^'n) = 0"
 using det_row_mul[OF k, of 0 "\<lambda>i. 1" b]
 apply (simp)
@@ -483,8 +483,8 @@ proof-
   let ?S = "{row j A |j. j\<in> ?U \<and> j\<noteq> i}"
   let ?d = "\<lambda>x. det (\<chi> k. if k = i then x else row k A)"
   let ?P = "\<lambda>x. ?d (row i A + x) = det A"
-  {fix k 
-    
+  {fix k
+
     have "(if k = i then row i A + 0 else row k A) = row k A" by simp}
   then have P0: "?P 0"
     apply -
@@ -499,10 +499,10 @@ proof-
       apply (rule det_identical_rows[OF i j(2,3)])
       using i j by (vector row_def)
     have "?d (row i A + (c*s z + y)) = ?d (?w + c*s z)" unfolding th0 ..
-    then have "?P (c*s z + y)" unfolding thz Py det_row_mul[OF i] det_row_add[OF i] 
+    then have "?P (c*s z + y)" unfolding thz Py det_row_mul[OF i] det_row_add[OF i]
       by simp }
 
-  ultimately show ?thesis 
+  ultimately show ?thesis
     apply -
     apply (rule span_induct_alt[of ?P ?S, OF P0])
     apply blast
@@ -524,7 +524,7 @@ proof-
   from d obtain i where i: "i \<in> ?U" "row i A \<in> span (rows A - {row i A})"
     unfolding dependent_def rows_def by blast
   {fix j k assume j: "j \<in>?U" and k: "k \<in> ?U" and jk: "j \<noteq> k"
-    and c: "row j A = row k A" 
+    and c: "row j A = row k A"
     from det_identical_rows[OF j k jk c] have ?thesis .}
   moreover
   {assume H: "\<And> i j. i\<in> ?U \<Longrightarrow> j \<in> ?U \<Longrightarrow> i \<noteq> j \<Longrightarrow> row i A \<noteq> row j A"
@@ -537,7 +537,7 @@ proof-
     from det_row_span[OF i(1) th0]
     have "det A = det (\<chi> k. if k = i then 0 *s 1 else row k A)"
       unfolding right_minus vector_smult_lzero ..
-    with det_row_mul[OF i(1), of "0::'a" "\<lambda>i. 1"] 
+    with det_row_mul[OF i(1), of "0::'a" "\<lambda>i. 1"]
     have "det A = 0" by simp}
   ultimately show ?thesis by blast
 qed
@@ -552,7 +552,7 @@ by (metis d det_dependent_rows rows_transp det_transp)
 lemma Cart_lambda_cong: "(\<And>x. x \<in> {1 .. dimindex (UNIV :: 'n set)} \<Longrightarrow> f x = g x) \<Longrightarrow> (Cart_lambda f::'a^'n) = (Cart_lambda g :: 'a^'n)"
   apply (rule iffD1[OF Cart_lambda_unique]) by vector
 
-lemma det_linear_row_setsum: 
+lemma det_linear_row_setsum:
   assumes fS: "finite S" and k: "k \<in> {1 .. dimindex (UNIV :: 'n set)}"
   shows "det ((\<chi> i. if i = k then setsum (a i) S else c i)::'a::comm_ring_1^'n^'n) = setsum (\<lambda>j. det ((\<chi> i. if i = k then a  i j else c i)::'a^'n^'n)) S"
   using k
@@ -567,7 +567,7 @@ lemma finite_bounded_functions:
   assumes fS: "finite S"
   shows "finite {f. (\<forall>i \<in> {1.. (k::nat)}. f i \<in> S) \<and> (\<forall>i. i \<notin> {1 .. k} \<longrightarrow> f i = i)}"
 proof(induct k)
-  case 0 
+  case 0
   have th: "{f. \<forall>i. f i = i} = {id}" by (auto intro: ext)
   show ?case by (auto simp add: th)
 next
@@ -581,7 +581,7 @@ next
     apply (auto intro: ext)
     done
   with finite_imageI[OF finite_cartesian_product[OF fS Suc.hyps(1)], of ?f]
-  show ?case by metis 
+  show ?case by metis
 qed
 
 
@@ -608,9 +608,9 @@ next
   from Suc.prems have k': "k \<le> dimindex (UNIV :: 'n set)" by arith
   have thif: "\<And>a b c d. (if b \<or> a then c else d) = (if a then c else if b then c else d)" by simp
   have thif2: "\<And>a b c d e. (if a then b else if c then d else e) =
-     (if c then (if a then b else d) else (if a then b else e))" by simp 
-  have "det (\<chi> i. if i \<le> Suc k then setsum (a i) S else c i) = 
-        det (\<chi> i. if i = Suc k then setsum (a i) S 
+     (if c then (if a then b else d) else (if a then b else e))" by simp
+  have "det (\<chi> i. if i \<le> Suc k then setsum (a i) S else c i) =
+        det (\<chi> i. if i = Suc k then setsum (a i) S
                  else if i \<le> k then setsum (a i) S else c i)"
     unfolding le_Suc_eq thif  ..
   also have "\<dots> = (\<Sum>j\<in>S. det (\<chi> i. if i \<le> k then setsum (a i) S
@@ -618,14 +618,14 @@ next
     unfolding det_linear_row_setsum[OF fS Sk]
     apply (subst thif2)
     by (simp cong del: if_weak_cong cong add: if_cong)
-  finally have tha: 
-    "det (\<chi> i. if i \<le> Suc k then setsum (a i) S else c i) = 
+  finally have tha:
+    "det (\<chi> i. if i \<le> Suc k then setsum (a i) S else c i) =
      (\<Sum>(j, f)\<in>S \<times> ?F k. det (\<chi> i. if i \<le> k then a i (f i)
                                 else if i = Suc k then a i j
-                                else c i))" 
+                                else c i))"
     unfolding  Suc.hyps[OF k'] unfolding setsum_cartesian_product by blast
   show ?case unfolding tha
-    apply(rule setsum_eq_general_reverses[where h= "?h" and k= "?k"], 
+    apply(rule setsum_eq_general_reverses[where h= "?h" and k= "?k"],
       blast intro: finite_cartesian_product fS finite_bounded_functions[OF fS],
       blast intro: finite_cartesian_product fS finite_bounded_functions[OF fS], auto intro: ext)
     apply (rule cong[OF refl[of det]])
@@ -637,7 +637,7 @@ lemma det_linear_rows_setsum:
   shows "det (\<chi> i. setsum (a i) S) = setsum (\<lambda>f. det (\<chi> i. a i (f i) :: 'a::comm_ring_1 ^ 'n^'n)) {f. (\<forall>i \<in> {1 .. dimindex (UNIV :: 'n set)}. f i \<in> S) \<and> (\<forall>i. i \<notin> {1.. dimindex (UNIV :: 'n set)} \<longrightarrow> f i = i)}"
 proof-
   have th0: "\<And>x y. ((\<chi> i. if i <= dimindex(UNIV:: 'n set) then x i else y i) :: 'a^'n^'n) = (\<chi> i. x i)" by vector
-  
+
   from det_linear_rows_setsum_lemma[OF fS, of "dimindex (UNIV :: 'n set)" a, unfolded th0, OF order_refl] show ?thesis by blast
 qed
 
@@ -674,25 +674,25 @@ proof-
   have fU: "finite ?U" by simp
   have fF: "finite ?F"  using finite_bounded_functions[OF fU] .
   {fix p assume p: "p permutes ?U"
-    
+
     have "p \<in> ?F" unfolding mem_Collect_eq permutes_in_image[OF p]
       using p[unfolded permutes_def] by simp}
-  then have PUF: "?PU \<subseteq> ?F"  by blast 
+  then have PUF: "?PU \<subseteq> ?F"  by blast
   {fix f assume fPU: "f \<in> ?F - ?PU"
     have fUU: "f ` ?U \<subseteq> ?U" using fPU by auto
     from fPU have f: "\<forall>i \<in> ?U. f i \<in> ?U"
-      "\<forall>i. i \<notin> ?U \<longrightarrow> f i = i" "\<not>(\<forall>y. \<exists>!x. f x = y)" unfolding permutes_def 
+      "\<forall>i. i \<notin> ?U \<longrightarrow> f i = i" "\<not>(\<forall>y. \<exists>!x. f x = y)" unfolding permutes_def
       by auto
-    
+
     let ?A = "(\<chi> i. A$i$f i *s B$f i) :: 'a^'n^'n"
     let ?B = "(\<chi> i. B$f i) :: 'a^'n^'n"
     {assume fni: "\<not> inj_on f ?U"
       then obtain i j where ij: "i \<in> ?U" "j \<in> ?U" "f i = f j" "i \<noteq> j"
 	unfolding inj_on_def by blast
-      from ij 
+      from ij
       have rth: "row i ?B = row j ?B" by (vector row_def)
-      from det_identical_rows[OF ij(1,2,4) rth] 
-      have "det (\<chi> i. A$i$f i *s B$f i) = 0" 
+      from det_identical_rows[OF ij(1,2,4) rth]
+      have "det (\<chi> i. A$i$f i *s B$f i) = 0"
 	unfolding det_rows_mul by simp}
     moreover
     {assume fi: "inj_on f ?U"
@@ -701,7 +701,7 @@ proof-
 	apply (case_tac "i \<in> ?U")
 	apply (case_tac "j \<in> ?U") by metis+
       note fs = fi[unfolded surjective_iff_injective_gen[OF fU fU refl fUU, symmetric]]
-      
+
       {fix y
 	from fs f have "\<exists>x. f x = y" by (cases "y \<in> ?U") blast+
 	then obtain x where x: "f x = y" by blast
@@ -724,17 +724,17 @@ proof-
       fix q assume qU: "q \<in> ?PU"
       hence q: "q permutes ?U" by blast
       from p q have pp: "permutation p" and pq: "permutation q"
-	unfolding permutation_permutes by auto 
-      have th00: "of_int (sign p) * of_int (sign p) = (1::'a)" 
-	"\<And>a. of_int (sign p) * (of_int (sign p) * a) = a" 
-	unfolding mult_assoc[symmetric]	unfolding of_int_mult[symmetric] 
+	unfolding permutation_permutes by auto
+      have th00: "of_int (sign p) * of_int (sign p) = (1::'a)"
+	"\<And>a. of_int (sign p) * (of_int (sign p) * a) = a"
+	unfolding mult_assoc[symmetric]	unfolding of_int_mult[symmetric]
 	by (simp_all add: sign_idempotent)
       have ths: "?s q = ?s p * ?s (q o inv p)"
 	using pp pq permutation_inverse[OF pp] sign_inverse[OF pp]
 	by (simp add:  th00 mult_ac sign_idempotent sign_compose)
       have th001: "setprod (\<lambda>i. B$i$ q (inv p i)) ?U = setprod ((\<lambda>i. B$i$ q (inv p i)) o p) ?U"
 	by (rule setprod_permute[OF p])
-      have thp: "setprod (\<lambda>i. (\<chi> i. A$i$p i *s B$p i :: 'a^'n^'n) $i $ q i) ?U = setprod (\<lambda>i. A$i$p i) ?U * setprod (\<lambda>i. B$i$ q (inv p i)) ?U" 
+      have thp: "setprod (\<lambda>i. (\<chi> i. A$i$p i *s B$p i :: 'a^'n^'n) $i $ q i) ?U = setprod (\<lambda>i. A$i$p i) ?U * setprod (\<lambda>i. B$i$ q (inv p i)) ?U"
 	unfolding th001 setprod_timesf[symmetric] o_def permutes_inverses[OF p]
 	apply (rule setprod_cong[OF refl])
 	using permutes_in_image[OF q] by vector
@@ -743,16 +743,16 @@ proof-
 	by (simp add: sign_nz th00 ring_simps sign_idempotent sign_compose)
     qed
   }
-  then have th2: "setsum (\<lambda>f. det (\<chi> i. A$i$f i *s B$f i)) ?PU = det A * det B" 
+  then have th2: "setsum (\<lambda>f. det (\<chi> i. A$i$f i *s B$f i)) ?PU = det A * det B"
     unfolding det_def setsum_product
-    by (rule setsum_cong2) 
+    by (rule setsum_cong2)
   have "det (A**B) = setsum (\<lambda>f.  det (\<chi> i. A $ i $ f i *s B $ f i)) ?F"
-    unfolding matrix_mul_setsum_alt det_linear_rows_setsum[OF fU] .. 
+    unfolding matrix_mul_setsum_alt det_linear_rows_setsum[OF fU] ..
   also have "\<dots> = setsum (\<lambda>f. det (\<chi> i. A$i$f i *s B$f i)) ?PU"
-    using setsum_mono_zero_cong_left[OF fF PUF zth, symmetric] 
+    using setsum_mono_zero_cong_left[OF fF PUF zth, symmetric]
     unfolding det_rows_mul by auto
   finally show ?thesis unfolding th2 .
-qed  
+qed
 
 (* ------------------------------------------------------------------------- *)
 (* Relation to invertibility.                                                *)
@@ -768,7 +768,7 @@ lemma invertible_righ_inverse:
   shows "invertible A \<longleftrightarrow> (\<exists>(B::real^'n^'n). A** B = mat 1)"
   by (metis invertible_def matrix_left_right_inverse)
 
-lemma invertible_det_nz: 
+lemma invertible_det_nz:
   fixes A::"real ^'n^'n"
   shows "invertible A \<longleftrightarrow> det A \<noteq> 0"
 proof-
@@ -782,7 +782,7 @@ proof-
   {assume H: "\<not> invertible A"
     let ?U = "{1 .. dimindex(UNIV :: 'n set)}"
     have fU: "finite ?U" by simp
-    from H obtain c i where c: "setsum (\<lambda>i. c i *s row i A) ?U = 0" 
+    from H obtain c i where c: "setsum (\<lambda>i. c i *s row i A) ?U = 0"
       and iU: "i \<in> ?U" and ci: "c i \<noteq> 0"
       unfolding invertible_righ_inverse
       unfolding matrix_right_invertible_independent_rows by blast
@@ -791,14 +791,14 @@ proof-
       apply (simp only: ab_left_minus add_assoc[symmetric])
       apply simp
       done
-    from c ci 
+    from c ci
     have thr0: "- row i A = setsum (\<lambda>j. (1/ c i) *s c j *s row j A) (?U - {i})"
-      unfolding setsum_diff1'[OF fU iU] setsum_cmul 
+      unfolding setsum_diff1'[OF fU iU] setsum_cmul
       apply (simp add: field_simps)
       apply (rule vector_mul_lcancel_imp[OF ci])
       apply (auto simp add: vector_smult_assoc vector_smult_rneg field_simps)
       unfolding stupid ..
-    have thr: "- row i A \<in> span {row j A| j. j\<in> ?U \<and> j \<noteq> i}" 
+    have thr: "- row i A \<in> span {row j A| j. j\<in> ?U \<and> j \<noteq> i}"
       unfolding thr0
       apply (rule span_setsum)
       apply simp
@@ -808,8 +808,8 @@ proof-
       apply auto
       done
     let ?B = "(\<chi> k. if k = i then 0 else row k A) :: real ^'n^'n"
-    have thrb: "row i ?B = 0" using iU by (vector row_def) 
-    have "det A = 0" 
+    have thrb: "row i ?B = 0" using iU by (vector row_def)
+    have "det A = 0"
       unfolding det_row_span[OF iU thr, symmetric] right_minus
       unfolding  det_zero_row[OF iU thrb]  ..}
   ultimately show ?thesis by blast
@@ -823,8 +823,8 @@ lemma cramer_lemma_transp:
   fixes A:: "'a::ordered_idom^'n^'n" and x :: "'a ^'n"
   assumes k: "k \<in> {1 .. dimindex(UNIV ::'n set)}"
   shows "det ((\<chi> i. if i = k then setsum (\<lambda>i. x$i *s row i A) {1 .. dimindex(UNIV::'n set)}
-                           else row i A)::'a^'n^'n) = x$k * det A" 
-  (is "?lhs = ?rhs") 
+                           else row i A)::'a^'n^'n) = x$k * det A"
+  (is "?lhs = ?rhs")
 proof-
   let ?U = "{1 .. dimindex (UNIV :: 'n set)}"
   let ?Uk = "?U - {k}"
@@ -835,7 +835,7 @@ proof-
     by (vector ring_simps)
   have th001: "\<And>f k . (\<lambda>x. if x = k then f k else f x) = f" by (auto intro: ext)
   have "(\<chi> i. row i A) = A" by (vector row_def)
-  then have thd1: "det (\<chi> i. row i A) = det A"  by simp 
+  then have thd1: "det (\<chi> i. row i A) = det A"  by simp
   have thd0: "det (\<chi> i. if i = k then row k A + (\<Sum>i \<in> ?Uk. x $ i *s row i A) else row i A) = det A"
     apply (rule det_row_span[OF k])
     apply (rule span_setsum[OF fUk])
@@ -846,7 +846,7 @@ proof-
     done
   show "?lhs = x$k * det A"
     apply (subst U)
-    unfolding setsum_insert[OF fUk kUk] 
+    unfolding setsum_insert[OF fUk kUk]
     apply (subst th00)
     unfolding add_assoc
     apply (subst det_row_add[OF k])
@@ -863,8 +863,8 @@ lemma cramer_lemma:
 proof-
   have stupid: "\<And>c. setsum (\<lambda>i. c i *s row i (transp A)) ?U = setsum (\<lambda>i. c i *s column i A) ?U"
     by (auto simp add: row_transp intro: setsum_cong2)
-  show ?thesis 
-  unfolding matrix_mult_vsum 
+  show ?thesis
+  unfolding matrix_mult_vsum
   unfolding cramer_lemma_transp[OF k, of x "transp A", unfolded det_transp, symmetric]
   unfolding stupid[of "\<lambda>i. x$i"]
   apply (subst det_transp[symmetric])
@@ -873,10 +873,10 @@ qed
 
 lemma cramer:
   fixes A ::"real^'n^'n"
-  assumes d0: "det A \<noteq> 0" 
+  assumes d0: "det A \<noteq> 0"
   shows "A *v x = b \<longleftrightarrow> x = (\<chi> k. det(\<chi> i j. if j=k then b$i else A$i$j :: real^'n^'n) / det A)"
 proof-
-  from d0 obtain B where B: "A ** B = mat 1" "B ** A = mat 1"  
+  from d0 obtain B where B: "A ** B = mat 1" "B ** A = mat 1"
     unfolding invertible_det_nz[symmetric] invertible_def by blast
   have "(A ** B) *v b = b" by (simp add: B matrix_vector_mul_lid)
   hence "A *v (B *v b) = b" by (simp add: matrix_vector_mul_assoc)
@@ -896,10 +896,10 @@ definition "orthogonal_transformation f \<longleftrightarrow> linear f \<and> (\
 
 lemma orthogonal_transformation: "orthogonal_transformation f \<longleftrightarrow> linear f \<and> (\<forall>(v::real ^'n). norm (f v) = norm v)"
   unfolding orthogonal_transformation_def
-  apply auto 
+  apply auto
   apply (erule_tac x=v in allE)+
   apply (simp add: real_vector_norm_def)
-  by (simp add: dot_norm  linear_add[symmetric]) 
+  by (simp add: dot_norm  linear_add[symmetric])
 
 definition "orthogonal_matrix (Q::'a::semiring_1^'n^'n) \<longleftrightarrow> transp Q ** Q = mat 1 \<and> Q ** transp Q = mat 1"
 
@@ -909,12 +909,12 @@ lemma orthogonal_matrix: "orthogonal_matrix (Q:: real ^'n^'n)  \<longleftrightar
 lemma orthogonal_matrix_id: "orthogonal_matrix (mat 1)"
   by (simp add: orthogonal_matrix_def transp_mat matrix_mul_lid)
 
-lemma orthogonal_matrix_mul: 
+lemma orthogonal_matrix_mul:
   fixes A :: "real ^'n^'n"
   assumes oA : "orthogonal_matrix A"
-  and oB: "orthogonal_matrix B" 
+  and oB: "orthogonal_matrix B"
   shows "orthogonal_matrix(A ** B)"
-  using oA oB 
+  using oA oB
   unfolding orthogonal_matrix matrix_transp_mul
   apply (subst matrix_mul_assoc)
   apply (subst matrix_mul_assoc[symmetric])
@@ -939,7 +939,7 @@ proof-
 	"\<And>b (x::'a::comm_ring_1). x*(if b then 1 else 0) = (if b then x else 0)"
 	by simp_all
       from fd[rule_format, of "basis i" "basis j", unfolded matrix_works[OF lf, symmetric] dot_matrix_vector_mul] i j
-      have "?A$i$j = ?m1 $ i $ j" 
+      have "?A$i$j = ?m1 $ i $ j"
 	by (simp add: Cart_lambda_beta' dot_def matrix_matrix_mult_def columnvector_def rowvector_def basis_def th0 setsum_delta[OF fU] mat_def del: One_nat_def)}
     hence "orthogonal_matrix ?mf" unfolding orthogonal_matrix by vector
     with lf have ?rhs by blast}
@@ -953,17 +953,17 @@ proof-
   ultimately show ?thesis by blast
 qed
 
-lemma det_orthogonal_matrix: 
+lemma det_orthogonal_matrix:
   fixes Q:: "'a::ordered_idom^'n^'n"
   assumes oQ: "orthogonal_matrix Q"
   shows "det Q = 1 \<or> det Q = - 1"
 proof-
-  
-  have th: "\<And>x::'a. x = 1 \<or> x = - 1 \<longleftrightarrow> x*x = 1" (is "\<And>x::'a. ?ths x") 
-  proof- 
+
+  have th: "\<And>x::'a. x = 1 \<or> x = - 1 \<longleftrightarrow> x*x = 1" (is "\<And>x::'a. ?ths x")
+  proof-
     fix x:: 'a
     have th0: "x*x - 1 = (x - 1)*(x + 1)" by (simp add: ring_simps)
-    have th1: "\<And>(x::'a) y. x = - y \<longleftrightarrow> x + y = 0" 
+    have th1: "\<And>(x::'a) y. x = - y \<longleftrightarrow> x + y = 0"
       apply (subst eq_iff_diff_eq_0) by simp
     have "x*x = 1 \<longleftrightarrow> x*x - 1 = 0" by simp
     also have "\<dots> \<longleftrightarrow> x = 1 \<or> x = - 1" unfolding th0 th1 by simp
@@ -972,27 +972,27 @@ proof-
   from oQ have "Q ** transp Q = mat 1" by (metis orthogonal_matrix_def)
   hence "det (Q ** transp Q) = det (mat 1:: 'a^'n^'n)" by simp
   hence "det Q * det Q = 1" by (simp add: det_mul det_I det_transp)
-  then show ?thesis unfolding th . 
+  then show ?thesis unfolding th .
 qed
 
 (* ------------------------------------------------------------------------- *)
 (* Linearity of scaling, and hence isometry, that preserves origin.          *)
 (* ------------------------------------------------------------------------- *)
-lemma scaling_linear: 
+lemma scaling_linear:
   fixes f :: "real ^'n \<Rightarrow> real ^'n"
   assumes f0: "f 0 = 0" and fd: "\<forall>x y. dist (f x) (f y) = c * dist x y"
   shows "linear f"
 proof-
-  {fix v w 
+  {fix v w
     {fix x note fd[rule_format, of x 0, unfolded dist_def f0 diff_0_right] }
     note th0 = this
-    have "f v \<bullet> f w = c^2 * (v \<bullet> w)" 
+    have "f v \<bullet> f w = c^2 * (v \<bullet> w)"
       unfolding dot_norm_neg dist_def[symmetric]
       unfolding th0 fd[rule_format] by (simp add: power2_eq_square field_simps)}
   note fc = this
   show ?thesis unfolding linear_def vector_eq
     by (simp add: dot_lmult dot_ladd dot_rmult dot_radd fc ring_simps)
-qed    
+qed
 
 lemma isometry_linear:
   "f (0:: real^'n) = (0:: real^'n) \<Longrightarrow> \<forall>x y. dist(f x) (f y) = dist x y
@@ -1005,7 +1005,7 @@ by (rule scaling_linear[where c=1]) simp_all
 
 lemma orthogonal_transformation_isometry:
   "orthogonal_transformation f \<longleftrightarrow> f(0::real^'n) = (0::real^'n) \<and> (\<forall>x y. dist(f x) (f y) = dist x y)"
-  unfolding orthogonal_transformation 
+  unfolding orthogonal_transformation
   apply (rule iffI)
   apply clarify
   apply (clarsimp simp add: linear_0 linear_sub[symmetric] dist_def)
@@ -1028,12 +1028,12 @@ lemma isometry_sphere_extend:
   and fd1: "\<forall> x y. norm x = 1 \<longrightarrow> norm y = 1 \<longrightarrow> dist (f x) (f y) = dist x y"
   shows "\<exists>g. orthogonal_transformation g \<and> (\<forall>x. norm x = 1 \<longrightarrow> g x = f x)"
 proof-
-  {fix x y x' y' x0 y0 x0' y0' :: "real ^'n" 
+  {fix x y x' y' x0 y0 x0' y0' :: "real ^'n"
     assume H: "x = norm x *s x0" "y = norm y *s y0"
-    "x' = norm x *s x0'" "y' = norm y *s y0'" 
+    "x' = norm x *s x0'" "y' = norm y *s y0'"
     "norm x0 = 1" "norm x0' = 1" "norm y0 = 1" "norm y0' = 1"
     "norm(x0' - y0') = norm(x0 - y0)"
-    
+
     have "norm(x' - y') = norm(x - y)"
       apply (subst H(1))
       apply (subst H(2))
@@ -1055,13 +1055,13 @@ proof-
       then have "dist (?g x) (?g y) = dist x y" by simp }
     moreover
     {assume "x = 0" "y \<noteq> 0"
-      then have "dist (?g x) (?g y) = dist x y" 
+      then have "dist (?g x) (?g y) = dist x y"
 	apply (simp add: dist_def norm_mul)
 	apply (rule f1[rule_format])
 	by(simp add: norm_mul field_simps)}
     moreover
     {assume "x \<noteq> 0" "y = 0"
-      then have "dist (?g x) (?g y) = dist x y" 
+      then have "dist (?g x) (?g y) = dist x y"
 	apply (simp add: dist_def norm_mul)
 	apply (rule f1[rule_format])
 	by(simp add: norm_mul field_simps)}
@@ -1077,14 +1077,14 @@ proof-
 	norm (inverse (norm x) *s x - inverse (norm y) *s y)"
 	using z
 	by (auto simp add: vector_smult_assoc field_simps norm_mul intro: f1[rule_format] fd1[rule_format, unfolded dist_def])
-      from z th0[OF th00] have "dist (?g x) (?g y) = dist x y" 
+      from z th0[OF th00] have "dist (?g x) (?g y) = dist x y"
 	by (simp add: dist_def)}
     ultimately have "dist (?g x) (?g y) = dist x y" by blast}
   note thd = this
-    show ?thesis 
+    show ?thesis
     apply (rule exI[where x= ?g])
     unfolding orthogonal_transformation_isometry
-      using  g0 thfg thd by metis 
+      using  g0 thfg thd by metis
 qed
 
 (* ------------------------------------------------------------------------- *)
@@ -1094,7 +1094,7 @@ qed
 definition "rotation_matrix Q \<longleftrightarrow> orthogonal_matrix Q \<and> det Q = 1"
 definition "rotoinversion_matrix Q \<longleftrightarrow> orthogonal_matrix Q \<and> det Q = - 1"
 
-lemma orthogonal_rotation_or_rotoinversion: 
+lemma orthogonal_rotation_or_rotoinversion:
   fixes Q :: "'a::ordered_idom^'n^'n"
   shows " orthogonal_matrix Q \<longleftrightarrow> rotation_matrix Q \<or> rotoinversion_matrix Q"
   by (metis rotoinversion_matrix_def rotation_matrix_def det_orthogonal_matrix)
@@ -1104,9 +1104,9 @@ lemma orthogonal_rotation_or_rotoinversion:
 
 lemma setprod_1: "setprod f {(1::nat)..1} = f 1" by simp
 
-lemma setprod_2: "setprod f {(1::nat)..2} = f 1 * f 2" 
+lemma setprod_2: "setprod f {(1::nat)..2} = f 1 * f 2"
   by (simp add: nat_number setprod_numseg mult_commute)
-lemma setprod_3: "setprod f {(1::nat)..3} = f 1 * f 2 * f 3" 
+lemma setprod_3: "setprod f {(1::nat)..3} = f 1 * f 2 * f 3"
   by (simp add: nat_number setprod_numseg mult_commute)
 
 lemma det_1: "det (A::'a::comm_ring_1^1^1) = A$1$1"
@@ -1116,7 +1116,7 @@ lemma det_2: "det (A::'a::comm_ring_1^2^2) = A$1$1 * A$2$2 - A$1$2 * A$2$1"
 proof-
   have f12: "finite {2::nat}" "1 \<notin> {2::nat}" by auto
   have th12: "{1 .. 2} = insert (1::nat) {2}" by auto
-  show ?thesis 
+  show ?thesis
   apply (simp add: det_def dimindex_def th12 del: One_nat_def)
   unfolding setsum_over_permutations_insert[OF f12]
   unfolding permutes_sing
@@ -1124,7 +1124,7 @@ proof-
   by (simp add: arith_simps(31)[symmetric] of_int_minus of_int_1 del: arith_simps(31))
 qed
 
-lemma det_3: "det (A::'a::comm_ring_1^3^3) = 
+lemma det_3: "det (A::'a::comm_ring_1^3^3) =
   A$1$1 * A$2$2 * A$3$3 +
   A$1$2 * A$2$3 * A$3$1 +
   A$1$3 * A$2$1 * A$3$2 -
@@ -1136,7 +1136,7 @@ proof-
   have f23: "finite {(3::nat)}" "2 \<notin> {(3::nat)}" by auto
   have th12: "{1 .. 3} = insert (1::nat) (insert 2 {3})" by auto
 
-  show ?thesis 
+  show ?thesis
   apply (simp add: det_def dimindex_def th12 del: One_nat_def)
   unfolding setsum_over_permutations_insert[OF f123]
   unfolding setsum_over_permutations_insert[OF f23]
