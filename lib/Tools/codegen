@@ -33,8 +33,8 @@ CMD="$1"
 
 ## main
 
-THY=$(echo $THY | sed -e 's/\\/\\\\"/g; s/"/\\\"/g')
-ISAR="theory Codegen imports \"$THY\" begin export_code $CMD end"
+CODE_CMD=$(echo $CMD | perl -pe 's/\\/\\\\/g; s/"/\\\"/g')
+CTXT_CMD="ML_Context.eval_in (SOME (ProofContext.init (theory \"HOL\"))) false Position.none \"Code_Target.shell_command thyname cmd\";"
+FULL_CMD="val thyname = \"$THY\"; val cmd = \"$CODE_CMD\"; $CTXT_CMD"
 
-echo "$ISAR" | "$ISABELLE_PROCESS" -I "$IMAGE"
-exit ${PIPESTATUS[1]}
+"$ISABELLE" -q -e "$FULL_CMD" "$IMAGE" || exit 1

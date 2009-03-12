@@ -21,6 +21,7 @@ definition minus_shift :: "index \<Rightarrow> index \<Rightarrow> index \<Right
 fun log :: "index \<Rightarrow> index \<Rightarrow> index" where
   "log b i = (if b \<le> 1 \<or> i < b then 1 else 1 + log b (i div b))"
 
+
 subsection {* Random seeds *}
 
 types seed = "index \<times> index"
@@ -57,29 +58,17 @@ definition split_seed :: "seed \<Rightarrow> seed \<times> seed" where
 
 subsection {* Base selectors *}
 
-function range_aux :: "index \<Rightarrow> index \<Rightarrow> seed \<Rightarrow> index \<times> seed" where
-  "range_aux k l s = (if k = 0 then (l, s) else
-    let (v, s') = next s
-  in range_aux (k - 1) (v + l * 2147483561) s')"
-by pat_completeness auto
-termination
-  by (relation "measure (Code_Index.nat_of o fst)")
-    (auto simp add: index)
+fun %quote iterate :: "index \<Rightarrow> ('b \<Rightarrow> 'a \<Rightarrow> 'b \<times> 'a) \<Rightarrow> 'b \<Rightarrow> 'a \<Rightarrow> 'b \<times> 'a" where
+  "iterate k f x = (if k = 0 then Pair x else f x o\<rightarrow> iterate (k - 1) f)"
 
-definition range :: "index \<Rightarrow> seed \<Rightarrow> index \<times> seed" where
-  "range k = range_aux (log 2147483561 k) 1
+definition %quote range :: "index \<Rightarrow> seed \<Rightarrow> index \<times> seed" where
+  "range k = iterate (log 2147483561 k)
+      (\<lambda>l. next o\<rightarrow> (\<lambda>v. Pair (v + l * 2147483561))) 1
     o\<rightarrow> (\<lambda>v. Pair (v mod k))"
 
 lemma range:
-  assumes "k > 0"
-  shows "fst (range k s) < k"
-proof -
-  obtain v w where range_aux:
-    "range_aux (log 2147483561 k) 1 s = (v, w)"
-    by (cases "range_aux (log 2147483561 k) 1 s")
-  with assms show ?thesis
-    by (simp add: scomp_apply range_def del: range_aux.simps log.simps)
-qed
+  "k > 0 \<Longrightarrow> fst (range k s) < k"
+  by (simp add: range_def scomp_apply split_def del: log.simps iterate.simps)
 
 definition select :: "'a list \<Rightarrow> seed \<Rightarrow> 'a \<times> seed" where
   "select xs = range (Code_Index.of_nat (length xs))

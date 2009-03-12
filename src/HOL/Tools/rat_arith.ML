@@ -34,8 +34,6 @@ val int_inj_thms = [@{thm of_int_le_iff} RS iffD2,
 
 in
 
-val ratT = Type ("Rational.rat", [])
-
 val rat_arith_setup =
   LinArith.map_data (fn {add_mono_thms, mult_mono_thms, inj_thms, lessD, neqE, simpset} =>
    {add_mono_thms = add_mono_thms,
@@ -45,7 +43,7 @@ val rat_arith_setup =
     neqE =  neqE,
     simpset = simpset addsimps simps
                       addsimprocs simprocs}) #>
-  arith_inj_const (@{const_name of_nat}, HOLogic.natT --> ratT) #>
-  arith_inj_const (@{const_name of_int}, HOLogic.intT --> ratT)
+  arith_inj_const (@{const_name of_nat}, @{typ "nat => rat"}) #>
+  arith_inj_const (@{const_name of_int}, @{typ "int => rat"})
 
 end;

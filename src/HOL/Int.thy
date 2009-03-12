@@ -1527,7 +1527,7 @@ lemmas int_int_eq = of_nat_eq_iff [where 'a=int]
 
 use "~~/src/Provers/Arith/assoc_fold.ML"
 use "Tools/int_arith.ML"
-declaration {* K int_arith_setup *}
+declaration {* K Int_Arith.setup *}
 
 
 subsection{*Lemmas About Small Numerals*}

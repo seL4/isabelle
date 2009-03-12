@@ -49,7 +49,7 @@ structure CancelNumeralFactorCommon =
 (*Version for integer division*)
 structure IntDivCancelNumeralFactor = CancelNumeralFactorFun
  (open CancelNumeralFactorCommon
-  val prove_conv = Int_Numeral_Base_Simprocs.prove_conv
+  val prove_conv = Arith_Data.prove_conv
   val mk_bal   = HOLogic.mk_binop @{const_name Divides.div}
   val dest_bal = HOLogic.dest_bin @{const_name Divides.div} HOLogic.intT
   val cancel = @{thm zdiv_zmult_zmult1} RS trans
@@ -59,7 +59,7 @@ structure IntDivCancelNumeralFactor = CancelNumeralFactorFun
 (*Version for fields*)
 structure DivideCancelNumeralFactor = CancelNumeralFactorFun
  (open CancelNumeralFactorCommon
-  val prove_conv = Int_Numeral_Base_Simprocs.prove_conv
+  val prove_conv = Arith_Data.prove_conv
   val mk_bal   = HOLogic.mk_binop @{const_name HOL.divide}
   val dest_bal = HOLogic.dest_bin @{const_name HOL.divide} Term.dummyT
   val cancel = @{thm mult_divide_mult_cancel_left} RS trans
@@ -68,7 +68,7 @@ structure DivideCancelNumeralFactor = CancelNumeralFactorFun
 
 structure EqCancelNumeralFactor = CancelNumeralFactorFun
  (open CancelNumeralFactorCommon
-  val prove_conv = Int_Numeral_Base_Simprocs.prove_conv
+  val prove_conv = Arith_Data.prove_conv
   val mk_bal   = HOLogic.mk_eq
   val dest_bal = HOLogic.dest_bin "op =" Term.dummyT
   val cancel = @{thm mult_cancel_left} RS trans
@@ -77,7 +77,7 @@ structure EqCancelNumeralFactor = CancelNumeralFactorFun
 
 structure LessCancelNumeralFactor = CancelNumeralFactorFun
  (open CancelNumeralFactorCommon
-  val prove_conv = Int_Numeral_Base_Simprocs.prove_conv
+  val prove_conv = Arith_Data.prove_conv
   val mk_bal   = HOLogic.mk_binrel @{const_name HOL.less}
   val dest_bal = HOLogic.dest_bin @{const_name HOL.less} Term.dummyT
   val cancel = @{thm mult_less_cancel_left} RS trans
@@ -86,7 +86,7 @@ structure LessCancelNumeralFactor = CancelNumeralFactorFun
 
 structure LeCancelNumeralFactor = CancelNumeralFactorFun
  (open CancelNumeralFactorCommon
-  val prove_conv = Int_Numeral_Base_Simprocs.prove_conv
+  val prove_conv = Arith_Data.prove_conv
   val mk_bal   = HOLogic.mk_binrel @{const_name HOL.less_eq}
   val dest_bal = HOLogic.dest_bin @{const_name HOL.less_eq} Term.dummyT
   val cancel = @{thm mult_le_cancel_left} RS trans
@@ -94,7 +94,7 @@ structure LeCancelNumeralFactor = CancelNumeralFactorFun
 )
 
 val cancel_numeral_factors =
-  map Int_Numeral_Base_Simprocs.prep_simproc
+  map Arith_Data.prep_simproc
    [("ring_eq_cancel_numeral_factor",
      ["(l::'a::{idom,number_ring}) * m = n",
       "(l::'a::{idom,number_ring}) = m * n"],
@@ -118,7 +118,7 @@ val cancel_numeral_factors =
 
 (* referenced by rat_arith.ML *)
 val field_cancel_numeral_factors =
-  map Int_Numeral_Base_Simprocs.prep_simproc
+  map Arith_Data.prep_simproc
    [("field_eq_cancel_numeral_factor",
      ["(l::'a::{field,number_ring}) * m = n",
       "(l::'a::{field,number_ring}) = m * n"],
@@ -236,7 +236,7 @@ structure CancelFactorCommon =
 (*mult_cancel_left requires a ring with no zero divisors.*)
 structure EqCancelFactor = ExtractCommonTermFun
  (open CancelFactorCommon
-  val prove_conv = Int_Numeral_Base_Simprocs.prove_conv
+  val prove_conv = Arith_Data.prove_conv
   val mk_bal   = HOLogic.mk_eq
   val dest_bal = HOLogic.dest_bin "op =" Term.dummyT
   val simplify_meta_eq  = cancel_simplify_meta_eq @{thm mult_cancel_left}
@@ -245,7 +245,7 @@ structure EqCancelFactor = ExtractCommonTermFun
 (*zdiv_zmult_zmult1_if is for integer division (div).*)
 structure IntDivCancelFactor = ExtractCommonTermFun
  (open CancelFactorCommon
-  val prove_conv = Int_Numeral_Base_Simprocs.prove_conv
+  val prove_conv = Arith_Data.prove_conv
   val mk_bal   = HOLogic.mk_binop @{const_name Divides.div}
   val dest_bal = HOLogic.dest_bin @{const_name Divides.div} HOLogic.intT
   val simplify_meta_eq  = cancel_simplify_meta_eq @{thm zdiv_zmult_zmult1_if}
@@ -253,7 +253,7 @@ structure IntDivCancelFactor = ExtractCommonTermFun
 
 structure IntModCancelFactor = ExtractCommonTermFun
  (open CancelFactorCommon
-  val prove_conv = Int_Numeral_Base_Simprocs.prove_conv
+  val prove_conv = Arith_Data.prove_conv
   val mk_bal   = HOLogic.mk_binop @{const_name Divides.mod}
   val dest_bal = HOLogic.dest_bin @{const_name Divides.mod} HOLogic.intT
   val simplify_meta_eq  = cancel_simplify_meta_eq @{thm zmod_zmult_zmult1}
@@ -261,7 +261,7 @@ structure IntModCancelFactor = ExtractCommonTermFun
 
 structure IntDvdCancelFactor = ExtractCommonTermFun
  (open CancelFactorCommon
-  val prove_conv = Int_Numeral_Base_Simprocs.prove_conv
+  val prove_conv = Arith_Data.prove_conv
   val mk_bal   = HOLogic.mk_binrel @{const_name Ring_and_Field.dvd}
   val dest_bal = HOLogic.dest_bin @{const_name Ring_and_Field.dvd} Term.dummyT
   val simplify_meta_eq  = cancel_simplify_meta_eq @{thm dvd_mult_cancel_left}
@@ -270,14 +270,14 @@ structure IntDvdCancelFactor = ExtractCommonTermFun
 (*Version for all fields, including unordered ones (type complex).*)
 structure DivideCancelFactor = ExtractCommonTermFun
  (open CancelFactorCommon
-  val prove_conv = Int_Numeral_Base_Simprocs.prove_conv
+  val prove_conv = Arith_Data.prove_conv
   val mk_bal   = HOLogic.mk_binop @{const_name HOL.divide}
   val dest_bal = HOLogic.dest_bin @{const_name HOL.divide} Term.dummyT
   val simplify_meta_eq  = cancel_simplify_meta_eq @{thm mult_divide_mult_cancel_left_if}
 );
 
 val cancel_factors =
-  map Int_Numeral_Base_Simprocs.prep_simproc
+  map Arith_Data.prep_simproc
    [("ring_eq_cancel_factor",
      ["(l::'a::{idom}) * m = n",
       "(l::'a::{idom}) = m * n"],

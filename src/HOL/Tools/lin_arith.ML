@@ -811,7 +811,7 @@ val init_arith_data =
         @{thm "not_one_less_zero"}]
       addsimprocs [ab_group_add_cancel.sum_conv, ab_group_add_cancel.rel_conv]
        (*abel_cancel helps it work in abstract algebraic domains*)
-      addsimprocs ArithData.nat_cancel_sums_add}) #>
+      addsimprocs Nat_Arith.nat_cancel_sums_add}) #>
   arith_discrete "nat";
 
 fun add_arith_facts ss =

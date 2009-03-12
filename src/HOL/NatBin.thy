@@ -1,5 +1,4 @@
 (*  Title:      HOL/NatBin.thy
-    ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1999  University of Cambridge
 *)
