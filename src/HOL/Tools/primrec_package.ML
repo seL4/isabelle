@@ -9,6 +9,8 @@ signature PRIMREC_PACKAGE =
 sig
   val add_primrec: (binding * typ option * mixfix) list ->
     (Attrib.binding * term) list -> local_theory -> thm list * local_theory
+  val add_primrec_cmd: (binding * string option * mixfix) list ->
+    (Attrib.binding * string) list -> local_theory -> thm list * local_theory
   val add_primrec_global: (binding * typ option * mixfix) list ->
     (Attrib.binding * term) list -> theory -> thm list * theory
   val add_primrec_overloaded: (string * (string * typ) * bool) list ->
@@ -213,12 +215,6 @@ fun find_dts (dt_info : datatype_info Symtab.table) _ [] = []
 
 local
 
-fun prepare_spec prep_spec ctxt raw_fixes raw_spec =
-  let
-    val ((fixes, spec), _) = prep_spec
-      raw_fixes (map (single o apsnd single) raw_spec) ctxt
-  in (fixes, map (apsnd the_single) spec) end;
-
 fun prove_spec ctxt names rec_rewrites defs eqs =
   let
     val rewrites = map mk_meta_eq rec_rewrites @ map (snd o snd) defs;
@@ -228,7 +224,7 @@ fun prove_spec ctxt names rec_rewrites defs eqs =
 
 fun gen_primrec set_group prep_spec raw_fixes raw_spec lthy =
   let
-    val (fixes, spec) = prepare_spec prep_spec lthy raw_fixes raw_spec;
+    val (fixes, spec) = fst (prep_spec raw_fixes raw_spec lthy);
     val eqns = fold_rev (process_eqn (fn v => Variable.is_fixed lthy v
       orelse exists (fn ((w, _), _) => v = Binding.name_of w) fixes) o snd) spec [];
     val tnames = distinct (op =) (map (#1 o snd) eqns);
@@ -268,8 +264,8 @@ fun gen_primrec set_group prep_spec raw_fixes raw_spec lthy =
 
 in
 
-val add_primrec = gen_primrec false Specification.check_specification;
-val add_primrec_cmd = gen_primrec true Specification.read_specification;
+val add_primrec = gen_primrec false Specification.check_spec;
+val add_primrec_cmd = gen_primrec true Specification.read_spec;
 
 end;
 
@@ -300,24 +296,16 @@ val opt_unchecked_name =
 val old_primrec_decl =
   opt_unchecked_name -- Scan.repeat1 ((SpecParse.opt_thm_name ":" >> apfst Binding.name_of) -- P.prop);
 
-fun pipe_error t = P.!!! (Scan.fail_with (K
-  (cat_lines ["Equations must be separated by " ^ quote "|", quote t])));
-
-val statement = SpecParse.opt_thm_name ":" -- P.prop --| Scan.ahead
-  ((P.term :-- pipe_error) || Scan.succeed ("",""));
-
-val statements = P.enum1 "|" statement;
-
-val primrec_decl = P.opt_target -- P.fixes --| P.$$$ "where" -- statements;
+val primrec_decl = P.opt_target -- P.fixes -- SpecParse.where_alt_specs;
 
 val _ =
   OuterSyntax.command "primrec" "define primitive recursive functions on datatypes" K.thy_decl
-    ((primrec_decl >> (fn ((opt_target, raw_fixes), raw_spec) =>
-      Toplevel.local_theory opt_target (add_primrec_cmd raw_fixes raw_spec #> snd)))
+    ((primrec_decl >> (fn ((opt_target, fixes), specs) =>
+      Toplevel.local_theory opt_target (add_primrec_cmd fixes specs #> snd)))
     || (old_primrec_decl >> (fn ((unchecked, alt_name), eqns) =>
       Toplevel.theory (snd o
-        (if unchecked then OldPrimrecPackage.add_primrec_unchecked else OldPrimrecPackage.add_primrec) alt_name
-          (map P.triple_swap eqns)))));
+        (if unchecked then OldPrimrecPackage.add_primrec_unchecked else OldPrimrecPackage.add_primrec)
+          alt_name (map P.triple_swap eqns)))));
 
 end;
 

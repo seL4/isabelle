@@ -12,6 +12,10 @@ sig
     (binding * typ option * mixfix) list ->
     (binding * typ option * mixfix) list ->
     (Attrib.binding * term) list -> local_theory -> Proof.state
+  val add_primrec_cmd: string list option -> string option ->
+    (binding * string option * mixfix) list ->
+    (binding * string option * mixfix) list ->
+    (Attrib.binding * string) list -> local_theory -> Proof.state
 end;
 
 structure NominalPrimrec : NOMINAL_PRIMREC =
@@ -36,10 +40,10 @@ fun unquantify t =
       (fn Free (v, _) => insert (op =) v | _ => I) body []))
   in (curry subst_bounds (map2 (curry Free) vs' Ts |> rev) body) end;
 
-fun process_eqn lthy is_fixed spec rec_fns = 
+fun process_eqn lthy is_fixed spec rec_fns =
   let
     val eq = unquantify spec;
-    val (lhs, rhs) = 
+    val (lhs, rhs) =
       HOLogic.dest_eq (HOLogic.dest_Trueprop (Logic.strip_imp_concl eq))
       handle TERM _ => raise RecError "not a proper equation";
 
@@ -67,7 +71,7 @@ fun process_eqn lthy is_fixed spec rec_fns =
     fun check_vars _ [] = ()
       | check_vars s vars = raise RecError (s ^ commas_quote (map fst vars))
   in
-    if length middle > 1 then 
+    if length middle > 1 then
       raise RecError "more than one non-variable in pattern"
     else
      (check_vars "repeated variable names in pattern: " (duplicates (op =) lfrees);
@@ -159,7 +163,7 @@ fun process_fun lthy descr eqns (i, fname) (fnames, fnss) =
               val (rhs', (fnames'', fnss'')) = subst (map2 (fn (x, y) => fn z =>
                 (Free x, (body_index y, Free z))) recs subs) rhs (fnames', fnss')
                   handle RecError s => primrec_eq_err lthy s eq
-            in (fnames'', fnss'', 
+            in (fnames'', fnss'',
                 (list_abs_free (cargs' @ subs, rhs'))::fns)
             end)
 
@@ -172,7 +176,7 @@ fun process_fun lthy descr eqns (i, fname) (fnames, fnss) =
             val SOME (_, _, eqns' as (_, (ls, _, rs, _, _)) :: _) =
               AList.lookup (op =) eqns fname;
             val (fnames', fnss', fns) = fold_rev (trans eqns') constrs
-              ((i, fname)::fnames, fnss, []) 
+              ((i, fname)::fnames, fnss, [])
           in
             (fnames', (i, (fname, ls, rs, fns))::fnss')
           end
@@ -235,15 +239,9 @@ fun common_prefix eq ([], _) = []
 
 local
 
-fun prepare_spec prep_spec ctxt raw_fixes raw_spec =
-  let
-    val ((fixes, spec), _) = prep_spec
-      raw_fixes (map (single o apsnd single) raw_spec) ctxt
-  in (fixes, map (apsnd the_single) spec) end;
-
 fun gen_primrec set_group prep_spec prep_term invs fctxt raw_fixes raw_params raw_spec lthy =
   let
-    val (fixes', spec) = prepare_spec prep_spec lthy (raw_fixes @ raw_params) raw_spec;
+    val (fixes', spec) = fst (prep_spec (raw_fixes @ raw_params) raw_spec lthy);
     val fixes = List.take (fixes', length raw_fixes);
     val (names_atts, spec') = split_list spec;
     val eqns' = map unquantify spec'
@@ -261,12 +259,12 @@ fun gen_primrec set_group prep_spec prep_term invs fctxt raw_fixes raw_params ra
        then () else primrec_err param_err);
     val tnames = distinct (op =) (map (#1 o snd) eqns);
     val dts = find_dts dt_info tnames tnames;
-    val main_fns = 
+    val main_fns =
       map (fn (tname, {index, ...}) =>
-        (index, 
+        (index,
           (fst o the o find_first (fn (_, x) => #1 x = tname)) eqns))
       dts;
-    val {descr, rec_names, rec_rewrites, ...} = 
+    val {descr, rec_names, rec_rewrites, ...} =
       if null dts then
         primrec_err ("datatypes " ^ commas_quote tnames ^ "\nare not mutually recursive")
       else snd (hd dts);
@@ -388,15 +386,15 @@ fun gen_primrec set_group prep_spec prep_term invs fctxt raw_fixes raw_params ra
 
 in
 
-val add_primrec = gen_primrec false Specification.check_specification (K I);
-val add_primrec_cmd = gen_primrec true Specification.read_specification Syntax.read_term;
+val add_primrec = gen_primrec false Specification.check_spec (K I);
+val add_primrec_cmd = gen_primrec true Specification.read_spec Syntax.read_term;
 
 end;
 
 
 (* outer syntax *)
 
-local structure P = OuterParse and K = OuterKeyword in
+local structure P = OuterParse in
 
 val freshness_context = P.reserved "freshness_context";
 val invariant = P.reserved "invariant";
@@ -408,28 +406,16 @@ val parser2 = (invariant -- P.$$$ ":") |--
     (Scan.repeat1 (unless_flag P.term) >> SOME) -- Scan.optional parser1 NONE ||
   (parser1 >> pair NONE);
 val options =
-  Scan.optional (P.$$$ "(" |-- P.!!!
-    (parser2 --| P.$$$ ")")) (NONE, NONE);
-
-fun pipe_error t = P.!!! (Scan.fail_with (K
-  (cat_lines ["Equations must be separated by " ^ quote "|", quote t])));
-
-val statement = SpecParse.opt_thm_name ":" -- P.prop --| Scan.ahead
-  ((P.term :-- pipe_error) || Scan.succeed ("",""));
-
-val statements = P.enum1 "|" statement;
-
-val primrec_decl = P.opt_target -- options --
-  P.fixes -- P.for_fixes --| P.$$$ "where" -- statements;
+  Scan.optional (P.$$$ "(" |-- P.!!! (parser2 --| P.$$$ ")")) (NONE, NONE);
 
 val _ =
-  OuterSyntax.command "nominal_primrec" "define primitive recursive functions on nominal datatypes" K.thy_goal
-    (primrec_decl >> (fn ((((opt_target, (invs, fctxt)), raw_fixes), raw_params), raw_spec) =>
-      Toplevel.print o Toplevel.local_theory_to_proof opt_target
-        (add_primrec_cmd invs fctxt raw_fixes raw_params raw_spec)));
+  OuterSyntax.local_theory_to_proof "nominal_primrec"
+    "define primitive recursive functions on nominal datatypes" OuterKeyword.thy_goal
+    (options -- P.fixes -- P.for_fixes -- SpecParse.where_alt_specs
+      >> (fn ((((invs, fctxt), fixes), params), specs) =>
+        add_primrec_cmd invs fctxt fixes params specs));
 
 end;
-
 
 end;
 
