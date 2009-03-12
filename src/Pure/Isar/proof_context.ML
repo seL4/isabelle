@@ -301,7 +301,7 @@ fun pretty_thm_legacy th =
   in Display.pretty_thm_aux (Syntax.pp_global thy) true false [] th end;
 
 fun pretty_thm ctxt th =
-  let val asms = map Thm.term_of (Assumption.assms_of ctxt)
+  let val asms = map Thm.term_of (Assumption.all_assms_of ctxt)
   in Display.pretty_thm_aux (Syntax.pp ctxt) false true asms th end;
 
 fun pretty_thms ctxt [th] = pretty_thm ctxt th
@@ -1370,7 +1370,7 @@ fun pretty_ctxt ctxt =
           Pretty.commas (map prt_fix fixes))];
 
       (*prems*)
-      val prems = Assumption.prems_of ctxt;
+      val prems = Assumption.all_prems_of ctxt;
       val len = length prems;
       val suppressed = len - ! prems_limit;
       val prt_prems = if null prems then []

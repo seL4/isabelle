@@ -662,7 +662,7 @@ fun shuffle_meth (thms:thm list) ctxt =
 fun search_meth ctxt =
     let
         val thy = ProofContext.theory_of ctxt
-        val prems = Assumption.prems_of ctxt
+        val prems = Assumption.all_prems_of ctxt
     in
         Method.SIMPLE_METHOD' (gen_shuffle_tac thy true (map (pair "premise") prems))
     end

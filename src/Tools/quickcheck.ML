@@ -144,7 +144,7 @@ val auto_time_limit = ref 5000;
 fun test_goal_auto int state =
   let
     val ctxt = Proof.context_of state;
-    val assms = map term_of (Assumption.assms_of ctxt);
+    val assms = map term_of (Assumption.all_assms_of ctxt);
     val Test_Params { size, iterations, default_type } =
       (snd o Data.get o Proof.theory_of) state;
     fun test () =
