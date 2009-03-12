@@ -36,7 +36,7 @@ sig
   val root_path: naming -> naming
   val parent_path: naming -> naming
   val no_base_names: naming -> naming
-  val sticky_prefix: string -> naming -> naming
+  val mandatory_path: string -> naming -> naming
   type 'a table = T * 'a Symtab.table
   val define: naming -> binding * 'a -> 'a table -> string * 'a table (*exception Symtab.DUP*)
   val empty_table: 'a table
@@ -194,7 +194,7 @@ val root_path = map_naming (fn (_, no_base_names) => ([], no_base_names));
 val parent_path = map_naming (fn (path, no_base_names) =>
   (perhaps (try (#1 o split_last)) path, no_base_names));
 
-fun sticky_prefix elems = map_naming (fn (path, no_base_names) =>
+fun mandatory_path elems = map_naming (fn (path, no_base_names) =>
   (path @ [(elems, true)], no_base_names));
 
 val no_base_names = map_naming (fn (path, _) => (path, true));

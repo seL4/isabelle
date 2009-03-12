@@ -674,7 +674,7 @@ fun define_preds pname parms (((exts, exts'), (ints, ints')), defs) thy =
             |> def_pred aname parms defs' exts exts';
           val (_, thy'') =
             thy'
-            |> Sign.sticky_prefix (Binding.name_of aname)
+            |> Sign.mandatory_path (Binding.name_of aname)
             |> PureThy.note_thmss Thm.internalK
               [((Binding.name introN, []), [([intro], [Locale.unfold_attrib])])]
             ||> Sign.restore_naming thy';
@@ -688,7 +688,7 @@ fun define_preds pname parms (((exts, exts'), (ints, ints')), defs) thy =
             |> def_pred pname parms defs' (ints @ the_list a_pred) (ints' @ the_list a_pred);
           val (_, thy'''') =
             thy'''
-            |> Sign.sticky_prefix (Binding.name_of pname)
+            |> Sign.mandatory_path (Binding.name_of pname)
             |> PureThy.note_thmss Thm.internalK
                  [((Binding.name introN, []), [([intro], [Locale.intro_attrib])]),
                   ((Binding.name axiomsN, []),

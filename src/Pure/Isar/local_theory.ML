@@ -138,12 +138,12 @@ val checkpoint = raw_theory Theory.checkpoint;
 
 fun full_naming lthy =
   Sign.naming_of (ProofContext.theory_of lthy)
-  |> NameSpace.sticky_prefix (#theory_prefix (get_lthy lthy));
+  |> NameSpace.mandatory_path (#theory_prefix (get_lthy lthy));
 
 fun full_name naming = NameSpace.full_name (full_naming naming);
 
 fun theory_result f lthy = lthy |> raw_theory_result (fn thy => thy
-  |> Sign.sticky_prefix (#theory_prefix (get_lthy lthy))
+  |> Sign.mandatory_path (#theory_prefix (get_lthy lthy))
   |> f
   ||> Sign.restore_naming thy);
 

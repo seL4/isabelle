@@ -124,7 +124,7 @@ sig
   val add_path: string -> theory -> theory
   val root_path: theory -> theory
   val parent_path: theory -> theory
-  val sticky_prefix: string -> theory -> theory
+  val mandatory_path: string -> theory -> theory
   val no_base_names: theory -> theory
   val local_path: theory -> theory
   val restore_naming: theory -> theory -> theory
@@ -619,7 +619,7 @@ val del_trrules_i = map_syn o Syntax.remove_trrules_i;
 val add_path        = map_naming o NameSpace.add_path;
 val root_path       = map_naming NameSpace.root_path;
 val parent_path     = map_naming NameSpace.parent_path;
-val sticky_prefix   = map_naming o NameSpace.sticky_prefix;
+val mandatory_path  = map_naming o NameSpace.mandatory_path;
 val no_base_names   = map_naming NameSpace.no_base_names;
 
 fun local_path thy = thy |> root_path |> add_path (Context.theory_name thy);
