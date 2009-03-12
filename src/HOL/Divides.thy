@@ -295,6 +295,27 @@ qed
 
 end
 
+lemma div_mult_div_if_dvd: "(y::'a::{semiring_div,no_zero_divisors}) dvd x \<Longrightarrow> 
+  z dvd w \<Longrightarrow> (x div y) * (w div z) = (x * w) div (y * z)"
+unfolding dvd_def
+  apply clarify
+  apply (case_tac "y = 0")
+  apply simp
+  apply (case_tac "z = 0")
+  apply simp
+  apply (simp add: algebra_simps)
+  apply (subst mult_assoc [symmetric])
+  apply (simp add: no_zero_divisors)
+done
+
+
+lemma div_power: "(y::'a::{semiring_div,no_zero_divisors,recpower}) dvd x \<Longrightarrow>
+    (x div y)^n = x^n div y^n"
+apply (induct n)
+ apply simp
+apply(simp add: div_mult_div_if_dvd dvd_power_same)
+done
+
 class ring_div = semiring_div + comm_ring_1
 begin
 
