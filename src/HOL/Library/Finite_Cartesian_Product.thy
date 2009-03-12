@@ -18,11 +18,11 @@ syntax "_type_dimindex" :: "type => nat" ("(1DIM/(1'(_')))")
 translations "DIM(t)" => "CONST dimindex (CONST UNIV :: t set)"
 
 lemma dimindex_nonzero: "dimindex S \<noteq>  0"
-unfolding dimindex_def 
+unfolding dimindex_def
 by (simp add: neq0_conv[symmetric] del: neq0_conv)
 
 lemma dimindex_ge_1: "dimindex S \<ge> 1"
-  using dimindex_nonzero[of S] by arith 
+  using dimindex_nonzero[of S] by arith
 lemma dimindex_univ: "dimindex (S :: 'a set) = DIM('a)" by (simp add: dimindex_def)
 
 definition hassize (infixr "hassize" 12) where
@@ -48,7 +48,7 @@ done
 
 text{* Dimension of such a type, and indexing over it. *}
 
-lemma inj_on_Abs_finite_image: 
+lemma inj_on_Abs_finite_image:
   "inj_on (Abs_finite_image:: _ \<Rightarrow> 'a finite_image) {1 .. DIM('a)}"
 by (auto simp add: inj_on_def finite_image_def Abs_finite_image_inject[where ?'a='a])
 
@@ -72,23 +72,23 @@ lemma dimindex_finite_image: "dimindex (S:: 'a finite_image set) = dimindex(T:: 
 unfolding card_finite_image[of T, symmetric]
 by (auto simp add: dimindex_def finite_finite_image)
 
-lemma Abs_finite_image_works: 
+lemma Abs_finite_image_works:
   fixes i:: "'a finite_image"
   shows " \<exists>!n \<in> {1 .. DIM('a)}. Abs_finite_image n = i"
   unfolding Bex1_def Ex1_def
   apply (rule_tac x="Rep_finite_image i" in exI)
-  using Rep_finite_image_inverse[where ?'a = 'a] 
-    Rep_finite_image[where ?'a = 'a] 
+  using Rep_finite_image_inverse[where ?'a = 'a]
+    Rep_finite_image[where ?'a = 'a]
   Abs_finite_image_inverse[where ?'a='a, symmetric]
   by (auto simp add: finite_image_def)
 
-lemma Abs_finite_image_inj: 
+lemma Abs_finite_image_inj:
  "i \<in> {1 .. DIM('a)} \<Longrightarrow> j \<in> {1 .. DIM('a)}
   \<Longrightarrow> (((Abs_finite_image i ::'a finite_image) = Abs_finite_image j) \<longleftrightarrow> (i = j))"
-  using Abs_finite_image_works[where ?'a = 'a] 
+  using Abs_finite_image_works[where ?'a = 'a]
   by (auto simp add: atLeastAtMost_iff Bex1_def)
 
-lemma forall_Abs_finite_image: 
+lemma forall_Abs_finite_image:
   "(\<forall>k:: 'a finite_image. P k) \<longleftrightarrow> (\<forall>i \<in> {1 .. DIM('a)}. P(Abs_finite_image i))"
 unfolding Ball_def atLeastAtMost_iff Ex1_def
 using Abs_finite_image_works[where ?'a = 'a, unfolded atLeastAtMost_iff Bex1_def]
@@ -115,7 +115,7 @@ lemma Cart_eq: "((x:: 'a ^ 'b) = y) \<longleftrightarrow> (\<forall>i\<in> dimse
   unfolding Cart_nth_def forall_Abs_finite_image[symmetric, where P = "\<lambda>i. Rep_Cart x i = Rep_Cart y i"] stupid_ext
   using Rep_Cart_inject[of x y] ..
 
-consts Cart_lambda :: "(nat \<Rightarrow> 'a) \<Rightarrow> 'a ^ 'b" 
+consts Cart_lambda :: "(nat \<Rightarrow> 'a) \<Rightarrow> 'a ^ 'b"
 notation (xsymbols) Cart_lambda (binder "\<chi>" 10)
 
 defs Cart_lambda_def: "Cart_lambda g == (SOME (f:: 'a ^ 'b). \<forall>i \<in> {1 .. DIM('b)}. f$i = g i)"
@@ -127,13 +127,13 @@ proof (rule someI_ex)
   let ?f = "Abs_Cart (\<lambda>k. g (THE i. ?p i k)):: 'a ^ 'b"
   let ?P = "\<lambda>f i. f$i = g i"
   let ?Q = "\<lambda>(f::'a ^ 'b). \<forall> i \<in> {1 .. DIM('b)}. ?P f i"
-  {fix i 
+  {fix i
     assume i: "i \<in> {1 .. DIM('b)}"
     let ?j = "THE j. ?p j (Abs_finite_image i)"
     from theI'[where P = "\<lambda>j. ?p (j::nat) (Abs_finite_image i :: 'b finite_image)", OF Abs_finite_image_works[of "Abs_finite_image i :: 'b finite_image", unfolded Bex1_def]]
     have j: "?j \<in> {1 .. DIM('b)}" "(Abs_finite_image ?j :: 'b finite_image) = Abs_finite_image i" by blast+
     from i j Abs_finite_image_inject[of i ?j, where ?'a = 'b]
-    have th: "?j = i" by (simp add: finite_image_def)  
+    have th: "?j = i" by (simp add: finite_image_def)
     have "?P ?f i"
       using th
       by (simp add: Cart_nth_def Abs_Cart_inverse Rep_Cart_inverse Cart_def) }
@@ -175,7 +175,7 @@ using Rep_finite_sum[unfolded finite_sum_def, where ?'a = 'a and ?'b = 'b]
 apply (simp add: Rep_finite_sum)
 done
 
-lemma inj_on_Abs_finite_sum: "inj_on (Abs_finite_sum :: _ \<Rightarrow> ('a,'b) finite_sum) {1 .. DIM('a) + DIM('b)}" 
+lemma inj_on_Abs_finite_sum: "inj_on (Abs_finite_sum :: _ \<Rightarrow> ('a,'b) finite_sum) {1 .. DIM('a) + DIM('b)}"
   using Abs_finite_sum_inject[where ?'a = 'a and ?'b = 'b]
   by (auto simp add: inj_on_def finite_sum_def)
 
@@ -196,7 +196,7 @@ lemma sndcart_pastecart: "sndcart (pastecart (x::'a ^'m ) (y:: 'a ^ 'n)) = y"
 lemma pastecart_fst_snd: "pastecart (fstcart z) (sndcart z) = z"
 proof -
  {fix i
-  assume H: "i \<le> DIM('b) + DIM('c)" 
+  assume H: "i \<le> DIM('b) + DIM('c)"
     "\<not> i \<le> DIM('b)"
     from H have ith: "i - DIM('b) \<in> {1 .. DIM('c)}"
       apply simp by arith
@@ -226,8 +226,8 @@ proof-
   {fix n
     assume n: "n \<le> DIM('n)"
     have "finite {v:: 'a ^ 'n . (\<forall>i\<in> {1 .. DIM('n)}. i \<le> n \<longrightarrow> P i (v$i))
-                              \<and> (\<forall>i\<in> {1 .. DIM('n)}. n < i \<longrightarrow> v$i = (SOME x. False))}" 
-      using n 
+                              \<and> (\<forall>i\<in> {1 .. DIM('n)}. n < i \<longrightarrow> v$i = (SOME x. False))}"
+      using n
       proof(induct n)
 	case 0
 	have th0: "{v . (\<forall>i \<in> {1 .. DIM('n)}. v$i = (SOME x. False))} =
@@ -241,7 +241,7 @@ proof-
             (\<forall>i\<Colon>nat\<in>{1\<Colon>nat..DIM('n)}.
                 Suc n < i \<longrightarrow> v$i = (SOME x\<Colon>'a. False))}"
 	let ?S = "{x::'a . P (Suc  n) x} \<times> {v:: 'a^'n. (\<forall>i \<in> {1 .. DIM('n)}. i <= n \<longrightarrow> P i (v$i)) \<and> (\<forall>i \<in> {1 .. DIM('n)}. n < i \<longrightarrow> v$i = (SOME x. False))}"
-	have th0: " ?T \<subseteq> (?h ` ?S)" 
+	have th0: " ?T \<subseteq> (?h ` ?S)"
 	  using Suc.prems
 	  apply (auto simp add: image_def)
 	  apply (rule_tac x = "x$(Suc n)" in exI)
@@ -252,11 +252,11 @@ proof-
 	  apply simp
 	  apply (rule_tac x= "\<chi> i. if i = Suc n then (SOME x:: 'a. False) else (x:: 'a ^ 'n)$i:: 'a ^ 'n" in exI)
 	  by (simp add: Cart_eq Cart_lambda_beta)
-	have th1: "finite ?S" 
-	  apply (rule finite_cartesian_product) 
-	  using f Suc.hyps Suc.prems by auto 
-	from finite_imageI[OF th1] have th2: "finite (?h ` ?S)" . 
-	from finite_subset[OF th0 th2] show ?case by blast 
+	have th1: "finite ?S"
+	  apply (rule finite_cartesian_product)
+	  using f Suc.hyps Suc.prems by auto
+	from finite_imageI[OF th1] have th2: "finite (?h ` ?S)" .
+	from finite_subset[OF th0 th2] show ?case by blast
       qed}
 
   note th = this
