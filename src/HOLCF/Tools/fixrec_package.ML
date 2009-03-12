@@ -6,31 +6,18 @@ Recursive function definition package for HOLCF.
 
 signature FIXREC_PACKAGE =
 sig
-  val legacy_infer_term: theory -> term -> term
-  val legacy_infer_prop: theory -> term -> term
-
-  val add_fixrec: bool -> (binding * string option * mixfix) list
-    -> (Attrib.binding * string) list -> local_theory -> local_theory
-
-  val add_fixrec_i: bool -> (binding * typ option * mixfix) list
+  val add_fixrec: bool -> (binding * typ option * mixfix) list
     -> (Attrib.binding * term) list -> local_theory -> local_theory
-
-  val add_fixpat: Attrib.binding * string list -> theory -> theory
-  val add_fixpat_i: Thm.binding * term list -> theory -> theory
+  val add_fixrec_cmd: bool -> (binding * string option * mixfix) list
+    -> (Attrib.binding * string) list -> local_theory -> local_theory
+  val add_fixpat: Thm.binding * term list -> theory -> theory
+  val add_fixpat_cmd: Attrib.binding * string list -> theory -> theory
   val add_matchers: (string * string) list -> theory -> theory
   val setup: theory -> theory
 end;
 
 structure FixrecPackage: FIXREC_PACKAGE =
 struct
-
-(* legacy type inference *)
-(* used by the domain package *)
-fun legacy_infer_term thy t =
-  singleton (Syntax.check_terms (ProofContext.init thy)) (Sign.intern_term thy t);
-
-fun legacy_infer_prop thy t = legacy_infer_term thy (TypeInfer.constrain propT t);
-
 
 val fix_eq2 = @{thm fix_eq2};
 val def_fix_ind = @{thm def_fix_ind};
@@ -341,20 +328,9 @@ fun make_simps lthy (unfold_thm, eqns : (Attrib.binding * term) list) =
 local
 (* code adapted from HOL/Tools/primrec_package.ML *)
 
-fun prepare_spec prep_spec ctxt raw_fixes raw_spec =
-  let
-    val ((fixes, spec), _) = prep_spec
-      raw_fixes (map (single o apsnd single) raw_spec) ctxt
-  in (fixes, map (apsnd the_single) spec) end;
-
 fun gen_fixrec
   (set_group : bool)
-  (prep_spec : (binding * 'a option * mixfix) list ->
-       (Attrib.binding * 'b list) list list ->
-      Proof.context ->
-   (((binding * typ) * mixfix) list * (Attrib.binding * term list) list)
-    * Proof.context
-  )
+  prep_spec
   (strict : bool)
   raw_fixes
   raw_spec
@@ -362,7 +338,7 @@ fun gen_fixrec
   let
     val (fixes : ((binding * typ) * mixfix) list,
          spec : (Attrib.binding * term) list) =
-          prepare_spec prep_spec lthy raw_fixes raw_spec;
+          fst (prep_spec raw_fixes raw_spec lthy);
     val chead_of_spec =
       chead_of o fst o dest_eqs o Logic.strip_imp_concl o strip_alls o snd;
     fun name_of (Free (n, _)) = n
@@ -405,8 +381,8 @@ fun gen_fixrec
 
 in
 
-val add_fixrec_i = gen_fixrec false Specification.check_specification;
-val add_fixrec = gen_fixrec true Specification.read_specification;
+val add_fixrec = gen_fixrec false Specification.check_spec;
+val add_fixrec_cmd = gen_fixrec true Specification.read_spec;
 
 end; (* local *)
 
@@ -434,8 +410,8 @@ fun gen_add_fixpat prep_term prep_attrib ((name, srcs), strings) thy =
     (snd o PureThy.add_thmss [((name, simps), atts)]) thy
   end;
 
-val add_fixpat = gen_add_fixpat Syntax.read_term_global Attrib.attribute;
-val add_fixpat_i = gen_add_fixpat Sign.cert_term (K I);
+val add_fixpat = gen_add_fixpat Sign.cert_term (K I);
+val add_fixpat_cmd = gen_add_fixpat Syntax.read_term_global Attrib.attribute;
 
 
 (*************************************************************************)
@@ -444,43 +420,14 @@ val add_fixpat_i = gen_add_fixpat Sign.cert_term (K I);
 
 local structure P = OuterParse and K = OuterKeyword in
 
-(* bool parser *)
-val fixrec_strict = P.opt_keyword "permissive" >> not;
+val _ = OuterSyntax.local_theory "fixrec" "define recursive functions (HOLCF)" K.thy_decl
+  ((P.opt_keyword "permissive" >> not) -- P.fixes -- SpecParse.where_alt_specs
+    >> (fn ((strict, fixes), specs) => add_fixrec_cmd strict fixes specs));
 
-fun pipe_error t = P.!!! (Scan.fail_with (K
-  (cat_lines ["Equations must be separated by " ^ quote "|", quote t])));
-
-(* (Attrib.binding * string) parser *)
-val statement = SpecParse.opt_thm_name ":" -- P.prop --| Scan.ahead
-  ((P.term :-- pipe_error) || Scan.succeed ("",""));
-
-(* ((Attrib.binding * string) list) parser *)
-val statements = P.enum1 "|" statement;
-
-(* (((xstring option * bool) * (Binding.binding * string option * Mixfix.mixfix) list)
-   * (Attrib.binding * string) list) parser *)
-val fixrec_decl =
-  P.opt_target -- fixrec_strict -- P.fixes --| P.$$$ "where" -- statements;
-
-(* this builds a parser for a new keyword, fixrec, whose functionality 
-is defined by add_fixrec *)
-val _ =
-  let
-    val desc = "define recursive functions (HOLCF)";
-    fun fixrec (((opt_target, strict), raw_fixes), raw_spec) =
-      Toplevel.local_theory opt_target (add_fixrec strict raw_fixes raw_spec);
-  in
-    OuterSyntax.command "fixrec" desc K.thy_decl (fixrec_decl >> fixrec)
-  end;
-
-(* fixpat parser *)
-val fixpat_decl = SpecParse.opt_thm_name ":" -- Scan.repeat1 P.prop;
-
-val _ =
-  OuterSyntax.command "fixpat" "define rewrites for fixrec functions" K.thy_decl
-    (fixpat_decl >> (Toplevel.theory o add_fixpat));
+val _ = OuterSyntax.command "fixpat" "define rewrites for fixrec functions" K.thy_decl
+  (SpecParse.specs >> (Toplevel.theory o add_fixpat_cmd));
   
-end; (* local structure *)
+end;
 
 val setup = FixrecMatchData.init;
 
