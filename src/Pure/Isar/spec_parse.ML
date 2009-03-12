@@ -13,10 +13,10 @@ sig
   val opt_attribs: Attrib.src list parser
   val thm_name: string -> Attrib.binding parser
   val opt_thm_name: string -> Attrib.binding parser
-  val spec: (Attrib.binding * string list) parser
-  val named_spec: (Attrib.binding * string list) parser
-  val spec_name: ((binding * string) * Attrib.src list) parser
-  val spec_opt_name: ((binding * string) * Attrib.src list) parser
+  val spec: (Attrib.binding * string) parser
+  val specs: (Attrib.binding * string list) parser
+  val alt_specs: (Attrib.binding * string) list parser
+  val where_alt_specs: (Attrib.binding * string) list parser
   val xthm: (Facts.ref * Attrib.src list) parser
   val xthms1: (Facts.ref * Attrib.src list) list parser
   val name_facts: (Attrib.binding * (Facts.ref * Attrib.src list) list) list parser
@@ -30,8 +30,6 @@ sig
   val statement: (Attrib.binding * (string * string list) list) list parser
   val general_statement: (Element.context list * Element.statement) parser
   val statement_keyword: string parser
-  val specification:
-    (binding * ((Attrib.binding * string list) list * (binding * string option) list)) list parser
 end;
 
 structure SpecParse: SPEC_PARSE =
@@ -54,11 +52,13 @@ fun opt_thm_name s =
   Scan.optional ((P.binding -- opt_attribs || attribs >> pair Binding.empty) --| P.$$$ s)
     Attrib.empty_binding;
 
-val spec = opt_thm_name ":" -- Scan.repeat1 P.prop;
-val named_spec = thm_name ":" -- Scan.repeat1 P.prop;
+val spec = opt_thm_name ":" -- P.prop;
+val specs = opt_thm_name ":" -- Scan.repeat1 P.prop;
 
-val spec_name = thm_name ":" -- P.prop >> (fn ((x, y), z) => ((x, z), y));
-val spec_opt_name = opt_thm_name ":" -- P.prop >> (fn ((x, y), z) => ((x, z), y));
+val alt_specs =
+  P.enum1 "|" (spec --| Scan.option (Scan.ahead (P.name || P.$$$ "[") -- P.!!! (P.$$$ "|")));
+
+val where_alt_specs = P.where_ |-- P.!!! alt_specs;
 
 val xthm =
   P.$$$ "[" |-- attribs --| P.$$$ "]" >> pair (Facts.named "") ||
@@ -142,10 +142,5 @@ val general_statement =
     P.$$$ "shows" |-- P.!!! statement >> Element.Shows);
 
 val statement_keyword = P.$$$ "obtains" || P.$$$ "shows";
-
-
-(* specifications *)
-
-val specification = P.enum1 "|" (P.parbinding -- (P.and_list1 spec -- P.for_simple_fixes));
 
 end;
