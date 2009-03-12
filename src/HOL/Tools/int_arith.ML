@@ -1,59 +1,32 @@
-(*  Title:      HOL/Tools/int_arith1.ML
-    Authors:    Larry Paulson and Tobias Nipkow
+(* Authors: Larry Paulson and Tobias Nipkow
 
-Simprocs and decision procedure for linear arithmetic.
+Simprocs and decision procedure for numerals and linear arithmetic.
 *)
-
-structure Int_Numeral_Base_Simprocs =
-  struct
-  fun prove_conv tacs ctxt (_: thm list) (t, u) =
-    if t aconv u then NONE
-    else
-      let val eq = HOLogic.mk_Trueprop (HOLogic.mk_eq (t, u))
-      in SOME (Goal.prove ctxt [] [] eq (K (EVERY tacs))) end
-
-  fun prove_conv_nohyps tacs sg = prove_conv tacs sg [];
-
-  fun prep_simproc (name, pats, proc) =
-    Simplifier.simproc (the_context()) name pats proc;
-
-  fun is_numeral (Const(@{const_name Int.number_of}, _) $ w) = true
-    | is_numeral _ = false
-
-  fun simplify_meta_eq f_number_of_eq f_eq =
-      mk_meta_eq ([f_eq, f_number_of_eq] MRS trans)
-
-  (*reorientation simprules using ==, for the following simproc*)
-  val meta_zero_reorient = @{thm zero_reorient} RS eq_reflection
-  val meta_one_reorient = @{thm one_reorient} RS eq_reflection
-  val meta_number_of_reorient = @{thm number_of_reorient} RS eq_reflection
-
-  (*reorientation simplification procedure: reorients (polymorphic) 
-    0 = x, 1 = x, nnn = x provided x isn't 0, 1 or a Int.*)
-  fun reorient_proc sg _ (_ $ t $ u) =
-    case u of
-        Const(@{const_name HOL.zero}, _) => NONE
-      | Const(@{const_name HOL.one}, _) => NONE
-      | Const(@{const_name Int.number_of}, _) $ _ => NONE
-      | _ => SOME (case t of
-          Const(@{const_name HOL.zero}, _) => meta_zero_reorient
-        | Const(@{const_name HOL.one}, _) => meta_one_reorient
-        | Const(@{const_name Int.number_of}, _) $ _ => meta_number_of_reorient)
-
-  val reorient_simproc = 
-      prep_simproc ("reorient_simproc", ["0=x", "1=x", "number_of w = x"], reorient_proc)
-
-  end;
-
-
-Addsimprocs [Int_Numeral_Base_Simprocs.reorient_simproc];
-
 
 structure Int_Numeral_Simprocs =
 struct
 
-(*Maps 0 to Numeral0 and 1 to Numeral1 so that arithmetic in Int_Numeral_Base_Simprocs
-  isn't complicated by the abstract 0 and 1.*)
+(*reorientation simprules using ==, for the following simproc*)
+val meta_zero_reorient = @{thm zero_reorient} RS eq_reflection
+val meta_one_reorient = @{thm one_reorient} RS eq_reflection
+val meta_number_of_reorient = @{thm number_of_reorient} RS eq_reflection
+
+(*reorientation simplification procedure: reorients (polymorphic) 
+  0 = x, 1 = x, nnn = x provided x isn't 0, 1 or a Int.*)
+fun reorient_proc sg _ (_ $ t $ u) =
+  case u of
+      Const(@{const_name HOL.zero}, _) => NONE
+    | Const(@{const_name HOL.one}, _) => NONE
+    | Const(@{const_name Int.number_of}, _) $ _ => NONE
+    | _ => SOME (case t of
+        Const(@{const_name HOL.zero}, _) => meta_zero_reorient
+      | Const(@{const_name HOL.one}, _) => meta_one_reorient
+      | Const(@{const_name Int.number_of}, _) $ _ => meta_number_of_reorient)
+
+val reorient_simproc = 
+  Arith_Data.prep_simproc ("reorient_simproc", ["0=x", "1=x", "number_of w = x"], reorient_proc);
+
+(*Maps 0 to Numeral0 and 1 to Numeral1 so that arithmetic isn't complicated by the abstract 0 and 1.*)
 val numeral_syms = [@{thm numeral_0_eq_0} RS sym, @{thm numeral_1_eq_1} RS sym];
 
 (** New term ordering so that AC-rewriting brings numerals to the front **)
@@ -88,7 +61,7 @@ end;
 
 fun numtermless tu = (numterm_ord tu = LESS);
 
-(*Defined in this file, but perhaps needed only for Int_Numeral_Base_Simprocs of type nat.*)
+(*Defined in this file, but perhaps needed only for Int_Numeral_Simprocs of type nat.*)
 val num_ss = HOL_ss settermless numtermless;
 
 
@@ -213,7 +186,7 @@ val inverse_1s = [@{thm inverse_numeral_1}];
 val divide_1s = [@{thm divide_numeral_1}];
 
 (*To perform binary arithmetic.  The "left" rewriting handles patterns
-  created by the Int_Numeral_Base_Simprocs, such as 3 * (5 * x). *)
+  created by the Int_Numeral_Simprocs, such as 3 * (5 * x). *)
 val simps = [@{thm numeral_0_eq_0} RS sym, @{thm numeral_1_eq_1} RS sym,
                  @{thm add_number_of_left}, @{thm mult_number_of_left}] @
                 @{thms arith_simps} @ @{thms rel_simps};
@@ -279,7 +252,7 @@ structure CancelNumeralsCommon =
 
 structure EqCancelNumerals = CancelNumeralsFun
  (open CancelNumeralsCommon
-  val prove_conv = Int_Numeral_Base_Simprocs.prove_conv
+  val prove_conv = Arith_Data.prove_conv
   val mk_bal   = HOLogic.mk_eq
   val dest_bal = HOLogic.dest_bin "op =" Term.dummyT
   val bal_add1 = @{thm eq_add_iff1} RS trans
@@ -288,7 +261,7 @@ structure EqCancelNumerals = CancelNumeralsFun
 
 structure LessCancelNumerals = CancelNumeralsFun
  (open CancelNumeralsCommon
-  val prove_conv = Int_Numeral_Base_Simprocs.prove_conv
+  val prove_conv = Arith_Data.prove_conv
   val mk_bal   = HOLogic.mk_binrel @{const_name HOL.less}
   val dest_bal = HOLogic.dest_bin @{const_name HOL.less} Term.dummyT
   val bal_add1 = @{thm less_add_iff1} RS trans
@@ -297,7 +270,7 @@ structure LessCancelNumerals = CancelNumeralsFun
 
 structure LeCancelNumerals = CancelNumeralsFun
  (open CancelNumeralsCommon
-  val prove_conv = Int_Numeral_Base_Simprocs.prove_conv
+  val prove_conv = Arith_Data.prove_conv
   val mk_bal   = HOLogic.mk_binrel @{const_name HOL.less_eq}
   val dest_bal = HOLogic.dest_bin @{const_name HOL.less_eq} Term.dummyT
   val bal_add1 = @{thm le_add_iff1} RS trans
@@ -305,7 +278,7 @@ structure LeCancelNumerals = CancelNumeralsFun
 );
 
 val cancel_numerals =
-  map Int_Numeral_Base_Simprocs.prep_simproc
+  map Arith_Data.prep_simproc
    [("inteq_cancel_numerals",
      ["(l::'a::number_ring) + m = n",
       "(l::'a::number_ring) = m + n",
@@ -342,7 +315,7 @@ structure CombineNumeralsData =
   val mk_coeff          = mk_coeff
   val dest_coeff        = dest_coeff 1
   val left_distrib      = @{thm combine_common_factor} RS trans
-  val prove_conv        = Int_Numeral_Base_Simprocs.prove_conv_nohyps
+  val prove_conv        = Arith_Data.prove_conv_nohyps
   val trans_tac         = fn _ => trans_tac
 
   val norm_ss1 = num_ss addsimps numeral_syms @ add_0s @ mult_1s @
@@ -372,7 +345,7 @@ structure FieldCombineNumeralsData =
   val mk_coeff          = mk_fcoeff
   val dest_coeff        = dest_fcoeff 1
   val left_distrib      = @{thm combine_common_factor} RS trans
-  val prove_conv        = Int_Numeral_Base_Simprocs.prove_conv_nohyps
+  val prove_conv        = Arith_Data.prove_conv_nohyps
   val trans_tac         = fn _ => trans_tac
 
   val norm_ss1 = num_ss addsimps numeral_syms @ add_0s @ mult_1s @
@@ -392,23 +365,42 @@ structure FieldCombineNumeralsData =
 structure FieldCombineNumerals = CombineNumeralsFun(FieldCombineNumeralsData);
 
 val combine_numerals =
-  Int_Numeral_Base_Simprocs.prep_simproc
+  Arith_Data.prep_simproc
     ("int_combine_numerals", 
      ["(i::'a::number_ring) + j", "(i::'a::number_ring) - j"], 
      K CombineNumerals.proc);
 
 val field_combine_numerals =
-  Int_Numeral_Base_Simprocs.prep_simproc
+  Arith_Data.prep_simproc
     ("field_combine_numerals", 
      ["(i::'a::{number_ring,field,division_by_zero}) + j",
       "(i::'a::{number_ring,field,division_by_zero}) - j"], 
      K FieldCombineNumerals.proc);
 
+(** Constant folding for multiplication in semirings **)
+
+(*We do not need folding for addition: combine_numerals does the same thing*)
+
+structure Semiring_Times_Assoc_Data : ASSOC_FOLD_DATA =
+struct
+  val assoc_ss = HOL_ss addsimps @{thms mult_ac}
+  val eq_reflection = eq_reflection
 end;
 
+structure Semiring_Times_Assoc = Assoc_Fold (Semiring_Times_Assoc_Data);
+
+val assoc_fold_simproc =
+  Arith_Data.prep_simproc
+   ("semiring_assoc_fold", ["(a::'a::comm_semiring_1_cancel) * b"],
+    K Semiring_Times_Assoc.proc);
+
+end;
+
+Addsimprocs [Int_Numeral_Simprocs.reorient_simproc];
 Addsimprocs Int_Numeral_Simprocs.cancel_numerals;
 Addsimprocs [Int_Numeral_Simprocs.combine_numerals];
 Addsimprocs [Int_Numeral_Simprocs.field_combine_numerals];
+Addsimprocs [Int_Numeral_Simprocs.assoc_fold_simproc];
 
 (*examples:
 print_depth 22;
@@ -447,29 +439,6 @@ test "(i + j + 12 + (k::int)) - -15 = y";
 test "(i + j + -12 + (k::int)) - -15 = y";
 *)
 
-
-(** Constant folding for multiplication in semirings **)
-
-(*We do not need folding for addition: combine_numerals does the same thing*)
-
-structure Semiring_Times_Assoc_Data : ASSOC_FOLD_DATA =
-struct
-  val assoc_ss = HOL_ss addsimps @{thms mult_ac}
-  val eq_reflection = eq_reflection
-end;
-
-structure Semiring_Times_Assoc = Assoc_Fold (Semiring_Times_Assoc_Data);
-
-val assoc_fold_simproc =
-  Int_Numeral_Base_Simprocs.prep_simproc
-   ("semiring_assoc_fold", ["(a::'a::comm_semiring_1_cancel) * b"],
-    K Semiring_Times_Assoc.proc);
-
-Addsimprocs [assoc_fold_simproc];
-
-
-
-
 (*** decision procedure for linear arithmetic ***)
 
 (*---------------------------------------------------------------------------*)
@@ -480,8 +449,10 @@ Addsimprocs [assoc_fold_simproc];
 Instantiation of the generic linear arithmetic package for int.
 *)
 
+structure Int_Arith =
+struct
+
 (* Update parameters of arithmetic prover *)
-local
 
 (* reduce contradictory =/</<= to False *)
 
@@ -489,25 +460,31 @@ local
    and m and n are ground terms over rings (roughly speaking).
    That is, m and n consist only of 1s combined with "+", "-" and "*".
 *)
-local
+
 val zeroth = (symmetric o mk_meta_eq) @{thm of_int_0};
+
 val lhss0 = [@{cpat "0::?'a::ring"}];
+
 fun proc0 phi ss ct =
   let val T = ctyp_of_term ct
   in if typ_of T = @{typ int} then NONE else
      SOME (instantiate' [SOME T] [] zeroth)
   end;
+
 val zero_to_of_int_zero_simproc =
   make_simproc {lhss = lhss0, name = "zero_to_of_int_zero_simproc",
   proc = proc0, identifier = []};
 
 val oneth = (symmetric o mk_meta_eq) @{thm of_int_1};
+
 val lhss1 = [@{cpat "1::?'a::ring_1"}];
+
 fun proc1 phi ss ct =
   let val T = ctyp_of_term ct
   in if typ_of T = @{typ int} then NONE else
      SOME (instantiate' [SOME T] [] oneth)
   end;
+
 val one_to_of_int_one_simproc =
   make_simproc {lhss = lhss1, name = "one_to_of_int_one_simproc",
   proc = proc1, identifier = []};
@@ -533,15 +510,15 @@ val conv =
      addsimprocs [zero_to_of_int_zero_simproc,one_to_of_int_one_simproc]);
 
 fun sproc phi ss ct = if check (term_of ct) then SOME (conv ct) else NONE
+
 val lhss' =
   [@{cpat "(?x::?'a::ring_char_0) = (?y::?'a)"},
    @{cpat "(?x::?'a::ordered_idom) < (?y::?'a)"},
    @{cpat "(?x::?'a::ordered_idom) <= (?y::?'a)"}]
-in
+
 val zero_one_idom_simproc =
   make_simproc {lhss = lhss' , name = "zero_one_idom_simproc",
   proc = sproc, identifier = []}
-end;
 
 val add_rules =
     simp_thms @ @{thms arith_simps} @ @{thms rel_simps} @ @{thms arith_special} @
@@ -556,13 +533,11 @@ val add_rules =
 
 val nat_inj_thms = [@{thm zle_int} RS iffD2, @{thm int_int_eq} RS iffD2]
 
-val Int_Numeral_Base_Simprocs = assoc_fold_simproc :: zero_one_idom_simproc
+val int_numeral_base_simprocs = Int_Numeral_Simprocs.assoc_fold_simproc :: zero_one_idom_simproc
   :: Int_Numeral_Simprocs.combine_numerals
   :: Int_Numeral_Simprocs.cancel_numerals;
 
-in
-
-val int_arith_setup =
+val setup =
   LinArith.map_data (fn {add_mono_thms, mult_mono_thms, inj_thms, lessD, neqE, simpset} =>
    {add_mono_thms = add_mono_thms,
     mult_mono_thms = @{thm mult_strict_left_mono} :: @{thm mult_left_mono} :: mult_mono_thms,
@@ -570,12 +545,10 @@ val int_arith_setup =
     lessD = lessD @ [@{thm zless_imp_add1_zle}],
     neqE = neqE,
     simpset = simpset addsimps add_rules
-                      addsimprocs Int_Numeral_Base_Simprocs
+                      addsimprocs int_numeral_base_simprocs
                       addcongs [if_weak_cong]}) #>
   arith_inj_const (@{const_name of_nat}, HOLogic.natT --> HOLogic.intT) #>
   arith_discrete @{type_name Int.int}
-
-end;
 
 val fast_int_arith_simproc =
   Simplifier.simproc (the_context ())
@@ -584,4 +557,6 @@ val fast_int_arith_simproc =
       "(m::'a::{ordered_idom,number_ring}) <= n",
       "(m::'a::{ordered_idom,number_ring}) = n"] (K LinArith.lin_arith_simproc);
 
-Addsimprocs [fast_int_arith_simproc];
+end;
+
+Addsimprocs [Int_Arith.fast_int_arith_simproc];

@@ -572,8 +572,8 @@ struct
 val div_name = @{const_name div};
 val mod_name = @{const_name mod};
 val mk_binop = HOLogic.mk_binop;
-val mk_sum = ArithData.mk_sum;
-val dest_sum = ArithData.dest_sum;
+val mk_sum = Nat_Arith.mk_sum;
+val dest_sum = Nat_Arith.dest_sum;
 
 (*logic*)
 
@@ -583,7 +583,7 @@ val trans = trans
 
 val prove_eq_sums =
   let val simps = @{thm add_0} :: @{thm add_0_right} :: @{thms add_ac}
-  in ArithData.prove_conv all_tac (ArithData.simp_all_tac simps) end;
+  in Arith_Data.prove_conv2 all_tac (Arith_Data.simp_all_tac simps) end;
 
 end;
 
