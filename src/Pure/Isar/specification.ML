@@ -147,12 +147,16 @@ fun gen_axioms do_print prep raw_vars raw_specs thy =
     val subst = Term.subst_atomic (map Free xs ~~ consts);
 
     (*axioms*)
-    val (axioms, axioms_thy) = consts_thy |> fold_map (fn ((b, atts), props) =>
-        fold_map Thm.add_axiom  (* FIXME proper use of binding!? *)
-          ((map o apfst) Binding.name (PureThy.name_multi (Binding.name_of b) (map subst props)))
-        #>> (fn ths => ((b, atts), [(map Drule.standard' ths, [])]))) specs;
+    val (axioms, axioms_thy) = (specs, consts_thy) |-> fold_map (fn ((b, atts), props) =>
+        fold_map Thm.add_axiom
+          (map (apfst (fn a => Binding.map_name (K a) b))
+            (PureThy.name_multi (Binding.name_of b) (map subst props)))
+        #>> (fn ths => ((b, atts), [(map Drule.standard' ths, [])])));
+
+    (*facts*)
     val (facts, thy') = axioms_thy |> PureThy.note_thmss Thm.axiomK
       (Attrib.map_facts (Attrib.attribute_i axioms_thy) axioms);
+
     val _ =
       if not do_print then ()
       else print_consts (ProofContext.init thy') (K false) xs;
