@@ -52,7 +52,7 @@ fun pretty_thy ctxt target is_locale is_class =
     val fixes =
       map (fn (x, T) => (Binding.name x, SOME T, NoSyn)) (#1 (ProofContext.inferred_fixes ctxt));
     val assumes =
-      map (fn A => (Attrib.empty_binding, [(Thm.term_of A, [])])) (Assumption.assms_of ctxt);
+      map (fn A => (Attrib.empty_binding, [(Thm.term_of A, [])])) (Assumption.all_assms_of ctxt);
     val elems =
       (if null fixes then [] else [Element.Fixes fixes]) @
       (if null assumes then [] else [Element.Assumes assumes]);
@@ -109,7 +109,7 @@ fun import_export_proof ctxt (name, raw_th) =
     val th = Goal.norm_result raw_th;
     val (defs, th') = LocalDefs.export ctxt thy_ctxt th;
     val concl_conv = MetaSimplifier.rewrite true defs (Thm.cprop_of th);
-    val assms = map (MetaSimplifier.rewrite_rule defs o Thm.assume) (Assumption.assms_of ctxt);
+    val assms = map (MetaSimplifier.rewrite_rule defs o Thm.assume) (Assumption.all_assms_of ctxt);
     val nprems = Thm.nprems_of th' - Thm.nprems_of th;
 
     (*export fixes*)

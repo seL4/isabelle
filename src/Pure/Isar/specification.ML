@@ -147,12 +147,16 @@ fun gen_axioms do_print prep raw_vars raw_specs thy =
     val subst = Term.subst_atomic (map Free xs ~~ consts);
 
     (*axioms*)
-    val (axioms, axioms_thy) = consts_thy |> fold_map (fn ((b, atts), props) =>
-        fold_map Thm.add_axiom  (* FIXME proper use of binding!? *)
-          ((map o apfst) Binding.name (PureThy.name_multi (Binding.name_of b) (map subst props)))
-        #>> (fn ths => ((b, atts), [(map Drule.standard' ths, [])]))) specs;
+    val (axioms, axioms_thy) = (specs, consts_thy) |-> fold_map (fn ((b, atts), props) =>
+        fold_map Thm.add_axiom
+          (map (apfst (fn a => Binding.map_name (K a) b))
+            (PureThy.name_multi (Binding.name_of b) (map subst props)))
+        #>> (fn ths => ((b, atts), [(map Drule.standard' ths, [])])));
+
+    (*facts*)
     val (facts, thy') = axioms_thy |> PureThy.note_thmss Thm.axiomK
       (Attrib.map_facts (Attrib.attribute_i axioms_thy) axioms);
+
     val _ =
       if not do_print then ()
       else print_consts (ProofContext.init thy') (K false) xs;
@@ -256,15 +260,12 @@ val theorems_cmd = gen_theorems ProofContext.get_fact Attrib.intern_src;
 
 local
 
-fun subtract_prems ctxt1 ctxt2 =
-  Library.drop (length (Assumption.prems_of ctxt1), Assumption.prems_of ctxt2);
-
 fun prep_statement prep_att prep_stmt elems concl ctxt =
   (case concl of
     Element.Shows shows =>
       let
         val (propp, elems_ctxt) = prep_stmt elems (map snd shows) ctxt;
-        val prems = subtract_prems ctxt elems_ctxt;
+        val prems = Assumption.local_prems_of elems_ctxt ctxt;
         val stmt = Attrib.map_specs prep_att (map fst shows ~~ propp);
         val goal_ctxt = fold (fold (Variable.auto_fixes o fst)) propp elems_ctxt;
       in ((prems, stmt, []), goal_ctxt) end
@@ -300,7 +301,7 @@ fun prep_statement prep_att prep_stmt elems concl ctxt =
 
         val atts = map (Attrib.internal o K)
           [RuleCases.consumes (~ (length obtains)), RuleCases.case_names case_names];
-        val prems = subtract_prems ctxt elems_ctxt;
+        val prems = Assumption.local_prems_of elems_ctxt ctxt;
         val stmt = [((Binding.empty, atts), [(thesis, [])])];
 
         val (facts, goal_ctxt) = elems_ctxt
