@@ -135,7 +135,7 @@ fun fixed_abbrev ((x, mx), rhs) ctxt =
 fun export inner outer =    (*beware of closure sizes*)
   let
     val exp = Assumption.export false inner outer;
-    val prems = Assumption.prems_of inner;
+    val prems = Assumption.all_prems_of inner;
   in fn th =>
     let
       val th' = exp th;

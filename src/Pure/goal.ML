@@ -110,7 +110,7 @@ fun future_result ctxt result prop =
     val cert = Thm.cterm_of thy;
     val certT = Thm.ctyp_of thy;
 
-    val assms = Assumption.assms_of ctxt;
+    val assms = Assumption.all_assms_of ctxt;
     val As = map Thm.term_of assms;
 
     val xs = map Free (fold Term.add_frees (prop :: As) []);

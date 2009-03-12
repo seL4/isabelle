@@ -108,7 +108,16 @@ in (dnam,
     [take_def, finite_def])
 end; (* let (calc_axioms) *)
 
-fun infer_props thy = map (apsnd (FixrecPackage.legacy_infer_prop thy));
+
+(* legacy type inference *)
+
+fun legacy_infer_term thy t =
+  singleton (Syntax.check_terms (ProofContext.init thy)) (Sign.intern_term thy t);
+
+fun legacy_infer_prop thy t = legacy_infer_term thy (TypeInfer.constrain propT t);
+
+fun infer_props thy = map (apsnd (legacy_infer_prop thy));
+
 
 fun add_axioms_i x = snd o PureThy.add_axioms (map (Thm.no_attributes o apfst Binding.name) x);
 fun add_axioms_infer axms thy = add_axioms_i (infer_props thy axms) thy;

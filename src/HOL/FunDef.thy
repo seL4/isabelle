@@ -314,13 +314,11 @@ use "Tools/function_package/scnp_solve.ML"
 use "Tools/function_package/scnp_reconstruct.ML"
 
 setup {* ScnpReconstruct.setup *}
-(*
-setup {*
+
+ML_val -- "setup inactive"
+{*
   Context.theory_map (FundefCommon.set_termination_prover (ScnpReconstruct.decomp_scnp 
   [ScnpSolve.MAX, ScnpSolve.MIN, ScnpSolve.MS])) 
 *}
-*)
-
-
 
 end

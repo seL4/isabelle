@@ -1,7 +1,7 @@
 (*  Title:      Pure/assumption.ML
     Author:     Makarius
 
-Local assumptions, parameterized by export rules.
+Context assumptions, parameterized by export rules.
 *)
 
 signature ASSUMPTION =
@@ -10,12 +10,13 @@ sig
   val assume_export: export
   val presume_export: export
   val assume: cterm -> thm
-  val assms_of: Proof.context -> cterm list
-  val prems_of: Proof.context -> thm list
+  val all_assms_of: Proof.context -> cterm list
+  val all_prems_of: Proof.context -> thm list
   val extra_hyps: Proof.context -> thm -> term list
+  val local_assms_of: Proof.context -> Proof.context -> cterm list
+  val local_prems_of: Proof.context -> Proof.context -> thm list
   val add_assms: export -> cterm list -> Proof.context -> thm list * Proof.context
   val add_assumes: cterm list -> Proof.context -> thm list * Proof.context
-  val add_view: Proof.context -> cterm list -> Proof.context -> Proof.context
   val export: bool -> Proof.context -> Proof.context -> thm -> thm
   val export_term: Proof.context -> Proof.context -> term -> term
   val export_morphism: Proof.context -> Proof.context -> morphism
@@ -54,7 +55,7 @@ val assume = MetaSimplifier.norm_hhf o Thm.assume;
 (** local context data **)
 
 datatype data = Data of
- {assms: (export * cterm list) list,    (*assumes and views: A ==> _*)
+ {assms: (export * cterm list) list,    (*assumes: A ==> _*)
   prems: thm list};                     (*prems: A |- A*)
 
 fun make_data (assms, prems) = Data {assms = assms, prems = prems};
@@ -68,18 +69,31 @@ structure Data = ProofDataFun
 fun map_data f = Data.map (fn Data {assms, prems} => make_data (f (assms, prems)));
 fun rep_data ctxt = Data.get ctxt |> (fn Data args => args);
 
-val assumptions_of = #assms o rep_data;
-val assms_of = maps #2 o assumptions_of;
-val prems_of = #prems o rep_data;
 
-fun extra_hyps ctxt th = subtract (op aconv) (map Thm.term_of (assms_of ctxt)) (Thm.hyps_of th);
+(* all assumptions *)
 
+val all_assumptions_of = #assms o rep_data;
+val all_assms_of = maps #2 o all_assumptions_of;
+val all_prems_of = #prems o rep_data;
 
-(* named prems -- legacy feature *)
+fun extra_hyps ctxt th =
+  subtract (op aconv) (map Thm.term_of (all_assms_of ctxt)) (Thm.hyps_of th);
 
+(*named prems -- legacy feature*)
 val _ = Context.>>
   (Context.map_theory (PureThy.add_thms_dynamic (Binding.name "prems",
-    fn Context.Theory _ => [] | Context.Proof ctxt => prems_of ctxt)));
+    fn Context.Theory _ => [] | Context.Proof ctxt => all_prems_of ctxt)));
+
+
+(* local assumptions *)
+
+fun local_assumptions_of inner outer =
+  Library.drop (length (all_assumptions_of outer), all_assumptions_of inner);
+
+val local_assms_of = maps #2 oo local_assumptions_of;
+
+fun local_prems_of inner outer =
+  Library.drop (length (all_prems_of outer), all_prems_of inner);
 
 
 (* add assumptions *)
@@ -92,27 +106,16 @@ fun add_assms export new_asms =
 
 val add_assumes = add_assms assume_export;
 
-fun add_view outer view = map_data (fn (asms, prems) =>
-  let
-    val (asms1, asms2) = chop (length (assumptions_of outer)) asms;
-    val asms' = asms1 @ [(assume_export, view)] @ asms2;
-  in (asms', prems) end);
-
 
 (* export *)
 
-fun diff_assms inner outer =
-  Library.drop (length (assumptions_of outer), assumptions_of inner);
-
 fun export is_goal inner outer =
-  let val asms = diff_assms inner outer in
-    MetaSimplifier.norm_hhf_protect
-    #> fold_rev (fn (e, As) => #1 (e is_goal As)) asms
-    #> MetaSimplifier.norm_hhf_protect
-  end;
+  MetaSimplifier.norm_hhf_protect #>
+  fold_rev (fn (e, As) => #1 (e is_goal As)) (local_assumptions_of inner outer) #>
+  MetaSimplifier.norm_hhf_protect;
 
 fun export_term inner outer =
-  fold_rev (fn (e, As) => #2 (e false As)) (diff_assms inner outer);
+  fold_rev (fn (e, As) => #2 (e false As)) (local_assumptions_of inner outer);
 
 fun export_morphism inner outer =
   let
