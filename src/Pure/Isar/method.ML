@@ -394,7 +394,7 @@ fun add_methods raw_meths thy =
     val new_meths = raw_meths |> map (fn (name, f, comment) =>
       (Binding.name name, ((f, comment), stamp ())));
 
-    fun add meths = fold (snd oo NameSpace.bind (Sign.naming_of thy)) new_meths meths
+    fun add meths = fold (snd oo NameSpace.define (Sign.naming_of thy)) new_meths meths
       handle Symtab.DUP dup => error ("Duplicate declaration of method " ^ quote dup);
   in Methods.map add thy end;
 

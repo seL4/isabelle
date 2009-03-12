@@ -222,7 +222,7 @@ fun gen_simproc prep {name, lhss, proc, identifier} lthy =
         val simproc' = morph_simproc phi simproc;
       in
         Simprocs.map (fn simprocs =>
-          NameSpace.bind naming (b', simproc') simprocs |> snd
+          NameSpace.define naming (b', simproc') simprocs |> snd
             handle Symtab.DUP dup => err_dup_simproc dup)
         #> map_ss (fn ss => ss addsimprocs [simproc'])
       end)

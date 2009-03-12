@@ -215,7 +215,7 @@ fun instance consts (c, Ts) =
 fun err_dup_const c =
   error ("Duplicate declaration of constant " ^ quote c);
 
-fun extend_decls naming decl tab = NameSpace.bind naming decl tab
+fun extend_decls naming decl tab = NameSpace.define naming decl tab
   handle Symtab.DUP c => err_dup_const c;
 
 

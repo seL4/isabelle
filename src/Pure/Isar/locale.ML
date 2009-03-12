@@ -161,7 +161,7 @@ fun the_locale thy name = case get_locale thy name
   | NONE => error ("Unknown locale " ^ quote name);
 
 fun register_locale binding parameters spec intros axioms decls notes dependencies thy =
-  thy |> LocalesData.map (NameSpace.bind (Sign.naming_of thy) (binding,
+  thy |> LocalesData.map (NameSpace.define (Sign.naming_of thy) (binding,
     mk_locale ((parameters, spec, intros, axioms), ((decls, notes), dependencies))) #> snd);
 
 fun change_locale name =

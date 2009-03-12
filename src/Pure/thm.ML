@@ -1700,7 +1700,7 @@ val extern_oracles = map #1 o NameSpace.extern_table o Oracles.get;
 fun add_oracle (b, oracle) thy =
   let
     val naming = Sign.naming_of thy;
-    val (name, tab') = NameSpace.bind naming (b, serial ()) (Oracles.get thy)
+    val (name, tab') = NameSpace.define naming (b, serial ()) (Oracles.get thy)
       handle Symtab.DUP _ => err_dup_ora (Binding.str_of b);
     val thy' = Oracles.put tab' thy;
   in ((name, invoke_oracle (Theory.check_thy thy') name oracle), thy') end;
