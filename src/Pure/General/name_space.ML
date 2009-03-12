@@ -38,11 +38,11 @@ sig
   val no_base_names: naming -> naming
   val sticky_prefix: string -> naming -> naming
   type 'a table = T * 'a Symtab.table
-  val bind: naming -> binding * 'a -> 'a table -> string * 'a table       (*exception Symtab.DUP*)
+  val define: naming -> binding * 'a -> 'a table -> string * 'a table (*exception Symtab.DUP*)
   val empty_table: 'a table
-  val merge_tables: ('a * 'a -> bool) -> 'a table * 'a table -> 'a table  (*exception Symtab.DUP*)
+  val merge_tables: ('a * 'a -> bool) -> 'a table * 'a table -> 'a table (*exception Symtab.DUP*)
   val join_tables: (string -> 'a * 'a -> 'a) (*exception Symtab.DUP/Symtab.SAME*) ->
-    'a table * 'a table -> 'a table                                       (*exception Symtab.DUP*)
+    'a table * 'a table -> 'a table (*exception Symtab.DUP*)
   val dest_table: 'a table -> (string * 'a) list
   val extern_table: 'a table -> (xstring * 'a) list
 end;
@@ -156,8 +156,8 @@ fun hide fully name space =
 fun merge (NameSpace (tab1, xtab1), NameSpace (tab2, xtab2)) =
   let
     val tab' = (tab1, tab2) |> Symtab.join
-      (K (fn names as ((names1, names1'), (names2, names2')) =>
-        if pointer_eq names then raise Symtab.SAME
+      (K (fn ((names1, names1'), (names2, names2')) =>
+        if pointer_eq (names1, names2) andalso pointer_eq (names1', names2') then raise Symtab.SAME
         else (Library.merge (op =) (names1, names2), Library.merge (op =) (names1', names2'))));
     val xtab' = (xtab1, xtab2) |> Symtab.join
       (K (fn xnames =>
@@ -187,7 +187,7 @@ fun map_naming f (Naming {path, no_base_names}) =
 val default_naming = make_naming ([], false);
 
 fun add_path elems = map_naming (fn (path, no_base_names) =>
-  (path @ map (rpair false) (Long_Name.explode elems), no_base_names));
+  (path @ [(elems, false)], no_base_names));
 
 val root_path = map_naming (fn (_, no_base_names) => ([], no_base_names));
 
@@ -195,14 +195,14 @@ val parent_path = map_naming (fn (path, no_base_names) =>
   (perhaps (try (#1 o split_last)) path, no_base_names));
 
 fun sticky_prefix elems = map_naming (fn (path, no_base_names) =>
-  (path @ map (rpair true) (Long_Name.explode elems), no_base_names));
+  (path @ [(elems, true)], no_base_names));
 
 val no_base_names = map_naming (fn (path, _) => (path, true));
 
 
 (* full name *)
 
-fun err_bad binding = error ("Bad name declaration " ^ quote (Binding.str_of binding));
+fun err_bad binding = error ("Bad name binding " ^ quote (Binding.str_of binding));
 
 fun name_spec (Naming {path, ...}) binding =
   let
@@ -230,7 +230,6 @@ and mandatory_prefixes1 [] = []
   | mandatory_prefixes1 ((x, true) :: xs) = map (cons x) (mandatory_prefixes1 xs)
   | mandatory_prefixes1 ((x, false) :: xs) = map (cons x) (mandatory_prefixes xs);
 
-fun mandatory_suffixes1 xs = map rev (mandatory_prefixes1 (rev xs));
 fun mandatory_suffixes xs = map rev (mandatory_prefixes (rev xs));
 
 fun accesses (naming as Naming {no_base_names, ...}) binding =
@@ -264,7 +263,7 @@ fun declare naming binding space =
 
 type 'a table = T * 'a Symtab.table;
 
-fun bind naming (binding, x) (space, tab) =
+fun define naming (binding, x) (space, tab) =
   let val (name, space') = declare naming binding space
   in (name, (space', Symtab.update_new (name, x) tab)) end;
 
