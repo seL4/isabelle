@@ -4,12 +4,20 @@
 *)
 (*<*)
 theory OptionalSugar
-imports LaTeXsugar
+imports LaTeXsugar Complex_Main
 begin
 
-(* set *)
+(* hiding set *)
 translations
   "xs" <= "CONST set xs"
+
+(* hiding numeric conversions - embeddings only *)
+translations
+  "n" <= "CONST of_nat n"
+  "n" <= "CONST int n"
+  "n" <= "real n"
+  "n" <= "CONST real_of_nat n"
+  "n" <= "CONST real_of_int n"
 
 (* append *)
 syntax (latex output)

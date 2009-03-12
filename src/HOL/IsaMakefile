@@ -344,7 +344,8 @@ $(LOG)/HOL-Library.gz: $(OUT)/HOL Library/SetsAndFunctions.thy		\
   Library/Product_plus.thy \
   Library/Product_Vector.thy \
   Library/Enum.thy Library/Float.thy $(SRC)/Tools/float.ML $(SRC)/HOL/Tools/float_arith.ML \
-  Library/reify_data.ML Library/reflection.ML
+  Library/reify_data.ML Library/reflection.ML \
+  Library/LaTeXsugar.thy Library/OptionalSugar.thy
 	@cd Library; $(ISABELLE_TOOL) usedir $(OUT)/HOL Library
 
 
