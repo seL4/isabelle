@@ -55,7 +55,7 @@ val assume = MetaSimplifier.norm_hhf o Thm.assume;
 (** local context data **)
 
 datatype data = Data of
- {assms: (export * cterm list) list,    (*assumes and views: A ==> _*)
+ {assms: (export * cterm list) list,    (*assumes: A ==> _*)
   prems: thm list};                     (*prems: A |- A*)
 
 fun make_data (assms, prems) = Data {assms = assms, prems = prems};
@@ -110,11 +110,9 @@ val add_assumes = add_assms assume_export;
 (* export *)
 
 fun export is_goal inner outer =
-  let val asms = local_assumptions_of inner outer in
-    MetaSimplifier.norm_hhf_protect
-    #> fold_rev (fn (e, As) => #1 (e is_goal As)) asms
-    #> MetaSimplifier.norm_hhf_protect
-  end;
+  MetaSimplifier.norm_hhf_protect #>
+  fold_rev (fn (e, As) => #1 (e is_goal As)) (local_assumptions_of inner outer) #>
+  MetaSimplifier.norm_hhf_protect;
 
 fun export_term inner outer =
   fold_rev (fn (e, As) => #2 (e false As)) (local_assumptions_of inner outer);
