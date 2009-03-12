@@ -6,7 +6,7 @@ Learning and using Isabelle
   classes         Tutorial on Type Classes
   functions       Tutorial on Function Definitions
   codegen         Tutorial on Code Generation
-  sugar           LaTeX sugar for proof documents
+  sugar           LaTeX Sugar for Isabelle documents
 
 Reference Manuals
   isar-ref        The Isabelle/Isar Reference Manual
