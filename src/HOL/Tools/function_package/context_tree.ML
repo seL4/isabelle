@@ -11,7 +11,7 @@ sig
     type ctx_tree
 
     (* FIXME: This interface is a mess and needs to be cleaned up! *)
-    val get_fundef_congs : Context.generic -> thm list
+    val get_fundef_congs : Proof.context -> thm list
     val add_fundef_cong : thm -> Context.generic -> Context.generic
     val map_fundef_congs : (thm list -> thm list) -> Context.generic -> Context.generic
 
@@ -52,8 +52,8 @@ structure FundefCongs = GenericDataFun
   fun merge _ = Thm.merge_thms
 );
 
-val map_fundef_congs = FundefCongs.map 
-val get_fundef_congs = FundefCongs.get
+val get_fundef_congs = FundefCongs.get o Context.Proof
+val map_fundef_congs = FundefCongs.map
 val add_fundef_cong = FundefCongs.map o Thm.add_thm
 
 (* congruence rules *)
@@ -127,7 +127,7 @@ fun find_cong_rule ctx fvar h ((r,dep)::rs) t =
 
 fun mk_tree fvar h ctxt t =
     let 
-      val congs = get_fundef_congs (Context.Proof ctxt)
+      val congs = get_fundef_congs ctxt
       val congs_deps = map (fn c => (c, cong_deps c)) (congs @ default_congs) (* FIXME: Save in theory *)
 
       fun matchcall (a $ b) = if a = Free fvar then SOME b else NONE

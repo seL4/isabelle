@@ -1,5 +1,4 @@
 (*  Title:      HOL/Tools/function_package/fundef_common.ML
-    ID:         $Id$
     Author:     Alexander Krauss, TU Muenchen
 
 A package for general recursive function definitions. 
@@ -101,6 +100,8 @@ structure FundefData = GenericDataFun
   fun merge _ (tab1, tab2) = NetRules.merge (tab1, tab2)
 );
 
+val get_fundef = FundefData.get o Context.Proof;
+
 
 (* Generally useful?? *)
 fun lift_morphism thy f = 
@@ -113,7 +114,7 @@ fun lift_morphism thy f =
 
 fun import_fundef_data t ctxt =
     let
-      val thy = Context.theory_of ctxt
+      val thy = ProofContext.theory_of ctxt
       val ct = cterm_of thy t
       val inst_morph = lift_morphism thy o Thm.instantiate 
 
@@ -121,20 +122,20 @@ fun import_fundef_data t ctxt =
           SOME (morph_fundef_data data (inst_morph (Thm.match (cterm_of thy trm, ct))))
           handle Pattern.MATCH => NONE
     in 
-      get_first match (NetRules.retrieve (FundefData.get ctxt) t)
+      get_first match (NetRules.retrieve (get_fundef ctxt) t)
     end
 
 fun import_last_fundef ctxt =
-    case NetRules.rules (FundefData.get ctxt) of
+    case NetRules.rules (get_fundef ctxt) of
       [] => NONE
     | (t, data) :: _ =>
       let 
-        val ([t'], ctxt') = Variable.import_terms true [t] (Context.proof_of ctxt)
+        val ([t'], ctxt') = Variable.import_terms true [t] ctxt
       in
-        import_fundef_data t' (Context.Proof ctxt')
+        import_fundef_data t' ctxt'
       end
 
-val all_fundef_data = NetRules.rules o FundefData.get
+val all_fundef_data = NetRules.rules o get_fundef
 
 fun add_fundef_data (data as FundefCtxData {fs, termination, ...}) =
     FundefData.map (fold (fn f => NetRules.insert (f, data)) fs)
@@ -161,7 +162,7 @@ structure TerminationProver = GenericDataFun
 );
 
 val set_termination_prover = TerminationProver.put
-val get_termination_prover = TerminationProver.get
+val get_termination_prover = TerminationProver.get o Context.Proof
 
 
 (* Configuration management *)
