@@ -58,7 +58,7 @@ sig
   val const: string context_parser
   val const_proper: string context_parser
   val bang_facts: thm list context_parser
-  val goal_spec: ((int -> tactic) -> tactic) -> ((int -> tactic) -> tactic) context_parser
+  val goal_spec: ((int -> tactic) -> tactic) context_parser
   val parse: token list parser
   val parse1: (string -> bool) -> token list parser
   val attribs: (string -> string) -> src list parser
@@ -233,7 +233,7 @@ val from_to =
   $$$ "!" >> K ALLGOALS;
 
 val goal = $$$ "[" |-- P.!!! (from_to --| $$$ "]");
-fun goal_spec def = Scan.lift (Scan.optional goal def);
+fun goal_spec x = Scan.lift (Scan.optional goal (fn tac => tac 1)) x;
 
 
 (* arguments within outer syntax *)
