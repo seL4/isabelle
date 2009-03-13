@@ -43,8 +43,8 @@ sig
   val prove_instantiation_exit_result: (morphism -> 'a -> 'b)
     -> (Proof.context -> 'b -> tactic) -> 'a -> local_theory -> 'b * theory
   val conclude_instantiation: local_theory -> local_theory
-  val instantiation_param: local_theory -> string -> string option
-  val confirm_declaration: string -> local_theory -> local_theory
+  val instantiation_param: local_theory -> binding -> string option
+  val confirm_declaration: binding -> local_theory -> local_theory
   val pretty_instantiation: local_theory -> Pretty.T
   val type_name: string -> string
 
@@ -430,8 +430,8 @@ fun the_instantiation lthy = case get_instantiation lthy
 
 val instantiation_params = #params o get_instantiation;
 
-fun instantiation_param lthy v = instantiation_params lthy
-  |> find_first (fn (_, (v', _)) => v = v')
+fun instantiation_param lthy b = instantiation_params lthy
+  |> find_first (fn (_, (v, _)) => Binding.name_of b = v)
   |> Option.map (fst o fst);
 
 
@@ -530,8 +530,8 @@ fun init_instantiation (tycos, vs, sort) thy =
     |> synchronize_inst_syntax
   end;
 
-fun confirm_declaration c = (map_instantiation o apsnd)
-  (filter_out (fn (_, (c', _)) => c' = c))
+fun confirm_declaration b = (map_instantiation o apsnd)
+  (filter_out (fn (_, (c', _)) => c' = Binding.name_of b))
   #> LocalTheory.target synchronize_inst_syntax
 
 fun gen_instantiation_instance do_proof after_qed lthy =

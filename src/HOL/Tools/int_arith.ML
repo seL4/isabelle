@@ -29,41 +29,6 @@ val reorient_simproc =
 (*Maps 0 to Numeral0 and 1 to Numeral1 so that arithmetic isn't complicated by the abstract 0 and 1.*)
 val numeral_syms = [@{thm numeral_0_eq_0} RS sym, @{thm numeral_1_eq_1} RS sym];
 
-(** New term ordering so that AC-rewriting brings numerals to the front **)
-
-(*Order integers by absolute value and then by sign. The standard integer
-  ordering is not well-founded.*)
-fun num_ord (i,j) =
-  (case int_ord (abs i, abs j) of
-    EQUAL => int_ord (Int.sign i, Int.sign j) 
-  | ord => ord);
-
-(*This resembles TermOrd.term_ord, but it puts binary numerals before other
-  non-atomic terms.*)
-local open Term 
-in 
-fun numterm_ord (Abs (_, T, t), Abs(_, U, u)) =
-      (case numterm_ord (t, u) of EQUAL => TermOrd.typ_ord (T, U) | ord => ord)
-  | numterm_ord
-     (Const(@{const_name Int.number_of}, _) $ v, Const(@{const_name Int.number_of}, _) $ w) =
-     num_ord (HOLogic.dest_numeral v, HOLogic.dest_numeral w)
-  | numterm_ord (Const(@{const_name Int.number_of}, _) $ _, _) = LESS
-  | numterm_ord (_, Const(@{const_name Int.number_of}, _) $ _) = GREATER
-  | numterm_ord (t, u) =
-      (case int_ord (size_of_term t, size_of_term u) of
-        EQUAL =>
-          let val (f, ts) = strip_comb t and (g, us) = strip_comb u in
-            (case TermOrd.hd_ord (f, g) of EQUAL => numterms_ord (ts, us) | ord => ord)
-          end
-      | ord => ord)
-and numterms_ord (ts, us) = list_ord numterm_ord (ts, us)
-end;
-
-fun numtermless tu = (numterm_ord tu = LESS);
-
-(*Defined in this file, but perhaps needed only for Int_Numeral_Simprocs of type nat.*)
-val num_ss = HOL_ss settermless numtermless;
-
 
 (** Utilities **)
 
@@ -177,6 +142,41 @@ fun dest_fcoeff sign (Const (@{const_name HOL.uminus}, _) $ t) = dest_fcoeff (~s
     in (mk_frac (p, 1), mk_divide (t', one_of T)) end;
 
 
+(** New term ordering so that AC-rewriting brings numerals to the front **)
+
+(*Order integers by absolute value and then by sign. The standard integer
+  ordering is not well-founded.*)
+fun num_ord (i,j) =
+  (case int_ord (abs i, abs j) of
+    EQUAL => int_ord (Int.sign i, Int.sign j) 
+  | ord => ord);
+
+(*This resembles TermOrd.term_ord, but it puts binary numerals before other
+  non-atomic terms.*)
+local open Term 
+in 
+fun numterm_ord (Abs (_, T, t), Abs(_, U, u)) =
+      (case numterm_ord (t, u) of EQUAL => TermOrd.typ_ord (T, U) | ord => ord)
+  | numterm_ord
+     (Const(@{const_name Int.number_of}, _) $ v, Const(@{const_name Int.number_of}, _) $ w) =
+     num_ord (HOLogic.dest_numeral v, HOLogic.dest_numeral w)
+  | numterm_ord (Const(@{const_name Int.number_of}, _) $ _, _) = LESS
+  | numterm_ord (_, Const(@{const_name Int.number_of}, _) $ _) = GREATER
+  | numterm_ord (t, u) =
+      (case int_ord (size_of_term t, size_of_term u) of
+        EQUAL =>
+          let val (f, ts) = strip_comb t and (g, us) = strip_comb u in
+            (case TermOrd.hd_ord (f, g) of EQUAL => numterms_ord (ts, us) | ord => ord)
+          end
+      | ord => ord)
+and numterms_ord (ts, us) = list_ord numterm_ord (ts, us)
+end;
+
+fun numtermless tu = (numterm_ord tu = LESS);
+
+val num_ss = HOL_ss settermless numtermless;
+
+
 (*Simplify Numeral0+n, n+Numeral0, Numeral1*n, n*Numeral1, 1*x, x*1, x/1 *)
 val add_0s =  thms "add_0s";
 val mult_1s = thms "mult_1s" @ [thm"mult_1_left", thm"mult_1_right", thm"divide_1"];
@@ -218,14 +218,6 @@ val minus_from_mult_simps =
 val mult_minus_simps =
     [@{thm mult_assoc}, @{thm minus_mult_left}, minus_mult_eq_1_to_2];
 
-(*Apply the given rewrite (if present) just once*)
-fun trans_tac NONE      = all_tac
-  | trans_tac (SOME th) = ALLGOALS (rtac (th RS trans));
-
-fun simplify_meta_eq rules =
-  let val ss0 = HOL_basic_ss addeqcongs [eq_cong2] addsimps rules
-  in fn ss => simplify (Simplifier.inherit_context ss ss0) o mk_meta_eq end
-
 structure CancelNumeralsCommon =
   struct
   val mk_sum            = mk_sum
@@ -233,7 +225,7 @@ structure CancelNumeralsCommon =
   val mk_coeff          = mk_coeff
   val dest_coeff        = dest_coeff 1
   val find_first_coeff  = find_first_coeff []
-  val trans_tac         = fn _ => trans_tac
+  val trans_tac         = K Arith_Data.trans_tac
 
   val norm_ss1 = num_ss addsimps numeral_syms @ add_0s @ mult_1s @
     diff_simps @ minus_simps @ @{thms add_ac}
@@ -246,7 +238,7 @@ structure CancelNumeralsCommon =
 
   val numeral_simp_ss = HOL_ss addsimps add_0s @ simps
   fun numeral_simp_tac ss = ALLGOALS (simp_tac (Simplifier.inherit_context ss numeral_simp_ss))
-  val simplify_meta_eq = simplify_meta_eq (add_0s @ mult_1s)
+  val simplify_meta_eq = Arith_Data.simplify_meta_eq (add_0s @ mult_1s)
   end;
 
 
@@ -316,7 +308,7 @@ structure CombineNumeralsData =
   val dest_coeff        = dest_coeff 1
   val left_distrib      = @{thm combine_common_factor} RS trans
   val prove_conv        = Arith_Data.prove_conv_nohyps
-  val trans_tac         = fn _ => trans_tac
+  val trans_tac         = K Arith_Data.trans_tac
 
   val norm_ss1 = num_ss addsimps numeral_syms @ add_0s @ mult_1s @
     diff_simps @ minus_simps @ @{thms add_ac}
@@ -329,7 +321,7 @@ structure CombineNumeralsData =
 
   val numeral_simp_ss = HOL_ss addsimps add_0s @ simps
   fun numeral_simp_tac ss = ALLGOALS (simp_tac (Simplifier.inherit_context ss numeral_simp_ss))
-  val simplify_meta_eq = simplify_meta_eq (add_0s @ mult_1s)
+  val simplify_meta_eq = Arith_Data.simplify_meta_eq (add_0s @ mult_1s)
   end;
 
 structure CombineNumerals = CombineNumeralsFun(CombineNumeralsData);
@@ -346,7 +338,7 @@ structure FieldCombineNumeralsData =
   val dest_coeff        = dest_fcoeff 1
   val left_distrib      = @{thm combine_common_factor} RS trans
   val prove_conv        = Arith_Data.prove_conv_nohyps
-  val trans_tac         = fn _ => trans_tac
+  val trans_tac         = K Arith_Data.trans_tac
 
   val norm_ss1 = num_ss addsimps numeral_syms @ add_0s @ mult_1s @
     inverse_1s @ divide_simps @ diff_simps @ minus_simps @ @{thms add_ac}
@@ -359,7 +351,7 @@ structure FieldCombineNumeralsData =
 
   val numeral_simp_ss = HOL_ss addsimps add_0s @ simps @ [@{thm add_frac_eq}]
   fun numeral_simp_tac ss = ALLGOALS (simp_tac (Simplifier.inherit_context ss numeral_simp_ss))
-  val simplify_meta_eq = simplify_meta_eq (add_0s @ mult_1s @ divide_1s)
+  val simplify_meta_eq = Arith_Data.simplify_meta_eq (add_0s @ mult_1s @ divide_1s)
   end;
 
 structure FieldCombineNumerals = CombineNumeralsFun(FieldCombineNumeralsData);

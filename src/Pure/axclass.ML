@@ -27,7 +27,7 @@ sig
   val axiomatize_arity_cmd: xstring * string list * string -> theory -> theory
   val instance_name: string * class -> string
   val declare_overloaded: string * typ -> theory -> term * theory
-  val define_overloaded: string -> string * term -> theory -> thm * theory
+  val define_overloaded: binding -> string * term -> theory -> thm * theory
   val inst_tyco_of: theory -> string * typ -> string option
   val unoverload: theory -> thm -> thm
   val overload: theory -> thm -> thm
@@ -383,16 +383,17 @@ fun declare_overloaded (c, T) thy =
       #> pair (Const (c, T))))
   end;
 
-fun define_overloaded name (c, t) thy =
+fun define_overloaded b (c, t) thy =
   let
     val T = Term.fastype_of t;
     val SOME tyco = inst_tyco_of thy (c, T);
     val (c', eq) = get_inst_param thy (c, tyco);
     val prop = Logic.mk_equals (Const (c', T), t);
-    val name' = Thm.def_name_optional (Long_Name.base_name c ^ "_" ^ Long_Name.base_name tyco) name;
+    val b' = Thm.def_binding_optional
+      (Binding.name (Long_Name.base_name c ^ "_" ^ Long_Name.base_name tyco)) b;
   in
     thy
-    |> Thm.add_def false false (Binding.name name', prop)
+    |> Thm.add_def false false (b', prop)
     |>> (fn thm =>  Drule.transitive_thm OF [eq, thm])
   end;
 
