@@ -512,15 +512,12 @@ lemmas arithmetic_simps =
 (* simprocs adapted from HOL/ex/Binary.thy *)
 ML {*
 local
-  infix ==;
-  val op == = Logic.mk_equals;
-  fun plus m n = @{term "plus :: int \<Rightarrow> int \<Rightarrow> int"} $ m $ n;
-  fun mult m n = @{term "times :: int \<Rightarrow> int \<Rightarrow> int"} $ m $ n;
-
-  val binary_ss = HOL_basic_ss addsimps @{thms arithmetic_simps};
-  fun prove ctxt prop =
-    Goal.prove ctxt [] [] prop (fn _ => ALLGOALS (full_simp_tac binary_ss));
-
+  val mk_number = HOLogic.mk_number HOLogic.intT;
+  fun mk_cert u k l = @{term "plus :: int \<Rightarrow> int \<Rightarrow> int"} $
+    (@{term "times :: int \<Rightarrow> int \<Rightarrow> int"} $ u $ mk_number k) $
+      mk_number l;
+  fun prove ctxt prop = Goal.prove ctxt [] [] prop
+    (K (ALLGOALS (full_simp_tac (HOL_basic_ss addsimps @{thms arithmetic_simps}))));
   fun binary_proc proc ss ct =
     (case Thm.term_of ct of
       _ $ t $ u =>
@@ -529,16 +526,11 @@ local
       | NONE => NONE)
     | _ => NONE);
 in
-
-fun divmod_proc rule = binary_proc (fn ctxt => fn ((m, t), (n, u)) =>
-  if n = 0 then NONE
-  else
-    let val (k, l) = Integer.div_mod m n;
-        fun mk_num x = HOLogic.mk_number HOLogic.intT x;
-    in SOME (rule OF [prove ctxt (t == plus (mult u (mk_num k)) (mk_num l))])
-    end);
-
-end;
+  fun divmod_proc rule = binary_proc (fn ctxt => fn ((m, t), (n, u)) =>
+    if n = 0 then NONE
+    else let val (k, l) = Integer.div_mod m n;
+    in SOME (rule OF [prove ctxt (Logic.mk_equals (t, mk_cert u k l))]) end);
+end
 *}
 
 simproc_setup binary_int_div ("number_of m div number_of n :: int") =
