@@ -18,6 +18,8 @@ translations
   "n" <= "real n"
   "n" <= "CONST real_of_nat n"
   "n" <= "CONST real_of_int n"
+  "n" <= "CONST of_real n"
+  "n" <= "CONST complex_of_real n"
 
 (* append *)
 syntax (latex output)
@@ -27,6 +29,7 @@ translations
   "appendL (appendL xs ys) zs" <= "appendL xs (appendL ys zs)"
 
 
+(* deprecated, use thm_style instead, will be removed *)
 (* aligning equations *)
 notation (tab output)
   "op ="  ("(_) \<^raw:}\putisatab\isa{\ >=\<^raw:}\putisatab\isa{> (_)" [50,49] 50) and

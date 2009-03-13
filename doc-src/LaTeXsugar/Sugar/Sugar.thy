@@ -92,7 +92,7 @@ If you prefer more space around the $\cdot$ you have to redefine
       the $n$th element of @{text xs}.
 
 \item Human readers are good at converting automatically from lists to
-sets. Hence \texttt{OptionalSugar} contains syntax for supressing the
+sets. Hence \texttt{OptionalSugar} contains syntax for suppressing the
 conversion function @{const set}: for example, @{prop[source]"x \<in> set xs"}
 becomes @{prop"x \<in> set xs"}.
 
@@ -105,6 +105,17 @@ line breaking behaviour:
 
 \end{itemize}
 *}
+
+subsection{* Numbers *}
+
+text{* Coercions between numeric types are alien to mathematicians who
+consider, for example, @{typ nat} as a subset of @{typ int}.
+\texttt{OptionalSugar} contains syntax for suppressing numeric coercions such
+as @{const int} @{text"::"} @{typ"nat \<Rightarrow> int"}. For example,
+@{term[source]"int 5"} is printed as @{term "int 5"}. Embeddings of types
+@{typ nat}, @{typ int}, @{typ real} are covered; non-injective coercions such
+as @{const nat} @{text"::"} @{typ"int \<Rightarrow> nat"} are not and should not be
+hidden. *}
 
 section "Printing theorems"
 
@@ -126,7 +137,7 @@ reset show_question_marks;
 at the beginning of your file \texttt{ROOT.ML}.
 The rest of this document is produced with this flag reset.
 
-Hint: Resetting \verb!show_question_marks! only supresses question
+Hint: Resetting \verb!show_question_marks! only suppresses question
 marks; variables that end in digits, e.g. @{text"x1"}, are still
 printed with a trailing @{text".0"}, e.g. @{text"x1.0"}, their
 internal index. This can be avoided by turning the last digit into a

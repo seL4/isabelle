@@ -120,7 +120,7 @@ If you prefer more space around the $\cdot$ you have to redefine
       the $n$th element of \isa{xs}.
 
 \item Human readers are good at converting automatically from lists to
-sets. Hence \texttt{OptionalSugar} contains syntax for supressing the
+sets. Hence \texttt{OptionalSugar} contains syntax for suppressing the
 conversion function \isa{set}: for example, \isa{{\isachardoublequote}x\ {\isasymin}\ set\ xs{\isachardoublequote}}
 becomes \isa{x\ {\isasymin}\ xs}.
 
@@ -134,6 +134,22 @@ term\isactrlisub {\isadigit{0}}\ \isacharat\ term\isactrlisub {\isadigit{1}}\ \i
 \end{isabelle}
 
 \end{itemize}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isamarkupsubsection{Numbers%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+Coercions between numeric types are alien to mathematicians who
+consider, for example, \isa{nat} as a subset of \isa{int}.
+\texttt{OptionalSugar} contains syntax for suppressing numeric coercions such
+as \isa{int} \isa{{\isacharcolon}{\isacharcolon}} \isa{nat\ {\isasymRightarrow}\ int}. For example,
+\isa{{\isachardoublequote}int\ {\isadigit{5}}{\isachardoublequote}} is printed as \isa{{\isadigit{5}}}. Embeddings of types
+\isa{nat}, \isa{int}, \isa{real} are covered; non-injective coercions such
+as \isa{nat} \isa{{\isacharcolon}{\isacharcolon}} \isa{int\ {\isasymRightarrow}\ nat} are not and should not be
+hidden.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -162,7 +178,7 @@ reset show_question_marks;
 at the beginning of your file \texttt{ROOT.ML}.
 The rest of this document is produced with this flag reset.
 
-Hint: Resetting \verb!show_question_marks! only supresses question
+Hint: Resetting \verb!show_question_marks! only suppresses question
 marks; variables that end in digits, e.g. \isa{x{\isadigit{1}}}, are still
 printed with a trailing \isa{{\isachardot}{\isadigit{0}}}, e.g. \isa{x{\isadigit{1}}{\isachardot}{\isadigit{0}}}, their
 internal index. This can be avoided by turning the last digit into a
