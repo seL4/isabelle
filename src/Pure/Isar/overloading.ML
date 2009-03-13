@@ -9,9 +9,9 @@ sig
   val init: (string * (string * typ) * bool) list -> theory -> local_theory
   val conclude: local_theory -> local_theory
   val declare: string * typ -> theory -> term * theory
-  val confirm: string -> local_theory -> local_theory
-  val define: bool -> string -> string * term -> theory -> thm * theory
-  val operation: Proof.context -> string -> (string * bool) option
+  val confirm: binding -> local_theory -> local_theory
+  val define: bool -> binding -> string * term -> theory -> thm * theory
+  val operation: Proof.context -> binding -> (string * bool) option
   val pretty: Proof.context -> Pretty.T
   
   type improvable_syntax
@@ -123,18 +123,19 @@ structure OverloadingData = ProofDataFun
 val get_overloading = OverloadingData.get o LocalTheory.target_of;
 val map_overloading = LocalTheory.target o OverloadingData.map;
 
-fun operation lthy v = get_overloading lthy
-  |> get_first (fn ((c, _), (v', checked)) => if v = v' then SOME (c, checked) else NONE);
+fun operation lthy b = get_overloading lthy
+  |> get_first (fn ((c, _), (v, checked)) =>
+      if Binding.name_of b = v then SOME (c, checked) else NONE);
 
-fun confirm c = map_overloading (filter_out (fn (_, (c', _)) => c' = c));
+fun confirm b = map_overloading (filter_out (fn (_, (c', _)) => c' = Binding.name_of b));
 
 
 (* overloaded declarations and definitions *)
 
 fun declare c_ty = pair (Const c_ty);
 
-fun define checked name (c, t) = Thm.add_def (not checked) true (Binding.name name,
-  Logic.mk_equals (Const (c, Term.fastype_of t), t));
+fun define checked b (c, t) = Thm.add_def (not checked) true
+  (b, Logic.mk_equals (Const (c, Term.fastype_of t), t));
 
 
 (* target *)
