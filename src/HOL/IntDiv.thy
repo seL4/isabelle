@@ -261,7 +261,7 @@ struct
   val prove_eq_sums =
     let
       val simps = @{thm diff_int_def} :: Int_Numeral_Simprocs.add_0s @ @{thms zadd_ac}
-    in ArithData.prove_conv all_tac (ArithData.simp_all_tac simps) end;
+    in Arith_Data.prove_conv2 all_tac (Arith_Data.simp_all_tac simps) end;
 end)
 
 in

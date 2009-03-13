@@ -37,6 +37,7 @@ sig
   val string: string list -> serialization -> string
   val code_of: theory -> string -> string
     -> string list -> (Code_Thingol.naming -> string list) -> string
+  val shell_command: string (*theory name*) -> string (*export_code expr*) -> unit
   val code_width: int ref
 
   val allow_abort: string -> theory -> theory
@@ -527,13 +528,13 @@ fun export_code_cmd raw_cs seris thy = export_code thy (read_const_exprs thy raw
 
 val (inK, module_nameK, fileK) = ("in", "module_name", "file");
 
-fun code_exprP cmd =
+val code_exprP =
   (Scan.repeat P.term_group
   -- Scan.repeat (P.$$$ inK |-- P.name
      -- Scan.option (P.$$$ module_nameK |-- P.name)
      -- Scan.option (P.$$$ fileK |-- P.name)
      -- Scan.optional (P.$$$ "(" |-- Args.parse --| P.$$$ ")") []
-  ) >> (fn (raw_cs, seris) => cmd raw_cs seris));
+  ) >> (fn (raw_cs, seris) => export_code_cmd raw_cs seris));
 
 val _ = List.app OuterKeyword.keyword [inK, module_nameK, fileK];
 
@@ -594,7 +595,14 @@ val _ =
 
 val _ =
   OuterSyntax.command "export_code" "generate executable code for constants"
-    K.diag (P.!!! (code_exprP export_code_cmd) >> (fn f => Toplevel.keep (f o Toplevel.theory_of)));
+    K.diag (P.!!! code_exprP >> (fn f => Toplevel.keep (f o Toplevel.theory_of)));
+
+fun shell_command thyname cmd = Toplevel.program (fn _ =>
+  (use_thy thyname; case Scan.read OuterLex.stopper (P.!!! code_exprP)
+    ((filter OuterLex.is_proper o OuterSyntax.scan Position.none) cmd)
+   of SOME f => (writeln "Now generating code..."; f (theory thyname))
+    | NONE => error ("Bad directive " ^ quote cmd)))
+  handle TOPLEVEL_ERROR => OS.Process.exit OS.Process.failure;
 
 end; (*local*)
 

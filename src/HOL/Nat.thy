@@ -2,7 +2,7 @@
     Author:     Tobias Nipkow and Lawrence C Paulson and Markus Wenzel
 
 Type "nat" is a linear order, and a datatype; arithmetic operators + -
-and * (for div, mod and dvd, see theory Divides).
+and * (for div and mod, see theory Divides).
 *)
 
 header {* Natural numbers *}
@@ -12,7 +12,8 @@ imports Inductive Ring_and_Field
 uses
   "~~/src/Tools/rat.ML"
   "~~/src/Provers/Arith/cancel_sums.ML"
-  ("Tools/arith_data.ML")
+  "Tools/arith_data.ML"
+  ("Tools/nat_arith.ML")
   "~~/src/Provers/Arith/fast_lin_arith.ML"
   ("Tools/lin_arith.ML")
 begin
@@ -1344,8 +1345,8 @@ lemma subst_equals:
   shows "u = s"
   using 2 1 by (rule trans)
 
-use "Tools/arith_data.ML"
-declaration {* K ArithData.setup *}
+use "Tools/nat_arith.ML"
+declaration {* K Nat_Arith.setup *}
 
 ML{*
 structure ArithFacts =
