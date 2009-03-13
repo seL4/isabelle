@@ -7,11 +7,18 @@ A tactic to prove completeness of datatype patterns.
 
 signature FUNDEF_DATATYPE =
 sig
-    val pat_complete_tac: Proof.context -> int -> tactic
+    val pat_completeness_tac: Proof.context -> int -> tactic
+    val pat_completeness: Proof.context -> Proof.method
     val prove_completeness : theory -> term list -> term -> term list list -> term list list -> thm
 
-    val pat_completeness : Proof.context -> method
     val setup : theory -> theory
+
+    val add_fun : FundefCommon.fundef_config ->
+      (binding * typ option * mixfix) list -> (Attrib.binding * term) list ->
+      bool list -> bool -> local_theory -> Proof.context
+    val add_fun_cmd : FundefCommon.fundef_config ->
+      (binding * string option * mixfix) list -> (Attrib.binding * string) list ->
+      bool list -> bool -> local_theory -> Proof.context
 end
 
 structure FundefDatatype : FUNDEF_DATATYPE =
@@ -167,7 +174,7 @@ fun prove_completeness thy xs P qss patss =
 
 
 
-fun pat_complete_tac ctxt = SUBGOAL (fn (subgoal, i) =>
+fun pat_completeness_tac ctxt = SUBGOAL (fn (subgoal, i) =>
     let
       val thy = ProofContext.theory_of ctxt
       val (vs, subgf) = dest_all_all subgoal
@@ -196,15 +203,15 @@ fun pat_complete_tac ctxt = SUBGOAL (fn (subgoal, i) =>
     handle COMPLETENESS => no_tac)
 
 
-fun pat_completeness ctxt = Method.SIMPLE_METHOD' (pat_complete_tac ctxt)
+fun pat_completeness ctxt = Method.SIMPLE_METHOD' (pat_completeness_tac ctxt)
 
-val by_pat_completeness_simp =
+val by_pat_completeness_auto =
     Proof.global_future_terminal_proof
       (Method.Basic (pat_completeness, Position.none),
        SOME (Method.Source_i (Args.src (("HOL.auto", []), Position.none))))
 
 fun termination_by method int =
-    FundefPackage.setup_termination_proof NONE
+    FundefPackage.termination_proof NONE
     #> Proof.global_future_terminal_proof
       (Method.Basic (method, Position.none), NONE) int
 
@@ -301,24 +308,28 @@ val setup =
 val fun_config = FundefConfig { sequential=true, default="%x. undefined" (*FIXME dynamic scoping*), 
                                 domintros=false, tailrec=false }
 
-
-local structure P = OuterParse and K = OuterKeyword in
-
-fun fun_cmd config fixes statements flags int lthy =
+fun gen_fun add config fixes statements flags int lthy =
   let val group = serial_string () in
     lthy
       |> LocalTheory.set_group group
-      |> FundefPackage.add_fundef fixes statements config flags
-      |> by_pat_completeness_simp int
+      |> add fixes statements config flags
+      |> by_pat_completeness_auto int
       |> LocalTheory.restore
       |> LocalTheory.set_group group
-      |> termination_by (FundefCommon.get_termination_prover (Context.Proof lthy)) int
+      |> termination_by (FundefCommon.get_termination_prover lthy) int
   end;
+
+val add_fun = gen_fun FundefPackage.add_fundef
+val add_fun_cmd = gen_fun FundefPackage.add_fundef_cmd
+
+
+
+local structure P = OuterParse and K = OuterKeyword in
 
 val _ =
   OuterSyntax.local_theory' "fun" "define general recursive functions (short version)" K.thy_decl
   (fundef_parser fun_config
-     >> (fn ((config, fixes), (flags, statements)) => fun_cmd config fixes statements flags));
+     >> (fn ((config, fixes), (flags, statements)) => add_fun_cmd config fixes statements flags));
 
 end
 

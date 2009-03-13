@@ -1,5 +1,4 @@
 (*  Title:       HOL/Tools/function_package/lexicographic_order.ML
-    ID:          $Id$
     Author:      Lukas Bulwahn, TU Muenchen
 
 Method for termination proofs with lexicographic orderings.
@@ -7,8 +6,9 @@ Method for termination proofs with lexicographic orderings.
 
 signature LEXICOGRAPHIC_ORDER =
 sig
-  val lexicographic_order : thm list -> Proof.context -> Method.method
-  val lexicographic_order_tac : Proof.context -> tactic -> tactic
+  val lex_order_tac : Proof.context -> tactic -> tactic
+  val lexicographic_order_tac : Proof.context -> tactic
+  val lexicographic_order : Proof.context -> Proof.method
 
   val setup: theory -> theory
 end
@@ -186,9 +186,10 @@ fun no_order_msg ctxt table tl measure_funs =
     end
 
 (** The Main Function **)
-fun lexicographic_order_tac ctxt solve_tac (st: thm) =
+
+fun lex_order_tac ctxt solve_tac (st: thm) =
     let
-      val thy = theory_of_thm st
+      val thy = ProofContext.theory_of ctxt
       val ((trueprop $ (wf $ rel)) :: tl) = prems_of st
 
       val (domT, _) = HOLogic.dest_prodT (HOLogic.dest_setT (fastype_of rel))
@@ -213,12 +214,15 @@ fun lexicographic_order_tac ctxt solve_tac (st: thm) =
               THEN EVERY (map prove_row clean_table))
     end
 
-fun lexicographic_order thms ctxt = 
-    Method.SIMPLE_METHOD (TRY (FundefCommon.apply_termination_rule ctxt 1)
-                          THEN lexicographic_order_tac ctxt (auto_tac (local_clasimpset_of ctxt addsimps2 FundefCommon.TerminationSimps.get ctxt)))
+fun lexicographic_order_tac ctxt =
+  TRY (FundefCommon.apply_termination_rule ctxt 1)
+  THEN lex_order_tac ctxt (auto_tac (local_clasimpset_of ctxt addsimps2 FundefCommon.TerminationSimps.get ctxt))
 
-val setup = Method.add_methods [("lexicographic_order", Method.bang_sectioned_args clasimp_modifiers lexicographic_order,
+val lexicographic_order = Method.SIMPLE_METHOD o lexicographic_order_tac
+
+val setup = Method.add_methods [("lexicographic_order", Method.only_sectioned_args clasimp_modifiers lexicographic_order,
                                  "termination prover for lexicographic orderings")]
-     #> Context.theory_map (FundefCommon.set_termination_prover (lexicographic_order []))
+     #> Context.theory_map (FundefCommon.set_termination_prover lexicographic_order)
 
-end
+end;
+
