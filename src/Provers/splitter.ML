@@ -472,16 +472,15 @@ val split_modifiers =
   Args.$$$ splitN -- Args.add -- Args.colon >> K (I, split_add),
   Args.$$$ splitN -- Args.del -- Args.colon >> K (I, split_del)];
 
-fun split_meth src =
-  Method.syntax Attrib.thms src
-  #> (fn (ths, _) => SIMPLE_METHOD' (CHANGED_PROP o gen_split_tac ths));
+val split_meth = Attrib.thms >>
+  (fn ths => K (SIMPLE_METHOD' (CHANGED_PROP o gen_split_tac ths)));
 
 
 (* theory setup *)
 
 val setup =
- (Attrib.add_attributes
-  [(splitN, Attrib.add_del_args split_add split_del, "declaration of case split rule")] #>
-  Method.add_methods [(splitN, split_meth, "apply case split rule")]);
+  Attrib.add_attributes
+    [(splitN, Attrib.add_del_args split_add split_del, "declaration of case split rule")] #>
+  Method.setup @{binding split} split_meth "apply case split rule";
 
 end;

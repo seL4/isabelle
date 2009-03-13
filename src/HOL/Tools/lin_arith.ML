@@ -912,9 +912,8 @@ fun silent_arith_tac ctxt = FIRST' [fast_arith_tac ctxt,
   ObjectLogic.full_atomize_tac THEN' (REPEAT_DETERM o rtac impI) THEN' raw_arith_tac ctxt false,
   more_arith_tacs ctxt];
 
-fun arith_method src =
-  Method.syntax Args.bang_facts src
-  #> (fn (prems, ctxt) => METHOD (fn facts =>
+val arith_method = Args.bang_facts >>
+  (fn prems => fn ctxt => METHOD (fn facts =>
       HEADGOAL (Method.insert_tac (prems @ ArithFacts.get ctxt @ facts)
       THEN' arith_tac ctxt)));
 
@@ -930,8 +929,7 @@ val setup =
       (add_arith_facts #> Fast_Arith.cut_lin_arith_tac))) #>
   Context.mapping
    (setup_options #>
-    Method.add_methods
-      [("arith", arith_method, "decide linear arithmetic")] #>
+    Method.setup @{binding arith} arith_method "decide linear arithmetic" #>
     Attrib.add_attributes [("arith_split", Attrib.no_args arith_split_add,
       "declaration of split rules for arithmetic procedure")]) I;
 

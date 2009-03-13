@@ -637,17 +637,16 @@ fun infer_types ctxt =
   val metisF_tac = metis_general_tac ResAtp.Fol;
   val metisH_tac = metis_general_tac ResAtp.Hol;
 
-  fun method mode = Method.thms_ctxt_args (fn ths => fn ctxt =>
-    SIMPLE_METHOD' (CHANGED_PROP o metis_general_tac mode ctxt ths));
+  fun method name mode comment = Method.setup name (Attrib.thms >> (fn ths => fn ctxt =>
+    SIMPLE_METHOD' (CHANGED_PROP o metis_general_tac mode ctxt ths))) comment;
 
   val setup =
     type_lits_setup #>
-    Method.add_methods
-      [("metis", method ResAtp.Auto, "METIS for FOL & HOL problems"),
-       ("metisF", method ResAtp.Fol, "METIS for FOL problems"),
-       ("metisH", method ResAtp.Hol, "METIS for HOL problems"),
-       ("finish_clausify",
-         Method.no_args (SIMPLE_METHOD' (K (ResAxioms.expand_defs_tac refl))),
-    "cleanup after conversion to clauses")];
+    method @{binding metis} ResAtp.Auto "METIS for FOL & HOL problems" #>
+    method @{binding metisF} ResAtp.Fol "METIS for FOL problems" #>
+    method @{binding metisH} ResAtp.Hol "METIS for HOL problems" #>
+    Method.setup @{binding finish_clausify}
+      (Scan.succeed (K (SIMPLE_METHOD (ResAxioms.expand_defs_tac refl))))
+      "cleanup after conversion to clauses";
 
 end;

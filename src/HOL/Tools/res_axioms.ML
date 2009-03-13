@@ -487,10 +487,10 @@ fun meson_general_tac ths i st0 =
     val thy = Thm.theory_of_thm st0
   in  (Meson.meson_claset_tac (maps (cnf_axiom thy) ths) HOL_cs i THEN expand_defs_tac st0) st0 end;
 
-val meson_method_setup = Method.add_methods
-  [("meson", Method.thms_args (fn ths =>
-      SIMPLE_METHOD' (CHANGED_PROP o meson_general_tac ths)),
-    "MESON resolution proof procedure")];
+val meson_method_setup =
+  Method.setup @{binding meson} (Attrib.thms >> (fn ths => fn _ =>
+    SIMPLE_METHOD' (CHANGED_PROP o meson_general_tac ths)))
+    "MESON resolution proof procedure";
 
 
 (*** Converting a subgoal into negated conjecture clauses. ***)
@@ -521,9 +521,9 @@ val neg_clausify_tac =
           REPEAT_DETERM_N (length ts) o (etac thin_rl)]
      end);
 
-val setup_methods = Method.add_methods
-  [("neg_clausify", Method.no_args (SIMPLE_METHOD' neg_clausify_tac),
-    "conversion of goal to conjecture clauses")];
+val setup_methods =
+  Method.setup @{binding neg_clausify} (Scan.succeed (K (SIMPLE_METHOD' neg_clausify_tac)))
+  "conversion of goal to conjecture clauses";
 
 
 (** Attribute for converting a theorem into clauses **)

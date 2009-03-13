@@ -487,13 +487,10 @@ fun intro_locales_tac eager ctxt facts st =
     (Witnesses.get ctxt @ Intros.get ctxt @ (if eager then Unfolds.get ctxt else [])) facts st;
 
 val _ = Context.>> (Context.map_theory
-  (Method.add_methods
-    [("intro_locales",
-      Method.ctxt_args (fn ctxt => METHOD (intro_locales_tac false ctxt)),
-      "back-chain introduction rules of locales without unfolding predicates"),
-     ("unfold_locales",
-      Method.ctxt_args (fn ctxt => METHOD (intro_locales_tac true ctxt)),
-      "back-chain all introduction rules of locales")]));
+ (Method.setup (Binding.name "intro_locales") (Scan.succeed (METHOD o intro_locales_tac false))
+    "back-chain introduction rules of locales without unfolding predicates" #>
+  Method.setup (Binding.name "unfold_locales") (Scan.succeed (METHOD o intro_locales_tac true))
+    "back-chain all introduction rules of locales"));
 
 end;
 

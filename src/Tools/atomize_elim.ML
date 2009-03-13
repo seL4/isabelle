@@ -131,9 +131,9 @@ fun atomize_elim_tac ctxt = SUBGOAL (fn (subg, i) =>
       THEN (CONVERSION (full_atomize_elim_conv ctxt) i)
     end)
 
-val setup = Method.add_methods
-  [("atomize_elim", Method.ctxt_args (SIMPLE_METHOD' o atomize_elim_tac),
-    "convert obtains statement to atomic object logic goal")]
+val setup =
+  Method.setup @{binding atomize_elim} (Scan.succeed (SIMPLE_METHOD' o atomize_elim_tac))
+    "convert obtains statement to atomic object logic goal"
   #> AtomizeElimData.setup
 
 end

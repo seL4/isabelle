@@ -29,8 +29,9 @@ fun relation_tac ctxt rel i =
     TRY (FundefCommon.apply_termination_rule ctxt i)
     THEN PRIMITIVE (inst_thm ctxt rel)
 
-val setup = Method.add_methods
-  [("relation", (SIMPLE_METHOD' o (fn (rel, ctxt) => relation_tac ctxt rel)) oo (Method.syntax Args.term),
-    "proves termination using a user-specified wellfounded relation")]
+val setup =
+  Method.setup @{binding relation}
+    (Args.term >> (fn rel => fn ctxt => SIMPLE_METHOD' (relation_tac ctxt rel)))
+    "proves termination using a user-specified wellfounded relation"
 
 end

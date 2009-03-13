@@ -456,18 +456,22 @@ fun thm_args f = thms_args (fn [thm] => f thm | _ => error "Single theorem expec
 end;
 
 
+(* extra rule methods *)
+
+fun xrule_meth m =
+  Scan.lift (Scan.optional (Args.parens OuterParse.nat) 0) -- Attrib.thms >>
+  (fn (n, ths) => K (m n ths));
+
+
 (* tactic syntax *)
 
-fun nat_thms_args f = uncurry f oo
-  (fst oo syntax (Scan.lift (Scan.optional (Args.parens P.nat) 0) -- Attrib.thms));
-
-fun goal_args' args tac src ctxt = fst (syntax (Args.goal_spec HEADGOAL -- args >>
+fun goal_args' args tac src ctxt = fst (syntax (Args.goal_spec -- args >>
   (fn (quant, s) => SIMPLE_METHOD'' quant (tac s))) src ctxt);
 
 fun goal_args args tac = goal_args' (Scan.lift args) tac;
 
 fun goal_args_ctxt' args tac src ctxt =
-  fst (syntax (Args.goal_spec HEADGOAL -- args >>
+  fst (syntax (Args.goal_spec -- args >>
   (fn (quant, s) => SIMPLE_METHOD'' quant (tac ctxt s))) src ctxt);
 
 fun goal_args_ctxt args tac = goal_args_ctxt' (Scan.lift args) tac;
@@ -500,31 +504,38 @@ in val parse = meth3 end;
 (* theory setup *)
 
 val _ = Context.>> (Context.map_theory
-  (add_methods
-   [("fail", no_args fail, "force failure"),
-    ("succeed", no_args succeed, "succeed"),
-    ("-", no_args insert_facts, "do nothing (insert current facts only)"),
-    ("insert", thms_args insert, "insert theorems, ignoring facts (improper)"),
-    ("intro", thms_args intro, "repeatedly apply introduction rules"),
-    ("elim", thms_args elim, "repeatedly apply elimination rules"),
-    ("unfold", thms_ctxt_args unfold_meth, "unfold definitions"),
-    ("fold", thms_ctxt_args fold_meth, "fold definitions"),
-    ("atomize", (atomize o fst) oo syntax (Args.mode "full"),
-      "present local premises as object-level statements"),
-    ("rule", thms_ctxt_args some_rule, "apply some intro/elim rule"),
-    ("erule", nat_thms_args erule, "apply rule in elimination manner (improper)"),
-    ("drule", nat_thms_args drule, "apply rule in destruct manner (improper)"),
-    ("frule", nat_thms_args frule, "apply rule in forward manner (improper)"),
-    ("this", no_args this, "apply current facts as rules"),
-    ("fact", thms_ctxt_args fact, "composition by facts from context"),
-    ("assumption", ctxt_args assumption, "proof by assumption, preferring facts"),
-    ("rename_tac", goal_args (Scan.repeat1 Args.name) Tactic.rename_tac,
-      "rename parameters of goal"),
-    ("rotate_tac", goal_args (Scan.optional P.int 1) Tactic.rotate_tac,
-      "rotate assumptions of goal"),
-    ("tactic", simple_args (P.position Args.name) tactic, "ML tactic as proof method"),
-    ("raw_tactic", simple_args (P.position Args.name) raw_tactic,
-      "ML tactic as raw proof method")]));
+ (setup (Binding.name "fail") (Scan.succeed (K fail)) "force failure" #>
+  setup (Binding.name "succeed") (Scan.succeed (K succeed)) "succeed" #>
+  setup (Binding.name "-") (Scan.succeed (K insert_facts))
+    "do nothing (insert current facts only)" #>
+  setup (Binding.name "insert") (Attrib.thms >> (K o insert))
+    "insert theorems, ignoring facts (improper)" #>
+  setup (Binding.name "intro") (Attrib.thms >> (K o intro))
+    "repeatedly apply introduction rules" #>
+  setup (Binding.name "elim") (Attrib.thms >> (K o elim))
+    "repeatedly apply elimination rules" #>
+  setup (Binding.name "unfold") (Attrib.thms >> unfold_meth) "unfold definitions" #>
+  setup (Binding.name "fold") (Attrib.thms >> fold_meth) "fold definitions" #>
+  setup (Binding.name "atomize") (Args.mode "full" >> (K o atomize))
+    "present local premises as object-level statements" #>
+  setup (Binding.name "rule") (Attrib.thms >> some_rule) "apply some intro/elim rule" #>
+  setup (Binding.name "erule") (xrule_meth erule) "apply rule in elimination manner (improper)" #>
+  setup (Binding.name "drule") (xrule_meth drule) "apply rule in destruct manner (improper)" #>
+  setup (Binding.name "frule") (xrule_meth frule) "apply rule in forward manner (improper)" #>
+  setup (Binding.name "this") (Scan.succeed (K this)) "apply current facts as rules" #>
+  setup (Binding.name "fact") (Attrib.thms >> fact) "composition by facts from context" #>
+  setup (Binding.name "assumption") (Scan.succeed assumption)
+    "proof by assumption, preferring facts" #>
+  setup (Binding.name "rename_tac") (Args.goal_spec -- Scan.lift (Scan.repeat1 Args.name) >>
+    (fn (quant, xs) => K (SIMPLE_METHOD'' quant (Tactic.rename_tac xs))))
+    "rename parameters of goal" #>
+  setup (Binding.name "rotate_tac") (Args.goal_spec -- Scan.lift (Scan.optional P.int 1) >>
+    (fn (quant, i) => K (SIMPLE_METHOD'' quant (Tactic.rotate_tac i))))
+      "rotate assumptions of goal" #>
+  setup (Binding.name "tactic") (Scan.lift (P.position Args.name) >> tactic)
+    "ML tactic as proof method" #>
+  setup (Binding.name "raw_tactic") (Scan.lift (P.position Args.name) >> raw_tactic)
+    "ML tactic as raw proof method"));
 
 
 (*final declarations of this structure!*)

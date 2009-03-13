@@ -57,19 +57,14 @@ fun inductive_cases args thy =
 
 (* ind_cases method *)
 
-fun mk_cases_meth (props, ctxt) =
-  props
-  |> map (smart_cases (ProofContext.theory_of ctxt) (local_simpset_of ctxt) (Syntax.read_prop ctxt))
-  |> Method.erule 0;
-
-val mk_cases_args = Method.syntax (Scan.lift (Scan.repeat1 Args.name_source));
-
-
-(* package setup *)
+val mk_cases_meth = Scan.lift (Scan.repeat1 Args.name_source) >>
+  (fn props => fn ctxt =>
+    props
+    |> map (smart_cases (ProofContext.theory_of ctxt) (local_simpset_of ctxt) (Syntax.read_prop ctxt))
+    |> Method.erule 0);
 
 val setup =
-  Method.add_methods
-    [("ind_cases", mk_cases_meth oo mk_cases_args, "dynamic case analysis on sets")];
+  Method.setup @{binding "ind_cases"} mk_cases_meth "dynamic case analysis on sets";
 
 
 (* outer syntax *)

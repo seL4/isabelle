@@ -460,9 +460,10 @@ val inductive_cases = gen_inductive_cases Attrib.intern_src Syntax.read_prop;
 val inductive_cases_i = gen_inductive_cases (K I) Syntax.check_prop;
 
 
-fun ind_cases src = Method.syntax (Scan.lift (Scan.repeat1 Args.name_source --
-    Scan.optional (Args.$$$ "for" |-- Scan.repeat1 Args.name) [])) src
-  #> (fn ((raw_props, fixes), ctxt) =>
+val ind_cases =
+  Scan.lift (Scan.repeat1 Args.name_source --
+    Scan.optional (Args.$$$ "for" |-- Scan.repeat1 Args.name) []) >>
+  (fn (raw_props, fixes) => fn ctxt =>
     let
       val (_, ctxt') = Variable.add_fixes fixes ctxt;
       val props = Syntax.read_props ctxt' raw_props;
@@ -933,8 +934,7 @@ fun infer_intro_vars elim arity intros =
 (* setup theory *)
 
 val setup =
-  Method.add_methods [("ind_cases", ind_cases,
-    "dynamic case analysis on predicates")] #>
+  Method.setup @{binding ind_cases} ind_cases "dynamic case analysis on predicates" #>
   Attrib.add_attributes [("mono", Attrib.add_del_args mono_add mono_del,
     "declaration of monotonicity rule")];
 

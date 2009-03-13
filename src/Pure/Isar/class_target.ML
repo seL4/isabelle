@@ -615,11 +615,10 @@ fun default_tac rules ctxt facts =
     default_intro_tac ctxt facts;
 
 val _ = Context.>> (Context.map_theory
-  (Method.add_methods
-   [("intro_classes", Method.no_args (METHOD intro_classes_tac),
-      "back-chain introduction rules of classes"),
-    ("default", Method.thms_ctxt_args (METHOD oo default_tac),
-      "apply some intro/elim rule")]));
+ (Method.setup (Binding.name "intro_classes") (Scan.succeed (K (METHOD intro_classes_tac)))
+    "back-chain introduction rules of classes" #>
+  Method.setup (Binding.name "default") (Attrib.thms >> (METHOD oo default_tac))
+    "apply some intro/elim rule"));
 
 end;
 
