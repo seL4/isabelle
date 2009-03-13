@@ -8,13 +8,13 @@ signature BASIC_METHOD =
 sig
   val FINDGOAL: (int -> thm -> 'a Seq.seq) -> thm -> 'a Seq.seq
   val HEADGOAL: (int -> thm -> 'a Seq.seq) -> thm -> 'a Seq.seq
-  type method
   val trace_rules: bool ref
 end;
 
 signature METHOD =
 sig
   include BASIC_METHOD
+  type method
   val apply: Position.T -> (Proof.context -> method) -> Proof.context -> thm list -> cases_tactic
   val RAW_METHOD_CASES: (thm list -> cases_tactic) -> method
   val RAW_METHOD: (thm list -> tactic) -> method
@@ -540,3 +540,12 @@ end;
 
 structure BasicMethod: BASIC_METHOD = Method;
 open BasicMethod;
+
+val RAW_METHOD_CASES = Method.RAW_METHOD_CASES;
+val RAW_METHOD = Method.RAW_METHOD;
+val METHOD_CASES = Method.METHOD_CASES;
+val METHOD = Method.METHOD;
+val SIMPLE_METHOD = Method.SIMPLE_METHOD;
+val SIMPLE_METHOD' = Method.SIMPLE_METHOD';
+val SIMPLE_METHOD'' = Method.SIMPLE_METHOD'';
+
