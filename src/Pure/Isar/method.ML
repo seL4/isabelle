@@ -78,40 +78,31 @@ sig
     -> theory -> theory
   val add_method: bstring * (src -> Proof.context -> method) * string
     -> theory -> theory
+  val syntax: 'a context_parser -> src -> Proof.context -> 'a * Proof.context
+  val setup: binding -> (Proof.context -> method) context_parser -> string -> theory -> theory
   val method_setup: bstring -> string * Position.T -> string -> theory -> theory
-  val syntax: (Context.generic * Args.T list -> 'a * (Context.generic * Args.T list))
-    -> src -> Proof.context -> 'a * Proof.context
-  val simple_args: (Args.T list -> 'a * Args.T list)
-    -> ('a -> Proof.context -> method) -> src -> Proof.context -> method
+  val simple_args: 'a parser -> ('a -> Proof.context -> method) -> src -> Proof.context -> method
   val ctxt_args: (Proof.context -> method) -> src -> Proof.context -> method
   val no_args: method -> src -> Proof.context -> method
   type modifier
-  val sectioned_args: (Context.generic * Args.T list -> 'a * (Context.generic * Args.T list)) ->
-    (Args.T list -> modifier * Args.T list) list ->
+  val sectioned_args: 'a context_parser -> modifier parser list ->
     ('a -> Proof.context -> 'b) -> src -> Proof.context -> 'b
-  val bang_sectioned_args:
-    (Args.T list -> modifier * Args.T list) list ->
+  val bang_sectioned_args: modifier parser list ->
     (thm list -> Proof.context -> 'a) -> src -> Proof.context -> 'a
-  val bang_sectioned_args':
-    (Args.T list -> modifier * Args.T list) list ->
-    (Context.generic * Args.T list -> 'a * (Context.generic * Args.T list)) ->
+  val bang_sectioned_args': modifier parser list -> 'a context_parser ->
     ('a -> thm list -> Proof.context -> 'b) -> src -> Proof.context -> 'b
-  val only_sectioned_args:
-    (Args.T list -> modifier * Args.T list) list ->
-    (Proof.context -> 'a) -> src -> Proof.context -> 'a
-  val thms_ctxt_args: (thm list -> Proof.context -> 'a) -> src ->
+  val only_sectioned_args: modifier parser list -> (Proof.context -> 'a) -> src ->
     Proof.context -> 'a
+  val thms_ctxt_args: (thm list -> Proof.context -> 'a) -> src -> Proof.context -> 'a
   val thms_args: (thm list -> 'a) -> src -> Proof.context -> 'a
   val thm_args: (thm -> 'a) -> src -> Proof.context -> 'a
-  val goal_args: (Args.T list -> 'a * Args.T list) -> ('a -> int -> tactic)
-    -> src -> Proof.context -> method
-  val goal_args': (Context.generic * Args.T list -> 'a * (Context.generic * Args.T list))
-    -> ('a -> int -> tactic) -> src -> Proof.context -> method
-  val goal_args_ctxt: (Args.T list -> 'a * Args.T list) ->
-    (Proof.context -> 'a -> int -> tactic) -> src -> Proof.context -> method
-  val goal_args_ctxt': (Context.generic * Args.T list -> 'a * (Context.generic * Args.T list)) ->
-    (Proof.context -> 'a -> int -> tactic) -> src -> Proof.context -> method
-  val parse: OuterLex.token list -> text * OuterLex.token list
+  val goal_args: 'a parser -> ('a -> int -> tactic) -> src -> Proof.context -> method
+  val goal_args': 'a context_parser -> ('a -> int -> tactic) -> src -> Proof.context -> method
+  val goal_args_ctxt: 'a parser -> (Proof.context -> 'a -> int -> tactic) -> src ->
+    Proof.context -> method
+  val goal_args_ctxt': 'a context_parser -> (Proof.context -> 'a -> int -> tactic) -> src ->
+    Proof.context -> method
+  val parse: text parser
 end;
 
 structure Method: METHOD =
@@ -401,7 +392,13 @@ fun add_methods raw_meths thy =
 val add_method = add_methods o Library.single;
 
 
-(* method_setup *)
+(* method setup *)
+
+fun syntax scan = Args.context_syntax "method" scan;
+
+fun setup name scan comment =
+  add_methods [(Binding.name_of name,
+    fn src => fn ctxt => let val (m, ctxt') = syntax scan src ctxt in m ctxt' end, comment)];
 
 fun method_setup name (txt, pos) cmt =
   Context.theory_map (ML_Context.expression pos
@@ -417,8 +414,6 @@ structure P = OuterParse;
 
 
 (* basic *)
-
-fun syntax scan = Args.context_syntax "method" scan;
 
 fun simple_args scan f src ctxt : method =
   fst (syntax (Scan.lift (scan >> (fn x => f x ctxt))) src ctxt);
