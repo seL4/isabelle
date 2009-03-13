@@ -73,11 +73,10 @@ sig
   val def_simproc_i: {name: string, lhss: term list,
     proc: morphism -> simpset -> cterm -> thm option, identifier: thm list} ->
     local_theory -> local_theory
-  val cong_modifiers: (Args.T list -> (Method.modifier * Args.T list)) list
-  val simp_modifiers': (Args.T list -> (Method.modifier * Args.T list)) list
-  val simp_modifiers: (Args.T list -> (Method.modifier * Args.T list)) list
-  val method_setup: (Args.T list -> (Method.modifier * Args.T list)) list
-    -> theory -> theory
+  val cong_modifiers: Method.modifier parser list
+  val simp_modifiers': Method.modifier parser list
+  val simp_modifiers: Method.modifier parser list
+  val method_setup: Method.modifier parser list -> theory -> theory
   val easy_setup: thm -> thm list -> theory -> theory
 end;
 

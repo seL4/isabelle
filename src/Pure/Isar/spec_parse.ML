@@ -6,8 +6,6 @@ Parsers for complex specifications.
 
 signature SPEC_PARSE =
 sig
-  type token = OuterParse.token
-  type 'a parser = 'a OuterParse.parser
   val attrib: Attrib.src parser
   val attribs: Attrib.src list parser
   val opt_attribs: Attrib.src list parser
@@ -36,8 +34,6 @@ structure SpecParse: SPEC_PARSE =
 struct
 
 structure P = OuterParse;
-type token = P.token;
-type 'a parser = 'a P.parser;
 
 
 (* theorem specifications *)

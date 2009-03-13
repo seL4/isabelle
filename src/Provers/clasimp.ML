@@ -62,8 +62,8 @@ sig
   val iff_add: attribute
   val iff_add': attribute
   val iff_del: attribute
-  val iff_modifiers: (Args.T list -> (Method.modifier * Args.T list)) list
-  val clasimp_modifiers: (Args.T list -> (Method.modifier * Args.T list)) list
+  val iff_modifiers: Method.modifier parser list
+  val clasimp_modifiers: Method.modifier parser list
   val clasimp_setup: theory -> theory
 end;
 

@@ -146,7 +146,7 @@ sig
   val haz_elim: int option -> attribute
   val haz_intro: int option -> attribute
   val rule_del: attribute
-  val cla_modifiers: (Args.T list -> (Method.modifier * Args.T list)) list
+  val cla_modifiers: Method.modifier parser list
   val cla_meth: (claset -> tactic) -> thm list -> Proof.context -> Proof.method
   val cla_meth': (claset -> int -> tactic) -> thm list -> Proof.context -> Proof.method
   val cla_method: (claset -> tactic) -> Method.src -> Proof.context -> Proof.method

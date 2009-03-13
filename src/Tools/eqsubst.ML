@@ -109,8 +109,8 @@ sig
        searchinfo -> Term.term -> match Seq.seq Seq.seq
 
     (* syntax tools *)
-    val ith_syntax : Args.T list -> int list * Args.T list
-    val options_syntax : Args.T list -> bool * Args.T list
+    val ith_syntax : int list parser
+    val options_syntax : bool parser
 
     (* Isar level hooks *)
     val eqsubst_asm_meth : Proof.context -> int list -> Thm.thm list -> Proof.method

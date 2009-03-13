@@ -6,15 +6,11 @@ Common ML antiquotations.
 
 signature ML_ANTIQUOTE =
 sig
-  val macro: string ->
-    (Context.generic * Args.T list -> Proof.context * (Context.generic * Args.T list)) -> unit
+  val macro: string -> Proof.context context_parser -> unit
   val variant: string -> Proof.context -> string * Proof.context
-  val inline: string ->
-    (Context.generic * Args.T list -> string * (Context.generic * Args.T list)) -> unit
-  val declaration: string -> string ->
-    (Context.generic * Args.T list -> string * (Context.generic * Args.T list)) -> unit
-  val value: string ->
-    (Context.generic * Args.T list -> string * (Context.generic * Args.T list)) -> unit
+  val inline: string -> string context_parser -> unit
+  val declaration: string -> string -> string context_parser -> unit
+  val value: string -> string context_parser -> unit
 end;
 
 structure ML_Antiquote: ML_ANTIQUOTE =

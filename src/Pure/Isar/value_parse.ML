@@ -6,7 +6,6 @@ Outer syntax parsers for basic ML values.
 
 signature VALUE_PARSE =
 sig
-  type 'a parser = 'a OuterParse.parser
   val comma: 'a parser -> 'a parser
   val equal: 'a parser -> 'a parser
   val parens: 'a parser -> 'a parser
@@ -20,7 +19,6 @@ structure ValueParse: VALUE_PARSE =
 struct
 
 structure P = OuterParse;
-type 'a parser = 'a P.parser;
 
 
 (* syntax utilities *)

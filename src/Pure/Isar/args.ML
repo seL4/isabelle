@@ -7,69 +7,66 @@ attributes, methods etc.
 
 signature ARGS =
 sig
-  type T = OuterLex.token
+  type token = OuterLex.token
   type src
-  val src: (string * T list) * Position.T -> src
-  val dest_src: src -> (string * T list) * Position.T
+  val src: (string * token list) * Position.T -> src
+  val dest_src: src -> (string * token list) * Position.T
   val pretty_src: Proof.context -> src -> Pretty.T
   val map_name: (string -> string) -> src -> src
   val morph_values: morphism -> src -> src
   val maxidx_values: src -> int -> int
   val assignable: src -> src
   val closure: src -> src
-  val context: Context.generic * T list -> Context.proof * (Context.generic * T list)
-  val theory: Context.generic * T list -> Context.theory * (Context.generic * T list)
-  val $$$ : string -> T list -> string * T list
-  val add: T list -> string * T list
-  val del: T list -> string * T list
-  val colon: T list -> string * T list
-  val query: T list -> string * T list
-  val bang: T list -> string * T list
-  val query_colon: T list -> string * T list
-  val bang_colon: T list -> string * T list
-  val parens: (T list -> 'a * T list) -> T list -> 'a * T list
-  val bracks: (T list -> 'a * T list) -> T list -> 'a * T list
-  val mode: string -> 'a * T list -> bool * ('a * T list)
-  val maybe: (T list -> 'a * T list) -> T list -> 'a option * T list
-  val name_source: T list -> string * T list
-  val name_source_position: T list -> (SymbolPos.text * Position.T) * T list
-  val name: T list -> string * T list
-  val binding: T list -> binding * T list
-  val alt_name: T list -> string * T list
-  val symbol: T list -> string * T list
-  val liberal_name: T list -> string * T list
-  val var: T list -> indexname * T list
-  val internal_text: T list -> string * T list
-  val internal_typ: T list -> typ * T list
-  val internal_term: T list -> term * T list
-  val internal_fact: T list -> thm list * T list
-  val internal_attribute: T list -> (morphism -> attribute) * T list
-  val named_text: (string -> string) -> T list -> string * T list
-  val named_typ: (string -> typ) -> T list -> typ * T list
-  val named_term: (string -> term) -> T list -> term * T list
-  val named_fact: (string -> thm list) -> T list -> thm list * T list
-  val named_attribute: (string -> morphism -> attribute) -> T list ->
-    (morphism -> attribute) * T list
-  val typ_abbrev: Context.generic * T list -> typ * (Context.generic * T list)
-  val typ: Context.generic * T list -> typ * (Context.generic * T list)
-  val term: Context.generic * T list -> term * (Context.generic * T list)
-  val term_abbrev: Context.generic * T list -> term * (Context.generic * T list)
-  val prop: Context.generic * T list -> term * (Context.generic * T list)
-  val tyname: Context.generic * T list -> string * (Context.generic * T list)
-  val const: Context.generic * T list -> string * (Context.generic * T list)
-  val const_proper: Context.generic * T list -> string * (Context.generic * T list)
-  val bang_facts: Context.generic * T list -> thm list * (Context.generic * T list)
-  val goal_spec: ((int -> tactic) -> tactic) -> ('a * T list)
-    -> ((int -> tactic) -> tactic) * ('a * T list)
-  val parse: OuterLex.token list -> T list * OuterLex.token list
-  val parse1: (string -> bool) -> OuterLex.token list -> T list * OuterLex.token list
-  val attribs: (string -> string) -> T list -> src list * T list
-  val opt_attribs: (string -> string) -> T list -> src list * T list
-  val thm_name: (string -> string) -> string -> T list -> (binding * src list) * T list
-  val opt_thm_name: (string -> string) -> string -> T list -> (binding * src list) * T list
-  val syntax: string -> ('b * T list -> 'a * ('b * T list)) -> src -> 'b -> 'a * 'b
-  val context_syntax: string -> (Context.generic * T list -> 'a * (Context.generic * T list)) ->
-    src -> Proof.context -> 'a * Proof.context
+  val context: Proof.context context_parser
+  val theory: theory context_parser
+  val $$$ : string -> string parser
+  val add: string parser
+  val del: string parser
+  val colon: string parser
+  val query: string parser
+  val bang: string parser
+  val query_colon: string parser
+  val bang_colon: string parser
+  val parens: ('a parser) -> 'a parser
+  val bracks: ('a parser) -> 'a parser
+  val mode: string -> bool context_parser
+  val maybe: 'a parser -> 'a option parser
+  val name_source: string parser
+  val name_source_position: (SymbolPos.text * Position.T) parser
+  val name: string parser
+  val binding: binding parser
+  val alt_name: string parser
+  val symbol: string parser
+  val liberal_name: string parser
+  val var: indexname parser
+  val internal_text: string parser
+  val internal_typ: typ parser
+  val internal_term: term parser
+  val internal_fact: thm list parser
+  val internal_attribute: (morphism -> attribute) parser
+  val named_text: (string -> string) -> string parser
+  val named_typ: (string -> typ) -> typ parser
+  val named_term: (string -> term) -> term parser
+  val named_fact: (string -> thm list) -> thm list parser
+  val named_attribute: (string -> morphism -> attribute) -> (morphism -> attribute) parser
+  val typ_abbrev: typ context_parser
+  val typ: typ context_parser
+  val term: term context_parser
+  val term_abbrev: term context_parser
+  val prop: term context_parser
+  val tyname: string context_parser
+  val const: string context_parser
+  val const_proper: string context_parser
+  val bang_facts: thm list context_parser
+  val goal_spec: ((int -> tactic) -> tactic) -> ((int -> tactic) -> tactic) context_parser
+  val parse: token list parser
+  val parse1: (string -> bool) -> token list parser
+  val attribs: (string -> string) -> src list parser
+  val opt_attribs: (string -> string) -> src list parser
+  val thm_name: (string -> string) -> string -> (binding * src list) parser
+  val opt_thm_name: (string -> string) -> string -> (binding * src list) parser
+  val syntax: string -> 'a context_parser -> src -> Context.generic -> 'a * Context.generic
+  val context_syntax: string -> 'a context_parser -> src -> Proof.context -> 'a * Proof.context
 end;
 
 structure Args: ARGS =
@@ -78,13 +75,13 @@ struct
 structure T = OuterLex;
 structure P = OuterParse;
 
+type token = T.token;
+
 
 
 (** datatype src **)
 
-type T = T.token;
-
-datatype src = Src of (string * T list) * Position.T;
+datatype src = Src of (string * token list) * Position.T;
 
 val src = Src;
 fun dest_src (Src src) = src;

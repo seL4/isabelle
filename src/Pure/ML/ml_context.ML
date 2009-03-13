@@ -27,8 +27,7 @@ sig
   type antiq =
     {struct_name: string, background: Proof.context} ->
       (Proof.context -> string * string) * Proof.context
-  val add_antiq: string ->
-    (Position.T -> Context.generic * Args.T list -> antiq * (Context.generic * Args.T list)) -> unit
+  val add_antiq: string -> (Position.T -> antiq context_parser) -> unit
   val trace: bool ref
   val eval_wrapper: (string -> unit) * (string -> 'a) -> bool -> Position.T -> string -> unit
   val eval: bool -> Position.T -> string -> unit
@@ -157,9 +156,7 @@ type antiq =
 
 local
 
-val global_parsers = ref (Symtab.empty:
-  (Position.T -> Context.generic * Args.T list -> antiq * (Context.generic * Args.T list))
-    Symtab.table);
+val global_parsers = ref (Symtab.empty: (Position.T -> antiq context_parser) Symtab.table);
 
 in
 

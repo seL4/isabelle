@@ -39,7 +39,7 @@ sig
   val Delsplits       : thm list -> unit
   val split_add: attribute
   val split_del: attribute
-  val split_modifiers : (Args.T list -> (Method.modifier * Args.T list)) list
+  val split_modifiers : Method.modifier parser list
   val setup: theory -> theory
 end;
 

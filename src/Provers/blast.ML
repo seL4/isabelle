@@ -56,7 +56,7 @@ signature BLAST_DATA =
                  uwrappers: (string * wrapper) list,
                  safe0_netpair: netpair, safep_netpair: netpair,
                  haz_netpair: netpair, dup_netpair: netpair, xtra_netpair: ContextRules.netpair}
-  val cla_modifiers: (Args.T list -> (Method.modifier * Args.T list)) list
+  val cla_modifiers: Method.modifier parser list
   val cla_meth': (claset -> int -> tactic) -> thm list -> Proof.context -> Proof.method
   end;
 
