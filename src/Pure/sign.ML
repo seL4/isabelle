@@ -125,7 +125,6 @@ sig
   val root_path: theory -> theory
   val parent_path: theory -> theory
   val mandatory_path: string -> theory -> theory
-  val no_base_names: theory -> theory
   val local_path: theory -> theory
   val restore_naming: theory -> theory -> theory
   val hide_class: bool -> string -> theory -> theory
@@ -616,15 +615,14 @@ val del_trrules_i = map_syn o Syntax.remove_trrules_i;
 
 (* naming *)
 
-val add_path        = map_naming o NameSpace.add_path;
-val root_path       = map_naming NameSpace.root_path;
-val parent_path     = map_naming NameSpace.parent_path;
-val mandatory_path  = map_naming o NameSpace.mandatory_path;
-val no_base_names   = map_naming NameSpace.no_base_names;
+val add_path = map_naming o NameSpace.add_path;
+val root_path = map_naming NameSpace.root_path;
+val parent_path = map_naming NameSpace.parent_path;
+val mandatory_path = map_naming o NameSpace.mandatory_path;
 
 fun local_path thy = thy |> root_path |> add_path (Context.theory_name thy);
 
-val restore_naming  = map_naming o K o naming_of;
+val restore_naming = map_naming o K o naming_of;
 
 
 (* hide names *)

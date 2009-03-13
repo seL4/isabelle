@@ -35,7 +35,6 @@ sig
   val add_path: string -> naming -> naming
   val root_path: naming -> naming
   val parent_path: naming -> naming
-  val no_base_names: naming -> naming
   val mandatory_path: string -> naming -> naming
   type 'a table = T * 'a Symtab.table
   val define: naming -> binding * 'a -> 'a table -> string * 'a table (*exception Symtab.DUP*)
@@ -171,40 +170,22 @@ fun merge (NameSpace (tab1, xtab1), NameSpace (tab2, xtab2)) =
 
 (* datatype naming *)
 
-datatype naming = Naming of
- {path: (string * bool) list,
-  no_base_names: bool};
+datatype naming = Naming of (string * bool) list;
+fun map_naming f (Naming path) = Naming (f path);
 
-fun make_naming (path, no_base_names) =
-  Naming {path = path, no_base_names = no_base_names};
+val default_naming = Naming [];
 
-fun map_naming f (Naming {path, no_base_names}) =
-  make_naming (f (path, no_base_names));
-
-
-(* configure naming *)
-
-val default_naming = make_naming ([], false);
-
-fun add_path elems = map_naming (fn (path, no_base_names) =>
-  (path @ [(elems, false)], no_base_names));
-
-val root_path = map_naming (fn (_, no_base_names) => ([], no_base_names));
-
-val parent_path = map_naming (fn (path, no_base_names) =>
-  (perhaps (try (#1 o split_last)) path, no_base_names));
-
-fun mandatory_path elems = map_naming (fn (path, no_base_names) =>
-  (path @ [(elems, true)], no_base_names));
-
-val no_base_names = map_naming (fn (path, _) => (path, true));
+fun add_path elems = map_naming (fn path => path @ [(elems, false)]);
+val root_path = map_naming (fn _ => []);
+val parent_path = map_naming (perhaps (try (#1 o split_last)));
+fun mandatory_path elems = map_naming (fn path => path @ [(elems, true)]);
 
 
 (* full name *)
 
 fun err_bad binding = error ("Bad name binding " ^ quote (Binding.str_of binding));
 
-fun name_spec (Naming {path, ...}) binding =
+fun name_spec (Naming path) binding =
   let
     val (prefix, name) = Binding.dest binding;
     val _ = Long_Name.is_qualified name andalso err_bad binding;
@@ -232,16 +213,12 @@ and mandatory_prefixes1 [] = []
 
 fun mandatory_suffixes xs = map rev (mandatory_prefixes (rev xs));
 
-fun accesses (naming as Naming {no_base_names, ...}) binding =
+fun accesses naming binding =
   let
     val spec = name_spec naming binding;
     val sfxs = mandatory_suffixes spec;
     val pfxs = mandatory_prefixes spec;
-  in
-    (sfxs @ pfxs, sfxs)
-    |> pairself (no_base_names ? filter (fn [_] => false | _ => true))
-    |> pairself (map Long_Name.implode)
-  end;
+  in pairself (map Long_Name.implode) (sfxs @ pfxs, sfxs) end;
 
 fun external_names naming = #2 o accesses naming o Binding.qualified_name;
 
