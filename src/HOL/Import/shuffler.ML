@@ -656,7 +656,7 @@ fun shuffle_meth (thms:thm list) ctxt =
     let
         val thy = ProofContext.theory_of ctxt
     in
-        Method.SIMPLE_METHOD' (gen_shuffle_tac thy false (map (pair "") thms))
+        SIMPLE_METHOD' (gen_shuffle_tac thy false (map (pair "") thms))
     end
 
 fun search_meth ctxt =
@@ -664,7 +664,7 @@ fun search_meth ctxt =
         val thy = ProofContext.theory_of ctxt
         val prems = Assumption.all_prems_of ctxt
     in
-        Method.SIMPLE_METHOD' (gen_shuffle_tac thy true (map (pair "premise") prems))
+        SIMPLE_METHOD' (gen_shuffle_tac thy true (map (pair "premise") prems))
     end
 
 fun add_shuffle_rule thm thy =

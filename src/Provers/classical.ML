@@ -971,11 +971,8 @@ val setup_attrs = Attrib.add_attributes
 
 (** proof methods **)
 
-fun METHOD_CLASET tac ctxt =
-  Method.METHOD (tac ctxt (local_claset_of ctxt));
-
-fun METHOD_CLASET' tac ctxt =
-  Method.METHOD (HEADGOAL o tac ctxt (local_claset_of ctxt));
+fun METHOD_CLASET tac ctxt = METHOD (tac ctxt (local_claset_of ctxt));
+fun METHOD_CLASET' tac ctxt = METHOD (HEADGOAL o tac ctxt (local_claset_of ctxt));
 
 
 local
@@ -1021,10 +1018,10 @@ val cla_modifiers =
   Args.$$$ introN -- Args.colon >> K (I, haz_intro NONE),
   Args.del -- Args.colon >> K (I, rule_del)];
 
-fun cla_meth tac prems ctxt = Method.METHOD (fn facts =>
+fun cla_meth tac prems ctxt = METHOD (fn facts =>
   ALLGOALS (Method.insert_tac (prems @ facts)) THEN tac (local_claset_of ctxt));
 
-fun cla_meth' tac prems ctxt = Method.METHOD (fn facts =>
+fun cla_meth' tac prems ctxt = METHOD (fn facts =>
   HEADGOAL (Method.insert_tac (prems @ facts) THEN' tac (local_claset_of ctxt)));
 
 val cla_method = Method.bang_sectioned_args cla_modifiers o cla_meth;

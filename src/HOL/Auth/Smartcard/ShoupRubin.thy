@@ -769,15 +769,15 @@ end
 *}
 
 method_setup prepare = {*
-    Method.no_args (Method.SIMPLE_METHOD ShoupRubin.prepare_tac) *}
+    Method.no_args (SIMPLE_METHOD ShoupRubin.prepare_tac) *}
   "to launch a few simple facts that'll help the simplifier"
 
 method_setup parts_prepare = {*
-    Method.ctxt_args (fn ctxt => Method.SIMPLE_METHOD (ShoupRubin.parts_prepare_tac ctxt)) *}
+    Method.ctxt_args (fn ctxt => SIMPLE_METHOD (ShoupRubin.parts_prepare_tac ctxt)) *}
   "additional facts to reason about parts"
 
 method_setup analz_prepare = {*
-    Method.no_args (Method.SIMPLE_METHOD ShoupRubin.analz_prepare_tac) *}
+    Method.no_args (SIMPLE_METHOD ShoupRubin.analz_prepare_tac) *}
   "additional facts to reason about analz"
 
 
@@ -823,7 +823,7 @@ done
 
 method_setup sc_analz_freshK = {*
     Method.ctxt_args (fn ctxt =>
-     (Method.SIMPLE_METHOD
+     (SIMPLE_METHOD
       (EVERY [REPEAT_FIRST
        (resolve_tac [allI, ballI, impI]),
         REPEAT_FIRST (rtac @{thm analz_image_freshK_lemma}),

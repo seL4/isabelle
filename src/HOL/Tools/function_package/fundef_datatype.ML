@@ -203,7 +203,7 @@ fun pat_completeness_tac ctxt = SUBGOAL (fn (subgoal, i) =>
     handle COMPLETENESS => no_tac)
 
 
-fun pat_completeness ctxt = Method.SIMPLE_METHOD' (pat_completeness_tac ctxt)
+fun pat_completeness ctxt = SIMPLE_METHOD' (pat_completeness_tac ctxt)
 
 val by_pat_completeness_auto =
     Proof.global_future_terminal_proof

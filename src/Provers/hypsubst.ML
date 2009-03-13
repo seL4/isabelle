@@ -285,8 +285,8 @@ fun stac th =
 
 val hypsubst_setup =
   Method.add_methods
-    [("hypsubst", Method.no_args (Method.SIMPLE_METHOD' (CHANGED_PROP o hyp_subst_tac)),
+    [("hypsubst", Method.no_args (SIMPLE_METHOD' (CHANGED_PROP o hyp_subst_tac)),
         "substitution using an assumption (improper)"),
-     ("simplesubst", Method.thm_args (Method.SIMPLE_METHOD' o stac), "simple substitution")];
+     ("simplesubst", Method.thm_args (SIMPLE_METHOD' o stac), "simple substitution")];
 
 end;

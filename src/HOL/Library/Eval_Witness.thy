@@ -84,7 +84,7 @@ fun eval_tac ws = CSUBGOAL (fn (ct, i) => rtac (eval_witness_oracle (ct, ws)) i)
 
 in
   Method.simple_args (Scan.repeat Args.name) (fn ws => fn _ =>
-    Method.SIMPLE_METHOD' (eval_tac ws))
+    SIMPLE_METHOD' (eval_tac ws))
 end
 *} "Evaluation with ML witnesses"
 

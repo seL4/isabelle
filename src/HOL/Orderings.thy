@@ -398,7 +398,7 @@ val _ =
 
 val setup =
   Method.add_methods
-    [("order", Method.ctxt_args (Method.SIMPLE_METHOD' o order_tac []), "transitivity reasoner")] #>
+    [("order", Method.ctxt_args (SIMPLE_METHOD' o order_tac []), "transitivity reasoner")] #>
   Attrib.add_attributes [("order", attribute, "theorems controlling transitivity reasoner")];
 
 end;

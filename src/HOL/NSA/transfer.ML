@@ -116,6 +116,6 @@ val setup =
      ("transfer_refold", Attrib.add_del_args refold_add refold_del,
       "declaration of transfer refolding rule")] #>
   Method.add_method ("transfer", Method.thms_ctxt_args (fn ths => fn ctxt =>
-    Method.SIMPLE_METHOD' (transfer_tac ctxt ths)), "transfer principle");
+    SIMPLE_METHOD' (transfer_tac ctxt ths)), "transfer principle");
 
 end;

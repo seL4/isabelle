@@ -399,7 +399,7 @@ fun induct_scheme_tac ctxt =
   mk_ind_tac (K all_tac) (assume_tac APPEND' Goal.assume_rule_tac ctxt) (K all_tac) ctxt;
 
 val setup = Method.add_methods
-  [("induct_scheme", Method.ctxt_args (Method.RAW_METHOD o induct_scheme_tac),
+  [("induct_scheme", Method.ctxt_args (RAW_METHOD o induct_scheme_tac),
     "proves an induction principle")]
 
 end

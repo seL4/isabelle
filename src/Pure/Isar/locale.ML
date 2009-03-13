@@ -489,10 +489,10 @@ fun intro_locales_tac eager ctxt facts st =
 val _ = Context.>> (Context.map_theory
   (Method.add_methods
     [("intro_locales",
-      Method.ctxt_args (fn ctxt => Method.METHOD (intro_locales_tac false ctxt)),
+      Method.ctxt_args (fn ctxt => METHOD (intro_locales_tac false ctxt)),
       "back-chain introduction rules of locales without unfolding predicates"),
      ("unfold_locales",
-      Method.ctxt_args (fn ctxt => Method.METHOD (intro_locales_tac true ctxt)),
+      Method.ctxt_args (fn ctxt => METHOD (intro_locales_tac true ctxt)),
       "back-chain all introduction rules of locales")]));
 
 end;

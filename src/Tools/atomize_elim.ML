@@ -132,7 +132,7 @@ fun atomize_elim_tac ctxt = SUBGOAL (fn (subg, i) =>
     end)
 
 val setup = Method.add_methods
-  [("atomize_elim", Method.ctxt_args (Method.SIMPLE_METHOD' o atomize_elim_tac),
+  [("atomize_elim", Method.ctxt_args (SIMPLE_METHOD' o atomize_elim_tac),
     "convert obtains statement to atomic object logic goal")]
   #> AtomizeElimData.setup
 

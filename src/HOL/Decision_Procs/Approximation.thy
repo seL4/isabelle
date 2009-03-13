@@ -2499,7 +2499,7 @@ ML {*
 method_setup approximation = {* fn src => 
   Method.syntax Args.term src #>
   (fn (prec, ctxt) => let
-   in Method.SIMPLE_METHOD' (fn i =>
+   in SIMPLE_METHOD' (fn i =>
      (DETERM (reify_uneq ctxt i)
       THEN rule_uneq ctxt prec i
       THEN Simplifier.asm_full_simp_tac bounded_by_simpset i 

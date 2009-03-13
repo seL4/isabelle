@@ -8,7 +8,7 @@ sig
   val nominal_induct_tac: Proof.context -> (binding option * term) option list list ->
     (string * typ) list -> (string * typ) list list -> thm list ->
     thm list -> int -> RuleCases.cases_tactic
-  val nominal_induct_method: Method.src -> Proof.context -> Method.method
+  val nominal_induct_method: Method.src -> Proof.context -> Proof.method
 end =
 struct
 
@@ -157,7 +157,7 @@ fun nominal_induct_method src =
    (P.and_list' (Scan.repeat (unless_more_args def_inst)) --
     avoiding -- fixing -- rule_spec) src
   #> (fn ((((x, y), z), w), ctxt) =>
-    Method.RAW_METHOD_CASES (fn facts =>
+    RAW_METHOD_CASES (fn facts =>
       HEADGOAL (nominal_induct_tac ctxt x y z w facts)));
 
 end;

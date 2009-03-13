@@ -410,11 +410,11 @@ fun simp_args more_mods =
   Method.sectioned_args (Args.bang_facts -- Scan.lift simp_options)
     (more_mods @ simp_modifiers');
 
-fun simp_method (prems, tac) ctxt = Method.METHOD (fn facts =>
+fun simp_method (prems, tac) ctxt = METHOD (fn facts =>
   ALLGOALS (Method.insert_tac (prems @ facts)) THEN
     (CHANGED_PROP o ALLGOALS o tac) (local_simpset_of ctxt));
 
-fun simp_method' (prems, tac) ctxt = Method.METHOD (fn facts =>
+fun simp_method' (prems, tac) ctxt = METHOD (fn facts =>
   HEADGOAL (Method.insert_tac (prems @ facts) THEN'
       ((CHANGED_PROP) oo tac) (local_simpset_of ctxt)));
 

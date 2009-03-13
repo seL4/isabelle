@@ -474,7 +474,7 @@ val split_modifiers =
 
 fun split_meth src =
   Method.syntax Attrib.thms src
-  #> (fn (ths, _) => Method.SIMPLE_METHOD' (CHANGED_PROP o gen_split_tac ths));
+  #> (fn (ths, _) => SIMPLE_METHOD' (CHANGED_PROP o gen_split_tac ths));
 
 
 (* theory setup *)

@@ -638,7 +638,7 @@ fun infer_types ctxt =
   val metisH_tac = metis_general_tac ResAtp.Hol;
 
   fun method mode = Method.thms_ctxt_args (fn ths => fn ctxt =>
-    Method.SIMPLE_METHOD' (CHANGED_PROP o metis_general_tac mode ctxt ths));
+    SIMPLE_METHOD' (CHANGED_PROP o metis_general_tac mode ctxt ths));
 
   val setup =
     type_lits_setup #>
@@ -647,7 +647,7 @@ fun infer_types ctxt =
        ("metisF", method ResAtp.Fol, "METIS for FOL problems"),
        ("metisH", method ResAtp.Hol, "METIS for HOL problems"),
        ("finish_clausify",
-         Method.no_args (Method.SIMPLE_METHOD' (K (ResAxioms.expand_defs_tac refl))),
+         Method.no_args (SIMPLE_METHOD' (K (ResAxioms.expand_defs_tac refl))),
     "cleanup after conversion to clauses")];
 
 end;

@@ -387,9 +387,9 @@ fun subgoals_tac ctxt As = EVERY' (map (subgoal_tac ctxt) As);
 local
 
 fun gen_inst _ tac _ (quant, ([], thms)) =
-      Method.METHOD (fn facts => quant (Method.insert_tac facts THEN' tac thms))
+      METHOD (fn facts => quant (Method.insert_tac facts THEN' tac thms))
   | gen_inst inst_tac _ ctxt (quant, (insts, [thm])) =
-      Method.METHOD (fn facts =>
+      METHOD (fn facts =>
         quant (Method.insert_tac facts THEN' inst_tac ctxt insts thm))
   | gen_inst _ _ _ _ = error "Cannot have instantiations with multiple rules";
 

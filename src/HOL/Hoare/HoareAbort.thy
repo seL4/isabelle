@@ -246,12 +246,12 @@ lemma Compl_Collect: "-(Collect b) = {x. ~(b x)}"
 use "hoare_tac.ML"
 
 method_setup vcg = {*
-  Method.ctxt_args (fn ctxt => Method.SIMPLE_METHOD' (hoare_tac ctxt (K all_tac))) *}
+  Method.ctxt_args (fn ctxt => SIMPLE_METHOD' (hoare_tac ctxt (K all_tac))) *}
   "verification condition generator"
 
 method_setup vcg_simp = {*
   Method.ctxt_args (fn ctxt =>
-    Method.SIMPLE_METHOD' (hoare_tac ctxt (asm_full_simp_tac (local_simpset_of ctxt)))) *}
+    SIMPLE_METHOD' (hoare_tac ctxt (asm_full_simp_tac (local_simpset_of ctxt)))) *}
   "verification condition generator plus simplification"
 
 (* Special syntax for guarded statements and guarded array updates: *)

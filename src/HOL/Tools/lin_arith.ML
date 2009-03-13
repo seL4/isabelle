@@ -914,7 +914,7 @@ fun silent_arith_tac ctxt = FIRST' [fast_arith_tac ctxt,
 
 fun arith_method src =
   Method.syntax Args.bang_facts src
-  #> (fn (prems, ctxt) => Method.METHOD (fn facts =>
+  #> (fn (prems, ctxt) => METHOD (fn facts =>
       HEADGOAL (Method.insert_tac (prems @ ArithFacts.get ctxt @ facts)
       THEN' arith_tac ctxt)));
 

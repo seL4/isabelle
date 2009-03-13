@@ -895,11 +895,10 @@ text {*
 %FIXME proper antiquotations
 {\footnotesize
 \begin{verbatim}
- Method.no_args (Method.METHOD (fn facts => foobar_tac))
- Method.thms_args (fn thms => Method.METHOD (fn facts => foobar_tac))
- Method.ctxt_args (fn ctxt => Method.METHOD (fn facts => foobar_tac))
- Method.thms_ctxt_args (fn thms => fn ctxt =>
-    Method.METHOD (fn facts => foobar_tac))
+ Method.no_args (METHOD (fn facts => foobar_tac))
+ Method.thms_args (fn thms => METHOD (fn facts => foobar_tac))
+ Method.ctxt_args (fn ctxt => METHOD (fn facts => foobar_tac))
+ Method.thms_ctxt_args (fn thms => fn ctxt => METHOD (fn facts => foobar_tac))
 \end{verbatim}
 }
 

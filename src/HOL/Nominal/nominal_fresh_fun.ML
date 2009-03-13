@@ -204,4 +204,4 @@ val setup_generate_fresh =
 
 val setup_fresh_fun_simp =
   Method.simple_args options_syntax 
-  (fn b => fn _ => Method.SIMPLE_METHOD (fresh_fun_tac b 1))
+  (fn b => fn _ => SIMPLE_METHOD (fresh_fun_tac b 1))

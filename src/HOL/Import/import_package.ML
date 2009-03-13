@@ -73,7 +73,7 @@ val import_meth = Method.simple_args (Args.name -- Args.name)
                       let
                           val thy = ProofContext.theory_of ctxt
                       in
-                          Method.SIMPLE_METHOD (import_tac arg thy)
+                          SIMPLE_METHOD (import_tac arg thy)
                       end)
 
 val setup = Method.add_method("import",import_meth,"Import HOL4 theorem")

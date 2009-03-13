@@ -505,7 +505,7 @@ fun eval_tac ctxt ths =
 val eval_setup =
   Data.setup #>
   Method.add_methods [("eval", Method.thms_ctxt_args (fn ths => fn ctxt =>
-    Method.SIMPLE_METHOD (CHANGED (eval_tac ctxt ths))), "evaluation")];
+    SIMPLE_METHOD (CHANGED (eval_tac ctxt ths))), "evaluation")];
 
 end;
 

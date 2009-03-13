@@ -226,7 +226,7 @@ oracle eval_oracle = {* fn ct =>
 *}
 
 ML {*
-fun gen_eval_method conv = Method.ctxt_args (fn ctxt => Method.SIMPLE_METHOD'
+fun gen_eval_method conv = Method.ctxt_args (fn ctxt => SIMPLE_METHOD'
   (CONVERSION (Conv.params_conv (~1) (K (Conv.concl_conv (~1) conv)) ctxt)
     THEN' rtac TrueI))
 *}
@@ -237,7 +237,7 @@ method_setup eval = {* gen_eval_method eval_oracle *}
 method_setup evaluation = {* gen_eval_method Codegen.evaluation_conv *}
   "solve goal by evaluation"
 
-method_setup normalization = {* (Method.no_args o Method.SIMPLE_METHOD')
+method_setup normalization = {* (Method.no_args o SIMPLE_METHOD')
   (CONVERSION Nbe.norm_conv THEN' (fn k => TRY (rtac TrueI k)))
 *} "solve goal by normalization"
 

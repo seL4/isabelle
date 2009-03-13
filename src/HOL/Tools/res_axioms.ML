@@ -489,7 +489,7 @@ fun meson_general_tac ths i st0 =
 
 val meson_method_setup = Method.add_methods
   [("meson", Method.thms_args (fn ths =>
-      Method.SIMPLE_METHOD' (CHANGED_PROP o meson_general_tac ths)),
+      SIMPLE_METHOD' (CHANGED_PROP o meson_general_tac ths)),
     "MESON resolution proof procedure")];
 
 
@@ -522,7 +522,7 @@ val neg_clausify_tac =
      end);
 
 val setup_methods = Method.add_methods
-  [("neg_clausify", Method.no_args (Method.SIMPLE_METHOD' neg_clausify_tac),
+  [("neg_clausify", Method.no_args (SIMPLE_METHOD' neg_clausify_tac),
     "conversion of goal to conjecture clauses")];
 
 

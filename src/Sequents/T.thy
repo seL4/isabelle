@@ -44,7 +44,7 @@ structure T_Prover = Modal_ProverFun
 *}
 
 method_setup T_solve =
-  {* Method.no_args (Method.SIMPLE_METHOD (T_Prover.solve_tac 2)) *} "T solver"
+  {* Method.no_args (SIMPLE_METHOD (T_Prover.solve_tac 2)) *} "T solver"
 
 
 (* Theorems of system T from Hughes and Cresswell and Hailpern, LNCS 129 *)
