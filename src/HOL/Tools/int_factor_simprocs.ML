@@ -29,7 +29,7 @@ structure CancelNumeralFactorCommon =
   struct
   val mk_coeff          = mk_coeff
   val dest_coeff        = dest_coeff 1
-  val trans_tac         = fn _ => trans_tac
+  val trans_tac         = K Arith_Data.trans_tac
 
   val norm_ss1 = HOL_ss addsimps minus_from_mult_simps @ mult_1s
   val norm_ss2 = HOL_ss addsimps simps @ mult_minus_simps
@@ -41,7 +41,7 @@ structure CancelNumeralFactorCommon =
 
   val numeral_simp_ss = HOL_ss addsimps rel_number_of @ simps
   fun numeral_simp_tac ss = ALLGOALS (simp_tac (Simplifier.inherit_context ss numeral_simp_ss))
-  val simplify_meta_eq = Int_Numeral_Simprocs.simplify_meta_eq
+  val simplify_meta_eq = Arith_Data.simplify_meta_eq
     [@{thm add_0}, @{thm add_0_right}, @{thm mult_zero_left},
       @{thm mult_zero_right}, @{thm mult_Bit1}, @{thm mult_1_right}];
   end
@@ -215,7 +215,7 @@ fun find_first_t past u []         = raise TERM ("find_first_t", [])
         handle TERM _ => find_first_t (t::past) u terms;
 
 (** Final simplification for the CancelFactor simprocs **)
-val simplify_one = Int_Numeral_Simprocs.simplify_meta_eq  
+val simplify_one = Arith_Data.simplify_meta_eq  
   [@{thm mult_1_left}, @{thm mult_1_right}, @{thm div_by_1}, @{thm numeral_1_eq_1}];
 
 fun cancel_simplify_meta_eq cancel_th ss th =
@@ -228,7 +228,7 @@ structure CancelFactorCommon =
   val mk_coeff          = mk_coeff
   val dest_coeff        = dest_coeff
   val find_first        = find_first_t []
-  val trans_tac         = fn _ => trans_tac
+  val trans_tac         = K Arith_Data.trans_tac
   val norm_ss = HOL_ss addsimps mult_1s @ @{thms mult_ac}
   fun norm_tac ss = ALLGOALS (simp_tac (Simplifier.inherit_context ss norm_ss))
   end;

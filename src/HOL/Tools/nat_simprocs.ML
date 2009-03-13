@@ -41,8 +41,6 @@ val dest_plus = HOLogic.dest_bin @{const_name HOL.plus} HOLogic.natT;
 
 (** Other simproc items **)
 
-val trans_tac = Int_Numeral_Simprocs.trans_tac;
-
 val bin_simps =
      [@{thm nat_numeral_0_eq_0} RS sym, @{thm nat_numeral_1_eq_1} RS sym,
       @{thm add_nat_number_of}, @{thm nat_number_of_add_left}, 
@@ -130,14 +128,10 @@ val contra_rules = [@{thm add_Suc}, @{thm add_Suc_right}, @{thm Zero_not_Suc},
   @{thm Suc_not_Zero}, @{thm le_0_eq}];
 
 val simplify_meta_eq =
-    Int_Numeral_Simprocs.simplify_meta_eq
+    Arith_Data.simplify_meta_eq
         ([@{thm nat_numeral_0_eq_0}, @{thm numeral_1_eq_Suc_0}, @{thm add_0}, @{thm add_0_right},
           @{thm mult_0}, @{thm mult_0_right}, @{thm mult_1}, @{thm mult_1_right}] @ contra_rules);
 
-
-(*Like HOL_ss but with an ordering that brings numerals to the front
-  under AC-rewriting.*)
-val num_ss = Int_Numeral_Simprocs.num_ss;
 
 (*** Applying CancelNumeralsFun ***)
 
@@ -148,11 +142,11 @@ structure CancelNumeralsCommon =
   val mk_coeff          = mk_coeff
   val dest_coeff        = dest_coeff
   val find_first_coeff  = find_first_coeff []
-  val trans_tac         = fn _ => trans_tac
+  val trans_tac         = K Arith_Data.trans_tac
 
-  val norm_ss1 = num_ss addsimps numeral_syms @ add_0s @ mult_1s @
+  val norm_ss1 = Int_Numeral_Simprocs.num_ss addsimps numeral_syms @ add_0s @ mult_1s @
     [@{thm Suc_eq_add_numeral_1_left}] @ @{thms add_ac}
-  val norm_ss2 = num_ss addsimps bin_simps @ @{thms add_ac} @ @{thms mult_ac}
+  val norm_ss2 = Int_Numeral_Simprocs.num_ss addsimps bin_simps @ @{thms add_ac} @ @{thms mult_ac}
   fun norm_tac ss = 
     ALLGOALS (simp_tac (Simplifier.inherit_context ss norm_ss1))
     THEN ALLGOALS (simp_tac (Simplifier.inherit_context ss norm_ss2))
@@ -237,10 +231,10 @@ structure CombineNumeralsData =
   val dest_coeff        = dest_coeff
   val left_distrib      = @{thm left_add_mult_distrib} RS trans
   val prove_conv        = Arith_Data.prove_conv_nohyps
-  val trans_tac         = fn _ => trans_tac
+  val trans_tac         = K Arith_Data.trans_tac
 
-  val norm_ss1 = num_ss addsimps numeral_syms @ add_0s @ mult_1s @ [@{thm Suc_eq_add_numeral_1}] @ @{thms add_ac}
-  val norm_ss2 = num_ss addsimps bin_simps @ @{thms add_ac} @ @{thms mult_ac}
+  val norm_ss1 = Int_Numeral_Simprocs.num_ss addsimps numeral_syms @ add_0s @ mult_1s @ [@{thm Suc_eq_add_numeral_1}] @ @{thms add_ac}
+  val norm_ss2 = Int_Numeral_Simprocs.num_ss addsimps bin_simps @ @{thms add_ac} @ @{thms mult_ac}
   fun norm_tac ss =
     ALLGOALS (simp_tac (Simplifier.inherit_context ss norm_ss1))
     THEN ALLGOALS (simp_tac (Simplifier.inherit_context ss norm_ss2))
@@ -262,11 +256,11 @@ structure CancelNumeralFactorCommon =
   struct
   val mk_coeff          = mk_coeff
   val dest_coeff        = dest_coeff
-  val trans_tac         = fn _ => trans_tac
+  val trans_tac         = K Arith_Data.trans_tac
 
-  val norm_ss1 = num_ss addsimps
+  val norm_ss1 = Int_Numeral_Simprocs.num_ss addsimps
     numeral_syms @ add_0s @ mult_1s @ [@{thm Suc_eq_add_numeral_1_left}] @ @{thms add_ac}
-  val norm_ss2 = num_ss addsimps bin_simps @ @{thms add_ac} @ @{thms mult_ac}
+  val norm_ss2 = Int_Numeral_Simprocs.num_ss addsimps bin_simps @ @{thms add_ac} @ @{thms mult_ac}
   fun norm_tac ss =
     ALLGOALS (simp_tac (Simplifier.inherit_context ss norm_ss1))
     THEN ALLGOALS (simp_tac (Simplifier.inherit_context ss norm_ss2))
@@ -355,7 +349,7 @@ fun find_first_t past u []         = raise TERM("find_first_t", [])
         handle TERM _ => find_first_t (t::past) u terms;
 
 (** Final simplification for the CancelFactor simprocs **)
-val simplify_one = Int_Numeral_Simprocs.simplify_meta_eq  
+val simplify_one = Arith_Data.simplify_meta_eq  
   [@{thm mult_1_left}, @{thm mult_1_right}, @{thm div_1}, @{thm numeral_1_eq_Suc_0}];
 
 fun cancel_simplify_meta_eq cancel_th ss th =
@@ -368,7 +362,7 @@ structure CancelFactorCommon =
   val mk_coeff          = mk_coeff
   val dest_coeff        = dest_coeff
   val find_first        = find_first_t []
-  val trans_tac         = fn _ => trans_tac
+  val trans_tac         = K Arith_Data.trans_tac
   val norm_ss = HOL_ss addsimps mult_1s @ @{thms mult_ac}
   fun norm_tac ss = ALLGOALS (simp_tac (Simplifier.inherit_context ss norm_ss))
   end;
