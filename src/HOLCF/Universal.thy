@@ -13,35 +13,35 @@ types ubasis = nat
 definition
   node :: "nat \<Rightarrow> ubasis \<Rightarrow> ubasis set \<Rightarrow> ubasis"
 where
-  "node i x A = Suc (prod2nat (i, prod2nat (x, set2nat A)))"
+  "node i a S = Suc (prod2nat (i, prod2nat (a, set2nat S)))"
 
-lemma node_not_0 [simp]: "node i x A \<noteq> 0"
+lemma node_not_0 [simp]: "node i a S \<noteq> 0"
 unfolding node_def by simp
 
-lemma node_gt_0 [simp]: "0 < node i x A"
+lemma node_gt_0 [simp]: "0 < node i a S"
 unfolding node_def by simp
 
 lemma node_inject [simp]:
-  "\<lbrakk>finite A; finite B\<rbrakk>
-    \<Longrightarrow> node i x A = node j y B \<longleftrightarrow> i = j \<and> x = y \<and> A = B"
+  "\<lbrakk>finite S; finite T\<rbrakk>
+    \<Longrightarrow> node i a S = node j b T \<longleftrightarrow> i = j \<and> a = b \<and> S = T"
 unfolding node_def by simp
 
-lemma node_gt0: "i < node i x A"
+lemma node_gt0: "i < node i a S"
 unfolding node_def less_Suc_eq_le
 by (rule le_prod2nat_1)
 
-lemma node_gt1: "x < node i x A"
+lemma node_gt1: "a < node i a S"
 unfolding node_def less_Suc_eq_le
 by (rule order_trans [OF le_prod2nat_1 le_prod2nat_2])
 
 lemma nat_less_power2: "n < 2^n"
 by (induct n) simp_all
 
-lemma node_gt2: "\<lbrakk>finite A; y \<in> A\<rbrakk> \<Longrightarrow> y < node i x A"
+lemma node_gt2: "\<lbrakk>finite S; b \<in> S\<rbrakk> \<Longrightarrow> b < node i a S"
 unfolding node_def less_Suc_eq_le set2nat_def
 apply (rule order_trans [OF _ le_prod2nat_2])
 apply (rule order_trans [OF _ le_prod2nat_2])
-apply (rule order_trans [where y="setsum (op ^ 2) {y}"])
+apply (rule order_trans [where y="setsum (op ^ 2) {b}"])
 apply (simp add: nat_less_power2 [THEN order_less_imp_le])
 apply (erule setsum_mono2, simp, simp)
 done
@@ -52,7 +52,7 @@ by (erule subst, erule subst, simp)
 
 lemma node_cases:
   assumes 1: "x = 0 \<Longrightarrow> P"
-  assumes 2: "\<And>i y A. \<lbrakk>finite A; x = node i y A\<rbrakk> \<Longrightarrow> P"
+  assumes 2: "\<And>i a S. \<lbrakk>finite S; x = node i a S\<rbrakk> \<Longrightarrow> P"
   shows "P"
  apply (cases x)
   apply (erule 1)
@@ -65,7 +65,7 @@ done
 
 lemma node_induct:
   assumes 1: "P 0"
-  assumes 2: "\<And>i x A. \<lbrakk>P x; finite A; \<forall>y\<in>A. P y\<rbrakk> \<Longrightarrow> P (node i x A)"
+  assumes 2: "\<And>i a S. \<lbrakk>P a; finite S; \<forall>b\<in>S. P b\<rbrakk> \<Longrightarrow> P (node i a S)"
   shows "P x"
  apply (induct x rule: nat_less_induct)
  apply (case_tac n rule: node_cases)
@@ -78,13 +78,13 @@ subsection {* Basis ordering *}
 inductive
   ubasis_le :: "nat \<Rightarrow> nat \<Rightarrow> bool"
 where
-  ubasis_le_refl: "ubasis_le x x"
+  ubasis_le_refl: "ubasis_le a a"
 | ubasis_le_trans:
-    "\<lbrakk>ubasis_le x y; ubasis_le y z\<rbrakk> \<Longrightarrow> ubasis_le x z"
+    "\<lbrakk>ubasis_le a b; ubasis_le b c\<rbrakk> \<Longrightarrow> ubasis_le a c"
 | ubasis_le_lower:
-    "finite A \<Longrightarrow> ubasis_le x (node i x A)"
+    "finite S \<Longrightarrow> ubasis_le a (node i a S)"
 | ubasis_le_upper:
-    "\<lbrakk>finite A; y \<in> A; ubasis_le x y\<rbrakk> \<Longrightarrow> ubasis_le (node i x A) y"
+    "\<lbrakk>finite S; b \<in> S; ubasis_le a b\<rbrakk> \<Longrightarrow> ubasis_le (node i a S) b"
 
 lemma ubasis_le_minimal: "ubasis_le 0 x"
 apply (induct x rule: node_induct)
@@ -99,8 +99,8 @@ function
   ubasis_until :: "(ubasis \<Rightarrow> bool) \<Rightarrow> ubasis \<Rightarrow> ubasis"
 where
   "ubasis_until P 0 = 0"
-| "finite A \<Longrightarrow> ubasis_until P (node i x A) =
-    (if P (node i x A) then node i x A else ubasis_until P x)"
+| "finite S \<Longrightarrow> ubasis_until P (node i a S) =
+    (if P (node i a S) then node i a S else ubasis_until P a)"
     apply clarify
     apply (rule_tac x=b in node_cases)
      apply simp
@@ -157,8 +157,8 @@ apply (erule ubasis_le_lower)
 done
 
 lemma ubasis_until_mono:
-  assumes "\<And>i x A y. \<lbrakk>finite A; P (node i x A); y \<in> A; ubasis_le x y\<rbrakk> \<Longrightarrow> P y"
-  shows "ubasis_le x y \<Longrightarrow> ubasis_le (ubasis_until P x) (ubasis_until P y)"
+  assumes "\<And>i a S b. \<lbrakk>finite S; P (node i a S); b \<in> S; ubasis_le a b\<rbrakk> \<Longrightarrow> P b"
+  shows "ubasis_le a b \<Longrightarrow> ubasis_le (ubasis_until P a) (ubasis_until P b)"
  apply (induct set: ubasis_le)
     apply (rule ubasis_le_refl)
    apply (erule (1) ubasis_le_trans)
@@ -510,6 +510,12 @@ unfolding rank_def by (rule Least_le)
 lemma rank_le_iff: "rank x \<le> n \<longleftrightarrow> cb_take n x = x"
 by (rule iffI [OF rank_leD rank_leI])
 
+lemma rank_compact_bot [simp]: "rank compact_bot = 0"
+using rank_leI [of 0 compact_bot] by simp
+
+lemma rank_eq_0_iff [simp]: "rank x = 0 \<longleftrightarrow> x = compact_bot"
+using rank_le_iff [of x 0] by auto
+
 definition
   rank_le :: "'a compact_basis \<Rightarrow> 'a compact_basis set"
 where
@@ -558,15 +564,15 @@ unfolding rank_lt_def rank_eq_def rank_le_def by auto
 lemma rank_lt_Un_rank_eq: "rank_lt x \<union> rank_eq x = rank_le x"
 unfolding rank_lt_def rank_eq_def rank_le_def by auto
 
-subsubsection {* Reordering of basis elements *}
+subsubsection {* Sequencing basis elements *}
 
 definition
-  reorder :: "'a compact_basis \<Rightarrow> nat"
+  place :: "'a compact_basis \<Rightarrow> nat"
 where
-  "reorder x = card (rank_lt x) + choose_pos (rank_eq x) x"
+  "place x = card (rank_lt x) + choose_pos (rank_eq x) x"
 
-lemma reorder_bounded: "reorder x < card (rank_le x)"
-unfolding reorder_def
+lemma place_bounded: "place x < card (rank_le x)"
+unfolding place_def
  apply (rule ord_less_eq_trans)
   apply (rule add_strict_left_mono)
   apply (rule choose_pos_bounded)
@@ -579,53 +585,77 @@ unfolding reorder_def
  apply (simp add: rank_lt_Un_rank_eq)
 done
 
-lemma reorder_ge: "card (rank_lt x) \<le> reorder x"
-unfolding reorder_def by simp
+lemma place_ge: "card (rank_lt x) \<le> place x"
+unfolding place_def by simp
 
-lemma reorder_rank_mono:
+lemma place_rank_mono:
   fixes x y :: "'a compact_basis"
-  shows "rank x < rank y \<Longrightarrow> reorder x < reorder y"
-apply (rule less_le_trans [OF reorder_bounded])
-apply (rule order_trans [OF _ reorder_ge])
+  shows "rank x < rank y \<Longrightarrow> place x < place y"
+apply (rule less_le_trans [OF place_bounded])
+apply (rule order_trans [OF _ place_ge])
 apply (rule card_mono)
 apply (rule finite_rank_lt)
 apply (simp add: rank_le_def rank_lt_def subset_eq)
 done
 
-lemma reorder_eqD: "reorder x = reorder y \<Longrightarrow> x = y"
+lemma place_eqD: "place x = place y \<Longrightarrow> x = y"
  apply (rule linorder_cases [where x="rank x" and y="rank y"])
-   apply (drule reorder_rank_mono, simp)
-  apply (simp add: reorder_def)
+   apply (drule place_rank_mono, simp)
+  apply (simp add: place_def)
   apply (rule inj_on_choose_pos [where A="rank_eq x", THEN inj_onD])
      apply (rule finite_rank_eq)
     apply (simp cong: rank_lt_cong rank_eq_cong)
    apply (simp add: rank_eq_def)
   apply (simp add: rank_eq_def)
- apply (drule reorder_rank_mono, simp)
+ apply (drule place_rank_mono, simp)
 done
 
-lemma inj_reorder: "inj reorder"
-by (rule inj_onI, erule reorder_eqD)
+lemma inj_place: "inj place"
+by (rule inj_onI, erule place_eqD)
 
 subsubsection {* Embedding and projection on basis elements *}
+
+definition
+  sub :: "'a compact_basis \<Rightarrow> 'a compact_basis"
+where
+  "sub x = (case rank x of 0 \<Rightarrow> compact_bot | Suc k \<Rightarrow> cb_take k x)"
+
+lemma rank_sub_less: "x \<noteq> compact_bot \<Longrightarrow> rank (sub x) < rank x"
+unfolding sub_def
+apply (cases "rank x", simp)
+apply (simp add: less_Suc_eq_le)
+apply (rule rank_leI)
+apply (rule cb_take_idem)
+done
+
+lemma place_sub_less: "x \<noteq> compact_bot \<Longrightarrow> place (sub x) < place x"
+apply (rule place_rank_mono)
+apply (erule rank_sub_less)
+done
+
+lemma sub_below: "sub x \<sqsubseteq> x"
+unfolding sub_def by (cases "rank x", simp_all add: cb_take_less)
+
+lemma rank_less_imp_below_sub: "\<lbrakk>x \<sqsubseteq> y; rank x < rank y\<rbrakk> \<Longrightarrow> x \<sqsubseteq> sub y"
+unfolding sub_def
+apply (cases "rank y", simp)
+apply (simp add: less_Suc_eq_le)
+apply (subgoal_tac "cb_take nat x \<sqsubseteq> cb_take nat y")
+apply (simp add: rank_leD)
+apply (erule cb_take_mono)
+done
 
 function
   basis_emb :: "'a compact_basis \<Rightarrow> ubasis"
 where
   "basis_emb x = (if x = compact_bot then 0 else
-    node
-      (reorder x)
-      (case rank x of 0 \<Rightarrow> 0 | Suc k \<Rightarrow> basis_emb (cb_take k x))
-      (basis_emb ` {y. reorder y < reorder x \<and> x \<sqsubseteq> y}))"
+    node (place x) (basis_emb (sub x))
+      (basis_emb ` {y. place y < place x \<and> x \<sqsubseteq> y}))"
 by auto
 
 termination basis_emb
-apply (relation "measure reorder", simp)
-apply simp
-apply (rule reorder_rank_mono)
-apply (simp add: less_Suc_eq_le)
-apply (rule rank_leI)
-apply (rule cb_take_idem)
+apply (relation "measure place", simp)
+apply (simp add: place_sub_less)
 apply simp
 done
 
@@ -634,101 +664,68 @@ declare basis_emb.simps [simp del]
 lemma basis_emb_compact_bot [simp]: "basis_emb compact_bot = 0"
 by (simp add: basis_emb.simps)
 
-lemma fin1: "finite {y. reorder y < reorder x \<and> x \<sqsubseteq> y}"
+lemma fin1: "finite {y. place y < place x \<and> x \<sqsubseteq> y}"
 apply (subst Collect_conj_eq)
 apply (rule finite_Int)
 apply (rule disjI1)
-apply (subgoal_tac "finite (reorder -` {n. n < reorder x})", simp)
-apply (rule finite_vimageI [OF _ inj_reorder])
+apply (subgoal_tac "finite (place -` {n. n < place x})", simp)
+apply (rule finite_vimageI [OF _ inj_place])
 apply (simp add: lessThan_def [symmetric])
 done
 
-lemma fin2: "finite (basis_emb ` {y. reorder y < reorder x \<and> x \<sqsubseteq> y})"
+lemma fin2: "finite (basis_emb ` {y. place y < place x \<and> x \<sqsubseteq> y})"
 by (rule finite_imageI [OF fin1])
 
-lemma basis_emb_mono [OF refl]:
-  "\<lbrakk>n = max (reorder x) (reorder y); x \<sqsubseteq> y\<rbrakk>
-    \<Longrightarrow> ubasis_le (basis_emb x) (basis_emb y)"
-proof (induct n arbitrary: x y rule: less_induct)
+lemma rank_place_mono:
+  "\<lbrakk>place x < place y; x \<sqsubseteq> y\<rbrakk> \<Longrightarrow> rank x < rank y"
+apply (rule linorder_cases, assumption)
+apply (simp add: place_def cong: rank_lt_cong rank_eq_cong)
+apply (drule choose_pos_lessD)
+apply (rule finite_rank_eq)
+apply (simp add: rank_eq_def)
+apply (simp add: rank_eq_def)
+apply simp
+apply (drule place_rank_mono, simp)
+done
+
+lemma basis_emb_mono:
+  "x \<sqsubseteq> y \<Longrightarrow> ubasis_le (basis_emb x) (basis_emb y)"
+proof (induct n \<equiv> "max (place x) (place y)" arbitrary: x y rule: less_induct)
   case (less n)
-  assume IH:
-    "\<And>(m::nat) (x::'a compact_basis) y.
-      \<lbrakk>m < n; m = max (reorder x) (reorder y); x \<sqsubseteq> y\<rbrakk>
-        \<Longrightarrow> ubasis_le (basis_emb x) (basis_emb y)"
-  assume n: "n = max (reorder x) (reorder y)"
-  assume less: "x \<sqsubseteq> y"
-  show ?case
-  proof (cases)
-    assume "x = compact_bot"
-    thus ?case by (simp add: ubasis_le_minimal)
-  next
-    assume x_neq [simp]: "x \<noteq> compact_bot"
-    with less have y_neq [simp]: "y \<noteq> compact_bot"
-      apply clarify
-      apply (drule antisym_less [OF compact_bot_minimal])
-      apply simp
+  hence IH:
+    "\<And>(a::'a compact_basis) b.
+     \<lbrakk>max (place a) (place b) < max (place x) (place y); a \<sqsubseteq> b\<rbrakk>
+        \<Longrightarrow> ubasis_le (basis_emb a) (basis_emb b)"
+    by simp
+  show ?case proof (rule linorder_cases)
+    assume "place x < place y"
+    then have "rank x < rank y"
+      using `x \<sqsubseteq> y` by (rule rank_place_mono)
+    with `place x < place y` show ?case
+      apply (case_tac "y = compact_bot", simp)
+      apply (simp add: basis_emb.simps [of y])
+      apply (rule ubasis_le_trans [OF _ ubasis_le_lower [OF fin2]])
+      apply (rule IH)
+       apply (simp add: less_max_iff_disj)
+       apply (erule place_sub_less)
+      apply (erule rank_less_imp_below_sub [OF `x \<sqsubseteq> y`])
       done
-    show ?case
-    proof (rule linorder_cases)
-      assume 1: "reorder x < reorder y"
-      show ?case
-      proof (rule linorder_cases)
-        assume "rank x < rank y"
-        with 1 show ?case
-          apply (case_tac "rank y", simp)
-          apply (subst basis_emb.simps [where x=y])
-          apply simp
-          apply (rule ubasis_le_trans [OF _ ubasis_le_lower [OF fin2]])
-          apply (rule IH [OF _ refl, unfolded n])
-           apply (simp add: less_max_iff_disj)
-           apply (rule reorder_rank_mono)
-           apply (simp add: less_Suc_eq_le)
-           apply (rule rank_leI)
-           apply (rule cb_take_idem)
-          apply (simp add: less_Suc_eq_le)
-          apply (subgoal_tac "cb_take nat x \<sqsubseteq> cb_take nat y")
-           apply (simp add: rank_leD)
-          apply (rule cb_take_mono [OF less])
-          done
-      next
-        assume "rank x = rank y"
-        with 1 show ?case
-          apply (simp add: reorder_def)
-          apply (simp cong: rank_lt_cong rank_eq_cong)
-          apply (drule choose_pos_lessD)
-             apply (rule finite_rank_eq)
-            apply (simp add: rank_eq_def)
-           apply (simp add: rank_eq_def)
-          apply (simp add: less)
-          done
-      next
-        assume "rank x > rank y"
-        hence "reorder x > reorder y"
-          by (rule reorder_rank_mono)
-        with 1 show ?case by simp
-      qed
-    next
-      assume "reorder x = reorder y"
-      hence "x = y" by (rule reorder_eqD)
-      thus ?case by (simp add: ubasis_le_refl)
-    next
-      assume "reorder x > reorder y"
-      with less show ?case
-        apply (simp add: basis_emb.simps [where x=x])
-        apply (rule ubasis_le_upper [OF fin2], simp)
-        apply (cases "rank x")
-         apply (simp add: ubasis_le_minimal)
-        apply simp
-        apply (rule IH [OF _ refl, unfolded n])
-         apply (simp add: less_max_iff_disj)
-         apply (rule reorder_rank_mono)
-         apply (simp add: less_Suc_eq_le)
-         apply (rule rank_leI)
-         apply (rule cb_take_idem)
-        apply (erule rev_trans_less)
-        apply (rule cb_take_less)
-       done
-    qed
+  next
+    assume "place x = place y"
+    hence "x = y" by (rule place_eqD)
+    thus ?case by (simp add: ubasis_le_refl)
+  next
+    assume "place x > place y"
+    with `x \<sqsubseteq> y` show ?case
+      apply (case_tac "x = compact_bot", simp add: ubasis_le_minimal)
+      apply (simp add: basis_emb.simps [of x])
+      apply (rule ubasis_le_upper [OF fin2], simp)
+      apply (rule IH)
+       apply (simp add: less_max_iff_disj)
+       apply (erule place_sub_less)
+      apply (erule rev_trans_less)
+      apply (rule sub_below)
+      done
   qed
 qed
 
@@ -740,14 +737,14 @@ lemma inj_basis_emb: "inj basis_emb"
    apply (simp add: basis_emb.simps)
   apply (simp add: basis_emb.simps)
  apply (simp add: basis_emb.simps)
- apply (simp add: fin2 inj_eq [OF inj_reorder])
+ apply (simp add: fin2 inj_eq [OF inj_place])
 done
 
 definition
-  basis_prj :: "nat \<Rightarrow> 'a compact_basis"
+  basis_prj :: "ubasis \<Rightarrow> 'a compact_basis"
 where
   "basis_prj x = inv basis_emb
-    (ubasis_until (\<lambda>x. x \<in> range (basis_emb :: 'a compact_basis \<Rightarrow> nat)) x)"
+    (ubasis_until (\<lambda>x. x \<in> range (basis_emb :: 'a compact_basis \<Rightarrow> ubasis)) x)"
 
 lemma basis_prj_basis_emb: "\<And>x. basis_prj (basis_emb x) = x"
 unfolding basis_prj_def
@@ -758,8 +755,8 @@ unfolding basis_prj_def
 done
 
 lemma basis_prj_node:
-  "\<lbrakk>finite A; node i x A \<notin> range (basis_emb :: 'a compact_basis \<Rightarrow> nat)\<rbrakk>
-    \<Longrightarrow> basis_prj (node i x A) = (basis_prj x :: 'a compact_basis)"
+  "\<lbrakk>finite S; node i a S \<notin> range (basis_emb :: 'a compact_basis \<Rightarrow> nat)\<rbrakk>
+    \<Longrightarrow> basis_prj (node i a S) = (basis_prj a :: 'a compact_basis)"
 unfolding basis_prj_def by simp
 
 lemma basis_prj_0: "basis_prj 0 = compact_bot"
@@ -767,31 +764,40 @@ apply (subst basis_emb_compact_bot [symmetric])
 apply (rule basis_prj_basis_emb)
 done
 
-lemma basis_prj_mono: "ubasis_le x y \<Longrightarrow> basis_prj x \<sqsubseteq> basis_prj y"
- apply (erule ubasis_le.induct)
-    apply (rule refl_less)
-   apply (erule (1) trans_less)
-  apply (case_tac "node i x A \<in> range (basis_emb :: 'a compact_basis \<Rightarrow> nat)")
-   apply (erule rangeE, rename_tac a)
-   apply (case_tac "a = compact_bot", simp)
-   apply (simp add: basis_prj_basis_emb)
-   apply (simp add: basis_emb.simps)
-   apply (clarsimp simp add: fin2)
-   apply (case_tac "rank a", simp)
-    apply (simp add: basis_prj_0)
-   apply (simp add: basis_prj_basis_emb)
-   apply (rule cb_take_less)
-  apply (simp add: basis_prj_node)
- apply (case_tac "node i x A \<in> range (basis_emb :: 'a compact_basis \<Rightarrow> nat)")
-  apply (erule rangeE, rename_tac a)
-  apply (case_tac "a = compact_bot", simp)
-  apply (simp add: basis_prj_basis_emb)
-  apply (simp add: basis_emb.simps)
-  apply (clarsimp simp add: fin2)
-  apply (case_tac "rank a", simp add: basis_prj_basis_emb)
-  apply (simp add: basis_prj_basis_emb)
- apply (simp add: basis_prj_node)
+lemma node_eq_basis_emb_iff:
+  "finite S \<Longrightarrow> node i a S = basis_emb x \<longleftrightarrow>
+    x \<noteq> compact_bot \<and> i = place x \<and> a = basis_emb (sub x) \<and>
+        S = basis_emb ` {y. place y < place x \<and> x \<sqsubseteq> y}"
+apply (cases "x = compact_bot", simp)
+apply (simp add: basis_emb.simps [of x])
+apply (simp add: fin2)
 done
+
+lemma basis_prj_mono: "ubasis_le a b \<Longrightarrow> basis_prj a \<sqsubseteq> basis_prj b"
+proof (induct a b rule: ubasis_le.induct)
+  case (ubasis_le_refl a) show ?case by (rule refl_less)
+next
+  case (ubasis_le_trans a b c) thus ?case by - (rule trans_less)
+next
+  case (ubasis_le_lower S a i) thus ?case
+    apply (case_tac "node i a S \<in> range (basis_emb :: 'a compact_basis \<Rightarrow> nat)")
+     apply (erule rangeE, rename_tac x)
+     apply (simp add: basis_prj_basis_emb)
+     apply (simp add: node_eq_basis_emb_iff)
+     apply (simp add: basis_prj_basis_emb)
+     apply (rule sub_below)
+    apply (simp add: basis_prj_node)
+    done
+next
+  case (ubasis_le_upper S b a i) thus ?case
+    apply (case_tac "node i a S \<in> range (basis_emb :: 'a compact_basis \<Rightarrow> nat)")
+     apply (erule rangeE, rename_tac x)
+     apply (simp add: basis_prj_basis_emb)
+     apply (clarsimp simp add: node_eq_basis_emb_iff)
+     apply (simp add: basis_prj_basis_emb)
+    apply (simp add: basis_prj_node)
+    done
+qed
 
 lemma basis_emb_prj_less: "ubasis_le (basis_emb (basis_prj x)) x"
 unfolding basis_prj_def
@@ -806,7 +812,8 @@ hide (open) const
   node
   choose
   choose_pos
-  reorder
+  place
+  sub
 
 subsubsection {* EP-pair from any bifinite domain into @{typ udom} *}
 
