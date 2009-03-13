@@ -18,6 +18,8 @@ translations
   "n" <= "real n"
   "n" <= "CONST real_of_nat n"
   "n" <= "CONST real_of_int n"
+  "n" <= "CONST of_real n"
+  "n" <= "CONST complex_of_real n"
 
 (* append *)
 syntax (latex output)
