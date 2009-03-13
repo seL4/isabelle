@@ -1,5 +1,4 @@
 (*  Title:      HOL/Tools/function_package/induction_scheme.ML
-    ID:         $Id$
     Author:     Alexander Krauss, TU Muenchen
 
 A method to prove induction schemes.
@@ -8,7 +7,8 @@ A method to prove induction schemes.
 signature INDUCTION_SCHEME =
 sig
   val mk_ind_tac : (int -> tactic) -> (int -> tactic) -> (int -> tactic)
-                   -> Proof.context -> thm list -> tactic  
+                   -> Proof.context -> thm list -> tactic
+  val induct_scheme_tac : Proof.context -> thm list -> tactic
   val setup : theory -> theory
 end
 
@@ -395,8 +395,11 @@ fun mk_ind_tac comp_tac pres_tac term_tac ctxt facts = (ALLGOALS (Method.insert_
   end))
 
 
+fun induct_scheme_tac ctxt =
+  mk_ind_tac (K all_tac) (assume_tac APPEND' Goal.assume_rule_tac ctxt) (K all_tac) ctxt;
+
 val setup = Method.add_methods
-  [("induct_scheme", Method.ctxt_args (Method.RAW_METHOD o (fn ctxt => mk_ind_tac (K all_tac) (assume_tac APPEND' Goal.assume_rule_tac ctxt) (K all_tac) ctxt)),
+  [("induct_scheme", Method.ctxt_args (Method.RAW_METHOD o induct_scheme_tac),
     "proves an induction principle")]
 
 end

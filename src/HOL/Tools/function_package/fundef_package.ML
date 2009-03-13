@@ -7,24 +7,26 @@ Isar commands.
 
 signature FUNDEF_PACKAGE =
 sig
-    val add_fundef :  (binding * string option * mixfix) list
+    val add_fundef :  (binding * typ option * mixfix) list
+                       -> (Attrib.binding * term) list
+                       -> FundefCommon.fundef_config
+                       -> bool list
+                       -> local_theory
+                       -> Proof.state
+    val add_fundef_cmd :  (binding * string option * mixfix) list
                       -> (Attrib.binding * string) list 
                       -> FundefCommon.fundef_config
                       -> bool list
                       -> local_theory
                       -> Proof.state
 
-    val add_fundef_i:  (binding * typ option * mixfix) list
-                       -> (Attrib.binding * term) list
-                       -> FundefCommon.fundef_config
-                       -> bool list
-                       -> local_theory
-                       -> Proof.state
-
-    val setup_termination_proof : string option -> local_theory -> Proof.state
+    val termination_proof : term option -> local_theory -> Proof.state
+    val termination_proof_cmd : string option -> local_theory -> Proof.state
+    val termination : term option -> local_theory -> Proof.state
+    val termination_cmd : string option -> local_theory -> Proof.state
 
     val setup : theory -> theory
-    val get_congs : theory -> thm list
+    val get_congs : Proof.context -> thm list
 end
 
 
@@ -114,6 +116,10 @@ fun gen_add_fundef is_external prep default_constraint fixspec eqns config flags
         |> Proof.refine (Method.primitive_text (fn _ => goalstate)) |> Seq.hd
     end
 
+val add_fundef = gen_add_fundef false Specification.check_spec (TypeInfer.anyT HOLogic.typeS)
+val add_fundef_cmd = gen_add_fundef true Specification.read_spec "_::type"
+
+
 fun total_termination_afterqed data [[totality]] lthy =
     let
       val FundefCtxData { add_simps, case_names, psimps, pinducts, defname, ... } = data
@@ -136,13 +142,14 @@ fun total_termination_afterqed data [[totality]] lthy =
         |> note_theorem ((qualify "induct", [Attrib.internal (K (RuleCases.case_names case_names))]), tinduct) |> snd
     end
 
-
-fun setup_termination_proof term_opt lthy =
+fun gen_termination_proof prep_term raw_term_opt lthy =
     let
+      val term_opt = Option.map (prep_term lthy) raw_term_opt
       val data = the (case term_opt of
-                        SOME t => import_fundef_data (Syntax.read_term lthy t) (Context.Proof lthy)
-                      | NONE => import_last_fundef (Context.Proof lthy))
-          handle Option.Option => error ("Not a function: " ^ quote (the_default "" term_opt))
+                        SOME t => (import_fundef_data t lthy
+                          handle Option.Option =>
+                            error ("Not a function: " ^ quote (Syntax.string_of_term lthy t)))
+                      | NONE => (import_last_fundef lthy handle Option.Option => error "Not a function"))
 
         val FundefCtxData {termination, R, ...} = data
         val domT = domain_type (fastype_of R)
@@ -157,13 +164,18 @@ fun setup_termination_proof term_opt lthy =
         |> Proof.theorem_i NONE (total_termination_afterqed data) [[(goal, [])]]
     end
 
+val termination_proof = gen_termination_proof Syntax.check_term;
+val termination_proof_cmd = gen_termination_proof Syntax.read_term;
+
+fun termination term_opt lthy =
+  lthy
+  |> LocalTheory.set_group (serial_string ())
+  |> termination_proof term_opt;
+
 fun termination_cmd term_opt lthy =
   lthy
   |> LocalTheory.set_group (serial_string ())
-  |> setup_termination_proof term_opt;
-
-val add_fundef = gen_add_fundef true Specification.read_spec "_::type"
-val add_fundef_i = gen_add_fundef false Specification.check_spec (TypeInfer.anyT HOLogic.typeS)
+  |> termination_proof_cmd term_opt;
 
 
 (* Datatype hook to declare datatype congs as "fundef_congs" *)
@@ -180,6 +192,7 @@ val case_cong = fold add_case_cong
 
 val setup_case_cong = DatatypePackage.interpretation case_cong
 
+
 (* setup *)
 
 val setup =
@@ -190,7 +203,7 @@ val setup =
   #> FundefRelation.setup
   #> FundefCommon.TerminationSimps.setup
 
-val get_congs = FundefCtxTree.get_fundef_congs o Context.Theory
+val get_congs = FundefCtxTree.get_fundef_congs
 
 
 (* outer syntax *)
@@ -202,7 +215,7 @@ val _ = OuterKeyword.keyword "otherwise";
 val _ =
   OuterSyntax.local_theory_to_proof "function" "define general recursive functions" K.thy_goal
   (fundef_parser default_config
-     >> (fn ((config, fixes), (flags, statements)) => add_fundef fixes statements config flags));
+     >> (fn ((config, fixes), (flags, statements)) => add_fundef_cmd fixes statements config flags));
 
 val _ =
   OuterSyntax.local_theory_to_proof "termination" "prove termination of a recursive function" K.thy_goal
