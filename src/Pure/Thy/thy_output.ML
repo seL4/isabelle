@@ -18,8 +18,7 @@ sig
   val print_antiquotations: unit -> unit
   val boolean: string -> bool
   val integer: string -> int
-  val antiquotation: string ->
-    (Context.generic * Args.T list -> 'a * (Context.generic * Args.T list)) ->
+  val antiquotation: string -> 'a context_parser ->
     ({state: Toplevel.state, source: Args.src, context: Proof.context} -> 'a -> string) -> unit
   datatype markup = Markup | MarkupEnv | Verbatim
   val modes: string list ref

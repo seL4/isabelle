@@ -24,14 +24,13 @@ sig
     (('c * 'att list) * ('d * 'att list) list) list
   val crude_closure: Proof.context -> src -> src
   val add_attributes: (bstring * (src -> attribute) * string) list -> theory -> theory
-  val syntax: (Context.generic * Args.T list ->
-    attribute * (Context.generic * Args.T list)) -> src -> attribute
+  val syntax: attribute context_parser -> src -> attribute
   val no_args: attribute -> src -> attribute
   val add_del_args: attribute -> attribute -> src -> attribute
-  val thm_sel: Args.T list -> Facts.interval list * Args.T list
-  val thm: Context.generic * Args.T list -> thm * (Context.generic * Args.T list)
-  val thms: Context.generic * Args.T list -> thm list * (Context.generic * Args.T list)
-  val multi_thm: Context.generic * Args.T list -> thm list * (Context.generic * Args.T list)
+  val thm_sel: Facts.interval list parser
+  val thm: thm context_parser
+  val thms: thm list context_parser
+  val multi_thm: thm list context_parser
   val print_configs: Proof.context -> unit
   val internal: (morphism -> attribute) -> src
   val register_config: Config.value Config.T -> theory -> theory

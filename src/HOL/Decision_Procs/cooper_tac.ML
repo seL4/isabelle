@@ -121,11 +121,10 @@ fun linz_args meth =
    Method.simple_args 
   (Scan.optional (Args.$$$ "(" |-- Scan.repeat1 parse_flag --| Args.$$$ ")") [] >>
     curry (Library.foldl op |>) true)
-    (fn q => fn ctxt => meth ctxt q 1)
+    (fn q => fn ctxt => meth ctxt q)
   end;
 
-fun linz_method ctxt q i = Method.METHOD (fn facts =>
-  Method.insert_tac facts 1 THEN linz_tac ctxt q i);
+fun linz_method ctxt q = SIMPLE_METHOD' (linz_tac ctxt q);
 
 val setup =
   Method.add_method ("cooper",

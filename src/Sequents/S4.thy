@@ -45,7 +45,7 @@ structure S4_Prover = Modal_ProverFun
 *}
 
 method_setup S4_solve =
-  {* Method.no_args (Method.SIMPLE_METHOD (S4_Prover.solve_tac 2)) *} "S4 solver"
+  {* Method.no_args (SIMPLE_METHOD (S4_Prover.solve_tac 2)) *} "S4 solver"
 
 
 (* Theorems of system T from Hughes and Cresswell and Hailpern, LNCS 129 *)

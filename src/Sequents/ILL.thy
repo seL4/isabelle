@@ -146,7 +146,7 @@ end
 *}
 
 method_setup best_lazy =
-  {* Method.no_args (Method.SIMPLE_METHOD' (best_tac lazy_cs)) *}
+  {* Method.no_args (SIMPLE_METHOD' (best_tac lazy_cs)) *}
   "lazy classical reasoning"
 
 lemma aux_impl: "$F, $G |- A ==> $F, !(A -o B), $G |- B"
@@ -282,10 +282,10 @@ val power_cs = safe_cs add_unsafes [thm "impr_contr_der"];
 
 
 method_setup best_safe =
-  {* Method.no_args (Method.SIMPLE_METHOD' (best_tac safe_cs)) *} ""
+  {* Method.no_args (SIMPLE_METHOD' (best_tac safe_cs)) *} ""
 
 method_setup best_power =
-  {* Method.no_args (Method.SIMPLE_METHOD' (best_tac power_cs)) *} ""
+  {* Method.no_args (SIMPLE_METHOD' (best_tac power_cs)) *} ""
 
 
 (* Some examples from Troelstra and van Dalen *)

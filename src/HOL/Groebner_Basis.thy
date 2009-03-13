@@ -253,7 +253,7 @@ use "Tools/Groebner_Basis/normalizer.ML"
 
 
 method_setup sring_norm = {*
-  Method.ctxt_args (fn ctxt => Method.SIMPLE_METHOD' (Normalizer.semiring_normalize_tac ctxt))
+  Method.ctxt_args (SIMPLE_METHOD' o Normalizer.semiring_normalize_tac)
 *} "semiring normalizer"
 
 
@@ -431,7 +431,7 @@ fn src => Method.syntax
     ((Scan.optional (keyword addN |-- thms) []) -- 
     (Scan.optional (keyword delN |-- thms) [])) src 
  #> (fn ((add_ths, del_ths), ctxt) => 
-       Method.SIMPLE_METHOD' (Groebner.algebra_tac add_ths del_ths ctxt))
+       SIMPLE_METHOD' (Groebner.algebra_tac add_ths del_ths ctxt))
 end
 *} "solve polynomial equations over (semi)rings and ideal membership problems using Groebner bases"
 declare dvd_def[algebra]

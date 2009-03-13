@@ -978,7 +978,7 @@ method_setup net = {*
   val ss1 = HOL_basic_ss addsimps [@{thm expand_fun_eq} RS sym]
   val ss2 = HOL_basic_ss addsimps [@{thm mknet_inverse'}]
   fun tac ths = ObjectLogic.full_atomize_tac THEN' Simplifier.simp_tac (ss1 addsimps ths) THEN' Simplifier.asm_full_simp_tac ss2
-  in Method.thms_args (Method.SIMPLE_METHOD' o tac) end
+  in Method.thms_args (SIMPLE_METHOD' o tac) end
 
 *} "Reduces goals about net"
 

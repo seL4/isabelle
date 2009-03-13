@@ -425,7 +425,7 @@ end
 
 method_setup analz_freshK = {*
     Method.ctxt_args (fn ctxt =>
-     (Method.SIMPLE_METHOD
+     (SIMPLE_METHOD
       (EVERY [REPEAT_FIRST (resolve_tac [allI, ballI, impI]),
           REPEAT_FIRST (rtac @{thm analz_image_freshK_lemma}),
           ALLGOALS (asm_simp_tac (Simplifier.context ctxt Public.analz_image_freshK_ss))]))) *}
@@ -435,13 +435,11 @@ method_setup analz_freshK = {*
 subsection{*Specialized Methods for Possibility Theorems*}
 
 method_setup possibility = {*
-    Method.ctxt_args (fn ctxt =>
-        Method.SIMPLE_METHOD (Public.possibility_tac ctxt)) *}
+    Method.ctxt_args (SIMPLE_METHOD o Public.possibility_tac) *}
     "for proving possibility theorems"
 
 method_setup basic_possibility = {*
-    Method.ctxt_args (fn ctxt =>
-        Method.SIMPLE_METHOD (Public.basic_possibility_tac ctxt)) *}
+    Method.ctxt_args (SIMPLE_METHOD o Public.basic_possibility_tac) *}
     "for proving possibility theorems"
 
 end

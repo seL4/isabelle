@@ -268,7 +268,7 @@ fun prove_witness ctxt t tac =
 local
 
 val refine_witness =
-  Proof.refine (Method.Basic (K (Method.RAW_METHOD
+  Proof.refine (Method.Basic (K (RAW_METHOD
     (K (ALLGOALS
       (CONJUNCTS (ALLGOALS
         (CONJUNCTS (TRYALL (Tactic.rtac Drule.protectI)))))))), Position.none));

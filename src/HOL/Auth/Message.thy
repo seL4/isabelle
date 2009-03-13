@@ -941,18 +941,15 @@ done
 lemmas Fake_parts_sing_imp_Un = Fake_parts_sing [THEN [2] rev_subsetD]
 
 method_setup spy_analz = {*
-    Method.ctxt_args (fn ctxt =>
-        Method.SIMPLE_METHOD (Message.gen_spy_analz_tac (local_clasimpset_of ctxt) 1)) *}
+    Method.ctxt_args (SIMPLE_METHOD' o Message.gen_spy_analz_tac o local_clasimpset_of) *}
     "for proving the Fake case when analz is involved"
 
 method_setup atomic_spy_analz = {*
-    Method.ctxt_args (fn ctxt =>
-        Method.SIMPLE_METHOD (Message.atomic_spy_analz_tac (local_clasimpset_of ctxt) 1)) *}
+    Method.ctxt_args (SIMPLE_METHOD' o Message.atomic_spy_analz_tac o local_clasimpset_of) *}
     "for debugging spy_analz"
 
 method_setup Fake_insert_simp = {*
-    Method.ctxt_args (fn ctxt =>
-        Method.SIMPLE_METHOD (Message.Fake_insert_simp_tac (local_simpset_of ctxt) 1)) *}
+    Method.ctxt_args (SIMPLE_METHOD' o Message.Fake_insert_simp_tac o local_simpset_of) *}
     "for debugging spy_analz"
 
 end

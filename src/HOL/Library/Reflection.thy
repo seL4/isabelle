@@ -19,7 +19,7 @@ use "reflection.ML"
 method_setup reify = {* fn src =>
   Method.syntax (Attrib.thms --
     Scan.option (Scan.lift (Args.$$$ "(") |-- Args.term --| Scan.lift (Args.$$$ ")") )) src #>
-  (fn ((eqs, to), ctxt) => Method.SIMPLE_METHOD' (Reflection.genreify_tac ctxt (eqs @ (fst (Reify_Data.get ctxt))) to))
+  (fn ((eqs, to), ctxt) => SIMPLE_METHOD' (Reflection.genreify_tac ctxt (eqs @ (fst (Reify_Data.get ctxt))) to))
 *} "partial automatic reification"
 
 method_setup reflection = {* 
@@ -38,7 +38,7 @@ in fn src =>
         val (ceqs,cths) = Reify_Data.get ctxt 
         val corr_thms = ths@cths
         val raw_eqs = eqs@ceqs
-      in Method.SIMPLE_METHOD' (Reflection.reflection_tac ctxt corr_thms raw_eqs to) 
+      in SIMPLE_METHOD' (Reflection.reflection_tac ctxt corr_thms raw_eqs to) 
      end) end
 *} "reflection method"
 

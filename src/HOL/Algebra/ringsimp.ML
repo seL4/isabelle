@@ -72,8 +72,8 @@ val attribute = Attrib.syntax
 (** Setup **)
 
 val setup =
-  Method.add_methods [("algebra", Method.ctxt_args (Method.SIMPLE_METHOD' o algebra_tac),
-    "normalisation of algebraic structure")] #>
+  Method.setup @{binding algebra} (Scan.succeed (SIMPLE_METHOD' o algebra_tac))
+    "normalisation of algebraic structure" #>
   Attrib.add_attributes [("algebra", attribute, "theorems controlling algebra method")];
 
 end;

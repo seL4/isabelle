@@ -101,7 +101,7 @@ fun comm_ring_tac ctxt = SUBGOAL (fn (g, i) =>
   end);
 
 val comm_ring_meth =
-  Method.ctxt_args (Method.SIMPLE_METHOD' o comm_ring_tac);
+  Method.ctxt_args (SIMPLE_METHOD' o comm_ring_tac);
 
 val setup =
   Method.add_method ("comm_ring", comm_ring_meth,

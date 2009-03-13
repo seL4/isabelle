@@ -284,9 +284,10 @@ fun stac th =
 (* theory setup *)
 
 val hypsubst_setup =
-  Method.add_methods
-    [("hypsubst", Method.no_args (Method.SIMPLE_METHOD' (CHANGED_PROP o hyp_subst_tac)),
-        "substitution using an assumption (improper)"),
-     ("simplesubst", Method.thm_args (Method.SIMPLE_METHOD' o stac), "simple substitution")];
+  Method.setup @{binding hypsubst}
+    (Scan.succeed (K (SIMPLE_METHOD' (CHANGED_PROP o hyp_subst_tac))))
+    "substitution using an assumption (improper)" #>
+  Method.setup @{binding simplesubst} (Attrib.thm >> (fn th => K (SIMPLE_METHOD' (stac th))))
+    "simple substitution";
 
 end;

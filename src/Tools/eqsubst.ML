@@ -109,8 +109,8 @@ sig
        searchinfo -> Term.term -> match Seq.seq Seq.seq
 
     (* syntax tools *)
-    val ith_syntax : Args.T list -> int list * Args.T list
-    val options_syntax : Args.T list -> bool * Args.T list
+    val ith_syntax : int list parser
+    val options_syntax : bool parser
 
     (* Isar level hooks *)
     val eqsubst_asm_meth : Proof.context -> int list -> Thm.thm list -> Proof.method
@@ -434,7 +434,7 @@ fun eqsubst_tac ctxt occL thms i th =
 (* inthms are the given arguments in Isar, and treated as eqstep with
    the first one, then the second etc *)
 fun eqsubst_meth ctxt occL inthms =
-    Method.SIMPLE_METHOD' (eqsubst_tac ctxt occL inthms);
+    SIMPLE_METHOD' (eqsubst_tac ctxt occL inthms);
 
 (* apply a substitution inside assumption j, keeps asm in the same place *)
 fun apply_subst_in_asm i th rule ((cfvs, j, ngoalprems, pth),m) =
@@ -548,7 +548,7 @@ fun eqsubst_asm_tac ctxt occL thms i th =
 (* inthms are the given arguments in Isar, and treated as eqstep with
    the first one, then the second etc *)
 fun eqsubst_asm_meth ctxt occL inthms =
-    Method.SIMPLE_METHOD' (eqsubst_asm_tac ctxt occL inthms);
+    SIMPLE_METHOD' (eqsubst_asm_tac ctxt occL inthms);
 
 (* syntax for options, given "(asm)" will give back true, without
    gives back false *)

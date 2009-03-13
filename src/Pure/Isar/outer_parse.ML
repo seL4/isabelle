@@ -8,6 +8,7 @@ signature OUTER_PARSE =
 sig
   type token = OuterLex.token
   type 'a parser = token list -> 'a * token list
+  type 'a context_parser = Context.generic * token list -> 'a * (Context.generic * token list)
   val group: string -> (token list -> 'a) -> token list -> 'a
   val !!! : (token list -> 'a) -> token list -> 'a
   val !!!! : (token list -> 'a) -> token list -> 'a
@@ -50,14 +51,10 @@ sig
   val enum1: string -> 'a parser -> 'a list parser
   val and_list: 'a parser -> 'a list parser
   val and_list1: 'a parser -> 'a list parser
-  val enum': string -> ('a * token list -> 'b * ('a * token list)) ->
-    'a * token list -> 'b list * ('a * token list)
-  val enum1': string -> ('a * token list -> 'b * ('a * token list)) ->
-    'a * token list -> 'b list * ('a * token list)
-  val and_list': ('a * token list -> 'b * ('a * token list)) ->
-    'a * token list -> 'b list * ('a * token list)
-  val and_list1': ('a * token list -> 'b * ('a * token list)) ->
-    'a * token list -> 'b list * ('a * token list)
+  val enum': string -> 'a context_parser -> 'a list context_parser
+  val enum1': string -> 'a context_parser -> 'a list context_parser
+  val and_list': 'a context_parser -> 'a list context_parser
+  val and_list1': 'a context_parser -> 'a list context_parser
   val list: 'a parser -> 'a list parser
   val list1: 'a parser -> 'a list parser
   val name: bstring parser
@@ -106,6 +103,7 @@ structure T = OuterLex;
 type token = T.token;
 
 type 'a parser = token list -> 'a * token list;
+type 'a context_parser = Context.generic * token list -> 'a * (Context.generic * token list);
 
 
 (** error handling **)
@@ -339,3 +337,7 @@ val target = ($$$ "(" -- $$$ "in") |-- !!! (xname --| $$$ ")");
 val opt_target = Scan.option target;
 
 end;
+
+type 'a parser = 'a OuterParse.parser;
+type 'a context_parser = 'a OuterParse.context_parser;
+

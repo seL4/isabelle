@@ -100,7 +100,7 @@ fun linr_tac ctxt q i =
 
 fun linr_meth src =
   Method.syntax (Args.mode "no_quantify") src
-  #> (fn (q, ctxt) => Method.SIMPLE_METHOD' (linr_tac ctxt (not q)));
+  #> (fn (q, ctxt) => SIMPLE_METHOD' (linr_tac ctxt (not q)));
 
 val setup =
   Method.add_method ("rferrack", linr_meth,

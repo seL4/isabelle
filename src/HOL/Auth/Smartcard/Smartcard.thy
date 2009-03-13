@@ -408,7 +408,7 @@ by auto
 
 method_setup analz_freshK = {*
     Method.ctxt_args (fn ctxt =>
-     (Method.SIMPLE_METHOD
+     (SIMPLE_METHOD
       (EVERY [REPEAT_FIRST (resolve_tac [allI, ballI, impI]),
           REPEAT_FIRST (rtac @{thm analz_image_freshK_lemma}),
           ALLGOALS (asm_simp_tac (Simplifier.context ctxt Smartcard.analz_image_freshK_ss))]))) *}
@@ -416,12 +416,12 @@ method_setup analz_freshK = {*
 
 method_setup possibility = {*
     Method.ctxt_args (fn ctxt =>
-        Method.SIMPLE_METHOD (Smartcard.possibility_tac ctxt)) *}
+        SIMPLE_METHOD (Smartcard.possibility_tac ctxt)) *}
     "for proving possibility theorems"
 
 method_setup basic_possibility = {*
     Method.ctxt_args (fn ctxt =>
-        Method.SIMPLE_METHOD (Smartcard.basic_possibility_tac ctxt)) *}
+        SIMPLE_METHOD (Smartcard.basic_possibility_tac ctxt)) *}
     "for proving possibility theorems"
 
 lemma knows_subset_knows_Cons: "knows A evs \<subseteq> knows A (e # evs)"

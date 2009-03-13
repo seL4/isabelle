@@ -460,7 +460,7 @@ in
     (Scan.optional (keyword addN |-- thms) []) -- 
     (Scan.optional (keyword delN |-- thms) [])) src 
   #> (fn (((elim, add_ths), del_ths),ctxt) => 
-         Method.SIMPLE_METHOD' (Presburger.cooper_tac elim add_ths del_ths ctxt))
+         SIMPLE_METHOD' (Presburger.cooper_tac elim add_ths del_ths ctxt))
 end
 *} "Cooper's algorithm for Presburger arithmetic"
 

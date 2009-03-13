@@ -86,7 +86,7 @@ val modifiers =
 
 val method =
   Method.bang_sectioned_args' modifiers (Scan.lift (Scan.option OuterParse.nat))
-    (fn n => fn prems => fn ctxt => Method.METHOD (fn facts =>
+    (fn n => fn prems => fn ctxt => METHOD (fn facts =>
       HEADGOAL (Method.insert_tac (prems @ facts) THEN'
       ObjectLogic.atomize_prems_tac THEN' prover_tac ctxt n)));
 

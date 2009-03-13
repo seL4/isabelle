@@ -735,23 +735,22 @@ val taking = Scan.optional (Scan.lift (Args.$$$ takingN -- Args.colon) |--
 
 in
 
-fun cases_meth src =
-  Method.syntax (P.and_list' (Scan.repeat (unless_more_args inst)) -- Scan.option cases_rule) src
-  #> (fn ((insts, opt_rule), ctxt) =>
-    Method.METHOD_CASES (fn facts =>
-      Seq.DETERM (HEADGOAL (cases_tac ctxt insts opt_rule facts))));
+val cases_meth =
+  P.and_list' (Scan.repeat (unless_more_args inst)) -- Scan.option cases_rule >>
+  (fn (insts, opt_rule) => fn ctxt =>
+    METHOD_CASES (fn facts => Seq.DETERM (HEADGOAL (cases_tac ctxt insts opt_rule facts))));
 
-fun induct_meth src =
-  Method.syntax (P.and_list' (Scan.repeat (unless_more_args def_inst)) --
-    (arbitrary -- taking -- Scan.option induct_rule)) src
-  #> (fn ((insts, ((arbitrary, taking), opt_rule)), ctxt) =>
-    Method.RAW_METHOD_CASES (fn facts =>
+val induct_meth =
+  P.and_list' (Scan.repeat (unless_more_args def_inst)) --
+    (arbitrary -- taking -- Scan.option induct_rule) >>
+  (fn (insts, ((arbitrary, taking), opt_rule)) => fn ctxt =>
+    RAW_METHOD_CASES (fn facts =>
       Seq.DETERM (HEADGOAL (induct_tac ctxt insts arbitrary taking opt_rule facts))));
 
-fun coinduct_meth src =
-  Method.syntax (Scan.repeat (unless_more_args inst) -- taking -- Scan.option coinduct_rule) src
-  #> (fn (((insts, taking), opt_rule), ctxt) =>
-    Method.RAW_METHOD_CASES (fn facts =>
+val coinduct_meth =
+  Scan.repeat (unless_more_args inst) -- taking -- Scan.option coinduct_rule >>
+  (fn ((insts, taking), opt_rule) => fn ctxt =>
+    RAW_METHOD_CASES (fn facts =>
       Seq.DETERM (HEADGOAL (coinduct_tac ctxt insts taking opt_rule facts))));
 
 end;
@@ -762,9 +761,8 @@ end;
 
 val setup =
   attrib_setup #>
-  Method.add_methods
-    [(casesN, cases_meth, "case analysis on types or predicates/sets"),
-     (inductN, induct_meth, "induction on types or predicates/sets"),
-     (coinductN, coinduct_meth, "coinduction on types or predicates/sets")];
+  Method.setup @{binding cases} cases_meth "case analysis on types or predicates/sets" #>
+  Method.setup @{binding induct} induct_meth "induction on types or predicates/sets" #>
+  Method.setup @{binding coinduct} coinduct_meth "coinduction on types or predicates/sets";
 
 end;

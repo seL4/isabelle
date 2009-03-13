@@ -9,7 +9,6 @@ beginning; for interactive processing it may change dynamically.
 
 signature OUTER_SYNTAX =
 sig
-  type 'a parser = 'a OuterParse.parser
   val command: string -> string -> OuterKeyword.T ->
     (Toplevel.transition -> Toplevel.transition) parser -> unit
   val markup_command: ThyOutput.markup -> string -> string -> OuterKeyword.T ->

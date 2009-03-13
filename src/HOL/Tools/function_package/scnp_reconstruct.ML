@@ -10,7 +10,7 @@ sig
 
   val sizechange_tac : Proof.context -> tactic -> tactic
 
-  val decomp_scnp : ScnpSolve.label list -> Proof.context -> method
+  val decomp_scnp : ScnpSolve.label list -> Proof.context -> Proof.method
 
   val setup : theory -> theory
 
@@ -408,7 +408,7 @@ fun decomp_scnp orders ctxt =
     val extra_simps = FundefCommon.TerminationSimps.get ctxt
     val autom_tac = auto_tac (local_clasimpset_of ctxt addsimps2 extra_simps)
   in
-    Method.SIMPLE_METHOD
+    SIMPLE_METHOD
       (gen_sizechange_tac orders autom_tac ctxt (print_error ctxt))
   end
 

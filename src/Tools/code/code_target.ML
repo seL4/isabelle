@@ -26,7 +26,7 @@ sig
     -> (Path.T option -> 'a -> unit)
     -> ('a -> string * string option list)
     -> 'a -> serialization
-  val serialize: theory -> string -> string option -> Args.T list
+  val serialize: theory -> string -> string option -> OuterLex.token list
     -> Code_Thingol.naming -> Code_Thingol.program -> string list -> serialization
   val serialize_custom: theory -> string * (serializer * literals)
     -> Code_Thingol.naming -> Code_Thingol.program -> string list -> string * string option list
@@ -106,7 +106,7 @@ fun merge_name_syntax_table (NameSyntaxTable { class = class1, instance = instan
 
 type serializer =
   string option                         (*module name*)
-  -> Args.T list                        (*arguments*)
+  -> OuterLex.token list                (*arguments*)
   -> (string -> string)                 (*labelled_name*)
   -> string list                        (*reserved symbols*)
   -> (string * Pretty.T) list           (*includes*)

@@ -455,7 +455,7 @@ use "~~/src/HOL/Hoare/hoare_tac.ML"
 
 method_setup hoare = {*
   Method.ctxt_args (fn ctxt =>
-    (Method.SIMPLE_METHOD'
+    (SIMPLE_METHOD'
        (hoare_tac ctxt (simp_tac (HOL_basic_ss addsimps [@{thm "Record.K_record_comp"}] ))))) *}
   "verification condition generator for Hoare logic"
 

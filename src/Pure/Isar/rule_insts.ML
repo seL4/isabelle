@@ -386,61 +386,48 @@ fun subgoals_tac ctxt As = EVERY' (map (subgoal_tac ctxt) As);
 
 local
 
-fun gen_inst _ tac _ (quant, ([], thms)) =
-      Method.METHOD (fn facts => quant (Method.insert_tac facts THEN' tac thms))
-  | gen_inst inst_tac _ ctxt (quant, (insts, [thm])) =
-      Method.METHOD (fn facts =>
-        quant (Method.insert_tac facts THEN' inst_tac ctxt insts thm))
-  | gen_inst _ _ _ _ = error "Cannot have instantiations with multiple rules";
+fun inst_meth inst_tac tac =
+  Args.goal_spec --
+  Scan.optional (Scan.lift
+    (P.and_list1 (Args.var -- (Args.$$$ "=" |-- P.!!! Args.name_source)) --| Args.$$$ "in")) [] --
+  Attrib.thms >>
+  (fn ((quant, insts), thms) => fn ctxt => METHOD (fn facts =>
+    if null insts then quant (Method.insert_tac facts THEN' tac thms)
+    else
+      (case thms of
+        [thm] => quant (Method.insert_tac facts THEN' inst_tac ctxt insts thm)
+      | _ => error "Cannot have instantiations with multiple rules")));
 
 in
 
-val res_inst_meth = gen_inst res_inst_tac Tactic.resolve_tac;
-val eres_inst_meth = gen_inst eres_inst_tac Tactic.eresolve_tac;
-val cut_inst_meth = gen_inst cut_inst_tac Tactic.cut_rules_tac;
-val dres_inst_meth = gen_inst dres_inst_tac Tactic.dresolve_tac;
-val forw_inst_meth = gen_inst forw_inst_tac Tactic.forward_tac;
+val res_inst_meth = inst_meth res_inst_tac Tactic.resolve_tac;
+val eres_inst_meth = inst_meth eres_inst_tac Tactic.eresolve_tac;
+val cut_inst_meth = inst_meth cut_inst_tac Tactic.cut_rules_tac;
+val dres_inst_meth = inst_meth dres_inst_tac Tactic.dresolve_tac;
+val forw_inst_meth = inst_meth forw_inst_tac Tactic.forward_tac;
 
 end;
-
-
-(* method syntax *)
-
-val insts =
-  Scan.optional (Scan.lift
-    (P.and_list1 (Args.name -- (Args.$$$ "=" |-- P.!!! Args.name_source)) --| Args.$$$ "in")) []
-    -- Attrib.thms;
-
-fun inst_args f src ctxt =
-  f ctxt (fst (Method.syntax (Args.goal_spec HEADGOAL -- insts) src ctxt));
-
-val insts_var =
-  Scan.optional (Scan.lift
-    (P.and_list1 (Args.var -- (Args.$$$ "=" |-- P.!!! Args.name_source)) --| Args.$$$ "in")) []
-    -- Attrib.thms;
-
-fun inst_args_var f src ctxt =
-  f ctxt (fst (Method.syntax (Args.goal_spec HEADGOAL -- insts_var) src ctxt));
 
 
 (* setup *)
 
 val _ = Context.>> (Context.map_theory
-  (Method.add_methods
-   [("rule_tac", inst_args_var res_inst_meth,
-      "apply rule (dynamic instantiation)"),
-    ("erule_tac", inst_args_var eres_inst_meth,
-      "apply rule in elimination manner (dynamic instantiation)"),
-    ("drule_tac", inst_args_var dres_inst_meth,
-      "apply rule in destruct manner (dynamic instantiation)"),
-    ("frule_tac", inst_args_var forw_inst_meth,
-      "apply rule in forward manner (dynamic instantiation)"),
-    ("cut_tac", inst_args_var cut_inst_meth,
-      "cut rule (dynamic instantiation)"),
-    ("subgoal_tac", Method.goal_args_ctxt (Scan.repeat1 Args.name_source) subgoals_tac,
-      "insert subgoal (dynamic instantiation)"),
-    ("thin_tac", Method.goal_args_ctxt Args.name_source thin_tac,
-      "remove premise (dynamic instantiation)")]));
+ (Method.setup (Binding.name "rule_tac") res_inst_meth "apply rule (dynamic instantiation)" #>
+  Method.setup (Binding.name "erule_tac") eres_inst_meth
+    "apply rule in elimination manner (dynamic instantiation)" #>
+  Method.setup (Binding.name "drule_tac") dres_inst_meth
+    "apply rule in destruct manner (dynamic instantiation)" #>
+  Method.setup (Binding.name "frule_tac") forw_inst_meth
+    "apply rule in forward manner (dynamic instantiation)" #>
+  Method.setup (Binding.name "cut_tac") cut_inst_meth "cut rule (dynamic instantiation)" #>
+  Method.setup (Binding.name "subgoal_tac")
+    (Args.goal_spec -- Scan.lift (Scan.repeat1 Args.name_source) >>
+      (fn (quant, props) => fn ctxt => SIMPLE_METHOD'' quant (subgoals_tac ctxt props)))
+    "insert subgoal (dynamic instantiation)" #>
+  Method.setup (Binding.name "thin_tac")
+    (Args.goal_spec -- Scan.lift Args.name_source >>
+      (fn (quant, prop) => fn ctxt => SIMPLE_METHOD'' quant (thin_tac ctxt prop)))
+      "remove premise (dynamic instantiation)"));
 
 end;
 

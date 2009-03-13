@@ -44,7 +44,7 @@ sig
   val postprocess_conv: theory -> cterm -> thm
   val postprocess_term: theory -> term -> term
 
-  val add_attribute: string * (Args.T list -> attribute * Args.T list) -> theory -> theory
+  val add_attribute: string * attribute parser -> theory -> theory
 
   val print_codesetup: theory -> unit
 end;
@@ -83,7 +83,7 @@ struct
 (** code attributes **)
 
 structure CodeAttr = TheoryDataFun (
-  type T = (string * (Args.T list -> attribute * Args.T list)) list;
+  type T = (string * attribute parser) list;
   val empty = [];
   val copy = I;
   val extend = I;

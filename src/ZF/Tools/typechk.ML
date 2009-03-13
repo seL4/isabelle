@@ -116,7 +116,7 @@ val typecheck_meth =
   Method.only_sectioned_args
     [Args.add -- Args.colon >> K (I, TC_add),
      Args.del -- Args.colon >> K (I, TC_del)]
-  (fn ctxt => Method.SIMPLE_METHOD (CHANGED (typecheck_tac ctxt)));
+  (fn ctxt => SIMPLE_METHOD (CHANGED (typecheck_tac ctxt)));
 
 val _ =
   OuterSyntax.improper_command "print_tcset" "print context of ZF typecheck" OuterKeyword.diag

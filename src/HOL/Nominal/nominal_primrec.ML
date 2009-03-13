@@ -378,7 +378,7 @@ fun gen_primrec set_group prep_spec prep_term invs fctxt raw_fixes raw_params ra
            |> snd
          end)
       [goals] |>
-    Proof.apply (Method.Basic (fn _ => Method.RAW_METHOD (fn _ =>
+    Proof.apply (Method.Basic (fn _ => RAW_METHOD (fn _ =>
       rewrite_goals_tac defs_thms THEN
       compose_tac (false, rule, length rule_prems) 1), Position.none)) |>
     Seq.hd

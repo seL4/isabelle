@@ -134,7 +134,7 @@ let
    (* THEN' TRY o clarify_tac HOL_cs  THEN' (TRY o rtac @{thm iffI}) *)
    THEN' asm_full_simp_tac (ss2 addsimps ths)
  in
-  Method.thms_args (Method.SIMPLE_METHOD' o vector_arith_tac)
+  Method.thms_args (SIMPLE_METHOD' o vector_arith_tac)
 end
 *} "Lifts trivial vector statements to real arith statements"
 
@@ -948,7 +948,7 @@ lemma norm_pths:
 
 use "normarith.ML"
 
-method_setup norm = {* Method.ctxt_args (Method.SIMPLE_METHOD' o NormArith.norm_arith_tac)
+method_setup norm = {* Method.ctxt_args (SIMPLE_METHOD' o NormArith.norm_arith_tac)
 *} "Proves simple linear statements about vector norms"
 
 

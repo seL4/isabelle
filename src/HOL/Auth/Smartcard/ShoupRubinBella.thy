@@ -777,15 +777,15 @@ end
 *}
 
 method_setup prepare = {*
-    Method.ctxt_args (fn ctxt => Method.SIMPLE_METHOD (ShoupRubinBella.prepare_tac ctxt)) *}
+    Method.ctxt_args (fn ctxt => SIMPLE_METHOD (ShoupRubinBella.prepare_tac ctxt)) *}
   "to launch a few simple facts that'll help the simplifier"
 
 method_setup parts_prepare = {*
-    Method.ctxt_args (fn ctxt => Method.SIMPLE_METHOD (ShoupRubinBella.parts_prepare_tac ctxt)) *}
+    Method.ctxt_args (fn ctxt => SIMPLE_METHOD (ShoupRubinBella.parts_prepare_tac ctxt)) *}
   "additional facts to reason about parts"
 
 method_setup analz_prepare = {*
-    Method.ctxt_args (fn ctxt => Method.SIMPLE_METHOD (ShoupRubinBella.analz_prepare_tac ctxt)) *}
+    Method.ctxt_args (fn ctxt => SIMPLE_METHOD (ShoupRubinBella.analz_prepare_tac ctxt)) *}
   "additional facts to reason about analz"
 
 
@@ -832,7 +832,7 @@ done
 
 method_setup sc_analz_freshK = {*
     Method.ctxt_args (fn ctxt =>
-     (Method.SIMPLE_METHOD
+     (SIMPLE_METHOD
       (EVERY [REPEAT_FIRST (resolve_tac [allI, ballI, impI]),
           REPEAT_FIRST (rtac @{thm analz_image_freshK_lemma}),
           ALLGOALS (asm_simp_tac (Simplifier.context ctxt Smartcard.analz_image_freshK_ss

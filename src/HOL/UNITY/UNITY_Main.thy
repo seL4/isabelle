@@ -11,7 +11,7 @@ uses "UNITY_tactics.ML" begin
 
 method_setup safety = {*
     Method.ctxt_args (fn ctxt =>
-        Method.SIMPLE_METHOD' (constrains_tac (local_clasimpset_of ctxt))) *}
+        SIMPLE_METHOD' (constrains_tac (local_clasimpset_of ctxt))) *}
     "for proving safety properties"
 
 method_setup ensures_tac = {*

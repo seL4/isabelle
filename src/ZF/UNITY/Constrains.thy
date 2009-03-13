@@ -496,13 +496,11 @@ fun always_tac ctxt i =
 setup ProgramDefs.setup
 
 method_setup safety = {*
-  Method.ctxt_args (fn ctxt =>
-    Method.SIMPLE_METHOD' (constrains_tac ctxt)) *}
+  Method.ctxt_args (SIMPLE_METHOD' o constrains_tac) *}
   "for proving safety properties"
 
 method_setup always = {*
-  Method.ctxt_args (fn ctxt =>
-    Method.SIMPLE_METHOD' (always_tac ctxt)) *}
+  Method.ctxt_args (SIMPLE_METHOD' o always_tac) *}
   "for proving invariants"
 
 end

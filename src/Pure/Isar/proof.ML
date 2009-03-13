@@ -780,7 +780,7 @@ fun implicit_vars dest add props =
   in (rev vars, props') end;
 
 fun refine_terms n =
-  refine (Method.Basic (K (Method.RAW_METHOD
+  refine (Method.Basic (K (RAW_METHOD
     (K (HEADGOAL (PRECISE_CONJUNCTS n
       (HEADGOAL (CONJUNCTS (ALLGOALS (rtac Drule.termI)))))))), Position.none))
   #> Seq.hd;

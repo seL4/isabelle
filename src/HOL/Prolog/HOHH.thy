@@ -11,11 +11,11 @@ uses "prolog.ML"
 begin
 
 method_setup ptac =
-  {* Method.thms_ctxt_args (fn thms => fn ctxt => Method.SIMPLE_METHOD' (Prolog.ptac ctxt thms)) *}
+  {* Method.thms_ctxt_args (fn thms => fn ctxt => SIMPLE_METHOD' (Prolog.ptac ctxt thms)) *}
   "Basic Lambda Prolog interpreter"
 
 method_setup prolog =
-  {* Method.thms_ctxt_args (fn thms => fn ctxt => Method.SIMPLE_METHOD (Prolog.prolog_tac ctxt thms)) *}
+  {* Method.thms_ctxt_args (fn thms => fn ctxt => SIMPLE_METHOD (Prolog.prolog_tac ctxt thms)) *}
   "Lambda Prolog interpreter"
 
 consts

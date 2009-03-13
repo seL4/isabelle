@@ -203,7 +203,7 @@ fun pat_completeness_tac ctxt = SUBGOAL (fn (subgoal, i) =>
     handle COMPLETENESS => no_tac)
 
 
-fun pat_completeness ctxt = Method.SIMPLE_METHOD' (pat_completeness_tac ctxt)
+fun pat_completeness ctxt = SIMPLE_METHOD' (pat_completeness_tac ctxt)
 
 val by_pat_completeness_auto =
     Proof.global_future_terminal_proof
@@ -300,8 +300,8 @@ fun sequential_preproc (config as FundefConfig {sequential, ...}) flags ctxt fix
     end
 
 val setup =
-    Method.add_methods [("pat_completeness", Method.ctxt_args pat_completeness, 
-                         "Completeness prover for datatype patterns")]
+    Method.setup @{binding pat_completeness} (Scan.succeed pat_completeness)
+        "Completeness prover for datatype patterns"
     #> Context.theory_map (FundefCommon.set_preproc sequential_preproc)
 
 

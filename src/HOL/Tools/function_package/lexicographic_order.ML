@@ -218,7 +218,7 @@ fun lexicographic_order_tac ctxt =
   TRY (FundefCommon.apply_termination_rule ctxt 1)
   THEN lex_order_tac ctxt (auto_tac (local_clasimpset_of ctxt addsimps2 FundefCommon.TerminationSimps.get ctxt))
 
-val lexicographic_order = Method.SIMPLE_METHOD o lexicographic_order_tac
+val lexicographic_order = SIMPLE_METHOD o lexicographic_order_tac
 
 val setup = Method.add_methods [("lexicographic_order", Method.only_sectioned_args clasimp_modifiers lexicographic_order,
                                  "termination prover for lexicographic orderings")]
