@@ -58,10 +58,10 @@ definition split_seed :: "seed \<Rightarrow> seed \<times> seed" where
 
 subsection {* Base selectors *}
 
-fun %quote iterate :: "index \<Rightarrow> ('b \<Rightarrow> 'a \<Rightarrow> 'b \<times> 'a) \<Rightarrow> 'b \<Rightarrow> 'a \<Rightarrow> 'b \<times> 'a" where
+fun iterate :: "index \<Rightarrow> ('b \<Rightarrow> 'a \<Rightarrow> 'b \<times> 'a) \<Rightarrow> 'b \<Rightarrow> 'a \<Rightarrow> 'b \<times> 'a" where
   "iterate k f x = (if k = 0 then Pair x else f x o\<rightarrow> iterate (k - 1) f)"
 
-definition %quote range :: "index \<Rightarrow> seed \<Rightarrow> index \<times> seed" where
+definition range :: "index \<Rightarrow> seed \<Rightarrow> index \<times> seed" where
   "range k = iterate (log 2147483561 k)
       (\<lambda>l. next o\<rightarrow> (\<lambda>v. Pair (v + l * 2147483561))) 1
     o\<rightarrow> (\<lambda>v. Pair (v mod k))"
