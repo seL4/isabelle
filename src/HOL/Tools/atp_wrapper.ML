@@ -10,9 +10,9 @@ sig
   val destdir: string ref
   val problem_name: string ref
   val external_prover:
-    ((int -> Path.T) -> Proof.context * thm list * thm -> string list * ResHolClause.axiom_name Vector.vector list) ->
-    Path.T * string ->
-    (string -> string option) ->
+    (thm * (string * int)) list ->
+    (Path.T -> thm -> int -> (thm * (string * int)) list -> theory -> string vector) ->
+    Path.T * string -> (string -> string option) ->
     (string * string vector * Proof.context * thm * int -> string) ->
     AtpManager.prover
   val tptp_prover_opts_full: int -> bool -> bool -> Path.T * string -> AtpManager.prover
@@ -47,7 +47,7 @@ val problem_name = ref "prob";
 
 (* basic template *)
 
-fun external_prover write_problem_files (cmd, args) find_failure produce_answer timeout subgoalno state =
+fun external_prover axiom_clauses write_problem_file (cmd, args) find_failure produce_answer timeout subgoalno state =
   let
     (* path to unique problem file *)
     val destdir' = ! destdir
@@ -62,24 +62,25 @@ fun external_prover write_problem_files (cmd, args) find_failure produce_answer 
 
     (* write out problem file and call prover *)
     val (ctxt, (chain_ths, goal)) = Proof.get_goal state
+    val thy = ProofContext.theory_of ctxt
     val chain_ths = map (Thm.put_name_hint ResReconstruct.chained_hint) chain_ths
-    val (filenames, thm_names_list) = write_problem_files prob_pathname (ctxt, chain_ths, goal)
-    val thm_names = nth thm_names_list (subgoalno - 1)
-
+    val probfile = prob_pathname subgoalno
+    val fname = File.platform_path probfile
+    val thm_names = write_problem_file probfile goal subgoalno axiom_clauses thy
     val cmdline =
       if File.exists cmd then File.shell_path cmd ^ " " ^ args
       else error ("Bad executable: " ^ Path.implode cmd)
-    val (proof, rc) = system_out (cmdline ^ " " ^ nth filenames (subgoalno - 1))
+    val (proof, rc) = system_out (cmdline ^ " " ^ fname)
 
     (* remove *temporary* files *)
-    val _ = if destdir' = "" then List.app OS.FileSys.remove filenames else ()
+    val _ = if destdir' = "" then OS.FileSys.remove fname else ()
     
     (* check for success and print out some information on failure *)
     val failure = find_failure proof
     val success = rc = 0 andalso is_none failure
     val message =
       if isSome failure then "Proof attempt failed."
-      else if rc <> 0 then "Proof attempt failed: " ^ proof 
+      else if rc <> 0 then "Proof attempt failed: " ^ proof
       else "Try this command: " ^ produce_answer (proof, thm_names, ctxt, goal, subgoalno)
 
     val _ = if isSome failure
@@ -96,12 +97,14 @@ fun external_prover write_problem_files (cmd, args) find_failure produce_answer 
 
 (* generic TPTP-based provers *)
 
-fun tptp_prover_opts_full max_new theory_const full command =
+fun tptp_prover_opts_full max_new theory_const full command timeout n state =
   external_prover
-    (ResAtp.write_problem_files false max_new theory_const)
+    (ResAtp.get_relevant max_new theory_const (Proof.get_goal state) n)
+    (ResAtp.write_problem_file false)
     command
     ResReconstruct.find_failure_e_vamp_spass
-    (if full then ResReconstruct.structured_proof else ResReconstruct.lemma_list_tstp);
+    (if full then ResReconstruct.structured_proof else ResReconstruct.lemma_list_tstp)
+    timeout n state;
 
 (*arbitrary ATP with TPTP input/output and problemfile as last argument*)
 fun tptp_prover_opts max_new theory_const =
@@ -139,26 +142,33 @@ val vampire_full = vampire_opts 60 false;
 
 (* E prover *)
 
-fun eprover_opts max_new theory_const = tptp_prover_opts
+fun eprover_opts max_new theory_const timeout = tptp_prover_opts
   max_new theory_const
-  (Path.explode "$E_HOME/eproof", "--tstp-in --tstp-out -l5 -xAutoDev -tAutoDev --silent");
+  (Path.explode "$E_HOME/eproof",
+    "--tstp-in --tstp-out -l5 -xAutoDev -tAutoDev --silent --cpu-limit=" ^ string_of_int timeout)
+  timeout;
 
 val eprover = eprover_opts 100 false;
 
-fun eprover_opts_full max_new theory_const = full_prover_opts
+fun eprover_opts_full max_new theory_const timeout = full_prover_opts
   max_new theory_const
-  (Path.explode "$E_HOME/eproof", "--tstp-in --tstp-out -l5 -xAutoDev -tAutoDev --silent");
+  (Path.explode "$E_HOME/eproof",
+    "--tstp-in --tstp-out -l5 -xAutoDev -tAutoDev --silent --cpu-limit=" ^ string_of_int timeout)
+  timeout;
 
 val eprover_full = eprover_opts_full 100 false;
 
 
 (* SPASS *)
 
-fun spass_opts max_new theory_const = external_prover
-  (ResAtp.write_problem_files true max_new theory_const)
-  (Path.explode "$SPASS_HOME/SPASS", "-Auto -SOS=1 -PGiven=0 -PProblem=0 -Splits=0 -FullRed=0 -DocProof")
+fun spass_opts max_new theory_const timeout n state = external_prover
+  (ResAtp.get_relevant max_new theory_const (Proof.get_goal state) n)
+  (ResAtp.write_problem_file true)
+  (Path.explode "$SPASS_HOME/SPASS",
+    "-Auto -SOS=1 -PGiven=0 -PProblem=0 -Splits=0 -FullRed=0 -DocProof -TimeLimit=" ^ string_of_int timeout)
   ResReconstruct.find_failure_e_vamp_spass
-  ResReconstruct.lemma_list_dfg;
+  ResReconstruct.lemma_list_dfg
+  timeout n state;
 
 val spass = spass_opts 40 true;
 
@@ -173,3 +183,5 @@ fun remote_prover_opts max_new theory_const args timeout =
 val remote_prover = remote_prover_opts 60 false;
 
 end;
+
+
