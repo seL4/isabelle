@@ -83,17 +83,13 @@ my $Response = $Agent->request($Request);
 
 #catch errors / failure
 if(! $Response->is_success){
-  	print "HTTP-Error: " . $Response->message . "\n";
-    exit(-1);
+  print "HTTP-Error: " . $Response->message . "\n";
+  exit(-1);
 } elsif (exists($Options{'w'})) {
   print $Response->content;
   exit (0);
 } elsif ($Response->content =~ /NO SOLUTION OUTPUT BY SYSTEM/){
-  if ($Response->content =~ /%\s*Result\s*:(.*)\n%\s*Output\s*:(.*)\n%/) {
-    print "No Solution Output\nResult: $1\nOutput: $2\n";
-  } else {
-    print "No Solution Output\n";
-  }
+  print "No Solution Output by System\n";
   exit(-1);
 } elsif ($Response->content =~ /ERROR: Could not form TPTP format derivation/) {
   print "Could not form TPTP format derivation\n";
