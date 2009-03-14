@@ -335,10 +335,9 @@ within the theory via plain ML wrapper functions.  Basic Sledgehammer
 commands are covered in the isar-ref manual.
 
 * Wrapper scripts for remote SystemOnTPTP service allows to use
-sledgehammer without local ATP installation (Vampire etc.).  See also
-ISABELLE_HOME/contrib/SystemOnTPTP and the VAMPIRE_HOME setting
-variable.  Other provers may be included via suitable ML wrappers, see
-also src/HOL/ATP_Linkup.thy.
+sledgehammer without local ATP installation (Vampire etc.). Other
+provers may be included via suitable ML wrappers, see also
+src/HOL/ATP_Linkup.thy.
 
 * Normalization by evaluation now allows non-leftlinear equations.
 Declare with attribute [code nbe].
