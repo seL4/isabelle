@@ -47,7 +47,7 @@ val problem_name = ref "prob";
 
 (* basic template *)
 
-fun external_prover axiom_clauses write_problem_file (cmd, args) find_failure produce_answer timeout subgoalno state =
+fun external_prover axiom_clauses write_problem_file (cmd, args) find_failure produce_answer timeout subgoalno goal =
   let
     (* path to unique problem file *)
     val destdir' = ! destdir
@@ -61,12 +61,12 @@ fun external_prover axiom_clauses write_problem_file (cmd, args) find_failure pr
       end
 
     (* write out problem file and call prover *)
-    val (ctxt, (chain_ths, goal)) = Proof.get_goal state
+    val (ctxt, (chain_ths, th)) = goal
     val thy = ProofContext.theory_of ctxt
     val chain_ths = map (Thm.put_name_hint ResReconstruct.chained_hint) chain_ths
     val probfile = prob_pathname subgoalno
     val fname = File.platform_path probfile
-    val thm_names = write_problem_file probfile goal subgoalno axiom_clauses thy
+    val thm_names = write_problem_file probfile th subgoalno axiom_clauses thy
     val cmdline =
       if File.exists cmd then File.shell_path cmd ^ " " ^ args
       else error ("Bad executable: " ^ Path.implode cmd)
@@ -81,7 +81,7 @@ fun external_prover axiom_clauses write_problem_file (cmd, args) find_failure pr
     val message =
       if isSome failure then "Proof attempt failed."
       else if rc <> 0 then "Proof attempt failed: " ^ proof
-      else "Try this command: " ^ produce_answer (proof, thm_names, ctxt, goal, subgoalno)
+      else "Try this command: " ^ produce_answer (proof, thm_names, ctxt, th, subgoalno)
 
     val _ = if isSome failure
       then Output.debug (fn () => "Sledgehammer failure: " ^ the failure ^ "\nOutput: " ^ proof)
@@ -97,14 +97,14 @@ fun external_prover axiom_clauses write_problem_file (cmd, args) find_failure pr
 
 (* generic TPTP-based provers *)
 
-fun tptp_prover_opts_full max_new theory_const full command timeout n state =
+fun tptp_prover_opts_full max_new theory_const full command timeout n goal =
   external_prover
-    (ResAtp.get_relevant max_new theory_const (Proof.get_goal state) n)
+    (ResAtp.get_relevant max_new theory_const goal n)
     (ResAtp.write_problem_file false)
     command
     ResReconstruct.find_failure_e_vamp_spass
     (if full then ResReconstruct.structured_proof else ResReconstruct.lemma_list_tstp)
-    timeout n state;
+    timeout n goal;
 
 (*arbitrary ATP with TPTP input/output and problemfile as last argument*)
 fun tptp_prover_opts max_new theory_const =
@@ -161,14 +161,14 @@ val eprover_full = eprover_opts_full 100 false;
 
 (* SPASS *)
 
-fun spass_opts max_new theory_const timeout n state = external_prover
-  (ResAtp.get_relevant max_new theory_const (Proof.get_goal state) n)
+fun spass_opts max_new theory_const timeout n goal = external_prover
+  (ResAtp.get_relevant max_new theory_const goal n)
   (ResAtp.write_problem_file true)
   (Path.explode "$SPASS_HOME/SPASS",
     "-Auto -SOS=1 -PGiven=0 -PProblem=0 -Splits=0 -FullRed=0 -DocProof -TimeLimit=" ^ string_of_int timeout)
   ResReconstruct.find_failure_e_vamp_spass
   ResReconstruct.lemma_list_dfg
-  timeout n state;
+  timeout n goal;
 
 val spass = spass_opts 40 true;
 

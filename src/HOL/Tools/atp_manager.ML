@@ -19,7 +19,7 @@ sig
   val kill: unit -> unit
   val info: unit -> unit
   val messages: int option -> unit
-  type prover = int -> int -> Proof.state -> bool * string
+  type prover = int -> int -> Proof.context * (thm list * thm) -> bool * string 
   val add_prover: string -> prover -> theory -> theory
   val print_provers: theory -> unit
   val sledgehammer: string list -> Proof.state -> unit
@@ -271,7 +271,7 @@ fun messages opt_limit =
 
 (* named provers *)
 
-type prover = int -> int -> Proof.state -> bool * string;
+type prover = int -> int -> Proof.context * (thm list * thm) -> bool * string;
 
 fun err_dup_prover name = error ("Duplicate prover: " ^ quote name);
 
@@ -307,7 +307,7 @@ fun start_prover name birthtime deadtime i proof_state =
         val _ = SimpleThread.fork true (fn () =>
           let
             val _ = register birthtime deadtime (Thread.self (), desc)
-            val result = prover (get_timeout ()) i proof_state
+            val result = prover (get_timeout ()) i (Proof.get_goal proof_state) 
               handle ResHolClause.TOO_TRIVIAL
                 => (true, "Empty clause: Try this command: " ^ Markup.markup Markup.sendback "apply metis")
               | ERROR msg
@@ -360,3 +360,4 @@ val _ =
 end;
 
 end;
+
