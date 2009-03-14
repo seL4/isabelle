@@ -21,16 +21,6 @@ my %URLParameters = (
     "ProblemSource" => "UPLOAD",
     );
 
-# check connection
-my $TestAgent = LWP::UserAgent->new;
-$TestAgent->timeout(5);
-my $TestRequest = GET($SystemOnTPTPFormReplyURL);
-my $TestResponse = $TestAgent->request($TestRequest);
-if(! $TestResponse->is_success) {
-  print "HTTP-Error: " . $TestResponse->message . "\n";
-  exit(-1);
-}
-
 #----Get format and transform options if specified
 my %Options;
 getopts("hws:t:c:",\%Options);
@@ -85,7 +75,7 @@ die("Missing problem file");
 my $Agent = LWP::UserAgent->new;
 if (exists($Options{'t'})) {
   # give server more time to respond
-  $Agent->timeout($Options{'t'} * 2 + 10);
+  $Agent->timeout($Options{'t'} + 10);
 }
 my $Request = POST($SystemOnTPTPFormReplyURL,
 	Content_Type => 'form-data',Content => \%URLParameters);
