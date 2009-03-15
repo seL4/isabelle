@@ -32,8 +32,8 @@ val del = Thm.declaration_attribute (Data.map o apfst o Thm.del_thm);
 val radd = Thm.declaration_attribute (Data.map o apsnd o Thm.add_thm);
 val rdel = Thm.declaration_attribute (Data.map o apsnd o Thm.del_thm);
 
-val setup = Attrib.add_attributes
-  [("reify", Attrib.add_del_args add del, "Reify data"),
-   ("reflection", Attrib.add_del_args radd rdel, "Reflection data")];
+val setup =
+  Attrib.setup @{binding reify} (Attrib.add_del add del) "reify data" #>
+  Attrib.setup @{binding reflection} (Attrib.add_del radd rdel) "reflection data";
 
 end;

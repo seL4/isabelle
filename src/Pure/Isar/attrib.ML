@@ -25,7 +25,10 @@ sig
   val crude_closure: Proof.context -> src -> src
   val add_attributes: (bstring * (src -> attribute) * string) list -> theory -> theory
   val syntax: attribute context_parser -> src -> attribute
+  val setup: Binding.binding -> attribute context_parser -> string -> theory -> theory
+  val attribute_setup: string * Position.T -> string * Position.T -> string -> theory -> theory
   val no_args: attribute -> src -> attribute
+  val add_del: attribute -> attribute -> attribute context_parser
   val add_del_args: attribute -> attribute -> src -> attribute
   val thm_sel: Facts.interval list parser
   val thm: thm context_parser
@@ -150,16 +153,27 @@ fun add_attributes raw_attrs thy =
   in Attributes.map add thy end;
 
 
-(* attribute syntax *)
+(* attribute setup *)
 
-fun syntax scan src (st, th) =
-  let val (f: attribute, st') = Args.syntax "attribute" scan src st
-  in f (st', th) end;
+fun syntax scan src (context, th) =
+  let val (f: attribute, context') = Args.syntax "attribute" scan src context
+  in f (context', th) end;
+
+fun setup name scan comment = add_attributes [(Binding.name_of name, syntax scan, comment)];
+
+fun attribute_setup name (txt, pos) cmt =
+  Context.theory_map (ML_Context.expression pos
+    "val (name, scan, comment): binding * attribute context_parser * string"
+    "Context.map_theory (Attrib.setup name scan comment)"
+    ("(" ^ ML_Syntax.make_binding name ^ ", " ^ txt ^ ", " ^ ML_Syntax.print_string cmt ^ ")"));
+
+
+(* basic syntax *)
 
 fun no_args x = syntax (Scan.succeed x);
 
-fun add_del_args add del = syntax
-  (Scan.lift (Args.add >> K add || Args.del >> K del || Scan.succeed add));
+fun add_del add del = (Scan.lift (Args.add >> K add || Args.del >> K del || Scan.succeed add));
+fun add_del_args add del = syntax (add_del add del);
 
 
 

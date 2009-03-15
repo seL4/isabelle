@@ -253,11 +253,11 @@ fun spec k arg =
   Scan.lift (Args.$$$ k -- Args.colon) |-- arg ||
   Scan.lift (Args.$$$ k) >> K "";
 
-fun attrib add_type add_pred del = Attrib.syntax
- (spec typeN Args.tyname >> add_type ||
+fun attrib add_type add_pred del =
+  spec typeN Args.tyname >> add_type ||
   spec predN Args.const >> add_pred ||
   spec setN Args.const >> add_pred ||
-  Scan.lift Args.del >> K del);
+  Scan.lift Args.del >> K del;
 
 val cases_att = attrib cases_type cases_pred cases_del;
 val induct_att = attrib induct_type induct_pred induct_del;
@@ -265,10 +265,10 @@ val coinduct_att = attrib coinduct_type coinduct_pred coinduct_del;
 
 in
 
-val attrib_setup = Attrib.add_attributes
- [(casesN, cases_att, "declaration of cases rule"),
-  (inductN, induct_att, "declaration of induction rule"),
-  (coinductN, coinduct_att, "declaration of coinduction rule")];
+val attrib_setup =
+  Attrib.setup @{binding cases} cases_att "declaration of cases rule" #>
+  Attrib.setup @{binding induct} induct_att "declaration of induction rule" #>
+  Attrib.setup @{binding coinduct} coinduct_att "declaration of coinduction rule";
 
 end;
 

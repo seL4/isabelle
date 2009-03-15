@@ -371,7 +371,7 @@ val mk_constr = gen_constr_destr (fn a => fn b => Syntax.const "Fun.comp" $ a $ 
 val mk_destr =  gen_constr_destr (fn a => fn b => Syntax.const "Fun.comp" $ b $ a) "the_"
 
   
-fun statefun_simp_attr src (ctxt,thm) = 
+val statefun_simp_attr = Thm.declaration_attribute (fn thm => fn ctxt =>
   let
      val (lookup_ss,ex_lookup_ss,simprocs_active) = StateFunData.get ctxt;
      val (lookup_ss', ex_lookup_ss') = 
@@ -381,15 +381,14 @@ fun statefun_simp_attr src (ctxt,thm) =
      fun activate_simprocs ctxt =
           if simprocs_active then ctxt
           else Simplifier.map_ss (fn ss => ss addsimprocs [lookup_simproc,update_simproc]) ctxt
-               
-
-     val ctxt' = ctxt 
-         |> activate_simprocs
-         |> (StateFunData.put (lookup_ss',ex_lookup_ss',true))
-  in (ctxt', thm) end;
+  in
+    ctxt 
+    |> activate_simprocs
+    |> (StateFunData.put (lookup_ss',ex_lookup_ss',true))
+  end);
 
 val setup = 
-    init_state_fun_data 
-    #> Attrib.add_attributes 
-	  [("statefun_simp",statefun_simp_attr,"simplification in statespaces")]     
+  init_state_fun_data #>
+  Attrib.setup @{binding statefun_simp} (Scan.succeed statefun_simp_attr)
+    "simplification in statespaces"
 end

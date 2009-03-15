@@ -130,13 +130,11 @@ fun temp_use th =
 fun try_rewrite th = temp_rewrite th handle THM _ => temp_use th;
 *}
 
-setup {*
-  Attrib.add_attributes [
-    ("temp_unlift", Attrib.no_args (Thm.rule_attribute (K temp_unlift)), ""),
-    ("temp_rewrite", Attrib.no_args (Thm.rule_attribute (K temp_rewrite)), ""),
-    ("temp_use", Attrib.no_args (Thm.rule_attribute (K temp_use)), ""),
-    ("try_rewrite", Attrib.no_args (Thm.rule_attribute (K try_rewrite)), "")]
-*}
+attribute_setup temp_unlift = {* Scan.succeed (Thm.rule_attribute (K temp_unlift)) *} ""
+attribute_setup temp_rewrite = {* Scan.succeed (Thm.rule_attribute (K temp_rewrite)) *} ""
+attribute_setup temp_use = {* Scan.succeed (Thm.rule_attribute (K temp_use)) *} ""
+attribute_setup try_rewrite = {* Scan.succeed (Thm.rule_attribute (K try_rewrite)) *} ""
+
 
 (* Update classical reasoner---will be updated once more below! *)
 

@@ -479,8 +479,7 @@ val split_meth = Attrib.thms >>
 (* theory setup *)
 
 val setup =
-  Attrib.add_attributes
-    [(splitN, Attrib.add_del_args split_add split_del, "declaration of case split rule")] #>
+  Attrib.setup @{binding split} (Attrib.add_del split_add split_del) "declare case split rule" #>
   Method.setup @{binding split} split_meth "apply case split rule";
 
 end;

@@ -196,9 +196,8 @@ val setup_case_cong = DatatypePackage.interpretation case_cong
 (* setup *)
 
 val setup =
-  Attrib.add_attributes
-    [("fundef_cong", Attrib.add_del_args FundefCtxTree.cong_add FundefCtxTree.cong_del,
-      "declaration of congruence rule for function definitions")]
+  Attrib.setup @{binding fundef_cong} (Attrib.add_del FundefCtxTree.cong_add FundefCtxTree.cong_del)
+      "declaration of congruence rule for function definitions"
   #> setup_case_cong
   #> FundefRelation.setup
   #> FundefCommon.TerminationSimps.setup

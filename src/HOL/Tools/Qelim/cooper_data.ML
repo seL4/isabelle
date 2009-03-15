@@ -77,15 +77,14 @@ val terms = thms >> map (term_of o Drule.dest_term);
 fun optional scan = Scan.optional scan [];
 
 in
-val att_syntax = Attrib.syntax
- ((Scan.lift (Args.$$$ "del") |-- optional (keyword constsN |-- terms)) >> del ||
-  optional (keyword constsN |-- terms) >> add)
+val attribute =
+ (Scan.lift (Args.$$$ "del") |-- optional (keyword constsN |-- terms)) >> del ||
+  optional (keyword constsN |-- terms) >> add
 end;
 
 
 (* theory setup *)
 
-val setup =
-  Attrib.add_attributes [("presburger", att_syntax, "Cooper data")];
+val setup = Attrib.setup @{binding presburger} attribute "Cooper data";
 
 end;

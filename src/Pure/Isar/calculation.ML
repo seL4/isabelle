@@ -88,14 +88,13 @@ val symmetric = Thm.rule_attribute (fn x => fn th =>
 
 (* concrete syntax *)
 
-val trans_att = Attrib.add_del_args trans_add trans_del;
-val sym_att = Attrib.add_del_args sym_add sym_del;
-
 val _ = Context.>> (Context.map_theory
- (Attrib.add_attributes
-   [("trans", trans_att, "declaration of transitivity rule"),
-    ("sym", sym_att, "declaration of symmetry rule"),
-    ("symmetric", Attrib.no_args symmetric, "resolution with symmetry rule")] #>
+ (Attrib.setup (Binding.name "trans") (Attrib.add_del trans_add trans_del)
+    "declaration of transitivity rule" #>
+  Attrib.setup (Binding.name "sym") (Attrib.add_del sym_add sym_del)
+    "declaration of symmetry rule" #>
+  Attrib.setup (Binding.name "symmetric") (Scan.succeed symmetric)
+    "resolution with symmetry rule" #>
   PureThy.add_thms
    [((Binding.empty, transitive_thm), [trans_add]),
     ((Binding.empty, symmetric_thm), [sym_add])] #> snd));

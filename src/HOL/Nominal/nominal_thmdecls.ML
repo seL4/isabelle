@@ -187,12 +187,14 @@ val fresh_del = Thm.declaration_attribute (Data.map o fresh_map o Thm.del_thm);
 
 
 val setup =
-  Attrib.add_attributes
-     [("eqvt",  Attrib.add_del_args eqvt_add eqvt_del,   "equivariance theorem declaration"),
-      ("eqvt_force", Attrib.add_del_args eqvt_force_add eqvt_force_del,
-        "equivariance theorem declaration (without checking the form of the lemma)"),
-      ("fresh", Attrib.add_del_args fresh_add fresh_del, "freshness theorem declaration"),
-      ("bij",   Attrib.add_del_args bij_add bij_del,     "bijection theorem declaration")] #>
+  Attrib.setup @{binding eqvt} (Attrib.add_del eqvt_add eqvt_del)
+    "equivariance theorem declaration" #>
+  Attrib.setup @{binding eqvt_force} (Attrib.add_del eqvt_force_add eqvt_force_del)
+    "equivariance theorem declaration (without checking the form of the lemma)" #>
+  Attrib.setup @{binding fresh} (Attrib.add_del fresh_add fresh_del)
+    "freshness theorem declaration" #>
+  Attrib.setup @{binding "bij"} (Attrib.add_del bij_add bij_del)
+    "bijection theorem declaration" #>
   PureThy.add_thms_dynamic (Binding.name "eqvts", #eqvts o Data.get) #>
   PureThy.add_thms_dynamic (Binding.name "freshs", #freshs o Data.get) #>
   PureThy.add_thms_dynamic (Binding.name "bijs", #bijs o Data.get);

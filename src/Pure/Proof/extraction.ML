@@ -374,8 +374,7 @@ fun add_expand_thm thm thy =
 
 val add_expand_thms = fold add_expand_thm;
 
-val extraction_expand =
-  Attrib.no_args (Thm.declaration_attribute (fn th => Context.mapping (add_expand_thm th) I));
+val extraction_expand = Thm.declaration_attribute (fn th => Context.mapping (add_expand_thm th) I);
 
 
 (** types with computational content **)
@@ -435,9 +434,8 @@ val _ = Context.>> (Context.map_theory
       "(realizes (r) (!!x. PROP P (x))) ==  \
     \  (!!x. PROP realizes (r (x)) (PROP P (x)))"] #>
 
-   Attrib.add_attributes
-     [("extraction_expand", extraction_expand,
-       "specify theorems / definitions to be expanded during extraction")]));
+   Attrib.setup (Binding.name "extraction_expand") (Scan.succeed extraction_expand)
+     "specify theorems / definitions to be expanded during extraction"));
 
 
 (**** extract program ****)

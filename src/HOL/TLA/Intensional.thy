@@ -294,13 +294,10 @@ fun int_use th =
     | _ => th
 *}
 
-setup {*
-  Attrib.add_attributes [
-    ("int_unlift", Attrib.no_args (Thm.rule_attribute (K int_unlift)), ""),
-    ("int_rewrite", Attrib.no_args (Thm.rule_attribute (K int_rewrite)), ""),
-    ("flatten", Attrib.no_args (Thm.rule_attribute (K flatten)), ""),
-    ("int_use", Attrib.no_args (Thm.rule_attribute (K int_use)), "")]
-*}
+attribute_setup int_unlift = {* Scan.succeed (Thm.rule_attribute (K int_unlift)) *} ""
+attribute_setup int_rewrite = {* Scan.succeed (Thm.rule_attribute (K int_rewrite)) *} ""
+attribute_setup flatten = {* Scan.succeed (Thm.rule_attribute (K flatten)) *} ""
+attribute_setup int_use = {* Scan.succeed (Thm.rule_attribute (K int_use)) *} ""
 
 lemma Not_Rall: "|- (~(! x. F x)) = (? x. ~F x)"
   by (simp add: Valid_def)

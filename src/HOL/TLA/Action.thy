@@ -124,12 +124,9 @@ fun action_use th =
     | _ => th;
 *}
 
-setup {*
-  Attrib.add_attributes [
-    ("action_unlift", Attrib.no_args (Thm.rule_attribute (K action_unlift)), ""),
-    ("action_rewrite", Attrib.no_args (Thm.rule_attribute (K action_rewrite)), ""),
-    ("action_use", Attrib.no_args (Thm.rule_attribute (K action_use)), "")]
-*}
+attribute_setup action_unlift = {* Scan.succeed (Thm.rule_attribute (K action_unlift)) *} ""
+attribute_setup action_rewrite = {* Scan.succeed (Thm.rule_attribute (K action_rewrite)) *} ""
+attribute_setup action_use = {* Scan.succeed (Thm.rule_attribute (K action_use)) *} ""
 
 
 (* =========================== square / angle brackets =========================== *)

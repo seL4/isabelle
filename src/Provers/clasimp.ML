@@ -268,10 +268,10 @@ val iff_add = attrib (op addIffs);
 val iff_add' = attrib' addIffs_generic;
 val iff_del = attrib (op delIffs) o attrib' delIffs_generic;
 
-val iff_att = Attrib.syntax (Scan.lift
+fun iff_att x = (Scan.lift
  (Args.del >> K iff_del ||
   Scan.option Args.add -- Args.query >> K iff_add' ||
-  Scan.option Args.add >> K iff_add));
+  Scan.option Args.add >> K iff_add)) x;
 
 
 (* method modifiers *)
@@ -311,8 +311,7 @@ fun auto_meth NONE = clasimp_meth (CHANGED_PROP o auto_tac)
 (* theory setup *)
 
 val clasimp_setup =
- (Attrib.add_attributes
-   [("iff", iff_att, "declaration of Simplifier / Classical rules")] #>
+ (Attrib.setup @{binding iff} iff_att "declaration of Simplifier / Classical rules" #>
   Method.add_methods
    [("fastsimp", clasimp_method' fast_simp_tac, "combined fast and simp"),
     ("slowsimp", clasimp_method' slow_simp_tac, "combined slow and simp"),

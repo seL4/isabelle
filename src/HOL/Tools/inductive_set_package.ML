@@ -530,20 +530,17 @@ val mono_del_att = to_pred_att [] #> InductivePackage.mono_del;
 (* setup theory *)
 
 val setup =
-  Attrib.add_attributes
-    [("pred_set_conv", Attrib.no_args pred_set_conv_att,
-      "declare rules for converting between predicate and set notation"),
-     ("to_set", Attrib.syntax (Attrib.thms >> to_set_att),
-      "convert rule to set notation"),
-     ("to_pred", Attrib.syntax (Attrib.thms >> to_pred_att),
-      "convert rule to predicate notation")] #>
+  Attrib.setup @{binding pred_set_conv} (Scan.succeed pred_set_conv_att)
+    "declare rules for converting between predicate and set notation" #>
+  Attrib.setup @{binding to_set} (Attrib.thms >> to_set_att) "convert rule to set notation" #>
+  Attrib.setup @{binding to_pred} (Attrib.thms >> to_pred_att) "convert rule to predicate notation" #>
   Code.add_attribute ("ind_set",
     Scan.option (Args.$$$ "target" |-- Args.colon |-- Args.name) >> code_ind_att) #>
   Codegen.add_preprocessor codegen_preproc #>
-  Attrib.add_attributes [("mono_set", Attrib.add_del_args mono_add_att mono_del_att,
-    "declaration of monotonicity rule for set operators")] #>
-  Context.theory_map (Simplifier.map_ss (fn ss =>
-    ss addsimprocs [collect_mem_simproc]));
+  Attrib.setup @{binding mono_set} (Attrib.add_del mono_add_att mono_del_att)
+    "declaration of monotonicity rule for set operators" #>
+  Context.theory_map (Simplifier.map_ss (fn ss => ss addsimprocs [collect_mem_simproc]));
+
 
 (* outer syntax *)
 

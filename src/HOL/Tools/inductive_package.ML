@@ -935,8 +935,8 @@ fun infer_intro_vars elim arity intros =
 
 val setup =
   Method.setup @{binding ind_cases} ind_cases "dynamic case analysis on predicates" #>
-  Attrib.add_attributes [("mono", Attrib.add_del_args mono_add mono_del,
-    "declaration of monotonicity rule")];
+  Attrib.setup @{binding mono} (Attrib.add_del mono_add mono_del)
+    "declaration of monotonicity rule";
 
 
 (* outer syntax *)

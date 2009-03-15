@@ -215,7 +215,7 @@ fun eq_mp_tac i = ematch_tac [not_elim, Data.imp_elim] i  THEN  eq_assume_tac i;
 
 (*Creates rules to eliminate ~A, from rules to introduce A*)
 fun swapify intrs = intrs RLN (2, [Data.swap]);
-fun swapped x = Attrib.no_args (fn (x, th) => (x, th RSN (2, Data.swap))) x;
+val swapped = Thm.rule_attribute (fn _ => fn th => th RSN (2, Data.swap));
 
 (*Uses introduction rules in the normal way, or on negated assumptions,
   trying rules in order. *)
@@ -956,16 +956,17 @@ val elimN = "elim";
 val destN = "dest";
 val ruleN = "rule";
 
-val setup_attrs = Attrib.add_attributes
- [("swapped", swapped, "classical swap of introduction rule"),
-  (destN, ContextRules.add_args safe_dest haz_dest ContextRules.dest_query,
-    "declaration of Classical destruction rule"),
-  (elimN, ContextRules.add_args safe_elim haz_elim ContextRules.elim_query,
-    "declaration of Classical elimination rule"),
-  (introN, ContextRules.add_args safe_intro haz_intro ContextRules.intro_query,
-    "declaration of Classical introduction rule"),
-  (ruleN, Attrib.syntax (Scan.lift Args.del >> K rule_del),
-    "remove declaration of intro/elim/dest rule")];
+val setup_attrs =
+  Attrib.setup @{binding swapped} (Scan.succeed swapped)
+    "classical swap of introduction rule" #>
+  Attrib.setup @{binding dest} (ContextRules.add safe_dest haz_dest ContextRules.dest_query)
+    "declaration of Classical destruction rule" #>
+  Attrib.setup @{binding elim} (ContextRules.add safe_elim haz_elim ContextRules.elim_query)
+    "declaration of Classical elimination rule" #>
+  Attrib.setup @{binding intro} (ContextRules.add safe_intro haz_intro ContextRules.intro_query)
+    "declaration of Classical introduction rule" #>
+  Attrib.setup @{binding rule} (Scan.lift Args.del >> K rule_del)
+    "remove declaration of intro/elim/dest rule";
 
 
 
