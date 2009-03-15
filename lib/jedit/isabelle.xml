@@ -61,6 +61,7 @@
       <LABEL>atp_kill</LABEL>
       <LABEL>atp_messages</LABEL>
       <KEYWORD4>attach</KEYWORD4>
+      <OPERATOR>attribute_setup</OPERATOR>
       <OPERATOR>automaton</OPERATOR>
       <KEYWORD4>avoids</KEYWORD4>
       <OPERATOR>ax_specification</OPERATOR>

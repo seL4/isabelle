@@ -808,6 +808,7 @@ Isabelle/Pure's definitional schemes support certain forms of
     \indexdef{}{command}{ML\_command}\hypertarget{command.ML-command}{\hyperlink{command.ML-command}{\mbox{\isa{\isacommand{ML{\isacharunderscore}command}}}}} & : & \isa{{\isachardoublequote}any\ {\isasymrightarrow}{\isachardoublequote}} \\
     \indexdef{}{command}{setup}\hypertarget{command.setup}{\hyperlink{command.setup}{\mbox{\isa{\isacommand{setup}}}}} & : & \isa{{\isachardoublequote}theory\ {\isasymrightarrow}\ theory{\isachardoublequote}} \\
     \indexdef{}{command}{local\_setup}\hypertarget{command.local-setup}{\hyperlink{command.local-setup}{\mbox{\isa{\isacommand{local{\isacharunderscore}setup}}}}} & : & \isa{{\isachardoublequote}local{\isacharunderscore}theory\ {\isasymrightarrow}\ local{\isacharunderscore}theory{\isachardoublequote}} \\
+    \indexdef{}{command}{attribute\_setup}\hypertarget{command.attribute-setup}{\hyperlink{command.attribute-setup}{\mbox{\isa{\isacommand{attribute{\isacharunderscore}setup}}}}} & : & \isa{{\isachardoublequote}theory\ {\isasymrightarrow}\ theory{\isachardoublequote}} \\
   \end{matharray}
 
   \begin{mldecls}
@@ -819,6 +820,8 @@ Isabelle/Pure's definitional schemes support certain forms of
     'use' name
     ;
     ('ML' | 'ML\_prf' | 'ML\_val' | 'ML\_command' | 'setup' | 'local\_setup') text
+    ;
+    'attribute\_setup' name '=' text text
     ;
   \end{rail}
 
@@ -861,6 +864,47 @@ Isabelle/Pure's definitional schemes support certain forms of
   a local theory context, and an ML expression of type \verb|local_theory -> local_theory|.  This allows to
   invoke local theory specification packages without going through
   concrete outer syntax, for example.
+
+  \item \hyperlink{command.attribute-setup}{\mbox{\isa{\isacommand{attribute{\isacharunderscore}setup}}}}~\isa{{\isachardoublequote}name\ {\isacharequal}\ text\ description{\isachardoublequote}}
+  defines an attribute in the current theory.  The given \isa{{\isachardoublequote}text{\isachardoublequote}} has to be an ML expression of type
+  \verb|attribute context_parser|, cf.\ basic parsers defined in
+  structure \verb|Args| and \verb|Attrib|.
+
+  In principle, attributes can operate both on a given theorem and the
+  implicit context, although in practice only one is modified and the
+  other serves as parameter.  Here are examples for these two cases:
+
+  \end{description}%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
+\isadelimML
+\ \ \ \ %
+\endisadelimML
+%
+\isatagML
+\isacommand{attribute{\isacharunderscore}setup}\isamarkupfalse%
+\ my{\isacharunderscore}rule\ {\isacharequal}\ {\isacharverbatimopen}\isanewline
+\ \ \ \ \ \ Attrib{\isachardot}thms\ {\isachargreater}{\isachargreater}\ {\isacharparenleft}fn\ ths\ {\isacharequal}{\isachargreater}\isanewline
+\ \ \ \ \ \ \ \ Thm{\isachardot}rule{\isacharunderscore}attribute\ {\isacharparenleft}fn\ context{\isacharcolon}\ Context{\isachardot}generic\ {\isacharequal}{\isachargreater}\ fn\ th{\isacharcolon}\ thm\ {\isacharequal}{\isachargreater}\isanewline
+\ \ \ \ \ \ \ \ \ \ let\ val\ th{\isacharprime}\ {\isacharequal}\ th\ OF\ ths\isanewline
+\ \ \ \ \ \ \ \ \ \ in\ th{\isacharprime}\ end{\isacharparenright}{\isacharparenright}\ {\isacharverbatimclose}\ \ {\isachardoublequoteopen}my\ rule{\isachardoublequoteclose}\isanewline
+\isanewline
+\ \ \ \ \isacommand{attribute{\isacharunderscore}setup}\isamarkupfalse%
+\ my{\isacharunderscore}declatation\ {\isacharequal}\ {\isacharverbatimopen}\isanewline
+\ \ \ \ \ \ Attrib{\isachardot}thms\ {\isachargreater}{\isachargreater}\ {\isacharparenleft}fn\ ths\ {\isacharequal}{\isachargreater}\isanewline
+\ \ \ \ \ \ \ \ Thm{\isachardot}declaration{\isacharunderscore}attribute\ {\isacharparenleft}fn\ th{\isacharcolon}\ thm\ {\isacharequal}{\isachargreater}\ fn\ context{\isacharcolon}\ Context{\isachardot}generic\ {\isacharequal}{\isachargreater}\isanewline
+\ \ \ \ \ \ \ \ \ \ let\ val\ context{\isacharprime}\ {\isacharequal}\ context\isanewline
+\ \ \ \ \ \ \ \ \ \ in\ context{\isacharprime}\ end{\isacharparenright}{\isacharparenright}\ {\isacharverbatimclose}\ \ {\isachardoublequoteopen}my\ declaration{\isachardoublequoteclose}%
+\endisatagML
+{\isafoldML}%
+%
+\isadelimML
+%
+\endisadelimML
+%
+\begin{isamarkuptext}%
+\begin{description}
 
   \item \verb|bind_thms|~\isa{{\isachardoublequote}{\isacharparenleft}name{\isacharcomma}\ thms{\isacharparenright}{\isachardoublequote}} stores a list of
   theorems produced in ML both in the theory context and the ML
