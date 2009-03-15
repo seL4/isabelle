@@ -334,11 +334,11 @@ val add_del =
 
 in
 
-val simproc_att = Attrib.syntax
-  (Scan.peek (fn context =>
+val simproc_att =
+  Scan.peek (fn context =>
     add_del :|-- (fn decl =>
       Scan.repeat1 (Args.named_attribute (decl o get_simproc context))
-      >> (Library.apply o map Morphism.form))));
+      >> (Library.apply o map Morphism.form)));
 
 end;
 
@@ -355,10 +355,10 @@ fun conv_mode x =
 
 in
 
-val simplified =
-  Attrib.syntax (conv_mode -- Attrib.thms >> (fn (f, ths) => Thm.rule_attribute (fn context =>
+val simplified = conv_mode -- Attrib.thms >>
+  (fn (f, ths) => Thm.rule_attribute (fn context =>
     f ((if null ths then I else MetaSimplifier.clear_ss)
-        (local_simpset_of (Context.proof_of context)) addsimps ths))));
+        (local_simpset_of (Context.proof_of context)) addsimps ths)));
 
 end;
 
@@ -366,11 +366,12 @@ end;
 (* setup attributes *)
 
 val _ = Context.>> (Context.map_theory
- (Attrib.add_attributes
-   [(simpN, Attrib.add_del_args simp_add simp_del, "declaration of Simplifier rewrite rule"),
-    (congN, Attrib.add_del_args cong_add cong_del, "declaration of Simplifier congruence rule"),
-    ("simproc", simproc_att, "declaration of simplification procedures"),
-    ("simplified", simplified, "simplified rule")]));
+ (Attrib.setup (Binding.name simpN) (Attrib.add_del simp_add simp_del)
+    "declaration of Simplifier rewrite rule" #>
+  Attrib.setup (Binding.name congN) (Attrib.add_del cong_add cong_del)
+    "declaration of Simplifier congruence rule" #>
+  Attrib.setup (Binding.name "simproc") simproc_att "declaration of simplification procedures" #>
+  Attrib.setup (Binding.name "simplified") simplified "simplified rule"));
 
 
 

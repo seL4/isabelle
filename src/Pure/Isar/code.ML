@@ -100,12 +100,11 @@ fun add_attribute (attr as (name, _)) =
 
 val _ =
   let
-    val code_attr = Attrib.syntax (Scan.peek (fn context =>
-      List.foldr op || Scan.fail (map snd (CodeAttr.get (Context.theory_of context)))));
+    val code_attr = Scan.peek (fn context =>
+      List.foldr op || Scan.fail (map snd (CodeAttr.get (Context.theory_of context))));
   in
     Context.>> (Context.map_theory
-      (Attrib.add_attributes
-        [("code", code_attr, "declare theorems for code generation")]))
+      (Attrib.setup (Binding.name "code") code_attr "declare theorems for code generation"))
   end;
 
 

@@ -298,7 +298,7 @@ fun list_of_Int th =
 
 lemmas lessThanBspec = lessThan_iff [THEN iffD2, THEN [2] bspec]
 
-setup {*
+attribute_setup normalized = {*
 let
   fun normalized th =
     normalized (th RS spec
@@ -307,9 +307,9 @@ let
       handle THM _ => th RS (@{thm guarantees_INT_right_iff} RS iffD1))
     handle THM _ => th;
 in
-  Attrib.add_attributes [("normalized", Attrib.no_args (Thm.rule_attribute (K normalized)), "")]
+  Scan.succeed (Thm.rule_attribute (K normalized))
 end
-*}
+*} ""
 
 (*** bijectivity of sysOfAlloc [MUST BE AUTOMATED] ***)
 ML {*

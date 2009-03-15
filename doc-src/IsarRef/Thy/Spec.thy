@@ -800,6 +800,7 @@ text {*
     @{command_def "ML_command"} & : & @{text "any \<rightarrow>"} \\
     @{command_def "setup"} & : & @{text "theory \<rightarrow> theory"} \\
     @{command_def "local_setup"} & : & @{text "local_theory \<rightarrow> local_theory"} \\
+    @{command_def "attribute_setup"} & : & @{text "theory \<rightarrow> theory"} \\
   \end{matharray}
 
   \begin{mldecls}
@@ -811,6 +812,8 @@ text {*
     'use' name
     ;
     ('ML' | 'ML\_prf' | 'ML\_val' | 'ML\_command' | 'setup' | 'local\_setup') text
+    ;
+    'attribute\_setup' name '=' text text
     ;
   \end{rail}
 
@@ -855,6 +858,34 @@ text {*
   "local_theory -> local_theory"}.  This allows to
   invoke local theory specification packages without going through
   concrete outer syntax, for example.
+
+  \item @{command "attribute_setup"}~@{text "name = text description"}
+  defines an attribute in the current theory.  The given @{text
+  "text"} has to be an ML expression of type
+  @{ML_type "attribute context_parser"}, cf.\ basic parsers defined in
+  structure @{ML_struct Args} and @{ML_struct Attrib}.
+
+  In principle, attributes can operate both on a given theorem and the
+  implicit context, although in practice only one is modified and the
+  other serves as parameter.  Here are examples for these two cases:
+
+  \end{description}
+*}
+
+    attribute_setup my_rule = {*
+      Attrib.thms >> (fn ths =>
+        Thm.rule_attribute (fn context: Context.generic => fn th: thm =>
+          let val th' = th OF ths
+          in th' end)) *}  "my rule"
+
+    attribute_setup my_declatation = {*
+      Attrib.thms >> (fn ths =>
+        Thm.declaration_attribute (fn th: thm => fn context: Context.generic =>
+          let val context' = context
+          in context' end)) *}  "my declaration"
+
+text {*
+  \begin{description}
 
   \item @{ML bind_thms}~@{text "(name, thms)"} stores a list of
   theorems produced in ML both in the theory context and the ML

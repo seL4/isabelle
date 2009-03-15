@@ -282,10 +282,12 @@ val recdef_tc_i = gen_recdef_tc (K I) (K I);
 (* setup theory *)
 
 val setup =
-  Attrib.add_attributes
-   [(recdef_simpN, Attrib.add_del_args simp_add simp_del, "declaration of recdef simp rule"),
-    (recdef_congN, Attrib.add_del_args cong_add cong_del, "declaration of recdef cong rule"),
-    (recdef_wfN, Attrib.add_del_args wf_add wf_del, "declaration of recdef wf rule")];
+  Attrib.setup @{binding recdef_simp} (Attrib.add_del simp_add simp_del)
+    "declaration of recdef simp rule" #>
+  Attrib.setup @{binding recdef_cong} (Attrib.add_del cong_add cong_del)
+    "declaration of recdef cong rule" #>
+  Attrib.setup @{binding recdef_wf} (Attrib.add_del wf_add wf_del)
+    "declaration of recdef wf rule";
 
 
 (* outer syntax *)

@@ -603,6 +603,9 @@ higher-order interface for components with shared state, avoiding the
 delicate details of mutexes and condition variables.  [Poly/ML 5.2.1
 or later]
 
+* Simplified ML attribute and method setup, cf. functions Attrib.setup
+and Method.setup, as well as commands 'attribute_setup'.
+
 * Simplified ML oracle interface Thm.add_oracle promotes 'a -> cterm
 to 'a -> thm, while results are always tagged with an authentic oracle
 name.  The Isar command 'oracle' is now polymorphic, no argument type

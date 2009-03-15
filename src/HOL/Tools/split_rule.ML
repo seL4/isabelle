@@ -145,18 +145,17 @@ fun split_rule_goal ctxt xss rl =
 
 (* FIXME dynamically scoped due to Args.name_source/pair_tac *)
 
-val split_format = Attrib.syntax (Scan.lift
+val split_format = Scan.lift
  (Args.parens (Args.$$$ "complete") >> K (Thm.rule_attribute (K complete_split_rule)) ||
   OuterParse.and_list1 (Scan.repeat Args.name_source)
     >> (fn xss => Thm.rule_attribute (fn context =>
-        split_rule_goal (Context.proof_of context) xss))));
+        split_rule_goal (Context.proof_of context) xss)));
 
 val setup =
-  Attrib.add_attributes
-    [("split_format", split_format,
-      "split pair-typed subterms in premises, or function arguments"),
-     ("split_rule", Attrib.no_args (Thm.rule_attribute (K split_rule)),
-      "curries ALL function variables occurring in a rule's conclusion")];
+  Attrib.setup @{binding split_format} split_format
+    "split pair-typed subterms in premises, or function arguments" #>
+  Attrib.setup @{binding split_rule} (Scan.succeed (Thm.rule_attribute (K split_rule)))
+    "curries ALL function variables occurring in a rule's conclusion";
 
 end;
 

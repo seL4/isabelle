@@ -528,12 +528,11 @@ val setup_methods =
 
 (** Attribute for converting a theorem into clauses **)
 
-val clausify = Attrib.syntax (Scan.lift OuterParse.nat
-  >> (fn i => Thm.rule_attribute (fn context => fn th =>
-      Meson.make_meta_clause (nth (cnf_axiom (Context.theory_of context) th) i))));
+val clausify = Scan.lift OuterParse.nat >>
+  (fn i => Thm.rule_attribute (fn context => fn th =>
+      Meson.make_meta_clause (nth (cnf_axiom (Context.theory_of context) th) i)));
 
-val setup_attrs = Attrib.add_attributes
-  [("clausify", clausify, "conversion of theorem to clauses")];
+val setup_attrs = Attrib.setup @{binding clausify} clausify "conversion of theorem to clauses";
 
 
 

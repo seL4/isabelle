@@ -29,9 +29,8 @@ sig
   val elim_query: int option -> attribute
   val dest_query: int option -> attribute
   val rule_del: attribute
-  val add_args:
-    (int option -> attribute) -> (int option -> attribute) -> (int option -> attribute) ->
-    Attrib.src -> attribute
+  val add: (int option -> attribute) -> (int option -> attribute) -> (int option -> attribute) ->
+    attribute context_parser
 end;
 
 structure ContextRules: CONTEXT_RULES =
@@ -203,17 +202,18 @@ val _ = Context.>> (Context.map_theory
 
 (* concrete syntax *)
 
-fun add_args a b c = Attrib.syntax
+fun add a b c x =
   (Scan.lift ((Args.bang >> K a || Args.query >> K c || Scan.succeed b) --
-    Scan.option OuterParse.nat) >> (fn (f, n) => f n));
+    Scan.option OuterParse.nat) >> (fn (f, n) => f n)) x;
 
-val rule_atts =
- [("intro", add_args intro_bang intro intro_query, "declaration of introduction rule"),
-  ("elim", add_args elim_bang elim elim_query, "declaration of elimination rule"),
-  ("dest", add_args dest_bang dest dest_query, "declaration of destruction rule"),
-  ("rule", Attrib.syntax (Scan.lift Args.del >> K rule_del),
-    "remove declaration of intro/elim/dest rule")];
-
-val _ = Context.>> (Context.map_theory (Attrib.add_attributes rule_atts));
+val _ = Context.>> (Context.map_theory
+ (Attrib.setup (Binding.name "intro") (add intro_bang intro intro_query)
+    "declaration of introduction rule" #>
+  Attrib.setup (Binding.name "elim") (add elim_bang elim elim_query)
+    "declaration of elimination rule" #>
+  Attrib.setup (Binding.name "dest") (add dest_bang dest dest_query)
+    "declaration of destruction rule" #>
+  Attrib.setup (Binding.name "rule") (Scan.lift Args.del >> K rule_del)
+    "remove declaration of intro/elim/dest rule"));
 
 end;

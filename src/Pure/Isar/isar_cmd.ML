@@ -155,9 +155,7 @@ fun oracle (name, pos) (body_txt, body_pos) =
     val body = SymbolPos.content (SymbolPos.explode (body_txt, body_pos));
     val txt =
       "local\n\
-      \  val name = " ^ ML_Syntax.print_string name ^ ";\n\
-      \  val pos = " ^ ML_Syntax.print_position pos ^ ";\n\
-      \  val binding = Binding.make (name, pos);\n\
+      \  val binding = " ^ ML_Syntax.make_binding (name, pos) ^ ";\n\
       \  val body = " ^ body ^ ";\n\
       \in\n\
       \  val " ^ name ^ " = snd (Context.>>> (Context.map_theory_result (Thm.add_oracle (binding, body))));\n\
