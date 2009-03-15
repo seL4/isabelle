@@ -20,6 +20,7 @@ sig
   val print_strings: string list -> string
   val print_properties: Properties.T -> string
   val print_position: Position.T -> string
+  val make_binding: string * Position.T -> string
   val print_indexname: indexname -> string
   val print_class: class -> string
   val print_sort: sort -> string
@@ -72,6 +73,7 @@ val print_strings = print_list print_string;
 
 val print_properties = print_list (print_pair print_string print_string);
 fun print_position pos = "Position.of_properties " ^ print_properties (Position.properties_of pos);
+fun make_binding (name, pos) = "Binding.make " ^ print_pair print_string print_position (name, pos);
 
 val print_indexname = print_pair print_string print_int;
 
