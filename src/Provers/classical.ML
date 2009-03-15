@@ -149,8 +149,8 @@ sig
   val cla_modifiers: Method.modifier parser list
   val cla_meth: (claset -> tactic) -> thm list -> Proof.context -> Proof.method
   val cla_meth': (claset -> int -> tactic) -> thm list -> Proof.context -> Proof.method
-  val cla_method: (claset -> tactic) -> Method.src -> Proof.context -> Proof.method
-  val cla_method': (claset -> int -> tactic) -> Method.src -> Proof.context -> Proof.method
+  val cla_method: (claset -> tactic) -> (Proof.context -> Proof.method) context_parser
+  val cla_method': (claset -> int -> tactic) -> (Proof.context -> Proof.method) context_parser
   val setup: theory -> theory
 end;
 
@@ -1025,23 +1025,29 @@ fun cla_meth tac prems ctxt = METHOD (fn facts =>
 fun cla_meth' tac prems ctxt = METHOD (fn facts =>
   HEADGOAL (Method.insert_tac (prems @ facts) THEN' tac (local_claset_of ctxt)));
 
-val cla_method = Method.bang_sectioned_args cla_modifiers o cla_meth;
-val cla_method' = Method.bang_sectioned_args cla_modifiers o cla_meth';
+fun cla_method tac = Args.bang_facts --| Method.sections cla_modifiers >> (cla_meth tac);
+fun cla_method' tac = Args.bang_facts --| Method.sections cla_modifiers >> (cla_meth' tac);
 
 
 
 (** setup_methods **)
 
-val setup_methods = Method.add_methods
- [("default", Method.thms_ctxt_args default, "apply some intro/elim rule (potentially classical)"),
-  ("rule", Method.thms_ctxt_args rule, "apply some intro/elim rule (potentially classical)"),
-  ("contradiction", Method.no_args contradiction, "proof by contradiction"),
-  ("clarify", cla_method' (CHANGED_PROP oo clarify_tac), "repeatedly apply safe steps"),
-  ("fast", cla_method' fast_tac, "classical prover (depth-first)"),
-  ("slow", cla_method' slow_tac, "classical prover (slow depth-first)"),
-  ("best", cla_method' best_tac, "classical prover (best-first)"),
-  ("deepen", cla_method' (fn cs => deepen_tac cs 4), "classical prover (iterative deepening)"),
-  ("safe", cla_method (CHANGED_PROP o safe_tac), "classical prover (apply safe rules)")];
+val setup_methods =
+  Method.setup @{binding default} (Attrib.thms >> default)
+    "apply some intro/elim rule (potentially classical)" #>
+  Method.setup @{binding rule} (Attrib.thms >> rule)
+    "apply some intro/elim rule (potentially classical)" #>
+  Method.setup @{binding contradiction} (Scan.succeed (K contradiction))
+    "proof by contradiction" #>
+  Method.setup @{binding clarify} (cla_method' (CHANGED_PROP oo clarify_tac))
+    "repeatedly apply safe steps" #>
+  Method.setup @{binding fast} (cla_method' fast_tac) "classical prover (depth-first)" #>
+  Method.setup @{binding slow} (cla_method' slow_tac) "classical prover (slow depth-first)" #>
+  Method.setup @{binding best} (cla_method' best_tac) "classical prover (best-first)" #>
+  Method.setup @{binding deepen} (cla_method' (fn cs => deepen_tac cs 4))
+    "classical prover (iterative deepening)" #>
+  Method.setup @{binding safe} (cla_method (CHANGED_PROP o safe_tac))
+    "classical prover (apply safe rules)";
 
 
 

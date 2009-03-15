@@ -296,28 +296,30 @@ fun clasimp_meth tac prems ctxt = METHOD (fn facts =>
 fun clasimp_meth' tac prems ctxt = METHOD (fn facts =>
   HEADGOAL (Method.insert_tac (prems @ facts) THEN' tac (local_clasimpset_of ctxt)));
 
-val clasimp_method = Method.bang_sectioned_args clasimp_modifiers o clasimp_meth;
-val clasimp_method' = Method.bang_sectioned_args clasimp_modifiers o clasimp_meth';
 
+fun clasimp_method tac =
+  Args.bang_facts --| Method.sections clasimp_modifiers >> (clasimp_meth tac);
 
-fun auto_args m =
-  Method.bang_sectioned_args' clasimp_modifiers
-    (Scan.lift (Scan.option (OuterParse.nat -- OuterParse.nat))) m;
+fun clasimp_method' tac =
+  Args.bang_facts --| Method.sections clasimp_modifiers >> (clasimp_meth' tac);
 
-fun auto_meth NONE = clasimp_meth (CHANGED_PROP o auto_tac)
-  | auto_meth (SOME (m, n)) = clasimp_meth (CHANGED_PROP o (fn css => mk_auto_tac css m n));
+val auto_method =
+  Args.bang_facts -- Scan.lift (Scan.option (OuterParse.nat -- OuterParse.nat)) --|
+  Method.sections clasimp_modifiers >>
+  (fn (prems, NONE) => clasimp_meth (CHANGED_PROP o auto_tac) prems
+    | (prems, SOME (m, n)) => clasimp_meth (CHANGED_PROP o (fn css => mk_auto_tac css m n)) prems);
 
 
 (* theory setup *)
 
 val clasimp_setup =
- (Attrib.setup @{binding iff} iff_att "declaration of Simplifier / Classical rules" #>
-  Method.add_methods
-   [("fastsimp", clasimp_method' fast_simp_tac, "combined fast and simp"),
-    ("slowsimp", clasimp_method' slow_simp_tac, "combined slow and simp"),
-    ("bestsimp", clasimp_method' best_simp_tac, "combined best and simp"),
-    ("force", clasimp_method' force_tac, "force"),
-    ("auto", auto_args auto_meth, "auto"),
-    ("clarsimp", clasimp_method' (CHANGED_PROP oo clarsimp_tac), "clarify simplified goal")]);
+  Attrib.setup @{binding iff} iff_att "declaration of Simplifier / Classical rules" #>
+  Method.setup @{binding fastsimp} (clasimp_method' fast_simp_tac) "combined fast and simp" #>
+  Method.setup @{binding slowsimp} (clasimp_method' slow_simp_tac) "combined slow and simp" #>
+  Method.setup @{binding bestsimp} (clasimp_method' best_simp_tac) "combined best and simp" #>
+  Method.setup @{binding force} (clasimp_method' force_tac) "force" #>
+  Method.setup @{binding auto} auto_method "auto" #>
+  Method.setup @{binding clarsimp} (clasimp_method' (CHANGED_PROP oo clarsimp_tac))
+    "clarify simplified goal";
 
 end;

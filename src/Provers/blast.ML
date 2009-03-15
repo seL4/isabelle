@@ -1306,12 +1306,13 @@ fun tryInThy thy lim s =
 (** method setup **)
 
 val blast_method =
-  Method.bang_sectioned_args' Data.cla_modifiers (Scan.lift (Scan.option OuterParse.nat))
-    (fn NONE => Data.cla_meth' blast_tac
-      | SOME lim => Data.cla_meth' (fn cs => depth_tac cs lim));
+  Args.bang_facts -- Scan.lift (Scan.option OuterParse.nat) --|
+  Method.sections Data.cla_modifiers >>
+  (fn (prems, NONE) => Data.cla_meth' blast_tac prems
+    | (prems, SOME lim) => Data.cla_meth' (fn cs => depth_tac cs lim) prems);
 
 val setup =
   setup_depth_limit #>
-  Method.add_methods [("blast", blast_method, "tableau prover")];
+  Method.setup @{binding blast} blast_method "tableau prover";
 
 end;

@@ -1,5 +1,4 @@
 (*  Title:      ZF/Tools/typechk.ML
-    ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1999  University of Cambridge
 
@@ -111,10 +110,10 @@ val type_solver = Simplifier.mk_solver' "ZF typecheck" (fn ss =>
 (* concrete syntax *)
 
 val typecheck_meth =
-  Method.only_sectioned_args
+  Method.sections
     [Args.add -- Args.colon >> K (I, TC_add),
      Args.del -- Args.colon >> K (I, TC_del)]
-  (fn ctxt => SIMPLE_METHOD (CHANGED (typecheck_tac ctxt)));
+  >> (K (fn ctxt => SIMPLE_METHOD (CHANGED (typecheck_tac ctxt))));
 
 val _ =
   OuterSyntax.improper_command "print_tcset" "print context of ZF typecheck" OuterKeyword.diag
@@ -126,7 +125,7 @@ val _ =
 
 val setup =
   Attrib.setup @{binding TC} (Attrib.add_del TC_add TC_del) "declaration of type-checking rule" #>
-  Method.add_methods [("typecheck", typecheck_meth, "ZF type-checking")] #>
+  Method.setup @{binding typecheck} typecheck_meth "ZF type-checking" #>
   Simplifier.map_simpset (fn ss => ss setSolver type_solver);
 
 end;

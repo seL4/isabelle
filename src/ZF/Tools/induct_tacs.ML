@@ -1,5 +1,4 @@
 (*  Title:      ZF/Tools/induct_tacs.ML
-    ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1994  University of Cambridge
 
@@ -177,11 +176,14 @@ fun rep_datatype raw_elim raw_induct raw_case_eqns raw_recursor_eqns thy =
 (* theory setup *)
 
 val setup =
-  Method.add_methods
-    [("induct_tac", Method.goal_args_ctxt Args.name induct_tac,
-      "induct_tac emulation (dynamic instantiation!)"),
-     ("case_tac", Method.goal_args_ctxt Args.name exhaust_tac,
-      "datatype case_tac emulation (dynamic instantiation!)")];
+  Method.setup @{binding induct_tac}
+    (Args.goal_spec -- Scan.lift Args.name >>
+      (fn (quant, s) => fn ctxt => SIMPLE_METHOD'' quant (induct_tac ctxt s)))
+    "induct_tac emulation (dynamic instantiation!)" #>
+  Method.setup @{binding case_tac}
+   (Args.goal_spec -- Scan.lift Args.name >>
+      (fn (quant, s) => fn ctxt => SIMPLE_METHOD'' quant (exhaust_tac ctxt s)))
+    "datatype case_tac emulation (dynamic instantiation!)";
 
 
 (* outer syntax *)

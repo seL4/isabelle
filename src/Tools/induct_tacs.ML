@@ -26,7 +26,7 @@ fun check_type ctxt t =
       error ("Cannot determine type of " ^ Syntax.string_of_term ctxt u);
   in (u, U) end;
 
-fun gen_case_tac ctxt0 (s, opt_rule) i st =
+fun gen_case_tac ctxt0 s opt_rule i st =
   let
     val ((_, goal), ctxt) = Variable.focus_subgoal i st ctxt0;
     val rule =
@@ -46,8 +46,8 @@ fun gen_case_tac ctxt0 (s, opt_rule) i st =
   in res_inst_tac ctxt [(xi, s)] rule i st end
   handle THM _ => Seq.empty;
 
-fun case_tac ctxt s = gen_case_tac ctxt (s, NONE);
-fun case_rule_tac ctxt s rule = gen_case_tac ctxt (s, SOME rule);
+fun case_tac ctxt s = gen_case_tac ctxt s NONE;
+fun case_rule_tac ctxt s rule = gen_case_tac ctxt s (SOME rule);
 
 
 (* induction *)
@@ -63,7 +63,7 @@ fun prep_inst (concl, xs) =
 
 in
 
-fun gen_induct_tac ctxt0 (varss, opt_rules) i st =
+fun gen_induct_tac ctxt0 varss opt_rules i st =
   let
     val ((_, goal), ctxt) = Variable.focus_subgoal i st ctxt0;
     val (prems, concl) = Logic.strip_horn (Thm.term_of goal);
@@ -103,8 +103,8 @@ fun gen_induct_tac ctxt0 (varss, opt_rules) i st =
 
 end;
 
-fun induct_tac ctxt args = gen_induct_tac ctxt (args, NONE);
-fun induct_rules_tac ctxt args rules = gen_induct_tac ctxt (args, SOME rules);
+fun induct_tac ctxt args = gen_induct_tac ctxt args NONE;
+fun induct_rules_tac ctxt args rules = gen_induct_tac ctxt args (SOME rules);
 
 
 (* method syntax *)
@@ -122,11 +122,14 @@ val varss =
 in
 
 val setup =
-  Method.add_methods
-   [("case_tac", Method.goal_args_ctxt' (Scan.lift Args.name_source -- opt_rule) gen_case_tac,
-      "unstructured case analysis on types"),
-    ("induct_tac", Method.goal_args_ctxt' (varss -- opt_rules) gen_induct_tac,
-      "unstructured induction on types")];
+  Method.setup @{binding case_tac}
+    (Args.goal_spec -- Scan.lift Args.name_source -- opt_rule >>
+      (fn ((quant, s), r) => fn ctxt => SIMPLE_METHOD'' quant (gen_case_tac ctxt s r)))
+    "unstructured case analysis on types" #>
+  Method.setup @{binding induct_tac}
+    (Args.goal_spec -- varss -- opt_rules >>
+      (fn ((quant, vs), rs) => fn ctxt => SIMPLE_METHOD'' quant (gen_induct_tac ctxt vs rs)))
+    "unstructured induction on types";
 
 end;
 

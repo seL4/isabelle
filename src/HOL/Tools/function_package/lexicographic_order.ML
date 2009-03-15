@@ -220,9 +220,11 @@ fun lexicographic_order_tac ctxt =
 
 val lexicographic_order = SIMPLE_METHOD o lexicographic_order_tac
 
-val setup = Method.add_methods [("lexicographic_order", Method.only_sectioned_args clasimp_modifiers lexicographic_order,
-                                 "termination prover for lexicographic orderings")]
-     #> Context.theory_map (FundefCommon.set_termination_prover lexicographic_order)
+val setup =
+  Method.setup @{binding lexicographic_order}
+    (Method.sections clasimp_modifiers >> (K lexicographic_order))
+    "termination prover for lexicographic orderings"
+  #> Context.theory_map (FundefCommon.set_termination_prover lexicographic_order)
 
 end;
 
