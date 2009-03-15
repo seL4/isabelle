@@ -84,7 +84,9 @@ sig
   val simple_args: 'a parser -> ('a -> Proof.context -> method) -> src -> Proof.context -> method
   val ctxt_args: (Proof.context -> method) -> src -> Proof.context -> method
   val no_args: method -> src -> Proof.context -> method
-  type modifier
+  type modifier = (Proof.context -> Proof.context) * attribute
+  val section: modifier parser list -> thm list context_parser
+  val sections: modifier parser list -> thm list list context_parser
   val sectioned_args: 'a context_parser -> modifier parser list ->
     ('a -> Proof.context -> 'b) -> src -> Proof.context -> 'b
   val bang_sectioned_args: modifier parser list ->
@@ -433,15 +435,15 @@ local
 fun thms ss = Scan.repeat (Scan.unless (Scan.lift (Scan.first ss)) Attrib.multi_thm) >> flat;
 fun app (f, att) (context, ths) = Library.foldl_map att (Context.map_proof f context, ths);
 
+in
+
 fun section ss = Scan.depend (fn context => (Scan.first ss -- Scan.pass context (thms ss)) :|--
   (fn (m, ths) => Scan.succeed (app m (context, ths))));
 
-fun sectioned args ss = args -- Scan.repeat (section ss);
-
-in
+fun sections ss = Scan.repeat (section ss);
 
 fun sectioned_args args ss f src ctxt =
-  let val ((x, _), ctxt') = syntax (sectioned args ss) src ctxt
+  let val ((x, _), ctxt') = syntax (args -- sections ss) src ctxt
   in f x ctxt' end;
 
 fun bang_sectioned_args ss f = sectioned_args Args.bang_facts ss f;
