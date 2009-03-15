@@ -689,6 +689,6 @@ val setup =
   add_shuffle_rule imp_comm #>
   add_shuffle_rule Drule.norm_hhf_eq #>
   add_shuffle_rule Drule.triv_forall_equality #>
-  Attrib.add_attributes [("shuffle_rule", Attrib.no_args shuffle_attr, "declare rule for shuffler")]
+  Attrib.setup @{binding shuffle_rule} (Scan.succeed shuffle_attr) "declare rule for shuffler";
 
 end

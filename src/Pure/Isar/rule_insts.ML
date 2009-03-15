@@ -218,8 +218,8 @@ val inst = Args.var -- (Args.$$$ "=" |-- Scan.ahead P.not_eof -- value)
 
 in
 
-val where_att = Attrib.syntax (Scan.lift (P.and_list inst) >> (fn args =>
-  Thm.rule_attribute (fn context => read_instantiate_mixed (Context.proof_of context) args)));
+fun where_att x = (Scan.lift (P.and_list inst) >> (fn args =>
+  Thm.rule_attribute (fn context => read_instantiate_mixed (Context.proof_of context) args))) x;
 
 end;
 
@@ -241,8 +241,8 @@ val insts =
 
 in
 
-val of_att = Attrib.syntax (Scan.lift insts >> (fn args =>
-  Thm.rule_attribute (fn context => read_instantiate_mixed' (Context.proof_of context) args)));
+fun of_att x = (Scan.lift insts >> (fn args =>
+  Thm.rule_attribute (fn context => read_instantiate_mixed' (Context.proof_of context) args))) x;
 
 end;
 
@@ -250,9 +250,8 @@ end;
 (* setup *)
 
 val _ = Context.>> (Context.map_theory
-  (Attrib.add_attributes
-   [("where", where_att, "named instantiation of theorem"),
-    ("of", of_att, "positional instantiation of theorem")]));
+ (Attrib.setup (Binding.name "where") where_att "named instantiation of theorem" #>
+  Attrib.setup (Binding.name "of") of_att "positional instantiation of theorem"));
 
 
 

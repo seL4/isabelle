@@ -1334,11 +1334,11 @@ val code_ind_intros_attrib = attrib add_intro_thm
 
 val code_ind_cases_attrib = attrib add_elim_thm
 
-val setup = Attrib.add_attributes
-    [("code_ind_intros", Attrib.no_args code_ind_intros_attrib,
-      "adding alternative introduction rules for code generation of inductive predicates"),
-     ("code_ind_cases", Attrib.no_args code_ind_cases_attrib, 
-      "adding alternative elimination rules for code generation of inductive predicates")]
+val setup =
+  Attrib.setup @{binding code_ind_intros} (Scan.succeed code_ind_intros_attrib)
+    "adding alternative introduction rules for code generation of inductive predicates" #>
+  Attrib.setup @{binding code_ind_cases} (Scan.succeed code_ind_cases_attrib)
+    "adding alternative elimination rules for code generation of inductive predicates";
 
 end;
 

@@ -110,8 +110,6 @@ val type_solver = Simplifier.mk_solver' "ZF typecheck" (fn ss =>
 
 (* concrete syntax *)
 
-val TC_att = Attrib.add_del_args TC_add TC_del;
-
 val typecheck_meth =
   Method.only_sectioned_args
     [Args.add -- Args.colon >> K (I, TC_add),
@@ -127,7 +125,7 @@ val _ =
 (* theory setup *)
 
 val setup =
-  Attrib.add_attributes [("TC", TC_att, "declaration of type-checking rule")] #>
+  Attrib.setup @{binding TC} (Attrib.add_del TC_add TC_del) "declaration of type-checking rule" #>
   Method.add_methods [("typecheck", typecheck_meth, "ZF type-checking")] #>
   Simplifier.map_simpset (fn ss => ss setSolver type_solver);
 

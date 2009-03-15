@@ -85,8 +85,8 @@ val thms = Scan.repeat (Scan.unless any_keyword Attrib.multi_thm) >> flat;
 val terms = thms >> map Drule.dest_term;
 in
 
-val att_syntax = Attrib.syntax
-    ((keyword qeN |-- thms)
+val attribute =
+    (keyword qeN |-- thms)
      -- (keyword gatherN |-- thms)
      -- (keyword atomsN |-- terms) >> 
      (fn ((qes,gs), atoms) => 
@@ -97,14 +97,13 @@ val att_syntax = Attrib.syntax
          val entry = {qe_bnds = q1, qe_nolb = q2,
                       qe_noub = q3, gs = gss, gst = gst, atoms = atoms}
        in add entry end
-     else error "Need 3 theorems for qe and at least one for gs"))
+     else error "Need 3 theorems for qe and at least one for gs")
 end;
 
 (* theory setup *)
 
 val setup =
-  Attrib.add_attributes 
-[("langford", att_syntax, "Langford data"),
- ("langfordsimp", Attrib.add_del_args add_simp del_simp, "Langford simpset")];
+  Attrib.setup @{binding langford} attribute "Langford data" #>
+  Attrib.setup @{binding langfordsimp} (Attrib.add_del add_simp del_simp) "Langford simpset";
 
 end;

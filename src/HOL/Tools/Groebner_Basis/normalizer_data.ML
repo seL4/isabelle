@@ -191,8 +191,8 @@ fun optional scan = Scan.optional scan [];
 
 in
 
-val att_syntax = Attrib.syntax
-  (Scan.lift (Args.$$$ delN >> K del) ||
+val attribute =
+  Scan.lift (Args.$$$ delN >> K del) ||
     ((keyword2 semiringN opsN |-- terms) --
      (keyword2 semiringN rulesN |-- thms)) --
     (optional (keyword2 ringN opsN |-- terms) --
@@ -200,7 +200,7 @@ val att_syntax = Attrib.syntax
     optional (keyword2 idomN rulesN |-- thms) --
     optional (keyword2 idealN rulesN |-- thms)
     >> (fn (((sr, r), id), idl) => 
-          add {semiring = sr, ring = r, idom = id, ideal = idl}));
+          add {semiring = sr, ring = r, idom = id, ideal = idl});
 
 end;
 
@@ -208,8 +208,7 @@ end;
 (* theory setup *)
 
 val setup =
-  Attrib.add_attributes 
-     [("normalizer", att_syntax, "semiring normalizer data"),
-      ("algebra", Attrib.add_del_args add_ss del_ss, "Pre-simplification for algebra")];
+  Attrib.setup @{binding normalizer} attribute "semiring normalizer data" #>
+  Attrib.setup @{binding algebra} (Attrib.add_del add_ss del_ss) "pre-simplification for algebra";
 
 end;
