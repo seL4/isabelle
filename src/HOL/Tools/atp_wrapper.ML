@@ -177,7 +177,7 @@ val spass = spass_opts 40 true;
 
 fun remote_prover_opts max_new theory_const args timeout =
   tptp_prover_opts max_new theory_const
-  (Path.explode "$ISABELLE_HOME/contrib/SystemOnTPTP/remote", args ^ " -t " ^ string_of_int (timeout - 10))
+  (Path.explode "$ISABELLE_HOME/contrib/SystemOnTPTP/remote", args ^ " -t " ^ string_of_int timeout)
   timeout;
 
 val remote_prover = remote_prover_opts 60 false;
