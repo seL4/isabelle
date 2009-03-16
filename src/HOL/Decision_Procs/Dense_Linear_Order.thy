@@ -295,7 +295,7 @@ lemmas dnf_simps[noatp] = weak_dnf_simps nnf_simps ex_distrib
 
 use "~~/src/HOL/Tools/Qelim/langford.ML"
 method_setup dlo = {*
-  Method.ctxt_args (SIMPLE_METHOD' o LangfordQE.dlo_tac)
+  Scan.succeed (SIMPLE_METHOD' o LangfordQE.dlo_tac)
 *} "Langford's algorithm for quantifier elimination in dense linear orders"
 
 
@@ -546,7 +546,7 @@ end
 use "~~/src/HOL/Tools/Qelim/ferrante_rackoff.ML"
 
 method_setup ferrack = {*
-  Method.ctxt_args (SIMPLE_METHOD' o FerranteRackoff.dlo_tac)
+  Scan.succeed (SIMPLE_METHOD' o FerranteRackoff.dlo_tac)
 *} "Ferrante and Rackoff's algorithm for quantifier elimination in dense linear orders"
 
 subsection {* Ferrante and Rackoff algorithm over ordered fields *}

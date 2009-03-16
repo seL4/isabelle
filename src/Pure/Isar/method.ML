@@ -80,7 +80,7 @@ sig
     -> theory -> theory
   val syntax: 'a context_parser -> src -> Proof.context -> 'a * Proof.context
   val setup: binding -> (Proof.context -> method) context_parser -> string -> theory -> theory
-  val method_setup: bstring -> string * Position.T -> string -> theory -> theory
+  val method_setup: bstring * Position.T -> string * Position.T -> string -> theory -> theory
   val simple_args: 'a parser -> ('a -> Proof.context -> method) -> src -> Proof.context -> method
   val ctxt_args: (Proof.context -> method) -> src -> Proof.context -> method
   val no_args: method -> src -> Proof.context -> method
@@ -404,9 +404,9 @@ fun setup name scan comment =
 
 fun method_setup name (txt, pos) cmt =
   Context.theory_map (ML_Context.expression pos
-    "val method: bstring * (Method.src -> Proof.context -> Proof.method) * string"
-    "Context.map_theory (Method.add_method method)"
-    ("(" ^ quote name ^ ", " ^ txt ^ ", " ^ quote cmt ^ ")"));
+    "val (name, scan, comment): binding * (Proof.context -> Proof.method) context_parser * string"
+    "Context.map_theory (Method.setup name scan comment)"
+    ("(" ^ ML_Syntax.make_binding name ^ ", " ^ txt ^ ", " ^ ML_Syntax.print_string cmt ^ ")"));
 
 
 

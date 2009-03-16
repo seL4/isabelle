@@ -890,31 +890,45 @@ The Isar provides separate commands to accommodate tactic-style
   \begin{description}
 
   \item \hyperlink{command.method-setup}{\mbox{\isa{\isacommand{method{\isacharunderscore}setup}}}}~\isa{{\isachardoublequote}name\ {\isacharequal}\ text\ description{\isachardoublequote}}
-  defines a proof method in the current theory.  The given \isa{{\isachardoublequote}text{\isachardoublequote}} has to be an ML expression of type \verb|Args.src ->|\isasep\isanewline%
-\verb|  Proof.context -> Proof.method|.  Parsing concrete method syntax
-  from \verb|Args.src| input can be quite tedious in general.  The
-  following simple examples are for methods without any explicit
-  arguments, or a list of theorems, respectively.
+  defines a proof method in the current theory.  The given \isa{{\isachardoublequote}text{\isachardoublequote}} has to be an ML expression of type
+  \verb|(Proof.context -> Proof.method) context_parser|, cf.\
+  basic parsers defined in structure \verb|Args| and \verb|Attrib|.  There are also combinators like \verb|METHOD| and \verb|SIMPLE_METHOD| to turn certain tactic forms into official proof
+  methods; the primed versions refer to tactics with explicit goal
+  addressing.
 
-%FIXME proper antiquotations
-{\footnotesize
-\begin{verbatim}
- Method.no_args (METHOD (fn facts => foobar_tac))
- Method.thms_args (fn thms => METHOD (fn facts => foobar_tac))
- Method.ctxt_args (fn ctxt => METHOD (fn facts => foobar_tac))
- Method.thms_ctxt_args (fn thms => fn ctxt => METHOD (fn facts => foobar_tac))
-\end{verbatim}
-}
-
-  Note that mere tactic emulations may ignore the \isa{facts}
-  parameter above.  Proper proof methods would do something
-  appropriate with the list of current facts, though.  Single-rule
-  methods usually do strict forward-chaining (e.g.\ by using \verb|Drule.multi_resolves|), while automatic ones just insert the facts
-  using \verb|Method.insert_tac| before applying the main tactic.
+  Here are some example method definitions:
 
   \end{description}%
 \end{isamarkuptext}%
 \isamarkuptrue%
+%
+\isadelimML
+\ \ \ \ %
+\endisadelimML
+%
+\isatagML
+\isacommand{method{\isacharunderscore}setup}\isamarkupfalse%
+\ my{\isacharunderscore}method{\isadigit{1}}\ {\isacharequal}\ {\isacharverbatimopen}\isanewline
+\ \ \ \ \ \ Scan{\isachardot}succeed\ {\isacharparenleft}K\ {\isacharparenleft}SIMPLE{\isacharunderscore}METHOD{\isacharprime}\ {\isacharparenleft}fn\ i{\isacharcolon}\ int\ {\isacharequal}{\isachargreater}\ no{\isacharunderscore}tac{\isacharparenright}{\isacharparenright}{\isacharparenright}\isanewline
+\ \ \ \ {\isacharverbatimclose}\ \ {\isachardoublequoteopen}my\ first\ method\ {\isacharparenleft}without\ any\ arguments{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\isanewline
+\ \ \ \ \isacommand{method{\isacharunderscore}setup}\isamarkupfalse%
+\ my{\isacharunderscore}method{\isadigit{2}}\ {\isacharequal}\ {\isacharverbatimopen}\isanewline
+\ \ \ \ \ \ Scan{\isachardot}succeed\ {\isacharparenleft}fn\ ctxt{\isacharcolon}\ Proof{\isachardot}context\ {\isacharequal}{\isachargreater}\isanewline
+\ \ \ \ \ \ \ \ SIMPLE{\isacharunderscore}METHOD{\isacharprime}\ {\isacharparenleft}fn\ i{\isacharcolon}\ int\ {\isacharequal}{\isachargreater}\ no{\isacharunderscore}tac{\isacharparenright}{\isacharparenright}\isanewline
+\ \ \ \ {\isacharverbatimclose}\ \ {\isachardoublequoteopen}my\ second\ method\ {\isacharparenleft}with\ context{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\isanewline
+\ \ \ \ \isacommand{method{\isacharunderscore}setup}\isamarkupfalse%
+\ my{\isacharunderscore}method{\isadigit{3}}\ {\isacharequal}\ {\isacharverbatimopen}\isanewline
+\ \ \ \ \ \ Attrib{\isachardot}thms\ {\isachargreater}{\isachargreater}\ {\isacharparenleft}fn\ thms{\isacharcolon}\ thm\ list\ {\isacharequal}{\isachargreater}\ fn\ ctxt{\isacharcolon}\ Proof{\isachardot}context\ {\isacharequal}{\isachargreater}\isanewline
+\ \ \ \ \ \ \ \ SIMPLE{\isacharunderscore}METHOD{\isacharprime}\ {\isacharparenleft}fn\ i{\isacharcolon}\ int\ {\isacharequal}{\isachargreater}\ no{\isacharunderscore}tac{\isacharparenright}{\isacharparenright}\isanewline
+\ \ \ \ {\isacharverbatimclose}\ \ {\isachardoublequoteopen}my\ third\ method\ {\isacharparenleft}with\ theorem\ arguments\ and\ context{\isacharparenright}{\isachardoublequoteclose}%
+\endisatagML
+{\isafoldML}%
+%
+\isadelimML
+%
+\endisadelimML
 %
 \isamarkupsection{Generalized elimination \label{sec:obtain}%
 }
@@ -1040,7 +1054,7 @@ The Isar provides separate commands to accommodate tactic-style
 
   \begin{matharray}{rcl}
     \hyperlink{command.also}{\mbox{\isa{\isacommand{also}}}}\isa{{\isachardoublequote}\isactrlsub {\isadigit{0}}{\isachardoublequote}} & \equiv & \hyperlink{command.note}{\mbox{\isa{\isacommand{note}}}}~\isa{{\isachardoublequote}calculation\ {\isacharequal}\ this{\isachardoublequote}} \\
-    \hyperlink{command.also}{\mbox{\isa{\isacommand{also}}}}\isa{{\isachardoublequote}\isactrlsub n\isactrlsub {\isacharplus}\isactrlsub {\isadigit{1}}{\isachardoublequote}} & \equiv & \hyperlink{command.note}{\mbox{\isa{\isacommand{note}}}}~\isa{{\isachardoublequote}calculation\ {\isacharequal}\ trans\ {\isacharbrackleft}OF\ calculation\ this{\isacharbrackright}{\isachardoublequote}} \\[0.5ex]
+    \hyperlink{command.also}{\mbox{\isa{\isacommand{also}}}}\isa{{\isachardoublequote}\isactrlsub n{\isacharplus}{\isadigit{1}}{\isachardoublequote}} & \equiv & \hyperlink{command.note}{\mbox{\isa{\isacommand{note}}}}~\isa{{\isachardoublequote}calculation\ {\isacharequal}\ trans\ {\isacharbrackleft}OF\ calculation\ this{\isacharbrackright}{\isachardoublequote}} \\[0.5ex]
     \hyperlink{command.finally}{\mbox{\isa{\isacommand{finally}}}} & \equiv & \hyperlink{command.also}{\mbox{\isa{\isacommand{also}}}}~\hyperlink{command.from}{\mbox{\isa{\isacommand{from}}}}~\isa{calculation} \\[0.5ex]
     \hyperlink{command.moreover}{\mbox{\isa{\isacommand{moreover}}}} & \equiv & \hyperlink{command.note}{\mbox{\isa{\isacommand{note}}}}~\isa{{\isachardoublequote}calculation\ {\isacharequal}\ calculation\ this{\isachardoublequote}} \\
     \hyperlink{command.ultimately}{\mbox{\isa{\isacommand{ultimately}}}} & \equiv & \hyperlink{command.moreover}{\mbox{\isa{\isacommand{moreover}}}}~\hyperlink{command.from}{\mbox{\isa{\isacommand{from}}}}~\isa{calculation} \\

@@ -73,9 +73,10 @@ ML {*
   fun case_tac ctxt a = res_inst_tac ctxt [(("P", 0), a)] @{thm case_split}
 *}
 
-method_setup case_tac =
-  {* Method.goal_args_ctxt Args.name_source case_tac *}
-  "case_tac emulation (dynamic instantiation!)"
+method_setup case_tac = {*
+  Args.goal_spec -- Scan.lift Args.name_source >>
+  (fn (quant, s) => fn ctxt => SIMPLE_METHOD'' quant (case_tac ctxt s))
+*} "case_tac emulation (dynamic instantiation!)"
 
 
 (*** Special elimination rules *)

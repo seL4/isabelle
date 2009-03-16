@@ -174,7 +174,7 @@ simproc_setup binary_nat_div ("m div (n::nat)") = {* K (divmod_proc @{thm binary
 simproc_setup binary_nat_mod ("m mod (n::nat)") = {* K (divmod_proc @{thm binary_divmod(2)}) *}
 
 method_setup binary_simp = {*
-  Method.no_args (SIMPLE_METHOD'
+  Scan.succeed (K (SIMPLE_METHOD'
     (full_simp_tac
       (HOL_basic_ss
         addsimps @{thms binary_simps}
@@ -183,7 +183,7 @@ method_setup binary_simp = {*
           @{simproc binary_nat_less},
           @{simproc binary_nat_diff},
           @{simproc binary_nat_div},
-          @{simproc binary_nat_mod}])))
+          @{simproc binary_nat_mod}]))))
 *} "binary simplification"
 
 

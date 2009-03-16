@@ -124,7 +124,7 @@ fun ns_induct_tac(cs,ss) =
 *}
 
 method_setup ns_induct = {*
-    Method.ctxt_args (fn ctxt =>
+    Scan.succeed (fn ctxt =>
         SIMPLE_METHOD' (ns_induct_tac (local_clasimpset_of ctxt))) *}
     "for inductive reasoning about the Needham-Schroeder protocol"
 

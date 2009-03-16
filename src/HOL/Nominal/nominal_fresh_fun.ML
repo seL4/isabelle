@@ -199,9 +199,10 @@ val options_syntax =
     (Args.parens (Args.$$$ "no_asm") >> (K true)) ||
      (Scan.succeed false);
 
-val setup_generate_fresh =
-  Method.goal_args_ctxt' Args.tyname (fn ctxt => generate_fresh_tac) 
+fun setup_generate_fresh x =
+  (Args.goal_spec -- Args.tyname >>
+    (fn (quant, s) => K (SIMPLE_METHOD'' quant (generate_fresh_tac s)))) x;
 
-val setup_fresh_fun_simp =
-  Method.simple_args options_syntax 
-  (fn b => fn _ => SIMPLE_METHOD (fresh_fun_tac b 1))
+fun setup_fresh_fun_simp x =
+  (Scan.lift options_syntax >> (fn b => K (SIMPLE_METHOD' (fresh_fun_tac b)))) x;
+

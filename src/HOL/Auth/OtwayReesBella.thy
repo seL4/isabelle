@@ -137,7 +137,7 @@ fun parts_explicit_tac i =
 *}
  
 method_setup parts_explicit = {*
-    Method.no_args (SIMPLE_METHOD' parts_explicit_tac) *}
+    Scan.succeed (K (SIMPLE_METHOD' parts_explicit_tac)) *}
   "to explicitly state that some message components belong to parts knows Spy"
 
 
@@ -257,7 +257,7 @@ end
 *}
 
 method_setup analz_freshCryptK = {*
-    Method.ctxt_args (fn ctxt =>
+    Scan.succeed (fn ctxt =>
      (SIMPLE_METHOD
       (EVERY [REPEAT_FIRST (resolve_tac [allI, ballI, impI]),
           REPEAT_FIRST (rtac @{thm analz_image_freshCryptK_lemma}),
@@ -267,10 +267,10 @@ method_setup analz_freshCryptK = {*
 
 
 method_setup disentangle = {*
-    Method.no_args
-     (SIMPLE_METHOD
+    Scan.succeed
+     (K (SIMPLE_METHOD
       (REPEAT_FIRST (eresolve_tac [asm_rl, conjE, disjE] 
-                   ORELSE' hyp_subst_tac))) *}
+                   ORELSE' hyp_subst_tac)))) *}
   "for eliminating conjunctions, disjunctions and the like"
 
 

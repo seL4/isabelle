@@ -1,5 +1,4 @@
 (*  Title:      HOL/Nominal/nominal_permeq.ML
-    ID:         $Id$
     Authors:    Christian Urban, Julien Narboux, TU Muenchen
 
 Methods for simplifying permutations and
@@ -36,16 +35,16 @@ sig
   val finite_guess_tac : simpset -> int -> tactic
   val fresh_guess_tac : simpset -> int -> tactic
 
-  val perm_simp_meth : Method.src -> Proof.context -> Proof.method
-  val perm_simp_meth_debug : Method.src -> Proof.context -> Proof.method
-  val perm_extend_simp_meth : Method.src -> Proof.context -> Proof.method
-  val perm_extend_simp_meth_debug : Method.src -> Proof.context -> Proof.method
-  val supports_meth : Method.src -> Proof.context -> Proof.method
-  val supports_meth_debug : Method.src -> Proof.context -> Proof.method
-  val finite_guess_meth : Method.src -> Proof.context -> Proof.method
-  val finite_guess_meth_debug : Method.src -> Proof.context -> Proof.method
-  val fresh_guess_meth : Method.src -> Proof.context -> Proof.method
-  val fresh_guess_meth_debug : Method.src -> Proof.context -> Proof.method
+  val perm_simp_meth : (Proof.context -> Proof.method) context_parser
+  val perm_simp_meth_debug : (Proof.context -> Proof.method) context_parser
+  val perm_extend_simp_meth : (Proof.context -> Proof.method) context_parser
+  val perm_extend_simp_meth_debug : (Proof.context -> Proof.method) context_parser
+  val supports_meth : (Proof.context -> Proof.method) context_parser
+  val supports_meth_debug : (Proof.context -> Proof.method) context_parser
+  val finite_guess_meth : (Proof.context -> Proof.method) context_parser
+  val finite_guess_meth_debug : (Proof.context -> Proof.method) context_parser
+  val fresh_guess_meth : (Proof.context -> Proof.method) context_parser
+  val fresh_guess_meth_debug : (Proof.context -> Proof.method) context_parser
 end
 
 structure NominalPermeq : NOMINAL_PERMEQ =
@@ -400,26 +399,24 @@ val perm_simp_options =
   Args.parens (Args.$$$ asm_lrN) >> K (perm_asm_lr_simp_tac_i NO_DEBUG_tac) ||
   Scan.succeed (perm_asm_full_simp_tac_i NO_DEBUG_tac));
 
-fun perm_simp_method (prems, tac) ctxt = METHOD (fn facts =>
-   HEADGOAL (Method.insert_tac (prems @ facts) THEN'
-       ((CHANGED_PROP) oo tac) (local_simpset_of ctxt)));
-
-val perm_simp_meth = Method.sectioned_args
-     (Args.bang_facts -- Scan.lift perm_simp_options)
-     (Simplifier.simp_modifiers') perm_simp_method
+val perm_simp_meth =
+  Args.bang_facts -- Scan.lift perm_simp_options --|
+  Method.sections (Simplifier.simp_modifiers') >>
+  (fn (prems, tac) => fn ctxt => METHOD (fn facts =>
+    HEADGOAL (Method.insert_tac (prems @ facts) THEN'
+      (CHANGED_PROP oo tac) (local_simpset_of ctxt))));
 
 (* setup so that the simpset is used which is active at the moment when the tactic is called *)
 fun local_simp_meth_setup tac =
-  Method.only_sectioned_args (Simplifier.simp_modifiers' @ Splitter.split_modifiers)
-  (SIMPLE_METHOD' o tac o local_simpset_of) ;
+  Method.sections (Simplifier.simp_modifiers' @ Splitter.split_modifiers) >>
+  (K (SIMPLE_METHOD' o tac o local_simpset_of));
 
 (* uses HOL_basic_ss only and fails if the tactic does not solve the subgoal *)
 
 fun basic_simp_meth_setup debug tac =
-  Method.sectioned_args 
-   (fn (ctxt,l) => ((),((Simplifier.map_ss (fn _ => HOL_basic_ss) ctxt),l)))
-   (Simplifier.simp_modifiers' @ Splitter.split_modifiers)
-   (fn _ => SIMPLE_METHOD' o (fn ss => if debug then (tac ss) else SOLVEI (tac ss)) o local_simpset_of);
+  Scan.depend (fn ctxt => Scan.succeed (Simplifier.map_ss (fn _ => HOL_basic_ss) ctxt, ())) --
+  Method.sections (Simplifier.simp_modifiers' @ Splitter.split_modifiers) >>
+  (K (SIMPLE_METHOD' o (fn ss => if debug then tac ss else SOLVEI (tac ss)) o local_simpset_of));
 
 val perm_simp_meth_debug        = local_simp_meth_setup dperm_simp_tac;
 val perm_extend_simp_meth       = local_simp_meth_setup perm_extend_simp_tac;

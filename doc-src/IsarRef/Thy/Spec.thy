@@ -878,7 +878,7 @@ text {*
           let val th' = th OF ths
           in th' end)) *}  "my rule"
 
-    attribute_setup my_declatation = {*
+    attribute_setup my_declaration = {*
       Attrib.thms >> (fn ths =>
         Thm.declaration_attribute (fn th: thm => fn context: Context.generic =>
           let val context' = context

@@ -83,7 +83,7 @@ ML {* reset sat.trace_sat; *}
 ML {* reset quick_and_dirty; *}
 
 method_setup rawsat =
-  {* Method.no_args (SIMPLE_METHOD' sat.rawsat_tac) *}
+  {* Scan.succeed (K (SIMPLE_METHOD' sat.rawsat_tac)) *}
   "SAT solver (no preprocessing)"
 
 (* ML {* Toplevel.profiling := 1; *} *)

@@ -769,15 +769,15 @@ end
 *}
 
 method_setup prepare = {*
-    Method.no_args (SIMPLE_METHOD ShoupRubin.prepare_tac) *}
+    Scan.succeed (K (SIMPLE_METHOD ShoupRubin.prepare_tac)) *}
   "to launch a few simple facts that'll help the simplifier"
 
 method_setup parts_prepare = {*
-    Method.ctxt_args (fn ctxt => SIMPLE_METHOD (ShoupRubin.parts_prepare_tac ctxt)) *}
+    Scan.succeed (fn ctxt => SIMPLE_METHOD (ShoupRubin.parts_prepare_tac ctxt)) *}
   "additional facts to reason about parts"
 
 method_setup analz_prepare = {*
-    Method.no_args (SIMPLE_METHOD ShoupRubin.analz_prepare_tac) *}
+    Scan.succeed (K (SIMPLE_METHOD ShoupRubin.analz_prepare_tac)) *}
   "additional facts to reason about analz"
 
 
@@ -822,7 +822,7 @@ apply auto
 done
 
 method_setup sc_analz_freshK = {*
-    Method.ctxt_args (fn ctxt =>
+    Scan.succeed (fn ctxt =>
      (SIMPLE_METHOD
       (EVERY [REPEAT_FIRST
        (resolve_tac [allI, ballI, impI]),

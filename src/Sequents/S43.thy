@@ -92,8 +92,8 @@ structure S43_Prover = Modal_ProverFun
 
 
 method_setup S43_solve = {*
-  Method.no_args (SIMPLE_METHOD
-    (S43_Prover.solve_tac 2 ORELSE S43_Prover.solve_tac 3))
+  Scan.succeed (K (SIMPLE_METHOD
+    (S43_Prover.solve_tac 2 ORELSE S43_Prover.solve_tac 3)))
 *} "S4 solver"
 
 

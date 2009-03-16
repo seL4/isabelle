@@ -496,11 +496,11 @@ fun always_tac ctxt i =
 setup ProgramDefs.setup
 
 method_setup safety = {*
-  Method.ctxt_args (SIMPLE_METHOD' o constrains_tac) *}
+  Scan.succeed (SIMPLE_METHOD' o constrains_tac) *}
   "for proving safety properties"
 
 method_setup always = {*
-  Method.ctxt_args (SIMPLE_METHOD' o always_tac) *}
+  Scan.succeed (SIMPLE_METHOD' o always_tac) *}
   "for proving invariants"
 
 end

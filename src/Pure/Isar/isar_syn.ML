@@ -334,7 +334,7 @@ val _ =
 
 val _ =
   OuterSyntax.command "method_setup" "define proof method in ML" (K.tag_ml K.thy_decl)
-    (P.name -- P.!!! (P.$$$ "=" |-- P.ML_source -- P.text)
+    (P.position P.name -- P.!!! (P.$$$ "=" |-- P.ML_source -- P.text)
     >> (fn (name, (txt, cmt)) => Toplevel.theory (Method.method_setup name txt cmt)));
 
 val _ =

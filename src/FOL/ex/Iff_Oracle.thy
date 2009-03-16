@@ -52,7 +52,7 @@ ML {*
 subsection {* Oracle as proof method *}
 
 method_setup iff = {*
-  Method.simple_args OuterParse.nat (fn n => fn ctxt =>
+  Scan.lift OuterParse.nat >> (fn n => fn ctxt =>
     SIMPLE_METHOD
       (HEADGOAL (Tactic.rtac (iff_oracle (ProofContext.theory_of ctxt, n)))
         handle Fail _ => no_tac))
