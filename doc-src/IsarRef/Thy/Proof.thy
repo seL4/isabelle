@@ -886,31 +886,32 @@ text {*
 
   \item @{command "method_setup"}~@{text "name = text description"}
   defines a proof method in the current theory.  The given @{text
-  "text"} has to be an ML expression of type @{ML_type "Args.src ->
-  Proof.context -> Proof.method"}.  Parsing concrete method syntax
-  from @{ML_type Args.src} input can be quite tedious in general.  The
-  following simple examples are for methods without any explicit
-  arguments, or a list of theorems, respectively.
+  "text"} has to be an ML expression of type
+  @{ML_type "(Proof.context -> Proof.method) context_parser"}, cf.\
+  basic parsers defined in structure @{ML_struct Args} and @{ML_struct
+  Attrib}.  There are also combinators like @{ML METHOD} and @{ML
+  SIMPLE_METHOD} to turn certain tactic forms into official proof
+  methods; the primed versions refer to tactics with explicit goal
+  addressing.
 
-%FIXME proper antiquotations
-{\footnotesize
-\begin{verbatim}
- Method.no_args (METHOD (fn facts => foobar_tac))
- Method.thms_args (fn thms => METHOD (fn facts => foobar_tac))
- Method.ctxt_args (fn ctxt => METHOD (fn facts => foobar_tac))
- Method.thms_ctxt_args (fn thms => fn ctxt => METHOD (fn facts => foobar_tac))
-\end{verbatim}
-}
-
-  Note that mere tactic emulations may ignore the @{text facts}
-  parameter above.  Proper proof methods would do something
-  appropriate with the list of current facts, though.  Single-rule
-  methods usually do strict forward-chaining (e.g.\ by using @{ML
-  Drule.multi_resolves}), while automatic ones just insert the facts
-  using @{ML Method.insert_tac} before applying the main tactic.
+  Here are some example method definitions:
 
   \end{description}
 *}
+
+    method_setup my_method1 = {*
+      Scan.succeed (K (SIMPLE_METHOD' (fn i: int => no_tac)))
+    *}  "my first method (without any arguments)"
+
+    method_setup my_method2 = {*
+      Scan.succeed (fn ctxt: Proof.context =>
+        SIMPLE_METHOD' (fn i: int => no_tac))
+    *}  "my second method (with context)"
+
+    method_setup my_method3 = {*
+      Attrib.thms >> (fn thms: thm list => fn ctxt: Proof.context =>
+        SIMPLE_METHOD' (fn i: int => no_tac))
+    *}  "my third method (with theorem arguments and context)"
 
 
 section {* Generalized elimination \label{sec:obtain} *}
@@ -1041,7 +1042,7 @@ text {*
 
   \begin{matharray}{rcl}
     @{command "also"}@{text "\<^sub>0"} & \equiv & @{command "note"}~@{text "calculation = this"} \\
-    @{command "also"}@{text "\<^sub>n\<^sub>+\<^sub>1"} & \equiv & @{command "note"}~@{text "calculation = trans [OF calculation this]"} \\[0.5ex]
+    @{command "also"}@{text "\<^sub>n+1"} & \equiv & @{command "note"}~@{text "calculation = trans [OF calculation this]"} \\[0.5ex]
     @{command "finally"} & \equiv & @{command "also"}~@{command "from"}~@{text calculation} \\[0.5ex]
     @{command "moreover"} & \equiv & @{command "note"}~@{text "calculation = calculation this"} \\
     @{command "ultimately"} & \equiv & @{command "moreover"}~@{command "from"}~@{text calculation} \\

@@ -603,7 +603,10 @@ delicate details of mutexes and condition variables.  [Poly/ML 5.2.1
 or later]
 
 * Simplified ML attribute and method setup, cf. functions Attrib.setup
-and Method.setup, as well as commands 'attribute_setup'.
+and Method.setup, as well as commands 'attribute_setup' and
+'method_setup'.  INCOMPATIBILITY for 'method_setup', need to simplify
+existing code accordingly, or use plain 'setup' together with old
+Method.add_method.
 
 * Simplified ML oracle interface Thm.add_oracle promotes 'a -> cterm
 to 'a -> thm, while results are always tagged with an authentic oracle
