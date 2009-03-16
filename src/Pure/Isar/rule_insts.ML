@@ -17,7 +17,7 @@ sig
   val subgoal_tac: Proof.context -> string -> int -> tactic
   val subgoals_tac: Proof.context -> string list -> int -> tactic
   val method: (Proof.context -> (indexname * string) list -> thm -> int -> tactic) ->
-    (thm list -> int -> tactic) -> (Proof.context -> Proof.method) context_parser
+    (Proof.context -> thm list -> int -> tactic) -> (Proof.context -> Proof.method) context_parser
 end;
 
 signature RULE_INSTS =
@@ -391,17 +391,17 @@ fun method inst_tac tac =
     (P.and_list1 (Args.var -- (Args.$$$ "=" |-- P.!!! Args.name_source)) --| Args.$$$ "in")) [] --
   Attrib.thms >>
   (fn ((quant, insts), thms) => fn ctxt => METHOD (fn facts =>
-    if null insts then quant (Method.insert_tac facts THEN' tac thms)
+    if null insts then quant (Method.insert_tac facts THEN' tac ctxt thms)
     else
       (case thms of
         [thm] => quant (Method.insert_tac facts THEN' inst_tac ctxt insts thm)
       | _ => error "Cannot have instantiations with multiple rules")));
 
-val res_inst_meth = method res_inst_tac Tactic.resolve_tac;
-val eres_inst_meth = method eres_inst_tac Tactic.eresolve_tac;
-val cut_inst_meth = method cut_inst_tac Tactic.cut_rules_tac;
-val dres_inst_meth = method dres_inst_tac Tactic.dresolve_tac;
-val forw_inst_meth = method forw_inst_tac Tactic.forward_tac;
+val res_inst_meth = method res_inst_tac (K Tactic.resolve_tac);
+val eres_inst_meth = method eres_inst_tac (K Tactic.eresolve_tac);
+val cut_inst_meth = method cut_inst_tac (K Tactic.cut_rules_tac);
+val dres_inst_meth = method dres_inst_tac (K Tactic.dresolve_tac);
+val forw_inst_meth = method forw_inst_tac (K Tactic.forward_tac);
 
 
 (* setup *)
