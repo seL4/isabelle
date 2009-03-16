@@ -211,6 +211,25 @@ syntax just like the Isar command 'by'.
 
 *** HOL ***
 
+* Theory Library/Polynomial.thy defines an abstract type 'a poly of
+univariate polynomials with coefficients of type 'a.  In addition to
+the standard ring operations, it also supports div and mod.  Code
+generation is also supported, using list-style constructors.
+
+* Theory Library/Inner_Product.thy defines a class of real_inner for
+real inner product spaces, with an overloaded operation inner :: 'a =>
+'a => real.  Class real_inner is a subclass of real_normed_vector from
+RealVector.thy.
+
+* Theory Library/Product_Vector.thy provides instances for the product
+type 'a * 'b of several classes from RealVector.thy and
+Inner_Product.thy.  Definitions of addition, subtraction, scalar
+multiplication, norms, and inner products are included.
+
+* Theory Library/Bit.thy defines the field "bit" of integers modulo 2.
+In addition to the field operations, numerals and case syntax are also
+supported.
+
 * Theory Library/Diagonalize.thy provides constructive version of
 Cantor's first diagonalization argument.
 
@@ -241,7 +260,7 @@ are treated as expected by the 'class' command.
 * Common decision procedures (Cooper, MIR, Ferrack, Approximation, Dense_Linear_Order)
 now in directory HOL/Decision_Procs.
 
-* Theory HOL/Decisioin_Procs/Approximation.thy provides the new proof method
+* Theory HOL/Decision_Procs/Approximation.thy provides the new proof method
 "approximation".  It proves formulas on real values by using interval arithmetic.
 In the formulas are also the transcendental functions sin, cos, tan, atan, ln,
 exp and the constant pi are allowed. For examples see
