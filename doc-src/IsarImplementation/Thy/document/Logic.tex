@@ -821,12 +821,12 @@ The idea of object-level rules is to model Natural Deduction
 %
 \begin{isamarkuptext}%
 \begin{mldecls}
-  \indexdef{}{ML}{MetaSimplifier.norm\_hhf}\verb|MetaSimplifier.norm_hhf: thm -> thm| \\
+  \indexdef{}{ML}{Simplifier.norm\_hhf}\verb|Simplifier.norm_hhf: thm -> thm| \\
   \end{mldecls}
 
   \begin{description}
 
-  \item \verb|MetaSimplifier.norm_hhf|~\isa{thm} normalizes the given
+  \item \verb|Simplifier.norm_hhf|~\isa{thm} normalizes the given
   theorem according to the canonical form specified above.  This is
   occasionally helpful to repair some low-level tools that do not
   handle Hereditary Harrop Formulae properly.

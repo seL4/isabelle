@@ -302,7 +302,7 @@ val rulify =
   hol_simplify inductive_conj
   #> hol_simplify inductive_rulify
   #> hol_simplify inductive_rulify_fallback
-  #> MetaSimplifier.norm_hhf;
+  #> Simplifier.norm_hhf;
 
 end;
 
