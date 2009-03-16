@@ -321,7 +321,7 @@ fun record_auto_tac (cs, ss) =
 *}
 
 method_setup record_auto = {*
-  Method.ctxt_args (fn ctxt => SIMPLE_METHOD (record_auto_tac (local_clasimpset_of ctxt)))
+  Scan.succeed (fn ctxt => SIMPLE_METHOD (record_auto_tac (local_clasimpset_of ctxt)))
 *} ""
 
 lemma inj_sysOfAlloc [iff]: "inj sysOfAlloc"
@@ -713,7 +713,7 @@ fun rename_client_map_tac ss =
 *}
 
 method_setup rename_client_map = {*
-  Method.ctxt_args (fn ctxt =>
+  Scan.succeed (fn ctxt =>
     SIMPLE_METHOD (rename_client_map_tac (local_simpset_of ctxt)))
 *} ""
 

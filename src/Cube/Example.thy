@@ -15,20 +15,19 @@ text {*
 *}
 
 method_setup depth_solve = {*
-  Method.thms_args (fn thms => METHOD (fn facts =>
-  (DEPTH_SOLVE (HEADGOAL (ares_tac (facts @ thms))))))
+  Attrib.thms >> (fn thms => K (METHOD (fn facts =>
+  (DEPTH_SOLVE (HEADGOAL (ares_tac (facts @ thms)))))))
 *} ""
 
 method_setup depth_solve1 = {*
-  Method.thms_args (fn thms => METHOD (fn facts =>
-  (DEPTH_SOLVE_1 (HEADGOAL (ares_tac (facts @ thms))))))
+  Attrib.thms >> (fn thms => K (METHOD (fn facts =>
+  (DEPTH_SOLVE_1 (HEADGOAL (ares_tac (facts @ thms)))))))
 *} ""
 
 method_setup strip_asms =  {*
-  let val strip_b = thm "strip_b" and strip_s = thm "strip_s" in
-    Method.thms_args (fn thms => METHOD (fn facts =>
-      REPEAT (resolve_tac [strip_b, strip_s] 1 THEN DEPTH_SOLVE_1 (ares_tac (facts @ thms) 1))))
-  end
+  Attrib.thms >> (fn thms => K (METHOD (fn facts =>
+    REPEAT (resolve_tac [@{thm strip_b}, @{thm strip_s}] 1 THEN
+    DEPTH_SOLVE_1 (ares_tac (facts @ thms) 1)))))
 *} ""
 
 

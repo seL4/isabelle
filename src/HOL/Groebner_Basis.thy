@@ -253,7 +253,7 @@ use "Tools/Groebner_Basis/normalizer.ML"
 
 
 method_setup sring_norm = {*
-  Method.ctxt_args (SIMPLE_METHOD' o Normalizer.semiring_normalize_tac)
+  Scan.succeed (SIMPLE_METHOD' o Normalizer.semiring_normalize_tac)
 *} "semiring normalizer"
 
 
@@ -427,10 +427,9 @@ let
  val any_keyword = keyword addN || keyword delN
  val thms = Scan.repeat (Scan.unless any_keyword Attrib.multi_thm) >> flat;
 in
-fn src => Method.syntax 
-    ((Scan.optional (keyword addN |-- thms) []) -- 
-    (Scan.optional (keyword delN |-- thms) [])) src 
- #> (fn ((add_ths, del_ths), ctxt) => 
+  ((Scan.optional (keyword addN |-- thms) []) -- 
+   (Scan.optional (keyword delN |-- thms) [])) >>
+  (fn (add_ths, del_ths) => fn ctxt =>
        SIMPLE_METHOD' (Groebner.algebra_tac add_ths del_ths ctxt))
 end
 *} "solve polynomial equations over (semi)rings and ideal membership problems using Groebner bases"

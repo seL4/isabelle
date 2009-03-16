@@ -2496,16 +2496,15 @@ ML {*
 
 *}
 
-method_setup approximation = {* fn src => 
-  Method.syntax Args.term src #>
-  (fn (prec, ctxt) => let
-   in SIMPLE_METHOD' (fn i =>
+method_setup approximation = {*
+  Args.term >>
+  (fn prec => fn ctxt =>
+    SIMPLE_METHOD' (fn i =>
      (DETERM (reify_uneq ctxt i)
       THEN rule_uneq ctxt prec i
       THEN Simplifier.asm_full_simp_tac bounded_by_simpset i 
       THEN (TRY (filter_prems_tac (fn t => false) i))
-      THEN (gen_eval_tac eval_oracle ctxt) i))
-   end)
+      THEN (gen_eval_tac eval_oracle ctxt) i)))
 *} "real number approximation"
  
 end

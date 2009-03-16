@@ -695,16 +695,16 @@ declaration {* fn _ =>
 (* Optional methods *)
 
 method_setup trancl =
-  {* Method.no_args (SIMPLE_METHOD' Trancl_Tac.trancl_tac) *}
+  {* Scan.succeed (K (SIMPLE_METHOD' Trancl_Tac.trancl_tac)) *}
   {* simple transitivity reasoner *}
 method_setup rtrancl =
-  {* Method.no_args (SIMPLE_METHOD' Trancl_Tac.rtrancl_tac) *}
+  {* Scan.succeed (K (SIMPLE_METHOD' Trancl_Tac.rtrancl_tac)) *}
   {* simple transitivity reasoner *}
 method_setup tranclp =
-  {* Method.no_args (SIMPLE_METHOD' Tranclp_Tac.trancl_tac) *}
+  {* Scan.succeed (K (SIMPLE_METHOD' Tranclp_Tac.trancl_tac)) *}
   {* simple transitivity reasoner (predicate version) *}
 method_setup rtranclp =
-  {* Method.no_args (SIMPLE_METHOD' Tranclp_Tac.rtrancl_tac) *}
+  {* Scan.succeed (K (SIMPLE_METHOD' Tranclp_Tac.rtrancl_tac)) *}
   {* simple transitivity reasoner (predicate version) *}
 
 end

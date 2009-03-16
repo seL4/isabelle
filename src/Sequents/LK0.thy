@@ -240,23 +240,23 @@ end;
 *}
 
 method_setup fast_prop =
-  {* Method.no_args (SIMPLE_METHOD' (fast_tac prop_pack)) *}
+  {* Scan.succeed (K (SIMPLE_METHOD' (fast_tac prop_pack))) *}
   "propositional reasoning"
 
 method_setup fast =
-  {* Method.no_args (SIMPLE_METHOD' (fast_tac LK_pack)) *}
+  {* Scan.succeed (K (SIMPLE_METHOD' (fast_tac LK_pack))) *}
   "classical reasoning"
 
 method_setup fast_dup =
-  {* Method.no_args (SIMPLE_METHOD' (fast_tac LK_dup_pack)) *}
+  {* Scan.succeed (K (SIMPLE_METHOD' (fast_tac LK_dup_pack))) *}
   "classical reasoning"
 
 method_setup best =
-  {* Method.no_args (SIMPLE_METHOD' (best_tac LK_pack)) *}
+  {* Scan.succeed (K (SIMPLE_METHOD' (best_tac LK_pack))) *}
   "classical reasoning"
 
 method_setup best_dup =
-  {* Method.no_args (SIMPLE_METHOD' (best_tac LK_dup_pack)) *}
+  {* Scan.succeed (K (SIMPLE_METHOD' (best_tac LK_dup_pack))) *}
   "classical reasoning"
 
 

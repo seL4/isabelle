@@ -455,12 +455,11 @@ let
  val any_keyword = keyword addN || keyword delN || simple_keyword elimN
  val thms = Scan.repeat (Scan.unless any_keyword Attrib.multi_thm) >> flat;
 in
-  fn src => Method.syntax 
-   ((Scan.optional (simple_keyword elimN >> K false) true) -- 
-    (Scan.optional (keyword addN |-- thms) []) -- 
-    (Scan.optional (keyword delN |-- thms) [])) src 
-  #> (fn (((elim, add_ths), del_ths),ctxt) => 
-         SIMPLE_METHOD' (Presburger.cooper_tac elim add_ths del_ths ctxt))
+  Scan.optional (simple_keyword elimN >> K false) true --
+  Scan.optional (keyword addN |-- thms) [] --
+  Scan.optional (keyword delN |-- thms) [] >>
+  (fn ((elim, add_ths), del_ths) => fn ctxt =>
+    SIMPLE_METHOD' (Presburger.cooper_tac elim add_ths del_ths ctxt))
 end
 *} "Cooper's algorithm for Presburger arithmetic"
 

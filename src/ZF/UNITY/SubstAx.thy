@@ -377,9 +377,8 @@ fun ensures_tac ctxt sact =
 *}
 
 method_setup ensures_tac = {*
-    fn args => fn ctxt =>
-        Method.goal_args' (Scan.lift Args.name_source) (ensures_tac ctxt)
-           args ctxt *}
-    "for proving progress properties"
+    Args.goal_spec -- Scan.lift Args.name_source >>
+    (fn (quant, s) => fn ctxt => SIMPLE_METHOD'' quant (ensures_tac ctxt s))
+*} "for proving progress properties"
 
 end

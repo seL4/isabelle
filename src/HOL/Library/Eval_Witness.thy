@@ -1,7 +1,5 @@
 (*  Title:      HOL/Library/Eval_Witness.thy
-    ID:         $Id$
     Author:     Alexander Krauss, TU Muenchen
-
 *)
 
 header {* Evaluation Oracle with ML witnesses *}
@@ -78,15 +76,10 @@ end
 
 
 method_setup eval_witness = {*
-let
-
-fun eval_tac ws = CSUBGOAL (fn (ct, i) => rtac (eval_witness_oracle (ct, ws)) i)
-
-in
-  Method.simple_args (Scan.repeat Args.name) (fn ws => fn _ =>
-    SIMPLE_METHOD' (eval_tac ws))
-end
-*} "Evaluation with ML witnesses"
+  Scan.lift (Scan.repeat Args.name) >>
+  (fn ws => K (SIMPLE_METHOD'
+    (CSUBGOAL (fn (ct, i) => rtac (eval_witness_oracle (ct, ws)) i))))
+*} "evaluation with ML witnesses"
 
 
 subsection {* Toy Examples *}

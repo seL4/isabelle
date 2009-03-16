@@ -477,9 +477,10 @@ lemma Gets_certificate_valid [simp]:
 by (frule Gets_imp_Says, auto)
 
 method_setup valid_certificate_tac = {*
-  Method.goal_args (Scan.succeed ()) (fn () => fn i =>
-    EVERY [ftac @{thm Gets_certificate_valid} i,
-           assume_tac i, REPEAT (hyp_subst_tac i)])
+  Args.goal_spec >> (fn quant =>
+    K (SIMPLE_METHOD'' quant (fn i =>
+      EVERY [ftac @{thm Gets_certificate_valid} i,
+             assume_tac i, REPEAT (hyp_subst_tac i)])))
 *} ""
 
 

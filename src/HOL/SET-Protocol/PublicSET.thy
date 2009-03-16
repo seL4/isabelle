@@ -371,7 +371,7 @@ end
 *}
 
 method_setup possibility = {*
-    Method.ctxt_args (fn ctxt =>
+    Scan.succeed (fn ctxt =>
         SIMPLE_METHOD (PublicSET.gen_possibility_tac (local_simpset_of ctxt))) *}
     "for proving possibility theorems"
 

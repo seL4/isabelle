@@ -189,7 +189,7 @@ val analz_mono_contra_tac =
 *}
 
 method_setup analz_mono_contra = {*
-    Method.no_args (SIMPLE_METHOD (REPEAT_FIRST analz_mono_contra_tac)) *}
+    Scan.succeed (K (SIMPLE_METHOD (REPEAT_FIRST analz_mono_contra_tac))) *}
     "for proving theorems of the form X \<notin> analz (knows Spy evs) --> P"
 
 end

@@ -10,15 +10,13 @@ theory UNITY_Main imports Detects PPROD Follows ProgressSets
 uses "UNITY_tactics.ML" begin
 
 method_setup safety = {*
-    Method.ctxt_args (fn ctxt =>
+    Scan.succeed (fn ctxt =>
         SIMPLE_METHOD' (constrains_tac (local_clasimpset_of ctxt))) *}
     "for proving safety properties"
 
 method_setup ensures_tac = {*
-    fn args => fn ctxt =>
-        Method.goal_args' (Scan.lift Args.name_source)
-           (ensures_tac (local_clasimpset_of ctxt))
-           args ctxt *}
-    "for proving progress properties"
+  Args.goal_spec -- Scan.lift Args.name_source >>
+  (fn (quant, s) => fn ctxt => SIMPLE_METHOD'' quant (ensures_tac (local_clasimpset_of ctxt) s))
+*} "for proving progress properties"
 
 end

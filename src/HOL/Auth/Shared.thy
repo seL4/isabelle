@@ -238,7 +238,7 @@ by auto
 (*Specialized methods*)
 
 method_setup analz_freshK = {*
-    Method.ctxt_args (fn ctxt =>
+    Scan.succeed (fn ctxt =>
      (SIMPLE_METHOD
       (EVERY [REPEAT_FIRST (resolve_tac [allI, ballI, impI]),
           REPEAT_FIRST (rtac @{thm analz_image_freshK_lemma}),
@@ -246,11 +246,11 @@ method_setup analz_freshK = {*
     "for proving the Session Key Compromise theorem"
 
 method_setup possibility = {*
-    Method.ctxt_args (fn ctxt => SIMPLE_METHOD (Shared.possibility_tac ctxt)) *}
+    Scan.succeed (fn ctxt => SIMPLE_METHOD (Shared.possibility_tac ctxt)) *}
     "for proving possibility theorems"
 
 method_setup basic_possibility = {*
-    Method.ctxt_args (fn ctxt => SIMPLE_METHOD (Shared.basic_possibility_tac ctxt)) *}
+    Scan.succeed (fn ctxt => SIMPLE_METHOD (Shared.basic_possibility_tac ctxt)) *}
     "for proving possibility theorems"
 
 lemma knows_subset_knows_Cons: "knows A evs <= knows A (e # evs)"

@@ -530,7 +530,7 @@ fun uint_arith_tac ctxt = SELECT_GOAL (EVERY (uint_arith_tacs ctxt))
 *}
 
 method_setup uint_arith = 
-  "Method.ctxt_args (SIMPLE_METHOD' o uint_arith_tac)" 
+  {* Scan.succeed (SIMPLE_METHOD' o uint_arith_tac) *}
   "solving word arithmetic via integers and arith"
 
 
@@ -1086,7 +1086,7 @@ fun unat_arith_tac ctxt = SELECT_GOAL (EVERY (unat_arith_tacs ctxt))
 *}
 
 method_setup unat_arith = 
-  "Method.ctxt_args (SIMPLE_METHOD' o unat_arith_tac)" 
+  {* Scan.succeed (SIMPLE_METHOD' o unat_arith_tac) *}
   "solving word arithmetic via natural numbers and arith"
 
 lemma no_plus_overflow_unat_size: 
