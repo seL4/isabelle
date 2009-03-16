@@ -161,7 +161,7 @@ fun possibility_tac st = st |>
                    resolve_tac [refl, conjI, @{thm Nonce_supply}]));
 *}
 
-method_setup possibility = {* Method.no_args (SIMPLE_METHOD possibility_tac) *}
+method_setup possibility = {* Scan.succeed (K (SIMPLE_METHOD possibility_tac)) *}
     "for proving possibility theorems"
 
 end
