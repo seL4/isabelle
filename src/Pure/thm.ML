@@ -1247,12 +1247,17 @@ fun assumption i state =
           else (*normalize the new rule fully*)
             Envir.norm_term env (Logic.list_implies (Bs, C)),
         thy_ref = Theory.check_thy thy});
+
+    val (close, Hs, C) = Logic.assum_problems (~1, Bi);
+    val C' = close C;
     fun addprfs [] _ = Seq.empty
-      | addprfs ((t, u) :: apairs) n = Seq.make (fn () => Seq.pull
+      | addprfs (H :: rest) n = Seq.make (fn () => Seq.pull
           (Seq.mapp (newth n)
-            (Unify.unifiers (thy, Envir.empty maxidx, (t, u) :: tpairs))
-            (addprfs apairs (n + 1))))
-  in addprfs (Logic.assum_pairs (~1, Bi)) 1 end;
+            (if Term.could_unify (H, C) then
+              (Unify.unifiers (thy, Envir.empty maxidx, (close H, C') :: tpairs))
+             else Seq.empty)
+            (addprfs rest (n + 1))))
+  in addprfs Hs 1 end;
 
 (*Solve subgoal Bi of proof state B1...Bn/C by assumption.
   Checks if Bi's conclusion is alpha-convertible to one of its assumptions*)
@@ -1520,24 +1525,37 @@ fun bicompose_aux flatten match (state, (stpairs, Bs, Bi, C), lifted)
      val env = Envir.empty(Int.max(rmax,smax));
      val BBi = if lifted then strip_assums2(B,Bi) else (B,Bi);
      val dpairs = BBi :: (rtpairs@stpairs);
-     (*elim-resolution: try each assumption in turn.  Initially n=1*)
-     fun tryasms (_, _, _, []) = Seq.empty
-       | tryasms (A, As, n, (t,u)::apairs) =
-          (case Seq.pull(Unify.unifiers(thy, env, (t,u)::dpairs))  of
-              NONE                   => tryasms (A, As, n+1, apairs)
-            | cell as SOME((_,tpairs),_) =>
-                Seq.it_right (addth A (newAs(As, n, [BBi,(u,t)], tpairs)))
-                    (Seq.make(fn()=> cell),
-                     Seq.make(fn()=> Seq.pull (tryasms(A, As, n+1, apairs)))))
-     fun eres [] = raise THM("bicompose: no premises", 0, [orule,state])
-       | eres (A1::As) = tryasms(SOME A1, As, 1, Logic.assum_pairs(nlift+1,A1))
+
+     (*elim-resolution: try each assumption in turn*)
+     fun eres [] = raise THM ("bicompose: no premises", 0, [orule, state])
+       | eres (A1 :: As) =
+           let
+             val A = SOME A1;
+             val (close, Hs, C) = Logic.assum_problems (nlift + 1, A1);
+             val C' = close C;
+             fun tryasms [] _ = Seq.empty
+               | tryasms (H :: rest) n =
+                   if Term.could_unify (H, C) then
+                     let val H' = close H in
+                       (case Seq.pull (Unify.unifiers (thy, env, (H', C') :: dpairs)) of
+                         NONE => tryasms rest (n + 1)
+                       | cell as SOME ((_, tpairs), _) =>
+                           Seq.it_right (addth A (newAs (As, n, [BBi, (C', H')], tpairs)))
+                             (Seq.make (fn () => cell),
+                              Seq.make (fn () => Seq.pull (tryasms rest (n + 1)))))
+                     end
+                   else tryasms rest (n + 1);
+           in tryasms Hs 1 end;
+
      (*ordinary resolution*)
-     fun res(NONE) = Seq.empty
-       | res(cell as SOME((_,tpairs),_)) =
-             Seq.it_right (addth NONE (newAs(rev rAs, 0, [BBi], tpairs)))
-                       (Seq.make (fn()=> cell), Seq.empty)
- in  if eres_flg then eres(rev rAs)
-     else res(Seq.pull(Unify.unifiers(thy, env, dpairs)))
+     fun res () =
+       (case Seq.pull (Unify.unifiers (thy, env, dpairs)) of
+         NONE => Seq.empty
+       | cell as SOME ((_, tpairs), _) =>
+           Seq.it_right (addth NONE (newAs (rev rAs, 0, [BBi], tpairs)))
+             (Seq.make (fn () => cell), Seq.empty));
+ in
+   if eres_flg then eres (rev rAs) else res ()
  end;
 end;
 
