@@ -26,7 +26,7 @@ sig
   val add_attributes: (bstring * (src -> attribute) * string) list -> theory -> theory
   val syntax: attribute context_parser -> src -> attribute
   val setup: Binding.binding -> attribute context_parser -> string -> theory -> theory
-  val attribute_setup: string * Position.T -> string * Position.T -> string -> theory -> theory
+  val attribute_setup: bstring * Position.T -> string * Position.T -> string -> theory -> theory
   val no_args: attribute -> src -> attribute
   val add_del: attribute -> attribute -> attribute context_parser
   val add_del_args: attribute -> attribute -> src -> attribute
