@@ -159,20 +159,24 @@ done
 lemma ubasis_until_mono:
   assumes "\<And>i a S b. \<lbrakk>finite S; P (node i a S); b \<in> S; ubasis_le a b\<rbrakk> \<Longrightarrow> P b"
   shows "ubasis_le a b \<Longrightarrow> ubasis_le (ubasis_until P a) (ubasis_until P b)"
- apply (induct set: ubasis_le)
-    apply (rule ubasis_le_refl)
-   apply (erule (1) ubasis_le_trans)
-  apply (simp add: ubasis_le_refl)
-  apply (rule impI)
-  apply (rule ubasis_le_trans)
-   apply (rule ubasis_until_less)
-  apply (erule ubasis_le_lower)
- apply simp
- apply (rule impI)
- apply (subst ubasis_until_same)
-  apply (erule (3) prems)
- apply (erule (2) ubasis_le_upper)
-done
+proof (induct set: ubasis_le)
+  case (ubasis_le_refl a) show ?case by (rule ubasis_le.ubasis_le_refl)
+next
+  case (ubasis_le_trans a b c) thus ?case by - (rule ubasis_le.ubasis_le_trans)
+next
+  case (ubasis_le_lower S a i) thus ?case
+    apply (clarsimp simp add: ubasis_le_refl)
+    apply (rule ubasis_le_trans [OF ubasis_until_less])
+    apply (erule ubasis_le.ubasis_le_lower)
+    done
+next
+  case (ubasis_le_upper S b a i) thus ?case
+    apply clarsimp
+    apply (subst ubasis_until_same)
+     apply (erule (3) prems)
+    apply (erule (2) ubasis_le.ubasis_le_upper)
+    done
+qed
 
 lemma finite_range_ubasis_until:
   "finite {x. P x} \<Longrightarrow> finite (range (ubasis_until P))"
@@ -780,7 +784,7 @@ next
   case (ubasis_le_trans a b c) thus ?case by - (rule trans_less)
 next
   case (ubasis_le_lower S a i) thus ?case
-    apply (case_tac "node i a S \<in> range (basis_emb :: 'a compact_basis \<Rightarrow> nat)")
+    apply (cases "node i a S \<in> range (basis_emb :: 'a compact_basis \<Rightarrow> nat)")
      apply (erule rangeE, rename_tac x)
      apply (simp add: basis_prj_basis_emb)
      apply (simp add: node_eq_basis_emb_iff)
@@ -790,7 +794,7 @@ next
     done
 next
   case (ubasis_le_upper S b a i) thus ?case
-    apply (case_tac "node i a S \<in> range (basis_emb :: 'a compact_basis \<Rightarrow> nat)")
+    apply (cases "node i a S \<in> range (basis_emb :: 'a compact_basis \<Rightarrow> nat)")
      apply (erule rangeE, rename_tac x)
      apply (simp add: basis_prj_basis_emb)
      apply (clarsimp simp add: node_eq_basis_emb_iff)
