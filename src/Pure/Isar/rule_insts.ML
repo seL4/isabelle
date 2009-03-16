@@ -16,6 +16,8 @@ sig
   val thin_tac: Proof.context -> string -> int -> tactic
   val subgoal_tac: Proof.context -> string -> int -> tactic
   val subgoals_tac: Proof.context -> string list -> int -> tactic
+  val method: (Proof.context -> (indexname * string) list -> thm -> int -> tactic) ->
+    (thm list -> int -> tactic) -> (Proof.context -> Proof.method) context_parser
 end;
 
 signature RULE_INSTS =
@@ -383,9 +385,7 @@ fun subgoals_tac ctxt As = EVERY' (map (subgoal_tac ctxt) As);
 
 (* rule_tac etc. -- refer to dynamic goal state! *)
 
-local
-
-fun inst_meth inst_tac tac =
+fun method inst_tac tac =
   Args.goal_spec --
   Scan.optional (Scan.lift
     (P.and_list1 (Args.var -- (Args.$$$ "=" |-- P.!!! Args.name_source)) --| Args.$$$ "in")) [] --
@@ -397,15 +397,11 @@ fun inst_meth inst_tac tac =
         [thm] => quant (Method.insert_tac facts THEN' inst_tac ctxt insts thm)
       | _ => error "Cannot have instantiations with multiple rules")));
 
-in
-
-val res_inst_meth = inst_meth res_inst_tac Tactic.resolve_tac;
-val eres_inst_meth = inst_meth eres_inst_tac Tactic.eresolve_tac;
-val cut_inst_meth = inst_meth cut_inst_tac Tactic.cut_rules_tac;
-val dres_inst_meth = inst_meth dres_inst_tac Tactic.dresolve_tac;
-val forw_inst_meth = inst_meth forw_inst_tac Tactic.forward_tac;
-
-end;
+val res_inst_meth = method res_inst_tac Tactic.resolve_tac;
+val eres_inst_meth = method eres_inst_tac Tactic.eresolve_tac;
+val cut_inst_meth = method cut_inst_tac Tactic.cut_rules_tac;
+val dres_inst_meth = method dres_inst_tac Tactic.dresolve_tac;
+val forw_inst_meth = method forw_inst_tac Tactic.forward_tac;
 
 
 (* setup *)
