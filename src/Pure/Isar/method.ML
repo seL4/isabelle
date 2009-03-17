@@ -39,6 +39,7 @@ sig
   val this: method
   val fact: thm list -> Proof.context -> method
   val assm_tac: Proof.context -> int -> tactic
+  val all_assm_tac: Proof.context -> tactic
   val assumption: Proof.context -> method
   val close: bool -> Proof.context -> method
   val trace: Proof.context -> thm list -> unit
@@ -223,14 +224,15 @@ fun assm_tac ctxt =
   cond_rtac (can Logic.dest_equals) Drule.reflexive_thm APPEND'
   cond_rtac (can Logic.dest_term) Drule.termI;
 
+fun all_assm_tac ctxt st = EVERY1 (replicate (Thm.nprems_of st) (assm_tac ctxt)) st;
+
 fun assumption ctxt = METHOD (HEADGOAL o
   (fn [] => assm_tac ctxt
     | [fact] => solve_tac [fact]
     | _ => K no_tac));
 
 fun close immed ctxt = METHOD (K
-  (FILTER Thm.no_prems
-    ((if immed then ALLGOALS (assm_tac ctxt) else all_tac) THEN flexflex_tac)));
+  (FILTER Thm.no_prems ((if immed then all_assm_tac ctxt else all_tac) THEN flexflex_tac)));
 
 end;
 
