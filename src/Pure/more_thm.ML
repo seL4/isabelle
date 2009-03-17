@@ -208,14 +208,11 @@ fun fold_terms f th =
   in fold (fn (t, u) => f t #> f u) tpairs #> f prop #> fold f hyps end;
 
 
-(* lists of theorems in canonical order *)
+(* collections of theorems in canonical order *)
 
 val add_thm = update eq_thm_prop;
 val del_thm = remove eq_thm_prop;
 val merge_thms = merge eq_thm_prop;
-
-
-(* indexed collections *)
 
 val intro_rules = Item_Net.init eq_thm_prop Thm.concl_of;
 val elim_rules = Item_Net.init eq_thm_prop Thm.major_prem_of;
