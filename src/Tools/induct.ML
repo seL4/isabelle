@@ -111,19 +111,19 @@ end;
 
 (* rules *)
 
-type rules = (string * thm) NetRules.T;
+type rules = (string * thm) Item_Net.T;
 
 val init_rules =
-  NetRules.init (fn ((s1: string, th1), (s2, th2)) => s1 = s2 andalso
+  Item_Net.init (fn ((s1: string, th1), (s2, th2)) => s1 = s2 andalso
     Thm.eq_thm_prop (th1, th2));
 
 fun filter_rules (rs: rules) th =
-  filter (fn (_, th') => Thm.eq_thm_prop (th, th')) (NetRules.rules rs);
+  filter (fn (_, th') => Thm.eq_thm_prop (th, th')) (Item_Net.content rs);
 
-fun lookup_rule (rs: rules) = AList.lookup (op =) (NetRules.rules rs);
+fun lookup_rule (rs: rules) = AList.lookup (op =) (Item_Net.content rs);
 
 fun pretty_rules ctxt kind rs =
-  let val thms = map snd (NetRules.rules rs)
+  let val thms = map snd (Item_Net.content rs)
   in Pretty.big_list kind (map (ProofContext.pretty_thm ctxt) thms) end;
 
 
@@ -139,21 +139,21 @@ structure InductData = GenericDataFun
   val extend = I;
   fun merge _ (((casesT1, casesP1), (inductT1, inductP1), (coinductT1, coinductP1)),
       ((casesT2, casesP2), (inductT2, inductP2), (coinductT2, coinductP2))) =
-    ((NetRules.merge (casesT1, casesT2), NetRules.merge (casesP1, casesP2)),
-      (NetRules.merge (inductT1, inductT2), NetRules.merge (inductP1, inductP2)),
-      (NetRules.merge (coinductT1, coinductT2), NetRules.merge (coinductP1, coinductP2)));
+    ((Item_Net.merge (casesT1, casesT2), Item_Net.merge (casesP1, casesP2)),
+      (Item_Net.merge (inductT1, inductT2), Item_Net.merge (inductP1, inductP2)),
+      (Item_Net.merge (coinductT1, coinductT2), Item_Net.merge (coinductP1, coinductP2)));
 );
 
 val get_local = InductData.get o Context.Proof;
 
 fun dest_rules ctxt =
   let val ((casesT, casesP), (inductT, inductP), (coinductT, coinductP)) = get_local ctxt in
-    {type_cases = NetRules.rules casesT,
-     pred_cases = NetRules.rules casesP,
-     type_induct = NetRules.rules inductT,
-     pred_induct = NetRules.rules inductP,
-     type_coinduct = NetRules.rules coinductT,
-     pred_coinduct = NetRules.rules coinductP}
+    {type_cases = Item_Net.content casesT,
+     pred_cases = Item_Net.content casesP,
+     type_induct = Item_Net.content inductT,
+     pred_induct = Item_Net.content inductP,
+     type_coinduct = Item_Net.content coinductT,
+     pred_coinduct = Item_Net.content coinductP}
   end;
 
 fun print_rules ctxt =
@@ -184,7 +184,7 @@ val lookup_coinductP = lookup_rule o #2 o #3 o get_local;
 
 
 fun find_rules which how ctxt x =
-  map snd (NetRules.retrieve (which (get_local ctxt)) (how x));
+  map snd (Item_Net.retrieve (which (get_local ctxt)) (how x));
 
 val find_casesT = find_rules (#1 o #1) encode_type;
 val find_casesP = find_rules (#2 o #1) I;
@@ -203,18 +203,18 @@ fun mk_att f g name arg =
   let val (x, thm) = g arg in (InductData.map (f (name, thm)) x, thm) end;
 
 fun del_att which = Thm.declaration_attribute (fn th => InductData.map (which (pairself (fn rs =>
-  fold NetRules.delete (filter_rules rs th) rs))));
+  fold Item_Net.delete (filter_rules rs th) rs))));
 
 fun map1 f (x, y, z) = (f x, y, z);
 fun map2 f (x, y, z) = (x, f y, z);
 fun map3 f (x, y, z) = (x, y, f z);
 
-fun add_casesT rule x = map1 (apfst (NetRules.insert rule)) x;
-fun add_casesP rule x = map1 (apsnd (NetRules.insert rule)) x;
-fun add_inductT rule x = map2 (apfst (NetRules.insert rule)) x;
-fun add_inductP rule x = map2 (apsnd (NetRules.insert rule)) x;
-fun add_coinductT rule x = map3 (apfst (NetRules.insert rule)) x;
-fun add_coinductP rule x = map3 (apsnd (NetRules.insert rule)) x;
+fun add_casesT rule x = map1 (apfst (Item_Net.insert rule)) x;
+fun add_casesP rule x = map1 (apsnd (Item_Net.insert rule)) x;
+fun add_inductT rule x = map2 (apfst (Item_Net.insert rule)) x;
+fun add_inductP rule x = map2 (apsnd (Item_Net.insert rule)) x;
+fun add_coinductT rule x = map3 (apfst (Item_Net.insert rule)) x;
+fun add_coinductP rule x = map3 (apsnd (Item_Net.insert rule)) x;
 
 val consumes0 = RuleCases.consumes_default 0;
 val consumes1 = RuleCases.consumes_default 1;

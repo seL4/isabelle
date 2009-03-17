@@ -33,6 +33,8 @@ sig
   val add_thm: thm -> thm list -> thm list
   val del_thm: thm -> thm list -> thm list
   val merge_thms: thm list * thm list -> thm list
+  val intro_rules: thm Item_Net.T
+  val elim_rules: thm Item_Net.T
   val elim_implies: thm -> thm -> thm
   val forall_elim_var: int -> thm -> thm
   val forall_elim_vars: int -> thm -> thm
@@ -211,6 +213,12 @@ fun fold_terms f th =
 val add_thm = update eq_thm_prop;
 val del_thm = remove eq_thm_prop;
 val merge_thms = merge eq_thm_prop;
+
+
+(* indexed collections *)
+
+val intro_rules = Item_Net.init eq_thm_prop Thm.concl_of;
+val elim_rules = Item_Net.init eq_thm_prop Thm.major_prem_of;
 
 
 
