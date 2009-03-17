@@ -27,6 +27,7 @@ sig
   val unify: theory -> term * term -> Envir.env -> Envir.env
   val first_order: term -> bool
   val pattern: term -> bool
+  val match_rew: theory -> term -> term * term -> (term * term) option
   val rewrite_term: theory -> (term * term) list -> (term -> term option) list -> term -> term
   exception Unif
   exception MATCH
@@ -422,6 +423,12 @@ fun pattern (Abs (_, _, t)) = pattern t
 
 (* rewriting -- simple but fast *)
 
+fun match_rew thy tm (tm1, tm2) =
+  let val rtm = the_default tm2 (Term.rename_abs tm1 tm tm2) in
+    SOME (Envir.subst_vars (match thy (tm1, tm) (Vartab.empty, Vartab.empty)) rtm, rtm)
+      handle MATCH => NONE
+  end;
+
 fun rewrite_term thy rules procs tm =
   let
     val skel0 = Bound 0;
@@ -432,16 +439,11 @@ fun rewrite_term thy rules procs tm =
         fun abs u = Abs (x, T, abstract_over (Free (x', T), u));
       in (abs, t') end;
 
-    fun match_rew tm (tm1, tm2) =
-      let val rtm = the_default tm2 (Term.rename_abs tm1 tm tm2) in
-        SOME (Envir.subst_vars (match thy (tm1, tm) (Vartab.empty, Vartab.empty)) rtm, rtm)
-          handle MATCH => NONE
-      end;
-
     fun rew (Abs (_, _, body) $ t) = SOME (subst_bound (t, body), skel0)
-      | rew tm = (case get_first (match_rew tm) rules of
-          NONE => Option.map (rpair skel0) (get_first (fn p => p tm) procs)
-        | x => x);
+      | rew tm =
+          (case get_first (match_rew thy tm) rules of
+            NONE => Option.map (rpair skel0) (get_first (fn p => p tm) procs)
+          | x => x);
 
     fun rew1 bounds (Var _) _ = NONE
       | rew1 bounds skel tm = (case rew2 bounds skel tm of
