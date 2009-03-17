@@ -290,7 +290,8 @@ fun eta_long Ts (Abs (s, T, t)) = Abs (s, T, eta_long (T :: Ts) t)
 
 (*Tests whether 2 terms are alpha/eta-convertible and have same type.
   Note that Consts and Vars may have more than one type.*)
-fun t aeconv u = Envir.eta_contract t aconv Envir.eta_contract u;
+fun t aeconv u = t aconv u orelse
+  Envir.eta_contract t aconv Envir.eta_contract u;
 
 
 (*** Matching ***)
