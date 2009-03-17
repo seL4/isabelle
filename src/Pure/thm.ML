@@ -1248,16 +1248,16 @@ fun assumption i state =
             Envir.norm_term env (Logic.list_implies (Bs, C)),
         thy_ref = Theory.check_thy thy});
 
-    val (close, Hs, C) = Logic.assum_problems (~1, Bi);
-    val C' = close C;
+    val (close, asms, concl) = Logic.assum_problems (~1, Bi);
+    val concl' = close concl;
     fun addprfs [] _ = Seq.empty
-      | addprfs (H :: rest) n = Seq.make (fn () => Seq.pull
+      | addprfs (asm :: rest) n = Seq.make (fn () => Seq.pull
           (Seq.mapp (newth n)
-            (if Term.could_unify (H, C) then
-              (Unify.unifiers (thy, Envir.empty maxidx, (close H, C') :: tpairs))
+            (if Term.could_unify (asm, concl) then
+              (Unify.unifiers (thy, Envir.empty maxidx, (close asm, concl') :: tpairs))
              else Seq.empty)
             (addprfs rest (n + 1))))
-  in addprfs Hs 1 end;
+  in addprfs asms 1 end;
 
 (*Solve subgoal Bi of proof state B1...Bn/C by assumption.
   Checks if Bi's conclusion is alpha-convertible to one of its assumptions*)
@@ -1265,8 +1265,9 @@ fun eq_assumption i state =
   let
     val Thm (der, {thy_ref, maxidx, shyps, hyps, prop, ...}) = state;
     val (tpairs, Bs, Bi, C) = dest_state (state, i);
+    val (_, asms, concl) = Logic.assum_problems (~1, Bi);
   in
-    (case find_index Pattern.aeconv (Logic.assum_pairs (~1, Bi)) of
+    (case find_index (fn asm => Pattern.aeconv (asm, concl)) asms of
       ~1 => raise THM ("eq_assumption", 0, [state])
     | n =>
         Thm (deriv_rule1 (Pt.assumption_proof Bs Bi (n + 1)) der,
@@ -1531,21 +1532,21 @@ fun bicompose_aux flatten match (state, (stpairs, Bs, Bi, C), lifted)
        | eres (A1 :: As) =
            let
              val A = SOME A1;
-             val (close, Hs, C) = Logic.assum_problems (nlift + 1, A1);
-             val C' = close C;
+             val (close, asms, concl) = Logic.assum_problems (nlift + 1, A1);
+             val concl' = close concl;
              fun tryasms [] _ = Seq.empty
-               | tryasms (H :: rest) n =
-                   if Term.could_unify (H, C) then
-                     let val H' = close H in
-                       (case Seq.pull (Unify.unifiers (thy, env, (H', C') :: dpairs)) of
+               | tryasms (asm :: rest) n =
+                   if Term.could_unify (asm, concl) then
+                     let val asm' = close asm in
+                       (case Seq.pull (Unify.unifiers (thy, env, (asm', concl') :: dpairs)) of
                          NONE => tryasms rest (n + 1)
                        | cell as SOME ((_, tpairs), _) =>
-                           Seq.it_right (addth A (newAs (As, n, [BBi, (C', H')], tpairs)))
+                           Seq.it_right (addth A (newAs (As, n, [BBi, (concl', asm')], tpairs)))
                              (Seq.make (fn () => cell),
                               Seq.make (fn () => Seq.pull (tryasms rest (n + 1)))))
                      end
                    else tryasms rest (n + 1);
-           in tryasms Hs 1 end;
+           in tryasms asms 1 end;
 
      (*ordinary resolution*)
      fun res () =
