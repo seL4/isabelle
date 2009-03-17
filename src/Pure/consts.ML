@@ -73,7 +73,7 @@ fun map_consts f (Consts {decls, constraints, rev_abbrevs}) =
 val empty_abbrevs = Item_Net.init (fn ((t, u), (t', u')) => t aconv t' andalso u aconv u') #1;
 
 fun insert_abbrevs mode abbrs =
-  Symtab.map_default (mode, empty_abbrevs) (fold Item_Net.insert abbrs);
+  Symtab.map_default (mode, empty_abbrevs) (Item_Net.insert abbrs);
 
 fun retrieve_abbrevs (Consts {rev_abbrevs, ...}) modes =
   let val nets = map_filter (Symtab.lookup rev_abbrevs) modes
@@ -258,20 +258,16 @@ fun constrain (c, C) consts =
 
 local
 
-fun strip_abss tm = ([], tm) ::
-  (case tm of
-    Abs (a, T, t) =>
-      if Term.loose_bvar1 (t, 0) then
-        strip_abss t |> map (fn (xs, b) => ((a, T) :: xs, b))
-      else []
-  | _ => []);
+fun strip_abss (t as Abs (x, T, b)) =
+      if Term.loose_bvar1 (b, 0) then strip_abss b |>> cons (x, T)
+      else ([], t)
+  | strip_abss t = ([], t);
 
 fun rev_abbrev lhs rhs =
   let
-    fun abbrev (xs, body) =
-      let val vars = fold (fn (x, T) => cons (Var ((x, 0), T))) (Term.rename_wrt_term body xs) []
-      in (Term.subst_bounds (rev vars, body), Term.list_comb (lhs, vars)) end;
-  in map abbrev (strip_abss (Envir.beta_eta_contract rhs)) end;
+    val (xs, body) = strip_abss (Envir.beta_eta_contract rhs);
+    val vars = fold (fn (x, T) => cons (Var ((x, 0), T))) (Term.rename_wrt_term body xs) [];
+  in (Term.subst_bounds (rev vars, body), Term.list_comb (lhs, vars)) end;
 
 in
 
