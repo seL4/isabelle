@@ -9,7 +9,7 @@ signature CONSTS =
 sig
   type T
   val eq_consts: T * T -> bool
-  val abbrevs_of: T -> string list -> (term * term) list
+  val retrieve_abbrevs: T -> string list -> term -> (term * term) list
   val dest: T ->
    {constants: (typ * term option) NameSpace.table,
     constraints: typ NameSpace.table}
@@ -52,7 +52,7 @@ type abbrev = {rhs: term, normal_rhs: term, force_expand: bool};
 datatype T = Consts of
  {decls: ((decl * abbrev option) * serial) NameSpace.table,
   constraints: typ Symtab.table,
-  rev_abbrevs: (term * term) list Symtab.table};
+  rev_abbrevs: (term * term) Item_Net.T Symtab.table};
 
 fun eq_consts
    (Consts {decls = decls1, constraints = constraints1, rev_abbrevs = rev_abbrevs1},
@@ -67,8 +67,17 @@ fun make_consts (decls, constraints, rev_abbrevs) =
 fun map_consts f (Consts {decls, constraints, rev_abbrevs}) =
   make_consts (f (decls, constraints, rev_abbrevs));
 
-fun abbrevs_of (Consts {rev_abbrevs, ...}) modes =
-  maps (Symtab.lookup_list rev_abbrevs) modes;
+
+(* reverted abbrevs *)
+
+val empty_abbrevs = Item_Net.init (fn ((t, u), (t', u')) => t aconv t' andalso u aconv u') #1;
+
+fun insert_abbrevs mode abbrs =
+  Symtab.map_default (mode, empty_abbrevs) (fold Item_Net.insert abbrs);
+
+fun retrieve_abbrevs (Consts {rev_abbrevs, ...}) modes =
+  let val nets = map_filter (Symtab.lookup rev_abbrevs) modes
+  in fn t => maps (fn net => Item_Net.retrieve net t) nets end;
 
 
 (* dest consts *)
@@ -291,7 +300,7 @@ fun abbreviate pp tsig naming mode tags (b, raw_rhs) consts =
         val (_, decls') = decls
           |> extend_decls naming (b, ((decl, SOME abbr), serial ()));
         val rev_abbrevs' = rev_abbrevs
-          |> fold (curry Symtab.cons_list mode) (rev_abbrev lhs rhs);
+          |> insert_abbrevs mode (rev_abbrev lhs rhs);
       in (decls', constraints, rev_abbrevs') end)
     |> pair (lhs, rhs)
   end;
@@ -300,7 +309,7 @@ fun revert_abbrev mode c consts = consts |> map_consts (fn (decls, constraints, 
   let
     val (T, rhs) = the_abbreviation consts c;
     val rev_abbrevs' = rev_abbrevs
-      |> fold (curry Symtab.cons_list mode) (rev_abbrev (Const (c, T)) rhs);
+      |> insert_abbrevs mode (rev_abbrev (Const (c, T)) rhs);
   in (decls, constraints, rev_abbrevs') end);
 
 end;
@@ -317,8 +326,7 @@ fun merge
     val decls' = NameSpace.merge_tables (eq_snd (op =)) (decls1, decls2)
       handle Symtab.DUP c => err_dup_const c;
     val constraints' = Symtab.join (K fst) (constraints1, constraints2);
-    val rev_abbrevs' = (rev_abbrevs1, rev_abbrevs2) |> Symtab.join
-      (K (Library.merge (fn ((t, u), (t', u')) => t aconv t' andalso u aconv u')));
+    val rev_abbrevs' = Symtab.join (K Item_Net.merge) (rev_abbrevs1, rev_abbrevs2);
   in make_consts (decls', constraints', rev_abbrevs') end;
 
 end;

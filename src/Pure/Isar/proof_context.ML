@@ -513,9 +513,11 @@ fun contract_abbrevs ctxt t =
     val thy = theory_of ctxt;
     val consts = consts_of ctxt;
     val Mode {abbrev, ...} = get_mode ctxt;
+    val retrieve = Consts.retrieve_abbrevs consts (print_mode_value () @ [""]);
+    fun match_abbrev u = Option.map #1 (get_first (Pattern.match_rew thy u) (retrieve u));
   in
     if abbrev orelse print_mode_active "no_abbrevs" orelse not (can Term.type_of t) then t
-    else t |> Pattern.rewrite_term thy (Consts.abbrevs_of consts (print_mode_value () @ [""])) []
+    else Pattern.rewrite_term thy [] [match_abbrev] t
   end;
 
 
