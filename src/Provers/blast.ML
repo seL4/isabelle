@@ -564,11 +564,11 @@ fun netMkRules thy P vars (nps: netpair list) =
       (Const ("*Goal*", _) $ G) =>
         let val pG = mk_Trueprop (toTerm 2 G)
             val intrs = maps (fn (inet,_) => Net.unify_term inet pG) nps
-        in  map (fromIntrRule thy vars o #2) (Tactic.orderlist intrs)  end
+        in  map (fromIntrRule thy vars o #2) (order_list intrs)  end
     | _ =>
         let val pP = mk_Trueprop (toTerm 3 P)
             val elims = maps (fn (_,enet) => Net.unify_term enet pP) nps
-        in  map_filter (fromRule thy vars o #2) (Tactic.orderlist elims)  end;
+        in  map_filter (fromRule thy vars o #2) (order_list elims)  end;
 
 
 (*Normalize a branch--for tracing*)

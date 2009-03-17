@@ -66,8 +66,6 @@ sig
   val innermost_params: int -> thm -> (string * typ) list
   val term_lift_inst_rule:
     thm * int * ((indexname * sort) * typ) list * ((indexname * typ) * term) list * thm -> thm
-  val untaglist: (int * 'a) list -> 'a list
-  val orderlist: (int * 'a) list -> 'a list
   val insert_tagged_brl: 'a * (bool * thm) ->
     ('a * (bool * thm)) Net.net * ('a * (bool * thm)) Net.net ->
       ('a * (bool * thm)) Net.net * ('a * (bool * thm)) Net.net
@@ -264,20 +262,6 @@ fun filter_thms could (limit, prem, ths) =
 
 (** To preserve the order of the rules, tag them with increasing integers **)
 
-(*insert tags*)
-fun taglist k [] = []
-  | taglist k (x::xs) = (k,x) :: taglist (k+1) xs;
-
-(*remove tags and suppress duplicates -- list is assumed sorted!*)
-fun untaglist [] = []
-  | untaglist [(k:int,x)] = [x]
-  | untaglist ((k,x) :: (rest as (k',x')::_)) =
-      if k=k' then untaglist rest
-      else    x :: untaglist rest;
-
-(*return list elements in original order*)
-fun orderlist kbrls = untaglist (sort (int_ord o pairself fst) kbrls);
-
 (*insert one tagged brl into the pair of nets*)
 fun insert_tagged_brl (kbrl as (k, (eres, th))) (inet, enet) =
   if eres then
@@ -288,7 +272,7 @@ fun insert_tagged_brl (kbrl as (k, (eres, th))) (inet, enet) =
 
 (*build a pair of nets for biresolution*)
 fun build_netpair netpair brls =
-    fold_rev insert_tagged_brl (taglist 1 brls) netpair;
+    fold_rev insert_tagged_brl (tag_list 1 brls) netpair;
 
 (*delete one kbrl from the pair of nets*)
 fun eq_kbrl ((_, (_, th)), (_, (_, th'))) = Thm.eq_thm_prop (th, th')
@@ -314,8 +298,8 @@ fun biresolution_from_nets_tac order match (inet,enet) =
       in PRIMSEQ (biresolution match (order kbrls) i) end);
 
 (*versions taking pre-built nets.  No filtering of brls*)
-val biresolve_from_nets_tac = biresolution_from_nets_tac orderlist false;
-val bimatch_from_nets_tac   = biresolution_from_nets_tac orderlist true;
+val biresolve_from_nets_tac = biresolution_from_nets_tac order_list false;
+val bimatch_from_nets_tac   = biresolution_from_nets_tac order_list true;
 
 (*fast versions using nets internally*)
 val net_biresolve_tac =
@@ -332,7 +316,7 @@ fun insert_krl (krl as (k,th)) =
 
 (*build a net of rules for resolution*)
 fun build_net rls =
-  fold_rev insert_krl (taglist 1 rls) Net.empty;
+  fold_rev insert_krl (tag_list 1 rls) Net.empty;
 
 (*resolution using a net rather than rules; pred supports filt_resolve_tac*)
 fun filt_resolution_from_net_tac match pred net =
@@ -342,7 +326,7 @@ fun filt_resolution_from_net_tac match pred net =
       in
          if pred krls
          then PRIMSEQ
-                (biresolution match (map (pair false) (orderlist krls)) i)
+                (biresolution match (map (pair false) (order_list krls)) i)
          else no_tac
       end);
 
