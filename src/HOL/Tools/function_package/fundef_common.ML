@@ -91,13 +91,13 @@ fun morph_fundef_data (FundefCtxData {add_simps, case_names, fs, R,
 
 structure FundefData = GenericDataFun
 (
-  type T = (term * fundef_context_data) NetRules.T;
-  val empty = NetRules.init
+  type T = (term * fundef_context_data) Item_Net.T;
+  val empty = Item_Net.init
     (op aconv o pairself fst : (term * fundef_context_data) * (term * fundef_context_data) -> bool)
     fst;
   val copy = I;
   val extend = I;
-  fun merge _ (tab1, tab2) = NetRules.merge (tab1, tab2)
+  fun merge _ (tab1, tab2) = Item_Net.merge (tab1, tab2)
 );
 
 val get_fundef = FundefData.get o Context.Proof;
@@ -122,11 +122,11 @@ fun import_fundef_data t ctxt =
           SOME (morph_fundef_data data (inst_morph (Thm.match (cterm_of thy trm, ct))))
           handle Pattern.MATCH => NONE
     in 
-      get_first match (NetRules.retrieve (get_fundef ctxt) t)
+      get_first match (Item_Net.retrieve (get_fundef ctxt) t)
     end
 
 fun import_last_fundef ctxt =
-    case NetRules.rules (get_fundef ctxt) of
+    case Item_Net.content (get_fundef ctxt) of
       [] => NONE
     | (t, data) :: _ =>
       let 
@@ -135,10 +135,10 @@ fun import_last_fundef ctxt =
         import_fundef_data t' ctxt'
       end
 
-val all_fundef_data = NetRules.rules o get_fundef
+val all_fundef_data = Item_Net.content o get_fundef
 
 fun add_fundef_data (data as FundefCtxData {fs, termination, ...}) =
-    FundefData.map (fold (fn f => NetRules.insert (f, data)) fs)
+    FundefData.map (fold (fn f => Item_Net.insert (f, data)) fs)
     #> store_termination_rule termination
 
 

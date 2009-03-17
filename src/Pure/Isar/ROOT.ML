@@ -44,7 +44,6 @@ use "method.ML";
 use "proof.ML";
 use "../ML/ml_thms.ML";
 use "element.ML";
-use "net_rules.ML";
 
 (*derived theory and proof elements*)
 use "calculation.ML";
@@ -89,5 +88,3 @@ use "rule_insts.ML";
 use "../Thy/thm_deps.ML";
 use "isar_cmd.ML";
 use "isar_syn.ML";
-
-

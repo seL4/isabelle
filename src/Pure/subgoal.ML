@@ -29,7 +29,7 @@ struct
 fun focus ctxt i st =
   let
     val ((schematics, [st']), ctxt') =
-      Variable.import_thms true [MetaSimplifier.norm_hhf_protect st] ctxt;
+      Variable.import_thms true [Simplifier.norm_hhf_protect st] ctxt;
     val ((params, goal), ctxt'') = Variable.focus_subgoal i st' ctxt';
     val asms = Drule.strip_imp_prems goal;
     val concl = Drule.strip_imp_concl goal;

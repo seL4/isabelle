@@ -51,7 +51,7 @@ fun rulify_elim_conv ct =
 
 end;
 
-fun rulify_elim th = MetaSimplifier.norm_hhf (Conv.fconv_rule rulify_elim_conv th);
+fun rulify_elim th = Simplifier.norm_hhf (Conv.fconv_rule rulify_elim_conv th);
 
 (* Decompose elimination rule of the form
    A1 ==> ... ==> Am ==> (!!xs1. Bs1 ==> P) ==> ... ==> (!!xsn. Bsn ==> P) ==> P

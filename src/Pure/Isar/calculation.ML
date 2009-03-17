@@ -29,18 +29,18 @@ struct
 
 structure CalculationData = GenericDataFun
 (
-  type T = (thm NetRules.T * thm list) * (thm list * int) option;
-  val empty = ((NetRules.elim, []), NONE);
+  type T = (thm Item_Net.T * thm list) * (thm list * int) option;
+  val empty = ((Thm.elim_rules, []), NONE);
   val extend = I;
 
   fun merge _ (((trans1, sym1), _), ((trans2, sym2), _)) =
-    ((NetRules.merge (trans1, trans2), Thm.merge_thms (sym1, sym2)), NONE);
+    ((Item_Net.merge (trans1, trans2), Thm.merge_thms (sym1, sym2)), NONE);
 );
 
 fun print_rules ctxt =
   let val ((trans, sym), _) = CalculationData.get (Context.Proof ctxt) in
     [Pretty.big_list "transitivity rules:"
-        (map (ProofContext.pretty_thm ctxt) (NetRules.rules trans)),
+        (map (ProofContext.pretty_thm ctxt) (Item_Net.content trans)),
       Pretty.big_list "symmetry rules:" (map (ProofContext.pretty_thm ctxt) sym)]
     |> Pretty.chunks |> Pretty.writeln
   end;
@@ -66,8 +66,8 @@ fun put_calculation calc =
 
 (* add/del rules *)
 
-val trans_add = Thm.declaration_attribute (CalculationData.map o apfst o apfst o NetRules.insert);
-val trans_del = Thm.declaration_attribute (CalculationData.map o apfst o apfst o NetRules.delete);
+val trans_add = Thm.declaration_attribute (CalculationData.map o apfst o apfst o Item_Net.insert);
+val trans_del = Thm.declaration_attribute (CalculationData.map o apfst o apfst o Item_Net.delete);
 
 val sym_add =
   Thm.declaration_attribute (CalculationData.map o apfst o apsnd o Thm.add_thm)
@@ -130,8 +130,8 @@ fun calculate prep_rules final raw_rules int state =
     fun combine ths =
       (case opt_rules of SOME rules => rules
       | NONE =>
-          (case ths of [] => NetRules.rules (#1 (get_rules state))
-          | th :: _ => NetRules.retrieve (#1 (get_rules state)) (strip_assums_concl th)))
+          (case ths of [] => Item_Net.content (#1 (get_rules state))
+          | th :: _ => Item_Net.retrieve (#1 (get_rules state)) (strip_assums_concl th)))
       |> Seq.of_list |> Seq.maps (Drule.multi_resolve ths)
       |> Seq.filter (not o projection ths);
 

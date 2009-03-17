@@ -73,6 +73,8 @@ sig
   val prune_params_tac: tactic
   val fold_rule: thm list -> thm -> thm
   val fold_goals_tac: thm list -> tactic
+  val norm_hhf: thm -> thm
+  val norm_hhf_protect: thm -> thm
 end;
 
 signature META_SIMPLIFIER =
@@ -122,8 +124,6 @@ sig
     (simpset -> thm -> thm option) -> simpset -> int -> thm -> thm
   val asm_rewrite_goal_tac: bool * bool * bool ->
     (simpset -> tactic) -> simpset -> int -> tactic
-  val norm_hhf: thm -> thm
-  val norm_hhf_protect: thm -> thm
   val rewrite: bool -> thm list -> conv
   val simplify: bool -> thm list -> thm -> thm
 end;

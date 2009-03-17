@@ -211,6 +211,9 @@ sig
   val sort_distinct: ('a * 'a -> order) -> 'a list -> 'a list
   val sort_strings: string list -> string list
   val sort_wrt: ('a -> string) -> 'a list -> 'a list
+  val tag_list: int -> 'a list -> (int * 'a) list
+  val untag_list: (int * 'a) list -> 'a list
+  val order_list: (int * 'a) list -> 'a list
 
   (*random numbers*)
   exception RANDOM
@@ -1013,6 +1016,23 @@ fun sort_distinct ord = quicksort true ord;
 
 val sort_strings = sort string_ord;
 fun sort_wrt sel xs = sort (string_ord o pairself sel) xs;
+
+
+(* items tagged by integer index *)
+
+(*insert tags*)
+fun tag_list k [] = []
+  | tag_list k (x :: xs) = (k, x) :: tag_list (k + 1) xs;
+
+(*remove tags and suppress duplicates -- list is assumed sorted!*)
+fun untag_list [] = []
+  | untag_list [(k: int, x)] = [x]
+  | untag_list ((k, x) :: (rest as (k', x') :: _)) =
+      if k = k' then untag_list rest
+      else x :: untag_list rest;
+
+(*return list elements in original order*)
+fun order_list list = untag_list (sort (int_ord o pairself fst) list);
 
 
 

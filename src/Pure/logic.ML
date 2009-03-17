@@ -65,6 +65,7 @@ sig
   val flatten_params: int -> term -> term
   val list_rename_params: string list * term -> term
   val assum_pairs: int * term -> (term*term)list
+  val assum_problems: int * term -> (term -> term) * term list * term
   val varifyT: typ -> typ
   val unvarifyT: typ -> typ
   val varify: term -> term
@@ -461,6 +462,13 @@ fun assum_pairs(nasms,A) =
         | pairrev (H::Hs, pairs) = pairrev(Hs,  (abspar H, D) :: pairs)
   in  pairrev (Hs,[])
   end;
+
+fun assum_problems (nasms, A) =
+  let
+    val (params, A') = strip_assums_all ([], A)
+    val (Hs, B) = strip_assums_imp (nasms, [], A')
+    fun abspar t = rlist_abs (params, t)
+  in (abspar, rev Hs, B) end;
 
 
 (* global schematic variables *)

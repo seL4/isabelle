@@ -52,11 +52,12 @@ use "type_infer.ML";
 use "ML/ml_syntax.ML";
 
 (*core of tactical proof system*)
+use "net.ML";
+use "item_net.ML";
 use "envir.ML";
 use "consts.ML";
 use "primitive_defs.ML";
 use "defs.ML";
-use "net.ML";
 use "sign.ML";
 use "pattern.ML";
 use "unify.ML";

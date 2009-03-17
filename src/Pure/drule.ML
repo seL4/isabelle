@@ -787,14 +787,12 @@ val norm_hhf_eq =
 val norm_hhf_prop = Logic.dest_equals (Thm.prop_of norm_hhf_eq);
 val norm_hhf_eqs = [norm_hhf_eq, sort_constraint_eq];
 
-fun is_norm_hhf tm =
-  let
-    fun is_norm (Const ("Pure.sort_constraint", _)) = false
-      | is_norm (Const ("==>", _) $ _ $ (Const ("all", _) $ _)) = false
-      | is_norm (t $ u) = is_norm t andalso is_norm u
-      | is_norm (Abs (_, _, t)) = is_norm t
-      | is_norm _ = true;
-  in is_norm (Envir.beta_eta_contract tm) end;
+fun is_norm_hhf (Const ("Pure.sort_constraint", _)) = false
+  | is_norm_hhf (Const ("==>", _) $ _ $ (Const ("all", _) $ _)) = false
+  | is_norm_hhf (Abs _ $ _) = false
+  | is_norm_hhf (t $ u) = is_norm_hhf t andalso is_norm_hhf u
+  | is_norm_hhf (Abs (_, _, t)) = is_norm_hhf t
+  | is_norm_hhf _ = true;
 
 fun norm_hhf thy t =
   if is_norm_hhf t then t
