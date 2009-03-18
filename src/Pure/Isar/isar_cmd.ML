@@ -13,7 +13,7 @@ sig
   val print_translation: bool * (string * Position.T) -> theory -> theory
   val typed_print_translation: bool * (string * Position.T) -> theory -> theory
   val print_ast_translation: bool * (string * Position.T) -> theory -> theory
-  val oracle: bstring * Position.T -> SymbolPos.text * Position.T -> theory -> theory
+  val oracle: bstring * Position.T -> Symbol_Pos.text * Position.T -> theory -> theory
   val add_axioms: ((binding * string) * Attrib.src list) list -> theory -> theory
   val add_defs: (bool * bool) * ((binding * string) * Attrib.src list) list -> theory -> theory
   val declaration: string * Position.T -> local_theory -> local_theory
@@ -75,10 +75,10 @@ sig
   val print_prop: (string list * string) -> Toplevel.transition -> Toplevel.transition
   val print_term: (string list * string) -> Toplevel.transition -> Toplevel.transition
   val print_type: (string list * string) -> Toplevel.transition -> Toplevel.transition
-  val header_markup: SymbolPos.text * Position.T -> Toplevel.transition -> Toplevel.transition
-  val local_theory_markup: xstring option * (SymbolPos.text * Position.T) ->
+  val header_markup: Symbol_Pos.text * Position.T -> Toplevel.transition -> Toplevel.transition
+  val local_theory_markup: xstring option * (Symbol_Pos.text * Position.T) ->
     Toplevel.transition -> Toplevel.transition
-  val proof_markup: SymbolPos.text * Position.T -> Toplevel.transition -> Toplevel.transition
+  val proof_markup: Symbol_Pos.text * Position.T -> Toplevel.transition -> Toplevel.transition
 end;
 
 structure IsarCmd: ISAR_CMD =
@@ -152,7 +152,7 @@ end;
 
 fun oracle (name, pos) (body_txt, body_pos) =
   let
-    val body = SymbolPos.content (SymbolPos.explode (body_txt, body_pos));
+    val body = Symbol_Pos.content (Symbol_Pos.explode (body_txt, body_pos));
     val txt =
       "local\n\
       \  val binding = " ^ ML_Syntax.make_binding (name, pos) ^ ";\n\

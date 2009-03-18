@@ -34,7 +34,7 @@ sig
   val explode: text * Position.T -> T list
 end;
 
-structure SymbolPos: SYMBOL_POS =
+structure Symbol_Pos: SYMBOL_POS =
 struct
 
 (* type T *)
@@ -149,5 +149,5 @@ fun explode (str, pos) =
 
 end;
 
-structure BasicSymbolPos: BASIC_SYMBOL_POS = SymbolPos;   (*not open by default*)
+structure Basic_Symbol_Pos: BASIC_SYMBOL_POS = Symbol_Pos;   (*not open by default*)
 

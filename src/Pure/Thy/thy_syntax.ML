@@ -7,7 +7,7 @@ Superficial theory syntax: tokens and spans.
 signature THY_SYNTAX =
 sig
   val token_source: Scan.lexicon * Scan.lexicon -> Position.T -> (string, 'a) Source.source ->
-    (OuterLex.token, (SymbolPos.T, Position.T * (Symbol.symbol, (string, 'a)
+    (OuterLex.token, (Symbol_Pos.T, Position.T * (Symbol.symbol, (string, 'a)
       Source.source) Source.source) Source.source) Source.source
   val parse_tokens: Scan.lexicon * Scan.lexicon -> Position.T -> string -> OuterLex.token list
   val present_token: OuterLex.token -> output

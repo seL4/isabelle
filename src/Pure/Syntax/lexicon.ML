@@ -9,15 +9,15 @@ sig
   val is_identifier: string -> bool
   val is_ascii_identifier: string -> bool
   val is_tid: string -> bool
-  val scan_id: SymbolPos.T list -> SymbolPos.T list * SymbolPos.T list
-  val scan_longid: SymbolPos.T list -> SymbolPos.T list * SymbolPos.T list
-  val scan_tid: SymbolPos.T list -> SymbolPos.T list * SymbolPos.T list
-  val scan_nat: SymbolPos.T list -> SymbolPos.T list * SymbolPos.T list
-  val scan_int: SymbolPos.T list -> SymbolPos.T list * SymbolPos.T list
-  val scan_hex: SymbolPos.T list -> SymbolPos.T list * SymbolPos.T list
-  val scan_bin: SymbolPos.T list -> SymbolPos.T list * SymbolPos.T list
-  val scan_var: SymbolPos.T list -> SymbolPos.T list * SymbolPos.T list
-  val scan_tvar: SymbolPos.T list -> SymbolPos.T list * SymbolPos.T list
+  val scan_id: Symbol_Pos.T list -> Symbol_Pos.T list * Symbol_Pos.T list
+  val scan_longid: Symbol_Pos.T list -> Symbol_Pos.T list * Symbol_Pos.T list
+  val scan_tid: Symbol_Pos.T list -> Symbol_Pos.T list * Symbol_Pos.T list
+  val scan_nat: Symbol_Pos.T list -> Symbol_Pos.T list * Symbol_Pos.T list
+  val scan_int: Symbol_Pos.T list -> Symbol_Pos.T list * Symbol_Pos.T list
+  val scan_hex: Symbol_Pos.T list -> Symbol_Pos.T list * Symbol_Pos.T list
+  val scan_bin: Symbol_Pos.T list -> Symbol_Pos.T list * Symbol_Pos.T list
+  val scan_var: Symbol_Pos.T list -> Symbol_Pos.T list * Symbol_Pos.T list
+  val scan_tvar: Symbol_Pos.T list -> Symbol_Pos.T list * Symbol_Pos.T list
   val implode_xstr: string list -> string
   val explode_xstr: string -> string list
   val read_indexname: string -> indexname
@@ -60,7 +60,7 @@ sig
   val matching_tokens: token * token -> bool
   val valued_token: token -> bool
   val predef_term: string -> token option
-  val tokenize: Scan.lexicon -> bool -> SymbolPos.T list -> token list
+  val tokenize: Scan.lexicon -> bool -> Symbol_Pos.T list -> token list
 end;
 
 structure Lexicon: LEXICON =
@@ -88,9 +88,9 @@ fun is_tid s =
 
 (** basic scanners **)
 
-open BasicSymbolPos;
+open Basic_Symbol_Pos;
 
-fun !!! msg = SymbolPos.!!! ("Inner lexical error: " ^ msg);
+fun !!! msg = Symbol_Pos.!!! ("Inner lexical error: " ^ msg);
 
 val scan_id = Scan.one (Symbol.is_letter o symbol) ::: Scan.many (Symbol.is_letdig o symbol);
 val scan_longid = scan_id @@@ (Scan.repeat1 ($$$ "." @@@ scan_id) >> flat);
@@ -220,7 +220,7 @@ val scan_str_body =
 fun implode_xstr cs = enclose "''" "''" (implode (map (fn "'" => "\\'" | c => c) cs));
 
 fun explode_xstr str =
-  (case Scan.read SymbolPos.stopper scan_str_body (SymbolPos.explode (str, Position.none)) of
+  (case Scan.read Symbol_Pos.stopper scan_str_body (Symbol_Pos.explode (str, Position.none)) of
     SOME cs => map symbol cs
   | _ => error ("Inner lexical error: literal string expected at " ^ quote str));
 
@@ -229,7 +229,7 @@ fun explode_xstr str =
 (** tokenize **)
 
 fun token_leq (Token (_, s1, _), Token (_, s2, _)) = s1 <= s2;
-fun token kind ss = Token (kind, SymbolPos.content ss, SymbolPos.range ss);
+fun token kind ss = Token (kind, Symbol_Pos.content ss, Symbol_Pos.range ss);
 
 fun tokenize lex xids syms =
   let
@@ -252,16 +252,16 @@ fun tokenize lex xids syms =
     val scan_lit = Scan.literal lex >> token Literal;
 
     val scan_token =
-      SymbolPos.scan_comment !!! >> token Comment ||
+      Symbol_Pos.scan_comment !!! >> token Comment ||
       Scan.max token_leq scan_lit scan_val ||
       scan_str >> token StrSy ||
       Scan.many1 (Symbol.is_blank o symbol) >> token Space;
   in
     (case Scan.error
-        (Scan.finite SymbolPos.stopper (Scan.repeat scan_token)) syms of
+        (Scan.finite Symbol_Pos.stopper (Scan.repeat scan_token)) syms of
       (toks, []) => toks
-    | (_, ss) => error ("Inner lexical error at: " ^ SymbolPos.content ss ^
-        Position.str_of (#1 (SymbolPos.range ss))))
+    | (_, ss) => error ("Inner lexical error at: " ^ Symbol_Pos.content ss ^
+        Position.str_of (#1 (Symbol_Pos.range ss))))
   end;
 
 
@@ -303,7 +303,7 @@ end;
 (* indexname *)
 
 fun read_indexname s =
-  (case Scan.read SymbolPos.stopper scan_indexname (SymbolPos.explode (s, Position.none)) of
+  (case Scan.read Symbol_Pos.stopper scan_indexname (Symbol_Pos.explode (s, Position.none)) of
     SOME xi => xi
   | _ => error ("Lexical error in variable name: " ^ quote s));
 
@@ -317,16 +317,16 @@ fun var xi = Var (xi, dummyT);
 fun read_var str =
   let
     val scan =
-      $$$ "?" |-- scan_indexname --| Scan.ahead (Scan.one SymbolPos.is_eof) >> var ||
+      $$$ "?" |-- scan_indexname --| Scan.ahead (Scan.one Symbol_Pos.is_eof) >> var ||
       Scan.many (Symbol.is_regular o symbol) >> (free o implode o map symbol);
-  in the (Scan.read SymbolPos.stopper scan (SymbolPos.explode (str, Position.none))) end;
+  in the (Scan.read Symbol_Pos.stopper scan (Symbol_Pos.explode (str, Position.none))) end;
 
 
 (* read_variable *)
 
 fun read_variable str =
   let val scan = $$$ "?" |-- scan_indexname || scan_indexname
-  in Scan.read SymbolPos.stopper scan (SymbolPos.explode (str, Position.none)) end;
+  in Scan.read Symbol_Pos.stopper scan (Symbol_Pos.explode (str, Position.none)) end;
 
 
 (* specific identifiers *)
@@ -341,14 +341,14 @@ local
 
 fun nat cs =
   Option.map (#1 o Library.read_int o map symbol)
-    (Scan.read SymbolPos.stopper scan_nat cs);
+    (Scan.read Symbol_Pos.stopper scan_nat cs);
 
 in
 
-fun read_nat s = nat (SymbolPos.explode (s, Position.none));
+fun read_nat s = nat (Symbol_Pos.explode (s, Position.none));
 
 fun read_int s =
-  (case SymbolPos.explode (s, Position.none) of
+  (case Symbol_Pos.explode (s, Position.none) of
     ("-", _) :: cs => Option.map ~ (nat cs)
   | cs => nat cs);
 

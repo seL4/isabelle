@@ -84,8 +84,8 @@ sig
   val fixes: (binding * string option * mixfix) list parser
   val for_fixes: (binding * string option * mixfix) list parser
   val for_simple_fixes: (binding * string option) list parser
-  val ML_source: (SymbolPos.text * Position.T) parser
-  val doc_source: (SymbolPos.text * Position.T) parser
+  val ML_source: (Symbol_Pos.text * Position.T) parser
+  val doc_source: (Symbol_Pos.text * Position.T) parser
   val term_group: string parser
   val prop_group: string parser
   val term: string parser

@@ -35,7 +35,7 @@ sig
   val print_trans: syntax -> unit
   val print_syntax: syntax -> unit
   val guess_infix: syntax -> string -> mixfix option
-  val read_token: string -> SymbolPos.T list * Position.T
+  val read_token: string -> Symbol_Pos.T list * Position.T
   val ambiguity_is_error: bool ref
   val ambiguity_level: int ref
   val ambiguity_limit: int ref
@@ -43,12 +43,12 @@ sig
     (((string * int) * sort) list -> string * int -> Term.sort) ->
     (string -> bool * string) -> (string -> string option) ->
     (typ -> typ) -> (sort -> sort) -> Proof.context ->
-    (string -> bool) -> syntax -> typ -> SymbolPos.T list * Position.T -> term
+    (string -> bool) -> syntax -> typ -> Symbol_Pos.T list * Position.T -> term
   val standard_parse_typ: Proof.context -> syntax ->
     ((indexname * sort) list -> indexname -> sort) -> (sort -> sort) ->
-    SymbolPos.T list * Position.T -> typ
+    Symbol_Pos.T list * Position.T -> typ
   val standard_parse_sort: Proof.context -> syntax -> (sort -> sort) ->
-    SymbolPos.T list * Position.T -> sort
+    Symbol_Pos.T list * Position.T -> sort
   datatype 'a trrule =
     ParseRule of 'a * 'a |
     PrintRule of 'a * 'a |
@@ -82,7 +82,7 @@ sig
     (string * string) trrule list -> syntax -> syntax
   val update_trrules_i: ast trrule list -> syntax -> syntax
   val remove_trrules_i: ast trrule list -> syntax -> syntax
-  val parse_token: Markup.T -> string -> SymbolPos.T list * Position.T
+  val parse_token: Markup.T -> string -> Symbol_Pos.T list * Position.T
   val parse_sort: Proof.context -> string -> sort
   val parse_typ: Proof.context -> string -> typ
   val parse_term: Proof.context -> string -> term
@@ -467,7 +467,7 @@ fun read_token str =
     | XML.Elem ("token", props, []) => ("", Position.of_properties props)
     | XML.Text text => (text, Position.none)
     | _ => (str, Position.none))
-  in (SymbolPos.explode (text, pos), pos) end;
+  in (Symbol_Pos.explode (text, pos), pos) end;
 
 
 (* read_ast *)

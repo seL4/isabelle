@@ -32,7 +32,7 @@ sig
   val mode: string -> bool context_parser
   val maybe: 'a parser -> 'a option parser
   val name_source: string parser
-  val name_source_position: (SymbolPos.text * Position.T) parser
+  val name_source_position: (Symbol_Pos.text * Position.T) parser
   val name: string parser
   val binding: binding parser
   val alt_name: string parser
