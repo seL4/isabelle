@@ -817,8 +817,10 @@ fun update eq x xs = cons x (remove eq x xs);
 
 fun subtract eq = fold (remove eq);
 
-fun merge _ ([], ys) = ys
-  | merge eq (xs, ys) = fold_rev (insert eq) ys xs;
+fun merge eq (xs, ys) =
+  if pointer_eq (xs, ys) then xs
+  else if null xs then ys
+  else fold_rev (insert eq) ys xs;
 
 
 (* old-style infixes *)
