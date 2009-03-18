@@ -81,7 +81,8 @@ sig
     -> theory -> theory
   val syntax: 'a context_parser -> src -> Proof.context -> 'a * Proof.context
   val setup: binding -> (Proof.context -> method) context_parser -> string -> theory -> theory
-  val method_setup: bstring * Position.T -> string * Position.T -> string -> theory -> theory
+  val method_setup: bstring * Position.T -> Symbol_Pos.text * Position.T -> string ->
+    theory -> theory
   val simple_args: 'a parser -> ('a -> Proof.context -> method) -> src -> Proof.context -> method
   val ctxt_args: (Proof.context -> method) -> src -> Proof.context -> method
   val no_args: method -> src -> Proof.context -> method

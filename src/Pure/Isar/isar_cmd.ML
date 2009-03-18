@@ -6,18 +6,18 @@ Derived Isar commands.
 
 signature ISAR_CMD =
 sig
-  val global_setup: string * Position.T -> theory -> theory
-  val local_setup: string * Position.T -> Proof.context -> Proof.context
-  val parse_ast_translation: bool * (string * Position.T) -> theory -> theory
-  val parse_translation: bool * (string * Position.T) -> theory -> theory
-  val print_translation: bool * (string * Position.T) -> theory -> theory
-  val typed_print_translation: bool * (string * Position.T) -> theory -> theory
-  val print_ast_translation: bool * (string * Position.T) -> theory -> theory
+  val global_setup: Symbol_Pos.text * Position.T -> theory -> theory
+  val local_setup: Symbol_Pos.text * Position.T -> Proof.context -> Proof.context
+  val parse_ast_translation: bool * (Symbol_Pos.text * Position.T) -> theory -> theory
+  val parse_translation: bool * (Symbol_Pos.text * Position.T) -> theory -> theory
+  val print_translation: bool * (Symbol_Pos.text * Position.T) -> theory -> theory
+  val typed_print_translation: bool * (Symbol_Pos.text * Position.T) -> theory -> theory
+  val print_ast_translation: bool * (Symbol_Pos.text * Position.T) -> theory -> theory
   val oracle: bstring * Position.T -> Symbol_Pos.text * Position.T -> theory -> theory
   val add_axioms: ((binding * string) * Attrib.src list) list -> theory -> theory
   val add_defs: (bool * bool) * ((binding * string) * Attrib.src list) list -> theory -> theory
-  val declaration: string * Position.T -> local_theory -> local_theory
-  val simproc_setup: string -> string list -> string * Position.T -> string list ->
+  val declaration: Symbol_Pos.text * Position.T -> local_theory -> local_theory
+  val simproc_setup: string -> string list -> Symbol_Pos.text * Position.T -> string list ->
     local_theory -> local_theory
   val hide_names: bool -> string * xstring list -> theory -> theory
   val have: (Attrib.binding * (string * string list) list) list -> bool -> Proof.state -> Proof.state
@@ -38,7 +38,7 @@ sig
   val pr: string list * (int option * int option) -> Toplevel.transition -> Toplevel.transition
   val disable_pr: Toplevel.transition -> Toplevel.transition
   val enable_pr: Toplevel.transition -> Toplevel.transition
-  val ml_diag: bool -> string * Position.T -> Toplevel.transition -> Toplevel.transition
+  val ml_diag: bool -> Symbol_Pos.text * Position.T -> Toplevel.transition -> Toplevel.transition
   val cd: Path.T -> Toplevel.transition -> Toplevel.transition
   val pwd: Toplevel.transition -> Toplevel.transition
   val display_drafts: Path.T list -> Toplevel.transition -> Toplevel.transition
