@@ -1022,7 +1022,7 @@ fun sort_wrt sel xs = sort (string_ord o pairself sel) xs;
 
 (*insert tags*)
 fun tag_list k [] = []
-  | tag_list k (x :: xs) = (k, x) :: tag_list (k + 1) xs;
+  | tag_list k (x :: xs) = (k:int, x) :: tag_list (k + 1) xs;
 
 (*remove tags and suppress duplicates -- list is assumed sorted!*)
 fun untag_list [] = []

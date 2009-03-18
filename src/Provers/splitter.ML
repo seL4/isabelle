@@ -472,8 +472,8 @@ val split_modifiers =
   Args.$$$ splitN -- Args.add -- Args.colon >> K (I, split_add),
   Args.$$$ splitN -- Args.del -- Args.colon >> K (I, split_del)];
 
-val split_meth = Attrib.thms >>
-  (fn ths => K (SIMPLE_METHOD' (CHANGED_PROP o gen_split_tac ths)));
+fun split_meth parser = (Attrib.thms >>
+  (fn ths => K (SIMPLE_METHOD' (CHANGED_PROP o gen_split_tac ths)))) parser;
 
 
 (* theory setup *)
