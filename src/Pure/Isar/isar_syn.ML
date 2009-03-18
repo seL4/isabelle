@@ -309,7 +309,8 @@ val _ =
     (P.ML_source >> (fn (txt, pos) =>
       Toplevel.proof (Proof.map_context (Context.proof_map
         (ML_Context.exec (fn () => ML_Context.eval true pos txt))) #>
-          (fn prf => Proof.map_contexts (ML_Context.inherit_env (Proof.context_of prf)) prf))));
+          (fn prf => prf |> Proof.map_contexts
+            (Context.proof_map (ML_Context.inherit_env (Context.Proof (Proof.context_of prf))))))));
 
 val _ =
   OuterSyntax.command "ML_val" "eval ML text (diagnostic)" (K.tag_ml K.diag)
