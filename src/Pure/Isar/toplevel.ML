@@ -647,11 +647,9 @@ end;
 
 local
 
-fun app int (tr as Transition {trans, pos, int_only, print, no_timing, ...}) =
+fun app int (tr as Transition {trans, pos, print, no_timing, ...}) =
   setmp_thread_position tr (fn state =>
     let
-      val _ = if not int andalso int_only then warning (command_msg "Interactive-only " tr) else ();
-
       fun do_timing f x = (warning (command_msg "" tr); timeap f x);
       fun do_profiling f x = profile (! profiling) f x;
 
