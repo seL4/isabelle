@@ -3,8 +3,6 @@
 \def\isabellecontext{Examples}%
 %
 \isadelimtheory
-\isanewline
-\isanewline
 %
 \endisadelimtheory
 %
@@ -197,8 +195,9 @@ When working with locales, sequences of commands with the same
   target for a block may be given with the \isakeyword{context}
   command.
 
-  In the block below, notions of infimum and supremum together with
-  theorems are introduced for partial orders.%
+  This style of working is illustrated in the block below, where
+  notions of infimum and supremum for partial orders are introduced,
+  together with theorems.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \ \ \isacommand{context}\isamarkupfalse%
@@ -465,17 +464,20 @@ When working with locales, sequences of commands with the same
 \ \ \isacommand{end}\isamarkupfalse%
 %
 \begin{isamarkuptext}%
-In fact, many more theorems need to be shown for a usable
-  theory of partial orders.  The
-  above two serve as illustrative examples.%
+The definitions of \isa{is{\isacharunderscore}inf} and \isa{is{\isacharunderscore}sup} look
+  like ordinary definitions in theories.  Despite, what is going on
+  behind the scenes is more complex.  The definition of \isa{is{\isacharunderscore}inf}, say, creates a constant \isa{partial{\isacharunderscore}order{\isachardot}is{\isacharunderscore}inf} where
+  the locale parameters that occur in the definition of \isa{is{\isacharunderscore}inf}
+  are additional arguments.  Writing \isa{is{\isacharunderscore}inf\ x\ y\ inf} is just
+  a notational convenience for \isa{partial{\isacharunderscore}order{\isachardot}is{\isacharunderscore}inf\ op\ {\isasymsqsubseteq}\ x\ y\ inf}.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
 \begin{isamarkuptext}%
 Two commands are provided to inspect locales:
   \isakeyword{print\_locales} lists the names of all locales of the
-  theory; \isakeyword{print\_locale}~$n$ prints the parameters and
-  assumptions of locale $n$; \isakeyword{print\_locale!}~$n$
+  current theory; \isakeyword{print\_locale}~$n$ prints the parameters
+  and assumptions of locale $n$; \isakeyword{print\_locale!}~$n$
   additionally outputs the conclusions.
 
   The syntax of the locale commands discussed in this tutorial is
@@ -485,14 +487,12 @@ Two commands are provided to inspect locales:
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
-\isamarkupsection{Import%
+\isamarkupsection{Import \label{sec:import}%
 }
 \isamarkuptrue%
 %
 \begin{isamarkuptext}%
-\label{sec:import}
-
-  Algebraic structures are commonly defined by adding operations and
+Algebraic structures are commonly defined by adding operations and
   properties to existing structures.  For example, partial orders
   are extended to lattices and total orders.  Lattices are extended to
   distributive lattices.
@@ -503,11 +503,11 @@ Two commands are provided to inspect locales:
 \isamarkuptrue%
 \ \ \isacommand{locale}\isamarkupfalse%
 \ lattice\ {\isacharequal}\ partial{\isacharunderscore}order\ {\isacharplus}\isanewline
-\ \ \ \ \isakeyword{assumes}\ ex{\isacharunderscore}inf{\isacharcolon}\ {\isachardoublequoteopen}{\isasymexists}inf{\isachardot}\ partial{\isacharunderscore}order{\isachardot}is{\isacharunderscore}inf\ le\ x\ y\ inf{\isachardoublequoteclose}\isanewline
-\ \ \ \ \ \ \isakeyword{and}\ ex{\isacharunderscore}sup{\isacharcolon}\ {\isachardoublequoteopen}{\isasymexists}sup{\isachardot}\ partial{\isacharunderscore}order{\isachardot}is{\isacharunderscore}sup\ le\ x\ y\ sup{\isachardoublequoteclose}\isanewline
+\ \ \ \ \isakeyword{assumes}\ ex{\isacharunderscore}inf{\isacharcolon}\ {\isachardoublequoteopen}{\isasymexists}inf{\isachardot}\ is{\isacharunderscore}inf\ x\ y\ inf{\isachardoublequoteclose}\isanewline
+\ \ \ \ \ \ \isakeyword{and}\ ex{\isacharunderscore}sup{\isacharcolon}\ {\isachardoublequoteopen}{\isasymexists}sup{\isachardot}\ is{\isacharunderscore}sup\ x\ y\ sup{\isachardoublequoteclose}\isanewline
 \ \ \isakeyword{begin}%
 \begin{isamarkuptext}%
-Note that the assumptions above refer to the predicates for infimum
+These assumptions refer to the predicates for infimum
   and supremum defined in \isa{partial{\isacharunderscore}order}.  In the current
   implementation of locales, syntax from definitions of the imported
   locale is unavailable in the locale declaration, neither are their
@@ -1110,9 +1110,7 @@ Locales for total orders and distributive lattices follow.
 \isanewline
 \ \ \isacommand{locale}\isamarkupfalse%
 \ distrib{\isacharunderscore}lattice\ {\isacharequal}\ lattice\ {\isacharplus}\isanewline
-\ \ \ \ \isakeyword{assumes}\ meet{\isacharunderscore}distr{\isacharcolon}\isanewline
-\ \ \ \ \ \ {\isachardoublequoteopen}lattice{\isachardot}meet\ le\ x\ {\isacharparenleft}lattice{\isachardot}join\ le\ y\ z{\isacharparenright}\ {\isacharequal}\isanewline
-\ \ \ \ \ \ lattice{\isachardot}join\ le\ {\isacharparenleft}lattice{\isachardot}meet\ le\ x\ y{\isacharparenright}\ {\isacharparenleft}lattice{\isachardot}meet\ le\ x\ z{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\ \ \ \ \isakeyword{assumes}\ meet{\isacharunderscore}distr{\isacharcolon}\ {\isachardoublequoteopen}x\ {\isasymsqinter}\ {\isacharparenleft}y\ {\isasymsqunion}\ z{\isacharparenright}\ {\isacharequal}\ x\ {\isasymsqinter}\ y\ {\isasymsqunion}\ x\ {\isasymsqinter}\ z{\isachardoublequoteclose}\isanewline
 \isanewline
 \ \ \isacommand{lemma}\isamarkupfalse%
 \ {\isacharparenleft}\isakeyword{in}\ distrib{\isacharunderscore}lattice{\isacharparenright}\ join{\isacharunderscore}distr{\isacharcolon}\isanewline
@@ -1206,14 +1204,13 @@ The locale hierachy obtained through these declarations is shown in Figure~\ref{
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
-\isamarkupsection{Changing the Locale Hierarchy%
+\isamarkupsection{Changing the Locale Hierarchy
+  \label{sec:changing-the-hierarchy}%
 }
 \isamarkuptrue%
 %
 \begin{isamarkuptext}%
-\label{sec:changing-the-hierarchy}
-
-  Total orders are lattices.  Hence, by deriving the lattice
+Total orders are lattices.  Hence, by deriving the lattice
   axioms for total orders, the hierarchy may be changed
   and \isa{lattice} be placed between \isa{partial{\isacharunderscore}order}
   and \isa{total{\isacharunderscore}order}, as shown in Figure~\ref{fig:lattices}(b).

@@ -3,8 +3,6 @@
 \def\isabellecontext{Examples{\isadigit{1}}}%
 %
 \isadelimtheory
-\isanewline
-\isanewline
 %
 \endisadelimtheory
 %
@@ -33,7 +31,7 @@ Locales enable to prove theorems abstractly, relative to
 
   The changes of the locale
   hierarchy from the previous sections are examples of
-  interpretations.  The command \isakeyword{interpretation} $l_1
+  interpretations.  The command \isakeyword{sublocale} $l_1
   \subseteq l_2$ is said to \emph{interpret} locale $l_2$ in the
   context of $l_1$.  It causes all theorems of $l_2$ to be made
   available in $l_1$.  The interpretation is \emph{dynamic}: not only
@@ -46,17 +44,17 @@ Locales enable to prove theorems abstractly, relative to
   Theorems added to locales will be propagated to theories.
   In this section the interpretation in
   theories is illustrated; interpretation in proofs is analogous.
-  As an example consider, the type of natural numbers \isa{nat}.  The
-  order relation \isa{{\isasymle}} is a total order over \isa{nat},
-  divisibility \isa{dvd} is a distributive lattice.
 
-  We start with the
+  As an example, consider the type of natural numbers \isa{nat}.  The
+  order relation \isa{{\isasymle}} is a total order over \isa{nat},
+  divisibility \isa{dvd} is a distributive lattice.  We start with the
   interpretation that \isa{{\isasymle}} is a partial order.  The facilities of
   the interpretation command are explored in three versions.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
-\isamarkupsubsection{First Version: Replacement of Parameters Only \label{sec:po-first}%
+\isamarkupsubsection{First Version: Replacement of Parameters Only
+  \label{sec:po-first}%
 }
 \isamarkuptrue%
 %
@@ -74,7 +72,7 @@ In the most basic form, interpretation just replaces the locale
 %
 \isatagvisible
 \isacommand{interpretation}\isamarkupfalse%
-\ nat{\isacharcolon}\ partial{\isacharunderscore}order\ {\isachardoublequoteopen}op\ {\isasymle}\ {\isacharcolon}{\isacharcolon}\ nat\ {\isasymRightarrow}\ nat\ {\isasymRightarrow}\ bool{\isachardoublequoteclose}%
+\ nat{\isacharbang}{\isacharcolon}\ partial{\isacharunderscore}order\ {\isachardoublequoteopen}op\ {\isasymle}\ {\isacharcolon}{\isacharcolon}\ nat\ {\isasymRightarrow}\ nat\ {\isasymRightarrow}\ bool{\isachardoublequoteclose}%
 \begin{isamarkuptxt}%
 The locale name is succeeded by a \emph{parameter
   instantiation}.  In general, this is a list of terms, which refer to
@@ -83,12 +81,12 @@ The locale name is succeeded by a \emph{parameter
   which is used to qualify names from the locale in the global
   context.
 
-  The command creates the goal \begin{isabelle}%
-\ {\isadigit{1}}{\isachardot}\ partial{\isacharunderscore}order\ op\ {\isasymle}%
-\end{isabelle} which can be shown
-  easily:%
+  The command creates the goal%
 \footnote{Note that \isa{op} binds tighter than functions
-  application: parentheses around \isa{op\ {\isasymle}} are not necessary.}%
+  application: parentheses around \isa{op\ {\isasymle}} are not necessary.}
+  \begin{isabelle}%
+\ {\isadigit{1}}{\isachardot}\ partial{\isacharunderscore}order\ op\ {\isasymle}%
+\end{isabelle} which can be shown easily:%
 \end{isamarkuptxt}%
 \isamarkuptrue%
 \ \ \ \ \isacommand{by}\isamarkupfalse%
@@ -106,11 +104,14 @@ Now theorems from the locale are available in the theory,
 \ \ {\isasymlbrakk}{\isacharquery}x\ {\isasymle}\ {\isacharquery}y{\isacharsemicolon}\ {\isacharquery}y\ {\isasymle}\ {\isacharquery}z{\isasymrbrakk}\ {\isasymLongrightarrow}\ {\isacharquery}x\ {\isasymle}\ {\isacharquery}z%
 \end{isabelle}
 
-  In order to avoid unwanted hiding of theorems, interpretation
-  accepts a qualifier, \isa{nat} in the example, which is applied to
-  all names processed by the
-  interpretation.  If present the qualifier is mandatory --- that is,
-  the above theorem cannot be referred to simply as \isa{trans}.%
+  Interpretation accepts a qualifier, \isa{nat} in the example,
+  which is applied to all names processed by the interpretation.  If
+  followed by an exclamation point the qualifier is mandatory --- that
+  is, the above theorem cannot be referred to simply by \isa{trans}.
+  A qualifier succeeded by an exclamation point is called
+  \emph{strict}.  It prevents unwanted hiding of theorems.  It is
+  advisable to use strict qualifiers for all interpretations in
+  theories.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -125,9 +126,9 @@ The above interpretation also creates the theorem
 \isaindent{\ \ }{\isasymLongrightarrow}\ partial{\isacharunderscore}order{\isachardot}less\ op\ {\isasymle}\ {\isacharquery}x\ {\isacharquery}z%
 \end{isabelle}
   Here, \isa{partial{\isacharunderscore}order{\isachardot}less\ op\ {\isasymle}}
-  represents the strict order, although \isa{{\isacharless}} is defined on
-  \isa{nat}.  Interpretation enables to map concepts
-  introduced in locales through definitions to the corresponding
+  represents the strict order, although \isa{{\isacharless}} is the natural
+  strict order for \isa{nat}.  Interpretation allows to map concepts
+  introduced through definitions in locales to the corresponding
   concepts of the theory.%
 \footnote{This applies not only to \isakeyword{definition} but also to
   \isakeyword{inductive}, \isakeyword{fun} and \isakeyword{function}.}%

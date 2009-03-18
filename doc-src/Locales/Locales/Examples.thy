@@ -1,5 +1,3 @@
-(* $Id$ *)
-
 theory Examples
 imports Main GCD
 begin
@@ -137,9 +135,9 @@ text {* When working with locales, sequences of commands with the same
   target for a block may be given with the \isakeyword{context}
   command.
 
-  In the block below, notions of infimum and supremum together with
-  theorems are introduced for partial orders.
-  *}
+  This style of working is illustrated in the block below, where
+  notions of infimum and supremum for partial orders are introduced,
+  together with theorems.  *}
 
   context partial_order begin
 
@@ -238,15 +236,19 @@ text {* When working with locales, sequences of commands with the same
 
   end
 
-text {* In fact, many more theorems need to be shown for a usable
-  theory of partial orders.  The
-  above two serve as illustrative examples. *}
+text {* The definitions of @{text is_inf} and @{text is_sup} look
+  like ordinary definitions in theories.  Despite, what is going on
+  behind the scenes is more complex.  The definition of @{text
+  is_inf}, say, creates a constant @{const partial_order.is_inf} where
+  the locale parameters that occur in the definition of @{text is_inf}
+  are additional arguments.  Writing @{text "is_inf x y inf"} is just
+  a notational convenience for @{text "partial_order.is_inf op \<sqsubseteq> x y
+  inf"}. *}
 
-text {*
-  Two commands are provided to inspect locales:
+text {* Two commands are provided to inspect locales:
   \isakeyword{print\_locales} lists the names of all locales of the
-  theory; \isakeyword{print\_locale}~$n$ prints the parameters and
-  assumptions of locale $n$; \isakeyword{print\_locale!}~$n$
+  current theory; \isakeyword{print\_locale}~$n$ prints the parameters
+  and assumptions of locale $n$; \isakeyword{print\_locale!}~$n$
   additionally outputs the conclusions.
 
   The syntax of the locale commands discussed in this tutorial is
@@ -255,11 +257,9 @@ text {*
   for full documentation.  *}
 
 
-section {* Import *}
+section {* Import \label{sec:import} *}
 
 text {* 
-\label{sec:import}
-
   Algebraic structures are commonly defined by adding operations and
   properties to existing structures.  For example, partial orders
   are extended to lattices and total orders.  Lattices are extended to
@@ -270,11 +270,11 @@ text {*
   *}
 
   locale lattice = partial_order +
-    assumes ex_inf: "\<exists>inf. partial_order.is_inf le x y inf"
-      and ex_sup: "\<exists>sup. partial_order.is_sup le x y sup"
+    assumes ex_inf: "\<exists>inf. is_inf x y inf"
+      and ex_sup: "\<exists>sup. is_sup x y sup"
   begin
 
-text {* Note that the assumptions above refer to the predicates for infimum
+text {* These assumptions refer to the predicates for infimum
   and supremum defined in @{text partial_order}.  In the current
   implementation of locales, syntax from definitions of the imported
   locale is unavailable in the locale declaration, neither are their
@@ -537,9 +537,7 @@ text {* Locales for total orders and distributive lattices follow.
     by (unfold less_def) blast
 
   locale distrib_lattice = lattice +
-    assumes meet_distr:
-      "lattice.meet le x (lattice.join le y z) =
-      lattice.join le (lattice.meet le x y) (lattice.meet le x z)"
+    assumes meet_distr: "x \<sqinter> (y \<squnion> z) = x \<sqinter> y \<squnion> x \<sqinter> z"
 
   lemma (in distrib_lattice) join_distr:
     "x \<squnion> (y \<sqinter> z) = (x \<squnion> y) \<sqinter> (x \<squnion> z)"  (* txt {* Jacobson I, p.\ 462 *} *)
@@ -600,11 +598,10 @@ text {*
 \end{figure}
   *}
 
-section {* Changing the Locale Hierarchy *}
+section {* Changing the Locale Hierarchy
+  \label{sec:changing-the-hierarchy} *}
 
 text {*
-\label{sec:changing-the-hierarchy}
-
   Total orders are lattices.  Hence, by deriving the lattice
   axioms for total orders, the hierarchy may be changed
   and @{text lattice} be placed between @{text partial_order}

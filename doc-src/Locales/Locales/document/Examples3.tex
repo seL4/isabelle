@@ -3,8 +3,6 @@
 \def\isabellecontext{Examples{\isadigit{3}}}%
 %
 \isadelimtheory
-\isanewline
-\isanewline
 %
 \endisadelimtheory
 %
@@ -43,8 +41,8 @@ In the above example, the fact that \isa{{\isasymle}} is a partial
 %
 \isatagvisible
 \isacommand{interpretation}\isamarkupfalse%
-\ nat{\isacharcolon}\ partial{\isacharunderscore}order\ {\isachardoublequoteopen}op\ {\isasymle}\ {\isacharcolon}{\isacharcolon}\ nat\ {\isasymRightarrow}\ nat\ {\isasymRightarrow}\ bool{\isachardoublequoteclose}\isanewline
-\ \ \isakeyword{where}\ {\isachardoublequoteopen}partial{\isacharunderscore}order{\isachardot}less\ {\isacharparenleft}op\ {\isasymle}{\isacharparenright}\ {\isacharparenleft}x{\isacharcolon}{\isacharcolon}nat{\isacharparenright}\ y\ {\isacharequal}\ {\isacharparenleft}x\ {\isacharless}\ y{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\ nat{\isacharbang}{\isacharcolon}\ partial{\isacharunderscore}order\ {\isachardoublequoteopen}op\ {\isasymle}\ {\isacharcolon}{\isacharcolon}\ nat\ {\isasymRightarrow}\ nat\ {\isasymRightarrow}\ bool{\isachardoublequoteclose}\isanewline
+\ \ \isakeyword{where}\ {\isachardoublequoteopen}partial{\isacharunderscore}order{\isachardot}less\ op\ {\isasymle}\ {\isacharparenleft}x{\isacharcolon}{\isacharcolon}nat{\isacharparenright}\ y\ {\isacharequal}\ {\isacharparenleft}x\ {\isacharless}\ y{\isacharparenright}{\isachardoublequoteclose}\isanewline
 \isacommand{proof}\isamarkupfalse%
 \ {\isacharminus}\isanewline
 \ \ \isacommand{show}\isamarkupfalse%
@@ -56,7 +54,7 @@ In the above example, the fact that \isa{{\isasymle}} is a partial
 \ nat{\isacharcolon}\ partial{\isacharunderscore}order\ {\isachardoublequoteopen}op\ {\isasymle}\ {\isacharcolon}{\isacharcolon}\ {\isacharbrackleft}nat{\isacharcomma}\ nat{\isacharbrackright}\ {\isasymRightarrow}\ bool{\isachardoublequoteclose}\ \isacommand{{\isachardot}}\isamarkupfalse%
 \isanewline
 \ \ \isacommand{show}\isamarkupfalse%
-\ {\isachardoublequoteopen}partial{\isacharunderscore}order{\isachardot}less\ {\isacharparenleft}op\ {\isasymle}{\isacharparenright}\ {\isacharparenleft}x{\isacharcolon}{\isacharcolon}nat{\isacharparenright}\ y\ {\isacharequal}\ {\isacharparenleft}x\ {\isacharless}\ y{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\ {\isachardoublequoteopen}partial{\isacharunderscore}order{\isachardot}less\ op\ {\isasymle}\ {\isacharparenleft}x{\isacharcolon}{\isacharcolon}nat{\isacharparenright}\ y\ {\isacharequal}\ {\isacharparenleft}x\ {\isacharless}\ y{\isacharparenright}{\isachardoublequoteclose}\isanewline
 \ \ \ \ \isacommand{unfolding}\isamarkupfalse%
 \ nat{\isachardot}less{\isacharunderscore}def\ \isacommand{by}\isamarkupfalse%
 \ auto\isanewline
@@ -72,8 +70,10 @@ In the above example, the fact that \isa{{\isasymle}} is a partial
 \begin{isamarkuptext}%
 The inner interpretation does not require an
   elaborate new proof, it is immediate from the preceeding fact and
-  proved with ``.''.
-  This interpretation enriches the local proof context by
+  proved with ``.''.  Strict qualifiers are normally not necessary for
+  interpretations inside proofs, since these have only limited scope.
+
+  The above interpretation enriches the local proof context by
   the very theorems also obtained in the interpretation from
   Section~\ref{sec:po-first}, and \isa{nat{\isachardot}less{\isacharunderscore}def} may directly be
   used to unfold the definition.  Theorems from the local
@@ -104,7 +104,7 @@ Further interpretations are necessary to reuse theorems from
 %
 \isatagvisible
 \isacommand{interpretation}\isamarkupfalse%
-\ nat{\isacharcolon}\ lattice\ {\isachardoublequoteopen}op\ {\isasymle}\ {\isacharcolon}{\isacharcolon}\ nat\ {\isasymRightarrow}\ nat\ {\isasymRightarrow}\ bool{\isachardoublequoteclose}\isanewline
+\ nat{\isacharbang}{\isacharcolon}\ lattice\ {\isachardoublequoteopen}op\ {\isasymle}\ {\isacharcolon}{\isacharcolon}\ nat\ {\isasymRightarrow}\ nat\ {\isasymRightarrow}\ bool{\isachardoublequoteclose}\isanewline
 \ \ \isakeyword{where}\ {\isachardoublequoteopen}lattice{\isachardot}meet\ op\ {\isasymle}\ {\isacharparenleft}x{\isacharcolon}{\isacharcolon}nat{\isacharparenright}\ y\ {\isacharequal}\ min\ x\ y{\isachardoublequoteclose}\isanewline
 \ \ \ \ \isakeyword{and}\ {\isachardoublequoteopen}lattice{\isachardot}join\ op\ {\isasymle}\ {\isacharparenleft}x{\isacharcolon}{\isacharcolon}nat{\isacharparenright}\ y\ {\isacharequal}\ max\ x\ y{\isachardoublequoteclose}\isanewline
 \isacommand{proof}\isamarkupfalse%
@@ -174,7 +174,7 @@ That the relation \isa{{\isasymle}} is a total order completes this
 %
 \isatagvisible
 \isacommand{interpretation}\isamarkupfalse%
-\ nat{\isacharcolon}\ total{\isacharunderscore}order\ {\isachardoublequoteopen}op\ {\isasymle}\ {\isacharcolon}{\isacharcolon}\ nat\ {\isasymRightarrow}\ nat\ {\isasymRightarrow}\ bool{\isachardoublequoteclose}\isanewline
+\ nat{\isacharbang}{\isacharcolon}\ total{\isacharunderscore}order\ {\isachardoublequoteopen}op\ {\isasymle}\ {\isacharcolon}{\isacharcolon}\ nat\ {\isasymRightarrow}\ nat\ {\isasymRightarrow}\ bool{\isachardoublequoteclose}\isanewline
 \ \ \isacommand{by}\isamarkupfalse%
 \ unfold{\isacharunderscore}locales\ arith%
 \endisatagvisible
@@ -280,12 +280,12 @@ Divisibility on the natural numbers is a distributive lattice
 \endisadelimproof
 %
 \begin{isamarkuptext}%
-Note that there is no symbol for strict divisibility.  Instead,
-  interpretation substitutes \isa{x\ dvd\ y\ {\isasymand}\ x\ {\isasymnoteq}\ y}.%
+Note that in Isabelle/HOL there is no symbol for strict
+  divisibility.  Instead, interpretation substitutes \isa{x\ dvd\ y\ {\isasymand}\ x\ {\isasymnoteq}\ y}.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{interpretation}\isamarkupfalse%
-\ nat{\isacharunderscore}dvd{\isacharcolon}\ lattice\ {\isachardoublequoteopen}op\ dvd\ {\isacharcolon}{\isacharcolon}\ nat\ {\isasymRightarrow}\ nat\ {\isasymRightarrow}\ bool{\isachardoublequoteclose}\isanewline
+\ nat{\isacharunderscore}dvd{\isacharbang}{\isacharcolon}\ lattice\ {\isachardoublequoteopen}op\ dvd\ {\isacharcolon}{\isacharcolon}\ nat\ {\isasymRightarrow}\ nat\ {\isasymRightarrow}\ bool{\isachardoublequoteclose}\isanewline
 \ \ \isakeyword{where}\ nat{\isacharunderscore}dvd{\isacharunderscore}meet{\isacharunderscore}eq{\isacharcolon}\isanewline
 \ \ \ \ \ \ {\isachardoublequoteopen}lattice{\isachardot}meet\ op\ dvd\ {\isacharequal}\ gcd{\isachardoublequoteclose}\isanewline
 \ \ \ \ \isakeyword{and}\ nat{\isacharunderscore}dvd{\isacharunderscore}join{\isacharunderscore}eq{\isacharcolon}\isanewline
@@ -381,7 +381,7 @@ Equations \isa{nat{\isacharunderscore}dvd{\isacharunderscore}meet{\isacharunders
 %
 \isatagvisible
 \isacommand{interpretation}\isamarkupfalse%
-\ nat{\isacharunderscore}dvd{\isacharcolon}\isanewline
+\ nat{\isacharunderscore}dvd{\isacharbang}{\isacharcolon}\isanewline
 \ \ distrib{\isacharunderscore}lattice\ {\isachardoublequoteopen}op\ dvd\ {\isacharcolon}{\isacharcolon}\ nat\ {\isasymRightarrow}\ nat\ {\isasymRightarrow}\ bool{\isachardoublequoteclose}\isanewline
 \ \ \isacommand{apply}\isamarkupfalse%
 \ unfold{\isacharunderscore}locales%
@@ -439,8 +439,8 @@ Theorems that are available in the theory after these
 \begin{isamarkuptext}%
 The full syntax of the interpretation commands is shown in
   Table~\ref{tab:commands}.  The grammar refers to
-  \textit{expr}, which stands for a \emph{locale} expression.  Locale
-  expressions are discussed in Section~\ref{sec:expressions}.%
+  \textit{expression}, which stands for a \emph{locale} expression.
+  Locale expressions are discussed in the following section.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %

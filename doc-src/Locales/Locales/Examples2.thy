@@ -1,19 +1,17 @@
-(* $Id$ *)
-
 theory Examples2
 imports Examples
 begin
 
 text {* This is achieved by unfolding suitable equations during
   interpretation.  These equations are given after the keyword
-  \isakeyword{where} and require proofs.  The revised command,
-  replacing @{text "\<sqsubset>"} by @{text "<"}, is: *}
+  \isakeyword{where} and require proofs.  The revised command
+  that replaces @{text "\<sqsubset>"} by @{text "<"}, is: *}
 
-interpretation %visible nat: partial_order "op \<le> :: [nat, nat] \<Rightarrow> bool"
+interpretation %visible nat!: partial_order "op \<le> :: [nat, nat] \<Rightarrow> bool"
   where "partial_order.less op \<le> (x::nat) y = (x < y)"
 proof -
   txt {* The goals are @{subgoals [display]}
-    The proof that @{text \<le>} is a partial order is a above. *}
+    The proof that @{text \<le>} is a partial order is as above. *}
   show "partial_order (op \<le> :: nat \<Rightarrow> nat \<Rightarrow> bool)"
     by unfold_locales auto
   txt {* The second goal is shown by unfolding the

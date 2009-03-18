@@ -1,5 +1,3 @@
-(* $Id$ *)
-
 theory Examples3
 imports Examples
 begin
@@ -16,27 +14,29 @@ text {* In the above example, the fact that @{text \<le>} is a partial
   \isakeyword{interpret}).  This interpretation is inside the proof of the global
   interpretation.  The third revision of the example illustrates this.  *}
 
-interpretation %visible nat: partial_order "op \<le> :: nat \<Rightarrow> nat \<Rightarrow> bool"
-  where "partial_order.less (op \<le>) (x::nat) y = (x < y)"
+interpretation %visible nat!: partial_order "op \<le> :: nat \<Rightarrow> nat \<Rightarrow> bool"
+  where "partial_order.less op \<le> (x::nat) y = (x < y)"
 proof -
   show "partial_order (op \<le> :: nat \<Rightarrow> nat \<Rightarrow> bool)"
     by unfold_locales auto
   then interpret nat: partial_order "op \<le> :: [nat, nat] \<Rightarrow> bool" .
-  show "partial_order.less (op \<le>) (x::nat) y = (x < y)"
+  show "partial_order.less op \<le> (x::nat) y = (x < y)"
     unfolding nat.less_def by auto
 qed
 
 text {* The inner interpretation does not require an
   elaborate new proof, it is immediate from the preceeding fact and
-  proved with ``.''.
-  This interpretation enriches the local proof context by
+  proved with ``.''.  Strict qualifiers are normally not necessary for
+  interpretations inside proofs, since these have only limited scope.
+
+  The above interpretation enriches the local proof context by
   the very theorems also obtained in the interpretation from
   Section~\ref{sec:po-first}, and @{text nat.less_def} may directly be
   used to unfold the definition.  Theorems from the local
   interpretation disappear after leaving the proof context --- that
   is, after the closing \isakeyword{qed} --- and are
   then replaced by those with the desired substitutions of the strict
-  order. *}
+  order.  *}
 
 
 subsection {* Further Interpretations *}
@@ -48,7 +48,7 @@ text {* Further interpretations are necessary to reuse theorems from
   interpretation is reproduced in order to give an example of a more
   elaborate interpretation proof.  *}
 
-interpretation %visible nat: lattice "op \<le> :: nat \<Rightarrow> nat \<Rightarrow> bool"
+interpretation %visible nat!: lattice "op \<le> :: nat \<Rightarrow> nat \<Rightarrow> bool"
   where "lattice.meet op \<le> (x::nat) y = min x y"
     and "lattice.join op \<le> (x::nat) y = max x y"
 proof -
@@ -73,7 +73,7 @@ qed
 text {* That the relation @{text \<le>} is a total order completes this
   sequence of interpretations. *}
 
-interpretation %visible nat: total_order "op \<le> :: nat \<Rightarrow> nat \<Rightarrow> bool"
+interpretation %visible nat!: total_order "op \<le> :: nat \<Rightarrow> nat \<Rightarrow> bool"
   by unfold_locales arith
 
 text {* Theorems that are available in the theory at this point are shown in
@@ -142,10 +142,11 @@ proof -
     done
 qed
 
-text {* Note that there is no symbol for strict divisibility.  Instead,
-  interpretation substitutes @{term "x dvd y \<and> x \<noteq> y"}.   *}
+text {* Note that in Isabelle/HOL there is no symbol for strict
+  divisibility.  Instead, interpretation substitutes @{term "x dvd y \<and>
+  x \<noteq> y"}.  *}
 
-interpretation nat_dvd: lattice "op dvd :: nat \<Rightarrow> nat \<Rightarrow> bool"
+interpretation nat_dvd!: lattice "op dvd :: nat \<Rightarrow> nat \<Rightarrow> bool"
   where nat_dvd_meet_eq:
       "lattice.meet op dvd = gcd"
     and nat_dvd_join_eq:
@@ -198,7 +199,7 @@ thm mult_is_0 [THEN iffD1]
 lemma %invisible gcd_lcm_distr:
   "gcd x (lcm y z) = lcm (gcd x y) (gcd x z)" sorry
 
-interpretation %visible nat_dvd:
+interpretation %visible nat_dvd!:
   distrib_lattice "op dvd :: nat \<Rightarrow> nat \<Rightarrow> bool"
   apply unfold_locales
   txt {* @{subgoals [display]} *}
@@ -232,8 +233,8 @@ text {* Theorems that are available in the theory after these
 text {*
   The full syntax of the interpretation commands is shown in
   Table~\ref{tab:commands}.  The grammar refers to
-  \textit{expr}, which stands for a \emph{locale} expression.  Locale
-  expressions are discussed in Section~\ref{sec:expressions}.
+  \textit{expression}, which stands for a \emph{locale} expression.
+  Locale expressions are discussed in the following section.
   *}
 
 

@@ -1,5 +1,3 @@
-(* $Id$ *)
-
 theory Examples1
 imports Examples
 begin
@@ -14,7 +12,7 @@ text {* Locales enable to prove theorems abstractly, relative to
 
   The changes of the locale
   hierarchy from the previous sections are examples of
-  interpretations.  The command \isakeyword{interpretation} $l_1
+  interpretations.  The command \isakeyword{sublocale} $l_1
   \subseteq l_2$ is said to \emph{interpret} locale $l_2$ in the
   context of $l_1$.  It causes all theorems of $l_2$ to be made
   available in $l_1$.  The interpretation is \emph{dynamic}: not only
@@ -27,17 +25,17 @@ text {* Locales enable to prove theorems abstractly, relative to
   Theorems added to locales will be propagated to theories.
   In this section the interpretation in
   theories is illustrated; interpretation in proofs is analogous.
-  As an example consider, the type of natural numbers @{typ nat}.  The
-  order relation @{text \<le>} is a total order over @{typ nat},
-  divisibility @{text dvd} is a distributive lattice.
 
-  We start with the
+  As an example, consider the type of natural numbers @{typ nat}.  The
+  order relation @{text \<le>} is a total order over @{typ nat},
+  divisibility @{text dvd} is a distributive lattice.  We start with the
   interpretation that @{text \<le>} is a partial order.  The facilities of
   the interpretation command are explored in three versions.
   *}
 
 
-subsection {* First Version: Replacement of Parameters Only \label{sec:po-first} *}
+subsection {* First Version: Replacement of Parameters Only
+  \label{sec:po-first} *}
 
 text {*
   In the most basic form, interpretation just replaces the locale
@@ -45,7 +43,7 @@ text {*
   @{text partial_order} in the global context of the theory.  The
   parameter @{term le} is replaced by @{term "op \<le> :: nat \<Rightarrow> nat \<Rightarrow> bool"}. *} 
 
-  interpretation %visible nat: partial_order "op \<le> :: nat \<Rightarrow> nat \<Rightarrow> bool"
+  interpretation %visible nat!: partial_order "op \<le> :: nat \<Rightarrow> nat \<Rightarrow> bool"
 txt {* The locale name is succeeded by a \emph{parameter
   instantiation}.  In general, this is a list of terms, which refer to
   the parameters in the order of declaration in the locale.  The
@@ -53,10 +51,10 @@ txt {* The locale name is succeeded by a \emph{parameter
   which is used to qualify names from the locale in the global
   context.
 
-  The command creates the goal @{subgoals [display]} which can be shown
-  easily:%
+  The command creates the goal%
 \footnote{Note that @{text op} binds tighter than functions
   application: parentheses around @{text "op \<le>"} are not necessary.}
+  @{subgoals [display]} which can be shown easily:
  *}
     by unfold_locales auto
 
@@ -64,12 +62,14 @@ text {*  Now theorems from the locale are available in the theory,
   interpreted for natural numbers, for example @{thm [source]
   nat.trans}: @{thm [display, indent=2] nat.trans}
 
-  In order to avoid unwanted hiding of theorems, interpretation
-  accepts a qualifier, @{text nat} in the example, which is applied to
-  all names processed by the
-  interpretation.  If present the qualifier is mandatory --- that is,
-  the above theorem cannot be referred to simply as @{text trans}.
-  *}
+  Interpretation accepts a qualifier, @{text nat} in the example,
+  which is applied to all names processed by the interpretation.  If
+  followed by an exclamation point the qualifier is mandatory --- that
+  is, the above theorem cannot be referred to simply by @{text trans}.
+  A qualifier succeeded by an exclamation point is called
+  \emph{strict}.  It prevents unwanted hiding of theorems.  It is
+  advisable to use strict qualifiers for all interpretations in
+  theories.  *}
 
 
 subsection {* Second Version: Replacement of Definitions *}
@@ -78,9 +78,9 @@ text {* The above interpretation also creates the theorem
   @{thm [source] nat.less_le_trans}: @{thm [display, indent=2]
   nat.less_le_trans}
   Here, @{term "partial_order.less (op \<le> :: nat \<Rightarrow> nat \<Rightarrow> bool)"}
-  represents the strict order, although @{text "<"} is defined on
-  @{typ nat}.  Interpretation enables to map concepts
-  introduced in locales through definitions to the corresponding
+  represents the strict order, although @{text "<"} is the natural
+  strict order for @{typ nat}.  Interpretation allows to map concepts
+  introduced through definitions in locales to the corresponding
   concepts of the theory.%
 \footnote{This applies not only to \isakeyword{definition} but also to
   \isakeyword{inductive}, \isakeyword{fun} and \isakeyword{function}.} 

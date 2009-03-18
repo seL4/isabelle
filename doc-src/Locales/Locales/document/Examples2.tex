@@ -3,8 +3,6 @@
 \def\isabellecontext{Examples{\isadigit{2}}}%
 %
 \isadelimtheory
-\isanewline
-\isanewline
 %
 \endisadelimtheory
 %
@@ -23,8 +21,8 @@
 \begin{isamarkuptext}%
 This is achieved by unfolding suitable equations during
   interpretation.  These equations are given after the keyword
-  \isakeyword{where} and require proofs.  The revised command,
-  replacing \isa{{\isasymsqsubset}} by \isa{{\isacharless}}, is:%
+  \isakeyword{where} and require proofs.  The revised command
+  that replaces \isa{{\isasymsqsubset}} by \isa{{\isacharless}}, is:%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -34,7 +32,7 @@ This is achieved by unfolding suitable equations during
 %
 \isatagvisible
 \isacommand{interpretation}\isamarkupfalse%
-\ nat{\isacharcolon}\ partial{\isacharunderscore}order\ {\isachardoublequoteopen}op\ {\isasymle}\ {\isacharcolon}{\isacharcolon}\ {\isacharbrackleft}nat{\isacharcomma}\ nat{\isacharbrackright}\ {\isasymRightarrow}\ bool{\isachardoublequoteclose}\isanewline
+\ nat{\isacharbang}{\isacharcolon}\ partial{\isacharunderscore}order\ {\isachardoublequoteopen}op\ {\isasymle}\ {\isacharcolon}{\isacharcolon}\ {\isacharbrackleft}nat{\isacharcomma}\ nat{\isacharbrackright}\ {\isasymRightarrow}\ bool{\isachardoublequoteclose}\isanewline
 \ \ \isakeyword{where}\ {\isachardoublequoteopen}partial{\isacharunderscore}order{\isachardot}less\ op\ {\isasymle}\ {\isacharparenleft}x{\isacharcolon}{\isacharcolon}nat{\isacharparenright}\ y\ {\isacharequal}\ {\isacharparenleft}x\ {\isacharless}\ y{\isacharparenright}{\isachardoublequoteclose}\isanewline
 \isacommand{proof}\isamarkupfalse%
 \ {\isacharminus}%
@@ -43,7 +41,7 @@ The goals are \begin{isabelle}%
 \ {\isadigit{1}}{\isachardot}\ partial{\isacharunderscore}order\ op\ {\isasymle}\isanewline
 \ {\isadigit{2}}{\isachardot}\ partial{\isacharunderscore}order{\isachardot}less\ op\ {\isasymle}\ x\ y\ {\isacharequal}\ {\isacharparenleft}x\ {\isacharless}\ y{\isacharparenright}%
 \end{isabelle}
-    The proof that \isa{{\isasymle}} is a partial order is a above.%
+    The proof that \isa{{\isasymle}} is a partial order is as above.%
 \end{isamarkuptxt}%
 \isamarkuptrue%
 \ \ \isacommand{show}\isamarkupfalse%
