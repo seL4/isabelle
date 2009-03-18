@@ -19,7 +19,7 @@ sig
   val the_global_context: unit -> theory
   val the_local_context: unit -> Proof.context
   val exec: (unit -> unit) -> Context.generic -> Context.generic
-  val inherit_env: Proof.context -> Proof.context -> Proof.context
+  val inherit_env: Context.generic -> Context.generic -> Context.generic
   val name_space: ML_NameSpace.nameSpace
   val stored_thms: thm list ref
   val ml_store_thm: string * thm -> unit
@@ -29,10 +29,11 @@ sig
       (Proof.context -> string * string) * Proof.context
   val add_antiq: string -> (Position.T -> antiq context_parser) -> unit
   val trace: bool ref
-  val eval_wrapper: (string -> unit) * (string -> 'a) -> bool -> Position.T -> string -> unit
-  val eval: bool -> Position.T -> string -> unit
+  val eval_wrapper: (string -> unit) * (string -> 'a) -> bool ->
+    Position.T -> Symbol_Pos.text -> unit
+  val eval: bool -> Position.T -> Symbol_Pos.text -> unit
   val eval_file: Path.T -> unit
-  val eval_in: Proof.context option -> bool -> Position.T -> string -> unit
+  val eval_in: Proof.context option -> bool -> Position.T -> Symbol_Pos.text -> unit
   val evaluate: Proof.context -> (string -> unit) * (string -> 'b) -> bool ->
     string * (unit -> 'a) option ref -> string -> 'a
   val expression: Position.T -> string -> string -> string -> Context.generic -> Context.generic
@@ -77,7 +78,7 @@ structure ML_Env = GenericDataFun
     Symtab.merge (K true) (functor1, functor2));
 );
 
-val inherit_env = Context.proof_map o ML_Env.put o ML_Env.get o Context.Proof;
+val inherit_env = ML_Env.put o ML_Env.get;
 
 val name_space: ML_NameSpace.nameSpace =
   let
