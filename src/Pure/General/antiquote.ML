@@ -6,11 +6,16 @@ Text with antiquotations of inner items (types, terms, theorems etc.).
 
 signature ANTIQUOTE =
 sig
-  datatype antiquote =
-    Text of Symbol_Pos.T list | Antiq of Symbol_Pos.T list * Position.T |
-    Open of Position.T | Close of Position.T
-  val is_antiq: antiquote -> bool
-  val read: Symbol_Pos.T list * Position.T -> antiquote list
+  datatype 'a antiquote =
+    Text of 'a |
+    Antiq of Symbol_Pos.T list * Position.T |
+    Open of Position.T |
+    Close of Position.T
+  val is_antiq: 'a antiquote -> bool
+  val scan: Symbol_Pos.T list -> 'a antiquote * Symbol_Pos.T list
+  val scan_text: Symbol_Pos.T list -> Symbol_Pos.T list antiquote * Symbol_Pos.T list
+  val read: (Symbol_Pos.T list -> 'a antiquote * Symbol_Pos.T list) ->
+    Symbol_Pos.T list * Position.T -> 'a antiquote list
 end;
 
 structure Antiquote: ANTIQUOTE =
@@ -18,8 +23,8 @@ struct
 
 (* datatype antiquote *)
 
-datatype antiquote =
-  Text of Symbol_Pos.T list |
+datatype 'a antiquote =
+  Text of 'a |
   Antiq of Symbol_Pos.T list * Position.T |
   Open of Position.T |
   Close of Position.T;
@@ -44,7 +49,7 @@ fun check_nesting antiqs =
   in check antiqs [] end;
 
 
-(* scan_antiquote *)
+(* scan *)
 
 open Basic_Symbol_Pos;
 
@@ -63,15 +68,15 @@ val scan_antiq =
   Symbol_Pos.scan_pos -- ($$$ "@" |-- $$$ "{" |--
     Symbol_Pos.!!! "missing closing brace of antiquotation"
       (Scan.repeat scan_ant -- ($$$ "}" |-- Symbol_Pos.scan_pos)))
-  >> (fn (pos1, (body, pos2)) => Antiq (flat body, Position.encode_range (pos1, pos2)));
+  >> (fn (pos1, (body, pos2)) => (flat body, Position.encode_range (pos1, pos2)));
+
+val scan_open = Symbol_Pos.scan_pos --| $$$ "\\<lbrace>";
+val scan_close = Symbol_Pos.scan_pos --| $$$ "\\<rbrace>";
 
 in
 
-val scan_antiquote =
- (Scan.repeat1 scan_txt >> (Text o flat) ||
-  scan_antiq ||
-  Symbol_Pos.scan_pos --| $$$ "\\<lbrace>" >> Open ||
-  Symbol_Pos.scan_pos --| $$$ "\\<rbrace>" >> Close);
+fun scan x = (scan_antiq >> Antiq || scan_open >> Open || scan_close >> Close) x;
+val scan_text = scan || Scan.repeat1 scan_txt >> (Text o flat);
 
 end;
 
@@ -81,9 +86,9 @@ end;
 fun report_antiq (Antiq (_, pos)) = Position.report Markup.antiq pos
   | report_antiq _ = ();
 
-fun read ([], _) = []
-  | read (syms, pos) =
-      (case Scan.read Symbol_Pos.stopper (Scan.repeat scan_antiquote) syms of
+fun read _ ([], _) = []
+  | read scanner (syms, pos) =
+      (case Scan.read Symbol_Pos.stopper (Scan.repeat scanner) syms of
         SOME xs => (List.app report_antiq xs; check_nesting xs; xs)
       | NONE => error ("Malformed quotation/antiquotation source" ^ Position.str_of pos));
 
