@@ -17,6 +17,7 @@ sig
   val kind_of: token -> token_kind
   val content_of: token -> string
   val keywords: string list
+  val scan_antiq: Symbol_Pos.T list -> token Antiquote.antiquote * Symbol_Pos.T list
   val source: (Symbol.symbol, 'a) Source.source ->
     (token, (Symbol_Pos.T, Position.T * (Symbol.symbol, 'a) Source.source)
       Source.source) Source.source
@@ -185,9 +186,9 @@ end;
 
 local
 
-fun token k ss = Token (Symbol_Pos.range ss, (k, Symbol_Pos.implode ss));
+fun token k ss = Token (Symbol_Pos.range ss, (k, Symbol_Pos.content ss));
 
-val scan_ml = !!! "bad input"
+val scan_ml =
  (scan_char >> token Char ||
   scan_string >> token String ||
   scan_blanks1 >> token Space ||
@@ -207,9 +208,11 @@ fun recover msg =
 
 in
 
+val scan_antiq = Antiquote.scan || scan_ml >> Antiquote.Text;
+
 fun source src =
   Symbol_Pos.source (Position.line 1) src
-  |> Source.source Symbol_Pos.stopper (Scan.bulk scan_ml) (SOME (false, recover));
+  |> Source.source Symbol_Pos.stopper (Scan.bulk (!!! "bad input" scan_ml)) (SOME (false, recover));
 
 val tokenize = Source.of_string #> source #> Source.exhaust;
 
