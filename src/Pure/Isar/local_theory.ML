@@ -23,6 +23,7 @@ sig
   val theory: (theory -> theory) -> local_theory -> local_theory
   val target_result: (Proof.context -> 'a * Proof.context) -> local_theory -> 'a * local_theory
   val target: (Proof.context -> Proof.context) -> local_theory -> local_theory
+  val map_contexts: (Context.generic -> Context.generic) -> local_theory -> local_theory
   val affirm: local_theory -> local_theory
   val pretty: local_theory -> Pretty.T list
   val abbrev: Syntax.mode -> (binding * mixfix) * term -> local_theory ->
@@ -162,6 +163,11 @@ fun target_result f lthy =
   in (res, lthy') end;
 
 fun target f = #2 o target_result (f #> pair ());
+
+fun map_contexts f =
+  theory (Context.theory_map f) #>
+  target (Context.proof_map f) #>
+  Context.proof_map f;
 
 
 (* basic operations *)
