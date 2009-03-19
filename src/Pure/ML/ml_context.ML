@@ -183,6 +183,7 @@ end;
 local
 
 structure P = OuterParse;
+structure T = OuterLex;
 
 val antiq =
   P.!!! (P.position P.xname -- Args.parse --| Scan.ahead P.eof)
@@ -213,7 +214,7 @@ fun eval_antiquotes (txt, pos) opt_context =
             | expand (Antiquote.Antiq x) (scope, background) =
                 let
                   val context = Stack.top scope;
-                  val (f, context') = antiquotation (Antiquote.read_antiq lex antiq x) context;
+                  val (f, context') = antiquotation (T.read_antiq lex antiq x) context;
                   val (decl, background') = f {background = background, struct_name = struct_name};
                 in (decl, (Stack.map_top (K context') scope, background')) end
             | expand (Antiquote.Open _) (scope, background) =

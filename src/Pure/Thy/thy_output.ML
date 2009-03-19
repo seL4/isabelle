@@ -149,7 +149,7 @@ fun eval_antiquote lex state (txt, pos) =
   let
     fun expand (Antiquote.Text s) = s
       | expand (Antiquote.Antiq x) =
-          let val (opts, src) = Antiquote.read_antiq lex antiq x in
+          let val (opts, src) = T.read_antiq lex antiq x in
             options opts (fn () => command src state) ();  (*preview errors!*)
             PrintMode.with_modes (! modes @ Latex.modes)
               (Output.no_warnings (options opts (fn () => command src state))) ()
