@@ -66,6 +66,10 @@
     nbproject/build-impl.xml file. 
 
     -->
+    <target name="run" depends="Isabelle-jEdit-impl.jar,Isabelle-jEdit-impl.run">
+    </target>
+    <target name="debug" depends="Isabelle-jEdit-impl.jar,Isabelle-jEdit-impl.debug">
+    </target>
     <target name="-pre-jar">
       <copy file="plugin/services.xml" todir="${build.classes.dir}" />
       <copy file="plugin/dockables.xml" todir="${build.classes.dir}" />
