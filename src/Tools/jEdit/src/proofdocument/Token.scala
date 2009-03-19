@@ -42,5 +42,6 @@ class Token(val start: Int, val content: String, val kind: Token.Kind.Value) {
   val length = content.length
   val stop = start + length
   override def toString = content + "(" + kind + ")"
+  override def hashCode: Int = (31 + start) * 31 + stop
   def shift(i: Int) = new Token(start + i, content, kind)
 }
