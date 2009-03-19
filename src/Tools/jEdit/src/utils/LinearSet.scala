@@ -34,7 +34,7 @@ class LinearSet[A] extends scala.collection.immutable.Set[A]
   /* basic methods */
 
   def next(elem: A) = body.get(elem)
-  
+  def prev(elem: A) = body.find(_._2 == elem).map(_._2)
   override def isEmpty: Boolean = !last_elem.isDefined
   def size: Int = if (isEmpty) 0 else body.size + 1
 
