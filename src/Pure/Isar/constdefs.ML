@@ -36,7 +36,7 @@ fun gen_constdef prep_vars prep_prop prep_att
     val prop = prep_prop var_ctxt raw_prop;
     val (c, T) = #1 (LocalDefs.cert_def thy_ctxt (Logic.strip_imp_concl prop));
     val _ =
-      (case Option.map Binding.name_of d of
+      (case Option.map Name.of_binding d of
         NONE => ()
       | SOME c' =>
           if c <> c' then

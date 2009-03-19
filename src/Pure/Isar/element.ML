@@ -96,7 +96,7 @@ fun facts_map f facts = Notes ("", facts) |> f |> (fn Notes (_, facts') => facts
 fun map_ctxt {binding, typ, term, pattern, fact, attrib} =
   fn Fixes fixes => Fixes (fixes |> map (fn (x, T, mx) => (binding x, Option.map typ T, mx)))
    | Constrains xs => Constrains (xs |> map (fn (x, T) =>
-      (Binding.name_of (binding (Binding.name x)), typ T)))
+      (Name.of_binding (binding (Binding.name x)), typ T)))
    | Assumes asms => Assumes (asms |> map (fn ((a, atts), propps) =>
       ((binding a, map attrib atts), propps |> map (fn (t, ps) => (term t, map pattern ps)))))
    | Defines defs => Defines (defs |> map (fn ((a, atts), (t, ps)) =>

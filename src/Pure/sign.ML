@@ -434,7 +434,7 @@ val add_defsort_i = gen_add_defsort certify_sort;
 
 fun add_types types thy = thy |> map_sign (fn (naming, syn, tsig, consts) =>
   let
-    val syn' = Syntax.update_type_gram (map (fn (a, n, mx) => (Binding.name_of a, n, mx)) types) syn;
+    val syn' = Syntax.update_type_gram (map (fn (a, n, mx) => (Name.of_binding a, n, mx)) types) syn;
     val decls = map (fn (a, n, mx) => (Binding.map_name (Syntax.type_name mx) a, n)) types;
     val tags = [(Markup.theory_nameN, Context.theory_name thy)];
     val tsig' = fold (Type.add_type naming tags) decls tsig;
@@ -445,7 +445,7 @@ fun add_types types thy = thy |> map_sign (fn (naming, syn, tsig, consts) =>
 
 fun add_nonterminals ns thy = thy |> map_sign (fn (naming, syn, tsig, consts) =>
   let
-    val syn' = Syntax.update_consts (map Binding.name_of ns) syn;
+    val syn' = Syntax.update_consts (map Name.of_binding ns) syn;
     val tsig' = fold (Type.add_nonterminal naming []) ns tsig;
   in (naming, syn', tsig', consts) end);
 
@@ -456,7 +456,7 @@ fun gen_add_tyabbr parse_typ (a, vs, rhs, mx) thy =
   thy |> map_sign (fn (naming, syn, tsig, consts) =>
     let
       val ctxt = ProofContext.init thy;
-      val syn' = Syntax.update_type_gram [(Binding.name_of a, length vs, mx)] syn;
+      val syn' = Syntax.update_type_gram [(Name.of_binding a, length vs, mx)] syn;
       val b = Binding.map_name (Syntax.type_name mx) a;
       val abbr = (b, vs, certify_typ_mode Type.mode_syntax thy (parse_typ ctxt rhs))
         handle ERROR msg => cat_error msg ("in type abbreviation " ^ quote (Binding.str_of b));
@@ -504,10 +504,10 @@ fun gen_add_consts parse_typ authentic tags raw_args thy =
     val prepT = Type.no_tvars o Term.no_dummyT o certify_typ thy o parse_typ ctxt;
     fun prep (raw_b, raw_T, raw_mx) =
       let
-        val (mx_name, mx) = Syntax.const_mixfix (Binding.name_of raw_b) raw_mx;
+        val (mx_name, mx) = Syntax.const_mixfix (Name.of_binding raw_b) raw_mx;
         val b = Binding.map_name (K mx_name) raw_b;
         val c = full_name thy b;
-        val c_syn = if authentic then Syntax.constN ^ c else Binding.name_of b;
+        val c_syn = if authentic then Syntax.constN ^ c else Name.of_binding b;
         val T = (prepT raw_T handle TYPE (msg, _, _) => error msg) handle ERROR msg =>
           cat_error msg ("in declaration of constant " ^ quote (Binding.str_of b));
         val T' = Logic.varifyT T;
@@ -568,7 +568,7 @@ fun add_const_constraint (c, opt_T) thy =
 fun primitive_class (bclass, classes) thy =
   thy |> map_sign (fn (naming, syn, tsig, consts) =>
     let
-      val syn' = Syntax.update_consts [Binding.name_of bclass] syn;
+      val syn' = Syntax.update_consts [Name.of_binding bclass] syn;
       val tsig' = Type.add_class (Syntax.pp_global thy) naming (bclass, classes) tsig;
     in (naming, syn', tsig', consts) end)
   |> add_consts_i [(Binding.map_name Logic.const_of_class bclass, Term.a_itselfT --> propT, NoSyn)];
