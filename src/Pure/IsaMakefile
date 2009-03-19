@@ -45,17 +45,17 @@ $(OUT)/Pure: $(BOOTSTRAP_FILES) ../Tools/auto_solve.ML			\
   Concurrent/mailbox.ML Concurrent/par_list.ML				\
   Concurrent/par_list_dummy.ML Concurrent/simple_thread.ML		\
   Concurrent/synchronized.ML Concurrent/task_queue.ML General/ROOT.ML	\
-  General/alist.ML General/balanced_tree.ML General/basics.ML		\
-  General/binding.ML General/buffer.ML General/file.ML			\
-  General/graph.ML General/heap.ML General/integer.ML General/lazy.ML	\
-  General/long_name.ML General/markup.ML General/name_space.ML		\
-  General/ord_list.ML General/output.ML General/path.ML			\
-  General/position.ML General/pretty.ML General/print_mode.ML		\
-  General/properties.ML General/queue.ML General/scan.ML		\
-  General/secure.ML General/seq.ML General/source.ML General/stack.ML	\
-  General/symbol.ML General/symbol_pos.ML General/table.ML		\
-  General/url.ML General/xml.ML General/yxml.ML Isar/ROOT.ML		\
-  Isar/antiquote.ML Isar/args.ML Isar/attrib.ML Isar/auto_bind.ML	\
+  General/alist.ML General/antiquote.ML General/balanced_tree.ML	\
+  General/basics.ML General/binding.ML General/buffer.ML		\
+  General/file.ML General/graph.ML General/heap.ML General/integer.ML	\
+  General/lazy.ML General/long_name.ML General/markup.ML		\
+  General/name_space.ML General/ord_list.ML General/output.ML		\
+  General/path.ML General/position.ML General/pretty.ML			\
+  General/print_mode.ML General/properties.ML General/queue.ML		\
+  General/scan.ML General/secure.ML General/seq.ML General/source.ML	\
+  General/stack.ML General/symbol.ML General/symbol_pos.ML		\
+  General/table.ML General/url.ML General/xml.ML General/yxml.ML	\
+  Isar/ROOT.ML Isar/args.ML Isar/attrib.ML Isar/auto_bind.ML		\
   Isar/calculation.ML Isar/class.ML Isar/class_target.ML Isar/code.ML	\
   Isar/code_unit.ML Isar/constdefs.ML Isar/context_rules.ML		\
   Isar/element.ML Isar/expression.ML Isar/isar_cmd.ML			\
