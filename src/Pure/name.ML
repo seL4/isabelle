@@ -8,6 +8,7 @@ signature NAME =
 sig
   val uu: string
   val aT: string
+  val of_binding: binding -> string
   val bound: int -> string
   val is_bound: string -> bool
   val internal: string -> string
@@ -40,6 +41,11 @@ val aT = "'a";
 
 
 (** special variable names **)
+
+(* checked binding *)
+
+val of_binding = Long_Name.base_name o NameSpace.full_name NameSpace.default_naming;
+
 
 (* encoded bounds *)
 
