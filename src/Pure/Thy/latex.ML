@@ -90,7 +90,7 @@ val output_syms = output_symbols o Symbol.explode;
 val output_syms_antiq =
   (fn Antiquote.Text s => output_syms s
     | Antiquote.Antiq (ss, _) =>
-        enclose "%\n\\isaantiq\n" "%\n\\endisaantiq\n" (output_symbols (map SymbolPos.symbol ss))
+        enclose "%\n\\isaantiq\n" "%\n\\endisaantiq\n" (output_symbols (map Symbol_Pos.symbol ss))
     | Antiquote.Open _ => "{\\isaantiqopen}"
     | Antiquote.Close _ => "{\\isaantiqclose}");
 
@@ -117,7 +117,7 @@ fun output_basic tok =
     else if T.is_kind T.Verbatim tok then
       let
         val (txt, pos) = T.source_position_of tok;
-        val ants = Antiquote.read (SymbolPos.explode (txt, pos), pos);
+        val ants = Antiquote.read (Symbol_Pos.explode (txt, pos), pos);
         val out = implode (map output_syms_antiq ants);
       in enclose "{\\isacharverbatimopen}" "{\\isacharverbatimclose}" out end
     else output_syms s

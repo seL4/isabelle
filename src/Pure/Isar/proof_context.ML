@@ -430,7 +430,7 @@ fun inferred_fixes ctxt =
 
 local
 
-val token_content = Syntax.read_token #>> SymbolPos.content;
+val token_content = Syntax.read_token #>> Symbol_Pos.content;
 
 fun prep_const_proper ctxt (c, pos) =
   let val t as (Const (d, _)) =

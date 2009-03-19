@@ -18,7 +18,7 @@ sig
   val content_of: token -> string
   val keywords: string list
   val source: (Symbol.symbol, 'a) Source.source ->
-    (token, (SymbolPos.T, Position.T * (Symbol.symbol, 'a) Source.source)
+    (token, (Symbol_Pos.T, Position.T * (Symbol.symbol, 'a) Source.source)
       Source.source) Source.source
 end;
 
@@ -75,9 +75,9 @@ fun is_improper (Token (_, (Space, _))) = true
 
 (** scanners **)
 
-open BasicSymbolPos;
+open Basic_Symbol_Pos;
 
-fun !!! msg = SymbolPos.!!! ("SML lexical error: " ^ msg);
+fun !!! msg = Symbol_Pos.!!! ("SML lexical error: " ^ msg);
 
 
 (* blanks *)
@@ -183,13 +183,13 @@ end;
 
 local
 
-fun token k ss = Token (SymbolPos.range ss, (k, SymbolPos.implode ss));
+fun token k ss = Token (Symbol_Pos.range ss, (k, Symbol_Pos.implode ss));
 
 val scan = !!! "bad input"
  (scan_char >> token Char ||
   scan_string >> token String ||
   scan_blanks1 >> token Space ||
-  SymbolPos.scan_comment !!! >> token Comment ||
+  Symbol_Pos.scan_comment !!! >> token Comment ||
   Scan.max token_leq
    (scan_keyword >> token Keyword)
    (scan_word >> token Word ||
@@ -206,8 +206,8 @@ fun recover msg =
 in
 
 fun source src =
-  SymbolPos.source (Position.line 1) src
-  |> Source.source SymbolPos.stopper (Scan.bulk scan) (SOME (false, recover));
+  Symbol_Pos.source (Position.line 1) src
+  |> Source.source Symbol_Pos.stopper (Scan.bulk scan) (SOME (false, recover));
 
 end;
 
