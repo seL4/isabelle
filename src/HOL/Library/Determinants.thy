@@ -194,8 +194,28 @@ proof-
     unfolding det_def by (simp add: sign_id)
 qed
 
-(* FIXME: get rid of wellorder requirement *)
-lemma det_I: "det (mat 1 :: 'a::comm_ring_1^'n^'n::{finite,wellorder}) = 1"
+lemma det_diagonal:
+  fixes A :: "'a::comm_ring_1^'n^'n::finite"
+  assumes ld: "\<And>i j. i \<noteq> j \<Longrightarrow> A$i$j = 0"
+  shows "det A = setprod (\<lambda>i. A$i$i) (UNIV::'n set)"
+proof-
+  let ?U = "UNIV:: 'n set"
+  let ?PU = "{p. p permutes ?U}"
+  let ?pp = "\<lambda>p. of_int (sign p) * setprod (\<lambda>i. A$i$p i) (UNIV :: 'n set)"
+  have fU: "finite ?U" by simp
+  from finite_permutations[OF fU] have fPU: "finite ?PU" .
+  have id0: "{id} \<subseteq> ?PU" by (auto simp add: permutes_id)
+  {fix p assume p: "p \<in> ?PU - {id}"
+    then have "p \<noteq> id" by simp
+    then obtain i where i: "p i \<noteq> i" unfolding expand_fun_eq by auto
+    from ld [OF i [symmetric]] have ex:"\<exists>i \<in> ?U. A$i$p i = 0" by blast
+    from setprod_zero [OF fU ex] have "?pp p = 0" by simp}
+  then have p0: "\<forall>p \<in> ?PU - {id}. ?pp p = 0"  by blast
+  from setsum_mono_zero_cong_left[OF fPU id0 p0] show ?thesis
+    unfolding det_def by (simp add: sign_id)
+qed
+
+lemma det_I: "det (mat 1 :: 'a::comm_ring_1^'n^'n::finite) = 1"
 proof-
   let ?A = "mat 1 :: 'a::comm_ring_1^'n^'n"
   let ?U = "UNIV :: 'n set"
@@ -204,9 +224,9 @@ proof-
     have "?f i i = 1" using i by (vector mat_def)}
   hence th: "setprod (\<lambda>i. ?f i i) ?U = setprod (\<lambda>x. 1) ?U"
     by (auto intro: setprod_cong)
-  {fix i j assume i: "i \<in> ?U" and j: "j \<in> ?U" and ij: "i < j"
+  {fix i j assume i: "i \<in> ?U" and j: "j \<in> ?U" and ij: "i \<noteq> j"
     have "?f i j = 0" using i j ij by (vector mat_def) }
-  then have "det ?A = setprod (\<lambda>i. ?f i i) ?U" using det_lowerdiagonal
+  then have "det ?A = setprod (\<lambda>i. ?f i i) ?U" using det_diagonal
     by blast
   also have "\<dots> = 1" unfolding th setprod_1 ..
   finally show ?thesis .
@@ -692,9 +712,8 @@ lemma invertible_righ_inverse:
   shows "invertible A \<longleftrightarrow> (\<exists>(B::real^'n^'n). A** B = mat 1)"
   by (metis invertible_def matrix_left_right_inverse)
 
-(* FIXME: get rid of wellorder requirement *)
 lemma invertible_det_nz:
-  fixes A::"real ^'n^'n::{finite,wellorder}"
+  fixes A::"real ^'n^'n::finite"
   shows "invertible A \<longleftrightarrow> det A \<noteq> 0"
 proof-
   {assume "invertible A"
@@ -787,17 +806,15 @@ proof-
   let ?U = "UNIV :: 'n set"
   have stupid: "\<And>c. setsum (\<lambda>i. c i *s row i (transp A)) ?U = setsum (\<lambda>i. c i *s column i A) ?U"
     by (auto simp add: row_transp intro: setsum_cong2)
-  show ?thesis
-  unfolding matrix_mult_vsum
+  show ?thesis  unfolding matrix_mult_vsum
   unfolding cramer_lemma_transp[of k x "transp A", unfolded det_transp, symmetric]
   unfolding stupid[of "\<lambda>i. x$i"]
   apply (subst det_transp[symmetric])
   apply (rule cong[OF refl[of det]]) by (vector transp_def column_def row_def)
 qed
 
-(* FIXME: get rid of wellorder requirement *)
 lemma cramer:
-  fixes A ::"real^'n^'n::{finite,wellorder}"
+  fixes A ::"real^'n^'n::finite"
   assumes d0: "det A \<noteq> 0"
   shows "A *v x = b \<longleftrightarrow> x = (\<chi> k. det(\<chi> i j. if j=k then b$i else A$i$j :: real^'n^'n) / det A)"
 proof-
@@ -878,9 +895,8 @@ proof-
   ultimately show ?thesis by blast
 qed
 
-(* FIXME: get rid of wellorder requirement *)
 lemma det_orthogonal_matrix:
-  fixes Q:: "'a::ordered_idom^'n^'n::{finite,wellorder}"
+  fixes Q:: "'a::ordered_idom^'n^'n::finite"
   assumes oQ: "orthogonal_matrix Q"
   shows "det Q = 1 \<or> det Q = - 1"
 proof-
@@ -1020,9 +1036,8 @@ qed
 definition "rotation_matrix Q \<longleftrightarrow> orthogonal_matrix Q \<and> det Q = 1"
 definition "rotoinversion_matrix Q \<longleftrightarrow> orthogonal_matrix Q \<and> det Q = - 1"
 
-(* FIXME: get rid of wellorder requirement *)
 lemma orthogonal_rotation_or_rotoinversion:
-  fixes Q :: "'a::ordered_idom^'n^'n::{finite,wellorder}"
+  fixes Q :: "'a::ordered_idom^'n^'n::finite"
   shows " orthogonal_matrix Q \<longleftrightarrow> rotation_matrix Q \<or> rotoinversion_matrix Q"
   by (metis rotoinversion_matrix_def rotation_matrix_def det_orthogonal_matrix)
 (* ------------------------------------------------------------------------- *)
