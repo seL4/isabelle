@@ -561,18 +561,14 @@ text {*
   "'a set"}.
 *}
 
-lemma subsetD [elim]: "A \<subseteq> B ==> c \<in> A ==> c \<in> B"
+lemma subsetD [elim, intro?]: "A \<subseteq> B ==> c \<in> A ==> c \<in> B"
   -- {* Rule in Modus Ponens style. *}
   by (unfold mem_def) blast
 
-declare subsetD [intro?] -- FIXME
-
-lemma rev_subsetD: "c \<in> A ==> A \<subseteq> B ==> c \<in> B"
+lemma rev_subsetD [intro?]: "c \<in> A ==> A \<subseteq> B ==> c \<in> B"
   -- {* The same, with reversed premises for use with @{text erule} --
       cf @{text rev_mp}. *}
   by (rule subsetD)
-
-declare rev_subsetD [intro?] -- FIXME
 
 text {*
   \medskip Converts @{prop "A \<subseteq> B"} to @{prop "x \<in> A ==> x \<in> B"}.
@@ -622,8 +618,6 @@ by(auto intro:set_ext)
 lemma subset_antisym [intro!]: "A \<subseteq> B ==> B \<subseteq> A ==> A = B"
   -- {* Anti-symmetry of the subset relation. *}
   by (iprover intro: set_ext subsetD)
-
-lemmas equalityI [intro!] = subset_antisym
 
 text {*
   \medskip Equality rules from ZF set theory -- are they appropriate
@@ -1063,11 +1057,6 @@ lemma split_if_mem2: "(a : (if Q then x else y)) = ((Q --> a : x) & (~ Q --> a :
   by (rule split_if [where P="%S. a : S"])
 
 lemmas split_ifs = if_bool_eq_conj split_if_eq1 split_if_eq2 split_if_mem1 split_if_mem2
-
-lemmas mem_simps =
-  insert_iff empty_iff Un_iff Int_iff Compl_iff Diff_iff
-  mem_Collect_eq UN_iff Union_iff INT_iff Inter_iff
-  -- {* Each of these has ALREADY been added @{text "[simp]"} above. *}
 
 (*Would like to add these, but the existing code only searches for the
   outer-level constant, which in this case is just "op :"; we instead need
@@ -2489,7 +2478,13 @@ no_notation
   Sup  ("\<Squnion>_" [900] 900)
 
 
-subsection {* Basic ML bindings *}
+subsection {* Misc theorem and ML bindings *}
+
+lemmas equalityI = subset_antisym
+lemmas mem_simps =
+  insert_iff empty_iff Un_iff Int_iff Compl_iff Diff_iff
+  mem_Collect_eq UN_iff Union_iff INT_iff Inter_iff
+  -- {* Each of these has ALREADY been added @{text "[simp]"} above. *}
 
 ML {*
 val Ball_def = @{thm Ball_def}
