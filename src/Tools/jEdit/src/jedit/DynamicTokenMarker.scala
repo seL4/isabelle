@@ -7,8 +7,7 @@
 
 package isabelle.jedit
 
-import isabelle.proofdocument.ProofDocument
-import isabelle.prover.{Command, MarkupNode}
+import isabelle.prover.{Command, MarkupNode, Prover}
 import isabelle.Markup
 
 import org.gjt.sp.jedit.buffer.JEditBuffer
@@ -68,7 +67,7 @@ object DynamicTokenMarker {
 
 }
 
-class DynamicTokenMarker(buffer: JEditBuffer, document: ProofDocument) extends TokenMarker {
+class DynamicTokenMarker(buffer: JEditBuffer, prover: Prover) extends TokenMarker {
 
   override def markTokens(prev: TokenMarker.LineContext,
     handler: TokenHandler, line_segment: Segment): TokenMarker.LineContext = {
@@ -83,7 +82,7 @@ class DynamicTokenMarker(buffer: JEditBuffer, document: ProofDocument) extends T
 
     var next_x = start
     for {
-      command <- document.commands.dropWhile(_.stop <= from(start)).takeWhile(_.start < from(stop))
+      command <- prover.document.commands.dropWhile(_.stop <= from(start)).takeWhile(_.start < from(stop))
       markup <- command.root_node.flatten
       if(to(markup.abs_stop) > start)
       if(to(markup.abs_start) < stop)

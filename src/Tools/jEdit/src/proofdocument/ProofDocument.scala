@@ -38,26 +38,28 @@ object ProofDocument
       "`([^\\\\`]?(\\\\(.|\\z))?)*+(`|\\z)|" +
       "[()\\[\\]{}:;]", Pattern.MULTILINE)
 
+ val empty = new ProofDocument(LinearSet.empty, LinearSet.empty, false, _ => false)
+
 }
 
 class ProofDocument(val tokens: LinearSet[Token],
                     val commands: LinearSet[Command],
                     val active: Boolean,
-                    is_command_keyword: String => Boolean,
-                    structural_changes: EventBus[StructureChange])
+                    is_command_keyword: String => Boolean)
 {
 
-  def mark_active: ProofDocument = new ProofDocument(tokens, commands, true, is_command_keyword, structural_changes)
-  def activate: ProofDocument = text_changed(new Text.Change(0, content, content.length)).mark_active
+  def mark_active: ProofDocument = new ProofDocument(tokens, commands, true, is_command_keyword)
+  def activate: (ProofDocument, StructureChange) = {
+    val (doc, change) = text_changed(new Text.Change(0, content, content.length))
+    return (doc.mark_active, change)
+  }
   def set_command_keyword(f: String => Boolean): ProofDocument =
-    new ProofDocument(tokens, commands, active, f, structural_changes)
-  def set_event_bus(bus: EventBus[StructureChange]): ProofDocument =
-    new ProofDocument(tokens, commands, active, is_command_keyword, bus)
+    new ProofDocument(tokens, commands, active, f)
 
   def content = Token.string_from_tokens(List() ++ tokens)
   /** token view **/
 
-  def text_changed(change: Text.Change): ProofDocument = 
+  def text_changed(change: Text.Change): (ProofDocument, StructureChange) =
   {
     val tokens = List() ++ this.tokens
     val (begin, remaining) = tokens.span(_.stop < change.start)
@@ -123,7 +125,7 @@ class ProofDocument(val tokens: LinearSet[Token],
                             inserted_tokens: List[Token],
                             removed_tokens: List[Token],
                             new_tokenset: LinearSet[Token],
-                            after_change: Option[Token]): ProofDocument =
+                            after_change: Option[Token]): (ProofDocument, StructureChange) =
   {
     val commands = List() ++ this.commands
     val (begin, remaining) =
@@ -163,13 +165,13 @@ class ProofDocument(val tokens: LinearSet[Token],
       }
     }
 
-    System.err.println("ins_tokens: " + inserted_tokens)
     val new_commands = tokens_to_commands(pseudo_new_pre ::: inserted_tokens ::: pseudo_new_post)
-    System.err.println("new_commands: " + new_commands)
 
     val new_commandset = (LinearSet() ++ (begin ::: new_commands ::: end)).asInstanceOf[LinearSet[Command]]
     val before = begin match {case Nil => None case _ => Some (begin.last)}
-    structural_changes.event(new StructureChange(before, new_commands, removed))
-    new ProofDocument(new_tokenset, new_commandset, active, is_command_keyword, structural_changes)
+
+    val change = new StructureChange(before, new_commands, removed)
+    val doc = new ProofDocument(new_tokenset, new_commandset, active, is_command_keyword)
+    return (doc, change)
   }
 }

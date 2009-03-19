@@ -87,7 +87,7 @@ class TheoryView (text_area: JEditTextArea, document_actor: Actor)
     phase_overview.textarea = text_area
     text_area.addLeftOfScrollBar(phase_overview)
     text_area.getPainter.addExtension(TextAreaPainter.LINE_BACKGROUND_LAYER + 1, this)
-    buffer.setTokenMarker(new DynamicTokenMarker(buffer, prover.document))
+    buffer.setTokenMarker(new DynamicTokenMarker(buffer, prover))
     update_styles
     document_actor ! new Text.Change(0,buffer.getText(0, buffer.getLength),0)
   }
@@ -102,7 +102,17 @@ class TheoryView (text_area: JEditTextArea, document_actor: Actor)
   /* painting */
 
   val repaint_delay = new isabelle.utils.Delay(100, () => repaint_all())
-  prover.command_info += (_ => repaint_delay.delay_or_ignore())
+  
+  val change_receiver = scala.actors.Actor.actor {
+    scala.actors.Actor.loop {
+      scala.actors.Actor.react {
+        case _ => {
+            repaint_delay.delay_or_ignore()
+            phase_overview.repaint_delay.delay_or_ignore()
+        }
+      }
+    }
+  }.start
 
   def from_current (pos: Int) =
     if (col != null && col.start <= pos)
