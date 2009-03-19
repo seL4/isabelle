@@ -91,6 +91,7 @@ if [ -n "$RAW" ]; then
     -e "val ml_system = \"$ML_SYSTEM\";" \
     -e "val ml_platform = \"$ML_PLATFORM\";" \
     -e "use\"$COMPAT\" handle _ => exit 1;" \
+    -e "structure Isar = struct fun main () = () end;" \
     -q -w RAW_ML_SYSTEM RAW > "$LOG" 2>&1
   RC="$?"
 elif [ -n "$RAW_SESSION" ]; then
