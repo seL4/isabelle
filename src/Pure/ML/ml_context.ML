@@ -194,7 +194,7 @@ val struct_name = "Isabelle";
 fun eval_antiquotes (txt, pos) opt_context =
   let
     val syms = Symbol_Pos.explode (txt, pos);
-    val ants = Antiquote.read Antiquote.scan_text (syms, pos);
+    val ants = Antiquote.read ML_Lex.scan_antiq (syms, pos);
     val opt_ctxt = Option.map (Context.Proof o Context.proof_of) opt_context;
     val ((ml_env, ml_body), opt_ctxt') =
       if not (exists Antiquote.is_antiq ants)
@@ -210,8 +210,8 @@ fun eval_antiquotes (txt, pos) opt_context =
           val lex = #1 (OuterKeyword.get_lexicons ());
           fun no_decl _ = ("", "");
 
-          fun expand (Antiquote.Text ss) state =
-                (K ("", Symbol.escape (Symbol_Pos.content ss)), state)
+          fun expand (Antiquote.Text tok) state =
+                (K ("", Symbol.escape (ML_Lex.content_of tok)), state)
             | expand (Antiquote.Antiq x) (scope, background) =
                 let
                   val context = Stack.top scope;
