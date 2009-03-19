@@ -20,6 +20,7 @@ sig
   val source: (Symbol.symbol, 'a) Source.source ->
     (token, (Symbol_Pos.T, Position.T * (Symbol.symbol, 'a) Source.source)
       Source.source) Source.source
+  val tokenize: string -> token list
 end;
 
 structure ML_Lex: ML_LEX =
@@ -161,7 +162,8 @@ val scan_escape =
     Scan.one (Symbol.is_ascii_digit o symbol) >> (fn ((a, b), c) => [a, b, c]);
 
 val scan_str =
-  Scan.one (fn (s, _) => Symbol.is_printable s andalso s <> "\"" andalso s <> "\\") >> single ||
+  Scan.one (fn (s, _) => Symbol.is_regular s andalso Symbol.is_printable s
+    andalso s <> "\"" andalso s <> "\\") >> single ||
   $$$ "\\" @@@ !!! "bad escape character in string" scan_escape;
 
 val scan_gap = $$$ "\\" @@@ scan_blanks1 @@@ $$$ "\\";
@@ -185,7 +187,7 @@ local
 
 fun token k ss = Token (Symbol_Pos.range ss, (k, Symbol_Pos.implode ss));
 
-val scan = !!! "bad input"
+val scan_ml = !!! "bad input"
  (scan_char >> token Char ||
   scan_string >> token String ||
   scan_blanks1 >> token Space ||
@@ -207,7 +209,9 @@ in
 
 fun source src =
   Symbol_Pos.source (Position.line 1) src
-  |> Source.source Symbol_Pos.stopper (Scan.bulk scan) (SOME (false, recover));
+  |> Source.source Symbol_Pos.stopper (Scan.bulk scan_ml) (SOME (false, recover));
+
+val tokenize = Source.of_string #> source #> Source.exhaust;
 
 end;
 
