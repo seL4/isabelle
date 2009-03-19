@@ -23,7 +23,7 @@ val true_tm = @{cterm "True"};
 val false_tm = @{cterm "False"};
 val zdvd1_eq = @{thm "zdvd1_eq"};
 val presburger_ss = @{simpset} addsimps [zdvd1_eq];
-val lin_ss = presburger_ss addsimps (@{thm "dvd_eq_mod_eq_0"}::zdvd1_eq::@{thms zadd_ac});
+val lin_ss = presburger_ss addsimps (@{thm dvd_eq_mod_eq_0} :: zdvd1_eq :: @{thms zadd_ac});
 
 val iT = HOLogic.intT
 val bT = HOLogic.boolT;

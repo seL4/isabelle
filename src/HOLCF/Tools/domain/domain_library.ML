@@ -125,37 +125,37 @@ infixr 0 ==>;   fun S ==> T = mk_trp S ===> mk_trp T;
 infix 0 ==;     fun S ==  T = %%:"==" $ S $ T;
 infix 1 ===;    fun S === T = %%:"op =" $ S $ T;
 infix 1 ~=;     fun S ~=  T = HOLogic.mk_not (S === T);
-infix 1 <<;     fun S <<  T = %%:@{const_name Porder.sq_le} $ S $ T;
+infix 1 <<;     fun S <<  T = %%: @{const_name Porder.sq_le} $ S $ T;
 infix 1 ~<<;    fun S ~<< T = HOLogic.mk_not (S << T);
 
-infix 9 `  ; fun f ` x = %%:@{const_name Rep_CFun} $ f $ x;
+infix 9 `  ; fun f ` x = %%: @{const_name Rep_CFun} $ f $ x;
 infix 9 `% ; fun f`% s = f` %: s;
 infix 9 `%%; fun f`%%s = f` %%:s;
 
-fun mk_adm t = %%:@{const_name adm} $ t;
-fun mk_compact t = %%:@{const_name compact} $ t;
-val ID = %%:@{const_name ID};
-fun mk_strictify t = %%:@{const_name strictify}`t;
-fun mk_cfst t = %%:@{const_name cfst}`t;
-fun mk_csnd t = %%:@{const_name csnd}`t;
+fun mk_adm t = %%: @{const_name adm} $ t;
+fun mk_compact t = %%: @{const_name compact} $ t;
+val ID = %%: @{const_name ID};
+fun mk_strictify t = %%: @{const_name strictify}`t;
+fun mk_cfst t = %%: @{const_name cfst}`t;
+fun mk_csnd t = %%: @{const_name csnd}`t;
 (*val csplitN    = "Cprod.csplit";*)
 (*val sfstN      = "Sprod.sfst";*)
 (*val ssndN      = "Sprod.ssnd";*)
-fun mk_ssplit t = %%:@{const_name ssplit}`t;
-fun mk_sinl t = %%:@{const_name sinl}`t;
-fun mk_sinr t = %%:@{const_name sinr}`t;
-fun mk_sscase (x, y) = %%:@{const_name sscase}`x`y;
-fun mk_up t = %%:@{const_name up}`t;
-fun mk_fup (t,u) = %%:@{const_name fup} ` t ` u;
+fun mk_ssplit t = %%: @{const_name ssplit}`t;
+fun mk_sinl t = %%: @{const_name sinl}`t;
+fun mk_sinr t = %%: @{const_name sinr}`t;
+fun mk_sscase (x, y) = %%: @{const_name sscase}`x`y;
+fun mk_up t = %%: @{const_name up}`t;
+fun mk_fup (t,u) = %%: @{const_name fup} ` t ` u;
 val ONE = @{term ONE};
 val TT = @{term TT};
 val FF = @{term FF};
-fun mk_iterate (n,f,z) = %%:@{const_name iterate} $ n ` f ` z;
-fun mk_fix t = %%:@{const_name fix}`t;
-fun mk_return t = %%:@{const_name Fixrec.return}`t;
-val mk_fail = %%:@{const_name Fixrec.fail};
+fun mk_iterate (n,f,z) = %%: @{const_name iterate} $ n ` f ` z;
+fun mk_fix t = %%: @{const_name fix}`t;
+fun mk_return t = %%: @{const_name Fixrec.return}`t;
+val mk_fail = %%: @{const_name Fixrec.fail};
 
-fun mk_branch t = %%:@{const_name Fixrec.branch} $ t;
+fun mk_branch t = %%: @{const_name Fixrec.branch} $ t;
 
 val pcpoS = @{sort pcpo};
 
@@ -171,14 +171,14 @@ fun  proj x      = prj (fn S => K(%%:"fst" $S)) (fn S => K(%%:"snd" $S)) x;
 fun cproj x      = prj (fn S => K(mk_cfst S)) (fn S => K(mk_csnd S)) x;
 fun lift tfn = Library.foldr (fn (x,t)=> (mk_trp(tfn x) ===> t));
 
-fun /\ v T = %%:@{const_name Abs_CFun} $ mk_lam(v,T);
+fun /\ v T = %%: @{const_name Abs_CFun} $ mk_lam(v,T);
 fun /\# (arg,T) = /\ (vname arg) T;
-infixr 9 oo; fun S oo T = %%:@{const_name cfcomp}`S`T;
-val UU = %%:@{const_name UU};
+infixr 9 oo; fun S oo T = %%: @{const_name cfcomp}`S`T;
+val UU = %%: @{const_name UU};
 fun strict f = f`UU === UU;
 fun defined t = t ~= UU;
-fun cpair (t,u) = %%:@{const_name cpair}`t`u;
-fun spair (t,u) = %%:@{const_name spair}`t`u;
+fun cpair (t,u) = %%: @{const_name cpair}`t`u;
+fun spair (t,u) = %%: @{const_name spair}`t`u;
 fun mk_ctuple [] = HOLogic.unit (* used in match_defs *)
 |   mk_ctuple ts = foldr1 cpair ts;
 fun mk_stuple [] = ONE
@@ -186,7 +186,7 @@ fun mk_stuple [] = ONE
 fun mk_ctupleT [] = HOLogic.unitT   (* used in match_defs *)
 |   mk_ctupleT Ts = foldr1 HOLogic.mk_prodT Ts;
 fun mk_maybeT T = Type ("Fixrec.maybe",[T]);
-fun cpair_pat (p1,p2) = %%:@{const_name cpair_pat} $ p1 $ p2;
+fun cpair_pat (p1,p2) = %%: @{const_name cpair_pat} $ p1 $ p2;
 val mk_ctuple_pat = foldr1 cpair_pat;
 fun lift_defined f = lift (fn x => defined (f x));
 fun bound_arg vns v = Bound(length vns -find_index_eq v vns -1);

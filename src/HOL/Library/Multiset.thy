@@ -1623,8 +1623,8 @@ in
     msetT=msetT, mk_mset=mk_mset, mset_regroup_conv=regroup_munion_conv,
     mset_member_tac=mset_member_tac, mset_nonempty_tac=mset_nonempty_tac,
     mset_pwleq_tac=unfold_pwleq_tac, set_of_simps=set_of_simps,
-    smsI'=@{thm ms_strictI}, wmsI2''=@{thm ms_weakI2}, wmsI1=@{thm ms_weakI1},
-    reduction_pair=@{thm ms_reduction_pair}
+    smsI'= @{thm ms_strictI}, wmsI2''= @{thm ms_weakI2}, wmsI1= @{thm ms_weakI1},
+    reduction_pair= @{thm ms_reduction_pair}
   })
 end
 *}
