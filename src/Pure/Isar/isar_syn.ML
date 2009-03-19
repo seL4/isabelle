@@ -272,7 +272,7 @@ val _ =
   OuterSyntax.local_theory "lemmas" "define lemmas" K.thy_decl (theorems Thm.lemmaK);
 
 val _ =
-  OuterSyntax.local_theory "declare" "declare theorems (improper)" K.thy_decl
+  OuterSyntax.local_theory "declare" "declare theorems" K.thy_decl
     (P.and_list1 SpecParse.xthms1
       >> (fn args => #2 o Specification.theorems_cmd "" [(Attrib.empty_binding, flat args)]));
 
@@ -295,29 +295,35 @@ val _ =
 
 (* use ML text *)
 
-val _ =
-  OuterSyntax.command "use" "eval ML text from file" (K.tag_ml K.thy_decl)
-    (P.path >> (Toplevel.generic_theory o ThyInfo.exec_file false));
+fun inherit_env (context as Context.Proof lthy) =
+      Context.Proof (LocalTheory.map_contexts (ML_Context.inherit_env context) lthy)
+  | inherit_env context = context;
+
+fun inherit_env_prf prf = Proof.map_contexts
+  (Context.proof_map (ML_Context.inherit_env (Context.Proof (Proof.context_of prf)))) prf;
 
 val _ =
-  OuterSyntax.command "ML" "eval ML text within theory" (K.tag_ml K.thy_decl)
+  OuterSyntax.command "use" "ML text from file" (K.tag_ml K.thy_decl)
+    (P.path >> (fn path => Toplevel.generic_theory (ThyInfo.exec_file false path #> inherit_env)));
+
+val _ =
+  OuterSyntax.command "ML" "ML text within theory or local theory" (K.tag_ml K.thy_decl)
     (P.ML_source >> (fn (txt, pos) =>
-      Toplevel.generic_theory (ML_Context.exec (fn () => ML_Context.eval true pos txt))));
+      Toplevel.generic_theory
+        (ML_Context.exec (fn () => ML_Context.eval true pos txt) #> inherit_env)));
 
 val _ =
-  OuterSyntax.command "ML_prf" "eval ML text within proof" (K.tag_proof K.prf_decl)
+  OuterSyntax.command "ML_prf" "ML text within proof" (K.tag_proof K.prf_decl)
     (P.ML_source >> (fn (txt, pos) =>
       Toplevel.proof (Proof.map_context (Context.proof_map
-        (ML_Context.exec (fn () => ML_Context.eval true pos txt))) #>
-          (fn prf => prf |> Proof.map_contexts
-            (Context.proof_map (ML_Context.inherit_env (Context.Proof (Proof.context_of prf))))))));
+        (ML_Context.exec (fn () => ML_Context.eval true pos txt))) #> inherit_env_prf)));
 
 val _ =
-  OuterSyntax.command "ML_val" "eval ML text (diagnostic)" (K.tag_ml K.diag)
+  OuterSyntax.command "ML_val" "diagnostic ML text" (K.tag_ml K.diag)
     (P.ML_source >> IsarCmd.ml_diag true);
 
 val _ =
-  OuterSyntax.command "ML_command" "silently eval ML text (diagnostic)" (K.tag_ml K.diag)
+  OuterSyntax.command "ML_command" "diagnostic ML text (silent)" (K.tag_ml K.diag)
     (P.ML_source >> (Toplevel.no_timing oo IsarCmd.ml_diag false));
 
 val _ =
