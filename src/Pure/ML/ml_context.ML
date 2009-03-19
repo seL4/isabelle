@@ -210,7 +210,8 @@ fun eval_antiquotes (txt, pos) opt_context =
           val lex = #1 (OuterKeyword.get_lexicons ());
           fun no_decl _ = ("", "");
 
-          fun expand (Antiquote.Text s) state = (K ("", Symbol.escape s), state)
+          fun expand (Antiquote.Text ss) state =
+                (K ("", Symbol.escape (Symbol_Pos.content ss)), state)
             | expand (Antiquote.Antiq x) (scope, background) =
                 let
                   val context = Stack.top scope;

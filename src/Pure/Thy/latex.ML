@@ -88,7 +88,7 @@ val output_symbols = output_known_symbols (K true, K true);
 val output_syms = output_symbols o Symbol.explode;
 
 val output_syms_antiq =
-  (fn Antiquote.Text s => output_syms s
+  (fn Antiquote.Text ss => output_symbols (map Symbol_Pos.symbol ss)
     | Antiquote.Antiq (ss, _) =>
         enclose "%\n\\isaantiq\n" "%\n\\endisaantiq\n" (output_symbols (map Symbol_Pos.symbol ss))
     | Antiquote.Open _ => "{\\isaantiqopen}"

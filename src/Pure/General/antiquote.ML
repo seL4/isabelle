@@ -7,7 +7,7 @@ Text with antiquotations of inner items (types, terms, theorems etc.).
 signature ANTIQUOTE =
 sig
   datatype antiquote =
-    Text of string | Antiq of Symbol_Pos.T list * Position.T |
+    Text of Symbol_Pos.T list | Antiq of Symbol_Pos.T list * Position.T |
     Open of Position.T | Close of Position.T
   val is_antiq: antiquote -> bool
   val read: Symbol_Pos.T list * Position.T -> antiquote list
@@ -19,7 +19,7 @@ struct
 (* datatype antiquote *)
 
 datatype antiquote =
-  Text of string |
+  Text of Symbol_Pos.T list |
   Antiq of Symbol_Pos.T list * Position.T |
   Open of Position.T |
   Close of Position.T;
@@ -68,7 +68,7 @@ val scan_antiq =
 in
 
 val scan_antiquote =
- (Scan.repeat1 scan_txt >> (Text o Symbol_Pos.content o flat) ||
+ (Scan.repeat1 scan_txt >> (Text o flat) ||
   scan_antiq ||
   Symbol_Pos.scan_pos --| $$$ "\\<lbrace>" >> Open ||
   Symbol_Pos.scan_pos --| $$$ "\\<rbrace>" >> Close);

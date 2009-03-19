@@ -147,7 +147,7 @@ val modes = ref ([]: string list);
 
 fun eval_antiquote lex state (txt, pos) =
   let
-    fun expand (Antiquote.Text s) = s
+    fun expand (Antiquote.Text ss) = Symbol_Pos.content ss
       | expand (Antiquote.Antiq x) =
           let val (opts, src) = T.read_antiq lex antiq x in
             options opts (fn () => command src state) ();  (*preview errors!*)
