@@ -236,7 +236,7 @@ fun add_consts class base_sort sups supparams global_syntax thy =
         thy
         |> Sign.declare_const [] ((b, ty0), syn)
         |> snd
-        |> pair ((Binding.name_of b, ty), (c, ty'))
+        |> pair ((Name.of_binding b, ty), (c, ty'))
       end;
   in
     thy

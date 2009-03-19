@@ -17,9 +17,11 @@ sig
   val kind_of: token -> token_kind
   val content_of: token -> string
   val keywords: string list
+  val scan_antiq: Symbol_Pos.T list -> token Antiquote.antiquote * Symbol_Pos.T list
   val source: (Symbol.symbol, 'a) Source.source ->
     (token, (Symbol_Pos.T, Position.T * (Symbol.symbol, 'a) Source.source)
       Source.source) Source.source
+  val tokenize: string -> token list
 end;
 
 structure ML_Lex: ML_LEX =
@@ -161,7 +163,8 @@ val scan_escape =
     Scan.one (Symbol.is_ascii_digit o symbol) >> (fn ((a, b), c) => [a, b, c]);
 
 val scan_str =
-  Scan.one (fn (s, _) => Symbol.is_printable s andalso s <> "\"" andalso s <> "\\") >> single ||
+  Scan.one (fn (s, _) => Symbol.is_regular s andalso Symbol.is_printable s
+    andalso s <> "\"" andalso s <> "\\") >> single ||
   $$$ "\\" @@@ !!! "bad escape character in string" scan_escape;
 
 val scan_gap = $$$ "\\" @@@ scan_blanks1 @@@ $$$ "\\";
@@ -183,9 +186,9 @@ end;
 
 local
 
-fun token k ss = Token (Symbol_Pos.range ss, (k, Symbol_Pos.implode ss));
+fun token k ss = Token (Symbol_Pos.range ss, (k, Symbol_Pos.content ss));
 
-val scan = !!! "bad input"
+val scan_ml =
  (scan_char >> token Char ||
   scan_string >> token String ||
   scan_blanks1 >> token Space ||
@@ -205,9 +208,13 @@ fun recover msg =
 
 in
 
+val scan_antiq = Antiquote.scan || scan_ml >> Antiquote.Text;
+
 fun source src =
   Symbol_Pos.source (Position.line 1) src
-  |> Source.source Symbol_Pos.stopper (Scan.bulk scan) (SOME (false, recover));
+  |> Source.source Symbol_Pos.stopper (Scan.bulk (!!! "bad input" scan_ml)) (SOME (false, recover));
+
+val tokenize = Source.of_string #> source #> Source.exhaust;
 
 end;
 

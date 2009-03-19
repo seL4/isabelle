@@ -125,8 +125,8 @@ fun parameters_of thy strict (expr, fixed) =
 
     val (implicit, expr') = params_expr expr;
 
-    val implicit' = map (#1 #> Binding.name_of) implicit;
-    val fixed' = map (#1 #> Binding.name_of) fixed;
+    val implicit' = map (#1 #> Name.of_binding) implicit;
+    val fixed' = map (#1 #> Name.of_binding) fixed;
     val _ = reject_dups "Duplicate fixed parameter(s): " fixed';
     val implicit'' =
       if strict then []
@@ -352,7 +352,7 @@ fun prep_full_context_statement parse_typ parse_prop prep_vars_elem prep_inst pr
     fun prep_insts (loc, (prfx, inst)) (i, insts, ctxt) =
       let
         val (parm_names, parm_types) = Locale.params_of thy loc |>
-          map_split (fn (b, SOME T, _) => (Binding.name_of b, T))
+          map_split (fn (b, SOME T, _) => (Name.of_binding b, T))
             (*FIXME return value of Locale.params_of has strange type*)
         val inst' = prep_inst ctxt parm_names inst;
         val parm_types' = map (TypeInfer.paramify_vars o
@@ -386,7 +386,7 @@ fun prep_full_context_statement parse_typ parse_prop prep_vars_elem prep_inst pr
       prep_concl raw_concl (insts', elems, ctxt5);
 
     (* Retrieve parameter types *)
-    val xs = fold (fn Fixes fixes => (fn ps => ps @ map (Binding.name_of o #1) fixes)
+    val xs = fold (fn Fixes fixes => (fn ps => ps @ map (Name.of_binding o #1) fixes)
       | _ => fn ps => ps) (Fixes fors :: elems') [];
     val (Ts, ctxt7) = fold_map ProofContext.inferred_param xs ctxt6;
     val parms = xs ~~ Ts;  (* params from expression and elements *)

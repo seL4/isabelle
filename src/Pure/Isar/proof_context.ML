@@ -1003,7 +1003,7 @@ local
 fun prep_vars prep_typ internal =
   fold_map (fn (raw_b, raw_T, raw_mx) => fn ctxt =>
     let
-      val raw_x = Binding.name_of raw_b;
+      val raw_x = Name.of_binding raw_b;
       val (x, mx) = Syntax.const_mixfix raw_x raw_mx;
       val _ = Syntax.is_identifier (no_skolem internal x) orelse
         error ("Illegal variable name: " ^ quote x);
@@ -1113,7 +1113,7 @@ fun prep_mixfix (x, T, mx) =
 fun gen_fixes prep raw_vars ctxt =
   let
     val (vars, _) = prep raw_vars ctxt;
-    val (xs', ctxt') = Variable.add_fixes (map (Binding.name_of o #1) vars) ctxt;
+    val (xs', ctxt') = Variable.add_fixes (map (Name.of_binding o #1) vars) ctxt;
     val ctxt'' =
       ctxt'
       |> fold_map declare_var (map2 (fn x' => fn (_, T, mx) => (x', T, mx)) xs' vars)

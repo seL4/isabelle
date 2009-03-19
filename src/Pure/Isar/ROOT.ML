@@ -24,7 +24,6 @@ use "outer_keyword.ML";
 use "outer_parse.ML";
 use "value_parse.ML";
 use "args.ML";
-use "antiquote.ML";
 use "../ML/ml_context.ML";
 
 (*theory sources*)

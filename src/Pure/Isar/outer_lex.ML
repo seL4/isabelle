@@ -51,13 +51,14 @@ sig
   val closure: token -> token
   val ident_or_symbolic: string -> bool
   val !!! : string -> (Symbol_Pos.T list -> 'a) -> Symbol_Pos.T list -> 'a
-  val scan_quoted: Symbol_Pos.T list -> Symbol_Pos.T list * Symbol_Pos.T list
   val source_proper: (token, 'a) Source.source -> (token, (token, 'a) Source.source) Source.source
   val source': {do_recover: bool Option.option} -> (unit -> Scan.lexicon * Scan.lexicon) ->
     (Symbol_Pos.T, 'a) Source.source -> (token, (Symbol_Pos.T, 'a) Source.source) Source.source
   val source: {do_recover: bool Option.option} -> (unit -> Scan.lexicon * Scan.lexicon) ->
     Position.T -> (Symbol.symbol, 'a) Source.source -> (token,
       (Symbol_Pos.T, Position.T * (Symbol.symbol, 'a) Source.source) Source.source) Source.source
+  val read_antiq: Scan.lexicon -> (token list -> 'a * token list) ->
+    Symbol_Pos.T list * Position.T -> 'a
 end;
 
 structure OuterLex: OUTER_LEX =
@@ -263,8 +264,6 @@ open Basic_Symbol_Pos;
 
 fun !!! msg = Symbol_Pos.!!! ("Outer lexical error: " ^ msg);
 
-fun change_prompt scan = Scan.prompt "# " scan;
-
 
 (* scan symbolic idents *)
 
@@ -286,36 +285,6 @@ fun ident_or_symbolic "begin" = false
   | ident_or_symbolic s = Syntax.is_identifier s orelse is_symid s;
 
 
-(* scan strings *)
-
-local
-
-val char_code =
-  Scan.one (Symbol.is_ascii_digit o symbol) --
-  Scan.one (Symbol.is_ascii_digit o symbol) --
-  Scan.one (Symbol.is_ascii_digit o symbol) :|--
-  (fn (((a, pos), (b, _)), (c, _)) =>
-    let val (n, _) = Library.read_int [a, b, c]
-    in if n <= 255 then Scan.succeed [(chr n, pos)] else Scan.fail end);
-
-fun scan_str q =
-  $$$ "\\" |-- !!! "bad escape character in string" ($$$ q || $$$ "\\" || char_code) ||
-  Scan.one (fn (s, _) => s <> q andalso s <> "\\" andalso Symbol.is_regular s) >> single;
-
-fun scan_strs q =
-  (Symbol_Pos.scan_pos --| $$$ q) -- !!! "missing quote at end of string"
-    (change_prompt ((Scan.repeat (scan_str q) >> flat) -- ($$$ q |-- Symbol_Pos.scan_pos)));
-
-in
-
-val scan_string = scan_strs "\"";
-val scan_alt_string = scan_strs "`";
-
-val scan_quoted = Scan.trace (scan_string || scan_alt_string) >> #2;
-
-end;
-
-
 (* scan verbatim text *)
 
 val scan_verb =
@@ -324,7 +293,8 @@ val scan_verb =
 
 val scan_verbatim =
   (Symbol_Pos.scan_pos --| $$$ "{" --| $$$ "*") -- !!! "missing end of verbatim text"
-    (change_prompt ((Scan.repeat scan_verb >> flat) -- ($$$ "*" |-- $$$ "}" |-- Symbol_Pos.scan_pos)));
+    (Symbol_Pos.change_prompt
+      ((Scan.repeat scan_verb >> flat) -- ($$$ "*" |-- $$$ "}" |-- Symbol_Pos.scan_pos)));
 
 
 (* scan space *)
@@ -346,7 +316,7 @@ val scan_comment =
 
 val scan_malformed =
   $$$ Symbol.malformed |--
-    change_prompt (Scan.many (Symbol.is_regular o symbol))
+    Symbol_Pos.change_prompt (Scan.many (Symbol.is_regular o symbol))
   --| Scan.option ($$$ Symbol.end_malformed);
 
 
@@ -366,8 +336,8 @@ fun token_range k (pos1, (ss, pos2)) =
   Token (Symbol_Pos.implode_range pos1 pos2 ss, (k, Symbol_Pos.untabify_content ss), Slot);
 
 fun scan (lex1, lex2) = !!! "bad input"
-  (scan_string >> token_range String ||
-    scan_alt_string >> token_range AltString ||
+  (Symbol_Pos.scan_string >> token_range String ||
+    Symbol_Pos.scan_alt_string >> token_range AltString ||
     scan_verbatim >> token_range Verbatim ||
     scan_comment >> token_range Comment ||
     scan_space >> token Space ||
@@ -400,5 +370,21 @@ fun source do_recover get_lex pos src =
   |> source' do_recover get_lex;
 
 end;
+
+
+(* read_antiq *)
+
+fun read_antiq lex scan (syms, pos) =
+  let
+    fun err msg = cat_error msg ("Malformed antiquotation" ^ Position.str_of pos ^ ":\n" ^
+      "@{" ^ Symbol_Pos.content syms ^ "}");
+
+    val res =
+      Source.of_list syms
+      |> source' {do_recover = NONE} (K (lex, Scan.empty_lexicon))
+      |> source_proper
+      |> Source.source stopper (Scan.error (Scan.bulk scan)) NONE
+      |> Source.exhaust;
+  in (case res of [x] => x | _ => err "") handle ERROR msg => err msg end;
 
 end;

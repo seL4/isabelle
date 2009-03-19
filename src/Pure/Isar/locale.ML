@@ -181,7 +181,7 @@ fun intros_of thy = #intros o the_locale thy;
 fun axioms_of thy = #axioms o the_locale thy;
 
 fun instance_of thy name morph = params_of thy name |>
-  map ((fn (b, T, _) => Free (Binding.name_of b, the T)) #> Morphism.term morph);
+  map ((fn (b, T, _) => Free (Name.of_binding b, the T)) #> Morphism.term morph);
 
 fun specification_of thy = #spec o the_locale thy;
 
