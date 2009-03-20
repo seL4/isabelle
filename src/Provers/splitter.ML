@@ -35,8 +35,6 @@ sig
   val split_asm_tac   : thm list -> int -> tactic
   val addsplits       : simpset * thm list -> simpset
   val delsplits       : simpset * thm list -> simpset
-  val Addsplits       : thm list -> unit
-  val Delsplits       : thm list -> unit
   val split_add: attribute
   val split_del: attribute
   val split_modifiers : Method.modifier parser list
@@ -452,9 +450,6 @@ fun ss delsplits splits =
         let val (name,asm) = split_thm_info split
         in Simplifier.delloop (ss, split_name name asm)
   end in Library.foldl delsplit (ss,splits) end;
-
-fun Addsplits splits = (change_simpset (fn ss => ss addsplits splits));
-fun Delsplits splits = (change_simpset (fn ss => ss delsplits splits));
 
 
 (* attributes *)

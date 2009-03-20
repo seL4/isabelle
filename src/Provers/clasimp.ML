@@ -26,8 +26,6 @@ sig
   type clasimpset
   val get_css: Context.generic -> clasimpset
   val map_css: (clasimpset -> clasimpset) -> Context.generic -> Context.generic
-  val change_clasimpset: (clasimpset -> clasimpset) -> unit
-  val clasimpset: unit -> clasimpset
   val local_clasimpset_of: Proof.context -> clasimpset
   val addSIs2: clasimpset * thm list -> clasimpset
   val addSEs2: clasimpset * thm list -> clasimpset
@@ -42,19 +40,10 @@ sig
   val addss': claset * simpset -> claset
   val addIffs: clasimpset * thm list -> clasimpset
   val delIffs: clasimpset * thm list -> clasimpset
-  val AddIffs: thm list -> unit
-  val DelIffs: thm list -> unit
-  val CLASIMPSET: (clasimpset -> tactic) -> tactic
-  val CLASIMPSET': (clasimpset -> 'a -> tactic) -> 'a -> tactic
   val clarsimp_tac: clasimpset -> int -> tactic
-  val Clarsimp_tac: int -> tactic
   val mk_auto_tac: clasimpset -> int -> int -> tactic
   val auto_tac: clasimpset -> tactic
-  val Auto_tac: tactic
-  val auto: unit -> unit
   val force_tac: clasimpset  -> int -> tactic
-  val Force_tac: int -> tactic
-  val force: int -> unit
   val fast_simp_tac: clasimpset -> int -> tactic
   val slow_simp_tac: clasimpset -> int -> tactic
   val best_simp_tac: clasimpset -> int -> tactic
@@ -83,9 +72,6 @@ fun get_css context = (Classical.get_cs context, Simplifier.get_ss context);
 fun map_css f context =
   let val (cs', ss') = f (get_css context)
   in context |> Classical.map_cs (K cs') |> Simplifier.map_ss (K ss') end;
-
-fun change_clasimpset f = Context.>> (fn context => (Context.the_theory context; map_css f context));
-fun clasimpset () = (Classical.claset (), Simplifier.simpset ());
 
 fun local_clasimpset_of ctxt =
   (Classical.local_claset_of ctxt, Simplifier.local_simpset_of ctxt);
@@ -168,9 +154,6 @@ val op addIffs =
               Simplifier.addsimps);
 val op delIffs = Library.foldl (delIff Classical.delrules Simplifier.delsimps);
 
-fun AddIffs thms = change_clasimpset (fn css => css addIffs thms);
-fun DelIffs thms = change_clasimpset (fn css => css delIffs thms);
-
 fun addIffs_generic (x, ths) =
   Library.foldl (addIff (addXEs, addXIs) (addXEs, addXIs) #1) ((x, ()), ths) |> #1;
 
@@ -182,18 +165,9 @@ end;
 
 (* tacticals *)
 
-fun CLASIMPSET tacf state =
-  Classical.CLASET (fn cs => Simplifier.SIMPSET (fn ss => tacf (cs, ss))) state;
-
-fun CLASIMPSET' tacf i state =
-  Classical.CLASET (fn cs => Simplifier.SIMPSET (fn ss => tacf (cs, ss) i)) state;
-
-
 fun clarsimp_tac (cs, ss) =
   safe_asm_full_simp_tac ss THEN_ALL_NEW
   Classical.clarify_tac (cs addSss ss);
-
-fun Clarsimp_tac i = clarsimp_tac (clasimpset ()) i;
 
 
 (* auto_tac *)
@@ -231,8 +205,6 @@ fun mk_auto_tac (cs, ss) m n =
     end;
 
 fun auto_tac css = mk_auto_tac css 4 2;
-fun Auto_tac st = auto_tac (clasimpset ()) st;
-fun auto () = by Auto_tac;
 
 
 (* force_tac *)
@@ -242,8 +214,6 @@ fun force_tac (cs,ss) = let val cs' = cs addss ss in SELECT_GOAL (EVERY [
         Classical.clarify_tac cs' 1,
         IF_UNSOLVED (Simplifier.asm_full_simp_tac ss 1),
         ALLGOALS (Classical.first_best_tac cs')]) end;
-fun Force_tac i = force_tac (clasimpset ()) i;
-fun force i = by (Force_tac i);
 
 
 (* basic combinations *)

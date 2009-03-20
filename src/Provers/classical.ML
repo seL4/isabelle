@@ -69,11 +69,7 @@ sig
   val appSWrappers      : claset -> wrapper
   val appWrappers       : claset -> wrapper
 
-  val change_claset: (claset -> claset) -> unit
   val claset_of: theory -> claset
-  val claset: unit -> claset
-  val CLASET: (claset -> tactic) -> tactic
-  val CLASET': (claset -> 'a -> tactic) -> 'a -> tactic
   val local_claset_of   : Proof.context -> claset
 
   val fast_tac          : claset -> int -> tactic
@@ -107,24 +103,6 @@ sig
   val inst_step_tac     : claset -> int -> tactic
   val inst0_step_tac    : claset -> int -> tactic
   val instp_step_tac    : claset -> int -> tactic
-
-  val AddDs             : thm list -> unit
-  val AddEs             : thm list -> unit
-  val AddIs             : thm list -> unit
-  val AddSDs            : thm list -> unit
-  val AddSEs            : thm list -> unit
-  val AddSIs            : thm list -> unit
-  val Delrules          : thm list -> unit
-  val Safe_tac          : tactic
-  val Safe_step_tac     : int -> tactic
-  val Clarify_tac       : int -> tactic
-  val Clarify_step_tac  : int -> tactic
-  val Step_tac          : int -> tactic
-  val Fast_tac          : int -> tactic
-  val Best_tac          : int -> tactic
-  val Slow_tac          : int -> tactic
-  val Slow_best_tac     : int -> tactic
-  val Deepen_tac        : int -> int -> tactic
 end;
 
 signature CLASSICAL =
@@ -870,23 +848,9 @@ val get_context_cs = #2 o GlobalClaset.get o ProofContext.theory_of;
 fun map_context_cs f = GlobalClaset.map (apsnd
   (fn ContextCS {swrappers, uwrappers} => make_context_cs (f (swrappers, uwrappers))));
 
-fun change_claset f = Context.>> (Context.map_theory (map_claset f));
-
 fun claset_of thy =
   let val (cs, ctxt_cs) = GlobalClaset.get thy
   in context_cs (ProofContext.init thy) cs (ctxt_cs) end;
-val claset = claset_of o ML_Context.the_global_context;
-
-fun CLASET tacf st = tacf (claset_of (Thm.theory_of_thm st)) st;
-fun CLASET' tacf i st = tacf (claset_of (Thm.theory_of_thm st)) i st;
-
-fun AddDs args = change_claset (fn cs => cs addDs args);
-fun AddEs args = change_claset (fn cs => cs addEs args);
-fun AddIs args = change_claset (fn cs => cs addIs args);
-fun AddSDs args = change_claset (fn cs => cs addSDs args);
-fun AddSEs args = change_claset (fn cs => cs addSEs args);
-fun AddSIs args = change_claset (fn cs => cs addSIs args);
-fun Delrules args = change_claset (fn cs => cs delrules args);
 
 
 (* context dependent components *)
@@ -930,21 +894,6 @@ val haz_intro = attrib o addI;
 val rule_del = attrib delrule o ContextRules.rule_del;
 
 
-(* tactics referring to the implicit claset *)
-
-(*the abstraction over the proof state delays the dereferencing*)
-fun Safe_tac st           = safe_tac (claset()) st;
-fun Safe_step_tac i st    = safe_step_tac (claset()) i st;
-fun Clarify_step_tac i st = clarify_step_tac (claset()) i st;
-fun Clarify_tac i st      = clarify_tac (claset()) i st;
-fun Step_tac i st         = step_tac (claset()) i st;
-fun Fast_tac i st         = fast_tac (claset()) i st;
-fun Best_tac i st         = best_tac (claset()) i st;
-fun Slow_tac i st         = slow_tac (claset()) i st;
-fun Slow_best_tac i st    = slow_best_tac (claset()) i st;
-fun Deepen_tac m          = deepen_tac (claset()) m;
-
-
 end;
 
 
@@ -972,15 +921,12 @@ val setup_attrs =
 
 (** proof methods **)
 
-fun METHOD_CLASET tac ctxt = METHOD (tac ctxt (local_claset_of ctxt));
-fun METHOD_CLASET' tac ctxt = METHOD (HEADGOAL o tac ctxt (local_claset_of ctxt));
-
-
 local
 
-fun some_rule_tac ctxt (CS {xtra_netpair, ...}) facts = SUBGOAL (fn (goal, i) =>
+fun some_rule_tac ctxt facts = SUBGOAL (fn (goal, i) =>
   let
     val [rules1, rules2, rules4] = ContextRules.find_rules false facts goal ctxt;
+    val CS {xtra_netpair, ...} = local_claset_of ctxt;
     val rules3 = ContextRules.find_rules_netpair true facts goal xtra_netpair;
     val rules = rules1 @ rules2 @ rules3 @ rules4;
     val ruleq = Drule.multi_resolves facts rules;
@@ -990,16 +936,15 @@ fun some_rule_tac ctxt (CS {xtra_netpair, ...}) facts = SUBGOAL (fn (goal, i) =>
   end)
   THEN_ALL_NEW Goal.norm_hhf_tac;
 
-fun rule_tac [] ctxt cs facts = some_rule_tac ctxt cs facts
-  | rule_tac rules _ _ facts = Method.rule_tac rules facts;
+in
 
-fun default_tac rules ctxt cs facts =
-  HEADGOAL (rule_tac rules ctxt cs facts) ORELSE
+fun rule_tac ctxt [] facts = some_rule_tac ctxt facts
+  | rule_tac _ rules facts = Method.rule_tac rules facts;
+
+fun default_tac ctxt rules facts =
+  HEADGOAL (rule_tac ctxt rules facts) ORELSE
   Class.default_intro_tac ctxt facts;
 
-in
-  val rule = METHOD_CLASET' o rule_tac;
-  val default = METHOD_CLASET o default_tac;
 end;
 
 
@@ -1033,9 +978,11 @@ fun cla_method' tac = Args.bang_facts --| Method.sections cla_modifiers >> (cla_
 (** setup_methods **)
 
 val setup_methods =
-  Method.setup @{binding default} (Attrib.thms >> default)
+  Method.setup @{binding default}
+   (Attrib.thms >> (fn rules => fn ctxt => METHOD (default_tac ctxt rules)))
     "apply some intro/elim rule (potentially classical)" #>
-  Method.setup @{binding rule} (Attrib.thms >> rule)
+  Method.setup @{binding rule}
+    (Attrib.thms >> (fn rules => fn ctxt => METHOD (HEADGOAL o rule_tac ctxt rules)))
     "apply some intro/elim rule (potentially classical)" #>
   Method.setup @{binding contradiction} (Scan.succeed (K contradiction))
     "proof by contradiction" #>

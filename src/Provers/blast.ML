@@ -48,7 +48,6 @@ signature BLAST_DATA =
   val contr_tac         : int -> tactic
   val dup_intr          : thm -> thm
   val hyp_subst_tac     : bool -> int -> tactic
-  val claset            : unit -> claset
   val rep_cs    : (* dependent on classical.ML *)
       claset -> {safeIs: thm list, safeEs: thm list,
                  hazIs: thm list, hazEs: thm list,
@@ -77,7 +76,6 @@ signature BLAST =
   val depth_tac         : claset -> int -> int -> tactic
   val depth_limit       : int Config.T
   val blast_tac         : claset -> int -> tactic
-  val Blast_tac         : int -> tactic
   val setup             : theory -> theory
   (*debugging tools*)
   val stats             : bool ref
@@ -89,7 +87,7 @@ signature BLAST =
   val instVars          : term -> (unit -> unit)
   val toTerm            : int -> term -> Term.term
   val readGoal          : theory -> string -> term
-  val tryInThy          : theory -> int -> string ->
+  val tryInThy          : theory -> claset -> int -> string ->
                   (int->tactic) list * branch list list * (int*int*exn) list
   val normBr            : branch -> branch
   end;
@@ -1283,7 +1281,6 @@ fun blast_tac cs i st =
       ((if !trace then warning ("blast: " ^ s) else ());
        Seq.empty);
 
-fun Blast_tac i = blast_tac (Data.claset()) i;
 
 
 (*** For debugging: these apply the prover to a subgoal and return
@@ -1294,11 +1291,11 @@ val fullTrace = ref ([]: branch list list);
 (*Read a string to make an initial, singleton branch*)
 fun readGoal thy s = Syntax.read_prop_global thy s |> fromTerm thy |> rand |> mkGoal;
 
-fun tryInThy thy lim s =
+fun tryInThy thy cs lim s =
   let
     val state as State {fullTrace = ft, ...} = initialize thy;
     val res = timeap prove
-      (state, start_timing(), Data.claset(), [initBranch ([readGoal thy s], lim)], I);
+      (state, start_timing(), cs, [initBranch ([readGoal thy s], lim)], I);
     val _ = fullTrace := !ft;
   in res end;
 

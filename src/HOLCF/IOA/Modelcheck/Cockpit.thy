@@ -102,18 +102,18 @@ lemmas aut_simps =
 
 (* to prove, that info is always set at the recent alarm *)
 lemma cockpit_implements_Info_while_Al: "cockpit =<| Info_while_Al"
-apply (tactic {* is_sim_tac (thms "aut_simps") 1 *})
+apply (tactic {* is_sim_tac @{simpset} (thms "aut_simps") 1 *})
 done
 
 (* to prove that before any alarm arrives (and after each acknowledgment),
    info remains at None *)
 lemma cockpit_implements_Info_before_Al: "cockpit =<| Info_before_Al"
-apply (tactic {* is_sim_tac (thms "aut_simps") 1 *})
+apply (tactic {* is_sim_tac @{simpset} (thms "aut_simps") 1 *})
 done
 
 (* to prove that before any alarm would be acknowledged, it must be arrived *)
 lemma cockpit_implements_Al_before_Ack: "cockpit_hide =<| Al_before_Ack"
-apply (tactic {* is_sim_tac (thms "aut_simps") 1 *})
+apply (tactic {* is_sim_tac @{simpset} (thms "aut_simps") 1 *})
 apply auto
 done
 

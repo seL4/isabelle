@@ -10,15 +10,8 @@ sig
   include BASIC_META_SIMPLIFIER
   val change_simpset: (simpset -> simpset) -> unit
   val simpset_of: theory -> simpset
-  val simpset: unit -> simpset
-  val SIMPSET: (simpset -> tactic) -> tactic
-  val SIMPSET': (simpset -> 'a -> tactic) -> 'a -> tactic
-  val Addsimps: thm list -> unit
-  val Delsimps: thm list -> unit
   val Addsimprocs: simproc list -> unit
   val Delsimprocs: simproc list -> unit
-  val Addcongs: thm list -> unit
-  val Delcongs: thm list -> unit
   val local_simpset_of: Proof.context -> simpset
   val generic_simp_tac: bool -> bool * bool * bool -> simpset -> int -> tactic
   val safe_asm_full_simp_tac: simpset -> int -> tactic
@@ -27,11 +20,6 @@ sig
   val          full_simp_tac: simpset -> int -> tactic
   val        asm_lr_simp_tac: simpset -> int -> tactic
   val      asm_full_simp_tac: simpset -> int -> tactic
-  val               Simp_tac:            int -> tactic
-  val           Asm_simp_tac:            int -> tactic
-  val          Full_simp_tac:            int -> tactic
-  val        Asm_lr_simp_tac:            int -> tactic
-  val      Asm_full_simp_tac:            int -> tactic
   val          simplify: simpset -> thm -> thm
   val      asm_simplify: simpset -> thm -> thm
   val     full_simplify: simpset -> thm -> thm
@@ -138,17 +126,9 @@ val cong_del = attrib (op delcongs);
 fun map_simpset f = Context.theory_map (map_ss f);
 fun change_simpset f = Context.>> (Context.map_theory (map_simpset f));
 fun simpset_of thy = MetaSimplifier.context (ProofContext.init thy) (get_ss (Context.Theory thy));
-val simpset = simpset_of o ML_Context.the_global_context;
 
-fun SIMPSET tacf st = tacf (simpset_of (Thm.theory_of_thm st)) st;
-fun SIMPSET' tacf i st = tacf (simpset_of (Thm.theory_of_thm st)) i st;
-
-fun Addsimps args = change_simpset (fn ss => ss addsimps args);
-fun Delsimps args = change_simpset (fn ss => ss delsimps args);
 fun Addsimprocs args = change_simpset (fn ss => ss addsimprocs args);
 fun Delsimprocs args = change_simpset (fn ss => ss delsimprocs args);
-fun Addcongs args = change_simpset (fn ss => ss addcongs args);
-fun Delcongs args = change_simpset (fn ss => ss delcongs args);
 
 
 (* local simpset *)
@@ -282,13 +262,6 @@ val full_simp_tac = generic_simp_tac false (true, false, false);
 val asm_lr_simp_tac = generic_simp_tac false (true, true, false);
 val asm_full_simp_tac = generic_simp_tac false (true, true, true);
 val safe_asm_full_simp_tac = generic_simp_tac true (true, true, true);
-
-(*the abstraction over the proof state delays the dereferencing*)
-fun          Simp_tac i st =          simp_tac (simpset ()) i st;
-fun      Asm_simp_tac i st =      asm_simp_tac (simpset ()) i st;
-fun     Full_simp_tac i st =     full_simp_tac (simpset ()) i st;
-fun   Asm_lr_simp_tac i st =   asm_lr_simp_tac (simpset ()) i st;
-fun Asm_full_simp_tac i st = asm_full_simp_tac (simpset ()) i st;
 
 
 (* conversions *)

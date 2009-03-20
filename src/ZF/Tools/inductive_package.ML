@@ -16,7 +16,6 @@ type inductive_result =
     dom_subset : thm,                  (*inclusion of recursive set in dom*)
     intrs      : thm list,             (*introduction rules*)
     elim       : thm,                  (*case analysis theorem*)
-    mk_cases   : string -> thm,        (*generates case theorems*)
     induct     : thm,                  (*main induction rule*)
     mutual_induct : thm};              (*mutual induction rule*)
 
@@ -275,9 +274,6 @@ let
       (basic_elim_tac THEN ALLGOALS (asm_full_simp_tac ss) THEN basic_elim_tac)
       (Thm.assume A RS elim)
       |> Drule.standard';
-  fun mk_cases a = make_cases (*delayed evaluation of body!*)
-    (simpset ())
-    let val thy = Thm.theory_of_thm elim in cterm_of thy (Syntax.read_prop_global thy a) end;
 
   fun induction_rules raw_induct thy =
    let
@@ -548,7 +544,6 @@ let
        dom_subset = dom_subset',
        intrs = intrs'',
        elim = elim',
-       mk_cases = mk_cases,
        induct = induct,
        mutual_induct = mutual_induct})
   end;
