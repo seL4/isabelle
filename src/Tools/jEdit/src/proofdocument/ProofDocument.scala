@@ -50,7 +50,7 @@ class ProofDocument(val tokens: LinearSet[Token],
 
   def mark_active: ProofDocument = new ProofDocument(tokens, commands, true, is_command_keyword)
   def activate: (ProofDocument, StructureChange) = {
-    val (doc, change) = text_changed(new Text.Change(0, content, content.length))
+    val (doc, change) = text_changed(new Text.Change(0, 0, content, content.length))
     return (doc.mark_active, change)
   }
   def set_command_keyword(f: String => Boolean): ProofDocument =

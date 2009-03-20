@@ -76,7 +76,9 @@ class DynamicTokenMarker(buffer: JEditBuffer, prover: Prover) extends TokenMarke
     val context = new IndexLineContext(line, previous)
     val start = buffer.getLineStartOffset(line)
     val stop = start + line_segment.count
-    
+
+    val (current_document, current_version) = synchronized (prover.document, prover.document_id)
+   
     def to = Isabelle.prover_setup(buffer).get.theory_view.to_current(_)
     def from = Isabelle.prover_setup(buffer).get.theory_view.from_current(_)
 

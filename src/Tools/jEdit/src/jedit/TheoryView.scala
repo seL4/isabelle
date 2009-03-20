@@ -42,6 +42,9 @@ object TheoryView {
 class TheoryView (text_area: JEditTextArea, document_actor: Actor)
     extends TextAreaExtension with BufferListener {
 
+  private var id_count = 0;
+  private def id(): Int = synchronized {id_count += 1; id_count}
+  
   private val buffer = text_area.getBuffer
   private val prover = Isabelle.prover_setup(buffer).get.prover
   buffer.addBufferListener(this)
@@ -89,7 +92,7 @@ class TheoryView (text_area: JEditTextArea, document_actor: Actor)
     text_area.getPainter.addExtension(TextAreaPainter.LINE_BACKGROUND_LAYER + 1, this)
     buffer.setTokenMarker(new DynamicTokenMarker(buffer, prover))
     update_styles
-    document_actor ! new Text.Change(0,buffer.getText(0, buffer.getLength),0)
+    document_actor ! new Text.Change(id(), 0,buffer.getText(0, buffer.getLength),0)
   }
 
   def deactivate() = {
@@ -107,8 +110,10 @@ class TheoryView (text_area: JEditTextArea, document_actor: Actor)
     scala.actors.Actor.loop {
       scala.actors.Actor.react {
         case _ => {
+          Swing.now {
             repaint_delay.delay_or_ignore()
             phase_overview.repaint_delay.delay_or_ignore()
+          }
         }
       }
     }
@@ -225,12 +230,12 @@ class TheoryView (text_area: JEditTextArea, document_actor: Actor)
   {
     val text = buffer.getText(offset, length)
     if (col == null)
-      col = new Text.Change(offset, text, 0)
+      col = new Text.Change(id(), offset, text, 0)
     else if (col.start <= offset && offset <= col.start + col.added.length)
-      col = new Text.Change(col.start, col.added + text, col.removed)
+      col = new Text.Change(col.id, col.start, col.added + text, col.removed)
     else {
       commit
-      col = new Text.Change(offset, text, 0)
+      col = new Text.Change(id(), offset, text, 0)
     }
     delay_commit
   }
@@ -239,10 +244,10 @@ class TheoryView (text_area: JEditTextArea, document_actor: Actor)
     start_line: Int, start: Int, num_lines: Int, removed: Int) =
   {
     if (col == null)
-      col = new Text.Change(start, "", removed)
+      col = new Text.Change(id(), start, "", removed)
     else if (col.start > start + removed || start > col.start + col.added.length) {
       commit
-      col = new Text.Change(start, "", removed)
+      col = new Text.Change(id(), start, "", removed)
     }
     else {
 /*      val offset = start - col.start
@@ -254,7 +259,7 @@ class TheoryView (text_area: JEditTextArea, document_actor: Actor)
           (diff - (offset min 0), offset min 0)
       col = new Text.Changed(start min col.start, added, col.removed - add_removed)*/
       commit
-      col = new Text.Change(start, "", removed)
+      col = new Text.Change(id(), start, "", removed)
     }
     delay_commit
   }
