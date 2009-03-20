@@ -163,8 +163,8 @@ val scan_escape =
     Scan.one (Symbol.is_ascii_digit o symbol) >> (fn ((a, b), c) => [a, b, c]);
 
 val scan_str =
-  Scan.one (fn (s, _) => Symbol.is_regular s andalso Symbol.is_printable s
-    andalso s <> "\"" andalso s <> "\\") >> single ||
+  Scan.one (fn (s, _) => Symbol.is_regular s andalso s <> "\"" andalso s <> "\\" andalso
+    (not (Symbol.is_char s) orelse Symbol.is_printable s)) >> single ||
   $$$ "\\" @@@ !!! "bad escape character in string" scan_escape;
 
 val scan_gap = $$$ "\\" @@@ scan_blanks1 @@@ $$$ "\\";
