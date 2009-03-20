@@ -236,7 +236,7 @@ fun scheduler_check name = SYNCHRONIZED name (fn () =>
 fun future_job group (e: unit -> 'a) =
   let
     val result = ref (NONE: 'a Exn.result option);
-    val job = Multithreading.with_attributes (Thread.getAttributes ())
+    val job = Multithreading.with_attributes Multithreading.restricted_interrupts
       (fn _ => fn ok =>
         let
           val res = if ok then Exn.capture e () else Exn.Exn Exn.Interrupt;
