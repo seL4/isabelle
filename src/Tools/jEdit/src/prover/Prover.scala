@@ -145,7 +145,7 @@ class Prover(isabelle_system: IsabelleSystem, logic: String) extends Actor
 
                   // document edits
                   case XML.Elem(Markup.EDITS, (Markup.ID, doc_id) :: _, edits)
-                  if document_versions.contains(doc_id) =>
+                  if document_versions.exists(dv => doc_id == dv._1) =>
                     output_info.event(result.toString)
                     for {
                       XML.Elem(Markup.EDIT, (Markup.ID, cmd_id) :: (Markup.STATE, state_id) :: _, _)
@@ -154,7 +154,7 @@ class Prover(isabelle_system: IsabelleSystem, logic: String) extends Actor
                       if (commands.contains(cmd_id)) {
                         val cmd = commands(cmd_id)
                         if (cmd.state_id != null) states -= cmd.state_id
-                        states(cmd_id) = cmd
+                        states(state_id) = cmd
                         cmd.state_id = state_id
                         cmd.status = Command.Status.UNPROCESSED
                         command_change(cmd)
