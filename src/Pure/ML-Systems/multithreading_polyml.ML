@@ -77,11 +77,9 @@ val safe_interrupts = map
 fun with_attributes new_atts f x =
   let
     val orig_atts = safe_interrupts (Thread.getAttributes ());
-    fun restore () = Thread.setAttributes orig_atts;
-    val result =
-      (Thread.setAttributes (safe_interrupts new_atts);
-        Exn.Result (f orig_atts x) before restore ())
-      handle e => Exn.Exn e before restore ();
+    val result = Exn.capture (fn () =>
+      (Thread.setAttributes (safe_interrupts new_atts); f orig_atts x)) ();
+    val _ = Thread.setAttributes orig_atts;
   in Exn.release result end;
 
 fun interruptible f = with_attributes regular_interrupts (fn _ => f);
