@@ -981,7 +981,8 @@ fun strip_abs_split 0 t = ([], t)
   | strip_abs_split i (u as Const ("split", _) $ t) = (case strip_abs_split (i+1) t of
         (v :: v' :: vs, u) => (HOLogic.mk_prod (v, v') :: vs, u)
       | _ => ([], u))
-  | strip_abs_split i t = ([], t);
+  | strip_abs_split i t =
+      strip_abs_split i (Abs ("x", hd (binder_types (fastype_of t)), t $ Bound 0));
 
 fun let_codegen thy defs dep thyname brack t gr = (case strip_comb t of
     (t1 as Const ("Let", _), t2 :: t3 :: ts) =>
@@ -1018,19 +1019,17 @@ fun let_codegen thy defs dep thyname brack t gr = (case strip_comb t of
 
 fun split_codegen thy defs dep thyname brack t gr = (case strip_comb t of
     (t1 as Const ("split", _), t2 :: ts) =>
-      (case strip_abs_split 1 (t1 $ t2) of
-         ([p], u) =>
-           let
-             val (q, gr1) = Codegen.invoke_codegen thy defs dep thyname false p gr;
-             val (pu, gr2) = Codegen.invoke_codegen thy defs dep thyname false u gr1;
-             val (pargs, gr3) = fold_map
-               (Codegen.invoke_codegen thy defs dep thyname true) ts gr2
-           in
-             SOME (Codegen.mk_app brack
-               (Pretty.block [Codegen.str "(fn ", q, Codegen.str " =>",
-                 Pretty.brk 1, pu, Codegen.str ")"]) pargs, gr2)
-           end
-       | _ => NONE)
+      let
+        val ([p], u) = strip_abs_split 1 (t1 $ t2);
+        val (q, gr1) = Codegen.invoke_codegen thy defs dep thyname false p gr;
+        val (pu, gr2) = Codegen.invoke_codegen thy defs dep thyname false u gr1;
+        val (pargs, gr3) = fold_map
+          (Codegen.invoke_codegen thy defs dep thyname true) ts gr2
+      in
+        SOME (Codegen.mk_app brack
+          (Pretty.block [Codegen.str "(fn ", q, Codegen.str " =>",
+            Pretty.brk 1, pu, Codegen.str ")"]) pargs, gr2)
+      end
   | _ => NONE);
 
 in
