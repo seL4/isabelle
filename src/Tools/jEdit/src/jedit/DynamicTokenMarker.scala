@@ -53,6 +53,13 @@ object DynamicTokenMarker {
         | Markup.INNER_COMMENT => 5
       case Markup.SORT | Markup.TYP | Markup.TERM | Markup.PROP
         | Markup.ATTRIBUTE | Markup.METHOD => 6
+      // ML syntax
+      case Markup.ML_KEYWORD | Markup.ML_IDENT => 8
+      case Markup.ML_TVAR => 4
+      case Markup.ML_NUMERAL => 5
+      case Markup.ML_CHAR | Markup.ML_STRING => 13
+      case Markup.ML_COMMENT => 10
+      case Markup.ML_MALFORMED => 12
       // embedded source text
       case Markup.ML_SOURCE | Markup.DOC_SOURCE | Markup.ANTIQ | Markup.ML_ANTIQ
         | Markup.DOC_ANTIQ => 7
