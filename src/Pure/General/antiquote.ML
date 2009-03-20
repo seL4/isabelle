@@ -14,7 +14,7 @@ sig
   val is_antiq: 'a antiquote -> bool
   val scan: Symbol_Pos.T list -> 'a antiquote * Symbol_Pos.T list
   val scan_text: Symbol_Pos.T list -> Symbol_Pos.T list antiquote * Symbol_Pos.T list
-  val read: (Symbol_Pos.T list -> 'a antiquote * Symbol_Pos.T list) ->
+  val read: ('a -> unit) -> (Symbol_Pos.T list -> 'a antiquote * Symbol_Pos.T list) ->
     Symbol_Pos.T list * Position.T -> 'a antiquote list
 end;
 
@@ -83,13 +83,12 @@ end;
 
 (* read *)
 
-fun report_antiq (Antiq (_, pos)) = Position.report Markup.antiq pos
-  | report_antiq _ = ();
-
-fun read _ ([], _) = []
-  | read scanner (syms, pos) =
+fun read _ _ ([], _) = []
+  | read report scanner (syms, pos) =
       (case Scan.read Symbol_Pos.stopper (Scan.repeat scanner) syms of
-        SOME xs => (List.app report_antiq xs; check_nesting xs; xs)
+        SOME xs =>
+         (List.app (fn Antiq (_, pos) => Position.report Markup.antiq pos | Text x => report x) xs;
+          check_nesting xs; xs)
       | NONE => error ("Malformed quotation/antiquotation source" ^ Position.str_of pos));
 
 end;
