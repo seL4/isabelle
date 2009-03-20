@@ -1,5 +1,4 @@
 (*  Title:      HOL/ex/Lagrange.thy
-    ID:         $Id$
     Author:     Tobias Nipkow
     Copyright   1996 TU Muenchen
 *)
@@ -35,7 +34,7 @@ lemma Lagrange_lemma: fixes x1 :: "'a::comm_ring" shows
    sq (x1*y2 + x2*y1 + x3*y4 - x4*y3)  +
    sq (x1*y3 - x2*y4 + x3*y1 + x4*y2)  +
    sq (x1*y4 + x2*y3 - x3*y2 + x4*y1)"
-by (simp add: sq_def algebra_simps)
+by (simp only: sq_def ring_simps)
 
 
 text {* A challenge by John Harrison. Takes about 12s on a 1.6GHz machine. *}
@@ -51,6 +50,6 @@ lemma fixes p1 :: "'a::comm_ring" shows
       sq (p1*u2 + q1*t2 - r1*w2 + s1*v2 - t1*q2 + u1*p2 - v1*s2 + w1*r2) +
       sq (p1*v2 + q1*w2 + r1*t2 - s1*u2 - t1*r2 + u1*s2 + v1*p2 - w1*q2) +
       sq (p1*w2 - q1*v2 + r1*u2 + s1*t2 - t1*s2 - u1*r2 + v1*q2 + w1*p2)"
-by (simp add: sq_def algebra_simps)
+by (simp only: sq_def ring_simps)
 
 end
