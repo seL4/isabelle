@@ -80,6 +80,18 @@ object Markup {
   val DOC_ANTIQ = "doc_antiq"
 
 
+  /* ML syntax */
+
+  val ML_KEYWORD = "ML_keyword"
+  val ML_IDENT = "ML_ident"
+  val ML_TVAR = "ML_tvar"
+  val ML_NUMERAL = "ML_numeral"
+  val ML_CHAR = "ML_char"
+  val ML_STRING = "ML_string"
+  val ML_COMMENT = "ML_comment"
+  val ML_MALFORMED = "ML_malformed"
+
+
   /* outer syntax */
 
   val KEYWORD_DECL = "keyword_decl"
