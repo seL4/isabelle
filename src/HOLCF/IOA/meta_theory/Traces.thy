@@ -1,5 +1,4 @@
 (*  Title:      HOLCF/IOA/meta_theory/Traces.thy
-    ID:         $Id$
     Author:     Olaf Müller
 *)
 
@@ -327,7 +326,7 @@ apply (simp (no_asm_simp))
 apply (simp (no_asm_simp))
 apply (drule Finite_Last1 [THEN mp])
 apply assumption
-apply (tactic "def_tac 1")
+apply defined
 done
 
 declare laststate_UU [simp] laststate_nil [simp] laststate_cons [simp]

@@ -1,5 +1,4 @@
 (*  Title:      HOLCF/IOA/meta_theory/Sequence.thy
-    ID:         $Id$
     Author:     Olaf Müller
 
 Sequences over flat domains with lifted elements.
@@ -340,7 +339,7 @@ subsection "induction"
 lemma Seq_induct:
 "!! P. [| adm P; P UU; P nil; !! a s. P s ==> P (a>>s)|] ==> P x"
 apply (erule (2) seq.ind)
-apply (tactic {* def_tac 1 *})
+apply defined
 apply (simp add: Consq_def)
 done
 
@@ -348,14 +347,14 @@ lemma Seq_FinitePartial_ind:
 "!! P.[|P UU;P nil; !! a s. P s ==> P(a>>s) |]
                 ==> seq_finite x --> P x"
 apply (erule (1) seq_finite_ind)
-apply (tactic {* def_tac 1 *})
+apply defined
 apply (simp add: Consq_def)
 done
 
 lemma Seq_Finite_ind:
 "!! P.[| Finite x; P nil; !! a s. [| Finite s; P s|] ==> P (a>>s) |] ==> P x"
 apply (erule (1) Finite.induct)
-apply (tactic {* def_tac 1 *})
+apply defined
 apply (simp add: Consq_def)
 done
 

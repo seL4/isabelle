@@ -226,9 +226,9 @@ lemma eq_imp_subst: "|- a=b ==> $H, A(a), $G |- $E, A(b), $F"
 
 lemma split_if: "|- P(if Q then x else y) <-> ((Q --> P(x)) & (~Q --> P(y)))"
   apply (rule_tac P = Q in cut)
-   apply (tactic {* simp_tac (simpset () addsimps @{thms if_P}) 2 *})
+   apply (tactic {* simp_tac (@{simpset} addsimps @{thms if_P}) 2 *})
   apply (rule_tac P = "~Q" in cut)
-   apply (tactic {* simp_tac (simpset() addsimps @{thms if_not_P}) 2 *})
+   apply (tactic {* simp_tac (@{simpset} addsimps @{thms if_not_P}) 2 *})
   apply (tactic {* fast_tac LK_pack 1 *})
   done
 

@@ -56,15 +56,13 @@ lemma lift_definedE: "\<lbrakk>x \<noteq> \<bottom>; \<And>a. x = Def a \<Longri
   by (cases x) simp_all
 
 text {*
-  For @{term "x ~= UU"} in assumptions @{text def_tac} replaces @{text
+  For @{term "x ~= UU"} in assumptions @{text defined} replaces @{text
   x} by @{text "Def a"} in conclusion. *}
 
-ML {*
-  local val lift_definedE = thm "lift_definedE"
-  in val def_tac = SIMPSET' (fn ss =>
-    etac lift_definedE THEN' asm_simp_tac ss)
-  end;
-*}
+method_setup defined = {*
+  Scan.succeed (fn ctxt => SIMPLE_METHOD'
+    (etac @{thm lift_definedE} THEN' asm_simp_tac (local_simpset_of ctxt)))
+*} ""
 
 lemma DefE: "Def x = \<bottom> \<Longrightarrow> R"
   by simp

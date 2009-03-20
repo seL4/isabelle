@@ -511,10 +511,13 @@ fun uint_arith_ss_of ss =
      addcongs @{thms power_False_cong}
 
 fun uint_arith_tacs ctxt = 
-  let fun arith_tac' n t = arith_tac ctxt n t handle COOPER => Seq.empty  
+  let
+    fun arith_tac' n t = arith_tac ctxt n t handle COOPER => Seq.empty;
+    val cs = local_claset_of ctxt;
+    val ss = local_simpset_of ctxt;
   in 
-    [ CLASET' clarify_tac 1,
-      SIMPSET' (full_simp_tac o uint_arith_ss_of) 1,
+    [ clarify_tac cs 1,
+      full_simp_tac (uint_arith_ss_of ss) 1,
       ALLGOALS (full_simp_tac (HOL_ss addsplits @{thms uint_splits} 
                                       addcongs @{thms power_False_cong})),
       rewrite_goals_tac @{thms word_size}, 
@@ -1069,10 +1072,13 @@ fun unat_arith_ss_of ss =
      addcongs @{thms power_False_cong}
 
 fun unat_arith_tacs ctxt =   
-  let fun arith_tac' n t = arith_tac ctxt n t handle COOPER => Seq.empty  
+  let
+    fun arith_tac' n t = arith_tac ctxt n t handle COOPER => Seq.empty;
+    val cs = local_claset_of ctxt;
+    val ss = local_simpset_of ctxt;
   in 
-    [ CLASET' clarify_tac 1,
-      SIMPSET' (full_simp_tac o unat_arith_ss_of) 1,
+    [ clarify_tac cs 1,
+      full_simp_tac (unat_arith_ss_of ss) 1,
       ALLGOALS (full_simp_tac (HOL_ss addsplits @{thms unat_splits} 
                                        addcongs @{thms power_False_cong})),
       rewrite_goals_tac @{thms word_size}, 
