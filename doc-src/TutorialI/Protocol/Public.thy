@@ -152,7 +152,7 @@ lemma insert_Key_image: "insert (Key K) (Key`KK Un C) = Key ` (insert K KK) Un C
 
 (*Tactic for possibility theorems*)
 ML {*
-fun possibility ctxt =
+fun possibility_tac ctxt =
     REPEAT (*omit used_Says so that Nonces start from different traces!*)
     (ALLGOALS (simp_tac (local_simpset_of ctxt delsimps [used_Says]))
      THEN
