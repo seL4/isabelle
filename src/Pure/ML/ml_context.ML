@@ -194,7 +194,7 @@ val struct_name = "Isabelle";
 fun eval_antiquotes (txt, pos) opt_context =
   let
     val syms = Symbol_Pos.explode (txt, pos);
-    val ants = Antiquote.read ML_Lex.scan_antiq (syms, pos);
+    val ants = Antiquote.read ML_Lex.report_token ML_Lex.scan_antiq (syms, pos);
     val opt_ctxt = Option.map (Context.Proof o Context.proof_of) opt_context;
     val ((ml_env, ml_body), opt_ctxt') =
       if not (exists Antiquote.is_antiq ants)
