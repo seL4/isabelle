@@ -1,5 +1,4 @@
 (*  Title:      HOL/Auth/Message
-    ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1996  University of Cambridge
 
@@ -848,9 +847,9 @@ struct
 (*Prove base case (subgoal i) and simplify others.  A typical base case
   concerns  Crypt K X \<notin> Key`shrK`bad  and cannot be proved by rewriting
   alone.*)
-fun prove_simple_subgoals_tac i = 
-    CLASIMPSET' (fn (cs, ss) => force_tac (cs, ss addsimps [@{thm image_eq_UN}])) i THEN
-    ALLGOALS (SIMPSET' asm_simp_tac)
+fun prove_simple_subgoals_tac (cs, ss) i = 
+    force_tac (cs, ss addsimps [@{thm image_eq_UN}]) i THEN
+    ALLGOALS (asm_simp_tac ss)
 
 (*Analysis of Fake cases.  Also works for messages that forward unknown parts,
   but this application is no longer necessary if analz_insert_eq is used.
@@ -875,8 +874,7 @@ fun atomic_spy_analz_tac (cs,ss) = SELECT_GOAL
 		  (cs addIs [@{thm analz_insertI},
 				   impOfSubs @{thm analz_subset_parts}]) 4 1))
 
-(*The explicit claset and simpset arguments help it work with Isar*)
-fun gen_spy_analz_tac (cs,ss) i =
+fun spy_analz_tac (cs,ss) i =
   DETERM
    (SELECT_GOAL
      (EVERY 
@@ -887,8 +885,6 @@ fun gen_spy_analz_tac (cs,ss) i =
        simp_tac ss 1,
        REPEAT (FIRSTGOAL (resolve_tac [allI,impI,notI,conjI,iffI])),
        DEPTH_SOLVE (atomic_spy_analz_tac (cs,ss) 1)]) i)
-
-val spy_analz_tac = CLASIMPSET' gen_spy_analz_tac;
 
 end
 *}
@@ -941,7 +937,7 @@ done
 lemmas Fake_parts_sing_imp_Un = Fake_parts_sing [THEN [2] rev_subsetD]
 
 method_setup spy_analz = {*
-    Scan.succeed (SIMPLE_METHOD' o Message.gen_spy_analz_tac o local_clasimpset_of) *}
+    Scan.succeed (SIMPLE_METHOD' o Message.spy_analz_tac o local_clasimpset_of) *}
     "for proving the Fake case when analz is involved"
 
 method_setup atomic_spy_analz = {*

@@ -1,5 +1,4 @@
 (*  Title:      HOL/Auth/SET/Purchase
-    ID:         $Id$
     Authors:    Giampaolo Bella, Fabio Massacci, Lawrence C Paulson
 *)
 
@@ -335,7 +334,7 @@ apply (rule_tac [2]
 	  THEN set_pur.AuthResUns [of concl: "PG j" M KP LID_M XID],
           THEN Says_to_Gets, 
 	  THEN set_pur.PRes]) 
-apply (tactic "PublicSET.basic_possibility_tac")
+apply basic_possibility
 apply (simp_all add: used_Cons symKeys_neq_imp_neq) 
 done
 
@@ -371,7 +370,7 @@ apply (rule_tac [2]
 	  THEN set_pur.AuthResS [of concl: "PG j" M KP LID_M XID],
           THEN Says_to_Gets, 
 	  THEN set_pur.PRes]) 
-apply (tactic "PublicSET.basic_possibility_tac")
+apply basic_possibility
 apply (auto simp add: used_Cons symKeys_neq_imp_neq) 
 done
 

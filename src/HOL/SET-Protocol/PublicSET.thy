@@ -1,6 +1,5 @@
 (*  Title:      HOL/Auth/SET/PublicSET
-    ID:         $Id$
-    Authors:     Giampaolo Bella, Fabio Massacci, Lawrence C Paulson
+    Authors:    Giampaolo Bella, Fabio Massacci, Lawrence C Paulson
 *)
 
 header{*The Public-Key Theory, Modified for SET*}
@@ -348,22 +347,19 @@ ML
 structure PublicSET =
 struct
 
-(*Tactic for possibility theorems (Isar interface)*)
-fun gen_possibility_tac ss state = state |>
+(*Tactic for possibility theorems*)
+fun possibility_tac ctxt =
     REPEAT (*omit used_Says so that Nonces start from different traces!*)
-    (ALLGOALS (simp_tac (ss delsimps [@{thm used_Says}, @{thm used_Notes}]))
+    (ALLGOALS (simp_tac (local_simpset_of ctxt delsimps [@{thm used_Says}, @{thm used_Notes}]))
      THEN
      REPEAT_FIRST (eq_assume_tac ORELSE' 
                    resolve_tac [refl, conjI, @{thm Nonce_supply}]))
 
-(*Tactic for possibility theorems (ML script version)*)
-fun possibility_tac state = gen_possibility_tac (simpset_of (Thm.theory_of_thm state)) state
-
 (*For harder protocols (such as SET_CR!), where we have to set up some
   nonces and keys initially*)
-fun basic_possibility_tac st = st |>
+fun basic_possibility_tac ctxt =
     REPEAT 
-    (ALLGOALS (asm_simp_tac (simpset_of (Thm.theory_of_thm st) setSolver safe_solver))
+    (ALLGOALS (asm_simp_tac (local_simpset_of ctxt setSolver safe_solver))
      THEN
      REPEAT_FIRST (resolve_tac [refl, conjI]))
 
@@ -371,10 +367,12 @@ end
 *}
 
 method_setup possibility = {*
-    Scan.succeed (fn ctxt =>
-        SIMPLE_METHOD (PublicSET.gen_possibility_tac (local_simpset_of ctxt))) *}
+    Scan.succeed (SIMPLE_METHOD o PublicSET.possibility_tac) *}
     "for proving possibility theorems"
 
+method_setup basic_possibility = {*
+    Scan.succeed (SIMPLE_METHOD o PublicSET.basic_possibility_tac) *}
+    "for proving possibility theorems"
 
 
 subsection{*Specialized Rewriting for Theorems About @{term analz} and Image*}

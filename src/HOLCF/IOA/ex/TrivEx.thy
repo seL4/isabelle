@@ -1,5 +1,4 @@
 (*  Title:      HOLCF/IOA/TrivEx.thy
-    ID:         $Id$
     Author:     Olaf Müller
 *)
 
@@ -66,7 +65,7 @@ lemma TrivEx_abstraction: "validIOA C_ioa (<>[] <%(n,a,m). n~=0>)"
 apply (rule AbsRuleT1)
 apply (rule h_abs_is_abstraction)
 apply (rule MC_result)
-apply (tactic "abstraction_tac 1")
+apply abstraction
 apply (simp add: h_abs_def)
 done
 

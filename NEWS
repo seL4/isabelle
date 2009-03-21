@@ -685,6 +685,12 @@ use regular Syntax.read_typ, Syntax.read_term, Syntax.read_typ_global,
 Syntax.read_term_global etc.; see also OldGoals.read_term as last
 resort for legacy applications.
 
+* Disposed old declarations, tactics, tactic combinators that refer to
+the simpset or claset of an implicit theory (such as Addsimps,
+Simp_tac, SIMPSET).  INCOMPATIBILITY, should use @{simpset} etc. in
+embedded ML text, or local_simpset_of with a proper context passed as
+explicit runtime argument.
+
 * Antiquotations: block-structured compilation context indicated by
 \<lbrace> ... \<rbrace>; additional antiquotation forms:
 

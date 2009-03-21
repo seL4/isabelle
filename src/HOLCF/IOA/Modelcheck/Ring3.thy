@@ -114,7 +114,7 @@ lemmas aut_simps =
 (* property to prove: at most one (of 3) members of the ring will
 	declare itself to leader *)
 lemma at_most_one_leader: "ring =<| one_leader"
-apply (tactic {* is_sim_tac (thms "aut_simps") 1 *})
+apply (tactic {* is_sim_tac @{simpset} (thms "aut_simps") 1 *})
 apply auto
 done
 

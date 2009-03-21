@@ -691,8 +691,9 @@ fun mk_partial_induct_rule thy globals R complete_thm clauses =
 
 
 (* FIXME: This should probably use fixed goals, to be more reliable and faster *)
-fun mk_domain_intro thy (Globals {domT, ...}) R R_cases clause =
+fun mk_domain_intro ctxt (Globals {domT, ...}) R R_cases clause =
     let
+      val thy = ProofContext.theory_of ctxt
       val ClauseInfo {cdata = ClauseContext {qs, gs, lhs, rhs, cqs, ...},
                       qglr = (oqs, _, _, _), ...} = clause
       val goal = HOLogic.mk_Trueprop (mk_acc domT R $ lhs)
@@ -702,7 +703,7 @@ fun mk_domain_intro thy (Globals {domT, ...}) R R_cases clause =
       Goal.init goal
       |> (SINGLE (resolve_tac [accI] 1)) |> the
       |> (SINGLE (eresolve_tac [Thm.forall_elim_vars 0 R_cases] 1))  |> the
-      |> (SINGLE (CLASIMPSET auto_tac)) |> the
+      |> (SINGLE (auto_tac (local_clasimpset_of ctxt))) |> the
       |> Goal.conclude
       |> fold_rev forall_intr_rename (map fst oqs ~~ cqs)
     end
@@ -831,7 +832,7 @@ fun mk_trsimps octxt globals f G R f_def R_cases G_induct clauses psimps =
                          ((rtac (G_induct OF [a]))
                             THEN_ALL_NEW (rtac accI)
                             THEN_ALL_NEW (etac R_cases)
-                            THEN_ALL_NEW (SIMPSET' asm_full_simp_tac)) 1)
+                            THEN_ALL_NEW (asm_full_simp_tac (local_simpset_of octxt))) 1)
 
       val default_thm = (forall_intr_vars graph_implies_dom) COMP (f_def COMP fundef_default_value)
 
@@ -849,9 +850,9 @@ fun mk_trsimps octxt globals f G R f_def R_cases G_induct clauses psimps =
                        (fn _ =>
                            rtac (instantiate' [] [SOME (cterm_of thy lhs_acc)] case_split) 1
                                 THEN (rtac (Thm.forall_elim_vars 0 psimp) THEN_ALL_NEW assume_tac) 1
-                                THEN (SIMPSET' simp_default_tac 1)
+                                THEN (simp_default_tac (local_simpset_of ctxt) 1)
                                 THEN (etac not_acc_down 1)
-                                THEN ((etac R_cases) THEN_ALL_NEW (SIMPSET' simp_default_tac)) 1)
+                                THEN ((etac R_cases) THEN_ALL_NEW (simp_default_tac (local_simpset_of ctxt))) 1)
               |> fold_rev forall_intr_rename (map fst oqs ~~ cqs)
           end
     in
@@ -935,7 +936,7 @@ fun prepare_fundef config defname [((fname, fT), mixfix)] abstract_qglrs lthy =
             val total_intro = PROFILE "Proving nested termination rule" (mk_nest_term_rule newthy globals R R_elim) xclauses
 
             val dom_intros = if domintros
-                             then SOME (PROFILE "Proving domain introduction rules" (map (mk_domain_intro newthy globals R R_elim)) xclauses)
+                             then SOME (PROFILE "Proving domain introduction rules" (map (mk_domain_intro lthy globals R R_elim)) xclauses)
                              else NONE
             val trsimps = if tailrec then SOME (mk_trsimps psimps) else NONE
 

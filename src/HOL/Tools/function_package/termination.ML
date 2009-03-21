@@ -40,7 +40,7 @@ sig
 
   val REPEAT : ttac -> ttac
 
-  val wf_union_tac : tactic
+  val wf_union_tac : Proof.context -> tactic
 end
 
 
@@ -276,9 +276,9 @@ fun mk_pair_compr (T, qs, l, r, conds) =
 
 in
 
-fun wf_union_tac st =
+fun wf_union_tac ctxt st =
     let
-      val thy = theory_of_thm st
+      val thy = ProofContext.theory_of ctxt
       val cert = cterm_of (theory_of_thm st)
       val ((trueprop $ (wf $ rel)) :: ineqs) = prems_of st
 
@@ -303,7 +303,7 @@ fun wf_union_tac st =
           THEN' ((rtac @{thm refl})                       (* unification instantiates all Vars *)
                  ORELSE' ((rtac @{thm conjI})
                           THEN' (rtac @{thm refl})
-                          THEN' (CLASET' blast_tac)))     (* Solve rest of context... not very elegant *)
+                          THEN' (blast_tac (local_claset_of ctxt))))  (* Solve rest of context... not very elegant *)
           ) i
     in
       ((PRIMITIVE (Drule.cterm_instantiate [(cert rel, cert relation)])

@@ -31,6 +31,8 @@ ISABELLE_SESSIONS="\
   HOL-UNITY \
   HOL-Word \
   HOL-ex \
+  HOLCF \
+  IOA \
   ZF \
   ZF-Constructible \
   ZF-UNITY"

@@ -69,6 +69,9 @@ val no_interrupts =
 val regular_interrupts =
   [Thread.EnableBroadcastInterrupt true, Thread.InterruptState Thread.InterruptAsynchOnce];
 
+val restricted_interrupts =
+  [Thread.EnableBroadcastInterrupt false, Thread.InterruptState Thread.InterruptAsynchOnce];
+
 val safe_interrupts = map
   (fn Thread.InterruptState Thread.InterruptAsynch =>
       Thread.InterruptState Thread.InterruptAsynchOnce

@@ -1018,12 +1018,10 @@ structure Blast = BlastFun
   val contr_tac = Classical.contr_tac
   val dup_intr = Classical.dup_intr
   val hyp_subst_tac = Hypsubst.blast_hyp_subst_tac
-  val claset = Classical.claset
   val rep_cs = Classical.rep_cs
   val cla_modifiers = Classical.cla_modifiers
   val cla_meth' = Classical.cla_meth'
 );
-val Blast_tac = Blast.Blast_tac;
 val blast_tac = Blast.blast_tac;
 *}
 

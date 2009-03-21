@@ -16,6 +16,8 @@ sig
   val pos_of: token -> string
   val kind_of: token -> token_kind
   val content_of: token -> string
+  val markup_of: token -> Markup.T
+  val report_token: token -> unit
   val keywords: string list
   val scan_antiq: Symbol_Pos.T list -> token Antiquote.antiquote * Symbol_Pos.T list
   val source: (Symbol.symbol, 'a) Source.source ->
@@ -72,6 +74,26 @@ fun is_regular (Token (_, (Error _, _))) = false
 fun is_improper (Token (_, (Space, _))) = true
   | is_improper (Token (_, (Comment, _))) = true
   | is_improper _ = false;
+
+
+(* markup *)
+
+val markup_of = kind_of #>
+  (fn Keyword   => Markup.ML_keyword
+    | Ident     => Markup.ML_ident
+    | LongIdent => Markup.ML_ident
+    | TypeVar   => Markup.ML_tvar
+    | Word      => Markup.ML_numeral
+    | Int       => Markup.ML_numeral
+    | Real      => Markup.ML_numeral
+    | Char      => Markup.ML_char
+    | String    => Markup.ML_string
+    | Space     => Markup.none
+    | Comment   => Markup.ML_comment
+    | Error _   => Markup.ML_malformed
+    | EOF       => Markup.none);
+
+fun report_token tok = Position.report (markup_of tok) (position_of tok);
 
 
 

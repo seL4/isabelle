@@ -1,5 +1,4 @@
 (*  Title:      CCL/Type.thy
-    ID:         $Id$
     Author:     Martin Coen
     Copyright   1993  University of Cambridge
 *)
@@ -409,7 +408,7 @@ val ci3_AI    = mk_thm "[|  mono(Agen);  a : A |] ==> a : lfp(%x. Agen(x) Un R U
 
 fun mk_genIs thy defs genXH gen_mono s = prove_goalw thy defs s
       (fn prems => [rtac (genXH RS iffD2) 1,
-                    SIMPSET' simp_tac 1,
+                    simp_tac (simpset_of thy) 1,
                     TRY (fast_tac (@{claset} addIs
                             ([genXH RS iffD2,gen_mono RS coinduct3_mono_lemma RS lfpI]
                              @ prems)) 1)])
@@ -442,8 +441,8 @@ val POgenIs = map (mk_genIs (the_context ()) (thms "data_defs") (thm "POgenXH") 
    "<[],[]> : POgen(lfp(%x. POgen(x) Un R Un PO))",
    "[| <h,h'> : lfp(%x. POgen(x) Un R Un PO);  <t,t'> : lfp(%x. POgen(x) Un R Un PO) |] ==> <h$t,h'$t'> : POgen(lfp(%x. POgen(x) Un R Un PO))"];
 
-fun POgen_tac (rla,rlb) i =
-  SELECT_GOAL (CLASET safe_tac) i THEN
+fun POgen_tac ctxt (rla,rlb) i =
+  SELECT_GOAL (safe_tac (local_claset_of ctxt)) i THEN
   rtac (rlb RS (rla RS (thm "ssubst_pair"))) i THEN
   (REPEAT (resolve_tac (POgenIs @ [thm "PO_refl" RS (thm "POgen_mono" RS ci3_AI)] @
     (POgenIs RL [thm "POgen_mono" RS ci3_AgenI]) @ [thm "POgen_mono" RS ci3_RI]) i));

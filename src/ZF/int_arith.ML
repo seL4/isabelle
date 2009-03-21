@@ -145,7 +145,7 @@ structure CancelNumeralsCommon =
   val numeral_simp_ss = ZF_ss addsimps add_0s @ bin_simps @ tc_rules @ intifys
   fun numeral_simp_tac ss =
     ALLGOALS (simp_tac (Simplifier.inherit_context ss numeral_simp_ss))
-    THEN ALLGOALS (SIMPSET' (fn simpset => asm_simp_tac (Simplifier.inherit_context ss simpset)))
+    THEN ALLGOALS (asm_simp_tac (local_simpset_of (Simplifier.the_context ss)))
   val simplify_meta_eq  = ArithData.simplify_meta_eq (add_0s @ mult_1s)
   end;
 

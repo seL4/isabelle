@@ -1,5 +1,4 @@
 (*  Title:      HOL/Auth/SET/Cardholder_Registration
-    ID:         $Id$
     Authors:    Giampaolo Bella, Fabio Massacci, Lawrence C Paulson,
                 Piero Tramontano
 *)
@@ -263,7 +262,7 @@ apply (rule_tac [2]
 	 THEN set_cr.SET_CR5 [of concl: C i KC3 NC3 KC2 CardSecret],
 	 THEN Says_to_Gets,  
 	 THEN set_cr.SET_CR6 [of concl: i C KC2]])
-apply (tactic "PublicSET.basic_possibility_tac")
+apply basic_possibility
 apply (simp_all (no_asm_simp) add: symKeys_neq_imp_neq)
 done
 

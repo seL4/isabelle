@@ -50,6 +50,5 @@ else ();
 (* misc *)
 
 val cd = File.cd o Path.explode;
-ml_prompts "ML> " "ML# ";
 
 Proofterm.proofs := 0;

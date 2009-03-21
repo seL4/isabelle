@@ -98,8 +98,11 @@ lemma set_cong: "!!X. A = B ==> (x:A) = (x:B)"
 by (erule subst, rule refl)
 
 ML {*
-fun B_prover s tac eqs = prove_goal (the_context ()) s (fn prems => [cut_facts_tac prems 1,
-        tac 1, auto_tac (claset(), simpset() addsimps eqs)]);
+fun B_prover s tac eqs =
+  let val thy = the_context () in
+    prove_goal thy s (fn prems => [cut_facts_tac prems 1,
+        tac 1, auto_tac (claset_of thy, simpset_of thy addsimps eqs)])
+  end;
 
 fun prove_forw  s thm     = B_prover s (dtac (thm RS iffD1)) [];
 fun prove_backw s thm eqs = B_prover s (rtac (thm RS iffD2)) eqs;
