@@ -68,3 +68,6 @@ fun use_file tune str_of_pos name_space output verbose name =
   in use_text tune str_of_pos name_space (1, name) output verbose txt end;
 
 end;
+
+use "ML-Systems/polyml_pp.ML";
+
