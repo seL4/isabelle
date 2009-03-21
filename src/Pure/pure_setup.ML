@@ -29,8 +29,7 @@ ThyInfo.register_theory Pure.thy;
 
 install_pp (make_pp ["Task_Queue", "task"] (Pretty.pprint o Pretty.str o Task_Queue.str_of_task));
 install_pp (make_pp ["Task_Queue", "group"] (Pretty.pprint o Pretty.str o Task_Queue.str_of_group));
-install_pp (make_pp ["Position", "T"] (Pretty.pprint o Pretty.enum "," "{" "}" o
-  map (fn (x, y) => Pretty.str (x ^ "=" ^ y)) o Position.properties_of));
+install_pp (make_pp ["Position", "T"] (Pretty.pprint o Pretty.position));
 install_pp (make_pp ["Thm", "thm"] ProofDisplay.pprint_thm);
 install_pp (make_pp ["Thm", "cterm"] ProofDisplay.pprint_cterm);
 install_pp (make_pp ["Binding", "binding"] (Pretty.pprint o Pretty.str o quote o Binding.str_of));
@@ -43,7 +42,9 @@ install_pp (make_pp ["typ"] (ProofDisplay.pprint_typ Pure.thy));
 install_pp (make_pp ["Path", "T"] (Pretty.pprint o Pretty.str o quote o Path.implode));
 install_pp (make_pp ["File", "ident"] (Pretty.pprint o Pretty.str o quote o File.rep_ident));
 
-if String.isPrefix "polyml" ml_system then use "ML-Systems/install_pp_polyml.ML"
+if File.exists (Path.explode ("ML-Systems/install_pp_" ^ ml_system ^ ".ML")) then
+  use ("ML-Systems/install_pp_" ^ ml_system ^ ".ML")
+else if String.isPrefix "polyml" ml_system then use "ML-Systems/install_pp_polyml.ML"
 else ();
 
 
