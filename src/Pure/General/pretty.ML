@@ -19,9 +19,6 @@ The stored length of a block is used in breakdist (to treat each inner block as
 a unit for breaking).
 *)
 
-type pprint_args = (output -> unit) * (int -> unit) * (int -> unit) *
-  (unit -> unit) * (unit -> unit);
-
 signature PRETTY =
 sig
   val default_indent: string -> int -> output
@@ -58,7 +55,6 @@ sig
   val setmargin: int -> unit
   val setmp_margin: int -> ('a -> 'b) -> 'a -> 'b
   val setdepth: int -> unit
-  val pprint: T -> pprint_args -> unit
   val to_ML: T -> ML_Pretty.pretty
   val from_ML: ML_Pretty.pretty -> T
   val symbolicN: string
@@ -324,29 +320,16 @@ fun unformatted prt =
       | fmt (Break (true, _)) = Buffer.add (output_spaces 1);
   in fmt (prune prt) Buffer.empty end;
 
-(*ML toplevel pretty printing*)
-fun pprint prt (put_str0, begin_blk, put_brk, put_fbrk, end_blk) =
-  let
-    fun put_str "" = ()
-      | put_str s = put_str0 s;
-    fun pp (Block (m, prts, ind, _)) =
-          let val (bg, en) = Markup.output m
-          in put_str bg; begin_blk ind; pp_lst prts; end_blk (); put_str en end
-      | pp (String (s, _)) = put_str s
-      | pp (Break (false, wd)) = put_brk wd
-      | pp (Break (true, _)) = put_fbrk ()
-    and pp_lst [] = ()
-      | pp_lst (prt :: prts) = (pp prt; pp_lst prts);
-  in pp (prune prt) end;
 
-fun to_ML (Block (_, prts, ind, _)) = ML_Pretty.PrettyBlock (ind, false, [], map to_ML prts)
-  | to_ML (String (s, _)) = ML_Pretty.PrettyString s
-  | to_ML (Break (false, wd)) = ML_Pretty.PrettyBreak (wd, 0)
-  | to_ML (Break (true, _)) = ML_Pretty.PrettyBreak (99999, 0);
+(* ML toplevel pretty printing *)
 
-fun from_ML (ML_Pretty.PrettyBlock (ind, _, _, prts)) = blk (ind, map from_ML prts) (* FIXME markup *)
-  | from_ML (ML_Pretty.PrettyString s) = String (s, size s)   (* FIXME proper length *)
-  | from_ML (ML_Pretty.PrettyBreak (wd, _)) = if wd >= 99999 then fbrk else brk wd;
+fun to_ML (Block (m, prts, ind, _)) = ML_Pretty.Block (Markup.output m, map to_ML prts, ind)
+  | to_ML (String s) = ML_Pretty.String s
+  | to_ML (Break b) = ML_Pretty.Break b;
+
+fun from_ML (ML_Pretty.Block (_, prts, ind)) = blk (ind, map from_ML prts)
+  | from_ML (ML_Pretty.String s) = String s
+  | from_ML (ML_Pretty.Break b) = Break b;
 
 
 (* output interfaces *)
