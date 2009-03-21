@@ -49,6 +49,7 @@ sig
   val commas: T list -> T list
   val enclose: string -> string -> T list -> T
   val enum: string -> string -> string -> T list -> T
+  val position: Position.T -> T
   val list: string -> string -> T list -> T
   val str_list: string -> string -> string list -> T
   val big_list: string -> T list -> T
@@ -58,6 +59,8 @@ sig
   val setmp_margin: int -> ('a -> 'b) -> 'a -> 'b
   val setdepth: int -> unit
   val pprint: T -> pprint_args -> unit
+  val to_ML: T -> ML_Pretty.pretty
+  val from_ML: ML_Pretty.pretty -> T
   val symbolicN: string
   val output_buffer: T -> Buffer.T
   val output: T -> output
@@ -158,6 +161,9 @@ fun enclose lpar rpar prts =
   block (str lpar :: (prts @ [str rpar]));
 
 fun enum sep lpar rpar prts = enclose lpar rpar (separate sep prts);
+
+val position =
+  enum "," "{" "}" o map (fn (x, y) => str (x ^ "=" ^ y)) o Position.properties_of;
 
 val list = enum ",";
 fun str_list lpar rpar strs = list lpar rpar (map str strs);
@@ -332,6 +338,15 @@ fun pprint prt (put_str0, begin_blk, put_brk, put_fbrk, end_blk) =
     and pp_lst [] = ()
       | pp_lst (prt :: prts) = (pp prt; pp_lst prts);
   in pp (prune prt) end;
+
+fun to_ML (Block (_, prts, ind, _)) = ML_Pretty.PrettyBlock (ind, false, [], map to_ML prts)
+  | to_ML (String (s, _)) = ML_Pretty.PrettyString s
+  | to_ML (Break (false, wd)) = ML_Pretty.PrettyBreak (wd, 0)
+  | to_ML (Break (true, _)) = ML_Pretty.PrettyBreak (99999, 0);
+
+fun from_ML (ML_Pretty.PrettyBlock (ind, _, _, prts)) = blk (ind, map from_ML prts) (* FIXME markup *)
+  | from_ML (ML_Pretty.PrettyString s) = String (s, size s)   (* FIXME proper length *)
+  | from_ML (ML_Pretty.PrettyBreak (wd, _)) = if wd >= 99999 then fbrk else brk wd;
 
 
 (* output interfaces *)
