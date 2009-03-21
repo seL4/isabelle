@@ -27,8 +27,6 @@ sig
   val display_names: theory -> string list
   val pretty_thy: theory -> Pretty.T
   val string_of_thy: theory -> string
-  val pprint_thy: theory -> pprint_args -> unit
-  val pprint_thy_ref: theory_ref -> pprint_args -> unit
   val pretty_abbrev_thy: theory -> Pretty.T
   val str_of_thy: theory -> string
   val deref: theory_ref -> theory
@@ -228,7 +226,6 @@ fun display_names thy =
 
 val pretty_thy = Pretty.str_list "{" "}" o display_names;
 val string_of_thy = Pretty.string_of o pretty_thy;
-val pprint_thy = Pretty.pprint o pretty_thy;
 
 fun pretty_abbrev_thy thy =
   let
@@ -255,8 +252,6 @@ fun check_thy thy =  (*thread-safe version*)
     if is_stale thy then error ("Stale theory encountered:\n" ^ string_of_thy thy)
     else thy_ref
   end;
-
-val pprint_thy_ref = Pretty.pprint o pretty_thy o deref;
 
 
 (* build ids *)

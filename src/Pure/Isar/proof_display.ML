@@ -6,12 +6,12 @@ Printing of theorems, goals, results etc.
 
 signature PROOF_DISPLAY =
 sig
-  val pprint_context: Proof.context -> pprint_args -> unit
-  val pprint_typ: theory -> typ -> pprint_args -> unit
-  val pprint_term: theory -> term -> pprint_args -> unit
-  val pprint_ctyp: ctyp -> pprint_args -> unit
-  val pprint_cterm: cterm -> pprint_args -> unit
-  val pprint_thm: thm -> pprint_args -> unit
+  val pp_context: Proof.context -> Pretty.T
+  val pp_thm: thm -> Pretty.T
+  val pp_typ: theory -> typ -> Pretty.T
+  val pp_term: theory -> term -> Pretty.T
+  val pp_ctyp: ctyp -> Pretty.T
+  val pp_cterm: cterm -> Pretty.T
   val print_theorems_diff: theory -> theory -> unit
   val print_theorems: theory -> unit
   val pretty_full_theory: bool -> theory -> Pretty.T
@@ -26,18 +26,20 @@ struct
 
 (* toplevel pretty printing *)
 
-fun pprint_context ctxt = Pretty.pprint
+fun pp_context ctxt =
  (if ! ProofContext.debug then
     Pretty.quote (Pretty.big_list "proof context:" (ProofContext.pretty_context ctxt))
   else Pretty.str "<context>");
 
-fun pprint pretty thy = Pretty.pprint o Pretty.quote o pretty (Syntax.init_pretty_global thy);
+fun pp_thm th =
+  let val thy = Thm.theory_of_thm th
+  in Display.pretty_thm_aux (Syntax.pp_global thy) true false [] th end;
 
-val pprint_typ = pprint Syntax.pretty_typ;
-val pprint_term = pprint Syntax.pretty_term;
-fun pprint_ctyp cT = pprint_typ (Thm.theory_of_ctyp cT) (Thm.typ_of cT);
-fun pprint_cterm ct = pprint_term (Thm.theory_of_cterm ct) (Thm.term_of ct);
-val pprint_thm = Pretty.pprint o ProofContext.pretty_thm_legacy;
+val pp_typ = Pretty.quote oo Syntax.pretty_typ_global;
+val pp_term = Pretty.quote oo Syntax.pretty_term_global;
+
+fun pp_ctyp cT = pp_typ (Thm.theory_of_ctyp cT) (Thm.typ_of cT);
+fun pp_cterm ct = pp_term (Thm.theory_of_cterm ct) (Thm.term_of ct);
 
 
 (* theorems and theory *)

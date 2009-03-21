@@ -36,7 +36,6 @@ sig
   val theory_result: (theory -> 'a * theory) -> Proof.context -> 'a * Proof.context
   val extern_fact: Proof.context -> string -> xstring
   val pretty_term_abbrev: Proof.context -> term -> Pretty.T
-  val pretty_thm_legacy: thm -> Pretty.T
   val pretty_thm: Proof.context -> thm -> Pretty.T
   val pretty_thms: Proof.context -> thm list -> Pretty.T
   val pretty_fact: Proof.context -> string * thm list -> Pretty.T
@@ -295,10 +294,6 @@ fun extern_fact ctxt name =
 (* pretty *)
 
 fun pretty_term_abbrev ctxt = Syntax.pretty_term (set_mode mode_abbrev ctxt);
-
-fun pretty_thm_legacy th =
-  let val thy = Thm.theory_of_thm th
-  in Display.pretty_thm_aux (Syntax.pp_global thy) true false [] th end;
 
 fun pretty_thm ctxt th =
   let val asms = map Thm.term_of (Assumption.all_assms_of ctxt)
