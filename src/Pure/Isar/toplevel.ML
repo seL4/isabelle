@@ -311,7 +311,7 @@ in
 fun controlled_execution f =
   f
   |> debugging
-  |> interruptible;
+  |> Future.interruptible_task;
 
 fun program f =
  (f

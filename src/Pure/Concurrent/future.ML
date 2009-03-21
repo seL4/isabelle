@@ -44,6 +44,7 @@ sig
   val join_result: 'a future -> 'a Exn.result
   val join: 'a future -> 'a
   val map: ('a -> 'b) -> 'a future -> 'b future
+  val interruptible_task: ('a -> 'b) -> 'a -> 'b
   val interrupt_task: string -> unit
   val cancel_group: group -> unit
   val cancel: 'a future -> unit
@@ -349,6 +350,15 @@ fun map_future f x =
 
 
 (* cancellation *)
+
+fun interruptible_task f x =
+  if Multithreading.available then
+    Multithreading.with_attributes
+      (if is_some (thread_data ())
+       then Multithreading.restricted_interrupts
+       else Multithreading.regular_interrupts)
+      (fn _ => f) x
+  else interruptible f x;
 
 (*interrupt: permissive signal, may get ignored*)
 fun interrupt_task id = SYNCHRONIZED "interrupt"
