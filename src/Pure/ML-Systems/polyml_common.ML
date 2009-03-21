@@ -10,6 +10,7 @@ use "ML-Systems/multithreading.ML";
 use "ML-Systems/time_limit.ML";
 use "ML-Systems/system_shell.ML";
 use "ML-Systems/ml_name_space.ML";
+use "ML-Systems/ml_pretty.ML";
 
 
 (** ML system and platform related **)
@@ -73,13 +74,8 @@ fun check_timer timer =
 fun ml_prompts p1 p2 = (PolyML.Compiler.prompt1 := p1; PolyML.Compiler.prompt2 := p2);
 
 
-(* toplevel pretty printing (see also Pure/pure_setup.ML) *)
+(* print depth *)
 
-fun make_pp _ pprint (str, blk, brk, en) _ _ obj =
-  pprint obj (str, fn ind => blk (ind, false), fn wd => brk (wd, 0),
-    fn () => brk (99999, 0), en);
-
-(*print depth*)
 local
   val depth = ref 10;
 in

@@ -19,9 +19,6 @@ The stored length of a block is used in breakdist (to treat each inner block as
 a unit for breaking).
 *)
 
-type pprint_args = (output -> unit) * (int -> unit) * (int -> unit) *
-  (unit -> unit) * (unit -> unit);
-
 signature PRETTY =
 sig
   val default_indent: string -> int -> output
@@ -49,6 +46,7 @@ sig
   val commas: T list -> T list
   val enclose: string -> string -> T list -> T
   val enum: string -> string -> string -> T list -> T
+  val position: Position.T -> T
   val list: string -> string -> T list -> T
   val str_list: string -> string -> string list -> T
   val big_list: string -> T list -> T
@@ -57,7 +55,8 @@ sig
   val setmargin: int -> unit
   val setmp_margin: int -> ('a -> 'b) -> 'a -> 'b
   val setdepth: int -> unit
-  val pprint: T -> pprint_args -> unit
+  val to_ML: T -> ML_Pretty.pretty
+  val from_ML: ML_Pretty.pretty -> T
   val symbolicN: string
   val output_buffer: T -> Buffer.T
   val output: T -> output
@@ -158,6 +157,9 @@ fun enclose lpar rpar prts =
   block (str lpar :: (prts @ [str rpar]));
 
 fun enum sep lpar rpar prts = enclose lpar rpar (separate sep prts);
+
+val position =
+  enum "," "{" "}" o map (fn (x, y) => str (x ^ "=" ^ y)) o Position.properties_of;
 
 val list = enum ",";
 fun str_list lpar rpar strs = list lpar rpar (map str strs);
@@ -318,20 +320,16 @@ fun unformatted prt =
       | fmt (Break (true, _)) = Buffer.add (output_spaces 1);
   in fmt (prune prt) Buffer.empty end;
 
-(*ML toplevel pretty printing*)
-fun pprint prt (put_str0, begin_blk, put_brk, put_fbrk, end_blk) =
-  let
-    fun put_str "" = ()
-      | put_str s = put_str0 s;
-    fun pp (Block (m, prts, ind, _)) =
-          let val (bg, en) = Markup.output m
-          in put_str bg; begin_blk ind; pp_lst prts; end_blk (); put_str en end
-      | pp (String (s, _)) = put_str s
-      | pp (Break (false, wd)) = put_brk wd
-      | pp (Break (true, _)) = put_fbrk ()
-    and pp_lst [] = ()
-      | pp_lst (prt :: prts) = (pp prt; pp_lst prts);
-  in pp (prune prt) end;
+
+(* ML toplevel pretty printing *)
+
+fun to_ML (Block (m, prts, ind, _)) = ML_Pretty.Block (Markup.output m, map to_ML prts, ind)
+  | to_ML (String s) = ML_Pretty.String s
+  | to_ML (Break b) = ML_Pretty.Break b;
+
+fun from_ML (ML_Pretty.Block (_, prts, ind)) = blk (ind, map from_ML prts)
+  | from_ML (ML_Pretty.String s) = String s
+  | from_ML (ML_Pretty.Break b) = Break b;
 
 
 (* output interfaces *)

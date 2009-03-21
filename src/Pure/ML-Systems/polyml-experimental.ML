@@ -12,13 +12,6 @@ val pointer_eq = PolyML.pointerEq;
 fun share_common_data () = PolyML.shareCommonData PolyML.rootFunction;
 
 
-(* toplevel pretty printers *)
-
-(*dummy version*)
-fun make_pp path pprint = ();
-fun install_pp _ = ();
-
-
 (* runtime compilation *)
 
 structure ML_NameSpace =
@@ -75,3 +68,16 @@ fun use_file tune str_of_pos name_space output verbose name =
   in use_text tune str_of_pos name_space (1, name) output verbose txt end;
 
 end;
+
+
+(* toplevel pretty printing *)
+
+fun ml_pretty (ML_Pretty.Block (_, prts, ind)) = PrettyBlock (ind, false, [], map ml_pretty prts)
+  | ml_pretty (ML_Pretty.String (s, _)) = PrettyString s
+  | ml_pretty (ML_Pretty.Break (false, wd)) = PrettyBreak (wd, 0)
+  | ml_pretty (ML_Pretty.Break (true, _)) = PrettyBreak (99999, 0);
+
+fun toplevel_pp tune str_of_pos output (_: string list) pp =
+  use_text tune str_of_pos ML_NameSpace.global (1, "pp") output false
+    ("addPrettyPrinter (fn _ => fn _ => ml_pretty o Pretty.to_ML o (" ^ pp ^ "))");
+

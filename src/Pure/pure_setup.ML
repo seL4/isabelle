@@ -27,23 +27,25 @@ ThyInfo.register_theory Pure.thy;
 
 (* ML toplevel pretty printing *)
 
-install_pp (make_pp ["Task_Queue", "task"] (Pretty.pprint o Pretty.str o Task_Queue.str_of_task));
-install_pp (make_pp ["Task_Queue", "group"] (Pretty.pprint o Pretty.str o Task_Queue.str_of_group));
-install_pp (make_pp ["Position", "T"] (Pretty.pprint o Pretty.enum "," "{" "}" o
-  map (fn (x, y) => Pretty.str (x ^ "=" ^ y)) o Position.properties_of));
-install_pp (make_pp ["Thm", "thm"] ProofDisplay.pprint_thm);
-install_pp (make_pp ["Thm", "cterm"] ProofDisplay.pprint_cterm);
-install_pp (make_pp ["Binding", "binding"] (Pretty.pprint o Pretty.str o quote o Binding.str_of));
-install_pp (make_pp ["Thm", "ctyp"] ProofDisplay.pprint_ctyp);
-install_pp (make_pp ["Context", "theory"] Context.pprint_thy);
-install_pp (make_pp ["Context", "theory_ref"] Context.pprint_thy_ref);
-install_pp (make_pp ["Context", "proof"] ProofDisplay.pprint_context);
-install_pp (make_pp ["Syntax", "ast"] Syntax.pprint_ast);
-install_pp (make_pp ["typ"] (ProofDisplay.pprint_typ Pure.thy));
-install_pp (make_pp ["Path", "T"] (Pretty.pprint o Pretty.str o quote o Path.implode));
-install_pp (make_pp ["File", "ident"] (Pretty.pprint o Pretty.str o quote o File.rep_ident));
+toplevel_pp ["Task_Queue", "task"] "Pretty.str o Task_Queue.str_of_task";
+toplevel_pp ["Task_Queue", "group"] "Pretty.str o Task_Queue.str_of_group";
+toplevel_pp ["Position", "T"] "Pretty.position";
+toplevel_pp ["Binding", "binding"] "Pretty.str o quote o Binding.str_of";
+toplevel_pp ["Thm", "thm"] "ProofDisplay.pp_thm";
+toplevel_pp ["Thm", "cterm"] "ProofDisplay.pp_cterm";
+toplevel_pp ["Thm", "ctyp"] "ProofDisplay.pp_ctyp";
+toplevel_pp ["typ"] "ProofDisplay.pp_typ Pure.thy";
+toplevel_pp ["Context", "theory"] "Context.pretty_thy";
+toplevel_pp ["Context", "theory_ref"] "Context.pretty_thy o Theory.deref";
+toplevel_pp ["Context", "proof"] "ProofDisplay.pp_context";
+toplevel_pp ["Syntax", "ast"] "Syntax.pretty_ast";
+toplevel_pp ["Path", "T"] "Pretty.str o quote o Path.implode";
+toplevel_pp ["File", "ident"] "Pretty.str o quote o File.rep_ident";
 
-if String.isPrefix "polyml" ml_system then use "ML-Systems/install_pp_polyml.ML"
+if File.exists (Path.explode ("ML-Systems/install_pp_" ^ ml_system ^ ".ML"))
+then use ("ML-Systems/install_pp_" ^ ml_system ^ ".ML")
+else if String.isPrefix "polyml" ml_system
+then use "ML-Systems/install_pp_polyml.ML"
 else ();
 
 

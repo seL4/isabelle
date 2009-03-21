@@ -45,6 +45,7 @@ use "ML-Systems/thread_dummy.ML";
 use "ML-Systems/multithreading.ML";
 use "ML-Systems/time_limit.ML";
 use "ML-Systems/ml_name_space.ML";
+use "ML-Systems/ml_pretty.ML";
 
 
 (*low-level pointer equality*)
@@ -118,10 +119,8 @@ in
     Meta.printLength := n);
 end;
 
-(*interface for toplevel pretty printers, see also Pure/pure_setup.ML*)
-(*the documentation refers to an installPP but I couldn't fine it!*)
-fun make_pp path pprint = ();
-fun install_pp _ = ();
+(*dummy implementation*)
+fun toplevel_pp _ _ _ _ _ = ();
 
 (*dummy implementation*)
 fun ml_prompts p1 p2 = ();

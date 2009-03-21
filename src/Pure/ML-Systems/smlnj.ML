@@ -13,6 +13,7 @@ use "ML-Systems/thread_dummy.ML";
 use "ML-Systems/multithreading.ML";
 use "ML-Systems/system_shell.ML";
 use "ML-Systems/ml_name_space.ML";
+use "ML-Systems/ml_pretty.ML";
 
 
 (*low-level pointer equality*)
@@ -97,22 +98,6 @@ fun print x = x;
 fun makestring x = "dummy string for SML New Jersey";
 
 
-(* toplevel pretty printing (see also Pure/pure_setup.ML) *)
-
-fun make_pp path pprint =
-  let
-    open PrettyPrint;
-
-    fun pp pps obj =
-      pprint obj
-        (string pps, openHOVBox pps o Rel o dest_int,
-          fn wd => break pps {nsp=dest_int wd, offset=0}, fn () => newline pps,
-          fn () => closeBox pps);
-  in (path, pp) end;
-
-fun install_pp (path, pp) = CompilerPPTable.install_pp path pp;
-
-
 (* ML command execution *)
 
 fun use_text (tune: string -> string) _ _ (line: int, name) (print, err) verbose txt =
@@ -142,6 +127,26 @@ fun use_file tune str_of_pos name_space output verbose name =
 fun forget_structure name =
   use_text (fn x => x) (fn _ => "") () (1, "ML") (TextIO.print, fn s => raise Fail s) false
     ("structure " ^ name ^ " = struct end");
+
+
+(* toplevel pretty printing *)
+
+fun ml_pprint pps =
+  let
+    fun str "" = ()
+      | str s = PrettyPrint.string pps s;
+    fun pprint (ML_Pretty.Block ((bg, en), prts, ind)) =
+          (str bg; PrettyPrint.openHOVBox pps (PrettyPrint.Rel (dest_int ind));
+            List.app pprint prts; PrettyPrint.closeBox pps; str en)
+      | pprint (ML_Pretty.String (s, _)) = str s
+      | pprint (ML_Pretty.Break (false, wd)) = PrettyPrint.break pps {nsp = dest_int wd, offset = 0}
+      | pprint (ML_Pretty.Break (true, _)) = PrettyPrint.newline pps;
+  in pprint end;
+
+fun toplevel_pp tune str_of_pos output path pp =
+  use_text tune str_of_pos ML_NameSpace.global (1, "pp") output false
+    ("CompilerPPTable.install_pp [" ^ String.concatWith "," (map (fn s => "\"" ^ s ^ "\"")  path) ^
+      "] (fn pps => ml_pprint pps o Pretty.to_ML o (" ^ pp ^ "))");
 
 
 
