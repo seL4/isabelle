@@ -534,7 +534,156 @@ lemma inverse_eq_divide: "inverse a = 1 / a"
 by (simp add: divide_inverse)
 
 lemma add_divide_distrib: "(a+b) / c = a/c + b/c"
-by (simp add: divide_inverse algebra_simps) 
+by (simp add: divide_inverse algebra_simps)
+
+text{*There is no slick version using division by zero.*}
+lemma inverse_add:
+  "[| a \<noteq> 0;  b \<noteq> 0 |]
+   ==> inverse a + inverse b = (a + b) * inverse a * inverse b"
+by (simp add: division_ring_inverse_add mult_ac)
+
+lemma nonzero_mult_divide_mult_cancel_left [simp, noatp]:
+assumes [simp]: "b\<noteq>0" and [simp]: "c\<noteq>0" shows "(c*a)/(c*b) = a/b"
+proof -
+  have "(c*a)/(c*b) = c * a * (inverse b * inverse c)"
+    by (simp add: divide_inverse nonzero_inverse_mult_distrib)
+  also have "... =  a * inverse b * (inverse c * c)"
+    by (simp only: mult_ac)
+  also have "... =  a * inverse b" by simp
+    finally show ?thesis by (simp add: divide_inverse)
+qed
+
+lemma nonzero_mult_divide_mult_cancel_right [simp, noatp]:
+  "\<lbrakk>b \<noteq> 0; c \<noteq> 0\<rbrakk> \<Longrightarrow> (a * c) / (b * c) = a / b"
+by (simp add: mult_commute [of _ c])
+
+lemma divide_1 [simp]: "a / 1 = a"
+by (simp add: divide_inverse)
+
+lemma times_divide_eq_right: "a * (b / c) = (a * b) / c"
+by (simp add: divide_inverse mult_assoc)
+
+lemma times_divide_eq_left: "(b / c) * a = (b * a) / c"
+by (simp add: divide_inverse mult_ac)
+
+text {* These are later declared as simp rules. *}
+lemmas times_divide_eq [noatp] = times_divide_eq_right times_divide_eq_left
+
+lemma add_frac_eq:
+  assumes "y \<noteq> 0" and "z \<noteq> 0"
+  shows "x / y + w / z = (x * z + w * y) / (y * z)"
+proof -
+  have "x / y + w / z = (x * z) / (y * z) + (y * w) / (y * z)"
+    using assms by simp
+  also have "\<dots> = (x * z + y * w) / (y * z)"
+    by (simp only: add_divide_distrib)
+  finally show ?thesis
+    by (simp only: mult_commute)
+qed
+
+text{*Special Cancellation Simprules for Division*}
+
+lemma nonzero_mult_divide_cancel_right [simp, noatp]:
+  "b \<noteq> 0 \<Longrightarrow> a * b / b = a"
+using nonzero_mult_divide_mult_cancel_right [of 1 b a] by simp
+
+lemma nonzero_mult_divide_cancel_left [simp, noatp]:
+  "a \<noteq> 0 \<Longrightarrow> a * b / a = b"
+using nonzero_mult_divide_mult_cancel_left [of 1 a b] by simp
+
+lemma nonzero_divide_mult_cancel_right [simp, noatp]:
+  "\<lbrakk>a \<noteq> 0; b \<noteq> 0\<rbrakk> \<Longrightarrow> b / (a * b) = 1 / a"
+using nonzero_mult_divide_mult_cancel_right [of a b 1] by simp
+
+lemma nonzero_divide_mult_cancel_left [simp, noatp]:
+  "\<lbrakk>a \<noteq> 0; b \<noteq> 0\<rbrakk> \<Longrightarrow> a / (a * b) = 1 / b"
+using nonzero_mult_divide_mult_cancel_left [of b a 1] by simp
+
+lemma nonzero_mult_divide_mult_cancel_left2 [simp, noatp]:
+  "\<lbrakk>b \<noteq> 0; c \<noteq> 0\<rbrakk> \<Longrightarrow> (c * a) / (b * c) = a / b"
+using nonzero_mult_divide_mult_cancel_left [of b c a] by (simp add: mult_ac)
+
+lemma nonzero_mult_divide_mult_cancel_right2 [simp, noatp]:
+  "\<lbrakk>b \<noteq> 0; c \<noteq> 0\<rbrakk> \<Longrightarrow> (a * c) / (c * b) = a / b"
+using nonzero_mult_divide_mult_cancel_right [of b c a] by (simp add: mult_ac)
+
+lemma minus_divide_left: "- (a / b) = (-a) / b"
+by (simp add: divide_inverse)
+
+lemma nonzero_minus_divide_right: "b \<noteq> 0 ==> - (a / b) = a / (- b)"
+by (simp add: divide_inverse nonzero_inverse_minus_eq)
+
+lemma nonzero_minus_divide_divide: "b \<noteq> 0 ==> (-a) / (-b) = a / b"
+by (simp add: divide_inverse nonzero_inverse_minus_eq)
+
+lemma divide_minus_left [simp, noatp]: "(-a) / b = - (a / b)"
+by (simp add: divide_inverse)
+
+lemma diff_divide_distrib: "(a - b) / c = a / c - b / c"
+by (simp add: diff_minus add_divide_distrib)
+
+lemma add_divide_eq_iff:
+  "z \<noteq> 0 \<Longrightarrow> x + y / z = (z * x + y) / z"
+by (simp add: add_divide_distrib)
+
+lemma divide_add_eq_iff:
+  "z \<noteq> 0 \<Longrightarrow> x / z + y = (x + z * y) / z"
+by (simp add: add_divide_distrib)
+
+lemma diff_divide_eq_iff:
+  "z \<noteq> 0 \<Longrightarrow> x - y / z = (z * x - y) / z"
+by (simp add: diff_divide_distrib)
+
+lemma divide_diff_eq_iff:
+  "z \<noteq> 0 \<Longrightarrow> x / z - y = (x - z * y) / z"
+by (simp add: diff_divide_distrib)
+
+lemma nonzero_eq_divide_eq: "c \<noteq> 0 \<Longrightarrow> a = b / c \<longleftrightarrow> a * c = b"
+proof -
+  assume [simp]: "c \<noteq> 0"
+  have "a = b / c \<longleftrightarrow> a * c = (b / c) * c" by simp
+  also have "... \<longleftrightarrow> a * c = b" by (simp add: divide_inverse mult_assoc)
+  finally show ?thesis .
+qed
+
+lemma nonzero_divide_eq_eq: "c \<noteq> 0 \<Longrightarrow> b / c = a \<longleftrightarrow> b = a * c"
+proof -
+  assume [simp]: "c \<noteq> 0"
+  have "b / c = a \<longleftrightarrow> (b / c) * c = a * c" by simp
+  also have "... \<longleftrightarrow> b = a * c" by (simp add: divide_inverse mult_assoc) 
+  finally show ?thesis .
+qed
+
+lemma divide_eq_imp: "c \<noteq> 0 \<Longrightarrow> b = a * c \<Longrightarrow> b / c = a"
+by simp
+
+lemma eq_divide_imp: "c \<noteq> 0 \<Longrightarrow> a * c = b \<Longrightarrow> a = b / c"
+by (erule subst, simp)
+
+lemmas field_eq_simps[noatp] = algebra_simps
+  (* pull / out*)
+  add_divide_eq_iff divide_add_eq_iff
+  diff_divide_eq_iff divide_diff_eq_iff
+  (* multiply eqn *)
+  nonzero_eq_divide_eq nonzero_divide_eq_eq
+(* is added later:
+  times_divide_eq_left times_divide_eq_right
+*)
+
+text{*An example:*}
+lemma "\<lbrakk>a\<noteq>b; c\<noteq>d; e\<noteq>f\<rbrakk> \<Longrightarrow> ((a-b)*(c-d)*(e-f))/((c-d)*(e-f)*(a-b)) = 1"
+apply(subgoal_tac "(c-d)*(e-f)*(a-b) \<noteq> 0")
+ apply(simp add:field_eq_simps)
+apply(simp)
+done
+
+lemma diff_frac_eq:
+  "y \<noteq> 0 \<Longrightarrow> z \<noteq> 0 \<Longrightarrow> x / y - w / z = (x * z - w * y) / (y * z)"
+by (simp add: field_eq_simps times_divide_eq)
+
+lemma frac_eq_eq:
+  "y \<noteq> 0 \<Longrightarrow> z \<noteq> 0 \<Longrightarrow> (x / y = w / z) = (x * z = w * y)"
+by (simp add: field_eq_simps times_divide_eq)
 
 end
 
@@ -1191,12 +1340,6 @@ lemma inverse_mult_distrib [simp]:
     thus ?thesis by force
   qed
 
-text{*There is no slick version using division by zero.*}
-lemma inverse_add:
-  "[|a \<noteq> 0;  b \<noteq> 0|]
-   ==> inverse a + inverse b = (a+b) * inverse a * inverse (b::'a::field)"
-by (simp add: division_ring_inverse_add mult_ac)
-
 lemma inverse_divide [simp]:
   "inverse (a/b) = b / (a::'a::{field,division_by_zero})"
 by (simp add: divide_inverse mult_commute)
@@ -1208,43 +1351,17 @@ text{* There is a whole bunch of simp-rules just for class @{text
 field} but none for class @{text field} and @{text nonzero_divides}
 because the latter are covered by a simproc. *}
 
-lemma nonzero_mult_divide_mult_cancel_left[simp,noatp]:
-assumes [simp]: "b\<noteq>0" and [simp]: "c\<noteq>0" shows "(c*a)/(c*b) = a/(b::'a::field)"
-proof -
-  have "(c*a)/(c*b) = c * a * (inverse b * inverse c)"
-    by (simp add: divide_inverse nonzero_inverse_mult_distrib)
-  also have "... =  a * inverse b * (inverse c * c)"
-    by (simp only: mult_ac)
-  also have "... =  a * inverse b" by simp
-    finally show ?thesis by (simp add: divide_inverse)
-qed
-
 lemma mult_divide_mult_cancel_left:
   "c\<noteq>0 ==> (c*a) / (c*b) = a / (b::'a::{field,division_by_zero})"
 apply (cases "b = 0")
 apply (simp_all add: nonzero_mult_divide_mult_cancel_left)
 done
 
-lemma nonzero_mult_divide_mult_cancel_right [noatp]:
-  "[|b\<noteq>0; c\<noteq>0|] ==> (a*c) / (b*c) = a/(b::'a::field)"
-by (simp add: mult_commute [of _ c] nonzero_mult_divide_mult_cancel_left) 
-
 lemma mult_divide_mult_cancel_right:
   "c\<noteq>0 ==> (a*c) / (b*c) = a / (b::'a::{field,division_by_zero})"
 apply (cases "b = 0")
 apply (simp_all add: nonzero_mult_divide_mult_cancel_right)
 done
-
-lemma divide_1 [simp]: "a/1 = (a::'a::field)"
-by (simp add: divide_inverse)
-
-lemma times_divide_eq_right: "a * (b/c) = (a*b) / (c::'a::field)"
-by (simp add: divide_inverse mult_assoc)
-
-lemma times_divide_eq_left: "(b/c) * a = (b*a) / (c::'a::field)"
-by (simp add: divide_inverse mult_ac)
-
-lemmas times_divide_eq[noatp] = times_divide_eq_right times_divide_eq_left
 
 lemma divide_divide_eq_right [simp,noatp]:
   "a / (b/c) = (a*c) / (b::'a::{field,division_by_zero})"
@@ -1254,20 +1371,6 @@ lemma divide_divide_eq_left [simp,noatp]:
   "(a / b) / (c::'a::{field,division_by_zero}) = a / (b*c)"
 by (simp add: divide_inverse mult_assoc)
 
-lemma add_frac_eq: "(y::'a::field) ~= 0 ==> z ~= 0 ==>
-    x / y + w / z = (x * z + w * y) / (y * z)"
-apply (subgoal_tac "x / y = (x * z) / (y * z)")
-apply (erule ssubst)
-apply (subgoal_tac "w / z = (w * y) / (y * z)")
-apply (erule ssubst)
-apply (rule add_divide_distrib [THEN sym])
-apply (subst mult_commute)
-apply (erule nonzero_mult_divide_mult_cancel_left [THEN sym])
-apply assumption
-apply (erule nonzero_mult_divide_mult_cancel_right [THEN sym])
-apply assumption
-done
-
 
 subsubsection{*Special Cancellation Simprules for Division*}
 
@@ -1276,140 +1379,29 @@ fixes c :: "'a :: {field,division_by_zero}"
 shows "(c*a) / (c*b) = (if c=0 then 0 else a/b)"
 by (simp add: mult_divide_mult_cancel_left)
 
-lemma nonzero_mult_divide_cancel_right[simp,noatp]:
-  "b \<noteq> 0 \<Longrightarrow> a * b / b = (a::'a::field)"
-using nonzero_mult_divide_mult_cancel_right[of 1 b a] by simp
-
-lemma nonzero_mult_divide_cancel_left[simp,noatp]:
-  "a \<noteq> 0 \<Longrightarrow> a * b / a = (b::'a::field)"
-using nonzero_mult_divide_mult_cancel_left[of 1 a b] by simp
-
-
-lemma nonzero_divide_mult_cancel_right[simp,noatp]:
-  "\<lbrakk> a\<noteq>0; b\<noteq>0 \<rbrakk> \<Longrightarrow> b / (a * b) = 1/(a::'a::field)"
-using nonzero_mult_divide_mult_cancel_right[of a b 1] by simp
-
-lemma nonzero_divide_mult_cancel_left[simp,noatp]:
-  "\<lbrakk> a\<noteq>0; b\<noteq>0 \<rbrakk> \<Longrightarrow> a / (a * b) = 1/(b::'a::field)"
-using nonzero_mult_divide_mult_cancel_left[of b a 1] by simp
-
-
-lemma nonzero_mult_divide_mult_cancel_left2[simp,noatp]:
-  "[|b\<noteq>0; c\<noteq>0|] ==> (c*a) / (b*c) = a/(b::'a::field)"
-using nonzero_mult_divide_mult_cancel_left[of b c a] by(simp add:mult_ac)
-
-lemma nonzero_mult_divide_mult_cancel_right2[simp,noatp]:
-  "[|b\<noteq>0; c\<noteq>0|] ==> (a*c) / (c*b) = a/(b::'a::field)"
-using nonzero_mult_divide_mult_cancel_right[of b c a] by(simp add:mult_ac)
-
 
 subsection {* Division and Unary Minus *}
-
-lemma nonzero_minus_divide_left: "b \<noteq> 0 ==> - (a/b) = (-a) / (b::'a::field)"
-by (simp add: divide_inverse)
-
-lemma nonzero_minus_divide_right: "b \<noteq> 0 ==> - (a/b) = a / -(b::'a::field)"
-by (simp add: divide_inverse nonzero_inverse_minus_eq)
-
-lemma nonzero_minus_divide_divide: "b \<noteq> 0 ==> (-a)/(-b) = a / (b::'a::field)"
-by (simp add: divide_inverse nonzero_inverse_minus_eq)
-
-lemma minus_divide_left: "- (a/b) = (-a) / (b::'a::field)"
-by (simp add: divide_inverse)
 
 lemma minus_divide_right: "- (a/b) = a / -(b::'a::{field,division_by_zero})"
 by (simp add: divide_inverse)
 
+lemma divide_minus_right [simp, noatp]:
+  "a / -(b::'a::{field,division_by_zero}) = -(a / b)"
+by (simp add: divide_inverse)
 
-text{*The effect is to extract signs from divisions*}
-lemmas divide_minus_left[noatp] = minus_divide_left [symmetric]
-lemmas divide_minus_right[noatp] = minus_divide_right [symmetric]
-declare divide_minus_left [simp]   divide_minus_right [simp]
-
-lemma minus_divide_divide [simp]:
+lemma minus_divide_divide:
   "(-a)/(-b) = a / (b::'a::{field,division_by_zero})"
 apply (cases "b=0", simp) 
 apply (simp add: nonzero_minus_divide_divide) 
 done
 
-lemma diff_divide_distrib: "(a-b)/(c::'a::field) = a/c - b/c"
-by (simp add: diff_minus add_divide_distrib) 
-
-lemma add_divide_eq_iff:
-  "(z::'a::field) \<noteq> 0 \<Longrightarrow> x + y/z = (z*x + y)/z"
-by(simp add:add_divide_distrib nonzero_mult_divide_cancel_left)
-
-lemma divide_add_eq_iff:
-  "(z::'a::field) \<noteq> 0 \<Longrightarrow> x/z + y = (x + z*y)/z"
-by(simp add:add_divide_distrib nonzero_mult_divide_cancel_left)
-
-lemma diff_divide_eq_iff:
-  "(z::'a::field) \<noteq> 0 \<Longrightarrow> x - y/z = (z*x - y)/z"
-by(simp add:diff_divide_distrib nonzero_mult_divide_cancel_left)
-
-lemma divide_diff_eq_iff:
-  "(z::'a::field) \<noteq> 0 \<Longrightarrow> x/z - y = (x - z*y)/z"
-by(simp add:diff_divide_distrib nonzero_mult_divide_cancel_left)
-
-lemma nonzero_eq_divide_eq: "c\<noteq>0 ==> ((a::'a::field) = b/c) = (a*c = b)"
-proof -
-  assume [simp]: "c\<noteq>0"
-  have "(a = b/c) = (a*c = (b/c)*c)" by simp
-  also have "... = (a*c = b)" by (simp add: divide_inverse mult_assoc)
-  finally show ?thesis .
-qed
-
-lemma nonzero_divide_eq_eq: "c\<noteq>0 ==> (b/c = (a::'a::field)) = (b = a*c)"
-proof -
-  assume [simp]: "c\<noteq>0"
-  have "(b/c = a) = ((b/c)*c = a*c)"  by simp
-  also have "... = (b = a*c)"  by (simp add: divide_inverse mult_assoc) 
-  finally show ?thesis .
-qed
-
 lemma eq_divide_eq:
   "((a::'a::{field,division_by_zero}) = b/c) = (if c\<noteq>0 then a*c = b else a=0)"
-by (simp add: nonzero_eq_divide_eq) 
+by (simp add: nonzero_eq_divide_eq)
 
 lemma divide_eq_eq:
   "(b/c = (a::'a::{field,division_by_zero})) = (if c\<noteq>0 then b = a*c else a=0)"
-by (force simp add: nonzero_divide_eq_eq) 
-
-lemma divide_eq_imp: "(c::'a::{division_by_zero,field}) ~= 0 ==>
-    b = a * c ==> b / c = a"
-by (subst divide_eq_eq, simp)
-
-lemma eq_divide_imp: "(c::'a::{division_by_zero,field}) ~= 0 ==>
-    a * c = b ==> a = b / c"
-by (subst eq_divide_eq, simp)
-
-
-lemmas field_eq_simps[noatp] = algebra_simps
-  (* pull / out*)
-  add_divide_eq_iff divide_add_eq_iff
-  diff_divide_eq_iff divide_diff_eq_iff
-  (* multiply eqn *)
-  nonzero_eq_divide_eq nonzero_divide_eq_eq
-(* is added later:
-  times_divide_eq_left times_divide_eq_right
-*)
-
-text{*An example:*}
-lemma fixes a b c d e f :: "'a::field"
-shows "\<lbrakk>a\<noteq>b; c\<noteq>d; e\<noteq>f \<rbrakk> \<Longrightarrow> ((a-b)*(c-d)*(e-f))/((c-d)*(e-f)*(a-b)) = 1"
-apply(subgoal_tac "(c-d)*(e-f)*(a-b) \<noteq> 0")
- apply(simp add:field_eq_simps)
-apply(simp)
-done
-
-
-lemma diff_frac_eq: "(y::'a::field) ~= 0 ==> z ~= 0 ==>
-    x / y - w / z = (x * z - w * y) / (y * z)"
-by (simp add:field_eq_simps times_divide_eq)
-
-lemma frac_eq_eq: "(y::'a::field) ~= 0 ==> z ~= 0 ==>
-    (x / y = w / z) = (x * z = w * y)"
-by (simp add:field_eq_simps times_divide_eq)
+by (force simp add: nonzero_divide_eq_eq)
 
 
 subsection {* Ordered Fields *}
