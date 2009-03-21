@@ -45,6 +45,7 @@ use "ML-Systems/thread_dummy.ML";
 use "ML-Systems/multithreading.ML";
 use "ML-Systems/time_limit.ML";
 use "ML-Systems/ml_name_space.ML";
+use "ML-Systems/ml_pretty.ML";
 
 
 (*low-level pointer equality*)

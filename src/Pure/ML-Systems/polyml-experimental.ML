@@ -14,6 +14,12 @@ fun share_common_data () = PolyML.shareCommonData PolyML.rootFunction;
 
 (* toplevel pretty printers *)
 
+structure ML_Pretty =
+struct
+  datatype context = datatype PolyML.context;
+  datatype pretty = datatype PolyML.pretty;
+end;
+
 (*dummy version*)
 fun make_pp path pprint = ();
 fun install_pp _ = ();
