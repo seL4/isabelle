@@ -119,10 +119,8 @@ in
     Meta.printLength := n);
 end;
 
-(*interface for toplevel pretty printers, see also Pure/pure_setup.ML*)
-(*the documentation refers to an installPP but I couldn't fine it!*)
-fun make_pp path pprint = ();
-fun install_pp _ = ();
+(*dummy implementation*)
+fun toplevel_pp _ _ _ _ _ = ();
 
 (*dummy implementation*)
 fun ml_prompts p1 p2 = ();
