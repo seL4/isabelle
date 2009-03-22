@@ -9,7 +9,7 @@ struct
 
 (* eval ML source tokens *)
 
-fun eval pos toks =
+fun eval verbose pos toks =
   let
     val (print, err) = Output.ml_output;
 
@@ -58,7 +58,7 @@ fun eval pos toks =
       handle exn =>
        (put ("Exception- " ^ General.exnMessage exn ^ " raised");
         err (output ()); raise exn);
-  in print (output ()) end;
+  in if verbose then print (output ()) else () end;
 
 
 (* ML test command *)
@@ -66,23 +66,27 @@ fun eval pos toks =
 fun ML_test (txt, pos) =
   let
     val _ = Position.report Markup.ML_source pos;
-    val ants = (Symbol_Pos.explode (txt, pos), pos)
-      |> Antiquote.read ML_Lex.report_token ML_Lex.scan_antiq;
+    val ants = ML_Lex.read_antiq (Symbol_Pos.explode (txt, pos), pos);
     val ((env, body), env_ctxt) = ML_Context.eval_antiquotes (ants, pos) (Context.thread_data ());
 
     val _ = Context.setmp_thread_data env_ctxt
-        (fn () => (eval Position.none env; Context.thread_data ())) ()
+        (fn () => (eval false Position.none env; Context.thread_data ())) ()
       |> (fn NONE => () | SOME context' => Context.>> (ML_Context.inherit_env context'));
-    val _ = eval pos body;
-    val _ = eval Position.none (ML_Lex.tokenize "structure Isabelle = struct end");
+    val _ = eval true pos body;
+    val _ = eval false Position.none (ML_Lex.tokenize "structure Isabelle = struct end");
   in () end;
+
 
 local structure P = OuterParse and K = OuterKeyword in
 
+fun inherit_env (context as Context.Proof lthy) =
+      Context.Proof (LocalTheory.map_contexts (ML_Context.inherit_env context) lthy)
+  | inherit_env context = context;
+
 val _ =
-  OuterSyntax.command "ML_test" "advanced ML compiler test" (K.tag_ml K.diag)
-    (P.ML_source >> (fn src => Toplevel.generic_theory
-      (ML_Context.exec (fn () => ML_test src))));
+  OuterSyntax.command "ML_test" "advanced ML compiler test" (K.tag_ml K.thy_decl)
+    (P.ML_source >> (fn src =>
+      Toplevel.generic_theory (ML_Context.exec (fn () => ML_test src) #> inherit_env)));
 
 end;
 
