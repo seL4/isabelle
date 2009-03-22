@@ -11,7 +11,7 @@ sig
     Antiq of Symbol_Pos.T list * Position.T |
     Open of Position.T |
     Close of Position.T
-  val is_antiq: 'a antiquote -> bool
+  val is_text: 'a antiquote -> bool
   val scan: Symbol_Pos.T list -> 'a antiquote * Symbol_Pos.T list
   val scan_text: Symbol_Pos.T list -> Symbol_Pos.T list antiquote * Symbol_Pos.T list
   val read: ('a -> unit) -> (Symbol_Pos.T list -> 'a antiquote * Symbol_Pos.T list) ->
@@ -29,8 +29,8 @@ datatype 'a antiquote =
   Open of Position.T |
   Close of Position.T;
 
-fun is_antiq (Text _) = false
-  | is_antiq _ = true;
+fun is_text (Text _) = true
+  | is_text _ = false;
 
 
 (* check_nesting *)
