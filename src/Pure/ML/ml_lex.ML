@@ -13,9 +13,10 @@ sig
   val stopper: token Scan.stopper
   val is_regular: token -> bool
   val is_improper: token -> bool
-  val pos_of: token -> string
+  val pos_of: token -> Position.T
   val kind_of: token -> token_kind
   val content_of: token -> string
+  val text_of: token -> string
   val markup_of: token -> Markup.T
   val report_token: token -> unit
   val keywords: string list
@@ -42,10 +43,8 @@ datatype token = Token of Position.range * (token_kind * string);
 
 (* position *)
 
-fun position_of (Token ((pos, _), _)) = pos;
-fun end_position_of (Token ((_, pos), _)) = pos;
-
-val pos_of = Position.str_of o position_of;
+fun pos_of (Token ((pos, _), _)) = pos;
+fun end_pos_of (Token ((_, pos), _)) = pos;
 
 
 (* control tokens *)
@@ -57,7 +56,7 @@ fun is_eof (Token (_, (EOF, _))) = true
   | is_eof _ = false;
 
 val stopper =
-  Scan.stopper (fn [] => eof | toks => mk_eof (end_position_of (List.last toks))) is_eof;
+  Scan.stopper (fn [] => eof | toks => mk_eof (end_pos_of (List.last toks))) is_eof;
 
 
 (* token content *)
@@ -66,6 +65,11 @@ fun content_of (Token (_, (_, x))) = x;
 fun token_leq (tok, tok') = content_of tok <= content_of tok';
 
 fun kind_of (Token (_, (k, _))) = k;
+
+fun text_of tok =
+  (case kind_of tok of
+    Error msg => error (msg ^ Position.str_of (pos_of tok))
+  | _ => Symbol.escape (content_of tok));
 
 fun is_regular (Token (_, (Error _, _))) = false
   | is_regular (Token (_, (EOF, _))) = false
@@ -93,7 +97,7 @@ val markup_of = kind_of #>
     | Error _   => Markup.ML_malformed
     | EOF       => Markup.none);
 
-fun report_token tok = Position.report (markup_of tok) (position_of tok);
+fun report_token tok = Position.report (markup_of tok) (pos_of tok);
 
 
 

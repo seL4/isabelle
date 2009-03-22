@@ -20,7 +20,7 @@ structure T = ML_Lex;
 fun !!! scan =
   let
     fun get_pos [] = " (past end-of-file!)"
-      | get_pos (tok :: _) = T.pos_of tok;
+      | get_pos (tok :: _) = Position.str_of (T.pos_of tok);
 
     fun err (toks, NONE) = "SML syntax error" ^ get_pos toks
       | err (toks, SOME msg) = "SML syntax error" ^ get_pos toks ^ ": " ^ msg;
