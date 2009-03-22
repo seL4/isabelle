@@ -4,12 +4,28 @@
 Test of advanced ML compiler invocation in Poly/ML 5.3.
 *)
 
-structure ML_Test =
+signature ML_TEST =
+sig
+  val get_result: Proof.context -> PolyML.parseTree option
+  val eval: bool -> bool -> Position.T -> ML_Lex.token list -> unit
+end
+
+structure ML_Test: ML_TEST =
 struct
 
 (* eval ML source tokens *)
 
-fun eval verbose pos toks =
+structure Result = GenericDataFun
+(
+  type T = PolyML.parseTree option;
+  val empty = NONE;
+  fun extend _ = NONE;
+  fun merge _ _ = NONE;
+);
+
+val get_result = Result.get o Context.Proof;
+
+fun eval do_run verbose pos toks =
   let
     val (print, err) = Output.ml_output;
 
@@ -44,6 +60,9 @@ fun eval verbose pos toks =
       put (Pretty.string_of (Pretty.from_ML (pretty_ml message)));
       put (Position.str_of (pos_of location) ^ "\n"));
 
+    fun result_fun (parse_tree, code) () =
+      (Context.>> (Result.put parse_tree); (if is_none code then warning "Static Errors" else ()));
+
     val parameters =
      [PolyML.Compiler.CPOutStream put,
       PolyML.Compiler.CPNameSpace ML_Context.name_space,
@@ -51,7 +70,8 @@ fun eval verbose pos toks =
       PolyML.Compiler.CPLineNo (fn () => ! current_line),
       PolyML.Compiler.CPLineOffset get_index,
       PolyML.Compiler.CPFileName (the_default "ML" (Position.file_of pos)),
-      PolyML.Compiler.CPPrintInAlphabeticalOrder false];
+      PolyML.Compiler.CPPrintInAlphabeticalOrder false] @
+     (if do_run then [] else [PolyML.Compiler.CPCompilerResultFun result_fun]);
     val _ =
       (while not (List.null (! in_buffer)) do
         PolyML.compiler (get, parameters) ())
@@ -63,17 +83,17 @@ fun eval verbose pos toks =
 
 (* ML test command *)
 
-fun ML_test (txt, pos) =
+fun ML_test do_run (txt, pos) =
   let
     val _ = Position.report Markup.ML_source pos;
     val ants = ML_Lex.read_antiq (Symbol_Pos.explode (txt, pos), pos);
     val ((env, body), env_ctxt) = ML_Context.eval_antiquotes (ants, pos) (Context.thread_data ());
 
     val _ = Context.setmp_thread_data env_ctxt
-        (fn () => (eval false Position.none env; Context.thread_data ())) ()
+        (fn () => (eval true false Position.none env; Context.thread_data ())) ()
       |> (fn NONE => () | SOME context' => Context.>> (ML_Context.inherit_env context'));
-    val _ = eval true pos body;
-    val _ = eval false Position.none (ML_Lex.tokenize "structure Isabelle = struct end");
+    val _ = eval do_run true pos body;
+    val _ = eval true false Position.none (ML_Lex.tokenize "structure Isabelle = struct end");
   in () end;
 
 
@@ -86,7 +106,12 @@ fun inherit_env (context as Context.Proof lthy) =
 val _ =
   OuterSyntax.command "ML_test" "advanced ML compiler test" (K.tag_ml K.thy_decl)
     (P.ML_source >> (fn src =>
-      Toplevel.generic_theory (ML_Context.exec (fn () => ML_test src) #> inherit_env)));
+      Toplevel.generic_theory (ML_Context.exec (fn () => ML_test true src) #> inherit_env)));
+
+val _ =
+  OuterSyntax.command "ML_parse" "advanced ML compiler test (parse only)" (K.tag_ml K.thy_decl)
+    (P.ML_source >> (fn src =>
+      Toplevel.generic_theory (ML_Context.exec (fn () => ML_test false src) #> inherit_env)));
 
 end;
 
