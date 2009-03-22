@@ -8,6 +8,10 @@ header{* The Division Operators div and mod *}
 
 theory IntDiv
 imports Int Divides FunDef
+uses
+  "~~/src/Provers/Arith/cancel_numeral_factor.ML"
+  "~~/src/Provers/Arith/extract_common_term.ML"
+  ("Tools/int_factor_simprocs.ML")
 begin
 
 definition divmod_rel :: "int \<Rightarrow> int \<Rightarrow> int \<times> int \<Rightarrow> bool" where
@@ -920,9 +924,10 @@ proof cases
 next
   assume "a\<noteq>0" and le_a: "0\<le>a"   
   hence a_pos: "1 \<le> a" by arith
-  hence one_less_a2: "1 < 2*a" by arith
+  hence one_less_a2: "1 < 2 * a" by arith
   hence le_2a: "2 * (1 + b mod a) \<le> 2 * a"
-    by (simp add: mult_le_cancel_left add_commute [of 1] add1_zle_eq)
+    unfolding mult_le_cancel_left
+    by (simp add: add1_zle_eq add_commute [of 1])
   with a_pos have "0 \<le> b mod a" by simp
   hence le_addm: "0 \<le> 1 mod (2*a) + 2*(b mod a)"
     by (simp add: mod_pos_pos_trivial one_less_a2)
@@ -1355,6 +1360,11 @@ next
   hence "(x + n * q1) mod n = (y + n * q2) mod n" by simp
   thus  ?lhs by simp
 qed
+
+
+subsection {* Simproc setup *}
+
+use "Tools/int_factor_simprocs.ML"
 
 
 subsection {* Code generation *}

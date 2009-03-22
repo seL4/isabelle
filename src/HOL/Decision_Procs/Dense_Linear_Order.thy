@@ -299,7 +299,7 @@ method_setup dlo = {*
 *} "Langford's algorithm for quantifier elimination in dense linear orders"
 
 
-section {* Contructive dense linear orders yield QE for linear arithmetic over ordered Fields -- see @{text "Arith_Tools.thy"} *}
+section {* Contructive dense linear orders yield QE for linear arithmetic over ordered Fields *}
 
 text {* Linear order without upper bounds *}
 
