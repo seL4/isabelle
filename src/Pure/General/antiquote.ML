@@ -12,10 +12,11 @@ sig
     Open of Position.T |
     Close of Position.T
   val is_text: 'a antiquote -> bool
+  val report: ('a -> unit) -> 'a antiquote -> unit
+  val check_nesting: 'a antiquote list -> unit
   val scan: Symbol_Pos.T list -> 'a antiquote * Symbol_Pos.T list
   val scan_text: Symbol_Pos.T list -> Symbol_Pos.T list antiquote * Symbol_Pos.T list
-  val read: ('a -> unit) -> (Symbol_Pos.T list -> 'a antiquote * Symbol_Pos.T list) ->
-    Symbol_Pos.T list * Position.T -> 'a antiquote list
+  val read: Symbol_Pos.T list * Position.T -> Symbol_Pos.T list antiquote list
 end;
 
 structure Antiquote: ANTIQUOTE =
@@ -31,6 +32,16 @@ datatype 'a antiquote =
 
 fun is_text (Text _) = true
   | is_text _ = false;
+
+
+(* report *)
+
+val report_antiq = Position.report Markup.antiq;
+
+fun report report_text (Text x) = report_text x
+  | report _ (Antiq (_, pos)) = report_antiq pos
+  | report _ (Open pos) = report_antiq pos
+  | report _ (Close pos) = report_antiq pos;
 
 
 (* check_nesting *)
@@ -83,12 +94,9 @@ end;
 
 (* read *)
 
-fun read _ _ ([], _) = []
-  | read report scanner (syms, pos) =
-      (case Scan.read Symbol_Pos.stopper (Scan.repeat scanner) syms of
-        SOME xs =>
-         (List.app (fn Antiq (_, pos) => Position.report Markup.antiq pos | Text x => report x) xs;
-          check_nesting xs; xs)
-      | NONE => error ("Malformed quotation/antiquotation source" ^ Position.str_of pos));
+fun read (syms, pos) =
+  (case Scan.read Symbol_Pos.stopper (Scan.repeat scan_text) syms of
+    SOME xs => (List.app (report (K ())) xs; check_nesting xs; xs)
+  | NONE => error ("Malformed quotation/antiquotation source" ^ Position.str_of pos));
 
 end;
