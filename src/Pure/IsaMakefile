@@ -69,7 +69,7 @@ $(OUT)/Pure: $(BOOTSTRAP_FILES) ../Tools/auto_solve.ML			\
   Isar/spec_parse.ML Isar/specification.ML Isar/theory_target.ML	\
   Isar/toplevel.ML Isar/value_parse.ML ML/ml_antiquote.ML		\
   ML/ml_context.ML ML/ml_lex.ML ML/ml_parse.ML ML/ml_syntax.ML		\
-  ML/ml_thms.ML ML-Systems/install_pp_polyml.ML				\
+  ML/ml_test.ML ML/ml_thms.ML ML-Systems/install_pp_polyml.ML		\
   ML-Systems/install_pp_polyml-experimental.ML Proof/extraction.ML	\
   Proof/proof_rewrite_rules.ML Proof/proof_syntax.ML			\
   Proof/proofchecker.ML Proof/reconstruct.ML ProofGeneral/ROOT.ML	\

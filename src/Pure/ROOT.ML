@@ -101,4 +101,6 @@ use "codegen.ML";
 (*configuration for Proof General*)
 cd "ProofGeneral"; use "ROOT.ML"; cd "..";
 
+if ml_system = "polyml-experimental" then use "ML/ml_test.ML" else ();
 use "pure_setup.ML";
+

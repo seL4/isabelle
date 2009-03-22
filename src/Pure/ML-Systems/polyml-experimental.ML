@@ -72,6 +72,10 @@ end;
 
 (* toplevel pretty printing *)
 
+fun pretty_ml (PrettyBlock (ind, _, _, prts)) = ML_Pretty.Block (("", ""), map pretty_ml prts, ind)
+  | pretty_ml (PrettyString s) = ML_Pretty.String (s, size s)
+  | pretty_ml (PrettyBreak (wd, _)) = ML_Pretty.Break (if wd < 99999 then (false, wd) else (true, 2));
+
 fun ml_pretty (ML_Pretty.Block (_, prts, ind)) = PrettyBlock (ind, false, [], map ml_pretty prts)
   | ml_pretty (ML_Pretty.String (s, _)) = PrettyString s
   | ml_pretty (ML_Pretty.Break (false, wd)) = PrettyBreak (wd, 0)

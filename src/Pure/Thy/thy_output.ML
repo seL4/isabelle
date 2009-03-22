@@ -156,9 +156,9 @@ fun eval_antiquote lex state (txt, pos) =
           end
       | expand (Antiquote.Open _) = ""
       | expand (Antiquote.Close _) = "";
-    val ants = Antiquote.read (K ()) Antiquote.scan_text (Symbol_Pos.explode (txt, pos), pos);
+    val ants = Antiquote.read (Symbol_Pos.explode (txt, pos), pos);
   in
-    if Toplevel.is_toplevel state andalso exists Antiquote.is_antiq ants then
+    if Toplevel.is_toplevel state andalso not (forall Antiquote.is_text ants) then
       error ("Unknown context -- cannot expand document antiquotations" ^ Position.str_of pos)
     else implode (map expand ants)
   end;

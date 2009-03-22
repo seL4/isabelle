@@ -13,17 +13,17 @@ sig
   val stopper: token Scan.stopper
   val is_regular: token -> bool
   val is_improper: token -> bool
-  val pos_of: token -> string
+  val pos_of: token -> Position.T
   val kind_of: token -> token_kind
   val content_of: token -> string
-  val markup_of: token -> Markup.T
+  val text_of: token -> string
   val report_token: token -> unit
   val keywords: string list
-  val scan_antiq: Symbol_Pos.T list -> token Antiquote.antiquote * Symbol_Pos.T list
   val source: (Symbol.symbol, 'a) Source.source ->
     (token, (Symbol_Pos.T, Position.T * (Symbol.symbol, 'a) Source.source)
       Source.source) Source.source
   val tokenize: string -> token list
+  val read_antiq: Symbol_Pos.T list * Position.T -> token Antiquote.antiquote list
 end;
 
 structure ML_Lex: ML_LEX =
@@ -42,10 +42,8 @@ datatype token = Token of Position.range * (token_kind * string);
 
 (* position *)
 
-fun position_of (Token ((pos, _), _)) = pos;
-fun end_position_of (Token ((_, pos), _)) = pos;
-
-val pos_of = Position.str_of o position_of;
+fun pos_of (Token ((pos, _), _)) = pos;
+fun end_pos_of (Token ((_, pos), _)) = pos;
 
 
 (* control tokens *)
@@ -57,7 +55,7 @@ fun is_eof (Token (_, (EOF, _))) = true
   | is_eof _ = false;
 
 val stopper =
-  Scan.stopper (fn [] => eof | toks => mk_eof (end_position_of (List.last toks))) is_eof;
+  Scan.stopper (fn [] => eof | toks => mk_eof (end_pos_of (List.last toks))) is_eof;
 
 
 (* token content *)
@@ -66,6 +64,11 @@ fun content_of (Token (_, (_, x))) = x;
 fun token_leq (tok, tok') = content_of tok <= content_of tok';
 
 fun kind_of (Token (_, (k, _))) = k;
+
+fun text_of tok =
+  (case kind_of tok of
+    Error msg => error msg
+  | _ => Symbol.escape (content_of tok));
 
 fun is_regular (Token (_, (Error _, _))) = false
   | is_regular (Token (_, (EOF, _))) = false
@@ -78,22 +81,23 @@ fun is_improper (Token (_, (Space, _))) = true
 
 (* markup *)
 
-val markup_of = kind_of #>
-  (fn Keyword   => Markup.ML_keyword
-    | Ident     => Markup.ML_ident
-    | LongIdent => Markup.ML_ident
-    | TypeVar   => Markup.ML_tvar
-    | Word      => Markup.ML_numeral
-    | Int       => Markup.ML_numeral
-    | Real      => Markup.ML_numeral
-    | Char      => Markup.ML_char
-    | String    => Markup.ML_string
-    | Space     => Markup.none
-    | Comment   => Markup.ML_comment
-    | Error _   => Markup.ML_malformed
-    | EOF       => Markup.none);
+val token_kind_markup =
+ fn Keyword   => Markup.ML_keyword
+  | Ident     => Markup.ML_ident
+  | LongIdent => Markup.ML_ident
+  | TypeVar   => Markup.ML_tvar
+  | Word      => Markup.ML_numeral
+  | Int       => Markup.ML_numeral
+  | Real      => Markup.ML_numeral
+  | Char      => Markup.ML_char
+  | String    => Markup.ML_string
+  | Space     => Markup.none
+  | Comment   => Markup.ML_comment
+  | Error _   => Markup.ML_malformed
+  | EOF       => Markup.none;
 
-fun report_token tok = Position.report (markup_of tok) (position_of tok);
+fun report_token (Token ((pos, _), (kind, _))) =
+  Position.report (token_kind_markup kind) pos;
 
 
 
@@ -204,7 +208,7 @@ val scan_string =
 end;
 
 
-(* token source *)
+(* scan tokens *)
 
 local
 
@@ -224,19 +228,30 @@ val scan_ml =
     scan_ident >> token Ident ||
     scan_typevar >> token TypeVar));
 
+val scan_antiq = Antiquote.scan || scan_ml >> Antiquote.Text;
+
 fun recover msg =
   Scan.many (((not o Symbol.is_blank) andf Symbol.is_regular) o symbol)
   >> (fn cs => [token (Error msg) cs]);
 
 in
 
-val scan_antiq = Antiquote.scan || scan_ml >> Antiquote.Text;
-
 fun source src =
   Symbol_Pos.source (Position.line 1) src
   |> Source.source Symbol_Pos.stopper (Scan.bulk (!!! "bad input" scan_ml)) (SOME (false, recover));
 
 val tokenize = Source.of_string #> source #> Source.exhaust;
+
+fun read_antiq (syms, pos) =
+  (Source.of_list syms
+    |> Source.source Symbol_Pos.stopper (Scan.bulk (!!! "bad input" scan_antiq))
+      (SOME (false, fn msg => recover msg >> map Antiquote.Text))
+    |> Source.exhaust
+    |> tap (List.app (Antiquote.report report_token))
+    |> tap Antiquote.check_nesting
+    |> tap (List.app (fn Antiquote.Text tok => ignore (text_of tok) | _ => ())))
+  handle ERROR msg =>
+    cat_error msg ("The error(s) above occurred in ML source" ^ Position.str_of pos);
 
 end;
 
