@@ -352,7 +352,7 @@ fun find_first_t past u []         = raise TERM("find_first_t", [])
 val simplify_one = Arith_Data.simplify_meta_eq  
   [@{thm mult_1_left}, @{thm mult_1_right}, @{thm div_1}, @{thm numeral_1_eq_Suc_0}];
 
-fun cancel_simplify_meta_eq cancel_th ss th =
+fun cancel_simplify_meta_eq ss cancel_th th =
     simplify_one ss (([th, cancel_th]) MRS trans);
 
 structure CancelFactorCommon =
@@ -365,6 +365,7 @@ structure CancelFactorCommon =
   val trans_tac         = K Arith_Data.trans_tac
   val norm_ss = HOL_ss addsimps mult_1s @ @{thms mult_ac}
   fun norm_tac ss = ALLGOALS (simp_tac (Simplifier.inherit_context ss norm_ss))
+  val simplify_meta_eq  = cancel_simplify_meta_eq
   end;
 
 structure EqCancelFactor = ExtractCommonTermFun
@@ -372,7 +373,7 @@ structure EqCancelFactor = ExtractCommonTermFun
   val prove_conv = Arith_Data.prove_conv
   val mk_bal   = HOLogic.mk_eq
   val dest_bal = HOLogic.dest_bin "op =" HOLogic.natT
-  val simplify_meta_eq  = cancel_simplify_meta_eq @{thm nat_mult_eq_cancel_disj}
+  val simp_conv = K(K (SOME @{thm nat_mult_eq_cancel_disj}))
 );
 
 structure LessCancelFactor = ExtractCommonTermFun
@@ -380,7 +381,7 @@ structure LessCancelFactor = ExtractCommonTermFun
   val prove_conv = Arith_Data.prove_conv
   val mk_bal   = HOLogic.mk_binrel @{const_name HOL.less}
   val dest_bal = HOLogic.dest_bin @{const_name HOL.less} HOLogic.natT
-  val simplify_meta_eq  = cancel_simplify_meta_eq @{thm nat_mult_less_cancel_disj}
+  val simp_conv = K(K (SOME @{thm nat_mult_less_cancel_disj}))
 );
 
 structure LeCancelFactor = ExtractCommonTermFun
@@ -388,7 +389,7 @@ structure LeCancelFactor = ExtractCommonTermFun
   val prove_conv = Arith_Data.prove_conv
   val mk_bal   = HOLogic.mk_binrel @{const_name HOL.less_eq}
   val dest_bal = HOLogic.dest_bin @{const_name HOL.less_eq} HOLogic.natT
-  val simplify_meta_eq  = cancel_simplify_meta_eq @{thm nat_mult_le_cancel_disj}
+  val simp_conv = K(K (SOME @{thm nat_mult_le_cancel_disj}))
 );
 
 structure DivideCancelFactor = ExtractCommonTermFun
@@ -396,7 +397,7 @@ structure DivideCancelFactor = ExtractCommonTermFun
   val prove_conv = Arith_Data.prove_conv
   val mk_bal   = HOLogic.mk_binop @{const_name Divides.div}
   val dest_bal = HOLogic.dest_bin @{const_name Divides.div} HOLogic.natT
-  val simplify_meta_eq  = cancel_simplify_meta_eq @{thm nat_mult_div_cancel_disj}
+  val simp_conv = K(K (SOME @{thm nat_mult_div_cancel_disj}))
 );
 
 structure DvdCancelFactor = ExtractCommonTermFun
@@ -404,7 +405,7 @@ structure DvdCancelFactor = ExtractCommonTermFun
   val prove_conv = Arith_Data.prove_conv
   val mk_bal   = HOLogic.mk_binrel @{const_name Ring_and_Field.dvd}
   val dest_bal = HOLogic.dest_bin @{const_name Ring_and_Field.dvd} HOLogic.natT
-  val simplify_meta_eq  = cancel_simplify_meta_eq @{thm nat_mult_dvd_cancel_disj}
+  val simp_conv = K(K (SOME @{thm nat_mult_dvd_cancel_disj}))
 );
 
 val cancel_factor =

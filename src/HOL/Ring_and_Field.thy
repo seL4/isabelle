@@ -987,6 +987,27 @@ lemma mult_le_cancel_left:
   "c * a \<le> c * b \<longleftrightarrow> (0 < c \<longrightarrow> a \<le> b) \<and> (c < 0 \<longrightarrow> b \<le> a)"
 by (simp add: not_less [symmetric] mult_less_cancel_left_disj)
 
+lemma mult_le_cancel_left_pos:
+  "0 < c \<Longrightarrow> c * a \<le> c * b \<longleftrightarrow> a \<le> b"
+by (auto simp: mult_le_cancel_left)
+
+lemma mult_le_cancel_left_neg:
+  "c < 0 \<Longrightarrow> c * a \<le> c * b \<longleftrightarrow> b \<le> a"
+by (auto simp: mult_le_cancel_left)
+
+end
+
+context ordered_ring_strict
+begin
+
+lemma mult_less_cancel_left_pos:
+  "0 < c \<Longrightarrow> c * a < c * b \<longleftrightarrow> a < b"
+by (auto simp: mult_less_cancel_left)
+
+lemma mult_less_cancel_left_neg:
+  "c < 0 \<Longrightarrow> c * a < c * b \<longleftrightarrow> b < a"
+by (auto simp: mult_less_cancel_left)
+
 end
 
 text{*Legacy - use @{text algebra_simps} *}

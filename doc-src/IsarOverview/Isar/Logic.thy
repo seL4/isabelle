@@ -30,8 +30,8 @@ proof
   show A by(rule a)
 qed
 
-text{*\noindent Single-identifier formulae such as @{term A} need not
-be enclosed in double quotes. However, we will continue to do so for
+text{*\noindent As you see above, single-identifier formulae such as @{term A}
+need not be enclosed in double quotes. However, we will continue to do so for
 uniformity.
 
 Instead of applying fact @{text a} via the @{text rule} method, we can

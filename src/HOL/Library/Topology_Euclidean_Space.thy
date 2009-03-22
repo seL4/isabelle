@@ -1494,8 +1494,7 @@ proof-
     have thy: "norm (y' - y) * norm x' < e / (2 * norm x + 2 * norm y + 2) * (1 + norm x)"
       using mult_strict_mono'[OF h(4) * norm_ge_zero norm_ge_zero] by auto
     also have "\<dots> \<le> e/2" apply simp unfolding divide_le_eq
-      using th1 th0 `e>0` apply auto
-      unfolding mult_assoc and real_mult_le_cancel_iff2[OF `e>0`] by auto
+      using th1 th0 `e>0` by auto
 
     finally have "norm x' * norm (y' - y) + norm (x' - x) * norm y < e"
       using thx and e by (simp add: field_simps)  }
@@ -3558,7 +3557,7 @@ proof-
     { fix y assume "dist y (c *s x) < e * \<bar>c\<bar>"
       hence "norm ((1 / c) *s y - x) < e" unfolding dist_def
 	using norm_mul[of c "(1 / c) *s y - x", unfolded vector_ssub_ldistrib, unfolded vector_smult_assoc] assms(1)
-	  mult_less_imp_less_left[of "abs c" "norm ((1 / c) *s y - x)" e, unfolded real_mult_commute[of "abs c" e]] assms(1)[unfolded zero_less_abs_iff[THEN sym]] by simp
+	  assms(1)[unfolded zero_less_abs_iff[THEN sym]] by (simp del:zero_less_abs_iff)
       hence "y \<in> op *s c ` s" using rev_image_eqI[of "(1 / c) *s y" s y "op *s c"]  e[THEN spec[where x="(1 / c) *s y"]]  assms(1) unfolding dist_def vector_smult_assoc by auto  }
     ultimately have "\<exists>e>0. \<forall>x'. dist x' (c *s x) < e \<longrightarrow> x' \<in> op *s c ` s" apply(rule_tac x="e * abs c" in exI) by auto  }
   thus ?thesis unfolding open_def by auto

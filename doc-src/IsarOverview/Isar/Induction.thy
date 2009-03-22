@@ -143,14 +143,14 @@ text{*\noindent The annotation @{text"arbitrary:"}~\emph{vars}
 universally quantifies all \emph{vars} before the induction.  Hence
 they can be replaced by \emph{arbitrary} values in the proof.
 
-The nice thing about generalization via @{text"arbitrary:"} is that in
-the induction step the claim is available in unquantified form but
+Generalization via @{text"arbitrary"} is particularly convenient
+if the induction step is a structured proof as opposed to the automatic
+example above. Then the claim is available in unquantified form but
 with the generalized variables replaced by @{text"?"}-variables, ready
-for instantiation. In the above example the
-induction hypothesis is @{text"itrev xs ?ys = rev xs @ ?ys"}.
+for instantiation. In the above example, in the @{const[source] Cons} case the
+induction hypothesis is @{text"itrev xs ?ys = rev xs @ ?ys"} (available
+under the name @{const[source] Cons}).
 
-For the curious: @{text"arbitrary:"} introduces @{text"\<And>"}
-behind the scenes.
 
 \subsection{Inductive proofs of conditional formulae}
 \label{sec:full-Ind}
