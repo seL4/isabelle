@@ -204,7 +204,6 @@ $(OUT)/HOL-Plain: plain.ML $(PLAIN_DEPENDENCIES)
 	@$(ISABELLE_TOOL) usedir -b -f plain.ML -g true $(OUT)/Pure HOL-Plain
 
 MAIN_DEPENDENCIES = $(PLAIN_DEPENDENCIES) \
-  Arith_Tools.thy \
   ATP_Linkup.thy \
   Code_Eval.thy \
   Code_Message.thy \

@@ -1256,14 +1256,14 @@ lemma add_number_of_diff2 [simp]:
 by (simp add: algebra_simps diff_number_of_eq [symmetric])
 
 
+
+
 subsection {* The Set of Integers *}
 
 context ring_1
 begin
 
-definition
-  Ints  :: "'a set"
-where
+definition Ints  :: "'a set" where
   [code del]: "Ints = range of_int"
 
 end
@@ -1854,7 +1854,7 @@ proof
 qed
 
 
-subsection{*Integer Powers*} 
+subsection {* Integer Powers *} 
 
 instantiation int :: recpower
 begin
@@ -1895,6 +1895,161 @@ lemma int_power: "int (m^n) = (int m) ^ n"
   by (rule of_nat_power)
 
 lemmas zpower_int = int_power [symmetric]
+
+
+subsection {* Further theorems on numerals *}
+
+subsubsection{*Special Simplification for Constants*}
+
+text{*These distributive laws move literals inside sums and differences.*}
+
+lemmas left_distrib_number_of [simp] =
+  left_distrib [of _ _ "number_of v", standard]
+
+lemmas right_distrib_number_of [simp] =
+  right_distrib [of "number_of v", standard]
+
+lemmas left_diff_distrib_number_of [simp] =
+  left_diff_distrib [of _ _ "number_of v", standard]
+
+lemmas right_diff_distrib_number_of [simp] =
+  right_diff_distrib [of "number_of v", standard]
+
+text{*These are actually for fields, like real: but where else to put them?*}
+
+lemmas zero_less_divide_iff_number_of [simp, noatp] =
+  zero_less_divide_iff [of "number_of w", standard]
+
+lemmas divide_less_0_iff_number_of [simp, noatp] =
+  divide_less_0_iff [of "number_of w", standard]
+
+lemmas zero_le_divide_iff_number_of [simp, noatp] =
+  zero_le_divide_iff [of "number_of w", standard]
+
+lemmas divide_le_0_iff_number_of [simp, noatp] =
+  divide_le_0_iff [of "number_of w", standard]
+
+
+text {*Replaces @{text "inverse #nn"} by @{text "1/#nn"}.  It looks
+  strange, but then other simprocs simplify the quotient.*}
+
+lemmas inverse_eq_divide_number_of [simp] =
+  inverse_eq_divide [of "number_of w", standard]
+
+text {*These laws simplify inequalities, moving unary minus from a term
+into the literal.*}
+
+lemmas less_minus_iff_number_of [simp, noatp] =
+  less_minus_iff [of "number_of v", standard]
+
+lemmas le_minus_iff_number_of [simp, noatp] =
+  le_minus_iff [of "number_of v", standard]
+
+lemmas equation_minus_iff_number_of [simp, noatp] =
+  equation_minus_iff [of "number_of v", standard]
+
+lemmas minus_less_iff_number_of [simp, noatp] =
+  minus_less_iff [of _ "number_of v", standard]
+
+lemmas minus_le_iff_number_of [simp, noatp] =
+  minus_le_iff [of _ "number_of v", standard]
+
+lemmas minus_equation_iff_number_of [simp, noatp] =
+  minus_equation_iff [of _ "number_of v", standard]
+
+
+text{*To Simplify Inequalities Where One Side is the Constant 1*}
+
+lemma less_minus_iff_1 [simp,noatp]:
+  fixes b::"'b::{ordered_idom,number_ring}"
+  shows "(1 < - b) = (b < -1)"
+by auto
+
+lemma le_minus_iff_1 [simp,noatp]:
+  fixes b::"'b::{ordered_idom,number_ring}"
+  shows "(1 \<le> - b) = (b \<le> -1)"
+by auto
+
+lemma equation_minus_iff_1 [simp,noatp]:
+  fixes b::"'b::number_ring"
+  shows "(1 = - b) = (b = -1)"
+by (subst equation_minus_iff, auto)
+
+lemma minus_less_iff_1 [simp,noatp]:
+  fixes a::"'b::{ordered_idom,number_ring}"
+  shows "(- a < 1) = (-1 < a)"
+by auto
+
+lemma minus_le_iff_1 [simp,noatp]:
+  fixes a::"'b::{ordered_idom,number_ring}"
+  shows "(- a \<le> 1) = (-1 \<le> a)"
+by auto
+
+lemma minus_equation_iff_1 [simp,noatp]:
+  fixes a::"'b::number_ring"
+  shows "(- a = 1) = (a = -1)"
+by (subst minus_equation_iff, auto)
+
+
+text {*Cancellation of constant factors in comparisons (@{text "<"} and @{text "\<le>"}) *}
+
+lemmas mult_less_cancel_left_number_of [simp, noatp] =
+  mult_less_cancel_left [of "number_of v", standard]
+
+lemmas mult_less_cancel_right_number_of [simp, noatp] =
+  mult_less_cancel_right [of _ "number_of v", standard]
+
+lemmas mult_le_cancel_left_number_of [simp, noatp] =
+  mult_le_cancel_left [of "number_of v", standard]
+
+lemmas mult_le_cancel_right_number_of [simp, noatp] =
+  mult_le_cancel_right [of _ "number_of v", standard]
+
+
+text {*Multiplying out constant divisors in comparisons (@{text "<"}, @{text "\<le>"} and @{text "="}) *}
+
+lemmas le_divide_eq_number_of1 [simp] = le_divide_eq [of _ _ "number_of w", standard]
+lemmas divide_le_eq_number_of1 [simp] = divide_le_eq [of _ "number_of w", standard]
+lemmas less_divide_eq_number_of1 [simp] = less_divide_eq [of _ _ "number_of w", standard]
+lemmas divide_less_eq_number_of1 [simp] = divide_less_eq [of _ "number_of w", standard]
+lemmas eq_divide_eq_number_of1 [simp] = eq_divide_eq [of _ _ "number_of w", standard]
+lemmas divide_eq_eq_number_of1 [simp] = divide_eq_eq [of _ "number_of w", standard]
+
+
+subsubsection{*Optional Simplification Rules Involving Constants*}
+
+text{*Simplify quotients that are compared with a literal constant.*}
+
+lemmas le_divide_eq_number_of = le_divide_eq [of "number_of w", standard]
+lemmas divide_le_eq_number_of = divide_le_eq [of _ _ "number_of w", standard]
+lemmas less_divide_eq_number_of = less_divide_eq [of "number_of w", standard]
+lemmas divide_less_eq_number_of = divide_less_eq [of _ _ "number_of w", standard]
+lemmas eq_divide_eq_number_of = eq_divide_eq [of "number_of w", standard]
+lemmas divide_eq_eq_number_of = divide_eq_eq [of _ _ "number_of w", standard]
+
+
+text{*Not good as automatic simprules because they cause case splits.*}
+lemmas divide_const_simps =
+  le_divide_eq_number_of divide_le_eq_number_of less_divide_eq_number_of
+  divide_less_eq_number_of eq_divide_eq_number_of divide_eq_eq_number_of
+  le_divide_eq_1 divide_le_eq_1 less_divide_eq_1 divide_less_eq_1
+
+text{*Division By @{text "-1"}*}
+
+lemma divide_minus1 [simp]:
+     "x/-1 = -(x::'a::{field,division_by_zero,number_ring})"
+by simp
+
+lemma minus1_divide [simp]:
+     "-1 / (x::'a::{field,division_by_zero,number_ring}) = - (1/x)"
+by (simp add: divide_inverse inverse_minus_eq)
+
+lemma half_gt_zero_iff:
+     "(0 < r/2) = (0 < (r::'a::{ordered_field,division_by_zero,number_ring}))"
+by auto
+
+lemmas half_gt_zero [simp] = half_gt_zero_iff [THEN iffD2, standard]
+
 
 subsection {* Configuration of the code generator *}
 

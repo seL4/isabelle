@@ -7,6 +7,7 @@ header {* Decision Procedure for Presburger Arithmetic *}
 theory Presburger
 imports Groebner_Basis SetInterval
 uses
+  "Tools/Qelim/qelim.ML"
   "Tools/Qelim/cooper_data.ML"
   "Tools/Qelim/generated_cooper.ML"
   ("Tools/Qelim/cooper.ML")

@@ -5,10 +5,10 @@
 header {* (Real) Vectors in Euclidean space, and elementary linear algebra.*}
 
 theory Euclidean_Space
-  imports "~~/src/HOL/Decision_Procs/Dense_Linear_Order" Complex_Main
+imports Complex_Main "~~/src/HOL/Decision_Procs/Dense_Linear_Order"
   Finite_Cartesian_Product Glbs Infinite_Set Numeral_Type
   Inner_Product
-  uses ("normarith.ML")
+uses ("normarith.ML")
 begin
 
 text{* Some common special cases.*}
