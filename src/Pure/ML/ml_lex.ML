@@ -17,14 +17,13 @@ sig
   val kind_of: token -> token_kind
   val content_of: token -> string
   val text_of: token -> string
-  val markup_of: token -> Markup.T
   val report_token: token -> unit
   val keywords: string list
-  val scan_antiq: Symbol_Pos.T list -> token Antiquote.antiquote * Symbol_Pos.T list
   val source: (Symbol.symbol, 'a) Source.source ->
     (token, (Symbol_Pos.T, Position.T * (Symbol.symbol, 'a) Source.source)
       Source.source) Source.source
   val tokenize: string -> token list
+  val read_antiq: Symbol_Pos.T list * Position.T -> token Antiquote.antiquote list
 end;
 
 structure ML_Lex: ML_LEX =
@@ -68,7 +67,7 @@ fun kind_of (Token (_, (k, _))) = k;
 
 fun text_of tok =
   (case kind_of tok of
-    Error msg => error (msg ^ Position.str_of (pos_of tok))
+    Error msg => error msg
   | _ => Symbol.escape (content_of tok));
 
 fun is_regular (Token (_, (Error _, _))) = false
@@ -82,22 +81,23 @@ fun is_improper (Token (_, (Space, _))) = true
 
 (* markup *)
 
-val markup_of = kind_of #>
-  (fn Keyword   => Markup.ML_keyword
-    | Ident     => Markup.ML_ident
-    | LongIdent => Markup.ML_ident
-    | TypeVar   => Markup.ML_tvar
-    | Word      => Markup.ML_numeral
-    | Int       => Markup.ML_numeral
-    | Real      => Markup.ML_numeral
-    | Char      => Markup.ML_char
-    | String    => Markup.ML_string
-    | Space     => Markup.none
-    | Comment   => Markup.ML_comment
-    | Error _   => Markup.ML_malformed
-    | EOF       => Markup.none);
+val token_kind_markup =
+ fn Keyword   => Markup.ML_keyword
+  | Ident     => Markup.ML_ident
+  | LongIdent => Markup.ML_ident
+  | TypeVar   => Markup.ML_tvar
+  | Word      => Markup.ML_numeral
+  | Int       => Markup.ML_numeral
+  | Real      => Markup.ML_numeral
+  | Char      => Markup.ML_char
+  | String    => Markup.ML_string
+  | Space     => Markup.none
+  | Comment   => Markup.ML_comment
+  | Error _   => Markup.ML_malformed
+  | EOF       => Markup.none;
 
-fun report_token tok = Position.report (markup_of tok) (pos_of tok);
+fun report_token (Token ((pos, _), (kind, _))) =
+  Position.report (token_kind_markup kind) pos;
 
 
 
@@ -208,7 +208,7 @@ val scan_string =
 end;
 
 
-(* token source *)
+(* scan tokens *)
 
 local
 
@@ -228,19 +228,30 @@ val scan_ml =
     scan_ident >> token Ident ||
     scan_typevar >> token TypeVar));
 
+val scan_antiq = Antiquote.scan || scan_ml >> Antiquote.Text;
+
 fun recover msg =
   Scan.many (((not o Symbol.is_blank) andf Symbol.is_regular) o symbol)
   >> (fn cs => [token (Error msg) cs]);
 
 in
 
-val scan_antiq = Antiquote.scan || scan_ml >> Antiquote.Text;
-
 fun source src =
   Symbol_Pos.source (Position.line 1) src
   |> Source.source Symbol_Pos.stopper (Scan.bulk (!!! "bad input" scan_ml)) (SOME (false, recover));
 
 val tokenize = Source.of_string #> source #> Source.exhaust;
+
+fun read_antiq (syms, pos) =
+  (Source.of_list syms
+    |> Source.source Symbol_Pos.stopper (Scan.bulk (!!! "bad input" scan_antiq))
+      (SOME (false, fn msg => recover msg >> map Antiquote.Text))
+    |> Source.exhaust
+    |> tap (List.app (Antiquote.report report_token))
+    |> tap Antiquote.check_nesting
+    |> tap (List.app (fn Antiquote.Text tok => ignore (text_of tok) | _ => ())))
+  handle ERROR msg =>
+    cat_error msg ("The error(s) above occurred in ML source" ^ Position.str_of pos);
 
 end;
 
