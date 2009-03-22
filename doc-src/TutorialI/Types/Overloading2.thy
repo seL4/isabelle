@@ -15,7 +15,7 @@ le_list_def: "xs <<= (ys::'a::ordrel list) \<equiv>
               size xs = size ys \<and> (\<forall>i<size xs. xs!i <<= ys!i)"
 
 text{*\noindent
-The infix function @{text"!"} yields the nth element of a list.
+The infix function @{text"!"} yields the nth element of a list, starting with 0.
 
 \begin{warn}
 A type constructor can be instantiated in only one way to

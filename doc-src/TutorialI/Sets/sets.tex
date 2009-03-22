@@ -299,7 +299,7 @@ Unions can be formed over the values of a given  set.  The syntax is
 \isa{UN x:A.\ B} in \textsc{ascii}. Indexed union satisfies this basic law:
 \begin{isabelle}
 (b\ \isasymin\
-(\isasymUnion x\isasymin A. B\ x) =\ (\isasymexists x\isasymin A.\
+(\isasymUnion x\isasymin A. B\ x)) =\ (\isasymexists x\isasymin A.\
 b\ \isasymin\ B\ x)
 \rulenamedx{UN_iff}
 \end{isabelle}
@@ -414,12 +414,12 @@ Writing $|A|$ as $n$, the last of these theorems says that the number of
 $k$-element subsets of~$A$ is \index{binomial coefficients}
 $\binom{n}{k}$.
 
-\begin{warn}
-The term \isa{finite\ A} is defined via a syntax translation as an
-abbreviation for \isa{A {\isasymin} Finites}, where the constant
-\cdx{Finites} denotes the set of all finite sets of a given type.  There
-is no constant \isa{finite}.
-\end{warn}
+%\begin{warn}
+%The term \isa{finite\ A} is defined via a syntax translation as an
+%abbreviation for \isa{A {\isasymin} Finites}, where the constant
+%\cdx{Finites} denotes the set of all finite sets of a given type.  There
+%is no constant \isa{finite}.
+%\end{warn}
 \index{sets|)}
 
 

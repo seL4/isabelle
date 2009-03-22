@@ -3783,8 +3783,7 @@ next
     also from mult_left_mono[OF xp] np have "?N s \<le> real n * x + ?N s" by simp
     finally have "?N (Floor s) \<le> real n * x + ?N s" .
     moreover
-    {from mult_strict_left_mono[OF x1] np 
-      have "real n *x + ?N s < real n + ?N s" by simp
+    {from x1 np have "real n *x + ?N s < real n + ?N s" by simp
       also from real_of_int_floor_add_one_gt[where r="?N s"] 
       have "\<dots> < real n + ?N (Floor s) + 1" by simp
       finally have "real n *x + ?N s < ?N (Floor s) + real (n+1)" by simp}
@@ -3809,8 +3808,7 @@ next
     moreover from mult_left_mono_neg[OF xp] nn have "?N s \<ge> real n * x + ?N s" by simp
     ultimately have "?N (Floor s) + 1 > real n * x + ?N s" by arith 
     moreover
-    {from mult_strict_left_mono_neg[OF x1, where c="real n"] nn
-      have "real n *x + ?N s \<ge> real n + ?N s" by simp 
+    {from x1 nn have "real n *x + ?N s \<ge> real n + ?N s" by simp
       moreover from real_of_int_floor_le[where r="?N s"]  have "real n + ?N s \<ge> real n + ?N (Floor s)" by simp
       ultimately have "real n *x + ?N s \<ge> ?N (Floor s) + real n" 
 	by (simp only: algebra_simps)}

@@ -691,7 +691,6 @@ proof (induct r, induct s)
     \<longleftrightarrow> Fract a b < Fract c d"
     using not_zero `b * d > 0`
     by (simp add: of_rat_rat of_int_divide_less_eq of_int_mult [symmetric] del: of_int_mult)
-      (auto intro: mult_strict_right_mono mult_right_less_imp_less)
 qed
 
 lemma of_rat_less_eq:

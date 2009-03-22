@@ -25,7 +25,8 @@ sig
   (*proof tools*)
   val prove_conv: tactic list -> Proof.context -> thm list -> term * term -> thm option
   val norm_tac: simpset -> tactic                (*proves the result*)
-  val simplify_meta_eq: simpset -> thm -> thm    (*simplifies the result*)
+  val simplify_meta_eq: simpset -> thm -> thm -> thm (*simplifies the result*)
+  val simp_conv: simpset -> term -> thm option  (*proves simp thm*)
 end;
 
 
@@ -58,6 +59,9 @@ fun proc ss t =
     and terms2 = Data.dest_sum t2
 
     val u = find_common (terms1,terms2)
+    val simp_th =
+          case Data.simp_conv ss u of NONE => raise TERM("no simp", [])
+          | SOME th => th
     val terms1' = Data.find_first u terms1
     and terms2' = Data.find_first u terms2
     and T = Term.fastype_of u
@@ -66,7 +70,7 @@ fun proc ss t =
       Data.prove_conv [Data.norm_tac ss] ctxt prems
         (t', Data.mk_bal (Data.mk_sum T (u::terms1'), Data.mk_sum T (u::terms2')))
   in
-    Option.map (export o Data.simplify_meta_eq ss) reshape
+    Option.map (export o Data.simplify_meta_eq ss simp_th) reshape
   end
   (* FIXME avoid handling of generic exceptions *)
   handle TERM _ => NONE
