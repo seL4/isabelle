@@ -29,6 +29,8 @@ sig
       (Proof.context -> string * string) * Proof.context
   val add_antiq: string -> (Position.T -> antiq context_parser) -> unit
   val trace: bool ref
+  val eval_antiquotes: ML_Lex.token Antiquote.antiquote list * Position.T ->
+    Context.generic option -> (ML_Lex.token list * ML_Lex.token list) * Context.generic option
   val eval_wrapper: (string -> unit) * (string -> 'a) -> bool ->
     Position.T -> Symbol_Pos.text -> unit
   val eval: bool -> Position.T -> Symbol_Pos.text -> unit
@@ -190,45 +192,44 @@ val antiq =
   >> (fn ((x, pos), y) => Args.src ((x, y), pos));
 
 val struct_name = "Isabelle";
+val begin_env = ML_Lex.tokenize ("structure " ^ struct_name ^ " =\nstruct\n");
+val end_env = ML_Lex.tokenize "end;";
 
-fun eval_antiquotes (txt, pos) opt_context =
+in
+
+fun eval_antiquotes (ants, pos) opt_context =
   let
-    val syms = Symbol_Pos.explode (txt, pos);
-    val ants = Antiquote.read ML_Lex.report_token ML_Lex.scan_antiq (syms, pos);
     val opt_ctxt = Option.map (Context.Proof o Context.proof_of) opt_context;
     val ((ml_env, ml_body), opt_ctxt') =
-      if not (exists Antiquote.is_antiq ants)
-      then (("", Symbol.escape (Symbol_Pos.content syms)), opt_ctxt)
+      if forall Antiquote.is_text ants
+      then (([], map (fn Antiquote.Text tok => tok) ants), opt_ctxt)
       else
         let
           val ctxt =
             (case opt_ctxt of
-              NONE => error ("Unknown context -- cannot expand ML antiquotations" ^
-                Position.str_of pos)
+              NONE => error ("No context -- cannot expand ML antiquotations" ^ Position.str_of pos)
             | SOME ctxt => Context.proof_of ctxt);
 
           val lex = #1 (OuterKeyword.get_lexicons ());
-          fun no_decl _ = ("", "");
+          fun no_decl _ = ([], []);
 
-          fun expand (Antiquote.Text tok) state =
-                (K ("", Symbol.escape (ML_Lex.content_of tok)), state)
+          fun expand (Antiquote.Text tok) state = (K ([], [tok]), state)
             | expand (Antiquote.Antiq x) (scope, background) =
                 let
                   val context = Stack.top scope;
                   val (f, context') = antiquotation (T.read_antiq lex antiq x) context;
                   val (decl, background') = f {background = background, struct_name = struct_name};
-                in (decl, (Stack.map_top (K context') scope, background')) end
+                  val decl' = pairself ML_Lex.tokenize o decl;
+                in (decl', (Stack.map_top (K context') scope, background')) end
             | expand (Antiquote.Open _) (scope, background) =
                 (no_decl, (Stack.push scope, background))
             | expand (Antiquote.Close _) (scope, background) =
                 (no_decl, (Stack.pop scope, background));
 
           val (decls, (_, ctxt')) = fold_map expand ants (Stack.init ctxt, ctxt);
-          val ml = decls |> map (fn decl => decl ctxt') |> split_list |> pairself implode;
+          val ml = decls |> map (fn decl => decl ctxt') |> split_list |> pairself flat;
         in (ml, SOME (Context.Proof ctxt')) end;
-  in (("structure " ^ struct_name ^ " =\nstruct\n" ^ ml_env ^ "end;", ml_body), opt_ctxt') end;
-
-in
+  in ((begin_env @ ml_env @ end_env, ml_body), opt_ctxt') end;
 
 val trace = ref false;
 
@@ -239,13 +240,16 @@ fun eval_wrapper pr verbose pos txt =
 
     (*prepare source text*)
     val _ = Position.report Markup.ML_source pos;
-    val ((env, body), env_ctxt) = eval_antiquotes (txt, pos) (Context.thread_data ());
+    val ants = (Symbol_Pos.explode (txt, pos), pos)
+      |> Antiquote.read ML_Lex.report_token ML_Lex.scan_antiq;
+    val ((env, body), env_ctxt) = eval_antiquotes (ants, pos) (Context.thread_data ())
+      |>> pairself (implode o map ML_Lex.text_of);
     val _ = if ! trace then tracing (cat_lines [env, body]) else ();
 
     (*prepare static ML environment*)
     val _ = Context.setmp_thread_data env_ctxt
         (fn () => (eval_raw Position.none false env; Context.thread_data ())) ()
-      |> (fn NONE => () | SOME context' => Context.>> (ML_Env.put (ML_Env.get context')));
+      |> (fn NONE => () | SOME context' => Context.>> (inherit_env context'));
 
     (*eval ML*)
     val _ = eval_raw pos verbose body;
