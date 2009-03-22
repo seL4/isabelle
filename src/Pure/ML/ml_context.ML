@@ -240,8 +240,7 @@ fun eval_wrapper pr verbose pos txt =
 
     (*prepare source text*)
     val _ = Position.report Markup.ML_source pos;
-    val ants = (Symbol_Pos.explode (txt, pos), pos)
-      |> Antiquote.read ML_Lex.report_token ML_Lex.scan_antiq;
+    val ants = ML_Lex.read_antiq (Symbol_Pos.explode (txt, pos), pos);
     val ((env, body), env_ctxt) = eval_antiquotes (ants, pos) (Context.thread_data ())
       |>> pairself (implode o map ML_Lex.text_of);
     val _ = if ! trace then tracing (cat_lines [env, body]) else ();
