@@ -6,9 +6,8 @@
 header {* Elementary topology in Euclidean space. *}
 
 theory Topology_Euclidean_Space
-  imports SEQ Euclidean_Space
+imports SEQ Euclidean_Space
 begin
-
 
 declare fstcart_pastecart[simp] sndcart_pastecart[simp]
 
@@ -474,7 +473,7 @@ proof-
   have th0: "\<And>d x y z. (d x z :: real) <= d x y + d y z \<Longrightarrow> d y z = d z y
                ==> ~(d x y * 2 < d x z \<and> d z y * 2 < d x z)" by arith
   have "?P ?U ?V" using dist_pos_lt[OF xy] th0[of dist,OF dist_triangle dist_sym]
-    by (auto simp add: dist_refl expand_set_eq Arith_Tools.less_divide_eq_number_of1)
+    by (auto simp add: dist_refl expand_set_eq less_divide_eq_number_of1)
   then show ?thesis by blast
 qed
 
@@ -662,7 +661,7 @@ proof-
 	have "?k/2 \<ge> 0" using kp by simp
 	then obtain w where w: "dist y w = ?k/ 2" by (metis vector_choose_dist)
 	from iT[unfolded expand_set_eq mem_interior]
-	have "\<not> ball w (?k/4) \<subseteq> T" using kp by (auto simp add: Arith_Tools.less_divide_eq_number_of1)
+	have "\<not> ball w (?k/4) \<subseteq> T" using kp by (auto simp add: less_divide_eq_number_of1)
 	then obtain z where z: "dist w z < ?k/4" "z \<notin> T" by (auto simp add: subset_eq)
 	have "z \<notin> T \<and> z\<noteq> y \<and> dist z y < d \<and> dist x z < e" using z apply simp
 	  using w e(1) d apply (auto simp only: dist_sym)
@@ -1323,7 +1322,7 @@ proof-
     assume "e>0"
     hence *:"eventually (\<lambda>x. dist (f x) l < e/2) net"
             "eventually (\<lambda>x. dist (g x) m < e/2) net" using as
-      by (auto intro: tendstoD simp del: Arith_Tools.less_divide_eq_number_of1)
+      by (auto intro: tendstoD simp del: less_divide_eq_number_of1)
     hence "eventually (\<lambda>x. dist (f x + g x) (l + m) < e) net"
     proof(cases "trivial_limit net")
       case True
@@ -3957,7 +3956,7 @@ next
       hence fx0:"f x \<noteq> 0" using `l \<noteq> 0` by auto
       hence fxl0: "(f x) * l \<noteq> 0" using `l \<noteq> 0` by auto
       from * have **:"\<bar>f x - l\<bar> < l\<twosuperior> * e / 2" by auto
-      have "\<bar>f x\<bar> * 2 \<ge> \<bar>l\<bar>" using * by (auto simp del: Arith_Tools.less_divide_eq_number_of1)
+      have "\<bar>f x\<bar> * 2 \<ge> \<bar>l\<bar>" using * by (auto simp del: less_divide_eq_number_of1)
       hence "\<bar>f x\<bar> * 2 * \<bar>l\<bar>  \<ge> \<bar>l\<bar> * \<bar>l\<bar>" unfolding mult_le_cancel_right by auto
       hence "\<bar>f x * l\<bar> * 2  \<ge> \<bar>l\<bar>^2" unfolding real_mult_commute and power2_eq_square by auto
       hence ***:"inverse \<bar>f x * l\<bar> \<le> inverse (l\<twosuperior> / 2)" using fxl0
@@ -4319,7 +4318,7 @@ proof-
       have "a$i < b$i" using as[THEN spec[where x=i]] by auto
       hence "a$i < ((1/2) *s (a+b)) $ i" "((1/2) *s (a+b)) $ i < b$i"
 	unfolding vector_smult_component and vector_add_component
-	by (auto simp add: Arith_Tools.less_divide_eq_number_of1)  }
+	by (auto simp add: less_divide_eq_number_of1)  }
     hence "{a <..< b} \<noteq> {}" using mem_interval(1)[of "?x" a b] by auto  }
   ultimately show ?th1 by blast
 
@@ -4334,7 +4333,7 @@ proof-
       have "a$i \<le> b$i" using as[THEN spec[where x=i]] by auto
       hence "a$i \<le> ((1/2) *s (a+b)) $ i" "((1/2) *s (a+b)) $ i \<le> b$i"
 	unfolding vector_smult_component and vector_add_component
-	by (auto simp add: Arith_Tools.less_divide_eq_number_of1)  }
+	by (auto simp add: less_divide_eq_number_of1)  }
     hence "{a .. b} \<noteq> {}" using mem_interval(2)[of "?x" a b] by auto  }
   ultimately show ?th2 by blast
 qed
@@ -4398,13 +4397,13 @@ proof-
       { fix j
 	have "c $ j < ?x $ j \<and> ?x $ j < d $ j" unfolding Cart_lambda_beta
 	  apply(cases "j=i") using as(2)[THEN spec[where x=j]]
-	  by (auto simp add: Arith_Tools.less_divide_eq_number_of1 as2)  }
+	  by (auto simp add: less_divide_eq_number_of1 as2)  }
       hence "?x\<in>{c<..<d}" unfolding mem_interval by auto
       moreover
       have "?x\<notin>{a .. b}"
 	unfolding mem_interval apply auto apply(rule_tac x=i in exI)
 	using as(2)[THEN spec[where x=i]] and as2
-	by (auto simp add: Arith_Tools.less_divide_eq_number_of1)
+	by (auto simp add: less_divide_eq_number_of1)
       ultimately have False using as by auto  }
     hence "a$i \<le> c$i" by(rule ccontr)auto
     moreover
@@ -4413,13 +4412,13 @@ proof-
       { fix j
 	have "d $ j > ?x $ j \<and> ?x $ j > c $ j" unfolding Cart_lambda_beta
 	  apply(cases "j=i") using as(2)[THEN spec[where x=j]]
-	  by (auto simp add: Arith_Tools.less_divide_eq_number_of1 as2)  }
+	  by (auto simp add: less_divide_eq_number_of1 as2)  }
       hence "?x\<in>{c<..<d}" unfolding mem_interval by auto
       moreover
       have "?x\<notin>{a .. b}"
 	unfolding mem_interval apply auto apply(rule_tac x=i in exI)
 	using as(2)[THEN spec[where x=i]] and as2
-	by (auto simp add: Arith_Tools.less_divide_eq_number_of1)
+	by (auto simp add: less_divide_eq_number_of1)
       ultimately have False using as by auto  }
     hence "b$i \<ge> d$i" by(rule ccontr)auto
     ultimately
@@ -4450,7 +4449,7 @@ qed
 lemma inter_interval: fixes a :: "'a::linorder^'n::finite" shows
  "{a .. b} \<inter> {c .. d} =  {(\<chi> i. max (a$i) (c$i)) .. (\<chi> i. min (b$i) (d$i))}"
   unfolding expand_set_eq and Int_iff and mem_interval
-  by (auto simp add: Arith_Tools.less_divide_eq_number_of1 intro!: bexI)
+  by (auto simp add: less_divide_eq_number_of1 intro!: bexI)
 
 (* Moved interval_open_subset_closed a bit upwards *)
 
@@ -4565,7 +4564,7 @@ proof-
     have "a $ i < ((1 / 2) *s (a + b)) $ i \<and> ((1 / 2) *s (a + b)) $ i < b $ i"
       using assms[unfolded interval_ne_empty, THEN spec[where x=i]]
       unfolding vector_smult_component and vector_add_component
-      by(auto simp add: Arith_Tools.less_divide_eq_number_of1)  }
+      by(auto simp add: less_divide_eq_number_of1)  }
   thus ?thesis unfolding mem_interval by auto
 qed
 
@@ -5633,7 +5632,7 @@ next
     { assume as:"dist a b > dist (f n x) (f n y)"
       then obtain Na Nb where "\<forall>m\<ge>Na. dist (f (r m) x) a < (dist a b - dist (f n x) (f n y)) / 2"
 	and "\<forall>m\<ge>Nb. dist (f (r m) y) b < (dist a b - dist (f n x) (f n y)) / 2"
-	using lima limb unfolding h_def Lim_sequentially by (fastsimp simp del: Arith_Tools.less_divide_eq_number_of1)
+	using lima limb unfolding h_def Lim_sequentially by (fastsimp simp del: less_divide_eq_number_of1)
       hence "dist (f (r (Na + Nb + n)) x - f (r (Na + Nb + n)) y) (a - b) < dist a b - dist (f n x) (f n y)"
 	apply(erule_tac x="Na+Nb+n" in allE)
 	apply(erule_tac x="Na+Nb+n" in allE) apply simp
