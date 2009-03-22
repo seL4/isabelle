@@ -42,18 +42,18 @@ fun pr_haskell_stmt naming labelled_name syntax_class syntax_tyco syntax_const
      of [] => []
       | classbinds => Pretty.enum "," "(" ")" (
           map (fn (v, class) =>
-            str (class_name class ^ " " ^ Code_Name.lookup_var tyvars v)) classbinds)
+            str (class_name class ^ " " ^ Code_Printer.lookup_var tyvars v)) classbinds)
           @@ str " => ";
     fun pr_typforall tyvars vs = case map fst vs
      of [] => []
       | vnames => str "forall " :: Pretty.breaks
-          (map (str o Code_Name.lookup_var tyvars) vnames) @ str "." @@ Pretty.brk 1;
+          (map (str o Code_Printer.lookup_var tyvars) vnames) @ str "." @@ Pretty.brk 1;
     fun pr_tycoexpr tyvars fxy (tyco, tys) =
       brackify fxy (str tyco :: map (pr_typ tyvars BR) tys)
     and pr_typ tyvars fxy (tycoexpr as tyco `%% tys) = (case syntax_tyco tyco
          of NONE => pr_tycoexpr tyvars fxy (deresolve tyco, tys)
           | SOME (i, pr) => pr (pr_typ tyvars) fxy tys)
-      | pr_typ tyvars fxy (ITyVar v) = (str o Code_Name.lookup_var tyvars) v;
+      | pr_typ tyvars fxy (ITyVar v) = (str o Code_Printer.lookup_var tyvars) v;
     fun pr_typdecl tyvars (vs, tycoexpr) =
       Pretty.block (pr_typcontext tyvars vs @| pr_tycoexpr tyvars NOBR tycoexpr);
     fun pr_typscheme tyvars (vs, ty) =
@@ -69,7 +69,7 @@ fun pr_haskell_stmt naming labelled_name syntax_class syntax_tyco syntax_const
                   pr_term tyvars thm vars BR t2
                 ])
       | pr_term tyvars thm vars fxy (IVar v) =
-          (str o Code_Name.lookup_var vars) v
+          (str o Code_Printer.lookup_var vars) v
       | pr_term tyvars thm vars fxy (t as _ `|-> _) =
           let
             val (binds, t') = Code_Thingol.unfold_abs t;
@@ -127,7 +127,7 @@ fun pr_haskell_stmt naming labelled_name syntax_class syntax_tyco syntax_const
       | pr_case tyvars thm vars fxy ((_, []), _) = str "error \"empty case\"";
     fun pr_stmt (name, Code_Thingol.Fun (_, ((vs, ty), []))) =
           let
-            val tyvars = Code_Name.intro_vars (map fst vs) init_syms;
+            val tyvars = Code_Printer.intro_vars (map fst vs) init_syms;
             val n = (length o fst o Code_Thingol.unfold_fun) ty;
           in
             Pretty.chunks [
@@ -150,7 +150,7 @@ fun pr_haskell_stmt naming labelled_name syntax_class syntax_tyco syntax_const
       | pr_stmt (name, Code_Thingol.Fun (_, ((vs, ty), raw_eqs))) =
           let
             val eqs = filter (snd o snd) raw_eqs;
-            val tyvars = Code_Name.intro_vars (map fst vs) init_syms;
+            val tyvars = Code_Printer.intro_vars (map fst vs) init_syms;
             fun pr_eq ((ts, t), (thm, _)) =
               let
                 val consts = map_filter
@@ -158,8 +158,8 @@ fun pr_haskell_stmt naming labelled_name syntax_class syntax_tyco syntax_const
                     then NONE else (SOME o Long_Name.base_name o deresolve) c)
                     ((fold o Code_Thingol.fold_constnames) (insert (op =)) (t :: ts) []);
                 val vars = init_syms
-                  |> Code_Name.intro_vars consts
-                  |> Code_Name.intro_vars ((fold o Code_Thingol.fold_unbound_varnames)
+                  |> Code_Printer.intro_vars consts
+                  |> Code_Printer.intro_vars ((fold o Code_Thingol.fold_unbound_varnames)
                        (insert (op =)) ts []);
               in
                 semicolon (
@@ -182,7 +182,7 @@ fun pr_haskell_stmt naming labelled_name syntax_class syntax_tyco syntax_const
           end
       | pr_stmt (name, Code_Thingol.Datatype (_, (vs, []))) =
           let
-            val tyvars = Code_Name.intro_vars (map fst vs) init_syms;
+            val tyvars = Code_Printer.intro_vars (map fst vs) init_syms;
           in
             semicolon [
               str "data",
@@ -191,7 +191,7 @@ fun pr_haskell_stmt naming labelled_name syntax_class syntax_tyco syntax_const
           end
       | pr_stmt (name, Code_Thingol.Datatype (_, (vs, [(co, [ty])]))) =
           let
-            val tyvars = Code_Name.intro_vars (map fst vs) init_syms;
+            val tyvars = Code_Printer.intro_vars (map fst vs) init_syms;
           in
             semicolon (
               str "newtype"
@@ -204,7 +204,7 @@ fun pr_haskell_stmt naming labelled_name syntax_class syntax_tyco syntax_const
           end
       | pr_stmt (name, Code_Thingol.Datatype (_, (vs, co :: cos))) =
           let
-            val tyvars = Code_Name.intro_vars (map fst vs) init_syms;
+            val tyvars = Code_Printer.intro_vars (map fst vs) init_syms;
             fun pr_co (co, tys) =
               concat (
                 (str o deresolve_base) co
@@ -222,7 +222,7 @@ fun pr_haskell_stmt naming labelled_name syntax_class syntax_tyco syntax_const
           end
       | pr_stmt (name, Code_Thingol.Class (_, (v, (superclasses, classparams)))) =
           let
-            val tyvars = Code_Name.intro_vars [v] init_syms;
+            val tyvars = Code_Printer.intro_vars [v] init_syms;
             fun pr_classparam (classparam, ty) =
               semicolon [
                 (str o deresolve_base) classparam,
@@ -234,7 +234,7 @@ fun pr_haskell_stmt naming labelled_name syntax_class syntax_tyco syntax_const
               Pretty.block [
                 str "class ",
                 Pretty.block (pr_typcontext tyvars [(v, map fst superclasses)]),
-                str (deresolve_base name ^ " " ^ Code_Name.lookup_var tyvars v),
+                str (deresolve_base name ^ " " ^ Code_Printer.lookup_var tyvars v),
                 str " where {"
               ],
               str "};"
@@ -244,7 +244,7 @@ fun pr_haskell_stmt naming labelled_name syntax_class syntax_tyco syntax_const
           let
             val split_abs_pure = (fn (v, _) `|-> t => SOME (v, t) | _ => NONE);
             val unfold_abs_pure = Code_Thingol.unfoldr split_abs_pure;
-            val tyvars = Code_Name.intro_vars (map fst vs) init_syms;
+            val tyvars = Code_Printer.intro_vars (map fst vs) init_syms;
             fun pr_instdef ((classparam, c_inst), (thm, _)) = case syntax_const classparam
              of NONE => semicolon [
                     (str o deresolve_base) classparam,
@@ -259,8 +259,8 @@ fun pr_haskell_stmt naming labelled_name syntax_class syntax_tyco syntax_const
                     val proto_rhs = Code_Thingol.eta_expand k (c_inst, []);
                     val (vs, rhs) = unfold_abs_pure proto_rhs;
                     val vars = init_syms
-                      |> Code_Name.intro_vars (the_list const)
-                      |> Code_Name.intro_vars vs;
+                      |> Code_Printer.intro_vars (the_list const)
+                      |> Code_Printer.intro_vars vs;
                     val lhs = IConst (classparam, ([], tys)) `$$ map IVar vs;
                       (*dictionaries are not relevant at this late stage*)
                   in
@@ -288,20 +288,20 @@ fun haskell_program_of_program labelled_name module_name module_prefix reserved_
   let
     val module_alias = if is_some module_name then K module_name else raw_module_alias;
     val reserved_names = Name.make_context reserved_names;
-    val mk_name_module = Code_Name.mk_name_module reserved_names module_prefix module_alias program;
+    val mk_name_module = Code_Printer.mk_name_module reserved_names module_prefix module_alias program;
     fun add_stmt (name, (stmt, deps)) =
       let
-        val (module_name, base) = Code_Name.dest_name name;
+        val (module_name, base) = Code_Printer.dest_name name;
         val module_name' = mk_name_module module_name;
         val mk_name_stmt = yield_singleton Name.variants;
         fun add_fun upper (nsp_fun, nsp_typ) =
           let
             val (base', nsp_fun') =
-              mk_name_stmt (if upper then Code_Name.first_upper base else base) nsp_fun
+              mk_name_stmt (if upper then Code_Printer.first_upper base else base) nsp_fun
           in (base', (nsp_fun', nsp_typ)) end;
         fun add_typ (nsp_fun, nsp_typ) =
           let
-            val (base', nsp_typ') = mk_name_stmt (Code_Name.first_upper base) nsp_typ
+            val (base', nsp_typ') = mk_name_stmt (Code_Printer.first_upper base) nsp_typ
           in (base', (nsp_fun, nsp_typ')) end;
         val add_name = case stmt
          of Code_Thingol.Fun _ => add_fun false
@@ -330,7 +330,7 @@ fun haskell_program_of_program labelled_name module_name module_prefix reserved_
       (Graph.get_node program name, Graph.imm_succs program name))
       (Graph.strong_conn program |> flat)) Symtab.empty;
     fun deresolver name = (fst o the o AList.lookup (op =) ((fst o snd o the
-      o Symtab.lookup hs_program) ((mk_name_module o fst o Code_Name.dest_name) name))) name
+      o Symtab.lookup hs_program) ((mk_name_module o fst o Code_Printer.dest_name) name))) name
       handle Option => error ("Unknown statement name: " ^ labelled_name name);
   in (deresolver, hs_program) end;
 
@@ -357,7 +357,7 @@ fun serialize_haskell module_prefix raw_module_name string_classes labelled_name
               andalso forall (deriv' tycos) tys
           | deriv' _ (ITyVar _) = true
       in deriv [] tyco end;
-    val reserved_names = Code_Name.make_vars reserved_names;
+    val reserved_names = Code_Printer.make_vars reserved_names;
     fun pr_stmt qualified = pr_haskell_stmt naming labelled_name
       syntax_class syntax_tyco syntax_const reserved_names
       (if qualified then deresolver else Long_Name.base_name o deresolver)

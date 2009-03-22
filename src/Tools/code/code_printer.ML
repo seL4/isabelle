@@ -16,6 +16,13 @@ sig
   val semicolon: Pretty.T list -> Pretty.T
   val enum_default: string -> string -> string -> string -> Pretty.T list -> Pretty.T
 
+  val first_upper: string -> string
+  val first_lower: string -> string
+  type var_ctxt
+  val make_vars: string list -> var_ctxt
+  val intro_vars: string list -> var_ctxt -> var_ctxt
+  val lookup_var: var_ctxt -> string -> string
+
   type lrx
   val L: lrx
   val R: lrx
@@ -42,14 +49,14 @@ sig
     -> fixity -> 'a list -> Pretty.T)) option * OuterParse.token list
   val simple_const_syntax: (int * ((fixity -> iterm -> Pretty.T)
     -> fixity -> (iterm * itype) list -> Pretty.T)) option -> const_syntax option
-  val gen_pr_app: (thm -> Code_Name.var_ctxt -> const * iterm list -> Pretty.T list)
-    -> (thm -> Code_Name.var_ctxt -> fixity -> iterm -> Pretty.T)
+  val gen_pr_app: (thm -> var_ctxt -> const * iterm list -> Pretty.T list)
+    -> (thm -> var_ctxt -> fixity -> iterm -> Pretty.T)
     -> (string -> const_syntax option) -> Code_Thingol.naming
-    -> thm -> Code_Name.var_ctxt -> fixity -> const * iterm list -> Pretty.T
+    -> thm -> var_ctxt -> fixity -> const * iterm list -> Pretty.T
   val gen_pr_bind: ((string option * Pretty.T option) * itype -> Pretty.T)
-    -> (thm -> Code_Name.var_ctxt -> fixity -> iterm -> Pretty.T)
+    -> (thm -> var_ctxt -> fixity -> iterm -> Pretty.T)
     -> thm -> fixity
-    -> (string option * iterm option) * itype -> Code_Name.var_ctxt -> Pretty.T * Code_Name.var_ctxt
+    -> (string option * iterm option) * itype -> var_ctxt -> Pretty.T * var_ctxt
 
   type literals
   val Literals: { literal_char: string -> string, literal_string: string -> string,
@@ -60,6 +67,10 @@ sig
   val literal_numeral: literals -> bool -> int -> string
   val literal_list: literals -> Pretty.T list -> Pretty.T
   val infix_cons: literals -> int * string
+
+  val mk_name_module: Name.context -> string option -> (string -> string option)
+    -> 'a Graph.T -> string -> string
+  val dest_name: string -> string * string
 end;
 
 structure Code_Printer : CODE_PRINTER =
@@ -81,6 +92,27 @@ val brackets = Pretty.enclose "(" ")" o Pretty.breaks;
 fun semicolon ps = Pretty.block [concat ps, str ";"];
 fun enum_default default sep opn cls [] = str default
   | enum_default default sep opn cls xs = Pretty.enum sep opn cls xs;
+
+
+(** names and variable name contexts **)
+
+type var_ctxt = string Symtab.table * Name.context;
+
+fun make_vars names = (fold (fn name => Symtab.update_new (name, name)) names Symtab.empty,
+  Name.make_context names);
+
+fun intro_vars names (namemap, namectxt) =
+  let
+    val (names', namectxt') = Name.variants names namectxt;
+    val namemap' = fold2 (curry Symtab.update) names names' namemap;
+  in (namemap', namectxt') end;
+
+fun lookup_var (namemap, _) name = case Symtab.lookup namemap name
+ of SOME name' => name'
+  | NONE => error ("Invalid name in context: " ^ quote name);
+
+val first_upper = implode o nth_map 0 Symbol.to_ascii_upper o explode;
+val first_lower = implode o nth_map 0 Symbol.to_ascii_lower o explode;
 
 
 (** syntax printer **)
@@ -125,8 +157,8 @@ fun brackify_infix infx fxy_ctxt =
 
 type tyco_syntax = int * ((fixity -> itype -> Pretty.T)
   -> fixity -> itype list -> Pretty.T);
-type const_syntax = int * ((Code_Name.var_ctxt -> fixity -> iterm -> Pretty.T)
-  -> Code_Thingol.naming -> thm -> Code_Name.var_ctxt -> fixity -> (iterm * itype) list -> Pretty.T);
+type const_syntax = int * ((var_ctxt -> fixity -> iterm -> Pretty.T)
+  -> Code_Thingol.naming -> thm -> var_ctxt -> fixity -> (iterm * itype) list -> Pretty.T);
 
 fun simple_const_syntax x = (Option.map o apsnd)
   (fn pretty => fn pr => fn naming => fn thm => fn vars => pretty (pr vars)) x;
@@ -150,9 +182,9 @@ fun gen_pr_bind pr_bind pr_term thm (fxy : fixity) ((v, pat), ty : itype) vars =
     val vs = case pat
      of SOME pat => Code_Thingol.fold_varnames (insert (op =)) pat []
       | NONE => [];
-    val vars' = Code_Name.intro_vars (the_list v) vars;
-    val vars'' = Code_Name.intro_vars vs vars';
-    val v' = Option.map (Code_Name.lookup_var vars') v;
+    val vars' = intro_vars (the_list v) vars;
+    val vars'' = intro_vars vs vars';
+    val v' = Option.map (lookup_var vars') v;
     val pat' = Option.map (pr_term thm vars'' fxy) pat;
   in (pr_bind ((v', pat'), ty), vars'') end;
 
@@ -238,5 +270,29 @@ val literal_string = #literal_string o dest_Literals;
 val literal_numeral = #literal_numeral o dest_Literals;
 val literal_list = #literal_list o dest_Literals;
 val infix_cons = #infix_cons o dest_Literals;
+
+
+(** module name spaces **)
+
+val dest_name =
+  apfst Long_Name.implode o split_last o fst o split_last o Long_Name.explode;
+
+fun mk_name_module reserved_names module_prefix module_alias program =
+  let
+    fun mk_alias name = case module_alias name
+     of SOME name' => name'
+      | NONE => name
+          |> Long_Name.explode
+          |> map (fn name => (the_single o fst) (Name.variants [name] reserved_names))
+          |> Long_Name.implode;
+    fun mk_prefix name = case module_prefix
+     of SOME module_prefix => Long_Name.append module_prefix name
+      | NONE => name;
+    val tab =
+      Symtab.empty
+      |> Graph.fold ((fn name => Symtab.default (name, (mk_alias #> mk_prefix) name))
+           o fst o dest_name o fst)
+             program
+  in the o Symtab.lookup tab end;
 
 end; (*struct*)

@@ -50,8 +50,8 @@ fun pr_sml_stmt naming labelled_name syntax_tyco syntax_const reserved_names der
     val pr_label_classparam = Long_Name.base_name o Long_Name.qualifier;
     fun pr_dicts fxy ds =
       let
-        fun pr_dictvar (v, (_, 1)) = Code_Name.first_upper v ^ "_"
-          | pr_dictvar (v, (i, _)) = Code_Name.first_upper v ^ string_of_int (i+1) ^ "_";
+        fun pr_dictvar (v, (_, 1)) = Code_Printer.first_upper v ^ "_"
+          | pr_dictvar (v, (i, _)) = Code_Printer.first_upper v ^ string_of_int (i+1) ^ "_";
         fun pr_proj [] p =
               p
           | pr_proj [p'] p =
@@ -87,7 +87,7 @@ fun pr_sml_stmt naming labelled_name syntax_tyco syntax_const reserved_names der
     fun pr_term is_closure thm vars fxy (IConst c) =
           pr_app is_closure thm vars fxy (c, [])
       | pr_term is_closure thm vars fxy (IVar v) =
-          str (Code_Name.lookup_var vars v)
+          str (Code_Printer.lookup_var vars v)
       | pr_term is_closure thm vars fxy (t as t1 `$ t2) =
           (case Code_Thingol.unfold_const_app t
            of SOME c_ts => pr_app is_closure thm vars fxy c_ts
@@ -182,7 +182,7 @@ fun pr_sml_stmt naming labelled_name syntax_tyco syntax_const reserved_names der
                 then NONE else (SOME o Long_Name.base_name o deresolve) c)
                 (Code_Thingol.fold_constnames (insert (op =)) t []);
             val vars = reserved_names
-              |> Code_Name.intro_vars consts;
+              |> Code_Printer.intro_vars consts;
           in
             concat [
               str "val",
@@ -207,8 +207,8 @@ fun pr_sml_stmt naming labelled_name syntax_tyco syntax_const reserved_names der
                         then NONE else (SOME o Long_Name.base_name o deresolve) c)
                         ((fold o Code_Thingol.fold_constnames) (insert (op =)) (t :: ts) []);
                     val vars = reserved_names
-                      |> Code_Name.intro_vars consts
-                      |> Code_Name.intro_vars ((fold o Code_Thingol.fold_unbound_varnames)
+                      |> Code_Printer.intro_vars consts
+                      |> Code_Printer.intro_vars ((fold o Code_Thingol.fold_unbound_varnames)
                            (insert (op =)) ts []);
                   in
                     concat (
@@ -266,7 +266,7 @@ fun pr_sml_stmt naming labelled_name syntax_tyco syntax_const reserved_names der
           in Pretty.chunks (ps @| Pretty.block ([p, str ";"])) end
      | pr_stmt (MLClass (class, (v, (superclasses, classparams)))) =
           let
-            val w = Code_Name.first_upper v ^ "_";
+            val w = Code_Printer.first_upper v ^ "_";
             fun pr_superclass_field (class, classrel) =
               (concat o map str) [
                 pr_label_classrel classrel, ":", "'" ^ v, deresolve class
@@ -362,8 +362,8 @@ fun pr_ocaml_stmt naming labelled_name syntax_tyco syntax_const reserved_names d
   let
     fun pr_dicts fxy ds =
       let
-        fun pr_dictvar (v, (_, 1)) = "_" ^ Code_Name.first_upper v
-          | pr_dictvar (v, (i, _)) = "_" ^ Code_Name.first_upper v ^ string_of_int (i+1);
+        fun pr_dictvar (v, (_, 1)) = "_" ^ Code_Printer.first_upper v
+          | pr_dictvar (v, (i, _)) = "_" ^ Code_Printer.first_upper v ^ string_of_int (i+1);
         fun pr_proj ps p =
           fold_rev (fn p2 => fn p1 => Pretty.block [p1, str ".", str p2]) ps p
         fun pr_dict fxy (DictConst (inst, dss)) =
@@ -395,7 +395,7 @@ fun pr_ocaml_stmt naming labelled_name syntax_tyco syntax_const reserved_names d
     fun pr_term is_closure thm vars fxy (IConst c) =
           pr_app is_closure thm vars fxy (c, [])
       | pr_term is_closure thm vars fxy (IVar v) =
-          str (Code_Name.lookup_var vars v)
+          str (Code_Printer.lookup_var vars v)
       | pr_term is_closure thm vars fxy (t as t1 `$ t2) =
           (case Code_Thingol.unfold_const_app t
            of SOME c_ts => pr_app is_closure thm vars fxy c_ts
@@ -468,8 +468,8 @@ fun pr_ocaml_stmt naming labelled_name syntax_tyco syntax_const reserved_names d
         val x = Name.variant (map_filter I fished1) "x";
         val fished2 = map_index (fillup_param x) fished1;
         val (fished3, _) = Name.variants fished2 Name.context;
-        val vars' = Code_Name.intro_vars fished3 vars;
-      in map (Code_Name.lookup_var vars') fished3 end;
+        val vars' = Code_Printer.intro_vars fished3 vars;
+      in map (Code_Printer.lookup_var vars') fished3 end;
     fun pr_stmt (MLExc (name, n)) =
           let
             val exc_str =
@@ -491,7 +491,7 @@ fun pr_ocaml_stmt naming labelled_name syntax_tyco syntax_const reserved_names d
                 then NONE else (SOME o Long_Name.base_name o deresolve) c)
                 (Code_Thingol.fold_constnames (insert (op =)) t []);
             val vars = reserved_names
-              |> Code_Name.intro_vars consts;
+              |> Code_Printer.intro_vars consts;
           in
             concat [
               str "let",
@@ -511,8 +511,8 @@ fun pr_ocaml_stmt naming labelled_name syntax_tyco syntax_const reserved_names d
                     then NONE else (SOME o Long_Name.base_name o deresolve) c)
                     ((fold o Code_Thingol.fold_constnames) (insert (op =)) (t :: ts) []);
                 val vars = reserved_names
-                  |> Code_Name.intro_vars consts
-                  |> Code_Name.intro_vars ((fold o Code_Thingol.fold_unbound_varnames)
+                  |> Code_Printer.intro_vars consts
+                  |> Code_Printer.intro_vars ((fold o Code_Thingol.fold_unbound_varnames)
                       (insert (op =)) ts []);
               in concat [
                 (Pretty.block o Pretty.commas)
@@ -527,8 +527,8 @@ fun pr_ocaml_stmt naming labelled_name syntax_tyco syntax_const reserved_names d
                         then NONE else (SOME o Long_Name.base_name o deresolve) c)
                         ((fold o Code_Thingol.fold_constnames) (insert (op =)) (t :: ts) []);
                     val vars = reserved_names
-                      |> Code_Name.intro_vars consts
-                      |> Code_Name.intro_vars ((fold o Code_Thingol.fold_unbound_varnames)
+                      |> Code_Printer.intro_vars consts
+                      |> Code_Printer.intro_vars ((fold o Code_Thingol.fold_unbound_varnames)
                           (insert (op =)) ts []);
                   in
                     concat (
@@ -556,7 +556,7 @@ fun pr_ocaml_stmt naming labelled_name syntax_tyco syntax_const reserved_names d
                         ((fold o Code_Thingol.fold_constnames)
                           (insert (op =)) (map (snd o fst) eqs) []);
                     val vars = reserved_names
-                      |> Code_Name.intro_vars consts;
+                      |> Code_Printer.intro_vars consts;
                     val dummy_parms = (map str o fish_params vars o map (fst o fst)) eqs;
                   in
                     Pretty.block (
@@ -623,7 +623,7 @@ fun pr_ocaml_stmt naming labelled_name syntax_tyco syntax_const reserved_names d
           in Pretty.chunks (ps @| Pretty.block ([p, str ";;"])) end
      | pr_stmt (MLClass (class, (v, (superclasses, classparams)))) =
           let
-            val w = "_" ^ Code_Name.first_upper v;
+            val w = "_" ^ Code_Printer.first_upper v;
             fun pr_superclass_field (class, classrel) =
               (concat o map str) [
                 deresolve classrel, ":", "'" ^ v, deresolve class
@@ -765,11 +765,11 @@ fun ml_node_of_program labelled_name module_name reserved_names raw_module_alias
       let
         val (x, nsp_typ') = f nsp_typ
       in (x, (nsp_fun, nsp_typ')) end;
-    val mk_name_module = Code_Name.mk_name_module reserved_names NONE module_alias program;
+    val mk_name_module = Code_Printer.mk_name_module reserved_names NONE module_alias program;
     fun mk_name_stmt upper name nsp =
       let
-        val (_, base) = Code_Name.dest_name name;
-        val base' = if upper then Code_Name.first_upper base else base;
+        val (_, base) = Code_Printer.dest_name name;
+        val base' = if upper then Code_Printer.first_upper base else base;
         val ([base''], nsp') = Name.variants [base'] nsp;
       in (base'', nsp') end;
     fun rearrange_fun name (tysm as (vs, ty), raw_eqs) =
@@ -853,7 +853,7 @@ fun ml_node_of_program labelled_name module_name reserved_names raw_module_alias
           []
           |> fold (fold (insert (op =)) o Graph.imm_succs program) names
           |> subtract (op =) names;
-        val (module_names, _) = (split_list o map Code_Name.dest_name) names;
+        val (module_names, _) = (split_list o map Code_Printer.dest_name) names;
         val module_name = (the_single o distinct (op =) o map mk_name_module) module_names
           handle Empty =>
             error ("Different namespace prefixes for mutual dependencies:\n"
@@ -863,7 +863,7 @@ fun ml_node_of_program labelled_name module_name reserved_names raw_module_alias
         val module_name_path = Long_Name.explode module_name;
         fun add_dep name name' =
           let
-            val module_name' = (mk_name_module o fst o Code_Name.dest_name) name';
+            val module_name' = (mk_name_module o fst o Code_Printer.dest_name) name';
           in if module_name = module_name' then
             map_node module_name_path (Graph.add_edge (name, name'))
           else let
@@ -891,7 +891,7 @@ fun ml_node_of_program labelled_name module_name reserved_names raw_module_alias
           (rev (Graph.strong_conn program)));
     fun deresolver prefix name = 
       let
-        val module_name = (fst o Code_Name.dest_name) name;
+        val module_name = (fst o Code_Printer.dest_name) name;
         val module_name' = (Long_Name.explode o mk_name_module) module_name;
         val (_, (_, remainder)) = chop_prefix (op =) (prefix, module_name');
         val stmt_name =
@@ -914,7 +914,7 @@ fun serialize_ml target compile pr_module pr_stmt raw_module_name labelled_name 
     val module_name = if null stmt_names then raw_module_name else SOME "Code";
     val (deresolver, nodes) = ml_node_of_program labelled_name module_name
       reserved_names raw_module_alias program;
-    val reserved_names = Code_Name.make_vars reserved_names;
+    val reserved_names = Code_Printer.make_vars reserved_names;
     fun pr_node prefix (Dummy _) =
           NONE
       | pr_node prefix (Stmt (_, stmt)) = if null stmt_names orelse
