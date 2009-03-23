@@ -27,8 +27,6 @@ val get_result = Result.get o Context.Proof;
 
 fun eval do_run verbose pos toks =
   let
-    val (print, err) = Output.ml_output;
-
     val input = toks |> map (fn tok =>
       (serial (), (String.explode (ML_Lex.text_of tok), ML_Lex.pos_of tok)));
     val index_pos = Inttab.lookup (Inttab.make (map (apsnd snd) input));
@@ -78,8 +76,8 @@ fun eval do_run verbose pos toks =
         PolyML.compiler (get, parameters) ())
       handle exn =>
        (put ("Exception- " ^ General.exnMessage exn ^ " raised");
-        err (output ()); raise exn);
-  in if verbose then print (output ()) else () end;
+        error (output ()); raise exn);
+  in if verbose then writeln (output ()) else () end;
 
 
 (* ML test command *)
