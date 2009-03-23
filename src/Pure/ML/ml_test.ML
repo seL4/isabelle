@@ -114,7 +114,7 @@ fun use_text ({name_space = space, print, error, ...}: use_context) verbose pos 
 
     fun result_fun (parse_tree, code) () =
      (Context.>> (Result.map (append (the_list parse_tree)));
-      (case code of NONE => warning "Static Errors" | SOME result => apply_result (result ())));
+      (case code of NONE => error "Static Errors" | SOME result => apply_result (result ())));
 
 
     (* compiler invocation *)
