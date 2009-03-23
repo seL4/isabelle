@@ -75,12 +75,30 @@ end;
 
 (* toplevel pretty printing *)
 
-fun pretty_ml (PrettyBlock (ind, _, _, prts)) = ML_Pretty.Block (("", ""), map pretty_ml prts, ind)
-  | pretty_ml (PrettyString s) = ML_Pretty.String (s, size s)
-  | pretty_ml (PrettyBreak (wd, _)) = ML_Pretty.Break (if wd < 99999 then (false, wd) else (true, 2));
+val pretty_ml =
+  let
+    fun convert len (PrettyBlock (ind, _, context, prts)) =
+          let
+            fun property name default =
+              (case List.find (fn ContextProperty (a, _) => name = a | _ => false) context of
+                SOME (ContextProperty (_, b)) => b
+              | NONE => default);
+            val bg = property "begin" "";
+            val en = property "end" "";
+            val len' = property "length" len;
+          in ML_Pretty.Block ((bg, en), map (convert len') prts, ind) end
+      | convert len (PrettyString s) =
+          ML_Pretty.String (s, case Int.fromString len of SOME i => i | NONE => size s)
+      | convert _ (PrettyBreak (wd, _)) =
+          ML_Pretty.Break (if wd < 99999 then (false, wd) else (true, 2));
+  in convert "" end;
 
-fun ml_pretty (ML_Pretty.Block (_, prts, ind)) = PrettyBlock (ind, false, [], map ml_pretty prts)
-  | ml_pretty (ML_Pretty.String (s, _)) = PrettyString s
+fun ml_pretty (ML_Pretty.Block ((bg, en), prts, ind)) =
+      PrettyBlock (ind, false,
+        [ContextProperty ("begin", bg), ContextProperty ("end", en)], map ml_pretty prts)
+  | ml_pretty (ML_Pretty.String (s, len)) =
+      if len = size s then PrettyString s
+      else PrettyBlock (0, false, [ContextProperty ("length", Int.toString len)], [PrettyString s])
   | ml_pretty (ML_Pretty.Break (false, wd)) = PrettyBreak (wd, 0)
   | ml_pretty (ML_Pretty.Break (true, _)) = PrettyBreak (99999, 0);
 
