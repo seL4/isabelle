@@ -1,12 +1,11 @@
 (*  Title:      HOL/Library/Executable_Set.thy
-    ID:         $Id$
     Author:     Stefan Berghofer, TU Muenchen
 *)
 
 header {* Implementation of finite sets by lists *}
 
 theory Executable_Set
-imports Plain "~~/src/HOL/List"
+imports Main
 begin
 
 subsection {* Definitional rewrites *}
