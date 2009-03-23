@@ -94,8 +94,10 @@ val pretty_ml =
   in convert "" end;
 
 fun ml_pretty (ML_Pretty.Block ((bg, en), prts, ind)) =
-      PrettyBlock (ind, false,
-        [ContextProperty ("begin", bg), ContextProperty ("end", en)], map ml_pretty prts)
+      let val context =
+        (if bg = "" then [] else [ContextProperty ("begin", bg)]) @
+        (if en = "" then [] else [ContextProperty ("end", en)])
+      in PrettyBlock (ind, false, context, map ml_pretty prts) end
   | ml_pretty (ML_Pretty.String (s, len)) =
       if len = size s then PrettyString s
       else PrettyBlock (0, false, [ContextProperty ("length", Int.toString len)], [PrettyString s])
