@@ -1,10 +1,13 @@
 (*  Title:      HOL/Import/HOL4Compat.thy
-    ID:         $Id$
     Author:     Sebastian Skalberg (TU Muenchen)
 *)
 
-theory HOL4Compat imports HOL4Setup Divides Primes Real ContNotDenum
+theory HOL4Compat
+imports HOL4Setup Complex_Main Primes ContNotDenum
 begin
+
+no_notation differentiable (infixl "differentiable" 60)
+no_notation sums (infixr "sums" 80)
 
 lemma EXISTS_UNIQUE_DEF: "(Ex1 P) = (Ex P & (ALL x y. P x & P y --> (x = y)))"
   by auto
@@ -22,7 +25,7 @@ lemma [hol4rew]: "LET f s = Let s f"
 lemmas [hol4rew] = ONE_ONE_rew
 
 lemma bool_case_DEF: "(bool_case x y b) = (if b then x else y)"
-  by simp;
+  by simp
 
 lemma INR_INL_11: "(ALL y x. (Inl x = Inl y) = (x = y)) & (ALL y x. (Inr x = Inr y) = (x = y))"
   by safe
