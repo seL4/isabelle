@@ -4,6 +4,14 @@ Compatibility wrapper for experimental versions of Poly/ML after 5.2.1.
 *)
 
 open Thread;
+
+structure ML_Name_Space =
+struct
+  open PolyML.NameSpace;
+  type T = PolyML.NameSpace.nameSpace;
+  val global = PolyML.globalNameSpace;
+end;
+
 use "ML-Systems/polyml_common.ML";
 use "ML-Systems/multithreading_polyml.ML";
 
@@ -14,12 +22,6 @@ fun share_common_data () = PolyML.shareCommonData PolyML.rootFunction;
 
 (* runtime compilation *)
 
-structure ML_NameSpace =
-struct
-  open PolyML.NameSpace;
-  val global = PolyML.globalNameSpace;
-end;
-
 local
 
 fun drop_newline s =
@@ -28,11 +30,11 @@ fun drop_newline s =
 
 in
 
-fun use_text (tune: string -> string) str_of_pos
-    name_space (start_line, name) (print, err) verbose txt =
+fun use_text ({tune_source, name_space, str_of_pos, print, error, ...}: use_context)
+    (start_line, name) verbose txt =
   let
     val current_line = ref start_line;
-    val in_buffer = ref (String.explode (tune txt));
+    val in_buffer = ref (String.explode (tune_source txt));
     val out_buffer = ref ([]: string list);
     fun output () = drop_newline (implode (rev (! out_buffer)));
 
@@ -42,10 +44,11 @@ fun use_text (tune: string -> string) str_of_pos
       | c :: cs =>
           (in_buffer := cs; if c = #"\n" then current_line := ! current_line + 1 else (); SOME c));
     fun put s = out_buffer := s :: ! out_buffer;
-    fun put_message {message, hard, location = {startLine = line, ...}, context} =
+    fun put_message {message = msg1, hard, location = {startLine = line, ...}, context} =
      (put (if hard then "Error: " else "Warning: ");
-      PolyML.prettyPrint (put, 76) message;
-      put (str_of_pos line name ^ "\n"));
+      PolyML.prettyPrint (put, 76) msg1;
+      (case context of NONE => () | SOME msg2 => PolyML.prettyPrint (put, 76) msg2);
+      put ("At" ^ str_of_pos line name ^ "\n"));
 
     val parameters =
      [PolyML.Compiler.CPOutStream put,
@@ -58,14 +61,14 @@ fun use_text (tune: string -> string) str_of_pos
         PolyML.compiler (get, parameters) ())
       handle exn =>
        (put ("Exception- " ^ General.exnMessage exn ^ " raised");
-        err (output ()); raise exn);
+        error (output ()); raise exn);
   in if verbose then print (output ()) else () end;
 
-fun use_file tune str_of_pos name_space output verbose name =
+fun use_file context verbose name =
   let
     val instream = TextIO.openIn name;
     val txt = Exn.release (Exn.capture TextIO.inputAll instream before TextIO.closeIn instream);
-  in use_text tune str_of_pos name_space (1, name) output verbose txt end;
+  in use_text context (1, name) verbose txt end;
 
 end;
 
@@ -81,7 +84,7 @@ fun ml_pretty (ML_Pretty.Block (_, prts, ind)) = PrettyBlock (ind, false, [], ma
   | ml_pretty (ML_Pretty.Break (false, wd)) = PrettyBreak (wd, 0)
   | ml_pretty (ML_Pretty.Break (true, _)) = PrettyBreak (99999, 0);
 
-fun toplevel_pp tune str_of_pos output (_: string list) pp =
-  use_text tune str_of_pos ML_NameSpace.global (1, "pp") output false
+fun toplevel_pp context (_: string list) pp =
+  use_text context (1, "pp") false
     ("addPrettyPrinter (fn _ => fn _ => ml_pretty o Pretty.to_ML o (" ^ pp ^ "))");
 
