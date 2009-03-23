@@ -24,6 +24,7 @@ sig
   val of_properties: Properties.T -> T
   val properties_of: T -> Properties.T
   val default_properties: T -> Properties.T -> Properties.T
+  val report_text: Markup.T -> T -> string -> unit
   val report: Markup.T -> T -> unit
   val str_of: T -> string
   type range = T * T
@@ -121,9 +122,11 @@ fun default_properties default props =
   if exists (member (op =) Markup.position_properties o #1) props then props
   else properties_of default @ props;
 
-fun report markup (pos as Pos (count, _)) =
+fun report_text markup (pos as Pos (count, _)) txt =
   if invalid_count count then ()
-  else Output.status (Markup.markup (Markup.properties (properties_of pos) markup) "");
+  else Output.status (Markup.markup (Markup.properties (properties_of pos) markup) txt);
+
+fun report markup pos = report_text markup pos "";
 
 
 (* str_of *)
