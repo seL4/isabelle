@@ -47,7 +47,6 @@ sig
   val debugging: bool ref
   val no_warnings: ('a -> 'b) -> 'a -> 'b
   val debug: (unit -> string) -> unit
-  val ml_output: (string -> unit) * (string -> 'a)
   val accumulated_time: unit -> unit
 end;
 
@@ -119,8 +118,6 @@ fun no_warnings f = setmp warning_fn (K ()) f;
 
 val debugging = ref false;
 fun debug s = if ! debugging then ! debug_fn (output (s ())) else ()
-
-val ml_output = (writeln, error);
 
 
 
