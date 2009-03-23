@@ -1,12 +1,11 @@
 (*  Title:      HOL/Library/Abstract_Rat.thy
-    ID:         $Id$
     Author:     Amine Chaieb
 *)
 
 header {* Abstract rational numbers *}
 
 theory Abstract_Rat
-imports Plain GCD
+imports GCD Main
 begin
 
 types Num = "int \<times> int"

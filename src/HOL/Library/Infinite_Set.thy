@@ -1,14 +1,12 @@
 (*  Title:      HOL/Library/Infinite_Set.thy
-    ID:         $Id$
     Author:     Stephan Merz
 *)
 
 header {* Infinite Sets and Related Concepts *}
 
 theory Infinite_Set
-imports Main "~~/src/HOL/SetInterval" "~~/src/HOL/Hilbert_Choice"
+imports Main
 begin
-
 
 subsection "Infinite Sets"
 

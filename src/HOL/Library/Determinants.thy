@@ -5,7 +5,7 @@
 header {* Traces, Determinant of square matrices and some properties *}
 
 theory Determinants
-  imports Euclidean_Space Permutations
+imports Euclidean_Space Permutations
 begin
 
 subsection{* First some facts about products*}

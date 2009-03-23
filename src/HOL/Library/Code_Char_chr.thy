@@ -1,12 +1,11 @@
 (*  Title:      HOL/Library/Code_Char_chr.thy
-    ID:         $Id$
     Author:     Florian Haftmann
 *)
 
 header {* Code generation of pretty characters with character codes *}
 
 theory Code_Char_chr
-imports Plain Char_nat Code_Char Code_Integer
+imports Char_nat Code_Char Code_Integer Main
 begin
 
 definition

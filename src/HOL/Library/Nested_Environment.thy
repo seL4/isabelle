@@ -1,12 +1,11 @@
 (*  Title:      HOL/Library/Nested_Environment.thy
-    ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
 *)
 
 header {* Nested environments *}
 
 theory Nested_Environment
-imports Plain "~~/src/HOL/List" "~~/src/HOL/Code_Eval"
+imports Main
 begin
 
 text {*

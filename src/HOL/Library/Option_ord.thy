@@ -1,15 +1,14 @@
 (*  Title:      HOL/Library/Option_ord.thy
-    ID:         $Id$
     Author:     Florian Haftmann, TU Muenchen
 *)
 
 header {* Canonical order on option type *}
 
 theory Option_ord
-imports Plain
+imports Option Main
 begin
 
-instantiation option :: (order) order
+instantiation option :: (preorder) preorder
 begin
 
 definition less_eq_option where
@@ -48,12 +47,63 @@ lemma less_option_None_Some_code [code]: "None < Some x \<longleftrightarrow> Tr
 lemma less_option_Some [simp, code]: "Some x < Some y \<longleftrightarrow> x < y"
   by (simp add: less_option_def)
 
-instance by default
-  (auto simp add: less_eq_option_def less_option_def split: option.splits)
+instance proof
+qed (auto simp add: less_eq_option_def less_option_def less_le_not_le elim: order_trans split: option.splits)
 
 end 
 
-instance option :: (linorder) linorder
-  by default (auto simp add: less_eq_option_def less_option_def split: option.splits)
+instance option :: (order) order proof
+qed (auto simp add: less_eq_option_def less_option_def split: option.splits)
+
+instance option :: (linorder) linorder proof
+qed (auto simp add: less_eq_option_def less_option_def split: option.splits)
+
+instantiation option :: (preorder) bot
+begin
+
+definition "bot = None"
+
+instance proof
+qed (simp add: bot_option_def)
+
+end
+
+instantiation option :: (top) top
+begin
+
+definition "top = Some top"
+
+instance proof
+qed (simp add: top_option_def less_eq_option_def split: option.split)
+
+end
+
+instance option :: (wellorder) wellorder proof
+  fix P :: "'a option \<Rightarrow> bool" and z :: "'a option"
+  assume H: "\<And>x. (\<And>y. y < x \<Longrightarrow> P y) \<Longrightarrow> P x"
+  have "P None" by (rule H) simp
+  then have P_Some [case_names Some]:
+    "\<And>z. (\<And>x. z = Some x \<Longrightarrow> (P o Some) x) \<Longrightarrow> P z"
+  proof -
+    fix z
+    assume "\<And>x. z = Some x \<Longrightarrow> (P o Some) x"
+    with `P None` show "P z" by (cases z) simp_all
+  qed
+  show "P z" proof (cases z rule: P_Some)
+    case (Some w)
+    show "(P o Some) w" proof (induct rule: less_induct)
+      case (less x)
+      have "P (Some x)" proof (rule H)
+        fix y :: "'a option"
+        assume "y < Some x"
+        show "P y" proof (cases y rule: P_Some)
+          case (Some v) with `y < Some x` have "v < x" by simp
+          with less show "(P o Some) v" .
+        qed
+      qed
+      then show ?case by simp
+    qed
+  qed
+qed
 
 end

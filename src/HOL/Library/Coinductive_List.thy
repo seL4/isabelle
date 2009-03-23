@@ -1,12 +1,11 @@
 (*  Title:      HOL/Library/Coinductive_Lists.thy
-    ID:         $Id$
     Author:     Lawrence C Paulson and Makarius
 *)
 
 header {* Potentially infinite lists as greatest fixed-point *}
 
 theory Coinductive_List
-imports Plain "~~/src/HOL/List"
+imports List Main
 begin
 
 subsection {* List constructors over the datatype universe *}

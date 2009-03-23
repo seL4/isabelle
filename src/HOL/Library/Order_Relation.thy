@@ -1,6 +1,4 @@
-(*  ID          : $Id$
-    Author      : Tobias Nipkow
-*)
+(* Author: Tobias Nipkow *)
 
 header {* Orders as Relations *}
 
