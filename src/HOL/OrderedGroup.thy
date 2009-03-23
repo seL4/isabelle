@@ -466,7 +466,7 @@ proof -
   then show ?thesis by simp
 qed
 
-lemma add_neg_nonpos: 
+lemma add_neg_nonpos:
   assumes "a < 0" and "b \<le> 0" shows "a + b < 0"
 proof -
   have "a + b < 0 + 0"
@@ -493,6 +493,10 @@ proof -
     using assms by (rule add_mono)
   then show ?thesis by simp
 qed
+
+lemmas add_sign_intros =
+  add_pos_nonneg add_pos_pos add_nonneg_pos add_nonneg_nonneg
+  add_neg_nonpos add_neg_neg add_nonpos_neg add_nonpos_nonpos
 
 lemma add_nonneg_eq_0_iff:
   assumes x: "0 \<le> x" and y: "0 \<le> y"
