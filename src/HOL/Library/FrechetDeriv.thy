@@ -1,12 +1,11 @@
 (*  Title       : FrechetDeriv.thy
-    ID          : $Id$
     Author      : Brian Huffman
 *)
 
 header {* Frechet Derivative *}
 
 theory FrechetDeriv
-imports Lim
+imports Lim Complex_Main
 begin
 
 definition

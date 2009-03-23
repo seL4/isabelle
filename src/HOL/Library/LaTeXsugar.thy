@@ -5,7 +5,7 @@
 
 (*<*)
 theory LaTeXsugar
-imports Plain "~~/src/HOL/List"
+imports Main
 begin
 
 (* LOGIC *)

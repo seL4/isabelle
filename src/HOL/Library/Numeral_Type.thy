@@ -5,7 +5,7 @@
 header {* Numeral Syntax for Types *}
 
 theory Numeral_Type
-imports Plain "~~/src/HOL/Presburger"
+imports Main
 begin
 
 subsection {* Preliminary lemmas *}

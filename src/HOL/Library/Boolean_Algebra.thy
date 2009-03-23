@@ -5,7 +5,7 @@
 header {* Boolean Algebras *}
 
 theory Boolean_Algebra
-imports Plain
+imports Main
 begin
 
 locale boolean =

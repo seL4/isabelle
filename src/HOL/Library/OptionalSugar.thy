@@ -4,7 +4,7 @@
 *)
 (*<*)
 theory OptionalSugar
-imports LaTeXsugar Complex_Main
+imports Complex_Main LaTeXsugar
 begin
 
 (* hiding set *)

@@ -1,12 +1,11 @@
 (*  Title:      HOL/Library/AssocList.thy
-    ID:         $Id$
     Author:     Norbert Schirmer, Tobias Nipkow, Martin Wildmoser
 *)
 
 header {* Map operations implemented on association lists*}
 
 theory AssocList 
-imports Plain "~~/src/HOL/Map"
+imports Map Main
 begin
 
 text {*

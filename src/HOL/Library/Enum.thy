@@ -5,7 +5,7 @@
 header {* Finite types as explicit enumerations *}
 
 theory Enum
-imports Plain "~~/src/HOL/Map"
+imports Map Main
 begin
 
 subsection {* Class @{text enum} *}

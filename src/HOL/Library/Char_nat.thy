@@ -1,12 +1,11 @@
 (*  Title:      HOL/Library/Char_nat.thy
-    ID:         $Id$
     Author:     Norbert Voelker, Florian Haftmann
 *)
 
 header {* Mapping between characters and natural numbers *}
 
 theory Char_nat
-imports Plain "~~/src/HOL/List"
+imports List Main
 begin
 
 text {* Conversions between nibbles and natural numbers in [0..15]. *}

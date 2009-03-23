@@ -5,7 +5,7 @@
 header {* Inner Product Spaces and the Gradient Derivative *}
 
 theory Inner_Product
-imports Complex FrechetDeriv
+imports Complex_Main FrechetDeriv
 begin
 
 subsection {* Real inner product spaces *}

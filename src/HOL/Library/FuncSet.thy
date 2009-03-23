@@ -1,12 +1,11 @@
 (*  Title:      HOL/Library/FuncSet.thy
-    ID:         $Id$
     Author:     Florian Kammueller and Lawrence C Paulson
 *)
 
 header {* Pi and Function Sets *}
 
 theory FuncSet
-imports Plain "~~/src/HOL/Hilbert_Choice"
+imports Hilbert_Choice Main
 begin
 
 definition

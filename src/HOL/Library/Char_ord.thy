@@ -1,12 +1,11 @@
 (*  Title:      HOL/Library/Char_ord.thy
-    ID:         $Id$
     Author:     Norbert Voelker, Florian Haftmann
 *)
 
 header {* Order on characters *}
 
 theory Char_ord
-imports Plain Product_ord Char_nat
+imports Product_ord Char_nat Main
 begin
 
 instantiation nibble :: linorder

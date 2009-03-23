@@ -5,7 +5,7 @@
 header {* Code generation of pretty characters (and strings) *}
 
 theory Code_Char
-imports Plain "~~/src/HOL/List" "~~/src/HOL/Code_Eval"
+imports List Code_Eval Main
 begin
 
 code_type char

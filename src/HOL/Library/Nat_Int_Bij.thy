@@ -1,12 +1,11 @@
 (*  Title:      HOL/Nat_Int_Bij.thy
-    ID:         $Id$
     Author:     Stefan Richter, Tobias Nipkow
 *)
 
 header{* Bijections $\mathbb{N}\to\mathbb{N}^2$ and $\mathbb{N}\to\mathbb{Z}$*}
 
 theory Nat_Int_Bij
-imports Hilbert_Choice Presburger
+imports Main
 begin
 
 subsection{*  A bijection between @{text "\<nat>"} and @{text "\<nat>\<twosuperior>"} *}

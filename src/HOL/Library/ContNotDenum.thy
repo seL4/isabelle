@@ -5,7 +5,7 @@
 header {* Non-denumerability of the Continuum. *}
 
 theory ContNotDenum
-imports RComplete Hilbert_Choice
+imports Complex_Main
 begin
 
 subsection {* Abstract *}

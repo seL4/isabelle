@@ -7,7 +7,7 @@
 header {* Zorn's Lemma *}
 
 theory Zorn
-imports "~~/src/HOL/Order_Relation"
+imports Order_Relation Main
 begin
 
 (* Define globally? In Set.thy? *)
