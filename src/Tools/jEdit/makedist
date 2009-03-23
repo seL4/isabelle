@@ -80,7 +80,8 @@ ln -s "$JEDIT" jedit
 cp -R "$JEDIT_HOME/." "$JEDIT/."
 rm -rf "$JEDIT/jEdit" "$JEDIT/build-support"
 
-cp -R jars "$JEDIT/jars"
+mkdir -p "$JEDIT/jars"
+cp -R jars/. "$JEDIT/jars/."
 
 cp -R "$THIS/dist-template/." "$JEDIT/."
 

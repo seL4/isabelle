@@ -50,6 +50,9 @@ object DynamicTokenMarker {
     Markup.INNER_COMMENT,
     Markup.SORT, Markup.TYP, Markup.TERM, Markup.PROP,
     Markup.ATTRIBUTE, Markup.METHOD,
+    // ML syntax
+    Markup.ML_KEYWORD, Markup.ML_IDENT, Markup.ML_TVAR, Markup.ML_NUMERAL,
+    Markup.ML_CHAR, Markup.ML_STRING, Markup.ML_COMMENT, Markup.ML_MALFORMED,
     // embedded source text
     Markup.ML_SOURCE, Markup.DOC_SOURCE, Markup.ANTIQ, Markup.ML_ANTIQ,
     Markup.DOC_ANTIQ,

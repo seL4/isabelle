@@ -1,13 +1,17 @@
 ## Isabelle plugin properties
+##
+##:encoding=ISO-8859-1:
 
 #identification
 plugin.isabelle.jedit.Plugin.name=Isabelle
-plugin.isabelle.jedit.Plugin.author=Johannes Hölzl, Fabian Immler, Makarius Wenzel
+plugin.isabelle.jedit.Plugin.author=Johannes H�lzl, Fabian Immler, Makarius Wenzel
 plugin.isabelle.jedit.Plugin.version=0.0.1
 plugin.isabelle.jedit.Plugin.description=Isabelle/Isar live document editing
 
 #system parameters
-plugin.isabelle.jedit.Plugin.activate=startup
+# jEdit only needs to load the plugin the first time the user accesses it
+# the presence of this property (activate=defer) also tells jEdit the plugin is using the new API
+plugin.isabelle.jedit.Plugin.activate=defer
 plugin.isabelle.jedit.Plugin.usePluginHome=false
 plugin.isabelle.jedit.Plugin.jars=Pure.jar core-renderer.jar scala-library.jar
 
