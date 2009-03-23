@@ -6,7 +6,7 @@ Test of advanced ML compiler invocation in Poly/ML 5.3.
 
 signature ML_TEST =
 sig
-  val get_result: Proof.context -> PolyML.parseTree option
+  val get_result: Proof.context -> PolyML.parseTree list
   val eval: bool -> bool -> Position.T -> ML_Lex.token list -> unit
 end
 
@@ -17,10 +17,10 @@ struct
 
 structure Result = GenericDataFun
 (
-  type T = PolyML.parseTree option;
-  val empty = NONE;
-  fun extend _ = NONE;
-  fun merge _ _ = NONE;
+  type T = PolyML.parseTree list;
+  val empty = [];
+  fun extend _ = [];
+  fun merge _ _ = [];
 );
 
 val get_result = Result.get o Context.Proof;
@@ -61,7 +61,8 @@ fun eval do_run verbose pos toks =
       put (Position.str_of (pos_of location) ^ "\n"));
 
     fun result_fun (parse_tree, code) () =
-      (Context.>> (Result.put parse_tree); (if is_none code then warning "Static Errors" else ()));
+     (Context.>> (Result.map (append (the_list parse_tree)));
+      if is_none code then warning "Static Errors" else ());
 
     val parameters =
      [PolyML.Compiler.CPOutStream put,
