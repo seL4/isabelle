@@ -729,11 +729,15 @@ subclass semiring_0_cancel ..
 subclass pordered_semiring ..
 
 lemma mult_nonneg_nonneg: "0 \<le> a \<Longrightarrow> 0 \<le> b \<Longrightarrow> 0 \<le> a * b"
-by (drule mult_left_mono [of zero b], auto)
+using mult_left_mono [of zero b a] by simp
 
 lemma mult_nonneg_nonpos: "0 \<le> a \<Longrightarrow> b \<le> 0 \<Longrightarrow> a * b \<le> 0"
-by (drule mult_left_mono [of b zero], auto)
+using mult_left_mono [of b zero a] by simp
 
+lemma mult_nonpos_nonneg: "a \<le> 0 \<Longrightarrow> 0 \<le> b \<Longrightarrow> a * b \<le> 0"
+using mult_right_mono [of a zero b] by simp
+
+text {* Legacy - use @{text mult_nonpos_nonneg} *}
 lemma mult_nonneg_nonpos2: "0 \<le> a \<Longrightarrow> b \<le> 0 \<Longrightarrow> b * a \<le> 0" 
 by (drule mult_right_mono [of b zero], auto)
 
@@ -786,31 +790,32 @@ lemma mult_right_le_imp_le:
   "a * c \<le> b * c \<Longrightarrow> 0 < c \<Longrightarrow> a \<le> b"
 by (force simp add: mult_strict_right_mono not_less [symmetric])
 
-lemma mult_pos_pos:
-  "0 < a \<Longrightarrow> 0 < b \<Longrightarrow> 0 < a * b"
-by (drule mult_strict_left_mono [of zero b], auto)
+lemma mult_pos_pos: "0 < a \<Longrightarrow> 0 < b \<Longrightarrow> 0 < a * b"
+using mult_strict_left_mono [of zero b a] by simp
 
-lemma mult_pos_neg:
-  "0 < a \<Longrightarrow> b < 0 \<Longrightarrow> a * b < 0"
-by (drule mult_strict_left_mono [of b zero], auto)
+lemma mult_pos_neg: "0 < a \<Longrightarrow> b < 0 \<Longrightarrow> a * b < 0"
+using mult_strict_left_mono [of b zero a] by simp
 
-lemma mult_pos_neg2:
-  "0 < a \<Longrightarrow> b < 0 \<Longrightarrow> b * a < 0" 
+lemma mult_neg_pos: "a < 0 \<Longrightarrow> 0 < b \<Longrightarrow> a * b < 0"
+using mult_strict_right_mono [of a zero b] by simp
+
+text {* Legacy - use @{text mult_neg_pos} *}
+lemma mult_pos_neg2: "0 < a \<Longrightarrow> b < 0 \<Longrightarrow> b * a < 0" 
 by (drule mult_strict_right_mono [of b zero], auto)
 
 lemma zero_less_mult_pos:
   "0 < a * b \<Longrightarrow> 0 < a \<Longrightarrow> 0 < b"
-apply (cases "b\<le>0") 
+apply (cases "b\<le>0")
  apply (auto simp add: le_less not_less)
-apply (drule_tac mult_pos_neg [of a b]) 
+apply (drule_tac mult_pos_neg [of a b])
  apply (auto dest: less_not_sym)
 done
 
 lemma zero_less_mult_pos2:
   "0 < b * a \<Longrightarrow> 0 < a \<Longrightarrow> 0 < b"
-apply (cases "b\<le>0") 
+apply (cases "b\<le>0")
  apply (auto simp add: le_less not_less)
-apply (drule_tac mult_pos_neg2 [of a b]) 
+apply (drule_tac mult_pos_neg2 [of a b])
  apply (auto dest: less_not_sym)
 done
 
@@ -819,9 +824,9 @@ lemma mult_strict_mono:
   assumes "a < b" and "c < d" and "0 < b" and "0 \<le> c"
   shows "a * c < b * d"
   using assms apply (cases "c=0")
-  apply (simp add: mult_pos_pos) 
+  apply (simp add: mult_pos_pos)
   apply (erule mult_strict_right_mono [THEN less_trans])
-  apply (force simp add: le_less) 
+  apply (force simp add: le_less)
   apply (erule mult_strict_left_mono, assumption)
   done
 
@@ -960,9 +965,8 @@ lemma mult_right_mono_neg:
   apply (simp_all add: minus_mult_right [symmetric]) 
   done
 
-lemma mult_nonpos_nonpos:
-  "a \<le> 0 \<Longrightarrow> b \<le> 0 \<Longrightarrow> 0 \<le> a * b"
-by (drule mult_right_mono_neg [of a zero b]) auto
+lemma mult_nonpos_nonpos: "a \<le> 0 \<Longrightarrow> b \<le> 0 \<Longrightarrow> 0 \<le> a * b"
+using mult_right_mono_neg [of a zero b] by simp
 
 lemma split_mult_pos_le:
   "(0 \<le> a \<and> 0 \<le> b) \<or> (a \<le> 0 \<and> b \<le> 0) \<Longrightarrow> 0 \<le> a * b"
@@ -1006,21 +1010,14 @@ begin
 
 subclass ordered_ring ..
 
-lemma mult_strict_left_mono_neg:
-  "b < a \<Longrightarrow> c < 0 \<Longrightarrow> c * a < c * b"
-  apply (drule mult_strict_left_mono [of _ _ "uminus c"])
-  apply (simp_all add: minus_mult_left [symmetric]) 
-  done
+lemma mult_strict_left_mono_neg: "b < a \<Longrightarrow> c < 0 \<Longrightarrow> c * a < c * b"
+using mult_strict_left_mono [of b a "- c"] by simp
 
-lemma mult_strict_right_mono_neg:
-  "b < a \<Longrightarrow> c < 0 \<Longrightarrow> a * c < b * c"
-  apply (drule mult_strict_right_mono [of _ _ "uminus c"])
-  apply (simp_all add: minus_mult_right [symmetric]) 
-  done
+lemma mult_strict_right_mono_neg: "b < a \<Longrightarrow> c < 0 \<Longrightarrow> a * c < b * c"
+using mult_strict_right_mono [of b a "- c"] by simp
 
-lemma mult_neg_neg:
-  "a < 0 \<Longrightarrow> b < 0 \<Longrightarrow> 0 < a * b"
-by (drule mult_strict_right_mono_neg, auto)
+lemma mult_neg_neg: "a < 0 \<Longrightarrow> b < 0 \<Longrightarrow> 0 < a * b"
+using mult_strict_right_mono_neg [of a zero b] by simp
 
 subclass ring_no_zero_divisors
 proof
@@ -1144,11 +1141,6 @@ lemma mult_le_cancel_left_neg:
   "c < 0 \<Longrightarrow> c * a \<le> c * b \<longleftrightarrow> b \<le> a"
 by (auto simp: mult_le_cancel_left)
 
-end
-
-context ordered_ring_strict
-begin
-
 lemma mult_less_cancel_left_pos:
   "0 < c \<Longrightarrow> c * a < c * b \<longleftrightarrow> a < b"
 by (auto simp: mult_less_cancel_left)
@@ -1162,6 +1154,11 @@ end
 text{*Legacy - use @{text algebra_simps} *}
 lemmas ring_simps[noatp] = algebra_simps
 
+lemmas mult_sign_intros =
+  mult_nonneg_nonneg mult_nonneg_nonpos
+  mult_nonpos_nonneg mult_nonpos_nonpos
+  mult_pos_pos mult_pos_neg
+  mult_neg_pos mult_neg_neg
 
 class pordered_comm_ring = comm_ring + pordered_comm_semiring
 begin
