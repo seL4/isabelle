@@ -1,5 +1,4 @@
 (*  Title:  HOL/ex/Arith_Examples.thy
-    ID:     $Id$
     Author: Tjark Weber
 *)
 
@@ -14,13 +13,13 @@ text {*
 
   @{ML fast_arith_tac} is a very basic version of the tactic.  It performs no
   meta-to-object-logic conversion, and only some splitting of operators.
-  @{ML simple_arith_tac} performs meta-to-object-logic conversion, full
+  @{ML linear_arith_tac} performs meta-to-object-logic conversion, full
   splitting of operators, and NNF normalization of the goal.  The @{text arith}
   method combines them both, and tries other methods (e.g.~@{text presburger})
   as well.  This is the one that you should use in your proofs!
 
   An @{text arith}-based simproc is available as well (see @{ML
-  LinArith.lin_arith_simproc}), which---for performance
+  Lin_Arith.lin_arith_simproc}), which---for performance
   reasons---however does even less splitting than @{ML fast_arith_tac}
   at the moment (namely inequalities only).  (On the other hand, it
   does take apart conjunctions, which @{ML fast_arith_tac} currently
@@ -83,7 +82,7 @@ lemma "!!x. (x::nat) - y = 0 ==> x <= y"
   by (tactic {* fast_arith_tac @{context} 1 *})
 
 lemma "!!x. ((x::nat) <= y) = (x - y = 0)"
-  by (tactic {* simple_arith_tac @{context} 1 *})
+  by (tactic {* linear_arith_tac @{context} 1 *})
 
 lemma "[| (x::nat) < y; d < 1 |] ==> x - y = d"
   by (tactic {* fast_arith_tac @{context} 1 *})
@@ -140,34 +139,34 @@ lemma "[| (0::int) < abs i; abs i * 1 < abs i * j |] ==> 1 < abs i * j"
 subsection {* Meta-Logic *}
 
 lemma "x < Suc y == x <= y"
-  by (tactic {* simple_arith_tac @{context} 1 *})
+  by (tactic {* linear_arith_tac @{context} 1 *})
 
 lemma "((x::nat) == z ==> x ~= y) ==> x ~= y | z ~= y"
-  by (tactic {* simple_arith_tac @{context} 1 *})
+  by (tactic {* linear_arith_tac @{context} 1 *})
 
 
 subsection {* Various Other Examples *}
 
 lemma "(x < Suc y) = (x <= y)"
-  by (tactic {* simple_arith_tac @{context} 1 *})
+  by (tactic {* linear_arith_tac @{context} 1 *})
 
 lemma "[| (x::nat) < y; y < z |] ==> x < z"
   by (tactic {* fast_arith_tac @{context} 1 *})
 
 lemma "(x::nat) < y & y < z ==> x < z"
-  by (tactic {* simple_arith_tac @{context} 1 *})
+  by (tactic {* linear_arith_tac @{context} 1 *})
 
 text {* This example involves no arithmetic at all, but is solved by
   preprocessing (i.e. NNF normalization) alone. *}
 
 lemma "(P::bool) = Q ==> Q = P"
-  by (tactic {* simple_arith_tac @{context} 1 *})
+  by (tactic {* linear_arith_tac @{context} 1 *})
 
 lemma "[| P = (x = 0); (~P) = (y = 0) |] ==> min (x::nat) y = 0"
-  by (tactic {* simple_arith_tac @{context} 1 *})
+  by (tactic {* linear_arith_tac @{context} 1 *})
 
 lemma "[| P = (x = 0); (~P) = (y = 0) |] ==> max (x::nat) y = x + y"
-  by (tactic {* simple_arith_tac @{context} 1 *})
+  by (tactic {* linear_arith_tac @{context} 1 *})
 
 lemma "[| (x::nat) ~= y; a + 2 = b; a < y; y < b; a < x; x < b |] ==> False"
   by (tactic {* fast_arith_tac @{context} 1 *})
@@ -185,7 +184,7 @@ lemma "[| (x::nat) ~= y; x <= y |] ==> x < y"
   by (tactic {* fast_arith_tac @{context} 1 *})
 
 lemma "[| (x::nat) < y; P (x - y) |] ==> P 0"
-  by (tactic {* simple_arith_tac @{context} 1 *})
+  by (tactic {* linear_arith_tac @{context} 1 *})
 
 lemma "(x - y) - (x::nat) = (x - x) - y"
   by (tactic {* fast_arith_tac @{context} 1 *})
@@ -207,7 +206,7 @@ lemma "(n < m & m < n') | (n < m & m = n') | (n < n' & n' < m) |
 (*        preprocessing negates the goal and tries to compute its negation *)
 (*        normal form, which creates lots of separate cases for this       *)
 (*        disjunction of conjunctions                                      *)
-(* by (tactic {* simple_arith_tac 1 *}) *)
+(* by (tactic {* linear_arith_tac 1 *}) *)
 oops
 
 lemma "2 * (x::nat) ~= 1"

@@ -439,12 +439,7 @@ oracle linzqe_oracle = Coopereif.cooper_oracle
 
 use "Tools/Qelim/presburger.ML"
 
-declaration {* fn _ =>
-  arith_tactic_add
-    (mk_arith_tactic "presburger" (fn ctxt => fn i => fn st =>
-       (warning "Trying Presburger arithmetic ...";   
-    Presburger.cooper_tac true [] [] ctxt i st)))
-*}
+setup {* Arith_Data.add_tactic "Presburger arithmetic" (K (Presburger.cooper_tac true [] [])) *}
 
 method_setup presburger = {*
 let
