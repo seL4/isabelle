@@ -1,12 +1,11 @@
 (*  Title:      Formal_Power_Series.thy
-    ID:
     Author:     Amine Chaieb, University of Cambridge
 *)
 
 header{* A formalization of formal power series *}
 
 theory Formal_Power_Series
-  imports Main Fact Parity
+imports Main Fact Parity
 begin
 
 subsection {* The type of formal power series*}

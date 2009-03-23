@@ -5,11 +5,8 @@
 header {* Definition of finite Cartesian product types. *}
 
 theory Finite_Cartesian_Product
-  (* imports Plain SetInterval ATP_Linkup *)
-imports Main
+imports Main (*FIXME: ATP_Linkup is only needed for metis at a few places. We could dispense of that by changing the proofs.*)
 begin
-
-  (* FIXME : ATP_Linkup is only needed for metis at a few places. We could dispense of that by changing the proofs*)
 
 definition hassize (infixr "hassize" 12) where
   "(S hassize n) = (finite S \<and> card S = n)"
