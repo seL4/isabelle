@@ -1148,4 +1148,9 @@ proof -
   with j show ?thesis by blast
 qed
 
+lemma nat_dvd_not_less:
+  fixes m n :: nat
+  shows "0 < m \<Longrightarrow> m < n \<Longrightarrow> \<not> n dvd m"
+by (auto elim!: dvdE) (auto simp add: gr0_conv_Suc)
+
 end
