@@ -1,2 +1,2 @@
 
-use_thy "Imperative_HOL";
+use_thy "Imperative_HOL_ex";
