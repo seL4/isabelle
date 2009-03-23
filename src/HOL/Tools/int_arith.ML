@@ -530,7 +530,7 @@ val int_numeral_base_simprocs = Int_Numeral_Simprocs.assoc_fold_simproc :: zero_
   :: Int_Numeral_Simprocs.cancel_numerals;
 
 val setup =
-  LinArith.map_data (fn {add_mono_thms, mult_mono_thms, inj_thms, lessD, neqE, simpset} =>
+  Lin_Arith.map_data (fn {add_mono_thms, mult_mono_thms, inj_thms, lessD, neqE, simpset} =>
    {add_mono_thms = add_mono_thms,
     mult_mono_thms = @{thm mult_strict_left_mono} :: @{thm mult_left_mono} :: mult_mono_thms,
     inj_thms = nat_inj_thms @ inj_thms,
@@ -547,7 +547,7 @@ val fast_int_arith_simproc =
   "fast_int_arith" 
      ["(m::'a::{ordered_idom,number_ring}) < n",
       "(m::'a::{ordered_idom,number_ring}) <= n",
-      "(m::'a::{ordered_idom,number_ring}) = n"] (K LinArith.lin_arith_simproc);
+      "(m::'a::{ordered_idom,number_ring}) = n"] (K Lin_Arith.lin_arith_simproc);
 
 end;
 

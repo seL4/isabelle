@@ -651,7 +651,7 @@ ML
 val numeral_ss = @{simpset} addsimps @{thms numerals};
 
 val nat_bin_arith_setup =
- LinArith.map_data
+ Lin_Arith.map_data
    (fn {add_mono_thms, mult_mono_thms, inj_thms, lessD, neqE, simpset} =>
      {add_mono_thms = add_mono_thms, mult_mono_thms = mult_mono_thms,
       inj_thms = inj_thms,
