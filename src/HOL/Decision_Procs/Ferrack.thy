@@ -1995,6 +1995,8 @@ definition ferrack_test :: "unit \<Rightarrow> fm" where
   "ferrack_test u = linrqe (A (A (Imp (Lt (Sub (Bound 1) (Bound 0)))
     (E (Eq (Sub (Add (Bound 0) (Bound 2)) (Bound 1)))))))"
 
+code_reserved SML oo
+
 ML {* @{code ferrack_test} () *}
 
 oracle linr_oracle = {*

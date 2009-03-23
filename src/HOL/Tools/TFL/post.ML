@@ -55,7 +55,7 @@ fun std_postprocessor strict cs ss wfs =
   Prim.postprocess strict
    {wf_tac     = REPEAT (ares_tac wfs 1),
     terminator = asm_simp_tac ss 1
-                 THEN TRY (silent_arith_tac (Simplifier.the_context ss) 1 ORELSE
+                 THEN TRY (Arith_Data.arith_tac (Simplifier.the_context ss) 1 ORELSE
                            fast_tac (cs addSDs [@{thm not0_implies_Suc}] addss ss) 1),
     simplifier = Rules.simpl_conv ss []};
 

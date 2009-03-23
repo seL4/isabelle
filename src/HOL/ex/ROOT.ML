@@ -21,7 +21,6 @@ no_document use_thys [
 
 use_thys [
   "Numeral",
-  "ImperativeQuicksort",
   "Higher_Order_Logic",
   "Abstract_NAT",
   "Guess",

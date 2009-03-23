@@ -466,7 +466,7 @@ fun mkthm ss asms (just: injust) =
                      NONE => ( the (try_add ([thm2] RL inj_thms) thm1)
                                handle Option =>
                                (trace_thm "" thm1; trace_thm "" thm2;
-                                sys_error "Lin.arith. failed to add thms")
+                                sys_error "Linear arithmetic: failed to add thms")
                              )
                    | SOME thm => thm)
         | SOME thm => thm;
@@ -588,8 +588,8 @@ fun trace_ex ctxt params atoms discr n (hist: history) =
           handle NoEx => NONE
       in
         case ex of
-          SOME s => (warning "arith failed - see trace for a counterexample"; tracing s)
-        | NONE => warning "arith failed"
+          SOME s => (warning "Linear arithmetic failed - see trace for a counterexample."; tracing s)
+        | NONE => warning "Linear arithmetic failed"
       end;
 
 (* ------------------------------------------------------------------------- *)

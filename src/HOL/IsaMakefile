@@ -649,7 +649,11 @@ HOL-Imperative_HOL: HOL $(LOG)/HOL-Imperative_HOL.gz
 $(LOG)/HOL-Imperative_HOL.gz: $(OUT)/HOL Imperative_HOL/Heap.thy \
   Imperative_HOL/Heap_Monad.thy Imperative_HOL/Array.thy \
   Imperative_HOL/Relational.thy \
-  Imperative_HOL/Ref.thy Imperative_HOL/Imperative_HOL.thy
+  Imperative_HOL/Ref.thy Imperative_HOL/Imperative_HOL.thy \
+  Imperative_HOL/Imperative_HOL_ex.thy \
+  Imperative_HOL/ex/Imperative_Quicksort.thy \
+  Imperative_HOL/ex/Subarray.thy \
+  Imperative_HOL/ex/Sublist.thy
 	@$(ISABELLE_TOOL) usedir $(OUT)/HOL Imperative_HOL
 
 
@@ -836,7 +840,7 @@ $(LOG)/HOL-ex.gz: $(OUT)/HOL Library/Commutative_Ring.thy		\
   ex/Formal_Power_Series_Examples.thy ex/Fundefs.thy			\
   ex/Groebner_Examples.thy ex/Guess.thy ex/HarmonicSeries.thy		\
   ex/Hebrew.thy ex/Hex_Bin_Examples.thy ex/Higher_Order_Logic.thy	\
-  ex/Hilbert_Classical.thy ex/ImperativeQuicksort.thy			\
+  ex/Hilbert_Classical.thy			\
   ex/Induction_Scheme.thy ex/InductiveInvariant.thy			\
   ex/InductiveInvariant_examples.thy ex/Intuitionistic.thy		\
   ex/Lagrange.thy ex/LocaleTest2.thy ex/MT.thy ex/MergeSort.thy		\
@@ -845,8 +849,8 @@ $(LOG)/HOL-ex.gz: $(OUT)/HOL Library/Commutative_Ring.thy		\
   ex/Quickcheck_Examples.thy ex/Quickcheck_Generators.thy ex/ROOT.ML	\
   ex/Recdefs.thy ex/Records.thy ex/ReflectionEx.thy			\
   ex/Refute_Examples.thy ex/SAT_Examples.thy ex/SVC_Oracle.thy		\
-  ex/Serbian.thy ex/Sqrt.thy ex/Sqrt_Script.thy ex/Subarray.thy		\
-  ex/Sublist.thy ex/Sudoku.thy ex/Tarski.thy ex/Term_Of_Syntax.thy	\
+  ex/Serbian.thy ex/Sqrt.thy ex/Sqrt_Script.thy \
+  ex/Sudoku.thy ex/Tarski.thy ex/Term_Of_Syntax.thy	\
   ex/Termination.thy ex/Unification.thy ex/document/root.bib		\
   ex/document/root.tex ex/set.thy ex/svc_funcs.ML ex/svc_test.thy \
   ex/Predicate_Compile.thy ex/predicate_compile.ML

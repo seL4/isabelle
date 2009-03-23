@@ -218,7 +218,7 @@ fun norm_varnames thy purify_tvar purify_var thms =
     |> burrow_thms (canonical_tvars thy purify_tvar)
     |> map (canonical_vars thy purify_var)
     |> map (canonical_absvars purify_var)
-    |> map Drule.zero_var_indexes
+    |> Drule.zero_var_indexes_list
   end;
 
 

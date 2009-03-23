@@ -1,4 +1,6 @@
-theory ImperativeQuicksort
+(* Author: Lukas Bulwahn, TU Muenchen *)
+
+theory Imperative_Quicksort
 imports "~~/src/HOL/Imperative_HOL/Imperative_HOL" Subarray Multiset Efficient_Nat
 begin
 
