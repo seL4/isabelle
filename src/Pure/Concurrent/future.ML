@@ -212,7 +212,8 @@ fun scheduler_next () = (*requires SYNCHRONIZED*)
     val _ = if continue then () else scheduler := NONE;
 
     val _ = notify_all ();
-    val _ = interruptible (fn () => wait_timeout (Time.fromSeconds 1)) ()
+    val _ = interruptible (fn () =>
+        wait_timeout (Time.fromMilliseconds (if null (! canceled) then 1000 else 50))) ()
       handle Exn.Interrupt => List.app do_cancel (Task_Queue.cancel_all (! queue));
   in continue end;
 
