@@ -7,6 +7,7 @@ Minimal parsing for SML -- fixing integer numerals.
 signature ML_PARSE =
 sig
   val fix_ints: string -> string
+  val global_context: use_context
 end;
 
 structure ML_Parse: ML_PARSE =
@@ -61,5 +62,15 @@ fun do_fix_ints s =
   |> implode;
 
 val fix_ints = if ml_system_fix_ints then do_fix_ints else I;
+
+
+(* global use_context *)
+
+val global_context: use_context =
+ {tune_source = fix_ints,
+  name_space = ML_Name_Space.global,
+  str_of_pos = Position.str_of oo Position.line_file,
+  print = writeln,
+  error = error};
 
 end;

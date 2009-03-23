@@ -46,6 +46,7 @@ use "ML-Systems/multithreading.ML";
 use "ML-Systems/time_limit.ML";
 use "ML-Systems/ml_name_space.ML";
 use "ML-Systems/ml_pretty.ML";
+use "ML-Systems/use_context.ML";
 
 
 (*low-level pointer equality*)
@@ -120,7 +121,7 @@ in
 end;
 
 (*dummy implementation*)
-fun toplevel_pp _ _ _ _ _ = ();
+fun toplevel_pp _ _ _ = ();
 
 (*dummy implementation*)
 fun ml_prompts p1 p2 = ();
@@ -185,18 +186,18 @@ end;
 (* ML command execution *)
 
 (*Can one redirect 'use' directly to an instream?*)
-fun use_text (tune: string -> string) _ _ _ _ _ txt =
+fun use_text ({tune_source, ...}: use_context) _ _ txt =
   let
     val tmp_name = FileSys.tmpName ();
     val tmp_file = TextIO.openOut tmp_name;
   in
-    TextIO.output (tmp_file, tune txt);
+    TextIO.output (tmp_file, tune_source txt);
     TextIO.closeOut tmp_file;
     use tmp_name;
     FileSys.remove tmp_name
   end;
 
-fun use_file _ _ _ _ _ name = use name;
+fun use_file _ _ name = use name;
 
 
 

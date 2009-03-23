@@ -20,7 +20,8 @@ sig
   val the_local_context: unit -> Proof.context
   val exec: (unit -> unit) -> Context.generic -> Context.generic
   val inherit_env: Context.generic -> Context.generic -> Context.generic
-  val name_space: ML_NameSpace.nameSpace
+  val name_space: ML_Name_Space.T
+  val local_context: use_context
   val stored_thms: thm list ref
   val ml_store_thm: string * thm -> unit
   val ml_store_thms: string * thm list -> unit
@@ -31,13 +32,10 @@ sig
   val trace: bool ref
   val eval_antiquotes: ML_Lex.token Antiquote.antiquote list * Position.T ->
     Context.generic option -> (ML_Lex.token list * ML_Lex.token list) * Context.generic option
-  val eval_wrapper: (string -> unit) * (string -> 'a) -> bool ->
-    Position.T -> Symbol_Pos.text -> unit
   val eval: bool -> Position.T -> Symbol_Pos.text -> unit
   val eval_file: Path.T -> unit
   val eval_in: Proof.context option -> bool -> Position.T -> Symbol_Pos.text -> unit
-  val evaluate: Proof.context -> (string -> unit) * (string -> 'b) -> bool ->
-    string * (unit -> 'a) option ref -> string -> 'a
+  val evaluate: Proof.context -> bool -> string * (unit -> 'a) option ref -> string -> 'a
   val expression: Position.T -> string -> string -> string -> Context.generic -> Context.generic
 end
 
@@ -61,12 +59,12 @@ fun exec (e: unit -> unit) context =
 structure ML_Env = GenericDataFun
 (
   type T =
-    ML_NameSpace.valueVal Symtab.table *
-    ML_NameSpace.typeVal Symtab.table *
-    ML_NameSpace.fixityVal Symtab.table *
-    ML_NameSpace.structureVal Symtab.table *
-    ML_NameSpace.signatureVal Symtab.table *
-    ML_NameSpace.functorVal Symtab.table;
+    ML_Name_Space.valueVal Symtab.table *
+    ML_Name_Space.typeVal Symtab.table *
+    ML_Name_Space.fixityVal Symtab.table *
+    ML_Name_Space.structureVal Symtab.table *
+    ML_Name_Space.signatureVal Symtab.table *
+    ML_Name_Space.functorVal Symtab.table;
   val empty = (Symtab.empty, Symtab.empty, Symtab.empty, Symtab.empty, Symtab.empty, Symtab.empty);
   val extend = I;
   fun merge _
@@ -82,23 +80,23 @@ structure ML_Env = GenericDataFun
 
 val inherit_env = ML_Env.put o ML_Env.get;
 
-val name_space: ML_NameSpace.nameSpace =
+val name_space: ML_Name_Space.T =
   let
     fun lookup sel1 sel2 name =
       Context.thread_data ()
       |> (fn NONE => NONE | SOME context => Symtab.lookup (sel1 (ML_Env.get context)) name)
-      |> (fn NONE => sel2 ML_NameSpace.global name | some => some);
+      |> (fn NONE => sel2 ML_Name_Space.global name | some => some);
 
     fun all sel1 sel2 () =
       Context.thread_data ()
       |> (fn NONE => [] | SOME context => Symtab.dest (sel1 (ML_Env.get context)))
-      |> append (sel2 ML_NameSpace.global ())
+      |> append (sel2 ML_Name_Space.global ())
       |> sort_distinct (string_ord o pairself #1);
 
     fun enter ap1 sel2 entry =
       if is_some (Context.thread_data ()) then
         Context.>> (ML_Env.map (ap1 (Symtab.update entry)))
-      else sel2 ML_NameSpace.global entry;
+      else sel2 ML_Name_Space.global entry;
   in
    {lookupVal    = lookup #1 #lookupVal,
     lookupType   = lookup #2 #lookupType,
@@ -120,6 +118,13 @@ val name_space: ML_NameSpace.nameSpace =
     allFunct     = all #6 #allFunct}
   end;
 
+val local_context: use_context =
+ {tune_source = ML_Parse.fix_ints,
+  name_space = name_space,
+  str_of_pos = Position.str_of oo Position.line_file,
+  print = writeln,
+  error = error};
+
 
 (* theorem bindings *)
 
@@ -134,7 +139,7 @@ fun ml_store sel (name, ths) =
       else if not (ML_Syntax.is_identifier name) then
         error ("Cannot bind theorem(s) " ^ quote name ^ " as ML value")
       else setmp stored_thms ths' (fn () =>
-        use_text name_space (0, "") Output.ml_output true
+        use_text local_context (0, "") true
           ("val " ^ name ^ " = " ^ sel ^ "(! ML_Context.stored_thms);")) ();
   in () end;
 
@@ -233,10 +238,10 @@ fun eval_antiquotes (ants, pos) opt_context =
 
 val trace = ref false;
 
-fun eval_wrapper pr verbose pos txt =
+fun eval verbose pos txt =
   let
-    fun eval_raw p = use_text name_space
-      (the_default 1 (Position.line_of p), the_default "ML" (Position.file_of p)) pr;
+    fun eval_raw p = use_text local_context
+      (the_default 1 (Position.line_of p), the_default "ML" (Position.file_of p));
 
     (*prepare source text*)
     val _ = Position.report Markup.ML_source pos;
@@ -260,20 +265,18 @@ fun eval_wrapper pr verbose pos txt =
 end;
 
 
-(* ML evaluation *)
+(* derived versions *)
 
-val eval = eval_wrapper Output.ml_output;
 fun eval_file path = eval true (Path.position path) (File.read path);
 
 fun eval_in ctxt verbose pos txt =
   Context.setmp_thread_data (Option.map Context.Proof ctxt) (fn () => eval verbose pos txt) ();
 
-fun evaluate ctxt pr verbose (ref_name, r) txt = NAMED_CRITICAL "ML" (fn () =>
+fun evaluate ctxt verbose (ref_name, r) txt = NAMED_CRITICAL "ML" (fn () =>
   let
     val _ = r := NONE;
     val _ = Context.setmp_thread_data (SOME (Context.Proof ctxt)) (fn () =>
-      eval_wrapper pr verbose Position.none
-        ("val _ = (" ^ ref_name ^ " := SOME (fn () => " ^ txt ^ "))")) ();
+      eval verbose Position.none ("val _ = (" ^ ref_name ^ " := SOME (fn () => " ^ txt ^ "))")) ();
   in (case ! r of NONE => error ("Bad evaluation for " ^ ref_name) | SOME e => e) end) ();
 
 fun expression pos bind body txt =

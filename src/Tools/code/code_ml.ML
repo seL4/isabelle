@@ -969,7 +969,7 @@ fun eval eval'' term_of reff thy ct args =
         val (value_code, [SOME value_name']) = ml_code_of thy naming program' [value_name];
         val sml_code = "let\n" ^ value_code ^ "\nin " ^ value_name'
           ^ space_implode " " (map (enclose "(" ")") args) ^ " end";
-      in ML_Context.evaluate ctxt Output.ml_output false reff sml_code end;
+      in ML_Context.evaluate ctxt false reff sml_code end;
   in eval'' thy (rpair eval') ct end;
 
 fun eval_term reff = eval Code_Thingol.eval_term I reff;

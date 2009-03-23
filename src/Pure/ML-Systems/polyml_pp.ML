@@ -14,7 +14,7 @@ fun ml_pprint (print, begin_blk, brk, end_blk) =
       | pprint (ML_Pretty.Break (true, _)) = brk (99999, 0);
   in pprint end;
 
-fun toplevel_pp tune str_of_pos output (_: string list) pp =
-  use_text tune str_of_pos ML_NameSpace.global (1, "pp") output false
+fun toplevel_pp context (_: string list) pp =
+  use_text context (1, "pp") false
     ("install_pp (fn args => fn _ => fn _ => ml_pprint args o Pretty.to_ML o (" ^ pp ^ "))");
 
