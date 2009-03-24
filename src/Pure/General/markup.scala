@@ -91,6 +91,10 @@ object Markup {
   val ML_COMMENT = "ML_comment"
   val ML_MALFORMED = "ML_malformed"
 
+  val ML_DEF = "ML_def"
+  val ML_REF = "ML_ref"
+  val ML_TYPING = "ML_typing"
+
 
   /* outer syntax */
 
