@@ -60,7 +60,6 @@ signature BASIC_THM =
   val theory_of_thm: thm -> theory
   val prop_of: thm -> term
   val tpairs_of: thm -> (term * term) list
-  val status_of: thm -> {oracle: bool, unfinished: bool, failed: bool}
   val concl_of: thm -> term
   val prems_of: thm -> term list
   val nprems_of: thm -> int
@@ -145,6 +144,7 @@ sig
   val freezeT: thm -> thm
   val future: thm future -> cterm -> thm
   val pending_groups: thm -> Task_Queue.group list -> Task_Queue.group list
+  val status_of: thm -> {oracle: bool, unfinished: bool, failed: bool}
   val proof_body_of: thm -> proof_body
   val proof_of: thm -> proof
   val join_proof: thm -> unit
@@ -400,7 +400,6 @@ fun maxidx_thm th i = Int.max (maxidx_of th, i);
 val hyps_of = #hyps o rep_thm;
 val prop_of = #prop o rep_thm;
 val tpairs_of = #tpairs o rep_thm;
-fun status_of (Thm (Deriv {body, ...}, _)) = Pt.status_of body;
 
 val concl_of = Logic.strip_imp_concl o prop_of;
 val prems_of = Logic.strip_imp_prems o prop_of;
@@ -1637,15 +1636,28 @@ fun future future_thm ct =
   end;
 
 
-(* pending task groups *)
+(* derivation status *)
+
+fun raw_proof_body_of (Thm (Deriv {body, ...}, _)) = body;
+val raw_proof_of = Proofterm.proof_of o raw_proof_body_of;
 
 fun pending_groups (Thm (Deriv {open_promises, ...}, _)) =
   fold (insert Task_Queue.eq_group o Future.group_of o #2) open_promises;
 
+fun status_of (Thm (Deriv {promises, body, ...}, _)) =
+  let
+    val ps = map (Future.peek o snd) promises;
+    val bodies = body ::
+      map_filter (fn SOME (Exn.Result th) => SOME (raw_proof_body_of th) | _ => NONE) ps;
+    val {oracle, unfinished, failed} = Pt.status_of bodies;
+  in
+   {oracle = oracle,
+    unfinished = unfinished orelse exists is_none ps,
+    failed = failed orelse exists (fn SOME (Exn.Exn _) => true | _ => false) ps}
+  end;
+
 
 (* fulfilled proofs *)
-
-fun raw_proof_of (Thm (Deriv {body, ...}, _)) = Proofterm.proof_of body;
 
 fun proof_body_of (Thm (Deriv {open_promises, promises, body, ...}, {thy_ref, ...})) =
   let
