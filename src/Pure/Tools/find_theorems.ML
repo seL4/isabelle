@@ -336,7 +336,9 @@ val limit = ref 40;
 
 fun find_theorems ctxt opt_goal rem_dups raw_criteria =
   let
-    val add_prems = Seq.hd o (TRY (Method.insert_tac (Assumption.all_prems_of ctxt) 1));
+    val assms = ProofContext.get_fact ctxt (Facts.named "local.assms")
+                handle ERROR _ => [];
+    val add_prems = Seq.hd o (TRY (Method.insert_tac assms 1));
     val opt_goal' = Option.map add_prems opt_goal;
 
     val criteria = map (apsnd (read_criterion ctxt)) raw_criteria;
