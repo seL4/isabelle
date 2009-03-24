@@ -60,6 +60,7 @@ signature BASIC_THM =
   val theory_of_thm: thm -> theory
   val prop_of: thm -> term
   val tpairs_of: thm -> (term * term) list
+  val status_of: thm -> {oracle: bool, unfinished: bool, failed: bool}
   val concl_of: thm -> term
   val prems_of: thm -> term list
   val nprems_of: thm -> int
@@ -399,6 +400,7 @@ fun maxidx_thm th i = Int.max (maxidx_of th, i);
 val hyps_of = #hyps o rep_thm;
 val prop_of = #prop o rep_thm;
 val tpairs_of = #tpairs o rep_thm;
+fun status_of (Thm (Deriv {body, ...}, _)) = Pt.status_of body;
 
 val concl_of = Logic.strip_imp_concl o prop_of;
 val prems_of = Logic.strip_imp_prems o prop_of;

@@ -57,6 +57,18 @@ val pretty_tags = Pretty.list "[" "]" o map pretty_tag;
 fun pretty_flexpair pp (t, u) = Pretty.block
   [Pretty.term pp t, Pretty.str " =?=", Pretty.brk 1, Pretty.term pp u];
 
+fun display_status th =
+  let
+    val {oracle = oracle0, unfinished, failed} = Thm.status_of th;
+    val oracle = oracle0 andalso (not (! quick_and_dirty) orelse ! show_hyps);
+  in
+    if failed then "!!"
+    else if oracle andalso unfinished then "!?"
+    else if oracle then "!"
+    else if unfinished then "?"
+    else ""
+  end;
+
 fun pretty_thm_aux pp quote show_hyps' asms raw_th =
   let
     val th = Thm.strip_shyps raw_th;
@@ -68,20 +80,17 @@ fun pretty_thm_aux pp quote show_hyps' asms raw_th =
     val prt_term = q o Pretty.term pp;
 
     val hyps' = if ! show_hyps then hyps else subtract (op aconv) asms hyps;
-(* FIXME
-    val ora' = Thm.oracle_of th andalso (! show_hyps orelse not (! quick_and_dirty)); *)
-    val ora' = false;
+    val status = display_status th;
 
     val hlen = length xshyps + length hyps' + length tpairs;
     val hsymbs =
-      if hlen = 0 andalso not ora' then []
+      if hlen = 0 andalso status = "" then []
       else if ! show_hyps orelse show_hyps' then
         [Pretty.brk 2, Pretty.list "[" "]"
           (map (q o pretty_flexpair pp) tpairs @ map prt_term hyps' @
            map (Pretty.sort pp) xshyps @
-            (if ora' then [Pretty.str "!"] else []))]
-      else [Pretty.brk 2, Pretty.str ("[" ^ implode (replicate hlen ".") ^
-        (if ora' then "!" else "") ^ "]")];
+            (if status = "" then [] else [Pretty.str status]))]
+      else [Pretty.brk 2, Pretty.str ("[" ^ implode (replicate hlen ".") ^ status ^ "]")];
     val tsymbs =
       if null tags orelse not (! show_tags) then []
       else [Pretty.brk 1, pretty_tags tags];

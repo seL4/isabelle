@@ -40,8 +40,9 @@ sig
     {oracles: oracle OrdList.T, thms: pthm OrdList.T, proof: proof}
   val join_proof: proof_body future -> proof
   val proof_of: proof_body -> proof
-  val fold_body_thms: (string * term * proof_body -> 'a -> 'a) -> proof_body list -> 'a -> 'a
   val fold_proof_atoms: bool -> (proof -> 'a -> 'a) -> proof list -> 'a -> 'a
+  val fold_body_thms: (string * term * proof_body -> 'a -> 'a) -> proof_body list -> 'a -> 'a
+  val status_of: proof_body -> {failed: bool, oracle: bool, unfinished: bool}
 
   val oracle_ord: oracle * oracle -> order
   val thm_ord: pthm * pthm -> order
@@ -159,17 +160,6 @@ fun proof_of (PBody {proof, ...}) = proof;
 
 (***** proof atoms *****)
 
-fun fold_body_thms f =
-  let
-    fun app (PBody {thms, ...}) = thms |> fold (fn (i, (name, prop, body)) => fn (x, seen) =>
-      if Inttab.defined seen i then (x, seen)
-      else
-        let
-          val body' = Future.join body;
-          val (x', seen') = app body' (x, Inttab.update (i, ()) seen);
-        in (f (name, prop, body') x', seen') end);
-  in fn bodies => fn x => #1 (fold app bodies (x, Inttab.empty)) end;
-
 fun fold_proof_atoms all f =
   let
     fun app (Abst (_, _, prf)) = app prf
@@ -184,6 +174,39 @@ fun fold_proof_atoms all f =
             in (f prf x', seen') end)
       | app prf = (fn (x, seen) => (f prf x, seen));
   in fn prfs => fn x => #1 (fold app prfs (x, Inttab.empty)) end;
+
+fun fold_body_thms f =
+  let
+    fun app (PBody {thms, ...}) = thms |> fold (fn (i, (name, prop, body)) => fn (x, seen) =>
+      if Inttab.defined seen i then (x, seen)
+      else
+        let
+          val body' = Future.join body;
+          val (x', seen') = app body' (x, Inttab.update (i, ()) seen);
+        in (f (name, prop, body') x', seen') end);
+  in fn bodies => fn x => #1 (fold app bodies (x, Inttab.empty)) end;
+
+fun status_of proof_body =
+  let
+    fun status (PBody {oracles, thms, ...}) x =
+      let
+        val ((oracle, unfinished, failed), seen) =
+          (thms, x) |-> fold (fn (i, (_, _, body)) => fn (st, seen) =>
+            if Inttab.defined seen i then (st, seen)
+            else
+              let val seen' = Inttab.update (i, ()) seen in
+                (case Future.peek body of
+                  SOME (Exn.Result body') => status body' (st, seen')
+                | SOME (Exn.Exn _) =>
+                    let val (oracle, unfinished, _) = st
+                    in ((oracle, unfinished, true), seen') end
+                | NONE =>
+                    let val (oracle, _, failed) = st
+                    in ((oracle, true, failed), seen') end)
+              end);
+      in ((oracle orelse not (null oracles), unfinished, failed), seen) end;
+    val (oracle, unfinished, failed) = #1 (status proof_body ((false, false, false), Inttab.empty));
+  in {oracle = oracle, unfinished = unfinished, failed = failed} end;
 
 
 (* proof body *)
