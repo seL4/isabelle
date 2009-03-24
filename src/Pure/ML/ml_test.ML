@@ -6,63 +6,92 @@ Test of advanced ML compiler invocation in Poly/ML 5.3.
 
 signature ML_TEST =
 sig
-  val get_result: Proof.context -> PolyML.parseTree list
   val eval: bool -> Position.T -> ML_Lex.token list -> unit
 end
 
 structure ML_Test: ML_TEST =
 struct
 
-(* eval ML source tokens *)
+(* extra ML environment *)
 
-structure Result = GenericDataFun
+structure Extra_Env = GenericDataFun
 (
-  type T = PolyML.parseTree list;
-  val empty = [];
-  fun extend _ = [];
-  fun merge _ _ = [];
+  type T = Position.T Inttab.table;  (*position of registered tokens*)
+  val empty = Inttab.empty;
+  val extend = I;
+  fun merge _ = Inttab.merge (K true);
 );
 
-val get_result = Result.get o Context.Proof;
+fun inherit_env context =
+  ML_Context.inherit_env context #>
+  Extra_Env.put (Extra_Env.get context);
 
+fun register_tokens toks context =
+  let
+    val regs = map (fn tok => (serial (), tok)) toks;
+    val context' = context
+      |> Extra_Env.map (fold (fn (i, tok) => Inttab.update (i, ML_Lex.pos_of tok)) regs);
+  in (regs, context') end;
+
+fun pos_of_location context
+    ({file, startLine = line, startPosition = i, endPosition = j, ...}: location) =
+  (case pairself (Inttab.lookup (Extra_Env.get context)) (i, j) of
+    (SOME pos1, SOME pos2) => Position.encode_range (pos1, pos2)
+  | (SOME pos, NONE) => pos
+  | _ => Position.line_file line file);
+
+
+(* parse trees *)
+
+fun report_parse_tree context =
+  let
+    val pos_of = pos_of_location context;
+    fun report loc (PTtype types) =  (* FIXME body text *)
+          Position.report Markup.ML_typing (pos_of loc)
+      | report loc (PTdeclaredAt decl) =
+          Markup.markup (Markup.properties (Position.properties_of (pos_of decl)) Markup.ML_def) ""
+          |> Position.report_text Markup.ML_ref (pos_of loc)
+      | report _ (PTnextSibling tree) = report_tree (tree ())
+      | report _ (PTfirstChild tree) = report_tree (tree ())
+      | report _ _ = ()
+    and report_tree (loc, props) = List.app (report loc) props;
+  in report_tree end;
+
+
+(* eval ML source tokens *)
 
 fun use_text ({name_space = space, print, error, ...}: use_context) verbose pos toks =
   let
     (* input *)
 
-    val input = toks |> map (fn tok =>
-      (serial (), (String.explode (ML_Lex.text_of tok), ML_Lex.pos_of tok)));
-    val index_pos = Inttab.lookup (Inttab.make (map (apsnd snd) input));
+    val input = Context.>>> (register_tokens toks);
+    val input_buffer = ref (map (apsnd (String.explode o ML_Lex.text_of)) input);
 
-    fun pos_of ({file, startLine = line, startPosition = i, endPosition = j, ...}: location) =
-      (case (index_pos i, index_pos j) of
-        (SOME p, SOME q) => Position.encode_range (p, q)
-      | (SOME p, NONE) => p
-      | _ => Position.line_file line file);
-
-    val in_buffer = ref (map (apsnd fst) input);
     val current_line = ref (the_default 1 (Position.line_of pos));
+
+    fun get_index () =
+      the_default 0 (get_first (fn (_, []) => NONE | (i, _) => SOME i) (! input_buffer));
+
     fun get () =
-      (case ! in_buffer of
+      (case ! input_buffer of
         [] => NONE
-      | (_, []) :: rest => (in_buffer := rest; get ())
+      | (_, []) :: rest => (input_buffer := rest; get ())
       | (i, c :: cs) :: rest =>
-          (in_buffer := (i, cs) :: rest;
+          (input_buffer := (i, cs) :: rest;
            if c = #"\n" then current_line := ! current_line + 1 else ();
            SOME c));
-    fun get_index () = (case ! in_buffer of [] => 0 | (i, _) :: _ => i);
 
 
     (* output *)
 
-    val out_buffer = ref ([]: string list);
-    fun output () = implode (rev (! out_buffer));
-    fun put s = out_buffer := s :: ! out_buffer;
+    val output_buffer = ref Buffer.empty;
+    fun output () = Buffer.content (! output_buffer);
+    fun put s = change output_buffer (Buffer.add s);
 
     fun put_message {message, hard, location, context = _} =
      (put (if hard then "Error: " else "Warning: ");
       put (Pretty.string_of (Pretty.from_ML (pretty_ml message)));
-      put (Position.str_of (pos_of location) ^ "\n"));
+      put (Position.str_of (pos_of_location (the (Context.thread_data ())) location) ^ "\n"));
 
 
     (* results *)
@@ -112,9 +141,11 @@ fun use_text ({name_space = space, print, error, ...}: use_context) verbose pos 
         List.app apply_val values
       end;
 
-    fun result_fun (parse_tree, code) () =
-     (Context.>> (Result.map (append (the_list parse_tree)));
-      (case code of NONE => error "Static Errors" | SOME result => apply_result (result ())));
+    fun result_fun (phase1, phase2) () =
+     (case phase1 of NONE => ()
+      | SOME parse_tree => report_parse_tree (the (Context.thread_data ())) parse_tree;
+      case phase2 of NONE => error "Static Errors"
+      | SOME code => apply_result (Toplevel.program code));
 
 
     (* compiler invocation *)
@@ -124,12 +155,11 @@ fun use_text ({name_space = space, print, error, ...}: use_context) verbose pos 
       PolyML.Compiler.CPNameSpace space,
       PolyML.Compiler.CPErrorMessageProc put_message,
       PolyML.Compiler.CPLineNo (fn () => ! current_line),
-      PolyML.Compiler.CPLineOffset get_index,
       PolyML.Compiler.CPFileName (the_default "ML" (Position.file_of pos)),
-      PolyML.Compiler.CPPrintInAlphabeticalOrder false,
+      PolyML.Compiler.CPLineOffset get_index,
       PolyML.Compiler.CPCompilerResultFun result_fun];
     val _ =
-      (while not (List.null (! in_buffer)) do
+      (while not (List.null (! input_buffer)) do
         PolyML.compiler (get, parameters) ())
       handle exn =>
        (put ("Exception- " ^ General.exnMessage exn ^ " raised");
@@ -149,7 +179,7 @@ fun ML_test (txt, pos) =
 
     val _ = Context.setmp_thread_data env_ctxt
         (fn () => (eval false Position.none env; Context.thread_data ())) ()
-      |> (fn NONE => () | SOME context' => Context.>> (ML_Context.inherit_env context'));
+      |> (fn NONE => () | SOME context' => Context.>> (inherit_env context'));
     val _ = eval true pos body;
     val _ = eval false Position.none (ML_Lex.tokenize "structure Isabelle = struct end");
   in () end;
@@ -157,14 +187,14 @@ fun ML_test (txt, pos) =
 
 local structure P = OuterParse and K = OuterKeyword in
 
-fun inherit_env (context as Context.Proof lthy) =
-      Context.Proof (LocalTheory.map_contexts (ML_Context.inherit_env context) lthy)
-  | inherit_env context = context;
+fun propagate_env (context as Context.Proof lthy) =
+      Context.Proof (LocalTheory.map_contexts (inherit_env context) lthy)
+  | propagate_env context = context;
 
 val _ =
   OuterSyntax.command "ML_test" "advanced ML compiler test" (K.tag_ml K.thy_decl)
     (P.ML_source >> (fn src =>
-      Toplevel.generic_theory (ML_Context.exec (fn () => ML_test src) #> inherit_env)));
+      Toplevel.generic_theory (ML_Context.exec (fn () => ML_test src) #> propagate_env)));
 
 end;
 

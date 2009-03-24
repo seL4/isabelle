@@ -295,28 +295,28 @@ val _ =
 
 (* use ML text *)
 
-fun inherit_env (context as Context.Proof lthy) =
+fun propagate_env (context as Context.Proof lthy) =
       Context.Proof (LocalTheory.map_contexts (ML_Context.inherit_env context) lthy)
-  | inherit_env context = context;
+  | propagate_env context = context;
 
-fun inherit_env_prf prf = Proof.map_contexts
+fun propagate_env_prf prf = Proof.map_contexts
   (Context.proof_map (ML_Context.inherit_env (Context.Proof (Proof.context_of prf)))) prf;
 
 val _ =
   OuterSyntax.command "use" "ML text from file" (K.tag_ml K.thy_decl)
-    (P.path >> (fn path => Toplevel.generic_theory (ThyInfo.exec_file false path #> inherit_env)));
+    (P.path >> (fn path => Toplevel.generic_theory (ThyInfo.exec_file false path #> propagate_env)));
 
 val _ =
   OuterSyntax.command "ML" "ML text within theory or local theory" (K.tag_ml K.thy_decl)
     (P.ML_source >> (fn (txt, pos) =>
       Toplevel.generic_theory
-        (ML_Context.exec (fn () => ML_Context.eval true pos txt) #> inherit_env)));
+        (ML_Context.exec (fn () => ML_Context.eval true pos txt) #> propagate_env)));
 
 val _ =
   OuterSyntax.command "ML_prf" "ML text within proof" (K.tag_proof K.prf_decl)
     (P.ML_source >> (fn (txt, pos) =>
       Toplevel.proof (Proof.map_context (Context.proof_map
-        (ML_Context.exec (fn () => ML_Context.eval true pos txt))) #> inherit_env_prf)));
+        (ML_Context.exec (fn () => ML_Context.eval true pos txt))) #> propagate_env_prf)));
 
 val _ =
   OuterSyntax.command "ML_val" "diagnostic ML text" (K.tag_ml K.diag)
