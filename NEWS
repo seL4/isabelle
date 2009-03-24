@@ -330,6 +330,11 @@ avoiding strange error messages.
 * Simplifier: simproc for let expressions now unfolds if bound variable
 occurs at most once in let expression body.  INCOMPATIBILITY.
 
+* New attribute "arith" for facts that should always be used automaticaly
+by arithmetic. It is intended to be used locally in proofs, eg
+assumes [arith]: "x > 0"
+Global usage is discouraged because of possible performance impact.
+
 * New classes "top" and "bot" with corresponding operations "top" and "bot"
 in theory Orderings;  instantiation of class "complete_lattice" requires
 instantiation of classes "top" and "bot".  INCOMPATIBILITY.
