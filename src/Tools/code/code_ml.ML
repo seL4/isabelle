@@ -969,7 +969,7 @@ fun eval eval'' term_of reff thy ct args =
         val (value_code, [SOME value_name']) = ml_code_of thy naming program' [value_name];
         val sml_code = "let\n" ^ value_code ^ "\nin " ^ value_name'
           ^ space_implode " " (map (enclose "(" ")") args) ^ " end";
-      in ML_Context.evaluate ctxt Output.ml_output false reff sml_code end;
+      in ML_Context.evaluate ctxt false reff sml_code end;
   in eval'' thy (rpair eval') ct end;
 
 fun eval_term reff = eval Code_Thingol.eval_term I reff;
@@ -1037,7 +1037,7 @@ val _ = ML_Context.add_antiq "code" (fn _ => Args.term >> ml_code_antiq);
 fun isar_seri_sml module_name =
   Code_Target.parse_args (Scan.succeed ())
   #> (fn () => serialize_ml target_SML
-      (SOME (use_text ML_Context.name_space (1, "generated code") Output.ml_output false))
+      (SOME (use_text ML_Context.local_context (1, "generated code") false))
       pr_sml_module pr_sml_stmt module_name);
 
 fun isar_seri_ocaml module_name =

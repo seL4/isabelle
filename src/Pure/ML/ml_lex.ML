@@ -13,6 +13,7 @@ sig
   val stopper: token Scan.stopper
   val is_regular: token -> bool
   val is_improper: token -> bool
+  val set_range: Position.range -> token -> token
   val pos_of: token -> Position.T
   val kind_of: token -> token_kind
   val content_of: token -> string
@@ -41,6 +42,8 @@ datatype token = Token of Position.range * (token_kind * string);
 
 
 (* position *)
+
+fun set_range range (Token (_, x)) = Token (range, x);
 
 fun pos_of (Token ((pos, _), _)) = pos;
 fun end_pos_of (Token ((_, pos), _)) = pos;

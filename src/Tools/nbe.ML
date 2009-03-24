@@ -277,13 +277,11 @@ fun compile_eqnss _ gr raw_deps [] = []
       in
         s
         |> tracing (fn s => "\n--- code to be evaluated:\n" ^ s)
-        |> ML_Context.evaluate ctxt
-            (Output.tracing o enclose "\n---compiler echo:\n" "\n---\n",
-            Output.tracing o enclose "\n--- compiler echo (with error):\n" "\n---\n")
-            (!trace) univs_cookie
+        |> ML_Context.evaluate ctxt (!trace) univs_cookie
         |> (fn f => f deps_vals)
         |> (fn univs => cs ~~ univs)
       end;
+
 
 (* preparing function equations *)
 
