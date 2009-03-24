@@ -13,33 +13,32 @@ end;
 structure ML_Parse: ML_PARSE =
 struct
 
-structure T = ML_Lex;
-
-
 (** error handling **)
 
 fun !!! scan =
   let
     fun get_pos [] = " (past end-of-file!)"
-      | get_pos (tok :: _) = Position.str_of (T.pos_of tok);
+      | get_pos (tok :: _) = Position.str_of (ML_Lex.pos_of tok);
 
     fun err (toks, NONE) = "SML syntax error" ^ get_pos toks
       | err (toks, SOME msg) = "SML syntax error" ^ get_pos toks ^ ": " ^ msg;
   in Scan.!! err scan end;
 
 fun bad_input x =
-  (Scan.some (fn tok => (case T.kind_of tok of T.Error msg => SOME msg | _ => NONE)) :|--
+  (Scan.some (fn tok => (case ML_Lex.kind_of tok of ML_Lex.Error msg => SOME msg | _ => NONE)) :|--
     (fn msg => Scan.fail_with (K msg))) x;
 
 
 (** basic parsers **)
 
 fun $$$ x =
-  Scan.one (fn tok => T.kind_of tok = T.Keyword andalso T.content_of tok = x) >> T.content_of;
-val int = Scan.one (fn tok => T.kind_of tok = T.Int) >> T.content_of;
+  Scan.one (fn tok => ML_Lex.kind_of tok = ML_Lex.Keyword andalso ML_Lex.content_of tok = x)
+    >> ML_Lex.content_of;
 
-val regular = Scan.one T.is_regular >> T.content_of;
-val improper = Scan.one T.is_improper >> T.content_of;
+val int = Scan.one (fn tok => ML_Lex.kind_of tok = ML_Lex.Int) >> ML_Lex.content_of;
+
+val regular = Scan.one ML_Lex.is_regular >> ML_Lex.content_of;
+val improper = Scan.one ML_Lex.is_improper >> ML_Lex.content_of;
 
 val blanks = Scan.repeat improper >> implode;
 
@@ -56,8 +55,8 @@ val fix_int =
 
 fun do_fix_ints s =
   Source.of_string s
-  |> T.source
-  |> Source.source T.stopper (Scan.bulk (!!! fix_int)) NONE
+  |> ML_Lex.source
+  |> Source.source ML_Lex.stopper (Scan.bulk (!!! fix_int)) NONE
   |> Source.exhaust
   |> implode;
 
