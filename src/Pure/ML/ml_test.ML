@@ -43,11 +43,13 @@ fun pos_of_location context
 
 (* parse trees *)
 
-fun report_parse_tree context =
+fun report_parse_tree context depth =
   let
     val pos_of = pos_of_location context;
-    fun report loc (PTtype types) =  (* FIXME body text *)
-          Position.report Markup.ML_typing (pos_of loc)
+    fun report loc (PTtype types) =
+          PolyML.NameSpace.displayTypeExpression (types, depth)
+          |> pretty_ml |> Pretty.from_ML |> Pretty.string_of
+          |> Position.report_text Markup.ML_typing (pos_of loc)
       | report loc (PTdeclaredAt decl) =
           Markup.markup (Markup.properties (Position.properties_of (pos_of decl)) Markup.ML_def) ""
           |> Position.report_text Markup.ML_ref (pos_of loc)
@@ -96,6 +98,9 @@ fun use_text ({name_space = space, print, error, ...}: use_context) verbose pos 
 
     (* results *)
 
+    val depth = get_print_depth ();
+    val with_struct = ! PolyML.Compiler.printTypesWithStructureName;
+
     fun apply_result {fixes, types, signatures, structures, functors, values} =
       let
         fun add_prefix prefix (PrettyBlock (ind, consistent, context, prts)) =
@@ -109,9 +114,6 @@ fun use_text ({name_space = space, print, error, ...}: use_context) verbose pos 
           | add_prefix prefix (prt as PrettyString s) =
               if prefix = "" then prt else PrettyString (prefix ^ s)
           | add_prefix _ (prt as PrettyBreak _) = prt;
-
-        val depth = get_print_depth ();
-        val with_struct = ! PolyML.Compiler.printTypesWithStructureName;
 
         fun display disp x =
           if depth > 0 then
@@ -143,7 +145,7 @@ fun use_text ({name_space = space, print, error, ...}: use_context) verbose pos 
 
     fun result_fun (phase1, phase2) () =
      (case phase1 of NONE => ()
-      | SOME parse_tree => report_parse_tree (the (Context.thread_data ())) parse_tree;
+      | SOME parse_tree => report_parse_tree (the (Context.thread_data ())) depth parse_tree;
       case phase2 of NONE => error "Static Errors"
       | SOME code => apply_result (Toplevel.program code));
 
