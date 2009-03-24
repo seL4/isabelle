@@ -4,24 +4,15 @@ Extra toplevel pretty-printing for Poly/ML; experimental version for
 Poly/ML 5.3.
 *)
 
-local
-
-fun pretty_future depth (pretty: 'a * int -> pretty) (x: 'a future) =
+addPrettyPrinter (fn depth => fn pretty => fn x =>
   (case Future.peek x of
     NONE => PrettyString "<future>"
   | SOME (Exn.Exn _) => PrettyString "<failed>"
-  | SOME (Exn.Result y) => pretty (y, depth));
+  | SOME (Exn.Result y) => pretty (y, depth)));
 
-fun pretty_lazy depth (pretty: 'a * int -> pretty) (x: 'a lazy) =
+addPrettyPrinter (fn depth => fn pretty => fn x =>
   (case Lazy.peek x of
     NONE => PrettyString "<lazy>"
   | SOME (Exn.Exn _) => PrettyString "<failed>"
-  | SOME (Exn.Result y) => pretty (y, depth));
-
-in
-
-val _ = addPrettyPrinter pretty_future;
-val _ = addPrettyPrinter pretty_lazy;
-
-end;
+  | SOME (Exn.Result y) => pretty (y, depth)));
 
