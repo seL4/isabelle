@@ -47,7 +47,6 @@ sig
   val debugging: bool ref
   val no_warnings: ('a -> 'b) -> 'a -> 'b
   val debug: (unit -> string) -> unit
-  val ml_output: (string -> unit) * (string -> 'a)
   val accumulated_time: unit -> unit
 end;
 
@@ -101,7 +100,7 @@ val warning_fn = ref (std_output o suffix "\n" o prefix_lines "### ");
 val error_fn = ref (std_output o suffix "\n" o prefix_lines "*** ");
 val debug_fn = ref (std_output o suffix "\n" o prefix_lines "::: ");
 val prompt_fn = ref std_output;
-val status_fn = ref (fn s => ! writeln_fn s);
+val status_fn = ref (fn _: string => ());
 
 fun writeln s = ! writeln_fn (output s);
 fun priority s = ! priority_fn (output s);
@@ -119,8 +118,6 @@ fun no_warnings f = setmp warning_fn (K ()) f;
 
 val debugging = ref false;
 fun debug s = if ! debugging then ! debug_fn (output (s ())) else ()
-
-val ml_output = (writeln, error);
 
 
 

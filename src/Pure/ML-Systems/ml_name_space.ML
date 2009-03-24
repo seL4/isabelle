@@ -4,7 +4,7 @@
 ML name space -- dummy version of Poly/ML 5.2 facility.
 *)
 
-structure ML_NameSpace =
+structure ML_Name_Space =
 struct
 
 type valueVal = unit;
@@ -14,7 +14,7 @@ type structureVal = unit;
 type signatureVal = unit;
 type functorVal = unit;
 
-type nameSpace =
+type T =
  {lookupVal:    string -> valueVal option,
   lookupType:   string -> typeVal option,
   lookupFix:    string -> fixityVal option,
@@ -34,7 +34,7 @@ type nameSpace =
   allSig:       unit -> (string * signatureVal) list,
   allFunct:     unit -> (string * functorVal) list};
 
-val global: nameSpace =
+val global: T =
  {lookupVal = fn _ => NONE,
   lookupType = fn _ => NONE,
   lookupFix = fn _ => NONE,

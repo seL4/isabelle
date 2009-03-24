@@ -76,7 +76,7 @@ fun message bg en prfx text =
 
 fun setup_messages () =
  (Output.writeln_fn := message "" "" "";
-  Output.status_fn := (fn s => ! Output.priority_fn s);
+  Output.status_fn := (fn _ => ());
   Output.priority_fn := message (special "I") (special "J") "";
   Output.tracing_fn := message (special "I" ^ special "V") (special "J") "";
   Output.debug_fn := message (special "K") (special "L") "+++ ";
