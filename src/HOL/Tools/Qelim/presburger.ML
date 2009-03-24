@@ -163,7 +163,7 @@ fun finish_tac q = SUBGOAL (fn (_, i) =>
 
 fun cooper_tac elim add_ths del_ths ctxt =
 let val ss = Simplifier.context ctxt (fst (CooperData.get ctxt)) delsimps del_ths addsimps add_ths
-    val aprems = ArithFacts.get ctxt
+    val aprems = Arith_Data.get_arith_facts ctxt
 in
   Method.insert_tac aprems
   THEN_ALL_NEW ObjectLogic.full_atomize_tac
