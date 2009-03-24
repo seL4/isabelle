@@ -69,7 +69,9 @@ fun use_text ({name_space = space, print, error, ...}: use_context) verbose pos 
 
     val current_line = ref (the_default 1 (Position.line_of pos));
 
-    fun get_index () = (case ! input_buffer of [] => 0 | (i, _) :: _ => i);
+    fun get_index () =
+      the_default 0 (get_first (fn (_, []) => NONE | (i, _) => SOME i) (! input_buffer));
+
     fun get () =
       (case ! input_buffer of
         [] => NONE
