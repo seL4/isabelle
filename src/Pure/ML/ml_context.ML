@@ -219,12 +219,12 @@ fun eval_antiquotes (ants, pos) opt_context =
           fun no_decl _ = ([], []);
 
           fun expand (Antiquote.Text tok) state = (K ([], [tok]), state)
-            | expand (Antiquote.Antiq x) (scope, background) =
+            | expand (Antiquote.Antiq (ss, range)) (scope, background) =
                 let
                   val context = Stack.top scope;
-                  val (f, context') = antiquotation (T.read_antiq lex antiq x) context;
+                  val (f, context') = antiquotation (T.read_antiq lex antiq (ss, #1 range)) context;
                   val (decl, background') = f {background = background, struct_name = struct_name};
-                  val decl' = pairself ML_Lex.tokenize o decl;
+                  val decl' = decl #> pairself (ML_Lex.tokenize #> map (ML_Lex.set_range range));
                 in (decl', (Stack.map_top (K context') scope, background')) end
             | expand (Antiquote.Open _) (scope, background) =
                 (no_decl, (Stack.push scope, background))

@@ -8,7 +8,7 @@ signature ANTIQUOTE =
 sig
   datatype 'a antiquote =
     Text of 'a |
-    Antiq of Symbol_Pos.T list * Position.T |
+    Antiq of Symbol_Pos.T list * Position.range |
     Open of Position.T |
     Close of Position.T
   val is_text: 'a antiquote -> bool
@@ -26,7 +26,7 @@ struct
 
 datatype 'a antiquote =
   Text of 'a |
-  Antiq of Symbol_Pos.T list * Position.T |
+  Antiq of Symbol_Pos.T list * Position.range |
   Open of Position.T |
   Close of Position.T;
 
@@ -39,7 +39,7 @@ fun is_text (Text _) = true
 val report_antiq = Position.report Markup.antiq;
 
 fun report report_text (Text x) = report_text x
-  | report _ (Antiq (_, pos)) = report_antiq pos
+  | report _ (Antiq (_, (pos, _))) = report_antiq pos
   | report _ (Open pos) = report_antiq pos
   | report _ (Close pos) = report_antiq pos;
 
@@ -79,7 +79,7 @@ val scan_antiq =
   Symbol_Pos.scan_pos -- ($$$ "@" |-- $$$ "{" |--
     Symbol_Pos.!!! "missing closing brace of antiquotation"
       (Scan.repeat scan_ant -- ($$$ "}" |-- Symbol_Pos.scan_pos)))
-  >> (fn (pos1, (body, pos2)) => (flat body, Position.encode_range (pos1, pos2)));
+  >> (fn (pos1, (body, pos2)) => (flat body, Position.range pos1 pos2));
 
 val scan_open = Symbol_Pos.scan_pos --| $$$ "\\<lbrace>";
 val scan_close = Symbol_Pos.scan_pos --| $$$ "\\<rbrace>";
