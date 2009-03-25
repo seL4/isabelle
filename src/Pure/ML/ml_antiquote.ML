@@ -59,7 +59,7 @@ val value = declaration "val";
 
 structure P = OuterParse;
 
-val _ = inline "binding"
+val _ = value "binding"
   (Scan.lift (P.position Args.name) >> (fn name => ML_Syntax.atomic (ML_Syntax.make_binding name)));
 
 val _ = value "theory"
