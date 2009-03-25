@@ -34,7 +34,7 @@ subsection {* Oracle as low-level rule *}
 
 ML {* iff_oracle (@{theory}, 2) *}
 ML {* iff_oracle (@{theory}, 10) *}
-ML {* Thm.proof_of (iff_oracle (@{theory}, 10)) *}
+ML {* Thm.proof_body_of (iff_oracle (@{theory}, 10)) *}
 
 text {* These oracle calls had better fail. *}
 
