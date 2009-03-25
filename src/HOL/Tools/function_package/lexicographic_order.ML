@@ -176,7 +176,7 @@ fun no_order_msg ctxt table tl measure_funs =
 
       val gc = map (fn i => chr (i + 96)) (1 upto length table)
       val mc = 1 upto length measure_funs
-      val tstr = "Result matrix:" ::  "   " ^ concat (map (enclose " " " " o string_of_int) mc)
+      val tstr = "Result matrix:" ::  ("   " ^ concat (map (enclose " " " " o string_of_int) mc))
                  :: map2 (fn r => fn i => i ^ ": " ^ concat (map pr_cell r)) table gc
       val gstr = "Calls:" :: map2 (prefix "  " oo pr_goal) tl gc
       val mstr = "Measures:" :: map2 (prefix "  " oo pr_fun) measure_funs mc

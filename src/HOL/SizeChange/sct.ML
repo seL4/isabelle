@@ -105,7 +105,7 @@ fun dist_vars [] vs = (null vs orelse error "dist_vars"; [])
 
 fun dest_case rebind t =
     let
-      val (_ $ _ $ rhs :: _ $ _ $ match :: guards) = HOLogic.dest_conj t
+      val ((_ $ _ $ rhs) :: (_ $ _ $ match) :: guards) = HOLogic.dest_conj t
       val guard = case guards of [] => HOLogic.true_const | gs => foldr1 HOLogic.mk_conj gs
     in
       foldr1 HOLogic.mk_prod [rebind guard, rebind rhs, rebind match]
