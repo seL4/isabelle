@@ -1662,7 +1662,7 @@ fun status_of (Thm (Deriv {promises, body, ...}, _)) =
 fun proof_body_of (Thm (Deriv {open_promises, promises, body, ...}, {thy_ref, ...})) =
   let
     val _ = Exn.release_all (map (Future.join_result o #2) (rev open_promises));
-    val ps = map (apsnd (raw_proof_of o Future.join)) promises;
+    val ps = map (apsnd (raw_proof_body_of o Future.join)) promises;
   in Pt.fulfill_proof (Theory.deref thy_ref) ps body end;
 
 val proof_of = Proofterm.proof_of o proof_body_of;
@@ -1680,7 +1680,7 @@ fun put_name name (thm as Thm (der, args)) =
     val {thy_ref, hyps, prop, tpairs, ...} = args;
     val _ = null tpairs orelse raise THM ("put_name: unsolved flex-flex constraints", 0, [thm]);
 
-    val ps = map (apsnd (Future.map proof_of)) promises;
+    val ps = map (apsnd (Future.map proof_body_of)) promises;
     val thy = Theory.deref thy_ref;
     val (pthm, proof) = Pt.thm_proof thy name hyps prop ps body;
 
@@ -1701,8 +1701,8 @@ fun invoke_oracle thy_ref1 name oracle arg =
     if T <> propT then
       raise THM ("Oracle's result must have type prop: " ^ name, 0, [])
     else
-      let val prf = Pt.oracle_proof name prop in
-        Thm (make_deriv ~1 [] [] (Pt.make_oracles prf) [] prf,
+      let val (ora, prf) = Pt.oracle_proof name prop in
+        Thm (make_deriv ~1 [] [] [ora] [] prf,
          {thy_ref = Theory.merge_refs (thy_ref1, thy_ref2),
           tags = [],
           maxidx = maxidx,
