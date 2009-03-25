@@ -112,10 +112,10 @@ val class_expr = plus1_unless locale_keyword P.xname;
 
 val locale_expression =
   let
-    fun expr2 x = P.xname x;
-    fun expr1 x = (Scan.optional prefix ("", false) -- expr2 --
-      Scan.optional instance (Expression.Named []) >> (fn ((p, l), i) => (l, (p, i)))) x;
-    fun expr0 x = (plus1_unless locale_keyword expr1) x;
+    val expr2 = P.xname;
+    val expr1 = Scan.optional prefix ("", false) -- expr2 --
+      Scan.optional instance (Expression.Named []) >> (fn ((p, l), i) => (l, (p, i)));
+    val expr0 = plus1_unless locale_keyword expr1;
   in expr0 -- Scan.optional (P.$$$ "for" |-- P.!!! locale_fixes) [] end;
 
 val context_element = P.group "context element" loc_element;
