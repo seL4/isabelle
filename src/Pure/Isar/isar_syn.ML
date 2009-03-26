@@ -404,7 +404,7 @@ val _ =
 (* locales *)
 
 val locale_val =
-  SpecParse.locale_expression --
+  SpecParse.locale_expression false --
     Scan.optional (P.$$$ "+" |-- P.!!! (Scan.repeat1 SpecParse.context_element)) [] ||
   Scan.repeat1 SpecParse.context_element >> pair ([], []);
 
@@ -418,25 +418,24 @@ val _ =
 val _ =
   OuterSyntax.command "sublocale"
     "prove sublocale relation between a locale and a locale expression" K.thy_goal
-    (P.xname --| (P.$$$ "\\<subseteq>" || P.$$$ "<") -- P.!!! SpecParse.locale_expression
+    (P.xname --| (P.$$$ "\\<subseteq>" || P.$$$ "<") -- P.!!! (SpecParse.locale_expression false)
       >> (fn (loc, expr) =>
-        Toplevel.print o (Toplevel.theory_to_proof (Expression.sublocale_cmd loc expr))));
+          Toplevel.print o Toplevel.theory_to_proof (Expression.sublocale_cmd loc expr)));
 
 val _ =
   OuterSyntax.command "interpretation"
     "prove interpretation of locale expression in theory" K.thy_goal
-    (P.!!! SpecParse.locale_expression --
-      Scan.optional (P.$$$ "where" |-- P.and_list1 (SpecParse.opt_thm_name ":" -- P.prop)) []
-        >> (fn (expr, equations) => Toplevel.print o
-            Toplevel.theory_to_proof (Expression.interpretation_cmd expr equations)));
+    (P.!!! (SpecParse.locale_expression true) --
+      Scan.optional (P.where_ |-- P.and_list1 (SpecParse.opt_thm_name ":" -- P.prop)) []
+      >> (fn (expr, equations) => Toplevel.print o
+          Toplevel.theory_to_proof (Expression.interpretation_cmd expr equations)));
 
 val _ =
   OuterSyntax.command "interpret"
     "prove interpretation of locale expression in proof context"
     (K.tag_proof K.prf_goal)
-    (P.!!! SpecParse.locale_expression
-        >> (fn expr => Toplevel.print o
-            Toplevel.proof' (fn int => Expression.interpret_cmd expr int)));
+    (P.!!! (SpecParse.locale_expression true)
+      >> (fn expr => Toplevel.print o Toplevel.proof' (Expression.interpret_cmd expr)));
 
 
 (* classes *)
