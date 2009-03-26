@@ -882,10 +882,6 @@ fun gen_linear_arith_tac ex ctxt = FIRST' [fast_arith_tac ctxt,
 
 val linear_arith_tac = gen_linear_arith_tac true;
 
-val linarith_method = Args.bang_facts >> (fn prems => fn ctxt =>
-  METHOD (fn facts => HEADGOAL (Method.insert_tac (prems @ Arith_Data.get_arith_facts ctxt @ facts)
-    THEN' linear_arith_tac ctxt)));
-
 end;
 
 
@@ -899,7 +895,11 @@ val setup =
   Context.mapping
    (setup_options #>
     Arith_Data.add_tactic "linear arithmetic" gen_linear_arith_tac #>
-    Method.setup @{binding linarith} linarith_method "linear arithmetic" #>
+    Method.setup @{binding linarith}
+      (Args.bang_facts >> (fn prems => fn ctxt =>
+        METHOD (fn facts =>
+          HEADGOAL (Method.insert_tac (prems @ Arith_Data.get_arith_facts ctxt @ facts)
+            THEN' linear_arith_tac ctxt)))) "linear arithmetic" #>
     Attrib.setup @{binding arith_split} (Scan.succeed arith_split_add)
       "declaration of split rules for arithmetic procedure") I;
 

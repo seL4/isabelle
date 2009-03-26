@@ -1302,14 +1302,13 @@ fun tryInThy thy cs lim s =
 
 (** method setup **)
 
-val blast_method =
-  Args.bang_facts -- Scan.lift (Scan.option OuterParse.nat) --|
-  Method.sections Data.cla_modifiers >>
-  (fn (prems, NONE) => Data.cla_meth' blast_tac prems
-    | (prems, SOME lim) => Data.cla_meth' (fn cs => depth_tac cs lim) prems);
-
 val setup =
   setup_depth_limit #>
-  Method.setup @{binding blast} blast_method "tableau prover";
+  Method.setup @{binding blast}
+    (Args.bang_facts -- Scan.lift (Scan.option OuterParse.nat) --|
+      Method.sections Data.cla_modifiers >>
+      (fn (prems, NONE) => Data.cla_meth' blast_tac prems
+        | (prems, SOME lim) => Data.cla_meth' (fn cs => depth_tac cs lim) prems))
+    "classical tableau prover";
 
 end;

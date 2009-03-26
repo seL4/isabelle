@@ -109,11 +109,13 @@ val type_solver = Simplifier.mk_solver' "ZF typecheck" (fn ss =>
 
 (* concrete syntax *)
 
-val typecheck_meth =
-  Method.sections
-    [Args.add -- Args.colon >> K (I, TC_add),
-     Args.del -- Args.colon >> K (I, TC_del)]
-  >> (K (fn ctxt => SIMPLE_METHOD (CHANGED (typecheck_tac ctxt))));
+val typecheck_setup =
+  Method.setup @{binding typecheck}
+    (Method.sections
+      [Args.add -- Args.colon >> K (I, TC_add),
+       Args.del -- Args.colon >> K (I, TC_del)]
+      >> (K (fn ctxt => SIMPLE_METHOD (CHANGED (typecheck_tac ctxt)))))
+    "ZF type-checking";
 
 val _ =
   OuterSyntax.improper_command "print_tcset" "print context of ZF typecheck" OuterKeyword.diag
@@ -125,7 +127,7 @@ val _ =
 
 val setup =
   Attrib.setup @{binding TC} (Attrib.add_del TC_add TC_del) "declaration of type-checking rule" #>
-  Method.setup @{binding typecheck} typecheck_meth "ZF type-checking" #>
+  typecheck_setup #>
   Simplifier.map_simpset (fn ss => ss setSolver type_solver);
 
 end;

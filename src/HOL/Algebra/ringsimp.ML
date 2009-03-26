@@ -62,11 +62,13 @@ fun del_struct s =
   Thm.declaration_attribute
     (fn _ => Data.map (AList.delete struct_eq s));
 
-val attribute =
-  Scan.lift ((Args.add >> K true || Args.del >> K false) --| Args.colon ||
-    Scan.succeed true) -- Scan.lift Args.name --
-  Scan.repeat Args.term
-  >> (fn ((b, n), ts) => if b then add_struct_thm (n, ts) else del_struct (n, ts));
+val attrib_setup =
+  Attrib.setup @{binding algebra}
+    (Scan.lift ((Args.add >> K true || Args.del >> K false) --| Args.colon || Scan.succeed true)
+      -- Scan.lift Args.name -- Scan.repeat Args.term
+      >> (fn ((b, n), ts) => if b then add_struct_thm (n, ts) else del_struct (n, ts)))
+    "theorems controlling algebra method";
+
 
 
 (** Setup **)
@@ -74,6 +76,6 @@ val attribute =
 val setup =
   Method.setup @{binding algebra} (Scan.succeed (SIMPLE_METHOD' o algebra_tac))
     "normalisation of algebraic structure" #>
-  Attrib.setup @{binding algebra} attribute "theorems controlling algebra method";
+  attrib_setup;
 
 end;

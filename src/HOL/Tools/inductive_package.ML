@@ -460,17 +460,18 @@ val inductive_cases = gen_inductive_cases Attrib.intern_src Syntax.read_prop;
 val inductive_cases_i = gen_inductive_cases (K I) Syntax.check_prop;
 
 
-val ind_cases =
-  Scan.lift (Scan.repeat1 Args.name_source --
-    Scan.optional (Args.$$$ "for" |-- Scan.repeat1 Args.name) []) >>
-  (fn (raw_props, fixes) => fn ctxt =>
-    let
-      val (_, ctxt') = Variable.add_fixes fixes ctxt;
-      val props = Syntax.read_props ctxt' raw_props;
-      val ctxt'' = fold Variable.declare_term props ctxt';
-      val rules = ProofContext.export ctxt'' ctxt (map (mk_cases ctxt'') props)
-    in Method.erule 0 rules end);
-
+val ind_cases_setup =
+  Method.setup @{binding ind_cases}
+    (Scan.lift (Scan.repeat1 Args.name_source --
+      Scan.optional (Args.$$$ "for" |-- Scan.repeat1 Args.name) []) >>
+      (fn (raw_props, fixes) => fn ctxt =>
+        let
+          val (_, ctxt') = Variable.add_fixes fixes ctxt;
+          val props = Syntax.read_props ctxt' raw_props;
+          val ctxt'' = fold Variable.declare_term props ctxt';
+          val rules = ProofContext.export ctxt'' ctxt (map (mk_cases ctxt'') props)
+        in Method.erule 0 rules end))
+    "dynamic case analysis on predicates";
 
 
 (* prove induction rule *)
@@ -934,7 +935,7 @@ fun infer_intro_vars elim arity intros =
 (* setup theory *)
 
 val setup =
-  Method.setup @{binding ind_cases} ind_cases "dynamic case analysis on predicates" #>
+  ind_cases_setup #>
   Attrib.setup @{binding mono} (Attrib.add_del mono_add mono_del)
     "declaration of monotonicity rule";
 
