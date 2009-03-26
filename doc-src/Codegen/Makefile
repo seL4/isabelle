@@ -17,7 +17,7 @@ FILES = $(NAME).tex Thy/document/*.tex \
 
 dvi: $(NAME).dvi
 
-$(NAME).dvi: $(FILES) isabelle_isar.eps codegen_process.ps
+$(NAME).dvi: $(FILES) isabelle_isar.eps Thy/pictures/architecture.eps Thy/pictures/adaption.eps
 	$(LATEX) $(NAME)
 	$(BIBTEX) $(NAME)
 	$(LATEX) $(NAME)
@@ -25,7 +25,7 @@ $(NAME).dvi: $(FILES) isabelle_isar.eps codegen_process.ps
 
 pdf: $(NAME).pdf
 
-$(NAME).pdf: $(FILES) isabelle_isar.pdf codegen_process.pdf
+$(NAME).pdf: $(FILES) isabelle_isar.pdf Thy/pictures/architecture.pdf Thy/pictures/adaption.pdf
 	$(PDFLATEX) $(NAME)
 	$(BIBTEX) $(NAME)
 	$(PDFLATEX) $(NAME)
@@ -33,3 +33,12 @@ $(NAME).pdf: $(FILES) isabelle_isar.pdf codegen_process.pdf
 	$(FIXBOOKMARKS) $(NAME).out
 	$(PDFLATEX) $(NAME)
 	$(PDFLATEX) $(NAME)
+
+Thy/pictures/%.dvi: Thy/pictures/%.tex
+	latex -output-directory=$(dir $@) $<
+
+Thy/pictures/%.eps: Thy/pictures/%.dvi
+	dvips -E -o $@ $<
+
+Thy/pictures/%.pdf: Thy/pictures/%.eps
+	epstopdf --outfile=$@ $<

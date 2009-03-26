@@ -1,6 +1,4 @@
 
-(* $Id$ *)
-
 no_document use_thy "Setup";
 no_document use_thys ["Efficient_Nat"];
 
