@@ -116,14 +116,14 @@ end
 
 subsection {* Pair operations are linear and continuous *}
 
-interpretation fst!: bounded_linear fst
+interpretation fst: bounded_linear fst
   apply (unfold_locales)
   apply (rule fst_add)
   apply (rule fst_scaleR)
   apply (rule_tac x="1" in exI, simp add: norm_Pair)
   done
 
-interpretation snd!: bounded_linear snd
+interpretation snd: bounded_linear snd
   apply (unfold_locales)
   apply (rule snd_add)
   apply (rule snd_scaleR)

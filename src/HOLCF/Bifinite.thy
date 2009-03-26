@@ -37,7 +37,7 @@ proof
     by (rule finite_fixes_approx)
 qed
 
-interpretation approx!: finite_deflation "approx i"
+interpretation approx: finite_deflation "approx i"
 by (rule finite_deflation_approx)
 
 lemma (in deflation) deflation: "deflation d" ..

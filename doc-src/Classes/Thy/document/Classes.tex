@@ -863,7 +863,7 @@ We introduced Isar classes by analogy to type classes
 %
 \isatagquote
 \isacommand{interpretation}\isamarkupfalse%
-\ list{\isacharunderscore}monoid{\isacharbang}{\isacharcolon}\ monoid\ append\ {\isachardoublequoteopen}{\isacharbrackleft}{\isacharbrackright}{\isachardoublequoteclose}\isanewline
+\ list{\isacharunderscore}monoid{\isacharcolon}\ monoid\ append\ {\isachardoublequoteopen}{\isacharbrackleft}{\isacharbrackright}{\isachardoublequoteclose}\isanewline
 \ \ \isacommand{proof}\isamarkupfalse%
 \ \isacommand{qed}\isamarkupfalse%
 \ auto%
@@ -894,7 +894,7 @@ We introduced Isar classes by analogy to type classes
 \ \ {\isacharbar}\ {\isachardoublequoteopen}replicate\ {\isacharparenleft}Suc\ n{\isacharparenright}\ xs\ {\isacharequal}\ xs\ {\isacharat}\ replicate\ n\ xs{\isachardoublequoteclose}\isanewline
 \isanewline
 \isacommand{interpretation}\isamarkupfalse%
-\ list{\isacharunderscore}monoid{\isacharbang}{\isacharcolon}\ monoid\ append\ {\isachardoublequoteopen}{\isacharbrackleft}{\isacharbrackright}{\isachardoublequoteclose}\ \isakeyword{where}\isanewline
+\ list{\isacharunderscore}monoid{\isacharcolon}\ monoid\ append\ {\isachardoublequoteopen}{\isacharbrackleft}{\isacharbrackright}{\isachardoublequoteclose}\ \isakeyword{where}\isanewline
 \ \ {\isachardoublequoteopen}monoid{\isachardot}pow{\isacharunderscore}nat\ append\ {\isacharbrackleft}{\isacharbrackright}\ {\isacharequal}\ replicate{\isachardoublequoteclose}\isanewline
 \isacommand{proof}\isamarkupfalse%
 \ {\isacharminus}\isanewline
@@ -1191,7 +1191,7 @@ Turning back to the first motivation for type classes,
 \hspace*{0pt}\\
 \hspace*{0pt}pow{\char95}nat ::~forall a.~(Monoid a) => Nat -> a -> a;\\
 \hspace*{0pt}pow{\char95}nat Zero{\char95}nat x = neutral;\\
-\hspace*{0pt}pow{\char95}nat (Suc n) x = mult x (pow{\char95}nat n x);\\
+\hspace*{0pt}pow{\char95}nat (Suc n) xa = mult xa (pow{\char95}nat n xa);\\
 \hspace*{0pt}\\
 \hspace*{0pt}pow{\char95}int ::~forall a.~(Group a) => Integer -> a -> a;\\
 \hspace*{0pt}pow{\char95}int k x =\\
@@ -1272,8 +1272,8 @@ Turning back to the first motivation for type classes,
 \hspace*{0pt} ~IntInf.int group;\\
 \hspace*{0pt}\\
 \hspace*{0pt}fun pow{\char95}nat A{\char95}~Zero{\char95}nat x = neutral (monoidl{\char95}monoid A{\char95})\\
-\hspace*{0pt} ~| pow{\char95}nat A{\char95}~(Suc n) x =\\
-\hspace*{0pt} ~~~mult ((semigroup{\char95}monoidl o monoidl{\char95}monoid) A{\char95}) x (pow{\char95}nat A{\char95}~n x);\\
+\hspace*{0pt} ~| pow{\char95}nat A{\char95}~(Suc n) xa =\\
+\hspace*{0pt} ~~~mult ((semigroup{\char95}monoidl o monoidl{\char95}monoid) A{\char95}) xa (pow{\char95}nat A{\char95}~n xa);\\
 \hspace*{0pt}\\
 \hspace*{0pt}fun pow{\char95}int A{\char95}~k x =\\
 \hspace*{0pt} ~(if IntInf.<= ((0 :~IntInf.int),~k)\\

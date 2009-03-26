@@ -1886,7 +1886,7 @@ text {*
   "UP INTEG"} globally.
 *}
 
-interpretation INTEG!: UP_pre_univ_prop INTEG INTEG id "UP INTEG"
+interpretation INTEG: UP_pre_univ_prop INTEG INTEG id "UP INTEG"
   using INTEG_id_eval by simp_all
 
 lemma INTEG_closed [intro, simp]:

@@ -230,13 +230,13 @@ apply (rule exI [where x=x])
 apply (simp add: ubasis_take_same)
 done
 
-interpretation udom!: preorder ubasis_le
+interpretation udom: preorder ubasis_le
 apply default
 apply (rule ubasis_le_refl)
 apply (erule (1) ubasis_le_trans)
 done
 
-interpretation udom!: basis_take ubasis_le ubasis_take
+interpretation udom: basis_take ubasis_le ubasis_take
 apply default
 apply (rule ubasis_take_less)
 apply (rule ubasis_take_idem)
@@ -285,7 +285,7 @@ lemma Rep_udom_principal:
 unfolding udom_principal_def
 by (simp add: Abs_udom_inverse udom.ideal_principal)
 
-interpretation udom!:
+interpretation udom:
   ideal_completion ubasis_le ubasis_take udom_principal Rep_udom
 apply unfold_locales
 apply (rule ideal_Rep_udom)

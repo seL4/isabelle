@@ -458,7 +458,7 @@ text {*
   of monoids for lists:
 *}
 
-interpretation %quote list_monoid!: monoid append "[]"
+interpretation %quote list_monoid: monoid append "[]"
   proof qed auto
 
 text {*
@@ -473,7 +473,7 @@ primrec %quote replicate :: "nat \<Rightarrow> \<alpha> list \<Rightarrow> \<alp
   "replicate 0 _ = []"
   | "replicate (Suc n) xs = xs @ replicate n xs"
 
-interpretation %quote list_monoid!: monoid append "[]" where
+interpretation %quote list_monoid: monoid append "[]" where
   "monoid.pow_nat append [] = replicate"
 proof -
   interpret monoid append "[]" ..

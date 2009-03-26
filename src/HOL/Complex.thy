@@ -348,13 +348,13 @@ by (cases x) simp
 
 subsection {* Completeness of the Complexes *}
 
-interpretation Re!: bounded_linear "Re"
+interpretation Re: bounded_linear "Re"
 apply (unfold_locales, simp, simp)
 apply (rule_tac x=1 in exI)
 apply (simp add: complex_norm_def)
 done
 
-interpretation Im!: bounded_linear "Im"
+interpretation Im: bounded_linear "Im"
 apply (unfold_locales, simp, simp)
 apply (rule_tac x=1 in exI)
 apply (simp add: complex_norm_def)
@@ -516,7 +516,7 @@ by (simp add: expand_complex_eq power2_eq_square)
 lemma complex_mod_mult_cnj: "cmod (z * cnj z) = (cmod z)\<twosuperior>"
 by (simp add: norm_mult power2_eq_square)
 
-interpretation cnj!: bounded_linear "cnj"
+interpretation cnj: bounded_linear "cnj"
 apply (unfold_locales)
 apply (rule complex_cnj_add)
 apply (rule complex_cnj_scaleR)

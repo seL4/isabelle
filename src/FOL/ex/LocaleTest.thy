@@ -119,7 +119,7 @@ end
 
 term extra_type.test thm extra_type.test_def
 
-interpretation var: extra_type "0" "%x y. x = 0" .
+interpretation var?: extra_type "0" "%x y. x = 0" .
 
 thm var.test_def
 
@@ -381,13 +381,13 @@ print_locale! trivial  (* No instance for y created (subsumed). *)
 
 subsection {* Sublocale, then interpretation in theory *}
 
-interpretation int: lgrp "op +" "0" "minus"
+interpretation int?: lgrp "op +" "0" "minus"
 proof unfold_locales
 qed (rule int_assoc int_zero int_minus)+
 
 thm int.assoc int.semi_axioms
 
-interpretation int2: semi "op +"
+interpretation int2?: semi "op +"
   by unfold_locales  (* subsumed, thm int2.assoc not generated *)
 
 thm int.lone int.right.rone
@@ -443,7 +443,7 @@ definition lor_o (infixl "||" 50) where
 
 end
 
-interpretation x!: logic_o "op &" "Not"
+interpretation x: logic_o "op &" "Not"
   where bool_logic_o: "logic_o.lor_o(op &, Not, x, y) <-> x | y"
 proof -
   show bool_logic_o: "PROP logic_o(op &, Not)" by unfold_locales fast+

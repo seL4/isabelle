@@ -313,7 +313,7 @@ instance ..
 
 end
 
-interpretation bit0!:
+interpretation bit0:
   mod_type "int CARD('a::finite bit0)"
            "Rep_bit0 :: 'a::finite bit0 \<Rightarrow> int"
            "Abs_bit0 :: int \<Rightarrow> 'a::finite bit0"
@@ -329,7 +329,7 @@ apply (rule uminus_bit0_def [unfolded Abs_bit0'_def])
 apply (rule power_bit0_def [unfolded Abs_bit0'_def])
 done
 
-interpretation bit1!:
+interpretation bit1:
   mod_type "int CARD('a::finite bit1)"
            "Rep_bit1 :: 'a::finite bit1 \<Rightarrow> int"
            "Abs_bit1 :: int \<Rightarrow> 'a::finite bit1"
@@ -363,13 +363,13 @@ qed (rule number_of_bit0_def number_of_bit1_def)+
 
 end
 
-interpretation bit0!:
+interpretation bit0:
   mod_ring "int CARD('a::finite bit0)"
            "Rep_bit0 :: 'a::finite bit0 \<Rightarrow> int"
            "Abs_bit0 :: int \<Rightarrow> 'a::finite bit0"
   ..
 
-interpretation bit1!:
+interpretation bit1:
   mod_ring "int CARD('a::finite bit1)"
            "Rep_bit1 :: 'a::finite bit1 \<Rightarrow> int"
            "Abs_bit1 :: int \<Rightarrow> 'a::finite bit1"

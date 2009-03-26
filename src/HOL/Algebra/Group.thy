@@ -488,8 +488,8 @@ lemma DirProd_monoid:
   assumes "monoid G" and "monoid H"
   shows "monoid (G \<times>\<times> H)"
 proof -
-  interpret G!: monoid G by fact
-  interpret H!: monoid H by fact
+  interpret G: monoid G by fact
+  interpret H: monoid H by fact
   from assms
   show ?thesis by (unfold monoid_def DirProd_def, auto) 
 qed
@@ -500,8 +500,8 @@ lemma DirProd_group:
   assumes "group G" and "group H"
   shows "group (G \<times>\<times> H)"
 proof -
-  interpret G!: group G by fact
-  interpret H!: group H by fact
+  interpret G: group G by fact
+  interpret H: group H by fact
   show ?thesis by (rule groupI)
      (auto intro: G.m_assoc H.m_assoc G.l_inv H.l_inv
            simp add: DirProd_def)
@@ -525,9 +525,9 @@ lemma inv_DirProd [simp]:
       and h: "h \<in> carrier H"
   shows "m_inv (G \<times>\<times> H) (g, h) = (inv\<^bsub>G\<^esub> g, inv\<^bsub>H\<^esub> h)"
 proof -
-  interpret G!: group G by fact
-  interpret H!: group H by fact
-  interpret Prod!: group "G \<times>\<times> H"
+  interpret G: group G by fact
+  interpret H: group H by fact
+  interpret Prod: group "G \<times>\<times> H"
     by (auto intro: DirProd_group group.intro group.axioms assms)
   show ?thesis by (simp add: Prod.inv_equality g h)
 qed

@@ -26,7 +26,7 @@ apply (erule rev_bexI)
 apply (erule (1) trans_less)
 done
 
-interpretation upper_le!: preorder upper_le
+interpretation upper_le: preorder upper_le
 by (rule preorder.intro, rule upper_le_refl, rule upper_le_trans)
 
 lemma upper_le_minimal [simp]: "PDUnit compact_bot \<le>\<sharp> t"
@@ -131,7 +131,7 @@ lemma Rep_upper_principal:
 unfolding upper_principal_def
 by (simp add: Abs_upper_pd_inverse upper_le.ideal_principal)
 
-interpretation upper_pd!:
+interpretation upper_pd:
   ideal_completion upper_le pd_take upper_principal Rep_upper_pd
 apply unfold_locales
 apply (rule pd_take_upper_le)

@@ -711,7 +711,7 @@ lemma (in ideal) primeidealCE:
   obtains "carrier R = I"
     | "\<exists>a b. a \<in> carrier R \<and> b \<in> carrier R \<and> a \<otimes> b \<in> I \<and> a \<notin> I \<and> b \<notin> I"
 proof -
-  interpret R!: cring R by fact
+  interpret R: cring R by fact
   assume "carrier R = I ==> thesis"
     and "\<exists>a b. a \<in> carrier R \<and> b \<in> carrier R \<and> a \<otimes> b \<in> I \<and> a \<notin> I \<and> b \<notin> I \<Longrightarrow> thesis"
   then show thesis using primeidealCD [OF R.is_cring notprime] by blast

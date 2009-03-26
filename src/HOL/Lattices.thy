@@ -299,7 +299,7 @@ proof
   by auto
 qed (auto simp add: min_def max_def not_le less_imp_le)
 
-interpretation min_max!: distrib_lattice "op \<le> :: 'a::linorder \<Rightarrow> 'a \<Rightarrow> bool" "op <" min max
+interpretation min_max: distrib_lattice "op \<le> :: 'a::linorder \<Rightarrow> 'a \<Rightarrow> bool" "op <" min max
   by (rule distrib_lattice_min_max)
 
 lemma inf_min: "inf = (min \<Colon> 'a\<Colon>{lower_semilattice, linorder} \<Rightarrow> 'a \<Rightarrow> 'a)"
