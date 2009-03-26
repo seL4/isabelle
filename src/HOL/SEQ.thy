@@ -40,8 +40,21 @@ definition
 
 definition
   monoseq :: "(nat=>real)=>bool" where
-    --{*Definition for monotonicity*}
+    --{*Definition of monotonicity. 
+        The use of disjunction here complicates proofs considerably. 
+        One alternative is to add a Boolean argument to indicate the direction. 
+        Another is to develop the notions of increasing and decreasing first.*}
   [code del]: "monoseq X = ((\<forall>m. \<forall>n\<ge>m. X m \<le> X n) | (\<forall>m. \<forall>n\<ge>m. X n \<le> X m))"
+
+definition
+  incseq :: "(nat=>real)=>bool" where
+    --{*Increasing sequence*}
+  [code del]: "incseq X = (\<forall>m. \<forall>n\<ge>m. X m \<le> X n)"
+
+definition
+  decseq :: "(nat=>real)=>bool" where
+    --{*Increasing sequence*}
+  [code del]: "decseq X = (\<forall>m. \<forall>n\<ge>m. X n \<le> X m)"
 
 definition
   subseq :: "(nat => nat) => bool" where
@@ -886,6 +899,14 @@ next
   thus ?case by arith
 qed
 
+lemma LIMSEQ_subseq_LIMSEQ:
+  "\<lbrakk> X ----> L; subseq f \<rbrakk> \<Longrightarrow> (X o f) ----> L"
+apply (auto simp add: LIMSEQ_def) 
+apply (drule_tac x=r in spec, clarify)  
+apply (rule_tac x=no in exI, clarify) 
+apply (blast intro: seq_suble le_trans dest!: spec) 
+done
+
 subsection {* Bounded Monotonic Sequences *}
 
 
@@ -1021,6 +1042,47 @@ apply (drule_tac [2] Bseq_minus_iff [THEN ssubst])
 apply (auto intro!: Bseq_mono_convergent)
 done
 
+subsubsection{*Increasing and Decreasing Series*}
+
+lemma incseq_imp_monoseq:  "incseq X \<Longrightarrow> monoseq X"
+  by (simp add: incseq_def monoseq_def) 
+
+lemma incseq_le: assumes inc: "incseq X" and lim: "X ----> L" shows "X n \<le> L"
+  using monoseq_le [OF incseq_imp_monoseq [OF inc] lim]
+proof
+  assume "(\<forall>n. X n \<le> L) \<and> (\<forall>m n. m \<le> n \<longrightarrow> X m \<le> X n)"
+  thus ?thesis by simp
+next
+  assume "(\<forall>n. L \<le> X n) \<and> (\<forall>m n. m \<le> n \<longrightarrow> X n \<le> X m)"
+  hence const: "(!!m n. m \<le> n \<Longrightarrow> X n = X m)" using inc
+    by (auto simp add: incseq_def intro: order_antisym)
+  have X: "!!n. X n = X 0"
+    by (blast intro: const [of 0]) 
+  have "X = (\<lambda>n. X 0)"
+    by (blast intro: ext X)
+  hence "L = X 0" using LIMSEQ_const [of "X 0"]
+    by (auto intro: LIMSEQ_unique lim) 
+  thus ?thesis
+    by (blast intro: eq_refl X)
+qed
+
+lemma decseq_imp_monoseq:  "decseq X \<Longrightarrow> monoseq X"
+  by (simp add: decseq_def monoseq_def)
+
+lemma decseq_eq_incseq: "decseq X = incseq (\<lambda>n. - X n)" 
+  by (simp add: decseq_def incseq_def)
+
+
+lemma decseq_le: assumes dec: "decseq X" and lim: "X ----> L" shows "L \<le> X n"
+proof -
+  have inc: "incseq (\<lambda>n. - X n)" using dec
+    by (simp add: decseq_eq_incseq)
+  have "- X n \<le> - L" 
+    by (blast intro: incseq_le [OF inc] LIMSEQ_minus lim) 
+  thus ?thesis
+    by simp
+qed
+
 subsubsection{*A Few More Equivalence Theorems for Boundedness*}
 
 text{*alternative formulation for boundedness*}
@@ -1064,6 +1126,14 @@ by (simp add: Cauchy_def)
 lemma CauchyD:
   "\<lbrakk>Cauchy X; 0 < e\<rbrakk> \<Longrightarrow> \<exists>M. \<forall>m\<ge>M. \<forall>n\<ge>M. norm (X m - X n) < e"
 by (simp add: Cauchy_def)
+
+lemma Cauchy_subseq_Cauchy:
+  "\<lbrakk> Cauchy X; subseq f \<rbrakk> \<Longrightarrow> Cauchy (X o f)"
+apply (auto simp add: Cauchy_def) 
+apply (drule_tac x=e in spec, clarify)  
+apply (rule_tac x=M in exI, clarify) 
+apply (blast intro: seq_suble le_trans dest!: spec) 
+done
 
 subsubsection {* Cauchy Sequences are Bounded *}
 
@@ -1237,6 +1307,11 @@ lemma Cauchy_convergent_iff:
   fixes X :: "nat \<Rightarrow> 'a::banach"
   shows "Cauchy X = convergent X"
 by (fast intro: Cauchy_convergent convergent_Cauchy)
+
+lemma convergent_subseq_convergent:
+  fixes X :: "nat \<Rightarrow> 'a::banach"
+  shows "\<lbrakk> convergent X; subseq f \<rbrakk> \<Longrightarrow> convergent (X o f)"
+  by (simp add: Cauchy_subseq_Cauchy Cauchy_convergent_iff [symmetric]) 
 
 
 subsection {* Power Sequences *}
