@@ -1,8 +1,7 @@
 (*  Title:      Pure/Isar/locale.ML
     Author:     Clemens Ballarin, TU Muenchen
 
-Locales -- Isar proof contexts as meta-level predicates, with local
-syntax and implicit structures.
+Locales -- managed Isar proof contexts, based on Pure predicates.
 
 Draws basic ideas from Florian Kammueller's original version of
 locales, but uses the richer infrastructure of Isar instead of the raw
@@ -34,9 +33,9 @@ sig
     (string * sort) list * (binding * typ option * mixfix) list ->
     term option * term list ->
     thm option * thm option -> thm list ->
-    (declaration * stamp) list * (declaration * stamp) list ->
-    ((string * (Attrib.binding * (thm list * Attrib.src list) list) list) * stamp) list ->
-    ((string * morphism) * stamp) list -> theory -> theory
+    declaration list * declaration list ->
+    (string * (Attrib.binding * (thm list * Attrib.src list) list) list) list ->
+    (string * morphism) list -> theory -> theory
   val intern: theory -> xstring -> string
   val extern: theory -> string -> xstring
   val defined: theory -> string -> bool
@@ -64,43 +63,23 @@ sig
   val init: string -> theory -> Proof.context
 
   (* Reasoning about locales *)
-  val witness_attrib: attribute
-  val intro_attrib: attribute
-  val unfold_attrib: attribute
+  val get_witnesses: Proof.context -> thm list
+  val get_intros: Proof.context -> thm list
+  val get_unfolds: Proof.context -> thm list
+  val witness_add: attribute
+  val intro_add: attribute
+  val unfold_add: attribute
   val intro_locales_tac: bool -> Proof.context -> thm list -> tactic
 
   (* Registrations *)
-  val add_registration: string * (morphism * morphism) ->
-    theory -> theory
-  val amend_registration: morphism -> string * morphism ->
-    theory -> theory
+  val add_registration: string * (morphism * morphism) -> theory -> theory
+  val amend_registration: morphism -> string * morphism -> theory -> theory
   val get_registrations: theory -> (string * morphism) list
 
   (* Diagnostic *)
   val print_locales: theory -> unit
   val print_locale: theory -> bool -> xstring -> unit
 end;
-
-
-(*** Theorem list extensible via attribute --- to control intro_locales_tac ***)
-
-(* FIXME: consider moving named_thms.ML up in the build hierarchy and using that *)
-functor ThmsFun() =
-struct
-
-structure Data = GenericDataFun
-(
-  type T = thm list;
-  val empty = [];
-  val extend = I;
-  fun merge _ = Thm.merge_thms;
-);
-
-val get = Data.get o Context.Proof;
-val add = Thm.declaration_attribute (Data.map o Thm.add_thm);
-
-end;
-
 
 structure Locale: LOCALE =
 struct
@@ -140,7 +119,7 @@ fun merge_locale (Loc {parameters, spec, intros, axioms, decls = (decls1, decls2
           merge (eq_snd op =) (notes, notes')),
             merge (eq_snd op =) (dependencies, dependencies')));
 
-structure LocalesData = TheoryDataFun
+structure Locales = TheoryDataFun
 (
   type T = locale NameSpace.table;
   val empty = NameSpace.empty_table;
@@ -149,26 +128,29 @@ structure LocalesData = TheoryDataFun
   fun merge _ = NameSpace.join_tables (K merge_locale);
 );
 
-val intern = NameSpace.intern o #1 o LocalesData.get;
-val extern = NameSpace.extern o #1 o LocalesData.get;
+val intern = NameSpace.intern o #1 o Locales.get;
+val extern = NameSpace.extern o #1 o Locales.get;
 
-fun get_locale thy = Symtab.lookup (#2 (LocalesData.get thy));
+val get_locale = Symtab.lookup o #2 o Locales.get;
+val defined = Symtab.defined o #2 o Locales.get;
 
-fun defined thy = is_some o get_locale thy;
-
-fun the_locale thy name = case get_locale thy name
- of SOME (Loc loc) => loc
-  | NONE => error ("Unknown locale " ^ quote name);
+fun the_locale thy name =
+  (case get_locale thy name of
+    SOME (Loc loc) => loc
+  | NONE => error ("Unknown locale " ^ quote name));
 
 fun register_locale binding parameters spec intros axioms decls notes dependencies thy =
-  thy |> LocalesData.map (NameSpace.define (Sign.naming_of thy) (binding,
-    mk_locale ((parameters, spec, intros, axioms), ((decls, notes), dependencies))) #> snd);
+  thy |> Locales.map (NameSpace.define (Sign.naming_of thy)
+    (binding,
+      mk_locale ((parameters, spec, intros, axioms),
+        ((pairself (map (fn decl => (decl, stamp ()))) decls, map (fn n => (n, stamp ())) notes),
+          map (fn d => (d, stamp ())) dependencies))) #> snd);
 
 fun change_locale name =
-  LocalesData.map o apsnd o Symtab.map_entry name o map_locale o apsnd;
+  Locales.map o apsnd o Symtab.map_entry name o map_locale o apsnd;
 
 fun print_locales thy =
-  Pretty.strs ("locales:" :: map #1 (NameSpace.extern_table (LocalesData.get thy)))
+  Pretty.strs ("locales:" :: map #1 (NameSpace.extern_table (Locales.get thy)))
   |> Pretty.writeln;
 
 
@@ -181,12 +163,12 @@ fun intros_of thy = #intros o the_locale thy;
 fun axioms_of thy = #axioms o the_locale thy;
 
 fun instance_of thy name morph = params_of thy name |>
-  map ((fn (b, T, _) => Free (Name.of_binding b, the T)) #> Morphism.term morph);
+  map (fn (b, T, _) => Morphism.term morph (Free (Name.of_binding b, the T)));
 
 fun specification_of thy = #spec o the_locale thy;
 
 fun declarations_of thy name = the_locale thy name |>
-  #decls |> apfst (map fst) |> apsnd (map fst);
+  #decls |> pairself (map fst);
 
 fun dependencies_of thy name = the_locale thy name |>
   #dependencies |> map fst;
@@ -206,7 +188,7 @@ local
 
 datatype 'a delayed = Ready of 'a | ToDo of ('a delayed * 'a delayed);
 
-structure IdentifiersData = GenericDataFun
+structure Identifiers = GenericDataFun
 (
   type T = identifiers delayed;
   val empty = Ready empty;
@@ -220,18 +202,17 @@ fun finish thy (ToDo (i1, i2)) = merge (ident_eq thy) (finish thy i1, finish thy
   | finish _ (Ready ids) = ids;
 
 val _ = Context.>> (Context.map_theory (Theory.at_begin (fn thy =>
-  (case IdentifiersData.get (Context.Theory thy) of
-    Ready _ => NONE |
-    ids => SOME (Context.theory_map (IdentifiersData.put (Ready (finish thy ids))) thy))
-  )));
+  (case Identifiers.get (Context.Theory thy) of
+    Ready _ => NONE
+  | ids => SOME (Context.theory_map (Identifiers.put (Ready (finish thy ids))) thy)))));
 
 fun get_global_idents thy =
-  let val (Ready ids) = (IdentifiersData.get o Context.Theory) thy in ids end;
-val put_global_idents = Context.theory_map o IdentifiersData.put o Ready;
+  let val (Ready ids) = (Identifiers.get o Context.Theory) thy in ids end;
+val put_global_idents = Context.theory_map o Identifiers.put o Ready;
 
 fun get_local_idents ctxt =
-  let val (Ready ids) = (IdentifiersData.get o Context.Proof) ctxt in ids end;
-val put_local_idents = Context.proof_map o IdentifiersData.put o Ready;
+  let val (Ready ids) = (Identifiers.get o Context.Proof) ctxt in ids end;
+val put_local_idents = Context.proof_map o Identifiers.put o Ready;
 
 end;
 
@@ -385,7 +366,7 @@ end;
 
 (*** Registrations: interpretations in theories ***)
 
-structure RegistrationsData = TheoryDataFun
+structure Registrations = TheoryDataFun
 (
   type T = ((string * (morphism * morphism)) * stamp) list;
     (* FIXME mixins need to be stamped *)
@@ -398,17 +379,17 @@ structure RegistrationsData = TheoryDataFun
 );
 
 val get_registrations =
-  RegistrationsData.get #> map fst #> map (apsnd op $>);
+  Registrations.get #> map fst #> map (apsnd op $>);
 
 fun add_registration (name, (base_morph, export)) thy =
   roundup thy (fn _ => fn (name', morph') =>
-    (RegistrationsData.map o cons) ((name', (morph', export)), stamp ()))
+    (Registrations.map o cons) ((name', (morph', export)), stamp ()))
     (name, base_morph) (get_global_idents thy, thy) |> snd
     (* FIXME |-> put_global_idents ?*);
 
 fun amend_registration morph (name, base_morph) thy =
   let
-    val regs = (RegistrationsData.get #> map fst) thy;
+    val regs = (Registrations.get #> map fst) thy;
     val base = instance_of thy name base_morph;
     fun match (name', (morph', _)) =
       name = name' andalso eq_list (op aconv) (base, instance_of thy name' morph');
@@ -418,7 +399,7 @@ fun amend_registration morph (name, base_morph) thy =
         space_implode " " (map (quote o Syntax.string_of_term_global thy) base) ^ " available.")
       else ();
   in
-    RegistrationsData.map (nth_map (length regs - 1 - i)
+    Registrations.map (nth_map (length regs - 1 - i)
       (fn ((name, (base, export)), stamp) => ((name, (base $> morph, export)), stamp))) thy
   end;
 
@@ -463,6 +444,7 @@ val add_declaration = add_decls (K I);
 
 end;
 
+
 (* Dependencies *)
 
 fun add_dependency loc dep = (change_locale loc o apsnd) (cons (dep, stamp ()));
@@ -470,21 +452,36 @@ fun add_dependency loc dep = (change_locale loc o apsnd) (cons (dep, stamp ()));
 
 (*** Reasoning about locales ***)
 
-(** Storage for witnesses, intro and unfold rules **)
+(* Storage for witnesses, intro and unfold rules *)
 
-structure Witnesses = ThmsFun();
-structure Intros = ThmsFun();
-structure Unfolds = ThmsFun();
+structure Thms = GenericDataFun
+(
+  type T = thm list * thm list * thm list;
+  val empty = ([], [], []);
+  val extend = I;
+  fun merge _ ((witnesses1, intros1, unfolds1), (witnesses2, intros2, unfolds2)) =
+   (Thm.merge_thms (witnesses1, witnesses2),
+    Thm.merge_thms (intros1, intros2),
+    Thm.merge_thms (unfolds1, unfolds2));
+);
 
-val witness_attrib = Witnesses.add;
-val intro_attrib = Intros.add;
-val unfold_attrib = Unfolds.add;
+val get_witnesses = #1 o Thms.get o Context.Proof;
+val get_intros = #2 o Thms.get o Context.Proof;
+val get_unfolds = #3 o Thms.get o Context.Proof;
 
-(** Tactic **)
+val witness_add =
+  Thm.declaration_attribute (fn th => Thms.map (fn (x, y, z) => (Thm.add_thm th x, y, z)));
+val intro_add =
+  Thm.declaration_attribute (fn th => Thms.map (fn (x, y, z) => (x, Thm.add_thm th y, z)));
+val unfold_add =
+  Thm.declaration_attribute (fn th => Thms.map (fn (x, y, z) => (x, y, Thm.add_thm th z)));
 
-fun intro_locales_tac eager ctxt facts st =
+
+(* Tactic *)
+
+fun intro_locales_tac eager ctxt =
   Method.intros_tac
-    (Witnesses.get ctxt @ Intros.get ctxt @ (if eager then Unfolds.get ctxt else [])) facts st;
+    (get_witnesses ctxt @ get_intros ctxt @ (if eager then get_unfolds ctxt else []));
 
 val _ = Context.>> (Context.map_theory
  (Method.setup (Binding.name "intro_locales") (Scan.succeed (METHOD o intro_locales_tac false))
