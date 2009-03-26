@@ -186,6 +186,10 @@ apply (induct "n")
 apply (auto simp add: abs_mult)
 done
 
+lemma abs_power_minus [simp]:
+  fixes a:: "'a::{ordered_idom,recpower}" shows "abs((-a) ^ n) = abs(a ^ n)"
+  by (simp add: abs_minus_cancel power_abs) 
+
 lemma zero_less_power_abs_iff [simp,noatp]:
      "(0 < (abs a)^n) = (a \<noteq> (0::'a::{ordered_idom,recpower}) | n=0)"
 proof (induct "n")
