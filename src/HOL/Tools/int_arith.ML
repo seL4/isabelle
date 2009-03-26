@@ -377,6 +377,8 @@ structure Semiring_Times_Assoc_Data : ASSOC_FOLD_DATA =
 struct
   val assoc_ss = HOL_ss addsimps @{thms mult_ac}
   val eq_reflection = eq_reflection
+  fun is_numeral (Const(@{const_name Int.number_of}, _) $ _) = true
+    | is_numeral _ = false;
 end;
 
 structure Semiring_Times_Assoc = Assoc_Fold (Semiring_Times_Assoc_Data);
