@@ -61,8 +61,8 @@ lemma ring_hom_ringI2:
   assumes h: "h \<in> ring_hom R S"
   shows "ring_hom_ring R S h"
 proof -
-  interpret R!: ring R by fact
-  interpret S!: ring S by fact
+  interpret R: ring R by fact
+  interpret S: ring S by fact
   show ?thesis apply (intro ring_hom_ring.intro ring_hom_ring_axioms.intro)
     apply (rule R.is_ring)
     apply (rule S.is_ring)
@@ -78,8 +78,8 @@ lemma ring_hom_ringI3:
   shows "ring_hom_ring R S h"
 proof -
   interpret abelian_group_hom R S h by fact
-  interpret R!: ring R by fact
-  interpret S!: ring S by fact
+  interpret R: ring R by fact
+  interpret S: ring S by fact
   show ?thesis apply (intro ring_hom_ring.intro ring_hom_ring_axioms.intro, rule R.is_ring, rule S.is_ring)
     apply (insert group_hom.homh[OF a_group_hom])
     apply (unfold hom_def ring_hom_def, simp)
@@ -94,8 +94,8 @@ lemma ring_hom_cringI:
   shows "ring_hom_cring R S h"
 proof -
   interpret ring_hom_ring R S h by fact
-  interpret R!: cring R by fact
-  interpret S!: cring S by fact
+  interpret R: cring R by fact
+  interpret S: cring S by fact
   show ?thesis by (intro ring_hom_cring.intro ring_hom_cring_axioms.intro)
     (rule R.is_cring, rule S.is_cring, rule homh)
 qed

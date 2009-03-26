@@ -26,7 +26,7 @@ apply (erule rev_bexI)
 apply (erule (1) trans_less)
 done
 
-interpretation lower_le!: preorder lower_le
+interpretation lower_le: preorder lower_le
 by (rule preorder.intro, rule lower_le_refl, rule lower_le_trans)
 
 lemma lower_le_minimal [simp]: "PDUnit compact_bot \<le>\<flat> t"
@@ -133,7 +133,7 @@ lemma Rep_lower_principal:
 unfolding lower_principal_def
 by (simp add: Abs_lower_pd_inverse lower_le.ideal_principal)
 
-interpretation lower_pd!:
+interpretation lower_pd:
   ideal_completion lower_le pd_take lower_principal Rep_lower_pd
 apply unfold_locales
 apply (rule pd_take_lower_le)

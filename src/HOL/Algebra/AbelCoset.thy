@@ -540,8 +540,8 @@ lemma abelian_group_homI:
                                   (| carrier = carrier H, mult = add H, one = zero H |) h"
   shows "abelian_group_hom G H h"
 proof -
-  interpret G!: abelian_group G by fact
-  interpret H!: abelian_group H by fact
+  interpret G: abelian_group G by fact
+  interpret H: abelian_group H by fact
   show ?thesis apply (intro abelian_group_hom.intro abelian_group_hom_axioms.intro)
     apply fact
     apply fact
@@ -692,7 +692,7 @@ lemma (in abelian_subgroup) a_rcos_module_minus:
   assumes carr: "x \<in> carrier G" "x' \<in> carrier G"
   shows "(x' \<in> H +> x) = (x' \<ominus> x \<in> H)"
 proof -
-  interpret G!: ring G by fact
+  interpret G: ring G by fact
   from carr
   have "(x' \<in> H +> x) = (x' \<oplus> \<ominus>x \<in> H)" by (rule a_rcos_module)
   with carr

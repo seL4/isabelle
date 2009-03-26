@@ -156,7 +156,7 @@ by (default, rule exI, erule typedef_ideal_lub [OF type less])
 
 end
 
-interpretation sq_le!: preorder "sq_le :: 'a::po \<Rightarrow> 'a \<Rightarrow> bool"
+interpretation sq_le: preorder "sq_le :: 'a::po \<Rightarrow> 'a \<Rightarrow> bool"
 apply unfold_locales
 apply (rule refl_less)
 apply (erule (1) trans_less)

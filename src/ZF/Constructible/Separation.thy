@@ -305,7 +305,7 @@ lemma M_basic_axioms_L: "M_basic_axioms(L)"
 theorem M_basic_L: "PROP M_basic(L)"
 by (rule M_basic.intro [OF M_trivial_L M_basic_axioms_L])
 
-interpretation L: M_basic L by (rule M_basic_L)
+interpretation L?: M_basic L by (rule M_basic_L)
 
 
 end

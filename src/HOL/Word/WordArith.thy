@@ -21,7 +21,7 @@ lemma signed_linorder: "linorder word_sle word_sless"
 proof
 qed (unfold word_sle_def word_sless_def, auto)
 
-interpretation signed!: linorder "word_sle" "word_sless"
+interpretation signed: linorder "word_sle" "word_sless"
   by (rule signed_linorder)
 
 lemmas word_arith_wis = 
@@ -862,7 +862,7 @@ lemma td_ext_unat':
 lemmas td_ext_unat = refl [THEN td_ext_unat']
 lemmas unat_of_nat = td_ext_unat [THEN td_ext.eq_norm, standard]
 
-interpretation word_unat!:
+interpretation word_unat:
   td_ext "unat::'a::len word => nat" 
          of_nat 
          "unats (len_of TYPE('a::len))"

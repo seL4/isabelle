@@ -17,7 +17,8 @@ signature DISPLAY =
 sig
   include BASIC_DISPLAY
   val pretty_flexpair: Pretty.pp -> term * term -> Pretty.T
-  val pretty_thm_aux: Pretty.pp -> bool -> bool -> term list -> thm -> Pretty.T
+  val pretty_thm_aux: Pretty.pp -> {quote: bool, show_hyps: bool, show_status: bool} ->
+    term list -> thm -> Pretty.T
   val pretty_thm: thm -> Pretty.T
   val string_of_thm: thm -> string
   val pretty_thms: thm list -> Pretty.T
@@ -57,19 +58,20 @@ val pretty_tags = Pretty.list "[" "]" o map pretty_tag;
 fun pretty_flexpair pp (t, u) = Pretty.block
   [Pretty.term pp t, Pretty.str " =?=", Pretty.brk 1, Pretty.term pp u];
 
-fun display_status th =
-  let
-    val {oracle = oracle0, unfinished, failed} = Thm.status_of th;
-    val oracle = oracle0 andalso (not (! quick_and_dirty) orelse ! show_hyps);
-  in
-    if failed then "!!"
-    else if oracle andalso unfinished then "!?"
-    else if oracle then "!"
-    else if unfinished then "?"
-    else ""
-  end;
+fun display_status false _ = ""
+  | display_status true th =
+      let
+        val {oracle = oracle0, unfinished, failed} = Thm.status_of th;
+        val oracle = oracle0 andalso (not (! quick_and_dirty) orelse ! show_hyps);
+      in
+        if failed then "!!"
+        else if oracle andalso unfinished then "!?"
+        else if oracle then "!"
+        else if unfinished then "?"
+        else ""
+      end;
 
-fun pretty_thm_aux pp quote show_hyps' asms raw_th =
+fun pretty_thm_aux pp {quote, show_hyps = show_hyps', show_status} asms raw_th =
   let
     val th = Thm.strip_shyps raw_th;
     val {hyps, tpairs, prop, ...} = Thm.rep_thm th;
@@ -80,7 +82,7 @@ fun pretty_thm_aux pp quote show_hyps' asms raw_th =
     val prt_term = q o Pretty.term pp;
 
     val hyps' = if ! show_hyps then hyps else subtract (op aconv) asms hyps;
-    val status = display_status th;
+    val status = display_status show_status th;
 
     val hlen = length xshyps + length hyps' + length tpairs;
     val hsymbs =
@@ -97,7 +99,8 @@ fun pretty_thm_aux pp quote show_hyps' asms raw_th =
   in Pretty.block (prt_term prop :: (hsymbs @ tsymbs)) end;
 
 fun pretty_thm th =
-  pretty_thm_aux (Syntax.pp_global (Thm.theory_of_thm th)) true false [] th;
+  pretty_thm_aux (Syntax.pp_global (Thm.theory_of_thm th))
+    {quote = true, show_hyps = false, show_status = true} [] th;
 
 val string_of_thm = Pretty.string_of o pretty_thm;
 

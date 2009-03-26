@@ -116,7 +116,7 @@ qed
 
 end
 
-interpretation inner!:
+interpretation inner:
   bounded_bilinear "inner::'a::real_inner \<Rightarrow> 'a \<Rightarrow> real"
 proof
   fix x y z :: 'a and r :: real
@@ -135,11 +135,11 @@ proof
   qed
 qed
 
-interpretation inner_left!:
+interpretation inner_left:
   bounded_linear "\<lambda>x::'a::real_inner. inner x y"
   by (rule inner.bounded_linear_left)
 
-interpretation inner_right!:
+interpretation inner_right:
   bounded_linear "\<lambda>y::'a::real_inner. inner x y"
   by (rule inner.bounded_linear_right)
 

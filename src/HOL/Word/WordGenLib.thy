@@ -106,7 +106,7 @@ lemma word_boolean:
   apply (rule word_or_not)
   done
 
-interpretation word_bool_alg!:
+interpretation word_bool_alg:
   boolean "op AND" "op OR" bitNOT 0 max_word
   by (rule word_boolean)
 
@@ -114,7 +114,7 @@ lemma word_xor_and_or:
   "x XOR y = x AND NOT y OR NOT x AND (y::'a::len0 word)"
   by (rule word_eqI) (auto simp add: word_ops_nth_size word_size)
 
-interpretation word_bool_alg!:
+interpretation word_bool_alg:
   boolean_xor "op AND" "op OR" bitNOT 0 max_word "op XOR"
   apply (rule boolean_xor.intro)
    apply (rule word_boolean)

@@ -59,7 +59,7 @@ lemma (in subspace) zero [intro]:
   assumes "vectorspace V"
   shows "0 \<in> U"
 proof -
-  interpret V!: vectorspace V by fact
+  interpret V: vectorspace V by fact
   have "U \<noteq> {}" by (rule non_empty)
   then obtain x where x: "x \<in> U" by blast
   then have "x \<in> V" .. then have "0 = x - x" by simp

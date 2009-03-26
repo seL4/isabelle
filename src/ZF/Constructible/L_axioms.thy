@@ -99,7 +99,7 @@ theorem M_trivial_L: "PROP M_trivial(L)"
   apply (rule L_nat)
   done
 
-interpretation L: M_trivial L by (rule M_trivial_L)
+interpretation L?: M_trivial L by (rule M_trivial_L)
 
 (* Replaces the following declarations...
 lemmas rall_abs = M_trivial.rall_abs [OF M_trivial_L]
