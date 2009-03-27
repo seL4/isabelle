@@ -388,6 +388,14 @@ qed
 
 instance fps :: (idom) idom ..
 
+instantiation fps :: (comm_ring_1) number_ring
+begin
+definition number_of_fps_def: "(number_of k::'a fps) = of_int k"
+
+instance 
+by (intro_classes, rule number_of_fps_def)
+end
+
 subsection{* Inverses of formal power series *}
 
 declare setsum_cong[fundef_cong]
