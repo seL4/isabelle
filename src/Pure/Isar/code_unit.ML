@@ -215,9 +215,10 @@ fun norm_varnames thy purify_tvar purify_var thms =
           |> Conjunction.elim_balanced (length thms)
   in
     thms
-    |> burrow_thms (canonical_tvars thy purify_tvar)
     |> map (canonical_vars thy purify_var)
     |> map (canonical_absvars purify_var)
+    |> map Drule.zero_var_indexes
+    |> burrow_thms (canonical_tvars thy purify_tvar)
     |> Drule.zero_var_indexes_list
   end;
 
