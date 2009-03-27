@@ -250,47 +250,45 @@ text {*
   Inspecting the grammar of locale commands in
   Table~\ref{tab:commands} reveals that the import of a locale can be
   more than just a single locale.  In general, the import is a
-  \emph{locale expression}.  Locale expressions enable to combine locales
-  and rename parameters.  A locale name is a locale expression.  If
-  $e_1$ and $e_2$ are locale expressions then $e_1 + e_2$ is their
-  \emph{merge}.  If $e$ is an expression, then $e~q_1 \ldots q_n$ is
-  a \emph{renamed expression} where the parameters in $e$ are renamed
-  to $q_1 \ldots q_n$.  Using a locale expression, a locale for order
+  \emph{locale expression}.  These enable to combine locales
+  and instantiate parameters.  A locale expression is a sequence of
+  locale \emph{instances} followed by an optional \isakeyword{for}
+  clause.  Each instance consists of a locale reference, which may be
+  preceded by a qualifer and succeeded by instantiations of the
+  parameters of that locale.  Instantiations may be either positional
+  or through explicit parameter argument pairs.
+
+  Using a locale expression, a locale for order
   preserving maps can be declared in the following way.  *}
 
   locale order_preserving =
-    le: partial_order + le': partial_order le' for le' (infixl "\<preceq>" 50) +
+    le: partial_order le + le': partial_order le'
+      for le (infixl "\<sqsubseteq>" 50) and le' (infixl "\<preceq>" 50) +
     fixes \<phi> :: "'a \<Rightarrow> 'b"
     assumes hom_le: "x \<sqsubseteq> y \<Longrightarrow> \<phi> x \<preceq> \<phi> y"
 
-text {* The second line contains the expression, which is the
-  merge of two partial order locales.  The parameter of the second one
-  is @{text le'} with new infix syntax @{text \<preceq>}.  The
-  parameters of the entire locale are @{text le}, @{text le'} and
-  @{text \<phi>}.  This is their \emph{canonical order},
-  which is obtained by a left-to-right traversal of the expression,
-  where only the new parameters are appended to the end of the list.  The
-  parameters introduced in the locale elements of the declaration
-  follow.
+text {* The second and third line contain the expression --- two
+  instances of the partial order locale with instantiations @{text le}
+  and @{text le'}, respectively.  The \isakeyword{for} clause consists
+  of parameter declarations and is similar to the context element
+  \isakeyword{fixes}.  The notable difference is that the
+  \isakeyword{for} clause is part of the expression, and only
+  parameters defined in the expression may occur in its instances.
 
-  In renamings parameters are referred to by position in the canonical
-  order; an underscore is used to skip a parameter position, which is
-  then not renamed.  Renaming deletes the syntax of a parameter unless
-  a new mixfix annotation is given.
+  Instances are \emph{morphisms} on locales.  Their effect on the
+  parameters is naturally lifted to terms, propositions and theorems,
+  and thus to the assumptions and conclusions of a locale.  The
+  assumption of a locale expression is the conjunction of the
+  assumptions of the instances.  The conclusions of a sequence of
+  instances are obtained by appending the conclusions of the
+  instances in the order of the sequence.
 
-  Parameter renamings are morphisms between locales.  These can be
-  lifted to terms and theorems and thus be applied to assumptions and
-  conclusions.  The assumption of a merge is the conjunction of the
-  assumptions of the merged locale.  The conclusions of a merge are
-  obtained by appending the conclusions of the left locale and of the
-  right locale.  *}
-
-text {* The locale @{text order_preserving} contains theorems for both
-  orders @{text \<sqsubseteq>} and @{text \<preceq>}.  How can one refer to a theorem for
-  a particular order, @{text \<sqsubseteq>} or @{text \<preceq>}?  Names in locales are
-  qualified by the locale parameters.  More precisely, a name is
-  qualified by the parameters of the locale in which its declaration
-  occurs.  Here are examples: *}
+  The qualifiers in the expression are already a familiar concept from
+  the \isakeyword{interpretation} command.  They serve to distinguish
+  names (in particular theorem names) for the two partial orders
+  within the locale.  Qualifiers in the \isakeyword{locale} command
+  default to optional.  Here are examples of theorems in locale @{text
+  order_preserving}: *}
 
 context %invisible order_preserving begin
 
@@ -300,16 +298,14 @@ text {*
   @{thm [source] hom_le}: @{thm hom_le}
   *}
 
-text {* When renaming a locale, the morphism is also applied
-  to the qualifiers.  Hence theorems for the partial order @{text \<preceq>}
+text {* The theorems for the partial order @{text \<preceq>}
   are qualified by @{text le'}.  For example, @{thm [source]
   le'.less_le_trans}: @{thm [display, indent=2] le'.less_le_trans} *}
 
 end %invisible
 
 text {* This example reveals that there is no infix syntax for the strict
-  version of @{text \<preceq>}!  This can, of course, not be introduced
-  automatically, but it can be declared manually through an abbreviation.
+  version of @{text \<preceq>}!  This can be declared through an abbreviation.
   *}
 
   abbreviation (in order_preserving)
@@ -318,22 +314,39 @@ text {* This example reveals that there is no infix syntax for the strict
 text (in order_preserving) {* Now the theorem is displayed nicely as
   @{thm le'.less_le_trans}.  *}
 
-text {* Not only names of theorems are qualified.  In fact, all names
-  are qualified, in particular names introduced by definitions and
-  abbreviations.  The name of the strict order of @{text \<sqsubseteq>} is @{text
-  le.less} and therefore @{text le'.less} is the name of the strict
-  order of @{text \<preceq>}.  Hence, the equation in the above abbreviation
-  could have been written as @{text "less' \<equiv> le'.less"}. *}
+text {* Qualifiers not only apply to theorem names, but also to names
+  introduced by definitions and abbreviations.  In locale
+  @{text partial_order} the full name of the strict order of @{text \<sqsubseteq>} is
+  @{text le.less} and therefore @{text le'.less} is the full name of
+  the strict order of @{text \<preceq>}.  Hence, the equation in the
+  abbreviation above could have been also written as @{text "less' \<equiv>
+  le'.less"}. *}
 
-text {* Two more locales illustrate working with locale expressions.
-  A map @{text \<phi>} is a lattice homomorphism if it preserves meet and join. *}
+text {* Readers may find the declaration of locale @{text
+  order_preserving} a little awkward, because the declaration and
+  concrete syntax for @{text le} from @{text partial_order} are
+  repeated in the declaration of @{text order_preserving}.  Locale
+  expressions provide a convenient short hand for this.  A parameter
+  in an instance is \emph{untouched} if no instantiation term is
+  provided for it.  In positional instantiations, a parameter position
+  may be skipped with an underscore, and it is allowed to give fewer
+  instantiation terms than the instantiated locale's number of
+  parameters.  In named instantiations, instantiation pairs for
+  certain parameters may simply be omitted.  Untouched parameters are
+  declared by the locale expression and with their concrete syntax by
+  implicitly adding them to the beginning of the \isakeyword{for}
+  clause.
 
-  locale lattice_hom = le: lattice + le': lattice le' for le' (infixl "\<preceq>" 50) +
+  The following locales illustrate this.  A map @{text \<phi>} is a
+  lattice homomorphism if it preserves meet and join. *}
+
+  locale lattice_hom =
+    le: lattice + le': lattice le' for le' (infixl "\<preceq>" 50) +
     fixes \<phi>
     assumes hom_meet:
-	"\<phi> (lattice.meet le x y) = lattice.meet le' (\<phi> x) (\<phi> y)"
+	"\<phi> (x \<sqinter> y) = le'.meet (\<phi> x) (\<phi> y)"
       and hom_join:
-	"\<phi> (lattice.join le x y) = lattice.join le' (\<phi> x) (\<phi> y)"
+	"\<phi> (x \<squnion> y) = le'.join (\<phi> x) (\<phi> y)"
 
   abbreviation (in lattice_hom)
     meet' (infixl "\<sqinter>''" 50) where "meet' \<equiv> le'.meet"
@@ -342,8 +355,12 @@ text {* Two more locales illustrate working with locale expressions.
 
 text {* A homomorphism is an endomorphism if both orders coincide. *}
 
-  locale lattice_end =
-    lattice_hom le le for le (infixl "\<sqsubseteq>" 50)
+  locale lattice_end = lattice_hom _ le
+
+text {* In this declaration, the first parameter of @{text
+  lattice_hom}, @{text le}, is untouched and then used to instantiate
+  the second parameter.  Its concrete syntax is preseverd. *}
+
 
 text {* The inheritance diagram of the situation we have now is shown
   in Figure~\ref{fig:hom}, where the dashed line depicts an
@@ -390,7 +407,7 @@ text {* The inheritance diagram of the situation we have now is shown
 
 text {* It can be shown easily that a lattice homomorphism is order
   preserving.  As the final example of this section, a locale
-  interpretation is used to assert this. *}
+  interpretation is used to assert this: *}
 
   sublocale lattice_hom \<subseteq> order_preserving proof unfold_locales
     fix x y
@@ -404,6 +421,7 @@ text (in lattice_hom) {*
   Theorems and other declarations --- syntax, in particular --- from
   the locale @{text order_preserving} are now active in @{text
   lattice_hom}, for example
+
   @{thm [source] le'.less_le_trans}:
   @{thm le'.less_le_trans}
   *}
@@ -423,7 +441,7 @@ text {* More information on locales and their interpretation is
   Haftmann and Wenzel \cite{HaftmannWenzel2007} overcome a restriction
   of axiomatic type classes through a combination with locale
   interpretation.  The result is a Haskell-style class system with a
-  facility to generate Haskell code.  Classes are sufficient for
+  facility to generate ML and Haskell code.  Classes are sufficient for
   simple specifications with a single type parameter.  The locales for
   orders and lattices presented in this tutorial fall into this
   category.  Order preserving maps, homomorphisms and vector spaces,
