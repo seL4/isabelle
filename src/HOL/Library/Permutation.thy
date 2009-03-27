@@ -188,7 +188,11 @@ lemma eq_set_perm_remdups: "set xs = set ys ==> remdups xs <~~> remdups ys"
    apply (subgoal_tac "set (a#list) = set (ysa@a#zs) & distinct (a#list) & distinct (ysa@a#zs)")
     apply (fastsimp simp add: insert_ident)
    apply (metis distinct_remdups set_remdups)
-  apply (metis le_less_trans Suc_length_conv length_remdups_leq less_Suc_eq nat_less_le)
+   apply (subgoal_tac "length (remdups xs) < Suc (length xs)")
+   apply simp
+   apply (subgoal_tac "length (remdups xs) \<le> length xs")
+   apply simp
+   apply (rule length_remdups_leq)
   done
 
 lemma perm_remdups_iff_eq_set: "remdups x <~~> remdups y = (set x = set y)"
