@@ -1,7 +1,7 @@
-(*  Title:      FOL/ex/NewLocaleTest.thy
+(*  Title:      FOL/ex/LocaleTest.thy
     Author:     Clemens Ballarin, TU Muenchen
 
-Testing environment for locale expressions.
+Test environment for the locale implementation.
 *)
 
 theory LocaleTest
