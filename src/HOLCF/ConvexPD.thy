@@ -20,7 +20,7 @@ unfolding convex_le_def by (fast intro: upper_le_refl lower_le_refl)
 lemma convex_le_trans: "\<lbrakk>t \<le>\<natural> u; u \<le>\<natural> v\<rbrakk> \<Longrightarrow> t \<le>\<natural> v"
 unfolding convex_le_def by (fast intro: upper_le_trans lower_le_trans)
 
-interpretation convex_le!: preorder convex_le
+interpretation convex_le: preorder convex_le
 by (rule preorder.intro, rule convex_le_refl, rule convex_le_trans)
 
 lemma upper_le_minimal [simp]: "PDUnit compact_bot \<le>\<natural> t"
@@ -178,7 +178,7 @@ lemma Rep_convex_principal:
 unfolding convex_principal_def
 by (simp add: Abs_convex_pd_inverse convex_le.ideal_principal)
 
-interpretation convex_pd!:
+interpretation convex_pd:
   ideal_completion convex_le pd_take convex_principal Rep_convex_pd
 apply unfold_locales
 apply (rule pd_take_convex_le)

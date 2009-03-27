@@ -1,11 +1,9 @@
-(*  ID:         $Id$
-    Author:     Tobias Nipkow, 2007
-*)
+(*  Author: Tobias Nipkow, 2007 *)
 
-header "Lists as vectors"
+header {* Lists as vectors *}
 
 theory ListVector
-imports Plain "~~/src/HOL/List"
+imports List Main
 begin
 
 text{* \noindent

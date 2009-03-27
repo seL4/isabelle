@@ -21,6 +21,7 @@ sig
   val enabled: unit -> bool
   val no_interrupts: Thread.threadAttribute list
   val regular_interrupts: Thread.threadAttribute list
+  val restricted_interrupts: Thread.threadAttribute list
   val with_attributes: Thread.threadAttribute list ->
     (Thread.threadAttribute list -> 'a -> 'b) -> 'a -> 'b
   val self_critical: unit -> bool
@@ -45,6 +46,9 @@ val no_interrupts =
 
 val regular_interrupts =
   [Thread.EnableBroadcastInterrupt true, Thread.InterruptState Thread.InterruptAsynchOnce];
+
+val restricted_interrupts =
+  [Thread.EnableBroadcastInterrupt false, Thread.InterruptState Thread.InterruptAsynchOnce];
 
 fun with_attributes _ f x = f [] x;
 

@@ -21,7 +21,7 @@ lemma signed_linorder: "linorder word_sle word_sless"
 proof
 qed (unfold word_sle_def word_sless_def, auto)
 
-interpretation signed!: linorder "word_sle" "word_sless"
+interpretation signed: linorder "word_sle" "word_sless"
   by (rule signed_linorder)
 
 lemmas word_arith_wis = 
@@ -511,10 +511,13 @@ fun uint_arith_ss_of ss =
      addcongs @{thms power_False_cong}
 
 fun uint_arith_tacs ctxt = 
-  let fun arith_tac' n t = arith_tac ctxt n t handle COOPER => Seq.empty  
+  let
+    fun arith_tac' n t = Arith_Data.verbose_arith_tac ctxt n t handle COOPER => Seq.empty;
+    val cs = local_claset_of ctxt;
+    val ss = local_simpset_of ctxt;
   in 
-    [ CLASET' clarify_tac 1,
-      SIMPSET' (full_simp_tac o uint_arith_ss_of) 1,
+    [ clarify_tac cs 1,
+      full_simp_tac (uint_arith_ss_of ss) 1,
       ALLGOALS (full_simp_tac (HOL_ss addsplits @{thms uint_splits} 
                                       addcongs @{thms power_False_cong})),
       rewrite_goals_tac @{thms word_size}, 
@@ -698,6 +701,7 @@ lemma udvd_minus_le':
   apply (erule (2) udvd_decr0)
   done
 
+ML{*Delsimprocs cancel_factors*}
 lemma udvd_incr2_K: 
   "p < a + s ==> a <= a + s ==> K udvd s ==> K udvd p - a ==> a <= p ==> 
     0 < K ==> p <= p + K & p + K <= a + s"
@@ -713,6 +717,7 @@ lemma udvd_incr2_K:
    apply arith
   apply simp
   done
+ML{*Delsimprocs cancel_factors*}
 
 (* links with rbl operations *)
 lemma word_succ_rbl:
@@ -857,7 +862,7 @@ lemma td_ext_unat':
 lemmas td_ext_unat = refl [THEN td_ext_unat']
 lemmas unat_of_nat = td_ext_unat [THEN td_ext.eq_norm, standard]
 
-interpretation word_unat!:
+interpretation word_unat:
   td_ext "unat::'a::len word => nat" 
          of_nat 
          "unats (len_of TYPE('a::len))"
@@ -1069,10 +1074,13 @@ fun unat_arith_ss_of ss =
      addcongs @{thms power_False_cong}
 
 fun unat_arith_tacs ctxt =   
-  let fun arith_tac' n t = arith_tac ctxt n t handle COOPER => Seq.empty  
+  let
+    fun arith_tac' n t = Arith_Data.verbose_arith_tac ctxt n t handle COOPER => Seq.empty;
+    val cs = local_claset_of ctxt;
+    val ss = local_simpset_of ctxt;
   in 
-    [ CLASET' clarify_tac 1,
-      SIMPSET' (full_simp_tac o unat_arith_ss_of) 1,
+    [ clarify_tac cs 1,
+      full_simp_tac (unat_arith_ss_of ss) 1,
       ALLGOALS (full_simp_tac (HOL_ss addsplits @{thms unat_splits} 
                                        addcongs @{thms power_False_cong})),
       rewrite_goals_tac @{thms word_size}, 

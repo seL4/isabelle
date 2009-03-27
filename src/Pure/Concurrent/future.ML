@@ -44,6 +44,7 @@ sig
   val join_result: 'a future -> 'a Exn.result
   val join: 'a future -> 'a
   val map: ('a -> 'b) -> 'a future -> 'b future
+  val interruptible_task: ('a -> 'b) -> 'a -> 'b
   val interrupt_task: string -> unit
   val cancel_group: group -> unit
   val cancel: 'a future -> unit
@@ -211,7 +212,8 @@ fun scheduler_next () = (*requires SYNCHRONIZED*)
     val _ = if continue then () else scheduler := NONE;
 
     val _ = notify_all ();
-    val _ = interruptible (fn () => wait_timeout (Time.fromSeconds 1)) ()
+    val _ = interruptible (fn () =>
+        wait_timeout (Time.fromMilliseconds (if null (! canceled) then 1000 else 50))) ()
       handle Exn.Interrupt => List.app do_cancel (Task_Queue.cancel_all (! queue));
   in continue end;
 
@@ -236,7 +238,7 @@ fun scheduler_check name = SYNCHRONIZED name (fn () =>
 fun future_job group (e: unit -> 'a) =
   let
     val result = ref (NONE: 'a Exn.result option);
-    val job = Multithreading.with_attributes (Thread.getAttributes ())
+    val job = Multithreading.with_attributes Multithreading.restricted_interrupts
       (fn _ => fn ok =>
         let
           val res = if ok then Exn.capture e () else Exn.Exn Exn.Interrupt;
@@ -349,6 +351,15 @@ fun map_future f x =
 
 
 (* cancellation *)
+
+fun interruptible_task f x =
+  if Multithreading.available then
+    Multithreading.with_attributes
+      (if is_some (thread_data ())
+       then Multithreading.restricted_interrupts
+       else Multithreading.regular_interrupts)
+      (fn _ => f) x
+  else interruptible f x;
 
 (*interrupt: permissive signal, may get ignored*)
 fun interrupt_task id = SYNCHRONIZED "interrupt"

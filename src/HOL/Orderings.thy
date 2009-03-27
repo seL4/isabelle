@@ -372,13 +372,14 @@ fun del_struct s =
   Thm.declaration_attribute
     (fn _ => Data.map (AList.delete struct_eq s));
 
-val attribute =
-  Scan.lift ((Args.add -- Args.name >> (fn (_, s) => SOME s) ||
-      Args.del >> K NONE) --| Args.colon (* FIXME ||
-    Scan.succeed true *) ) -- Scan.lift Args.name --
-  Scan.repeat Args.term
-  >> (fn ((SOME tag, n), ts) => add_struct_thm (n, ts) tag
-       | ((NONE, n), ts) => del_struct (n, ts));
+val attrib_setup =
+  Attrib.setup @{binding order}
+    (Scan.lift ((Args.add -- Args.name >> (fn (_, s) => SOME s) || Args.del >> K NONE) --|
+      Args.colon (* FIXME || Scan.succeed true *) ) -- Scan.lift Args.name --
+      Scan.repeat Args.term
+      >> (fn ((SOME tag, n), ts) => add_struct_thm (n, ts) tag
+           | ((NONE, n), ts) => del_struct (n, ts)))
+    "theorems controlling transitivity reasoner";
 
 
 (** Diagnostic command **)
@@ -397,8 +398,9 @@ val _ =
 (** Setup **)
 
 val setup =
-  Method.setup @{binding order} (Scan.succeed (SIMPLE_METHOD' o order_tac [])) "transitivity reasoner" #>
-  Attrib.setup @{binding order} attribute "theorems controlling transitivity reasoner";
+  Method.setup @{binding order} (Scan.succeed (SIMPLE_METHOD' o order_tac []))
+    "transitivity reasoner" #>
+  attrib_setup;
 
 end;
 

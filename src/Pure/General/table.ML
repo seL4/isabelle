@@ -383,3 +383,6 @@ end;
 
 structure Inttab = TableFun(type key = int val ord = int_ord);
 structure Symtab = TableFun(type key = string val ord = fast_string_ord);
+structure Symreltab = TableFun(type key = string * string
+  val ord = prod_ord fast_string_ord fast_string_ord);
+

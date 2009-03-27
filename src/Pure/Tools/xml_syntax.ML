@@ -158,7 +158,7 @@ fun proof_of_xml (tree as XML.Elem ("PBound", [("index", idx)], [])) =
   | proof_of_xml (XML.Elem ("PThm", [("name", s)], term :: opttypes)) =
       (* FIXME? *)
       PThm (serial (), ((s, term_of_xml term, opttypes_of_xml opttypes),
-        Future.value (Proofterm.make_proof_body MinProof)))
+        Future.value (Proofterm.approximate_proof_body MinProof)))
   | proof_of_xml (XML.Elem ("PAxm", [("name", s)], term :: opttypes)) =
       PAxm (s, term_of_xml term, opttypes_of_xml opttypes)
   | proof_of_xml (XML.Elem ("Oracle", [("name", s)], term :: opttypes)) =

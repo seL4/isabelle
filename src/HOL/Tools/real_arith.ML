@@ -29,7 +29,7 @@ val int_inj_thms = [@{thm real_of_int_le_iff} RS iffD2,
 in
 
 val real_arith_setup =
-  LinArith.map_data (fn {add_mono_thms, mult_mono_thms, inj_thms, lessD, neqE, simpset} =>
+  Lin_Arith.map_data (fn {add_mono_thms, mult_mono_thms, inj_thms, lessD, neqE, simpset} =>
    {add_mono_thms = add_mono_thms,
     mult_mono_thms = mult_mono_thms,
     inj_thms = int_inj_thms @ nat_inj_thms @ inj_thms,

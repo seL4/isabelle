@@ -16,7 +16,6 @@ type inductive_result =
     dom_subset : thm,                  (*inclusion of recursive set in dom*)
     intrs      : thm list,             (*introduction rules*)
     elim       : thm,                  (*case analysis theorem*)
-    mk_cases   : string -> thm,        (*generates case theorems*)
     induct     : thm,                  (*main induction rule*)
     mutual_induct : thm};              (*mutual induction rule*)
 
@@ -231,12 +230,12 @@ let
      if !Ind_Syntax.trace then print_tac "The type-checking subgoal:"
      else all_tac,
      REPEAT (FIRSTGOAL (        dresolve_tac rec_typechecks
-                        ORELSE' eresolve_tac (asm_rl::@{thm PartE}::@{thm SigmaE2}::
+                        ORELSE' eresolve_tac (asm_rl :: @{thm PartE} :: @{thm SigmaE2} ::
                                               type_elims)
                         ORELSE' hyp_subst_tac)),
      if !Ind_Syntax.trace then print_tac "The subgoal after monos, type_elims:"
      else all_tac,
-     DEPTH_SOLVE (swap_res_tac (@{thm SigmaI}::@{thm subsetI}::type_intrs) 1)];
+     DEPTH_SOLVE (swap_res_tac (@{thm SigmaI} :: @{thm subsetI} :: type_intrs) 1)];
 
   (*combines disjI1 and disjI2 to get the corresponding nested disjunct...*)
   val mk_disj_rls = BalancedTree.accesses
@@ -275,9 +274,6 @@ let
       (basic_elim_tac THEN ALLGOALS (asm_full_simp_tac ss) THEN basic_elim_tac)
       (Thm.assume A RS elim)
       |> Drule.standard';
-  fun mk_cases a = make_cases (*delayed evaluation of body!*)
-    (simpset ())
-    let val thy = Thm.theory_of_thm elim in cterm_of thy (Syntax.read_prop_global thy a) end;
 
   fun induction_rules raw_induct thy =
    let
@@ -548,7 +544,6 @@ let
        dom_subset = dom_subset',
        intrs = intrs'',
        elim = elim',
-       mk_cases = mk_cases,
        induct = induct,
        mutual_induct = mutual_induct})
   end;

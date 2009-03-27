@@ -1,12 +1,11 @@
 (*  Title:      HOL/Library/List_Prefix.thy
-    ID:         $Id$
     Author:     Tobias Nipkow and Markus Wenzel, TU Muenchen
 *)
 
 header {* List prefixes and postfixes *}
 
 theory List_Prefix
-imports Plain "~~/src/HOL/List"
+imports List Main
 begin
 
 subsection {* Prefix order on lists *}

@@ -6,11 +6,11 @@ header {* Encoding (almost) everything into natural numbers *}
 
 theory Countable
 imports
-  Plain
   "~~/src/HOL/List"
   "~~/src/HOL/Hilbert_Choice"
   "~~/src/HOL/Nat_Int_Bij"
   "~~/src/HOL/Rational"
+  Main
 begin
 
 subsection {* The class of countable types *}

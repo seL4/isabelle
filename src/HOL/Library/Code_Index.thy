@@ -3,7 +3,7 @@
 header {* Type of indices *}
 
 theory Code_Index
-imports Plain "~~/src/HOL/Code_Eval" "~~/src/HOL/Presburger"
+imports Main
 begin
 
 text {*

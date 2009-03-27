@@ -5,7 +5,7 @@
 header {* Pretty integer literals for code generation *}
 
 theory Code_Integer
-imports Plain "~~/src/HOL/Code_Eval" "~~/src/HOL/Presburger"
+imports Main
 begin
 
 text {*

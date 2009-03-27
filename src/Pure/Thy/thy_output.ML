@@ -22,7 +22,7 @@ sig
     ({state: Toplevel.state, source: Args.src, context: Proof.context} -> 'a -> string) -> unit
   datatype markup = Markup | MarkupEnv | Verbatim
   val modes: string list ref
-  val eval_antiquote: Scan.lexicon -> Toplevel.state -> SymbolPos.text * Position.T -> string
+  val eval_antiquote: Scan.lexicon -> Toplevel.state -> Symbol_Pos.text * Position.T -> string
   val present_thy: Scan.lexicon -> (string -> string list) -> (markup -> string -> bool) ->
     (Toplevel.transition * Toplevel.state) list -> (OuterLex.token, 'a) Source.source -> Buffer.T
   val pretty_text: string -> Pretty.T
@@ -147,18 +147,18 @@ val modes = ref ([]: string list);
 
 fun eval_antiquote lex state (txt, pos) =
   let
-    fun expand (Antiquote.Text s) = s
-      | expand (Antiquote.Antiq x) =
-          let val (opts, src) = Antiquote.read_antiq lex antiq x in
+    fun expand (Antiquote.Text ss) = Symbol_Pos.content ss
+      | expand (Antiquote.Antiq (ss, (pos, _))) =
+          let val (opts, src) = T.read_antiq lex antiq (ss, pos) in
             options opts (fn () => command src state) ();  (*preview errors!*)
             PrintMode.with_modes (! modes @ Latex.modes)
               (Output.no_warnings (options opts (fn () => command src state))) ()
           end
       | expand (Antiquote.Open _) = ""
       | expand (Antiquote.Close _) = "";
-    val ants = Antiquote.read (SymbolPos.explode (txt, pos), pos);
+    val ants = Antiquote.read (Symbol_Pos.explode (txt, pos), pos);
   in
-    if Toplevel.is_toplevel state andalso exists Antiquote.is_antiq ants then
+    if Toplevel.is_toplevel state andalso not (forall Antiquote.is_text ants) then
       error ("Unknown context -- cannot expand document antiquotations" ^ Position.str_of pos)
     else implode (map expand ants)
   end;
@@ -577,7 +577,7 @@ local
 fun ml_text name ml = antiquotation name (Scan.lift Args.name_source_position)
   (fn {context, ...} => fn (txt, pos) =>
    (ML_Context.eval_in (SOME context) false pos (ml txt);
-    SymbolPos.content (SymbolPos.explode (txt, pos))
+    Symbol_Pos.content (Symbol_Pos.explode (txt, pos))
     |> (if ! quotes then quote else I)
     |> (if ! display then enclose "\\begin{verbatim}\n" "\n\\end{verbatim}"
     else

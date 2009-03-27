@@ -1,5 +1,4 @@
 (*  Title:      HOL/SizeChange/sct.ML
-    ID:         $Id$
     Author:     Alexander Krauss, TU Muenchen
 
 Tactics for size change termination.
@@ -106,7 +105,7 @@ fun dist_vars [] vs = (null vs orelse error "dist_vars"; [])
 
 fun dest_case rebind t =
     let
-      val (_ $ _ $ rhs :: _ $ _ $ match :: guards) = HOLogic.dest_conj t
+      val ((_ $ _ $ rhs) :: (_ $ _ $ match) :: guards) = HOLogic.dest_conj t
       val guard = case guards of [] => HOLogic.true_const | gs => foldr1 HOLogic.mk_conj gs
     in
       foldr1 HOLogic.mk_prod [rebind guard, rebind rhs, rebind match]
@@ -183,8 +182,10 @@ datatype call_fact =
 
 fun rand (_ $ t) = t
 
-fun setup_probe_goal thy domT Dtab Mtab (i, j) =
+fun setup_probe_goal ctxt domT Dtab Mtab (i, j) =
     let
+      val css = local_clasimpset_of ctxt
+      val thy = ProofContext.theory_of ctxt
       val RD1 = get_elem (Dtab i)
       val RD2 = get_elem (Dtab j)
       val Ms1 = get_elem (Mtab i)
@@ -200,12 +201,12 @@ fun setup_probe_goal thy domT Dtab Mtab (i, j) =
       val saved_state = HOLogic.mk_Trueprop (mk_stepP RD1 RD2 mvar1 mvar2 relvar)
                          |> cterm_of thy
                          |> Goal.init
-                         |> CLASIMPSET auto_tac |> Seq.hd
+                         |> auto_tac css |> Seq.hd
 
       val no_step = saved_state
                       |> forall_intr (cterm_of thy relvar)
                       |> forall_elim (cterm_of thy (Abs ("", HOLogic.natT, Abs ("", HOLogic.natT, HOLogic.false_const))))
-                      |> CLASIMPSET auto_tac |> Seq.hd
+                      |> auto_tac css |> Seq.hd
 
     in
       if Thm.no_prems no_step
@@ -218,7 +219,7 @@ fun setup_probe_goal thy domT Dtab Mtab (i, j) =
                 val with_m1 = saved_state
                                 |> forall_intr (cterm_of thy mvar1)
                                 |> forall_elim (cterm_of thy M1)
-                                |> CLASIMPSET auto_tac |> Seq.hd
+                                |> auto_tac css |> Seq.hd
 
                 fun set_m2 j =
                     let
@@ -226,15 +227,15 @@ fun setup_probe_goal thy domT Dtab Mtab (i, j) =
                       val with_m2 = with_m1
                                       |> forall_intr (cterm_of thy mvar2)
                                       |> forall_elim (cterm_of thy M2)
-                                      |> CLASIMPSET auto_tac |> Seq.hd
+                                      |> auto_tac css |> Seq.hd
 
                       val decr = forall_intr (cterm_of thy relvar)
                                    #> forall_elim (cterm_of thy @{const HOL.less(nat)})
-                                   #> CLASIMPSET auto_tac #> Seq.hd
+                                   #> auto_tac css #> Seq.hd
 
                       val decreq = forall_intr (cterm_of thy relvar)
                                      #> forall_elim (cterm_of thy @{const HOL.less_eq(nat)})
-                                     #> CLASIMPSET auto_tac #> Seq.hd
+                                     #> auto_tac css #> Seq.hd
 
                       val thm1 = decr with_m2
                     in
@@ -266,17 +267,17 @@ fun setup_probe_goal thy domT Dtab Mtab (i, j) =
 
 fun mk_edge m G n = HOLogic.mk_prod (m, HOLogic.mk_prod (G, n))
 
-val in_graph_tac =
+fun in_graph_tac ctxt =
     simp_tac (HOL_basic_ss addsimps has_edge_simps) 1
-    THEN SIMPSET (fn x => simp_tac x 1) (* FIXME reduce simpset *)
+    THEN (simp_tac (local_simpset_of ctxt) 1) (* FIXME reduce simpset *)
 
-fun approx_tac (NoStep thm) = rtac disjI1 1 THEN rtac thm 1
-  | approx_tac (Graph (G, thm)) =
+fun approx_tac _ (NoStep thm) = rtac disjI1 1 THEN rtac thm 1
+  | approx_tac ctxt (Graph (G, thm)) =
     rtac disjI2 1
     THEN rtac exI 1
     THEN rtac conjI 1
     THEN rtac thm 2
-    THEN in_graph_tac
+    THEN (in_graph_tac ctxt)
 
 fun all_less_tac [] = rtac all_less_zero 1
   | all_less_tac (t :: ts) = rtac all_less_Suc 1
@@ -292,7 +293,7 @@ val length_simps = thms "Interpretation.length_simps"
 
 fun mk_call_graph ctxt (st : thm) =
     let
-      val thy = theory_of_thm st
+      val thy = ProofContext.theory_of ctxt
       val _ $ _ $ RDlist $ _ = HOLogic.dest_Trueprop (hd (prems_of st))
 
       val RDs = HOLogic.dest_list RDlist
@@ -316,7 +317,7 @@ fun mk_call_graph ctxt (st : thm) =
       val pairs = matrix indices indices
       val parts = map_matrix (fn (n,m) =>
                                  (timeap_msg (string_of_int n ^ "," ^ string_of_int m)
-                                             (setup_probe_goal thy domT Dtab Mtab) (n,m))) pairs
+                                             (setup_probe_goal ctxt domT Dtab Mtab) (n,m))) pairs
 
 
       val s = fold_index (fn (i, cs) => fold_index (fn (j, Graph (G, _)) => prefix ("(" ^ string_of_int i ^ "," ^ string_of_int j ^ "): " ^
@@ -333,8 +334,8 @@ fun mk_call_graph ctxt (st : thm) =
       val sound_int_goal = HOLogic.mk_Trueprop (mk_sound_int ACG RDlist mfuns)
 
       val tac =
-          (SIMPSET (unfold_tac [sound_int_def, len_simp]))
-            THEN all_less_tac (map (all_less_tac o map approx_tac) parts)
+          unfold_tac [sound_int_def, len_simp] (local_simpset_of ctxt)
+            THEN all_less_tac (map (all_less_tac o map (approx_tac ctxt)) parts)
     in
       tac (instantiate' [] [SOME (cterm_of thy ACG), SOME (cterm_of thy mfuns)] st)
     end

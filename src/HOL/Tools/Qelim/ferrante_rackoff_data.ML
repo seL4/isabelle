@@ -122,26 +122,28 @@ val thms = Scan.repeat (Scan.unless any_keyword Attrib.multi_thm) >> flat;
 val terms = thms >> map Drule.dest_term;
 in
 
-val attribute =
-    (keyword minfN |-- thms)
+val ferrak_setup =
+  Attrib.setup @{binding ferrack}
+    ((keyword minfN |-- thms)
      -- (keyword pinfN |-- thms)
      -- (keyword nmiN |-- thms)
      -- (keyword npiN |-- thms)
      -- (keyword lin_denseN |-- thms)
      -- (keyword qeN |-- thms)
-     -- (keyword atomsN |-- terms) >> 
-     (fn ((((((minf,pinf),nmi),npi),lin_dense),qe), atoms)=> 
-     if length qe = 1 then
-       add ({minf = minf, pinf = pinf, nmi = nmi, npi = npi, ld = lin_dense, 
-            qe = hd qe, atoms = atoms},
-           {isolate_conv = undefined, whatis = undefined, simpset = HOL_ss})
-     else error "only one theorem for qe!")
+     -- (keyword atomsN |-- terms) >>
+       (fn ((((((minf,pinf),nmi),npi),lin_dense),qe), atoms)=> 
+       if length qe = 1 then
+         add ({minf = minf, pinf = pinf, nmi = nmi, npi = npi, ld = lin_dense, 
+              qe = hd qe, atoms = atoms},
+             {isolate_conv = undefined, whatis = undefined, simpset = HOL_ss})
+       else error "only one theorem for qe!"))
+    "Ferrante Rackoff data";
 
 end;
 
 
 (* theory setup *)
 
-val setup = Attrib.setup @{binding ferrack} attribute "Ferrante Rackoff data";
+val setup = ferrak_setup;
 
 end;

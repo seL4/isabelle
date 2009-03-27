@@ -191,31 +191,39 @@ lemma fps_cos_neg[simp]: "fps_cos (- c) = fps_cos c"
 lemma E_minus_ii_sin_cos: "E (- (ii * c)) = fps_cos c - fps_const ii * fps_sin c "
   unfolding minus_mult_right Eii_sin_cos by simp
 
+lemma fps_const_minus: "fps_const (c::'a::group_add) - fps_const d = fps_const (c - d)  "by (simp add: fps_eq_iff fps_const_def)
+
+lemma fps_number_of_fps_const: "number_of i = fps_const (number_of i :: 'a:: {comm_ring_1, number_ring})"
+  apply (subst (2) number_of_eq)
+apply(rule int_induct[of _ 0])
+apply (simp_all add: number_of_fps_def)
+by (simp_all add: fps_const_add[symmetric] fps_const_minus[symmetric])
+
 lemma fps_cos_Eii:
   "fps_cos c = (E (ii * c) + E (- ii * c)) / fps_const 2"
 proof-
   have th: "fps_cos c + fps_cos c = fps_cos c * fps_const 2" 
-    by (simp add: fps_eq_iff)
+    by (simp add: fps_eq_iff fps_number_of_fps_const complex_number_of_def[symmetric])
   show ?thesis
   unfolding Eii_sin_cos minus_mult_commute
-  by (simp add: fps_divide_def fps_const_inverse th)
+  by (simp add: fps_number_of_fps_const fps_divide_def fps_const_inverse th complex_number_of_def[symmetric])
 qed
 
 lemma fps_sin_Eii:
   "fps_sin c = (E (ii * c) - E (- ii * c)) / fps_const (2*ii)"
 proof-
   have th: "fps_const \<i> * fps_sin c + fps_const \<i> * fps_sin c = fps_sin c * fps_const (2 * ii)" 
-    by (simp add: fps_eq_iff)
+    by (simp add: fps_eq_iff fps_number_of_fps_const complex_number_of_def[symmetric])
   show ?thesis
   unfolding Eii_sin_cos minus_mult_commute
   by (simp add: fps_divide_def fps_const_inverse th)
 qed
 
 lemma fps_const_mult_2: "fps_const (2::'a::number_ring) * a = a +a"
-  by (simp add: fps_eq_iff)
+  by (simp add: fps_eq_iff fps_number_of_fps_const)
 
 lemma fps_const_mult_2_right: "a * fps_const (2::'a::number_ring) = a +a"
-  by (simp add: fps_eq_iff)
+  by (simp add: fps_eq_iff fps_number_of_fps_const)
 
 lemma fps_tan_Eii:
   "fps_tan c = (E (ii * c) - E (- ii * c)) / (fps_const ii * (E (ii * c) + E (- ii * c)))"

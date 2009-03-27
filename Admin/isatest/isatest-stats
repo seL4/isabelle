@@ -1,13 +1,12 @@
 #!/usr/bin/env bash
 #
-# $Id$
 # Author: Makarius
 #
 # DESCRIPTION: Standard statistics.
 
 THIS=$(cd "$(dirname "$0")"; pwd -P)
 
-PLATFORMS="at-poly at-sml-dev at64-poly at-poly-5.1-para-e at64-poly-5.1-para at-mac-poly-5.1-para afp"
+PLATFORMS="at-poly at64-poly at-poly-5.1-para-e at64-poly-5.1-para at-mac-poly-5.1-para afp at-sml-dev"
 
 ISABELLE_SESSIONS="\
   HOL-Plain \
@@ -31,6 +30,8 @@ ISABELLE_SESSIONS="\
   HOL-UNITY \
   HOL-Word \
   HOL-ex \
+  HOLCF \
+  IOA \
   ZF \
   ZF-Constructible \
   ZF-UNITY"

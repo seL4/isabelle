@@ -242,7 +242,7 @@ local
   fun namify thy get_basename get_thyname name =
     let
       val prefix = get_thyname thy name;
-      val base = (Code_Name.purify_base true o get_basename) name;
+      val base = (Code_Name.purify_base o get_basename) name;
     in Long_Name.append prefix base end;
 in
 
@@ -261,13 +261,11 @@ end; (* local *)
 
 (* data *)
 
-structure StringPairTab = Code_Name.StringPairTab;
-
 datatype naming = Naming of {
   class: class Symtab.table * Name.context,
-  classrel: string StringPairTab.table * Name.context,
+  classrel: string Symreltab.table * Name.context,
   tyco: string Symtab.table * Name.context,
-  instance: string StringPairTab.table * Name.context,
+  instance: string Symreltab.table * Name.context,
   const: string Symtab.table * Name.context
 }
 
@@ -275,9 +273,9 @@ fun dest_Naming (Naming naming) = naming;
 
 val empty_naming = Naming {
   class = (Symtab.empty, Name.context),
-  classrel = (StringPairTab.empty, Name.context),
+  classrel = (Symreltab.empty, Name.context),
   tyco = (Symtab.empty, Name.context),
-  instance = (StringPairTab.empty, Name.context),
+  instance = (Symreltab.empty, Name.context),
   const = (Symtab.empty, Name.context)
 };
 
@@ -334,22 +332,22 @@ in
 val lookup_class = add_suffix suffix_class
   oo Symtab.lookup o fst o #class o dest_Naming;
 val lookup_classrel = add_suffix suffix_classrel
-  oo StringPairTab.lookup o fst o #classrel o dest_Naming;
+  oo Symreltab.lookup o fst o #classrel o dest_Naming;
 val lookup_tyco = add_suffix suffix_tyco
   oo Symtab.lookup o fst o #tyco o dest_Naming;
 val lookup_instance = add_suffix suffix_instance
-  oo StringPairTab.lookup o fst o #instance o dest_Naming;
+  oo Symreltab.lookup o fst o #instance o dest_Naming;
 val lookup_const = add_suffix suffix_const
   oo Symtab.lookup o fst o #const o dest_Naming;
 
 fun declare_class thy = declare thy map_class
   lookup_class Symtab.update_new namify_class;
 fun declare_classrel thy = declare thy map_classrel
-  lookup_classrel StringPairTab.update_new namify_classrel;
+  lookup_classrel Symreltab.update_new namify_classrel;
 fun declare_tyco thy = declare thy map_tyco
   lookup_tyco Symtab.update_new namify_tyco;
 fun declare_instance thy = declare thy map_instance
-  lookup_instance StringPairTab.update_new namify_instance;
+  lookup_instance Symreltab.update_new namify_instance;
 fun declare_const thy = declare thy map_const
   lookup_const Symtab.update_new namify_const;
 

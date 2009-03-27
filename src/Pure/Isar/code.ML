@@ -98,14 +98,12 @@ fun add_attribute (attr as (name, _)) =
     then error ("Code attribute " ^ name ^ " already declared") else add_parser attr attrs)
   end;
 
-val _ =
-  let
-    val code_attr = Scan.peek (fn context =>
-      List.foldr op || Scan.fail (map snd (CodeAttr.get (Context.theory_of context))));
-  in
-    Context.>> (Context.map_theory
-      (Attrib.setup (Binding.name "code") code_attr "declare theorems for code generation"))
-  end;
+val _ = Context.>> (Context.map_theory
+  (Attrib.setup (Binding.name "code")
+    (Scan.peek (fn context =>
+      List.foldr op || Scan.fail (map snd (CodeAttr.get (Context.theory_of context)))))
+    "declare theorems for code generation"));
+
 
 
 (** logical and syntactical specification of executable code **)

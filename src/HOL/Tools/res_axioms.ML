@@ -521,18 +521,19 @@ val neg_clausify_tac =
           REPEAT_DETERM_N (length ts) o (etac thin_rl)]
      end);
 
-val setup_methods =
+val neg_clausify_setup =
   Method.setup @{binding neg_clausify} (Scan.succeed (K (SIMPLE_METHOD' neg_clausify_tac)))
   "conversion of goal to conjecture clauses";
 
 
 (** Attribute for converting a theorem into clauses **)
 
-val clausify = Scan.lift OuterParse.nat >>
-  (fn i => Thm.rule_attribute (fn context => fn th =>
-      Meson.make_meta_clause (nth (cnf_axiom (Context.theory_of context) th) i)));
-
-val setup_attrs = Attrib.setup @{binding clausify} clausify "conversion of theorem to clauses";
+val clausify_setup =
+  Attrib.setup @{binding clausify}
+    (Scan.lift OuterParse.nat >>
+      (fn i => Thm.rule_attribute (fn context => fn th =>
+          Meson.make_meta_clause (nth (cnf_axiom (Context.theory_of context) th) i))))
+  "conversion of theorem to clauses";
 
 
 
@@ -540,8 +541,8 @@ val setup_attrs = Attrib.setup @{binding clausify} clausify "conversion of theor
 
 val setup =
   meson_method_setup #>
-  setup_methods #>
-  setup_attrs #>
+  neg_clausify_setup #>
+  clausify_setup #>
   perhaps saturate_skolem_cache #>
   Theory.at_end clause_cache_endtheory;
 

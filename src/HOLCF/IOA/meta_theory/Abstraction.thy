@@ -1,5 +1,4 @@
 (*  Title:      HOLCF/IOA/meta_theory/Abstraction.thy
-    ID:         $Id$
     Author:     Olaf Müller
 *)
 
@@ -605,11 +604,14 @@ lemmas weak_strength_lemmas =
   strength_Diamond strength_Leadsto weak_WF weak_SF
 
 ML {*
-fun abstraction_tac i =
-    SELECT_GOAL (CLASIMPSET (fn (cs, ss) =>
-      auto_tac (cs addSIs @{thms weak_strength_lemmas},
-        ss addsimps [@{thm state_strengthening_def}, @{thm state_weakening_def}]))) i
+fun abstraction_tac ctxt =
+  let val (cs, ss) = local_clasimpset_of ctxt in
+    SELECT_GOAL (auto_tac (cs addSIs @{thms weak_strength_lemmas},
+        ss addsimps [@{thm state_strengthening_def}, @{thm state_weakening_def}]))
+  end
 *}
+
+method_setup abstraction = {* Scan.succeed (SIMPLE_METHOD' o abstraction_tac) *} ""
 
 use "ioa_package.ML"
 

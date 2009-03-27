@@ -40,16 +40,16 @@ sig
     {oracles: oracle OrdList.T, thms: pthm OrdList.T, proof: proof}
   val join_proof: proof_body future -> proof
   val proof_of: proof_body -> proof
-  val fold_body_thms: (string * term * proof_body -> 'a -> 'a) -> proof_body list -> 'a -> 'a
   val fold_proof_atoms: bool -> (proof -> 'a -> 'a) -> proof list -> 'a -> 'a
+  val fold_body_thms: (string * term * proof_body -> 'a -> 'a) -> proof_body list -> 'a -> 'a
+  val status_of: proof_body list -> {failed: bool, oracle: bool, unfinished: bool}
 
   val oracle_ord: oracle * oracle -> order
   val thm_ord: pthm * pthm -> order
-  val make_proof_body: proof -> proof_body
   val merge_oracles: oracle OrdList.T -> oracle OrdList.T -> oracle OrdList.T
-  val make_oracles: proof -> oracle OrdList.T
   val merge_thms: pthm OrdList.T -> pthm OrdList.T -> pthm OrdList.T
-  val make_thms: proof -> pthm OrdList.T
+  val all_oracles_of: proof_body -> oracle OrdList.T
+  val approximate_proof_body: proof -> proof_body
 
   (** primitive operations **)
   val proof_combt: proof * term list -> proof
@@ -106,11 +106,11 @@ sig
   val equal_intr: term -> term -> proof -> proof -> proof
   val equal_elim: term -> term -> proof -> proof -> proof
   val axm_proof: string -> term -> proof
-  val oracle_proof: string -> term -> proof
+  val oracle_proof: string -> term -> oracle * proof
   val promise_proof: theory -> serial -> term -> proof
-  val fulfill_proof: theory -> (serial * proof) list -> proof_body -> proof_body
+  val fulfill_proof: theory -> (serial * proof_body) list -> proof_body -> proof_body
   val thm_proof: theory -> string -> term list -> term ->
-    (serial * proof future) list -> proof_body -> pthm * proof
+    (serial * proof_body future) list -> proof_body -> pthm * proof
   val get_name: term list -> term -> proof -> string
 
   (** rewriting on proof terms **)
@@ -159,17 +159,6 @@ fun proof_of (PBody {proof, ...}) = proof;
 
 (***** proof atoms *****)
 
-fun fold_body_thms f =
-  let
-    fun app (PBody {thms, ...}) = thms |> fold (fn (i, (name, prop, body)) => fn (x, seen) =>
-      if Inttab.defined seen i then (x, seen)
-      else
-        let
-          val body' = Future.join body;
-          val (x', seen') = app body' (x, Inttab.update (i, ()) seen);
-        in (f (name, prop, body') x', seen') end);
-  in fn bodies => fn x => #1 (fold app bodies (x, Inttab.empty)) end;
-
 fun fold_proof_atoms all f =
   let
     fun app (Abst (_, _, prf)) = app prf
@@ -185,32 +174,71 @@ fun fold_proof_atoms all f =
       | app prf = (fn (x, seen) => (f prf x, seen));
   in fn prfs => fn x => #1 (fold app prfs (x, Inttab.empty)) end;
 
+fun fold_body_thms f =
+  let
+    fun app (PBody {thms, ...}) = thms |> fold (fn (i, (name, prop, body)) => fn (x, seen) =>
+      if Inttab.defined seen i then (x, seen)
+      else
+        let
+          val body' = Future.join body;
+          val (x', seen') = app body' (x, Inttab.update (i, ()) seen);
+        in (f (name, prop, body') x', seen') end);
+  in fn bodies => fn x => #1 (fold app bodies (x, Inttab.empty)) end;
+
+fun status_of bodies =
+  let
+    fun status (PBody {oracles, thms, ...}) x =
+      let
+        val ((oracle, unfinished, failed), seen) =
+          (thms, x) |-> fold (fn (i, (_, _, body)) => fn (st, seen) =>
+            if Inttab.defined seen i then (st, seen)
+            else
+              let val seen' = Inttab.update (i, ()) seen in
+                (case Future.peek body of
+                  SOME (Exn.Result body') => status body' (st, seen')
+                | SOME (Exn.Exn _) =>
+                    let val (oracle, unfinished, _) = st
+                    in ((oracle, unfinished, true), seen') end
+                | NONE =>
+                    let val (oracle, _, failed) = st
+                    in ((oracle, true, failed), seen') end)
+              end);
+      in ((oracle orelse not (null oracles), unfinished, failed), seen) end;
+    val (oracle, unfinished, failed) = #1 (fold status bodies ((false, false, false), Inttab.empty));
+  in {oracle = oracle, unfinished = unfinished, failed = failed} end;
+
 
 (* proof body *)
 
 val oracle_ord = prod_ord fast_string_ord TermOrd.fast_term_ord;
 fun thm_ord ((i, _): pthm, (j, _)) = int_ord (j, i);
 
-fun make_body prf =
+val merge_oracles = OrdList.union oracle_ord;
+val merge_thms = OrdList.union thm_ord;
+
+val all_oracles_of =
+  let
+    fun collect (PBody {oracles, thms, ...}) = thms |> fold (fn (i, (_, _, body)) => fn (x, seen) =>
+      if Inttab.defined seen i then (x, seen)
+      else
+        let
+          val body' = Future.join body;
+          val (x', seen') = collect body' (x, Inttab.update (i, ()) seen);
+        in (merge_oracles oracles x', seen') end);
+  in fn body => #1 (collect body ([], Inttab.empty)) end;
+
+fun approximate_proof_body prf =
   let
     val (oracles, thms) = fold_proof_atoms false
       (fn Oracle (s, prop, _) => apfst (cons (s, prop))
         | PThm (i, ((name, prop, _), body)) => apsnd (cons (i, (name, prop, body)))
         | _ => I) [prf] ([], []);
-  in (OrdList.make oracle_ord oracles, OrdList.make thm_ord thms) end;
-
-fun make_proof_body prf =
-  let val (oracles, thms) = make_body prf
-  in PBody {oracles = oracles, thms = thms, proof = prf} end;
-
-val make_oracles = #1 o make_body;
-val make_thms = #2 o make_body;
-
-val merge_oracles = OrdList.union oracle_ord;
-val merge_thms = OrdList.union thm_ord;
-
-fun merge_body (oracles1, thms1) (oracles2, thms2) =
-  (merge_oracles oracles1 oracles2, merge_thms thms1 thms2);
+  in
+    PBody
+     {oracles = OrdList.make oracle_ord oracles,
+      thms = OrdList.make thm_ord thms,
+      proof = prf}
+  end;
 
 
 (***** proof objects with different levels of detail *****)
@@ -907,8 +935,8 @@ val axm_proof = gen_axm_proof PAxm;
 val dummy = Const (Term.dummy_patternN, dummyT);
 
 fun oracle_proof name prop =
-  if !proofs = 0 then Oracle (name, dummy, NONE)
-  else gen_axm_proof Oracle name prop;
+  if ! proofs = 0 then ((name, dummy), Oracle (name, dummy, NONE))
+  else ((name, prop), gen_axm_proof Oracle name prop);
 
 fun shrink_proof thy =
   let
@@ -1212,16 +1240,17 @@ fun promise_proof thy i prop =
   in Promise (i, prop, map TVar (Term.add_tvars prop [])) end;
 
 fun fulfill_proof _ [] body0 = body0
-  | fulfill_proof thy promises body0 =
+  | fulfill_proof thy ps body0 =
       let
         val PBody {oracles = oracles0, thms = thms0, proof = proof0} = body0;
-        val (oracles, thms) = fold (merge_body o make_body o #2) promises (oracles0, thms0);
+        val oracles = fold (fn (_, PBody {oracles, ...}) => merge_oracles oracles) ps oracles0;
+        val thms = fold (fn (_, PBody {thms, ...}) => merge_thms thms) ps thms0;
+        val proofs = fold (fn (i, PBody {proof, ...}) => Inttab.update (i, proof)) ps Inttab.empty;
 
-        val tab = Inttab.make promises;
         fun fill (Promise (i, prop, Ts)) =
-            (case Inttab.lookup tab i of
+            (case Inttab.lookup proofs i of
               NONE => NONE
-            | SOME p => SOME (instantiate (Term.add_tvars prop [] ~~ Ts, []) p))
+            | SOME prf => SOME (instantiate (Term.add_tvars prop [] ~~ Ts, []) prf))
           | fill _ = NONE;
         val (rules, procs) = get_data thy;
         val proof = rewrite_prf fst (rules, K fill :: procs) proof0;

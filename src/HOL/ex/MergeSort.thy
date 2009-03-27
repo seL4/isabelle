@@ -1,5 +1,4 @@
 (*  Title:      HOL/ex/Merge.thy
-    ID:         $Id$
     Author:     Tobias Nipkow
     Copyright   2002 TU Muenchen
 *)

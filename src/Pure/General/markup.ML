@@ -62,6 +62,17 @@ sig
   val propN: string val prop: T
   val attributeN: string val attribute: string -> T
   val methodN: string val method: string -> T
+  val ML_keywordN: string val ML_keyword: T
+  val ML_identN: string val ML_ident: T
+  val ML_tvarN: string val ML_tvar: T
+  val ML_numeralN: string val ML_numeral: T
+  val ML_charN: string val ML_char: T
+  val ML_stringN: string val ML_string: T
+  val ML_commentN: string val ML_comment: T
+  val ML_malformedN: string val ML_malformed: T
+  val ML_defN: string val ML_def: T
+  val ML_refN: string val ML_ref: T
+  val ML_typingN: string val ML_typing: T
   val ML_sourceN: string val ML_source: T
   val doc_sourceN: string val doc_source: T
   val antiqN: string val antiq: T
@@ -211,6 +222,22 @@ val (propN, prop) = markup_elem "prop";
 
 val (attributeN, attribute) = markup_string "attribute" nameN;
 val (methodN, method) = markup_string "method" nameN;
+
+
+(* ML syntax *)
+
+val (ML_keywordN, ML_keyword) = markup_elem "ML_keyword";
+val (ML_identN, ML_ident) = markup_elem "ML_ident";
+val (ML_tvarN, ML_tvar) = markup_elem "ML_tvar";
+val (ML_numeralN, ML_numeral) = markup_elem "ML_numeral";
+val (ML_charN, ML_char) = markup_elem "ML_char";
+val (ML_stringN, ML_string) = markup_elem "ML_string";
+val (ML_commentN, ML_comment) = markup_elem "ML_comment";
+val (ML_malformedN, ML_malformed) = markup_elem "ML_malformed";
+
+val (ML_defN, ML_def) = markup_elem "ML_def";
+val (ML_refN, ML_ref) = markup_elem "ML_ref";
+val (ML_typingN, ML_typing) = markup_elem "ML_typing";
 
 
 (* embedded source text *)

@@ -1,12 +1,11 @@
 (*  Title:      Formal_Power_Series.thy
-    ID:
     Author:     Amine Chaieb, University of Cambridge
 *)
 
 header{* A formalization of formal power series *}
 
 theory Formal_Power_Series
-  imports Main Fact Parity
+imports Main Fact Parity
 begin
 
 subsection {* The type of formal power series*}
@@ -388,6 +387,14 @@ proof
 qed
 
 instance fps :: (idom) idom ..
+
+instantiation fps :: (comm_ring_1) number_ring
+begin
+definition number_of_fps_def: "(number_of k::'a fps) = of_int k"
+
+instance 
+by (intro_classes, rule number_of_fps_def)
+end
 
 subsection{* Inverses of formal power series *}
 

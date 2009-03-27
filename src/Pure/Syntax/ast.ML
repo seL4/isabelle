@@ -20,7 +20,6 @@ sig
   val str_of_ast: ast -> string
   val pretty_ast: ast -> Pretty.T
   val pretty_rule: ast * ast -> Pretty.T
-  val pprint_ast: ast -> pprint_args -> unit
   val fold_ast: string -> ast list -> ast
   val fold_ast_p: string -> ast list * ast -> ast
   val unfold_ast: string -> ast -> ast list
@@ -78,8 +77,6 @@ fun pretty_ast (Constant a) = Pretty.quote (Pretty.str a)
   | pretty_ast (Variable x) = Pretty.str x
   | pretty_ast (Appl asts) =
       Pretty.enclose "(" ")" (Pretty.breaks (map pretty_ast asts));
-
-val pprint_ast = Pretty.pprint o pretty_ast;
 
 fun pretty_rule (lhs, rhs) =
   Pretty.block [pretty_ast lhs, Pretty.str "  ->", Pretty.brk 2, pretty_ast rhs];

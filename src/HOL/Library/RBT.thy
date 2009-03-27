@@ -1,5 +1,4 @@
 (*  Title:      RBT.thy
-    ID:         $Id$
     Author:     Markus Reiter, TU Muenchen
     Author:     Alexander Krauss, TU Muenchen
 *)
@@ -8,7 +7,7 @@ header {* Red-Black Trees *}
 
 (*<*)
 theory RBT
-imports Plain AssocList
+imports Main AssocList
 begin
 
 datatype color = R | B

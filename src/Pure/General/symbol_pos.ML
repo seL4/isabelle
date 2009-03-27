@@ -20,7 +20,11 @@ sig
   val is_eof: T -> bool
   val stopper: T Scan.stopper
   val !!! : string -> (T list -> 'a) -> T list -> 'a
+  val change_prompt: ('a -> 'b) -> 'a -> 'b
   val scan_pos: T list -> Position.T * T list
+  val scan_string: T list -> (Position.T * (T list * Position.T)) * T list
+  val scan_alt_string: T list -> (Position.T * (T list * Position.T)) * T list
+  val scan_quoted: T list -> T list * T list
   val scan_comment: (string -> (T list -> T list * T list) -> T list -> T list * T list) ->
     T list -> T list * T list
   val scan_comment_body: (string -> (T list -> T list * T list) -> T list -> T list * T list) ->
@@ -34,7 +38,7 @@ sig
   val explode: text * Position.T -> T list
 end;
 
-structure SymbolPos: SYMBOL_POS =
+structure Symbol_Pos: SYMBOL_POS =
 struct
 
 (* type T *)
@@ -83,10 +87,42 @@ fun !!! text scan =
       (case msg of NONE => "" | SOME s => "\n" ^ s);
   in Scan.!! err scan end;
 
+fun change_prompt scan = Scan.prompt "# " scan;
+
 fun $$$ s = Scan.one (fn x => symbol x = s) >> single;
 fun ~$$$ s = Scan.one (fn x => symbol x <> s) >> single;
 
 val scan_pos = Scan.ahead (Scan.one (K true)) >> (fn (_, pos): T => pos);
+
+
+(* Isabelle strings *)
+
+local
+
+val char_code =
+  Scan.one (Symbol.is_ascii_digit o symbol) --
+  Scan.one (Symbol.is_ascii_digit o symbol) --
+  Scan.one (Symbol.is_ascii_digit o symbol) :|--
+  (fn (((a, pos), (b, _)), (c, _)) =>
+    let val (n, _) = Library.read_int [a, b, c]
+    in if n <= 255 then Scan.succeed [(chr n, pos)] else Scan.fail end);
+
+fun scan_str q =
+  $$$ "\\" |-- !!! "bad escape character in string" ($$$ q || $$$ "\\" || char_code) ||
+  Scan.one (fn (s, _) => s <> q andalso s <> "\\" andalso Symbol.is_regular s) >> single;
+
+fun scan_strs q =
+  (scan_pos --| $$$ q) -- !!! "missing quote at end of string"
+    (change_prompt ((Scan.repeat (scan_str q) >> flat) -- ($$$ q |-- scan_pos)));
+
+in
+
+val scan_string = scan_strs "\"";
+val scan_alt_string = scan_strs "`";
+
+val scan_quoted = Scan.trace (scan_string || scan_alt_string) >> #2;
+
+end;
 
 
 (* ML-style comments *)
@@ -99,7 +135,7 @@ val scan_cmt =
   Scan.lift ($$$ "*" --| Scan.ahead (~$$$ ")")) ||
   Scan.lift (Scan.one (fn (s, _) => s <> "*" andalso Symbol.is_regular s)) >> single;
 
-val scan_body = Scan.pass 0 (Scan.repeat scan_cmt >> flat);
+val scan_body = change_prompt (Scan.pass 0 (Scan.repeat scan_cmt >> flat));
 
 in
 
@@ -149,5 +185,5 @@ fun explode (str, pos) =
 
 end;
 
-structure BasicSymbolPos: BASIC_SYMBOL_POS = SymbolPos;   (*not open by default*)
+structure Basic_Symbol_Pos: BASIC_SYMBOL_POS = Symbol_Pos;   (*not open by default*)
 

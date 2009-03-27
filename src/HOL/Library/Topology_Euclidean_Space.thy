@@ -6,9 +6,8 @@
 header {* Elementary topology in Euclidean space. *}
 
 theory Topology_Euclidean_Space
-  imports SEQ Euclidean_Space
+imports SEQ Euclidean_Space
 begin
-
 
 declare fstcart_pastecart[simp] sndcart_pastecart[simp]
 
@@ -474,7 +473,7 @@ proof-
   have th0: "\<And>d x y z. (d x z :: real) <= d x y + d y z \<Longrightarrow> d y z = d z y
                ==> ~(d x y * 2 < d x z \<and> d z y * 2 < d x z)" by arith
   have "?P ?U ?V" using dist_pos_lt[OF xy] th0[of dist,OF dist_triangle dist_sym]
-    by (auto simp add: dist_refl expand_set_eq Arith_Tools.less_divide_eq_number_of1)
+    by (auto simp add: dist_refl expand_set_eq less_divide_eq_number_of1)
   then show ?thesis by blast
 qed
 
@@ -488,7 +487,7 @@ lemma separation_t0: "x \<noteq> y \<longleftrightarrow> (\<exists>U. open U \<a
 
 subsection{* Limit points *}
 
-definition islimpt:: "real ^'n \<Rightarrow> (real^'n) set \<Rightarrow> bool" (infixr "islimpt" 60) where
+definition islimpt:: "real ^'n::finite \<Rightarrow> (real^'n) set \<Rightarrow> bool" (infixr "islimpt" 60) where
   islimpt_def: "x islimpt S \<longleftrightarrow> (\<forall>T. x\<in>T \<longrightarrow> open T \<longrightarrow> (\<exists>y\<in>S. y\<in>T \<and> y\<noteq>x))"
 
   (* FIXME: Sure this form is OK????*)
@@ -510,7 +509,7 @@ lemma islimpt_approachable_le: "x islimpt S \<longleftrightarrow> (\<forall>e>0.
   using approachable_lt_le[where f="\<lambda>x'. dist x' x" and P="\<lambda>x'. \<not> (x'\<in>S \<and> x'\<noteq>x)"]
   by metis
 
-lemma islimpt_UNIV[simp, intro]: "(x:: real ^'n) islimpt UNIV"
+lemma islimpt_UNIV[simp, intro]: "(x:: real ^'n::finite) islimpt UNIV"
 proof-
   {
     fix e::real assume ep: "e>0"
@@ -532,20 +531,20 @@ lemma closed_limpt: "closed S \<longleftrightarrow> (\<forall>x. x islimpt S \<l
 lemma islimpt_EMPTY[simp]: "\<not> x islimpt {}"
   unfolding islimpt_approachable apply auto by ferrack
 
-lemma closed_positive_orthant: "closed {x::real^'n. \<forall>i\<in>{1.. dimindex(UNIV:: 'n set)}. 0 \<le>x$i}"
+lemma closed_positive_orthant: "closed {x::real^'n::finite. \<forall>i. 0 \<le>x$i}"
 proof-
-  let ?U = "{1 .. dimindex(UNIV :: 'n set)}"
-  let ?O = "{x::real^'n. \<forall>i\<in>?U. x$i\<ge>0}"
-  {fix x:: "real^'n" and i::nat assume H: "\<forall>e>0. \<exists>x'\<in>?O. x' \<noteq> x \<and> dist x' x < e" and i: "i \<in> ?U"
+  let ?U = "UNIV :: 'n set"
+  let ?O = "{x::real^'n. \<forall>i. x$i\<ge>0}"
+  {fix x:: "real^'n" and i::'n assume H: "\<forall>e>0. \<exists>x'\<in>?O. x' \<noteq> x \<and> dist x' x < e"
     and xi: "x$i < 0"
     from xi have th0: "-x$i > 0" by arith
     from H[rule_format, OF th0] obtain x' where x': "x' \<in>?O" "x' \<noteq> x" "dist x' x < -x $ i" by blast
       have th:" \<And>b a (x::real). abs x <= b \<Longrightarrow> b <= a ==> ~(a + x < 0)" by arith
       have th': "\<And>x (y::real). x < 0 \<Longrightarrow> 0 <= y ==> abs x <= abs (y - x)" by arith
-      have th1: "\<bar>x$i\<bar> \<le> \<bar>(x' - x)$i\<bar>" using i x'(1) xi
+      have th1: "\<bar>x$i\<bar> \<le> \<bar>(x' - x)$i\<bar>" using x'(1) xi
 	apply (simp only: vector_component)
 	by (rule th') auto
-      have th2: "\<bar>dist x x'\<bar> \<ge> \<bar>(x' - x)$i\<bar>" using  component_le_norm[OF i, of "x'-x"]
+      have th2: "\<bar>dist x x'\<bar> \<ge> \<bar>(x' - x)$i\<bar>" using  component_le_norm[of "x'-x" i]
 	apply (simp add: dist_def) by norm
       from th[OF th1 th2] x'(3) have False by (simp add: dist_sym dist_pos_le) }
   then show ?thesis unfolding closed_limpt islimpt_approachable
@@ -662,7 +661,7 @@ proof-
 	have "?k/2 \<ge> 0" using kp by simp
 	then obtain w where w: "dist y w = ?k/ 2" by (metis vector_choose_dist)
 	from iT[unfolded expand_set_eq mem_interior]
-	have "\<not> ball w (?k/4) \<subseteq> T" using kp by (auto simp add: Arith_Tools.less_divide_eq_number_of1)
+	have "\<not> ball w (?k/4) \<subseteq> T" using kp by (auto simp add: less_divide_eq_number_of1)
 	then obtain z where z: "dist w z < ?k/4" "z \<notin> T" by (auto simp add: subset_eq)
 	have "z \<notin> T \<and> z\<noteq> y \<and> dist z y < d \<and> dist x z < e" using z apply simp
 	  using w e(1) d apply (auto simp only: dist_sym)
@@ -965,7 +964,7 @@ definition "sequentially = mknet(\<lambda>(m::nat) n. m >= n)"
 definition within :: "'a net \<Rightarrow> 'a set \<Rightarrow> 'a net" (infixr "within" 70) where
   within_def: "net within S = mknet (\<lambda>x y. netord net x y \<and> x \<in> S)"
 
-definition indirection :: "real ^'n \<Rightarrow> real ^'n \<Rightarrow> (real ^'n) net" (infixr "indirection" 70) where
+definition indirection :: "real ^'n::finite \<Rightarrow> real ^'n \<Rightarrow> (real ^'n) net" (infixr "indirection" 70) where
   indirection_def: "a indirection v = (at a) within {b. \<exists>c\<ge>0. b - a = c*s v}"
 
 text{* Prove That They are all nets. *}
@@ -1019,7 +1018,7 @@ definition "trivial_limit (net:: 'a net) \<longleftrightarrow>
   (\<forall>(a::'a) b. a = b) \<or> (\<exists>(a::'a) b. a \<noteq> b \<and> (\<forall>x. ~(netord (net) x a) \<and> ~(netord(net) x b)))"
 
 
-lemma trivial_limit_within: "trivial_limit (at (a::real^'n) within S) \<longleftrightarrow> ~(a islimpt S)"
+lemma trivial_limit_within: "trivial_limit (at (a::real^'n::finite) within S) \<longleftrightarrow> ~(a islimpt S)"
 proof-
   {assume "\<forall>(a::real^'n) b. a = b" hence "\<not> a islimpt S"
       apply (simp add: islimpt_approachable_le)
@@ -1104,7 +1103,7 @@ lemma eventually_sequentially: "eventually P sequentially \<longleftrightarrow> 
 apply (metis dlo_simps(7) dlo_simps(9) le_maxI2 min_max.le_iff_sup min_max.sup_absorb1 order_antisym_conv) done
 
 (* FIXME Declare this with P::'a::some_type \<Rightarrow> bool *)
-lemma eventually_at_infinity: "eventually (P::(real^'n \<Rightarrow> bool)) at_infinity \<longleftrightarrow> (\<exists>b. \<forall>x. norm x >= b \<longrightarrow> P x)" (is "?lhs = ?rhs")
+lemma eventually_at_infinity: "eventually (P::(real^'n::finite \<Rightarrow> bool)) at_infinity \<longleftrightarrow> (\<exists>b. \<forall>x. norm x >= b \<longrightarrow> P x)" (is "?lhs = ?rhs")
 proof
   assume "?lhs" thus "?rhs"
     unfolding eventually_def at_infinity
@@ -1145,7 +1144,7 @@ lemma not_eventually: "(\<forall>x. \<not> P x ) \<Longrightarrow> ~(trivial_lim
 
 subsection{* Limits, defined as vacuously true when the limit is trivial. *}
 
-definition tendsto:: "('a \<Rightarrow> real ^'n) \<Rightarrow> real ^'n \<Rightarrow> 'a net \<Rightarrow> bool" (infixr "--->" 55) where
+definition tendsto:: "('a \<Rightarrow> real ^'n::finite) \<Rightarrow> real ^'n \<Rightarrow> 'a net \<Rightarrow> bool" (infixr "--->" 55) where
   tendsto_def: "(f ---> l) net  \<longleftrightarrow> (\<forall>e>0. eventually (\<lambda>x. dist (f x) l < e) net)"
 
 lemma tendstoD: "(f ---> l) net \<Longrightarrow> e>0 \<Longrightarrow> eventually (\<lambda>x. dist (f x) l < e) net"
@@ -1177,7 +1176,7 @@ lemma Lim_at: "(f ---> l) (at a) \<longleftrightarrow>
   by (auto simp add: tendsto_def eventually_at)
 
 lemma Lim_at_infinity:
-  "(f ---> l) at_infinity \<longleftrightarrow> (\<forall>e>0. \<exists>b. \<forall>x::real^'n. norm x >= b \<longrightarrow> dist (f x) l < e)"
+  "(f ---> l) at_infinity \<longleftrightarrow> (\<forall>e>0. \<exists>b. \<forall>x::real^'n::finite. norm x >= b \<longrightarrow> dist (f x) l < e)"
   by (auto simp add: tendsto_def eventually_at_infinity)
 
 lemma Lim_sequentially:
@@ -1210,7 +1209,7 @@ proof-
 qed
 
 lemma Lim_Un_univ:
- "(f ---> l) (at x within S) \<Longrightarrow> (f ---> l) (at x within T) \<Longrightarrow>  S \<union> T = (UNIV::(real^'n) set)
+ "(f ---> l) (at x within S) \<Longrightarrow> (f ---> l) (at x within T) \<Longrightarrow>  S \<union> T = (UNIV::(real^'n::finite) set)
         ==> (f ---> l) (at x)"
   by (metis Lim_Un within_UNIV)
 
@@ -1275,7 +1274,7 @@ qed
 
 text{* Basic arithmetical combining theorems for limits. *}
 
-lemma Lim_linear: fixes f :: "('a \<Rightarrow> real^'n)" and h :: "(real^'n \<Rightarrow> real^'m)"
+lemma Lim_linear: fixes f :: "('a \<Rightarrow> real^'n::finite)" and h :: "(real^'n \<Rightarrow> real^'m::finite)"
   assumes "(f ---> l) net" "linear h"
   shows "((\<lambda>x. h (f x)) ---> h l) net"
 proof (cases "trivial_limit net")
@@ -1315,7 +1314,7 @@ lemma Lim_neg: "(f ---> l) net ==> ((\<lambda>x. -(f x)) ---> -l) net"
   apply (subst minus_diff_eq[symmetric])
   unfolding norm_minus_cancel by simp
 
-lemma Lim_add: fixes f :: "'a \<Rightarrow> real^'n" shows
+lemma Lim_add: fixes f :: "'a \<Rightarrow> real^'n::finite" shows
  "(f ---> l) net \<Longrightarrow> (g ---> m) net \<Longrightarrow> ((\<lambda>x. f(x) + g(x)) ---> l + m) net"
 proof-
   assume as:"(f ---> l) net" "(g ---> m) net"
@@ -1323,7 +1322,7 @@ proof-
     assume "e>0"
     hence *:"eventually (\<lambda>x. dist (f x) l < e/2) net"
             "eventually (\<lambda>x. dist (g x) m < e/2) net" using as
-      by (auto intro: tendstoD simp del: Arith_Tools.less_divide_eq_number_of1)
+      by (auto intro: tendstoD simp del: less_divide_eq_number_of1)
     hence "eventually (\<lambda>x. dist (f x + g x) (l + m) < e) net"
     proof(cases "trivial_limit net")
       case True
@@ -1368,14 +1367,14 @@ proof(simp add: tendsto_def, rule+)
     using assms `e>0` unfolding tendsto_def by auto
 qed
 
-lemma Lim_component: "(f ---> l) net \<Longrightarrow> i \<in> {1 .. dimindex(UNIV:: 'n set)}
-                      ==> ((\<lambda>a. vec1((f a :: real ^'n)$i)) ---> vec1(l$i)) net"
-  apply (simp add: Lim dist_def vec1_sub[symmetric] norm_vec1  vector_minus_component[symmetric] del: One_nat_def)
-  apply auto
+lemma Lim_component: "(f ---> l) net
+                      ==> ((\<lambda>a. vec1((f a :: real ^'n::finite)$i)) ---> vec1(l$i)) net"
+  apply (simp add: Lim dist_def vec1_sub[symmetric] norm_vec1  vector_minus_component[symmetric] del: vector_minus_component)
+  apply (auto simp del: vector_minus_component)
   apply (erule_tac x=e in allE)
   apply clarify
   apply (rule_tac x=y in exI)
-  apply auto
+  apply (auto simp del: vector_minus_component)
   apply (rule order_le_less_trans)
   apply (rule component_le_norm)
   by auto
@@ -1450,7 +1449,7 @@ qed
 text{* Uniqueness of the limit, when nontrivial. *}
 
 lemma Lim_unique:
-  fixes l::"real^'a" and net::"'b::zero_neq_one net"
+  fixes l::"real^'a::finite" and net::"'b::zero_neq_one net"
   assumes "\<not>(trivial_limit net)"  "(f ---> l) net"  "(f ---> l') net"
   shows "l = l'"
 proof-
@@ -1472,7 +1471,7 @@ lemma tendsto_Lim:
 text{* Limit under bilinear function (surprisingly tedious, but important) *}
 
 lemma norm_bound_lemma:
-  "0 < e \<Longrightarrow> \<exists>d>0. \<forall>(x'::real^'b) y'::real^'a. norm(x' - (x::real^'b)) < d \<and> norm(y' - y) < d \<longrightarrow> norm(x') * norm(y' - y) + norm(x' - x) * norm(y) < e"
+  "0 < e \<Longrightarrow> \<exists>d>0. \<forall>(x'::real^'b::finite) y'::real^'a::finite. norm(x' - (x::real^'b)) < d \<and> norm(y' - y) < d \<longrightarrow> norm(x') * norm(y' - y) + norm(x' - x) * norm(y) < e"
 proof-
   assume e: "0 < e"
   have th1: "(2 * norm x + 2 * norm y + 2) > 0" using norm_ge_zero[of x] norm_ge_zero[of y] by norm
@@ -1494,8 +1493,7 @@ proof-
     have thy: "norm (y' - y) * norm x' < e / (2 * norm x + 2 * norm y + 2) * (1 + norm x)"
       using mult_strict_mono'[OF h(4) * norm_ge_zero norm_ge_zero] by auto
     also have "\<dots> \<le> e/2" apply simp unfolding divide_le_eq
-      using th1 th0 `e>0` apply auto
-      unfolding mult_assoc and real_mult_le_cancel_iff2[OF `e>0`] by auto
+      using th1 th0 `e>0` by auto
 
     finally have "norm x' * norm (y' - y) + norm (x' - x) * norm y < e"
       using thx and e by (simp add: field_simps)  }
@@ -1503,7 +1501,7 @@ proof-
 qed
 
 lemma Lim_bilinear:
-  fixes net :: "'a net" and h:: "real ^'m \<Rightarrow> real ^'n \<Rightarrow> real ^'p"
+  fixes net :: "'a net" and h:: "real ^'m::finite \<Rightarrow> real ^'n::finite \<Rightarrow> real ^'p::finite"
   assumes "(f ---> l) net" and "(g ---> m) net" and "bilinear h"
   shows "((\<lambda>x. h (f x) (g x)) ---> (h l m)) net"
 proof(cases "trivial_limit net")
@@ -1541,7 +1539,7 @@ lemma Lim_within_id: "(id ---> a) (at a within s)" by (auto simp add: Lim_within
 lemma Lim_at_id: "(id ---> a) (at a)"
 apply (subst within_UNIV[symmetric]) by (simp add: Lim_within_id)
 
-lemma Lim_at_zero: "(f ---> l) (at (a::real^'a)) \<longleftrightarrow> ((\<lambda>x. f(a + x)) ---> l) (at 0)" (is "?lhs = ?rhs")
+lemma Lim_at_zero: "(f ---> l) (at (a::real^'a::finite)) \<longleftrightarrow> ((\<lambda>x. f(a + x)) ---> l) (at 0)" (is "?lhs = ?rhs")
 proof
   assume "?lhs"
   { fix e::real assume "e>0"
@@ -1619,7 +1617,7 @@ lemma Lim_transform_at: "0 < d \<Longrightarrow> (\<forall>x'. 0 < dist x' x \<a
 text{* Common case assuming being away from some crucial point like 0. *}
 
 lemma Lim_transform_away_within:
-  fixes f:: "real ^'m \<Rightarrow> real ^'n"
+  fixes f:: "real ^'m::finite \<Rightarrow> real ^'n::finite"
   assumes "a\<noteq>b" "\<forall>x\<in> S. x \<noteq> a \<and> x \<noteq> b \<longrightarrow> f x = g x"
   and "(f ---> l) (at a within S)"
   shows "(g ---> l) (at a within S)"
@@ -1630,7 +1628,7 @@ proof-
 qed
 
 lemma Lim_transform_away_at:
-  fixes f:: "real ^'m \<Rightarrow> real ^'n"
+  fixes f:: "real ^'m::finite \<Rightarrow> real ^'n::finite"
   assumes ab: "a\<noteq>b" and fg: "\<forall>x. x \<noteq> a \<and> x \<noteq> b \<longrightarrow> f x = g x"
   and fl: "(f ---> l) (at a)"
   shows "(g ---> l) (at a)"
@@ -1640,7 +1638,7 @@ lemma Lim_transform_away_at:
 text{* Alternatively, within an open set. *}
 
 lemma Lim_transform_within_open:
-  fixes f:: "real ^'m \<Rightarrow> real ^'n"
+  fixes f:: "real ^'m::finite \<Rightarrow> real ^'n::finite"
   assumes "open S"  "a \<in> S"  "\<forall>x\<in>S. x \<noteq> a \<longrightarrow> f x = g x"  "(f ---> l) (at a)"
   shows "(g ---> l) (at a)"
 proof-
@@ -1917,7 +1915,7 @@ qed
 subsection{* Boundedness. *}
 
   (* FIXME: This has to be unified with BSEQ!! *)
-definition "bounded S \<longleftrightarrow> (\<exists>a. \<forall>(x::real^'n) \<in> S. norm x <= a)"
+definition "bounded S \<longleftrightarrow> (\<exists>a. \<forall>(x::real^'n::finite) \<in> S. norm x <= a)"
 
 lemma bounded_empty[simp]: "bounded {}" by (simp add: bounded_def)
 lemma bounded_subset: "bounded T \<Longrightarrow> S \<subseteq> T ==> bounded S"
@@ -1978,7 +1976,7 @@ done
 lemma bounded_insert[intro]:"bounded(insert x S) \<longleftrightarrow> bounded S"
   by (metis Diff_cancel Un_empty_right Un_insert_right bounded_Un bounded_subset finite.emptyI finite_imp_bounded infinite_remove subset_insertI)
 
-lemma bot_bounded_UNIV[simp, intro]: "~(bounded (UNIV:: (real^'n) set))"
+lemma bot_bounded_UNIV[simp, intro]: "~(bounded (UNIV:: (real^'n::finite) set))"
 proof(auto simp add: bounded_pos not_le)
   fix b::real  assume b: "b >0"
   have b1: "b +1 \<ge> 0" using b by simp
@@ -1988,7 +1986,7 @@ proof(auto simp add: bounded_pos not_le)
 qed
 
 lemma bounded_linear_image:
-  fixes f :: "real^'m \<Rightarrow> real^'n"
+  fixes f :: "real^'m::finite \<Rightarrow> real^'n::finite"
   assumes "bounded S" "linear f"
   shows "bounded(f ` S)"
 proof-
@@ -2110,7 +2108,7 @@ lemma inf_insert_finite: "finite S ==> rinf(insert x S) = (if S = {} then x else
 subsection{* Compactness (the definition is the one based on convegent subsequences). *}
 
 definition "compact S \<longleftrightarrow>
-   (\<forall>(f::nat \<Rightarrow> real^'n). (\<forall>n. f n \<in> S) \<longrightarrow>
+   (\<forall>(f::nat \<Rightarrow> real^'n::finite). (\<forall>n. f n \<in> S) \<longrightarrow>
        (\<exists>l\<in>S. \<exists>r. (\<forall>m n. m < n \<longrightarrow> r m < r n) \<and> ((f o r) ---> l) sequentially))"
 
 lemma monotone_bigger: fixes r::"nat\<Rightarrow>nat"
@@ -2178,81 +2176,69 @@ proof-
 qed
 
 lemma compact_lemma:
-  assumes "bounded s" and "\<forall>n. (x::nat \<Rightarrow>real^'a) n \<in> s"
-  shows "\<forall>d\<in>{1.. dimindex(UNIV::'a set)}.
-        \<exists>l::(real^'a). \<exists> r. (\<forall>n m::nat. m < n --> r m < r n) \<and>
-        (\<forall>e>0. \<exists>N. \<forall>n\<ge>N. \<forall>i\<in>{1..d}. \<bar>x (r n) $ i - l $ i\<bar> < e)"
+  assumes "bounded s" and "\<forall>n. (x::nat \<Rightarrow>real^'a::finite) n \<in> s"
+  shows "\<forall>d.
+        \<exists>l::(real^'a::finite). \<exists> r. (\<forall>n m::nat. m < n --> r m < r n) \<and>
+        (\<forall>e>0. \<exists>N. \<forall>n\<ge>N. \<forall>i\<in>d. \<bar>x (r n) $ i - l $ i\<bar> < e)"
 proof-
   obtain b where b:"\<forall>x\<in>s. norm x \<le> b" using assms(1)[unfolded bounded_def] by auto
-  { { fix i assume i:"i\<in>{1.. dimindex(UNIV::'a set)}"
+  { { fix i::'a
       { fix n::nat
-	have "\<bar>x n $ i\<bar> \<le> b" using b[THEN bspec[where x="x n"]] and component_le_norm[of i "x n"] and assms(2)[THEN spec[where x=n]] and i by auto }
+	have "\<bar>x n $ i\<bar> \<le> b" using b[THEN bspec[where x="x n"]] and component_le_norm[of "x n" i] and assms(2)[THEN spec[where x=n]] by auto }
       hence "\<forall>n. \<bar>x n $ i\<bar> \<le> b" by auto
     } note b' = this
 
-    fix d assume "d\<in>{1.. dimindex(UNIV::'a set)}"
+    fix d::"'a set" have "finite d" by simp
     hence "\<exists>l::(real^'a). \<exists> r. (\<forall>n m::nat. m < n --> r m < r n) \<and>
-        (\<forall>e>0. \<exists>N. \<forall>n\<ge>N. \<forall>i\<in>{1..d}. \<bar>x (r n) $ i - l $ i\<bar> < e)"
-    proof(induct d) case 0 thus ?case by auto
-      (* The induction really starts at Suc 0 *)
-    next case (Suc d)
-      show ?case proof(cases "d = 0")
-	case True hence "Suc d = Suc 0" by auto
-	obtain l r where r:"\<forall>m n::nat. m < n \<longrightarrow> r m < r n" and lr:"\<forall>e>0. \<exists>N. \<forall>n\<ge>N. \<bar>x (r n) $ 1 - l\<bar> < e" using b' and dimindex_ge_1[of "UNIV::'a set"]
-	  using compact_real_lemma[of "\<lambda>i. (x i)$1" b] by auto
-	thus ?thesis apply(rule_tac x="vec l" in exI) apply(rule_tac x=r in exI)
-	  unfolding `Suc d = Suc 0` apply auto
-	  unfolding vec_component[OF Suc(2)[unfolded `Suc d = Suc 0`]] by auto
-      next
-	case False hence d:"d \<in>{1.. dimindex(UNIV::'a set)}" using Suc(2) by auto
-	obtain l1::"real^'a" and r1 where r1:"\<forall>n m::nat. m < n \<longrightarrow> r1 m < r1 n" and lr1:"\<forall>e>0. \<exists>N. \<forall>n\<ge>N. \<forall>i\<in>{1..d}. \<bar>x (r1 n) $ i - l1 $ i\<bar> < e"
-	  using Suc(1)[OF d] by auto
-	obtain l2 r2 where r2:"\<forall>m n::nat. m < n \<longrightarrow> r2 m < r2 n" and lr2:"\<forall>e>0. \<exists>N. \<forall>n\<ge>N. \<bar>(x \<circ> r1) (r2 n) $ (Suc d) - l2\<bar> < e"
-	  using b'[OF Suc(2)] and compact_real_lemma[of "\<lambda>i. ((x \<circ> r1) i)$(Suc d)" b] by auto
+        (\<forall>e>0. \<exists>N. \<forall>n\<ge>N. \<forall>i\<in>d. \<bar>x (r n) $ i - l $ i\<bar> < e)"
+    proof(induct d) case empty thus ?case by auto
+    next case (insert k d)
+	obtain l1::"real^'a" and r1 where r1:"\<forall>n m::nat. m < n \<longrightarrow> r1 m < r1 n" and lr1:"\<forall>e>0. \<exists>N. \<forall>n\<ge>N. \<forall>i\<in>d. \<bar>x (r1 n) $ i - l1 $ i\<bar> < e"
+	  using insert(3) by auto
+	obtain l2 r2 where r2:"\<forall>m n::nat. m < n \<longrightarrow> r2 m < r2 n" and lr2:"\<forall>e>0. \<exists>N. \<forall>n\<ge>N. \<bar>(x \<circ> r1) (r2 n) $ k - l2\<bar> < e"
+	  using b'[of k] and compact_real_lemma[of "\<lambda>i. ((x \<circ> r1) i)$k" b] by auto
 	def r \<equiv> "r1 \<circ> r2" have r:"\<forall>m n. m < n \<longrightarrow> r m < r n" unfolding r_def o_def using r1 and r2 by auto
 	moreover
-	def l \<equiv> "(\<chi> i. if i = Suc d then l2 else l1$i)::real^'a"
+	def l \<equiv> "(\<chi> i. if i = k then l2 else l1$i)::real^'a"
 	{ fix e::real assume "e>0"
-	  from lr1 obtain N1 where N1:"\<forall>n\<ge>N1. \<forall>i\<in>{1..d}. \<bar>x (r1 n) $ i - l1 $ i\<bar> < e" using `e>0` by blast
-	  from lr2 obtain N2 where N2:"\<forall>n\<ge>N2. \<bar>(x \<circ> r1) (r2 n) $ (Suc d) - l2\<bar> < e" using `e>0` by blast
+	  from lr1 obtain N1 where N1:"\<forall>n\<ge>N1. \<forall>i\<in>d. \<bar>x (r1 n) $ i - l1 $ i\<bar> < e" using `e>0` by blast
+	  from lr2 obtain N2 where N2:"\<forall>n\<ge>N2. \<bar>(x \<circ> r1) (r2 n) $ k - l2\<bar> < e" using `e>0` by blast
 	  { fix n assume n:"n\<ge> N1 + N2"
-	    fix i assume i:"i\<in>{1..Suc d}" hence i':"i\<in>{1.. dimindex(UNIV::'a set)}" using Suc by auto
+	    fix i assume i:"i\<in>(insert k d)"
 	    hence "\<bar>x (r n) $ i - l $ i\<bar> < e"
 	      using N2[THEN spec[where x="n"]] and n
  	      using N1[THEN spec[where x="r2 n"]] and n
 	      using monotone_bigger[OF r] and i
-	      unfolding l_def and r_def and Cart_lambda_beta'[OF i']
+	      unfolding l_def and r_def
 	      using monotone_bigger[OF r2, of n] by auto  }
-	  hence "\<exists>N. \<forall>n\<ge>N. \<forall>i\<in>{1..Suc d}. \<bar>x (r n) $ i - l $ i\<bar> < e" by blast	}
-	ultimately show ?thesis by auto
-      qed
+	  hence "\<exists>N. \<forall>n\<ge>N. \<forall>i\<in>(insert k d). \<bar>x (r n) $ i - l $ i\<bar> < e" by blast	}
+	ultimately show ?case by auto
     qed  }
   thus ?thesis by auto
 qed
 
-lemma bounded_closed_imp_compact: fixes s::"(real^'a) set"
+lemma bounded_closed_imp_compact: fixes s::"(real^'a::finite) set"
   assumes "bounded s" and "closed s"
   shows "compact s"
 proof-
-  let ?d = "dimindex (UNIV::'a set)"
+  let ?d = "UNIV::'a set"
   { fix f assume as:"\<forall>n::nat. f n \<in> s"
     obtain l::"real^'a" and r where r:"\<forall>n m::nat. m < n \<longrightarrow> r m < r n"
-      and lr:"\<forall>e>0. \<exists>N. \<forall>n\<ge>N. \<forall>i\<in>{1..?d}. \<bar>f (r n) $ i - l $ i\<bar> < e"
-      using compact_lemma[OF assms(1) as, THEN bspec[where x="?d"]] and dimindex_ge_1[of "UNIV::'a set"] by auto
+      and lr:"\<forall>e>0. \<exists>N. \<forall>n\<ge>N. \<forall>i\<in>?d. \<bar>f (r n) $ i - l $ i\<bar> < e"
+      using compact_lemma[OF assms(1) as, THEN spec[where x="?d"]] by auto
     { fix e::real assume "e>0"
-      hence "0 < e / (real_of_nat ?d)" using dimindex_nonzero[of "UNIV::'a set"] using divide_pos_pos[of e, of "real_of_nat ?d"] by auto
-      then obtain N::nat where N:"\<forall>n\<ge>N. \<forall>i\<in>{1..?d}. \<bar>f (r n) $ i - l $ i\<bar> < e / (real_of_nat ?d)" using lr[THEN spec[where x="e / (real_of_nat ?d)"]] by blast
+      hence "0 < e / (real_of_nat (card ?d))" using zero_less_card_finite using divide_pos_pos[of e, of "real_of_nat (card ?d)"] by auto
+      then obtain N::nat where N:"\<forall>n\<ge>N. \<forall>i\<in>?d. \<bar>f (r n) $ i - l $ i\<bar> < e / (real_of_nat (card ?d))" using lr[THEN spec[where x="e / (real_of_nat (card ?d))"]] by blast
       { fix n assume n:"n\<ge>N"
-	have "1 \<in> {1..?d}" using dimindex_nonzero[of "UNIV::'a set"] by auto
-	hence "finite {1..?d}"  "{1..?d} \<noteq> {}" by auto
+	hence "finite ?d"  "?d \<noteq> {}" by auto
 	moreover
-	{ fix i assume i:"i \<in> {1..?d}"
-	  hence "\<bar>((f \<circ> r) n - l) $ i\<bar> < e / real_of_nat ?d" using `n\<ge>N` using N[THEN spec[where x=n]]
-	    apply auto apply(erule_tac x=i in ballE) unfolding vector_minus_component[OF i] by auto  }
-	ultimately have "(\<Sum>i = 1..?d. \<bar>((f \<circ> r) n - l) $ i\<bar>)
-	  < (\<Sum>i = 1..?d. e / real_of_nat ?d)"
-	  using setsum_strict_mono[of "{1..?d}" "\<lambda>i. \<bar>((f \<circ> r) n - l) $ i\<bar>" "\<lambda>i. e / (real_of_nat ?d)"] by auto
-	hence "(\<Sum>i = 1..?d. \<bar>((f \<circ> r) n - l) $ i\<bar>) < e" unfolding setsum_constant using dimindex_nonzero[of "UNIV::'a set"] by auto
+	{ fix i assume i:"i \<in> ?d"
+	  hence "\<bar>((f \<circ> r) n - l) $ i\<bar> < e / real_of_nat (card ?d)" using `n\<ge>N` using N[THEN spec[where x=n]]
+	    by auto  }
+	ultimately have "(\<Sum>i \<in> ?d. \<bar>((f \<circ> r) n - l) $ i\<bar>)
+	  < (\<Sum>i \<in> ?d. e / real_of_nat (card ?d))"
+	  using setsum_strict_mono[of "?d" "\<lambda>i. \<bar>((f \<circ> r) n - l) $ i\<bar>" "\<lambda>i. e / (real_of_nat (card ?d))"] by auto
+	hence "(\<Sum>i \<in> ?d. \<bar>((f \<circ> r) n - l) $ i\<bar>) < e" unfolding setsum_constant by auto
 	hence "dist ((f \<circ> r) n) l < e" unfolding dist_def using norm_le_l1[of "(f \<circ> r) n - l"] by auto  }
       hence "\<exists>N. \<forall>n\<ge>N. dist ((f \<circ> r) n) l < e" by auto  }
     hence *:"((f \<circ> r) ---> l) sequentially" unfolding Lim_sequentially by auto
@@ -2268,7 +2254,7 @@ subsection{* Completeness. *}
 
 definition cauchy_def:"cauchy s \<longleftrightarrow> (\<forall>e>0. \<exists>N. \<forall>m n. m \<ge> N \<and> n \<ge> N --> dist(s m)(s n) < e)"
 
-definition complete_def:"complete s \<longleftrightarrow> (\<forall>f::(nat=>real^'a). (\<forall>n. f n \<in> s) \<and> cauchy f
+definition complete_def:"complete s \<longleftrightarrow> (\<forall>f::(nat=>real^'a::finite). (\<forall>n. f n \<in> s) \<and> cauchy f
                       --> (\<exists>l \<in> s. (f ---> l) sequentially))"
 
 lemma cauchy: "cauchy s \<longleftrightarrow> (\<forall>e>0.\<exists> N::nat. \<forall>n\<ge>N. dist(s n)(s N) < e)" (is "?lhs = ?rhs")
@@ -2350,7 +2336,7 @@ qed
 lemma complete_univ:
  "complete UNIV"
 proof(simp add: complete_def, rule, rule)
-  fix f::"nat \<Rightarrow> real^'n" assume "cauchy f"
+  fix f::"nat \<Rightarrow> real^'n::finite" assume "cauchy f"
   hence "bounded (f`UNIV)" using cauchy_imp_bounded[of f] unfolding image_def by auto
   hence "compact (closure (f`UNIV))"  using bounded_closed_imp_compact[of "closure (range f)"] by auto
   hence "complete (closure (range f))" using compact_imp_complete by auto
@@ -2389,7 +2375,7 @@ lemma convergent_imp_bounded: "(s ---> l) sequentially ==> bounded (s ` (UNIV::(
 
 subsection{* Total boundedness. *}
 
-fun helper_1::"((real^'n) set) \<Rightarrow> real \<Rightarrow> nat \<Rightarrow> real^'n" where
+fun helper_1::"((real^'n::finite) set) \<Rightarrow> real \<Rightarrow> nat \<Rightarrow> real^'n" where
   "helper_1 s e n = (SOME y::real^'n. y \<in> s \<and> (\<forall>m<n. \<not> (dist (helper_1 s e m) y < e)))"
 declare helper_1.simps[simp del]
 
@@ -2422,7 +2408,7 @@ qed
 
 subsection{* Heine-Borel theorem (following Burkill \& Burkill vol. 2) *}
 
-lemma heine_borel_lemma: fixes s::"(real^'n) set"
+lemma heine_borel_lemma: fixes s::"(real^'n::finite) set"
   assumes "compact s"  "s \<subseteq> (\<Union> t)"  "\<forall>b \<in> t. open b"
   shows "\<exists>e>0. \<forall>x \<in> s. \<exists>b \<in> t. ball x e \<subseteq> b"
 proof(rule ccontr)
@@ -2513,11 +2499,11 @@ qed
 
 subsection{* Complete the chain of compactness variants. *}
 
-primrec helper_2::"(real \<Rightarrow> real^'n) \<Rightarrow> nat \<Rightarrow> real ^'n" where
+primrec helper_2::"(real \<Rightarrow> real^'n::finite) \<Rightarrow> nat \<Rightarrow> real ^'n" where
   "helper_2 beyond 0 = beyond 0" |
   "helper_2 beyond (Suc n) = beyond (norm (helper_2 beyond n) + 1 )"
 
-lemma bolzano_weierstrass_imp_bounded: fixes s::"(real^'n) set"
+lemma bolzano_weierstrass_imp_bounded: fixes s::"(real^'n::finite) set"
   assumes "\<forall>t. infinite t \<and> t \<subseteq> s --> (\<exists>x \<in> s. x islimpt t)"
   shows "bounded s"
 proof(rule ccontr)
@@ -2576,7 +2562,7 @@ qed
 
 lemma sequence_infinite_lemma:
   assumes "\<forall>n::nat. (f n  \<noteq> l)"  "(f ---> l) sequentially"
-  shows "infinite {y::real^'a. (\<exists> n. y = f n)}"
+  shows "infinite {y::real^'a::finite. (\<exists> n. y = f n)}"
 proof(rule ccontr)
   let ?A = "(\<lambda>x. dist x l) ` {y. \<exists>n. y = f n}"
   assume "\<not> infinite {y. \<exists>n. y = f n}"
@@ -2771,7 +2757,7 @@ subsection{* Bounded closed nest property (proof does not use Heine-Borel).     
 lemma bounded_closed_nest:
   assumes "\<forall>n. closed(s n)" "\<forall>n. (s n \<noteq> {})"
   "(\<forall>m n. m \<le> n --> s n \<subseteq> s m)"  "bounded(s 0)"
-  shows "\<exists> a::real^'a. \<forall>n::nat. a \<in> s(n)"
+  shows "\<exists> a::real^'a::finite. \<forall>n::nat. a \<in> s(n)"
 proof-
   from assms(2) obtain x where x:"\<forall>n::nat. x n \<in> s n" using choice[of "\<lambda>n x. x\<in> s n"] by auto
   from assms(4,1) have *:"compact (s 0)" using bounded_closed_imp_compact[of "s 0"] by auto
@@ -2803,7 +2789,7 @@ lemma decreasing_closed_nest:
           "\<forall>n. (s n \<noteq> {})"
           "\<forall>m n. m \<le> n --> s n \<subseteq> s m"
           "\<forall>e>0. \<exists>n. \<forall>x \<in> (s n). \<forall> y \<in> (s n). dist x y < e"
-  shows "\<exists>a::real^'a. \<forall>n::nat. a \<in> s n"
+  shows "\<exists>a::real^'a::finite. \<forall>n::nat. a \<in> s n"
 proof-
   have "\<forall>n. \<exists> x. x\<in>s n" using assms(2) by auto
   hence "\<exists>t. \<forall>n. t n \<in> s n" using choice[of "\<lambda> n x. x \<in> s n"] by auto
@@ -2836,7 +2822,7 @@ lemma decreasing_closed_nest_sing:
           "\<forall>n. s n \<noteq> {}"
           "\<forall>m n. m \<le> n --> s n \<subseteq> s m"
           "\<forall>e>0. \<exists>n. \<forall>x \<in> (s n). \<forall> y\<in>(s n). dist x y < e"
-  shows "\<exists>a::real^'a. \<Inter> {t. (\<exists>n::nat. t = s n)} = {a}"
+  shows "\<exists>a::real^'a::finite. \<Inter> {t. (\<exists>n::nat. t = s n)} = {a}"
 proof-
   obtain a where a:"\<forall>n. a \<in> s n" using decreasing_closed_nest[of s] using assms by auto
   { fix b assume b:"b \<in> \<Inter>{t. \<exists>n. t = s n}"
@@ -2851,7 +2837,7 @@ qed
 
 text{* Cauchy-type criteria for uniform convergence. *}
 
-lemma uniformly_convergent_eq_cauchy: fixes s::"nat \<Rightarrow> 'b \<Rightarrow> real^'a" shows
+lemma uniformly_convergent_eq_cauchy: fixes s::"nat \<Rightarrow> 'b \<Rightarrow> real^'a::finite" shows
  "(\<exists>l. \<forall>e>0. \<exists>N. \<forall>n x. N \<le> n \<and> P x --> dist(s n x)(l x) < e) \<longleftrightarrow>
   (\<forall>e>0. \<exists>N. \<forall>m n x. N \<le> m \<and> N \<le> n \<and> P x  --> dist (s m x) (s n x) < e)" (is "?lhs = ?rhs")
 proof(rule)
@@ -2960,7 +2946,7 @@ next
     apply (auto simp add: dist_sym) apply(erule_tac x=e in allE) by auto
 qed
 
-lemma continuous_at_ball: fixes f::"real^'a \<Rightarrow> real^'a"
+lemma continuous_at_ball: fixes f::"real^'a::finite \<Rightarrow> real^'a"
   shows "continuous (at x) f \<longleftrightarrow> (\<forall>e>0. \<exists>d>0. f ` (ball x d) \<subseteq> ball (f x) e)" (is "?lhs = ?rhs")
 proof
   assume ?lhs thus ?rhs unfolding continuous_at Lim_at subset_eq Ball_def Bex_def image_iff mem_ball
@@ -3255,7 +3241,7 @@ lemma uniformly_continuous_on_neg:
 
 lemma uniformly_continuous_on_add:
   assumes "uniformly_continuous_on s f" "uniformly_continuous_on s g"
-  shows "uniformly_continuous_on s (\<lambda>x. f(x) + g(x) ::real^'n)"
+  shows "uniformly_continuous_on s (\<lambda>x. f(x) + g(x) ::real^'n::finite)"
 proof-
   have *:"\<And>fx fy gx gy::real^'n. fx - fy + (gx - gy) = fx + gx - (fy + gy)" by auto
   {  fix x y assume "((\<lambda>n. f (x n) - f (y n)) ---> 0) sequentially"
@@ -3570,7 +3556,7 @@ proof-
     { fix y assume "dist y (c *s x) < e * \<bar>c\<bar>"
       hence "norm ((1 / c) *s y - x) < e" unfolding dist_def
 	using norm_mul[of c "(1 / c) *s y - x", unfolded vector_ssub_ldistrib, unfolded vector_smult_assoc] assms(1)
-	  mult_less_imp_less_left[of "abs c" "norm ((1 / c) *s y - x)" e, unfolded real_mult_commute[of "abs c" e]] assms(1)[unfolded zero_less_abs_iff[THEN sym]] by simp
+	  assms(1)[unfolded zero_less_abs_iff[THEN sym]] by (simp del:zero_less_abs_iff)
       hence "y \<in> op *s c ` s" using rev_image_eqI[of "(1 / c) *s y" s y "op *s c"]  e[THEN spec[where x="(1 / c) *s y"]]  assms(1) unfolding dist_def vector_smult_assoc by auto  }
     ultimately have "\<exists>e>0. \<forall>x'. dist x' (c *s x) < e \<longrightarrow> x' \<in> op *s c ` s" apply(rule_tac x="e * abs c" in exI) by auto  }
   thus ?thesis unfolding open_def by auto
@@ -3729,7 +3715,7 @@ qed
 
 subsection{* Topological properties of linear functions.                               *}
 
-lemma linear_lim_0: fixes f::"real^'a \<Rightarrow> real^'b"
+lemma linear_lim_0: fixes f::"real^'a::finite \<Rightarrow> real^'b::finite"
   assumes "linear f" shows "(f ---> 0) (at (0))"
 proof-
   obtain B where "B>0" and B:"\<forall>x. norm (f x) \<le> B * norm x" using linear_bounded_pos[OF assms] by auto
@@ -3813,19 +3799,18 @@ lemma continuous_on_vec1_norm:
 unfolding continuous_on_vec1_range norm_vec1[THEN sym] by (metis norm_vec1 order_le_less_trans real_abs_sub_norm)
 
 lemma continuous_at_vec1_component:
-  assumes "1 \<le> i" "i \<le> dimindex(UNIV::('a set))"
-  shows "continuous (at (a::real^'a)) (\<lambda> x. vec1(x$i))"
+  shows "continuous (at (a::real^'a::finite)) (\<lambda> x. vec1(x$i))"
 proof-
   { fix e::real and x assume "0 < dist x a" "dist x a < e" "e>0"
-    hence "\<bar>x $ i - a $ i\<bar> < e" using component_le_norm[of i "x - a"] vector_minus_component[of i x a] assms unfolding dist_def by auto  }
+    hence "\<bar>x $ i - a $ i\<bar> < e" using component_le_norm[of "x - a" i] unfolding dist_def by auto  }
   thus ?thesis unfolding continuous_at tendsto_def eventually_at dist_vec1 by auto
 qed
 
 lemma continuous_on_vec1_component:
-  assumes "i \<in> {1..dimindex (UNIV::'a set)}"  shows "continuous_on s (\<lambda> x::real^'a. vec1(x$i))"
+  shows "continuous_on s (\<lambda> x::real^'a::finite. vec1(x$i))"
 proof-
   { fix e::real and x xa assume "x\<in>s" "e>0" "xa\<in>s" "0 < norm (xa - x) \<and> norm (xa - x) < e"
-    hence "\<bar>xa $ i - x $ i\<bar> < e" using component_le_norm[of i "xa - x"] vector_minus_component[of i xa x] assms by auto  }
+    hence "\<bar>xa $ i - x $ i\<bar> < e" using component_le_norm[of "xa - x" i] by auto  }
   thus ?thesis unfolding continuous_on Lim_within dist_vec1 unfolding dist_def by auto
 qed
 
@@ -3970,7 +3955,7 @@ next
       hence fx0:"f x \<noteq> 0" using `l \<noteq> 0` by auto
       hence fxl0: "(f x) * l \<noteq> 0" using `l \<noteq> 0` by auto
       from * have **:"\<bar>f x - l\<bar> < l\<twosuperior> * e / 2" by auto
-      have "\<bar>f x\<bar> * 2 \<ge> \<bar>l\<bar>" using * by (auto simp del: Arith_Tools.less_divide_eq_number_of1)
+      have "\<bar>f x\<bar> * 2 \<ge> \<bar>l\<bar>" using * by (auto simp del: less_divide_eq_number_of1)
       hence "\<bar>f x\<bar> * 2 * \<bar>l\<bar>  \<ge> \<bar>l\<bar> * \<bar>l\<bar>" unfolding mult_le_cancel_right by auto
       hence "\<bar>f x * l\<bar> * 2  \<ge> \<bar>l\<bar>^2" unfolding real_mult_commute and power2_eq_square by auto
       hence ***:"inverse \<bar>f x * l\<bar> \<le> inverse (l\<twosuperior> / 2)" using fxl0
@@ -4070,7 +4055,7 @@ lemma compact_sums:
 proof-
   have *:"{x + y | x y. x \<in> s \<and> y \<in> t} =(\<lambda>z. fstcart z + sndcart z) ` {pastecart x y | x y.  x \<in> s \<and> y \<in> t}"
     apply auto unfolding image_iff apply(rule_tac x="pastecart xa y" in bexI) unfolding fstcart_pastecart sndcart_pastecart by auto
-  have "linear (\<lambda>z::real^('a, 'a) finite_sum. fstcart z + sndcart z)" unfolding linear_def
+  have "linear (\<lambda>z::real^('a + 'a). fstcart z + sndcart z)" unfolding linear_def
     unfolding fstcart_add sndcart_add apply auto
     unfolding vector_add_ldistrib fstcart_cmul[THEN sym] sndcart_cmul[THEN sym] by auto
   hence "continuous_on {pastecart x y |x y. x \<in> s \<and> y \<in> t} (\<lambda>z. fstcart z + sndcart z)"
@@ -4306,90 +4291,86 @@ qed
 
 (* A cute way of denoting open and closed intervals using overloading.       *)
 
-lemma interval: fixes a :: "'a::ord^'n" shows
-  "{a <..< b} = {x::'a^'n. \<forall>i \<in> dimset a. a$i < x$i \<and> x$i < b$i}" and
-  "{a .. b} = {x::'a^'n. \<forall>i \<in> dimset a. a$i \<le> x$i \<and> x$i \<le> b$i}"
+lemma interval: fixes a :: "'a::ord^'n::finite" shows
+  "{a <..< b} = {x::'a^'n. \<forall>i. a$i < x$i \<and> x$i < b$i}" and
+  "{a .. b} = {x::'a^'n. \<forall>i. a$i \<le> x$i \<and> x$i \<le> b$i}"
   by (auto simp add: expand_set_eq vector_less_def vector_less_eq_def)
 
-lemma mem_interval:
-  "x \<in> {a<..<b} \<longleftrightarrow> (\<forall>i \<in> dimset a. a$i < x$i \<and> x$i < b$i)"
-  "x \<in> {a .. b} \<longleftrightarrow> (\<forall>i \<in> dimset a. a$i \<le> x$i \<and> x$i \<le> b$i)"
+lemma mem_interval: fixes a :: "'a::ord^'n::finite" shows
+  "x \<in> {a<..<b} \<longleftrightarrow> (\<forall>i. a$i < x$i \<and> x$i < b$i)"
+  "x \<in> {a .. b} \<longleftrightarrow> (\<forall>i. a$i \<le> x$i \<and> x$i \<le> b$i)"
   using interval[of a b]
   by(auto simp add: expand_set_eq vector_less_def vector_less_eq_def)
 
-lemma interval_eq_empty: fixes a :: "real^'n" shows
- "({a <..< b} = {} \<longleftrightarrow> (\<exists>i \<in> dimset a. b$i \<le> a$i))" (is ?th1) and
- "({a  ..  b} = {} \<longleftrightarrow> (\<exists>i \<in> dimset a. b$i < a$i))" (is ?th2)
+lemma interval_eq_empty: fixes a :: "real^'n::finite" shows
+ "({a <..< b} = {} \<longleftrightarrow> (\<exists>i. b$i \<le> a$i))" (is ?th1) and
+ "({a  ..  b} = {} \<longleftrightarrow> (\<exists>i. b$i < a$i))" (is ?th2)
 proof-
-  { fix i x assume i:"i\<in>dimset a" and as:"b$i \<le> a$i" and x:"x\<in>{a <..< b}"
+  { fix i x assume as:"b$i \<le> a$i" and x:"x\<in>{a <..< b}"
     hence "a $ i < x $ i \<and> x $ i < b $ i" unfolding mem_interval by auto
     hence "a$i < b$i" by auto
     hence False using as by auto  }
   moreover
-  { assume as:"\<forall>i \<in> dimset a. \<not> (b$i \<le> a$i)"
+  { assume as:"\<forall>i. \<not> (b$i \<le> a$i)"
     let ?x = "(1/2) *s (a + b)"
-    { fix i assume i:"i\<in>dimset a"
-      hence "a$i < b$i" using as[THEN bspec[where x=i]] by auto
+    { fix i
+      have "a$i < b$i" using as[THEN spec[where x=i]] by auto
       hence "a$i < ((1/2) *s (a+b)) $ i" "((1/2) *s (a+b)) $ i < b$i"
-	unfolding vector_smult_component[OF i] and vector_add_component[OF i]
-	by (auto simp add: Arith_Tools.less_divide_eq_number_of1)  }
+	unfolding vector_smult_component and vector_add_component
+	by (auto simp add: less_divide_eq_number_of1)  }
     hence "{a <..< b} \<noteq> {}" using mem_interval(1)[of "?x" a b] by auto  }
   ultimately show ?th1 by blast
 
-  { fix i x assume i:"i\<in>dimset a" and as:"b$i < a$i" and x:"x\<in>{a .. b}"
+  { fix i x assume as:"b$i < a$i" and x:"x\<in>{a .. b}"
     hence "a $ i \<le> x $ i \<and> x $ i \<le> b $ i" unfolding mem_interval by auto
     hence "a$i \<le> b$i" by auto
     hence False using as by auto  }
   moreover
-  { assume as:"\<forall>i \<in> dimset a. \<not> (b$i < a$i)"
+  { assume as:"\<forall>i. \<not> (b$i < a$i)"
     let ?x = "(1/2) *s (a + b)"
-    { fix i assume i:"i\<in>dimset a"
-      hence "a$i \<le> b$i" using as[THEN bspec[where x=i]] by auto
+    { fix i
+      have "a$i \<le> b$i" using as[THEN spec[where x=i]] by auto
       hence "a$i \<le> ((1/2) *s (a+b)) $ i" "((1/2) *s (a+b)) $ i \<le> b$i"
-	unfolding vector_smult_component[OF i] and vector_add_component[OF i]
-	by (auto simp add: Arith_Tools.less_divide_eq_number_of1)  }
+	unfolding vector_smult_component and vector_add_component
+	by (auto simp add: less_divide_eq_number_of1)  }
     hence "{a .. b} \<noteq> {}" using mem_interval(2)[of "?x" a b] by auto  }
   ultimately show ?th2 by blast
 qed
 
-lemma interval_ne_empty: fixes a :: "real^'n" shows
-  "{a  ..  b} \<noteq> {} \<longleftrightarrow> (\<forall>i \<in> dimset a. a$i \<le> b$i)" and
-  "{a <..< b} \<noteq> {} \<longleftrightarrow> (\<forall>i \<in> dimset a. a$i < b$i)"
-  unfolding interval_eq_empty[of a b] by auto
+lemma interval_ne_empty: fixes a :: "real^'n::finite" shows
+  "{a  ..  b} \<noteq> {} \<longleftrightarrow> (\<forall>i. a$i \<le> b$i)" and
+  "{a <..< b} \<noteq> {} \<longleftrightarrow> (\<forall>i. a$i < b$i)"
+  unfolding interval_eq_empty[of a b] by (auto simp add: not_less not_le) (* BH: Why doesn't just "auto" work here? *)
 
-lemma subset_interval_imp: fixes a :: "real^'n" shows
- "(\<forall>i \<in> dimset a. a$i \<le> c$i \<and> d$i \<le> b$i) \<Longrightarrow> {c .. d} \<subseteq> {a .. b}" and
- "(\<forall>i \<in> dimset a. a$i < c$i \<and> d$i < b$i) \<Longrightarrow> {c .. d} \<subseteq> {a<..<b}" and
- "(\<forall>i \<in> dimset a. a$i \<le> c$i \<and> d$i \<le> b$i) \<Longrightarrow> {c<..<d} \<subseteq> {a .. b}" and
- "(\<forall>i \<in> dimset a. a$i \<le> c$i \<and> d$i \<le> b$i) \<Longrightarrow> {c<..<d} \<subseteq> {a<..<b}"
-  unfolding subset_eq[unfolded Ball_def] unfolding mem_interval by(auto elim!: ballE)
+lemma subset_interval_imp: fixes a :: "real^'n::finite" shows
+ "(\<forall>i. a$i \<le> c$i \<and> d$i \<le> b$i) \<Longrightarrow> {c .. d} \<subseteq> {a .. b}" and
+ "(\<forall>i. a$i < c$i \<and> d$i < b$i) \<Longrightarrow> {c .. d} \<subseteq> {a<..<b}" and
+ "(\<forall>i. a$i \<le> c$i \<and> d$i \<le> b$i) \<Longrightarrow> {c<..<d} \<subseteq> {a .. b}" and
+ "(\<forall>i. a$i \<le> c$i \<and> d$i \<le> b$i) \<Longrightarrow> {c<..<d} \<subseteq> {a<..<b}"
+  unfolding subset_eq[unfolded Ball_def] unfolding mem_interval
+  by (auto intro: order_trans less_le_trans le_less_trans less_imp_le) (* BH: Why doesn't just "auto" work here? *)
 
-lemma interval_sing: fixes a :: "'a::linorder^'n" shows
+lemma interval_sing: fixes a :: "'a::linorder^'n::finite" shows
  "{a .. a} = {a} \<and> {a<..<a} = {}"
 apply(auto simp add: expand_set_eq vector_less_def vector_less_eq_def Cart_eq)
-apply (simp only: order_eq_iff)
-using dimindex_ge_1[of "UNIV :: 'n set"]
-apply (auto simp add: not_less )
-apply (erule_tac x= 1 in ballE)
-apply (rule bexI[where x=1])
-apply auto
+apply (simp add: order_eq_iff)
+apply (auto simp add: not_less less_imp_le)
 done
 
 
-lemma interval_open_subset_closed:  fixes a :: "'a::preorder^'n" shows
+lemma interval_open_subset_closed:  fixes a :: "'a::preorder^'n::finite" shows
  "{a<..<b} \<subseteq> {a .. b}"
 proof(simp add: subset_eq, rule)
   fix x
   assume x:"x \<in>{a<..<b}"
-  { fix i assume "i \<in> dimset a"
-    hence "a $ i \<le> x $ i"
+  { fix i
+    have "a $ i \<le> x $ i"
       using x order_less_imp_le[of "a$i" "x$i"]
       by(simp add: expand_set_eq vector_less_def vector_less_eq_def Cart_eq)
   }
   moreover
-  { fix i assume "i \<in> dimset a"
-    hence "x $ i \<le> b $ i"
-      using x
+  { fix i
+    have "x $ i \<le> b $ i"
       using x order_less_imp_le[of "x$i" "b$i"]
       by(simp add: expand_set_eq vector_less_def vector_less_eq_def Cart_eq)
   }
@@ -4398,76 +4379,76 @@ proof(simp add: subset_eq, rule)
     by(simp add: expand_set_eq vector_less_def vector_less_eq_def Cart_eq)
 qed
 
-lemma subset_interval: fixes a :: "real^'n" shows
- "{c .. d} \<subseteq> {a .. b} \<longleftrightarrow> (\<forall>i \<in> dimset a. c$i \<le> d$i) --> (\<forall>i \<in> dimset a. a$i \<le> c$i \<and> d$i \<le> b$i)" (is ?th1) and
- "{c .. d} \<subseteq> {a<..<b} \<longleftrightarrow> (\<forall>i \<in> dimset a. c$i \<le> d$i) --> (\<forall>i \<in> dimset a. a$i < c$i \<and> d$i < b$i)" (is ?th2) and
- "{c<..<d} \<subseteq> {a .. b} \<longleftrightarrow> (\<forall>i \<in> dimset a. c$i < d$i) --> (\<forall>i \<in> dimset a. a$i \<le> c$i \<and> d$i \<le> b$i)" (is ?th3) and
- "{c<..<d} \<subseteq> {a<..<b} \<longleftrightarrow> (\<forall>i \<in> dimset a. c$i < d$i) --> (\<forall>i \<in> dimset a. a$i \<le> c$i \<and> d$i \<le> b$i)" (is ?th4)
+lemma subset_interval: fixes a :: "real^'n::finite" shows
+ "{c .. d} \<subseteq> {a .. b} \<longleftrightarrow> (\<forall>i. c$i \<le> d$i) --> (\<forall>i. a$i \<le> c$i \<and> d$i \<le> b$i)" (is ?th1) and
+ "{c .. d} \<subseteq> {a<..<b} \<longleftrightarrow> (\<forall>i. c$i \<le> d$i) --> (\<forall>i. a$i < c$i \<and> d$i < b$i)" (is ?th2) and
+ "{c<..<d} \<subseteq> {a .. b} \<longleftrightarrow> (\<forall>i. c$i < d$i) --> (\<forall>i. a$i \<le> c$i \<and> d$i \<le> b$i)" (is ?th3) and
+ "{c<..<d} \<subseteq> {a<..<b} \<longleftrightarrow> (\<forall>i. c$i < d$i) --> (\<forall>i. a$i \<le> c$i \<and> d$i \<le> b$i)" (is ?th4)
 proof-
-  show ?th1 unfolding subset_eq and Ball_def and mem_interval apply auto by(erule_tac x=xa in allE, simp)+
-  show ?th2 unfolding subset_eq and Ball_def and mem_interval apply auto by(erule_tac x=xa in allE, simp)+
-  { assume as: "{c<..<d} \<subseteq> {a .. b}" "\<forall>i \<in> dimset a. c$i < d$i"
-    hence "{c<..<d} \<noteq> {}" unfolding interval_eq_empty by auto
-    fix i assume i:"i \<in> dimset a"
+  show ?th1 unfolding subset_eq and Ball_def and mem_interval by (auto intro: order_trans)
+  show ?th2 unfolding subset_eq and Ball_def and mem_interval by (auto intro: le_less_trans less_le_trans order_trans less_imp_le)
+  { assume as: "{c<..<d} \<subseteq> {a .. b}" "\<forall>i. c$i < d$i"
+    hence "{c<..<d} \<noteq> {}" unfolding interval_eq_empty by (auto, drule_tac x=i in spec, simp) (* BH: Why doesn't just "auto" work? *)
+    fix i
     (** TODO combine the following two parts as done in the HOL_light version. **)
     { let ?x = "(\<chi> j. (if j=i then ((min (a$j) (d$j))+c$j)/2 else (c$j+d$j)/2))::real^'n"
       assume as2: "a$i > c$i"
-      { fix j assume j:"j\<in>dimset a"
-	hence "c $ j < ?x $ j \<and> ?x $ j < d $ j" unfolding Cart_lambda_beta[THEN bspec[where x=j], OF j]
-	  apply(cases "j=i") using as(2)[THEN bspec[where x=j], OF j]
-	  by (auto simp add: Arith_Tools.less_divide_eq_number_of1 as2)  }
+      { fix j
+	have "c $ j < ?x $ j \<and> ?x $ j < d $ j" unfolding Cart_lambda_beta
+	  apply(cases "j=i") using as(2)[THEN spec[where x=j]]
+	  by (auto simp add: less_divide_eq_number_of1 as2)  }
       hence "?x\<in>{c<..<d}" unfolding mem_interval by auto
       moreover
       have "?x\<notin>{a .. b}"
-	unfolding mem_interval apply auto apply(rule_tac x=i in bexI)
-	unfolding Cart_lambda_beta[THEN bspec[where x=i], OF i]
-	using as(2)[THEN bspec[where x=i], OF i] and as2 and i
-	by (auto simp add: Arith_Tools.less_divide_eq_number_of1)
+	unfolding mem_interval apply auto apply(rule_tac x=i in exI)
+	using as(2)[THEN spec[where x=i]] and as2
+	by (auto simp add: less_divide_eq_number_of1)
       ultimately have False using as by auto  }
     hence "a$i \<le> c$i" by(rule ccontr)auto
     moreover
     { let ?x = "(\<chi> j. (if j=i then ((max (b$j) (c$j))+d$j)/2 else (c$j+d$j)/2))::real^'n"
       assume as2: "b$i < d$i"
-      { fix j assume j:"j\<in>dimset a"
-	hence "d $ j > ?x $ j \<and> ?x $ j > c $ j" unfolding Cart_lambda_beta[THEN bspec[where x=j], OF j]
-	  apply(cases "j=i") using as(2)[THEN bspec[where x=j], OF j]
-	  by (auto simp add: Arith_Tools.less_divide_eq_number_of1 as2)  }
+      { fix j
+	have "d $ j > ?x $ j \<and> ?x $ j > c $ j" unfolding Cart_lambda_beta
+	  apply(cases "j=i") using as(2)[THEN spec[where x=j]]
+	  by (auto simp add: less_divide_eq_number_of1 as2)  }
       hence "?x\<in>{c<..<d}" unfolding mem_interval by auto
       moreover
       have "?x\<notin>{a .. b}"
-	unfolding mem_interval apply auto apply(rule_tac x=i in bexI)
-	unfolding Cart_lambda_beta[THEN bspec[where x=i], OF i]
-	using as(2)[THEN bspec[where x=i], OF i] and as2 and i
-	by (auto simp add: Arith_Tools.less_divide_eq_number_of1)
+	unfolding mem_interval apply auto apply(rule_tac x=i in exI)
+	using as(2)[THEN spec[where x=i]] and as2
+	by (auto simp add: less_divide_eq_number_of1)
       ultimately have False using as by auto  }
     hence "b$i \<ge> d$i" by(rule ccontr)auto
     ultimately
     have "a$i \<le> c$i \<and> d$i \<le> b$i" by auto
   } note part1 = this
-  thus ?th3 unfolding subset_eq and Ball_def and mem_interval apply auto by(erule_tac x=xa in allE, simp)+
-  { assume as:"{c<..<d} \<subseteq> {a<..<b}" "\<forall>i \<in> dimset a. c$i < d$i"
-    fix i assume i:"i \<in> dimset a"
+  thus ?th3 unfolding subset_eq and Ball_def and mem_interval apply auto apply (erule_tac x=ia in allE, simp)+ by (erule_tac x=i in allE, erule_tac x=i in allE, simp)+
+  { assume as:"{c<..<d} \<subseteq> {a<..<b}" "\<forall>i. c$i < d$i"
+    fix i
     from as(1) have "{c<..<d} \<subseteq> {a..b}" using interval_open_subset_closed[of a b] by auto
-    hence "a$i \<le> c$i \<and> d$i \<le> b$i" using part1 and as(2) and i by auto  } note * = this
-  thus ?th4 unfolding subset_eq and Ball_def and mem_interval apply auto by(erule_tac x=xa in allE, simp)+
+    hence "a$i \<le> c$i \<and> d$i \<le> b$i" using part1 and as(2) by auto  } note * = this
+  thus ?th4 unfolding subset_eq and Ball_def and mem_interval apply auto apply (erule_tac x=ia in allE, simp)+ by (erule_tac x=i in allE, erule_tac x=i in allE, simp)+
 qed
 
-lemma disjoint_interval: fixes a::"real^'n" shows
-  "{a .. b} \<inter> {c .. d} = {} \<longleftrightarrow> (\<exists>i \<in> dimset a. (b$i < a$i \<or> d$i < c$i \<or> b$i < c$i \<or> d$i < a$i))" (is ?th1) and
-  "{a .. b} \<inter> {c<..<d} = {} \<longleftrightarrow> (\<exists>i \<in> dimset a. (b$i < a$i \<or> d$i \<le> c$i \<or> b$i \<le> c$i \<or> d$i \<le> a$i))" (is ?th2) and
-  "{a<..<b} \<inter> {c .. d} = {} \<longleftrightarrow> (\<exists>i \<in> dimset a. (b$i \<le> a$i \<or> d$i < c$i \<or> b$i \<le> c$i \<or> d$i \<le> a$i))" (is ?th3) and
-  "{a<..<b} \<inter> {c<..<d} = {} \<longleftrightarrow> (\<exists>i \<in> dimset a. (b$i \<le> a$i \<or> d$i \<le> c$i \<or> b$i \<le> c$i \<or> d$i \<le> a$i))" (is ?th4)
+lemma disjoint_interval: fixes a::"real^'n::finite" shows
+  "{a .. b} \<inter> {c .. d} = {} \<longleftrightarrow> (\<exists>i. (b$i < a$i \<or> d$i < c$i \<or> b$i < c$i \<or> d$i < a$i))" (is ?th1) and
+  "{a .. b} \<inter> {c<..<d} = {} \<longleftrightarrow> (\<exists>i. (b$i < a$i \<or> d$i \<le> c$i \<or> b$i \<le> c$i \<or> d$i \<le> a$i))" (is ?th2) and
+  "{a<..<b} \<inter> {c .. d} = {} \<longleftrightarrow> (\<exists>i. (b$i \<le> a$i \<or> d$i < c$i \<or> b$i \<le> c$i \<or> d$i \<le> a$i))" (is ?th3) and
+  "{a<..<b} \<inter> {c<..<d} = {} \<longleftrightarrow> (\<exists>i. (b$i \<le> a$i \<or> d$i \<le> c$i \<or> b$i \<le> c$i \<or> d$i \<le> a$i))" (is ?th4)
 proof-
   let ?z = "(\<chi> i. ((max (a$i) (c$i)) + (min (b$i) (d$i))) / 2)::real^'n"
   show ?th1 ?th2 ?th3 ?th4
-  unfolding expand_set_eq and Int_iff and empty_iff and mem_interval and ball_conj_distrib[THEN sym] and eq_False
-  by (auto simp add: Cart_lambda_beta' Arith_Tools.less_divide_eq_number_of1 intro!: bexI elim!: allE[where x="?z"])
+  unfolding expand_set_eq and Int_iff and empty_iff and mem_interval and all_conj_distrib[THEN sym] and eq_False
+  apply (auto elim!: allE[where x="?z"])
+  apply ((rule_tac x=x in exI, force) | (rule_tac x=i in exI, force))+
+  done
 qed
 
-lemma inter_interval: fixes a :: "'a::linorder^'n" shows
+lemma inter_interval: fixes a :: "'a::linorder^'n::finite" shows
  "{a .. b} \<inter> {c .. d} =  {(\<chi> i. max (a$i) (c$i)) .. (\<chi> i. min (b$i) (d$i))}"
   unfolding expand_set_eq and Int_iff and mem_interval
-  by (auto simp add: Cart_lambda_beta' Arith_Tools.less_divide_eq_number_of1 intro!: bexI)
+  by (auto simp add: less_divide_eq_number_of1 intro!: bexI)
 
 (* Moved interval_open_subset_closed a bit upwards *)
 
@@ -4475,54 +4456,54 @@ lemma open_interval_lemma: fixes x :: "real" shows
  "a < x \<Longrightarrow> x < b ==> (\<exists>d>0. \<forall>x'. abs(x' - x) < d --> a < x' \<and> x' < b)"
   by(rule_tac x="min (x - a) (b - x)" in exI, auto)
 
-lemma open_interval: fixes a :: "real^'n" shows "open {a<..<b}"
+lemma open_interval: fixes a :: "real^'n::finite" shows "open {a<..<b}"
 proof-
   { fix x assume x:"x\<in>{a<..<b}"
-    { fix i assume "i\<in>dimset x"
-      hence "\<exists>d>0. \<forall>x'. abs (x' - (x$i)) < d \<longrightarrow> a$i < x' \<and> x' < b$i"
-	using x[unfolded mem_interval, THEN bspec[where x=i]]
+    { fix i
+      have "\<exists>d>0. \<forall>x'. abs (x' - (x$i)) < d \<longrightarrow> a$i < x' \<and> x' < b$i"
+	using x[unfolded mem_interval, THEN spec[where x=i]]
 	using open_interval_lemma[of "a$i" "x$i" "b$i"] by auto  }
 
-    hence "\<forall>i\<in>dimset x. \<exists>d>0. \<forall>x'. abs (x' - (x$i)) < d \<longrightarrow> a$i < x' \<and> x' < b$i" by auto
-    then obtain d where d:"\<forall>i\<in>dimset x. 0 < d i \<and> (\<forall>x'. \<bar>x' - x $ i\<bar> < d i \<longrightarrow> a $ i < x' \<and> x' < b $ i)"
-      using bchoice[of "dimset x" "\<lambda>i d. d>0 \<and> (\<forall>x'. \<bar>x' - x $ i\<bar> < d \<longrightarrow> a $ i < x' \<and> x' < b $ i)"] by auto
+    hence "\<forall>i. \<exists>d>0. \<forall>x'. abs (x' - (x$i)) < d \<longrightarrow> a$i < x' \<and> x' < b$i" by auto
+    then obtain d where d:"\<forall>i. 0 < d i \<and> (\<forall>x'. \<bar>x' - x $ i\<bar> < d i \<longrightarrow> a $ i < x' \<and> x' < b $ i)"
+      using bchoice[of "UNIV" "\<lambda>i d. d>0 \<and> (\<forall>x'. \<bar>x' - x $ i\<bar> < d \<longrightarrow> a $ i < x' \<and> x' < b $ i)"] by auto
 
-    let ?d = "Min (d ` dimset x)"
-    have **:"finite (d ` dimset x)" "d ` dimset x \<noteq> {}" using dimindex_ge_1[of "UNIV::'n set"] by auto
+    let ?d = "Min (range d)"
+    have **:"finite (range d)" "range d \<noteq> {}" by auto
     have "?d>0" unfolding Min_gr_iff[OF **] using d by auto
     moreover
     { fix x' assume as:"dist x' x < ?d"
-      { fix i assume i:"i \<in> dimset x"
+      { fix i
 	have "\<bar>x'$i - x $ i\<bar> < d i"
-	  using norm_bound_component_lt[OF as[unfolded dist_def], THEN bspec[where x=i], OF i]
-	  unfolding vector_minus_component[OF i] and Min_gr_iff[OF **] using i by auto
-	hence "a $ i < x' $ i" "x' $ i < b $ i" using d[THEN bspec[where x=i], OF i] by auto  }
+	  using norm_bound_component_lt[OF as[unfolded dist_def], of i]
+	  unfolding vector_minus_component and Min_gr_iff[OF **] by auto
+	hence "a $ i < x' $ i" "x' $ i < b $ i" using d[THEN spec[where x=i]] by auto  }
       hence "a < x' \<and> x' < b" unfolding vector_less_def by auto  }
-    ultimately have "\<exists>e>0. \<forall>x'. dist x' x < e \<longrightarrow> x' \<in> {a<..<b}" by auto
+    ultimately have "\<exists>e>0. \<forall>x'. dist x' x < e \<longrightarrow> x' \<in> {a<..<b}" by (auto, rule_tac x="?d" in exI, simp)
   }
   thus ?thesis unfolding open_def using open_interval_lemma by auto
 qed
 
-lemma closed_interval: fixes a :: "real^'n" shows "closed {a .. b}"
+lemma closed_interval: fixes a :: "real^'n::finite" shows "closed {a .. b}"
 proof-
-  { fix x i assume i:"i\<in>dimset x" and as:"\<forall>e>0. \<exists>x'\<in>{a..b}. x' \<noteq> x \<and> dist x' x < e"(* and xab:"a$i > x$i \<or> b$i < x$i"*)
+  { fix x i assume as:"\<forall>e>0. \<exists>x'\<in>{a..b}. x' \<noteq> x \<and> dist x' x < e"(* and xab:"a$i > x$i \<or> b$i < x$i"*)
     { assume xa:"a$i > x$i"
       with as obtain y where y:"y\<in>{a..b}" "y \<noteq> x" "dist y x < a$i - x$i" by(erule_tac x="a$i - x$i" in allE)auto
       hence False unfolding mem_interval and dist_def
-	using component_le_norm[OF i, of "y-x", unfolded vector_minus_component[OF i]] and i and xa by(auto elim!: ballE[where x=i])
+	using component_le_norm[of "y-x" i, unfolded vector_minus_component] and xa by(auto elim!: allE[where x=i])
     } hence "a$i \<le> x$i" by(rule ccontr)auto
     moreover
     { assume xb:"b$i < x$i"
       with as obtain y where y:"y\<in>{a..b}" "y \<noteq> x" "dist y x < x$i - b$i" by(erule_tac x="x$i - b$i" in allE)auto
       hence False unfolding mem_interval and dist_def
-	using component_le_norm[OF i, of "y-x", unfolded vector_minus_component[OF i]] and i and xb by(auto elim!: ballE[where x=i])
+	using component_le_norm[of "y-x" i, unfolded vector_minus_component] and xb by(auto elim!: allE[where x=i])
     } hence "x$i \<le> b$i" by(rule ccontr)auto
     ultimately
     have "a $ i \<le> x $ i \<and> x $ i \<le> b $ i" by auto }
   thus ?thesis unfolding closed_limpt islimpt_approachable mem_interval by auto
 qed
 
-lemma interior_closed_interval: fixes a :: "real^'n" shows
+lemma interior_closed_interval: fixes a :: "real^'n::finite" shows
  "interior {a .. b} = {a<..<b}" (is "?L = ?R")
 proof(rule subset_antisym)
   show "?R \<subseteq> ?L" using interior_maximal[OF interval_open_subset_closed open_interval] by auto
@@ -4530,85 +4511,87 @@ next
   { fix x assume "\<exists>T. open T \<and> x \<in> T \<and> T \<subseteq> {a..b}"
     then obtain s where s:"open s" "x \<in> s" "s \<subseteq> {a..b}" by auto
     then obtain e where "e>0" and e:"\<forall>x'. dist x' x < e \<longrightarrow> x' \<in> {a..b}" unfolding open_def and subset_eq by auto
-    { fix i assume i:"i\<in>dimset x"
+    { fix i
       have "dist (x - (e / 2) *s basis i) x < e"
 	   "dist (x + (e / 2) *s basis i) x < e"
 	unfolding dist_def apply auto
-	unfolding norm_minus_cancel and norm_mul using norm_basis[OF i] and `e>0` by auto
+	unfolding norm_minus_cancel and norm_mul using norm_basis[of i] and `e>0` by auto
       hence "a $ i \<le> (x - (e / 2) *s basis i) $ i"
                     "(x + (e / 2) *s basis i) $ i \<le> b $ i"
 	using e[THEN spec[where x="x - (e/2) *s basis i"]]
 	and   e[THEN spec[where x="x + (e/2) *s basis i"]]
-	unfolding mem_interval using i by auto
+	unfolding mem_interval by (auto elim!: allE[where x=i])
       hence "a $ i < x $ i" and "x $ i < b $ i"
-	unfolding vector_minus_component[OF i] and vector_add_component[OF i]
-	unfolding vector_smult_component[OF i] and basis_component[OF i] using `e>0` by auto   }
+	unfolding vector_minus_component and vector_add_component
+	unfolding vector_smult_component and basis_component using `e>0` by auto   }
     hence "x \<in> {a<..<b}" unfolding mem_interval by auto  }
   thus "?L \<subseteq> ?R" unfolding interior_def and subset_eq by auto
 qed
 
-lemma bounded_closed_interval: fixes a :: "real^'n" shows
+lemma bounded_closed_interval: fixes a :: "real^'n::finite" shows
  "bounded {a .. b}"
 proof-
-  let ?b = "\<Sum>i\<in>dimset a. \<bar>a$i\<bar> + \<bar>b$i\<bar>"
-  { fix x::"real^'n" assume x:"\<forall>i\<in>dimset a. a $ i \<le> x $ i \<and> x $ i \<le> b $ i"
-    { fix i assume "i\<in>dimset a"
-      hence "\<bar>x$i\<bar> \<le> \<bar>a$i\<bar> + \<bar>b$i\<bar>" using x[THEN bspec[where x=i]] by auto  }
-    hence "(\<Sum>i\<in>dimset a. \<bar>x $ i\<bar>) \<le> ?b" by(rule setsum_mono)auto
+  let ?b = "\<Sum>i\<in>UNIV. \<bar>a$i\<bar> + \<bar>b$i\<bar>"
+  { fix x::"real^'n" assume x:"\<forall>i. a $ i \<le> x $ i \<and> x $ i \<le> b $ i"
+    { fix i
+      have "\<bar>x$i\<bar> \<le> \<bar>a$i\<bar> + \<bar>b$i\<bar>" using x[THEN spec[where x=i]] by auto  }
+    hence "(\<Sum>i\<in>UNIV. \<bar>x $ i\<bar>) \<le> ?b" by(rule setsum_mono)
     hence "norm x \<le> ?b" using norm_le_l1[of x] by auto  }
   thus ?thesis unfolding interval and bounded_def by auto
 qed
 
-lemma bounded_interval: fixes a :: "real^'n" shows
+lemma bounded_interval: fixes a :: "real^'n::finite" shows
  "bounded {a .. b} \<and> bounded {a<..<b}"
   using bounded_closed_interval[of a b]
   using interval_open_subset_closed[of a b]
   using bounded_subset[of "{a..b}" "{a<..<b}"]
   by simp
 
-lemma not_interval_univ: fixes a :: "real^'n" shows
+lemma not_interval_univ: fixes a :: "real^'n::finite" shows
  "({a .. b} \<noteq> UNIV) \<and> ({a<..<b} \<noteq> UNIV)"
   using bounded_interval[of a b]
   by auto
 
-lemma compact_interval: fixes a :: "real^'n" shows
+lemma compact_interval: fixes a :: "real^'n::finite" shows
  "compact {a .. b}"
   using bounded_closed_imp_compact using bounded_interval[of a b] using closed_interval[of a b] by auto
 
-lemma open_interval_midpoint: fixes a :: "real^'n"
+lemma open_interval_midpoint: fixes a :: "real^'n::finite"
   assumes "{a<..<b} \<noteq> {}" shows "((1/2) *s (a + b)) \<in> {a<..<b}"
 proof-
-  { fix i assume i:"i\<in>dimset a"
-    hence "a $ i < ((1 / 2) *s (a + b)) $ i \<and> ((1 / 2) *s (a + b)) $ i < b $ i"
-      using assms[unfolded interval_ne_empty, THEN bspec[where x=i]]
-      unfolding vector_smult_component[OF i] and vector_add_component[OF i]
-      by(auto simp add: Arith_Tools.less_divide_eq_number_of1)  }
+  { fix i
+    have "a $ i < ((1 / 2) *s (a + b)) $ i \<and> ((1 / 2) *s (a + b)) $ i < b $ i"
+      using assms[unfolded interval_ne_empty, THEN spec[where x=i]]
+      unfolding vector_smult_component and vector_add_component
+      by(auto simp add: less_divide_eq_number_of1)  }
   thus ?thesis unfolding mem_interval by auto
 qed
 
-lemma open_closed_interval_convex: fixes x :: "real^'n"
+lemma open_closed_interval_convex: fixes x :: "real^'n::finite"
   assumes x:"x \<in> {a<..<b}" and y:"y \<in> {a .. b}" and e:"0 < e" "e \<le> 1"
   shows "(e *s x + (1 - e) *s y) \<in> {a<..<b}"
 proof-
-  { fix i assume i:"i\<in>dimset a"
+  { fix i
     have "a $ i = e * a$i + (1 - e) * a$i" unfolding left_diff_distrib by simp
     also have "\<dots> < e * x $ i + (1 - e) * y $ i" apply(rule add_less_le_mono)
       using e unfolding mult_less_cancel_left and mult_le_cancel_left apply simp_all
-      using x i unfolding mem_interval  apply(erule_tac x=i in ballE) apply simp_all
-      using y i unfolding mem_interval  apply(erule_tac x=i in ballE) by simp_all
-    finally have "a $ i < (e *s x + (1 - e) *s y) $ i" using i by (auto simp add: vector_add_component vector_smult_component)
+      using x unfolding mem_interval  apply simp
+      using y unfolding mem_interval  apply simp
+      done
+    finally have "a $ i < (e *s x + (1 - e) *s y) $ i" by auto
     moreover {
     have "b $ i = e * b$i + (1 - e) * b$i" unfolding left_diff_distrib by simp
     also have "\<dots> > e * x $ i + (1 - e) * y $ i" apply(rule add_less_le_mono)
       using e unfolding mult_less_cancel_left and mult_le_cancel_left apply simp_all
-      using x i unfolding mem_interval  apply(erule_tac x=i in ballE) apply simp_all
-      using y i unfolding mem_interval  apply(erule_tac x=i in ballE) by simp_all
-    finally have "(e *s x + (1 - e) *s y) $ i < b $ i" using i by (auto simp add: vector_add_component vector_smult_component)
+      using x unfolding mem_interval  apply simp
+      using y unfolding mem_interval  apply simp
+      done
+    finally have "(e *s x + (1 - e) *s y) $ i < b $ i" by auto
     } ultimately have "a $ i < (e *s x + (1 - e) *s y) $ i \<and> (e *s x + (1 - e) *s y) $ i < b $ i" by auto }
   thus ?thesis unfolding mem_interval by auto
 qed
 
-lemma closure_open_interval: fixes a :: "real^'n"
+lemma closure_open_interval: fixes a :: "real^'n::finite"
   assumes "{a<..<b} \<noteq> {}"
   shows "closure {a<..<b} = {a .. b}"
 proof-
@@ -4639,15 +4622,15 @@ proof-
   thus ?thesis using closure_minimal[OF interval_open_subset_closed closed_interval, of a b] by blast
 qed
 
-lemma bounded_subset_open_interval_symmetric: fixes s::"(real^'n) set"
+lemma bounded_subset_open_interval_symmetric: fixes s::"(real^'n::finite) set"
   assumes "bounded s"  shows "\<exists>a. s \<subseteq> {-a<..<a}"
 proof-
   obtain b where "b>0" and b:"\<forall>x\<in>s. norm x \<le> b" using assms[unfolded bounded_pos] by auto
   def a \<equiv> "(\<chi> i. b+1)::real^'n"
   { fix x assume "x\<in>s"
-    fix i assume i:"i\<in>dimset a"
-    have "(-a)$i < x$i" and "x$i < a$i" using b[THEN bspec[where x=x], OF `x\<in>s`] and component_le_norm[OF i, of x]
-      unfolding vector_uminus_component[OF i] and a_def and Cart_lambda_beta'[OF i] by auto
+    fix i
+    have "(-a)$i < x$i" and "x$i < a$i" using b[THEN bspec[where x=x], OF `x\<in>s`] and component_le_norm[of x i]
+      unfolding vector_uminus_component and a_def and Cart_lambda_beta by auto
   }
   thus ?thesis by(auto intro: exI[where x=a] simp add: vector_less_def)
 qed
@@ -4679,30 +4662,32 @@ next
   case False thus ?thesis unfolding frontier_def and closure_open_interval[OF False] and interior_open[OF open_interval] by auto
 qed
 
-lemma inter_interval_mixed_eq_empty: fixes a :: "real^'n"
+lemma inter_interval_mixed_eq_empty: fixes a :: "real^'n::finite"
   assumes "{c<..<d} \<noteq> {}"  shows "{a<..<b} \<inter> {c .. d} = {} \<longleftrightarrow> {a<..<b} \<inter> {c<..<d} = {}"
   unfolding closure_open_interval[OF assms, THEN sym] unfolding open_inter_closure_eq_empty[OF open_interval] ..
 
 
 (* Some special cases for intervals in R^1.                                  *)
 
-lemma dim1: "dimindex (UNIV::(1 set)) = 1"
-unfolding dimindex_def
-by simp
+lemma all_1: "(\<forall>x::1. P x) \<longleftrightarrow> P 1"
+  by (metis num1_eq_iff)
+
+lemma ex_1: "(\<exists>x::1. P x) \<longleftrightarrow> P 1"
+  by auto (metis num1_eq_iff)
 
 lemma interval_cases_1: fixes x :: "real^1" shows
  "x \<in> {a .. b} ==> x \<in> {a<..<b} \<or> (x = a) \<or> (x = b)"
-  by(simp add:  Cart_eq vector_less_def vector_less_eq_def dim1, auto)
+  by(simp add:  Cart_eq vector_less_def vector_less_eq_def all_1, auto)
 
 lemma in_interval_1: fixes x :: "real^1" shows
  "(x \<in> {a .. b} \<longleftrightarrow> dest_vec1 a \<le> dest_vec1 x \<and> dest_vec1 x \<le> dest_vec1 b) \<and>
   (x \<in> {a<..<b} \<longleftrightarrow> dest_vec1 a < dest_vec1 x \<and> dest_vec1 x < dest_vec1 b)"
-by(simp add: Cart_eq vector_less_def vector_less_eq_def dim1 dest_vec1_def)
+by(simp add: Cart_eq vector_less_def vector_less_eq_def all_1 dest_vec1_def)
 
 lemma interval_eq_empty_1: fixes a :: "real^1" shows
   "{a .. b} = {} \<longleftrightarrow> dest_vec1 b < dest_vec1 a"
   "{a<..<b} = {} \<longleftrightarrow> dest_vec1 b \<le> dest_vec1 a"
-  unfolding interval_eq_empty and dim1 and dest_vec1_def by auto
+  unfolding interval_eq_empty and ex_1 and dest_vec1_def by auto
 
 lemma subset_interval_1: fixes a :: "real^1" shows
  "({a .. b} \<subseteq> {c .. d} \<longleftrightarrow>  dest_vec1 b < dest_vec1 a \<or>
@@ -4713,7 +4698,7 @@ lemma subset_interval_1: fixes a :: "real^1" shows
                 dest_vec1 c \<le> dest_vec1 a \<and> dest_vec1 a < dest_vec1 b \<and> dest_vec1 b \<le> dest_vec1 d)"
  "({a<..<b} \<subseteq> {c<..<d} \<longleftrightarrow> dest_vec1 b \<le> dest_vec1 a \<or>
                 dest_vec1 c \<le> dest_vec1 a \<and> dest_vec1 a < dest_vec1 b \<and> dest_vec1 b \<le> dest_vec1 d)"
-  unfolding subset_interval[of a b c d] unfolding forall_dimindex_1 and dest_vec1_def by auto
+  unfolding subset_interval[of a b c d] unfolding all_1 and dest_vec1_def by auto
 
 lemma eq_interval_1: fixes a :: "real^1" shows
  "{a .. b} = {c .. d} \<longleftrightarrow>
@@ -4729,37 +4714,37 @@ lemma disjoint_interval_1: fixes a :: "real^1" shows
   "{a .. b} \<inter> {c<..<d} = {} \<longleftrightarrow> dest_vec1 b < dest_vec1 a \<or> dest_vec1 d \<le> dest_vec1 c  \<or>  dest_vec1 b \<le> dest_vec1 c \<or> dest_vec1 d \<le> dest_vec1 a"
   "{a<..<b} \<inter> {c .. d} = {} \<longleftrightarrow> dest_vec1 b \<le> dest_vec1 a \<or> dest_vec1 d < dest_vec1 c  \<or>  dest_vec1 b \<le> dest_vec1 c \<or> dest_vec1 d \<le> dest_vec1 a"
   "{a<..<b} \<inter> {c<..<d} = {} \<longleftrightarrow> dest_vec1 b \<le> dest_vec1 a \<or> dest_vec1 d \<le> dest_vec1 c  \<or>  dest_vec1 b \<le> dest_vec1 c \<or> dest_vec1 d \<le> dest_vec1 a"
-  unfolding disjoint_interval and dest_vec1_def and dim1 by auto
+  unfolding disjoint_interval and dest_vec1_def ex_1 by auto
 
 lemma open_closed_interval_1: fixes a :: "real^1" shows
  "{a<..<b} = {a .. b} - {a, b}"
-  unfolding expand_set_eq apply simp unfolding vector_less_def and vector_less_eq_def and dim1 and dest_vec1_eq[THEN sym] and dest_vec1_def by auto
+  unfolding expand_set_eq apply simp unfolding vector_less_def and vector_less_eq_def and all_1 and dest_vec1_eq[THEN sym] and dest_vec1_def by auto
 
 lemma closed_open_interval_1: "dest_vec1 (a::real^1) \<le> dest_vec1 b ==> {a .. b} = {a<..<b} \<union> {a,b}"
-  unfolding expand_set_eq apply simp unfolding vector_less_def and vector_less_eq_def and dim1 and dest_vec1_eq[THEN sym] and dest_vec1_def by auto
+  unfolding expand_set_eq apply simp unfolding vector_less_def and vector_less_eq_def and all_1 and dest_vec1_eq[THEN sym] and dest_vec1_def by auto
 
 (* Some stuff for half-infinite intervals too; FIXME: notation?  *)
 
-lemma closed_interval_left: fixes b::"real^'n"
-  shows "closed {x::real^'n. \<forall>i \<in> dimset x. x$i \<le> b$i}"
+lemma closed_interval_left: fixes b::"real^'n::finite"
+  shows "closed {x::real^'n. \<forall>i. x$i \<le> b$i}"
 proof-
-  { fix i assume i:"i\<in>dimset b"
-    fix x::"real^'n" assume x:"\<forall>e>0. \<exists>x'\<in>{x. \<forall>i\<in>dimset b. x $ i \<le> b $ i}. x' \<noteq> x \<and> dist x' x < e"
+  { fix i
+    fix x::"real^'n" assume x:"\<forall>e>0. \<exists>x'\<in>{x. \<forall>i. x $ i \<le> b $ i}. x' \<noteq> x \<and> dist x' x < e"
     { assume "x$i > b$i"
-      then obtain y where "y $ i \<le> b $ i"  "y \<noteq> x"  "dist y x < x$i - b$i" using x[THEN spec[where x="x$i - b$i"]] and i by (auto, erule_tac x=i in ballE)auto
-      hence False using component_le_norm[OF i, of "y - x"] unfolding dist_def and vector_minus_component[OF i] by auto   }
+      then obtain y where "y $ i \<le> b $ i"  "y \<noteq> x"  "dist y x < x$i - b$i" using x[THEN spec[where x="x$i - b$i"]] by auto
+      hence False using component_le_norm[of "y - x" i] unfolding dist_def and vector_minus_component by auto   }
     hence "x$i \<le> b$i" by(rule ccontr)auto  }
   thus ?thesis unfolding closed_limpt unfolding islimpt_approachable by blast
 qed
 
-lemma closed_interval_right: fixes a::"real^'n"
-  shows "closed {x::real^'n. \<forall>i \<in> dimset x. a$i \<le> x$i}"
+lemma closed_interval_right: fixes a::"real^'n::finite"
+  shows "closed {x::real^'n. \<forall>i. a$i \<le> x$i}"
 proof-
-  { fix i assume i:"i\<in>dimset a"
-    fix x::"real^'n" assume x:"\<forall>e>0. \<exists>x'\<in>{x. \<forall>i\<in>dimset a. a $ i \<le> x $ i}. x' \<noteq> x \<and> dist x' x < e"
+  { fix i
+    fix x::"real^'n" assume x:"\<forall>e>0. \<exists>x'\<in>{x. \<forall>i. a $ i \<le> x $ i}. x' \<noteq> x \<and> dist x' x < e"
     { assume "a$i > x$i"
-      then obtain y where "a $ i \<le> y $ i"  "y \<noteq> x"  "dist y x < a$i - x$i" using x[THEN spec[where x="a$i - x$i"]] and i by(auto, erule_tac x=i in ballE)auto
-      hence False using component_le_norm[OF i, of "y - x"] unfolding dist_def and vector_minus_component[OF i] by auto   }
+      then obtain y where "a $ i \<le> y $ i"  "y \<noteq> x"  "dist y x < a$i - x$i" using x[THEN spec[where x="a$i - x$i"]] by auto
+      hence False using component_le_norm[of "y - x" i] unfolding dist_def and vector_minus_component by auto   }
     hence "a$i \<le> x$i" by(rule ccontr)auto  }
   thus ?thesis unfolding closed_limpt unfolding islimpt_approachable by blast
 qed
@@ -4768,13 +4753,13 @@ subsection{* Intervals in general, including infinite and mixtures of open and c
 
 definition "is_interval s \<longleftrightarrow> (\<forall>a\<in>s. \<forall>b\<in>s. \<forall>x. a \<le> x \<and> x \<le> b \<longrightarrow> x \<in> s)"
 
-lemma is_interval_interval: fixes a::"real^'n" shows
+lemma is_interval_interval: fixes a::"real^'n::finite" shows
   "is_interval {a<..<b}" "is_interval {a .. b}"
   unfolding is_interval_def apply(auto simp add: vector_less_def vector_less_eq_def)
-  apply(erule_tac x=i in ballE)+ apply simp+
-  apply(erule_tac x=i in ballE)+ apply simp+
-  apply(erule_tac x=i in ballE)+ apply simp+
-  apply(erule_tac x=i in ballE)+ apply simp+
+  apply(erule_tac x=i in allE)+ apply simp
+  apply(erule_tac x=i in allE)+ apply simp
+  apply(erule_tac x=i in allE)+ apply simp
+  apply(erule_tac x=i in allE)+ apply simp
   done
 
 lemma is_interval_empty:
@@ -4789,7 +4774,7 @@ lemma is_interval_univ:
 
 subsection{* Closure of halfspaces and hyperplanes.                                    *}
 
-lemma Lim_vec1_dot: fixes f :: "real^'m \<Rightarrow> real^'n"
+lemma Lim_vec1_dot: fixes f :: "real^'m \<Rightarrow> real^'n::finite"
   assumes "(f ---> l) net"  shows "((vec1 o (\<lambda>y. a \<bullet> (f y))) ---> vec1(a \<bullet> l)) net"
 proof(cases "a = vec 0")
   case True thus ?thesis using dot_lzero and Lim_const[of 0 net] unfolding vec1_vec and o_def by auto
@@ -4821,14 +4806,14 @@ lemma continuous_on_vec1_dot:
   using continuous_at_vec1_dot
   by auto
 
-lemma closed_halfspace_le: fixes a::"real^'n"
+lemma closed_halfspace_le: fixes a::"real^'n::finite"
   shows "closed {x. a \<bullet> x \<le> b}"
 proof-
   have *:"{x \<in> UNIV. (vec1 \<circ> op \<bullet> a) x \<in> vec1 ` {r. \<exists>x. a \<bullet> x = r \<and> r \<le> b}} = {x. a \<bullet> x \<le> b}" by auto
-  let ?T = "{x::real^1. (\<forall>i\<in>dimset x. x$i \<le> (vec1 b)$i)}"
+  let ?T = "{x::real^1. (\<forall>i. x$i \<le> (vec1 b)$i)}"
   have "closed ?T" using closed_interval_left[of "vec1 b"] by simp
-  moreover have "vec1 ` {r. \<exists>x. a \<bullet> x = r \<and> r \<le> b} = range (vec1 \<circ> op \<bullet> a) \<inter> ?T" unfolding dim1
-    unfolding image_def apply auto unfolding vec1_component[unfolded One_nat_def] by auto
+  moreover have "vec1 ` {r. \<exists>x. a \<bullet> x = r \<and> r \<le> b} = range (vec1 \<circ> op \<bullet> a) \<inter> ?T" unfolding all_1
+    unfolding image_def by auto
   ultimately have "\<exists>T. closed T \<and> vec1 ` {r. \<exists>x. a \<bullet> x = r \<and> r \<le> b} = range (vec1 \<circ> op \<bullet> a) \<inter> T" by auto
   hence "closedin euclidean {x \<in> UNIV. (vec1 \<circ> op \<bullet> a) x \<in> vec1 ` {r. \<exists>x. a \<bullet> x = r \<and> r \<le> b}}"
     using continuous_on_vec1_dot[of UNIV a, unfolded continuous_on_closed subtopology_UNIV] unfolding closedin_closed
@@ -4846,11 +4831,11 @@ proof-
 qed
 
 lemma closed_halfspace_component_le:
-  assumes "i \<in> {1 .. dimindex (UNIV::'n set)}" shows "closed {x::real^'n. x$i \<le> a}"
+  shows "closed {x::real^'n::finite. x$i \<le> a}"
   using closed_halfspace_le[of "(basis i)::real^'n" a] unfolding dot_basis[OF assms] by auto
 
 lemma closed_halfspace_component_ge:
-  assumes "i \<in> {1 .. dimindex (UNIV::'n set)}" shows "closed {x::real^'n. x$i \<ge> a}"
+  shows "closed {x::real^'n::finite. x$i \<ge> a}"
   using closed_halfspace_ge[of a "(basis i)::real^'n"] unfolding dot_basis[OF assms] by auto
 
 text{* Openness of halfspaces.                                                   *}
@@ -4868,48 +4853,45 @@ proof-
 qed
 
 lemma open_halfspace_component_lt:
-  assumes "i \<in> {1 .. dimindex(UNIV::'n set)}" shows "open {x::real^'n. x$i < a}"
+  shows "open {x::real^'n::finite. x$i < a}"
   using open_halfspace_lt[of "(basis i)::real^'n" a] unfolding dot_basis[OF assms] by auto
 
 lemma open_halfspace_component_gt:
-  assumes "i \<in> {1 .. dimindex(UNIV::'n set)}" shows "open {x::real^'n. x$i  > a}"
+  shows "open {x::real^'n::finite. x$i  > a}"
   using open_halfspace_gt[of a "(basis i)::real^'n"] unfolding dot_basis[OF assms] by auto
 
 text{* This gives a simple derivation of limit component bounds.                 *}
 
-lemma Lim_component_le: fixes f :: "'a \<Rightarrow> real^'n"
+lemma Lim_component_le: fixes f :: "'a \<Rightarrow> real^'n::finite"
   assumes "(f ---> l) net" "\<not> (trivial_limit net)"  "eventually (\<lambda>x. f(x)$i \<le> b) net"
-  and i:"i\<in> {1 .. dimindex(UNIV::'n set)}"
   shows "l$i \<le> b"
 proof-
-  { fix x have "x \<in> {x::real^'n. basis i \<bullet> x \<le> b} \<longleftrightarrow> x$i \<le> b" unfolding dot_basis[OF i] by auto } note * = this
+  { fix x have "x \<in> {x::real^'n. basis i \<bullet> x \<le> b} \<longleftrightarrow> x$i \<le> b" unfolding dot_basis by auto } note * = this
   show ?thesis using Lim_in_closed_set[of "{x. basis i \<bullet> x \<le> b}" f net l] unfolding *
     using closed_halfspace_le[of "(basis i)::real^'n" b] and assms(1,2,3) by auto
 qed
 
-lemma Lim_component_ge: fixes f :: "'a \<Rightarrow> real^'n"
+lemma Lim_component_ge: fixes f :: "'a \<Rightarrow> real^'n::finite"
   assumes "(f ---> l) net"  "\<not> (trivial_limit net)"  "eventually (\<lambda>x. b \<le> (f x)$i) net"
-  and i:"i\<in> {1 .. dimindex(UNIV::'n set)}"
   shows "b \<le> l$i"
 proof-
-  { fix x have "x \<in> {x::real^'n. basis i \<bullet> x \<ge> b} \<longleftrightarrow> x$i \<ge> b" unfolding dot_basis[OF i] by auto } note * = this
+  { fix x have "x \<in> {x::real^'n. basis i \<bullet> x \<ge> b} \<longleftrightarrow> x$i \<ge> b" unfolding dot_basis by auto } note * = this
   show ?thesis using Lim_in_closed_set[of "{x. basis i \<bullet> x \<ge> b}" f net l] unfolding *
     using closed_halfspace_ge[of b "(basis i)::real^'n"] and assms(1,2,3) by auto
 qed
 
-lemma Lim_component_eq: fixes f :: "'a \<Rightarrow> real^'n"
+lemma Lim_component_eq: fixes f :: "'a \<Rightarrow> real^'n::finite"
   assumes net:"(f ---> l) net" "~(trivial_limit net)" and ev:"eventually (\<lambda>x. f(x)$i = b) net"
-  and i:"i\<in> {1 .. dimindex(UNIV::'n set)}"
   shows "l$i = b"
-  using ev[unfolded order_eq_iff eventually_and] using Lim_component_ge[OF net, of b i] and Lim_component_le[OF net, of i b] using i by auto
+  using ev[unfolded order_eq_iff eventually_and] using Lim_component_ge[OF net, of b i] and Lim_component_le[OF net, of i b] by auto
 
 lemma Lim_drop_le: fixes f :: "'a \<Rightarrow> real^1" shows
   "(f ---> l) net \<Longrightarrow> ~(trivial_limit net) \<Longrightarrow> eventually (\<lambda>x. dest_vec1 (f x) \<le> b) net ==> dest_vec1 l \<le> b"
-  using Lim_component_le[of f l net 1 b] unfolding dest_vec1_def and dim1 by auto
+  using Lim_component_le[of f l net 1 b] unfolding dest_vec1_def by auto
 
 lemma Lim_drop_ge: fixes f :: "'a \<Rightarrow> real^1" shows
  "(f ---> l) net \<Longrightarrow> ~(trivial_limit net) \<Longrightarrow> eventually (\<lambda>x. b \<le> dest_vec1 (f x)) net ==> b \<le> dest_vec1 l"
-  using Lim_component_ge[of f l net b 1] unfolding dest_vec1_def and dim1 by auto
+  using Lim_component_ge[of f l net b 1] unfolding dest_vec1_def by auto
 
 text{* Limits relative to a union.                                               *}
 
@@ -4926,7 +4908,7 @@ lemma continuous_on_union:
   using assms unfolding continuous_on unfolding Lim_within_union
   unfolding Lim unfolding trivial_limit_within unfolding closed_limpt by auto
 
-lemma continuous_on_cases: fixes g :: "real^'m \<Rightarrow> real ^'n"
+lemma continuous_on_cases: fixes g :: "real^'m::finite \<Rightarrow> real ^'n::finite"
   assumes "closed s" "closed t" "continuous_on s f" "continuous_on t g"
           "\<forall>x. (x\<in>s \<and> \<not> P x) \<or> (x \<in> t \<and> P x) \<longrightarrow> f x = g x"
   shows "continuous_on (s \<union> t) (\<lambda>x. if P x then f x else g x)"
@@ -4943,7 +4925,7 @@ qed
 
 text{* Some more convenient intermediate-value theorem formulations.             *}
 
-lemma connected_ivt_hyperplane: fixes y :: "real^'n"
+lemma connected_ivt_hyperplane: fixes y :: "real^'n::finite"
   assumes "connected s" "x \<in> s" "y \<in> s" "a \<bullet> x \<le> b" "b \<le> a \<bullet> y"
   shows "\<exists>z \<in> s. a \<bullet> z = b"
 proof(rule ccontr)
@@ -4956,8 +4938,8 @@ proof(rule ccontr)
   ultimately show False using assms(1)[unfolded connected_def not_ex, THEN spec[where x="?A"], THEN spec[where x="?B"]] and assms(2-5) by auto
 qed
 
-lemma connected_ivt_component: fixes x::"real^'n" shows
- "connected s \<Longrightarrow> x \<in> s \<Longrightarrow> y \<in> s \<Longrightarrow> k \<in> dimset x \<Longrightarrow> x$k \<le> a \<Longrightarrow> a \<le> y$k \<Longrightarrow> (\<exists>z\<in>s.  z$k = a)"
+lemma connected_ivt_component: fixes x::"real^'n::finite" shows
+ "connected s \<Longrightarrow> x \<in> s \<Longrightarrow> y \<in> s \<Longrightarrow> x$k \<le> a \<Longrightarrow> a \<le> y$k \<Longrightarrow> (\<exists>z\<in>s.  z$k = a)"
   using connected_ivt_hyperplane[of s x y "(basis k)::real^'n" a] by (auto simp add: dot_basis)
 
 text{* Also more convenient formulations of monotone convergence.                *}
@@ -4982,7 +4964,7 @@ definition "homeomorphism s t f g \<equiv>
      (\<forall>x\<in>s. (g(f x) = x)) \<and> (f ` s = t) \<and> continuous_on s f \<and>
      (\<forall>y\<in>t. (f(g y) = y)) \<and> (g ` t = s) \<and> continuous_on t g"
 
-definition homeomorphic :: "((real^'a) set) \<Rightarrow> ((real^'b) set) \<Rightarrow> bool" (infixr "homeomorphic" 60) where
+definition homeomorphic :: "((real^'a::finite) set) \<Rightarrow> ((real^'b::finite) set) \<Rightarrow> bool" (infixr "homeomorphic" 60) where
   homeomorphic_def: "s homeomorphic t \<equiv> (\<exists>f g. homeomorphism s t f g)"
 
 lemma homeomorphic_refl: "s homeomorphic s"
@@ -5103,7 +5085,7 @@ proof-
     using homeomorphic_translation[of "(\<lambda>x. c *s x) ` s" a] unfolding * by auto
 qed
 
-lemma homeomorphic_balls: fixes a b ::"real^'a"
+lemma homeomorphic_balls: fixes a b ::"real^'a::finite"
   assumes "0 < d"  "0 < e"
   shows "(ball a d) homeomorphic  (ball b e)" (is ?th)
         "(cball a d) homeomorphic (cball b e)" (is ?cth)
@@ -5173,7 +5155,7 @@ qed
 
 lemma dist_0_norm:"dist 0 x = norm x" unfolding dist_def by(auto simp add: norm_minus_cancel)
 
-lemma injective_imp_isometric: fixes f::"real^'m \<Rightarrow> real^'n"
+lemma injective_imp_isometric: fixes f::"real^'m::finite \<Rightarrow> real^'n::finite"
   assumes s:"closed s"  "subspace s"  and f:"linear f" "\<forall>x\<in>s. (f x = 0) \<longrightarrow> (x = 0)"
   shows "\<exists>e>0. \<forall>x\<in>s. norm (f x) \<ge> e * norm(x)"
 proof(cases "s \<subseteq> {0::real^'m}")
@@ -5235,24 +5217,23 @@ qed
 subsection{* Some properties of a canonical subspace.                                  *}
 
 lemma subspace_substandard:
- "subspace {x::real^'n. (\<forall>i \<in> dimset x. d < i \<longrightarrow> x$i = 0)}"
+ "subspace {x::real^'n. (\<forall>i. P i \<longrightarrow> x$i = 0)}"
   unfolding subspace_def by(auto simp add: vector_add_component vector_smult_component elim!: ballE)
 
 lemma closed_substandard:
- "closed {x::real^'n. \<forall>i \<in> dimset x. d < i --> x$i = 0}" (is "closed ?A")
+ "closed {x::real^'n::finite. \<forall>i. P i --> x$i = 0}" (is "closed ?A")
 proof-
-  let ?D = "{Suc d..dimindex(UNIV::('n set))}"
+  let ?D = "{i. P i}"
   let ?Bs = "{{x::real^'n. basis i \<bullet> x = 0}| i. i \<in> ?D}"
   { fix x
     { assume "x\<in>?A"
-      hence x:"\<forall>i\<in>?D. d < i \<longrightarrow> x $ i = 0" by auto
+      hence x:"\<forall>i\<in>?D. x $ i = 0" by auto
       hence "x\<in> \<Inter> ?Bs" by(auto simp add: dot_basis x) }
     moreover
     { assume x:"x\<in>\<Inter>?Bs"
-      { fix i assume i:"i\<in>dimset x" and "d < i"
-	hence "i \<in> ?D" by auto
+      { fix i assume i:"i \<in> ?D"
 	then obtain B where BB:"B \<in> ?Bs" and B:"B = {x::real^'n. basis i \<bullet> x = 0}" by auto
-	hence "x $ i = 0" unfolding B unfolding dot_basis[OF i] using x by auto  }
+	hence "x $ i = 0" unfolding B using x unfolding dot_basis by auto  }
       hence "x\<in>?A" by auto }
     ultimately have "x\<in>?A \<longleftrightarrow> x\<in> \<Inter>?Bs" by auto }
   hence "?A = \<Inter> ?Bs" by auto
@@ -5260,40 +5241,40 @@ proof-
 qed
 
 lemma dim_substandard:
-  assumes "d \<le> dimindex(UNIV::'n set)"
-  shows "dim {x::real^'n. \<forall>i \<in> dimset x. d < i --> x$i = 0} = d" (is "dim ?A = d")
+  shows "dim {x::real^'n::finite. \<forall>i. i \<notin> d \<longrightarrow> x$i = 0} = card d" (is "dim ?A = _")
 proof-
-  let ?D = "{1..dimindex (UNIV::'n set)}"
-  let ?B = "(basis::nat\<Rightarrow>real^'n) ` {1..d}"
+  let ?D = "UNIV::'n set"
+  let ?B = "(basis::'n\<Rightarrow>real^'n) ` d"
 
-    let ?bas = "basis::nat \<Rightarrow> real^'n"
+    let ?bas = "basis::'n \<Rightarrow> real^'n"
 
-  have "?B \<subseteq> ?A" by (auto simp add: basis_component)
+  have "?B \<subseteq> ?A" by auto
 
   moreover
   { fix x::"real^'n" assume "x\<in>?A"
-    hence "x\<in> span ?B"
+    with finite[of d]
+    have "x\<in> span ?B"
     proof(induct d arbitrary: x)
-      case 0 hence "x=0" unfolding Cart_eq by auto
+      case empty hence "x=0" unfolding Cart_eq by auto
       thus ?case using subspace_0[OF subspace_span[of "{}"]] by auto
     next
-      case (Suc n)
-      hence *:"\<forall>i\<in>?D. Suc n < i \<longrightarrow> x $ i = 0" by auto
-      have **:"{1..n} \<subseteq> {1..Suc n}" by auto
-      def y \<equiv> "x - x$(Suc n) *s basis (Suc n)"
-      have y:"x = y + (x$Suc n) *s basis (Suc n)" unfolding y_def by auto
-      { fix i assume i:"i\<in>?D" and i':"n < i"
-	hence "y $ i = 0" unfolding y_def unfolding vector_minus_component[OF i]
-	  and vector_smult_component[OF i] and basis_component[OF i] using i'
-	  using *[THEN bspec[where x=i]] by auto }
-      hence "y \<in> span (basis ` {1..Suc n})" using Suc(1)[of y]
-	using span_mono[of "?bas ` {1..n}" "?bas ` {1..Suc n}"]
+      case (insert k F)
+      hence *:"\<forall>i. i \<notin> insert k F \<longrightarrow> x $ i = 0" by auto
+      have **:"F \<subseteq> insert k F" by auto
+      def y \<equiv> "x - x$k *s basis k"
+      have y:"x = y + (x$k) *s basis k" unfolding y_def by auto
+      { fix i assume i':"i \<notin> F"
+	hence "y $ i = 0" unfolding y_def unfolding vector_minus_component
+	  and vector_smult_component and basis_component
+	  using *[THEN spec[where x=i]] by auto }
+      hence "y \<in> span (basis ` (insert k F))" using insert(3)
+	using span_mono[of "?bas ` F" "?bas ` (insert k F)"]
 	using image_mono[OF **, of basis] by auto
       moreover
-      have "basis (Suc n) \<in> span (?bas ` {1..Suc n})" by(rule span_superset, auto)
-      hence "x$(Suc n) *s basis (Suc n) \<in> span (?bas ` {1..Suc n})" using span_mul by auto
+      have "basis k \<in> span (?bas ` (insert k F))" by(rule span_superset, auto)
+      hence "x$k *s basis k \<in> span (?bas ` (insert k F))" using span_mul by auto
       ultimately
-      have "y + x$(Suc n) *s basis (Suc n) \<in> span (?bas ` {1..Suc n})"
+      have "y + x$k *s basis k \<in> span (?bas ` (insert k F))"
 	using span_add by auto
       thus ?case using y by auto
     qed
@@ -5306,27 +5287,39 @@ proof-
   hence "independent ?B" using independent_mono[OF independent_stdbasis, of ?B] and assms by auto
 
   moreover
-  have "{1..d} \<subseteq> ?D" unfolding subset_eq using assms by auto
-  hence *:"inj_on (basis::nat\<Rightarrow>real^'n) {1..d}" using subset_inj_on[OF basis_inj, of "{1..d}"] using assms by auto
-  have "?B hassize d" unfolding hassize_def and card_image[OF *] by auto
+  have "d \<subseteq> ?D" unfolding subset_eq using assms by auto
+  hence *:"inj_on (basis::'n\<Rightarrow>real^'n) d" using subset_inj_on[OF basis_inj, of "d"] by auto
+  have "?B hassize (card d)" unfolding hassize_def and card_image[OF *] by auto
 
-  ultimately show ?thesis using dim_unique[of "basis ` {1..d}" ?A] by auto
+  ultimately show ?thesis using dim_unique[of "basis ` d" ?A] by auto
 qed
 
 text{* Hence closure and completeness of all subspaces.                          *}
 
-lemma closed_subspace: fixes s::"(real^'n) set"
+lemma closed_subspace_lemma: "n \<le> card (UNIV::'n::finite set) \<Longrightarrow> \<exists>A::'n set. card A = n"
+apply (induct n)
+apply (rule_tac x="{}" in exI, simp)
+apply clarsimp
+apply (subgoal_tac "\<exists>x. x \<notin> A")
+apply (erule exE)
+apply (rule_tac x="insert x A" in exI, simp)
+apply (subgoal_tac "A \<noteq> UNIV", auto)
+done
+
+lemma closed_subspace: fixes s::"(real^'n::finite) set"
   assumes "subspace s" shows "closed s"
 proof-
-  let ?t = "{x::real^'n. \<forall>i\<in>{1..dimindex (UNIV :: 'n set)}. dim s<i \<longrightarrow> x$i = 0}"
-  have "dim s \<le> dimindex (UNIV :: 'n set)" using dim_subset_univ by auto
+  have "dim s \<le> card (UNIV :: 'n set)" using dim_subset_univ by auto
+  then obtain d::"'n set" where t: "card d = dim s"
+    using closed_subspace_lemma by auto
+  let ?t = "{x::real^'n. \<forall>i. i \<notin> d \<longrightarrow> x$i = 0}"
   obtain f where f:"linear f"  "f ` ?t = s" "inj_on f ?t"
-    using subspace_isomorphism[OF subspace_substandard[of "dim s"] assms]
-    using dim_substandard[OF  dim_subset_univ[of s]] by auto
+    using subspace_isomorphism[OF subspace_substandard[of "\<lambda>i. i \<notin> d"] assms]
+    using dim_substandard[of d] and t by auto
   have "\<forall>x\<in>?t. f x = 0 \<longrightarrow> x = 0" using linear_0[OF f(1)] using f(3)[unfolded inj_on_def]
     by(erule_tac x=0 in ballE) auto
-  moreover have "closed ?t" using closed_substandard by auto
-  moreover have "subspace ?t" using subspace_substandard by auto
+  moreover have "closed ?t" using closed_substandard .
+  moreover have "subspace ?t" using subspace_substandard .
   ultimately show ?thesis using closed_injective_image_subspace[of ?t f]
     unfolding f(2) using f(1) by auto
 qed
@@ -5400,13 +5393,14 @@ lemma vector_eq_affinity:
   by metis
 
 lemma image_affinity_interval: fixes m::real
+  fixes a b c :: "real^'n::finite"
   shows "(\<lambda>x. m *s x + c) ` {a .. b} =
             (if {a .. b} = {} then {}
             else (if 0 \<le> m then {m *s a + c .. m *s b + c}
             else {m *s b + c .. m *s a + c}))"
 proof(cases "m=0")
   { fix x assume "x \<le> c" "c \<le> x"
-    hence "x=c" unfolding vector_less_eq_def and Cart_eq by(auto elim!: ballE)  }
+    hence "x=c" unfolding vector_less_eq_def and Cart_eq by (auto intro: order_antisym) }
   moreover case True
   moreover have "c \<in> {m *s a + c..m *s b + c}" unfolding True by(auto simp add: vector_less_eq_def)
   ultimately show ?thesis by auto
@@ -5425,14 +5419,14 @@ next
       unfolding image_iff Bex_def mem_interval vector_less_eq_def
       apply(auto simp add: vector_smult_component vector_add_component vector_minus_component vector_smult_assoc pth_3[symmetric]
 	intro!: exI[where x="(1 / m) *s (y - c)"])
-      by(auto elim!: ballE simp add: pos_le_divide_eq pos_divide_le_eq real_mult_commute)
+      by(auto simp add: pos_le_divide_eq pos_divide_le_eq real_mult_commute diff_le_iff)
   } moreover
   { fix y assume "m *s b + c \<le> y" "y \<le> m *s a + c" "m < 0"
     hence "y \<in> (\<lambda>x. m *s x + c) ` {a..b}"
       unfolding image_iff Bex_def mem_interval vector_less_eq_def
       apply(auto simp add: vector_smult_component vector_add_component vector_minus_component vector_smult_assoc pth_3[symmetric]
 	intro!: exI[where x="(1 / m) *s (y - c)"])
-      by(auto elim!: ballE simp add: neg_le_divide_eq neg_divide_le_eq real_mult_commute)
+      by(auto simp add: neg_le_divide_eq neg_divide_le_eq real_mult_commute diff_le_iff)
   }
   ultimately show ?thesis using False by auto
 qed
@@ -5569,7 +5563,7 @@ subsection{* Edelstein fixed point theorem.                                     
 lemma edelstein_fix:
   assumes s:"compact s" "s \<noteq> {}" and gs:"(g ` s) \<subseteq> s"
       and dist:"\<forall>x\<in>s. \<forall>y\<in>s. x \<noteq> y \<longrightarrow> dist (g x) (g y) < dist x y"
-  shows "\<exists>! x::real^'a\<in>s. g x = x"
+  shows "\<exists>! x::real^'a::finite\<in>s. g x = x"
 proof(cases "\<exists>x\<in>s. g x \<noteq> x")
   obtain x where "x\<in>s" using s(2) by auto
   case False hence g:"\<forall>x\<in>s. g x = x" by auto
@@ -5637,7 +5631,7 @@ next
     { assume as:"dist a b > dist (f n x) (f n y)"
       then obtain Na Nb where "\<forall>m\<ge>Na. dist (f (r m) x) a < (dist a b - dist (f n x) (f n y)) / 2"
 	and "\<forall>m\<ge>Nb. dist (f (r m) y) b < (dist a b - dist (f n x) (f n y)) / 2"
-	using lima limb unfolding h_def Lim_sequentially by (fastsimp simp del: Arith_Tools.less_divide_eq_number_of1)
+	using lima limb unfolding h_def Lim_sequentially by (fastsimp simp del: less_divide_eq_number_of1)
       hence "dist (f (r (Na + Nb + n)) x - f (r (Na + Nb + n)) y) (a - b) < dist a b - dist (f n x) (f n y)"
 	apply(erule_tac x="Na+Nb+n" in allE)
 	apply(erule_tac x="Na+Nb+n" in allE) apply simp

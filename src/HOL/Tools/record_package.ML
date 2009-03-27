@@ -1782,7 +1782,8 @@ fun record_definition (args, bname) parent (parents: parent_info list) raw_field
     val alphas_fields = List.foldr OldTerm.add_typ_tfree_names [] types;
     val alphas_ext = alphas inter alphas_fields;
     val len = length fields;
-    val variants = Name.variant_list (moreN::rN::rN ^ "'"::wN::parent_variants) (map fst bfields);
+    val variants =
+      Name.variant_list (moreN :: rN :: (rN ^ "'") :: wN :: parent_variants) (map fst bfields);
     val vars = ListPair.map Free (variants, types);
     val named_vars = names ~~ vars;
     val idxs = 0 upto (len - 1);

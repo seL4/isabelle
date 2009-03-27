@@ -13,13 +13,18 @@ sig
   val stopper: token Scan.stopper
   val is_regular: token -> bool
   val is_improper: token -> bool
-  val pos_of: token -> string
+  val set_range: Position.range -> token -> token
+  val pos_of: token -> Position.T
   val kind_of: token -> token_kind
   val content_of: token -> string
+  val text_of: token -> string
+  val report_token: token -> unit
   val keywords: string list
   val source: (Symbol.symbol, 'a) Source.source ->
-    (token, (SymbolPos.T, Position.T * (Symbol.symbol, 'a) Source.source)
+    (token, (Symbol_Pos.T, Position.T * (Symbol.symbol, 'a) Source.source)
       Source.source) Source.source
+  val tokenize: string -> token list
+  val read_antiq: Symbol_Pos.T list * Position.T -> token Antiquote.antiquote list
 end;
 
 structure ML_Lex: ML_LEX =
@@ -38,10 +43,10 @@ datatype token = Token of Position.range * (token_kind * string);
 
 (* position *)
 
-fun position_of (Token ((pos, _), _)) = pos;
-fun end_position_of (Token ((_, pos), _)) = pos;
+fun set_range range (Token (_, x)) = Token (range, x);
 
-val pos_of = Position.str_of o position_of;
+fun pos_of (Token ((pos, _), _)) = pos;
+fun end_pos_of (Token ((_, pos), _)) = pos;
 
 
 (* control tokens *)
@@ -53,7 +58,7 @@ fun is_eof (Token (_, (EOF, _))) = true
   | is_eof _ = false;
 
 val stopper =
-  Scan.stopper (fn [] => eof | toks => mk_eof (end_position_of (List.last toks))) is_eof;
+  Scan.stopper (fn [] => eof | toks => mk_eof (end_pos_of (List.last toks))) is_eof;
 
 
 (* token content *)
@@ -62,6 +67,11 @@ fun content_of (Token (_, (_, x))) = x;
 fun token_leq (tok, tok') = content_of tok <= content_of tok';
 
 fun kind_of (Token (_, (k, _))) = k;
+
+fun text_of tok =
+  (case kind_of tok of
+    Error msg => error msg
+  | _ => Symbol.escape (content_of tok));
 
 fun is_regular (Token (_, (Error _, _))) = false
   | is_regular (Token (_, (EOF, _))) = false
@@ -72,12 +82,33 @@ fun is_improper (Token (_, (Space, _))) = true
   | is_improper _ = false;
 
 
+(* markup *)
+
+val token_kind_markup =
+ fn Keyword   => Markup.ML_keyword
+  | Ident     => Markup.ML_ident
+  | LongIdent => Markup.ML_ident
+  | TypeVar   => Markup.ML_tvar
+  | Word      => Markup.ML_numeral
+  | Int       => Markup.ML_numeral
+  | Real      => Markup.ML_numeral
+  | Char      => Markup.ML_char
+  | String    => Markup.ML_string
+  | Space     => Markup.none
+  | Comment   => Markup.ML_comment
+  | Error _   => Markup.ML_malformed
+  | EOF       => Markup.none;
+
+fun report_token (Token ((pos, _), (kind, _))) =
+  Position.report (token_kind_markup kind) pos;
+
+
 
 (** scanners **)
 
-open BasicSymbolPos;
+open Basic_Symbol_Pos;
 
-fun !!! msg = SymbolPos.!!! ("SML lexical error: " ^ msg);
+fun !!! msg = Symbol_Pos.!!! ("SML lexical error: " ^ msg);
 
 
 (* blanks *)
@@ -161,7 +192,8 @@ val scan_escape =
     Scan.one (Symbol.is_ascii_digit o symbol) >> (fn ((a, b), c) => [a, b, c]);
 
 val scan_str =
-  Scan.one (fn (s, _) => Symbol.is_printable s andalso s <> "\"" andalso s <> "\\") >> single ||
+  Scan.one (fn (s, _) => Symbol.is_regular s andalso s <> "\"" andalso s <> "\\" andalso
+    (not (Symbol.is_char s) orelse Symbol.is_printable s)) >> single ||
   $$$ "\\" @@@ !!! "bad escape character in string" scan_escape;
 
 val scan_gap = $$$ "\\" @@@ scan_blanks1 @@@ $$$ "\\";
@@ -179,17 +211,17 @@ val scan_string =
 end;
 
 
-(* token source *)
+(* scan tokens *)
 
 local
 
-fun token k ss = Token (SymbolPos.range ss, (k, SymbolPos.implode ss));
+fun token k ss = Token (Symbol_Pos.range ss, (k, Symbol_Pos.content ss));
 
-val scan = !!! "bad input"
+val scan_ml =
  (scan_char >> token Char ||
   scan_string >> token String ||
   scan_blanks1 >> token Space ||
-  SymbolPos.scan_comment !!! >> token Comment ||
+  Symbol_Pos.scan_comment !!! >> token Comment ||
   Scan.max token_leq
    (scan_keyword >> token Keyword)
    (scan_word >> token Word ||
@@ -199,6 +231,8 @@ val scan = !!! "bad input"
     scan_ident >> token Ident ||
     scan_typevar >> token TypeVar));
 
+val scan_antiq = Antiquote.scan || scan_ml >> Antiquote.Text;
+
 fun recover msg =
   Scan.many (((not o Symbol.is_blank) andf Symbol.is_regular) o symbol)
   >> (fn cs => [token (Error msg) cs]);
@@ -206,8 +240,21 @@ fun recover msg =
 in
 
 fun source src =
-  SymbolPos.source (Position.line 1) src
-  |> Source.source SymbolPos.stopper (Scan.bulk scan) (SOME (false, recover));
+  Symbol_Pos.source (Position.line 1) src
+  |> Source.source Symbol_Pos.stopper (Scan.bulk (!!! "bad input" scan_ml)) (SOME (false, recover));
+
+val tokenize = Source.of_string #> source #> Source.exhaust;
+
+fun read_antiq (syms, pos) =
+  (Source.of_list syms
+    |> Source.source Symbol_Pos.stopper (Scan.bulk (!!! "bad input" scan_antiq))
+      (SOME (false, fn msg => recover msg >> map Antiquote.Text))
+    |> Source.exhaust
+    |> tap (List.app (Antiquote.report report_token))
+    |> tap Antiquote.check_nesting
+    |> tap (List.app (fn Antiquote.Text tok => ignore (text_of tok) | _ => ())))
+  handle ERROR msg =>
+    cat_error msg ("The error(s) above occurred in ML source" ^ Position.str_of pos);
 
 end;
 

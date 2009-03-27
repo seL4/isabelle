@@ -1,12 +1,11 @@
 (*  Title:      HOL/Library/Ramsey.thy
-    ID:         $Id$
     Author:     Tom Ridge. Converted to structured Isar by L C Paulson
 *)
 
 header "Ramsey's Theorem"
 
 theory Ramsey
-imports Plain "~~/src/HOL/Presburger" Infinite_Set
+imports Main Infinite_Set
 begin
 
 subsection {* Preliminaries *}

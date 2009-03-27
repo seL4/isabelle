@@ -117,8 +117,6 @@ val split_inside_tac = Splitter.split_inside_tac;
 val split_asm_tac    = Splitter.split_asm_tac;
 val op addsplits     = Splitter.addsplits;
 val op delsplits     = Splitter.delsplits;
-val Addsplits        = Splitter.Addsplits;
-val Delsplits        = Splitter.Delsplits;
 
 
 (*** Standard simpsets ***)

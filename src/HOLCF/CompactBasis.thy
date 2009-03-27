@@ -46,7 +46,7 @@ by (simp add: Abs_compact_basis_inverse)
 
 lemmas approx_Rep_compact_basis = Rep_compact_take [symmetric]
 
-interpretation compact_basis!:
+interpretation compact_basis:
   basis_take sq_le compact_take
 proof
   fix n :: nat and a :: "'a compact_basis"
@@ -92,7 +92,7 @@ definition
   approximants :: "'a \<Rightarrow> 'a compact_basis set" where
   "approximants = (\<lambda>x. {a. Rep_compact_basis a \<sqsubseteq> x})"
 
-interpretation compact_basis!:
+interpretation compact_basis:
   ideal_completion sq_le compact_take Rep_compact_basis approximants
 proof
   fix w :: 'a

@@ -243,8 +243,8 @@ let
 		     insert (op =) (eq |> prop_of |> HOLogic.dest_Trueprop 
 			 |> HOLogic.dest_eq |> fst |> strip_comb 
 			 |> fst)) raw_eqs []
-  val tys = fold_rev (fn f => fn ts => (f |> fastype_of |> binder_types |> tl) 
-				    union ts) fs []
+  val tys = fold_rev (fn f => fold (insert (op =)) (f |> fastype_of |> binder_types |> tl) 
+				    ) fs []
   val _ = bds := AList.make (fn _ => ([],[])) tys
   val (vs, ctxt') = Variable.variant_fixes (replicate (length tys) "vs") ctxt
   val thy = ProofContext.theory_of ctxt'

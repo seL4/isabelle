@@ -1,5 +1,4 @@
 (*  Title:      HOL/Auth/Public
-    ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1996  University of Cambridge
 
@@ -153,15 +152,15 @@ lemma insert_Key_image: "insert (Key K) (Key`KK Un C) = Key ` (insert K KK) Un C
 
 (*Tactic for possibility theorems*)
 ML {*
-fun possibility_tac st = st |>
+fun possibility_tac ctxt =
     REPEAT (*omit used_Says so that Nonces start from different traces!*)
-    (ALLGOALS (simp_tac (@{simpset} delsimps [used_Says]))
+    (ALLGOALS (simp_tac (local_simpset_of ctxt delsimps [used_Says]))
      THEN
      REPEAT_FIRST (eq_assume_tac ORELSE' 
                    resolve_tac [refl, conjI, @{thm Nonce_supply}]));
 *}
 
-method_setup possibility = {* Scan.succeed (K (SIMPLE_METHOD possibility_tac)) *}
+method_setup possibility = {* Scan.succeed (SIMPLE_METHOD o possibility_tac) *}
     "for proving possibility theorems"
 
 end

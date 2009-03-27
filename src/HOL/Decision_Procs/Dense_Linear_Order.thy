@@ -6,7 +6,7 @@ header {* Dense linear order without endpoints
   and a quantifier elimination procedure in Ferrante and Rackoff style *}
 
 theory Dense_Linear_Order
-imports Plain Groebner_Basis Main
+imports Main
 uses
   "~~/src/HOL/Tools/Qelim/langford_data.ML"
   "~~/src/HOL/Tools/Qelim/ferrante_rackoff_data.ML"
@@ -299,7 +299,7 @@ method_setup dlo = {*
 *} "Langford's algorithm for quantifier elimination in dense linear orders"
 
 
-section {* Contructive dense linear orders yield QE for linear arithmetic over ordered Fields -- see @{text "Arith_Tools.thy"} *}
+section {* Contructive dense linear orders yield QE for linear arithmetic over ordered Fields *}
 
 text {* Linear order without upper bounds *}
 
@@ -637,7 +637,7 @@ lemma sum_eq:"((x::'a::pordered_ab_group_add) + t = 0) == (x = - t)"
   using eq_diff_eq[where a= x and b=t and c=0] by simp
 
 
-interpretation class_ordered_field_dense_linear_order!: constr_dense_linear_order
+interpretation class_ordered_field_dense_linear_order: constr_dense_linear_order
  "op <=" "op <"
    "\<lambda> x y. 1/2 * ((x::'a::{ordered_field,recpower,number_ring}) + y)"
 proof (unfold_locales, dlo, dlo, auto)

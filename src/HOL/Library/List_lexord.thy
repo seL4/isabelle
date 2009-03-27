@@ -1,12 +1,11 @@
 (*  Title:      HOL/Library/List_lexord.thy
-    ID:         $Id$
     Author:     Norbert Voelker
 *)
 
 header {* Lexicographic order on lists *}
 
 theory List_lexord
-imports Plain "~~/src/HOL/List"
+imports List Main
 begin
 
 instantiation list :: (ord) ord

@@ -89,7 +89,7 @@ lemma fns4:
 
 end
 
-interpretation nat_int!: type_definition int nat "Collect (op <= 0)"
+interpretation nat_int: type_definition int nat "Collect (op <= 0)"
   by (rule td_nat_int)
 
 declare

@@ -1,5 +1,4 @@
 (*  Title:      HOLCF/IOA/TrivEx.thy
-    ID:         $Id$
     Author:     Olaf Müller
 *)
 
@@ -85,7 +84,7 @@ apply auto
 txt {* is_abstraction *}
 apply (rule h_abs_is_abstraction)
 txt {* temp_weakening *}
-apply (tactic "abstraction_tac 1")
+apply abstraction
 apply (erule Enabled_implication)
 done
 
@@ -96,7 +95,7 @@ apply (unfold C_live_ioa_def)
 apply (rule AbsRuleT2)
 apply (rule h_abs_is_liveabstraction)
 apply (rule MC_result)
-apply (tactic "abstraction_tac 1")
+apply abstraction
 apply (simp add: h_abs_def)
 done
 

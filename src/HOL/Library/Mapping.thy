@@ -5,7 +5,7 @@
 header {* An abstract view on maps for code generation. *}
 
 theory Mapping
-imports Map
+imports Map Main
 begin
 
 subsection {* Type definition and primitive operations *}

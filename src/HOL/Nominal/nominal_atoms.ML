@@ -106,8 +106,8 @@ fun create_nom_typedecls ak_names thy =
               val ak_type = Type (Sign.intern_type thy1 ak,[])
               val ak_sign = Sign.intern_const thy1 ak 
               
-              val inj_type = @{typ nat}-->ak_type
-              val inj_on_type = inj_type-->(@{typ "nat set"})-->@{typ bool}  
+              val inj_type = @{typ nat} --> ak_type
+              val inj_on_type = inj_type --> @{typ "nat set"} --> @{typ bool}
 
               (* first statement *)
               val stmnt1 = HOLogic.mk_Trueprop 

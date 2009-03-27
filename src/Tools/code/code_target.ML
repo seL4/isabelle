@@ -82,11 +82,9 @@ fun mk_serialization target (SOME comp) _ _ code Compile = (comp code; NONE)
 
 (** theory data **)
 
-structure StringPairTab = Code_Name.StringPairTab;
-
 datatype name_syntax_table = NameSyntaxTable of {
   class: string Symtab.table,
-  instance: unit StringPairTab.table,
+  instance: unit Symreltab.table,
   tyco: tyco_syntax Symtab.table,
   const: const_syntax Symtab.table
 };
@@ -99,7 +97,7 @@ fun merge_name_syntax_table (NameSyntaxTable { class = class1, instance = instan
     NameSyntaxTable { class = class2, instance = instance2, tyco = tyco2, const = const2 }) =
   mk_name_syntax_table (
     (Symtab.join (K snd) (class1, class2),
-       StringPairTab.join (K snd) (instance1, instance2)),
+       Symreltab.join (K snd) (instance1, instance2)),
     (Symtab.join (K snd) (tyco1, tyco2),
        Symtab.join (K snd) (const1, const2))
   );
@@ -194,7 +192,7 @@ fun put_target (target, seri) thy =
     thy
     |> (CodeTargetData.map o apfst oo Symtab.map_default)
           (target, mk_target ((serial (), seri), (([], Symtab.empty),
-            (mk_name_syntax_table ((Symtab.empty, StringPairTab.empty), (Symtab.empty, Symtab.empty)),
+            (mk_name_syntax_table ((Symtab.empty, Symreltab.empty), (Symtab.empty, Symtab.empty)),
               Symtab.empty))))
           ((map_target o apfst o apsnd o K) seri)
   end;
@@ -262,11 +260,11 @@ fun gen_add_syntax_inst prep_class prep_tyco target (raw_tyco, raw_class) add_de
   in if add_del then
     thy
     |> (map_name_syntax target o apfst o apsnd)
-        (StringPairTab.update (inst, ()))
+        (Symreltab.update (inst, ()))
   else
     thy
     |> (map_name_syntax target o apfst o apsnd)
-        (StringPairTab.delete_safe inst)
+        (Symreltab.delete_safe inst)
   end;
 
 fun gen_add_syntax_tyco prep_tyco target raw_tyco raw_syn thy =
@@ -407,7 +405,7 @@ fun invoke_serializer thy abortable serializer reserved abs_includes
       |>> map_filter I;
     val (names_class, class') = distill_names Code_Thingol.lookup_class class;
     val names_inst = map_filter (Code_Thingol.lookup_instance naming)
-      (StringPairTab.keys instance);
+      (Symreltab.keys instance);
     val (names_tyco, tyco') = distill_names Code_Thingol.lookup_tyco tyco;
     val (names_const, const') = distill_names Code_Thingol.lookup_const const;
     val names_hidden = names_class @ names_inst @ names_tyco @ names_const;

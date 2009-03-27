@@ -144,6 +144,7 @@ sig
   val freezeT: thm -> thm
   val future: thm future -> cterm -> thm
   val pending_groups: thm -> Task_Queue.group list -> Task_Queue.group list
+  val status_of: thm -> {oracle: bool, unfinished: bool, failed: bool}
   val proof_body_of: thm -> proof_body
   val proof_of: thm -> proof
   val join_proof: thm -> unit
@@ -1635,20 +1636,33 @@ fun future future_thm ct =
   end;
 
 
-(* pending task groups *)
+(* derivation status *)
+
+fun raw_proof_body_of (Thm (Deriv {body, ...}, _)) = body;
+val raw_proof_of = Proofterm.proof_of o raw_proof_body_of;
 
 fun pending_groups (Thm (Deriv {open_promises, ...}, _)) =
   fold (insert Task_Queue.eq_group o Future.group_of o #2) open_promises;
 
+fun status_of (Thm (Deriv {promises, body, ...}, _)) =
+  let
+    val ps = map (Future.peek o snd) promises;
+    val bodies = body ::
+      map_filter (fn SOME (Exn.Result th) => SOME (raw_proof_body_of th) | _ => NONE) ps;
+    val {oracle, unfinished, failed} = Pt.status_of bodies;
+  in
+   {oracle = oracle,
+    unfinished = unfinished orelse exists is_none ps,
+    failed = failed orelse exists (fn SOME (Exn.Exn _) => true | _ => false) ps}
+  end;
+
 
 (* fulfilled proofs *)
-
-fun raw_proof_of (Thm (Deriv {body, ...}, _)) = Proofterm.proof_of body;
 
 fun proof_body_of (Thm (Deriv {open_promises, promises, body, ...}, {thy_ref, ...})) =
   let
     val _ = Exn.release_all (map (Future.join_result o #2) (rev open_promises));
-    val ps = map (apsnd (raw_proof_of o Future.join)) promises;
+    val ps = map (apsnd (raw_proof_body_of o Future.join)) promises;
   in Pt.fulfill_proof (Theory.deref thy_ref) ps body end;
 
 val proof_of = Proofterm.proof_of o proof_body_of;
@@ -1666,7 +1680,7 @@ fun put_name name (thm as Thm (der, args)) =
     val {thy_ref, hyps, prop, tpairs, ...} = args;
     val _ = null tpairs orelse raise THM ("put_name: unsolved flex-flex constraints", 0, [thm]);
 
-    val ps = map (apsnd (Future.map proof_of)) promises;
+    val ps = map (apsnd (Future.map proof_body_of)) promises;
     val thy = Theory.deref thy_ref;
     val (pthm, proof) = Pt.thm_proof thy name hyps prop ps body;
 
@@ -1687,8 +1701,8 @@ fun invoke_oracle thy_ref1 name oracle arg =
     if T <> propT then
       raise THM ("Oracle's result must have type prop: " ^ name, 0, [])
     else
-      let val prf = Pt.oracle_proof name prop in
-        Thm (make_deriv ~1 [] [] (Pt.make_oracles prf) [] prf,
+      let val (ora, prf) = Pt.oracle_proof name prop in
+        Thm (make_deriv ~1 [] [] [ora] [] prf,
          {thy_ref = Theory.merge_refs (thy_ref1, thy_ref2),
           tags = [],
           maxidx = maxidx,

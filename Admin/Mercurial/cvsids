@@ -1,6 +1,6 @@
 Identifiers of some old CVS file versions
 =========================================
 
-src/Pure/type.ML            1.65    0d984ee030a1
 src/Pure/General/file.ML    1.18    6cdd6a8da9b9
-
+src/Pure/thm.ML             1.189   4b339d3907a0  (referenced in 25f28f9c28a3 as "2005-01-24 (revision 1.44)")
+src/Pure/type.ML            1.65    0d984ee030a1

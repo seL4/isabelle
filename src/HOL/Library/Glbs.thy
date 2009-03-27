@@ -1,8 +1,6 @@
-(* Title:      Glbs
-   Author:     Amine Chaieb, University of Cambridge
-*)
+(* Author: Amine Chaieb, University of Cambridge *)
 
-header{*Definitions of Lower Bounds and Greatest Lower Bounds, analogous to Lubs*}
+header {* Definitions of Lower Bounds and Greatest Lower Bounds, analogous to Lubs *}
 
 theory Glbs
 imports Lubs

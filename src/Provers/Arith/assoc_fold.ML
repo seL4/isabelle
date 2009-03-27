@@ -12,6 +12,7 @@ signature ASSOC_FOLD_DATA =
 sig
   val assoc_ss: simpset
   val eq_reflection: thm
+  val is_numeral: term -> bool
 end;
 
 signature ASSOC_FOLD =
@@ -29,10 +30,9 @@ fun mk_sum plus []  = raise Assoc_fail
 
 (*Separate the literals from the other terms being combined*)
 fun sift_terms plus (t, (lits,others)) =
+  if Data.is_numeral t then (t::lits, others) (*new literal*) else
   (case t of
-    Const (@{const_name Int.number_of}, _) $ _ =>       (* FIXME logic dependent *)
-      (t::lits, others)         (*new literal*)
-  | (f as Const _) $ x $ y =>
+    (f as Const _) $ x $ y =>
       if f = plus
       then sift_terms plus (x, sift_terms plus (y, (lits,others)))
       else (lits, t::others)    (*arbitrary summand*)

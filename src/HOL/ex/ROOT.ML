@@ -21,7 +21,6 @@ no_document use_thys [
 
 use_thys [
   "Numeral",
-  "ImperativeQuicksort",
   "Higher_Order_Logic",
   "Abstract_NAT",
   "Guess",
@@ -57,7 +56,6 @@ use_thys [
   "Classical",
   "set",
   "Meson_Test",
-  "Code_Antiq",
   "Termination",
   "Coherent",
   "PresburgerEx",

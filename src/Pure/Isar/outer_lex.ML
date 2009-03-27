@@ -35,7 +35,7 @@ sig
   val is_blank: token -> bool
   val is_newline: token -> bool
   val source_of: token -> string
-  val source_position_of: token -> SymbolPos.text * Position.T
+  val source_position_of: token -> Symbol_Pos.text * Position.T
   val content_of: token -> string
   val unparse: token -> string
   val text_of: token -> string * string
@@ -50,14 +50,15 @@ sig
   val assign: value option -> token -> unit
   val closure: token -> token
   val ident_or_symbolic: string -> bool
-  val !!! : string -> (SymbolPos.T list -> 'a) -> SymbolPos.T list -> 'a
-  val scan_quoted: SymbolPos.T list -> SymbolPos.T list * SymbolPos.T list
+  val !!! : string -> (Symbol_Pos.T list -> 'a) -> Symbol_Pos.T list -> 'a
   val source_proper: (token, 'a) Source.source -> (token, (token, 'a) Source.source) Source.source
   val source': {do_recover: bool Option.option} -> (unit -> Scan.lexicon * Scan.lexicon) ->
-    (SymbolPos.T, 'a) Source.source -> (token, (SymbolPos.T, 'a) Source.source) Source.source
+    (Symbol_Pos.T, 'a) Source.source -> (token, (Symbol_Pos.T, 'a) Source.source) Source.source
   val source: {do_recover: bool Option.option} -> (unit -> Scan.lexicon * Scan.lexicon) ->
     Position.T -> (Symbol.symbol, 'a) Source.source -> (token,
-      (SymbolPos.T, Position.T * (Symbol.symbol, 'a) Source.source) Source.source) Source.source
+      (Symbol_Pos.T, Position.T * (Symbol.symbol, 'a) Source.source) Source.source) Source.source
+  val read_antiq: Scan.lexicon -> (token list -> 'a * token list) ->
+    Symbol_Pos.T list * Position.T -> 'a
 end;
 
 structure OuterLex: OUTER_LEX =
@@ -92,7 +93,7 @@ datatype token_kind =
   Nat | String | AltString | Verbatim | Space | Comment | InternalValue |
   Malformed | Error of string | Sync | EOF;
 
-datatype token = Token of (SymbolPos.text * Position.range) * (token_kind * string) * slot;
+datatype token = Token of (Symbol_Pos.text * Position.range) * (token_kind * string) * slot;
 
 val str_of_kind =
  fn Command => "command"
@@ -259,11 +260,9 @@ fun closure (Token (x, y, Assignable (ref v))) = Token (x, y, Value v)
 
 (** scanners **)
 
-open BasicSymbolPos;
+open Basic_Symbol_Pos;
 
-fun !!! msg = SymbolPos.!!! ("Outer lexical error: " ^ msg);
-
-fun change_prompt scan = Scan.prompt "# " scan;
+fun !!! msg = Symbol_Pos.!!! ("Outer lexical error: " ^ msg);
 
 
 (* scan symbolic idents *)
@@ -286,36 +285,6 @@ fun ident_or_symbolic "begin" = false
   | ident_or_symbolic s = Syntax.is_identifier s orelse is_symid s;
 
 
-(* scan strings *)
-
-local
-
-val char_code =
-  Scan.one (Symbol.is_ascii_digit o symbol) --
-  Scan.one (Symbol.is_ascii_digit o symbol) --
-  Scan.one (Symbol.is_ascii_digit o symbol) :|--
-  (fn (((a, pos), (b, _)), (c, _)) =>
-    let val (n, _) = Library.read_int [a, b, c]
-    in if n <= 255 then Scan.succeed [(chr n, pos)] else Scan.fail end);
-
-fun scan_str q =
-  $$$ "\\" |-- !!! "bad escape character in string" ($$$ q || $$$ "\\" || char_code) ||
-  Scan.one (fn (s, _) => s <> q andalso s <> "\\" andalso Symbol.is_regular s) >> single;
-
-fun scan_strs q =
-  (SymbolPos.scan_pos --| $$$ q) -- !!! "missing quote at end of string"
-    (change_prompt ((Scan.repeat (scan_str q) >> flat) -- ($$$ q |-- SymbolPos.scan_pos)));
-
-in
-
-val scan_string = scan_strs "\"";
-val scan_alt_string = scan_strs "`";
-
-val scan_quoted = Scan.trace (scan_string || scan_alt_string) >> #2;
-
-end;
-
-
 (* scan verbatim text *)
 
 val scan_verb =
@@ -323,8 +292,9 @@ val scan_verb =
   Scan.one (fn (s, _) => s <> "*" andalso Symbol.is_regular s) >> single;
 
 val scan_verbatim =
-  (SymbolPos.scan_pos --| $$$ "{" --| $$$ "*") -- !!! "missing end of verbatim text"
-    (change_prompt ((Scan.repeat scan_verb >> flat) -- ($$$ "*" |-- $$$ "}" |-- SymbolPos.scan_pos)));
+  (Symbol_Pos.scan_pos --| $$$ "{" --| $$$ "*") -- !!! "missing end of verbatim text"
+    (Symbol_Pos.change_prompt
+      ((Scan.repeat scan_verb >> flat) -- ($$$ "*" |-- $$$ "}" |-- Symbol_Pos.scan_pos)));
 
 
 (* scan space *)
@@ -339,14 +309,14 @@ val scan_space =
 (* scan comment *)
 
 val scan_comment =
-  SymbolPos.scan_pos -- (SymbolPos.scan_comment_body !!! -- SymbolPos.scan_pos);
+  Symbol_Pos.scan_pos -- (Symbol_Pos.scan_comment_body !!! -- Symbol_Pos.scan_pos);
 
 
 (* scan malformed symbols *)
 
 val scan_malformed =
   $$$ Symbol.malformed |--
-    change_prompt (Scan.many (Symbol.is_regular o symbol))
+    Symbol_Pos.change_prompt (Scan.many (Symbol.is_regular o symbol))
   --| Scan.option ($$$ Symbol.end_malformed);
 
 
@@ -360,14 +330,14 @@ local
 fun token_leq ((_, syms1), (_, syms2)) = length syms1 <= length syms2;
 
 fun token k ss =
-  Token ((SymbolPos.implode ss, SymbolPos.range ss), (k, SymbolPos.untabify_content ss), Slot);
+  Token ((Symbol_Pos.implode ss, Symbol_Pos.range ss), (k, Symbol_Pos.untabify_content ss), Slot);
 
 fun token_range k (pos1, (ss, pos2)) =
-  Token (SymbolPos.implode_range pos1 pos2 ss, (k, SymbolPos.untabify_content ss), Slot);
+  Token (Symbol_Pos.implode_range pos1 pos2 ss, (k, Symbol_Pos.untabify_content ss), Slot);
 
 fun scan (lex1, lex2) = !!! "bad input"
-  (scan_string >> token_range String ||
-    scan_alt_string >> token_range AltString ||
+  (Symbol_Pos.scan_string >> token_range String ||
+    Symbol_Pos.scan_alt_string >> token_range AltString ||
     scan_verbatim >> token_range Verbatim ||
     scan_comment >> token_range Comment ||
     scan_space >> token Space ||
@@ -392,13 +362,29 @@ fun recover msg =
 in
 
 fun source' {do_recover} get_lex =
-  Source.source SymbolPos.stopper (Scan.bulk (fn xs => scan (get_lex ()) xs))
+  Source.source Symbol_Pos.stopper (Scan.bulk (fn xs => scan (get_lex ()) xs))
     (Option.map (rpair recover) do_recover);
 
 fun source do_recover get_lex pos src =
-  SymbolPos.source pos src
+  Symbol_Pos.source pos src
   |> source' do_recover get_lex;
 
 end;
+
+
+(* read_antiq *)
+
+fun read_antiq lex scan (syms, pos) =
+  let
+    fun err msg = cat_error msg ("Malformed antiquotation" ^ Position.str_of pos ^ ":\n" ^
+      "@{" ^ Symbol_Pos.content syms ^ "}");
+
+    val res =
+      Source.of_list syms
+      |> source' {do_recover = NONE} (K (lex, Scan.empty_lexicon))
+      |> source_proper
+      |> Source.source stopper (Scan.error (Scan.bulk scan)) NONE
+      |> Source.exhaust;
+  in (case res of [x] => x | _ => err "") handle ERROR msg => err msg end;
 
 end;

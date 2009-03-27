@@ -36,7 +36,9 @@ sig
   val theory_result: (theory -> 'a * theory) -> Proof.context -> 'a * Proof.context
   val extern_fact: Proof.context -> string -> xstring
   val pretty_term_abbrev: Proof.context -> term -> Pretty.T
-  val pretty_thm_legacy: thm -> Pretty.T
+  val pretty_thm_aux: Proof.context -> bool -> thm -> Pretty.T
+  val pretty_thms_aux: Proof.context -> bool -> thm list -> Pretty.T
+  val pretty_fact_aux: Proof.context -> bool -> string * thm list -> Pretty.T
   val pretty_thm: Proof.context -> thm -> Pretty.T
   val pretty_thms: Proof.context -> thm list -> Pretty.T
   val pretty_fact: Proof.context -> string * thm list -> Pretty.T
@@ -296,25 +298,28 @@ fun extern_fact ctxt name =
 
 fun pretty_term_abbrev ctxt = Syntax.pretty_term (set_mode mode_abbrev ctxt);
 
-fun pretty_thm_legacy th =
-  let val thy = Thm.theory_of_thm th
-  in Display.pretty_thm_aux (Syntax.pp_global thy) true false [] th end;
+fun pretty_thm_aux ctxt show_status th =
+  let
+    val flags = {quote = false, show_hyps = true, show_status = show_status};
+    val asms = map Thm.term_of (Assumption.all_assms_of ctxt);
+  in Display.pretty_thm_aux (Syntax.pp ctxt) flags asms th end;
 
-fun pretty_thm ctxt th =
-  let val asms = map Thm.term_of (Assumption.all_assms_of ctxt)
-  in Display.pretty_thm_aux (Syntax.pp ctxt) false true asms th end;
-
-fun pretty_thms ctxt [th] = pretty_thm ctxt th
-  | pretty_thms ctxt ths = Pretty.blk (0, Pretty.fbreaks (map (pretty_thm ctxt) ths));
+fun pretty_thms_aux ctxt flag [th] = pretty_thm_aux ctxt flag th
+  | pretty_thms_aux ctxt flag ths =
+      Pretty.blk (0, Pretty.fbreaks (map (pretty_thm_aux ctxt flag) ths));
 
 fun pretty_fact_name ctxt a = Pretty.block
   [Pretty.markup (Markup.fact a) [Pretty.str (extern_fact ctxt a)], Pretty.str ":"];
 
-fun pretty_fact ctxt ("", ths) = pretty_thms ctxt ths
-  | pretty_fact ctxt (a, [th]) = Pretty.block
-      [pretty_fact_name ctxt a, Pretty.brk 1, pretty_thm ctxt th]
-  | pretty_fact ctxt (a, ths) = Pretty.block
-      (Pretty.fbreaks (pretty_fact_name ctxt a :: map (pretty_thm ctxt) ths));
+fun pretty_fact_aux ctxt flag ("", ths) = pretty_thms_aux ctxt flag ths
+  | pretty_fact_aux ctxt flag (a, [th]) = Pretty.block
+      [pretty_fact_name ctxt a, Pretty.brk 1, pretty_thm_aux ctxt flag th]
+  | pretty_fact_aux ctxt flag (a, ths) = Pretty.block
+      (Pretty.fbreaks (pretty_fact_name ctxt a :: map (pretty_thm_aux ctxt flag) ths));
+
+fun pretty_thm ctxt = pretty_thm_aux ctxt true;
+fun pretty_thms ctxt = pretty_thms_aux ctxt true;
+fun pretty_fact ctxt = pretty_fact_aux ctxt true;
 
 val string_of_thm = Pretty.string_of oo pretty_thm;
 
@@ -430,7 +435,7 @@ fun inferred_fixes ctxt =
 
 local
 
-val token_content = Syntax.read_token #>> SymbolPos.content;
+val token_content = Syntax.read_token #>> Symbol_Pos.content;
 
 fun prep_const_proper ctxt (c, pos) =
   let val t as (Const (d, _)) =
@@ -1003,7 +1008,7 @@ local
 fun prep_vars prep_typ internal =
   fold_map (fn (raw_b, raw_T, raw_mx) => fn ctxt =>
     let
-      val raw_x = Binding.name_of raw_b;
+      val raw_x = Name.of_binding raw_b;
       val (x, mx) = Syntax.const_mixfix raw_x raw_mx;
       val _ = Syntax.is_identifier (no_skolem internal x) orelse
         error ("Illegal variable name: " ^ quote x);
@@ -1113,7 +1118,7 @@ fun prep_mixfix (x, T, mx) =
 fun gen_fixes prep raw_vars ctxt =
   let
     val (vars, _) = prep raw_vars ctxt;
-    val (xs', ctxt') = Variable.add_fixes (map (Binding.name_of o #1) vars) ctxt;
+    val (xs', ctxt') = Variable.add_fixes (map (Name.of_binding o #1) vars) ctxt;
     val ctxt'' =
       ctxt'
       |> fold_map declare_var (map2 (fn x' => fn (_, T, mx) => (x', T, mx)) xs' vars)

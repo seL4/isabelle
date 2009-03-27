@@ -19,8 +19,9 @@ sig
   val the_global_context: unit -> theory
   val the_local_context: unit -> Proof.context
   val exec: (unit -> unit) -> Context.generic -> Context.generic
-  val inherit_env: Proof.context -> Proof.context -> Proof.context
-  val name_space: ML_NameSpace.nameSpace
+  val inherit_env: Context.generic -> Context.generic -> Context.generic
+  val name_space: ML_Name_Space.T
+  val local_context: use_context
   val stored_thms: thm list ref
   val ml_store_thm: string * thm -> unit
   val ml_store_thms: string * thm list -> unit
@@ -29,12 +30,12 @@ sig
       (Proof.context -> string * string) * Proof.context
   val add_antiq: string -> (Position.T -> antiq context_parser) -> unit
   val trace: bool ref
-  val eval_wrapper: (string -> unit) * (string -> 'a) -> bool -> Position.T -> string -> unit
-  val eval: bool -> Position.T -> string -> unit
+  val eval_antiquotes: ML_Lex.token Antiquote.antiquote list * Position.T ->
+    Context.generic option -> (ML_Lex.token list * ML_Lex.token list) * Context.generic option
+  val eval: bool -> Position.T -> Symbol_Pos.text -> unit
   val eval_file: Path.T -> unit
-  val eval_in: Proof.context option -> bool -> Position.T -> string -> unit
-  val evaluate: Proof.context -> (string -> unit) * (string -> 'b) -> bool ->
-    string * (unit -> 'a) option ref -> string -> 'a
+  val eval_in: Proof.context option -> bool -> Position.T -> Symbol_Pos.text -> unit
+  val evaluate: Proof.context -> bool -> string * (unit -> 'a) option ref -> string -> 'a
   val expression: Position.T -> string -> string -> string -> Context.generic -> Context.generic
 end
 
@@ -58,12 +59,12 @@ fun exec (e: unit -> unit) context =
 structure ML_Env = GenericDataFun
 (
   type T =
-    ML_NameSpace.valueVal Symtab.table *
-    ML_NameSpace.typeVal Symtab.table *
-    ML_NameSpace.fixityVal Symtab.table *
-    ML_NameSpace.structureVal Symtab.table *
-    ML_NameSpace.signatureVal Symtab.table *
-    ML_NameSpace.functorVal Symtab.table;
+    ML_Name_Space.valueVal Symtab.table *
+    ML_Name_Space.typeVal Symtab.table *
+    ML_Name_Space.fixityVal Symtab.table *
+    ML_Name_Space.structureVal Symtab.table *
+    ML_Name_Space.signatureVal Symtab.table *
+    ML_Name_Space.functorVal Symtab.table;
   val empty = (Symtab.empty, Symtab.empty, Symtab.empty, Symtab.empty, Symtab.empty, Symtab.empty);
   val extend = I;
   fun merge _
@@ -77,25 +78,25 @@ structure ML_Env = GenericDataFun
     Symtab.merge (K true) (functor1, functor2));
 );
 
-val inherit_env = Context.proof_map o ML_Env.put o ML_Env.get o Context.Proof;
+val inherit_env = ML_Env.put o ML_Env.get;
 
-val name_space: ML_NameSpace.nameSpace =
+val name_space: ML_Name_Space.T =
   let
     fun lookup sel1 sel2 name =
       Context.thread_data ()
       |> (fn NONE => NONE | SOME context => Symtab.lookup (sel1 (ML_Env.get context)) name)
-      |> (fn NONE => sel2 ML_NameSpace.global name | some => some);
+      |> (fn NONE => sel2 ML_Name_Space.global name | some => some);
 
     fun all sel1 sel2 () =
       Context.thread_data ()
       |> (fn NONE => [] | SOME context => Symtab.dest (sel1 (ML_Env.get context)))
-      |> append (sel2 ML_NameSpace.global ())
+      |> append (sel2 ML_Name_Space.global ())
       |> sort_distinct (string_ord o pairself #1);
 
     fun enter ap1 sel2 entry =
       if is_some (Context.thread_data ()) then
         Context.>> (ML_Env.map (ap1 (Symtab.update entry)))
-      else sel2 ML_NameSpace.global entry;
+      else sel2 ML_Name_Space.global entry;
   in
    {lookupVal    = lookup #1 #lookupVal,
     lookupType   = lookup #2 #lookupType,
@@ -117,6 +118,13 @@ val name_space: ML_NameSpace.nameSpace =
     allFunct     = all #6 #allFunct}
   end;
 
+val local_context: use_context =
+ {tune_source = ML_Parse.fix_ints,
+  name_space = name_space,
+  str_of_pos = Position.str_of oo Position.line_file,
+  print = writeln,
+  error = error};
+
 
 (* theorem bindings *)
 
@@ -131,7 +139,7 @@ fun ml_store sel (name, ths) =
       else if not (ML_Syntax.is_identifier name) then
         error ("Cannot bind theorem(s) " ^ quote name ^ " as ML value")
       else setmp stored_thms ths' (fn () =>
-        use_text name_space (0, "") Output.ml_output true
+        use_text local_context (0, "") true
           ("val " ^ name ^ " = " ^ sel ^ "(! ML_Context.stored_thms);")) ();
   in () end;
 
@@ -182,67 +190,70 @@ end;
 local
 
 structure P = OuterParse;
+structure T = OuterLex;
 
 val antiq =
   P.!!! (P.position P.xname -- Args.parse --| Scan.ahead P.eof)
   >> (fn ((x, pos), y) => Args.src ((x, y), pos));
 
 val struct_name = "Isabelle";
+val begin_env = ML_Lex.tokenize ("structure " ^ struct_name ^ " =\nstruct\n");
+val end_env = ML_Lex.tokenize "end;";
 
-fun eval_antiquotes (txt, pos) opt_context =
+in
+
+fun eval_antiquotes (ants, pos) opt_context =
   let
-    val syms = SymbolPos.explode (txt, pos);
-    val ants = Antiquote.read (syms, pos);
     val opt_ctxt = Option.map (Context.Proof o Context.proof_of) opt_context;
     val ((ml_env, ml_body), opt_ctxt') =
-      if not (exists Antiquote.is_antiq ants)
-      then (("", Symbol.escape (SymbolPos.content syms)), opt_ctxt)
+      if forall Antiquote.is_text ants
+      then (([], map (fn Antiquote.Text tok => tok) ants), opt_ctxt)
       else
         let
           val ctxt =
             (case opt_ctxt of
-              NONE => error ("Unknown context -- cannot expand ML antiquotations" ^
-                Position.str_of pos)
+              NONE => error ("No context -- cannot expand ML antiquotations" ^ Position.str_of pos)
             | SOME ctxt => Context.proof_of ctxt);
 
           val lex = #1 (OuterKeyword.get_lexicons ());
-          fun no_decl _ = ("", "");
+          fun no_decl _ = ([], []);
 
-          fun expand (Antiquote.Text s) state = (K ("", Symbol.escape s), state)
-            | expand (Antiquote.Antiq x) (scope, background) =
+          fun expand (Antiquote.Text tok) state = (K ([], [tok]), state)
+            | expand (Antiquote.Antiq (ss, range)) (scope, background) =
                 let
                   val context = Stack.top scope;
-                  val (f, context') = antiquotation (Antiquote.read_antiq lex antiq x) context;
+                  val (f, context') = antiquotation (T.read_antiq lex antiq (ss, #1 range)) context;
                   val (decl, background') = f {background = background, struct_name = struct_name};
-                in (decl, (Stack.map_top (K context') scope, background')) end
+                  val decl' = decl #> pairself (ML_Lex.tokenize #> map (ML_Lex.set_range range));
+                in (decl', (Stack.map_top (K context') scope, background')) end
             | expand (Antiquote.Open _) (scope, background) =
                 (no_decl, (Stack.push scope, background))
             | expand (Antiquote.Close _) (scope, background) =
                 (no_decl, (Stack.pop scope, background));
 
           val (decls, (_, ctxt')) = fold_map expand ants (Stack.init ctxt, ctxt);
-          val ml = decls |> map (fn decl => decl ctxt') |> split_list |> pairself implode;
+          val ml = decls |> map (fn decl => decl ctxt') |> split_list |> pairself flat;
         in (ml, SOME (Context.Proof ctxt')) end;
-  in (("structure " ^ struct_name ^ " =\nstruct\n" ^ ml_env ^ "end;", ml_body), opt_ctxt') end;
-
-in
+  in ((begin_env @ ml_env @ end_env, ml_body), opt_ctxt') end;
 
 val trace = ref false;
 
-fun eval_wrapper pr verbose pos txt =
+fun eval verbose pos txt =
   let
-    fun eval_raw p = use_text name_space
-      (the_default 1 (Position.line_of p), the_default "ML" (Position.file_of p)) pr;
+    fun eval_raw p = use_text local_context
+      (the_default 1 (Position.line_of p), the_default "ML" (Position.file_of p));
 
     (*prepare source text*)
     val _ = Position.report Markup.ML_source pos;
-    val ((env, body), env_ctxt) = eval_antiquotes (txt, pos) (Context.thread_data ());
+    val ants = ML_Lex.read_antiq (Symbol_Pos.explode (txt, pos), pos);
+    val ((env, body), env_ctxt) = eval_antiquotes (ants, pos) (Context.thread_data ())
+      |>> pairself (implode o map ML_Lex.text_of);
     val _ = if ! trace then tracing (cat_lines [env, body]) else ();
 
     (*prepare static ML environment*)
     val _ = Context.setmp_thread_data env_ctxt
         (fn () => (eval_raw Position.none false env; Context.thread_data ())) ()
-      |> (fn NONE => () | SOME context' => Context.>> (ML_Env.put (ML_Env.get context')));
+      |> (fn NONE => () | SOME context' => Context.>> (inherit_env context'));
 
     (*eval ML*)
     val _ = eval_raw pos verbose body;
@@ -254,20 +265,18 @@ fun eval_wrapper pr verbose pos txt =
 end;
 
 
-(* ML evaluation *)
+(* derived versions *)
 
-val eval = eval_wrapper Output.ml_output;
 fun eval_file path = eval true (Path.position path) (File.read path);
 
 fun eval_in ctxt verbose pos txt =
   Context.setmp_thread_data (Option.map Context.Proof ctxt) (fn () => eval verbose pos txt) ();
 
-fun evaluate ctxt pr verbose (ref_name, r) txt = NAMED_CRITICAL "ML" (fn () =>
+fun evaluate ctxt verbose (ref_name, r) txt = NAMED_CRITICAL "ML" (fn () =>
   let
     val _ = r := NONE;
     val _ = Context.setmp_thread_data (SOME (Context.Proof ctxt)) (fn () =>
-      eval_wrapper pr verbose Position.none
-        ("val _ = (" ^ ref_name ^ " := SOME (fn () => " ^ txt ^ "))")) ();
+      eval verbose Position.none ("val _ = (" ^ ref_name ^ " := SOME (fn () => " ^ txt ^ "))")) ();
   in (case ! r of NONE => error ("Bad evaluation for " ^ ref_name) | SOME e => e) end) ();
 
 fun expression pos bind body txt =

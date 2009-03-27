@@ -51,51 +51,46 @@ end;
 structure cnf : CNF =
 struct
 
-fun thm_by_auto (G : string) : thm =
-	prove_goal (the_context ()) G (fn prems => [cut_facts_tac prems 1, CLASIMPSET auto_tac]);
+val clause2raw_notE      = @{lemma "[| P; ~P |] ==> False" by auto};
+val clause2raw_not_disj  = @{lemma "[| ~P; ~Q |] ==> ~(P | Q)" by auto};
+val clause2raw_not_not   = @{lemma "P ==> ~~P" by auto};
 
-(* Thm.thm *)
-val clause2raw_notE      = thm_by_auto "[| P; ~P |] ==> False";
-val clause2raw_not_disj  = thm_by_auto "[| ~P; ~Q |] ==> ~(P | Q)";
-val clause2raw_not_not   = thm_by_auto "P ==> ~~P";
+val iff_refl             = @{lemma "(P::bool) = P" by auto};
+val iff_trans            = @{lemma "[| (P::bool) = Q; Q = R |] ==> P = R" by auto};
+val conj_cong            = @{lemma "[| P = P'; Q = Q' |] ==> (P & Q) = (P' & Q')" by auto};
+val disj_cong            = @{lemma "[| P = P'; Q = Q' |] ==> (P | Q) = (P' | Q')" by auto};
 
-val iff_refl             = thm_by_auto "(P::bool) = P";
-val iff_trans            = thm_by_auto "[| (P::bool) = Q; Q = R |] ==> P = R";
-val conj_cong            = thm_by_auto "[| P = P'; Q = Q' |] ==> (P & Q) = (P' & Q')";
-val disj_cong            = thm_by_auto "[| P = P'; Q = Q' |] ==> (P | Q) = (P' | Q')";
+val make_nnf_imp         = @{lemma "[| (~P) = P'; Q = Q' |] ==> (P --> Q) = (P' | Q')" by auto};
+val make_nnf_iff         = @{lemma "[| P = P'; (~P) = NP; Q = Q'; (~Q) = NQ |] ==> (P = Q) = ((P' | NQ) & (NP | Q'))" by auto};
+val make_nnf_not_false   = @{lemma "(~False) = True" by auto};
+val make_nnf_not_true    = @{lemma "(~True) = False" by auto};
+val make_nnf_not_conj    = @{lemma "[| (~P) = P'; (~Q) = Q' |] ==> (~(P & Q)) = (P' | Q')" by auto};
+val make_nnf_not_disj    = @{lemma "[| (~P) = P'; (~Q) = Q' |] ==> (~(P | Q)) = (P' & Q')" by auto};
+val make_nnf_not_imp     = @{lemma "[| P = P'; (~Q) = Q' |] ==> (~(P --> Q)) = (P' & Q')" by auto};
+val make_nnf_not_iff     = @{lemma "[| P = P'; (~P) = NP; Q = Q'; (~Q) = NQ |] ==> (~(P = Q)) = ((P' | Q') & (NP | NQ))" by auto};
+val make_nnf_not_not     = @{lemma "P = P' ==> (~~P) = P'" by auto};
 
-val make_nnf_imp         = thm_by_auto "[| (~P) = P'; Q = Q' |] ==> (P --> Q) = (P' | Q')";
-val make_nnf_iff         = thm_by_auto "[| P = P'; (~P) = NP; Q = Q'; (~Q) = NQ |] ==> (P = Q) = ((P' | NQ) & (NP | Q'))";
-val make_nnf_not_false   = thm_by_auto "(~False) = True";
-val make_nnf_not_true    = thm_by_auto "(~True) = False";
-val make_nnf_not_conj    = thm_by_auto "[| (~P) = P'; (~Q) = Q' |] ==> (~(P & Q)) = (P' | Q')";
-val make_nnf_not_disj    = thm_by_auto "[| (~P) = P'; (~Q) = Q' |] ==> (~(P | Q)) = (P' & Q')";
-val make_nnf_not_imp     = thm_by_auto "[| P = P'; (~Q) = Q' |] ==> (~(P --> Q)) = (P' & Q')";
-val make_nnf_not_iff     = thm_by_auto "[| P = P'; (~P) = NP; Q = Q'; (~Q) = NQ |] ==> (~(P = Q)) = ((P' | Q') & (NP | NQ))";
-val make_nnf_not_not     = thm_by_auto "P = P' ==> (~~P) = P'";
+val simp_TF_conj_True_l  = @{lemma "[| P = True; Q = Q' |] ==> (P & Q) = Q'" by auto};
+val simp_TF_conj_True_r  = @{lemma "[| P = P'; Q = True |] ==> (P & Q) = P'" by auto};
+val simp_TF_conj_False_l = @{lemma "P = False ==> (P & Q) = False" by auto};
+val simp_TF_conj_False_r = @{lemma "Q = False ==> (P & Q) = False" by auto};
+val simp_TF_disj_True_l  = @{lemma "P = True ==> (P | Q) = True" by auto};
+val simp_TF_disj_True_r  = @{lemma "Q = True ==> (P | Q) = True" by auto};
+val simp_TF_disj_False_l = @{lemma "[| P = False; Q = Q' |] ==> (P | Q) = Q'" by auto};
+val simp_TF_disj_False_r = @{lemma "[| P = P'; Q = False |] ==> (P | Q) = P'" by auto};
 
-val simp_TF_conj_True_l  = thm_by_auto "[| P = True; Q = Q' |] ==> (P & Q) = Q'";
-val simp_TF_conj_True_r  = thm_by_auto "[| P = P'; Q = True |] ==> (P & Q) = P'";
-val simp_TF_conj_False_l = thm_by_auto "P = False ==> (P & Q) = False";
-val simp_TF_conj_False_r = thm_by_auto "Q = False ==> (P & Q) = False";
-val simp_TF_disj_True_l  = thm_by_auto "P = True ==> (P | Q) = True";
-val simp_TF_disj_True_r  = thm_by_auto "Q = True ==> (P | Q) = True";
-val simp_TF_disj_False_l = thm_by_auto "[| P = False; Q = Q' |] ==> (P | Q) = Q'";
-val simp_TF_disj_False_r = thm_by_auto "[| P = P'; Q = False |] ==> (P | Q) = P'";
+val make_cnf_disj_conj_l = @{lemma "[| (P | R) = PR; (Q | R) = QR |] ==> ((P & Q) | R) = (PR & QR)" by auto};
+val make_cnf_disj_conj_r = @{lemma "[| (P | Q) = PQ; (P | R) = PR |] ==> (P | (Q & R)) = (PQ & PR)" by auto};
 
-val make_cnf_disj_conj_l = thm_by_auto "[| (P | R) = PR; (Q | R) = QR |] ==> ((P & Q) | R) = (PR & QR)";
-val make_cnf_disj_conj_r = thm_by_auto "[| (P | Q) = PQ; (P | R) = PR |] ==> (P | (Q & R)) = (PQ & PR)";
+val make_cnfx_disj_ex_l  = @{lemma "((EX (x::bool). P x) | Q) = (EX x. P x | Q)" by auto};
+val make_cnfx_disj_ex_r  = @{lemma "(P | (EX (x::bool). Q x)) = (EX x. P | Q x)" by auto};
+val make_cnfx_newlit     = @{lemma "(P | Q) = (EX x. (P | x) & (Q | ~x))" by auto};
+val make_cnfx_ex_cong    = @{lemma "(ALL (x::bool). P x = Q x) ==> (EX x. P x) = (EX x. Q x)" by auto};
 
-val make_cnfx_disj_ex_l = thm_by_auto "((EX (x::bool). P x) | Q) = (EX x. P x | Q)";
-val make_cnfx_disj_ex_r = thm_by_auto "(P | (EX (x::bool). Q x)) = (EX x. P | Q x)";
-val make_cnfx_newlit    = thm_by_auto "(P | Q) = (EX x. (P | x) & (Q | ~x))";
-val make_cnfx_ex_cong   = thm_by_auto "(ALL (x::bool). P x = Q x) ==> (EX x. P x) = (EX x. Q x)";
+val weakening_thm        = @{lemma "[| P; Q |] ==> Q" by auto};
 
-val weakening_thm        = thm_by_auto "[| P; Q |] ==> Q";
+val cnftac_eq_imp        = @{lemma "[| P = Q; P |] ==> Q" by auto};
 
-val cnftac_eq_imp        = thm_by_auto "[| P = Q; P |] ==> Q";
-
-(* Term.term -> bool *)
 fun is_atom (Const ("False", _))                                           = false
   | is_atom (Const ("True", _))                                            = false
   | is_atom (Const ("op &", _) $ _ $ _)                                    = false
@@ -105,11 +100,9 @@ fun is_atom (Const ("False", _))                                           = fal
   | is_atom (Const ("Not", _) $ _)                                         = false
   | is_atom _                                                              = true;
 
-(* Term.term -> bool *)
 fun is_literal (Const ("Not", _) $ x) = is_atom x
   | is_literal x                      = is_atom x;
 
-(* Term.term -> bool *)
 fun is_clause (Const ("op |", _) $ x $ y) = is_clause x andalso is_clause y
   | is_clause x                           = is_literal x;
 

@@ -23,7 +23,7 @@ apply (rule freeultrafilter_Ex)
 apply (rule nat_infinite)
 done
 
-interpretation FreeUltrafilterNat!: freeultrafilter FreeUltrafilterNat
+interpretation FreeUltrafilterNat: freeultrafilter FreeUltrafilterNat
 by (rule freeultrafilter_FreeUltrafilterNat)
 
 text {* This rule takes the place of the old ultra tactic *}

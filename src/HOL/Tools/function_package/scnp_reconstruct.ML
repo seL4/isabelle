@@ -197,7 +197,7 @@ fun reconstruct_tac ctxt D cs (gp as GP (_, gs)) certificate =
               else if b <= a then @{thm pair_leqI2} else @{thm pair_leqI1}
           in
             rtac rule 1 THEN PRIMITIVE (Thm.elim_implies stored_thm)
-            THEN (if tag_flag then arith_tac ctxt 1 else all_tac)
+            THEN (if tag_flag then Arith_Data.verbose_arith_tac ctxt 1 else all_tac)
           end
 
         fun steps_tac MAX strict lq lp =
@@ -291,7 +291,7 @@ fun reconstruct_tac ctxt D cs (gp as GP (_, gs)) certificate =
          THEN (rtac @{thm rp_inv_image_rp} 1)
          THEN (rtac (order_rpair ms_rp label) 1)
          THEN PRIMITIVE (instantiate' [] [SOME level_mapping])
-         THEN unfold_tac @{thms rp_inv_image_def} (simpset_of thy)
+         THEN unfold_tac @{thms rp_inv_image_def} (local_simpset_of ctxt)
          THEN LocalDefs.unfold_tac ctxt
            (@{thms split_conv} @ @{thms fst_conv} @ @{thms snd_conv})
          THEN REPEAT (SOMEGOAL (resolve_tac [@{thm Un_least}, @{thm empty_subsetI}]))
@@ -395,7 +395,7 @@ fun gen_decomp_scnp_tac orders autom_tac ctxt err_cont =
 
 fun gen_sizechange_tac orders autom_tac ctxt err_cont =
   TRY (FundefCommon.apply_termination_rule ctxt 1)
-  THEN TRY Termination.wf_union_tac
+  THEN TRY (Termination.wf_union_tac ctxt)
   THEN
    (rtac @{thm wf_empty} 1
     ORELSE gen_decomp_scnp_tac orders autom_tac ctxt err_cont 1)

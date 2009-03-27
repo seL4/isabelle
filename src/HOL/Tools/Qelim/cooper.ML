@@ -23,7 +23,7 @@ val true_tm = @{cterm "True"};
 val false_tm = @{cterm "False"};
 val zdvd1_eq = @{thm "zdvd1_eq"};
 val presburger_ss = @{simpset} addsimps [zdvd1_eq];
-val lin_ss = presburger_ss addsimps (@{thm "dvd_eq_mod_eq_0"}::zdvd1_eq::@{thms zadd_ac});
+val lin_ss = presburger_ss addsimps (@{thm dvd_eq_mod_eq_0} :: zdvd1_eq :: @{thms zadd_ac});
 
 val iT = HOLogic.intT
 val bT = HOLogic.boolT;
@@ -172,7 +172,7 @@ fun decomp_minf x dvd inS [bseteq,bsetneq,bsetlt, bsetle, bsetgt,
 
     (* Canonical linear form for terms, formulae etc.. *)
 fun provelin ctxt t = Goal.prove ctxt [] [] t 
-  (fn _ => EVERY [simp_tac lin_ss 1, TRY (simple_arith_tac ctxt 1)]);
+  (fn _ => EVERY [simp_tac lin_ss 1, TRY (linear_arith_tac ctxt 1)]);
 fun linear_cmul 0 tm = zero 
   | linear_cmul n tm = case tm of  
       Const (@{const_name HOL.plus}, _) $ a $ b => addC $ linear_cmul n a $ linear_cmul n b

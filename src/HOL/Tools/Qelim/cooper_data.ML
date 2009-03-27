@@ -67,6 +67,7 @@ fun del ts = Thm.declaration_attribute (fn th => fn context =>
 (* concrete syntax *)
 
 local
+
 fun keyword k = Scan.lift (Args.$$$ k -- Args.colon) >> K ();
 
 val constsN = "consts";
@@ -77,14 +78,17 @@ val terms = thms >> map (term_of o Drule.dest_term);
 fun optional scan = Scan.optional scan [];
 
 in
-val attribute =
- (Scan.lift (Args.$$$ "del") |-- optional (keyword constsN |-- terms)) >> del ||
-  optional (keyword constsN |-- terms) >> add
+
+val presburger_setup =
+  Attrib.setup @{binding presburger}
+    ((Scan.lift (Args.$$$ "del") |-- optional (keyword constsN |-- terms)) >> del ||
+      optional (keyword constsN |-- terms) >> add) "Cooper data";
+
 end;
 
 
 (* theory setup *)
 
-val setup = Attrib.setup @{binding presburger} attribute "Cooper data";
+val setup = presburger_setup;
 
 end;

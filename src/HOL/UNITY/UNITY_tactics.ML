@@ -59,6 +59,6 @@ fun make_o_equivs th =
      th RS @{thm o_equiv_assoc} |> simplify (HOL_ss addsimps [@{thm o_assoc}]),
      th RS @{thm o_equiv_apply} |> simplify (HOL_ss addsimps [@{thm o_def}, @{thm sub_def}])];
 
-Addsimps (make_o_equivs @{thm fst_o_funPair} @ make_o_equivs @{thm snd_o_funPair});
-
-Addsimps (make_o_equivs @{thm fst_o_lift_map} @ make_o_equivs @{thm snd_o_lift_map});
+Simplifier.change_simpset (fn ss => ss
+  addsimps (make_o_equivs @{thm fst_o_funPair} @ make_o_equivs @{thm snd_o_funPair})
+  addsimps (make_o_equivs @{thm fst_o_lift_map} @ make_o_equivs @{thm snd_o_lift_map}));

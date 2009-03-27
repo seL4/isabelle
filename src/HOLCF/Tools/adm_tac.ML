@@ -15,7 +15,7 @@ adm_chfin can be applied:
 
 signature ADM =
 sig
-  val adm_tac: (int -> tactic) -> int -> tactic
+  val adm_tac: Proof.context -> (int -> tactic) -> int -> tactic
 end;
 
 structure Adm: ADM =
@@ -85,14 +85,14 @@ fun is_chfin thy T params ((t, _)::_) =
 (*** try to prove that terms in list are continuous
      if successful, add continuity theorem to list l ***)
 
-fun prove_cont tac thy s T prems params (ts as ((t, _)::_)) l =
+fun prove_cont ctxt tac s T prems params (ts as ((t, _)::_)) l =  (* FIXME proper context *)
   let val parTs = map snd (rev params);
        val contT = (T --> (fastype_of1 (T::parTs, t))) --> HOLogic.boolT;
        fun mk_all [] t = t
          | mk_all ((a,T)::Ts) t = Term.all T $ (Abs (a, T, mk_all Ts t));
        val t = HOLogic.mk_Trueprop (Const (@{const_name cont}, contT) $ Abs (s, T, t));
        val t' = mk_all params (Logic.list_implies (prems, t));
-       val thm = Goal.prove (ProofContext.init thy) [] [] t' (K (tac 1));
+       val thm = Goal.prove ctxt [] [] t' (K (tac 1));
   in (ts, thm)::l end
   handle ERROR _ => l;
 
@@ -128,18 +128,18 @@ fun inst_adm_subst_thm state i params s T subt t paths =
 fun try_dest_adm (Const _ $ (Const (@{const_name adm}, _) $ Abs abs)) = SOME abs
   | try_dest_adm _ = NONE;
 
-fun adm_tac tac i state = (i, state) |-> SUBGOAL (fn (goali, _) =>
+fun adm_tac ctxt tac i state = (i, state) |-> SUBGOAL (fn (goali, _) =>
   (case try_dest_adm (Logic.strip_assums_concl goali) of
     NONE => no_tac
   | SOME (s, T, t) =>
       let
-        val thy = Thm.theory_of_thm state;
+        val thy = ProofContext.theory_of ctxt;
         val prems = Logic.strip_assums_hyp goali;
         val params = Logic.strip_params goali;
         val ts = find_subterms t 0 [];
         val ts' = filter eq_terms ts;
         val ts'' = filter (is_chfin thy T params) ts';
-        val thms = fold (prove_cont tac thy s T prems params) ts'' [];
+        val thms = fold (prove_cont ctxt tac s T prems params) ts'' [];
       in
         (case thms of
           ((ts as ((t', _)::_), cont_thm) :: _) =>

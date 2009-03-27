@@ -568,7 +568,7 @@ fun extract thms thy =
                       (proof_combt
                          (PThm (serial (),
                           ((corr_name name vs', corr_prop, SOME (map TVar (OldTerm.term_tvars corr_prop))),
-                            Future.value (make_proof_body corr_prf))), vfs_of corr_prop))
+                            Future.value (approximate_proof_body corr_prf))), vfs_of corr_prop))
                       (map (get_var_type corr_prop) (vfs_of prop))
                   in
                     ((name, (vs', ((nullt, nullt), (corr_prf, corr_prf')))) :: defs'',
@@ -679,7 +679,7 @@ fun extract thms thy =
                       (proof_combt
                         (PThm (serial (),
                          ((corr_name s vs', corr_prop, SOME (map TVar (OldTerm.term_tvars corr_prop))),
-                           Future.value (make_proof_body corr_prf'))), vfs_of corr_prop))
+                           Future.value (approximate_proof_body corr_prf'))), vfs_of corr_prop))
                       (map (get_var_type corr_prop) (vfs_of prop));
                   in
                     ((s, (vs', ((t', u), (corr_prf', corr_prf'')))) :: defs'',

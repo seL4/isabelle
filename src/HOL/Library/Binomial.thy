@@ -6,7 +6,7 @@
 header {* Binomial Coefficients *}
 
 theory Binomial
-imports Fact Plain "~~/src/HOL/SetInterval" Presburger 
+imports Fact SetInterval Presburger Main
 begin
 
 text {* This development is based on the work of Andy Gordon and

@@ -316,6 +316,9 @@ by (simp add: diff_minus add_ac)
 lemma eq_iff_diff_eq_0: "a = b \<longleftrightarrow> a - b = 0"
 by (simp add: algebra_simps)
 
+lemma diff_eq_0_iff_eq [simp, noatp]: "a - b = 0 \<longleftrightarrow> a = b"
+by (simp add: algebra_simps)
+
 end
 
 subsection {* (Partially) Ordered Groups *} 
@@ -463,7 +466,7 @@ proof -
   then show ?thesis by simp
 qed
 
-lemma add_neg_nonpos: 
+lemma add_neg_nonpos:
   assumes "a < 0" and "b \<le> 0" shows "a + b < 0"
 proof -
   have "a + b < 0 + 0"
@@ -490,6 +493,10 @@ proof -
     using assms by (rule add_mono)
   then show ?thesis by simp
 qed
+
+lemmas add_sign_intros =
+  add_pos_nonneg add_pos_pos add_nonneg_pos add_nonneg_nonneg
+  add_neg_nonpos add_neg_neg add_nonpos_neg add_nonpos_nonpos
 
 lemma add_nonneg_eq_0_iff:
   assumes x: "0 \<le> x" and y: "0 \<le> y"
@@ -1296,7 +1303,7 @@ apply (simp add: neg_le_iff_le[symmetric, of "y-x" 0] neg_le_iff_le[symmetric, o
 done
 
 lemma eq_eqI: "(x::'a::ab_group_add) - y = x' - y' \<Longrightarrow> (x = y) = (x' = y')"
-by (simp add: eq_iff_diff_eq_0[of x y] eq_iff_diff_eq_0[of x' y'])
+by (simp only: eq_iff_diff_eq_0[of x y] eq_iff_diff_eq_0[of x' y'])
 
 lemma diff_def: "(x::'a::ab_group_add) - y == x + (-y)"
 by (simp add: diff_minus)
@@ -1344,7 +1351,6 @@ by (auto intro: add_strict_right_mono add_strict_left_mono
 
 text{*Simplification of @{term "x-y < 0"}, etc.*}
 lemmas diff_less_0_iff_less [simp, noatp] = less_iff_diff_less_0 [symmetric]
-lemmas diff_eq_0_iff_eq [simp, noatp] = eq_iff_diff_eq_0 [symmetric]
 lemmas diff_le_0_iff_le [simp, noatp] = le_iff_diff_le_0 [symmetric]
 
 ML {*

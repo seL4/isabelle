@@ -215,7 +215,7 @@ by (rule typedef_po [OF type_definition_fin_defl sq_le_fin_defl_def])
 lemma finite_deflation_Rep_fin_defl: "finite_deflation (Rep_fin_defl d)"
 using Rep_fin_defl by simp
 
-interpretation Rep_fin_defl!: finite_deflation "Rep_fin_defl d"
+interpretation Rep_fin_defl: finite_deflation "Rep_fin_defl d"
 by (rule finite_deflation_Rep_fin_defl)
 
 lemma fin_defl_lessI:
@@ -320,7 +320,7 @@ apply (erule subst)
 apply (rule Rep_fin_defl.compact)
 done
 
-interpretation fin_defl!: basis_take sq_le fd_take
+interpretation fin_defl: basis_take sq_le fd_take
 apply default
 apply (rule fd_take_less)
 apply (rule fd_take_idem)
@@ -370,7 +370,7 @@ lemma Rep_alg_defl_principal:
 unfolding alg_defl_principal_def
 by (simp add: Abs_alg_defl_inverse sq_le.ideal_principal)
 
-interpretation alg_defl!:
+interpretation alg_defl:
   ideal_completion sq_le fd_take alg_defl_principal Rep_alg_defl
 apply default
 apply (rule ideal_Rep_alg_defl)
@@ -461,7 +461,7 @@ apply (simp add: cast_alg_defl_principal)
 apply (rule finite_deflation_Rep_fin_defl)
 done
 
-interpretation cast!: deflation "cast\<cdot>d"
+interpretation cast: deflation "cast\<cdot>d"
 by (rule deflation_cast)
 
 lemma "cast\<cdot>(\<Squnion>i. alg_defl_principal (Abs_fin_defl (approx i)))\<cdot>x = x"

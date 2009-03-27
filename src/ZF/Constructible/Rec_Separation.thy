@@ -185,7 +185,7 @@ lemma M_trancl_axioms_L: "M_trancl_axioms(L)"
 theorem M_trancl_L: "PROP M_trancl(L)"
 by (rule M_trancl.intro [OF M_basic_L M_trancl_axioms_L])
 
-interpretation L: M_trancl L by (rule M_trancl_L)
+interpretation L?: M_trancl L by (rule M_trancl_L)
 
 
 subsection{*@{term L} is Closed Under the Operator @{term list}*}
@@ -372,7 +372,7 @@ theorem M_datatypes_L: "PROP M_datatypes(L)"
   apply (rule M_datatypes_axioms_L) 
   done
 
-interpretation L: M_datatypes L by (rule M_datatypes_L)
+interpretation L?: M_datatypes L by (rule M_datatypes_L)
 
 
 subsection{*@{term L} is Closed Under the Operator @{term eclose}*}
@@ -435,7 +435,7 @@ theorem M_eclose_L: "PROP M_eclose(L)"
   apply (rule M_eclose_axioms_L)
   done
 
-interpretation L: M_eclose L by (rule M_eclose_L)
+interpretation L?: M_eclose L by (rule M_eclose_L)
 
 
 end

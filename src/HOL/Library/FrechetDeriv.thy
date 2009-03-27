@@ -1,12 +1,11 @@
 (*  Title       : FrechetDeriv.thy
-    ID          : $Id$
     Author      : Brian Huffman
 *)
 
 header {* Frechet Derivative *}
 
 theory FrechetDeriv
-imports Lim
+imports Lim Complex_Main
 begin
 
 definition
@@ -223,8 +222,8 @@ next
   let ?k = "\<lambda>h. f (x + h) - f x"
   let ?Nf = "\<lambda>h. norm (?Rf h) / norm h"
   let ?Ng = "\<lambda>h. norm (?Rg (?k h)) / norm (?k h)"
-  from f interpret F!: bounded_linear "F" by (rule FDERIV_bounded_linear)
-  from g interpret G!: bounded_linear "G" by (rule FDERIV_bounded_linear)
+  from f interpret F: bounded_linear "F" by (rule FDERIV_bounded_linear)
+  from g interpret G: bounded_linear "G" by (rule FDERIV_bounded_linear)
   from F.bounded obtain kF where kF: "\<And>x. norm (F x) \<le> norm x * kF" by fast
   from G.bounded obtain kG where kG: "\<And>x. norm (G x) \<le> norm x * kG" by fast
 

@@ -55,7 +55,7 @@ fun std_postprocessor strict cs ss wfs =
   Prim.postprocess strict
    {wf_tac     = REPEAT (ares_tac wfs 1),
     terminator = asm_simp_tac ss 1
-                 THEN TRY (silent_arith_tac (Simplifier.the_context ss) 1 ORELSE
+                 THEN TRY (Arith_Data.arith_tac (Simplifier.the_context ss) 1 ORELSE
                            fast_tac (cs addSDs [@{thm not0_implies_Suc}] addss ss) 1),
     simplifier = Rules.simpl_conv ss []};
 
@@ -79,10 +79,7 @@ fun id_thm th =
    in lhs aconv rhs end
    handle U.ERR _ => false;
    
-
-fun prover s = prove_goal @{theory HOL} s (fn _ => [fast_tac HOL_cs 1]);
-val P_imp_P_iff_True = prover "P --> (P= True)" RS mp;
-val P_imp_P_eq_True = P_imp_P_iff_True RS eq_reflection;
+val P_imp_P_eq_True = @{thm eqTrueI} RS eq_reflection;
 fun mk_meta_eq r = case concl_of r of
      Const("==",_)$_$_ => r
   |   _ $(Const("op =",_)$_$_) => r RS eq_reflection

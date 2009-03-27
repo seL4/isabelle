@@ -5,7 +5,7 @@
 header {* Permutations, both general and specifically on finite sets.*}
 
 theory Permutations
-imports Main Finite_Cartesian_Product Parity Fact
+imports Finite_Cartesian_Product Parity Fact Main
 begin
 
   (* Why should I import Main just to solve the Typerep problem! *)

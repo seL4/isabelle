@@ -63,9 +63,8 @@ instance ..
 end
 
 lemma Suc_not_Zero: "Suc m \<noteq> 0"
-  apply (simp add: Zero_nat_def Suc_def Abs_Nat_inject [unfolded mem_def]
+  by (simp add: Zero_nat_def Suc_def Abs_Nat_inject [unfolded mem_def]
     Rep_Nat [unfolded mem_def] Suc_RepI Zero_RepI Suc_Rep_not_Zero_Rep [unfolded mem_def])
-  done
 
 lemma Zero_not_Suc: "0 \<noteq> Suc m"
   by (rule not_sym, rule Suc_not_Zero not_sym)
@@ -82,7 +81,7 @@ rep_datatype "0 \<Colon> nat" Suc
   done
 
 lemma nat_induct [case_names 0 Suc, induct type: nat]:
-  -- {* for backward compatibility -- naming of variables differs *}
+  -- {* for backward compatibility -- names of variables differ *}
   fixes n
   assumes "P 0"
     and "\<And>n. P n \<Longrightarrow> P (Suc n)"
@@ -1345,19 +1344,13 @@ lemma subst_equals:
   shows "u = s"
   using 2 1 by (rule trans)
 
+setup Arith_Data.setup
+
 use "Tools/nat_arith.ML"
 declaration {* K Nat_Arith.setup *}
 
-ML{*
-structure ArithFacts =
-  NamedThmsFun(val name = "arith"
-               val description = "arith facts - only ground formulas");
-*}
-
-setup ArithFacts.setup
-
 use "Tools/lin_arith.ML"
-declaration {* K LinArith.setup *}
+declaration {* K Lin_Arith.setup *}
 
 lemmas [arith_split] = nat_diff_split split_min split_max
 

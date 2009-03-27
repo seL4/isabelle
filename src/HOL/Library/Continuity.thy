@@ -1,12 +1,11 @@
 (*  Title:      HOL/Library/Continuity.thy
-    ID:         $Id$
     Author:     David von Oheimb, TU Muenchen
 *)
 
 header {* Continuity and iterations (of set transformers) *}
 
 theory Continuity
-imports Plain "~~/src/HOL/Relation_Power"
+imports Relation_Power Main
 begin
 
 subsection {* Continuity for complete lattices *}

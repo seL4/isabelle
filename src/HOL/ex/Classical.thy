@@ -1,5 +1,4 @@
 (*  Title:      HOL/ex/Classical
-    ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1994  University of Cambridge
 *)
@@ -430,7 +429,7 @@ JAR 29: 3-4 (2002), pages 253-275 *}
 lemma "(\<forall>x y z. R(x,y) & R(y,z) --> R(x,z)) &
        (\<forall>x. \<exists>y. R(x,y)) -->
        ~ (\<forall>x. P x = (\<forall>y. R(x,y) --> ~ P y))"
-by (tactic{*Meson.safe_best_meson_tac 1*})
+by (tactic{*Meson.safe_best_meson_tac @{claset} 1*})
     --{*In contrast, @{text meson} is SLOW: 7.6s on griffon*}
 
 
@@ -724,7 +723,7 @@ lemma "(\<forall>x. wolf x \<longrightarrow> animal x) & (\<exists>x. wolf x) &
        (\<forall>x y. bird x & snail y \<longrightarrow> ~eats x y) &
        (\<forall>x. (caterpillar x \<or> snail x) \<longrightarrow> (\<exists>y. plant y & eats x y))
        \<longrightarrow> (\<exists>x y. animal x & animal y & (\<exists>z. grain z & eats y z & eats x y))"
-by (tactic{*Meson.safe_best_meson_tac 1*})
+by (tactic{*Meson.safe_best_meson_tac @{claset} 1*})
     --{*Nearly twice as fast as @{text meson},
         which performs iterative deepening rather than best-first search*}
 

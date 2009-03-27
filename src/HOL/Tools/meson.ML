@@ -25,7 +25,7 @@ sig
   val skolemize_prems_tac: thm list -> int -> tactic
   val MESON: (thm list -> thm list) -> (thm list -> tactic) -> int -> tactic
   val best_meson_tac: (thm -> int) -> int -> tactic
-  val safe_best_meson_tac: int -> tactic
+  val safe_best_meson_tac: claset -> int -> tactic
   val depth_meson_tac: int -> tactic
   val prolog_step_tac': thm list -> int -> tactic
   val iter_deepen_prolog_tac: thm list -> tactic
@@ -33,7 +33,7 @@ sig
   val make_meta_clause: thm -> thm
   val make_meta_clauses: thm list -> thm list
   val meson_claset_tac: thm list -> claset -> int -> tactic
-  val meson_tac: int -> tactic
+  val meson_tac: claset -> int -> tactic
   val negate_head: thm -> thm
   val select_literal: int -> thm -> thm
   val skolemize_tac: int -> tactic
@@ -589,8 +589,8 @@ fun best_meson_tac sizef =
                          (prolog_step_tac (make_horns cls) 1));
 
 (*First, breaks the goal into independent units*)
-val safe_best_meson_tac =
-     SELECT_GOAL (TRY (CLASET safe_tac) THEN
+fun safe_best_meson_tac cs =
+     SELECT_GOAL (TRY (safe_tac cs) THEN
                   TRYALL (best_meson_tac size_of_subgoals));
 
 (** Depth-first search version **)
@@ -634,7 +634,7 @@ fun iter_deepen_meson_tac ths = MESON make_clauses
 fun meson_claset_tac ths cs =
   SELECT_GOAL (TRY (safe_tac cs) THEN TRYALL (iter_deepen_meson_tac ths));
 
-val meson_tac = CLASET' (meson_claset_tac []);
+val meson_tac = meson_claset_tac [];
 
 
 (**** Code to support ordinary resolution, rather than Model Elimination ****)

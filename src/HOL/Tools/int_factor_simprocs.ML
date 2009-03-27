@@ -218,8 +218,29 @@ fun find_first_t past u []         = raise TERM ("find_first_t", [])
 val simplify_one = Arith_Data.simplify_meta_eq  
   [@{thm mult_1_left}, @{thm mult_1_right}, @{thm div_by_1}, @{thm numeral_1_eq_1}];
 
-fun cancel_simplify_meta_eq cancel_th ss th =
+fun cancel_simplify_meta_eq ss cancel_th th =
     simplify_one ss (([th, cancel_th]) MRS trans);
+
+local
+  val Tp_Eq = Thm.reflexive(Thm.cterm_of (@{theory HOL}) HOLogic.Trueprop)
+  fun Eq_True_elim Eq = 
+    Thm.equal_elim (Thm.combination Tp_Eq (Thm.symmetric Eq)) @{thm TrueI}
+in
+fun sign_conv pos_th neg_th ss t =
+  let val T = fastype_of t;
+      val zero = Const(@{const_name HOL.zero}, T);
+      val less = Const(@{const_name HOL.less}, [T,T] ---> HOLogic.boolT);
+      val pos = less $ zero $ t and neg = less $ t $ zero
+      fun prove p =
+        Option.map Eq_True_elim (Lin_Arith.lin_arith_simproc ss p)
+        handle THM _ => NONE
+    in case prove pos of
+         SOME th => SOME(th RS pos_th)
+       | NONE => (case prove neg of
+                    SOME th => SOME(th RS neg_th)
+                  | NONE => NONE)
+    end;
+end
 
 structure CancelFactorCommon =
   struct
@@ -231,6 +252,7 @@ structure CancelFactorCommon =
   val trans_tac         = K Arith_Data.trans_tac
   val norm_ss = HOL_ss addsimps mult_1s @ @{thms mult_ac}
   fun norm_tac ss = ALLGOALS (simp_tac (Simplifier.inherit_context ss norm_ss))
+  val simplify_meta_eq  = cancel_simplify_meta_eq 
   end;
 
 (*mult_cancel_left requires a ring with no zero divisors.*)
@@ -239,7 +261,27 @@ structure EqCancelFactor = ExtractCommonTermFun
   val prove_conv = Arith_Data.prove_conv
   val mk_bal   = HOLogic.mk_eq
   val dest_bal = HOLogic.dest_bin "op =" Term.dummyT
-  val simplify_meta_eq  = cancel_simplify_meta_eq @{thm mult_cancel_left}
+  val simp_conv = K (K (SOME @{thm mult_cancel_left}))
+);
+
+(*for ordered rings*)
+structure LeCancelFactor = ExtractCommonTermFun
+ (open CancelFactorCommon
+  val prove_conv = Arith_Data.prove_conv
+  val mk_bal   = HOLogic.mk_binrel @{const_name HOL.less_eq}
+  val dest_bal = HOLogic.dest_bin @{const_name HOL.less_eq} Term.dummyT
+  val simp_conv = sign_conv
+    @{thm mult_le_cancel_left_pos} @{thm mult_le_cancel_left_neg}
+);
+
+(*for ordered rings*)
+structure LessCancelFactor = ExtractCommonTermFun
+ (open CancelFactorCommon
+  val prove_conv = Arith_Data.prove_conv
+  val mk_bal   = HOLogic.mk_binrel @{const_name HOL.less}
+  val dest_bal = HOLogic.dest_bin @{const_name HOL.less} Term.dummyT
+  val simp_conv = sign_conv
+    @{thm mult_less_cancel_left_pos} @{thm mult_less_cancel_left_neg}
 );
 
 (*zdiv_zmult_zmult1_if is for integer division (div).*)
@@ -248,7 +290,7 @@ structure IntDivCancelFactor = ExtractCommonTermFun
   val prove_conv = Arith_Data.prove_conv
   val mk_bal   = HOLogic.mk_binop @{const_name Divides.div}
   val dest_bal = HOLogic.dest_bin @{const_name Divides.div} HOLogic.intT
-  val simplify_meta_eq  = cancel_simplify_meta_eq @{thm zdiv_zmult_zmult1_if}
+  val simp_conv = K (K (SOME @{thm zdiv_zmult_zmult1_if}))
 );
 
 structure IntModCancelFactor = ExtractCommonTermFun
@@ -256,7 +298,7 @@ structure IntModCancelFactor = ExtractCommonTermFun
   val prove_conv = Arith_Data.prove_conv
   val mk_bal   = HOLogic.mk_binop @{const_name Divides.mod}
   val dest_bal = HOLogic.dest_bin @{const_name Divides.mod} HOLogic.intT
-  val simplify_meta_eq  = cancel_simplify_meta_eq @{thm zmod_zmult_zmult1}
+  val simp_conv = K (K (SOME @{thm zmod_zmult_zmult1}))
 );
 
 structure IntDvdCancelFactor = ExtractCommonTermFun
@@ -264,7 +306,7 @@ structure IntDvdCancelFactor = ExtractCommonTermFun
   val prove_conv = Arith_Data.prove_conv
   val mk_bal   = HOLogic.mk_binrel @{const_name Ring_and_Field.dvd}
   val dest_bal = HOLogic.dest_bin @{const_name Ring_and_Field.dvd} Term.dummyT
-  val simplify_meta_eq  = cancel_simplify_meta_eq @{thm dvd_mult_cancel_left}
+  val simp_conv = K (K (SOME @{thm dvd_mult_cancel_left}))
 );
 
 (*Version for all fields, including unordered ones (type complex).*)
@@ -273,7 +315,7 @@ structure DivideCancelFactor = ExtractCommonTermFun
   val prove_conv = Arith_Data.prove_conv
   val mk_bal   = HOLogic.mk_binop @{const_name HOL.divide}
   val dest_bal = HOLogic.dest_bin @{const_name HOL.divide} Term.dummyT
-  val simplify_meta_eq  = cancel_simplify_meta_eq @{thm mult_divide_mult_cancel_left_if}
+  val simp_conv = K (K (SOME @{thm mult_divide_mult_cancel_left_if}))
 );
 
 val cancel_factors =
@@ -281,7 +323,15 @@ val cancel_factors =
    [("ring_eq_cancel_factor",
      ["(l::'a::{idom}) * m = n",
       "(l::'a::{idom}) = m * n"],
-    K EqCancelFactor.proc),
+     K EqCancelFactor.proc),
+    ("ordered_ring_le_cancel_factor",
+     ["(l::'a::ordered_ring) * m <= n",
+      "(l::'a::ordered_ring) <= m * n"],
+     K LeCancelFactor.proc),
+    ("ordered_ring_less_cancel_factor",
+     ["(l::'a::ordered_ring) * m < n",
+      "(l::'a::ordered_ring) < m * n"],
+     K LessCancelFactor.proc),
     ("int_div_cancel_factor",
      ["((l::int) * m) div n", "(l::int) div (m * n)"],
      K IntDivCancelFactor.proc),

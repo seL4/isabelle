@@ -617,7 +617,7 @@ text {\ttlbrace}*
   same types as they have in the main goal statement.
 
   \medskip Several further kinds of antiquotations and options are
-  available \cite{isabelle-sys}.  Here are a few commonly used
+  available \cite{isabelle-isar-ref}.  Here are a few commonly used
   combinations:
 
   \medskip

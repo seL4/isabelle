@@ -9,11 +9,9 @@ sig
   val set_secure: unit -> unit
   val is_secure: unit -> bool
   val deny_secure: string -> unit
-  val use_text: ML_NameSpace.nameSpace -> int * string ->
-    (string -> unit) * (string -> 'a) -> bool -> string -> unit
-  val use_file: ML_NameSpace.nameSpace ->
-    (string -> unit) * (string -> 'a) -> bool -> string -> unit
-  val use: string -> unit
+  val use_text: use_context -> int * string -> bool -> string -> unit
+  val use_file: use_context -> bool -> string -> unit
+  val toplevel_pp: string list -> string -> unit
   val commit: unit -> unit
   val system_out: string -> string * int
   val system: string -> int
@@ -39,19 +37,17 @@ fun deny_secure msg = if is_secure () then error msg else ();
 
 fun secure_mltext () = deny_secure "Cannot evaluate ML source in secure mode";
 
-fun raw_use_text ns = use_text ML_Parse.fix_ints (Position.str_of oo Position.line_file) ns;
-fun raw_use_file ns = use_file ML_Parse.fix_ints (Position.str_of oo Position.line_file) ns;
+val raw_use_text = use_text;
+val raw_use_file = use_file;
+val raw_toplevel_pp = toplevel_pp;
 
-fun use_text ns pos pr verbose txt =
-  (secure_mltext (); raw_use_text ns pos pr verbose txt);
+fun use_text context pos verbose txt = (secure_mltext (); raw_use_text context pos verbose txt);
+fun use_file context verbose name = (secure_mltext (); raw_use_file context verbose name);
 
-fun use_file ns pr verbose name =
-  (secure_mltext (); raw_use_file ns pr verbose name);
-
-fun use name = use_file ML_NameSpace.global Output.ml_output true name;
+fun toplevel_pp path pp = (secure_mltext (); raw_toplevel_pp ML_Parse.global_context path pp);
 
 (*commit is dynamically bound!*)
-fun commit () = raw_use_text ML_NameSpace.global (0, "") Output.ml_output false "commit();";
+fun commit () = raw_use_text ML_Parse.global_context (0, "") false "commit();";
 
 
 (* shell commands *)
@@ -72,6 +68,8 @@ end;
 (*override previous toplevel bindings!*)
 val use_text = Secure.use_text;
 val use_file = Secure.use_file;
-fun use s = Secure.use s handle ERROR msg => (writeln msg; raise Fail "ML error");
+fun use s = Secure.use_file ML_Parse.global_context true s
+  handle ERROR msg => (writeln msg; raise Fail "ML error");
+val toplevel_pp = Secure.toplevel_pp;
 val system_out = Secure.system_out;
 val system = Secure.system;

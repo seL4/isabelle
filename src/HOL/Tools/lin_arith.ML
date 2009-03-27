@@ -6,13 +6,9 @@ HOL setup for linear arithmetic (see Provers/Arith/fast_lin_arith.ML).
 
 signature BASIC_LIN_ARITH =
 sig
-  type arith_tactic
-  val mk_arith_tactic: string -> (Proof.context -> int -> tactic) -> arith_tactic
-  val eq_arith_tactic: arith_tactic * arith_tactic -> bool
   val arith_split_add: attribute
   val arith_discrete: string -> Context.generic -> Context.generic
   val arith_inj_const: string * typ -> Context.generic -> Context.generic
-  val arith_tactic_add: arith_tactic -> Context.generic -> Context.generic
   val fast_arith_split_limit: int Config.T
   val fast_arith_neq_limit: int Config.T
   val lin_arith_pre_tac: Proof.context -> int -> tactic
@@ -21,9 +17,7 @@ sig
   val trace_arith: bool ref
   val lin_arith_simproc: simpset -> term -> thm option
   val fast_nat_arith_simproc: simproc
-  val simple_arith_tac: Proof.context -> int -> tactic
-  val arith_tac: Proof.context -> int -> tactic
-  val silent_arith_tac: Proof.context -> int -> tactic
+  val linear_arith_tac: Proof.context -> int -> tactic
 end;
 
 signature LIN_ARITH =
@@ -39,7 +33,7 @@ sig
   val setup: Context.generic -> Context.generic
 end;
 
-structure LinArith: LIN_ARITH =
+structure Lin_Arith: LIN_ARITH =
 struct
 
 (* Parameters data for general linear arithmetic functor *)
@@ -72,7 +66,7 @@ fun is_False thm =
   let val _ $ t = Thm.prop_of thm
   in t = Const("False",HOLogic.boolT) end;
 
-fun is_nat(t) = fastype_of1 t = HOLogic.natT;
+fun is_nat t = (fastype_of1 t = HOLogic.natT);
 
 fun mk_nat_thm sg t =
   let val ct = cterm_of sg t  and cn = cterm_of sg (Var(("n",0),HOLogic.natT))
@@ -83,49 +77,35 @@ end;
 
 (* arith context data *)
 
-datatype arith_tactic =
-  ArithTactic of {name: string, tactic: Proof.context -> int -> tactic, id: stamp};
-
-fun mk_arith_tactic name tactic = ArithTactic {name = name, tactic = tactic, id = stamp ()};
-
-fun eq_arith_tactic (ArithTactic {id = id1, ...}, ArithTactic {id = id2, ...}) = (id1 = id2);
-
 structure ArithContextData = GenericDataFun
 (
   type T = {splits: thm list,
             inj_consts: (string * typ) list,
-            discrete: string list,
-            tactics: arith_tactic list};
-  val empty = {splits = [], inj_consts = [], discrete = [], tactics = []};
+            discrete: string list};
+  val empty = {splits = [], inj_consts = [], discrete = []};
   val extend = I;
   fun merge _
-   ({splits= splits1, inj_consts= inj_consts1, discrete= discrete1, tactics= tactics1},
-    {splits= splits2, inj_consts= inj_consts2, discrete= discrete2, tactics= tactics2}) : T =
+   ({splits= splits1, inj_consts= inj_consts1, discrete= discrete1},
+    {splits= splits2, inj_consts= inj_consts2, discrete= discrete2}) : T =
    {splits = Library.merge Thm.eq_thm_prop (splits1, splits2),
     inj_consts = Library.merge (op =) (inj_consts1, inj_consts2),
-    discrete = Library.merge (op =) (discrete1, discrete2),
-    tactics = Library.merge eq_arith_tactic (tactics1, tactics2)};
+    discrete = Library.merge (op =) (discrete1, discrete2)};
 );
 
 val get_arith_data = ArithContextData.get o Context.Proof;
 
 val arith_split_add = Thm.declaration_attribute (fn thm =>
-  ArithContextData.map (fn {splits, inj_consts, discrete, tactics} =>
+  ArithContextData.map (fn {splits, inj_consts, discrete} =>
     {splits = update Thm.eq_thm_prop thm splits,
-     inj_consts = inj_consts, discrete = discrete, tactics = tactics}));
+     inj_consts = inj_consts, discrete = discrete}));
 
-fun arith_discrete d = ArithContextData.map (fn {splits, inj_consts, discrete, tactics} =>
+fun arith_discrete d = ArithContextData.map (fn {splits, inj_consts, discrete} =>
   {splits = splits, inj_consts = inj_consts,
-   discrete = update (op =) d discrete, tactics = tactics});
+   discrete = update (op =) d discrete});
 
-fun arith_inj_const c = ArithContextData.map (fn {splits, inj_consts, discrete, tactics} =>
+fun arith_inj_const c = ArithContextData.map (fn {splits, inj_consts, discrete} =>
   {splits = splits, inj_consts = update (op =) c inj_consts,
-   discrete = discrete, tactics= tactics});
-
-fun arith_tactic_add tac = ArithContextData.map (fn {splits, inj_consts, discrete, tactics} =>
-  {splits = splits, inj_consts = inj_consts, discrete = discrete,
-   tactics = update eq_arith_tactic tac tactics});
-
+   discrete = discrete});
 
 val (fast_arith_split_limit, setup1) = Attrib.config_int "fast_arith_split_limit" 9;
 val (fast_arith_neq_limit, setup2) = Attrib.config_int "fast_arith_neq_limit" 9;
@@ -794,7 +774,7 @@ val warning_count = Fast_Arith.warning_count;
    Most of the work is done by the cancel tactics. *)
 
 val init_arith_data =
- Fast_Arith.map_data (fn {add_mono_thms, mult_mono_thms, inj_thms, lessD, ...} =>
+ map_data (fn {add_mono_thms, mult_mono_thms, inj_thms, lessD, ...} =>
    {add_mono_thms = add_mono_thms @
     @{thms add_mono_thms_ordered_semiring} @ @{thms add_mono_thms_ordered_field},
     mult_mono_thms = mult_mono_thms,
@@ -815,7 +795,7 @@ val init_arith_data =
   arith_discrete "nat";
 
 fun add_arith_facts ss =
-  add_prems (ArithFacts.get (MetaSimplifier.the_context ss)) ss;
+  add_prems (Arith_Data.get_arith_facts (MetaSimplifier.the_context ss)) ss;
 
 val lin_arith_simproc = add_arith_facts #> Fast_Arith.lin_arith_simproc;
 
@@ -895,27 +875,12 @@ fun raw_arith_tac ctxt ex =
     (REPEAT_DETERM o split_tac (#splits (get_arith_data ctxt)))
     (fast_ex_arith_tac ctxt ex);
 
-fun more_arith_tacs ctxt =
-  let val tactics = #tactics (get_arith_data ctxt)
-  in FIRST' (map (fn ArithTactic {tactic, ...} => tactic ctxt) tactics) end;
-
 in
 
-fun simple_arith_tac ctxt = FIRST' [fast_arith_tac ctxt,
-  ObjectLogic.full_atomize_tac THEN' (REPEAT_DETERM o rtac impI) THEN' raw_arith_tac ctxt true];
+fun gen_linear_arith_tac ex ctxt = FIRST' [fast_arith_tac ctxt,
+  ObjectLogic.full_atomize_tac THEN' (REPEAT_DETERM o rtac impI) THEN' raw_arith_tac ctxt ex];
 
-fun arith_tac ctxt = FIRST' [fast_arith_tac ctxt,
-  ObjectLogic.full_atomize_tac THEN' (REPEAT_DETERM o rtac impI) THEN' raw_arith_tac ctxt true,
-  more_arith_tacs ctxt];
-
-fun silent_arith_tac ctxt = FIRST' [fast_arith_tac ctxt,
-  ObjectLogic.full_atomize_tac THEN' (REPEAT_DETERM o rtac impI) THEN' raw_arith_tac ctxt false,
-  more_arith_tacs ctxt];
-
-val arith_method = Args.bang_facts >>
-  (fn prems => fn ctxt => METHOD (fn facts =>
-      HEADGOAL (Method.insert_tac (prems @ ArithFacts.get ctxt @ facts)
-      THEN' arith_tac ctxt)));
+val linear_arith_tac = gen_linear_arith_tac true;
 
 end;
 
@@ -929,11 +894,16 @@ val setup =
       (add_arith_facts #> Fast_Arith.cut_lin_arith_tac))) #>
   Context.mapping
    (setup_options #>
-    Method.setup @{binding arith} arith_method "decide linear arithmetic" #>
+    Arith_Data.add_tactic "linear arithmetic" gen_linear_arith_tac #>
+    Method.setup @{binding linarith}
+      (Args.bang_facts >> (fn prems => fn ctxt =>
+        METHOD (fn facts =>
+          HEADGOAL (Method.insert_tac (prems @ Arith_Data.get_arith_facts ctxt @ facts)
+            THEN' linear_arith_tac ctxt)))) "linear arithmetic" #>
     Attrib.setup @{binding arith_split} (Scan.succeed arith_split_add)
       "declaration of split rules for arithmetic procedure") I;
 
 end;
 
-structure BasicLinArith: BASIC_LIN_ARITH = LinArith;
-open BasicLinArith;
+structure Basic_Lin_Arith: BASIC_LIN_ARITH = Lin_Arith;
+open Basic_Lin_Arith;

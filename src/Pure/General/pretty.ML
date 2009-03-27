@@ -19,9 +19,6 @@ The stored length of a block is used in breakdist (to treat each inner block as
 a unit for breaking).
 *)
 
-type pprint_args = (output -> unit) * (int -> unit) * (int -> unit) *
-  (unit -> unit) * (unit -> unit);
-
 signature PRETTY =
 sig
   val default_indent: string -> int -> output
@@ -49,6 +46,7 @@ sig
   val commas: T list -> T list
   val enclose: string -> string -> T list -> T
   val enum: string -> string -> string -> T list -> T
+  val position: Position.T -> T
   val list: string -> string -> T list -> T
   val str_list: string -> string -> string list -> T
   val big_list: string -> T list -> T
@@ -57,7 +55,8 @@ sig
   val setmargin: int -> unit
   val setmp_margin: int -> ('a -> 'b) -> 'a -> 'b
   val setdepth: int -> unit
-  val pprint: T -> pprint_args -> unit
+  val to_ML: T -> ML_Pretty.pretty
+  val from_ML: ML_Pretty.pretty -> T
   val symbolicN: string
   val output_buffer: T -> Buffer.T
   val output: T -> output
@@ -105,9 +104,9 @@ val add_indent = Buffer.add o output_spaces;
 (** printing items: compound phrases, strings, and breaks **)
 
 datatype T =
-  Block of Markup.T * T list * int * int |  (*markup, body, indentation, length*)
-  String of output * int |                  (*text, length*)
-  Break of bool * int;                      (*mandatory flag, width if not taken*)
+  Block of (output * output) * T list * int * int |  (*markup output, body, indentation, length*)
+  String of output * int |                           (*text, length*)
+  Break of bool * int;                               (*mandatory flag, width if not taken*)
 
 fun length (Block (_, _, _, len)) = len
   | length (String (_, len)) = len
@@ -125,11 +124,13 @@ val fbrk = Break (true, 2);
 fun breaks prts = Library.separate (brk 1) prts;
 fun fbreaks prts = Library.separate fbrk prts;
 
-fun markup_block m (indent, es) =
+fun block_markup m (indent, es) =
   let
     fun sum [] k = k
       | sum (e :: es) k = sum es (length e + k);
   in Block (m, es, indent, sum es 0) end;
+
+fun markup_block m arg = block_markup (Markup.output m) arg;
 
 val blk = markup_block Markup.none;
 fun block prts = blk (2, prts);
@@ -158,6 +159,9 @@ fun enclose lpar rpar prts =
   block (str lpar :: (prts @ [str rpar]));
 
 fun enum sep lpar rpar prts = enclose lpar rpar (separate sep prts);
+
+val position =
+  enum "," "{" "}" o map (fn (x, y) => str (x ^ "=" ^ y)) o Position.properties_of;
 
 val list = enum ",";
 fun str_list lpar rpar strs = list lpar rpar (map str strs);
@@ -195,7 +199,7 @@ fun setdepth dp = (depth := dp);
 local
   fun pruning dp (Block (m, bes, indent, wd)) =
         if dp > 0
-        then markup_block m (indent, map (pruning (dp - 1)) bes)
+        then block_markup m (indent, map (pruning (dp - 1)) bes)
         else str "..."
     | pruning dp e = e
 in
@@ -261,7 +265,7 @@ fun forcenext [] = []
 fun format ([], _, _) text = text
   | format (e :: es, block as (blockind, blockin), after) (text as {ind, pos, nl, ...}) =
       (case e of
-        Block (markup, bes, indent, wd) =>
+        Block ((bg, en), bes, indent, wd) =>
           let
             val {emergencypos, ...} = ! margin_info;
             val pos' = pos + indent;
@@ -269,7 +273,6 @@ fun format ([], _, _) text = text
             val block' =
               if pos' < emergencypos then (ind |> add_indent indent, pos')
               else (add_indent pos'' Buffer.empty, pos'');
-            val (bg, en) = Markup.output markup;
             val btext: text = text
               |> control bg
               |> format (bes, block', breakdist (es, after))
@@ -301,9 +304,9 @@ end;
 (*symbolic markup -- no formatting*)
 fun symbolic prt =
   let
-    fun out (Block (m, [], _, _)) = Buffer.markup m I
-      | out (Block (m, prts, indent, _)) =
-          Buffer.markup m (Buffer.markup (Markup.block indent) (fold out prts))
+    fun out (Block ((bg, en), [], _, _)) = Buffer.add bg #> Buffer.add en
+      | out (Block ((bg, en), prts, indent, _)) =
+          Buffer.add bg #> Buffer.markup (Markup.block indent) (fold out prts) #> Buffer.add en
       | out (String (s, _)) = Buffer.add s
       | out (Break (false, wd)) = Buffer.markup (Markup.break wd) (Buffer.add (output_spaces wd))
       | out (Break (true, _)) = Buffer.markup Markup.fbreak (Buffer.add (output_spaces 1));
@@ -312,26 +315,22 @@ fun symbolic prt =
 (*unformatted output*)
 fun unformatted prt =
   let
-    fun fmt (Block (m, prts, _, _)) = Buffer.markup m (fold fmt prts)
+    fun fmt (Block ((bg, en), prts, _, _)) = Buffer.add bg #> fold fmt prts #> Buffer.add en
       | fmt (String (s, _)) = Buffer.add s
       | fmt (Break (false, wd)) = Buffer.add (output_spaces wd)
       | fmt (Break (true, _)) = Buffer.add (output_spaces 1);
   in fmt (prune prt) Buffer.empty end;
 
-(*ML toplevel pretty printing*)
-fun pprint prt (put_str0, begin_blk, put_brk, put_fbrk, end_blk) =
-  let
-    fun put_str "" = ()
-      | put_str s = put_str0 s;
-    fun pp (Block (m, prts, ind, _)) =
-          let val (bg, en) = Markup.output m
-          in put_str bg; begin_blk ind; pp_lst prts; end_blk (); put_str en end
-      | pp (String (s, _)) = put_str s
-      | pp (Break (false, wd)) = put_brk wd
-      | pp (Break (true, _)) = put_fbrk ()
-    and pp_lst [] = ()
-      | pp_lst (prt :: prts) = (pp prt; pp_lst prts);
-  in pp (prune prt) end;
+
+(* ML toplevel pretty printing *)
+
+fun to_ML (Block (m, prts, ind, _)) = ML_Pretty.Block (m, map to_ML prts, ind)
+  | to_ML (String s) = ML_Pretty.String s
+  | to_ML (Break b) = ML_Pretty.Break b;
+
+fun from_ML (ML_Pretty.Block (m, prts, ind)) = block_markup m (ind, map from_ML prts)
+  | from_ML (ML_Pretty.String s) = String s
+  | from_ML (ML_Pretty.Break b) = Break b;
 
 
 (* output interfaces *)

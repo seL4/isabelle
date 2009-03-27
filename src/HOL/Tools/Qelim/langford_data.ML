@@ -85,25 +85,28 @@ val thms = Scan.repeat (Scan.unless any_keyword Attrib.multi_thm) >> flat;
 val terms = thms >> map Drule.dest_term;
 in
 
-val attribute =
-    (keyword qeN |-- thms)
+val langford_setup =
+  Attrib.setup @{binding langford}
+    ((keyword qeN |-- thms)
      -- (keyword gatherN |-- thms)
-     -- (keyword atomsN |-- terms) >> 
-     (fn ((qes,gs), atoms) => 
-     if length qes = 3 andalso length gs > 1 then
-       let 
-         val [q1,q2,q3] = qes
-         val gst::gss = gs
-         val entry = {qe_bnds = q1, qe_nolb = q2,
-                      qe_noub = q3, gs = gss, gst = gst, atoms = atoms}
-       in add entry end
-     else error "Need 3 theorems for qe and at least one for gs")
+     -- (keyword atomsN |-- terms) >>
+       (fn ((qes,gs), atoms) => 
+       if length qes = 3 andalso length gs > 1 then
+         let 
+           val [q1,q2,q3] = qes
+           val gst::gss = gs
+           val entry = {qe_bnds = q1, qe_nolb = q2,
+                        qe_noub = q3, gs = gss, gst = gst, atoms = atoms}
+         in add entry end
+       else error "Need 3 theorems for qe and at least one for gs"))
+    "Langford data";
+
 end;
 
 (* theory setup *)
 
 val setup =
-  Attrib.setup @{binding langford} attribute "Langford data" #>
+  langford_setup #>
   Attrib.setup @{binding langfordsimp} (Attrib.add_del add_simp del_simp) "Langford simpset";
 
 end;
