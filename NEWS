@@ -502,10 +502,9 @@ corresponding code in background and inserts name of the corresponding
 resulting ML value/function/datatype constructor binding in place.
 All occurrences of @{code} with a single ML block are generated
 simultaneously.  Provides a generic and safe interface for
-instrumentalizing code generation.  See HOL/ex/Code_Antiq for a toy
-example, or HOL/Complex/ex/ReflectedFerrack for a more ambitious
-application.  In future you ought refrain from ad-hoc compiling
-generated SML code on the ML toplevel.  Note that (for technical
+instrumentalizing code generation.  See HOL/Decision_Procs/Ferrack for
+a more ambitious application.  In future you ought refrain from ad-hoc
+compiling generated SML code on the ML toplevel.  Note that (for technical
 reasons) @{code} cannot refer to constants for which user-defined
 serializations are set.  Refer to the corresponding ML counterpart
 directly in that cases.

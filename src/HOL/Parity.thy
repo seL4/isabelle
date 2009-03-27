@@ -5,7 +5,7 @@
 header {* Even and Odd for int and nat *}
 
 theory Parity
-imports Plain Presburger Main
+imports Main
 begin
 
 class even_odd = 

@@ -1,12 +1,11 @@
 (*  Title:      HOL/Library/Quotient.thy
-    ID:         $Id$
     Author:     Markus Wenzel, TU Muenchen
 *)
 
 header {* Quotient types *}
 
 theory Quotient
-imports Plain "~~/src/HOL/Hilbert_Choice"
+imports Main
 begin
 
 text {*

@@ -1,5 +1,4 @@
 (*  Title:      HOL/Library/While_Combinator.thy
-    ID:         $Id$
     Author:     Tobias Nipkow
     Copyright   2000 TU Muenchen
 *)
@@ -7,7 +6,7 @@
 header {* A general ``while'' combinator *}
 
 theory While_Combinator
-imports Plain "~~/src/HOL/Presburger"
+imports Main
 begin
 
 text {* 

@@ -5,7 +5,7 @@
 header {* Operations on sets and functions *}
 
 theory SetsAndFunctions
-imports Plain
+imports Main
 begin
 
 text {*

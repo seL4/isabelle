@@ -1,12 +1,11 @@
-(*  ID:         $Id$
-    Author:     Tobias Nipkow
+(*  Author:     Tobias Nipkow
     Copyright   1994 TU Muenchen
 *)
 
 header{*Quicksort*}
 
 theory Quicksort
-imports Plain Multiset
+imports Main Multiset
 begin
 
 context linorder

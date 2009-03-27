@@ -5,7 +5,7 @@
 header {* Combinator syntax for generic, open state monads (single threaded monads) *}
 
 theory State_Monad
-imports Plain "~~/src/HOL/List"
+imports Main
 begin
 
 subsection {* Motivation *}

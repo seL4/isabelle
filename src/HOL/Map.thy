@@ -1,5 +1,4 @@
 (*  Title:      HOL/Map.thy
-    ID:         $Id$
     Author:     Tobias Nipkow, based on a theory by David von Oheimb
     Copyright   1997-2003 TU Muenchen
 
