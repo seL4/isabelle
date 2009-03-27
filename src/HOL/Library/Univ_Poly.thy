@@ -5,7 +5,7 @@
 header {* Univariate Polynomials *}
 
 theory Univ_Poly
-imports Plain List
+imports Main
 begin
 
 text{* Application of polynomial as a function. *}

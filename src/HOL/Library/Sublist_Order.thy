@@ -1,13 +1,12 @@
 (*  Title:      HOL/Library/Sublist_Order.thy
-    ID:         $Id$
     Authors:    Peter Lammich, Uni Muenster <peter.lammich@uni-muenster.de>
-                Florian Haftmann, TU München
+                Florian Haftmann, TU Muenchen
 *)
 
 header {* Sublist Ordering *}
 
 theory Sublist_Order
-imports Plain "~~/src/HOL/List"
+imports Main
 begin
 
 text {*

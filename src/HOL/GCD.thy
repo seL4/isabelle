@@ -6,7 +6,7 @@
 header {* The Greatest Common Divisor *}
 
 theory GCD
-imports Plain Presburger Main
+imports Main
 begin
 
 text {*

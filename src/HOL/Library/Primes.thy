@@ -6,7 +6,7 @@
 header {* Primality on nat *}
 
 theory Primes
-imports Plain "~~/src/HOL/ATP_Linkup" "~~/src/HOL/GCD" "~~/src/HOL/Parity"
+imports Complex_Main
 begin
 
 definition

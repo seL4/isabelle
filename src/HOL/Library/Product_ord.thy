@@ -1,12 +1,11 @@
 (*  Title:      HOL/Library/Product_ord.thy
-    ID:         $Id$
     Author:     Norbert Voelker
 *)
 
 header {* Order on product types *}
 
 theory Product_ord
-imports Plain
+imports Main
 begin
 
 instantiation "*" :: (ord, ord) ord

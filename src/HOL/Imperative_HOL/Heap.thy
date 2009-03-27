@@ -1,12 +1,11 @@
 (*  Title:      HOL/Library/Heap.thy
-    ID:         $Id$
     Author:     John Matthews, Galois Connections; Alexander Krauss, TU Muenchen
 *)
 
 header {* A polymorphic heap based on cantor encodings *}
 
 theory Heap
-imports Plain "~~/src/HOL/List" Countable Typerep
+imports Main Countable
 begin
 
 subsection {* Representable types *}

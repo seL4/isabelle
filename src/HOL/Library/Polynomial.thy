@@ -6,7 +6,7 @@
 header {* Univariate Polynomials *}
 
 theory Polynomial
-imports Plain SetInterval Main
+imports Main
 begin
 
 subsection {* Definition of type @{text poly} *}
