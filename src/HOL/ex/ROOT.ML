@@ -56,7 +56,6 @@ use_thys [
   "Classical",
   "set",
   "Meson_Test",
-  "Code_Antiq",
   "Termination",
   "Coherent",
   "PresburgerEx",
