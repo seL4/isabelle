@@ -465,7 +465,7 @@ text {*
   & \textit{name} $|$ \textit{attribute} $|$
     \textit{name} \textit{attribute} \\
   \textit{qualifier} & ::=
-  & \textit{name} [``\textbf{!}''] \\[2ex]
+  & \textit{name} [``\textbf{?}'' $|$ ``\textbf{!}''] \\[2ex]
 
   \multicolumn{3}{l}{Context Elements} \\
 
@@ -511,7 +511,7 @@ text {*
   & \textbf{where} \textit{name} ``\textbf{=}'' \textit{term}
   ( \textbf{and} \textit{name} ``\textbf{=}'' \textit{term} )$^*$ \\
   \textit{instance} & ::=
-  & [ \textit{qualifier} \textbf{:} ]
+  & [ \textit{qualifier} ``\textbf{:}'' ]
     \textit{qualified-name} ( \textit{pos-insts} $|$ \textit{named-inst} ) \\
   \textit{expression}  & ::= 
   & \textit{instance} ( ``\textbf{+}'' \textit{instance} )$^*$
