@@ -6,6 +6,7 @@ Test of advanced ML compiler invocation in Poly/ML 5.3.
 
 signature ML_TEST =
 sig
+  val position_of: Proof.context -> PolyML.location -> Position.T
   val eval: bool -> Position.T -> ML_Lex.token list -> unit
 end
 
@@ -33,9 +34,9 @@ fun register_tokens toks context =
       |> Extra_Env.map (fold (fn (i, tok) => Inttab.update (i, ML_Lex.pos_of tok)) regs);
   in (regs, context') end;
 
-fun pos_of_location context
+fun position_of ctxt
     ({file, startLine = line, startPosition = i, endPosition = j, ...}: location) =
-  (case pairself (Inttab.lookup (Extra_Env.get context)) (i, j) of
+  (case pairself (Inttab.lookup (Extra_Env.get (Context.Proof ctxt))) (i, j) of
     (SOME pos1, SOME pos2) => Position.encode_range (pos1, pos2)
   | (SOME pos, NONE) => pos
   | _ => Position.line_file line file);
@@ -45,7 +46,7 @@ fun pos_of_location context
 
 fun report_parse_tree context depth =
   let
-    val pos_of = pos_of_location context;
+    val pos_of = position_of (Context.proof_of context);
     fun report loc (PTtype types) =
           PolyML.NameSpace.displayTypeExpression (types, depth)
           |> pretty_ml |> Pretty.from_ML |> Pretty.string_of
@@ -93,7 +94,8 @@ fun use_text ({name_space = space, print, error, ...}: use_context) verbose pos 
     fun put_message {message, hard, location, context = _} =
      (put (if hard then "Error: " else "Warning: ");
       put (Pretty.string_of (Pretty.from_ML (pretty_ml message)));
-      put (Position.str_of (pos_of_location (the (Context.thread_data ())) location) ^ "\n"));
+      put (Position.str_of
+        (position_of (Context.proof_of (the (Context.thread_data ()))) location) ^ "\n"));
 
 
     (* results *)
