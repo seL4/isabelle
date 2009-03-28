@@ -7,7 +7,7 @@ text {* This is achieved by unfolding suitable equations during
   \isakeyword{where} and require proofs.  The revised command
   that replaces @{text "\<sqsubset>"} by @{text "<"}, is: *}
 
-interpretation %visible nat!: partial_order "op \<le> :: [nat, nat] \<Rightarrow> bool"
+interpretation %visible nat: partial_order "op \<le> :: [nat, nat] \<Rightarrow> bool"
   where "partial_order.less op \<le> (x::nat) y = (x < y)"
 proof -
   txt {* The goals are @{subgoals [display]}

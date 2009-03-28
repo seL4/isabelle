@@ -41,7 +41,7 @@ In the above example, the fact that \isa{{\isasymle}} is a partial
 %
 \isatagvisible
 \isacommand{interpretation}\isamarkupfalse%
-\ nat{\isacharbang}{\isacharcolon}\ partial{\isacharunderscore}order\ {\isachardoublequoteopen}op\ {\isasymle}\ {\isacharcolon}{\isacharcolon}\ nat\ {\isasymRightarrow}\ nat\ {\isasymRightarrow}\ bool{\isachardoublequoteclose}\isanewline
+\ nat{\isacharcolon}\ partial{\isacharunderscore}order\ {\isachardoublequoteopen}op\ {\isasymle}\ {\isacharcolon}{\isacharcolon}\ nat\ {\isasymRightarrow}\ nat\ {\isasymRightarrow}\ bool{\isachardoublequoteclose}\isanewline
 \ \ \isakeyword{where}\ {\isachardoublequoteopen}partial{\isacharunderscore}order{\isachardot}less\ op\ {\isasymle}\ {\isacharparenleft}x{\isacharcolon}{\isacharcolon}nat{\isacharparenright}\ y\ {\isacharequal}\ {\isacharparenleft}x\ {\isacharless}\ y{\isacharparenright}{\isachardoublequoteclose}\isanewline
 \isacommand{proof}\isamarkupfalse%
 \ {\isacharminus}\isanewline
@@ -104,7 +104,7 @@ Further interpretations are necessary to reuse theorems from
 %
 \isatagvisible
 \isacommand{interpretation}\isamarkupfalse%
-\ nat{\isacharbang}{\isacharcolon}\ lattice\ {\isachardoublequoteopen}op\ {\isasymle}\ {\isacharcolon}{\isacharcolon}\ nat\ {\isasymRightarrow}\ nat\ {\isasymRightarrow}\ bool{\isachardoublequoteclose}\isanewline
+\ nat{\isacharcolon}\ lattice\ {\isachardoublequoteopen}op\ {\isasymle}\ {\isacharcolon}{\isacharcolon}\ nat\ {\isasymRightarrow}\ nat\ {\isasymRightarrow}\ bool{\isachardoublequoteclose}\isanewline
 \ \ \isakeyword{where}\ {\isachardoublequoteopen}lattice{\isachardot}meet\ op\ {\isasymle}\ {\isacharparenleft}x{\isacharcolon}{\isacharcolon}nat{\isacharparenright}\ y\ {\isacharequal}\ min\ x\ y{\isachardoublequoteclose}\isanewline
 \ \ \ \ \isakeyword{and}\ {\isachardoublequoteopen}lattice{\isachardot}join\ op\ {\isasymle}\ {\isacharparenleft}x{\isacharcolon}{\isacharcolon}nat{\isacharparenright}\ y\ {\isacharequal}\ max\ x\ y{\isachardoublequoteclose}\isanewline
 \isacommand{proof}\isamarkupfalse%
@@ -174,7 +174,7 @@ That the relation \isa{{\isasymle}} is a total order completes this
 %
 \isatagvisible
 \isacommand{interpretation}\isamarkupfalse%
-\ nat{\isacharbang}{\isacharcolon}\ total{\isacharunderscore}order\ {\isachardoublequoteopen}op\ {\isasymle}\ {\isacharcolon}{\isacharcolon}\ nat\ {\isasymRightarrow}\ nat\ {\isasymRightarrow}\ bool{\isachardoublequoteclose}\isanewline
+\ nat{\isacharcolon}\ total{\isacharunderscore}order\ {\isachardoublequoteopen}op\ {\isasymle}\ {\isacharcolon}{\isacharcolon}\ nat\ {\isasymRightarrow}\ nat\ {\isasymRightarrow}\ bool{\isachardoublequoteclose}\isanewline
 \ \ \isacommand{by}\isamarkupfalse%
 \ unfold{\isacharunderscore}locales\ arith%
 \endisatagvisible
@@ -285,7 +285,7 @@ Note that in Isabelle/HOL there is no symbol for strict
 \end{isamarkuptext}%
 \isamarkuptrue%
 \isacommand{interpretation}\isamarkupfalse%
-\ nat{\isacharunderscore}dvd{\isacharbang}{\isacharcolon}\ lattice\ {\isachardoublequoteopen}op\ dvd\ {\isacharcolon}{\isacharcolon}\ nat\ {\isasymRightarrow}\ nat\ {\isasymRightarrow}\ bool{\isachardoublequoteclose}\isanewline
+\ nat{\isacharunderscore}dvd{\isacharcolon}\ lattice\ {\isachardoublequoteopen}op\ dvd\ {\isacharcolon}{\isacharcolon}\ nat\ {\isasymRightarrow}\ nat\ {\isasymRightarrow}\ bool{\isachardoublequoteclose}\isanewline
 \ \ \isakeyword{where}\ nat{\isacharunderscore}dvd{\isacharunderscore}meet{\isacharunderscore}eq{\isacharcolon}\isanewline
 \ \ \ \ \ \ {\isachardoublequoteopen}lattice{\isachardot}meet\ op\ dvd\ {\isacharequal}\ gcd{\isachardoublequoteclose}\isanewline
 \ \ \ \ \isakeyword{and}\ nat{\isacharunderscore}dvd{\isacharunderscore}join{\isacharunderscore}eq{\isacharcolon}\isanewline
@@ -381,7 +381,7 @@ Equations \isa{nat{\isacharunderscore}dvd{\isacharunderscore}meet{\isacharunders
 %
 \isatagvisible
 \isacommand{interpretation}\isamarkupfalse%
-\ nat{\isacharunderscore}dvd{\isacharbang}{\isacharcolon}\isanewline
+\ nat{\isacharunderscore}dvd{\isacharcolon}\isanewline
 \ \ distrib{\isacharunderscore}lattice\ {\isachardoublequoteopen}op\ dvd\ {\isacharcolon}{\isacharcolon}\ nat\ {\isasymRightarrow}\ nat\ {\isasymRightarrow}\ bool{\isachardoublequoteclose}\isanewline
 \ \ \isacommand{apply}\isamarkupfalse%
 \ unfold{\isacharunderscore}locales%
@@ -493,10 +493,13 @@ The second and third line contain the expression --- two
   instances in the order of the sequence.
 
   The qualifiers in the expression are already a familiar concept from
-  the \isakeyword{interpretation} command.  They serve to distinguish
-  names (in particular theorem names) for the two partial orders
-  within the locale.  Qualifiers in the \isakeyword{locale} command
-  default to optional.  Here are examples of theorems in locale \isa{order{\isacharunderscore}preserving}:%
+  the \isakeyword{interpretation} command
+  (Section~\ref{sec:po-first}).  Here, they serve to distinguish names
+  (in particular theorem names) for the two partial orders within the
+  locale.  Qualifiers in the \isakeyword{locale} command (and in
+  \isakeyword{sublocale}) default to optional --- that is, they need
+  not occur in references to the qualified names.  Here are examples
+  of theorems in locale \isa{order{\isacharunderscore}preserving}:%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -610,7 +613,7 @@ A homomorphism is an endomorphism if both orders coincide.%
 \ lattice{\isacharunderscore}end\ {\isacharequal}\ lattice{\isacharunderscore}hom\ {\isacharunderscore}\ le%
 \begin{isamarkuptext}%
 In this declaration, the first parameter of \isa{lattice{\isacharunderscore}hom}, \isa{le}, is untouched and then used to instantiate
-  the second parameter.  Its concrete syntax is preseverd.%
+  the second parameter.  Its concrete syntax is preserved.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %

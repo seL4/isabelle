@@ -14,7 +14,7 @@ text {* In the above example, the fact that @{text \<le>} is a partial
   \isakeyword{interpret}).  This interpretation is inside the proof of the global
   interpretation.  The third revision of the example illustrates this.  *}
 
-interpretation %visible nat!: partial_order "op \<le> :: nat \<Rightarrow> nat \<Rightarrow> bool"
+interpretation %visible nat: partial_order "op \<le> :: nat \<Rightarrow> nat \<Rightarrow> bool"
   where "partial_order.less op \<le> (x::nat) y = (x < y)"
 proof -
   show "partial_order (op \<le> :: nat \<Rightarrow> nat \<Rightarrow> bool)"
@@ -48,7 +48,7 @@ text {* Further interpretations are necessary to reuse theorems from
   interpretation is reproduced in order to give an example of a more
   elaborate interpretation proof.  *}
 
-interpretation %visible nat!: lattice "op \<le> :: nat \<Rightarrow> nat \<Rightarrow> bool"
+interpretation %visible nat: lattice "op \<le> :: nat \<Rightarrow> nat \<Rightarrow> bool"
   where "lattice.meet op \<le> (x::nat) y = min x y"
     and "lattice.join op \<le> (x::nat) y = max x y"
 proof -
@@ -73,7 +73,7 @@ qed
 text {* That the relation @{text \<le>} is a total order completes this
   sequence of interpretations. *}
 
-interpretation %visible nat!: total_order "op \<le> :: nat \<Rightarrow> nat \<Rightarrow> bool"
+interpretation %visible nat: total_order "op \<le> :: nat \<Rightarrow> nat \<Rightarrow> bool"
   by unfold_locales arith
 
 text {* Theorems that are available in the theory at this point are shown in
@@ -146,7 +146,7 @@ text {* Note that in Isabelle/HOL there is no symbol for strict
   divisibility.  Instead, interpretation substitutes @{term "x dvd y \<and>
   x \<noteq> y"}.  *}
 
-interpretation nat_dvd!: lattice "op dvd :: nat \<Rightarrow> nat \<Rightarrow> bool"
+interpretation nat_dvd: lattice "op dvd :: nat \<Rightarrow> nat \<Rightarrow> bool"
   where nat_dvd_meet_eq:
       "lattice.meet op dvd = gcd"
     and nat_dvd_join_eq:
@@ -199,7 +199,7 @@ thm mult_is_0 [THEN iffD1]
 lemma %invisible gcd_lcm_distr:
   "gcd x (lcm y z) = lcm (gcd x y) (gcd x z)" sorry
 
-interpretation %visible nat_dvd!:
+interpretation %visible nat_dvd:
   distrib_lattice "op dvd :: nat \<Rightarrow> nat \<Rightarrow> bool"
   apply unfold_locales
   txt {* @{subgoals [display]} *}
@@ -284,11 +284,13 @@ text {* The second and third line contain the expression --- two
   instances in the order of the sequence.
 
   The qualifiers in the expression are already a familiar concept from
-  the \isakeyword{interpretation} command.  They serve to distinguish
-  names (in particular theorem names) for the two partial orders
-  within the locale.  Qualifiers in the \isakeyword{locale} command
-  default to optional.  Here are examples of theorems in locale @{text
-  order_preserving}: *}
+  the \isakeyword{interpretation} command
+  (Section~\ref{sec:po-first}).  Here, they serve to distinguish names
+  (in particular theorem names) for the two partial orders within the
+  locale.  Qualifiers in the \isakeyword{locale} command (and in
+  \isakeyword{sublocale}) default to optional --- that is, they need
+  not occur in references to the qualified names.  Here are examples
+  of theorems in locale @{text order_preserving}: *}
 
 context %invisible order_preserving begin
 
@@ -359,7 +361,7 @@ text {* A homomorphism is an endomorphism if both orders coincide. *}
 
 text {* In this declaration, the first parameter of @{text
   lattice_hom}, @{text le}, is untouched and then used to instantiate
-  the second parameter.  Its concrete syntax is preseverd. *}
+  the second parameter.  Its concrete syntax is preserved. *}
 
 
 text {* The inheritance diagram of the situation we have now is shown

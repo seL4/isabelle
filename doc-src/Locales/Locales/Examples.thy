@@ -252,7 +252,8 @@ text {* Two commands are provided to inspect locales:
   additionally outputs the conclusions.
 
   The syntax of the locale commands discussed in this tutorial is
-  shown in Table~\ref{tab:commands}.  See the
+  shown in Table~\ref{tab:commands}.  The grammer is complete with the
+  exception of additional context elements not discussed here.  See the
   Isabelle/Isar Reference Manual~\cite{IsarRef}
   for full documentation.  *}
 
