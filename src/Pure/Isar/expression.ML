@@ -654,13 +654,13 @@ in
 
 fun define_preds pname parms (((exts, exts'), (ints, ints')), defs) thy =
   let
-    val defs' = map (cterm_of thy #> Assumption.assume #> Drule.gen_all #> Drule.abs_def) defs;
+    val defs' = map (cterm_of thy #> Assumption.assume #> Drule.abs_def) defs;
 
     val (a_pred, a_intro, a_axioms, thy'') =
       if null exts then (NONE, NONE, [], thy)
       else
         let
-          val aname = if null ints then pname else Binding.suffix_name ("_" ^ axiomsN) pname
+          val aname = if null ints then pname else Binding.suffix_name ("_" ^ axiomsN) pname;
           val ((statement, intro, axioms), thy') =
             thy
             |> def_pred aname parms defs' exts exts';
