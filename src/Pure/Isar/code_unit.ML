@@ -325,19 +325,18 @@ fun assert_eqn thy thm =
     val (lhs, rhs) = (Logic.dest_equals o Thm.plain_prop_of) thm
       handle TERM _ => bad_thm ("Not an equation: " ^ Display.string_of_thm thm)
           | THM _ => bad_thm ("Not an equation: " ^ Display.string_of_thm thm);
-    fun vars_of t = fold_aterms
-     (fn Var (v, _) => insert (op =) v
-       | Free _ => bad_thm ("Illegal free variable in rewrite theorem\n"
-           ^ Display.string_of_thm thm)
-       | _ => I) t [];
-    fun tvars_of t = fold_term_types
-     (fn _ => fold_atyps (fn TVar (v, _) => insert (op =) v
-                          | TFree _ => bad_thm 
+    fun vars_of t = fold_aterms (fn Var (v, _) => insert (op =) v
+      | Free _ => bad_thm ("Illegal free variable in rewrite theorem\n"
+          ^ Display.string_of_thm thm)
+      | _ => I) t [];
+    fun tvars_of t = fold_term_types (fn _ =>
+      fold_atyps (fn TVar (v, _) => insert (op =) v
+        | TFree _ => bad_thm 
       ("Illegal free type variable in rewrite theorem\n" ^ Display.string_of_thm thm))) t [];
     val lhs_vs = vars_of lhs;
     val rhs_vs = vars_of rhs;
     val lhs_tvs = tvars_of lhs;
-    val rhs_tvs = tvars_of lhs;
+    val rhs_tvs = tvars_of rhs;
     val _ = if null (subtract (op =) lhs_vs rhs_vs)
       then ()
       else bad_thm ("Free variables on right hand side of rewrite theorem\n"
