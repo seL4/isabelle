@@ -11,7 +11,10 @@ plugin.isabelle.jedit.Plugin.description=Isabelle/Isar live document editing
 #system parameters
 # jEdit only needs to load the plugin the first time the user accesses it
 # the presence of this property (activate=defer) also tells jEdit the plugin is using the new API
-plugin.isabelle.jedit.Plugin.activate=defer
+# plugin.isabelle.jedit.Plugin.activate=defer
+#
+# for some reasons, activate=defer does not work when jEdit is run from Netbeans
+plugin.isabelle.jedit.Plugin.activate=startup
 plugin.isabelle.jedit.Plugin.usePluginHome=false
 plugin.isabelle.jedit.Plugin.jars=Pure.jar core-renderer.jar scala-library.jar
 
