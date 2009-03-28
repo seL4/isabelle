@@ -306,7 +306,7 @@ fun init_global_elem (Notes (kind, facts)) thy =
   in PureThy.note_thmss kind facts' thy |> snd end
 
 fun init_local_elem (Fixes fixes) ctxt = ctxt |>
-      ProofContext.add_fixes_i fixes |> snd
+      ProofContext.add_fixes fixes |> snd
   | init_local_elem (Assumes assms) ctxt =
       let
         val assms' = Attrib.map_specs (Attrib.attribute_i (ProofContext.theory_of ctxt)) assms

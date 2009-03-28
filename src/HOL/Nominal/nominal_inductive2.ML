@@ -181,7 +181,7 @@ fun prove_strong_ind s avoids ctxt =
       | xs => error ("No such case(s) in inductive definition: " ^ commas_quote xs));
     fun mk_avoids params name sets =
       let
-        val (_, ctxt') = ProofContext.add_fixes_i
+        val (_, ctxt') = ProofContext.add_fixes
           (map (fn (s, T) => (Binding.name s, SOME T, NoSyn)) params) ctxt;
         fun mk s =
           let

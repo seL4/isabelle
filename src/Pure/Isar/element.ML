@@ -486,7 +486,7 @@ fun transfer_morphism thy =
 local
 
 fun activate_elem (Fixes fixes) ctxt =
-      ctxt |> ProofContext.add_fixes_i fixes |> snd
+      ctxt |> ProofContext.add_fixes fixes |> snd
   | activate_elem (Constrains _) ctxt =
       ctxt
   | activate_elem (Assumes asms) ctxt =

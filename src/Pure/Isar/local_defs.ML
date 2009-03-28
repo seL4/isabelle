@@ -96,7 +96,7 @@ fun add_defs defs ctxt =
     val lhss = map (fst o Logic.dest_equals) eqs;
   in
     ctxt
-    |> ProofContext.add_fixes_i (map2 (fn x => fn mx => (x, NONE, mx)) bvars mxs) |> #2
+    |> ProofContext.add_fixes (map2 (fn x => fn mx => (x, NONE, mx)) bvars mxs) |> #2
     |> fold Variable.declare_term eqs
     |> ProofContext.add_assms_i def_export
       (map2 (fn a => fn eq => (a, [(eq, [])])) (names ~~ atts) eqs)
@@ -115,7 +115,7 @@ fun fixed_abbrev ((x, mx), rhs) ctxt =
     val T = Term.fastype_of rhs;
     val ([x'], ctxt') = ctxt
       |> Variable.declare_term rhs
-      |> ProofContext.add_fixes_i [(x, SOME T, mx)];
+      |> ProofContext.add_fixes [(x, SOME T, mx)];
     val lhs = Free (x', T);
     val _ = cert_def ctxt' (Logic.mk_equals (lhs, rhs));
     fun abbrev_export _ _ = (I, Envir.expand_term_frees [((x', T), rhs)]);

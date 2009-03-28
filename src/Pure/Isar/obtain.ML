@@ -118,7 +118,7 @@ fun gen_obtain prep_att prep_vars prep_propp
 
     (*obtain vars*)
     val (vars, vars_ctxt) = prep_vars raw_vars ctxt;
-    val (_, fix_ctxt) = vars_ctxt |> ProofContext.add_fixes_i vars;
+    val (_, fix_ctxt) = vars_ctxt |> ProofContext.add_fixes vars;
     val xs = map (Name.of_binding o #1) vars;
 
     (*obtain asms*)

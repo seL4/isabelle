@@ -271,7 +271,7 @@ end;
 
 fun declare_elem prep_vars (Fixes fixes) ctxt =
       let val (vars, _) = prep_vars fixes ctxt
-      in ctxt |> ProofContext.add_fixes_i vars |> snd end
+      in ctxt |> ProofContext.add_fixes vars |> snd end
   | declare_elem prep_vars (Constrains csts) ctxt =
       ctxt |> prep_vars (map (fn (x, T) => (Binding.name x, SOME T, NoSyn)) csts) |> snd
   | declare_elem _ (Assumes _) ctxt = ctxt
@@ -368,7 +368,7 @@ fun prep_full_context_statement parse_typ parse_prop prep_vars_elem prep_inst pr
       in check_autofix insts elems concl ctxt end;
 
     val fors = prep_vars_inst fixed ctxt1 |> fst;
-    val ctxt2 = ctxt1 |> ProofContext.add_fixes_i fors |> snd;
+    val ctxt2 = ctxt1 |> ProofContext.add_fixes fors |> snd;
     val (_, insts', ctxt3) = fold prep_insts raw_insts (0, [], ctxt2);
     val ctxt4 = init_body ctxt3;
     val (elems, ctxt5) = fold (prep_elem insts') raw_elems ([], ctxt4);
@@ -426,7 +426,7 @@ end;
 (* Locale declaration: import + elements *)
 
 fun fix_params params =
-  ProofContext.add_fixes_i (map (fn ((x, T), mx) => (Binding.name x, SOME T, mx)) params) #> snd;
+  ProofContext.add_fixes (map (fn ((x, T), mx) => (Binding.name x, SOME T, mx)) params) #> snd;
 
 local
 

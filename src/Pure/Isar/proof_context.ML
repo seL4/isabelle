@@ -108,10 +108,8 @@ sig
     (binding * typ option * mixfix) list * Proof.context
   val cert_vars: (binding * typ option * mixfix) list -> Proof.context ->
     (binding * typ option * mixfix) list * Proof.context
-  val add_fixes: (binding * string option * mixfix) list ->
-    Proof.context -> string list * Proof.context
-  val add_fixes_i: (binding * typ option * mixfix) list ->
-    Proof.context -> string list * Proof.context
+  val add_fixes: (binding * typ option * mixfix) list -> Proof.context ->
+    string list * Proof.context
   val auto_fixes: Proof.context * (term list list * 'a) -> Proof.context * (term list list * 'a)
   val bind_fixes: string list -> Proof.context -> (term -> term) * Proof.context
   val add_assms: Assumption.export ->
@@ -1105,9 +1103,11 @@ fun prep_mixfix (x, T, mx) =
     error ("Illegal mixfix syntax for internal/skolem constant " ^ quote x)
   else (true, (x, T, mx));
 
-fun gen_fixes prep raw_vars ctxt =
+in
+
+fun add_fixes raw_vars ctxt =
   let
-    val (vars, _) = prep raw_vars ctxt;
+    val (vars, _) = cert_vars raw_vars ctxt;
     val (xs', ctxt') = Variable.add_fixes (map (Name.of_binding o #1) vars) ctxt;
     val ctxt'' =
       ctxt'
@@ -1116,11 +1116,6 @@ fun gen_fixes prep raw_vars ctxt =
     val _ = (vars ~~ xs') |> List.app (fn ((b, _, _), x') =>
       ContextPosition.report_visible ctxt (Markup.fixed_decl x') (Binding.pos_of b));
   in (xs', ctxt'') end;
-
-in
-
-val add_fixes = gen_fixes read_vars;
-val add_fixes_i = gen_fixes cert_vars;
 
 end;
 
@@ -1132,7 +1127,7 @@ fun auto_fixes (arg as (ctxt, (propss, x))) =
 
 fun bind_fixes xs ctxt =
   let
-    val (_, ctxt') = ctxt |> add_fixes_i (map (fn x => (Binding.name x, NONE, NoSyn)) xs);
+    val (_, ctxt') = ctxt |> add_fixes (map (fn x => (Binding.name x, NONE, NoSyn)) xs);
     fun bind (t as Free (x, T)) =
           if member (op =) xs x then
             (case lookup_skolem ctxt' x of SOME x' => Free (x', T) | NONE => t)
