@@ -70,8 +70,7 @@ sig
   val export: Proof.context -> Proof.context -> thm list -> thm list
   val export_morphism: Proof.context -> Proof.context -> morphism
   val norm_export_morphism: Proof.context -> Proof.context -> morphism
-  val add_binds: (indexname * string option) list -> Proof.context -> Proof.context
-  val add_binds_i: (indexname * term option) list -> Proof.context -> Proof.context
+  val bind_terms: (indexname * term option) list -> Proof.context -> Proof.context
   val auto_bind_goal: term list -> Proof.context -> Proof.context
   val auto_bind_facts: term list -> Proof.context -> Proof.context
   val match_bind: bool -> (string list * string) list -> Proof.context -> term list * Proof.context
@@ -775,7 +774,7 @@ fun norm_export_morphism inner outer =
 
 
 
-(** bindings **)
+(** term bindings **)
 
 (* simult_matches *)
 
@@ -785,27 +784,22 @@ fun simult_matches ctxt (t, pats) =
   | SOME (env, _) => map (apsnd snd) (Envir.alist_of env));
 
 
-(* add_binds(_i) *)
+(* bind_terms *)
 
-local
-
-fun gen_bind prep (xi as (x, _), raw_t) ctxt =
+val bind_terms = fold (fn (xi, t) => fn ctxt =>
   ctxt
-  |> Variable.add_binds [(xi, Option.map (prep (set_mode mode_default ctxt)) raw_t)];
+  |> Variable.bind_term (xi, Option.map (cert_term (set_mode mode_default ctxt)) t));
 
-in
+
+(* auto_bind *)
 
 fun drop_schematic (b as (xi, SOME t)) = if Term.exists_subterm is_Var t then (xi, NONE) else b
   | drop_schematic b = b;
 
-val add_binds = fold (gen_bind Syntax.read_term);
-val add_binds_i = fold (gen_bind cert_term);
+fun auto_bind f ts ctxt = ctxt |> bind_terms (map drop_schematic (f (theory_of ctxt) ts));
 
-fun auto_bind f ts ctxt = ctxt |> add_binds_i (map drop_schematic (f (theory_of ctxt) ts));
 val auto_bind_goal = auto_bind AutoBind.goal;
 val auto_bind_facts = auto_bind AutoBind.facts;
-
-end;
 
 
 (* match_bind(_i) *)
@@ -831,8 +825,8 @@ fun gen_bind prep_terms gen raw_binds ctxt =
     val ctxt'' =
       tap (Variable.warn_extra_tfrees ctxt)
        (if gen then
-          ctxt (*sic!*) |> fold Variable.declare_term (map #2 binds') |> add_binds_i binds''
-        else ctxt' |> add_binds_i binds'');
+          ctxt (*sic!*) |> fold Variable.declare_term (map #2 binds') |> bind_terms binds''
+        else ctxt' |> bind_terms binds'');
   in (ts, ctxt'') end;
 
 in
@@ -868,8 +862,8 @@ fun gen_bind_propp mode parse_prop (ctxt, raw_args) =
 
     (*generalize result: context evaluated now, binds added later*)
     val gen = Variable.exportT_terms ctxt' ctxt;
-    fun gen_binds c = c |> add_binds_i (map #1 binds ~~ map SOME (gen (map #2 binds)));
-  in (ctxt' |> add_binds_i (map (apsnd SOME) binds), (propss, gen_binds)) end;
+    fun gen_binds c = c |> bind_terms (map #1 binds ~~ map SOME (gen (map #2 binds)));
+  in (ctxt' |> bind_terms (map (apsnd SOME) binds), (propss, gen_binds)) end;
 
 in
 
@@ -1221,7 +1215,7 @@ fun case_result c ctxt =
     val RuleCases.Case {assumes, binds, cases, ...} = RuleCases.apply ts c;
   in
     ctxt'
-    |> add_binds_i (map drop_schematic binds)
+    |> bind_terms (map drop_schematic binds)
     |> add_cases true (map (apsnd SOME) cases)
     |> pair (assumes, (binds, cases))
   end;

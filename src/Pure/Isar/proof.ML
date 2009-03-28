@@ -17,7 +17,7 @@ sig
   val theory_of: state -> theory
   val map_context: (context -> context) -> state -> state
   val map_contexts: (context -> context) -> state -> state
-  val add_binds_i: (indexname * term option) list -> state -> state
+  val bind_terms: (indexname * term option) list -> state -> state
   val put_thms: bool -> string * thm list option -> state -> state
   val the_facts: state -> thm list
   val the_fact: state -> thm
@@ -204,7 +204,7 @@ fun map_context_result f state =
 
 fun map_contexts f = map_all (fn (ctxt, facts, mode, goal) => (f ctxt, facts, mode, goal));
 
-val add_binds_i = map_context o ProofContext.add_binds_i;
+val bind_terms = map_context o ProofContext.bind_terms;
 val put_thms = map_context oo ProofContext.put_thms;
 
 
@@ -695,7 +695,7 @@ fun gen_invoke_case prep_att (name, xs, raw_atts) state =
   in
     state'
     |> assume_i assumptions
-    |> add_binds_i AutoBind.no_facts
+    |> bind_terms AutoBind.no_facts
     |> `the_facts |-> (fn thms => note_thmss_i [((Binding.name name, []), [(thms, [])])])
   end;
 

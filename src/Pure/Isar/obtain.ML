@@ -294,7 +294,7 @@ fun gen_guess prep_vars raw_vars int state =
         |> Proof.fix_i (map (fn ((x, T), mx) => (Binding.name x, SOME T, mx)) parms)
         |> `Proof.context_of |-> (fn fix_ctxt => Proof.assm_i
           (obtain_export fix_ctxt rule (map cert ts)) [(Thm.empty_binding, asms)])
-        |> Proof.add_binds_i AutoBind.no_facts
+        |> Proof.bind_terms AutoBind.no_facts
       end;
 
     val goal = Var (("guess", 0), propT);
