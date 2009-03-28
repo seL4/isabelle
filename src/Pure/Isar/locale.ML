@@ -325,7 +325,7 @@ fun init_local_elem (Fixes fixes) ctxt = ctxt |>
   | init_local_elem (Notes (kind, facts)) ctxt =
       let
         val facts' = Attrib.map_facts (Attrib.attribute_i (ProofContext.theory_of ctxt)) facts
-      in ProofContext.note_thmss_i kind facts' ctxt |> snd end
+      in ProofContext.note_thmss kind facts' ctxt |> snd end
 
 fun cons_elem false (Notes notes) elems = elems
   | cons_elem _ elem elems = elem :: elems

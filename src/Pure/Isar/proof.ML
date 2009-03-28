@@ -623,7 +623,7 @@ local
 fun gen_thmss more_facts opt_chain opt_result prep_atts prep_fact args state =
   state
   |> assert_forward
-  |> map_context_result (ProofContext.note_thmss_i ""
+  |> map_context_result (ProofContext.note_thmss ""
     (Attrib.map_facts_refs (prep_atts (theory_of state)) (prep_fact (context_of state)) args))
   |> these_factss (more_facts state)
   ||> opt_chain
@@ -655,7 +655,7 @@ fun gen_using f g prep_atts prep_fact args state =
   state
   |> assert_backward
   |> map_context_result
-    (ProofContext.note_thmss_i ""
+    (ProofContext.note_thmss ""
       (Attrib.map_facts_refs (prep_atts (theory_of state)) (prep_fact (context_of state))
         (no_binding args)))
   |> (fn (named_facts, state') =>

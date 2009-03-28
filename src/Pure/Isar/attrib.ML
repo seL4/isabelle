@@ -123,7 +123,7 @@ fun attribute_i thy =
 
 fun attribute thy = attribute_i thy o intern_src thy;
 
-fun eval_thms ctxt args = ProofContext.note_thmss_i Thm.theoremK
+fun eval_thms ctxt args = ProofContext.note_thmss Thm.theoremK
     [(Thm.empty_binding, args |> map (fn (a, atts) =>
         (ProofContext.get_fact ctxt a, map (attribute (ProofContext.theory_of ctxt)) atts)))] ctxt
   |> fst |> maps snd;

@@ -327,7 +327,7 @@ fun prep_statement prep_att prep_stmt elems concl ctxt =
         val (facts, goal_ctxt) = elems_ctxt
           |> (snd o ProofContext.add_fixes_i [(Binding.name AutoBind.thesisN, NONE, NoSyn)])
           |> fold_map assume_case (obtains ~~ propp)
-          |-> (fn ths => ProofContext.note_thmss_i Thm.assumptionK
+          |-> (fn ths => ProofContext.note_thmss Thm.assumptionK
                 [((Binding.name Obtain.thatN, []), [(ths, [])])] #> #2 #> pair ths);
       in ((prems, stmt, facts), goal_ctxt) end);
 
@@ -370,7 +370,7 @@ fun gen_theorem prep_att prep_stmt
       end;
   in
     goal_ctxt
-    |> ProofContext.note_thmss_i Thm.assumptionK
+    |> ProofContext.note_thmss Thm.assumptionK
       [((Binding.name AutoBind.assmsN, []), [(prems, [])])]
     |> snd
     |> Proof.theorem_i before_qed after_qed' (map snd stmt)

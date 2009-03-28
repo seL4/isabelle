@@ -156,9 +156,9 @@ fun gen_termination_proof prep_term raw_term_opt lthy =
         val goal = HOLogic.mk_Trueprop (HOLogic.mk_all ("x", domT, mk_acc domT R $ Free ("x", domT)))
     in
       lthy
-        |> ProofContext.note_thmss_i "" [((Binding.empty, [ContextRules.rule_del]), [([allI], [])])] |> snd
-        |> ProofContext.note_thmss_i "" [((Binding.empty, [ContextRules.intro_bang (SOME 1)]), [([allI], [])])] |> snd
-        |> ProofContext.note_thmss_i ""
+        |> ProofContext.note_thmss "" [((Binding.empty, [ContextRules.rule_del]), [([allI], [])])] |> snd
+        |> ProofContext.note_thmss "" [((Binding.empty, [ContextRules.intro_bang (SOME 1)]), [([allI], [])])] |> snd
+        |> ProofContext.note_thmss ""
           [((Binding.name "termination", [ContextRules.intro_bang (SOME 0)]),
             [([Goal.norm_result termination], [])])] |> snd
         |> Proof.theorem_i NONE (total_termination_afterqed data) [[(goal, [])]]

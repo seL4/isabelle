@@ -101,9 +101,7 @@ sig
   val mandatory_path: string -> Proof.context -> Proof.context
   val restore_naming: Proof.context -> Proof.context -> Proof.context
   val reset_naming: Proof.context -> Proof.context
-  val note_thmss: string -> (Thm.binding * (Facts.ref * attribute list) list) list ->
-    Proof.context -> (string * thm list) list * Proof.context
-  val note_thmss_i: string -> (Thm.binding * (thm list * attribute list) list) list ->
+  val note_thmss: string -> (Thm.binding * (thm list * attribute list) list) list ->
     Proof.context -> (string * thm list) list * Proof.context
   val put_thms: bool -> string * thm list option -> Proof.context -> Proof.context
   val read_vars: (binding * string option * mixfix) list -> Proof.context ->
@@ -959,24 +957,22 @@ fun update_thms _ (b, NONE) ctxt = ctxt |> map_facts (Facts.del (full_name ctxt 
   | update_thms do_props (b, SOME ths) ctxt = ctxt |> map_facts
       (Facts.add_local do_props (naming_of ctxt) (b, ths) #> snd);
 
-fun gen_note_thmss get k = fold_map (fn ((b, more_attrs), raw_facts) => fn ctxt =>
+in
+
+fun note_thmss kind = fold_map (fn ((b, more_attrs), raw_facts) => fn ctxt =>
   let
     val pos = Binding.pos_of b;
     val name = full_name ctxt b;
     val _ = ContextPosition.report_visible ctxt (Markup.local_fact_decl name) pos;
 
-    val facts = PureThy.name_thmss false pos name (map (apfst (get ctxt)) raw_facts);
+    val facts = PureThy.name_thmss false pos name raw_facts;
     fun app (th, attrs) x =
-      swap (Library.foldl_map (Thm.proof_attributes (surround (Thm.kind k) (attrs @ more_attrs))) (x, th));
+      swap (Library.foldl_map
+        (Thm.proof_attributes (surround (Thm.kind kind) (attrs @ more_attrs))) (x, th));
     val (res, ctxt') = fold_map app facts ctxt;
     val thms = PureThy.name_thms false false pos name (flat res);
     val Mode {stmt, ...} = get_mode ctxt;
   in ((name, thms), ctxt' |> update_thms stmt (b, SOME thms)) end);
-
-in
-
-fun note_thmss k = gen_note_thmss get_fact k;
-fun note_thmss_i k = gen_note_thmss (K I) k;
 
 fun put_thms do_props thms ctxt = ctxt
   |> map_naming (K local_naming)
@@ -1161,7 +1157,7 @@ fun gen_assms prepp exp args ctxt =
   in
     ctxt2
     |> auto_bind_facts (flat propss)
-    |> note_thmss_i Thm.assumptionK (map fst args ~~ map (map (fn th => ([th], []))) premss)
+    |> note_thmss Thm.assumptionK (map fst args ~~ map (map (fn th => ([th], []))) premss)
   end;
 
 in

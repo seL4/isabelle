@@ -510,7 +510,7 @@ fun activate_elem (Fixes fixes) ctxt =
   | activate_elem (Notes (kind, facts)) ctxt =
       let
         val facts' = Attrib.map_facts (Attrib.attribute_i (ProofContext.theory_of ctxt)) facts;
-        val (res, ctxt') = ctxt |> ProofContext.note_thmss_i kind facts';
+        val (res, ctxt') = ctxt |> ProofContext.note_thmss kind facts';
       in ctxt' end;
 
 fun gen_activate prep_facts raw_elems ctxt =
