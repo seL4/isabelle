@@ -20,14 +20,14 @@ sig
 
   (* Declaring locales *)
   val cert_declaration: expression_i -> (Proof.context -> Proof.context) -> Element.context_i list ->
-    Proof.context -> ((binding * typ option * mixfix) list * (string * morphism) list
+    Proof.context -> (((string * typ) * mixfix) list * (string * morphism) list
       * Element.context_i list) * ((string * typ) list * Proof.context)
   val cert_read_declaration: expression_i -> (Proof.context -> Proof.context) -> Element.context list ->
-    Proof.context -> ((binding * typ option * mixfix) list * (string * morphism) list
+    Proof.context -> (((string * typ) * mixfix) list * (string * morphism) list
       * Element.context_i list) * ((string * typ) list * Proof.context)
       (*FIXME*)
   val read_declaration: expression -> (Proof.context -> Proof.context) -> Element.context list ->
-    Proof.context -> ((binding * typ option * mixfix) list * (string * morphism) list
+    Proof.context -> (((string * typ) * mixfix) list * (string * morphism) list
       * Element.context_i list) * ((string * typ) list * Proof.context)
   val add_locale: binding -> binding -> expression_i -> Element.context_i list ->
     theory -> string * local_theory
@@ -80,22 +80,17 @@ fun intern thy instances =  map (apfst (Locale.intern thy)) instances;
 fun parameters_of thy strict (expr, fixed) =
   let
     fun reject_dups message xs =
-      let val dups = duplicates (op =) xs
-      in
-        if null dups then () else error (message ^ commas dups)
-      end;
+      (case duplicates (op =) xs of
+        [] => ()
+      | dups => error (message ^ commas dups));
 
-    fun match_bind (n, b) = (n = Binding.name_of b);
-    fun parm_eq ((b1, mx1: mixfix), (b2, mx2)) =
-      Binding.eq_name (b1, b2) andalso
-        (mx1 = mx2 orelse
-          error ("Conflicting syntax for parameter " ^ quote (Binding.str_of b1) ^ " in expression"));
+    fun parm_eq ((p1: string, mx1: mixfix), (p2, mx2)) = p1 = p2 andalso
+      (mx1 = mx2 orelse error ("Conflicting syntax for parameter " ^ quote p1 ^ " in expression"));
 
-    fun params_loc loc =
-      (Locale.params_of thy loc |> map (fn (p, _, mx) => (p, mx)), loc);
+    fun params_loc loc = Locale.params_of thy loc |> map (apfst #1);
     fun params_inst (expr as (loc, (prfx, Positional insts))) =
           let
-            val (ps, loc') = params_loc loc;
+            val ps = params_loc loc;
             val d = length ps - length insts;
             val insts' =
               if d < 0 then error ("More arguments than parameters in instantiation of locale " ^
@@ -103,17 +98,17 @@ fun parameters_of thy strict (expr, fixed) =
               else insts @ replicate d NONE;
             val ps' = (ps ~~ insts') |>
               map_filter (fn (p, NONE) => SOME p | (_, SOME _) => NONE);
-          in (ps', (loc', (prfx, Positional insts'))) end
+          in (ps', (loc, (prfx, Positional insts'))) end
       | params_inst (expr as (loc, (prfx, Named insts))) =
           let
             val _ = reject_dups "Duplicate instantiation of the following parameter(s): "
               (map fst insts);
 
-            val (ps, loc') = params_loc loc;
+            val ps = params_loc loc;
             val ps' = fold (fn (p, _) => fn ps =>
-              if AList.defined match_bind ps p then AList.delete match_bind p ps
-              else error (quote p ^" not a parameter of instantiated expression.")) insts ps;
-          in (ps', (loc', (prfx, Named insts))) end;
+              if AList.defined (op =) ps p then AList.delete (op =) p ps
+              else error (quote p ^ " not a parameter of instantiated expression")) insts ps;
+          in (ps', (loc, (prfx, Named insts))) end;
     fun params_expr is =
           let
             val (is', ps') = fold_map (fn i => fn ps =>
@@ -125,7 +120,7 @@ fun parameters_of thy strict (expr, fixed) =
 
     val (implicit, expr') = params_expr expr;
 
-    val implicit' = map (#1 #> Name.of_binding) implicit;
+    val implicit' = map #1 implicit;
     val fixed' = map (#1 #> Name.of_binding) fixed;
     val _ = reject_dups "Duplicate fixed parameter(s): " fixed';
     val implicit'' =
@@ -133,7 +128,7 @@ fun parameters_of thy strict (expr, fixed) =
       else
         let val _ = reject_dups
           "Parameter(s) declared simultaneously in expression and for clause: " (implicit' @ fixed')
-        in map (fn (b, mx) => (b, NONE, mx)) implicit end;
+        in map (fn (x, mx) => (Binding.name x, NONE, mx)) implicit end;
 
   in (expr', implicit'' @ fixed) end;
 
@@ -319,8 +314,7 @@ fun finish_primitive parms _ (Fixes fixes) = Fixes (map (fn (binding, _, mx) =>
 fun finish_inst ctxt parms do_close (loc, (prfx, inst)) =
   let
     val thy = ProofContext.theory_of ctxt;
-    val (parm_names, parm_types) = Locale.params_of thy loc |>
-      map_split (fn (b, SOME T, _) => (Binding.name_of b, T));
+    val (parm_names, parm_types) = Locale.params_of thy loc |> map #1 |> split_list;
     val (morph, _) = inst_morph (parm_names, parm_types) (prfx, inst) ctxt;
   in (loc, morph) end;
 
@@ -349,9 +343,7 @@ fun prep_full_context_statement parse_typ parse_prop prep_vars_elem prep_inst pr
 
     fun prep_insts (loc, (prfx, inst)) (i, insts, ctxt) =
       let
-        val (parm_names, parm_types) = Locale.params_of thy loc |>
-          map_split (fn (b, SOME T, _) => (Name.of_binding b, T))
-            (*FIXME return value of Locale.params_of has strange type*)
+        val (parm_names, parm_types) = Locale.params_of thy loc |> map #1 |> split_list;
         val inst' = prep_inst ctxt parm_names inst;
         val parm_types' = map (TypeInfer.paramify_vars o
           Term.map_type_tvar (fn ((x, _), S) => TVar ((x, i), S)) o Logic.varifyT) parm_types;
@@ -390,9 +382,10 @@ fun prep_full_context_statement parse_typ parse_prop prep_vars_elem prep_inst pr
     val parms = xs ~~ Ts;  (* params from expression and elements *)
 
     val Fixes fors' = finish_primitive parms I (Fixes fors);
+    val fixed = map (fn (b, SOME T, mx) => ((Binding.name_of b, T), mx)) fors';
     val (deps, elems'') = finish ctxt6 parms do_close insts elems';
 
-  in ((fors', deps, elems'', concl), (parms, ctxt7)) end
+  in ((fixed, deps, elems'', concl), (parms, ctxt7)) end
 
 in
 
@@ -432,6 +425,9 @@ end;
 
 (* Locale declaration: import + elements *)
 
+fun fix_params params =
+  ProofContext.add_fixes_i (map (fn ((x, T), mx) => (Binding.name x, SOME T, mx)) params) #> snd;
+
 local
 
 fun prep_declaration prep activate raw_import init_body raw_elems context =
@@ -440,7 +436,7 @@ fun prep_declaration prep activate raw_import init_body raw_elems context =
       prep false true raw_import init_body raw_elems [] context ;
     (* Declare parameters and imported facts *)
     val context' = context |>
-      ProofContext.add_fixes_i fixed |> snd |>
+      fix_params fixed |>
       fold Locale.activate_local_facts deps;
     val (elems', _) = context' |>
       ProofContext.set_stmt true |>
@@ -477,7 +473,7 @@ fun prep_goal_expression prep expression context =
     val propss = map (props_of thy) deps;
 
     val goal_ctxt = context |>
-      ProofContext.add_fixes_i fixed |> snd |>
+      fix_params fixed |>
       (fold o fold) Variable.auto_fixes propss;
 
     val export = Variable.export_morphism goal_ctxt context;
@@ -737,7 +733,8 @@ fun gen_add_locale prep_decl
     val b_satisfy = Element.satisfy_morphism b_axioms;
 
     val params = fixed @
-      (body_elems |> map_filter (fn Fixes fixes => SOME fixes | _ => NONE) |> flat);
+      maps (fn Fixes fixes =>
+        map (fn (b, SOME T, mx) => ((Binding.name_of b, T), mx)) fixes | _ => []) body_elems;
     val asm = if is_some b_statement then b_statement else a_statement;
 
     val notes =

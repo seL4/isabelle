@@ -30,7 +30,7 @@ signature LOCALE =
 sig
   (* Locale specification *)
   val register_locale: binding ->
-    (string * sort) list * (binding * typ option * mixfix) list ->
+    (string * sort) list * ((string * typ) * mixfix) list ->
     term option * term list ->
     thm option * thm option -> thm list ->
     declaration list * declaration list ->
@@ -39,7 +39,7 @@ sig
   val intern: theory -> xstring -> string
   val extern: theory -> string -> xstring
   val defined: theory -> string -> bool
-  val params_of: theory -> string -> (binding * typ option * mixfix) list
+  val params_of: theory -> string -> ((string * typ) * mixfix) list
   val intros_of: theory -> string -> thm option * thm option
   val axioms_of: theory -> string -> thm list
   val instance_of: theory -> string -> morphism -> term list
@@ -91,7 +91,7 @@ datatype ctxt = datatype Element.ctxt;
 
 datatype locale = Loc of {
   (** static part **)
-  parameters: (string * sort) list * (binding * typ option * mixfix) list,
+  parameters: (string * sort) list * ((string * typ) * mixfix) list,
     (* type and term parameters *)
   spec: term option * term list,
     (* assumptions (as a single predicate expression) and defines *)
@@ -165,7 +165,7 @@ fun intros_of thy = #intros o the_locale thy;
 fun axioms_of thy = #axioms o the_locale thy;
 
 fun instance_of thy name morph = params_of thy name |>
-  map (fn (b, T, _) => Morphism.term morph (Free (Name.of_binding b, the T)));
+  map (Morphism.term morph o Free o #1);
 
 fun specification_of thy = #spec o the_locale thy;
 
@@ -285,7 +285,8 @@ fun activate_all name thy activ_elem transfer (marked, input) =
       the_locale thy name;
   in
     input |>
-      (if not (null params) then activ_elem (Fixes params) else I) |>
+      (not (null params) ?
+        activ_elem (Fixes (map (fn ((x, T), mx) => (Binding.name x, SOME T, mx)) params))) |>
       (* FIXME type parameters *)
       (if is_some asm then activ_elem (Assumes [(Attrib.empty_binding, [(the asm, [])])]) else I) |>
       (if not (null defs)
