@@ -541,17 +541,17 @@ fun prepare_patternT ctxt =
 
 local
 
-structure AllowDummies = ProofDataFun(type T = bool fun init _ = false);
+structure Allow_Dummies = ProofDataFun(type T = bool fun init _ = false);
 
 fun check_dummies ctxt t =
-  if AllowDummies.get ctxt then t
+  if Allow_Dummies.get ctxt then t
   else Term.no_dummy_patterns t handle TERM _ => error "Illegal dummy pattern(s) in term";
 
 fun prepare_dummies ts = #1 (fold_map Term.replace_dummy_patterns ts 1);
 
 in
 
-val allow_dummies = AllowDummies.put true;
+val allow_dummies = Allow_Dummies.put true;
 
 fun prepare_patterns ctxt =
   let val Mode {pattern, ...} = get_mode ctxt in
