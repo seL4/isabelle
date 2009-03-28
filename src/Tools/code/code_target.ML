@@ -411,7 +411,7 @@ fun invoke_serializer thy abortable serializer reserved abs_includes
     val names_hidden = names_class @ names_inst @ names_tyco @ names_const;
     val names2 = subtract (op =) names_hidden names1;
     val program3 = Graph.subgraph (not o member (op =) names_hidden) program2;
-    val names_all = Graph.all_succs program2 names2;
+    val names_all = Graph.all_succs program3 names2;
     val includes = abs_includes names_all;
     val program4 = Graph.subgraph (member (op =) names_all) program3;
     val empty_funs = filter_out (member (op =) abortable)
