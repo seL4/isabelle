@@ -109,8 +109,10 @@ datatype locale = Loc of {
 fun mk_locale ((parameters, spec, intros, axioms), ((decls, notes), dependencies)) =
   Loc {parameters = parameters, intros = intros, axioms = axioms, spec = spec,
     decls = decls, notes = notes, dependencies = dependencies};
+
 fun map_locale f (Loc {parameters, spec, intros, axioms, decls, notes, dependencies}) =
   mk_locale (f ((parameters, spec, intros, axioms), ((decls, notes), dependencies)));
+
 fun merge_locale (Loc {parameters, spec, intros, axioms, decls = (decls1, decls2),
   notes, dependencies}, Loc {decls = (decls1', decls2'), notes = notes',
     dependencies = dependencies', ...}) = mk_locale
@@ -178,20 +180,16 @@ fun dependencies_of thy name = the_locale thy name |>
 
 (** Identifiers: activated locales in theory or proof context **)
 
-type identifiers = (string * term list) list;
-
-val empty = ([] : identifiers);
-
 fun ident_eq thy ((n: string, ts), (m, ss)) = (m = n) andalso Pattern.matchess thy (ss, ts);
 
 local
 
-datatype 'a delayed = Ready of 'a | ToDo of ('a delayed * 'a delayed);
+datatype 'a delayed = Ready of 'a | ToDo of 'a delayed * 'a delayed;
 
 structure Identifiers = GenericDataFun
 (
-  type T = identifiers delayed;
-  val empty = Ready empty;
+  type T = (string * term list) list delayed;
+  val empty = Ready [];
   val extend = I;
   fun merge _ = ToDo;
 );
@@ -228,15 +226,14 @@ fun add thy depth (name, morph) (deps, marked) =
   then error "Roundup bound exceeded (sublocale relation probably not terminating)."
   else
     let
-      val {parameters = (_, params), dependencies, ...} = the_locale thy name;
+      val dependencies = dependencies_of thy name;
       val instance = instance_of thy name morph;
     in
       if member (ident_eq thy) marked (name, instance)
       then (deps, marked)
       else
         let
-          val dependencies' =
-            map (fn ((name, morph'), _) => (name, morph' $>  morph)) dependencies;
+          val dependencies' = map (fn (name, morph') => (name, morph' $> morph)) dependencies;
           val marked' = (name, instance) :: marked;
           val (deps', marked'') = fold_rev (add thy (depth + 1)) dependencies' ([], marked');
         in
@@ -250,7 +247,7 @@ fun roundup thy activate_dep (name, morph) (marked, input) =
   let
     (* Find all dependencies incuding new ones (which are dependencies enriching
       existing registrations). *)
-    val (dependencies, marked') = add thy 0 (name, morph) ([], empty);
+    val (dependencies, marked') = add thy 0 (name, morph) ([], []);
     (* Filter out exisiting fragments. *)
     val dependencies' = filter_out (fn (name, morph) =>
       member (ident_eq thy) marked (name, instance_of thy name morph)) dependencies;
@@ -348,7 +345,7 @@ fun activate_local_facts dep ctxt =
 
 fun init name thy =
   activate_all name thy init_local_elem (Element.transfer_morphism o ProofContext.theory_of)
-    (empty, ProofContext.init thy) |-> put_local_idents;
+    ([], ProofContext.init thy) |-> put_local_idents;
 
 fun print_locale thy show_facts name =
   let
@@ -357,7 +354,7 @@ fun print_locale thy show_facts name =
   in
     Pretty.big_list "locale elements:"
       (activate_all name' thy (cons_elem show_facts) (K (Element.transfer_morphism thy))
-        (empty, []) |> snd |> rev |>
+        ([], []) |> snd |> rev |>
         map (Element.pretty_ctxt ctxt) |> map Pretty.chunks) |> Pretty.writeln
   end
 
