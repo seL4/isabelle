@@ -6,6 +6,12 @@
 
 \begin{document}
 
+\thispagestyle{empty}
+\setlength{\fboxrule}{0.01pt}
+\setlength{\fboxsep}{4pt}
+
+\fbox{
+
 \begin{tikzpicture}[scale = 0.5]
   \tikzstyle water=[color = blue, thick]
   \tikzstyle ice=[color = black, very thick, cap = round, join = round, fill = white]
@@ -42,5 +48,7 @@
   \draw[style=adaption]
     (adaption) -- (reserved);
 \end{tikzpicture}
+
+}
 
 \end{document}
