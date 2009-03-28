@@ -160,9 +160,9 @@ fun notes (Target {target, is_locale, ...}) kind facts lthy =
   in
     lthy |> LocalTheory.theory
       (PureThy.note_thmss_grouped kind (LocalTheory.group_of lthy) global_facts #> snd)
-    |> not is_locale ? LocalTheory.target (ProofContext.note_thmss_i kind global_facts #> snd)
+    |> not is_locale ? LocalTheory.target (ProofContext.note_thmss kind global_facts #> snd)
     |> is_locale ? LocalTheory.target (Locale.add_thmss target kind target_facts)
-    |> ProofContext.note_thmss_i kind local_facts
+    |> ProofContext.note_thmss kind local_facts
   end;
 
 

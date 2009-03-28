@@ -287,8 +287,8 @@ fun register_subclass (sub, sup) some_dep_morph some_wit export thy =
     |> fold (fn dep_morph => Locale.add_dependency sub (sup,
         dep_morph $> Element.satisfy_morphism (the_list some_wit) $> export))
           (the_list some_dep_morph)
-    |> (fn thy => fold_rev Locale.activate_global_facts
-      (Locale.get_registrations thy) thy)
+    |> (fn thy => fold_rev (Context.theory_map o Locale.activate_facts)
+        (Locale.get_registrations thy) thy)
   end;
 
 

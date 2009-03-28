@@ -25,13 +25,13 @@ fun gen_constdef prep_vars prep_prop prep_att
     fun err msg ts = error (cat_lines (msg :: map (Syntax.string_of_term_global thy) ts));
 
     val thy_ctxt = ProofContext.init thy;
-    val struct_ctxt = #2 (ProofContext.add_fixes_i structs thy_ctxt);
+    val struct_ctxt = #2 (ProofContext.add_fixes structs thy_ctxt);
     val ((d, mx), var_ctxt) =
       (case raw_decl of
         NONE => ((NONE, NoSyn), struct_ctxt)
       | SOME raw_var =>
           struct_ctxt |> prep_vars [raw_var] |-> (fn [(x, T, mx)] =>
-            ProofContext.add_fixes_i [(x, T, mx)] #> snd #> pair (SOME x, mx)));
+            ProofContext.add_fixes [(x, T, mx)] #> snd #> pair (SOME x, mx)));
 
     val prop = prep_prop var_ctxt raw_prop;
     val (c, T) = #1 (LocalDefs.cert_def thy_ctxt (Logic.strip_imp_concl prop));
