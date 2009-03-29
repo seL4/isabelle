@@ -293,52 +293,20 @@ fun activate_all name thy activ_elem transfer (marked, input) =
 
 (** Public activation functions **)
 
-local
-
-fun init_elem (Fixes fixes) (Context.Proof ctxt) =
-      Context.Proof (ProofContext.add_fixes fixes ctxt |> snd)
-  | init_elem (Assumes assms) (Context.Proof ctxt) =
-      let
-        val assms' = Attrib.map_specs (Attrib.attribute_i (ProofContext.theory_of ctxt)) assms;
-        val ctxt' = ctxt
-          |> fold Variable.auto_fixes (maps (map fst o snd) assms')
-          |> ProofContext.add_assms_i Assumption.assume_export assms' |> snd;
-      in Context.Proof ctxt' end
-  | init_elem (Defines defs) (Context.Proof ctxt) =
-      let
-        val defs' = Attrib.map_specs (Attrib.attribute_i (ProofContext.theory_of ctxt)) defs;
-        val ctxt' = ctxt
-          |> fold Variable.auto_fixes (map (fst o snd) defs')
-          |> ProofContext.add_assms_i LocalDefs.def_export (map (fn (attn, t) => (attn, [t])) defs')
-          |> snd;
-      in Context.Proof ctxt' end
-  | init_elem (Notes (kind, facts)) (Context.Proof ctxt) =
-      let
-        val facts' = Attrib.map_facts (Attrib.attribute_i (ProofContext.theory_of ctxt)) facts
-      in Context.Proof (ProofContext.note_thmss kind facts' ctxt |> snd) end
-  | init_elem (Notes (kind, facts)) (Context.Theory thy) =
-      let
-        val facts' = Attrib.map_facts (Attrib.attribute_i thy) facts
-      in Context.Theory (PureThy.note_thmss kind facts' thy |> snd) end
-  | init_elem _ (Context.Theory _) = raise Fail "Bad context element in global theory";
-
-in
-
-fun activate_declarations dep ctxt =
+fun activate_declarations dep = Context.proof_map (fn context =>
   let
-    val context = Context.Proof ctxt;
     val thy = Context.theory_of context;
     val context' = roundup thy activate_decls dep (get_idents context, context) |-> put_idents;
-  in Context.the_proof context' end;
+  in context' end);
 
 fun activate_facts dep context =
   let
     val thy = Context.theory_of context;
-    val activate = activate_notes init_elem (Element.transfer_morphism o Context.theory_of) thy;
+    val activate = activate_notes Element.init (Element.transfer_morphism o Context.theory_of) thy;
   in roundup thy activate dep (get_idents context, context) |-> put_idents end;
 
 fun init name thy =
-  activate_all name thy init_elem (Element.transfer_morphism o Context.theory_of)
+  activate_all name thy Element.init (Element.transfer_morphism o Context.theory_of)
     ([], Context.Proof (ProofContext.init thy)) |-> put_idents |> Context.proof_of;
 
 fun print_locale thy show_facts raw_name =
@@ -354,8 +322,6 @@ fun print_locale thy show_facts raw_name =
     Pretty.big_list "locale elements:" (map (Pretty.chunks o Element.pretty_ctxt ctxt) elems)
     |> Pretty.writeln
   end;
-
-end;
 
 
 (*** Registrations: interpretations in theories ***)
@@ -396,7 +362,6 @@ fun amend_registration morph (name, base_morph) thy =
     Registrations.map (nth_map (length regs - 1 - i)
       (fn ((name, (base, export)), stamp) => ((name, (base $> morph, export)), stamp))) thy
   end;
-
 
 
 (*** Storing results ***)

@@ -60,6 +60,7 @@ sig
     (Attrib.binding * (thm list * Attrib.src list) list) list
   val eq_morphism: theory -> thm list -> morphism
   val transfer_morphism: theory -> morphism
+  val init: context_i -> Context.generic -> Context.generic
   val activate: (typ, term, Facts.ref) ctxt list -> Proof.context -> context_i list * Proof.context
   val activate_i: context_i list -> Proof.context -> context_i list * Proof.context
 end;
@@ -481,62 +482,62 @@ fun transfer_morphism thy =
 
 
 
-(** activate in context, return elements and facts **)
+(** activate in context **)
 
-local
+(* init *)
 
-fun activate_elem (Fixes fixes) ctxt =
-      ctxt |> ProofContext.add_fixes fixes |> snd
-  | activate_elem (Constrains _) ctxt =
-      ctxt
-  | activate_elem (Assumes asms) ctxt =
+fun init (Fixes fixes) = Context.map_proof (ProofContext.add_fixes fixes #> #2)
+  | init (Constrains _) = I
+  | init (Assumes asms) = Context.map_proof (fn ctxt =>
       let
         val asms' = Attrib.map_specs (Attrib.attribute_i (ProofContext.theory_of ctxt)) asms;
-        val ts = maps (map #1 o #2) asms';
-        val (_, ctxt') =
-          ctxt |> fold Variable.auto_fixes ts
-          |> ProofContext.add_assms_i Assumption.presume_export asms';
-      in ctxt' end
-  | activate_elem (Defines defs) ctxt =
+        val (_, ctxt') = ctxt
+          |> fold Variable.auto_fixes (maps (map #1 o #2) asms')
+          |> ProofContext.add_assms_i Assumption.assume_export asms';
+      in ctxt' end)
+  | init (Defines defs) = Context.map_proof (fn ctxt =>
       let
         val defs' = Attrib.map_specs (Attrib.attribute_i (ProofContext.theory_of ctxt)) defs;
         val asms = defs' |> map (fn ((name, atts), (t, ps)) =>
-            let val ((c, _), t') = LocalDefs.cert_def ctxt t
+            let val ((c, _), t') = LocalDefs.cert_def ctxt t  (* FIXME adapt ps? *)
             in (t', ((Thm.def_binding_optional (Binding.name c) name, atts), [(t', ps)])) end);
-        val (_, ctxt') =
-          ctxt |> fold (Variable.auto_fixes o #1) asms
+        val (_, ctxt') = ctxt
+          |> fold Variable.auto_fixes (map #1 asms)
           |> ProofContext.add_assms_i LocalDefs.def_export (map #2 asms);
-      in ctxt' end
-  | activate_elem (Notes (kind, facts)) ctxt =
+      in ctxt' end)
+  | init (Notes (kind, facts)) = (fn context =>
       let
-        val facts' = Attrib.map_facts (Attrib.attribute_i (ProofContext.theory_of ctxt)) facts;
-        val (res, ctxt') = ctxt |> ProofContext.note_thmss kind facts';
-      in ctxt' end;
+        val facts' = Attrib.map_facts (Attrib.attribute_i (Context.theory_of context)) facts;
+        val context' = context |> Context.mapping
+          (PureThy.note_thmss kind facts' #> #2)
+          (ProofContext.note_thmss kind facts' #> #2);
+      in context' end);
+
+
+(* activate *)
+
+local
 
 fun gen_activate prep_facts raw_elems ctxt =
   let
-    fun activate elem ctxt =
-      let val elem' = (map_ctxt_attrib Args.assignable o prep_facts ctxt) elem
-      in (elem', activate_elem elem' ctxt) end
+    fun activate elem ctxt' =
+      let val elem' = map_ctxt_attrib Args.assignable (prep_facts ctxt' elem)
+      in (elem', Context.proof_map (init elem') ctxt') end;
     val (elems, ctxt') = fold_map activate raw_elems ctxt;
   in (elems |> map (map_ctxt_attrib Args.closure), ctxt') end;
 
-fun check_name name =
-  if Long_Name.is_qualified name then error ("Illegal qualified name: " ^ quote name)
-  else name;
-
-fun prep_facts prep_name get intern ctxt =
+fun prep_facts ctxt =
   map_ctxt
-   {binding = Binding.map_name prep_name,
+   {binding = tap Name.of_binding,
     typ = I,
     term = I,
     pattern = I,
-    fact = get ctxt,
-    attrib = intern (ProofContext.theory_of ctxt)};
+    fact = ProofContext.get_fact ctxt,
+    attrib = Attrib.intern_src (ProofContext.theory_of ctxt)};
 
 in
 
-fun activate x = gen_activate (prep_facts check_name ProofContext.get_fact Attrib.intern_src) x;
+fun activate x = gen_activate prep_facts x;
 fun activate_i x = gen_activate (K I) x;
 
 end;
