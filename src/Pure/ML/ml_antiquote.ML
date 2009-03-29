@@ -87,7 +87,7 @@ val _ = macro "let" (Args.context --
 val _ = macro "note" (Args.context :|-- (fn ctxt =>
   P.and_list1' (Scan.lift (Args.opt_thm_name I "=") -- Attrib.thms >> (fn ((a, srcs), ths) =>
     ((a, map (Attrib.attribute (ProofContext.theory_of ctxt)) srcs), [(ths, [])])))
-  >> (fn args => #2 (ProofContext.note_thmss_i "" args ctxt))));
+  >> (fn args => #2 (ProofContext.note_thmss "" args ctxt))));
 
 val _ = value "ctyp" (Args.typ >> (fn T =>
   "Thm.ctyp_of (ML_Context.the_global_context ()) " ^ ML_Syntax.atomic (ML_Syntax.print_typ T)));

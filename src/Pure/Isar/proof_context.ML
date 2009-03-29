@@ -70,8 +70,7 @@ sig
   val export: Proof.context -> Proof.context -> thm list -> thm list
   val export_morphism: Proof.context -> Proof.context -> morphism
   val norm_export_morphism: Proof.context -> Proof.context -> morphism
-  val add_binds: (indexname * string option) list -> Proof.context -> Proof.context
-  val add_binds_i: (indexname * term option) list -> Proof.context -> Proof.context
+  val bind_terms: (indexname * term option) list -> Proof.context -> Proof.context
   val auto_bind_goal: term list -> Proof.context -> Proof.context
   val auto_bind_facts: term list -> Proof.context -> Proof.context
   val match_bind: bool -> (string list * string) list -> Proof.context -> term list * Proof.context
@@ -102,19 +101,15 @@ sig
   val mandatory_path: string -> Proof.context -> Proof.context
   val restore_naming: Proof.context -> Proof.context -> Proof.context
   val reset_naming: Proof.context -> Proof.context
-  val note_thmss: string -> (Thm.binding * (Facts.ref * attribute list) list) list ->
-    Proof.context -> (string * thm list) list * Proof.context
-  val note_thmss_i: string -> (Thm.binding * (thm list * attribute list) list) list ->
+  val note_thmss: string -> (Thm.binding * (thm list * attribute list) list) list ->
     Proof.context -> (string * thm list) list * Proof.context
   val put_thms: bool -> string * thm list option -> Proof.context -> Proof.context
   val read_vars: (binding * string option * mixfix) list -> Proof.context ->
     (binding * typ option * mixfix) list * Proof.context
   val cert_vars: (binding * typ option * mixfix) list -> Proof.context ->
     (binding * typ option * mixfix) list * Proof.context
-  val add_fixes: (binding * string option * mixfix) list ->
-    Proof.context -> string list * Proof.context
-  val add_fixes_i: (binding * typ option * mixfix) list ->
-    Proof.context -> string list * Proof.context
+  val add_fixes: (binding * typ option * mixfix) list -> Proof.context ->
+    string list * Proof.context
   val auto_fixes: Proof.context * (term list list * 'a) -> Proof.context * (term list list * 'a)
   val bind_fixes: string list -> Proof.context -> (term -> term) * Proof.context
   val add_assms: Assumption.export ->
@@ -542,17 +537,17 @@ fun prepare_patternT ctxt =
 
 local
 
-structure AllowDummies = ProofDataFun(type T = bool fun init _ = false);
+structure Allow_Dummies = ProofDataFun(type T = bool fun init _ = false);
 
 fun check_dummies ctxt t =
-  if AllowDummies.get ctxt then t
+  if Allow_Dummies.get ctxt then t
   else Term.no_dummy_patterns t handle TERM _ => error "Illegal dummy pattern(s) in term";
 
 fun prepare_dummies ts = #1 (fold_map Term.replace_dummy_patterns ts 1);
 
 in
 
-val allow_dummies = AllowDummies.put true;
+val allow_dummies = Allow_Dummies.put true;
 
 fun prepare_patterns ctxt =
   let val Mode {pattern, ...} = get_mode ctxt in
@@ -775,7 +770,7 @@ fun norm_export_morphism inner outer =
 
 
 
-(** bindings **)
+(** term bindings **)
 
 (* simult_matches *)
 
@@ -785,27 +780,22 @@ fun simult_matches ctxt (t, pats) =
   | SOME (env, _) => map (apsnd snd) (Envir.alist_of env));
 
 
-(* add_binds(_i) *)
+(* bind_terms *)
 
-local
-
-fun gen_bind prep (xi as (x, _), raw_t) ctxt =
+val bind_terms = fold (fn (xi, t) => fn ctxt =>
   ctxt
-  |> Variable.add_binds [(xi, Option.map (prep (set_mode mode_default ctxt)) raw_t)];
+  |> Variable.bind_term (xi, Option.map (cert_term (set_mode mode_default ctxt)) t));
 
-in
+
+(* auto_bind *)
 
 fun drop_schematic (b as (xi, SOME t)) = if Term.exists_subterm is_Var t then (xi, NONE) else b
   | drop_schematic b = b;
 
-val add_binds = fold (gen_bind Syntax.read_term);
-val add_binds_i = fold (gen_bind cert_term);
+fun auto_bind f ts ctxt = ctxt |> bind_terms (map drop_schematic (f (theory_of ctxt) ts));
 
-fun auto_bind f ts ctxt = ctxt |> add_binds_i (map drop_schematic (f (theory_of ctxt) ts));
 val auto_bind_goal = auto_bind AutoBind.goal;
 val auto_bind_facts = auto_bind AutoBind.facts;
-
-end;
 
 
 (* match_bind(_i) *)
@@ -831,8 +821,8 @@ fun gen_bind prep_terms gen raw_binds ctxt =
     val ctxt'' =
       tap (Variable.warn_extra_tfrees ctxt)
        (if gen then
-          ctxt (*sic!*) |> fold Variable.declare_term (map #2 binds') |> add_binds_i binds''
-        else ctxt' |> add_binds_i binds'');
+          ctxt (*sic!*) |> fold Variable.declare_term (map #2 binds') |> bind_terms binds''
+        else ctxt' |> bind_terms binds'');
   in (ts, ctxt'') end;
 
 in
@@ -868,8 +858,8 @@ fun gen_bind_propp mode parse_prop (ctxt, raw_args) =
 
     (*generalize result: context evaluated now, binds added later*)
     val gen = Variable.exportT_terms ctxt' ctxt;
-    fun gen_binds c = c |> add_binds_i (map #1 binds ~~ map SOME (gen (map #2 binds)));
-  in (ctxt' |> add_binds_i (map (apsnd SOME) binds), (propss, gen_binds)) end;
+    fun gen_binds c = c |> bind_terms (map #1 binds ~~ map SOME (gen (map #2 binds)));
+  in (ctxt' |> bind_terms (map (apsnd SOME) binds), (propss, gen_binds)) end;
 
 in
 
@@ -965,24 +955,22 @@ fun update_thms _ (b, NONE) ctxt = ctxt |> map_facts (Facts.del (full_name ctxt 
   | update_thms do_props (b, SOME ths) ctxt = ctxt |> map_facts
       (Facts.add_local do_props (naming_of ctxt) (b, ths) #> snd);
 
-fun gen_note_thmss get k = fold_map (fn ((b, more_attrs), raw_facts) => fn ctxt =>
+in
+
+fun note_thmss kind = fold_map (fn ((b, more_attrs), raw_facts) => fn ctxt =>
   let
     val pos = Binding.pos_of b;
     val name = full_name ctxt b;
     val _ = ContextPosition.report_visible ctxt (Markup.local_fact_decl name) pos;
 
-    val facts = PureThy.name_thmss false pos name (map (apfst (get ctxt)) raw_facts);
+    val facts = PureThy.name_thmss false pos name raw_facts;
     fun app (th, attrs) x =
-      swap (Library.foldl_map (Thm.proof_attributes (surround (Thm.kind k) (attrs @ more_attrs))) (x, th));
+      swap (Library.foldl_map
+        (Thm.proof_attributes (surround (Thm.kind kind) (attrs @ more_attrs))) (x, th));
     val (res, ctxt') = fold_map app facts ctxt;
     val thms = PureThy.name_thms false false pos name (flat res);
     val Mode {stmt, ...} = get_mode ctxt;
   in ((name, thms), ctxt' |> update_thms stmt (b, SOME thms)) end);
-
-in
-
-fun note_thmss k = gen_note_thmss get_fact k;
-fun note_thmss_i k = gen_note_thmss (K I) k;
 
 fun put_thms do_props thms ctxt = ctxt
   |> map_naming (K local_naming)
@@ -1115,9 +1103,11 @@ fun prep_mixfix (x, T, mx) =
     error ("Illegal mixfix syntax for internal/skolem constant " ^ quote x)
   else (true, (x, T, mx));
 
-fun gen_fixes prep raw_vars ctxt =
+in
+
+fun add_fixes raw_vars ctxt =
   let
-    val (vars, _) = prep raw_vars ctxt;
+    val (vars, _) = cert_vars raw_vars ctxt;
     val (xs', ctxt') = Variable.add_fixes (map (Name.of_binding o #1) vars) ctxt;
     val ctxt'' =
       ctxt'
@@ -1126,11 +1116,6 @@ fun gen_fixes prep raw_vars ctxt =
     val _ = (vars ~~ xs') |> List.app (fn ((b, _, _), x') =>
       ContextPosition.report_visible ctxt (Markup.fixed_decl x') (Binding.pos_of b));
   in (xs', ctxt'') end;
-
-in
-
-val add_fixes = gen_fixes read_vars;
-val add_fixes_i = gen_fixes cert_vars;
 
 end;
 
@@ -1142,7 +1127,7 @@ fun auto_fixes (arg as (ctxt, (propss, x))) =
 
 fun bind_fixes xs ctxt =
   let
-    val (_, ctxt') = ctxt |> add_fixes_i (map (fn x => (Binding.name x, NONE, NoSyn)) xs);
+    val (_, ctxt') = ctxt |> add_fixes (map (fn x => (Binding.name x, NONE, NoSyn)) xs);
     fun bind (t as Free (x, T)) =
           if member (op =) xs x then
             (case lookup_skolem ctxt' x of SOME x' => Free (x', T) | NONE => t)
@@ -1167,7 +1152,7 @@ fun gen_assms prepp exp args ctxt =
   in
     ctxt2
     |> auto_bind_facts (flat propss)
-    |> note_thmss_i Thm.assumptionK (map fst args ~~ map (map (fn th => ([th], []))) premss)
+    |> note_thmss Thm.assumptionK (map fst args ~~ map (map (fn th => ([th], []))) premss)
   end;
 
 in
@@ -1221,7 +1206,7 @@ fun case_result c ctxt =
     val RuleCases.Case {assumes, binds, cases, ...} = RuleCases.apply ts c;
   in
     ctxt'
-    |> add_binds_i (map drop_schematic binds)
+    |> bind_terms (map drop_schematic binds)
     |> add_cases true (map (apsnd SOME) cases)
     |> pair (assumes, (binds, cases))
   end;

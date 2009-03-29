@@ -353,14 +353,20 @@ fun code_thms thy = Pretty.writeln o pretty thy o code_depgr thy;
 fun code_deps thy consts =
   let
     val eqngr = code_depgr thy consts;
-    fun mk_entry (const, (_, (_, parents))) =
-      let
-        val name = Code_Unit.string_of_const thy const;
-        val nameparents = map (Code_Unit.string_of_const thy) parents;
-      in { name = name, ID = name, dir = "", unfold = true,
-        path = "", parents = nameparents }
-      end;
-    val prgr = Graph.fold ((fn x => fn xs => xs @ [x]) o mk_entry) eqngr [];
+    val constss = Graph.strong_conn eqngr;
+    val mapping = Symtab.empty |> fold (fn consts => fold (fn const =>
+      Symtab.update (const, consts)) consts) constss;
+    fun succs consts = consts
+      |> maps (Graph.imm_succs eqngr)
+      |> subtract (op =) consts
+      |> map (the o Symtab.lookup mapping)
+      |> distinct (op =);
+    val conn = [] |> fold (fn consts => cons (consts, succs consts)) constss;
+    fun namify consts = map (Code_Unit.string_of_const thy) consts
+      |> commas;
+    val prgr = map (fn (consts, constss) =>
+      { name = namify consts, ID = namify consts, dir = "", unfold = true,
+        path = "", parents = map namify constss }) conn;
   in Present.display_graph prgr end;
 
 local

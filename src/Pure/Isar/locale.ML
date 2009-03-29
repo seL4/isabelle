@@ -30,7 +30,7 @@ signature LOCALE =
 sig
   (* Locale specification *)
   val register_locale: binding ->
-    (string * sort) list * (binding * typ option * mixfix) list ->
+    (string * sort) list * ((string * typ) * mixfix) list ->
     term option * term list ->
     thm option * thm option -> thm list ->
     declaration list * declaration list ->
@@ -39,7 +39,7 @@ sig
   val intern: theory -> xstring -> string
   val extern: theory -> string -> xstring
   val defined: theory -> string -> bool
-  val params_of: theory -> string -> (binding * typ option * mixfix) list
+  val params_of: theory -> string -> ((string * typ) * mixfix) list
   val intros_of: theory -> string -> thm option * thm option
   val axioms_of: theory -> string -> thm list
   val instance_of: theory -> string -> morphism -> term list
@@ -56,10 +56,8 @@ sig
   val add_dependency: string -> string * morphism -> theory -> theory
 
   (* Activation *)
-  val activate_declarations: theory -> string * morphism ->
-    Proof.context -> Proof.context
-  val activate_global_facts: string * morphism -> theory -> theory
-  val activate_local_facts: string * morphism -> Proof.context -> Proof.context
+  val activate_declarations: string * morphism -> Proof.context -> Proof.context
+  val activate_facts: string * morphism -> Context.generic -> Context.generic
   val init: string -> theory -> Proof.context
 
   (* Reasoning about locales *)
@@ -91,7 +89,7 @@ datatype ctxt = datatype Element.ctxt;
 
 datatype locale = Loc of {
   (** static part **)
-  parameters: (string * sort) list * (binding * typ option * mixfix) list,
+  parameters: (string * sort) list * ((string * typ) * mixfix) list,
     (* type and term parameters *)
   spec: term option * term list,
     (* assumptions (as a single predicate expression) and defines *)
@@ -109,8 +107,10 @@ datatype locale = Loc of {
 fun mk_locale ((parameters, spec, intros, axioms), ((decls, notes), dependencies)) =
   Loc {parameters = parameters, intros = intros, axioms = axioms, spec = spec,
     decls = decls, notes = notes, dependencies = dependencies};
+
 fun map_locale f (Loc {parameters, spec, intros, axioms, decls, notes, dependencies}) =
   mk_locale (f ((parameters, spec, intros, axioms), ((decls, notes), dependencies)));
+
 fun merge_locale (Loc {parameters, spec, intros, axioms, decls = (decls1, decls2),
   notes, dependencies}, Loc {decls = (decls1', decls2'), notes = notes',
     dependencies = dependencies', ...}) = mk_locale
@@ -163,7 +163,7 @@ fun intros_of thy = #intros o the_locale thy;
 fun axioms_of thy = #axioms o the_locale thy;
 
 fun instance_of thy name morph = params_of thy name |>
-  map (fn (b, T, _) => Morphism.term morph (Free (Name.of_binding b, the T)));
+  map (Morphism.term morph o Free o #1);
 
 fun specification_of thy = #spec o the_locale thy;
 
@@ -178,25 +178,19 @@ fun dependencies_of thy name = the_locale thy name |>
 
 (** Identifiers: activated locales in theory or proof context **)
 
-type identifiers = (string * term list) list;
-
-val empty = ([] : identifiers);
-
 fun ident_eq thy ((n: string, ts), (m, ss)) = (m = n) andalso Pattern.matchess thy (ss, ts);
 
 local
 
-datatype 'a delayed = Ready of 'a | ToDo of ('a delayed * 'a delayed);
+datatype 'a delayed = Ready of 'a | ToDo of 'a delayed * 'a delayed;
 
 structure Identifiers = GenericDataFun
 (
-  type T = identifiers delayed;
-  val empty = Ready empty;
+  type T = (string * term list) list delayed;
+  val empty = Ready [];
   val extend = I;
   fun merge _ = ToDo;
 );
-
-in
 
 fun finish thy (ToDo (i1, i2)) = merge (ident_eq thy) (finish thy i1, finish thy i2)
   | finish _ (Ready ids) = ids;
@@ -206,13 +200,10 @@ val _ = Context.>> (Context.map_theory (Theory.at_begin (fn thy =>
     Ready _ => NONE
   | ids => SOME (Context.theory_map (Identifiers.put (Ready (finish thy ids))) thy)))));
 
-fun get_global_idents thy =
-  let val (Ready ids) = (Identifiers.get o Context.Theory) thy in ids end;
-val put_global_idents = Context.theory_map o Identifiers.put o Ready;
+in
 
-fun get_local_idents ctxt =
-  let val (Ready ids) = (Identifiers.get o Context.Proof) ctxt in ids end;
-val put_local_idents = Context.proof_map o Identifiers.put o Ready;
+val get_idents = (fn Ready ids => ids) o Identifiers.get;
+val put_idents = Identifiers.put o Ready;
 
 end;
 
@@ -228,15 +219,14 @@ fun add thy depth (name, morph) (deps, marked) =
   then error "Roundup bound exceeded (sublocale relation probably not terminating)."
   else
     let
-      val {parameters = (_, params), dependencies, ...} = the_locale thy name;
+      val dependencies = dependencies_of thy name;
       val instance = instance_of thy name morph;
     in
       if member (ident_eq thy) marked (name, instance)
       then (deps, marked)
       else
         let
-          val dependencies' =
-            map (fn ((name, morph'), _) => (name, morph' $>  morph)) dependencies;
+          val dependencies' = map (fn (name, morph') => (name, morph' $> morph)) dependencies;
           val marked' = (name, instance) :: marked;
           val (deps', marked'') = fold_rev (add thy (depth + 1)) dependencies' ([], marked');
         in
@@ -250,7 +240,7 @@ fun roundup thy activate_dep (name, morph) (marked, input) =
   let
     (* Find all dependencies incuding new ones (which are dependencies enriching
       existing registrations). *)
-    val (dependencies, marked') = add thy 0 (name, morph) ([], empty);
+    val (dependencies, marked') = add thy 0 (name, morph) ([], []);
     (* Filter out exisiting fragments. *)
     val dependencies' = filter_out (fn (name, morph) =>
       member (ident_eq thy) marked (name, instance_of thy name morph)) dependencies;
@@ -263,12 +253,14 @@ end;
 
 (* Declarations, facts and entire locale content *)
 
-fun activate_decls thy (name, morph) ctxt =
+fun activate_decls (name, morph) context =
   let
+    val thy = Context.theory_of context;
     val {decls = (typ_decls, term_decls), ...} = the_locale thy name;
   in
-    ctxt |> fold_rev (fn (decl, _) => Context.proof_map (decl morph)) typ_decls |>
-      fold_rev (fn (decl, _) => Context.proof_map (decl morph)) term_decls
+    context
+    |> fold_rev (fn (decl, _) => decl morph) typ_decls
+    |> fold_rev (fn (decl, _) => decl morph) term_decls
   end;
 
 fun activate_notes activ_elem transfer thy (name, morph) input =
@@ -284,17 +276,17 @@ fun activate_notes activ_elem transfer thy (name, morph) input =
 
 fun activate_all name thy activ_elem transfer (marked, input) =
   let
-    val {parameters = (_, params), spec = (asm, defs), ...} =
-      the_locale thy name;
-  in
-    input |>
-      (if not (null params) then activ_elem (Fixes params) else I) |>
+    val {parameters = (_, params), spec = (asm, defs), ...} = the_locale thy name;
+    val input' = input |>
+      (not (null params) ?
+        activ_elem (Fixes (map (fn ((x, T), mx) => (Binding.name x, SOME T, mx)) params))) |>
       (* FIXME type parameters *)
-      (if is_some asm then activ_elem (Assumes [(Attrib.empty_binding, [(the asm, [])])]) else I) |>
+      (case asm of SOME A => activ_elem (Assumes [(Attrib.empty_binding, [(A, [])])]) | _ => I) |>
       (if not (null defs)
         then activ_elem (Defines (map (fn def => (Attrib.empty_binding, (def, []))) defs))
-        else I) |>
-      pair marked |> roundup thy (activate_notes activ_elem transfer) (name, Morphism.identity)
+        else I);
+  in
+    roundup thy (activate_notes activ_elem transfer) (name, Morphism.identity) (marked, input')
   end;
 
 
@@ -302,64 +294,65 @@ fun activate_all name thy activ_elem transfer (marked, input) =
 
 local
 
-fun init_global_elem (Notes (kind, facts)) thy =
-  let
-    val facts' = Attrib.map_facts (Attrib.attribute_i thy) facts
-  in PureThy.note_thmss kind facts' thy |> snd end
-
-fun init_local_elem (Fixes fixes) ctxt = ctxt |>
-      ProofContext.add_fixes_i fixes |> snd
-  | init_local_elem (Assumes assms) ctxt =
+fun init_elem (Fixes fixes) (Context.Proof ctxt) =
+      Context.Proof (ProofContext.add_fixes fixes ctxt |> snd)
+  | init_elem (Assumes assms) (Context.Proof ctxt) =
       let
-        val assms' = Attrib.map_specs (Attrib.attribute_i (ProofContext.theory_of ctxt)) assms
-      in
-        ctxt |> fold Variable.auto_fixes (maps (map fst o snd) assms') |>
-          ProofContext.add_assms_i Assumption.assume_export assms' |> snd
-     end
-  | init_local_elem (Defines defs) ctxt =
+        val assms' = Attrib.map_specs (Attrib.attribute_i (ProofContext.theory_of ctxt)) assms;
+        val ctxt' = ctxt
+          |> fold Variable.auto_fixes (maps (map fst o snd) assms')
+          |> ProofContext.add_assms_i Assumption.assume_export assms' |> snd;
+      in Context.Proof ctxt' end
+  | init_elem (Defines defs) (Context.Proof ctxt) =
       let
-        val defs' = Attrib.map_specs (Attrib.attribute_i (ProofContext.theory_of ctxt)) defs
-      in
-        ctxt |> fold Variable.auto_fixes (map (fst o snd) defs') |>
-          ProofContext.add_assms_i LocalDefs.def_export (map (fn (attn, t) => (attn, [t])) defs') |>
-          snd
-      end
-  | init_local_elem (Notes (kind, facts)) ctxt =
+        val defs' = Attrib.map_specs (Attrib.attribute_i (ProofContext.theory_of ctxt)) defs;
+        val ctxt' = ctxt
+          |> fold Variable.auto_fixes (map (fst o snd) defs')
+          |> ProofContext.add_assms_i LocalDefs.def_export (map (fn (attn, t) => (attn, [t])) defs')
+          |> snd;
+      in Context.Proof ctxt' end
+  | init_elem (Notes (kind, facts)) (Context.Proof ctxt) =
       let
         val facts' = Attrib.map_facts (Attrib.attribute_i (ProofContext.theory_of ctxt)) facts
-      in ProofContext.note_thmss_i kind facts' ctxt |> snd end
-
-fun cons_elem false (Notes notes) elems = elems
-  | cons_elem _ elem elems = elem :: elems
+      in Context.Proof (ProofContext.note_thmss kind facts' ctxt |> snd) end
+  | init_elem (Notes (kind, facts)) (Context.Theory thy) =
+      let
+        val facts' = Attrib.map_facts (Attrib.attribute_i thy) facts
+      in Context.Theory (PureThy.note_thmss kind facts' thy |> snd) end
+  | init_elem _ (Context.Theory _) = raise Fail "Bad context element in global theory";
 
 in
 
-fun activate_declarations thy dep ctxt =
-  roundup thy activate_decls dep (get_local_idents ctxt, ctxt) |-> put_local_idents;
+fun activate_declarations dep ctxt =
+  let
+    val context = Context.Proof ctxt;
+    val thy = Context.theory_of context;
+    val context' = roundup thy (K activate_decls) dep (get_idents context, context) |-> put_idents;
+  in Context.the_proof context' end;
 
-fun activate_global_facts dep thy =
-  roundup thy (activate_notes init_global_elem Element.transfer_morphism)
-    dep (get_global_idents thy, thy) |-> put_global_idents;
-
-fun activate_local_facts dep ctxt =
-  roundup (ProofContext.theory_of ctxt)
-  (activate_notes init_local_elem (Element.transfer_morphism o ProofContext.theory_of)) dep
-    (get_local_idents ctxt, ctxt) |-> put_local_idents;
+fun activate_facts dep context =
+  let
+    val thy = Context.theory_of context;
+    val activate = activate_notes init_elem (Element.transfer_morphism o Context.theory_of);
+  in roundup thy activate dep (get_idents context, context) |-> put_idents end;
 
 fun init name thy =
-  activate_all name thy init_local_elem (Element.transfer_morphism o ProofContext.theory_of)
-    (empty, ProofContext.init thy) |-> put_local_idents;
+  activate_all name thy init_elem (Element.transfer_morphism o Context.theory_of)
+    ([], Context.Proof (ProofContext.init thy)) |-> put_idents |> Context.proof_of;
 
-fun print_locale thy show_facts name =
+fun print_locale thy show_facts raw_name =
   let
-    val name' = intern thy name;
-    val ctxt = init name' thy
+    val name = intern thy raw_name;
+    val ctxt = init name thy;
+    fun cons_elem (elem as Notes _) = show_facts ? cons elem
+      | cons_elem elem = cons elem;
+    val elems =
+      activate_all name thy cons_elem (K (Element.transfer_morphism thy)) ([], [])
+      |> snd |> rev;
   in
-    Pretty.big_list "locale elements:"
-      (activate_all name' thy (cons_elem show_facts) (K (Element.transfer_morphism thy))
-        (empty, []) |> snd |> rev |>
-        map (Element.pretty_ctxt ctxt) |> map Pretty.chunks) |> Pretty.writeln
-  end
+    Pretty.big_list "locale elements:" (map (Pretty.chunks o Element.pretty_ctxt ctxt) elems)
+    |> Pretty.writeln
+  end;
 
 end;
 
@@ -379,24 +372,25 @@ structure Registrations = TheoryDataFun
 );
 
 val get_registrations =
-  Registrations.get #> map fst #> map (apsnd op $>);
+  Registrations.get #> map (#1 #> apsnd op $>);
 
 fun add_registration (name, (base_morph, export)) thy =
   roundup thy (fn _ => fn (name', morph') =>
-    (Registrations.map o cons) ((name', (morph', export)), stamp ()))
-    (name, base_morph) (get_global_idents thy, thy) |> snd
-    (* FIXME |-> put_global_idents ?*);
+    Registrations.map (cons ((name', (morph', export)), stamp ())))
+    (name, base_morph) (get_idents (Context.Theory thy), thy) |> snd;
+    (* FIXME |-> put_global_idents ?*)
 
 fun amend_registration morph (name, base_morph) thy =
   let
-    val regs = (Registrations.get #> map fst) thy;
+    val regs = map #1 (Registrations.get thy);
     val base = instance_of thy name base_morph;
     fun match (name', (morph', _)) =
       name = name' andalso eq_list (op aconv) (base, instance_of thy name' morph');
     val i = find_index match (rev regs);
-    val _ = if i = ~1 then error ("No registration of locale " ^
+    val _ =
+      if i = ~1 then error ("No registration of locale " ^
         quote (extern thy name) ^ " and parameter instantiation " ^
-        space_implode " " (map (quote o Syntax.string_of_term_global thy) base) ^ " available.")
+        space_implode " " (map (quote o Syntax.string_of_term_global thy) base) ^ " available")
       else ();
   in
     Registrations.map (nth_map (length regs - 1 - i)

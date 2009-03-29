@@ -30,7 +30,7 @@ sig
   val declare_thm: thm -> Proof.context -> Proof.context
   val thm_context: thm -> Proof.context
   val variant_frees: Proof.context -> term list -> (string * 'a) list -> (string * 'a) list
-  val add_binds: (indexname * term option) list -> Proof.context -> Proof.context
+  val bind_term: indexname * term option -> Proof.context -> Proof.context
   val expand_binds: Proof.context -> term -> term
   val lookup_const: Proof.context -> string -> string option
   val is_const: Proof.context -> string -> bool
@@ -250,14 +250,12 @@ fun variant_frees ctxt ts frees =
 
 (** term bindings **)
 
-fun add_bind (xi, NONE) = map_binds (Vartab.delete_safe xi)
-  | add_bind ((x, i), SOME t) =
+fun bind_term (xi, NONE) = map_binds (Vartab.delete_safe xi)
+  | bind_term ((x, i), SOME t) =
       let
         val u = Term.close_schematic_term t;
         val U = Term.fastype_of u;
       in declare_term u #> map_binds (Vartab.update ((x, i), (U, u))) end;
-
-val add_binds = fold add_bind;
 
 fun expand_binds ctxt =
   let
@@ -486,7 +484,7 @@ fun focus_subgoal i st =
     val all_vars = Thm.fold_terms Term.add_vars st [];
     val no_binds = map (fn (xi, _) => (xi, NONE)) all_vars;
   in
-    add_binds no_binds #>
+    fold bind_term no_binds #>
     fold (declare_constraints o Var) all_vars #>
     focus (Thm.cprem_of st i)
   end;

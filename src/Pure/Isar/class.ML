@@ -225,8 +225,9 @@ fun add_consts class base_sort sups supparams global_syntax thy =
       |> (map o apsnd o apsnd o map_atyps o K o TFree) (Name.aT, [class]);
     val all_params = Locale.params_of thy class;
     val raw_params = (snd o chop (length supparams)) all_params;
-    fun add_const (b, SOME raw_ty, _) thy =
+    fun add_const ((raw_c, raw_ty), _) thy =
       let
+        val b = Binding.name raw_c;
         val c = Sign.full_name thy b;
         val ty = map_atyps (K (TFree (Name.aT, base_sort))) raw_ty;
         val ty0 = Type.strip_sorts ty;
@@ -284,7 +285,7 @@ fun gen_class prep_spec bname raw_supclasses raw_elems thy =
        `(fn thy => calculate thy class sups base_sort param_map assm_axiom)
     #-> (fn (base_morph, morph, export_morph, axiom, assm_intro, of_class) =>
        Locale.add_registration (class, (morph, export_morph))
-    #> Locale.activate_global_facts (class, morph $> export_morph)
+    #> Context.theory_map (Locale.activate_facts (class, morph $> export_morph))
     #> register class sups params base_sort base_morph axiom assm_intro of_class))
     |> TheoryTarget.init (SOME class)
     |> pair class

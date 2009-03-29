@@ -108,7 +108,7 @@ fun prepare prep_vars parse_prop prep_att do_close raw_vars raw_specss ctxt =
     val thy = ProofContext.theory_of ctxt;
 
     val (vars, vars_ctxt) = ctxt |> prep_vars raw_vars;
-    val (xs, params_ctxt) = vars_ctxt |> ProofContext.add_fixes_i vars;
+    val (xs, params_ctxt) = vars_ctxt |> ProofContext.add_fixes vars;
 
     val Asss = (map o map) (map (parse_prop params_ctxt) o snd) raw_specss;
     val names = Variable.names_of (params_ctxt |> (fold o fold o fold) Variable.declare_term Asss)
@@ -312,7 +312,7 @@ fun prep_statement prep_att prep_stmt elems concl ctxt =
               |> fold_map ProofContext.inferred_param xs;
             val asm = Term.list_all_free (xs ~~ Ts, Logic.list_implies (props, thesis));
           in
-            ctxt' |> (snd o ProofContext.add_fixes_i (map (fn b => (b, NONE, NoSyn)) bs));
+            ctxt' |> (snd o ProofContext.add_fixes (map (fn b => (b, NONE, NoSyn)) bs));
             ctxt' |> Variable.auto_fixes asm
             |> ProofContext.add_assms_i Assumption.assume_export
               [((name, [ContextRules.intro_query NONE]), [(asm, [])])]
@@ -325,9 +325,9 @@ fun prep_statement prep_att prep_stmt elems concl ctxt =
         val stmt = [((Binding.empty, atts), [(thesis, [])])];
 
         val (facts, goal_ctxt) = elems_ctxt
-          |> (snd o ProofContext.add_fixes_i [(Binding.name AutoBind.thesisN, NONE, NoSyn)])
+          |> (snd o ProofContext.add_fixes [(Binding.name AutoBind.thesisN, NONE, NoSyn)])
           |> fold_map assume_case (obtains ~~ propp)
-          |-> (fn ths => ProofContext.note_thmss_i Thm.assumptionK
+          |-> (fn ths => ProofContext.note_thmss Thm.assumptionK
                 [((Binding.name Obtain.thatN, []), [(ths, [])])] #> #2 #> pair ths);
       in ((prems, stmt, facts), goal_ctxt) end);
 
@@ -370,7 +370,7 @@ fun gen_theorem prep_att prep_stmt
       end;
   in
     goal_ctxt
-    |> ProofContext.note_thmss_i Thm.assumptionK
+    |> ProofContext.note_thmss Thm.assumptionK
       [((Binding.name AutoBind.assmsN, []), [(prems, [])])]
     |> snd
     |> Proof.theorem_i before_qed after_qed' (map snd stmt)

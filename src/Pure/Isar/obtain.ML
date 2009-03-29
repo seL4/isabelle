@@ -118,7 +118,7 @@ fun gen_obtain prep_att prep_vars prep_propp
 
     (*obtain vars*)
     val (vars, vars_ctxt) = prep_vars raw_vars ctxt;
-    val (_, fix_ctxt) = vars_ctxt |> ProofContext.add_fixes_i vars;
+    val (_, fix_ctxt) = vars_ctxt |> ProofContext.add_fixes vars;
     val xs = map (Name.of_binding o #1) vars;
 
     (*obtain asms*)
@@ -294,7 +294,7 @@ fun gen_guess prep_vars raw_vars int state =
         |> Proof.fix_i (map (fn ((x, T), mx) => (Binding.name x, SOME T, mx)) parms)
         |> `Proof.context_of |-> (fn fix_ctxt => Proof.assm_i
           (obtain_export fix_ctxt rule (map cert ts)) [(Thm.empty_binding, asms)])
-        |> Proof.add_binds_i AutoBind.no_facts
+        |> Proof.bind_terms AutoBind.no_facts
       end;
 
     val goal = Var (("guess", 0), propT);
