@@ -370,7 +370,7 @@ fun amend_registration morph (name, base_morph) thy =
 
 fun add_thmss loc kind args ctxt =
   let
-    val ([Notes args'], ctxt') = Element.activate_i [Notes (kind, args)] ctxt;
+    val (Notes args', ctxt') = Element.activate_i (Notes (kind, args)) ctxt;
     val ctxt'' = ctxt' |> ProofContext.theory (
       (change_locale loc o apfst o apsnd) (cons (args', stamp ()))
         #>

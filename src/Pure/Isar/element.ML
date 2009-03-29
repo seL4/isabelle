@@ -61,8 +61,8 @@ sig
   val eq_morphism: theory -> thm list -> morphism
   val transfer_morphism: theory -> morphism
   val init: context_i -> Context.generic -> Context.generic
-  val activate: (typ, term, Facts.ref) ctxt list -> Proof.context -> context_i list * Proof.context
-  val activate_i: context_i list -> Proof.context -> context_i list * Proof.context
+  val activate_i: context_i -> Proof.context -> context_i * Proof.context
+  val activate: (typ, term, Facts.ref) ctxt -> Proof.context -> context_i * Proof.context
 end;
 
 structure Element: ELEMENT =
@@ -516,30 +516,20 @@ fun init (Fixes fixes) = Context.map_proof (ProofContext.add_fixes fixes #> #2)
 
 (* activate *)
 
-local
-
-fun gen_activate prep_facts raw_elems ctxt =
+fun activate_i elem ctxt =
   let
-    fun activate elem ctxt' =
-      let val elem' = map_ctxt_attrib Args.assignable (prep_facts ctxt' elem)
-      in (elem', Context.proof_map (init elem') ctxt') end;
-    val (elems, ctxt') = fold_map activate raw_elems ctxt;
-  in (elems |> map (map_ctxt_attrib Args.closure), ctxt') end;
+    val elem' = map_ctxt_attrib Args.assignable elem;
+    val ctxt' = Context.proof_map (init elem') ctxt;
+  in (map_ctxt_attrib Args.closure elem', ctxt') end;
 
-fun prep_facts ctxt =
-  map_ctxt
+fun activate raw_elem ctxt =
+  let val elem = raw_elem |> map_ctxt
    {binding = tap Name.of_binding,
     typ = I,
     term = I,
     pattern = I,
     fact = ProofContext.get_fact ctxt,
-    attrib = Attrib.intern_src (ProofContext.theory_of ctxt)};
-
-in
-
-fun activate x = gen_activate prep_facts x;
-fun activate_i x = gen_activate (K I) x;
-
-end;
+    attrib = Attrib.intern_src (ProofContext.theory_of ctxt)}
+  in activate_i elem ctxt end;
 
 end;

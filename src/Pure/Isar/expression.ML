@@ -416,7 +416,7 @@ fun prep_statement prep activate raw_elems raw_concl context =
        prep true false ([], []) I raw_elems raw_concl context;
      val (_, context') = context |>
        ProofContext.set_stmt true |>
-       activate elems;
+       fold_map activate elems;
   in (concl, context') end;
 
 in
@@ -444,7 +444,7 @@ fun prep_declaration prep activate raw_import init_body raw_elems context =
       fold (Context.proof_map o Locale.activate_facts) deps;
     val (elems', _) = context' |>
       ProofContext.set_stmt true |>
-      activate elems;
+      fold_map activate elems;
   in ((fixed, deps, elems'), (parms, ctxt')) end;
 
 in
