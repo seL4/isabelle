@@ -173,8 +173,8 @@ fun inst_morph (parm_names, parm_types) ((prfx, mandatory), insts') ctxt =
     (* instantiation *)
     val (type_parms'', res') = chop (length type_parms) res;
     val insts'' = (parm_names ~~ res') |> map_filter
-      (fn (inst as (x, Free (y, _))) => if x = y then NONE else SOME inst |
-        inst => SOME inst);
+      (fn inst as (x, Free (y, _)) => if x = y then NONE else SOME inst
+        | inst => SOME inst);
     val instT = Symtab.make (type_parm_names ~~ map Logic.dest_type type_parms'');
     val inst = Symtab.make insts'';
   in
@@ -242,7 +242,7 @@ fun check cs context =
       in
         ((t, Syntax.check_props (ProofContext.set_mode ProofContext.mode_pattern ctxt') pats),
           (ctxt', ts))
-      end
+      end;
     val (cs', (context', _)) = fold_map prep cs
       (context, Syntax.check_terms
         (ProofContext.set_mode ProofContext.mode_schematic context) (map fst cs));
@@ -260,7 +260,8 @@ fun check_autofix insts elems concl ctxt =
       (fold_burrow o fold_burrow) check (inst_cs :: elem_css @ [concl_cs]) ctxt;
     val (elem_css', [concl_cs']) = chop (length elem_css) css';
   in
-    (map restore_inst (insts ~~ inst_cs'), map restore_elem (elems ~~ elem_css'),
+    (map restore_inst (insts ~~ inst_cs'),
+      map restore_elem (elems ~~ elem_css'),
       concl_cs', ctxt')
   end;
 
@@ -277,6 +278,7 @@ fun declare_elem prep_vars (Fixes fixes) ctxt =
   | declare_elem _ (Assumes _) ctxt = ctxt
   | declare_elem _ (Defines _) ctxt = ctxt
   | declare_elem _ (Notes _) ctxt = ctxt;
+
 
 (** Finish locale elements **)
 
@@ -392,9 +394,11 @@ in
 fun cert_full_context_statement x =
   prep_full_context_statement (K I) (K I) ProofContext.cert_vars
   make_inst ProofContext.cert_vars (K I) x;
+
 fun cert_read_full_context_statement x =
   prep_full_context_statement Syntax.parse_typ Syntax.parse_prop ProofContext.read_vars
   make_inst ProofContext.cert_vars (K I) x;
+
 fun read_full_context_statement x =
   prep_full_context_statement Syntax.parse_typ Syntax.parse_prop ProofContext.read_vars
   parse_inst ProofContext.read_vars intern x;
@@ -727,7 +731,8 @@ fun gen_add_locale prep_decl
     val extraTs = fold Term.add_tfrees exts' [] \\ fold Term.add_tfreesT (map snd parms) [];
     val _ =
       if null extraTs then ()
-      else warning ("Additional type variable(s) in locale specification " ^ quote (Binding.str_of bname));
+      else warning ("Additional type variable(s) in locale specification " ^
+        quote (Binding.str_of bname));
 
     val a_satisfy = Element.satisfy_morphism a_axioms;
     val b_satisfy = Element.satisfy_morphism b_axioms;
