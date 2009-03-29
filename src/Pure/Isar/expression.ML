@@ -70,12 +70,12 @@ type expression_i = term expr * (binding * typ option * mixfix) list;
 fun intern thy instances =  map (apfst (Locale.intern thy)) instances;
 
 
-(** Parameters of expression.
+(** Parameters of expression **)
 
-   Sanity check of instantiations and extraction of implicit parameters.
-   The latter only occurs iff strict = false.
-   Positional instantiations are extended to match full length of parameter list
-   of instantiated locale. **)
+(*Sanity check of instantiations and extraction of implicit parameters.
+  The latter only occurs iff strict = false.
+  Positional instantiations are extended to match full length of parameter list
+  of instantiated locale.*)
 
 fun parameters_of thy strict (expr, fixed) =
   let
@@ -88,7 +88,7 @@ fun parameters_of thy strict (expr, fixed) =
       (mx1 = mx2 orelse error ("Conflicting syntax for parameter " ^ quote p1 ^ " in expression"));
 
     fun params_loc loc = Locale.params_of thy loc |> map (apfst #1);
-    fun params_inst (expr as (loc, (prfx, Positional insts))) =
+    fun params_inst (loc, (prfx, Positional insts)) =
           let
             val ps = params_loc loc;
             val d = length ps - length insts;
@@ -99,24 +99,22 @@ fun parameters_of thy strict (expr, fixed) =
             val ps' = (ps ~~ insts') |>
               map_filter (fn (p, NONE) => SOME p | (_, SOME _) => NONE);
           in (ps', (loc, (prfx, Positional insts'))) end
-      | params_inst (expr as (loc, (prfx, Named insts))) =
+      | params_inst (loc, (prfx, Named insts)) =
           let
             val _ = reject_dups "Duplicate instantiation of the following parameter(s): "
               (map fst insts);
-
-            val ps = params_loc loc;
-            val ps' = fold (fn (p, _) => fn ps =>
+            val ps' = (insts, params_loc loc) |-> fold (fn (p, _) => fn ps =>
               if AList.defined (op =) ps p then AList.delete (op =) p ps
-              else error (quote p ^ " not a parameter of instantiated expression")) insts ps;
+              else error (quote p ^ " not a parameter of instantiated expression"));
           in (ps', (loc, (prfx, Named insts))) end;
     fun params_expr is =
+      let
+        val (is', ps') = fold_map (fn i => fn ps =>
           let
-            val (is', ps') = fold_map (fn i => fn ps =>
-              let
-                val (ps', i') = params_inst i;
-                val ps'' = distinct parm_eq (ps @ ps');
-              in (i', ps'') end) is []
-          in (ps', is') end;
+            val (ps', i') = params_inst i;
+            val ps'' = distinct parm_eq (ps @ ps');
+          in (i', ps'') end) is []
+      in (ps', is') end;
 
     val (implicit, expr') = params_expr expr;
 
@@ -343,7 +341,7 @@ fun prep_full_context_statement parse_typ parse_prop prep_vars_elem prep_inst pr
 
     val (raw_insts, fixed) = parameters_of thy strict (apfst (prep_expr thy) raw_import);
 
-    fun prep_insts (loc, (prfx, inst)) (i, insts, ctxt) =
+    fun prep_insts_cumulative (loc, (prfx, inst)) (i, insts, ctxt) =
       let
         val (parm_names, parm_types) = Locale.params_of thy loc |> map #1 |> split_list;
         val inst' = prep_inst ctxt parm_names inst;
@@ -361,7 +359,7 @@ fun prep_full_context_statement parse_typ parse_prop prep_vars_elem prep_inst pr
       let
         val ctxt' = declare_elem prep_vars_elem raw_elem ctxt;
         val elems' = elems @ [parse_elem parse_typ parse_prop ctxt' raw_elem];
-        val (_, _, _, ctxt'') = check_autofix insts elems' [] ctxt';
+        val (_, _, _, ctxt'' (* FIXME not used *) ) = check_autofix insts elems' [] ctxt';
       in (elems', ctxt') end;
 
     fun prep_concl raw_concl (insts, elems, ctxt) =
@@ -371,11 +369,10 @@ fun prep_full_context_statement parse_typ parse_prop prep_vars_elem prep_inst pr
 
     val fors = prep_vars_inst fixed ctxt1 |> fst;
     val ctxt2 = ctxt1 |> ProofContext.add_fixes fors |> snd;
-    val (_, insts', ctxt3) = fold prep_insts raw_insts (0, [], ctxt2);
+    val (_, insts', ctxt3) = fold prep_insts_cumulative raw_insts (0, [], ctxt2);
     val ctxt4 = init_body ctxt3;
     val (elems, ctxt5) = fold (prep_elem insts') raw_elems ([], ctxt4);
-    val (insts, elems', concl, ctxt6) =
-      prep_concl raw_concl (insts', elems, ctxt5);
+    val (insts, elems', concl, ctxt6) = prep_concl raw_concl (insts', elems, ctxt5);
 
     (* Retrieve parameter types *)
     val xs = fold (fn Fixes fixes => (fn ps => ps @ map (Name.of_binding o #1) fixes)
