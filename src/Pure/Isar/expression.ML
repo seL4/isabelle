@@ -158,7 +158,7 @@ end;
 
 (* Instantiation morphism *)
 
-fun inst_morph (parm_names, parm_types) ((prfx, strict), insts') ctxt =
+fun inst_morph (parm_names, parm_types) ((prfx, mandatory), insts') ctxt =
   let
     (* parameters *)
     val type_parm_names = fold Term.add_tfreesT parm_types [] |> map fst;
@@ -179,7 +179,7 @@ fun inst_morph (parm_names, parm_types) ((prfx, strict), insts') ctxt =
     val inst = Symtab.make insts'';
   in
     (Element.inst_morphism (ProofContext.theory_of ctxt) (instT, inst) $>
-      Morphism.binding_morphism (Binding.prefix strict prfx), ctxt')
+      Morphism.binding_morphism (Binding.prefix mandatory prfx), ctxt')
   end;
 
 
