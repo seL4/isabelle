@@ -833,10 +833,10 @@ fun gen_interpretation prep_expr parse_prop prep_attr
                Locale.activate_global_facts (name, morph $> export)) regs
       | store_eqns_activate regs eqs thy =
           let
-            val eqs' = eqs |> map (Morphism.thm (export' $> export) #>
-              LocalDefs.meta_rewrite_rule (ProofContext.init thy) #>
+            val eqs' = eqs |> map (Morphism.thm (export' $> export));
+            val morph_eqs = eqs' |> map (LocalDefs.meta_rewrite_rule (ProofContext.init thy) #>
               Drule.abs_def);
-            val eq_morph = Element.eq_morphism thy eqs';
+            val eq_morph = Element.eq_morphism thy morph_eqs;
             val eq_attns' = map ((apsnd o map) (Attrib.attribute_i thy)) eq_attns;
           in
             thy
