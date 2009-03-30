@@ -290,7 +290,7 @@ fun check_defs ctxt fixes eqs =
 
 type fixes = ((string * typ) * mixfix) list
 type 'a spec = ((bstring * Attrib.src list) * 'a list) list
-type preproc = fundef_config -> bool list -> Proof.context -> fixes -> term spec 
+type preproc = fundef_config -> Proof.context -> fixes -> term spec 
                -> (term list * (thm list -> thm spec) * (thm list -> thm list list) * string list)
 
 val fname_of = fst o dest_Free o fst o strip_comb o fst 
@@ -301,7 +301,7 @@ fun mk_case_names i "" k = mk_case_names i (string_of_int (i + 1)) k
   | mk_case_names _ n 1 = [n]
   | mk_case_names _ n k = map (fn i => n ^ "_" ^ string_of_int i) (1 upto k)
 
-fun empty_preproc check _ _ ctxt fixes spec =
+fun empty_preproc check _ ctxt fixes spec =
     let 
       val (nas,tss) = split_list spec
       val ts = flat tss
@@ -345,22 +345,17 @@ local
       (Scan.optional (P.$$$ "(" |-- P.!!! (P.list1 option_parser) --| P.$$$ ")") [])
         >> (fn opts => fold apply_opt opts default)
 
-  val otherwise = P.$$$ "(" |-- P.$$$ "otherwise" --| P.$$$ ")"
-
   fun pipe_error t = 
   P.!!! (Scan.fail_with (K (cat_lines ["Equations must be separated by " ^ quote "|", quote t])))
 
-  val statement_ow = 
-   SpecParse.opt_thm_name ":" -- (P.prop -- Scan.optional (otherwise >> K true) false)
+  val statement = 
+   SpecParse.opt_thm_name ":" -- P.prop
     --| Scan.ahead ((P.term :-- pipe_error) || Scan.succeed ("",""))
 
-  val statements_ow = P.enum1 "|" statement_ow
-
-  val flags_statements = statements_ow
-                         >> (fn sow => (map (snd o snd) sow, map (apsnd fst) sow))
+  val statements = P.enum1 "|" statement
 in
   fun fundef_parser default_cfg = 
-      config_parser default_cfg -- P.fixes --| P.where_ -- flags_statements
+      config_parser default_cfg -- P.fixes --| P.where_ -- statements
 end
 
 

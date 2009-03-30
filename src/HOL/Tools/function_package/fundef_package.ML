@@ -10,13 +10,11 @@ sig
     val add_fundef :  (binding * typ option * mixfix) list
                        -> (Attrib.binding * term) list
                        -> FundefCommon.fundef_config
-                       -> bool list
                        -> local_theory
                        -> Proof.state
     val add_fundef_cmd :  (binding * string option * mixfix) list
                       -> (Attrib.binding * string) list 
                       -> FundefCommon.fundef_config
-                      -> bool list
                       -> local_theory
                       -> Proof.state
 
@@ -95,13 +93,13 @@ fun fundef_afterqed do_print fixes post defname cont sort_cont cnames [[proof]] 
     end
 
 
-fun gen_add_fundef is_external prep default_constraint fixspec eqns config flags lthy =
+fun gen_add_fundef is_external prep default_constraint fixspec eqns config lthy =
     let
       val constrn_fxs = map (fn (b, T, mx) => (b, SOME (the_default default_constraint T), mx))
       val ((fixes0, spec0), ctxt') = prep (constrn_fxs fixspec) eqns lthy
       val fixes = map (apfst (apfst Binding.name_of)) fixes0;
       val spec = map (fn ((b, atts), prop) => ((Binding.name_of b, atts), [prop])) spec0;
-      val (eqs, post, sort_cont, cnames) = FundefCommon.get_preproc lthy config flags ctxt' fixes spec
+      val (eqs, post, sort_cont, cnames) = FundefCommon.get_preproc lthy config ctxt' fixes spec
 
       val defname = mk_defname fixes
 
@@ -209,12 +207,10 @@ val get_congs = FundefCtxTree.get_fundef_congs
 
 local structure P = OuterParse and K = OuterKeyword in
 
-val _ = OuterKeyword.keyword "otherwise";
-
 val _ =
   OuterSyntax.local_theory_to_proof "function" "define general recursive functions" K.thy_goal
   (fundef_parser default_config
-     >> (fn ((config, fixes), (flags, statements)) => add_fundef_cmd fixes statements config flags));
+     >> (fn ((config, fixes), statements) => add_fundef_cmd fixes statements config));
 
 val _ =
   OuterSyntax.local_theory_to_proof "termination" "prove termination of a recursive function" K.thy_goal
