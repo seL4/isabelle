@@ -1,7 +1,7 @@
 (*  Title:      Pure/Isar/isar_cmd.ML
     Author:     Markus Wenzel, TU Muenchen
 
-Derived Isar commands.
+Miscellaneous Isar commands.
 *)
 
 signature ISAR_CMD =
@@ -298,7 +298,7 @@ fun ml_diag verbose (txt, pos) = Toplevel.keep (fn state =>
 
 (* current working directory *)
 
-fun cd path = Toplevel.imperative (fn () => (File.cd path));
+fun cd path = Toplevel.imperative (fn () => File.cd path);
 val pwd = Toplevel.imperative (fn () => writeln (Path.implode (File.pwd ())));
 
 
