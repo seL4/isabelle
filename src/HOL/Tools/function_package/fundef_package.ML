@@ -129,9 +129,8 @@ fun total_termination_afterqed data [[totality]] lthy =
       val tsimps = map remove_domain_condition psimps
       val tinduct = map remove_domain_condition pinducts
 
-      val has_guards = exists ((fn (Const ("Trueprop", _) $ _) => false | _ => true) o prop_of) tsimps
-      val allatts = (not has_guards ? cons Code.add_default_eqn_attrib)
-        [Attrib.internal (K Nitpick_Const_Simp_Thms.add)]
+      val allatts = [Code.add_default_eqn_attrib,
+                     Attrib.internal (K Nitpick_Const_Simp_Thms.add)]
 
       val qualify = Long_Name.qualify defname;
     in
