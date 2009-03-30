@@ -19,7 +19,7 @@ sig
   val kill: unit -> unit
   val info: unit -> unit
   val messages: int option -> unit
-  type prover = int -> int -> Proof.context * (thm list * thm) -> bool * string 
+  type prover = int -> int -> Proof.context * (thm list * thm) -> bool * string
   val add_prover: string -> prover -> theory -> theory
   val print_provers: theory -> unit
   val sledgehammer: string list -> Proof.state -> unit
@@ -96,6 +96,12 @@ fun make_state timeout_heap oldest_heap active cancelling messages store =
   State {timeout_heap = timeout_heap, oldest_heap = oldest_heap,
     active = active, cancelling = cancelling, messages = messages, store = store};
 
+fun empty_state state =
+  let
+    val State {active = active, cancelling = cancelling, messages = messages, ...} =
+      Synchronized.value state
+  in (null active) andalso (null cancelling) andalso (null messages) end;
+
 val state = Synchronized.var "atp_manager" (make_state ThreadHeap.empty ThreadHeap.empty [] [] [] []);
 
 
@@ -127,7 +133,7 @@ fun unregister (success, message) thread = Synchronized.change state
             (if length store <= message_store_limit then store
              else #1 (chop message_store_limit store))
         in make_state timeout_heap oldest_heap active' cancelling' (message' :: messages) store' end
-    | NONE =>state));
+    | NONE => state));
 
 
 (* kill excessive atp threads *)
@@ -162,12 +168,14 @@ end;
 fun print_new_messages () =
   let val to_print = Synchronized.change_result state
     (fn State {timeout_heap, oldest_heap, active, cancelling, messages, store} =>
-    (messages, make_state timeout_heap oldest_heap active cancelling [] store))  
-  in if null to_print then ()
-  else priority ("Sledgehammer: " ^ (space_implode "\n\n" to_print)) end;
+      (messages, make_state timeout_heap oldest_heap active cancelling [] store))
+  in
+    if null to_print then ()
+    else priority ("Sledgehammer: " ^ space_implode "\n\n" to_print)
+  end;
 
 
-(* start a watching thread which runs forever -- only one may exist *)
+(* start a watching thread -- only one may exist *)
 
 fun check_thread_manager () = CRITICAL (fn () =>
   if (case ! managing_thread of SOME thread => Thread.isActive thread | NONE => false)
@@ -197,7 +205,7 @@ fun check_thread_manager () = CRITICAL (fn () =>
             in SOME (map #2 timeout_threads, state') end
         end
     in
-      while true do
+      while not (empty_state state) do
        (Synchronized.timed_access state time_limit action
         |> these
         |> List.app (unregister (false, "Interrupted (reached timeout)"));
@@ -211,14 +219,14 @@ fun check_thread_manager () = CRITICAL (fn () =>
 (* thread is registered here by sledgehammer *)
 
 fun register birthtime deadtime (thread, desc) =
- (check_thread_manager ();
-  Synchronized.change state
+ (Synchronized.change state
     (fn State {timeout_heap, oldest_heap, active, cancelling, messages, store} =>
       let
         val timeout_heap' = ThreadHeap.insert (deadtime, thread) timeout_heap
         val oldest_heap' = ThreadHeap.insert (birthtime, thread) oldest_heap
         val active' = update_thread (thread, (birthtime, deadtime, desc)) active
-      in make_state timeout_heap' oldest_heap' active' cancelling messages store end));
+      in make_state timeout_heap' oldest_heap' active' cancelling messages store end);
+  check_thread_manager ());
 
 
 
@@ -307,7 +315,7 @@ fun start_prover name birthtime deadtime i proof_state =
         val _ = SimpleThread.fork true (fn () =>
           let
             val _ = register birthtime deadtime (Thread.self (), desc)
-            val result = prover (get_timeout ()) i (Proof.get_goal proof_state) 
+            val result = prover (get_timeout ()) i (Proof.get_goal proof_state)
               handle ResHolClause.TOO_TRIVIAL
                 => (true, "Empty clause: Try this command: " ^ Markup.markup Markup.sendback "apply metis")
               | ERROR msg
@@ -355,7 +363,7 @@ val _ =
 val _ =
   OuterSyntax.command "sledgehammer" "call all automatic theorem provers" K.diag
     (Scan.repeat P.xname >> (fn names => Toplevel.no_timing o Toplevel.unknown_proof o
-      Toplevel.keep ((sledgehammer names) o Toplevel.proof_of)));
+      Toplevel.keep (sledgehammer names o Toplevel.proof_of)));
 
 end;
 
