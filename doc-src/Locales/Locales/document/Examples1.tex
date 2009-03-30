@@ -72,14 +72,13 @@ In the most basic form, interpretation just replaces the locale
 %
 \isatagvisible
 \isacommand{interpretation}\isamarkupfalse%
-\ nat{\isacharbang}{\isacharcolon}\ partial{\isacharunderscore}order\ {\isachardoublequoteopen}op\ {\isasymle}\ {\isacharcolon}{\isacharcolon}\ nat\ {\isasymRightarrow}\ nat\ {\isasymRightarrow}\ bool{\isachardoublequoteclose}%
+\ nat{\isacharcolon}\ partial{\isacharunderscore}order\ {\isachardoublequoteopen}op\ {\isasymle}\ {\isacharcolon}{\isacharcolon}\ nat\ {\isasymRightarrow}\ nat\ {\isasymRightarrow}\ bool{\isachardoublequoteclose}%
 \begin{isamarkuptxt}%
 The locale name is succeeded by a \emph{parameter
-  instantiation}.  In general, this is a list of terms, which refer to
+  instantiation}.  This is a list of terms, which refer to
   the parameters in the order of declaration in the locale.  The
-  locale name is preceded by an optional \emph{interpretation prefix},
-  which is used to qualify names from the locale in the global
-  context.
+  locale name is preceded by an optional \emph{interpretation
+  qualifier}.
 
   The command creates the goal%
 \footnote{Note that \isa{op} binds tighter than functions
@@ -104,14 +103,12 @@ Now theorems from the locale are available in the theory,
 \ \ {\isasymlbrakk}{\isacharquery}x\ {\isasymle}\ {\isacharquery}y{\isacharsemicolon}\ {\isacharquery}y\ {\isasymle}\ {\isacharquery}z{\isasymrbrakk}\ {\isasymLongrightarrow}\ {\isacharquery}x\ {\isasymle}\ {\isacharquery}z%
 \end{isabelle}
 
-  Interpretation accepts a qualifier, \isa{nat} in the example,
-  which is applied to all names processed by the interpretation.  If
-  followed by an exclamation point the qualifier is mandatory --- that
-  is, the above theorem cannot be referred to simply by \isa{trans}.
-  A qualifier succeeded by an exclamation point is called
-  \emph{strict}.  It prevents unwanted hiding of theorems.  It is
-  advisable to use strict qualifiers for all interpretations in
-  theories.%
+  The interpretation qualifier, \isa{nat} in the example, is applied
+  to all names processed by the interpretation.  If a qualifer is
+  given in the \isakeyword{interpretation} command, its use is
+  mandatory when referencing the name.  For example, the above theorem
+  cannot be referred to simply by \isa{trans}.  This prevents
+  unwanted hiding of theorems.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %

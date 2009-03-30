@@ -283,7 +283,7 @@ fun bires_inst_tac bires_flag ctxt insts thm =
         val (param_names, ctxt') = ctxt
           |> Variable.declare_thm thm
           |> Thm.fold_terms Variable.declare_constraints st
-          |> ProofContext.add_fixes_i (map (fn (x, T) => (Binding.name x, SOME T, NoSyn)) params);
+          |> ProofContext.add_fixes (map (fn (x, T) => (Binding.name x, SOME T, NoSyn)) params);
 
         (* Process type insts: Tinsts_env *)
         fun absent xi = error

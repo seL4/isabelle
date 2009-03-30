@@ -43,13 +43,12 @@ text {*
   @{text partial_order} in the global context of the theory.  The
   parameter @{term le} is replaced by @{term "op \<le> :: nat \<Rightarrow> nat \<Rightarrow> bool"}. *} 
 
-  interpretation %visible nat!: partial_order "op \<le> :: nat \<Rightarrow> nat \<Rightarrow> bool"
+  interpretation %visible nat: partial_order "op \<le> :: nat \<Rightarrow> nat \<Rightarrow> bool"
 txt {* The locale name is succeeded by a \emph{parameter
-  instantiation}.  In general, this is a list of terms, which refer to
+  instantiation}.  This is a list of terms, which refer to
   the parameters in the order of declaration in the locale.  The
-  locale name is preceded by an optional \emph{interpretation prefix},
-  which is used to qualify names from the locale in the global
-  context.
+  locale name is preceded by an optional \emph{interpretation
+  qualifier}.
 
   The command creates the goal%
 \footnote{Note that @{text op} binds tighter than functions
@@ -62,14 +61,12 @@ text {*  Now theorems from the locale are available in the theory,
   interpreted for natural numbers, for example @{thm [source]
   nat.trans}: @{thm [display, indent=2] nat.trans}
 
-  Interpretation accepts a qualifier, @{text nat} in the example,
-  which is applied to all names processed by the interpretation.  If
-  followed by an exclamation point the qualifier is mandatory --- that
-  is, the above theorem cannot be referred to simply by @{text trans}.
-  A qualifier succeeded by an exclamation point is called
-  \emph{strict}.  It prevents unwanted hiding of theorems.  It is
-  advisable to use strict qualifiers for all interpretations in
-  theories.  *}
+  The interpretation qualifier, @{text nat} in the example, is applied
+  to all names processed by the interpretation.  If a qualifer is
+  given in the \isakeyword{interpretation} command, its use is
+  mandatory when referencing the name.  For example, the above theorem
+  cannot be referred to simply by @{text trans}.  This prevents
+  unwanted hiding of theorems. *}
 
 
 subsection {* Second Version: Replacement of Definitions *}

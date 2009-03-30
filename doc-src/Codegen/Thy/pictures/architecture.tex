@@ -6,6 +6,12 @@
 
 \begin{document}
 
+\thispagestyle{empty}
+\setlength{\fboxrule}{0.01pt}
+\setlength{\fboxsep}{4pt}
+
+\fbox{
+
 \begin{tikzpicture}[x = 4.2cm, y = 1cm]
   \tikzstyle entity=[rounded corners, draw, thick, color = black, fill = white];
   \tikzstyle process=[ellipse, draw, thick, color = green, fill = white];
@@ -29,5 +35,7 @@
   \draw [style=process_arrow, dashed] (seri) -- (further);
   \draw [style=process_arrow] (seri) -- (Haskell);
 \end{tikzpicture}
+
+}
 
 \end{document}

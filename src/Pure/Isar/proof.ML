@@ -17,7 +17,7 @@ sig
   val theory_of: state -> theory
   val map_context: (context -> context) -> state -> state
   val map_contexts: (context -> context) -> state -> state
-  val add_binds_i: (indexname * term option) list -> state -> state
+  val bind_terms: (indexname * term option) list -> state -> state
   val put_thms: bool -> string * thm list option -> state -> state
   val the_facts: state -> thm list
   val the_fact: state -> thm
@@ -204,7 +204,7 @@ fun map_context_result f state =
 
 fun map_contexts f = map_all (fn (ctxt, facts, mode, goal) => (f ctxt, facts, mode, goal));
 
-val add_binds_i = map_context o ProofContext.add_binds_i;
+val bind_terms = map_context o ProofContext.bind_terms;
 val put_thms = map_context oo ProofContext.put_thms;
 
 
@@ -531,15 +531,15 @@ end;
 
 local
 
-fun gen_fix add_fixes args =
+fun gen_fix prep_vars args =
   assert_forward
-  #> map_context (snd o add_fixes args)
+  #> map_context (fn ctxt => snd (ProofContext.add_fixes (prep_vars ctxt args) ctxt))
   #> put_facts NONE;
 
 in
 
-val fix = gen_fix ProofContext.add_fixes;
-val fix_i = gen_fix ProofContext.add_fixes_i;
+val fix = gen_fix (fn ctxt => fn args => fst (ProofContext.read_vars args ctxt));
+val fix_i = gen_fix (K I);
 
 end;
 
@@ -620,29 +620,27 @@ fun no_binding args = map (pair (Binding.empty, [])) args;
 
 local
 
-fun gen_thmss note_ctxt more_facts opt_chain opt_result prep_atts args state =
+fun gen_thmss more_facts opt_chain opt_result prep_atts prep_fact args state =
   state
   |> assert_forward
-  |> map_context_result (note_ctxt (Attrib.map_facts (prep_atts (theory_of state)) args))
+  |> map_context_result (ProofContext.note_thmss ""
+    (Attrib.map_facts_refs (prep_atts (theory_of state)) (prep_fact (context_of state)) args))
   |> these_factss (more_facts state)
   ||> opt_chain
   |> opt_result;
 
 in
 
-val note_thmss = gen_thmss (ProofContext.note_thmss "") (K []) I #2 Attrib.attribute;
-val note_thmss_i = gen_thmss (ProofContext.note_thmss_i "") (K []) I #2 (K I);
+val note_thmss = gen_thmss (K []) I #2 Attrib.attribute ProofContext.get_fact;
+val note_thmss_i = gen_thmss (K []) I #2 (K I) (K I);
 
-val from_thmss =
-  gen_thmss (ProofContext.note_thmss "") (K []) chain #2 Attrib.attribute o no_binding;
-val from_thmss_i = gen_thmss (ProofContext.note_thmss_i "") (K []) chain #2 (K I) o no_binding;
+val from_thmss = gen_thmss (K []) chain #2 Attrib.attribute ProofContext.get_fact o no_binding;
+val from_thmss_i = gen_thmss (K []) chain #2 (K I) (K I) o no_binding;
 
-val with_thmss =
-  gen_thmss (ProofContext.note_thmss "") the_facts chain #2 Attrib.attribute o no_binding;
-val with_thmss_i = gen_thmss (ProofContext.note_thmss_i "") the_facts chain #2 (K I) o no_binding;
+val with_thmss = gen_thmss the_facts chain #2 Attrib.attribute ProofContext.get_fact o no_binding;
+val with_thmss_i = gen_thmss the_facts chain #2 (K I) (K I) o no_binding;
 
-val local_results =
-  gen_thmss (ProofContext.note_thmss_i "") (K []) I I (K I) o map (apsnd Thm.simple_fact);
+val local_results = gen_thmss (K []) I I (K I) (K I) o map (apsnd Thm.simple_fact);
 
 fun get_thmss state srcs = the_facts (note_thmss [((Binding.empty, []), srcs)] state);
 
@@ -653,11 +651,13 @@ end;
 
 local
 
-fun gen_using f g note prep_atts args state =
+fun gen_using f g prep_atts prep_fact args state =
   state
   |> assert_backward
   |> map_context_result
-    (note "" (Attrib.map_facts (prep_atts (theory_of state)) (no_binding args)))
+    (ProofContext.note_thmss ""
+      (Attrib.map_facts_refs (prep_atts (theory_of state)) (prep_fact (context_of state))
+        (no_binding args)))
   |> (fn (named_facts, state') =>
     state' |> map_goal I (fn (statement, _, using, goal, before_qed, after_qed) =>
       let
@@ -671,10 +671,10 @@ val unfold_goals = LocalDefs.unfold_goals;
 
 in
 
-val using = gen_using append_using (K (K I)) ProofContext.note_thmss Attrib.attribute;
-val using_i = gen_using append_using (K (K I)) ProofContext.note_thmss_i (K I);
-val unfolding = gen_using unfold_using unfold_goals ProofContext.note_thmss Attrib.attribute;
-val unfolding_i = gen_using unfold_using unfold_goals ProofContext.note_thmss_i (K I);
+val using = gen_using append_using (K (K I)) Attrib.attribute ProofContext.get_fact;
+val using_i = gen_using append_using (K (K I)) (K I) (K I);
+val unfolding = gen_using unfold_using unfold_goals Attrib.attribute ProofContext.get_fact;
+val unfolding_i = gen_using unfold_using unfold_goals (K I) (K I);
 
 end;
 
@@ -695,7 +695,7 @@ fun gen_invoke_case prep_att (name, xs, raw_atts) state =
   in
     state'
     |> assume_i assumptions
-    |> add_binds_i AutoBind.no_facts
+    |> bind_terms AutoBind.no_facts
     |> `the_facts |-> (fn thms => note_thmss_i [((Binding.name name, []), [(thms, [])])])
   end;
 

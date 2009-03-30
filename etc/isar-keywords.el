@@ -18,6 +18,7 @@
     "ML"
     "ML_command"
     "ML_prf"
+    "ML_test"
     "ML_val"
     "ProofGeneral\\.inform_file_processed"
     "ProofGeneral\\.inform_file_retracted"
@@ -419,6 +420,7 @@
 
 (defconst isar-keywords-theory-decl
   '("ML"
+    "ML_test"
     "abbreviation"
     "arities"
     "atom_decl"
