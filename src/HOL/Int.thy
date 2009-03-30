@@ -12,7 +12,7 @@ imports Equiv_Relations Nat Wellfounded
 uses
   ("Tools/numeral.ML")
   ("Tools/numeral_syntax.ML")
-  ("~~/src/Provers/Arith/assoc_fold.ML")
+  "~~/src/Provers/Arith/assoc_fold.ML"
   "~~/src/Provers/Arith/cancel_numerals.ML"
   "~~/src/Provers/Arith/combine_numerals.ML"
   ("Tools/int_arith.ML")
@@ -1525,7 +1525,6 @@ text {* Legacy theorems *}
 lemmas zle_int = of_nat_le_iff [where 'a=int]
 lemmas int_int_eq = of_nat_eq_iff [where 'a=int]
 
-use "~~/src/Provers/Arith/assoc_fold.ML"
 use "Tools/int_arith.ML"
 declaration {* K Int_Arith.setup *}
 
