@@ -252,7 +252,7 @@ fun warn_if_redundant ctxt origs tss =
 fun sequential_preproc (config as FundefConfig {sequential, ...}) ctxt fixes spec =
       if sequential then
         let
-          val (nas, eqss) = split_list spec
+          val (bnds, eqss) = split_list spec
                             
           val eqs = map the_single eqss
                     
@@ -266,9 +266,9 @@ fun sequential_preproc (config as FundefConfig {sequential, ...}) ctxt fixes spe
                            (FundefSplit.split_all_equations ctxt compleqs)
 
           fun restore_spec thms =
-              nas ~~ Library.take (length nas, Library.unflat spliteqs thms)
+              bnds ~~ Library.take (length bnds, Library.unflat spliteqs thms)
               
-          val spliteqs' = flat (Library.take (length nas, spliteqs))
+          val spliteqs' = flat (Library.take (length bnds, spliteqs))
           val fnames = map (fst o fst) fixes
           val indices = map (fn eq => find_index (curry op = (fname_of eq)) fnames) spliteqs'
 
@@ -276,11 +276,11 @@ fun sequential_preproc (config as FundefConfig {sequential, ...}) ctxt fixes spe
                                        |> map (map snd)
 
 
-          val nas' = nas @ replicate (length spliteqs - length nas) ("",[])
+          val bnds' = bnds @ replicate (length spliteqs - length bnds) Attrib.empty_binding
 
           (* using theorem names for case name currently disabled *)
-          val case_names = map_index (fn (i, ((n, _), es)) => mk_case_names i "" (length es)) 
-                                     (nas' ~~ spliteqs)
+          val case_names = map_index (fn (i, (_, es)) => mk_case_names i "" (length es)) 
+                                     (bnds' ~~ spliteqs)
                            |> flat
         in
           (flat spliteqs, restore_spec, sort, case_names)

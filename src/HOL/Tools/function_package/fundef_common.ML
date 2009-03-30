@@ -65,7 +65,7 @@ datatype fundef_context_data =
       defname : string,
 
       (* contains no logical entities: invariant under morphisms *)
-      add_simps : (string -> string) -> string -> Attrib.src list -> thm list 
+      add_simps : (binding -> binding) -> string -> Attrib.src list -> thm list 
                   -> local_theory -> thm list * local_theory,
       case_names : string list,
 
@@ -289,7 +289,7 @@ fun check_defs ctxt fixes eqs =
 (* Preprocessors *)
 
 type fixes = ((string * typ) * mixfix) list
-type 'a spec = ((bstring * Attrib.src list) * 'a list) list
+type 'a spec = (Attrib.binding * 'a list) list
 type preproc = fundef_config -> Proof.context -> fixes -> term spec 
                -> (term list * (thm list -> thm spec) * (thm list -> thm list list) * string list)
 
@@ -303,7 +303,7 @@ fun mk_case_names i "" k = mk_case_names i (string_of_int (i + 1)) k
 
 fun empty_preproc check _ ctxt fixes spec =
     let 
-      val (nas,tss) = split_list spec
+      val (bnds, tss) = split_list spec
       val ts = flat tss
       val _ = check ctxt fixes ts
       val fnames = map (fst o fst) fixes
@@ -314,9 +314,9 @@ fun empty_preproc check _ ctxt fixes spec =
                         |> map (map snd)
 
       (* using theorem names for case name currently disabled *)
-      val cnames = map_index (fn (i, (n,_)) => mk_case_names i "" 1) nas |> flat
+      val cnames = map_index (fn (i, _) => mk_case_names i "" 1) bnds |> flat
     in
-      (ts, curry op ~~ nas o Library.unflat tss, sort, cnames)
+      (ts, curry op ~~ bnds o Library.unflat tss, sort, cnames)
     end
 
 structure Preprocessor = GenericDataFun

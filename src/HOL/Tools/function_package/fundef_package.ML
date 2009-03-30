@@ -55,7 +55,7 @@ fun add_simps fnames post sort extra_qualify label moreatts simps lthy =
                    |> map (apfst (apfst extra_qualify))
 
       val (saved_spec_simps, lthy) =
-        fold_map note_theorem spec lthy
+        fold_map (LocalTheory.note Thm.theoremK) spec lthy
 
       val saved_simps = flat (map snd saved_spec_simps)
       val simps_by_f = sort saved_simps
@@ -78,7 +78,7 @@ fun fundef_afterqed do_print fixes post defname cont sort_cont cnames [[proof]] 
 
       val (((psimps', pinducts'), (_, [termination'])), lthy) =
           lthy
-            |> addsmps (Long_Name.qualify "partial") "psimps"
+            |> addsmps (Binding.qualify false "partial") "psimps"
                  psimp_attribs psimps
             ||> fold_option (snd oo addsmps I "simps" simp_attribs) trsimps
             ||>> note_theorem ((qualify "pinduct",
@@ -106,7 +106,7 @@ fun gen_add_fundef is_external prep default_constraint fixspec eqns config lthy 
       val constrn_fxs = map (fn (b, T, mx) => (b, SOME (the_default default_constraint T), mx))
       val ((fixes0, spec0), ctxt') = prep (constrn_fxs fixspec) eqns lthy
       val fixes = map (apfst (apfst Binding.name_of)) fixes0;
-      val spec = map (fn ((b, atts), prop) => ((Binding.name_of b, atts), [prop])) spec0;
+      val spec = map (fn (bnd, prop) => (bnd, [prop])) spec0;
       val (eqs, post, sort_cont, cnames) = FundefCommon.get_preproc lthy config ctxt' fixes spec
 
       val defname = mk_defname fixes
