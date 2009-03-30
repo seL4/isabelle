@@ -84,8 +84,9 @@ fun qualified_name "" = empty
       let val (qualifier, name) = split_last (Long_Name.explode s)
       in make_binding ([], map (rpair false) qualifier, name, Position.none) end;
 
-fun qualified_name_of (Binding {qualifier, name, ...}) =
-  Long_Name.implode (map #1 qualifier @ [name]);
+fun qualified_name_of (b as Binding {qualifier, name, ...}) =
+  if is_empty b then ""
+  else Long_Name.implode (map #1 qualifier @ [name]);
 
 
 (* system prefix *)
