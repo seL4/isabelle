@@ -13,6 +13,7 @@ signature AUTO_SOLVE =
 sig
   val auto : bool ref
   val auto_time_limit : int ref
+  val limit : int ref
 
   val seek_solution : bool -> Proof.state -> Proof.state
 end;
@@ -22,6 +23,7 @@ struct
 
 val auto = ref false;
 val auto_time_limit = ref 2500;
+val limit = ref 5;
 
 fun seek_solution int state =
   let
@@ -34,9 +36,9 @@ fun seek_solution int state =
         handle TERM _ => t::conj_to_list ts;
 
     val crits = [(true, FindTheorems.Solves)];
-    fun find g = (NONE, FindTheorems.find_theorems ctxt g true crits);
-    fun find_cterm g = (SOME g, FindTheorems.find_theorems ctxt
-                                  (SOME (Goal.init g)) true crits);
+    fun find g = (NONE, snd (FindTheorems.find_theorems ctxt g (SOME (!limit)) false crits));
+    fun find_cterm g = (SOME g, snd (FindTheorems.find_theorems ctxt
+                                      (SOME (Goal.init g)) (SOME (!limit)) false crits));
 
     fun prt_result (goal, results) =
       let

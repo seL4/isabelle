@@ -11,8 +11,8 @@ sig
     Pattern of 'term
   val tac_limit: int ref
   val limit: int ref
-  val find_theorems: Proof.context -> thm option -> bool ->
-    (bool * string criterion) list -> (Facts.ref * thm) list
+  val find_theorems: Proof.context -> thm option -> int option -> bool ->
+    (bool * string criterion) list -> int option * (Facts.ref * thm) list
   val pretty_thm: Proof.context -> Facts.ref * thm -> Pretty.T
   val print_theorems: Proof.context -> thm option -> int option -> bool ->
     (bool * string criterion) list -> unit
@@ -254,12 +254,13 @@ fun app_filters thm =
           in app (opt_add r r', consts', fs) end;
   in app end;
 
+ 
 in
 
 fun filter_criterion ctxt opt_goal (b, c) =
   (if b then I else (apfst opt_not)) o filter_crit ctxt opt_goal c;
 
-fun all_filters filters thms =
+fun sorted_filter filters thms =
   let
     fun eval_filters thm = app_filters thm (SOME (0, 0), NONE, filters);
 
@@ -270,6 +271,15 @@ fun all_filters filters thms =
       prod_ord int_ord int_ord ((p1, s1), (p0, s0));
   in map_filter eval_filters thms |> sort thm_ord |> map #2 end;
 
+fun lazy_filter filters = let
+    fun lazy_match thms = Seq.make (fn () => first_match thms)
+
+    and first_match [] = NONE
+      | first_match (thm::thms) =
+          case app_filters thm (SOME (0, 0), NONE, filters) of
+            NONE => first_match thms
+          | SOME (_, t) => SOME (t, lazy_match thms);
+  in lazy_match end;
 end;
 
 
@@ -334,7 +344,7 @@ fun all_facts_of ctxt =
 
 val limit = ref 40;
 
-fun find_theorems ctxt opt_goal rem_dups raw_criteria =
+fun find_theorems ctxt opt_goal opt_limit rem_dups raw_criteria =
   let
     val assms = ProofContext.get_fact ctxt (Facts.named "local.assms")
                 handle ERROR _ => [];
@@ -344,13 +354,25 @@ fun find_theorems ctxt opt_goal rem_dups raw_criteria =
     val criteria = map (apsnd (read_criterion ctxt)) raw_criteria;
     val filters = map (filter_criterion ctxt opt_goal') criteria;
 
-    val raw_matches = all_filters filters (all_facts_of ctxt);
+    fun find_all facts =
+      let
+        val raw_matches = sorted_filter filters facts;
 
-    val matches =
-      if rem_dups
-      then rem_thm_dups (nicer_shortest ctxt) raw_matches
-      else raw_matches;
-  in matches end;
+        val matches =
+          if rem_dups
+          then rem_thm_dups (nicer_shortest ctxt) raw_matches
+          else raw_matches;
+
+        val len = length matches;
+        val lim = the_default (! limit) opt_limit;
+      in (SOME len, Library.drop (len - lim, matches)) end;
+
+    val find =
+      if rem_dups orelse is_none opt_limit
+      then find_all
+      else pair NONE o Seq.list_of o Seq.take (the opt_limit) o lazy_filter filters
+
+  in find (all_facts_of ctxt) end;
 
 
 fun pretty_thm ctxt (thmref, thm) = Pretty.block
@@ -362,11 +384,16 @@ fun print_theorems ctxt opt_goal opt_limit rem_dups raw_criteria =
     val start = start_timing ();
 
     val criteria = map (apsnd (read_criterion ctxt)) raw_criteria;
-    val matches = find_theorems ctxt opt_goal rem_dups raw_criteria;
-
-    val len = length matches;
-    val lim = the_default (! limit) opt_limit;
-    val thms = Library.drop (len - lim, matches);
+    val (foundo, thms) = find_theorems ctxt opt_goal opt_limit rem_dups raw_criteria;
+    val returned = length thms;
+    
+    val tally_msg =
+      case foundo of
+        NONE => "displaying " ^ string_of_int returned ^ " theorems"
+      | SOME found => "found " ^ string_of_int found ^ " theorems" ^
+                      (if returned < found
+                       then " (" ^ string_of_int returned ^ " displayed)"
+                       else "");
 
     val end_msg = " in " ^ Time.toString (#all (end_timing start)) ^ " secs";
   in
@@ -374,14 +401,10 @@ fun print_theorems ctxt opt_goal opt_limit rem_dups raw_criteria =
         :: Pretty.str "" ::
      (if null thms then [Pretty.str ("nothing found" ^ end_msg)]
       else
-        [Pretty.str ("found " ^ string_of_int len ^ " theorems" ^
-          (if len <= lim then ""
-           else " (" ^ string_of_int lim ^ " displayed)")
-           ^ end_msg ^ ":"), Pretty.str ""] @
+        [Pretty.str (tally_msg ^ end_msg ^ ":"), Pretty.str ""] @
         map (pretty_thm ctxt) thms)
     |> Pretty.chunks |> Pretty.writeln
   end;
-
 
 
 (** command syntax **)
