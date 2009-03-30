@@ -1,7 +1,7 @@
 (*  Title:      Pure/Isar/isar_cmd.ML
     Author:     Markus Wenzel, TU Muenchen
 
-Derived Isar commands.
+Miscellaneous Isar commands.
 *)
 
 signature ISAR_CMD =
@@ -298,7 +298,7 @@ fun ml_diag verbose (txt, pos) = Toplevel.keep (fn state =>
 
 (* current working directory *)
 
-fun cd path = Toplevel.imperative (fn () => (File.cd path));
+fun cd path = Toplevel.imperative (fn () => File.cd path);
 val pwd = Toplevel.imperative (fn () => writeln (Path.implode (File.pwd ())));
 
 
@@ -344,10 +344,9 @@ val print_theorems_proof = Toplevel.keep (fn state =>
 
 val print_theorems_theory = Toplevel.keep (fn state =>
   Toplevel.theory_of state |>
-  (case Toplevel.previous_node_of state of
-    SOME prev_node =>
-      ProofDisplay.print_theorems_diff (ProofContext.theory_of (Toplevel.context_node prev_node))
-  | _ => ProofDisplay.print_theorems));
+  (case Toplevel.previous_context_of state of
+    SOME prev => ProofDisplay.print_theorems_diff (ProofContext.theory_of prev)
+  | NONE => ProofDisplay.print_theorems));
 
 val print_theorems = Toplevel.unknown_context o print_theorems_theory o print_theorems_proof;
 
