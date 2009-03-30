@@ -96,6 +96,12 @@ fun make_state timeout_heap oldest_heap active cancelling messages store =
   State {timeout_heap = timeout_heap, oldest_heap = oldest_heap,
     active = active, cancelling = cancelling, messages = messages, store = store};
 
+fun empty_state state =
+  let
+    val State {active = active, cancelling = cancelling, messages = messages, ...} =
+      Synchronized.value state
+  in (null active) andalso (null cancelling) andalso (null messages) end;
+
 val state = Synchronized.var "atp_manager" (make_state ThreadHeap.empty ThreadHeap.empty [] [] [] []);
 
 
@@ -197,7 +203,7 @@ fun check_thread_manager () = CRITICAL (fn () =>
             in SOME (map #2 timeout_threads, state') end
         end
     in
-      while true do
+      while not(empty_state state) do
        (Synchronized.timed_access state time_limit action
         |> these
         |> List.app (unregister (false, "Interrupted (reached timeout)"));
@@ -211,14 +217,14 @@ fun check_thread_manager () = CRITICAL (fn () =>
 (* thread is registered here by sledgehammer *)
 
 fun register birthtime deadtime (thread, desc) =
- (check_thread_manager ();
-  Synchronized.change state
+ (Synchronized.change state
     (fn State {timeout_heap, oldest_heap, active, cancelling, messages, store} =>
       let
         val timeout_heap' = ThreadHeap.insert (deadtime, thread) timeout_heap
         val oldest_heap' = ThreadHeap.insert (birthtime, thread) oldest_heap
         val active' = update_thread (thread, (birthtime, deadtime, desc)) active
-      in make_state timeout_heap' oldest_heap' active' cancelling messages store end));
+      in make_state timeout_heap' oldest_heap' active' cancelling messages store end);
+  check_thread_manager ());
 
 
 
