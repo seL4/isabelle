@@ -87,9 +87,6 @@ apply (rule_tac x="t" in stream.casedist)
 apply (cut_tac fscons_not_empty)
 apply (fast dest: eq_UU_iff [THEN iffD2])
 apply (simp add: fscons_def2)
-apply (drule stream_flat_prefix)
-apply (rule Def_not_UU)
-apply (fast)
 done
 
 lemma fstream_prefix' [simp]:
