@@ -344,18 +344,9 @@ local
   fun config_parser default = 
       (Scan.optional (P.$$$ "(" |-- P.!!! (P.list1 option_parser) --| P.$$$ ")") [])
         >> (fn opts => fold apply_opt opts default)
-
-  fun pipe_error t = 
-  P.!!! (Scan.fail_with (K (cat_lines ["Equations must be separated by " ^ quote "|", quote t])))
-
-  val statement = 
-   SpecParse.opt_thm_name ":" -- P.prop
-    --| Scan.ahead ((P.term :-- pipe_error) || Scan.succeed ("",""))
-
-  val statements = P.enum1 "|" statement
 in
   fun fundef_parser default_cfg = 
-      config_parser default_cfg -- P.fixes --| P.where_ -- statements
+      config_parser default_cfg -- P.fixes -- SpecParse.where_alt_specs
 end
 
 
