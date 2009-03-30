@@ -8,21 +8,14 @@ signature TOPLEVEL =
 sig
   exception UNDEF
   type generic_theory
-  type node
-  val theory_node: node -> generic_theory option
-  val proof_node: node -> ProofNode.T option
-  val cases_node: (generic_theory -> 'a) -> (Proof.state -> 'a) -> node -> 'a
-  val context_node: node -> Proof.context
   type state
   val toplevel: state
   val is_toplevel: state -> bool
   val is_theory: state -> bool
   val is_proof: state -> bool
   val level: state -> int
-  val previous_node_of: state -> node option
-  val node_of: state -> node
-  val node_case: (generic_theory -> 'a) -> (Proof.state -> 'a) -> state -> 'a
   val presentation_context_of: state -> Proof.context
+  val previous_context_of: state -> Proof.context option
   val context_of: state -> Proof.context
   val generic_theory_of: state -> generic_theory
   val theory_of: state -> theory
@@ -170,8 +163,6 @@ fun str_of_state (State (NONE, _)) = "at top level"
 
 (* current node *)
 
-fun previous_node_of (State (_, prev)) = Option.map #1 prev;
-
 fun node_of (State (NONE, _)) = raise UNDEF
   | node_of (State (SOME (node, _), _)) = node;
 
@@ -185,6 +176,9 @@ fun presentation_context_of state =
     SOME (Theory (_, SOME ctxt)) => ctxt
   | SOME node => context_node node
   | NONE => raise UNDEF);
+
+fun previous_context_of (State (_, NONE)) = NONE
+  | previous_context_of (State (_, SOME (prev, _))) = SOME (context_node prev);
 
 val context_of = node_case Context.proof_of Proof.context_of;
 val generic_theory_of = node_case I (Context.Proof o Proof.context_of);
