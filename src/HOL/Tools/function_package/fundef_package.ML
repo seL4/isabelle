@@ -13,7 +13,7 @@ sig
                        -> local_theory
                        -> Proof.state
     val add_fundef_cmd :  (binding * string option * mixfix) list
-                      -> (Attrib.binding * string) list 
+                      -> (Attrib.binding * string) list
                       -> FundefCommon.fundef_config
                       -> local_theory
                       -> Proof.state
@@ -34,16 +34,24 @@ struct
 open FundefLib
 open FundefCommon
 
+val simp_attribs = map (Attrib.internal o K)
+    [Simplifier.simp_add,
+     Code.add_default_eqn_attribute,
+     Nitpick_Const_Simp_Thms.add]
+
+val psimp_attribs = map (Attrib.internal o K)
+    [Simplifier.simp_add,
+     Nitpick_Const_Psimp_Thms.add]
+
 fun note_theorem ((name, atts), ths) =
   LocalTheory.note Thm.theoremK ((Binding.qualified_name name, atts), ths)
 
-fun mk_defname fixes = fixes |> map (fst o fst) |> space_implode "_" 
+fun mk_defname fixes = fixes |> map (fst o fst) |> space_implode "_"
 
 fun add_simps fnames post sort extra_qualify label moreatts simps lthy =
     let
-      val atts = Attrib.internal (K Simplifier.simp_add) :: moreatts
       val spec = post simps
-                   |> map (apfst (apsnd (append atts)))
+                   |> map (apfst (apsnd (fn ats => moreatts @ ats)))
                    |> map (apfst (apfst extra_qualify))
 
       val (saved_spec_simps, lthy) =
@@ -71,14 +79,14 @@ fun fundef_afterqed do_print fixes post defname cont sort_cont cnames [[proof]] 
       val (((psimps', pinducts'), (_, [termination'])), lthy) =
           lthy
             |> addsmps (Long_Name.qualify "partial") "psimps"
-                       [Attrib.internal (K Nitpick_Const_Psimp_Thms.add)] psimps
-            ||> fold_option (snd oo addsmps I "simps" [Attrib.internal (K Nitpick_Const_Simp_Thms.add)]) trsimps
+                 psimp_attribs psimps
+            ||> fold_option (snd oo addsmps I "simps" simp_attribs) trsimps
             ||>> note_theorem ((qualify "pinduct",
                    [Attrib.internal (K (RuleCases.case_names cnames)),
                     Attrib.internal (K (RuleCases.consumes 1)),
                     Attrib.internal (K (Induct.induct_pred ""))]), simple_pinducts)
             ||>> note_theorem ((qualify "termination", []), [termination])
-            ||> (snd o note_theorem ((qualify "cases", 
+            ||> (snd o note_theorem ((qualify "cases",
                    [Attrib.internal (K (RuleCases.case_names cnames))]), [cases]))
             ||> fold_option (snd oo curry note_theorem (qualify "domintros", [])) domintros
 
@@ -88,7 +96,7 @@ fun fundef_afterqed do_print fixes post defname cont sort_cont cnames [[proof]] 
         if not do_print then ()
         else Specification.print_consts lthy (K false) (map fst fixes)
     in
-      lthy 
+      lthy
         |> LocalTheory.declaration (add_fundef_data o morph_fundef_data cdata)
     end
 
@@ -129,13 +137,10 @@ fun total_termination_afterqed data [[totality]] lthy =
       val tsimps = map remove_domain_condition psimps
       val tinduct = map remove_domain_condition pinducts
 
-      val allatts = [Code.add_default_eqn_attrib,
-                     Attrib.internal (K Nitpick_Const_Simp_Thms.add)]
-
       val qualify = Long_Name.qualify defname;
     in
       lthy
-        |> add_simps I "simps" allatts tsimps |> snd
+        |> add_simps I "simps" simp_attribs tsimps |> snd
         |> note_theorem ((qualify "induct", [Attrib.internal (K (RuleCases.case_names case_names))]), tinduct) |> snd
     end
 
