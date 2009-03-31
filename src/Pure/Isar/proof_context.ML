@@ -582,8 +582,9 @@ fun get_sort thy def_sort raw_env =
       | (SOME S, NONE) => S
       | (SOME S, SOME S') =>
           if Type.eq_sort tsig (S, S') then S'
-          else error ("Sort constraint inconsistent with default for type variable " ^
-            quote (Term.string_of_vname' xi)));
+          else error ("Sort constraint " ^ Syntax.string_of_sort_global thy S ^
+            " inconsistent with default " ^ Syntax.string_of_sort_global thy S' ^
+            " for type variable " ^ quote (Term.string_of_vname' xi)));
   in get end;
 
 local
