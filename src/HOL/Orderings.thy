@@ -384,15 +384,11 @@ val attrib_setup =
 
 (** Diagnostic command **)
 
-val print = Toplevel.unknown_context o
-  Toplevel.keep (Toplevel.node_case
-    (Context.cases (print_structures o ProofContext.init) print_structures)
-    (print_structures o Proof.context_of));
-
 val _ =
   OuterSyntax.improper_command "print_orders"
     "print order structures available to transitivity reasoner" OuterKeyword.diag
-    (Scan.succeed (Toplevel.no_timing o print));
+    (Scan.succeed (Toplevel.no_timing o Toplevel.unknown_context o
+        Toplevel.keep (print_structures o Toplevel.context_of)));
 
 
 (** Setup **)

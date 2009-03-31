@@ -10,13 +10,11 @@ sig
     val add_fundef :  (binding * typ option * mixfix) list
                        -> (Attrib.binding * term) list
                        -> FundefCommon.fundef_config
-                       -> bool list
                        -> local_theory
                        -> Proof.state
     val add_fundef_cmd :  (binding * string option * mixfix) list
-                      -> (Attrib.binding * string) list 
+                      -> (Attrib.binding * string) list
                       -> FundefCommon.fundef_config
-                      -> bool list
                       -> local_theory
                       -> Proof.state
 
@@ -36,20 +34,28 @@ struct
 open FundefLib
 open FundefCommon
 
+val simp_attribs = map (Attrib.internal o K)
+    [Simplifier.simp_add,
+     Code.add_default_eqn_attribute,
+     Nitpick_Const_Simp_Thms.add]
+
+val psimp_attribs = map (Attrib.internal o K)
+    [Simplifier.simp_add,
+     Nitpick_Const_Psimp_Thms.add]
+
 fun note_theorem ((name, atts), ths) =
   LocalTheory.note Thm.theoremK ((Binding.qualified_name name, atts), ths)
 
-fun mk_defname fixes = fixes |> map (fst o fst) |> space_implode "_" 
+fun mk_defname fixes = fixes |> map (fst o fst) |> space_implode "_"
 
 fun add_simps fnames post sort extra_qualify label moreatts simps lthy =
     let
-      val atts = Attrib.internal (K Simplifier.simp_add) :: moreatts
       val spec = post simps
-                   |> map (apfst (apsnd (append atts)))
+                   |> map (apfst (apsnd (fn ats => moreatts @ ats)))
                    |> map (apfst (apfst extra_qualify))
 
       val (saved_spec_simps, lthy) =
-        fold_map note_theorem spec lthy
+        fold_map (LocalTheory.note Thm.theoremK) spec lthy
 
       val saved_simps = flat (map snd saved_spec_simps)
       val simps_by_f = sort saved_simps
@@ -72,15 +78,15 @@ fun fundef_afterqed do_print fixes post defname cont sort_cont cnames [[proof]] 
 
       val (((psimps', pinducts'), (_, [termination'])), lthy) =
           lthy
-            |> addsmps (Long_Name.qualify "partial") "psimps"
-                       [Attrib.internal (K Nitpick_Const_Psimp_Thms.add)] psimps
-            ||> fold_option (snd oo addsmps I "simps" [Attrib.internal (K Nitpick_Const_Simp_Thms.add)]) trsimps
+            |> addsmps (Binding.qualify false "partial") "psimps"
+                 psimp_attribs psimps
+            ||> fold_option (snd oo addsmps I "simps" simp_attribs) trsimps
             ||>> note_theorem ((qualify "pinduct",
                    [Attrib.internal (K (RuleCases.case_names cnames)),
                     Attrib.internal (K (RuleCases.consumes 1)),
                     Attrib.internal (K (Induct.induct_pred ""))]), simple_pinducts)
             ||>> note_theorem ((qualify "termination", []), [termination])
-            ||> (snd o note_theorem ((qualify "cases", 
+            ||> (snd o note_theorem ((qualify "cases",
                    [Attrib.internal (K (RuleCases.case_names cnames))]), [cases]))
             ||> fold_option (snd oo curry note_theorem (qualify "domintros", [])) domintros
 
@@ -90,18 +96,18 @@ fun fundef_afterqed do_print fixes post defname cont sort_cont cnames [[proof]] 
         if not do_print then ()
         else Specification.print_consts lthy (K false) (map fst fixes)
     in
-      lthy 
+      lthy
         |> LocalTheory.declaration (add_fundef_data o morph_fundef_data cdata)
     end
 
 
-fun gen_add_fundef is_external prep default_constraint fixspec eqns config flags lthy =
+fun gen_add_fundef is_external prep default_constraint fixspec eqns config lthy =
     let
       val constrn_fxs = map (fn (b, T, mx) => (b, SOME (the_default default_constraint T), mx))
       val ((fixes0, spec0), ctxt') = prep (constrn_fxs fixspec) eqns lthy
       val fixes = map (apfst (apfst Binding.name_of)) fixes0;
-      val spec = map (fn ((b, atts), prop) => ((Binding.name_of b, atts), [prop])) spec0;
-      val (eqs, post, sort_cont, cnames) = FundefCommon.get_preproc lthy config flags ctxt' fixes spec
+      val spec = map (fn (bnd, prop) => (bnd, [prop])) spec0;
+      val (eqs, post, sort_cont, cnames) = FundefCommon.get_preproc lthy config ctxt' fixes spec
 
       val defname = mk_defname fixes
 
@@ -131,14 +137,10 @@ fun total_termination_afterqed data [[totality]] lthy =
       val tsimps = map remove_domain_condition psimps
       val tinduct = map remove_domain_condition pinducts
 
-      val has_guards = exists ((fn (Const ("Trueprop", _) $ _) => false | _ => true) o prop_of) tsimps
-      val allatts = (not has_guards ? cons Code.add_default_eqn_attrib)
-        [Attrib.internal (K Nitpick_Const_Simp_Thms.add)]
-
       val qualify = Long_Name.qualify defname;
     in
       lthy
-        |> add_simps I "simps" allatts tsimps |> snd
+        |> add_simps I "simps" simp_attribs tsimps |> snd
         |> note_theorem ((qualify "induct", [Attrib.internal (K (RuleCases.case_names case_names))]), tinduct) |> snd
     end
 
@@ -209,12 +211,10 @@ val get_congs = FundefCtxTree.get_fundef_congs
 
 local structure P = OuterParse and K = OuterKeyword in
 
-val _ = OuterKeyword.keyword "otherwise";
-
 val _ =
   OuterSyntax.local_theory_to_proof "function" "define general recursive functions" K.thy_goal
   (fundef_parser default_config
-     >> (fn ((config, fixes), (flags, statements)) => add_fundef_cmd fixes statements config flags));
+     >> (fn ((config, fixes), statements) => add_fundef_cmd fixes statements config));
 
 val _ =
   OuterSyntax.local_theory_to_proof "termination" "prove termination of a recursive function" K.thy_goal

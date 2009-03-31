@@ -81,15 +81,13 @@ by (insert stream.injects [of a s b t], auto)
 
 lemma stream_prefix:
   "[| a && s << t; a ~= UU  |] ==> EX b tt. t = b && tt &  b ~= UU &  s << tt"
-apply (insert stream.exhaust [of t], auto)
-by (auto simp add: stream.inverts)
+by (insert stream.exhaust [of t], auto)
 
 lemma stream_prefix':
   "b ~= UU ==> x << b && z =
    (x = UU |  (EX a y. x = a && y &  a ~= UU &  a << b &  y << z))"
 apply (case_tac "x=UU",auto)
-apply (drule stream_exhaust_eq [THEN iffD1],auto)
-by (auto simp add: stream.inverts)
+by (drule stream_exhaust_eq [THEN iffD1],auto)
 
 
 (*
@@ -100,7 +98,6 @@ by (insert stream_prefix' [of y "x&&xs" ys],force)
 lemma stream_flat_prefix:
   "[| x && xs << y && ys; (x::'a::flat) ~= UU|] ==> x = y & xs << ys"
 apply (case_tac "y=UU",auto)
-apply (auto simp add: stream.inverts)
 by (drule ax_flat,simp)
 
 
@@ -280,17 +277,17 @@ by (simp add: stream.take_def)
 section "coinduction"
 
 lemma stream_coind_lemma2: "!s1 s2. R s1 s2 --> ft$s1 = ft$s2 &  R (rt$s1) (rt$s2) ==> stream_bisim R"
-apply (simp add: stream.bisim_def,clarsimp)
-apply (case_tac "x=UU",clarsimp)
-apply (erule_tac x="UU" in allE,simp)
-apply (case_tac "x'=UU",simp)
-apply (drule stream_exhaust_eq [THEN iffD1],auto)+
-apply (case_tac "x'=UU",auto)
-apply (erule_tac x="a && y" in allE)
-apply (erule_tac x="UU" in allE)+
-apply (auto,drule stream_exhaust_eq [THEN iffD1],clarsimp)
-apply (erule_tac x="a && y" in allE)
-apply (erule_tac x="aa && ya" in allE)
+ apply (simp add: stream.bisim_def,clarsimp)
+ apply (case_tac "x=UU",clarsimp)
+  apply (erule_tac x="UU" in allE,simp)
+  apply (case_tac "x'=UU",simp)
+  apply (drule stream_exhaust_eq [THEN iffD1],auto)+
+ apply (case_tac "x'=UU",auto)
+  apply (erule_tac x="a && y" in allE)
+  apply (erule_tac x="UU" in allE)+
+  apply (auto,drule stream_exhaust_eq [THEN iffD1],clarsimp)
+ apply (erule_tac x="a && y" in allE)
+ apply (erule_tac x="aa && ya" in allE) back
 by auto
 
 
@@ -327,7 +324,6 @@ lemma stream_finite_less: "stream_finite s ==> !t. t<<s --> stream_finite t"
 apply (erule stream_finite_ind [of s], auto)
 apply (case_tac "t=UU", auto)
 apply (drule stream_exhaust_eq [THEN iffD1],auto)
-apply (auto simp add: stream.inverts)
 apply (erule_tac x="y" in allE, simp)
 by (rule stream_finite_lemma1, simp)
 
@@ -374,8 +370,6 @@ by (rule stream.casedist [of x], auto)
 lemma slen_scons_eq: "(Fin (Suc n) < #x) = (? a y. x = a && y &  a ~= \<bottom> &  Fin n < #y)"
 apply (auto, case_tac "x=UU",auto)
 apply (drule stream_exhaust_eq [THEN iffD1], auto)
-apply (rule_tac x="a" in exI)
-apply (rule_tac x="y" in exI, simp)
 apply (case_tac "#y") apply simp_all
 apply (case_tac "#y") apply simp_all
 done
@@ -387,15 +381,11 @@ lemma slen_stream_take_finite [simp]: "#(stream_take n$s) ~= \<infinity>"
 by (simp add: slen_def)
 
 lemma slen_scons_eq_rev: "(#x < Fin (Suc (Suc n))) = (!a y. x ~= a && y |  a = \<bottom> |  #y < Fin (Suc n))"
-apply (rule stream.casedist [of x], auto)
-apply ((*drule sym,*) drule scons_eq_UU [THEN iffD1],auto)
-apply (simp add: zero_inat_def)
-apply (subgoal_tac "s=y & aa=a", simp)
-apply (simp_all add: not_less iSuc_Fin)
-apply (case_tac "#y") apply (simp_all add: iSuc_Fin)
-apply (case_tac "aa=UU", auto)
-apply (erule_tac x="a" in allE, simp)
-apply (case_tac "#s") apply (simp_all add: iSuc_Fin)
+ apply (rule stream.casedist [of x], auto)
+    apply ((*drule sym,*) drule scons_eq_UU [THEN iffD1],auto)
+   apply (simp add: zero_inat_def)
+  apply (case_tac "#s") apply (simp_all add: iSuc_Fin)
+ apply (case_tac "#s") apply (simp_all add: iSuc_Fin)
 done
 
 lemma slen_take_lemma4 [rule_format]:
@@ -463,8 +453,7 @@ lemma slen_mono_lemma: "stream_finite s ==> ALL t. s << t --> #s <= #t"
 apply (erule stream_finite_ind [of s], auto)
 apply (case_tac "t=UU", auto)
 apply (drule stream_exhaust_eq [THEN iffD1], auto)
-apply (erule_tac x="y" in allE, auto)
-by (auto simp add: stream.inverts)
+done
 
 lemma slen_mono: "s << t ==> #s <= #t"
 apply (case_tac "stream_finite t")
@@ -493,7 +482,6 @@ apply (simp add: Suc_ile_eq)
 apply (case_tac "y=UU", clarsimp)
 apply (drule stream_exhaust_eq [THEN iffD1], clarsimp)+
 apply (erule_tac x="ya" in allE, simp)
-apply (auto simp add: stream.inverts)
 by (drule ax_flat, simp)
 
 lemma slen_strict_mono_lemma:
@@ -501,7 +489,6 @@ lemma slen_strict_mono_lemma:
 apply (erule stream_finite_ind, auto)
 apply (case_tac "sa=UU", auto)
 apply (drule stream_exhaust_eq [THEN iffD1], clarsimp)
-apply (simp add: stream.inverts, clarsimp)
 by (drule ax_flat, simp)
 
 lemma slen_strict_mono: "[|stream_finite t; s ~= t; s << (t::'a::flat stream) |] ==> #s < #t"
@@ -653,7 +640,7 @@ lemma i_th_i_rt_step:
 apply (simp add: i_th_def i_rt_Suc_back)
 apply (rule stream.casedist [of "i_rt n s1"],simp)
 apply (rule stream.casedist [of "i_rt n s2"],auto)
-by (intro monofun_cfun, auto)
+done
 
 lemma i_th_stream_take_Suc [rule_format]:
  "ALL s. i_th n (stream_take (Suc n)$s) = i_th n s"

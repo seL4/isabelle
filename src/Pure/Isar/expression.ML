@@ -335,7 +335,7 @@ fun finish ctxt parms do_close insts elems =
 local
 
 fun prep_full_context_statement parse_typ parse_prop prep_vars_elem prep_inst prep_vars_inst prep_expr
-    strict do_close raw_import init_body raw_elems raw_concl ctxt1 =
+    {strict, do_close, fixed_frees} raw_import init_body raw_elems raw_concl ctxt1 =
   let
     val thy = ProofContext.theory_of ctxt1;
 
@@ -370,6 +370,17 @@ fun prep_full_context_statement parse_typ parse_prop prep_vars_elem prep_inst pr
     val fors = prep_vars_inst fixed ctxt1 |> fst;
     val ctxt2 = ctxt1 |> ProofContext.add_fixes fors |> snd;
     val (_, insts', ctxt3) = fold prep_insts_cumulative raw_insts (0, [], ctxt2);
+
+    val add_free = fold_aterms
+      (fn Free (x, T) => not (Variable.is_fixed ctxt3 x) ? insert (op =) (x, T) | _ => I);
+    val _ =
+      if fixed_frees then ()
+      else
+        (case fold (fold add_free o snd o snd) insts' [] of
+          [] => ()
+        | frees => error ("Illegal free variables in expression: " ^
+            commas_quote (map (Syntax.string_of_term ctxt3 o Free) (rev frees))));
+
     val ctxt4 = init_body ctxt3;
     val (elems, ctxt5) = fold (prep_elem insts') raw_elems ([], ctxt4);
     val (insts, elems', concl, ctxt6) = prep_concl raw_concl (insts', elems, ctxt5);
@@ -410,7 +421,8 @@ local
 fun prep_statement prep activate raw_elems raw_concl context =
   let
      val ((_, _, elems, concl), _) =
-       prep true false ([], []) I raw_elems raw_concl context;
+       prep {strict = true, do_close = false, fixed_frees = true}
+        ([], []) I raw_elems raw_concl context;
      val (_, context') = context |>
        ProofContext.set_stmt true |>
        fold_map activate elems;
@@ -434,7 +446,8 @@ local
 fun prep_declaration prep activate raw_import init_body raw_elems context =
   let
     val ((fixed, deps, elems, _), (parms, ctxt')) =
-      prep false true raw_import init_body raw_elems [] context ;
+      prep {strict = false, do_close = true, fixed_frees = false}
+        raw_import init_body raw_elems [] context;
     (* Declare parameters and imported facts *)
     val context' = context |>
       fix_params fixed |>
@@ -469,7 +482,7 @@ fun prep_goal_expression prep expression context =
     val thy = ProofContext.theory_of context;
 
     val ((fixed, deps, _, _), _) =
-      prep true true expression I [] [] context;
+      prep {strict = true, do_close = true, fixed_frees = true} expression I [] [] context;
     (* proof obligations *)
     val propss = map (props_of thy) deps;
 

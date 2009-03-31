@@ -607,23 +607,23 @@ val copy_rews = copy_strict :: copy_apps @ copy_stricts;
 in
   thy
     |> Sign.add_path (Long_Name.base_name dname)
-    |> (snd o (PureThy.add_thmss (map (Thm.no_attributes o apfst Binding.name) [
-        ("iso_rews" , iso_rews  ),
-        ("exhaust"  , [exhaust] ),
-        ("casedist" , [casedist]),
-        ("when_rews", when_rews ),
-        ("compacts", con_compacts),
-        ("con_rews", con_rews),
-        ("sel_rews", sel_rews),
-        ("dis_rews", dis_rews),
-        ("pat_rews", pat_rews),
-        ("dist_les", dist_les),
-        ("dist_eqs", dist_eqs),
-        ("inverts" , inverts ),
-        ("injects" , injects ),
-        ("copy_rews", copy_rews)])))
-    |> (snd o PureThy.add_thmss
-        [((Binding.name "match_rews", mat_rews), [Simplifier.simp_add])])
+    |> (snd o PureThy.add_thmss [
+        ((Binding.name "iso_rews" , iso_rews  ), [Simplifier.simp_add]),
+        ((Binding.name "exhaust"  , [exhaust] ), []),
+        ((Binding.name "casedist" , [casedist]), [Induct.cases_type (Long_Name.base_name dname)]),
+        ((Binding.name "when_rews", when_rews ), [Simplifier.simp_add]),
+        ((Binding.name "compacts", con_compacts), [Simplifier.simp_add]),
+        ((Binding.name "con_rews", con_rews), [Simplifier.simp_add]),
+        ((Binding.name "sel_rews", sel_rews), [Simplifier.simp_add]),
+        ((Binding.name "dis_rews", dis_rews), [Simplifier.simp_add]),
+        ((Binding.name "pat_rews", pat_rews), [Simplifier.simp_add]),
+        ((Binding.name "dist_les", dist_les), [Simplifier.simp_add]),
+        ((Binding.name "dist_eqs", dist_eqs), [Simplifier.simp_add]),
+        ((Binding.name "inverts" , inverts ), [Simplifier.simp_add]),
+        ((Binding.name "injects" , injects ), [Simplifier.simp_add]),
+        ((Binding.name "copy_rews", copy_rews), [Simplifier.simp_add]),
+        ((Binding.name "match_rews", mat_rews), [Simplifier.simp_add])
+       ])
     |> Sign.parent_path
     |> pair (iso_rews @ when_rews @ con_rews @ sel_rews @ dis_rews @
         pat_rews @ dist_les @ dist_eqs @ copy_rews)
