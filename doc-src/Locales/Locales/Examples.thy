@@ -83,10 +83,12 @@ text {* The parameter of this locale is @{term le}, with infix syntax
 \begin{tabular}{ll}
   \isakeyword{definition} & definition through an equation \\
   \isakeyword{inductive} & inductive definition \\
-  \isakeyword{fun}, \isakeyword{function} & recursive function \\
+  \isakeyword{primrec} & primitive recursion \\
+  \isakeyword{fun}, \isakeyword{function} & general recursion \\
   \isakeyword{abbreviation} & syntactic abbreviation \\
   \isakeyword{theorem}, etc.\ & theorem statement with proof \\
-  \isakeyword{theorems}, etc.\ & redeclaration of theorems
+  \isakeyword{theorems}, etc.\ & redeclaration of theorems \\
+  \isakeyword{text}, etc.\ & document markup
 \end{tabular}
 \end{center}
 \hrule
@@ -104,7 +106,7 @@ text {* A definition in a locale depends on the locale parameters.
   locale parameter @{term le}.  Its definition is the global theorem
   @{thm [source] partial_order.less_def}:
   @{thm [display, indent=2] partial_order.less_def}
-  At the same time, the locale is extended by syntax information
+  At the same time, the locale is extended by syntax transformations
   hiding this construction in the context of the locale.  That is,
   @{term "partial_order.less le"} is printed and parsed as infix
   @{text \<sqsubset>}. *}
@@ -236,15 +238,6 @@ text {* When working with locales, sequences of commands with the same
 
   end
 
-text {* The definitions of @{text is_inf} and @{text is_sup} look
-  like ordinary definitions in theories.  Despite, what is going on
-  behind the scenes is more complex.  The definition of @{text
-  is_inf}, say, creates a constant @{const partial_order.is_inf} where
-  the locale parameters that occur in the definition of @{text is_inf}
-  are additional arguments.  Writing @{text "is_inf x y inf"} is just
-  a notational convenience for @{text "partial_order.is_inf op \<sqsubseteq> x y
-  inf"}. *}
-
 text {* Two commands are provided to inspect locales:
   \isakeyword{print\_locales} lists the names of all locales of the
   current theory; \isakeyword{print\_locale}~$n$ prints the parameters
@@ -267,7 +260,8 @@ text {*
   distributive lattices.
 
   With locales, this inheritance is achieved through \emph{import} of a
-  locale.  The import comes before the context elements.
+  locale.  Import is a separate entity in the locale declaration.  If
+  present, it precedes the context elements.
   *}
 
   locale lattice = partial_order +
@@ -276,11 +270,8 @@ text {*
   begin
 
 text {* These assumptions refer to the predicates for infimum
-  and supremum defined in @{text partial_order}.  In the current
-  implementation of locales, syntax from definitions of the imported
-  locale is unavailable in the locale declaration, neither are their
-  names.  Hence we refer to the constants of the theory.  The names
-  and syntax is available below, in the context of the locale.  *}
+  and supremum defined in @{text partial_order}.  We may now introduce
+  the notions of meet and join.  *}
 
   definition
     meet (infixl "\<sqinter>" 70) where "x \<sqinter> y = (THE inf. is_inf x y inf)"

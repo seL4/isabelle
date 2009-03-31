@@ -1,7 +1,6 @@
 theory Examples3
 imports Examples
 begin
-
 subsection {* Third Version: Local Interpretation *}
 
 text {* In the above example, the fact that @{text \<le>} is a partial
@@ -24,19 +23,15 @@ proof -
     unfolding nat.less_def by auto
 qed
 
-text {* The inner interpretation does not require an
-  elaborate new proof, it is immediate from the preceeding fact and
-  proved with ``.''.  Strict qualifiers are normally not necessary for
-  interpretations inside proofs, since these have only limited scope.
-
-  The above interpretation enriches the local proof context by
-  the very theorems also obtained in the interpretation from
-  Section~\ref{sec:po-first}, and @{text nat.less_def} may directly be
-  used to unfold the definition.  Theorems from the local
-  interpretation disappear after leaving the proof context --- that
-  is, after the closing \isakeyword{qed} --- and are
-  then replaced by those with the desired substitutions of the strict
-  order.  *}
+text {* The inner interpretation does not require an elaborate new
+  proof, it is immediate from the preceding fact and proved with
+  ``.''.  It enriches the local proof context by the very theorems
+  also obtained in the interpretation from Section~\ref{sec:po-first},
+  and @{text nat.less_def} may directly be used to unfold the
+  definition.  Theorems from the local interpretation disappear after
+  leaving the proof context --- that is, after the closing
+  \isakeyword{qed} --- and are then replaced by those with the desired
+  substitutions of the strict order.  *}
 
 
 subsection {* Further Interpretations *}
@@ -63,7 +58,7 @@ proof -
       by Presburger arithmetic. *}
     by arith+
   txt {* For the first of the equations, we refer to the theorem
-  generated in the previous interpretation. *}
+  shown in the previous interpretation. *}
   show "partial_order.less op \<le> (x::nat) y = (x < y)"
     by (rule nat_less_eq)
   txt {* In order to show the remaining equations, we put ourselves in a
@@ -75,18 +70,18 @@ proof -
     by (bestsimp simp: nat.join_def nat.is_sup_def)
 qed
 
-text {* The interpretation that the relation @{text \<le>} is a total
-  order follows next. *}
+text {* Next follows that @{text \<le>} is a total order. *}
 
 interpretation %visible nat: total_order "op \<le> :: nat \<Rightarrow> nat \<Rightarrow> bool"
   where "partial_order.less op \<le> (x::nat) y = (x < y)"
     and "lattice.meet op \<le> (x::nat) y = min x y"
     and "lattice.join op \<le> (x::nat) y = max x y"
 proof -
-  show "total_order (op \<le> :: nat \<Rightarrow> nat \<Rightarrow> bool)" by unfold_locales arith
+  show "total_order (op \<le> :: nat \<Rightarrow> nat \<Rightarrow> bool)"
+    by unfold_locales arith
 qed (rule nat_less_eq nat_meet_eq nat_join_eq)+
 
-text {* Note that since the locale hierarchy reflects that total
+text {* Since the locale hierarchy reflects that total
   orders are distributive lattices, an explicit interpretation of
   distributive lattices for the order relation on natural numbers is
   only necessary for mapping the definitions to the right operators on
@@ -130,7 +125,8 @@ text {* Divisibility on the natural numbers is a distributive lattice
   incrementally. *}
 
 interpretation nat_dvd: partial_order "op dvd :: nat \<Rightarrow> nat \<Rightarrow> bool"
-  where nat_dvd_less_eq: "partial_order.less op dvd (x::nat) y = (x dvd y \<and> x \<noteq> y)"
+  where nat_dvd_less_eq:
+    "partial_order.less op dvd (x::nat) y = (x dvd y \<and> x \<noteq> y)"
 proof -
   show "partial_order (op dvd :: nat \<Rightarrow> nat \<Rightarrow> bool)"
     by unfold_locales (auto simp: dvd_def)
@@ -176,8 +172,8 @@ proof -
 qed
 
 text {* Equations @{thm [source] nat_dvd_meet_eq} and @{thm [source]
-  nat_dvd_join_eq} are named since they are handy in the proof of
-  the subsequent interpretation. *}
+  nat_dvd_join_eq} are used in the main part the subsequent
+  interpretation. *}
 
 (*
 definition
@@ -238,7 +234,7 @@ text {* Theorems that are available in the theory after these
   *}
 
 text {*
-  The full syntax of the interpretation commands is shown in
+  The syntax of the interpretation commands is shown in
   Table~\ref{tab:commands}.  The grammar refers to
   \textit{expression}, which stands for a \emph{locale} expression.
   Locale expressions are discussed in the following section.
@@ -257,13 +253,13 @@ text {*
   Inspecting the grammar of locale commands in
   Table~\ref{tab:commands} reveals that the import of a locale can be
   more than just a single locale.  In general, the import is a
-  \emph{locale expression}.  These enable to combine locales
+  \emph{locale expression}, which enables to combine locales
   and instantiate parameters.  A locale expression is a sequence of
   locale \emph{instances} followed by an optional \isakeyword{for}
   clause.  Each instance consists of a locale reference, which may be
   preceded by a qualifer and succeeded by instantiations of the
   parameters of that locale.  Instantiations may be either positional
-  or through explicit parameter argument pairs.
+  or through explicit mappings of parameters to arguments.
 
   Using a locale expression, a locale for order
   preserving maps can be declared in the following way.  *}
@@ -275,15 +271,17 @@ text {*
     assumes hom_le: "x \<sqsubseteq> y \<Longrightarrow> \<phi> x \<preceq> \<phi> y"
 
 text {* The second and third line contain the expression --- two
-  instances of the partial order locale with instantiations @{text le}
+  instances of the partial order locale where the parameter is
+  instantiated to @{text le}
   and @{text le'}, respectively.  The \isakeyword{for} clause consists
   of parameter declarations and is similar to the context element
   \isakeyword{fixes}.  The notable difference is that the
   \isakeyword{for} clause is part of the expression, and only
   parameters defined in the expression may occur in its instances.
 
-  Instances are \emph{morphisms} on locales.  Their effect on the
-  parameters is naturally lifted to terms, propositions and theorems,
+  Instances define \emph{morphisms} on locales.  Their effect on the
+  parameters is lifted to terms, propositions and theorems in the
+  canonical way,
   and thus to the assumptions and conclusions of a locale.  The
   assumption of a locale expression is the conjunction of the
   assumptions of the instances.  The conclusions of a sequence of
@@ -313,22 +311,25 @@ text {* The theorems for the partial order @{text \<preceq>}
 
 end %invisible
 
-text {* This example reveals that there is no infix syntax for the strict
-  version of @{text \<preceq>}!  This can be declared through an abbreviation.
-  *}
+text {* This example reveals that there is no infix syntax for the
+  strict operation associated with @{text \<preceq>}.  This can be declared
+  through an abbreviation.  *}
 
   abbreviation (in order_preserving)
     less' (infixl "\<prec>" 50) where "less' \<equiv> partial_order.less le'"
 
 text (in order_preserving) {* Now the theorem is displayed nicely as
-  @{thm le'.less_le_trans}.  *}
+  @{thm [source]  le'.less_le_trans}:
+  @{thm [display, indent=2] le'.less_le_trans} *}
 
-text {* Qualifiers not only apply to theorem names, but also to names
-  introduced by definitions and abbreviations.  In locale
-  @{text partial_order} the full name of the strict order of @{text \<sqsubseteq>} is
-  @{text le.less} and therefore @{text le'.less} is the full name of
-  the strict order of @{text \<preceq>}.  Hence, the equation in the
-  abbreviation above could have been also written as @{text "less' \<equiv>
+text (in order_preserving)  {* Qualifiers not only apply to theorem names, but also to names
+  introduced by definitions and abbreviations.  For example, in @{text
+  partial_order} the name @{text less} abbreviates @{term
+  "partial_order.less le"}.  Therefore, in @{text order_preserving}
+  the qualified name @{text le.less} abbreviates @{term
+  "partial_order.less le"} and @{text le'.less} abbreviates @{term
+  "partial_order.less le'"}.  Hence, the equation in the abbreviation
+  above could have been written more concisely as @{text "less' \<equiv>
   le'.less"}. *}
 
 text {* Readers may find the declaration of locale @{text
@@ -342,9 +343,9 @@ text {* Readers may find the declaration of locale @{text
   instantiation terms than the instantiated locale's number of
   parameters.  In named instantiations, instantiation pairs for
   certain parameters may simply be omitted.  Untouched parameters are
-  declared by the locale expression and with their concrete syntax by
-  implicitly adding them to the beginning of the \isakeyword{for}
-  clause.
+  implicitly declared by the locale expression and with their concrete
+  syntax.  In the sequence of parameters, they appear before the
+  parameters from the \isakeyword{for} clause.
 
   The following locales illustrate this.  A map @{text \<phi>} is a
   lattice homomorphism if it preserves meet and join. *}
@@ -352,10 +353,8 @@ text {* Readers may find the declaration of locale @{text
   locale lattice_hom =
     le: lattice + le': lattice le' for le' (infixl "\<preceq>" 50) +
     fixes \<phi>
-    assumes hom_meet:
-	"\<phi> (x \<sqinter> y) = le'.meet (\<phi> x) (\<phi> y)"
-      and hom_join:
-	"\<phi> (x \<squnion> y) = le'.join (\<phi> x) (\<phi> y)"
+    assumes hom_meet: "\<phi> (x \<sqinter> y) = le'.meet (\<phi> x) (\<phi> y)"
+      and hom_join: "\<phi> (x \<squnion> y) = le'.join (\<phi> x) (\<phi> y)"
 
   abbreviation (in lattice_hom)
     meet' (infixl "\<sqinter>''" 50) where "meet' \<equiv> le'.meet"
@@ -367,7 +366,7 @@ text {* A homomorphism is an endomorphism if both orders coincide. *}
   locale lattice_end = lattice_hom _ le
 
 text {* In this declaration, the first parameter of @{text
-  lattice_hom}, @{text le}, is untouched and then used to instantiate
+  lattice_hom}, @{text le}, is untouched and is then used to instantiate
   the second parameter.  Its concrete syntax is preserved. *}
 
 
@@ -430,9 +429,8 @@ text (in lattice_hom) {*
   Theorems and other declarations --- syntax, in particular --- from
   the locale @{text order_preserving} are now active in @{text
   lattice_hom}, for example
-
-  @{thm [source] le'.less_le_trans}:
-  @{thm le'.less_le_trans}
+  @{thm [source] hom_le}:
+  @{thm [display, indent=2] hom_le}
   *}
 
 
@@ -559,7 +557,7 @@ text {*
 \end{tabular}
 \end{center}
 \hrule
-\caption{Syntax of Locale Commands (abridged).}
+\caption{Syntax of Locale Commands.}
 \label{tab:commands}
 \end{table}
   *}

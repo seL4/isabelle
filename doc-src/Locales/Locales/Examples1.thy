@@ -27,7 +27,7 @@ text {* Locales enable to prove theorems abstractly, relative to
   theories is illustrated; interpretation in proofs is analogous.
 
   As an example, consider the type of natural numbers @{typ nat}.  The
-  order relation @{text \<le>} is a total order over @{typ nat},
+  relation @{text \<le>} is a total order over @{typ nat},
   divisibility @{text dvd} is a distributive lattice.  We start with the
   interpretation that @{text \<le>} is a partial order.  The facilities of
   the interpretation command are explored in three versions.
@@ -48,7 +48,7 @@ txt {* The locale name is succeeded by a \emph{parameter
   instantiation}.  This is a list of terms, which refer to
   the parameters in the order of declaration in the locale.  The
   locale name is preceded by an optional \emph{interpretation
-  qualifier}.
+  qualifier}, here @{text nat}.
 
   The command creates the goal%
 \footnote{Note that @{text op} binds tighter than functions
@@ -77,10 +77,6 @@ text {* The above interpretation also creates the theorem
   Here, @{term "partial_order.less (op \<le> :: nat \<Rightarrow> nat \<Rightarrow> bool)"}
   represents the strict order, although @{text "<"} is the natural
   strict order for @{typ nat}.  Interpretation allows to map concepts
-  introduced through definitions in locales to the corresponding
-  concepts of the theory.%
-\footnote{This applies not only to \isakeyword{definition} but also to
-  \isakeyword{inductive}, \isakeyword{fun} and \isakeyword{function}.} 
-  *}
-
+  introduced by definitions in locales to the corresponding
+  concepts of the theory.  *}
 end

@@ -112,10 +112,12 @@ The parameter of this locale is \isa{le}, with infix syntax
 \begin{tabular}{ll}
   \isakeyword{definition} & definition through an equation \\
   \isakeyword{inductive} & inductive definition \\
-  \isakeyword{fun}, \isakeyword{function} & recursive function \\
+  \isakeyword{primrec} & primitive recursion \\
+  \isakeyword{fun}, \isakeyword{function} & general recursion \\
   \isakeyword{abbreviation} & syntactic abbreviation \\
   \isakeyword{theorem}, etc.\ & theorem statement with proof \\
-  \isakeyword{theorems}, etc.\ & redeclaration of theorems
+  \isakeyword{theorems}, etc.\ & redeclaration of theorems \\
+  \isakeyword{text}, etc.\ & document markup
 \end{tabular}
 \end{center}
 \hrule
@@ -137,7 +139,7 @@ A definition in a locale depends on the locale parameters.
 \ \ partial{\isacharunderscore}order\ {\isacharquery}le\ {\isasymLongrightarrow}\isanewline
 \isaindent{\ \ }partial{\isacharunderscore}order{\isachardot}less\ {\isacharquery}le\ {\isacharquery}x\ {\isacharquery}y\ {\isacharequal}\ {\isacharparenleft}{\isacharquery}le\ {\isacharquery}x\ {\isacharquery}y\ {\isasymand}\ {\isacharquery}x\ {\isasymnoteq}\ {\isacharquery}y{\isacharparenright}%
 \end{isabelle}
-  At the same time, the locale is extended by syntax information
+  At the same time, the locale is extended by syntax transformations
   hiding this construction in the context of the locale.  That is,
   \isa{partial{\isacharunderscore}order{\isachardot}less\ le} is printed and parsed as infix
   \isa{{\isasymsqsubset}}.%
@@ -464,16 +466,6 @@ When working with locales, sequences of commands with the same
 \ \ \isacommand{end}\isamarkupfalse%
 %
 \begin{isamarkuptext}%
-The definitions of \isa{is{\isacharunderscore}inf} and \isa{is{\isacharunderscore}sup} look
-  like ordinary definitions in theories.  Despite, what is going on
-  behind the scenes is more complex.  The definition of \isa{is{\isacharunderscore}inf}, say, creates a constant \isa{partial{\isacharunderscore}order{\isachardot}is{\isacharunderscore}inf} where
-  the locale parameters that occur in the definition of \isa{is{\isacharunderscore}inf}
-  are additional arguments.  Writing \isa{is{\isacharunderscore}inf\ x\ y\ inf} is just
-  a notational convenience for \isa{partial{\isacharunderscore}order{\isachardot}is{\isacharunderscore}inf\ op\ {\isasymsqsubseteq}\ x\ y\ inf}.%
-\end{isamarkuptext}%
-\isamarkuptrue%
-%
-\begin{isamarkuptext}%
 Two commands are provided to inspect locales:
   \isakeyword{print\_locales} lists the names of all locales of the
   current theory; \isakeyword{print\_locale}~$n$ prints the parameters
@@ -499,7 +491,8 @@ Algebraic structures are commonly defined by adding operations and
   distributive lattices.
 
   With locales, this inheritance is achieved through \emph{import} of a
-  locale.  The import comes before the context elements.%
+  locale.  Import is a separate entity in the locale declaration.  If
+  present, it precedes the context elements.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \ \ \isacommand{locale}\isamarkupfalse%
@@ -509,11 +502,8 @@ Algebraic structures are commonly defined by adding operations and
 \ \ \isakeyword{begin}%
 \begin{isamarkuptext}%
 These assumptions refer to the predicates for infimum
-  and supremum defined in \isa{partial{\isacharunderscore}order}.  In the current
-  implementation of locales, syntax from definitions of the imported
-  locale is unavailable in the locale declaration, neither are their
-  names.  Hence we refer to the constants of the theory.  The names
-  and syntax is available below, in the context of the locale.%
+  and supremum defined in \isa{partial{\isacharunderscore}order}.  We may now introduce
+  the notions of meet and join.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \ \ \isacommand{definition}\isamarkupfalse%

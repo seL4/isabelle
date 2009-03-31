@@ -68,19 +68,15 @@ In the above example, the fact that \isa{{\isasymle}} is a partial
 \endisadelimvisible
 %
 \begin{isamarkuptext}%
-The inner interpretation does not require an
-  elaborate new proof, it is immediate from the preceeding fact and
-  proved with ``.''.  Strict qualifiers are normally not necessary for
-  interpretations inside proofs, since these have only limited scope.
-
-  The above interpretation enriches the local proof context by
-  the very theorems also obtained in the interpretation from
-  Section~\ref{sec:po-first}, and \isa{nat{\isachardot}less{\isacharunderscore}def} may directly be
-  used to unfold the definition.  Theorems from the local
-  interpretation disappear after leaving the proof context --- that
-  is, after the closing \isakeyword{qed} --- and are
-  then replaced by those with the desired substitutions of the strict
-  order.%
+The inner interpretation does not require an elaborate new
+  proof, it is immediate from the preceding fact and proved with
+  ``.''.  It enriches the local proof context by the very theorems
+  also obtained in the interpretation from Section~\ref{sec:po-first},
+  and \isa{nat{\isachardot}less{\isacharunderscore}def} may directly be used to unfold the
+  definition.  Theorems from the local interpretation disappear after
+  leaving the proof context --- that is, after the closing
+  \isakeyword{qed} --- and are then replaced by those with the desired
+  substitutions of the strict order.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -139,7 +135,7 @@ the goals become \begin{isabelle}%
 \ arith{\isacharplus}%
 \begin{isamarkuptxt}%
 For the first of the equations, we refer to the theorem
-  generated in the previous interpretation.%
+  shown in the previous interpretation.%
 \end{isamarkuptxt}%
 \isamarkuptrue%
 \ \ \isacommand{show}\isamarkupfalse%
@@ -173,8 +169,7 @@ In order to show the remaining equations, we put ourselves in a
 \endisadelimvisible
 %
 \begin{isamarkuptext}%
-The interpretation that the relation \isa{{\isasymle}} is a total
-  order follows next.%
+Next follows that \isa{{\isasymle}} is a total order.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -191,7 +186,8 @@ The interpretation that the relation \isa{{\isasymle}} is a total
 \isacommand{proof}\isamarkupfalse%
 \ {\isacharminus}\isanewline
 \ \ \isacommand{show}\isamarkupfalse%
-\ {\isachardoublequoteopen}total{\isacharunderscore}order\ {\isacharparenleft}op\ {\isasymle}\ {\isacharcolon}{\isacharcolon}\ nat\ {\isasymRightarrow}\ nat\ {\isasymRightarrow}\ bool{\isacharparenright}{\isachardoublequoteclose}\ \isacommand{by}\isamarkupfalse%
+\ {\isachardoublequoteopen}total{\isacharunderscore}order\ {\isacharparenleft}op\ {\isasymle}\ {\isacharcolon}{\isacharcolon}\ nat\ {\isasymRightarrow}\ nat\ {\isasymRightarrow}\ bool{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\ \ \ \ \isacommand{by}\isamarkupfalse%
 \ unfold{\isacharunderscore}locales\ arith\isanewline
 \isacommand{qed}\isamarkupfalse%
 \ {\isacharparenleft}rule\ nat{\isacharunderscore}less{\isacharunderscore}eq\ nat{\isacharunderscore}meet{\isacharunderscore}eq\ nat{\isacharunderscore}join{\isacharunderscore}eq{\isacharparenright}{\isacharplus}%
@@ -203,7 +199,7 @@ The interpretation that the relation \isa{{\isasymle}} is a total
 \endisadelimvisible
 %
 \begin{isamarkuptext}%
-Note that since the locale hierarchy reflects that total
+Since the locale hierarchy reflects that total
   orders are distributive lattices, an explicit interpretation of
   distributive lattices for the order relation on natural numbers is
   only necessary for mapping the definitions to the right operators on
@@ -268,7 +264,8 @@ Divisibility on the natural numbers is a distributive lattice
 \isamarkuptrue%
 \isacommand{interpretation}\isamarkupfalse%
 \ nat{\isacharunderscore}dvd{\isacharcolon}\ partial{\isacharunderscore}order\ {\isachardoublequoteopen}op\ dvd\ {\isacharcolon}{\isacharcolon}\ nat\ {\isasymRightarrow}\ nat\ {\isasymRightarrow}\ bool{\isachardoublequoteclose}\isanewline
-\ \ \isakeyword{where}\ nat{\isacharunderscore}dvd{\isacharunderscore}less{\isacharunderscore}eq{\isacharcolon}\ {\isachardoublequoteopen}partial{\isacharunderscore}order{\isachardot}less\ op\ dvd\ {\isacharparenleft}x{\isacharcolon}{\isacharcolon}nat{\isacharparenright}\ y\ {\isacharequal}\ {\isacharparenleft}x\ dvd\ y\ {\isasymand}\ x\ {\isasymnoteq}\ y{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\ \ \isakeyword{where}\ nat{\isacharunderscore}dvd{\isacharunderscore}less{\isacharunderscore}eq{\isacharcolon}\isanewline
+\ \ \ \ {\isachardoublequoteopen}partial{\isacharunderscore}order{\isachardot}less\ op\ dvd\ {\isacharparenleft}x{\isacharcolon}{\isacharcolon}nat{\isacharparenright}\ y\ {\isacharequal}\ {\isacharparenleft}x\ dvd\ y\ {\isasymand}\ x\ {\isasymnoteq}\ y{\isacharparenright}{\isachardoublequoteclose}\isanewline
 %
 \isadelimproof
 %
@@ -378,8 +375,8 @@ Note that in Isabelle/HOL there is no symbol for strict
 \endisadelimproof
 %
 \begin{isamarkuptext}%
-Equations \isa{nat{\isacharunderscore}dvd{\isacharunderscore}meet{\isacharunderscore}eq} and \isa{nat{\isacharunderscore}dvd{\isacharunderscore}join{\isacharunderscore}eq} are named since they are handy in the proof of
-  the subsequent interpretation.%
+Equations \isa{nat{\isacharunderscore}dvd{\isacharunderscore}meet{\isacharunderscore}eq} and \isa{nat{\isacharunderscore}dvd{\isacharunderscore}join{\isacharunderscore}eq} are used in the main part the subsequent
+  interpretation.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -473,7 +470,7 @@ Theorems that are available in the theory after these
 \isamarkuptrue%
 %
 \begin{isamarkuptext}%
-The full syntax of the interpretation commands is shown in
+The syntax of the interpretation commands is shown in
   Table~\ref{tab:commands}.  The grammar refers to
   \textit{expression}, which stands for a \emph{locale} expression.
   Locale expressions are discussed in the following section.%
@@ -493,13 +490,13 @@ A map \isa{{\isasymphi}} between partial orders \isa{{\isasymsqsubseteq}} and \i
   Inspecting the grammar of locale commands in
   Table~\ref{tab:commands} reveals that the import of a locale can be
   more than just a single locale.  In general, the import is a
-  \emph{locale expression}.  These enable to combine locales
+  \emph{locale expression}, which enables to combine locales
   and instantiate parameters.  A locale expression is a sequence of
   locale \emph{instances} followed by an optional \isakeyword{for}
   clause.  Each instance consists of a locale reference, which may be
   preceded by a qualifer and succeeded by instantiations of the
   parameters of that locale.  Instantiations may be either positional
-  or through explicit parameter argument pairs.
+  or through explicit mappings of parameters to arguments.
 
   Using a locale expression, a locale for order
   preserving maps can be declared in the following way.%
@@ -513,15 +510,17 @@ A map \isa{{\isasymphi}} between partial orders \isa{{\isasymsqsubseteq}} and \i
 \ \ \ \ \isakeyword{assumes}\ hom{\isacharunderscore}le{\isacharcolon}\ {\isachardoublequoteopen}x\ {\isasymsqsubseteq}\ y\ {\isasymLongrightarrow}\ {\isasymphi}\ x\ {\isasympreceq}\ {\isasymphi}\ y{\isachardoublequoteclose}%
 \begin{isamarkuptext}%
 The second and third line contain the expression --- two
-  instances of the partial order locale with instantiations \isa{le}
+  instances of the partial order locale where the parameter is
+  instantiated to \isa{le}
   and \isa{le{\isacharprime}}, respectively.  The \isakeyword{for} clause consists
   of parameter declarations and is similar to the context element
   \isakeyword{fixes}.  The notable difference is that the
   \isakeyword{for} clause is part of the expression, and only
   parameters defined in the expression may occur in its instances.
 
-  Instances are \emph{morphisms} on locales.  Their effect on the
-  parameters is naturally lifted to terms, propositions and theorems,
+  Instances define \emph{morphisms} on locales.  Their effect on the
+  parameters is lifted to terms, propositions and theorems in the
+  canonical way,
   and thus to the assumptions and conclusions of a locale.  The
   assumption of a locale expression is the conjunction of the
   assumptions of the instances.  The conclusions of a sequence of
@@ -584,8 +583,9 @@ The theorems for the partial order \isa{{\isasympreceq}}
 \endisadeliminvisible
 %
 \begin{isamarkuptext}%
-This example reveals that there is no infix syntax for the strict
-  version of \isa{{\isasympreceq}}!  This can be declared through an abbreviation.%
+This example reveals that there is no infix syntax for the
+  strict operation associated with \isa{{\isasympreceq}}.  This can be declared
+  through an abbreviation.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 \ \ \isacommand{abbreviation}\isamarkupfalse%
@@ -593,17 +593,18 @@ This example reveals that there is no infix syntax for the strict
 \ \ \ \ less{\isacharprime}\ {\isacharparenleft}\isakeyword{infixl}\ {\isachardoublequoteopen}{\isasymprec}{\isachardoublequoteclose}\ {\isadigit{5}}{\isadigit{0}}{\isacharparenright}\ \isakeyword{where}\ {\isachardoublequoteopen}less{\isacharprime}\ {\isasymequiv}\ partial{\isacharunderscore}order{\isachardot}less\ le{\isacharprime}{\isachardoublequoteclose}%
 \begin{isamarkuptext}%
 Now the theorem is displayed nicely as
-  \isa{{\isasymlbrakk}{\isacharquery}x\ {\isasymprec}\ {\isacharquery}y{\isacharsemicolon}\ {\isacharquery}y\ {\isasympreceq}\ {\isacharquery}z{\isasymrbrakk}\ {\isasymLongrightarrow}\ {\isacharquery}x\ {\isasymprec}\ {\isacharquery}z}.%
+  \isa{le{\isacharprime}{\isachardot}less{\isacharunderscore}le{\isacharunderscore}trans}:
+  \begin{isabelle}%
+\ \ {\isasymlbrakk}{\isacharquery}x\ {\isasymprec}\ {\isacharquery}y{\isacharsemicolon}\ {\isacharquery}y\ {\isasympreceq}\ {\isacharquery}z{\isasymrbrakk}\ {\isasymLongrightarrow}\ {\isacharquery}x\ {\isasymprec}\ {\isacharquery}z%
+\end{isabelle}%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
 \begin{isamarkuptext}%
 Qualifiers not only apply to theorem names, but also to names
-  introduced by definitions and abbreviations.  In locale
-  \isa{partial{\isacharunderscore}order} the full name of the strict order of \isa{{\isasymsqsubseteq}} is
-  \isa{le{\isachardot}less} and therefore \isa{le{\isacharprime}{\isachardot}less} is the full name of
-  the strict order of \isa{{\isasympreceq}}.  Hence, the equation in the
-  abbreviation above could have been also written as \isa{less{\isacharprime}\ {\isasymequiv}\ le{\isacharprime}{\isachardot}less}.%
+  introduced by definitions and abbreviations.  For example, in \isa{partial{\isacharunderscore}order} the name \isa{less} abbreviates \isa{op\ {\isasymsqsubset}}.  Therefore, in \isa{order{\isacharunderscore}preserving}
+  the qualified name \isa{le{\isachardot}less} abbreviates \isa{op\ {\isasymsqsubset}} and \isa{le{\isacharprime}{\isachardot}less} abbreviates \isa{op\ {\isasymprec}}.  Hence, the equation in the abbreviation
+  above could have been written more concisely as \isa{less{\isacharprime}\ {\isasymequiv}\ le{\isacharprime}{\isachardot}less}.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -618,9 +619,9 @@ Readers may find the declaration of locale \isa{order{\isacharunderscore}preserv
   instantiation terms than the instantiated locale's number of
   parameters.  In named instantiations, instantiation pairs for
   certain parameters may simply be omitted.  Untouched parameters are
-  declared by the locale expression and with their concrete syntax by
-  implicitly adding them to the beginning of the \isakeyword{for}
-  clause.
+  implicitly declared by the locale expression and with their concrete
+  syntax.  In the sequence of parameters, they appear before the
+  parameters from the \isakeyword{for} clause.
 
   The following locales illustrate this.  A map \isa{{\isasymphi}} is a
   lattice homomorphism if it preserves meet and join.%
@@ -630,10 +631,8 @@ Readers may find the declaration of locale \isa{order{\isacharunderscore}preserv
 \ lattice{\isacharunderscore}hom\ {\isacharequal}\isanewline
 \ \ \ \ le{\isacharcolon}\ lattice\ {\isacharplus}\ le{\isacharprime}{\isacharcolon}\ lattice\ le{\isacharprime}\ \isakeyword{for}\ le{\isacharprime}\ {\isacharparenleft}\isakeyword{infixl}\ {\isachardoublequoteopen}{\isasympreceq}{\isachardoublequoteclose}\ {\isadigit{5}}{\isadigit{0}}{\isacharparenright}\ {\isacharplus}\isanewline
 \ \ \ \ \isakeyword{fixes}\ {\isasymphi}\isanewline
-\ \ \ \ \isakeyword{assumes}\ hom{\isacharunderscore}meet{\isacharcolon}\isanewline
-\ \ \ \ \ \ \ \ {\isachardoublequoteopen}{\isasymphi}\ {\isacharparenleft}x\ {\isasymsqinter}\ y{\isacharparenright}\ {\isacharequal}\ le{\isacharprime}{\isachardot}meet\ {\isacharparenleft}{\isasymphi}\ x{\isacharparenright}\ {\isacharparenleft}{\isasymphi}\ y{\isacharparenright}{\isachardoublequoteclose}\isanewline
-\ \ \ \ \ \ \isakeyword{and}\ hom{\isacharunderscore}join{\isacharcolon}\isanewline
-\ \ \ \ \ \ \ \ {\isachardoublequoteopen}{\isasymphi}\ {\isacharparenleft}x\ {\isasymsqunion}\ y{\isacharparenright}\ {\isacharequal}\ le{\isacharprime}{\isachardot}join\ {\isacharparenleft}{\isasymphi}\ x{\isacharparenright}\ {\isacharparenleft}{\isasymphi}\ y{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\ \ \ \ \isakeyword{assumes}\ hom{\isacharunderscore}meet{\isacharcolon}\ {\isachardoublequoteopen}{\isasymphi}\ {\isacharparenleft}x\ {\isasymsqinter}\ y{\isacharparenright}\ {\isacharequal}\ le{\isacharprime}{\isachardot}meet\ {\isacharparenleft}{\isasymphi}\ x{\isacharparenright}\ {\isacharparenleft}{\isasymphi}\ y{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\ \ \ \ \ \ \isakeyword{and}\ hom{\isacharunderscore}join{\isacharcolon}\ {\isachardoublequoteopen}{\isasymphi}\ {\isacharparenleft}x\ {\isasymsqunion}\ y{\isacharparenright}\ {\isacharequal}\ le{\isacharprime}{\isachardot}join\ {\isacharparenleft}{\isasymphi}\ x{\isacharparenright}\ {\isacharparenleft}{\isasymphi}\ y{\isacharparenright}{\isachardoublequoteclose}\isanewline
 \isanewline
 \ \ \isacommand{abbreviation}\isamarkupfalse%
 \ {\isacharparenleft}\isakeyword{in}\ lattice{\isacharunderscore}hom{\isacharparenright}\isanewline
@@ -648,7 +647,7 @@ A homomorphism is an endomorphism if both orders coincide.%
 \ \ \isacommand{locale}\isamarkupfalse%
 \ lattice{\isacharunderscore}end\ {\isacharequal}\ lattice{\isacharunderscore}hom\ {\isacharunderscore}\ le%
 \begin{isamarkuptext}%
-In this declaration, the first parameter of \isa{lattice{\isacharunderscore}hom}, \isa{le}, is untouched and then used to instantiate
+In this declaration, the first parameter of \isa{lattice{\isacharunderscore}hom}, \isa{le}, is untouched and is then used to instantiate
   the second parameter.  Its concrete syntax is preserved.%
 \end{isamarkuptext}%
 \isamarkuptrue%
@@ -740,9 +739,10 @@ It can be shown easily that a lattice homomorphism is order
 \begin{isamarkuptext}%
 Theorems and other declarations --- syntax, in particular --- from
   the locale \isa{order{\isacharunderscore}preserving} are now active in \isa{lattice{\isacharunderscore}hom}, for example
-
-  \isa{le{\isacharprime}{\isachardot}less{\isacharunderscore}le{\isacharunderscore}trans}:
-  \isa{{\isasymlbrakk}{\isacharquery}x\ {\isasymprec}\ {\isacharquery}y{\isacharsemicolon}\ {\isacharquery}y\ {\isasympreceq}\ {\isacharquery}z{\isasymrbrakk}\ {\isasymLongrightarrow}\ {\isacharquery}x\ {\isasymprec}\ {\isacharquery}z}%
+  \isa{hom{\isacharunderscore}le}:
+  \begin{isabelle}%
+\ \ {\isacharquery}x\ {\isasymsqsubseteq}\ {\isacharquery}y\ {\isasymLongrightarrow}\ {\isasymphi}\ {\isacharquery}x\ {\isasympreceq}\ {\isasymphi}\ {\isacharquery}y%
+\end{isabelle}%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -872,7 +872,7 @@ More information on locales and their interpretation is
 \end{tabular}
 \end{center}
 \hrule
-\caption{Syntax of Locale Commands (abridged).}
+\caption{Syntax of Locale Commands.}
 \label{tab:commands}
 \end{table}%
 \end{isamarkuptext}%
