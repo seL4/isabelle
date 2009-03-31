@@ -322,7 +322,6 @@ done
 
 lemma Cons_inject_less_eq: "(a>>s<<b>>t) = (a = b & s<<t)"
 apply (simp add: Consq_def2)
-apply (simp add: seq.inverts)
 done
 
 lemma seq_take_Cons: "seq_take (Suc n)$(a>>x) = a>> (seq_take n$x)"
@@ -661,7 +660,7 @@ lemma FilternPnilForallP1: "!! ys . Filter P$ys = nil -->
    (Forall (%x. ~P x) ys & Finite ys)"
 apply (rule_tac x="ys" in Seq_induct)
 (* adm *)
-apply (simp add: seq.compacts Forall_def sforall_def)
+apply (simp add: Forall_def sforall_def)
 (* base cases *)
 apply simp
 apply simp

@@ -26,9 +26,6 @@ fun reorient_proc sg _ (_ $ t $ u) =
 val reorient_simproc = 
   Arith_Data.prep_simproc ("reorient_simproc", ["0=x", "1=x", "number_of w = x"], reorient_proc);
 
-(*Maps 0 to Numeral0 and 1 to Numeral1 so that arithmetic isn't complicated by the abstract 0 and 1.*)
-val numeral_syms = [@{thm numeral_0_eq_0} RS sym, @{thm numeral_1_eq_1} RS sym];
-
 
 (** Utilities **)
 
@@ -176,10 +173,12 @@ fun numtermless tu = (numterm_ord tu = LESS);
 
 val num_ss = HOL_ss settermless numtermless;
 
+(*Maps 0 to Numeral0 and 1 to Numeral1 so that arithmetic isn't complicated by the abstract 0 and 1.*)
+val numeral_syms = [@{thm numeral_0_eq_0} RS sym, @{thm numeral_1_eq_1} RS sym];
 
 (*Simplify Numeral0+n, n+Numeral0, Numeral1*n, n*Numeral1, 1*x, x*1, x/1 *)
-val add_0s =  thms "add_0s";
-val mult_1s = thms "mult_1s" @ [thm"mult_1_left", thm"mult_1_right", thm"divide_1"];
+val add_0s =  @{thms add_0s};
+val mult_1s = @{thms mult_1s mult_1_left mult_1_right divide_1};
 
 (*Simplify inverse Numeral1, a/Numeral1*)
 val inverse_1s = [@{thm inverse_numeral_1}];
@@ -208,15 +207,20 @@ val divide_simps = [@{thm divide_inverse}, @{thm inverse_mult_distrib}, @{thm in
 
 (*push the unary minus down: - x * y = x * - y *)
 val minus_mult_eq_1_to_2 =
-    [@{thm minus_mult_left} RS sym, @{thm minus_mult_right}] MRS trans |> standard;
+    [@{thm mult_minus_left}, @{thm minus_mult_right}] MRS trans |> standard;
 
 (*to extract again any uncancelled minuses*)
 val minus_from_mult_simps =
-    [@{thm minus_minus}, @{thm minus_mult_left} RS sym, @{thm minus_mult_right} RS sym];
+    [@{thm minus_minus}, @{thm mult_minus_left}, @{thm mult_minus_right}];
 
 (*combine unary minus with numeric literals, however nested within a product*)
 val mult_minus_simps =
     [@{thm mult_assoc}, @{thm minus_mult_left}, minus_mult_eq_1_to_2];
+
+val norm_ss1 = num_ss addsimps numeral_syms @ add_0s @ mult_1s @
+  diff_simps @ minus_simps @ @{thms add_ac}
+val norm_ss2 = num_ss addsimps non_add_simps @ mult_minus_simps
+val norm_ss3 = num_ss addsimps minus_from_mult_simps @ @{thms add_ac} @ @{thms mult_ac}
 
 structure CancelNumeralsCommon =
   struct
@@ -227,10 +231,6 @@ structure CancelNumeralsCommon =
   val find_first_coeff  = find_first_coeff []
   val trans_tac         = K Arith_Data.trans_tac
 
-  val norm_ss1 = num_ss addsimps numeral_syms @ add_0s @ mult_1s @
-    diff_simps @ minus_simps @ @{thms add_ac}
-  val norm_ss2 = num_ss addsimps non_add_simps @ mult_minus_simps
-  val norm_ss3 = num_ss addsimps minus_from_mult_simps @ @{thms add_ac} @ @{thms mult_ac}
   fun norm_tac ss =
     ALLGOALS (simp_tac (Simplifier.inherit_context ss norm_ss1))
     THEN ALLGOALS (simp_tac (Simplifier.inherit_context ss norm_ss2))
@@ -310,10 +310,6 @@ structure CombineNumeralsData =
   val prove_conv        = Arith_Data.prove_conv_nohyps
   val trans_tac         = K Arith_Data.trans_tac
 
-  val norm_ss1 = num_ss addsimps numeral_syms @ add_0s @ mult_1s @
-    diff_simps @ minus_simps @ @{thms add_ac}
-  val norm_ss2 = num_ss addsimps non_add_simps @ mult_minus_simps
-  val norm_ss3 = num_ss addsimps minus_from_mult_simps @ @{thms add_ac} @ @{thms mult_ac}
   fun norm_tac ss =
     ALLGOALS (simp_tac (Simplifier.inherit_context ss norm_ss1))
     THEN ALLGOALS (simp_tac (Simplifier.inherit_context ss norm_ss2))
@@ -340,12 +336,9 @@ structure FieldCombineNumeralsData =
   val prove_conv        = Arith_Data.prove_conv_nohyps
   val trans_tac         = K Arith_Data.trans_tac
 
-  val norm_ss1 = num_ss addsimps numeral_syms @ add_0s @ mult_1s @
-    inverse_1s @ divide_simps @ diff_simps @ minus_simps @ @{thms add_ac}
-  val norm_ss2 = num_ss addsimps non_add_simps @ mult_minus_simps
-  val norm_ss3 = num_ss addsimps minus_from_mult_simps @ @{thms add_ac} @ @{thms mult_ac}
+  val norm_ss1a = norm_ss1 addsimps inverse_1s @ divide_simps
   fun norm_tac ss =
-    ALLGOALS (simp_tac (Simplifier.inherit_context ss norm_ss1))
+    ALLGOALS (simp_tac (Simplifier.inherit_context ss norm_ss1a))
     THEN ALLGOALS (simp_tac (Simplifier.inherit_context ss norm_ss2))
     THEN ALLGOALS (simp_tac (Simplifier.inherit_context ss norm_ss3))
 
@@ -516,14 +509,7 @@ val zero_one_idom_simproc =
 
 val add_rules =
     simp_thms @ @{thms arith_simps} @ @{thms rel_simps} @ @{thms arith_special} @
-    [@{thm neg_le_iff_le}, @{thm numeral_0_eq_0}, @{thm numeral_1_eq_1},
-     @{thm minus_zero}, @{thm diff_minus}, @{thm left_minus}, @{thm right_minus},
-     @{thm mult_zero_left}, @{thm mult_zero_right}, @{thm mult_Bit1}, @{thm mult_1_right},
-     @{thm minus_mult_left} RS sym, @{thm minus_mult_right} RS sym,
-     @{thm minus_add_distrib}, @{thm minus_minus}, @{thm mult_assoc},
-     @{thm of_nat_0}, @{thm of_nat_1}, @{thm of_nat_Suc}, @{thm of_nat_add},
-     @{thm of_nat_mult}, @{thm of_int_0}, @{thm of_int_1}, @{thm of_int_add},
-     @{thm of_int_mult}]
+    @{thms int_arith_rules}
 
 val nat_inj_thms = [@{thm zle_int} RS iffD2, @{thm int_int_eq} RS iffD2]
 

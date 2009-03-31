@@ -65,7 +65,7 @@ datatype fundef_context_data =
       defname : string,
 
       (* contains no logical entities: invariant under morphisms *)
-      add_simps : (string -> string) -> string -> Attrib.src list -> thm list 
+      add_simps : (binding -> binding) -> string -> Attrib.src list -> thm list 
                   -> local_theory -> thm list * local_theory,
       case_names : string list,
 
@@ -289,8 +289,8 @@ fun check_defs ctxt fixes eqs =
 (* Preprocessors *)
 
 type fixes = ((string * typ) * mixfix) list
-type 'a spec = ((bstring * Attrib.src list) * 'a list) list
-type preproc = fundef_config -> bool list -> Proof.context -> fixes -> term spec 
+type 'a spec = (Attrib.binding * 'a list) list
+type preproc = fundef_config -> Proof.context -> fixes -> term spec 
                -> (term list * (thm list -> thm spec) * (thm list -> thm list list) * string list)
 
 val fname_of = fst o dest_Free o fst o strip_comb o fst 
@@ -301,9 +301,9 @@ fun mk_case_names i "" k = mk_case_names i (string_of_int (i + 1)) k
   | mk_case_names _ n 1 = [n]
   | mk_case_names _ n k = map (fn i => n ^ "_" ^ string_of_int i) (1 upto k)
 
-fun empty_preproc check _ _ ctxt fixes spec =
+fun empty_preproc check _ ctxt fixes spec =
     let 
-      val (nas,tss) = split_list spec
+      val (bnds, tss) = split_list spec
       val ts = flat tss
       val _ = check ctxt fixes ts
       val fnames = map (fst o fst) fixes
@@ -314,9 +314,9 @@ fun empty_preproc check _ _ ctxt fixes spec =
                         |> map (map snd)
 
       (* using theorem names for case name currently disabled *)
-      val cnames = map_index (fn (i, (n,_)) => mk_case_names i "" 1) nas |> flat
+      val cnames = map_index (fn (i, _) => mk_case_names i "" 1) bnds |> flat
     in
-      (ts, curry op ~~ nas o Library.unflat tss, sort, cnames)
+      (ts, curry op ~~ bnds o Library.unflat tss, sort, cnames)
     end
 
 structure Preprocessor = GenericDataFun
@@ -344,23 +344,9 @@ local
   fun config_parser default = 
       (Scan.optional (P.$$$ "(" |-- P.!!! (P.list1 option_parser) --| P.$$$ ")") [])
         >> (fn opts => fold apply_opt opts default)
-
-  val otherwise = P.$$$ "(" |-- P.$$$ "otherwise" --| P.$$$ ")"
-
-  fun pipe_error t = 
-  P.!!! (Scan.fail_with (K (cat_lines ["Equations must be separated by " ^ quote "|", quote t])))
-
-  val statement_ow = 
-   SpecParse.opt_thm_name ":" -- (P.prop -- Scan.optional (otherwise >> K true) false)
-    --| Scan.ahead ((P.term :-- pipe_error) || Scan.succeed ("",""))
-
-  val statements_ow = P.enum1 "|" statement_ow
-
-  val flags_statements = statements_ow
-                         >> (fn sow => (map (snd o snd) sow, map (apsnd fst) sow))
 in
   fun fundef_parser default_cfg = 
-      config_parser default_cfg -- P.fixes --| P.where_ -- flags_statements
+      config_parser default_cfg -- P.fixes -- SpecParse.where_alt_specs
 end
 
 

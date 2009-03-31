@@ -2384,7 +2384,7 @@ lemma Inf_empty_bool [simp]:
   unfolding Inf_bool_def by auto
 
 lemma not_Sup_empty_bool [simp]:
-  "\<not> Sup {}"
+  "\<not> \<Squnion>{}"
   unfolding Sup_bool_def by auto
 
 

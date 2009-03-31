@@ -507,53 +507,77 @@ end
 context ordered_idom
 begin
 
-lemma minus_of_num_less_of_num_iff [numeral]: "- of_num m < of_num n"
+lemma minus_of_num_less_of_num_iff: "- of_num m < of_num n"
 proof -
   have "- of_num m < 0" by (simp add: of_num_pos)
   also have "0 < of_num n" by (simp add: of_num_pos)
   finally show ?thesis .
 qed
 
-lemma minus_of_num_less_one_iff [numeral]: "- of_num n < 1"
-proof -
-  have "- of_num n < 0" by (simp add: of_num_pos)
-  also have "0 < 1" by simp
-  finally show ?thesis .
-qed
+lemma minus_of_num_less_one_iff: "- of_num n < 1"
+using minus_of_num_less_of_num_iff [of n One] by (simp add: of_num_one)
 
-lemma minus_one_less_of_num_iff [numeral]: "- 1 < of_num n"
-proof -
-  have "- 1 < 0" by simp
-  also have "0 < of_num n" by (simp add: of_num_pos)
-  finally show ?thesis .
-qed
+lemma minus_one_less_of_num_iff: "- 1 < of_num n"
+using minus_of_num_less_of_num_iff [of One n] by (simp add: of_num_one)
 
-lemma minus_of_num_le_of_num_iff [numeral]: "- of_num m \<le> of_num n"
+lemma minus_one_less_one_iff: "- 1 < 1"
+using minus_of_num_less_of_num_iff [of One One] by (simp add: of_num_one)
+
+lemma minus_of_num_le_of_num_iff: "- of_num m \<le> of_num n"
   by (simp add: less_imp_le minus_of_num_less_of_num_iff)
 
-lemma minus_of_num_le_one_iff [numeral]: "- of_num n \<le> 1"
+lemma minus_of_num_le_one_iff: "- of_num n \<le> 1"
   by (simp add: less_imp_le minus_of_num_less_one_iff)
 
-lemma minus_one_le_of_num_iff [numeral]: "- 1 \<le> of_num n"
+lemma minus_one_le_of_num_iff: "- 1 \<le> of_num n"
   by (simp add: less_imp_le minus_one_less_of_num_iff)
 
-lemma of_num_le_minus_of_num_iff [numeral]: "\<not> of_num m \<le> - of_num n"
+lemma minus_one_le_one_iff: "- 1 \<le> 1"
+  by (simp add: less_imp_le minus_one_less_one_iff)
+
+lemma of_num_le_minus_of_num_iff: "\<not> of_num m \<le> - of_num n"
   by (simp add: not_le minus_of_num_less_of_num_iff)
 
-lemma one_le_minus_of_num_iff [numeral]: "\<not> 1 \<le> - of_num n"
+lemma one_le_minus_of_num_iff: "\<not> 1 \<le> - of_num n"
   by (simp add: not_le minus_of_num_less_one_iff)
 
-lemma of_num_le_minus_one_iff [numeral]: "\<not> of_num n \<le> - 1"
+lemma of_num_le_minus_one_iff: "\<not> of_num n \<le> - 1"
   by (simp add: not_le minus_one_less_of_num_iff)
 
-lemma of_num_less_minus_of_num_iff [numeral]: "\<not> of_num m < - of_num n"
+lemma one_le_minus_one_iff: "\<not> 1 \<le> - 1"
+  by (simp add: not_le minus_one_less_one_iff)
+
+lemma of_num_less_minus_of_num_iff: "\<not> of_num m < - of_num n"
   by (simp add: not_less minus_of_num_le_of_num_iff)
 
-lemma one_less_minus_of_num_iff [numeral]: "\<not> 1 < - of_num n"
+lemma one_less_minus_of_num_iff: "\<not> 1 < - of_num n"
   by (simp add: not_less minus_of_num_le_one_iff)
 
-lemma of_num_less_minus_one_iff [numeral]: "\<not> of_num n < - 1"
+lemma of_num_less_minus_one_iff: "\<not> of_num n < - 1"
   by (simp add: not_less minus_one_le_of_num_iff)
+
+lemma one_less_minus_one_iff: "\<not> 1 < - 1"
+  by (simp add: not_less minus_one_le_one_iff)
+
+lemmas le_signed_numeral_special [numeral] =
+  minus_of_num_le_of_num_iff
+  minus_of_num_le_one_iff
+  minus_one_le_of_num_iff
+  minus_one_le_one_iff
+  of_num_le_minus_of_num_iff
+  one_le_minus_of_num_iff
+  of_num_le_minus_one_iff
+  one_le_minus_one_iff
+
+lemmas less_signed_numeral_special [numeral] =
+  minus_of_num_less_of_num_iff
+  minus_of_num_less_one_iff
+  minus_one_less_of_num_iff
+  minus_one_less_one_iff
+  of_num_less_minus_of_num_iff
+  one_less_minus_of_num_iff
+  of_num_less_minus_one_iff
+  one_less_minus_one_iff
 
 end
 

@@ -15,10 +15,10 @@ sig
 
     val add_fun : FundefCommon.fundef_config ->
       (binding * typ option * mixfix) list -> (Attrib.binding * term) list ->
-      bool list -> bool -> local_theory -> Proof.context
+      bool -> local_theory -> Proof.context
     val add_fun_cmd : FundefCommon.fundef_config ->
       (binding * string option * mixfix) list -> (Attrib.binding * string) list ->
-      bool list -> bool -> local_theory -> Proof.context
+      bool -> local_theory -> Proof.context
 end
 
 structure FundefDatatype : FUNDEF_DATATYPE =
@@ -235,50 +235,40 @@ fun mk_catchall fixes arities =
     end
 
 fun add_catchall ctxt fixes spec =
-    let 
-      val catchalls = mk_catchall fixes (mk_arities (map (split_def ctxt) (map snd spec)))
-    in
-      spec @ map (pair true) catchalls
-    end
+    spec @ mk_catchall fixes (mk_arities (map (split_def ctxt) spec))
 
 fun warn_if_redundant ctxt origs tss =
     let
         fun msg t = "Ignoring redundant equation: " ^ quote (Syntax.string_of_term ctxt t)
                     
         val (tss', _) = chop (length origs) tss
-        fun check ((_, t), []) = (Output.warning (msg t); [])
-          | check ((_, t), s) = s
+        fun check (t, []) = (Output.warning (msg t); [])
+          | check (t, s) = s
     in
         (map check (origs ~~ tss'); tss)
     end
 
 
-fun sequential_preproc (config as FundefConfig {sequential, ...}) flags ctxt fixes spec =
-    let
-      val enabled = sequential orelse exists I flags
-    in 
-      if enabled then
+fun sequential_preproc (config as FundefConfig {sequential, ...}) ctxt fixes spec =
+      if sequential then
         let
-          val flags' = if sequential then map (K true) flags else flags
-
-          val (nas, eqss) = split_list spec
+          val (bnds, eqss) = split_list spec
                             
           val eqs = map the_single eqss
                     
           val feqs = eqs
                       |> tap (check_defs ctxt fixes) (* Standard checks *)
                       |> tap (map (check_pats ctxt))    (* More checks for sequential mode *)
-                      |> curry op ~~ flags'
 
           val compleqs = add_catchall ctxt fixes feqs   (* Completion *)
 
           val spliteqs = warn_if_redundant ctxt feqs
-                           (FundefSplit.split_some_equations ctxt compleqs)
+                           (FundefSplit.split_all_equations ctxt compleqs)
 
           fun restore_spec thms =
-              nas ~~ Library.take (length nas, Library.unflat spliteqs thms)
+              bnds ~~ Library.take (length bnds, Library.unflat spliteqs thms)
               
-          val spliteqs' = flat (Library.take (length nas, spliteqs))
+          val spliteqs' = flat (Library.take (length bnds, spliteqs))
           val fnames = map (fst o fst) fixes
           val indices = map (fn eq => find_index (curry op = (fname_of eq)) fnames) spliteqs'
 
@@ -286,18 +276,17 @@ fun sequential_preproc (config as FundefConfig {sequential, ...}) flags ctxt fix
                                        |> map (map snd)
 
 
-          val nas' = nas @ replicate (length spliteqs - length nas) ("",[])
+          val bnds' = bnds @ replicate (length spliteqs - length bnds) Attrib.empty_binding
 
           (* using theorem names for case name currently disabled *)
-          val case_names = map_index (fn (i, ((n, _), es)) => mk_case_names i "" (length es)) 
-                                     (nas' ~~ spliteqs)
+          val case_names = map_index (fn (i, (_, es)) => mk_case_names i "" (length es)) 
+                                     (bnds' ~~ spliteqs)
                            |> flat
         in
           (flat spliteqs, restore_spec, sort, case_names)
         end
       else
-        FundefCommon.empty_preproc check_defs config flags ctxt fixes spec
-    end
+        FundefCommon.empty_preproc check_defs config ctxt fixes spec
 
 val setup =
     Method.setup @{binding pat_completeness} (Scan.succeed pat_completeness)
@@ -308,11 +297,11 @@ val setup =
 val fun_config = FundefConfig { sequential=true, default="%x. undefined" (*FIXME dynamic scoping*), 
                                 domintros=false, tailrec=false }
 
-fun gen_fun add config fixes statements flags int lthy =
+fun gen_fun add config fixes statements int lthy =
   let val group = serial_string () in
     lthy
       |> LocalTheory.set_group group
-      |> add fixes statements config flags
+      |> add fixes statements config
       |> by_pat_completeness_auto int
       |> LocalTheory.restore
       |> LocalTheory.set_group group
@@ -329,7 +318,7 @@ local structure P = OuterParse and K = OuterKeyword in
 val _ =
   OuterSyntax.local_theory' "fun" "define general recursive functions (short version)" K.thy_decl
   (fundef_parser fun_config
-     >> (fn ((config, fixes), (flags, statements)) => add_fun_cmd config fixes statements flags));
+     >> (fn ((config, fixes), statements) => add_fun_cmd config fixes statements));
 
 end
 

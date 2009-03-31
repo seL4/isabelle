@@ -371,7 +371,7 @@ fun schedule_futures task_graph =
 
     val futures = fold fork tasks Symtab.empty;
 
-    val exns = rev tasks |> maps (fn (name, _) =>
+    val exns = tasks |> maps (fn (name, _) =>
       let
         val after_load = Future.join (the (Symtab.lookup futures name));
         val proof_exns = join_thy name;
