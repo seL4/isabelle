@@ -36,51 +36,55 @@ fun seek_solution int state =
         handle TERM _ => t::conj_to_list ts;
 
     val crits = [(true, FindTheorems.Solves)];
-    fun find g = (NONE, snd (FindTheorems.find_theorems ctxt g (SOME (!limit)) false crits));
-    fun find_cterm g = (SOME g, snd (FindTheorems.find_theorems ctxt
-                                      (SOME (Goal.init g)) (SOME (!limit)) false crits));
+    fun find g = (NONE, snd (FindTheorems.find_theorems ctxt g (SOME (! limit)) false crits));
+    fun find_cterm g =
+      (SOME g, snd (FindTheorems.find_theorems ctxt
+          (SOME (Goal.init g)) (SOME (! limit)) false crits));
 
     fun prt_result (goal, results) =
       let
-        val msg = case goal of
-                    NONE => "The current goal"
-                  | SOME g => Syntax.string_of_term ctxt (term_of g);
+        val msg =
+          (case goal of
+            NONE => "The current goal"
+          | SOME g => Syntax.string_of_term ctxt (Thm.term_of g));
       in
-        Pretty.big_list (msg ^ " could be solved directly with:")
-                        (map (FindTheorems.pretty_thm ctxt) results)
+        Pretty.big_list
+          (msg ^ " could be solved directly with:")
+          (map (FindTheorems.pretty_thm ctxt) results)
       end;
 
     fun seek_against_goal () =
       let
         val goal = try Proof.get_goal state
-                   |> Option.map (#2 o #2);
+          |> Option.map (#2 o #2);
 
         val goals = goal
-                    |> Option.map (fn g => cprem_of g 1)
-                    |> the_list
-                    |> conj_to_list;
+          |> Option.map (fn g => cprem_of g 1)
+          |> the_list
+          |> conj_to_list;
 
-        val rs = if length goals = 1
-                 then [find goal]
-                 else map find_cterm goals;
-        val frs = filter_out (null o snd) rs;
+        val rs =
+          if length goals = 1
+          then [find goal]
+          else map find_cterm goals;
+        val results = filter_out (null o snd) rs;
 
-      in if null frs then NONE else SOME frs end;
+      in if null results then NONE else SOME results end;
 
     fun go () =
       let
-        val res = TimeLimit.timeLimit
-                    (Time.fromMilliseconds (! auto_time_limit))
-                    (try seek_against_goal) ();
+        val res =
+          TimeLimit.timeLimit (Time.fromMilliseconds (! auto_time_limit))
+            (try seek_against_goal) ();
       in
-        case Option.join res of
-          NONE => state
-        | SOME results => (Proof.goal_message
-                            (fn () => Pretty.chunks [Pretty.str "",
-                              Pretty.markup Markup.hilite
-                              (Library.separate (Pretty.brk 0)
-                                                (map prt_result results))])
-                              state)
+        (case res of
+          SOME (SOME results) =>
+            state |> Proof.goal_message
+              (fn () => Pretty.chunks
+                [Pretty.str "",
+                  Pretty.markup Markup.hilite
+                    (separate (Pretty.brk 0) (map prt_result results))])
+        | NONE => state)
       end handle TimeLimit.TimeOut => (warning "AutoSolve: timeout."; state);
   in
     if int andalso ! auto andalso not (! Toplevel.quiet)

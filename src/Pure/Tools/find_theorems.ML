@@ -271,15 +271,17 @@ fun sorted_filter filters thms =
       prod_ord int_ord int_ord ((p1, s1), (p0, s0));
   in map_filter eval_filters thms |> sort thm_ord |> map #2 end;
 
-fun lazy_filter filters = let
+fun lazy_filter filters =
+  let
     fun lazy_match thms = Seq.make (fn () => first_match thms)
 
     and first_match [] = NONE
-      | first_match (thm::thms) =
-          case app_filters thm (SOME (0, 0), NONE, filters) of
+      | first_match (thm :: thms) =
+          (case app_filters thm (SOME (0, 0), NONE, filters) of
             NONE => first_match thms
-          | SOME (_, t) => SOME (t, lazy_match thms);
+          | SOME (_, t) => SOME (t, lazy_match thms));
   in lazy_match end;
+
 end;
 
 
@@ -304,9 +306,9 @@ fun rem_cdups nicer xs =
     fun rem_c rev_seen [] = rev rev_seen
       | rem_c rev_seen [x] = rem_c (x :: rev_seen) []
       | rem_c rev_seen ((x as ((n, t), _)) :: (y as ((n', t'), _)) :: xs) =
-        if Thm.eq_thm_prop (t, t')
-        then rem_c rev_seen ((if nicer n n' then x else y) :: xs)
-        else rem_c (x :: rev_seen) (y :: xs)
+          if Thm.eq_thm_prop (t, t')
+          then rem_c rev_seen ((if nicer n n' then x else y) :: xs)
+          else rem_c (x :: rev_seen) (y :: xs)
   in rem_c [] xs end;
 
 in
@@ -346,9 +348,10 @@ val limit = ref 40;
 
 fun find_theorems ctxt opt_goal opt_limit rem_dups raw_criteria =
   let
-    val assms = ProofContext.get_fact ctxt (Facts.named "local.assms")
-                handle ERROR _ => [];
-    val add_prems = Seq.hd o (TRY (Method.insert_tac assms 1));
+    val assms =
+      ProofContext.get_fact ctxt (Facts.named "local.assms")
+        handle ERROR _ => [];
+    val add_prems = Seq.hd o TRY (Method.insert_tac assms 1);
     val opt_goal' = Option.map add_prems opt_goal;
 
     val criteria = map (apsnd (read_criterion ctxt)) raw_criteria;
@@ -370,7 +373,7 @@ fun find_theorems ctxt opt_goal opt_limit rem_dups raw_criteria =
     val find =
       if rem_dups orelse is_none opt_limit
       then find_all
-      else pair NONE o Seq.list_of o Seq.take (the opt_limit) o lazy_filter filters
+      else pair NONE o Seq.list_of o Seq.take (the opt_limit) o lazy_filter filters;
 
   in find (all_facts_of ctxt) end;
 
@@ -388,12 +391,13 @@ fun print_theorems ctxt opt_goal opt_limit rem_dups raw_criteria =
     val returned = length thms;
     
     val tally_msg =
-      case foundo of
+      (case foundo of
         NONE => "displaying " ^ string_of_int returned ^ " theorems"
-      | SOME found => "found " ^ string_of_int found ^ " theorems" ^
-                      (if returned < found
-                       then " (" ^ string_of_int returned ^ " displayed)"
-                       else "");
+      | SOME found =>
+          "found " ^ string_of_int found ^ " theorems" ^
+            (if returned < found
+             then " (" ^ string_of_int returned ^ " displayed)"
+             else ""));
 
     val end_msg = " in " ^ Time.toString (#all (end_timing start)) ^ " secs";
   in
@@ -411,11 +415,11 @@ fun print_theorems ctxt opt_goal opt_limit rem_dups raw_criteria =
 
 fun find_theorems_cmd ((opt_lim, rem_dups), spec) =
   Toplevel.unknown_theory o Toplevel.keep (fn state =>
-  let
-    val proof_state = Toplevel.enter_proof_body state;
-    val ctxt = Proof.context_of proof_state;
-    val opt_goal = try Proof.get_goal proof_state |> Option.map (#2 o #2);
-  in print_theorems ctxt opt_goal opt_lim rem_dups spec end);
+    let
+      val proof_state = Toplevel.enter_proof_body state;
+      val ctxt = Proof.context_of proof_state;
+      val opt_goal = try Proof.get_goal proof_state |> Option.map (#2 o #2);
+    in print_theorems ctxt opt_goal opt_lim rem_dups spec end);
 
 local
 
