@@ -1,7 +1,4 @@
-(*  Title:      Pure/ROOT.ML
-
-Pure Isabelle.
-*)
+(* Pure Isabelle *)
 
 structure Distribution =     (*filled-in by makedist*)
 struct

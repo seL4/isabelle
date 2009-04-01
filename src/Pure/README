@@ -15,7 +15,6 @@ ML compiler with the compatibility setup of ML-Systems/ preloaded:
 
 Now the Pure session may be compiled interactively as follows:
 
-  isabelle-process -u RAW
-
-See ROOT.ML for further information.
+  isabelle tty -l RAW
+  use "ROOT.ML";
 
