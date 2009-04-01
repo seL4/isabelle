@@ -310,10 +310,7 @@ lemma det_zero_row:
 using r
 apply (simp add: row_def det_def Cart_eq)
 apply (rule setsum_0')
-apply (clarsimp simp add: sign_nz)
-apply (rule setprod_zero)
-apply simp
-apply auto
+apply (auto simp: sign_nz)
 done
 
 lemma det_zero_column:
