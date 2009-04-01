@@ -267,8 +267,6 @@ proof-
   moreover
   {assume n0: "n \<noteq> 0"
     then have ?thesis apply (simp add: h pochhammer_Suc_setprod)
-  apply (rule iffD2[OF setprod_zero_eq])
-  apply auto
   apply (rule_tac x="n" in bexI)
   using h kn by auto}
 ultimately show ?thesis by blast
@@ -281,8 +279,7 @@ proof-
   moreover
   {fix h assume h: "k = Suc h"
     then have ?thesis apply (simp add: pochhammer_Suc_setprod)
-      apply (subst setprod_zero_eq_field)
-      using h kn by (auto simp add: ring_simps)}
+      using h kn by (auto simp add: algebra_simps)}
   ultimately show ?thesis by (cases k, auto)
 qed
 
@@ -299,15 +296,14 @@ definition gbinomial :: "'a::{field, recpower,ring_char_0} \<Rightarrow> nat \<R
   where "a gchoose n = (if n = 0 then 1 else (setprod (\<lambda>i. a - of_nat i) {0 .. n - 1}) / of_nat (fact n))"
 
 lemma gbinomial_0[simp]: "a gchoose 0 = 1" "0 gchoose (Suc n) = 0"
-  apply (simp_all add: gbinomial_def)
-  apply (subgoal_tac "(\<Prod>i\<Colon>nat\<in>{0\<Colon>nat..n}. - of_nat i) = (0::'b)")
-  apply simp
-  apply (rule iffD2[OF setprod_zero_eq])
-  by auto
+apply (simp_all add: gbinomial_def)
+apply (subgoal_tac "(\<Prod>i\<Colon>nat\<in>{0\<Colon>nat..n}. - of_nat i) = (0::'b)")
+ apply (simp del:setprod_zero_iff)
+apply simp
+done
 
 lemma gbinomial_pochhammer: "a gchoose n = (- 1) ^ n * pochhammer (- a) n / of_nat (fact n)"
 proof-
-
   {assume "n=0" then have ?thesis by simp}
   moreover
   {assume n0: "n\<noteq>0"
@@ -388,7 +384,6 @@ proof-
       unfolding mult_assoc[symmetric] 
       unfolding setprod_timesf[symmetric]
       apply simp
-      apply (rule disjI2)
       apply (rule strong_setprod_reindex_cong[where f= "op - n"])
       apply (auto simp add: inj_on_def image_iff Bex_def)
       apply presburger

@@ -1795,32 +1795,19 @@ lemma setprod_pos [rule_format]: "(ALL x: A. (0::'a::ordered_semidom) < f x)
   --> 0 < setprod f A"
 by (cases "finite A", induct set: finite, simp_all add: mult_pos_pos)
 
-lemma setprod_nonzero [rule_format]:
-  "(ALL x y. (x::'a::comm_semiring_1) * y = 0 --> x = 0 | y = 0) ==>
-    finite A ==> (ALL x: A. f x \<noteq> (0::'a)) --> setprod f A \<noteq> 0"
-by (erule finite_induct, auto)
+lemma setprod_zero_iff[simp]: "finite A ==> 
+  (setprod f A = (0::'a::{comm_semiring_1,no_zero_divisors})) =
+  (EX x: A. f x = 0)"
+by (erule finite_induct, auto simp:no_zero_divisors)
 
-lemma setprod_zero_eq:
-    "(ALL x y. (x::'a::comm_semiring_1) * y = 0 --> x = 0 | y = 0) ==>
-     finite A ==> (setprod f A = (0::'a)) = (EX x: A. f x = 0)"
-by (insert setprod_zero [of A f] setprod_nonzero [of A f], blast)
-
-lemma setprod_nonzero_field:
-    "finite A ==> (ALL x: A. f x \<noteq> (0::'a::idom)) ==> setprod f A \<noteq> 0"
-by (rule setprod_nonzero, auto)
-
-lemma setprod_zero_eq_field:
-    "finite A ==> (setprod f A = (0::'a::idom)) = (EX x: A. f x = 0)"
-by (rule setprod_zero_eq, auto)
+lemma setprod_pos_nat:
+  "finite S ==> (ALL x : S. f x > (0::nat)) ==> setprod f S > 0"
+using setprod_zero_iff by(simp del:neq0_conv add:neq0_conv[symmetric])
 
 lemma setprod_Un: "finite A ==> finite B ==> (ALL x: A Int B. f x \<noteq> 0) ==>
   (setprod f (A Un B) :: 'a ::{field})
    = setprod f A * setprod f B / setprod f (A Int B)"
-apply (subst setprod_Un_Int [symmetric], auto)
-apply (subgoal_tac "finite (A Int B)")
-apply (frule setprod_nonzero_field [of "A Int B" f], assumption)
-apply (subst times_divide_eq_right [THEN sym], auto)
-done
+by (subst setprod_Un_Int [symmetric], auto)
 
 lemma setprod_diff1: "finite A ==> f a \<noteq> 0 ==>
   (setprod f (A - {a}) :: 'a :: {field}) =
