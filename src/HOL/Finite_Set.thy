@@ -1776,22 +1776,12 @@ apply (erule disjE, auto)
 done
 
 lemma setprod_nonneg [rule_format]:
-   "(ALL x: A. (0::'a::ordered_idom) \<le> f x) --> 0 \<le> setprod f A"
-apply (case_tac "finite A")
-apply (induct set: finite, force, clarsimp)
-apply (subgoal_tac "0 * 0 \<le> f x * setprod f F", force)
-apply (rule mult_mono, assumption+)
-apply (auto simp add: setprod_def)
-done
+   "(ALL x: A. (0::'a::ordered_semidom) \<le> f x) --> 0 \<le> setprod f A"
+by (cases "finite A", induct set: finite, simp_all add: mult_nonneg_nonneg)
 
-lemma setprod_pos [rule_format]: "(ALL x: A. (0::'a::ordered_idom) < f x)
+lemma setprod_pos [rule_format]: "(ALL x: A. (0::'a::ordered_semidom) < f x)
   --> 0 < setprod f A"
-apply (case_tac "finite A")
-apply (induct set: finite, force, clarsimp)
-apply (subgoal_tac "0 * 0 < f x * setprod f F", force)
-apply (rule mult_strict_mono, assumption+)
-apply (auto simp add: setprod_def)
-done
+by (cases "finite A", induct set: finite, simp_all add: mult_pos_pos)
 
 lemma setprod_nonzero [rule_format]:
   "(ALL x y. (x::'a::comm_semiring_1) * y = 0 --> x = 0 | y = 0) ==>
