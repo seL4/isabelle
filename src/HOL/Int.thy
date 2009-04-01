@@ -1408,6 +1408,10 @@ lemma setprod_nonzero_nat:
     "finite A ==> (\<forall>x \<in> A. f x \<noteq> (0::nat)) ==> setprod f A \<noteq> 0"
   by (rule setprod_nonzero, auto)
 
+lemma setprod_pos_nat:
+  "finite S ==> (ALL x : S. f x > (0::nat)) ==> setprod f S > 0"
+using setprod_nonzero_nat by simp
+
 lemma setprod_zero_eq_nat:
     "finite A ==> (setprod f A = (0::nat)) = (\<exists>x \<in> A. f x = 0)"
   by (rule setprod_zero_eq, auto)
