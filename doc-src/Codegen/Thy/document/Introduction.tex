@@ -284,29 +284,7 @@ What you have seen so far should be already enough in a lot of cases.  If you
   how it works.
 
   \begin{figure}[h]
-    \begin{tikzpicture}[x = 4.2cm, y = 1cm]
-      \tikzstyle entity=[rounded corners, draw, thick, color = black, fill = white];
-      \tikzstyle process=[ellipse, draw, thick, color = green, fill = white];
-      \tikzstyle process_arrow=[->, semithick, color = green];
-      \node (HOL) at (0, 4) [style=entity] {\isa{Isabelle{\isacharslash}HOL} theory};
-      \node (eqn) at (2, 2) [style=entity] {code equations};
-      \node (iml) at (2, 0) [style=entity] {intermediate language};
-      \node (seri) at (1, 0) [style=process] {serialisation};
-      \node (SML) at (0, 3) [style=entity] {\isa{SML}};
-      \node (OCaml) at (0, 2) [style=entity] {\isa{OCaml}};
-      \node (further) at (0, 1) [style=entity] {\isa{{\isasymdots}}};
-      \node (Haskell) at (0, 0) [style=entity] {\isa{Haskell}};
-      \draw [style=process_arrow] (HOL) .. controls (2, 4) ..
-        node [style=process, near start] {selection}
-        node [style=process, near end] {preprocessing}
-        (eqn);
-      \draw [style=process_arrow] (eqn) -- node (transl) [style=process] {translation} (iml);
-      \draw [style=process_arrow] (iml) -- (seri);
-      \draw [style=process_arrow] (seri) -- (SML);
-      \draw [style=process_arrow] (seri) -- (OCaml);
-      \draw [style=process_arrow, dashed] (seri) -- (further);
-      \draw [style=process_arrow] (seri) -- (Haskell);
-    \end{tikzpicture}
+    \includegraphics{Thy/pictures/architecture}
     \caption{Code generator architecture}
     \label{fig:arch}
   \end{figure}
@@ -327,35 +305,29 @@ What you have seen so far should be already enough in a lot of cases.  If you
 
   \begin{itemize}
 
-    \item Out of the vast collection of theorems proven in a
-      \qn{theory}, a reasonable subset modelling
-      code equations is \qn{selected}.
+    \item Starting point is a collection of raw code equations in a
+      theory; due to proof irrelevance it is not relevant where they
+      stem from but typically they are either descendant of specification
+      tools or explicit proofs by the user.
+      
+    \item Before these raw code equations are continued
+      with, they can be subjected to theorem transformations.  This
+      \qn{preprocessor} is an interface which allows to apply the full
+      expressiveness of ML-based theorem transformations to code
+      generation.  The result of the preprocessing step is a
+      structured collection of code equations.
 
-    \item On those selected theorems, certain
-      transformations are carried out
-      (\qn{preprocessing}).  Their purpose is to turn theorems
-      representing non- or badly executable
-      specifications into equivalent but executable counterparts.
-      The result is a structured collection of \qn{code theorems}.
-
-    \item Before the selected code equations are continued with,
-      they can be \qn{preprocessed}, i.e. subjected to theorem
-      transformations.  This \qn{preprocessor} is an interface which
-      allows to apply
-      the full expressiveness of ML-based theorem transformations
-      to code generation;  motivating examples are shown below, see
-      \secref{sec:preproc}.
-      The result of the preprocessing step is a structured collection
-      of code equations.
-
-    \item These code equations are \qn{translated} to a program
-      in an abstract intermediate language.  Think of it as a kind
+    \item These code equations are \qn{translated} to a program in an
+      abstract intermediate language.  Think of it as a kind
       of \qt{Mini-Haskell} with four \qn{statements}: \isa{data}
       (for datatypes), \isa{fun} (stemming from code equations),
       also \isa{class} and \isa{inst} (for type classes).
 
     \item Finally, the abstract program is \qn{serialised} into concrete
       source code of a target language.
+      This step only produces concrete syntax but does not change the
+      program in essence; all conceptual transformations occur in the
+      translation step.
 
   \end{itemize}
 

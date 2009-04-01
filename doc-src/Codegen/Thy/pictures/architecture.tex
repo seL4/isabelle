@@ -1,8 +1,8 @@
 
 \documentclass[12pt]{article}
-\usepackage{pgf}
-\usepackage{pgflibraryshapes}
 \usepackage{tikz}
+\usetikzlibrary{shapes}
+\usetikzlibrary{arrows}
 
 \begin{document}
 
@@ -10,30 +10,39 @@
 \setlength{\fboxrule}{0.01pt}
 \setlength{\fboxsep}{4pt}
 
-\fbox{
+\fcolorbox{white}{white}{
 
-\begin{tikzpicture}[x = 4.2cm, y = 1cm]
-  \tikzstyle entity=[rounded corners, draw, thick, color = black, fill = white];
-  \tikzstyle process=[ellipse, draw, thick, color = green, fill = white];
-  \tikzstyle process_arrow=[->, semithick, color = green];
-  \node (HOL) at (0, 4) [style=entity] {Isabelle/HOL theory};
-  \node (eqn) at (2, 2) [style=entity] {code equations};
-  \node (iml) at (2, 0) [style=entity] {intermediate language};
-  \node (seri) at (1, 0) [style=process] {serialisation};
-  \node (SML) at (0, 3) [style=entity] {SML};
-  \node (OCaml) at (0, 2) [style=entity] {OCaml};
-  \node (further) at (0, 1) [style=entity] {\ldots};
-  \node (Haskell) at (0, 0) [style=entity] {Haskell};
-  \draw [style=process_arrow] (HOL) .. controls (2, 4) ..
-    node [style=process, near start] {selection}
-    node [style=process, near end] {preprocessing}
-    (eqn);
-  \draw [style=process_arrow] (eqn) -- node (transl) [style=process] {translation} (iml);
-  \draw [style=process_arrow] (iml) -- (seri);
-  \draw [style=process_arrow] (seri) -- (SML);
-  \draw [style=process_arrow] (seri) -- (OCaml);
-  \draw [style=process_arrow, dashed] (seri) -- (further);
-  \draw [style=process_arrow] (seri) -- (Haskell);
+\newcommand{\sys}[1]{\emph{#1}}
+
+\begin{tikzpicture}[x = 4cm, y = 1cm]
+  \tikzstyle positive=[color = black, fill = white];
+  \tikzstyle negative=[color = white, fill = black];
+  \tikzstyle entity=[rounded corners, draw, thick];
+  \tikzstyle process=[ellipse, draw, thick];
+  \tikzstyle arrow=[-stealth, semithick];
+  \node (spec) at (0, 3) [entity, positive] {specification tools};
+  \node (user) at (1, 3) [entity, positive] {user proofs};
+  \node (spec_user_join) at (0.5, 3) [shape=coordinate] {};
+  \node (raw) at (0.5, 4) [entity, positive] {raw code equations};
+  \node (pre) at (1.5, 4) [process, positive] {preprocessing};
+  \node (eqn) at (2.5, 4) [entity, positive] {code equations};
+  \node (iml) at (0.5, 0) [entity, positive] {intermediate program};
+  \node (seri) at (1.5, 0) [process, positive] {serialisation};
+  \node (SML) at (2.5, 3) [entity, positive] {\sys{SML}};
+  \node (OCaml) at (2.5, 2) [entity, positive] {\sys{OCaml}};
+  \node (further) at (2.5, 1) [entity, positive] {(\ldots)};
+  \node (Haskell) at (2.5, 0) [entity, positive] {\sys{Haskell}};
+  \draw [semithick] (spec) -- (spec_user_join);
+  \draw [semithick] (user) -- (spec_user_join);
+  \draw [-diamond, semithick] (spec_user_join) -- (raw);
+  \draw [arrow] (raw) -- (pre);
+  \draw [arrow] (pre) -- (eqn);
+  \draw [arrow] (eqn) -- node (transl) [process, positive] {translation} (iml);
+  \draw [arrow] (iml) -- (seri);
+  \draw [arrow] (seri) -- (SML);
+  \draw [arrow] (seri) -- (OCaml);
+  \draw [arrow, dashed] (seri) -- (further);
+  \draw [arrow] (seri) -- (Haskell);
 \end{tikzpicture}
 
 }
