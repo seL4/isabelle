@@ -246,6 +246,8 @@ fun check_defs ctxt fixes eqs =
                              ("Head symbol of left hand side must be " 
                               ^ plural "" "one out of " fnames ^ commas_quote fnames)
                                             
+            val _ = length args > 0 orelse input_error "Function has no arguments:"
+
             fun add_bvs t is = add_loose_bnos (t, 0, is)
             val rvs = (add_bvs rhs [] \\ fold add_bvs args [])
                         |> map (fst o nth (rev qs))
