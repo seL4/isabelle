@@ -827,6 +827,9 @@ done
 lemma nat_div_eq_0 [simp]: "(n::nat) > 0 ==> ((m div n) = 0) = (m < n)"
 by(auto, subst mod_div_equality [of m n, symmetric], auto)
 
+lemma nat_div_gt_0 [simp]: "(n::nat) > 0 ==> ((m div n) > 0) = (m >= n)"
+by (subst neq0_conv [symmetric], auto)
+
 declare div_less_dividend [simp]
 
 text{*A fact for the mutilated chess board*}
