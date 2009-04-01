@@ -238,6 +238,10 @@ proof -
     by (simp only: mod_add_eq [symmetric])
 qed
 
+lemma div_add[simp]: "z dvd x \<Longrightarrow> z dvd y
+  \<Longrightarrow> (x + y) div z = x div z + y div z"
+by(cases "z=0", simp, unfold dvd_def, auto simp add: algebra_simps)
+
 text {* Multiplication respects modular equivalence. *}
 
 lemma mod_mult_left_eq: "(a * b) mod c = ((a mod c) * b) mod c"
@@ -765,7 +769,7 @@ by (induct m) (simp_all add: div_geq)
 
 
 (* Monotonicity of div in first argument *)
-lemma div_le_mono [rule_format (no_asm)]:
+lemma div_le_mono [rule_format]:
     "\<forall>m::nat. m \<le> n --> (m div k) \<le> (n div k)"
 apply (case_tac "k=0", simp)
 apply (induct "n" rule: nat_less_induct, clarify)
@@ -819,6 +823,9 @@ apply (case_tac "n<m")
 apply assumption
   apply (simp_all)
 done
+
+lemma nat_div_eq_0 [simp]: "(n::nat) > 0 ==> ((m div n) = 0) = (m < n)"
+by(auto, subst mod_div_equality [of m n, symmetric], auto)
 
 declare div_less_dividend [simp]
 
@@ -905,13 +912,10 @@ lemma dvd_mult_cancel2: "0<m ==> (n*m dvd m) = (n = (1::nat))"
   done
 
 lemma dvd_imp_le: "[| k dvd n; 0 < n |] ==> k \<le> (n::nat)"
-  apply (unfold dvd_def, clarify)
-  apply (simp_all (no_asm_use) add: zero_less_mult_iff)
-  apply (erule conjE)
-  apply (rule le_trans)
-   apply (rule_tac [2] le_refl [THEN mult_le_mono])
-   apply (erule_tac [2] Suc_leI, simp)
-  done
+by (auto elim!: dvdE) (auto simp add: gr0_conv_Suc)
+
+lemma nat_dvd_not_less: "(0::nat) < m \<Longrightarrow> m < n \<Longrightarrow> \<not> n dvd m"
+by (auto elim!: dvdE) (auto simp add: gr0_conv_Suc)
 
 lemma dvd_mult_div_cancel: "n dvd m ==> n * (m div n) = (m::nat)"
   apply (subgoal_tac "m mod n = 0")
@@ -1147,10 +1151,5 @@ proof -
   qed
   with j show ?thesis by blast
 qed
-
-lemma nat_dvd_not_less:
-  fixes m n :: nat
-  shows "0 < m \<Longrightarrow> m < n \<Longrightarrow> \<not> n dvd m"
-by (auto elim!: dvdE) (auto simp add: gr0_conv_Suc)
 
 end
