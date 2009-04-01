@@ -10,6 +10,7 @@ sig
   val mk_conjunction: cterm * cterm -> cterm
   val mk_conjunction_balanced: cterm list -> cterm
   val dest_conjunction: cterm -> cterm * cterm
+  val dest_conjunctions: cterm -> cterm list
   val cong: thm -> thm -> thm
   val convs: (cterm -> thm) -> cterm -> thm
   val conjunctionD1: thm
@@ -43,6 +44,11 @@ fun dest_conjunction ct =
   (case Thm.term_of ct of
     (Const ("Pure.conjunction", _) $ _ $ _) => Thm.dest_binop ct
   | _ => raise TERM ("dest_conjunction", [Thm.term_of ct]));
+
+fun dest_conjunctions ct =
+  (case try dest_conjunction ct of
+    NONE => [ct]
+  | SOME (A, B) => dest_conjunctions A @ dest_conjunctions B);
 
 
 

@@ -610,7 +610,7 @@ in
     |> (snd o PureThy.add_thmss [
         ((Binding.name "iso_rews" , iso_rews  ), [Simplifier.simp_add]),
         ((Binding.name "exhaust"  , [exhaust] ), []),
-        ((Binding.name "casedist" , [casedist]), [Induct.cases_type (Long_Name.base_name dname)]),
+        ((Binding.name "casedist" , [casedist]), [Induct.cases_type dname]),
         ((Binding.name "when_rews", when_rews ), [Simplifier.simp_add]),
         ((Binding.name "compacts", con_compacts), [Simplifier.simp_add]),
         ((Binding.name "con_rews", con_rews), [Simplifier.simp_add]),
@@ -999,6 +999,9 @@ in
     in pg [] goal (K tacs) end;
 end; (* local *)
 
+val inducts = ProjectRule.projections (ProofContext.init thy) ind;
+fun ind_rule (dname, rule) = ((Binding.empty, [rule]), [Induct.induct_type dname]);
+
 in thy |> Sign.add_path comp_dnam
        |> (snd o (PureThy.add_thmss (map (Thm.no_attributes o apfst Binding.name) [
 		("take_rews"  , take_rews  ),
@@ -1007,6 +1010,7 @@ in thy |> Sign.add_path comp_dnam
 		("finite_ind", [finite_ind]),
 		("ind"       , [ind       ]),
 		("coind"     , [coind     ])])))
+       |> (snd o (PureThy.add_thmss (map ind_rule (dnames ~~ inducts))))
        |> Sign.parent_path |> pair take_rews
 end; (* let *)
 end; (* local *)

@@ -1,4 +1,4 @@
-(*  Title:      Pure/Tools/quickcheck.ML
+(*  Title:      Tools/quickcheck.ML
     Author:     Stefan Berghofer, Florian Haftmann, TU Muenchen
 
 Generic counterexample search engine.
