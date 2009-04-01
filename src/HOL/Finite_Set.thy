@@ -1084,10 +1084,8 @@ proof-
 qed
 
 lemma setsum_mono_zero_right: 
-  assumes fT: "finite T" and ST: "S \<subseteq> T"
-  and z: "\<forall>i \<in> T - S. f i = 0"
-  shows "setsum f T = setsum f S"
-using setsum_mono_zero_left[OF fT ST z] by simp
+  "finite T \<Longrightarrow> S \<subseteq> T \<Longrightarrow> \<forall>i \<in> T - S. f i = 0 \<Longrightarrow> setsum f T = setsum f S"
+by(blast intro!: setsum_mono_zero_left[symmetric])
 
 lemma setsum_mono_zero_cong_left: 
   assumes fT: "finite T" and ST: "S \<subseteq> T"
@@ -1645,7 +1643,7 @@ lemma setprod_cong:
   "A = B ==> (!!x. x:B ==> f x = g x) ==> setprod f A = setprod g B"
 by(fastsimp simp: setprod_def intro: fold_image_cong)
 
-lemma strong_setprod_cong:
+lemma strong_setprod_cong[cong]:
   "A = B ==> (!!x. x:B =simp=> f x = g x) ==> setprod f A = setprod g B"
 by(fastsimp simp: simp_implies_def setprod_def intro: fold_image_cong)
 
@@ -1662,7 +1660,7 @@ proof-
     then show ?thesis apply simp
       apply (rule setprod_cong)
       apply simp
-      by (erule eq[symmetric])
+      by (simp add: eq)
 qed
 
 lemma setprod_Un_one:  
@@ -1693,6 +1691,20 @@ by(simp add: setprod_def fold_image_Un_Int[symmetric])
 lemma setprod_Un_disjoint: "finite A ==> finite B
   ==> A Int B = {} ==> setprod g (A Un B) = setprod g A * setprod g B"
 by (subst setprod_Un_Int [symmetric], auto)
+
+lemma setprod_mono_one_left: 
+  assumes fT: "finite T" and ST: "S \<subseteq> T"
+  and z: "\<forall>i \<in> T - S. f i = 1"
+  shows "setprod f S = setprod f T"
+proof-
+  have eq: "T = S \<union> (T - S)" using ST by blast
+  have d: "S \<inter> (T - S) = {}" using ST by blast
+  from fT ST have f: "finite S" "finite (T - S)" by (auto intro: finite_subset)
+  show ?thesis
+  by (simp add: setprod_Un_disjoint[OF f d, unfolded eq[symmetric]] setprod_1'[OF z])
+qed
+
+lemmas setprod_mono_one_right = setprod_mono_one_left [THEN sym]
 
 lemma setprod_delta: 
   assumes fS: "finite S"

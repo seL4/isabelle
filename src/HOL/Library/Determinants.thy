@@ -106,7 +106,7 @@ proof-
   moreover
   {assume fS: "finite S"
     then have ?thesis
-      apply (simp add: setprod_def)
+      apply (simp add: setprod_def cong del:strong_setprod_cong)
       apply (rule ab_semigroup_mult.fold_image_permute)
       apply (auto simp add: p)
       apply unfold_locales
@@ -115,7 +115,7 @@ proof-
 qed
 
 lemma setproduct_permute_nat_interval: "p permutes {m::nat .. n} ==> setprod f {m..n} = setprod (f o p) {m..n}"
-  by (auto intro: setprod_permute)
+  by (blast intro!: setprod_permute)
 
 (* ------------------------------------------------------------------------- *)
 (* Basic determinant properties.                                             *)

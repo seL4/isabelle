@@ -1289,10 +1289,6 @@ proof(induct m arbitrary: n rule: nat_less_induct)
       apply auto
       unfolding setprod_Un_disjoint[OF f0 d0, unfolded u0, unfolded k]
       apply (clarsimp simp add: natpermute_def nth_append)
-      apply (rule_tac f="\<lambda>x. x * a (Suc k) $ (n - foldl op + 0 aa)" in cong[OF refl])
-      apply (rule setprod_cong)
-      apply simp
-      apply simp
       done
     finally have "?P m n" .}
   ultimately show "?P m n " by (cases m, auto)
@@ -1321,9 +1317,7 @@ proof-
   {fix n assume m: "m = Suc n"
     have c: "m = card {0..n}" using m by simp
    have "(a ^m)$0 = setprod (\<lambda>i. a$0) {0..n}"
-     apply (simp add: m fps_power_nth del: replicate.simps power_Suc)
-     apply (rule setprod_cong)
-     by (simp_all del: replicate.simps)
+     by (simp add: m fps_power_nth del: replicate.simps power_Suc)
    also have "\<dots> = (a$0) ^ m"
      unfolding c by (rule setprod_constant, simp)
    finally have ?thesis .}

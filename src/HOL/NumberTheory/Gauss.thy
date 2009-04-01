@@ -290,7 +290,7 @@ lemma all_A_relprime: "\<forall>x \<in> A. zgcd x p = 1"
   using p_prime p_minus_one_l by (auto simp add: A_def zless_zprime_imp_zrelprime)
 
 lemma A_prod_relprime: "zgcd (setprod id A) p = 1"
-  using all_A_relprime finite_A by (simp add: all_relprime_prod_relprime)
+by(rule all_relprime_prod_relprime[OF finite_A all_A_relprime])
 
 
 subsection {* Relationships Between Gauss Sets *}
@@ -416,8 +416,8 @@ proof -
   then have one:
     "[setprod id F = setprod (StandardRes p o (op - p)) E] (mod p)"
     apply simp
-    apply (insert p_g_0 finite_E)
-    by (auto simp add: StandardRes_prod)
+    apply (insert p_g_0 finite_E StandardRes_prod)
+    by (auto)
   moreover have a: "\<forall>x \<in> E. [p - x = 0 - x] (mod p)"
     apply clarify
     apply (insert zcong_id [of p])
@@ -435,10 +435,9 @@ proof -
   ultimately have c:
     "[setprod (StandardRes p o (op - p)) E = setprod (uminus) E](mod p)"
     apply simp
-    apply (insert finite_E p_g_0)
-    apply (rule setprod_same_function_zcong
-      [of E "StandardRes p o (op - p)" uminus p], auto)
-    done
+    using finite_E p_g_0
+      setprod_same_function_zcong [of E "StandardRes p o (op - p)" uminus p]
+    by auto
   then have two: "[setprod id F = setprod (uminus) E](mod p)"
     apply (insert one c)
     apply (rule zcong_trans [of "setprod id F"
@@ -463,11 +462,11 @@ theorem pre_gauss_lemma:
   "[a ^ nat((p - 1) div 2) = (-1) ^ (card E)] (mod p)"
 proof -
   have "[setprod id A = setprod id F * setprod id D](mod p)"
-    by (auto simp add: prod_D_F_eq_prod_A zmult_commute)
+    by (auto simp add: prod_D_F_eq_prod_A zmult_commute cong del:setprod_cong)
   then have "[setprod id A = ((-1)^(card E) * setprod id E) *
       setprod id D] (mod p)"
     apply (rule zcong_trans)
-    apply (auto simp add: prod_F_zcong zcong_scalar)
+    apply (auto simp add: prod_F_zcong zcong_scalar cong del: setprod_cong)
     done
   then have "[setprod id A = ((-1)^(card E) * setprod id C)] (mod p)"
     apply (rule zcong_trans)
@@ -476,14 +475,14 @@ proof -
     done
   then have "[setprod id A = ((-1)^(card E) * setprod id B)] (mod p)"
     apply (rule zcong_trans)
-    apply (simp add: C_B_zcong_prod zcong_scalar2)
+    apply (simp add: C_B_zcong_prod zcong_scalar2 cong del:setprod_cong)
     done
   then have "[setprod id A = ((-1)^(card E) *
     (setprod id ((%x. x * a) ` A)))] (mod p)"
     by (simp add: B_def)
   then have "[setprod id A = ((-1)^(card E) * (setprod (%x. x * a) A))]
     (mod p)"
-    by (simp add:finite_A inj_on_xa_A setprod_reindex_id[symmetric])
+    by (simp add:finite_A inj_on_xa_A setprod_reindex_id[symmetric] cong del:setprod_cong)
   moreover have "setprod (%x. x * a) A =
     setprod (%x. a) A * setprod id A"
     using finite_A by (induct set: finite) auto
@@ -506,7 +505,7 @@ proof -
   then have "[setprod id A * (-1)^(card E) = setprod id A *
       a^(card A)](mod p)"
     apply (rule zcong_trans)
-    apply (simp add: aux)
+    apply (simp add: aux cong del:setprod_cong)
     done
   with this zcong_cancel2 [of p "setprod id A" "-1 ^ card E" "a ^ card A"]
       p_g_0 A_prod_relprime have "[-1 ^ card E = a ^ card A](mod p)"
