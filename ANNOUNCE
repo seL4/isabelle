@@ -1,35 +1,39 @@
-Subject: Announcing Isabelle2008
+Subject: Announcing Isabelle2009
 To: isabelle-users@cl.cam.ac.uk
 
-Isabelle2008 is now available.
+Isabelle2009 is now available.
 
-This release consolidates Isabelle2007, see the NEWS file in the
-distribution for more details.  Some notable improvements are:
+This release significantly improves upon Isabelle2008, see the NEWS
+file in the distribution for more details.  Some important changes
+are:
 
-* HOL: significant speedup of Metis prover; proper support for
-multithreading.
+* Complete re-implementation of locales, with proper support for local
+syntax, and more robust interpretation mechanism.
 
-* HOL: new version of 'primrec' command supporting type-inference and
-local theory targets.
+* New 'find_consts' and 'find_theorems' facilities, together with
+"auto solve" feature of toplevel goal statements.
 
-* HOL: improved support for termination proofs of recursive function
-definitions.
+* HOL: reorganization of main logic images.
 
-* New local theory targets for class instantiation and overloading.
+* HOL: improved implementation of Sledgehammer, based on generic ATP
+manager; support for remote ATPs.
 
-* Support for named dynamic lists of theorems.
+* HOL: numerous library improvements.
 
-* Simple TTY interface with command-line editing.
+* Updated and extended versions of main reference manuals.
 
-* Improved support for the Cygwin platform (Windows).
+* Simplified arrangement of Isabelle startup scripts and settings
+directory.
 
-* Support for Poly/ML 5.2 with improved handling of multithreading and
-external processes.
+* Simplified internal programming interfaces for all Isar language
+elements.
 
-* Reorganized and updated version of Isabelle/Isar Reference Manual.
+* General high-level support for concurrent ML programming.
+
+* Parallel proof checking within Isar theories.
 
 
-You may get Isabelle2008 from the following mirror sites:
+You may get Isabelle2009 from the following mirror sites:
 
   Cambridge (UK)       http://www.cl.cam.ac.uk/research/hvg/Isabelle/
   Munich (Germany)     http://isabelle.in.tum.de/
