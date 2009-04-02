@@ -1,14 +1,10 @@
 Isabelle NEWS -- history user-relevant changes
 ==============================================
 
-New in this Isabelle version
-----------------------------
+New in Isabelle2009 (April 2009)
+--------------------------------
 
 *** General ***
-
-* The main reference manuals (isar-ref, implementation, system) have
-been updated and extended.  Formally checked references as hyperlinks
-are now available in uniform manner.
 
 * Simplified main Isabelle executables, with less surprises on
 case-insensitive file-systems (such as Mac OS).
@@ -37,110 +33,31 @@ purge installed copies of Isabelle executables and re-run "isabelle
 install -p ...", or use symlinks.
 
 * The default for ISABELLE_HOME_USER is now ~/.isabelle instead of the
-old ~/isabelle, which was slightly non-standard and apt cause
-surprises on case-insensitive file-systems.
+old ~/isabelle, which was slightly non-standard and apt to cause
+surprises on case-insensitive file-systems (such as Mac OS).
 
 INCOMPATIBILITY, need to move existing ~/isabelle/etc,
 ~/isabelle/heaps, ~/isabelle/browser_info to the new place.  Special
 care is required when using older releases of Isabelle.  Note that
 ISABELLE_HOME_USER can be changed in Isabelle/etc/settings of any
-Isabelle distribution.
+Isabelle distribution, in order to use the new ~/.isabelle uniformly.
 
 * Proofs of fully specified statements are run in parallel on
-multi-core systems.  A speedup factor of 2-3 can be expected on a
-regular 4-core machine, if the initial heap space is made reasonably
-large (cf. Poly/ML option -H).  [Poly/ML 5.2.1 or later]
+multi-core systems.  A speedup factor of 2.5 to 3.2 can be expected on
+a regular 4-core machine, if the initial heap space is made reasonably
+large (cf. Poly/ML option -H).  (Requires Poly/ML 5.2.1 or later.)
 
-* Generalized Isar history, with support for linear undo, direct state
-addressing etc.
+* The main reference manuals ("isar-ref", "implementation", and
+"system") have been updated and extended.  Formally checked references
+as hyperlinks are now available uniformly.
 
-* Recovered hiding of consts, which was accidentally broken in
-Isabelle2007.  Potential INCOMPATIBILITY, ``hide const c'' really
-makes c inaccessible; consider using ``hide (open) const c'' instead.
-
-* Removed exotic 'token_translation' command.  INCOMPATIBILITY, use ML
-interface instead.
-
-* There is a new syntactic category "float_const" for signed decimal
-fractions (e.g. 123.45 or -123.45).
-
-* New prover for coherent logic (see src/Tools/coherent.ML).
 
 
 *** Pure ***
 
-* Class declaration: sc. "base sort" must not be given in import list
-any longer but is inferred from the specification.  Particularly in HOL,
-write
-
-    class foo = ...     instead of      class foo = type + ...
-
-* Module moves in repository:
-    src/Pure/Tools/value.ML ~> src/Tools/
-    src/Pure/Tools/quickcheck.ML ~> src/Tools/
-
-* Slightly more coherent Pure syntax, with updated documentation in
-isar-ref manual.  Removed locales meta_term_syntax and
-meta_conjunction_syntax: TERM and &&& (formerly &&) are now permanent,
-INCOMPATIBILITY in rare situations.
-
-* Goal-directed proof now enforces strict proof irrelevance wrt. sort
-hypotheses.  Sorts required in the course of reasoning need to be
-covered by the constraints in the initial statement, completed by the
-type instance information of the background theory.  Non-trivial sort
-hypotheses, which rarely occur in practice, may be specified via
-vacuous propositions of the form SORT_CONSTRAINT('a::c).  For example:
-
-  lemma assumes "SORT_CONSTRAINT('a::empty)" shows False ...
-
-The result contains an implicit sort hypotheses as before --
-SORT_CONSTRAINT premises are eliminated as part of the canonical rule
-normalization.
-
-* Changed defaults for unify configuration options:
-
-  unify_trace_bound = 50 (formerly 25)
-  unify_search_bound = 60 (formerly 30)
-
-* Different bookkeeping for code equations (INCOMPATIBILITY):
-
-  a) On theory merge, the last set of code equations for a particular
-     constant is taken (in accordance with the policy applied by other
-     parts of the code generator framework).
-
-  b) Code equations stemming from explicit declarations (e.g. code
-     attribute) gain priority over default code equations stemming
-     from definition, primrec, fun etc.
-
-* Global versions of theorems stemming from classes do not carry a
-parameter prefix any longer.  INCOMPATIBILITY.
-
-* Dropped locale element "includes".  This is a major INCOMPATIBILITY.
-In existing theorem specifications replace the includes element by the
-respective context elements of the included locale, omitting those
-that are already present in the theorem specification.  Multiple
-assume elements of a locale should be replaced by a single one
-involving the locale predicate.  In the proof body, declarations (most
-notably theorems) may be regained by interpreting the respective
-locales in the proof context as required (command "interpret").
-
-If using "includes" in replacement of a target solely because the
-parameter types in the theorem are not as general as in the target,
-consider declaring a new locale with additional type constraints on
-the parameters (context element "constrains").
-
-* Dropped "locale (open)".  INCOMPATIBILITY.
-
-* Interpretation commands no longer attempt to simplify goal.
-INCOMPATIBILITY: in rare situations the generated goal differs.  Use
-methods intro_locales and unfold_locales to clarify.
-
-* Interpretation commands no longer accept interpretation attributes.
-INCOMPATBILITY.
-
-* Complete re-implementation of locales.  INCOMPATIBILITY.  The most
-important changes are listed below.  See the Tutorial on Locales for
-details.
+* Complete re-implementation of locales.  INCOMPATIBILITY in several
+respects.  The most important changes are listed below.  See the
+Tutorial on Locales ("locales" manual) for details.
 
 - In locale expressions, instantiation replaces renaming.  Parameters
 must be declared in a for clause.  To aid compatibility with previous
@@ -158,35 +75,116 @@ expressions, and can be marked as mandatory (syntax: "name!:") or
 optional (syntax "name?:").  The default depends for plain "name:"
 depends on the situation where a locale expression is used: in
 commands 'locale' and 'sublocale' prefixes are optional, in
-'interpretation' and 'interpret' prefixes are mandatory.  Old-style
+'interpretation' and 'interpret' prefixes are mandatory.  The old
 implicit qualifiers derived from the parameter names of a locale are
 no longer generated.
 
-- "sublocale l < e" replaces "interpretation l < e".  The
+- Command "sublocale l < e" replaces "interpretation l < e".  The
 instantiation clause in "interpretation" and "interpret" (square
 brackets) is no longer available.  Use locale expressions.
 
-- When converting proof scripts, be sure to mandatory qualifiers in
+- When converting proof scripts, mandatory qualifiers in
 'interpretation' and 'interpret' should be retained by default, even
-if this is an INCOMPATIBILITY compared to former behaviour.
-Qualifiers in locale expressions range over a single locale instance
-only.
+if this is an INCOMPATIBILITY compared to former behavior.  In the
+worst case, use the "name?:" form for non-mandatory ones.  Qualifiers
+in locale expressions range over a single locale instance only.
 
-* Command 'instance': attached definitions no longer accepted.
-INCOMPATIBILITY, use proper 'instantiation' target.
+- Dropped locale element "includes".  This is a major INCOMPATIBILITY.
+In existing theorem specifications replace the includes element by the
+respective context elements of the included locale, omitting those
+that are already present in the theorem specification.  Multiple
+assume elements of a locale should be replaced by a single one
+involving the locale predicate.  In the proof body, declarations (most
+notably theorems) may be regained by interpreting the respective
+locales in the proof context as required (command "interpret").
 
-* Keyword 'code_exception' now named 'code_abort'.  INCOMPATIBILITY.
+If using "includes" in replacement of a target solely because the
+parameter types in the theorem are not as general as in the target,
+consider declaring a new locale with additional type constraints on
+the parameters (context element "constrains").
+
+- Discontinued "locale (open)".  INCOMPATIBILITY.
+
+- Locale interpretation commands no longer attempt to simplify goal.
+INCOMPATIBILITY: in rare situations the generated goal differs.  Use
+methods intro_locales and unfold_locales to clarify.
+
+- Locale interpretation commands no longer accept interpretation
+attributes.  INCOMPATIBILITY.
+
+* Class declaration: so-called "base sort" must not be given in import
+list any longer, but is inferred from the specification.  Particularly
+in HOL, write
+
+    class foo = ...
+
+instead of
+
+    class foo = type + ...
+
+* Class target: global versions of theorems stemming do not carry a
+parameter prefix any longer.  INCOMPATIBILITY.
+
+* Class 'instance' command no longer accepts attached definitions.
+INCOMPATIBILITY, use proper 'instantiation' target instead.
+
+* Recovered hiding of consts, which was accidentally broken in
+Isabelle2007.  Potential INCOMPATIBILITY, ``hide const c'' really
+makes c inaccessible; consider using ``hide (open) const c'' instead.
+
+* Slightly more coherent Pure syntax, with updated documentation in
+isar-ref manual.  Removed locales meta_term_syntax and
+meta_conjunction_syntax: TERM and &&& (formerly &&) are now permanent,
+INCOMPATIBILITY in rare situations.  Note that &&& should not be used
+directly in regular applications.
+
+* There is a new syntactic category "float_const" for signed decimal
+fractions (e.g. 123.45 or -123.45).
+
+* Removed exotic 'token_translation' command.  INCOMPATIBILITY, use ML
+interface with 'setup' command instead.
+
+* Command 'local_setup' is similar to 'setup', but operates on a local
+theory context.
 
 * The 'axiomatization' command now only works within a global theory
 context.  INCOMPATIBILITY.
 
-* New 'find_theorems' criterion "solves" matching theorems that
-directly solve the current goal.
+* Goal-directed proof now enforces strict proof irrelevance wrt. sort
+hypotheses.  Sorts required in the course of reasoning need to be
+covered by the constraints in the initial statement, completed by the
+type instance information of the background theory.  Non-trivial sort
+hypotheses, which rarely occur in practice, may be specified via
+vacuous propositions of the form SORT_CONSTRAINT('a::c).  For example:
 
-* Auto solve feature for main theorem statements (cf. option in Proof
-General Isabelle settings menu, disabled by default).  Whenever a new
-goal is stated, "find_theorems solves" is called; any theorems that
-could solve the lemma directly are listed as part of the goal state.
+  lemma assumes "SORT_CONSTRAINT('a::empty)" shows False ...
+
+The result contains an implicit sort hypotheses as before --
+SORT_CONSTRAINT premises are eliminated as part of the canonical rule
+normalization.
+
+* Generalized Isar history, with support for linear undo, direct state
+addressing etc.
+
+* Changed defaults for unify configuration options:
+
+  unify_trace_bound = 50 (formerly 25)
+  unify_search_bound = 60 (formerly 30)
+
+* Different bookkeeping for code equations (INCOMPATIBILITY):
+
+  a) On theory merge, the last set of code equations for a particular
+     constant is taken (in accordance with the policy applied by other
+     parts of the code generator framework).
+
+  b) Code equations stemming from explicit declarations (e.g. code
+     attribute) gain priority over default code equations stemming
+     from definition, primrec, fun etc.
+
+* Keyword 'code_exception' now named 'code_abort'.  INCOMPATIBILITY.
+
+* Unified theorem tables for both code code generators.  Thus [code
+func] has disappeared and only [code] remains.  INCOMPATIBILITY.
 
 * Command 'find_consts' searches for constants based on type and name
 patterns, e.g.
@@ -200,8 +198,15 @@ hyphen:
 
     find_consts strict: "_ => bool" name: "Int" -"int => int"
 
-* Command 'local_setup' is similar to 'setup', but operates on a local
-theory context.
+* New 'find_theorems' criterion "solves" matches theorems that
+directly solve the current goal (modulo higher-order unification).
+
+* Auto solve feature for main theorem statements: whenever a new goal
+is stated, "find_theorems solves" is called; any theorems that could
+solve the lemma directly are listed as part of the goal state.
+Cf. associated options in Proof General Isabelle settings menu,
+enabled by default, with reasonable timeout for pathological cases of
+higher-order unification.
 
 
 *** Document preparation ***
@@ -213,34 +218,84 @@ syntax just like the Isar command 'by'.
 
 *** HOL ***
 
-* Theory Library/Polynomial.thy defines an abstract type 'a poly of
-univariate polynomials with coefficients of type 'a.  In addition to
-the standard ring operations, it also supports div and mod.  Code
-generation is also supported, using list-style constructors.
+* Integrated main parts of former image HOL-Complex with HOL.  Entry
+points Main and Complex_Main remain as before.
 
-* Theory Library/Inner_Product.thy defines a class of real_inner for
-real inner product spaces, with an overloaded operation inner :: 'a =>
-'a => real.  Class real_inner is a subclass of real_normed_vector from
-RealVector.thy.
+* Logic image HOL-Plain provides a minimal HOL with the most important
+tools available (inductive, datatype, primrec, ...).  This facilitates
+experimentation and tool development.  Note that user applications
+(and library theories) should never refer to anything below theory
+Main, as before.
 
-* Theory Library/Product_Vector.thy provides instances for the product
-type 'a * 'b of several classes from RealVector.thy and
-Inner_Product.thy.  Definitions of addition, subtraction, scalar
-multiplication, norms, and inner products are included.
+* Logic image HOL-Main stops at theory Main, and thus facilitates
+experimentation due to shorter build times.
 
-* Theory Library/Bit.thy defines the field "bit" of integers modulo 2.
-In addition to the field operations, numerals and case syntax are also
-supported.
+* Logic image HOL-NSA contains theories of nonstandard analysis which
+were previously part of former HOL-Complex.  Entry point Hyperreal
+remains valid, but theories formerly using Complex_Main should now use
+new entry point Hypercomplex.
 
-* Theory Library/Diagonalize.thy provides constructive version of
-Cantor's first diagonalization argument.
+* Generic ATP manager for Sledgehammer, based on ML threads instead of
+Posix processes.  Avoids potentially expensive forking of the ML
+process.  New thread-based implementation also works on non-Unix
+platforms (Cygwin).  Provers are no longer hardwired, but defined
+within the theory via plain ML wrapper functions.  Basic Sledgehammer
+commands are covered in the isar-ref manual.
 
-* New predicate "strict_mono" classifies strict functions on partial orders.
-With strict functions on linear orders, reasoning about (in)equalities is
-facilitated by theorems "strict_mono_eq", "strict_mono_less_eq" and "strict_mono_less".
+* Wrapper scripts for remote SystemOnTPTP service allows to use
+sledgehammer without local ATP installation (Vampire etc.). Other
+provers may be included via suitable ML wrappers, see also
+src/HOL/ATP_Linkup.thy.
 
-* Some set operations are now proper qualified constants with authentic syntax.
-INCOMPATIBILITY:
+* ATP selection (E/Vampire/Spass) is now via Proof General's settings
+menu.
+
+* The metis method no longer fails because the theorem is too trivial
+(contains the empty clause).
+
+* The metis method now fails in the usual manner, rather than raising
+an exception, if it determines that it cannot prove the theorem.
+
+* Method "coherent" implements a prover for coherent logic (see also
+src/Tools/coherent.ML).
+
+* Constants "undefined" and "default" replace "arbitrary".  Usually
+"undefined" is the right choice to replace "arbitrary", though
+logically there is no difference.  INCOMPATIBILITY.
+
+* Command "value" now integrates different evaluation mechanisms.  The
+result of the first successful evaluation mechanism is printed.  In
+square brackets a particular named evaluation mechanisms may be
+specified (currently, [SML], [code] or [nbe]).  See further
+src/HOL/ex/Eval_Examples.thy.
+
+* Normalization by evaluation now allows non-leftlinear equations.
+Declare with attribute [code nbe].
+
+* Methods "case_tac" and "induct_tac" now refer to the very same rules
+as the structured Isar versions "cases" and "induct", cf. the
+corresponding "cases" and "induct" attributes.  Mutual induction rules
+are now presented as a list of individual projections
+(e.g. foo_bar.inducts for types foo and bar); the old format with
+explicit HOL conjunction is no longer supported.  INCOMPATIBILITY, in
+rare situations a different rule is selected --- notably nested tuple
+elimination instead of former prod.exhaust: use explicit (case_tac t
+rule: prod.exhaust) here.
+
+* Attributes "cases", "induct", "coinduct" support "del" option.
+
+* Removed fact "case_split_thm", which duplicates "case_split".
+
+* The option datatype has been moved to a new theory Option.  Renamed
+option_map to Option.map, and o2s to Option.set, INCOMPATIBILITY.
+
+* New predicate "strict_mono" classifies strict functions on partial
+orders.  With strict functions on linear orders, reasoning about
+(in)equalities is facilitated by theorems "strict_mono_eq",
+"strict_mono_less_eq" and "strict_mono_less".
+
+* Some set operations are now proper qualified constants with
+authentic syntax.  INCOMPATIBILITY:
 
     op Int ~>   Set.Int
     op Un ~>    Set.Un
@@ -251,26 +306,28 @@ INCOMPATIBILITY:
     {} ~>       Set.empty
     UNIV ~>     Set.UNIV
 
-* Class complete_lattice with operations Inf, Sup, INFI, SUPR now in theory
-Set.
+* Class complete_lattice with operations Inf, Sup, INFI, SUPR now in
+theory Set.
 
-* Auxiliary class "itself" has disappeared -- classes without any parameter
-are treated as expected by the 'class' command.
+* Auxiliary class "itself" has disappeared -- classes without any
+parameter are treated as expected by the 'class' command.
 
 * Leibnitz's Series for Pi and the arcus tangens and logarithm series.
 
-* Common decision procedures (Cooper, MIR, Ferrack, Approximation, Dense_Linear_Order)
-now in directory HOL/Decision_Procs.
+* Common decision procedures (Cooper, MIR, Ferrack, Approximation,
+Dense_Linear_Order) are now in directory HOL/Decision_Procs.
 
-* Theory HOL/Decision_Procs/Approximation.thy provides the new proof method
-"approximation".  It proves formulas on real values by using interval arithmetic.
-In the formulas are also the transcendental functions sin, cos, tan, atan, ln,
-exp and the constant pi are allowed. For examples see
-HOL/Descision_Procs/ex/Approximation_Ex.thy.
+* Theory src/HOL/Decision_Procs/Approximation provides the new proof
+method "approximation".  It proves formulas on real values by using
+interval arithmetic.  In the formulas are also the transcendental
+functions sin, cos, tan, atan, ln, exp and the constant pi are
+allowed. For examples see
+src/HOL/Descision_Procs/ex/Approximation_Ex.thy.
 
 * Theory "Reflection" now resides in HOL/Library.
 
-* Entry point to Word library now simply named "Word".  INCOMPATIBILITY.
+* Entry point to Word library now simply named "Word".
+INCOMPATIBILITY.
 
 * Made source layout more coherent with logical distribution
 structure:
@@ -327,82 +384,65 @@ structure:
     src/HOL/Library/Ref.thy ~> src/HOL/Imperative_HOL
     src/HOL/Library/Relational.thy ~> src/HOL/Imperative_HOL
 
-* If methods "eval" and "evaluation" encounter a structured proof state
-with !!/==>, only the conclusion is evaluated to True (if possible),
-avoiding strange error messages.
+* If methods "eval" and "evaluation" encounter a structured proof
+state with !!/==>, only the conclusion is evaluated to True (if
+possible), avoiding strange error messages.
 
-* Simplifier: simproc for let expressions now unfolds if bound variable
-occurs at most once in let expression body.  INCOMPATIBILITY.
-
-* New attribute "arith" for facts that should always be used automaticaly
-by arithmetic. It is intended to be used locally in proofs, eg
-assumes [arith]: "x > 0"
-Global usage is discouraged because of possible performance impact.
-
-* New classes "top" and "bot" with corresponding operations "top" and "bot"
-in theory Orderings;  instantiation of class "complete_lattice" requires
-instantiation of classes "top" and "bot".  INCOMPATIBILITY.
-
-* Changed definition lemma "less_fun_def" in order to provide an instance
-for preorders on functions;  use lemma "less_le" instead.  INCOMPATIBILITY.
-
-* Unified theorem tables for both code code generators.  Thus
-[code func] has disappeared and only [code] remains.  INCOMPATIBILITY.
-
-* Constants "undefined" and "default" replace "arbitrary".  Usually
-"undefined" is the right choice to replace "arbitrary", though logically
-there is no difference.  INCOMPATIBILITY.
-
-* Generic ATP manager for Sledgehammer, based on ML threads instead of
-Posix processes.  Avoids potentially expensive forking of the ML
-process.  New thread-based implementation also works on non-Unix
-platforms (Cygwin).  Provers are no longer hardwired, but defined
-within the theory via plain ML wrapper functions.  Basic Sledgehammer
-commands are covered in the isar-ref manual.
-
-* Wrapper scripts for remote SystemOnTPTP service allows to use
-sledgehammer without local ATP installation (Vampire etc.). Other
-provers may be included via suitable ML wrappers, see also
-src/HOL/ATP_Linkup.thy.
-
-* Normalization by evaluation now allows non-leftlinear equations.
-Declare with attribute [code nbe].
-
-* Command "value" now integrates different evaluation
-mechanisms.  The result of the first successful evaluation mechanism
-is printed.  In square brackets a particular named evaluation
-mechanisms may be specified (currently, [SML], [code] or [nbe]).  See
-further src/HOL/ex/Eval_Examples.thy.
-
-* New method "sizechange" to automate termination proofs using (a
-modification of) the size-change principle. Requires SAT solver. See
+* Method "sizechange" automates termination proofs using (a
+modification of) the size-change principle.  Requires SAT solver.  See
 src/HOL/ex/Termination.thy for examples.
 
-* HOL/Orderings: class "wellorder" moved here, with explicit induction
-rule "less_induct" as assumption.  For instantiation of "wellorder" by
-means of predicate "wf", use rule wf_wellorderI.  INCOMPATIBILITY.
+* Simplifier: simproc for let expressions now unfolds if bound
+variable occurs at most once in let expression body.  INCOMPATIBILITY.
 
-* HOL/Orderings: added class "preorder" as superclass of "order".
+* Method "arith": Linear arithmetic now ignores all inequalities when
+fast_arith_neq_limit is exceeded, instead of giving up entirely.
+
+* New attribute "arith" for facts that should always be used
+automatically by arithmetic. It is intended to be used locally in
+proofs, e.g.
+
+  assumes [arith]: "x > 0"
+
+Global usage is discouraged because of possible performance impact.
+
+* New classes "top" and "bot" with corresponding operations "top" and
+"bot" in theory Orderings; instantiation of class "complete_lattice"
+requires instantiation of classes "top" and "bot".  INCOMPATIBILITY.
+
+* Changed definition lemma "less_fun_def" in order to provide an
+instance for preorders on functions; use lemma "less_le" instead.
+INCOMPATIBILITY.
+
+* Theory Orderings: class "wellorder" moved here, with explicit
+induction rule "less_induct" as assumption.  For instantiation of
+"wellorder" by means of predicate "wf", use rule wf_wellorderI.
+INCOMPATIBILITY.
+
+* Theory Orderings: added class "preorder" as superclass of "order".
 INCOMPATIBILITY: Instantiation proofs for order, linorder
 etc. slightly changed.  Some theorems named order_class.* now named
 preorder_class.*.
 
-* HOL/Relation:
-Renamed "refl" to "refl_on", "reflexive" to "refl, "diag" to "Id_on".
+* Theory Relation: renamed "refl" to "refl_on", "reflexive" to "refl,
+"diag" to "Id_on".
 
-* HOL/Finite_Set: added a new fold combinator of type
+* Theory Finite_Set: added a new fold combinator of type
+
   ('a => 'b => 'b) => 'b => 'a set => 'b
-Occasionally this is more convenient than the old fold combinator which is
-now defined in terms of the new one and renamed to fold_image.
 
-* HOL/Ring_and_Field and HOL/OrderedGroup: The lemmas "group_simps" and
-"ring_simps" have been replaced by "algebra_simps" (which can be extended with
-further lemmas!). At the moment both still exist but the former will disappear
-at some point.
+Occasionally this is more convenient than the old fold combinator
+which is now defined in terms of the new one and renamed to
+fold_image.
 
-* HOL/Power: Lemma power_Suc is now declared as a simp rule in class
-recpower.  Type-specific simp rules for various recpower types have
-been removed.  INCOMPATIBILITY.  Rename old lemmas as follows:
+* Theories Ring_and_Field and OrderedGroup: The lemmas "group_simps"
+and "ring_simps" have been replaced by "algebra_simps" (which can be
+extended with further lemmas!).  At the moment both still exist but
+the former will disappear at some point.
+
+* Theory Power: Lemma power_Suc is now declared as a simp rule in
+class recpower.  Type-specific simp rules for various recpower types
+have been removed.  INCOMPATIBILITY, rename old lemmas as follows:
 
 rat_power_0    -> power_0
 rat_power_Suc  -> power_Suc
@@ -413,7 +453,7 @@ complexpow_Suc -> power_Suc
 power_poly_0   -> power_0
 power_poly_Suc -> power_Suc
 
-* HOL/Ring_and_Field and HOL/Divides: Definition of "op dvd" has been
+* Theories Ring_and_Field and Divides: Definition of "op dvd" has been
 moved to separate class dvd in Ring_and_Field; a couple of lemmas on
 dvd has been generalized to class comm_semiring_1.  Likewise a bunch
 of lemmas from Divides has been generalized from nat to class
@@ -428,9 +468,9 @@ renames resulting from duplicate elimination:
     mult_div ~>             div_mult_self2_is_id
     mult_mod ~>             mod_mult_self2_is_0
 
-* HOL/IntDiv: removed many lemmas that are instances of class-based
-generalizations (from Divides and Ring_and_Field).
-INCOMPATIBILITY. Rename old lemmas as follows:
+* Theory IntDiv: removed many lemmas that are instances of class-based
+generalizations (from Divides and Ring_and_Field).  INCOMPATIBILITY,
+rename old lemmas as follows:
 
 dvd_diff               -> nat_dvd_diff
 dvd_zminus_iff         -> dvd_minus_iff
@@ -478,11 +518,38 @@ zdvd_0_left            -> dvd_0_left_iff
 zdvd_1_left            -> one_dvd
 zminus_dvd_iff         -> minus_dvd_iff
 
-* HOL/Library/GCD: Curried operations gcd, lcm (for nat) and zgcd,
+* Theory Rational: 'Fract k 0' now equals '0'.  INCOMPATIBILITY.
+
+* The real numbers offer decimal input syntax: 12.34 is translated
+into 1234/10^2. This translation is not reversed upon output.
+
+* Theory Library/Polynomial defines an abstract type 'a poly of
+univariate polynomials with coefficients of type 'a.  In addition to
+the standard ring operations, it also supports div and mod.  Code
+generation is also supported, using list-style constructors.
+
+* Theory Library/Inner_Product defines a class of real_inner for real
+inner product spaces, with an overloaded operation inner :: 'a => 'a
+=> real.  Class real_inner is a subclass of real_normed_vector from
+theory RealVector.
+
+* Theory Library/Product_Vector provides instances for the product
+type 'a * 'b of several classes from RealVector and Inner_Product.
+Definitions of addition, subtraction, scalar multiplication, norms,
+and inner products are included.
+
+* Theory Library/Bit defines the field "bit" of integers modulo 2.  In
+addition to the field operations, numerals and case syntax are also
+supported.
+
+* Theory Library/Diagonalize provides constructive version of Cantor's
+first diagonalization argument.
+
+* Theory Library/GCD: Curried operations gcd, lcm (for nat) and zgcd,
 zlcm (for int); carried together from various gcd/lcm developements in
-the HOL Distribution.  zgcd and zlcm replace former igcd and ilcm;
-corresponding theorems renamed accordingly.  INCOMPATIBILITY.  To
-recover tupled syntax, use syntax declarations like:
+the HOL Distribution.  Constants zgcd and zlcm replace former igcd and
+ilcm; corresponding theorems renamed accordingly.  INCOMPATIBILITY,
+may recover tupled syntax as follows:
 
     hide (open) const gcd
     abbreviation gcd where
@@ -490,54 +557,24 @@ recover tupled syntax, use syntax declarations like:
     notation (output)
       GCD.gcd ("gcd '(_, _')")
 
-(analogously for lcm, zgcd, zlcm).
+The same works for lcm, zgcd, zlcm.
 
-* HOL/Real/Rational: 'Fract k 0' now equals '0'.  INCOMPATIBILITY.
+* Theory Library/Nat_Infinity: added addition, numeral syntax and more
+instantiations for algebraic structures.  Removed some duplicate
+theorems.  Changes in simp rules.  INCOMPATIBILITY.
 
-* The real numbers offer decimal input syntax: 12.34 is translated into
-  1234/10^2. This translation is not reversed upon output.
-
-* New ML antiquotation @{code}: takes constant as argument, generates
+* ML antiquotation @{code} takes a constant as argument and generates
 corresponding code in background and inserts name of the corresponding
 resulting ML value/function/datatype constructor binding in place.
 All occurrences of @{code} with a single ML block are generated
 simultaneously.  Provides a generic and safe interface for
-instrumentalizing code generation.  See HOL/Decision_Procs/Ferrack for
-a more ambitious application.  In future you ought refrain from ad-hoc
-compiling generated SML code on the ML toplevel.  Note that (for technical
-reasons) @{code} cannot refer to constants for which user-defined
-serializations are set.  Refer to the corresponding ML counterpart
-directly in that cases.
-
-* Integrated image HOL-Complex with HOL.  Entry points Main.thy and
-Complex_Main.thy remain as they are.
-
-* New image HOL-Plain provides a minimal HOL with the most important
-tools available (inductive, datatype, primrec, ...).  By convention
-the corresponding theory Plain should be ancestor of every further
-(library) theory.  Some library theories now have ancestor Plain
-(instead of Main), thus theory Main occasionally has to be imported
-explicitly.
-
-* The metis method now fails in the usual manner, rather than raising
-an exception, if it determines that it cannot prove the theorem.
-
-* The metis method no longer fails because the theorem is too trivial
-(contains the empty clause).
-
-* Methods "case_tac" and "induct_tac" now refer to the very same rules
-as the structured Isar versions "cases" and "induct", cf. the
-corresponding "cases" and "induct" attributes.  Mutual induction rules
-are now presented as a list of individual projections
-(e.g. foo_bar.inducts for types foo and bar); the old format with
-explicit HOL conjunction is no longer supported.  INCOMPATIBILITY, in
-rare situations a different rule is selected --- notably nested tuple
-elimination instead of former prod.exhaust: use explicit (case_tac t
-rule: prod.exhaust) here.
-
-* Attributes "cases", "induct", "coinduct" support "del" option.
-
-* Removed fact "case_split_thm", which duplicates "case_split".
+instrumentalizing code generation.  See
+src/HOL/Decision_Procs/Ferrack.thy for a more ambitious application.
+In future you ought to refrain from ad-hoc compiling generated SML
+code on the ML toplevel.  Note that (for technical reasons) @{code}
+cannot refer to constants for which user-defined serializations are
+set.  Refer to the corresponding ML counterpart directly in that
+cases.
 
 * Command 'rep_datatype': instead of theorem names the command now
 takes a list of terms denoting the constructors of the type to be
@@ -551,19 +588,6 @@ have disappeared in favour of existing ones:
     Suc_Suc_eq                  ~> nat.inject
     Suc_not_Zero Zero_not_Suc   ~> nat.distinct
 
-* The option datatype has been moved to a new theory HOL/Option.thy.
-Renamed option_map to Option.map, and o2s to Option.set.
-
-* Library/Nat_Infinity: added addition, numeral syntax and more
-instantiations for algebraic structures.  Removed some duplicate
-theorems.  Changes in simp rules.  INCOMPATIBILITY.
-
-* ATP selection (E/Vampire/Spass) is now via Proof General's settings
-menu.
-
-* Linear arithmetic now ignores all inequalities when
-fast_arith_neq_limit is exceeded, instead of giving up entirely.
-
 
 *** HOL-Algebra ***
 
@@ -573,11 +597,12 @@ locales use a record structure with field eq for the equivalence.
 
 * New theory of factorial domains.
 
-* Units_l_inv and Units_r_inv are now simprules by default.
+* Units_l_inv and Units_r_inv are now simp rules by default.
 INCOMPATIBILITY.  Simplifier proof that require deletion of l_inv
 and/or r_inv will now also require deletion of these lemmas.
 
-* Renamed the following theorems.  INCOMPATIBILITY.
+* Renamed the following theorems, INCOMPATIBILITY:
+
 UpperD ~> Upper_memD
 LowerD ~> Lower_memD
 least_carrier ~> least_closed
@@ -585,19 +610,6 @@ greatest_carrier ~> greatest_closed
 greatest_Lower_above ~> greatest_Lower_below
 one_zero ~> carrier_one_zero
 one_not_zero ~> carrier_one_not_zero  (collision with assumption)
-
-
-*** HOL-NSA ***
-
-* Created new image HOL-NSA, containing theories of nonstandard
-analysis which were previously part of HOL-Complex.  Entry point
-Hyperreal.thy remains valid, but theories formerly using
-Complex_Main.thy should now use new entry point Hypercomplex.thy.
-
-
-*** ZF ***
-
-* Proof of Zorn's Lemma for partial orders.
 
 
 *** HOLCF ***
@@ -612,23 +624,47 @@ some rare cases the new simproc may fail to solve subgoals that the
 old one could solve, and "simp add: cont2cont_LAM" may be necessary.
 Potential INCOMPATIBILITY.
 
-* The syntax of the fixrec package has changed.  The specification
-syntax now conforms in style to definition, primrec, function, etc.
-See HOLCF/ex/Fixrec_ex.thy for examples.  INCOMPATIBILITY.
+* The syntax of the fixrec package now conforms to the general
+specification format of inductive, primrec, function, etc.  See
+src/HOLCF/ex/Fixrec_ex.thy for examples.  INCOMPATIBILITY.
+
+
+*** ZF ***
+
+* Proof of Zorn's Lemma for partial orders.
 
 
 *** ML ***
+
+* Multithreading for Poly/ML 5.1/5.2 is no longer supported, only for
+Poly/ML 5.2.1 or later.  Important note: the TimeLimit facility
+depends on multithreading, so timouts will not work before Poly/ML
+5.2.1!
 
 * High-level support for concurrent ML programming, see
 src/Pure/Cuncurrent.  The data-oriented model of "future values" is
 particularly convenient to organize independent functional
 computations.  The concept of "synchronized variables" provides a
 higher-order interface for components with shared state, avoiding the
-delicate details of mutexes and condition variables.  [Poly/ML 5.2.1
-or later]
+delicate details of mutexes and condition variables.  (Requires
+Poly/ML 5.2.1 or later.)
+
+* ML bindings produced via Isar commands are stored within the Isar
+context (theory or proof).  Consequently, commands like 'use' and 'ML'
+become thread-safe and work with undo as expected (concerning
+top-level bindings, not side-effects on global references).
+INCOMPATIBILITY, need to provide proper Isar context when invoking the
+compiler at runtime; really global bindings need to be given outside a
+theory.  (Requires Poly/ML 5.2 or later.)
+
+* Command 'ML_prf' is analogous to 'ML' but works within a proof
+context.  Top-level ML bindings are stored within the proof context in
+a purely sequential fashion, disregarding the nested proof structure.
+ML bindings introduced by 'ML_prf' are discarded at the end of the
+proof.  (Requires Poly/ML 5.2 or later.)
 
 * Simplified ML attribute and method setup, cf. functions Attrib.setup
-and Method.setup, as well as commands 'attribute_setup' and
+and Method.setup, as well as Isar commands 'attribute_setup' and
 'method_setup'.  INCOMPATIBILITY for 'method_setup', need to simplify
 existing code accordingly, or use plain 'setup' together with old
 Method.add_method.
@@ -640,51 +676,26 @@ is specified.  INCOMPATIBILITY, need to simplify existing oracle code
 accordingly.  Note that extra performance may be gained by producing
 the cterm carefully, avoiding slow Thm.cterm_of.
 
-* ML bindings produced via Isar commands are stored within the Isar
-context (theory or proof).  Consequently, commands like 'use' and 'ML'
-become thread-safe and work with undo as expected (concerning
-top-level bindings, not side-effects on global references).
-INCOMPATIBILITY, need to provide proper Isar context when invoking the
-compiler at runtime; really global bindings need to be given outside a
-theory. [Poly/ML 5.2 or later]
-
-* Command 'ML_prf' is analogous to 'ML' but works within a proof
-context. Top-level ML bindings are stored within the proof context in
-a purely sequential fashion, disregarding the nested proof structure.
-ML bindings introduced by 'ML_prf' are discarded at the end of the
-proof.  [Poly/ML 5.2 or later]
-
-* Generic Toplevel.add_hook interface allows to analyze the result of
-transactions.  E.g. see src/Pure/ProofGeneral/proof_general_pgip.ML
-for theorem dependency output of transactions resulting in a new
-theory state.
-
-* More systematic treatment of long names, abstract name bindings, and
-name space operations.  Basic operations on qualified names have been
-move from structure NameSpace to Long_Name, e.g. Long_Name.base_name,
-Long_Name.append.  Old type bstring has been mostly replaced by
-abstract type binding (see structure Binding), which supports precise
-qualification (by packages and local theory targets), as well as
-proper tracking of source positions.  INCOMPATIBILITY, need to wrap
-old bstring values into Binding.name, or better pass through abstract
-bindings everywhere.  See further src/Pure/General/long_name.ML,
-src/Pure/General/binding.ML and src/Pure/General/name_space.ML
-
 * Simplified interface for defining document antiquotations via
 ThyOutput.antiquotation, ThyOutput.output, and optionally
 ThyOutput.maybe_pretty_source.  INCOMPATIBILITY, need to simplify user
 antiquotations accordingly, see src/Pure/Thy/thy_output.ML for common
 examples.
 
+* More systematic treatment of long names, abstract name bindings, and
+name space operations.  Basic operations on qualified names have been
+move from structure NameSpace to Long_Name, e.g. Long_Name.base_name,
+Long_Name.append.  Old type bstring has been mostly replaced by
+abstract type binding (see structure Binding), which supports precise
+qualification by packages and local theory targets, as well as proper
+tracking of source positions.  INCOMPATIBILITY, need to wrap old
+bstring values into Binding.name, or better pass through abstract
+bindings everywhere.  See further src/Pure/General/long_name.ML,
+src/Pure/General/binding.ML and src/Pure/General/name_space.ML
+
 * Result facts (from PureThy.note_thms, ProofContext.note_thms,
 LocalTheory.note etc.) now refer to the *full* internal name, not the
 bstring as before.  INCOMPATIBILITY, not detected by ML type-checking!
-
-* Rules and tactics that read instantiations (read_instantiate,
-res_inst_tac, thin_tac, subgoal_tac etc.) now demand a proper proof
-context, which is required for parsing and type-checking.  Moreover,
-the variables are specified as plain indexnames, not string encodings
-thereof.  INCOMPATIBILITY.
 
 * Disposed old type and term read functions (Sign.read_def_typ,
 Sign.read_typ, Sign.read_def_terms, Sign.read_term,
@@ -699,9 +710,21 @@ Simp_tac, SIMPSET).  INCOMPATIBILITY, should use @{simpset} etc. in
 embedded ML text, or local_simpset_of with a proper context passed as
 explicit runtime argument.
 
-* Antiquotations: block-structured compilation context indicated by
+* Rules and tactics that read instantiations (read_instantiate,
+res_inst_tac, thin_tac, subgoal_tac etc.) now demand a proper proof
+context, which is required for parsing and type-checking.  Moreover,
+the variables are specified as plain indexnames, not string encodings
+thereof.  INCOMPATIBILITY.
+
+* Generic Toplevel.add_hook interface allows to analyze the result of
+transactions.  E.g. see src/Pure/ProofGeneral/proof_general_pgip.ML
+for theorem dependency output of transactions resulting in a new
+theory state.
+
+* ML antiquotations: block-structured compilation context indicated by
 \<lbrace> ... \<rbrace>; additional antiquotation forms:
 
+  @{binding name}                         - basic name binding
   @{let ?pat = term}                      - term abbreviation (HO matching)
   @{note name = fact}                     - fact abbreviation
   @{thm fact}                             - singleton fact (with attributes)
@@ -715,9 +738,6 @@ explicit runtime argument.
 
 *** System ***
 
-* Multithreading for Poly/ML 5.1/5.2 is no longer supported, only for
-Poly/ML 5.2.1 or later.
-
 * The Isabelle "emacs" tool provides a specific interface to invoke
 Proof General / Emacs, with more explicit failure if that is not
 installed (the old isabelle-interface script silently falls back on
@@ -729,12 +749,12 @@ the Isabelle process into a JVM/Scala application.  See
 Isabelle/lib/jedit/plugin for a minimal example.  (The obsolete Java
 process wrapper has been discontinued.)
 
-* Status messages (with exact source position information) are
+* Added homegrown Isabelle font with unicode layout, see lib/fonts.
+
+* Various status messages (with exact source position information) are
 emitted, if proper markup print mode is enabled.  This allows
 user-interface components to provide detailed feedback on internal
 prover operations.
-
-* Homegrown Isabelle font with unicode layout, see Isabelle/lib/fonts.
 
 
 
