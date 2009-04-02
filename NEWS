@@ -613,8 +613,36 @@ one_not_zero ~> carrier_one_not_zero  (collision with assumption)
 
 *** HOL-Nominal ***
 
-* Modernized versions of commands 'nominal_inductive',
-'nominal_primrec', and 'equivariance' work with local theory targets.
+* Nominal datatypes can now contain type-variables.
+
+* Commands 'nominal_inductive' and 'equivariance' work with local
+theory targets.
+
+* Nominal primrec can now works with local theory targets and its
+specification syntax now conforms to the general format as seen in
+'inductive' etc.
+
+* Method "perm_simp" honours the standard simplifier attributes
+(no_asm), (no_asm_use) etc.
+
+* The new predicate #* is defined like freshness, except that on the
+left hand side can be a set or list of atoms.
+
+* Experimental command 'nominal_inductive2' derives strong induction
+principles for inductive definitions.  In contrast to
+'nominal_inductive', which can only deal with a fixed number of
+binders, it can deal with arbitrary expressions standing for sets of
+atoms to be avoided.  The only inductive definition we have at the
+moment that needs this generalisation is the typing rule for Lets in
+the algorithm W:
+
+ Gamma |- t1 : T1   (x,close Gamma T1)::Gamma |- t2 : T2   x#Gamma
+ -----------------------------------------------------------------
+         Gamma |- Let x be t1 in t2 : T2
+
+In this rule one wants to avoid all the binders that are introduced by
+"close Gamma T1".  We are looking for other examples where this
+feature might be useful.  Please let us know.
 
 
 *** HOLCF ***
@@ -630,8 +658,8 @@ old one could solve, and "simp add: cont2cont_LAM" may be necessary.
 Potential INCOMPATIBILITY.
 
 * Command 'fixrec': specification syntax now conforms to the general
-format as seen in 'inductive', 'primrec', 'function', etc.  See
-src/HOLCF/ex/Fixrec_ex.thy for examples.  INCOMPATIBILITY.
+format as seen in 'inductive' etc.  See src/HOLCF/ex/Fixrec_ex.thy for
+examples.  INCOMPATIBILITY.
 
 
 *** ZF ***
