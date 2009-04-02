@@ -624,8 +624,8 @@ some rare cases the new simproc may fail to solve subgoals that the
 old one could solve, and "simp add: cont2cont_LAM" may be necessary.
 Potential INCOMPATIBILITY.
 
-* The syntax of the fixrec package now conforms to the general
-specification format of inductive, primrec, function, etc.  See
+* Command 'fixrec': specification syntax now conforms to the general
+format as seen in 'inductive', 'primrec', 'function', etc.  See
 src/HOLCF/ex/Fixrec_ex.thy for examples.  INCOMPATIBILITY.
 
 
