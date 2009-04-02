@@ -52,7 +52,6 @@ large (cf. Poly/ML option -H).  (Requires Poly/ML 5.2.1 or later.)
 as hyperlinks are now available uniformly.
 
 
-
 *** Pure ***
 
 * Complete re-implementation of locales.  INCOMPATIBILITY in several
@@ -610,6 +609,12 @@ greatest_carrier ~> greatest_closed
 greatest_Lower_above ~> greatest_Lower_below
 one_zero ~> carrier_one_zero
 one_not_zero ~> carrier_one_not_zero  (collision with assumption)
+
+
+*** HOL-Nominal ***
+
+* Modernized versions of commands 'nominal_inductive',
+'nominal_primrec', and 'equivariance' work with local theory targets.
 
 
 *** HOLCF ***
