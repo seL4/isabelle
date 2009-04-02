@@ -73,7 +73,7 @@ Users may invoke the main Isabelle binaries (isabelle and
 isabelle-process) directly from their location within the distribution
 directory [ISABELLE_HOME] like this:
 
-  [ISABELLE_HOME]/bin/isabelle-process HOL
+  [ISABELLE_HOME]/bin/isabelle tty -l HOL
 
 This starts an interactive Isabelle session within the current text
 terminal.  [ISABELLE_HOME]/bin may be put into the shell's search

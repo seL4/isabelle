@@ -20,12 +20,9 @@ Checklist for official releases
     doc/Contents
 
 - maintain Logics:
-    Admin/makedist
     build
     lib/Tools/makeall
-    lib/html/index.html
-    doc-src/Logics/intro.tex
-    doc-src/Logics/logics.tex
+    lib/html/library_index_content.template
 
 - after release: 
     commit new ~isabelle/website/include/documentationdist.include.html to website SVN
