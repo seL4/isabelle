@@ -459,7 +459,7 @@ fun decode_tstp_file cnfs ctxt th sgno thm_names =
     
   (* ==== CHECK IF PROOF OF E OR VAMPIRE WAS SUCCESSFUL === *)
   
-  val failure_strings_E = ["SZS status: Satisfiable","SZS status: ResourceOut","# Cannot determine problem status"];
+  val failure_strings_E = ["SZS status: Satisfiable","SZS status Satisfiable","SZS status: ResourceOut","SZS status ResourceOut","# Cannot determine problem status"];
   val failure_strings_vampire = ["Satisfiability detected", "Refutation not found", "CANNOT PROVE"];
   val failure_strings_SPASS = ["SPASS beiseite: Completion found.","SPASS beiseite: Ran out of time.",
   "SPASS beiseite: Maximal number of loops exceeded."];
