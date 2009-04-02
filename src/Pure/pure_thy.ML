@@ -31,10 +31,10 @@ sig
   val add_thm: (binding * thm) * attribute list -> theory -> thm * theory
   val add_thmss: ((binding * thm list) * attribute list) list -> theory -> thm list list * theory
   val add_thms_dynamic: binding * (Context.generic -> thm list) -> theory -> theory
-  val note_thmss: string -> (Thm.binding *
-      (thm list * attribute list) list) list -> theory -> (string * thm list) list * theory
-  val note_thmss_grouped: string -> string -> (Thm.binding *
-      (thm list * attribute list) list) list -> theory -> (string * thm list) list * theory
+  val note_thmss: string -> (Thm.binding * (thm list * attribute list) list) list
+    -> theory -> (string * thm list) list * theory
+  val note_thmss_grouped: string -> string -> (Thm.binding * (thm list * attribute list) list) list
+    -> theory -> (string * thm list) list * theory
   val add_axioms: ((binding * term) * attribute list) list -> theory -> thm list * theory
   val add_axioms_cmd: ((binding * string) * attribute list) list -> theory -> thm list * theory
   val add_defs: bool -> ((binding * term) * attribute list) list ->
