@@ -291,7 +291,6 @@
     "notes"
     "obtains"
     "open"
-    "otherwise"
     "output"
     "outputs"
     "overloaded"
