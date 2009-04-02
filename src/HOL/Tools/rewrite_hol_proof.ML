@@ -1,5 +1,4 @@
 (*  Title:      HOL/Tools/rewrite_hol_proof.ML
-    ID:         $Id$
     Author:     Stefan Berghofer, TU Muenchen
 
 Rewrite rules for HOL proofs
@@ -71,7 +70,7 @@ val rews = map (pairself (ProofSyntax.proof_of_term (the_context ()) true) o
  \        (HOL.refl % TYPE('T=>'T=>bool) % (op = :: 'T=>'T=>bool)) %%  \
  \        (meta_eq_to_obj_eq % TYPE('T) % A % B %% prf1)) %%  \
  \      (meta_eq_to_obj_eq % TYPE('T) % C % D %% prf2)) %%  \
- \    (meta_eq_to_obj_eq % TYPE('T) % C % D %% prf3))",
+ \    (meta_eq_to_obj_eq % TYPE('T) % A % C %% prf3))",
 
    "(meta_eq_to_obj_eq % TYPE('T1) % x1 % x2 %% (equal_elim % x3 % x4 %%  \
  \    (axm.symmetric % TYPE('T2) % x5 % x6 %%  \
@@ -85,7 +84,7 @@ val rews = map (pairself (ProofSyntax.proof_of_term (the_context ()) true) o
  \        (HOL.refl % TYPE('T=>'T=>bool) % (op = :: 'T=>'T=>bool)) %%  \
  \        (meta_eq_to_obj_eq % TYPE('T) % A % B %% prf1)) %%  \
  \      (meta_eq_to_obj_eq % TYPE('T) % C % D %% prf2)) %%  \
- \    (meta_eq_to_obj_eq % TYPE('T) % C % D %% prf3))",
+ \    (meta_eq_to_obj_eq % TYPE('T) % B % D %% prf3))",
 
    (** rewriting on bool: insert proper congruence rules for logical connectives **)
 
