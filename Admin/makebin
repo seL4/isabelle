@@ -1,16 +1,11 @@
 #!/usr/bin/env bash
 #
-# $Id$
-#
-# makebin -- make Isabelle logic images for current platform.
+# makebin -- make Isabelle logic images for current platform
 
 
 ## global settings
 
 TMP="/var/tmp/isabelle-makebin$$"
-
-TAR=tar
-type -path gtar >/dev/null && TAR=gtar
 
 export THIS_IS_ISABELLE_MAKEBIN=true
 
@@ -75,11 +70,11 @@ ARCHIVE="$1"; shift
 ## main
 
 [ ! -f "$ARCHIVE" ] && fail "Bad archive file $ARCHIVE"
-ARCHIVE_BASE=$(basename "$ARCHIVE")
-ARCHIVE_DIR=$(cd $(dirname "$ARCHIVE"); echo "$PWD")
+ARCHIVE_BASE="$(basename "$ARCHIVE")"
+ARCHIVE_DIR="$(cd $(dirname "$ARCHIVE"); echo "$PWD")"
 ARCHIVE_FULL="$ARCHIVE_DIR/$ARCHIVE_BASE"
 
-ISABELLE_NAME=$(basename "$ARCHIVE_BASE" .tar.gz)
+ISABELLE_NAME="$(basename "$ARCHIVE_BASE" .tar.gz)"
 ISABELLE_HOME="$TMP/$ISABELLE_NAME"
 
 
@@ -88,16 +83,16 @@ ISABELLE_HOME="$TMP/$ISABELLE_NAME"
 mkdir "$TMP" || fail "Cannot create directory $TMP"
 
 cd "$TMP"
-"$TAR" xzf "$ARCHIVE_FULL"
+tar xzf "$ARCHIVE_FULL"
 cd "$ISABELLE_NAME"
 
 perl -pi \
-  -e 's:^ISABELLE_USEDIR_OPTIONS=.*$:ISABELLE_USEDIR_OPTIONS="-p 1":;' \
-  -e 's:^HOL_USEDIR_OPTIONS=.*$:HOL_USEDIR_OPTIONS="-p 2":;' \
+  -e 's:^ISABELLE_USEDIR_OPTIONS=.*$:ISABELLE_USEDIR_OPTIONS="-M 1 -p 1":;' \
+  -e 's:^HOL_USEDIR_OPTIONS=.*$:HOL_USEDIR_OPTIONS="-M 1 -p 2":;' \
   etc/settings
 
 if [ -n "$DO_LIBRARY" ]; then
-  perl -pi -e 's:^ISABELLE_USEDIR_OPTIONS=.*$:ISABELLE_USEDIR_OPTIONS="-p 1 -i true -d pdf -V outline=/proof,/ML":;' \
+  perl -pi -e 's:^ISABELLE_USEDIR_OPTIONS=.*$:ISABELLE_USEDIR_OPTIONS="-M 1 -p 1 -i true -d pdf -V outline=/proof,/ML":;' \
     etc/settings
 fi
 
@@ -134,13 +129,13 @@ chmod -R g=o "$TMP"
 chgrp -R isabelle "$TMP"
 
 if [ -n "$DO_LIBRARY" ]; then
-  "$TAR" cf "${ISABELLE_NAME}_library.tar" $ISABELLE_NAME/browser_info && \
+  tar cf "${ISABELLE_NAME}_library.tar" $ISABELLE_NAME/browser_info && \
     gzip -f "${ISABELLE_NAME}_library.tar"
     cp -f "${ISABELLE_NAME}_library.tar.gz" "$ARCHIVE_DIR"
 else
   for IMG in HOL HOL-Nominal ZF
   do
-    "$TAR" cf "${IMG}_$PLATFORM.tar" \
+    tar cf "${IMG}_$PLATFORM.tar" \
       "$ISABELLE_NAME/heaps/$COMPILER/$IMG" \
       "$ISABELLE_NAME/heaps/$COMPILER/log/$IMG.gz"
     gzip -f "${IMG}_$PLATFORM.tar"
