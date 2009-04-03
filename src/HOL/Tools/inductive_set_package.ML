@@ -435,12 +435,19 @@ fun add_ind_set_def
        | NONE => (x, (x, (x, x))))) params;
     val (params1, (params2, params3)) =
       params' |> map snd |> split_list ||> split_list;
+    val paramTs = map fastype_of params;
 
     (* equations for converting sets to predicates *)
     val ((cs', cs_info), eqns) = cs |> map (fn c as Free (s, T) =>
       let
         val fs = the_default [] (AList.lookup op = new_arities c);
-        val (_, U) = split_last (binder_types T);
+        val (Us, U) = split_last (binder_types T);
+        val _ = Us = paramTs orelse error (Pretty.string_of (Pretty.chunks
+          [Pretty.str "Argument types",
+           Pretty.block (Pretty.commas (map (Syntax.pretty_typ ctxt) Us)),
+           Pretty.str ("of " ^ s ^ " do not agree with types"),
+           Pretty.block (Pretty.commas (map (Syntax.pretty_typ ctxt) paramTs)),
+           Pretty.str "of declared parameters"]));
         val Ts = HOLogic.prodT_factors' fs U;
         val c' = Free (s ^ "p",
           map fastype_of params1 @ Ts ---> HOLogic.boolT)
