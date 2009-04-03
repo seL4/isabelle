@@ -756,6 +756,7 @@ section {* Arithmetic proof support *}
 text {*
   \begin{matharray}{rcl}
     @{method_def (HOL) arith} & : & @{text method} \\
+    @{attribute_def (HOL) arith} & : & @{text attribute} \\
     @{attribute_def (HOL) arith_split} & : & @{text attribute} \\
   \end{matharray}
 
@@ -763,11 +764,14 @@ text {*
   (on types @{text nat}, @{text int}, @{text real}).  Any current
   facts are inserted into the goal before running the procedure.
 
-  The @{attribute (HOL) arith_split} attribute declares case split
-  rules to be expanded before the arithmetic procedure is invoked.
+  The @{attribute (HOL) arith} attribute declares facts that are
+  always supplied to the arithmetic provers implicitly.
 
-  Note that a simpler (but faster) version of arithmetic reasoning is
-  already performed by the Simplifier.
+  The @{attribute (HOL) arith_split} attribute declares case split
+  rules to be expanded before @{method_def (HOL) arith} is invoked.
+
+  Note that a simpler (but faster) arithmetic prover is
+  already invoked by the Simplifier.
 *}
 
 

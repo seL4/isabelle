@@ -764,6 +764,7 @@ Each theory contains a default set of theorems that are used in
 \begin{isamarkuptext}%
 \begin{matharray}{rcl}
     \indexdef{HOL}{method}{arith}\hypertarget{method.HOL.arith}{\hyperlink{method.HOL.arith}{\mbox{\isa{arith}}}} & : & \isa{method} \\
+    \indexdef{HOL}{attribute}{arith}\hypertarget{attribute.HOL.arith}{\hyperlink{attribute.HOL.arith}{\mbox{\isa{arith}}}} & : & \isa{attribute} \\
     \indexdef{HOL}{attribute}{arith\_split}\hypertarget{attribute.HOL.arith-split}{\hyperlink{attribute.HOL.arith-split}{\mbox{\isa{arith{\isacharunderscore}split}}}} & : & \isa{attribute} \\
   \end{matharray}
 
@@ -771,11 +772,14 @@ Each theory contains a default set of theorems that are used in
   (on types \isa{nat}, \isa{int}, \isa{real}).  Any current
   facts are inserted into the goal before running the procedure.
 
-  The \hyperlink{attribute.HOL.arith-split}{\mbox{\isa{arith{\isacharunderscore}split}}} attribute declares case split
-  rules to be expanded before the arithmetic procedure is invoked.
+  The \hyperlink{attribute.HOL.arith}{\mbox{\isa{arith}}} attribute declares facts that are
+  always supplied to the arithmetic provers implicitly.
 
-  Note that a simpler (but faster) version of arithmetic reasoning is
-  already performed by the Simplifier.%
+  The \hyperlink{attribute.HOL.arith-split}{\mbox{\isa{arith{\isacharunderscore}split}}} attribute declares case split
+  rules to be expanded before \indexdef{HOL}{method}{arith}\hypertarget{method.HOL.arith}{\hyperlink{method.HOL.arith}{\mbox{\isa{arith}}}} is invoked.
+
+  Note that a simpler (but faster) arithmetic prover is
+  already invoked by the Simplifier.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
