@@ -1216,6 +1216,14 @@ lemma setsum_eq_0_iff [simp]:
     "finite F ==> (setsum f F = 0) = (ALL a:F. f a = (0::nat))"
 by (induct set: finite) auto
 
+lemma setsum_eq_Suc0_iff: "finite A \<Longrightarrow>
+  (setsum f A = Suc 0) = (EX a:A. f a = Suc 0 & (ALL b:A. a\<noteq>b \<longrightarrow> f b = 0))"
+apply(erule finite_induct)
+apply (auto simp add:add_is_1)
+done
+
+lemmas setsum_eq_1_iff = setsum_eq_Suc0_iff[simplified One_nat_def[symmetric]]
+
 lemma setsum_Un_nat: "finite A ==> finite B ==>
   (setsum f (A Un B) :: nat) = setsum f A + setsum f B - setsum f (A Int B)"
   -- {* For the natural numbers, we have subtraction. *}
