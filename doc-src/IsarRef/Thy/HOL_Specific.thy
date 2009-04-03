@@ -768,7 +768,7 @@ text {*
   always supplied to the arithmetic provers implicitly.
 
   The @{attribute (HOL) arith_split} attribute declares case split
-  rules to be expanded before @{method_def (HOL) arith} is invoked.
+  rules to be expanded before @{method (HOL) arith} is invoked.
 
   Note that a simpler (but faster) arithmetic prover is
   already invoked by the Simplifier.
