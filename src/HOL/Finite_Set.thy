@@ -1812,6 +1812,10 @@ lemma setprod_pos_nat:
   "finite S ==> (ALL x : S. f x > (0::nat)) ==> setprod f S > 0"
 using setprod_zero_iff by(simp del:neq0_conv add:neq0_conv[symmetric])
 
+lemma setprod_pos_nat_iff[simp]:
+  "finite S ==> (setprod f S > 0) = (ALL x : S. f x > (0::nat))"
+using setprod_zero_iff by(simp del:neq0_conv add:neq0_conv[symmetric])
+
 lemma setprod_Un: "finite A ==> finite B ==> (ALL x: A Int B. f x \<noteq> 0) ==>
   (setprod f (A Un B) :: 'a ::{field})
    = setprod f A * setprod f B / setprod f (A Int B)"
