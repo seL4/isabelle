@@ -102,7 +102,7 @@ fun tptp_prover_opts_full max_new theory_const full command timeout n goal =
     (ResAtp.get_relevant max_new theory_const goal n)
     (ResAtp.write_problem_file false)
     command
-    ResReconstruct.find_failure_e_vamp_spass
+    ResReconstruct.find_failure
     (if full then ResReconstruct.structured_proof else ResReconstruct.lemma_list_tstp)
     timeout n goal;
 
@@ -166,7 +166,7 @@ fun spass_opts max_new theory_const timeout n goal = external_prover
   (ResAtp.write_problem_file true)
   (Path.explode "$SPASS_HOME/SPASS",
     "-Auto -SOS=1 -PGiven=0 -PProblem=0 -Splits=0 -FullRed=0 -DocProof -TimeLimit=" ^ string_of_int timeout)
-  ResReconstruct.find_failure_e_vamp_spass
+  ResReconstruct.find_failure
   ResReconstruct.lemma_list_dfg
   timeout n goal;
 

@@ -26,18 +26,20 @@ my %Options;
 getopts("hws:t:c:",\%Options);
 
 #----Usage
-if (exists($Options{'h'})) {
-    print("Usage: remote <options> [<File name>]\n");
-    print("    <options> are ...\n");
-    print("    -h            - print this help\n");
-    print("    -w            - list available ATP systems\n");
-    print("    -s<system>    - specified system to use\n");
-    print("    -t<timelimit> - CPU time limit for system\n");
-    print("    -c<command>   - custom command for system\n");
-    print("    <File name>   - TPTP problem file\n");
-    exit(0);
+sub usage() {
+  print("Usage: remote [<options>] <File name>\n");
+  print("    <options> are ...\n");
+  print("    -h            - print this help\n");
+  print("    -w            - list available ATP systems\n");
+  print("    -s<system>    - specified system to use\n");
+  print("    -t<timelimit> - CPU time limit for system\n");
+  print("    -c<command>   - custom command for system\n");
+  print("    <File name>   - TPTP problem file\n");
+  exit(0);
 }
-
+if (exists($Options{'h'})) {
+  usage();
+}
 #----What systems flag
 if (exists($Options{'w'})) {
     $URLParameters{"SubmitButton"} = "ListSystems";
@@ -67,7 +69,9 @@ if (exists($URLParameters{"ProblemSource"})) {
     if (scalar(@ARGV) >= 1) {
         $URLParameters{"UPLOADProblem"} = [shift(@ARGV)];
     } else {
-die("Missing problem file");
+      print("Missing problem file\n");
+      usage();
+      die;
     }
 }
 
@@ -88,38 +92,29 @@ if(! $Response->is_success){
 } elsif (exists($Options{'w'})) {
   print $Response->content;
   exit (0);
-} elsif ($Response->content =~ /NO SOLUTION OUTPUT BY SYSTEM/){
-  print "No Solution Output by System\n";
-  exit(-1);
-} elsif ($Response->content =~ /ERROR: Could not form TPTP format derivation/) {
-  print "Could not form TPTP format derivation\n";
-  exit(-1);
 } elsif ($Response->content =~ /WARNING: (\S*) does not exist/) {
   print "Specified System $1 does not exist\n";
   exit(-1);
-} elsif ($Response->content =~ /^\s*$/) {
-  print "Empty response (specified bad system? Inappropriate problem file format?)\n";
-  exit(-1);
-} elsif ($Response->content !~ /%\s*Result\s*:(.*)\n%\s*Output\s*:(.*)\n%/) {
-  print "Bad response: \n".$Response->content;
-  exit(-1);
+} elsif ($Response->content =~ /%\s*Result\s*:\s*Unsatisfiable.*\n%\s*Output\s*:\s*(CNF)?Refutation.*\n%/) {
+  my @lines = split( /\n/, $Response->content);
+  my $extract = "";
+  foreach my $line (@lines){
+      #ignore comments
+      if ($line !~ /^%/ && !($line eq "")) {
+          $extract .= "$line";
+      }
+  }
+  # insert newlines after ').'
+  $extract =~ s/\s//g;
+  $extract =~ s/\)\.cnf/\)\.\ncnf/g;
+
+  # orientation for res_reconstruct.ML
+  print "# SZS output start CNFRefutation.\n";
+  print "$extract\n";
+  print "# SZS output end CNFRefutation.\n";
+  exit(0);
 } else {
-    my @lines = split( /\n/, $Response->content);
-    my $extract = "";
-    foreach my $line (@lines){
-        #ignore comments
-        if ($line !~ /^%/ && !($line eq "")) {
-            $extract .= "$line";
-        }
-    }
-    # insert newlines after ').'
-    $extract =~ s/\s//g;
-    $extract =~ s/\)\.cnf/\)\.\ncnf/g;
-    
-    # orientation for res_reconstruct.ML
-    print "# SZS output start CNFRefutation.\n";
-    print "$extract\n";
-    print "# SZS output end CNFRefutation.\n";
-    exit(0);
+  print "Remote-script could not extract proof:\n".$Response->content;
+  exit(-1);
 }
 

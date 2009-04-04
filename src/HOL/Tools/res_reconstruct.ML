@@ -15,7 +15,7 @@ sig
   val strip_prefix: string -> string -> string option
   val setup: Context.theory -> Context.theory
   (* extracting lemma list*)
-  val find_failure_e_vamp_spass: string -> string option
+  val find_failure: string -> string option
   val lemma_list_dfg: string * string vector * Proof.context * Thm.thm * int -> string
   val lemma_list_tstp: string * string vector * Proof.context * Thm.thm * int -> string
   (* structured proofs *)
@@ -459,14 +459,16 @@ fun decode_tstp_file cnfs ctxt th sgno thm_names =
     
   (* ==== CHECK IF PROOF OF E OR VAMPIRE WAS SUCCESSFUL === *)
   
-  val failure_strings_E = ["SZS status: Satisfiable","SZS status Satisfiable","SZS status: ResourceOut","SZS status ResourceOut","# Cannot determine problem status"];
+  val failure_strings_E = ["SZS status: Satisfiable","SZS status Satisfiable",
+    "SZS status: ResourceOut","SZS status ResourceOut","# Cannot determine problem status"];
   val failure_strings_vampire = ["Satisfiability detected", "Refutation not found", "CANNOT PROVE"];
-  val failure_strings_SPASS = ["SPASS beiseite: Completion found.","SPASS beiseite: Ran out of time.",
-  "SPASS beiseite: Maximal number of loops exceeded."];
-  fun find_failure_e_vamp_spass proof =
+  val failure_strings_SPASS = ["SPASS beiseite: Completion found.",
+    "SPASS beiseite: Ran out of time.", "SPASS beiseite: Maximal number of loops exceeded."];
+  val failure_strings_remote = ["Remote-script could not extract proof"];
+  fun find_failure proof =
     let val failures =
       map_filter (fn s => if String.isSubstring s proof then SOME s else NONE) 
-         (failure_strings_E @ failure_strings_vampire @ failure_strings_SPASS)
+         (failure_strings_E @ failure_strings_vampire @ failure_strings_SPASS @ failure_strings_remote)
     in if null failures then NONE else SOME (hd failures) end;
     
   (*=== EXTRACTING PROOF-TEXT === *)
