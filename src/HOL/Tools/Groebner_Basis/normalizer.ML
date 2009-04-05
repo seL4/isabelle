@@ -14,7 +14,7 @@ sig
  val semiring_normalize_ord_wrapper :  Proof.context -> NormalizerData.entry ->
    (cterm -> cterm -> bool) -> conv
  val semiring_normalizers_conv :
-     cterm list -> cterm list * thm list -> cterm list * thm list ->
+     cterm list -> cterm list * thm list -> cterm list * thm list -> cterm list * thm list ->
      (cterm -> bool) * conv * conv * conv -> (cterm -> cterm -> bool) ->
        {add: conv, mul: conv, neg: conv, main: conv, pow: conv, sub: conv}
 end
@@ -71,7 +71,7 @@ val true_tm = @{cterm "True"};
 
 
 (* The main function! *)
-fun semiring_normalizers_conv vars (sr_ops, sr_rules) (r_ops, r_rules)
+fun semiring_normalizers_conv vars (sr_ops, sr_rules) (r_ops, r_rules) (f_ops, f_rules)
   (is_semiring_constant, semiring_add_conv, semiring_mul_conv, semiring_pow_conv) =
 let
 
@@ -97,8 +97,7 @@ fun is_pow tm = is_binop pow_tm tm andalso is_numeral(Thm.dest_arg tm);
 
 val (neg_mul,sub_add,sub_tm,neg_tm,dest_sub,is_sub,cx',cy') =
   (case (r_ops, r_rules) of
-    ([], []) => (TrueI, TrueI, true_tm, true_tm, (fn t => (t,t)), K false, true_tm, true_tm)
-  | ([sub_pat, neg_pat], [neg_mul, sub_add]) =>
+    ([sub_pat, neg_pat], [neg_mul, sub_add]) =>
       let
         val sub_tm = Thm.dest_fun (Thm.dest_fun sub_pat)
         val neg_tm = Thm.dest_fun neg_pat
@@ -106,7 +105,18 @@ val (neg_mul,sub_add,sub_tm,neg_tm,dest_sub,is_sub,cx',cy') =
         val is_sub = is_binop sub_tm
       in (neg_mul,sub_add,sub_tm,neg_tm,dest_sub,is_sub, neg_mul |> concl |> Thm.dest_arg,
           sub_add |> concl |> Thm.dest_arg |> Thm.dest_arg)
-      end);
+      end
+    | _ => (TrueI, TrueI, true_tm, true_tm, (fn t => (t,t)), K false, true_tm, true_tm));
+
+val (divide_inverse, inverse_divide, divide_tm, inverse_tm, is_divide) = 
+  (case (f_ops, f_rules) of 
+   ([divide_pat, inverse_pat], [div_inv, inv_div]) => 
+     let val div_tm = funpow 2 Thm.dest_fun divide_pat
+         val inv_tm = Thm.dest_fun inverse_pat
+     in (div_inv, inv_div, div_tm, inv_tm, is_binop div_tm)
+     end
+   | _ => (TrueI, TrueI, true_tm, true_tm, K false));
+
 in fn variable_order =>
  let
 
@@ -579,6 +589,10 @@ fun polynomial_conv tm =
        let val th1 = Drule.arg_cong_rule lopr (polynomial_conv r)
        in transitive th1 (polynomial_neg_conv (concl th1))
        end
+     else if lopr aconvc inverse_tm then
+       let val th1 = Drule.arg_cong_rule lopr (polynomial_conv r)
+       in transitive th1 (semiring_mul_conv (concl th1))
+       end
      else
        if not(is_comb lopr) then reflexive tm
        else
@@ -587,6 +601,14 @@ fun polynomial_conv tm =
             then
               let val th1 = Drule.fun_cong_rule (Drule.arg_cong_rule opr (polynomial_conv l)) r
               in transitive th1 (polynomial_pow_conv (concl th1))
+              end
+         else if opr aconvc divide_tm 
+            then
+              let val th1 = combination (Drule.arg_cong_rule opr (polynomial_conv l)) 
+                                        (polynomial_conv r)
+                  val th2 = (rewr_conv divide_inverse then_conv polynomial_mul_conv) 
+                              (Thm.rhs_of th1)
+              in transitive th1 th2
               end
             else
               if opr aconvc add_tm orelse opr aconvc mul_tm orelse opr aconvc sub_tm
@@ -616,7 +638,7 @@ val nat_exp_ss = HOL_basic_ss addsimps (@{thms nat_number} @ nat_arith @ @{thms 
 
 fun simple_cterm_ord t u = TermOrd.term_ord (term_of t, term_of u) = LESS;
 
-fun semiring_normalizers_ord_wrapper ctxt ({vars, semiring, ring, idom, ideal}, 
+fun semiring_normalizers_ord_wrapper ctxt ({vars, semiring, ring, field, idom, ideal}, 
                                      {conv, dest_const, mk_const, is_const}) ord =
   let
     val pow_conv =
@@ -625,10 +647,10 @@ fun semiring_normalizers_ord_wrapper ctxt ({vars, semiring, ring, idom, ideal},
         (HOL_basic_ss addsimps [nth (snd semiring) 31, nth (snd semiring) 34])
       then_conv conv ctxt
     val dat = (is_const, conv ctxt, conv ctxt, pow_conv)
-  in semiring_normalizers_conv vars semiring ring dat ord end;
+  in semiring_normalizers_conv vars semiring ring field dat ord end;
 
-fun semiring_normalize_ord_wrapper ctxt ({vars, semiring, ring, idom, ideal}, {conv, dest_const, mk_const, is_const}) ord =
- #main (semiring_normalizers_ord_wrapper ctxt ({vars = vars, semiring = semiring, ring = ring, idom = idom, ideal = ideal},{conv = conv, dest_const = dest_const, mk_const = mk_const, is_const = is_const}) ord);
+fun semiring_normalize_ord_wrapper ctxt ({vars, semiring, ring, field, idom, ideal}, {conv, dest_const, mk_const, is_const}) ord =
+ #main (semiring_normalizers_ord_wrapper ctxt ({vars = vars, semiring = semiring, ring = ring, field = field, idom = idom, ideal = ideal},{conv = conv, dest_const = dest_const, mk_const = mk_const, is_const = is_const}) ord);
 
 fun semiring_normalize_wrapper ctxt data = 
   semiring_normalize_ord_wrapper ctxt data simple_cterm_ord;

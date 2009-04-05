@@ -125,17 +125,6 @@ purge_tmp
 cd "$DISTNAME" || fail "No dist directory: $DISTBASE/$DISTNAME"
 
 
-# website
-
-mkdir -p ../website
-cat > ../website/config <<EOF
-DISTNAME="$DISTNAME"
-DISTBASE="$DISTBASE"
-EOF
-
-cp lib/html/library_index_content.template ../website/
-
-
 # prepare dist for release
 
 echo "###"
