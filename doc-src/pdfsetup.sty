@@ -1,9 +1,8 @@
-%% $Id$
 %%
 %% hyperref setup -- special version for Isabelle documentation
 %%
 
-\message{pdfsetup.sty v0.4 2008-05-15}
+\usepackage{ifpdf}
 
 \usepackage{color}
 \definecolor{linkcolor}{rgb}{0,0,0}
@@ -14,3 +13,5 @@
 \gdef\bold#1{\textbf{\hyperpage{#1}}}
 
 \urlstyle{rm}
+
+\ifpdf\relax\else\renewcommand{\url}[1]{\nolinkurl{#1}}\fi
