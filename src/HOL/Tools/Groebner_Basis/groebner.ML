@@ -5,8 +5,8 @@
 signature GROEBNER =
 sig
   val ring_and_ideal_conv :
-    {idom: thm list, ring: cterm list * thm list, vars: cterm list,
-     semiring: cterm list * thm list, ideal : thm list} ->
+    {idom: thm list, ring: cterm list * thm list, field: cterm list * thm list,
+     vars: cterm list, semiring: cterm list * thm list, ideal : thm list} ->
     (cterm -> Rat.rat) -> (Rat.rat -> cterm) ->
     conv ->  conv ->
  {ring_conv : conv, 
@@ -581,7 +581,8 @@ in fold vsubst end;
 (** main **)
 
 fun ring_and_ideal_conv
-  {vars, semiring = (sr_ops, sr_rules), ring = (r_ops, r_rules), idom, ideal}
+  {vars, semiring = (sr_ops, sr_rules), ring = (r_ops, r_rules), 
+   field = (f_ops, f_rules), idom, ideal}
   dest_const mk_const ring_eq_conv ring_normalize_conv =
 let
   val [add_pat, mul_pat, pow_pat, zero_tm, one_tm] = sr_ops;
@@ -590,32 +591,37 @@ let
 
   val (ring_sub_tm, ring_neg_tm) =
     (case r_ops of
-      [] => (@{cterm "True"}, @{cterm "True"})
-    | [sub_pat, neg_pat] => (dest_fun2 sub_pat, dest_fun neg_pat));
+     [sub_pat, neg_pat] => (dest_fun2 sub_pat, dest_fun neg_pat)
+    |_  => (@{cterm "True"}, @{cterm "True"}));
+
+  val (field_div_tm, field_inv_tm) =
+    (case f_ops of
+       [div_pat, inv_pat] => (dest_fun2 div_pat, dest_fun inv_pat)
+     | _ => (@{cterm "True"}, @{cterm "True"}));
 
   val [idom_thm, neq_thm] = idom;
   val [idl_sub, idl_add0] = 
      if length ideal = 2 then ideal else [eq_commute, eq_commute]
-  val ring_dest_neg =
-    fn t => let val (l,r) = dest_comb t in
-        if Term.could_unify(term_of l,term_of ring_neg_tm) then r else raise CTERM ("ring_dest_neg", [t])
-      end
+  fun ring_dest_neg t =
+    let val (l,r) = dest_comb t 
+    in if Term.could_unify(term_of l,term_of ring_neg_tm) then r 
+       else raise CTERM ("ring_dest_neg", [t])
+    end
 
  val ring_mk_neg = fn tm => mk_comb (ring_neg_tm) (tm);
-(*
- fun ring_dest_inv t =
+ fun field_dest_inv t =
     let val (l,r) = dest_comb t in
-        if Term.could_unify(term_of l, term_of ring_inv_tm) then r else raise CTERM "ring_dest_inv"
+        if Term.could_unify(term_of l, term_of field_inv_tm) then r 
+        else raise CTERM ("field_dest_inv", [t])
     end
-*)
  val ring_dest_add = dest_binary ring_add_tm;
  val ring_mk_add = mk_binop ring_add_tm;
  val ring_dest_sub = dest_binary ring_sub_tm;
  val ring_mk_sub = mk_binop ring_sub_tm;
  val ring_dest_mul = dest_binary ring_mul_tm;
  val ring_mk_mul = mk_binop ring_mul_tm;
-(* val ring_dest_div = dest_binary ring_div_tm;
- val ring_mk_div = mk_binop ring_div_tm;*)
+ val field_dest_div = dest_binary field_div_tm;
+ val field_mk_div = mk_binop field_div_tm;
  val ring_dest_pow = dest_binary ring_pow_tm;
  val ring_mk_pow = mk_binop ring_pow_tm ;
  fun grobvars tm acc =
@@ -625,16 +631,16 @@ let
     else if can ring_dest_add tm orelse can ring_dest_sub tm
             orelse can ring_dest_mul tm
     then grobvars (dest_arg1 tm) (grobvars (dest_arg tm) acc)
-(*    else if can ring_dest_inv tm
-       then
-             let val gvs = grobvars (dest_arg tm) [] in
-             if gvs = [] then acc else tm::acc
-             end
-    else if can ring_dest_div tm then
-              let val lvs = grobvars (dest_arg1 tm) acc
-                val gvs = grobvars (dest_arg tm) []
-              in if gvs = [] then lvs else tm::acc
-             end *)
+    else if can field_dest_inv tm
+         then
+          let val gvs = grobvars (dest_arg tm) [] 
+          in if null gvs then acc else tm::acc
+          end
+    else if can field_dest_div tm then
+         let val lvs = grobvars (dest_arg1 tm) acc
+             val gvs = grobvars (dest_arg tm) []
+          in if null gvs then lvs else tm::acc
+          end 
     else tm::acc ;
 
 fun grobify_term vars tm =
@@ -648,8 +654,8 @@ handle  CTERM _ =>
   ((grob_neg(grobify_term vars (ring_dest_neg tm)))
   handle CTERM _ =>
    (
-(*   (grob_inv(grobify_term vars (ring_dest_inv tm)))
-   handle CTERM _ => *)
+   (grob_inv(grobify_term vars (field_dest_inv tm)))
+   handle CTERM _ => 
     ((let val (l,r) = ring_dest_add tm
     in grob_add (grobify_term vars l) (grobify_term vars r)
     end)
@@ -662,18 +668,15 @@ handle  CTERM _ =>
       in grob_mul (grobify_term vars l) (grobify_term vars r)
       end)
        handle CTERM _ =>
-        (
-(*  (let val (l,r) = ring_dest_div tm
+        (  (let val (l,r) = field_dest_div tm
           in grob_div (grobify_term vars l) (grobify_term vars r)
           end)
-         handle CTERM _ => *)
+         handle CTERM _ =>
           ((let val (l,r) = ring_dest_pow tm
           in grob_pow vars (grobify_term vars l) ((term_of #> HOLogic.dest_number #> snd) r)
           end)
            handle CTERM _ => error "grobify_term: unknown or invalid term")))))))));
 val eq_tm = idom_thm |> concl |> dest_arg |> dest_arg |> dest_fun2;
-(*ring_integral |> hd |> concl |> dest_arg
-                          |> dest_abs NONE |> snd |> dest_fun |> dest_fun; *)
 val dest_eq = dest_binary eq_tm;
 
 fun grobify_equation vars tm =

@@ -191,8 +191,7 @@ local
 
 open Conv;
 
-fun numeral_is_const ct =
-  can HOLogic.dest_number (Thm.term_of ct);
+fun numeral_is_const ct = can HOLogic.dest_number (Thm.term_of ct);
 
 fun int_of_rat x =
   (case Rat.quotient_of_rat x of (i, 1) => i
@@ -260,16 +259,22 @@ method_setup sring_norm = {*
 locale gb_field = gb_ring +
   fixes divide :: "'a \<Rightarrow> 'a \<Rightarrow> 'a"
     and inverse:: "'a \<Rightarrow> 'a"
-  assumes divide: "divide x y = mul x (inverse y)"
-     and inverse: "inverse x = divide r1 x"
+  assumes divide_inverse: "divide x y = mul x (inverse y)"
+     and inverse_divide: "inverse x = divide r1 x"
 begin
+
+lemma field_ops: shows "TERM (divide x y)" and "TERM (inverse x)" .
+
+lemmas field_rules = divide_inverse inverse_divide
 
 lemmas gb_field_axioms' =
   gb_field_axioms [normalizer
     semiring ops: semiring_ops
     semiring rules: semiring_rules
     ring ops: ring_ops
-    ring rules: ring_rules]
+    ring rules: ring_rules
+    field ops: field_ops
+    field rules: field_rules]
 
 end
 
@@ -393,6 +398,8 @@ lemmas fieldgb_axioms' = fieldgb_axioms [normalizer
   semiring rules: semiring_rules
   ring ops: ring_ops
   ring rules: ring_rules
+  field ops: field_ops
+  field rules: field_rules
   idom rules: noteq_reduce add_scale_eq_noteq
   ideal rules: subr0_iff add_r0_iff]
 
@@ -636,8 +643,8 @@ end
 fun numeral_is_const ct =
   case term_of ct of
    Const (@{const_name "HOL.divide"},_) $ a $ b =>
-     numeral_is_const (Thm.dest_arg1 ct) andalso numeral_is_const (Thm.dest_arg ct)
- | Const (@{const_name "HOL.uminus"},_)$t => numeral_is_const (Thm.dest_arg ct)
+     can HOLogic.dest_number a andalso can HOLogic.dest_number b
+ | Const (@{const_name "HOL.inverse"},_)$t => can HOLogic.dest_number t
  | t => can HOLogic.dest_number t
 
 fun dest_const ct = ((case term_of ct of
