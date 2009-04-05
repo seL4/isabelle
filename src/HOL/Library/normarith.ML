@@ -369,6 +369,7 @@ end;
 
   fun dest_ratconst t = case term_of t of
    Const(@{const_name divide}, _)$a$b => Rat.rat_of_quotient(HOLogic.dest_number a |> snd, HOLogic.dest_number b |> snd)
+ | Const(@{const_name inverse}, _)$a => Rat.rat_of_quotient(1, HOLogic.dest_number a |> snd)
  | _ => Rat.rat_of_int (HOLogic.dest_number (term_of t) |> snd)
  fun is_ratconst t = can dest_ratconst t
 
@@ -795,8 +796,9 @@ struct
 
  open Conv Thm Conv2;
  val bool_eq = op = : bool *bool -> bool
- fun dest_ratconst t = case term_of t of
+  fun dest_ratconst t = case term_of t of
    Const(@{const_name divide}, _)$a$b => Rat.rat_of_quotient(HOLogic.dest_number a |> snd, HOLogic.dest_number b |> snd)
+ | Const(@{const_name inverse}, _)$a => Rat.rat_of_quotient(1, HOLogic.dest_number a |> snd)
  | _ => Rat.rat_of_int (HOLogic.dest_number (term_of t) |> snd)
  fun is_ratconst t = can dest_ratconst t
  fun augment_norm b t acc = case term_of t of 
