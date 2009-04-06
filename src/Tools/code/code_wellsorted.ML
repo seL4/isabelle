@@ -95,6 +95,7 @@ type vardeps_data = ((string * styp list) list * class list) Vargraph.T
 val empty_vardeps_data : vardeps_data =
   (Vargraph.empty, (Symtab.empty, []));
 
+
 (* retrieving equations and instances from the background context *)
 
 fun obtain_eqns thy eqngr c =
