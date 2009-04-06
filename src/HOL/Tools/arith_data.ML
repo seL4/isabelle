@@ -1,4 +1,4 @@
-(*  Title:      HOL/arith_data.ML
+(*  Title:      HOL/Tools/arith_data.ML
     Author:     Markus Wenzel, Stefan Berghofer, and Tobias Nipkow
 
 Common arithmetic proof auxiliary.
@@ -26,7 +26,7 @@ end;
 structure Arith_Data: ARITH_DATA =
 struct
 
-(* slots for pluging in arithmetic facts and tactics *)
+(* slots for plugging in arithmetic facts and tactics *)
 
 structure Arith_Facts = NamedThmsFun(
   val name = "arith"
