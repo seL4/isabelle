@@ -48,11 +48,10 @@ class Prover(isabelle_system: IsabelleSystem, logic: String) extends Actor
     mutable.SynchronizedMap[IsarDocument.State_ID, Command]
   private val commands = new mutable.HashMap[IsarDocument.Command_ID, Command] with
     mutable.SynchronizedMap[IsarDocument.Command_ID, Command]
-  private val document_id0 = Isabelle.plugin.id()
-  private var document_versions = List((document_id0, ProofDocument.empty))
+  private var document_versions = List(ProofDocument.empty)
+  private val document_id0 = ProofDocument.empty.id
 
-  def document_id = document_versions.head._1
-  def document = document_versions.head._2
+  def document = document_versions.head
 
   private var initialized = false
 
@@ -145,7 +144,7 @@ class Prover(isabelle_system: IsabelleSystem, logic: String) extends Actor
 
                   // document edits
                   case XML.Elem(Markup.EDITS, (Markup.ID, doc_id) :: _, edits)
-                  if document_versions.exists(dv => doc_id == dv._1) =>
+                  if document_versions.exists(dv => doc_id == dv.id) =>
                     output_info.event(result.toString)
                     for {
                       XML.Elem(Markup.EDIT, (Markup.ID, cmd_id) :: (Markup.STATE, state_id) :: _, _)
@@ -212,24 +211,22 @@ class Prover(isabelle_system: IsabelleSystem, logic: String) extends Actor
     loop {
       react {
         case Activate => {
-            val (doc, structure_change) = document.activate
-            val old_id = document_id
-            val doc_id = Isabelle.plugin.id()
-            document_versions ::= (doc_id, doc)
-            edit_document(old_id, doc_id, structure_change)
+            val old = document
+            val (doc, structure_change) = old.activate
+            document_versions ::= doc
+            edit_document(old.id, doc.id, structure_change)
         }
         case SetIsCommandKeyword(f) => {
-            val old_id = document_id
-            val doc_id = Isabelle.plugin.id()
-            document_versions ::= (doc_id, document.set_command_keyword(f))
-            edit_document(old_id, doc_id, StructureChange(None, Nil, Nil))
+            val old = document
+            val doc = old.set_command_keyword(f)
+            document_versions ::= doc
+            edit_document(old.id, doc.id, StructureChange(None, Nil, Nil))
         }
         case change: Text.Change => {
-            val (doc, structure_change) = document.text_changed(change)
-            val old_id = document_id
-            val doc_id = Isabelle.plugin.id()
-            document_versions ::= (doc_id, doc)
-            edit_document(old_id, doc_id, structure_change)
+            val old = document
+            val (doc, structure_change) = old.text_changed(change)
+            document_versions ::= doc
+            edit_document(old.id, doc.id, structure_change)
         }
         case command: Command => {
             //state of command has changed
