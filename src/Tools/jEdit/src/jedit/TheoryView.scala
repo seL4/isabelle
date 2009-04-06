@@ -59,7 +59,7 @@ class TheoryView (text_area: JEditTextArea, document_actor: Actor)
   col_timer.setRepeats(true)
 
 
-  private val phase_overview = new PhaseOverviewPanel(prover, to_current(_))
+  private val phase_overview = new PhaseOverviewPanel(prover, to_current)
 
 
   /* activation */
@@ -118,23 +118,40 @@ class TheoryView (text_area: JEditTextArea, document_actor: Actor)
     }
   }.start
 
-  def from_current (pos: Int) =
-    if (col != null && col.start <= pos)
-      if (pos < col.start + col.added.length) col.start
-      else pos - col.added.length + col.removed
-    else pos
+  def _from_current(to_id: String, changes: List[Text.Change], pos: Int): Int =
+    changes match {
+      case Nil => pos
+      case Text.Change(id, start, added, removed) :: rest_changes => {
+        val shifted = if (start <= pos)
+            if (pos < start + added.length) start
+            else pos - added.length + removed
+          else pos
+        if (id == to_id) shifted
+        else _from_current(to_id, rest_changes, shifted)
+      }
+    }
 
-  def to_current (pos : Int) =
-    if (col != null && col.start <= pos)
-      if (pos < col.start + col.removed) col.start
-      else pos + col.added.length - col.removed
-    else pos
+  def _to_current(from_id: String, changes: List[Text.Change], pos: Int): Int =
+    changes match {
+      case Nil => pos
+      case Text.Change(id, start, added, removed) :: rest_changes => {
+        val shifted = if (id == from_id) pos else _to_current(from_id, rest_changes, pos)
+        if (start <= shifted)
+          if (shifted < start + removed) start
+          else shifted + added.length - removed
+        else shifted
+      }
+    }
+
+  def to_current(from_id: String, pos : Int) = _to_current(from_id, changes, pos)
+  def from_current(to_id: String, pos : Int) = _from_current(to_id, changes, pos)
 
   def repaint(cmd: Command) =
   {
+    val document = prover.document
     if (text_area != null) {
-      val start = text_area.getLineOfOffset(to_current(cmd.start))
-      val stop = text_area.getLineOfOffset(to_current(cmd.stop) - 1)
+      val start = text_area.getLineOfOffset(to_current(document.id, cmd.start))
+      val stop = text_area.getLineOfOffset(to_current(document.id, cmd.stop) - 1)
       text_area.invalidateLineRange(start, stop)
 
       if (Isabelle.prover_setup(buffer).get.selected_state == cmd)
@@ -174,11 +191,14 @@ class TheoryView (text_area: JEditTextArea, document_actor: Actor)
   override def paintValidLine(gfx: Graphics2D,
     screen_line: Int, physical_line: Int, start: Int, end: Int, y: Int) =
   {
+    val document = prover.document
+    def from_current(pos: Int) = this.from_current(document.id, pos)
+    def to_current(pos: Int) = this.to_current(document.id, pos)
     val saved_color = gfx.getColor
 
     val metrics = text_area.getPainter.getFontMetrics
-    var e = prover.document.find_command_at(from_current(start))
-    val commands = prover.document.commands.dropWhile(_.stop <= from_current(start)).
+    var e = document.find_command_at(from_current(start))
+    val commands = document.commands.dropWhile(_.stop <= from_current(start)).
       takeWhile(c => to_current(c.start) < end)
     // encolor phase
     for (e <- commands) {
@@ -202,9 +222,13 @@ class TheoryView (text_area: JEditTextArea, document_actor: Actor)
 
   /* BufferListener methods */
 
+  private var changes: List[Text.Change] = Nil
+
   private def commit {
-    if (col != null)
+    if (col != null) {
+      changes += col
       document_actor ! col
+    }
     col = null
     if (col_timer.isRunning())
       col_timer.stop()

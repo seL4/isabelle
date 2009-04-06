@@ -17,7 +17,7 @@ import org.gjt.sp.jedit.textarea.JEditTextArea;
 import org.gjt.sp.jedit.buffer.JEditBuffer;
 import org.gjt.sp.jedit._
 
-class PhaseOverviewPanel(prover: isabelle.prover.Prover, to_current: Int => Int) extends JPanel(new BorderLayout) {
+class PhaseOverviewPanel(prover: isabelle.prover.Prover, to_current: (String, Int) => Int) extends JPanel(new BorderLayout) {
 
   private val WIDTH = 10
 	private val HILITE_HEIGHT = 2
@@ -57,9 +57,9 @@ class PhaseOverviewPanel(prover: isabelle.prover.Prover, to_current: Int => Int)
     } else ""
 	}
 
-  private def paintCommand(command : Command, buffer : JEditBuffer, gfx : Graphics) {
-      val line1 = buffer.getLineOfOffset(to_current(command.start))
-      val line2 = buffer.getLineOfOffset(to_current(command.stop - 1)) + 1
+  private def paintCommand(command : Command, buffer : JEditBuffer, doc_id: String, gfx : Graphics) {
+      val line1 = buffer.getLineOfOffset(to_current(doc_id, command.start))
+      val line2 = buffer.getLineOfOffset(to_current(doc_id, command.stop - 1)) + 1
       val y = lineToY(line1)
       val height = lineToY(line2) - y - 1
       val (light, dark) = command.status match {
@@ -81,8 +81,9 @@ class PhaseOverviewPanel(prover: isabelle.prover.Prover, to_current: Int => Int)
 		super.paintComponent(gfx)
 
 		val buffer = textarea.getBuffer
-    for (c <- prover.document.commands)
-      paintCommand(c, buffer, gfx)
+    val document = prover.document
+    for (c <- document.commands)
+      paintCommand(c, buffer, document.id, gfx)
 
 	}
 

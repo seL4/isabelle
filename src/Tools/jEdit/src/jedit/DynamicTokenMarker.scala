@@ -82,12 +82,12 @@ class DynamicTokenMarker(buffer: JEditBuffer, prover: Prover) extends TokenMarke
 
     val current_document = prover.document
    
-    def to = Isabelle.prover_setup(buffer).get.theory_view.to_current(_)
-    def from = Isabelle.prover_setup(buffer).get.theory_view.from_current(_)
+    def to: Int => Int = Isabelle.prover_setup(buffer).get.theory_view.to_current(current_document.id, _)
+    def from: Int => Int = Isabelle.prover_setup(buffer).get.theory_view.from_current(current_document.id, _)
 
     var next_x = start
     for {
-      command <- prover.document.commands.dropWhile(_.stop <= from(start)).takeWhile(_.start < from(stop))
+      command <- current_document.commands.dropWhile(_.stop <= from(start)).takeWhile(_.start < from(stop))
       markup <- command.root_node.flatten
       if(to(markup.abs_stop) > start)
       if(to(markup.abs_start) < stop)
