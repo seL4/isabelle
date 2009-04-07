@@ -143,8 +143,10 @@ class TheoryView (text_area: JEditTextArea, document_actor: Actor)
       }
     }
 
-  def to_current(from_id: String, pos : Int) = _to_current(from_id, changes, pos)
-  def from_current(to_id: String, pos : Int) = _from_current(to_id, changes, pos)
+  def to_current(from_id: String, pos : Int) =
+    _to_current(from_id, if (col == null) changes else col :: changes, pos)
+  def from_current(to_id: String, pos : Int) =
+    _from_current(to_id, if (col == null) changes else col :: changes, pos)
 
   def repaint(cmd: Command) =
   {
@@ -226,7 +228,7 @@ class TheoryView (text_area: JEditTextArea, document_actor: Actor)
 
   private def commit {
     if (col != null) {
-      changes += col
+      changes = col :: changes
       document_actor ! col
     }
     col = null
