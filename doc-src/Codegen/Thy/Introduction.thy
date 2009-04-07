@@ -138,7 +138,7 @@ text {*
   into a functional program.  This is achieved by three major
   components which operate sequentially, i.e. the result of one is
   the input
-  of the next in the chain,  see diagram \ref{fig:arch}:
+  of the next in the chain,  see figure \ref{fig:arch}:
 
   \begin{itemize}
 

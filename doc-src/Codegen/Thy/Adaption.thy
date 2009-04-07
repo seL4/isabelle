@@ -55,7 +55,7 @@ text {*
 subsection {* The adaption principle *}
 
 text {*
-  The following figure illustrates what \qt{adaption} is conceptually
+  Figure \ref{fig:adaption} illustrates what \qt{adaption} is conceptually
   supposed to be:
 
   \begin{figure}[here]
@@ -287,8 +287,9 @@ definition %quote "eq_class.eq (x\<Colon>bar) y \<longleftrightarrow> x = y"
 
 instance %quote by default (simp add: eq_bar_def)
 
-end %quote
-code_type %quotett bar
+end %quote (*<*)
+
+(*>*) code_type %quotett bar
   (Haskell "Integer")
 
 text {*
