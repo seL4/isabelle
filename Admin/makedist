@@ -13,8 +13,8 @@ umask 022
 
 ## diagnostics
 
-PRG=$(basename "$0")
-THIS=$(cd $(dirname "$0"); echo "$PWD")
+PRG="$(basename "$0")"
+THIS="$(cd $(dirname "$0"); echo "$PWD")"
 
 function usage()
 {
@@ -131,9 +131,9 @@ echo "###"
 echo "### Preparing distribution $DISTNAME"
 echo "###"
 
-find . -name .cvsignore -print | xargs rm -rf
+rm -f .hgignore
 find . "(" -name \*.thy -o -name \*.ML ")" -perm +111 -print | xargs chmod -f -x
-find . -print | xargs chmod u+rw
+find . -print | xargs chmod -f u+rw
 
 ./Admin/build all || fail "Failed to build distribution"
 rm -rf Admin
