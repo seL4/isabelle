@@ -59,7 +59,7 @@ text {*
   supposed to be:
 
   \begin{figure}[here]
-    \includegraphics{Thy/pictures/adaption}
+    \includegraphics{adaption}
     \caption{The adaption principle}
     \label{fig:adaption}
   \end{figure}

@@ -121,7 +121,7 @@ text {*
   how it works.
 
   \begin{figure}[h]
-    \includegraphics{Thy/pictures/architecture}
+    \includegraphics{architecture}
     \caption{Code generator architecture}
     \label{fig:arch}
   \end{figure}

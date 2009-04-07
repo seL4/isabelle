@@ -17,7 +17,7 @@ FILES = $(NAME).tex Thy/document/*.tex \
 
 dvi: $(NAME).dvi
 
-$(NAME).dvi: $(FILES) isabelle_isar.eps Thy/pictures/architecture.eps Thy/pictures/adaption.eps
+$(NAME).dvi: $(FILES) isabelle_isar.eps architecture.eps adaption.eps
 	$(LATEX) $(NAME)
 	$(BIBTEX) $(NAME)
 	$(LATEX) $(NAME)
@@ -25,7 +25,7 @@ $(NAME).dvi: $(FILES) isabelle_isar.eps Thy/pictures/architecture.eps Thy/pictur
 
 pdf: $(NAME).pdf
 
-$(NAME).pdf: $(FILES) isabelle_isar.pdf Thy/pictures/architecture.pdf Thy/pictures/adaption.pdf
+$(NAME).pdf: $(FILES) isabelle_isar.pdf architecture.pdf adaption.pdf
 	$(PDFLATEX) $(NAME)
 	$(BIBTEX) $(NAME)
 	$(PDFLATEX) $(NAME)
@@ -34,11 +34,20 @@ $(NAME).pdf: $(FILES) isabelle_isar.pdf Thy/pictures/architecture.pdf Thy/pictur
 	$(PDFLATEX) $(NAME)
 	$(PDFLATEX) $(NAME)
 
-Thy/pictures/%.dvi: Thy/pictures/%.tex
+architecture.dvi: Thy/pictures/architecture.tex
 	latex -output-directory=$(dir $@) $<
 
-Thy/pictures/%.eps: Thy/pictures/%.dvi
+adaption.dvi: Thy/pictures/adaption.tex
+	latex -output-directory=$(dir $@) $<
+
+architecture.eps: architecture.dvi
 	dvips -E -o $@ $<
 
-Thy/pictures/%.pdf: Thy/pictures/%.eps
+adaption.eps: adaption.dvi
+	dvips -E -o $@ $<
+
+architecture.pdf: architecture.eps
+	epstopdf --outfile=$@ $<
+
+adaption.pdf: adaption.eps
 	epstopdf --outfile=$@ $<
