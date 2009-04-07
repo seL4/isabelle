@@ -1,14 +1,15 @@
 
-This distribution of E 0.999-006 has been compiled according to the
+This distribution of E 1.0-004 has been compiled according to the
 README included in the official version from
 http://www4.informatik.tu-muenchen.de/~schulz/WORK/eprover.html
 
   $ tar xvzf E.tgz
   $ cd E
-  $ make install
-  $ make install-exec
+  $ ./configure
+  $ make
 
-The resulting eproof executable has been changed to be relocatable:
+The resulting PROVER/eproof executable has been changed to be
+relocatable:
 
   $ diff eproof-orig eproof
   1c1
@@ -16,16 +17,14 @@ The resulting eproof executable has been changed to be relocatable:
   ---
   > #!/usr/bin/env bash
   3c3,4
-  < EXECPATH=~/bin
+  < EXECPATH=/Users/schulz/SOURCES/Projects/E/PROVER
   ---
   > set -o noglob
   > EXECPATH="$(cd "$(dirname "$0")"; pwd)"
 
-Now all executables are moved to the platform-specific target
-directory (e.g. E/x86-linux).
+Now the main executables in PROVER/ are moved to the platform-specific
+target directory (E/x86-linux etc.).
 
 
 	Makarius
-	31-May-2008
-
-$Id$
+	07-Apr-2009
