@@ -141,7 +141,7 @@ rm -rf Admin
 MOVE=$(find doc-src \( -type f -a -not -type l -a -not -name isabelle_isar.pdf -a -not -name pghead.pdf -a \( -name \*.dvi -o -name \*.eps -o -name \*.ps -o -name \*.pdf \) -a -print \) | grep -v 'gfx/.*pdf')
 mv -f $MOVE doc
 rm doc/Isa-logics.eps
-rm doc/codegen_process.pdf
+rm doc/adaption.dvi doc/adaption.pdf doc/architecture.dvi doc/architecture.pdf
 rm -rf doc-src
 
 mkdir -p contrib
