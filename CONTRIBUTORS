@@ -11,6 +11,10 @@ Contributions to this Isabelle version
   Cambridge
   Elementary topology in Euclidean space.
 
+* March 2009: Johannes Hoelzl, TUM
+  Method "approximation", which proves real valued inequalities by
+  computation.
+
 * February 2009: Filip Maric, Univ. of Belgrade
   A Serbian theory.
 

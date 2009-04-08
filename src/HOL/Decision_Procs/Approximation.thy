@@ -1,6 +1,6 @@
 (* Author:     Johannes Hoelzl <hoelzl@in.tum.de> 2008 / 2009 *)
 
-header {* Prove unequations about real numbers by computation *}
+header {* Prove Real Valued Inequalities by Computation *}
 
 theory Approximation
 imports Complex_Main Float Reflection Dense_Linear_Order Efficient_Nat
