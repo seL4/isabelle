@@ -34,8 +34,6 @@ in map zero_var_indexes (at thm) end;
 
 structure Domain_Library = struct
 
-open HOLCFLogic;
-
 exception Impossible of string;
 fun Imposs msg = raise Impossible ("Domain:"^msg);
 
@@ -72,7 +70,7 @@ fun mk_var_names ids : string list = let
       | index_vnames([],occupied) = [];
 in index_vnames(map nonreserved ids, [("O",0),("o",0)]) end;
 
-fun pcpo_type sg t = Sign.of_sort sg (Sign.certify_typ sg t, pcpoS);
+fun pcpo_type sg t = Sign.of_sort sg (Sign.certify_typ sg t, @{sort pcpo});
 fun string_of_typ sg = Syntax.string_of_typ_global sg o Sign.certify_typ sg;
 
 (* ----- constructor list handling ----- *)
@@ -99,6 +97,17 @@ fun nonlazy_rec args   = map vname (List.filter is_nonlazy_rec args);
 (* ----- support for type and mixfix expressions ----- *)
 
 infixr 5 -->;
+fun mk_uT T = Type(@{type_name "u"}, [T]);
+fun mk_cfunT (T, U) = Type(@{type_name "->"}, [T, U]);
+fun mk_sprodT (T, U) = Type(@{type_name "**"}, [T, U]);
+fun mk_ssumT (T, U) = Type(@{type_name "++"}, [T, U]);
+val oneT = @{typ one};
+val trT = @{typ tr};
+
+infixr 6 ->>;
+val op ->> = mk_cfunT;
+
+fun mk_TFree s = TFree ("'" ^ s, @{sort pcpo});
 
 (* ----- support for term expressions ----- *)
 
