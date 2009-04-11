@@ -46,12 +46,14 @@ local
 			(* strictly speaking, these constants have one argument,
 			   but the mixfix (without arguments) is introduced only
 			   to generate parse rules for non-alphanumeric names*)
-  fun mat (con ,s,args) = (mat_name_ con, dtype->>mk_maybeT(mk_ctupleT(map third args)),
+  fun freetvar s n      = let val tvar = mk_TFree (s ^ string_of_int n) in
+			  if tvar mem typevars then freetvar ("t"^s) n else tvar end;
+  fun mk_matT (a,bs,c)  = a ->> foldr (op ->>) (mk_maybeT c) bs ->> mk_maybeT c;
+  fun mat (con,s,args)  = (mat_name_ con,
+                           mk_matT(dtype, map third args, freetvar "t" 1),
 			   Mixfix(escape ("match_" ^ con), [], Syntax.max_pri));
   fun sel1 (_,sel,typ)  = Option.map (fn s => (s,dtype ->> typ,NoSyn)) sel;
   fun sel (_   ,_,args) = List.mapPartial sel1 args;
-  fun freetvar s n      = let val tvar = mk_TFree (s ^ string_of_int n) in
-			  if tvar mem typevars then freetvar ("t"^s) n else tvar end;
   fun mk_patT (a,b)     = a ->> mk_maybeT b;
   fun pat_arg_typ n arg = mk_patT (third arg, freetvar "t" n);
   fun pat (con ,s,args) = (pat_name_ con, (mapn pat_arg_typ 1 args) --->

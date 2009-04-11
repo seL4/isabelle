@@ -60,14 +60,18 @@ let
 			   (if con'=con then TT else FF) args)) cons))
 	in map ddef cons end;
 
-  val mat_defs = let
-	fun mdef (con,_) = (mat_name con ^"_def",%%:(mat_name con) == 
-		 list_ccomb(%%:(dname^"_when"),map 
-			(fn (con',args) => (List.foldr /\#
-			   (if con'=con
-                               then mk_return (mk_ctuple (map (bound_arg args) args))
-                               else mk_fail) args)) cons))
-	in map mdef cons end;
+  val mat_defs =
+    let
+      fun mdef (con,_) =
+        let
+          val k = Bound 0
+          val x = Bound 1
+          fun one_con (con', args') =
+	    if con'=con then k else List.foldr /\# mk_fail args'
+          val w = list_ccomb(%%:(dname^"_when"), map one_con cons)
+          val rhs = /\ "x" (/\ "k" (w ` x))
+        in (mat_name con ^"_def", %%:(mat_name con) == rhs) end
+    in map mdef cons end;
 
   val pat_defs =
     let

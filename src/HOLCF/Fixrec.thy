@@ -475,86 +475,95 @@ subsection {* Match functions for built-in types *}
 defaultsort pcpo
 
 definition
-  match_UU :: "'a \<rightarrow> unit maybe" where
-  "match_UU = (\<Lambda> x. fail)"
+  match_UU :: "'a \<rightarrow> 'c maybe \<rightarrow> 'c maybe"
+where
+  "match_UU = strictify\<cdot>(\<Lambda> x k. fail)"
 
 definition
-  match_cpair :: "'a::cpo \<times> 'b::cpo \<rightarrow> ('a \<times> 'b) maybe" where
-  "match_cpair = csplit\<cdot>(\<Lambda> x y. return\<cdot><x,y>)"
+  match_cpair :: "'a::cpo \<times> 'b::cpo \<rightarrow> ('a \<rightarrow> 'b \<rightarrow> 'c maybe) \<rightarrow> 'c maybe"
+where
+  "match_cpair = (\<Lambda> x k. csplit\<cdot>k\<cdot>x)"
 
 definition
-  match_spair :: "'a \<otimes> 'b \<rightarrow> ('a \<times> 'b) maybe" where
-  "match_spair = ssplit\<cdot>(\<Lambda> x y. return\<cdot><x,y>)"
+  match_spair :: "'a \<otimes> 'b \<rightarrow> ('a \<rightarrow> 'b \<rightarrow> 'c maybe) \<rightarrow> 'c maybe"
+where
+  "match_spair = (\<Lambda> x k. ssplit\<cdot>k\<cdot>x)"
 
 definition
-  match_sinl :: "'a \<oplus> 'b \<rightarrow> 'a maybe" where
-  "match_sinl = sscase\<cdot>return\<cdot>(\<Lambda> y. fail)"
+  match_sinl :: "'a \<oplus> 'b \<rightarrow> ('a \<rightarrow> 'c maybe) \<rightarrow> 'c maybe"
+where
+  "match_sinl = (\<Lambda> x k. sscase\<cdot>k\<cdot>(\<Lambda> b. fail)\<cdot>x)"
 
 definition
-  match_sinr :: "'a \<oplus> 'b \<rightarrow> 'b maybe" where
-  "match_sinr = sscase\<cdot>(\<Lambda> x. fail)\<cdot>return"
+  match_sinr :: "'a \<oplus> 'b \<rightarrow> ('b \<rightarrow> 'c maybe) \<rightarrow> 'c maybe"
+where
+  "match_sinr = (\<Lambda> x k. sscase\<cdot>(\<Lambda> a. fail)\<cdot>k\<cdot>x)"
 
 definition
-  match_up :: "'a::cpo u \<rightarrow> 'a maybe" where
-  "match_up = fup\<cdot>return"
+  match_up :: "'a::cpo u \<rightarrow> ('a \<rightarrow> 'c maybe) \<rightarrow> 'c maybe"
+where
+  "match_up = (\<Lambda> x k. fup\<cdot>k\<cdot>x)"
 
 definition
-  match_ONE :: "one \<rightarrow> unit maybe" where
-  "match_ONE = (\<Lambda> ONE. return\<cdot>())"
+  match_ONE :: "one \<rightarrow> 'c maybe \<rightarrow> 'c maybe"
+where
+  "match_ONE = (\<Lambda> ONE k. k)"
+
+definition
+  match_TT :: "tr \<rightarrow> 'c maybe \<rightarrow> 'c maybe"
+where
+  "match_TT = (\<Lambda> x k. If x then k else fail fi)"
  
 definition
-  match_TT :: "tr \<rightarrow> unit maybe" where
-  "match_TT = (\<Lambda> b. If b then return\<cdot>() else fail fi)"
- 
-definition
-  match_FF :: "tr \<rightarrow> unit maybe" where
-  "match_FF = (\<Lambda> b. If b then fail else return\<cdot>() fi)"
+  match_FF :: "tr \<rightarrow> 'c maybe \<rightarrow> 'c maybe"
+where
+  "match_FF = (\<Lambda> x k. If x then fail else k fi)"
 
 lemma match_UU_simps [simp]:
-  "match_UU\<cdot>x = fail"
+  "match_UU\<cdot>x\<cdot>k = (if x = \<bottom> then \<bottom> else fail)"
 by (simp add: match_UU_def)
 
 lemma match_cpair_simps [simp]:
-  "match_cpair\<cdot><x,y> = return\<cdot><x,y>"
+  "match_cpair\<cdot>\<langle>x, y\<rangle>\<cdot>k = k\<cdot>x\<cdot>y"
 by (simp add: match_cpair_def)
 
 lemma match_spair_simps [simp]:
-  "\<lbrakk>x \<noteq> \<bottom>; y \<noteq> \<bottom>\<rbrakk> \<Longrightarrow> match_spair\<cdot>(:x,y:) = return\<cdot><x,y>"
-  "match_spair\<cdot>\<bottom> = \<bottom>"
+  "\<lbrakk>x \<noteq> \<bottom>; y \<noteq> \<bottom>\<rbrakk> \<Longrightarrow> match_spair\<cdot>(:x, y:)\<cdot>k = k\<cdot>x\<cdot>y"
+  "match_spair\<cdot>\<bottom>\<cdot>k = \<bottom>"
 by (simp_all add: match_spair_def)
 
 lemma match_sinl_simps [simp]:
-  "x \<noteq> \<bottom> \<Longrightarrow> match_sinl\<cdot>(sinl\<cdot>x) = return\<cdot>x"
-  "x \<noteq> \<bottom> \<Longrightarrow> match_sinl\<cdot>(sinr\<cdot>x) = fail"
-  "match_sinl\<cdot>\<bottom> = \<bottom>"
+  "x \<noteq> \<bottom> \<Longrightarrow> match_sinl\<cdot>(sinl\<cdot>x)\<cdot>k = k\<cdot>x"
+  "x \<noteq> \<bottom> \<Longrightarrow> match_sinl\<cdot>(sinr\<cdot>x)\<cdot>k = fail"
+  "match_sinl\<cdot>\<bottom>\<cdot>k = \<bottom>"
 by (simp_all add: match_sinl_def)
 
 lemma match_sinr_simps [simp]:
-  "x \<noteq> \<bottom> \<Longrightarrow> match_sinr\<cdot>(sinr\<cdot>x) = return\<cdot>x"
-  "x \<noteq> \<bottom> \<Longrightarrow> match_sinr\<cdot>(sinl\<cdot>x) = fail"
-  "match_sinr\<cdot>\<bottom> = \<bottom>"
+  "x \<noteq> \<bottom> \<Longrightarrow> match_sinr\<cdot>(sinr\<cdot>x)\<cdot>k = k\<cdot>x"
+  "x \<noteq> \<bottom> \<Longrightarrow> match_sinr\<cdot>(sinl\<cdot>x)\<cdot>k = fail"
+  "match_sinr\<cdot>\<bottom>\<cdot>k = \<bottom>"
 by (simp_all add: match_sinr_def)
 
 lemma match_up_simps [simp]:
-  "match_up\<cdot>(up\<cdot>x) = return\<cdot>x"
-  "match_up\<cdot>\<bottom> = \<bottom>"
+  "match_up\<cdot>(up\<cdot>x)\<cdot>k = k\<cdot>x"
+  "match_up\<cdot>\<bottom>\<cdot>k = \<bottom>"
 by (simp_all add: match_up_def)
 
 lemma match_ONE_simps [simp]:
-  "match_ONE\<cdot>ONE = return\<cdot>()"
-  "match_ONE\<cdot>\<bottom> = \<bottom>"
+  "match_ONE\<cdot>ONE\<cdot>k = k"
+  "match_ONE\<cdot>\<bottom>\<cdot>k = \<bottom>"
 by (simp_all add: match_ONE_def)
 
 lemma match_TT_simps [simp]:
-  "match_TT\<cdot>TT = return\<cdot>()"
-  "match_TT\<cdot>FF = fail"
-  "match_TT\<cdot>\<bottom> = \<bottom>"
+  "match_TT\<cdot>TT\<cdot>k = k"
+  "match_TT\<cdot>FF\<cdot>k = fail"
+  "match_TT\<cdot>\<bottom>\<cdot>k = \<bottom>"
 by (simp_all add: match_TT_def)
 
 lemma match_FF_simps [simp]:
-  "match_FF\<cdot>FF = return\<cdot>()"
-  "match_FF\<cdot>TT = fail"
-  "match_FF\<cdot>\<bottom> = \<bottom>"
+  "match_FF\<cdot>FF\<cdot>k = k"
+  "match_FF\<cdot>TT\<cdot>k = fail"
+  "match_FF\<cdot>\<bottom>\<cdot>k = \<bottom>"
 by (simp_all add: match_FF_def)
 
 subsection {* Mutual recursion *}

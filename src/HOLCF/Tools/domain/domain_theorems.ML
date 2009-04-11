@@ -314,8 +314,8 @@ end;
 local
   fun mat_strict (con, _) =
     let
-      val goal = mk_trp (strict (%%:(mat_name con)));
-      val tacs = [rtac when_strict 1];
+      val goal = mk_trp (%%:(mat_name con) ` UU ` %:"rhs" === UU);
+      val tacs = [asm_simp_tac (HOLCF_ss addsimps [when_strict]) 1];
     in pg axs_mat_def goal (K tacs) end;
 
   val _ = trace " Proving mat_stricts...";
@@ -323,10 +323,10 @@ local
 
   fun one_mat c (con, args) =
     let
-      val lhs = %%:(mat_name c) ` con_app con args;
+      val lhs = %%:(mat_name c) ` con_app con args ` %:"rhs";
       val rhs =
         if con = c
-        then mk_return (mk_ctuple (map %# args))
+        then list_ccomb (%:"rhs", map %# args)
         else mk_fail;
       val goal = lift_defined %: (nonlazy args, mk_trp (lhs === rhs));
       val tacs = [asm_simp_tac (HOLCF_ss addsimps when_rews) 1];
