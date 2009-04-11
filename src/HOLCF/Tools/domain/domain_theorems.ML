@@ -374,14 +374,14 @@ in
 end;
 
 local
-  val rev_contrapos = @{thm rev_contrapos};
   fun con_strict (con, args) = 
     let
+      val rules = abs_strict :: @{thms con_strict_rules};
       fun one_strict vn =
         let
           fun f arg = if vname arg = vn then UU else %# arg;
           val goal = mk_trp (con_app2 con f args === UU);
-          val tacs = [asm_simp_tac (HOLCF_ss addsimps [abs_strict]) 1];
+          val tacs = [simp_tac (HOL_basic_ss addsimps rules) 1];
         in pg con_appls goal (K tacs) end;
     in map one_strict (nonlazy args) end;
 
@@ -389,15 +389,15 @@ local
     let
       val concl = mk_trp (defined (con_app con args));
       val goal = lift_defined %: (nonlazy args, concl);
-      fun tacs ctxt = [
-        rtac @{thm rev_contrapos} 1,
-        eres_inst_tac ctxt [(("f", 0), dis_name con)] cfun_arg_cong 1,
-        asm_simp_tac (HOLCF_ss addsimps dis_rews) 1];
-    in pg [] goal tacs end;
+      val rules = @{thms con_defin_rules};
+      val tacs = [
+        rtac (iso_locale RS iso_abs_defined) 1,
+        REPEAT (resolve_tac rules 1 ORELSE assume_tac 1)];
+    in pg con_appls goal (K tacs) end;
 in
   val _ = trace " Proving con_stricts...";
   val con_stricts = maps con_strict cons;
-  val _ = trace " Proving pat_defins...";
+  val _ = trace " Proving con_defins...";
   val con_defins = map con_defin cons;
   val con_rews = con_stricts @ con_defins;
 end;
@@ -488,7 +488,6 @@ in
 end;
 
 val sel_rews = sel_stricts @ sel_defins @ sel_apps;
-val rev_contrapos = @{thm rev_contrapos};
 
 val _ = trace " Proving dist_les...";
 val distincts_le =
