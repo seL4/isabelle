@@ -387,12 +387,14 @@ local
 
   fun con_defin (con, args) =
     let
-      val concl = mk_trp (defined (con_app con args));
-      val goal = lift_defined %: (nonlazy args, concl);
-      val rules = @{thms con_defin_rules};
-      val tacs = [
-        rtac (iso_locale RS iso_abs_defined) 1,
-        REPEAT (resolve_tac rules 1 ORELSE assume_tac 1)];
+      fun iff_disj (t, []) = HOLogic.mk_not t
+        | iff_disj (t, ts) = t === foldr1 HOLogic.mk_disj ts;
+      val lhs = con_app con args === UU;
+      val rhss = map (fn x => %:x === UU) (nonlazy args);
+      val goal = mk_trp (iff_disj (lhs, rhss));
+      val rule1 = iso_locale RS @{thm iso.abs_defined_iff};
+      val rules = rule1 :: @{thms con_defined_iff_rules};
+      val tacs = [simp_tac (HOL_ss addsimps rules) 1];
     in pg con_appls goal (K tacs) end;
 in
   val _ = trace " Proving con_stricts...";

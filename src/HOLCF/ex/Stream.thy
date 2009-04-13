@@ -64,10 +64,10 @@ declare stream.rews [simp add]
 section "scons"
 
 lemma scons_eq_UU: "(a && s = UU) = (a = UU)"
-by (auto, erule contrapos_pp, simp)
+by simp
 
 lemma scons_not_empty: "[| a && x = UU; a ~= UU |] ==> R"
-by auto
+by simp
 
 lemma stream_exhaust_eq: "(x ~= UU) = (EX a y. a ~= UU &  x = a && y)"
 by (auto,insert stream.exhaust [of x],auto)
@@ -382,7 +382,6 @@ by (simp add: slen_def)
 
 lemma slen_scons_eq_rev: "(#x < Fin (Suc (Suc n))) = (!a y. x ~= a && y |  a = \<bottom> |  #y < Fin (Suc n))"
  apply (rule stream.casedist [of x], auto)
-    apply ((*drule sym,*) drule scons_eq_UU [THEN iffD1],auto)
    apply (simp add: zero_inat_def)
   apply (case_tac "#s") apply (simp_all add: iSuc_Fin)
  apply (case_tac "#s") apply (simp_all add: iSuc_Fin)
