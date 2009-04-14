@@ -32,6 +32,8 @@ elements.
 
 * Parallel proof checking within Isar theories.
 
+* Haskabelle importer from Haskell source files to Isar theories.
+
 
 You may get Isabelle2009 from the following mirror sites:
 
