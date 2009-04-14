@@ -57,7 +57,7 @@ fi
 
 OUTPUT="/tmp/isabelle$$.out"
 
-( "$HOME/bin/isabelle" emacs "$@" ) > "$OUTPUT" 2>&1
+( "$ISABELLE_TOOL" emacs "$@" ) > "$OUTPUT" 2>&1
 RC=$?
 
 if [ "$RC" != 0 ]; then
