@@ -8,7 +8,7 @@ file in the distribution for more details.  Some important changes
 are:
 
 * Complete re-implementation of locales, with proper support for local
-syntax, and more robust interpretation mechanism.
+syntax, and more general locale expressions.
 
 * New 'find_consts' and 'find_theorems' facilities, together with
 "auto solve" feature of toplevel goal statements.
