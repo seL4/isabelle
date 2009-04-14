@@ -49,7 +49,7 @@ PROOFGENERAL_EMACS="$(choosefrom \
   "")"
 
 if [ -n "$PROOFGENERAL_EMACS" ]; then
-  PROOFGENERAL_OPTIONS="-p $PROOFGENERAL_EMACS $PROOFGENERAL_OPTIONS"
+  EMACS_OPTIONS="-p $PROOFGENERAL_EMACS"
 fi
 
 
@@ -57,7 +57,7 @@ fi
 
 OUTPUT="/tmp/isabelle$$.out"
 
-( "$ISABELLE_TOOL" emacs "$@" ) > "$OUTPUT" 2>&1
+( "$ISABELLE_TOOL" emacs $EMACS_OPTIONS "$@" ) > "$OUTPUT" 2>&1
 RC=$?
 
 if [ "$RC" != 0 ]; then
