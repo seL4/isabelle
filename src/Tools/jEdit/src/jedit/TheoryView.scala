@@ -126,7 +126,7 @@ class TheoryView (text_area: JEditTextArea, document_actor: Actor)
             if (pos < start + added.length) start
             else pos - added.length + removed
           else pos
-        if (id == to_id) shifted
+        if (id == to_id) pos
         else _from_current(to_id, rest_changes, shifted)
       }
     }
@@ -135,11 +135,12 @@ class TheoryView (text_area: JEditTextArea, document_actor: Actor)
     changes match {
       case Nil => pos
       case Text.Change(id, start, added, removed) :: rest_changes => {
-        val shifted = if (id == from_id) pos else _to_current(from_id, rest_changes, pos)
-        if (start <= shifted)
+        val shifted = _to_current(from_id, rest_changes, pos)
+        if (id == from_id) pos
+        else if (start <= shifted) {
           if (shifted < start + removed) start
           else shifted + added.length - removed
-        else shifted
+        } else shifted
       }
     }
 
@@ -226,7 +227,7 @@ class TheoryView (text_area: JEditTextArea, document_actor: Actor)
 
   private var changes: List[Text.Change] = Nil
 
-  private def commit {
+  private def commit: Unit = synchronized {
     if (col != null) {
       changes = col :: changes
       document_actor ! col
