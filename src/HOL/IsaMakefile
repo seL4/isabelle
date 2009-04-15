@@ -216,7 +216,7 @@ MAIN_DEPENDENCIES = $(PLAIN_DEPENDENCIES) \
   List.thy \
   Main.thy \
   Map.thy \
-  NatBin.thy \
+  Nat_Numeral.thy \
   Presburger.thy \
   Recdef.thy \
   Relation_Power.thy \
