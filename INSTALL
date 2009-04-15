@@ -6,7 +6,7 @@ Isabelle installation notes
 ----------------------
 
 The Isabelle distribution includes both complete sources and
-precompiled binary packages for common Unix platforms.
+precompiled binary packages for common Unix-like platforms.
 
 
 Quick installation
