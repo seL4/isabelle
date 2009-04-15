@@ -25,8 +25,7 @@ manager; support for remote ATPs.
 * Simplified arrangement of Isabelle startup scripts and settings
 directory.
 
-* Simplified internal programming interfaces for all Isar language
-elements.
+* Simplified programming interfaces for all Isar language elements.
 
 * General high-level support for concurrent ML programming.
 
