@@ -19,54 +19,48 @@ import javax.swing.text.Segment;
 
 object DynamicTokenMarker {
 
-  var styles : Array[SyntaxStyle] = null
-  def reload_styles: Array[SyntaxStyle] = {
-    styles = new Array[SyntaxStyle](256)
-    //jEdit styles
-    for(i <- 0 to Token.ID_COUNT) styles(i) = new SyntaxStyle(Color.black, Color.white, Isabelle.plugin.font)
-    //isabelle styles
-    def from_property(kind : String, spec : String, default : Color) : Color = 
-      try {Color.decode(Isabelle.Property("styles." + kind + "." + spec))} catch {case _ => default}
-
-    for((kind, i) <- kinds) styles(i + FIRST_BYTE) = new SyntaxStyle(
-      from_property(kind, "foreground", Color.black),
-      from_property(kind, "background", Color.white),
-      Isabelle.plugin.font)
-    return styles
+  // Mapping to jEdits token types
+  def choose_byte(kind: String): Byte = {
+    // TODO: as properties
+    kind match {
+      // logical entities
+      case Markup.TCLASS | Markup.TYCON | Markup.FIXED_DECL | Markup.FIXED | Markup.CONST_DECL
+        | Markup.CONST | Markup.FACT_DECL | Markup.FACT | Markup.DYNAMIC_FACT
+        | Markup.LOCAL_FACT_DECL | Markup.LOCAL_FACT => Token.DIGIT
+      // inner syntax
+      case Markup.TFREE | Markup.FREE => Token.LITERAL2
+      case Markup.TVAR | Markup.SKOLEM | Markup.BOUND | Markup.VAR => Token.LITERAL3
+      case Markup.NUM | Markup.FLOAT | Markup.XNUM | Markup.XSTR | Markup.LITERAL
+        | Markup.INNER_COMMENT => Token.LITERAL4
+      case Markup.SORT | Markup.TYP | Markup.TERM | Markup.PROP
+        | Markup.ATTRIBUTE | Markup.METHOD => Token.FUNCTION
+      // ML syntax
+      case Markup.ML_KEYWORD => Token.KEYWORD2
+      case Markup.ML_IDENT => Token.KEYWORD3
+      case Markup.ML_TVAR => Token.LITERAL3
+      case Markup.ML_NUMERAL => Token.LITERAL4
+      case Markup.ML_CHAR | Markup.ML_STRING => Token.LITERAL1
+      case Markup.ML_COMMENT => Token.COMMENT1
+      case Markup.ML_MALFORMED => Token.INVALID
+      // embedded source text
+      case Markup.ML_SOURCE | Markup.DOC_SOURCE | Markup.ANTIQ | Markup.ML_ANTIQ
+        | Markup.DOC_ANTIQ => Token.COMMENT4
+      // outer syntax
+      case Markup.IDENT => Token.KEYWORD3
+      case Markup.COMMAND => Token.KEYWORD1
+      case Markup.KEYWORD => Token.KEYWORD2
+      case Markup.VERBATIM => Token.COMMENT1
+      case Markup.COMMENT => Token.COMMENT2
+      case Markup.CONTROL => Token.COMMENT3
+      case Markup.MALFORMED => Token.INVALID
+      case Markup.STRING | Markup.ALTSTRING => Token.LITERAL1
+      // other
+      case _ => 0
+    }
   }
 
-  private final val FIRST_BYTE : Byte = 30
-  val kinds = List(// TODO Markups as Enumeration?
-     // default style
-    null,
-    // logical entities
-    Markup.TCLASS, Markup.TYCON, Markup.FIXED_DECL, Markup.FIXED, Markup.CONST_DECL,
-    Markup.CONST, Markup.FACT_DECL, Markup.FACT, Markup.DYNAMIC_FACT,
-    Markup.LOCAL_FACT_DECL, Markup.LOCAL_FACT,
-    // inner syntax
-    Markup.TFREE, Markup.FREE,
-    Markup.TVAR, Markup.SKOLEM, Markup.BOUND, Markup.VAR,
-    Markup.NUM, Markup.FLOAT, Markup.XNUM, Markup.XSTR, Markup.LITERAL,
-    Markup.INNER_COMMENT,
-    Markup.SORT, Markup.TYP, Markup.TERM, Markup.PROP,
-    Markup.ATTRIBUTE, Markup.METHOD,
-    // ML syntax
-    Markup.ML_KEYWORD, Markup.ML_IDENT, Markup.ML_TVAR, Markup.ML_NUMERAL,
-    Markup.ML_CHAR, Markup.ML_STRING, Markup.ML_COMMENT, Markup.ML_MALFORMED,
-    // embedded source text
-    Markup.ML_SOURCE, Markup.DOC_SOURCE, Markup.ANTIQ, Markup.ML_ANTIQ,
-    Markup.DOC_ANTIQ,
-    // outer syntax
-    Markup.IDENT, Markup.COMMAND, Markup.KEYWORD, Markup.VERBATIM, Markup.COMMENT,
-    Markup.CONTROL, Markup.MALFORMED, Markup.STRING, Markup.ALTSTRING
-  ).zipWithIndex
-
-  def choose_byte(kind : String) : Byte = (kinds.find (k => kind == k._1)) match {
-    case Some((kind, index)) => (index + FIRST_BYTE).asInstanceOf[Byte]
-    case _ => FIRST_BYTE
-  }
-
-  def choose_color(kind : String) : Color = styles((choose_byte(kind).asInstanceOf[Byte])).getForegroundColor
+  def choose_color(kind : String, styles: Array[SyntaxStyle]) : Color =
+    styles((choose_byte(kind).asInstanceOf[Byte])).getForegroundColor
 
 }
 

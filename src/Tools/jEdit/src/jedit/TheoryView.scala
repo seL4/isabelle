@@ -64,17 +64,6 @@ class TheoryView (text_area: JEditTextArea, document_actor: Actor)
 
   /* activation */
 
-  Isabelle.plugin.font_changed += (_ => update_styles)
-
-  private def update_styles = {
-    if (text_area != null) {
-      if (Isabelle.plugin.font != null) {
-        text_area.getPainter.setStyles(DynamicTokenMarker.reload_styles)
-        repaint_all
-      }
-    }
-  }
-
   private val selected_state_controller = new CaretListener {
     override def caretUpdate(e: CaretEvent) = {
       val cmd = prover.document.find_command_at(e.getDot)
@@ -90,7 +79,6 @@ class TheoryView (text_area: JEditTextArea, document_actor: Actor)
     text_area.addLeftOfScrollBar(phase_overview)
     text_area.getPainter.addExtension(TextAreaPainter.LINE_BACKGROUND_LAYER + 1, this)
     buffer.setTokenMarker(new DynamicTokenMarker(buffer, prover))
-    update_styles
     document_actor ! new Text.Change(id(), 0,buffer.getText(0, buffer.getLength),0)
   }
 
@@ -215,7 +203,7 @@ class TheoryView (text_area: JEditTextArea, document_actor: Actor)
         val finish = to_current(node.stop + e.start)
         if (finish > start && begin < end) {
           encolor(gfx, y + metrics.getHeight - 2, 1, begin max start, finish min end - 1,
-            DynamicTokenMarker.choose_color(node.kind), true)
+            DynamicTokenMarker.choose_color(node.kind, text_area.getPainter.getStyles), true)
         }
       }
     }

@@ -75,7 +75,6 @@
       <copy file="plugin/dockables.xml" todir="${build.classes.dir}" />
       <copy file="plugin/actions.xml" todir="${build.classes.dir}" />
       <copy file="plugin/Isabelle.props" todir="${build.classes.dir}" />
-      <copy file="plugin/styles.props" todir="${build.classes.dir}" />
     </target>
     <target name="-post-jar">
       <!-- jars -->
