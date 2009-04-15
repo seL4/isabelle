@@ -1,5 +1,4 @@
 (*  Title:      HOL/Divides.thy
-    ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1999  University of Cambridge
 *)
@@ -238,9 +237,9 @@ proof -
     by (simp only: mod_add_eq [symmetric])
 qed
 
-lemma div_add[simp]: "z dvd x \<Longrightarrow> z dvd y
+lemma div_add [simp]: "z dvd x \<Longrightarrow> z dvd y
   \<Longrightarrow> (x + y) div z = x div z + y div z"
-by(cases "z=0", simp, unfold dvd_def, auto simp add: algebra_simps)
+by (cases "z = 0", simp, unfold dvd_def, auto simp add: algebra_simps)
 
 text {* Multiplication respects modular equivalence. *}
 
@@ -398,15 +397,17 @@ text {*
   @{term "q\<Colon>nat"}(uotient) and @{term "r\<Colon>nat"}(emainder).
 *}
 
-definition divmod_rel :: "nat \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> bool" where
-  "divmod_rel m n q r \<longleftrightarrow> m = q * n + r \<and> (if n > 0 then 0 \<le> r \<and> r < n else q = 0)"
+definition divmod_rel :: "nat \<Rightarrow> nat \<Rightarrow> nat \<times> nat \<Rightarrow> bool" where
+  "divmod_rel m n qr \<longleftrightarrow>
+    m = fst qr * n + snd qr \<and>
+      (if n = 0 then fst qr = 0 else if n > 0 then 0 \<le> snd qr \<and> snd qr < n else n < snd qr \<and> snd qr \<le> 0)"
 
 text {* @{const divmod_rel} is total: *}
 
 lemma divmod_rel_ex:
-  obtains q r where "divmod_rel m n q r"
+  obtains q r where "divmod_rel m n (q, r)"
 proof (cases "n = 0")
-  case True with that show thesis
+  case True  with that show thesis
     by (auto simp add: divmod_rel_def)
 next
   case False
@@ -436,13 +437,14 @@ qed
 
 text {* @{const divmod_rel} is injective: *}
 
-lemma divmod_rel_unique_div:
-  assumes "divmod_rel m n q r"
-    and "divmod_rel m n q' r'"
-  shows "q = q'"
+lemma divmod_rel_unique:
+  assumes "divmod_rel m n qr"
+    and "divmod_rel m n qr'"
+  shows "qr = qr'"
 proof (cases "n = 0")
   case True with assms show ?thesis
-    by (simp add: divmod_rel_def)
+    by (cases qr, cases qr')
+      (simp add: divmod_rel_def)
 next
   case False
   have aux: "\<And>q r q' r'. q' * n + r' = q * n + r \<Longrightarrow> r < n \<Longrightarrow> q' \<le> (q\<Colon>nat)"
@@ -450,18 +452,11 @@ next
   apply (subst less_iff_Suc_add)
   apply (auto simp add: add_mult_distrib)
   done
-  from `n \<noteq> 0` assms show ?thesis
-    by (auto simp add: divmod_rel_def
-      intro: order_antisym dest: aux sym)
-qed
-
-lemma divmod_rel_unique_mod:
-  assumes "divmod_rel m n q r"
-    and "divmod_rel m n q' r'"
-  shows "r = r'"
-proof -
-  from assms have "q = q'" by (rule divmod_rel_unique_div)
-  with assms show ?thesis by (simp add: divmod_rel_def)
+  from `n \<noteq> 0` assms have "fst qr = fst qr'"
+    by (auto simp add: divmod_rel_def intro: order_antisym dest: aux sym)
+  moreover from this assms have "snd qr = snd qr'"
+    by (simp add: divmod_rel_def)
+  ultimately show ?thesis by (cases qr, cases qr') simp
 qed
 
 text {*
@@ -473,7 +468,21 @@ instantiation nat :: semiring_div
 begin
 
 definition divmod :: "nat \<Rightarrow> nat \<Rightarrow> nat \<times> nat" where
-  [code del]: "divmod m n = (THE (q, r). divmod_rel m n q r)"
+  [code del]: "divmod m n = (THE qr. divmod_rel m n qr)"
+
+lemma divmod_rel_divmod:
+  "divmod_rel m n (divmod m n)"
+proof -
+  from divmod_rel_ex
+    obtain qr where rel: "divmod_rel m n qr" .
+  then show ?thesis
+  by (auto simp add: divmod_def intro: theI elim: divmod_rel_unique)
+qed
+
+lemma divmod_eq:
+  assumes "divmod_rel m n qr" 
+  shows "divmod m n = qr"
+  using assms by (auto intro: divmod_rel_unique divmod_rel_divmod)
 
 definition div_nat where
   "m div n = fst (divmod m n)"
@@ -485,30 +494,18 @@ lemma divmod_div_mod:
   "divmod m n = (m div n, m mod n)"
   unfolding div_nat_def mod_nat_def by simp
 
-lemma divmod_eq:
-  assumes "divmod_rel m n q r" 
-  shows "divmod m n = (q, r)"
-  using assms by (auto simp add: divmod_def
-    dest: divmod_rel_unique_div divmod_rel_unique_mod)
-
 lemma div_eq:
-  assumes "divmod_rel m n q r" 
+  assumes "divmod_rel m n (q, r)" 
   shows "m div n = q"
-  using assms by (auto dest: divmod_eq simp add: div_nat_def)
+  using assms by (auto dest: divmod_eq simp add: divmod_div_mod)
 
 lemma mod_eq:
-  assumes "divmod_rel m n q r" 
+  assumes "divmod_rel m n (q, r)" 
   shows "m mod n = r"
-  using assms by (auto dest: divmod_eq simp add: mod_nat_def)
+  using assms by (auto dest: divmod_eq simp add: divmod_div_mod)
 
-lemma divmod_rel: "divmod_rel m n (m div n) (m mod n)"
-proof -
-  from divmod_rel_ex
-    obtain q r where rel: "divmod_rel m n q r" .
-  moreover with div_eq mod_eq have "m div n = q" and "m mod n = r"
-    by simp_all
-  ultimately show ?thesis by simp
-qed
+lemma divmod_rel: "divmod_rel m n (m div n, m mod n)"
+  by (simp add: div_nat_def mod_nat_def divmod_rel_divmod)
 
 lemma divmod_zero:
   "divmod m 0 = (0, m)"
@@ -531,10 +528,10 @@ lemma divmod_step:
   assumes "0 < n" and "n \<le> m"
   shows "divmod m n = (Suc ((m - n) div n), (m - n) mod n)"
 proof -
-  from divmod_rel have divmod_m_n: "divmod_rel m n (m div n) (m mod n)" .
+  from divmod_rel have divmod_m_n: "divmod_rel m n (m div n, m mod n)" .
   with assms have m_div_n: "m div n \<ge> 1"
     by (cases "m div n") (auto simp add: divmod_rel_def)
-  from assms divmod_m_n have "divmod_rel (m - n) n (m div n - Suc 0) (m mod n)"
+  from assms divmod_m_n have "divmod_rel (m - n) n (m div n - Suc 0, m mod n)"
     by (cases "m div n") (auto simp add: divmod_rel_def)
   with divmod_eq have "divmod (m - n) n = (m div n - Suc 0, m mod n)" by simp
   moreover from divmod_div_mod have "divmod (m - n) n = ((m - n) div n, (m - n) mod n)" .
@@ -658,7 +655,7 @@ lemma mod_less_divisor [simp]:
   fixes m n :: nat
   assumes "n > 0"
   shows "m mod n < (n::nat)"
-  using assms divmod_rel unfolding divmod_rel_def by auto
+  using assms divmod_rel [of m n] unfolding divmod_rel_def by auto
 
 lemma mod_less_eq_dividend [simp]:
   fixes m n :: nat
@@ -700,18 +697,19 @@ lemma mod_le_divisor[simp]: "0 < n \<Longrightarrow> m mod n \<le> (n::nat)"
 subsubsection {* Quotient and Remainder *}
 
 lemma divmod_rel_mult1_eq:
-  "[| divmod_rel b c q r; c > 0 |]
-   ==> divmod_rel (a*b) c (a*q + a*r div c) (a*r mod c)"
+  "divmod_rel b c (q, r) \<Longrightarrow> c > 0
+   \<Longrightarrow> divmod_rel (a * b) c (a * q + a * r div c, a * r mod c)"
 by (auto simp add: split_ifs divmod_rel_def algebra_simps)
 
-lemma div_mult1_eq: "(a*b) div c = a*(b div c) + a*(b mod c) div (c::nat)"
+lemma div_mult1_eq:
+  "(a * b) div c = a * (b div c) + a * (b mod c) div (c::nat)"
 apply (cases "c = 0", simp)
 apply (blast intro: divmod_rel [THEN divmod_rel_mult1_eq, THEN div_eq])
 done
 
 lemma divmod_rel_add1_eq:
-  "[| divmod_rel a c aq ar; divmod_rel b c bq br;  c > 0 |]
-   ==> divmod_rel (a + b) c (aq + bq + (ar+br) div c) ((ar + br) mod c)"
+  "divmod_rel a c (aq, ar) \<Longrightarrow> divmod_rel b c (bq, br) \<Longrightarrow>  c > 0
+   \<Longrightarrow> divmod_rel (a + b) c (aq + bq + (ar + br) div c, (ar + br) mod c)"
 by (auto simp add: split_ifs divmod_rel_def algebra_simps)
 
 (*NOT suitable for rewriting: the RHS has an instance of the LHS*)
@@ -728,8 +726,9 @@ lemma mod_lemma: "[| (0::nat) < c; r < b |] ==> b * (q mod c) + r < b * c"
   apply (simp add: add_mult_distrib2)
   done
 
-lemma divmod_rel_mult2_eq: "[| divmod_rel a b q r;  0 < b;  0 < c |]
-      ==> divmod_rel a (b*c) (q div c) (b*(q mod c) + r)"
+lemma divmod_rel_mult2_eq:
+  "divmod_rel a b (q, r) \<Longrightarrow> 0 < b \<Longrightarrow> 0 < c
+   \<Longrightarrow> divmod_rel a (b * c) (q div c, b *(q mod c) + r)"
 by (auto simp add: mult_ac divmod_rel_def add_mult_distrib2 [symmetric] mod_lemma)
 
 lemma div_mult2_eq: "a div (b*c) = (a div b) div (c::nat)"
@@ -769,7 +768,7 @@ by (induct m) (simp_all add: div_geq)
 
 
 (* Monotonicity of div in first argument *)
-lemma div_le_mono [rule_format]:
+lemma div_le_mono [rule_format (no_asm)]:
     "\<forall>m::nat. m \<le> n --> (m div k) \<le> (n div k)"
 apply (case_tac "k=0", simp)
 apply (induct "n" rule: nat_less_induct, clarify)
@@ -823,12 +822,6 @@ apply (case_tac "n<m")
 apply assumption
   apply (simp_all)
 done
-
-lemma nat_div_eq_0 [simp]: "(n::nat) > 0 ==> ((m div n) = 0) = (m < n)"
-by(auto, subst mod_div_equality [of m n, symmetric], auto)
-
-lemma nat_div_gt_0 [simp]: "(n::nat) > 0 ==> ((m div n) > 0) = (m >= n)"
-by (subst neq0_conv [symmetric], auto)
 
 declare div_less_dividend [simp]
 
@@ -915,16 +908,10 @@ lemma dvd_mult_cancel2: "0<m ==> (n*m dvd m) = (n = (1::nat))"
   done
 
 lemma dvd_imp_le: "[| k dvd n; 0 < n |] ==> k \<le> (n::nat)"
-by (auto elim!: dvdE) (auto simp add: gr0_conv_Suc)
-
-lemma nat_dvd_not_less: "(0::nat) < m \<Longrightarrow> m < n \<Longrightarrow> \<not> n dvd m"
-by (auto elim!: dvdE) (auto simp add: gr0_conv_Suc)
+  by (auto elim!: dvdE) (auto simp add: gr0_conv_Suc)
 
 lemma dvd_mult_div_cancel: "n dvd m ==> n * (m div n) = (m::nat)"
-  apply (subgoal_tac "m mod n = 0")
-   apply (simp add: mult_div_cancel)
-  apply (simp only: dvd_eq_mod_eq_0)
-  done
+  by (simp add: dvd_eq_mod_eq_0 mult_div_cancel)
 
 lemma nat_zero_less_power_iff [simp]: "(x^n > 0) = (x > (0::nat) | n=0)"
   by (induct n) auto
@@ -1001,9 +988,11 @@ proof
   from A B show ?lhs ..
 next
   assume P: ?lhs
-  then have "divmod_rel m n q (m - n * q)"
+  then have "divmod_rel m n (q, m - n * q)"
     unfolding divmod_rel_def by (auto simp add: mult_ac)
-  then show ?rhs using divmod_rel by (rule divmod_rel_unique_div)
+  with divmod_rel_unique divmod_rel [of m n]
+  have "(q, m - n * q) = (m div n, m mod n)" by auto
+  then show ?rhs by simp
 qed
 
 theorem split_div':
@@ -1154,5 +1143,10 @@ proof -
   qed
   with j show ?thesis by blast
 qed
+
+lemma nat_dvd_not_less:
+  fixes m n :: nat
+  shows "0 < m \<Longrightarrow> m < n \<Longrightarrow> \<not> n dvd m"
+by (auto elim!: dvdE) (auto simp add: gr0_conv_Suc)
 
 end
