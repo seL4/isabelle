@@ -5,7 +5,7 @@
 header {* Abstract orderings *}
 
 theory Orderings
-imports Code_Setup
+imports HOL
 uses "~~/src/Provers/order.ML"
 begin
 
