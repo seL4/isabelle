@@ -79,14 +79,16 @@ fun external_prover axiom_clauses write_problem_file (cmd, args) find_failure pr
     val failure = find_failure proof
     val success = rc = 0 andalso is_none failure
     val message =
-      if isSome failure then "Proof attempt failed."
-      else if rc <> 0 then "Proof attempt failed: " ^ proof
+      if is_some failure then "External prover failed."
+      else if rc <> 0 then "External prover failed: " ^ proof
       else "Try this command: " ^ produce_answer (proof, thm_names, ctxt, th, subgoalno)
 
-    val _ = if isSome failure
+    val _ =
+      if is_some failure
       then Output.debug (fn () => "Sledgehammer failure: " ^ the failure ^ "\nOutput: " ^ proof)
       else ()
-    val _ = if rc <> 0
+    val _ =
+      if rc <> 0
       then Output.debug (fn () => "Sledgehammer exited with return code " ^ string_of_int rc ^ ":\n" ^ proof)
       else ()
   in (success, message) end;
