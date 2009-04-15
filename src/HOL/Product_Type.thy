@@ -84,6 +84,14 @@ text {*
 lemma unit_abs_eta_conv [simp,noatp]: "(%u::unit. f ()) = f"
   by (rule ext) simp
 
+instantiation unit :: default
+begin
+
+definition "default = ()"
+
+instance ..
+
+end
 
 text {* code generator setup *}
 
