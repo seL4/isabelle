@@ -58,23 +58,22 @@ class PhaseOverviewPanel(prover: isabelle.prover.Prover, to_current: (String, In
 	}
 
   private def paintCommand(command : Command, buffer : JEditBuffer, doc_id: String, gfx : Graphics) {
-      val line1 = buffer.getLineOfOffset(to_current(doc_id, command.start))
-      val line2 = buffer.getLineOfOffset(to_current(doc_id, command.stop - 1)) + 1
-      val y = lineToY(line1)
-      val height = lineToY(line2) - y - 1
-      val (light, dark) = command.status match {
-        case Command.Status.UNPROCESSED => (Color.yellow, new Color(128,128,0))
-        case Command.Status.FINISHED => (Color.green, new Color(0, 128, 0))
-        case Command.Status.FAILED => (Color.red, new Color(128,0,0))
-      }
+    val line1 = buffer.getLineOfOffset(to_current(doc_id, command.start))
+    val line2 = buffer.getLineOfOffset(to_current(doc_id, command.stop - 1)) + 1
+    val y = lineToY(line1)
+    val height = lineToY(line2) - y - 1
+    val (light, dark) = command.status match {
+      case Command.Status.UNPROCESSED => (Color.yellow, new Color(128,128,0))
+      case Command.Status.FINISHED => (Color.green, new Color(0, 128, 0))
+      case Command.Status.FAILED => (Color.red, new Color(128,0,0))
+    }
 
-      gfx.setColor(light)
-      gfx.fillRect(0, y, getWidth - 1, 1 max height)
-      if (height > 2) {
-        gfx.setColor(dark)
-        gfx.drawRect(0, y, getWidth - 1, height)
-      }
-
+    gfx.setColor(light)
+    gfx.fillRect(0, y, getWidth - 1, 1 max height)
+    if (height > 2) {
+      gfx.setColor(dark)
+      gfx.drawRect(0, y, getWidth - 1, height)
+    }
   }
 
 	override def paintComponent(gfx : Graphics) {
@@ -87,20 +86,12 @@ class PhaseOverviewPanel(prover: isabelle.prover.Prover, to_current: (String, In
 
 	}
 
-	override def getPreferredSize : Dimension =
-	{
-		new Dimension(10,0)
-	}
-
+	override def getPreferredSize = new Dimension(10,0)
 
 	private def lineToY(line : Int) : Int =
-	{
-		(line * getHeight) / textarea.getBuffer.getLineCount
-	}
+		(line * getHeight) / (textarea.getBuffer.getLineCount max textarea.getVisibleLines)
 
 	private def yToLine(y : Int) : Int =
-	{
-		(y * textarea.getBuffer.getLineCount) / getHeight
-	}
+		(y * (textarea.getBuffer.getLineCount max textarea.getVisibleLines)) / getHeight
 
 }
