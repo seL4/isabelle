@@ -14,7 +14,7 @@ System requirements
      * A full Standard ML Compiler (works best with Poly/ML 5.2.1).
      * The GNU bash shell (version 3.x or 2.x).
      * Perl (version 5.x).
-     * GNU Emacs (version 21, 22) or XEmacs (version 21.4.x)
+     * GNU Emacs (version 21, 22, 23) or XEmacs (version 21.4.x)
        -- for the Proof General interface.
      * A complete LaTeX installation -- for document preparation.
 
@@ -22,9 +22,8 @@ Installation
 
    Binary packages are available for Isabelle/HOL and ZF for several
    platforms from the Isabelle web page. The system may be easily
-   built from scratch as well, taking the traditional tar.gz source
-   distribution. See file INSTALL as distributed with Isabelle for
-   more information.
+   built from scratch, using the tar.gz source distribution. See file
+   INSTALL as distributed with Isabelle for more information.
 
    Further background information may be found in the Isabelle System
    Manual, distributed with the sources (directory doc).
@@ -36,8 +35,8 @@ User interface
    including Isabelle. Proof General is suitable for use by pacifists
    and Emacs militants alike. Its most prominent feature is script
    management, providing a metaphor of live proof script editing.
-   Proof General also provides some support for proper mathematical
-   symbols displayed on screen.
+   Proof General also provides some support for mathematical symbols
+   displayed on screen.
 
 Other sources of information
 
