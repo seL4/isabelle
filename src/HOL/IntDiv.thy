@@ -711,6 +711,26 @@ proof
   show "(a + c * b) div b = c + a div b"
     unfolding zdiv_zadd1_eq [of a "c * b"] using not0 
       by (simp add: zmod_zmult1_eq zmod_zdiv_trivial zdiv_zmult1_eq)
+next
+  fix a b c :: int
+  assume "a \<noteq> 0"
+  then show "(a * b) div (a * c) = b div c"
+  proof (cases "b \<noteq> 0 \<and> c \<noteq> 0")
+    case False then show ?thesis by auto
+  next
+    case True then have "b \<noteq> 0" and "c \<noteq> 0" by auto
+    with `a \<noteq> 0`
+    have "\<And>q r. divmod_rel b c (q, r) \<Longrightarrow> divmod_rel (a * b) (a * c) (q, a * r)"
+      apply (auto simp add: divmod_rel_def) 
+      apply (auto simp add: algebra_simps)
+      apply (auto simp add: zero_less_mult_iff zero_le_mult_iff mult_le_0_iff)
+      apply (simp_all add: mult_less_cancel_left_disj mult_commute [of _ a])
+      done
+    moreover with `c \<noteq> 0` divmod_rel_div_mod have "divmod_rel b c (b div c, b mod c)" by auto
+    ultimately have "divmod_rel (a * b) (a * c) (b div c, a * (b mod c))" .
+    moreover from  `a \<noteq> 0` `c \<noteq> 0` have "a * c \<noteq> 0" by simp
+    ultimately show ?thesis by (rule divmod_rel_div)
+  qed
 qed auto
 
 lemma posDivAlg_div_mod:
@@ -808,52 +828,6 @@ apply (force simp add: divmod_rel_div_mod [THEN zmult2_lemma, THEN divmod_rel_mo
 done
 
 
-subsection{*Cancellation of Common Factors in div*}
-
-lemma zdiv_zmult_zmult1_aux1:
-     "[| (0::int) < b;  c \<noteq> 0 |] ==> (c*a) div (c*b) = a div b"
-by (subst zdiv_zmult2_eq, auto)
-
-lemma zdiv_zmult_zmult1_aux2:
-     "[| b < (0::int);  c \<noteq> 0 |] ==> (c*a) div (c*b) = a div b"
-apply (subgoal_tac " (c * (-a)) div (c * (-b)) = (-a) div (-b) ")
-apply (rule_tac [2] zdiv_zmult_zmult1_aux1, auto)
-done
-
-lemma zdiv_zmult_zmult1: "c \<noteq> (0::int) ==> (c*a) div (c*b) = a div b"
-apply (case_tac "b = 0", simp)
-apply (auto simp add: linorder_neq_iff zdiv_zmult_zmult1_aux1 zdiv_zmult_zmult1_aux2)
-done
-
-lemma zdiv_zmult_zmult1_if[simp]:
-  "(k*m) div (k*n) = (if k = (0::int) then 0 else m div n)"
-by (simp add:zdiv_zmult_zmult1)
-
-
-subsection{*Distribution of Factors over mod*}
-
-lemma zmod_zmult_zmult1_aux1:
-     "[| (0::int) < b;  c \<noteq> 0 |] ==> (c*a) mod (c*b) = c * (a mod b)"
-by (subst zmod_zmult2_eq, auto)
-
-lemma zmod_zmult_zmult1_aux2:
-     "[| b < (0::int);  c \<noteq> 0 |] ==> (c*a) mod (c*b) = c * (a mod b)"
-apply (subgoal_tac " (c * (-a)) mod (c * (-b)) = c * ((-a) mod (-b))")
-apply (rule_tac [2] zmod_zmult_zmult1_aux1, auto)
-done
-
-lemma zmod_zmult_zmult1: "(c*a) mod (c*b) = (c::int) * (a mod b)"
-apply (case_tac "b = 0", simp)
-apply (case_tac "c = 0", simp)
-apply (auto simp add: linorder_neq_iff zmod_zmult_zmult1_aux1 zmod_zmult_zmult1_aux2)
-done
-
-lemma zmod_zmult_zmult2: "(a*c) mod (b*c) = (a mod b) * (c::int)"
-apply (cut_tac c = c in zmod_zmult_zmult1)
-apply (auto simp add: mult_commute)
-done
-
-
 subsection {*Splitting Rules for div and mod*}
 
 text{*The proofs of the two lemmas below are essentially identical*}
@@ -937,7 +911,7 @@ next
                   right_distrib) 
   thus ?thesis
     by (subst zdiv_zadd1_eq,
-        simp add: zdiv_zmult_zmult1 zmod_zmult_zmult1 one_less_a2
+        simp add: mod_mult_mult1 one_less_a2
                   div_pos_pos_trivial)
 qed
 
@@ -961,7 +935,7 @@ lemma zdiv_number_of_Bit1 [simp]:
            then number_of v div (number_of w)     
            else (number_of v + (1::int)) div (number_of w))"
 apply (simp only: number_of_eq numeral_simps UNIV_I split: split_if) 
-apply (simp add: zdiv_zmult_zmult1 pos_zdiv_mult_2 neg_zdiv_mult_2 add_ac)
+apply (simp add: pos_zdiv_mult_2 neg_zdiv_mult_2 add_ac)
 done
 
 
@@ -977,7 +951,7 @@ apply (subgoal_tac "2* (1 + b mod a) \<le> 2*a")
 apply (auto simp add: add_commute [of 1] mult_commute add1_zle_eq 
                       pos_mod_bound)
 apply (subst mod_add_eq)
-apply (simp add: zmod_zmult_zmult2 mod_pos_pos_trivial)
+apply (simp add: mod_mult_mult2 mod_pos_pos_trivial)
 apply (rule mod_pos_pos_trivial)
 apply (auto simp add: mod_pos_pos_trivial ring_distribs)
 apply (subgoal_tac "0 \<le> b mod a", arith, simp)
@@ -998,7 +972,7 @@ lemma zmod_number_of_Bit0 [simp]:
      "number_of (Int.Bit0 v) mod number_of (Int.Bit0 w) =  
       (2::int) * (number_of v mod number_of w)"
 apply (simp only: number_of_eq numeral_simps) 
-apply (simp add: zmod_zmult_zmult1 pos_zmod_mult_2 
+apply (simp add: mod_mult_mult1 pos_zmod_mult_2 
                  neg_zmod_mult_2 add_ac)
 done
 
@@ -1008,7 +982,7 @@ lemma zmod_number_of_Bit1 [simp]:
                 then 2 * (number_of v mod number_of w) + 1     
                 else 2 * ((number_of v + (1::int)) mod number_of w) - 1)"
 apply (simp only: number_of_eq numeral_simps) 
-apply (simp add: zmod_zmult_zmult1 pos_zmod_mult_2 
+apply (simp add: mod_mult_mult1 pos_zmod_mult_2 
                  neg_zmod_mult_2 add_ac)
 done
 
@@ -1090,9 +1064,7 @@ apply (rule iffI)
 done
 
 lemma zdvd_zmod: "f dvd m ==> f dvd (n::int) ==> f dvd m mod n"
-  apply (simp add: dvd_def)
-  apply (auto simp add: zmod_zmult_zmult1)
-  done
+  by (auto elim!: dvdE simp add: mod_mult_mult1)
 
 lemma zdvd_zmod_imp_zdvd: "k dvd m mod n ==> k dvd n ==> k dvd (m::int)"
   apply (subgoal_tac "k dvd n * (m div n) + m mod n")
@@ -1247,9 +1219,9 @@ by (rule mod_diff_right_eq [symmetric])
 lemmas zmod_simps =
   mod_add_left_eq  [symmetric]
   mod_add_right_eq [symmetric]
-  IntDiv.zmod_zmult1_eq     [symmetric]
-  mod_mult_left_eq          [symmetric]
-  IntDiv.zpower_zmod
+  zmod_zmult1_eq   [symmetric]
+  mod_mult_left_eq [symmetric]
+  zpower_zmod
   zminus_zmod zdiff_zmod_left zdiff_zmod_right
 
 text {* Distributive laws for function @{text nat}. *}

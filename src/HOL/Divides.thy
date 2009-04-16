@@ -19,11 +19,12 @@ class div = dvd +
 
 subsection {* Abstract division in commutative semirings. *}
 
-class semiring_div = comm_semiring_1_cancel + div +
+class semiring_div = comm_semiring_1_cancel + no_zero_divisors + div +
   assumes mod_div_equality: "a div b * b + a mod b = a"
     and div_by_0 [simp]: "a div 0 = 0"
     and div_0 [simp]: "0 div a = 0"
     and div_mult_self1 [simp]: "b \<noteq> 0 \<Longrightarrow> (a + c * b) div b = c + a div b"
+    and div_mult_mult1 [simp]: "c \<noteq> 0 \<Longrightarrow> (c * a) div (c * b) = a div b"
 begin
 
 text {* @{const div} and @{const mod} *}
@@ -296,21 +297,41 @@ proof -
   finally show ?thesis .
 qed
 
-end
-
-lemma div_mult_div_if_dvd: "(y::'a::{semiring_div,no_zero_divisors}) dvd x \<Longrightarrow> 
-  z dvd w \<Longrightarrow> (x div y) * (w div z) = (x * w) div (y * z)"
-unfolding dvd_def
-  apply clarify
-  apply (case_tac "y = 0")
-  apply simp
-  apply (case_tac "z = 0")
-  apply simp
-  apply (simp add: algebra_simps)
+lemma div_mult_div_if_dvd:
+  "y dvd x \<Longrightarrow> z dvd w \<Longrightarrow> (x div y) * (w div z) = (x * w) div (y * z)"
+  apply (cases "y = 0", simp)
+  apply (cases "z = 0", simp)
+  apply (auto elim!: dvdE simp add: algebra_simps)
   apply (subst mult_assoc [symmetric])
   apply (simp add: no_zero_divisors)
-done
+  done
 
+lemma div_mult_mult2 [simp]:
+  "c \<noteq> 0 \<Longrightarrow> (a * c) div (b * c) = a div b"
+  by (drule div_mult_mult1) (simp add: mult_commute)
+
+lemma div_mult_mult1_if [simp]:
+  "(c * a) div (c * b) = (if c = 0 then 0 else a div b)"
+  by simp_all
+
+lemma mod_mult_mult1:
+  "(c * a) mod (c * b) = c * (a mod b)"
+proof (cases "c = 0")
+  case True then show ?thesis by simp
+next
+  case False
+  from mod_div_equality
+  have "((c * a) div (c * b)) * (c * b) + (c * a) mod (c * b) = c * a" .
+  with False have "c * ((a div b) * b + a mod b) + (c * a) mod (c * b)
+    = c * a + c * (a mod b)" by (simp add: algebra_simps)
+  with mod_div_equality show ?thesis by simp 
+qed
+  
+lemma mod_mult_mult2:
+  "(a * c) mod (b * c) = (a mod b) * c"
+  using mod_mult_mult1 [of c a b] by (simp add: mult_commute)
+
+end
 
 lemma div_power: "(y::'a::{semiring_div,no_zero_divisors,recpower}) dvd x \<Longrightarrow>
     (x div y)^n = x^n div y^n"
@@ -566,18 +587,40 @@ lemma le_mod_geq:
   shows "m mod n = (m - n) mod n"
   using assms divmod_step divmod_div_mod by (cases "n = 0") simp_all
 
-instance proof
-  fix m n :: nat show "m div n * n + m mod n = m"
-    using divmod_rel [of m n] by (simp add: divmod_rel_def)
-next
-  fix n :: nat show "n div 0 = 0"
-    using divmod_zero divmod_div_mod [of n 0] by simp
-next
-  fix n :: nat show "0 div n = 0"
-    using divmod_rel [of 0 n] by (cases n) (simp_all add: divmod_rel_def)
-next
-  fix m n q :: nat assume "n \<noteq> 0" then show "(q + m * n) div n = m + q div n"
-    by (induct m) (simp_all add: le_div_geq)
+instance proof -
+  have [simp]: "\<And>n::nat. n div 0 = 0"
+    by (simp add: div_nat_def divmod_zero)
+  have [simp]: "\<And>n::nat. 0 div n = 0"
+  proof -
+    fix n :: nat
+    show "0 div n = 0"
+      by (cases "n = 0") simp_all
+  qed
+  show "OFCLASS(nat, semiring_div_class)" proof
+    fix m n :: nat
+    show "m div n * n + m mod n = m"
+      using divmod_rel [of m n] by (simp add: divmod_rel_def)
+  next
+    fix m n q :: nat
+    assume "n \<noteq> 0"
+    then show "(q + m * n) div n = m + q div n"
+      by (induct m) (simp_all add: le_div_geq)
+  next
+    fix m n q :: nat
+    assume "m \<noteq> 0"
+    then show "(m * n) div (m * q) = n div q"
+    proof (cases "n \<noteq> 0 \<and> q \<noteq> 0")
+      case False then show ?thesis by auto
+    next
+      case True with `m \<noteq> 0`
+        have "m > 0" and "n > 0" and "q > 0" by auto
+      then have "\<And>a b. divmod_rel n q (a, b) \<Longrightarrow> divmod_rel (m * n) (m * q) (a, m * b)"
+        by (auto simp add: divmod_rel_def) (simp_all add: algebra_simps)
+      moreover from divmod_rel have "divmod_rel n q (n div q, n mod q)" .
+      ultimately have "divmod_rel (m * n) (m * q) (n div q, m * (n mod q))" .
+      then show ?thesis by (simp add: div_eq)
+    qed
+  qed simp_all
 qed
 
 end
@@ -741,23 +784,6 @@ lemma mod_mult2_eq: "a mod (b*c) = b*(a div b mod c) + a mod (b::nat)"
   apply (cases "b = 0", simp)
   apply (cases "c = 0", simp)
   apply (auto simp add: mult_commute divmod_rel [THEN divmod_rel_mult2_eq, THEN mod_eq])
-  done
-
-
-subsubsection{*Cancellation of Common Factors in Division*}
-
-lemma div_mult_mult_lemma:
-    "[| (0::nat) < b;  0 < c |] ==> (c*a) div (c*b) = a div b"
-by (auto simp add: div_mult2_eq)
-
-lemma div_mult_mult1 [simp]: "(0::nat) < c ==> (c*a) div (c*b) = a div b"
-  apply (cases "b = 0")
-  apply (auto simp add: linorder_neq_iff [of b] div_mult_mult_lemma)
-  done
-
-lemma div_mult_mult2 [simp]: "(0::nat) < c ==> (a*c) div (b*c) = a div b"
-  apply (drule div_mult_mult1)
-  apply (auto simp add: mult_commute)
   done
 
 
