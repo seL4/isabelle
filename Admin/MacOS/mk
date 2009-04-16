@@ -11,7 +11,6 @@ COCOADIALOG_APP="/Applications/CocoaDialog.app"
   -a Isabelle -u Isabelle \
   -I "de.tum.in.isabelle" \
   -i "$THIS/isabelle.icns" \
-  -D -X thy \
   -p /bin/bash \
   -c "$THIS/script" \
   -o None \
