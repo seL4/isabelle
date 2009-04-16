@@ -68,7 +68,7 @@ fun external_prover axiom_clauses write_problem_file (cmd, args) find_failure pr
     val fname = File.platform_path probfile
     val thm_names = write_problem_file probfile th subgoalno axiom_clauses thy
     val cmdline =
-      if File.exists cmd then File.shell_path cmd ^ " " ^ args
+      if File.exists cmd then "exec " ^ File.shell_path cmd ^ " " ^ args
       else error ("Bad executable: " ^ Path.implode cmd)
     val (proof, rc) = system_out (cmdline ^ " " ^ fname)
 
