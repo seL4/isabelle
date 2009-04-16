@@ -249,33 +249,33 @@ by(simp add: mult_commute zmod_zdiv_equality[symmetric])
 text {* Tool setup *}
 
 ML {*
-local 
+local
 
-structure CancelDivMod = CancelDivModFun(
-struct
-  val div_name = @{const_name Divides.div};
-  val mod_name = @{const_name Divides.mod};
+structure CancelDivMod = CancelDivModFun(struct
+
+  val div_name = @{const_name div};
+  val mod_name = @{const_name mod};
   val mk_binop = HOLogic.mk_binop;
   val mk_sum = Int_Numeral_Simprocs.mk_sum HOLogic.intT;
   val dest_sum = Int_Numeral_Simprocs.dest_sum;
-  val div_mod_eqs =
-    map mk_meta_eq [@{thm zdiv_zmod_equality},
-      @{thm zdiv_zmod_equality2}];
+
+  val div_mod_eqs = map mk_meta_eq [@{thm zdiv_zmod_equality}, @{thm zdiv_zmod_equality2}];
+
   val trans = trans;
-  val prove_eq_sums =
-    let
-      val simps = @{thm diff_int_def} :: Int_Numeral_Simprocs.add_0s @ @{thms zadd_ac}
-    in Arith_Data.prove_conv2 all_tac (Arith_Data.simp_all_tac simps) end;
+
+  val prove_eq_sums = Arith_Data.prove_conv2 all_tac (Arith_Data.simp_all_tac 
+    (@{thm diff_minus} :: @{thms add_0s} @ @{thms add_ac}))
+
 end)
 
 in
 
-val cancel_zdiv_zmod_proc = Simplifier.simproc (the_context ())
-  "cancel_zdiv_zmod" ["(m::int) + n"] (K CancelDivMod.proc)
+val cancel_div_mod_int_proc = Simplifier.simproc (the_context ())
+  "cancel_zdiv_zmod" ["(k::int) + l"] (K CancelDivMod.proc);
 
-end;
+val _ = Addsimprocs [cancel_div_mod_int_proc];
 
-Addsimprocs [cancel_zdiv_zmod_proc]
+end
 *}
 
 lemma pos_mod_conj : "(0::int) < b ==> 0 \<le> a mod b & a mod b < b"

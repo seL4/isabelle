@@ -38,16 +38,16 @@ lemma mod_div_equality': "a mod b + a div b * b = a"
   by (simp only: add_ac)
 
 lemma div_mod_equality: "((a div b) * b + a mod b) + c = a + c"
-by (simp add: mod_div_equality)
+  by (simp add: mod_div_equality)
 
 lemma div_mod_equality2: "(b * (a div b) + a mod b) + c = a + c"
-by (simp add: mod_div_equality2)
+  by (simp add: mod_div_equality2)
 
 lemma mod_by_0 [simp]: "a mod 0 = a"
-using mod_div_equality [of a zero] by simp
+  using mod_div_equality [of a zero] by simp
 
 lemma mod_0 [simp]: "0 mod a = 0"
-using mod_div_equality [of zero a] div_0 by simp
+  using mod_div_equality [of zero a] div_0 by simp
 
 lemma div_mult_self2 [simp]:
   assumes "b \<noteq> 0"
@@ -72,7 +72,7 @@ next
 qed
 
 lemma mod_mult_self2 [simp]: "(a + b * c) mod b = a mod b"
-by (simp add: mult_commute [of b])
+  by (simp add: mult_commute [of b])
 
 lemma div_mult_self1_is_id [simp]: "b \<noteq> 0 \<Longrightarrow> b * a div b = a"
   using div_mult_self2 [of b 0 a] by simp
@@ -627,37 +627,34 @@ end
 
 text {* Simproc for cancelling @{const div} and @{const mod} *}
 
-(*lemmas mod_div_equality_nat = semiring_div_class.times_div_mod_plus_zero_one.mod_div_equality [of "m\<Colon>nat" n, standard]
-lemmas mod_div_equality2_nat = mod_div_equality2 [of "n\<Colon>nat" m, standard*)
-
 ML {*
-structure CancelDivModData =
-struct
+local
 
-val div_name = @{const_name div};
-val mod_name = @{const_name mod};
-val mk_binop = HOLogic.mk_binop;
-val mk_sum = Nat_Arith.mk_sum;
-val dest_sum = Nat_Arith.dest_sum;
+structure CancelDivMod = CancelDivModFun(struct
 
-(*logic*)
+  val div_name = @{const_name div};
+  val mod_name = @{const_name mod};
+  val mk_binop = HOLogic.mk_binop;
+  val mk_sum = Nat_Arith.mk_sum;
+  val dest_sum = Nat_Arith.dest_sum;
 
-val div_mod_eqs = map mk_meta_eq [@{thm div_mod_equality}, @{thm div_mod_equality2}]
+  val div_mod_eqs = map mk_meta_eq [@{thm div_mod_equality}, @{thm div_mod_equality2}];
 
-val trans = trans
+  val trans = trans;
 
-val prove_eq_sums =
-  let val simps = @{thm add_0} :: @{thm add_0_right} :: @{thms add_ac}
-  in Arith_Data.prove_conv2 all_tac (Arith_Data.simp_all_tac simps) end;
+  val prove_eq_sums = Arith_Data.prove_conv2 all_tac (Arith_Data.simp_all_tac
+    (@{thm monoid_add_class.add_0_left} :: @{thm monoid_add_class.add_0_right} :: @{thms add_ac}))
 
-end;
+end)
 
-structure CancelDivMod = CancelDivModFun(CancelDivModData);
+in
 
-val cancel_div_mod_proc = Simplifier.simproc (the_context ())
+val cancel_div_mod_nat_proc = Simplifier.simproc (the_context ())
   "cancel_div_mod" ["(m::nat) + n"] (K CancelDivMod.proc);
 
-Addsimprocs[cancel_div_mod_proc];
+val _ = Addsimprocs [cancel_div_mod_nat_proc];
+
+end
 *}
 
 text {* code generator setup *}
