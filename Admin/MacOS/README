@@ -3,15 +3,7 @@ Isabelle application bundle for MacOS
 
 Requirements:
 
-* CocoaDialog http://cocoadialog.sourceforge.net/
+* CocoaDialog 2.2.1 http://cocoadialog.sourceforge.net/
 
-* Platypus http://www.sveinbjorn.org/platypus
-
-* AppHack 1.1 http://www.sveinbjorn.org/apphack
-
-  Manual setup:
-    File type: "Isabelle theory"
-    Icon: "theory.icns"
-    "Editor"
-    Suffixes: "thy"
+* Platypus 4.0 http://www.sveinbjorn.org/platypus
 
