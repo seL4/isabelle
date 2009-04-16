@@ -111,8 +111,10 @@ class ProofDocument(val id: String,
     val insert = new_tokens.reverse
     val new_token_list = begin ::: insert ::: old_suffix
     token_changed(change.id,
+                  begin.lastOption,
                   insert,
                   removed,
+                  old_suffix.firstOption,
                   new_token_list)
   }
   
@@ -124,8 +126,10 @@ class ProofDocument(val id: String,
   }
 
   private def token_changed(new_id: String,
+                            before_change: Option[Token],
                             inserted_tokens: List[Token],
                             removed_tokens: List[Token],
+                            after_change: Option[Token],
                             new_token_list: List[Token]): (ProofDocument, StructureChange) =
   {
     val commands = List[Command]() ++ this.commands
@@ -139,7 +143,7 @@ class ProofDocument(val id: String,
         case None => (Nil: List[Command], commands)
         case Some(fr) => commands.break(_.tokens.contains(fr))
       }
-    val removed: List[Command]=
+    val removed_commands: List[Command]=
       last_removed match {
         case None => Nil
         case Some(lr) =>
@@ -160,21 +164,27 @@ class ProofDocument(val id: String,
     }
 
     // calculate inserted commands
-    val first_inserted = inserted_tokens.firstOption
-    val last_inserted = inserted_tokens.lastOption
-
     val new_commands = tokens_to_commands(new_token_list)
-
-    // drop known commands from the beginning
-    val after_change = new_commands
-    val inserted_commands = new_commands.dropWhile(_.tokens.contains(first_inserted))
-
     val new_tokenset = (LinearSet() ++ new_token_list).asInstanceOf[LinearSet[Token]]
     val new_commandset = (LinearSet() ++ (new_commands)).asInstanceOf[LinearSet[Command]]
-
-    val before = begin match {case Nil => None case _ => Some (begin.last)}
-    val change = new StructureChange(None,List() ++ new_commandset, removed)
-
+    // drop known commands from the beginning
+    val first_changed = before_change match {
+      case None => new_tokenset.first_elem
+      case Some(bc) => new_tokenset.next(bc)
+    }
+    val changed_commands = first_changed match {
+      case None => Nil
+      case Some(fc) => new_commands.dropWhile(!_.tokens.contains(fc))
+    }
+    val inserted_commands = after_change match {
+      case None => changed_commands
+      case Some(ac) => changed_commands.takeWhile(!_.tokens.contains(ac))
+    }
+    //val change = new StructureChange(new_commands.find(_.tokens.contains(before_change)),
+    //                                 inserted_commands, removed_commands)
+    // TODO: revert to upper change, when commands and tokens are ok
+    val change = new StructureChange(None, List() ++ new_commandset, commands)
+    // build new document
     val doc =
       new ProofDocument(new_id, new_tokenset, new_commandset, active, is_command_keyword)
     return (doc, change)
