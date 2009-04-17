@@ -622,6 +622,31 @@ lemma [code]:
   "pred_rec f P = f (eval P)"
   by (cases P) simp
 
+export_code Seq in Eval module_name Predicate
+
+ML {*
+signature PREDICATE =
+sig
+  datatype 'a pred = Seq of (unit -> 'a seq)
+  and 'a seq = Empty | Insert of 'a * 'a pred | Join of 'a pred * 'a seq
+end;
+
+structure Predicate : PREDICATE =
+struct
+
+open Predicate;
+
+end;
+*}
+
+code_reserved Eval Predicate
+
+code_type pred and seq
+  (Eval "_/ Predicate.pred" and "_/ Predicate.seq")
+
+code_const Seq and Empty and Insert and Join
+  (Eval "Predicate.Seq" and "Predicate.Empty" and "Predicate.Insert/ (_,/ _)" and "Predicate.Join/ (_,/ _)")
+
 no_notation
   inf (infixl "\<sqinter>" 70) and
   sup (infixl "\<squnion>" 65) and
