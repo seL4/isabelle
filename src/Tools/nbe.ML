@@ -431,7 +431,7 @@ fun compile_eval thy naming program vs_ty_t deps =
 
 (* evaluation with type reconstruction *)
 
-fun eval thy t naming program vs_ty_t deps =
+fun norm thy t naming program vs_ty_t deps =
   let
     fun subst_const f = map_aterms (fn t as Term.Const (c, ty) => Term.Const (f c, ty)
       | t => t);
@@ -463,10 +463,6 @@ fun eval thy t naming program vs_ty_t deps =
 
 (* evaluation oracle *)
 
-val (_, norm_oracle) = Context.>>> (Context.map_theory_result
-  (Thm.add_oracle (Binding.name "norm", fn (thy, t, naming, program, vs_ty_t, deps) =>
-    Thm.cterm_of thy (Logic.mk_equals (t, eval thy t naming program vs_ty_t deps)))));
-
 fun add_triv_classes thy =
   let
     val inters = curry (Sorts.inter_sort (Sign.classes_of thy))
@@ -476,19 +472,20 @@ fun add_triv_classes thy =
         | TFree (v, sort) => TFree (v, f sort));
   in map_sorts inters end;
 
+val (_, raw_norm_oracle) = Context.>>> (Context.map_theory_result
+  (Thm.add_oracle (Binding.name "norm", fn (thy, t, naming, program, vs_ty_t, deps) =>
+    Thm.cterm_of thy (Logic.mk_equals (t, norm thy t naming program vs_ty_t deps)))));
+
+fun norm_oracle thy t naming program vs_ty_t deps =
+  raw_norm_oracle (thy, t, naming, program, vs_ty_t, deps);
+
 fun norm_conv ct =
   let
     val thy = Thm.theory_of_cterm ct;
-    fun evaluator' t naming program vs_ty_t deps =
-      norm_oracle (thy, t, naming, program, vs_ty_t, deps);
-    fun evaluator t = (add_triv_classes thy t, evaluator' t);
-  in Code_Thingol.eval_conv thy evaluator ct end;
+  in Code_Thingol.eval_conv thy (add_triv_classes thy) (norm_oracle thy) ct end;
 
-fun norm_term thy t =
-  let
-    fun evaluator' t naming program vs_ty_t deps = eval thy t naming program vs_ty_t deps;
-    fun evaluator t = (add_triv_classes thy t, evaluator' t);
-  in (Code.postprocess_term thy o Code_Thingol.eval_term thy evaluator) t end;
+fun norm_term thy = Code.postprocess_term thy
+  o Code_Thingol.eval_term thy (add_triv_classes thy) (norm thy);
 
 (* evaluation command *)
 

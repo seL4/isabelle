@@ -84,10 +84,10 @@ sig
   val consts_program: theory -> string list -> string list * (naming * program)
   val cached_program: theory -> naming * program
   val eval_conv: theory
-    -> (term -> term * (naming -> program -> typscheme * iterm -> string list -> thm))
+    -> (term -> term) -> (term -> naming -> program -> typscheme * iterm -> string list -> thm)
     -> cterm -> thm
   val eval_term: theory
-    -> (term -> term * (naming -> program -> typscheme * iterm -> string list -> 'a))
+    -> (term -> term) -> (term -> naming -> program -> typscheme * iterm -> string list -> 'a)
     -> term -> 'a
 end;
 
@@ -733,14 +733,14 @@ fun consts_program thy cs =
     fun generate_consts thy algebra funcgr =
       fold_map (ensure_const thy algebra funcgr);
   in
-    invoke_generation thy (Code_Wellsorted.make thy cs) generate_consts cs
+    invoke_generation thy (Code_Wellsorted.obtain thy cs []) generate_consts cs
     |-> project_consts
   end;
 
 
 (* value evaluation *)
 
-fun ensure_value thy algbr funcgr t = 
+fun ensure_value thy algbr funcgr t =
   let
     val ty = fastype_of t;
     val vs = fold_term_types (K (fold_atyps (insert (eq_fst op =)
@@ -766,18 +766,72 @@ fun ensure_value thy algbr funcgr t =
     #> term_value
   end;
 
-fun eval thy evaluator t =
+fun eval thy evaluator raw_t algebra funcgr t =
   let
-    val (t', evaluator'') = evaluator t;
-    fun evaluator' algebra funcgr =
-      let
-        val (((naming, program), (vs_ty_t, deps)), _) =
-          invoke_generation thy (algebra, funcgr) ensure_value t';
-      in evaluator'' naming program vs_ty_t deps end;
-  in (t', evaluator') end
+    val (((naming, program), (vs_ty_t, deps)), _) =
+      invoke_generation thy (algebra, funcgr) ensure_value t;
+  in evaluator raw_t naming program vs_ty_t deps end;
 
-fun eval_conv thy = Code_Wellsorted.eval_conv thy o eval thy;
-fun eval_term thy = Code_Wellsorted.eval_term thy o eval thy;
+fun eval_conv thy preproc = Code_Wellsorted.eval_conv thy preproc o eval thy;
+fun eval_term thy preproc = Code_Wellsorted.eval_term thy preproc o eval thy;
+
+
+(** diagnostic commands **)
+
+fun code_depgr thy consts =
+  let
+    val (_, eqngr) = Code_Wellsorted.obtain thy consts [];
+    val select = Graph.all_succs eqngr consts;
+  in
+    eqngr
+    |> not (null consts) ? Graph.subgraph (member (op =) select) 
+    |> Graph.map_nodes ((apsnd o map o apfst) (AxClass.overload thy))
+  end;
+
+fun code_thms thy = Pretty.writeln o Code_Wellsorted.pretty thy o code_depgr thy;
+
+fun code_deps thy consts =
+  let
+    val eqngr = code_depgr thy consts;
+    val constss = Graph.strong_conn eqngr;
+    val mapping = Symtab.empty |> fold (fn consts => fold (fn const =>
+      Symtab.update (const, consts)) consts) constss;
+    fun succs consts = consts
+      |> maps (Graph.imm_succs eqngr)
+      |> subtract (op =) consts
+      |> map (the o Symtab.lookup mapping)
+      |> distinct (op =);
+    val conn = [] |> fold (fn consts => cons (consts, succs consts)) constss;
+    fun namify consts = map (Code_Unit.string_of_const thy) consts
+      |> commas;
+    val prgr = map (fn (consts, constss) =>
+      { name = namify consts, ID = namify consts, dir = "", unfold = true,
+        path = "", parents = map namify constss }) conn;
+  in Present.display_graph prgr end;
+
+local
+
+structure P = OuterParse
+and K = OuterKeyword
+
+fun code_thms_cmd thy = code_thms thy o op @ o Code_Name.read_const_exprs thy;
+fun code_deps_cmd thy = code_deps thy o op @ o Code_Name.read_const_exprs thy;
+
+in
+
+val _ =
+  OuterSyntax.improper_command "code_thms" "print system of code equations for code" OuterKeyword.diag
+    (Scan.repeat P.term_group
+      >> (fn cs => Toplevel.no_timing o Toplevel.unknown_theory
+        o Toplevel.keep ((fn thy => code_thms_cmd thy cs) o Toplevel.theory_of)));
+
+val _ =
+  OuterSyntax.improper_command "code_deps" "visualize dependencies of code equations for code" OuterKeyword.diag
+    (Scan.repeat P.term_group
+      >> (fn cs => Toplevel.no_timing o Toplevel.unknown_theory
+        o Toplevel.keep ((fn thy => code_deps_cmd thy cs) o Toplevel.theory_of)));
+
+end;
 
 end; (*struct*)
 
