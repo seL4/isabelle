@@ -48,25 +48,25 @@ proof
 qed
 
 lemma continuous_lfp:
- assumes "continuous F" shows "lfp F = (SUP i. (F^i) bot)"
+ assumes "continuous F" shows "lfp F = (SUP i. (F^^i) bot)"
 proof -
   note mono = continuous_mono[OF `continuous F`]
-  { fix i have "(F^i) bot \<le> lfp F"
+  { fix i have "(F^^i) bot \<le> lfp F"
     proof (induct i)
-      show "(F^0) bot \<le> lfp F" by simp
+      show "(F^^0) bot \<le> lfp F" by simp
     next
       case (Suc i)
-      have "(F^(Suc i)) bot = F((F^i) bot)" by simp
+      have "(F^^(Suc i)) bot = F((F^^i) bot)" by simp
       also have "\<dots> \<le> F(lfp F)" by(rule monoD[OF mono Suc])
       also have "\<dots> = lfp F" by(simp add:lfp_unfold[OF mono, symmetric])
       finally show ?case .
     qed }
-  hence "(SUP i. (F^i) bot) \<le> lfp F" by (blast intro!:SUP_leI)
-  moreover have "lfp F \<le> (SUP i. (F^i) bot)" (is "_ \<le> ?U")
+  hence "(SUP i. (F^^i) bot) \<le> lfp F" by (blast intro!:SUP_leI)
+  moreover have "lfp F \<le> (SUP i. (F^^i) bot)" (is "_ \<le> ?U")
   proof (rule lfp_lowerbound)
-    have "chain(%i. (F^i) bot)"
+    have "chain(%i. (F^^i) bot)"
     proof -
-      { fix i have "(F^i) bot \<le> (F^(Suc i)) bot"
+      { fix i have "(F^^i) bot \<le> (F^^(Suc i)) bot"
 	proof (induct i)
 	  case 0 show ?case by simp
 	next
@@ -74,7 +74,7 @@ proof -
 	qed }
       thus ?thesis by(auto simp add:chain_def)
     qed
-    hence "F ?U = (SUP i. (F^(i+1)) bot)" using `continuous F` by (simp add:continuous_def)
+    hence "F ?U = (SUP i. (F^^(i+1)) bot)" using `continuous F` by (simp add:continuous_def)
     also have "\<dots> \<le> ?U" by(fast intro:SUP_leI le_SUPI)
     finally show "F ?U \<le> ?U" .
   qed
@@ -193,7 +193,7 @@ subsection "Iteration"
 
 definition
   up_iterate :: "('a set => 'a set) => nat => 'a set" where
-  "up_iterate f n = (f^n) {}"
+  "up_iterate f n = (f^^n) {}"
 
 lemma up_iterate_0 [simp]: "up_iterate f 0 = {}"
   by (simp add: up_iterate_def)
@@ -245,7 +245,7 @@ lemma UNION_up_iterate_is_lfp:
 
 definition
   down_iterate :: "('a set => 'a set) => nat => 'a set" where
-  "down_iterate f n = (f^n) UNIV"
+  "down_iterate f n = (f^^n) UNIV"
 
 lemma down_iterate_0 [simp]: "down_iterate f 0 = UNIV"
   by (simp add: down_iterate_def)
