@@ -6,8 +6,11 @@ Serializer for SML and OCaml.
 
 signature CODE_ML =
 sig
-  val eval_term: string * (unit -> 'a) option ref
+  val eval_term: string option -> string * (unit -> term) option ref
+    -> theory -> term -> string list -> term
+  val eval: string option -> string * (unit -> 'a) option ref
     -> theory -> term -> string list -> 'a
+  val target_Eval: string
   val setup: theory -> theory
 end;
 
@@ -22,6 +25,7 @@ infixr 5 @|;
 
 val target_SML = "SML";
 val target_OCaml = "OCaml";
+val target_Eval = "Eval";
 
 datatype ml_stmt =
     MLExc of string * int
@@ -944,20 +948,20 @@ end; (*local*)
 
 (** ML (system language) code for evaluation and instrumentalization **)
 
-fun ml_code_of thy = Code_Target.serialize_custom thy (target_SML,
+fun eval_code_of some_target thy = Code_Target.serialize_custom thy (the_default target_Eval some_target,
     (fn _ => fn [] => serialize_ml target_SML (SOME (K ())) (K Pretty.chunks) pr_sml_stmt (SOME ""),
   literals_sml));
 
 
 (* evaluation *)
 
-fun eval_term reff thy t args =
+fun gen_eval eval some_target reff thy t args =
   let
     val ctxt = ProofContext.init thy;
     val _ = if null (Term.add_frees t []) then () else error ("Term "
       ^ quote (Syntax.string_of_term_global thy t)
       ^ " to be evaluated contains free variables");
-    fun evaluator _ naming program ((_, ty), t) deps =
+    fun evaluator naming program (((_, (_, ty)), _), t) deps =
       let
         val _ = if Code_Thingol.contains_dictvar t then
           error "Term to be evaluated contains free dictionaries" else ();
@@ -966,11 +970,14 @@ fun eval_term reff thy t args =
           |> Graph.new_node (value_name,
               Code_Thingol.Fun (Term.dummy_patternN, (([], ty), [(([], t), (Drule.dummy_thm, true))])))
           |> fold (curry Graph.add_edge value_name) deps;
-        val (value_code, [SOME value_name']) = ml_code_of thy naming program' [value_name];
+        val (value_code, [SOME value_name']) = eval_code_of some_target thy naming program' [value_name];
         val sml_code = "let\n" ^ value_code ^ "\nin " ^ value_name'
           ^ space_implode " " (map (enclose "(" ")") args) ^ " end";
       in ML_Context.evaluate ctxt false reff sml_code end;
-  in Code_Thingol.eval_term thy I evaluator t end;
+  in eval thy I evaluator t end;
+
+fun eval_term thy = gen_eval Code_Thingol.eval_term thy;
+fun eval thy = gen_eval Code_Thingol.eval thy;
 
 
 (* instrumentalization by antiquotation *)
@@ -988,7 +995,7 @@ val is_first_occ = fst o snd o CodeAntiqData.get;
 fun delayed_code thy consts () =
   let
     val (consts', (naming, program)) = Code_Thingol.consts_program thy consts;
-    val (ml_code, consts'') = ml_code_of thy naming program consts';
+    val (ml_code, consts'') = eval_code_of NONE thy naming program consts';
     val const_tab = map2 (fn const => fn NONE =>
       error ("Constant " ^ (quote o Code_Unit.string_of_const thy) const
         ^ "\nhas a user-defined serialization")
@@ -1046,6 +1053,7 @@ fun isar_seri_ocaml module_name =
 val setup =
   Code_Target.add_target (target_SML, (isar_seri_sml, literals_sml))
   #> Code_Target.add_target (target_OCaml, (isar_seri_ocaml, literals_ocaml))
+  #> Code_Target.extend_target (target_Eval, (target_SML, K I))
   #> Code_Target.add_syntax_tyco target_SML "fun" (SOME (2, fn pr_typ => fn fxy => fn [ty1, ty2] =>
       brackify_infix (1, R) fxy [
         pr_typ (INFX (1, X)) ty1,

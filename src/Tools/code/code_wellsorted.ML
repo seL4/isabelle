@@ -7,26 +7,28 @@ with explicit dependencies -- the Waisenhaus algorithm.
 
 signature CODE_WELLSORTED =
 sig
-  type T
-  val eqns: T -> string -> (thm * bool) list
-  val typ: T -> string -> (string * sort) list * typ
-  val all: T -> string list
-  val pretty: theory -> T -> Pretty.T
-  val obtain: theory -> string list -> term list -> ((sort -> sort) * Sorts.algebra) * T
-  val preprocess: theory -> cterm list -> (cterm * (thm -> thm)) list
-  val preprocess_term: theory -> term list -> (term * (term -> term)) list
-  val eval_conv: theory
-    -> (term -> term) -> (term -> (sort -> sort) * Sorts.algebra -> T -> term -> thm) -> cterm -> thm
-  val eval_term: theory
-    -> (term -> term) -> (term -> (sort -> sort) * Sorts.algebra -> T -> term -> 'a) -> term -> 'a
+  type code_algebra
+  type code_graph
+  val eqns: code_graph -> string -> (thm * bool) list
+  val typ: code_graph -> string -> (string * sort) list * typ
+  val all: code_graph -> string list
+  val pretty: theory -> code_graph -> Pretty.T
+  val obtain: theory -> string list -> term list -> code_algebra * code_graph
+  val eval_conv: theory -> (sort -> sort)
+    -> (code_algebra -> code_graph -> (string * sort) list -> term -> cterm -> thm) -> cterm -> thm
+  val eval_term: theory -> (sort -> sort)
+    -> (code_algebra -> code_graph -> (string * sort) list -> term -> term) -> term -> term
+  val eval: theory -> (sort -> sort)
+    -> (code_algebra -> code_graph -> (string * sort) list -> term -> 'a) -> term -> 'a
 end
 
 structure Code_Wellsorted : CODE_WELLSORTED =
 struct
 
-(** the equation graph type **)
+(** the algebra and code equation graph types **)
 
-type T = (((string * sort) list * typ) * (thm * bool) list) Graph.T;
+type code_algebra = (sort -> sort) * Sorts.algebra;
+type code_graph = (((string * sort) list * typ) * (thm * bool) list) Graph.T;
 
 fun eqns eqngr = these o Option.map snd o try (Graph.get_node eqngr);
 fun typ eqngr = fst o Graph.get_node eqngr;
@@ -271,7 +273,7 @@ fun extend_arities_eqngr thy cs ts (arities, eqngr) =
 
 structure Wellsorted = CodeDataFun
 (
-  type T = ((string * class) * sort list) list * T;
+  type T = ((string * class) * sort list) list * code_graph;
   val empty = ([], Graph.empty);
   fun purge thy cs (arities, eqngr) =
     let
@@ -293,47 +295,36 @@ structure Wellsorted = CodeDataFun
 fun obtain thy cs ts = apsnd snd
   (Wellsorted.change_yield thy (extend_arities_eqngr thy cs ts));
 
-fun preprocess thy cts =
-  let
-    val ts = map Thm.term_of cts;
-    val _ = map
-      (Sign.no_vars (Syntax.pp_global thy) o Term.map_types Type.no_tvars) ts;
-    fun make thm1 = (Thm.rhs_of thm1, fn thm2 =>
-      let
-        val thm3 = Code.postprocess_conv thy (Thm.rhs_of thm2);
-      in
-        Thm.transitive thm1 (Thm.transitive thm2 thm3) handle THM _ =>
-          error ("could not construct evaluation proof:\n"
-          ^ (cat_lines o map Display.string_of_thm) [thm1, thm2, thm3])
-      end);
-  in map (make o Code.preprocess_conv thy) cts end;
+fun prepare_sorts prep_sort (Const (c, ty)) = Const (c, map_type_tfree
+      (fn (v, sort) => TFree (v, prep_sort sort)) ty)
+  | prepare_sorts prep_sort (t1 $ t2) =
+      prepare_sorts prep_sort t1 $ prepare_sorts prep_sort t2
+  | prepare_sorts prep_sort (Abs (v, ty, t)) =
+      Abs (v, Type.strip_sorts ty, prepare_sorts prep_sort t)
+  | prepare_sorts _ (Term.Free (v, ty)) = Term.Free (v, Type.strip_sorts ty)
+  | prepare_sorts _ (t as Bound _) = t;
 
-fun preprocess_term thy ts =
-  let
-    val cts = map (Thm.cterm_of thy) ts;
-    val postprocess = Code.postprocess_term thy;
-  in map (fn (ct, _) => (Thm.term_of ct, postprocess)) (preprocess thy cts) end;
-
-(*FIXME rearrange here*)
-
-fun proto_eval thy cterm_of evaluator_lift preproc evaluator proto_ct =
+fun gen_eval thy cterm_of conclude_evaluation prep_sort evaluator proto_ct =
   let
     val ct = cterm_of proto_ct;
-    val _ = Sign.no_vars (Syntax.pp_global thy) (Thm.term_of ct);
-    val _ = Term.map_types Type.no_tvars (Thm.term_of ct);
-    fun consts_of t =
-      fold_aterms (fn Const c_ty => cons c_ty | _ => I) t [];
+    val _ = (Term.map_types Type.no_tvars o Sign.no_vars (Syntax.pp_global thy))
+      (Thm.term_of ct);
     val thm = Code.preprocess_conv thy ct;
     val ct' = Thm.rhs_of thm;
     val t' = Thm.term_of ct';
-    val consts = map fst (consts_of t');
-    val t'' = preproc t';
+    val vs = Term.add_tfrees t' [];
+    val consts = fold_aterms
+      (fn Const (c, _) => insert (op =) c | _ => I) t' [];
+    val t'' = prepare_sorts prep_sort t';
     val (algebra', eqngr') = obtain thy consts [t''];
-  in evaluator_lift (evaluator t' algebra' eqngr' t'') thm end;
+  in conclude_evaluation (evaluator algebra' eqngr' vs t'' ct') thm end;
+
+fun simple_evaluator evaluator algebra eqngr vs t ct =
+  evaluator algebra eqngr vs t;
 
 fun eval_conv thy =
   let
-    fun evaluator_lift thm2 thm1 =
+    fun conclude_evaluation thm2 thm1 =
       let
         val thm3 = Code.postprocess_conv thy (Thm.rhs_of thm2);
       in
@@ -341,8 +332,12 @@ fun eval_conv thy =
           error ("could not construct evaluation proof:\n"
           ^ (cat_lines o map Display.string_of_thm) [thm1, thm2, thm3])
       end;
-  in proto_eval thy I evaluator_lift end;
+  in gen_eval thy I conclude_evaluation end;
 
-fun eval_term thy = proto_eval thy (Thm.cterm_of thy) (fn t => K t);
+fun eval_term thy prep_sort evaluator = gen_eval thy (Thm.cterm_of thy)
+  (fn t => K (Code.postprocess_term thy t)) prep_sort (simple_evaluator evaluator);
+
+fun eval thy prep_sort evaluator = gen_eval thy (Thm.cterm_of thy)
+  (fn t => K t) prep_sort (simple_evaluator evaluator);
 
 end; (*struct*)

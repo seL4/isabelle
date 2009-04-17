@@ -175,8 +175,7 @@ val eval_ref = ref (NONE : (unit -> term) option);
 fun eval_term thy t =
   t 
   |> Eval.mk_term_of (fastype_of t)
-  |> (fn t => Code_ML.eval_term ("Eval.eval_ref", eval_ref) thy t [])
-  |> Code.postprocess_term thy;
+  |> (fn t => Code_ML.eval_term NONE ("Eval.eval_ref", eval_ref) thy t []);
 
 end;
 *}
