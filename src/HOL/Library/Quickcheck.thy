@@ -47,6 +47,8 @@ open Quickcheck;
 
 val eval_ref : (unit -> int -> int * int -> term list option * (int * int)) option ref = ref NONE;
 
+val target = "Quickcheck";
+
 fun mk_generator_expr thy prop tys =
   let
     val bound_max = length tys - 1;
@@ -72,14 +74,74 @@ fun compile_generator_expr thy t =
   let
     val tys = (map snd o fst o strip_abs) t;
     val t' = mk_generator_expr thy t tys;
-    val f = Code_ML.eval_term ("Quickcheck.eval_ref", eval_ref) thy t' [];
+    val f = Code_ML.eval (SOME target) ("Quickcheck.eval_ref", eval_ref) thy t' [];
   in f #> Random_Engine.run #> (Option.map o map) (Code.postprocess_term thy) end;
 
 end
 *}
 
 setup {*
-  Quickcheck.add_generator ("code", Quickcheck.compile_generator_expr o ProofContext.theory_of)
+  Code_Target.extend_target (Quickcheck.target, (Code_ML.target_Eval, K I))
+  #> Quickcheck.add_generator ("code", Quickcheck.compile_generator_expr o ProofContext.theory_of)
 *}
+
+
+subsection {* Type @{typ "'a \<Rightarrow> 'b"} *}
+
+ML {*
+structure Random_Engine =
+struct
+
+open Random_Engine;
+
+fun random_fun (T1 : typ) (T2 : typ) (eq : 'a -> 'a -> bool) (term_of : 'a -> term)
+    (random : Random_Engine.seed -> ('b * (unit -> term)) * Random_Engine.seed)
+    (random_split : Random_Engine.seed -> Random_Engine.seed * Random_Engine.seed)
+    (seed : Random_Engine.seed) =
+  let
+    val (seed', seed'') = random_split seed;
+    val state = ref (seed', [], Const (@{const_name undefined}, T1 --> T2));
+    val fun_upd = Const (@{const_name fun_upd},
+      (T1 --> T2) --> T1 --> T2 --> T1 --> T2);
+    fun random_fun' x =
+      let
+        val (seed, fun_map, f_t) = ! state;
+      in case AList.lookup (uncurry eq) fun_map x
+       of SOME y => y
+        | NONE => let
+              val t1 = term_of x;
+              val ((y, t2), seed') = random seed;
+              val fun_map' = (x, y) :: fun_map;
+              val f_t' = fun_upd $ f_t $ t1 $ t2 ();
+              val _ = state := (seed', fun_map', f_t');
+            in y end
+      end;
+    fun term_fun' () = #3 (! state);
+  in ((random_fun', term_fun'), seed'') end;
+
+end
+*}
+
+axiomatization
+  random_fun_aux :: "typerep \<Rightarrow> typerep \<Rightarrow> ('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> ('a \<Rightarrow> term)
+    \<Rightarrow> (seed \<Rightarrow> ('b \<times> (unit \<Rightarrow> term)) \<times> seed) \<Rightarrow> (seed \<Rightarrow> seed \<times> seed)
+    \<Rightarrow> seed \<Rightarrow> (('a \<Rightarrow> 'b) \<times> (unit \<Rightarrow> term)) \<times> seed"
+
+code_const random_fun_aux (Quickcheck "Random'_Engine.random'_fun")
+  -- {* With enough criminal energy this can be abused to derive @{prop False};
+  for this reason we use a distinguished target @{text Quickcheck}
+  not spoiling the regular trusted code generation *}
+
+instantiation "fun" :: ("{eq, term_of}", "{type, random}") random
+begin
+
+definition random_fun :: "index \<Rightarrow> seed \<Rightarrow> (('a \<Rightarrow> 'b) \<times> (unit \<Rightarrow> term)) \<times> seed" where
+  "random n = random_fun_aux TYPEREP('a) TYPEREP('b) (op =) Code_Eval.term_of (random n) split_seed"
+
+instance ..
+
+end
+
+code_reserved Quickcheck Random_Engine
 
 end
