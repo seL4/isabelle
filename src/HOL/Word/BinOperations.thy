@@ -641,7 +641,7 @@ lemma bin_split_num:
   apply (simp add: bin_rest_div zdiv_zmult2_eq)
   apply (case_tac b rule: bin_exhaust)
   apply simp
-  apply (simp add: Bit_def zmod_zmult_zmult1 p1mod22k
+  apply (simp add: Bit_def mod_mult_mult1 p1mod22k
               split: bit.split 
               cong: number_of_False_cong)
   done 
