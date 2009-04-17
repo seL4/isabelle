@@ -198,7 +198,7 @@ definition
 
 definition
   rotate :: "nat \<Rightarrow> 'a list \<Rightarrow> 'a list" where
-  "rotate n = rotate1 ^ n"
+  "rotate n = rotate1 ^^ n"
 
 definition
   list_all2 :: "('a => 'b => bool) => 'a list => 'b list => bool" where
