@@ -1,6 +1,12 @@
 Isabelle NEWS -- history user-relevant changes
 ==============================================
 
+*** Pure ***
+
+* On instantiation of classes, remaining undefined class parameters are
+formally declared.  INCOMPATIBILITY.
+
+
 *** HOL ***
 
 * Class semiring_div now requires no_zero_divisors and proof of div_mult_mult1;
