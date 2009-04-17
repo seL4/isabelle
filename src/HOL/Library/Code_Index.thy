@@ -144,7 +144,7 @@ code_datatype "number_of \<Colon> int \<Rightarrow> index"
 
 subsection {* Basic arithmetic *}
 
-instantiation index :: "{minus, ordered_semidom, Divides.div, linorder}"
+instantiation index :: "{minus, ordered_semidom, semiring_div, linorder}"
 begin
 
 definition [simp, code del]:
@@ -172,7 +172,7 @@ definition [simp, code del]:
   "n < m \<longleftrightarrow> nat_of n < nat_of m"
 
 instance proof
-qed (auto simp add: left_distrib)
+qed (auto simp add: index left_distrib div_mult_self1)
 
 end
 

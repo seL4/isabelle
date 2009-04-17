@@ -439,7 +439,7 @@ lemma sbintrunc_mod2p:
   apply clarsimp
   apply (simp add: bin_last_mod bin_rest_div Bit_def 
               cong: number_of_False_cong)
-  apply (clarsimp simp: zmod_zmult_zmult1 [symmetric] 
+  apply (clarsimp simp: mod_mult_mult1 [symmetric] 
          zmod_zdiv_equality [THEN diff_eq_eq [THEN iffD2 [THEN sym]]])
   apply (rule trans [symmetric, OF _ emep1])
      apply auto

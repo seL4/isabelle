@@ -69,7 +69,7 @@ fun rearrange t pq =
 
 fun cancel ss t pq =
   let val teqt' = Data.prove_eq_sums ss (t, rearrange t pq)
-  in hd(Data.div_mod_eqs RL [teqt' RS transitive_thm]) end;
+  in hd (Data.div_mod_eqs RL [teqt' RS transitive_thm]) end;
 
 fun proc ss t =
   let val (divs,mods) = coll_div_mod t ([],[])

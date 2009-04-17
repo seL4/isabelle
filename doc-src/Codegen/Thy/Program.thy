@@ -323,7 +323,7 @@ text {*
 *}
 
 
-subsection {* Equality and wellsortedness *}
+subsection {* Equality *}
 
 text {*
   Surely you have already noticed how equality is treated
@@ -358,60 +358,7 @@ text {*
   manually like any other type class.
 
   Though this @{text eq} class is designed to get rarely in
-  the way, a subtlety
-  enters the stage when definitions of overloaded constants
-  are dependent on operational equality.  For example, let
-  us define a lexicographic ordering on tuples
-  (also see theory @{theory Product_ord}):
-*}
-
-instantiation %quote "*" :: (order, order) order
-begin
-
-definition %quote [code del]:
-  "x \<le> y \<longleftrightarrow> fst x < fst y \<or> fst x = fst y \<and> snd x \<le> snd y"
-
-definition %quote [code del]:
-  "x < y \<longleftrightarrow> fst x < fst y \<or> fst x = fst y \<and> snd x < snd y"
-
-instance %quote proof
-qed (auto simp: less_eq_prod_def less_prod_def intro: order_less_trans)
-
-end %quote
-
-lemma %quote order_prod [code]:
-  "(x1 \<Colon> 'a\<Colon>order, y1 \<Colon> 'b\<Colon>order) < (x2, y2) \<longleftrightarrow>
-     x1 < x2 \<or> x1 = x2 \<and> y1 < y2"
-  "(x1 \<Colon> 'a\<Colon>order, y1 \<Colon> 'b\<Colon>order) \<le> (x2, y2) \<longleftrightarrow>
-     x1 < x2 \<or> x1 = x2 \<and> y1 \<le> y2"
-  by (simp_all add: less_prod_def less_eq_prod_def)
-
-text {*
-  \noindent Then code generation will fail.  Why?  The definition
-  of @{term "op \<le>"} depends on equality on both arguments,
-  which are polymorphic and impose an additional @{class eq}
-  class constraint, which the preprocessor does not propagate
-  (for technical reasons).
-
-  The solution is to add @{class eq} explicitly to the first sort arguments in the
-  code theorems:
-*}
-
-lemma %quote order_prod_code [code]:
-  "(x1 \<Colon> 'a\<Colon>{order, eq}, y1 \<Colon> 'b\<Colon>order) < (x2, y2) \<longleftrightarrow>
-     x1 < x2 \<or> x1 = x2 \<and> y1 < y2"
-  "(x1 \<Colon> 'a\<Colon>{order, eq}, y1 \<Colon> 'b\<Colon>order) \<le> (x2, y2) \<longleftrightarrow>
-     x1 < x2 \<or> x1 = x2 \<and> y1 \<le> y2"
-  by (simp_all add: less_prod_def less_eq_prod_def)
-
-text {*
-  \noindent Then code generation succeeds:
-*}
-
-text %quote {*@{code_stmts "op \<le> \<Colon> _ \<times> _ \<Rightarrow> _ \<times> _ \<Rightarrow> bool" (SML)}*}
-
-text {*
-  In some cases, the automatically derived code equations
+  the way, in some cases the automatically derived code equations
   for equality on a particular type may not be appropriate.
   As example, watch the following datatype representing
   monomorphic parametric types (where type constructors

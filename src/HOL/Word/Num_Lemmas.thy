@@ -66,7 +66,7 @@ lemma emep1:
   apply (safe dest!: even_equiv_def [THEN iffD1])
   apply (subst pos_zmod_mult_2)
    apply arith
-  apply (simp add: zmod_zmult_zmult1)
+  apply (simp add: mod_mult_mult1)
  done
 
 lemmas eme1p = emep1 [simplified add_commute]

@@ -1515,7 +1515,7 @@ thm_maps
   "EQ_REFL_T" > "HOL.simp_thms_6"
   "EQ_REFL" > "Presburger.fm_modd_pinf"
   "EQ_MULT_RCANCEL" > "Nat.mult_cancel2"
-  "EQ_MULT_LCANCEL" > "NatBin.nat_mult_eq_cancel_disj"
+  "EQ_MULT_LCANCEL" > "Nat_Numeral.nat_mult_eq_cancel_disj"
   "EQ_IMP_LE" > "HOLLight.hollight.EQ_IMP_LE"
   "EQ_EXT" > "HOL.meta_eq_to_obj_eq"
   "EQ_CLAUSES" > "HOLLight.hollight.EQ_CLAUSES"

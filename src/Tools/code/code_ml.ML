@@ -951,13 +951,13 @@ fun ml_code_of thy = Code_Target.serialize_custom thy (target_SML,
 
 (* evaluation *)
 
-fun eval eval'' term_of reff thy ct args =
+fun eval_term reff thy t args =
   let
     val ctxt = ProofContext.init thy;
-    val _ = if null (Term.add_frees (term_of ct) []) then () else error ("Term "
-      ^ quote (Syntax.string_of_term_global thy (term_of ct))
+    val _ = if null (Term.add_frees t []) then () else error ("Term "
+      ^ quote (Syntax.string_of_term_global thy t)
       ^ " to be evaluated contains free variables");
-    fun eval' naming program ((vs, ty), t) deps =
+    fun evaluator _ naming program ((_, ty), t) deps =
       let
         val _ = if Code_Thingol.contains_dictvar t then
           error "Term to be evaluated contains free dictionaries" else ();
@@ -970,9 +970,7 @@ fun eval eval'' term_of reff thy ct args =
         val sml_code = "let\n" ^ value_code ^ "\nin " ^ value_name'
           ^ space_implode " " (map (enclose "(" ")") args) ^ " end";
       in ML_Context.evaluate ctxt false reff sml_code end;
-  in eval'' thy (rpair eval') ct end;
-
-fun eval_term reff = eval Code_Thingol.eval_term I reff;
+  in Code_Thingol.eval_term thy I evaluator t end;
 
 
 (* instrumentalization by antiquotation *)
