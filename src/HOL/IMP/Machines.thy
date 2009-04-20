@@ -1,7 +1,6 @@
-
-(* $Id$ *)
-
-theory Machines imports Natural begin
+theory Machines
+imports Natural
+begin
 
 lemma rtrancl_eq: "R^* = Id \<union> (R O R^*)"
   by (fast intro: rtrancl_into_rtrancl elim: rtranclE)
@@ -11,20 +10,22 @@ lemma converse_rtrancl_eq: "R^* = Id \<union> (R^* O R)"
 
 lemmas converse_rel_powE = rel_pow_E2
 
-lemma R_O_Rn_commute: "R O R^n = R^n O R"
+lemma R_O_Rn_commute: "R O R ^^ n = R ^^ n O R"
   by (induct n) (simp, simp add: O_assoc [symmetric])
 
 lemma converse_in_rel_pow_eq:
-  "((x,z) \<in> R^n) = (n=0 \<and> z=x \<or> (\<exists>m y. n = Suc m \<and> (x,y) \<in> R \<and> (y,z) \<in> R^m))"
+  "((x,z) \<in> R ^^ n) = (n=0 \<and> z=x \<or> (\<exists>m y. n = Suc m \<and> (x,y) \<in> R \<and> (y,z) \<in> R ^^ m))"
 apply(rule iffI)
  apply(blast elim:converse_rel_powE)
 apply (fastsimp simp add:gr0_conv_Suc R_O_Rn_commute)
 done
 
-lemma rel_pow_plus: "R^(m+n) = R^n O R^m"
+lemma rel_pow_plus:
+  "R ^^ (m+n) = R ^^ n O R ^^ m"
   by (induct n) (simp, simp add: O_assoc)
 
-lemma rel_pow_plusI: "\<lbrakk> (x,y) \<in> R^m; (y,z) \<in> R^n \<rbrakk> \<Longrightarrow> (x,z) \<in> R^(m+n)"
+lemma rel_pow_plusI:
+  "\<lbrakk> (x,y) \<in> R ^^ m; (y,z) \<in> R ^^ n \<rbrakk> \<Longrightarrow> (x,z) \<in> R ^^ (m+n)"
   by (simp add: rel_pow_plus rel_compI)
 
 subsection "Instructions"
@@ -57,7 +58,7 @@ abbreviation
 abbreviation
   exec0n :: "[instrs, nat,state, nat, nat,state] \<Rightarrow> bool"
     ("(_/ \<turnstile> (1\<langle>_,/_\<rangle>)/ -_\<rightarrow> (1\<langle>_,/_\<rangle>))" [50,0,0,0,0] 50)  where
-  "p \<turnstile> \<langle>i,s\<rangle> -n\<rightarrow> \<langle>j,t\<rangle> == ((i,s),j,t) : (exec01 p)^n"
+  "p \<turnstile> \<langle>i,s\<rangle> -n\<rightarrow> \<langle>j,t\<rangle> == ((i,s),j,t) : (exec01 p)^^n"
 
 subsection "M0 with lists"
 
@@ -89,7 +90,7 @@ abbreviation
 abbreviation
   stepan :: "[instrs,instrs,state, nat, instrs,instrs,state] \<Rightarrow> bool"
     ("((1\<langle>_,/_,/_\<rangle>)/ -_\<rightarrow> (1\<langle>_,/_,/_\<rangle>))" 50) where
-  "\<langle>p,q,s\<rangle> -i\<rightarrow> \<langle>p',q',t\<rangle> == ((p,q,s),p',q',t) : (stepa1^i)"
+  "\<langle>p,q,s\<rangle> -i\<rightarrow> \<langle>p',q',t\<rangle> == ((p,q,s),p',q',t) : (stepa1^^i)"
 
 inductive_cases execE: "((i#is,p,s), (is',p',s')) : stepa1"
 

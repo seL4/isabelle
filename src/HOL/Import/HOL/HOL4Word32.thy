@@ -434,15 +434,15 @@ lemma EQUIV_QT: "ALL (x::nat) y::nat. EQUIV x y = (EQUIV x = EQUIV y)"
   by (import word32 EQUIV_QT)
 
 lemma FUNPOW_THM: "ALL (f::'a::type => 'a::type) (n::nat) x::'a::type.
-   (f ^ n) (f x) = f ((f ^ n) x)"
+   (f o^ n) (f x) = f ((f o^ n) x)"
   by (import word32 FUNPOW_THM)
 
 lemma FUNPOW_THM2: "ALL (f::'a::type => 'a::type) (n::nat) x::'a::type.
-   (f ^ Suc n) x = f ((f ^ n) x)"
+   (f o^ Suc n) x = f ((f o^ n) x)"
   by (import word32 FUNPOW_THM2)
 
 lemma FUNPOW_COMP: "ALL (f::'a::type => 'a::type) (m::nat) (n::nat) a::'a::type.
-   (f ^ m) ((f ^ n) a) = (f ^ (m + n)) a"
+   (f o^ m) ((f o^ n) a) = (f o^ (m + n)) a"
   by (import word32 FUNPOW_COMP)
 
 lemma INw_MODw: "ALL n::nat. INw (MODw n)"
@@ -1170,23 +1170,23 @@ lemma word_lsl: "ALL (a::word32) n::nat. word_lsl a n = word_mul a (n2w (2 ^ n))
 
 constdefs
   word_lsr :: "word32 => nat => word32" 
-  "word_lsr == %(a::word32) n::nat. (word_lsr1 ^ n) a"
+  "word_lsr == %(a::word32) n::nat. (word_lsr1 o^ n) a"
 
-lemma word_lsr: "ALL (a::word32) n::nat. word_lsr a n = (word_lsr1 ^ n) a"
+lemma word_lsr: "ALL (a::word32) n::nat. word_lsr a n = (word_lsr1 o^ n) a"
   by (import word32 word_lsr)
 
 constdefs
   word_asr :: "word32 => nat => word32" 
-  "word_asr == %(a::word32) n::nat. (word_asr1 ^ n) a"
+  "word_asr == %(a::word32) n::nat. (word_asr1 o^ n) a"
 
-lemma word_asr: "ALL (a::word32) n::nat. word_asr a n = (word_asr1 ^ n) a"
+lemma word_asr: "ALL (a::word32) n::nat. word_asr a n = (word_asr1 o^ n) a"
   by (import word32 word_asr)
 
 constdefs
   word_ror :: "word32 => nat => word32" 
-  "word_ror == %(a::word32) n::nat. (word_ror1 ^ n) a"
+  "word_ror == %(a::word32) n::nat. (word_ror1 o^ n) a"
 
-lemma word_ror: "ALL (a::word32) n::nat. word_ror a n = (word_ror1 ^ n) a"
+lemma word_ror: "ALL (a::word32) n::nat. word_ror a n = (word_ror1 o^ n) a"
   by (import word32 word_ror)
 
 consts
@@ -1583,4 +1583,3 @@ lemma SLICEw_ZERO: "ALL (h::nat) (l::nat) n::word32. h < l --> SLICEw h l n = 0"
 ;end_setup
 
 end
-
