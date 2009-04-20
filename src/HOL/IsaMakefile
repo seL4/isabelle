@@ -218,7 +218,6 @@ MAIN_DEPENDENCIES = $(PLAIN_DEPENDENCIES) \
   Nat_Numeral.thy \
   Presburger.thy \
   Recdef.thy \
-  Relation_Power.thy \
   SetInterval.thy \
   $(SRC)/Provers/Arith/assoc_fold.ML \
   $(SRC)/Provers/Arith/cancel_numeral_factor.ML \
