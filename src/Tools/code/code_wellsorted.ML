@@ -7,25 +7,28 @@ with explicit dependencies -- the Waisenhaus algorithm.
 
 signature CODE_WELLSORTED =
 sig
-  type T
-  val eqns: T -> string -> (thm * bool) list
-  val typ: T -> string -> (string * sort) list * typ
-  val all: T -> string list
-  val pretty: theory -> T -> Pretty.T
-  val make: theory -> string list
-    -> ((sort -> sort) * Sorts.algebra) * T
-  val eval_conv: theory
-    -> (term -> term * (((sort -> sort) * Sorts.algebra) -> T -> thm)) -> cterm -> thm
-  val eval_term: theory
-    -> (term -> term * (((sort -> sort) * Sorts.algebra) -> T -> 'a)) -> term -> 'a
+  type code_algebra
+  type code_graph
+  val eqns: code_graph -> string -> (thm * bool) list
+  val typ: code_graph -> string -> (string * sort) list * typ
+  val all: code_graph -> string list
+  val pretty: theory -> code_graph -> Pretty.T
+  val obtain: theory -> string list -> term list -> code_algebra * code_graph
+  val eval_conv: theory -> (sort -> sort)
+    -> (code_algebra -> code_graph -> (string * sort) list -> term -> cterm -> thm) -> cterm -> thm
+  val eval_term: theory -> (sort -> sort)
+    -> (code_algebra -> code_graph -> (string * sort) list -> term -> term) -> term -> term
+  val eval: theory -> (sort -> sort)
+    -> (code_algebra -> code_graph -> (string * sort) list -> term -> 'a) -> term -> 'a
 end
 
 structure Code_Wellsorted : CODE_WELLSORTED =
 struct
 
-(** the equation graph type **)
+(** the algebra and code equation graph types **)
 
-type T = (((string * sort) list * typ) * (thm * bool) list) Graph.T;
+type code_algebra = (sort -> sort) * Sorts.algebra;
+type code_graph = (((string * sort) list * typ) * (thm * bool) list) Graph.T;
 
 fun eqns eqngr = these o Option.map snd o try (Graph.get_node eqngr);
 fun typ eqngr = fst o Graph.get_node eqngr;
@@ -47,8 +50,10 @@ fun pretty thy eqngr =
 
 (* auxiliary *)
 
+fun is_proper_class thy = can (AxClass.get_info thy);
+
 fun complete_proper_sort thy =
-  Sign.complete_sort thy #> filter (can (AxClass.get_info thy));
+  Sign.complete_sort thy #> filter (is_proper_class thy);
 
 fun inst_params thy tyco =
   map (fn (c, _) => AxClass.param_of_inst thy (c, tyco))
@@ -232,8 +237,7 @@ fun add_arity thy vardeps (class, tyco) =
     ((class, tyco), map (fn k => (snd o Vargraph.get_node vardeps) (Inst (class, tyco), k))
       (0 upto Sign.arity_number thy tyco - 1));
 
-fun add_eqs thy (proj_sort, algebra) vardeps
-    (c, (proto_lhs, proto_eqns)) (rhss, eqngr) =
+fun add_eqs thy vardeps (c, (proto_lhs, proto_eqns)) (rhss, eqngr) =
   if can (Graph.get_node eqngr) c then (rhss, eqngr)
   else let
     val lhs = map_index (fn (k, (v, _)) =>
@@ -246,72 +250,30 @@ fun add_eqs thy (proj_sort, algebra) vardeps
     val eqngr' = Graph.new_node (c, (tyscm, eqns)) eqngr;
   in (map (pair c) rhss' @ rhss, eqngr') end;
 
-fun extend_arities_eqngr thy cs cs_rhss (arities, eqngr) =
+fun extend_arities_eqngr thy cs ts (arities, eqngr) =
   let
-    val cs_rhss' = (map o apsnd o map) (styp_of NONE) cs_rhss;
+    val cs_rhss = (fold o fold_aterms) (fn Const (c_ty as (c, _)) =>
+      insert (op =) (c, (map (styp_of NONE) o Sign.const_typargs thy) c_ty) | _ => I) ts [];
     val (vardeps, (eqntab, insts)) = empty_vardeps_data
       |> fold (assert_fun thy arities eqngr) cs
-      |> fold (assert_rhs thy arities eqngr) cs_rhss';
+      |> fold (assert_rhs thy arities eqngr) cs_rhss;
     val arities' = fold (add_arity thy vardeps) insts arities;
     val pp = Syntax.pp_global thy;
-    val is_proper_class = can (AxClass.get_info thy);
-    val (proj_sort, algebra) = Sorts.subalgebra pp is_proper_class
+    val algebra = Sorts.subalgebra pp (is_proper_class thy)
       (AList.lookup (op =) arities') (Sign.classes_of thy);
-    val (rhss, eqngr') = Symtab.fold
-      (add_eqs thy (proj_sort, algebra) vardeps) eqntab ([], eqngr);
-    fun deps_of (c, rhs) = c ::
-      maps (dicts_of thy (proj_sort, algebra))
-        (rhs ~~ (map snd o fst o fst o Graph.get_node eqngr') c);
+    val (rhss, eqngr') = Symtab.fold (add_eqs thy vardeps) eqntab ([], eqngr);
+    fun deps_of (c, rhs) = c :: maps (dicts_of thy algebra)
+      (rhs ~~ (map snd o fst o fst o Graph.get_node eqngr') c);
     val eqngr'' = fold (fn (c, rhs) => fold
       (curry Graph.add_edge c) (deps_of rhs)) rhss eqngr';
-  in ((proj_sort, algebra), (arities', eqngr'')) end;
+  in (algebra, (arities', eqngr'')) end;
 
 
-(** retrieval interfaces **)
-
-fun proto_eval thy cterm_of evaluator_lift evaluator proto_ct arities_eqngr =
-  let
-    val ct = cterm_of proto_ct;
-    val _ = Sign.no_vars (Syntax.pp_global thy) (Thm.term_of ct);
-    val _ = Term.fold_types (Type.no_tvars #> K I) (Thm.term_of ct) ();
-    fun consts_of t =
-      fold_aterms (fn Const c_ty => cons c_ty | _ => I) t [];
-    val thm = Code.preprocess_conv thy ct;
-    val ct' = Thm.rhs_of thm;
-    val t' = Thm.term_of ct';
-    val (t'', evaluator_eqngr) = evaluator t';
-    val consts = map fst (consts_of t');
-    val consts' = consts_of t'';
-    val const_matches' = fold (fn (c, ty) =>
-      insert (op =) (c, Sign.const_typargs thy (c, ty))) consts' [];
-    val (algebra', arities_eqngr') =
-      extend_arities_eqngr thy consts const_matches' arities_eqngr;
-  in
-    (evaluator_lift (evaluator_eqngr algebra') thm (snd arities_eqngr'),
-      arities_eqngr')
-  end;
-
-fun proto_eval_conv thy =
-  let
-    fun evaluator_lift evaluator thm1 eqngr =
-      let
-        val thm2 = evaluator eqngr;
-        val thm3 = Code.postprocess_conv thy (Thm.rhs_of thm2);
-      in
-        Thm.transitive thm1 (Thm.transitive thm2 thm3) handle THM _ =>
-          error ("could not construct evaluation proof:\n"
-          ^ (cat_lines o map Display.string_of_thm) [thm1, thm2, thm3])
-      end;
-  in proto_eval thy I evaluator_lift end;
-
-fun proto_eval_term thy =
-  let
-    fun evaluator_lift evaluator _ eqngr = evaluator eqngr;
-  in proto_eval thy (Thm.cterm_of thy) evaluator_lift end;
+(** store **)
 
 structure Wellsorted = CodeDataFun
 (
-  type T = ((string * class) * sort list) list * T;
+  type T = ((string * class) * sort list) list * code_graph;
   val empty = ([], Graph.empty);
   fun purge thy cs (arities, eqngr) =
     let
@@ -327,71 +289,55 @@ structure Wellsorted = CodeDataFun
     in (arities', eqngr') end;
 );
 
-fun make thy cs = apsnd snd
-  (Wellsorted.change_yield thy (extend_arities_eqngr thy cs []));
 
-fun eval_conv thy f =
-  fst o Wellsorted.change_yield thy o proto_eval_conv thy f;
+(** retrieval interfaces **)
 
-fun eval_term thy f =
-  fst o Wellsorted.change_yield thy o proto_eval_term thy f;
+fun obtain thy cs ts = apsnd snd
+  (Wellsorted.change_yield thy (extend_arities_eqngr thy cs ts));
 
+fun prepare_sorts prep_sort (Const (c, ty)) = Const (c, map_type_tfree
+      (fn (v, sort) => TFree (v, prep_sort sort)) ty)
+  | prepare_sorts prep_sort (t1 $ t2) =
+      prepare_sorts prep_sort t1 $ prepare_sorts prep_sort t2
+  | prepare_sorts prep_sort (Abs (v, ty, t)) =
+      Abs (v, Type.strip_sorts ty, prepare_sorts prep_sort t)
+  | prepare_sorts _ (Term.Free (v, ty)) = Term.Free (v, Type.strip_sorts ty)
+  | prepare_sorts _ (t as Bound _) = t;
 
-(** diagnostic commands **)
-
-fun code_depgr thy consts =
+fun gen_eval thy cterm_of conclude_evaluation prep_sort evaluator proto_ct =
   let
-    val (_, eqngr) = make thy consts;
-    val select = Graph.all_succs eqngr consts;
-  in
-    eqngr
-    |> not (null consts) ? Graph.subgraph (member (op =) select) 
-    |> Graph.map_nodes ((apsnd o map o apfst) (AxClass.overload thy))
-  end;
+    val ct = cterm_of proto_ct;
+    val _ = (Term.map_types Type.no_tvars o Sign.no_vars (Syntax.pp_global thy))
+      (Thm.term_of ct);
+    val thm = Code.preprocess_conv thy ct;
+    val ct' = Thm.rhs_of thm;
+    val t' = Thm.term_of ct';
+    val vs = Term.add_tfrees t' [];
+    val consts = fold_aterms
+      (fn Const (c, _) => insert (op =) c | _ => I) t' [];
+    val t'' = prepare_sorts prep_sort t';
+    val (algebra', eqngr') = obtain thy consts [t''];
+  in conclude_evaluation (evaluator algebra' eqngr' vs t'' ct') thm end;
 
-fun code_thms thy = Pretty.writeln o pretty thy o code_depgr thy;
+fun simple_evaluator evaluator algebra eqngr vs t ct =
+  evaluator algebra eqngr vs t;
 
-fun code_deps thy consts =
+fun eval_conv thy =
   let
-    val eqngr = code_depgr thy consts;
-    val constss = Graph.strong_conn eqngr;
-    val mapping = Symtab.empty |> fold (fn consts => fold (fn const =>
-      Symtab.update (const, consts)) consts) constss;
-    fun succs consts = consts
-      |> maps (Graph.imm_succs eqngr)
-      |> subtract (op =) consts
-      |> map (the o Symtab.lookup mapping)
-      |> distinct (op =);
-    val conn = [] |> fold (fn consts => cons (consts, succs consts)) constss;
-    fun namify consts = map (Code_Unit.string_of_const thy) consts
-      |> commas;
-    val prgr = map (fn (consts, constss) =>
-      { name = namify consts, ID = namify consts, dir = "", unfold = true,
-        path = "", parents = map namify constss }) conn;
-  in Present.display_graph prgr end;
+    fun conclude_evaluation thm2 thm1 =
+      let
+        val thm3 = Code.postprocess_conv thy (Thm.rhs_of thm2);
+      in
+        Thm.transitive thm1 (Thm.transitive thm2 thm3) handle THM _ =>
+          error ("could not construct evaluation proof:\n"
+          ^ (cat_lines o map Display.string_of_thm) [thm1, thm2, thm3])
+      end;
+  in gen_eval thy I conclude_evaluation end;
 
-local
+fun eval_term thy prep_sort evaluator = gen_eval thy (Thm.cterm_of thy)
+  (fn t => K (Code.postprocess_term thy t)) prep_sort (simple_evaluator evaluator);
 
-structure P = OuterParse
-and K = OuterKeyword
-
-fun code_thms_cmd thy = code_thms thy o op @ o Code_Name.read_const_exprs thy;
-fun code_deps_cmd thy = code_deps thy o op @ o Code_Name.read_const_exprs thy;
-
-in
-
-val _ =
-  OuterSyntax.improper_command "code_thms" "print system of code equations for code" OuterKeyword.diag
-    (Scan.repeat P.term_group
-      >> (fn cs => Toplevel.no_timing o Toplevel.unknown_theory
-        o Toplevel.keep ((fn thy => code_thms_cmd thy cs) o Toplevel.theory_of)));
-
-val _ =
-  OuterSyntax.improper_command "code_deps" "visualize dependencies of code equations for code" OuterKeyword.diag
-    (Scan.repeat P.term_group
-      >> (fn cs => Toplevel.no_timing o Toplevel.unknown_theory
-        o Toplevel.keep ((fn thy => code_deps_cmd thy cs) o Toplevel.theory_of)));
-
-end;
+fun eval thy prep_sort evaluator = gen_eval thy (Thm.cterm_of thy)
+  (fn t => K t) prep_sort (simple_evaluator evaluator);
 
 end; (*struct*)

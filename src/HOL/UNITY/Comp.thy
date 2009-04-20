@@ -15,14 +15,22 @@ Added: a strong form of the \<subseteq> relation (component_of) and localize
 
 header{*Composition: Basic Primitives*}
 
-theory Comp imports Union begin
+theory Comp
+imports Union
+begin
 
-instance program :: (type) ord ..
+instantiation program :: (type) ord
+begin
 
-defs
-  component_def:          "F \<le> H == \<exists>G. F\<squnion>G = H"
-  strict_component_def:   "(F < (H::'a program)) == (F \<le> H & F \<noteq> H)"
+definition
+  component_def: "F \<le> H <-> (\<exists>G. F\<squnion>G = H)"
 
+definition
+  strict_component_def: "F < (H::'a program) <-> (F \<le> H & F \<noteq> H)"
+
+instance ..
+
+end
 
 constdefs
   component_of :: "'a program =>'a program=> bool"
@@ -114,7 +122,7 @@ lemma component_stable: "[| F \<le> G; G \<in> stable A |] ==> F \<in> stable A"
 by (auto simp add: stable_def component_constrains)
 
 (*Used in Guar.thy to show that programs are partially ordered*)
-lemmas program_less_le = strict_component_def [THEN meta_eq_to_obj_eq]
+lemmas program_less_le = strict_component_def
 
 
 subsection{*The preserves property*}
@@ -229,8 +237,7 @@ apply (unfold component_of_def)
 apply (blast intro: Join_assoc [symmetric])
 done
 
-lemmas strict_component_of_eq =
-    strict_component_of_def [THEN meta_eq_to_obj_eq, standard]
+lemmas strict_component_of_eq = strict_component_of_def
 
 (** localize **)
 lemma localize_Init_eq [simp]: "Init (localize v F) = Init F"

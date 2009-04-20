@@ -207,10 +207,10 @@ definition shiftr1 :: "'a word \<Rightarrow> 'a word" where
   "shiftr1 w = word_of_int (bin_rest (uint w))"
 
 definition
-  shiftl_def: "w << n = (shiftl1 ^ n) w"
+  shiftl_def: "w << n = (shiftl1 o^ n) w"
 
 definition
-  shiftr_def: "w >> n = (shiftr1 ^ n) w"
+  shiftr_def: "w >> n = (shiftr1 o^ n) w"
 
 instance ..
 
@@ -245,7 +245,7 @@ constdefs
   "bshiftr1 b w == of_bl (b # butlast (to_bl w))"
 
   sshiftr :: "'a :: len word => nat => 'a word" (infixl ">>>" 55)
-  "w >>> n == (sshiftr1 ^ n) w"
+  "w >>> n == (sshiftr1 o^ n) w"
 
   mask :: "nat => 'a::len word"
   "mask n == (1 << n) - 1"
@@ -268,7 +268,7 @@ constdefs
     case ys of [] => [] | x # xs => last ys # butlast ys"
 
   rotater :: "nat => 'a list => 'a list"
-  "rotater n == rotater1 ^ n"
+  "rotater n == rotater1 o^ n"
 
   word_rotr :: "nat => 'a :: len0 word => 'a :: len0 word"
   "word_rotr n w == of_bl (rotater n (to_bl w))"
@@ -303,7 +303,7 @@ constdefs
 constdefs
   -- "Largest representable machine integer."
   max_word :: "'a::len word"
-  "max_word \<equiv> word_of_int (2^len_of TYPE('a) - 1)"
+  "max_word \<equiv> word_of_int (2 ^ len_of TYPE('a) - 1)"
 
 consts 
   of_bool :: "bool \<Rightarrow> 'a::len word"

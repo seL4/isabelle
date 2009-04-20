@@ -361,14 +361,14 @@ lemma sshiftr1_sbintr [simp] :
 
 lemma shiftr_no': 
   "w = number_of bin ==> 
-  (w::'a::len0 word) >> n = number_of ((bin_rest ^ n) (bintrunc (size w) bin))"
+  (w::'a::len0 word) >> n = number_of ((bin_rest o^ n) (bintrunc (size w) bin))"
   apply clarsimp
   apply (rule word_eqI)
   apply (auto simp: nth_shiftr nth_rest_power_bin nth_bintr word_size)
   done
 
 lemma sshiftr_no': 
-  "w = number_of bin ==> w >>> n = number_of ((bin_rest ^ n) 
+  "w = number_of bin ==> w >>> n = number_of ((bin_rest o^ n) 
     (sbintrunc (size w - 1) bin))"
   apply clarsimp
   apply (rule word_eqI)

@@ -29,8 +29,6 @@ sig
   val add_undefined: string -> theory -> theory
   val purge_data: theory -> theory
 
-  val coregular_algebra: theory -> Sorts.algebra
-  val operational_algebra: theory -> (sort -> sort) * Sorts.algebra
   val these_eqns: theory -> string -> (thm * bool) list
   val these_raw_eqns: theory -> string -> (thm * bool) list
   val get_datatype: theory -> string -> ((string * sort) list * (string * typ list) list)
@@ -467,39 +465,6 @@ fun mk_eqn thy linear =
   Code_Unit.error_thm ((if linear then check_linear else I) o Code_Unit.mk_eqn thy);
 fun mk_syntactic_eqn thy = Code_Unit.warning_thm (Code_Unit.mk_eqn thy);
 fun mk_default_eqn thy = Code_Unit.try_thm (check_linear o Code_Unit.mk_eqn thy);
-
-
-(** operational sort algebra and class discipline **)
-
-local
-
-fun arity_constraints thy algebra (class, tyco) =
-  let
-    val base_constraints = Sorts.mg_domain algebra tyco [class];
-    val classparam_constraints = Sorts.complete_sort algebra [class]
-      |> maps (map fst o these o try (#params o AxClass.get_info thy))
-      |> map_filter (fn c => try (AxClass.param_of_inst thy) (c, tyco))
-      |> maps (map fst o get_eqns thy)
-      |> map (map (snd o dest_TVar) o Sign.const_typargs thy o Code_Unit.const_typ_eqn);
-    val inter_sorts = map2 (curry (Sorts.inter_sort algebra));
-  in fold inter_sorts classparam_constraints base_constraints end;
-
-fun retrieve_algebra thy operational =
-  Sorts.subalgebra (Syntax.pp_global thy) operational
-    (SOME o arity_constraints thy (Sign.classes_of thy))
-    (Sign.classes_of thy);
-
-in
-
-fun coregular_algebra thy = retrieve_algebra thy (K true) |> snd;
-fun operational_algebra thy =
-  let
-    fun add_iff_operational class =
-      can (AxClass.get_info thy) class ? cons class;
-    val operational_classes = fold add_iff_operational (Sign.all_classes thy) []
-  in retrieve_algebra thy (member (op =) operational_classes) end;
-
-end; (*local*)
 
 
 (** interfaces and attributes **)

@@ -110,7 +110,7 @@ lemma td_conds:
   done
 
 lemma fn_comm_power:
-  "fa o tr = tr o fr ==> fa ^ n o tr = tr o fr ^ n" 
+  "fa o tr = tr o fr ==> fa o^ n o tr = tr o fr o^ n" 
   apply (rule ext) 
   apply (induct n)
    apply (auto dest: fun_cong)

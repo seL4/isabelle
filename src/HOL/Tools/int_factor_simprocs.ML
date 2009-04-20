@@ -1,5 +1,4 @@
 (*  Title:      HOL/int_factor_simprocs.ML
-    ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   2000  University of Cambridge
 
@@ -46,13 +45,13 @@ structure CancelNumeralFactorCommon =
       @{thm mult_zero_right}, @{thm mult_Bit1}, @{thm mult_1_right}];
   end
 
-(*Version for integer division*)
-structure IntDivCancelNumeralFactor = CancelNumeralFactorFun
+(*Version for semiring_div*)
+structure DivCancelNumeralFactor = CancelNumeralFactorFun
  (open CancelNumeralFactorCommon
   val prove_conv = Arith_Data.prove_conv
   val mk_bal   = HOLogic.mk_binop @{const_name Divides.div}
-  val dest_bal = HOLogic.dest_bin @{const_name Divides.div} HOLogic.intT
-  val cancel = @{thm zdiv_zmult_zmult1} RS trans
+  val dest_bal = HOLogic.dest_bin @{const_name Divides.div} Term.dummyT
+  val cancel = @{thm div_mult_mult1} RS trans
   val neg_exchanges = false
 )
 
@@ -108,8 +107,9 @@ val cancel_numeral_factors =
       "(l::'a::{ordered_idom,number_ring}) <= m * n"],
      K LeCancelNumeralFactor.proc),
     ("int_div_cancel_numeral_factors",
-     ["((l::int) * m) div n", "(l::int) div (m * n)"],
-     K IntDivCancelNumeralFactor.proc),
+     ["((l::'a::{semiring_div,number_ring}) * m) div n",
+      "(l::'a::{semiring_div,number_ring}) div (m * n)"],
+     K DivCancelNumeralFactor.proc),
     ("divide_cancel_numeral_factor",
      ["((l::'a::{division_by_zero,field,number_ring}) * m) / n",
       "(l::'a::{division_by_zero,field,number_ring}) / (m * n)",
@@ -284,24 +284,25 @@ structure LessCancelFactor = ExtractCommonTermFun
     @{thm mult_less_cancel_left_pos} @{thm mult_less_cancel_left_neg}
 );
 
-(*zdiv_zmult_zmult1_if is for integer division (div).*)
-structure IntDivCancelFactor = ExtractCommonTermFun
+(*for semirings with division*)
+structure DivCancelFactor = ExtractCommonTermFun
  (open CancelFactorCommon
   val prove_conv = Arith_Data.prove_conv
   val mk_bal   = HOLogic.mk_binop @{const_name Divides.div}
-  val dest_bal = HOLogic.dest_bin @{const_name Divides.div} HOLogic.intT
-  val simp_conv = K (K (SOME @{thm zdiv_zmult_zmult1_if}))
+  val dest_bal = HOLogic.dest_bin @{const_name Divides.div} Term.dummyT
+  val simp_conv = K (K (SOME @{thm div_mult_mult1_if}))
 );
 
-structure IntModCancelFactor = ExtractCommonTermFun
+structure ModCancelFactor = ExtractCommonTermFun
  (open CancelFactorCommon
   val prove_conv = Arith_Data.prove_conv
   val mk_bal   = HOLogic.mk_binop @{const_name Divides.mod}
   val dest_bal = HOLogic.dest_bin @{const_name Divides.mod} HOLogic.intT
-  val simp_conv = K (K (SOME @{thm zmod_zmult_zmult1}))
+  val simp_conv = K (K (SOME @{thm mod_mult_mult1}))
 );
 
-structure IntDvdCancelFactor = ExtractCommonTermFun
+(*for idoms*)
+structure DvdCancelFactor = ExtractCommonTermFun
  (open CancelFactorCommon
   val prove_conv = Arith_Data.prove_conv
   val mk_bal   = HOLogic.mk_binrel @{const_name Ring_and_Field.dvd}
@@ -321,8 +322,8 @@ structure DivideCancelFactor = ExtractCommonTermFun
 val cancel_factors =
   map Arith_Data.prep_simproc
    [("ring_eq_cancel_factor",
-     ["(l::'a::{idom}) * m = n",
-      "(l::'a::{idom}) = m * n"],
+     ["(l::'a::idom) * m = n",
+      "(l::'a::idom) = m * n"],
      K EqCancelFactor.proc),
     ("ordered_ring_le_cancel_factor",
      ["(l::'a::ordered_ring) * m <= n",
@@ -333,14 +334,14 @@ val cancel_factors =
       "(l::'a::ordered_ring) < m * n"],
      K LessCancelFactor.proc),
     ("int_div_cancel_factor",
-     ["((l::int) * m) div n", "(l::int) div (m * n)"],
-     K IntDivCancelFactor.proc),
+     ["((l::'a::semiring_div) * m) div n", "(l::'a::semiring_div) div (m * n)"],
+     K DivCancelFactor.proc),
     ("int_mod_cancel_factor",
-     ["((l::int) * m) mod n", "(l::int) mod (m * n)"],
-     K IntModCancelFactor.proc),
+     ["((l::'a::semiring_div) * m) mod n", "(l::'a::semiring_div) mod (m * n)"],
+     K ModCancelFactor.proc),
     ("dvd_cancel_factor",
      ["((l::'a::idom) * m) dvd n", "(l::'a::idom) dvd (m * n)"],
-     K IntDvdCancelFactor.proc),
+     K DvdCancelFactor.proc),
     ("divide_cancel_factor",
      ["((l::'a::{division_by_zero,field}) * m) / n",
       "(l::'a::{division_by_zero,field}) / (m * n)"],

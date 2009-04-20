@@ -5,7 +5,7 @@
 header {* Semiring normalization and Groebner Bases *}
 
 theory Groebner_Basis
-imports NatBin
+imports Nat_Numeral
 uses
   "Tools/Groebner_Basis/misc.ML"
   "Tools/Groebner_Basis/normalizer_data.ML"

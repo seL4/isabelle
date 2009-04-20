@@ -338,10 +338,10 @@ text{*Next, we express the @{term "wens_set"} for single-assignment programs*}
 
 constdefs
   wens_single_finite :: "[('a*'a) set, 'a set, nat] => 'a set"  
-    "wens_single_finite act B k == \<Union>i \<in> atMost k. ((wp act)^i) B"
+    "wens_single_finite act B k == \<Union>i \<in> atMost k. (wp act o^ i) B"
 
   wens_single :: "[('a*'a) set, 'a set] => 'a set"  
-    "wens_single act B == \<Union>i. ((wp act)^i) B"
+    "wens_single act B == \<Union>i. (wp act o^ i) B"
 
 lemma wens_single_Un_eq:
       "single_valued act
