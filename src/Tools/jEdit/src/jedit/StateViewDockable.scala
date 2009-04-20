@@ -46,7 +46,6 @@ class StateViewDockable(view : View, position : String) extends JPanel {
         {
           val renderer = new Java2DTextRenderer
           renderer.setSmoothingThreshold(0)
-          renderer.setSmoothingLevel(TextRenderer.HIGH)
           renderer
         })
     }
