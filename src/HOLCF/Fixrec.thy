@@ -534,13 +534,13 @@ by (simp_all add: match_spair_def)
 
 lemma match_sinl_simps [simp]:
   "x \<noteq> \<bottom> \<Longrightarrow> match_sinl\<cdot>(sinl\<cdot>x)\<cdot>k = k\<cdot>x"
-  "x \<noteq> \<bottom> \<Longrightarrow> match_sinl\<cdot>(sinr\<cdot>x)\<cdot>k = fail"
+  "y \<noteq> \<bottom> \<Longrightarrow> match_sinl\<cdot>(sinr\<cdot>y)\<cdot>k = fail"
   "match_sinl\<cdot>\<bottom>\<cdot>k = \<bottom>"
 by (simp_all add: match_sinl_def)
 
 lemma match_sinr_simps [simp]:
-  "x \<noteq> \<bottom> \<Longrightarrow> match_sinr\<cdot>(sinr\<cdot>x)\<cdot>k = k\<cdot>x"
   "x \<noteq> \<bottom> \<Longrightarrow> match_sinr\<cdot>(sinl\<cdot>x)\<cdot>k = fail"
+  "y \<noteq> \<bottom> \<Longrightarrow> match_sinr\<cdot>(sinr\<cdot>y)\<cdot>k = k\<cdot>y"
   "match_sinr\<cdot>\<bottom>\<cdot>k = \<bottom>"
 by (simp_all add: match_sinr_def)
 
