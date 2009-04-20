@@ -39,53 +39,63 @@ object ProofDocument
       "[()\\[\\]{}:;]", Pattern.MULTILINE)
 
  val empty =
-  new ProofDocument(isabelle.jedit.Isabelle.plugin.id(), LinearSet.empty, LinearSet.empty, false, _ => false)
+  new ProofDocument(isabelle.jedit.Isabelle.plugin.id(), LinearSet(), Map(), LinearSet(), false, _ => false)
 
 }
 
 class ProofDocument(val id: String,
                     val tokens: LinearSet[Token],
+                    val token_start: Map[Token, Int],
                     val commands: LinearSet[Command],
                     val active: Boolean,
                     is_command_keyword: String => Boolean)
 {
 
   def mark_active: ProofDocument =
-    new ProofDocument(id, tokens, commands, true, is_command_keyword)
+    new ProofDocument(id, tokens, token_start, commands, true, is_command_keyword)
   def activate: (ProofDocument, StructureChange) = {
     val (doc, change) =
       text_changed(new Text.Change(isabelle.jedit.Isabelle.plugin.id(), 0, content, content.length))
     return (doc.mark_active, change)
   }
   def set_command_keyword(f: String => Boolean): ProofDocument =
-    new ProofDocument(id, tokens, commands, active, f)
+    new ProofDocument(id, tokens, token_start, commands, active, f)
 
-  def content = Token.string_from_tokens(List() ++ tokens)
+  def content = Token.string_from_tokens(List() ++ tokens, token_start)
   /** token view **/
 
   def text_changed(change: Text.Change): (ProofDocument, StructureChange) =
   {
+    //indices of tokens
+    var start: Map[Token, Int] = token_start
+    def stop(t: Token) = start(t) + t.length
+    // split old token lists
     val tokens = List() ++ this.tokens
-    val (begin, remaining) = tokens.span(_.stop < change.start)
-    val (removed, end_unshifted) = remaining.span(_.start <= change.start + change.removed)
-    val end = for (t <- end_unshifted) yield t.shift(change.added.length - change.removed)
+    val (begin, remaining) = tokens.span(stop(_) < change.start)
+    val (removed, end) = remaining.span(token_start(_) <= change.start + change.removed)
+    // update indices
+    start = end.foldLeft (start) ((s, t) => s + (t -> (s(t) + change.added.length - change.removed)))
+    start = removed.foldLeft (start) ((s, t) => s - t)
 
-    val split_begin = removed.takeWhile(_.start < change.start).
-      map (t => new Token(t.start,
-                          t.content.substring(0, change.start - t.start),
+    val split_begin = removed.takeWhile(start(_) < change.start).
+      map (t => new Token(t.content.substring(0, change.start - start(t)),
                           t.kind))
-    val split_end = removed.dropWhile(_.stop < change.start + change.removed).
-      map (t => new Token(change.start + change.added.length,
-                          t.content.substring(change.start + change.removed - t.start),
+    val split_end = removed.dropWhile(stop(_) < change.start + change.removed).
+      map (t => new Token(t.content.substring(change.start + change.removed - start(t)),
                           t.kind))
+    // update indices
+    start = split_end.foldLeft (start) ((s, t) => s + (t -> (change.start + change.added.length)))
 
+    val ins = new Token(change.added, Token.Kind.OTHER)
+    start += (ins -> change.start)
+    
     var invalid_tokens =  split_begin :::
-      new Token(change.start, change.added, Token.Kind.OTHER) :: split_end ::: end
+       ins :: split_end ::: end
     var new_tokens = Nil: List[Token]
     var old_suffix = Nil: List[Token]
 
-    val match_start = invalid_tokens.first.start
-    val matcher = ProofDocument.token_pattern.matcher(Token.string_from_tokens(invalid_tokens))
+    val match_start = invalid_tokens.firstOption.map(start(_)).getOrElse(0)
+    val matcher = ProofDocument.token_pattern.matcher(Token.string_from_tokens(invalid_tokens, start))
 
     while (matcher.find() && invalid_tokens != Nil) {
 			val kind =
@@ -95,13 +105,14 @@ class ProofDocument(val id: String,
           Token.Kind.COMMENT
         else
           Token.Kind.OTHER
-      val new_token = new Token(match_start + matcher.start, matcher.group, kind)
+      val new_token = new Token(matcher.group, kind)
+      start += (new_token -> (match_start + matcher.start))
       new_tokens ::= new_token
 
-      invalid_tokens = invalid_tokens dropWhile (_.stop < new_token.stop)
+      invalid_tokens = invalid_tokens dropWhile (stop(_) < stop(new_token))
       invalid_tokens match {
-        case t::ts => if(t.start == new_token.start &&
-                         t.start > change.start + change.added.length) {
+        case t::ts => if(start(t) == start(new_token) &&
+                         start(t) > change.start + change.added.length) {
           old_suffix = ts
           invalid_tokens = Nil
         }
@@ -115,7 +126,8 @@ class ProofDocument(val id: String,
                   insert,
                   removed,
                   old_suffix.firstOption,
-                  new_token_list)
+                  new_token_list,
+                  start)
   }
   
   /** command view **/
@@ -130,28 +142,23 @@ class ProofDocument(val id: String,
                             inserted_tokens: List[Token],
                             removed_tokens: List[Token],
                             after_change: Option[Token],
-                            new_token_list: List[Token]): (ProofDocument, StructureChange) =
+                            new_token_list: List[Token],
+                            new_token_start: Map[Token, Int]): (ProofDocument, StructureChange) =
   {
-    val commands = List[Command]() ++ this.commands
+    val commands_list = List[Command]() ++ commands
 
     // calculate removed commands
     val first_removed = removed_tokens.firstOption
-    val last_removed = removed_tokens.lastOption
 
     val (begin, remaining) =
       first_removed match {
-        case None => (Nil: List[Command], commands)
-        case Some(fr) => commands.break(_.tokens.contains(fr))
+        case None => (Nil, commands_list)
+        case Some(fr) => commands_list.break(_.tokens.contains(fr))
       }
-    val removed_commands: List[Command]=
-      last_removed match {
-        case None => Nil
-        case Some(lr) =>
-          remaining.takeWhile(!_.tokens.contains(lr)) ++
-          (remaining.find(_.tokens.contains(lr)) match {
-            case None => Nil
-            case Some(x) => List(x)
-          })
+    val (removed_commands, end) =
+      after_change match {
+        case None => (remaining, Nil)
+        case Some(ac) => remaining.break(_.tokens.contains(ac))
       }
 
     def tokens_to_commands(tokens: List[Token]): List[Command]= {
@@ -180,13 +187,13 @@ class ProofDocument(val id: String,
       case None => changed_commands
       case Some(ac) => changed_commands.takeWhile(!_.tokens.contains(ac))
     }
-    //val change = new StructureChange(new_commands.find(_.tokens.contains(before_change)),
-    //                                 inserted_commands, removed_commands)
-    // TODO: revert to upper change, when commands and tokens are ok
-    val change = new StructureChange(None, List() ++ new_commandset, commands)
+    val change = new StructureChange(new_commands.find(_.tokens.contains(before_change)),
+                                     inserted_commands, removed_commands)
     // build new document
+    var new_commands = commands
+    while(new_commands.next())
     val doc =
-      new ProofDocument(new_id, new_tokenset, new_commandset, active, is_command_keyword)
+      new ProofDocument(new_id, new_tokenset, new_token_start, new_commandset, active, is_command_keyword)
     return (doc, change)
   }
 }
