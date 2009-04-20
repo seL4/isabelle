@@ -1,26 +1,7 @@
 (*  Title:      HOLCF/Tools/domain/domain_extender.ML
-    ID:         $Id$
     Author:     David von Oheimb
 
 Theory extender for domain command, including theory syntax.
-
-###TODO: 
-
-this definition
-domain empty = silly empty
-yields
-Exception-
-   TERM
-      ("typ_of_term: bad encoding of type",
-         [Abs ("uu", "_", Const ("NONE", "_"))]) raised
-but this works fine:
-domain Empty = silly Empty
-
-strange syntax errors are produced for:
-domain xx = xx ("x yy")
-domain 'a foo = foo (sel::"'a") 
-and bar = bar ("'a dummy")
-
 *)
 
 signature DOMAIN_EXTENDER =
