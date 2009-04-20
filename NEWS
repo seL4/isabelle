@@ -9,14 +9,18 @@ formally declared.  INCOMPATIBILITY.
 
 *** HOL ***
 
-* Class semiring_div now requires no_zero_divisors and proof of div_mult_mult1;
+* Class semiring_div requires superclass no_zero_divisors and proof of div_mult_mult1;
 theorems div_mult_mult1, div_mult_mult2, div_mult_mult1_if, div_mult_mult1 and
 div_mult_mult2 have been generalized to class semiring_div, subsuming former
 theorems zdiv_zmult_zmult1, zdiv_zmult_zmult1_if, zdiv_zmult_zmult1 and zdiv_zmult_zmult2.
 div_mult_mult1 is now [simp] by default.  INCOMPATIBILITY.
 
-* Power operation on relations and functions is now a dedicated overloaded constant
-funpower with infix syntax "^^".  INCOMPATIBILITY.
+* Power operations on relations and functions are now dedicated constants:
+
+    relpow with infix syntax "^^"
+    funpow with infix syntax "^o"
+
+INCOMPATIBILITY.
 
 New in Isabelle2009 (April 2009)
 --------------------------------
