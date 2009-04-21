@@ -215,21 +215,6 @@ fun split_def ctxt geq =
       (fname, qs, gs, args, rhs)
     end
 
-exception ArgumentCount of string
-
-fun mk_arities fqgars =
-    let fun f (fname, _, _, args, _) arities =
-            let val k = length args
-            in
-              case Symtab.lookup arities fname of
-                NONE => Symtab.update (fname, k) arities
-              | SOME i => (if i = k then arities else raise ArgumentCount fname)
-            end
-    in
-      fold f fqgars Symtab.empty
-    end
-
-
 (* Check for all sorts of errors in the input *)
 fun check_defs ctxt fixes eqs =
     let
@@ -269,13 +254,14 @@ fun check_defs ctxt fixes eqs =
                      " occur" ^ plural "s" "" funvars ^ " in function position.",  
                      "Misspelled constructor???"]); true)
           in
-            fqgar
+            (fname, length args)
           end
-          
-      val _ = mk_arities (map check eqs)
-          handle ArgumentCount fname => 
-                 error ("Function " ^ quote fname ^ 
-                        " has different numbers of arguments in different equations")
+
+      val _ = AList.group (op =) (map check eqs)
+        |> map (fn (fname, ars) =>
+             length (distinct (op =) ars) = 1
+             orelse error ("Function " ^ quote fname ^
+                           " has different numbers of arguments in different equations"))
 
       fun check_sorts ((fname, fT), _) =
           Sorts.of_sort (Sign.classes_of (ProofContext.theory_of ctxt)) (fT, HOLogic.typeS)

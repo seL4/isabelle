@@ -215,11 +215,11 @@ fun termination_by method int =
     #> Proof.global_future_terminal_proof
       (Method.Basic (method, Position.none), NONE) int
 
-fun mk_catchall fixes arities =
+fun mk_catchall fixes arity_of =
     let
       fun mk_eqn ((fname, fT), _) =
           let 
-            val n = the (Symtab.lookup arities fname)
+            val n = arity_of fname
             val (argTs, rT) = chop n (binder_types fT)
                                    |> apsnd (fn Ts => Ts ---> body_type fT) 
                               
@@ -235,7 +235,12 @@ fun mk_catchall fixes arities =
     end
 
 fun add_catchall ctxt fixes spec =
-    spec @ mk_catchall fixes (mk_arities (map (split_def ctxt) spec))
+  let val fqgars = map (split_def ctxt) spec
+      val arity_of = map (fn (fname,_,_,args,_) => (fname, length args)) fqgars
+                     |> AList.lookup (op =) #> the
+  in
+    spec @ mk_catchall fixes arity_of
+  end
 
 fun warn_if_redundant ctxt origs tss =
     let

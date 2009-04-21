@@ -87,12 +87,12 @@ fun analyze_eqs ctxt defname fs eqs =
       val num = length fs
         val fnames = map fst fs
         val fqgars = map (split_def ctxt) eqs
-        val arities = mk_arities fqgars
+        val arity_of = map (fn (fname,_,_,args,_) => (fname, length args)) fqgars
+                       |> AList.lookup (op =) #> the
 
         fun curried_types (fname, fT) =
             let
-              val k = the_default 1 (Symtab.lookup arities fname)
-              val (caTs, uaTs) = chop k (binder_types fT)
+              val (caTs, uaTs) = chop (arity_of fname) (binder_types fT)
             in
                 (caTs, uaTs ---> body_type fT)
             end
