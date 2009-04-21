@@ -5,7 +5,7 @@
 header {* The datatype of finite lists *}
 
 theory List
-imports Plain Relation_Power Presburger Recdef ATP_Linkup
+imports Plain Presburger Recdef ATP_Linkup
 uses "Tools/string_syntax.ML"
 begin
 
@@ -198,7 +198,7 @@ definition
 
 definition
   rotate :: "nat \<Rightarrow> 'a list \<Rightarrow> 'a list" where
-  "rotate n = rotate1 ^ n"
+  "rotate n = rotate1 o^ n"
 
 definition
   list_all2 :: "('a => 'b => bool) => 'a list => 'b list => bool" where

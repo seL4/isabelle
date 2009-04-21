@@ -131,7 +131,7 @@ val div_mod_ss = HOL_basic_ss addsimps simp_thms
      @{thm "div_0"}, @{thm "mod_0"}, @{thm "div_by_1"}, @{thm "mod_by_1"}, @{thm "div_1"}, 
      @{thm "mod_1"}, @{thm "Suc_plus1"}]
   @ @{thms add_ac}
- addsimprocs [cancel_div_mod_proc]
+ addsimprocs [cancel_div_mod_nat_proc, cancel_div_mod_int_proc]
  val splits_ss = comp_ss addsimps [@{thm "mod_div_equality'"}] addsplits 
      [@{thm "split_zdiv"}, @{thm "split_zmod"}, @{thm "split_div'"}, 
       @{thm "split_min"}, @{thm "split_max"}, @{thm "abs_split"}]

@@ -1,11 +1,11 @@
-(*  Title:      HOL/NatBin.thy
+(*  Title:      HOL/Nat_Numeral.thy
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1999  University of Cambridge
 *)
 
-header {* Binary arithmetic for the natural numbers *}
+header {* Binary numerals for the natural numbers *}
 
-theory NatBin
+theory Nat_Numeral
 imports IntDiv
 uses ("Tools/nat_simprocs.ML")
 begin

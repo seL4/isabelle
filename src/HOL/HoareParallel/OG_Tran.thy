@@ -74,7 +74,7 @@ text {* The corresponding syntax translations are: *}
 abbreviation
   ann_transition_n :: "('a ann_com_op \<times> 'a) \<Rightarrow> nat \<Rightarrow> ('a ann_com_op \<times> 'a) 
                            \<Rightarrow> bool"  ("_ -_\<rightarrow> _"[81,81] 100)  where
-  "con_0 -n\<rightarrow> con_1 \<equiv> (con_0, con_1) \<in> ann_transition^n"
+  "con_0 -n\<rightarrow> con_1 \<equiv> (con_0, con_1) \<in> ann_transition ^^ n"
 
 abbreviation
   ann_transitions :: "('a ann_com_op \<times> 'a) \<Rightarrow> ('a ann_com_op \<times> 'a) \<Rightarrow> bool"
@@ -84,7 +84,7 @@ abbreviation
 abbreviation
   transition_n :: "('a com \<times> 'a) \<Rightarrow> nat \<Rightarrow> ('a com \<times> 'a) \<Rightarrow> bool"  
                           ("_ -P_\<rightarrow> _"[81,81,81] 100)  where
-  "con_0 -Pn\<rightarrow> con_1 \<equiv> (con_0, con_1) \<in> transition^n"
+  "con_0 -Pn\<rightarrow> con_1 \<equiv> (con_0, con_1) \<in> transition ^^ n"
 
 subsection {* Definition of Semantics *}
 

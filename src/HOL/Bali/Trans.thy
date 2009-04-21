@@ -359,7 +359,7 @@ cases of @{text New}  or @{text NewC}. Instead we just return the evaluated
 
 abbreviation
   stepn:: "[prog, term \<times> state,nat,term \<times> state] \<Rightarrow> bool" ("_\<turnstile>_ \<mapsto>_ _"[61,82,82] 81)
-  where "G\<turnstile>p \<mapsto>n p' \<equiv> (p,p') \<in> {(x, y). step G x y}^n"
+  where "G\<turnstile>p \<mapsto>n p' \<equiv> (p,p') \<in> {(x, y). step G x y}^^n"
 
 abbreviation
   steptr:: "[prog,term \<times> state,term \<times> state] \<Rightarrow> bool" ("_\<turnstile>_ \<mapsto>* _"[61,82,82] 81)
@@ -369,25 +369,6 @@ abbreviation
   Bigstep zu Smallstep komplett.
   Smallstep zu Bigstep, nur wenn nicht die Ausdrücke Callee, FinA ,\<dots>
 *)
-
-lemma rtrancl_imp_rel_pow: "p \<in> R^* \<Longrightarrow> \<exists>n. p \<in> R^n"
-proof -
-  assume "p \<in> R\<^sup>*"
-  moreover obtain x y where p: "p = (x,y)" by (cases p)
-  ultimately have "(x,y) \<in> R\<^sup>*" by hypsubst
-  hence "\<exists>n. (x,y) \<in> R^n"
-  proof induct
-    fix a have "(a,a) \<in> R^0" by simp
-    thus "\<exists>n. (a,a) \<in> R ^ n" ..
-  next
-    fix a b c assume "\<exists>n. (a,b) \<in> R ^ n"
-    then obtain n where "(a,b) \<in> R^n" ..
-    moreover assume "(b,c) \<in> R"
-    ultimately have "(a,c) \<in> R^(Suc n)" by auto
-    thus "\<exists>n. (a,c) \<in> R^n" ..
-  qed
-  with p show ?thesis by hypsubst
-qed  
 
 (*
 lemma imp_eval_trans:

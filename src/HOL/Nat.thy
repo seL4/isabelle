@@ -1164,6 +1164,37 @@ instance by intro_classes
 end
 
 
+subsection {* Natural operation of natural numbers on functions *}
+
+text {* @{text "f o^ n = f o ... o f"}, the n-fold composition of @{text f} *}
+
+primrec funpow :: "nat \<Rightarrow> ('a \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> 'a" where
+    "funpow 0 f = id"
+  | "funpow (Suc n) f = f o funpow n f"
+
+abbreviation funpower :: "('a \<Rightarrow> 'a) \<Rightarrow> nat \<Rightarrow> 'a \<Rightarrow> 'a" (infixr "o^" 80) where
+  "f o^ n \<equiv> funpow n f"
+
+notation (latex output)
+  funpower ("(_\<^bsup>_\<^esup>)" [1000] 1000)
+
+notation (HTML output)
+  funpower ("(_\<^bsup>_\<^esup>)" [1000] 1000)
+
+lemma funpow_add:
+  "f o^ (m + n) = f o^ m \<circ> f o^ n"
+  by (induct m) simp_all
+
+lemma funpow_swap1:
+  "f ((f o^ n) x) = (f o^ n) (f x)"
+proof -
+  have "f ((f o^ n) x) = (f o^ (n + 1)) x" by simp
+  also have "\<dots>  = (f o^ n o f o^ 1) x" by (simp only: funpow_add)
+  also have "\<dots> = (f o^ n) (f x)" by simp
+  finally show ?thesis .
+qed
+
+
 subsection {* Embedding of the Naturals into any
   @{text semiring_1}: @{term of_nat} *}
 

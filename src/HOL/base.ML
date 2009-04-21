@@ -1,2 +1,2 @@
 (*side-entry for HOL-Base*)
-use_thy "Code_Setup";
+use_thy "HOL";

@@ -89,7 +89,6 @@ BASE_DEPENDENCIES = $(OUT)/Pure \
   $(SRC)/Tools/IsaPlanner/rw_tools.ML \
   $(SRC)/Tools/IsaPlanner/zipper.ML \
   $(SRC)/Tools/atomize_elim.ML \
-  $(SRC)/Tools/code/code_funcgr.ML \
   $(SRC)/Tools/code/code_haskell.ML \
   $(SRC)/Tools/code/code_ml.ML \
   $(SRC)/Tools/code/code_name.ML \
@@ -106,7 +105,7 @@ BASE_DEPENDENCIES = $(OUT)/Pure \
   $(SRC)/Tools/project_rule.ML \
   $(SRC)/Tools/random_word.ML \
   $(SRC)/Tools/value.ML \
-  Code_Setup.thy \
+  $(SRC)/Tools/Code_Generator.thy \
   HOL.thy \
   Tools/hologic.ML \
   Tools/recfun_codegen.ML \
@@ -216,10 +215,9 @@ MAIN_DEPENDENCIES = $(PLAIN_DEPENDENCIES) \
   List.thy \
   Main.thy \
   Map.thy \
-  NatBin.thy \
+  Nat_Numeral.thy \
   Presburger.thy \
   Recdef.thy \
-  Relation_Power.thy \
   SetInterval.thy \
   $(SRC)/Provers/Arith/assoc_fold.ML \
   $(SRC)/Provers/Arith/cancel_numeral_factor.ML \
