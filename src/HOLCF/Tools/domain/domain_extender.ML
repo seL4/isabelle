@@ -6,10 +6,10 @@ Theory extender for domain command, including theory syntax.
 
 signature DOMAIN_EXTENDER =
 sig
-  val add_domain: string * ((bstring * string list) *
+  val add_domain: string * ((bstring * string list * mixfix) *
     (string * mixfix * (bool * string option * string) list) list) list
     -> theory -> theory
-  val add_domain_i: string * ((bstring * string list) *
+  val add_domain_i: string * ((bstring * string list * mixfix) *
     (string * mixfix * (bool * string option * typ) list) list) list
     -> theory -> theory
 end;
@@ -80,16 +80,17 @@ fun check_and_sort_domain (dtnvs: (string * typ list) list,
 
 fun gen_add_domain prep_typ (comp_dnam, eqs''') thy''' =
   let
-    val dtnvs = map ((fn (dname,vs) => 
-			 (Sign.full_bname thy''' dname, map (Syntax.read_typ_global thy''') vs))
+    val dtnvs = map ((fn (dname,vs,mx) => 
+			 (Sign.full_bname thy''' dname, map (Syntax.read_typ_global thy''') vs, mx))
                    o fst) eqs''';
     val cons''' = map snd eqs''';
-    fun thy_type  (dname,tvars)  = (Binding.name (Long_Name.base_name dname), length tvars, NoSyn);
-    fun thy_arity (dname,tvars)  = (dname, map (snd o dest_TFree) tvars, pcpoS);
-    val thy'' = thy''' |> Sign.add_types     (map thy_type  dtnvs)
+    fun thy_type  (dname,tvars,mx) = (Binding.name (Long_Name.base_name dname), length tvars, mx);
+    fun thy_arity (dname,tvars,mx) = (dname, map (snd o dest_TFree) tvars, pcpoS);
+    val thy'' = thy''' |> Sign.add_types (map thy_type dtnvs)
 		       |> fold (AxClass.axiomatize_arity o thy_arity) dtnvs;
     val cons'' = map (map (upd_third (map (upd_third (prep_typ thy''))))) cons''';
-    val eqs' = check_and_sort_domain (dtnvs,cons'') thy'';
+    val dtnvs' = map (fn (dname,vs,mx) => (dname,vs)) dtnvs;
+    val eqs' = check_and_sort_domain (dtnvs',cons'') thy'';
     val thy' = thy'' |> Domain_Syntax.add_syntax (comp_dnam,eqs');
     val dts  = map (Type o fst) eqs';
     val new_dts = map (fn ((s,Ts),_) => (s, map (fst o dest_TFree) Ts)) eqs';
@@ -129,7 +130,7 @@ local structure P = OuterParse and K = OuterKeyword in
 
 val _ = OuterKeyword.keyword "lazy";
 
-val dest_decl =
+val dest_decl : (bool * string option * string) parser =
   P.$$$ "(" |-- Scan.optional (P.$$$ "lazy" >> K true) false --
     (P.name >> SOME) -- (P.$$$ "::" |-- P.typ)  --| P.$$$ ")" >> P.triple1
   || P.$$$ "(" |-- P.$$$ "lazy" |-- P.typ --| P.$$$ ")"
@@ -137,25 +138,37 @@ val dest_decl =
   || P.typ >> (fn t => (false,NONE,t));
 
 val cons_decl =
-  P.name -- Scan.repeat dest_decl -- P.opt_mixfix
-  >> (fn ((c, ds), mx) => (c, mx, ds));
+  P.name -- Scan.repeat dest_decl -- P.opt_mixfix;
 
-val type_var' = (P.type_ident ^^ 
-                 Scan.optional (P.$$$ "::" ^^ P.!!! P.sort) "");
-val type_args' = type_var' >> single ||
-                 P.$$$ "(" |-- P.!!! (P.list1 type_var' --| P.$$$ ")") ||
- 		 Scan.succeed [];
+val type_var' =
+  (P.type_ident ^^ Scan.optional (P.$$$ "::" ^^ P.!!! P.sort) "");
 
-val domain_decl = (type_args' -- P.name >> Library.swap) -- 
-                  (P.$$$ "=" |-- P.enum1 "|" cons_decl);
+val type_args' =
+  type_var' >> single ||
+  P.$$$ "(" |-- P.!!! (P.list1 type_var' --| P.$$$ ")") ||
+  Scan.succeed [];
+
+val domain_decl =
+  (type_args' -- P.name -- P.opt_infix) --
+  (P.$$$ "=" |-- P.enum1 "|" cons_decl);
+
 val domains_decl =
-  Scan.option (P.$$$ "(" |-- P.name --| P.$$$ ")") -- P.and_list1 domain_decl
-  >> (fn (opt_name, doms) =>
-      (case opt_name of NONE => space_implode "_" (map (#1 o #1) doms) | SOME s => s, doms));
+  Scan.option (P.$$$ "(" |-- P.name --| P.$$$ ")") --
+  P.and_list1 domain_decl;
+
+fun mk_domain (opt_name : string option, doms : (((string list * bstring) * mixfix) *
+    ((string * (bool * string option * string) list) * mixfix) list) list ) =
+  let
+    val names = map (fn (((_, t), _), _) => t) doms;
+    val specs = map (fn (((vs, t), mx), cons) =>
+      ((t, vs, mx), map (fn ((c, ds), mx) => (c, mx, ds)) cons)) doms;
+    val big_name =
+      case opt_name of NONE => space_implode "_" names | SOME s => s;
+  in add_domain (big_name, specs) end;
 
 val _ =
   OuterSyntax.command "domain" "define recursive domains (HOLCF)" K.thy_decl
-    (domains_decl >> (Toplevel.theory o add_domain));
+    (domains_decl >> (Toplevel.theory o mk_domain));
 
 end;
 
