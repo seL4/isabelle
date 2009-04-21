@@ -8,8 +8,8 @@ syntax.
 
 signature CONT_CONSTS =
 sig
-  val add_consts: (bstring * string * mixfix) list -> theory -> theory
-  val add_consts_i: (bstring * typ * mixfix) list -> theory -> theory
+  val add_consts: (binding * string * mixfix) list -> theory -> theory
+  val add_consts_i: (binding * typ * mixfix) list -> theory -> theory
 end;
 
 structure ContConsts: CONT_CONSTS =
@@ -49,20 +49,24 @@ fun trans_rules name2 name1 n mx = let
    declaration with the original name, type ...=>..., and the original mixfix
    is generated and connected to the other declaration via some translation.
 *)
-fun fix_mixfix (syn                     , T, mx as Infix           p ) =
-               (Syntax.const_name mx syn, T,       InfixName (syn, p))
-  | fix_mixfix (syn                     , T, mx as Infixl           p ) =
-               (Syntax.const_name mx syn, T,       InfixlName (syn, p))
-  | fix_mixfix (syn                     , T, mx as Infixr           p ) =
-               (Syntax.const_name mx syn, T,       InfixrName (syn, p))
+fun const_binding mx = Binding.name o Syntax.const_name mx o Binding.name_of;
+
+fun fix_mixfix (syn                 , T, mx as Infix           p ) =
+               (const_binding mx syn, T,       InfixName (Binding.name_of syn, p))
+  | fix_mixfix (syn                 , T, mx as Infixl           p ) =
+               (const_binding mx syn, T,       InfixlName (Binding.name_of syn, p))
+  | fix_mixfix (syn                 , T, mx as Infixr           p ) =
+               (const_binding mx syn, T,       InfixrName (Binding.name_of syn, p))
   | fix_mixfix decl = decl;
+
 fun transform decl = let
         val (c, T, mx) = fix_mixfix decl;
-        val c2 = "_cont_" ^ c;
+        val c1 = Binding.name_of c;
+        val c2 = "_cont_" ^ c1;
         val n  = Syntax.mixfix_args mx
-    in     ((c ,               T,NoSyn),
-            (c2,change_arrow n T,mx   ),
-            trans_rules c2 c n mx) end;
+    in     ((c, T, NoSyn),
+            (Binding.name c2, change_arrow n T, mx),
+            trans_rules c2 c1 n mx) end;
 
 fun cfun_arity (Type(n,[_,T])) = if n = @{type_name "->"} then 1+cfun_arity T else 0
 |   cfun_arity _               = 0;
@@ -71,7 +75,7 @@ fun is_contconst (_,_,NoSyn   ) = false
 |   is_contconst (_,_,Binder _) = false
 |   is_contconst (c,T,mx      ) = cfun_arity T >= Syntax.mixfix_args mx
                          handle ERROR msg => cat_error msg ("in mixfix annotation for " ^
-                                               quote (Syntax.const_name mx c));
+                                               quote (Syntax.const_name mx (Binding.name_of c)));
 
 
 (* add_consts(_i) *)
@@ -83,7 +87,7 @@ fun gen_add_consts prep_typ raw_decls thy =
     val transformed_decls = map transform contconst_decls;
   in
     thy
-    |> (Sign.add_consts_i o map (upd_first Binding.name))
+    |> Sign.add_consts_i
       (normal_decls @ map first transformed_decls @ map second transformed_decls)
     |> Sign.add_trrules_i (maps third transformed_decls)
   end;
@@ -98,7 +102,7 @@ local structure P = OuterParse and K = OuterKeyword in
 
 val _ =
   OuterSyntax.command "consts" "declare constants (HOLCF)" K.thy_decl
-    (Scan.repeat1 P.const >> (Toplevel.theory o add_consts));
+    (Scan.repeat1 P.const_binding >> (Toplevel.theory o add_consts));
 
 end;
 

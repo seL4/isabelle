@@ -4,7 +4,14 @@
 Syntax generator for domain command.
 *)
 
-structure Domain_Axioms = struct
+signature DOMAIN_AXIOMS =
+sig
+  val add_axioms : bstring -> Domain_Library.eq list -> theory -> theory
+end;
+
+
+structure Domain_Axioms : DOMAIN_AXIOMS =
+struct
 
 local
 
@@ -139,7 +146,7 @@ fun add_matchers (((dname,_),cons) : eq) thy =
 
 in (* local *)
 
-fun add_axioms (comp_dnam, eqs : eq list) thy' = let
+fun add_axioms comp_dnam (eqs : eq list) thy' = let
   val comp_dname = Sign.full_bname thy' comp_dnam;
   val dnames = map (fst o fst) eqs;
   val x_name = idx_name dnames "x"; 
