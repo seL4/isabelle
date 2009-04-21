@@ -347,12 +347,12 @@ val overlap_flag = ((overlap inp out) andalso (overlap inp int) andalso (overlap
 val alt_string = make_alt_string thy inp_head_list out_head_list int_head_list 
 							atyp statetupel trans;
 val thy2 = (thy
-|> ContConsts.add_consts
-[(automaton_name ^ "_initial", "(" ^ state_type_string ^ ")set" ,NoSyn),
-(automaton_name ^ "_asig", "(" ^ action_type ^ ")signature" ,NoSyn),
-(automaton_name ^ "_trans",
+|> Sign.add_consts
+[(Binding.name (automaton_name ^ "_initial"), "(" ^ state_type_string ^ ")set" ,NoSyn),
+(Binding.name (automaton_name ^ "_asig"), "(" ^ action_type ^ ")signature" ,NoSyn),
+(Binding.name (automaton_name ^ "_trans"),
  "(" ^ action_type ^ "," ^ state_type_string ^ ")transition set" ,NoSyn),
-(automaton_name, "(" ^ action_type ^ "," ^ state_type_string ^ ")ioa" ,NoSyn)]
+(Binding.name automaton_name, "(" ^ action_type ^ "," ^ state_type_string ^ ")ioa" ,NoSyn)]
 |> add_defs
 [(automaton_name ^ "_initial_def",
 automaton_name ^ "_initial == {" ^ state_vars_tupel ^ "." ^ ini ^ "}"),
@@ -386,8 +386,8 @@ val st_typ = comp_st_type_of thy aut_list;
 val comp_list = clist aut_list;
 in
 thy
-|> ContConsts.add_consts_i
-[(automaton_name,
+|> Sign.add_consts_i
+[(Binding.name automaton_name,
 Type("*",
 [Type("*",[Type("set",[acttyp]),Type("*",[Type("set",[acttyp]),Type("set",[acttyp])])]),
  Type("*",[Type("set",[st_typ]),
@@ -407,8 +407,8 @@ val acttyp = act_type_of thy auttyp;
 val rest_set = action_set_string thy acttyp actlist
 in
 thy
-|> ContConsts.add_consts_i
-[(automaton_name, auttyp,NoSyn)]
+|> Sign.add_consts_i
+[(Binding.name automaton_name, auttyp,NoSyn)]
 |> add_defs
 [(automaton_name ^ "_def",
 automaton_name ^ " == restrict " ^ aut_source ^ " " ^ rest_set)] 
@@ -421,8 +421,8 @@ val acttyp = act_type_of thy auttyp;
 val hid_set = action_set_string thy acttyp actlist
 in
 thy
-|> ContConsts.add_consts_i
-[(automaton_name, auttyp,NoSyn)]
+|> Sign.add_consts_i
+[(Binding.name automaton_name, auttyp,NoSyn)]
 |> add_defs
 [(automaton_name ^ "_def",
 automaton_name ^ " == hide " ^ aut_source ^ " " ^ hid_set)] 
@@ -441,8 +441,8 @@ val st_typ = st_type_of thy auttyp;
 val acttyp = ren_act_type_of thy fun_name
 in
 thy
-|> ContConsts.add_consts_i
-[(automaton_name,
+|> Sign.add_consts_i
+[(Binding.name automaton_name,
 Type("*",
 [Type("*",[Type("set",[acttyp]),Type("*",[Type("set",[acttyp]),Type("set",[acttyp])])]),
  Type("*",[Type("set",[st_typ]),
