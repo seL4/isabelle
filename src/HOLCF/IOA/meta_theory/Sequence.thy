@@ -288,8 +288,7 @@ fun Seq_case_simp_tac s i = Seq_case_tac s i THEN Asm_simp_tac (i+2)
 
 lemma Cons_not_UU: "a>>s ~= UU"
 apply (subst Consq_def2)
-apply (rule seq.con_rews)
-apply (rule Def_not_UU)
+apply simp
 done
 
 

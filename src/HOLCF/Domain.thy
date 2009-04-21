@@ -6,6 +6,14 @@ header {* Domain package *}
 
 theory Domain
 imports Ssum Sprod Up One Tr Fixrec
+uses
+  ("Tools/cont_consts.ML")
+  ("Tools/cont_proc.ML")
+  ("Tools/domain/domain_library.ML")
+  ("Tools/domain/domain_syntax.ML")
+  ("Tools/domain/domain_axioms.ML")
+  ("Tools/domain/domain_theorems.ML")
+  ("Tools/domain/domain_extender.ML")
 begin
 
 defaultsort pcpo
@@ -192,5 +200,25 @@ lemma exh_casedist3: "(P \<and> Q \<Longrightarrow> R) \<equiv> (P \<Longrightar
   by rule auto
 
 lemmas exh_casedists = exh_casedist1 exh_casedist2 exh_casedist3
+
+
+subsection {* Installing the domain package *}
+
+lemmas con_strict_rules =
+  sinl_strict sinr_strict spair_strict1 spair_strict2
+
+lemmas con_defin_rules =
+  sinl_defined sinr_defined spair_defined up_defined ONE_defined
+
+lemmas con_defined_iff_rules =
+  sinl_defined_iff sinr_defined_iff spair_strict_iff up_defined ONE_defined
+
+use "Tools/cont_consts.ML"
+use "Tools/cont_proc.ML"
+use "Tools/domain/domain_library.ML"
+use "Tools/domain/domain_syntax.ML"
+use "Tools/domain/domain_axioms.ML"
+use "Tools/domain/domain_theorems.ML"
+use "Tools/domain/domain_extender.ML"
 
 end

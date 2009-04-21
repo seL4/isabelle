@@ -9,13 +9,6 @@ imports
   Domain ConvexPD Algebraic Universal Sum_Cpo Main
 uses
   "holcf_logic.ML"
-  "Tools/cont_consts.ML"
-  "Tools/cont_proc.ML"
-  "Tools/domain/domain_library.ML"
-  "Tools/domain/domain_syntax.ML"
-  "Tools/domain/domain_axioms.ML"
-  "Tools/domain/domain_theorems.ML"
-  "Tools/domain/domain_extender.ML"
   "Tools/adm_tac.ML"
 begin
 

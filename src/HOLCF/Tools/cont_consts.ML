@@ -18,8 +18,6 @@ struct
 
 (* misc utils *)
 
-open HOLCFLogic;
-
 fun first  (x,_,_) = x;
 fun second (_,x,_) = x;
 fun third  (_,_,x) = x;
@@ -66,7 +64,7 @@ fun transform decl = let
             (c2,change_arrow n T,mx   ),
             trans_rules c2 c n mx) end;
 
-fun cfun_arity (Type(n,[_,T])) = if n = cfun_arrow then 1+cfun_arity T else 0
+fun cfun_arity (Type(n,[_,T])) = if n = @{type_name "->"} then 1+cfun_arity T else 0
 |   cfun_arity _               = 0;
 
 fun is_contconst (_,_,NoSyn   ) = false
