@@ -277,7 +277,7 @@ proof
     by (induct t) simp_all
 qed
 
-lemma var_same: "(t = Var v) = ([(v, t)] =\<^sub>s [])"
+lemma var_same: "([(v, t)] =\<^sub>s []) = (t = Var v)"
 proof
   assume t_v: "t = Var v"
   thus "[(v, t)] =\<^sub>s []"
@@ -307,7 +307,7 @@ proof (induct t)
   proof cases
     assume "v = x"
     thus ?thesis
-      by (simp add:var_same[symmetric])
+      by (simp add:var_same)
   next
     assume neq: "v \<noteq> x"
     have "elim [(v, Var x)] v"
@@ -328,13 +328,13 @@ next
     by auto
 
   from nonocc have "\<not> [(v,M)] =\<^sub>s []"
-    by (simp add:var_same[symmetric])
+    by (simp add:var_same)
   with ih1 have "elim [(v, M)] v" by blast
   hence "v \<notin> vars_of (Var v \<triangleleft> [(v,M)])" ..
   hence not_in_M: "v \<notin> vars_of M" by simp
 
   from nonocc have "\<not> [(v,N)] =\<^sub>s []"
-    by (simp add:var_same[symmetric])
+    by (simp add:var_same)
   with ih2 have "elim [(v, N)] v" by blast
   hence "v \<notin> vars_of (Var v \<triangleleft> [(v,N)])" ..
   hence not_in_N: "v \<notin> vars_of N" by simp
