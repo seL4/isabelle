@@ -622,6 +622,11 @@ lemma [code]:
   "pred_rec f P = f (eval P)"
   by (cases P) simp
 
+inductive eq :: "'a \<Rightarrow> 'a \<Rightarrow> bool" where "eq x x"
+
+lemma eq_is_eq: "eq x y \<equiv> (x = y)"
+by (rule eq_reflection) (auto intro: eq.intros elim: eq.cases)
+
 no_notation
   inf (infixl "\<sqinter>" 70) and
   sup (infixl "\<squnion>" 65) and
@@ -633,6 +638,6 @@ no_notation
 
 hide (open) type pred seq
 hide (open) const Pred eval single bind if_pred not_pred
-  Empty Insert Join Seq member pred_of_seq "apply" adjunct
+  Empty Insert Join Seq member pred_of_seq "apply" adjunct eq
 
 end

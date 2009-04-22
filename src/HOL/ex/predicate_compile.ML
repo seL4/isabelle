@@ -726,15 +726,15 @@ fun Trueprop_conv cv ct =
     Const ("Trueprop", _) $ _ => Conv.arg_conv cv ct  
   | _ => error "Trueprop_conv"
 
-fun preprocess_intro thy rule = Thm.transfer thy rule (*FIXME preprocessor
+fun preprocess_intro thy rule =
   Conv.fconv_rule
     (imp_prems_conv
-      (Trueprop_conv (Conv.try_conv (Conv.rewr_conv (Thm.symmetric @ {thm Predicate.eq_is_eq})))))
-    (Thm.transfer thy rule) *)
+      (Trueprop_conv (Conv.try_conv (Conv.rewr_conv (Thm.symmetric @{thm Predicate.eq_is_eq})))))
+    (Thm.transfer thy rule)
 
-fun preprocess_elim thy nargs elimrule = (*FIXME preprocessor -- let
+fun preprocess_elim thy nargs elimrule = let
    fun replace_eqs (Const ("Trueprop", _) $ (Const ("op =", T) $ lhs $ rhs)) =
-      HOLogic.mk_Trueprop (Const (@ {const_name Predicate.eq}, T) $ lhs $ rhs)
+      HOLogic.mk_Trueprop (Const (@{const_name Predicate.eq}, T) $ lhs $ rhs)
     | replace_eqs t = t
    fun preprocess_case t = let
      val params = Logic.strip_params t
@@ -746,10 +746,10 @@ fun preprocess_elim thy nargs elimrule = (*FIXME preprocessor -- let
    val elimrule' = Logic.list_implies ((hd prems) :: cases', Thm.concl_of elimrule)
  in
    Thm.equal_elim
-     (Thm.symmetric (Conv.implies_concl_conv (MetaSimplifier.rewrite true [@ {thm eq_is_eq}])
+     (Thm.symmetric (Conv.implies_concl_conv (MetaSimplifier.rewrite true [@{thm eq_is_eq}])
         (cterm_of thy elimrule')))
      elimrule
- end*) elimrule;
+ end;
 
 
 (* returns true if t is an application of an datatype constructor *)
