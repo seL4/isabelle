@@ -253,12 +253,7 @@ fun vector_power :: "('a::{one,times} ^'n) \<Rightarrow> nat \<Rightarrow> 'a^'n
   "vector_power x 0 = 1"
   | "vector_power x (Suc n) = x * vector_power x n"
 
-instantiation "^" :: (recpower,type) recpower
-begin
-  definition vec_power_def: "op ^ \<equiv> vector_power"
-  instance
-  apply (intro_classes) by (simp_all add: vec_power_def)
-end
+instance "^" :: (recpower,type) recpower ..
 
 instance "^" :: (semiring,type) semiring
   apply (intro_classes) by (vector ring_simps)+

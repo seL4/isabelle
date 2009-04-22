@@ -154,8 +154,8 @@ subsection {* Locale for modular arithmetic subtypes *}
 
 locale mod_type =
   fixes n :: int
-  and Rep :: "'a::{zero,one,plus,times,uminus,minus,power} \<Rightarrow> int"
-  and Abs :: "int \<Rightarrow> 'a::{zero,one,plus,times,uminus,minus,power}"
+  and Rep :: "'a::{zero,one,plus,times,uminus,minus} \<Rightarrow> int"
+  and Abs :: "int \<Rightarrow> 'a::{zero,one,plus,times,uminus,minus}"
   assumes type: "type_definition Rep Abs {0..<n}"
   and size1: "1 < n"
   and zero_def: "0 = Abs 0"
@@ -164,14 +164,13 @@ locale mod_type =
   and mult_def: "x * y = Abs ((Rep x * Rep y) mod n)"
   and diff_def: "x - y = Abs ((Rep x - Rep y) mod n)"
   and minus_def: "- x = Abs ((- Rep x) mod n)"
-  and power_def: "x ^ k = Abs (Rep x ^ k mod n)"
 begin
 
 lemma size0: "0 < n"
 by (cut_tac size1, simp)
 
 lemmas definitions =
-  zero_def one_def add_def mult_def minus_def diff_def power_def
+  zero_def one_def add_def mult_def minus_def diff_def
 
 lemma Rep_less_n: "Rep x < n"
 by (rule type_definition.Rep [OF type, simplified, THEN conjunct2])
@@ -227,8 +226,8 @@ end
 
 locale mod_ring = mod_type +
   constrains n :: int
-  and Rep :: "'a::{number_ring,power} \<Rightarrow> int"
-  and Abs :: "int \<Rightarrow> 'a::{number_ring,power}"
+  and Rep :: "'a::{number_ring} \<Rightarrow> int"
+  and Abs :: "int \<Rightarrow> 'a::{number_ring}"
 begin
 
 lemma of_nat_eq: "of_nat k = Abs (int k mod n)"
@@ -272,7 +271,7 @@ text {*
   @{typ num1}, since 0 and 1 are not distinct.
 *}
 
-instantiation num1 :: "{comm_ring,comm_monoid_mult,number,recpower}"
+instantiation num1 :: "{comm_ring,comm_monoid_mult,number}"
 begin
 
 lemma num1_eq_iff: "(x::num1) = (y::num1) \<longleftrightarrow> True"
@@ -284,7 +283,7 @@ qed (simp_all add: num1_eq_iff)
 end
 
 instantiation
-  bit0 and bit1 :: (finite) "{zero,one,plus,times,uminus,minus,power}"
+  bit0 and bit1 :: (finite) "{zero,one,plus,times,uminus,minus}"
 begin
 
 definition Abs_bit0' :: "int \<Rightarrow> 'a bit0" where
@@ -299,7 +298,6 @@ definition "x + y = Abs_bit0' (Rep_bit0 x + Rep_bit0 y)"
 definition "x * y = Abs_bit0' (Rep_bit0 x * Rep_bit0 y)"
 definition "x - y = Abs_bit0' (Rep_bit0 x - Rep_bit0 y)"
 definition "- x = Abs_bit0' (- Rep_bit0 x)"
-definition "x ^ k = Abs_bit0' (Rep_bit0 x ^ k)"
 
 definition "0 = Abs_bit1 0"
 definition "1 = Abs_bit1 1"
@@ -307,7 +305,6 @@ definition "x + y = Abs_bit1' (Rep_bit1 x + Rep_bit1 y)"
 definition "x * y = Abs_bit1' (Rep_bit1 x * Rep_bit1 y)"
 definition "x - y = Abs_bit1' (Rep_bit1 x - Rep_bit1 y)"
 definition "- x = Abs_bit1' (- Rep_bit1 x)"
-definition "x ^ k = Abs_bit1' (Rep_bit1 x ^ k)"
 
 instance ..
 
@@ -326,7 +323,6 @@ apply (rule plus_bit0_def [unfolded Abs_bit0'_def])
 apply (rule times_bit0_def [unfolded Abs_bit0'_def])
 apply (rule minus_bit0_def [unfolded Abs_bit0'_def])
 apply (rule uminus_bit0_def [unfolded Abs_bit0'_def])
-apply (rule power_bit0_def [unfolded Abs_bit0'_def])
 done
 
 interpretation bit1:
@@ -342,7 +338,6 @@ apply (rule plus_bit1_def [unfolded Abs_bit1'_def])
 apply (rule times_bit1_def [unfolded Abs_bit1'_def])
 apply (rule minus_bit1_def [unfolded Abs_bit1'_def])
 apply (rule uminus_bit1_def [unfolded Abs_bit1'_def])
-apply (rule power_bit1_def [unfolded Abs_bit1'_def])
 done
 
 instance bit0 :: (finite) "{comm_ring_1,recpower}"
@@ -385,9 +380,6 @@ lemmas bit1_induct [case_names of_int, induct type: bit1] = bit1.induct
 
 lemmas bit0_iszero_number_of [simp] = bit0.iszero_number_of
 lemmas bit1_iszero_number_of [simp] = bit1.iszero_number_of
-
-declare power_Suc [where ?'a="'a::finite bit0", standard, simp]
-declare power_Suc [where ?'a="'a::finite bit1", standard, simp]
 
 
 subsection {* Syntax *}

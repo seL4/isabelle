@@ -1,24 +1,24 @@
 (*  Title:      HOL/Power.thy
-    ID:         $Id$
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1997  University of Cambridge
-
 *)
 
-header{*Exponentiation*}
+header {* Exponentiation *}
 
 theory Power
 imports Nat
 begin
 
-class power =
-  fixes power :: "'a \<Rightarrow> nat \<Rightarrow> 'a"            (infixr "^" 80)
+subsection {* Powers for Arbitrary Monoids *}
 
-subsection{*Powers for Arbitrary Monoids*}
+class recpower = monoid_mult
+begin
 
-class recpower = monoid_mult + power +
-  assumes power_0 [simp]: "a ^ 0       = 1"
-  assumes power_Suc [simp]: "a ^ Suc n = a * (a ^ n)"
+primrec power :: "'a \<Rightarrow> nat \<Rightarrow> 'a" (infixr "^" 80) where
+    power_0: "a ^ 0 = 1"
+  | power_Suc: "a ^ Suc n = a * a ^ n"
+
+end
 
 lemma power_0_Suc [simp]: "(0::'a::{recpower,semiring_0}) ^ (Suc n) = 0"
   by simp
@@ -360,24 +360,9 @@ apply (erule disjE)
 done
 
 
-subsection{*Exponentiation for the Natural Numbers*}
+subsection {* Exponentiation for the Natural Numbers *}
 
-instantiation nat :: recpower
-begin
-
-primrec power_nat where
-  "p ^ 0 = (1\<Colon>nat)"
-  | "p ^ (Suc n) = (p\<Colon>nat) * (p ^ n)"
-
-instance proof
-  fix z n :: nat
-  show "z^0 = 1" by simp
-  show "z^(Suc n) = z * (z^n)" by simp
-qed
-
-declare power_nat.simps [simp del]
-
-end
+instance nat :: recpower ..
 
 lemma of_nat_power:
   "of_nat (m ^ n) = (of_nat m::'a::{semiring_1,recpower}) ^ n"
@@ -391,7 +376,7 @@ by (induct "n", auto)
 
 lemma nat_power_eq_Suc_0_iff [simp]: 
   "((x::nat)^m = Suc 0) = (m = 0 | x = Suc 0)"
-by (induct_tac m, auto)
+by (induct m, auto)
 
 lemma power_Suc_0[simp]: "(Suc 0)^n = Suc 0"
 by simp

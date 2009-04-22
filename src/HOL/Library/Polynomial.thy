@@ -632,19 +632,7 @@ lemma dvd_smult_iff:
   shows "a \<noteq> 0 \<Longrightarrow> p dvd smult a q \<longleftrightarrow> p dvd q"
   by (safe elim!: dvd_smult dvd_smult_cancel)
 
-instantiation poly :: (comm_semiring_1) recpower
-begin
-
-primrec power_poly where
-  "(p::'a poly) ^ 0 = 1"
-| "(p::'a poly) ^ (Suc n) = p * p ^ n"
-
-instance
-  by default simp_all
-
-declare power_poly.simps [simp del]
-
-end
+instance poly :: (comm_semiring_1) recpower ..
 
 lemma degree_power_le: "degree (p ^ n) \<le> degree p * n"
 by (induct n, simp, auto intro: order_trans degree_mult_le)
