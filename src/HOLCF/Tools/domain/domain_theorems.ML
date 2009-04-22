@@ -8,7 +8,14 @@ Proof generator for domain command.
 
 val HOLCF_ss = @{simpset};
 
-structure Domain_Theorems = struct
+signature DOMAIN_THEOREMS =
+sig
+  val theorems: Domain_Library.eq * Domain_Library.eq list -> theory -> thm list * theory;
+  val comp_theorems: bstring * Domain_Library.eq list -> theory -> thm list * theory;
+end;
+
+structure Domain_Theorems : DOMAIN_THEOREMS =
+struct
 
 val quiet_mode = ref false;
 val trace_domain = ref false;
