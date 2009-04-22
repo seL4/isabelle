@@ -203,4 +203,19 @@ domain foo = Foo (lazy "bar") and bar = Bar
   -- "Tactic failed."
 *)
 
+text {* Declaring class constraints on the LHS is currently broken. *}
+(*
+domain ('a::cpo) box = Box (lazy 'a)
+  -- "Malformed YXML encoding: multiple results"
+*)
+
+text {*
+  Class constraints on the RHS are not supported yet.  This feature is
+  planned to replace the old-style LHS class constraints.
+*}
+(*
+domain 'a box = Box (lazy "'a::cpo")
+  -- {* Inconsistent sort constraint for type variable "'a" *}
+*)
+
 end
