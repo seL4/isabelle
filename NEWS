@@ -211,7 +211,7 @@ addressing etc.
 
 * Keyword 'code_exception' now named 'code_abort'.  INCOMPATIBILITY.
 
-* Unified theorem tables for both code code generators.  Thus [code
+* Unified theorem tables for both code generators.  Thus [code
 func] has disappeared and only [code] remains.  INCOMPATIBILITY.
 
 * Command 'find_consts' searches for constants based on type and name
