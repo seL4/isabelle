@@ -16,7 +16,6 @@ sig
   val trace_simp_depth_limit: int ref
   type rrule
   val eq_rrule: rrule * rrule -> bool
-  type cong
   type simpset
   type proc
   type solver
@@ -87,7 +86,7 @@ sig
     bounds: int * ((string * typ) * string) list,
     depth: int * bool ref,
     context: Proof.context option} *
-   {congs: (string * cong) list * string list,
+   {congs: (string * thm) list * string list,
     procs: proc Net.net,
     mk_rews:
      {mk: thm -> thm list,
@@ -161,10 +160,7 @@ fun eq_rrule ({thm = thm1, ...}: rrule, {thm = thm2, ...}: rrule) =
 
 (* congruences *)
 
-type cong = {thm: thm, lhs: cterm};
-
-fun eq_cong ({thm = thm1, ...}: cong, {thm = thm2, ...}: cong) =
-  Thm.eq_thm_prop (thm1, thm2);
+val eq_cong = Thm.eq_thm_prop
 
 
 (* simplification sets, procedures, and solvers *)
@@ -201,7 +197,7 @@ datatype simpset =
     bounds: int * ((string * typ) * string) list,
     depth: int * bool ref,
     context: Proof.context option} *
-   {congs: (string * cong) list * string list,
+   {congs: (string * thm) list * string list,
     procs: proc Net.net,
     mk_rews: mk_rews,
     termless: term * term -> bool,
@@ -570,7 +566,7 @@ fun add_cong (ss, thm) = ss |>
       val _ =  if AList.defined (op =) xs a
         then warning ("Overwriting congruence rule for " ^ quote a)
         else ();
-      val xs' = AList.update (op =) (a, {lhs = lhs, thm = thm}) xs;
+      val xs' = AList.update (op =) (a, thm) xs;
       val weak' = if is_full_cong thm then weak else a :: weak;
     in ((xs', weak'), procs, mk_rews, termless, subgoal_tac, loop_tacs, solvers) end);
 
@@ -584,7 +580,7 @@ fun del_cong (ss, thm) = ss |>
         raise SIMPLIFIER ("Congruence must start with a constant", thm);
       val (xs, _) = congs;
       val xs' = filter_out (fn (x : string, _) => x = a) xs;
-      val weak' = xs' |> map_filter (fn (a, {thm, ...}: cong) =>
+      val weak' = xs' |> map_filter (fn (a, thm) =>
         if is_full_cong thm then NONE else SOME a);
     in ((xs', weak'), procs, mk_rews, termless, subgoal_tac, loop_tacs, solvers) end);
 
@@ -810,7 +806,7 @@ fun dest_ss (Simpset ({rules, ...}, {congs, procs, loop_tacs, solvers, ...})) =
     |> map (fn Proc {name, lhs, id, ...} => ((name, lhs), id))
     |> partition_eq (eq_snd eq_procid)
     |> map (fn ps => (fst (fst (hd ps)), map (snd o fst) ps)),
-  congs = map (fn (name, {thm, ...}) => (name, thm)) (#1 congs),
+  congs = #1 congs,
   weak_congs = #2 congs,
   loopers = map fst loop_tacs,
   unsafe_solvers = map solver_name (#1 solvers),
@@ -980,7 +976,7 @@ fun rewritec (prover, thyt, maxt) ss t =
 
 (* conversion to apply a congruence rule to a term *)
 
-fun congc prover ss maxt {thm=cong,lhs=lhs} t =
+fun congc prover ss maxt cong t =
   let val rthm = Thm.incr_indexes (maxt + 1) cong;
       val rlhs = fst (Thm.dest_equals (Drule.strip_imp_concl (cprop_of rthm)));
       val insts = Thm.match (rlhs, t)

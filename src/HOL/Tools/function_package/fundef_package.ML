@@ -67,40 +67,6 @@ fun add_simps fnames post sort extra_qualify label moreatts simps lthy =
        fold2 add_for_f fnames simps_by_f lthy)
     end
 
-fun fundef_afterqed do_print fixes post defname cont sort_cont cnames [[proof]] lthy =
-    let
-      val FundefResult {fs, R, psimps, trsimps,  simple_pinducts, termination, domintros, cases, ...} = 
-          cont (Thm.close_derivation proof)
-
-      val fnames = map (fst o fst) fixes
-      val qualify = Long_Name.qualify defname
-      val addsmps = add_simps fnames post sort_cont
-
-      val (((psimps', pinducts'), (_, [termination'])), lthy) =
-          lthy
-            |> addsmps (Binding.qualify false "partial") "psimps"
-                 psimp_attribs psimps
-            ||> fold_option (snd oo addsmps I "simps" simp_attribs) trsimps
-            ||>> note_theorem ((qualify "pinduct",
-                   [Attrib.internal (K (RuleCases.case_names cnames)),
-                    Attrib.internal (K (RuleCases.consumes 1)),
-                    Attrib.internal (K (Induct.induct_pred ""))]), simple_pinducts)
-            ||>> note_theorem ((qualify "termination", []), [termination])
-            ||> (snd o note_theorem ((qualify "cases",
-                   [Attrib.internal (K (RuleCases.case_names cnames))]), [cases]))
-            ||> fold_option (snd oo curry note_theorem (qualify "domintros", [])) domintros
-
-      val cdata = FundefCtxData { add_simps=addsmps, case_names=cnames, psimps=psimps',
-                                  pinducts=snd pinducts', termination=termination', fs=fs, R=R, defname=defname }
-      val _ =
-        if not do_print then ()
-        else Specification.print_consts lthy (K false) (map fst fixes)
-    in
-      lthy
-        |> LocalTheory.declaration (add_fundef_data o morph_fundef_data cdata)
-    end
-
-
 fun gen_add_fundef is_external prep default_constraint fixspec eqns config lthy =
     let
       val constrn_fxs = map (fn (b, T, mx) => (b, SOME (the_default default_constraint T), mx))
@@ -114,7 +80,40 @@ fun gen_add_fundef is_external prep default_constraint fixspec eqns config lthy 
       val ((goalstate, cont), lthy) =
           FundefMutual.prepare_fundef_mutual config defname fixes eqs lthy
 
-      val afterqed = fundef_afterqed is_external fixes post defname cont sort_cont cnames
+      fun afterqed [[proof]] lthy =
+        let
+          val FundefResult {fs, R, psimps, trsimps,  simple_pinducts, termination,
+                            domintros, cases, ...} =
+          cont (Thm.close_derivation proof)
+
+          val fnames = map (fst o fst) fixes
+          val qualify = Long_Name.qualify defname
+          val addsmps = add_simps fnames post sort_cont
+
+          val (((psimps', pinducts'), (_, [termination'])), lthy) =
+            lthy
+            |> addsmps (Binding.qualify false "partial") "psimps"
+                 psimp_attribs psimps
+            ||> fold_option (snd oo addsmps I "simps" simp_attribs) trsimps
+            ||>> note_theorem ((qualify "pinduct",
+                   [Attrib.internal (K (RuleCases.case_names cnames)),
+                    Attrib.internal (K (RuleCases.consumes 1)),
+                    Attrib.internal (K (Induct.induct_pred ""))]), simple_pinducts)
+            ||>> note_theorem ((qualify "termination", []), [termination])
+            ||> (snd o note_theorem ((qualify "cases",
+                   [Attrib.internal (K (RuleCases.case_names cnames))]), [cases]))
+            ||> fold_option (snd oo curry note_theorem (qualify "domintros", [])) domintros
+
+          val cdata = FundefCtxData { add_simps=addsmps, case_names=cnames, psimps=psimps',
+                                      pinducts=snd pinducts', termination=termination',
+                                      fs=fs, R=R, defname=defname }
+          val _ =
+            if not is_external then ()
+            else Specification.print_consts lthy (K false) (map fst fixes)
+        in
+          lthy
+          |> LocalTheory.declaration (add_fundef_data o morph_fundef_data cdata)
+        end
     in
       lthy
         |> is_external ? LocalTheory.set_group (serial_string ())
@@ -125,25 +124,6 @@ fun gen_add_fundef is_external prep default_constraint fixspec eqns config lthy 
 val add_fundef = gen_add_fundef false Specification.check_spec (TypeInfer.anyT HOLogic.typeS)
 val add_fundef_cmd = gen_add_fundef true Specification.read_spec "_::type"
 
-
-fun total_termination_afterqed data [[totality]] lthy =
-    let
-      val FundefCtxData { add_simps, case_names, psimps, pinducts, defname, ... } = data
-
-      val totality = Thm.close_derivation totality
-
-      val remove_domain_condition = full_simplify (HOL_basic_ss addsimps [totality, True_implies_equals])
-
-      val tsimps = map remove_domain_condition psimps
-      val tinduct = map remove_domain_condition pinducts
-
-      val qualify = Long_Name.qualify defname;
-    in
-      lthy
-        |> add_simps I "simps" simp_attribs tsimps |> snd
-        |> note_theorem ((qualify "induct", [Attrib.internal (K (RuleCases.case_names case_names))]), tinduct) |> snd
-    end
-
 fun gen_termination_proof prep_term raw_term_opt lthy =
     let
       val term_opt = Option.map (prep_term lthy) raw_term_opt
@@ -153,17 +133,37 @@ fun gen_termination_proof prep_term raw_term_opt lthy =
                             error ("Not a function: " ^ quote (Syntax.string_of_term lthy t)))
                       | NONE => (import_last_fundef lthy handle Option.Option => error "Not a function"))
 
-        val FundefCtxData {termination, R, ...} = data
+        val FundefCtxData { termination, R, add_simps, case_names, psimps,
+                            pinducts, defname, ...} = data
         val domT = domain_type (fastype_of R)
-        val goal = HOLogic.mk_Trueprop (HOLogic.mk_all ("x", domT, mk_acc domT R $ Free ("x", domT)))
+        val goal = HOLogic.mk_Trueprop
+                     (HOLogic.mk_all ("x", domT, mk_acc domT R $ Free ("x", domT)))
+        fun afterqed [[totality]] lthy =
+          let
+            val totality = Thm.close_derivation totality
+            val remove_domain_condition =
+              full_simplify (HOL_basic_ss addsimps [totality, True_implies_equals])
+            val tsimps = map remove_domain_condition psimps
+            val tinduct = map remove_domain_condition pinducts
+            val qualify = Long_Name.qualify defname;
+          in
+            lthy
+            |> add_simps I "simps" simp_attribs tsimps |> snd
+            |> note_theorem
+               ((qualify "induct",
+                 [Attrib.internal (K (RuleCases.case_names case_names))]),
+                tinduct) |> snd
+          end
     in
       lthy
-        |> ProofContext.note_thmss "" [((Binding.empty, [ContextRules.rule_del]), [([allI], [])])] |> snd
-        |> ProofContext.note_thmss "" [((Binding.empty, [ContextRules.intro_bang (SOME 1)]), [([allI], [])])] |> snd
-        |> ProofContext.note_thmss ""
-          [((Binding.name "termination", [ContextRules.intro_bang (SOME 0)]),
-            [([Goal.norm_result termination], [])])] |> snd
-        |> Proof.theorem_i NONE (total_termination_afterqed data) [[(goal, [])]]
+      |> ProofContext.note_thmss ""
+         [((Binding.empty, [ContextRules.rule_del]), [([allI], [])])] |> snd
+      |> ProofContext.note_thmss ""
+         [((Binding.empty, [ContextRules.intro_bang (SOME 1)]), [([allI], [])])] |> snd
+      |> ProofContext.note_thmss ""
+         [((Binding.name "termination", [ContextRules.intro_bang (SOME 0)]),
+           [([Goal.norm_result termination], [])])] |> snd
+      |> Proof.theorem_i NONE afterqed [[(goal, [])]]
     end
 
 val termination_proof = gen_termination_proof Syntax.check_term;
@@ -198,8 +198,9 @@ val setup_case_cong = DatatypePackage.interpretation case_cong
 (* setup *)
 
 val setup =
-  Attrib.setup @{binding fundef_cong} (Attrib.add_del FundefCtxTree.cong_add FundefCtxTree.cong_del)
-      "declaration of congruence rule for function definitions"
+  Attrib.setup @{binding fundef_cong}
+    (Attrib.add_del FundefCtxTree.cong_add FundefCtxTree.cong_del)
+    "declaration of congruence rule for function definitions"
   #> setup_case_cong
   #> FundefRelation.setup
   #> FundefCommon.TerminationSimps.setup
