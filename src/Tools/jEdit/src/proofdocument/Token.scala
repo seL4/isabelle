@@ -38,5 +38,5 @@ object Token {
 
 class Token(val content: String, val kind: Token.Kind.Value) {
   val length = content.length
-  override def toString = content + "(" + kind + ")"
+  override def toString = content
 }

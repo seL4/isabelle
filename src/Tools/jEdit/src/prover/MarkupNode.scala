@@ -6,6 +6,8 @@
 
 package isabelle.prover
 
+import isabelle.proofdocument.ProofDocument
+
 import sidekick.IAsset
 import javax.swing._
 import javax.swing.text.Position
@@ -13,10 +15,10 @@ import javax.swing.tree._
 
 object MarkupNode {
 
-  def markup2default_node(node : MarkupNode) : DefaultMutableTreeNode = {
+  def markup2default_node(node: MarkupNode, cmd: Command, doc: ProofDocument) : DefaultMutableTreeNode = {
 
     implicit def int2pos(offset: Int): Position =
-      new Position { def getOffset = offset }
+      new Position { def getOffset = offset; override def toString = offset.toString}
 
     object RelativeAsset extends IAsset {
       override def getIcon : Icon = null
@@ -25,10 +27,10 @@ object MarkupNode {
       override def getName : String = node.id
       override def setName (name : String) = ()
       override def setStart(start : Position) = ()
-      override def getStart : Position = node.abs_start
+      override def getStart : Position = node.abs_start(doc)
       override def setEnd(end : Position) = ()
-      override def getEnd : Position = node.abs_stop
-      override def toString = node.id + ": " + node.kind + "[" + node.start + " - " + node.stop + "]"
+      override def getEnd : Position = node.abs_stop(doc)
+      override def toString = node.id + ": " + node.kind + "[" + getStart + " - " + getEnd + "]"
     }
 
     new DefaultMutableTreeNode(RelativeAsset)
@@ -38,40 +40,27 @@ object MarkupNode {
 class MarkupNode (val base : Command, val start : Int, val stop : Int,
                     val id : String, val kind : String, val desc : String) {
 
-  val swing_node : DefaultMutableTreeNode = MarkupNode.markup2default_node (this)
+  def swing_node(doc: ProofDocument) : DefaultMutableTreeNode = {
+    val node = MarkupNode.markup2default_node (this, base, doc)
+    for (c <- children) node add c.swing_node(doc)
+    node
+  }
+    
+  def abs_start(doc: ProofDocument) = base.start(doc) + start
+  def abs_stop(doc: ProofDocument) = base.start(doc) + stop
 
   var parent : MarkupNode = null
   def orphan = parent == null
 
-  def length = stop - start
-  def abs_start = base.start + start
-  def abs_stop = base.start + stop
-
-  private var children_cell : List[MarkupNode] = Nil
-  //track changes in swing_node
-  def children = children_cell
-  def children_= (cs : List[MarkupNode]) = {
-    swing_node.removeAllChildren
-    for (c <- cs) swing_node add c.swing_node
-    children_cell = cs
-  }
+  var children : List[MarkupNode] = Nil
 
   private def add(child : MarkupNode) {
     child parent = this
-    children_cell = (child :: children) sort ((a, b) => a.start < b.start)
-
-    swing_node add child.swing_node
+    children = (child :: children) sort ((a, b) => a.start < b.start)
   }
 
   private def remove(nodes : List[MarkupNode]) {
-    children_cell = children diff nodes
-
-      for (node <- nodes) try {
-        swing_node remove node.swing_node
-      } catch { case e : IllegalArgumentException =>
-        System.err.println(e.toString)
-        case e => throw e
-      }
+    children = children diff nodes
   }
 
   def dfs : List[MarkupNode] = {

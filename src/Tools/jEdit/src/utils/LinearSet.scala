@@ -43,7 +43,7 @@ class LinearSet[A] extends scala.collection.immutable.Set[A]
   def contains(elem: A): Boolean =
     !isEmpty && (last_elem.get == elem || body.isDefinedAt(elem))
 
-  def insert_after(hook: Option[A], elem: A): LinearSet[A] =
+  private def _insert_after(hook: Option[A], elem: A): LinearSet[A] =
     if (contains(elem)) throw new LinearSet.Duplicate(elem.toString)
     else hook match {
       case Some(hook) =>
@@ -55,8 +55,11 @@ class LinearSet[A] extends scala.collection.immutable.Set[A]
         if (isEmpty) LinearSet.make(Some(elem), Some(elem), Map.empty)
         else LinearSet.make(Some(elem), last_elem, body + (elem -> first_elem.get))
     }
-    
-  def +(elem: A): LinearSet[A] = insert_after(last_elem, elem)
+
+  def insert_after(hook: Option[A], elems: Seq[A]): LinearSet[A] =
+    elems.reverse.foldLeft (this) ((ls, elem) => ls._insert_after(hook, elem))
+
+  def +(elem: A): LinearSet[A] = _insert_after(last_elem, elem)
 
   def delete_after(elem: Option[A]): LinearSet[A] =
     elem match {
@@ -70,7 +73,18 @@ class LinearSet[A] extends scala.collection.immutable.Set[A]
         else if (size == 1) empty
         else LinearSet.make(Some(body(first_elem.get)), last_elem, body - first_elem.get)
     }
-    
+
+  def delete_between(from: Option[A], to: Option[A]): LinearSet[A] = {
+    if(!first_elem.isDefined) this
+    else {
+      val next = if (from == last_elem) None
+                 else if (from == None) first_elem
+                 else from.map(body(_))
+      if (next == to) this
+      else delete_after(from).delete_between(from, to)
+    }
+  }
+
   def -(elem: A): LinearSet[A] =
     if (!contains(elem)) throw new LinearSet.Undefined(elem.toString)
     else delete_after(body find (p => p._2 == elem) map (p => p._1))

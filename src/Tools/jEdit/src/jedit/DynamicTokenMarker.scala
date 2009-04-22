@@ -74,22 +74,22 @@ class DynamicTokenMarker(buffer: JEditBuffer, prover: Prover) extends TokenMarke
     val start = buffer.getLineStartOffset(line)
     val stop = start + line_segment.count
 
-    val current_document = prover.document
-   
-    def to: Int => Int = Isabelle.prover_setup(buffer).get.theory_view.to_current(current_document.id, _)
-    def from: Int => Int = Isabelle.prover_setup(buffer).get.theory_view.from_current(current_document.id, _)
+    val document = prover.document
+
+    def to: Int => Int = Isabelle.prover_setup(buffer).get.theory_view.to_current(document.id, _)
+    def from: Int => Int = Isabelle.prover_setup(buffer).get.theory_view.from_current(document.id, _)
 
     var next_x = start
     for {
-      command <- current_document.commands.dropWhile(_.stop <= from(start)).takeWhile(_.start < from(stop))
+      command <- document.commands.dropWhile(_.stop(document) <= from(start)).takeWhile(_.start(document) < from(stop))
       markup <- command.root_node.flatten
-      if(to(markup.abs_stop) > start)
-      if(to(markup.abs_start) < stop)
+      if(to(markup.abs_stop(document)) > start)
+      if(to(markup.abs_start(document)) < stop)
       byte = DynamicTokenMarker.choose_byte(markup.kind)
-      token_start = to(markup.abs_start) - start max 0
-      token_length = to(markup.abs_stop) - to(markup.abs_start) -
-                     (start - to(markup.abs_start) max 0) -
-                     (to(markup.abs_stop) - stop max 0)
+      token_start = to(markup.abs_start(document)) - start max 0
+      token_length = to(markup.abs_stop(document)) - to(markup.abs_start(document)) -
+                     (start - to(markup.abs_start(document)) max 0) -
+                     (to(markup.abs_stop(document)) - stop max 0)
     } {
       if (start + token_start > next_x)
         handler.handleToken(line_segment, 1, next_x - start, start + token_start - next_x, context)

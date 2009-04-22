@@ -75,16 +75,25 @@ class ProofDocument(val id: String,
     val (removed, end) = remaining.span(token_start(_) <= change.start + change.removed)
     // update indices
     start = end.foldLeft (start) ((s, t) => s + (t -> (s(t) + change.added.length - change.removed)))
-    start = removed.foldLeft (start) ((s, t) => s - t)
 
     val split_begin = removed.takeWhile(start(_) < change.start).
-      map (t => new Token(t.content.substring(0, change.start - start(t)),
-                          t.kind))
+      map (t => {
+          val split_tok = new Token(t.content.substring(0, change.start - start(t)), t.kind)
+          start += (split_tok -> start(t))
+          split_tok
+        })
+
     val split_end = removed.dropWhile(stop(_) < change.start + change.removed).
-      map (t => new Token(t.content.substring(change.start + change.removed - start(t)),
-                          t.kind))
+      map (t => {
+          val split_tok = new Token(t.content.substring(change.start + change.removed - start(t)),
+                          t.kind)
+          start += (split_tok -> start(t))
+          split_tok
+        })
     // update indices
-    start = split_end.foldLeft (start) ((s, t) => s + (t -> (change.start + change.added.length)))
+    start = removed.foldLeft (start) ((s, t) => s - t)
+    start = split_end.foldLeft (start) ((s, t) =>
+    s + (t -> (change.start + change.added.length)))
 
     val ins = new Token(change.added, Token.Kind.OTHER)
     start += (ins -> change.start)
@@ -121,77 +130,75 @@ class ProofDocument(val id: String,
     }
     val insert = new_tokens.reverse
     val new_token_list = begin ::: insert ::: old_suffix
+    val new_tokenset = (LinearSet() ++ new_token_list).asInstanceOf[LinearSet[Token]]
     token_changed(change.id,
                   begin.lastOption,
                   insert,
-                  removed,
                   old_suffix.firstOption,
-                  new_token_list,
+                  new_tokenset,
                   start)
   }
   
   /** command view **/
 
   def find_command_at(pos: Int): Command = {
-    for (cmd <- commands) { if (pos < cmd.stop) return cmd }
+    for (cmd <- commands) { if (pos < cmd.stop(this)) return cmd }
     return null
   }
 
   private def token_changed(new_id: String,
                             before_change: Option[Token],
                             inserted_tokens: List[Token],
-                            removed_tokens: List[Token],
                             after_change: Option[Token],
-                            new_token_list: List[Token],
+                            new_tokenset: LinearSet[Token],
                             new_token_start: Map[Token, Int]): (ProofDocument, StructureChange) =
   {
-    val commands_list = List[Command]() ++ commands
+    val cmd_first_changed =
+      if (before_change.isDefined) commands.find(_.tokens.contains(before_change.get))
+      else None
+    val cmd_last_changed =
+      if (after_change.isDefined) commands.find(_.tokens.contains(after_change.get))
+      else None
 
-    // calculate removed commands
-    val first_removed = removed_tokens.firstOption
+    val cmd_before_change =
+      if (cmd_first_changed.isDefined) commands.prev(cmd_first_changed.get)
+      else None
+    val cmd_after_change =
+      if (cmd_last_changed.isDefined) commands.next(cmd_last_changed.get)
+      else None
 
-    val (begin, remaining) =
-      first_removed match {
-        case None => (Nil, commands_list)
-        case Some(fr) => commands_list.break(_.tokens.contains(fr))
-      }
-    val (removed_commands, end) =
-      after_change match {
-        case None => (remaining, Nil)
-        case Some(ac) => remaining.break(_.tokens.contains(ac))
-      }
+    val removed_commands = commands.dropWhile(Some(_) != cmd_first_changed).
+      takeWhile(Some(_) != cmd_after_change)
 
+    // calculate inserted commands
     def tokens_to_commands(tokens: List[Token]): List[Command]= {
       tokens match {
         case Nil => Nil
         case t::ts =>
           val (cmd,rest) = ts.span(_.kind != Token.Kind.COMMAND_START)
-          new Command(t::cmd) :: tokens_to_commands (rest)
+          new Command(t::cmd, new_token_start) :: tokens_to_commands (rest)
       }
     }
 
-    // calculate inserted commands
-    val new_commands = tokens_to_commands(new_token_list)
-    val new_tokenset = (LinearSet() ++ new_token_list).asInstanceOf[LinearSet[Token]]
-    val new_commandset = (LinearSet() ++ (new_commands)).asInstanceOf[LinearSet[Command]]
-    // drop known commands from the beginning
-    val first_changed = before_change match {
-      case None => new_tokenset.first_elem
-      case Some(bc) => new_tokenset.next(bc)
-    }
-    val changed_commands = first_changed match {
-      case None => Nil
-      case Some(fc) => new_commands.dropWhile(!_.tokens.contains(fc))
-    }
-    val inserted_commands = after_change match {
-      case None => changed_commands
-      case Some(ac) => changed_commands.takeWhile(!_.tokens.contains(ac))
-    }
-    val change = new StructureChange(new_commands.find(_.tokens.contains(before_change)),
-                                     inserted_commands, removed_commands)
+    val split_begin_tokens =
+      if (!cmd_first_changed.isDefined || !before_change.isDefined) Nil
+      else {
+        cmd_first_changed.get.tokens.takeWhile(_ != before_change.get) ::: List(before_change.get)
+      }
+    val split_end_tokens =
+      if (!cmd_last_changed.isDefined || !after_change.isDefined) Nil
+      else {
+        cmd_last_changed.get.tokens.dropWhile(_ != after_change.get)
+      }
+
+    val rescanning_tokens = split_begin_tokens ::: inserted_tokens ::: split_end_tokens
+    val inserted_commands = tokens_to_commands(rescanning_tokens)
+
+    val change = new StructureChange(cmd_before_change, inserted_commands, removed_commands.toList)
     // build new document
-    var new_commands = commands
-    while(new_commands.next())
+    val new_commandset = commands.delete_between(cmd_before_change, cmd_after_change).
+        insert_after(cmd_before_change, inserted_commands)
+
     val doc =
       new ProofDocument(new_id, new_tokenset, new_token_start, new_commandset, active, is_command_keyword)
     return (doc, change)

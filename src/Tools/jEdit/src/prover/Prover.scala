@@ -190,7 +190,7 @@ class Prover(isabelle_system: IsabelleSystem, logic: String) extends Actor
                       // inner syntax: id from props
                       else command
                     if (cmd != null) {
-                      cmd.root_node.insert(cmd.node_from(kind, begin, end))
+                      cmd.add_markup(kind, begin, end)
                       command_change(cmd)
                     }
                   case _ =>
@@ -249,7 +249,7 @@ class Prover(isabelle_system: IsabelleSystem, logic: String) extends Actor
       for (cmd <- changes.removed_commands) yield {
         commands -= cmd.id
         if (cmd.state_id != null) states -= cmd.state_id
-        (document.commands.prev(cmd).map(_.id).getOrElse(document_id0)) -> None
+        changes.before_change.map(_.id).getOrElse(document_id0) -> None
       }
     val inserts =
       for (cmd <- changes.added_commands) yield {

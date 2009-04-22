@@ -66,8 +66,9 @@ class TheoryView (text_area: JEditTextArea, document_actor: Actor)
 
   private val selected_state_controller = new CaretListener {
     override def caretUpdate(e: CaretEvent) = {
-      val cmd = prover.document.find_command_at(e.getDot)
-      if (cmd != null && cmd.start <= e.getDot &&
+      val doc = prover.document
+      val cmd = doc.find_command_at(e.getDot)
+      if (cmd != null && doc.token_start(cmd.tokens.first) <= e.getDot &&
           Isabelle.prover_setup(buffer).get.selected_state != cmd)
         Isabelle.prover_setup(buffer).get.selected_state = cmd
     }
@@ -141,8 +142,8 @@ class TheoryView (text_area: JEditTextArea, document_actor: Actor)
   {
     val document = prover.document
     if (text_area != null) {
-      val start = text_area.getLineOfOffset(to_current(document.id, cmd.start))
-      val stop = text_area.getLineOfOffset(to_current(document.id, cmd.stop) - 1)
+      val start = text_area.getLineOfOffset(to_current(document.id, cmd.start(document)))
+      val stop = text_area.getLineOfOffset(to_current(document.id, cmd.stop(document)) - 1)
       text_area.invalidateLineRange(start, stop)
 
       if (Isabelle.prover_setup(buffer).get.selected_state == cmd)
@@ -189,18 +190,18 @@ class TheoryView (text_area: JEditTextArea, document_actor: Actor)
 
     val metrics = text_area.getPainter.getFontMetrics
     var e = document.find_command_at(from_current(start))
-    val commands = document.commands.dropWhile(_.stop <= from_current(start)).
-      takeWhile(c => to_current(c.start) < end)
+    val commands = document.commands.dropWhile(_.stop(document) <= from_current(start)).
+      takeWhile(c => to_current(c.start(document)) < end)
     // encolor phase
     for (e <- commands) {
-      val begin = start max to_current(e.start)
-      val finish = end - 1 min to_current(e.stop)
+      val begin = start max to_current(e.start(document))
+      val finish = end - 1 min to_current(e.stop(document))
       encolor(gfx, y, metrics.getHeight, begin, finish, TheoryView.choose_color(e), true)
 
       // paint details of command
       for (node <- e.root_node.dfs) {
-        val begin = to_current(node.start + e.start)
-        val finish = to_current(node.stop + e.start)
+        val begin = to_current(node.abs_start(document))
+        val finish = to_current(node.abs_stop(document))
         if (finish > start && begin < end) {
           encolor(gfx, y + metrics.getHeight - 2, 1, begin max start, finish min end - 1,
             DynamicTokenMarker.choose_color(node.kind, text_area.getPainter.getStyles), true)

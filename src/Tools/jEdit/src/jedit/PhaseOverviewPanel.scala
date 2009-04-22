@@ -7,6 +7,7 @@
 package isabelle.jedit
 
 import isabelle.prover.Command
+import isabelle.proofdocument.ProofDocument
 import isabelle.utils.Delay
 
 import javax.swing._
@@ -57,9 +58,9 @@ class PhaseOverviewPanel(prover: isabelle.prover.Prover, to_current: (String, In
     } else ""
 	}
 
-  private def paintCommand(command : Command, buffer : JEditBuffer, doc_id: String, gfx : Graphics) {
-    val line1 = buffer.getLineOfOffset(to_current(doc_id, command.start))
-    val line2 = buffer.getLineOfOffset(to_current(doc_id, command.stop - 1)) + 1
+  private def paintCommand(command : Command, buffer : JEditBuffer, doc: ProofDocument, gfx : Graphics) {
+    val line1 = buffer.getLineOfOffset(to_current(doc.id, command.start(doc)))
+    val line2 = buffer.getLineOfOffset(to_current(doc.id, command.stop(doc) - 1)) + 1
     val y = lineToY(line1)
     val height = lineToY(line2) - y - 1
     val (light, dark) = command.status match {
@@ -82,7 +83,7 @@ class PhaseOverviewPanel(prover: isabelle.prover.Prover, to_current: (String, In
 		val buffer = textarea.getBuffer
     val document = prover.document
     for (c <- document.commands)
-      paintCommand(c, buffer, document.id, gfx)
+      paintCommand(c, buffer, document, gfx)
 
 	}
 
