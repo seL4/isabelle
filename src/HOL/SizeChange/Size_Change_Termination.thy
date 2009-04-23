@@ -1,5 +1,4 @@
 (*  Title:      HOL/Library/Size_Change_Termination.thy
-    ID:         $Id$
     Author:     Alexander Krauss, TU Muenchen
 *)
 
