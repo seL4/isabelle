@@ -1220,7 +1220,7 @@ primrec of_nat_aux :: "('a \<Rightarrow> 'a) \<Rightarrow> nat \<Rightarrow> 'a 
   "of_nat_aux inc 0 i = i"
   | "of_nat_aux inc (Suc n) i = of_nat_aux inc n (inc i)" -- {* tail recursive *}
 
-lemma of_nat_code [code, code unfold, code inline del]:
+lemma of_nat_code:
   "of_nat n = of_nat_aux (\<lambda>i. i + 1) n 0"
 proof (induct n)
   case 0 then show ?case by simp
@@ -1232,8 +1232,10 @@ next
     by simp
   with Suc show ?case by (simp add: add_commute)
 qed
-    
+
 end
+
+declare of_nat_code [code, code unfold, code inline del]
 
 text{*Class for unital semirings with characteristic zero.
  Includes non-ordered rings like the complex numbers.*}

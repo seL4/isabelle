@@ -1737,12 +1737,15 @@ lemma eq [code unfold, code inline del]: "eq = (op =)"
 lemma eq_refl: "eq x x \<longleftrightarrow> True"
   unfolding eq by rule+
 
-lemma equals_eq [code inline, code]: "(op =) \<equiv> eq"
+lemma equals_eq [code inline]: "(op =) \<equiv> eq"
   by (rule eq_reflection) (rule ext, rule ext, rule sym, rule eq_equals)
 
 declare equals_eq [symmetric, code post]
 
 end
+
+declare equals_eq [code]
+
 
 subsubsection {* Generic code generator foundation *}
 
