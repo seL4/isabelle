@@ -155,16 +155,6 @@ instance ..
 
 end
 
-instantiation up :: ("{times, one, comm_monoid_add}") power
-begin
-
-primrec power_up where
-  "(a \<Colon> 'a up) ^ 0 = 1"
-  | "(a \<Colon> 'a up) ^ Suc n = a ^ n * a"
-
-instance ..
-
-end
 
 subsection {* Effect of operations on coefficients *}
 
@@ -328,8 +318,9 @@ proof
   qed
   show "(p + q) * r = p * r + q * r"
     by (rule up_eqI) simp
-  show "p * q = q * p"
+  show "\<And>q. p * q = q * p"
   proof (rule up_eqI)
+    fix q
     fix n 
     {
       fix k
@@ -354,10 +345,11 @@ proof
     by (simp add: up_inverse_def)
   show "p / q = p * inverse q"
     by (simp add: up_divide_def)
-  fix n
-  show "p ^ 0 = 1" by simp
-  show "p ^ Suc n = p ^ n * p" by simp
+  show "p * 1 = p"
+    unfolding `p * 1 = 1 * p` by (fact `1 * p = p`)
 qed
+
+instance up :: (ring) recpower ..
 
 (* Further properties of monom *)
 

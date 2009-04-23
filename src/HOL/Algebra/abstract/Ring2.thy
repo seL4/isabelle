@@ -12,7 +12,7 @@ begin
 
 subsection {* Ring axioms *}
 
-class ring = zero + one + plus + minus + uminus + times + inverse + power + Ring_and_Field.dvd +
+class ring = zero + one + plus + minus + uminus + times + inverse + recpower + Ring_and_Field.dvd +
   assumes a_assoc:      "(a + b) + c = a + (b + c)"
   and l_zero:           "0 + a = a"
   and l_neg:            "(-a) + a = 0"
@@ -28,8 +28,6 @@ class ring = zero + one + plus + minus + uminus + times + inverse + power + Ring
   assumes minus_def:    "a - b = a + (-b)"
   and inverse_def:      "inverse a = (if a dvd 1 then THE x. a*x = 1 else 0)"
   and divide_def:       "a / b = a * inverse b"
-  and power_0 [simp]:   "a ^ 0 = 1"
-  and power_Suc [simp]: "a ^ Suc n = a ^ n * a"
 begin
 
 definition assoc :: "'a \<Rightarrow> 'a \<Rightarrow> bool" (infixl "assoc" 50) where

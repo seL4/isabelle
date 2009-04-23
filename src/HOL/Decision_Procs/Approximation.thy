@@ -97,7 +97,7 @@ lemma horner_bounds_nonpos: fixes F :: "nat \<Rightarrow> nat" and G :: "nat \<R
     "(\<Sum>j=0..<n. (1 / real (f (j' + j))) * (Ifloat x ^ j)) \<le> Ifloat (ub n ((F o^ j') s) (f j') x)" (is "?ub")
 proof -
   { fix x y z :: float have "x - y * z = x + - y * z"
-      by (cases x, cases y, cases z, simp add: plus_float.simps minus_float.simps uminus_float.simps times_float.simps algebra_simps)
+      by (cases x, cases y, cases z, simp add: plus_float.simps minus_float_def uminus_float.simps times_float.simps algebra_simps)
   } note diff_mult_minus = this
 
   { fix x :: float have "- (- x) = x" by (cases x, auto simp add: uminus_float.simps) } note minus_minus = this
@@ -1462,7 +1462,8 @@ proof -
     finally have "0 < Ifloat ((?horner x) ^ num)" .
   }
   ultimately show ?thesis
-    unfolding lb_exp.simps if_not_P[OF `\<not> 0 < x`] Let_def by (cases "floor_fl x", cases "x < - 1", auto simp add: le_float_def less_float_def normfloat) 
+    unfolding lb_exp.simps if_not_P[OF `\<not> 0 < x`] Let_def
+    by (cases "floor_fl x", cases "x < - 1", auto simp add: float_power le_float_def less_float_def)
 qed
 
 lemma exp_boundaries': assumes "x \<le> 0"

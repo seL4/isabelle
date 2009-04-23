@@ -99,7 +99,7 @@ translations
 
 subsection  "Arithmetic operations"
 
-instantiation word :: (len0) "{number, uminus, minus, plus, one, zero, times, Divides.div, power, ord, bit}"
+instantiation word :: (len0) "{number, uminus, minus, plus, one, zero, times, Divides.div, ord, bit}"
 begin
 
 definition
@@ -125,10 +125,6 @@ definition
 
 definition
   word_mod_def: "a mod b = word_of_int (uint a mod uint b)"
-
-primrec power_word where
-  "(a\<Colon>'a word) ^ 0 = 1"
-  | "(a\<Colon>'a word) ^ Suc n = a * a ^ n"
 
 definition
   word_number_of_def: "number_of w = word_of_int w"
@@ -157,7 +153,7 @@ definition
 
 instance ..
 
-end 
+end
 
 definition
   word_succ :: "'a :: len0 word => 'a word"

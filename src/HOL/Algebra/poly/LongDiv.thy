@@ -1,6 +1,5 @@
 (*
     Experimental theory: long division of polynomials
-    $Id$
     Author: Clemens Ballarin, started 23 June 1999
 *)
 
@@ -133,9 +132,9 @@ lemma long_div_eucl_size:
     delsimprocs [ring_simproc]) 1 *})
   apply (tactic {* asm_simp_tac (@{simpset} delsimprocs [ring_simproc]) 1 *})
   apply (tactic {* simp_tac (@{simpset} addsimps [thm "minus_def", thm "smult_r_distr",
-    thm "smult_r_minus", thm "monom_mult_smult", thm "smult_assoc1", thm "smult_assoc2"]
+    thm "smult_r_minus", thm "monom_mult_smult", thm "smult_assoc2"]
     delsimprocs [ring_simproc]) 1 *})
-  apply simp
+  apply (simp add: smult_assoc1 [symmetric])
   done
 
 ML {*
