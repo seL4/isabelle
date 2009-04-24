@@ -16,9 +16,7 @@ sig
   val obtain: theory -> string list -> term list -> code_algebra * code_graph
   val eval_conv: theory -> (sort -> sort)
     -> (code_algebra -> code_graph -> (string * sort) list -> term -> cterm -> thm) -> cterm -> thm
-  val eval_term: theory -> (sort -> sort)
-    -> (code_algebra -> code_graph -> (string * sort) list -> term -> term) -> term -> term
-  val eval: theory -> (sort -> sort)
+  val eval: theory -> (sort -> sort) -> ((term -> term) -> 'a -> 'a)
     -> (code_algebra -> code_graph -> (string * sort) list -> term -> 'a) -> term -> 'a
 end
 
@@ -334,10 +332,7 @@ fun eval_conv thy =
       end;
   in gen_eval thy I conclude_evaluation end;
 
-fun eval_term thy prep_sort evaluator = gen_eval thy (Thm.cterm_of thy)
-  (fn t => K (Code.postprocess_term thy t)) prep_sort (simple_evaluator evaluator);
-
-fun eval thy prep_sort evaluator = gen_eval thy (Thm.cterm_of thy)
-  (fn t => K t) prep_sort (simple_evaluator evaluator);
+fun eval thy prep_sort postproc evaluator = gen_eval thy (Thm.cterm_of thy)
+  (K o postproc (Code.postprocess_term thy)) prep_sort (simple_evaluator evaluator);
 
 end; (*struct*)

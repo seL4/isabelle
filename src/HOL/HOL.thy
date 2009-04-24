@@ -1889,7 +1889,7 @@ oracle eval_oracle = {* fn ct =>
     val dummy = @{cprop True};
   in case try HOLogic.dest_Trueprop t
    of SOME t' => if Code_ML.eval NONE
-         ("Eval_Method.eval_ref", Eval_Method.eval_ref) thy t' [] 
+         ("Eval_Method.eval_ref", Eval_Method.eval_ref) (K I) thy t' [] 
        then Thm.capply (Thm.capply @{cterm "op \<equiv> \<Colon> prop \<Rightarrow> prop \<Rightarrow> prop"} ct) dummy
        else dummy
     | NONE => dummy

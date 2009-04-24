@@ -6,10 +6,8 @@ Serializer for SML and OCaml.
 
 signature CODE_ML =
 sig
-  val eval_term: string option -> string * (unit -> term) option ref
-    -> theory -> term -> string list -> term
   val eval: string option -> string * (unit -> 'a) option ref
-    -> theory -> term -> string list -> 'a
+    -> ((term -> term) -> 'a -> 'a) -> theory -> term -> string list -> 'a
   val target_Eval: string
   val setup: theory -> theory
 end;
@@ -957,7 +955,7 @@ fun eval_code_of some_target thy = Code_Target.serialize_custom thy (the_default
 
 (* evaluation *)
 
-fun gen_eval eval some_target reff thy t args =
+fun eval some_target reff postproc thy t args =
   let
     val ctxt = ProofContext.init thy;
     val _ = if null (Term.add_frees t []) then () else error ("Term "
@@ -976,10 +974,7 @@ fun gen_eval eval some_target reff thy t args =
         val sml_code = "let\n" ^ value_code ^ "\nin " ^ value_name'
           ^ space_implode " " (map (enclose "(" ")") args) ^ " end";
       in ML_Context.evaluate ctxt false reff sml_code end;
-  in eval thy I evaluator t end;
-
-fun eval_term thy = gen_eval Code_Thingol.eval_term thy;
-fun eval thy = gen_eval Code_Thingol.eval thy;
+  in Code_Thingol.eval thy I postproc evaluator t end;
 
 
 (* instrumentalization by antiquotation *)

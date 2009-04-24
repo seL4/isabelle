@@ -74,8 +74,9 @@ fun compile_generator_expr thy t =
   let
     val tys = (map snd o fst o strip_abs) t;
     val t' = mk_generator_expr thy t tys;
-    val f = Code_ML.eval (SOME target) ("Quickcheck.eval_ref", eval_ref) thy t' [];
-  in f #> Random_Engine.run #> (Option.map o map) (Code.postprocess_term thy) end;
+    val f = Code_ML.eval (SOME target) ("Quickcheck.eval_ref", eval_ref)
+      (fn proc => fn g => fn s => g s #>> (Option.map o map) proc) thy t' [];
+  in f #> Random_Engine.run end;
 
 end
 *}

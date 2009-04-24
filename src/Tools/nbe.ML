@@ -7,7 +7,7 @@ Normalization by evaluation, based on generic code generator.
 signature NBE =
 sig
   val norm_conv: cterm -> thm
-  val norm_term: theory -> term -> term
+  val norm: theory -> term -> term
 
   datatype Univ =
       Const of int * Univ list               (*named (uninterpreted) constants*)
@@ -440,7 +440,7 @@ fun compile_eval thy naming program vs_t deps =
 
 (* evaluation with type reconstruction *)
 
-fun norm thy naming program (((vs0, (vs, ty)), fs), t) deps =
+fun normalize thy naming program (((vs0, (vs, ty)), fs), t) deps =
   let
     fun subst_const f = map_aterms (fn t as Term.Const (c, ty) => Term.Const (f c, ty)
       | t => t);
@@ -483,7 +483,7 @@ fun mk_equals thy lhs raw_rhs =
 
 val (_, raw_norm_oracle) = Context.>>> (Context.map_theory_result
   (Thm.add_oracle (Binding.name "norm", fn (thy, naming, program, vsp_ty_fs_t, deps, ct) =>
-    mk_equals thy ct (norm thy naming program vsp_ty_fs_t deps))));
+    mk_equals thy ct (normalize thy naming program vsp_ty_fs_t deps))));
 
 fun norm_oracle thy naming program vsp_ty_fs_t deps ct =
   raw_norm_oracle (thy, naming, program, vsp_ty_fs_t, deps, ct);
@@ -493,15 +493,14 @@ fun norm_conv ct =
     val thy = Thm.theory_of_cterm ct;
   in Code_Thingol.eval_conv thy (add_triv_classes thy) (norm_oracle thy) ct end;
 
-fun norm_term thy = Code.postprocess_term thy
-  o Code_Thingol.eval_term thy (add_triv_classes thy) (norm thy);
+fun norm thy = Code_Thingol.eval thy (add_triv_classes thy) I (normalize thy);
 
 (* evaluation command *)
 
 fun norm_print_term ctxt modes t =
   let
     val thy = ProofContext.theory_of ctxt;
-    val t' = norm_term thy t;
+    val t' = norm thy t;
     val ty' = Term.type_of t';
     val ctxt' = Variable.auto_fixes t ctxt;
     val p = PrintMode.with_modes modes (fn () =>
@@ -516,8 +515,7 @@ fun norm_print_term_cmd (modes, s) state =
   let val ctxt = Toplevel.context_of state
   in norm_print_term ctxt modes (Syntax.read_term ctxt s) end;
 
-val setup =
-  Value.add_evaluator ("nbe", norm_term o ProofContext.theory_of);
+val setup = Value.add_evaluator ("nbe", norm o ProofContext.theory_of);
 
 local structure P = OuterParse and K = OuterKeyword in
 

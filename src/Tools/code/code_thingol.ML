@@ -86,10 +86,7 @@ sig
   val eval_conv: theory -> (sort -> sort)
     -> (naming -> program -> (((string * sort) list * typscheme) * (string * itype) list) * iterm -> string list -> cterm -> thm)
     -> cterm -> thm
-  val eval_term: theory -> (sort -> sort)
-    -> (naming -> program -> (((string * sort) list * typscheme) * (string * itype) list) * iterm -> string list -> term)
-    -> term -> term
-  val eval: theory -> (sort -> sort)
+  val eval: theory -> (sort -> sort) -> ((term -> term) -> 'a -> 'a)
     -> (naming -> program -> (((string * sort) list * typscheme) * (string * itype) list) * iterm -> string list -> 'a)
     -> term -> 'a
 end;
@@ -780,8 +777,7 @@ fun base_evaluator thy evaluator algebra funcgr vs t =
   in evaluator naming program (((vs'', (vs', ty')), fs'), t') deps end;
 
 fun eval_conv thy prep_sort = Code_Wellsorted.eval_conv thy prep_sort o base_evaluator thy;
-fun eval_term thy prep_sort = Code_Wellsorted.eval_term thy prep_sort o base_evaluator thy;
-fun eval thy prep_sort = Code_Wellsorted.eval thy prep_sort o base_evaluator thy;
+fun eval thy prep_sort postproc = Code_Wellsorted.eval thy prep_sort postproc o base_evaluator thy;
 
 
 (** diagnostic commands **)

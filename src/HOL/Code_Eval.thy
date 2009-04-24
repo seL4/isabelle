@@ -161,6 +161,7 @@ ML {*
 signature EVAL =
 sig
   val mk_term: ((string * typ) -> term) -> (typ -> term) -> term -> term
+  val mk_term_of: typ -> term -> term
   val eval_ref: (unit -> term) option ref
   val eval_term: theory -> term -> term
 end;
@@ -175,7 +176,7 @@ val eval_ref = ref (NONE : (unit -> term) option);
 fun eval_term thy t =
   t 
   |> Eval.mk_term_of (fastype_of t)
-  |> (fn t => Code_ML.eval_term NONE ("Eval.eval_ref", eval_ref) thy t []);
+  |> (fn t => Code_ML.eval NONE ("Eval.eval_ref", eval_ref) I thy t []);
 
 end;
 *}
