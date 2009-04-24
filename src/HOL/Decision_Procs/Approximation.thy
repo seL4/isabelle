@@ -23,8 +23,8 @@ proof -
 qed
 
 lemma horner_schema: fixes f :: "nat \<Rightarrow> nat" and G :: "nat \<Rightarrow> nat \<Rightarrow> nat" and F :: "nat \<Rightarrow> nat"
-  assumes f_Suc: "\<And>n. f (Suc n) = G ((F o^ n) s) (f n)"
-  shows "horner F G n ((F o^ j') s) (f j') x = (\<Sum> j = 0..< n. -1 ^ j * (1 / real (f (j' + j))) * x ^ j)"
+  assumes f_Suc: "\<And>n. f (Suc n) = G ((F ^^ n) s) (f n)"
+  shows "horner F G n ((F ^^ j') s) (f j') x = (\<Sum> j = 0..< n. -1 ^ j * (1 / real (f (j' + j))) * x ^ j)"
 proof (induct n arbitrary: i k j')
   case (Suc n)
 
@@ -33,13 +33,13 @@ proof (induct n arbitrary: i k j')
 qed auto
 
 lemma horner_bounds':
-  assumes "0 \<le> Ifloat x" and f_Suc: "\<And>n. f (Suc n) = G ((F o^ n) s) (f n)"
+  assumes "0 \<le> Ifloat x" and f_Suc: "\<And>n. f (Suc n) = G ((F ^^ n) s) (f n)"
   and lb_0: "\<And> i k x. lb 0 i k x = 0"
   and lb_Suc: "\<And> n i k x. lb (Suc n) i k x = lapprox_rat prec 1 (int k) - x * (ub n (F i) (G i k) x)"
   and ub_0: "\<And> i k x. ub 0 i k x = 0"
   and ub_Suc: "\<And> n i k x. ub (Suc n) i k x = rapprox_rat prec 1 (int k) - x * (lb n (F i) (G i k) x)"
-  shows "Ifloat (lb n ((F o^ j') s) (f j') x) \<le> horner F G n ((F o^ j') s) (f j') (Ifloat x) \<and> 
-         horner F G n ((F o^ j') s) (f j') (Ifloat x) \<le> Ifloat (ub n ((F o^ j') s) (f j') x)"
+  shows "Ifloat (lb n ((F ^^ j') s) (f j') x) \<le> horner F G n ((F ^^ j') s) (f j') (Ifloat x) \<and> 
+         horner F G n ((F ^^ j') s) (f j') (Ifloat x) \<le> Ifloat (ub n ((F ^^ j') s) (f j') x)"
   (is "?lb n j' \<le> ?horner n j' \<and> ?horner n j' \<le> ?ub n j'")
 proof (induct n arbitrary: j')
   case 0 thus ?case unfolding lb_0 ub_0 horner.simps by auto
@@ -49,15 +49,15 @@ next
   proof (rule add_mono)
     show "Ifloat (lapprox_rat prec 1 (int (f j'))) \<le> 1 / real (f j')" using lapprox_rat[of prec 1  "int (f j')"] by auto
     from Suc[where j'="Suc j'", unfolded funpow.simps comp_def f_Suc, THEN conjunct2] `0 \<le> Ifloat x`
-    show "- Ifloat (x * ub n (F ((F o^ j') s)) (G ((F o^ j') s) (f j')) x) \<le> - (Ifloat x * horner F G n (F ((F o^ j') s)) (G ((F o^ j') s) (f j')) (Ifloat x))"
+    show "- Ifloat (x * ub n (F ((F ^^ j') s)) (G ((F ^^ j') s) (f j')) x) \<le> - (Ifloat x * horner F G n (F ((F ^^ j') s)) (G ((F ^^ j') s) (f j')) (Ifloat x))"
       unfolding Ifloat_mult neg_le_iff_le by (rule mult_left_mono)
   qed
   moreover have "?horner (Suc n) j' \<le> ?ub (Suc n) j'" unfolding ub_Suc ub_Suc horner.simps Ifloat_sub diff_def
   proof (rule add_mono)
     show "1 / real (f j') \<le> Ifloat (rapprox_rat prec 1 (int (f j')))" using rapprox_rat[of 1 "int (f j')" prec] by auto
     from Suc[where j'="Suc j'", unfolded funpow.simps comp_def f_Suc, THEN conjunct1] `0 \<le> Ifloat x`
-    show "- (Ifloat x * horner F G n (F ((F o^ j') s)) (G ((F o^ j') s) (f j')) (Ifloat x)) \<le> 
-          - Ifloat (x * lb n (F ((F o^ j') s)) (G ((F o^ j') s) (f j')) x)"
+    show "- (Ifloat x * horner F G n (F ((F ^^ j') s)) (G ((F ^^ j') s) (f j')) (Ifloat x)) \<le> 
+          - Ifloat (x * lb n (F ((F ^^ j') s)) (G ((F ^^ j') s) (f j')) x)"
       unfolding Ifloat_mult neg_le_iff_le by (rule mult_left_mono)
   qed
   ultimately show ?case by blast
@@ -73,13 +73,13 @@ all alternating and reciprocs. We use @{term G} and @{term F} to describe the co
 *}
 
 lemma horner_bounds: fixes F :: "nat \<Rightarrow> nat" and G :: "nat \<Rightarrow> nat \<Rightarrow> nat"
-  assumes "0 \<le> Ifloat x" and f_Suc: "\<And>n. f (Suc n) = G ((F o^ n) s) (f n)"
+  assumes "0 \<le> Ifloat x" and f_Suc: "\<And>n. f (Suc n) = G ((F ^^ n) s) (f n)"
   and lb_0: "\<And> i k x. lb 0 i k x = 0"
   and lb_Suc: "\<And> n i k x. lb (Suc n) i k x = lapprox_rat prec 1 (int k) - x * (ub n (F i) (G i k) x)"
   and ub_0: "\<And> i k x. ub 0 i k x = 0"
   and ub_Suc: "\<And> n i k x. ub (Suc n) i k x = rapprox_rat prec 1 (int k) - x * (lb n (F i) (G i k) x)"
-  shows "Ifloat (lb n ((F o^ j') s) (f j') x) \<le> (\<Sum>j=0..<n. -1 ^ j * (1 / real (f (j' + j))) * Ifloat x ^ j)" (is "?lb") and 
-    "(\<Sum>j=0..<n. -1 ^ j * (1 / real (f (j' + j))) * (Ifloat x ^ j)) \<le> Ifloat (ub n ((F o^ j') s) (f j') x)" (is "?ub")
+  shows "Ifloat (lb n ((F ^^ j') s) (f j') x) \<le> (\<Sum>j=0..<n. -1 ^ j * (1 / real (f (j' + j))) * Ifloat x ^ j)" (is "?lb") and 
+    "(\<Sum>j=0..<n. -1 ^ j * (1 / real (f (j' + j))) * (Ifloat x ^ j)) \<le> Ifloat (ub n ((F ^^ j') s) (f j') x)" (is "?ub")
 proof -
   have "?lb  \<and> ?ub" 
     using horner_bounds'[where lb=lb, OF `0 \<le> Ifloat x` f_Suc lb_0 lb_Suc ub_0 ub_Suc]
@@ -88,13 +88,13 @@ proof -
 qed
 
 lemma horner_bounds_nonpos: fixes F :: "nat \<Rightarrow> nat" and G :: "nat \<Rightarrow> nat \<Rightarrow> nat"
-  assumes "Ifloat x \<le> 0" and f_Suc: "\<And>n. f (Suc n) = G ((F o^ n) s) (f n)"
+  assumes "Ifloat x \<le> 0" and f_Suc: "\<And>n. f (Suc n) = G ((F ^^ n) s) (f n)"
   and lb_0: "\<And> i k x. lb 0 i k x = 0"
   and lb_Suc: "\<And> n i k x. lb (Suc n) i k x = lapprox_rat prec 1 (int k) + x * (ub n (F i) (G i k) x)"
   and ub_0: "\<And> i k x. ub 0 i k x = 0"
   and ub_Suc: "\<And> n i k x. ub (Suc n) i k x = rapprox_rat prec 1 (int k) + x * (lb n (F i) (G i k) x)"
-  shows "Ifloat (lb n ((F o^ j') s) (f j') x) \<le> (\<Sum>j=0..<n. (1 / real (f (j' + j))) * Ifloat x ^ j)" (is "?lb") and 
-    "(\<Sum>j=0..<n. (1 / real (f (j' + j))) * (Ifloat x ^ j)) \<le> Ifloat (ub n ((F o^ j') s) (f j') x)" (is "?ub")
+  shows "Ifloat (lb n ((F ^^ j') s) (f j') x) \<le> (\<Sum>j=0..<n. (1 / real (f (j' + j))) * Ifloat x ^ j)" (is "?lb") and 
+    "(\<Sum>j=0..<n. (1 / real (f (j' + j))) * (Ifloat x ^ j)) \<le> Ifloat (ub n ((F ^^ j') s) (f j') x)" (is "?ub")
 proof -
   { fix x y z :: float have "x - y * z = x + - y * z"
       by (cases x, cases y, cases z, simp add: plus_float.simps minus_float_def uminus_float.simps times_float.simps algebra_simps)
@@ -794,8 +794,8 @@ proof -
   let "?f n" = "fact (2 * n)"
 
   { fix n 
-    have F: "\<And>m. ((\<lambda>i. i + 2) o^ n) m = m + 2 * n" by (induct n arbitrary: m, auto)
-    have "?f (Suc n) = ?f n * ((\<lambda>i. i + 2) o^ n) 1 * (((\<lambda>i. i + 2) o^ n) 1 + 1)"
+    have F: "\<And>m. ((\<lambda>i. i + 2) ^^ n) m = m + 2 * n" by (induct n arbitrary: m, auto)
+    have "?f (Suc n) = ?f n * ((\<lambda>i. i + 2) ^^ n) 1 * (((\<lambda>i. i + 2) ^^ n) 1 + 1)"
       unfolding F by auto } note f_eq = this
     
   from horner_bounds[where lb="lb_sin_cos_aux prec" and ub="ub_sin_cos_aux prec" and j'=0, 
@@ -905,8 +905,8 @@ proof -
   let "?f n" = "fact (2 * n + 1)"
 
   { fix n 
-    have F: "\<And>m. ((\<lambda>i. i + 2) o^ n) m = m + 2 * n" by (induct n arbitrary: m, auto)
-    have "?f (Suc n) = ?f n * ((\<lambda>i. i + 2) o^ n) 2 * (((\<lambda>i. i + 2) o^ n) 2 + 1)"
+    have F: "\<And>m. ((\<lambda>i. i + 2) ^^ n) m = m + 2 * n" by (induct n arbitrary: m, auto)
+    have "?f (Suc n) = ?f n * ((\<lambda>i. i + 2) ^^ n) 2 * (((\<lambda>i. i + 2) ^^ n) 2 + 1)"
       unfolding F by auto } note f_eq = this
     
   from horner_bounds[where lb="lb_sin_cos_aux prec" and ub="ub_sin_cos_aux prec" and j'=0,
@@ -1382,8 +1382,8 @@ lemma bnds_exp_horner: assumes "Ifloat x \<le> 0"
   shows "exp (Ifloat x) \<in> { Ifloat (lb_exp_horner prec (get_even n) 1 1 x) .. Ifloat (ub_exp_horner prec (get_odd n) 1 1 x) }"
 proof -
   { fix n
-    have F: "\<And> m. ((\<lambda>i. i + 1) o^ n) m = n + m" by (induct n, auto)
-    have "fact (Suc n) = fact n * ((\<lambda>i. i + 1) o^ n) 1" unfolding F by auto } note f_eq = this
+    have F: "\<And> m. ((\<lambda>i. i + 1) ^^ n) m = n + m" by (induct n, auto)
+    have "fact (Suc n) = fact n * ((\<lambda>i. i + 1) ^^ n) 1" unfolding F by auto } note f_eq = this
     
   note bounds = horner_bounds_nonpos[where f="fact" and lb="lb_exp_horner prec" and ub="ub_exp_horner prec" and j'=0 and s=1,
     OF assms f_eq lb_exp_horner.simps ub_exp_horner.simps]

@@ -2794,8 +2794,8 @@ lemma numeral_fact: "ALL n::nat. FACT n = (if n = 0 then 1 else n * FACT (PRE n)
   by (import numeral numeral_fact)
 
 lemma numeral_funpow: "ALL n::nat.
-   ((f::'a::type => 'a::type) o^ n) (x::'a::type) =
-   (if n = 0 then x else (f o^ (n - 1)) (f x))"
+   ((f::'a::type => 'a::type) ^^ n) (x::'a::type) =
+   (if n = 0 then x else (f ^^ (n - 1)) (f x))"
   by (import numeral numeral_funpow)
 
 ;end_setup

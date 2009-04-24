@@ -202,13 +202,13 @@ qed;
 
 constdefs
   FUNPOW :: "('a => 'a) => nat => 'a => 'a"
-  "FUNPOW f n == f o^ n"
+  "FUNPOW f n == f ^^ n"
 
-lemma FUNPOW: "(ALL f x. (f o^ 0) x = x) &
-  (ALL f n x. (f o^ Suc n) x = (f o^ n) (f x))"
+lemma FUNPOW: "(ALL f x. (f ^^ 0) x = x) &
+  (ALL f n x. (f ^^ Suc n) x = (f ^^ n) (f x))"
   by (simp add: funpow_swap1)
 
-lemma [hol4rew]: "FUNPOW f n = f o^ n"
+lemma [hol4rew]: "FUNPOW f n = f ^^ n"
   by (simp add: FUNPOW_def)
 
 lemma ADD: "(!n. (0::nat) + n = n) & (!m n. Suc m + n = Suc (m + n))"

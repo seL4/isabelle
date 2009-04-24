@@ -634,18 +634,19 @@ subsection {* The power operation on relations *}
 
 text {* @{text "R ^^ n = R O ... O R"}, the n-fold composition of @{text R} *}
 
-primrec relpow :: "('a \<times> 'a) set \<Rightarrow> nat \<Rightarrow> ('a \<times> 'a) set" (infixr "^^" 80) where
-    "R ^^ 0 = Id"
-  | "R ^^ Suc n = R O (R ^^ n)"
+overloading
+  relpow == "compow :: nat \<Rightarrow> ('a \<times> 'a) set \<Rightarrow> ('a \<times> 'a) set"
+begin
 
-notation (latex output)
-  relpow ("(_\<^bsup>_\<^esup>)" [1000] 1000)
+primrec relpow :: "nat \<Rightarrow> ('a \<times> 'a) set \<Rightarrow> ('a \<times> 'a) set" where
+    "relpow 0 R = Id"
+  | "relpow (Suc n) R = R O (R ^^ n)"
 
-notation (HTML output)
-  relpow ("(_\<^bsup>_\<^esup>)" [1000] 1000)
+end
 
 lemma rel_pow_1 [simp]:
-  "R ^^ 1 = R"
+  fixes R :: "('a \<times> 'a) set"
+  shows "R ^^ 1 = R"
   by simp
 
 lemma rel_pow_0_I: 
@@ -741,7 +742,7 @@ lemma trancl_power:
   apply (rule iffI)
    apply (drule tranclD2)
    apply (clarsimp simp: rtrancl_is_UN_rel_pow)
-   apply (rule_tac x="Suc x" in exI)
+   apply (rule_tac x="Suc n" in exI)
    apply (clarsimp simp: rel_comp_def)
    apply fastsimp
   apply clarsimp

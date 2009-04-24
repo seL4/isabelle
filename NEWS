@@ -18,13 +18,9 @@ div_mult_mult2 have been generalized to class semiring_div, subsuming former
 theorems zdiv_zmult_zmult1, zdiv_zmult_zmult1_if, zdiv_zmult_zmult1 and zdiv_zmult_zmult2.
 div_mult_mult1 is now [simp] by default.  INCOMPATIBILITY.
 
-* Power operations on relations and functions are now dedicated constants:
-
-    relpow with infix syntax "^^"
-    funpow with infix syntax "^o"
-
-  Power operations on algebraic structures retains syntax "^" and is now defined
-  generic in class recpower; class power disappeared.  INCOMPATIBILITY.
+* Power operations on relations and functions are now one dedicate constant compow with
+infix syntax "^^".  Power operations on multiplicative monoids retains syntax "^"
+and is now defined generic in class recpower; class power disappeared.  INCOMPATIBILITY.
 
 * ML antiquotation @{code_datatype} inserts definition of a datatype generated
 by the code generator; see Predicate.thy for an example.

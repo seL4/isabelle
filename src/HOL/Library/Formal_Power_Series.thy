@@ -1007,13 +1007,13 @@ lemma XD_linear[simp]: "XD (fps_const c * a + fps_const d * b) = fps_const c * X
   by simp
 
 lemma XDN_linear:
-  "(XD o^ n) (fps_const c * a + fps_const d * b) = fps_const c * (XD o^ n) a + fps_const d * (XD o^ n) (b :: ('a::comm_ring_1) fps)"
+  "(XD ^^ n) (fps_const c * a + fps_const d * b) = fps_const c * (XD ^^ n) a + fps_const d * (XD ^^ n) (b :: ('a::comm_ring_1) fps)"
   by (induct n, simp_all)
 
 lemma fps_mult_X_deriv_shift: "X* fps_deriv a = Abs_fps (\<lambda>n. of_nat n* a$n)" by (simp add: fps_eq_iff)
 
 lemma fps_mult_XD_shift:
-  "(XD o^ k) (a:: ('a::{comm_ring_1, recpower, ring_char_0}) fps) = Abs_fps (\<lambda>n. (of_nat n ^ k) * a$n)"
+  "(XD ^^ k) (a:: ('a::{comm_ring_1, recpower, ring_char_0}) fps) = Abs_fps (\<lambda>n. (of_nat n ^ k) * a$n)"
   by (induct k arbitrary: a) (simp_all add: power_Suc XD_def fps_eq_iff ring_simps del: One_nat_def)
 
 subsubsection{* Rule 3 is trivial and is given by @{text fps_times_def}*}

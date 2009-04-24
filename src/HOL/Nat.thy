@@ -1166,31 +1166,58 @@ end
 
 subsection {* Natural operation of natural numbers on functions *}
 
-text {* @{text "f o^ n = f o ... o f"}, the n-fold composition of @{text f} *}
+text {*
+  We use the same logical constant for the power operations on
+  functions and relations, in order to share the same syntax.
+*}
+
+consts compow :: "nat \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> ('a \<Rightarrow> 'b)"
+
+abbreviation compower :: "('a \<Rightarrow> 'b) \<Rightarrow> nat \<Rightarrow> 'a \<Rightarrow> 'b" (infixr "^^" 80) where
+  "f ^^ n \<equiv> compow n f"
+
+notation (latex output)
+  compower ("(_\<^bsup>_\<^esup>)" [1000] 1000)
+
+notation (HTML output)
+  compower ("(_\<^bsup>_\<^esup>)" [1000] 1000)
+
+text {* @{text "f ^^ n = f o ... o f"}, the n-fold composition of @{text f} *}
+
+overloading
+  funpow == "compow :: nat \<Rightarrow> ('a \<Rightarrow> 'a) \<Rightarrow> ('a \<Rightarrow> 'a)"
+begin
 
 primrec funpow :: "nat \<Rightarrow> ('a \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> 'a" where
     "funpow 0 f = id"
   | "funpow (Suc n) f = f o funpow n f"
 
-abbreviation funpower :: "('a \<Rightarrow> 'a) \<Rightarrow> nat \<Rightarrow> 'a \<Rightarrow> 'a" (infixr "o^" 80) where
-  "f o^ n \<equiv> funpow n f"
+end
 
-notation (latex output)
-  funpower ("(_\<^bsup>_\<^esup>)" [1000] 1000)
+text {* for code generation *}
 
-notation (HTML output)
-  funpower ("(_\<^bsup>_\<^esup>)" [1000] 1000)
+definition funpow :: "nat \<Rightarrow> ('a \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> 'a" where
+  funpow_code_def [code post]: "funpow = compow"
+
+lemmas [code inline] = funpow_code_def [symmetric]
+
+lemma [code]:
+  "funpow 0 f = id"
+  "funpow (Suc n) f = f o funpow n f"
+  unfolding funpow_code_def by simp_all
+
+definition "foo = id ^^ (1 + 1)"
 
 lemma funpow_add:
-  "f o^ (m + n) = f o^ m \<circ> f o^ n"
+  "f ^^ (m + n) = f ^^ m \<circ> f ^^ n"
   by (induct m) simp_all
 
 lemma funpow_swap1:
-  "f ((f o^ n) x) = (f o^ n) (f x)"
+  "f ((f ^^ n) x) = (f ^^ n) (f x)"
 proof -
-  have "f ((f o^ n) x) = (f o^ (n + 1)) x" by simp
-  also have "\<dots>  = (f o^ n o f o^ 1) x" by (simp only: funpow_add)
-  also have "\<dots> = (f o^ n) (f x)" by simp
+  have "f ((f ^^ n) x) = (f ^^ (n + 1)) x" by simp
+  also have "\<dots>  = (f ^^ n o f ^^ 1) x" by (simp only: funpow_add)
+  also have "\<dots> = (f ^^ n) (f x)" by simp
   finally show ?thesis .
 qed
 

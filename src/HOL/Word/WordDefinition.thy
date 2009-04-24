@@ -203,10 +203,10 @@ definition shiftr1 :: "'a word \<Rightarrow> 'a word" where
   "shiftr1 w = word_of_int (bin_rest (uint w))"
 
 definition
-  shiftl_def: "w << n = (shiftl1 o^ n) w"
+  shiftl_def: "w << n = (shiftl1 ^^ n) w"
 
 definition
-  shiftr_def: "w >> n = (shiftr1 o^ n) w"
+  shiftr_def: "w >> n = (shiftr1 ^^ n) w"
 
 instance ..
 
@@ -241,7 +241,7 @@ constdefs
   "bshiftr1 b w == of_bl (b # butlast (to_bl w))"
 
   sshiftr :: "'a :: len word => nat => 'a word" (infixl ">>>" 55)
-  "w >>> n == (sshiftr1 o^ n) w"
+  "w >>> n == (sshiftr1 ^^ n) w"
 
   mask :: "nat => 'a::len word"
   "mask n == (1 << n) - 1"
@@ -264,7 +264,7 @@ constdefs
     case ys of [] => [] | x # xs => last ys # butlast ys"
 
   rotater :: "nat => 'a list => 'a list"
-  "rotater n == rotater1 o^ n"
+  "rotater n == rotater1 ^^ n"
 
   word_rotr :: "nat => 'a :: len0 word => 'a :: len0 word"
   "word_rotr n w == of_bl (rotater n (to_bl w))"

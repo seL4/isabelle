@@ -822,8 +822,8 @@ lemma bin_rest_trunc:
   by (induct n) auto
 
 lemma bin_rest_power_trunc [rule_format] :
-  "(bin_rest o^ k) (bintrunc n bin) = 
-    bintrunc (n - k) ((bin_rest o^ k) bin)"
+  "(bin_rest ^^ k) (bintrunc n bin) = 
+    bintrunc (n - k) ((bin_rest ^^ k) bin)"
   by (induct k) (auto simp: bin_rest_trunc)
 
 lemma bin_rest_trunc_i:
@@ -857,7 +857,7 @@ lemma sbintrunc_rest' :
   by (rule ext) auto
 
 lemma rco_lem:
-  "f o g o f = g o f ==> f o (g o f) o^ n = g o^ n o f"
+  "f o g o f = g o f ==> f o (g o f) ^^ n = g ^^ n o f"
   apply (rule ext)
   apply (induct_tac n)
    apply (simp_all (no_asm))
@@ -867,7 +867,7 @@ lemma rco_lem:
   apply simp
   done
 
-lemma rco_alt: "(f o g) o^ n o f = f o (g o f) o^ n"
+lemma rco_alt: "(f o g) ^^ n o f = f o (g o f) ^^ n"
   apply (rule ext)
   apply (induct n)
    apply (simp_all add: o_def)
@@ -892,7 +892,7 @@ primrec bin_cat :: "int \<Rightarrow> nat \<Rightarrow> int \<Rightarrow> int" w
 subsection {* Miscellaneous lemmas *}
 
 lemma funpow_minus_simp:
-  "0 < n \<Longrightarrow> f o^ n = f \<circ> f o^ (n - 1)"
+  "0 < n \<Longrightarrow> f ^^ n = f \<circ> f ^^ (n - 1)"
   by (cases n) simp_all
 
 lemmas funpow_pred_simp [simp] =
