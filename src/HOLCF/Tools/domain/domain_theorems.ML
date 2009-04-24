@@ -314,8 +314,8 @@ end;
 local
   fun mat_strict (con, _) =
     let
-      val goal = mk_trp (strict (%%:(mat_name con)));
-      val tacs = [rtac when_strict 1];
+      val goal = mk_trp (%%:(mat_name con) ` UU ` %:"rhs" === UU);
+      val tacs = [asm_simp_tac (HOLCF_ss addsimps [when_strict]) 1];
     in pg axs_mat_def goal (K tacs) end;
 
   val _ = trace " Proving mat_stricts...";
@@ -323,10 +323,10 @@ local
 
   fun one_mat c (con, args) =
     let
-      val lhs = %%:(mat_name c) ` con_app con args;
+      val lhs = %%:(mat_name c) ` con_app con args ` %:"rhs";
       val rhs =
         if con = c
-        then mk_return (mk_ctuple (map %# args))
+        then list_ccomb (%:"rhs", map %# args)
         else mk_fail;
       val goal = lift_defined %: (nonlazy args, mk_trp (lhs === rhs));
       val tacs = [asm_simp_tac (HOLCF_ss addsimps when_rews) 1];
@@ -374,30 +374,32 @@ in
 end;
 
 local
-  val rev_contrapos = @{thm rev_contrapos};
   fun con_strict (con, args) = 
     let
+      val rules = abs_strict :: @{thms con_strict_rules};
       fun one_strict vn =
         let
           fun f arg = if vname arg = vn then UU else %# arg;
           val goal = mk_trp (con_app2 con f args === UU);
-          val tacs = [asm_simp_tac (HOLCF_ss addsimps [abs_strict]) 1];
+          val tacs = [simp_tac (HOL_basic_ss addsimps rules) 1];
         in pg con_appls goal (K tacs) end;
     in map one_strict (nonlazy args) end;
 
   fun con_defin (con, args) =
     let
-      val concl = mk_trp (defined (con_app con args));
-      val goal = lift_defined %: (nonlazy args, concl);
-      fun tacs ctxt = [
-        rtac @{thm rev_contrapos} 1,
-        eres_inst_tac ctxt [(("f", 0), dis_name con)] cfun_arg_cong 1,
-        asm_simp_tac (HOLCF_ss addsimps dis_rews) 1];
-    in pg [] goal tacs end;
+      fun iff_disj (t, []) = HOLogic.mk_not t
+        | iff_disj (t, ts) = t === foldr1 HOLogic.mk_disj ts;
+      val lhs = con_app con args === UU;
+      val rhss = map (fn x => %:x === UU) (nonlazy args);
+      val goal = mk_trp (iff_disj (lhs, rhss));
+      val rule1 = iso_locale RS @{thm iso.abs_defined_iff};
+      val rules = rule1 :: @{thms con_defined_iff_rules};
+      val tacs = [simp_tac (HOL_ss addsimps rules) 1];
+    in pg con_appls goal (K tacs) end;
 in
   val _ = trace " Proving con_stricts...";
   val con_stricts = maps con_strict cons;
-  val _ = trace " Proving pat_defins...";
+  val _ = trace " Proving con_defins...";
   val con_defins = map con_defin cons;
   val con_rews = con_stricts @ con_defins;
 end;
@@ -488,7 +490,6 @@ in
 end;
 
 val sel_rews = sel_stricts @ sel_defins @ sel_apps;
-val rev_contrapos = @{thm rev_contrapos};
 
 val _ = trace " Proving dist_les...";
 val distincts_le =

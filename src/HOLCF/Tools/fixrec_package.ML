@@ -36,6 +36,8 @@ fun cfunT (T, U) = Type(@{type_name "->"}, [T, U]);
 
 infixr 6 ->>; val (op ->>) = cfunT;
 
+fun cfunsT (Ts, U) = foldr cfunT U Ts;
+
 fun dest_cfunT (Type(@{type_name "->"}, [T, U])) = (T, U)
   | dest_cfunT T = raise TYPE ("dest_cfunT", [T], []);
 
@@ -57,7 +59,9 @@ fun tupleT [] = @{typ "unit"}
   | tupleT [T] = T
   | tupleT (T :: Ts) = HOLogic.mk_prodT (T, tupleT Ts);
 
-fun matchT T = body_cfun T ->> maybeT (tupleT (binder_cfun T));
+fun matchT (T, U) =
+  body_cfun T ->> cfunsT (binder_cfun T, U) ->> U;
+
 
 (*************************************************************************)
 (***************************** building terms ****************************)
@@ -240,10 +244,10 @@ fun pre_build match_name pat rhs vs taken =
         fun result_type (Type(@{type_name "->"},[_,T])) (x::xs) = result_type T xs
           | result_type T _ = T;
         val v = Free(n, result_type T vs);
-        val m = Const(match_name c, matchT T);
-        val k = lambda_ctuple vs rhs;
+        val m = Const(match_name c, matchT (T, fastype_of rhs));
+        val k = big_lambdas vs rhs;
       in
-        (mk_bind (m`v, k), v, n::taken)
+        (m`v`k, v, n::taken)
       end
   | Free(n,_) => fixrec_err ("expected constructor, found free variable " ^ quote n)
   | _ => fixrec_err "pre_build: invalid pattern";
