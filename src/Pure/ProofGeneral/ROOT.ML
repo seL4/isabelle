@@ -17,7 +17,7 @@ use "pgip_isabelle.ML";
 (use
   |> setmp Proofterm.proofs 1
   |> setmp quick_and_dirty true
-  |> setmp auto_quickcheck true
+  |> setmp Quickcheck.auto true
   |> setmp auto_solve true) "preferences.ML";
 
 use "pgip_parser.ML";

@@ -15,19 +15,21 @@ end;
 structure Quickcheck : QUICKCHECK =
 struct
 
+open Quickcheck; (*c.f. Pure/Tools/ROOT.ML*)
+
 (* quickcheck configuration -- default parameters, test generators *)
 
 datatype test_params = Test_Params of
   { size: int, iterations: int, default_type: typ option };
 
-fun dest_test_params (Test_Params { size, iterations, default_type}) =
+fun dest_test_params (Test_Params { size, iterations, default_type }) =
   ((size, iterations), default_type);
 fun mk_test_params ((size, iterations), default_type) =
   Test_Params { size = size, iterations = iterations, default_type = default_type };
 fun map_test_params f (Test_Params { size, iterations, default_type}) =
   mk_test_params (f ((size, iterations), default_type));
-fun merge_test_params (Test_Params {size = size1, iterations = iterations1, default_type = default_type1},
-  Test_Params {size = size2, iterations = iterations2, default_type = default_type2}) =
+fun merge_test_params (Test_Params { size = size1, iterations = iterations1, default_type = default_type1 },
+  Test_Params { size = size2, iterations = iterations2, default_type = default_type2 }) =
   mk_test_params ((Int.max (size1, size2), Int.max (iterations1, iterations2)),
     case default_type1 of NONE => default_type2 | _ => default_type1);
 
@@ -137,9 +139,6 @@ fun pretty_counterex ctxt NONE = Pretty.str "No counterexamples found."
 
 
 (* automatic testing *)
-
-val auto = ref false;
-val auto_time_limit = ref 5000;
 
 fun test_goal_auto int state =
   let

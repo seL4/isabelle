@@ -11,6 +11,13 @@ use "xml_syntax.ML";
 use "find_theorems.ML";
 use "find_consts.ML";
 
-(*quickcheck/autosolve needed here because of pg preferences*)
-use "../../Tools/quickcheck.ML";
-use "../../Tools/auto_solve.ML";
+use "auto_solve.ML";
+
+(*quickcheck stub needed here because of pg preferences*)
+structure Quickcheck =
+struct
+
+val auto = ref false;
+val auto_time_limit = ref 5000;
+
+end;
