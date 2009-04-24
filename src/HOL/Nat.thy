@@ -1206,7 +1206,7 @@ lemma [code]:
   "funpow (Suc n) f = f o funpow n f"
   unfolding funpow_code_def by simp_all
 
-definition "foo = id ^^ (1 + 1)"
+hide (open) const funpow
 
 lemma funpow_add:
   "f ^^ (m + n) = f ^^ m \<circ> f ^^ n"
