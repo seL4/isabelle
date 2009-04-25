@@ -245,7 +245,7 @@ lemma tyvrs_vrs_prm_simp:
   apply (simp add: dj_perm_forget[OF dj_tyvrs_vrs])
   done
 
-lemma ty_vrs_fresh[fresh]:
+lemma ty_vrs_fresh:
   fixes x::"vrs"
   and   T::"ty"
   shows "x \<sharp> T"
@@ -422,7 +422,7 @@ lemma subst_eqvt'[eqvt]:
   by (nominal_induct T avoiding: X T' rule: ty.strong_induct)
      (perm_simp add: fresh_left)+
 
-lemma type_subst_fresh[fresh]:
+lemma type_subst_fresh:
   fixes X::"tyvrs"
   assumes "X \<sharp> T" and "X \<sharp> P"
   shows   "X \<sharp> T[Y \<mapsto> P]\<^sub>\<tau>"
@@ -430,7 +430,7 @@ using assms
 by (nominal_induct T avoiding: X Y P rule:ty.strong_induct)
    (auto simp add: abs_fresh)
 
-lemma fresh_type_subst_fresh[fresh]:
+lemma fresh_type_subst_fresh:
     assumes "X\<sharp>T'"
     shows "X\<sharp>T[X \<mapsto> T']\<^sub>\<tau>"
 using assms 
@@ -458,18 +458,19 @@ where
 | "(VarB  X U)[Y \<mapsto> T]\<^sub>b =  VarB X (U[Y \<mapsto> T]\<^sub>\<tau>)"
 by auto
 
-lemma binding_subst_fresh[fresh]:
+lemma binding_subst_fresh:
   fixes X::"tyvrs"
   assumes "X \<sharp> a"
   and     "X \<sharp> P"
   shows "X \<sharp> a[Y \<mapsto> P]\<^sub>b"
 using assms
-by (nominal_induct a rule:binding.strong_induct)
-   (auto simp add: freshs)
+by (nominal_induct a rule: binding.strong_induct)
+   (auto simp add: type_subst_fresh)
 
-lemma binding_subst_identity: "X \<sharp> B \<Longrightarrow> B[X \<mapsto> U]\<^sub>b = B"
-  by (induct B rule: binding.induct)
-    (simp_all add: fresh_atm type_subst_identity)
+lemma binding_subst_identity: 
+  shows "X \<sharp> B \<Longrightarrow> B[X \<mapsto> U]\<^sub>b = B"
+by (induct B rule: binding.induct)
+   (simp_all add: fresh_atm type_subst_identity)
 
 consts 
   subst_tyc :: "env \<Rightarrow> tyvrs \<Rightarrow> ty \<Rightarrow> env" ("_[_ \<mapsto> _]\<^sub>e" [100,100,100] 100)
@@ -478,14 +479,14 @@ primrec
 "([])[Y \<mapsto> T]\<^sub>e= []"
 "(B#\<Gamma>)[Y \<mapsto> T]\<^sub>e = (B[Y \<mapsto> T]\<^sub>b)#(\<Gamma>[Y \<mapsto> T]\<^sub>e)"
 
-lemma ctxt_subst_fresh'[fresh]:
+lemma ctxt_subst_fresh':
   fixes X::"tyvrs"
   assumes "X \<sharp> \<Gamma>"
   and     "X \<sharp> P"
   shows   "X \<sharp> \<Gamma>[Y \<mapsto> P]\<^sub>e"
 using assms
 by (induct \<Gamma>)
-   (auto simp add: fresh_list_cons freshs)
+   (auto simp add: fresh_list_cons binding_subst_fresh)
 
 lemma ctxt_subst_mem_TVarB: "TVarB X T \<in> set \<Gamma> \<Longrightarrow> TVarB X (T[Y \<mapsto> U]\<^sub>\<tau>) \<in> set (\<Gamma>[Y \<mapsto> U]\<^sub>e)"
   by (induct \<Gamma>) auto
@@ -1188,8 +1189,8 @@ lemma typing_ok:
 using assms by (induct, auto)
 
 nominal_inductive typing
-  by (auto dest!: typing_ok intro: closed_in_fresh fresh_domain
-    simp: abs_fresh fresh_prod fresh_atm freshs valid_ty_domain_fresh fresh_trm_domain)
+by (auto dest!: typing_ok intro: closed_in_fresh fresh_domain type_subst_fresh
+    simp: abs_fresh fresh_type_subst_fresh ty_vrs_fresh valid_ty_domain_fresh fresh_trm_domain)
 
 lemma ok_imp_VarB_closed_in:
   assumes ok: "\<turnstile> \<Gamma> ok"
