@@ -204,6 +204,6 @@ fun add cname (pref: preference) (tab: T) = tab |> map
     else
       if exists (fn {name, ...} => name = #name pref) prefs
       then (warning ("Preference already exists: " ^ quote (#name pref)); (cat, prefs))
-      else (cat, pref :: prefs));
+      else (cat, prefs @ [pref]));
 
 end;
