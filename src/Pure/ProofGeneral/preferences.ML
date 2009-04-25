@@ -6,6 +6,10 @@ User preferences for Isabelle which are maintained by the interface.
 
 signature PREFERENCES =
 sig
+  val category_display: string
+  val category_advanced_display: string
+  val category_tracing: string
+  val category_proof: string
   type preference =
    {name: string,
     descr: string,
@@ -28,6 +32,14 @@ end
 
 structure Preferences: PREFERENCES =
 struct
+
+(* categories *)
+
+val category_display = "Display";
+val category_advanced_display = "Advanced Display";
+val category_tracing = "Tracing";
+val category_proof = "Proof"
+
 
 (* preferences and preference tables *)
 
@@ -66,11 +78,11 @@ val bool_pref =
 
 (* preferences of Pure *)
 
-val proof_pref =
+val proof_pref = setmp Proofterm.proofs 1 (fn () =>
   let
     fun get () = PgipTypes.bool_to_pgstring (! Proofterm.proofs >= 2);
     fun set s = Proofterm.proofs := (if PgipTypes.read_pgipbool s then 2 else 1);
-  in mkpref get set PgipTypes.Pgipbool "full-proofs" "Record full proof objects internally" end;
+  in mkpref get set PgipTypes.Pgipbool "full-proofs" "Record full proof objects internally" end) ();
 
 val thm_depsN = "thm_deps";
 val thm_deps_pref =
@@ -145,24 +157,13 @@ val tracing_preferences =
   bool_pref Toplevel.debug
     "debugging"
     "Whether to enable debugging.",
-  bool_pref Quickcheck.auto
-    "auto-quickcheck"
-    "Whether to enable quickcheck automatically.",
-  nat_pref Quickcheck.auto_time_limit
-    "auto-quickcheck-time-limit"
-    "Time limit for automatic quickcheck (in milliseconds).",
-  bool_pref AutoSolve.auto
-    "auto-solve"
-    "Try to solve newly declared lemmas with existing theorems.",
-  nat_pref AutoSolve.auto_time_limit
-    "auto-solve-time-limit"
-    "Time limit for seeking automatic solutions (in milliseconds).",
   thm_deps_pref];
 
 val proof_preferences =
- [bool_pref quick_and_dirty
-    "quick-and-dirty"
-    "Take a few short cuts",
+ [setmp quick_and_dirty true (fn () =>
+    bool_pref quick_and_dirty
+      "quick-and-dirty"
+      "Take a few short cuts") (),
   bool_pref Toplevel.skip_proofs
     "skip-proofs"
     "Skip over proofs (interactive-only)",
@@ -175,10 +176,10 @@ val proof_preferences =
     "Check proofs in parallel"];
 
 val pure_preferences =
- [("Display", display_preferences),
-  ("Advanced Display", advanced_display_preferences),
-  ("Tracing", tracing_preferences),
-  ("Proof", proof_preferences)];
+ [(category_display, display_preferences),
+  (category_advanced_display, advanced_display_preferences),
+  (category_tracing, tracing_preferences),
+  (category_proof, proof_preferences)];
 
 
 (* table of categories and preferences; names must be unique *)

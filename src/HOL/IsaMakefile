@@ -89,6 +89,7 @@ BASE_DEPENDENCIES = $(OUT)/Pure \
   $(SRC)/Tools/IsaPlanner/rw_tools.ML \
   $(SRC)/Tools/IsaPlanner/zipper.ML \
   $(SRC)/Tools/atomize_elim.ML \
+  $(SRC)/Tools/auto_solve.ML \
   $(SRC)/Tools/code/code_haskell.ML \
   $(SRC)/Tools/code/code_ml.ML \
   $(SRC)/Tools/code/code_name.ML \
