@@ -23,20 +23,93 @@ consts
   perm :: "'x prm \<Rightarrow> 'a \<Rightarrow> 'a"     (infixr "\<bullet>" 80)
   swap :: "('x \<times> 'x) \<Rightarrow> 'x \<Rightarrow> 'x"
 
+(* a "private" copy of the option type used in the abstraction function *)
+datatype 'a noption = nSome 'a | nNone
+
+(* a "private" copy of the product type used in the nominal induct method *)
+datatype ('a,'b) nprod = nPair 'a 'b
+
 (* an auxiliary constant for the decision procedure involving *) 
-(* permutations (to avoid loops when using perm-composition)  *)
+(* permutations (to avoid loops when using perm-compositions)  *)
 constdefs
   "perm_aux pi x \<equiv> pi\<bullet>x"
 
-(* permutation on functions *)
-defs (unchecked overloaded)
-  perm_fun_def: "pi\<bullet>(f::'a\<Rightarrow>'b) \<equiv> (\<lambda>x. pi\<bullet>f((rev pi)\<bullet>x))"
+(* permutation operations *)
+overloading
+  perm_fun    \<equiv> "perm :: 'x prm \<Rightarrow> ('a\<Rightarrow>'b) \<Rightarrow> ('a\<Rightarrow>'b)"   (unchecked)
+  perm_bool   \<equiv> "perm :: 'x prm \<Rightarrow> bool \<Rightarrow> bool"           (unchecked)
+  perm_unit   \<equiv> "perm :: 'x prm \<Rightarrow> unit \<Rightarrow> unit"           (unchecked)
+  perm_prod   \<equiv> "perm :: 'x prm \<Rightarrow> ('a\<times>'b) \<Rightarrow> ('a\<times>'b)"     (unchecked)
+  perm_list   \<equiv> "perm :: 'x prm \<Rightarrow> 'a list \<Rightarrow> 'a list"     (unchecked)
+  perm_option \<equiv> "perm :: 'x prm \<Rightarrow> 'a option \<Rightarrow> 'a option" (unchecked)
+  perm_char   \<equiv> "perm :: 'x prm \<Rightarrow> char \<Rightarrow> char"           (unchecked)
+  perm_nat    \<equiv> "perm :: 'x prm \<Rightarrow> nat \<Rightarrow> nat"             (unchecked)
+  perm_int    \<equiv> "perm :: 'x prm \<Rightarrow> int \<Rightarrow> int"             (unchecked)
 
-(* permutation on bools *)
-primrec (unchecked perm_bool)
-  true_eqvt:  "pi\<bullet>True  = True"
-  false_eqvt: "pi\<bullet>False = False"
+  perm_noption \<equiv> "perm :: 'x prm \<Rightarrow> 'a noption \<Rightarrow> 'a noption"   (unchecked)
+  perm_nprod   \<equiv> "perm :: 'x prm \<Rightarrow> ('a, 'b) nprod \<Rightarrow> ('a, 'b) nprod" (unchecked)
+begin
 
+definition
+  perm_fun_def: "perm_fun pi (f::'a\<Rightarrow>'b) \<equiv> (\<lambda>x. pi\<bullet>f((rev pi)\<bullet>x))"
+
+fun
+  perm_bool :: "'x prm \<Rightarrow> bool \<Rightarrow> bool"
+where
+  true_eqvt:  "perm_bool pi True  = True"
+| false_eqvt: "perm_bool pi False = False"
+
+fun
+  perm_unit :: "'x prm \<Rightarrow> unit \<Rightarrow> unit" 
+where 
+  "perm_unit pi () = ()"
+  
+fun
+  perm_prod :: "'x prm \<Rightarrow> ('a\<times>'b) \<Rightarrow> ('a\<times>'b)"
+where
+  "perm_prod pi (x,y) = (pi\<bullet>x,pi\<bullet>y)"
+
+fun
+  perm_list :: "'x prm \<Rightarrow> 'a list \<Rightarrow> 'a list"
+where
+  nil_eqvt:  "perm_list pi []     = []"
+| cons_eqvt: "perm_list pi (x#xs) = (pi\<bullet>x)#(pi\<bullet>xs)"
+
+fun
+  perm_option :: "'x prm \<Rightarrow> 'a option \<Rightarrow> 'a option"
+where
+  some_eqvt:  "perm_option pi (Some x) = Some (pi\<bullet>x)"
+| none_eqvt:  "perm_option pi None     = None"
+
+definition
+  perm_char :: "'x prm \<Rightarrow> char \<Rightarrow> char"
+where
+  perm_char_def: "perm_char pi c \<equiv> c"
+
+definition
+  perm_nat :: "'x prm \<Rightarrow> nat \<Rightarrow> nat"
+where
+  perm_nat_def: "perm_nat pi i \<equiv> i"
+
+definition
+  perm_int :: "'x prm \<Rightarrow> int \<Rightarrow> int"
+where
+  perm_int_def: "perm_int pi i \<equiv> i"
+
+fun
+  perm_noption :: "'x prm \<Rightarrow> 'a noption \<Rightarrow> 'a noption"
+where
+  nsome_eqvt:  "perm_noption pi (nSome x) = nSome (pi\<bullet>x)"
+| nnone_eqvt:  "perm_noption pi nNone     = nNone"
+
+fun
+  perm_nprod :: "'x prm \<Rightarrow> ('a, 'b) nprod \<Rightarrow> ('a, 'b) nprod"
+where
+  "perm_nprod pi (nPair x y) = nPair (pi\<bullet>x) (pi\<bullet>y)"
+end
+
+
+(* permutations on booleans *)
 lemma perm_bool:
   shows "pi\<bullet>(b::bool) = b"
   by (cases b) auto
@@ -54,8 +127,7 @@ lemma perm_boolE:
 lemma if_eqvt:
   fixes pi::"'a prm"
   shows "pi\<bullet>(if b then c1 else c2) = (if (pi\<bullet>b) then (pi\<bullet>c1) else (pi\<bullet>c2))"
-apply(simp add: perm_fun_def)
-done
+  by (simp add: perm_fun_def)
 
 lemma imp_eqvt:
   shows "pi\<bullet>(A\<longrightarrow>B) = ((pi\<bullet>A)\<longrightarrow>(pi\<bullet>B))"
@@ -82,13 +154,7 @@ lemma union_eqvt:
   shows "(pi\<bullet>(X\<union>Y)) = (pi\<bullet>X) \<union> (pi\<bullet>Y)"
   by (simp add: perm_fun_def perm_bool Un_iff [unfolded mem_def] expand_fun_eq)
 
-(* permutation on units and products *)
-primrec (unchecked perm_unit)
-  "pi\<bullet>() = ()"
-  
-primrec (unchecked perm_prod)
-  "pi\<bullet>(x,y) = (pi\<bullet>x,pi\<bullet>y)"
-
+(* permutations on products *)
 lemma fst_eqvt:
   "pi\<bullet>(fst x) = fst (pi\<bullet>x)"
  by (cases x) simp
@@ -98,10 +164,6 @@ lemma snd_eqvt:
  by (cases x) simp
 
 (* permutation on lists *)
-primrec (unchecked perm_list)
-  nil_eqvt:  "pi\<bullet>[]     = []"
-  cons_eqvt: "pi\<bullet>(x#xs) = (pi\<bullet>x)#(pi\<bullet>xs)"
-
 lemma append_eqvt:
   fixes pi :: "'x prm"
   and   l1 :: "'a list"
@@ -115,41 +177,12 @@ lemma rev_eqvt:
   shows "pi\<bullet>(rev l) = rev (pi\<bullet>l)"
   by (induct l) (simp_all add: append_eqvt)
 
-(* permutation on options *)
-
-primrec (unchecked perm_option)
-  some_eqvt:  "pi\<bullet>Some(x) = Some(pi\<bullet>x)"
-  none_eqvt:  "pi\<bullet>None    = None"
-
-(* a "private" copy of the option type used in the abstraction function *)
-datatype 'a noption = nSome 'a | nNone
-
-primrec (unchecked perm_noption)
-  nSome_eqvt: "pi\<bullet>nSome(x) = nSome(pi\<bullet>x)"
-  nNone_eqvt: "pi\<bullet>nNone    = nNone"
-
-(* a "private" copy of the product type used in the nominal induct method *)
-datatype ('a,'b) nprod = nPair 'a 'b
-
-primrec (unchecked perm_nprod)
-  perm_nProd_def: "pi\<bullet>(nPair x1 x2)  = nPair (pi\<bullet>x1) (pi\<bullet>x2)"
-
-(* permutation on characters (used in strings) *)
-defs (unchecked overloaded)
-  perm_char_def: "pi\<bullet>(c::char) \<equiv> c"
-
+(* permutation on characters and strings *)
 lemma perm_string:
   fixes s::"string"
   shows "pi\<bullet>s = s"
-by (induct s)(auto simp add: perm_char_def)
+  by (induct s)(auto simp add: perm_char_def)
 
-(* permutation on ints *)
-defs (unchecked overloaded)
-  perm_int_def:    "pi\<bullet>(i::int) \<equiv> i"
-
-(* permutation on nats *)
-defs (unchecked overloaded)
-  perm_nat_def:    "pi\<bullet>(i::nat) \<equiv> i"
 
 section {* permutation equality *}
 (*==============================*)
@@ -221,46 +254,38 @@ lemma supp_list_rev:
 
 lemma supp_bool:
   fixes x  :: "bool"
-  shows "supp (x) = {}"
-  apply(case_tac "x")
-  apply(simp_all add: supp_def)
-done
+  shows "supp x = {}"
+  by (cases "x") (simp_all add: supp_def)
 
 lemma supp_some:
   fixes x :: "'a"
   shows "supp (Some x) = (supp x)"
-  apply(simp add: supp_def)
-  done
+  by (simp add: supp_def)
 
 lemma supp_none:
   fixes x :: "'a"
   shows "supp (None) = {}"
-  apply(simp add: supp_def)
-  done
+  by (simp add: supp_def)
 
 lemma supp_int:
   fixes i::"int"
   shows "supp (i) = {}"
-  apply(simp add: supp_def perm_int_def)
-  done
+  by (simp add: supp_def perm_int_def)
 
 lemma supp_nat:
   fixes n::"nat"
-  shows "supp (n) = {}"
-  apply(simp add: supp_def perm_nat_def)
-  done
+  shows "(supp n) = {}"
+  by (simp add: supp_def perm_nat_def)
 
 lemma supp_char:
   fixes c::"char"
-  shows "supp (c) = {}"
-  apply(simp add: supp_def perm_char_def)
-  done
+  shows "(supp c) = {}"
+  by (simp add: supp_def perm_char_def)
   
 lemma supp_string:
   fixes s::"string"
-  shows "supp (s) = {}"
-apply(simp add: supp_def perm_string)
-done
+  shows "(supp s) = {}"
+  by (simp add: supp_def perm_string)
 
 lemma fresh_set_empty:
   shows "a\<sharp>{}"
@@ -344,7 +369,6 @@ lemma fresh_bool:
   by (simp add: fresh_def supp_bool)
 
 text {* Normalization of freshness results; cf.\ @{text nominal_induct} *}
-
 lemma fresh_unit_elim: 
   shows "(a\<sharp>() \<Longrightarrow> PROP C) \<equiv> PROP C"
   by (simp add: fresh_def supp_unit)
@@ -393,7 +417,7 @@ by (auto simp add: fresh_star_def fresh_prod)
 lemma fresh_star_prod_list:
   fixes xs::"'a list"
   shows "xs\<sharp>*(a,b) = (xs\<sharp>*a \<and> xs\<sharp>*b)"
-by (auto simp add: fresh_star_def fresh_prod)
+  by (auto simp add: fresh_star_def fresh_prod)
 
 lemmas fresh_star_prod = fresh_star_prod_list fresh_star_prod_set
 
