@@ -8,6 +8,7 @@ theory HOL
 imports Pure "~~/src/Tools/Code_Generator"
 uses
   ("Tools/hologic.ML")
+  "~~/src/Tools/auto_solve.ML"
   "~~/src/Tools/IsaPlanner/zipper.ML"
   "~~/src/Tools/IsaPlanner/isand.ML"
   "~~/src/Tools/IsaPlanner/rw_tools.ML"
@@ -1921,7 +1922,7 @@ setup {*
 quickcheck_params [size = 5, iterations = 50]
 
 
-subsection {* Nitpick hooks *}
+subsection {* Nitpick setup *}
 
 text {* This will be relocated once Nitpick is moved to HOL. *}
 
@@ -1947,10 +1948,14 @@ structure Nitpick_Ind_Intro_Thms = NamedThmsFun
   val description = "introduction rules for (co)inductive predicates as needed by Nitpick"
 )
 *}
-setup {* Nitpick_Const_Def_Thms.setup
-         #> Nitpick_Const_Simp_Thms.setup
-         #> Nitpick_Const_Psimp_Thms.setup
-         #> Nitpick_Ind_Intro_Thms.setup *}
+
+setup {*
+  Nitpick_Const_Def_Thms.setup
+  #> Nitpick_Const_Simp_Thms.setup
+  #> Nitpick_Const_Psimp_Thms.setup
+  #> Nitpick_Ind_Intro_Thms.setup
+*}
+
 
 subsection {* Legacy tactics and ML bindings *}
 
