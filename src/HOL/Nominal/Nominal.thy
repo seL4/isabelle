@@ -18,7 +18,7 @@ section {* Permutations *}
 types 
   'x prm = "('x \<times> 'x) list"
 
-(* polymorphic operations for permutation and swapping *)
+(* polymorphic constants for permutation and swapping *)
 consts 
   perm :: "'x prm \<Rightarrow> 'a \<Rightarrow> 'a"     (infixr "\<bullet>" 80)
   swap :: "('x \<times> 'x) \<Rightarrow> 'x \<Rightarrow> 'x"
@@ -34,7 +34,7 @@ datatype ('a,'b) nprod = nPair 'a 'b
 constdefs
   "perm_aux pi x \<equiv> pi\<bullet>x"
 
-(* permutation operations *)
+(* overloaded permutation operations *)
 overloading
   perm_fun    \<equiv> "perm :: 'x prm \<Rightarrow> ('a\<Rightarrow>'b) \<Rightarrow> ('a\<Rightarrow>'b)"   (unchecked)
   perm_bool   \<equiv> "perm :: 'x prm \<Rightarrow> bool \<Rightarrow> bool"           (unchecked)
@@ -203,11 +203,12 @@ constdefs
    supports :: "'x set \<Rightarrow> 'a \<Rightarrow> bool" (infixl "supports" 80)
    "S supports x \<equiv> \<forall>a b. (a\<notin>S \<and> b\<notin>S \<longrightarrow> [(a,b)]\<bullet>x=x)"
 
+(* lemmas about supp *)
 lemma supp_fresh_iff: 
   fixes x :: "'a"
   shows "(supp x) = {a::'x. \<not>a\<sharp>x}"
-apply(simp add: fresh_def)
-done
+  by (simp add: fresh_def)
+
 
 lemma supp_unit:
   shows "supp () = {}"
@@ -238,14 +239,13 @@ lemma supp_list_cons:
   fixes x  :: "'a"
   and   xs :: "'a list"
   shows "supp (x#xs) = (supp x)\<union>(supp xs)"
-apply(auto simp add: supp_def Collect_imp_eq Collect_neg_eq)
-done
+  by (auto simp add: supp_def Collect_imp_eq Collect_neg_eq)
 
 lemma supp_list_append:
   fixes xs :: "'a list"
   and   ys :: "'a list"
   shows "supp (xs@ys) = (supp xs)\<union>(supp ys)"
-  by (induct xs, auto simp add: supp_list_nil supp_list_cons)
+  by (induct xs) (auto simp add: supp_list_nil supp_list_cons)
 
 lemma supp_list_rev:
   fixes xs :: "'a list"
@@ -287,6 +287,7 @@ lemma supp_string:
   shows "(supp s) = {}"
   by (simp add: supp_def perm_string)
 
+(* lemmas about freshness *)
 lemma fresh_set_empty:
   shows "a\<sharp>{}"
   by (simp add: fresh_def supp_set_empty)
@@ -395,63 +396,6 @@ declaration {* fn _ =>
   Simplifier.map_ss (fn ss => ss setmksimps (mksimps mksimps_pairs))
 *}
 
-section {* generalisation of freshness to lists and sets of atoms *}
-(*================================================================*)
- 
-consts
-  fresh_star :: "'b \<Rightarrow> 'a \<Rightarrow> bool" ("_ \<sharp>* _" [100,100] 100)
-
-defs (overloaded)
-  fresh_star_set: "xs\<sharp>*c \<equiv> \<forall>x\<in>xs. x\<sharp>c"
-
-defs (overloaded)
-  fresh_star_list: "xs\<sharp>*c \<equiv> \<forall>x\<in>set xs. x\<sharp>c"
-
-lemmas fresh_star_def = fresh_star_list fresh_star_set
-
-lemma fresh_star_prod_set:
-  fixes xs::"'a set"
-  shows "xs\<sharp>*(a,b) = (xs\<sharp>*a \<and> xs\<sharp>*b)"
-by (auto simp add: fresh_star_def fresh_prod)
-
-lemma fresh_star_prod_list:
-  fixes xs::"'a list"
-  shows "xs\<sharp>*(a,b) = (xs\<sharp>*a \<and> xs\<sharp>*b)"
-  by (auto simp add: fresh_star_def fresh_prod)
-
-lemmas fresh_star_prod = fresh_star_prod_list fresh_star_prod_set
-
-lemma fresh_star_set_eq: "set xs \<sharp>* c = xs \<sharp>* c"
-  by (simp add: fresh_star_def)
-
-lemma fresh_star_Un_elim:
-  "((S \<union> T) \<sharp>* c \<Longrightarrow> PROP C) \<equiv> (S \<sharp>* c \<Longrightarrow> T \<sharp>* c \<Longrightarrow> PROP C)"
-  apply rule
-  apply (simp_all add: fresh_star_def)
-  apply (erule meta_mp)
-  apply blast
-  done
-
-lemma fresh_star_insert_elim:
-  "(insert x S \<sharp>* c \<Longrightarrow> PROP C) \<equiv> (x \<sharp> c \<Longrightarrow> S \<sharp>* c \<Longrightarrow> PROP C)"
-  by rule (simp_all add: fresh_star_def)
-
-lemma fresh_star_empty_elim:
-  "({} \<sharp>* c \<Longrightarrow> PROP C) \<equiv> PROP C"
-  by (simp add: fresh_star_def)
-
-text {* Normalization of freshness results; cf.\ @{text nominal_induct} *}
-
-lemma fresh_star_unit_elim: 
-  shows "((a::'a set)\<sharp>*() \<Longrightarrow> PROP C) \<equiv> PROP C"
-  and "((b::'a list)\<sharp>*() \<Longrightarrow> PROP C) \<equiv> PROP C"
-  by (simp_all add: fresh_star_def fresh_def supp_unit)
-
-lemma fresh_star_prod_elim: 
-  shows "((a::'a set)\<sharp>*(x,y) \<Longrightarrow> PROP C) \<equiv> (a\<sharp>*x \<Longrightarrow> a\<sharp>*y \<Longrightarrow> PROP C)"
-  and "((b::'a list)\<sharp>*(x,y) \<Longrightarrow> PROP C) \<equiv> (b\<sharp>*x \<Longrightarrow> b\<sharp>*y \<Longrightarrow> PROP C)"
-  by (rule, simp_all add: fresh_star_prod)+
-
 section {* Abstract Properties for Permutations and  Atoms *}
 (*=========================================================*)
 
@@ -511,7 +455,7 @@ lemma at3:
   shows "swap (a,b) c = (if a=c then b else (if b=c then a else c))"
   using a by (simp only: at_def)
 
-(* rules to calculate simple premutations *)
+(* rules to calculate simple permutations *)
 lemmas at_calc = at2 at1 at3
 
 lemma at_swap_simps:
@@ -706,7 +650,6 @@ lemma at_prm_rev_eq1:
   shows "pi1 \<triangleq> pi2 \<Longrightarrow> (rev pi1) \<triangleq> (rev pi2)"
   by (simp add: at_prm_rev_eq[OF at])
 
-
 lemma at_ds1:
   fixes a  :: "'x"
   assumes at: "at TYPE('x)"
@@ -862,15 +805,18 @@ lemma at_exists_fresh:
   by (auto intro: ex_in_inf[OF at, OF fs] simp add: fresh_def)
 
 lemma at_finite_select: 
-  shows "at (TYPE('a)) \<Longrightarrow> finite (S::'a set) \<Longrightarrow> \<exists>x. x \<notin> S"
-  apply (drule Diff_infinite_finite)
-  apply (simp add: at_def)
-  apply blast
-  apply (subgoal_tac "UNIV - S \<noteq> {}")
-  apply (simp only: ex_in_conv [symmetric])
-  apply blast
-  apply (rule notI)
-  apply simp
+  fixes S::"'a set"
+  assumes a: "at TYPE('a)"
+  and     b: "finite S" 
+  shows "\<exists>x. x \<notin> S" 
+  using a b
+  apply(drule_tac S="UNIV::'a set" in Diff_infinite_finite)
+  apply(simp add: at_def)
+  apply(subgoal_tac "UNIV - S \<noteq> {}")
+  apply(simp only: ex_in_conv [symmetric])
+  apply(blast)
+  apply(rule notI)
+  apply(simp)
   done
 
 lemma at_different:
@@ -1246,8 +1192,8 @@ lemma pt_eq_eqvt:
   assumes pt: "pt TYPE('a) TYPE('x)"
   and     at: "at TYPE('x)"
   shows "pi\<bullet>(x=y) = (pi\<bullet>x = pi\<bullet>y)"
-using assms
-by (auto simp add: pt_bij perm_bool)
+  using pt at
+  by (auto simp add: pt_bij perm_bool)
 
 lemma pt_bij3:
   fixes pi :: "'x prm"
@@ -1255,7 +1201,7 @@ lemma pt_bij3:
   and   y  :: "'a"
   assumes a:  "x=y"
   shows "(pi\<bullet>x = pi\<bullet>y)"
-using a by simp 
+  using a by simp 
 
 lemma pt_bij4:
   fixes pi :: "'x prm"
@@ -1265,7 +1211,7 @@ lemma pt_bij4:
   and     at: "at TYPE('x)"
   and     a:  "pi\<bullet>x = pi\<bullet>y"
   shows "x = y"
-using a by (simp add: pt_bij[OF pt, OF at])
+  using a by (simp add: pt_bij[OF pt, OF at])
 
 lemma pt_swap_bij:
   fixes a  :: "'x"
@@ -1598,35 +1544,6 @@ apply(simp add: pt_fresh_left_ineq[OF pta, OF ptb, OF at, OF cp])
 apply(simp add: pt_rev_pi[OF ptb, OF at])
 done
 
-lemma pt_fresh_star_bij_ineq:
-  fixes  pi :: "'x prm"
-  and     x :: "'a"
-  and     a :: "'y set"
-  and     b :: "'y list"
-  assumes pta: "pt TYPE('a) TYPE('x)"
-  and     ptb: "pt TYPE('y) TYPE('x)"
-  and     at:  "at TYPE('x)"
-  and     cp:  "cp TYPE('a) TYPE('x) TYPE('y)"
-  shows "(pi\<bullet>a)\<sharp>*(pi\<bullet>x) = a\<sharp>*x"
-  and   "(pi\<bullet>b)\<sharp>*(pi\<bullet>x) = b\<sharp>*x"
-apply(unfold fresh_star_def)
-apply(auto)
-apply(drule_tac x="pi\<bullet>xa" in bspec)
-apply(rule pt_set_bij2[OF ptb, OF at])
-apply(assumption)
-apply(simp add: fresh_star_def pt_fresh_bij_ineq[OF pta, OF ptb, OF at, OF cp])
-apply(drule_tac x="(rev pi)\<bullet>xa" in bspec)
-apply(simp add: pt_set_bij1[OF ptb, OF at])
-apply(simp add: pt_fresh_left_ineq[OF pta, OF ptb, OF at, OF cp])
-apply(drule_tac x="pi\<bullet>xa" in bspec)
-apply(simp add: pt_set_bij1[OF ptb, OF at])
-apply(simp add: pt_set_eqvt [OF ptb at] pt_rev_pi[OF pt_list_inst[OF ptb], OF at])
-apply(simp add: pt_fresh_bij_ineq[OF pta, OF ptb, OF at, OF cp])
-apply(drule_tac x="(rev pi)\<bullet>xa" in bspec)
-apply(simp add: pt_set_bij1[OF ptb, OF at] pt_set_eqvt [OF ptb at])
-apply(simp add: pt_fresh_left_ineq[OF pta, OF ptb, OF at, OF cp])
-done
-
 lemma pt_fresh_left:  
   fixes  pi :: "'x prm"
   and     x :: "'a"
@@ -1674,56 +1591,6 @@ apply(rule cp_pt_inst)
 apply(rule pt)
 apply(rule at)
 done
-
-lemma pt_fresh_star_bij:
-  fixes  pi :: "'x prm"
-  and     x :: "'a"
-  and     a :: "'x set"
-  and     b :: "'x list"
-  assumes pt: "pt TYPE('a) TYPE('x)"
-  and     at: "at TYPE('x)"
-  shows "(pi\<bullet>a)\<sharp>*(pi\<bullet>x) = a\<sharp>*x"
-  and   "(pi\<bullet>b)\<sharp>*(pi\<bullet>x) = b\<sharp>*x"
-apply(rule pt_fresh_star_bij_ineq(1))
-apply(rule pt)
-apply(rule at_pt_inst)
-apply(rule at)+
-apply(rule cp_pt_inst)
-apply(rule pt)
-apply(rule at)
-apply(rule pt_fresh_star_bij_ineq(2))
-apply(rule pt)
-apply(rule at_pt_inst)
-apply(rule at)+
-apply(rule cp_pt_inst)
-apply(rule pt)
-apply(rule at)
-done
-
-lemma pt_fresh_star_eqvt:
-  fixes  pi :: "'x prm"
-  and     x :: "'a"
-  and     a :: "'x set"
-  and     b :: "'x list"
-  assumes pt: "pt TYPE('a) TYPE('x)"
-  and     at: "at TYPE('x)"
-  shows "pi\<bullet>(a\<sharp>*x) = (pi\<bullet>a)\<sharp>*(pi\<bullet>x)"
-  and   "pi\<bullet>(b\<sharp>*x) = (pi\<bullet>b)\<sharp>*(pi\<bullet>x)"
-  by (simp_all add: perm_bool pt_fresh_star_bij[OF pt, OF at])
-
-lemma pt_fresh_star_eqvt_ineq:
-  fixes pi::"'x prm"
-  and   a::"'y set"
-  and   b::"'y list"
-  and   x::"'a"
-  assumes pta: "pt TYPE('a) TYPE('x)"
-  and     ptb: "pt TYPE('y) TYPE('x)"
-  and     at:  "at TYPE('x)"
-  and     cp:  "cp TYPE('a) TYPE('x) TYPE('y)"
-  and     dj:  "disjoint TYPE('y) TYPE('x)"
-  shows "pi\<bullet>(a\<sharp>*x) = (pi\<bullet>a)\<sharp>*(pi\<bullet>x)"
-  and   "pi\<bullet>(b\<sharp>*x) = (pi\<bullet>b)\<sharp>*(pi\<bullet>x)"
-  by (simp_all add: pt_fresh_star_bij_ineq[OF pta, OF ptb, OF at, OF cp] dj_perm_forget[OF dj] perm_bool)
 
 lemma pt_fresh_bij1:
   fixes  pi :: "'x prm"
@@ -1777,7 +1644,6 @@ qed
 
 (* the next two lemmas are needed in the proof *)
 (* of the structural induction principle       *)
-
 lemma pt_fresh_aux:
   fixes a::"'x"
   and   b::"'x"
@@ -1881,27 +1747,6 @@ next
   thus ?thesis using eq3 by simp
 qed
 
-lemma pt_freshs_freshs:
-  assumes pt: "pt TYPE('a) TYPE('x)"
-  and at: "at TYPE ('x)"
-  and pi: "set (pi::'x prm) \<subseteq> Xs \<times> Ys"
-  and Xs: "Xs \<sharp>* (x::'a)"
-  and Ys: "Ys \<sharp>* x"
-  shows "pi \<bullet> x = x"
-  using pi
-proof (induct pi)
-  case Nil
-  show ?case by (simp add: pt1 [OF pt])
-next
-  case (Cons p pi)
-  obtain a b where p: "p = (a, b)" by (cases p)
-  with Cons Xs Ys have "a \<sharp> x" "b \<sharp> x"
-    by (simp_all add: fresh_star_def)
-  with Cons p show ?case
-    by (simp add: pt_fresh_fresh [OF pt at]
-      pt2 [OF pt, of "[(a, b)]" pi, simplified])
-qed
-
 lemma pt_pi_fresh_fresh:
   fixes   x :: "'a"
   and     pi :: "'x prm"
@@ -1967,8 +1812,7 @@ proof -
   thus ?thesis by (simp add: pt2[OF pt])
 qed
 
-section {* equivaraince for some connectives *}
-
+section {* equivariance for some connectives *}
 lemma pt_all_eqvt:
   fixes  pi :: "'x prm"
   and     x :: "'a"
@@ -2013,8 +1857,6 @@ lemma pt_the_eqvt:
   apply(simp add: perm_bool pt_rev_pi [OF pt at])
   apply(rule theI'[OF unique])
   done
-
-
 
 section {* facts about supports *}
 (*==============================*)
@@ -2183,6 +2025,7 @@ lemma at_fin_set_fresh:
   and     fs: "finite X"
   shows "(x \<sharp> X) = (x \<notin> X)"
   by (simp add: at_fin_set_supp fresh_def at fs)
+
 
 section {* Permutations acting on Functions *}
 (*==========================================*)
@@ -2564,9 +2407,8 @@ lemma fresh_fin_insert1:
   and     a1:  "a\<sharp>x"
   and     a2:  "a\<sharp>X"
   shows "a\<sharp>(insert x X)"
-using a1 a2
-apply(simp add: fresh_fin_insert[OF pt, OF at, OF fs, OF f])
-done
+  using a1 a2
+  by (simp add: fresh_fin_insert[OF pt, OF at, OF fs, OF f])
 
 lemma pt_list_set_supp:
   fixes xs :: "'a list"
@@ -2595,14 +2437,191 @@ lemma pt_list_set_fresh:
   shows "a\<sharp>(set xs) = a\<sharp>xs"
 by (simp add: fresh_def pt_list_set_supp[OF pt, OF at, OF fs])
 
+
+section {* generalisation of freshness to lists and sets of atoms *}
+(*================================================================*)
+ 
+consts
+  fresh_star :: "'b \<Rightarrow> 'a \<Rightarrow> bool" ("_ \<sharp>* _" [100,100] 100)
+
+defs (overloaded)
+  fresh_star_set: "xs\<sharp>*c \<equiv> \<forall>x\<in>xs. x\<sharp>c"
+
+defs (overloaded)
+  fresh_star_list: "xs\<sharp>*c \<equiv> \<forall>x\<in>set xs. x\<sharp>c"
+
+lemmas fresh_star_def = fresh_star_list fresh_star_set
+
+lemma fresh_star_prod_set:
+  fixes xs::"'a set"
+  shows "xs\<sharp>*(a,b) = (xs\<sharp>*a \<and> xs\<sharp>*b)"
+by (auto simp add: fresh_star_def fresh_prod)
+
+lemma fresh_star_prod_list:
+  fixes xs::"'a list"
+  shows "xs\<sharp>*(a,b) = (xs\<sharp>*a \<and> xs\<sharp>*b)"
+  by (auto simp add: fresh_star_def fresh_prod)
+
+lemmas fresh_star_prod = fresh_star_prod_list fresh_star_prod_set
+
+lemma fresh_star_set_eq: "set xs \<sharp>* c = xs \<sharp>* c"
+  by (simp add: fresh_star_def)
+
+lemma fresh_star_Un_elim:
+  "((S \<union> T) \<sharp>* c \<Longrightarrow> PROP C) \<equiv> (S \<sharp>* c \<Longrightarrow> T \<sharp>* c \<Longrightarrow> PROP C)"
+  apply rule
+  apply (simp_all add: fresh_star_def)
+  apply (erule meta_mp)
+  apply blast
+  done
+
+lemma fresh_star_insert_elim:
+  "(insert x S \<sharp>* c \<Longrightarrow> PROP C) \<equiv> (x \<sharp> c \<Longrightarrow> S \<sharp>* c \<Longrightarrow> PROP C)"
+  by rule (simp_all add: fresh_star_def)
+
+lemma fresh_star_empty_elim:
+  "({} \<sharp>* c \<Longrightarrow> PROP C) \<equiv> PROP C"
+  by (simp add: fresh_star_def)
+
+text {* Normalization of freshness results; see \ @{text nominal_induct} *}
+
+lemma fresh_star_unit_elim: 
+  shows "((a::'a set)\<sharp>*() \<Longrightarrow> PROP C) \<equiv> PROP C"
+  and "((b::'a list)\<sharp>*() \<Longrightarrow> PROP C) \<equiv> PROP C"
+  by (simp_all add: fresh_star_def fresh_def supp_unit)
+
+lemma fresh_star_prod_elim: 
+  shows "((a::'a set)\<sharp>*(x,y) \<Longrightarrow> PROP C) \<equiv> (a\<sharp>*x \<Longrightarrow> a\<sharp>*y \<Longrightarrow> PROP C)"
+  and "((b::'a list)\<sharp>*(x,y) \<Longrightarrow> PROP C) \<equiv> (b\<sharp>*x \<Longrightarrow> b\<sharp>*y \<Longrightarrow> PROP C)"
+  by (rule, simp_all add: fresh_star_prod)+
+
+
+lemma pt_fresh_star_bij_ineq:
+  fixes  pi :: "'x prm"
+  and     x :: "'a"
+  and     a :: "'y set"
+  and     b :: "'y list"
+  assumes pta: "pt TYPE('a) TYPE('x)"
+  and     ptb: "pt TYPE('y) TYPE('x)"
+  and     at:  "at TYPE('x)"
+  and     cp:  "cp TYPE('a) TYPE('x) TYPE('y)"
+  shows "(pi\<bullet>a)\<sharp>*(pi\<bullet>x) = a\<sharp>*x"
+  and   "(pi\<bullet>b)\<sharp>*(pi\<bullet>x) = b\<sharp>*x"
+apply(unfold fresh_star_def)
+apply(auto)
+apply(drule_tac x="pi\<bullet>xa" in bspec)
+apply(erule pt_set_bij2[OF ptb, OF at])
+apply(simp add: fresh_star_def pt_fresh_bij_ineq[OF pta, OF ptb, OF at, OF cp])
+apply(drule_tac x="(rev pi)\<bullet>xa" in bspec)
+apply(simp add: pt_set_bij1[OF ptb, OF at])
+apply(simp add: pt_fresh_left_ineq[OF pta, OF ptb, OF at, OF cp])
+apply(drule_tac x="pi\<bullet>xa" in bspec)
+apply(simp add: pt_set_bij1[OF ptb, OF at])
+apply(simp add: pt_set_eqvt [OF ptb at] pt_rev_pi[OF pt_list_inst[OF ptb], OF at])
+apply(simp add: pt_fresh_bij_ineq[OF pta, OF ptb, OF at, OF cp])
+apply(drule_tac x="(rev pi)\<bullet>xa" in bspec)
+apply(simp add: pt_set_bij1[OF ptb, OF at] pt_set_eqvt [OF ptb at])
+apply(simp add: pt_fresh_left_ineq[OF pta, OF ptb, OF at, OF cp])
+done
+
+lemma pt_fresh_star_bij:
+  fixes  pi :: "'x prm"
+  and     x :: "'a"
+  and     a :: "'x set"
+  and     b :: "'x list"
+  assumes pt: "pt TYPE('a) TYPE('x)"
+  and     at: "at TYPE('x)"
+  shows "(pi\<bullet>a)\<sharp>*(pi\<bullet>x) = a\<sharp>*x"
+  and   "(pi\<bullet>b)\<sharp>*(pi\<bullet>x) = b\<sharp>*x"
+apply(rule pt_fresh_star_bij_ineq(1))
+apply(rule pt)
+apply(rule at_pt_inst)
+apply(rule at)+
+apply(rule cp_pt_inst)
+apply(rule pt)
+apply(rule at)
+apply(rule pt_fresh_star_bij_ineq(2))
+apply(rule pt)
+apply(rule at_pt_inst)
+apply(rule at)+
+apply(rule cp_pt_inst)
+apply(rule pt)
+apply(rule at)
+done
+
+lemma pt_fresh_star_eqvt:
+  fixes  pi :: "'x prm"
+  and     x :: "'a"
+  and     a :: "'x set"
+  and     b :: "'x list"
+  assumes pt: "pt TYPE('a) TYPE('x)"
+  and     at: "at TYPE('x)"
+  shows "pi\<bullet>(a\<sharp>*x) = (pi\<bullet>a)\<sharp>*(pi\<bullet>x)"
+  and   "pi\<bullet>(b\<sharp>*x) = (pi\<bullet>b)\<sharp>*(pi\<bullet>x)"
+  by (simp_all add: perm_bool pt_fresh_star_bij[OF pt, OF at])
+
+lemma pt_fresh_star_eqvt_ineq:
+  fixes pi::"'x prm"
+  and   a::"'y set"
+  and   b::"'y list"
+  and   x::"'a"
+  assumes pta: "pt TYPE('a) TYPE('x)"
+  and     ptb: "pt TYPE('y) TYPE('x)"
+  and     at:  "at TYPE('x)"
+  and     cp:  "cp TYPE('a) TYPE('x) TYPE('y)"
+  and     dj:  "disjoint TYPE('y) TYPE('x)"
+  shows "pi\<bullet>(a\<sharp>*x) = (pi\<bullet>a)\<sharp>*(pi\<bullet>x)"
+  and   "pi\<bullet>(b\<sharp>*x) = (pi\<bullet>b)\<sharp>*(pi\<bullet>x)"
+  by (simp_all add: pt_fresh_star_bij_ineq[OF pta, OF ptb, OF at, OF cp] dj_perm_forget[OF dj] perm_bool)
+
+lemma pt_freshs_freshs:
+  assumes pt: "pt TYPE('a) TYPE('x)"
+  and at: "at TYPE ('x)"
+  and pi: "set (pi::'x prm) \<subseteq> Xs \<times> Ys"
+  and Xs: "Xs \<sharp>* (x::'a)"
+  and Ys: "Ys \<sharp>* x"
+  shows "pi\<bullet>x = x"
+  using pi
+proof (induct pi)
+  case Nil
+  show ?case by (simp add: pt1 [OF pt])
+next
+  case (Cons p pi)
+  obtain a b where p: "p = (a, b)" by (cases p)
+  with Cons Xs Ys have "a \<sharp> x" "b \<sharp> x"
+    by (simp_all add: fresh_star_def)
+  with Cons p show ?case
+    by (simp add: pt_fresh_fresh [OF pt at]
+      pt2 [OF pt, of "[(a, b)]" pi, simplified])
+qed
+
+lemma pt_fresh_star_pi: 
+  fixes x::"'a"
+  and   pi::"'x prm"
+  assumes pt: "pt TYPE('a) TYPE('x)"
+  and     at: "at TYPE('x)"
+  and     a: "((supp x)::'x set)\<sharp>* pi"
+  shows "pi\<bullet>x = x"
+using a
+apply(induct pi)
+apply(auto simp add: fresh_star_def fresh_list_cons fresh_prod pt1[OF pt])
+apply(subgoal_tac "((a,b)#pi)\<bullet>x = ([(a,b)]@pi)\<bullet>x")
+apply(simp only: pt2[OF pt])
+apply(rule pt_fresh_fresh[OF pt at])
+apply(simp add: fresh_def at_supp[OF at])
+apply(blast)
+apply(simp add: fresh_def at_supp[OF at])
+apply(blast)
+apply(simp add: pt2[OF pt])
+done
+
 section {* Infrastructure lemmas for strong rule inductions *}
 (*==========================================================*)
-
 
 text {* 
   For every set of atoms, there is another set of atoms
   avoiding a finitely supported c and there is a permutation
-  which make 'translates' between both sets.
+  which 'translates' between both sets.
 *}
 lemma at_set_avoiding_aux:
   fixes Xs::"'a set"
@@ -3389,7 +3408,6 @@ qed
 
 syntax ABS :: "type \<Rightarrow> type \<Rightarrow> type" ("\<guillemotleft>_\<guillemotright>_" [1000,1000] 1000)
 
-
 section {* lemmas for deciding permutation equations *}
 (*===================================================*)
 
@@ -3550,8 +3568,8 @@ lemma div_int_eqvt:
   shows "pi\<bullet>(x div y) = (pi\<bullet>x) div (pi\<bullet>y)" 
 by (simp add:perm_int_def) 
 
-(*******************************************************************)
-(* Setup of the theorem attributes eqvt, eqvt_force, fresh and bij *)
+(*******************************************************)
+(* Setup of the theorem attributes eqvt and eqvt_force *)
 use "nominal_thmdecls.ML"
 setup "NominalThmDecls.setup"
 
