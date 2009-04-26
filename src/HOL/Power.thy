@@ -360,7 +360,7 @@ end
 context division_ring
 begin
 
-text {* FIXME reorient or rename to nonzero_inverse_power *}
+text {* FIXME reorient or rename to @{text nonzero_inverse_power} *}
 lemma nonzero_power_inverse:
   "a \<noteq> 0 \<Longrightarrow> inverse (a ^ n) = (inverse a) ^ n"
   by (induct n)
