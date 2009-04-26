@@ -268,6 +268,7 @@ e.g.\ \mbox{@{prop"ALL (x,y):A. P"},} @{term"{(x,y). P}"}, etc.
 @{const Transitive_Closure.rtrancl} & @{term_type_only Transitive_Closure.rtrancl "('a*'a)set\<Rightarrow>('a*'a)set"}\\
 @{const Transitive_Closure.trancl} & @{term_type_only Transitive_Closure.trancl "('a*'a)set\<Rightarrow>('a*'a)set"}\\
 @{const Transitive_Closure.reflcl} & @{term_type_only Transitive_Closure.reflcl "('a*'a)set\<Rightarrow>('a*'a)set"}\\
+@{const compower} & @{term_type_only "op ^^ :: ('a*'a)set\<Rightarrow>nat\<Rightarrow>('a*'a)set" "('a*'a)set\<Rightarrow>nat\<Rightarrow>('a*'a)set"}\\
 \end{tabular}
 
 \subsubsection*{Syntax}
@@ -318,7 +319,6 @@ overloaded operators:
 @{term "op + :: nat \<Rightarrow> nat \<Rightarrow> nat"} &
 @{term "op - :: nat \<Rightarrow> nat \<Rightarrow> nat"} &
 @{term "op * :: nat \<Rightarrow> nat \<Rightarrow> nat"} &
-@{term "op ^ :: nat \<Rightarrow> nat \<Rightarrow> nat"} &
 @{term "op div :: nat \<Rightarrow> nat \<Rightarrow> nat"}&
 @{term "op mod :: nat \<Rightarrow> nat \<Rightarrow> nat"}&
 @{term "op dvd :: nat \<Rightarrow> nat \<Rightarrow> bool"}\\
@@ -331,7 +331,9 @@ overloaded operators:
 \end{tabular}
 
 \begin{tabular}{@ {} l @ {~::~} l @ {}}
-@{const Nat.of_nat} & @{typeof Nat.of_nat}
+@{const Nat.of_nat} & @{typeof Nat.of_nat}\\
+@{term "op ^^ :: ('a \<Rightarrow> 'a) \<Rightarrow> nat \<Rightarrow> 'a \<Rightarrow> 'a"} &
+  @{term_type_only "op ^^ :: ('a \<Rightarrow> 'a) \<Rightarrow> nat \<Rightarrow> 'a \<Rightarrow> 'a" "('a \<Rightarrow> 'a) \<Rightarrow> nat \<Rightarrow> 'a \<Rightarrow> 'a"}
 \end{tabular}
 
 \section{Int}
@@ -448,14 +450,6 @@ Type @{typ int}
 \begin{tabular}{@ {} l @ {~::~} l @ {}}
 @{const Power.power} & @{typeof Power.power}
 \end{tabular}
-
-
-\section{Iterated Functions and Relations}
-
-Theory: @{theory Relation_Power}
-
-Iterated functions \ @{term[source]"(f::'a\<Rightarrow>'a) ^ n"} \
-and relations \ @{term[source]"(r::('a\<times>'a)set) ^ n"}.
 
 
 \section{Option}
