@@ -7,7 +7,7 @@
 header {*Well-founded Recursion*}
 
 theory Wellfounded
-imports Finite_Set Transitive_Closure Nat
+imports Finite_Set Wellfounded Nat
 uses ("Tools/function_package/size.ML")
 begin
 
