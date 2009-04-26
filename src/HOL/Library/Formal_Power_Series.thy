@@ -963,7 +963,7 @@ subsubsection {* Rule 1 *}
   (* {a_{n+k}}_0^infty Corresponds to (f - setsum (\<lambda>i. a_i * x^i))/x^h, for h>0*)
 
 lemma fps_power_mult_eq_shift:
-  "X^Suc k * Abs_fps (\<lambda>n. a (n + Suc k)) = Abs_fps a - setsum (\<lambda>i. fps_const (a i :: 'a:: field) * X^i) {0 .. k}" (is "?lhs = ?rhs")
+  "X^Suc k * Abs_fps (\<lambda>n. a (n + Suc k)) = Abs_fps a - setsum (\<lambda>i. fps_const (a i :: 'a:: comm_ring_1) * X^i) {0 .. k}" (is "?lhs = ?rhs")
 proof-
   {fix n:: nat
     have "?lhs $ n = (if n < Suc k then 0 else a n)"
@@ -974,7 +974,7 @@ proof-
     next
       case (Suc k)
       note th = Suc.hyps[symmetric]
-      have "(Abs_fps a - setsum (\<lambda>i. fps_const (a i :: 'a:: field) * X^i) {0 .. Suc k})$n = (Abs_fps a - setsum (\<lambda>i. fps_const (a i :: 'a:: field) * X^i) {0 .. k} - fps_const (a (Suc k)) * X^ Suc k) $ n" by (simp add: ring_simps)
+      have "(Abs_fps a - setsum (\<lambda>i. fps_const (a i :: 'a) * X^i) {0 .. Suc k})$n = (Abs_fps a - setsum (\<lambda>i. fps_const (a i :: 'a) * X^i) {0 .. k} - fps_const (a (Suc k)) * X^ Suc k) $ n" by (simp add: ring_simps)
       also  have "\<dots> = (if n < Suc k then 0 else a n) - (fps_const (a (Suc k)) * X^ Suc k)$n"
 	using th
 	unfolding fps_sub_nth by simp
@@ -1012,8 +1012,9 @@ lemma XDN_linear:
 
 lemma fps_mult_X_deriv_shift: "X* fps_deriv a = Abs_fps (\<lambda>n. of_nat n* a$n)" by (simp add: fps_eq_iff)
 
+
 lemma fps_mult_XD_shift:
-  "(XD ^^ k) (a:: ('a::{comm_ring_1, recpower, ring_char_0}) fps) = Abs_fps (\<lambda>n. (of_nat n ^ k) * a$n)"
+  "(XD ^^ k) (a:: ('a::{comm_ring_1, recpower}) fps) = Abs_fps (\<lambda>n. (of_nat n ^ k) * a$n)"
   by (induct k arbitrary: a) (simp_all add: power_Suc XD_def fps_eq_iff ring_simps del: One_nat_def)
 
 subsubsection{* Rule 3 is trivial and is given by @{text fps_times_def}*}
