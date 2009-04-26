@@ -3,10 +3,10 @@
    This file introduces the infrastructure for the lemma
    collection "eqvts".
 
-   By attaching [eqvt], [eqvt_force] to a lemma, the lemma gets 
+   By attaching [eqvt] or [eqvt_force] to a lemma, it will get 
    stored in a data-slot in the context. Possible modifiers
-   are [... add] and [... del] for adding and deleting, respectively 
-   the lemma from the data-slot.
+   are [... add] and [... del] for adding and deleting, 
+   respectively, the lemma from the data-slot.
 *)
 
 signature NOMINAL_THMDECLS =
@@ -43,9 +43,6 @@ structure Data = GenericDataFun
 (* equality-lemma can be derived. *)
 exception EQVT_FORM of string
 
-(* FIXME: should be a function in a library *)
-fun mk_permT T = HOLogic.listT (HOLogic.mk_prodT (T, T))
-
 val NOMINAL_EQVT_DEBUG = ref false
 
 fun tactic (msg, tac) =
@@ -53,14 +50,14 @@ fun tactic (msg, tac) =
   then tac THEN' (K (print_tac ("after " ^ msg)))
   else tac
 
-fun tactic_eqvt ctx orig_thm pi pi' =
+fun prove_eqvt_tac ctxt orig_thm pi pi' =
 let
-  val mypi = Thm.cterm_of ctx pi
+  val mypi = Thm.cterm_of ctxt pi
   val T = fastype_of pi'
-  val mypifree = Thm.cterm_of ctx (Const (@{const_name "List.rev"}, T --> T) $ pi')
-  val perm_pi_simp = PureThy.get_thms ctx "perm_pi_simp"
+  val mypifree = Thm.cterm_of ctxt (Const (@{const_name "rev"}, T --> T) $ pi')
+  val perm_pi_simp = PureThy.get_thms ctxt "perm_pi_simp"
 in
-  EVERY1 [tactic ("iffI applied",rtac @{thm iffI}),
+  EVERY1 [tactic ("iffI applied", rtac @{thm iffI}),
 	  tactic ("remove pi with perm_boolE", dtac @{thm perm_boolE}),
           tactic ("solve with orig_thm", etac orig_thm),
           tactic ("applies orig_thm instantiated with rev pi",
@@ -74,36 +71,38 @@ fun get_derived_thm ctxt hyp concl orig_thm pi typi =
   let
     val thy = ProofContext.theory_of ctxt;
     val pi' = Var (pi, typi);
-    val lhs = Const (@{const_name "Nominal.perm"}, typi --> HOLogic.boolT --> HOLogic.boolT) $ pi' $ hyp;
+    val lhs = Const (@{const_name "perm"}, typi --> HOLogic.boolT --> HOLogic.boolT) $ pi' $ hyp;
     val ([goal_term, pi''], ctxt') = Variable.import_terms false
       [HOLogic.mk_Trueprop (HOLogic.mk_eq (lhs, concl)), pi'] ctxt
     val _ = Display.print_cterm (cterm_of thy goal_term)
   in
     Goal.prove ctxt' [] [] goal_term
-      (fn _ => tactic_eqvt thy orig_thm pi' pi'') |>
+      (fn _ => prove_eqvt_tac thy orig_thm pi' pi'') |>
     singleton (ProofContext.export ctxt' ctxt)
   end
 
-(* replaces every variable x in t with pi o x *)
+(* replaces in t every variable, say x, with pi o x *)
 fun apply_pi trm (pi, typi) =
 let
-  fun only_vars t =
-     (case t of
-         Var (n, ty) => 
-           (Const (@{const_name "Nominal.perm"}, typi --> ty --> ty) 
-                $ (Var (pi, typi)) $ (Var (n, ty)))
-       | _ => t)
+  fun replace n ty =
+  let 
+    val c  = Const (@{const_name "perm"}, typi --> ty --> ty) 
+    val v1 = Var (pi, typi)
+    val v2 = Var (n, ty)
+  in
+    c $ v1 $ v2 
+  end
 in
-    map_aterms only_vars trm
-end;
+  map_aterms (fn Var (n, ty) => replace n ty | t => t) trm
+end
 
 (* returns *the* pi which is in front of all variables, provided there *)
 (* exists such a pi; otherwise raises EQVT_FORM                        *)
 fun get_pi t thy =
   let fun get_pi_aux s =
         (case s of
-          (Const (@{const_name "Nominal.perm"} ,typrm) $
-             (Var (pi,typi as Type("List.list", [Type ("*", [Type (tyatm,[]),_])]))) $
+          (Const (@{const_name "perm"} ,typrm) $
+             (Var (pi,typi as Type(@{type_name "list"}, [Type ("*", [Type (tyatm,[]),_])]))) $
                (Var (n,ty))) =>
              let
                 (* FIXME: this should be an operation the library *)
@@ -148,7 +147,7 @@ fun eqvt_add_del_aux flag orig_thm context =
           end
        (* case: eqvt-lemma is of the equational form *)
       | (Const (@{const_name "Trueprop"}, _) $ (Const (@{const_name "op ="}, _) $
-            (Const (@{const_name "Nominal.perm"},typrm) $ Var (pi,typi) $ lhs) $ rhs)) =>
+            (Const (@{const_name "perm"},typrm) $ Var (pi,typi) $ lhs) $ rhs)) =>
            (if (apply_pi lhs (pi,typi)) = rhs
                then [orig_thm]
                else raise EQVT_FORM "Type Equality")
@@ -161,13 +160,11 @@ fun eqvt_add_del_aux flag orig_thm context =
                " does not comply with the form of an equivariance lemma (" ^ s ^").")
 
 
-fun eqvt_map f (r:Data.T)  = f r;
+val eqvt_add = Thm.declaration_attribute (eqvt_add_del_aux (Thm.add_thm));
+val eqvt_del = Thm.declaration_attribute (eqvt_add_del_aux (Thm.del_thm));
 
-val eqvt_add = Thm.declaration_attribute (eqvt_add_del_aux (eqvt_map o Thm.add_thm));
-val eqvt_del = Thm.declaration_attribute (eqvt_add_del_aux (eqvt_map o Thm.del_thm));
-
-val eqvt_force_add  = Thm.declaration_attribute (Data.map o eqvt_map o Thm.add_thm);
-val eqvt_force_del  = Thm.declaration_attribute (Data.map o eqvt_map o Thm.del_thm);
+val eqvt_force_add  = Thm.declaration_attribute (Data.map o Thm.add_thm);
+val eqvt_force_del  = Thm.declaration_attribute (Data.map o Thm.del_thm);
 
 val get_eqvt_thms = Context.Proof #> Data.get;
 
