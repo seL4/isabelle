@@ -20,7 +20,7 @@ div_mult_mult1 is now [simp] by default.  INCOMPATIBILITY.
 
 * Power operations on relations and functions are now one dedicate constant compow with
 infix syntax "^^".  Power operations on multiplicative monoids retains syntax "^"
-and is now defined generic in class recpower; class power disappeared.  INCOMPATIBILITY.
+and is now defined generic in class power.  INCOMPATIBILITY.
 
 * ML antiquotation @{code_datatype} inserts definition of a datatype generated
 by the code generator; see Predicate.thy for an example.

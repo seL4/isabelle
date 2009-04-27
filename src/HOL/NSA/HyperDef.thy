@@ -426,7 +426,7 @@ done
 
 subsection{*Powers with Hypernatural Exponents*}
 
-definition pow :: "['a::recpower star, nat star] \<Rightarrow> 'a star" (infixr "pow" 80) where
+definition pow :: "['a::power star, nat star] \<Rightarrow> 'a star" (infixr "pow" 80) where
   hyperpow_def [transfer_unfold, code del]: "R pow N = ( *f2* op ^) R N"
   (* hypernatural powers of hyperreals *)
 
@@ -459,7 +459,7 @@ lemma hyperpow_add:
 by transfer (rule power_add)
 
 lemma hyperpow_one [simp]:
-  "\<And>r. (r::'a::recpower star) pow (1::hypnat) = r"
+  "\<And>r. (r::'a::monoid_mult star) pow (1::hypnat) = r"
 by transfer (rule power_one_right)
 
 lemma hyperpow_two:

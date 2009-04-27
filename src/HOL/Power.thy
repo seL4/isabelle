@@ -36,7 +36,7 @@ lemma power_one [simp]:
   by (induct n) simp_all
 
 lemma power_one_right [simp]:
-  "a ^ 1 = a * 1"
+  "a ^ 1 = a"
   by simp
 
 lemma power_commutes:

@@ -12,7 +12,7 @@ begin
 
 subsection {* Ring axioms *}
 
-class ring = zero + one + plus + minus + uminus + times + inverse + recpower + Ring_and_Field.dvd +
+class ring = zero + one + plus + minus + uminus + times + inverse + power + dvd +
   assumes a_assoc:      "(a + b) + c = a + (b + c)"
   and l_zero:           "0 + a = a"
   and l_neg:            "(-a) + a = 0"

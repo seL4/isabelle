@@ -345,11 +345,10 @@ proof
     by (simp add: up_inverse_def)
   show "p / q = p * inverse q"
     by (simp add: up_divide_def)
-  show "p * 1 = p"
-    unfolding `p * 1 = 1 * p` by (fact `1 * p = p`)
 qed
 
-instance up :: (ring) recpower ..
+instance up :: (ring) recpower proof
+qed simp_all
 
 (* Further properties of monom *)
 

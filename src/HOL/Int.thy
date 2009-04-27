@@ -1536,7 +1536,7 @@ lemma abs_minus_one [simp]: "abs (-1) = (1::'a::{ordered_idom,number_ring})"
 by (simp add: abs_if)
 
 lemma abs_power_minus_one [simp]:
-     "abs(-1 ^ n) = (1::'a::{ordered_idom,number_ring,recpower})"
+  "abs(-1 ^ n) = (1::'a::{ordered_idom,number_ring})"
 by (simp add: power_abs)
 
 lemma of_int_number_of_eq [simp]:
@@ -1848,18 +1848,21 @@ qed
 
 subsection {* Integer Powers *} 
 
-instance int :: recpower ..
+context ring_1
+begin
 
 lemma of_int_power:
-  "of_int (z ^ n) = (of_int z ^ n :: 'a::{recpower, ring_1})"
+  "of_int (z ^ n) = of_int z ^ n"
   by (induct n) simp_all
+
+end
 
 lemma zpower_zpower:
   "(x ^ y) ^ z = (x ^ (y * z)::int)"
   by (rule power_mult [symmetric])
 
 lemma int_power:
-  "int (m^n) = (int m) ^ n"
+  "int (m ^ n) = int m ^ n"
   by (rule of_nat_power)
 
 lemmas zpower_int = int_power [symmetric]
@@ -2199,6 +2202,8 @@ hide (open) const Pls Min Bit0 Bit1 succ pred
 
 
 subsection {* Legacy theorems *}
+
+instance int :: recpower ..
 
 lemmas zminus_zminus = minus_minus [of "z::int", standard]
 lemmas zminus_0 = minus_zero [where 'a=int]
