@@ -98,6 +98,10 @@ class Prover(isabelle_system: IsabelleSystem, logic: String) extends Actor
   
   private def handle_result(result: IsabelleProcess.Result)
   {
+    // helper-function (move to XML?)
+    def get_attr(attributes: List[(String, String)], attr: String): Option[String] =
+      attributes.find(kv => kv._1 == attr).map(_._2)
+
     def command_change(c: Command) = this ! c
     val (running, command) =
       result.props.find(p => p._1 == Markup.ID) match {
@@ -176,13 +180,26 @@ class Prover(isabelle_system: IsabelleSystem, logic: String) extends Actor
                     output_info.event(result.toString)
                     command.status = Command.Status.FAILED
                     command_change(command)
-
+                  // ML typing
+                  case XML.Elem(Markup.ML_TYPING, attr, body) =>
+                    val begin = get_attr(attr, Markup.OFFSET).get.toInt - 1
+                    val end = get_attr(attr, Markup.END_OFFSET).get.toInt - 1
+                    val markup_id = get_attr(attr, Markup.ID).get
+                    val info = body.first.asInstanceOf[XML.Text].content
+                    command.add_markup(info, begin, end)
+                    command_change(command)
+                  // ML references
+                  case XML.Elem(Markup.ML_REF, attr, body) =>
+                    val begin = get_attr(attr, Markup.OFFSET).get.toInt - 1
+                    val end = get_attr(attr, Markup.END_OFFSET).get.toInt - 1
+                    val markup_id = get_attr(attr, Markup.ID).get
+                    command.add_markup(body.toString, begin, end)
+                    command_change(command)
                   // other markup
-                  case XML.Elem(kind,
-                      (Markup.OFFSET, offset) :: (Markup.END_OFFSET, end_offset) ::
-                           (Markup.ID, markup_id) :: _, _) =>
-                    val begin = offset.toInt - 1
-                    val end = end_offset.toInt - 1
+                  case XML.Elem(kind, attr, body) =>
+                    val begin = get_attr(attr, Markup.OFFSET).get.toInt - 1
+                    val end = get_attr(attr, Markup.END_OFFSET).get.toInt - 1
+                    val markup_id = get_attr(attr, Markup.ID).get
 
                     val cmd =  // FIXME proper command version!? running!?
                       // outer syntax: no id in props

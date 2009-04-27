@@ -82,12 +82,12 @@ class Command(val tokens: List[Token], val starts: Map[Token, Int])
   val root_node =
     new MarkupNode(this, 0, starts(tokens.last) - starts(tokens.first) + tokens.last.length, id, Markup.COMMAND_SPAN, content)
 
-  def add_markup(kind: String, begin: Int, end: Int) = {
+  def add_markup(desc: String, begin: Int, end: Int) = {
     val markup_content = if (end <= content.length) content.substring(begin, end)
       else {
         System.err.println (root_node.stop, content, content.length, end)
         "wrong indices?"
       }
-    root_node insert new MarkupNode(this, begin, end, id, kind, markup_content)
+    root_node insert new MarkupNode(this, begin, end, id, markup_content, desc)
   }
 }

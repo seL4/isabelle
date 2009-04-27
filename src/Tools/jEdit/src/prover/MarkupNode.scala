@@ -22,7 +22,7 @@ object MarkupNode {
 
     object RelativeAsset extends IAsset {
       override def getIcon : Icon = null
-      override def getShortString : String = node.kind
+      override def getShortString : String = node.content
       override def getLongString : String = node.desc
       override def getName : String = node.id
       override def setName (name : String) = ()
@@ -30,7 +30,7 @@ object MarkupNode {
       override def getStart : Position = node.abs_start(doc)
       override def setEnd(end : Position) = ()
       override def getEnd : Position = node.abs_stop(doc)
-      override def toString = node.id + ": " + node.kind + "[" + getStart + " - " + getEnd + "]"
+      override def toString = node.id + ": " + node.content + "[" + getStart + " - " + getEnd + "]"
     }
 
     new DefaultMutableTreeNode(RelativeAsset)
@@ -38,7 +38,7 @@ object MarkupNode {
 }
 
 class MarkupNode (val base : Command, val start : Int, val stop : Int,
-                    val id : String, val kind : String, val desc : String) {
+                    val id : String, val content : String, val desc : String) {
 
   def swing_node(doc: ProofDocument) : DefaultMutableTreeNode = {
     val node = MarkupNode.markup2default_node (this, base, doc)
@@ -83,12 +83,12 @@ class MarkupNode (val base : Command, val start : Int, val stop : Int,
       val filled_gaps = for {
         child <- children
         markups = if (next_x < child.start) {
-          new MarkupNode(base, next_x, child.start, id, kind, "") :: child.flatten
+          new MarkupNode(base, next_x, child.start, id, content, "") :: child.flatten
         } else child.flatten
         update = (next_x = child.stop)
         markup <- markups
       } yield markup
-      if (next_x < stop) filled_gaps + new MarkupNode(base, next_x, stop, id, kind, "")
+      if (next_x < stop) filled_gaps + new MarkupNode(base, next_x, stop, id, content, "")
       else filled_gaps
     }
   }
@@ -111,7 +111,7 @@ class MarkupNode (val base : Command, val start : Int, val stop : Int,
         this remove new_child.children
       }
     } else {
-      System.err.println("ignored nonfitting markup " + new_child.id + new_child.kind + new_child.desc
+      System.err.println("ignored nonfitting markup " + new_child.id + new_child.content + new_child.desc
                          + "(" +new_child.start + ", "+ new_child.stop + ")")
     }
   }
@@ -120,5 +120,5 @@ class MarkupNode (val base : Command, val start : Int, val stop : Int,
   def fitting_into(node : MarkupNode) = node.start <= this.start &&
     node.stop >= this.stop
 
-  override def toString = "([" + start + " - " + stop + "] " + id + "( " + kind + "): " + desc
+  override def toString = "([" + start + " - " + stop + "] " + id + "( " + content + "): " + desc
 }

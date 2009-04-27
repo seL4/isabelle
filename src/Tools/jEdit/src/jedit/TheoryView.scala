@@ -204,7 +204,7 @@ class TheoryView (text_area: JEditTextArea, document_actor: Actor)
         val finish = to_current(node.abs_stop(document))
         if (finish > start && begin < end) {
           encolor(gfx, y + metrics.getHeight - 2, 1, begin max start, finish min end - 1,
-            DynamicTokenMarker.choose_color(node.kind, text_area.getPainter.getStyles), true)
+            DynamicTokenMarker.choose_color(node.desc, text_area.getPainter.getStyles), true)
         }
       }
     }
