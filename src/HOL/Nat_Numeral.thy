@@ -396,10 +396,10 @@ lemma power_minus1_odd: "(- 1) ^ Suc(2*n) = -(1::'a::{comm_ring_1,recpower})"
   by (simp add: power_Suc) 
 
 lemma power_even_eq: "(a::'a::recpower) ^ (2*n) = (a^n)^2"
-by (subst mult_commute) (simp add: power_mult)
+  by (subst mult_commute) (simp add: power_mult)
 
 lemma power_odd_eq: "(a::int) ^ Suc(2*n) = a * (a^n)^2"
-by (simp add: power_even_eq) 
+  by (simp add: power_even_eq)
 
 lemma power_minus_even [simp]:
   "(-a) ^ (2*n) = (a::'a::{comm_ring_1,recpower}) ^ (2*n)"
