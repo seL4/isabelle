@@ -199,7 +199,7 @@ class TheoryView (text_area: JEditTextArea, document_actor: Actor)
       encolor(gfx, y, metrics.getHeight, begin, finish, TheoryView.choose_color(e), true)
 
       // paint details of command
-      for (node <- e.root_node.dfs) {
+      for (node <- e.highlight_node.flatten) {
         val begin = to_current(node.abs_start(document))
         val finish = to_current(node.abs_stop(document))
         if (finish > start && begin < end) {

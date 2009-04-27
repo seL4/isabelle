@@ -195,7 +195,7 @@ class Prover(isabelle_system: IsabelleSystem, logic: String) extends Actor
                     val markup_id = get_attr(attr, Markup.ID).get
                     command.add_markup(body.toString, begin, end)
                     command_change(command)
-                  // other markup
+                  // syntax highlighting
                   case XML.Elem(kind, attr, body) =>
                     val begin = get_attr(attr, Markup.OFFSET).get.toInt - 1
                     val end = get_attr(attr, Markup.END_OFFSET).get.toInt - 1
@@ -208,6 +208,7 @@ class Prover(isabelle_system: IsabelleSystem, logic: String) extends Actor
                       else command
                     if (cmd != null) {
                       cmd.add_markup(kind, begin, end)
+                      cmd.add_highlight(kind, begin, end)
                       command_change(cmd)
                     }
                   case _ =>

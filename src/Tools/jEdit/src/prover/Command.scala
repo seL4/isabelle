@@ -80,7 +80,7 @@ class Command(val tokens: List[Token], val starts: Map[Token, Int])
   /* markup */
 
   val root_node =
-    new MarkupNode(this, 0, starts(tokens.last) - starts(tokens.first) + tokens.last.length, id, Markup.COMMAND_SPAN, content)
+    new MarkupNode(this, 0, starts(tokens.last) - starts(tokens.first) + tokens.last.length, id, content, Markup.COMMAND_SPAN)
 
   def add_markup(desc: String, begin: Int, end: Int) = {
     val markup_content = if (end <= content.length) content.substring(begin, end)
@@ -90,4 +90,12 @@ class Command(val tokens: List[Token], val starts: Map[Token, Int])
       }
     root_node insert new MarkupNode(this, begin, end, id, markup_content, desc)
   }
+
+  // syntax highlighting
+  val highlight_node =
+   new MarkupNode(this, 0, starts(tokens.last) - starts(tokens.first) + tokens.last.length, id, content, Markup.COMMAND_SPAN)
+
+  def add_highlight(kind: String, begin: Int, end: Int) =
+    highlight_node insert new MarkupNode(this, begin, end, id, "", kind)
+
 }
