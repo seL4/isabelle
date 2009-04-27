@@ -1536,7 +1536,7 @@ lemma abs_minus_one [simp]: "abs (-1) = (1::'a::{ordered_idom,number_ring})"
 by (simp add: abs_if)
 
 lemma abs_power_minus_one [simp]:
-     "abs(-1 ^ n) = (1::'a::{ordered_idom,number_ring,recpower})"
+  "abs(-1 ^ n) = (1::'a::{ordered_idom,number_ring})"
 by (simp add: power_abs)
 
 lemma of_int_number_of_eq [simp]:
@@ -1848,42 +1848,21 @@ qed
 
 subsection {* Integer Powers *} 
 
-instantiation int :: recpower
+context ring_1
 begin
 
-primrec power_int where
-  "p ^ 0 = (1\<Colon>int)"
-  | "p ^ (Suc n) = (p\<Colon>int) * (p ^ n)"
-
-instance proof
-  fix z :: int
-  fix n :: nat
-  show "z ^ 0 = 1" by simp
-  show "z ^ Suc n = z * (z ^ n)" by simp
-qed
-
-declare power_int.simps [simp del]
+lemma of_int_power:
+  "of_int (z ^ n) = of_int z ^ n"
+  by (induct n) simp_all
 
 end
 
-lemma zpower_zadd_distrib: "x ^ (y + z) = ((x ^ y) * (x ^ z)::int)"
-  by (rule Power.power_add)
+lemma zpower_zpower:
+  "(x ^ y) ^ z = (x ^ (y * z)::int)"
+  by (rule power_mult [symmetric])
 
-lemma zpower_zpower: "(x ^ y) ^ z = (x ^ (y * z)::int)"
-  by (rule Power.power_mult [symmetric])
-
-lemma zero_less_zpower_abs_iff [simp]:
-  "(0 < abs x ^ n) \<longleftrightarrow> (x \<noteq> (0::int) | n = 0)"
-  by (induct n) (auto simp add: zero_less_mult_iff)
-
-lemma zero_le_zpower_abs [simp]: "(0::int) \<le> abs x ^ n"
-  by (induct n) (auto simp add: zero_le_mult_iff)
-
-lemma of_int_power:
-  "of_int (z ^ n) = (of_int z ^ n :: 'a::{recpower, ring_1})"
-  by (induct n) simp_all
-
-lemma int_power: "int (m^n) = (int m) ^ n"
+lemma int_power:
+  "int (m ^ n) = int m ^ n"
   by (rule of_nat_power)
 
 lemmas zpower_int = int_power [symmetric]
@@ -2224,6 +2203,8 @@ hide (open) const Pls Min Bit0 Bit1 succ pred
 
 subsection {* Legacy theorems *}
 
+instance int :: recpower ..
+
 lemmas zminus_zminus = minus_minus [of "z::int", standard]
 lemmas zminus_0 = minus_zero [where 'a=int]
 lemmas zminus_zadd_distrib = minus_add_distrib [of "z::int" "w", standard]
@@ -2277,5 +2258,16 @@ lemmas of_int_int_eq = of_int_of_nat_eq [where 'a=int]
 lemmas zdiff_int = of_nat_diff [where 'a=int, symmetric]
 lemmas zless_le = less_int_def
 lemmas int_eq_of_nat = TrueI
+
+lemma zpower_zadd_distrib:
+  "x ^ (y + z) = ((x ^ y) * (x ^ z)::int)"
+  by (rule power_add)
+
+lemma zero_less_zpower_abs_iff:
+  "(0 < abs x ^ n) \<longleftrightarrow> (x \<noteq> (0::int) | n = 0)"
+  by (rule zero_less_power_abs_iff)
+
+lemma zero_le_zpower_abs: "(0::int) \<le> abs x ^ n"
+  by (rule zero_le_power_abs)
 
 end

@@ -1,5 +1,4 @@
 (*  Title:      HOL/Library/Word.thy
-    ID:         $Id$
     Author:     Sebastian Skalberg (TU Muenchen)
 *)
 
@@ -40,10 +39,8 @@ datatype bit =
     Zero ("\<zero>")
   | One ("\<one>")
 
-primrec
-  bitval :: "bit => nat"
-where
-  "bitval \<zero> = 0"
+primrec bitval :: "bit => nat" where
+    "bitval \<zero> = 0"
   | "bitval \<one> = 1"
 
 consts
@@ -1531,7 +1528,7 @@ proof -
     show ?thesis
       apply simp
       apply (subst power_Suc [symmetric])
-      apply (simp del: power_int.simps)
+      apply simp
       done
   qed
   finally show ?thesis .

@@ -680,30 +680,14 @@ lemma fps_deriv_maclauren_0: "(fps_nth_deriv k (f:: ('a::comm_semiring_1) fps)) 
 
 subsection {* Powers*}
 
-instantiation fps :: (semiring_1) power
-begin
-
-fun fps_pow :: "nat \<Rightarrow> 'a fps \<Rightarrow> 'a fps" where
-  "fps_pow 0 f = 1"
-| "fps_pow (Suc n) f = f * fps_pow n f"
-
-definition fps_power_def: "power (f::'a fps) n = fps_pow n f"
-instance ..
-end
-
-instantiation fps :: (comm_ring_1) recpower
-begin
-instance
-  apply (intro_classes)
-  by (simp_all add: fps_power_def)
-end
+instance fps :: (semiring_1) recpower ..
 
 lemma fps_power_zeroth_eq_one: "a$0 =1 \<Longrightarrow> a^n $ 0 = (1::'a::semiring_1)"
-  by (induct n, auto simp add: fps_power_def expand_fps_eq fps_mult_nth)
+  by (induct n, auto simp add: expand_fps_eq fps_mult_nth)
 
 lemma fps_power_first_eq: "(a:: 'a::comm_ring_1 fps)$0 =1 \<Longrightarrow> a^n $ 1 = of_nat n * a$1"
 proof(induct n)
-  case 0 thus ?case by (simp add: fps_power_def)
+  case 0 thus ?case by simp
 next
   case (Suc n)
   note h = Suc.hyps[OF `a$0 = 1`]
@@ -712,13 +696,13 @@ next
 qed
 
 lemma startsby_one_power:"a $ 0 = (1::'a::comm_ring_1) \<Longrightarrow> a^n $ 0 = 1"
-  by (induct n, auto simp add: fps_power_def fps_mult_nth)
+  by (induct n, auto simp add: fps_mult_nth)
 
 lemma startsby_zero_power:"a $0 = (0::'a::comm_ring_1) \<Longrightarrow> n > 0 \<Longrightarrow> a^n $0 = 0"
-  by (induct n, auto simp add: fps_power_def fps_mult_nth)
+  by (induct n, auto simp add: fps_mult_nth)
 
 lemma startsby_power:"a $0 = (v::'a::{comm_ring_1, recpower}) \<Longrightarrow> a^n $0 = v^n"
-  by (induct n, auto simp add: fps_power_def fps_mult_nth power_Suc)
+  by (induct n, auto simp add: fps_mult_nth power_Suc)
 
 lemma startsby_zero_power_iff[simp]:
   "a^n $0 = (0::'a::{idom, recpower}) \<longleftrightarrow> (n \<noteq> 0 \<and> a$0 = 0)"
@@ -901,7 +885,7 @@ lemma X_mult_right_nth[simp]: "((f :: ('a::comm_semiring_1) fps) * X) $n = (if n
 
 lemma X_power_iff: "X^k = Abs_fps (\<lambda>n. if n = k then (1::'a::comm_ring_1) else 0)"
 proof(induct k)
-  case 0 thus ?case by (simp add: X_def fps_power_def fps_eq_iff)
+  case 0 thus ?case by (simp add: X_def fps_eq_iff)
 next
   case (Suc k)
   {fix m
@@ -979,7 +963,7 @@ subsubsection {* Rule 1 *}
   (* {a_{n+k}}_0^infty Corresponds to (f - setsum (\<lambda>i. a_i * x^i))/x^h, for h>0*)
 
 lemma fps_power_mult_eq_shift:
-  "X^Suc k * Abs_fps (\<lambda>n. a (n + Suc k)) = Abs_fps a - setsum (\<lambda>i. fps_const (a i :: 'a:: field) * X^i) {0 .. k}" (is "?lhs = ?rhs")
+  "X^Suc k * Abs_fps (\<lambda>n. a (n + Suc k)) = Abs_fps a - setsum (\<lambda>i. fps_const (a i :: 'a:: comm_ring_1) * X^i) {0 .. k}" (is "?lhs = ?rhs")
 proof-
   {fix n:: nat
     have "?lhs $ n = (if n < Suc k then 0 else a n)"
@@ -990,7 +974,7 @@ proof-
     next
       case (Suc k)
       note th = Suc.hyps[symmetric]
-      have "(Abs_fps a - setsum (\<lambda>i. fps_const (a i :: 'a:: field) * X^i) {0 .. Suc k})$n = (Abs_fps a - setsum (\<lambda>i. fps_const (a i :: 'a:: field) * X^i) {0 .. k} - fps_const (a (Suc k)) * X^ Suc k) $ n" by (simp add: ring_simps)
+      have "(Abs_fps a - setsum (\<lambda>i. fps_const (a i :: 'a) * X^i) {0 .. Suc k})$n = (Abs_fps a - setsum (\<lambda>i. fps_const (a i :: 'a) * X^i) {0 .. k} - fps_const (a (Suc k)) * X^ Suc k) $ n" by (simp add: ring_simps)
       also  have "\<dots> = (if n < Suc k then 0 else a n) - (fps_const (a (Suc k)) * X^ Suc k)$n"
 	using th
 	unfolding fps_sub_nth by simp
@@ -1022,13 +1006,16 @@ lemma XD_mult_const[simp]:"XD (fps_const (c::'a::comm_ring_1) * a) = fps_const c
 lemma XD_linear[simp]: "XD (fps_const c * a + fps_const d * b) = fps_const c * XD a + fps_const d * XD (b :: ('a::comm_ring_1) fps)"
   by simp
 
-lemma XDN_linear: "(XD^n) (fps_const c * a + fps_const d * b) = fps_const c * (XD^n) a + fps_const d * (XD^n) (b :: ('a::comm_ring_1) fps)"
+lemma XDN_linear:
+  "(XD ^^ n) (fps_const c * a + fps_const d * b) = fps_const c * (XD ^^ n) a + fps_const d * (XD ^^ n) (b :: ('a::comm_ring_1) fps)"
   by (induct n, simp_all)
 
 lemma fps_mult_X_deriv_shift: "X* fps_deriv a = Abs_fps (\<lambda>n. of_nat n* a$n)" by (simp add: fps_eq_iff)
 
-lemma fps_mult_XD_shift: "(XD ^k) (a:: ('a::{comm_ring_1, recpower, ring_char_0}) fps) = Abs_fps (\<lambda>n. (of_nat n ^ k) * a$n)"
-by (induct k arbitrary: a) (simp_all add: power_Suc XD_def fps_eq_iff ring_simps del: One_nat_def)
+
+lemma fps_mult_XD_shift:
+  "(XD ^^ k) (a:: ('a::{comm_ring_1, recpower}) fps) = Abs_fps (\<lambda>n. (of_nat n ^ k) * a$n)"
+  by (induct k arbitrary: a) (simp_all add: power_Suc XD_def fps_eq_iff ring_simps del: One_nat_def)
 
 subsubsection{* Rule 3 is trivial and is given by @{text fps_times_def}*}
 subsubsection{* Rule 5 --- summation and "division" by (1 - X)*}
@@ -1901,19 +1888,16 @@ lemma fps_inv_ginv: "fps_inv = fps_ginv X"
   done
 
 lemma fps_compose_1[simp]: "1 oo a = 1"
-  by (simp add: fps_eq_iff fps_compose_nth fps_power_def mult_delta_left setsum_delta)
+  by (simp add: fps_eq_iff fps_compose_nth mult_delta_left setsum_delta)
 
 lemma fps_compose_0[simp]: "0 oo a = 0"
   by (simp add: fps_eq_iff fps_compose_nth)
 
-lemma fps_pow_0: "fps_pow n 0 = (if n = 0 then 1 else 0)"
-  by (induct n, simp_all)
-
 lemma fps_compose_0_right[simp]: "a oo 0 = fps_const (a$0)"
-  by (auto simp add: fps_eq_iff fps_compose_nth fps_power_def fps_pow_0 setsum_0')
+  by (auto simp add: fps_eq_iff fps_compose_nth power_0_left setsum_0')
 
 lemma fps_compose_add_distrib: "(a + b) oo c = (a oo c) + (b oo c)"
-  by (simp add: fps_eq_iff fps_compose_nth  ring_simps setsum_addf)
+  by (simp add: fps_eq_iff fps_compose_nth ring_simps setsum_addf)
 
 lemma fps_compose_setsum_distrib: "(setsum f S) oo a = setsum (\<lambda>i. f i oo a) S"
 proof-
@@ -2341,11 +2325,11 @@ lemma fps_sin_cos_sum_of_squares:
 proof-
   have "fps_deriv ?lhs = 0"
     apply (simp add:  fps_deriv_power fps_sin_deriv fps_cos_deriv power_Suc)
-    by (simp add: fps_power_def ring_simps fps_const_neg[symmetric] del: fps_const_neg)
+    by (simp add: ring_simps fps_const_neg[symmetric] del: fps_const_neg)
   then have "?lhs = fps_const (?lhs $ 0)"
     unfolding fps_deriv_eq_0_iff .
   also have "\<dots> = 1"
-    by (auto simp add: fps_eq_iff fps_power_def numeral_2_eq_2 fps_mult_nth fps_cos_def fps_sin_def)
+    by (auto simp add: fps_eq_iff numeral_2_eq_2 fps_mult_nth fps_cos_def fps_sin_def)
   finally show ?thesis .
 qed
 

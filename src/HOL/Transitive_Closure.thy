@@ -630,6 +630,140 @@ lemmas transitive_closurep_trans' [trans] =
 
 declare trancl_into_rtrancl [elim]
 
+subsection {* The power operation on relations *}
+
+text {* @{text "R ^^ n = R O ... O R"}, the n-fold composition of @{text R} *}
+
+overloading
+  relpow == "compow :: nat \<Rightarrow> ('a \<times> 'a) set \<Rightarrow> ('a \<times> 'a) set"
+begin
+
+primrec relpow :: "nat \<Rightarrow> ('a \<times> 'a) set \<Rightarrow> ('a \<times> 'a) set" where
+    "relpow 0 R = Id"
+  | "relpow (Suc n) R = R O (R ^^ n)"
+
+end
+
+lemma rel_pow_1 [simp]:
+  fixes R :: "('a \<times> 'a) set"
+  shows "R ^^ 1 = R"
+  by simp
+
+lemma rel_pow_0_I: 
+  "(x, x) \<in> R ^^ 0"
+  by simp
+
+lemma rel_pow_Suc_I:
+  "(x, y) \<in>  R ^^ n \<Longrightarrow> (y, z) \<in> R \<Longrightarrow> (x, z) \<in> R ^^ Suc n"
+  by auto
+
+lemma rel_pow_Suc_I2:
+  "(x, y) \<in> R \<Longrightarrow> (y, z) \<in> R ^^ n \<Longrightarrow> (x, z) \<in> R ^^ Suc n"
+  by (induct n arbitrary: z) (simp, fastsimp)
+
+lemma rel_pow_0_E:
+  "(x, y) \<in> R ^^ 0 \<Longrightarrow> (x = y \<Longrightarrow> P) \<Longrightarrow> P"
+  by simp
+
+lemma rel_pow_Suc_E:
+  "(x, z) \<in> R ^^ Suc n \<Longrightarrow> (\<And>y. (x, y) \<in> R ^^ n \<Longrightarrow> (y, z) \<in> R \<Longrightarrow> P) \<Longrightarrow> P"
+  by auto
+
+lemma rel_pow_E:
+  "(x, z) \<in>  R ^^ n \<Longrightarrow>  (n = 0 \<Longrightarrow> x = z \<Longrightarrow> P)
+   \<Longrightarrow> (\<And>y m. n = Suc m \<Longrightarrow> (x, y) \<in>  R ^^ m \<Longrightarrow> (y, z) \<in> R \<Longrightarrow> P)
+   \<Longrightarrow> P"
+  by (cases n) auto
+
+lemma rel_pow_Suc_D2:
+  "(x, z) \<in> R ^^ Suc n \<Longrightarrow> (\<exists>y. (x, y) \<in> R \<and> (y, z) \<in> R ^^ n)"
+  apply (induct n arbitrary: x z)
+   apply (blast intro: rel_pow_0_I elim: rel_pow_0_E rel_pow_Suc_E)
+  apply (blast intro: rel_pow_Suc_I elim: rel_pow_0_E rel_pow_Suc_E)
+  done
+
+lemma rel_pow_Suc_E2:
+  "(x, z) \<in> R ^^ Suc n \<Longrightarrow> (\<And>y. (x, y) \<in> R \<Longrightarrow> (y, z) \<in> R ^^ n \<Longrightarrow> P) \<Longrightarrow> P"
+  by (blast dest: rel_pow_Suc_D2)
+
+lemma rel_pow_Suc_D2':
+  "\<forall>x y z. (x, y) \<in> R ^^ n \<and> (y, z) \<in> R \<longrightarrow> (\<exists>w. (x, w) \<in> R \<and> (w, z) \<in> R ^^ n)"
+  by (induct n) (simp_all, blast)
+
+lemma rel_pow_E2:
+  "(x, z) \<in> R ^^ n \<Longrightarrow>  (n = 0 \<Longrightarrow> x = z \<Longrightarrow> P)
+     \<Longrightarrow> (\<And>y m. n = Suc m \<Longrightarrow> (x, y) \<in> R \<Longrightarrow> (y, z) \<in> R ^^ m \<Longrightarrow> P)
+   \<Longrightarrow> P"
+  apply (cases n, simp)
+  apply (cut_tac n=nat and R=R in rel_pow_Suc_D2', simp, blast)
+  done
+
+lemma rtrancl_imp_UN_rel_pow:
+  assumes "p \<in> R^*"
+  shows "p \<in> (\<Union>n. R ^^ n)"
+proof (cases p)
+  case (Pair x y)
+  with assms have "(x, y) \<in> R^*" by simp
+  then have "(x, y) \<in> (\<Union>n. R ^^ n)" proof induct
+    case base show ?case by (blast intro: rel_pow_0_I)
+  next
+    case step then show ?case by (blast intro: rel_pow_Suc_I)
+  qed
+  with Pair show ?thesis by simp
+qed
+
+lemma rel_pow_imp_rtrancl:
+  assumes "p \<in> R ^^ n"
+  shows "p \<in> R^*"
+proof (cases p)
+  case (Pair x y)
+  with assms have "(x, y) \<in> R ^^ n" by simp
+  then have "(x, y) \<in> R^*" proof (induct n arbitrary: x y)
+    case 0 then show ?case by simp
+  next
+    case Suc then show ?case
+      by (blast elim: rel_pow_Suc_E intro: rtrancl_into_rtrancl)
+  qed
+  with Pair show ?thesis by simp
+qed
+
+lemma rtrancl_is_UN_rel_pow:
+  "R^* = (\<Union>n. R ^^ n)"
+  by (blast intro: rtrancl_imp_UN_rel_pow rel_pow_imp_rtrancl)
+
+lemma rtrancl_power:
+  "p \<in> R^* \<longleftrightarrow> (\<exists>n. p \<in> R ^^ n)"
+  by (simp add: rtrancl_is_UN_rel_pow)
+
+lemma trancl_power:
+  "p \<in> R^+ \<longleftrightarrow> (\<exists>n > 0. p \<in> R ^^ n)"
+  apply (cases p)
+  apply simp
+  apply (rule iffI)
+   apply (drule tranclD2)
+   apply (clarsimp simp: rtrancl_is_UN_rel_pow)
+   apply (rule_tac x="Suc n" in exI)
+   apply (clarsimp simp: rel_comp_def)
+   apply fastsimp
+  apply clarsimp
+  apply (case_tac n, simp)
+  apply clarsimp
+  apply (drule rel_pow_imp_rtrancl)
+  apply (drule rtrancl_into_trancl1) apply auto
+  done
+
+lemma rtrancl_imp_rel_pow:
+  "p \<in> R^* \<Longrightarrow> \<exists>n. p \<in> R ^^ n"
+  by (auto dest: rtrancl_imp_UN_rel_pow)
+
+lemma single_valued_rel_pow:
+  fixes R :: "('a * 'a) set"
+  shows "single_valued R \<Longrightarrow> single_valued (R ^^ n)"
+  apply (induct n arbitrary: R)
+  apply simp_all
+  apply (rule single_valuedI)
+  apply (fast dest: single_valuedD elim: rel_pow_Suc_E)
+  done
 
 subsection {* Setup of transitivity reasoner *}
 

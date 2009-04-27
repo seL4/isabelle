@@ -40,9 +40,8 @@ $(OUT)/RAW: $(BOOTSTRAP_FILES)
 
 Pure: $(OUT)/Pure
 
-$(OUT)/Pure: $(BOOTSTRAP_FILES) ../Tools/auto_solve.ML			\
-  ../Tools/quickcheck.ML Concurrent/ROOT.ML Concurrent/future.ML	\
-  Concurrent/mailbox.ML Concurrent/par_list.ML				\
+$(OUT)/Pure: $(BOOTSTRAP_FILES) Concurrent/ROOT.ML			\
+  Concurrent/future.ML Concurrent/mailbox.ML Concurrent/par_list.ML	\
   Concurrent/par_list_dummy.ML Concurrent/simple_thread.ML		\
   Concurrent/synchronized.ML Concurrent/task_queue.ML General/ROOT.ML	\
   General/alist.ML General/antiquote.ML General/balanced_tree.ML	\

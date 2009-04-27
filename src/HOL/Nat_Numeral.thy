@@ -1,11 +1,11 @@
-(*  Title:      HOL/NatBin.thy
+(*  Title:      HOL/Nat_Numeral.thy
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1999  University of Cambridge
 *)
 
-header {* Binary arithmetic for the natural numbers *}
+header {* Binary numerals for the natural numbers *}
 
-theory NatBin
+theory Nat_Numeral
 imports IntDiv
 uses ("Tools/nat_simprocs.ML")
 begin
@@ -28,15 +28,20 @@ lemma [code post]:
   "nat (number_of v) = number_of v"
   unfolding nat_number_of_def ..
 
+context recpower
+begin
+
 abbreviation (xsymbols)
-  power2 :: "'a::power => 'a"  ("(_\<twosuperior>)" [1000] 999) where
-  "x\<twosuperior> == x^2"
+  power2 :: "'a \<Rightarrow> 'a"  ("(_\<twosuperior>)" [1000] 999) where
+  "x\<twosuperior> \<equiv> x ^ 2"
 
 notation (latex output)
   power2  ("(_\<twosuperior>)" [1000] 999)
 
 notation (HTML output)
   power2  ("(_\<twosuperior>)" [1000] 999)
+
+end
 
 
 subsection {* Predicate for negative binary numbers *}
@@ -391,14 +396,14 @@ lemma power_minus1_odd: "(- 1) ^ Suc(2*n) = -(1::'a::{comm_ring_1,recpower})"
   by (simp add: power_Suc) 
 
 lemma power_even_eq: "(a::'a::recpower) ^ (2*n) = (a^n)^2"
-by (subst mult_commute) (simp add: power_mult)
+  by (subst mult_commute) (simp add: power_mult)
 
 lemma power_odd_eq: "(a::int) ^ Suc(2*n) = a * (a^n)^2"
-by (simp add: power_even_eq) 
+  by (simp add: power_even_eq)
 
 lemma power_minus_even [simp]:
-     "(-a) ^ (2*n) = (a::'a::{comm_ring_1,recpower}) ^ (2*n)"
-by (simp add: power_minus1_even power_minus [of a]) 
+  "(-a) ^ (2*n) = (a::'a::{comm_ring_1,recpower}) ^ (2*n)"
+  by (simp add: power_minus [of a]) 
 
 lemma zero_le_even_power'[simp]:
      "0 \<le> (a::'a::{ordered_idom,recpower}) ^ (2*n)"

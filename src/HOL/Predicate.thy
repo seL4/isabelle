@@ -622,6 +622,51 @@ lemma [code]:
   "pred_rec f P = f (eval P)"
   by (cases P) simp
 
+text {* for evaluation of predicate enumerations *}
+
+ML {*
+signature PREDICATE =
+sig
+  datatype 'a pred = Seq of (unit -> 'a seq)
+  and 'a seq = Empty | Insert of 'a * 'a pred | Join of 'a pred * 'a seq
+  val yield: 'a pred -> ('a * 'a pred) option
+  val yieldn: int -> 'a pred -> 'a list * 'a pred
+end;
+
+structure Predicate : PREDICATE =
+struct
+
+@{code_datatype pred = Seq};
+@{code_datatype seq = Empty | Insert | Join};
+
+fun yield (Seq f) = next (f ())
+and next @{code Empty} = NONE
+  | next (@{code Insert} (x, P)) = SOME (x, P)
+  | next (@{code Join} (P, xq)) = (case yield P
+     of NONE => next xq
+      | SOME (x, Q) => SOME (x, @{code Seq} (fn _ => @{code Join} (Q, xq))))
+
+fun anamorph f k x = (if k = 0 then ([], x)
+  else case f x
+   of NONE => ([], x)
+    | SOME (v, y) => let
+        val (vs, z) = anamorph f (k - 1) y
+      in (v :: vs, z) end)
+
+fun yieldn P = anamorph yield P;
+
+end;
+*}
+
+code_reserved Eval Predicate
+
+code_type pred and seq
+  (Eval "_/ Predicate.pred" and "_/ Predicate.seq")
+
+code_const Seq and Empty and Insert and Join
+  (Eval "Predicate.Seq" and "Predicate.Empty" and "Predicate.Insert/ (_,/ _)" and "Predicate.Join/ (_,/ _)")
+
+
 no_notation
   inf (infixl "\<sqinter>" 70) and
   sup (infixl "\<squnion>" 65) and

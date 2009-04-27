@@ -35,7 +35,7 @@ proof -
 	and nia: "\<And>x. \<not>accp R x \<Longrightarrow> \<not>accp R (f x)"
 	by blast
   
-  let ?s = "\<lambda>i. (f ^ i) x"
+  let ?s = "\<lambda>i. (f ^^ i) x"
   
   {
 	fix i

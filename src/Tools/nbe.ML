@@ -7,7 +7,7 @@ Normalization by evaluation, based on generic code generator.
 signature NBE =
 sig
   val norm_conv: cterm -> thm
-  val norm_term: theory -> term -> term
+  val norm: theory -> term -> term
 
   datatype Univ =
       Const of int * Univ list               (*named (uninterpreted) constants*)
@@ -350,7 +350,7 @@ fun ensure_stmts ctxt naming program =
 
 (* term evaluation *)
 
-fun eval_term ctxt gr deps ((vs, ty) : typscheme, t) =
+fun eval_term ctxt gr deps (vs : (string * sort) list, t) =
   let 
     val frees = Code_Thingol.fold_unbound_varnames (insert (op =)) t []
     val frees' = map (fn v => Free (v, [])) frees;
@@ -363,6 +363,15 @@ fun eval_term ctxt gr deps ((vs, ty) : typscheme, t) =
   end;
 
 (* reification *)
+
+fun typ_of_itype program vs (ityco `%% itys) =
+      let
+        val Code_Thingol.Datatype (tyco, _) = Graph.get_node program ityco;
+      in Type (tyco, map (typ_of_itype program vs) itys) end
+  | typ_of_itype program vs (ITyVar v) =
+      let
+        val sort = (the o AList.lookup (op =) vs) v;
+      in TFree ("'" ^ v, sort) end;
 
 fun term_of_univ thy program idx_tab t =
   let
@@ -418,41 +427,40 @@ structure Nbe_Functions = CodeDataFun
 
 (* compilation, evaluation and reification *)
 
-fun compile_eval thy naming program vs_ty_t deps =
+fun compile_eval thy naming program vs_t deps =
   let
     val ctxt = ProofContext.init thy;
     val (_, (gr, (_, idx_tab))) =
       Nbe_Functions.change thy (ensure_stmts ctxt naming program o snd);
   in
-    vs_ty_t
+    vs_t
     |> eval_term ctxt gr deps
     |> term_of_univ thy program idx_tab
   end;
 
 (* evaluation with type reconstruction *)
 
-fun eval thy t naming program vs_ty_t deps =
+fun normalize thy naming program (((vs0, (vs, ty)), fs), t) deps =
   let
     fun subst_const f = map_aterms (fn t as Term.Const (c, ty) => Term.Const (f c, ty)
       | t => t);
-    val subst_triv_consts = subst_const (Code_Unit.resubst_alias thy);
-    val ty = type_of t;
-    val type_free = AList.lookup (op =)
-      (map (fn (s, T) => (s, Term.Free (s, T))) (Term.add_frees t []));
-    val type_frees = Term.map_aterms
-      (fn (t as Term.Free (s, _)) => the_default t (type_free s) | t => t);
+    val resubst_triv_consts = subst_const (Code_Unit.resubst_alias thy);
+    val ty' = typ_of_itype program vs0 ty;
+    val fs' = (map o apsnd) (typ_of_itype program vs0) fs;
+    val type_frees = Term.map_aterms (fn (t as Term.Free (s, _)) =>
+      Term.Free (s, (the o AList.lookup (op =) fs') s) | t => t);
     fun type_infer t =
       singleton (TypeInfer.infer_types (Syntax.pp_global thy) (Sign.tsig_of thy) I
         (try (Type.strip_sorts o Sign.the_const_type thy)) (K NONE) Name.context 0)
-      (TypeInfer.constrain ty t);
+      (TypeInfer.constrain ty' t);
     fun check_tvars t = if null (Term.add_tvars t []) then t else
       error ("Illegal schematic type variables in normalized term: "
         ^ setmp show_types true (Syntax.string_of_term_global thy) t);
     val string_of_term = setmp show_types true (Syntax.string_of_term_global thy);
   in
-    compile_eval thy naming program vs_ty_t deps
+    compile_eval thy naming program (vs, t) deps
     |> tracing (fn t => "Normalized:\n" ^ string_of_term t)
-    |> subst_triv_consts
+    |> resubst_triv_consts
     |> type_frees
     |> tracing (fn t => "Vars typed:\n" ^ string_of_term t)
     |> type_infer
@@ -463,39 +471,36 @@ fun eval thy t naming program vs_ty_t deps =
 
 (* evaluation oracle *)
 
-val (_, norm_oracle) = Context.>>> (Context.map_theory_result
-  (Thm.add_oracle (Binding.name "norm", fn (thy, t, naming, program, vs_ty_t, deps) =>
-    Thm.cterm_of thy (Logic.mk_equals (t, eval thy t naming program vs_ty_t deps)))));
+fun add_triv_classes thy = curry (Sorts.inter_sort (Sign.classes_of thy))
+  (Code_Unit.triv_classes thy);
 
-fun add_triv_classes thy =
+fun mk_equals thy lhs raw_rhs =
   let
-    val inters = curry (Sorts.inter_sort (Sign.classes_of thy))
-      (Code_Unit.triv_classes thy);
-    fun map_sorts f = (map_types o map_atyps)
-      (fn TVar (v, sort) => TVar (v, f sort)
-        | TFree (v, sort) => TFree (v, f sort));
-  in map_sorts inters end;
+    val ty = Thm.typ_of (Thm.ctyp_of_term lhs);
+    val eq = Thm.cterm_of thy (Term.Const ("==", ty --> ty --> propT));
+    val rhs = Thm.cterm_of thy raw_rhs;
+  in Thm.mk_binop eq lhs rhs end;
+
+val (_, raw_norm_oracle) = Context.>>> (Context.map_theory_result
+  (Thm.add_oracle (Binding.name "norm", fn (thy, naming, program, vsp_ty_fs_t, deps, ct) =>
+    mk_equals thy ct (normalize thy naming program vsp_ty_fs_t deps))));
+
+fun norm_oracle thy naming program vsp_ty_fs_t deps ct =
+  raw_norm_oracle (thy, naming, program, vsp_ty_fs_t, deps, ct);
 
 fun norm_conv ct =
   let
     val thy = Thm.theory_of_cterm ct;
-    fun evaluator' t naming program vs_ty_t deps =
-      norm_oracle (thy, t, naming, program, vs_ty_t, deps);
-    fun evaluator t = (add_triv_classes thy t, evaluator' t);
-  in Code_Thingol.eval_conv thy evaluator ct end;
+  in Code_Thingol.eval_conv thy (add_triv_classes thy) (norm_oracle thy) ct end;
 
-fun norm_term thy t =
-  let
-    fun evaluator' t naming program vs_ty_t deps = eval thy t naming program vs_ty_t deps;
-    fun evaluator t = (add_triv_classes thy t, evaluator' t);
-  in (Code.postprocess_term thy o Code_Thingol.eval_term thy evaluator) t end;
+fun norm thy = Code_Thingol.eval thy (add_triv_classes thy) I (normalize thy);
 
 (* evaluation command *)
 
 fun norm_print_term ctxt modes t =
   let
     val thy = ProofContext.theory_of ctxt;
-    val t' = norm_term thy t;
+    val t' = norm thy t;
     val ty' = Term.type_of t';
     val ctxt' = Variable.auto_fixes t ctxt;
     val p = PrintMode.with_modes modes (fn () =>
@@ -510,8 +515,7 @@ fun norm_print_term_cmd (modes, s) state =
   let val ctxt = Toplevel.context_of state
   in norm_print_term ctxt modes (Syntax.read_term ctxt s) end;
 
-val setup =
-  Value.add_evaluator ("nbe", norm_term o ProofContext.theory_of);
+val setup = Value.add_evaluator ("nbe", norm o ProofContext.theory_of);
 
 local structure P = OuterParse and K = OuterKeyword in
 

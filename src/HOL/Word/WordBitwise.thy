@@ -443,8 +443,10 @@ lemma test_bit_2p':
 
 lemmas test_bit_2p = refl [THEN test_bit_2p', unfolded word_size]
 
-lemmas nth_w2p = test_bit_2p [unfolded of_int_number_of_eq
-  word_of_int [symmetric] Int.of_int_power]
+lemma nth_w2p:
+  "((2\<Colon>'a\<Colon>len word) ^ n) !! m \<longleftrightarrow> m = n \<and> m < len_of TYPE('a\<Colon>len)"
+  unfolding test_bit_2p [symmetric] word_of_int [symmetric]
+  by (simp add:  of_int_power)
 
 lemma uint_2p: 
   "(0::'a::len word) < 2 ^ n ==> uint (2 ^ n::'a::len word) = 2 ^ n"

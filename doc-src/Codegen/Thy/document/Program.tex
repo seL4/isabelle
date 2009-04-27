@@ -714,7 +714,7 @@ Conceptually, any datatype is spanned by a set of
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
-\isamarkupsubsection{Equality and wellsortedness%
+\isamarkupsubsection{Equality%
 }
 \isamarkuptrue%
 %
@@ -801,141 +801,7 @@ Surely you have already noticed how equality is treated
   manually like any other type class.
 
   Though this \isa{eq} class is designed to get rarely in
-  the way, a subtlety
-  enters the stage when definitions of overloaded constants
-  are dependent on operational equality.  For example, let
-  us define a lexicographic ordering on tuples
-  (also see theory \hyperlink{theory.Product-ord}{\mbox{\isa{Product{\isacharunderscore}ord}}}):%
-\end{isamarkuptext}%
-\isamarkuptrue%
-%
-\isadelimquote
-%
-\endisadelimquote
-%
-\isatagquote
-\isacommand{instantiation}\isamarkupfalse%
-\ {\isachardoublequoteopen}{\isacharasterisk}{\isachardoublequoteclose}\ {\isacharcolon}{\isacharcolon}\ {\isacharparenleft}order{\isacharcomma}\ order{\isacharparenright}\ order\isanewline
-\isakeyword{begin}\isanewline
-\isanewline
-\isacommand{definition}\isamarkupfalse%
-\ {\isacharbrackleft}code\ del{\isacharbrackright}{\isacharcolon}\isanewline
-\ \ {\isachardoublequoteopen}x\ {\isasymle}\ y\ {\isasymlongleftrightarrow}\ fst\ x\ {\isacharless}\ fst\ y\ {\isasymor}\ fst\ x\ {\isacharequal}\ fst\ y\ {\isasymand}\ snd\ x\ {\isasymle}\ snd\ y{\isachardoublequoteclose}\isanewline
-\isanewline
-\isacommand{definition}\isamarkupfalse%
-\ {\isacharbrackleft}code\ del{\isacharbrackright}{\isacharcolon}\isanewline
-\ \ {\isachardoublequoteopen}x\ {\isacharless}\ y\ {\isasymlongleftrightarrow}\ fst\ x\ {\isacharless}\ fst\ y\ {\isasymor}\ fst\ x\ {\isacharequal}\ fst\ y\ {\isasymand}\ snd\ x\ {\isacharless}\ snd\ y{\isachardoublequoteclose}\isanewline
-\isanewline
-\isacommand{instance}\isamarkupfalse%
-\ \isacommand{proof}\isamarkupfalse%
-\isanewline
-\isacommand{qed}\isamarkupfalse%
-\ {\isacharparenleft}auto\ simp{\isacharcolon}\ less{\isacharunderscore}eq{\isacharunderscore}prod{\isacharunderscore}def\ less{\isacharunderscore}prod{\isacharunderscore}def\ intro{\isacharcolon}\ order{\isacharunderscore}less{\isacharunderscore}trans{\isacharparenright}\isanewline
-\isanewline
-\isacommand{end}\isamarkupfalse%
-\isanewline
-\isanewline
-\isacommand{lemma}\isamarkupfalse%
-\ order{\isacharunderscore}prod\ {\isacharbrackleft}code{\isacharbrackright}{\isacharcolon}\isanewline
-\ \ {\isachardoublequoteopen}{\isacharparenleft}x{\isadigit{1}}\ {\isasymColon}\ {\isacharprime}a{\isasymColon}order{\isacharcomma}\ y{\isadigit{1}}\ {\isasymColon}\ {\isacharprime}b{\isasymColon}order{\isacharparenright}\ {\isacharless}\ {\isacharparenleft}x{\isadigit{2}}{\isacharcomma}\ y{\isadigit{2}}{\isacharparenright}\ {\isasymlongleftrightarrow}\isanewline
-\ \ \ \ \ x{\isadigit{1}}\ {\isacharless}\ x{\isadigit{2}}\ {\isasymor}\ x{\isadigit{1}}\ {\isacharequal}\ x{\isadigit{2}}\ {\isasymand}\ y{\isadigit{1}}\ {\isacharless}\ y{\isadigit{2}}{\isachardoublequoteclose}\isanewline
-\ \ {\isachardoublequoteopen}{\isacharparenleft}x{\isadigit{1}}\ {\isasymColon}\ {\isacharprime}a{\isasymColon}order{\isacharcomma}\ y{\isadigit{1}}\ {\isasymColon}\ {\isacharprime}b{\isasymColon}order{\isacharparenright}\ {\isasymle}\ {\isacharparenleft}x{\isadigit{2}}{\isacharcomma}\ y{\isadigit{2}}{\isacharparenright}\ {\isasymlongleftrightarrow}\isanewline
-\ \ \ \ \ x{\isadigit{1}}\ {\isacharless}\ x{\isadigit{2}}\ {\isasymor}\ x{\isadigit{1}}\ {\isacharequal}\ x{\isadigit{2}}\ {\isasymand}\ y{\isadigit{1}}\ {\isasymle}\ y{\isadigit{2}}{\isachardoublequoteclose}\isanewline
-\ \ \isacommand{by}\isamarkupfalse%
-\ {\isacharparenleft}simp{\isacharunderscore}all\ add{\isacharcolon}\ less{\isacharunderscore}prod{\isacharunderscore}def\ less{\isacharunderscore}eq{\isacharunderscore}prod{\isacharunderscore}def{\isacharparenright}%
-\endisatagquote
-{\isafoldquote}%
-%
-\isadelimquote
-%
-\endisadelimquote
-%
-\begin{isamarkuptext}%
-\noindent Then code generation will fail.  Why?  The definition
-  of \isa{op\ {\isasymle}} depends on equality on both arguments,
-  which are polymorphic and impose an additional \isa{eq}
-  class constraint, which the preprocessor does not propagate
-  (for technical reasons).
-
-  The solution is to add \isa{eq} explicitly to the first sort arguments in the
-  code theorems:%
-\end{isamarkuptext}%
-\isamarkuptrue%
-%
-\isadelimquote
-%
-\endisadelimquote
-%
-\isatagquote
-\isacommand{lemma}\isamarkupfalse%
-\ order{\isacharunderscore}prod{\isacharunderscore}code\ {\isacharbrackleft}code{\isacharbrackright}{\isacharcolon}\isanewline
-\ \ {\isachardoublequoteopen}{\isacharparenleft}x{\isadigit{1}}\ {\isasymColon}\ {\isacharprime}a{\isasymColon}{\isacharbraceleft}order{\isacharcomma}\ eq{\isacharbraceright}{\isacharcomma}\ y{\isadigit{1}}\ {\isasymColon}\ {\isacharprime}b{\isasymColon}order{\isacharparenright}\ {\isacharless}\ {\isacharparenleft}x{\isadigit{2}}{\isacharcomma}\ y{\isadigit{2}}{\isacharparenright}\ {\isasymlongleftrightarrow}\isanewline
-\ \ \ \ \ x{\isadigit{1}}\ {\isacharless}\ x{\isadigit{2}}\ {\isasymor}\ x{\isadigit{1}}\ {\isacharequal}\ x{\isadigit{2}}\ {\isasymand}\ y{\isadigit{1}}\ {\isacharless}\ y{\isadigit{2}}{\isachardoublequoteclose}\isanewline
-\ \ {\isachardoublequoteopen}{\isacharparenleft}x{\isadigit{1}}\ {\isasymColon}\ {\isacharprime}a{\isasymColon}{\isacharbraceleft}order{\isacharcomma}\ eq{\isacharbraceright}{\isacharcomma}\ y{\isadigit{1}}\ {\isasymColon}\ {\isacharprime}b{\isasymColon}order{\isacharparenright}\ {\isasymle}\ {\isacharparenleft}x{\isadigit{2}}{\isacharcomma}\ y{\isadigit{2}}{\isacharparenright}\ {\isasymlongleftrightarrow}\isanewline
-\ \ \ \ \ x{\isadigit{1}}\ {\isacharless}\ x{\isadigit{2}}\ {\isasymor}\ x{\isadigit{1}}\ {\isacharequal}\ x{\isadigit{2}}\ {\isasymand}\ y{\isadigit{1}}\ {\isasymle}\ y{\isadigit{2}}{\isachardoublequoteclose}\isanewline
-\ \ \isacommand{by}\isamarkupfalse%
-\ {\isacharparenleft}simp{\isacharunderscore}all\ add{\isacharcolon}\ less{\isacharunderscore}prod{\isacharunderscore}def\ less{\isacharunderscore}eq{\isacharunderscore}prod{\isacharunderscore}def{\isacharparenright}%
-\endisatagquote
-{\isafoldquote}%
-%
-\isadelimquote
-%
-\endisadelimquote
-%
-\begin{isamarkuptext}%
-\noindent Then code generation succeeds:%
-\end{isamarkuptext}%
-\isamarkuptrue%
-%
-\isadelimquote
-%
-\endisadelimquote
-%
-\isatagquote
-%
-\begin{isamarkuptext}%
-\isatypewriter%
-\noindent%
-\hspace*{0pt}structure Example = \\
-\hspace*{0pt}struct\\
-\hspace*{0pt}\\
-\hspace*{0pt}type 'a eq = {\char123}eq :~'a -> 'a -> bool{\char125};\\
-\hspace*{0pt}fun eq (A{\char95}:'a eq) = {\char35}eq A{\char95};\\
-\hspace*{0pt}\\
-\hspace*{0pt}type 'a ord = {\char123}less{\char95}eq :~'a -> 'a -> bool,~less :~'a -> 'a -> bool{\char125};\\
-\hspace*{0pt}fun less{\char95}eq (A{\char95}:'a ord) = {\char35}less{\char95}eq A{\char95};\\
-\hspace*{0pt}fun less (A{\char95}:'a ord) = {\char35}less A{\char95};\\
-\hspace*{0pt}\\
-\hspace*{0pt}fun eqop A{\char95}~a b = eq A{\char95}~a b;\\
-\hspace*{0pt}\\
-\hspace*{0pt}type 'a preorder = {\char123}Orderings{\char95}{\char95}ord{\char95}preorder :~'a ord{\char125};\\
-\hspace*{0pt}fun ord{\char95}preorder (A{\char95}:'a preorder) = {\char35}Orderings{\char95}{\char95}ord{\char95}preorder A{\char95};\\
-\hspace*{0pt}\\
-\hspace*{0pt}type 'a order = {\char123}Orderings{\char95}{\char95}preorder{\char95}order :~'a preorder{\char125};\\
-\hspace*{0pt}fun preorder{\char95}order (A{\char95}:'a order) = {\char35}Orderings{\char95}{\char95}preorder{\char95}order A{\char95};\\
-\hspace*{0pt}\\
-\hspace*{0pt}fun less{\char95}eqa (A1{\char95},~A2{\char95}) B{\char95}~(x1,~y1) (x2,~y2) =\\
-\hspace*{0pt} ~less ((ord{\char95}preorder o preorder{\char95}order) A2{\char95}) x1 x2 orelse\\
-\hspace*{0pt} ~~~eqop A1{\char95}~x1 x2 andalso\\
-\hspace*{0pt} ~~~~~less{\char95}eq ((ord{\char95}preorder o preorder{\char95}order) B{\char95}) y1 y2\\
-\hspace*{0pt} ~| less{\char95}eqa (A1{\char95},~A2{\char95}) B{\char95}~(x1,~y1) (x2,~y2) =\\
-\hspace*{0pt} ~~~less ((ord{\char95}preorder o preorder{\char95}order) A2{\char95}) x1 x2 orelse\\
-\hspace*{0pt} ~~~~~eqop A1{\char95}~x1 x2 andalso\\
-\hspace*{0pt} ~~~~~~~less{\char95}eq ((ord{\char95}preorder o preorder{\char95}order) B{\char95}) y1 y2;\\
-\hspace*{0pt}\\
-\hspace*{0pt}end;~(*struct Example*)%
-\end{isamarkuptext}%
-\isamarkuptrue%
-%
-\endisatagquote
-{\isafoldquote}%
-%
-\isadelimquote
-%
-\endisadelimquote
-%
-\begin{isamarkuptext}%
-In some cases, the automatically derived code equations
+  the way, in some cases the automatically derived code equations
   for equality on a particular type may not be appropriate.
   As example, watch the following datatype representing
   monomorphic parametric types (where type constructors

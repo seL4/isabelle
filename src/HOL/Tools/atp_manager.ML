@@ -51,15 +51,17 @@ fun get_timeout () = CRITICAL (fn () => ! timeout);
 fun set_timeout time = CRITICAL (fn () => timeout := time);
 
 val _ =
-  ProofGeneralPgip.add_preference "Proof"
+  ProofGeneralPgip.add_preference Preferences.category_proof
     (Preferences.string_pref atps
       "ATP: provers" "Default automatic provers (separated by whitespace)");
 
-val _ = ProofGeneralPgip.add_preference "Proof"
+val _ =
+  ProofGeneralPgip.add_preference Preferences.category_proof
     (Preferences.int_pref max_atps
       "ATP: maximum number" "How many provers may run in parallel");
 
-val _ = ProofGeneralPgip.add_preference "Proof"
+val _ =
+  ProofGeneralPgip.add_preference Preferences.category_proof
     (Preferences.int_pref timeout
       "ATP: timeout" "ATPs will be interrupted after this time (in seconds)");
 

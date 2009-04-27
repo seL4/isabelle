@@ -159,19 +159,7 @@ end
 
 subsection {* Exponentiation *}
 
-instantiation complex :: recpower
-begin
-
-primrec power_complex where
-  "z ^ 0     = (1\<Colon>complex)"
-| "z ^ Suc n = (z\<Colon>complex) * z ^ n"
-
-instance proof
-qed simp_all
-
-declare power_complex.simps [simp del]
-
-end
+instance complex :: recpower ..
 
 
 subsection {* Numerals and Arithmetic *}

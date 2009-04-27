@@ -279,6 +279,7 @@ e.g.\ \mbox{\isa{{\isasymforall}{\isacharparenleft}x{\isacharcomma}\ y{\isacharp
 \isa{rtrancl} & \isa{{\isacharparenleft}{\isacharprime}a\ {\isasymtimes}\ {\isacharprime}a{\isacharparenright}\ set\ {\isasymRightarrow}\ {\isacharparenleft}{\isacharprime}a\ {\isasymtimes}\ {\isacharprime}a{\isacharparenright}\ set}\\
 \isa{trancl} & \isa{{\isacharparenleft}{\isacharprime}a\ {\isasymtimes}\ {\isacharprime}a{\isacharparenright}\ set\ {\isasymRightarrow}\ {\isacharparenleft}{\isacharprime}a\ {\isasymtimes}\ {\isacharprime}a{\isacharparenright}\ set}\\
 \isa{reflcl} & \isa{{\isacharparenleft}{\isacharprime}a\ {\isasymtimes}\ {\isacharprime}a{\isacharparenright}\ set\ {\isasymRightarrow}\ {\isacharparenleft}{\isacharprime}a\ {\isasymtimes}\ {\isacharprime}a{\isacharparenright}\ set}\\
+\isa{op\ {\isacharcircum}{\isacharcircum}} & \isa{{\isacharparenleft}{\isacharprime}a\ {\isasymtimes}\ {\isacharprime}a{\isacharparenright}\ set\ {\isasymRightarrow}\ nat\ {\isasymRightarrow}\ {\isacharparenleft}{\isacharprime}a\ {\isasymtimes}\ {\isacharprime}a{\isacharparenright}\ set}\\
 \end{tabular}
 
 \subsubsection*{Syntax}
@@ -328,7 +329,6 @@ overloaded operators:
 \isa{op\ {\isacharplus}} &
 \isa{op\ {\isacharminus}} &
 \isa{op\ {\isacharasterisk}} &
-\isa{op\ {\isacharcircum}} &
 \isa{op\ div}&
 \isa{op\ mod}&
 \isa{op\ dvd}\\
@@ -341,7 +341,9 @@ overloaded operators:
 \end{tabular}
 
 \begin{tabular}{@ {} l @ {~::~} l @ {}}
-\isa{of{\isacharunderscore}nat} & \isa{nat\ {\isasymRightarrow}\ {\isacharprime}a}
+\isa{of{\isacharunderscore}nat} & \isa{nat\ {\isasymRightarrow}\ {\isacharprime}a}\\
+\isa{op\ {\isacharcircum}{\isacharcircum}} &
+  \isa{{\isacharparenleft}{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a{\isacharparenright}\ {\isasymRightarrow}\ nat\ {\isasymRightarrow}\ {\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a}
 \end{tabular}
 
 \section{Int}
@@ -458,14 +460,6 @@ Type \isa{int}
 \begin{tabular}{@ {} l @ {~::~} l @ {}}
 \isa{op\ {\isacharcircum}} & \isa{{\isacharprime}a\ {\isasymRightarrow}\ nat\ {\isasymRightarrow}\ {\isacharprime}a}
 \end{tabular}
-
-
-\section{Iterated Functions and Relations}
-
-Theory: \isa{Relation{\isacharunderscore}Power}
-
-Iterated functions \ \isa{{\isachardoublequote}{\isacharparenleft}f{\isacharcolon}{\isacharcolon}{\isacharprime}a{\isasymRightarrow}{\isacharprime}a{\isacharparenright}\ {\isacharcircum}\ n{\isachardoublequote}} \
-and relations \ \isa{{\isachardoublequote}{\isacharparenleft}r{\isacharcolon}{\isacharcolon}{\isacharparenleft}{\isacharprime}a{\isasymtimes}{\isacharprime}a{\isacharparenright}set{\isacharparenright}\ {\isacharcircum}\ n{\isachardoublequote}}.
 
 
 \section{Option}

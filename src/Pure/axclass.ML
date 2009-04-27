@@ -286,74 +286,6 @@ fun read_classrel thy raw_rel =
     handle TYPE (msg, _, _) => error msg;
 
 
-(* primitive rules *)
-
-fun add_classrel th thy =
-  let
-    fun err () = raise THM ("add_classrel: malformed class relation", 0, [th]);
-    val prop = Thm.plain_prop_of (Thm.transfer thy th);
-    val rel = Logic.dest_classrel prop handle TERM _ => err ();
-    val (c1, c2) = cert_classrel thy rel handle TYPE _ => err ();
-  in
-    thy
-    |> Sign.primitive_classrel (c1, c2)
-    |> put_classrel ((c1, c2), Thm.close_derivation (Drule.unconstrainTs th))
-    |> perhaps complete_arities
-  end;
-
-fun add_arity th thy =
-  let
-    fun err () = raise THM ("add_arity: malformed type arity", 0, [th]);
-    val prop = Thm.plain_prop_of (Thm.transfer thy th);
-    val (t, Ss, c) = Logic.dest_arity prop handle TERM _ => err ();
-    val _ = map (Sign.certify_sort thy) Ss = Ss orelse err ();
-    val _ = case filter_out (fn c => can (get_inst_param thy) (c, t)) (params_of thy c)
-     of [] => ()
-      | cs => Output.legacy_feature
-          ("Missing specifications for overloaded parameters " ^ commas_quote cs)
-    val th' = Drule.unconstrainTs th;
-  in
-    thy
-    |> Sign.primitive_arity (t, Ss, [c])
-    |> put_arity ((t, Ss, c), th')
-  end;
-
-
-(* tactical proofs *)
-
-fun prove_classrel raw_rel tac thy =
-  let
-    val ctxt = ProofContext.init thy;
-    val (c1, c2) = cert_classrel thy raw_rel;
-    val th = Goal.prove ctxt [] [] (Logic.mk_classrel (c1, c2)) (K tac) handle ERROR msg =>
-      cat_error msg ("The error(s) above occurred while trying to prove class relation " ^
-        quote (Syntax.string_of_classrel ctxt [c1, c2]));
-  in
-    thy
-    |> PureThy.add_thms [((Binding.name
-        (prefix classrel_prefix (Logic.name_classrel (c1, c2))), th), [])]
-    |-> (fn [th'] => add_classrel th')
-  end;
-
-fun prove_arity raw_arity tac thy =
-  let
-    val ctxt = ProofContext.init thy;
-    val arity = Sign.cert_arity thy raw_arity;
-    val names = map (prefix arity_prefix) (Logic.name_arities arity);
-    val props = Logic.mk_arities arity;
-    val ths = Goal.prove_multi ctxt [] [] props
-      (fn _ => Goal.precise_conjunction_tac (length props) 1 THEN tac) handle ERROR msg =>
-        cat_error msg ("The error(s) above occurred while trying to prove type arity " ^
-          quote (Syntax.string_of_arity ctxt arity));
-  in
-    thy
-    |> PureThy.add_thms (map (rpair []) (map Binding.name names ~~ ths))
-    |-> fold add_arity
-  end;
-
-
-(* instance parameters and overloaded definitions *)
-
 (* declaration and definition of instances of overloaded constants *)
 
 fun declare_overloaded (c, T) thy =
@@ -395,6 +327,74 @@ fun define_overloaded b (c, t) thy =
     thy
     |> Thm.add_def false false (b', prop)
     |>> (fn thm =>  Drule.transitive_thm OF [eq, thm])
+  end;
+
+
+(* primitive rules *)
+
+fun add_classrel th thy =
+  let
+    fun err () = raise THM ("add_classrel: malformed class relation", 0, [th]);
+    val prop = Thm.plain_prop_of (Thm.transfer thy th);
+    val rel = Logic.dest_classrel prop handle TERM _ => err ();
+    val (c1, c2) = cert_classrel thy rel handle TYPE _ => err ();
+  in
+    thy
+    |> Sign.primitive_classrel (c1, c2)
+    |> put_classrel ((c1, c2), Thm.close_derivation (Drule.unconstrainTs th))
+    |> perhaps complete_arities
+  end;
+
+fun add_arity th thy =
+  let
+    fun err () = raise THM ("add_arity: malformed type arity", 0, [th]);
+    val prop = Thm.plain_prop_of (Thm.transfer thy th);
+    val (t, Ss, c) = Logic.dest_arity prop handle TERM _ => err ();
+    val T = Type (t, map TFree (Name.names Name.context Name.aT Ss));
+    val missing_params = Sign.complete_sort thy [c]
+      |> maps (these o Option.map #params o try (get_info thy))
+      |> filter_out (fn (const, _) => can (get_inst_param thy) (const, t))
+      |> (map o apsnd o map_atyps) (K T);
+    val _ = map (Sign.certify_sort thy) Ss = Ss orelse err ();
+    val th' = Drule.unconstrainTs th;
+  in
+    thy
+    |> fold (snd oo declare_overloaded) missing_params
+    |> Sign.primitive_arity (t, Ss, [c])
+    |> put_arity ((t, Ss, c), th')
+  end;
+
+
+(* tactical proofs *)
+
+fun prove_classrel raw_rel tac thy =
+  let
+    val ctxt = ProofContext.init thy;
+    val (c1, c2) = cert_classrel thy raw_rel;
+    val th = Goal.prove ctxt [] [] (Logic.mk_classrel (c1, c2)) (K tac) handle ERROR msg =>
+      cat_error msg ("The error(s) above occurred while trying to prove class relation " ^
+        quote (Syntax.string_of_classrel ctxt [c1, c2]));
+  in
+    thy
+    |> PureThy.add_thms [((Binding.name
+        (prefix classrel_prefix (Logic.name_classrel (c1, c2))), th), [])]
+    |-> (fn [th'] => add_classrel th')
+  end;
+
+fun prove_arity raw_arity tac thy =
+  let
+    val ctxt = ProofContext.init thy;
+    val arity = Sign.cert_arity thy raw_arity;
+    val names = map (prefix arity_prefix) (Logic.name_arities arity);
+    val props = Logic.mk_arities arity;
+    val ths = Goal.prove_multi ctxt [] [] props
+      (fn _ => Goal.precise_conjunction_tac (length props) 1 THEN tac) handle ERROR msg =>
+        cat_error msg ("The error(s) above occurred while trying to prove type arity " ^
+          quote (Syntax.string_of_arity ctxt arity));
+  in
+    thy
+    |> PureThy.add_thms (map (rpair []) (map Binding.name names ~~ ths))
+    |-> fold add_arity
   end;
 
 

@@ -459,7 +459,7 @@ lemma hyperpow_add:
 by transfer (rule power_add)
 
 lemma hyperpow_one [simp]:
-  "\<And>r. (r::'a::recpower star) pow (1::hypnat) = r"
+  "\<And>r. (r::'a::monoid_mult star) pow (1::hypnat) = r"
 by transfer (rule power_one_right)
 
 lemma hyperpow_two:

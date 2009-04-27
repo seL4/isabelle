@@ -68,7 +68,7 @@ fun code_writeln p = Pretty.setmp_margin (!code_width) Pretty.writeln p;
 fun compile f = (code_setmp f Compile; ());
 fun export f = (code_setmp f Export; ());
 fun file p f = (code_setmp f (File p); ());
-fun string cs f = fst (the (code_setmp f (String cs)));
+fun string stmts f = fst (the (code_setmp f (String stmts)));
 
 fun stmt_names_of_destination (String stmts) = stmts
   | stmt_names_of_destination _ = [];
