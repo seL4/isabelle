@@ -323,8 +323,15 @@ fun gen_add_include read_const target args thy =
 val add_include = gen_add_include Code_Unit.check_const;
 val add_include_cmd = gen_add_include Code_Unit.read_const;
 
-fun add_module_alias target =
-  map_module_alias target o Symtab.update o apsnd Code_Name.check_modulename;
+fun add_module_alias target (thyname, modlname) =
+  let
+    val xs = Long_Name.explode modlname;
+    val xs' = map (Code_Name.purify_name true) xs;
+  in if xs' = xs
+    then map_module_alias target (Symtab.update (thyname, modlname))
+    else error ("Invalid module name: " ^ quote modlname ^ "\n"
+      ^ "perhaps try " ^ quote (Long_Name.implode xs'))
+  end;
 
 fun gen_allow_abort prep_const raw_c thy =
   let

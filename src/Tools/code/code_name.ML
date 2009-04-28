@@ -6,10 +6,10 @@ Some code generator infrastructure concerning names.
 
 signature CODE_NAME =
 sig
+  val purify_name: bool -> string -> string
   val purify_var: string -> string
   val purify_tvar: string -> string
   val purify_base: string -> string
-  val check_modulename: string -> string
 
   val read_const_exprs: theory -> string list -> string list * string list
 end;
@@ -19,63 +19,33 @@ struct
 
 (** purification **)
 
-fun purify_name upper =
+fun purify_name upper = 
   let
-    fun is_valid s = Symbol.is_ascii_letter s orelse Symbol.is_ascii_digit s orelse s = "'";
-    val is_junk = not o is_valid andf Symbol.is_regular;
-    val junk = Scan.many is_junk;
-    val scan_valids = Symbol.scanner "Malformed input"
-      ((junk |--
-        (Scan.optional (Scan.one Symbol.is_ascii_letter) "x" ^^ (Scan.many is_valid >> implode)
-        --| junk))
-      ::: Scan.repeat ((Scan.many1 is_valid >> implode) --| junk));
     fun upper_lower cs = if upper then nth_map 0 Symbol.to_ascii_upper cs
       else (if forall Symbol.is_ascii_upper cs
         then map else nth_map 0) Symbol.to_ascii_lower cs;
   in
-    explode
-    #> scan_valids
-    #> space_implode "_"
+    Name.desymbolize
     #> explode
     #> upper_lower
     #> implode
   end;
 
-fun purify_var "" = "x"
-  | purify_var v = purify_name false v;
+val purify_var = purify_name false;
 
 fun purify_tvar "" = "'a"
   | purify_tvar v =
-      (unprefix "'" #> explode #> filter Symbol.is_ascii_letter #> cons "'" #> implode) v;
-
-val purify_prefix =
-  explode
-  (*FIMXE should disappear as soon as hierarchical theory name spaces are available*)
-  #> Symbol.scanner "Malformed name"
-      (Scan.repeat ($$ "_" |-- $$ "_" >> (fn _ => ".") || Scan.one Symbol.is_regular))
-  #> implode
-  #> Long_Name.explode
-  #> map (purify_name true);
+      (unprefix "'" #> purify_name false #> prefix "'") v;
 
 (*FIMXE non-canonical function treating non-canonical names*)
 fun purify_base "op &" = "and"
   | purify_base "op |" = "or"
   | purify_base "op -->" = "implies"
   | purify_base "op :" = "member"
+  | purify_base "op =" = "eq"
   | purify_base "*" = "product"
   | purify_base "+" = "sum"
-  | purify_base s = if String.isPrefix "op =" s
-      then "eq" ^ purify_name false s
-      else purify_name false s;
-
-fun check_modulename mn =
-  let
-    val mns = Long_Name.explode mn;
-    val mns' = map (purify_name true) mns;
-  in
-    if mns' = mns then mn else error ("Invalid module name: " ^ quote mn ^ "\n"
-      ^ "perhaps try " ^ quote (Long_Name.implode mns'))
-  end;
+  | purify_base s = purify_name false s;
 
 
 (** misc **)

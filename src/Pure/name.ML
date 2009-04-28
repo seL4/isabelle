@@ -28,6 +28,7 @@ sig
   val variants: string list -> context -> string list * context
   val variant_list: string list -> string list -> string list
   val variant: string list -> string -> string
+  val desymbolize: string -> string
 end;
 
 structure Name: NAME =
@@ -143,5 +144,27 @@ val variants = fold_map (fn name => fn ctxt =>
 
 fun variant_list used names = #1 (make_context used |> variants names);
 fun variant used = singleton (variant_list used);
+
+
+(* names conforming to typical requirements of identifiers in the outside world *)
+
+fun desymbolize "" = "x"
+  | desymbolize s =
+      let
+        val xs = Symbol.explode s;
+        val ys = if Symbol.is_ascii_letter (hd xs) then xs
+          else "x" :: xs;
+        fun is_valid x =
+          Symbol.is_ascii_letter x orelse Symbol.is_ascii_digit x orelse x = "'";
+        fun sep [] = []
+          | sep (xs as "_" :: _) = xs
+          | sep xs = "_" :: xs;
+        fun desymb x xs = if is_valid x
+            then x :: xs
+          else if Symbol.is_symbolic x
+            then "_" :: Symbol.name_of x :: sep xs 
+          else
+            sep xs
+      in implode (fold_rev desymb ys []) end;
 
 end;
