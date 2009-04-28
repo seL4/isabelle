@@ -383,7 +383,7 @@ lemma hcpow_mult:
 by transfer (rule power_mult_distrib)
 
 lemma hcpow_zero2 [simp]:
-  "\<And>n. 0 pow (hSuc n) = (0::'a::{semiring_0} star)"
+  "\<And>n. 0 pow (hSuc n) = (0::'a::{power,semiring_0} star)"
 by transfer (rule power_0_Suc)
 
 lemma hcpow_not_zero [simp,intro]:
