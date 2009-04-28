@@ -333,8 +333,9 @@ lemma mod_mult_mult2:
 
 end
 
-lemma div_power: "(y::'a::{semiring_div,no_zero_divisors,recpower}) dvd x \<Longrightarrow>
-    (x div y)^n = x^n div y^n"
+lemma div_power:
+  "(y::'a::{semiring_div,no_zero_divisors,power}) dvd x \<Longrightarrow>
+    (x div y) ^ n = x ^ n div y ^ n"
 apply (induct n)
  apply simp
 apply(simp add: div_mult_div_if_dvd dvd_power_same)
@@ -936,10 +937,8 @@ lemma dvd_imp_le: "[| k dvd n; 0 < n |] ==> k \<le> (n::nat)"
 lemma dvd_mult_div_cancel: "n dvd m ==> n * (m div n) = (m::nat)"
   by (simp add: dvd_eq_mod_eq_0 mult_div_cancel)
 
-lemma nat_zero_less_power_iff [simp]: "(x^n > 0) = (x > (0::nat) | n=0)"
-  by (induct n) auto
-
-lemma power_dvd_imp_le: "[|i^m dvd i^n;  (1::nat) < i|] ==> m \<le> n"
+lemma power_dvd_imp_le:
+  "i ^ m dvd i ^ n \<Longrightarrow> (1::nat) < i \<Longrightarrow> m \<le> n"
   apply (rule power_le_imp_le_exp, assumption)
   apply (erule dvd_imp_le, simp)
   done
