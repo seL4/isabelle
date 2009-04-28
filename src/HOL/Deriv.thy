@@ -1,5 +1,4 @@
 (*  Title       : Deriv.thy
-    ID          : $Id$
     Author      : Jacques D. Fleuriot
     Copyright   : 1998  University of Cambridge
     Conversion to Isar and new proofs by Lawrence C Paulson, 2004
@@ -197,7 +196,7 @@ apply (simp add: mult_ac)
 done
 
 lemma DERIV_power_Suc:
-  fixes f :: "'a \<Rightarrow> 'a::{real_normed_field,recpower}"
+  fixes f :: "'a \<Rightarrow> 'a::{real_normed_field}"
   assumes f: "DERIV f x :> D"
   shows "DERIV (\<lambda>x. f x ^ Suc n) x :> (1 + of_nat n) * (D * f x ^ n)"
 proof (induct n)
@@ -211,7 +210,7 @@ case (Suc k)
 qed
 
 lemma DERIV_power:
-  fixes f :: "'a \<Rightarrow> 'a::{real_normed_field,recpower}"
+  fixes f :: "'a \<Rightarrow> 'a::{real_normed_field}"
   assumes f: "DERIV f x :> D"
   shows "DERIV (\<lambda>x. f x ^ n) x :> of_nat n * (D * f x ^ (n - Suc 0))"
 by (cases "n", simp, simp add: DERIV_power_Suc f del: power_Suc)
@@ -287,20 +286,20 @@ done
 text{*Power of -1*}
 
 lemma DERIV_inverse:
-  fixes x :: "'a::{real_normed_field,recpower}"
+  fixes x :: "'a::{real_normed_field}"
   shows "x \<noteq> 0 ==> DERIV (%x. inverse(x)) x :> (-(inverse x ^ Suc (Suc 0)))"
 by (drule DERIV_inverse' [OF DERIV_ident]) simp
 
 text{*Derivative of inverse*}
 lemma DERIV_inverse_fun:
-  fixes x :: "'a::{real_normed_field,recpower}"
+  fixes x :: "'a::{real_normed_field}"
   shows "[| DERIV f x :> d; f(x) \<noteq> 0 |]
       ==> DERIV (%x. inverse(f x)) x :> (- (d * inverse(f(x) ^ Suc (Suc 0))))"
 by (drule (1) DERIV_inverse') (simp add: mult_ac nonzero_inverse_mult_distrib)
 
 text{*Derivative of quotient*}
 lemma DERIV_quotient:
-  fixes x :: "'a::{real_normed_field,recpower}"
+  fixes x :: "'a::{real_normed_field}"
   shows "[| DERIV f x :> d; DERIV g x :> e; g(x) \<noteq> 0 |]
        ==> DERIV (%y. f(y) / (g y)) x :> (d*g(x) - (e*f(x))) / (g(x) ^ Suc (Suc 0))"
 by (drule (2) DERIV_divide) (simp add: mult_commute)
@@ -404,7 +403,7 @@ lemma differentiable_divide [simp]:
   unfolding divide_inverse using prems by simp
 
 lemma differentiable_power [simp]:
-  fixes f :: "'a::{recpower,real_normed_field} \<Rightarrow> 'a"
+  fixes f :: "'a::{real_normed_field} \<Rightarrow> 'a"
   assumes "f differentiable x"
   shows "(\<lambda>x. f x ^ n) differentiable x"
   by (induct n, simp, simp add: prems)

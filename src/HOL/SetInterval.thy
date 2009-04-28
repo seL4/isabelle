@@ -855,7 +855,7 @@ subsection {* The formula for geometric sums *}
 
 lemma geometric_sum:
   "x ~= 1 ==> (\<Sum>i=0..<n. x ^ i) =
-  (x ^ n - 1) / (x - 1::'a::{field, recpower})"
+  (x ^ n - 1) / (x - 1::'a::{field})"
 by (induct "n") (simp_all add:field_simps power_Suc)
 
 subsection {* The formula for arithmetic sums *}

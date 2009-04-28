@@ -292,9 +292,7 @@ subsection {* Embedding of the Integers into any @{text ring_1}: @{text of_int}*
 context ring_1
 begin
 
-definition
-  of_int :: "int \<Rightarrow> 'a"
-where
+definition of_int :: "int \<Rightarrow> 'a" where
   [code del]: "of_int z = contents (\<Union>(i, j) \<in> Rep_Integ z. { of_nat i - of_nat j })"
 
 lemma of_int: "of_int (Abs_Integ (intrel `` {(i,j)})) = of_nat i - of_nat j"
@@ -329,6 +327,10 @@ done
 text{*Collapse nested embeddings*}
 lemma of_int_of_nat_eq [simp]: "of_int (of_nat n) = of_nat n"
 by (induct n) auto
+
+lemma of_int_power:
+  "of_int (z ^ n) = of_int z ^ n"
+  by (induct n) simp_all
 
 end
 
@@ -1841,23 +1843,6 @@ proof
 qed
 
 
-subsection {* Integer Powers *} 
-
-lemma of_int_power:
-  "of_int (z ^ n) = of_int z ^ n"
-  by (induct n) simp_all
-
-lemma zpower_zpower:
-  "(x ^ y) ^ z = (x ^ (y * z)::int)"
-  by (rule power_mult [symmetric])
-
-lemma int_power:
-  "int (m ^ n) = int m ^ n"
-  by (rule of_nat_power)
-
-lemmas zpower_int = int_power [symmetric]
-
-
 subsection {* Further theorems on numerals *}
 
 subsubsection{*Special Simplification for Constants*}
@@ -2259,5 +2244,15 @@ lemma zero_less_zpower_abs_iff:
 
 lemma zero_le_zpower_abs: "(0::int) \<le> abs x ^ n"
   by (rule zero_le_power_abs)
+
+lemma zpower_zpower:
+  "(x ^ y) ^ z = (x ^ (y * z)::int)"
+  by (rule power_mult [symmetric])
+
+lemma int_power:
+  "int (m ^ n) = int m ^ n"
+  by (rule of_nat_power)
+
+lemmas zpower_int = int_power [symmetric]
 
 end

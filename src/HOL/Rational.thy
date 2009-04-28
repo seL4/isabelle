@@ -90,7 +90,7 @@ lemma eq_rat:
   and "\<And>a c. Fract 0 a = Fract 0 c"
   by (simp_all add: Fract_def)
 
-instantiation rat :: "{comm_ring_1, recpower}"
+instantiation rat :: comm_ring_1
 begin
 
 definition
@@ -185,9 +185,6 @@ next
     by (cases q, cases r, cases s) (simp add: eq_rat algebra_simps)
 next
   show "(0::rat) \<noteq> 1" by (simp add: Zero_rat_def One_rat_def eq_rat)
-next
-  fix q :: rat show "q * 1 = q"
-    by (cases q) (simp add: One_rat_def eq_rat)
 qed
 
 end
@@ -656,7 +653,7 @@ lemma of_rat_divide:
 by (cases "b = 0") (simp_all add: nonzero_of_rat_divide)
 
 lemma of_rat_power:
-  "(of_rat (a ^ n)::'a::{field_char_0,recpower}) = of_rat a ^ n"
+  "(of_rat (a ^ n)::'a::field_char_0) = of_rat a ^ n"
 by (induct n) (simp_all add: of_rat_mult)
 
 lemma of_rat_eq_iff [simp]: "(of_rat a = of_rat b) = (a = b)"
@@ -816,7 +813,7 @@ apply (rule of_rat_divide [symmetric])
 done
 
 lemma Rats_power [simp]:
-  fixes a :: "'a::{field_char_0,recpower}"
+  fixes a :: "'a::field_char_0"
   shows "a \<in> Rats \<Longrightarrow> a ^ n \<in> Rats"
 apply (auto simp add: Rats_def)
 apply (rule range_eqI)
@@ -836,6 +833,8 @@ qed
 lemma Rats_induct [case_names of_rat, induct set: Rats]:
   "q \<in> \<rat> \<Longrightarrow> (\<And>r. P (of_rat r)) \<Longrightarrow> P q"
   by (rule Rats_cases) auto
+
+instance rat :: recpower ..
 
 
 subsection {* Implementation of rational numbers as pairs of integers *}

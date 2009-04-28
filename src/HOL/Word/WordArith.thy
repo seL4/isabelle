@@ -790,14 +790,13 @@ instance word :: (len0) comm_ring ..
 instance word :: (len) comm_semiring_1 
   by (intro_classes) (simp add: lenw1_zero_neq_one)
 
+instance word :: (len) recpower ..
+
 instance word :: (len) comm_ring_1 ..
 
 instance word :: (len0) comm_semiring_0 ..
 
 instance word :: (len0) order ..
-
-instance word :: (len) recpower
-  by (intro_classes) simp_all
 
 (* note that iszero_def is only for class comm_semiring_1_cancel,
    which requires word length >= 1, ie 'a :: len word *) 

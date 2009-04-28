@@ -45,10 +45,6 @@ lemma nobm1:
   apply (simp add: number_of_eq nat_diff_distrib [symmetric])
   done
 
-lemma of_int_power:
-  "of_int (a ^ n) = (of_int a ^ n :: 'a :: {recpower, comm_ring_1})" 
-  by (induct n) (auto simp add: power_Suc)
-
 lemma zless2: "0 < (2 :: int)" by arith
 
 lemmas zless2p [simp] = zless2 [THEN zero_less_power]

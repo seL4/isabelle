@@ -487,7 +487,7 @@ lemma LIMSEQ_divide:
 by (simp add: LIMSEQ_mult LIMSEQ_inverse divide_inverse)
 
 lemma LIMSEQ_pow:
-  fixes a :: "'a::{real_normed_algebra,recpower}"
+  fixes a :: "'a::{power, real_normed_algebra}"
   shows "X ----> a \<Longrightarrow> (\<lambda>n. (X n) ^ m) ----> a ^ m"
 by (induct m) (simp_all add: LIMSEQ_const LIMSEQ_mult)
 
@@ -1394,7 +1394,7 @@ next
 qed
 
 lemma LIMSEQ_power_zero:
-  fixes x :: "'a::{real_normed_algebra_1,recpower}"
+  fixes x :: "'a::{real_normed_algebra_1}"
   shows "norm x < 1 \<Longrightarrow> (\<lambda>n. x ^ n) ----> 0"
 apply (drule LIMSEQ_realpow_zero [OF norm_ge_zero])
 apply (simp only: LIMSEQ_Zseq_iff, erule Zseq_le)

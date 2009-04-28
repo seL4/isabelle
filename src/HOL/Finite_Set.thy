@@ -2047,14 +2047,14 @@ apply (erule finite_induct)
 apply (auto simp add: algebra_simps)
 done
 
-lemma setprod_constant: "finite A ==> (\<Prod>x\<in> A. (y::'a::{recpower, comm_monoid_mult})) = y^(card A)"
+lemma setprod_constant: "finite A ==> (\<Prod>x\<in> A. (y::'a::{comm_monoid_mult})) = y^(card A)"
 apply (erule finite_induct)
 apply (auto simp add: power_Suc)
 done
 
 lemma setprod_gen_delta:
   assumes fS: "finite S"
-  shows "setprod (\<lambda>k. if k=a then b k else c) S = (if a \<in> S then (b a ::'a::{comm_monoid_mult, recpower}) * c^ (card S - 1) else c^ card S)"
+  shows "setprod (\<lambda>k. if k=a then b k else c) S = (if a \<in> S then (b a ::'a::{comm_monoid_mult}) * c^ (card S - 1) else c^ card S)"
 proof-
   let ?f = "(\<lambda>k. if k=a then b k else c)"
   {assume a: "a \<notin> S"
