@@ -278,7 +278,8 @@ fun register_subclass (sub, sup) some_dep_morph some_wit export thy =
     val classrel = Goal.prove_global thy [] [] (Logic.mk_classrel (sub, sup))
       (K tac);
     val diff_sort = Sign.complete_sort thy [sup]
-      |> subtract (op =) (Sign.complete_sort thy [sub]);
+      |> subtract (op =) (Sign.complete_sort thy [sub])
+      |> filter (is_class thy);
   in
     thy
     |> AxClass.add_classrel classrel
