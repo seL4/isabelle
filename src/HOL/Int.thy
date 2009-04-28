@@ -1266,13 +1266,8 @@ begin
 definition Ints  :: "'a set" where
   [code del]: "Ints = range of_int"
 
-end
-
 notation (xsymbols)
   Ints  ("\<int>")
-
-context ring_1
-begin
 
 lemma Ints_0 [simp]: "0 \<in> \<int>"
 apply (simp add: Ints_def)
@@ -1848,14 +1843,9 @@ qed
 
 subsection {* Integer Powers *} 
 
-context ring_1
-begin
-
 lemma of_int_power:
   "of_int (z ^ n) = of_int z ^ n"
   by (induct n) simp_all
-
-end
 
 lemma zpower_zpower:
   "(x ^ y) ^ z = (x ^ (y * z)::int)"
