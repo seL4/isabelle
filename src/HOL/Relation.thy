@@ -6,7 +6,8 @@
 header {* Relations *}
 
 theory Relation
-imports Datatype Finite_Set
+imports Finite_Set Datatype
+  (*FIXME order is important, otherwise merge problem for canonical interpretation of class monoid_mult wrt. power!*)
 begin
 
 subsection {* Definitions *}
