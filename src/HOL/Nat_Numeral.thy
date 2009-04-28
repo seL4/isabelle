@@ -10,6 +10,8 @@ imports IntDiv
 uses ("Tools/nat_simprocs.ML")
 begin
 
+subsection {* Numerals for natural numbers *}
+
 text {*
   Arithmetic for naturals is reduced to that for the non-negative integers.
 *}
@@ -28,7 +30,16 @@ lemma [code post]:
   "nat (number_of v) = number_of v"
   unfolding nat_number_of_def ..
 
-context recpower
+
+subsection {* Special case: squares and cubes *}
+
+lemma numeral_2_eq_2: "2 = Suc (Suc 0)"
+  by (simp add: nat_number_of_def)
+
+lemma numeral_3_eq_3: "3 = Suc (Suc (Suc 0))"
+  by (simp add: nat_number_of_def)
+
+context power
 begin
 
 abbreviation (xsymbols)
@@ -42,6 +53,205 @@ notation (HTML output)
   power2  ("(_\<twosuperior>)" [1000] 999)
 
 end
+
+context monoid_mult
+begin
+
+lemma power2_eq_square: "a\<twosuperior> = a * a"
+  by (simp add: numeral_2_eq_2)
+
+lemma power3_eq_cube: "a ^ 3 = a * a * a"
+  by (simp add: numeral_3_eq_3 mult_assoc)
+
+lemma power_even_eq:
+  "a ^ (2*n) = (a ^ n) ^ 2"
+  by (subst OrderedGroup.mult_commute) (simp add: power_mult)
+
+lemma power_odd_eq:
+  "a ^ Suc (2*n) = a * (a ^ n) ^ 2"
+  by (simp add: power_even_eq)
+
+end
+
+context semiring_1
+begin
+
+lemma zero_power2 [simp]: "0\<twosuperior> = 0"
+  by (simp add: power2_eq_square)
+
+lemma one_power2 [simp]: "1\<twosuperior> = 1"
+  by (simp add: power2_eq_square)
+
+end
+
+context comm_ring_1
+begin
+
+lemma power2_minus [simp]:
+  "(- a)\<twosuperior> = a\<twosuperior>"
+  by (simp add: power2_eq_square)
+
+text{*
+  We cannot prove general results about the numeral @{term "-1"},
+  so we have to use @{term "- 1"} instead.
+*}
+
+lemma power_minus1_even [simp]:
+  "(- 1) ^ (2*n) = 1"
+proof (induct n)
+  case 0 show ?case by simp
+next
+  case (Suc n) then show ?case by (simp add: power_add)
+qed
+
+lemma power_minus1_odd:
+  "(- 1) ^ Suc (2*n) = - 1"
+  by simp
+
+lemma power_minus_even [simp]:
+  "(-a) ^ (2*n) = a ^ (2*n)"
+  by (simp add: power_minus [of a]) 
+
+end
+
+context ordered_ring_strict
+begin
+
+lemma sum_squares_ge_zero:
+  "0 \<le> x * x + y * y"
+  by (intro add_nonneg_nonneg zero_le_square)
+
+lemma not_sum_squares_lt_zero:
+  "\<not> x * x + y * y < 0"
+  by (simp add: not_less sum_squares_ge_zero)
+
+lemma sum_squares_eq_zero_iff:
+  "x * x + y * y = 0 \<longleftrightarrow> x = 0 \<and> y = 0"
+  by (simp add: sum_nonneg_eq_zero_iff)
+
+lemma sum_squares_le_zero_iff:
+  "x * x + y * y \<le> 0 \<longleftrightarrow> x = 0 \<and> y = 0"
+  by (simp add: le_less not_sum_squares_lt_zero sum_squares_eq_zero_iff)
+
+lemma sum_squares_gt_zero_iff:
+  "0 < x * x + y * y \<longleftrightarrow> x \<noteq> 0 \<or> y \<noteq> 0"
+proof -
+  have "x * x + y * y \<noteq> 0 \<longleftrightarrow> x \<noteq> 0 \<or> y \<noteq> 0"
+    by (simp add: sum_squares_eq_zero_iff)
+  then have "0 \<noteq> x * x + y * y \<longleftrightarrow> x \<noteq> 0 \<or> y \<noteq> 0"
+    by auto
+  then show ?thesis
+    by (simp add: less_le sum_squares_ge_zero)
+qed
+
+end
+
+context ordered_semidom
+begin
+
+lemma power2_le_imp_le:
+  "x\<twosuperior> \<le> y\<twosuperior> \<Longrightarrow> 0 \<le> y \<Longrightarrow> x \<le> y"
+  unfolding numeral_2_eq_2 by (rule power_le_imp_le_base)
+
+lemma power2_less_imp_less:
+  "x\<twosuperior> < y\<twosuperior> \<Longrightarrow> 0 \<le> y \<Longrightarrow> x < y"
+  by (rule power_less_imp_less_base)
+
+lemma power2_eq_imp_eq:
+  "x\<twosuperior> = y\<twosuperior> \<Longrightarrow> 0 \<le> x \<Longrightarrow> 0 \<le> y \<Longrightarrow> x = y"
+  unfolding numeral_2_eq_2 by (erule (2) power_eq_imp_eq_base) simp
+
+end
+
+context ordered_idom
+begin
+
+lemma zero_eq_power2 [simp]:
+  "a\<twosuperior> = 0 \<longleftrightarrow> a = 0"
+  by (force simp add: power2_eq_square)
+
+lemma zero_le_power2 [simp]:
+  "0 \<le> a\<twosuperior>"
+  by (simp add: power2_eq_square)
+
+lemma zero_less_power2 [simp]:
+  "0 < a\<twosuperior> \<longleftrightarrow> a \<noteq> 0"
+  by (force simp add: power2_eq_square zero_less_mult_iff linorder_neq_iff)
+
+lemma power2_less_0 [simp]:
+  "\<not> a\<twosuperior> < 0"
+  by (force simp add: power2_eq_square mult_less_0_iff) 
+
+lemma abs_power2 [simp]:
+  "abs (a\<twosuperior>) = a\<twosuperior>"
+  by (simp add: power2_eq_square abs_mult abs_mult_self)
+
+lemma power2_abs [simp]:
+  "(abs a)\<twosuperior> = a\<twosuperior>"
+  by (simp add: power2_eq_square abs_mult_self)
+
+lemma odd_power_less_zero:
+  "a < 0 \<Longrightarrow> a ^ Suc (2*n) < 0"
+proof (induct n)
+  case 0
+  then show ?case by simp
+next
+  case (Suc n)
+  have "a ^ Suc (2 * Suc n) = (a*a) * a ^ Suc(2*n)"
+    by (simp add: mult_ac power_add power2_eq_square)
+  thus ?case
+    by (simp del: power_Suc add: Suc mult_less_0_iff mult_neg_neg)
+qed
+
+lemma odd_0_le_power_imp_0_le:
+  "0 \<le> a ^ Suc (2*n) \<Longrightarrow> 0 \<le> a"
+  using odd_power_less_zero [of a n]
+    by (force simp add: linorder_not_less [symmetric]) 
+
+lemma zero_le_even_power'[simp]:
+  "0 \<le> a ^ (2*n)"
+proof (induct n)
+  case 0
+    show ?case by (simp add: zero_le_one)
+next
+  case (Suc n)
+    have "a ^ (2 * Suc n) = (a*a) * a ^ (2*n)" 
+      by (simp add: mult_ac power_add power2_eq_square)
+    thus ?case
+      by (simp add: Suc zero_le_mult_iff)
+qed
+
+lemma sum_power2_ge_zero:
+  "0 \<le> x\<twosuperior> + y\<twosuperior>"
+  unfolding power2_eq_square by (rule sum_squares_ge_zero)
+
+lemma not_sum_power2_lt_zero:
+  "\<not> x\<twosuperior> + y\<twosuperior> < 0"
+  unfolding power2_eq_square by (rule not_sum_squares_lt_zero)
+
+lemma sum_power2_eq_zero_iff:
+  "x\<twosuperior> + y\<twosuperior> = 0 \<longleftrightarrow> x = 0 \<and> y = 0"
+  unfolding power2_eq_square by (rule sum_squares_eq_zero_iff)
+
+lemma sum_power2_le_zero_iff:
+  "x\<twosuperior> + y\<twosuperior> \<le> 0 \<longleftrightarrow> x = 0 \<and> y = 0"
+  unfolding power2_eq_square by (rule sum_squares_le_zero_iff)
+
+lemma sum_power2_gt_zero_iff:
+  "0 < x\<twosuperior> + y\<twosuperior> \<longleftrightarrow> x \<noteq> 0 \<or> y \<noteq> 0"
+  unfolding power2_eq_square by (rule sum_squares_gt_zero_iff)
+
+end
+
+lemma power2_sum:
+  fixes x y :: "'a::number_ring"
+  shows "(x + y)\<twosuperior> = x\<twosuperior> + y\<twosuperior> + 2 * x * y"
+  by (simp add: ring_distribs power2_eq_square)
+
+lemma power2_diff:
+  fixes x y :: "'a::number_ring"
+  shows "(x - y)\<twosuperior> = x\<twosuperior> + y\<twosuperior> - 2 * x * y"
+  by (simp add: ring_distribs power2_eq_square)
 
 
 subsection {* Predicate for negative binary numbers *}
@@ -114,11 +324,6 @@ by (simp add: nat_1 nat_number_of_def)
 
 lemma numeral_1_eq_Suc_0: "Numeral1 = Suc 0"
 by (simp add: nat_numeral_1_eq_1)
-
-lemma numeral_2_eq_2: "2 = Suc (Suc 0)"
-apply (unfold nat_number_of_def)
-apply (rule nat_2)
-done
 
 
 subsection{*Function @{term int}: Coercion from Type @{typ nat} to @{typ int}*}
@@ -314,128 +519,10 @@ lemmas numerals = nat_numeral_0_eq_0 nat_numeral_1_eq_1 numeral_2_eq_2
 
 subsection{*Powers with Numeric Exponents*}
 
-text{*We cannot refer to the number @{term 2} in @{text Ring_and_Field.thy}.
-We cannot prove general results about the numeral @{term "-1"}, so we have to
-use @{term "- 1"} instead.*}
-
-lemma power2_eq_square: "(a::'a::recpower)\<twosuperior> = a * a"
-  by (simp add: numeral_2_eq_2 Power.power_Suc)
-
-lemma zero_power2 [simp]: "(0::'a::{semiring_1,recpower})\<twosuperior> = 0"
-  by (simp add: power2_eq_square)
-
-lemma one_power2 [simp]: "(1::'a::{semiring_1,recpower})\<twosuperior> = 1"
-  by (simp add: power2_eq_square)
-
-lemma power3_eq_cube: "(x::'a::recpower) ^ 3 = x * x * x"
-  apply (subgoal_tac "3 = Suc (Suc (Suc 0))")
-  apply (erule ssubst)
-  apply (simp add: power_Suc mult_ac)
-  apply (unfold nat_number_of_def)
-  apply (subst nat_eq_iff)
-  apply simp
-done
-
 text{*Squares of literal numerals will be evaluated.*}
-lemmas power2_eq_square_number_of =
+lemmas power2_eq_square_number_of [simp] =
     power2_eq_square [of "number_of w", standard]
-declare power2_eq_square_number_of [simp]
 
-
-lemma zero_le_power2[simp]: "0 \<le> (a\<twosuperior>::'a::{ordered_idom,recpower})"
-  by (simp add: power2_eq_square)
-
-lemma zero_less_power2[simp]:
-     "(0 < a\<twosuperior>) = (a \<noteq> (0::'a::{ordered_idom,recpower}))"
-  by (force simp add: power2_eq_square zero_less_mult_iff linorder_neq_iff)
-
-lemma power2_less_0[simp]:
-  fixes a :: "'a::{ordered_idom,recpower}"
-  shows "~ (a\<twosuperior> < 0)"
-by (force simp add: power2_eq_square mult_less_0_iff) 
-
-lemma zero_eq_power2[simp]:
-     "(a\<twosuperior> = 0) = (a = (0::'a::{ordered_idom,recpower}))"
-  by (force simp add: power2_eq_square mult_eq_0_iff)
-
-lemma abs_power2[simp]:
-     "abs(a\<twosuperior>) = (a\<twosuperior>::'a::{ordered_idom,recpower})"
-  by (simp add: power2_eq_square abs_mult abs_mult_self)
-
-lemma power2_abs[simp]:
-     "(abs a)\<twosuperior> = (a\<twosuperior>::'a::{ordered_idom,recpower})"
-  by (simp add: power2_eq_square abs_mult_self)
-
-lemma power2_minus[simp]:
-     "(- a)\<twosuperior> = (a\<twosuperior>::'a::{comm_ring_1,recpower})"
-  by (simp add: power2_eq_square)
-
-lemma power2_le_imp_le:
-  fixes x y :: "'a::{ordered_semidom,recpower}"
-  shows "\<lbrakk>x\<twosuperior> \<le> y\<twosuperior>; 0 \<le> y\<rbrakk> \<Longrightarrow> x \<le> y"
-unfolding numeral_2_eq_2 by (rule power_le_imp_le_base)
-
-lemma power2_less_imp_less:
-  fixes x y :: "'a::{ordered_semidom,recpower}"
-  shows "\<lbrakk>x\<twosuperior> < y\<twosuperior>; 0 \<le> y\<rbrakk> \<Longrightarrow> x < y"
-by (rule power_less_imp_less_base)
-
-lemma power2_eq_imp_eq:
-  fixes x y :: "'a::{ordered_semidom,recpower}"
-  shows "\<lbrakk>x\<twosuperior> = y\<twosuperior>; 0 \<le> x; 0 \<le> y\<rbrakk> \<Longrightarrow> x = y"
-unfolding numeral_2_eq_2 by (erule (2) power_eq_imp_eq_base, simp)
-
-lemma power_minus1_even[simp]: "(- 1) ^ (2*n) = (1::'a::{comm_ring_1,recpower})"
-proof (induct n)
-  case 0 show ?case by simp
-next
-  case (Suc n) then show ?case by (simp add: power_Suc power_add)
-qed
-
-lemma power_minus1_odd: "(- 1) ^ Suc(2*n) = -(1::'a::{comm_ring_1,recpower})"
-  by (simp add: power_Suc) 
-
-lemma power_even_eq: "(a::'a::recpower) ^ (2*n) = (a^n)^2"
-  by (subst mult_commute) (simp add: power_mult)
-
-lemma power_odd_eq: "(a::int) ^ Suc(2*n) = a * (a^n)^2"
-  by (simp add: power_even_eq)
-
-lemma power_minus_even [simp]:
-  "(-a) ^ (2*n) = (a::'a::{comm_ring_1,recpower}) ^ (2*n)"
-  by (simp add: power_minus [of a]) 
-
-lemma zero_le_even_power'[simp]:
-     "0 \<le> (a::'a::{ordered_idom,recpower}) ^ (2*n)"
-proof (induct "n")
-  case 0
-    show ?case by (simp add: zero_le_one)
-next
-  case (Suc n)
-    have "a ^ (2 * Suc n) = (a*a) * a ^ (2*n)" 
-      by (simp add: mult_ac power_add power2_eq_square)
-    thus ?case
-      by (simp add: prems zero_le_mult_iff)
-qed
-
-lemma odd_power_less_zero:
-     "(a::'a::{ordered_idom,recpower}) < 0 ==> a ^ Suc(2*n) < 0"
-proof (induct "n")
-  case 0
-  then show ?case by simp
-next
-  case (Suc n)
-  have "a ^ Suc (2 * Suc n) = (a*a) * a ^ Suc(2*n)"
-    by (simp add: mult_ac power_add power2_eq_square)
-  thus ?case
-    by (simp del: power_Suc add: prems mult_less_0_iff mult_neg_neg)
-qed
-
-lemma odd_0_le_power_imp_0_le:
-     "0 \<le> a  ^ Suc(2*n) ==> 0 \<le> (a::'a::{ordered_idom,recpower})"
-apply (insert odd_power_less_zero [of a n]) 
-apply (force simp add: linorder_not_less [symmetric]) 
-done
 
 text{*Simprules for comparisons where common factors can be cancelled.*}
 lemmas zero_compare_simps =
@@ -621,7 +708,7 @@ declare power_nat_number_of_number_of [simp]
 text{*For arbitrary rings*}
 
 lemma power_number_of_even:
-  fixes z :: "'a::{number_ring,recpower}"
+  fixes z :: "'a::number_ring"
   shows "z ^ number_of (Int.Bit0 w) = (let w = z ^ (number_of w) in w * w)"
 unfolding Let_def nat_number_of_def number_of_Bit0
 apply (rule_tac x = "number_of w" in spec, clarify)
@@ -630,7 +717,7 @@ apply (auto simp add: nat_mult_distrib power_even_eq power2_eq_square)
 done
 
 lemma power_number_of_odd:
-  fixes z :: "'a::{number_ring,recpower}"
+  fixes z :: "'a::number_ring"
   shows "z ^ number_of (Int.Bit1 w) = (if (0::int) <= number_of w
      then (let w = z ^ (number_of w) in z * w * w) else 1)"
 unfolding Let_def nat_number_of_def number_of_Bit1
@@ -697,11 +784,11 @@ lemmas nat_number =
 lemma Let_Suc [simp]: "Let (Suc n) f == f (Suc n)"
   by (simp add: Let_def)
 
-lemma power_m1_even: "(-1) ^ (2*n) = (1::'a::{number_ring,recpower})"
-by (simp add: power_mult power_Suc); 
+lemma power_m1_even: "(-1) ^ (2*n) = (1::'a::{number_ring})"
+  by (simp only: number_of_Min power_minus1_even)
 
-lemma power_m1_odd: "(-1) ^ Suc(2*n) = (-1::'a::{number_ring,recpower})"
-by (simp add: power_mult power_Suc); 
+lemma power_m1_odd: "(-1) ^ Suc(2*n) = (-1::'a::{number_ring})"
+  by (simp only: number_of_Min power_minus1_odd)
 
 
 subsection{*Literal arithmetic and @{term of_nat}*}
