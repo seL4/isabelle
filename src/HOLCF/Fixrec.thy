@@ -520,8 +520,9 @@ where
   "match_FF = (\<Lambda> x k. If x then fail else k fi)"
 
 lemma match_UU_simps [simp]:
-  "match_UU\<cdot>x\<cdot>k = (if x = \<bottom> then \<bottom> else fail)"
-by (simp add: match_UU_def)
+  "match_UU\<cdot>\<bottom>\<cdot>k = \<bottom>"
+  "x \<noteq> \<bottom> \<Longrightarrow> match_UU\<cdot>x\<cdot>k = fail"
+by (simp_all add: match_UU_def)
 
 lemma match_cpair_simps [simp]:
   "match_cpair\<cdot>\<langle>x, y\<rangle>\<cdot>k = k\<cdot>x\<cdot>y"
@@ -603,7 +604,8 @@ setup {*
       (@{const_name cpair}, @{const_name match_cpair}),
       (@{const_name ONE}, @{const_name match_ONE}),
       (@{const_name TT}, @{const_name match_TT}),
-      (@{const_name FF}, @{const_name match_FF}) ]
+      (@{const_name FF}, @{const_name match_FF}),
+      (@{const_name UU}, @{const_name match_UU}) ]
 *}
 
 hide (open) const return bind fail run cases
