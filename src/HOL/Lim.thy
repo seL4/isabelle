@@ -383,7 +383,7 @@ lemmas LIM_scaleR = scaleR.LIM
 lemmas LIM_of_real = of_real.LIM
 
 lemma LIM_power:
-  fixes f :: "'a::real_normed_vector \<Rightarrow> 'b::{recpower,real_normed_algebra}"
+  fixes f :: "'a::real_normed_vector \<Rightarrow> 'b::{power,real_normed_algebra}"
   assumes f: "f -- a --> l"
   shows "(\<lambda>x. f x ^ n) -- a --> l ^ n"
 by (induct n, simp, simp add: LIM_mult f)
@@ -530,7 +530,7 @@ lemma isCont_of_real:
   unfolding isCont_def by (rule LIM_of_real)
 
 lemma isCont_power:
-  fixes f :: "'a::real_normed_vector \<Rightarrow> 'b::{recpower,real_normed_algebra}"
+  fixes f :: "'a::real_normed_vector \<Rightarrow> 'b::{power,real_normed_algebra}"
   shows "isCont f a \<Longrightarrow> isCont (\<lambda>x. f x ^ n) a"
   unfolding isCont_def by (rule LIM_power)
 

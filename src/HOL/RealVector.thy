@@ -259,7 +259,7 @@ lemma of_real_divide [simp]:
 by (simp add: divide_inverse)
 
 lemma of_real_power [simp]:
-  "of_real (x ^ n) = (of_real x :: 'a::{real_algebra_1,recpower}) ^ n"
+  "of_real (x ^ n) = (of_real x :: 'a::{real_algebra_1}) ^ n"
 by (induct n) simp_all
 
 lemma of_real_eq_iff [simp]: "(of_real x = of_real y) = (x = y)"
@@ -389,7 +389,7 @@ apply (rule of_real_divide [symmetric])
 done
 
 lemma Reals_power [simp]:
-  fixes a :: "'a::{real_algebra_1,recpower}"
+  fixes a :: "'a::{real_algebra_1}"
   shows "a \<in> Reals \<Longrightarrow> a ^ n \<in> Reals"
 apply (auto simp add: Reals_def)
 apply (rule range_eqI)
@@ -613,7 +613,7 @@ lemma norm_divide:
 by (simp add: divide_inverse norm_mult norm_inverse)
 
 lemma norm_power_ineq:
-  fixes x :: "'a::{real_normed_algebra_1,recpower}"
+  fixes x :: "'a::{real_normed_algebra_1}"
   shows "norm (x ^ n) \<le> norm x ^ n"
 proof (induct n)
   case 0 show "norm (x ^ 0) \<le> norm x ^ 0" by simp
@@ -628,7 +628,7 @@ next
 qed
 
 lemma norm_power:
-  fixes x :: "'a::{real_normed_div_algebra,recpower}"
+  fixes x :: "'a::{real_normed_div_algebra}"
   shows "norm (x ^ n) = norm x ^ n"
 by (induct n) (simp_all add: norm_mult)
 

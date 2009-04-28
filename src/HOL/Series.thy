@@ -331,7 +331,7 @@ text{*Sum of a geometric progression.*}
 lemmas sumr_geometric = geometric_sum [where 'a = real]
 
 lemma geometric_sums:
-  fixes x :: "'a::{real_normed_field,recpower}"
+  fixes x :: "'a::{real_normed_field}"
   shows "norm x < 1 \<Longrightarrow> (\<lambda>n. x ^ n) sums (1 / (1 - x))"
 proof -
   assume less_1: "norm x < 1"
@@ -348,7 +348,7 @@ proof -
 qed
 
 lemma summable_geometric:
-  fixes x :: "'a::{real_normed_field,recpower}"
+  fixes x :: "'a::{real_normed_field}"
   shows "norm x < 1 \<Longrightarrow> summable (\<lambda>n. x ^ n)"
 by (rule geometric_sums [THEN sums_summable])
 
@@ -434,7 +434,7 @@ done
 text{*Summability of geometric series for real algebras*}
 
 lemma complete_algebra_summable_geometric:
-  fixes x :: "'a::{real_normed_algebra_1,banach,recpower}"
+  fixes x :: "'a::{real_normed_algebra_1,banach}"
   shows "norm x < 1 \<Longrightarrow> summable (\<lambda>n. x ^ n)"
 proof (rule summable_comparison_test)
   show "\<exists>N. \<forall>n\<ge>N. norm (x ^ n) \<le> norm x ^ n"

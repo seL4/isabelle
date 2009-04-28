@@ -417,7 +417,7 @@ by simp
 declare power_hypreal_of_real_number_of [of _ "number_of w", standard, simp]
 (*
 lemma hrealpow_HFinite:
-  fixes x :: "'a::{real_normed_algebra,recpower} star"
+  fixes x :: "'a::{real_normed_algebra,power} star"
   shows "x \<in> HFinite ==> x ^ n \<in> HFinite"
 apply (induct_tac "n")
 apply (auto simp add: power_Suc intro: HFinite_mult)
@@ -438,24 +438,24 @@ lemma hyperpow: "star_n X pow star_n Y = star_n (%n. X n ^ Y n)"
 by (simp add: hyperpow_def starfun2_star_n)
 
 lemma hyperpow_zero [simp]:
-  "\<And>n. (0::'a::{recpower,semiring_0} star) pow (n + (1::hypnat)) = 0"
+  "\<And>n. (0::'a::{power,semiring_0} star) pow (n + (1::hypnat)) = 0"
 by transfer simp
 
 lemma hyperpow_not_zero:
-  "\<And>r n. r \<noteq> (0::'a::{recpower,field} star) ==> r pow n \<noteq> 0"
+  "\<And>r n. r \<noteq> (0::'a::{field} star) ==> r pow n \<noteq> 0"
 by transfer (rule field_power_not_zero)
 
 lemma hyperpow_inverse:
-  "\<And>r n. r \<noteq> (0::'a::{recpower,division_by_zero,field} star)
+  "\<And>r n. r \<noteq> (0::'a::{division_by_zero,field} star)
    \<Longrightarrow> inverse (r pow n) = (inverse r) pow n"
 by transfer (rule power_inverse)
-
+  
 lemma hyperpow_hrabs:
-  "\<And>r n. abs (r::'a::{recpower,ordered_idom} star) pow n = abs (r pow n)"
+  "\<And>r n. abs (r::'a::{ordered_idom} star) pow n = abs (r pow n)"
 by transfer (rule power_abs [symmetric])
 
 lemma hyperpow_add:
-  "\<And>r n m. (r::'a::recpower star) pow (n + m) = (r pow n) * (r pow m)"
+  "\<And>r n m. (r::'a::monoid_mult star) pow (n + m) = (r pow n) * (r pow m)"
 by transfer (rule power_add)
 
 lemma hyperpow_one [simp]:
@@ -463,46 +463,46 @@ lemma hyperpow_one [simp]:
 by transfer (rule power_one_right)
 
 lemma hyperpow_two:
-  "\<And>r. (r::'a::recpower star) pow ((1::hypnat) + (1::hypnat)) = r * r"
-by transfer (simp add: power_Suc)
+  "\<And>r. (r::'a::monoid_mult star) pow ((1::hypnat) + (1::hypnat)) = r * r"
+by transfer simp
 
 lemma hyperpow_gt_zero:
-  "\<And>r n. (0::'a::{recpower,ordered_semidom} star) < r \<Longrightarrow> 0 < r pow n"
+  "\<And>r n. (0::'a::{ordered_semidom} star) < r \<Longrightarrow> 0 < r pow n"
 by transfer (rule zero_less_power)
 
 lemma hyperpow_ge_zero:
-  "\<And>r n. (0::'a::{recpower,ordered_semidom} star) \<le> r \<Longrightarrow> 0 \<le> r pow n"
+  "\<And>r n. (0::'a::{ordered_semidom} star) \<le> r \<Longrightarrow> 0 \<le> r pow n"
 by transfer (rule zero_le_power)
 
 lemma hyperpow_le:
-  "\<And>x y n. \<lbrakk>(0::'a::{recpower,ordered_semidom} star) < x; x \<le> y\<rbrakk>
+  "\<And>x y n. \<lbrakk>(0::'a::{ordered_semidom} star) < x; x \<le> y\<rbrakk>
    \<Longrightarrow> x pow n \<le> y pow n"
 by transfer (rule power_mono [OF _ order_less_imp_le])
 
 lemma hyperpow_eq_one [simp]:
-  "\<And>n. 1 pow n = (1::'a::recpower star)"
+  "\<And>n. 1 pow n = (1::'a::monoid_mult star)"
 by transfer (rule power_one)
 
 lemma hrabs_hyperpow_minus_one [simp]:
-  "\<And>n. abs(-1 pow n) = (1::'a::{number_ring,recpower,ordered_idom} star)"
+  "\<And>n. abs(-1 pow n) = (1::'a::{number_ring,ordered_idom} star)"
 by transfer (rule abs_power_minus_one)
 
 lemma hyperpow_mult:
-  "\<And>r s n. (r * s::'a::{comm_monoid_mult,recpower} star) pow n
+  "\<And>r s n. (r * s::'a::{comm_monoid_mult} star) pow n
    = (r pow n) * (s pow n)"
 by transfer (rule power_mult_distrib)
 
 lemma hyperpow_two_le [simp]:
-  "(0::'a::{recpower,ordered_ring_strict} star) \<le> r pow (1 + 1)"
+  "(0::'a::{monoid_mult,ordered_ring_strict} star) \<le> r pow (1 + 1)"
 by (auto simp add: hyperpow_two zero_le_mult_iff)
 
 lemma hrabs_hyperpow_two [simp]:
   "abs(x pow (1 + 1)) =
-   (x::'a::{recpower,ordered_ring_strict} star) pow (1 + 1)"
+   (x::'a::{monoid_mult,ordered_ring_strict} star) pow (1 + 1)"
 by (simp only: abs_of_nonneg hyperpow_two_le)
 
 lemma hyperpow_two_hrabs [simp]:
-  "abs(x::'a::{recpower,ordered_idom} star) pow (1 + 1)  = x pow (1 + 1)"
+  "abs(x::'a::{ordered_idom} star) pow (1 + 1)  = x pow (1 + 1)"
 by (simp add: hyperpow_hrabs)
 
 text{*The precondition could be weakened to @{term "0\<le>x"}*}
@@ -511,11 +511,11 @@ lemma hypreal_mult_less_mono:
  by (simp add: Ring_and_Field.mult_strict_mono order_less_imp_le)
 
 lemma hyperpow_two_gt_one:
-  "\<And>r::'a::{recpower,ordered_semidom} star. 1 < r \<Longrightarrow> 1 < r pow (1 + 1)"
+  "\<And>r::'a::{ordered_semidom} star. 1 < r \<Longrightarrow> 1 < r pow (1 + 1)"
 by transfer (simp add: power_gt1 del: power_Suc)
 
 lemma hyperpow_two_ge_one:
-  "\<And>r::'a::{recpower,ordered_semidom} star. 1 \<le> r \<Longrightarrow> 1 \<le> r pow (1 + 1)"
+  "\<And>r::'a::{ordered_semidom} star. 1 \<le> r \<Longrightarrow> 1 \<le> r pow (1 + 1)"
 by transfer (simp add: one_le_power del: power_Suc)
 
 lemma two_hyperpow_ge_one [simp]: "(1::hypreal) \<le> 2 pow n"
@@ -565,7 +565,7 @@ by transfer (rule refl)
 
 lemma of_hypreal_hyperpow:
   "\<And>x n. of_hypreal (x pow n) =
-   (of_hypreal x::'a::{real_algebra_1,recpower} star) pow n"
+   (of_hypreal x::'a::{real_algebra_1} star) pow n"
 by transfer (rule of_real_power)
 
 end
