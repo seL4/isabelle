@@ -15,8 +15,17 @@ definition
 
 datatype float = Float int int
 
-primrec Ifloat :: "float \<Rightarrow> real" where
-  "Ifloat (Float a b) = real a * pow2 b"
+primrec of_float :: "float \<Rightarrow> real" where
+  "of_float (Float a b) = real a * pow2 b"
+
+defs (overloaded)
+  real_of_float_def [code unfold]: "real == of_float"
+
+primrec mantissa :: "float \<Rightarrow> int" where
+  "mantissa (Float a b) = a"
+
+primrec scale :: "float \<Rightarrow> int" where
+  "scale (Float a b) = b"
 
 instantiation float :: zero begin
 definition zero_float where "0 = Float 0 0" 
@@ -33,20 +42,17 @@ definition number_of_float where "number_of n = Float n 0"
 instance ..
 end
 
-primrec mantissa :: "float \<Rightarrow> int" where
-  "mantissa (Float a b) = a"
+lemma real_of_float_simp[simp]: "real (Float a b) = real a * pow2 b"
+  unfolding real_of_float_def using of_float.simps .
 
-primrec scale :: "float \<Rightarrow> int" where
-  "scale (Float a b) = b"
-
-lemma Ifloat_neg_exp: "e < 0 \<Longrightarrow> Ifloat (Float m e) = real m * inverse (2^nat (-e))" by auto
-lemma Ifloat_nge0_exp: "\<not> 0 \<le> e \<Longrightarrow> Ifloat (Float m e) = real m * inverse (2^nat (-e))" by auto
-lemma Ifloat_ge0_exp: "0 \<le> e \<Longrightarrow> Ifloat (Float m e) = real m * (2^nat e)" by auto
+lemma real_of_float_neg_exp: "e < 0 \<Longrightarrow> real (Float m e) = real m * inverse (2^nat (-e))" by auto
+lemma real_of_float_nge0_exp: "\<not> 0 \<le> e \<Longrightarrow> real (Float m e) = real m * inverse (2^nat (-e))" by auto
+lemma real_of_float_ge0_exp: "0 \<le> e \<Longrightarrow> real (Float m e) = real m * (2^nat e)" by auto
 
 lemma Float_num[simp]: shows
-   "Ifloat (Float 1 0) = 1" and "Ifloat (Float 1 1) = 2" and "Ifloat (Float 1 2) = 4" and 
-   "Ifloat (Float 1 -1) = 1/2" and "Ifloat (Float 1 -2) = 1/4" and "Ifloat (Float 1 -3) = 1/8" and
-   "Ifloat (Float -1 0) = -1" and "Ifloat (Float (number_of n) 0) = number_of n"
+   "real (Float 1 0) = 1" and "real (Float 1 1) = 2" and "real (Float 1 2) = 4" and 
+   "real (Float 1 -1) = 1/2" and "real (Float 1 -2) = 1/4" and "real (Float 1 -3) = 1/8" and
+   "real (Float -1 0) = -1" and "real (Float (number_of n) 0) = number_of n"
   by auto
 
 lemma pow2_0[simp]: "pow2 0 = 1" by simp
@@ -131,7 +137,7 @@ lemma float_split: "\<exists> a b. x = Float a b" by (cases x, auto)
 
 lemma float_split2: "(\<forall> a b. x \<noteq> Float a b) = False" by (auto simp add: float_split)
 
-lemma float_zero[simp]: "Ifloat (Float 0 e) = 0" by simp
+lemma float_zero[simp]: "real (Float 0 e) = 0" by simp
 
 lemma abs_div_2_less: "a \<noteq> 0 \<Longrightarrow> a \<noteq> -1 \<Longrightarrow> abs((a::int) div 2) < abs a"
 by arith
@@ -142,7 +148,7 @@ by pat_completeness auto
 termination by (relation "measure (nat o abs o mantissa)") (auto intro: abs_div_2_less)
 declare normfloat.simps[simp del]
 
-theorem normfloat[symmetric, simp]: "Ifloat f = Ifloat (normfloat f)"
+theorem normfloat[symmetric, simp]: "real f = real (normfloat f)"
 proof (induct f rule: normfloat.induct)
   case (1 a b)
   have real2: "2 = real (2::int)"
@@ -217,7 +223,7 @@ qed
 
 lemma float_eq_odd_helper: 
   assumes odd: "odd a'"
-  and floateq: "Ifloat (Float a b) = Ifloat (Float a' b')"
+  and floateq: "real (Float a b) = real (Float a' b')"
   shows "b \<le> b'"
 proof - 
   {
@@ -267,7 +273,7 @@ qed
 lemma float_eq_odd: 
   assumes odd1: "odd a"
   and odd2: "odd a'"
-  and floateq: "Ifloat (Float a b) = Ifloat (Float a' b')"
+  and floateq: "real (Float a b) = real (Float a' b')"
   shows "a = a' \<and> b = b'"
 proof -
   from 
@@ -278,14 +284,14 @@ proof -
 qed
 
 theorem normfloat_unique:
-  assumes Ifloat_eq: "Ifloat f = Ifloat g"
+  assumes real_of_float_eq: "real f = real g"
   shows "normfloat f = normfloat g"
 proof - 
   from float_split[of "normfloat f"] obtain a b where normf:"normfloat f = Float a b" by auto
   from float_split[of "normfloat g"] obtain a' b' where normg:"normfloat g = Float a' b'" by auto
-  have "Ifloat (normfloat f) = Ifloat (normfloat g)"
-    by (simp add: Ifloat_eq)
-  then have float_eq: "Ifloat (Float a b) = Ifloat (Float a' b')"
+  have "real (normfloat f) = real (normfloat g)"
+    by (simp add: real_of_float_eq)
+  then have float_eq: "real (Float a b) = real (Float a' b')"
     by (simp add: normf normg)
   have ab: "odd a \<or> (a = 0 \<and> b = 0)" by (rule normfloat_imp_odd_or_zero[OF normf])
   have ab': "odd a' \<or> (a' = 0 \<and> b' = 0)" by (rule normfloat_imp_odd_or_zero[OF normg])
@@ -341,32 +347,32 @@ primrec float_nprt :: "float \<Rightarrow> float" where
   "float_nprt (Float a e) = (if 0 <= a then 0 else (Float a e))" 
 
 instantiation float :: ord begin
-definition le_float_def: "z \<le> w \<equiv> Ifloat z \<le> Ifloat w"
-definition less_float_def: "z < w \<equiv> Ifloat z < Ifloat w"
+definition le_float_def: "z \<le> (w :: float) \<equiv> real z \<le> real w"
+definition less_float_def: "z < (w :: float) \<equiv> real z < real w"
 instance ..
 end
 
-lemma Ifloat_add[simp]: "Ifloat (a + b) = Ifloat a + Ifloat b"
+lemma real_of_float_add[simp]: "real (a + b) = real a + real (b :: float)"
   by (cases a, cases b, simp add: algebra_simps plus_float.simps, 
       auto simp add: pow2_int[symmetric] pow2_add[symmetric])
 
-lemma Ifloat_minus[simp]: "Ifloat (- a) = - Ifloat a"
+lemma real_of_float_minus[simp]: "real (- a) = - real (a :: float)"
   by (cases a, simp add: uminus_float.simps)
 
-lemma Ifloat_sub[simp]: "Ifloat (a - b) = Ifloat a - Ifloat b" 
+lemma real_of_float_sub[simp]: "real (a - b) = real a - real (b :: float)"
   by (cases a, cases b, simp add: minus_float_def)
 
-lemma Ifloat_mult[simp]: "Ifloat (a*b) = Ifloat a * Ifloat b"
+lemma real_of_float_mult[simp]: "real (a*b) = real a * real (b :: float)"
   by (cases a, cases b, simp add: times_float.simps pow2_add)
 
-lemma Ifloat_0[simp]: "Ifloat 0 = 0"
+lemma real_of_float_0[simp]: "real (0 :: float) = 0"
   by (auto simp add: zero_float_def float_zero)
 
-lemma Ifloat_1[simp]: "Ifloat 1 = 1"
+lemma real_of_float_1[simp]: "real (1 :: float) = 1"
   by (auto simp add: one_float_def)
 
 lemma zero_le_float:
-  "(0 <= Ifloat (Float a b)) = (0 <= a)"
+  "(0 <= real (Float a b)) = (0 <= a)"
   apply auto
   apply (auto simp add: zero_le_mult_iff)
   apply (insert zero_less_pow2[of b])
@@ -374,19 +380,19 @@ lemma zero_le_float:
   done
 
 lemma float_le_zero:
-  "(Ifloat (Float a b) <= 0) = (a <= 0)"
+  "(real (Float a b) <= 0) = (a <= 0)"
   apply auto
   apply (auto simp add: mult_le_0_iff)
   apply (insert zero_less_pow2[of b])
   apply auto
   done
 
-declare Ifloat.simps[simp del]
+declare real_of_float_simp[simp del]
 
-lemma Ifloat_pprt[simp]: "Ifloat (float_pprt a) = pprt (Ifloat a)"
+lemma real_of_float_pprt[simp]: "real (float_pprt a) = pprt (real a)"
   by (cases a, auto simp add: float_pprt.simps zero_le_float float_le_zero float_zero)
 
-lemma Ifloat_nprt[simp]: "Ifloat (float_nprt a) = nprt (Ifloat a)"
+lemma real_of_float_nprt[simp]: "real (float_nprt a) = nprt (real a)"
   by (cases a,  auto simp add: float_nprt.simps zero_le_float float_le_zero float_zero)
 
 instance float :: ab_semigroup_add
@@ -440,10 +446,10 @@ lemma float_le_simp: "((x::float) \<le> y) = (0 \<le> y - x)"
 lemma float_less_simp: "((x::float) < y) = (0 < y - x)"
   by (auto simp add: less_float_def)
 
-lemma Ifloat_min: "Ifloat (min x y) = min (Ifloat x) (Ifloat y)" unfolding min_def le_float_def by auto
-lemma Ifloat_max: "Ifloat (max a b) = max (Ifloat a) (Ifloat b)" unfolding max_def le_float_def by auto
+lemma real_of_float_min: "real (min x y :: float) = min (real x) (real y)" unfolding min_def le_float_def by auto
+lemma real_of_float_max: "real (max a b :: float) = max (real a) (real b)" unfolding max_def le_float_def by auto
 
-lemma float_power: "Ifloat (x ^ n) = Ifloat x ^ n"
+lemma float_power: "real (x ^ n :: float) = real x ^ n"
   by (induct n) simp_all
 
 lemma zero_le_pow2[simp]: "0 \<le> pow2 s"
@@ -467,7 +473,7 @@ lemma pow2_le_0_eq_False[simp]: "(pow2 s \<le> 0) = False"
   done
 
 lemma float_pos_m_pos: "0 < Float m e \<Longrightarrow> 0 < m"
-  unfolding less_float_def Ifloat.simps Ifloat_0 zero_less_mult_iff
+  unfolding less_float_def real_of_float_simp real_of_float_0 zero_less_mult_iff
   by auto
 
 lemma float_pos_less1_e_neg: assumes "0 < Float m e" and "Float m e < 1" shows "e < 0"
@@ -480,7 +486,7 @@ proof -
     assume "\<not> e < 0" hence "0 \<le> e" by auto
     hence "1 \<le> pow2 e" unfolding pow2_def by auto
     from mult_mono[OF `1 \<le> real m` this `0 \<le> real m`]
-    have "1 \<le> Float m e" by (simp add: le_float_def Ifloat.simps)
+    have "1 \<le> Float m e" by (simp add: le_float_def real_of_float_simp)
     thus False using `Float m e < 1` unfolding less_float_def le_float_def by auto
   qed
 qed
@@ -490,7 +496,7 @@ proof -
   have "e < 0" using float_pos_less1_e_neg assms by auto
   have "\<And>x. (0::real) < 2^x" by auto
   have "real m < 2^(nat (-e))" using `Float m e < 1`
-    unfolding less_float_def Ifloat_neg_exp[OF `e < 0`] Ifloat_1
+    unfolding less_float_def real_of_float_neg_exp[OF `e < 0`] real_of_float_1
           real_mult_less_iff1[of _ _ 1, OF `0 < 2^(nat (-e))`, symmetric] 
           real_mult_assoc by auto
   thus ?thesis unfolding real_of_int_less_iff[symmetric] by auto
@@ -588,7 +594,7 @@ next
   hence "0 < m" using float_pos_m_pos by auto
   hence "m \<noteq> 0" and "1 < (2::int)" by auto
   case False let ?S = "2^(nat (-e))"
-  have "1 \<le> real m * inverse ?S" using assms unfolding le_float_def Ifloat_nge0_exp[OF False] by auto
+  have "1 \<le> real m * inverse ?S" using assms unfolding le_float_def real_of_float_nge0_exp[OF False] by auto
   hence "1 * ?S \<le> real m * inverse ?S * ?S" by (rule mult_right_mono, auto)
   hence "?S \<le> real m" unfolding mult_assoc by auto
   hence "?S \<le> m" unfolding real_of_int_le_iff[symmetric] by auto
@@ -598,12 +604,12 @@ next
   thus ?thesis by auto
 qed
 
-lemma normalized_float: assumes "m \<noteq> 0" shows "Ifloat (Float m (- (bitlen m - 1))) = real m / 2^nat (bitlen m - 1)"
+lemma normalized_float: assumes "m \<noteq> 0" shows "real (Float m (- (bitlen m - 1))) = real m / 2^nat (bitlen m - 1)"
 proof (cases "- (bitlen m - 1) = 0")
-  case True show ?thesis unfolding Ifloat.simps pow2_def using True by auto
+  case True show ?thesis unfolding real_of_float_simp pow2_def using True by auto
 next
   case False hence P: "\<not> 0 \<le> - (bitlen m - 1)" using bitlen_ge1[OF `m \<noteq> 0`] by auto
-  show ?thesis unfolding Ifloat_nge0_exp[OF P] real_divide_def by auto
+  show ?thesis unfolding real_of_float_nge0_exp[OF P] real_divide_def by auto
 qed
 
 lemma bitlen_Pls: "bitlen (Int.Pls) = Int.Pls" by (subst Pls_def, subst Pls_def, simp)
@@ -660,7 +666,7 @@ lemma pow2_minus: "pow2 (-x) = inverse (pow2 x)"
 lemma lapprox_posrat: 
   assumes x: "0 \<le> x"
   and y: "0 < y"
-  shows "Ifloat (lapprox_posrat prec x y) \<le> real x / real y"
+  shows "real (lapprox_posrat prec x y) \<le> real x / real y"
 proof -
   let ?l = "nat (int prec + bitlen y - bitlen x)"
   
@@ -668,7 +674,7 @@ proof -
     by (rule mult_right_mono, fact real_of_int_div4, simp)
   also have "\<dots> \<le> (real x / real y) * 2^?l * inverse (2^?l)" by auto
   finally have "real (x * 2^?l div y) * inverse (2^?l) \<le> real x / real y" unfolding real_mult_assoc by auto
-  thus ?thesis unfolding lapprox_posrat_def Let_def normfloat Ifloat.simps
+  thus ?thesis unfolding lapprox_posrat_def Let_def normfloat real_of_float_simp
     unfolding pow2_minus pow2_int minus_minus .
 qed
 
@@ -688,19 +694,19 @@ proof -
 qed
 
 lemma lapprox_posrat_bottom: assumes "0 < y"
-  shows "real (x div y) \<le> Ifloat (lapprox_posrat n x y)" 
+  shows "real (x div y) \<le> real (lapprox_posrat n x y)" 
 proof -
   have pow: "\<And>x. (0::int) < 2^x" by auto
   show ?thesis
-    unfolding lapprox_posrat_def Let_def Ifloat_add normfloat Ifloat.simps pow2_minus pow2_int
+    unfolding lapprox_posrat_def Let_def real_of_float_add normfloat real_of_float_simp pow2_minus pow2_int
     using real_of_int_div_mult[OF `0 < y` pow] by auto
 qed
 
 lemma lapprox_posrat_nonneg: assumes "0 \<le> x" and "0 < y"
-  shows "0 \<le> Ifloat (lapprox_posrat n x y)" 
+  shows "0 \<le> real (lapprox_posrat n x y)" 
 proof -
   show ?thesis
-    unfolding lapprox_posrat_def Let_def Ifloat_add normfloat Ifloat.simps pow2_minus pow2_int
+    unfolding lapprox_posrat_def Let_def real_of_float_add normfloat real_of_float_simp pow2_minus pow2_int
     using pos_imp_zdiv_nonneg_iff[OF `0 < y`] assms by (auto intro!: mult_nonneg_nonneg)
 qed
 
@@ -716,7 +722,7 @@ where
 lemma rapprox_posrat:
   assumes x: "0 \<le> x"
   and y: "0 < y"
-  shows "real x / real y \<le> Ifloat (rapprox_posrat prec x y)"
+  shows "real x / real y \<le> real (rapprox_posrat prec x y)"
 proof -
   let ?l = "nat (int prec + bitlen y - bitlen x)" let ?X = "x * 2^?l"
   show ?thesis 
@@ -727,7 +733,7 @@ proof -
     also have "\<dots> = real x / real y * (2^?l * inverse (2^?l))" by auto
     finally have "real (?X div y) * inverse (2^?l) = real x / real y" by auto
     thus ?thesis unfolding rapprox_posrat_def Let_def normfloat if_P[OF True] 
-      unfolding Ifloat.simps pow2_minus pow2_int minus_minus by auto
+      unfolding real_of_float_simp pow2_minus pow2_int minus_minus by auto
   next
     case False
     have "0 \<le> real y" and "real y \<noteq> 0" using `0 < y` by auto
@@ -742,13 +748,13 @@ proof -
     also have "\<dots> = real y * real (?X div y + 1) / real y / 2^?l" by auto
     also have "\<dots> = real (?X div y + 1) * inverse (2^?l)" unfolding nonzero_mult_divide_cancel_left[OF `real y \<noteq> 0`] 
       unfolding real_divide_def ..
-    finally show ?thesis unfolding rapprox_posrat_def Let_def normfloat Ifloat.simps if_not_P[OF False]
+    finally show ?thesis unfolding rapprox_posrat_def Let_def normfloat real_of_float_simp if_not_P[OF False]
       unfolding pow2_minus pow2_int minus_minus by auto
   qed
 qed
 
 lemma rapprox_posrat_le1: assumes "0 \<le> x" and "0 < y" and "x \<le> y"
-  shows "Ifloat (rapprox_posrat n x y) \<le> 1"
+  shows "real (rapprox_posrat n x y) \<le> 1"
 proof -
   let ?l = "nat (int n + bitlen y - bitlen x)" let ?X = "x * 2^?l"
   show ?thesis
@@ -760,7 +766,7 @@ proof -
     finally have "real (?X div y) * inverse (2^?l) = real x / real y" by auto
     also have "real x / real y \<le> 1" using `0 \<le> x` and `0 < y` and `x \<le> y` by auto
     finally show ?thesis unfolding rapprox_posrat_def Let_def normfloat if_P[OF True]
-      unfolding Ifloat.simps pow2_minus pow2_int minus_minus by auto
+      unfolding real_of_float_simp pow2_minus pow2_int minus_minus by auto
   next
     case False
     have "x \<noteq> y"
@@ -781,7 +787,7 @@ proof -
       unfolding real_of_int_le_iff[of _ "2^?l", symmetric] real_of_int_power[symmetric] real_number_of
       by (rule mult_right_mono, auto)
     hence "real (?X div y + 1) * inverse (2^?l) \<le> 1" by auto
-    thus ?thesis unfolding rapprox_posrat_def Let_def normfloat Ifloat.simps if_not_P[OF False]
+    thus ?thesis unfolding rapprox_posrat_def Let_def normfloat real_of_float_simp if_not_P[OF False]
       unfolding pow2_minus pow2_int minus_minus by auto
   qed
 qed
@@ -798,9 +804,9 @@ proof (rule ccontr)
 qed
 
 lemma rapprox_posrat_less1: assumes "0 \<le> x" and "0 < y" and "2 * x < y" and "0 < n"
-  shows "Ifloat (rapprox_posrat n x y) < 1"
+  shows "real (rapprox_posrat n x y) < 1"
 proof (cases "x = 0")
-  case True thus ?thesis unfolding rapprox_posrat_def True Let_def normfloat Ifloat.simps by auto
+  case True thus ?thesis unfolding rapprox_posrat_def True Let_def normfloat real_of_float_simp by auto
 next
   case False hence "0 < x" using `0 \<le> x` by auto
   hence "x < y" using assms by auto
@@ -814,7 +820,7 @@ next
     also have "\<dots> = real x / real y * (2^?l * inverse (2^?l))" by auto
     finally have "real (?X div y) * inverse (2^?l) = real x / real y" by auto
     also have "real x / real y < 1" using `0 \<le> x` and `0 < y` and `x < y` by auto
-    finally show ?thesis unfolding rapprox_posrat_def Let_def normfloat Ifloat.simps if_P[OF True]
+    finally show ?thesis unfolding rapprox_posrat_def Let_def normfloat real_of_float_simp if_P[OF True]
       unfolding pow2_minus pow2_int minus_minus by auto
   next
     case False
@@ -855,7 +861,7 @@ next
       unfolding real_of_int_less_iff[of _ "2^?l", symmetric] real_of_int_power[symmetric] real_number_of
       by (rule mult_strict_right_mono, auto)
     hence "real (?X div y + 1) * inverse (2^?l) < 1" by auto
-    thus ?thesis unfolding rapprox_posrat_def Let_def normfloat Ifloat.simps if_not_P[OF False]
+    thus ?thesis unfolding rapprox_posrat_def Let_def normfloat real_of_float_simp if_not_P[OF False]
       unfolding pow2_minus pow2_int minus_minus by auto
   qed
 qed
@@ -890,7 +896,7 @@ lemma compute_lapprox_rat[code]:
                                                              else (if 0 < y then - (rapprox_posrat prec (-x) y) else lapprox_posrat prec (-x) (-y)))"
   by auto
             
-lemma lapprox_rat: "Ifloat (lapprox_rat prec x y) \<le> real x / real y"
+lemma lapprox_rat: "real (lapprox_rat prec x y) \<le> real x / real y"
 proof -      
   have h[rule_format]: "! a b b'. b' \<le> b \<longrightarrow> a \<le> b' \<longrightarrow> a \<le> (b::real)" by auto
   show ?thesis
@@ -917,7 +923,7 @@ proof -
 qed
 
 lemma lapprox_rat_bottom: assumes "0 \<le> x" and "0 < y"
-  shows "real (x div y) \<le> Ifloat (lapprox_rat n x y)" 
+  shows "real (x div y) \<le> real (lapprox_rat n x y)" 
   unfolding lapprox_rat.simps(2)[OF assms]  using lapprox_posrat_bottom[OF `0<y`] .
 
 function rapprox_rat :: "nat \<Rightarrow> int \<Rightarrow> int \<Rightarrow> float"
@@ -935,7 +941,7 @@ lemma compute_rapprox_rat[code]:
                                                                   (if 0 < y then - (lapprox_posrat prec (-x) y) else rapprox_posrat prec (-x) (-y)))"
   by auto
 
-lemma rapprox_rat: "real x / real y \<le> Ifloat (rapprox_rat prec x y)"
+lemma rapprox_rat: "real x / real y \<le> real (rapprox_rat prec x y)"
 proof -      
   have h[rule_format]: "! a b b'. b' \<le> b \<longrightarrow> a \<le> b' \<longrightarrow> a \<le> (b::real)" by auto
   show ?thesis
@@ -962,19 +968,19 @@ proof -
 qed
 
 lemma rapprox_rat_le1: assumes "0 \<le> x" and "0 < y" and "x \<le> y"
-  shows "Ifloat (rapprox_rat n x y) \<le> 1"
+  shows "real (rapprox_rat n x y) \<le> 1"
   unfolding rapprox_rat.simps(2)[OF `0 \<le> x` `0 < y`] using rapprox_posrat_le1[OF assms] .
 
 lemma rapprox_rat_neg: assumes "x < 0" and "0 < y"
-  shows "Ifloat (rapprox_rat n x y) \<le> 0"
+  shows "real (rapprox_rat n x y) \<le> 0"
   unfolding rapprox_rat.simps(3)[OF assms] using lapprox_posrat_nonneg[of "-x" y n] assms by auto
 
 lemma rapprox_rat_nonneg_neg: assumes "0 \<le> x" and "y < 0"
-  shows "Ifloat (rapprox_rat n x y) \<le> 0"
+  shows "real (rapprox_rat n x y) \<le> 0"
   unfolding rapprox_rat.simps(5)[OF assms] using lapprox_posrat_nonneg[of x "-y" n] assms by auto
 
 lemma rapprox_rat_nonpos_pos: assumes "x \<le> 0" and "0 < y"
-  shows "Ifloat (rapprox_rat n x y) \<le> 0"
+  shows "real (rapprox_rat n x y) \<le> 0"
 proof (cases "x = 0") 
   case True hence "0 \<le> x" by auto show ?thesis unfolding rapprox_rat.simps(2)[OF `0 \<le> x` `0 < y`]
     unfolding True rapprox_posrat_def Let_def by auto
@@ -992,7 +998,7 @@ where
      in
        f * l)"     
 
-lemma float_divl: "Ifloat (float_divl prec x y) \<le> Ifloat x / Ifloat y"
+lemma float_divl: "real (float_divl prec x y) \<le> real x / real y"
 proof - 
   from float_split[of x] obtain mx sx where x: "x = Float mx sx" by auto
   from float_split[of y] obtain my sy where y: "y = Float my sy" by auto
@@ -1013,29 +1019,29 @@ proof -
     apply (subst pow2_add[symmetric])
     apply (simp add: field_simps)
     done
-  then have "Ifloat (lapprox_rat prec mx my) \<le> (real mx * pow2 sx / (real my * pow2 sy)) / (pow2 (sx - sy))"
+  then have "real (lapprox_rat prec mx my) \<le> (real mx * pow2 sx / (real my * pow2 sy)) / (pow2 (sx - sy))"
     by (rule order_trans[OF lapprox_rat])
-  then have "Ifloat (lapprox_rat prec mx my) * pow2 (sx - sy) \<le> real mx * pow2 sx / (real my * pow2 sy)"
+  then have "real (lapprox_rat prec mx my) * pow2 (sx - sy) \<le> real mx * pow2 sx / (real my * pow2 sy)"
     apply (subst pos_le_divide_eq[symmetric])
     apply simp_all
     done
-  then have "pow2 (sx - sy) * Ifloat (lapprox_rat prec mx my) \<le> real mx * pow2 sx / (real my * pow2 sy)"
+  then have "pow2 (sx - sy) * real (lapprox_rat prec mx my) \<le> real mx * pow2 sx / (real my * pow2 sy)"
     by (simp add: algebra_simps)
   then show ?thesis
-    by (simp add: x y Let_def Ifloat.simps)
+    by (simp add: x y Let_def real_of_float_simp)
 qed
 
 lemma float_divl_lower_bound: assumes "0 \<le> x" and "0 < y" shows "0 \<le> float_divl prec x y"
 proof (cases x, cases y)
   fix xm xe ym ye :: int
   assume x_eq: "x = Float xm xe" and y_eq: "y = Float ym ye"
-  have "0 \<le> xm" using `0 \<le> x`[unfolded x_eq le_float_def Ifloat.simps Ifloat_0 zero_le_mult_iff] by auto
-  have "0 < ym" using `0 < y`[unfolded y_eq less_float_def Ifloat.simps Ifloat_0 zero_less_mult_iff] by auto
+  have "0 \<le> xm" using `0 \<le> x`[unfolded x_eq le_float_def real_of_float_simp real_of_float_0 zero_le_mult_iff] by auto
+  have "0 < ym" using `0 < y`[unfolded y_eq less_float_def real_of_float_simp real_of_float_0 zero_less_mult_iff] by auto
 
-  have "\<And>n. 0 \<le> Ifloat (Float 1 n)" unfolding Ifloat.simps using zero_le_pow2 by auto
-  moreover have "0 \<le> Ifloat (lapprox_rat prec xm ym)" by (rule order_trans[OF _ lapprox_rat_bottom[OF `0 \<le> xm` `0 < ym`]], auto simp add: `0 \<le> xm` pos_imp_zdiv_nonneg_iff[OF `0 < ym`])
+  have "\<And>n. 0 \<le> real (Float 1 n)" unfolding real_of_float_simp using zero_le_pow2 by auto
+  moreover have "0 \<le> real (lapprox_rat prec xm ym)" by (rule order_trans[OF _ lapprox_rat_bottom[OF `0 \<le> xm` `0 < ym`]], auto simp add: `0 \<le> xm` pos_imp_zdiv_nonneg_iff[OF `0 < ym`])
   ultimately show "0 \<le> float_divl prec x y"
-    unfolding x_eq y_eq float_divl.simps Let_def le_float_def Ifloat_0 by (auto intro!: mult_nonneg_nonneg)
+    unfolding x_eq y_eq float_divl.simps Let_def le_float_def real_of_float_0 by (auto intro!: mult_nonneg_nonneg)
 qed
 
 lemma float_divl_pos_less1_bound: assumes "0 < x" and "x < 1" and "0 < prec" shows "1 \<le> float_divl prec 1 x"
@@ -1076,7 +1082,7 @@ proof (cases x)
   
   show ?thesis 
     unfolding one_float_def Float float_divl.simps Let_def lapprox_rat.simps(2)[OF zero_le_one `0 < m`] lapprox_posrat_def `bitlen 1 = 1`
-    unfolding le_float_def Ifloat_mult normfloat Ifloat.simps pow2_minus pow2_int e_nat
+    unfolding le_float_def real_of_float_mult normfloat real_of_float_simp pow2_minus pow2_int e_nat
     using `1 \<le> 2^?e * ?d` by (auto simp add: pow2_def)
 qed
 
@@ -1089,7 +1095,7 @@ where
      in
        f * r)"  
 
-lemma float_divr: "Ifloat x / Ifloat y \<le> Ifloat (float_divr prec x y)"
+lemma float_divr: "real x / real y \<le> real (float_divr prec x y)"
 proof - 
   from float_split[of x] obtain mx sx where x: "x = Float mx sx" by auto
   from float_split[of y] obtain my sy where y: "y = Float my sy" by auto
@@ -1109,20 +1115,20 @@ proof -
     apply (subst pow2_add[symmetric])
     apply (simp add: field_simps)
     done
-  then have "Ifloat (rapprox_rat prec mx my) \<ge> (real mx * pow2 sx / (real my * pow2 sy)) / (pow2 (sx - sy))"
+  then have "real (rapprox_rat prec mx my) \<ge> (real mx * pow2 sx / (real my * pow2 sy)) / (pow2 (sx - sy))"
     by (rule order_trans[OF _ rapprox_rat])
-  then have "Ifloat (rapprox_rat prec mx my) * pow2 (sx - sy) \<ge> real mx * pow2 sx / (real my * pow2 sy)"
+  then have "real (rapprox_rat prec mx my) * pow2 (sx - sy) \<ge> real mx * pow2 sx / (real my * pow2 sy)"
     apply (subst pos_divide_le_eq[symmetric])
     apply simp_all
     done
   then show ?thesis
-    by (simp add: x y Let_def algebra_simps Ifloat.simps)
+    by (simp add: x y Let_def algebra_simps real_of_float_simp)
 qed
 
 lemma float_divr_pos_less1_lower_bound: assumes "0 < x" and "x < 1" shows "1 \<le> float_divr prec 1 x"
 proof -
-  have "1 \<le> 1 / Ifloat x" using `0 < x` and `x < 1` unfolding less_float_def by auto
-  also have "\<dots> \<le> Ifloat (float_divr prec 1 x)" using float_divr[where x=1 and y=x] by auto
+  have "1 \<le> 1 / real x" using `0 < x` and `x < 1` unfolding less_float_def by auto
+  also have "\<dots> \<le> real (float_divr prec 1 x)" using float_divr[where x=1 and y=x] by auto
   finally show ?thesis unfolding le_float_def by auto
 qed
 
@@ -1130,27 +1136,27 @@ lemma float_divr_nonpos_pos_upper_bound: assumes "x \<le> 0" and "0 < y" shows "
 proof (cases x, cases y)
   fix xm xe ym ye :: int
   assume x_eq: "x = Float xm xe" and y_eq: "y = Float ym ye"
-  have "xm \<le> 0" using `x \<le> 0`[unfolded x_eq le_float_def Ifloat.simps Ifloat_0 mult_le_0_iff] by auto
-  have "0 < ym" using `0 < y`[unfolded y_eq less_float_def Ifloat.simps Ifloat_0 zero_less_mult_iff] by auto
+  have "xm \<le> 0" using `x \<le> 0`[unfolded x_eq le_float_def real_of_float_simp real_of_float_0 mult_le_0_iff] by auto
+  have "0 < ym" using `0 < y`[unfolded y_eq less_float_def real_of_float_simp real_of_float_0 zero_less_mult_iff] by auto
 
-  have "\<And>n. 0 \<le> Ifloat (Float 1 n)" unfolding Ifloat.simps using zero_le_pow2 by auto
-  moreover have "Ifloat (rapprox_rat prec xm ym) \<le> 0" using rapprox_rat_nonpos_pos[OF `xm \<le> 0` `0 < ym`] .
+  have "\<And>n. 0 \<le> real (Float 1 n)" unfolding real_of_float_simp using zero_le_pow2 by auto
+  moreover have "real (rapprox_rat prec xm ym) \<le> 0" using rapprox_rat_nonpos_pos[OF `xm \<le> 0` `0 < ym`] .
   ultimately show "float_divr prec x y \<le> 0"
-    unfolding x_eq y_eq float_divr.simps Let_def le_float_def Ifloat_0 Ifloat_mult by (auto intro!: mult_nonneg_nonpos)
+    unfolding x_eq y_eq float_divr.simps Let_def le_float_def real_of_float_0 real_of_float_mult by (auto intro!: mult_nonneg_nonpos)
 qed
 
 lemma float_divr_nonneg_neg_upper_bound: assumes "0 \<le> x" and "y < 0" shows "float_divr prec x y \<le> 0"
 proof (cases x, cases y)
   fix xm xe ym ye :: int
   assume x_eq: "x = Float xm xe" and y_eq: "y = Float ym ye"
-  have "0 \<le> xm" using `0 \<le> x`[unfolded x_eq le_float_def Ifloat.simps Ifloat_0 zero_le_mult_iff] by auto
-  have "ym < 0" using `y < 0`[unfolded y_eq less_float_def Ifloat.simps Ifloat_0 mult_less_0_iff] by auto
+  have "0 \<le> xm" using `0 \<le> x`[unfolded x_eq le_float_def real_of_float_simp real_of_float_0 zero_le_mult_iff] by auto
+  have "ym < 0" using `y < 0`[unfolded y_eq less_float_def real_of_float_simp real_of_float_0 mult_less_0_iff] by auto
   hence "0 < - ym" by auto
 
-  have "\<And>n. 0 \<le> Ifloat (Float 1 n)" unfolding Ifloat.simps using zero_le_pow2 by auto
-  moreover have "Ifloat (rapprox_rat prec xm ym) \<le> 0" using rapprox_rat_nonneg_neg[OF `0 \<le> xm` `ym < 0`] .
+  have "\<And>n. 0 \<le> real (Float 1 n)" unfolding real_of_float_simp using zero_le_pow2 by auto
+  moreover have "real (rapprox_rat prec xm ym) \<le> 0" using rapprox_rat_nonneg_neg[OF `0 \<le> xm` `ym < 0`] .
   ultimately show "float_divr prec x y \<le> 0"
-    unfolding x_eq y_eq float_divr.simps Let_def le_float_def Ifloat_0 Ifloat_mult by (auto intro!: mult_nonneg_nonpos)
+    unfolding x_eq y_eq float_divr.simps Let_def le_float_def real_of_float_0 real_of_float_mult by (auto intro!: mult_nonneg_nonpos)
 qed
 
 primrec round_down :: "nat \<Rightarrow> float \<Rightarrow> float" where
@@ -1163,7 +1169,7 @@ primrec round_up :: "nat \<Rightarrow> float \<Rightarrow> float" where
   if 0 < d then let P = 2^nat d ; n = m div P ; r = m mod P in Float (n + (if r = 0 then 0 else 1)) (e + d) 
            else Float m e)"
 
-lemma round_up: "Ifloat x \<le> Ifloat (round_up prec x)"
+lemma round_up: "real x \<le> real (round_up prec x)"
 proof (cases x)
   case (Float m e)
   let ?d = "bitlen m - int prec"
@@ -1177,7 +1183,7 @@ proof (cases x)
     proof (cases "m mod ?p = 0")
       case True
       have m: "m = m div ?p * ?p + 0" unfolding True[symmetric] using zdiv_zmod_equality2[where k=0, unfolded monoid_add_class.add_0_right, symmetric] .
-      have "Ifloat (Float m e) = Ifloat (Float (m div ?p) (e + ?d))" unfolding Ifloat.simps arg_cong[OF m, of real]
+      have "real (Float m e) = real (Float (m div ?p) (e + ?d))" unfolding real_of_float_simp arg_cong[OF m, of real]
 	by (auto simp add: pow2_add `0 < ?d` pow_d)
       thus ?thesis
 	unfolding Float round_up.simps Let_def if_P[OF `m mod ?p = 0`] if_P[OF `0 < ?d`]
@@ -1186,7 +1192,7 @@ proof (cases x)
       case False
       have "m = m div ?p * ?p + m mod ?p" unfolding zdiv_zmod_equality2[where k=0, unfolded monoid_add_class.add_0_right] ..
       also have "\<dots> \<le> (m div ?p + 1) * ?p" unfolding left_distrib zmult_1 by (rule add_left_mono, rule pos_mod_bound[OF `0 < ?p`, THEN less_imp_le])
-      finally have "Ifloat (Float m e) \<le> Ifloat (Float (m div ?p + 1) (e + ?d))" unfolding Ifloat.simps add_commute[of e]
+      finally have "real (Float m e) \<le> real (Float (m div ?p + 1) (e + ?d))" unfolding real_of_float_simp add_commute[of e]
 	unfolding pow2_add mult_assoc[symmetric] real_of_int_le_iff[of m, symmetric]
 	by (auto intro!: mult_mono simp add: pow2_add `0 < ?d` pow_d)
       thus ?thesis
@@ -1199,7 +1205,7 @@ proof (cases x)
   qed
 qed
 
-lemma round_down: "Ifloat (round_down prec x) \<le> Ifloat x"
+lemma round_down: "real (round_down prec x) \<le> real x"
 proof (cases x)
   case (Float m e)
   let ?d = "bitlen m - int prec"
@@ -1211,7 +1217,7 @@ proof (cases x)
     hence pow_d: "pow2 ?d = real ?p" unfolding pow2_int[symmetric] power_real_number_of[symmetric] by auto
     have "m div ?p * ?p \<le> m div ?p * ?p + m mod ?p" by (auto simp add: pos_mod_bound[OF `0 < ?p`, THEN less_imp_le])
     also have "\<dots> \<le> m" unfolding zdiv_zmod_equality2[where k=0, unfolded monoid_add_class.add_0_right] ..
-    finally have "Ifloat (Float (m div ?p) (e + ?d)) \<le> Ifloat (Float m e)" unfolding Ifloat.simps add_commute[of e]
+    finally have "real (Float (m div ?p) (e + ?d)) \<le> real (Float m e)" unfolding real_of_float_simp add_commute[of e]
       unfolding pow2_add mult_assoc[symmetric] real_of_int_le_iff[of _ m, symmetric]
       by (auto intro!: mult_mono simp add: pow2_add `0 < ?d` pow_d)
     thus ?thesis
@@ -1235,12 +1241,12 @@ definition ub_mult :: "nat \<Rightarrow> float \<Rightarrow> float \<Rightarrow>
   in if l > 0 then Float (m div (2^nat l) + 1) (e + l)
               else Float m e)"
 
-lemma lb_mult: "Ifloat (lb_mult prec x y) \<le> Ifloat (x * y)"
+lemma lb_mult: "real (lb_mult prec x y) \<le> real (x * y)"
 proof (cases "normfloat (x * y)")
   case (Float m e)
   hence "odd m \<or> (m = 0 \<and> e = 0)" by (rule normfloat_imp_odd_or_zero)
   let ?l = "bitlen m - int prec"
-  have "Ifloat (lb_mult prec x y) \<le> Ifloat (normfloat (x * y))"
+  have "real (lb_mult prec x y) \<le> real (normfloat (x * y))"
   proof (cases "?l > 0")
     case False thus ?thesis unfolding lb_mult_def Float Let_def float.cases by auto
   next
@@ -1253,19 +1259,19 @@ proof (cases "normfloat (x * y)")
       also have "\<dots> = real m" unfolding zmod_zdiv_equality[symmetric] ..
       finally show ?thesis by auto
     qed
-    thus ?thesis unfolding lb_mult_def Float Let_def float.cases if_P[OF True] Ifloat.simps pow2_add real_mult_commute real_mult_assoc by auto
+    thus ?thesis unfolding lb_mult_def Float Let_def float.cases if_P[OF True] real_of_float_simp pow2_add real_mult_commute real_mult_assoc by auto
   qed
-  also have "\<dots> = Ifloat (x * y)" unfolding normfloat ..
+  also have "\<dots> = real (x * y)" unfolding normfloat ..
   finally show ?thesis .
 qed
 
-lemma ub_mult: "Ifloat (x * y) \<le> Ifloat (ub_mult prec x y)"
+lemma ub_mult: "real (x * y) \<le> real (ub_mult prec x y)"
 proof (cases "normfloat (x * y)")
   case (Float m e)
   hence "odd m \<or> (m = 0 \<and> e = 0)" by (rule normfloat_imp_odd_or_zero)
   let ?l = "bitlen m - int prec"
-  have "Ifloat (x * y) = Ifloat (normfloat (x * y))" unfolding normfloat ..
-  also have "\<dots> \<le> Ifloat (ub_mult prec x y)"
+  have "real (x * y) = real (normfloat (x * y))" unfolding normfloat ..
+  also have "\<dots> \<le> real (ub_mult prec x y)"
   proof (cases "?l > 0")
     case False thus ?thesis unfolding ub_mult_def Float Let_def float.cases by auto
   next
@@ -1280,7 +1286,7 @@ proof (cases "normfloat (x * y)")
       also have "\<dots> \<le> (real (m div 2^(nat ?l)) + 1) * 2^(nat ?l)" unfolding real_add_mult_distrib using mod_uneq by auto
       finally show ?thesis unfolding pow2_int[symmetric] using True by auto
     qed
-    thus ?thesis unfolding ub_mult_def Float Let_def float.cases if_P[OF True] Ifloat.simps pow2_add real_mult_commute real_mult_assoc by auto
+    thus ?thesis unfolding ub_mult_def Float Let_def float.cases if_P[OF True] real_of_float_simp pow2_add real_mult_commute real_mult_assoc by auto
   qed
   finally show ?thesis .
 qed
@@ -1293,28 +1299,28 @@ definition abs_float_def: "\<bar>x\<bar> = float_abs x"
 instance ..
 end
 
-lemma Ifloat_abs: "Ifloat \<bar>x\<bar> = \<bar>Ifloat x\<bar>" 
+lemma real_of_float_abs: "real \<bar>x :: float\<bar> = \<bar>real x\<bar>" 
 proof (cases x)
   case (Float m e)
   have "\<bar>real m\<bar> * pow2 e = \<bar>real m * pow2 e\<bar>" unfolding abs_mult by auto
-  thus ?thesis unfolding Float abs_float_def float_abs.simps Ifloat.simps by auto
+  thus ?thesis unfolding Float abs_float_def float_abs.simps real_of_float_simp by auto
 qed
 
 primrec floor_fl :: "float \<Rightarrow> float" where
   "floor_fl (Float m e) = (if 0 \<le> e then Float m e
                                   else Float (m div (2 ^ (nat (-e)))) 0)"
 
-lemma floor_fl: "Ifloat (floor_fl x) \<le> Ifloat x"
+lemma floor_fl: "real (floor_fl x) \<le> real x"
 proof (cases x)
   case (Float m e)
   show ?thesis
   proof (cases "0 \<le> e")
     case False
     hence me_eq: "pow2 (-e) = pow2 (int (nat (-e)))" by auto
-    have "Ifloat (Float (m div (2 ^ (nat (-e)))) 0) = real (m div 2 ^ (nat (-e)))" unfolding Ifloat.simps by auto
+    have "real (Float (m div (2 ^ (nat (-e)))) 0) = real (m div 2 ^ (nat (-e)))" unfolding real_of_float_simp by auto
     also have "\<dots> \<le> real m / real ((2::int) ^ (nat (-e)))" using real_of_int_div4 .
     also have "\<dots> = real m * inverse (2 ^ (nat (-e)))" unfolding power_real_number_of[symmetric] real_divide_def ..
-    also have "\<dots> = Ifloat (Float m e)" unfolding Ifloat.simps me_eq pow2_int pow2_neg[of e] ..
+    also have "\<dots> = real (Float m e)" unfolding real_of_float_simp me_eq pow2_int pow2_neg[of e] ..
     finally show ?thesis unfolding Float floor_fl.simps if_not_P[OF `\<not> 0 \<le> e`] .
   next
     case True thus ?thesis unfolding Float by auto
@@ -1333,17 +1339,17 @@ primrec ceiling_fl :: "float \<Rightarrow> float" where
   "ceiling_fl (Float m e) = (if 0 \<le> e then Float m e
                                     else Float (m div (2 ^ (nat (-e))) + 1) 0)"
 
-lemma ceiling_fl: "Ifloat x \<le> Ifloat (ceiling_fl x)"
+lemma ceiling_fl: "real x \<le> real (ceiling_fl x)"
 proof (cases x)
   case (Float m e)
   show ?thesis
   proof (cases "0 \<le> e")
     case False
     hence me_eq: "pow2 (-e) = pow2 (int (nat (-e)))" by auto
-    have "Ifloat (Float m e) = real m * inverse (2 ^ (nat (-e)))" unfolding Ifloat.simps me_eq pow2_int pow2_neg[of e] ..
+    have "real (Float m e) = real m * inverse (2 ^ (nat (-e)))" unfolding real_of_float_simp me_eq pow2_int pow2_neg[of e] ..
     also have "\<dots> = real m / real ((2::int) ^ (nat (-e)))" unfolding power_real_number_of[symmetric] real_divide_def ..
     also have "\<dots> \<le> 1 + real (m div 2 ^ (nat (-e)))" using real_of_int_div3[unfolded diff_le_eq] .
-    also have "\<dots> = Ifloat (Float (m div (2 ^ (nat (-e))) + 1) 0)" unfolding Ifloat.simps by auto
+    also have "\<dots> = real (Float (m div (2 ^ (nat (-e))) + 1) 0)" unfolding real_of_float_simp by auto
     finally show ?thesis unfolding Float ceiling_fl.simps if_not_P[OF `\<not> 0 \<le> e`] .
   next
     case True thus ?thesis unfolding Float by auto
@@ -1358,48 +1364,48 @@ definition lb_mod :: "nat \<Rightarrow> float \<Rightarrow> float \<Rightarrow> 
 definition ub_mod :: "nat \<Rightarrow> float \<Rightarrow> float \<Rightarrow> float \<Rightarrow> float" where
 "ub_mod prec x ub lb = x - floor_fl (float_divl prec x ub) * lb"
 
-lemma lb_mod: fixes k :: int assumes "0 \<le> Ifloat x" and "real k * y \<le> Ifloat x" (is "?k * y \<le> ?x")
-  assumes "0 < Ifloat lb" "Ifloat lb \<le> y" (is "?lb \<le> y") "y \<le> Ifloat ub" (is "y \<le> ?ub")
-  shows "Ifloat (lb_mod prec x ub lb) \<le> ?x - ?k * y"
+lemma lb_mod: fixes k :: int assumes "0 \<le> real x" and "real k * y \<le> real x" (is "?k * y \<le> ?x")
+  assumes "0 < real lb" "real lb \<le> y" (is "?lb \<le> y") "y \<le> real ub" (is "y \<le> ?ub")
+  shows "real (lb_mod prec x ub lb) \<le> ?x - ?k * y"
 proof -
   have "?lb \<le> ?ub" by (auto!)
   have "0 \<le> ?lb" and "?lb \<noteq> 0" by (auto!)
   have "?k * y \<le> ?x" using assms by auto
   also have "\<dots> \<le> ?x / ?lb * ?ub" by (metis mult_left_mono[OF `?lb \<le> ?ub` `0 \<le> ?x`] divide_right_mono[OF _ `0 \<le> ?lb` ] times_divide_eq_left nonzero_mult_divide_cancel_right[OF `?lb \<noteq> 0`])
-  also have "\<dots> \<le> Ifloat (ceiling_fl (float_divr prec x lb)) * ?ub" by (metis mult_right_mono order_trans `0 \<le> ?lb` `?lb \<le> ?ub` float_divr ceiling_fl)
-  finally show ?thesis unfolding lb_mod_def Ifloat_sub Ifloat_mult by auto
+  also have "\<dots> \<le> real (ceiling_fl (float_divr prec x lb)) * ?ub" by (metis mult_right_mono order_trans `0 \<le> ?lb` `?lb \<le> ?ub` float_divr ceiling_fl)
+  finally show ?thesis unfolding lb_mod_def real_of_float_sub real_of_float_mult by auto
 qed
 
-lemma ub_mod: fixes k :: int assumes "0 \<le> Ifloat x" and "Ifloat x \<le> real k * y" (is "?x \<le> ?k * y")
-  assumes "0 < Ifloat lb" "Ifloat lb \<le> y" (is "?lb \<le> y") "y \<le> Ifloat ub" (is "y \<le> ?ub")
-  shows "?x - ?k * y \<le> Ifloat (ub_mod prec x ub lb)"
+lemma ub_mod: fixes k :: int and x :: float assumes "0 \<le> real x" and "real x \<le> real k * y" (is "?x \<le> ?k * y")
+  assumes "0 < real lb" "real lb \<le> y" (is "?lb \<le> y") "y \<le> real ub" (is "y \<le> ?ub")
+  shows "?x - ?k * y \<le> real (ub_mod prec x ub lb)"
 proof -
   have "?lb \<le> ?ub" by (auto!)
   hence "0 \<le> ?lb" and "0 \<le> ?ub" and "?ub \<noteq> 0" by (auto!)
-  have "Ifloat (floor_fl (float_divl prec x ub)) * ?lb \<le> ?x / ?ub * ?lb" by (metis mult_right_mono order_trans `0 \<le> ?lb` `?lb \<le> ?ub` float_divl floor_fl)
+  have "real (floor_fl (float_divl prec x ub)) * ?lb \<le> ?x / ?ub * ?lb" by (metis mult_right_mono order_trans `0 \<le> ?lb` `?lb \<le> ?ub` float_divl floor_fl)
   also have "\<dots> \<le> ?x" by (metis mult_left_mono[OF `?lb \<le> ?ub` `0 \<le> ?x`] divide_right_mono[OF _ `0 \<le> ?ub` ] times_divide_eq_left nonzero_mult_divide_cancel_right[OF `?ub \<noteq> 0`])
   also have "\<dots> \<le> ?k * y" using assms by auto
-  finally show ?thesis unfolding ub_mod_def Ifloat_sub Ifloat_mult by auto
+  finally show ?thesis unfolding ub_mod_def real_of_float_sub real_of_float_mult by auto
 qed
 
 lemma le_float_def': "f \<le> g = (case f - g of Float a b \<Rightarrow> a \<le> 0)"
 proof -
-  have le_transfer: "(f \<le> g) = (Ifloat (f - g) \<le> 0)" by (auto simp add: le_float_def)
+  have le_transfer: "(f \<le> g) = (real (f - g) \<le> 0)" by (auto simp add: le_float_def)
   from float_split[of "f - g"] obtain a b where f_diff_g: "f - g = Float a b" by auto
-  with le_transfer have le_transfer': "f \<le> g = (Ifloat (Float a b) \<le> 0)" by simp
+  with le_transfer have le_transfer': "f \<le> g = (real (Float a b) \<le> 0)" by simp
   show ?thesis by (simp add: le_transfer' f_diff_g float_le_zero)
 qed
 
 lemma float_less_zero:
-  "(Ifloat (Float a b) < 0) = (a < 0)"
-  apply (auto simp add: mult_less_0_iff Ifloat.simps)
+  "(real (Float a b) < 0) = (a < 0)"
+  apply (auto simp add: mult_less_0_iff real_of_float_simp)
   done
 
 lemma less_float_def': "f < g = (case f - g of Float a b \<Rightarrow> a < 0)"
 proof -
-  have less_transfer: "(f < g) = (Ifloat (f - g) < 0)" by (auto simp add: less_float_def)
+  have less_transfer: "(f < g) = (real (f - g) < 0)" by (auto simp add: less_float_def)
   from float_split[of "f - g"] obtain a b where f_diff_g: "f - g = Float a b" by auto
-  with less_transfer have less_transfer': "f < g = (Ifloat (Float a b) < 0)" by simp
+  with less_transfer have less_transfer': "f < g = (real (Float a b) < 0)" by simp
   show ?thesis by (simp add: less_transfer' f_diff_g float_less_zero)
 qed
 
