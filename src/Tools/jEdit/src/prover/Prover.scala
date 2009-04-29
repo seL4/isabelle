@@ -180,37 +180,29 @@ class Prover(isabelle_system: IsabelleSystem, logic: String) extends Actor
                     output_info.event(result.toString)
                     command.status = Command.Status.FAILED
                     command_change(command)
-                  // ML typing
-                  case XML.Elem(Markup.ML_TYPING, attr, body) =>
-                    val begin = get_attr(attr, Markup.OFFSET).get.toInt - 1
-                    val end = get_attr(attr, Markup.END_OFFSET).get.toInt - 1
-                    val markup_id = get_attr(attr, Markup.ID).get
-                    val info = body.first.asInstanceOf[XML.Text].content
-                    command.add_markup(info, begin, end)
-                    command_change(command)
-                  // ML references
-                  case XML.Elem(Markup.ML_REF, attr, body) =>
-                    val begin = get_attr(attr, Markup.OFFSET).get.toInt - 1
-                    val end = get_attr(attr, Markup.END_OFFSET).get.toInt - 1
-                    val markup_id = get_attr(attr, Markup.ID).get
-                    command.add_markup(body.toString, begin, end)
-                    command_change(command)
-                  // syntax highlighting
                   case XML.Elem(kind, attr, body) =>
+                    // TODO: assuming that begin, end, id are present in attributes
                     val begin = get_attr(attr, Markup.OFFSET).get.toInt - 1
                     val end = get_attr(attr, Markup.END_OFFSET).get.toInt - 1
                     val markup_id = get_attr(attr, Markup.ID).get
-
-                    val cmd =  // FIXME proper command version!? running!?
-                      // outer syntax: no id in props
-                      if (command == null) commands.getOrElse(markup_id, null)
-                      // inner syntax: id from props
-                      else command
-                    if (cmd != null) {
-                      cmd.add_markup(kind, begin, end)
-                      cmd.add_highlight(kind, begin, end)
-                      command_change(cmd)
+                    kind match {
+                      case Markup.ML_TYPING =>
+                        val info = body.first.asInstanceOf[XML.Text].content
+                        command.types_markup += command.markup_node(info, begin, end)
+                        command.state_markup += command.markup_node(info, begin, end)
+                      case Markup.ML_REF =>
+                        command.refs_markup += command.markup_node(body.toString, begin, end)
+                        command.state_markup += command.markup_node(body.toString, begin, end)
+                      case kind =>
+                        if (!running)
+                          commands.get(markup_id).map (cmd =>
+                          cmd.command_markup += cmd.markup_node(kind, begin, end))
+                        else {
+                          command.highlight_markup += command.markup_node(kind, begin, end)
+                          command.state_markup += command.markup_node(kind, begin, end)
+                        }
                     }
+                    command_change(command)
                   case _ =>
                   //}}}
                 }

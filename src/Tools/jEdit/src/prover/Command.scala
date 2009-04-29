@@ -53,9 +53,10 @@ class Command(val tokens: List[Token], val starts: Map[Token, Int])
     if (st == Command.Status.UNPROCESSED) {
       state_results.clear
       // delete markup
-      for (child <- root_node.children) {
-        child.children = Nil
-      }
+      state_markup = empty_root_node
+      highlight_markup = empty_root_node
+      types_markup = empty_root_node
+      refs_markup = empty_root_node
     }
     _status = st
   }
@@ -79,23 +80,24 @@ class Command(val tokens: List[Token], val starts: Map[Token, Int])
 
   /* markup */
 
-  val root_node =
-    new MarkupNode(this, 0, starts(tokens.last) - starts(tokens.first) + tokens.last.length, id, content, Markup.COMMAND_SPAN)
+  val empty_root_node =
+    new MarkupNode(this, 0, starts(tokens.last) - starts(tokens.first) + tokens.last.length, Nil, id, content, Markup.COMMAND_SPAN)
 
-  def add_markup(desc: String, begin: Int, end: Int) = {
-    val markup_content = if (end <= content.length) content.substring(begin, end)
-      else {
-        System.err.println (root_node.stop, content, content.length, end)
-        "wrong indices?"
-      }
-    root_node insert new MarkupNode(this, begin, end, id, markup_content, desc)
-  }
+  var command_markup = empty_root_node
 
-  // syntax highlighting
-  val highlight_node =
-   new MarkupNode(this, 0, starts(tokens.last) - starts(tokens.first) + tokens.last.length, id, content, Markup.COMMAND_SPAN)
+  var state_markup = empty_root_node
+  var highlight_markup = empty_root_node
+  var types_markup = empty_root_node
+  var refs_markup = empty_root_node
+  var state_markups = List(state_markup, highlight_markup, types_markup, refs_markup)
 
-  def add_highlight(kind: String, begin: Int, end: Int) =
-    highlight_node insert new MarkupNode(this, begin, end, id, "", kind)
+  def highlight_node = (command_markup /: highlight_markup.children) (_ + _)
+
+  def root_node = (command_markup /: state_markup.children) (_ + _)
+
+  def markup_node(desc: String, begin: Int, end: Int) =
+    new MarkupNode(this, begin, end, Nil, id,
+                   if (end <= content.length && begin >= 0) content.substring(begin, end) else "wrong indices??",
+                   desc)
 
 }

@@ -38,30 +38,24 @@ object MarkupNode {
 }
 
 class MarkupNode (val base : Command, val start : Int, val stop : Int,
-                    val id : String, val content : String, val desc : String) {
+                  val children: List[MarkupNode],
+                  val id : String, val content : String, val desc : String) {
 
   def swing_node(doc: ProofDocument) : DefaultMutableTreeNode = {
     val node = MarkupNode.markup2default_node (this, base, doc)
-    for (c <- children) node add c.swing_node(doc)
+    children.map(node add _.swing_node(doc))
     node
   }
-    
+
   def abs_start(doc: ProofDocument) = base.start(doc) + start
   def abs_stop(doc: ProofDocument) = base.start(doc) + stop
 
-  var parent : MarkupNode = null
-  def orphan = parent == null
+  def set_children(newchildren: List[MarkupNode]): MarkupNode =
+    new MarkupNode(base, start, stop, newchildren, id, content, desc)
 
-  var children : List[MarkupNode] = Nil
+  def add(child : MarkupNode) = set_children ((child :: children) sort ((a, b) => a.start < b.start))
 
-  private def add(child : MarkupNode) {
-    child parent = this
-    children = (child :: children) sort ((a, b) => a.start < b.start)
-  }
-
-  private def remove(nodes : List[MarkupNode]) {
-    children = children diff nodes
-  }
+  def remove(nodes : List[MarkupNode]) = set_children(children diff nodes)
 
   def dfs : List[MarkupNode] = {
     var all = Nil : List[MarkupNode]
@@ -83,42 +77,33 @@ class MarkupNode (val base : Command, val start : Int, val stop : Int,
       val filled_gaps = for {
         child <- children
         markups = if (next_x < child.start) {
-          new MarkupNode(base, next_x, child.start, id, content, "") :: child.flatten
+          new MarkupNode(base, next_x, child.start, Nil, id, content, "") :: child.flatten
         } else child.flatten
         update = (next_x = child.stop)
         markup <- markups
       } yield markup
-      if (next_x < stop) filled_gaps + new MarkupNode(base, next_x, stop, id, content, "")
+      if (next_x < stop) filled_gaps + new MarkupNode(base, next_x, stop, Nil, id, content, "")
       else filled_gaps
     }
   }
 
-  def insert(new_child : MarkupNode) : Unit = {
+  def +(new_child : MarkupNode) : MarkupNode = {
     if (new_child fitting_into this) {
-      for (child <- children) {
-        if (new_child fitting_into child)
-          child insert new_child
+      val new_children = children.map(c => if((new_child fitting_into c)) c + new_child else c)
+      if (new_children == children) {
+        // new_child did not fit into children of this -> insert new_child between this and its children
+        val (fitting, nonfitting) = children span(_ fitting_into new_child)
+        this remove fitting add ((new_child /: fitting) (_ add _))
       }
-      if (new_child orphan) {
-        // new_child did not fit into children of this
-        // -> insert new_child between this and its children
-        for (child <- children) {
-          if (child fitting_into new_child) {
-            new_child add child
-          }
-        }
-        this add new_child
-        this remove new_child.children
-      }
+      else this set_children new_children
     } else {
-      System.err.println("ignored nonfitting markup " + new_child.id + new_child.content + new_child.desc
+      error("ignored nonfitting markup " + new_child.id + new_child.content + new_child.desc
                          + "(" +new_child.start + ", "+ new_child.stop + ")")
     }
   }
 
   // does this fit into node?
-  def fitting_into(node : MarkupNode) = node.start <= this.start &&
-    node.stop >= this.stop
+  def fitting_into(node : MarkupNode) = node.start <= this.start && node.stop >= this.stop
 
   override def toString = "([" + start + " - " + stop + "] " + id + "( " + content + "): " + desc
 }
