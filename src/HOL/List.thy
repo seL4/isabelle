@@ -2120,6 +2120,15 @@ lemma listsum_rev [simp]:
   shows "listsum (rev xs) = listsum xs"
 by (induct xs) (simp_all add:add_ac)
 
+lemma listsum_map_remove1:
+fixes f :: "'a \<Rightarrow> ('b::comm_monoid_add)"
+shows "x : set xs \<Longrightarrow> listsum(map f xs) = f x + listsum(map f (remove1 x xs))"
+by (induct xs)(auto simp add:add_ac)
+
+lemma list_size_conv_listsum:
+  "list_size f xs = listsum (map f xs) + size xs"
+by(induct xs) auto
+
 lemma listsum_foldr: "listsum xs = foldr (op +) xs 0"
 by (induct xs) auto
 
