@@ -151,7 +151,7 @@ sig
   val mk_var_names : string list -> string list;
 end;
 
-structure Domain_Library : DOMAIN_LIBRARY =
+structure Domain_Library :> DOMAIN_LIBRARY =
 struct
 
 exception Impossible of string;

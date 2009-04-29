@@ -12,7 +12,7 @@ sig
   val add_consts_i: (binding * typ * mixfix) list -> theory -> theory
 end;
 
-structure ContConsts: CONT_CONSTS =
+structure ContConsts :> CONT_CONSTS =
 struct
 
 

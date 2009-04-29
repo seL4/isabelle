@@ -14,7 +14,7 @@ sig
     -> theory -> theory
 end;
 
-structure Domain_Extender: DOMAIN_EXTENDER =
+structure Domain_Extender :> DOMAIN_EXTENDER =
 struct
 
 open Domain_Library;

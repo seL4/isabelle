@@ -16,7 +16,7 @@ sig
   val setup: theory -> theory
 end;
 
-structure FixrecPackage: FIXREC_PACKAGE =
+structure FixrecPackage :> FIXREC_PACKAGE =
 struct
 
 val fix_eq2 = @{thm fix_eq2};

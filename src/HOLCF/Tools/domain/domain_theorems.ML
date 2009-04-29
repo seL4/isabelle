@@ -14,7 +14,7 @@ sig
   val comp_theorems: bstring * Domain_Library.eq list -> theory -> thm list * theory;
 end;
 
-structure Domain_Theorems : DOMAIN_THEOREMS =
+structure Domain_Theorems :> DOMAIN_THEOREMS =
 struct
 
 val quiet_mode = ref false;

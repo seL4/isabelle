@@ -12,7 +12,7 @@ sig
 end;
 
 
-structure Domain_Syntax : DOMAIN_SYNTAX =
+structure Domain_Syntax :> DOMAIN_SYNTAX =
 struct 
 
 local 

@@ -18,7 +18,7 @@ sig
   val adm_tac: Proof.context -> (int -> tactic) -> int -> tactic
 end;
 
-structure Adm: ADM =
+structure Adm :> ADM =
 struct
 
 

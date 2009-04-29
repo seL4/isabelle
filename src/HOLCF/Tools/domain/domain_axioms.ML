@@ -10,7 +10,7 @@ sig
 end;
 
 
-structure Domain_Axioms : DOMAIN_AXIOMS =
+structure Domain_Axioms :> DOMAIN_AXIOMS =
 struct
 
 local

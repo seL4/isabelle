@@ -17,7 +17,7 @@ sig
     * (binding * binding) option -> theory -> Proof.state
 end;
 
-structure PcpodefPackage: PCPODEF_PACKAGE =
+structure PcpodefPackage :> PCPODEF_PACKAGE =
 struct
 
 (** type definitions **)

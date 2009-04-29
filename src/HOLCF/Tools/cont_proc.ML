@@ -12,7 +12,7 @@ sig
   val setup: theory -> theory
 end;
 
-structure ContProc: CONT_PROC =
+structure ContProc :> CONT_PROC =
 struct
 
 (** theory context references **)
