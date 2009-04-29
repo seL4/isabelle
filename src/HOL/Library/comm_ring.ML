@@ -65,7 +65,7 @@ fun reif_polex T vs (Const (@{const_name HOL.plus}, _) $ a $ b) =
   | reif_polex T vs t = polex_pol T $ reif_pol T vs t;
 
 (* reification of the equation *)
-val TFree (_, cr_sort) = @{typ "'a :: {comm_ring, recpower}"};
+val cr_sort = @{sort "comm_ring_1"};
 
 fun reif_eq thy (eq as Const("op =", Type("fun", [T, _])) $ lhs $ rhs) =
       if Sign.of_sort thy (T, cr_sort) then

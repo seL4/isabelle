@@ -2178,8 +2178,6 @@ hide (open) const Pls Min Bit0 Bit1 succ pred
 
 subsection {* Legacy theorems *}
 
-instance int :: recpower ..
-
 lemmas zminus_zminus = minus_minus [of "z::int", standard]
 lemmas zminus_0 = minus_zero [where 'a=int]
 lemmas zminus_zadd_distrib = minus_add_distrib [of "z::int" "w", standard]

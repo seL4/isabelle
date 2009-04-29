@@ -216,12 +216,6 @@ apply (intro_classes, unfold definitions)
 apply (simp_all add: Rep_simps zmod_simps ring_simps)
 done
 
-lemma recpower: "OFCLASS('a, recpower_class)"
-apply (intro_classes, unfold definitions)
-apply (simp_all add: Rep_simps zmod_simps add_ac mult_assoc
-                     mod_pos_pos_trivial size1)
-done
-
 end
 
 locale mod_ring = mod_type +
@@ -340,11 +334,11 @@ apply (rule minus_bit1_def [unfolded Abs_bit1'_def])
 apply (rule uminus_bit1_def [unfolded Abs_bit1'_def])
 done
 
-instance bit0 :: (finite) "{comm_ring_1,recpower}"
-  by (rule bit0.comm_ring_1 bit0.recpower)+
+instance bit0 :: (finite) comm_ring_1
+  by (rule bit0.comm_ring_1)+
 
-instance bit1 :: (finite) "{comm_ring_1,recpower}"
-  by (rule bit1.comm_ring_1 bit1.recpower)+
+instance bit1 :: (finite) comm_ring_1
+  by (rule bit1.comm_ring_1)+
 
 instantiation bit0 and bit1 :: (finite) number_ring
 begin

@@ -14,25 +14,19 @@ datatype num = One | Dig0 num | Dig1 num
 
 text {* Increment function for type @{typ num} *}
 
-primrec
-  inc :: "num \<Rightarrow> num"
-where
+primrec inc :: "num \<Rightarrow> num" where
   "inc One = Dig0 One"
 | "inc (Dig0 x) = Dig1 x"
 | "inc (Dig1 x) = Dig0 (inc x)"
 
 text {* Converting between type @{typ num} and type @{typ nat} *}
 
-primrec
-  nat_of_num :: "num \<Rightarrow> nat"
-where
+primrec nat_of_num :: "num \<Rightarrow> nat" where
   "nat_of_num One = Suc 0"
 | "nat_of_num (Dig0 x) = nat_of_num x + nat_of_num x"
 | "nat_of_num (Dig1 x) = Suc (nat_of_num x + nat_of_num x)"
 
-primrec
-  num_of_nat :: "nat \<Rightarrow> num"
-where
+primrec num_of_nat :: "nat \<Rightarrow> num" where
   "num_of_nat 0 = One"
 | "num_of_nat (Suc n) = (if 0 < n then inc (num_of_nat n) else One)"
 
@@ -719,32 +713,32 @@ by (induct x)
    (simp_all add: of_num.simps of_num_plus [symmetric] algebra_simps)
 
 lemma of_num_pow:
-  "(of_num (pow x y)::'a::{semiring_numeral,recpower}) = of_num x ^ of_num y"
+  "(of_num (pow x y)::'a::{semiring_numeral}) = of_num x ^ of_num y"
 by (induct y)
    (simp_all add: of_num.simps of_num_square of_num_times [symmetric]
                   power_Suc power_add)
 
 lemma power_of_num [numeral]:
-  "of_num x ^ of_num y = (of_num (pow x y)::'a::{semiring_numeral,recpower})"
+  "of_num x ^ of_num y = (of_num (pow x y)::'a::{semiring_numeral})"
   by (rule of_num_pow [symmetric])
 
 lemma power_zero_of_num [numeral]:
-  "0 ^ of_num n = (0::'a::{semiring_0,recpower})"
+  "0 ^ of_num n = (0::'a::{semiring_0,power})"
   using of_num_pos [where n=n and ?'a=nat]
   by (simp add: power_0_left)
 
 lemma power_minus_one_double:
-  "(- 1) ^ (n + n) = (1::'a::{ring_1,recpower})"
+  "(- 1) ^ (n + n) = (1::'a::{ring_1})"
   by (induct n) (simp_all add: power_Suc)
 
 lemma power_minus_Dig0 [numeral]:
-  fixes x :: "'a::{ring_1,recpower}"
+  fixes x :: "'a::{ring_1}"
   shows "(- x) ^ of_num (Dig0 n) = x ^ of_num (Dig0 n)"
   by (subst power_minus)
      (simp add: of_num.simps power_minus_one_double)
 
 lemma power_minus_Dig1 [numeral]:
-  fixes x :: "'a::{ring_1,recpower}"
+  fixes x :: "'a::{ring_1}"
   shows "(- x) ^ of_num (Dig1 n) = - (x ^ of_num (Dig1 n))"
   by (subst power_minus)
      (simp add: of_num.simps power_Suc power_minus_one_double)

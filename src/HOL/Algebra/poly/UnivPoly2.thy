@@ -347,9 +347,6 @@ proof
     by (simp add: up_divide_def)
 qed
 
-instance up :: (ring) recpower proof
-qed simp_all
-
 (* Further properties of monom *)
 
 lemma monom_zero [simp]:

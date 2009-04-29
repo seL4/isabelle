@@ -27,15 +27,15 @@ datatype 'a polex =
 
 text {* Interpretation functions for the shadow syntax. *}
 
-fun
-  Ipol :: "'a::{comm_ring,recpower} list \<Rightarrow> 'a pol \<Rightarrow> 'a"
+primrec
+  Ipol :: "'a::{comm_ring_1} list \<Rightarrow> 'a pol \<Rightarrow> 'a"
 where
     "Ipol l (Pc c) = c"
   | "Ipol l (Pinj i P) = Ipol (drop i l) P"
   | "Ipol l (PX P x Q) = Ipol l P * (hd l)^x + Ipol (drop 1 l) Q"
 
-fun
-  Ipolex :: "'a::{comm_ring,recpower} list \<Rightarrow> 'a polex \<Rightarrow> 'a"
+primrec
+  Ipolex :: "'a::{comm_ring_1} list \<Rightarrow> 'a polex \<Rightarrow> 'a"
 where
     "Ipolex l (Pol P) = Ipol l P"
   | "Ipolex l (Add P Q) = Ipolex l P + Ipolex l Q"
@@ -54,7 +54,7 @@ definition
     PX p1 y p2 \<Rightarrow> Pinj x P)"
 
 definition
-  mkPX :: "'a::{comm_ring,recpower} pol \<Rightarrow> nat \<Rightarrow> 'a pol \<Rightarrow> 'a pol" where
+  mkPX :: "'a::{comm_ring} pol \<Rightarrow> nat \<Rightarrow> 'a pol \<Rightarrow> 'a pol" where
   "mkPX P i Q = (case P of
     Pc c \<Rightarrow> (if (c = 0) then (mkPinj 1 Q) else (PX P i Q)) |
     Pinj j R \<Rightarrow> PX P i Q |
@@ -63,7 +63,7 @@ definition
 text {* Defining the basic ring operations on normalized polynomials *}
 
 function
-  add :: "'a::{comm_ring,recpower} pol \<Rightarrow> 'a pol \<Rightarrow> 'a pol" (infixl "\<oplus>" 65)
+  add :: "'a::{comm_ring} pol \<Rightarrow> 'a pol \<Rightarrow> 'a pol" (infixl "\<oplus>" 65)
 where
     "Pc a \<oplus> Pc b = Pc (a + b)"
   | "Pc c \<oplus> Pinj i P = Pinj i (P \<oplus> Pc c)"
@@ -90,7 +90,7 @@ by pat_completeness auto
 termination by (relation "measure (\<lambda>(x, y). size x + size y)") auto
 
 function
-  mul :: "'a::{comm_ring,recpower} pol \<Rightarrow> 'a pol \<Rightarrow> 'a pol" (infixl "\<otimes>" 70)
+  mul :: "'a::{comm_ring} pol \<Rightarrow> 'a pol \<Rightarrow> 'a pol" (infixl "\<otimes>" 70)
 where
     "Pc a \<otimes> Pc b = Pc (a * b)"
   | "Pc c \<otimes> Pinj i P =
@@ -122,8 +122,8 @@ termination by (relation "measure (\<lambda>(x, y). size x + size y)")
   (auto simp add: mkPinj_def split: pol.split)
 
 text {* Negation*}
-fun
-  neg :: "'a::{comm_ring,recpower} pol \<Rightarrow> 'a pol"
+primrec
+  neg :: "'a::{comm_ring} pol \<Rightarrow> 'a pol"
 where
     "neg (Pc c) = Pc (-c)"
   | "neg (Pinj i P) = Pinj i (neg P)"
@@ -131,13 +131,13 @@ where
 
 text {* Substraction *}
 definition
-  sub :: "'a::{comm_ring,recpower} pol \<Rightarrow> 'a pol \<Rightarrow> 'a pol" (infixl "\<ominus>" 65)
+  sub :: "'a::{comm_ring} pol \<Rightarrow> 'a pol \<Rightarrow> 'a pol" (infixl "\<ominus>" 65)
 where
   "sub P Q = P \<oplus> neg Q"
 
 text {* Square for Fast Exponentation *}
-fun
-  sqr :: "'a::{comm_ring,recpower} pol \<Rightarrow> 'a pol"
+primrec
+  sqr :: "'a::{comm_ring_1} pol \<Rightarrow> 'a pol"
 where
     "sqr (Pc c) = Pc (c * c)"
   | "sqr (Pinj i P) = mkPinj i (sqr P)"
@@ -146,7 +146,7 @@ where
 
 text {* Fast Exponentation *}
 fun
-  pow :: "nat \<Rightarrow> 'a::{comm_ring,recpower} pol \<Rightarrow> 'a pol"
+  pow :: "nat \<Rightarrow> 'a::{comm_ring_1} pol \<Rightarrow> 'a pol"
 where
     "pow 0 P = Pc 1"
   | "pow n P = (if even n then pow (n div 2) (sqr P)
@@ -161,8 +161,8 @@ lemma pow_if:
 
 text {* Normalization of polynomial expressions *}
 
-fun
-  norm :: "'a::{comm_ring,recpower} polex \<Rightarrow> 'a pol"
+primrec
+  norm :: "'a::{comm_ring_1} polex \<Rightarrow> 'a pol"
 where
     "norm (Pol P) = P"
   | "norm (Add P Q) = norm P \<oplus> norm Q"

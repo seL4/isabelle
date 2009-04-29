@@ -834,8 +834,6 @@ lemma Rats_induct [case_names of_rat, induct set: Rats]:
   "q \<in> \<rat> \<Longrightarrow> (\<And>r. P (of_rat r)) \<Longrightarrow> P q"
   by (rule Rats_cases) auto
 
-instance rat :: recpower ..
-
 
 subsection {* Implementation of rational numbers as pairs of integers *}
 

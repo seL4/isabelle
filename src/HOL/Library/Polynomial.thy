@@ -632,8 +632,6 @@ lemma dvd_smult_iff:
   shows "a \<noteq> 0 \<Longrightarrow> p dvd smult a q \<longleftrightarrow> p dvd q"
   by (safe elim!: dvd_smult dvd_smult_cancel)
 
-instance poly :: (comm_semiring_1) recpower ..
-
 lemma degree_power_le: "degree (p ^ n) \<le> degree p * n"
 by (induct n, simp, auto intro: order_trans degree_mult_le)
 
@@ -1120,7 +1118,7 @@ lemma poly_1 [simp]: "poly 1 x = 1"
   unfolding one_poly_def by simp
 
 lemma poly_monom:
-  fixes a x :: "'a::{comm_semiring_1,recpower}"
+  fixes a x :: "'a::{comm_semiring_1}"
   shows "poly (monom a n) x = a * x ^ n"
   by (induct n, simp add: monom_0, simp add: monom_Suc power_Suc mult_ac)
 
@@ -1149,7 +1147,7 @@ lemma poly_mult [simp]: "poly (p * q) x = poly p x * poly q x"
   by (induct p, simp_all, simp add: algebra_simps)
 
 lemma poly_power [simp]:
-  fixes p :: "'a::{comm_semiring_1,recpower} poly"
+  fixes p :: "'a::{comm_semiring_1} poly"
   shows "poly (p ^ n) x = poly p x ^ n"
   by (induct n, simp, simp add: power_Suc)
 

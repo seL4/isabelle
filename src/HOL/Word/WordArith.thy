@@ -778,8 +778,6 @@ instance word :: (len0) comm_monoid_mult
   apply (simp add: word_mult_1)
   done
 
-instance word :: (len0) recpower ..
-
 instance word :: (len0) comm_semiring 
   by (intro_classes) (simp add : word_left_distrib)
 
@@ -789,8 +787,6 @@ instance word :: (len0) comm_ring ..
 
 instance word :: (len) comm_semiring_1 
   by (intro_classes) (simp add: lenw1_zero_neq_one)
-
-instance word :: (len) recpower ..
 
 instance word :: (len) comm_ring_1 ..
 

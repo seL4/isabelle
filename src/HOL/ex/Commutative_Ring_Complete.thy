@@ -1,5 +1,4 @@
-(*  ID:         $Id$
-    Author:     Bernhard Haeupler
+(*  Author:     Bernhard Haeupler
 
 This theory is about of the relative completeness of method comm-ring
 method.  As long as the reified atomic polynomials of type 'a pol are
@@ -14,7 +13,7 @@ begin
 
 text {* Formalization of normal form *}
 fun
-  isnorm :: "('a::{comm_ring,recpower}) pol \<Rightarrow> bool"
+  isnorm :: "('a::{comm_ring}) pol \<Rightarrow> bool"
 where
     "isnorm (Pc c) \<longleftrightarrow> True"
   | "isnorm (Pinj i (Pc c)) \<longleftrightarrow> False"

@@ -157,11 +157,6 @@ instance
 end
 
 
-subsection {* Exponentiation *}
-
-instance complex :: recpower ..
-
-
 subsection {* Numerals and Arithmetic *}
 
 instantiation complex :: number_ring

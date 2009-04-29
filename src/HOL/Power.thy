@@ -419,12 +419,8 @@ apply (rule nonzero_power_divide)
 apply assumption
 done
 
-class recpower = monoid_mult
-
 
 subsection {* Exponentiation for the Natural Numbers *}
-
-instance nat :: recpower ..
 
 lemma nat_one_le_power [simp]:
   "Suc 0 \<le> i \<Longrightarrow> Suc 0 \<le> i ^ n"

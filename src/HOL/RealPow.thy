@@ -12,8 +12,6 @@ begin
 
 declare abs_mult_self [simp]
 
-instance real :: recpower ..
-
 lemma two_realpow_ge_one [simp]: "(1::real) \<le> 2 ^ n"
 by simp
 

@@ -443,8 +443,6 @@ lemma float_less_simp: "((x::float) < y) = (0 < y - x)"
 lemma Ifloat_min: "Ifloat (min x y) = min (Ifloat x) (Ifloat y)" unfolding min_def le_float_def by auto
 lemma Ifloat_max: "Ifloat (max a b) = max (Ifloat a) (Ifloat b)" unfolding max_def le_float_def by auto
 
-instance float :: recpower ..
-
 lemma float_power: "Ifloat (x ^ n) = Ifloat x ^ n"
   by (induct n) simp_all
 

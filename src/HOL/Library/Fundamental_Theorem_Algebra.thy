@@ -560,14 +560,14 @@ lemma nonconstant_length: "\<not> (constant (poly p)) \<Longrightarrow> psize p 
   done
 
 lemma poly_replicate_append:
-  "poly (monom 1 n * p) (x::'a::{recpower, comm_ring_1}) = x^n * poly p x"
+  "poly (monom 1 n * p) (x::'a::{comm_ring_1}) = x^n * poly p x"
   by (simp add: poly_monom)
 
 text {* Decomposition of polynomial, skipping zero coefficients
   after the first.  *}
 
 lemma poly_decompose_lemma:
- assumes nz: "\<not>(\<forall>z. z\<noteq>0 \<longrightarrow> poly p z = (0::'a::{recpower,idom}))"
+ assumes nz: "\<not>(\<forall>z. z\<noteq>0 \<longrightarrow> poly p z = (0::'a::{idom}))"
   shows "\<exists>k a q. a\<noteq>0 \<and> Suc (psize q + k) = psize p \<and>
                  (\<forall>z. poly p z = z^k * poly (pCons a q) z)"
 unfolding psize_def
@@ -595,7 +595,7 @@ qed
 
 lemma poly_decompose:
   assumes nc: "~constant(poly p)"
-  shows "\<exists>k a q. a\<noteq>(0::'a::{recpower,idom}) \<and> k\<noteq>0 \<and>
+  shows "\<exists>k a q. a\<noteq>(0::'a::{idom}) \<and> k\<noteq>0 \<and>
                psize q + k + 1 = psize p \<and>
               (\<forall>z. poly p z = poly p 0 + z^k * poly (pCons a q) z)"
 using nc

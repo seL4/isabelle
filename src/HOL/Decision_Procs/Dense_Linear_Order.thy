@@ -639,7 +639,7 @@ lemma sum_eq:"((x::'a::pordered_ab_group_add) + t = 0) == (x = - t)"
 
 interpretation class_ordered_field_dense_linear_order: constr_dense_linear_order
  "op <=" "op <"
-   "\<lambda> x y. 1/2 * ((x::'a::{ordered_field,recpower,number_ring}) + y)"
+   "\<lambda> x y. 1/2 * ((x::'a::{ordered_field,number_ring}) + y)"
 proof (unfold_locales, dlo, dlo, auto)
   fix x y::'a assume lt: "x < y"
   from  less_half_sum[OF lt] show "x < (x + y) /2" by simp

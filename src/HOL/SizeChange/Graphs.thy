@@ -228,7 +228,7 @@ proof
   qed
 qed
 
-instance graph :: (type, monoid_mult) "{semiring_1, idem_add, recpower}"
+instance graph :: (type, monoid_mult) "{semiring_1, idem_add}"
 proof
   fix a b c :: "('a, 'b) graph"
   

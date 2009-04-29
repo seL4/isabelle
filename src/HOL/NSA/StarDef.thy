@@ -954,8 +954,6 @@ instance star :: (ordered_field) ordered_field ..
 
 subsection {* Power *}
 
-instance star :: (recpower) recpower ..
-
 lemma star_power_def [transfer_unfold]:
   "(op ^) \<equiv> \<lambda>x n. ( *f* (\<lambda>x. x ^ n)) x"
 proof (rule eq_reflection, rule ext, rule ext)
