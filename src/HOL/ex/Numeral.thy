@@ -909,7 +909,22 @@ declare (in ring_1) numeral [simp]
 thm numeral
 
 
-text {* Toy examples *}
+subsection {* Simplification Procedures *}
+
+text {* Reorientation of equalities *}
+
+setup {*
+  ReorientProc.add
+    (fn Const(@{const_name of_num}, _) $ _ => true
+      | Const(@{const_name uminus}, _) $
+          (Const(@{const_name of_num}, _) $ _) => true
+      | _ => false)
+*}
+
+simproc_setup reorient_num ("of_num n = x" | "- of_num m = y") = ReorientProc.proc
+
+
+subsection {* Toy examples *}
 
 definition "bar \<longleftrightarrow> #4 * #2 + #7 = (#8 :: nat) \<and> #4 * #2 + #7 \<ge> (#8 :: int) - #3"
 code_thms bar
