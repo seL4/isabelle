@@ -709,17 +709,17 @@ lemma power_of_num [numeral]: "of_num x ^ of_num y = of_num (pow x y)"
   unfolding of_num_pow ..
 
 lemma power_zero_of_num [numeral]:
-  "0 ^ of_num n = (0::'a::{semiring_0,power})"
+  "0 ^ of_num n = (0::'a::semiring_1)"
   using of_num_pos [where n=n and ?'a=nat]
   by (simp add: power_0_left)
 
 lemma power_minus_Dig0 [numeral]:
-  fixes x :: "'a::{ring_1}"
+  fixes x :: "'a::ring_1"
   shows "(- x) ^ of_num (Dig0 n) = x ^ of_num (Dig0 n)"
   by (induct n rule: num_induct) (simp_all add: of_num.simps of_num_inc)
 
 lemma power_minus_Dig1 [numeral]:
-  fixes x :: "'a::{ring_1}"
+  fixes x :: "'a::ring_1"
   shows "(- x) ^ of_num (Dig1 n) = - (x ^ of_num (Dig1 n))"
   by (induct n rule: num_induct) (simp_all add: of_num.simps of_num_inc)
 
@@ -881,11 +881,45 @@ hide (open) const sub dup
 
 subsection {* Numeral equations as default simplification rules *}
 
-text {* TODO.  Be more precise here with respect to subsumed facts.  Or use named theorems anyway. *}
-declare (in semiring_numeral) numeral [simp]
-declare (in semiring_1) numeral [simp]
-declare (in semiring_char_0) numeral [simp]
-declare (in ring_1) numeral [simp]
+declare (in semiring_numeral) of_num_One [simp]
+declare (in semiring_numeral) of_num_plus_one [simp]
+declare (in semiring_numeral) of_num_one_plus [simp]
+declare (in semiring_numeral) of_num_plus [simp]
+declare (in semiring_numeral) of_num_times [simp]
+
+declare (in semiring_1) of_nat_of_num [simp]
+
+declare (in semiring_char_0) of_num_eq_iff [simp]
+declare (in semiring_char_0) of_num_eq_one_iff [simp]
+declare (in semiring_char_0) one_eq_of_num_iff [simp]
+
+declare (in ordered_semidom) of_num_pos [simp]
+declare (in ordered_semidom) of_num_less_eq_iff [simp]
+declare (in ordered_semidom) of_num_less_eq_one_iff [simp]
+declare (in ordered_semidom) one_less_eq_of_num_iff [simp]
+declare (in ordered_semidom) of_num_less_iff [simp]
+declare (in ordered_semidom) of_num_less_one_iff [simp]
+declare (in ordered_semidom) one_less_of_num_iff [simp]
+declare (in ordered_semidom) of_num_nonneg [simp]
+declare (in ordered_semidom) of_num_less_zero_iff [simp]
+declare (in ordered_semidom) of_num_le_zero_iff [simp]
+
+declare (in ordered_idom) le_signed_numeral_special [simp]
+declare (in ordered_idom) less_signed_numeral_special [simp]
+
+declare (in semiring_1_minus) Dig_of_num_minus_one [simp]
+declare (in semiring_1_minus) Dig_one_minus_of_num [simp]
+
+declare (in ring_1) Dig_plus_uminus [simp]
+declare (in ring_1) of_int_of_num [simp]
+
+declare power_of_num [simp]
+declare power_zero_of_num [simp]
+declare power_minus_Dig0 [simp]
+declare power_minus_Dig1 [simp]
+
+declare Suc_of_num [simp]
+
 thm numeral
 
 
