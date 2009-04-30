@@ -257,16 +257,19 @@ text {*
 *}
 
 ML {*
-fun mk_num 1 = @{term One}
-  | mk_num k =
-      let
-        val (l, b) = Integer.div_mod k 2;
-        val bit = (if b = 0 then @{term Dig0} else @{term Dig1});
-      in bit $ (mk_num l) end;
+fun mk_num k =
+  if k > 1 then
+    let
+      val (l, b) = Integer.div_mod k 2;
+      val bit = (if b = 0 then @{term Dig0} else @{term Dig1});
+    in bit $ (mk_num l) end
+  else if k = 1 then @{term One}
+  else error ("mk_num " ^ string_of_int k);
 
 fun dest_num @{term One} = 1
   | dest_num (@{term Dig0} $ n) = 2 * dest_num n
-  | dest_num (@{term Dig1} $ n) = 2 * dest_num n + 1;
+  | dest_num (@{term Dig1} $ n) = 2 * dest_num n + 1
+  | dest_num t = raise TERM ("dest_num", [t]);
 
 (*FIXME these have to gain proper context via morphisms phi*)
 
