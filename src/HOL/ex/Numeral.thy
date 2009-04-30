@@ -911,7 +911,7 @@ thm numeral
 
 subsection {* Simplification Procedures *}
 
-text {* Reorientation of equalities *}
+subsubsection {* Reorientation of equalities *}
 
 setup {*
   ReorientProc.add
@@ -922,6 +922,51 @@ setup {*
 *}
 
 simproc_setup reorient_num ("of_num n = x" | "- of_num m = y") = ReorientProc.proc
+
+subsubsection {* Constant folding for multiplication in semirings *}
+
+context semiring_numeral
+begin
+
+lemma mult_of_num_commute: "x * of_num n = of_num n * x"
+by (induct n)
+  (simp_all only: of_num.simps left_distrib right_distrib mult_1_left mult_1_right)
+
+definition
+  "commutes_with a b \<longleftrightarrow> a * b = b * a"
+
+lemma commutes_with_commute: "commutes_with a b \<Longrightarrow> a * b = b * a"
+unfolding commutes_with_def .
+
+lemma commutes_with_left_commute: "commutes_with a b \<Longrightarrow> a * (b * c) = b * (a * c)"
+unfolding commutes_with_def by (simp only: mult_assoc [symmetric])
+
+lemma commutes_with_numeral: "commutes_with x (of_num n)" "commutes_with (of_num n) x"
+unfolding commutes_with_def by (simp_all add: mult_of_num_commute)
+
+lemmas mult_ac_numeral =
+  mult_assoc
+  commutes_with_commute
+  commutes_with_left_commute
+  commutes_with_numeral
+
+end
+
+ML {*
+structure Semiring_Times_Assoc_Data : ASSOC_FOLD_DATA =
+struct
+  val assoc_ss = HOL_ss addsimps @{thms mult_ac_numeral}
+  val eq_reflection = eq_reflection
+  fun is_numeral (Const(@{const_name of_num}, _) $ _) = true
+    | is_numeral _ = false;
+end;
+
+structure Semiring_Times_Assoc = Assoc_Fold (Semiring_Times_Assoc_Data);
+*}
+
+simproc_setup semiring_assoc_fold' ("(a::'a::semiring_numeral) * b") =
+  {* fn phi => fn ss => fn ct =>
+    Semiring_Times_Assoc.proc ss (Thm.term_of ct) *}
 
 
 subsection {* Toy examples *}
