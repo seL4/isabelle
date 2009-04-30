@@ -6,27 +6,6 @@ Simprocs and decision procedure for numerals and linear arithmetic.
 structure Int_Numeral_Simprocs =
 struct
 
-(*reorientation simprules using ==, for the following simproc*)
-val meta_zero_reorient = @{thm zero_reorient} RS eq_reflection
-val meta_one_reorient = @{thm one_reorient} RS eq_reflection
-val meta_number_of_reorient = @{thm number_of_reorient} RS eq_reflection
-
-(*reorientation simplification procedure: reorients (polymorphic) 
-  0 = x, 1 = x, nnn = x provided x isn't 0, 1 or a Int.*)
-fun reorient_proc sg _ (_ $ t $ u) =
-  case u of
-      Const(@{const_name HOL.zero}, _) => NONE
-    | Const(@{const_name HOL.one}, _) => NONE
-    | Const(@{const_name Int.number_of}, _) $ _ => NONE
-    | _ => SOME (case t of
-        Const(@{const_name HOL.zero}, _) => meta_zero_reorient
-      | Const(@{const_name HOL.one}, _) => meta_one_reorient
-      | Const(@{const_name Int.number_of}, _) $ _ => meta_number_of_reorient)
-
-val reorient_simproc = 
-  Arith_Data.prep_simproc ("reorient_simproc", ["0=x", "1=x", "number_of w = x"], reorient_proc);
-
-
 (** Utilities **)
 
 fun mk_number T n = HOLogic.number_of_const T $ HOLogic.mk_numeral n;
@@ -383,7 +362,6 @@ val assoc_fold_simproc =
 
 end;
 
-Addsimprocs [Int_Numeral_Simprocs.reorient_simproc];
 Addsimprocs Int_Numeral_Simprocs.cancel_numerals;
 Addsimprocs [Int_Numeral_Simprocs.combine_numerals];
 Addsimprocs [Int_Numeral_Simprocs.field_combine_numerals];

@@ -1518,6 +1518,13 @@ lemmas int_arith_rules =
 use "Tools/int_arith.ML"
 declaration {* K Int_Arith.setup *}
 
+setup {*
+  ReorientProc.add
+    (fn Const(@{const_name number_of}, _) $ _ => true | _ => false)
+*}
+
+simproc_setup reorient_numeral ("number_of w = x") = ReorientProc.proc
+
 
 subsection{*Lemmas About Small Numerals*}
 

@@ -1568,6 +1568,56 @@ structure Coherent = CoherentFun
 setup Coherent.setup
 
 
+subsubsection {* Reorienting equalities *}
+
+ML {*
+signature REORIENT_PROC =
+sig
+  val init : theory -> theory
+  val add : (term -> bool) -> theory -> theory
+  val proc : morphism -> simpset -> cterm -> thm option
+end;
+
+structure ReorientProc : REORIENT_PROC =
+struct
+  structure Data = TheoryDataFun
+  (
+    type T = term -> bool;
+    val empty = (fn _ => false);
+    val copy = I;
+    val extend = I;
+    fun merge _ (m1, m2) = (fn t => m1 t orelse m2 t);
+  )
+
+  val init = Data.init;
+  fun add m = Data.map (fn matches => fn t => matches t orelse m t);
+  val meta_reorient = @{thm eq_commute [THEN eq_reflection]};
+  fun proc phi ss ct =
+    let
+      val ctxt = Simplifier.the_context ss;
+      val thy = ProofContext.theory_of ctxt;
+      val matches = Data.get thy;
+    in
+      case Thm.term_of ct of
+        (_ $ t $ u) => if matches u then NONE else SOME meta_reorient
+      | _ => NONE
+    end;
+end;
+*}
+
+setup ReorientProc.init
+
+setup {*
+  ReorientProc.add
+    (fn Const(@{const_name HOL.zero}, _) => true
+      | Const(@{const_name HOL.one}, _) => true
+      | _ => false)
+*}
+
+simproc_setup reorient_zero ("0 = x") = ReorientProc.proc
+simproc_setup reorient_one ("1 = x") = ReorientProc.proc
+
+
 subsection {* Other simple lemmas and lemma duplicates *}
 
 lemma Let_0 [simp]: "Let 0 f = f 0"

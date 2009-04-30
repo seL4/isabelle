@@ -1274,10 +1274,10 @@ begin
 text{*Special cases where either operand is zero*}
 
 lemma of_nat_0_eq_iff [simp, noatp]: "0 = of_nat n \<longleftrightarrow> 0 = n"
-  by (rule of_nat_eq_iff [of 0, simplified])
+  by (rule of_nat_eq_iff [of 0 n, unfolded of_nat_0])
 
 lemma of_nat_eq_0_iff [simp, noatp]: "of_nat m = 0 \<longleftrightarrow> m = 0"
-  by (rule of_nat_eq_iff [of _ 0, simplified])
+  by (rule of_nat_eq_iff [of m 0, unfolded of_nat_0])
 
 lemma inj_of_nat: "inj of_nat"
   by (simp add: inj_on_def)
