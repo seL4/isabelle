@@ -19,9 +19,11 @@ sig
   val kill: unit -> unit
   val info: unit -> unit
   val messages: int option -> unit
-  type prover = int -> int -> Proof.context * (thm list * thm) -> bool * string
+  type prover = int -> (thm * (string * int)) list option -> string -> int ->
+    Proof.context * (thm list * thm) -> bool * string * string * string vector
   val add_prover: string -> prover -> theory -> theory
   val print_provers: theory -> unit
+  val get_prover: string -> theory -> prover option
   val sledgehammer: string list -> Proof.state -> unit
 end;
 
@@ -286,7 +288,8 @@ fun messages opt_limit =
 
 (* named provers *)
 
-type prover = int -> int -> Proof.context * (thm list * thm) -> bool * string;
+type prover = int -> (thm * (string * int)) list option -> string -> int ->
+  Proof.context * (thm list * thm) -> bool * string * string * string vector
 
 fun err_dup_prover name = error ("Duplicate prover: " ^ quote name);
 
@@ -307,13 +310,16 @@ fun add_prover name prover thy =
 fun print_provers thy = Pretty.writeln
   (Pretty.strs ("external provers:" :: sort_strings (Symtab.keys (Provers.get thy))));
 
+fun get_prover name thy = case Symtab.lookup (Provers.get thy) name of
+  NONE => NONE
+| SOME (prover, _) => SOME prover;
 
 (* start prover thread *)
 
 fun start_prover name birthtime deadtime i proof_state =
-  (case Symtab.lookup (Provers.get (Proof.theory_of proof_state)) name of
+  (case get_prover name (Proof.theory_of proof_state) of
     NONE => warning ("Unknown external prover: " ^ quote name)
-  | SOME (prover, _) =>
+  | SOME prover =>
       let
         val (ctxt, (_, goal)) = Proof.get_goal proof_state
         val desc =
@@ -322,7 +328,10 @@ fun start_prover name birthtime deadtime i proof_state =
         val _ = SimpleThread.fork true (fn () =>
           let
             val _ = register birthtime deadtime (Thread.self (), desc)
-            val result = prover (get_timeout ()) i (Proof.get_goal proof_state)
+            val result =
+              let val (success, message, _, _) =
+                prover (get_timeout ()) NONE name i (Proof.get_goal proof_state)
+              in (success, message) end
               handle ResHolClause.TOO_TRIVIAL
                 => (true, "Empty clause: Try this command: " ^ Markup.markup Markup.sendback "apply metis")
               | ERROR msg

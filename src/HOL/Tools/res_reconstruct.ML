@@ -16,10 +16,10 @@ sig
   val setup: Context.theory -> Context.theory
   (* extracting lemma list*)
   val find_failure: string -> string option
-  val lemma_list_dfg: string * string vector * Proof.context * Thm.thm * int -> string
-  val lemma_list_tstp: string * string vector * Proof.context * Thm.thm * int -> string
+  val lemma_list_dfg: string -> string * string vector * Proof.context * Thm.thm * int -> string
+  val lemma_list_tstp: string -> string * string vector * Proof.context * Thm.thm * int -> string
   (* structured proofs *)
-  val structured_proof: string * string vector * Proof.context * Thm.thm * int -> string
+  val structured_proof: string -> string * string vector * Proof.context * Thm.thm * int -> string
 end;
 
 structure ResReconstruct : RES_RECONSTRUCT =
@@ -514,7 +514,7 @@ fun decode_tstp_file cnfs ctxt th sgno thm_names =
     in  List.mapPartial (inputno o toks) lines  end
     
   (*extracting lemmas from tstp-output between the lines from above*)                         
-  fun extract_lemmas get_step_nums (proof, thm_names, _, _, _) = 
+  fun extract_lemmas get_step_nums (proof, thm_names, _, _, _) =
     let
     (* get the names of axioms from their numbers*)
     fun get_axiom_names thm_names step_nums =
@@ -532,24 +532,33 @@ fun decode_tstp_file cnfs ctxt th sgno thm_names =
     (* metis-command *)
     fun metis_line [] = "apply metis"
       | metis_line xs = "apply (metis " ^ space_implode " " xs ^ ")"
+
+    (* atp_minimize [atp=<prover>] <lemmas> *)
+    fun minimize_line _ [] = ""
+      | minimize_line name lemmas = "For minimizing the number of lemmas try this command:\n" ^
+            (Markup.markup Markup.sendback) ("atp_minimize [atp=" ^ name ^ "] " ^ space_implode " " lemmas)
     
     (*Used to label theorems chained into the sledgehammer call*)
     val chained_hint = "CHAINED";
     fun sendback_metis_nochained lemmas = 
       let val nochained = filter_out (fn y => y = chained_hint)
       in (Markup.markup Markup.sendback o metis_line) (nochained lemmas) end
-    fun lemma_list_tstp result = sendback_metis_nochained (extract_lemmas get_step_nums_tstp result);
-    fun lemma_list_dfg result = sendback_metis_nochained (extract_lemmas get_step_nums_dfg result);
-           
+    fun lemma_list_tstp name result =
+      let val lemmas = extract_lemmas get_step_nums_tstp result
+      in sendback_metis_nochained lemmas ^ "\n" ^ minimize_line name lemmas end;
+    fun lemma_list_dfg name result =
+      let val lemmas = extract_lemmas get_step_nums_dfg result
+      in sendback_metis_nochained lemmas ^ "\n" ^ minimize_line name lemmas end;
+
     (* === Extracting structured Isar-proof === *)
-    fun structured_proof (result as (proof, thm_names, ctxt, goal, subgoalno)) = 
+    fun structured_proof name (result as (proof, thm_names, ctxt, goal, subgoalno)) =
       let
       (*Could use split_lines, but it can return blank lines...*)
       val lines = String.tokens (equal #"\n");
       val nospaces = String.translate (fn c => if Char.isSpace c then "" else str c)
       val proofextract = get_proof_extract proof
       val cnfs = filter (String.isPrefix "cnf(") (map nospaces (lines proofextract))
-      val one_line_proof = lemma_list_tstp result
+      val one_line_proof = lemma_list_tstp name result
       val structured = if chained_hint mem_string (String.tokens (fn c => c = #" ") one_line_proof) then ""
                   else decode_tstp_file cnfs ctxt goal subgoalno thm_names
       in

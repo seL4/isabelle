@@ -17,6 +17,7 @@ uses
   ("Tools/res_atp.ML")
   ("Tools/atp_manager.ML")
   ("Tools/atp_wrapper.ML")
+  ("Tools/atp_minimal.ML")
   "~~/src/Tools/Metis/metis.ML"
   ("Tools/metis_tools.ML")
 begin
@@ -97,6 +98,8 @@ use "Tools/res_atp.ML"
 
 use "Tools/atp_manager.ML"
 use "Tools/atp_wrapper.ML"
+
+use "Tools/atp_minimal.ML"
 
 text {* basic provers *}
 setup {* AtpManager.add_prover "spass" AtpWrapper.spass *}
