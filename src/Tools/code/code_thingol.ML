@@ -81,6 +81,7 @@ sig
   val is_cons: program -> string -> bool
   val contr_classparam_typs: program -> string -> itype option list
 
+  val read_const_exprs: theory -> string list -> string list * string list
   val consts_program: theory -> string list -> string list * (naming * program)
   val cached_program: theory -> naming * program
   val eval_conv: theory -> (sort -> sort)
@@ -239,10 +240,18 @@ local
     | NONE => (case Code.get_datatype_of_constr thy c
        of SOME dtco => thyname_of_tyco thy dtco
         | NONE => thyname_of thy (Consts.the_tags (Sign.consts_of thy)) c);
+  fun purify_base "op &" = "and"
+    | purify_base "op |" = "or"
+    | purify_base "op -->" = "implies"
+    | purify_base "op :" = "member"
+    | purify_base "op =" = "eq"
+    | purify_base "*" = "product"
+    | purify_base "+" = "sum"
+    | purify_base s = Name.desymbolize false s;
   fun namify thy get_basename get_thyname name =
     let
       val prefix = get_thyname thy name;
-      val base = (Code_Name.purify_base o get_basename) name;
+      val base = (purify_base o get_basename) name;
     in Long_Name.append prefix base end;
 in
 
@@ -782,6 +791,27 @@ fun eval thy prep_sort postproc = Code_Wellsorted.eval thy prep_sort postproc o 
 
 (** diagnostic commands **)
 
+fun read_const_exprs thy =
+  let
+    fun consts_of some_thyname =
+      let
+        val thy' = case some_thyname
+         of SOME thyname => ThyInfo.the_theory thyname thy
+          | NONE => thy;
+        val cs = Symtab.fold (fn (c, (_, NONE)) => cons c | _ => I)
+          ((snd o #constants o Consts.dest o #consts o Sign.rep_sg) thy') [];
+        fun belongs_here c =
+          not (exists (fn thy'' => Sign.declared_const thy'' c) (Theory.parents_of thy'))
+      in case some_thyname
+       of NONE => cs
+        | SOME thyname => filter belongs_here cs
+      end;
+    fun read_const_expr "*" = ([], consts_of NONE)
+      | read_const_expr s = if String.isSuffix ".*" s
+          then ([], consts_of (SOME (unsuffix ".*" s)))
+          else ([Code_Unit.read_const thy s], []);
+  in pairself flat o split_list o map read_const_expr end;
+
 fun code_depgr thy consts =
   let
     val (_, eqngr) = Code_Wellsorted.obtain thy consts [];
@@ -818,8 +848,8 @@ local
 structure P = OuterParse
 and K = OuterKeyword
 
-fun code_thms_cmd thy = code_thms thy o op @ o Code_Name.read_const_exprs thy;
-fun code_deps_cmd thy = code_deps thy o op @ o Code_Name.read_const_exprs thy;
+fun code_thms_cmd thy = code_thms thy o op @ o read_const_exprs thy;
+fun code_deps_cmd thy = code_deps thy o op @ o read_const_exprs thy;
 
 in
 

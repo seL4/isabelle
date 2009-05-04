@@ -326,7 +326,7 @@ val add_include_cmd = gen_add_include Code_Unit.read_const;
 fun add_module_alias target (thyname, modlname) =
   let
     val xs = Long_Name.explode modlname;
-    val xs' = map (Code_Name.purify_name true) xs;
+    val xs' = map (Name.desymbolize true) xs;
   in if xs' = xs
     then map_module_alias target (Symtab.update (thyname, modlname))
     else error ("Invalid module name: " ^ quote modlname ^ "\n"
@@ -502,7 +502,7 @@ fun transitivly_non_empty_funs thy naming program =
 
 fun read_const_exprs thy cs =
   let
-    val (cs1, cs2) = Code_Name.read_const_exprs thy cs;
+    val (cs1, cs2) = Code_Thingol.read_const_exprs thy cs;
     val (names3, (naming, program)) = Code_Thingol.consts_program thy cs2;
     val names4 = transitivly_non_empty_funs thy naming program;
     val cs5 = map_filter

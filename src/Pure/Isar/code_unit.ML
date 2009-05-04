@@ -45,7 +45,7 @@ sig
   val rewrite_eqn: simpset -> thm -> thm
   val rewrite_head: thm list -> thm -> thm
   val norm_args: theory -> thm list -> thm list 
-  val norm_varnames: theory -> (string -> string) -> (string -> string) -> thm list -> thm list
+  val norm_varnames: theory -> thm list -> thm list
 
   (*case certificates*)
   val case_cert: thm -> string * (int * string list)
@@ -161,9 +161,10 @@ fun norm_args thy thms =
     |> map (Conv.fconv_rule Drule.beta_eta_conversion)
   end;
 
-fun canonical_tvars thy purify_tvar thm =
+fun canonical_tvars thy thm =
   let
     val ctyp = Thm.ctyp_of thy;
+    val purify_tvar = unprefix "'" #> Name.desymbolize false #> prefix "'";
     fun tvars_subst_for thm = (fold_types o fold_atyps)
       (fn TVar (v_i as (v, _), sort) => let
             val v' = purify_tvar v
@@ -180,9 +181,10 @@ fun canonical_tvars thy purify_tvar thm =
     val (_, inst) = fold mk_inst (tvars_subst_for thm) (maxidx + 1, []);
   in Thm.instantiate (inst, []) thm end;
 
-fun canonical_vars thy purify_var thm =
+fun canonical_vars thy thm =
   let
     val cterm = Thm.cterm_of thy;
+    val purify_var = Name.desymbolize false;
     fun vars_subst_for thm = fold_aterms
       (fn Var (v_i as (v, _), ty) => let
             val v' = purify_var v
@@ -199,13 +201,14 @@ fun canonical_vars thy purify_var thm =
     val (_, inst) = fold mk_inst (vars_subst_for thm) (maxidx + 1, []);
   in Thm.instantiate ([], inst) thm end;
 
-fun canonical_absvars purify_var thm =
+fun canonical_absvars thm =
   let
     val t = Thm.plain_prop_of thm;
+    val purify_var = Name.desymbolize false;
     val t' = Term.map_abs_vars purify_var t;
   in Thm.rename_boundvars t t' thm end;
 
-fun norm_varnames thy purify_tvar purify_var thms =
+fun norm_varnames thy thms =
   let
     fun burrow_thms f [] = []
       | burrow_thms f thms =
@@ -215,10 +218,10 @@ fun norm_varnames thy purify_tvar purify_var thms =
           |> Conjunction.elim_balanced (length thms)
   in
     thms
-    |> map (canonical_vars thy purify_var)
-    |> map (canonical_absvars purify_var)
+    |> map (canonical_vars thy)
+    |> map canonical_absvars
     |> map Drule.zero_var_indexes
-    |> burrow_thms (canonical_tvars thy purify_tvar)
+    |> burrow_thms (canonical_tvars thy)
     |> Drule.zero_var_indexes_list
   end;
 

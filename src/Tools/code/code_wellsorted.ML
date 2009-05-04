@@ -107,7 +107,7 @@ fun obtain_eqns thy eqngr c =
     | NONE => let
         val eqns = Code.these_eqns thy c
           |> burrow_fst (Code_Unit.norm_args thy)
-          |> burrow_fst (Code_Unit.norm_varnames thy Code_Name.purify_tvar Code_Name.purify_var);
+          |> burrow_fst (Code_Unit.norm_varnames thy);
         val ((lhs, _), rhss) = tyscm_rhss_of thy c eqns;
       in ((lhs, rhss), eqns) end;
 

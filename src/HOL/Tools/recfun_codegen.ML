@@ -59,7 +59,7 @@ fun retrieve_equations thy (c, T) = if c = @{const_name "op ="} then NONE else
       |> expand_eta thy
       |> map (AxClass.overload thy)
       |> map_filter (meta_eq_to_obj_eq thy)
-      |> Code_Unit.norm_varnames thy Code_Name.purify_tvar Code_Name.purify_var
+      |> Code_Unit.norm_varnames thy
       |> map (rpair opt_name)
   in if null thms then NONE else SOME thms end;
 

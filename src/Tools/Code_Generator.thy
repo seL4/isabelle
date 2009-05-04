@@ -9,7 +9,6 @@ imports Pure
 uses
   "~~/src/Tools/value.ML"
   "~~/src/Tools/quickcheck.ML"
-  "~~/src/Tools/code/code_name.ML"
   "~~/src/Tools/code/code_wellsorted.ML" 
   "~~/src/Tools/code/code_thingol.ML"
   "~~/src/Tools/code/code_printer.ML"
