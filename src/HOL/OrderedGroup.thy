@@ -637,27 +637,6 @@ by (auto simp add: le_less less_diff_eq diff_add_cancel add_diff_cancel)
 lemma le_iff_diff_le_0: "a \<le> b \<longleftrightarrow> a - b \<le> 0"
 by (simp add: algebra_simps)
 
-lemma sum_nonneg_eq_zero_iff:
-  assumes x: "0 \<le> x" and y: "0 \<le> y"
-  shows "(x + y = 0) = (x = 0 \<and> y = 0)"
-proof -
-  have "x + y = 0 \<Longrightarrow> x = 0"
-  proof -
-    from y have "x + 0 \<le> x + y" by (rule add_left_mono)
-    also assume "x + y = 0"
-    finally have "x \<le> 0" by simp
-    then show "x = 0" using x by (rule antisym)
-  qed
-  moreover have "x + y = 0 \<Longrightarrow> y = 0"
-  proof -
-    from x have "0 + y \<le> x + y" by (rule add_right_mono)
-    also assume "x + y = 0"
-    finally have "y \<le> 0" by simp
-    then show "y = 0" using y by (rule antisym)
-  qed
-  ultimately show ?thesis by auto
-qed
-
 text{*Legacy - use @{text algebra_simps} *}
 lemmas group_simps[noatp] = algebra_simps
 

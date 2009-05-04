@@ -127,7 +127,7 @@ lemma not_sum_squares_lt_zero:
 
 lemma sum_squares_eq_zero_iff:
   "x * x + y * y = 0 \<longleftrightarrow> x = 0 \<and> y = 0"
-  by (simp add: sum_nonneg_eq_zero_iff)
+  by (simp add: add_nonneg_eq_0_iff)
 
 lemma sum_squares_le_zero_iff:
   "x * x + y * y \<le> 0 \<longleftrightarrow> x = 0 \<and> y = 0"

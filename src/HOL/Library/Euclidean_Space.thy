@@ -593,7 +593,7 @@ next
   from insert.prems have Fx: "f x \<ge> 0" and Fp: "\<forall> a \<in> F. f a \<ge> 0" by simp_all
   from insert.hyps Fp setsum_nonneg[OF Fp]
   have h: "setsum f F = 0 \<longleftrightarrow> (\<forall>a \<in>F. f a = 0)" by metis
-  from sum_nonneg_eq_zero_iff[OF Fx  setsum_nonneg[OF Fp]] insert.hyps(1,2)
+  from add_nonneg_eq_0_iff[OF Fx  setsum_nonneg[OF Fp]] insert.hyps(1,2)
   show ?case by (simp add: h)
 qed
 
