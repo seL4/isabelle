@@ -190,7 +190,7 @@ in [
 *}
 
 text {*
-  For an example, see HOL/ex/Random.thy.
+  For an example, see HOL/Extraction/Higman.thy.
 *}
 
 end
