@@ -28,7 +28,7 @@ sig
   val variants: string list -> context -> string list * context
   val variant_list: string list -> string list -> string list
   val variant: string list -> string -> string
-  val desymbolize: string -> string
+  val desymbolize: bool -> string -> string
 end;
 
 structure Name: NAME =
@@ -146,25 +146,30 @@ fun variant_list used names = #1 (make_context used |> variants names);
 fun variant used = singleton (variant_list used);
 
 
-(* names conforming to typical requirements of identifiers in the outside world *)
+(* names conforming to typical requirements of identifiers in the world outside *)
 
-fun desymbolize "" = "x"
-  | desymbolize s =
+fun desymbolize upper "" = if upper then "X" else "x"
+  | desymbolize upper s =
       let
-        val xs = Symbol.explode s;
-        val ys = if Symbol.is_ascii_letter (hd xs) then xs
+        val xs as (x :: _) = Symbol.explode s;
+        val ys = if Symbol.is_ascii_letter x orelse Symbol.is_symbolic x then xs
           else "x" :: xs;
         fun is_valid x =
           Symbol.is_ascii_letter x orelse Symbol.is_ascii_digit x orelse x = "'";
         fun sep [] = []
           | sep (xs as "_" :: _) = xs
           | sep xs = "_" :: xs;
+        fun desep ("_" :: xs) = xs
+          | desep xs = xs;
         fun desymb x xs = if is_valid x
             then x :: xs
           else if Symbol.is_symbolic x
-            then "_" :: Symbol.name_of x :: sep xs 
+            then "_" :: explode (Symbol.name_of x) @ sep xs
           else
             sep xs
-      in implode (fold_rev desymb ys []) end;
+        fun upper_lower cs = if upper then nth_map 0 Symbol.to_ascii_upper cs
+          else (if forall Symbol.is_ascii_upper cs
+            then map else nth_map 0) Symbol.to_ascii_lower cs;
+      in fold_rev desymb ys [] |> desep |> upper_lower |> implode end;
 
 end;
