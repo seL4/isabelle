@@ -11,7 +11,7 @@ begin
 datatype typerep = Typerep message_string "typerep list"
 
 class typerep =
-  fixes typerep :: "'a\<Colon>{} itself \<Rightarrow> typerep"
+  fixes typerep :: "'a itself \<Rightarrow> typerep"
 begin
 
 definition typerep_of :: "'a \<Rightarrow> typerep" where
@@ -79,8 +79,7 @@ end;
 *}
 
 setup {*
-  Typerep.add_def @{type_name prop}
-  #> Typerep.add_def @{type_name fun}
+  Typerep.add_def @{type_name fun}
   #> Typerep.add_def @{type_name itself}
   #> Typerep.add_def @{type_name bool}
   #> TypedefPackage.interpretation Typerep.perhaps_add_def
@@ -92,12 +91,12 @@ lemma [code]:
   by (auto simp add: equals_eq [symmetric] list_all2_eq [symmetric])
 
 code_type typerep
-  (SML "Term.typ")
+  (Eval "Term.typ")
 
 code_const Typerep
-  (SML "Term.Type/ (_, _)")
+  (Eval "Term.Type/ (_, _)")
 
-code_reserved SML Term
+code_reserved Eval Term
 
 hide (open) const typerep Typerep
 

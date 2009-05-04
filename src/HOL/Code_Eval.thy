@@ -23,7 +23,7 @@ definition App :: "term \<Rightarrow> term \<Rightarrow> term" where
 code_datatype Const App
 
 class term_of = typerep +
-  fixes term_of :: "'a::{} \<Rightarrow> term"
+  fixes term_of :: "'a \<Rightarrow> term"
 
 lemma term_of_anything: "term_of x \<equiv> t"
   by (rule eq_reflection) (cases "term_of x", cases t, simp)
@@ -67,18 +67,19 @@ let
       |> Class.prove_instantiation_instance (K (Class.intro_classes_tac []))
       |> LocalTheory.exit_global
     end;
-  fun interpretator (tyco, (raw_vs, _)) thy =
-    let
-      val has_inst = can (Sorts.mg_domain (Sign.classes_of thy) tyco) @{sort term_of};
-      val constrain_sort =
-        curry (Sorts.inter_sort (Sign.classes_of thy)) @{sort term_of};
-      val vs = (map o apsnd) constrain_sort raw_vs;
-      val ty = Type (tyco, map TFree vs);
-    in
-      thy
-      |> Typerep.perhaps_add_def tyco
-      |> not has_inst ? add_term_of_def ty vs tyco
-    end;
+  fun interpretator ("prop", (raw_vs, _)) thy = thy
+    | interpretator (tyco, (raw_vs, _)) thy =
+        let
+          val has_inst = can (Sorts.mg_domain (Sign.classes_of thy) tyco) @{sort term_of};
+          val constrain_sort =
+            curry (Sorts.inter_sort (Sign.classes_of thy)) @{sort term_of};
+          val vs = (map o apsnd) constrain_sort raw_vs;
+          val ty = Type (tyco, map TFree vs);
+        in
+          thy
+          |> Typerep.perhaps_add_def tyco
+          |> not has_inst ? add_term_of_def ty vs tyco
+        end;
 in
   Code.type_interpretation interpretator
 end
@@ -105,21 +106,22 @@ let
       thy
       |> Code.add_eqn thm
     end;
-  fun interpretator (tyco, (raw_vs, raw_cs)) thy =
-    let
-      val constrain_sort =
-        curry (Sorts.inter_sort (Sign.classes_of thy)) @{sort term_of};
-      val vs = (map o apsnd) constrain_sort raw_vs;
-      val cs = (map o apsnd o map o map_atyps)
-        (fn TFree (v, sort) => TFree (v, constrain_sort sort)) raw_cs;
-      val ty = Type (tyco, map TFree vs);
-      val eqs = map (mk_term_of_eq ty vs tyco) cs;
-      val const = AxClass.param_of_inst thy (@{const_name term_of}, tyco);
-    in
-      thy
-      |> Code.del_eqns const
-      |> fold (prove_term_of_eq ty) eqs
-    end;
+  fun interpretator ("prop", (raw_vs, _)) thy = thy
+    | interpretator (tyco, (raw_vs, raw_cs)) thy =
+        let
+          val constrain_sort =
+            curry (Sorts.inter_sort (Sign.classes_of thy)) @{sort term_of};
+          val vs = (map o apsnd) constrain_sort raw_vs;
+          val cs = (map o apsnd o map o map_atyps)
+            (fn TFree (v, sort) => TFree (v, constrain_sort sort)) raw_cs;
+          val ty = Type (tyco, map TFree vs);
+          val eqs = map (mk_term_of_eq ty vs tyco) cs;
+          val const = AxClass.param_of_inst thy (@{const_name term_of}, tyco);
+        in
+          thy
+          |> Code.del_eqns const
+          |> fold (prove_term_of_eq ty) eqs
+        end;
 in
   Code.type_interpretation interpretator
 end
@@ -146,13 +148,13 @@ lemma term_of_char [unfolded typerep_fun_def typerep_char_def typerep_nibble_def
   by (subst term_of_anything) rule 
 
 code_type "term"
-  (SML "Term.term")
+  (Eval "Term.term")
 
 code_const Const and App
-  (SML "Term.Const/ (_, _)" and "Term.$/ (_, _)")
+  (Eval "Term.Const/ (_, _)" and "Term.$/ (_, _)")
 
 code_const "term_of \<Colon> message_string \<Rightarrow> term"
-  (SML "Message'_String.mk")
+  (Eval "Message'_String.mk")
 
 
 subsection {* Evaluation setup *}
