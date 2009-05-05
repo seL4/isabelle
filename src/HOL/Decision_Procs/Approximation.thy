@@ -2422,6 +2422,40 @@ lemmas interpret_inequality_equations = interpret_inequality.simps interpret_flo
   interpret_floatarith_divide interpret_floatarith_diff interpret_floatarith_tan interpret_floatarith_powr interpret_floatarith_log
 
 ML {*
+structure Float_Arith =
+struct
+
+@{code_datatype float = Float}
+@{code_datatype floatarith = Add | Minus | Mult | Inverse | Sin | Cos | Arctan 
+                           | Abs | Max | Min | Pi | Sqrt | Exp | Ln | Power | Atom | Num }
+@{code_datatype inequality = Less | LessEqual }
+
+val approx_inequality = @{code approx_inequality}
+
+end
+*}
+
+code_reserved Eval Float_Arith
+
+code_type float (Eval "Float'_Arith.float")
+code_const Float (Eval "Float'_Arith.Float/ (_,/ _)")
+
+code_type floatarith (Eval "Float'_Arith.floatarith")
+code_const Add and Minus and Mult and Inverse and Sin and Cos and Arctan and Abs and Max and Min and
+           Pi and Sqrt  and Exp and Ln and Power and Atom and Num
+  (Eval "Float'_Arith.Add/ (_,/ _)" and "Float'_Arith.Minus" and "Float'_Arith.Mult/ (_,/ _)" and
+        "Float'_Arith.Inverse" and "Float'_Arith.Sin" and "Float'_Arith.Cos" and
+        "Float'_Arith.Arctan" and "Float'_Arith.Abs" and "Float'_Arith.Max/ (_,/ _)" and
+        "Float'_Arith.Min/ (_,/ _)" and "Float'_Arith.Pi" and "Float'_Arith.Sqrt" and
+        "Float'_Arith.Exp" and "Float'_Arith.Ln" and "Float'_Arith.Power/ (_,/ _)" and
+        "Float'_Arith.Atom" and "Float'_Arith.Num")
+
+code_type inequality (Eval "Float'_Arith.inequality")
+code_const Less and LessEqual (Eval "Float'_Arith.Less/ (_,/ _)" and "Float'_Arith.LessEqual/ (_,/ _)")
+
+code_const approx_inequality (Eval "Float'_Arith.approx'_inequality")
+
+ML {*
   val ineq_equations = PureThy.get_thms @{theory} "interpret_inequality_equations";
   val bounded_by_equations = PureThy.get_thms @{theory} "bounded_by_equations";
   val bounded_by_simpset = (HOL_basic_ss addsimps bounded_by_equations)
@@ -2512,5 +2546,7 @@ method_setup approximation = {*
       THEN (TRY (filter_prems_tac (fn t => false) i))
       THEN (gen_eval_tac eval_oracle ctxt) i)))
 *} "real number approximation"
+
+lemma "sin 1 > 0" by (approximation 10)
  
 end
