@@ -345,21 +345,11 @@ lemma cont2cont_LAM' [cont2cont]:
   assumes f: "cont (\<lambda>p. f (fst p) (snd p))"
   shows "cont (\<lambda>x. \<Lambda> y. f x y)"
 proof (rule cont2cont_LAM)
-  fix x :: 'a
-  have "cont (\<lambda>y. (x, y))"
-    by (rule cont_pair2)
-  with f have "cont (\<lambda>y. f (fst (x, y)) (snd (x, y)))"
-    by (rule cont2cont_app3)
-  thus "cont (\<lambda>y. f x y)"
-    by (simp only: fst_conv snd_conv)
+  fix x :: 'a show "cont (\<lambda>y. f x y)"
+    using f by (rule cont_fst_snd_D2)
 next
-  fix y :: 'b
-  have "cont (\<lambda>x. (x, y))"
-    by (rule cont_pair1)
-  with f have "cont (\<lambda>x. f (fst (x, y)) (snd (x, y)))"
-    by (rule cont2cont_app3)
-  thus "cont (\<lambda>x. f x y)"
-    by (simp only: fst_conv snd_conv)
+  fix y :: 'b show "cont (\<lambda>x. f x y)"
+    using f by (rule cont_fst_snd_D1)
 qed
 
 lemma cont2cont_LAM_discrete [cont2cont]:

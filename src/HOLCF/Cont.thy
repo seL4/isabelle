@@ -180,31 +180,31 @@ done
 
 text {* application of functions is continuous *}
 
-lemma cont2cont_apply:
+lemma cont_apply:
   fixes f :: "'a::cpo \<Rightarrow> 'b::cpo \<Rightarrow> 'c::cpo" and t :: "'a \<Rightarrow> 'b"
-  assumes f1: "\<And>y. cont (\<lambda>x. f x y)"
-  assumes f2: "\<And>x. cont (\<lambda>y. f x y)"
-  assumes t: "cont (\<lambda>x. t x)"
+  assumes 1: "cont (\<lambda>x. t x)"
+  assumes 2: "\<And>x. cont (\<lambda>y. f x y)"
+  assumes 3: "\<And>y. cont (\<lambda>x. f x y)"
   shows "cont (\<lambda>x. (f x) (t x))"
 proof (rule monocontlub2cont [OF monofunI contlubI])
   fix x y :: "'a" assume "x \<sqsubseteq> y"
   then show "f x (t x) \<sqsubseteq> f y (t y)"
-    by (auto intro: cont2monofunE [OF f1]
-                    cont2monofunE [OF f2]
-                    cont2monofunE [OF t]
+    by (auto intro: cont2monofunE [OF 1]
+                    cont2monofunE [OF 2]
+                    cont2monofunE [OF 3]
                     trans_less)
 next
   fix Y :: "nat \<Rightarrow> 'a" assume "chain Y"
   then show "f (\<Squnion>i. Y i) (t (\<Squnion>i. Y i)) = (\<Squnion>i. f (Y i) (t (Y i)))"
-    by (simp only: cont2contlubE [OF t]  ch2ch_cont [OF t]
-                   cont2contlubE [OF f1] ch2ch_cont [OF f1]
-                   cont2contlubE [OF f2] ch2ch_cont [OF f2]
+    by (simp only: cont2contlubE [OF 1] ch2ch_cont [OF 1]
+                   cont2contlubE [OF 2] ch2ch_cont [OF 2]
+                   cont2contlubE [OF 3] ch2ch_cont [OF 3]
                    diag_lub)
 qed
 
-lemma cont2cont_compose:
+lemma cont_compose:
   "\<lbrakk>cont c; cont (\<lambda>x. f x)\<rbrakk> \<Longrightarrow> cont (\<lambda>x. c (f x))"
-by (rule cont2cont_apply [OF cont_const])
+by (rule cont_apply [OF _ _ cont_const])
 
 text {* if-then-else is continuous *}
 
