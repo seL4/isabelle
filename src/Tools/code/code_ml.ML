@@ -45,7 +45,7 @@ fun stmt_names_of (MLExc (name, _)) = [name]
 
 (** SML serailizer **)
 
-fun pr_sml_stmt naming labelled_name syntax_tyco syntax_const reserved_names deresolve is_cons =
+fun pr_sml_stmt labelled_name syntax_tyco syntax_const reserved_names deresolve is_cons =
   let
     val pr_label_classrel = translate_string (fn "." => "__" | c => c)
       o Long_Name.qualifier;
@@ -124,7 +124,7 @@ fun pr_sml_stmt naming labelled_name syntax_tyco syntax_const reserved_names der
         (str o deresolve) c
           :: (map (pr_dicts BR) o filter_out null) iss @ map (pr_term is_closure thm vars BR) ts
     and pr_app is_closure thm vars = gen_pr_app (pr_app' is_closure) (pr_term is_closure)
-      syntax_const naming thm vars
+      syntax_const thm vars
     and pr_bind' ((NONE, NONE), _) = str "_"
       | pr_bind' ((SOME v, NONE), _) = str v
       | pr_bind' ((NONE, SOME p), _) = p
@@ -360,7 +360,7 @@ val literals_sml = Literals {
 
 (** OCaml serializer **)
 
-fun pr_ocaml_stmt naming labelled_name syntax_tyco syntax_const reserved_names deresolve is_cons =
+fun pr_ocaml_stmt labelled_name syntax_tyco syntax_const reserved_names deresolve is_cons =
   let
     fun pr_dicts fxy ds =
       let
@@ -428,7 +428,7 @@ fun pr_ocaml_stmt naming labelled_name syntax_tyco syntax_const reserved_names d
       else (str o deresolve) c
         :: ((map (pr_dicts BR) o filter_out null) iss @ map (pr_term is_closure thm vars BR) ts)
     and pr_app is_closure = gen_pr_app (pr_app' is_closure) (pr_term is_closure)
-      syntax_const naming
+      syntax_const
     and pr_bind' ((NONE, NONE), _) = str "_"
       | pr_bind' ((SOME v, NONE), _) = str v
       | pr_bind' ((NONE, SOME p), _) = p
@@ -909,7 +909,7 @@ fun ml_node_of_program labelled_name module_name reserved_names raw_module_alias
   in (deresolver, nodes) end;
 
 fun serialize_ml target compile pr_module pr_stmt raw_module_name labelled_name reserved_names includes raw_module_alias
-  _ syntax_tyco syntax_const naming program stmt_names destination =
+  _ syntax_tyco syntax_const program stmt_names destination =
   let
     val is_cons = Code_Thingol.is_cons program;
     val present_stmt_names = Code_Target.stmt_names_of_destination destination;
@@ -924,7 +924,7 @@ fun serialize_ml target compile pr_module pr_stmt raw_module_name labelled_name 
           (null o filter (member (op =) present_stmt_names) o stmt_names_of) stmt
           then NONE
           else SOME
-            (pr_stmt naming labelled_name syntax_tyco syntax_const reserved_names
+            (pr_stmt labelled_name syntax_tyco syntax_const reserved_names
               (deresolver prefix) is_cons stmt)
       | pr_node prefix (Module (module_name, (_, nodes))) =
           separate (str "")

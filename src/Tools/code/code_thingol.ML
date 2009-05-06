@@ -61,6 +61,7 @@ sig
   val lookup_tyco: naming -> string -> string option
   val lookup_instance: naming -> class * string -> string option
   val lookup_const: naming -> string -> string option
+  val ensure_declared_const: theory -> string -> naming -> string * naming
 
   datatype stmt =
       NoStmt
@@ -358,6 +359,11 @@ fun declare_instance thy = declare thy map_instance
   lookup_instance Symreltab.update_new namify_instance;
 fun declare_const thy = declare thy map_const
   lookup_const Symtab.update_new namify_const;
+
+fun ensure_declared_const thy const naming =
+  case lookup_const naming const
+   of SOME const' => (const', naming)
+    | NONE => declare_const thy const naming;
 
 val unfold_fun = unfoldr
   (fn "Pure.fun.tyco" `%% [ty1, ty2] => SOME (ty1, ty2)
