@@ -7,7 +7,7 @@ Retrieve theorems from proof context.
 signature FIND_THEOREMS =
 sig
   datatype 'term criterion =
-    Name of string | Intro | Elim | Dest | Solves | Simp of 'term |
+    Name of string | Intro | IntroIff | Elim | Dest | Solves | Simp of 'term |
     Pattern of 'term
   val tac_limit: int ref
   val limit: int ref
@@ -24,11 +24,12 @@ struct
 (** search criteria **)
 
 datatype 'term criterion =
-  Name of string | Intro | Elim | Dest | Solves | Simp of 'term |
+  Name of string | Intro | IntroIff | Elim | Dest | Solves | Simp of 'term |
   Pattern of 'term;
 
 fun read_criterion _ (Name name) = Name name
   | read_criterion _ Intro = Intro
+  | read_criterion _ IntroIff = IntroIff
   | read_criterion _ Elim = Elim
   | read_criterion _ Dest = Dest
   | read_criterion _ Solves = Solves
@@ -42,6 +43,7 @@ fun pretty_criterion ctxt (b, c) =
     (case c of
       Name name => Pretty.str (prfx "name: " ^ quote name)
     | Intro => Pretty.str (prfx "intro")
+    | IntroIff => Pretty.str (prfx "introiff")
     | Elim => Pretty.str (prfx "elim")
     | Dest => Pretty.str (prfx "dest")
     | Solves => Pretty.str (prfx "solves")
@@ -74,17 +76,40 @@ fun pretty_criterion ctxt (b, c) =
 
 fun is_nontrivial thy = Term.is_Const o Term.head_of o ObjectLogic.drop_judgment thy;
 
+(* Note: ("op =" : "bool --> bool --> bool") does not exist in Pure. *)
+fun is_Iff c =
+  (case dest_Const c of
+     ("op =", ty) =>
+       (ty
+        |> strip_type
+        |> swap
+        |> (op ::)
+        |> map (fst o dest_Type)
+        |> forall (curry (op =) "bool")
+        handle TYPE _ => false)
+   | _ => false);
+
 (*extract terms from term_src, refine them to the parts that concern us,
   if po try match them against obj else vice versa.
   trivial matches are ignored.
   returns: smallest substitution size*)
-fun is_matching_thm (extract_terms, refine_term) ctxt po obj term_src =
+fun is_matching_thm doiff (extract_terms, refine_term) ctxt po obj term_src =
   let
     val thy = ProofContext.theory_of ctxt;
 
+    val chkmatch = obj |> (if po then rpair else pair) #> Pattern.matches thy;
     fun matches pat =
-      is_nontrivial thy pat andalso
-      Pattern.matches thy (if po then (pat, obj) else (obj, pat));
+      let
+        val jpat = ObjectLogic.drop_judgment thy pat;
+        val c = Term.head_of jpat;
+        val pats =
+          if Term.is_Const c
+          then if doiff andalso is_Iff c
+               then pat :: map (ObjectLogic.ensure_propT thy) ((snd o strip_comb) jpat)
+                    |> filter (is_nontrivial thy)
+               else [pat]
+          else [];
+      in filter chkmatch pats end;
 
     fun substsize pat =
       let val (_, subst) =
@@ -96,7 +121,9 @@ fun is_matching_thm (extract_terms, refine_term) ctxt po obj term_src =
 
     val match_thm = matches o refine_term;
   in
-    map (substsize o refine_term) (filter match_thm (extract_terms term_src))
+    map match_thm (extract_terms term_src)
+    |> flat
+    |> map substsize
     |> bestmatch
   end;
 
@@ -117,7 +144,7 @@ fun filter_dest ctxt goal (_, thm) =
       hd o Logic.strip_imp_prems);
     val prems = Logic.prems_of_goal goal 1;
 
-    fun try_subst prem = is_matching_thm extract_dest ctxt true prem thm;
+    fun try_subst prem = is_matching_thm false extract_dest ctxt true prem thm;
     val successful = prems |> map_filter try_subst;
   in
     (*if possible, keep best substitution (one with smallest size)*)
@@ -127,11 +154,11 @@ fun filter_dest ctxt goal (_, thm) =
     then SOME (Thm.nprems_of thm - 1, foldr1 Int.min successful) else NONE
   end;
 
-fun filter_intro ctxt goal (_, thm) =
+fun filter_intro doiff ctxt goal (_, thm) =
   let
     val extract_intro = (single o Thm.full_prop_of, Logic.strip_imp_concl);
     val concl = Logic.concl_of_goal goal 1;
-    val ss = is_matching_thm extract_intro ctxt true concl thm;
+    val ss = is_matching_thm doiff extract_intro ctxt true concl thm;
   in
     if is_some ss then SOME (Thm.nprems_of thm, the ss) else NONE
   end;
@@ -148,7 +175,7 @@ fun filter_elim ctxt goal (_, thm) =
       val rule_tree = combine rule_mp rule_concl;
       fun goal_tree prem = combine prem goal_concl;
       fun try_subst prem =
-        is_matching_thm (single, I) ctxt true (goal_tree prem) rule_tree;
+        is_matching_thm false (single, I) ctxt true (goal_tree prem) rule_tree;
       val successful = prems |> map_filter try_subst;
     in
     (*elim rules always have assumptions, so an elim with one
@@ -183,7 +210,7 @@ fun filter_simp ctxt t (_, thm) =
     val mksimps = Simplifier.mksimps (Simplifier.local_simpset_of ctxt);
     val extract_simp =
       (map Thm.full_prop_of o mksimps, #1 o Logic.dest_equals o Logic.strip_imp_concl);
-    val ss = is_matching_thm extract_simp ctxt false t thm;
+    val ss = is_matching_thm false extract_simp ctxt false t thm;
   in
     if is_some ss then SOME (Thm.nprems_of thm, the ss) else NONE
   end;
@@ -233,7 +260,8 @@ fun filter_crit _ _ (Name name) = apfst (filter_name name)
   | filter_crit _ NONE Elim = err_no_goal "elim"
   | filter_crit _ NONE Dest = err_no_goal "dest"
   | filter_crit _ NONE Solves = err_no_goal "solves"
-  | filter_crit ctxt (SOME goal) Intro = apfst (filter_intro ctxt (fix_goal goal))
+  | filter_crit ctxt (SOME goal) Intro = apfst (filter_intro false ctxt (fix_goal goal))
+  | filter_crit ctxt (SOME goal) IntroIff = apfst (filter_intro true ctxt (fix_goal goal))
   | filter_crit ctxt (SOME goal) Elim = apfst (filter_elim ctxt (fix_goal goal))
   | filter_crit ctxt (SOME goal) Dest = apfst (filter_dest ctxt (fix_goal goal))
   | filter_crit ctxt (SOME goal) Solves = apfst (filter_solves ctxt goal)
@@ -428,6 +456,7 @@ structure P = OuterParse and K = OuterKeyword;
 val criterion =
   P.reserved "name" |-- P.!!! (P.$$$ ":" |-- P.xname) >> Name ||
   P.reserved "intro" >> K Intro ||
+  P.reserved "introiff" >> K IntroIff ||
   P.reserved "elim" >> K Elim ||
   P.reserved "dest" >> K Dest ||
   P.reserved "solves" >> K Solves ||
