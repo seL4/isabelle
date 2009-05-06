@@ -33,6 +33,6 @@ code_const "eq_class.eq \<Colon> char \<Rightarrow> char \<Rightarrow> bool"
   (Haskell infixl 4 "==")
 
 code_const "Code_Eval.term_of \<Colon> char \<Rightarrow> term"
-  (SML "HOLogic.mk'_char/ (IntInf.fromInt/ (Char.ord/ _))")
+  (Eval "HOLogic.mk'_char/ (IntInf.fromInt/ (Char.ord/ _))")
 
 end
