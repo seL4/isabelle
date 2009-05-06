@@ -23,6 +23,17 @@ sig
   val intro_vars: string list -> var_ctxt -> var_ctxt
   val lookup_var: var_ctxt -> string -> string
 
+  type literals
+  val Literals: { literal_char: string -> string, literal_string: string -> string,
+        literal_numeral: bool -> int -> string,
+        literal_list: Pretty.T list -> Pretty.T, infix_cons: int * string }
+    -> literals
+  val literal_char: literals -> string -> string
+  val literal_string: literals -> string -> string
+  val literal_numeral: literals -> bool -> int -> string
+  val literal_list: literals -> Pretty.T list -> Pretty.T
+  val infix_cons: literals -> int * string
+
   type lrx
   val L: lrx
   val R: lrx
@@ -41,6 +52,7 @@ sig
   type dict = Code_Thingol.dict
   type tyco_syntax
   type const_syntax
+  type proto_const_syntax
   val parse_infix: ('a -> 'b) -> lrx * int -> string
     -> int * ((fixity -> 'b -> Pretty.T)
     -> fixity -> 'a list -> Pretty.T)
@@ -48,25 +60,17 @@ sig
     -> (int * ((fixity -> 'b -> Pretty.T)
     -> fixity -> 'a list -> Pretty.T)) option * OuterParse.token list
   val simple_const_syntax: (int * ((fixity -> iterm -> Pretty.T)
-    -> fixity -> (iterm * itype) list -> Pretty.T)) option -> const_syntax option
+    -> fixity -> (iterm * itype) list -> Pretty.T)) option -> proto_const_syntax option
+  val activate_const_syntax: theory -> literals
+    -> proto_const_syntax -> Code_Thingol.naming -> const_syntax * Code_Thingol.naming
   val gen_pr_app: (thm -> var_ctxt -> const * iterm list -> Pretty.T list)
     -> (thm -> var_ctxt -> fixity -> iterm -> Pretty.T)
-    -> (string -> const_syntax option) -> Code_Thingol.naming
+    -> (string -> const_syntax option)
     -> thm -> var_ctxt -> fixity -> const * iterm list -> Pretty.T
   val gen_pr_bind: ((string option * Pretty.T option) * itype -> Pretty.T)
     -> (thm -> var_ctxt -> fixity -> iterm -> Pretty.T)
     -> thm -> fixity
     -> (string option * iterm option) * itype -> var_ctxt -> Pretty.T * var_ctxt
-
-  type literals
-  val Literals: { literal_char: string -> string, literal_string: string -> string,
-        literal_numeral: bool -> int -> string, literal_list: Pretty.T list -> Pretty.T, infix_cons: int * string }
-    -> literals
-  val literal_char: literals -> string -> string
-  val literal_string: literals -> string -> string
-  val literal_numeral: literals -> bool -> int -> string
-  val literal_list: literals -> Pretty.T list -> Pretty.T
-  val infix_cons: literals -> int * string
 
   val mk_name_module: Name.context -> string option -> (string -> string option)
     -> 'a Graph.T -> string -> string
@@ -115,6 +119,25 @@ val first_upper = implode o nth_map 0 Symbol.to_ascii_upper o explode;
 val first_lower = implode o nth_map 0 Symbol.to_ascii_lower o explode;
 
 
+(** pretty literals **)
+
+datatype literals = Literals of {
+  literal_char: string -> string,
+  literal_string: string -> string,
+  literal_numeral: bool -> int -> string,
+  literal_list: Pretty.T list -> Pretty.T,
+  infix_cons: int * string
+};
+
+fun dest_Literals (Literals lits) = lits;
+
+val literal_char = #literal_char o dest_Literals;
+val literal_string = #literal_string o dest_Literals;
+val literal_numeral = #literal_numeral o dest_Literals;
+val literal_list = #literal_list o dest_Literals;
+val infix_cons = #infix_cons o dest_Literals;
+
+
 (** syntax printer **)
 
 (* binding priorities *)
@@ -158,17 +181,25 @@ fun brackify_infix infx fxy_ctxt =
 type tyco_syntax = int * ((fixity -> itype -> Pretty.T)
   -> fixity -> itype list -> Pretty.T);
 type const_syntax = int * ((var_ctxt -> fixity -> iterm -> Pretty.T)
-  -> Code_Thingol.naming -> thm -> var_ctxt -> fixity -> (iterm * itype) list -> Pretty.T);
+  -> thm -> var_ctxt -> fixity -> (iterm * itype) list -> Pretty.T);
+type proto_const_syntax = int * (string list * (literals -> string list
+  -> (var_ctxt -> fixity -> iterm -> Pretty.T)
+    -> thm -> var_ctxt -> fixity -> (iterm * itype) list -> Pretty.T));
 
-fun simple_const_syntax x = (Option.map o apsnd)
-  (fn pretty => fn pr => fn naming => fn thm => fn vars => pretty (pr vars)) x;
+fun simple_const_syntax (SOME (n, f)) = SOME (n,
+      ([], (fn _ => fn _ => fn pr => fn thm => fn vars => f (pr vars))))
+  | simple_const_syntax NONE = NONE;
 
-fun gen_pr_app pr_app pr_term syntax_const naming thm vars fxy (app as ((c, (_, tys)), ts)) =
+fun activate_const_syntax thy literals (n, (cs, f)) naming =
+  fold_map (Code_Thingol.ensure_declared_const thy) cs naming
+  |-> (fn cs' => pair (n, f literals cs'));
+
+fun gen_pr_app pr_app pr_term syntax_const thm vars fxy (app as ((c, (_, tys)), ts)) =
   case syntax_const c
    of NONE => brackify fxy (pr_app thm vars app)
     | SOME (k, pr) =>
         let
-          fun pr' fxy ts = pr (pr_term thm) naming thm vars fxy (ts ~~ curry Library.take k tys);
+          fun pr' fxy ts = pr (pr_term thm) thm vars fxy (ts ~~ curry Library.take k tys);
         in if k = length ts
           then pr' fxy ts
         else if k < length ts
@@ -251,25 +282,6 @@ fun parse_syntax prep_arg xs =
       >> (fn (parse, s) => parse s)) xs;
 
 val _ = List.app OuterKeyword.keyword [infixK, infixlK, infixrK];
-
-
-(** pretty literals **)
-
-datatype literals = Literals of {
-  literal_char: string -> string,
-  literal_string: string -> string,
-  literal_numeral: bool -> int -> string,
-  literal_list: Pretty.T list -> Pretty.T,
-  infix_cons: int * string
-};
-
-fun dest_Literals (Literals lits) = lits;
-
-val literal_char = #literal_char o dest_Literals;
-val literal_string = #literal_string o dest_Literals;
-val literal_numeral = #literal_numeral o dest_Literals;
-val literal_list = #literal_list o dest_Literals;
-val infix_cons = #infix_cons o dest_Literals;
 
 
 (** module name spaces **)

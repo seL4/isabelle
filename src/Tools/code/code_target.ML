@@ -44,7 +44,7 @@ sig
   val add_syntax_class: string -> class -> string option -> theory -> theory
   val add_syntax_inst: string -> string * class -> bool -> theory -> theory
   val add_syntax_tyco: string -> string -> tyco_syntax option -> theory -> theory
-  val add_syntax_const: string -> string -> const_syntax option -> theory -> theory
+  val add_syntax_const: string -> string -> proto_const_syntax option -> theory -> theory
   val add_reserved: string -> string -> theory -> theory
 end;
 
@@ -86,7 +86,7 @@ datatype name_syntax_table = NameSyntaxTable of {
   class: string Symtab.table,
   instance: unit Symreltab.table,
   tyco: tyco_syntax Symtab.table,
-  const: const_syntax Symtab.table
+  const: proto_const_syntax Symtab.table
 };
 
 fun mk_name_syntax_table ((class, instance), (tyco, const)) =
@@ -112,7 +112,6 @@ type serializer =
   -> (string -> string option)          (*class syntax*)
   -> (string -> tyco_syntax option)
   -> (string -> const_syntax option)
-  -> Code_Thingol.naming
   -> Code_Thingol.program
   -> string list                        (*selected statements*)
   -> serialization;
@@ -402,19 +401,34 @@ fun labelled_name thy program name = case Graph.get_node program name
         val Code_Thingol.Datatype (tyco, _) = Graph.get_node program tyco
       in quote (Sign.extern_type thy tyco ^ " :: " ^ Sign.extern_class thy class) end
 
-fun invoke_serializer thy abortable serializer reserved abs_includes 
+fun activate_syntax lookup_name src_tab = Symtab.empty
+  |> fold_map (fn thing_identifier => fn tab => case lookup_name thing_identifier
+       of SOME name => (SOME name,
+            Symtab.update_new (name, the (Symtab.lookup src_tab thing_identifier)) tab)
+        | NONE => (NONE, tab)) (Symtab.keys src_tab)
+  |>> map_filter I;
+
+fun activate_const_syntax thy literals src_tab naming = (Symtab.empty, naming)
+  |> fold_map (fn thing_identifier => fn (tab, naming) =>
+      case Code_Thingol.lookup_const naming thing_identifier
+       of SOME name => let
+              val (syn, naming') = Code_Printer.activate_const_syntax thy
+                literals (the (Symtab.lookup src_tab thing_identifier)) naming
+            in (SOME name, (Symtab.update_new (name, syn) tab, naming')) end
+        | NONE => (NONE, (tab, naming))) (Symtab.keys src_tab)
+  |>> map_filter I;
+
+fun invoke_serializer thy abortable serializer literals reserved abs_includes 
     module_alias class instance tyco const module args naming program2 names1 =
   let
-    fun distill_names lookup_name src_tab = Symtab.empty
-      |> fold_map (fn thing_identifier => fn tab => case lookup_name naming thing_identifier
-           of SOME name => (SOME name, Symtab.update_new (name, the (Symtab.lookup src_tab thing_identifier)) tab)
-            | NONE => (NONE, tab)) (Symtab.keys src_tab)
-      |>> map_filter I;
-    val (names_class, class') = distill_names Code_Thingol.lookup_class class;
+    val (names_class, class') =
+      activate_syntax (Code_Thingol.lookup_class naming) class;
     val names_inst = map_filter (Code_Thingol.lookup_instance naming)
       (Symreltab.keys instance);
-    val (names_tyco, tyco') = distill_names Code_Thingol.lookup_tyco tyco;
-    val (names_const, const') = distill_names Code_Thingol.lookup_const const;
+    val (names_tyco, tyco') =
+      activate_syntax (Code_Thingol.lookup_tyco naming) tyco;
+    val (names_const, (const', _)) =
+      activate_const_syntax thy literals const naming;
     val names_hidden = names_class @ names_inst @ names_tyco @ names_const;
     val names2 = subtract (op =) names_hidden names1;
     val program3 = Graph.subgraph (not o member (op =) names_hidden) program2;
@@ -429,7 +443,7 @@ fun invoke_serializer thy abortable serializer reserved abs_includes
     serializer module args (labelled_name thy program2) reserved includes
       (Symtab.lookup module_alias) (Symtab.lookup class')
       (Symtab.lookup tyco') (Symtab.lookup const')
-      naming program4 names2
+      program4 names2
   end;
 
 fun mount_serializer thy alt_serializer target module args naming program names =
@@ -460,8 +474,9 @@ fun mount_serializer thy alt_serializer target module args naming program names 
       ((Symtab.dest o the_includes) data);
     val module_alias = the_module_alias data;
     val { class, instance, tyco, const } = the_name_syntax data;
+    val literals = the_literals thy target;
   in
-    invoke_serializer thy abortable serializer reserved
+    invoke_serializer thy abortable serializer literals reserved
       includes module_alias class instance tyco const module args naming (modify program) names
   end;
 
