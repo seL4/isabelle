@@ -397,6 +397,22 @@ apply (rule finite_subset)
  apply (rule_tac [2] finite_lessThan, auto)
 done
 
+text {* A set of natural numbers is finite iff it is bounded. *}
+lemma finite_nat_set_iff_bounded:
+  "finite(N::nat set) = (EX m. ALL n:N. n<m)" (is "?F = ?B")
+proof
+  assume f:?F  show ?B
+    using Max_ge[OF `?F`, simplified less_Suc_eq_le[symmetric]] by blast
+next
+  assume ?B show ?F using `?B` by(blast intro:bounded_nat_set_is_finite)
+qed
+
+lemma finite_nat_set_iff_bounded_le:
+  "finite(N::nat set) = (EX m. ALL n:N. n<=m)"
+apply(simp add:finite_nat_set_iff_bounded)
+apply(blast dest:less_imp_le_nat le_imp_less_Suc)
+done
+
 lemma finite_less_ub:
      "!!f::nat=>nat. (!!n. n \<le> f n) ==> finite {n. f n \<le> u}"
 by (rule_tac B="{..u}" in finite_subset, auto intro: order_trans)
