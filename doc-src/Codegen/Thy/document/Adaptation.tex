@@ -1,6 +1,6 @@
 %
 \begin{isabellebody}%
-\def\isabellecontext{Adaption}%
+\def\isabellecontext{Adaptation}%
 %
 \isadelimtheory
 %
@@ -8,7 +8,7 @@
 %
 \isatagtheory
 \isacommand{theory}\isamarkupfalse%
-\ Adaption\isanewline
+\ Adaptation\isanewline
 \isakeyword{imports}\ Setup\isanewline
 \isakeyword{begin}%
 \endisatagtheory
@@ -34,7 +34,7 @@
 %
 \endisadeliminvisible
 %
-\isamarkupsection{Adaption to target languages \label{sec:adaption}%
+\isamarkupsection{Adaptation to target languages \label{sec:adaptation}%
 }
 \isamarkuptrue%
 %
@@ -72,33 +72,33 @@ The aspects of code generation introduced so far have two aspects
 
   \begin{itemize}
     \item The safe configuration methods act uniformly on every target language,
-      whereas for adaption you have to treat each target language separate.
+      whereas for adaptation you have to treat each target language separate.
     \item Application is extremely tedious since there is no abstraction
       which would allow for a static check, making it easy to produce garbage.
     \item More or less subtle errors can be introduced unconsciously.
   \end{itemize}
 
-  \noindent However, even if you ought refrain from setting up adaption
+  \noindent However, even if you ought refrain from setting up adaptation
   yourself, already the \isa{HOL} comes with some reasonable default
-  adaptions (say, using target language list syntax).  There also some
-  common adaption cases which you can setup by importing particular
+  adaptations (say, using target language list syntax).  There also some
+  common adaptation cases which you can setup by importing particular
   library theories.  In order to understand these, we provide some clues here;
   these however are not supposed to replace a careful study of the sources.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
-\isamarkupsubsection{The adaption principle%
+\isamarkupsubsection{The adaptation principle%
 }
 \isamarkuptrue%
 %
 \begin{isamarkuptext}%
-Figure \ref{fig:adaption} illustrates what \qt{adaption} is conceptually
+Figure \ref{fig:adaptation} illustrates what \qt{adaptation} is conceptually
   supposed to be:
 
   \begin{figure}[here]
-    \includegraphics{adaption}
-    \caption{The adaption principle}
-    \label{fig:adaption}
+    \includegraphics{adaptation}
+    \caption{The adaptation principle}
+    \label{fig:adaptation}
   \end{figure}
 
   \noindent In the tame view, code generation acts as broker between
@@ -107,14 +107,14 @@ Figure \ref{fig:adaption} illustrates what \qt{adaption} is conceptually
   \isa{serialisation};  for the latter, the serialiser has to observe
   the structure of the \isa{language} itself plus some \isa{reserved}
   keywords which have to be avoided for generated code.
-  However, if you consider \isa{adaption} mechanisms, the code generated
+  However, if you consider \isa{adaptation} mechanisms, the code generated
   by the serializer is just the tip of the iceberg:
 
   \begin{itemize}
     \item \isa{serialisation} can be \emph{parametrised} such that
       logical entities are mapped to target-specific ones
       (e.g. target-specific list syntax,
-        see also \secref{sec:adaption_mechanisms})
+        see also \secref{sec:adaptation_mechanisms})
     \item Such parametrisations can involve references to a
       target-specific standard \isa{library} (e.g. using
       the \isa{Haskell} \verb|Maybe| type instead
@@ -129,13 +129,13 @@ Figure \ref{fig:adaption} illustrates what \qt{adaption} is conceptually
       also involves further \isa{reserved} identifiers.
   \end{itemize}
 
-  \noindent As figure \ref{fig:adaption} illustrates, all these adaption mechanisms
+  \noindent As figure \ref{fig:adaptation} illustrates, all these adaptation mechanisms
   have to act consistently;  it is at the discretion of the user
   to take care for this.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
-\isamarkupsubsection{Common adaption patterns%
+\isamarkupsubsection{Common adaptation patterns%
 }
 \isamarkuptrue%
 %
@@ -146,7 +146,7 @@ The \hyperlink{theory.HOL}{\mbox{\isa{HOL}}} \hyperlink{theory.Main}{\mbox{\isa{
   and modifications are available by certain theories of the \isa{HOL}
   library; beside being useful in applications, they may serve
   as a tutorial for customising the code generator setup (see below
-  \secref{sec:adaption_mechanisms}).
+  \secref{sec:adaptation_mechanisms}).
 
   \begin{description}
 
@@ -182,7 +182,7 @@ The \hyperlink{theory.HOL}{\mbox{\isa{HOL}}} \hyperlink{theory.Main}{\mbox{\isa{
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
-\isamarkupsubsection{Parametrising serialisation \label{sec:adaption_mechanisms}%
+\isamarkupsubsection{Parametrising serialisation \label{sec:adaptation_mechanisms}%
 }
 \isamarkuptrue%
 %

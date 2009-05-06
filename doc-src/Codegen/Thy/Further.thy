@@ -66,7 +66,7 @@ lemma %quote "42 / (12 :: rat) = 7 / 2"
 text {*
   \noindent The soundness of the @{method eval} method depends crucially 
   on the correctness of the code generator;  this is one of the reasons
-  why you should not use adaption (see \secref{sec:adaption}) frivolously.
+  why you should not use adaptation (see \secref{sec:adaptation}) frivolously.
 *}
 
 subsection {* Code antiquotation *}

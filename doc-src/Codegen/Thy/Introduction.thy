@@ -28,8 +28,8 @@ text {*
   This manifests in the structure of this tutorial: after a short
   conceptual introduction with an example (\secref{sec:intro}),
   we discuss the generic customisation facilities (\secref{sec:program}).
-  A further section (\secref{sec:adaption}) is dedicated to the matter of
-  \qn{adaption} to specific target language environments.  After some
+  A further section (\secref{sec:adaptation}) is dedicated to the matter of
+  \qn{adaptation} to specific target language environments.  After some
   further issues (\secref{sec:further}) we conclude with an overview
   of some ML programming interfaces (\secref{sec:ml}).
 
