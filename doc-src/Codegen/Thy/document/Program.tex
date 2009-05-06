@@ -766,10 +766,10 @@ Surely you have already noticed how equality is treated
 \hspace*{0pt}type 'a eq = {\char123}eq :~'a -> 'a -> bool{\char125};\\
 \hspace*{0pt}fun eq (A{\char95}:'a eq) = {\char35}eq A{\char95};\\
 \hspace*{0pt}\\
-\hspace*{0pt}fun eqop A{\char95}~a b = eq A{\char95}~a b;\\
+\hspace*{0pt}fun eqa A{\char95}~a b = eq A{\char95}~a b;\\
 \hspace*{0pt}\\
 \hspace*{0pt}fun member A{\char95}~x [] = false\\
-\hspace*{0pt} ~| member A{\char95}~x (y ::~ys) = eqop A{\char95}~x y orelse member A{\char95}~x ys;\\
+\hspace*{0pt} ~| member A{\char95}~x (y ::~ys) = eqa A{\char95}~x y orelse member A{\char95}~x ys;\\
 \hspace*{0pt}\\
 \hspace*{0pt}fun collect{\char95}duplicates A{\char95}~xs ys [] = xs\\
 \hspace*{0pt} ~| collect{\char95}duplicates A{\char95}~xs ys (z ::~zs) =\\
