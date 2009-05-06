@@ -20,7 +20,7 @@ sig
   datatype itype =
       `%% of string * itype list
     | ITyVar of vname;
-  type const = string * (dict list list * itype list (*types of arguments*))
+  type const = string * ((itype list * dict list list) * itype list (*types of arguments*))
   datatype iterm =
       IConst of const
     | IVar of vname
@@ -44,11 +44,10 @@ sig
   val unfold_abs: iterm -> ((vname * iterm option) * itype) list * iterm
   val split_let: iterm -> (((iterm * itype) * iterm) * iterm) option
   val unfold_let: iterm -> ((iterm * itype) * iterm) list * iterm
-  val unfold_const_app: iterm ->
-    ((string * (dict list list * itype list)) * iterm list) option
+  val unfold_const_app: iterm -> (const * iterm list) option
   val collapse_let: ((vname * itype) * iterm) * iterm
     -> (iterm * itype) * (iterm * iterm) list
-  val eta_expand: int -> (string * (dict list list * itype list)) * iterm list -> iterm
+  val eta_expand: int -> const * iterm list -> iterm
   val contains_dictvar: iterm -> bool
   val locally_monomorphic: iterm -> bool
   val fold_constnames: (string -> 'a -> 'a) -> iterm -> 'a -> 'a
@@ -122,7 +121,7 @@ datatype itype =
     `%% of string * itype list
   | ITyVar of vname;
 
-type const = string * (dict list list * itype list (*types of arguments*))
+type const = string * ((itype list * dict list list) * itype list (*types of arguments*))
 
 datatype iterm =
     IConst of const
@@ -212,7 +211,7 @@ fun contains_dictvar t =
       | contains (DictVar _) = K true;
   in
     fold_aiterms
-      (fn IConst (_, (dss, _)) => (fold o fold) contains dss | _ => I) t false
+      (fn IConst (_, ((_, dss), _)) => (fold o fold) contains dss | _ => I) t false
   end;
   
 fun locally_monomorphic (IConst _) = false
@@ -602,9 +601,10 @@ and translate_const thy algbr funcgr thm (c, ty) =
     val tys_args = (fst o Term.strip_type) ty;
   in
     ensure_const thy algbr funcgr c
+    ##>> fold_map (translate_typ thy algbr funcgr) tys
     ##>> fold_map (translate_dicts thy algbr funcgr thm) (tys ~~ sorts)
     ##>> fold_map (translate_typ thy algbr funcgr) tys_args
-    #>> (fn ((c, iss), tys) => IConst (c, (iss, tys)))
+    #>> (fn (((c, tys), iss), tys_args) => IConst (c, ((tys, iss), tys_args)))
   end
 and translate_app_const thy algbr funcgr thm (c_ty, ts) =
   translate_const thy algbr funcgr thm c_ty

@@ -109,7 +109,7 @@ fun pr_sml_stmt naming labelled_name syntax_tyco syntax_const reserved_names der
                 then pr_case is_closure thm vars fxy cases
                 else pr_app is_closure thm vars fxy c_ts
             | NONE => pr_case is_closure thm vars fxy cases)
-    and pr_app' is_closure thm vars (app as ((c, (iss, tys)), ts)) =
+    and pr_app' is_closure thm vars (app as ((c, ((_, iss), tys)), ts)) =
       if is_cons c then
         let
           val k = length tys
@@ -414,7 +414,7 @@ fun pr_ocaml_stmt naming labelled_name syntax_tyco syntax_const reserved_names d
                 then pr_case is_closure thm vars fxy cases
                 else pr_app is_closure thm vars fxy c_ts
             | NONE => pr_case is_closure thm vars fxy cases)
-    and pr_app' is_closure thm vars (app as ((c, (iss, tys)), ts)) =
+    and pr_app' is_closure thm vars (app as ((c, ((_, iss), tys)), ts)) =
       if is_cons c then
         if length tys = length ts
         then case ts

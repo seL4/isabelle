@@ -261,7 +261,7 @@ fun pr_haskell_stmt naming labelled_name syntax_class syntax_tyco syntax_const
                     val vars = init_syms
                       |> Code_Printer.intro_vars (the_list const)
                       |> Code_Printer.intro_vars vs;
-                    val lhs = IConst (classparam, ([], tys)) `$$ map IVar vs;
+                    val lhs = IConst (classparam, (([], []), tys)) `$$ map IVar vs;
                       (*dictionaries are not relevant at this late stage*)
                   in
                     semicolon [

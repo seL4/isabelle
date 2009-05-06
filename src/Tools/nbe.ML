@@ -194,7 +194,7 @@ fun assemble_eqnss idx_of deps eqnss =
           let
             val (t', ts) = Code_Thingol.unfold_app t
           in of_iapp match_cont t' (fold_rev (cons o of_iterm NONE) ts []) end
-        and of_iapp match_cont (IConst (c, (dss, _))) ts = constapp c dss ts
+        and of_iapp match_cont (IConst (c, ((_, dss), _))) ts = constapp c dss ts
           | of_iapp match_cont (IVar v) ts = nbe_apps (nbe_bound v) ts
           | of_iapp match_cont ((v, _) `|-> t) ts =
               nbe_apps (nbe_abss 1 (ml_abs (ml_list [nbe_bound v]) (of_iterm NONE t))) ts
@@ -299,15 +299,15 @@ fun eqns_of_stmt (_, Code_Thingol.Fun (_, (_, []))) =
         val params = Name.invent_list [] "d" (length names);
         fun mk (k, name) =
           (name, ([(v, [])],
-            [([IConst (class, ([], [])) `$$ map IVar params], IVar (nth params k))]));
+            [([IConst (class, (([], []), [])) `$$ map IVar params], IVar (nth params k))]));
       in map_index mk names end
   | eqns_of_stmt (_, Code_Thingol.Classrel _) =
       []
   | eqns_of_stmt (_, Code_Thingol.Classparam _) =
       []
   | eqns_of_stmt (inst, Code_Thingol.Classinst ((class, (_, arities)), (superinsts, instops))) =
-      [(inst, (arities, [([], IConst (class, ([], [])) `$$
-        map (fn (_, (_, (inst, dicts))) => IConst (inst, (dicts, []))) superinsts
+      [(inst, (arities, [([], IConst (class, (([], []), [])) `$$
+        map (fn (_, (_, (inst, dicts))) => IConst (inst, (([], dicts), []))) superinsts
         @ map (IConst o snd o fst) instops)]))];
 
 fun compile_stmts ctxt stmts_deps =
