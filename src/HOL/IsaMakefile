@@ -235,6 +235,7 @@ MAIN_DEPENDENCIES = $(PLAIN_DEPENDENCIES) \
   Tools/Groebner_Basis/normalizer.ML \
   Tools/atp_manager.ML \
   Tools/atp_wrapper.ML \
+  Tools/list_code.ML \
   Tools/meson.ML \
   Tools/metis_tools.ML \
   Tools/numeral.ML \
@@ -252,6 +253,7 @@ MAIN_DEPENDENCIES = $(PLAIN_DEPENDENCIES) \
   Tools/res_hol_clause.ML \
   Tools/res_reconstruct.ML \
   Tools/specification_package.ML \
+  Tools/string_code.ML \
   Tools/string_syntax.ML \
   Tools/TFL/casesplit.ML \
   Tools/TFL/dcterm.ML \

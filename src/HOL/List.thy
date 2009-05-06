@@ -6,6 +6,7 @@ header {* The datatype of finite lists *}
 
 theory List
 imports Plain Presburger Recdef ATP_Linkup
+uses ("Tools/list_code.ML")
 begin
 
 datatype 'a list =
@@ -3460,6 +3461,8 @@ subsection {* Code generator *}
 
 subsubsection {* Setup *}
 
+use "Tools/list_code.ML"
+
 code_type list
   (SML "_ list")
   (OCaml "_ list")
@@ -3469,11 +3472,6 @@ code_const Nil
   (SML "[]")
   (OCaml "[]")
   (Haskell "[]")
-
-code_const Cons
-  (SML infixr 7 "::")
-  (OCaml infixr 6 "::")
-  (Haskell infixr 5 ":")
 
 code_instance list :: eq
   (Haskell -)
@@ -3503,22 +3501,22 @@ fun gen_list' aG aT i j = frequency
 and gen_list aG aT i = gen_list' aG aT i i;
 *}
 
-consts_code Nil ("[]")
 consts_code Cons ("(_ ::/ _)")
 
 setup {*
 let
-
-fun list_codegen thy defs dep thyname b t gr =
-  let
-    val ts = HOLogic.dest_list t;
-    val (_, gr') = Codegen.invoke_tycodegen thy defs dep thyname false
-      (fastype_of t) gr;
-    val (ps, gr'') = fold_map
-      (Codegen.invoke_codegen thy defs dep thyname false) ts gr'
-  in SOME (Pretty.list "[" "]" ps, gr'') end handle TERM _ => NONE;
-
-in Codegen.add_codegen "list_codegen" list_codegen end
+  fun list_codegen thy defs dep thyname b t gr =
+    let
+      val ts = HOLogic.dest_list t;
+      val (_, gr') = Codegen.invoke_tycodegen thy defs dep thyname false
+        (fastype_of t) gr;
+      val (ps, gr'') = fold_map
+        (Codegen.invoke_codegen thy defs dep thyname false) ts gr'
+    in SOME (Pretty.list "[" "]" ps, gr'') end handle TERM _ => NONE;
+in
+  fold (List_Code.add_literal_list) ["SML", "OCaml", "Haskell"]
+  #> Codegen.add_codegen "list_codegen" list_codegen
+end
 *}
 
 
