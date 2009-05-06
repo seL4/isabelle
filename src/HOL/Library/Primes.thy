@@ -454,19 +454,11 @@ proof-
 qed
 
 lemma euclid: "\<exists>p. prime p \<and> p > n" using euclid_bound by auto
+
 lemma primes_infinite: "\<not> (finite {p. prime p})"
-proof (auto simp add: finite_conv_nat_seg_image)
-  fix n f 
-  assume H: "Collect prime = f ` {i. i < (n::nat)}"
-  let ?P = "Collect prime"
-  let ?m = "Max ?P"
-  have P0: "?P \<noteq> {}" using two_is_prime by auto
-  from H have fP: "finite ?P" using finite_conv_nat_seg_image by blast 
-  from Max_in [OF fP P0] have "?m \<in> ?P" . 
-  from Max_ge [OF fP] have contr: "\<forall> p. prime p \<longrightarrow> p \<le> ?m" by blast
-  from euclid [of ?m] obtain q where q: "prime q" "q > ?m" by blast
-  with contr show False by auto
-qed
+apply(simp add: finite_nat_set_iff_bounded_le)
+apply (metis euclid linorder_not_le)
+done
 
 lemma coprime_prime: assumes ab: "coprime a b"
   shows "~(prime p \<and> p dvd a \<and> p dvd b)"

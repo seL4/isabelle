@@ -206,14 +206,54 @@ lemma cont2cont_Pair [cont2cont]:
   assumes f: "cont (\<lambda>x. f x)"
   assumes g: "cont (\<lambda>x. g x)"
   shows "cont (\<lambda>x. (f x, g x))"
-apply (rule cont2cont_apply [OF _ cont_pair1 f])
-apply (rule cont2cont_apply [OF _ cont_pair2 g])
+apply (rule cont_apply [OF f cont_pair1])
+apply (rule cont_apply [OF g cont_pair2])
 apply (rule cont_const)
 done
 
-lemmas cont2cont_fst [cont2cont] = cont2cont_compose [OF cont_fst]
+lemmas cont2cont_fst [cont2cont] = cont_compose [OF cont_fst]
 
-lemmas cont2cont_snd [cont2cont] = cont2cont_compose [OF cont_snd]
+lemmas cont2cont_snd [cont2cont] = cont_compose [OF cont_snd]
+
+lemma cont2cont_split:
+  assumes f1: "\<And>a b. cont (\<lambda>x. f x a b)"
+  assumes f2: "\<And>x b. cont (\<lambda>a. f x a b)"
+  assumes f3: "\<And>x a. cont (\<lambda>b. f x a b)"
+  assumes g: "cont (\<lambda>x. g x)"
+  shows "cont (\<lambda>x. split (\<lambda>a b. f x a b) (g x))"
+unfolding split_def
+apply (rule cont_apply [OF g])
+apply (rule cont_apply [OF cont_fst f2])
+apply (rule cont_apply [OF cont_snd f3])
+apply (rule cont_const)
+apply (rule f1)
+done
+
+lemma cont_fst_snd_D1:
+  "cont (\<lambda>p. f (fst p) (snd p)) \<Longrightarrow> cont (\<lambda>x. f x y)"
+by (drule cont_compose [OF _ cont_pair1], simp)
+
+lemma cont_fst_snd_D2:
+  "cont (\<lambda>p. f (fst p) (snd p)) \<Longrightarrow> cont (\<lambda>y. f x y)"
+by (drule cont_compose [OF _ cont_pair2], simp)
+
+lemma cont2cont_split' [cont2cont]:
+  assumes f: "cont (\<lambda>p. f (fst p) (fst (snd p)) (snd (snd p)))"
+  assumes g: "cont (\<lambda>x. g x)"
+  shows "cont (\<lambda>x. split (f x) (g x))"
+proof -
+  note f1 = f [THEN cont_fst_snd_D1]
+  note f2 = f [THEN cont_fst_snd_D2, THEN cont_fst_snd_D1]
+  note f3 = f [THEN cont_fst_snd_D2, THEN cont_fst_snd_D2]
+  show ?thesis
+    unfolding split_def
+    apply (rule cont_apply [OF g])
+    apply (rule cont_apply [OF cont_fst f2])
+    apply (rule cont_apply [OF cont_snd f3])
+    apply (rule cont_const)
+    apply (rule f1)
+    done
+qed
 
 subsection {* Compactness and chain-finiteness *}
 

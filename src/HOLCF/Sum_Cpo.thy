@@ -130,17 +130,14 @@ done
 
 subsection {* Continuity of @{term Inl}, @{term Inr}, @{term sum_case} *}
 
-lemma cont2cont_Inl [simp]: "cont f \<Longrightarrow> cont (\<lambda>x. Inl (f x))"
-by (fast intro: contI is_lub_Inl elim: contE)
-
-lemma cont2cont_Inr [simp]: "cont f \<Longrightarrow> cont (\<lambda>x. Inr (f x))"
-by (fast intro: contI is_lub_Inr elim: contE)
-
 lemma cont_Inl: "cont Inl"
-by (rule cont2cont_Inl [OF cont_id])
+by (intro contI is_lub_Inl cpo_lubI)
 
 lemma cont_Inr: "cont Inr"
-by (rule cont2cont_Inr [OF cont_id])
+by (intro contI is_lub_Inr cpo_lubI)
+
+lemmas cont2cont_Inl [cont2cont] = cont_compose [OF cont_Inl]
+lemmas cont2cont_Inr [cont2cont] = cont_compose [OF cont_Inr]
 
 lemmas ch2ch_Inl [simp] = ch2ch_cont [OF cont_Inl]
 lemmas ch2ch_Inr [simp] = ch2ch_cont [OF cont_Inr]
@@ -161,15 +158,32 @@ apply (simp add: cont2contlubE [OF cont_Inl, symmetric] contE)
 apply (simp add: cont2contlubE [OF cont_Inr, symmetric] contE)
 done
 
-lemma cont2cont_sum_case [simp]:
+lemma cont2cont_sum_case:
   assumes f1: "\<And>a. cont (\<lambda>x. f x a)" and f2: "\<And>x. cont (\<lambda>a. f x a)"
   assumes g1: "\<And>b. cont (\<lambda>x. g x b)" and g2: "\<And>x. cont (\<lambda>b. g x b)"
   assumes h: "cont (\<lambda>x. h x)"
   shows "cont (\<lambda>x. case h x of Inl a \<Rightarrow> f x a | Inr b \<Rightarrow> g x b)"
-apply (rule cont2cont_app2 [OF cont2cont_lambda _ h])
-apply (rule cont_sum_case1 [OF f1 g1])
+apply (rule cont_apply [OF h])
 apply (rule cont_sum_case2 [OF f2 g2])
+apply (rule cont_sum_case1 [OF f1 g1])
 done
+
+lemma cont2cont_sum_case' [cont2cont]:
+  assumes f: "cont (\<lambda>p. f (fst p) (snd p))"
+  assumes g: "cont (\<lambda>p. g (fst p) (snd p))"
+  assumes h: "cont (\<lambda>x. h x)"
+  shows "cont (\<lambda>x. case h x of Inl a \<Rightarrow> f x a | Inr b \<Rightarrow> g x b)"
+proof -
+  note f1 = f [THEN cont_fst_snd_D1]
+  note f2 = f [THEN cont_fst_snd_D2]
+  note g1 = g [THEN cont_fst_snd_D1]
+  note g2 = g [THEN cont_fst_snd_D2]
+  show ?thesis
+    apply (rule cont_apply [OF h])
+    apply (rule cont_sum_case2 [OF f2 g2])
+    apply (rule cont_sum_case1 [OF f1 g1])
+    done
+qed
 
 subsection {* Compactness and chain-finiteness *}
 
