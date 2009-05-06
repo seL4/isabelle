@@ -206,7 +206,6 @@ $(OUT)/HOL-Plain: plain.ML $(PLAIN_DEPENDENCIES)
 MAIN_DEPENDENCIES = $(PLAIN_DEPENDENCIES) \
   ATP_Linkup.thy \
   Code_Eval.thy \
-  Code_Message.thy \
   Equiv_Relations.thy \
   Groebner_Basis.thy \
   Hilbert_Choice.thy \
@@ -220,6 +219,7 @@ MAIN_DEPENDENCIES = $(PLAIN_DEPENDENCIES) \
   Presburger.thy \
   Recdef.thy \
   SetInterval.thy \
+  String.thy \
   $(SRC)/Provers/Arith/assoc_fold.ML \
   $(SRC)/Provers/Arith/cancel_numeral_factor.ML \
   $(SRC)/Provers/Arith/cancel_numerals.ML \

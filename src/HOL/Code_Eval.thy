@@ -33,7 +33,7 @@ structure Eval =
 struct
 
 fun mk_term f g (Const (c, ty)) =
-      @{term Const} $ Message_String.mk c $ g ty
+      @{term Const} $ HOLogic.mk_message_string c $ g ty
   | mk_term f g (t1 $ t2) =
       @{term App} $ mk_term f g t1 $ mk_term f g t2
   | mk_term f g (Free v) = f v
@@ -154,7 +154,9 @@ code_const Const and App
   (Eval "Term.Const/ (_, _)" and "Term.$/ (_, _)")
 
 code_const "term_of \<Colon> message_string \<Rightarrow> term"
-  (Eval "Message'_String.mk")
+  (Eval "HOLogic.mk'_message'_string")
+
+code_reserved Eval HOLogic
 
 
 subsection {* Evaluation setup *}

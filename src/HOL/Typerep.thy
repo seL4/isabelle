@@ -1,11 +1,9 @@
-(*  Title:      HOL/Typerep.thy
-    Author:     Florian Haftmann, TU Muenchen
-*)
+(* Author: Florian Haftmann, TU Muenchen *)
 
 header {* Reflecting Pure types into HOL *}
 
 theory Typerep
-imports Plain List Code_Message
+imports Plain String
 begin
 
 datatype typerep = Typerep message_string "typerep list"
@@ -42,7 +40,7 @@ structure Typerep =
 struct
 
 fun mk f (Type (tyco, tys)) =
-      @{term Typerep} $ Message_String.mk tyco
+      @{term Typerep} $ HOLogic.mk_message_string tyco
         $ HOLogic.mk_list @{typ typerep} (map (mk f) tys)
   | mk f (TFree v) =
       f v;
