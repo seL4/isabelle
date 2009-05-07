@@ -10,7 +10,6 @@ lemma "True" by normalization
 lemma "p \<longrightarrow> True" by normalization
 declare disj_assoc [code nbe]
 lemma "((P | Q) | R) = (P | (Q | R))" by normalization
-declare disj_assoc [code del]
 lemma "0 + (n::nat) = n" by normalization
 lemma "0 + Suc n = Suc n" by normalization
 lemma "Suc n + Suc m = n + Suc (Suc m)" by normalization
