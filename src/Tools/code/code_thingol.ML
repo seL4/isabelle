@@ -85,10 +85,10 @@ sig
   val consts_program: theory -> string list -> string list * (naming * program)
   val cached_program: theory -> naming * program
   val eval_conv: theory -> (sort -> sort)
-    -> (naming -> program -> (((string * sort) list * typscheme) * (string * itype) list) * iterm -> string list -> cterm -> thm)
+    -> (naming -> program -> ((string * sort) list * typscheme) * iterm -> string list -> cterm -> thm)
     -> cterm -> thm
   val eval: theory -> (sort -> sort) -> ((term -> term) -> 'a -> 'a)
-    -> (naming -> program -> (((string * sort) list * typscheme) * (string * itype) list) * iterm -> string list -> 'a)
+    -> (naming -> program -> ((string * sort) list * typscheme) * iterm -> string list -> 'a)
     -> term -> 'a
 end;
 
@@ -755,7 +755,7 @@ fun consts_program thy cs =
 
 (* value evaluation *)
 
-fun ensure_value thy algbr funcgr (fs, t) =
+fun ensure_value thy algbr funcgr t =
   let
     val ty = fastype_of t;
     val vs = fold_term_types (K (fold_atyps (insert (eq_fst op =)
@@ -766,7 +766,7 @@ fun ensure_value thy algbr funcgr (fs, t) =
       ##>> translate_term thy algbr funcgr NONE t
       #>> (fn ((vs, ty), t) => Fun
         (Term.dummy_patternN, ((vs, ty), [(([], t), (Drule.dummy_thm, true))])));
-    fun term_value fs (dep, (naming, program1)) =
+    fun term_value (dep, (naming, program1)) =
       let
         val Fun (_, (vs_ty, [(([], t), _)])) =
           Graph.get_node program1 Term.dummy_patternN;
@@ -774,22 +774,19 @@ fun ensure_value thy algbr funcgr (fs, t) =
         val program2 = Graph.del_nodes [Term.dummy_patternN] program1;
         val deps_all = Graph.all_succs program2 deps;
         val program3 = Graph.subgraph (member (op =) deps_all) program2;
-      in (((naming, program3), (((vs_ty, fs), t), deps)), (dep, (naming, program2))) end;
+      in (((naming, program3), ((vs_ty, t), deps)), (dep, (naming, program2))) end;
   in
     ensure_stmt ((K o K) NONE) pair stmt_value Term.dummy_patternN
     #> snd
-    #> fold_map (fn (v, ty) => translate_typ thy algbr funcgr ty
-         #-> (fn ty' => pair (v, ty'))) fs
-    #-> (fn fs' => term_value fs')
+    #> term_value
   end;
 
 fun base_evaluator thy evaluator algebra funcgr vs t =
   let
-    val fs = Term.add_frees t [];
-    val (((naming, program), ((((vs', ty'), fs'), t'), deps)), _) =
-      invoke_generation thy (algebra, funcgr) ensure_value (fs, t);
+    val (((naming, program), (((vs', ty'), t'), deps)), _) =
+      invoke_generation thy (algebra, funcgr) ensure_value t;
     val vs'' = map (fn (v, _) => (v, (the o AList.lookup (op =) vs o prefix "'") v)) vs';
-  in evaluator naming program (((vs'', (vs', ty')), fs'), t') deps end;
+  in evaluator naming program ((vs'', (vs', ty')), t') deps end;
 
 fun eval_conv thy prep_sort = Code_Wellsorted.eval_conv thy prep_sort o base_evaluator thy;
 fun eval thy prep_sort postproc = Code_Wellsorted.eval thy prep_sort postproc o base_evaluator thy;

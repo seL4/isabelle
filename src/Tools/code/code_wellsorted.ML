@@ -293,19 +293,22 @@ structure Wellsorted = CodeDataFun
 fun obtain thy cs ts = apsnd snd
   (Wellsorted.change_yield thy (extend_arities_eqngr thy cs ts));
 
-fun prepare_sorts prep_sort (Const (c, ty)) = Const (c, map_type_tfree
-      (fn (v, sort) => TFree (v, prep_sort sort)) ty)
+fun prepare_sorts_typ prep_sort
+  = map_type_tfree (fn (v, sort) => TFree (v, prep_sort sort));
+
+fun prepare_sorts prep_sort (Const (c, ty)) =
+      Const (c, prepare_sorts_typ prep_sort ty)
   | prepare_sorts prep_sort (t1 $ t2) =
       prepare_sorts prep_sort t1 $ prepare_sorts prep_sort t2
   | prepare_sorts prep_sort (Abs (v, ty, t)) =
-      Abs (v, Type.strip_sorts ty, prepare_sorts prep_sort t)
-  | prepare_sorts _ (Term.Free (v, ty)) = Term.Free (v, Type.strip_sorts ty)
+      Abs (v, prepare_sorts_typ prep_sort ty, prepare_sorts prep_sort t)
   | prepare_sorts _ (t as Bound _) = t;
 
 fun gen_eval thy cterm_of conclude_evaluation prep_sort evaluator proto_ct =
   let
+    val pp = Syntax.pp_global thy;
     val ct = cterm_of proto_ct;
-    val _ = (Term.map_types Type.no_tvars o Sign.no_vars (Syntax.pp_global thy))
+    val _ = (Sign.no_frees pp o map_types (K dummyT) o Sign.no_vars pp)
       (Thm.term_of ct);
     val thm = Code.preprocess_conv thy ct;
     val ct' = Thm.rhs_of thm;
@@ -313,6 +316,7 @@ fun gen_eval thy cterm_of conclude_evaluation prep_sort evaluator proto_ct =
     val vs = Term.add_tfrees t' [];
     val consts = fold_aterms
       (fn Const (c, _) => insert (op =) c | _ => I) t' [];
+ 
     val t'' = prepare_sorts prep_sort t';
     val (algebra', eqngr') = obtain thy consts [t''];
   in conclude_evaluation (evaluator algebra' eqngr' vs t'' ct') thm end;

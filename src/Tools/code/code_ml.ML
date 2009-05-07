@@ -958,10 +958,7 @@ fun eval_code_of some_target thy = Code_Target.serialize_custom thy (the_default
 fun eval some_target reff postproc thy t args =
   let
     val ctxt = ProofContext.init thy;
-    val _ = if null (Term.add_frees t []) then () else error ("Term "
-      ^ quote (Syntax.string_of_term_global thy t)
-      ^ " to be evaluated contains free variables");
-    fun evaluator naming program (((_, (_, ty)), _), t) deps =
+    fun evaluator naming program ((_, (_, ty)), t) deps =
       let
         val _ = if Code_Thingol.contains_dictvar t then
           error "Term to be evaluated contains free dictionaries" else ();
