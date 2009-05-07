@@ -11,7 +11,6 @@ sig
 
   datatype Univ =
       Const of int * Univ list               (*named (uninterpreted) constants*)
-    | Free of string * Univ list             (*free (uninterpreted) variables*)
     | DFree of string * int                  (*free (uninterpreted) dictionary parameters*)
     | BVar of int * Univ list
     | Abs of (int * (Univ list -> Univ)) * Univ list
@@ -57,14 +56,12 @@ fun tracing f x = if !trace then (Output.tracing (f x); x) else x;
 
 datatype Univ =
     Const of int * Univ list           (*named (uninterpreted) constants*)
-  | Free of string * Univ list         (*free variables*)
   | DFree of string * int              (*free (uninterpreted) dictionary parameters*)
   | BVar of int * Univ list            (*bound variables, named*)
   | Abs of (int * (Univ list -> Univ)) * Univ list
                                        (*abstractions as closures*);
 
 fun same (Const (k, xs)) (Const (l, ys)) = k = l andalso sames xs ys
-  | same (Free (s, xs)) (Free (t, ys)) = s = t andalso sames xs ys
   | same (DFree (s, k)) (DFree (t, l)) = s = t andalso k = l
   | same (BVar (k, xs)) (BVar (l, ys)) = k = l andalso sames xs ys
   | same _ _ = false
@@ -80,7 +77,6 @@ fun apps (Abs ((n, f), xs)) ys = let val k = n - length ys in
         | GREATER => Abs ((k, f), ys @ xs) (*note: reverse convention also for apps!*)
       end
   | apps (Const (name, xs)) ys = Const (name, ys @ xs)
-  | apps (Free (name, xs)) ys = Free (name, ys @ xs)
   | apps (BVar (n, xs)) ys = BVar (n, ys @ xs);
 
 
@@ -352,14 +348,12 @@ fun ensure_stmts ctxt naming program =
 
 fun eval_term ctxt gr deps (vs : (string * sort) list, t) =
   let 
-    val frees = Code_Thingol.fold_unbound_varnames (insert (op =)) t []
-    val frees' = map (fn v => Free (v, [])) frees;
     val dict_frees = maps (fn (v, sort) => map_index (curry DFree v o fst) sort) vs;
   in
-    ("", (vs, [(map IVar frees, t)]))
+    ("", (vs, [([], t)]))
     |> singleton (compile_eqnss ctxt gr deps)
     |> snd
-    |> (fn t => apps t (rev (dict_frees @ frees')))
+    |> (fn t => apps t (rev dict_frees))
   end;
 
 (* reification *)
@@ -399,8 +393,6 @@ fun term_of_univ thy program idx_tab t =
             val T' = map_type_tfree (fn (v, _) => TypeInfer.param typidx (v, [])) T;
             val typidx' = typidx + 1;
           in of_apps bounds (Term.Const (c, T'), ts') typidx' end
-      | of_univ bounds (Free (name, ts)) typidx =
-          of_apps bounds (Term.Free (name, dummyT), ts) typidx
       | of_univ bounds (BVar (n, ts)) typidx =
           of_apps bounds (Bound (bounds - n - 1), ts) typidx
       | of_univ bounds (t as Abs _) typidx =
@@ -440,15 +432,12 @@ fun compile_eval thy naming program vs_t deps =
 
 (* evaluation with type reconstruction *)
 
-fun normalize thy naming program (((vs0, (vs, ty)), fs), t) deps =
+fun normalize thy naming program ((vs0, (vs, ty)), t) deps =
   let
     fun subst_const f = map_aterms (fn t as Term.Const (c, ty) => Term.Const (f c, ty)
       | t => t);
     val resubst_triv_consts = subst_const (Code_Unit.resubst_alias thy);
     val ty' = typ_of_itype program vs0 ty;
-    val fs' = (map o apsnd) (typ_of_itype program vs0) fs;
-    val type_frees = Term.map_aterms (fn (t as Term.Free (s, _)) =>
-      Term.Free (s, (the o AList.lookup (op =) fs') s) | t => t);
     fun type_infer t =
       singleton (TypeInfer.infer_types (Syntax.pp_global thy) (Sign.tsig_of thy) I
         (try (Type.strip_sorts o Sign.the_const_type thy)) (K NONE) Name.context 0)
@@ -461,8 +450,6 @@ fun normalize thy naming program (((vs0, (vs, ty)), fs), t) deps =
     compile_eval thy naming program (vs, t) deps
     |> tracing (fn t => "Normalized:\n" ^ string_of_term t)
     |> resubst_triv_consts
-    |> type_frees
-    |> tracing (fn t => "Vars typed:\n" ^ string_of_term t)
     |> type_infer
     |> tracing (fn t => "Types inferred:\n" ^ string_of_term t)
     |> check_tvars
@@ -482,18 +469,41 @@ fun mk_equals thy lhs raw_rhs =
   in Thm.mk_binop eq lhs rhs end;
 
 val (_, raw_norm_oracle) = Context.>>> (Context.map_theory_result
-  (Thm.add_oracle (Binding.name "norm", fn (thy, naming, program, vsp_ty_fs_t, deps, ct) =>
-    mk_equals thy ct (normalize thy naming program vsp_ty_fs_t deps))));
+  (Thm.add_oracle (Binding.name "norm", fn (thy, naming, program, vsp_ty_t, deps, ct) =>
+    mk_equals thy ct (normalize thy naming program vsp_ty_t deps))));
 
-fun norm_oracle thy naming program vsp_ty_fs_t deps ct =
-  raw_norm_oracle (thy, naming, program, vsp_ty_fs_t, deps, ct);
+fun norm_oracle thy naming program vsp_ty_t deps ct =
+  raw_norm_oracle (thy, naming, program, vsp_ty_t, deps, ct);
 
-fun norm_conv ct =
+fun no_frees_conv conv ct =
+  let
+    val frees = Thm.add_cterm_frees ct [];
+    fun apply_beta free thm = Thm.combination thm (Thm.reflexive free)
+      |> Conv.fconv_rule (Conv.arg_conv (Conv.try_conv (Thm.beta_conversion false)))
+      |> Conv.fconv_rule (Conv.arg1_conv (Thm.beta_conversion false));
+  in
+    ct
+    |> fold_rev Thm.cabs frees
+    |> conv
+    |> fold apply_beta frees
+  end;
+
+fun no_frees_rew rew t =
+  let
+    val frees = map Free (Term.add_frees t []);
+  in
+    t
+    |> fold_rev lambda frees
+    |> rew
+    |> (fn t' => Term.betapplys (t', frees))
+  end;
+
+val norm_conv = no_frees_conv (fn ct =>
   let
     val thy = Thm.theory_of_cterm ct;
-  in Code_Thingol.eval_conv thy (add_triv_classes thy) (norm_oracle thy) ct end;
+  in Code_Thingol.eval_conv thy (add_triv_classes thy) (norm_oracle thy) ct end);
 
-fun norm thy = Code_Thingol.eval thy (add_triv_classes thy) I (normalize thy);
+fun norm thy = no_frees_rew (Code_Thingol.eval thy (add_triv_classes thy) I (normalize thy));
 
 (* evaluation command *)
 
