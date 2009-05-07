@@ -732,18 +732,18 @@ fun create_nom_typedecls ak_names thy =
 
         in
          thy26
-         |> discrete_pt_inst "nat"  @{thm "perm_nat_def"}
-         |> discrete_fs_inst "nat"  @{thm "perm_nat_def"}
-         |> discrete_cp_inst "nat"  @{thm "perm_nat_def"}
-         |> discrete_pt_inst "bool" @{thm "perm_bool"}
-         |> discrete_fs_inst "bool" @{thm "perm_bool"}
-         |> discrete_cp_inst "bool" @{thm "perm_bool"}
-         |> discrete_pt_inst @{type_name "Int.int"} @{thm "perm_int_def"}
-         |> discrete_fs_inst @{type_name "Int.int"} @{thm "perm_int_def"}
-         |> discrete_cp_inst @{type_name "Int.int"} @{thm "perm_int_def"}
-         |> discrete_pt_inst "List.char" @{thm "perm_char_def"}
-         |> discrete_fs_inst "List.char" @{thm "perm_char_def"}
-         |> discrete_cp_inst "List.char" @{thm "perm_char_def"}
+         |> discrete_pt_inst @{type_name nat}  @{thm "perm_nat_def"}
+         |> discrete_fs_inst @{type_name nat}  @{thm "perm_nat_def"}
+         |> discrete_cp_inst @{type_name nat}  @{thm "perm_nat_def"}
+         |> discrete_pt_inst @{type_name bool} @{thm "perm_bool"}
+         |> discrete_fs_inst @{type_name bool} @{thm "perm_bool"}
+         |> discrete_cp_inst @{type_name bool} @{thm "perm_bool"}
+         |> discrete_pt_inst @{type_name int} @{thm "perm_int_def"}
+         |> discrete_fs_inst @{type_name int} @{thm "perm_int_def"}
+         |> discrete_cp_inst @{type_name int} @{thm "perm_int_def"}
+         |> discrete_pt_inst @{type_name char} @{thm "perm_char_def"}
+         |> discrete_fs_inst @{type_name char} @{thm "perm_char_def"}
+         |> discrete_cp_inst @{type_name char} @{thm "perm_char_def"}
         end;
 
 
