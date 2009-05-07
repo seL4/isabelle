@@ -6,7 +6,7 @@ theory Preorder
 imports Orderings
 begin
 
-context preorder
+class preorder_equiv = preorder
 begin
 
 definition equiv :: "'a \<Rightarrow> 'a \<Rightarrow> bool" where
