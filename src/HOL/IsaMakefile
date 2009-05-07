@@ -342,6 +342,7 @@ $(LOG)/HOL-Library.gz: $(OUT)/HOL Library/SetsAndFunctions.thy		\
   Library/Random.thy Library/Quickcheck.thy	\
   Library/Poly_Deriv.thy \
   Library/Polynomial.thy \
+  Library/Preorder.thy \
   Library/Product_plus.thy \
   Library/Product_Vector.thy \
   Library/Enum.thy Library/Float.thy $(SRC)/Tools/float.ML $(SRC)/HOL/Tools/float_arith.ML \

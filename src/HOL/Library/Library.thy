@@ -42,6 +42,7 @@ imports
   Pocklington
   Poly_Deriv
   Polynomial
+  Preorder
   Primes
   Product_Vector
   Quickcheck
