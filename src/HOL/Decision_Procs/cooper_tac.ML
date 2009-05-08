@@ -83,7 +83,7 @@ fun linz_tac ctxt q i = ObjectLogic.atomize_prems_tac i THEN (fn st =>
       addsplits [split_zdiv, split_zmod, split_div', @{thm "split_min"}, @{thm "split_max"}]
     (* Simp rules for changing (n::int) to int n *)
     val simpset1 = HOL_basic_ss
-      addsimps [nat_number_of_def, zdvd_int] @ map (fn r => r RS sym)
+      addsimps [@{thm nat_number_of_def}, zdvd_int] @ map (fn r => r RS sym)
         [@{thm int_int_eq}, @{thm zle_int}, @{thm zless_int}, @{thm zadd_int}, @{thm zmult_int}]
       addsplits [zdiff_int_split]
     (*simp rules for elimination of int n*)
