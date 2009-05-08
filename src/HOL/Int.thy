@@ -15,6 +15,9 @@ uses
   "~~/src/Provers/Arith/assoc_fold.ML"
   "~~/src/Provers/Arith/cancel_numerals.ML"
   "~~/src/Provers/Arith/combine_numerals.ML"
+  "~~/src/Provers/Arith/cancel_numeral_factor.ML"
+  "~~/src/Provers/Arith/extract_common_term.ML"
+  ("Tools/int_factor_simprocs.ML")
   ("Tools/int_arith.ML")
 begin
 
@@ -1517,10 +1520,11 @@ lemmas int_arith_rules =
 
 use "Tools/int_arith.ML"
 declaration {* K Int_Arith.setup *}
+use "Tools/int_factor_simprocs.ML"
 
 setup {*
   ReorientProc.add
-    (fn Const(@{const_name number_of}, _) $ _ => true | _ => false)
+    (fn Const (@{const_name number_of}, _) $ _ => true | _ => false)
 *}
 
 simproc_setup reorient_numeral ("number_of w = x") = ReorientProc.proc

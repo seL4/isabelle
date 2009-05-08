@@ -8,10 +8,6 @@ header{* The Division Operators div and mod *}
 
 theory IntDiv
 imports Int Divides FunDef
-uses
-  "~~/src/Provers/Arith/cancel_numeral_factor.ML"
-  "~~/src/Provers/Arith/extract_common_term.ML"
-  ("Tools/int_factor_simprocs.ML")
 begin
 
 definition divmod_rel :: "int \<Rightarrow> int \<Rightarrow> int \<times> int \<Rightarrow> bool" where
@@ -724,7 +720,6 @@ next
       apply (auto simp add: divmod_rel_def) 
       apply (auto simp add: algebra_simps)
       apply (auto simp add: zero_less_mult_iff zero_le_mult_iff mult_le_0_iff)
-      apply (simp_all add: mult_less_cancel_left_disj mult_commute [of _ a])
       done
     moreover with `c \<noteq> 0` divmod_rel_div_mod have "divmod_rel b c (b div c, b mod c)" by auto
     ultimately have "divmod_rel (a * b) (a * c) (b div c, a * (b mod c))" .
@@ -1078,8 +1073,6 @@ lemma zdvd_not_zless: "0 < m ==> m < n ==> \<not> n dvd (m::int)"
    prefer 2
    apply (blast intro: order_less_trans)
   apply (simp add: zero_less_mult_iff)
-  apply (subgoal_tac "n * k < n * 1")
-   apply (drule mult_less_cancel_left [THEN iffD1], auto)
   done
 
 lemma zmult_div_cancel: "(n::int) * (m div n) = m - (m mod n)"
@@ -1332,11 +1325,6 @@ next
   hence "(x + n * q1) mod n = (y + n * q2) mod n" by simp
   thus  ?lhs by simp
 qed
-
-
-subsection {* Simproc setup *}
-
-use "Tools/int_factor_simprocs.ML"
 
 
 subsection {* Code generation *}
