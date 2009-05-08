@@ -222,7 +222,7 @@ fun cancel_simplify_meta_eq ss cancel_th th =
     simplify_one ss (([th, cancel_th]) MRS trans);
 
 local
-  val Tp_Eq = Thm.reflexive(Thm.cterm_of (@{theory HOL}) HOLogic.Trueprop)
+  val Tp_Eq = Thm.reflexive (Thm.cterm_of @{theory HOL} HOLogic.Trueprop)
   fun Eq_True_elim Eq = 
     Thm.equal_elim (Thm.combination Tp_Eq (Thm.symmetric Eq)) @{thm TrueI}
 in
@@ -297,7 +297,7 @@ structure ModCancelFactor = ExtractCommonTermFun
  (open CancelFactorCommon
   val prove_conv = Arith_Data.prove_conv
   val mk_bal   = HOLogic.mk_binop @{const_name Divides.mod}
-  val dest_bal = HOLogic.dest_bin @{const_name Divides.mod} HOLogic.intT
+  val dest_bal = HOLogic.dest_bin @{const_name Divides.mod} Term.dummyT
   val simp_conv = K (K (SOME @{thm mod_mult_mult1}))
 );
 
