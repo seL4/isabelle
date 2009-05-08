@@ -1,5 +1,4 @@
 (*  Title:      HOL/Real/rat_arith.ML
-    ID:         $Id$
     Author:     Lawrence C Paulson
     Copyright   2004 University of Cambridge
 
@@ -9,8 +8,6 @@ Instantiation of the generic linear arithmetic package for type rat.
 *)
 
 local
-
-val simprocs = field_cancel_numeral_factors
 
 val simps =
  [@{thm order_less_irrefl}, @{thm neg_less_iff_less}, @{thm True_implies_equals},
@@ -42,7 +39,7 @@ val rat_arith_setup =
     lessD = lessD,  (*Can't change lessD: the rats are dense!*)
     neqE =  neqE,
     simpset = simpset addsimps simps
-                      addsimprocs simprocs}) #>
+                      addsimprocs Numeral_Simprocs.field_cancel_numeral_factors}) #>
   arith_inj_const (@{const_name of_nat}, @{typ "nat => rat"}) #>
   arith_inj_const (@{const_name of_int}, @{typ "int => rat"})
 

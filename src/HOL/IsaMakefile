@@ -226,19 +226,19 @@ MAIN_DEPENDENCIES = $(PLAIN_DEPENDENCIES) \
   $(SRC)/Provers/Arith/combine_numerals.ML \
   $(SRC)/Provers/Arith/extract_common_term.ML \
   $(SRC)/Tools/Metis/metis.ML \
-  Tools/int_arith.ML \
-  Tools/int_factor_simprocs.ML \
-  Tools/nat_simprocs.ML \
   Tools/Groebner_Basis/groebner.ML \
   Tools/Groebner_Basis/misc.ML \
   Tools/Groebner_Basis/normalizer_data.ML \
   Tools/Groebner_Basis/normalizer.ML \
   Tools/atp_manager.ML \
   Tools/atp_wrapper.ML \
+  Tools/int_arith.ML \
   Tools/list_code.ML \
   Tools/meson.ML \
   Tools/metis_tools.ML \
+  Tools/nat_numeral_simprocs.ML \
   Tools/numeral.ML \
+  Tools/numeral_simprocs.ML \
   Tools/numeral_syntax.ML \
   Tools/polyhash.ML \
   Tools/Qelim/cooper_data.ML \

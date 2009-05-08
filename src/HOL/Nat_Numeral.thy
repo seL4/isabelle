@@ -7,7 +7,7 @@ header {* Binary numerals for the natural numbers *}
 
 theory Nat_Numeral
 imports IntDiv
-uses ("Tools/nat_simprocs.ML")
+uses ("Tools/nat_numeral_simprocs.ML")
 begin
 
 subsection {* Numerals for natural numbers *}
@@ -455,29 +455,6 @@ lemmas dvd_eq_mod_eq_0_number_of =
 
 declare dvd_eq_mod_eq_0_number_of [simp]
 
-ML
-{*
-val nat_number_of_def = thm"nat_number_of_def";
-
-val nat_number_of = thm"nat_number_of";
-val nat_numeral_0_eq_0 = thm"nat_numeral_0_eq_0";
-val nat_numeral_1_eq_1 = thm"nat_numeral_1_eq_1";
-val numeral_1_eq_Suc_0 = thm"numeral_1_eq_Suc_0";
-val numeral_2_eq_2 = thm"numeral_2_eq_2";
-val nat_div_distrib = thm"nat_div_distrib";
-val nat_mod_distrib = thm"nat_mod_distrib";
-val int_nat_number_of = thm"int_nat_number_of";
-val Suc_nat_eq_nat_zadd1 = thm"Suc_nat_eq_nat_zadd1";
-val Suc_nat_number_of_add = thm"Suc_nat_number_of_add";
-val Suc_nat_number_of = thm"Suc_nat_number_of";
-val add_nat_number_of = thm"add_nat_number_of";
-val diff_nat_eq_if = thm"diff_nat_eq_if";
-val diff_nat_number_of = thm"diff_nat_number_of";
-val mult_nat_number_of = thm"mult_nat_number_of";
-val div_nat_number_of = thm"div_nat_number_of";
-val mod_nat_number_of = thm"mod_nat_number_of";
-*}
-
 
 subsection{*Comparisons*}
 
@@ -737,23 +714,6 @@ lemmas power_number_of_odd_number_of [simp] =
     power_number_of_odd [of "number_of v", standard]
 
 
-
-ML
-{*
-val numeral_ss = @{simpset} addsimps @{thms numerals};
-
-val nat_bin_arith_setup =
- Lin_Arith.map_data
-   (fn {add_mono_thms, mult_mono_thms, inj_thms, lessD, neqE, simpset} =>
-     {add_mono_thms = add_mono_thms, mult_mono_thms = mult_mono_thms,
-      inj_thms = inj_thms,
-      lessD = lessD, neqE = neqE,
-      simpset = simpset addsimps @{thms neg_simps} @
-        [@{thm Suc_nat_number_of}, @{thm int_nat_number_of}]})
-*}
-
-declaration {* K nat_bin_arith_setup *}
-
 (* Enable arith to deal with div/mod k where k is a numeral: *)
 declare split_div[of _ _ "number_of k", standard, arith_split]
 declare split_mod[of _ _ "number_of k", standard, arith_split]
@@ -912,8 +872,37 @@ by (simp add: nat_mult_div_cancel1)
 
 subsection {* Simprocs for the Naturals *}
 
-use "Tools/nat_simprocs.ML"
-declaration {* K nat_simprocs_setup *}
+use "Tools/nat_numeral_simprocs.ML"
+
+declaration {*
+let
+
+val less_eq_rules = @{thms ring_distribs} @
+  [@{thm Let_number_of}, @{thm Let_0}, @{thm Let_1}, @{thm nat_0}, @{thm nat_1},
+   @{thm add_nat_number_of}, @{thm diff_nat_number_of}, @{thm mult_nat_number_of},
+   @{thm eq_nat_number_of}, @{thm less_nat_number_of}, @{thm le_number_of_eq_not_less},
+   @{thm le_Suc_number_of}, @{thm le_number_of_Suc},
+   @{thm less_Suc_number_of}, @{thm less_number_of_Suc},
+   @{thm Suc_eq_number_of}, @{thm eq_number_of_Suc},
+   @{thm mult_Suc}, @{thm mult_Suc_right},
+   @{thm add_Suc}, @{thm add_Suc_right},
+   @{thm eq_number_of_0}, @{thm eq_0_number_of}, @{thm less_0_number_of},
+   @{thm of_int_number_of_eq}, @{thm of_nat_number_of_eq}, @{thm nat_number_of}, @{thm if_True}, @{thm if_False}];
+
+val simprocs = Nat_Numeral_Simprocs.combine_numerals :: Nat_Numeral_Simprocs.cancel_numerals;
+
+in
+
+K (Lin_Arith.map_data (fn {add_mono_thms, mult_mono_thms, inj_thms, lessD, neqE, simpset} =>
+  {add_mono_thms = add_mono_thms, mult_mono_thms = mult_mono_thms,
+    inj_thms = inj_thms, lessD = lessD, neqE = neqE,
+    simpset = simpset addsimps (@{thms neg_simps} @ [@{thm Suc_nat_number_of}, @{thm int_nat_number_of}])
+      addsimps less_eq_rules
+      addsimprocs simprocs}))
+
+end
+*}
+
 
 subsubsection{*For simplifying @{term "Suc m - K"} and  @{term "K - Suc m"}*}
 

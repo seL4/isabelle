@@ -12,13 +12,13 @@ imports Equiv_Relations Nat Wellfounded
 uses
   ("Tools/numeral.ML")
   ("Tools/numeral_syntax.ML")
+  ("Tools/int_arith.ML")
   "~~/src/Provers/Arith/assoc_fold.ML"
   "~~/src/Provers/Arith/cancel_numerals.ML"
   "~~/src/Provers/Arith/combine_numerals.ML"
   "~~/src/Provers/Arith/cancel_numeral_factor.ML"
   "~~/src/Provers/Arith/extract_common_term.ML"
-  ("Tools/int_factor_simprocs.ML")
-  ("Tools/int_arith.ML")
+  ("Tools/numeral_simprocs.ML")
 begin
 
 subsection {* The equivalence relation underlying the integers *}
@@ -1518,9 +1518,10 @@ lemmas int_arith_rules =
   of_nat_0 of_nat_1 of_nat_Suc of_nat_add of_nat_mult
   of_int_0 of_int_1 of_int_add of_int_mult
 
+use "Tools/numeral_simprocs.ML"
+
 use "Tools/int_arith.ML"
 declaration {* K Int_Arith.setup *}
-use "Tools/int_factor_simprocs.ML"
 
 setup {*
   ReorientProc.add

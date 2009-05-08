@@ -635,7 +635,7 @@ val ths = [@{thm "mult_numeral_1"}, @{thm "mult_numeral_1_right"},
 val comp_conv = (Simplifier.rewrite
 (HOL_basic_ss addsimps @{thms "Groebner_Basis.comp_arith"}
               addsimps ths addsimps simp_thms
-              addsimprocs field_cancel_numeral_factors
+              addsimprocs Numeral_Simprocs.field_cancel_numeral_factors
                addsimprocs [add_frac_frac_simproc, add_frac_num_simproc,
                             ord_frac_simproc]
                 addcongs [@{thm "if_weak_cong"}]))

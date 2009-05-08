@@ -252,8 +252,8 @@ structure CancelDivMod = CancelDivModFun(struct
   val div_name = @{const_name div};
   val mod_name = @{const_name mod};
   val mk_binop = HOLogic.mk_binop;
-  val mk_sum = Int_Numeral_Simprocs.mk_sum HOLogic.intT;
-  val dest_sum = Int_Numeral_Simprocs.dest_sum;
+  val mk_sum = Numeral_Simprocs.mk_sum HOLogic.intT;
+  val dest_sum = Numeral_Simprocs.dest_sum;
 
   val div_mod_eqs = map mk_meta_eq [@{thm zdiv_zmod_equality}, @{thm zdiv_zmod_equality2}];
 
