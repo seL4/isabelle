@@ -10,59 +10,59 @@ begin
 
 subsection {* Type class for partial orders *}
 
-class sq_ord =
-  fixes sq_le :: "'a \<Rightarrow> 'a \<Rightarrow> bool"
+class below =
+  fixes below :: "'a \<Rightarrow> 'a \<Rightarrow> bool"
 begin
 
 notation
-  sq_le (infixl "<<" 55)
+  below (infixl "<<" 55)
 
 notation (xsymbols)
-  sq_le (infixl "\<sqsubseteq>" 55)
+  below (infixl "\<sqsubseteq>" 55)
 
-lemma sq_ord_less_eq_trans: "\<lbrakk>a \<sqsubseteq> b; b = c\<rbrakk> \<Longrightarrow> a \<sqsubseteq> c"
+lemma below_eq_trans: "\<lbrakk>a \<sqsubseteq> b; b = c\<rbrakk> \<Longrightarrow> a \<sqsubseteq> c"
   by (rule subst)
 
-lemma sq_ord_eq_less_trans: "\<lbrakk>a = b; b \<sqsubseteq> c\<rbrakk> \<Longrightarrow> a \<sqsubseteq> c"
+lemma eq_below_trans: "\<lbrakk>a = b; b \<sqsubseteq> c\<rbrakk> \<Longrightarrow> a \<sqsubseteq> c"
   by (rule ssubst)
 
 end
 
-class po = sq_ord +
-  assumes refl_less [iff]: "x \<sqsubseteq> x"
-  assumes trans_less: "x \<sqsubseteq> y \<Longrightarrow> y \<sqsubseteq> z \<Longrightarrow> x \<sqsubseteq> z"
-  assumes antisym_less: "x \<sqsubseteq> y \<Longrightarrow> y \<sqsubseteq> x \<Longrightarrow> x = y"
+class po = below +
+  assumes below_refl [iff]: "x \<sqsubseteq> x"
+  assumes below_trans: "x \<sqsubseteq> y \<Longrightarrow> y \<sqsubseteq> z \<Longrightarrow> x \<sqsubseteq> z"
+  assumes below_antisym: "x \<sqsubseteq> y \<Longrightarrow> y \<sqsubseteq> x \<Longrightarrow> x = y"
 begin
 
 text {* minimal fixes least element *}
 
 lemma minimal2UU[OF allI] : "\<forall>x. uu \<sqsubseteq> x \<Longrightarrow> uu = (THE u. \<forall>y. u \<sqsubseteq> y)"
-  by (blast intro: theI2 antisym_less)
+  by (blast intro: theI2 below_antisym)
 
 text {* the reverse law of anti-symmetry of @{term "op <<"} *}
-
-lemma antisym_less_inverse: "x = y \<Longrightarrow> x \<sqsubseteq> y \<and> y \<sqsubseteq> x"
+(* Is this rule ever useful? *)
+lemma below_antisym_inverse: "x = y \<Longrightarrow> x \<sqsubseteq> y \<and> y \<sqsubseteq> x"
   by simp
 
-lemma box_less: "a \<sqsubseteq> b \<Longrightarrow> c \<sqsubseteq> a \<Longrightarrow> b \<sqsubseteq> d \<Longrightarrow> c \<sqsubseteq> d"
-  by (rule trans_less [OF trans_less])
+lemma box_below: "a \<sqsubseteq> b \<Longrightarrow> c \<sqsubseteq> a \<Longrightarrow> b \<sqsubseteq> d \<Longrightarrow> c \<sqsubseteq> d"
+  by (rule below_trans [OF below_trans])
 
 lemma po_eq_conv: "x = y \<longleftrightarrow> x \<sqsubseteq> y \<and> y \<sqsubseteq> x"
-  by (fast elim!: antisym_less_inverse intro!: antisym_less)
+  by (fast intro!: below_antisym)
 
-lemma rev_trans_less: "y \<sqsubseteq> z \<Longrightarrow> x \<sqsubseteq> y \<Longrightarrow> x \<sqsubseteq> z"
-  by (rule trans_less)
+lemma rev_below_trans: "y \<sqsubseteq> z \<Longrightarrow> x \<sqsubseteq> y \<Longrightarrow> x \<sqsubseteq> z"
+  by (rule below_trans)
 
-lemma not_less2not_eq: "\<not> x \<sqsubseteq> y \<Longrightarrow> x \<noteq> y"
+lemma not_below2not_eq: "\<not> x \<sqsubseteq> y \<Longrightarrow> x \<noteq> y"
   by auto
 
 end
 
 lemmas HOLCF_trans_rules [trans] =
-  trans_less
-  antisym_less
-  sq_ord_less_eq_trans
-  sq_ord_eq_less_trans
+  below_trans
+  below_antisym
+  below_eq_trans
+  eq_below_trans
 
 context po
 begin
@@ -97,7 +97,7 @@ lemma is_ub_insert [simp]: "(insert x A) <| y = (x \<sqsubseteq> y \<and> A <| y
   unfolding is_ub_def by fast
 
 lemma is_ub_upward: "\<lbrakk>S <| x; x \<sqsubseteq> y\<rbrakk> \<Longrightarrow> S <| y"
-  unfolding is_ub_def by (fast intro: trans_less)
+  unfolding is_ub_def by (fast intro: below_trans)
 
 subsection {* Least upper bounds *}
 
@@ -143,7 +143,7 @@ text {* lubs are unique *}
 
 lemma unique_lub: "\<lbrakk>S <<| x; S <<| y\<rbrakk> \<Longrightarrow> x = y"
 apply (unfold is_lub_def is_ub_def)
-apply (blast intro: antisym_less)
+apply (blast intro: below_antisym)
 done
 
 text {* technical lemmas about @{term lub} and @{term is_lub} *}
@@ -191,7 +191,7 @@ lemma chainE: "chain Y \<Longrightarrow> Y i \<sqsubseteq> Y (Suc i)"
 text {* chains are monotone functions *}
 
 lemma chain_mono_less: "\<lbrakk>chain Y; i < j\<rbrakk> \<Longrightarrow> Y i \<sqsubseteq> Y j"
-  by (erule less_Suc_induct, erule chainE, erule trans_less)
+  by (erule less_Suc_induct, erule chainE, erule below_trans)
 
 lemma chain_mono: "\<lbrakk>chain Y; i \<le> j\<rbrakk> \<Longrightarrow> Y i \<sqsubseteq> Y j"
   by (cases "i = j", simp, simp add: chain_mono_less)
@@ -208,7 +208,7 @@ lemma is_ub_range_shift:
   "chain S \<Longrightarrow> range (\<lambda>i. S (i + j)) <| x = range S <| x"
 apply (rule iffI)
 apply (rule ub_rangeI)
-apply (rule_tac y="S (i + j)" in trans_less)
+apply (rule_tac y="S (i + j)" in below_trans)
 apply (erule chain_mono)
 apply (rule le_add1)
 apply (erule ub_rangeD)
@@ -313,7 +313,7 @@ lemma finite_range_imp_finch:
   apply (erule exE)
   apply (rule finite_chainI, assumption)
   apply (rule max_in_chainI)
-  apply (rule antisym_less)
+  apply (rule below_antisym)
    apply (erule (1) chain_mono)
   apply (erule spec)
  apply (rule finite_range_has_max)

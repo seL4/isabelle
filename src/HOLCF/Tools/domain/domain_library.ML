@@ -257,7 +257,7 @@ infixr 0 ==>;   fun S ==> T = mk_trp S ===> mk_trp T;
 infix 0 ==;     fun S ==  T = %%:"==" $ S $ T;
 infix 1 ===;    fun S === T = %%:"op =" $ S $ T;
 infix 1 ~=;     fun S ~=  T = HOLogic.mk_not (S === T);
-infix 1 <<;     fun S <<  T = %%: @{const_name Porder.sq_le} $ S $ T;
+infix 1 <<;     fun S <<  T = %%: @{const_name Porder.below} $ S $ T;
 infix 1 ~<<;    fun S ~<< T = HOLogic.mk_not (S << T);
 
 infix 9 `  ; fun f ` x = %%: @{const_name Rep_CFun} $ f $ x;

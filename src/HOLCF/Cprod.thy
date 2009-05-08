@@ -68,7 +68,7 @@ by (simp add: cpair_eq_pair)
 lemma cpair_eq [iff]: "(<a, b> = <a', b'>) = (a = a' \<and> b = b')"
 by (simp add: cpair_eq_pair)
 
-lemma cpair_less [iff]: "(<a, b> \<sqsubseteq> <a', b'>) = (a \<sqsubseteq> a' \<and> b \<sqsubseteq> b')"
+lemma cpair_below [iff]: "(<a, b> \<sqsubseteq> <a', b'>) = (a \<sqsubseteq> a' \<and> b \<sqsubseteq> b')"
 by (simp add: cpair_eq_pair)
 
 lemma cpair_defined_iff [iff]: "(<x, y> = \<bottom>) = (x = \<bottom> \<and> y = \<bottom>)"
@@ -107,23 +107,23 @@ by (cases p rule: cprodE, simp)
 
 lemmas surjective_pairing_Cprod2 = cpair_cfst_csnd
 
-lemma less_cprod: "x \<sqsubseteq> y = (cfst\<cdot>x \<sqsubseteq> cfst\<cdot>y \<and> csnd\<cdot>x \<sqsubseteq> csnd\<cdot>y)"
-by (simp add: less_cprod_def cfst_def csnd_def cont_fst cont_snd)
+lemma below_cprod: "x \<sqsubseteq> y = (cfst\<cdot>x \<sqsubseteq> cfst\<cdot>y \<and> csnd\<cdot>x \<sqsubseteq> csnd\<cdot>y)"
+by (simp add: below_prod_def cfst_def csnd_def cont_fst cont_snd)
 
 lemma eq_cprod: "(x = y) = (cfst\<cdot>x = cfst\<cdot>y \<and> csnd\<cdot>x = csnd\<cdot>y)"
-by (auto simp add: po_eq_conv less_cprod)
+by (auto simp add: po_eq_conv below_cprod)
 
-lemma cfst_less_iff: "cfst\<cdot>x \<sqsubseteq> y = x \<sqsubseteq> <y, csnd\<cdot>x>"
-by (simp add: less_cprod)
+lemma cfst_below_iff: "cfst\<cdot>x \<sqsubseteq> y = x \<sqsubseteq> <y, csnd\<cdot>x>"
+by (simp add: below_cprod)
 
-lemma csnd_less_iff: "csnd\<cdot>x \<sqsubseteq> y = x \<sqsubseteq> <cfst\<cdot>x, y>"
-by (simp add: less_cprod)
+lemma csnd_below_iff: "csnd\<cdot>x \<sqsubseteq> y = x \<sqsubseteq> <cfst\<cdot>x, y>"
+by (simp add: below_cprod)
 
 lemma compact_cfst: "compact x \<Longrightarrow> compact (cfst\<cdot>x)"
-by (rule compactI, simp add: cfst_less_iff)
+by (rule compactI, simp add: cfst_below_iff)
 
 lemma compact_csnd: "compact x \<Longrightarrow> compact (csnd\<cdot>x)"
-by (rule compactI, simp add: csnd_less_iff)
+by (rule compactI, simp add: csnd_below_iff)
 
 lemma compact_cpair: "\<lbrakk>compact x; compact y\<rbrakk> \<Longrightarrow> compact <x, y>"
 by (simp add: cpair_eq_pair)

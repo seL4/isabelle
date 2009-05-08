@@ -12,21 +12,21 @@ datatype 'a discr = Discr "'a :: type"
 
 subsection {* Type @{typ "'a discr"} is a discrete cpo *}
 
-instantiation discr :: (type) sq_ord
+instantiation discr :: (type) below
 begin
 
 definition
-  less_discr_def:
+  below_discr_def:
     "(op \<sqsubseteq> :: 'a discr \<Rightarrow> 'a discr \<Rightarrow> bool) = (op =)"
 
 instance ..
 end
 
 instance discr :: (type) discrete_cpo
-by intro_classes (simp add: less_discr_def)
+by intro_classes (simp add: below_discr_def)
 
-lemma discr_less_eq [iff]: "((x::('a::type)discr) << y) = (x = y)"
-by simp
+lemma discr_below_eq [iff]: "((x::('a::type)discr) << y) = (x = y)"
+by simp (* FIXME: same discrete_cpo - remove? is [iff] important? *)
 
 subsection {* Type @{typ "'a discr"} is a cpo *}
 

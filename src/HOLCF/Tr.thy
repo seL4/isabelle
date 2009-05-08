@@ -37,7 +37,7 @@ by (cases x rule: trE) simp_all
 
 text {* distinctness for type @{typ tr} *}
 
-lemma dist_less_tr [simp]:
+lemma dist_below_tr [simp]:
   "\<not> TT \<sqsubseteq> \<bottom>" "\<not> FF \<sqsubseteq> \<bottom>" "\<not> TT \<sqsubseteq> FF" "\<not> FF \<sqsubseteq> TT"
 unfolding TT_def FF_def by simp_all
 
@@ -45,16 +45,16 @@ lemma dist_eq_tr [simp]:
   "TT \<noteq> \<bottom>" "FF \<noteq> \<bottom>" "TT \<noteq> FF" "\<bottom> \<noteq> TT" "\<bottom> \<noteq> FF" "FF \<noteq> TT"
 unfolding TT_def FF_def by simp_all
 
-lemma TT_less_iff [simp]: "TT \<sqsubseteq> x \<longleftrightarrow> x = TT"
+lemma TT_below_iff [simp]: "TT \<sqsubseteq> x \<longleftrightarrow> x = TT"
 by (induct x rule: tr_induct) simp_all
 
-lemma FF_less_iff [simp]: "FF \<sqsubseteq> x \<longleftrightarrow> x = FF"
+lemma FF_below_iff [simp]: "FF \<sqsubseteq> x \<longleftrightarrow> x = FF"
 by (induct x rule: tr_induct) simp_all
 
-lemma not_less_TT_iff [simp]: "\<not> (x \<sqsubseteq> TT) \<longleftrightarrow> x = FF"
+lemma not_below_TT_iff [simp]: "\<not> (x \<sqsubseteq> TT) \<longleftrightarrow> x = FF"
 by (induct x rule: tr_induct) simp_all
 
-lemma not_less_FF_iff [simp]: "\<not> (x \<sqsubseteq> FF) \<longleftrightarrow> x = TT"
+lemma not_below_FF_iff [simp]: "\<not> (x \<sqsubseteq> FF) \<longleftrightarrow> x = TT"
 by (induct x rule: tr_induct) simp_all
 
 

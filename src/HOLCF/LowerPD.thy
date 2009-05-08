@@ -23,7 +23,7 @@ apply (rule ballI)
 apply (drule (1) bspec, erule bexE)
 apply (drule (1) bspec, erule bexE)
 apply (erule rev_bexI)
-apply (erule (1) trans_less)
+apply (erule (1) below_trans)
 done
 
 interpretation lower_le: preorder lower_le
@@ -39,7 +39,7 @@ unfolding lower_le_def Rep_PDUnit by fast
 lemma PDPlus_lower_mono: "\<lbrakk>s \<le>\<flat> t; u \<le>\<flat> v\<rbrakk> \<Longrightarrow> PDPlus s u \<le>\<flat> PDPlus t v"
 unfolding lower_le_def Rep_PDPlus by fast
 
-lemma PDPlus_lower_less: "t \<le>\<flat> PDPlus t u"
+lemma PDPlus_lower_le: "t \<le>\<flat> PDPlus t u"
 unfolding lower_le_def Rep_PDPlus by fast
 
 lemma lower_le_PDUnit_PDUnit_iff [simp]:
@@ -99,7 +99,7 @@ typedef (open) 'a lower_pd =
   "{S::'a pd_basis set. lower_le.ideal S}"
 by (fast intro: lower_le.ideal_principal)
 
-instantiation lower_pd :: (profinite) sq_ord
+instantiation lower_pd :: (profinite) below
 begin
 
 definition
@@ -110,16 +110,16 @@ end
 
 instance lower_pd :: (profinite) po
 by (rule lower_le.typedef_ideal_po
-    [OF type_definition_lower_pd sq_le_lower_pd_def])
+    [OF type_definition_lower_pd below_lower_pd_def])
 
 instance lower_pd :: (profinite) cpo
 by (rule lower_le.typedef_ideal_cpo
-    [OF type_definition_lower_pd sq_le_lower_pd_def])
+    [OF type_definition_lower_pd below_lower_pd_def])
 
 lemma Rep_lower_pd_lub:
   "chain Y \<Longrightarrow> Rep_lower_pd (\<Squnion>i. Y i) = (\<Union>i. Rep_lower_pd (Y i))"
 by (rule lower_le.typedef_ideal_rep_contlub
-    [OF type_definition_lower_pd sq_le_lower_pd_def])
+    [OF type_definition_lower_pd below_lower_pd_def])
 
 lemma ideal_Rep_lower_pd: "lower_le.ideal (Rep_lower_pd xs)"
 by (rule Rep_lower_pd [unfolded mem_Collect_eq])
@@ -145,7 +145,7 @@ apply (rule pd_take_covers)
 apply (rule ideal_Rep_lower_pd)
 apply (erule Rep_lower_pd_lub)
 apply (rule Rep_lower_principal)
-apply (simp only: sq_le_lower_pd_def)
+apply (simp only: below_lower_pd_def)
 done
 
 text {* Lower powerdomain is pointed *}
@@ -264,28 +264,28 @@ text {* Useful for @{text "simp only: lower_plus_aci"} *}
 lemmas lower_plus_aci =
   lower_plus_ac lower_plus_absorb lower_plus_left_absorb
 
-lemma lower_plus_less1: "xs \<sqsubseteq> xs +\<flat> ys"
+lemma lower_plus_below1: "xs \<sqsubseteq> xs +\<flat> ys"
 apply (induct xs ys rule: lower_pd.principal_induct2, simp, simp)
-apply (simp add: PDPlus_lower_less)
+apply (simp add: PDPlus_lower_le)
 done
 
-lemma lower_plus_less2: "ys \<sqsubseteq> xs +\<flat> ys"
-by (subst lower_plus_commute, rule lower_plus_less1)
+lemma lower_plus_below2: "ys \<sqsubseteq> xs +\<flat> ys"
+by (subst lower_plus_commute, rule lower_plus_below1)
 
 lemma lower_plus_least: "\<lbrakk>xs \<sqsubseteq> zs; ys \<sqsubseteq> zs\<rbrakk> \<Longrightarrow> xs +\<flat> ys \<sqsubseteq> zs"
 apply (subst lower_plus_absorb [of zs, symmetric])
 apply (erule (1) monofun_cfun [OF monofun_cfun_arg])
 done
 
-lemma lower_plus_less_iff:
+lemma lower_plus_below_iff:
   "xs +\<flat> ys \<sqsubseteq> zs \<longleftrightarrow> xs \<sqsubseteq> zs \<and> ys \<sqsubseteq> zs"
 apply safe
-apply (erule trans_less [OF lower_plus_less1])
-apply (erule trans_less [OF lower_plus_less2])
+apply (erule below_trans [OF lower_plus_below1])
+apply (erule below_trans [OF lower_plus_below2])
 apply (erule (1) lower_plus_least)
 done
 
-lemma lower_unit_less_plus_iff:
+lemma lower_unit_below_plus_iff:
   "{x}\<flat> \<sqsubseteq> ys +\<flat> zs \<longleftrightarrow> {x}\<flat> \<sqsubseteq> ys \<or> {x}\<flat> \<sqsubseteq> zs"
  apply (rule iffI)
   apply (subgoal_tac
@@ -299,13 +299,13 @@ lemma lower_unit_less_plus_iff:
    apply simp
   apply simp
  apply (erule disjE)
-  apply (erule trans_less [OF _ lower_plus_less1])
- apply (erule trans_less [OF _ lower_plus_less2])
+  apply (erule below_trans [OF _ lower_plus_below1])
+ apply (erule below_trans [OF _ lower_plus_below2])
 done
 
-lemma lower_unit_less_iff [simp]: "{x}\<flat> \<sqsubseteq> {y}\<flat> \<longleftrightarrow> x \<sqsubseteq> y"
+lemma lower_unit_below_iff [simp]: "{x}\<flat> \<sqsubseteq> {y}\<flat> \<longleftrightarrow> x \<sqsubseteq> y"
  apply (rule iffI)
-  apply (rule profinite_less_ext)
+  apply (rule profinite_below_ext)
   apply (drule_tac f="approx i" in monofun_cfun_arg, simp)
   apply (cut_tac x="approx i\<cdot>x" in compact_basis.compact_imp_principal, simp)
   apply (cut_tac x="approx i\<cdot>y" in compact_basis.compact_imp_principal, simp)
@@ -313,10 +313,10 @@ lemma lower_unit_less_iff [simp]: "{x}\<flat> \<sqsubseteq> {y}\<flat> \<longlef
  apply (erule monofun_cfun_arg)
 done
 
-lemmas lower_pd_less_simps =
-  lower_unit_less_iff
-  lower_plus_less_iff
-  lower_unit_less_plus_iff
+lemmas lower_pd_below_simps =
+  lower_unit_below_iff
+  lower_plus_below_iff
+  lower_unit_below_plus_iff
 
 lemma lower_unit_eq_iff [simp]: "{x}\<flat> = {y}\<flat> \<longleftrightarrow> x = y"
 by (simp add: po_eq_conv)
@@ -330,18 +330,18 @@ unfolding lower_unit_strict [symmetric] by (rule lower_unit_eq_iff)
 lemma lower_plus_strict_iff [simp]:
   "xs +\<flat> ys = \<bottom> \<longleftrightarrow> xs = \<bottom> \<and> ys = \<bottom>"
 apply safe
-apply (rule UU_I, erule subst, rule lower_plus_less1)
-apply (rule UU_I, erule subst, rule lower_plus_less2)
+apply (rule UU_I, erule subst, rule lower_plus_below1)
+apply (rule UU_I, erule subst, rule lower_plus_below2)
 apply (rule lower_plus_absorb)
 done
 
 lemma lower_plus_strict1 [simp]: "\<bottom> +\<flat> ys = ys"
-apply (rule antisym_less [OF _ lower_plus_less2])
+apply (rule below_antisym [OF _ lower_plus_below2])
 apply (simp add: lower_plus_least)
 done
 
 lemma lower_plus_strict2 [simp]: "xs +\<flat> \<bottom> = xs"
-apply (rule antisym_less [OF _ lower_plus_less1])
+apply (rule below_antisym [OF _ lower_plus_below1])
 apply (simp add: lower_plus_least)
 done
 
@@ -412,11 +412,11 @@ done
 
 lemma lower_bind_basis_mono:
   "t \<le>\<flat> u \<Longrightarrow> lower_bind_basis t \<sqsubseteq> lower_bind_basis u"
-unfolding expand_cfun_less
+unfolding expand_cfun_below
 apply (erule lower_le_induct, safe)
 apply (simp add: monofun_cfun)
-apply (simp add: rev_trans_less [OF lower_plus_less1])
-apply (simp add: lower_plus_less_iff)
+apply (simp add: rev_below_trans [OF lower_plus_below1])
+apply (simp add: lower_plus_below_iff)
 done
 
 definition

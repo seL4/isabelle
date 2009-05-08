@@ -10,11 +10,11 @@ begin
 
 subsection {* Full function space is a partial order *}
 
-instantiation "fun"  :: (type, sq_ord) sq_ord
+instantiation "fun"  :: (type, below) below
 begin
 
 definition
-  less_fun_def: "(op \<sqsubseteq>) \<equiv> (\<lambda>f g. \<forall>x. f x \<sqsubseteq> g x)"  
+  below_fun_def: "(op \<sqsubseteq>) \<equiv> (\<lambda>f g. \<forall>x. f x \<sqsubseteq> g x)"
 
 instance ..
 end
@@ -23,45 +23,45 @@ instance "fun" :: (type, po) po
 proof
   fix f :: "'a \<Rightarrow> 'b"
   show "f \<sqsubseteq> f"
-    by (simp add: less_fun_def)
+    by (simp add: below_fun_def)
 next
   fix f g :: "'a \<Rightarrow> 'b"
   assume "f \<sqsubseteq> g" and "g \<sqsubseteq> f" thus "f = g"
-    by (simp add: less_fun_def expand_fun_eq antisym_less)
+    by (simp add: below_fun_def expand_fun_eq below_antisym)
 next
   fix f g h :: "'a \<Rightarrow> 'b"
   assume "f \<sqsubseteq> g" and "g \<sqsubseteq> h" thus "f \<sqsubseteq> h"
-    unfolding less_fun_def by (fast elim: trans_less)
+    unfolding below_fun_def by (fast elim: below_trans)
 qed
 
 text {* make the symbol @{text "<<"} accessible for type fun *}
 
-lemma expand_fun_less: "(f \<sqsubseteq> g) = (\<forall>x. f x \<sqsubseteq> g x)"
-by (simp add: less_fun_def)
+lemma expand_fun_below: "(f \<sqsubseteq> g) = (\<forall>x. f x \<sqsubseteq> g x)"
+by (simp add: below_fun_def)
 
-lemma less_fun_ext: "(\<And>x. f x \<sqsubseteq> g x) \<Longrightarrow> f \<sqsubseteq> g"
-by (simp add: less_fun_def)
+lemma below_fun_ext: "(\<And>x. f x \<sqsubseteq> g x) \<Longrightarrow> f \<sqsubseteq> g"
+by (simp add: below_fun_def)
 
 subsection {* Full function space is chain complete *}
 
 text {* function application is monotone *}
 
 lemma monofun_app: "monofun (\<lambda>f. f x)"
-by (rule monofunI, simp add: less_fun_def)
+by (rule monofunI, simp add: below_fun_def)
 
 text {* chains of functions yield chains in the po range *}
 
 lemma ch2ch_fun: "chain S \<Longrightarrow> chain (\<lambda>i. S i x)"
-by (simp add: chain_def less_fun_def)
+by (simp add: chain_def below_fun_def)
 
 lemma ch2ch_lambda: "(\<And>x. chain (\<lambda>i. S i x)) \<Longrightarrow> chain S"
-by (simp add: chain_def less_fun_def)
+by (simp add: chain_def below_fun_def)
 
 text {* upper bounds of function chains yield upper bound in the po range *}
 
 lemma ub2ub_fun:
   "range S <| u \<Longrightarrow> range (\<lambda>i. S i x) <| u x"
-by (auto simp add: is_ub_def less_fun_def)
+by (auto simp add: is_ub_def below_fun_def)
 
 text {* Type @{typ "'a::type => 'b::cpo"} is chain complete *}
 
@@ -70,9 +70,9 @@ lemma is_lub_lambda:
   shows "range Y <<| f"
 apply (rule is_lubI)
 apply (rule ub_rangeI)
-apply (rule less_fun_ext)
+apply (rule below_fun_ext)
 apply (rule is_ub_lub [OF f])
-apply (rule less_fun_ext)
+apply (rule below_fun_ext)
 apply (rule is_lub_lub [OF f])
 apply (erule ub2ub_fun)
 done
@@ -103,7 +103,7 @@ instance "fun" :: (type, discrete_cpo) discrete_cpo
 proof
   fix f g :: "'a \<Rightarrow> 'b"
   show "f \<sqsubseteq> g \<longleftrightarrow> f = g" 
-    unfolding expand_fun_less expand_fun_eq
+    unfolding expand_fun_below expand_fun_eq
     by simp
 qed
 
@@ -148,7 +148,7 @@ qed
 subsection {* Full function space is pointed *}
 
 lemma minimal_fun: "(\<lambda>x. \<bottom>) \<sqsubseteq> f"
-by (simp add: less_fun_def)
+by (simp add: below_fun_def)
 
 lemma least_fun: "\<exists>x::'a::type \<Rightarrow> 'b::pcpo. \<forall>y. x \<sqsubseteq> y"
 apply (rule_tac x = "\<lambda>x. \<bottom>" in exI)
@@ -171,13 +171,13 @@ text {*
 *}
 
 lemma monofun_fun_fun: "f \<sqsubseteq> g \<Longrightarrow> f x \<sqsubseteq> g x"
-by (simp add: less_fun_def)
+by (simp add: below_fun_def)
 
 lemma monofun_fun_arg: "\<lbrakk>monofun f; x \<sqsubseteq> y\<rbrakk> \<Longrightarrow> f x \<sqsubseteq> f y"
 by (rule monofunE)
 
 lemma monofun_fun: "\<lbrakk>monofun f; monofun g; f \<sqsubseteq> g; x \<sqsubseteq> y\<rbrakk> \<Longrightarrow> f x \<sqsubseteq> g y"
-by (rule trans_less [OF monofun_fun_arg monofun_fun_fun])
+by (rule below_trans [OF monofun_fun_arg monofun_fun_fun])
 
 subsection {* Propagation of monotonicity and continuity *}
 
@@ -236,7 +236,7 @@ text {* Note @{text "(\<lambda>x. \<lambda>y. f x y) = f"} *}
 lemma mono2mono_lambda:
   assumes f: "\<And>y. monofun (\<lambda>x. f x y)" shows "monofun f"
 apply (rule monofunI)
-apply (rule less_fun_ext)
+apply (rule below_fun_ext)
 apply (erule monofunE [OF f])
 done
 
@@ -296,4 +296,3 @@ lemma cont2cont_app3: "\<lbrakk>cont f; cont t\<rbrakk> \<Longrightarrow> cont (
 by (rule cont2cont_app2 [OF cont_const])
 
 end
-

@@ -12,11 +12,11 @@ defaultsort cpo
 
 subsection {* Type @{typ unit} is a pcpo *}
 
-instantiation unit :: sq_ord
+instantiation unit :: below
 begin
 
 definition
-  less_unit_def [simp]: "x \<sqsubseteq> (y::unit) \<equiv> True"
+  below_unit_def [simp]: "x \<sqsubseteq> (y::unit) \<longleftrightarrow> True"
 
 instance ..
 end
@@ -32,11 +32,11 @@ by intro_classes simp
 
 subsection {* Product type is a partial order *}
 
-instantiation "*" :: (sq_ord, sq_ord) sq_ord
+instantiation "*" :: (below, below) below
 begin
 
 definition
-  less_cprod_def: "(op \<sqsubseteq>) \<equiv> \<lambda>p1 p2. (fst p1 \<sqsubseteq> fst p2 \<and> snd p1 \<sqsubseteq> snd p2)"
+  below_prod_def: "(op \<sqsubseteq>) \<equiv> \<lambda>p1 p2. (fst p1 \<sqsubseteq> fst p2 \<and> snd p1 \<sqsubseteq> snd p2)"
 
 instance ..
 end
@@ -45,26 +45,26 @@ instance "*" :: (po, po) po
 proof
   fix x :: "'a \<times> 'b"
   show "x \<sqsubseteq> x"
-    unfolding less_cprod_def by simp
+    unfolding below_prod_def by simp
 next
   fix x y :: "'a \<times> 'b"
   assume "x \<sqsubseteq> y" "y \<sqsubseteq> x" thus "x = y"
-    unfolding less_cprod_def Pair_fst_snd_eq
-    by (fast intro: antisym_less)
+    unfolding below_prod_def Pair_fst_snd_eq
+    by (fast intro: below_antisym)
 next
   fix x y z :: "'a \<times> 'b"
   assume "x \<sqsubseteq> y" "y \<sqsubseteq> z" thus "x \<sqsubseteq> z"
-    unfolding less_cprod_def
-    by (fast intro: trans_less)
+    unfolding below_prod_def
+    by (fast intro: below_trans)
 qed
 
 subsection {* Monotonicity of @{text "(_,_)"}, @{term fst}, @{term snd} *}
 
-lemma prod_lessI: "\<lbrakk>fst p \<sqsubseteq> fst q; snd p \<sqsubseteq> snd q\<rbrakk> \<Longrightarrow> p \<sqsubseteq> q"
-unfolding less_cprod_def by simp
+lemma prod_belowI: "\<lbrakk>fst p \<sqsubseteq> fst q; snd p \<sqsubseteq> snd q\<rbrakk> \<Longrightarrow> p \<sqsubseteq> q"
+unfolding below_prod_def by simp
 
-lemma Pair_less_iff [simp]: "(a, b) \<sqsubseteq> (c, d) \<longleftrightarrow> a \<sqsubseteq> c \<and> b \<sqsubseteq> d"
-unfolding less_cprod_def by simp
+lemma Pair_below_iff [simp]: "(a, b) \<sqsubseteq> (c, d) \<longleftrightarrow> a \<sqsubseteq> c \<and> b \<sqsubseteq> d"
+unfolding below_prod_def by simp
 
 text {* Pair @{text "(_,_)"}  is monotone in both arguments *}
 
@@ -81,20 +81,20 @@ by simp
 text {* @{term fst} and @{term snd} are monotone *}
 
 lemma monofun_fst: "monofun fst"
-by (simp add: monofun_def less_cprod_def)
+by (simp add: monofun_def below_prod_def)
 
 lemma monofun_snd: "monofun snd"
-by (simp add: monofun_def less_cprod_def)
+by (simp add: monofun_def below_prod_def)
 
 subsection {* Product type is a cpo *}
 
 lemma is_lub_Pair:
   "\<lbrakk>range X <<| x; range Y <<| y\<rbrakk> \<Longrightarrow> range (\<lambda>i. (X i, Y i)) <<| (x, y)"
 apply (rule is_lubI [OF ub_rangeI])
-apply (simp add: less_cprod_def is_ub_lub)
+apply (simp add: below_prod_def is_ub_lub)
 apply (frule ub2ub_monofun [OF monofun_fst])
 apply (drule ub2ub_monofun [OF monofun_snd])
-apply (simp add: less_cprod_def is_lub_lub)
+apply (simp add: below_prod_def is_lub_lub)
 done
 
 lemma lub_cprod:
@@ -134,14 +134,14 @@ instance "*" :: (discrete_cpo, discrete_cpo) discrete_cpo
 proof
   fix x y :: "'a \<times> 'b"
   show "x \<sqsubseteq> y \<longleftrightarrow> x = y"
-    unfolding less_cprod_def Pair_fst_snd_eq
+    unfolding below_prod_def Pair_fst_snd_eq
     by simp
 qed
 
 subsection {* Product type is pointed *}
 
 lemma minimal_cprod: "(\<bottom>, \<bottom>) \<sqsubseteq> p"
-by (simp add: less_cprod_def)
+by (simp add: below_prod_def)
 
 instance "*" :: (pcpo, pcpo) pcpo
 by intro_classes (fast intro: minimal_cprod)
@@ -257,20 +257,20 @@ qed
 
 subsection {* Compactness and chain-finiteness *}
 
-lemma fst_less_iff: "fst (x::'a \<times> 'b) \<sqsubseteq> y \<longleftrightarrow> x \<sqsubseteq> (y, snd x)"
-unfolding less_cprod_def by simp
+lemma fst_below_iff: "fst (x::'a \<times> 'b) \<sqsubseteq> y \<longleftrightarrow> x \<sqsubseteq> (y, snd x)"
+unfolding below_prod_def by simp
 
-lemma snd_less_iff: "snd (x::'a \<times> 'b) \<sqsubseteq> y = x \<sqsubseteq> (fst x, y)"
-unfolding less_cprod_def by simp
+lemma snd_below_iff: "snd (x::'a \<times> 'b) \<sqsubseteq> y \<longleftrightarrow> x \<sqsubseteq> (fst x, y)"
+unfolding below_prod_def by simp
 
 lemma compact_fst: "compact x \<Longrightarrow> compact (fst x)"
-by (rule compactI, simp add: fst_less_iff)
+by (rule compactI, simp add: fst_below_iff)
 
 lemma compact_snd: "compact x \<Longrightarrow> compact (snd x)"
-by (rule compactI, simp add: snd_less_iff)
+by (rule compactI, simp add: snd_below_iff)
 
 lemma compact_Pair: "\<lbrakk>compact x; compact y\<rbrakk> \<Longrightarrow> compact (x, y)"
-by (rule compactI, simp add: less_cprod_def)
+by (rule compactI, simp add: below_prod_def)
 
 lemma compact_Pair_iff [simp]: "compact (x, y) \<longleftrightarrow> compact x \<and> compact y"
 apply (safe intro!: compact_Pair)

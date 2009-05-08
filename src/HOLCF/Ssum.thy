@@ -22,7 +22,7 @@ instance "++" :: ("{finite_po,pcpo}", "{finite_po,pcpo}") finite_po
 by (rule typedef_finite_po [OF type_definition_Ssum])
 
 instance "++" :: ("{chfin,pcpo}", "{chfin,pcpo}") chfin
-by (rule typedef_chfin [OF type_definition_Ssum less_Ssum_def])
+by (rule typedef_chfin [OF type_definition_Ssum below_Ssum_def])
 
 syntax (xsymbols)
   "++"		:: "[type, type] => type"	("(_ \<oplus>/ _)" [21, 20] 20)
@@ -61,17 +61,17 @@ subsection {* Properties of @{term sinl} and @{term sinr} *}
 
 text {* Ordering *}
 
-lemma sinl_less [simp]: "(sinl\<cdot>x \<sqsubseteq> sinl\<cdot>y) = (x \<sqsubseteq> y)"
-by (simp add: less_Ssum_def Rep_Ssum_sinl strictify_conv_if)
+lemma sinl_below [simp]: "(sinl\<cdot>x \<sqsubseteq> sinl\<cdot>y) = (x \<sqsubseteq> y)"
+by (simp add: below_Ssum_def Rep_Ssum_sinl strictify_conv_if)
 
-lemma sinr_less [simp]: "(sinr\<cdot>x \<sqsubseteq> sinr\<cdot>y) = (x \<sqsubseteq> y)"
-by (simp add: less_Ssum_def Rep_Ssum_sinr strictify_conv_if)
+lemma sinr_below [simp]: "(sinr\<cdot>x \<sqsubseteq> sinr\<cdot>y) = (x \<sqsubseteq> y)"
+by (simp add: below_Ssum_def Rep_Ssum_sinr strictify_conv_if)
 
-lemma sinl_less_sinr [simp]: "(sinl\<cdot>x \<sqsubseteq> sinr\<cdot>y) = (x = \<bottom>)"
-by (simp add: less_Ssum_def Rep_Ssum_sinl Rep_Ssum_sinr strictify_conv_if)
+lemma sinl_below_sinr [simp]: "(sinl\<cdot>x \<sqsubseteq> sinr\<cdot>y) = (x = \<bottom>)"
+by (simp add: below_Ssum_def Rep_Ssum_sinl Rep_Ssum_sinr strictify_conv_if)
 
-lemma sinr_less_sinl [simp]: "(sinr\<cdot>x \<sqsubseteq> sinl\<cdot>y) = (x = \<bottom>)"
-by (simp add: less_Ssum_def Rep_Ssum_sinl Rep_Ssum_sinr strictify_conv_if)
+lemma sinr_below_sinl [simp]: "(sinr\<cdot>x \<sqsubseteq> sinl\<cdot>y) = (x = \<bottom>)"
+by (simp add: below_Ssum_def Rep_Ssum_sinl Rep_Ssum_sinr strictify_conv_if)
 
 text {* Equality *}
 
@@ -167,10 +167,10 @@ lemma ssumE2:
   "\<lbrakk>\<And>x. p = sinl\<cdot>x \<Longrightarrow> Q; \<And>y. p = sinr\<cdot>y \<Longrightarrow> Q\<rbrakk> \<Longrightarrow> Q"
 by (cases p, simp only: sinl_strict [symmetric], simp, simp)
 
-lemma less_sinlD: "p \<sqsubseteq> sinl\<cdot>x \<Longrightarrow> \<exists>y. p = sinl\<cdot>y \<and> y \<sqsubseteq> x"
+lemma below_sinlD: "p \<sqsubseteq> sinl\<cdot>x \<Longrightarrow> \<exists>y. p = sinl\<cdot>y \<and> y \<sqsubseteq> x"
 by (cases p, rule_tac x="\<bottom>" in exI, simp_all)
 
-lemma less_sinrD: "p \<sqsubseteq> sinr\<cdot>x \<Longrightarrow> \<exists>y. p = sinr\<cdot>y \<and> y \<sqsubseteq> x"
+lemma below_sinrD: "p \<sqsubseteq> sinr\<cdot>x \<Longrightarrow> \<exists>y. p = sinr\<cdot>y \<and> y \<sqsubseteq> x"
 by (cases p, rule_tac x="\<bottom>" in exI, simp_all)
 
 subsection {* Case analysis combinator *}
@@ -207,8 +207,8 @@ subsection {* Strict sum preserves flatness *}
 instance "++" :: (flat, flat) flat
 apply (intro_classes, clarify)
 apply (rule_tac p=x in ssumE, simp)
-apply (rule_tac p=y in ssumE, simp_all add: flat_less_iff)
-apply (rule_tac p=y in ssumE, simp_all add: flat_less_iff)
+apply (rule_tac p=y in ssumE, simp_all add: flat_below_iff)
+apply (rule_tac p=y in ssumE, simp_all add: flat_below_iff)
 done
 
 subsection {* Strict sum is a bifinite domain *}

@@ -90,7 +90,7 @@ apply (rule chain_iterate)
 apply simp
 done
 
-lemma fix_least_less: "F\<cdot>x \<sqsubseteq> x \<Longrightarrow> fix\<cdot>F \<sqsubseteq> x"
+lemma fix_least_below: "F\<cdot>x \<sqsubseteq> x \<Longrightarrow> fix\<cdot>F \<sqsubseteq> x"
 apply (simp add: fix_def2)
 apply (rule is_lub_thelub)
 apply (rule chain_iterate)
@@ -98,17 +98,17 @@ apply (rule ub_rangeI)
 apply (induct_tac i)
 apply simp
 apply simp
-apply (erule rev_trans_less)
+apply (erule rev_below_trans)
 apply (erule monofun_cfun_arg)
 done
 
 lemma fix_least: "F\<cdot>x = x \<Longrightarrow> fix\<cdot>F \<sqsubseteq> x"
-by (rule fix_least_less, simp)
+by (rule fix_least_below, simp)
 
 lemma fix_eqI:
   assumes fixed: "F\<cdot>x = x" and least: "\<And>z. F\<cdot>z = z \<Longrightarrow> x \<sqsubseteq> z"
   shows "fix\<cdot>F = x"
-apply (rule antisym_less)
+apply (rule below_antisym)
 apply (rule fix_least [OF fixed])
 apply (rule least [OF fix_eq [symmetric]])
 done
@@ -230,10 +230,10 @@ next
   have "?y1 \<sqsubseteq> y" by (rule fix_least, simp add: F_y)
   hence "cfst\<cdot>(F\<cdot>\<langle>x, ?y1\<rangle>) \<sqsubseteq> cfst\<cdot>(F\<cdot>\<langle>x, y\<rangle>)" by (simp add: monofun_cfun)
   hence "cfst\<cdot>(F\<cdot>\<langle>x, ?y1\<rangle>) \<sqsubseteq> x" using F_x by simp
-  hence 1: "?x \<sqsubseteq> x" by (simp add: fix_least_less)
+  hence 1: "?x \<sqsubseteq> x" by (simp add: fix_least_below)
   hence "csnd\<cdot>(F\<cdot>\<langle>?x, y\<rangle>) \<sqsubseteq> csnd\<cdot>(F\<cdot>\<langle>x, y\<rangle>)" by (simp add: monofun_cfun)
   hence "csnd\<cdot>(F\<cdot>\<langle>?x, y\<rangle>) \<sqsubseteq> y" using F_y by simp
-  hence 2: "?y \<sqsubseteq> y" by (simp add: fix_least_less)
+  hence 2: "?y \<sqsubseteq> y" by (simp add: fix_least_below)
   show "\<langle>?x, ?y\<rangle> \<sqsubseteq> z" using z 1 2 by simp
 qed
 

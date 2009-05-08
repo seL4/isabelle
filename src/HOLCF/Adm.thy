@@ -78,7 +78,7 @@ lemma adm_disj_lemma3:
   "\<lbrakk>chain (Y::nat \<Rightarrow> 'a::cpo); \<forall>i. \<exists>j\<ge>i. P (Y j)\<rbrakk> \<Longrightarrow> 
     (\<Squnion>i. Y i) = (\<Squnion>i. Y (LEAST j. i \<le> j \<and> P (Y j)))"
  apply (frule (1) adm_disj_lemma1)
- apply (rule antisym_less)
+ apply (rule below_antisym)
   apply (rule lub_mono, assumption+)
   apply (erule chain_mono)
   apply (simp add: adm_disj_lemma2)
@@ -122,7 +122,7 @@ by (simp add: adm_imp)
 
 text {* admissibility and continuity *}
 
-lemma adm_less: "\<lbrakk>cont u; cont v\<rbrakk> \<Longrightarrow> adm (\<lambda>x. u x \<sqsubseteq> v x)"
+lemma adm_below: "\<lbrakk>cont u; cont v\<rbrakk> \<Longrightarrow> adm (\<lambda>x. u x \<sqsubseteq> v x)"
 apply (rule admI)
 apply (simp add: cont2contlubE)
 apply (rule lub_mono)
@@ -132,7 +132,7 @@ apply (erule spec)
 done
 
 lemma adm_eq: "\<lbrakk>cont u; cont v\<rbrakk> \<Longrightarrow> adm (\<lambda>x. u x = v x)"
-by (simp add: po_eq_conv adm_conj adm_less)
+by (simp add: po_eq_conv adm_conj adm_below)
 
 lemma adm_subst: "\<lbrakk>cont t; adm P\<rbrakk> \<Longrightarrow> adm (\<lambda>x. P (t x))"
 apply (rule admI)
@@ -142,11 +142,11 @@ apply (erule (1) ch2ch_cont)
 apply (erule spec)
 done
 
-lemma adm_not_less: "cont t \<Longrightarrow> adm (\<lambda>x. \<not> t x \<sqsubseteq> u)"
+lemma adm_not_below: "cont t \<Longrightarrow> adm (\<lambda>x. \<not> t x \<sqsubseteq> u)"
 apply (rule admI)
 apply (drule_tac x=0 in spec)
 apply (erule contrapos_nn)
-apply (erule rev_trans_less)
+apply (erule rev_below_trans)
 apply (erule cont2mono [THEN monofunE])
 apply (erule is_ub_thelub)
 done
@@ -179,21 +179,21 @@ lemma compact_imp_max_in_chain:
 apply (drule (1) compactD2, simp)
 apply (erule exE, rule_tac x=i in exI)
 apply (rule max_in_chainI)
-apply (rule antisym_less)
+apply (rule below_antisym)
 apply (erule (1) chain_mono)
-apply (erule (1) trans_less [OF is_ub_thelub])
+apply (erule (1) below_trans [OF is_ub_thelub])
 done
 
 text {* admissibility and compactness *}
 
-lemma adm_compact_not_less: "\<lbrakk>compact k; cont t\<rbrakk> \<Longrightarrow> adm (\<lambda>x. \<not> k \<sqsubseteq> t x)"
+lemma adm_compact_not_below: "\<lbrakk>compact k; cont t\<rbrakk> \<Longrightarrow> adm (\<lambda>x. \<not> k \<sqsubseteq> t x)"
 unfolding compact_def by (rule adm_subst)
 
 lemma adm_neq_compact: "\<lbrakk>compact k; cont t\<rbrakk> \<Longrightarrow> adm (\<lambda>x. t x \<noteq> k)"
-by (simp add: po_eq_conv adm_imp adm_not_less adm_compact_not_less)
+by (simp add: po_eq_conv adm_imp adm_not_below adm_compact_not_below)
 
 lemma adm_compact_neq: "\<lbrakk>compact k; cont t\<rbrakk> \<Longrightarrow> adm (\<lambda>x. k \<noteq> t x)"
-by (simp add: po_eq_conv adm_imp adm_not_less adm_compact_not_less)
+by (simp add: po_eq_conv adm_imp adm_not_below adm_compact_not_below)
 
 lemma compact_UU [simp, intro]: "compact \<bottom>"
 by (rule compactI, simp add: adm_not_free)
@@ -210,7 +210,7 @@ by (rule admI, drule spec, erule P, erule is_ub_thelub)
 
 lemmas adm_lemmas [simp] =
   adm_not_free adm_conj adm_all adm_ball adm_disj adm_imp adm_iff
-  adm_less adm_eq adm_not_less
-  adm_compact_not_less adm_compact_neq adm_neq_compact adm_not_UU
+  adm_below adm_eq adm_not_below
+  adm_compact_not_below adm_compact_neq adm_neq_compact adm_not_UU
 
 end

@@ -144,7 +144,7 @@ typedef (open) 'a convex_pd =
   "{S::'a pd_basis set. convex_le.ideal S}"
 by (fast intro: convex_le.ideal_principal)
 
-instantiation convex_pd :: (profinite) sq_ord
+instantiation convex_pd :: (profinite) below
 begin
 
 definition
@@ -155,16 +155,16 @@ end
 
 instance convex_pd :: (profinite) po
 by (rule convex_le.typedef_ideal_po
-    [OF type_definition_convex_pd sq_le_convex_pd_def])
+    [OF type_definition_convex_pd below_convex_pd_def])
 
 instance convex_pd :: (profinite) cpo
 by (rule convex_le.typedef_ideal_cpo
-    [OF type_definition_convex_pd sq_le_convex_pd_def])
+    [OF type_definition_convex_pd below_convex_pd_def])
 
 lemma Rep_convex_pd_lub:
   "chain Y \<Longrightarrow> Rep_convex_pd (\<Squnion>i. Y i) = (\<Union>i. Rep_convex_pd (Y i))"
 by (rule convex_le.typedef_ideal_rep_contlub
-    [OF type_definition_convex_pd sq_le_convex_pd_def])
+    [OF type_definition_convex_pd below_convex_pd_def])
 
 lemma ideal_Rep_convex_pd: "convex_le.ideal (Rep_convex_pd xs)"
 by (rule Rep_convex_pd [unfolded mem_Collect_eq])
@@ -190,7 +190,7 @@ apply (rule pd_take_covers)
 apply (rule ideal_Rep_convex_pd)
 apply (erule Rep_convex_pd_lub)
 apply (rule Rep_convex_principal)
-apply (simp only: sq_le_convex_pd_def)
+apply (simp only: below_convex_pd_def)
 done
 
 text {* Convex powerdomain is pointed *}
@@ -311,7 +311,7 @@ text {* Useful for @{text "simp only: convex_plus_aci"} *}
 lemmas convex_plus_aci =
   convex_plus_ac convex_plus_absorb convex_plus_left_absorb
 
-lemma convex_unit_less_plus_iff [simp]:
+lemma convex_unit_below_plus_iff [simp]:
   "{x}\<natural> \<sqsubseteq> ys +\<natural> zs \<longleftrightarrow> {x}\<natural> \<sqsubseteq> ys \<and> {x}\<natural> \<sqsubseteq> zs"
  apply (rule iffI)
   apply (subgoal_tac
@@ -329,7 +329,7 @@ lemma convex_unit_less_plus_iff [simp]:
  apply (erule (1) monofun_cfun [OF monofun_cfun_arg])
 done
 
-lemma convex_plus_less_unit_iff [simp]:
+lemma convex_plus_below_unit_iff [simp]:
   "xs +\<natural> ys \<sqsubseteq> {z}\<natural> \<longleftrightarrow> xs \<sqsubseteq> {z}\<natural> \<and> ys \<sqsubseteq> {z}\<natural>"
  apply (rule iffI)
   apply (subgoal_tac
@@ -347,9 +347,9 @@ lemma convex_plus_less_unit_iff [simp]:
  apply (erule (1) monofun_cfun [OF monofun_cfun_arg])
 done
 
-lemma convex_unit_less_iff [simp]: "{x}\<natural> \<sqsubseteq> {y}\<natural> \<longleftrightarrow> x \<sqsubseteq> y"
+lemma convex_unit_below_iff [simp]: "{x}\<natural> \<sqsubseteq> {y}\<natural> \<longleftrightarrow> x \<sqsubseteq> y"
  apply (rule iffI)
-  apply (rule profinite_less_ext)
+  apply (rule profinite_below_ext)
   apply (drule_tac f="approx i" in monofun_cfun_arg, simp)
   apply (cut_tac x="approx i\<cdot>x" in compact_basis.compact_imp_principal, simp)
   apply (cut_tac x="approx i\<cdot>y" in compact_basis.compact_imp_principal, simp)
@@ -433,12 +433,12 @@ done
 
 lemma monofun_LAM:
   "\<lbrakk>cont f; cont g; \<And>x. f x \<sqsubseteq> g x\<rbrakk> \<Longrightarrow> (\<Lambda> x. f x) \<sqsubseteq> (\<Lambda> x. g x)"
-by (simp add: expand_cfun_less)
+by (simp add: expand_cfun_below)
 
 lemma convex_bind_basis_mono:
   "t \<le>\<natural> u \<Longrightarrow> convex_bind_basis t \<sqsubseteq> convex_bind_basis u"
 apply (erule convex_le_induct)
-apply (erule (1) trans_less)
+apply (erule (1) below_trans)
 apply (simp add: monofun_LAM monofun_cfun)
 apply (simp add: monofun_LAM monofun_cfun)
 done
@@ -606,12 +606,12 @@ by (simp add: convex_join_def lower_join_def cfcomp_LAM eta_cfun)
 
 text {* Ordering property *}
 
-lemma convex_pd_less_iff:
+lemma convex_pd_below_iff:
   "(xs \<sqsubseteq> ys) =
     (convex_to_upper\<cdot>xs \<sqsubseteq> convex_to_upper\<cdot>ys \<and>
      convex_to_lower\<cdot>xs \<sqsubseteq> convex_to_lower\<cdot>ys)"
  apply (safe elim!: monofun_cfun_arg)
- apply (rule profinite_less_ext)
+ apply (rule profinite_below_ext)
  apply (drule_tac f="approx i" in monofun_cfun_arg)
  apply (drule_tac f="approx i" in monofun_cfun_arg)
  apply (cut_tac x="approx i\<cdot>xs" in convex_pd.compact_imp_principal, simp)
@@ -620,19 +620,19 @@ lemma convex_pd_less_iff:
  apply (simp add: approx_convex_to_upper approx_convex_to_lower convex_le_def)
 done
 
-lemmas convex_plus_less_plus_iff =
-  convex_pd_less_iff [where xs="xs +\<natural> ys" and ys="zs +\<natural> ws", standard]
+lemmas convex_plus_below_plus_iff =
+  convex_pd_below_iff [where xs="xs +\<natural> ys" and ys="zs +\<natural> ws", standard]
 
-lemmas convex_pd_less_simps =
-  convex_unit_less_plus_iff
-  convex_plus_less_unit_iff
-  convex_plus_less_plus_iff
-  convex_unit_less_iff
+lemmas convex_pd_below_simps =
+  convex_unit_below_plus_iff
+  convex_plus_below_unit_iff
+  convex_plus_below_plus_iff
+  convex_unit_below_iff
   convex_to_upper_unit
   convex_to_upper_plus
   convex_to_lower_unit
   convex_to_lower_plus
-  upper_pd_less_simps
-  lower_pd_less_simps
+  upper_pd_below_simps
+  lower_pd_below_simps
 
 end

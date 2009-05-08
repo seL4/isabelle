@@ -121,14 +121,14 @@ lemmas cont2contlubE = cont2contlub [THEN contlubE]
 
 lemma contI2:
   assumes mono: "monofun f"
-  assumes less: "\<And>Y. \<lbrakk>chain Y; chain (\<lambda>i. f (Y i))\<rbrakk>
+  assumes below: "\<And>Y. \<lbrakk>chain Y; chain (\<lambda>i. f (Y i))\<rbrakk>
      \<Longrightarrow> f (\<Squnion>i. Y i) \<sqsubseteq> (\<Squnion>i. f (Y i))"
   shows "cont f"
 apply (rule monocontlub2cont)
 apply (rule mono)
 apply (rule contlubI)
-apply (rule antisym_less)
-apply (rule less, assumption)
+apply (rule below_antisym)
+apply (rule below, assumption)
 apply (erule ch2ch_monofun [OF mono])
 apply (rule is_lub_thelub)
 apply (erule ch2ch_monofun [OF mono])
@@ -192,7 +192,7 @@ proof (rule monocontlub2cont [OF monofunI contlubI])
     by (auto intro: cont2monofunE [OF 1]
                     cont2monofunE [OF 2]
                     cont2monofunE [OF 3]
-                    trans_less)
+                    below_trans)
 next
   fix Y :: "nat \<Rightarrow> 'a" assume "chain Y"
   then show "f (\<Squnion>i. Y i) (t (\<Squnion>i. Y i)) = (\<Squnion>i. f (Y i) (t (Y i)))"

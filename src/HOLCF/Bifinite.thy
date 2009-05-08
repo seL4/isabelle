@@ -19,7 +19,7 @@ class profinite =
 
 class bifinite = profinite + pcpo
 
-lemma approx_less: "approx i\<cdot>x \<sqsubseteq> x"
+lemma approx_below: "approx i\<cdot>x \<sqsubseteq> x"
 proof -
   have "chain (\<lambda>i. approx i\<cdot>x)" by simp
   hence "approx i\<cdot>x \<sqsubseteq> (\<Squnion>i. approx i\<cdot>x)" by (rule is_ub_thelub)
@@ -32,7 +32,7 @@ proof
   show "approx i\<cdot>(approx i\<cdot>x) = approx i\<cdot>x"
     by (rule approx_idem)
   show "approx i\<cdot>x \<sqsubseteq> x"
-    by (rule approx_less)
+    by (rule approx_below)
   show "finite {x. approx i\<cdot>x = x}"
     by (rule finite_fixes_approx)
 qed
@@ -49,17 +49,17 @@ lemma lub_approx [simp]: "(\<Squnion>i. approx i) = (\<Lambda> x. x)"
 by (rule ext_cfun, simp add: contlub_cfun_fun)
 
 lemma approx_strict [simp]: "approx i\<cdot>\<bottom> = \<bottom>"
-by (rule UU_I, rule approx_less)
+by (rule UU_I, rule approx_below)
 
 lemma approx_approx1:
   "i \<le> j \<Longrightarrow> approx i\<cdot>(approx j\<cdot>x) = approx i\<cdot>x"
-apply (rule deflation_less_comp1 [OF deflation_approx deflation_approx])
+apply (rule deflation_below_comp1 [OF deflation_approx deflation_approx])
 apply (erule chain_mono [OF chain_approx])
 done
 
 lemma approx_approx2:
   "j \<le> i \<Longrightarrow> approx i\<cdot>(approx j\<cdot>x) = approx j\<cdot>x"
-apply (rule deflation_less_comp2 [OF deflation_approx deflation_approx])
+apply (rule deflation_below_comp2 [OF deflation_approx deflation_approx])
 apply (erule chain_mono [OF chain_approx])
 done
 
@@ -99,7 +99,7 @@ proof -
   thus "P x" by simp
 qed
 
-lemma profinite_less_ext: "(\<And>i. approx i\<cdot>x \<sqsubseteq> approx i\<cdot>y) \<Longrightarrow> x \<sqsubseteq> y"
+lemma profinite_below_ext: "(\<And>i. approx i\<cdot>x \<sqsubseteq> approx i\<cdot>y) \<Longrightarrow> x \<sqsubseteq> y"
 apply (subgoal_tac "(\<Squnion>i. approx i\<cdot>x) \<sqsubseteq> (\<Squnion>i. approx i\<cdot>y)", simp)
 apply (rule lub_mono, simp, simp, simp)
 done

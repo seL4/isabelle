@@ -251,7 +251,7 @@ subsection {* Defining the universal domain by ideal completion *}
 typedef (open) udom = "{S. udom.ideal S}"
 by (fast intro: udom.ideal_principal)
 
-instantiation udom :: sq_ord
+instantiation udom :: below
 begin
 
 definition
@@ -262,16 +262,16 @@ end
 
 instance udom :: po
 by (rule udom.typedef_ideal_po
-    [OF type_definition_udom sq_le_udom_def])
+    [OF type_definition_udom below_udom_def])
 
 instance udom :: cpo
 by (rule udom.typedef_ideal_cpo
-    [OF type_definition_udom sq_le_udom_def])
+    [OF type_definition_udom below_udom_def])
 
 lemma Rep_udom_lub:
   "chain Y \<Longrightarrow> Rep_udom (\<Squnion>i. Y i) = (\<Union>i. Rep_udom (Y i))"
 by (rule udom.typedef_ideal_rep_contlub
-    [OF type_definition_udom sq_le_udom_def])
+    [OF type_definition_udom below_udom_def])
 
 lemma ideal_Rep_udom: "udom.ideal (Rep_udom xs)"
 by (rule Rep_udom [unfolded mem_Collect_eq])
@@ -291,7 +291,7 @@ apply unfold_locales
 apply (rule ideal_Rep_udom)
 apply (erule Rep_udom_lub)
 apply (rule Rep_udom_principal)
-apply (simp only: sq_le_udom_def)
+apply (simp only: below_udom_def)
 done
 
 text {* Universal domain is pointed *}
@@ -359,9 +359,9 @@ next
     assume "y \<in> insert a A" and "(if x \<sqsubseteq> a then a else x) \<sqsubseteq> y"
     thus "(if x \<sqsubseteq> a then a else x) = y"
       apply auto
-      apply (frule (1) trans_less)
+      apply (frule (1) below_trans)
       apply (frule (1) x_eq)
-      apply (rule antisym_less, assumption)
+      apply (rule below_antisym, assumption)
       apply simp
       apply (erule (1) x_eq)
       done
@@ -503,7 +503,7 @@ apply (rule cb_take_covers)
 done
 
 lemma rank_leD: "rank x \<le> n \<Longrightarrow> cb_take n x = x"
-apply (rule antisym_less [OF cb_take_less])
+apply (rule below_antisym [OF cb_take_less])
 apply (subst compact_approx_rank [symmetric])
 apply (erule cb_take_chain_le)
 done
@@ -727,7 +727,7 @@ proof (induct n \<equiv> "max (place x) (place y)" arbitrary: x y rule: less_ind
       apply (rule IH)
        apply (simp add: less_max_iff_disj)
        apply (erule place_sub_less)
-      apply (erule rev_trans_less)
+      apply (erule rev_below_trans)
       apply (rule sub_below)
       done
   qed
@@ -779,9 +779,9 @@ done
 
 lemma basis_prj_mono: "ubasis_le a b \<Longrightarrow> basis_prj a \<sqsubseteq> basis_prj b"
 proof (induct a b rule: ubasis_le.induct)
-  case (ubasis_le_refl a) show ?case by (rule refl_less)
+  case (ubasis_le_refl a) show ?case by (rule below_refl)
 next
-  case (ubasis_le_trans a b c) thus ?case by - (rule trans_less)
+  case (ubasis_le_trans a b c) thus ?case by - (rule below_trans)
 next
   case (ubasis_le_lower S a i) thus ?case
     apply (cases "node i a S \<in> range (basis_emb :: 'a compact_basis \<Rightarrow> nat)")

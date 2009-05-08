@@ -26,11 +26,11 @@ primrec
 
 subsection {* Ordering on lifted cpo *}
 
-instantiation u :: (cpo) sq_ord
+instantiation u :: (cpo) below
 begin
 
 definition
-  less_up_def:
+  below_up_def:
     "(op \<sqsubseteq>) \<equiv> (\<lambda>x y. case x of Ibottom \<Rightarrow> True | Iup a \<Rightarrow>
       (case y of Ibottom \<Rightarrow> False | Iup b \<Rightarrow> a \<sqsubseteq> b))"
 
@@ -38,13 +38,13 @@ instance ..
 end
 
 lemma minimal_up [iff]: "Ibottom \<sqsubseteq> z"
-by (simp add: less_up_def)
+by (simp add: below_up_def)
 
-lemma not_Iup_less [iff]: "\<not> Iup x \<sqsubseteq> Ibottom"
-by (simp add: less_up_def)
+lemma not_Iup_below [iff]: "\<not> Iup x \<sqsubseteq> Ibottom"
+by (simp add: below_up_def)
 
-lemma Iup_less [iff]: "(Iup x \<sqsubseteq> Iup y) = (x \<sqsubseteq> y)"
-by (simp add: less_up_def)
+lemma Iup_below [iff]: "(Iup x \<sqsubseteq> Iup y) = (x \<sqsubseteq> y)"
+by (simp add: below_up_def)
 
 subsection {* Lifted cpo is a partial order *}
 
@@ -52,17 +52,17 @@ instance u :: (cpo) po
 proof
   fix x :: "'a u"
   show "x \<sqsubseteq> x"
-    unfolding less_up_def by (simp split: u.split)
+    unfolding below_up_def by (simp split: u.split)
 next
   fix x y :: "'a u"
   assume "x \<sqsubseteq> y" "y \<sqsubseteq> x" thus "x = y"
-    unfolding less_up_def
-    by (auto split: u.split_asm intro: antisym_less)
+    unfolding below_up_def
+    by (auto split: u.split_asm intro: below_antisym)
 next
   fix x y z :: "'a u"
   assume "x \<sqsubseteq> y" "y \<sqsubseteq> z" thus "x \<sqsubseteq> z"
-    unfolding less_up_def
-    by (auto split: u.split_asm intro: trans_less)
+    unfolding below_up_def
+    by (auto split: u.split_asm intro: below_trans)
 qed
 
 lemma u_UNIV: "UNIV = insert Ibottom (range Iup)"
@@ -78,7 +78,7 @@ lemma is_lub_Iup:
   "range S <<| x \<Longrightarrow> range (\<lambda>i. Iup (S i)) <<| Iup x"
 apply (rule is_lubI)
 apply (rule ub_rangeI)
-apply (subst Iup_less)
+apply (subst Iup_below)
 apply (erule is_ub_lub)
 apply (case_tac u)
 apply (drule ub_rangeD)
@@ -112,7 +112,7 @@ by (rule up_lemma1 [OF up_lemma2])
 lemma up_lemma4:
   "\<lbrakk>chain Y; Y j \<noteq> Ibottom\<rbrakk> \<Longrightarrow> chain (\<lambda>i. THE a. Iup a = Y (i + j))"
 apply (rule chainI)
-apply (rule Iup_less [THEN iffD1])
+apply (rule Iup_below [THEN iffD1])
 apply (subst up_lemma3, assumption+)+
 apply (simp add: chainE)
 done
@@ -235,9 +235,9 @@ lemma up_defined [simp]: "up\<cdot>x \<noteq> \<bottom>"
 by (simp add: up_def cont_Iup inst_up_pcpo)
 
 lemma not_up_less_UU: "\<not> up\<cdot>x \<sqsubseteq> \<bottom>"
-by simp
+by simp (* FIXME: remove? *)
 
-lemma up_less [simp]: "(up\<cdot>x \<sqsubseteq> up\<cdot>y) = (x \<sqsubseteq> y)"
+lemma up_below [simp]: "up\<cdot>x \<sqsubseteq> up\<cdot>y \<longleftrightarrow> x \<sqsubseteq> y"
 by (simp add: up_def cont_Iup)
 
 lemma upE [cases type: u]: "\<lbrakk>p = \<bottom> \<Longrightarrow> Q; \<And>x. p = up\<cdot>x \<Longrightarrow> Q\<rbrakk> \<Longrightarrow> Q"

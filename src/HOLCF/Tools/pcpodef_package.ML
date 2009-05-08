@@ -66,9 +66,9 @@ fun prepare_pcpodef prep_term pcpo def name (t, vs, mx) raw_set opt_morphs thy =
         NONE => (Binding.prefix_name "Rep_" name, Binding.prefix_name "Abs_" name)
       | SOME morphs => morphs);
     val RepC = Const (full Rep_name, newT --> oldT);
-    fun lessC T = Const (@{const_name sq_le}, T --> T --> HOLogic.boolT);
-    val less_def = Logic.mk_equals (lessC newT,
-      Abs ("x", newT, Abs ("y", newT, lessC oldT $ (RepC $ Bound 1) $ (RepC $ Bound 0))));
+    fun belowC T = Const (@{const_name below}, T --> T --> HOLogic.boolT);
+    val below_def = Logic.mk_equals (belowC newT,
+      Abs ("x", newT, Abs ("y", newT, belowC oldT $ (RepC $ Bound 1) $ (RepC $ Bound 0))));
 
     fun make_po tac thy1 =
       let
@@ -76,22 +76,22 @@ fun prepare_pcpodef prep_term pcpo def name (t, vs, mx) raw_set opt_morphs thy =
           |> TypedefPackage.add_typedef def (SOME name) (t, vs, mx) set opt_morphs tac;
         val lthy3 = thy2
           |> TheoryTarget.instantiation ([full_tname], lhs_tfrees, @{sort po});
-        val less_def' = Syntax.check_term lthy3 less_def;
-        val ((_, (_, less_definition')), lthy4) = lthy3
+        val below_def' = Syntax.check_term lthy3 below_def;
+        val ((_, (_, below_definition')), lthy4) = lthy3
           |> Specification.definition (NONE,
-              ((Binding.prefix_name "less_" (Binding.suffix_name "_def" name), []), less_def'));
+              ((Binding.prefix_name "below_" (Binding.suffix_name "_def" name), []), below_def'));
         val ctxt_thy = ProofContext.init (ProofContext.theory_of lthy4);
-        val less_definition = singleton (ProofContext.export lthy4 ctxt_thy) less_definition';
+        val below_definition = singleton (ProofContext.export lthy4 ctxt_thy) below_definition';
         val thy5 = lthy4
           |> Class.prove_instantiation_instance
-              (K (Tactic.rtac (@{thm typedef_po} OF [type_definition, less_definition]) 1))
+              (K (Tactic.rtac (@{thm typedef_po} OF [type_definition, below_definition]) 1))
           |> LocalTheory.exit_global;
-      in ((type_definition, less_definition, set_def), thy5) end;
+      in ((type_definition, below_definition, set_def), thy5) end;
 
-    fun make_cpo admissible (type_def, less_def, set_def) theory =
+    fun make_cpo admissible (type_def, below_def, set_def) theory =
       let
         val admissible' = fold_rule (the_list set_def) admissible;
-        val cpo_thms = map (Thm.transfer theory) [type_def, less_def, admissible'];
+        val cpo_thms = map (Thm.transfer theory) [type_def, below_def, admissible'];
         val theory' = theory
           |> AxClass.prove_arity (full_tname, lhs_sorts, @{sort cpo})
             (Tactic.rtac (@{thm typedef_cpo} OF cpo_thms) 1);
@@ -110,10 +110,10 @@ fun prepare_pcpodef prep_term pcpo def name (t, vs, mx) raw_set opt_morphs thy =
         |> Sign.parent_path
       end;
 
-    fun make_pcpo UU_mem (type_def, less_def, set_def) theory =
+    fun make_pcpo UU_mem (type_def, below_def, set_def) theory =
       let
         val UU_mem' = fold_rule (the_list set_def) UU_mem;
-        val pcpo_thms = map (Thm.transfer theory) [type_def, less_def, UU_mem'];
+        val pcpo_thms = map (Thm.transfer theory) [type_def, below_def, UU_mem'];
         val theory' = theory
           |> AxClass.prove_arity (full_tname, lhs_sorts, @{sort pcpo})
             (Tactic.rtac (@{thm typedef_pcpo} OF pcpo_thms) 1);

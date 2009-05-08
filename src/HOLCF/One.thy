@@ -28,13 +28,13 @@ unfolding ONE_def by (induct p) simp_all
 lemma one_induct: "\<lbrakk>P \<bottom>; P ONE\<rbrakk> \<Longrightarrow> P x"
 by (cases x rule: oneE) simp_all
 
-lemma dist_less_one [simp]: "\<not> ONE \<sqsubseteq> \<bottom>"
+lemma dist_below_one [simp]: "\<not> ONE \<sqsubseteq> \<bottom>"
 unfolding ONE_def by simp
 
-lemma less_ONE [simp]: "x \<sqsubseteq> ONE"
+lemma below_ONE [simp]: "x \<sqsubseteq> ONE"
 by (induct x rule: one_induct) simp_all
 
-lemma ONE_less_iff [simp]: "ONE \<sqsubseteq> x \<longleftrightarrow> x = ONE"
+lemma ONE_below_iff [simp]: "ONE \<sqsubseteq> x \<longleftrightarrow> x = ONE"
 by (induct x rule: one_induct) simp_all
 
 lemma ONE_defined [simp]: "ONE \<noteq> \<bottom>"

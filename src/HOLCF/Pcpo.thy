@@ -46,7 +46,7 @@ done
 
 lemma lub_range_shift:
   "chain Y \<Longrightarrow> (\<Squnion>i. Y (i + j)) = (\<Squnion>i. Y i)"
-apply (rule antisym_less)
+apply (rule below_antisym)
 apply (rule lub_range_mono)
 apply    fast
 apply   assumption
@@ -54,7 +54,7 @@ apply (erule chain_shift)
 apply (rule is_lub_thelub)
 apply assumption
 apply (rule ub_rangeI)
-apply (rule_tac y="Y (i + j)" in trans_less)
+apply (rule_tac y="Y (i + j)" in below_trans)
 apply (erule chain_mono)
 apply (rule le_add1)
 apply (rule is_ub_thelub)
@@ -66,7 +66,7 @@ lemma maxinch_is_thelub:
 apply (rule iffI)
 apply (fast intro!: thelubI lub_finch1)
 apply (unfold max_in_chain_def)
-apply (safe intro!: antisym_less)
+apply (safe intro!: below_antisym)
 apply (fast elim!: chain_mono)
 apply (drule sym)
 apply (force elim!: is_ub_thelub)
@@ -79,7 +79,7 @@ lemma lub_mono:
     \<Longrightarrow> (\<Squnion>i. X i) \<sqsubseteq> (\<Squnion>i. Y i)"
 apply (erule is_lub_thelub)
 apply (rule ub_rangeI)
-apply (rule trans_less)
+apply (rule below_trans)
 apply (erule meta_spec)
 apply (erule is_ub_thelub)
 done
@@ -106,7 +106,7 @@ done
 lemma lub_equal2:
   "\<lbrakk>\<exists>j. \<forall>i>j. X i = Y i; chain X; chain Y\<rbrakk>
     \<Longrightarrow> (\<Squnion>i. X i) = (\<Squnion>i. Y i)"
-  by (blast intro: antisym_less lub_mono2 sym)
+  by (blast intro: below_antisym lub_mono2 sym)
 
 lemma lub_mono3:
   "\<lbrakk>chain Y; chain X; \<forall>i. \<exists>j. Y i \<sqsubseteq> X j\<rbrakk>
@@ -115,7 +115,7 @@ apply (erule is_lub_thelub)
 apply (rule ub_rangeI)
 apply (erule allE)
 apply (erule exE)
-apply (erule trans_less)
+apply (erule below_trans)
 apply (erule is_ub_thelub)
 done
 
@@ -132,10 +132,10 @@ lemma diag_lub:
   assumes 1: "\<And>j. chain (\<lambda>i. Y i j)"
   assumes 2: "\<And>i. chain (\<lambda>j. Y i j)"
   shows "(\<Squnion>i. \<Squnion>j. Y i j) = (\<Squnion>i. Y i i)"
-proof (rule antisym_less)
+proof (rule below_antisym)
   have 3: "chain (\<lambda>i. Y i i)"
     apply (rule chainI)
-    apply (rule trans_less)
+    apply (rule below_trans)
     apply (rule chainE [OF 1])
     apply (rule chainE [OF 2])
     done
@@ -146,7 +146,7 @@ proof (rule antisym_less)
     apply (rule ub_rangeI)
     apply (rule lub_mono3 [rule_format, OF 2 3])
     apply (rule exI)
-    apply (rule trans_less)
+    apply (rule below_trans)
     apply (rule chain_mono [OF 1 le_maxI1])
     apply (rule chain_mono [OF 2 le_maxI2])
     done
@@ -185,7 +185,7 @@ apply (unfold UU_def)
 apply (rule theI')
 apply (rule ex_ex1I)
 apply (rule least)
-apply (blast intro: antisym_less)
+apply (blast intro: below_antisym)
 done
 
 lemma minimal [iff]: "\<bottom> \<sqsubseteq> x"
@@ -207,7 +207,7 @@ begin
 
 text {* useful lemmas about @{term \<bottom>} *}
 
-lemma less_UU_iff [simp]: "(x \<sqsubseteq> \<bottom>) = (x = \<bottom>)"
+lemma below_UU_iff [simp]: "(x \<sqsubseteq> \<bottom>) = (x = \<bottom>)"
 by (simp add: po_eq_conv)
 
 lemma eq_UU_iff: "(x = \<bottom>) = (x \<sqsubseteq> \<bottom>)"
@@ -287,7 +287,7 @@ apply clarify
 apply (blast dest: chain_mono ax_flat)
 done
 
-lemma flat_less_iff:
+lemma flat_below_iff:
   shows "(x \<sqsubseteq> y) = (x = \<bottom> \<or> x = y)"
   by (safe dest!: ax_flat)
 
@@ -298,7 +298,7 @@ end
 
 text {* Discrete cpos *}
 
-class discrete_cpo = sq_ord +
+class discrete_cpo = below +
   assumes discrete_cpo [simp]: "x \<sqsubseteq> y \<longleftrightarrow> x = y"
 begin
 

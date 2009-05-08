@@ -18,7 +18,7 @@ by (fast intro: compact_approx)
 lemma compact_Rep_compact_basis: "compact (Rep_compact_basis a)"
 by (rule Rep_compact_basis [unfolded mem_Collect_eq])
 
-instantiation compact_basis :: (profinite) sq_ord
+instantiation compact_basis :: (profinite) below
 begin
 
 definition
@@ -47,12 +47,12 @@ by (simp add: Abs_compact_basis_inverse)
 lemmas approx_Rep_compact_basis = Rep_compact_take [symmetric]
 
 interpretation compact_basis:
-  basis_take sq_le compact_take
+  basis_take below compact_take
 proof
   fix n :: nat and a :: "'a compact_basis"
   show "compact_take n a \<sqsubseteq> a"
     unfolding compact_le_def
-    by (simp add: Rep_compact_take approx_less)
+    by (simp add: Rep_compact_take approx_below)
 next
   fix n :: nat and a :: "'a compact_basis"
   show "compact_take n (compact_take n a) = compact_take n a"
@@ -93,15 +93,15 @@ definition
   "approximants = (\<lambda>x. {a. Rep_compact_basis a \<sqsubseteq> x})"
 
 interpretation compact_basis:
-  ideal_completion sq_le compact_take Rep_compact_basis approximants
+  ideal_completion below compact_take Rep_compact_basis approximants
 proof
   fix w :: 'a
-  show "preorder.ideal sq_le (approximants w)"
-  proof (rule sq_le.idealI)
+  show "preorder.ideal below (approximants w)"
+  proof (rule below.idealI)
     show "\<exists>x. x \<in> approximants w"
       unfolding approximants_def
       apply (rule_tac x="Abs_compact_basis (approx 0\<cdot>w)" in exI)
-      apply (simp add: Abs_compact_basis_inverse approx_less)
+      apply (simp add: Abs_compact_basis_inverse approx_below)
       done
   next
     fix x y :: "'a compact_basis"
@@ -116,7 +116,7 @@ proof
       apply (clarify, rename_tac i j)
       apply (rule_tac x="Abs_compact_basis (approx (max i j)\<cdot>w)" in exI)
       apply (simp add: compact_le_def)
-      apply (simp add: Abs_compact_basis_inverse approx_less)
+      apply (simp add: Abs_compact_basis_inverse approx_below)
       apply (erule subst, erule subst)
       apply (simp add: monofun_cfun chain_mono [OF chain_approx])
       done
@@ -126,7 +126,7 @@ proof
       unfolding approximants_def
       apply simp
       apply (simp add: compact_le_def)
-      apply (erule (1) trans_less)
+      apply (erule (1) below_trans)
       done
   qed
 next
@@ -136,7 +136,7 @@ next
     unfolding approximants_def
     apply safe
     apply (simp add: compactD2 [OF compact_Rep_compact_basis Y])
-    apply (erule trans_less, rule is_ub_thelub [OF Y])
+    apply (erule below_trans, rule is_ub_thelub [OF Y])
     done
 next
   fix a :: "'a compact_basis"
@@ -148,7 +148,7 @@ next
     apply (subgoal_tac "(\<Squnion>i. approx i\<cdot>x) \<sqsubseteq> y", simp)
     apply (rule admD, simp, simp)
     apply (drule_tac c="Abs_compact_basis (approx i\<cdot>x)" in subsetD)
-    apply (simp add: approximants_def Abs_compact_basis_inverse approx_less)
+    apply (simp add: approximants_def Abs_compact_basis_inverse approx_below)
     apply (simp add: approximants_def Abs_compact_basis_inverse)
     done
 qed
@@ -288,7 +288,7 @@ apply (induct t rule: pd_basis_induct)
 apply (cut_tac a=a in compact_basis.take_covers)
 apply (clarify, rule_tac x=n in exI)
 apply (clarify, simp)
-apply (rule antisym_less)
+apply (rule below_antisym)
 apply (rule compact_basis.take_less)
 apply (drule_tac a=a in compact_basis.take_chain_le)
 apply simp

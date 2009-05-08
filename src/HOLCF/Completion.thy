@@ -108,11 +108,11 @@ lemma ideal_UN:
 done
 
 lemma typedef_ideal_po:
-  fixes Abs :: "'a set \<Rightarrow> 'b::sq_ord"
+  fixes Abs :: "'a set \<Rightarrow> 'b::below"
   assumes type: "type_definition Rep Abs {S. ideal S}"
-  assumes less: "\<And>x y. x \<sqsubseteq> y \<longleftrightarrow> Rep x \<subseteq> Rep y"
+  assumes below: "\<And>x y. x \<sqsubseteq> y \<longleftrightarrow> Rep x \<subseteq> Rep y"
   shows "OFCLASS('b, po_class)"
- apply (intro_classes, unfold less)
+ apply (intro_classes, unfold below)
    apply (rule subset_refl)
   apply (erule (1) subset_trans)
  apply (rule type_definition.Rep_inject [OF type, THEN iffD1])
@@ -122,7 +122,7 @@ done
 lemma
   fixes Abs :: "'a set \<Rightarrow> 'b::po"
   assumes type: "type_definition Rep Abs {S. ideal S}"
-  assumes less: "\<And>x y. x \<sqsubseteq> y \<longleftrightarrow> Rep x \<subseteq> Rep y"
+  assumes below: "\<And>x y. x \<sqsubseteq> y \<longleftrightarrow> Rep x \<subseteq> Rep y"
   assumes S: "chain S"
   shows typedef_ideal_lub: "range S <<| Abs (\<Union>i. Rep (S i))"
     and typedef_ideal_rep_contlub: "Rep (\<Squnion>i. S i) = (\<Union>i. Rep (S i))"
@@ -130,7 +130,7 @@ proof -
   have 1: "ideal (\<Union>i. Rep (S i))"
     apply (rule ideal_UN)
      apply (rule type_definition.Rep [OF type, unfolded mem_Collect_eq])
-    apply (subst less [symmetric])
+    apply (subst below [symmetric])
     apply (erule chain_mono [OF S])
     done
   hence 2: "Rep (Abs (\<Union>i. Rep (S i))) = (\<Union>i. Rep (S i))"
@@ -138,8 +138,8 @@ proof -
   show 3: "range S <<| Abs (\<Union>i. Rep (S i))"
     apply (rule is_lubI)
      apply (rule is_ubI)
-     apply (simp add: less 2, fast)
-    apply (simp add: less 2 is_ub_def, fast)
+     apply (simp add: below 2, fast)
+    apply (simp add: below 2 is_ub_def, fast)
     done
   hence 4: "(\<Squnion>i. S i) = Abs (\<Union>i. Rep (S i))"
     by (rule thelubI)
@@ -150,16 +150,16 @@ qed
 lemma typedef_ideal_cpo:
   fixes Abs :: "'a set \<Rightarrow> 'b::po"
   assumes type: "type_definition Rep Abs {S. ideal S}"
-  assumes less: "\<And>x y. x \<sqsubseteq> y \<longleftrightarrow> Rep x \<subseteq> Rep y"
+  assumes below: "\<And>x y. x \<sqsubseteq> y \<longleftrightarrow> Rep x \<subseteq> Rep y"
   shows "OFCLASS('b, cpo_class)"
-by (default, rule exI, erule typedef_ideal_lub [OF type less])
+by (default, rule exI, erule typedef_ideal_lub [OF type below])
 
 end
 
-interpretation sq_le: preorder "sq_le :: 'a::po \<Rightarrow> 'a \<Rightarrow> bool"
+interpretation below: preorder "below :: 'a::po \<Rightarrow> 'a \<Rightarrow> bool"
 apply unfold_locales
-apply (rule refl_less)
-apply (erule (1) trans_less)
+apply (rule below_refl)
+apply (erule (1) below_trans)
 done
 
 subsection {* Lemmas about least upper bounds *}
@@ -229,43 +229,43 @@ apply (simp only: thelubI [OF lub_bin_chain])
 apply (rule subsetI, rule UN_I [where a=0], simp_all)
 done
 
-lemma less_def: "x \<sqsubseteq> y \<longleftrightarrow> rep x \<subseteq> rep y"
+lemma below_def: "x \<sqsubseteq> y \<longleftrightarrow> rep x \<subseteq> rep y"
 by (rule iffI [OF rep_mono subset_repD])
 
 lemma rep_eq: "rep x = {a. principal a \<sqsubseteq> x}"
-unfolding less_def rep_principal
+unfolding below_def rep_principal
 apply safe
 apply (erule (1) idealD3 [OF ideal_rep])
 apply (erule subsetD, simp add: r_refl)
 done
 
-lemma mem_rep_iff_principal_less: "a \<in> rep x \<longleftrightarrow> principal a \<sqsubseteq> x"
+lemma mem_rep_iff_principal_below: "a \<in> rep x \<longleftrightarrow> principal a \<sqsubseteq> x"
 by (simp add: rep_eq)
 
-lemma principal_less_iff_mem_rep: "principal a \<sqsubseteq> x \<longleftrightarrow> a \<in> rep x"
+lemma principal_below_iff_mem_rep: "principal a \<sqsubseteq> x \<longleftrightarrow> a \<in> rep x"
 by (simp add: rep_eq)
 
-lemma principal_less_iff [simp]: "principal a \<sqsubseteq> principal b \<longleftrightarrow> a \<preceq> b"
-by (simp add: principal_less_iff_mem_rep rep_principal)
+lemma principal_below_iff [simp]: "principal a \<sqsubseteq> principal b \<longleftrightarrow> a \<preceq> b"
+by (simp add: principal_below_iff_mem_rep rep_principal)
 
 lemma principal_eq_iff: "principal a = principal b \<longleftrightarrow> a \<preceq> b \<and> b \<preceq> a"
-unfolding po_eq_conv [where 'a='b] principal_less_iff ..
+unfolding po_eq_conv [where 'a='b] principal_below_iff ..
 
 lemma repD: "a \<in> rep x \<Longrightarrow> principal a \<sqsubseteq> x"
 by (simp add: rep_eq)
 
 lemma principal_mono: "a \<preceq> b \<Longrightarrow> principal a \<sqsubseteq> principal b"
-by (simp only: principal_less_iff)
+by (simp only: principal_below_iff)
 
-lemma lessI: "(\<And>a. principal a \<sqsubseteq> x \<Longrightarrow> principal a \<sqsubseteq> u) \<Longrightarrow> x \<sqsubseteq> u"
-unfolding principal_less_iff_mem_rep
-by (simp add: less_def subset_eq)
+lemma belowI: "(\<And>a. principal a \<sqsubseteq> x \<Longrightarrow> principal a \<sqsubseteq> u) \<Longrightarrow> x \<sqsubseteq> u"
+unfolding principal_below_iff_mem_rep
+by (simp add: below_def subset_eq)
 
 lemma lub_principal_rep: "principal ` rep x <<| x"
 apply (rule is_lubI)
 apply (rule ub_imageI)
 apply (erule repD)
-apply (subst less_def)
+apply (subst below_def)
 apply (rule subsetI)
 apply (drule (1) ub_imageD)
 apply (simp add: rep_eq)
@@ -299,7 +299,7 @@ lemma basis_fun_lemma1:
  apply (rule is_lub_thelub0)
   apply (rule basis_fun_lemma0, erule f_mono)
  apply (rule is_ubI, clarsimp, rename_tac a)
- apply (rule trans_less [OF f_mono [OF take_chain]])
+ apply (rule below_trans [OF f_mono [OF take_chain]])
  apply (rule is_ub_thelub0)
   apply (rule basis_fun_lemma0, erule f_mono)
  apply simp
@@ -313,7 +313,7 @@ lemma basis_fun_lemma2:
  apply (rule ub_imageI, rename_tac a)
   apply (cut_tac a=a in take_covers, erule exE, rename_tac i)
   apply (erule subst)
-  apply (rule rev_trans_less)
+  apply (rule rev_below_trans)
    apply (rule_tac x=i in is_ub_thelub)
    apply (rule basis_fun_lemma1, erule f_mono)
   apply (rule is_ub_thelub0)
@@ -324,7 +324,7 @@ lemma basis_fun_lemma2:
  apply (rule is_lub_thelub0)
   apply (rule basis_fun_lemma0, erule f_mono)
  apply (rule is_ubI, clarsimp, rename_tac a)
- apply (rule trans_less [OF f_mono [OF take_less]])
+ apply (rule below_trans [OF f_mono [OF take_less]])
  apply (erule (1) ub_imageD)
 done
 
@@ -350,7 +350,7 @@ proof (rule beta_cfun)
      apply (erule (1) subsetD [OF rep_mono])
     apply (rule is_lub_thelub0 [OF lub ub_imageI])
     apply (simp add: rep_contlub, clarify)
-    apply (erule rev_trans_less [OF is_ub_thelub])
+    apply (erule rev_below_trans [OF is_ub_thelub])
     apply (erule is_ub_thelub0 [OF lub imageI])
     done
 qed
@@ -367,21 +367,21 @@ done
 lemma basis_fun_mono:
   assumes f_mono: "\<And>a b. a \<preceq> b \<Longrightarrow> f a \<sqsubseteq> f b"
   assumes g_mono: "\<And>a b. a \<preceq> b \<Longrightarrow> g a \<sqsubseteq> g b"
-  assumes less: "\<And>a. f a \<sqsubseteq> g a"
+  assumes below: "\<And>a. f a \<sqsubseteq> g a"
   shows "basis_fun f \<sqsubseteq> basis_fun g"
- apply (rule less_cfun_ext)
+ apply (rule below_cfun_ext)
  apply (simp only: basis_fun_beta f_mono g_mono)
  apply (rule is_lub_thelub0)
   apply (rule basis_fun_lemma, erule f_mono)
  apply (rule ub_imageI, rename_tac a)
- apply (rule trans_less [OF less])
+ apply (rule below_trans [OF below])
  apply (rule is_ub_thelub0)
   apply (rule basis_fun_lemma, erule g_mono)
  apply (erule imageI)
 done
 
 lemma compact_principal [simp]: "compact (principal a)"
-by (rule compactI2, simp add: principal_less_iff_mem_rep rep_contlub)
+by (rule compactI2, simp add: principal_below_iff_mem_rep rep_contlub)
 
 subsection {* Bifiniteness of ideal completions *}
 

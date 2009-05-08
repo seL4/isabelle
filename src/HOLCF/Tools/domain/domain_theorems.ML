@@ -29,7 +29,7 @@ val adm_impl_admw = @{thm adm_impl_admw};
 val adm_all = @{thm adm_all};
 val adm_conj = @{thm adm_conj};
 val adm_subst = @{thm adm_subst};
-val antisym_less_inverse = @{thm antisym_less_inverse};
+val antisym_less_inverse = @{thm below_antisym_inverse};
 val beta_cfun = @{thm beta_cfun};
 val cfun_arg_cong = @{thm cfun_arg_cong};
 val ch2ch_Rep_CFunL = @{thm ch2ch_Rep_CFunL};
@@ -44,12 +44,12 @@ val contlub_cfun_arg = @{thm contlub_cfun_arg};
 val contlub_cfun_fun = @{thm contlub_cfun_fun};
 val fix_def2 = @{thm fix_def2};
 val injection_eq = @{thm injection_eq};
-val injection_less = @{thm injection_less};
+val injection_less = @{thm injection_below};
 val lub_equal = @{thm lub_equal};
 val monofun_cfun_arg = @{thm monofun_cfun_arg};
 val retraction_strict = @{thm retraction_strict};
 val spair_eq = @{thm spair_eq};
-val spair_less = @{thm spair_less};
+val spair_less = @{thm spair_below};
 val sscase1 = @{thm sscase1};
 val ssplit1 = @{thm ssplit1};
 val strictify1 = @{thm strictify1};
@@ -121,7 +121,7 @@ val chain_tac =
 
 val all2E = @{lemma "!x y . P x y ==> (P x y ==> R) ==> R" by simp}
 
-val dist_eqI = @{lemma "!!x::'a::po. ~ x << y ==> x ~= y" by (blast dest!: antisym_less_inverse)}
+val dist_eqI = @{lemma "!!x::'a::po. ~ x << y ==> x ~= y" by (blast dest!: below_antisym_inverse)}
 
 in
 

@@ -15,11 +15,11 @@ subsection {* Continuous deflations *}
 locale deflation =
   fixes d :: "'a \<rightarrow> 'a"
   assumes idem: "\<And>x. d\<cdot>(d\<cdot>x) = d\<cdot>x"
-  assumes less: "\<And>x. d\<cdot>x \<sqsubseteq> x"
+  assumes below: "\<And>x. d\<cdot>x \<sqsubseteq> x"
 begin
 
-lemma less_ID: "d \<sqsubseteq> ID"
-by (rule less_cfun_ext, simp add: less)
+lemma below_ID: "d \<sqsubseteq> ID"
+by (rule below_cfun_ext, simp add: below)
 
 text {* The set of fixed points is the same as the range. *}
 
@@ -34,18 +34,18 @@ text {*
   the subset ordering of their sets of fixed-points.
 *}
 
-lemma lessI:
+lemma belowI:
   assumes f: "\<And>x. d\<cdot>x = x \<Longrightarrow> f\<cdot>x = x" shows "d \<sqsubseteq> f"
-proof (rule less_cfun_ext)
+proof (rule below_cfun_ext)
   fix x
-  from less have "f\<cdot>(d\<cdot>x) \<sqsubseteq> f\<cdot>x" by (rule monofun_cfun_arg)
+  from below have "f\<cdot>(d\<cdot>x) \<sqsubseteq> f\<cdot>x" by (rule monofun_cfun_arg)
   also from idem have "f\<cdot>(d\<cdot>x) = d\<cdot>x" by (rule f)
   finally show "d\<cdot>x \<sqsubseteq> f\<cdot>x" .
 qed
 
-lemma lessD: "\<lbrakk>f \<sqsubseteq> d; f\<cdot>x = x\<rbrakk> \<Longrightarrow> d\<cdot>x = x"
-proof (rule antisym_less)
-  from less show "d\<cdot>x \<sqsubseteq> x" .
+lemma belowD: "\<lbrakk>f \<sqsubseteq> d; f\<cdot>x = x\<rbrakk> \<Longrightarrow> d\<cdot>x = x"
+proof (rule below_antisym)
+  from below show "d\<cdot>x \<sqsubseteq> x" .
 next
   assume "f \<sqsubseteq> d"
   hence "f\<cdot>x \<sqsubseteq> d\<cdot>x" by (rule monofun_cfun_fun)
@@ -64,11 +64,11 @@ by (simp add: deflation.intro)
 lemma deflation_UU: "deflation \<bottom>"
 by (simp add: deflation.intro)
 
-lemma deflation_less_iff:
+lemma deflation_below_iff:
   "\<lbrakk>deflation p; deflation q\<rbrakk> \<Longrightarrow> p \<sqsubseteq> q \<longleftrightarrow> (\<forall>x. p\<cdot>x = x \<longrightarrow> q\<cdot>x = x)"
  apply safe
-  apply (simp add: deflation.lessD)
- apply (simp add: deflation.lessI)
+  apply (simp add: deflation.belowD)
+ apply (simp add: deflation.belowI)
 done
 
 text {*
@@ -76,13 +76,13 @@ text {*
   the lesser of the two (if they are comparable).
 *}
 
-lemma deflation_less_comp1:
+lemma deflation_below_comp1:
   assumes "deflation f"
   assumes "deflation g"
   shows "f \<sqsubseteq> g \<Longrightarrow> f\<cdot>(g\<cdot>x) = f\<cdot>x"
-proof (rule antisym_less)
+proof (rule below_antisym)
   interpret g: deflation g by fact
-  from g.less show "f\<cdot>(g\<cdot>x) \<sqsubseteq> f\<cdot>x" by (rule monofun_cfun_arg)
+  from g.below show "f\<cdot>(g\<cdot>x) \<sqsubseteq> f\<cdot>x" by (rule monofun_cfun_arg)
 next
   interpret f: deflation f by fact
   assume "f \<sqsubseteq> g" hence "f\<cdot>x \<sqsubseteq> g\<cdot>x" by (rule monofun_cfun_fun)
@@ -91,9 +91,9 @@ next
   finally show "f\<cdot>x \<sqsubseteq> f\<cdot>(g\<cdot>x)" .
 qed
 
-lemma deflation_less_comp2:
+lemma deflation_below_comp2:
   "\<lbrakk>deflation f; deflation g; f \<sqsubseteq> g\<rbrakk> \<Longrightarrow> g\<cdot>(f\<cdot>x) = f\<cdot>x"
-by (simp only: deflation.lessD deflation.idem)
+by (simp only: deflation.belowD deflation.idem)
 
 
 subsection {* Deflations with finite range *}
@@ -143,7 +143,7 @@ proof (rule compactI2)
   hence "d\<cdot>x \<sqsubseteq> d\<cdot>(Y j)"
     using j by simp
   hence "d\<cdot>x \<sqsubseteq> Y j"
-    using less by (rule trans_less)
+    using below by (rule below_trans)
   thus "\<exists>j. d\<cdot>x \<sqsubseteq> Y j" ..
 qed
 
@@ -155,10 +155,10 @@ subsection {* Continuous embedding-projection pairs *}
 locale ep_pair =
   fixes e :: "'a \<rightarrow> 'b" and p :: "'b \<rightarrow> 'a"
   assumes e_inverse [simp]: "\<And>x. p\<cdot>(e\<cdot>x) = x"
-  and e_p_less: "\<And>y. e\<cdot>(p\<cdot>y) \<sqsubseteq> y"
+  and e_p_below: "\<And>y. e\<cdot>(p\<cdot>y) \<sqsubseteq> y"
 begin
 
-lemma e_less_iff [simp]: "e\<cdot>x \<sqsubseteq> e\<cdot>y \<longleftrightarrow> x \<sqsubseteq> y"
+lemma e_below_iff [simp]: "e\<cdot>x \<sqsubseteq> e\<cdot>y \<longleftrightarrow> x \<sqsubseteq> y"
 proof
   assume "e\<cdot>x \<sqsubseteq> e\<cdot>y"
   hence "p\<cdot>(e\<cdot>x) \<sqsubseteq> p\<cdot>(e\<cdot>y)" by (rule monofun_cfun_arg)
@@ -169,7 +169,7 @@ next
 qed
 
 lemma e_eq_iff [simp]: "e\<cdot>x = e\<cdot>y \<longleftrightarrow> x = y"
-unfolding po_eq_conv e_less_iff ..
+unfolding po_eq_conv e_below_iff ..
 
 lemma p_eq_iff:
   "\<lbrakk>e\<cdot>(p\<cdot>x) = x; e\<cdot>(p\<cdot>y) = y\<rbrakk> \<Longrightarrow> p\<cdot>x = p\<cdot>y \<longleftrightarrow> x = y"
@@ -178,7 +178,7 @@ by (safe, erule subst, erule subst, simp)
 lemma p_inverse: "(\<exists>x. y = e\<cdot>x) = (e\<cdot>(p\<cdot>y) = y)"
 by (auto, rule exI, erule sym)
 
-lemma e_less_iff_less_p: "e\<cdot>x \<sqsubseteq> y \<longleftrightarrow> x \<sqsubseteq> p\<cdot>y"
+lemma e_below_iff_below_p: "e\<cdot>x \<sqsubseteq> y \<longleftrightarrow> x \<sqsubseteq> p\<cdot>y"
 proof
   assume "e\<cdot>x \<sqsubseteq> y"
   then have "p\<cdot>(e\<cdot>x) \<sqsubseteq> p\<cdot>y" by (rule monofun_cfun_arg)
@@ -186,7 +186,7 @@ proof
 next
   assume "x \<sqsubseteq> p\<cdot>y"
   then have "e\<cdot>x \<sqsubseteq> e\<cdot>(p\<cdot>y)" by (rule monofun_cfun_arg)
-  then show "e\<cdot>x \<sqsubseteq> y" using e_p_less by (rule trans_less)
+  then show "e\<cdot>x \<sqsubseteq> y" using e_p_below by (rule below_trans)
 qed
 
 lemma compact_e_rev: "compact (e\<cdot>x) \<Longrightarrow> compact x"
@@ -203,7 +203,7 @@ proof -
   assume "compact x"
   hence "adm (\<lambda>y. \<not> x \<sqsubseteq> y)" by (rule compactD)
   hence "adm (\<lambda>y. \<not> x \<sqsubseteq> p\<cdot>y)" by (rule adm_subst [OF cont_Rep_CFun2])
-  hence "adm (\<lambda>y. \<not> e\<cdot>x \<sqsubseteq> y)" by (simp add: e_less_iff_less_p)
+  hence "adm (\<lambda>y. \<not> e\<cdot>x \<sqsubseteq> y)" by (simp add: e_below_iff_below_p)
   thus "compact (e\<cdot>x)" by (rule compactI)
 qed
 
@@ -213,7 +213,7 @@ by (rule iffI [OF compact_e_rev compact_e])
 text {* Deflations from ep-pairs *}
 
 lemma deflation_e_p: "deflation (e oo p)"
-by (simp add: deflation.intro e_p_less)
+by (simp add: deflation.intro e_p_below)
 
 lemma deflation_e_d_p:
   assumes "deflation d"
@@ -224,7 +224,7 @@ proof
   show "(e oo d oo p)\<cdot>((e oo d oo p)\<cdot>x) = (e oo d oo p)\<cdot>x"
     by (simp add: idem)
   show "(e oo d oo p)\<cdot>x \<sqsubseteq> x"
-    by (simp add: e_less_iff_less_p less)
+    by (simp add: e_below_iff_below_p below)
 qed
 
 lemma finite_deflation_e_d_p:
@@ -236,7 +236,7 @@ proof
   show "(e oo d oo p)\<cdot>((e oo d oo p)\<cdot>x) = (e oo d oo p)\<cdot>x"
     by (simp add: idem)
   show "(e oo d oo p)\<cdot>x \<sqsubseteq> x"
-    by (simp add: e_less_iff_less_p less)
+    by (simp add: e_below_iff_below_p below)
   have "finite ((\<lambda>x. e\<cdot>x) ` (\<lambda>x. d\<cdot>x) ` range (\<lambda>x. p\<cdot>x))"
     by (simp add: finite_image)
   hence "finite (range (\<lambda>x. (e oo d oo p)\<cdot>x))"
@@ -254,24 +254,24 @@ proof -
   {
     fix x
     have "d\<cdot>(e\<cdot>x) \<sqsubseteq> e\<cdot>x"
-      by (rule d.less)
+      by (rule d.below)
     hence "p\<cdot>(d\<cdot>(e\<cdot>x)) \<sqsubseteq> p\<cdot>(e\<cdot>x)"
       by (rule monofun_cfun_arg)
     hence "(p oo d oo e)\<cdot>x \<sqsubseteq> x"
       by simp
   }
-  note p_d_e_less = this
+  note p_d_e_below = this
   show ?thesis
   proof
     fix x
     show "(p oo d oo e)\<cdot>x \<sqsubseteq> x"
-      by (rule p_d_e_less)
+      by (rule p_d_e_below)
   next
     fix x
     show "(p oo d oo e)\<cdot>((p oo d oo e)\<cdot>x) = (p oo d oo e)\<cdot>x"
-    proof (rule antisym_less)
+    proof (rule below_antisym)
       show "(p oo d oo e)\<cdot>((p oo d oo e)\<cdot>x) \<sqsubseteq> (p oo d oo e)\<cdot>x"
-        by (rule p_d_e_less)
+        by (rule p_d_e_below)
       have "p\<cdot>(d\<cdot>(d\<cdot>(d\<cdot>(e\<cdot>x)))) \<sqsubseteq> p\<cdot>(d\<cdot>(e\<cdot>(p\<cdot>(d\<cdot>(e\<cdot>x)))))"
         by (intro monofun_cfun_arg d)
       hence "p\<cdot>(d\<cdot>(e\<cdot>x)) \<sqsubseteq> p\<cdot>(d\<cdot>(e\<cdot>(p\<cdot>(d\<cdot>(e\<cdot>x)))))"
@@ -315,29 +315,29 @@ subsection {* Uniqueness of ep-pairs *}
 lemma ep_pair_unique_e_lemma:
   assumes "ep_pair e1 p" and "ep_pair e2 p"
   shows "e1 \<sqsubseteq> e2"
-proof (rule less_cfun_ext)
+proof (rule below_cfun_ext)
   interpret e1: ep_pair e1 p by fact
   interpret e2: ep_pair e2 p by fact
   fix x
   have "e1\<cdot>(p\<cdot>(e2\<cdot>x)) \<sqsubseteq> e2\<cdot>x"
-    by (rule e1.e_p_less)
+    by (rule e1.e_p_below)
   thus "e1\<cdot>x \<sqsubseteq> e2\<cdot>x"
     by (simp only: e2.e_inverse)
 qed
 
 lemma ep_pair_unique_e:
   "\<lbrakk>ep_pair e1 p; ep_pair e2 p\<rbrakk> \<Longrightarrow> e1 = e2"
-by (fast intro: antisym_less elim: ep_pair_unique_e_lemma)
+by (fast intro: below_antisym elim: ep_pair_unique_e_lemma)
 
 lemma ep_pair_unique_p_lemma:
   assumes "ep_pair e p1" and "ep_pair e p2"
   shows "p1 \<sqsubseteq> p2"
-proof (rule less_cfun_ext)
+proof (rule below_cfun_ext)
   interpret p1: ep_pair e p1 by fact
   interpret p2: ep_pair e p2 by fact
   fix x
   have "e\<cdot>(p1\<cdot>x) \<sqsubseteq> x"
-    by (rule p1.e_p_less)
+    by (rule p1.e_p_below)
   hence "p2\<cdot>(e\<cdot>(p1\<cdot>x)) \<sqsubseteq> p2\<cdot>x"
     by (rule monofun_cfun_arg)
   thus "p1\<cdot>x \<sqsubseteq> p2\<cdot>x"
@@ -346,7 +346,7 @@ qed
 
 lemma ep_pair_unique_p:
   "\<lbrakk>ep_pair e p1; ep_pair e p2\<rbrakk> \<Longrightarrow> p1 = p2"
-by (fast intro: antisym_less elim: ep_pair_unique_p_lemma)
+by (fast intro: below_antisym elim: ep_pair_unique_p_lemma)
 
 subsection {* Composing ep-pairs *}
 
@@ -363,11 +363,11 @@ proof
   show "(p1 oo p2)\<cdot>((e2 oo e1)\<cdot>x) = x"
     by simp
   have "e1\<cdot>(p1\<cdot>(p2\<cdot>y)) \<sqsubseteq> p2\<cdot>y"
-    by (rule ep1.e_p_less)
+    by (rule ep1.e_p_below)
   hence "e2\<cdot>(e1\<cdot>(p1\<cdot>(p2\<cdot>y))) \<sqsubseteq> e2\<cdot>(p2\<cdot>y)"
     by (rule monofun_cfun_arg)
   also have "e2\<cdot>(p2\<cdot>y) \<sqsubseteq> y"
-    by (rule ep2.e_p_less)
+    by (rule ep2.e_p_below)
   finally show "(e2 oo e1)\<cdot>((p1 oo p2)\<cdot>y) \<sqsubseteq> y"
     by simp
 qed
@@ -381,7 +381,7 @@ lemma e_strict [simp]: "e\<cdot>\<bottom> = \<bottom>"
 proof -
   have "\<bottom> \<sqsubseteq> p\<cdot>\<bottom>" by (rule minimal)
   hence "e\<cdot>\<bottom> \<sqsubseteq> e\<cdot>(p\<cdot>\<bottom>)" by (rule monofun_cfun_arg)
-  also have "e\<cdot>(p\<cdot>\<bottom>) \<sqsubseteq> \<bottom>" by (rule e_p_less)
+  also have "e\<cdot>(p\<cdot>\<bottom>) \<sqsubseteq> \<bottom>" by (rule e_p_below)
   finally show "e\<cdot>\<bottom> = \<bottom>" by simp
 qed
 
