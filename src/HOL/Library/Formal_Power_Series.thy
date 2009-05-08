@@ -1758,7 +1758,6 @@ lemma radical_divide:
   kp: "k>0"
   and ra0: "(r k (a $ 0)) ^ k = a $ 0"
   and rb0: "(r k (b $ 0)) ^ k = b $ 0"
-  and r1: "(r k 1)^k = 1"
   and a0: "a$0 \<noteq> 0"
   and b0: "b$0 \<noteq> 0"
   shows "r k ((a $ 0) / (b$0)) = r k (a$0) / r k (b $ 0) \<longleftrightarrow> fps_radical r k (a/b) = fps_radical r k a / fps_radical r k b" (is "?lhs = ?rhs")
