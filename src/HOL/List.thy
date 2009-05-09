@@ -1324,6 +1324,9 @@ apply (case_tac i)
 apply simp_all
 done
 
+lemma list_update_nonempty[simp]: "xs[k:=x] = [] \<longleftrightarrow> xs=[]"
+by(metis length_0_conv length_list_update)
+
 lemma list_update_same_conv:
 "i < length xs ==> (xs[i := x] = xs) = (xs!i = x)"
 by (induct xs arbitrary: i) (auto split: nat.split)
@@ -1344,8 +1347,7 @@ lemma list_update_length [simp]:
 by (induct xs, auto)
 
 lemma update_zip:
-  "length xs = length ys ==>
-  (zip xs ys)[i:=xy] = zip (xs[i:=fst xy]) (ys[i:=snd xy])"
+  "(zip xs ys)[i:=xy] = zip (xs[i:=fst xy]) (ys[i:=snd xy])"
 by (induct ys arbitrary: i xy xs) (auto, case_tac xs, auto split: nat.split)
 
 lemma set_update_subset_insert: "set(xs[i:=x]) <= insert x (set xs)"
@@ -1357,12 +1359,10 @@ by (blast dest!: set_update_subset_insert [THEN subsetD])
 lemma set_update_memI: "n < length xs \<Longrightarrow> x \<in> set (xs[n := x])"
 by (induct xs arbitrary: n) (auto split:nat.splits)
 
-lemma list_update_overwrite:
+lemma list_update_overwrite[simp]:
   "xs [i := x, i := y] = xs [i := y]"
-apply (induct xs arbitrary: i)
-apply simp
-apply (case_tac i)
-apply simp_all
+apply (induct xs arbitrary: i) apply simp
+apply (case_tac i, simp_all)
 done
 
 lemma list_update_swap:
@@ -1443,6 +1443,18 @@ by(induct xs)(auto simp:neq_Nil_conv)
 
 lemma butlast_conv_take: "butlast xs = take (length xs - 1) xs"
 by (induct xs, simp, case_tac xs, simp_all)
+
+lemma last_list_update:
+  "xs \<noteq> [] \<Longrightarrow> last(xs[k:=x]) = (if k = size xs - 1 then x else last xs)"
+by (auto simp: last_conv_nth)
+
+lemma butlast_list_update:
+  "butlast(xs[k:=x]) =
+ (if k = size xs - 1 then butlast xs else (butlast xs)[k:=x])"
+apply(cases xs rule:rev_cases)
+apply simp
+apply(simp add:list_update_append split:nat.splits)
+done
 
 
 subsubsection {* @{text take} and @{text drop} *}
@@ -1723,6 +1735,13 @@ lemma dropWhile_eq_Cons_conv:
  "(dropWhile P xs = y#ys) = (xs = takeWhile P xs @ y # ys & \<not> P y)"
 by(induct xs, auto)
 
+lemma distinct_takeWhile[simp]: "distinct xs ==> distinct (takeWhile P xs)"
+by (induct xs) (auto dest: set_takeWhileD)
+
+lemma distinct_dropWhile[simp]: "distinct xs ==> distinct (dropWhile P xs)"
+by (induct xs) auto
+
+
 text{* The following two lemmmas could be generalized to an arbitrary
 property. *}
 
@@ -1809,6 +1828,10 @@ apply(case_tac ys)
 apply simp_all
 done
 
+text{* Courtesy of Andreas Lochbihler: *}
+lemma zip_same_conv_map: "zip xs xs = map (\<lambda>x. (x, x)) xs"
+by(induct xs) auto
+
 lemma nth_zip [simp]:
 "[| i < length xs; i < length ys|] ==> (zip xs ys)!i = (xs!i, ys!i)"
 apply (induct ys arbitrary: i xs, simp)
@@ -1818,11 +1841,11 @@ done
 
 lemma set_zip:
 "set (zip xs ys) = {(xs!i, ys!i) | i. i < min (length xs) (length ys)}"
-by (simp add: set_conv_nth cong: rev_conj_cong)
+by(simp add: set_conv_nth cong: rev_conj_cong)
 
 lemma zip_update:
-"length xs = length ys ==> zip (xs[i:=x]) (ys[i:=y]) = (zip xs ys)[i:=(x,y)]"
-by (rule sym, simp add: update_zip)
+  "zip (xs[i:=x]) (ys[i:=y]) = (zip xs ys)[i:=(x,y)]"
+by(rule sym, simp add: update_zip)
 
 lemma zip_replicate [simp]:
   "zip (replicate i x) (replicate j y) = replicate (min i j) (x,y)"
@@ -2139,6 +2162,10 @@ text{* For efficient code generation ---
        @{const listsum} is not tail recursive but @{const foldl} is. *}
 lemma listsum[code unfold]: "listsum xs = foldl (op +) 0 xs"
 by(simp add:listsum_foldr foldl_foldr1)
+
+lemma distinct_listsum_conv_Setsum:
+  "distinct xs \<Longrightarrow> listsum xs = Setsum(set xs)"
+by (induct xs) simp_all
 
 
 text{* Some syntactic sugar for summing a function over a list: *}
@@ -2552,6 +2579,11 @@ lemma append_replicate_commute:
 apply (simp add: replicate_add [THEN sym])
 apply (simp add: add_commute)
 done
+
+text{* Courtesy of Andreas Lochbihler: *}
+lemma filter_replicate:
+  "filter P (replicate n x) = (if P x then replicate n x else [])"
+by(induct n) auto
 
 lemma hd_replicate [simp]: "n \<noteq> 0 ==> hd (replicate n x) = x"
 by (induct n) auto

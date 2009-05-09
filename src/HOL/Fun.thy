@@ -412,6 +412,9 @@ lemma fun_upd_image:
      "f(x:=y) ` A = (if x \<in> A then insert y (f ` (A-{x})) else f ` A)"
 by auto
 
+lemma fun_upd_comp: "f \<circ> (g(x := y)) = (f \<circ> g)(x := f y)"
+by(auto intro: ext)
+
 
 subsection {* @{text override_on} *}
 
