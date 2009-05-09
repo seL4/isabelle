@@ -29,7 +29,7 @@ text {*
 *}
 
 (*
-ML {* set trace_arith; *}
+ML {* set Lin_Arith.trace; *}
 *)
 
 subsection {* Splitting of Operators: @{term max}, @{term min}, @{term abs},
@@ -244,7 +244,7 @@ lemma "[| (i::int) ~= j; (a::nat) ~= b; a < 2; b < 2 |] ==>
   by linarith
 
 (*
-ML {* reset trace_arith; *}
+ML {* reset Lin_Arith.trace; *}
 *)
 
 end

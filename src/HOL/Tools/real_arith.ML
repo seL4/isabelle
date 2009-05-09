@@ -36,7 +36,7 @@ val real_arith_setup =
     lessD = lessD,  (*Can't change lessD: the reals are dense!*)
     neqE = neqE,
     simpset = simpset addsimps simps}) #>
-  arith_inj_const (@{const_name real}, HOLogic.natT --> HOLogic.realT) #>
-  arith_inj_const (@{const_name real}, HOLogic.intT --> HOLogic.realT)
+  Lin_Arith.add_inj_const (@{const_name real}, HOLogic.natT --> HOLogic.realT) #>
+  Lin_Arith.add_inj_const (@{const_name real}, HOLogic.intT --> HOLogic.realT)
 
 end;

@@ -1,5 +1,4 @@
 (*  Title:      HOL/NSA/hypreal_arith.ML
-    ID:         $Id$
     Author:     Tobias Nipkow, TU Muenchen
     Copyright   1999 TU Muenchen
 
@@ -24,7 +23,7 @@ val real_inj_thms = [thm "star_of_le" RS iffD2,
 
 in
 
-val hyprealT = Type ("StarDef.star", [HOLogic.realT]);
+val hyprealT = Type (@{type_name StarDef.star}, [HOLogic.realT]);
 
 val fast_hypreal_arith_simproc =
     Simplifier.simproc (the_context ())
@@ -40,7 +39,7 @@ val hypreal_arith_setup =
     lessD = lessD,  (*Can't change lessD: the hypreals are dense!*)
     neqE = neqE,
     simpset = simpset addsimps simps}) #>
-  arith_inj_const ("StarDef.star_of", HOLogic.realT --> hyprealT) #>
+  Lin_Arith.add_inj_const (@{const_name "StarDef.star_of"}, HOLogic.realT --> hyprealT) #>
   Simplifier.map_ss (fn ss => ss addsimprocs [fast_hypreal_arith_simproc]);
 
 end;

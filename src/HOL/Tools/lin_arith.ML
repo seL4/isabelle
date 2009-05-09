@@ -7,14 +7,9 @@ HOL setup for linear arithmetic (see Provers/Arith/fast_lin_arith.ML).
 signature BASIC_LIN_ARITH =
 sig
   val arith_split_add: attribute
-  val arith_discrete: string -> Context.generic -> Context.generic
-  val arith_inj_const: string * typ -> Context.generic -> Context.generic
-  val fast_arith_split_limit: int Config.T
-  val fast_arith_neq_limit: int Config.T
   val lin_arith_pre_tac: Proof.context -> int -> tactic
   val fast_arith_tac: Proof.context -> int -> tactic
   val fast_ex_arith_tac: Proof.context -> bool -> int -> tactic
-  val trace_arith: bool ref
   val lin_arith_simproc: simpset -> term -> thm option
   val fast_nat_arith_simproc: simproc
   val linear_arith_tac: Proof.context -> int -> tactic
@@ -23,14 +18,19 @@ end;
 signature LIN_ARITH =
 sig
   include BASIC_LIN_ARITH
+  val add_discrete_type: string -> Context.generic -> Context.generic
+  val add_inj_const: string * typ -> Context.generic -> Context.generic
   val map_data:
     ({add_mono_thms: thm list, mult_mono_thms: thm list, inj_thms: thm list,
       lessD: thm list, neqE: thm list, simpset: Simplifier.simpset} ->
      {add_mono_thms: thm list, mult_mono_thms: thm list, inj_thms: thm list,
       lessD: thm list, neqE: thm list, simpset: Simplifier.simpset}) ->
     Context.generic -> Context.generic
-  val warning_count: int ref
   val setup: Context.generic -> Context.generic
+  val split_limit: int Config.T
+  val neq_limit: int Config.T
+  val warning_count: int ref
+  val trace: bool ref
 end;
 
 structure Lin_Arith: LIN_ARITH =
@@ -99,23 +99,23 @@ val arith_split_add = Thm.declaration_attribute (fn thm =>
     {splits = update Thm.eq_thm_prop thm splits,
      inj_consts = inj_consts, discrete = discrete}));
 
-fun arith_discrete d = ArithContextData.map (fn {splits, inj_consts, discrete} =>
+fun add_discrete_type d = ArithContextData.map (fn {splits, inj_consts, discrete} =>
   {splits = splits, inj_consts = inj_consts,
    discrete = update (op =) d discrete});
 
-fun arith_inj_const c = ArithContextData.map (fn {splits, inj_consts, discrete} =>
+fun add_inj_const c = ArithContextData.map (fn {splits, inj_consts, discrete} =>
   {splits = splits, inj_consts = update (op =) c inj_consts,
    discrete = discrete});
 
-val (fast_arith_split_limit, setup1) = Attrib.config_int "fast_arith_split_limit" 9;
-val (fast_arith_neq_limit, setup2) = Attrib.config_int "fast_arith_neq_limit" 9;
+val (split_limit, setup1) = Attrib.config_int "linarith_split_limit" 9;
+val (neq_limit, setup2) = Attrib.config_int "linarith_neq_limit" 9;
 val setup_options = setup1 #> setup2;
 
 
 structure LA_Data_Ref =
 struct
 
-val fast_arith_neq_limit = fast_arith_neq_limit;
+val fast_arith_neq_limit = neq_limit;
 
 
 (* Decomposition of terms *)
@@ -358,10 +358,10 @@ let
   val split_thms = filter is_split_thm (#splits (get_arith_data ctxt))
   val cmap       = Splitter.cmap_of_split_thms split_thms
   val splits     = Splitter.split_posns cmap thy Ts (REPEAT_DETERM_etac_rev_mp terms)
-  val split_limit = Config.get ctxt fast_arith_split_limit
+  val split_limit = Config.get ctxt split_limit
 in
   if length splits > split_limit then
-   (tracing ("fast_arith_split_limit exceeded (current value is " ^
+   (tracing ("linarith_split_limit exceeded (current value is " ^
       string_of_int split_limit ^ ")"); NONE)
   else (
   case splits of [] =>
@@ -696,7 +696,7 @@ end;
 (* disjunctions and existential quantifiers from the premises, possibly (in  *)
 (* the case of disjunctions) resulting in several new subgoals, each of the  *)
 (* general form  [| Q1; ...; Qm |] ==> False.  Fails if more than            *)
-(* !fast_arith_split_limit splits are possible.                              *)
+(* !split_limit splits are possible.                              *)
 
 local
   val nnf_simpset =
@@ -717,7 +717,7 @@ fun split_once_tac ctxt split_thms =
         val concl = HOLogic.dest_Trueprop (Logic.strip_assums_concl subgoal)
         val cmap = Splitter.cmap_of_split_thms split_thms
         val splits = Splitter.split_posns cmap thy Ts concl
-        val split_limit = Config.get ctxt fast_arith_split_limit
+        val split_limit = Config.get ctxt split_limit
       in
         if length splits > split_limit then no_tac
         else split_tac split_thms i
@@ -767,7 +767,7 @@ val map_data = Fast_Arith.map_data;
 
 fun fast_arith_tac ctxt = Fast_Arith.lin_arith_tac ctxt false;
 val fast_ex_arith_tac = Fast_Arith.lin_arith_tac;
-val trace_arith = Fast_Arith.trace;
+val trace = Fast_Arith.trace;
 val warning_count = Fast_Arith.warning_count;
 
 (* reduce contradictory <= to False.
@@ -775,11 +775,10 @@ val warning_count = Fast_Arith.warning_count;
 
 val init_arith_data =
  map_data (fn {add_mono_thms, mult_mono_thms, inj_thms, lessD, ...} =>
-   {add_mono_thms = add_mono_thms @
-    @{thms add_mono_thms_ordered_semiring} @ @{thms add_mono_thms_ordered_field},
-    mult_mono_thms = mult_mono_thms,
+   {add_mono_thms = @{thms add_mono_thms_ordered_semiring} @ @{thms add_mono_thms_ordered_field} @ add_mono_thms,
+    mult_mono_thms = @{thm mult_strict_left_mono} :: @{thm mult_left_mono} :: mult_mono_thms,
     inj_thms = inj_thms,
-    lessD = lessD @ [thm "Suc_leI"],
+    lessD = lessD @ [@{thm "Suc_leI"}],
     neqE = [@{thm linorder_neqE_nat}, @{thm linorder_neqE_ordered_idom}],
     simpset = HOL_basic_ss
       addsimps
@@ -791,8 +790,9 @@ val init_arith_data =
         @{thm "not_one_less_zero"}]
       addsimprocs [ab_group_add_cancel.sum_conv, ab_group_add_cancel.rel_conv]
        (*abel_cancel helps it work in abstract algebraic domains*)
-      addsimprocs Nat_Arith.nat_cancel_sums_add}) #>
-  arith_discrete "nat";
+      addsimprocs Nat_Arith.nat_cancel_sums_add
+      addcongs [if_weak_cong]}) #>
+  add_discrete_type @{type_name nat};
 
 fun add_arith_facts ss =
   add_prems (Arith_Data.get_arith_facts (MetaSimplifier.the_context ss)) ss;
@@ -869,7 +869,7 @@ fun raw_arith_tac ctxt ex =
     (* Splitting is also done inside fast_arith_tac, but not completely --   *)
     (* split_tac may use split theorems that have not been implemented in    *)
     (* fast_arith_tac (cf. pre_decomp and split_once_items above), and       *)
-    (* fast_arith_split_limit may trigger.                                   *)
+    (* split_limit may trigger.                                   *)
     (* Therefore splitting outside of fast_arith_tac may allow us to prove   *)
     (* some goals that fast_arith_tac alone would fail on.                   *)
     (REPEAT_DETERM o split_tac (#splits (get_arith_data ctxt)))

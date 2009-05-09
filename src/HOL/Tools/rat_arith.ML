@@ -40,7 +40,7 @@ val rat_arith_setup =
     neqE =  neqE,
     simpset = simpset addsimps simps
                       addsimprocs Numeral_Simprocs.field_cancel_numeral_factors}) #>
-  arith_inj_const (@{const_name of_nat}, @{typ "nat => rat"}) #>
-  arith_inj_const (@{const_name of_int}, @{typ "int => rat"})
+  Lin_Arith.add_inj_const (@{const_name of_nat}, @{typ "nat => rat"}) #>
+  Lin_Arith.add_inj_const (@{const_name of_int}, @{typ "int => rat"})
 
 end;

@@ -172,9 +172,9 @@ apply(case_tac " length path - Suc 0 < m")
  prefer 2 apply arith
  apply(drule_tac n = "Suc nata" in Compl_lemma)
  apply clarify
- using [[fast_arith_split_limit = 0]]
+ using [[linarith_split_limit = 0]]
  apply force
- using [[fast_arith_split_limit = 9]]
+ using [[linarith_split_limit = 9]]
 apply(drule leI)
 apply(subgoal_tac "Suc (length path - Suc m + nata)=(length path - Suc 0) - (m - Suc nata)")
  apply(erule_tac x = "m - (Suc nata)" in allE)
