@@ -93,15 +93,14 @@ val numeral_base_simprocs = Numeral_Simprocs.assoc_fold_simproc :: zero_one_idom
 val setup =
   Lin_Arith.map_data (fn {add_mono_thms, mult_mono_thms, inj_thms, lessD, neqE, simpset} =>
    {add_mono_thms = add_mono_thms,
-    mult_mono_thms = @{thm mult_strict_left_mono} :: @{thm mult_left_mono} :: mult_mono_thms,
+    mult_mono_thms = (*@{thm mult_strict_left_mono} :: @{thm mult_left_mono} :: *)mult_mono_thms,
     inj_thms = nat_inj_thms @ inj_thms,
     lessD = lessD @ [@{thm zless_imp_add1_zle}],
     neqE = neqE,
     simpset = simpset addsimps add_rules
-                      addsimprocs numeral_base_simprocs
-                      addcongs [if_weak_cong]}) #>
-  arith_inj_const (@{const_name of_nat}, HOLogic.natT --> HOLogic.intT) #>
-  arith_discrete @{type_name Int.int}
+                      addsimprocs numeral_base_simprocs}) #>
+  Lin_Arith.add_inj_const (@{const_name of_nat}, HOLogic.natT --> HOLogic.intT) #>
+  Lin_Arith.add_discrete_type @{type_name Int.int}
 
 val fast_int_arith_simproc =
   Simplifier.simproc (the_context ())
