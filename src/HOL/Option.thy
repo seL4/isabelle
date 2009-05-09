@@ -20,6 +20,9 @@ text{*Although it may appear that both of these equalities are helpful
 only when applied to assumptions, in practice it seems better to give
 them the uniform iff attribute. *}
 
+lemma inj_Some [simp]: "inj_on Some A"
+by (rule inj_onI) simp
+
 lemma option_caseE:
   assumes c: "(case x of None => P | Some y => Q y)"
   obtains
@@ -27,14 +30,15 @@ lemma option_caseE:
   | (Some) y where "x = Some y" and "Q y"
   using c by (cases x) simp_all
 
-lemma insert_None_conv_UNIV: "insert None (range Some) = UNIV"
-  by (rule set_ext, case_tac x) auto
+lemma UNIV_option_conv: "UNIV = insert None (range Some)"
+by(auto intro: classical)
+
+lemma finite_option_UNIV[simp]:
+  "finite (UNIV :: 'a option set) = finite (UNIV :: 'a set)"
+by(auto simp add: UNIV_option_conv elim: finite_imageD intro: inj_Some)
 
 instance option :: (finite) finite proof
-qed (simp add: insert_None_conv_UNIV [symmetric])
-
-lemma inj_Some [simp]: "inj_on Some A"
-  by (rule inj_onI) simp
+qed (simp add: UNIV_option_conv)
 
 
 subsubsection {* Operations *}

@@ -365,6 +365,29 @@ done
 lemma finite_Plus: "[| finite A; finite B |] ==> finite (A <+> B)"
 by (simp add: Plus_def)
 
+lemma finite_PlusD: 
+  fixes A :: "'a set" and B :: "'b set"
+  assumes fin: "finite (A <+> B)"
+  shows "finite A" "finite B"
+proof -
+  have "Inl ` A \<subseteq> A <+> B" by auto
+  hence "finite (Inl ` A :: ('a + 'b) set)" using fin by(rule finite_subset)
+  thus "finite A" by(rule finite_imageD)(auto intro: inj_onI)
+next
+  have "Inr ` B \<subseteq> A <+> B" by auto
+  hence "finite (Inr ` B :: ('a + 'b) set)" using fin by(rule finite_subset)
+  thus "finite B" by(rule finite_imageD)(auto intro: inj_onI)
+qed
+
+lemma finite_Plus_iff[simp]: "finite (A <+> B) \<longleftrightarrow> finite A \<and> finite B"
+by(auto intro: finite_PlusD finite_Plus)
+
+lemma finite_Plus_UNIV_iff[simp]:
+  "finite (UNIV :: ('a + 'b) set) =
+  (finite (UNIV :: 'a set) & finite (UNIV :: 'b set))"
+by(subst UNIV_Plus_UNIV[symmetric])(rule finite_Plus_iff)
+
+
 text {* Sigma of finite sets *}
 
 lemma finite_SigmaI [simp]:
@@ -1563,6 +1586,20 @@ next
 qed
 
 
+lemma setsum_Plus:
+  fixes A :: "'a set" and B :: "'b set"
+  assumes fin: "finite A" "finite B"
+  shows "setsum f (A <+> B) = setsum (f \<circ> Inl) A + setsum (f \<circ> Inr) B"
+proof -
+  have "A <+> B = Inl ` A \<union> Inr ` B" by auto
+  moreover from fin have "finite (Inl ` A :: ('a + 'b) set)" "finite (Inr ` B :: ('a + 'b) set)"
+    by(auto intro: finite_imageI)
+  moreover have "Inl ` A \<inter> Inr ` B = ({} :: ('a + 'b) set)" by auto
+  moreover have "inj_on (Inl :: 'a \<Rightarrow> 'a + 'b) A" "inj_on (Inr :: 'b \<Rightarrow> 'a + 'b) B" by(auto intro: inj_onI)
+  ultimately show ?thesis using fin by(simp add: setsum_Un_disjoint setsum_reindex)
+qed
+
+
 text {* Commuting outer and inner summation *}
 
 lemma swap_inj_on:
@@ -2091,6 +2128,10 @@ next
 qed
 
 
+lemma card_UNIV_unit: "card (UNIV :: unit set) = 1"
+  unfolding UNIV_unit by simp
+
+
 subsubsection {* Cardinality of unions *}
 
 lemma card_UN_disjoint:
@@ -2200,6 +2241,10 @@ proof -
     unfolding Plus_def
     by (simp add: card_Un_disjoint card_image)
 qed
+
+lemma card_Plus_conv_if:
+  "card (A <+> B) = (if finite A \<and> finite B then card(A) + card(B) else 0)"
+by(auto simp: card_def setsum_Plus simp del: setsum_constant)
 
 
 subsubsection {* Cardinality of the Powerset *}

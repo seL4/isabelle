@@ -55,7 +55,7 @@ lemma card_sum [simp]: "CARD('a + 'b) = CARD('a::finite) + CARD('b::finite)"
   unfolding UNIV_Plus_UNIV [symmetric] by (simp only: finite card_Plus)
 
 lemma card_option [simp]: "CARD('a option) = Suc CARD('a::finite)"
-  unfolding insert_None_conv_UNIV [symmetric]
+  unfolding UNIV_option_conv
   apply (subgoal_tac "(None::'a option) \<notin> range Some")
   apply (simp add: card_image)
   apply fast

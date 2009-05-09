@@ -452,6 +452,9 @@ done
 
 subsection {* @{term [source] dom} *}
 
+lemma dom_eq_empty_conv [simp]: "dom f = {} \<longleftrightarrow> f = empty"
+by(auto intro!:ext simp: dom_def)
+
 lemma domI: "m a = Some b ==> a : dom m"
 by(simp add:dom_def)
 (* declare domI [intro]? *)
@@ -592,5 +595,20 @@ by (fastsimp simp add: map_le_def map_add_def dom_def)
 
 lemma map_add_le_mapI: "\<lbrakk> f \<subseteq>\<^sub>m h; g \<subseteq>\<^sub>m h; f \<subseteq>\<^sub>m f++g \<rbrakk> \<Longrightarrow> f++g \<subseteq>\<^sub>m h"
 by (clarsimp simp add: map_le_def map_add_def dom_def split: option.splits)
+
+
+lemma dom_eq_singleton_conv: "dom f = {x} \<longleftrightarrow> (\<exists>v. f = [x \<mapsto> v])"
+proof(rule iffI)
+  assume "\<exists>v. f = [x \<mapsto> v]"
+  thus "dom f = {x}" by(auto split: split_if_asm)
+next
+  assume "dom f = {x}"
+  then obtain v where "f x = Some v" by auto
+  hence "[x \<mapsto> v] \<subseteq>\<^sub>m f" by(auto simp add: map_le_def)
+  moreover have "f \<subseteq>\<^sub>m [x \<mapsto> v]" using `dom f = {x}` `f x = Some v`
+    by(auto simp add: map_le_def)
+  ultimately have "f = [x \<mapsto> v]" by-(rule map_le_antisym)
+  thus "\<exists>v. f = [x \<mapsto> v]" by blast
+qed
 
 end

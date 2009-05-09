@@ -1347,8 +1347,7 @@ lemma list_update_length [simp]:
 by (induct xs, auto)
 
 lemma update_zip:
-  "length xs = length ys ==>
-  (zip xs ys)[i:=xy] = zip (xs[i:=fst xy]) (ys[i:=snd xy])"
+  "(zip xs ys)[i:=xy] = zip (xs[i:=fst xy]) (ys[i:=snd xy])"
 by (induct ys arbitrary: i xy xs) (auto, case_tac xs, auto split: nat.split)
 
 lemma set_update_subset_insert: "set(xs[i:=x]) <= insert x (set xs)"
@@ -1829,6 +1828,10 @@ apply(case_tac ys)
 apply simp_all
 done
 
+text{* Courtesy of Andreas Lochbihler: *}
+lemma zip_same_conv_map: "zip xs xs = map (\<lambda>x. (x, x)) xs"
+by(induct xs) auto
+
 lemma nth_zip [simp]:
 "[| i < length xs; i < length ys|] ==> (zip xs ys)!i = (xs!i, ys!i)"
 apply (induct ys arbitrary: i xs, simp)
@@ -1838,11 +1841,11 @@ done
 
 lemma set_zip:
 "set (zip xs ys) = {(xs!i, ys!i) | i. i < min (length xs) (length ys)}"
-by (simp add: set_conv_nth cong: rev_conj_cong)
+by(simp add: set_conv_nth cong: rev_conj_cong)
 
 lemma zip_update:
-"length xs = length ys ==> zip (xs[i:=x]) (ys[i:=y]) = (zip xs ys)[i:=(x,y)]"
-by (rule sym, simp add: update_zip)
+  "zip (xs[i:=x]) (ys[i:=y]) = (zip xs ys)[i:=(x,y)]"
+by(rule sym, simp add: update_zip)
 
 lemma zip_replicate [simp]:
   "zip (replicate i x) (replicate j y) = replicate (min i j) (x,y)"
@@ -2576,6 +2579,11 @@ lemma append_replicate_commute:
 apply (simp add: replicate_add [THEN sym])
 apply (simp add: add_commute)
 done
+
+text{* Courtesy of Andreas Lochbihler: *}
+lemma filter_replicate:
+  "filter P (replicate n x) = (if P x then replicate n x else [])"
+by(induct n) auto
 
 lemma hd_replicate [simp]: "n \<noteq> 0 ==> hd (replicate n x) = x"
 by (induct n) auto
