@@ -873,7 +873,6 @@ by (insert i_th_stream_take_eq [THEN stream.take_lemmas],blast)
 lemma slen_sconc_finite1:
   "[| #(x ooo y) = Infty; Fin n = #x |] ==> #y = Infty"
 apply (case_tac "#y ~= Infty",auto)
-apply (simp only: slen_infinite [symmetric])
 apply (drule_tac y=y in rt_sconc1)
 apply (insert stream_finite_i_rt [of n "x ooo y"])
 by (simp add: slen_infinite)
@@ -888,16 +887,15 @@ apply (case_tac "#x")
   apply (drule ex_sconc,auto)
  apply (erule contrapos_pp)
  apply (insert stream_finite_i_rt)
- apply (simp add: slen_infinite,auto)
+ apply (fastsimp simp add: slen_infinite,auto)
 by (simp add: sconc_def)
 
 lemma sconc_finite: "(#x~=Infty & #y~=Infty) = (#(x ooo y)~=Infty)"
 apply auto
-  apply (case_tac "#x",auto)
-  apply (erule contrapos_pp,simp)
-  apply (erule slen_sconc_finite1,simp)
- apply (drule slen_sconc_infinite1 [of _ y],simp)
-by (drule slen_sconc_infinite2 [of _ x],simp)
+  apply (metis not_Infty_eq slen_sconc_finite1)
+ apply (metis not_Infty_eq slen_sconc_infinite1)
+apply (metis not_Infty_eq slen_sconc_infinite2)
+done
 
 (* ----------------------------------------------------------------------- *)
 
