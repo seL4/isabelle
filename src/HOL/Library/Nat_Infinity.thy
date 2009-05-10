@@ -24,7 +24,10 @@ notation (HTML output)
   Infty  ("\<infinity>")
 
 
-lemma not_Infty_eq[simp]: "(x ~= Infty) = (EX i. x = Fin i)"
+lemma not_Infty_eq[iff]: "(x ~= Infty) = (EX i. x = Fin i)"
+by (cases x) auto
+
+lemma not_Fin_eq [iff]: "(ALL y. x ~= Fin y) = (x = Infty)"
 by (cases x) auto
 
 

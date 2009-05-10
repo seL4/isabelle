@@ -50,11 +50,7 @@ apply ( rule slen_strict_mono)
 apply (   erule spec)
 apply (  assumption)
 apply ( assumption)
-apply (drule not_ex [THEN iffD1])
-apply (subst slen_infinite)
-apply (erule thin_rl)
-apply (erule_tac x = j in allE)
-apply auto
+apply (metis inat_ord_code(4) slen_infinite)
 done
 
 (* should be without reference to stream length? *)
