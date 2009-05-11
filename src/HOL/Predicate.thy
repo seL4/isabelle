@@ -669,7 +669,7 @@ code_type pred and seq
 code_const Seq and Empty and Insert and Join
   (Eval "Predicate.Seq" and "Predicate.Empty" and "Predicate.Insert/ (_,/ _)" and "Predicate.Join/ (_,/ _)")
 
-text {* dummy setup for code_pred keyword *}
+text {* dummy setup for @{text code_pred} keyword *}
 
 ML {*
 OuterSyntax.local_theory_to_proof "code_pred" "sets up goal for cases rule from given introduction rules and compiles predicate"
