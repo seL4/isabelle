@@ -574,14 +574,22 @@ text {*
   fixed-point definitions of mutually recursive functions.
 *}
 
-lemma cpair_equalI: "\<lbrakk>x \<equiv> cfst\<cdot>p; y \<equiv> csnd\<cdot>p\<rbrakk> \<Longrightarrow> <x,y> \<equiv> p"
-by (simp add: surjective_pairing_Cprod2)
-
-lemma cpair_eqD1: "<x,y> = <x',y'> \<Longrightarrow> x = x'"
+lemma Pair_equalI: "\<lbrakk>x \<equiv> fst p; y \<equiv> snd p\<rbrakk> \<Longrightarrow> (x, y) \<equiv> p"
 by simp
 
-lemma cpair_eqD2: "<x,y> = <x',y'> \<Longrightarrow> y = y'"
+lemma Pair_eqD1: "(x, y) = (x', y') \<Longrightarrow> x = x'"
 by simp
+
+lemma Pair_eqD2: "(x, y) = (x', y') \<Longrightarrow> y = y'"
+by simp
+
+lemma def_cont_fix_eq:
+  "\<lbrakk>f \<equiv> fix\<cdot>(Abs_CFun F); cont F\<rbrakk> \<Longrightarrow> f = F f"
+by (simp, subst fix_eq, simp)
+
+lemma def_cont_fix_ind:
+  "\<lbrakk>f \<equiv> fix\<cdot>(Abs_CFun F); cont F; adm P; P \<bottom>; \<And>x. P x \<Longrightarrow> P (F x)\<rbrakk> \<Longrightarrow> P f"
+by (simp add: fix_ind)
 
 text {* lemma for proving rewrite rules *}
 
