@@ -6,12 +6,6 @@ Basic notions of code generation.  Auxiliary.
 
 signature CODE_UNIT =
 sig
-  (*generic non-sense*)
-  val bad_thm: string -> 'a
-  val error_thm: ('a -> 'b) -> 'a -> 'b
-  val warning_thm: ('a -> 'b) -> 'a -> 'b option
-  val try_thm: ('a -> 'b) -> 'a -> 'b option
-
   (*typ instantiations*)
   val typscheme: theory -> string * typ -> (string * sort) list * typ
   val inst_thm: theory -> sort Vartab.table -> thm -> thm
@@ -35,12 +29,12 @@ sig
     -> string * ((string * sort) list * (string * typ list) list)
 
   (*code equations*)
-  val assert_eqn: theory -> thm -> thm
-  val mk_eqn: theory -> thm -> thm * bool
-  val assert_linear: (string -> bool) -> thm * bool -> thm * bool
-  val const_eqn: thm -> string
-  val const_typ_eqn: thm -> string * typ
-  val head_eqn: theory -> thm -> string * ((string * sort) list * typ)
+  val mk_eqn: theory -> (string -> bool) -> thm * bool -> thm * bool
+  val mk_eqn_liberal: theory -> (string -> bool) -> thm -> (thm * bool) option
+  val assert_eqn: theory -> (string -> bool) -> thm * bool -> thm * bool
+  val const_eqn: theory -> thm -> string
+    val const_typ_eqn: thm -> string * typ
+  val typscheme_eqn: theory -> thm -> (string * sort) list * typ
   val expand_eta: theory -> int -> thm -> thm
   val rewrite_eqn: simpset -> thm -> thm
   val rewrite_head: thm list -> thm -> thm
@@ -56,13 +50,6 @@ struct
 
 
 (* auxiliary *)
-
-exception BAD_THM of string;
-fun bad_thm msg = raise BAD_THM msg;
-fun error_thm f thm = f thm handle BAD_THM msg => error msg;
-fun warning_thm f thm = SOME (f thm) handle BAD_THM msg
-  => (warning ("code generator: " ^ msg); NONE);
-fun try_thm f thm = SOME (f thm) handle BAD_THM _ => NONE;
 
 fun string_of_typ thy = setmp show_sorts true (Syntax.string_of_typ_global thy);
 fun string_of_const thy c = case AxClass.inst_of_param thy c
@@ -323,85 +310,96 @@ fun constrset_of_consts thy cs =
 
 (* code equations *)
 
-fun assert_eqn thy thm =
+exception BAD_THM of string;
+fun bad_thm msg = raise BAD_THM msg;
+fun error_thm f thm = f thm handle BAD_THM msg => error msg;
+fun try_thm f thm = SOME (f thm) handle BAD_THM _ => NONE;
+
+fun is_linear thm =
+  let val (_, args) = (strip_comb o fst o Logic.dest_equals o Thm.plain_prop_of) thm
+  in not (has_duplicates (op =) ((fold o fold_aterms)
+    (fn Var (v, _) => cons v | _ => I) args [])) end;
+
+fun gen_assert_eqn thy is_constr_head is_constr_pat (thm, proper) =
   let
     val (lhs, rhs) = (Logic.dest_equals o Thm.plain_prop_of) thm
       handle TERM _ => bad_thm ("Not an equation: " ^ Display.string_of_thm thm)
-          | THM _ => bad_thm ("Not an equation: " ^ Display.string_of_thm thm);
+           | THM _ => bad_thm ("Not an equation: " ^ Display.string_of_thm thm);
     fun vars_of t = fold_aterms (fn Var (v, _) => insert (op =) v
-      | Free _ => bad_thm ("Illegal free variable in rewrite theorem\n"
+      | Free _ => bad_thm ("Illegal free variable in equation\n"
           ^ Display.string_of_thm thm)
       | _ => I) t [];
     fun tvars_of t = fold_term_types (fn _ =>
       fold_atyps (fn TVar (v, _) => insert (op =) v
         | TFree _ => bad_thm 
-      ("Illegal free type variable in rewrite theorem\n" ^ Display.string_of_thm thm))) t [];
+      ("Illegal free type variable in equation\n" ^ Display.string_of_thm thm))) t [];
     val lhs_vs = vars_of lhs;
     val rhs_vs = vars_of rhs;
     val lhs_tvs = tvars_of lhs;
     val rhs_tvs = tvars_of rhs;
     val _ = if null (subtract (op =) lhs_vs rhs_vs)
       then ()
-      else bad_thm ("Free variables on right hand side of rewrite theorem\n"
+      else bad_thm ("Free variables on right hand side of equation\n"
         ^ Display.string_of_thm thm);
     val _ = if null (subtract (op =) lhs_tvs rhs_tvs)
       then ()
-      else bad_thm ("Free type variables on right hand side of rewrite theorem\n"
+      else bad_thm ("Free type variables on right hand side of equation\n"
         ^ Display.string_of_thm thm)    val (head, args) = (strip_comb o fst o Logic.dest_equals o Thm.plain_prop_of) thm;
-    val (c, ty) = case head of Const c_ty => c_ty | _ =>
-      bad_thm ("Equation not headed by constant\n" ^ Display.string_of_thm thm);
+    val (c, ty) = case head
+     of Const (c_ty as (_, ty)) => (AxClass.unoverload_const thy c_ty, ty)
+      | _ => bad_thm ("Equation not headed by constant\n" ^ Display.string_of_thm thm);
     fun check _ (Abs _) = bad_thm
           ("Abstraction on left hand side of equation\n"
             ^ Display.string_of_thm thm)
       | check 0 (Var _) = ()
       | check _ (Var _) = bad_thm
-          ("Variable with application on left hand side of code equation\n"
+          ("Variable with application on left hand side of equation\n"
             ^ Display.string_of_thm thm)
       | check n (t1 $ t2) = (check (n+1) t1; check 0 t2)
-      | check n (Const (_, ty)) = if n <> (length o fst o strip_type) ty
-          then bad_thm
-            ("Partially applied constant on left hand side of equation\n"
-               ^ Display.string_of_thm thm)
-          else ();
+      | check n (Const (c_ty as (c, ty))) = if n = (length o fst o strip_type) ty
+          then if not proper orelse is_constr_pat (AxClass.unoverload_const thy c_ty)
+            then ()
+            else bad_thm (quote c ^ " is not a constructor, on left hand side of equation\n"
+              ^ Display.string_of_thm thm)
+          else bad_thm
+            ("Partially applied constant " ^ quote c ^ " on left hand side of equation\n"
+               ^ Display.string_of_thm thm);
     val _ = map (check 0) args;
+    val _ = if not proper orelse is_linear thm then ()
+      else bad_thm ("Duplicate variables on left hand side of equation\n"
+        ^ Display.string_of_thm thm);
+    val _ = if (is_none o AxClass.class_of_param thy) c
+      then ()
+      else bad_thm ("Polymorphic constant as head in equation\n"
+        ^ Display.string_of_thm thm)
+    val _ = if not (is_constr_head c)
+      then ()
+      else bad_thm ("Constructor as head in equation\n"
+        ^ Display.string_of_thm thm)
     val ty_decl = Sign.the_const_type thy c;
     val _ = if Sign.typ_equiv thy (Type.strip_sorts ty_decl, Type.strip_sorts ty)
       then () else bad_thm ("Type\n" ^ string_of_typ thy ty
-           ^ "\nof code equation\n"
+           ^ "\nof equation\n"
            ^ Display.string_of_thm thm
            ^ "\nis incompatible with declared function type\n"
            ^ string_of_typ thy ty_decl)
-  in thm end;
+  in (thm, proper) end;
 
-fun add_linear thm =
-  let
-    val (_, args) = (strip_comb o fst o Logic.dest_equals o Thm.plain_prop_of) thm;
-    val linear = not (has_duplicates (op =)
-      ((fold o fold_aterms) (fn Var (v, _) => cons v | _ => I) args []))
-  in (thm, linear) end;
-
-fun assert_pat is_cons thm =
-  let
-    val args = (snd o strip_comb o fst o Logic.dest_equals o Thm.plain_prop_of) thm;
-    val _ = (map o map_aterms) (fn t as Const (c, _) => if is_cons c then t
-          else bad_thm ("Not a constructor on left hand side of equation: "
-            ^ quote c ^ ",\n in equation\n" ^ Display.string_of_thm thm)
-      | t => t) args;
-  in thm end;
-
-fun assert_linear is_cons (thm, false) = (thm, false)
-  | assert_linear is_cons (thm, true) = if snd (add_linear (assert_pat is_cons thm)) then (thm, true)
-      else bad_thm
-        ("Duplicate variables on left hand side of code equation:\n"
-          ^ Display.string_of_thm thm);
-
-
-fun mk_eqn thy = add_linear o assert_eqn thy o AxClass.unoverload thy
-  o LocalDefs.meta_rewrite_rule (ProofContext.init thy);
+fun assert_eqn thy is_constr = error_thm (gen_assert_eqn thy is_constr is_constr);
 
 val const_typ_eqn = dest_Const o fst o strip_comb o fst o Logic.dest_equals o Thm.plain_prop_of;
-val const_eqn = fst o const_typ_eqn;
-fun head_eqn thy thm = let val (c, ty) = const_typ_eqn thm in (c, typscheme thy (c, ty)) end;
+
+fun typscheme_eqn thy = typscheme thy o const_typ_eqn;
+
+(*these are permissive wrt. to overloaded constants!*)
+fun mk_eqn thy is_constr_head = error_thm (gen_assert_eqn thy is_constr_head (K true)) o
+  apfst (LocalDefs.meta_rewrite_rule (ProofContext.init thy));
+
+fun mk_eqn_liberal thy is_constr_head = Option.map (fn (thm, _) => (thm, is_linear thm))
+  o try_thm (gen_assert_eqn thy is_constr_head (K true))
+  o rpair false o LocalDefs.meta_rewrite_rule (ProofContext.init thy);
+
+fun const_eqn thy = AxClass.unoverload_const thy o const_typ_eqn;
 
 
 (* case cerificates *)

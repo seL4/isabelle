@@ -150,7 +150,7 @@ fun add_typecopy_default_code tyco thy =
                 THEN ALLGOALS (rtac @{thm refl})) def_thm)
     |-> (fn def_thm => Code.add_eqn def_thm)
     |> `(fn thy => mk_eq_refl thy)
-    |-> (fn refl_thm => Code.add_nonlinear_eqn refl_thm)
+    |-> (fn refl_thm => Code.add_nbe_eqn refl_thm)
   end;
 
 val setup =
