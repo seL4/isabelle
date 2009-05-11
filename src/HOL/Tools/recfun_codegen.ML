@@ -25,13 +25,13 @@ structure ModuleData = TheoryDataFun
 
 fun add_thm NONE thm thy = Code.add_eqn thm thy
   | add_thm (SOME module_name) thm thy =
-      case Code_Unit.warning_thm (Code_Unit.mk_eqn thy) thm
-       of SOME (thm', _) => let val c = Code_Unit.const_eqn thy thm'
-            in thy
-              |> ModuleData.map (Symtab.update (c, module_name))
-              |> Code.add_eqn thm'
-            end
-        | NONE => Code.add_eqn thm thy;
+      let
+        val (thm', _) = Code_Unit.mk_eqn thy (K false) (thm, true)
+      in
+        thy
+        |> ModuleData.map (Symtab.update (Code_Unit.const_eqn thy thm', module_name))
+        |> Code.add_eqn thm'
+      end;
 
 fun meta_eq_to_obj_eq thy thm =
   let

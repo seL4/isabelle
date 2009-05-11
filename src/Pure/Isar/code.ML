@@ -20,6 +20,8 @@ sig
   val add_inline: thm -> theory -> theory
   val add_functrans: string * (theory -> (thm * bool) list -> (thm * bool) list option) -> theory -> theory
   val del_functrans: string -> theory -> theory
+  val simple_functrans: (theory -> thm list -> thm list option)
+    -> theory -> (thm * bool) list -> (thm * bool) list option
   val add_datatype: (string * typ) list -> theory -> theory
   val add_datatype_cmd: string list -> theory -> theory
   val type_interpretation:
@@ -456,16 +458,6 @@ fun common_typ_eqns thy [] = []
           cons (Thm.ctyp_of thy (TVar (x_i, sort)), Thm.ctyp_of thy ty)) env [];
       in map (Thm.instantiate (instT, [])) thms' end;
 
-fun check_proper (eqn as (thm, proper)) =
-  if proper then eqn else Code_Unit.bad_thm
-    ("Duplicate variables on left hand side of code equation:\n"
-      ^ Display.string_of_thm thm);
-
-fun mk_eqn thy proper =
-  Code_Unit.error_thm ((if proper then check_proper else I) o Code_Unit.mk_eqn thy);
-fun mk_syntactic_eqn thy = Code_Unit.warning_thm (Code_Unit.mk_eqn thy);
-fun mk_default_eqn thy = Code_Unit.try_thm (check_proper o Code_Unit.mk_eqn thy);
-
 
 (** interfaces and attributes **)
 
@@ -489,50 +481,44 @@ fun get_datatype_of_constr thy c =
 
 fun is_constr thy = is_some o get_datatype_of_constr thy;
 
-fun recheck_eqn thy = Code_Unit.error_thm
-  (Code_Unit.assert_linear (is_constr thy) o apfst (Code_Unit.assert_eqn thy));
+fun assert_eqn thy = Code_Unit.assert_eqn thy (is_constr thy);
 
-fun recheck_eqns_const thy c eqns =
+fun assert_eqns_const thy c eqns =
   let
     fun cert (eqn as (thm, _)) = if c = Code_Unit.const_eqn thy thm
       then eqn else error ("Wrong head of code equation,\nexpected constant "
         ^ Code_Unit.string_of_const thy c ^ "\n" ^ Display.string_of_thm thm)
-  in map (cert o recheck_eqn thy) eqns end;
+  in map (cert o assert_eqn thy) eqns end;
 
 fun change_eqns delete c f = (map_exec_purge (SOME [c]) o map_eqns
   o (if delete then Symtab.map_entry c else Symtab.map_default (c, ((false, (true, Lazy.value [])), [])))
     o apfst) (fn (_, eqns) => (true, f eqns));
 
-fun gen_add_eqn proper default thm thy =
-  case (if default then mk_default_eqn thy else SOME o mk_eqn thy proper) thm
-   of SOME (thm, _) =>
-        let
-          val c = Code_Unit.const_eqn thy thm;
-          val _ = if not default andalso (is_some o AxClass.class_of_param thy) c
-            then error ("Rejected polymorphic code equation for overloaded constant:\n"
-              ^ Display.string_of_thm thm)
-            else ();
-          val _ = if not default andalso is_constr thy c
-            then error ("Rejected code equation for datatype constructor:\n"
-              ^ Display.string_of_thm thm)
-            else ();
-        in change_eqns false c (add_thm thy default (thm, proper)) thy end
+fun gen_add_eqn default (eqn as (thm, _)) thy =
+  let val c = Code_Unit.const_eqn thy thm
+  in change_eqns false c (add_thm thy default eqn) thy end;
+
+fun add_eqn thm thy =
+  gen_add_eqn false (Code_Unit.mk_eqn thy (is_constr thy) (thm, true)) thy;
+
+fun add_default_eqn thm thy =
+  case Code_Unit.mk_eqn_liberal thy (is_constr thy) thm
+   of SOME eqn => gen_add_eqn true eqn thy
     | NONE => thy;
 
-val add_eqn = gen_add_eqn true false;
-val add_default_eqn = gen_add_eqn true true;
-val add_nbe_eqn = gen_add_eqn false false;
+fun add_nbe_eqn thm thy =
+  gen_add_eqn false (Code_Unit.mk_eqn thy (is_constr thy) (thm, false)) thy;
 
 fun add_eqnl (c, lthms) thy =
   let
-    val lthms' = certificate thy (fn thy => recheck_eqns_const thy c) lthms;
+    val lthms' = certificate thy (fn thy => assert_eqns_const thy c) lthms;
   in change_eqns false c (add_lthms lthms') thy end;
 
 val add_default_eqn_attribute = Thm.declaration_attribute
   (fn thm => Context.mapping (add_default_eqn thm) I);
 val add_default_eqn_attrib = Attrib.internal (K add_default_eqn_attribute);
 
-fun del_eqn thm thy = case mk_syntactic_eqn thy thm
+fun del_eqn thm thy = case Code_Unit.mk_eqn_liberal thy (is_constr thy) thm
  of SOME (thm, _) => change_eqns true (Code_Unit.const_eqn thy thm) (del_thm thm) thy
   | NONE => thy;
 
@@ -598,6 +584,10 @@ fun del_functrans name =
   (map_exec_purge NONE o map_thmproc o apsnd)
     (delete_force "function transformer" name);
 
+fun simple_functrans f thy eqns = case f thy (map fst eqns)
+ of SOME thms' => SOME (map (rpair (forall snd eqns)) thms')
+  | NONE => NONE;
+
 val _ = Context.>> (Context.map_theory
   (let
     fun mk_attribute f = Thm.declaration_attribute (fn thm => Context.mapping (f thm) I);
@@ -623,7 +613,7 @@ fun apply_functrans thy c _ [] = []
   | apply_functrans thy c [] eqns = eqns
   | apply_functrans thy c functrans eqns = eqns
       |> perhaps (perhaps_loop (perhaps_apply functrans))
-      |> recheck_eqns_const thy c;
+      |> assert_eqns_const thy c;
 
 fun rhs_conv conv thm = Thm.transitive thm ((conv o Thm.rhs_of) thm);
 
@@ -644,7 +634,7 @@ fun preprocess thy c eqns =
     |> apply_functrans thy c functrans
     |> (map o apfst) (Code_Unit.rewrite_eqn pre)
     |> (map o apfst) (AxClass.unoverload thy)
-    |> map (recheck_eqn thy)
+    |> map (assert_eqn thy)
     |> burrow_fst (common_typ_eqns thy)
   end;
 
