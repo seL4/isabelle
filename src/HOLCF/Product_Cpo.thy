@@ -78,6 +78,10 @@ lemma monofun_pair:
   "\<lbrakk>x1 \<sqsubseteq> x2; y1 \<sqsubseteq> y2\<rbrakk> \<Longrightarrow> (x1, y1) \<sqsubseteq> (x2, y2)"
 by simp
 
+lemma ch2ch_Pair [simp]:
+  "chain X \<Longrightarrow> chain Y \<Longrightarrow> chain (\<lambda>i. (X i, Y i))"
+by (rule chainI, simp add: chainE)
+
 text {* @{term fst} and @{term snd} are monotone *}
 
 lemma monofun_fst: "monofun fst"
@@ -86,28 +90,47 @@ by (simp add: monofun_def below_prod_def)
 lemma monofun_snd: "monofun snd"
 by (simp add: monofun_def below_prod_def)
 
+lemmas ch2ch_fst [simp] = ch2ch_monofun [OF monofun_fst]
+
+lemmas ch2ch_snd [simp] = ch2ch_monofun [OF monofun_snd]
+
+lemma prod_chain_cases:
+  assumes "chain Y"
+  obtains A B
+  where "chain A" and "chain B" and "Y = (\<lambda>i. (A i, B i))"
+proof
+  from `chain Y` show "chain (\<lambda>i. fst (Y i))" by (rule ch2ch_fst)
+  from `chain Y` show "chain (\<lambda>i. snd (Y i))" by (rule ch2ch_snd)
+  show "Y = (\<lambda>i. (fst (Y i), snd (Y i)))" by simp
+qed
+
 subsection {* Product type is a cpo *}
 
 lemma is_lub_Pair:
-  "\<lbrakk>range X <<| x; range Y <<| y\<rbrakk> \<Longrightarrow> range (\<lambda>i. (X i, Y i)) <<| (x, y)"
+  "\<lbrakk>range A <<| x; range B <<| y\<rbrakk> \<Longrightarrow> range (\<lambda>i. (A i, B i)) <<| (x, y)"
 apply (rule is_lubI [OF ub_rangeI])
-apply (simp add: below_prod_def is_ub_lub)
+apply (simp add: is_ub_lub)
 apply (frule ub2ub_monofun [OF monofun_fst])
 apply (drule ub2ub_monofun [OF monofun_snd])
 apply (simp add: below_prod_def is_lub_lub)
 done
+
+lemma thelub_Pair:
+  "\<lbrakk>chain (A::nat \<Rightarrow> 'a::cpo); chain (B::nat \<Rightarrow> 'b::cpo)\<rbrakk>
+    \<Longrightarrow> (\<Squnion>i. (A i, B i)) = (\<Squnion>i. A i, \<Squnion>i. B i)"
+by (fast intro: thelubI is_lub_Pair elim: thelubE)
 
 lemma lub_cprod:
   fixes S :: "nat \<Rightarrow> ('a::cpo \<times> 'b::cpo)"
   assumes S: "chain S"
   shows "range S <<| (\<Squnion>i. fst (S i), \<Squnion>i. snd (S i))"
 proof -
-  have "chain (\<lambda>i. fst (S i))"
-    using monofun_fst S by (rule ch2ch_monofun)
+  from `chain S` have "chain (\<lambda>i. fst (S i))"
+    by (rule ch2ch_fst)
   hence 1: "range (\<lambda>i. fst (S i)) <<| (\<Squnion>i. fst (S i))"
     by (rule cpo_lubI)
-  have "chain (\<lambda>i. snd (S i))"
-    using monofun_snd S by (rule ch2ch_monofun)
+  from `chain S` have "chain (\<lambda>i. snd (S i))"
+    by (rule ch2ch_snd)
   hence 2: "range (\<lambda>i. snd (S i)) <<| (\<Squnion>i. snd (S i))"
     by (rule cpo_lubI)
   show "range S <<| (\<Squnion>i. fst (S i), \<Squnion>i. snd (S i))"
