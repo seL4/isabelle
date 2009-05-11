@@ -5,7 +5,7 @@
 header {* The type of strict products *}
 
 theory Sprod
-imports Cprod
+imports Bifinite
 begin
 
 defaultsort pcpo
@@ -13,7 +13,7 @@ defaultsort pcpo
 subsection {* Definition of strict product type *}
 
 pcpodef (Sprod)  ('a, 'b) "**" (infixr "**" 20) =
-        "{p::'a \<times> 'b. p = \<bottom> \<or> (cfst\<cdot>p \<noteq> \<bottom> \<and> csnd\<cdot>p \<noteq> \<bottom>)}"
+        "{p::'a \<times> 'b. p = \<bottom> \<or> (fst p \<noteq> \<bottom> \<and> snd p \<noteq> \<bottom>)}"
 by simp_all
 
 instance "**" :: ("{finite_po,pcpo}", "{finite_po,pcpo}") finite_po
@@ -28,23 +28,23 @@ syntax (HTML output)
   "**"		:: "[type, type] => type"	 ("(_ \<otimes>/ _)" [21,20] 20)
 
 lemma spair_lemma:
-  "<strictify\<cdot>(\<Lambda> b. a)\<cdot>b, strictify\<cdot>(\<Lambda> a. b)\<cdot>a> \<in> Sprod"
+  "(strictify\<cdot>(\<Lambda> b. a)\<cdot>b, strictify\<cdot>(\<Lambda> a. b)\<cdot>a) \<in> Sprod"
 by (simp add: Sprod_def strictify_conv_if)
 
 subsection {* Definitions of constants *}
 
 definition
   sfst :: "('a ** 'b) \<rightarrow> 'a" where
-  "sfst = (\<Lambda> p. cfst\<cdot>(Rep_Sprod p))"
+  "sfst = (\<Lambda> p. fst (Rep_Sprod p))"
 
 definition
   ssnd :: "('a ** 'b) \<rightarrow> 'b" where
-  "ssnd = (\<Lambda> p. csnd\<cdot>(Rep_Sprod p))"
+  "ssnd = (\<Lambda> p. snd (Rep_Sprod p))"
 
 definition
   spair :: "'a \<rightarrow> 'b \<rightarrow> ('a ** 'b)" where
   "spair = (\<Lambda> a b. Abs_Sprod
-             <strictify\<cdot>(\<Lambda> b. a)\<cdot>b, strictify\<cdot>(\<Lambda> a. b)\<cdot>a>)"
+             (strictify\<cdot>(\<Lambda> b. a)\<cdot>b, strictify\<cdot>(\<Lambda> a. b)\<cdot>a))"
 
 definition
   ssplit :: "('a \<rightarrow> 'b \<rightarrow> 'c) \<rightarrow> ('a ** 'b) \<rightarrow> 'c" where
@@ -62,7 +62,7 @@ translations
 subsection {* Case analysis *}
 
 lemma Rep_Sprod_spair:
-  "Rep_Sprod (:a, b:) = <strictify\<cdot>(\<Lambda> b. a)\<cdot>b, strictify\<cdot>(\<Lambda> a. b)\<cdot>a>"
+  "Rep_Sprod (:a, b:) = (strictify\<cdot>(\<Lambda> b. a)\<cdot>b, strictify\<cdot>(\<Lambda> a. b)\<cdot>a)"
 unfolding spair_def
 by (simp add: cont_Abs_Sprod Abs_Sprod_inverse spair_lemma)
 
@@ -73,7 +73,7 @@ lemmas Rep_Sprod_simps =
 lemma Exh_Sprod:
   "z = \<bottom> \<or> (\<exists>a b. z = (:a, b:) \<and> a \<noteq> \<bottom> \<and> b \<noteq> \<bottom>)"
 apply (insert Rep_Sprod [of z])
-apply (simp add: Rep_Sprod_simps eq_cprod)
+apply (simp add: Rep_Sprod_simps Pair_fst_snd_eq)
 apply (simp add: Sprod_def)
 apply (erule disjE, simp)
 apply (simp add: strictify_conv_if)
@@ -162,7 +162,7 @@ by (cases p, simp_all)
 
 lemma below_sprod: "x \<sqsubseteq> y = (sfst\<cdot>x \<sqsubseteq> sfst\<cdot>y \<and> ssnd\<cdot>x \<sqsubseteq> ssnd\<cdot>y)"
 apply (simp add: below_Sprod_def sfst_def ssnd_def cont_Rep_Sprod)
-apply (rule below_cprod)
+apply (simp only: below_prod_def)
 done
 
 lemma eq_sprod: "(x = y) = (sfst\<cdot>x = sfst\<cdot>y \<and> ssnd\<cdot>x = ssnd\<cdot>y)"
