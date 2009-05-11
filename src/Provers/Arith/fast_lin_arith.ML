@@ -56,7 +56,7 @@ sig
 
   (*preprocessing, performed on the goal -- must do the same as 'pre_decomp':*)
   val pre_tac: Proof.context -> int -> tactic
-  val number_of: int * typ -> term
+  val mk_number: typ -> int -> term
 
   (*the limit on the number of ~= allowed; because each ~= is split
     into two cases, this can lead to an explosion*)
@@ -86,6 +86,9 @@ ss must reduce contradictory <= to False.
 
 signature FAST_LIN_ARITH =
 sig
+  val cut_lin_arith_tac: simpset -> int -> tactic
+  val lin_arith_tac: Proof.context -> bool -> int -> tactic
+  val lin_arith_simproc: simpset -> term -> thm option
   val map_data: ({add_mono_thms: thm list, mult_mono_thms: thm list, inj_thms: thm list,
                  lessD: thm list, neqE: thm list, simpset: Simplifier.simpset}
                  -> {add_mono_thms: thm list, mult_mono_thms: thm list, inj_thms: thm list,
@@ -93,9 +96,6 @@ sig
                 -> Context.generic -> Context.generic
   val trace: bool ref
   val warning_count: int ref;
-  val cut_lin_arith_tac: simpset -> int -> tactic
-  val lin_arith_tac: Proof.context -> bool -> int -> tactic
-  val lin_arith_simproc: simpset -> term -> thm option
 end;
 
 functor Fast_Lin_Arith
@@ -429,7 +429,7 @@ val union_bterm = curry (gen_union
 
 (* FIXME OPTIMIZE!!!! (partly done already)
    Addition/Multiplication need i*t representation rather than t+t+...
-   Get rid of Mulitplied(2). For Nat LA_Data.number_of should return Suc^n
+   Get rid of Mulitplied(2). For Nat LA_Data.mk_number should return Suc^n
    because Numerals are not known early enough.
 
 Simplification may detect a contradiction 'prematurely' due to type
@@ -480,7 +480,7 @@ fun mkthm ss asms (just: injust) =
               get_first (fn th => SOME(thm RS th) handle THM _ => NONE) mult_mono_thms
             fun cvar(th,_ $ (_ $ _ $ var)) = cterm_of (Thm.theory_of_thm th) var;
             val cv = cvar(mth, hd(prems_of mth));
-            val ct = cterm_of thy (LA_Data.number_of(n,#T(rep_cterm cv)))
+            val ct = cterm_of thy (LA_Data.mk_number (#T (rep_cterm cv)) n)
         in instantiate ([],[(cv,ct)]) mth end
 
       fun simp thm =
