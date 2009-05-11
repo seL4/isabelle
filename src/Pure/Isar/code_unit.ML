@@ -38,9 +38,9 @@ sig
   val assert_eqn: theory -> thm -> thm
   val mk_eqn: theory -> thm -> thm * bool
   val assert_linear: (string -> bool) -> thm * bool -> thm * bool
-  val const_eqn: thm -> string
+  val const_eqn: theory -> thm -> string
   val const_typ_eqn: thm -> string * typ
-  val head_eqn: theory -> thm -> string * ((string * sort) list * typ)
+  val typscheme_eqn: theory -> thm -> (string * sort) list * typ
   val expand_eta: theory -> int -> thm -> thm
   val rewrite_eqn: simpset -> thm -> thm
   val rewrite_head: thm list -> thm -> thm
@@ -390,18 +390,19 @@ fun assert_pat is_cons thm =
   in thm end;
 
 fun assert_linear is_cons (thm, false) = (thm, false)
-  | assert_linear is_cons (thm, true) = if snd (add_linear (assert_pat is_cons thm)) then (thm, true)
+  | assert_linear is_cons (thm, true) = if snd (add_linear (assert_pat is_cons thm))
+      then (thm, true)
       else bad_thm
         ("Duplicate variables on left hand side of code equation:\n"
           ^ Display.string_of_thm thm);
 
-
-fun mk_eqn thy = add_linear o assert_eqn thy o AxClass.unoverload thy
-  o LocalDefs.meta_rewrite_rule (ProofContext.init thy);
-
 val const_typ_eqn = dest_Const o fst o strip_comb o fst o Logic.dest_equals o Thm.plain_prop_of;
-val const_eqn = fst o const_typ_eqn;
-fun head_eqn thy thm = let val (c, ty) = const_typ_eqn thm in (c, typscheme thy (c, ty)) end;
+
+fun typscheme_eqn thy = typscheme thy o const_typ_eqn;
+
+(*permissive wrt. to overloaded constants!*)
+fun mk_eqn thy = add_linear o assert_eqn thy o LocalDefs.meta_rewrite_rule (ProofContext.init thy);
+fun const_eqn thy = AxClass.unoverload_const thy o const_typ_eqn;
 
 
 (* case cerificates *)

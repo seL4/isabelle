@@ -64,7 +64,7 @@ fun consts_of thy eqns = [] |> (fold o fold o fold_aterms)
 fun tyscm_rhss_of thy c eqns =
   let
     val tyscm = case eqns of [] => Code.default_typscheme thy c
-      | ((thm, _) :: _) => (snd o Code_Unit.head_eqn thy) thm;
+      | ((thm, _) :: _) => Code_Unit.typscheme_eqn thy thm;
     val rhss = consts_of thy eqns;
   in (tyscm, rhss) end;
 
