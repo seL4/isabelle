@@ -356,16 +356,15 @@ fun gen_assert_eqn thy is_constr_head is_constr_pat (thm, proper) =
           ("Variable with application on left hand side of equation\n"
             ^ Display.string_of_thm thm)
       | check n (t1 $ t2) = (check (n+1) t1; check 0 t2)
-      | check n (Const (_, ty)) = if n <> (length o fst o strip_type) ty
-          then bad_thm
-            ("Partially applied constant on left hand side of equation\n"
-               ^ Display.string_of_thm thm)
-          else ();
+      | check n (Const (c_ty as (c, ty))) = if n = (length o fst o strip_type) ty
+          then if not proper orelse is_constr_pat (AxClass.unoverload_const thy c_ty)
+            then ()
+            else bad_thm (quote c ^ " is not a constructor, on left hand side of equation\n"
+              ^ Display.string_of_thm thm)
+          else bad_thm
+            ("Partially applied constant " ^ quote c ^ " on left hand side of equation\n"
+               ^ Display.string_of_thm thm);
     val _ = map (check 0) args;
-    val _ = (map o map_aterms) (fn t as Const (c, _) => if is_constr_pat c then t
-          else bad_thm (quote c ^ "is not a constructor, on left hand side of equation\n"
-            ^ Display.string_of_thm thm)
-      | t => t) args;
     val _ = if not proper orelse is_linear thm then ()
       else bad_thm ("Duplicate variables on left hand side of equation\n"
         ^ Display.string_of_thm thm);
@@ -386,7 +385,7 @@ fun gen_assert_eqn thy is_constr_head is_constr_pat (thm, proper) =
            ^ string_of_typ thy ty_decl)
   in (thm, proper) end;
 
-fun assert_eqn thy is_constr = gen_assert_eqn thy is_constr is_constr;
+fun assert_eqn thy is_constr = error_thm (gen_assert_eqn thy is_constr is_constr);
 
 val const_typ_eqn = dest_Const o fst o strip_comb o fst o Logic.dest_equals o Thm.plain_prop_of;
 
