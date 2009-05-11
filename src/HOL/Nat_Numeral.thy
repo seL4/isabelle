@@ -874,33 +874,21 @@ subsection {* Simprocs for the Naturals *}
 
 use "Tools/nat_numeral_simprocs.ML"
 
-declaration {*
-let
-
-val less_eq_rules = @{thms ring_distribs} @
-  [@{thm Let_number_of}, @{thm Let_0}, @{thm Let_1}, @{thm nat_0}, @{thm nat_1},
-   @{thm add_nat_number_of}, @{thm diff_nat_number_of}, @{thm mult_nat_number_of},
-   @{thm eq_nat_number_of}, @{thm less_nat_number_of}, @{thm le_number_of_eq_not_less},
-   @{thm le_Suc_number_of}, @{thm le_number_of_Suc},
-   @{thm less_Suc_number_of}, @{thm less_number_of_Suc},
-   @{thm Suc_eq_number_of}, @{thm eq_number_of_Suc},
-   @{thm mult_Suc}, @{thm mult_Suc_right},
-   @{thm add_Suc}, @{thm add_Suc_right},
-   @{thm eq_number_of_0}, @{thm eq_0_number_of}, @{thm less_0_number_of},
-   @{thm of_int_number_of_eq}, @{thm of_nat_number_of_eq}, @{thm nat_number_of}, @{thm if_True}, @{thm if_False}];
-
-val simprocs = Nat_Numeral_Simprocs.combine_numerals :: Nat_Numeral_Simprocs.cancel_numerals;
-
-in
-
-K (Lin_Arith.map_data (fn {add_mono_thms, mult_mono_thms, inj_thms, lessD, neqE, simpset} =>
-  {add_mono_thms = add_mono_thms, mult_mono_thms = mult_mono_thms,
-    inj_thms = inj_thms, lessD = lessD, neqE = neqE,
-    simpset = simpset addsimps (@{thms neg_simps} @ [@{thm Suc_nat_number_of}, @{thm int_nat_number_of}])
-      addsimps less_eq_rules
-      addsimprocs simprocs}))
-
-end
+declaration {* 
+  K (Lin_Arith.add_simps (@{thms neg_simps} @ [@{thm Suc_nat_number_of}, @{thm int_nat_number_of}])
+  #> Lin_Arith.add_simps (@{thms ring_distribs} @ [@{thm Let_number_of}, @{thm Let_0}, @{thm Let_1},
+     @{thm nat_0}, @{thm nat_1},
+     @{thm add_nat_number_of}, @{thm diff_nat_number_of}, @{thm mult_nat_number_of},
+     @{thm eq_nat_number_of}, @{thm less_nat_number_of}, @{thm le_number_of_eq_not_less},
+     @{thm le_Suc_number_of}, @{thm le_number_of_Suc},
+     @{thm less_Suc_number_of}, @{thm less_number_of_Suc},
+     @{thm Suc_eq_number_of}, @{thm eq_number_of_Suc},
+     @{thm mult_Suc}, @{thm mult_Suc_right},
+     @{thm add_Suc}, @{thm add_Suc_right},
+     @{thm eq_number_of_0}, @{thm eq_0_number_of}, @{thm less_0_number_of},
+     @{thm of_int_number_of_eq}, @{thm of_nat_number_of_eq}, @{thm nat_number_of},
+     @{thm if_True}, @{thm if_False}])
+  #> Lin_Arith.add_simprocs (Nat_Numeral_Simprocs.combine_numerals :: Nat_Numeral_Simprocs.cancel_numerals))
 *}
 
 

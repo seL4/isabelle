@@ -1410,6 +1410,7 @@ use "Tools/nat_arith.ML"
 declaration {* K Nat_Arith.setup *}
 
 use "Tools/lin_arith.ML"
+setup {* Lin_Arith.global_setup *}
 declaration {* K Lin_Arith.setup *}
 
 lemmas [arith_split] = nat_diff_split split_min split_max
