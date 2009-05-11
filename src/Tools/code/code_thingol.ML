@@ -591,14 +591,14 @@ and translate_term thy algbr funcgr thm (Const (c, ty)) =
             translate_term thy algbr funcgr thm t'
             ##>> fold_map (translate_term thy algbr funcgr thm) ts
             #>> (fn (t, ts) => t `$$ ts)
-and translate_eq thy algbr funcgr (thm, linear) =
+and translate_eq thy algbr funcgr (thm, proper) =
   let
     val (args, rhs) = (apfst (snd o strip_comb) o Logic.dest_equals
       o Logic.unvarify o prop_of) thm;
   in
     fold_map (translate_term thy algbr funcgr (SOME thm)) args
     ##>> translate_term thy algbr funcgr (SOME thm) rhs
-    #>> rpair (thm, linear)
+    #>> rpair (thm, proper)
   end
 and translate_const thy algbr funcgr thm (c, ty) =
   let
