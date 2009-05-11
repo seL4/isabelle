@@ -14,7 +14,6 @@ sig
   val strip_intro_concl : term -> int -> (term * (term list * term list))
   val code_ind_intros_attrib : attribute
   val code_ind_cases_attrib : attribute
-  val print_alternative_rules : theory -> theory
   val modename_of: theory -> string -> mode -> string
   val modes_of: theory -> string -> mode list
   val setup : theory -> theory
