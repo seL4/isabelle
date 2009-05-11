@@ -26,7 +26,7 @@ structure ModuleData = TheoryDataFun
 fun add_thm NONE thm thy = Code.add_eqn thm thy
   | add_thm (SOME module_name) thm thy =
       case Code_Unit.warning_thm (Code_Unit.mk_eqn thy) thm
-       of SOME (thm', _) => let val c = Code_Unit.const_eqn thm'
+       of SOME (thm', _) => let val c = Code_Unit.const_eqn thy thm'
             in thy
               |> ModuleData.map (Symtab.update (c, module_name))
               |> Code.add_eqn thm'
@@ -57,7 +57,6 @@ fun retrieve_equations thy (c, T) = if c = @{const_name "op ="} then NONE else
     val thms = Code.these_raw_eqns thy c'
       |> map_filter (fn (thm, linear) => if linear then SOME thm else NONE)
       |> expand_eta thy
-      |> map (AxClass.overload thy)
       |> map_filter (meta_eq_to_obj_eq thy)
       |> Code_Unit.norm_varnames thy
       |> map (rpair opt_name)
