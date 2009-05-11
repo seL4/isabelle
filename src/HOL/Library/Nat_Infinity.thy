@@ -268,9 +268,6 @@ instance by default
 
 end
 
-instance inat :: linorder
-by intro_classes (auto simp add: less_eq_inat_def split: inat.splits)
-
 instance inat :: pordered_comm_semiring
 proof
   fix a b c :: inat
@@ -422,9 +419,5 @@ lemmas inat_defs = zero_inat_def one_inat_def number_of_inat_def iSuc_def
   plus_inat_def less_eq_inat_def less_inat_def
 
 lemmas inat_splits = inat.splits
-
-
-instance inat :: linorder
-by intro_classes (auto simp add: inat_defs split: inat.splits)
 
 end
