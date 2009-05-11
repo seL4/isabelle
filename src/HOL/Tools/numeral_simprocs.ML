@@ -516,7 +516,7 @@ fun sign_conv pos_th neg_th ss t =
       val less = Const(@{const_name HOL.less}, [T,T] ---> HOLogic.boolT);
       val pos = less $ zero $ t and neg = less $ t $ zero
       fun prove p =
-        Option.map Eq_True_elim (Lin_Arith.lin_arith_simproc ss p)
+        Option.map Eq_True_elim (Lin_Arith.simproc ss p)
         handle THM _ => NONE
     in case prove pos of
          SOME th => SOME(th RS pos_th)

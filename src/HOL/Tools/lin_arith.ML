@@ -4,19 +4,12 @@
 HOL setup for linear arithmetic (see Provers/Arith/fast_lin_arith.ML).
 *)
 
-signature BASIC_LIN_ARITH =
-sig
-  val lin_arith_simproc: simpset -> term -> thm option
-  val fast_nat_arith_simproc: simproc
-  val fast_arith_tac: Proof.context -> int -> tactic
-  val fast_ex_arith_tac: Proof.context -> bool -> int -> tactic
-  val linear_arith_tac: Proof.context -> int -> tactic
-end;
-
 signature LIN_ARITH =
 sig
-  include BASIC_LIN_ARITH
   val pre_tac: Proof.context -> int -> tactic
+  val simple_tac: Proof.context -> int -> tactic
+  val tac: Proof.context -> int -> tactic
+  val simproc: simpset -> term -> thm option
   val add_inj_thms: thm list -> Context.generic -> Context.generic
   val add_lessD: thm -> Context.generic -> Context.generic
   val add_simps: thm list -> Context.generic -> Context.generic
@@ -240,15 +233,12 @@ in
 end handle Rat.DIVZERO => NONE;
 
 fun of_lin_arith_sort thy U =
-  Sign.of_sort thy (U, ["Ring_and_Field.ordered_idom"]);
+  Sign.of_sort thy (U, @{sort Ring_and_Field.ordered_idom});
 
-fun allows_lin_arith sg (discrete : string list) (U as Type (D, [])) : bool * bool =
-  if of_lin_arith_sort sg U then
-    (true, D mem discrete)
-  else (* special cases *)
-    if D mem discrete then  (true, true)  else  (false, false)
-  | allows_lin_arith sg discrete U =
-  (of_lin_arith_sort sg U, false);
+fun allows_lin_arith thy (discrete : string list) (U as Type (D, [])) : bool * bool =
+      if of_lin_arith_sort thy U then (true, member (op =) discrete D)
+      else if member (op =) discrete D then (true, true) else (false, false)
+  | allows_lin_arith sg discrete U = (of_lin_arith_sort sg U, false);
 
 fun decomp_typecheck (thy, discrete, inj_consts) (T : typ, xxx) : decomp option =
   case T of
@@ -284,7 +274,7 @@ fun domain_is_nat (_ $ (Const (_, T) $ _ $ _))                      = nT T
   | domain_is_nat (_ $ (Const ("Not", _) $ (Const (_, T) $ _ $ _))) = nT T
   | domain_is_nat _                                                 = false;
 
-fun number_of (n, T) = HOLogic.mk_number T n;
+val mk_number = HOLogic.mk_number;
 
 (*---------------------------------------------------------------------------*)
 (* the following code performs splitting of certain constants (e.g. min,     *)
@@ -779,8 +769,8 @@ fun add_lessD thm = Fast_Arith.map_data (map_lessD (fn thms => thms @ [thm]));
 fun add_simps thms = Fast_Arith.map_data (map_simpset (fn simpset => simpset addsimps thms));
 fun add_simprocs procs = Fast_Arith.map_data (map_simpset (fn simpset => simpset addsimprocs procs));
 
-fun fast_arith_tac ctxt = Fast_Arith.lin_arith_tac ctxt false;
-val fast_ex_arith_tac = Fast_Arith.lin_arith_tac;
+fun simple_tac ctxt = Fast_Arith.lin_arith_tac ctxt false;
+val lin_arith_tac = Fast_Arith.lin_arith_tac;
 val trace = Fast_Arith.trace;
 val warning_count = Fast_Arith.warning_count;
 
@@ -811,17 +801,7 @@ val init_arith_data =
 fun add_arith_facts ss =
   add_prems (Arith_Data.get_arith_facts (MetaSimplifier.the_context ss)) ss;
 
-val lin_arith_simproc = add_arith_facts #> Fast_Arith.lin_arith_simproc;
-
-val fast_nat_arith_simproc =
-  Simplifier.simproc (the_context ()) "fast_nat_arith"
-    ["(m::nat) < n","(m::nat) <= n", "(m::nat) = n"] (K lin_arith_simproc);
-
-(* Because of fast_nat_arith_simproc, the arithmetic solver is really only
-useful to detect inconsistencies among the premises for subgoals which are
-*not* themselves (in)equalities, because the latter activate
-fast_nat_arith_simproc anyway. However, it seems cheaper to activate the
-solver all the time rather than add the additional check. *)
+val simproc = add_arith_facts #> Fast_Arith.lin_arith_simproc;
 
 
 (* generic refutation procedure *)
@@ -871,7 +851,7 @@ end;
 
 local
 
-fun raw_arith_tac ctxt ex =
+fun raw_tac ctxt ex =
   (* FIXME: K true should be replaced by a sensible test (perhaps "isSome o
      decomp sg"? -- but note that the test is applied to terms already before
      they are split/normalized) to speed things up in case there are lots of
@@ -880,21 +860,21 @@ fun raw_arith_tac ctxt ex =
      (l <= min m n + k) = (l <= m+k & l <= n+k)
   *)
   refute_tac (K true)
-    (* Splitting is also done inside fast_arith_tac, but not completely --   *)
+    (* Splitting is also done inside simple_tac, but not completely --   *)
     (* split_tac may use split theorems that have not been implemented in    *)
-    (* fast_arith_tac (cf. pre_decomp and split_once_items above), and       *)
+    (* simple_tac (cf. pre_decomp and split_once_items above), and       *)
     (* split_limit may trigger.                                   *)
-    (* Therefore splitting outside of fast_arith_tac may allow us to prove   *)
-    (* some goals that fast_arith_tac alone would fail on.                   *)
+    (* Therefore splitting outside of simple_tac may allow us to prove   *)
+    (* some goals that simple_tac alone would fail on.                   *)
     (REPEAT_DETERM o split_tac (#splits (get_arith_data ctxt)))
-    (fast_ex_arith_tac ctxt ex);
+    (lin_arith_tac ctxt ex);
 
 in
 
-fun gen_linear_arith_tac ex ctxt = FIRST' [fast_arith_tac ctxt,
-  ObjectLogic.full_atomize_tac THEN' (REPEAT_DETERM o rtac impI) THEN' raw_arith_tac ctxt ex];
+fun gen_tac ex ctxt = FIRST' [simple_tac ctxt,
+  ObjectLogic.full_atomize_tac THEN' (REPEAT_DETERM o rtac impI) THEN' raw_tac ctxt ex];
 
-val linear_arith_tac = gen_linear_arith_tac true;
+val tac = gen_tac true;
 
 end;
 
@@ -903,7 +883,13 @@ end;
 
 val setup =
   init_arith_data #>
-  Simplifier.map_ss (fn ss => ss addsimprocs [fast_nat_arith_simproc]
+  Simplifier.map_ss (fn ss => ss addsimprocs [Simplifier.simproc (@{theory}) "fast_nat_arith"
+    ["(m::nat) < n","(m::nat) <= n", "(m::nat) = n"] (K simproc)]
+    (* Because of fast_nat_arith_simproc, the arithmetic solver is really only
+    useful to detect inconsistencies among the premises for subgoals which are
+    *not* themselves (in)equalities, because the latter activate
+    fast_nat_arith_simproc anyway. However, it seems cheaper to activate the
+    solver all the time rather than add the additional check. *)
     addSolver (mk_solver' "lin_arith"
       (add_arith_facts #> Fast_Arith.cut_lin_arith_tac)))
 
@@ -915,10 +901,7 @@ val global_setup =
     (Args.bang_facts >> (fn prems => fn ctxt =>
       METHOD (fn facts =>
         HEADGOAL (Method.insert_tac (prems @ Arith_Data.get_arith_facts ctxt @ facts)
-          THEN' linear_arith_tac ctxt)))) "linear arithmetic" #>
-  Arith_Data.add_tactic "linear arithmetic" gen_linear_arith_tac;
+          THEN' tac ctxt)))) "linear arithmetic" #>
+  Arith_Data.add_tactic "linear arithmetic" gen_tac;
 
 end;
-
-structure Basic_Lin_Arith: BASIC_LIN_ARITH = Lin_Arith;
-open Basic_Lin_Arith;

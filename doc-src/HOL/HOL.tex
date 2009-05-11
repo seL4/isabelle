@@ -1427,7 +1427,7 @@ Reasoning about arithmetic inequalities can be tedious.  Fortunately, HOL
 provides a decision procedure for \emph{linear arithmetic}: formulae involving
 addition and subtraction. The simplifier invokes a weak version of this
 decision procedure automatically. If this is not sufficent, you can invoke the
-full procedure \ttindex{linear_arith_tac} explicitly.  It copes with arbitrary
+full procedure \ttindex{Lin_Arith.tac} explicitly.  It copes with arbitrary
 formulae involving {\tt=}, {\tt<}, {\tt<=}, {\tt+}, {\tt-}, {\tt Suc}, {\tt
   min}, {\tt max} and numerical constants. Other subterms are treated as
 atomic, while subformulae not involving numerical types are ignored. Quantified
@@ -1438,10 +1438,10 @@ distinctions.
 If {\tt k} is a numeral, then {\tt div k}, {\tt mod k} and
 {\tt k dvd} are also supported. The former two are eliminated
 by case distinctions, again blowing up the running time.
-If the formula involves explicit quantifiers, \texttt{linear_arith_tac} may take
+If the formula involves explicit quantifiers, \texttt{Lin_Arith.tac} may take
 super-exponential time and space.
 
-If \texttt{linear_arith_tac} fails, try to find relevant arithmetic results in
+If \texttt{Lin_Arith.tac} fails, try to find relevant arithmetic results in
 the library.  The theories \texttt{Nat} and \texttt{NatArith} contain
 theorems about {\tt<}, {\tt<=}, \texttt{+}, \texttt{-} and \texttt{*}.
 Theory \texttt{Divides} contains theorems about \texttt{div} and

@@ -82,7 +82,7 @@ val fast_int_arith_simproc =
   Simplifier.simproc @{theory} "fast_int_arith"
      ["(m::'a::{ordered_idom,number_ring}) < n",
       "(m::'a::{ordered_idom,number_ring}) <= n",
-      "(m::'a::{ordered_idom,number_ring}) = n"] (K Lin_Arith.lin_arith_simproc);
+      "(m::'a::{ordered_idom,number_ring}) = n"] (K Lin_Arith.simproc);
 
 val global_setup = Simplifier.map_simpset
   (fn simpset => simpset addsimprocs [fast_int_arith_simproc]);

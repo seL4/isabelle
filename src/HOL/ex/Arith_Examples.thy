@@ -13,18 +13,18 @@ text {*
   distribution.  This file merely contains some additional tests and special
   corner cases.  Some rather technical remarks:
 
-  @{ML fast_arith_tac} is a very basic version of the tactic.  It performs no
+  @{ML Lin_Arith.simple_tac} is a very basic version of the tactic.  It performs no
   meta-to-object-logic conversion, and only some splitting of operators.
-  @{ML linear_arith_tac} performs meta-to-object-logic conversion, full
+  @{ML Lin_Arith.tac} performs meta-to-object-logic conversion, full
   splitting of operators, and NNF normalization of the goal.  The @{text arith}
   method combines them both, and tries other methods (e.g.~@{text presburger})
   as well.  This is the one that you should use in your proofs!
 
   An @{text arith}-based simproc is available as well (see @{ML
-  Lin_Arith.lin_arith_simproc}), which---for performance
-  reasons---however does even less splitting than @{ML fast_arith_tac}
+  Lin_Arith.simproc}), which---for performance
+  reasons---however does even less splitting than @{ML Lin_Arith.simple_tac}
   at the moment (namely inequalities only).  (On the other hand, it
-  does take apart conjunctions, which @{ML fast_arith_tac} currently
+  does take apart conjunctions, which @{ML Lin_Arith.simple_tac} currently
   does not do.)
 *}
 
@@ -208,13 +208,13 @@ lemma "(n < m & m < n') | (n < m & m = n') | (n < n' & n' < m) |
 (*        preprocessing negates the goal and tries to compute its negation *)
 (*        normal form, which creates lots of separate cases for this       *)
 (*        disjunction of conjunctions                                      *)
-(* by (tactic {* linear_arith_tac 1 *}) *)
+(* by (tactic {* Lin_Arith.tac 1 *}) *)
 oops
 
 lemma "2 * (x::nat) ~= 1"
 (* FIXME: this is beyond the scope of the decision procedure at the moment, *)
 (*        because its negation is satisfiable in the rationals?             *)
-(* by (tactic {* fast_arith_tac 1 *}) *)
+(* by (tactic {* Lin_Arith.simple_tac 1 *}) *)
 oops
 
 text {* Constants. *}
