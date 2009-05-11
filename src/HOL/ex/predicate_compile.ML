@@ -1378,18 +1378,18 @@ val setup =
       val const = prep_const thy raw_const
       val nparams = get_nparams thy const
       val intro_rules = pred_intros thy const
-      val (((tfrees, frees), fact), ctxt') =
+      val (((tfrees, frees), fact), lthy') =
         Variable.import_thms true intro_rules lthy;
-      val (pred, prop, ctxt'') = mk_casesrule fact nparams ctxt'
+      val (pred, prop, lthy'') = mk_casesrule fact nparams lthy'
       val (predname, _) = dest_Const pred
-      fun after_qed [[th]] ctxt'' =
+      fun after_qed [[th]] lthy'' =
         LocalTheory.note Thm.theoremK
-          ((Binding.name (Long_Name.base_name predname ^ "_cases"),
-            [Attrib.internal (K (code_ind_cases_attrib))]) , [th]) ctxt''
+          ((Binding.name (Long_Name.base_name predname ^ "_cases"), (* FIXME: other suffix *)
+            [Attrib.internal (K (code_ind_cases_attrib))]) , [th]) lthy''
         |> snd
-        |> ProofContext.theory (create_def_equation predname)
+        |> LocalTheory.theory (create_def_equation predname)
     in
-      Proof.theorem_i NONE after_qed [[(prop, [])]] ctxt''
+      Proof.theorem_i NONE after_qed [[(prop, [])]] lthy''
     end;
 
   val code_pred = generic_code_pred (K I);

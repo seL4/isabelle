@@ -49,6 +49,7 @@ where
 code_pred append
   using assms by (rule append.cases)
 
+thm append_codegen
 thm append_cases
 
 

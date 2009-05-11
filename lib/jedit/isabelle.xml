@@ -47,6 +47,7 @@
       <OPERATOR>ML_prf</OPERATOR>
       <LABEL>ML_val</LABEL>
       <OPERATOR>abbreviation</OPERATOR>
+      <KEYWORD4>actions</KEYWORD4>
       <KEYWORD4>advanced</KEYWORD4>
       <OPERATOR>also</OPERATOR>
       <KEYWORD4>and</KEYWORD4>
@@ -61,6 +62,7 @@
       <LABEL>atp_messages</LABEL>
       <KEYWORD4>attach</KEYWORD4>
       <OPERATOR>attribute_setup</OPERATOR>
+      <OPERATOR>automaton</OPERATOR>
       <KEYWORD4>avoids</KEYWORD4>
       <OPERATOR>ax_specification</OPERATOR>
       <OPERATOR>axclass</OPERATOR>
@@ -72,12 +74,14 @@
       <OPERATOR>by</OPERATOR>
       <INVALID>cannot_undo</INVALID>
       <KEYWORD2>case</KEYWORD2>
+      <KEYWORD4>case_eqns</KEYWORD4>
       <LABEL>cd</LABEL>
       <OPERATOR>chapter</OPERATOR>
       <OPERATOR>class</OPERATOR>
       <LABEL>class_deps</LABEL>
       <OPERATOR>classes</OPERATOR>
       <OPERATOR>classrel</OPERATOR>
+      <OPERATOR>codatatype</OPERATOR>
       <OPERATOR>code_abort</OPERATOR>
       <OPERATOR>code_class</OPERATOR>
       <OPERATOR>code_const</OPERATOR>
@@ -89,12 +93,15 @@
       <OPERATOR>code_module</OPERATOR>
       <OPERATOR>code_modulename</OPERATOR>
       <OPERATOR>code_monad</OPERATOR>
+      <OPERATOR>code_pred</OPERATOR>
       <OPERATOR>code_reserved</OPERATOR>
       <LABEL>code_thms</LABEL>
       <OPERATOR>code_type</OPERATOR>
       <OPERATOR>coinductive</OPERATOR>
       <OPERATOR>coinductive_set</OPERATOR>
       <LABEL>commit</LABEL>
+      <KEYWORD4>compose</KEYWORD4>
+      <KEYWORD4>con_defs</KEYWORD4>
       <KEYWORD4>congs</KEYWORD4>
       <OPERATOR>constdefs</OPERATOR>
       <KEYWORD4>constrains</KEYWORD4>
@@ -103,6 +110,7 @@
       <KEYWORD4>contains</KEYWORD4>
       <OPERATOR>context</OPERATOR>
       <OPERATOR>corollary</OPERATOR>
+      <OPERATOR>cpodef</OPERATOR>
       <OPERATOR>datatype</OPERATOR>
       <OPERATOR>declaration</OPERATOR>
       <OPERATOR>declare</OPERATOR>
@@ -115,7 +123,10 @@
       <OPERATOR>defs</OPERATOR>
       <LABEL>disable_pr</LABEL>
       <LABEL>display_drafts</LABEL>
+      <OPERATOR>domain</OPERATOR>
+      <KEYWORD4>domains</KEYWORD4>
       <OPERATOR>done</OPERATOR>
+      <KEYWORD4>elimination</KEYWORD4>
       <LABEL>enable_pr</LABEL>
       <KEYWORD3>end</KEYWORD3>
       <OPERATOR>equivariance</OPERATOR>
@@ -130,6 +141,8 @@
       <LABEL>find_theorems</LABEL>
       <KEYWORD2>fix</KEYWORD2>
       <KEYWORD4>fixes</KEYWORD4>
+      <OPERATOR>fixpat</OPERATOR>
+      <OPERATOR>fixrec</OPERATOR>
       <KEYWORD4>for</KEYWORD4>
       <OPERATOR>from</OPERATOR>
       <LABEL>full_prf</LABEL>
@@ -142,11 +155,13 @@
       <LABEL>help</LABEL>
       <OPERATOR>hence</OPERATOR>
       <OPERATOR>hide</OPERATOR>
+      <KEYWORD4>hide_action</KEYWORD4>
       <KEYWORD4>hints</KEYWORD4>
       <KEYWORD4>identifier</KEYWORD4>
       <KEYWORD4>if</KEYWORD4>
       <KEYWORD4>imports</KEYWORD4>
       <KEYWORD4>in</KEYWORD4>
+      <KEYWORD4>induction</KEYWORD4>
       <OPERATOR>inductive</OPERATOR>
       <KEYWORD1>inductive_cases</KEYWORD1>
       <OPERATOR>inductive_set</OPERATOR>
@@ -154,14 +169,19 @@
       <KEYWORD4>infixl</KEYWORD4>
       <KEYWORD4>infixr</KEYWORD4>
       <INVALID>init_toplevel</INVALID>
+      <KEYWORD4>initially</KEYWORD4>
+      <KEYWORD4>inputs</KEYWORD4>
       <OPERATOR>instance</OPERATOR>
       <OPERATOR>instantiation</OPERATOR>
+      <KEYWORD4>internals</KEYWORD4>
       <OPERATOR>interpret</OPERATOR>
       <OPERATOR>interpretation</OPERATOR>
+      <KEYWORD4>intros</KEYWORD4>
       <KEYWORD4>is</KEYWORD4>
       <OPERATOR>judgment</OPERATOR>
       <INVALID>kill</INVALID>
       <LABEL>kill_thy</LABEL>
+      <KEYWORD4>lazy</KEYWORD4>
       <OPERATOR>lemma</OPERATOR>
       <OPERATOR>lemmas</OPERATOR>
       <OPERATOR>let</OPERATOR>
@@ -193,12 +213,16 @@
       <KEYWORD4>open</KEYWORD4>
       <OPERATOR>oracle</OPERATOR>
       <KEYWORD4>output</KEYWORD4>
+      <KEYWORD4>outputs</KEYWORD4>
       <KEYWORD4>overloaded</KEYWORD4>
       <OPERATOR>overloading</OPERATOR>
       <OPERATOR>parse_ast_translation</OPERATOR>
       <OPERATOR>parse_translation</OPERATOR>
+      <OPERATOR>pcpodef</OPERATOR>
       <KEYWORD4>permissive</KEYWORD4>
+      <KEYWORD4>post</KEYWORD4>
       <LABEL>pr</LABEL>
+      <KEYWORD4>pre</KEYWORD4>
       <KEYWORD1>prefer</KEYWORD1>
       <KEYWORD2>presume</KEYWORD2>
       <LABEL>pretty_setmargin</LABEL>
@@ -228,6 +252,7 @@
       <LABEL>print_simpset</LABEL>
       <LABEL>print_statement</LABEL>
       <LABEL>print_syntax</LABEL>
+      <LABEL>print_tcset</LABEL>
       <LABEL>print_theorems</LABEL>
       <LABEL>print_theory</LABEL>
       <LABEL>print_trans_rules</LABEL>
@@ -244,19 +269,24 @@
       <OPERATOR>recdef</OPERATOR>
       <OPERATOR>recdef_tc</OPERATOR>
       <OPERATOR>record</OPERATOR>
+      <KEYWORD4>recursor_eqns</KEYWORD4>
       <LABEL>refute</LABEL>
       <OPERATOR>refute_params</OPERATOR>
       <LABEL>remove_thy</LABEL>
+      <KEYWORD4>rename</KEYWORD4>
       <OPERATOR>rep_datatype</OPERATOR>
+      <KEYWORD4>restrict</KEYWORD4>
       <OPERATOR>sect</OPERATOR>
       <OPERATOR>section</OPERATOR>
       <OPERATOR>setup</OPERATOR>
       <KEYWORD2>show</KEYWORD2>
       <KEYWORD4>shows</KEYWORD4>
+      <KEYWORD4>signature</KEYWORD4>
       <OPERATOR>simproc_setup</OPERATOR>
       <LABEL>sledgehammer</LABEL>
       <OPERATOR>sorry</OPERATOR>
       <OPERATOR>specification</OPERATOR>
+      <KEYWORD4>states</KEYWORD4>
       <OPERATOR>statespace</OPERATOR>
       <KEYWORD4>structure</KEYWORD4>
       <OPERATOR>subclass</OPERATOR>
@@ -278,11 +308,16 @@
       <LABEL>thm_deps</LABEL>
       <KEYWORD2>thus</KEYWORD2>
       <LABEL>thy_deps</LABEL>
+      <KEYWORD4>to</KEYWORD4>
       <LABEL>touch_thy</LABEL>
+      <KEYWORD4>transitions</KEYWORD4>
       <OPERATOR>translations</OPERATOR>
+      <KEYWORD4>transrel</KEYWORD4>
       <OPERATOR>txt</OPERATOR>
       <OPERATOR>txt_raw</OPERATOR>
       <LABEL>typ</LABEL>
+      <KEYWORD4>type_elims</KEYWORD4>
+      <KEYWORD4>type_intros</KEYWORD4>
       <OPERATOR>typed_print_translation</OPERATOR>
       <OPERATOR>typedecl</OPERATOR>
       <OPERATOR>typedef</OPERATOR>
