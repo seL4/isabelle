@@ -541,9 +541,9 @@ fun add_datatype raw_cs thy =
           then insert (op =) c else I) cases []) cases;
   in
     thy
+    |> fold (del_eqns o fst) cs
     |> map_exec_purge NONE
         ((map_dtyps o Symtab.map_default (tyco, [])) (cons (serial (), vs_cos))
-        #> map_eqns (fold (Symtab.delete_safe o fst) cs)
         #> (map_cases o apfst) drop_outdated_cases)
     |> TypeInterpretation.data (tyco, serial ())
   end;
