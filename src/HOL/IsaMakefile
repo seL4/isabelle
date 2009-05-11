@@ -295,8 +295,6 @@ $(OUT)/HOL: ROOT.ML $(MAIN_DEPENDENCIES) \
   Real.thy \
   RealVector.thy \
   Tools/float_syntax.ML \
-  Tools/rat_arith.ML \
-  Tools/real_arith.ML \
   Tools/Qelim/ferrante_rackoff_data.ML \
   Tools/Qelim/ferrante_rackoff.ML \
   Tools/Qelim/langford_data.ML \
@@ -1051,7 +1049,6 @@ $(OUT)/HOL-NSA: $(OUT)/HOL \
   NSA/HyperDef.thy \
   NSA/HyperNat.thy \
   NSA/Hyperreal.thy \
-  NSA/hypreal_arith.ML \
   NSA/Filter.thy \
   NSA/NatStar.thy \
   NSA/NSA.thy \

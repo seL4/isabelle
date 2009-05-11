@@ -123,12 +123,12 @@ lemma "(i::int) mod 1 = 0"
   (* FIXME: need to replace 1 by its numeral representation *)
   apply (subst numeral_1_eq_1 [symmetric])
   (* FIXME: arith does not know about iszero *)
-  apply (tactic {* lin_arith_pre_tac @{context} 1 *})
+  apply (tactic {* Lin_Arith.pre_tac @{context} 1 *})
 oops
 
 lemma "(i::int) mod 42 <= 41"
   (* FIXME: arith does not know about iszero *)
-  apply (tactic {* lin_arith_pre_tac @{context} 1 *})
+  apply (tactic {* Lin_Arith.pre_tac @{context} 1 *})
 oops
 
 lemma "-(i::int) * 1 = 0 ==> i = 0"

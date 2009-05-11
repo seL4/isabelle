@@ -8,7 +8,6 @@ header{*Construction of Hyperreals Using Ultrafilters*}
 
 theory HyperDef
 imports HyperNat Real
-uses ("hypreal_arith.ML")
 begin
 
 types hypreal = "real star"
@@ -343,8 +342,17 @@ It replaces x+-y by x-y.
 Addsimps [symmetric hypreal_diff_def]
 *)
 
-use "hypreal_arith.ML"
-declaration {* K hypreal_arith_setup *}
+declaration {*
+  K (Lin_Arith.add_inj_thms [@{thm star_of_le} RS iffD2,
+    @{thm star_of_less} RS iffD2, @{thm star_of_eq} RS iffD2]
+  #> Lin_Arith.add_simps [@{thm star_of_zero}, @{thm star_of_one},
+      @{thm star_of_number_of}, @{thm star_of_add}, @{thm star_of_minus},
+      @{thm star_of_diff}, @{thm star_of_mult}]
+  #> Lin_Arith.add_inj_const (@{const_name "StarDef.star_of"}, @{typ "real \<Rightarrow> hypreal"})
+  #> Simplifier.map_ss (fn simpset => simpset addsimprocs [Simplifier.simproc @{theory}
+      "fast_hypreal_arith" ["(m::hypreal) < n", "(m::hypreal) <= n", "(m::hypreal) = n"]
+      (K Lin_Arith.lin_arith_simproc)]))
+*}
 
 
 subsection {* Exponentials on the Hyperreals *}
