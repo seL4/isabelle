@@ -91,10 +91,10 @@ lemma cprodE: "\<lbrakk>\<And>x y. p = <x, y> \<Longrightarrow> Q\<rbrakk> \<Lon
 by (cut_tac Exh_Cprod2, auto)
 
 lemma cfst_cpair [simp]: "cfst\<cdot><x, y> = x"
-by (simp add: cpair_eq_pair cfst_def cont_fst)
+by (simp add: cpair_eq_pair cfst_def)
 
 lemma csnd_cpair [simp]: "csnd\<cdot><x, y> = y"
-by (simp add: cpair_eq_pair csnd_def cont_snd)
+by (simp add: cpair_eq_pair csnd_def)
 
 lemma cfst_strict [simp]: "cfst\<cdot>\<bottom> = \<bottom>"
 by (simp add: cfst_def)
@@ -108,7 +108,7 @@ by (cases p rule: cprodE, simp)
 lemmas surjective_pairing_Cprod2 = cpair_cfst_csnd
 
 lemma below_cprod: "x \<sqsubseteq> y = (cfst\<cdot>x \<sqsubseteq> cfst\<cdot>y \<and> csnd\<cdot>x \<sqsubseteq> csnd\<cdot>y)"
-by (simp add: below_prod_def cfst_def csnd_def cont_fst cont_snd)
+by (simp add: below_prod_def cfst_def csnd_def)
 
 lemma eq_cprod: "(x = y) = (cfst\<cdot>x = cfst\<cdot>y \<and> csnd\<cdot>x = csnd\<cdot>y)"
 by (auto simp add: po_eq_conv below_cprod)
@@ -133,7 +133,7 @@ by (simp add: cpair_eq_pair)
 
 lemma lub_cprod2: 
   "chain S \<Longrightarrow> range S <<| <\<Squnion>i. cfst\<cdot>(S i), \<Squnion>i. csnd\<cdot>(S i)>"
-apply (simp add: cpair_eq_pair cfst_def csnd_def cont_fst cont_snd)
+apply (simp add: cpair_eq_pair cfst_def csnd_def)
 apply (erule lub_cprod)
 done
 
@@ -154,38 +154,9 @@ lemmas Cprod_rews = cfst_cpair csnd_cpair csplit2
 
 subsection {* Product type is a bifinite domain *}
 
-instantiation "*" :: (profinite, profinite) profinite
-begin
-
-definition
-  approx_cprod_def:
-    "approx = (\<lambda>n. \<Lambda>\<langle>x, y\<rangle>. \<langle>approx n\<cdot>x, approx n\<cdot>y\<rangle>)"
-
-instance proof
-  fix i :: nat and x :: "'a \<times> 'b"
-  show "chain (approx :: nat \<Rightarrow> 'a \<times> 'b \<rightarrow> 'a \<times> 'b)"
-    unfolding approx_cprod_def by simp
-  show "(\<Squnion>i. approx i\<cdot>x) = x"
-    unfolding approx_cprod_def
-    by (simp add: lub_distribs eta_cfun)
-  show "approx i\<cdot>(approx i\<cdot>x) = approx i\<cdot>x"
-    unfolding approx_cprod_def csplit_def by simp
-  have "{x::'a \<times> 'b. approx i\<cdot>x = x} \<subseteq>
-        {x::'a. approx i\<cdot>x = x} \<times> {x::'b. approx i\<cdot>x = x}"
-    unfolding approx_cprod_def
-    by (clarsimp simp add: pair_eq_cpair)
-  thus "finite {x::'a \<times> 'b. approx i\<cdot>x = x}"
-    by (rule finite_subset,
-        intro finite_cartesian_product finite_fixes_approx)
-qed
-
-end
-
-instance "*" :: (bifinite, bifinite) bifinite ..
-
 lemma approx_cpair [simp]:
   "approx i\<cdot>\<langle>x, y\<rangle> = \<langle>approx i\<cdot>x, approx i\<cdot>y\<rangle>"
-unfolding approx_cprod_def by simp
+by (simp add: cpair_eq_pair)
 
 lemma cfst_approx: "cfst\<cdot>(approx i\<cdot>p) = approx i\<cdot>(cfst\<cdot>p)"
 by (cases p rule: cprodE, simp)

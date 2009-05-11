@@ -104,6 +104,46 @@ apply (subgoal_tac "(\<Squnion>i. approx i\<cdot>x) \<sqsubseteq> (\<Squnion>i. 
 apply (rule lub_mono, simp, simp, simp)
 done
 
+subsection {* Instance for product type *}
+
+instantiation "*" :: (profinite, profinite) profinite
+begin
+
+definition approx_prod_def:
+  "approx = (\<lambda>n. \<Lambda> x. (approx n\<cdot>(fst x), approx n\<cdot>(snd x)))"
+
+instance proof
+  fix i :: nat and x :: "'a \<times> 'b"
+  show "chain (approx :: nat \<Rightarrow> 'a \<times> 'b \<rightarrow> 'a \<times> 'b)"
+    unfolding approx_prod_def by simp
+  show "(\<Squnion>i. approx i\<cdot>x) = x"
+    unfolding approx_prod_def
+    by (simp add: lub_distribs thelub_Pair)
+  show "approx i\<cdot>(approx i\<cdot>x) = approx i\<cdot>x"
+    unfolding approx_prod_def by simp
+  have "{x::'a \<times> 'b. approx i\<cdot>x = x} \<subseteq>
+        {x::'a. approx i\<cdot>x = x} \<times> {x::'b. approx i\<cdot>x = x}"
+    unfolding approx_prod_def by clarsimp
+  thus "finite {x::'a \<times> 'b. approx i\<cdot>x = x}"
+    by (rule finite_subset,
+        intro finite_cartesian_product finite_fixes_approx)
+qed
+
+end
+
+instance "*" :: (bifinite, bifinite) bifinite ..
+
+lemma approx_Pair [simp]:
+  "approx i\<cdot>(x, y) = (approx i\<cdot>x, approx i\<cdot>y)"
+unfolding approx_prod_def by simp
+
+lemma fst_approx: "fst (approx i\<cdot>p) = approx i\<cdot>(fst p)"
+by (induct p, simp)
+
+lemma snd_approx: "snd (approx i\<cdot>p) = approx i\<cdot>(snd p)"
+by (induct p, simp)
+
+
 subsection {* Instance for continuous function space *}
 
 lemma finite_range_cfun_lemma:
