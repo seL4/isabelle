@@ -4,7 +4,9 @@
 
 header {* Arithmetic *}
 
-theory Arith_Examples imports Main begin
+theory Arith_Examples
+imports Main
+begin
 
 text {*
   The @{text arith} method is used frequently throughout the Isabelle
@@ -27,7 +29,7 @@ text {*
 *}
 
 (*
-ML {* set trace_arith; *}
+ML {* set Lin_Arith.trace; *}
 *)
 
 subsection {* Splitting of Operators: @{term max}, @{term min}, @{term abs},
@@ -35,87 +37,87 @@ subsection {* Splitting of Operators: @{term max}, @{term min}, @{term abs},
            @{term Divides.div} *}
 
 lemma "(i::nat) <= max i j"
-  by (tactic {* fast_arith_tac @{context} 1 *})
+  by linarith
 
 lemma "(i::int) <= max i j"
-  by (tactic {* fast_arith_tac @{context} 1 *})
+  by linarith
 
 lemma "min i j <= (i::nat)"
-  by (tactic {* fast_arith_tac @{context} 1 *})
+  by linarith
 
 lemma "min i j <= (i::int)"
-  by (tactic {* fast_arith_tac @{context} 1 *})
+  by linarith
 
 lemma "min (i::nat) j <= max i j"
-  by (tactic {* fast_arith_tac @{context} 1 *})
+  by linarith
 
 lemma "min (i::int) j <= max i j"
-  by (tactic {* fast_arith_tac @{context} 1 *})
+  by linarith
 
 lemma "min (i::nat) j + max i j = i + j"
-  by (tactic {* fast_arith_tac @{context} 1 *})
+  by linarith
 
 lemma "min (i::int) j + max i j = i + j"
-  by (tactic {* fast_arith_tac @{context} 1 *})
+  by linarith
 
 lemma "(i::nat) < j ==> min i j < max i j"
-  by (tactic {* fast_arith_tac @{context} 1 *})
+  by linarith
 
 lemma "(i::int) < j ==> min i j < max i j"
-  by (tactic {* fast_arith_tac @{context} 1 *})
+  by linarith
 
 lemma "(0::int) <= abs i"
-  by (tactic {* fast_arith_tac @{context} 1 *})
+  by linarith
 
 lemma "(i::int) <= abs i"
-  by (tactic {* fast_arith_tac @{context} 1 *})
+  by linarith
 
 lemma "abs (abs (i::int)) = abs i"
-  by (tactic {* fast_arith_tac @{context} 1 *})
+  by linarith
 
 text {* Also testing subgoals with bound variables. *}
 
 lemma "!!x. (x::nat) <= y ==> x - y = 0"
-  by (tactic {* fast_arith_tac @{context} 1 *})
+  by linarith
 
 lemma "!!x. (x::nat) - y = 0 ==> x <= y"
-  by (tactic {* fast_arith_tac @{context} 1 *})
+  by linarith
 
 lemma "!!x. ((x::nat) <= y) = (x - y = 0)"
-  by (tactic {* linear_arith_tac @{context} 1 *})
+  by linarith
 
 lemma "[| (x::nat) < y; d < 1 |] ==> x - y = d"
-  by (tactic {* fast_arith_tac @{context} 1 *})
+  by linarith
 
 lemma "[| (x::nat) < y; d < 1 |] ==> x - y - x = d - x"
-  by (tactic {* fast_arith_tac @{context} 1 *})
+  by linarith
 
 lemma "(x::int) < y ==> x - y < 0"
-  by (tactic {* fast_arith_tac @{context} 1 *})
+  by linarith
 
 lemma "nat (i + j) <= nat i + nat j"
-  by (tactic {* fast_arith_tac @{context} 1 *})
+  by linarith
 
 lemma "i < j ==> nat (i - j) = 0"
-  by (tactic {* fast_arith_tac @{context} 1 *})
+  by linarith
 
 lemma "(i::nat) mod 0 = i"
   (* FIXME: need to replace 0 by its numeral representation *)
   apply (subst nat_numeral_0_eq_0 [symmetric])
-  by (tactic {* fast_arith_tac @{context} 1 *})
+  by linarith
 
 lemma "(i::nat) mod 1 = 0"
   (* FIXME: need to replace 1 by its numeral representation *)
   apply (subst nat_numeral_1_eq_1 [symmetric])
-  by (tactic {* fast_arith_tac @{context} 1 *})
+  by linarith
 
 lemma "(i::nat) mod 42 <= 41"
-  by (tactic {* fast_arith_tac @{context} 1 *})
+  by linarith
 
 lemma "(i::int) mod 0 = i"
   (* FIXME: need to replace 0 by its numeral representation *)
   apply (subst numeral_0_eq_0 [symmetric])
-  by (tactic {* fast_arith_tac @{context} 1 *})
+  by linarith
 
 lemma "(i::int) mod 1 = 0"
   (* FIXME: need to replace 1 by its numeral representation *)
@@ -130,70 +132,70 @@ lemma "(i::int) mod 42 <= 41"
 oops
 
 lemma "-(i::int) * 1 = 0 ==> i = 0"
-  by (tactic {* fast_arith_tac @{context} 1 *})
+  by linarith
 
 lemma "[| (0::int) < abs i; abs i * 1 < abs i * j |] ==> 1 < abs i * j"
-  by (tactic {* fast_arith_tac @{context} 1 *})
+  by linarith
 
 
 subsection {* Meta-Logic *}
 
 lemma "x < Suc y == x <= y"
-  by (tactic {* linear_arith_tac @{context} 1 *})
+  by linarith
 
 lemma "((x::nat) == z ==> x ~= y) ==> x ~= y | z ~= y"
-  by (tactic {* linear_arith_tac @{context} 1 *})
+  by linarith
 
 
 subsection {* Various Other Examples *}
 
 lemma "(x < Suc y) = (x <= y)"
-  by (tactic {* linear_arith_tac @{context} 1 *})
+  by linarith
 
 lemma "[| (x::nat) < y; y < z |] ==> x < z"
-  by (tactic {* fast_arith_tac @{context} 1 *})
+  by linarith
 
 lemma "(x::nat) < y & y < z ==> x < z"
-  by (tactic {* linear_arith_tac @{context} 1 *})
+  by linarith
 
 text {* This example involves no arithmetic at all, but is solved by
   preprocessing (i.e. NNF normalization) alone. *}
 
 lemma "(P::bool) = Q ==> Q = P"
-  by (tactic {* linear_arith_tac @{context} 1 *})
+  by linarith
 
 lemma "[| P = (x = 0); (~P) = (y = 0) |] ==> min (x::nat) y = 0"
-  by (tactic {* linear_arith_tac @{context} 1 *})
+  by linarith
 
 lemma "[| P = (x = 0); (~P) = (y = 0) |] ==> max (x::nat) y = x + y"
-  by (tactic {* linear_arith_tac @{context} 1 *})
+  by linarith
 
 lemma "[| (x::nat) ~= y; a + 2 = b; a < y; y < b; a < x; x < b |] ==> False"
-  by (tactic {* fast_arith_tac @{context} 1 *})
+  by linarith
 
 lemma "[| (x::nat) > y; y > z; z > x |] ==> False"
-  by (tactic {* fast_arith_tac @{context} 1 *})
+  by linarith
 
 lemma "(x::nat) - 5 > y ==> y < x"
-  by (tactic {* fast_arith_tac @{context} 1 *})
+  by linarith
 
 lemma "(x::nat) ~= 0 ==> 0 < x"
-  by (tactic {* fast_arith_tac @{context} 1 *})
+  by linarith
 
 lemma "[| (x::nat) ~= y; x <= y |] ==> x < y"
-  by (tactic {* fast_arith_tac @{context} 1 *})
+  by linarith
 
 lemma "[| (x::nat) < y; P (x - y) |] ==> P 0"
-  by (tactic {* linear_arith_tac @{context} 1 *})
+  by linarith
 
 lemma "(x - y) - (x::nat) = (x - x) - y"
-  by (tactic {* fast_arith_tac @{context} 1 *})
+  by linarith
 
 lemma "[| (a::nat) < b; c < d |] ==> (a - b) = (c - d)"
-  by (tactic {* fast_arith_tac @{context} 1 *})
+  by linarith
 
 lemma "((a::nat) - (b - (c - (d - e)))) = (a - (b - (c - (d - e))))"
-  by (tactic {* fast_arith_tac @{context} 1 *})
+  by linarith
 
 lemma "(n < m & m < n') | (n < m & m = n') | (n < n' & n' < m) |
   (n = n' & n' < m) | (n = m & m < n') |
@@ -218,31 +220,31 @@ oops
 text {* Constants. *}
 
 lemma "(0::nat) < 1"
-  by (tactic {* fast_arith_tac @{context} 1 *})
+  by linarith
 
 lemma "(0::int) < 1"
-  by (tactic {* fast_arith_tac @{context} 1 *})
+  by linarith
 
 lemma "(47::nat) + 11 < 08 * 15"
-  by (tactic {* fast_arith_tac @{context} 1 *})
+  by linarith
 
 lemma "(47::int) + 11 < 08 * 15"
-  by (tactic {* fast_arith_tac @{context} 1 *})
+  by linarith
 
 text {* Splitting of inequalities of different type. *}
 
 lemma "[| (a::nat) ~= b; (i::int) ~= j; a < 2; b < 2 |] ==>
   a + b <= nat (max (abs i) (abs j))"
-  by (tactic {* fast_arith_tac @{context} 1 *})
+  by linarith
 
 text {* Again, but different order. *}
 
 lemma "[| (i::int) ~= j; (a::nat) ~= b; a < 2; b < 2 |] ==>
   a + b <= nat (max (abs i) (abs j))"
-  by (tactic {* fast_arith_tac @{context} 1 *})
+  by linarith
 
 (*
-ML {* reset trace_arith; *}
+ML {* reset Lin_Arith.trace; *}
 *)
 
 end

@@ -31,7 +31,7 @@ fun pr_haskell_bind pr_term =
       | pr_bind ((SOME v, SOME p), _) = brackets [str v, str "@", p];
   in gen_pr_bind pr_bind pr_term end;
 
-fun pr_haskell_stmt naming labelled_name syntax_class syntax_tyco syntax_const
+fun pr_haskell_stmt labelled_name syntax_class syntax_tyco syntax_const
     init_syms deresolve is_cons contr_classparam_typs deriving_show =
   let
     val deresolve_base = Long_Name.base_name o deresolve;
@@ -96,7 +96,7 @@ fun pr_haskell_stmt naming labelled_name syntax_class syntax_tyco syntax_const
             (str o deresolve) c :: map2 pr_term_anno ts_fingerprint (curry Library.take (length ts) tys)
           else (str o deresolve) c :: map (pr_term tyvars thm vars BR) ts
         end
-    and pr_app tyvars = gen_pr_app (pr_app' tyvars) (pr_term tyvars) syntax_const naming
+    and pr_app tyvars = gen_pr_app (pr_app' tyvars) (pr_term tyvars) syntax_const
     and pr_bind tyvars = pr_haskell_bind (pr_term tyvars)
     and pr_case tyvars thm vars fxy (cases as ((_, [_]), _)) =
           let
@@ -261,7 +261,7 @@ fun pr_haskell_stmt naming labelled_name syntax_class syntax_tyco syntax_const
                     val vars = init_syms
                       |> Code_Printer.intro_vars (the_list const)
                       |> Code_Printer.intro_vars vs;
-                    val lhs = IConst (classparam, ([], tys)) `$$ map IVar vs;
+                    val lhs = IConst (classparam, (([], []), tys)) `$$ map IVar vs;
                       (*dictionaries are not relevant at this late stage*)
                   in
                     semicolon [
@@ -336,7 +336,7 @@ fun haskell_program_of_program labelled_name module_name module_prefix reserved_
 
 fun serialize_haskell module_prefix raw_module_name string_classes labelled_name
     raw_reserved_names includes raw_module_alias
-    syntax_class syntax_tyco syntax_const naming program cs destination =
+    syntax_class syntax_tyco syntax_const program cs destination =
   let
     val stmt_names = Code_Target.stmt_names_of_destination destination;
     val module_name = if null stmt_names then raw_module_name else SOME "Code";
@@ -358,7 +358,7 @@ fun serialize_haskell module_prefix raw_module_name string_classes labelled_name
           | deriv' _ (ITyVar _) = true
       in deriv [] tyco end;
     val reserved_names = Code_Printer.make_vars reserved_names;
-    fun pr_stmt qualified = pr_haskell_stmt naming labelled_name
+    fun pr_stmt qualified = pr_haskell_stmt labelled_name
       syntax_class syntax_tyco syntax_const reserved_names
       (if qualified then deresolver else Long_Name.base_name o deresolver)
       is_cons contr_classparam_typs
@@ -469,14 +469,14 @@ fun pretty_haskell_monad c_bind =
       | pr_monad pr_bind pr (SOME (bind, false), t) vars = vars
           |> pr_bind NOBR bind
           |>> (fn p => semicolon [str "let", p, str "=", pr vars NOBR t]);
-    fun pretty pr naming thm vars fxy [(t1, _), (t2, _)] = case dest_bind t1 t2
+    fun pretty _ [c_bind'] pr thm vars fxy [(t1, _), (t2, _)] = case dest_bind t1 t2
      of SOME (bind, t') => let
-          val (binds, t'') = implode_monad ((the o Code_Thingol.lookup_const naming) c_bind) t'
+          val (binds, t'') = implode_monad c_bind' t'
           val (ps, vars') = fold_map (pr_monad (pr_haskell_bind (K pr) thm) pr) (bind :: binds) vars;
         in (brackify fxy o single o Pretty.enclose "do {" "}" o Pretty.breaks) (ps @| pr vars' NOBR t'') end
       | NONE => brackify_infix (1, L) fxy
           [pr vars (INFX (1, L)) t1, str ">>=", pr vars (INFX (1, X)) t2]
-  in (2, pretty) end;
+  in (2, ([c_bind], pretty)) end;
 
 fun add_monad target' raw_c_bind thy =
   let

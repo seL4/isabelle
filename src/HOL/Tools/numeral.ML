@@ -1,5 +1,4 @@
 (*  Title:      HOL/Tools/numeral.ML
-    ID:         $Id$
     Author:     Makarius
 
 Logical operations on numerals (see also HOL/hologic.ML).
@@ -59,13 +58,8 @@ local open Basic_Code_Thingol in
 
 fun add_code number_of negative unbounded target thy =
   let
-    val pr_numeral = (Code_Printer.literal_numeral o Code_Target.the_literals thy) target;
-    fun dest_numeral naming thm =
+    fun dest_numeral pls' min' bit0' bit1' thm =
       let
-        val SOME pls' = Code_Thingol.lookup_const naming @{const_name Int.Pls};
-        val SOME min' = Code_Thingol.lookup_const naming @{const_name Int.Min};
-        val SOME bit0' = Code_Thingol.lookup_const naming @{const_name Int.Bit0};
-        val SOME bit1' = Code_Thingol.lookup_const naming @{const_name Int.Bit1};
         fun dest_bit (IConst (c, _)) = if c = bit0' then 0
               else if c = bit1' then 1
               else Code_Printer.nerror thm "Illegal numeral expression: illegal bit"
@@ -79,11 +73,12 @@ fun add_code number_of negative unbounded target thy =
               in case n of SOME n => SOME (2 * n + b) | NONE => NONE end
           | dest_num _ = Code_Printer.nerror thm "Illegal numeral expression: illegal term";
       in dest_num end;
-    fun pretty _ naming thm _ _ [(t, _)] =
-      (Code_Printer.str o pr_numeral unbounded o the_default 0 o dest_numeral naming thm) t;
+    fun pretty literals [pls', min', bit0', bit1'] _ thm _ _ [(t, _)] =
+      (Code_Printer.str o Code_Printer.literal_numeral literals unbounded
+        o the_default 0 o dest_numeral pls' min' bit0' bit1' thm) t;
   in
-    thy
-    |> Code_Target.add_syntax_const target number_of (SOME (1, pretty))
+    thy |>  Code_Target.add_syntax_const target number_of
+      (SOME (1, ([@{const_name Int.Pls}, @{const_name Int.Min}, @{const_name Int.Bit0}, @{const_name Int.Bit1}], pretty)))
   end;
 
 end; (*local*)

@@ -752,7 +752,11 @@ section {* Unrestricted overloading *}
 
 text {*
   Isabelle/Pure's definitional schemes support certain forms of
-  overloading (see \secref{sec:consts}).  At most occassions
+  overloading (see \secref{sec:consts}).  Overloading means that a
+  constant being declared as @{text "c :: \<alpha> decl"} may be
+  defined separately on type instances
+  @{text "c :: (\<beta>\<^sub>1, \<dots>, \<beta>\<^sub>n) t decl"}
+  for each type constructor @{text t}.  At most occassions
   overloading will be used in a Haskell-like fashion together with
   type classes by means of @{command "instantiation"} (see
   \secref{sec:class}).  Sometimes low-level overloading is desirable.
@@ -782,7 +786,8 @@ text {*
 
   A @{text "(unchecked)"} option disables global dependency checks for
   the corresponding definition, which is occasionally useful for
-  exotic overloading.  It is at the discretion of the user to avoid
+  exotic overloading (see \secref{sec:consts} for a precise description).
+  It is at the discretion of the user to avoid
   malformed theory specifications!
 
   \end{description}
@@ -1065,10 +1070,7 @@ text {*
 
   \end{itemize}
 
-  Overloading means that a constant being declared as @{text "c :: \<alpha>
-  decl"} may be defined separately on type instances @{text "c ::
-  (\<beta>\<^sub>1, \<dots>, \<beta>\<^sub>n) t decl"} for each type constructor @{text
-  t}.  The right-hand side may mention overloaded constants
+  The right-hand side of overloaded definitions may mention overloaded constants
   recursively at type instances corresponding to the immediate
   argument types @{text "\<beta>\<^sub>1, \<dots>, \<beta>\<^sub>n"}.  Incomplete
   specification patterns impose global constraints on all occurrences,

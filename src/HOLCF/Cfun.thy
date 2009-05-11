@@ -105,19 +105,19 @@ instance "->" :: (finite_po, finite_po) finite_po
 by (rule typedef_finite_po [OF type_definition_CFun])
 
 instance "->" :: (finite_po, chfin) chfin
-by (rule typedef_chfin [OF type_definition_CFun less_CFun_def])
+by (rule typedef_chfin [OF type_definition_CFun below_CFun_def])
 
 instance "->" :: (cpo, discrete_cpo) discrete_cpo
-by intro_classes (simp add: less_CFun_def Rep_CFun_inject)
+by intro_classes (simp add: below_CFun_def Rep_CFun_inject)
 
 instance "->" :: (cpo, pcpo) pcpo
-by (rule typedef_pcpo [OF type_definition_CFun less_CFun_def UU_CFun])
+by (rule typedef_pcpo [OF type_definition_CFun below_CFun_def UU_CFun])
 
 lemmas Rep_CFun_strict =
-  typedef_Rep_strict [OF type_definition_CFun less_CFun_def UU_CFun]
+  typedef_Rep_strict [OF type_definition_CFun below_CFun_def UU_CFun]
 
 lemmas Abs_CFun_strict =
-  typedef_Abs_strict [OF type_definition_CFun less_CFun_def UU_CFun]
+  typedef_Abs_strict [OF type_definition_CFun below_CFun_def UU_CFun]
 
 text {* function application is strict in its first argument *}
 
@@ -153,11 +153,11 @@ by (simp add: expand_cfun_eq)
 
 text {* Extensionality wrt. ordering for continuous functions *}
 
-lemma expand_cfun_less: "f \<sqsubseteq> g = (\<forall>x. f\<cdot>x \<sqsubseteq> g\<cdot>x)" 
-by (simp add: less_CFun_def expand_fun_less)
+lemma expand_cfun_below: "f \<sqsubseteq> g = (\<forall>x. f\<cdot>x \<sqsubseteq> g\<cdot>x)" 
+by (simp add: below_CFun_def expand_fun_below)
 
-lemma less_cfun_ext: "(\<And>x. f\<cdot>x \<sqsubseteq> g\<cdot>x) \<Longrightarrow> f \<sqsubseteq> g"
-by (simp add: expand_cfun_less)
+lemma below_cfun_ext: "(\<And>x. f\<cdot>x \<sqsubseteq> g\<cdot>x) \<Longrightarrow> f \<sqsubseteq> g"
+by (simp add: expand_cfun_below)
 
 text {* Congruence for continuous function application *}
 
@@ -205,13 +205,13 @@ by (rule cont_Rep_CFun1 [THEN contE])
 text {* monotonicity of application *}
 
 lemma monofun_cfun_fun: "f \<sqsubseteq> g \<Longrightarrow> f\<cdot>x \<sqsubseteq> g\<cdot>x"
-by (simp add: expand_cfun_less)
+by (simp add: expand_cfun_below)
 
 lemma monofun_cfun_arg: "x \<sqsubseteq> y \<Longrightarrow> f\<cdot>x \<sqsubseteq> f\<cdot>y"
 by (rule monofun_Rep_CFun2 [THEN monofunE])
 
 lemma monofun_cfun: "\<lbrakk>f \<sqsubseteq> g; x \<sqsubseteq> y\<rbrakk> \<Longrightarrow> f\<cdot>x \<sqsubseteq> g\<cdot>y"
-by (rule trans_less [OF monofun_cfun_fun monofun_cfun_arg])
+by (rule below_trans [OF monofun_cfun_fun monofun_cfun_arg])
 
 text {* ch2ch - rules for the type @{typ "'a -> 'b"} *}
 
@@ -230,7 +230,7 @@ by (simp add: chain_def monofun_cfun)
 
 lemma ch2ch_LAM [simp]:
   "\<lbrakk>\<And>x. chain (\<lambda>i. S i x); \<And>i. cont (\<lambda>x. S i x)\<rbrakk> \<Longrightarrow> chain (\<lambda>i. \<Lambda> x. S i x)"
-by (simp add: chain_def expand_cfun_less)
+by (simp add: chain_def expand_cfun_below)
 
 text {* contlub, cont properties of @{term Rep_CFun} in both arguments *}
 
@@ -316,7 +316,7 @@ text {* cont2mono Lemma for @{term "%x. LAM y. c1(x)(y)"} *}
 lemma cont2mono_LAM:
   "\<lbrakk>\<And>x. cont (\<lambda>y. f x y); \<And>y. monofun (\<lambda>x. f x y)\<rbrakk>
     \<Longrightarrow> monofun (\<lambda>x. \<Lambda> y. f x y)"
-  unfolding monofun_def expand_cfun_less by simp
+  unfolding monofun_def expand_cfun_below by simp
 
 text {* cont2cont Lemma for @{term "%x. LAM y. f x y"} *}
 
@@ -345,21 +345,11 @@ lemma cont2cont_LAM' [cont2cont]:
   assumes f: "cont (\<lambda>p. f (fst p) (snd p))"
   shows "cont (\<lambda>x. \<Lambda> y. f x y)"
 proof (rule cont2cont_LAM)
-  fix x :: 'a
-  have "cont (\<lambda>y. (x, y))"
-    by (rule cont_pair2)
-  with f have "cont (\<lambda>y. f (fst (x, y)) (snd (x, y)))"
-    by (rule cont2cont_app3)
-  thus "cont (\<lambda>y. f x y)"
-    by (simp only: fst_conv snd_conv)
+  fix x :: 'a show "cont (\<lambda>y. f x y)"
+    using f by (rule cont_fst_snd_D2)
 next
-  fix y :: 'b
-  have "cont (\<lambda>x. (x, y))"
-    by (rule cont_pair1)
-  with f have "cont (\<lambda>x. f (fst (x, y)) (snd (x, y)))"
-    by (rule cont2cont_app3)
-  thus "cont (\<lambda>x. f x y)"
-    by (simp only: fst_conv snd_conv)
+  fix y :: 'b show "cont (\<lambda>x. f x y)"
+    using f by (rule cont_fst_snd_D1)
 qed
 
 lemma cont2cont_LAM_discrete [cont2cont]:
@@ -375,7 +365,7 @@ text {* Monotonicity of @{term Abs_CFun} *}
 
 lemma semi_monofun_Abs_CFun:
   "\<lbrakk>cont f; cont g; f \<sqsubseteq> g\<rbrakk> \<Longrightarrow> Abs_CFun f \<sqsubseteq> Abs_CFun g"
-by (simp add: less_CFun_def Abs_CFun_inverse2)
+by (simp add: below_CFun_def Abs_CFun_inverse2)
 
 text {* some lemmata for functions with flat/chfin domain/range types *}
 
@@ -411,7 +401,7 @@ apply simp
 apply simp
 done
 
-lemma injection_less:
+lemma injection_below:
   "\<forall>x. f\<cdot>(g\<cdot>x) = x \<Longrightarrow> (g\<cdot>x \<sqsubseteq> g\<cdot>y) = (x \<sqsubseteq> y)"
 apply (rule iffI)
 apply (drule_tac f=f in monofun_cfun_arg)

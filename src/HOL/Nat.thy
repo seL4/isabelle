@@ -1164,6 +1164,64 @@ instance by intro_classes
 end
 
 
+subsection {* Natural operation of natural numbers on functions *}
+
+text {*
+  We use the same logical constant for the power operations on
+  functions and relations, in order to share the same syntax.
+*}
+
+consts compow :: "nat \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> ('a \<Rightarrow> 'b)"
+
+abbreviation compower :: "('a \<Rightarrow> 'b) \<Rightarrow> nat \<Rightarrow> 'a \<Rightarrow> 'b" (infixr "^^" 80) where
+  "f ^^ n \<equiv> compow n f"
+
+notation (latex output)
+  compower ("(_\<^bsup>_\<^esup>)" [1000] 1000)
+
+notation (HTML output)
+  compower ("(_\<^bsup>_\<^esup>)" [1000] 1000)
+
+text {* @{text "f ^^ n = f o ... o f"}, the n-fold composition of @{text f} *}
+
+overloading
+  funpow == "compow :: nat \<Rightarrow> ('a \<Rightarrow> 'a) \<Rightarrow> ('a \<Rightarrow> 'a)"
+begin
+
+primrec funpow :: "nat \<Rightarrow> ('a \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> 'a" where
+    "funpow 0 f = id"
+  | "funpow (Suc n) f = f o funpow n f"
+
+end
+
+text {* for code generation *}
+
+definition funpow :: "nat \<Rightarrow> ('a \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> 'a" where
+  funpow_code_def [code post]: "funpow = compow"
+
+lemmas [code inline] = funpow_code_def [symmetric]
+
+lemma [code]:
+  "funpow 0 f = id"
+  "funpow (Suc n) f = f o funpow n f"
+  unfolding funpow_code_def by simp_all
+
+hide (open) const funpow
+
+lemma funpow_add:
+  "f ^^ (m + n) = f ^^ m \<circ> f ^^ n"
+  by (induct m) simp_all
+
+lemma funpow_swap1:
+  "f ((f ^^ n) x) = (f ^^ n) (f x)"
+proof -
+  have "f ((f ^^ n) x) = (f ^^ (n + 1)) x" by simp
+  also have "\<dots>  = (f ^^ n o f ^^ 1) x" by (simp only: funpow_add)
+  also have "\<dots> = (f ^^ n) (f x)" by simp
+  finally show ?thesis .
+qed
+
+
 subsection {* Embedding of the Naturals into any
   @{text semiring_1}: @{term of_nat} *}
 
@@ -1189,7 +1247,7 @@ primrec of_nat_aux :: "('a \<Rightarrow> 'a) \<Rightarrow> nat \<Rightarrow> 'a 
   "of_nat_aux inc 0 i = i"
   | "of_nat_aux inc (Suc n) i = of_nat_aux inc n (inc i)" -- {* tail recursive *}
 
-lemma of_nat_code [code, code unfold, code inline del]:
+lemma of_nat_code:
   "of_nat n = of_nat_aux (\<lambda>i. i + 1) n 0"
 proof (induct n)
   case 0 then show ?case by simp
@@ -1201,8 +1259,10 @@ next
     by simp
   with Suc show ?case by (simp add: add_commute)
 qed
-    
+
 end
+
+declare of_nat_code [code, code unfold, code inline del]
 
 text{*Class for unital semirings with characteristic zero.
  Includes non-ordered rings like the complex numbers.*}
@@ -1214,10 +1274,10 @@ begin
 text{*Special cases where either operand is zero*}
 
 lemma of_nat_0_eq_iff [simp, noatp]: "0 = of_nat n \<longleftrightarrow> 0 = n"
-  by (rule of_nat_eq_iff [of 0, simplified])
+  by (rule of_nat_eq_iff [of 0 n, unfolded of_nat_0])
 
 lemma of_nat_eq_0_iff [simp, noatp]: "of_nat m = 0 \<longleftrightarrow> m = 0"
-  by (rule of_nat_eq_iff [of _ 0, simplified])
+  by (rule of_nat_eq_iff [of m 0, unfolded of_nat_0])
 
 lemma inj_of_nat: "inj of_nat"
   by (simp add: inj_on_def)

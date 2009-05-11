@@ -23,7 +23,7 @@ apply (rule ballI)
 apply (drule (1) bspec, erule bexE)
 apply (drule (1) bspec, erule bexE)
 apply (erule rev_bexI)
-apply (erule (1) trans_less)
+apply (erule (1) below_trans)
 done
 
 interpretation upper_le: preorder upper_le
@@ -38,7 +38,7 @@ unfolding upper_le_def Rep_PDUnit by simp
 lemma PDPlus_upper_mono: "\<lbrakk>s \<le>\<sharp> t; u \<le>\<sharp> v\<rbrakk> \<Longrightarrow> PDPlus s u \<le>\<sharp> PDPlus t v"
 unfolding upper_le_def Rep_PDPlus by fast
 
-lemma PDPlus_upper_less: "PDPlus t u \<le>\<sharp> t"
+lemma PDPlus_upper_le: "PDPlus t u \<le>\<sharp> t"
 unfolding upper_le_def Rep_PDPlus by fast
 
 lemma upper_le_PDUnit_PDUnit_iff [simp]:
@@ -97,7 +97,7 @@ typedef (open) 'a upper_pd =
   "{S::'a pd_basis set. upper_le.ideal S}"
 by (fast intro: upper_le.ideal_principal)
 
-instantiation upper_pd :: (profinite) sq_ord
+instantiation upper_pd :: (profinite) below
 begin
 
 definition
@@ -108,16 +108,16 @@ end
 
 instance upper_pd :: (profinite) po
 by (rule upper_le.typedef_ideal_po
-    [OF type_definition_upper_pd sq_le_upper_pd_def])
+    [OF type_definition_upper_pd below_upper_pd_def])
 
 instance upper_pd :: (profinite) cpo
 by (rule upper_le.typedef_ideal_cpo
-    [OF type_definition_upper_pd sq_le_upper_pd_def])
+    [OF type_definition_upper_pd below_upper_pd_def])
 
 lemma Rep_upper_pd_lub:
   "chain Y \<Longrightarrow> Rep_upper_pd (\<Squnion>i. Y i) = (\<Union>i. Rep_upper_pd (Y i))"
 by (rule upper_le.typedef_ideal_rep_contlub
-    [OF type_definition_upper_pd sq_le_upper_pd_def])
+    [OF type_definition_upper_pd below_upper_pd_def])
 
 lemma ideal_Rep_upper_pd: "upper_le.ideal (Rep_upper_pd xs)"
 by (rule Rep_upper_pd [unfolded mem_Collect_eq])
@@ -143,7 +143,7 @@ apply (rule pd_take_covers)
 apply (rule ideal_Rep_upper_pd)
 apply (erule Rep_upper_pd_lub)
 apply (rule Rep_upper_principal)
-apply (simp only: sq_le_upper_pd_def)
+apply (simp only: below_upper_pd_def)
 done
 
 text {* Upper powerdomain is pointed *}
@@ -262,28 +262,28 @@ text {* Useful for @{text "simp only: upper_plus_aci"} *}
 lemmas upper_plus_aci =
   upper_plus_ac upper_plus_absorb upper_plus_left_absorb
 
-lemma upper_plus_less1: "xs +\<sharp> ys \<sqsubseteq> xs"
+lemma upper_plus_below1: "xs +\<sharp> ys \<sqsubseteq> xs"
 apply (induct xs ys rule: upper_pd.principal_induct2, simp, simp)
-apply (simp add: PDPlus_upper_less)
+apply (simp add: PDPlus_upper_le)
 done
 
-lemma upper_plus_less2: "xs +\<sharp> ys \<sqsubseteq> ys"
-by (subst upper_plus_commute, rule upper_plus_less1)
+lemma upper_plus_below2: "xs +\<sharp> ys \<sqsubseteq> ys"
+by (subst upper_plus_commute, rule upper_plus_below1)
 
 lemma upper_plus_greatest: "\<lbrakk>xs \<sqsubseteq> ys; xs \<sqsubseteq> zs\<rbrakk> \<Longrightarrow> xs \<sqsubseteq> ys +\<sharp> zs"
 apply (subst upper_plus_absorb [of xs, symmetric])
 apply (erule (1) monofun_cfun [OF monofun_cfun_arg])
 done
 
-lemma upper_less_plus_iff:
+lemma upper_below_plus_iff:
   "xs \<sqsubseteq> ys +\<sharp> zs \<longleftrightarrow> xs \<sqsubseteq> ys \<and> xs \<sqsubseteq> zs"
 apply safe
-apply (erule trans_less [OF _ upper_plus_less1])
-apply (erule trans_less [OF _ upper_plus_less2])
+apply (erule below_trans [OF _ upper_plus_below1])
+apply (erule below_trans [OF _ upper_plus_below2])
 apply (erule (1) upper_plus_greatest)
 done
 
-lemma upper_plus_less_unit_iff:
+lemma upper_plus_below_unit_iff:
   "xs +\<sharp> ys \<sqsubseteq> {z}\<sharp> \<longleftrightarrow> xs \<sqsubseteq> {z}\<sharp> \<or> ys \<sqsubseteq> {z}\<sharp>"
  apply (rule iffI)
   apply (subgoal_tac
@@ -297,13 +297,13 @@ lemma upper_plus_less_unit_iff:
    apply simp
   apply simp
  apply (erule disjE)
-  apply (erule trans_less [OF upper_plus_less1])
- apply (erule trans_less [OF upper_plus_less2])
+  apply (erule below_trans [OF upper_plus_below1])
+ apply (erule below_trans [OF upper_plus_below2])
 done
 
-lemma upper_unit_less_iff [simp]: "{x}\<sharp> \<sqsubseteq> {y}\<sharp> \<longleftrightarrow> x \<sqsubseteq> y"
+lemma upper_unit_below_iff [simp]: "{x}\<sharp> \<sqsubseteq> {y}\<sharp> \<longleftrightarrow> x \<sqsubseteq> y"
  apply (rule iffI)
-  apply (rule profinite_less_ext)
+  apply (rule profinite_below_ext)
   apply (drule_tac f="approx i" in monofun_cfun_arg, simp)
   apply (cut_tac x="approx i\<cdot>x" in compact_basis.compact_imp_principal, simp)
   apply (cut_tac x="approx i\<cdot>y" in compact_basis.compact_imp_principal, simp)
@@ -311,10 +311,10 @@ lemma upper_unit_less_iff [simp]: "{x}\<sharp> \<sqsubseteq> {y}\<sharp> \<longl
  apply (erule monofun_cfun_arg)
 done
 
-lemmas upper_pd_less_simps =
-  upper_unit_less_iff
-  upper_less_plus_iff
-  upper_plus_less_unit_iff
+lemmas upper_pd_below_simps =
+  upper_unit_below_iff
+  upper_below_plus_iff
+  upper_plus_below_unit_iff
 
 lemma upper_unit_eq_iff [simp]: "{x}\<sharp> = {y}\<sharp> \<longleftrightarrow> x = y"
 unfolding po_eq_conv by simp
@@ -323,10 +323,10 @@ lemma upper_unit_strict [simp]: "{\<bottom>}\<sharp> = \<bottom>"
 unfolding inst_upper_pd_pcpo Rep_compact_bot [symmetric] by simp
 
 lemma upper_plus_strict1 [simp]: "\<bottom> +\<sharp> ys = \<bottom>"
-by (rule UU_I, rule upper_plus_less1)
+by (rule UU_I, rule upper_plus_below1)
 
 lemma upper_plus_strict2 [simp]: "xs +\<sharp> \<bottom> = \<bottom>"
-by (rule UU_I, rule upper_plus_less2)
+by (rule UU_I, rule upper_plus_below2)
 
 lemma upper_unit_strict_iff [simp]: "{x}\<sharp> = \<bottom> \<longleftrightarrow> x = \<bottom>"
 unfolding upper_unit_strict [symmetric] by (rule upper_unit_eq_iff)
@@ -407,11 +407,11 @@ done
 
 lemma upper_bind_basis_mono:
   "t \<le>\<sharp> u \<Longrightarrow> upper_bind_basis t \<sqsubseteq> upper_bind_basis u"
-unfolding expand_cfun_less
+unfolding expand_cfun_below
 apply (erule upper_le_induct, safe)
 apply (simp add: monofun_cfun)
-apply (simp add: trans_less [OF upper_plus_less1])
-apply (simp add: upper_less_plus_iff)
+apply (simp add: below_trans [OF upper_plus_below1])
+apply (simp add: upper_below_plus_iff)
 done
 
 definition

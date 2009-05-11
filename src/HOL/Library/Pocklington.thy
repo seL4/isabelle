@@ -568,7 +568,7 @@ qed
 
 lemma nproduct_cmul:
   assumes fS:"finite S"
-  shows "setprod (\<lambda>m. (c::'a::{comm_monoid_mult,recpower})* a(m)) S = c ^ (card S) * setprod a S"
+  shows "setprod (\<lambda>m. (c::'a::{comm_monoid_mult})* a(m)) S = c ^ (card S) * setprod a S"
 unfolding setprod_timesf setprod_constant[OF fS, of c] ..
 
 lemma coprime_nproduct:

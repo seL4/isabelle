@@ -45,10 +45,6 @@ lemma nobm1:
   apply (simp add: number_of_eq nat_diff_distrib [symmetric])
   done
 
-lemma of_int_power:
-  "of_int (a ^ n) = (of_int a ^ n :: 'a :: {recpower, comm_ring_1})" 
-  by (induct n) (auto simp add: power_Suc)
-
 lemma zless2: "0 < (2 :: int)" by arith
 
 lemmas zless2p [simp] = zless2 [THEN zero_less_power]
@@ -66,7 +62,7 @@ lemma emep1:
   apply (safe dest!: even_equiv_def [THEN iffD1])
   apply (subst pos_zmod_mult_2)
    apply arith
-  apply (simp add: zmod_zmult_zmult1)
+  apply (simp add: mod_mult_mult1)
  done
 
 lemmas eme1p = emep1 [simplified add_commute]

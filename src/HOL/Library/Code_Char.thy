@@ -14,8 +14,8 @@ code_type char
   (Haskell "Char")
 
 setup {*
-  fold (fn target => add_literal_char target) ["SML", "OCaml", "Haskell"] 
-  #> add_literal_list_string "Haskell"
+  fold String_Code.add_literal_char ["SML", "OCaml", "Haskell"] 
+  #> String_Code.add_literal_list_string "Haskell"
 *}
 
 code_instance char :: eq
@@ -33,6 +33,6 @@ code_const "eq_class.eq \<Colon> char \<Rightarrow> char \<Rightarrow> bool"
   (Haskell infixl 4 "==")
 
 code_const "Code_Eval.term_of \<Colon> char \<Rightarrow> term"
-  (SML "HOLogic.mk'_char/ (IntInf.fromInt/ (Char.ord/ _))")
+  (Eval "HOLogic.mk'_char/ (IntInf.fromInt/ (Char.ord/ _))")
 
 end

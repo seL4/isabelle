@@ -5,8 +5,8 @@
 header {* The datatype of finite lists *}
 
 theory List
-imports Plain Relation_Power Presburger Recdef ATP_Linkup
-uses "Tools/string_syntax.ML"
+imports Plain Presburger Recdef ATP_Linkup
+uses ("Tools/list_code.ML")
 begin
 
 datatype 'a list =
@@ -198,7 +198,7 @@ definition
 
 definition
   rotate :: "nat \<Rightarrow> 'a list \<Rightarrow> 'a list" where
-  "rotate n = rotate1 ^ n"
+  "rotate n = rotate1 ^^ n"
 
 definition
   list_all2 :: "('a => 'b => bool) => 'a list => 'b list => bool" where
@@ -1324,6 +1324,9 @@ apply (case_tac i)
 apply simp_all
 done
 
+lemma list_update_nonempty[simp]: "xs[k:=x] = [] \<longleftrightarrow> xs=[]"
+by(metis length_0_conv length_list_update)
+
 lemma list_update_same_conv:
 "i < length xs ==> (xs[i := x] = xs) = (xs!i = x)"
 by (induct xs arbitrary: i) (auto split: nat.split)
@@ -1344,8 +1347,7 @@ lemma list_update_length [simp]:
 by (induct xs, auto)
 
 lemma update_zip:
-  "length xs = length ys ==>
-  (zip xs ys)[i:=xy] = zip (xs[i:=fst xy]) (ys[i:=snd xy])"
+  "(zip xs ys)[i:=xy] = zip (xs[i:=fst xy]) (ys[i:=snd xy])"
 by (induct ys arbitrary: i xy xs) (auto, case_tac xs, auto split: nat.split)
 
 lemma set_update_subset_insert: "set(xs[i:=x]) <= insert x (set xs)"
@@ -1357,12 +1359,10 @@ by (blast dest!: set_update_subset_insert [THEN subsetD])
 lemma set_update_memI: "n < length xs \<Longrightarrow> x \<in> set (xs[n := x])"
 by (induct xs arbitrary: n) (auto split:nat.splits)
 
-lemma list_update_overwrite:
+lemma list_update_overwrite[simp]:
   "xs [i := x, i := y] = xs [i := y]"
-apply (induct xs arbitrary: i)
-apply simp
-apply (case_tac i)
-apply simp_all
+apply (induct xs arbitrary: i) apply simp
+apply (case_tac i, simp_all)
 done
 
 lemma list_update_swap:
@@ -1443,6 +1443,18 @@ by(induct xs)(auto simp:neq_Nil_conv)
 
 lemma butlast_conv_take: "butlast xs = take (length xs - 1) xs"
 by (induct xs, simp, case_tac xs, simp_all)
+
+lemma last_list_update:
+  "xs \<noteq> [] \<Longrightarrow> last(xs[k:=x]) = (if k = size xs - 1 then x else last xs)"
+by (auto simp: last_conv_nth)
+
+lemma butlast_list_update:
+  "butlast(xs[k:=x]) =
+ (if k = size xs - 1 then butlast xs else (butlast xs)[k:=x])"
+apply(cases xs rule:rev_cases)
+apply simp
+apply(simp add:list_update_append split:nat.splits)
+done
 
 
 subsubsection {* @{text take} and @{text drop} *}
@@ -1723,6 +1735,13 @@ lemma dropWhile_eq_Cons_conv:
  "(dropWhile P xs = y#ys) = (xs = takeWhile P xs @ y # ys & \<not> P y)"
 by(induct xs, auto)
 
+lemma distinct_takeWhile[simp]: "distinct xs ==> distinct (takeWhile P xs)"
+by (induct xs) (auto dest: set_takeWhileD)
+
+lemma distinct_dropWhile[simp]: "distinct xs ==> distinct (dropWhile P xs)"
+by (induct xs) auto
+
+
 text{* The following two lemmmas could be generalized to an arbitrary
 property. *}
 
@@ -1809,6 +1828,10 @@ apply(case_tac ys)
 apply simp_all
 done
 
+text{* Courtesy of Andreas Lochbihler: *}
+lemma zip_same_conv_map: "zip xs xs = map (\<lambda>x. (x, x)) xs"
+by(induct xs) auto
+
 lemma nth_zip [simp]:
 "[| i < length xs; i < length ys|] ==> (zip xs ys)!i = (xs!i, ys!i)"
 apply (induct ys arbitrary: i xs, simp)
@@ -1818,11 +1841,11 @@ done
 
 lemma set_zip:
 "set (zip xs ys) = {(xs!i, ys!i) | i. i < min (length xs) (length ys)}"
-by (simp add: set_conv_nth cong: rev_conj_cong)
+by(simp add: set_conv_nth cong: rev_conj_cong)
 
 lemma zip_update:
-"length xs = length ys ==> zip (xs[i:=x]) (ys[i:=y]) = (zip xs ys)[i:=(x,y)]"
-by (rule sym, simp add: update_zip)
+  "zip (xs[i:=x]) (ys[i:=y]) = (zip xs ys)[i:=(x,y)]"
+by(rule sym, simp add: update_zip)
 
 lemma zip_replicate [simp]:
   "zip (replicate i x) (replicate j y) = replicate (min i j) (x,y)"
@@ -2120,6 +2143,15 @@ lemma listsum_rev [simp]:
   shows "listsum (rev xs) = listsum xs"
 by (induct xs) (simp_all add:add_ac)
 
+lemma listsum_map_remove1:
+fixes f :: "'a \<Rightarrow> ('b::comm_monoid_add)"
+shows "x : set xs \<Longrightarrow> listsum(map f xs) = f x + listsum(map f (remove1 x xs))"
+by (induct xs)(auto simp add:add_ac)
+
+lemma list_size_conv_listsum:
+  "list_size f xs = listsum (map f xs) + size xs"
+by(induct xs) auto
+
 lemma listsum_foldr: "listsum xs = foldr (op +) xs 0"
 by (induct xs) auto
 
@@ -2130,6 +2162,10 @@ text{* For efficient code generation ---
        @{const listsum} is not tail recursive but @{const foldl} is. *}
 lemma listsum[code unfold]: "listsum xs = foldl (op +) 0 xs"
 by(simp add:listsum_foldr foldl_foldr1)
+
+lemma distinct_listsum_conv_Setsum:
+  "distinct xs \<Longrightarrow> listsum xs = Setsum(set xs)"
+by (induct xs) simp_all
 
 
 text{* Some syntactic sugar for summing a function over a list: *}
@@ -2543,6 +2579,11 @@ lemma append_replicate_commute:
 apply (simp add: replicate_add [THEN sym])
 apply (simp add: add_commute)
 done
+
+text{* Courtesy of Andreas Lochbihler: *}
+lemma filter_replicate:
+  "filter P (replicate n x) = (if P x then replicate n x else [])"
+by(induct n) auto
 
 lemma hd_replicate [simp]: "n \<noteq> 0 ==> hd (replicate n x) = x"
 by (induct n) auto
@@ -3424,77 +3465,6 @@ lemma listrel_Cons:
 by (auto simp add: set_Cons_def intro: listrel.intros) 
 
 
-subsection{*Miscellany*}
-
-subsubsection {* Characters and strings *}
-
-datatype nibble =
-    Nibble0 | Nibble1 | Nibble2 | Nibble3 | Nibble4 | Nibble5 | Nibble6 | Nibble7
-  | Nibble8 | Nibble9 | NibbleA | NibbleB | NibbleC | NibbleD | NibbleE | NibbleF
-
-lemma UNIV_nibble:
-  "UNIV = {Nibble0, Nibble1, Nibble2, Nibble3, Nibble4, Nibble5, Nibble6, Nibble7,
-    Nibble8, Nibble9, NibbleA, NibbleB, NibbleC, NibbleD, NibbleE, NibbleF}" (is "_ = ?A")
-proof (rule UNIV_eq_I)
-  fix x show "x \<in> ?A" by (cases x) simp_all
-qed
-
-instance nibble :: finite
-  by default (simp add: UNIV_nibble)
-
-datatype char = Char nibble nibble
-  -- "Note: canonical order of character encoding coincides with standard term ordering"
-
-lemma UNIV_char:
-  "UNIV = image (split Char) (UNIV \<times> UNIV)"
-proof (rule UNIV_eq_I)
-  fix x show "x \<in> image (split Char) (UNIV \<times> UNIV)" by (cases x) auto
-qed
-
-instance char :: finite
-  by default (simp add: UNIV_char)
-
-lemma size_char [code, simp]:
-  "size (c::char) = 0" by (cases c) simp
-
-lemma char_size [code, simp]:
-  "char_size (c::char) = 0" by (cases c) simp
-
-primrec nibble_pair_of_char :: "char \<Rightarrow> nibble \<times> nibble" where
-  "nibble_pair_of_char (Char n m) = (n, m)"
-
-declare nibble_pair_of_char.simps [code del]
-
-setup {*
-let
-  val nibbles = map (Thm.cterm_of @{theory} o HOLogic.mk_nibble) (0 upto 15);
-  val thms = map_product
-   (fn n => fn m => Drule.instantiate' [] [SOME n, SOME m] @{thm nibble_pair_of_char.simps})
-      nibbles nibbles;
-in
-  PureThy.note_thmss Thm.lemmaK [((Binding.name "nibble_pair_of_char_simps", []), [(thms, [])])]
-  #-> (fn [(_, thms)] => fold_rev Code.add_eqn thms)
-end
-*}
-
-lemma char_case_nibble_pair [code, code inline]:
-  "char_case f = split f o nibble_pair_of_char"
-  by (simp add: expand_fun_eq split: char.split)
-
-lemma char_rec_nibble_pair [code, code inline]:
-  "char_rec f = split f o nibble_pair_of_char"
-  unfolding char_case_nibble_pair [symmetric]
-  by (simp add: expand_fun_eq split: char.split)
-
-types string = "char list"
-
-syntax
-  "_Char" :: "xstr => char"    ("CHR _")
-  "_String" :: "xstr => string"    ("_")
-
-setup StringSyntax.setup
-
-
 subsection {* Size function *}
 
 lemma [measure_function]: "is_measure f \<Longrightarrow> is_measure (list_size f)"
@@ -3518,9 +3488,34 @@ lemma list_size_pointwise[termination_simp]:
   "(\<And>x. x \<in> set xs \<Longrightarrow> f x < g x) \<Longrightarrow> list_size f xs \<le> list_size g xs"
 by (induct xs) force+
 
+
 subsection {* Code generator *}
 
 subsubsection {* Setup *}
+
+use "Tools/list_code.ML"
+
+code_type list
+  (SML "_ list")
+  (OCaml "_ list")
+  (Haskell "![_]")
+
+code_const Nil
+  (SML "[]")
+  (OCaml "[]")
+  (Haskell "[]")
+
+code_instance list :: eq
+  (Haskell -)
+
+code_const "eq_class.eq \<Colon> 'a\<Colon>eq list \<Rightarrow> 'a list \<Rightarrow> bool"
+  (Haskell infixl 4 "==")
+
+code_reserved SML
+  list
+
+code_reserved OCaml
+  list
 
 types_code
   "list" ("_ list")
@@ -3537,206 +3532,23 @@ fun gen_list' aG aT i j = frequency
    (1, fn () => ([], fn () => HOLogic.nil_const aT))] ()
 and gen_list aG aT i = gen_list' aG aT i i;
 *}
-  "char" ("string")
-attach (term_of) {*
-val term_of_char = HOLogic.mk_char o ord;
-*}
-attach (test) {*
-fun gen_char i =
-  let val j = random_range (ord "a") (Int.min (ord "a" + i, ord "z"))
-  in (chr j, fn () => HOLogic.mk_char j) end;
-*}
 
-consts_code "Cons" ("(_ ::/ _)")
-
-code_type list
-  (SML "_ list")
-  (OCaml "_ list")
-  (Haskell "![_]")
-
-code_reserved SML
-  list
-
-code_reserved OCaml
-  list
-
-code_const Nil
-  (SML "[]")
-  (OCaml "[]")
-  (Haskell "[]")
-
-ML {*
-local
-
-open Basic_Code_Thingol;
-
-fun implode_list naming t = case pairself
-  (Code_Thingol.lookup_const naming) (@{const_name Nil}, @{const_name Cons})
-   of (SOME nil', SOME cons') => let
-          fun dest_cons (IConst (c, _) `$ t1 `$ t2) =
-                if c = cons'
-                then SOME (t1, t2)
-                else NONE
-            | dest_cons _ = NONE;
-          val (ts, t') = Code_Thingol.unfoldr dest_cons t;
-        in case t'
-         of IConst (c, _) => if c = nil' then SOME ts else NONE
-          | _ => NONE
-        end
-    | _ => NONE
-
-fun decode_char naming (IConst (c1, _), IConst (c2, _)) = (case map_filter
-  (Code_Thingol.lookup_const naming)[@{const_name Nibble0}, @{const_name Nibble1},
-   @{const_name Nibble2}, @{const_name Nibble3},
-   @{const_name Nibble4}, @{const_name Nibble5},
-   @{const_name Nibble6}, @{const_name Nibble7},
-   @{const_name Nibble8}, @{const_name Nibble9},
-   @{const_name NibbleA}, @{const_name NibbleB},
-   @{const_name NibbleC}, @{const_name NibbleD},
-   @{const_name NibbleE}, @{const_name NibbleF}]
-   of nibbles' as [_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _] => let
-          fun idx c = find_index (curry (op =) c) nibbles';
-          fun decode ~1 _ = NONE
-            | decode _ ~1 = NONE
-            | decode n m = SOME (chr (n * 16 + m));
-        in decode (idx c1) (idx c2) end
-    | _ => NONE)
- | decode_char _ _ = NONE
-   
-fun implode_string naming mk_char mk_string ts = case
-  Code_Thingol.lookup_const naming @{const_name Char}
-   of SOME char' => let
-        fun implode_char (IConst (c, _) `$ t1 `$ t2) =
-              if c = char' then decode_char naming (t1, t2) else NONE
-          | implode_char _ = NONE;
-        val ts' = map implode_char ts;
-      in if forall is_some ts'
-        then (SOME o Code_Printer.str o mk_string o implode o map_filter I) ts'
-        else NONE
-      end
-    | _ => NONE;
-
-fun default_list (target_fxy, target_cons) pr fxy t1 t2 =
-  Code_Printer.brackify_infix (target_fxy, Code_Printer.R) fxy [
-    pr (Code_Printer.INFX (target_fxy, Code_Printer.X)) t1,
-    Code_Printer.str target_cons,
-    pr (Code_Printer.INFX (target_fxy, Code_Printer.R)) t2
-  ];
-
-fun pretty_list literals =
-  let
-    val mk_list = Code_Printer.literal_list literals;
-    fun pretty pr naming thm vars fxy [(t1, _), (t2, _)] =
-      case Option.map (cons t1) (implode_list naming t2)
-       of SOME ts => mk_list (map (pr vars Code_Printer.NOBR) ts)
-        | NONE => default_list (Code_Printer.infix_cons literals) (pr vars) fxy t1 t2;
-  in (2, pretty) end;
-
-fun pretty_list_string literals =
-  let
-    val mk_list = Code_Printer.literal_list literals;
-    val mk_char = Code_Printer.literal_char literals;
-    val mk_string = Code_Printer.literal_string literals;
-    fun pretty pr naming thm vars fxy [(t1, _), (t2, _)] =
-      case Option.map (cons t1) (implode_list naming t2)
-       of SOME ts => (case implode_string naming mk_char mk_string ts
-           of SOME p => p
-            | NONE => mk_list (map (pr vars Code_Printer.NOBR) ts))
-        | NONE => default_list (Code_Printer.infix_cons literals) (pr vars) fxy t1 t2;
-  in (2, pretty) end;
-
-fun pretty_char literals =
-  let
-    val mk_char = Code_Printer.literal_char literals;
-    fun pretty _ naming thm _ _ [(t1, _), (t2, _)] =
-      case decode_char naming (t1, t2)
-       of SOME c => (Code_Printer.str o mk_char) c
-        | NONE => Code_Printer.nerror thm "Illegal character expression";
-  in (2, pretty) end;
-
-fun pretty_message literals =
-  let
-    val mk_char = Code_Printer.literal_char literals;
-    val mk_string = Code_Printer.literal_string literals;
-    fun pretty _ naming thm _ _ [(t, _)] =
-      case implode_list naming t
-       of SOME ts => (case implode_string naming mk_char mk_string ts
-           of SOME p => p
-            | NONE => Code_Printer.nerror thm "Illegal message expression")
-        | NONE => Code_Printer.nerror thm "Illegal message expression";
-  in (1, pretty) end;
-
-in
-
-fun add_literal_list target thy =
-  let
-    val pr = pretty_list (Code_Target.the_literals thy target);
-  in
-    thy
-    |> Code_Target.add_syntax_const target @{const_name Cons} (SOME pr)
-  end;
-
-fun add_literal_list_string target thy =
-  let
-    val pr = pretty_list_string (Code_Target.the_literals thy target);
-  in
-    thy
-    |> Code_Target.add_syntax_const target @{const_name Cons} (SOME pr)
-  end;
-
-fun add_literal_char target thy =
-  let
-    val pr = pretty_char (Code_Target.the_literals thy target);
-  in
-    thy
-    |> Code_Target.add_syntax_const target @{const_name Char} (SOME pr)
-  end;
-
-fun add_literal_message str target thy =
-  let
-    val pr = pretty_message (Code_Target.the_literals thy target);
-  in
-    thy
-    |> Code_Target.add_syntax_const target str (SOME pr)
-  end;
-
-end;
-*}
-
-setup {*
-  fold (fn target => add_literal_list target) ["SML", "OCaml", "Haskell"]
-*}
-
-code_instance list :: eq
-  (Haskell -)
-
-code_const "eq_class.eq \<Colon> 'a\<Colon>eq list \<Rightarrow> 'a list \<Rightarrow> bool"
-  (Haskell infixl 4 "==")
+consts_code Cons ("(_ ::/ _)")
 
 setup {*
 let
-
-fun list_codegen thy defs dep thyname b t gr =
-  let
-    val ts = HOLogic.dest_list t;
-    val (_, gr') = Codegen.invoke_tycodegen thy defs dep thyname false
-      (fastype_of t) gr;
-    val (ps, gr'') = fold_map
-      (Codegen.invoke_codegen thy defs dep thyname false) ts gr'
-  in SOME (Pretty.list "[" "]" ps, gr'') end handle TERM _ => NONE;
-
-fun char_codegen thy defs dep thyname b t gr =
-  let
-    val i = HOLogic.dest_char t;
-    val (_, gr') = Codegen.invoke_tycodegen thy defs dep thyname false
-      (fastype_of t) gr;
-  in SOME (Codegen.str (ML_Syntax.print_string (chr i)), gr')
-  end handle TERM _ => NONE;
-
+  fun list_codegen thy defs dep thyname b t gr =
+    let
+      val ts = HOLogic.dest_list t;
+      val (_, gr') = Codegen.invoke_tycodegen thy defs dep thyname false
+        (fastype_of t) gr;
+      val (ps, gr'') = fold_map
+        (Codegen.invoke_codegen thy defs dep thyname false) ts gr'
+    in SOME (Pretty.list "[" "]" ps, gr'') end handle TERM _ => NONE;
 in
-  Codegen.add_codegen "list_codegen" list_codegen
-  #> Codegen.add_codegen "char_codegen" char_codegen
-end;
+  fold (List_Code.add_literal_list) ["SML", "OCaml", "Haskell"]
+  #> Codegen.add_codegen "list_codegen" list_codegen
+end
 *}
 
 

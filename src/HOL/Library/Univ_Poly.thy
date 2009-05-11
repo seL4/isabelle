@@ -167,22 +167,9 @@ next
     simp_all add: poly_cmult poly_add left_distrib right_distrib mult_ac)
 qed
 
-class recpower_semiring = semiring + recpower
-class recpower_semiring_1 = semiring_1 + recpower
-class recpower_semiring_0 = semiring_0 + recpower
-class recpower_ring = ring + recpower
-class recpower_ring_1 = ring_1 + recpower
-subclass (in recpower_ring_1) recpower_ring ..
-class recpower_comm_semiring_1 = recpower + comm_semiring_1
-class recpower_comm_ring_1 = recpower + comm_ring_1
-subclass (in recpower_comm_ring_1) recpower_comm_semiring_1 ..
-class recpower_idom = recpower + idom
-subclass (in recpower_idom) recpower_comm_ring_1 ..
 class idom_char_0 = idom + ring_char_0
-class recpower_idom_char_0 = recpower + idom_char_0
-subclass (in recpower_idom_char_0) recpower_idom ..
 
-lemma (in recpower_comm_ring_1) poly_exp: "poly (p %^ n) x = (poly p x) ^ n"
+lemma (in comm_ring_1) poly_exp: "poly (p %^ n) x = (poly p x) ^ n"
 apply (induct "n")
 apply (auto simp add: poly_cmult poly_mult power_Suc)
 done
@@ -418,7 +405,7 @@ proof-
   finally show ?thesis .
 qed
 
-lemma (in recpower_idom) poly_exp_eq_zero[simp]:
+lemma (in idom) poly_exp_eq_zero[simp]:
      "(poly (p %^ n) = poly []) = (poly p = poly [] & n \<noteq> 0)"
 apply (simp only: fun_eq add: all_simps [symmetric])
 apply (rule arg_cong [where f = All])
@@ -437,7 +424,7 @@ apply (subst add_assoc)
 apply simp
 done
 
-lemma (in recpower_idom) poly_exp_prime_eq_zero: "(poly ([a, 1] %^ n) \<noteq> poly [])"
+lemma (in idom) poly_exp_prime_eq_zero: "(poly ([a, 1] %^ n) \<noteq> poly [])"
 by auto
 
 text{*A more constructive notion of polynomials being trivial*}
@@ -507,7 +494,7 @@ apply (auto simp add: poly_mult fun_eq mult_assoc)
 done
 
 
-lemma (in recpower_comm_semiring_1) poly_divides_exp: "m \<le> n ==> (p %^ m) divides (p %^ n)"
+lemma (in comm_semiring_1) poly_divides_exp: "m \<le> n ==> (p %^ m) divides (p %^ n)"
 apply (auto simp add: le_iff_add)
 apply (induct_tac k)
 apply (rule_tac [2] poly_divides_trans)
@@ -516,7 +503,7 @@ apply (rule_tac x = p in exI)
 apply (auto simp add: poly_mult fun_eq mult_ac)
 done
 
-lemma (in recpower_comm_semiring_1) poly_exp_divides: "[| (p %^ n) divides q;  m\<le>n |] ==> (p %^ m) divides q"
+lemma (in comm_semiring_1) poly_exp_divides: "[| (p %^ n) divides q;  m\<le>n |] ==> (p %^ m) divides q"
 by (blast intro: poly_divides_exp poly_divides_trans)
 
 lemma (in comm_semiring_0) poly_divides_add:
@@ -583,7 +570,7 @@ next
 qed
 
 
-lemma (in recpower_comm_semiring_1) poly_mulexp: "poly (mulexp n p q) x = (poly p x) ^ n * poly q x"
+lemma (in comm_semiring_1) poly_mulexp: "poly (mulexp n p q) x = (poly p x) ^ n * poly q x"
 by(induct n, auto simp add: poly_mult power_Suc mult_ac)
 
 lemma (in comm_semiring_1) divides_left_mult:
@@ -600,11 +587,11 @@ qed
 
 (* FIXME: Tidy up *)
 
-lemma (in recpower_semiring_1)
+lemma (in semiring_1)
   zero_power_iff: "0 ^ n = (if n = 0 then 1 else 0)"
   by (induct n, simp_all add: power_Suc)
 
-lemma (in recpower_idom_char_0) poly_order_exists:
+lemma (in idom_char_0) poly_order_exists:
   assumes lp: "length p = d" and p0: "poly p \<noteq> poly []"
   shows "\<exists>n. ([-a, 1] %^ n) divides p & ~(([-a, 1] %^ (Suc n)) divides p)"
 proof-
@@ -637,7 +624,7 @@ qed
 lemma (in semiring_1) poly_one_divides[simp]: "[1] divides p"
 by (simp add: divides_def, auto)
 
-lemma (in recpower_idom_char_0) poly_order: "poly p \<noteq> poly []
+lemma (in idom_char_0) poly_order: "poly p \<noteq> poly []
       ==> EX! n. ([-a, 1] %^ n) divides p &
                  ~(([-a, 1] %^ (Suc n)) divides p)"
 apply (auto intro: poly_order_exists simp add: less_linear simp del: pmult_Cons pexp_Suc)
@@ -652,7 +639,7 @@ text{*Order*}
 lemma some1_equalityD: "[| n = (@n. P n); EX! n. P n |] ==> P n"
 by (blast intro: someI2)
 
-lemma (in recpower_idom_char_0) order:
+lemma (in idom_char_0) order:
       "(([-a, 1] %^ n) divides p &
         ~(([-a, 1] %^ (Suc n)) divides p)) =
         ((n = order a p) & ~(poly p = poly []))"
@@ -662,17 +649,17 @@ apply (blast dest: poly_divides_zero intro!: some1_equality [symmetric] poly_ord
 apply (blast intro!: poly_order [THEN [2] some1_equalityD])
 done
 
-lemma (in recpower_idom_char_0) order2: "[| poly p \<noteq> poly [] |]
+lemma (in idom_char_0) order2: "[| poly p \<noteq> poly [] |]
       ==> ([-a, 1] %^ (order a p)) divides p &
               ~(([-a, 1] %^ (Suc(order a p))) divides p)"
 by (simp add: order del: pexp_Suc)
 
-lemma (in recpower_idom_char_0) order_unique: "[| poly p \<noteq> poly []; ([-a, 1] %^ n) divides p;
+lemma (in idom_char_0) order_unique: "[| poly p \<noteq> poly []; ([-a, 1] %^ n) divides p;
          ~(([-a, 1] %^ (Suc n)) divides p)
       |] ==> (n = order a p)"
 by (insert order [of a n p], auto)
 
-lemma (in recpower_idom_char_0) order_unique_lemma: "(poly p \<noteq> poly [] & ([-a, 1] %^ n) divides p &
+lemma (in idom_char_0) order_unique_lemma: "(poly p \<noteq> poly [] & ([-a, 1] %^ n) divides p &
          ~(([-a, 1] %^ (Suc n)) divides p))
       ==> (n = order a p)"
 by (blast intro: order_unique)
@@ -692,7 +679,7 @@ apply (induct n arbitrary: a p, blast)
 apply (auto simp add: divides_def poly_mult simp del: pmult_Cons)
 done
 
-lemma (in recpower_idom_char_0) order_root: "(poly p a = 0) = ((poly p = poly []) | order a p \<noteq> 0)"
+lemma (in idom_char_0) order_root: "(poly p a = 0) = ((poly p = poly []) | order a p \<noteq> 0)"
 proof-
   let ?poly = poly
   show ?thesis
@@ -706,7 +693,7 @@ apply (blast intro: lemma_order_root)
 done
 qed
 
-lemma (in recpower_idom_char_0) order_divides: "(([-a, 1] %^ n) divides p) = ((poly p = poly []) | n \<le> order a p)"
+lemma (in idom_char_0) order_divides: "(([-a, 1] %^ n) divides p) = ((poly p = poly []) | n \<le> order a p)"
 proof-
   let ?poly = poly
   show ?thesis
@@ -718,7 +705,7 @@ apply (auto dest!: order2 [where a=a]
 done
 qed
 
-lemma (in recpower_idom_char_0) order_decomp:
+lemma (in idom_char_0) order_decomp:
      "poly p \<noteq> poly []
       ==> \<exists>q. (poly p = poly (([-a, 1] %^ (order a p)) *** q)) &
                 ~([-a, 1] divides q)"
@@ -732,7 +719,7 @@ done
 
 text{*Important composition properties of orders.*}
 lemma order_mult: "poly (p *** q) \<noteq> poly []
-      ==> order a (p *** q) = order a p + order (a::'a::{recpower_idom_char_0}) q"
+      ==> order a (p *** q) = order a p + order (a::'a::{idom_char_0}) q"
 apply (cut_tac a = a and p = "p *** q" and n = "order a p + order a q" in order)
 apply (auto simp add: poly_entire simp del: pmult_Cons)
 apply (drule_tac a = a in order2)+
@@ -753,7 +740,7 @@ apply (drule poly_mult_left_cancel [THEN iffD1], force)
 apply (simp add: fun_eq poly_exp_add poly_mult mult_ac del: pmult_Cons)
 done
 
-lemma (in recpower_idom_char_0) order_mult:
+lemma (in idom_char_0) order_mult:
   assumes pq0: "poly (p *** q) \<noteq> poly []"
   shows "order a (p *** q) = order a p + order a q"
 proof-
@@ -783,7 +770,7 @@ apply (simp add: fun_eq poly_exp_add poly_mult mult_ac del: pmult_Cons)
 done
 qed
 
-lemma (in recpower_idom_char_0) order_root2: "poly p \<noteq> poly [] ==> (poly p a = 0) = (order a p \<noteq> 0)"
+lemma (in idom_char_0) order_root2: "poly p \<noteq> poly [] ==> (poly p a = 0) = (order a p \<noteq> 0)"
 by (rule order_root [THEN ssubst], auto)
 
 lemma (in semiring_1) pmult_one[simp]: "[1] *** p = p" by auto
@@ -791,7 +778,7 @@ lemma (in semiring_1) pmult_one[simp]: "[1] *** p = p" by auto
 lemma (in semiring_0) poly_Nil_zero: "poly [] = poly [0]"
 by (simp add: fun_eq)
 
-lemma (in recpower_idom_char_0) rsquarefree_decomp:
+lemma (in idom_char_0) rsquarefree_decomp:
      "[| rsquarefree p; poly p a = 0 |]
       ==> \<exists>q. (poly p = poly ([-a, 1] *** q)) & poly q a \<noteq> 0"
 apply (simp add: rsquarefree_def, safe)
@@ -999,7 +986,7 @@ next
   ultimately show ?case by blast
 qed
 
-lemma (in recpower_idom_char_0) order_degree:
+lemma (in idom_char_0) order_degree:
   assumes p0: "poly p \<noteq> poly []"
   shows "order a p \<le> degree p"
 proof-

@@ -15,8 +15,8 @@ definition
 
 datatype float = Float int int
 
-fun Ifloat :: "float \<Rightarrow> real" where
-"Ifloat (Float a b) = real a * pow2 b"
+primrec Ifloat :: "float \<Rightarrow> real" where
+  "Ifloat (Float a b) = real a * pow2 b"
 
 instantiation float :: zero begin
 definition zero_float where "0 = Float 0 0" 
@@ -33,11 +33,11 @@ definition number_of_float where "number_of n = Float n 0"
 instance ..
 end
 
-fun mantissa :: "float \<Rightarrow> int" where
-"mantissa (Float a b) = a"
+primrec mantissa :: "float \<Rightarrow> int" where
+  "mantissa (Float a b) = a"
 
-fun scale :: "float \<Rightarrow> int" where
-"scale (Float a b) = b"
+primrec scale :: "float \<Rightarrow> int" where
+  "scale (Float a b) = b"
 
 lemma Ifloat_neg_exp: "e < 0 \<Longrightarrow> Ifloat (Float m e) = real m * inverse (2^nat (-e))" by auto
 lemma Ifloat_nge0_exp: "\<not> 0 \<le> e \<Longrightarrow> Ifloat (Float m e) = real m * inverse (2^nat (-e))" by auto
@@ -320,12 +320,12 @@ instance ..
 end
 
 instantiation float :: uminus begin
-fun uminus_float where [simp del]: "uminus_float (Float m e) = Float (-m) e"
+primrec uminus_float where [simp del]: "uminus_float (Float m e) = Float (-m) e"
 instance ..
 end
 
 instantiation float :: minus begin
-fun minus_float where [simp del]: "(z::float) - w = z + (- w)"
+definition minus_float where [simp del]: "(z::float) - w = z + (- w)"
 instance ..
 end
 
@@ -334,11 +334,11 @@ fun times_float where [simp del]: "(Float a_m a_e) * (Float b_m b_e) = Float (a_
 instance ..
 end
 
-fun float_pprt :: "float \<Rightarrow> float" where
-"float_pprt (Float a e) = (if 0 <= a then (Float a e) else 0)"
+primrec float_pprt :: "float \<Rightarrow> float" where
+  "float_pprt (Float a e) = (if 0 <= a then (Float a e) else 0)"
 
-fun float_nprt :: "float \<Rightarrow> float" where
-"float_nprt (Float a e) = (if 0 <= a then 0 else (Float a e))" 
+primrec float_nprt :: "float \<Rightarrow> float" where
+  "float_nprt (Float a e) = (if 0 <= a then 0 else (Float a e))" 
 
 instantiation float :: ord begin
 definition le_float_def: "z \<le> w \<equiv> Ifloat z \<le> Ifloat w"
@@ -354,7 +354,7 @@ lemma Ifloat_minus[simp]: "Ifloat (- a) = - Ifloat a"
   by (cases a, simp add: uminus_float.simps)
 
 lemma Ifloat_sub[simp]: "Ifloat (a - b) = Ifloat a - Ifloat b" 
-  by (cases a, cases b, simp add: minus_float.simps)
+  by (cases a, cases b, simp add: minus_float_def)
 
 lemma Ifloat_mult[simp]: "Ifloat (a*b) = Ifloat a * Ifloat b"
   by (cases a, cases b, simp add: times_float.simps pow2_add)
@@ -443,37 +443,8 @@ lemma float_less_simp: "((x::float) < y) = (0 < y - x)"
 lemma Ifloat_min: "Ifloat (min x y) = min (Ifloat x) (Ifloat y)" unfolding min_def le_float_def by auto
 lemma Ifloat_max: "Ifloat (max a b) = max (Ifloat a) (Ifloat b)" unfolding max_def le_float_def by auto
 
-instantiation float :: power begin 
-fun power_float where [simp del]: "(Float m e) ^ n = Float (m ^ n) (e * int n)"
-instance ..
-end
-
-instance float :: recpower
-proof (intro_classes)
-  fix a :: float show "a ^ 0 = 1" by (cases a, auto simp add: power_float.simps one_float_def)
-next
-  fix a :: float and n :: nat show "a ^ (Suc n) = a * a ^ n" 
-  by (cases a, auto simp add: power_float.simps times_float.simps algebra_simps)
-qed
-
-lemma float_power: "Ifloat (x ^ n) = (Ifloat x) ^ n"
-proof (cases x)
-  case (Float m e)
-  
-  have "pow2 e ^ n = pow2 (e * int n)"
-  proof (cases "e >= 0")
-    case True hence e_nat: "e = int (nat e)" by auto
-    hence "pow2 e ^ n = (2 ^ nat e) ^ n" using pow2_int[of "nat e"] by auto
-    thus ?thesis unfolding power_mult[symmetric] unfolding pow2_int[symmetric] int_mult e_nat[symmetric] .
-  next
-    case False hence e_minus: "-e = int (nat (-e))" by auto
-    hence "pow2 (-e) ^ n = (2 ^ nat (-e)) ^ n" using pow2_int[of "nat (-e)"] by auto
-    hence "pow2 (-e) ^ n = pow2 ((-e) * int n)" unfolding power_mult[symmetric] unfolding pow2_int[symmetric] int_mult e_minus[symmetric] zmult_zminus .
-    thus ?thesis unfolding pow2_neg[of "-e"] pow2_neg[of "-e * int n"] unfolding zmult_zminus zminus_zminus nonzero_power_inverse[OF pow2_neq_zero, symmetric]
-      using nonzero_inverse_eq_imp_eq[OF _ pow2_neq_zero pow2_neq_zero] by auto
-  qed
-  thus ?thesis by (auto simp add: Float power_mult_distrib Ifloat.simps power_float.simps)
-qed
+lemma float_power: "Ifloat (x ^ n) = Ifloat x ^ n"
+  by (induct n) simp_all
 
 lemma zero_le_pow2[simp]: "0 \<le> pow2 s"
   apply (subgoal_tac "0 < pow2 s")
@@ -1182,12 +1153,12 @@ proof (cases x, cases y)
     unfolding x_eq y_eq float_divr.simps Let_def le_float_def Ifloat_0 Ifloat_mult by (auto intro!: mult_nonneg_nonpos)
 qed
 
-fun round_down :: "nat \<Rightarrow> float \<Rightarrow> float" where
+primrec round_down :: "nat \<Rightarrow> float \<Rightarrow> float" where
 "round_down prec (Float m e) = (let d = bitlen m - int prec in
      if 0 < d then let P = 2^nat d ; n = m div P in Float n (e + d)
               else Float m e)"
 
-fun round_up :: "nat \<Rightarrow> float \<Rightarrow> float" where
+primrec round_up :: "nat \<Rightarrow> float \<Rightarrow> float" where
 "round_up prec (Float m e) = (let d = bitlen m - int prec in
   if 0 < d then let P = 2^nat d ; n = m div P ; r = m mod P in Float (n + (if r = 0 then 0 else 1)) (e + d) 
            else Float m e)"
@@ -1314,8 +1285,8 @@ proof (cases "normfloat (x * y)")
   finally show ?thesis .
 qed
 
-fun float_abs :: "float \<Rightarrow> float" where
-"float_abs (Float m e) = Float \<bar>m\<bar> e"
+primrec float_abs :: "float \<Rightarrow> float" where
+  "float_abs (Float m e) = Float \<bar>m\<bar> e"
 
 instantiation float :: abs begin
 definition abs_float_def: "\<bar>x\<bar> = float_abs x"
@@ -1329,8 +1300,8 @@ proof (cases x)
   thus ?thesis unfolding Float abs_float_def float_abs.simps Ifloat.simps by auto
 qed
 
-fun floor_fl :: "float \<Rightarrow> float" where
-"floor_fl (Float m e) = (if 0 \<le> e then Float m e
+primrec floor_fl :: "float \<Rightarrow> float" where
+  "floor_fl (Float m e) = (if 0 \<le> e then Float m e
                                   else Float (m div (2 ^ (nat (-e)))) 0)"
 
 lemma floor_fl: "Ifloat (floor_fl x) \<le> Ifloat x"
@@ -1358,8 +1329,8 @@ qed
 
 declare floor_fl.simps[simp del]
 
-fun ceiling_fl :: "float \<Rightarrow> float" where
-"ceiling_fl (Float m e) = (if 0 \<le> e then Float m e
+primrec ceiling_fl :: "float \<Rightarrow> float" where
+  "ceiling_fl (Float m e) = (if 0 \<le> e then Float m e
                                     else Float (m div (2 ^ (nat (-e))) + 1) 0)"
 
 lemma ceiling_fl: "Ifloat x \<le> Ifloat (ceiling_fl x)"

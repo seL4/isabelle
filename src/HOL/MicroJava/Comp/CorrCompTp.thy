@@ -454,7 +454,7 @@ lemma max_of_list_append [simp]:
 apply (simp add: max_of_list_def)
 apply (induct xs)
 apply simp
-using [[fast_arith_split_limit = 0]]
+using [[linarith_split_limit = 0]]
 apply simp
 apply arith
 done

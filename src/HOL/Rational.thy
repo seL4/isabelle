@@ -90,7 +90,7 @@ lemma eq_rat:
   and "\<And>a c. Fract 0 a = Fract 0 c"
   by (simp_all add: Fract_def)
 
-instantiation rat :: "{comm_ring_1, recpower}"
+instantiation rat :: comm_ring_1
 begin
 
 definition
@@ -156,11 +156,6 @@ proof -
   then show ?thesis by (simp add: mult_rat [symmetric])
 qed
 
-primrec power_rat
-where
-  "q ^ 0 = (1\<Colon>rat)"
-| "q ^ Suc n = (q\<Colon>rat) * (q ^ n)"
-
 instance proof
   fix q r s :: rat show "(q * r) * s = q * (r * s)" 
     by (cases q, cases r, cases s) (simp add: eq_rat)
@@ -190,17 +185,7 @@ next
     by (cases q, cases r, cases s) (simp add: eq_rat algebra_simps)
 next
   show "(0::rat) \<noteq> 1" by (simp add: Zero_rat_def One_rat_def eq_rat)
-next
-  fix q :: rat show "q * 1 = q"
-    by (cases q) (simp add: One_rat_def eq_rat)
-next
-  fix q :: rat
-  fix n :: nat
-  show "q ^ 0 = 1" by simp
-  show "q ^ (Suc n) = q * (q ^ n)" by simp
 qed
-
-declare power_rat.simps [simp del]
 
 end
 
@@ -222,7 +207,8 @@ begin
 definition
   rat_number_of_def [code del]: "number_of w = Fract w 1"
 
-instance by intro_classes (simp add: rat_number_of_def of_int_rat)
+instance proof
+qed (simp add: rat_number_of_def of_int_rat)
 
 end
 
@@ -667,7 +653,7 @@ lemma of_rat_divide:
 by (cases "b = 0") (simp_all add: nonzero_of_rat_divide)
 
 lemma of_rat_power:
-  "(of_rat (a ^ n)::'a::{field_char_0,recpower}) = of_rat a ^ n"
+  "(of_rat (a ^ n)::'a::field_char_0) = of_rat a ^ n"
 by (induct n) (simp_all add: of_rat_mult)
 
 lemma of_rat_eq_iff [simp]: "(of_rat a = of_rat b) = (a = b)"
@@ -827,7 +813,7 @@ apply (rule of_rat_divide [symmetric])
 done
 
 lemma Rats_power [simp]:
-  fixes a :: "'a::{field_char_0,recpower}"
+  fixes a :: "'a::field_char_0"
   shows "a \<in> Rats \<Longrightarrow> a ^ n \<in> Rats"
 apply (auto simp add: Rats_def)
 apply (rule range_eqI)

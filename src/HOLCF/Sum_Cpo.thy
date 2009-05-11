@@ -10,28 +10,28 @@ begin
 
 subsection {* Ordering on type @{typ "'a + 'b"} *}
 
-instantiation "+" :: (sq_ord, sq_ord) sq_ord
+instantiation "+" :: (below, below) below
 begin
 
-definition
-  less_sum_def: "x \<sqsubseteq> y \<equiv> case x of
+definition below_sum_def:
+  "x \<sqsubseteq> y \<equiv> case x of
          Inl a \<Rightarrow> (case y of Inl b \<Rightarrow> a \<sqsubseteq> b | Inr b \<Rightarrow> False) |
          Inr a \<Rightarrow> (case y of Inl b \<Rightarrow> False | Inr b \<Rightarrow> a \<sqsubseteq> b)"
 
 instance ..
 end
 
-lemma Inl_less_iff [simp]: "Inl x \<sqsubseteq> Inl y = x \<sqsubseteq> y"
-unfolding less_sum_def by simp
+lemma Inl_below_Inl [simp]: "Inl x \<sqsubseteq> Inl y = x \<sqsubseteq> y"
+unfolding below_sum_def by simp
 
-lemma Inr_less_iff [simp]: "Inr x \<sqsubseteq> Inr y = x \<sqsubseteq> y"
-unfolding less_sum_def by simp
+lemma Inr_below_Inr [simp]: "Inr x \<sqsubseteq> Inr y = x \<sqsubseteq> y"
+unfolding below_sum_def by simp
 
-lemma Inl_less_Inr [simp]: "\<not> Inl x \<sqsubseteq> Inr y"
-unfolding less_sum_def by simp
+lemma Inl_below_Inr [simp]: "\<not> Inl x \<sqsubseteq> Inr y"
+unfolding below_sum_def by simp
 
-lemma Inr_less_Inl [simp]: "\<not> Inr x \<sqsubseteq> Inl y"
-unfolding less_sum_def by simp
+lemma Inr_below_Inl [simp]: "\<not> Inr x \<sqsubseteq> Inl y"
+unfolding below_sum_def by simp
 
 lemma Inl_mono: "x \<sqsubseteq> y \<Longrightarrow> Inl x \<sqsubseteq> Inl y"
 by simp
@@ -39,20 +39,20 @@ by simp
 lemma Inr_mono: "x \<sqsubseteq> y \<Longrightarrow> Inr x \<sqsubseteq> Inr y"
 by simp
 
-lemma Inl_lessE: "\<lbrakk>Inl a \<sqsubseteq> x; \<And>b. \<lbrakk>x = Inl b; a \<sqsubseteq> b\<rbrakk> \<Longrightarrow> R\<rbrakk> \<Longrightarrow> R"
+lemma Inl_belowE: "\<lbrakk>Inl a \<sqsubseteq> x; \<And>b. \<lbrakk>x = Inl b; a \<sqsubseteq> b\<rbrakk> \<Longrightarrow> R\<rbrakk> \<Longrightarrow> R"
 by (cases x, simp_all)
 
-lemma Inr_lessE: "\<lbrakk>Inr a \<sqsubseteq> x; \<And>b. \<lbrakk>x = Inr b; a \<sqsubseteq> b\<rbrakk> \<Longrightarrow> R\<rbrakk> \<Longrightarrow> R"
+lemma Inr_belowE: "\<lbrakk>Inr a \<sqsubseteq> x; \<And>b. \<lbrakk>x = Inr b; a \<sqsubseteq> b\<rbrakk> \<Longrightarrow> R\<rbrakk> \<Longrightarrow> R"
 by (cases x, simp_all)
 
-lemmas sum_less_elims = Inl_lessE Inr_lessE
+lemmas sum_below_elims = Inl_belowE Inr_belowE
 
-lemma sum_less_cases:
+lemma sum_below_cases:
   "\<lbrakk>x \<sqsubseteq> y;
     \<And>a b. \<lbrakk>x = Inl a; y = Inl b; a \<sqsubseteq> b\<rbrakk> \<Longrightarrow> R;
     \<And>a b. \<lbrakk>x = Inr a; y = Inr b; a \<sqsubseteq> b\<rbrakk> \<Longrightarrow> R\<rbrakk>
       \<Longrightarrow> R"
-by (cases x, safe elim!: sum_less_elims, auto)
+by (cases x, safe elim!: sum_below_elims, auto)
 
 subsection {* Sum type is a complete partial order *}
 
@@ -64,18 +64,18 @@ proof
 next
   fix x y :: "'a + 'b"
   assume "x \<sqsubseteq> y" and "y \<sqsubseteq> x" thus "x = y"
-    by (induct x, auto elim!: sum_less_elims intro: antisym_less)
+    by (induct x, auto elim!: sum_below_elims intro: below_antisym)
 next
   fix x y z :: "'a + 'b"
   assume "x \<sqsubseteq> y" and "y \<sqsubseteq> z" thus "x \<sqsubseteq> z"
-    by (induct x, auto elim!: sum_less_elims intro: trans_less)
+    by (induct x, auto elim!: sum_below_elims intro: below_trans)
 qed
 
 lemma monofun_inv_Inl: "monofun (\<lambda>p. THE a. p = Inl a)"
-by (rule monofunI, erule sum_less_cases, simp_all)
+by (rule monofunI, erule sum_below_cases, simp_all)
 
 lemma monofun_inv_Inr: "monofun (\<lambda>p. THE b. p = Inr b)"
-by (rule monofunI, erule sum_less_cases, simp_all)
+by (rule monofunI, erule sum_below_cases, simp_all)
 
 lemma sum_chain_cases:
   assumes Y: "chain Y"
@@ -87,12 +87,12 @@ lemma sum_chain_cases:
    apply (rule ch2ch_monofun [OF monofun_inv_Inl Y])
   apply (rule ext)
   apply (cut_tac j=i in chain_mono [OF Y le0], simp)
-  apply (erule Inl_lessE, simp)
+  apply (erule Inl_belowE, simp)
  apply (rule B)
   apply (rule ch2ch_monofun [OF monofun_inv_Inr Y])
  apply (rule ext)
  apply (cut_tac j=i in chain_mono [OF Y le0], simp)
- apply (erule Inr_lessE, simp)
+ apply (erule Inr_belowE, simp)
 done
 
 lemma is_lub_Inl: "range S <<| x \<Longrightarrow> range (\<lambda>i. Inl (S i)) <<| Inl x"
@@ -100,7 +100,7 @@ lemma is_lub_Inl: "range S <<| x \<Longrightarrow> range (\<lambda>i. Inl (S i))
   apply (rule ub_rangeI)
   apply (simp add: is_ub_lub)
  apply (frule ub_rangeD [where i=arbitrary])
- apply (erule Inl_lessE, simp)
+ apply (erule Inl_belowE, simp)
  apply (erule is_lub_lub)
  apply (rule ub_rangeI)
  apply (drule ub_rangeD, simp)
@@ -111,7 +111,7 @@ lemma is_lub_Inr: "range S <<| x \<Longrightarrow> range (\<lambda>i. Inr (S i))
   apply (rule ub_rangeI)
   apply (simp add: is_ub_lub)
  apply (frule ub_rangeD [where i=arbitrary])
- apply (erule Inr_lessE, simp)
+ apply (erule Inr_belowE, simp)
  apply (erule is_lub_lub)
  apply (rule ub_rangeI)
  apply (drule ub_rangeD, simp)
@@ -130,17 +130,14 @@ done
 
 subsection {* Continuity of @{term Inl}, @{term Inr}, @{term sum_case} *}
 
-lemma cont2cont_Inl [simp]: "cont f \<Longrightarrow> cont (\<lambda>x. Inl (f x))"
-by (fast intro: contI is_lub_Inl elim: contE)
-
-lemma cont2cont_Inr [simp]: "cont f \<Longrightarrow> cont (\<lambda>x. Inr (f x))"
-by (fast intro: contI is_lub_Inr elim: contE)
-
 lemma cont_Inl: "cont Inl"
-by (rule cont2cont_Inl [OF cont_id])
+by (intro contI is_lub_Inl cpo_lubI)
 
 lemma cont_Inr: "cont Inr"
-by (rule cont2cont_Inr [OF cont_id])
+by (intro contI is_lub_Inr cpo_lubI)
+
+lemmas cont2cont_Inl [cont2cont] = cont_compose [OF cont_Inl]
+lemmas cont2cont_Inr [cont2cont] = cont_compose [OF cont_Inr]
 
 lemmas ch2ch_Inl [simp] = ch2ch_cont [OF cont_Inl]
 lemmas ch2ch_Inr [simp] = ch2ch_cont [OF cont_Inr]
@@ -161,15 +158,32 @@ apply (simp add: cont2contlubE [OF cont_Inl, symmetric] contE)
 apply (simp add: cont2contlubE [OF cont_Inr, symmetric] contE)
 done
 
-lemma cont2cont_sum_case [simp]:
+lemma cont2cont_sum_case:
   assumes f1: "\<And>a. cont (\<lambda>x. f x a)" and f2: "\<And>x. cont (\<lambda>a. f x a)"
   assumes g1: "\<And>b. cont (\<lambda>x. g x b)" and g2: "\<And>x. cont (\<lambda>b. g x b)"
   assumes h: "cont (\<lambda>x. h x)"
   shows "cont (\<lambda>x. case h x of Inl a \<Rightarrow> f x a | Inr b \<Rightarrow> g x b)"
-apply (rule cont2cont_app2 [OF cont2cont_lambda _ h])
-apply (rule cont_sum_case1 [OF f1 g1])
+apply (rule cont_apply [OF h])
 apply (rule cont_sum_case2 [OF f2 g2])
+apply (rule cont_sum_case1 [OF f1 g1])
 done
+
+lemma cont2cont_sum_case' [cont2cont]:
+  assumes f: "cont (\<lambda>p. f (fst p) (snd p))"
+  assumes g: "cont (\<lambda>p. g (fst p) (snd p))"
+  assumes h: "cont (\<lambda>x. h x)"
+  shows "cont (\<lambda>x. case h x of Inl a \<Rightarrow> f x a | Inr b \<Rightarrow> g x b)"
+proof -
+  note f1 = f [THEN cont_fst_snd_D1]
+  note f2 = f [THEN cont_fst_snd_D2]
+  note g1 = g [THEN cont_fst_snd_D1]
+  note g2 = g [THEN cont_fst_snd_D2]
+  show ?thesis
+    apply (rule cont_apply [OF h])
+    apply (rule cont_sum_case2 [OF f2 g2])
+    apply (rule cont_sum_case1 [OF f1 g1])
+    done
+qed
 
 subsection {* Compactness and chain-finiteness *}
 
@@ -212,7 +226,7 @@ done
 instance "+" :: (finite_po, finite_po) finite_po ..
 
 instance "+" :: (discrete_cpo, discrete_cpo) discrete_cpo
-by intro_classes (simp add: less_sum_def split: sum.split)
+by intro_classes (simp add: below_sum_def split: sum.split)
 
 subsection {* Sum type is a bifinite domain *}
 

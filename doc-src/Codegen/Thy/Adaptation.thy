@@ -1,10 +1,10 @@
-theory Adaption
+theory Adaptation
 imports Setup
 begin
 
 setup %invisible {* Code_Target.extend_target ("\<SML>", ("SML", K I)) *}
 
-section {* Adaption to target languages \label{sec:adaption} *}
+section {* Adaptation to target languages \label{sec:adaptation} *}
 
 subsection {* Adapting code generation *}
 
@@ -38,30 +38,30 @@ text {*
 
   \begin{itemize}
     \item The safe configuration methods act uniformly on every target language,
-      whereas for adaption you have to treat each target language separate.
+      whereas for adaptation you have to treat each target language separate.
     \item Application is extremely tedious since there is no abstraction
       which would allow for a static check, making it easy to produce garbage.
     \item More or less subtle errors can be introduced unconsciously.
   \end{itemize}
 
-  \noindent However, even if you ought refrain from setting up adaption
+  \noindent However, even if you ought refrain from setting up adaptation
   yourself, already the @{text "HOL"} comes with some reasonable default
-  adaptions (say, using target language list syntax).  There also some
-  common adaption cases which you can setup by importing particular
+  adaptations (say, using target language list syntax).  There also some
+  common adaptation cases which you can setup by importing particular
   library theories.  In order to understand these, we provide some clues here;
   these however are not supposed to replace a careful study of the sources.
 *}
 
-subsection {* The adaption principle *}
+subsection {* The adaptation principle *}
 
 text {*
-  Figure \ref{fig:adaption} illustrates what \qt{adaption} is conceptually
+  Figure \ref{fig:adaptation} illustrates what \qt{adaptation} is conceptually
   supposed to be:
 
   \begin{figure}[here]
-    \includegraphics{adaption}
-    \caption{The adaption principle}
-    \label{fig:adaption}
+    \includegraphics{adaptation}
+    \caption{The adaptation principle}
+    \label{fig:adaptation}
   \end{figure}
 
   \noindent In the tame view, code generation acts as broker between
@@ -70,14 +70,14 @@ text {*
   @{text serialisation};  for the latter, the serialiser has to observe
   the structure of the @{text language} itself plus some @{text reserved}
   keywords which have to be avoided for generated code.
-  However, if you consider @{text adaption} mechanisms, the code generated
+  However, if you consider @{text adaptation} mechanisms, the code generated
   by the serializer is just the tip of the iceberg:
 
   \begin{itemize}
     \item @{text serialisation} can be \emph{parametrised} such that
       logical entities are mapped to target-specific ones
       (e.g. target-specific list syntax,
-        see also \secref{sec:adaption_mechanisms})
+        see also \secref{sec:adaptation_mechanisms})
     \item Such parametrisations can involve references to a
       target-specific standard @{text library} (e.g. using
       the @{text Haskell} @{verbatim Maybe} type instead
@@ -92,12 +92,12 @@ text {*
       also involves further @{text reserved} identifiers.
   \end{itemize}
 
-  \noindent As figure \ref{fig:adaption} illustrates, all these adaption mechanisms
+  \noindent As figure \ref{fig:adaptation} illustrates, all these adaptation mechanisms
   have to act consistently;  it is at the discretion of the user
   to take care for this.
 *}
 
-subsection {* Common adaption patterns *}
+subsection {* Common adaptation patterns *}
 
 text {*
   The @{theory HOL} @{theory Main} theory already provides a code
@@ -106,7 +106,7 @@ text {*
   and modifications are available by certain theories of the @{text HOL}
   library; beside being useful in applications, they may serve
   as a tutorial for customising the code generator setup (see below
-  \secref{sec:adaption_mechanisms}).
+  \secref{sec:adaptation_mechanisms}).
 
   \begin{description}
 
@@ -126,7 +126,7 @@ text {*
        @{typ index} which is mapped to target-language built-in integers.
        Useful for code setups which involve e.g. indexing of
        target-language arrays.
-    \item[@{theory "Code_Message"}] provides an additional datatype
+    \item[@{theory "String"}] provides an additional datatype
        @{typ message_string} which is isomorphic to strings;
        @{typ message_string}s are mapped to target-language strings.
        Useful for code setups which involve e.g. printing (error) messages.
@@ -142,7 +142,7 @@ text {*
 *}
 
 
-subsection {* Parametrising serialisation \label{sec:adaption_mechanisms} *}
+subsection {* Parametrising serialisation \label{sec:adaptation_mechanisms} *}
 
 text {*
   Consider the following function and its corresponding

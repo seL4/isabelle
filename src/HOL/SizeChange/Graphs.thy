@@ -228,18 +228,8 @@ proof
   qed
 qed
 
-instantiation graph :: (type, monoid_mult) "{semiring_1, idem_add, recpower, star}"
-begin
-
-primrec power_graph :: "('a\<Colon>type, 'b\<Colon>monoid_mult) graph \<Rightarrow> nat => ('a, 'b) graph"
-where
-  "(A \<Colon> ('a, 'b) graph) ^ 0 = 1"
-| "(A \<Colon> ('a, 'b) graph) ^ Suc n = A * (A ^ n)"
-
-definition
-  graph_star_def: "star (G \<Colon> ('a, 'b) graph) = (SUP n. G ^ n)" 
-
-instance proof
+instance graph :: (type, monoid_mult) "{semiring_1, idem_add}"
+proof
   fix a b c :: "('a, 'b) graph"
   
   show "1 * a = a" 
@@ -258,9 +248,15 @@ instance proof
 
   show "a + a = a" unfolding graph_plus_def by simp
   
-  show "a ^ 0 = 1" "\<And>n. a ^ (Suc n) = a * a ^ n"
-    by simp_all
 qed
+
+instantiation graph :: (type, monoid_mult) star
+begin
+
+definition
+  graph_star_def: "star (G \<Colon> ('a, 'b) graph) = (SUP n. G ^ n)" 
+
+instance ..
 
 end
 
@@ -351,7 +347,7 @@ lemma tcl_is_SUP:
 
 lemma in_tcl: 
   "has_edge (tcl G) a x b = (\<exists>n>0. has_edge (G ^ n) a x b)"
-  apply (auto simp: tcl_is_SUP in_SUP simp del: power_graph.simps power_Suc)
+  apply (auto simp: tcl_is_SUP in_SUP simp del: power.simps power_Suc)
   apply (rule_tac x = "n - 1" in exI, auto)
   done
 

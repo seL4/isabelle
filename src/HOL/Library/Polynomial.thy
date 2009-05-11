@@ -632,20 +632,6 @@ lemma dvd_smult_iff:
   shows "a \<noteq> 0 \<Longrightarrow> p dvd smult a q \<longleftrightarrow> p dvd q"
   by (safe elim!: dvd_smult dvd_smult_cancel)
 
-instantiation poly :: (comm_semiring_1) recpower
-begin
-
-primrec power_poly where
-  "(p::'a poly) ^ 0 = 1"
-| "(p::'a poly) ^ (Suc n) = p * p ^ n"
-
-instance
-  by default simp_all
-
-declare power_poly.simps [simp del]
-
-end
-
 lemma degree_power_le: "degree (p ^ n) \<le> degree p * n"
 by (induct n, simp, auto intro: order_trans degree_mult_le)
 
@@ -987,6 +973,30 @@ next
     by (simp add: pdivmod_rel_def left_distrib)
   thus "(x + z * y) div y = z + x div y"
     by (rule div_poly_eq)
+next
+  fix x y z :: "'a poly"
+  assume "x \<noteq> 0"
+  show "(x * y) div (x * z) = y div z"
+  proof (cases "y \<noteq> 0 \<and> z \<noteq> 0")
+    have "\<And>x::'a poly. pdivmod_rel x 0 0 x"
+      by (rule pdivmod_rel_by_0)
+    then have [simp]: "\<And>x::'a poly. x div 0 = 0"
+      by (rule div_poly_eq)
+    have "\<And>x::'a poly. pdivmod_rel 0 x 0 0"
+      by (rule pdivmod_rel_0)
+    then have [simp]: "\<And>x::'a poly. 0 div x = 0"
+      by (rule div_poly_eq)
+    case False then show ?thesis by auto
+  next
+    case True then have "y \<noteq> 0" and "z \<noteq> 0" by auto
+    with `x \<noteq> 0`
+    have "\<And>q r. pdivmod_rel y z q r \<Longrightarrow> pdivmod_rel (x * y) (x * z) q (x * r)"
+      by (auto simp add: pdivmod_rel_def algebra_simps)
+        (rule classical, simp add: degree_mult_eq)
+    moreover from pdivmod_rel have "pdivmod_rel y z (y div z) (y mod z)" .
+    ultimately have "pdivmod_rel (x * y) (x * z) (y div z) (x * (y mod z))" .
+    then show ?thesis by (simp add: div_poly_eq)
+  qed
 qed
 
 end
@@ -1108,7 +1118,7 @@ lemma poly_1 [simp]: "poly 1 x = 1"
   unfolding one_poly_def by simp
 
 lemma poly_monom:
-  fixes a x :: "'a::{comm_semiring_1,recpower}"
+  fixes a x :: "'a::{comm_semiring_1}"
   shows "poly (monom a n) x = a * x ^ n"
   by (induct n, simp add: monom_0, simp add: monom_Suc power_Suc mult_ac)
 
@@ -1137,7 +1147,7 @@ lemma poly_mult [simp]: "poly (p * q) x = poly p x * poly q x"
   by (induct p, simp_all, simp add: algebra_simps)
 
 lemma poly_power [simp]:
-  fixes p :: "'a::{comm_semiring_1,recpower} poly"
+  fixes p :: "'a::{comm_semiring_1} poly"
   shows "poly (p ^ n) x = poly p x ^ n"
   by (induct n, simp, simp add: power_Suc)
 

@@ -14,32 +14,26 @@ datatype num = One | Dig0 num | Dig1 num
 
 text {* Increment function for type @{typ num} *}
 
-primrec
-  inc :: "num \<Rightarrow> num"
-where
+primrec inc :: "num \<Rightarrow> num" where
   "inc One = Dig0 One"
 | "inc (Dig0 x) = Dig1 x"
 | "inc (Dig1 x) = Dig0 (inc x)"
 
 text {* Converting between type @{typ num} and type @{typ nat} *}
 
-primrec
-  nat_of_num :: "num \<Rightarrow> nat"
-where
+primrec nat_of_num :: "num \<Rightarrow> nat" where
   "nat_of_num One = Suc 0"
 | "nat_of_num (Dig0 x) = nat_of_num x + nat_of_num x"
 | "nat_of_num (Dig1 x) = Suc (nat_of_num x + nat_of_num x)"
 
-primrec
-  num_of_nat :: "nat \<Rightarrow> num"
-where
+primrec num_of_nat :: "nat \<Rightarrow> num" where
   "num_of_nat 0 = One"
 | "num_of_nat (Suc n) = (if 0 < n then inc (num_of_nat n) else One)"
 
 lemma nat_of_num_pos: "0 < nat_of_num x"
   by (induct x) simp_all
 
-lemma nat_of_num_neq_0: " nat_of_num x \<noteq> 0"
+lemma nat_of_num_neq_0: "nat_of_num x \<noteq> 0"
   by (induct x) simp_all
 
 lemma nat_of_num_inc: "nat_of_num (inc x) = Suc (nat_of_num x)"
@@ -247,12 +241,23 @@ class semiring_numeral = semiring + monoid_mult
 begin
 
 primrec of_num :: "num \<Rightarrow> 'a" where
-  of_num_one [numeral]: "of_num One = 1"
+  of_num_One [numeral]: "of_num One = 1"
   | "of_num (Dig0 n) = of_num n + of_num n"
   | "of_num (Dig1 n) = of_num n + of_num n + 1"
 
 lemma of_num_inc: "of_num (inc x) = of_num x + 1"
   by (induct x) (simp_all add: add_ac)
+
+lemma of_num_add: "of_num (m + n) = of_num m + of_num n"
+  apply (induct n rule: num_induct)
+  apply (simp_all add: add_One add_inc of_num_inc add_ac)
+  done
+
+lemma of_num_mult: "of_num (m * n) = of_num m * of_num n"
+  apply (induct n rule: num_induct)
+  apply (simp add: mult_One)
+  apply (simp add: mult_inc of_num_add of_num_inc right_distrib)
+  done
 
 declare of_num.simps [simp del]
 
@@ -263,16 +268,19 @@ text {*
 *}
 
 ML {*
-fun mk_num 1 = @{term One}
-  | mk_num k =
-      let
-        val (l, b) = Integer.div_mod k 2;
-        val bit = (if b = 0 then @{term Dig0} else @{term Dig1});
-      in bit $ (mk_num l) end;
+fun mk_num k =
+  if k > 1 then
+    let
+      val (l, b) = Integer.div_mod k 2;
+      val bit = (if b = 0 then @{term Dig0} else @{term Dig1});
+    in bit $ (mk_num l) end
+  else if k = 1 then @{term One}
+  else error ("mk_num " ^ string_of_int k);
 
 fun dest_num @{term One} = 1
   | dest_num (@{term Dig0} $ n) = 2 * dest_num n
-  | dest_num (@{term Dig1} $ n) = 2 * dest_num n + 1;
+  | dest_num (@{term Dig1} $ n) = 2 * dest_num n + 1
+  | dest_num t = raise TERM ("dest_num", [t]);
 
 (*FIXME these have to gain proper context via morphisms phi*)
 
@@ -348,16 +356,15 @@ text {*
 
 lemma of_num_plus_one [numeral]:
   "of_num n + 1 = of_num (n + One)"
-  by (rule sym, induct n) (simp_all add: of_num.simps add_ac)
+  by (simp only: of_num_add of_num_One)
 
 lemma of_num_one_plus [numeral]:
-  "1 + of_num n = of_num (n + One)"
-  unfolding of_num_plus_one [symmetric] add_commute ..
+  "1 + of_num n = of_num (One + n)"
+  by (simp only: of_num_add of_num_One)
 
 lemma of_num_plus [numeral]:
   "of_num m + of_num n = of_num (m + n)"
-  by (induct n rule: num_induct)
-     (simp_all add: add_One add_inc of_num_one of_num_inc add_ac)
+  unfolding of_num_add ..
 
 lemma of_num_times_one [numeral]:
   "of_num n * 1 = of_num n"
@@ -369,9 +376,7 @@ lemma of_num_one_times [numeral]:
 
 lemma of_num_times [numeral]:
   "of_num m * of_num n = of_num (m * n)"
-  by (induct n rule: num_induct)
-    (simp_all add: of_num_plus [symmetric] mult_One mult_inc
-    semiring_class.right_distrib right_distrib of_num_one of_num_inc)
+  unfolding of_num_mult ..
 
 end
 
@@ -421,21 +426,15 @@ subsubsection {*
 context semiring_char_0
 begin
 
-lemma of_num_eq_iff [numeral]:
-  "of_num m = of_num n \<longleftrightarrow> m = n"
+lemma of_num_eq_iff [numeral]: "of_num m = of_num n \<longleftrightarrow> m = n"
   unfolding of_nat_of_num [symmetric] nat_of_num_of_num [symmetric]
     of_nat_eq_iff num_eq_iff ..
 
-lemma of_num_eq_one_iff [numeral]:
-  "of_num n = 1 \<longleftrightarrow> n = One"
-proof -
-  have "of_num n = of_num One \<longleftrightarrow> n = One" unfolding of_num_eq_iff ..
-  then show ?thesis by (simp add: of_num_one)
-qed
+lemma of_num_eq_one_iff [numeral]: "of_num n = 1 \<longleftrightarrow> n = One"
+  using of_num_eq_iff [of n One] by (simp add: of_num_One)
 
-lemma one_eq_of_num_iff [numeral]:
-  "1 = of_num n \<longleftrightarrow> n = One"
-  unfolding of_num_eq_one_iff [symmetric] by auto
+lemma one_eq_of_num_iff [numeral]: "1 = of_num n \<longleftrightarrow> One = n"
+  using of_num_eq_iff [of One n] by (simp add: of_num_One)
 
 end
 
@@ -458,19 +457,11 @@ proof -
   then show ?thesis by (simp add: of_nat_of_num)
 qed
 
-lemma of_num_less_eq_one_iff [numeral]: "of_num n \<le> 1 \<longleftrightarrow> n = One"
-proof -
-  have "of_num n \<le> of_num One \<longleftrightarrow> n = One"
-    by (cases n) (simp_all add: of_num_less_eq_iff)
-  then show ?thesis by (simp add: of_num_one)
-qed
+lemma of_num_less_eq_one_iff [numeral]: "of_num n \<le> 1 \<longleftrightarrow> n \<le> One"
+  using of_num_less_eq_iff [of n One] by (simp add: of_num_One)
 
 lemma one_less_eq_of_num_iff [numeral]: "1 \<le> of_num n"
-proof -
-  have "of_num One \<le> of_num n"
-    by (cases n) (simp_all add: of_num_less_eq_iff)
-  then show ?thesis by (simp add: of_num_one)
-qed
+  using of_num_less_eq_iff [of One n] by (simp add: of_num_One)
 
 lemma of_num_less_iff [numeral]: "of_num m < of_num n \<longleftrightarrow> m < n"
 proof -
@@ -480,18 +471,10 @@ proof -
 qed
 
 lemma of_num_less_one_iff [numeral]: "\<not> of_num n < 1"
-proof -
-  have "\<not> of_num n < of_num One"
-    by (cases n) (simp_all add: of_num_less_iff)
-  then show ?thesis by (simp add: of_num_one)
-qed
+  using of_num_less_iff [of n One] by (simp add: of_num_One)
 
-lemma one_less_of_num_iff [numeral]: "1 < of_num n \<longleftrightarrow> n \<noteq> One"
-proof -
-  have "of_num One < of_num n \<longleftrightarrow> n \<noteq> One"
-    by (cases n) (simp_all add: of_num_less_iff)
-  then show ?thesis by (simp add: of_num_one)
-qed
+lemma one_less_of_num_iff [numeral]: "1 < of_num n \<longleftrightarrow> One < n"
+  using of_num_less_iff [of One n] by (simp add: of_num_One)
 
 lemma of_num_nonneg [numeral]: "0 \<le> of_num n"
   by (induct n) (simp_all add: of_num.simps add_nonneg_nonneg)
@@ -515,13 +498,13 @@ proof -
 qed
 
 lemma minus_of_num_less_one_iff: "- of_num n < 1"
-using minus_of_num_less_of_num_iff [of n One] by (simp add: of_num_one)
+  using minus_of_num_less_of_num_iff [of n One] by (simp add: of_num_One)
 
 lemma minus_one_less_of_num_iff: "- 1 < of_num n"
-using minus_of_num_less_of_num_iff [of One n] by (simp add: of_num_one)
+  using minus_of_num_less_of_num_iff [of One n] by (simp add: of_num_One)
 
 lemma minus_one_less_one_iff: "- 1 < 1"
-using minus_of_num_less_of_num_iff [of One One] by (simp add: of_num_one)
+  using minus_of_num_less_of_num_iff [of One One] by (simp add: of_num_One)
 
 lemma minus_of_num_le_of_num_iff: "- of_num m \<le> of_num n"
   by (simp add: less_imp_le minus_of_num_less_of_num_iff)
@@ -700,7 +683,7 @@ lemma Dig_times_uminus [numeral]:
   "- of_num n * of_num m = - (of_num n * of_num m)"
   "of_num n * - of_num m = - (of_num n * of_num m)"
   "- of_num n * - of_num m = of_num n * of_num m"
-  by (simp_all add: minus_mult_left [symmetric] minus_mult_right [symmetric])
+  by simp_all
 
 lemma of_int_of_num [numeral]: "of_int (of_num n) = of_num n"
 by (induct n)
@@ -716,38 +699,29 @@ subsubsection {*
 
 lemma of_num_square: "of_num (square x) = of_num x * of_num x"
 by (induct x)
-   (simp_all add: of_num.simps of_num_plus [symmetric] algebra_simps)
+   (simp_all add: of_num.simps of_num_add algebra_simps)
 
-lemma of_num_pow:
-  "(of_num (pow x y)::'a::{semiring_numeral,recpower}) = of_num x ^ of_num y"
+lemma of_num_pow: "of_num (pow x y) = of_num x ^ of_num y"
 by (induct y)
-   (simp_all add: of_num.simps of_num_square of_num_times [symmetric]
-                  power_Suc power_add)
+   (simp_all add: of_num.simps of_num_square of_num_mult power_add)
 
-lemma power_of_num [numeral]:
-  "of_num x ^ of_num y = (of_num (pow x y)::'a::{semiring_numeral,recpower})"
-  by (rule of_num_pow [symmetric])
+lemma power_of_num [numeral]: "of_num x ^ of_num y = of_num (pow x y)"
+  unfolding of_num_pow ..
 
 lemma power_zero_of_num [numeral]:
-  "0 ^ of_num n = (0::'a::{semiring_0,recpower})"
+  "0 ^ of_num n = (0::'a::semiring_1)"
   using of_num_pos [where n=n and ?'a=nat]
   by (simp add: power_0_left)
 
-lemma power_minus_one_double:
-  "(- 1) ^ (n + n) = (1::'a::{ring_1,recpower})"
-  by (induct n) (simp_all add: power_Suc)
-
 lemma power_minus_Dig0 [numeral]:
-  fixes x :: "'a::{ring_1,recpower}"
+  fixes x :: "'a::ring_1"
   shows "(- x) ^ of_num (Dig0 n) = x ^ of_num (Dig0 n)"
-  by (subst power_minus)
-     (simp add: of_num.simps power_minus_one_double)
+  by (induct n rule: num_induct) (simp_all add: of_num.simps of_num_inc)
 
 lemma power_minus_Dig1 [numeral]:
-  fixes x :: "'a::{ring_1,recpower}"
+  fixes x :: "'a::ring_1"
   shows "(- x) ^ of_num (Dig1 n) = - (x ^ of_num (Dig1 n))"
-  by (subst power_minus)
-     (simp add: of_num.simps power_Suc power_minus_one_double)
+  by (induct n rule: num_induct) (simp_all add: of_num.simps of_num_inc)
 
 declare power_one [numeral]
 
@@ -823,7 +797,7 @@ lemma [code, code del]:
 
 lemma one_int_code [code]:
   "1 = Pls One"
-  by (simp add: of_num_one)
+  by (simp add: of_num_One)
 
 lemma plus_int_code [code]:
   "k + 0 = (k::int)"
@@ -832,7 +806,7 @@ lemma plus_int_code [code]:
   "Pls m - Pls n = sub m n"
   "Mns m + Mns n = Mns (m + n)"
   "Mns m - Mns n = sub n m"
-  by (simp_all add: of_num_plus [symmetric])
+  by (simp_all add: of_num_add)
 
 lemma uminus_int_code [code]:
   "uminus 0 = (0::int)"
@@ -847,7 +821,7 @@ lemma minus_int_code [code]:
   "Pls m - Mns n = Pls (m + n)"
   "Mns m - Pls n = Mns (m + n)"
   "Mns m - Mns n = sub n m"
-  by (simp_all add: of_num_plus [symmetric])
+  by (simp_all add: of_num_add)
 
 lemma times_int_code [code]:
   "k * 0 = (0::int)"
@@ -856,7 +830,7 @@ lemma times_int_code [code]:
   "Pls m * Mns n = Mns (m * n)"
   "Mns m * Pls n = Mns (m * n)"
   "Mns m * Mns n = Pls (m * n)"
-  by (simp_all add: of_num_times [symmetric])
+  by (simp_all add: of_num_mult)
 
 lemma eq_int_code [code]:
   "eq_class.eq 0 (0::int) \<longleftrightarrow> True"
@@ -907,15 +881,109 @@ hide (open) const sub dup
 
 subsection {* Numeral equations as default simplification rules *}
 
-text {* TODO.  Be more precise here with respect to subsumed facts.  Or use named theorems anyway. *}
-declare (in semiring_numeral) numeral [simp]
-declare (in semiring_1) numeral [simp]
-declare (in semiring_char_0) numeral [simp]
-declare (in ring_1) numeral [simp]
+declare (in semiring_numeral) of_num_One [simp]
+declare (in semiring_numeral) of_num_plus_one [simp]
+declare (in semiring_numeral) of_num_one_plus [simp]
+declare (in semiring_numeral) of_num_plus [simp]
+declare (in semiring_numeral) of_num_times [simp]
+
+declare (in semiring_1) of_nat_of_num [simp]
+
+declare (in semiring_char_0) of_num_eq_iff [simp]
+declare (in semiring_char_0) of_num_eq_one_iff [simp]
+declare (in semiring_char_0) one_eq_of_num_iff [simp]
+
+declare (in ordered_semidom) of_num_pos [simp]
+declare (in ordered_semidom) of_num_less_eq_iff [simp]
+declare (in ordered_semidom) of_num_less_eq_one_iff [simp]
+declare (in ordered_semidom) one_less_eq_of_num_iff [simp]
+declare (in ordered_semidom) of_num_less_iff [simp]
+declare (in ordered_semidom) of_num_less_one_iff [simp]
+declare (in ordered_semidom) one_less_of_num_iff [simp]
+declare (in ordered_semidom) of_num_nonneg [simp]
+declare (in ordered_semidom) of_num_less_zero_iff [simp]
+declare (in ordered_semidom) of_num_le_zero_iff [simp]
+
+declare (in ordered_idom) le_signed_numeral_special [simp]
+declare (in ordered_idom) less_signed_numeral_special [simp]
+
+declare (in semiring_1_minus) Dig_of_num_minus_one [simp]
+declare (in semiring_1_minus) Dig_one_minus_of_num [simp]
+
+declare (in ring_1) Dig_plus_uminus [simp]
+declare (in ring_1) of_int_of_num [simp]
+
+declare power_of_num [simp]
+declare power_zero_of_num [simp]
+declare power_minus_Dig0 [simp]
+declare power_minus_Dig1 [simp]
+
+declare Suc_of_num [simp]
+
 thm numeral
 
 
-text {* Toy examples *}
+subsection {* Simplification Procedures *}
+
+subsubsection {* Reorientation of equalities *}
+
+setup {*
+  ReorientProc.add
+    (fn Const(@{const_name of_num}, _) $ _ => true
+      | Const(@{const_name uminus}, _) $
+          (Const(@{const_name of_num}, _) $ _) => true
+      | _ => false)
+*}
+
+simproc_setup reorient_num ("of_num n = x" | "- of_num m = y") = ReorientProc.proc
+
+subsubsection {* Constant folding for multiplication in semirings *}
+
+context semiring_numeral
+begin
+
+lemma mult_of_num_commute: "x * of_num n = of_num n * x"
+by (induct n)
+  (simp_all only: of_num.simps left_distrib right_distrib mult_1_left mult_1_right)
+
+definition
+  "commutes_with a b \<longleftrightarrow> a * b = b * a"
+
+lemma commutes_with_commute: "commutes_with a b \<Longrightarrow> a * b = b * a"
+unfolding commutes_with_def .
+
+lemma commutes_with_left_commute: "commutes_with a b \<Longrightarrow> a * (b * c) = b * (a * c)"
+unfolding commutes_with_def by (simp only: mult_assoc [symmetric])
+
+lemma commutes_with_numeral: "commutes_with x (of_num n)" "commutes_with (of_num n) x"
+unfolding commutes_with_def by (simp_all add: mult_of_num_commute)
+
+lemmas mult_ac_numeral =
+  mult_assoc
+  commutes_with_commute
+  commutes_with_left_commute
+  commutes_with_numeral
+
+end
+
+ML {*
+structure Semiring_Times_Assoc_Data : ASSOC_FOLD_DATA =
+struct
+  val assoc_ss = HOL_ss addsimps @{thms mult_ac_numeral}
+  val eq_reflection = eq_reflection
+  fun is_numeral (Const(@{const_name of_num}, _) $ _) = true
+    | is_numeral _ = false;
+end;
+
+structure Semiring_Times_Assoc = Assoc_Fold (Semiring_Times_Assoc_Data);
+*}
+
+simproc_setup semiring_assoc_fold' ("(a::'a::semiring_numeral) * b") =
+  {* fn phi => fn ss => fn ct =>
+    Semiring_Times_Assoc.proc ss (Thm.term_of ct) *}
+
+
+subsection {* Toy examples *}
 
 definition "bar \<longleftrightarrow> #4 * #2 + #7 = (#8 :: nat) \<and> #4 * #2 + #7 \<ge> (#8 :: int) - #3"
 code_thms bar

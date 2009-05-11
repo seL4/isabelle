@@ -565,16 +565,6 @@ by (rule power2_le_imp_le, simp_all)
 lemma le_real_sqrt_sumsq [simp]: "x \<le> sqrt (x * x + y * y)"
 by (simp add: power2_eq_square [symmetric])
 
-lemma power2_sum:
-  fixes x y :: "'a::{number_ring,recpower}"
-  shows "(x + y)\<twosuperior> = x\<twosuperior> + y\<twosuperior> + 2 * x * y"
-by (simp add: ring_distribs power2_eq_square)
-
-lemma power2_diff:
-  fixes x y :: "'a::{number_ring,recpower}"
-  shows "(x - y)\<twosuperior> = x\<twosuperior> + y\<twosuperior> - 2 * x * y"
-by (simp add: ring_distribs power2_eq_square)
-
 lemma real_sqrt_sum_squares_triangle_ineq:
   "sqrt ((a + c)\<twosuperior> + (b + d)\<twosuperior>) \<le> sqrt (a\<twosuperior> + b\<twosuperior>) + sqrt (c\<twosuperior> + d\<twosuperior>)"
 apply (rule power2_le_imp_le, simp)

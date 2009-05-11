@@ -625,7 +625,56 @@ lemma [code]:
 inductive eq :: "'a \<Rightarrow> 'a \<Rightarrow> bool" where "eq x x"
 
 lemma eq_is_eq: "eq x y \<equiv> (x = y)"
-by (rule eq_reflection) (auto intro: eq.intros elim: eq.cases)
+  by (rule eq_reflection) (auto intro: eq.intros elim: eq.cases)
+
+ML {*
+signature PREDICATE =
+sig
+  datatype 'a pred = Seq of (unit -> 'a seq)
+  and 'a seq = Empty | Insert of 'a * 'a pred | Join of 'a pred * 'a seq
+  val yield: 'a pred -> ('a * 'a pred) option
+  val yieldn: int -> 'a pred -> 'a list * 'a pred
+end;
+
+structure Predicate : PREDICATE =
+struct
+
+@{code_datatype pred = Seq};
+@{code_datatype seq = Empty | Insert | Join};
+
+fun yield (Seq f) = next (f ())
+and next @{code Empty} = NONE
+  | next (@{code Insert} (x, P)) = SOME (x, P)
+  | next (@{code Join} (P, xq)) = (case yield P
+     of NONE => next xq
+      | SOME (x, Q) => SOME (x, @{code Seq} (fn _ => @{code Join} (Q, xq))))
+
+fun anamorph f k x = (if k = 0 then ([], x)
+  else case f x
+   of NONE => ([], x)
+    | SOME (v, y) => let
+        val (vs, z) = anamorph f (k - 1) y
+      in (v :: vs, z) end)
+
+fun yieldn P = anamorph yield P;
+
+end;
+*}
+
+code_reserved Eval Predicate
+
+code_type pred and seq
+  (Eval "_/ Predicate.pred" and "_/ Predicate.seq")
+
+code_const Seq and Empty and Insert and Join
+  (Eval "Predicate.Seq" and "Predicate.Empty" and "Predicate.Insert/ (_,/ _)" and "Predicate.Join/ (_,/ _)")
+
+text {* dummy setup for code_pred keyword *}
+
+ML {*
+OuterSyntax.local_theory_to_proof "code_pred" "sets up goal for cases rule from given introduction rules and compiles predicate"
+  OuterKeyword.thy_goal (OuterParse.term_group >> (K (Proof.theorem_i NONE (K I) [[]])))
+*}
 
 no_notation
   inf (infixl "\<sqinter>" 70) and
@@ -639,13 +688,5 @@ no_notation
 hide (open) type pred seq
 hide (open) const Pred eval single bind if_pred not_pred
   Empty Insert Join Seq member pred_of_seq "apply" adjunct eq
-
-text {* dummy setup for code_pred keyword *}
-
-ML {*
-OuterSyntax.local_theory_to_proof "code_pred" "sets up goal for cases rule from given introduction rules and compiles predicate"
-  OuterKeyword.thy_goal (OuterParse.term_group >> (K (Proof.theorem_i NONE (K I) [[]])))
-*}
-
 
 end

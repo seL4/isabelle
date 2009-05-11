@@ -89,10 +89,9 @@ BASE_DEPENDENCIES = $(OUT)/Pure \
   $(SRC)/Tools/IsaPlanner/rw_tools.ML \
   $(SRC)/Tools/IsaPlanner/zipper.ML \
   $(SRC)/Tools/atomize_elim.ML \
-  $(SRC)/Tools/code/code_funcgr.ML \
+  $(SRC)/Tools/auto_solve.ML \
   $(SRC)/Tools/code/code_haskell.ML \
   $(SRC)/Tools/code/code_ml.ML \
-  $(SRC)/Tools/code/code_name.ML \
   $(SRC)/Tools/code/code_printer.ML \
   $(SRC)/Tools/code/code_target.ML \
   $(SRC)/Tools/code/code_thingol.ML \
@@ -103,10 +102,11 @@ BASE_DEPENDENCIES = $(OUT)/Pure \
   $(SRC)/Tools/intuitionistic.ML \
   $(SRC)/Tools/induct_tacs.ML \
   $(SRC)/Tools/nbe.ML \
+  $(SRC)/Tools/quickcheck.ML \
   $(SRC)/Tools/project_rule.ML \
   $(SRC)/Tools/random_word.ML \
   $(SRC)/Tools/value.ML \
-  Code_Setup.thy \
+  $(SRC)/Tools/Code_Generator.thy \
   HOL.thy \
   Tools/hologic.ML \
   Tools/recfun_codegen.ML \
@@ -206,7 +206,6 @@ $(OUT)/HOL-Plain: plain.ML $(PLAIN_DEPENDENCIES)
 MAIN_DEPENDENCIES = $(PLAIN_DEPENDENCIES) \
   ATP_Linkup.thy \
   Code_Eval.thy \
-  Code_Message.thy \
   Equiv_Relations.thy \
   Groebner_Basis.thy \
   Hilbert_Choice.thy \
@@ -216,29 +215,30 @@ MAIN_DEPENDENCIES = $(PLAIN_DEPENDENCIES) \
   List.thy \
   Main.thy \
   Map.thy \
-  NatBin.thy \
+  Nat_Numeral.thy \
   Presburger.thy \
   Recdef.thy \
-  Relation_Power.thy \
   SetInterval.thy \
+  String.thy \
   $(SRC)/Provers/Arith/assoc_fold.ML \
   $(SRC)/Provers/Arith/cancel_numeral_factor.ML \
   $(SRC)/Provers/Arith/cancel_numerals.ML \
   $(SRC)/Provers/Arith/combine_numerals.ML \
   $(SRC)/Provers/Arith/extract_common_term.ML \
   $(SRC)/Tools/Metis/metis.ML \
-  Tools/int_arith.ML \
-  Tools/int_factor_simprocs.ML \
-  Tools/nat_simprocs.ML \
   Tools/Groebner_Basis/groebner.ML \
   Tools/Groebner_Basis/misc.ML \
   Tools/Groebner_Basis/normalizer_data.ML \
   Tools/Groebner_Basis/normalizer.ML \
   Tools/atp_manager.ML \
   Tools/atp_wrapper.ML \
+  Tools/int_arith.ML \
+  Tools/list_code.ML \
   Tools/meson.ML \
   Tools/metis_tools.ML \
+  Tools/nat_numeral_simprocs.ML \
   Tools/numeral.ML \
+  Tools/numeral_simprocs.ML \
   Tools/numeral_syntax.ML \
   Tools/polyhash.ML \
   Tools/Qelim/cooper_data.ML \
@@ -253,6 +253,7 @@ MAIN_DEPENDENCIES = $(PLAIN_DEPENDENCIES) \
   Tools/res_hol_clause.ML \
   Tools/res_reconstruct.ML \
   Tools/specification_package.ML \
+  Tools/string_code.ML \
   Tools/string_syntax.ML \
   Tools/TFL/casesplit.ML \
   Tools/TFL/dcterm.ML \
@@ -341,6 +342,7 @@ $(LOG)/HOL-Library.gz: $(OUT)/HOL Library/SetsAndFunctions.thy		\
   Library/Random.thy Library/Quickcheck.thy	\
   Library/Poly_Deriv.thy \
   Library/Polynomial.thy \
+  Library/Preorder.thy \
   Library/Product_plus.thy \
   Library/Product_Vector.thy \
   Library/Enum.thy Library/Float.thy $(SRC)/Tools/float.ML $(SRC)/HOL/Tools/float_arith.ML \

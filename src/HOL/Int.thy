@@ -12,10 +12,13 @@ imports Equiv_Relations Nat Wellfounded
 uses
   ("Tools/numeral.ML")
   ("Tools/numeral_syntax.ML")
+  ("Tools/int_arith.ML")
   "~~/src/Provers/Arith/assoc_fold.ML"
   "~~/src/Provers/Arith/cancel_numerals.ML"
   "~~/src/Provers/Arith/combine_numerals.ML"
-  ("Tools/int_arith.ML")
+  "~~/src/Provers/Arith/cancel_numeral_factor.ML"
+  "~~/src/Provers/Arith/extract_common_term.ML"
+  ("Tools/numeral_simprocs.ML")
 begin
 
 subsection {* The equivalence relation underlying the integers *}
@@ -292,9 +295,7 @@ subsection {* Embedding of the Integers into any @{text ring_1}: @{text of_int}*
 context ring_1
 begin
 
-definition
-  of_int :: "int \<Rightarrow> 'a"
-where
+definition of_int :: "int \<Rightarrow> 'a" where
   [code del]: "of_int z = contents (\<Union>(i, j) \<in> Rep_Integ z. { of_nat i - of_nat j })"
 
 lemma of_int: "of_int (Abs_Integ (intrel `` {(i,j)})) = of_nat i - of_nat j"
@@ -329,6 +330,10 @@ done
 text{*Collapse nested embeddings*}
 lemma of_int_of_nat_eq [simp]: "of_int (of_nat n) = of_nat n"
 by (induct n) auto
+
+lemma of_int_power:
+  "of_int (z ^ n) = of_int z ^ n"
+  by (induct n) simp_all
 
 end
 
@@ -1266,13 +1271,8 @@ begin
 definition Ints  :: "'a set" where
   [code del]: "Ints = range of_int"
 
-end
-
 notation (xsymbols)
   Ints  ("\<int>")
-
-context ring_1
-begin
 
 lemma Ints_0 [simp]: "0 \<in> \<int>"
 apply (simp add: Ints_def)
@@ -1518,8 +1518,17 @@ lemmas int_arith_rules =
   of_nat_0 of_nat_1 of_nat_Suc of_nat_add of_nat_mult
   of_int_0 of_int_1 of_int_add of_int_mult
 
+use "Tools/numeral_simprocs.ML"
+
 use "Tools/int_arith.ML"
 declaration {* K Int_Arith.setup *}
+
+setup {*
+  ReorientProc.add
+    (fn Const (@{const_name number_of}, _) $ _ => true | _ => false)
+*}
+
+simproc_setup reorient_numeral ("number_of w = x") = ReorientProc.proc
 
 
 subsection{*Lemmas About Small Numerals*}
@@ -1536,7 +1545,7 @@ lemma abs_minus_one [simp]: "abs (-1) = (1::'a::{ordered_idom,number_ring})"
 by (simp add: abs_if)
 
 lemma abs_power_minus_one [simp]:
-     "abs(-1 ^ n) = (1::'a::{ordered_idom,number_ring,recpower})"
+  "abs(-1 ^ n) = (1::'a::{ordered_idom,number_ring})"
 by (simp add: power_abs)
 
 lemma of_int_number_of_eq [simp]:
@@ -1844,49 +1853,6 @@ proof
   ultimately show False using finite_UNIV_inj_surj[of "%n::int. n+n"]
     by (simp add:inj_on_def surj_def) (blast intro:sym)
 qed
-
-
-subsection {* Integer Powers *} 
-
-instantiation int :: recpower
-begin
-
-primrec power_int where
-  "p ^ 0 = (1\<Colon>int)"
-  | "p ^ (Suc n) = (p\<Colon>int) * (p ^ n)"
-
-instance proof
-  fix z :: int
-  fix n :: nat
-  show "z ^ 0 = 1" by simp
-  show "z ^ Suc n = z * (z ^ n)" by simp
-qed
-
-declare power_int.simps [simp del]
-
-end
-
-lemma zpower_zadd_distrib: "x ^ (y + z) = ((x ^ y) * (x ^ z)::int)"
-  by (rule Power.power_add)
-
-lemma zpower_zpower: "(x ^ y) ^ z = (x ^ (y * z)::int)"
-  by (rule Power.power_mult [symmetric])
-
-lemma zero_less_zpower_abs_iff [simp]:
-  "(0 < abs x ^ n) \<longleftrightarrow> (x \<noteq> (0::int) | n = 0)"
-  by (induct n) (auto simp add: zero_less_mult_iff)
-
-lemma zero_le_zpower_abs [simp]: "(0::int) \<le> abs x ^ n"
-  by (induct n) (auto simp add: zero_le_mult_iff)
-
-lemma of_int_power:
-  "of_int (z ^ n) = (of_int z ^ n :: 'a::{recpower, ring_1})"
-  by (induct n) simp_all
-
-lemma int_power: "int (m^n) = (int m) ^ n"
-  by (rule of_nat_power)
-
-lemmas zpower_int = int_power [symmetric]
 
 
 subsection {* Further theorems on numerals *}
@@ -2277,5 +2243,26 @@ lemmas of_int_int_eq = of_int_of_nat_eq [where 'a=int]
 lemmas zdiff_int = of_nat_diff [where 'a=int, symmetric]
 lemmas zless_le = less_int_def
 lemmas int_eq_of_nat = TrueI
+
+lemma zpower_zadd_distrib:
+  "x ^ (y + z) = ((x ^ y) * (x ^ z)::int)"
+  by (rule power_add)
+
+lemma zero_less_zpower_abs_iff:
+  "(0 < abs x ^ n) \<longleftrightarrow> (x \<noteq> (0::int) | n = 0)"
+  by (rule zero_less_power_abs_iff)
+
+lemma zero_le_zpower_abs: "(0::int) \<le> abs x ^ n"
+  by (rule zero_le_power_abs)
+
+lemma zpower_zpower:
+  "(x ^ y) ^ z = (x ^ (y * z)::int)"
+  by (rule power_mult [symmetric])
+
+lemma int_power:
+  "int (m ^ n) = int m ^ n"
+  by (rule of_nat_power)
+
+lemmas zpower_int = int_power [symmetric]
 
 end

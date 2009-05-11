@@ -786,7 +786,7 @@ subsection{* A rather complex proof about iterates -- cf.\ Andy Pitts *}
 
 lemma funpow_lmap:
   fixes f :: "'a \<Rightarrow> 'a"
-  shows "(lmap f ^ n) (LCons b l) = LCons ((f ^ n) b) ((lmap f ^ n) l)"
+  shows "(lmap f ^^ n) (LCons b l) = LCons ((f ^^ n) b) ((lmap f ^^ n) l)"
   by (induct n) simp_all
 
 
@@ -796,35 +796,35 @@ lemma iterates_equality:
 proof
   fix x
   have "(h x, iterates f x) \<in>
-      {((lmap f ^ n) (h u), (lmap f ^ n) (iterates f u)) | u n. True}"
+      {((lmap f ^^ n) (h u), (lmap f ^^ n) (iterates f u)) | u n. True}"
   proof -
-    have "(h x, iterates f x) = ((lmap f ^ 0) (h x), (lmap f ^ 0) (iterates f x))"
+    have "(h x, iterates f x) = ((lmap f ^^ 0) (h x), (lmap f ^^ 0) (iterates f x))"
       by simp
     then show ?thesis by blast
   qed
   then show "h x = iterates f x"
   proof (coinduct rule: llist_equalityI)
     case (Eqllist q)
-    then obtain u n where "q = ((lmap f ^ n) (h u), (lmap f ^ n) (iterates f u))"
+    then obtain u n where "q = ((lmap f ^^ n) (h u), (lmap f ^^ n) (iterates f u))"
         (is "_ = (?q1, ?q2)")
       by auto
-    also have "?q1 = LCons ((f ^ n) u) ((lmap f ^ Suc n) (h u))"
+    also have "?q1 = LCons ((f ^^ n) u) ((lmap f ^^ Suc n) (h u))"
     proof -
-      have "?q1 = (lmap f ^ n) (LCons u (lmap f (h u)))"
+      have "?q1 = (lmap f ^^ n) (LCons u (lmap f (h u)))"
         by (subst h) rule
-      also have "\<dots> = LCons ((f ^ n) u) ((lmap f ^ n) (lmap f (h u)))"
+      also have "\<dots> = LCons ((f ^^ n) u) ((lmap f ^^ n) (lmap f (h u)))"
         by (rule funpow_lmap)
-      also have "(lmap f ^ n) (lmap f (h u)) = (lmap f ^ Suc n) (h u)"
+      also have "(lmap f ^^ n) (lmap f (h u)) = (lmap f ^^ Suc n) (h u)"
         by (simp add: funpow_swap1)
       finally show ?thesis .
     qed
-    also have "?q2 = LCons ((f ^ n) u) ((lmap f ^ Suc n) (iterates f u))"
+    also have "?q2 = LCons ((f ^^ n) u) ((lmap f ^^ Suc n) (iterates f u))"
     proof -
-      have "?q2 = (lmap f ^ n) (LCons u (iterates f (f u)))"
+      have "?q2 = (lmap f ^^ n) (LCons u (iterates f (f u)))"
         by (subst iterates) rule
-      also have "\<dots> = LCons ((f ^ n) u) ((lmap f ^ n) (iterates f (f u)))"
+      also have "\<dots> = LCons ((f ^^ n) u) ((lmap f ^^ n) (iterates f (f u)))"
         by (rule funpow_lmap)
-      also have "(lmap f ^ n) (iterates f (f u)) = (lmap f ^ Suc n) (iterates f u)"
+      also have "(lmap f ^^ n) (iterates f (f u)) = (lmap f ^^ Suc n) (iterates f u)"
         by (simp add: lmap_iterates funpow_swap1)
       finally show ?thesis .
     qed

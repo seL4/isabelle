@@ -1,5 +1,4 @@
 (*  Title       : Deriv.thy
-    ID          : $Id$
     Author      : Jacques D. Fleuriot
     Copyright   : 1998  University of Cambridge
     Conversion to Isar and new proofs by Lawrence C Paulson, 2004
@@ -345,7 +344,7 @@ by (cut_tac c = c and x = x in NSDERIV_Id [THEN NSDERIV_cmult], simp)
 
 (*Can't get rid of x \<noteq> 0 because it isn't continuous at zero*)
 lemma NSDERIV_inverse:
-  fixes x :: "'a::{real_normed_field,recpower}"
+  fixes x :: "'a::{real_normed_field}"
   shows "x \<noteq> 0 ==> NSDERIV (%x. inverse(x)) x :> (- (inverse x ^ Suc (Suc 0)))"
 apply (simp add: nsderiv_def)
 apply (rule ballI, simp, clarify)
@@ -383,7 +382,7 @@ by (simp add: NSDERIV_DERIV_iff DERIV_pow)
 text{*Derivative of inverse*}
 
 lemma NSDERIV_inverse_fun:
-  fixes x :: "'a::{real_normed_field,recpower}"
+  fixes x :: "'a::{real_normed_field}"
   shows "[| NSDERIV f x :> d; f(x) \<noteq> 0 |]
       ==> NSDERIV (%x. inverse(f x)) x :> (- (d * inverse(f(x) ^ Suc (Suc 0))))"
 by (simp add: NSDERIV_DERIV_iff DERIV_inverse_fun del: power_Suc)
@@ -391,7 +390,7 @@ by (simp add: NSDERIV_DERIV_iff DERIV_inverse_fun del: power_Suc)
 text{*Derivative of quotient*}
 
 lemma NSDERIV_quotient:
-  fixes x :: "'a::{real_normed_field,recpower}"
+  fixes x :: "'a::{real_normed_field}"
   shows "[| NSDERIV f x :> d; NSDERIV g x :> e; g(x) \<noteq> 0 |]
        ==> NSDERIV (%y. f(y) / (g y)) x :> (d*g(x)
                             - (e*f(x))) / (g(x) ^ Suc (Suc 0))"

@@ -5,9 +5,10 @@
 header {* The basis of Higher-Order Logic *}
 
 theory HOL
-imports Pure
+imports Pure "~~/src/Tools/Code_Generator"
 uses
   ("Tools/hologic.ML")
+  "~~/src/Tools/auto_solve.ML"
   "~~/src/Tools/IsaPlanner/zipper.ML"
   "~~/src/Tools/IsaPlanner/isand.ML"
   "~~/src/Tools/IsaPlanner/rw_tools.ML"
@@ -27,16 +28,6 @@ uses
   "~~/src/Tools/atomize_elim.ML"
   "~~/src/Tools/induct.ML"
   ("~~/src/Tools/induct_tacs.ML")
-  "~~/src/Tools/value.ML"
-  "~~/src/Tools/code/code_name.ML"
-  "~~/src/Tools/code/code_funcgr.ML" (*formal dependency*)
-  "~~/src/Tools/code/code_wellsorted.ML" 
-  "~~/src/Tools/code/code_thingol.ML"
-  "~~/src/Tools/code/code_printer.ML"
-  "~~/src/Tools/code/code_target.ML"
-  "~~/src/Tools/code/code_ml.ML"
-  "~~/src/Tools/code/code_haskell.ML"
-  "~~/src/Tools/nbe.ML"
   ("Tools/recfun_codegen.ML")
 begin
 
@@ -1577,6 +1568,56 @@ structure Coherent = CoherentFun
 setup Coherent.setup
 
 
+subsubsection {* Reorienting equalities *}
+
+ML {*
+signature REORIENT_PROC =
+sig
+  val init : theory -> theory
+  val add : (term -> bool) -> theory -> theory
+  val proc : morphism -> simpset -> cterm -> thm option
+end;
+
+structure ReorientProc : REORIENT_PROC =
+struct
+  structure Data = TheoryDataFun
+  (
+    type T = term -> bool;
+    val empty = (fn _ => false);
+    val copy = I;
+    val extend = I;
+    fun merge _ (m1, m2) = (fn t => m1 t orelse m2 t);
+  )
+
+  val init = Data.init;
+  fun add m = Data.map (fn matches => fn t => matches t orelse m t);
+  val meta_reorient = @{thm eq_commute [THEN eq_reflection]};
+  fun proc phi ss ct =
+    let
+      val ctxt = Simplifier.the_context ss;
+      val thy = ProofContext.theory_of ctxt;
+      val matches = Data.get thy;
+    in
+      case Thm.term_of ct of
+        (_ $ t $ u) => if matches u then NONE else SOME meta_reorient
+      | _ => NONE
+    end;
+end;
+*}
+
+setup ReorientProc.init
+
+setup {*
+  ReorientProc.add
+    (fn Const(@{const_name HOL.zero}, _) => true
+      | Const(@{const_name HOL.one}, _) => true
+      | _ => false)
+*}
+
+simproc_setup reorient_zero ("0 = x") = ReorientProc.proc
+simproc_setup reorient_one ("1 = x") = ReorientProc.proc
+
+
 subsection {* Other simple lemmas and lemma duplicates *}
 
 lemma Let_0 [simp]: "Let 0 f = f 0"
@@ -1674,37 +1715,264 @@ val trans = @{thm trans}
 *}
 
 
-subsection {* Code generator basics -- see further theory @{text "Code_Setup"} *}
+subsection {* Code generator setup *}
 
-text {* Equality *}
+subsubsection {* SML code generator setup *}
+
+use "Tools/recfun_codegen.ML"
+
+setup {*
+  Codegen.setup
+  #> RecfunCodegen.setup
+*}
+
+types_code
+  "bool"  ("bool")
+attach (term_of) {*
+fun term_of_bool b = if b then HOLogic.true_const else HOLogic.false_const;
+*}
+attach (test) {*
+fun gen_bool i =
+  let val b = one_of [false, true]
+  in (b, fn () => term_of_bool b) end;
+*}
+  "prop"  ("bool")
+attach (term_of) {*
+fun term_of_prop b =
+  HOLogic.mk_Trueprop (if b then HOLogic.true_const else HOLogic.false_const);
+*}
+
+consts_code
+  "Trueprop" ("(_)")
+  "True"    ("true")
+  "False"   ("false")
+  "Not"     ("Bool.not")
+  "op |"    ("(_ orelse/ _)")
+  "op &"    ("(_ andalso/ _)")
+  "If"      ("(if _/ then _/ else _)")
+
+setup {*
+let
+
+fun eq_codegen thy defs dep thyname b t gr =
+    (case strip_comb t of
+       (Const ("op =", Type (_, [Type ("fun", _), _])), _) => NONE
+     | (Const ("op =", _), [t, u]) =>
+          let
+            val (pt, gr') = Codegen.invoke_codegen thy defs dep thyname false t gr;
+            val (pu, gr'') = Codegen.invoke_codegen thy defs dep thyname false u gr';
+            val (_, gr''') = Codegen.invoke_tycodegen thy defs dep thyname false HOLogic.boolT gr'';
+          in
+            SOME (Codegen.parens
+              (Pretty.block [pt, Codegen.str " =", Pretty.brk 1, pu]), gr''')
+          end
+     | (t as Const ("op =", _), ts) => SOME (Codegen.invoke_codegen
+         thy defs dep thyname b (Codegen.eta_expand t ts 2) gr)
+     | _ => NONE);
+
+in
+  Codegen.add_codegen "eq_codegen" eq_codegen
+end
+*}
+
+subsubsection {* Equality *}
 
 class eq =
   fixes eq :: "'a \<Rightarrow> 'a \<Rightarrow> bool"
   assumes eq_equals: "eq x y \<longleftrightarrow> x = y"
 begin
 
-lemma eq: "eq = (op =)"
+lemma eq [code unfold, code inline del]: "eq = (op =)"
   by (rule ext eq_equals)+
 
 lemma eq_refl: "eq x x \<longleftrightarrow> True"
   unfolding eq by rule+
 
+lemma equals_eq [code inline]: "(op =) \<equiv> eq"
+  by (rule eq_reflection) (rule ext, rule ext, rule sym, rule eq_equals)
+
+declare equals_eq [symmetric, code post]
+
 end
 
-text {* Module setup *}
+declare equals_eq [code]
 
-use "Tools/recfun_codegen.ML"
+
+subsubsection {* Generic code generator foundation *}
+
+text {* Datatypes *}
+
+code_datatype True False
+
+code_datatype "TYPE('a\<Colon>{})"
+
+code_datatype Trueprop "prop"
+
+text {* Code equations *}
+
+lemma [code]:
+  shows "(True \<Longrightarrow> PROP P) \<equiv> PROP P" 
+    and "(False \<Longrightarrow> Q) \<equiv> Trueprop True" 
+    and "(PROP P \<Longrightarrow> True) \<equiv> Trueprop True" 
+    and "(Q \<Longrightarrow> False) \<equiv> Trueprop (\<not> Q)" by (auto intro!: equal_intr_rule)
+
+lemma [code]:
+  shows "False \<and> x \<longleftrightarrow> False"
+    and "True \<and> x \<longleftrightarrow> x"
+    and "x \<and> False \<longleftrightarrow> False"
+    and "x \<and> True \<longleftrightarrow> x" by simp_all
+
+lemma [code]:
+  shows "False \<or> x \<longleftrightarrow> x"
+    and "True \<or> x \<longleftrightarrow> True"
+    and "x \<or> False \<longleftrightarrow> x"
+    and "x \<or> True \<longleftrightarrow> True" by simp_all
+
+lemma [code]:
+  shows "\<not> True \<longleftrightarrow> False"
+    and "\<not> False \<longleftrightarrow> True" by (rule HOL.simp_thms)+
+
+lemmas [code] = Let_def if_True if_False
+
+lemmas [code, code unfold, symmetric, code post] = imp_conv_disj
+
+text {* Equality *}
+
+declare simp_thms(6) [code nbe]
+
+hide (open) const eq
+hide const eq
 
 setup {*
-  Code_ML.setup
-  #> Code_Haskell.setup
-  #> Nbe.setup
-  #> Codegen.setup
-  #> RecfunCodegen.setup
+  Code_Unit.add_const_alias @{thm equals_eq}
 *}
 
+text {* Cases *}
 
-subsection {* Nitpick hooks *}
+lemma Let_case_cert:
+  assumes "CASE \<equiv> (\<lambda>x. Let x f)"
+  shows "CASE x \<equiv> f x"
+  using assms by simp_all
+
+lemma If_case_cert:
+  assumes "CASE \<equiv> (\<lambda>b. If b f g)"
+  shows "(CASE True \<equiv> f) &&& (CASE False \<equiv> g)"
+  using assms by simp_all
+
+setup {*
+  Code.add_case @{thm Let_case_cert}
+  #> Code.add_case @{thm If_case_cert}
+  #> Code.add_undefined @{const_name undefined}
+*}
+
+code_abort undefined
+
+subsubsection {* Generic code generator preprocessor *}
+
+setup {*
+  Code.map_pre (K HOL_basic_ss)
+  #> Code.map_post (K HOL_basic_ss)
+*}
+
+subsubsection {* Generic code generator target languages *}
+
+text {* type bool *}
+
+code_type bool
+  (SML "bool")
+  (OCaml "bool")
+  (Haskell "Bool")
+
+code_const True and False and Not and "op &" and "op |" and If
+  (SML "true" and "false" and "not"
+    and infixl 1 "andalso" and infixl 0 "orelse"
+    and "!(if (_)/ then (_)/ else (_))")
+  (OCaml "true" and "false" and "not"
+    and infixl 4 "&&" and infixl 2 "||"
+    and "!(if (_)/ then (_)/ else (_))")
+  (Haskell "True" and "False" and "not"
+    and infixl 3 "&&" and infixl 2 "||"
+    and "!(if (_)/ then (_)/ else (_))")
+
+code_reserved SML
+  bool true false not
+
+code_reserved OCaml
+  bool not
+
+text {* using built-in Haskell equality *}
+
+code_class eq
+  (Haskell "Eq")
+
+code_const "eq_class.eq"
+  (Haskell infixl 4 "==")
+
+code_const "op ="
+  (Haskell infixl 4 "==")
+
+text {* undefined *}
+
+code_const undefined
+  (SML "!(raise/ Fail/ \"undefined\")")
+  (OCaml "failwith/ \"undefined\"")
+  (Haskell "error/ \"undefined\"")
+
+subsubsection {* Evaluation and normalization by evaluation *}
+
+setup {*
+  Value.add_evaluator ("SML", Codegen.eval_term o ProofContext.theory_of)
+*}
+
+ML {*
+structure Eval_Method =
+struct
+
+val eval_ref : (unit -> bool) option ref = ref NONE;
+
+end;
+*}
+
+oracle eval_oracle = {* fn ct =>
+  let
+    val thy = Thm.theory_of_cterm ct;
+    val t = Thm.term_of ct;
+    val dummy = @{cprop True};
+  in case try HOLogic.dest_Trueprop t
+   of SOME t' => if Code_ML.eval NONE
+         ("Eval_Method.eval_ref", Eval_Method.eval_ref) (K I) thy t' [] 
+       then Thm.capply (Thm.capply @{cterm "op \<equiv> \<Colon> prop \<Rightarrow> prop \<Rightarrow> prop"} ct) dummy
+       else dummy
+    | NONE => dummy
+  end
+*}
+
+ML {*
+fun gen_eval_method conv ctxt = SIMPLE_METHOD'
+  (CONVERSION (Conv.params_conv (~1) (K (Conv.concl_conv (~1) conv)) ctxt)
+    THEN' rtac TrueI)
+*}
+
+method_setup eval = {* Scan.succeed (gen_eval_method eval_oracle) *}
+  "solve goal by evaluation"
+
+method_setup evaluation = {* Scan.succeed (gen_eval_method Codegen.evaluation_conv) *}
+  "solve goal by evaluation"
+
+method_setup normalization = {*
+  Scan.succeed (K (SIMPLE_METHOD' (CONVERSION Nbe.norm_conv THEN' (fn k => TRY (rtac TrueI k)))))
+*} "solve goal by normalization"
+
+subsubsection {* Quickcheck *}
+
+setup {*
+  Quickcheck.add_generator ("SML", Codegen.test_term)
+*}
+
+quickcheck_params [size = 5, iterations = 50]
+
+
+subsection {* Nitpick setup *}
 
 text {* This will be relocated once Nitpick is moved to HOL. *}
 
@@ -1730,10 +1998,14 @@ structure Nitpick_Ind_Intro_Thms = NamedThmsFun
   val description = "introduction rules for (co)inductive predicates as needed by Nitpick"
 )
 *}
-setup {* Nitpick_Const_Def_Thms.setup
-         #> Nitpick_Const_Simp_Thms.setup
-         #> Nitpick_Const_Psimp_Thms.setup
-         #> Nitpick_Ind_Intro_Thms.setup *}
+
+setup {*
+  Nitpick_Const_Def_Thms.setup
+  #> Nitpick_Const_Simp_Thms.setup
+  #> Nitpick_Const_Psimp_Thms.setup
+  #> Nitpick_Ind_Intro_Thms.setup
+*}
+
 
 subsection {* Legacy tactics and ML bindings *}
 

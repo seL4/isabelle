@@ -14,18 +14,34 @@ sig
   val auto : bool ref
   val auto_time_limit : int ref
   val limit : int ref
-
-  val seek_solution : bool -> Proof.state -> Proof.state
 end;
 
 structure AutoSolve : AUTO_SOLVE =
 struct
 
+(* preferences *)
+
 val auto = ref false;
 val auto_time_limit = ref 2500;
 val limit = ref 5;
 
-fun seek_solution int state =
+val _ =
+  ProofGeneralPgip.add_preference Preferences.category_tracing
+  (setmp auto true (fn () =>
+    Preferences.bool_pref auto
+      "auto-solve"
+      "Try to solve newly declared lemmas with existing theorems.") ());
+
+val _ =
+  ProofGeneralPgip.add_preference Preferences.category_tracing
+    (Preferences.nat_pref auto_time_limit
+      "auto-solve-time-limit"
+      "Time limit for seeking automatic solutions (in milliseconds).");
+
+
+(* hook *)
+
+val _ = Context.>> (Specification.add_theorem_hook (fn int => fn state =>
   let
     val ctxt = Proof.context_of state;
 
@@ -76,11 +92,9 @@ fun seek_solution int state =
     if int andalso ! auto andalso not (! Toplevel.quiet)
     then go ()
     else state
-  end;
+  end));
 
 end;
-
-val _ = Context.>> (Specification.add_theorem_hook AutoSolve.seek_solution);
 
 val auto_solve = AutoSolve.auto;
 val auto_solve_time_limit = AutoSolve.auto_time_limit;

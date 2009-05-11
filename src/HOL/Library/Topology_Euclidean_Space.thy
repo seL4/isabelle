@@ -5441,7 +5441,7 @@ proof-
   have "1 - c > 0" using c by auto
 
   from s(2) obtain z0 where "z0 \<in> s" by auto
-  def z \<equiv> "\<lambda> n::nat. fun_pow n f z0"
+  def z \<equiv> "\<lambda>n. (f ^^ n) z0"
   { fix n::nat
     have "z n \<in> s" unfolding z_def
     proof(induct n) case 0 thus ?case using `z0 \<in>s` by auto
@@ -5580,7 +5580,7 @@ next
       using dist[THEN bspec[where x=x], THEN bspec[where x=y]] by auto } note dist' = this
   def y \<equiv> "g x"
   have [simp]:"y\<in>s" unfolding y_def using gs[unfolded image_subset_iff] and `x\<in>s` by blast
-  def f \<equiv> "\<lambda> n. fun_pow n g"
+  def f \<equiv> "\<lambda>n. g ^^ n"
   have [simp]:"\<And>n z. g (f n z) = f (Suc n) z" unfolding f_def by auto
   have [simp]:"\<And>z. f 0 z = z" unfolding f_def by auto
   { fix n::nat and z assume "z\<in>s"

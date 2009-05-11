@@ -157,6 +157,8 @@ apply(rule_tac s=s in sumE)
 apply auto
 done
 
+lemma Plus_eq_empty_conv[simp]: "A <+> B = {} \<longleftrightarrow> A = {} \<and> B = {}"
+by(auto)
 
 subsection{*The @{term Part} Primitive*}
 

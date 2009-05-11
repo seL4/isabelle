@@ -1,14 +1,16 @@
-(*  Title:      HOL/NatBin.thy
+(*  Title:      HOL/Nat_Numeral.thy
     Author:     Lawrence C Paulson, Cambridge University Computer Laboratory
     Copyright   1999  University of Cambridge
 *)
 
-header {* Binary arithmetic for the natural numbers *}
+header {* Binary numerals for the natural numbers *}
 
-theory NatBin
+theory Nat_Numeral
 imports IntDiv
-uses ("Tools/nat_simprocs.ML")
+uses ("Tools/nat_numeral_simprocs.ML")
 begin
+
+subsection {* Numerals for natural numbers *}
 
 text {*
   Arithmetic for naturals is reduced to that for the non-negative integers.
@@ -28,15 +30,228 @@ lemma [code post]:
   "nat (number_of v) = number_of v"
   unfolding nat_number_of_def ..
 
+
+subsection {* Special case: squares and cubes *}
+
+lemma numeral_2_eq_2: "2 = Suc (Suc 0)"
+  by (simp add: nat_number_of_def)
+
+lemma numeral_3_eq_3: "3 = Suc (Suc (Suc 0))"
+  by (simp add: nat_number_of_def)
+
+context power
+begin
+
 abbreviation (xsymbols)
-  power2 :: "'a::power => 'a"  ("(_\<twosuperior>)" [1000] 999) where
-  "x\<twosuperior> == x^2"
+  power2 :: "'a \<Rightarrow> 'a"  ("(_\<twosuperior>)" [1000] 999) where
+  "x\<twosuperior> \<equiv> x ^ 2"
 
 notation (latex output)
   power2  ("(_\<twosuperior>)" [1000] 999)
 
 notation (HTML output)
   power2  ("(_\<twosuperior>)" [1000] 999)
+
+end
+
+context monoid_mult
+begin
+
+lemma power2_eq_square: "a\<twosuperior> = a * a"
+  by (simp add: numeral_2_eq_2)
+
+lemma power3_eq_cube: "a ^ 3 = a * a * a"
+  by (simp add: numeral_3_eq_3 mult_assoc)
+
+lemma power_even_eq:
+  "a ^ (2*n) = (a ^ n) ^ 2"
+  by (subst OrderedGroup.mult_commute) (simp add: power_mult)
+
+lemma power_odd_eq:
+  "a ^ Suc (2*n) = a * (a ^ n) ^ 2"
+  by (simp add: power_even_eq)
+
+end
+
+context semiring_1
+begin
+
+lemma zero_power2 [simp]: "0\<twosuperior> = 0"
+  by (simp add: power2_eq_square)
+
+lemma one_power2 [simp]: "1\<twosuperior> = 1"
+  by (simp add: power2_eq_square)
+
+end
+
+context comm_ring_1
+begin
+
+lemma power2_minus [simp]:
+  "(- a)\<twosuperior> = a\<twosuperior>"
+  by (simp add: power2_eq_square)
+
+text{*
+  We cannot prove general results about the numeral @{term "-1"},
+  so we have to use @{term "- 1"} instead.
+*}
+
+lemma power_minus1_even [simp]:
+  "(- 1) ^ (2*n) = 1"
+proof (induct n)
+  case 0 show ?case by simp
+next
+  case (Suc n) then show ?case by (simp add: power_add)
+qed
+
+lemma power_minus1_odd:
+  "(- 1) ^ Suc (2*n) = - 1"
+  by simp
+
+lemma power_minus_even [simp]:
+  "(-a) ^ (2*n) = a ^ (2*n)"
+  by (simp add: power_minus [of a]) 
+
+end
+
+context ordered_ring_strict
+begin
+
+lemma sum_squares_ge_zero:
+  "0 \<le> x * x + y * y"
+  by (intro add_nonneg_nonneg zero_le_square)
+
+lemma not_sum_squares_lt_zero:
+  "\<not> x * x + y * y < 0"
+  by (simp add: not_less sum_squares_ge_zero)
+
+lemma sum_squares_eq_zero_iff:
+  "x * x + y * y = 0 \<longleftrightarrow> x = 0 \<and> y = 0"
+  by (simp add: add_nonneg_eq_0_iff)
+
+lemma sum_squares_le_zero_iff:
+  "x * x + y * y \<le> 0 \<longleftrightarrow> x = 0 \<and> y = 0"
+  by (simp add: le_less not_sum_squares_lt_zero sum_squares_eq_zero_iff)
+
+lemma sum_squares_gt_zero_iff:
+  "0 < x * x + y * y \<longleftrightarrow> x \<noteq> 0 \<or> y \<noteq> 0"
+proof -
+  have "x * x + y * y \<noteq> 0 \<longleftrightarrow> x \<noteq> 0 \<or> y \<noteq> 0"
+    by (simp add: sum_squares_eq_zero_iff)
+  then have "0 \<noteq> x * x + y * y \<longleftrightarrow> x \<noteq> 0 \<or> y \<noteq> 0"
+    by auto
+  then show ?thesis
+    by (simp add: less_le sum_squares_ge_zero)
+qed
+
+end
+
+context ordered_semidom
+begin
+
+lemma power2_le_imp_le:
+  "x\<twosuperior> \<le> y\<twosuperior> \<Longrightarrow> 0 \<le> y \<Longrightarrow> x \<le> y"
+  unfolding numeral_2_eq_2 by (rule power_le_imp_le_base)
+
+lemma power2_less_imp_less:
+  "x\<twosuperior> < y\<twosuperior> \<Longrightarrow> 0 \<le> y \<Longrightarrow> x < y"
+  by (rule power_less_imp_less_base)
+
+lemma power2_eq_imp_eq:
+  "x\<twosuperior> = y\<twosuperior> \<Longrightarrow> 0 \<le> x \<Longrightarrow> 0 \<le> y \<Longrightarrow> x = y"
+  unfolding numeral_2_eq_2 by (erule (2) power_eq_imp_eq_base) simp
+
+end
+
+context ordered_idom
+begin
+
+lemma zero_eq_power2 [simp]:
+  "a\<twosuperior> = 0 \<longleftrightarrow> a = 0"
+  by (force simp add: power2_eq_square)
+
+lemma zero_le_power2 [simp]:
+  "0 \<le> a\<twosuperior>"
+  by (simp add: power2_eq_square)
+
+lemma zero_less_power2 [simp]:
+  "0 < a\<twosuperior> \<longleftrightarrow> a \<noteq> 0"
+  by (force simp add: power2_eq_square zero_less_mult_iff linorder_neq_iff)
+
+lemma power2_less_0 [simp]:
+  "\<not> a\<twosuperior> < 0"
+  by (force simp add: power2_eq_square mult_less_0_iff) 
+
+lemma abs_power2 [simp]:
+  "abs (a\<twosuperior>) = a\<twosuperior>"
+  by (simp add: power2_eq_square abs_mult abs_mult_self)
+
+lemma power2_abs [simp]:
+  "(abs a)\<twosuperior> = a\<twosuperior>"
+  by (simp add: power2_eq_square abs_mult_self)
+
+lemma odd_power_less_zero:
+  "a < 0 \<Longrightarrow> a ^ Suc (2*n) < 0"
+proof (induct n)
+  case 0
+  then show ?case by simp
+next
+  case (Suc n)
+  have "a ^ Suc (2 * Suc n) = (a*a) * a ^ Suc(2*n)"
+    by (simp add: mult_ac power_add power2_eq_square)
+  thus ?case
+    by (simp del: power_Suc add: Suc mult_less_0_iff mult_neg_neg)
+qed
+
+lemma odd_0_le_power_imp_0_le:
+  "0 \<le> a ^ Suc (2*n) \<Longrightarrow> 0 \<le> a"
+  using odd_power_less_zero [of a n]
+    by (force simp add: linorder_not_less [symmetric]) 
+
+lemma zero_le_even_power'[simp]:
+  "0 \<le> a ^ (2*n)"
+proof (induct n)
+  case 0
+    show ?case by (simp add: zero_le_one)
+next
+  case (Suc n)
+    have "a ^ (2 * Suc n) = (a*a) * a ^ (2*n)" 
+      by (simp add: mult_ac power_add power2_eq_square)
+    thus ?case
+      by (simp add: Suc zero_le_mult_iff)
+qed
+
+lemma sum_power2_ge_zero:
+  "0 \<le> x\<twosuperior> + y\<twosuperior>"
+  unfolding power2_eq_square by (rule sum_squares_ge_zero)
+
+lemma not_sum_power2_lt_zero:
+  "\<not> x\<twosuperior> + y\<twosuperior> < 0"
+  unfolding power2_eq_square by (rule not_sum_squares_lt_zero)
+
+lemma sum_power2_eq_zero_iff:
+  "x\<twosuperior> + y\<twosuperior> = 0 \<longleftrightarrow> x = 0 \<and> y = 0"
+  unfolding power2_eq_square by (rule sum_squares_eq_zero_iff)
+
+lemma sum_power2_le_zero_iff:
+  "x\<twosuperior> + y\<twosuperior> \<le> 0 \<longleftrightarrow> x = 0 \<and> y = 0"
+  unfolding power2_eq_square by (rule sum_squares_le_zero_iff)
+
+lemma sum_power2_gt_zero_iff:
+  "0 < x\<twosuperior> + y\<twosuperior> \<longleftrightarrow> x \<noteq> 0 \<or> y \<noteq> 0"
+  unfolding power2_eq_square by (rule sum_squares_gt_zero_iff)
+
+end
+
+lemma power2_sum:
+  fixes x y :: "'a::number_ring"
+  shows "(x + y)\<twosuperior> = x\<twosuperior> + y\<twosuperior> + 2 * x * y"
+  by (simp add: ring_distribs power2_eq_square)
+
+lemma power2_diff:
+  fixes x y :: "'a::number_ring"
+  shows "(x - y)\<twosuperior> = x\<twosuperior> + y\<twosuperior> - 2 * x * y"
+  by (simp add: ring_distribs power2_eq_square)
 
 
 subsection {* Predicate for negative binary numbers *}
@@ -109,11 +324,6 @@ by (simp add: nat_1 nat_number_of_def)
 
 lemma numeral_1_eq_Suc_0: "Numeral1 = Suc 0"
 by (simp add: nat_numeral_1_eq_1)
-
-lemma numeral_2_eq_2: "2 = Suc (Suc 0)"
-apply (unfold nat_number_of_def)
-apply (rule nat_2)
-done
 
 
 subsection{*Function @{term int}: Coercion from Type @{typ nat} to @{typ int}*}
@@ -245,29 +455,6 @@ lemmas dvd_eq_mod_eq_0_number_of =
 
 declare dvd_eq_mod_eq_0_number_of [simp]
 
-ML
-{*
-val nat_number_of_def = thm"nat_number_of_def";
-
-val nat_number_of = thm"nat_number_of";
-val nat_numeral_0_eq_0 = thm"nat_numeral_0_eq_0";
-val nat_numeral_1_eq_1 = thm"nat_numeral_1_eq_1";
-val numeral_1_eq_Suc_0 = thm"numeral_1_eq_Suc_0";
-val numeral_2_eq_2 = thm"numeral_2_eq_2";
-val nat_div_distrib = thm"nat_div_distrib";
-val nat_mod_distrib = thm"nat_mod_distrib";
-val int_nat_number_of = thm"int_nat_number_of";
-val Suc_nat_eq_nat_zadd1 = thm"Suc_nat_eq_nat_zadd1";
-val Suc_nat_number_of_add = thm"Suc_nat_number_of_add";
-val Suc_nat_number_of = thm"Suc_nat_number_of";
-val add_nat_number_of = thm"add_nat_number_of";
-val diff_nat_eq_if = thm"diff_nat_eq_if";
-val diff_nat_number_of = thm"diff_nat_number_of";
-val mult_nat_number_of = thm"mult_nat_number_of";
-val div_nat_number_of = thm"div_nat_number_of";
-val mod_nat_number_of = thm"mod_nat_number_of";
-*}
-
 
 subsection{*Comparisons*}
 
@@ -309,128 +496,10 @@ lemmas numerals = nat_numeral_0_eq_0 nat_numeral_1_eq_1 numeral_2_eq_2
 
 subsection{*Powers with Numeric Exponents*}
 
-text{*We cannot refer to the number @{term 2} in @{text Ring_and_Field.thy}.
-We cannot prove general results about the numeral @{term "-1"}, so we have to
-use @{term "- 1"} instead.*}
-
-lemma power2_eq_square: "(a::'a::recpower)\<twosuperior> = a * a"
-  by (simp add: numeral_2_eq_2 Power.power_Suc)
-
-lemma zero_power2 [simp]: "(0::'a::{semiring_1,recpower})\<twosuperior> = 0"
-  by (simp add: power2_eq_square)
-
-lemma one_power2 [simp]: "(1::'a::{semiring_1,recpower})\<twosuperior> = 1"
-  by (simp add: power2_eq_square)
-
-lemma power3_eq_cube: "(x::'a::recpower) ^ 3 = x * x * x"
-  apply (subgoal_tac "3 = Suc (Suc (Suc 0))")
-  apply (erule ssubst)
-  apply (simp add: power_Suc mult_ac)
-  apply (unfold nat_number_of_def)
-  apply (subst nat_eq_iff)
-  apply simp
-done
-
 text{*Squares of literal numerals will be evaluated.*}
-lemmas power2_eq_square_number_of =
+lemmas power2_eq_square_number_of [simp] =
     power2_eq_square [of "number_of w", standard]
-declare power2_eq_square_number_of [simp]
 
-
-lemma zero_le_power2[simp]: "0 \<le> (a\<twosuperior>::'a::{ordered_idom,recpower})"
-  by (simp add: power2_eq_square)
-
-lemma zero_less_power2[simp]:
-     "(0 < a\<twosuperior>) = (a \<noteq> (0::'a::{ordered_idom,recpower}))"
-  by (force simp add: power2_eq_square zero_less_mult_iff linorder_neq_iff)
-
-lemma power2_less_0[simp]:
-  fixes a :: "'a::{ordered_idom,recpower}"
-  shows "~ (a\<twosuperior> < 0)"
-by (force simp add: power2_eq_square mult_less_0_iff) 
-
-lemma zero_eq_power2[simp]:
-     "(a\<twosuperior> = 0) = (a = (0::'a::{ordered_idom,recpower}))"
-  by (force simp add: power2_eq_square mult_eq_0_iff)
-
-lemma abs_power2[simp]:
-     "abs(a\<twosuperior>) = (a\<twosuperior>::'a::{ordered_idom,recpower})"
-  by (simp add: power2_eq_square abs_mult abs_mult_self)
-
-lemma power2_abs[simp]:
-     "(abs a)\<twosuperior> = (a\<twosuperior>::'a::{ordered_idom,recpower})"
-  by (simp add: power2_eq_square abs_mult_self)
-
-lemma power2_minus[simp]:
-     "(- a)\<twosuperior> = (a\<twosuperior>::'a::{comm_ring_1,recpower})"
-  by (simp add: power2_eq_square)
-
-lemma power2_le_imp_le:
-  fixes x y :: "'a::{ordered_semidom,recpower}"
-  shows "\<lbrakk>x\<twosuperior> \<le> y\<twosuperior>; 0 \<le> y\<rbrakk> \<Longrightarrow> x \<le> y"
-unfolding numeral_2_eq_2 by (rule power_le_imp_le_base)
-
-lemma power2_less_imp_less:
-  fixes x y :: "'a::{ordered_semidom,recpower}"
-  shows "\<lbrakk>x\<twosuperior> < y\<twosuperior>; 0 \<le> y\<rbrakk> \<Longrightarrow> x < y"
-by (rule power_less_imp_less_base)
-
-lemma power2_eq_imp_eq:
-  fixes x y :: "'a::{ordered_semidom,recpower}"
-  shows "\<lbrakk>x\<twosuperior> = y\<twosuperior>; 0 \<le> x; 0 \<le> y\<rbrakk> \<Longrightarrow> x = y"
-unfolding numeral_2_eq_2 by (erule (2) power_eq_imp_eq_base, simp)
-
-lemma power_minus1_even[simp]: "(- 1) ^ (2*n) = (1::'a::{comm_ring_1,recpower})"
-proof (induct n)
-  case 0 show ?case by simp
-next
-  case (Suc n) then show ?case by (simp add: power_Suc power_add)
-qed
-
-lemma power_minus1_odd: "(- 1) ^ Suc(2*n) = -(1::'a::{comm_ring_1,recpower})"
-  by (simp add: power_Suc) 
-
-lemma power_even_eq: "(a::'a::recpower) ^ (2*n) = (a^n)^2"
-by (subst mult_commute) (simp add: power_mult)
-
-lemma power_odd_eq: "(a::int) ^ Suc(2*n) = a * (a^n)^2"
-by (simp add: power_even_eq) 
-
-lemma power_minus_even [simp]:
-     "(-a) ^ (2*n) = (a::'a::{comm_ring_1,recpower}) ^ (2*n)"
-by (simp add: power_minus1_even power_minus [of a]) 
-
-lemma zero_le_even_power'[simp]:
-     "0 \<le> (a::'a::{ordered_idom,recpower}) ^ (2*n)"
-proof (induct "n")
-  case 0
-    show ?case by (simp add: zero_le_one)
-next
-  case (Suc n)
-    have "a ^ (2 * Suc n) = (a*a) * a ^ (2*n)" 
-      by (simp add: mult_ac power_add power2_eq_square)
-    thus ?case
-      by (simp add: prems zero_le_mult_iff)
-qed
-
-lemma odd_power_less_zero:
-     "(a::'a::{ordered_idom,recpower}) < 0 ==> a ^ Suc(2*n) < 0"
-proof (induct "n")
-  case 0
-  then show ?case by simp
-next
-  case (Suc n)
-  have "a ^ Suc (2 * Suc n) = (a*a) * a ^ Suc(2*n)"
-    by (simp add: mult_ac power_add power2_eq_square)
-  thus ?case
-    by (simp del: power_Suc add: prems mult_less_0_iff mult_neg_neg)
-qed
-
-lemma odd_0_le_power_imp_0_le:
-     "0 \<le> a  ^ Suc(2*n) ==> 0 \<le> (a::'a::{ordered_idom,recpower})"
-apply (insert odd_power_less_zero [of a n]) 
-apply (force simp add: linorder_not_less [symmetric]) 
-done
 
 text{*Simprules for comparisons where common factors can be cancelled.*}
 lemmas zero_compare_simps =
@@ -616,7 +685,7 @@ declare power_nat_number_of_number_of [simp]
 text{*For arbitrary rings*}
 
 lemma power_number_of_even:
-  fixes z :: "'a::{number_ring,recpower}"
+  fixes z :: "'a::number_ring"
   shows "z ^ number_of (Int.Bit0 w) = (let w = z ^ (number_of w) in w * w)"
 unfolding Let_def nat_number_of_def number_of_Bit0
 apply (rule_tac x = "number_of w" in spec, clarify)
@@ -625,7 +694,7 @@ apply (auto simp add: nat_mult_distrib power_even_eq power2_eq_square)
 done
 
 lemma power_number_of_odd:
-  fixes z :: "'a::{number_ring,recpower}"
+  fixes z :: "'a::number_ring"
   shows "z ^ number_of (Int.Bit1 w) = (if (0::int) <= number_of w
      then (let w = z ^ (number_of w) in z * w * w) else 1)"
 unfolding Let_def nat_number_of_def number_of_Bit1
@@ -644,23 +713,6 @@ lemmas power_number_of_even_number_of [simp] =
 lemmas power_number_of_odd_number_of [simp] =
     power_number_of_odd [of "number_of v", standard]
 
-
-
-ML
-{*
-val numeral_ss = @{simpset} addsimps @{thms numerals};
-
-val nat_bin_arith_setup =
- Lin_Arith.map_data
-   (fn {add_mono_thms, mult_mono_thms, inj_thms, lessD, neqE, simpset} =>
-     {add_mono_thms = add_mono_thms, mult_mono_thms = mult_mono_thms,
-      inj_thms = inj_thms,
-      lessD = lessD, neqE = neqE,
-      simpset = simpset addsimps @{thms neg_simps} @
-        [@{thm Suc_nat_number_of}, @{thm int_nat_number_of}]})
-*}
-
-declaration {* K nat_bin_arith_setup *}
 
 (* Enable arith to deal with div/mod k where k is a numeral: *)
 declare split_div[of _ _ "number_of k", standard, arith_split]
@@ -692,11 +744,11 @@ lemmas nat_number =
 lemma Let_Suc [simp]: "Let (Suc n) f == f (Suc n)"
   by (simp add: Let_def)
 
-lemma power_m1_even: "(-1) ^ (2*n) = (1::'a::{number_ring,recpower})"
-by (simp add: power_mult power_Suc); 
+lemma power_m1_even: "(-1) ^ (2*n) = (1::'a::{number_ring})"
+  by (simp only: number_of_Min power_minus1_even)
 
-lemma power_m1_odd: "(-1) ^ Suc(2*n) = (-1::'a::{number_ring,recpower})"
-by (simp add: power_mult power_Suc); 
+lemma power_m1_odd: "(-1) ^ Suc(2*n) = (-1::'a::{number_ring})"
+  by (simp only: number_of_Min power_minus1_odd)
 
 
 subsection{*Literal arithmetic and @{term of_nat}*}
@@ -820,8 +872,37 @@ by (simp add: nat_mult_div_cancel1)
 
 subsection {* Simprocs for the Naturals *}
 
-use "Tools/nat_simprocs.ML"
-declaration {* K nat_simprocs_setup *}
+use "Tools/nat_numeral_simprocs.ML"
+
+declaration {*
+let
+
+val less_eq_rules = @{thms ring_distribs} @
+  [@{thm Let_number_of}, @{thm Let_0}, @{thm Let_1}, @{thm nat_0}, @{thm nat_1},
+   @{thm add_nat_number_of}, @{thm diff_nat_number_of}, @{thm mult_nat_number_of},
+   @{thm eq_nat_number_of}, @{thm less_nat_number_of}, @{thm le_number_of_eq_not_less},
+   @{thm le_Suc_number_of}, @{thm le_number_of_Suc},
+   @{thm less_Suc_number_of}, @{thm less_number_of_Suc},
+   @{thm Suc_eq_number_of}, @{thm eq_number_of_Suc},
+   @{thm mult_Suc}, @{thm mult_Suc_right},
+   @{thm add_Suc}, @{thm add_Suc_right},
+   @{thm eq_number_of_0}, @{thm eq_0_number_of}, @{thm less_0_number_of},
+   @{thm of_int_number_of_eq}, @{thm of_nat_number_of_eq}, @{thm nat_number_of}, @{thm if_True}, @{thm if_False}];
+
+val simprocs = Nat_Numeral_Simprocs.combine_numerals :: Nat_Numeral_Simprocs.cancel_numerals;
+
+in
+
+K (Lin_Arith.map_data (fn {add_mono_thms, mult_mono_thms, inj_thms, lessD, neqE, simpset} =>
+  {add_mono_thms = add_mono_thms, mult_mono_thms = mult_mono_thms,
+    inj_thms = inj_thms, lessD = lessD, neqE = neqE,
+    simpset = simpset addsimps (@{thms neg_simps} @ [@{thm Suc_nat_number_of}, @{thm int_nat_number_of}])
+      addsimps less_eq_rules
+      addsimprocs simprocs}))
+
+end
+*}
+
 
 subsubsection{*For simplifying @{term "Suc m - K"} and  @{term "K - Suc m"}*}
 
@@ -900,6 +981,9 @@ done
 
 
 subsubsection{*Various Other Lemmas*}
+
+lemma card_UNIV_bool[simp]: "card (UNIV :: bool set) = 2"
+by(simp add: UNIV_bool)
 
 text {*Evens and Odds, for Mutilated Chess Board*}
 

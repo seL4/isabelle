@@ -8,7 +8,7 @@ theory Fixrec_ex
 imports HOLCF
 begin
 
-subsection {* basic fixrec examples *}
+subsection {* Basic @{text fixrec} examples *}
 
 text {*
   Fixrec patterns can mention any constructor defined by the domain
@@ -16,31 +16,31 @@ text {*
   cpair, spair, sinl, sinr, up, ONE, TT, FF.
 *}
 
-text {* typical usage is with lazy constructors *}
+text {* Typical usage is with lazy constructors. *}
 
 fixrec down :: "'a u \<rightarrow> 'a"
 where "down\<cdot>(up\<cdot>x) = x"
 
-text {* with strict constructors, rewrite rules may require side conditions *}
+text {* With strict constructors, rewrite rules may require side conditions. *}
 
 fixrec from_sinl :: "'a \<oplus> 'b \<rightarrow> 'a"
 where "x \<noteq> \<bottom> \<Longrightarrow> from_sinl\<cdot>(sinl\<cdot>x) = x"
 
-text {* lifting can turn a strict constructor into a lazy one *}
+text {* Lifting can turn a strict constructor into a lazy one. *}
 
 fixrec from_sinl_up :: "'a u \<oplus> 'b \<rightarrow> 'a"
 where "from_sinl_up\<cdot>(sinl\<cdot>(up\<cdot>x)) = x"
 
 
-subsection {* fixpat examples *}
+subsection {* Examples using @{text fixpat} *}
 
-text {* a type of lazy lists *}
+text {* A type of lazy lists. *}
 
 domain 'a llist = lNil | lCons (lazy 'a) (lazy "'a llist")
 
-text {* zip function for lazy lists *}
+text {* A zip function for lazy lists. *}
 
-text {* notice that the patterns are not exhaustive *}
+text {* Notice that the patterns are not exhaustive. *}
 
 fixrec
   lzip :: "'a llist \<rightarrow> 'b llist \<rightarrow> ('a \<times> 'b) llist"
@@ -48,24 +48,59 @@ where
   "lzip\<cdot>(lCons\<cdot>x\<cdot>xs)\<cdot>(lCons\<cdot>y\<cdot>ys) = lCons\<cdot><x,y>\<cdot>(lzip\<cdot>xs\<cdot>ys)"
 | "lzip\<cdot>lNil\<cdot>lNil = lNil"
 
-text {* fixpat is useful for producing strictness theorems *}
-text {* note that pattern matching is done in left-to-right order *}
+text {* @{text fixpat} is useful for producing strictness theorems. *}
+text {* Note that pattern matching is done in left-to-right order. *}
 
 fixpat lzip_stricts [simp]:
   "lzip\<cdot>\<bottom>\<cdot>ys"
   "lzip\<cdot>lNil\<cdot>\<bottom>"
   "lzip\<cdot>(lCons\<cdot>x\<cdot>xs)\<cdot>\<bottom>"
 
-text {* fixpat can also produce rules for missing cases *}
+text {* @{text fixpat} can also produce rules for missing cases. *}
 
 fixpat lzip_undefs [simp]:
   "lzip\<cdot>lNil\<cdot>(lCons\<cdot>y\<cdot>ys)"
   "lzip\<cdot>(lCons\<cdot>x\<cdot>xs)\<cdot>lNil"
 
 
-subsection {* skipping proofs of rewrite rules *}
+subsection {* Pattern matching with bottoms *}
 
-text {* another zip function for lazy lists *}
+text {*
+  As an alternative to using @{text fixpat}, it is also possible to
+  use bottom as a constructor pattern.  When using a bottom pattern,
+  the right-hand-side must also be bottom; otherwise, @{text fixrec}
+  will not be able to prove the equation.
+*}
+
+fixrec
+  from_sinr_up :: "'a \<oplus> 'b\<^sub>\<bottom> \<rightarrow> 'b"
+where
+  "from_sinr_up\<cdot>\<bottom> = \<bottom>"
+| "from_sinr_up\<cdot>(sinr\<cdot>(up\<cdot>x)) = x"
+
+text {*
+  If the function is already strict in that argument, then the bottom
+  pattern does not change the meaning of the function.  For example,
+  in the definition of @{term from_sinr_up}, the first equation is
+  actually redundant, and could have been proven separately by
+  @{text fixpat}.
+*}
+
+text {*
+  A bottom pattern can also be used to make a function strict in a
+  certain argument, similar to a bang-pattern in Haskell.
+*}
+
+fixrec
+  seq :: "'a \<rightarrow> 'b \<rightarrow> 'b"
+where
+  "seq\<cdot>\<bottom>\<cdot>y = \<bottom>"
+| "x \<noteq> \<bottom> \<Longrightarrow> seq\<cdot>x\<cdot>y = y"
+
+
+subsection {* Skipping proofs of rewrite rules *}
+
+text {* Another zip function for lazy lists. *}
 
 text {*
   Notice that this version has overlapping patterns.
@@ -85,7 +120,7 @@ text {*
   does not produce any simp rules.
 *}
 
-text {* simp rules can be generated later using fixpat *}
+text {* Simp rules can be generated later using @{text fixpat}. *}
 
 fixpat lzip2_simps [simp]:
   "lzip2\<cdot>(lCons\<cdot>x\<cdot>xs)\<cdot>(lCons\<cdot>y\<cdot>ys)"
@@ -97,16 +132,17 @@ fixpat lzip2_stricts [simp]:
   "lzip2\<cdot>\<bottom>\<cdot>ys"
   "lzip2\<cdot>(lCons\<cdot>x\<cdot>xs)\<cdot>\<bottom>"
 
-subsection {* mutual recursion with fixrec *}
 
-text {* tree and forest types *}
+subsection {* Mutual recursion with @{text fixrec} *}
+
+text {* Tree and forest types. *}
 
 domain 'a tree = Leaf (lazy 'a) | Branch (lazy "'a forest")
 and    'a forest = Empty | Trees (lazy "'a tree") "'a forest"
 
 text {*
   To define mutually recursive functions, separate the equations
-  for each function using the keyword "and".
+  for each function using the keyword @{text "and"}.
 *}
 
 fixrec
@@ -125,10 +161,13 @@ fixpat map_forest_strict [simp]: "map_forest\<cdot>f\<cdot>\<bottom>"
 
 text {*
   Theorems generated:
-  map_tree_def map_forest_def
-  map_tree_unfold map_forest_unfold
-  map_tree_simps map_forest_simps
-  map_tree_map_forest_induct
+  @{text map_tree_def}
+  @{text map_forest_def}
+  @{text map_tree_unfold}
+  @{text map_forest_unfold}
+  @{text map_tree_simps}
+  @{text map_forest_simps}
+  @{text map_tree_map_forest_induct}
 *}
 
 end

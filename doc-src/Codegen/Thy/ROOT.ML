@@ -4,6 +4,6 @@ no_document use_thys ["Efficient_Nat"];
 
 use_thy "Introduction";
 use_thy "Program";
-use_thy "Adaption";
+use_thy "Adaptation";
 use_thy "Further";
 use_thy "ML";

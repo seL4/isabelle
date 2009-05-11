@@ -701,7 +701,8 @@ lemma udvd_minus_le':
   apply (erule (2) udvd_decr0)
   done
 
-ML{*Delsimprocs cancel_factors*}
+ML {* Delsimprocs Numeral_Simprocs.cancel_factors *}
+
 lemma udvd_incr2_K: 
   "p < a + s ==> a <= a + s ==> K udvd s ==> K udvd p - a ==> a <= p ==> 
     0 < K ==> p <= p + K & p + K <= a + s"
@@ -717,7 +718,8 @@ lemma udvd_incr2_K:
    apply arith
   apply simp
   done
-ML{*Delsimprocs cancel_factors*}
+
+ML {* Addsimprocs Numeral_Simprocs.cancel_factors *}
 
 (* links with rbl operations *)
 lemma word_succ_rbl:
@@ -793,9 +795,6 @@ instance word :: (len) comm_ring_1 ..
 instance word :: (len0) comm_semiring_0 ..
 
 instance word :: (len0) order ..
-
-instance word :: (len) recpower
-  by (intro_classes) simp_all
 
 (* note that iszero_def is only for class comm_semiring_1_cancel,
    which requires word length >= 1, ie 'a :: len word *) 

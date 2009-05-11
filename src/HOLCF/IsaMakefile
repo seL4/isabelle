@@ -87,10 +87,19 @@ $(LOG)/HOLCF-IMP.gz: $(OUT)/HOLCF IMP/HoareEx.thy \
 
 HOLCF-ex: HOLCF $(LOG)/HOLCF-ex.gz
 
-$(LOG)/HOLCF-ex.gz: $(OUT)/HOLCF ex/Stream.thy ex/Dagstuhl.thy \
-  ex/Dnat.thy ex/Fix2.thy ex/Focus_ex.thy ex/Hoare.thy ex/Loop.thy \
+$(LOG)/HOLCF-ex.gz: $(OUT)/HOLCF \
+  ../HOL/Library/Nat_Infinity.thy \
+  ex/Dagstuhl.thy \
+  ex/Dnat.thy \
+  ex/Domain_ex.thy \
+  ex/Fix2.thy \
+  ex/Fixrec_ex.thy \
+  ex/Focus_ex.thy \
+  ex/Hoare.thy \
+  ex/Loop.thy \
   ex/Powerdomain_ex.thy \
-  ex/ROOT.ML ex/Fixrec_ex.thy ../HOL/Library/Nat_Infinity.thy
+  ex/Stream.thy \
+  ex/ROOT.ML
 	@$(ISABELLE_TOOL) usedir $(OUT)/HOLCF ex
 
 

@@ -712,38 +712,38 @@ lemma "(-x < -y) = (y < (x::real))"
 by arith
 
 lemma "!!a::real. a \<le> b ==> c \<le> d ==> x + y < z ==> a + c \<le> b + d"
-by (tactic "fast_arith_tac @{context} 1")
+by linarith
 
 lemma "!!a::real. a < b ==> c < d ==> a - d \<le> b + (-c)"
-by (tactic "fast_arith_tac @{context} 1")
+by linarith
 
 lemma "!!a::real. a \<le> b ==> b + b \<le> c ==> a + a \<le> c"
-by (tactic "fast_arith_tac @{context} 1")
+by linarith
 
 lemma "!!a::real. a + b \<le> i + j ==> a \<le> b ==> i \<le> j ==> a + a \<le> j + j"
-by (tactic "fast_arith_tac @{context} 1")
+by linarith
 
 lemma "!!a::real. a + b < i + j ==> a < b ==> i < j ==> a + a < j + j"
-by (tactic "fast_arith_tac @{context} 1")
+by linarith
 
 lemma "!!a::real. a + b + c \<le> i + j + k \<and> a \<le> b \<and> b \<le> c \<and> i \<le> j \<and> j \<le> k --> a + a + a \<le> k + k + k"
 by arith
 
 lemma "!!a::real. a + b + c + d \<le> i + j + k + l ==> a \<le> b ==> b \<le> c
     ==> c \<le> d ==> i \<le> j ==> j \<le> k ==> k \<le> l ==> a \<le> l"
-by (tactic "fast_arith_tac @{context} 1")
+by linarith
 
 lemma "!!a::real. a + b + c + d \<le> i + j + k + l ==> a \<le> b ==> b \<le> c
     ==> c \<le> d ==> i \<le> j ==> j \<le> k ==> k \<le> l ==> a + a + a + a \<le> l + l + l + l"
-by (tactic "fast_arith_tac @{context} 1")
+by linarith
 
 lemma "!!a::real. a + b + c + d \<le> i + j + k + l ==> a \<le> b ==> b \<le> c
     ==> c \<le> d ==> i \<le> j ==> j \<le> k ==> k \<le> l ==> a + a + a + a + a \<le> l + l + l + l + i"
-by (tactic "fast_arith_tac @{context} 1")
+by linarith
 
 lemma "!!a::real. a + b + c + d \<le> i + j + k + l ==> a \<le> b ==> b \<le> c
     ==> c \<le> d ==> i \<le> j ==> j \<le> k ==> k \<le> l ==> a + a + a + a + a + a \<le> l + l + l + l + i + l"
-by (tactic "fast_arith_tac @{context} 1")
+by linarith
 
 
 subsection{*Complex Arithmetic*}

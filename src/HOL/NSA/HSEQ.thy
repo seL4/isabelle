@@ -110,7 +110,7 @@ apply (auto dest: approx_trans3)
 done
 
 lemma NSLIMSEQ_pow [rule_format]:
-  fixes a :: "'a::{real_normed_algebra,recpower}"
+  fixes a :: "'a::{real_normed_algebra,power}"
   shows "(X ----NS> a) --> ((%n. (X n) ^ m) ----NS> a ^ m)"
 apply (induct "m")
 apply (auto simp add: power_Suc intro: NSLIMSEQ_mult NSLIMSEQ_const)

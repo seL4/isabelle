@@ -382,7 +382,7 @@ lemmas FDERIV_scaleR = scaleR.FDERIV
 subsection {* Powers *}
 
 lemma FDERIV_power_Suc:
-  fixes x :: "'a::{real_normed_algebra,recpower,comm_ring_1}"
+  fixes x :: "'a::{real_normed_algebra,comm_ring_1}"
   shows "FDERIV (\<lambda>x. x ^ Suc n) x :> (\<lambda>h. (1 + of_nat n) * x ^ n * h)"
  apply (induct n)
   apply (simp add: power_Suc FDERIV_ident)
@@ -392,7 +392,7 @@ lemma FDERIV_power_Suc:
 done
 
 lemma FDERIV_power:
-  fixes x :: "'a::{real_normed_algebra,recpower,comm_ring_1}"
+  fixes x :: "'a::{real_normed_algebra,comm_ring_1}"
   shows "FDERIV (\<lambda>x. x ^ n) x :> (\<lambda>h. of_nat n * x ^ (n - 1) * h)"
   apply (cases n)
    apply (simp add: FDERIV_const)

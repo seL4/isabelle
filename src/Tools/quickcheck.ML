@@ -6,28 +6,48 @@ Generic counterexample search engine.
 
 signature QUICKCHECK =
 sig
-  val test_term: Proof.context -> bool -> string option -> int -> int -> term -> (string * term) list option;
-  val add_generator: string * (Proof.context -> term -> int -> term list option) -> theory -> theory
   val auto: bool ref
   val auto_time_limit: int ref
+  val test_term: Proof.context -> bool -> string option -> int -> int -> term ->
+    (string * term) list option
+  val add_generator: string * (Proof.context -> term -> int -> term list option) -> theory -> theory
 end;
 
 structure Quickcheck : QUICKCHECK =
 struct
+
+(* preferences *)
+
+val auto = ref false;
+val auto_time_limit = ref 2500;
+
+val _ =
+  ProofGeneralPgip.add_preference Preferences.category_tracing
+  (setmp auto true (fn () =>
+    Preferences.bool_pref auto
+      "auto-quickcheck"
+      "Whether to enable quickcheck automatically.") ());
+
+val _ =
+  ProofGeneralPgip.add_preference Preferences.category_tracing
+    (Preferences.nat_pref auto_time_limit
+      "auto-quickcheck-time-limit"
+      "Time limit for automatic quickcheck (in milliseconds).");
+
 
 (* quickcheck configuration -- default parameters, test generators *)
 
 datatype test_params = Test_Params of
   { size: int, iterations: int, default_type: typ option };
 
-fun dest_test_params (Test_Params { size, iterations, default_type}) =
+fun dest_test_params (Test_Params { size, iterations, default_type }) =
   ((size, iterations), default_type);
 fun mk_test_params ((size, iterations), default_type) =
   Test_Params { size = size, iterations = iterations, default_type = default_type };
 fun map_test_params f (Test_Params { size, iterations, default_type}) =
   mk_test_params (f ((size, iterations), default_type));
-fun merge_test_params (Test_Params {size = size1, iterations = iterations1, default_type = default_type1},
-  Test_Params {size = size2, iterations = iterations2, default_type = default_type2}) =
+fun merge_test_params (Test_Params { size = size1, iterations = iterations1, default_type = default_type1 },
+  Test_Params { size = size2, iterations = iterations2, default_type = default_type2 }) =
   mk_test_params ((Int.max (size1, size2), Int.max (iterations1, iterations2)),
     case default_type1 of NONE => default_type2 | _ => default_type1);
 
@@ -138,10 +158,7 @@ fun pretty_counterex ctxt NONE = Pretty.str "No counterexamples found."
 
 (* automatic testing *)
 
-val auto = ref false;
-val auto_time_limit = ref 5000;
-
-fun test_goal_auto int state =
+val _ = Context.>> (Specification.add_theorem_hook (fn int => fn state =>
   let
     val ctxt = Proof.context_of state;
     val assms = map term_of (Assumption.all_assms_of ctxt);
@@ -162,12 +179,10 @@ fun test_goal_auto int state =
     if int andalso !auto andalso not (!Toplevel.quiet)
     then test ()
     else state
-  end;
-
-val _ = Context.>> (Specification.add_theorem_hook test_goal_auto);
+  end));
 
 
-(* Isar interfaces *)
+(* Isar commands *)
 
 fun read_nat s = case (Library.read_int o Symbol.explode) s
  of (k, []) => if k >= 0 then k

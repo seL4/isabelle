@@ -20,7 +20,7 @@ instance "**" :: ("{finite_po,pcpo}", "{finite_po,pcpo}") finite_po
 by (rule typedef_finite_po [OF type_definition_Sprod])
 
 instance "**" :: ("{chfin,pcpo}", "{chfin,pcpo}") chfin
-by (rule typedef_chfin [OF type_definition_Sprod less_Sprod_def])
+by (rule typedef_chfin [OF type_definition_Sprod below_Sprod_def])
 
 syntax (xsymbols)
   "**"		:: "[type, type] => type"	 ("(_ \<otimes>/ _)" [21,20] 20)
@@ -67,7 +67,7 @@ unfolding spair_def
 by (simp add: cont_Abs_Sprod Abs_Sprod_inverse spair_lemma)
 
 lemmas Rep_Sprod_simps =
-  Rep_Sprod_inject [symmetric] less_Sprod_def
+  Rep_Sprod_inject [symmetric] below_Sprod_def
   Rep_Sprod_strict Rep_Sprod_spair
 
 lemma Exh_Sprod:
@@ -99,7 +99,7 @@ by (simp add: Rep_Sprod_simps strictify_conv_if)
 lemma spair_strict_iff [simp]: "((:x, y:) = \<bottom>) = (x = \<bottom> \<or> y = \<bottom>)"
 by (simp add: Rep_Sprod_simps strictify_conv_if)
 
-lemma spair_less_iff:
+lemma spair_below_iff:
   "((:a, b:) \<sqsubseteq> (:c, d:)) = (a = \<bottom> \<or> b = \<bottom> \<or> (a \<sqsubseteq> c \<and> b \<sqsubseteq> d))"
 by (simp add: Rep_Sprod_simps strictify_conv_if)
 
@@ -160,38 +160,38 @@ by simp
 lemma surjective_pairing_Sprod2: "(:sfst\<cdot>p, ssnd\<cdot>p:) = p"
 by (cases p, simp_all)
 
-lemma less_sprod: "x \<sqsubseteq> y = (sfst\<cdot>x \<sqsubseteq> sfst\<cdot>y \<and> ssnd\<cdot>x \<sqsubseteq> ssnd\<cdot>y)"
-apply (simp add: less_Sprod_def sfst_def ssnd_def cont_Rep_Sprod)
-apply (rule less_cprod)
+lemma below_sprod: "x \<sqsubseteq> y = (sfst\<cdot>x \<sqsubseteq> sfst\<cdot>y \<and> ssnd\<cdot>x \<sqsubseteq> ssnd\<cdot>y)"
+apply (simp add: below_Sprod_def sfst_def ssnd_def cont_Rep_Sprod)
+apply (rule below_cprod)
 done
 
 lemma eq_sprod: "(x = y) = (sfst\<cdot>x = sfst\<cdot>y \<and> ssnd\<cdot>x = ssnd\<cdot>y)"
-by (auto simp add: po_eq_conv less_sprod)
+by (auto simp add: po_eq_conv below_sprod)
 
-lemma spair_less:
+lemma spair_below:
   "\<lbrakk>x \<noteq> \<bottom>; y \<noteq> \<bottom>\<rbrakk> \<Longrightarrow> (:x, y:) \<sqsubseteq> (:a, b:) = (x \<sqsubseteq> a \<and> y \<sqsubseteq> b)"
 apply (cases "a = \<bottom>", simp)
 apply (cases "b = \<bottom>", simp)
-apply (simp add: less_sprod)
+apply (simp add: below_sprod)
 done
 
-lemma sfst_less_iff: "sfst\<cdot>x \<sqsubseteq> y = x \<sqsubseteq> (:y, ssnd\<cdot>x:)"
+lemma sfst_below_iff: "sfst\<cdot>x \<sqsubseteq> y = x \<sqsubseteq> (:y, ssnd\<cdot>x:)"
 apply (cases "x = \<bottom>", simp, cases "y = \<bottom>", simp)
-apply (simp add: less_sprod)
+apply (simp add: below_sprod)
 done
 
-lemma ssnd_less_iff: "ssnd\<cdot>x \<sqsubseteq> y = x \<sqsubseteq> (:sfst\<cdot>x, y:)"
+lemma ssnd_below_iff: "ssnd\<cdot>x \<sqsubseteq> y = x \<sqsubseteq> (:sfst\<cdot>x, y:)"
 apply (cases "x = \<bottom>", simp, cases "y = \<bottom>", simp)
-apply (simp add: less_sprod)
+apply (simp add: below_sprod)
 done
 
 subsection {* Compactness *}
 
 lemma compact_sfst: "compact x \<Longrightarrow> compact (sfst\<cdot>x)"
-by (rule compactI, simp add: sfst_less_iff)
+by (rule compactI, simp add: sfst_below_iff)
 
 lemma compact_ssnd: "compact x \<Longrightarrow> compact (ssnd\<cdot>x)"
-by (rule compactI, simp add: ssnd_less_iff)
+by (rule compactI, simp add: ssnd_below_iff)
 
 lemma compact_spair: "\<lbrakk>compact x; compact y\<rbrakk> \<Longrightarrow> compact (:x, y:)"
 by (rule compact_Sprod, simp add: Rep_Sprod_spair strictify_conv_if)
@@ -224,7 +224,7 @@ proof
   assume "x \<sqsubseteq> y" thus "x = \<bottom> \<or> x = y"
     apply (induct x, simp)
     apply (induct y, simp)
-    apply (simp add: spair_less_iff flat_less_iff)
+    apply (simp add: spair_below_iff flat_below_iff)
     done
 qed
 

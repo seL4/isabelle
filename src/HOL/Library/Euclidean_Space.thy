@@ -253,13 +253,6 @@ fun vector_power :: "('a::{one,times} ^'n) \<Rightarrow> nat \<Rightarrow> 'a^'n
   "vector_power x 0 = 1"
   | "vector_power x (Suc n) = x * vector_power x n"
 
-instantiation "^" :: (recpower,type) recpower
-begin
-  definition vec_power_def: "op ^ \<equiv> vector_power"
-  instance
-  apply (intro_classes) by (simp_all add: vec_power_def)
-end
-
 instance "^" :: (semiring,type) semiring
   apply (intro_classes) by (vector ring_simps)+
 
@@ -600,7 +593,7 @@ next
   from insert.prems have Fx: "f x \<ge> 0" and Fp: "\<forall> a \<in> F. f a \<ge> 0" by simp_all
   from insert.hyps Fp setsum_nonneg[OF Fp]
   have h: "setsum f F = 0 \<longleftrightarrow> (\<forall>a \<in>F. f a = 0)" by metis
-  from sum_nonneg_eq_zero_iff[OF Fx  setsum_nonneg[OF Fp]] insert.hyps(1,2)
+  from add_nonneg_eq_0_iff[OF Fx  setsum_nonneg[OF Fp]] insert.hyps(1,2)
   show ?case by (simp add: h)
 qed
 
@@ -2762,7 +2755,7 @@ qed
 (* Geometric progression.                                                    *)
 (* ------------------------------------------------------------------------- *)
 
-lemma sum_gp_basic: "((1::'a::{field, recpower}) - x) * setsum (\<lambda>i. x^i) {0 .. n} = (1 - x^(Suc n))"
+lemma sum_gp_basic: "((1::'a::{field}) - x) * setsum (\<lambda>i. x^i) {0 .. n} = (1 - x^(Suc n))"
   (is "?lhs = ?rhs")
 proof-
   {assume x1: "x = 1" hence ?thesis by simp}
@@ -2780,7 +2773,7 @@ proof-
 qed
 
 lemma sum_gp_multiplied: assumes mn: "m <= n"
-  shows "((1::'a::{field, recpower}) - x) * setsum (op ^ x) {m..n} = x^m - x^ Suc n"
+  shows "((1::'a::{field}) - x) * setsum (op ^ x) {m..n} = x^m - x^ Suc n"
   (is "?lhs = ?rhs")
 proof-
   let ?S = "{0..(n - m)}"
@@ -2797,7 +2790,7 @@ proof-
     by (simp add: ring_simps power_add[symmetric])
 qed
 
-lemma sum_gp: "setsum (op ^ (x::'a::{field, recpower})) {m .. n} =
+lemma sum_gp: "setsum (op ^ (x::'a::{field})) {m .. n} =
    (if n < m then 0 else if x = 1 then of_nat ((n + 1) - m)
                     else (x^ m - x^ (Suc n)) / (1 - x))"
 proof-
@@ -2813,7 +2806,7 @@ proof-
   ultimately show ?thesis by metis
 qed
 
-lemma sum_gp_offset: "setsum (op ^ (x::'a::{field,recpower})) {m .. m+n} =
+lemma sum_gp_offset: "setsum (op ^ (x::'a::{field})) {m .. m+n} =
   (if x = 1 then of_nat n + 1 else x^m * (1 - x^Suc n) / (1 - x))"
   unfolding sum_gp[of x m "m + n"] power_Suc
   by (simp add: ring_simps power_add)

@@ -16,10 +16,10 @@ sig
   val setup: Context.theory -> Context.theory
   (* extracting lemma list*)
   val find_failure: string -> string option
-  val lemma_list_dfg: string * string vector * Proof.context * Thm.thm * int -> string
-  val lemma_list_tstp: string * string vector * Proof.context * Thm.thm * int -> string
+  val lemma_list_dfg: string -> string * string vector * Proof.context * Thm.thm * int -> string
+  val lemma_list_tstp: string -> string * string vector * Proof.context * Thm.thm * int -> string
   (* structured proofs *)
-  val structured_proof: string * string vector * Proof.context * Thm.thm * int -> string
+  val structured_proof: string -> string * string vector * Proof.context * Thm.thm * int -> string
 end;
 
 structure ResReconstruct : RES_RECONSTRUCT =
@@ -103,7 +103,7 @@ exception STREE of stree;
 
 (*If string s has the prefix s1, return the result of deleting it.*)
 fun strip_prefix s1 s =
-  if String.isPrefix s1 s 
+  if String.isPrefix s1 s
   then SOME (ResClause.undo_ascii_of (String.extract (s, size s1, NONE)))
   else NONE;
 
@@ -278,10 +278,10 @@ fun decode_tstp_list ctxt tuples =
   in  #1 (fold_map (decode_tstp vt0) tuples ctxt) end;
 
 (** Finding a matching assumption. The literals may be permuted, and variable names
-    may disagree. We have to try all combinations of literals (quadratic!) and 
+    may disagree. We have to try all combinations of literals (quadratic!) and
     match up the variable names consistently. **)
 
-fun strip_alls_aux n (Const("all",_)$Abs(a,T,t))  =  
+fun strip_alls_aux n (Const("all",_)$Abs(a,T,t))  =
       strip_alls_aux (n+1) (subst_bound (Var ((a,n), T), t))
   | strip_alls_aux _ t  =  t;
 
@@ -292,20 +292,20 @@ exception MATCH_LITERAL;
 (*Ignore types: they are not to be trusted...*)
 fun match_literal (t1$u1) (t2$u2) env =
       match_literal t1 t2 (match_literal u1 u2 env)
-  | match_literal (Abs (_,_,t1)) (Abs (_,_,t2)) env = 
+  | match_literal (Abs (_,_,t1)) (Abs (_,_,t2)) env =
       match_literal t1 t2 env
-  | match_literal (Bound i1) (Bound i2) env = 
+  | match_literal (Bound i1) (Bound i2) env =
       if i1=i2 then env else raise MATCH_LITERAL
-  | match_literal (Const(a1,_)) (Const(a2,_)) env = 
+  | match_literal (Const(a1,_)) (Const(a2,_)) env =
       if a1=a2 then env else raise MATCH_LITERAL
-  | match_literal (Free(a1,_)) (Free(a2,_)) env = 
+  | match_literal (Free(a1,_)) (Free(a2,_)) env =
       if a1=a2 then env else raise MATCH_LITERAL
   | match_literal (Var(ix1,_)) (Var(ix2,_)) env = insert (op =) (ix1,ix2) env
   | match_literal _ _ env = raise MATCH_LITERAL;
 
 (*Checking that all variable associations are unique. The list env contains no
   repetitions, but does it contain say (x,y) and (y,y)? *)
-fun good env = 
+fun good env =
   let val (xs,ys) = ListPair.unzip env
   in  not (has_duplicates (op=) xs orelse has_duplicates (op=) ys)  end;
 
@@ -316,15 +316,15 @@ fun matches_aux _ [] [] = true
       let fun match1 us [] = false
             | match1 us (t::ts) =
                 let val env' = match_literal lit t env
-                in  (good env' andalso matches_aux env' lits (us@ts)) orelse 
-                    match1 (t::us) ts  
+                in  (good env' andalso matches_aux env' lits (us@ts)) orelse
+                    match1 (t::us) ts
                 end
                 handle MATCH_LITERAL => match1 (t::us) ts
-      in  match1 [] ts  end; 
+      in  match1 [] ts  end;
 
 (*Is this length test useful?*)
-fun matches (lits1,lits2) = 
-  length lits1 = length lits2  andalso  
+fun matches (lits1,lits2) =
+  length lits1 = length lits2  andalso
   matches_aux [] (map Envir.eta_contract lits1) (map Envir.eta_contract lits2);
 
 fun permuted_clause t =
@@ -408,7 +408,7 @@ fun add_wanted_prfline ctxt ((lno, t, []), (nlines, lines)) =
       if eq_types t orelse not (null (Term.add_tvars t [])) orelse
          exists_subterm bad_free t orelse
          (not (null lines) andalso   (*final line can't be deleted for these reasons*)
-          (length deps < 2 orelse nlines mod (Config.get ctxt modulus) <> 0))   
+          (length deps < 2 orelse nlines mod (Config.get ctxt modulus) <> 0))
       then (nlines+1, map (replace_deps (lno, deps)) lines) (*Delete line*)
       else (nlines+1, (lno, t, deps) :: lines);
 
@@ -467,7 +467,7 @@ fun decode_tstp_file cnfs ctxt th sgno thm_names =
   val failure_strings_remote = ["Remote-script could not extract proof"];
   fun find_failure proof =
     let val failures =
-      map_filter (fn s => if String.isSubstring s proof then SOME s else NONE) 
+      map_filter (fn s => if String.isSubstring s proof then SOME s else NONE)
          (failure_strings_E @ failure_strings_vampire @ failure_strings_SPASS @ failure_strings_remote)
     in if null failures then NONE else SOME (hd failures) end;
     
@@ -481,7 +481,7 @@ fun decode_tstp_file cnfs ctxt th sgno thm_names =
   "Formulae used in the proof"];
   fun get_proof_extract proof =
     let
-    (*splits to_split by the first possible of a list of splitters*)                        
+    (*splits to_split by the first possible of a list of splitters*)
     fun first_field_any [] to_split = NONE
       | first_field_any (splitter::splitters) to_split =
       let
@@ -493,10 +493,10 @@ fun decode_tstp_file cnfs ctxt th sgno thm_names =
     val (proofextract:string, c:string) = valOf (first_field_any end_proof_strings b)
     in proofextract end;
   
-  (* === EXTRACTING LEMMAS === *)    
+  (* === EXTRACTING LEMMAS === *)
   (* lines have the form "cnf(108, axiom, ...",
   the number (108) has to be extracted)*)
-  fun get_step_nums_tstp proofextract = 
+  fun get_step_nums_tstp proofextract =
     let val toks = String.tokens (not o Char.isAlphaNum)
     fun inputno ("cnf"::ntok::"axiom"::_) = Int.fromString ntok
       | inputno _ = NONE
@@ -513,47 +513,56 @@ fun decode_tstp_file cnfs ctxt th sgno thm_names =
     val lines = split_lines proofextract
     in  List.mapPartial (inputno o toks) lines  end
     
-  (*extracting lemmas from tstp-output between the lines from above*)                         
-  fun extract_lemmas get_step_nums (proof, thm_names, _, _, _) = 
+  (*extracting lemmas from tstp-output between the lines from above*)
+  fun extract_lemmas get_step_nums (proof, thm_names, _, _, _) =
     let
     (* get the names of axioms from their numbers*)
     fun get_axiom_names thm_names step_nums =
       let
       fun is_axiom n = n <= Vector.length thm_names
       fun getname i = Vector.sub(thm_names, i-1)
-      in 
+      in
         sort_distinct string_ord (filter (fn x => x <> "??.unknown") (map getname (filter is_axiom step_nums)))
       end
     val proofextract = get_proof_extract proof
-    in 
+    in
       get_axiom_names thm_names (get_step_nums proofextract)
     end;
     
-    (* metis-command *)
-    fun metis_line [] = "apply metis"
-      | metis_line xs = "apply (metis " ^ space_implode " " xs ^ ")"
-    
-    (*Used to label theorems chained into the sledgehammer call*)
-    val chained_hint = "CHAINED";
-    fun sendback_metis_nochained lemmas = 
-      let val nochained = filter_out (fn y => y = chained_hint)
-      in (Markup.markup Markup.sendback o metis_line) (nochained lemmas) end
-    fun lemma_list_tstp result = sendback_metis_nochained (extract_lemmas get_step_nums_tstp result);
-    fun lemma_list_dfg result = sendback_metis_nochained (extract_lemmas get_step_nums_dfg result);
-           
-    (* === Extracting structured Isar-proof === *)
-    fun structured_proof (result as (proof, thm_names, ctxt, goal, subgoalno)) = 
-      let
-      (*Could use split_lines, but it can return blank lines...*)
-      val lines = String.tokens (equal #"\n");
-      val nospaces = String.translate (fn c => if Char.isSpace c then "" else str c)
-      val proofextract = get_proof_extract proof
-      val cnfs = filter (String.isPrefix "cnf(") (map nospaces (lines proofextract))
-      val one_line_proof = lemma_list_tstp result
-      val structured = if chained_hint mem_string (String.tokens (fn c => c = #" ") one_line_proof) then ""
-                  else decode_tstp_file cnfs ctxt goal subgoalno thm_names
-      in
-      one_line_proof ^ "\n\n" ^ (Markup.markup Markup.sendback) structured
-    end
+  (* metis-command *)
+  fun metis_line [] = "apply metis"
+    | metis_line xs = "apply (metis " ^ space_implode " " xs ^ ")"
 
- end;
+  (* atp_minimize [atp=<prover>] <lemmas> *)
+  fun minimize_line _ [] = ""
+    | minimize_line name lemmas = "For minimizing the number of lemmas try this command:\n" ^
+          (Markup.markup Markup.sendback) ("atp_minimize [atp=" ^ name ^ "] " ^ space_implode " " lemmas)
+
+  (*Used to label theorems chained into the sledgehammer call*)
+  val chained_hint = "CHAINED";
+  fun sendback_metis_nochained lemmas =
+    let val nochained = filter_out (fn y => y = chained_hint)
+    in (Markup.markup Markup.sendback o metis_line) (nochained lemmas) end
+  fun lemma_list_tstp name result =
+    let val lemmas = extract_lemmas get_step_nums_tstp result
+    in sendback_metis_nochained lemmas ^ "\n" ^ minimize_line name lemmas end;
+  fun lemma_list_dfg name result =
+    let val lemmas = extract_lemmas get_step_nums_dfg result
+    in sendback_metis_nochained lemmas ^ "\n" ^ minimize_line name lemmas end;
+
+  (* === Extracting structured Isar-proof === *)
+  fun structured_proof name (result as (proof, thm_names, ctxt, goal, subgoalno)) =
+    let
+    (*Could use split_lines, but it can return blank lines...*)
+    val lines = String.tokens (equal #"\n");
+    val nospaces = String.translate (fn c => if Char.isSpace c then "" else str c)
+    val proofextract = get_proof_extract proof
+    val cnfs = filter (String.isPrefix "cnf(") (map nospaces (lines proofextract))
+    val one_line_proof = lemma_list_tstp name result
+    val structured = if chained_hint mem_string (String.tokens (fn c => c = #" ") one_line_proof) then ""
+                else decode_tstp_file cnfs ctxt goal subgoalno thm_names
+    in
+    one_line_proof ^ "\n\n" ^ (Markup.markup Markup.sendback) structured
+  end
+
+end;

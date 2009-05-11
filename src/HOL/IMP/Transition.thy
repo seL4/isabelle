@@ -1,5 +1,4 @@
 (*  Title:        HOL/IMP/Transition.thy
-    ID:           $Id$
     Author:       Tobias Nipkow & Robert Sandner, TUM
     Isar Version: Gerwin Klein, 2001
     Copyright     1996 TUM
@@ -69,7 +68,7 @@ text {*
 abbreviation
   evalcn :: "[(com option\<times>state),nat,(com option\<times>state)] \<Rightarrow> bool"
     ("_ -_\<rightarrow>\<^sub>1 _" [60,60,60] 60)  where
-  "cs -n\<rightarrow>\<^sub>1 cs' == (cs,cs') \<in> evalc1^n"
+  "cs -n\<rightarrow>\<^sub>1 cs' == (cs,cs') \<in> evalc1^^n"
 
 abbreviation
   evalc' :: "[(com option\<times>state),(com option\<times>state)] \<Rightarrow> bool"
@@ -77,28 +76,9 @@ abbreviation
   "cs \<longrightarrow>\<^sub>1\<^sup>* cs' == (cs,cs') \<in> evalc1^*"
 
 (*<*)
-(* fixme: move to Relation_Power.thy *)
-lemma rel_pow_Suc_E2 [elim!]:
-  "[| (x, z) \<in> R ^ Suc n; !!y. [| (x, y) \<in> R; (y, z) \<in> R ^ n |] ==> P |] ==> P"
-  by (blast dest: rel_pow_Suc_D2)
-
-lemma rtrancl_imp_rel_pow: "p \<in> R^* \<Longrightarrow> \<exists>n. p \<in> R^n"
-proof (induct p)
-  fix x y
-  assume "(x, y) \<in> R\<^sup>*"
-  thus "\<exists>n. (x, y) \<in> R^n"
-  proof induct
-    fix a have "(a, a) \<in> R^0" by simp
-    thus "\<exists>n. (a, a) \<in> R ^ n" ..
-  next
-    fix a b c assume "\<exists>n. (a, b) \<in> R ^ n"
-    then obtain n where "(a, b) \<in> R^n" ..
-    moreover assume "(b, c) \<in> R"
-    ultimately have "(a, c) \<in> R^(Suc n)" by auto
-    thus "\<exists>n. (a, c) \<in> R^n" ..
-  qed
-qed
+declare rel_pow_Suc_E2 [elim!]
 (*>*)
+
 text {*
   As for the big step semantics you can read these rules in a
   syntax directed way:
@@ -189,8 +169,8 @@ lemma evalc_None_retrancl [simp, dest!]: "\<langle>s\<rangle> \<longrightarrow>\
 (*<*)
 (* FIXME: relpow.simps don't work *)
 lemmas [simp del] = relpow.simps
-lemma rel_pow_0 [simp]: "!!R::('a*'a) set. R^0 = Id" by (simp add: relpow.simps)
-lemma rel_pow_Suc_0 [simp]: "!!R::('a*'a) set. R^(Suc 0) = R" by (simp add: relpow.simps)
+lemma rel_pow_0 [simp]: "!!R::('a*'a) set. R ^^ 0 = Id" by (simp add: relpow.simps)
+lemma rel_pow_Suc_0 [simp]: "!!R::('a*'a) set. R ^^ Suc 0 = R" by (simp add: relpow.simps)
 
 (*>*)
 lemma evalc1_None_0 [simp]: "\<langle>s\<rangle> -n\<rightarrow>\<^sub>1 y = (n = 0 \<and> y = \<langle>s\<rangle>)"

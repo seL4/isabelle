@@ -45,7 +45,7 @@ abbreviation
 abbreviation
   stepan :: "[instr list,state,nat,nat,state,nat] \<Rightarrow> bool"
     ("_ \<turnstile>/ (3\<langle>_,_\<rangle>/ -(_)\<rightarrow> \<langle>_,_\<rangle>)" [50,0,0,0,0,0] 50)  where
-  "P \<turnstile> \<langle>s,m\<rangle> -(i)\<rightarrow> \<langle>t,n\<rangle> == ((s,m),t,n) : ((stepa1 P)^i)"
+  "P \<turnstile> \<langle>s,m\<rangle> -(i)\<rightarrow> \<langle>t,n\<rangle> == ((s,m),t,n) : (stepa1 P ^^ i)"
 
 subsection "The compiler"
 

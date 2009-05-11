@@ -116,6 +116,9 @@ sig
   val stringT: typ
   val mk_string: string -> term
   val dest_string: term -> string
+  val message_stringT: typ
+  val mk_message_string: string -> term
+  val dest_message_string: term -> string
 end;
 
 structure HOLogic: HOLOGIC =
@@ -510,44 +513,6 @@ fun dest_number (Const ("HOL.zero_class.zero", T)) = (T, 0)
 val realT = Type ("RealDef.real", []);
 
 
-(* nibble *)
-
-val nibbleT = Type ("List.nibble", []);
-
-fun mk_nibble n =
-  let val s =
-    if 0 <= n andalso n <= 9 then chr (n + ord "0")
-    else if 10 <= n andalso n <= 15 then chr (n + ord "A" - 10)
-    else raise TERM ("mk_nibble", [])
-  in Const ("List.nibble.Nibble" ^ s, nibbleT) end;
-
-fun dest_nibble t =
-  let fun err () = raise TERM ("dest_nibble", [t]) in
-    (case try (unprefix "List.nibble.Nibble" o fst o Term.dest_Const) t of
-      NONE => err ()
-    | SOME c =>
-        if size c <> 1 then err ()
-        else if "0" <= c andalso c <= "9" then ord c - ord "0"
-        else if "A" <= c andalso c <= "F" then ord c - ord "A" + 10
-        else err ())
-  end;
-
-
-(* char *)
-
-val charT = Type ("List.char", []);
-
-fun mk_char n =
-  if 0 <= n andalso n <= 255 then
-    Const ("List.char.Char", nibbleT --> nibbleT --> charT) $
-      mk_nibble (n div 16) $ mk_nibble (n mod 16)
-  else raise TERM ("mk_char", []);
-
-fun dest_char (Const ("List.char.Char", _) $ t $ u) =
-      dest_nibble t * 16 + dest_nibble u
-  | dest_char t = raise TERM ("dest_char", [t]);
-
-
 (* list *)
 
 fun listT T = Type ("List.list", [T]);
@@ -570,11 +535,60 @@ fun dest_list (Const ("List.list.Nil", _)) = []
   | dest_list t = raise TERM ("dest_list", [t]);
 
 
+(* nibble *)
+
+val nibbleT = Type ("String.nibble", []);
+
+fun mk_nibble n =
+  let val s =
+    if 0 <= n andalso n <= 9 then chr (n + ord "0")
+    else if 10 <= n andalso n <= 15 then chr (n + ord "A" - 10)
+    else raise TERM ("mk_nibble", [])
+  in Const ("String.nibble.Nibble" ^ s, nibbleT) end;
+
+fun dest_nibble t =
+  let fun err () = raise TERM ("dest_nibble", [t]) in
+    (case try (unprefix "String.nibble.Nibble" o fst o Term.dest_Const) t of
+      NONE => err ()
+    | SOME c =>
+        if size c <> 1 then err ()
+        else if "0" <= c andalso c <= "9" then ord c - ord "0"
+        else if "A" <= c andalso c <= "F" then ord c - ord "A" + 10
+        else err ())
+  end;
+
+
+(* char *)
+
+val charT = Type ("String.char", []);
+
+fun mk_char n =
+  if 0 <= n andalso n <= 255 then
+    Const ("String.char.Char", nibbleT --> nibbleT --> charT) $
+      mk_nibble (n div 16) $ mk_nibble (n mod 16)
+  else raise TERM ("mk_char", []);
+
+fun dest_char (Const ("String.char.Char", _) $ t $ u) =
+      dest_nibble t * 16 + dest_nibble u
+  | dest_char t = raise TERM ("dest_char", [t]);
+
+
 (* string *)
 
-val stringT = Type ("List.string", []);
+val stringT = Type ("String.string", []);
 
 val mk_string = mk_list charT o map (mk_char o ord) o explode;
 val dest_string = implode o map (chr o dest_char) o dest_list;
+
+
+(* message_string *)
+
+val message_stringT = Type ("String.message_string", []);
+
+fun mk_message_string s = Const ("String.message_string.STR", stringT --> message_stringT)
+      $ mk_string s;
+fun dest_message_string (Const ("String.message_string.STR", _) $ t) =
+      dest_string t
+  | dest_message_string t = raise TERM ("dest_message_string", [t]);
 
 end;

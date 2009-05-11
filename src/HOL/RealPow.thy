@@ -12,25 +12,6 @@ begin
 
 declare abs_mult_self [simp]
 
-instantiation real :: recpower
-begin
-
-primrec power_real where
-  "r ^ 0     = (1\<Colon>real)"
-| "r ^ Suc n = (r\<Colon>real) * r ^ n"
-
-instance proof
-  fix z :: real
-  fix n :: nat
-  show "z^0 = 1" by simp
-  show "z^(Suc n) = z * (z^n)" by simp
-qed
-
-declare power_real.simps [simp del]
-
-end
-
-
 lemma two_realpow_ge_one [simp]: "(1::real) \<le> 2 ^ n"
 by simp
 
@@ -47,7 +28,6 @@ by (insert power_decreasing [of 1 "Suc n" r], simp)
 
 lemma realpow_minus_mult [rule_format]:
      "0 < n --> (x::real) ^ (n - 1) * x = x ^ n"
-unfolding One_nat_def
 apply (simp split add: nat_diff_split)
 done
 
@@ -99,75 +79,6 @@ lemma power_real_number_of:
 by (simp only: real_number_of [symmetric] real_of_int_power)
 
 declare power_real_number_of [of _ "number_of w", standard, simp]
-
-
-subsection {* Properties of Squares *}
-
-lemma sum_squares_ge_zero:
-  fixes x y :: "'a::ordered_ring_strict"
-  shows "0 \<le> x * x + y * y"
-by (intro add_nonneg_nonneg zero_le_square)
-
-lemma not_sum_squares_lt_zero:
-  fixes x y :: "'a::ordered_ring_strict"
-  shows "\<not> x * x + y * y < 0"
-by (simp add: linorder_not_less sum_squares_ge_zero)
-
-lemma sum_nonneg_eq_zero_iff:
-  fixes x y :: "'a::pordered_ab_group_add"
-  assumes x: "0 \<le> x" and y: "0 \<le> y"
-  shows "(x + y = 0) = (x = 0 \<and> y = 0)"
-proof (auto)
-  from y have "x + 0 \<le> x + y" by (rule add_left_mono)
-  also assume "x + y = 0"
-  finally have "x \<le> 0" by simp
-  thus "x = 0" using x by (rule order_antisym)
-next
-  from x have "0 + y \<le> x + y" by (rule add_right_mono)
-  also assume "x + y = 0"
-  finally have "y \<le> 0" by simp
-  thus "y = 0" using y by (rule order_antisym)
-qed
-
-lemma sum_squares_eq_zero_iff:
-  fixes x y :: "'a::ordered_ring_strict"
-  shows "(x * x + y * y = 0) = (x = 0 \<and> y = 0)"
-by (simp add: sum_nonneg_eq_zero_iff)
-
-lemma sum_squares_le_zero_iff:
-  fixes x y :: "'a::ordered_ring_strict"
-  shows "(x * x + y * y \<le> 0) = (x = 0 \<and> y = 0)"
-by (simp add: order_le_less not_sum_squares_lt_zero sum_squares_eq_zero_iff)
-
-lemma sum_squares_gt_zero_iff:
-  fixes x y :: "'a::ordered_ring_strict"
-  shows "(0 < x * x + y * y) = (x \<noteq> 0 \<or> y \<noteq> 0)"
-by (simp add: order_less_le sum_squares_ge_zero sum_squares_eq_zero_iff)
-
-lemma sum_power2_ge_zero:
-  fixes x y :: "'a::{ordered_idom,recpower}"
-  shows "0 \<le> x\<twosuperior> + y\<twosuperior>"
-unfolding power2_eq_square by (rule sum_squares_ge_zero)
-
-lemma not_sum_power2_lt_zero:
-  fixes x y :: "'a::{ordered_idom,recpower}"
-  shows "\<not> x\<twosuperior> + y\<twosuperior> < 0"
-unfolding power2_eq_square by (rule not_sum_squares_lt_zero)
-
-lemma sum_power2_eq_zero_iff:
-  fixes x y :: "'a::{ordered_idom,recpower}"
-  shows "(x\<twosuperior> + y\<twosuperior> = 0) = (x = 0 \<and> y = 0)"
-unfolding power2_eq_square by (rule sum_squares_eq_zero_iff)
-
-lemma sum_power2_le_zero_iff:
-  fixes x y :: "'a::{ordered_idom,recpower}"
-  shows "(x\<twosuperior> + y\<twosuperior> \<le> 0) = (x = 0 \<and> y = 0)"
-unfolding power2_eq_square by (rule sum_squares_le_zero_iff)
-
-lemma sum_power2_gt_zero_iff:
-  fixes x y :: "'a::{ordered_idom,recpower}"
-  shows "(0 < x\<twosuperior> + y\<twosuperior>) = (x \<noteq> 0 \<or> y \<noteq> 0)"
-unfolding power2_eq_square by (rule sum_squares_gt_zero_iff)
 
 
 subsection{* Squares of Reals *}

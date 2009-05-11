@@ -10,93 +10,104 @@ begin
 
 subsection {* Type class for partial orders *}
 
-class sq_ord =
-  fixes sq_le :: "'a \<Rightarrow> 'a \<Rightarrow> bool"
+class below =
+  fixes below :: "'a \<Rightarrow> 'a \<Rightarrow> bool"
+begin
 
 notation
-  sq_le (infixl "<<" 55)
+  below (infixl "<<" 55)
 
 notation (xsymbols)
-  sq_le (infixl "\<sqsubseteq>" 55)
+  below (infixl "\<sqsubseteq>" 55)
 
-class po = sq_ord +
-  assumes refl_less [iff]: "x \<sqsubseteq> x"
-  assumes trans_less: "\<lbrakk>x \<sqsubseteq> y; y \<sqsubseteq> z\<rbrakk> \<Longrightarrow> x \<sqsubseteq> z"
-  assumes antisym_less: "\<lbrakk>x \<sqsubseteq> y; y \<sqsubseteq> x\<rbrakk> \<Longrightarrow> x = y"
+lemma below_eq_trans: "\<lbrakk>a \<sqsubseteq> b; b = c\<rbrakk> \<Longrightarrow> a \<sqsubseteq> c"
+  by (rule subst)
+
+lemma eq_below_trans: "\<lbrakk>a = b; b \<sqsubseteq> c\<rbrakk> \<Longrightarrow> a \<sqsubseteq> c"
+  by (rule ssubst)
+
+end
+
+class po = below +
+  assumes below_refl [iff]: "x \<sqsubseteq> x"
+  assumes below_trans: "x \<sqsubseteq> y \<Longrightarrow> y \<sqsubseteq> z \<Longrightarrow> x \<sqsubseteq> z"
+  assumes below_antisym: "x \<sqsubseteq> y \<Longrightarrow> y \<sqsubseteq> x \<Longrightarrow> x = y"
+begin
 
 text {* minimal fixes least element *}
 
-lemma minimal2UU[OF allI] : "\<forall>x::'a::po. uu \<sqsubseteq> x \<Longrightarrow> uu = (THE u. \<forall>y. u \<sqsubseteq> y)"
-by (blast intro: theI2 antisym_less)
+lemma minimal2UU[OF allI] : "\<forall>x. uu \<sqsubseteq> x \<Longrightarrow> uu = (THE u. \<forall>y. u \<sqsubseteq> y)"
+  by (blast intro: theI2 below_antisym)
 
 text {* the reverse law of anti-symmetry of @{term "op <<"} *}
+(* Is this rule ever useful? *)
+lemma below_antisym_inverse: "x = y \<Longrightarrow> x \<sqsubseteq> y \<and> y \<sqsubseteq> x"
+  by simp
 
-lemma antisym_less_inverse: "(x::'a::po) = y \<Longrightarrow> x \<sqsubseteq> y \<and> y \<sqsubseteq> x"
-by simp
+lemma box_below: "a \<sqsubseteq> b \<Longrightarrow> c \<sqsubseteq> a \<Longrightarrow> b \<sqsubseteq> d \<Longrightarrow> c \<sqsubseteq> d"
+  by (rule below_trans [OF below_trans])
 
-lemma box_less: "\<lbrakk>(a::'a::po) \<sqsubseteq> b; c \<sqsubseteq> a; b \<sqsubseteq> d\<rbrakk> \<Longrightarrow> c \<sqsubseteq> d"
-by (rule trans_less [OF trans_less])
+lemma po_eq_conv: "x = y \<longleftrightarrow> x \<sqsubseteq> y \<and> y \<sqsubseteq> x"
+  by (fast intro!: below_antisym)
 
-lemma po_eq_conv: "((x::'a::po) = y) = (x \<sqsubseteq> y \<and> y \<sqsubseteq> x)"
-by (fast elim!: antisym_less_inverse intro!: antisym_less)
+lemma rev_below_trans: "y \<sqsubseteq> z \<Longrightarrow> x \<sqsubseteq> y \<Longrightarrow> x \<sqsubseteq> z"
+  by (rule below_trans)
 
-lemma rev_trans_less: "\<lbrakk>(y::'a::po) \<sqsubseteq> z; x \<sqsubseteq> y\<rbrakk> \<Longrightarrow> x \<sqsubseteq> z"
-by (rule trans_less)
+lemma not_below2not_eq: "\<not> x \<sqsubseteq> y \<Longrightarrow> x \<noteq> y"
+  by auto
 
-lemma sq_ord_less_eq_trans: "\<lbrakk>a \<sqsubseteq> b; b = c\<rbrakk> \<Longrightarrow> a \<sqsubseteq> c"
-by (rule subst)
-
-lemma sq_ord_eq_less_trans: "\<lbrakk>a = b; b \<sqsubseteq> c\<rbrakk> \<Longrightarrow> a \<sqsubseteq> c"
-by (rule ssubst)
+end
 
 lemmas HOLCF_trans_rules [trans] =
-  trans_less
-  antisym_less
-  sq_ord_less_eq_trans
-  sq_ord_eq_less_trans
+  below_trans
+  below_antisym
+  below_eq_trans
+  eq_below_trans
+
+context po
+begin
 
 subsection {* Upper bounds *}
 
-definition
-  is_ub :: "['a set, 'a::po] \<Rightarrow> bool"  (infixl "<|" 55)  where
-  "(S <| x) = (\<forall>y. y \<in> S \<longrightarrow> y \<sqsubseteq> x)"
+definition is_ub :: "'a set \<Rightarrow> 'a \<Rightarrow> bool" (infixl "<|" 55) where
+  "S <| x \<longleftrightarrow> (\<forall>y. y \<in> S \<longrightarrow> y \<sqsubseteq> x)"
 
 lemma is_ubI: "(\<And>x. x \<in> S \<Longrightarrow> x \<sqsubseteq> u) \<Longrightarrow> S <| u"
-by (simp add: is_ub_def)
+  by (simp add: is_ub_def)
 
 lemma is_ubD: "\<lbrakk>S <| u; x \<in> S\<rbrakk> \<Longrightarrow> x \<sqsubseteq> u"
-by (simp add: is_ub_def)
+  by (simp add: is_ub_def)
 
 lemma ub_imageI: "(\<And>x. x \<in> S \<Longrightarrow> f x \<sqsubseteq> u) \<Longrightarrow> (\<lambda>x. f x) ` S <| u"
-unfolding is_ub_def by fast
+  unfolding is_ub_def by fast
 
 lemma ub_imageD: "\<lbrakk>f ` S <| u; x \<in> S\<rbrakk> \<Longrightarrow> f x \<sqsubseteq> u"
-unfolding is_ub_def by fast
+  unfolding is_ub_def by fast
 
 lemma ub_rangeI: "(\<And>i. S i \<sqsubseteq> x) \<Longrightarrow> range S <| x"
-unfolding is_ub_def by fast
+  unfolding is_ub_def by fast
 
 lemma ub_rangeD: "range S <| x \<Longrightarrow> S i \<sqsubseteq> x"
-unfolding is_ub_def by fast
+  unfolding is_ub_def by fast
 
 lemma is_ub_empty [simp]: "{} <| u"
-unfolding is_ub_def by fast
+  unfolding is_ub_def by fast
 
 lemma is_ub_insert [simp]: "(insert x A) <| y = (x \<sqsubseteq> y \<and> A <| y)"
-unfolding is_ub_def by fast
+  unfolding is_ub_def by fast
 
 lemma is_ub_upward: "\<lbrakk>S <| x; x \<sqsubseteq> y\<rbrakk> \<Longrightarrow> S <| y"
-unfolding is_ub_def by (fast intro: trans_less)
+  unfolding is_ub_def by (fast intro: below_trans)
 
 subsection {* Least upper bounds *}
 
-definition
-  is_lub :: "['a set, 'a::po] \<Rightarrow> bool"  (infixl "<<|" 55)  where
-  "(S <<| x) = (S <| x \<and> (\<forall>u. S <| u \<longrightarrow> x \<sqsubseteq> u))"
+definition is_lub :: "'a set \<Rightarrow> 'a \<Rightarrow> bool" (infixl "<<|" 55) where
+  "S <<| x \<longleftrightarrow> S <| x \<and> (\<forall>u. S <| u \<longrightarrow> x \<sqsubseteq> u)"
 
-definition
-  lub :: "'a set \<Rightarrow> 'a::po" where
+definition lub :: "'a set \<Rightarrow> 'a" where
   "lub S = (THE x. S <<| x)"
+
+end
 
 syntax
   "_BLub" :: "[pttrn, 'a set, 'b] \<Rightarrow> 'b" ("(3LUB _:_./ _)" [0,0, 10] 10)
@@ -106,6 +117,9 @@ syntax (xsymbols)
 
 translations
   "LUB x:A. t" == "CONST lub ((%x. t) ` A)"
+
+context po
+begin
 
 abbreviation
   Lub  (binder "LUB " 10) where
@@ -117,19 +131,19 @@ notation (xsymbols)
 text {* access to some definition as inference rule *}
 
 lemma is_lubD1: "S <<| x \<Longrightarrow> S <| x"
-unfolding is_lub_def by fast
+  unfolding is_lub_def by fast
 
 lemma is_lub_lub: "\<lbrakk>S <<| x; S <| u\<rbrakk> \<Longrightarrow> x \<sqsubseteq> u"
-unfolding is_lub_def by fast
+  unfolding is_lub_def by fast
 
 lemma is_lubI: "\<lbrakk>S <| x; \<And>u. S <| u \<Longrightarrow> x \<sqsubseteq> u\<rbrakk> \<Longrightarrow> S <<| x"
-unfolding is_lub_def by fast
+  unfolding is_lub_def by fast
 
 text {* lubs are unique *}
 
 lemma unique_lub: "\<lbrakk>S <<| x; S <<| y\<rbrakk> \<Longrightarrow> x = y"
 apply (unfold is_lub_def is_ub_def)
-apply (blast intro: antisym_less)
+apply (blast intro: below_antisym)
 done
 
 text {* technical lemmas about @{term lub} and @{term is_lub} *}
@@ -142,60 +156,59 @@ apply (erule (1) unique_lub)
 done
 
 lemma thelubI: "M <<| l \<Longrightarrow> lub M = l"
-by (rule unique_lub [OF lubI])
+  by (rule unique_lub [OF lubI])
 
 lemma is_lub_singleton: "{x} <<| x"
-by (simp add: is_lub_def)
+  by (simp add: is_lub_def)
 
 lemma lub_singleton [simp]: "lub {x} = x"
-by (rule thelubI [OF is_lub_singleton])
+  by (rule thelubI [OF is_lub_singleton])
 
 lemma is_lub_bin: "x \<sqsubseteq> y \<Longrightarrow> {x, y} <<| y"
-by (simp add: is_lub_def)
+  by (simp add: is_lub_def)
 
 lemma lub_bin: "x \<sqsubseteq> y \<Longrightarrow> lub {x, y} = y"
-by (rule is_lub_bin [THEN thelubI])
+  by (rule is_lub_bin [THEN thelubI])
 
 lemma is_lub_maximal: "\<lbrakk>S <| x; x \<in> S\<rbrakk> \<Longrightarrow> S <<| x"
-by (erule is_lubI, erule (1) is_ubD)
+  by (erule is_lubI, erule (1) is_ubD)
 
 lemma lub_maximal: "\<lbrakk>S <| x; x \<in> S\<rbrakk> \<Longrightarrow> lub S = x"
-by (rule is_lub_maximal [THEN thelubI])
+  by (rule is_lub_maximal [THEN thelubI])
 
 subsection {* Countable chains *}
 
-definition
+definition chain :: "(nat \<Rightarrow> 'a) \<Rightarrow> bool" where
   -- {* Here we use countable chains and I prefer to code them as functions! *}
-  chain :: "(nat \<Rightarrow> 'a::po) \<Rightarrow> bool" where
   "chain Y = (\<forall>i. Y i \<sqsubseteq> Y (Suc i))"
 
 lemma chainI: "(\<And>i. Y i \<sqsubseteq> Y (Suc i)) \<Longrightarrow> chain Y"
-unfolding chain_def by fast
+  unfolding chain_def by fast
 
 lemma chainE: "chain Y \<Longrightarrow> Y i \<sqsubseteq> Y (Suc i)"
-unfolding chain_def by fast
+  unfolding chain_def by fast
 
 text {* chains are monotone functions *}
 
 lemma chain_mono_less: "\<lbrakk>chain Y; i < j\<rbrakk> \<Longrightarrow> Y i \<sqsubseteq> Y j"
-by (erule less_Suc_induct, erule chainE, erule trans_less)
+  by (erule less_Suc_induct, erule chainE, erule below_trans)
 
 lemma chain_mono: "\<lbrakk>chain Y; i \<le> j\<rbrakk> \<Longrightarrow> Y i \<sqsubseteq> Y j"
-by (cases "i = j", simp, simp add: chain_mono_less)
+  by (cases "i = j", simp, simp add: chain_mono_less)
 
 lemma chain_shift: "chain Y \<Longrightarrow> chain (\<lambda>i. Y (i + j))"
-by (rule chainI, simp, erule chainE)
+  by (rule chainI, simp, erule chainE)
 
 text {* technical lemmas about (least) upper bounds of chains *}
 
 lemma is_ub_lub: "range S <<| x \<Longrightarrow> S i \<sqsubseteq> x"
-by (rule is_lubD1 [THEN ub_rangeD])
+  by (rule is_lubD1 [THEN ub_rangeD])
 
 lemma is_ub_range_shift:
   "chain S \<Longrightarrow> range (\<lambda>i. S (i + j)) <| x = range S <| x"
 apply (rule iffI)
 apply (rule ub_rangeI)
-apply (rule_tac y="S (i + j)" in trans_less)
+apply (rule_tac y="S (i + j)" in below_trans)
 apply (erule chain_mono)
 apply (rule le_add1)
 apply (erule ub_rangeD)
@@ -205,45 +218,43 @@ done
 
 lemma is_lub_range_shift:
   "chain S \<Longrightarrow> range (\<lambda>i. S (i + j)) <<| x = range S <<| x"
-by (simp add: is_lub_def is_ub_range_shift)
+  by (simp add: is_lub_def is_ub_range_shift)
 
 text {* the lub of a constant chain is the constant *}
 
 lemma chain_const [simp]: "chain (\<lambda>i. c)"
-by (simp add: chainI)
+  by (simp add: chainI)
 
 lemma lub_const: "range (\<lambda>x. c) <<| c"
 by (blast dest: ub_rangeD intro: is_lubI ub_rangeI)
 
 lemma thelub_const [simp]: "(\<Squnion>i. c) = c"
-by (rule lub_const [THEN thelubI])
+  by (rule lub_const [THEN thelubI])
 
 subsection {* Finite chains *}
 
-definition
+definition max_in_chain :: "nat \<Rightarrow> (nat \<Rightarrow> 'a) \<Rightarrow> bool" where
   -- {* finite chains, needed for monotony of continuous functions *}
-  max_in_chain :: "[nat, nat \<Rightarrow> 'a::po] \<Rightarrow> bool" where
-  "max_in_chain i C = (\<forall>j. i \<le> j \<longrightarrow> C i = C j)"
+  "max_in_chain i C \<longleftrightarrow> (\<forall>j. i \<le> j \<longrightarrow> C i = C j)"
 
-definition
-  finite_chain :: "(nat \<Rightarrow> 'a::po) \<Rightarrow> bool" where
+definition finite_chain :: "(nat \<Rightarrow> 'a) \<Rightarrow> bool" where
   "finite_chain C = (chain C \<and> (\<exists>i. max_in_chain i C))"
 
 text {* results about finite chains *}
 
 lemma max_in_chainI: "(\<And>j. i \<le> j \<Longrightarrow> Y i = Y j) \<Longrightarrow> max_in_chain i Y"
-unfolding max_in_chain_def by fast
+  unfolding max_in_chain_def by fast
 
 lemma max_in_chainD: "\<lbrakk>max_in_chain i Y; i \<le> j\<rbrakk> \<Longrightarrow> Y i = Y j"
-unfolding max_in_chain_def by fast
+  unfolding max_in_chain_def by fast
 
 lemma finite_chainI:
   "\<lbrakk>chain C; max_in_chain i C\<rbrakk> \<Longrightarrow> finite_chain C"
-unfolding finite_chain_def by fast
+  unfolding finite_chain_def by fast
 
 lemma finite_chainE:
   "\<lbrakk>finite_chain C; \<And>i. \<lbrakk>chain C; max_in_chain i C\<rbrakk> \<Longrightarrow> R\<rbrakk> \<Longrightarrow> R"
-unfolding finite_chain_def by fast
+  unfolding finite_chain_def by fast
 
 lemma lub_finch1: "\<lbrakk>chain C; max_in_chain i C\<rbrakk> \<Longrightarrow> range C <<| C i"
 apply (rule is_lubI)
@@ -302,7 +313,7 @@ lemma finite_range_imp_finch:
   apply (erule exE)
   apply (rule finite_chainI, assumption)
   apply (rule max_in_chainI)
-  apply (rule antisym_less)
+  apply (rule below_antisym)
    apply (erule (1) chain_mono)
   apply (erule spec)
  apply (rule finite_range_has_max)
@@ -311,11 +322,11 @@ lemma finite_range_imp_finch:
 done
 
 lemma bin_chain: "x \<sqsubseteq> y \<Longrightarrow> chain (\<lambda>i. if i=0 then x else y)"
-by (rule chainI, simp)
+  by (rule chainI, simp)
 
 lemma bin_chainmax:
   "x \<sqsubseteq> y \<Longrightarrow> max_in_chain (Suc 0) (\<lambda>i. if i=0 then x else y)"
-unfolding max_in_chain_def by simp
+  unfolding max_in_chain_def by simp
 
 lemma lub_bin_chain:
   "x \<sqsubseteq> y \<Longrightarrow> range (\<lambda>i::nat. if i=0 then x else y) <<| y"
@@ -328,36 +339,35 @@ done
 text {* the maximal element in a chain is its lub *}
 
 lemma lub_chain_maxelem: "\<lbrakk>Y i = c; \<forall>i. Y i \<sqsubseteq> c\<rbrakk> \<Longrightarrow> lub (range Y) = c"
-by (blast dest: ub_rangeD intro: thelubI is_lubI ub_rangeI)
+  by (blast dest: ub_rangeD intro: thelubI is_lubI ub_rangeI)
 
 subsection {* Directed sets *}
 
-definition
-  directed :: "'a::po set \<Rightarrow> bool" where
-  "directed S = ((\<exists>x. x \<in> S) \<and> (\<forall>x\<in>S. \<forall>y\<in>S. \<exists>z\<in>S. x \<sqsubseteq> z \<and> y \<sqsubseteq> z))"
+definition directed :: "'a set \<Rightarrow> bool" where
+  "directed S \<longleftrightarrow> (\<exists>x. x \<in> S) \<and> (\<forall>x\<in>S. \<forall>y\<in>S. \<exists>z\<in>S. x \<sqsubseteq> z \<and> y \<sqsubseteq> z)"
 
 lemma directedI:
   assumes 1: "\<exists>z. z \<in> S"
   assumes 2: "\<And>x y. \<lbrakk>x \<in> S; y \<in> S\<rbrakk> \<Longrightarrow> \<exists>z\<in>S. x \<sqsubseteq> z \<and> y \<sqsubseteq> z"
   shows "directed S"
-unfolding directed_def using prems by fast
+  unfolding directed_def using prems by fast
 
 lemma directedD1: "directed S \<Longrightarrow> \<exists>z. z \<in> S"
-unfolding directed_def by fast
+  unfolding directed_def by fast
 
 lemma directedD2: "\<lbrakk>directed S; x \<in> S; y \<in> S\<rbrakk> \<Longrightarrow> \<exists>z\<in>S. x \<sqsubseteq> z \<and> y \<sqsubseteq> z"
-unfolding directed_def by fast
+  unfolding directed_def by fast
 
 lemma directedE1:
   assumes S: "directed S"
   obtains z where "z \<in> S"
-by (insert directedD1 [OF S], fast)
+  by (insert directedD1 [OF S], fast)
 
 lemma directedE2:
   assumes S: "directed S"
   assumes x: "x \<in> S" and y: "y \<in> S"
   obtains z where "z \<in> S" "x \<sqsubseteq> z" "y \<sqsubseteq> z"
-by (insert directedD2 [OF S x y], fast)
+  by (insert directedD2 [OF S x y], fast)
 
 lemma directed_finiteI:
   assumes U: "\<And>U. \<lbrakk>finite U; U \<subseteq> S\<rbrakk> \<Longrightarrow> \<exists>z\<in>S. U <| z"
@@ -395,13 +405,13 @@ next
 qed
 
 lemma not_directed_empty [simp]: "\<not> directed {}"
-by (rule notI, drule directedD1, simp)
+  by (rule notI, drule directedD1, simp)
 
 lemma directed_singleton: "directed {x}"
-by (rule directedI, auto)
+  by (rule directedI, auto)
 
 lemma directed_bin: "x \<sqsubseteq> y \<Longrightarrow> directed {x, y}"
-by (rule directedI, auto)
+  by (rule directedI, auto)
 
 lemma directed_chain: "chain S \<Longrightarrow> directed (range S)"
 apply (rule directedI)
@@ -411,5 +421,34 @@ apply (rule_tac x="S (max m n)" in bexI)
 apply (simp add: chain_mono)
 apply simp
 done
+
+text {* lemmata for improved admissibility introdution rule *}
+
+lemma infinite_chain_adm_lemma:
+  "\<lbrakk>chain Y; \<forall>i. P (Y i);  
+    \<And>Y. \<lbrakk>chain Y; \<forall>i. P (Y i); \<not> finite_chain Y\<rbrakk> \<Longrightarrow> P (\<Squnion>i. Y i)\<rbrakk>
+      \<Longrightarrow> P (\<Squnion>i. Y i)"
+apply (case_tac "finite_chain Y")
+prefer 2 apply fast
+apply (unfold finite_chain_def)
+apply safe
+apply (erule lub_finch1 [THEN thelubI, THEN ssubst])
+apply assumption
+apply (erule spec)
+done
+
+lemma increasing_chain_adm_lemma:
+  "\<lbrakk>chain Y;  \<forall>i. P (Y i); \<And>Y. \<lbrakk>chain Y; \<forall>i. P (Y i);
+    \<forall>i. \<exists>j>i. Y i \<noteq> Y j \<and> Y i \<sqsubseteq> Y j\<rbrakk> \<Longrightarrow> P (\<Squnion>i. Y i)\<rbrakk>
+      \<Longrightarrow> P (\<Squnion>i. Y i)"
+apply (erule infinite_chain_adm_lemma)
+apply assumption
+apply (erule thin_rl)
+apply (unfold finite_chain_def)
+apply (unfold max_in_chain_def)
+apply (fast dest: le_imp_less_or_eq elim: chain_mono_less)
+done
+
+end
 
 end

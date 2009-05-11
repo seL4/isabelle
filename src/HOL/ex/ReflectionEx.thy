@@ -385,7 +385,7 @@ oops
   (* An example for equations containing type variables *)	
 datatype prod = Zero | One | Var nat | Mul prod prod 
   | Pw prod nat | PNM nat nat prod
-consts Iprod :: " prod \<Rightarrow> ('a::{ordered_idom,recpower}) list \<Rightarrow>'a" 
+consts Iprod :: " prod \<Rightarrow> ('a::{ordered_idom}) list \<Rightarrow>'a" 
 primrec
   "Iprod Zero vs = 0"
   "Iprod One vs = 1"
@@ -397,7 +397,7 @@ consts prodmul:: "prod \<times> prod \<Rightarrow> prod"
 datatype sgn = Pos prod | Neg prod | ZeroEq prod | NZeroEq prod | Tr | F 
   | Or sgn sgn | And sgn sgn
 
-consts Isgn :: " sgn \<Rightarrow> ('a::{ordered_idom, recpower}) list \<Rightarrow>bool"
+consts Isgn :: " sgn \<Rightarrow> ('a::{ordered_idom}) list \<Rightarrow>bool"
 primrec 
   "Isgn Tr vs = True"
   "Isgn F vs = False"
@@ -410,7 +410,7 @@ primrec
 
 lemmas eqs = Isgn.simps Iprod.simps
 
-lemma "(x::'a::{ordered_idom, recpower})^4 * y * z * y^2 * z^23 > 0"
+lemma "(x::'a::{ordered_idom})^4 * y * z * y^2 * z^23 > 0"
   apply (reify eqs)
   oops
 

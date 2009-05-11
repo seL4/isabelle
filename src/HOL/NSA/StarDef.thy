@@ -1,5 +1,4 @@
 (*  Title       : HOL/Hyperreal/StarDef.thy
-    ID          : $Id$
     Author      : Jacques D. Fleuriot and Brian Huffman
 *)
 
@@ -546,16 +545,6 @@ instance ..
 
 end
 
-instantiation star :: (power) power
-begin
-
-definition
-  star_power_def:   "(op ^) \<equiv> \<lambda>x n. ( *f* (\<lambda>x. x ^ n)) x"
-
-instance ..
-
-end
-
 instantiation star :: (ord) ord
 begin
 
@@ -574,7 +563,7 @@ lemmas star_class_defs [transfer_unfold] =
   star_add_def      star_diff_def     star_minus_def
   star_mult_def     star_divide_def   star_inverse_def
   star_le_def       star_less_def     star_abs_def       star_sgn_def
-  star_div_def      star_mod_def      star_power_def
+  star_div_def      star_mod_def
 
 text {* Class operations preserve standard elements *}
 
@@ -614,15 +603,11 @@ by (simp add: star_div_def)
 lemma Standard_mod: "\<lbrakk>x \<in> Standard; y \<in> Standard\<rbrakk> \<Longrightarrow> x mod y \<in> Standard"
 by (simp add: star_mod_def)
 
-lemma Standard_power: "x \<in> Standard \<Longrightarrow> x ^ n \<in> Standard"
-by (simp add: star_power_def)
-
 lemmas Standard_simps [simp] =
   Standard_zero  Standard_one  Standard_number_of
   Standard_add  Standard_diff  Standard_minus
   Standard_mult  Standard_divide  Standard_inverse
   Standard_abs  Standard_div  Standard_mod
-  Standard_power
 
 text {* @{term star_of} preserves class operations *}
 
@@ -648,9 +633,6 @@ lemma star_of_div: "star_of (x div y) = star_of x div star_of y"
 by transfer (rule refl)
 
 lemma star_of_mod: "star_of (x mod y) = star_of x mod star_of y"
-by transfer (rule refl)
-
-lemma star_of_power: "star_of (x ^ n) = star_of x ^ n"
 by transfer (rule refl)
 
 lemma star_of_abs: "star_of (abs x) = abs (star_of x)"
@@ -717,8 +699,7 @@ lemmas star_of_eq_number   =
 lemmas star_of_simps [simp] =
   star_of_add     star_of_diff    star_of_minus
   star_of_mult    star_of_divide  star_of_inverse
-  star_of_div     star_of_mod
-  star_of_power   star_of_abs
+  star_of_div     star_of_mod     star_of_abs
   star_of_zero    star_of_one     star_of_number_of
   star_of_less    star_of_le      star_of_eq
   star_of_0_less  star_of_0_le    star_of_0_eq
@@ -970,25 +951,33 @@ by (intro_classes, transfer, rule zero_less_one)
 instance star :: (ordered_idom) ordered_idom ..
 instance star :: (ordered_field) ordered_field ..
 
-subsection {* Power classes *}
 
-text {*
-  Proving the class axiom @{thm [source] power_Suc} for type
-  @{typ "'a star"} is a little tricky, because it quantifies
-  over values of type @{typ nat}. The transfer principle does
-  not handle quantification over non-star types in general,
-  but we can work around this by fixing an arbitrary @{typ nat}
-  value, and then applying the transfer principle.
-*}
+subsection {* Power *}
 
-instance star :: (recpower) recpower
-proof
-  show "\<And>a::'a star. a ^ 0 = 1"
-    by transfer (rule power_0)
-next
-  fix n show "\<And>a::'a star. a ^ Suc n = a * a ^ n"
-    by transfer (rule power_Suc)
+lemma star_power_def [transfer_unfold]:
+  "(op ^) \<equiv> \<lambda>x n. ( *f* (\<lambda>x. x ^ n)) x"
+proof (rule eq_reflection, rule ext, rule ext)
+  fix n :: nat
+  show "\<And>x::'a star. x ^ n = ( *f* (\<lambda>x. x ^ n)) x" 
+  proof (induct n)
+    case 0
+    have "\<And>x::'a star. ( *f* (\<lambda>x. 1)) x = 1"
+      by transfer simp
+    then show ?case by simp
+  next
+    case (Suc n)
+    have "\<And>x::'a star. x * ( *f* (\<lambda>x\<Colon>'a. x ^ n)) x = ( *f* (\<lambda>x\<Colon>'a. x * x ^ n)) x"
+      by transfer simp
+    with Suc show ?case by simp
+  qed
 qed
+
+lemma Standard_power [simp]: "x \<in> Standard \<Longrightarrow> x ^ n \<in> Standard"
+  by (simp add: star_power_def)
+
+lemma star_of_power [simp]: "star_of (x ^ n) = star_of x ^ n"
+  by transfer (rule refl)
+
 
 subsection {* Number classes *}
 

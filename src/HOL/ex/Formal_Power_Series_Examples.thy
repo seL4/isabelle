@@ -11,7 +11,7 @@ begin
 
 section{* The generalized binomial theorem *}
 lemma gbinomial_theorem: 
-  "((a::'a::{ring_char_0, field, division_by_zero, recpower})+b) ^ n = (\<Sum>k=0..n. of_nat (n choose k) * a^k * b^(n-k))"
+  "((a::'a::{ring_char_0, field, division_by_zero})+b) ^ n = (\<Sum>k=0..n. of_nat (n choose k) * a^k * b^(n-k))"
 proof-
   from E_add_mult[of a b] 
   have "(E (a + b)) $ n = (E a * E b)$n" by simp
@@ -38,7 +38,7 @@ lemma fps_binomial_nth[simp]: "fps_binomial a $ n = a gchoose n"
   by (simp add: fps_binomial_def)
 
 lemma fps_binomial_ODE_unique:
-  fixes c :: "'a::{field, recpower,ring_char_0}"
+  fixes c :: "'a::{field, ring_char_0}"
   shows "fps_deriv a = (fps_const c * a) / (1 + X) \<longleftrightarrow> a = fps_const (a$0) * fps_binomial c"
   (is "?lhs \<longleftrightarrow> ?rhs")
 proof-

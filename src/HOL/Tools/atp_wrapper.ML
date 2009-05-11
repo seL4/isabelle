@@ -1,5 +1,4 @@
 (*  Title:      HOL/Tools/atp_wrapper.ML
-    ID:         $Id$
     Author:     Fabian Immler, TU Muenchen
 
 Wrapper functions for external ATPs.
@@ -10,10 +9,10 @@ sig
   val destdir: string ref
   val problem_name: string ref
   val external_prover:
-    (thm * (string * int)) list ->
+    (unit -> (thm * (string * int)) list) ->
     (Path.T -> thm -> int -> (thm * (string * int)) list -> theory -> string vector) ->
     Path.T * string -> (string -> string option) ->
-    (string * string vector * Proof.context * thm * int -> string) ->
+    (string -> string * string vector * Proof.context * thm * int -> string) ->
     AtpManager.prover
   val tptp_prover_opts_full: int -> bool -> bool -> Path.T * string -> AtpManager.prover
   val tptp_prover_opts: int -> bool -> Path.T * string -> AtpManager.prover
@@ -47,7 +46,8 @@ val problem_name = ref "prob";
 
 (* basic template *)
 
-fun external_prover axiom_clauses write_problem_file (cmd, args) find_failure produce_answer timeout subgoalno goal =
+fun external_prover relevance_filter write_problem_file (cmd, args) find_failure produce_answer
+  timeout axiom_clauses name subgoalno goal =
   let
     (* path to unique problem file *)
     val destdir' = ! destdir
@@ -66,7 +66,8 @@ fun external_prover axiom_clauses write_problem_file (cmd, args) find_failure pr
     val chain_ths = map (Thm.put_name_hint ResReconstruct.chained_hint) chain_ths
     val probfile = prob_pathname subgoalno
     val fname = File.platform_path probfile
-    val thm_names = write_problem_file probfile th subgoalno axiom_clauses thy
+    val the_ax_clauses = case axiom_clauses of NONE => relevance_filter () | SOME axcls => axcls
+    val thm_names = write_problem_file probfile th subgoalno the_ax_clauses thy
     val cmdline =
       if File.exists cmd then "exec " ^ File.shell_path cmd ^ " " ^ args
       else error ("Bad executable: " ^ Path.implode cmd)
@@ -81,7 +82,7 @@ fun external_prover axiom_clauses write_problem_file (cmd, args) find_failure pr
     val message =
       if is_some failure then "External prover failed."
       else if rc <> 0 then "External prover failed: " ^ proof
-      else "Try this command: " ^ produce_answer (proof, thm_names, ctxt, th, subgoalno)
+      else "Try this command: " ^ produce_answer name (proof, thm_names, ctxt, th, subgoalno)
 
     val _ =
       if is_some failure
@@ -91,7 +92,7 @@ fun external_prover axiom_clauses write_problem_file (cmd, args) find_failure pr
       if rc <> 0
       then Output.debug (fn () => "Sledgehammer exited with return code " ^ string_of_int rc ^ ":\n" ^ proof)
       else ()
-  in (success, message) end;
+  in (success, message, proof, thm_names) end;
 
 
 
@@ -99,14 +100,14 @@ fun external_prover axiom_clauses write_problem_file (cmd, args) find_failure pr
 
 (* generic TPTP-based provers *)
 
-fun tptp_prover_opts_full max_new theory_const full command timeout n goal =
+fun tptp_prover_opts_full max_new theory_const full command timeout ax_clauses name n goal =
   external_prover
-    (ResAtp.get_relevant max_new theory_const goal n)
+    (fn () => ResAtp.get_relevant max_new theory_const goal n)
     (ResAtp.write_problem_file false)
     command
     ResReconstruct.find_failure
     (if full then ResReconstruct.structured_proof else ResReconstruct.lemma_list_tstp)
-    timeout n goal;
+    timeout ax_clauses name n goal;
 
 (*arbitrary ATP with TPTP input/output and problemfile as last argument*)
 fun tptp_prover_opts max_new theory_const =
@@ -163,14 +164,14 @@ val eprover_full = eprover_opts_full 100 false;
 
 (* SPASS *)
 
-fun spass_opts max_new theory_const timeout n goal = external_prover
-  (ResAtp.get_relevant max_new theory_const goal n)
+fun spass_opts max_new theory_const timeout ax_clauses name n goal = external_prover
+  (fn () => ResAtp.get_relevant max_new theory_const goal n)
   (ResAtp.write_problem_file true)
   (Path.explode "$SPASS_HOME/SPASS",
     "-Auto -SOS=1 -PGiven=0 -PProblem=0 -Splits=0 -FullRed=0 -DocProof -TimeLimit=" ^ string_of_int timeout)
   ResReconstruct.find_failure
   ResReconstruct.lemma_list_dfg
-  timeout n goal;
+  timeout ax_clauses name n goal;
 
 val spass = spass_opts 40 true;
 
@@ -179,7 +180,7 @@ val spass = spass_opts 40 true;
 
 fun remote_prover_opts max_new theory_const args timeout =
   tptp_prover_opts max_new theory_const
-  (Path.explode "$ISABELLE_HOME/contrib/SystemOnTPTP/remote", args ^ " -t " ^ string_of_int timeout)
+  (Path.explode "$ISABELLE_HOME/lib/scripts/SystemOnTPTP", args ^ " -t " ^ string_of_int timeout)
   timeout;
 
 val remote_prover = remote_prover_opts 60 false;

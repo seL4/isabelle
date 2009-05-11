@@ -1,7 +1,6 @@
-(*  Authors:    Klaus Aehlig, Tobias Nipkow
-*)
+(*  Authors:  Klaus Aehlig, Tobias Nipkow *)
 
-header {* Test of normalization function *}
+header {* Testing implementation of normalization by evaluation *}
 
 theory NormalForm
 imports Main Rational
@@ -11,7 +10,6 @@ lemma "True" by normalization
 lemma "p \<longrightarrow> True" by normalization
 declare disj_assoc [code nbe]
 lemma "((P | Q) | R) = (P | (Q | R))" by normalization
-declare disj_assoc [code del]
 lemma "0 + (n::nat) = n" by normalization
 lemma "0 + Suc n = Suc n" by normalization
 lemma "Suc n + Suc m = n + Suc (Suc m)" by normalization
@@ -19,18 +17,13 @@ lemma "~((0::nat) < (0::nat))" by normalization
 
 datatype n = Z | S n
 
-consts
-  add :: "n \<Rightarrow> n \<Rightarrow> n"
-  add2 :: "n \<Rightarrow> n \<Rightarrow> n"
-  mul :: "n \<Rightarrow> n \<Rightarrow> n"
-  mul2 :: "n \<Rightarrow> n \<Rightarrow> n"
-  exp :: "n \<Rightarrow> n \<Rightarrow> n"
-primrec
-  "add Z = id"
-  "add (S m) = S o add m"
-primrec
-  "add2 Z n = n"
-  "add2 (S m) n = S(add2 m n)"
+primrec add :: "n \<Rightarrow> n \<Rightarrow> n" where
+   "add Z = id"
+ | "add (S m) = S o add m"
+
+primrec add2 :: "n \<Rightarrow> n \<Rightarrow> n" where
+   "add2 Z n = n"
+ | "add2 (S m) n = S(add2 m n)"
 
 declare add2.simps [code]
 lemma [code nbe]: "add2 (add2 n m) k = add2 n (add2 m k)"
@@ -44,15 +37,17 @@ lemma "add2 (add2 n m) k = add2 n (add2 m k)" by normalization
 lemma "add2 (add2 (S n) (S m)) (S k) = S(S(S(add2 n (add2 m k))))" by normalization
 lemma "add2 (add2 (S n) (add2 (S m) Z)) (S k) = S(S(S(add2 n (add2 m k))))" by normalization
 
-primrec
-  "mul Z = (%n. Z)"
-  "mul (S m) = (%n. add (mul m n) n)"
-primrec
-  "mul2 Z n = Z"
-  "mul2 (S m) n = add2 n (mul2 m n)"
-primrec
-  "exp m Z = S Z"
-  "exp m (S n) = mul (exp m n) m"
+primrec mul :: "n \<Rightarrow> n \<Rightarrow> n" where
+   "mul Z = (%n. Z)"
+ | "mul (S m) = (%n. add (mul m n) n)"
+
+primrec mul2 :: "n \<Rightarrow> n \<Rightarrow> n" where
+   "mul2 Z n = Z"
+ | "mul2 (S m) n = add2 n (mul2 m n)"
+
+primrec exp :: "n \<Rightarrow> n \<Rightarrow> n" where
+   "exp m Z = S Z"
+ | "exp m (S n) = mul (exp m n) m"
 
 lemma "mul2 (S(S(S(S(S Z))))) (S(S(S Z))) = S(S(S(S(S(S(S(S(S(S(S(S(S(S(S Z))))))))))))))" by normalization
 lemma "mul (S(S(S(S(S Z))))) (S(S(S Z))) = S(S(S(S(S(S(S(S(S(S(S(S(S(S(S Z))))))))))))))" by normalization

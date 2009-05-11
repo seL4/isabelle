@@ -14,7 +14,7 @@ begin
 subsection {* Properties of Power Series *}
 
 lemma lemma_realpow_diff:
-  fixes y :: "'a::recpower"
+  fixes y :: "'a::monoid_mult"
   shows "p \<le> n \<Longrightarrow> y ^ (Suc n - p) = (y ^ (n - p)) * y"
 proof -
   assume "p \<le> n"
@@ -23,14 +23,14 @@ proof -
 qed
 
 lemma lemma_realpow_diff_sumr:
-  fixes y :: "'a::{recpower,comm_semiring_0}" shows
+  fixes y :: "'a::{comm_semiring_0,monoid_mult}" shows
      "(\<Sum>p=0..<Suc n. (x ^ p) * y ^ (Suc n - p)) =  
       y * (\<Sum>p=0..<Suc n. (x ^ p) * y ^ (n - p))"
 by (simp add: setsum_right_distrib lemma_realpow_diff mult_ac
          del: setsum_op_ivl_Suc cong: strong_setsum_cong)
 
 lemma lemma_realpow_diff_sumr2:
-  fixes y :: "'a::{recpower,comm_ring}" shows
+  fixes y :: "'a::{comm_ring,monoid_mult}" shows
      "x ^ (Suc n) - y ^ (Suc n) =  
       (x - y) * (\<Sum>p=0..<Suc n. (x ^ p) * y ^ (n - p))"
 apply (induct n, simp)
@@ -56,7 +56,7 @@ text{*Power series has a `circle` of convergence, i.e. if it sums for @{term
 x}, then it sums absolutely for @{term z} with @{term "\<bar>z\<bar> < \<bar>x\<bar>"}.*}
 
 lemma powser_insidea:
-  fixes x z :: "'a::{real_normed_field,banach,recpower}"
+  fixes x z :: "'a::{real_normed_field,banach}"
   assumes 1: "summable (\<lambda>n. f n * x ^ n)"
   assumes 2: "norm z < norm x"
   shows "summable (\<lambda>n. norm (f n * z ^ n))"
@@ -108,7 +108,7 @@ proof -
 qed
 
 lemma powser_inside:
-  fixes f :: "nat \<Rightarrow> 'a::{real_normed_field,banach,recpower}" shows
+  fixes f :: "nat \<Rightarrow> 'a::{real_normed_field,banach}" shows
      "[| summable (%n. f(n) * (x ^ n)); norm z < norm x |]  
       ==> summable (%n. f(n) * (z ^ n))"
 by (rule powser_insidea [THEN summable_norm_cancel])
@@ -347,7 +347,7 @@ apply (rule sums_Suc_imp, simp_all)
 done
 
 lemma lemma_termdiff1:
-  fixes z :: "'a :: {recpower,comm_ring}" shows
+  fixes z :: "'a :: {monoid_mult,comm_ring}" shows
   "(\<Sum>p=0..<m. (((z + h) ^ (m - p)) * (z ^ p)) - (z ^ m)) =  
    (\<Sum>p=0..<m. (z ^ p) * (((z + h) ^ (m - p)) - (z ^ (m - p))))"
 by(auto simp add: algebra_simps power_add [symmetric] cong: strong_setsum_cong)
@@ -357,7 +357,7 @@ lemma sumr_diff_mult_const2:
 by (simp add: setsum_subtractf)
 
 lemma lemma_termdiff2:
-  fixes h :: "'a :: {recpower,field}"
+  fixes h :: "'a :: {field}"
   assumes h: "h \<noteq> 0" shows
   "((z + h) ^ n - z ^ n) / h - of_nat n * z ^ (n - Suc 0) =
    h * (\<Sum>p=0..< n - Suc 0. \<Sum>q=0..< n - Suc 0 - p.
@@ -393,7 +393,7 @@ apply (simp add: mult_right_mono K)
 done
 
 lemma lemma_termdiff3:
-  fixes h z :: "'a::{real_normed_field,recpower}"
+  fixes h z :: "'a::{real_normed_field}"
   assumes 1: "h \<noteq> 0"
   assumes 2: "norm z \<le> K"
   assumes 3: "norm (z + h) \<le> K"
@@ -433,7 +433,7 @@ proof -
 qed
 
 lemma lemma_termdiff4:
-  fixes f :: "'a::{real_normed_field,recpower} \<Rightarrow>
+  fixes f :: "'a::{real_normed_field} \<Rightarrow>
               'b::real_normed_vector"
   assumes k: "0 < (k::real)"
   assumes le: "\<And>h. \<lbrakk>h \<noteq> 0; norm h < k\<rbrakk> \<Longrightarrow> norm (f h) \<le> K * norm h"
@@ -478,7 +478,7 @@ proof (safe)
 qed
 
 lemma lemma_termdiff5:
-  fixes g :: "'a::{recpower,real_normed_field} \<Rightarrow>
+  fixes g :: "'a::{real_normed_field} \<Rightarrow>
               nat \<Rightarrow> 'b::banach"
   assumes k: "0 < (k::real)"
   assumes f: "summable f"
@@ -507,7 +507,7 @@ qed
 text{* FIXME: Long proofs*}
 
 lemma termdiffs_aux:
-  fixes x :: "'a::{recpower,real_normed_field,banach}"
+  fixes x :: "'a::{real_normed_field,banach}"
   assumes 1: "summable (\<lambda>n. diffs (diffs c) n * K ^ n)"
   assumes 2: "norm x < norm K"
   shows "(\<lambda>h. \<Sum>n. c n * (((x + h) ^ n - x ^ n) / h
@@ -572,7 +572,7 @@ proof -
 qed
 
 lemma termdiffs:
-  fixes K x :: "'a::{recpower,real_normed_field,banach}"
+  fixes K x :: "'a::{real_normed_field,banach}"
   assumes 1: "summable (\<lambda>n. c n * K ^ n)"
   assumes 2: "summable (\<lambda>n. (diffs c) n * K ^ n)"
   assumes 3: "summable (\<lambda>n. (diffs (diffs c)) n * K ^ n)"
@@ -822,11 +822,11 @@ qed
 subsection {* Exponential Function *}
 
 definition
-  exp :: "'a \<Rightarrow> 'a::{recpower,real_normed_field,banach}" where
+  exp :: "'a \<Rightarrow> 'a::{real_normed_field,banach}" where
   "exp x = (\<Sum>n. x ^ n /\<^sub>R real (fact n))"
 
 lemma summable_exp_generic:
-  fixes x :: "'a::{real_normed_algebra_1,recpower,banach}"
+  fixes x :: "'a::{real_normed_algebra_1,banach}"
   defines S_def: "S \<equiv> \<lambda>n. x ^ n /\<^sub>R real (fact n)"
   shows "summable S"
 proof -
@@ -856,7 +856,7 @@ proof -
 qed
 
 lemma summable_norm_exp:
-  fixes x :: "'a::{real_normed_algebra_1,recpower,banach}"
+  fixes x :: "'a::{real_normed_algebra_1,banach}"
   shows "summable (\<lambda>n. norm (x ^ n /\<^sub>R real (fact n)))"
 proof (rule summable_norm_comparison_test [OF exI, rule_format])
   show "summable (\<lambda>n. norm x ^ n /\<^sub>R real (fact n))"
@@ -901,7 +901,7 @@ by (rule DERIV_exp [THEN DERIV_isCont])
 subsubsection {* Properties of the Exponential Function *}
 
 lemma powser_zero:
-  fixes f :: "nat \<Rightarrow> 'a::{real_normed_algebra_1,recpower}"
+  fixes f :: "nat \<Rightarrow> 'a::{real_normed_algebra_1}"
   shows "(\<Sum>n. f n * 0 ^ n) = f 0"
 proof -
   have "(\<Sum>n = 0..<1. f n * 0 ^ n) = (\<Sum>n. f n * 0 ^ n)"
@@ -918,7 +918,7 @@ by (simp add: setsum_head_Suc setsum_shift_bounds_cl_Suc_ivl
          del: setsum_cl_ivl_Suc)
 
 lemma exp_series_add:
-  fixes x y :: "'a::{real_field,recpower}"
+  fixes x y :: "'a::{real_field}"
   defines S_def: "S \<equiv> \<lambda>x n. x ^ n /\<^sub>R real (fact n)"
   shows "S (x + y) n = (\<Sum>i=0..n. S x i * S y (n - i))"
 proof (induct n)

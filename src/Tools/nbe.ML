@@ -7,11 +7,10 @@ Normalization by evaluation, based on generic code generator.
 signature NBE =
 sig
   val norm_conv: cterm -> thm
-  val norm_term: theory -> term -> term
+  val norm: theory -> term -> term
 
   datatype Univ =
       Const of int * Univ list               (*named (uninterpreted) constants*)
-    | Free of string * Univ list             (*free (uninterpreted) variables*)
     | DFree of string * int                  (*free (uninterpreted) dictionary parameters*)
     | BVar of int * Univ list
     | Abs of (int * (Univ list -> Univ)) * Univ list
@@ -57,14 +56,12 @@ fun tracing f x = if !trace then (Output.tracing (f x); x) else x;
 
 datatype Univ =
     Const of int * Univ list           (*named (uninterpreted) constants*)
-  | Free of string * Univ list         (*free variables*)
   | DFree of string * int              (*free (uninterpreted) dictionary parameters*)
   | BVar of int * Univ list            (*bound variables, named*)
   | Abs of (int * (Univ list -> Univ)) * Univ list
                                        (*abstractions as closures*);
 
 fun same (Const (k, xs)) (Const (l, ys)) = k = l andalso sames xs ys
-  | same (Free (s, xs)) (Free (t, ys)) = s = t andalso sames xs ys
   | same (DFree (s, k)) (DFree (t, l)) = s = t andalso k = l
   | same (BVar (k, xs)) (BVar (l, ys)) = k = l andalso sames xs ys
   | same _ _ = false
@@ -80,7 +77,6 @@ fun apps (Abs ((n, f), xs)) ys = let val k = n - length ys in
         | GREATER => Abs ((k, f), ys @ xs) (*note: reverse convention also for apps!*)
       end
   | apps (Const (name, xs)) ys = Const (name, ys @ xs)
-  | apps (Free (name, xs)) ys = Free (name, ys @ xs)
   | apps (BVar (n, xs)) ys = BVar (n, ys @ xs);
 
 
@@ -194,7 +190,7 @@ fun assemble_eqnss idx_of deps eqnss =
           let
             val (t', ts) = Code_Thingol.unfold_app t
           in of_iapp match_cont t' (fold_rev (cons o of_iterm NONE) ts []) end
-        and of_iapp match_cont (IConst (c, (dss, _))) ts = constapp c dss ts
+        and of_iapp match_cont (IConst (c, ((_, dss), _))) ts = constapp c dss ts
           | of_iapp match_cont (IVar v) ts = nbe_apps (nbe_bound v) ts
           | of_iapp match_cont ((v, _) `|-> t) ts =
               nbe_apps (nbe_abss 1 (ml_abs (ml_list [nbe_bound v]) (of_iterm NONE t))) ts
@@ -299,15 +295,15 @@ fun eqns_of_stmt (_, Code_Thingol.Fun (_, (_, []))) =
         val params = Name.invent_list [] "d" (length names);
         fun mk (k, name) =
           (name, ([(v, [])],
-            [([IConst (class, ([], [])) `$$ map IVar params], IVar (nth params k))]));
+            [([IConst (class, (([], []), [])) `$$ map IVar params], IVar (nth params k))]));
       in map_index mk names end
   | eqns_of_stmt (_, Code_Thingol.Classrel _) =
       []
   | eqns_of_stmt (_, Code_Thingol.Classparam _) =
       []
   | eqns_of_stmt (inst, Code_Thingol.Classinst ((class, (_, arities)), (superinsts, instops))) =
-      [(inst, (arities, [([], IConst (class, ([], [])) `$$
-        map (fn (_, (_, (inst, dicts))) => IConst (inst, (dicts, []))) superinsts
+      [(inst, (arities, [([], IConst (class, (([], []), [])) `$$
+        map (fn (_, (_, (inst, dicts))) => IConst (inst, (([], dicts), []))) superinsts
         @ map (IConst o snd o fst) instops)]))];
 
 fun compile_stmts ctxt stmts_deps =
@@ -350,19 +346,26 @@ fun ensure_stmts ctxt naming program =
 
 (* term evaluation *)
 
-fun eval_term ctxt gr deps ((vs, ty) : typscheme, t) =
+fun eval_term ctxt gr deps (vs : (string * sort) list, t) =
   let 
-    val frees = Code_Thingol.fold_unbound_varnames (insert (op =)) t []
-    val frees' = map (fn v => Free (v, [])) frees;
     val dict_frees = maps (fn (v, sort) => map_index (curry DFree v o fst) sort) vs;
   in
-    ("", (vs, [(map IVar frees, t)]))
+    ("", (vs, [([], t)]))
     |> singleton (compile_eqnss ctxt gr deps)
     |> snd
-    |> (fn t => apps t (rev (dict_frees @ frees')))
+    |> (fn t => apps t (rev dict_frees))
   end;
 
 (* reification *)
+
+fun typ_of_itype program vs (ityco `%% itys) =
+      let
+        val Code_Thingol.Datatype (tyco, _) = Graph.get_node program ityco;
+      in Type (tyco, map (typ_of_itype program vs) itys) end
+  | typ_of_itype program vs (ITyVar v) =
+      let
+        val sort = (the o AList.lookup (op =) vs) v;
+      in TFree ("'" ^ v, sort) end;
 
 fun term_of_univ thy program idx_tab t =
   let
@@ -390,8 +393,6 @@ fun term_of_univ thy program idx_tab t =
             val T' = map_type_tfree (fn (v, _) => TypeInfer.param typidx (v, [])) T;
             val typidx' = typidx + 1;
           in of_apps bounds (Term.Const (c, T'), ts') typidx' end
-      | of_univ bounds (Free (name, ts)) typidx =
-          of_apps bounds (Term.Free (name, dummyT), ts) typidx
       | of_univ bounds (BVar (n, ts)) typidx =
           of_apps bounds (Bound (bounds - n - 1), ts) typidx
       | of_univ bounds (t as Abs _) typidx =
@@ -418,43 +419,37 @@ structure Nbe_Functions = CodeDataFun
 
 (* compilation, evaluation and reification *)
 
-fun compile_eval thy naming program vs_ty_t deps =
+fun compile_eval thy naming program vs_t deps =
   let
     val ctxt = ProofContext.init thy;
     val (_, (gr, (_, idx_tab))) =
       Nbe_Functions.change thy (ensure_stmts ctxt naming program o snd);
   in
-    vs_ty_t
+    vs_t
     |> eval_term ctxt gr deps
     |> term_of_univ thy program idx_tab
   end;
 
 (* evaluation with type reconstruction *)
 
-fun eval thy t naming program vs_ty_t deps =
+fun normalize thy naming program ((vs0, (vs, ty)), t) deps =
   let
     fun subst_const f = map_aterms (fn t as Term.Const (c, ty) => Term.Const (f c, ty)
       | t => t);
-    val subst_triv_consts = subst_const (Code_Unit.resubst_alias thy);
-    val ty = type_of t;
-    val type_free = AList.lookup (op =)
-      (map (fn (s, T) => (s, Term.Free (s, T))) (Term.add_frees t []));
-    val type_frees = Term.map_aterms
-      (fn (t as Term.Free (s, _)) => the_default t (type_free s) | t => t);
+    val resubst_triv_consts = subst_const (Code_Unit.resubst_alias thy);
+    val ty' = typ_of_itype program vs0 ty;
     fun type_infer t =
       singleton (TypeInfer.infer_types (Syntax.pp_global thy) (Sign.tsig_of thy) I
         (try (Type.strip_sorts o Sign.the_const_type thy)) (K NONE) Name.context 0)
-      (TypeInfer.constrain ty t);
+      (TypeInfer.constrain ty' t);
     fun check_tvars t = if null (Term.add_tvars t []) then t else
       error ("Illegal schematic type variables in normalized term: "
         ^ setmp show_types true (Syntax.string_of_term_global thy) t);
     val string_of_term = setmp show_types true (Syntax.string_of_term_global thy);
   in
-    compile_eval thy naming program vs_ty_t deps
+    compile_eval thy naming program (vs, t) deps
     |> tracing (fn t => "Normalized:\n" ^ string_of_term t)
-    |> subst_triv_consts
-    |> type_frees
-    |> tracing (fn t => "Vars typed:\n" ^ string_of_term t)
+    |> resubst_triv_consts
     |> type_infer
     |> tracing (fn t => "Types inferred:\n" ^ string_of_term t)
     |> check_tvars
@@ -463,39 +458,59 @@ fun eval thy t naming program vs_ty_t deps =
 
 (* evaluation oracle *)
 
-val (_, norm_oracle) = Context.>>> (Context.map_theory_result
-  (Thm.add_oracle (Binding.name "norm", fn (thy, t, naming, program, vs_ty_t, deps) =>
-    Thm.cterm_of thy (Logic.mk_equals (t, eval thy t naming program vs_ty_t deps)))));
+fun add_triv_classes thy = curry (Sorts.inter_sort (Sign.classes_of thy))
+  (Code_Unit.triv_classes thy);
 
-fun add_triv_classes thy =
+fun mk_equals thy lhs raw_rhs =
   let
-    val inters = curry (Sorts.inter_sort (Sign.classes_of thy))
-      (Code_Unit.triv_classes thy);
-    fun map_sorts f = (map_types o map_atyps)
-      (fn TVar (v, sort) => TVar (v, f sort)
-        | TFree (v, sort) => TFree (v, f sort));
-  in map_sorts inters end;
+    val ty = Thm.typ_of (Thm.ctyp_of_term lhs);
+    val eq = Thm.cterm_of thy (Term.Const ("==", ty --> ty --> propT));
+    val rhs = Thm.cterm_of thy raw_rhs;
+  in Thm.mk_binop eq lhs rhs end;
 
-fun norm_conv ct =
+val (_, raw_norm_oracle) = Context.>>> (Context.map_theory_result
+  (Thm.add_oracle (Binding.name "norm", fn (thy, naming, program, vsp_ty_t, deps, ct) =>
+    mk_equals thy ct (normalize thy naming program vsp_ty_t deps))));
+
+fun norm_oracle thy naming program vsp_ty_t deps ct =
+  raw_norm_oracle (thy, naming, program, vsp_ty_t, deps, ct);
+
+fun no_frees_conv conv ct =
+  let
+    val frees = Thm.add_cterm_frees ct [];
+    fun apply_beta free thm = Thm.combination thm (Thm.reflexive free)
+      |> Conv.fconv_rule (Conv.arg_conv (Conv.try_conv (Thm.beta_conversion false)))
+      |> Conv.fconv_rule (Conv.arg1_conv (Thm.beta_conversion false));
+  in
+    ct
+    |> fold_rev Thm.cabs frees
+    |> conv
+    |> fold apply_beta frees
+  end;
+
+fun no_frees_rew rew t =
+  let
+    val frees = map Free (Term.add_frees t []);
+  in
+    t
+    |> fold_rev lambda frees
+    |> rew
+    |> (fn t' => Term.betapplys (t', frees))
+  end;
+
+val norm_conv = no_frees_conv (fn ct =>
   let
     val thy = Thm.theory_of_cterm ct;
-    fun evaluator' t naming program vs_ty_t deps =
-      norm_oracle (thy, t, naming, program, vs_ty_t, deps);
-    fun evaluator t = (add_triv_classes thy t, evaluator' t);
-  in Code_Thingol.eval_conv thy evaluator ct end;
+  in Code_Thingol.eval_conv thy (add_triv_classes thy) (norm_oracle thy) ct end);
 
-fun norm_term thy t =
-  let
-    fun evaluator' t naming program vs_ty_t deps = eval thy t naming program vs_ty_t deps;
-    fun evaluator t = (add_triv_classes thy t, evaluator' t);
-  in (Code.postprocess_term thy o Code_Thingol.eval_term thy evaluator) t end;
+fun norm thy = no_frees_rew (Code_Thingol.eval thy (add_triv_classes thy) I (normalize thy));
 
 (* evaluation command *)
 
 fun norm_print_term ctxt modes t =
   let
     val thy = ProofContext.theory_of ctxt;
-    val t' = norm_term thy t;
+    val t' = norm thy t;
     val ty' = Term.type_of t';
     val ctxt' = Variable.auto_fixes t ctxt;
     val p = PrintMode.with_modes modes (fn () =>
@@ -510,8 +525,7 @@ fun norm_print_term_cmd (modes, s) state =
   let val ctxt = Toplevel.context_of state
   in norm_print_term ctxt modes (Syntax.read_term ctxt s) end;
 
-val setup =
-  Value.add_evaluator ("nbe", norm_term o ProofContext.theory_of);
+val setup = Value.add_evaluator ("nbe", norm o ProofContext.theory_of);
 
 local structure P = OuterParse and K = OuterKeyword in
 

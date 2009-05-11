@@ -70,11 +70,11 @@ lemma DefE: "Def x = \<bottom> \<Longrightarrow> R"
 lemma DefE2: "\<lbrakk>x = Def s; x = \<bottom>\<rbrakk> \<Longrightarrow> R"
   by simp
 
-lemma Def_inject_less_eq: "Def x \<sqsubseteq> Def y \<longleftrightarrow> x = y"
-by (simp add: less_lift_def Def_def Abs_lift_inverse lift_def)
+lemma Def_below_Def: "Def x \<sqsubseteq> Def y \<longleftrightarrow> x = y"
+by (simp add: below_lift_def Def_def Abs_lift_inverse lift_def)
 
-lemma Def_less_is_eq [simp]: "Def x \<sqsubseteq> y \<longleftrightarrow> Def x = y"
-by (induct y, simp, simp add: Def_inject_less_eq)
+lemma Def_below_iff [simp]: "Def x \<sqsubseteq> y \<longleftrightarrow> Def x = y"
+by (induct y, simp, simp add: Def_below_Def)
 
 
 subsection {* Lift is flat *}
@@ -134,7 +134,7 @@ lemma FLIFT_mono:
   "(\<And>x. f x \<sqsubseteq> g x) \<Longrightarrow> (FLIFT x. f x) \<sqsubseteq> (FLIFT x. g x)"
 apply (rule monofunE [where f=flift1])
 apply (rule cont2mono [OF cont_flift1])
-apply (simp add: less_fun_ext)
+apply (simp add: below_fun_ext)
 done
 
 lemma cont2cont_flift1 [simp]:
@@ -216,7 +216,7 @@ next
     apply (rule is_lubI)
      apply (rule ub_rangeI, simp)
     apply (drule ub_rangeD)
-    apply (erule rev_trans_less)
+    apply (erule rev_below_trans)
     apply simp
     apply (rule lessI)
     done

@@ -97,7 +97,7 @@ class kleene = pre_kleene + star +
   and star4: "x * a \<le> x \<Longrightarrow> x * star a \<le> x"
 
 class kleene_by_complete_lattice = pre_kleene
-  + complete_lattice + recpower + star +
+  + complete_lattice + power + star +
   assumes star_cont: "a * star b * c = SUPR UNIV (\<lambda>n. a * b ^ n * c)"
 begin
 

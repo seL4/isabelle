@@ -30,11 +30,129 @@ fun atomize ctxt thm = let val r_inst = read_instantiate ctxt;
     | _				    => [thm];
 in map zero_var_indexes (at thm) end;
 
+(* infix syntax *)
+
+infixr 5 -->;
+infixr 6 ->>;
+infixr 0 ===>;
+infixr 0 ==>;
+infix 0 ==;
+infix 1 ===;
+infix 1 ~=;
+infix 1 <<;
+infix 1 ~<<;
+
+infix 9 `  ;
+infix 9 `% ;
+infix 9 `%%;
+
+
 (* ----- specific support for domain ---------------------------------------- *)
 
-structure Domain_Library = struct
+signature DOMAIN_LIBRARY =
+sig
+  val Imposs : string -> 'a;
+  val pcpo_type : theory -> typ -> bool;
+  val string_of_typ : theory -> typ -> string;
 
-open HOLCFLogic;
+  (* Creating HOLCF types *)
+  val mk_cfunT : typ * typ -> typ;
+  val ->> : typ * typ -> typ;
+  val mk_ssumT : typ * typ -> typ;
+  val mk_sprodT : typ * typ -> typ;
+  val mk_uT : typ -> typ;
+  val oneT : typ;
+  val trT : typ;
+  val mk_maybeT : typ -> typ;
+  val mk_ctupleT : typ list -> typ;
+  val mk_TFree : string -> typ;
+  val pcpoS : sort;
+
+  (* Creating HOLCF terms *)
+  val %: : string -> term;
+  val %%: : string -> term;
+  val ` : term * term -> term;
+  val `% : term * string -> term;
+  val /\ : string -> term -> term;
+  val UU : term;
+  val TT : term;
+  val FF : term;
+  val mk_up : term -> term;
+  val mk_sinl : term -> term;
+  val mk_sinr : term -> term;
+  val mk_stuple : term list -> term;
+  val mk_ctuple : term list -> term;
+  val mk_fix : term -> term;
+  val mk_iterate : term * term * term -> term;
+  val mk_fail : term;
+  val mk_return : term -> term;
+  val cproj : term -> 'a list -> int -> term;
+  val list_ccomb : term * term list -> term;
+  val con_app : string -> ('a * 'b * string) list -> term;
+  val con_app2 : string -> ('a -> term) -> 'a list -> term;
+  val proj : term -> 'a list -> int -> term;
+  val prj : ('a -> 'b -> 'a) -> ('a -> 'b -> 'a) -> 'a -> 'b list -> int -> 'a;
+  val mk_ctuple_pat : term list -> term;
+  val mk_branch : term -> term;
+
+  (* Creating propositions *)
+  val mk_conj : term * term -> term;
+  val mk_disj : term * term -> term;
+  val mk_imp : term * term -> term;
+  val mk_lam : string * term -> term;
+  val mk_all : string * term -> term;
+  val mk_ex : string * term -> term;
+  val mk_constrain : typ * term -> term;
+  val mk_constrainall : string * typ * term -> term;
+  val === : term * term -> term;
+  val << : term * term -> term;
+  val ~<< : term * term -> term;
+  val strict : term -> term;
+  val defined : term -> term;
+  val mk_adm : term -> term;
+  val mk_compact : term -> term;
+  val lift : ('a -> term) -> 'a list * term -> term;
+  val lift_defined : ('a -> term) -> 'a list * term -> term;
+
+  (* Creating meta-propositions *)
+  val mk_trp : term -> term; (* HOLogic.mk_Trueprop *)
+  val == : term * term -> term;
+  val ===> : term * term -> term;
+  val ==> : term * term -> term;
+  val mk_All : string * term -> term;
+
+  (* Domain specifications *)
+  type arg = (bool * int * DatatypeAux.dtyp) * string option * string;
+  type cons = string * arg list;
+  type eq = (string * typ list) * cons list;
+  val is_lazy : arg -> bool;
+  val rec_of : arg -> int;
+  val sel_of : arg -> string option;
+  val vname : arg -> string;
+  val upd_vname : (string -> string) -> arg -> arg;
+  val is_rec : arg -> bool;
+  val is_nonlazy_rec : arg -> bool;
+  val nonlazy : arg list -> string list;
+  val nonlazy_rec : arg list -> string list;
+  val %# : arg -> term;
+  val /\# : arg * term -> term;
+  val when_body : cons list -> (int * int -> term) -> term;
+  val when_funs : 'a list -> string list;
+  val bound_arg : ''a list -> ''a -> term; (* ''a = arg or string *)
+  val idx_name : 'a list -> string -> int -> string;
+  val app_rec_arg : (int -> term) -> arg -> term;
+
+  (* Name mangling *)
+  val strip_esc : string -> string;
+  val extern_name : string -> string;
+  val dis_name : string -> string;
+  val mat_name : string -> string;
+  val pat_name : string -> string;
+  val mk_var_names : string list -> string list;
+end;
+
+structure Domain_Library :> DOMAIN_LIBRARY =
+struct
 
 exception Impossible of string;
 fun Imposs msg = raise Impossible ("Domain:"^msg);
@@ -72,19 +190,24 @@ fun mk_var_names ids : string list = let
       | index_vnames([],occupied) = [];
 in index_vnames(map nonreserved ids, [("O",0),("o",0)]) end;
 
-fun pcpo_type sg t = Sign.of_sort sg (Sign.certify_typ sg t, pcpoS);
+fun pcpo_type sg t = Sign.of_sort sg (Sign.certify_typ sg t, @{sort pcpo});
 fun string_of_typ sg = Syntax.string_of_typ_global sg o Sign.certify_typ sg;
 
 (* ----- constructor list handling ----- *)
 
-type cons = (string *				(* operator name of constr *)
-	    ((bool*int*DatatypeAux.dtyp)*	(*  (lazy,recursive element or ~1) *)
-	      string option*			(*   selector name    *)
-	      string)				(*   argument name    *)
-	    list);				(* argument list      *)
-type eq = (string *		(* name      of abstracted type *)
-	   typ list) *		(* arguments of abstracted type *)
-	  cons list;		(* represented type, as a constructor list *)
+type arg =
+  (bool * int * DatatypeAux.dtyp) *	(*  (lazy,recursive element or ~1) *)
+  string option *			(*   selector name    *)
+  string;				(*   argument name    *)
+
+type cons =
+  string *				(* operator name of constr *)
+  arg list;				(* argument list      *)
+
+type eq =
+  (string *		(* name      of abstracted type *)
+   typ list) *		(* arguments of abstracted type *)
+  cons list;		(* represented type, as a constructor list *)
 
 fun rec_of arg  = second (first arg);
 fun is_lazy arg = first (first arg);
@@ -98,7 +221,16 @@ fun nonlazy_rec args   = map vname (List.filter is_nonlazy_rec args);
 
 (* ----- support for type and mixfix expressions ----- *)
 
-infixr 5 -->;
+fun mk_uT T = Type(@{type_name "u"}, [T]);
+fun mk_cfunT (T, U) = Type(@{type_name "->"}, [T, U]);
+fun mk_sprodT (T, U) = Type(@{type_name "**"}, [T, U]);
+fun mk_ssumT (T, U) = Type(@{type_name "++"}, [T, U]);
+val oneT = @{typ one};
+val trT = @{typ tr};
+
+val op ->> = mk_cfunT;
+
+fun mk_TFree s = TFree ("'" ^ s, @{sort pcpo});
 
 (* ----- support for term expressions ----- *)
 
@@ -125,7 +257,7 @@ infixr 0 ==>;   fun S ==> T = mk_trp S ===> mk_trp T;
 infix 0 ==;     fun S ==  T = %%:"==" $ S $ T;
 infix 1 ===;    fun S === T = %%:"op =" $ S $ T;
 infix 1 ~=;     fun S ~=  T = HOLogic.mk_not (S === T);
-infix 1 <<;     fun S <<  T = %%: @{const_name Porder.sq_le} $ S $ T;
+infix 1 <<;     fun S <<  T = %%: @{const_name Porder.below} $ S $ T;
 infix 1 ~<<;    fun S ~<< T = HOLogic.mk_not (S << T);
 
 infix 9 `  ; fun f ` x = %%: @{const_name Rep_CFun} $ f $ x;

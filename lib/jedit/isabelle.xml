@@ -60,6 +60,7 @@
       <LABEL>atp_info</LABEL>
       <LABEL>atp_kill</LABEL>
       <LABEL>atp_messages</LABEL>
+      <LABEL>atp_minimize</LABEL>
       <KEYWORD4>attach</KEYWORD4>
       <OPERATOR>attribute_setup</OPERATOR>
       <OPERATOR>automaton</OPERATOR>

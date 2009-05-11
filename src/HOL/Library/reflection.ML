@@ -314,5 +314,6 @@ fun gen_reflection_tac ctxt conv corr_thms raw_eqs to i = (fn st =>
   in (rtac th i THEN TRY(rtac TrueI i)) st end);
 
 fun reflection_tac ctxt = gen_reflection_tac ctxt Codegen.evaluation_conv;
+  (*FIXME why Codegen.evaluation_conv?  very specific...*)
 
 end

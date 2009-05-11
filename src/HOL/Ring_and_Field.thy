@@ -2226,15 +2226,21 @@ proof -
 qed
 qed
 
-instance ordered_idom \<subseteq> pordered_ring_abs
-by default (auto simp add: abs_if not_less
-  equal_neg_zero neg_equal_zero mult_less_0_iff)
+context ordered_idom
+begin
 
-lemma abs_mult: "abs (a * b) = abs a * abs (b::'a::ordered_idom)" 
-by (simp add: abs_eq_mult linorder_linear)
+subclass pordered_ring_abs proof
+qed (auto simp add: abs_if not_less equal_neg_zero neg_equal_zero mult_less_0_iff)
 
-lemma abs_mult_self: "abs a * abs a = a * (a::'a::ordered_idom)"
-by (simp add: abs_if) 
+lemma abs_mult:
+  "abs (a * b) = abs a * abs b" 
+  by (rule abs_eq_mult) auto
+
+lemma abs_mult_self:
+  "abs a * abs a = a * a"
+  by (simp add: abs_if) 
+
+end
 
 lemma nonzero_abs_inverse:
      "a \<noteq> 0 ==> abs (inverse (a::'a::ordered_field)) = inverse (abs a)"

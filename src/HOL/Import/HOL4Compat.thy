@@ -202,19 +202,13 @@ qed;
 
 constdefs
   FUNPOW :: "('a => 'a) => nat => 'a => 'a"
-  "FUNPOW f n == f ^ n"
+  "FUNPOW f n == f ^^ n"
 
-lemma FUNPOW: "(ALL f x. (f ^ 0) x = x) &
-  (ALL f n x. (f ^ Suc n) x = (f ^ n) (f x))"
-proof auto
-  fix f n x
-  have "ALL x. f ((f ^ n) x) = (f ^ n) (f x)"
-    by (induct n,auto)
-  thus "f ((f ^ n) x) = (f ^ n) (f x)"
-    ..
-qed
+lemma FUNPOW: "(ALL f x. (f ^^ 0) x = x) &
+  (ALL f n x. (f ^^ Suc n) x = (f ^^ n) (f x))"
+  by (simp add: funpow_swap1)
 
-lemma [hol4rew]: "FUNPOW f n = f ^ n"
+lemma [hol4rew]: "FUNPOW f n = f ^^ n"
   by (simp add: FUNPOW_def)
 
 lemma ADD: "(!n. (0::nat) + n = n) & (!m n. Suc m + n = Suc (m + n))"
@@ -224,7 +218,7 @@ lemma MULT: "(!n. (0::nat) * n = 0) & (!m n. Suc m * n = m * n + n)"
   by simp
 
 lemma SUB: "(!m. (0::nat) - m = 0) & (!m n. (Suc m) - n = (if m < n then 0 else Suc (m - n)))"
-  by (simp, arith)
+  by (simp) arith
 
 lemma MAX_DEF: "max (m::nat) n = (if m < n then n else m)"
   by (simp add: max_def)

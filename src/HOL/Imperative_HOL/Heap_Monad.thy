@@ -317,7 +317,7 @@ setup {* let
       val dummy_type = ITyVar dummy_name;
       val dummy_case_term = IVar dummy_name;
       (*assumption: dummy values are not relevant for serialization*)
-      val unitt = IConst (unit', ([], []));
+      val unitt = IConst (unit', (([], []), []));
       fun dest_abs ((v, ty) `|-> t, _) = ((v, ty), t)
         | dest_abs (t, ty) =
             let
@@ -353,10 +353,10 @@ setup {* let
     | imp_monad_bind bind' return' unit' (ICase (((t, ty), pats), t0)) = ICase
         (((imp_monad_bind bind' return' unit' t, ty), (map o pairself) (imp_monad_bind bind' return' unit') pats), imp_monad_bind bind' return' unit' t0);
 
-   fun imp_program naming = (Graph.map_nodes o map_terms_stmt)
-     (imp_monad_bind (lookup naming @{const_name bindM})
-       (lookup naming @{const_name return})
-       (lookup naming @{const_name Unity}));
+  fun imp_program naming = (Graph.map_nodes o map_terms_stmt)
+    (imp_monad_bind (lookup naming @{const_name bindM})
+      (lookup naming @{const_name return})
+      (lookup naming @{const_name Unity}));
 
 in
 

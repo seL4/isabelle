@@ -38,7 +38,7 @@ primrec rbl_mult :: "bool list => bool list => bool list" where
     if y then rbl_add ws x else ws)"
 
 lemma butlast_power:
-  "(butlast ^ n) bl = take (length bl - n) bl"
+  "(butlast ^^ n) bl = take (length bl - n) bl"
   by (induct n) (auto simp: butlast_take)
 
 lemma bin_to_bl_aux_Pls_minus_simp [simp]:
@@ -370,14 +370,14 @@ lemma bl2bin_drop:
   done
 
 lemma nth_rest_power_bin [rule_format] :
-  "ALL n. bin_nth ((bin_rest ^ k) w) n = bin_nth w (n + k)"
+  "ALL n. bin_nth ((bin_rest ^^ k) w) n = bin_nth w (n + k)"
   apply (induct k, clarsimp)
   apply clarsimp
   apply (simp only: bin_nth.Suc [symmetric] add_Suc)
   done
 
 lemma take_rest_power_bin:
-  "m <= n ==> take m (bin_to_bl n w) = bin_to_bl m ((bin_rest ^ (n - m)) w)" 
+  "m <= n ==> take m (bin_to_bl n w) = bin_to_bl m ((bin_rest ^^ (n - m)) w)" 
   apply (rule nth_equalityI)
    apply simp
   apply (clarsimp simp add: nth_bin_to_bl nth_rest_power_bin)

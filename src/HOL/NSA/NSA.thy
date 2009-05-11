@@ -101,7 +101,7 @@ lemma hnorm_mult:
 by transfer (rule norm_mult)
 
 lemma hnorm_hyperpow:
-  "\<And>(x::'a::{real_normed_div_algebra,recpower} star) n.
+  "\<And>(x::'a::{real_normed_div_algebra} star) n.
    hnorm (x pow n) = hnorm x pow n"
 by transfer (rule norm_power)
 
@@ -304,15 +304,15 @@ lemma HFinite_1 [simp]: "1 \<in> HFinite"
 unfolding star_one_def by (rule HFinite_star_of)
 
 lemma hrealpow_HFinite:
-  fixes x :: "'a::{real_normed_algebra,recpower} star"
+  fixes x :: "'a::{real_normed_algebra,monoid_mult} star"
   shows "x \<in> HFinite ==> x ^ n \<in> HFinite"
-apply (induct_tac "n")
+apply (induct n)
 apply (auto simp add: power_Suc intro: HFinite_mult)
 done
 
 lemma HFinite_bounded:
   "[|(x::hypreal) \<in> HFinite; y \<le> x; 0 \<le> y |] ==> y \<in> HFinite"
-apply (case_tac "x \<le> 0")
+apply (cases "x \<le> 0")
 apply (drule_tac y = x in order_trans)
 apply (drule_tac [2] order_antisym)
 apply (auto simp add: linorder_not_le)

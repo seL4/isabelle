@@ -33,21 +33,21 @@ text {* A pre-deflation is like a deflation, but not idempotent. *}
 
 locale pre_deflation =
   fixes f :: "'a \<rightarrow> 'a::cpo"
-  assumes less: "\<And>x. f\<cdot>x \<sqsubseteq> x"
+  assumes below: "\<And>x. f\<cdot>x \<sqsubseteq> x"
   assumes finite_range: "finite (range (\<lambda>x. f\<cdot>x))"
 begin
 
-lemma iterate_less: "iterate i\<cdot>f\<cdot>x \<sqsubseteq> x"
-by (induct i, simp_all add: trans_less [OF less])
+lemma iterate_below: "iterate i\<cdot>f\<cdot>x \<sqsubseteq> x"
+by (induct i, simp_all add: below_trans [OF below])
 
 lemma iterate_fixed: "f\<cdot>x = x \<Longrightarrow> iterate i\<cdot>f\<cdot>x = x"
 by (induct i, simp_all)
 
 lemma antichain_iterate_app: "i \<le> j \<Longrightarrow> iterate j\<cdot>f\<cdot>x \<sqsubseteq> iterate i\<cdot>f\<cdot>x"
 apply (erule le_Suc_induct)
-apply (simp add: less)
-apply (rule refl_less)
-apply (erule (1) trans_less)
+apply (simp add: below)
+apply (rule below_refl)
+apply (erule (1) below_trans)
 done
 
 lemma finite_range_iterate_app: "finite (range (\<lambda>i. iterate i\<cdot>f\<cdot>x))"
@@ -144,7 +144,7 @@ proof
 next
   fix x :: 'a
   show "d\<cdot>x \<sqsubseteq> x"
-    by (rule MOST_d, simp add: iterate_less)
+    by (rule MOST_d, simp add: iterate_below)
 next
   from finite_range
   have "finite {x. f\<cdot>x = x}"
@@ -163,7 +163,7 @@ proof
   interpret d: finite_deflation d by fact
   fix x
   show "\<And>x. (d oo f)\<cdot>x \<sqsubseteq> x"
-    by (simp, rule trans_less [OF d.less f])
+    by (simp, rule below_trans [OF d.below f])
   show "finite (range (\<lambda>x. (d oo f)\<cdot>x))"
     by (rule finite_subset [OF _ d.finite_range], auto)
 qed
@@ -185,9 +185,9 @@ proof -
     apply safe
     apply (erule subst)
     apply (rule d.idem)
-    apply (rule antisym_less)
+    apply (rule below_antisym)
     apply (rule f)
-    apply (erule subst, rule d.less)
+    apply (erule subst, rule d.below)
     apply simp
     done
 qed
@@ -199,18 +199,17 @@ defaultsort profinite
 typedef (open) 'a fin_defl = "{d::'a \<rightarrow> 'a. finite_deflation d}"
 by (fast intro: finite_deflation_approx)
 
-instantiation fin_defl :: (profinite) sq_ord
+instantiation fin_defl :: (profinite) below
 begin
 
-definition
-  sq_le_fin_defl_def:
+definition below_fin_defl_def:
     "op \<sqsubseteq> \<equiv> \<lambda>x y. Rep_fin_defl x \<sqsubseteq> Rep_fin_defl y"
 
 instance ..
 end
 
 instance fin_defl :: (profinite) po
-by (rule typedef_po [OF type_definition_fin_defl sq_le_fin_defl_def])
+by (rule typedef_po [OF type_definition_fin_defl below_fin_defl_def])
 
 lemma finite_deflation_Rep_fin_defl: "finite_deflation (Rep_fin_defl d)"
 using Rep_fin_defl by simp
@@ -218,27 +217,27 @@ using Rep_fin_defl by simp
 interpretation Rep_fin_defl: finite_deflation "Rep_fin_defl d"
 by (rule finite_deflation_Rep_fin_defl)
 
-lemma fin_defl_lessI:
+lemma fin_defl_belowI:
   "(\<And>x. Rep_fin_defl a\<cdot>x = x \<Longrightarrow> Rep_fin_defl b\<cdot>x = x) \<Longrightarrow> a \<sqsubseteq> b"
-unfolding sq_le_fin_defl_def
-by (rule Rep_fin_defl.lessI)
+unfolding below_fin_defl_def
+by (rule Rep_fin_defl.belowI)
 
-lemma fin_defl_lessD:
+lemma fin_defl_belowD:
   "\<lbrakk>a \<sqsubseteq> b; Rep_fin_defl a\<cdot>x = x\<rbrakk> \<Longrightarrow> Rep_fin_defl b\<cdot>x = x"
-unfolding sq_le_fin_defl_def
-by (rule Rep_fin_defl.lessD)
+unfolding below_fin_defl_def
+by (rule Rep_fin_defl.belowD)
 
 lemma fin_defl_eqI:
   "(\<And>x. Rep_fin_defl a\<cdot>x = x \<longleftrightarrow> Rep_fin_defl b\<cdot>x = x) \<Longrightarrow> a = b"
-apply (rule antisym_less)
-apply (rule fin_defl_lessI, simp)
-apply (rule fin_defl_lessI, simp)
+apply (rule below_antisym)
+apply (rule fin_defl_belowI, simp)
+apply (rule fin_defl_belowI, simp)
 done
 
 lemma Abs_fin_defl_mono:
   "\<lbrakk>finite_deflation a; finite_deflation b; a \<sqsubseteq> b\<rbrakk>
     \<Longrightarrow> Abs_fin_defl a \<sqsubseteq> Abs_fin_defl b"
-unfolding sq_le_fin_defl_def
+unfolding below_fin_defl_def
 by (simp add: Abs_fin_defl_inverse)
 
 
@@ -257,7 +256,7 @@ apply (rule Abs_fin_defl_inverse [unfolded mem_Collect_eq])
 apply (rule pre_deflation.finite_deflation_d)
 apply (rule pre_deflation_d_f)
 apply (rule finite_deflation_approx)
-apply (rule Rep_fin_defl.less)
+apply (rule Rep_fin_defl.below)
 done
 
 lemma fd_take_fixed_iff:
@@ -265,10 +264,10 @@ lemma fd_take_fixed_iff:
     approx i\<cdot>x = x \<and> Rep_fin_defl d\<cdot>x = x"
 unfolding Rep_fin_defl_fd_take
 by (rule eventual_iterate_oo_fixed_iff
-    [OF finite_deflation_approx Rep_fin_defl.less])
+    [OF finite_deflation_approx Rep_fin_defl.below])
 
-lemma fd_take_less: "fd_take n d \<sqsubseteq> d"
-apply (rule fin_defl_lessI)
+lemma fd_take_below: "fd_take n d \<sqsubseteq> d"
+apply (rule fin_defl_belowI)
 apply (simp add: fd_take_fixed_iff)
 done
 
@@ -278,16 +277,16 @@ apply (simp add: fd_take_fixed_iff)
 done
 
 lemma fd_take_mono: "a \<sqsubseteq> b \<Longrightarrow> fd_take n a \<sqsubseteq> fd_take n b"
-apply (rule fin_defl_lessI)
+apply (rule fin_defl_belowI)
 apply (simp add: fd_take_fixed_iff)
-apply (simp add: fin_defl_lessD)
+apply (simp add: fin_defl_belowD)
 done
 
 lemma approx_fixed_le_lemma: "\<lbrakk>i \<le> j; approx i\<cdot>x = x\<rbrakk> \<Longrightarrow> approx j\<cdot>x = x"
 by (erule subst, simp add: min_def)
 
 lemma fd_take_chain: "m \<le> n \<Longrightarrow> fd_take m a \<sqsubseteq> fd_take n a"
-apply (rule fin_defl_lessI)
+apply (rule fin_defl_belowI)
 apply (simp add: fd_take_fixed_iff)
 apply (simp add: approx_fixed_le_lemma)
 done
@@ -304,9 +303,9 @@ done
 lemma fd_take_covers: "\<exists>n. fd_take n a = a"
 apply (rule_tac x=
   "Max ((\<lambda>x. LEAST n. approx n\<cdot>x = x) ` {x. Rep_fin_defl a\<cdot>x = x})" in exI)
-apply (rule antisym_less)
-apply (rule fd_take_less)
-apply (rule fin_defl_lessI)
+apply (rule below_antisym)
+apply (rule fd_take_below)
+apply (rule fin_defl_belowI)
 apply (simp add: fd_take_fixed_iff)
 apply (rule approx_fixed_le_lemma)
 apply (rule Max_ge)
@@ -320,9 +319,9 @@ apply (erule subst)
 apply (rule Rep_fin_defl.compact)
 done
 
-interpretation fin_defl: basis_take sq_le fd_take
+interpretation fin_defl: basis_take below fd_take
 apply default
-apply (rule fd_take_less)
+apply (rule fd_take_below)
 apply (rule fd_take_idem)
 apply (erule fd_take_mono)
 apply (rule fd_take_chain, simp)
@@ -333,10 +332,10 @@ done
 subsection {* Defining algebraic deflations by ideal completion *}
 
 typedef (open) 'a alg_defl =
-  "{S::'a fin_defl set. sq_le.ideal S}"
-by (fast intro: sq_le.ideal_principal)
+  "{S::'a fin_defl set. below.ideal S}"
+by (fast intro: below.ideal_principal)
 
-instantiation alg_defl :: (profinite) sq_ord
+instantiation alg_defl :: (profinite) below
 begin
 
 definition
@@ -346,19 +345,19 @@ instance ..
 end
 
 instance alg_defl :: (profinite) po
-by (rule sq_le.typedef_ideal_po
-    [OF type_definition_alg_defl sq_le_alg_defl_def])
+by (rule below.typedef_ideal_po
+    [OF type_definition_alg_defl below_alg_defl_def])
 
 instance alg_defl :: (profinite) cpo
-by (rule sq_le.typedef_ideal_cpo
-    [OF type_definition_alg_defl sq_le_alg_defl_def])
+by (rule below.typedef_ideal_cpo
+    [OF type_definition_alg_defl below_alg_defl_def])
 
 lemma Rep_alg_defl_lub:
   "chain Y \<Longrightarrow> Rep_alg_defl (\<Squnion>i. Y i) = (\<Union>i. Rep_alg_defl (Y i))"
-by (rule sq_le.typedef_ideal_rep_contlub
-    [OF type_definition_alg_defl sq_le_alg_defl_def])
+by (rule below.typedef_ideal_rep_contlub
+    [OF type_definition_alg_defl below_alg_defl_def])
 
-lemma ideal_Rep_alg_defl: "sq_le.ideal (Rep_alg_defl xs)"
+lemma ideal_Rep_alg_defl: "below.ideal (Rep_alg_defl xs)"
 by (rule Rep_alg_defl [unfolded mem_Collect_eq])
 
 definition
@@ -368,15 +367,15 @@ definition
 lemma Rep_alg_defl_principal:
   "Rep_alg_defl (alg_defl_principal t) = {u. u \<sqsubseteq> t}"
 unfolding alg_defl_principal_def
-by (simp add: Abs_alg_defl_inverse sq_le.ideal_principal)
+by (simp add: Abs_alg_defl_inverse below.ideal_principal)
 
 interpretation alg_defl:
-  ideal_completion sq_le fd_take alg_defl_principal Rep_alg_defl
+  ideal_completion below fd_take alg_defl_principal Rep_alg_defl
 apply default
 apply (rule ideal_Rep_alg_defl)
 apply (erule Rep_alg_defl_lub)
 apply (rule Rep_alg_defl_principal)
-apply (simp only: sq_le_alg_defl_def)
+apply (simp only: below_alg_defl_def)
 done
 
 text {* Algebraic deflations are pointed *}
@@ -443,7 +442,7 @@ lemma cast_alg_defl_principal:
   "cast\<cdot>(alg_defl_principal a) = Rep_fin_defl a"
 unfolding cast_def
 apply (rule alg_defl.basis_fun_principal)
-apply (simp only: sq_le_fin_defl_def)
+apply (simp only: below_fin_defl_def)
 done
 
 lemma deflation_cast: "deflation (cast\<cdot>d)"
@@ -522,10 +521,10 @@ proof
     apply (rule finite_deflation_p_d_e)
     apply (rule finite_deflation_cast)
     apply (rule compact_approx)
-    apply (rule sq_ord_less_eq_trans [OF _ d])
+    apply (rule below_eq_trans [OF _ d])
     apply (rule monofun_cfun_fun)
     apply (rule monofun_cfun_arg)
-    apply (rule approx_less)
+    apply (rule approx_below)
     done
   show "(\<Squnion>i. ?a i) = ID"
     apply (rule ext_cfun, simp)

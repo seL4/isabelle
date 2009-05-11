@@ -15,12 +15,14 @@ struct
 
 (* nibble *)
 
+val nib_prefix = "String.nibble.";
+
 val mk_nib =
-  Syntax.Constant o unprefix "List.nibble." o
+  Syntax.Constant o unprefix nib_prefix o
   fst o Term.dest_Const o HOLogic.mk_nibble;
 
 fun dest_nib (Syntax.Constant c) =
-  HOLogic.dest_nibble (Const ("List.nibble." ^ c, dummyT))
+  HOLogic.dest_nibble (Const (nib_prefix ^ c, dummyT))
     handle TERM _ => raise Match;
 
 
