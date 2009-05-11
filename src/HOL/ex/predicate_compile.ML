@@ -14,8 +14,12 @@ sig
   val code_ind_intros_attrib : attribute
   val code_ind_cases_attrib : attribute
   val setup : theory -> theory
+  val code_pred : string -> Proof.context -> Proof.state
+  val code_pred_cmd : string -> Proof.context -> Proof.state
   val print_alternative_rules : theory -> theory
   val do_proofs: bool ref
+  val pred_intros : theory -> string -> thm list
+  val get_nparams : theory -> string -> int
 end;
 
 structure Predicate_Compile: PREDICATE_COMPILE =
@@ -1339,6 +1343,57 @@ val setup =
     "adding alternative introduction rules for code generation of inductive predicates" #>
   Attrib.setup @{binding code_ind_cases} (Scan.succeed code_ind_cases_attrib)
     "adding alternative elimination rules for code generation of inductive predicates";
+
+(* generation of case rules from user-given introduction rules *)
+
+   fun mk_casesrule introrules nparams ctxt = let
+    val intros = map prop_of introrules
+    val (pred, (params, args)) = strip_intro_concl (hd intros) nparams
+    val ([propname], ctxt1) = Variable.variant_fixes ["thesis"] ctxt
+    val prop = HOLogic.mk_Trueprop (Free (propname, HOLogic.boolT))
+    val (argnames, ctxt2) = Variable.variant_fixes
+      (map (fn i => "a" ^ string_of_int i) (1 upto (length args))) ctxt1
+    val argvs = map Free (argnames ~~ (map fastype_of args))
+    fun mk_case intro = let
+        val (_, (_, args)) = strip_intro_concl intro nparams
+        val prems = Logic.strip_imp_prems intro
+        val eqprems = map (HOLogic.mk_Trueprop o HOLogic.mk_eq) (argvs ~~ args)
+        val frees = (fold o fold_aterms)
+          (fn t as Free _ =>
+              if member (op aconv) params t then I else insert (op aconv) t
+           | _ => I) (args @ prems) []
+        in fold Logic.all frees (Logic.list_implies (eqprems @ prems, prop)) end
+    val assm = HOLogic.mk_Trueprop (list_comb (pred, params @ argvs))
+    val cases = map mk_case intros
+    val (_, ctxt3) = ProofContext.add_assms_i Assumption.assume_export
+              [((Binding.name AutoBind.assmsN, []), map (fn t => (t, [])) (assm :: cases))]
+              ctxt2
+  in (pred, prop, ctxt3) end;
+
+(* setup for user interface *)
+
+  fun generic_code_pred prep_const raw_const lthy =
+    let
+      val thy = (ProofContext.theory_of lthy)
+      val const = prep_const thy raw_const
+      val nparams = get_nparams thy const
+      val intro_rules = pred_intros thy const
+      val (((tfrees, frees), fact), ctxt') =
+        Variable.import_thms true intro_rules lthy;
+      val (pred, prop, ctxt'') = mk_casesrule fact nparams ctxt'
+      val (predname, _) = dest_Const pred
+      fun after_qed [[th]] ctxt'' =
+        LocalTheory.note Thm.theoremK
+          ((Binding.name (Long_Name.base_name predname ^ "_cases"),
+            [Attrib.internal (K (code_ind_cases_attrib))]) , [th]) ctxt''
+        |> snd
+        |> ProofContext.theory (create_def_equation predname)
+    in
+      Proof.theorem_i NONE after_qed [[(prop, [])]] ctxt''
+    end;
+
+  val code_pred = generic_code_pred (K I);
+  val code_pred_cmd = generic_code_pred Code_Unit.read_const
 
 end;
 

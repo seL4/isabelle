@@ -5,6 +5,11 @@ begin
 
 setup {* Predicate_Compile.setup *}
 
+ML {*
+  OuterSyntax.local_theory_to_proof "code_pred" "sets up goal for cases rule from given introduction rules and compiles predicate"
+  OuterKeyword.thy_goal (OuterParse.term_group >> Predicate_Compile.code_pred_cmd)
+*}
+
 primrec "next" :: "('a Predicate.pred \<Rightarrow> ('a \<times> 'a Predicate.pred) option)
   \<Rightarrow> 'a Predicate.seq \<Rightarrow> ('a \<times> 'a Predicate.pred) option" where
     "next yield Predicate.Empty = None"
@@ -33,5 +38,18 @@ in
     @{code "\<bottom> :: 'a Predicate.pred"} (*replace bottom with sequence to evaluate*)
 end
 *}
+
+section {* Example for user interface *}
+
+inductive append ::  "'a list \<Rightarrow> 'a list \<Rightarrow> 'a list \<Rightarrow> bool"
+where
+  "append [] ys ys"
+| "append xs' ys zs' \<Longrightarrow> append (x#xs') ys (x#zs')"
+
+code_pred append
+  using assms by (rule append.cases)
+
+thm append_cases
+
 
 end

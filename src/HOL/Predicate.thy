@@ -640,4 +640,12 @@ hide (open) type pred seq
 hide (open) const Pred eval single bind if_pred not_pred
   Empty Insert Join Seq member pred_of_seq "apply" adjunct eq
 
+text {* dummy setup for code_pred keyword *}
+
+ML {*
+OuterSyntax.local_theory_to_proof "code_pred" "sets up goal for cases rule from given introduction rules and compiles predicate"
+  OuterKeyword.thy_goal (OuterParse.term_group >> (K (Proof.theorem_i NONE (K I) [[]])))
+*}
+
+
 end
