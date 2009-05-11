@@ -12,7 +12,7 @@ case ${HOST} in
     ;;
   *.cl.cam.ac.uk)
     USER=paulson
-    DEST=/anfs/www/html/Research/HVG/Isabelle
+    DEST=/anfs/www/html/research/hvg/Isabelle
     ;;
   *)
     echo "Unknown destination directory for ${HOST}"
