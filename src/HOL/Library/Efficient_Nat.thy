@@ -179,10 +179,8 @@ fun gen_eqn_suc_preproc Suc_if_eq dest_judgement dest_lhs thy thms =
        else NONE
   end;
 
-fun eqn_suc_preproc thy = map fst
-  #> gen_eqn_suc_preproc
-      @{thm Suc_if_eq} I (fst o Logic.dest_equals) thy
-  #> (Option.map o map) (Code_Unit.mk_eqn thy);
+val eqn_suc_preproc = Code.simple_functrans (gen_eqn_suc_preproc
+  @{thm Suc_if_eq} I (fst o Logic.dest_equals));
 
 fun eqn_suc_preproc' thy thms = gen_eqn_suc_preproc
   @{thm Suc_if_eq'} (snd o Thm.dest_comb) (fst o HOLogic.dest_eq o HOLogic.dest_Trueprop) thy thms
