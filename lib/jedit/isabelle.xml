@@ -238,6 +238,7 @@
       <LABEL>print_cases</LABEL>
       <LABEL>print_claset</LABEL>
       <LABEL>print_classes</LABEL>
+      <LABEL>print_codeproc</LABEL>
       <LABEL>print_codesetup</LABEL>
       <LABEL>print_commands</LABEL>
       <LABEL>print_configs</LABEL>
@@ -335,6 +336,7 @@
       <KEYWORD4>uses</KEYWORD4>
       <OPERATOR>using</OPERATOR>
       <LABEL>value</LABEL>
+      <LABEL>values</LABEL>
       <LABEL>welcome</LABEL>
       <KEYWORD4>where</KEYWORD4>
       <OPERATOR>with</OPERATOR>

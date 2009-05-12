@@ -168,6 +168,7 @@
     "print_cases"
     "print_claset"
     "print_classes"
+    "print_codeproc"
     "print_codesetup"
     "print_commands"
     "print_configs"
@@ -250,6 +251,7 @@
     "use_thy"
     "using"
     "value"
+    "values"
     "welcome"
     "with"
     "{"
@@ -369,6 +371,7 @@
     "print_cases"
     "print_claset"
     "print_classes"
+    "print_codeproc"
     "print_codesetup"
     "print_commands"
     "print_configs"
@@ -402,6 +405,7 @@
     "unused_thms"
     "use_thy"
     "value"
+    "values"
     "welcome"))
 
 (defconst isar-keywords-theory-begin
