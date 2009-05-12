@@ -29,7 +29,7 @@ datatype  obj_tag =     --{* tag for generic object   *}
 types	vn   = "fspec + int"                    --{* variable name      *}
 record	obj  = 
           tag :: "obj_tag"                      --{* generalized object *}
-          values :: "(vn, val) table"      
+          "values" :: "(vn, val) table"      
 
 translations 
   "fspec" <= (type) "vname \<times> qtname" 
