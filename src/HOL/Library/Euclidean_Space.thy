@@ -9,7 +9,7 @@ imports
   Complex_Main "~~/src/HOL/Decision_Procs/Dense_Linear_Order"
   Finite_Cartesian_Product Glbs Infinite_Set Numeral_Type
   Inner_Product
-uses ("normarith.ML")
+uses "positivstellensatz.ML" ("normarith.ML")
 begin
 
 text{* Some common special cases.*}
