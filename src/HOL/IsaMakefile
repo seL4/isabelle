@@ -310,7 +310,8 @@ HOL-Library: HOL $(LOG)/HOL-Library.gz
 $(LOG)/HOL-Library.gz: $(OUT)/HOL Library/SetsAndFunctions.thy		\
   Library/Abstract_Rat.thy \
   Library/BigO.thy Library/ContNotDenum.thy Library/Efficient_Nat.thy	\
-  Library/Euclidean_Space.thy Library/Glbs.thy Library/normarith.ML \
+  Library/Euclidean_Space.thy Library/Sum_Of_Squares.thy Library/positivstellensatz.ML	\
+  Library/sum_of_squares.ML Library/Glbs.thy Library/normarith.ML \
   Library/Executable_Set.thy Library/Infinite_Set.thy			\
   Library/FuncSet.thy Library/Permutations.thy Library/Determinants.thy\
   Library/Bit.thy Library/Topology_Euclidean_Space.thy \
