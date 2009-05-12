@@ -1024,8 +1024,6 @@ fun parse_code lib =
 
 val setup = add_codegen "default" default_codegen
   #> add_tycodegen "default" default_tycodegen
-  #> Code.add_attribute ("unfold", Scan.succeed (Thm.declaration_attribute
-       (fn thm => Context.mapping (add_unfold thm #> Code.add_inline thm) I)))
   #> add_preprocessor unfold_preprocessor;
 
 val _ =

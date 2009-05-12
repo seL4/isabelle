@@ -92,10 +92,10 @@ BASE_DEPENDENCIES = $(OUT)/Pure \
   $(SRC)/Tools/auto_solve.ML \
   $(SRC)/Tools/code/code_haskell.ML \
   $(SRC)/Tools/code/code_ml.ML \
+  $(SRC)/Tools/code/code_preproc.ML \
   $(SRC)/Tools/code/code_printer.ML \
   $(SRC)/Tools/code/code_target.ML \
   $(SRC)/Tools/code/code_thingol.ML \
-  $(SRC)/Tools/code/code_wellsorted.ML \
   $(SRC)/Tools/coherent.ML \
   $(SRC)/Tools/eqsubst.ML \
   $(SRC)/Tools/induct.ML \

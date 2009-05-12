@@ -9,7 +9,7 @@ imports Pure
 uses
   "~~/src/Tools/value.ML"
   "~~/src/Tools/quickcheck.ML"
-  "~~/src/Tools/code/code_wellsorted.ML" 
+  "~~/src/Tools/code/code_preproc.ML" 
   "~~/src/Tools/code/code_thingol.ML"
   "~~/src/Tools/code/code_printer.ML"
   "~~/src/Tools/code/code_target.ML"
@@ -19,7 +19,8 @@ uses
 begin
 
 setup {*
-  Code_ML.setup
+  Code_Preproc.setup
+  #> Code_ML.setup
   #> Code_Haskell.setup
   #> Nbe.setup
 *}
