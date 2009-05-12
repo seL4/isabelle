@@ -18,7 +18,6 @@
     "ML"
     "ML_command"
     "ML_prf"
-    "ML_test"
     "ML_val"
     "ProofGeneral\\.inform_file_processed"
     "ProofGeneral\\.inform_file_retracted"
@@ -64,6 +63,7 @@
     "code_module"
     "code_modulename"
     "code_monad"
+    "code_pred"
     "code_reserved"
     "code_thms"
     "code_type"
@@ -421,7 +421,6 @@
 
 (defconst isar-keywords-theory-decl
   '("ML"
-    "ML_test"
     "abbreviation"
     "arities"
     "atom_decl"
@@ -515,6 +514,7 @@
 
 (defconst isar-keywords-theory-goal
   '("ax_specification"
+    "code_pred"
     "corollary"
     "cpodef"
     "function"

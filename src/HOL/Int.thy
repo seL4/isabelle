@@ -1521,6 +1521,7 @@ lemmas int_arith_rules =
 use "Tools/numeral_simprocs.ML"
 
 use "Tools/int_arith.ML"
+setup {* Int_Arith.global_setup *}
 declaration {* K Int_Arith.setup *}
 
 setup {*

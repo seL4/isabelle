@@ -7,6 +7,11 @@ text {* Package setup *}
 
 setup {* Predicate_Compile.setup *}
 
+ML {*
+  OuterSyntax.local_theory_to_proof "code_pred" "sets up goal for cases rule from given introduction rules and compiles predicate"
+  OuterKeyword.thy_goal (OuterParse.term_group >> Predicate_Compile.code_pred_cmd)
+*}
+
 
 text {* Experimental code *}
 
@@ -82,5 +87,17 @@ ML_val {* Predicate_Compile.modes_of @{theory} @{const_name partition} *}
 ML_val {* Predicate_Compile.modes_of @{theory} @{const_name tranclp} *}
 
 ML_val {* Predicate.analyze_compr @{theory} @{term "{n. odd n}"} *}
+
+section {* Example for user interface *}
+
+inductive append2 :: "'a list \<Rightarrow> 'a list \<Rightarrow> 'a list \<Rightarrow> bool" where
+    append2_Nil: "append2 [] xs xs"
+  | append2_Cons: "append2 xs ys zs \<Longrightarrow> append2 (x # xs) ys (x # zs)"
+
+(*code_pred append2
+  using assms by (rule append2.cases)
+
+thm append2_codegen
+thm append2_cases*)
 
 end

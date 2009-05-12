@@ -9,7 +9,6 @@ header{*Defining the Reals from the Positive Reals*}
 
 theory RealDef
 imports PReal
-uses ("Tools/real_arith.ML")
 begin
 
 definition
@@ -960,10 +959,20 @@ lemma real_of_nat_number_of [simp]:
         (if neg (number_of v :: int) then 0  
          else (number_of v :: real))"
 by (simp add: real_of_int_real_of_nat [symmetric] int_nat_number_of)
- 
 
-use "Tools/real_arith.ML"
-declaration {* K real_arith_setup *}
+declaration {*
+  K (Lin_Arith.add_inj_thms [@{thm real_of_nat_le_iff} RS iffD2, @{thm real_of_nat_inject} RS iffD2]
+    (* not needed because x < (y::nat) can be rewritten as Suc x <= y: real_of_nat_less_iff RS iffD2 *)
+  #> Lin_Arith.add_inj_thms [@{thm real_of_int_le_iff} RS iffD2, @{thm real_of_int_inject} RS iffD2]
+    (* not needed because x < (y::int) can be rewritten as x + 1 <= y: real_of_int_less_iff RS iffD2 *)
+  #> Lin_Arith.add_simps [@{thm real_of_nat_zero}, @{thm real_of_nat_Suc}, @{thm real_of_nat_add},
+      @{thm real_of_nat_mult}, @{thm real_of_int_zero}, @{thm real_of_one},
+      @{thm real_of_int_add}, @{thm real_of_int_minus}, @{thm real_of_int_diff},
+      @{thm real_of_int_mult}, @{thm real_of_int_of_nat_eq},
+      @{thm real_of_nat_number_of}, @{thm real_number_of}]
+  #> Lin_Arith.add_inj_const (@{const_name real}, HOLogic.natT --> HOLogic.realT)
+  #> Lin_Arith.add_inj_const (@{const_name real}, HOLogic.intT --> HOLogic.realT))
+*}
 
 
 subsection{* Simprules combining x+y and 0: ARE THEY NEEDED?*}

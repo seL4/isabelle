@@ -6,7 +6,6 @@ header {* Rational numbers *}
 
 theory Rational
 imports GCD Archimedean_Field
-uses ("Tools/rat_arith.ML")
 begin
 
 subsection {* Rational numbers as quotient *}
@@ -582,10 +581,25 @@ lemma floor_Fract:
   by (simp add: floor_unique)
 
 
-subsection {* Arithmetic setup *}
+subsection {* Linear arithmetic setup *}
 
-use "Tools/rat_arith.ML"
-declaration {* K rat_arith_setup *}
+declaration {*
+  K (Lin_Arith.add_inj_thms [@{thm of_nat_le_iff} RS iffD2, @{thm of_nat_eq_iff} RS iffD2]
+    (* not needed because x < (y::nat) can be rewritten as Suc x <= y: of_nat_less_iff RS iffD2 *)
+  #> Lin_Arith.add_inj_thms [@{thm of_int_le_iff} RS iffD2, @{thm of_int_eq_iff} RS iffD2]
+    (* not needed because x < (y::int) can be rewritten as x + 1 <= y: of_int_less_iff RS iffD2 *)
+  #> Lin_Arith.add_simps [@{thm neg_less_iff_less},
+      @{thm True_implies_equals},
+      read_instantiate @{context} [(("a", 0), "(number_of ?v)")] @{thm right_distrib},
+      @{thm divide_1}, @{thm divide_zero_left},
+      @{thm times_divide_eq_right}, @{thm times_divide_eq_left},
+      @{thm minus_divide_left} RS sym, @{thm minus_divide_right} RS sym,
+      @{thm of_int_minus}, @{thm of_int_diff},
+      @{thm of_int_of_nat_eq}]
+  #> Lin_Arith.add_simprocs Numeral_Simprocs.field_cancel_numeral_factors
+  #> Lin_Arith.add_inj_const (@{const_name of_nat}, @{typ "nat => rat"})
+  #> Lin_Arith.add_inj_const (@{const_name of_int}, @{typ "int => rat"}))
+*}
 
 
 subsection {* Embedding from Rationals to other Fields *}

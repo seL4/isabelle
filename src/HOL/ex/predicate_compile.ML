@@ -14,11 +14,15 @@ sig
   val strip_intro_concl : term -> int -> (term * (term list * term list))
   val code_ind_intros_attrib : attribute
   val code_ind_cases_attrib : attribute
-  val print_alternative_rules : theory -> theory
   val modename_of: theory -> string -> mode -> string
   val modes_of: theory -> string -> mode list
   val setup : theory -> theory
+  val code_pred : string -> Proof.context -> Proof.state
+  val code_pred_cmd : string -> Proof.context -> Proof.state
+  val print_alternative_rules : theory -> theory
   val do_proofs: bool ref
+  val pred_intros : theory -> string -> thm list
+  val get_nparams : theory -> string -> int
 end;
 
 structure Predicate_Compile: PREDICATE_COMPILE =
@@ -739,15 +743,15 @@ fun Trueprop_conv cv ct =
     Const ("Trueprop", _) $ _ => Conv.arg_conv cv ct  
   | _ => error "Trueprop_conv"
 
-fun preprocess_intro thy rule = Thm.transfer thy rule (*FIXME preprocessor
+fun preprocess_intro thy rule =
   Conv.fconv_rule
     (imp_prems_conv
-      (Trueprop_conv (Conv.try_conv (Conv.rewr_conv (Thm.symmetric @ {thm Predicate.eq_is_eq})))))
-    (Thm.transfer thy rule) *)
+      (Trueprop_conv (Conv.try_conv (Conv.rewr_conv (Thm.symmetric @{thm Predicate.eq_is_eq})))))
+    (Thm.transfer thy rule)
 
-fun preprocess_elim thy nargs elimrule = (*FIXME preprocessor -- let
+fun preprocess_elim thy nargs elimrule = let
    fun replace_eqs (Const ("Trueprop", _) $ (Const ("op =", T) $ lhs $ rhs)) =
-      HOLogic.mk_Trueprop (Const (@ {const_name Predicate.eq}, T) $ lhs $ rhs)
+      HOLogic.mk_Trueprop (Const (@{const_name Predicate.eq}, T) $ lhs $ rhs)
     | replace_eqs t = t
    fun preprocess_case t = let
      val params = Logic.strip_params t
@@ -759,10 +763,10 @@ fun preprocess_elim thy nargs elimrule = (*FIXME preprocessor -- let
    val elimrule' = Logic.list_implies ((hd prems) :: cases', Thm.concl_of elimrule)
  in
    Thm.equal_elim
-     (Thm.symmetric (Conv.implies_concl_conv (MetaSimplifier.rewrite true [@ {thm eq_is_eq}])
+     (Thm.symmetric (Conv.implies_concl_conv (MetaSimplifier.rewrite true [@{thm eq_is_eq}])
         (cterm_of thy elimrule')))
      elimrule
- end*) elimrule;
+ end;
 
 
 (* returns true if t is an application of an datatype constructor *)
@@ -1353,6 +1357,57 @@ val setup =
     "adding alternative introduction rules for code generation of inductive predicates" #>
   Attrib.setup @{binding code_ind_cases} (Scan.succeed code_ind_cases_attrib)
     "adding alternative elimination rules for code generation of inductive predicates";
+
+(* generation of case rules from user-given introduction rules *)
+
+   fun mk_casesrule introrules nparams ctxt = let
+    val intros = map prop_of introrules
+    val (pred, (params, args)) = strip_intro_concl (hd intros) nparams
+    val ([propname], ctxt1) = Variable.variant_fixes ["thesis"] ctxt
+    val prop = HOLogic.mk_Trueprop (Free (propname, HOLogic.boolT))
+    val (argnames, ctxt2) = Variable.variant_fixes
+      (map (fn i => "a" ^ string_of_int i) (1 upto (length args))) ctxt1
+    val argvs = map Free (argnames ~~ (map fastype_of args))
+    fun mk_case intro = let
+        val (_, (_, args)) = strip_intro_concl intro nparams
+        val prems = Logic.strip_imp_prems intro
+        val eqprems = map (HOLogic.mk_Trueprop o HOLogic.mk_eq) (argvs ~~ args)
+        val frees = (fold o fold_aterms)
+          (fn t as Free _ =>
+              if member (op aconv) params t then I else insert (op aconv) t
+           | _ => I) (args @ prems) []
+        in fold Logic.all frees (Logic.list_implies (eqprems @ prems, prop)) end
+    val assm = HOLogic.mk_Trueprop (list_comb (pred, params @ argvs))
+    val cases = map mk_case intros
+    val (_, ctxt3) = ProofContext.add_assms_i Assumption.assume_export
+              [((Binding.name AutoBind.assmsN, []), map (fn t => (t, [])) (assm :: cases))]
+              ctxt2
+  in (pred, prop, ctxt3) end;
+
+(* setup for user interface *)
+
+  fun generic_code_pred prep_const raw_const lthy =
+    let
+      val thy = (ProofContext.theory_of lthy)
+      val const = prep_const thy raw_const
+      val nparams = get_nparams thy const
+      val intro_rules = pred_intros thy const
+      val (((tfrees, frees), fact), lthy') =
+        Variable.import_thms true intro_rules lthy;
+      val (pred, prop, lthy'') = mk_casesrule fact nparams lthy'
+      val (predname, _) = dest_Const pred
+      fun after_qed [[th]] lthy'' =
+        LocalTheory.note Thm.theoremK
+          ((Binding.name (Long_Name.base_name predname ^ "_cases"), (* FIXME: other suffix *)
+            [Attrib.internal (K (code_ind_cases_attrib))]) , [th]) lthy''
+        |> snd
+        |> LocalTheory.theory (create_def_equation predname)
+    in
+      Proof.theorem_i NONE after_qed [[(prop, [])]] lthy''
+    end;
+
+  val code_pred = generic_code_pred (K I);
+  val code_pred_cmd = generic_code_pred Code_Unit.read_const
 
 end;
 

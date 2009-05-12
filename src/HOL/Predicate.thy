@@ -622,7 +622,10 @@ lemma [code]:
   "pred_rec f P = f (eval P)"
   by (cases P) simp
 
-text {* for evaluation of predicate enumerations *}
+inductive eq :: "'a \<Rightarrow> 'a \<Rightarrow> bool" where "eq x x"
+
+lemma eq_is_eq: "eq x y \<equiv> (x = y)"
+  by (rule eq_reflection) (auto intro: eq.intros elim: eq.cases)
 
 ML {*
 signature PREDICATE =
@@ -666,6 +669,12 @@ code_type pred and seq
 code_const Seq and Empty and Insert and Join
   (Eval "Predicate.Seq" and "Predicate.Empty" and "Predicate.Insert/ (_,/ _)" and "Predicate.Join/ (_,/ _)")
 
+text {* dummy setup for @{text code_pred} keyword *}
+
+ML {*
+OuterSyntax.local_theory_to_proof "code_pred" "sets up goal for cases rule from given introduction rules and compiles predicate"
+  OuterKeyword.thy_goal (OuterParse.term_group >> (K (Proof.theorem_i NONE (K I) [[]])))
+*}
 
 no_notation
   inf (infixl "\<sqinter>" 70) and
@@ -678,6 +687,6 @@ no_notation
 
 hide (open) type pred seq
 hide (open) const Pred eval single bind if_pred not_pred
-  Empty Insert Join Seq member pred_of_seq "apply" adjunct
+  Empty Insert Join Seq member pred_of_seq "apply" adjunct eq
 
 end

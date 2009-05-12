@@ -45,7 +45,6 @@
       <OPERATOR>ML</OPERATOR>
       <LABEL>ML_command</LABEL>
       <OPERATOR>ML_prf</OPERATOR>
-      <OPERATOR>ML_test</OPERATOR>
       <LABEL>ML_val</LABEL>
       <OPERATOR>abbreviation</OPERATOR>
       <KEYWORD4>actions</KEYWORD4>
@@ -95,6 +94,7 @@
       <OPERATOR>code_module</OPERATOR>
       <OPERATOR>code_modulename</OPERATOR>
       <OPERATOR>code_monad</OPERATOR>
+      <OPERATOR>code_pred</OPERATOR>
       <OPERATOR>code_reserved</OPERATOR>
       <LABEL>code_thms</LABEL>
       <OPERATOR>code_type</OPERATOR>
