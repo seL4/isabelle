@@ -669,11 +669,26 @@ code_type pred and seq
 code_const Seq and Empty and Insert and Join
   (Eval "Predicate.Seq" and "Predicate.Empty" and "Predicate.Insert/ (_,/ _)" and "Predicate.Join/ (_,/ _)")
 
-text {* dummy setup for @{text code_pred} keyword *}
+text {* dummy setup for @{text code_pred} and @{text values} keywords *}
 
 ML {*
-OuterSyntax.local_theory_to_proof "code_pred" "sets up goal for cases rule from given introduction rules and compiles predicate"
-  OuterKeyword.thy_goal (OuterParse.term_group >> (K (Proof.theorem_i NONE (K I) [[]])))
+local
+
+structure P = OuterParse;
+
+val opt_modes = Scan.optional (P.$$$ "(" |-- P.!!! (Scan.repeat1 P.xname --| P.$$$ ")")) [];
+
+in
+
+val _ = OuterSyntax.local_theory_to_proof "code_pred" "sets up goal for cases rule from given introduction rules and compiles predicate"
+  OuterKeyword.thy_goal (P.term_group >> (K (Proof.theorem_i NONE (K I) [[]])));
+
+val _ = OuterSyntax.improper_command "values" "evaluate and print enumerations"
+  OuterKeyword.diag ((opt_modes -- P.term)
+    >> (fn (modes, t) => Toplevel.no_timing o Toplevel.keep
+        (K ())));
+
+end
 *}
 
 no_notation

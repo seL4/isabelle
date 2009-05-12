@@ -1870,8 +1870,8 @@ code_abort undefined
 subsubsection {* Generic code generator preprocessor *}
 
 setup {*
-  Code.map_pre (K HOL_basic_ss)
-  #> Code.map_post (K HOL_basic_ss)
+  Code_Preproc.map_pre (K HOL_basic_ss)
+  #> Code_Preproc.map_post (K HOL_basic_ss)
 *}
 
 subsubsection {* Generic code generator target languages *}

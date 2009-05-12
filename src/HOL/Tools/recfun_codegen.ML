@@ -54,7 +54,7 @@ fun retrieve_equations thy (c, T) = if c = @{const_name "op ="} then NONE else
   let
     val c' = AxClass.unoverload_const thy (c, T);
     val opt_name = Symtab.lookup (ModuleData.get thy) c';
-    val thms = Code.these_raw_eqns thy c'
+    val thms = Code.these_eqns thy c'
       |> map_filter (fn (thm, linear) => if linear then SOME thm else NONE)
       |> expand_eta thy
       |> map_filter (meta_eq_to_obj_eq thy)

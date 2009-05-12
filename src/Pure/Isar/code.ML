@@ -15,13 +15,6 @@ sig
   val del_eqn: thm -> theory -> theory
   val del_eqns: string -> theory -> theory
   val add_eqnl: string * (thm * bool) list lazy -> theory -> theory
-  val map_pre: (simpset -> simpset) -> theory -> theory
-  val map_post: (simpset -> simpset) -> theory -> theory
-  val add_inline: thm -> theory -> theory
-  val add_functrans: string * (theory -> (thm * bool) list -> (thm * bool) list option) -> theory -> theory
-  val del_functrans: string -> theory -> theory
-  val simple_functrans: (theory -> thm list -> thm list option)
-    -> theory -> (thm * bool) list -> (thm * bool) list option
   val add_datatype: (string * typ) list -> theory -> theory
   val add_datatype_cmd: string list -> theory -> theory
   val type_interpretation:
@@ -32,17 +25,14 @@ sig
   val purge_data: theory -> theory
 
   val these_eqns: theory -> string -> (thm * bool) list
-  val these_raw_eqns: theory -> string -> (thm * bool) list
   val get_datatype: theory -> string -> ((string * sort) list * (string * typ list) list)
   val get_datatype_of_constr: theory -> string -> string option
   val get_case_scheme: theory -> string -> (int * (int * string list)) option
   val is_undefined: theory -> string -> bool
   val default_typscheme: theory -> string -> (string * sort) list * typ
-
-  val preprocess_conv: theory -> cterm -> thm
-  val preprocess_term: theory -> term -> term
-  val postprocess_conv: theory -> cterm -> thm
-  val postprocess_term: theory -> term -> term
+  val assert_eqn: theory -> thm * bool -> thm * bool
+  val assert_eqns_const: theory -> string
+    -> (thm * bool) list -> (thm * bool) list
 
   val add_attribute: string * attribute parser -> theory -> theory
 
@@ -159,6 +149,8 @@ datatype spec = Spec of {
 
 fun mk_spec ((concluded_history, eqns), (dtyps, cases)) =
   Spec { concluded_history = concluded_history, eqns = eqns, dtyps = dtyps, cases = cases };
+val empty_spec =
+  mk_spec ((false, Symtab.empty), (Symtab.empty, (Symtab.empty, Symtab.empty)));
 fun map_spec f (Spec { concluded_history = concluded_history, eqns = eqns,
   dtyps = dtyps, cases = cases }) =
   mk_spec (f ((concluded_history, eqns), (dtyps, cases)));
@@ -167,7 +159,8 @@ fun merge_spec (Spec { concluded_history = _, eqns = eqns1, dtyps = dtyps1, case
   let
     fun merge_eqns ((_, history1), (_, history2)) =
       let
-        val raw_history = AList.merge (op =) (K true) (history1, history2)
+        val raw_history = AList.merge (op = : serial * serial -> bool)
+          (K true) (history1, history2)
         val filtered_history = filter_out (fst o snd) raw_history
         val history = if null filtered_history
           then raw_history else filtered_history;
@@ -179,57 +172,16 @@ fun merge_spec (Spec { concluded_history = _, eqns = eqns1, dtyps = dtyps1, case
   in mk_spec ((false, eqns), (dtyps, cases)) end;
 
 
-(* pre- and postprocessor *)
-
-datatype thmproc = Thmproc of {
-  pre: simpset,
-  post: simpset,
-  functrans: (string * (serial * (theory -> (thm * bool) list -> (thm * bool) list option))) list
-};
-
-fun mk_thmproc ((pre, post), functrans) =
-  Thmproc { pre = pre, post = post, functrans = functrans };
-fun map_thmproc f (Thmproc { pre, post, functrans }) =
-  mk_thmproc (f ((pre, post), functrans));
-fun merge_thmproc (Thmproc { pre = pre1, post = post1, functrans = functrans1 },
-  Thmproc { pre = pre2, post = post2, functrans = functrans2 }) =
-    let
-      val pre = Simplifier.merge_ss (pre1, pre2);
-      val post = Simplifier.merge_ss (post1, post2);
-      val functrans = AList.merge (op =) (eq_fst (op =)) (functrans1, functrans2);
-    in mk_thmproc ((pre, post), functrans) end;
-
-datatype exec = Exec of {
-  thmproc: thmproc,
-  spec: spec
-};
-
-
 (* code setup data *)
 
-fun mk_exec (thmproc, spec) =
-  Exec { thmproc = thmproc, spec = spec };
-fun map_exec f (Exec { thmproc = thmproc, spec = spec }) =
-  mk_exec (f (thmproc, spec));
-fun merge_exec (Exec { thmproc = thmproc1, spec = spec1 },
-  Exec { thmproc = thmproc2, spec = spec2 }) =
-  let
-    val thmproc = merge_thmproc (thmproc1, thmproc2);
-    val spec = merge_spec (spec1, spec2);
-  in mk_exec (thmproc, spec) end;
-val empty_exec = mk_exec (mk_thmproc ((Simplifier.empty_ss, Simplifier.empty_ss), []),
-  mk_spec ((false, Symtab.empty), (Symtab.empty, (Symtab.empty, Symtab.empty))));
-
-fun the_thmproc (Exec { thmproc = Thmproc x, ...}) = x;
-fun the_spec (Exec { spec = Spec x, ...}) = x;
+fun the_spec (Spec x) = x;
 val the_eqns = #eqns o the_spec;
 val the_dtyps = #dtyps o the_spec;
 val the_cases = #cases o the_spec;
-val map_thmproc = map_exec o apfst o map_thmproc;
-val map_concluded_history = map_exec o apsnd o map_spec o apfst o apfst;
-val map_eqns = map_exec o apsnd o map_spec o apfst o apsnd;
-val map_dtyps = map_exec o apsnd o map_spec o apsnd o apfst;
-val map_cases = map_exec o apsnd o map_spec o apsnd o apsnd;
+val map_concluded_history = map_spec o apfst o apfst;
+val map_eqns = map_spec o apfst o apsnd;
+val map_dtyps = map_spec o apsnd o apfst;
+val map_cases = map_spec o apsnd o apsnd;
 
 
 (* data slots dependent on executable content *)
@@ -277,17 +229,17 @@ local
 type data = Object.T Datatab.table;
 val empty_data = Datatab.empty : data;
 
-structure CodeData = TheoryDataFun
+structure Code_Data = TheoryDataFun
 (
-  type T = exec * data ref;
-  val empty = (empty_exec, ref empty_data);
-  fun copy (exec, data) = (exec, ref (! data));
+  type T = spec * data ref;
+  val empty = (empty_spec, ref empty_data);
+  fun copy (spec, data) = (spec, ref (! data));
   val extend = copy;
-  fun merge pp ((exec1, data1), (exec2, data2)) =
-    (merge_exec (exec1, exec2), ref empty_data);
+  fun merge pp ((spec1, data1), (spec2, data2)) =
+    (merge_spec (spec1, spec2), ref empty_data);
 );
 
-fun thy_data f thy = f ((snd o CodeData.get) thy);
+fun thy_data f thy = f ((snd o Code_Data.get) thy);
 
 fun get_ensure_init kind data_ref =
   case Datatab.lookup (! data_ref) kind
@@ -299,7 +251,7 @@ in
 
 (* access to executable content *)
 
-val the_exec = fst o CodeData.get;
+val the_exec = fst o Code_Data.get;
 
 fun complete_class_params thy cs =
   fold (fn c => case AxClass.inst_of_param thy c
@@ -307,11 +259,11 @@ fun complete_class_params thy cs =
     | SOME (c', _) => insert (op =) c' #> insert (op =) c) cs [];
 
 fun map_exec_purge touched f thy =
-  CodeData.map (fn (exec, data) => (f exec, ref (case touched
+  Code_Data.map (fn (exec, data) => (f exec, ref (case touched
    of SOME cs => invoke_purge_all thy (complete_class_params thy cs) (! data)
     | NONE => empty_data))) thy;
 
-val purge_data = (CodeData.map o apsnd) (K (ref empty_data));
+val purge_data = (Code_Data.map o apsnd) (K (ref empty_data));
 
 
 (* tackling equation history *)
@@ -323,21 +275,21 @@ fun get_eqns thy c =
 
 fun continue_history thy = if (#concluded_history o the_spec o the_exec) thy
   then thy
-    |> (CodeData.map o apfst o map_concluded_history) (K false)
+    |> (Code_Data.map o apfst o map_concluded_history) (K false)
     |> SOME
   else NONE;
 
 fun conclude_history thy = if (#concluded_history o the_spec o the_exec) thy
   then NONE
   else thy
-    |> (CodeData.map o apfst)
+    |> (Code_Data.map o apfst)
         ((map_eqns o Symtab.map) (fn ((changed, current), history) =>
           ((false, current),
             if changed then (serial (), current) :: history else history))
         #> map_concluded_history (K true))
     |> SOME;
 
-val _ = Context.>> (Context.map_theory (CodeData.init
+val _ = Context.>> (Context.map_theory (Code_Data.init
   #> Theory.at_begin continue_history
   #> Theory.at_end conclude_history));
 
@@ -366,9 +318,6 @@ fun change_yield_data (kind, mk, dest) =
 
 end; (*local*)
 
-
-(* print executable content *)
-
 fun print_codesetup thy =
   let
     val ctxt = ProofContext.init thy;
@@ -390,9 +339,6 @@ fun print_codesetup thy =
                           :: Pretty.str "of"
                           :: map (Pretty.quote o Syntax.pretty_typ_global thy) tys)) cos)
           );
-    val pre = (#pre o the_thmproc) exec;
-    val post = (#post o the_thmproc) exec;
-    val functrans = (map fst o #functrans o the_thmproc) exec;
     val eqns = the_eqns exec
       |> Symtab.dest
       |> (map o apfst) (Code_Unit.string_of_const thy)
@@ -409,21 +355,6 @@ fun print_codesetup thy =
         Pretty.str "code equations:"
         :: Pretty.fbrk
         :: (Pretty.fbreaks o map pretty_eqn) eqns
-      ),
-      Pretty.block [
-        Pretty.str "preprocessing simpset:",
-        Pretty.fbrk,
-        Simplifier.pretty_ss ctxt pre
-      ],
-      Pretty.block [
-        Pretty.str "postprocessing simpset:",
-        Pretty.fbrk,
-        Simplifier.pretty_ss ctxt post
-      ],
-      Pretty.block (
-        Pretty.str "function transformers:"
-        :: Pretty.fbrk
-        :: (Pretty.fbreaks o map Pretty.str) functrans
       ),
       Pretty.block (
         Pretty.str "datatypes:"
@@ -460,10 +391,6 @@ fun common_typ_eqns thy [] = []
 
 
 (** interfaces and attributes **)
-
-fun delete_force msg key xs =
-  if AList.defined (op =) xs key then AList.delete (op =) key xs
-  else error ("No such " ^ msg ^ ": " ^ quote key);
 
 fun get_datatype thy tyco =
   case these (Symtab.lookup ((the_dtyps o the_exec) thy) tyco)
@@ -568,26 +495,6 @@ fun add_case thm thy =
 fun add_undefined c thy =
   (map_exec_purge (SOME [c]) o map_cases o apsnd) (Symtab.update (c, ())) thy;
 
-val map_pre = map_exec_purge NONE o map_thmproc o apfst o apfst;
-val map_post = map_exec_purge NONE o map_thmproc o apfst o apsnd;
-
-val add_inline = map_pre o MetaSimplifier.add_simp;
-val del_inline = map_pre o MetaSimplifier.del_simp;
-val add_post = map_post o MetaSimplifier.add_simp;
-val del_post = map_post o MetaSimplifier.del_simp;
-  
-fun add_functrans (name, f) =
-  (map_exec_purge NONE o map_thmproc o apsnd)
-    (AList.update (op =) (name, (serial (), f)));
-
-fun del_functrans name =
-  (map_exec_purge NONE o map_thmproc o apsnd)
-    (delete_force "function transformer" name);
-
-fun simple_functrans f thy eqns = case f thy (map fst eqns)
- of SOME thms' => SOME (map (rpair (forall snd eqns)) thms')
-  | NONE => NONE;
-
 val _ = Context.>> (Context.map_theory
   (let
     fun mk_attribute f = Thm.declaration_attribute (fn thm => Context.mapping (f thm) I);
@@ -600,77 +507,12 @@ val _ = Context.>> (Context.map_theory
     TypeInterpretation.init
     #> add_del_attribute ("", (add_eqn, del_eqn))
     #> add_simple_attribute ("nbe", add_nbe_eqn)
-    #> add_del_attribute ("inline", (add_inline, del_inline))
-    #> add_del_attribute ("post", (add_post, del_post))
   end));
-
-
-(** post- and preprocessing **)
-
-local
-
-fun apply_functrans thy c _ [] = []
-  | apply_functrans thy c [] eqns = eqns
-  | apply_functrans thy c functrans eqns = eqns
-      |> perhaps (perhaps_loop (perhaps_apply functrans))
-      |> assert_eqns_const thy c;
-
-fun rhs_conv conv thm = Thm.transitive thm ((conv o Thm.rhs_of) thm);
-
-fun term_of_conv thy f =
-  Thm.cterm_of thy
-  #> f
-  #> Thm.prop_of
-  #> Logic.dest_equals
-  #> snd;
-
-fun preprocess thy c eqns =
-  let
-    val pre = (Simplifier.theory_context thy o #pre o the_thmproc o the_exec) thy;
-    val functrans = (map (fn (_, (_, f)) => f thy) o #functrans
-      o the_thmproc o the_exec) thy;
-  in
-    eqns
-    |> apply_functrans thy c functrans
-    |> (map o apfst) (Code_Unit.rewrite_eqn pre)
-    |> (map o apfst) (AxClass.unoverload thy)
-    |> map (assert_eqn thy)
-    |> burrow_fst (common_typ_eqns thy)
-  end;
-
-in
-
-fun preprocess_conv thy ct =
-  let
-    val pre = (Simplifier.theory_context thy o #pre o the_thmproc o the_exec) thy;
-  in
-    ct
-    |> Simplifier.rewrite pre
-    |> rhs_conv (AxClass.unoverload_conv thy)
-  end;
-
-fun preprocess_term thy = term_of_conv thy (preprocess_conv thy);
-
-fun postprocess_conv thy ct =
-  let
-    val post = (Simplifier.theory_context thy o #post o the_thmproc o the_exec) thy;
-  in
-    ct
-    |> AxClass.overload_conv thy
-    |> rhs_conv (Simplifier.rewrite post)
-  end;
-
-fun postprocess_term thy = term_of_conv thy (postprocess_conv thy);
-
-fun these_raw_eqns thy c =
-  get_eqns thy c
-  |> (map o apfst) (Thm.transfer thy)
-  |> burrow_fst (common_typ_eqns thy);
 
 fun these_eqns thy c =
   get_eqns thy c
   |> (map o apfst) (Thm.transfer thy)
-  |> preprocess thy c;
+  |> burrow_fst (common_typ_eqns thy);
 
 fun default_typscheme thy c =
   let
@@ -684,8 +526,6 @@ fun default_typscheme thy c =
         else case get_eqns thy c
          of (thm, _) :: _ => (Code_Unit.typscheme_eqn thy o Drule.zero_var_indexes) thm
           | [] => strip_sorts (the_const_typscheme c) end;
-
-end; (*local*)
 
 end; (*struct*)
 

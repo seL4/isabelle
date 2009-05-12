@@ -161,20 +161,21 @@ fun pr_sml_stmt labelled_name syntax_tyco syntax_const reserved_names deresolve 
               :: map (pr "|") clauses
             )
           end
-      | pr_case is_closure thm vars fxy ((_, []), _) = str "raise Fail \"empty case\"";
+      | pr_case is_closure thm vars fxy ((_, []), _) =
+          (concat o map str) ["raise", "Fail", "\"empty case\""];
     fun pr_stmt (MLExc (name, n)) =
           let
             val exc_str =
               (ML_Syntax.print_string o Long_Name.base_name o Long_Name.qualifier) name;
           in
-            concat (
-              str (if n = 0 then "val" else "fun")
-              :: (str o deresolve) name
-              :: map str (replicate n "_")
-              @ str "="
-              :: str "raise"
-              :: str "(Fail"
-              @@ str (exc_str ^ ")")
+            (concat o map str) (
+              (if n = 0 then "val" else "fun")
+              :: deresolve name
+              :: replicate n "_"
+              @ "="
+              :: "raise"
+              :: "Fail"
+              @@ exc_str
             )
           end
       | pr_stmt (MLVal (name, (((vs, ty), t), (thm, _)))) =
@@ -458,7 +459,8 @@ fun pr_ocaml_stmt labelled_name syntax_tyco syntax_const reserved_names deresolv
               :: map (pr "|") clauses
             )
           end
-      | pr_case is_closure thm vars fxy ((_, []), _) = str "failwith \"empty case\"";
+      | pr_case is_closure thm vars fxy ((_, []), _) =
+          (concat o map str) ["failwith", "\"empty case\""];
     fun fish_params vars eqs =
       let
         fun fish_param _ (w as SOME _) = w
@@ -477,13 +479,13 @@ fun pr_ocaml_stmt labelled_name syntax_tyco syntax_const reserved_names deresolv
             val exc_str =
               (ML_Syntax.print_string o Long_Name.base_name o Long_Name.qualifier) name;
           in
-            concat (
-              str "let"
-              :: (str o deresolve) name
-              :: map str (replicate n "_")
-              @ str "="
-              :: str "failwith"
-              @@ str exc_str
+            (concat o map str) (
+              "let"
+              :: deresolve name
+              :: replicate n "_"
+              @ "="
+              :: "failwith"
+              @@ exc_str
             )
           end
       | pr_stmt (MLVal (name, (((vs, ty), t), (thm, _)))) =

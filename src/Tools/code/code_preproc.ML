@@ -1,12 +1,21 @@
-(*  Title:      Tools/code/code_wellsorted.ML
+(*  Title:      Tools/code/code_preproc.ML
     Author:     Florian Haftmann, TU Muenchen
 
-Producing well-sorted systems of code equations in a graph
-with explicit dependencies -- the Waisenhaus algorithm.
+Preprocessing code equations into a well-sorted system
+in a graph with explicit dependencies.
 *)
 
-signature CODE_WELLSORTED =
+signature CODE_PREPROC =
 sig
+  val map_pre: (simpset -> simpset) -> theory -> theory
+  val map_post: (simpset -> simpset) -> theory -> theory
+  val add_inline: thm -> theory -> theory
+  val add_functrans: string * (theory -> (thm * bool) list -> (thm * bool) list option) -> theory -> theory
+  val del_functrans: string -> theory -> theory
+  val simple_functrans: (theory -> thm list -> thm list option)
+    -> theory -> (thm * bool) list -> (thm * bool) list option
+  val print_codeproc: theory -> unit
+
   type code_algebra
   type code_graph
   val eqns: code_graph -> string -> (thm * bool) list
@@ -18,12 +27,155 @@ sig
     -> (code_algebra -> code_graph -> (string * sort) list -> term -> cterm -> thm) -> cterm -> thm
   val eval: theory -> (sort -> sort) -> ((term -> term) -> 'a -> 'a)
     -> (code_algebra -> code_graph -> (string * sort) list -> term -> 'a) -> term -> 'a
+
+  val setup: theory -> theory
 end
 
-structure Code_Wellsorted : CODE_WELLSORTED =
+structure Code_Preproc : CODE_PREPROC =
 struct
 
-(** the algebra and code equation graph types **)
+(** preprocessor administration **)
+
+(* theory data *)
+
+datatype thmproc = Thmproc of {
+  pre: simpset,
+  post: simpset,
+  functrans: (string * (serial * (theory -> (thm * bool) list -> (thm * bool) list option))) list
+};
+
+fun mk_thmproc ((pre, post), functrans) =
+  Thmproc { pre = pre, post = post, functrans = functrans };
+fun map_thmproc f (Thmproc { pre, post, functrans }) =
+  mk_thmproc (f ((pre, post), functrans));
+fun merge_thmproc (Thmproc { pre = pre1, post = post1, functrans = functrans1 },
+  Thmproc { pre = pre2, post = post2, functrans = functrans2 }) =
+    let
+      val pre = Simplifier.merge_ss (pre1, pre2);
+      val post = Simplifier.merge_ss (post1, post2);
+      val functrans = AList.merge (op =) (eq_fst (op =)) (functrans1, functrans2);
+    in mk_thmproc ((pre, post), functrans) end;
+
+structure Code_Preproc_Data = TheoryDataFun
+(
+  type T = thmproc;
+  val empty = mk_thmproc ((Simplifier.empty_ss, Simplifier.empty_ss), []);
+  fun copy spec = spec;
+  val extend = copy;
+  fun merge pp = merge_thmproc;
+);
+
+fun the_thmproc thy = case Code_Preproc_Data.get thy
+ of Thmproc x => x;
+
+fun delete_force msg key xs =
+  if AList.defined (op =) xs key then AList.delete (op =) key xs
+  else error ("No such " ^ msg ^ ": " ^ quote key);
+
+fun map_data f thy =
+  thy
+  |> Code.purge_data
+  |> (Code_Preproc_Data.map o map_thmproc) f;
+
+val map_pre = map_data o apfst o apfst;
+val map_post = map_data o apfst o apsnd;
+
+val add_inline = map_pre o MetaSimplifier.add_simp;
+val del_inline = map_pre o MetaSimplifier.del_simp;
+val add_post = map_post o MetaSimplifier.add_simp;
+val del_post = map_post o MetaSimplifier.del_simp;
+  
+fun add_functrans (name, f) = (map_data o apsnd)
+  (AList.update (op =) (name, (serial (), f)));
+
+fun del_functrans name = (map_data o apsnd)
+  (delete_force "function transformer" name);
+
+
+(* post- and preprocessing *)
+
+fun apply_functrans thy c _ [] = []
+  | apply_functrans thy c [] eqns = eqns
+  | apply_functrans thy c functrans eqns = eqns
+      |> perhaps (perhaps_loop (perhaps_apply functrans))
+      |> Code.assert_eqns_const thy c;
+
+fun rhs_conv conv thm = Thm.transitive thm ((conv o Thm.rhs_of) thm);
+
+fun term_of_conv thy f =
+  Thm.cterm_of thy
+  #> f
+  #> Thm.prop_of
+  #> Logic.dest_equals
+  #> snd;
+
+fun preprocess thy c eqns =
+  let
+    val pre = (Simplifier.theory_context thy o #pre o the_thmproc) thy;
+    val functrans = (map (fn (_, (_, f)) => f thy) o #functrans
+      o the_thmproc) thy;
+  in
+    eqns
+    |> apply_functrans thy c functrans
+    |> (map o apfst) (Code_Unit.rewrite_eqn pre)
+    |> (map o apfst) (AxClass.unoverload thy)
+    |> map (Code.assert_eqn thy)
+    |> burrow_fst (Code_Unit.norm_args thy)
+    |> burrow_fst (Code_Unit.norm_varnames thy)
+  end;
+
+fun preprocess_conv thy ct =
+  let
+    val pre = (Simplifier.theory_context thy o #pre o the_thmproc) thy;
+  in
+    ct
+    |> Simplifier.rewrite pre
+    |> rhs_conv (AxClass.unoverload_conv thy)
+  end;
+
+fun postprocess_conv thy ct =
+  let
+    val post = (Simplifier.theory_context thy o #post o the_thmproc) thy;
+  in
+    ct
+    |> AxClass.overload_conv thy
+    |> rhs_conv (Simplifier.rewrite post)
+  end;
+
+fun postprocess_term thy = term_of_conv thy (postprocess_conv thy);
+
+fun print_codeproc thy =
+  let
+    val ctxt = ProofContext.init thy;
+    val pre = (#pre o the_thmproc) thy;
+    val post = (#post o the_thmproc) thy;
+    val functrans = (map fst o #functrans o the_thmproc) thy;
+  in
+    (Pretty.writeln o Pretty.chunks) [
+      Pretty.block [
+        Pretty.str "preprocessing simpset:",
+        Pretty.fbrk,
+        Simplifier.pretty_ss ctxt pre
+      ],
+      Pretty.block [
+        Pretty.str "postprocessing simpset:",
+        Pretty.fbrk,
+        Simplifier.pretty_ss ctxt post
+      ],
+      Pretty.block (
+        Pretty.str "function transformers:"
+        :: Pretty.fbrk
+        :: (Pretty.fbreaks o map Pretty.str) functrans
+      )
+    ]
+  end;
+
+fun simple_functrans f thy eqns = case f thy (map fst eqns)
+ of SOME thms' => SOME (map (rpair (forall snd eqns)) thms')
+  | NONE => NONE;
+
+
+(** sort algebra and code equation graph types **)
 
 type code_algebra = (sort -> sort) * Sorts.algebra;
 type code_graph = (((string * sort) list * typ) * (thm * bool) list) Graph.T;
@@ -106,8 +258,7 @@ fun obtain_eqns thy eqngr c =
    of SOME ((lhs, _), eqns) => ((lhs, []), [])
     | NONE => let
         val eqns = Code.these_eqns thy c
-          |> burrow_fst (Code_Unit.norm_args thy)
-          |> burrow_fst (Code_Unit.norm_varnames thy);
+          |> preprocess thy c;
         val ((lhs, _), rhss) = tyscm_rhss_of thy c eqns;
       in ((lhs, rhss), eqns) end;
 
@@ -135,7 +286,7 @@ fun add_classes thy arities eqngr c_k new_classes vardeps_data =
   in
     vardeps_data
     |> (apfst o Vargraph.map_node c_k o apsnd) (append diff_classes)
-    |> fold (fn styp => fold (assert_typmatch_inst thy arities eqngr styp) new_classes) styps
+    |> fold (fn styp => fold (ensure_typmatch_inst thy arities eqngr styp) new_classes) styps
     |> fold (fn c_k => add_classes thy arities eqngr c_k diff_classes) c_ks
   end end
 and add_styp thy arities eqngr c_k tyco_styps vardeps_data =
@@ -145,7 +296,7 @@ and add_styp thy arities eqngr c_k tyco_styps vardeps_data =
   else
     vardeps_data
     |> (apfst o Vargraph.map_node c_k o apfst) (cons tyco_styps)
-    |> fold (assert_typmatch_inst thy arities eqngr tyco_styps) classes
+    |> fold (ensure_typmatch_inst thy arities eqngr tyco_styps) classes
   end
 and add_dep thy arities eqngr c_k c_k' vardeps_data =
   let
@@ -155,14 +306,14 @@ and add_dep thy arities eqngr c_k c_k' vardeps_data =
     |> add_classes thy arities eqngr c_k' classes
     |> apfst (Vargraph.add_edge (c_k, c_k'))
   end
-and assert_typmatch_inst thy arities eqngr (tyco, styps) class vardeps_data =
+and ensure_typmatch_inst thy arities eqngr (tyco, styps) class vardeps_data =
   if can (Sign.arity_sorts thy tyco) [class]
   then vardeps_data
-    |> assert_inst thy arities eqngr (class, tyco)
+    |> ensure_inst thy arities eqngr (class, tyco)
     |> fold_index (fn (k, styp) =>
-         assert_typmatch thy arities eqngr styp (Inst (class, tyco), k)) styps
+         ensure_typmatch thy arities eqngr styp (Inst (class, tyco), k)) styps
   else vardeps_data (*permissive!*)
-and assert_inst thy arities eqngr (inst as (class, tyco)) (vardeps_data as (_, (_, insts))) =
+and ensure_inst thy arities eqngr (inst as (class, tyco)) (vardeps_data as (_, (_, insts))) =
   if member (op =) insts inst then vardeps_data
   else let
     val (classess, (superclasses, inst_params)) =
@@ -172,8 +323,8 @@ and assert_inst thy arities eqngr (inst as (class, tyco)) (vardeps_data as (_, (
     |> (apsnd o apsnd) (insert (op =) inst)
     |> fold_index (fn (k, _) =>
          apfst (Vargraph.new_node ((Inst (class, tyco), k), ([] ,[])))) classess
-    |> fold (fn superclass => assert_inst thy arities eqngr (superclass, tyco)) superclasses
-    |> fold (assert_fun thy arities eqngr) inst_params
+    |> fold (fn superclass => ensure_inst thy arities eqngr (superclass, tyco)) superclasses
+    |> fold (ensure_fun thy arities eqngr) inst_params
     |> fold_index (fn (k, classes) =>
          add_classes thy arities eqngr (Inst (class, tyco), k) classes
          #> fold (fn superclass =>
@@ -185,20 +336,20 @@ and assert_inst thy arities eqngr (inst as (class, tyco)) (vardeps_data as (_, (
              ) inst_params
          ) classess
   end
-and assert_typmatch thy arities eqngr (Tyco tyco_styps) c_k vardeps_data =
+and ensure_typmatch thy arities eqngr (Tyco tyco_styps) c_k vardeps_data =
       vardeps_data
       |> add_styp thy arities eqngr c_k tyco_styps
-  | assert_typmatch thy arities eqngr (Var c_k') c_k vardeps_data =
+  | ensure_typmatch thy arities eqngr (Var c_k') c_k vardeps_data =
       vardeps_data
       |> add_dep thy arities eqngr c_k c_k'
-  | assert_typmatch thy arities eqngr Free c_k vardeps_data =
+  | ensure_typmatch thy arities eqngr Free c_k vardeps_data =
       vardeps_data
-and assert_rhs thy arities eqngr (c', styps) vardeps_data =
+and ensure_rhs thy arities eqngr (c', styps) vardeps_data =
   vardeps_data
-  |> assert_fun thy arities eqngr c'
+  |> ensure_fun thy arities eqngr c'
   |> fold_index (fn (k, styp) =>
-       assert_typmatch thy arities eqngr styp (Fun c', k)) styps
-and assert_fun thy arities eqngr c (vardeps_data as (_, (eqntab, _))) =
+       ensure_typmatch thy arities eqngr styp (Fun c', k)) styps
+and ensure_fun thy arities eqngr c (vardeps_data as (_, (eqntab, _))) =
   if Symtab.defined eqntab c then vardeps_data
   else let
     val ((lhs, rhss), eqns) = obtain_eqns thy eqngr c;
@@ -210,7 +361,7 @@ and assert_fun thy arities eqngr c (vardeps_data as (_, (eqntab, _))) =
          apfst (Vargraph.new_node ((Fun c, k), ([] ,[])))) lhs
     |> fold_index (fn (k, (_, sort)) =>
          add_classes thy arities eqngr (Fun c, k) (complete_proper_sort thy sort)) lhs
-    |> fold (assert_rhs thy arities eqngr) rhss'
+    |> fold (ensure_rhs thy arities eqngr) rhss'
   end;
 
 
@@ -253,8 +404,8 @@ fun extend_arities_eqngr thy cs ts (arities, eqngr) =
     val cs_rhss = (fold o fold_aterms) (fn Const (c_ty as (c, _)) =>
       insert (op =) (c, (map (styp_of NONE) o Sign.const_typargs thy) c_ty) | _ => I) ts [];
     val (vardeps, (eqntab, insts)) = empty_vardeps_data
-      |> fold (assert_fun thy arities eqngr) cs
-      |> fold (assert_rhs thy arities eqngr) cs_rhss;
+      |> fold (ensure_fun thy arities eqngr) cs
+      |> fold (ensure_rhs thy arities eqngr) cs_rhss;
     val arities' = fold (add_arity thy vardeps) insts arities;
     val pp = Syntax.pp_global thy;
     val algebra = Sorts.subalgebra pp (is_proper_class thy)
@@ -267,7 +418,7 @@ fun extend_arities_eqngr thy cs ts (arities, eqngr) =
   in (algebra, (arities', eqngr'')) end;
 
 
-(** store **)
+(** store for preprocessed arities and code equations **)
 
 structure Wellsorted = CodeDataFun
 (
@@ -288,7 +439,7 @@ structure Wellsorted = CodeDataFun
 );
 
 
-(** retrieval interfaces **)
+(** retrieval and evaluation interfaces **)
 
 fun obtain thy cs ts = apsnd snd
   (Wellsorted.change_yield thy (extend_arities_eqngr thy cs ts));
@@ -310,7 +461,7 @@ fun gen_eval thy cterm_of conclude_evaluation prep_sort evaluator proto_ct =
     val ct = cterm_of proto_ct;
     val _ = (Sign.no_frees pp o map_types (K dummyT) o Sign.no_vars pp)
       (Thm.term_of ct);
-    val thm = Code.preprocess_conv thy ct;
+    val thm = preprocess_conv thy ct;
     val ct' = Thm.rhs_of thm;
     val t' = Thm.term_of ct';
     val vs = Term.add_tfrees t' [];
@@ -328,7 +479,7 @@ fun eval_conv thy =
   let
     fun conclude_evaluation thm2 thm1 =
       let
-        val thm3 = Code.postprocess_conv thy (Thm.rhs_of thm2);
+        val thm3 = postprocess_conv thy (Thm.rhs_of thm2);
       in
         Thm.transitive thm1 (Thm.transitive thm2 thm3) handle THM _ =>
           error ("could not construct evaluation proof:\n"
@@ -337,6 +488,28 @@ fun eval_conv thy =
   in gen_eval thy I conclude_evaluation end;
 
 fun eval thy prep_sort postproc evaluator = gen_eval thy (Thm.cterm_of thy)
-  (K o postproc (Code.postprocess_term thy)) prep_sort (simple_evaluator evaluator);
+  (K o postproc (postprocess_term thy)) prep_sort (simple_evaluator evaluator);
+
+
+(** setup **)
+
+val setup = 
+  let
+    fun mk_attribute f = Thm.declaration_attribute (fn thm => Context.mapping (f thm) I);
+    fun add_del_attribute (name, (add, del)) =
+      Code.add_attribute (name, Args.del |-- Scan.succeed (mk_attribute del)
+        || Scan.succeed (mk_attribute add))
+  in
+    add_del_attribute ("inline", (add_inline, del_inline))
+    #> add_del_attribute ("post", (add_post, del_post))
+    #> Code.add_attribute ("unfold", Scan.succeed (Thm.declaration_attribute
+       (fn thm => Context.mapping (Codegen.add_unfold thm #> add_inline thm) I)))
+  end;
+
+val _ =
+  OuterSyntax.improper_command "print_codeproc" "print code preprocessor setup"
+  OuterKeyword.diag (Scan.succeed
+      (Toplevel.no_timing o Toplevel.unknown_theory o Toplevel.keep
+        (print_codeproc o Toplevel.theory_of)));
 
 end; (*struct*)
