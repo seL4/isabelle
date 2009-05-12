@@ -179,7 +179,7 @@ fun gen_eqn_suc_preproc Suc_if_eq dest_judgement dest_lhs thy thms =
        else NONE
   end;
 
-val eqn_suc_preproc = Code.simple_functrans (gen_eqn_suc_preproc
+val eqn_suc_preproc = Code_Preproc.simple_functrans (gen_eqn_suc_preproc
   @{thm Suc_if_eq} I (fst o Logic.dest_equals));
 
 fun eqn_suc_preproc' thy thms = gen_eqn_suc_preproc
@@ -229,7 +229,7 @@ in
 
   Codegen.add_preprocessor eqn_suc_preproc'
   #> Codegen.add_preprocessor clause_suc_preproc
-  #> Code.add_functrans ("eqn_Suc", eqn_suc_preproc)
+  #> Code_Preproc.add_functrans ("eqn_Suc", eqn_suc_preproc)
 
 end;
 *}
