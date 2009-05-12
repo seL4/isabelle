@@ -24,7 +24,7 @@ open Domain_Library;
 (* ----- general testing and preprocessing of constructor list -------------- *)
 fun check_and_sort_domain
   (dtnvs : (string * typ list) list)
-  (cons'' : ((binding * (bool * binding option * typ) list * mixfix) list) list)
+  (cons'' : (binding * (bool * binding option * typ) list * mixfix) list list)
   (sg : theory)
   : ((string * typ list) *
       (binding * (bool * binding option * typ) list * mixfix) list) list =
@@ -75,9 +75,15 @@ fun check_and_sort_domain
 					     quote (string_of_typ sg t) ^ 
 					    " with different arguments"))
         |   analyse indirect (TVar _) = Imposs "extender:analyse";
-	fun check_pcpo T = if pcpo_type sg T then T
-          else error("Constructor argument type is not of sort pcpo: "^string_of_typ sg T);
-	val analyse_con = upd_second (map (upd_third (check_pcpo o analyse false)));
+        fun check_pcpo lazy T =
+          let val ok = if lazy then cpo_type else pcpo_type
+          in if ok sg T then T else error
+            ("Constructor argument type is not of sort pcpo: " ^
+              string_of_typ sg T)
+          end;
+        fun analyse_arg (lazy, sel, T) =
+          (lazy, sel, check_pcpo lazy (analyse false T));
+        fun analyse_con (b, args, mx) = (b, map analyse_arg args, mx);
       in ((dname,distinct_typevars), map analyse_con cons') end; 
   in ListPair.map analyse_equation (dtnvs,cons'')
   end; (* let *)
