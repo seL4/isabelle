@@ -7,25 +7,22 @@ to equations.
 signature PREDICATE_COMPILE =
 sig
   type mode = int list option list * int list
-  val create_def_equation': string -> mode option -> theory -> theory
-  val create_def_equation: string -> theory -> theory
+  val prove_equation: string -> mode option -> theory -> theory
   val intro_rule: theory -> string -> mode -> thm
   val elim_rule: theory -> string -> mode -> thm
-  val strip_intro_concl : term -> int -> (term * (term list * term list))
-  val code_ind_intros_attrib : attribute
-  val code_ind_cases_attrib : attribute
+  val strip_intro_concl: term -> int -> term * (term list * term list)
   val modename_of: theory -> string -> mode -> string
   val modes_of: theory -> string -> mode list
-  val setup : theory -> theory
-  val code_pred : string -> Proof.context -> Proof.state
-  val code_pred_cmd : string -> Proof.context -> Proof.state
-  val print_alternative_rules : theory -> theory
+  val setup: theory -> theory
+  val code_pred: string -> Proof.context -> Proof.state
+  val code_pred_cmd: string -> Proof.context -> Proof.state
+  val print_alternative_rules: theory -> theory (*FIXME diagnostic command?*)
   val do_proofs: bool ref
-  val pred_intros : theory -> string -> thm list
-  val get_nparams : theory -> string -> int
+  val pred_intros: theory -> string -> thm list
+  val get_nparams: theory -> string -> int
 end;
 
-structure Predicate_Compile: PREDICATE_COMPILE =
+structure Predicate_Compile : PREDICATE_COMPILE =
 struct
 
 (** auxiliary **)
@@ -1224,7 +1221,7 @@ fun noclause (predname, T) thy = let
   val Ts = binder_types T
   val names = Name.variant_list []
         (map (fn i => "x" ^ (string_of_int i)) (1 upto (length Ts)))
-  val vs = map Free (names ~~ Ts)
+  val vs = map2 (curry Free) names Ts
   val clausehd =  HOLogic.mk_Trueprop (list_comb(Const (predname, T), vs))
   val intro_t = Logic.mk_implies (@{prop False}, clausehd)
   val P = HOLogic.mk_Trueprop (Free ("P", HOLogic.boolT))
@@ -1242,9 +1239,9 @@ end
 (* main function *********************************************************************)
 (*************************************************************************************)
 
-fun create_def_equation' ind_name (mode : mode option) thy =
+fun prove_equation ind_name mode thy =
 let
-  val _ = tracing ("starting create_def_equation' with " ^ ind_name)
+  val _ = tracing ("starting prove_equation' with " ^ ind_name)
   val (prednames, preds) = 
     case (try (InductivePackage.the_inductive (ProofContext.init thy)) ind_name) of
       SOME info => let val preds = info |> snd |> #preds
@@ -1268,7 +1265,7 @@ let
   fun rec_call name thy = 
     (*FIXME use member instead of infix mem*)
     if not (name mem (Symtab.keys (#modes (IndCodegenData.get thy)))) then
-      create_def_equation name thy else thy
+      prove_equation name NONE thy else thy
   val thy'' = fold rec_call name_of_calls thy'
   val _ = tracing "returning from recursive calls"
   val _ = tracing "starting mode inference"
@@ -1322,12 +1319,11 @@ let
   val _ = tracing "starting proof"
   val result_thms = prove_preds thy''' all_vs param_vs (extra_modes @ modes) clauses (pred_mode ~~ (flat ts))
   val (_, thy'''') = yield_singleton PureThy.add_thmss
-    ((Binding.name (Long_Name.base_name ind_name ^ "_codegen" (*FIXME other suffix*)), result_thms),
+    ((Binding.qualify true (Long_Name.base_name ind_name) (Binding.name "equation"), result_thms),
       [Attrib.attribute_i thy''' Code.add_default_eqn_attrib]) thy'''
 in
   thy''''
 end
-and create_def_equation ind_name thy = create_def_equation' ind_name NONE thy
 
 fun set_nparams (pred, nparams) thy = map_nparams (Symtab.update (pred, nparams)) thy
 
@@ -1345,22 +1341,12 @@ fun print_alternative_rules thy = let
     in () end
     val _ = map print preds
  in thy end; 
-  
-fun attrib f = Thm.declaration_attribute (fn thm => Context.mapping (f thm) I)
 
-val code_ind_intros_attrib = attrib add_intro_thm
-
-val code_ind_cases_attrib = attrib add_elim_thm
-
-val setup =
-  Attrib.setup @{binding code_ind_intros} (Scan.succeed code_ind_intros_attrib)
-    "adding alternative introduction rules for code generation of inductive predicates" #>
-  Attrib.setup @{binding code_ind_cases} (Scan.succeed code_ind_cases_attrib)
-    "adding alternative elimination rules for code generation of inductive predicates";
 
 (* generation of case rules from user-given introduction rules *)
 
-   fun mk_casesrule introrules nparams ctxt = let
+fun mk_casesrule introrules nparams ctxt =
+  let
     val intros = map prop_of introrules
     val (pred, (params, args)) = strip_intro_concl (hd intros) nparams
     val ([propname], ctxt1) = Variable.variant_fixes ["thesis"] ctxt
@@ -1368,6 +1354,7 @@ val setup =
     val (argnames, ctxt2) = Variable.variant_fixes
       (map (fn i => "a" ^ string_of_int i) (1 upto (length args))) ctxt1
     val argvs = map Free (argnames ~~ (map fastype_of args))
+      (*FIXME map2*)
     fun mk_case intro = let
         val (_, (_, args)) = strip_intro_concl intro nparams
         val prems = Logic.strip_imp_prems intro
@@ -1384,32 +1371,59 @@ val setup =
               ctxt2
   in (pred, prop, ctxt3) end;
 
-(* setup for user interface *)
 
-  fun generic_code_pred prep_const raw_const lthy =
-    let
-      val thy = (ProofContext.theory_of lthy)
-      val const = prep_const thy raw_const
-      val nparams = get_nparams thy const
-      val intro_rules = pred_intros thy const
-      val (((tfrees, frees), fact), lthy') =
-        Variable.import_thms true intro_rules lthy;
-      val (pred, prop, lthy'') = mk_casesrule fact nparams lthy'
-      val (predname, _) = dest_Const pred
-      fun after_qed [[th]] lthy'' =
-        LocalTheory.note Thm.theoremK
-          ((Binding.name (Long_Name.base_name predname ^ "_cases"), (* FIXME: other suffix *)
-            [Attrib.internal (K (code_ind_cases_attrib))]) , [th]) lthy''
-        |> snd
-        |> LocalTheory.theory (create_def_equation predname)
-    in
-      Proof.theorem_i NONE after_qed [[(prop, [])]] lthy''
-    end;
+(** user interface **)
 
-  val code_pred = generic_code_pred (K I);
-  val code_pred_cmd = generic_code_pred Code_Unit.read_const
+local
+
+fun attrib f = Thm.declaration_attribute (fn thm => Context.mapping (f thm) I);
+
+val add_elim_attrib = attrib add_elim_thm;
+
+fun generic_code_pred prep_const raw_const lthy =
+  let
+    val thy = ProofContext.theory_of lthy
+    val const = prep_const thy raw_const
+    val nparams = get_nparams thy const
+    val intro_rules = pred_intros thy const
+    val (((tfrees, frees), fact), lthy') =
+      Variable.import_thms true intro_rules lthy;
+    val (pred, prop, lthy'') = mk_casesrule fact nparams lthy'
+    val (predname, _) = dest_Const pred
+    fun after_qed [[th]] lthy'' =
+      lthy''
+      |> LocalTheory.note Thm.theoremK
+           ((Binding.empty, [Attrib.internal (K add_elim_attrib)]), [th])
+      |> snd
+      |> LocalTheory.theory (prove_equation predname NONE)
+  in
+    Proof.theorem_i NONE after_qed [[(prop, [])]] lthy''
+  end;
+
+structure P = OuterParse
+
+in
+
+val code_pred = generic_code_pred (K I);
+val code_pred_cmd = generic_code_pred Code_Unit.read_const
+
+val setup =
+  Attrib.setup @{binding code_ind_intros} (Scan.succeed (attrib add_intro_thm))
+    "adding alternative introduction rules for code generation of inductive predicates" #>
+  Attrib.setup @{binding code_ind_cases} (Scan.succeed add_elim_attrib)
+    "adding alternative elimination rules for code generation of inductive predicates";
+  (*FIXME name discrepancy in attribs and ML code*)
+  (*FIXME intros should be better named intro*)
+  (*FIXME why distinguished atribute for cases?*)
+
+val _ = OuterSyntax.local_theory_to_proof "code_pred"
+  "prove equations for predicate specified by intro/elim rules"
+  OuterKeyword.thy_goal (P.term_group >> code_pred_cmd)
+
+end
+
+(*FIXME
+- Naming of auxiliary rules necessary?
+*)
 
 end;
-
-fun pred_compile name thy = Predicate_Compile.create_def_equation
-  (Sign.intern_const thy name) thy;
