@@ -6,11 +6,13 @@ Theory extender for domain command, including theory syntax.
 
 signature DOMAIN_EXTENDER =
 sig
-  val add_domain_cmd: string -> (string list * binding * mixfix *
-    (binding * (bool * binding option * string) list * mixfix) list) list
+  val add_domain_cmd: string ->
+    ((string * string option) list * binding * mixfix *
+      (binding * (bool * binding option * string) list * mixfix) list) list
     -> theory -> theory
-  val add_domain: string -> (string list * binding * mixfix *
-    (binding * (bool * binding option * typ) list * mixfix) list) list
+  val add_domain: string ->
+    ((string * string option) list * binding * mixfix *
+      (binding * (bool * binding option * typ) list * mixfix) list) list
     -> theory -> theory
 end;
 
@@ -85,12 +87,16 @@ fun check_and_sort_domain
 fun gen_add_domain
   (prep_typ : theory -> 'a -> typ)
   (comp_dnam : string)
-  (eqs''' : (string list * binding * mixfix *
+  (eqs''' : ((string * string option) list * binding * mixfix *
               (binding * (bool * binding option * 'a) list * mixfix) list) list)
   (thy''' : theory) =
   let
+    fun readS (SOME s) = Syntax.read_sort_global thy''' s
+      | readS NONE = Sign.defaultS thy''';
+    fun readTFree (a, s) = TFree (a, readS s);
+
     val dtnvs = map (fn (vs,dname:binding,mx,_) => 
-                  (dname, map (Syntax.read_typ_global thy''') vs, mx)) eqs''';
+                  (dname, map readTFree vs, mx)) eqs''';
     val cons''' = map (fn (_,_,_,cons) => cons) eqs''';
     fun thy_type  (dname,tvars,mx) = (dname, length tvars, mx);
     fun thy_arity (dname,tvars,mx) = (Sign.full_name thy''' dname, map (snd o dest_TFree) tvars, pcpoS);
@@ -148,10 +154,10 @@ val dest_decl : (bool * binding option * string) parser =
 val cons_decl =
   P.binding -- Scan.repeat dest_decl -- P.opt_mixfix;
 
-val type_var' =
-  (P.type_ident ^^ Scan.optional (P.$$$ "::" ^^ P.!!! P.sort) "");
+val type_var' : (string * string option) parser =
+  (P.type_ident -- Scan.option (P.$$$ "::" |-- P.!!! P.sort));
 
-val type_args' =
+val type_args' : (string * string option) list parser =
   type_var' >> single ||
   P.$$$ "(" |-- P.!!! (P.list1 type_var' --| P.$$$ ")") ||
   Scan.succeed [];
@@ -164,11 +170,12 @@ val domains_decl =
   Scan.option (P.$$$ "(" |-- P.name --| P.$$$ ")") --
   P.and_list1 domain_decl;
 
-fun mk_domain (opt_name : string option, doms : (((string list * binding) * mixfix) *
+fun mk_domain (opt_name : string option,
+  doms : ((((string * string option) list * binding) * mixfix) *
     ((binding * (bool * binding option * string) list) * mixfix) list) list ) =
   let
     val names = map (fn (((_, t), _), _) => Binding.name_of t) doms;
-    val specs : (string list * binding * mixfix *
+    val specs : ((string * string option) list * binding * mixfix *
       (binding * (bool * binding option * string) list * mixfix) list) list =
         map (fn (((vs, t), mx), cons) =>
           (vs, t, mx, map (fn ((c, ds), mx) => (c, ds, mx)) cons)) doms;
