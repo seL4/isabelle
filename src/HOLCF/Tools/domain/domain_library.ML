@@ -52,6 +52,7 @@ infix 9 `%%;
 signature DOMAIN_LIBRARY =
 sig
   val Imposs : string -> 'a;
+  val cpo_type : theory -> typ -> bool;
   val pcpo_type : theory -> typ -> bool;
   val string_of_typ : theory -> typ -> string;
 
@@ -190,6 +191,7 @@ fun mk_var_names ids : string list = let
       | index_vnames([],occupied) = [];
 in index_vnames(map nonreserved ids, [("O",0),("o",0)]) end;
 
+fun cpo_type sg t = Sign.of_sort sg (Sign.certify_typ sg t, @{sort cpo});
 fun pcpo_type sg t = Sign.of_sort sg (Sign.certify_typ sg t, @{sort pcpo});
 fun string_of_typ sg = Syntax.string_of_typ_global sg o Sign.certify_typ sg;
 
