@@ -14,12 +14,12 @@ sig
     proj: string * typ,
     proj_def: thm
   }
-  val add_typecopy: binding * string list -> typ -> (binding * binding) option
+  val typecopy: binding * string list -> typ -> (binding * binding) option
     -> theory -> (string * info) * theory
   val get_typecopies: theory -> string list
   val get_info: theory -> string -> info option
   val interpretation: (string -> theory -> theory) -> theory -> theory
-  val add_typecopy_default_code: string -> theory -> theory
+  val add_default_code: string -> theory -> theory
   val print_typecopies: theory -> unit
   val setup: theory -> theory
 end;
@@ -71,7 +71,10 @@ val get_info = Symtab.lookup o TypecopyData.get;
 structure TypecopyInterpretation = InterpretationFun(type T = string val eq = op =);
 val interpretation = TypecopyInterpretation.interpretation;
 
-fun add_typecopy (raw_tyco, raw_vs) raw_ty constr_proj thy =
+
+(* declaring typecopies *)
+
+fun typecopy (raw_tyco, raw_vs) raw_ty constr_proj thy =
   let
     val ty = Sign.certify_typ thy raw_ty;
     val vs =
@@ -108,28 +111,26 @@ fun add_typecopy (raw_tyco, raw_vs) raw_ty constr_proj thy =
   end;
 
 
-(* code generator setup *)
+(* default code setup *)
 
-fun add_typecopy_default_code tyco thy =
+fun add_default_code tyco thy =
   let
     val SOME { constr = constr_name, proj = (proj, _), proj_def = proj_eq, vs = raw_vs,
-      typ = raw_ty_rep, ... } =  get_info thy tyco;
-    val inst_meet = Sorts.meet_sort_typ (Sign.classes_of thy)
-      (Logic.varifyT raw_ty_rep, [HOLogic.class_eq]) handle Sorts.CLASS_ERROR _ => I;
-    val ty_inst = Logic.unvarifyT o inst_meet o Logic.varifyT;
-    val vs = (map dest_TFree o snd o dest_Type o ty_inst)
-      (Type (tyco, map TFree raw_vs));
-    val ty_rep = ty_inst raw_ty_rep;
+      typ = ty_rep, ... } =  get_info thy tyco;
     val SOME { Rep_inject = proj_inject, ... } = TypedefPackage.get_info thy tyco;
-    val ty_constr = Logic.unvarifyT (Sign.the_const_type thy constr_name);
-    val constr = (constr_name, ty_constr)
+    val constr = (constr_name, Logic.unvarifyT (Sign.the_const_type thy constr_name));
+    val vs = (map dest_TFree o snd o dest_Type) (Type (tyco, map TFree raw_vs));
     val ty = Type (tyco, map TFree vs);
-    fun mk_eq ty t_x t_y = Const (@{const_name eq_class.eq}, ty --> ty --> HOLogic.boolT)
-      $ t_x $ t_y;
-    fun mk_proj t = Const (proj, ty --> ty_rep) $ t;
+    val proj = Const (proj, ty --> ty_rep);
     val (t_x, t_y) = (Free ("x", ty), Free ("y", ty));
-    val def_eq = (HOLogic.mk_Trueprop o HOLogic.mk_eq)
-      (mk_eq ty t_x t_y, HOLogic.mk_eq (mk_proj t_x, mk_proj t_y));
+    val eq_lhs = Const (@{const_name eq_class.eq}, ty --> ty --> HOLogic.boolT)
+      $ t_x $ t_y;
+    val eq_rhs = HOLogic.mk_eq (proj $ t_x, proj $ t_y);
+    val eq = (HOLogic.mk_Trueprop o HOLogic.mk_eq) (eq_lhs, eq_rhs);
+    fun tac eq_thm = Class.intro_classes_tac []
+      THEN (Simplifier.rewrite_goals_tac
+        (map Simpdata.mk_eq [eq_thm, @{thm eq}, proj_inject]))
+          THEN ALLGOALS (rtac @{thm refl});
     fun mk_eq_refl thy = @{thm HOL.eq_refl}
       |> Thm.instantiate
          ([pairself (Thm.ctyp_of thy) (TVar (("'a", 0), @{sort eq}), Logic.varifyT ty)], [])
@@ -139,22 +140,18 @@ fun add_typecopy_default_code tyco thy =
     |> Code.add_datatype [constr]
     |> Code.add_eqn proj_eq
     |> TheoryTarget.instantiation ([tyco], vs, [HOLogic.class_eq])
-    |> `(fn lthy => Syntax.check_term lthy def_eq)
-    |-> (fn def_eq => Specification.definition
-         (NONE, (Attrib.empty_binding, def_eq)))
-    |-> (fn (_, (_, def_thm)) =>
+    |> `(fn lthy => Syntax.check_term lthy eq)
+    |-> (fn eq => Specification.definition
+         (NONE, (Attrib.empty_binding, eq)))
+    |-> (fn (_, (_, eq_thm)) =>
        Class.prove_instantiation_exit_result Morphism.thm
-         (fn _ => fn def_thm => Class.intro_classes_tac []
-            THEN (Simplifier.rewrite_goals_tac
-              (map Simpdata.mk_eq [def_thm, @{thm eq}, proj_inject]))
-                THEN ALLGOALS (rtac @{thm refl})) def_thm)
-    |-> (fn def_thm => Code.add_eqn def_thm)
-    |> `(fn thy => mk_eq_refl thy)
-    |-> (fn refl_thm => Code.add_nbe_eqn refl_thm)
+         (fn _ => fn eq_thm => tac eq_thm) eq_thm)
+    |-> (fn eq_thm => Code.add_eqn eq_thm)
+    |> (fn thy => Code.add_nbe_eqn (mk_eq_refl thy) thy)
   end;
 
 val setup =
   TypecopyInterpretation.init
-  #> interpretation add_typecopy_default_code
+  #> interpretation add_default_code
 
 end;
