@@ -610,7 +610,7 @@ lemma less_eq_pred_code [code]:
     (simp_all add: Seq_def single_less_eq_eval contained_less_eq)
 
 lemma eq_pred_code [code]:
-  fixes P Q :: "'a::eq pred"
+  fixes P Q :: "'a pred"
   shows "eq_class.eq P Q \<longleftrightarrow> P \<le> Q \<and> Q \<le> P"
   unfolding eq by auto
 
