@@ -1464,7 +1464,7 @@ fun extension_typedef name repT alphas thy =
     val tname = Binding.name (Long_Name.base_name name);
   in
     thy
-    |> TypecopyPackage.add_typecopy (Binding.suffix_name ext_typeN tname, alphas) repT NONE
+    |> TypecopyPackage.typecopy (Binding.suffix_name ext_typeN tname, alphas) repT NONE
     |-> (fn (name, _) => `(fn thy => get_thms thy name))
   end;
 

@@ -35,28 +35,18 @@ in
 end
 *}
 
-ML {*
-structure Typerep =
-struct
+setup {*
+let
 
-fun mk f (Type (tyco, tys)) =
-      @{term Typerep} $ HOLogic.mk_message_string tyco
-        $ HOLogic.mk_list @{typ typerep} (map (mk f) tys)
-  | mk f (TFree v) =
-      f v;
-
-fun typerep ty =
-  Const (@{const_name typerep}, Term.itselfT ty --> @{typ typerep})
-    $ Logic.mk_type ty;
-
-fun add_def tyco thy =
+fun add_typerep tyco thy =
   let
     val sorts = replicate (Sign.arity_number thy tyco) @{sort typerep};
     val vs = Name.names Name.context "'a" sorts;
     val ty = Type (tyco, map TFree vs);
     val lhs = Const (@{const_name typerep}, Term.itselfT ty --> @{typ typerep})
       $ Free ("T", Term.itselfT ty);
-    val rhs = mk (typerep o TFree) ty;
+    val rhs = @{term Typerep} $ HOLogic.mk_message_string tyco
+      $ HOLogic.mk_list @{typ typerep} (map (HOLogic.mk_typerep o TFree) vs);
     val eq = HOLogic.mk_Trueprop (HOLogic.mk_eq (lhs, rhs));
   in
     thy
@@ -64,23 +54,20 @@ fun add_def tyco thy =
     |> `(fn lthy => Syntax.check_term lthy eq)
     |-> (fn eq => Specification.definition (NONE, (Attrib.empty_binding, eq)))
     |> snd
-    |> Class.prove_instantiation_instance (K (Class.intro_classes_tac []))
-    |> LocalTheory.exit_global
+    |> Class.prove_instantiation_exit (K (Class.intro_classes_tac []))
   end;
 
-fun perhaps_add_def tyco thy =
-  let
-    val inst = can (Sorts.mg_domain (Sign.classes_of thy) tyco) @{sort typerep}
-  in if inst then thy else add_def tyco thy end;
+fun ensure_typerep tyco thy = if not (can (Sorts.mg_domain (Sign.classes_of thy) tyco) @{sort typerep})
+  andalso can (Sorts.mg_domain (Sign.classes_of thy) tyco) @{sort type}
+  then add_typerep tyco thy else thy;
 
-end;
-*}
+in
 
-setup {*
-  Typerep.add_def @{type_name fun}
-  #> Typerep.add_def @{type_name itself}
-  #> Typerep.add_def @{type_name bool}
-  #> TypedefPackage.interpretation Typerep.perhaps_add_def
+add_typerep @{type_name fun}
+#> TypedefPackage.interpretation ensure_typerep
+#> Code.type_interpretation (ensure_typerep o fst)
+
+end
 *}
 
 lemma [code]:

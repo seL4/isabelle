@@ -94,7 +94,7 @@ fun prep_test_term t =
       error "Term to be tested contains type variables";
     val _ = null (Term.add_vars t []) orelse
       error "Term to be tested contains schematic variables";
-    val frees = map dest_Free (OldTerm.term_frees t);
+    val frees = Term.add_frees t [];
   in (map fst frees, list_abs_free (frees, t)) end
 
 fun test_term ctxt quiet generator_name size i t =
