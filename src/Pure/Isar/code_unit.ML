@@ -31,8 +31,8 @@ sig
   val mk_eqn: theory -> (string -> bool) -> thm * bool -> thm * bool
   val mk_eqn_liberal: theory -> (string -> bool) -> thm -> (thm * bool) option
   val assert_eqn: theory -> (string -> bool) -> thm * bool -> thm * bool
+  val const_typ_eqn: thm -> string * typ
   val const_eqn: theory -> thm -> string
-    val const_typ_eqn: thm -> string * typ
   val typscheme_eqn: theory -> thm -> (string * sort) list * typ
   val expand_eta: theory -> int -> thm -> thm
   val rewrite_eqn: simpset -> thm -> thm
@@ -379,9 +379,9 @@ fun assert_eqn thy is_constr = error_thm (gen_assert_eqn thy is_constr is_constr
 
 val const_typ_eqn = dest_Const o fst o strip_comb o fst o Logic.dest_equals o Thm.plain_prop_of;
 
-fun typscheme_eqn thy = typscheme thy o const_typ_eqn;
 
-(*these are permissive wrt. to overloaded constants!*)
+(*those following are permissive wrt. to overloaded constants!*)
+
 fun mk_eqn thy is_constr_head = error_thm (gen_assert_eqn thy is_constr_head (K true)) o
   apfst (LocalDefs.meta_rewrite_rule (ProofContext.init thy));
 
@@ -389,7 +389,14 @@ fun mk_eqn_liberal thy is_constr_head = Option.map (fn (thm, _) => (thm, is_line
   o try_thm (gen_assert_eqn thy is_constr_head (K true))
   o rpair false o LocalDefs.meta_rewrite_rule (ProofContext.init thy);
 
-fun const_eqn thy = AxClass.unoverload_const thy o const_typ_eqn;
+fun const_typ_eqn_unoverload thy thm =
+  let
+    val (c, ty) = const_typ_eqn thm;
+    val c' = AxClass.unoverload_const thy (c, ty);
+  in (c', ty) end;
+
+fun typscheme_eqn thy = typscheme thy o const_typ_eqn_unoverload thy;
+fun const_eqn thy = fst o const_typ_eqn_unoverload thy;
 
 
 (* case cerificates *)
