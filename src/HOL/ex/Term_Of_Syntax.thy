@@ -31,9 +31,9 @@ end
 
 setup {*
 let
-  val subst_rterm_of = Eval.mk_term
-    (fn (v, _) => error ("illegal free variable in term quotation: " ^ quote v))
-    (Typerep.mk (fn (v, sort) => Typerep.typerep (TFree (v, sort))));
+  val subst_rterm_of = map_aterms
+    (fn Free (v, _) => error ("illegal free variable in term quotation: " ^ quote v) | t => t)
+      o HOLogic.reflect_term;
   fun subst_rterm_of' (Const (@{const_name rterm_of}, _), [t]) = subst_rterm_of t
     | subst_rterm_of' (Const (@{const_name rterm_of}, _), _) =
         error ("illegal number of arguments for " ^ quote @{const_name rterm_of})
