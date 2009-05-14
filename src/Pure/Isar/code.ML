@@ -116,7 +116,8 @@ fun certificate thy f r =
 
 fun add_drop_redundant thy (thm, proper) thms =
   let
-    val args_of = snd o strip_comb o fst o Logic.dest_equals o Thm.plain_prop_of;
+    val args_of = snd o strip_comb o map_types Type.strip_sorts
+      o fst o Logic.dest_equals o Thm.plain_prop_of;
     val args = args_of thm;
     val incr_idx = Logic.incr_indexes ([], Thm.maxidx_of thm + 1);
     fun matches_args args' = length args <= length args' andalso
