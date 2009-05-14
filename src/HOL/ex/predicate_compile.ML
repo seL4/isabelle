@@ -1405,7 +1405,7 @@ structure P = OuterParse
 in
 
 val code_pred = generic_code_pred (K I);
-val code_pred_cmd = generic_code_pred Code_Unit.read_const
+val code_pred_cmd = generic_code_pred Code.read_const
 
 val setup =
   Attrib.setup @{binding code_ind_intros} (Scan.succeed (attrib add_intro_thm))

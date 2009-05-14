@@ -368,8 +368,7 @@ fun mk_eq_eqns thy dtco =
       addsimps (map Simpdata.mk_eq (@{thm eq} :: @{thm eq_True} :: inject_thms))
       addsimprocs [DatatypePackage.distinct_simproc]);
     fun prove prop = Goal.prove_global thy [] [] prop (K (ALLGOALS (simp_tac simpset)))
-      |> Simpdata.mk_eq
-      |> Simplifier.rewrite_rule [@{thm equals_eq}];
+      |> Simpdata.mk_eq;
   in map (rpair true o prove) (triv_injects @ injects @ distincts) @ [(prove refl, false)] end;
 
 fun add_equality vs dtcos thy =
@@ -414,7 +413,7 @@ fun mk_constr_consts thy vs dtco cos =
   let
     val cs = map (fn (c, tys) => (c, tys ---> Type (dtco, map TFree vs))) cos;
     val cs' = map (fn c_ty as (_, ty) => (AxClass.unoverload_const thy c_ty, ty)) cs;
-  in if is_some (try (Code_Unit.constrset_of_consts thy) cs')
+  in if is_some (try (Code.constrset_of_consts thy) cs')
     then SOME cs
     else NONE
   end;

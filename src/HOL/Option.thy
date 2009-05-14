@@ -63,10 +63,8 @@ lemma elem_set [iff]: "(x : set xo) = (xo = Some x)"
 lemma set_empty_eq [simp]: "(set xo = {}) = (xo = None)"
   by (cases xo) auto
 
-definition
-  map :: "('a \<Rightarrow> 'b) \<Rightarrow> 'a option \<Rightarrow> 'b option"
-where
-  [code del]: "map = (%f y. case y of None => None | Some x => Some (f x))"
+definition map :: "('a \<Rightarrow> 'b) \<Rightarrow> 'a option \<Rightarrow> 'b option" where
+  "map = (%f y. case y of None => None | Some x => Some (f x))"
 
 lemma option_map_None [simp, code]: "map f None = None"
   by (simp add: map_def)
@@ -95,14 +93,21 @@ hide (open) const set map
 
 subsubsection {* Code generator setup *}
 
-definition
-  is_none :: "'a option \<Rightarrow> bool" where
-  is_none_none [code post, symmetric, code inline]: "is_none x \<longleftrightarrow> x = None"
+definition is_none :: "'a option \<Rightarrow> bool" where
+  [code post]: "is_none x \<longleftrightarrow> x = None"
 
 lemma is_none_code [code]:
   shows "is_none None \<longleftrightarrow> True"
     and "is_none (Some x) \<longleftrightarrow> False"
-  unfolding is_none_none [symmetric] by simp_all
+  unfolding is_none_def by simp_all
+
+lemma is_none_none:
+  "is_none x \<longleftrightarrow> x = None"
+  by (simp add: is_none_def)
+
+lemma [code inline]:
+  "eq_class.eq x None \<longleftrightarrow> is_none x"
+  by (simp add: eq is_none_none)
 
 hide (open) const is_none
 

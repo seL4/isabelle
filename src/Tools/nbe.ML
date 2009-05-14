@@ -436,7 +436,7 @@ fun normalize thy naming program ((vs0, (vs, ty)), t) deps =
   let
     fun subst_const f = map_aterms (fn t as Term.Const (c, ty) => Term.Const (f c, ty)
       | t => t);
-    val resubst_triv_consts = subst_const (Code_Unit.resubst_alias thy);
+    val resubst_triv_consts = subst_const (Code.resubst_alias thy);
     val ty' = typ_of_itype program vs0 ty;
     fun type_infer t =
       singleton (TypeInfer.infer_types (Syntax.pp_global thy) (Sign.tsig_of thy) I
@@ -459,7 +459,7 @@ fun normalize thy naming program ((vs0, (vs, ty)), t) deps =
 (* evaluation oracle *)
 
 fun add_triv_classes thy = curry (Sorts.inter_sort (Sign.classes_of thy))
-  (Code_Unit.triv_classes thy);
+  (Code.triv_classes thy);
 
 fun mk_equals thy lhs raw_rhs =
   let

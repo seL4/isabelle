@@ -480,7 +480,7 @@ fun pretty_haskell_monad c_bind =
 
 fun add_monad target' raw_c_bind thy =
   let
-    val c_bind = Code_Unit.read_const thy raw_c_bind;
+    val c_bind = Code.read_const thy raw_c_bind;
   in if target = target' then
     thy
     |> Code_Target.add_syntax_const target c_bind

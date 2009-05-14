@@ -996,7 +996,7 @@ fun delayed_code thy tycos consts () =
     val (ml_code, target_names) = eval_code_of NONE thy naming program (consts' @ tycos');
     val (consts'', tycos'') = chop (length consts') target_names;
     val consts_map = map2 (fn const => fn NONE =>
-        error ("Constant " ^ (quote o Code_Unit.string_of_const thy) const
+        error ("Constant " ^ (quote o Code.string_of_const thy) const
           ^ "\nhas a user-defined serialization")
       | SOME const'' => (const, const'')) consts consts''
     val tycos_map = map2 (fn tyco => fn NONE =>
@@ -1050,7 +1050,7 @@ in
 
 fun ml_code_antiq raw_const {struct_name, background} =
   let
-    val const = Code_Unit.check_const (ProofContext.theory_of background) raw_const;
+    val const = Code.check_const (ProofContext.theory_of background) raw_const;
     val is_first = is_first_occ background;
     val background' = register_const const background;
   in (print_code struct_name is_first (print_const const), background') end;
@@ -1059,7 +1059,7 @@ fun ml_code_datatype_antiq (raw_tyco, raw_constrs) {struct_name, background} =
   let
     val thy = ProofContext.theory_of background;
     val tyco = Sign.intern_type thy raw_tyco;
-    val constrs = map (Code_Unit.check_const thy) raw_constrs;
+    val constrs = map (Code.check_const thy) raw_constrs;
     val constrs' = (map fst o snd o Code.get_datatype thy) tyco;
     val _ = if gen_eq_set (op =) (constrs, constrs') then ()
       else error ("Type " ^ quote tyco ^ ": given constructors diverge from real constructors")

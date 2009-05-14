@@ -1550,20 +1550,20 @@ This Pure module implements the core notions of
 %
 \begin{isamarkuptext}%
 \begin{mldecls}
-  \indexml{Code\_Unit.read\_const}\verb|Code_Unit.read_const: theory -> string -> string| \\
-  \indexml{Code\_Unit.head\_func}\verb|Code_Unit.head_func: thm -> string * ((string * sort) list * typ)| \\
-  \indexml{Code\_Unit.rewrite\_func}\verb|Code_Unit.rewrite_func: MetaSimplifier.simpset -> thm -> thm| \\
+  \indexml{Code\_Unit.read\_const}\verb|Code.read_const: theory -> string -> string| \\
+  \indexml{Code\_Unit.head\_func}\verb|Code.head_func: thm -> string * ((string * sort) list * typ)| \\
+  \indexml{Code\_Unit.rewrite\_func}\verb|Code.rewrite_func: MetaSimplifier.simpset -> thm -> thm| \\
   \end{mldecls}
 
   \begin{description}
 
-  \item \verb|Code_Unit.read_const|~\isa{thy}~\isa{s}
+  \item \verb|Code.read_const|~\isa{thy}~\isa{s}
      reads a constant as a concrete term expression \isa{s}.
 
-  \item \verb|Code_Unit.head_func|~\isa{thm}
+  \item \verb|Code.head_func|~\isa{thm}
      extracts the constant and its type from a defining equation \isa{thm}.
 
-  \item \verb|Code_Unit.rewrite_func|~\isa{ss}~\isa{thm}
+  \item \verb|Code.rewrite_func|~\isa{ss}~\isa{thm}
      rewrites a defining equation \isa{thm} with a simpset \isa{ss};
      only arguments and right hand side are rewritten,
      not the head of the defining equation.
