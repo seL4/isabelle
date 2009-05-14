@@ -78,16 +78,16 @@ subsection {* Auxiliary *}
 
 text %mlref {*
   \begin{mldecls}
-  @{index_ML Code_Unit.read_const: "theory -> string -> string"} \\
-  @{index_ML Code_Unit.rewrite_eqn: "simpset -> thm -> thm"} \\
+  @{index_ML Code.read_const: "theory -> string -> string"} \\
+  @{index_ML Code.rewrite_eqn: "simpset -> thm -> thm"} \\
   \end{mldecls}
 
   \begin{description}
 
-  \item @{ML Code_Unit.read_const}~@{text thy}~@{text s}
+  \item @{ML Code.read_const}~@{text thy}~@{text s}
      reads a constant as a concrete term expression @{text s}.
 
-  \item @{ML Code_Unit.rewrite_eqn}~@{text ss}~@{text thm}
+  \item @{ML Code.rewrite_eqn}~@{text ss}~@{text thm}
      rewrites a code equation @{text thm} with a simpset @{text ss};
      only arguments and right hand side are rewritten,
      not the head of the code equation.

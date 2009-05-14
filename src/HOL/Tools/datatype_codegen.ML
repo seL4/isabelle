@@ -413,7 +413,7 @@ fun mk_constr_consts thy vs dtco cos =
   let
     val cs = map (fn (c, tys) => (c, tys ---> Type (dtco, map TFree vs))) cos;
     val cs' = map (fn c_ty as (_, ty) => (AxClass.unoverload_const thy c_ty, ty)) cs;
-  in if is_some (try (Code_Unit.constrset_of_consts thy) cs')
+  in if is_some (try (Code.constrset_of_consts thy) cs')
     then SOME cs
     else NONE
   end;

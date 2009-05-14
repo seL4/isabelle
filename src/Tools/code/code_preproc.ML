@@ -117,11 +117,11 @@ fun preprocess thy c eqns =
   in
     eqns
     |> apply_functrans thy c functrans
-    |> (map o apfst) (Code_Unit.rewrite_eqn pre)
+    |> (map o apfst) (Code.rewrite_eqn pre)
     |> (map o apfst) (AxClass.unoverload thy)
     |> map (Code.assert_eqn thy)
-    |> burrow_fst (Code_Unit.norm_args thy)
-    |> burrow_fst (Code_Unit.norm_varnames thy)
+    |> burrow_fst (Code.norm_args thy)
+    |> burrow_fst (Code.norm_varnames thy)
   end;
 
 fun preprocess_conv thy ct =
@@ -186,7 +186,7 @@ fun all eqngr = Graph.keys eqngr;
 
 fun pretty thy eqngr =
   AList.make (snd o Graph.get_node eqngr) (Graph.keys eqngr)
-  |> (map o apfst) (Code_Unit.string_of_const thy)
+  |> (map o apfst) (Code.string_of_const thy)
   |> sort (string_ord o pairself fst)
   |> map (fn (s, thms) =>
        (Pretty.block o Pretty.fbreaks) (
@@ -216,7 +216,7 @@ fun consts_of thy eqns = [] |> (fold o fold o fold_aterms)
 fun tyscm_rhss_of thy c eqns =
   let
     val tyscm = case eqns of [] => Code.default_typscheme thy c
-      | ((thm, _) :: _) => Code_Unit.typscheme_eqn thy thm;
+      | ((thm, _) :: _) => Code.typscheme_eqn thy thm;
     val rhss = consts_of thy eqns;
   in (tyscm, rhss) end;
 
@@ -394,7 +394,7 @@ fun add_eqs thy vardeps (c, (proto_lhs, proto_eqns)) (rhss, eqngr) =
     val inst_tab = Vartab.empty |> fold (fn (v, sort) =>
       Vartab.update ((v, 0), sort)) lhs;
     val eqns = proto_eqns
-      |> (map o apfst) (Code_Unit.inst_thm thy inst_tab);
+      |> (map o apfst) (Code.inst_thm thy inst_tab);
     val (tyscm, rhss') = tyscm_rhss_of thy c eqns;
     val eqngr' = Graph.new_node (c, (tyscm, eqns)) eqngr;
   in (map (pair c) rhss' @ rhss, eqngr') end;

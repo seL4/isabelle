@@ -1871,7 +1871,7 @@ text {* Equality *}
 declare simp_thms(6) [code nbe]
 
 setup {*
-  Code_Unit.add_const_alias @{thm equals_eq}
+  Code.add_const_alias @{thm equals_eq}
 *}
 
 hide (open) const eq

@@ -56,7 +56,7 @@ $(OUT)/Pure: $(BOOTSTRAP_FILES) Concurrent/ROOT.ML			\
   General/table.ML General/url.ML General/xml.ML General/yxml.ML	\
   Isar/ROOT.ML Isar/args.ML Isar/attrib.ML Isar/auto_bind.ML		\
   Isar/calculation.ML Isar/class.ML Isar/class_target.ML Isar/code.ML	\
-  Isar/code_unit.ML Isar/constdefs.ML Isar/context_rules.ML		\
+  Isar/constdefs.ML Isar/context_rules.ML		\
   Isar/element.ML Isar/expression.ML Isar/isar_cmd.ML			\
   Isar/isar_document.ML Isar/isar_syn.ML Isar/local_defs.ML		\
   Isar/local_syntax.ML Isar/local_theory.ML Isar/locale.ML		\

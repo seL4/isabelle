@@ -61,7 +61,6 @@ use "class.ML";
 use "../simplifier.ML";
 
 (*executable theory content*)
-use "code_unit.ML";
 use "code.ML";
 
 (*specifications*)
