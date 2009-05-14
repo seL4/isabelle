@@ -498,7 +498,7 @@ and ensure_const thy algbr funcgr c =
       let
         val thms = if null (Term.add_tfreesT ty []) orelse (null o fst o strip_type) ty
           then raw_thms
-          else (map o apfst) (Code_Unit.expand_eta thy 1) raw_thms;
+          else (map o apfst) (Code.expand_eta thy 1) raw_thms;
       in
         fold_map (translate_tyvar_sort thy algbr funcgr) vs
         ##>> translate_typ thy algbr funcgr ty
@@ -634,7 +634,7 @@ and translate_case thy algbr funcgr thm (num_args, (t_pos, case_pats)) (c_ty, ts
         Term.strip_abs_eta 1 (the_single ts_clause)
       in [(true, (Free v_ty, body))] end
       else map (uncurry mk_clause)
-        (AList.make (Code_Unit.no_args thy) case_pats ~~ ts_clause);
+        (AList.make (Code.no_args thy) case_pats ~~ ts_clause);
     fun retermify ty (_, (IVar x, body)) =
           (x, ty) `|-> body
       | retermify _ (_, (pat, body)) =
@@ -812,7 +812,7 @@ fun read_const_exprs thy =
     fun read_const_expr "*" = ([], consts_of NONE)
       | read_const_expr s = if String.isSuffix ".*" s
           then ([], consts_of (SOME (unsuffix ".*" s)))
-          else ([Code_Unit.read_const thy s], []);
+          else ([Code.read_const thy s], []);
   in pairself flat o split_list o map read_const_expr end;
 
 fun code_depgr thy consts =
@@ -839,7 +839,7 @@ fun code_deps thy consts =
       |> map (the o Symtab.lookup mapping)
       |> distinct (op =);
     val conn = [] |> fold (fn consts => cons (consts, succs consts)) constss;
-    fun namify consts = map (Code_Unit.string_of_const thy) consts
+    fun namify consts = map (Code.string_of_const thy) consts
       |> commas;
     val prgr = map (fn (consts, constss) =>
       { name = namify consts, ID = namify consts, dir = "", unfold = true,

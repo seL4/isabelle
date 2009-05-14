@@ -1199,7 +1199,7 @@ text {* for code generation *}
 definition funpow :: "nat \<Rightarrow> ('a \<Rightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> 'a" where
   funpow_code_def [code post]: "funpow = compow"
 
-lemmas [code inline] = funpow_code_def [symmetric]
+lemmas [code unfold] = funpow_code_def [symmetric]
 
 lemma [code]:
   "funpow 0 f = id"

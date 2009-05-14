@@ -329,7 +329,7 @@ fun gen_assoc_const prep_const (raw_const, syn) thy =
   end;
 
 val assoc_const_i = gen_assoc_const (K I);
-val assoc_const = gen_assoc_const Code_Unit.read_bare_const;
+val assoc_const = gen_assoc_const Code.read_bare_const;
 
 
 (**** associate types with target language types ****)

@@ -104,12 +104,12 @@ fun test_term ctxt quiet generator_name size i t =
      of NONE => if quiet then mk_testers ctxt t' else mk_testers_strict ctxt t'
       | SOME name => [mk_tester_select name ctxt t'];
     fun iterate f 0 = NONE
-      | iterate f k = case f () handle Match => (if quiet then ()
+      | iterate f j = case f () handle Match => (if quiet then ()
              else warning "Exception Match raised during quickcheck"; NONE)
-          of NONE => iterate f (k - 1) | SOME q => SOME q;
+          of NONE => iterate f (j - 1) | SOME q => SOME q;
     fun with_testers k [] = NONE
       | with_testers k (tester :: testers) =
-          case iterate (fn () => tester k) i
+          case iterate (fn () => tester (k - 1)) i
            of NONE => with_testers k testers
             | SOME q => SOME q;
     fun with_size k = if k > size then NONE
