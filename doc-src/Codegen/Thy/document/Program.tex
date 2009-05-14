@@ -891,8 +891,8 @@ Surely you have already noticed how equality is treated
 \hspace*{0pt}fun null [] = true\\
 \hspace*{0pt} ~| null (x ::~xs) = false;\\
 \hspace*{0pt}\\
-\hspace*{0pt}fun eq{\char95}nat (Suc a) Zero{\char95}nat = false\\
-\hspace*{0pt} ~| eq{\char95}nat Zero{\char95}nat (Suc a) = false\\
+\hspace*{0pt}fun eq{\char95}nat (Suc nat') Zero{\char95}nat = false\\
+\hspace*{0pt} ~| eq{\char95}nat Zero{\char95}nat (Suc nat') = false\\
 \hspace*{0pt} ~| eq{\char95}nat (Suc nat) (Suc nat') = eq{\char95}nat nat nat'\\
 \hspace*{0pt} ~| eq{\char95}nat Zero{\char95}nat Zero{\char95}nat = true;\\
 \hspace*{0pt}\\
