@@ -329,7 +329,7 @@ fun gen_assoc_const prep_const (raw_const, syn) thy =
   end;
 
 val assoc_const_i = gen_assoc_const (K I);
-val assoc_const = gen_assoc_const Code_Unit.read_bare_const;
+val assoc_const = gen_assoc_const Code.read_bare_const;
 
 
 (**** associate types with target language types ****)
@@ -889,7 +889,7 @@ fun test_term ctxt t =
           mk_let (map (fn ((s, T), s') =>
               (mk_tuple [str s', str (s' ^ "_t")],
                Pretty.block [mk_gen gr "Generated" false [] "" T, Pretty.brk 1,
-                 str "(i + 1)"])) frees')
+                 str "i"])) frees')
             (Pretty.block [str "if ",
               mk_app false (str "testf") (map (str o snd) frees'),
               Pretty.brk 1, str "then NONE",
