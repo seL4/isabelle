@@ -3646,9 +3646,13 @@ by (induct xs) auto
 
 lemmas in_set_code [code unfold] = mem_iff [symmetric]
 
-lemma empty_null [code inline]:
+lemma empty_null:
   "xs = [] \<longleftrightarrow> null xs"
 by (cases xs) simp_all
+
+lemma [code inline]:
+  "eq_class.eq xs [] \<longleftrightarrow> null xs"
+by (simp add: eq empty_null)
 
 lemmas null_empty [code post] =
   empty_null [symmetric]
