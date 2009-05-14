@@ -25,11 +25,11 @@ text %mlref {*
   @{index_ML Code.add_eqn: "thm -> theory -> theory"} \\
   @{index_ML Code.del_eqn: "thm -> theory -> theory"} \\
   @{index_ML Code.add_eqnl: "string * (thm * bool) list lazy -> theory -> theory"} \\
-  @{index_ML Code.map_pre: "(simpset -> simpset) -> theory -> theory"} \\
-  @{index_ML Code.map_post: "(simpset -> simpset) -> theory -> theory"} \\
-  @{index_ML Code.add_functrans: "string * (theory -> (thm * bool) list -> (thm * bool) list option)
+  @{index_ML Code_Preproc.map_pre: "(simpset -> simpset) -> theory -> theory"} \\
+  @{index_ML Code_Preproc.map_post: "(simpset -> simpset) -> theory -> theory"} \\
+  @{index_ML Code_Preproc.add_functrans: "string * (theory -> (thm * bool) list -> (thm * bool) list option)
     -> theory -> theory"} \\
-  @{index_ML Code.del_functrans: "string -> theory -> theory"} \\
+  @{index_ML Code_Preproc.del_functrans: "string -> theory -> theory"} \\
   @{index_ML Code.add_datatype: "(string * typ) list -> theory -> theory"} \\
   @{index_ML Code.get_datatype: "theory -> string
     -> (string * sort) list * (string * typ list) list"} \\
@@ -48,10 +48,10 @@ text %mlref {*
      suspended code equations @{text lthms} for constant
      @{text const} to executable content.
 
-  \item @{ML Code.map_pre}~@{text "f"}~@{text "thy"} changes
+  \item @{ML Code_Preproc.map_pre}~@{text "f"}~@{text "thy"} changes
      the preprocessor simpset.
 
-  \item @{ML Code.add_functrans}~@{text "(name, f)"}~@{text "thy"} adds
+  \item @{ML Code_Preproc.add_functrans}~@{text "(name, f)"}~@{text "thy"} adds
      function transformer @{text f} (named @{text name}) to executable content;
      @{text f} is a transformer of the code equations belonging
      to a certain function definition, depending on the
@@ -59,7 +59,7 @@ text %mlref {*
      transformation took place;  otherwise, the whole process will be iterated
      with the new code equations.
 
-  \item @{ML Code.del_functrans}~@{text "name"}~@{text "thy"} removes
+  \item @{ML Code_Preproc.del_functrans}~@{text "name"}~@{text "thy"} removes
      function transformer named @{text name} from executable content.
 
   \item @{ML Code.add_datatype}~@{text cs}~@{text thy} adds
@@ -79,7 +79,6 @@ subsection {* Auxiliary *}
 text %mlref {*
   \begin{mldecls}
   @{index_ML Code_Unit.read_const: "theory -> string -> string"} \\
-  @{index_ML Code_Unit.head_eqn: "theory -> thm -> string * ((string * sort) list * typ)"} \\
   @{index_ML Code_Unit.rewrite_eqn: "simpset -> thm -> thm"} \\
   \end{mldecls}
 
@@ -87,9 +86,6 @@ text %mlref {*
 
   \item @{ML Code_Unit.read_const}~@{text thy}~@{text s}
      reads a constant as a concrete term expression @{text s}.
-
-  \item @{ML Code_Unit.head_eqn}~@{text thy}~@{text thm}
-     extracts the constant and its type from a code equation @{text thm}.
 
   \item @{ML Code_Unit.rewrite_eqn}~@{text ss}~@{text thm}
      rewrites a code equation @{text thm} with a simpset @{text ss};
