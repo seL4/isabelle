@@ -368,8 +368,7 @@ fun mk_eq_eqns thy dtco =
       addsimps (map Simpdata.mk_eq (@{thm eq} :: @{thm eq_True} :: inject_thms))
       addsimprocs [DatatypePackage.distinct_simproc]);
     fun prove prop = Goal.prove_global thy [] [] prop (K (ALLGOALS (simp_tac simpset)))
-      |> Simpdata.mk_eq
-      |> Simplifier.rewrite_rule [@{thm equals_eq}];
+      |> Simpdata.mk_eq;
   in map (rpair true o prove) (triv_injects @ injects @ distincts) @ [(prove refl, false)] end;
 
 fun add_equality vs dtcos thy =
