@@ -1836,6 +1836,22 @@ lemmas [code] = Let_def if_True if_False
 
 lemmas [code, code unfold, symmetric, code post] = imp_conv_disj
 
+instantiation itself :: (type) eq
+begin
+
+definition eq_itself :: "'a itself \<Rightarrow> 'a itself \<Rightarrow> bool" where
+  "eq_itself x y \<longleftrightarrow> x = y"
+
+instance proof
+qed (fact eq_itself_def)
+
+end
+
+lemma eq_itself_code [code]:
+  "eq_class.eq TYPE('a) TYPE('a) \<longleftrightarrow> True"
+  by (simp add: eq)
+
+
 text {* Equality *}
 
 declare simp_thms(6) [code nbe]

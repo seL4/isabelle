@@ -22,9 +22,7 @@ open Predicate;
 val pred_ref = ref (NONE : (unit -> term Predicate.pred) option);
 
 fun eval_pred thy t =
-  t 
-  |> Eval.mk_term_of (fastype_of t)
-  |> (fn t => Code_ML.eval NONE ("Predicate.pred_ref", pred_ref) @{code pred_map} thy t []);
+  Code_ML.eval NONE ("Predicate.pred_ref", pred_ref) @{code pred_map} thy (HOLogic.mk_term_of (fastype_of t) t) [];
 
 fun eval_pred_elems thy t T length =
   t |> eval_pred thy |> yieldn length |> fst |> HOLogic.mk_list T;

@@ -54,7 +54,7 @@ let
       val t_indices = map (curry ( op * ) 2) (length tys - 1 downto 0);
       val c_indices = map (curry ( op + ) 1) t_indices;
       val c_t = list_comb (c, map Bound c_indices);
-      val t_t = Abs ("", @{typ unit}, Eval.mk_term Free Typerep.typerep
+      val t_t = Abs ("", @{typ unit}, HOLogic.reflect_term
         (list_comb (c, map (fn k => Bound (k + 1)) t_indices))
         |> map_aterms (fn t as Bound _ => t $ @{term "()"} | t => t));
       val return = StateMonad.return (term_ty this_ty) @{typ seed}
