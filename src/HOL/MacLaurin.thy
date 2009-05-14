@@ -552,10 +552,6 @@ lemma sin_bound_lemma:
     "[|x = y; abs u \<le> (v::real) |] ==> \<bar>(x + u) - y\<bar> \<le> v"
 by auto
 
-text {* TODO: move to Parity.thy *}
-lemma nat_odd_1 [simp]: "odd (1::nat)"
-  unfolding even_nat_def by simp
-
 lemma Maclaurin_sin_bound:
   "abs(sin x - (\<Sum>m=0..<n. (if even m then 0 else (-1 ^ ((m - Suc 0) div 2)) / real (fact m)) *
   x ^ m))  \<le> inverse(real (fact n)) * \<bar>x\<bar> ^ n"

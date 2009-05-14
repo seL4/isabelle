@@ -173,7 +173,7 @@ proof -
     have "(\<lambda> n. if even n then f (n div 2) else 0) sums y"
       unfolding sums_def setsum_shift_lb_Suc0_0_upt[where f="?s", OF `?s 0 = 0`, symmetric]
                 image_Suc_atLeastLessThan[symmetric] setsum_reindex[OF inj_Suc, unfolded comp_def]
-                even_nat_Suc Suc_m1 if_eq .
+                even_Suc Suc_m1 if_eq .
   } from sums_add[OF g_sums this]
   show ?thesis unfolding if_sum .
 qed
