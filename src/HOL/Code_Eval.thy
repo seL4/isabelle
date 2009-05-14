@@ -72,9 +72,7 @@ let
         map Free (Name.names Name.context "a" tys));
       val (arg, rhs) = pairself (Thm.cterm_of thy o map_types Logic.unvarifyT o Logic.varify)
         (t, (map_aterms (fn t as Free (v, ty) => HOLogic.mk_term_of ty t | t => t) o HOLogic.reflect_term) t)
-        handle TYPE (msg, tys, ts) => (tracing msg; error "")
       val cty = Thm.ctyp_of thy ty;
-      val _ = tracing (cat_lines [makestring arg, makestring rhs, makestring cty])
     in
       @{thm term_of_anything}
       |> Drule.instantiate' [SOME cty] [SOME arg, SOME rhs]
