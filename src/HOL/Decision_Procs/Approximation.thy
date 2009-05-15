@@ -460,7 +460,7 @@ lemma arctan_0_1_bounds: assumes "0 \<le> real x" "real x \<le> 1"
 proof (cases "even n")
   case True
   obtain n' where "Suc n' = get_odd n" and "odd (Suc n')" using get_odd_ex by auto
-  hence "even n'" unfolding even_nat_Suc by auto
+  hence "even n'" unfolding even_Suc by auto
   have "arctan (real x) \<le> real (x * ub_arctan_horner prec (get_odd n) 1 (x * x))"
     unfolding `Suc n' = get_odd n`[symmetric] using arctan_0_1_bounds'[OF `0 \<le> real x` `real x \<le> 1` `even n'`] by auto
   moreover
@@ -470,7 +470,7 @@ proof (cases "even n")
 next
   case False hence "0 < n" by (rule odd_pos)
   from gr0_implies_Suc[OF this] obtain n' where "n = Suc n'" ..
-  from False[unfolded this even_nat_Suc]
+  from False[unfolded this even_Suc]
   have "even n'" and "even (Suc (Suc n'))" by auto
   have "get_odd n = Suc n'" unfolding get_odd_def if_P[OF False] using `n = Suc n'` .
 

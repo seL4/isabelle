@@ -1331,7 +1331,7 @@ let
     of Abs (_, _, t') => count_loose t' 0 <= 1
      | _ => true;
 in fn _ => fn ss => fn ct => if is_trivial_let (Thm.term_of ct)
-  then SOME @{thm Let_def} (*no or one ocurrenc of bound variable*)
+  then SOME @{thm Let_def} (*no or one ocurrence of bound variable*)
   else let (*Norbert Schirmer's case*)
     val ctxt = Simplifier.the_context ss;
     val thy = ProofContext.theory_of ctxt;
@@ -1775,6 +1775,13 @@ in
 end
 *}
 
+subsubsection {* Generic code generator preprocessor setup *}
+
+setup {*
+  Code_Preproc.map_pre (K HOL_basic_ss)
+  #> Code_Preproc.map_post (K HOL_basic_ss)
+*}
+
 subsubsection {* Equality *}
 
 class eq =
@@ -1788,7 +1795,7 @@ lemma eq [code unfold, code inline del]: "eq = (op =)"
 lemma eq_refl: "eq x x \<longleftrightarrow> True"
   unfolding eq by rule+
 
-lemma equals_eq [code inline]: "(op =) \<equiv> eq"
+lemma equals_eq: "(op =) \<equiv> eq"
   by (rule eq_reflection) (rule ext, rule ext, rule sym, rule eq_equals)
 
 declare equals_eq [symmetric, code post]
@@ -1796,6 +1803,14 @@ declare equals_eq [symmetric, code post]
 end
 
 declare equals_eq [code]
+
+setup {*
+  Code_Preproc.map_pre (fn simpset =>
+    simpset addsimprocs [Simplifier.simproc_i @{theory} "eq" [@{term "op ="}]
+      (fn thy => fn _ => fn t as Const (_, T) => case strip_type T
+        of ((T as Type _) :: _, _) => SOME @{thm equals_eq}
+         | _ => NONE)])
+*}
 
 
 subsubsection {* Generic code generator foundation *}
@@ -1836,16 +1851,31 @@ lemmas [code] = Let_def if_True if_False
 
 lemmas [code, code unfold, symmetric, code post] = imp_conv_disj
 
+instantiation itself :: (type) eq
+begin
+
+definition eq_itself :: "'a itself \<Rightarrow> 'a itself \<Rightarrow> bool" where
+  "eq_itself x y \<longleftrightarrow> x = y"
+
+instance proof
+qed (fact eq_itself_def)
+
+end
+
+lemma eq_itself_code [code]:
+  "eq_class.eq TYPE('a) TYPE('a) \<longleftrightarrow> True"
+  by (simp add: eq)
+
 text {* Equality *}
 
 declare simp_thms(6) [code nbe]
 
+setup {*
+  Code.add_const_alias @{thm equals_eq}
+*}
+
 hide (open) const eq
 hide const eq
-
-setup {*
-  Code_Unit.add_const_alias @{thm equals_eq}
-*}
 
 text {* Cases *}
 
@@ -1866,13 +1896,6 @@ setup {*
 *}
 
 code_abort undefined
-
-subsubsection {* Generic code generator preprocessor *}
-
-setup {*
-  Code.map_pre (K HOL_basic_ss)
-  #> Code.map_post (K HOL_basic_ss)
-*}
 
 subsubsection {* Generic code generator target languages *}
 

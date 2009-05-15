@@ -9,30 +9,20 @@ theory Sum_Of_Squares
   uses "positivstellensatz.ML" "sum_of_squares.ML"
   begin
 
-method_setup sos = {* 
-let 
- fun strip_all ct = 
-  case term_of ct of 
-   Const("all",_) $ Abs (xn,xT,p) => 
-    let val (a,(v,t')) = (apsnd (Thm.dest_abs (SOME xn)) o Thm.dest_comb) ct
-    in apfst (cons v) (strip_all t')
-    end
- | _ => ([],ct)
+(* Note: 
 
- fun core_sos_conv ctxt t = Drule.arg_cong_rule @{cterm Trueprop} (Sos.real_sos ctxt (Thm.dest_arg t) RS @{thm Eq_TrueI})
- fun core_sos_tac ctxt = CSUBGOAL (fn (ct, i) => 
-   let val (avs, p) = strip_all ct
-       val th = standard (fold_rev forall_intr avs (Sos.real_sos ctxt (Thm.dest_arg p)))
-   in rtac th i end) (* CONVERSION o core_sos_conv *)
-in Scan.succeed (SIMPLE_METHOD' o core_sos_tac)
-end
+In order to use the method sos, install CSDP (https://projects.coin-or.org/Csdp/) and put the executable csdp on your path. 
 
-*} "Prove universal problems over the reals using sums of squares"
+*)
 
-text{* Tests -- commented since they work only when csdp is installed *}
+
+method_setup sos = {* Scan.succeed (SIMPLE_METHOD' o Sos.sos_tac) *} 
+  "Prove universal problems over the reals using sums of squares"
+
+text{* Tests -- commented since they work only when csdp is installed -- see above *}
 
 (*
-lemma "(3::real) * x + 7 * a < 4 & 3 < 2 * x --> a < 0" by sos
+lemma "(3::real) * x + 7 * a < 4 & 3 < 2 * x \<Longrightarrow> a < 0" by sos
 
 lemma "a1 >= 0 & a2 >= 0 \<and> (a1 * a1 + a2 * a2 = b1 * b1 + b2 * b2 + 2) \<and> (a1 * b1 + a2 * b2 = 0) --> a1 * a2 - b1 * b2 >= (0::real)" by sos
 
@@ -69,8 +59,8 @@ lemma "(2::real) <= x & x <= 4 & 2 <= y & y <= 4 & 2 <= z & z <= 4 --> 0 <= 2 * 
 (* ------------------------------------------------------------------------- *)
 (*
 lemma "2 <= (x::real) & x <= 4 & 2 <= y & y <= 4 & 2 <= z & z <= 4 --> 12 <= 2 * (x * z + x * y + y * z) - (x * x + y * y + z * z)" by sos
-*)
 
+*)
 (* ------------------------------------------------------------------------- *)
 (* Inequality from sci.math (see "Leon-Sotelo, por favor").                  *)
 (* ------------------------------------------------------------------------- *)
@@ -110,5 +100,20 @@ lemma "abs(x - z) <= e & abs(y - z) <= e & 0 <= u & 0 <= v & (u + v = 1) --> abs
 *)
 (*
 lemma "((x::real) - y - 2 * x^4 = 0) & 0 <= x & x <= 2 & 0 <= y & y <= 3 --> y^2 - 7 * y - 12 * x + 17 >= 0" by sos *) (* Too hard?*)
+(*
+lemma "(0::real) <= x --> (1 + x + x^2)/(1 + x^2) <= 1 + x"
+apply sos
+done
+
+lemma "(0::real) <= x --> 1 - x <= 1 / (1 + x + x^2)"
+apply sos
+done
+
+lemma "(x::real) <= 1 / 2 --> - x - 2 * x^2 <= - x / (1 - x)"
+apply sos
+done 
+
+lemma "4*r^2 = p^2 - 4*q & r >= (0::real) & x^2 + p*x + q = 0 --> 2*(x::real) = - p + 2*r | 2*x = -p - 2*r" by sos
+*)
 
 end

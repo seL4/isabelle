@@ -881,7 +881,7 @@ val _ =
     (opt_modes -- P.typ >> (Toplevel.no_timing oo IsarCmd.print_type));
 
 val _ =
-  OuterSyntax.improper_command "print_codesetup" "print code generator setup of this theory" K.diag
+  OuterSyntax.improper_command "print_codesetup" "print code generator setup" K.diag
     (Scan.succeed
       (Toplevel.no_timing o Toplevel.unknown_theory o Toplevel.keep
         (Code.print_codesetup o Toplevel.theory_of)));

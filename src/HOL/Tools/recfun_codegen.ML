@@ -26,10 +26,10 @@ structure ModuleData = TheoryDataFun
 fun add_thm NONE thm thy = Code.add_eqn thm thy
   | add_thm (SOME module_name) thm thy =
       let
-        val (thm', _) = Code_Unit.mk_eqn thy (K false) (thm, true)
+        val (thm', _) = Code.mk_eqn thy (K false) (thm, true)
       in
         thy
-        |> ModuleData.map (Symtab.update (Code_Unit.const_eqn thy thm', module_name))
+        |> ModuleData.map (Symtab.update (Code.const_eqn thy thm', module_name))
         |> Code.add_eqn thm'
       end;
 
@@ -44,21 +44,21 @@ fun meta_eq_to_obj_eq thy thm =
 fun expand_eta thy [] = []
   | expand_eta thy (thms as thm :: _) =
       let
-        val (_, ty) = Code_Unit.const_typ_eqn thm;
+        val (_, ty) = Code.const_typ_eqn thm;
       in if null (Term.add_tvarsT ty []) orelse (null o fst o strip_type) ty
         then thms
-        else map (Code_Unit.expand_eta thy 1) thms
+        else map (Code.expand_eta thy 1) thms
       end;
 
 fun retrieve_equations thy (c, T) = if c = @{const_name "op ="} then NONE else
   let
     val c' = AxClass.unoverload_const thy (c, T);
     val opt_name = Symtab.lookup (ModuleData.get thy) c';
-    val thms = Code.these_raw_eqns thy c'
+    val thms = Code.these_eqns thy c'
       |> map_filter (fn (thm, linear) => if linear then SOME thm else NONE)
       |> expand_eta thy
       |> map_filter (meta_eq_to_obj_eq thy)
-      |> Code_Unit.norm_varnames thy
+      |> Code.norm_varnames thy
       |> map (rpair opt_name)
   in if null thms then NONE else SOME thms end;
 

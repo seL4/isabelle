@@ -1609,4 +1609,57 @@ fun real_nonlinear_subst_prover ctxt =
 fun real_sos ctxt t = gen_prover_real_arith ctxt (real_nonlinear_subst_prover ctxt) t;
 end;
 
+(* A tactic *)
+fun strip_all ct = 
+ case term_of ct of 
+  Const("all",_) $ Abs (xn,xT,p) => 
+   let val (a,(v,t')) = (apsnd (Thm.dest_abs (SOME xn)) o Thm.dest_comb) ct
+   in apfst (cons v) (strip_all t')
+   end
+| _ => ([],ct)
+
+fun core_sos_conv ctxt t = Drule.arg_cong_rule @{cterm Trueprop} (real_sos ctxt (Thm.dest_arg t) RS @{thm Eq_TrueI})
+fun core_sos_tac ctxt = CSUBGOAL (fn (ct, i) => 
+  let val (avs, p) = strip_all ct
+      val th = standard (fold_rev forall_intr avs (real_sos ctxt (Thm.dest_arg p)))
+  in rtac th i end);
+
+fun default_SOME f NONE v = SOME v
+  | default_SOME f (SOME v) _ = SOME v;
+
+fun lift_SOME f NONE a = f a
+  | lift_SOME f (SOME a) _ = SOME a;
+
+
+local
+ val is_numeral = can (HOLogic.dest_number o term_of)
+in
+fun get_denom b ct = case term_of ct of
+  @{term "op / :: real => _"} $ _ $ _ => 
+     if is_numeral (Thm.dest_arg ct) then get_denom b (Thm.dest_arg1 ct)
+     else default_SOME (get_denom b) (get_denom b (Thm.dest_arg ct))   (Thm.dest_arg ct, b)
+ | @{term "op < :: real => _"} $ _ $ _ => lift_SOME (get_denom true) (get_denom true (Thm.dest_arg ct)) (Thm.dest_arg1 ct)
+ | @{term "op <= :: real => _"} $ _ $ _ => lift_SOME (get_denom true) (get_denom true (Thm.dest_arg ct)) (Thm.dest_arg1 ct)
+ | _ $ _ => lift_SOME (get_denom b) (get_denom b (Thm.dest_fun ct)) (Thm.dest_arg ct)
+ | _ => NONE
+end;
+
+fun elim_one_denom_tac ctxt = 
+CSUBGOAL (fn (P,i) => 
+ case get_denom false P of 
+   NONE => no_tac
+ | SOME (d,ord) => 
+     let 
+      val ss = simpset_of (ProofContext.theory_of ctxt) addsimps @{thms field_simps} 
+               addsimps [@{thm nonzero_power_divide}, @{thm power_divide}]
+      val th = instantiate' [] [SOME d, SOME (Thm.dest_arg P)] 
+         (if ord then @{lemma "(d=0 --> P) & (d>0 --> P) & (d<(0::real) --> P) ==> P" by auto}
+          else @{lemma "(d=0 --> P) & (d ~= (0::real) --> P) ==> P" by blast})
+     in (rtac th i THEN Simplifier.asm_full_simp_tac ss i) end);
+
+fun elim_denom_tac ctxt i = REPEAT (elim_one_denom_tac ctxt i);
+
+fun sos_tac ctxt = ObjectLogic.full_atomize_tac THEN' elim_denom_tac ctxt THEN' core_sos_tac ctxt
+
+
 end;

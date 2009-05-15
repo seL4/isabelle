@@ -75,7 +75,7 @@ sig
   val mk_type: bool -> typ -> Pretty.T
   val mk_term_of: codegr -> string -> bool -> typ -> Pretty.T
   val mk_gen: codegr -> string -> bool -> string list -> string -> typ -> Pretty.T
-  val test_fn: (int -> (string * term) list option) ref
+  val test_fn: (int -> term list option) ref
   val test_term: Proof.context -> term -> int -> term list option
   val eval_result: (unit -> term) ref
   val eval_term: theory -> term -> term
@@ -329,7 +329,7 @@ fun gen_assoc_const prep_const (raw_const, syn) thy =
   end;
 
 val assoc_const_i = gen_assoc_const (K I);
-val assoc_const = gen_assoc_const Code_Unit.read_bare_const;
+val assoc_const = gen_assoc_const Code.read_bare_const;
 
 
 (**** associate types with target language types ****)
@@ -871,39 +871,35 @@ fun mk_gen gr module p xs a (TVar ((s, i), _)) = str
               [mk_gen gr module true xs a T, mk_type true T]) Ts) @
          (if member (op =) xs s then [str a] else []))));
 
-val test_fn : (int -> (string * term) list option) ref = ref (fn _ => NONE);
+val test_fn : (int -> term list option) ref = ref (fn _ => NONE);
 
 fun test_term ctxt t =
   let
     val thy = ProofContext.theory_of ctxt;
     val (code, gr) = setmp mode ["term_of", "test"]
       (generate_code_i thy [] "Generated") [("testf", t)];
-    val frees = Name.names Name.context "a" ((map snd o fst o strip_abs) t);
-    val frees' = frees ~~
-      map (fn i => "arg" ^ string_of_int i) (1 upto length frees);
+    val Ts = map snd (fst (strip_abs t));
+    val args = map_index (fn (i, T) => ("arg" ^ string_of_int i, T)) Ts;
     val s = "structure TestTerm =\nstruct\n\n" ^
       cat_lines (map snd code) ^
       "\nopen Generated;\n\n" ^ string_of
         (Pretty.block [str "val () = Codegen.test_fn :=",
           Pretty.brk 1, str ("(fn i =>"), Pretty.brk 1,
-          mk_let (map (fn ((s, T), s') =>
-              (mk_tuple [str s', str (s' ^ "_t")],
+          mk_let (map (fn (s, T) =>
+              (mk_tuple [str s, str (s ^ "_t")],
                Pretty.block [mk_gen gr "Generated" false [] "" T, Pretty.brk 1,
-                 str "(i + 1)"])) frees')
+                 str "i"])) args)
             (Pretty.block [str "if ",
-              mk_app false (str "testf") (map (str o snd) frees'),
+              mk_app false (str "testf") (map (str o fst) args),
               Pretty.brk 1, str "then NONE",
               Pretty.brk 1, str "else ",
               Pretty.block [str "SOME ", Pretty.block (str "[" ::
-                flat (separate [str ",", Pretty.brk 1]
-                  (map (fn ((s, T), s') => [Pretty.block
-                    [str ("(" ^ quote (Symbol.escape s) ^ ","), Pretty.brk 1,
-                     str (s' ^ "_t ())")]]) frees')) @
+                Pretty.commas (map (fn (s, _) => str (s ^ "_t ()")) args) @
                   [str "]"])]]),
           str ");"]) ^
       "\n\nend;\n";
     val _ = ML_Context.eval_in (SOME ctxt) false Position.none s;
-  in ! test_fn #> (Option.map o map) snd end;
+  in ! test_fn end;
 
 
 
@@ -1024,8 +1020,6 @@ fun parse_code lib =
 
 val setup = add_codegen "default" default_codegen
   #> add_tycodegen "default" default_tycodegen
-  #> Code.add_attribute ("unfold", Scan.succeed (Thm.declaration_attribute
-       (fn thm => Context.mapping (add_unfold thm #> Code.add_inline thm) I)))
   #> add_preprocessor unfold_preprocessor;
 
 val _ =

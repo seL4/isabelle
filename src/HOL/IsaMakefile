@@ -92,10 +92,10 @@ BASE_DEPENDENCIES = $(OUT)/Pure \
   $(SRC)/Tools/auto_solve.ML \
   $(SRC)/Tools/code/code_haskell.ML \
   $(SRC)/Tools/code/code_ml.ML \
+  $(SRC)/Tools/code/code_preproc.ML \
   $(SRC)/Tools/code/code_printer.ML \
   $(SRC)/Tools/code/code_target.ML \
   $(SRC)/Tools/code/code_thingol.ML \
-  $(SRC)/Tools/code/code_wellsorted.ML \
   $(SRC)/Tools/coherent.ML \
   $(SRC)/Tools/eqsubst.ML \
   $(SRC)/Tools/induct.ML \
@@ -854,7 +854,7 @@ $(LOG)/HOL-ex.gz: $(OUT)/HOL Library/Commutative_Ring.thy		\
   ex/Sudoku.thy ex/Tarski.thy ex/Term_Of_Syntax.thy	\
   ex/Termination.thy ex/Unification.thy ex/document/root.bib		\
   ex/document/root.tex ex/set.thy ex/svc_funcs.ML ex/svc_test.thy \
-  ex/Predicate_Compile.thy ex/predicate_compile.ML
+  ex/Predicate_Compile.thy ex/predicate_compile.ML ex/Predicate_Compile_ex.thy
 	@$(ISABELLE_TOOL) usedir $(OUT)/HOL ex
 
 

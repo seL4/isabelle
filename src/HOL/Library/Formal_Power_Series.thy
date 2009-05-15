@@ -917,8 +917,7 @@ lemma fps_inverse_X_plus1:
 proof-
   have eq: "(1 + X) * ?r = 1"
     unfolding minus_one_power_iff
-    apply (auto simp add: ring_simps fps_eq_iff)
-    by presburger+
+    by (auto simp add: ring_simps fps_eq_iff)
   show ?thesis by (auto simp add: eq intro: fps_inverse_unique)
 qed
 
@@ -2286,9 +2285,7 @@ lemma inverse_one_plus_X:
   (is "inverse ?l = ?r")
 proof-
   have th: "?l * ?r = 1"
-    apply (auto simp add: ring_simps fps_eq_iff X_mult_nth  minus_one_power_iff)
-    apply presburger+
-    done
+    by (auto simp add: ring_simps fps_eq_iff minus_one_power_iff)
   have th': "?l $ 0 \<noteq> 0" by (simp add: )
   from fps_inverse_unique[OF th' th] show ?thesis .
 qed

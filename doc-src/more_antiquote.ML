@@ -87,10 +87,10 @@ fun no_vars ctxt thm =
 fun pretty_code_thm src ctxt raw_const =
   let
     val thy = ProofContext.theory_of ctxt;
-    val const = Code_Unit.check_const thy raw_const;
-    val (_, funcgr) = Code_Wellsorted.obtain thy [const] [];
+    val const = Code.check_const thy raw_const;
+    val (_, funcgr) = Code_Preproc.obtain thy [const] [];
     fun holize thm = @{thm meta_eq_to_obj_eq} OF [thm];
-    val thms = Code_Wellsorted.eqns funcgr const
+    val thms = Code_Preproc.eqns funcgr const
       |> map_filter (fn (thm, linear) => if linear then SOME thm else NONE)
       |> map (holize o no_vars ctxt o AxClass.overload thy);
   in ThyOutput.output (ThyOutput.maybe_pretty_source (pretty_thm ctxt) src thms) end;
@@ -108,7 +108,7 @@ end;
 local
 
   val parse_const_terms = Scan.repeat1 Args.term
-    >> (fn ts => fn thy => map (Code_Unit.check_const thy) ts);
+    >> (fn ts => fn thy => map (Code.check_const thy) ts);
   val parse_consts = Scan.lift (Args.parens (Args.$$$ "consts")) |-- parse_const_terms
     >> (fn mk_cs => fn thy => fn naming => map_filter (Code_Thingol.lookup_const naming) (mk_cs thy));
   val parse_types = Scan.lift (Args.parens (Args.$$$ "types") |-- Scan.repeat1 Args.name)

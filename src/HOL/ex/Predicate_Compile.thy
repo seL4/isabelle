@@ -7,11 +7,6 @@ text {* Package setup *}
 
 setup {* Predicate_Compile.setup *}
 
-ML {*
-  OuterSyntax.local_theory_to_proof "code_pred" "sets up goal for cases rule from given introduction rules and compiles predicate"
-  OuterKeyword.thy_goal (OuterParse.term_group >> Predicate_Compile.code_pred_cmd)
-*}
-
 
 text {* Experimental code *}
 
@@ -27,9 +22,7 @@ open Predicate;
 val pred_ref = ref (NONE : (unit -> term Predicate.pred) option);
 
 fun eval_pred thy t =
-  t 
-  |> Eval.mk_term_of (fastype_of t)
-  |> (fn t => Code_ML.eval NONE ("Predicate.pred_ref", pred_ref) @{code pred_map} thy t []);
+  Code_ML.eval NONE ("Predicate.pred_ref", pred_ref) @{code pred_map} thy (HOLogic.mk_term_of (fastype_of t) t) [];
 
 fun eval_pred_elems thy t T length =
   t |> eval_pred thy |> yieldn length |> fst |> HOLogic.mk_list T;
@@ -50,54 +43,5 @@ fun analyze_compr thy t =
 
 end;
 *}
-
-
-text {* Example(s) *}
-
-inductive even :: "nat \<Rightarrow> bool" and odd :: "nat \<Rightarrow> bool" where
-    "even 0"
-  | "even n \<Longrightarrow> odd (Suc n)"
-  | "odd n \<Longrightarrow> even (Suc n)"
-
-setup {* pred_compile "even" *}
-thm even_codegen
-
-
-inductive append :: "'a list \<Rightarrow> 'a list \<Rightarrow> 'a list \<Rightarrow> bool" where
-    append_Nil: "append [] xs xs"
-  | append_Cons: "append xs ys zs \<Longrightarrow> append (x # xs) ys (x # zs)"
-
-setup {* pred_compile "append" *}
-thm append_codegen
-
-
-inductive partition :: "('a \<Rightarrow> bool) \<Rightarrow> 'a list \<Rightarrow> 'a list \<Rightarrow> 'a list \<Rightarrow> bool"
-  for f where
-    "partition f [] [] []"
-  | "f x \<Longrightarrow> partition f xs ys zs \<Longrightarrow> partition f (x # xs) (x # ys) zs"
-  | "\<not> f x \<Longrightarrow> partition f xs ys zs \<Longrightarrow> partition f (x # xs) ys (x # zs)"
-
-setup {* pred_compile "partition" *}
-thm partition_codegen
-
-setup {* pred_compile "tranclp" *}
-thm tranclp_codegen
-
-ML_val {* Predicate_Compile.modes_of @{theory} @{const_name partition} *}
-ML_val {* Predicate_Compile.modes_of @{theory} @{const_name tranclp} *}
-
-ML_val {* Predicate.analyze_compr @{theory} @{term "{n. odd n}"} *}
-
-section {* Example for user interface *}
-
-inductive append2 :: "'a list \<Rightarrow> 'a list \<Rightarrow> 'a list \<Rightarrow> bool" where
-    append2_Nil: "append2 [] xs xs"
-  | append2_Cons: "append2 xs ys zs \<Longrightarrow> append2 (x # xs) ys (x # zs)"
-
-(*code_pred append2
-  using assms by (rule append2.cases)
-
-thm append2_codegen
-thm append2_cases*)
 
 end

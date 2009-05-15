@@ -28,30 +28,15 @@ class term_of = typerep +
 lemma term_of_anything: "term_of x \<equiv> t"
   by (rule eq_reflection) (cases "term_of x", cases t, simp)
 
-ML {*
-structure Eval =
-struct
-
-fun mk_term f g (Const (c, ty)) =
-      @{term Const} $ HOLogic.mk_message_string c $ g ty
-  | mk_term f g (t1 $ t2) =
-      @{term App} $ mk_term f g t1 $ mk_term f g t2
-  | mk_term f g (Free v) = f v
-  | mk_term f g (Bound i) = Bound i
-  | mk_term f g (Abs (v, _, t)) = Abs (v, @{typ term}, mk_term f g t);
-
-fun mk_term_of ty t = Const (@{const_name term_of}, ty --> @{typ term}) $ t;
-
-end;
-*}
-
 
 subsubsection {* @{text term_of} instances *}
 
 setup {*
 let
-  fun add_term_of_def ty vs tyco thy =
+  fun add_term_of tyco raw_vs thy =
     let
+      val vs = map (fn (v, _) => (v, @{sort typerep})) raw_vs;
+      val ty = Type (tyco, map TFree vs);
       val lhs = Const (@{const_name term_of}, ty --> @{typ term})
         $ Free ("x", ty);
       val rhs = @{term "undefined \<Colon> term"};
@@ -64,66 +49,57 @@ let
       |> `(fn lthy => Syntax.check_term lthy eq)
       |-> (fn eq => Specification.definition (NONE, ((Binding.name (triv_name_of eq), []), eq)))
       |> snd
-      |> Class.prove_instantiation_instance (K (Class.intro_classes_tac []))
-      |> LocalTheory.exit_global
+      |> Class.prove_instantiation_exit (K (Class.intro_classes_tac []))
     end;
-  fun interpretator ("prop", (raw_vs, _)) thy = thy
-    | interpretator (tyco, (raw_vs, _)) thy =
-        let
-          val has_inst = can (Sorts.mg_domain (Sign.classes_of thy) tyco) @{sort term_of};
-          val constrain_sort =
-            curry (Sorts.inter_sort (Sign.classes_of thy)) @{sort term_of};
-          val vs = (map o apsnd) constrain_sort raw_vs;
-          val ty = Type (tyco, map TFree vs);
-        in
-          thy
-          |> Typerep.perhaps_add_def tyco
-          |> not has_inst ? add_term_of_def ty vs tyco
-        end;
+  fun ensure_term_of (tyco, (raw_vs, _)) thy =
+    let
+      val need_inst = not (can (Sorts.mg_domain (Sign.classes_of thy) tyco) @{sort term_of})
+        andalso can (Sorts.mg_domain (Sign.classes_of thy) tyco) @{sort typerep};
+    in
+      thy
+      |> need_inst ? add_term_of tyco raw_vs
+    end;
 in
-  Code.type_interpretation interpretator
+  Code.type_interpretation ensure_term_of
 end
 *}
 
 setup {*
 let
-  fun mk_term_of_eq ty vs tyco (c, tys) =
+  fun mk_term_of_eq thy ty vs tyco (c, tys) =
     let
       val t = list_comb (Const (c, tys ---> ty),
         map Free (Name.names Name.context "a" tys));
-    in (map_aterms (fn Free (v, ty) => Var ((v, 0), ty) | t => t) t, Eval.mk_term
-      (fn (v, ty) => Eval.mk_term_of ty (Var ((v, 0), ty)))
-      (Typerep.mk (fn (v, sort) => Typerep.typerep (TFree (v, sort)))) t)
-    end;
-  fun prove_term_of_eq ty eq thy =
-    let
+      val (arg, rhs) = pairself (Thm.cterm_of thy o map_types Logic.unvarifyT o Logic.varify)
+        (t, (map_aterms (fn t as Free (v, ty) => HOLogic.mk_term_of ty t | t => t) o HOLogic.reflect_term) t)
       val cty = Thm.ctyp_of thy ty;
-      val (arg, rhs) = pairself (Thm.cterm_of thy) eq;
-      val thm = @{thm term_of_anything}
-        |> Drule.instantiate' [SOME cty] [SOME arg, SOME rhs]
-        |> Thm.varifyT;
+    in
+      @{thm term_of_anything}
+      |> Drule.instantiate' [SOME cty] [SOME arg, SOME rhs]
+      |> Thm.varifyT
+    end;
+  fun add_term_of_code tyco raw_vs raw_cs thy =
+    let
+      val vs = map (fn (v, _) => (v, @{sort typerep})) raw_vs;
+      val ty = Type (tyco, map TFree vs);
+      val cs = (map o apsnd o map o map_atyps)
+        (fn TFree (v, _) => TFree (v, (the o AList.lookup (op =) vs) v)) raw_cs;
+      val const = AxClass.param_of_inst thy (@{const_name term_of}, tyco);
+      val eqs = map (mk_term_of_eq thy ty vs tyco) cs;
+   in
+      thy
+      |> Code.del_eqns const
+      |> fold Code.add_eqn eqs
+    end;
+  fun ensure_term_of_code (tyco, (raw_vs, cs)) thy =
+    let
+      val has_inst = can (Sorts.mg_domain (Sign.classes_of thy) tyco) @{sort term_of};
     in
       thy
-      |> Code.add_eqn thm
+      |> has_inst ? add_term_of_code tyco raw_vs cs
     end;
-  fun interpretator ("prop", (raw_vs, _)) thy = thy
-    | interpretator (tyco, (raw_vs, raw_cs)) thy =
-        let
-          val constrain_sort =
-            curry (Sorts.inter_sort (Sign.classes_of thy)) @{sort term_of};
-          val vs = (map o apsnd) constrain_sort raw_vs;
-          val cs = (map o apsnd o map o map_atyps)
-            (fn TFree (v, sort) => TFree (v, constrain_sort sort)) raw_cs;
-          val ty = Type (tyco, map TFree vs);
-          val eqs = map (mk_term_of_eq ty vs tyco) cs;
-          val const = AxClass.param_of_inst thy (@{const_name term_of}, tyco);
-        in
-          thy
-          |> Code.del_eqns const
-          |> fold (prove_term_of_eq ty) eqs
-        end;
 in
-  Code.type_interpretation interpretator
+  Code.type_interpretation ensure_term_of_code
 end
 *}
 
@@ -164,8 +140,6 @@ subsection {* Evaluation setup *}
 ML {*
 signature EVAL =
 sig
-  val mk_term: ((string * typ) -> term) -> (typ -> term) -> term -> term
-  val mk_term_of: typ -> term -> term
   val eval_ref: (unit -> term) option ref
   val eval_term: theory -> term -> term
 end;
@@ -173,14 +147,10 @@ end;
 structure Eval : EVAL =
 struct
 
-open Eval;
-
 val eval_ref = ref (NONE : (unit -> term) option);
 
 fun eval_term thy t =
-  t 
-  |> Eval.mk_term_of (fastype_of t)
-  |> (fn t => Code_ML.eval NONE ("Eval.eval_ref", eval_ref) I thy t []);
+  Code_ML.eval NONE ("Eval.eval_ref", eval_ref) I thy (HOLogic.mk_term_of (fastype_of t) t) [];
 
 end;
 *}

@@ -498,7 +498,7 @@ and ensure_const thy algbr funcgr c =
       let
         val thms = if null (Term.add_tfreesT ty []) orelse (null o fst o strip_type) ty
           then raw_thms
-          else (map o apfst) (Code_Unit.expand_eta thy 1) raw_thms;
+          else (map o apfst) (Code.expand_eta thy 1) raw_thms;
       in
         fold_map (translate_tyvar_sort thy algbr funcgr) vs
         ##>> translate_typ thy algbr funcgr ty
@@ -509,7 +509,7 @@ and ensure_const thy algbr funcgr c =
      of SOME tyco => stmt_datatypecons tyco
       | NONE => (case AxClass.class_of_param thy c
          of SOME class => stmt_classparam class
-          | NONE => stmt_fun (Code_Wellsorted.typ funcgr c, Code_Wellsorted.eqns funcgr c))
+          | NONE => stmt_fun (Code_Preproc.typ funcgr c, Code_Preproc.eqns funcgr c))
   in ensure_stmt lookup_const (declare_const thy) stmt_const c end
 and ensure_class thy (algbr as (_, algebra)) funcgr class =
   let
@@ -603,7 +603,7 @@ and translate_eq thy algbr funcgr (thm, proper) =
 and translate_const thy algbr funcgr thm (c, ty) =
   let
     val tys = Sign.const_typargs thy (c, ty);
-    val sorts = (map snd o fst o Code_Wellsorted.typ funcgr) c;
+    val sorts = (map snd o fst o Code_Preproc.typ funcgr) c;
     val tys_args = (fst o Term.strip_type) ty;
   in
     ensure_const thy algbr funcgr c
@@ -634,7 +634,7 @@ and translate_case thy algbr funcgr thm (num_args, (t_pos, case_pats)) (c_ty, ts
         Term.strip_abs_eta 1 (the_single ts_clause)
       in [(true, (Free v_ty, body))] end
       else map (uncurry mk_clause)
-        (AList.make (Code_Unit.no_args thy) case_pats ~~ ts_clause);
+        (AList.make (Code.no_args thy) case_pats ~~ ts_clause);
     fun retermify ty (_, (IVar x, body)) =
           (x, ty) `|-> body
       | retermify _ (_, (pat, body)) =
@@ -748,7 +748,7 @@ fun consts_program thy cs =
     fun generate_consts thy algebra funcgr =
       fold_map (ensure_const thy algebra funcgr);
   in
-    invoke_generation thy (Code_Wellsorted.obtain thy cs []) generate_consts cs
+    invoke_generation thy (Code_Preproc.obtain thy cs []) generate_consts cs
     |-> project_consts
   end;
 
@@ -788,8 +788,8 @@ fun base_evaluator thy evaluator algebra funcgr vs t =
     val vs'' = map (fn (v, _) => (v, (the o AList.lookup (op =) vs o prefix "'") v)) vs';
   in evaluator naming program ((vs'', (vs', ty')), t') deps end;
 
-fun eval_conv thy prep_sort = Code_Wellsorted.eval_conv thy prep_sort o base_evaluator thy;
-fun eval thy prep_sort postproc = Code_Wellsorted.eval thy prep_sort postproc o base_evaluator thy;
+fun eval_conv thy prep_sort = Code_Preproc.eval_conv thy prep_sort o base_evaluator thy;
+fun eval thy prep_sort postproc = Code_Preproc.eval thy prep_sort postproc o base_evaluator thy;
 
 
 (** diagnostic commands **)
@@ -812,12 +812,12 @@ fun read_const_exprs thy =
     fun read_const_expr "*" = ([], consts_of NONE)
       | read_const_expr s = if String.isSuffix ".*" s
           then ([], consts_of (SOME (unsuffix ".*" s)))
-          else ([Code_Unit.read_const thy s], []);
+          else ([Code.read_const thy s], []);
   in pairself flat o split_list o map read_const_expr end;
 
 fun code_depgr thy consts =
   let
-    val (_, eqngr) = Code_Wellsorted.obtain thy consts [];
+    val (_, eqngr) = Code_Preproc.obtain thy consts [];
     val select = Graph.all_succs eqngr consts;
   in
     eqngr
@@ -825,7 +825,7 @@ fun code_depgr thy consts =
     |> Graph.map_nodes ((apsnd o map o apfst) (AxClass.overload thy))
   end;
 
-fun code_thms thy = Pretty.writeln o Code_Wellsorted.pretty thy o code_depgr thy;
+fun code_thms thy = Pretty.writeln o Code_Preproc.pretty thy o code_depgr thy;
 
 fun code_deps thy consts =
   let
@@ -839,7 +839,7 @@ fun code_deps thy consts =
       |> map (the o Symtab.lookup mapping)
       |> distinct (op =);
     val conn = [] |> fold (fn consts => cons (consts, succs consts)) constss;
-    fun namify consts = map (Code_Unit.string_of_const thy) consts
+    fun namify consts = map (Code.string_of_const thy) consts
       |> commas;
     val prgr = map (fn (consts, constss) =>
       { name = namify consts, ID = namify consts, dir = "", unfold = true,

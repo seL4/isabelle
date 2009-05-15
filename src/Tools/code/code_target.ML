@@ -286,7 +286,7 @@ fun gen_add_syntax_tyco prep_tyco target raw_tyco raw_syn thy =
 fun gen_add_syntax_const prep_const target raw_c raw_syn thy =
   let
     val c = prep_const thy raw_c;
-    fun check_args (syntax as (n, _)) = if n > Code_Unit.no_args thy c
+    fun check_args (syntax as (n, _)) = if n > Code.no_args thy c
       then error ("Too many arguments in syntax for constant " ^ quote c)
       else syntax;
   in case raw_syn
@@ -319,8 +319,8 @@ fun gen_add_include read_const target args thy =
       | add (name, NONE) incls = Symtab.delete name incls;
   in map_includes target (add args) thy end;
 
-val add_include = gen_add_include Code_Unit.check_const;
-val add_include_cmd = gen_add_include Code_Unit.read_const;
+val add_include = gen_add_include Code.check_const;
+val add_include_cmd = gen_add_include Code.read_const;
 
 fun add_module_alias target (thyname, modlname) =
   let
@@ -363,11 +363,11 @@ val add_syntax_const = gen_add_syntax_const (K I);
 val allow_abort = gen_allow_abort (K I);
 val add_reserved = add_reserved;
 
-val add_syntax_class_cmd = gen_add_syntax_class read_class Code_Unit.read_const;
+val add_syntax_class_cmd = gen_add_syntax_class read_class Code.read_const;
 val add_syntax_inst_cmd = gen_add_syntax_inst read_class read_tyco;
 val add_syntax_tyco_cmd = gen_add_syntax_tyco read_tyco;
-val add_syntax_const_cmd = gen_add_syntax_const Code_Unit.read_const;
-val allow_abort_cmd = gen_allow_abort Code_Unit.read_const;
+val add_syntax_const_cmd = gen_add_syntax_const Code.read_const;
+val allow_abort_cmd = gen_allow_abort Code.read_const;
 
 fun the_literals thy =
   let
@@ -387,15 +387,15 @@ fun the_literals thy =
 local
 
 fun labelled_name thy program name = case Graph.get_node program name
- of Code_Thingol.Fun (c, _) => quote (Code_Unit.string_of_const thy c)
+ of Code_Thingol.Fun (c, _) => quote (Code.string_of_const thy c)
   | Code_Thingol.Datatype (tyco, _) => "type " ^ quote (Sign.extern_type thy tyco)
-  | Code_Thingol.Datatypecons (c, _) => quote (Code_Unit.string_of_const thy c)
+  | Code_Thingol.Datatypecons (c, _) => quote (Code.string_of_const thy c)
   | Code_Thingol.Class (class, _) => "class " ^ quote (Sign.extern_class thy class)
   | Code_Thingol.Classrel (sub, super) => let
         val Code_Thingol.Class (sub, _) = Graph.get_node program sub
         val Code_Thingol.Class (super, _) = Graph.get_node program super
       in quote (Sign.extern_class thy sub ^ " < " ^ Sign.extern_class thy super) end
-  | Code_Thingol.Classparam (c, _) => quote (Code_Unit.string_of_const thy c)
+  | Code_Thingol.Classparam (c, _) => quote (Code.string_of_const thy c)
   | Code_Thingol.Classinst ((class, (tyco, _)), _) => let
         val Code_Thingol.Class (class, _) = Graph.get_node program class
         val Code_Thingol.Datatype (tyco, _) = Graph.get_node program tyco
