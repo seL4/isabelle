@@ -9,6 +9,7 @@ imports
   Ln
   Taylor
   Integration
+  "Library/Quickcheck"
 begin
 
 end
