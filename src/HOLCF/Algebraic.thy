@@ -29,6 +29,11 @@ next
   thus "P i j" using step trans by (rule less_Suc_induct)
 qed
 
+definition
+  eventual_iterate :: "('a \<rightarrow> 'a::cpo) \<Rightarrow> ('a \<rightarrow> 'a)"
+where
+  "eventual_iterate f = eventual (\<lambda>n. iterate n\<cdot>f)"
+
 text {* A pre-deflation is like a deflation, but not idempotent. *}
 
 locale pre_deflation =
@@ -103,9 +108,10 @@ qed
 abbreviation
   d :: "'a \<rightarrow> 'a"
 where
-  "d \<equiv> eventual (\<lambda>n. iterate n\<cdot>f)"
+  "d \<equiv> eventual_iterate f"
 
 lemma MOST_d: "MOST n. P (iterate n\<cdot>f) \<Longrightarrow> P d"
+unfolding eventual_iterate_def
 using eventually_constant_iterate by (rule MOST_eventual)
 
 lemma f_d: "f\<cdot>(d\<cdot>x) = d\<cdot>x"
@@ -134,6 +140,7 @@ lemma finite_deflation_d: "finite_deflation d"
 proof
   fix x :: 'a
   have "d \<in> range (\<lambda>n. iterate n\<cdot>f)"
+    unfolding eventual_iterate_def
     using eventually_constant_iterate
     by (rule eventual_mem_range)
   then obtain n where n: "d = iterate n\<cdot>f" ..
@@ -153,9 +160,17 @@ next
     by (simp add: d_fixed_iff)
 qed
 
+lemma deflation_d: "deflation d"
+using finite_deflation_d
+by (rule finite_deflation_imp_deflation)
+
 end
 
-lemma pre_deflation_d_f:
+lemma finite_deflation_eventual_iterate:
+  "pre_deflation d \<Longrightarrow> finite_deflation (eventual_iterate d)"
+by (rule pre_deflation.finite_deflation_d)
+
+lemma pre_deflation_oo:
   assumes "finite_deflation d"
   assumes f: "\<And>x. f\<cdot>x \<sqsubseteq> x"
   shows "pre_deflation (d oo f)"
@@ -171,13 +186,13 @@ qed
 lemma eventual_iterate_oo_fixed_iff:
   assumes "finite_deflation d"
   assumes f: "\<And>x. f\<cdot>x \<sqsubseteq> x"
-  shows "eventual (\<lambda>n. iterate n\<cdot>(d oo f))\<cdot>x = x \<longleftrightarrow> d\<cdot>x = x \<and> f\<cdot>x = x"
+  shows "eventual_iterate (d oo f)\<cdot>x = x \<longleftrightarrow> d\<cdot>x = x \<and> f\<cdot>x = x"
 proof -
   interpret d: finite_deflation d by fact
   let ?e = "d oo f"
   interpret e: pre_deflation "d oo f"
     using `finite_deflation d` f
-    by (rule pre_deflation_d_f)
+    by (rule pre_deflation_oo)
   let ?g = "eventual (\<lambda>n. iterate n\<cdot>?e)"
   show ?thesis
     apply (subst e.d_fixed_iff)
@@ -191,6 +206,94 @@ proof -
     apply simp
     done
 qed
+
+lemma eventual_mono:
+  assumes A: "eventually_constant A"
+  assumes B: "eventually_constant B"
+  assumes below: "\<And>n. A n \<sqsubseteq> B n"
+  shows "eventual A \<sqsubseteq> eventual B"
+proof -
+  from A have "MOST n. A n = eventual A"
+    by (rule MOST_eq_eventual)
+  then have "MOST n. eventual A \<sqsubseteq> B n"
+    by (rule MOST_mono) (erule subst, rule below)
+  with B show "eventual A \<sqsubseteq> eventual B"
+    by (rule MOST_eventual)
+qed
+
+lemma eventual_iterate_mono:
+  assumes f: "pre_deflation f" and g: "pre_deflation g" and "f \<sqsubseteq> g"
+  shows "eventual_iterate f \<sqsubseteq> eventual_iterate g"
+unfolding eventual_iterate_def
+apply (rule eventual_mono)
+apply (rule pre_deflation.eventually_constant_iterate [OF f])
+apply (rule pre_deflation.eventually_constant_iterate [OF g])
+apply (rule monofun_cfun_arg [OF `f \<sqsubseteq> g`])
+done
+
+lemma cont2cont_eventual_iterate_oo:
+  assumes d: "finite_deflation d"
+  assumes cont: "cont f" and below: "\<And>x y. f x\<cdot>y \<sqsubseteq> y"
+  shows "cont (\<lambda>x. eventual_iterate (d oo f x))"
+    (is "cont ?e")
+proof (rule contI2)
+  show "monofun ?e"
+    apply (rule monofunI)
+    apply (rule eventual_iterate_mono)
+    apply (rule pre_deflation_oo [OF d below])
+    apply (rule pre_deflation_oo [OF d below])
+    apply (rule monofun_cfun_arg)
+    apply (erule cont2monofunE [OF cont])
+    done
+next
+  fix Y :: "nat \<Rightarrow> 'b"
+  assume Y: "chain Y"
+  with cont have fY: "chain (\<lambda>i. f (Y i))"
+    by (rule ch2ch_cont)
+  assume eY: "chain (\<lambda>i. ?e (Y i))"
+  have lub_below: "\<And>x. f (\<Squnion>i. Y i)\<cdot>x \<sqsubseteq> x"
+    by (rule admD [OF _ Y], simp add: cont, rule below)
+  have "deflation (?e (\<Squnion>i. Y i))"
+    apply (rule pre_deflation.deflation_d)
+    apply (rule pre_deflation_oo [OF d lub_below])
+    done
+  then show "?e (\<Squnion>i. Y i) \<sqsubseteq> (\<Squnion>i. ?e (Y i))"
+  proof (rule deflation.belowI)
+    fix x :: 'a
+    assume "?e (\<Squnion>i. Y i)\<cdot>x = x"
+    hence "d\<cdot>x = x" and "f (\<Squnion>i. Y i)\<cdot>x = x"
+      by (simp_all add: eventual_iterate_oo_fixed_iff [OF d lub_below])
+    hence "(\<Squnion>i. f (Y i)\<cdot>x) = x"
+      apply (simp only: cont2contlubE [OF cont Y])
+      apply (simp only: contlub_cfun_fun [OF fY])
+      done
+    have "compact (d\<cdot>x)"
+      using d by (rule finite_deflation.compact)
+    then have "compact x"
+      using `d\<cdot>x = x` by simp
+    then have "compact (\<Squnion>i. f (Y i)\<cdot>x)"
+      using `(\<Squnion>i. f (Y i)\<cdot>x) = x` by simp
+    then have "\<exists>n. max_in_chain n (\<lambda>i. f (Y i)\<cdot>x)"
+      by - (rule compact_imp_max_in_chain, simp add: fY, assumption)
+    then obtain n where n: "max_in_chain n (\<lambda>i. f (Y i)\<cdot>x)" ..
+    then have "f (Y n)\<cdot>x = x"
+      using `(\<Squnion>i. f (Y i)\<cdot>x) = x` fY by (simp add: maxinch_is_thelub)
+    with `d\<cdot>x = x` have "?e (Y n)\<cdot>x = x"
+      by (simp add: eventual_iterate_oo_fixed_iff [OF d below])
+    moreover have "?e (Y n)\<cdot>x \<sqsubseteq> (\<Squnion>i. ?e (Y i)\<cdot>x)"
+      by (rule is_ub_thelub, simp add: eY)
+    ultimately have "x \<sqsubseteq> (\<Squnion>i. ?e (Y i))\<cdot>x"
+      by (simp add: contlub_cfun_fun eY)
+    also have "(\<Squnion>i. ?e (Y i))\<cdot>x \<sqsubseteq> x"
+      apply (rule deflation.below)
+      apply (rule admD [OF adm_deflation eY])
+      apply (rule pre_deflation.deflation_d)
+      apply (rule pre_deflation_oo [OF d below])
+      done
+    finally show "(\<Squnion>i. ?e (Y i))\<cdot>x = x" ..
+  qed
+qed
+
 
 subsection {* Type constructor for finite deflations *}
 
@@ -213,6 +316,10 @@ by (rule typedef_po [OF type_definition_fin_defl below_fin_defl_def])
 
 lemma finite_deflation_Rep_fin_defl: "finite_deflation (Rep_fin_defl d)"
 using Rep_fin_defl by simp
+
+lemma deflation_Rep_fin_defl: "deflation (Rep_fin_defl d)"
+using finite_deflation_Rep_fin_defl
+by (rule finite_deflation_imp_deflation)
 
 interpretation Rep_fin_defl: finite_deflation "Rep_fin_defl d"
 by (rule finite_deflation_Rep_fin_defl)
@@ -244,27 +351,69 @@ by (simp add: Abs_fin_defl_inverse)
 subsection {* Take function for finite deflations *}
 
 definition
+  defl_approx :: "nat \<Rightarrow> ('a \<rightarrow> 'a) \<Rightarrow> ('a \<rightarrow> 'a)"
+where
+  "defl_approx i d = eventual_iterate (approx i oo d)"
+
+lemma finite_deflation_defl_approx:
+  "deflation d \<Longrightarrow> finite_deflation (defl_approx i d)"
+unfolding defl_approx_def
+apply (rule pre_deflation.finite_deflation_d)
+apply (rule pre_deflation_oo)
+apply (rule finite_deflation_approx)
+apply (erule deflation.below)
+done
+
+lemma deflation_defl_approx:
+  "deflation d \<Longrightarrow> deflation (defl_approx i d)"
+apply (rule finite_deflation_imp_deflation)
+apply (erule finite_deflation_defl_approx)
+done
+
+lemma defl_approx_fixed_iff:
+  "deflation d \<Longrightarrow> defl_approx i d\<cdot>x = x \<longleftrightarrow> approx i\<cdot>x = x \<and> d\<cdot>x = x"
+unfolding defl_approx_def
+apply (rule eventual_iterate_oo_fixed_iff)
+apply (rule finite_deflation_approx)
+apply (erule deflation.below)
+done
+
+lemma defl_approx_below:
+  "\<lbrakk>a \<sqsubseteq> b; deflation a; deflation b\<rbrakk> \<Longrightarrow> defl_approx i a \<sqsubseteq> defl_approx i b"
+apply (rule deflation.belowI)
+apply (erule deflation_defl_approx)
+apply (simp add: defl_approx_fixed_iff)
+apply (erule (1) deflation.belowD)
+apply (erule conjunct2)
+done
+
+lemma cont2cont_defl_approx:
+  assumes cont: "cont f" and below: "\<And>x y. f x\<cdot>y \<sqsubseteq> y"
+  shows "cont (\<lambda>x. defl_approx i (f x))"
+unfolding defl_approx_def
+using finite_deflation_approx assms
+by (rule cont2cont_eventual_iterate_oo)
+
+definition
   fd_take :: "nat \<Rightarrow> 'a fin_defl \<Rightarrow> 'a fin_defl"
 where
-  "fd_take i d = Abs_fin_defl (eventual (\<lambda>n. iterate n\<cdot>(approx i oo Rep_fin_defl d)))"
+  "fd_take i d = Abs_fin_defl (defl_approx i (Rep_fin_defl d))"
 
 lemma Rep_fin_defl_fd_take:
-  "Rep_fin_defl (fd_take i d) =
-    eventual (\<lambda>n. iterate n\<cdot>(approx i oo Rep_fin_defl d))"
+  "Rep_fin_defl (fd_take i d) = defl_approx i (Rep_fin_defl d)"
 unfolding fd_take_def
 apply (rule Abs_fin_defl_inverse [unfolded mem_Collect_eq])
-apply (rule pre_deflation.finite_deflation_d)
-apply (rule pre_deflation_d_f)
-apply (rule finite_deflation_approx)
-apply (rule Rep_fin_defl.below)
+apply (rule finite_deflation_defl_approx)
+apply (rule deflation_Rep_fin_defl)
 done
 
 lemma fd_take_fixed_iff:
   "Rep_fin_defl (fd_take i d)\<cdot>x = x \<longleftrightarrow>
     approx i\<cdot>x = x \<and> Rep_fin_defl d\<cdot>x = x"
 unfolding Rep_fin_defl_fd_take
-by (rule eventual_iterate_oo_fixed_iff
-    [OF finite_deflation_approx Rep_fin_defl.below])
+apply (rule defl_approx_fixed_iff)
+apply (rule deflation_Rep_fin_defl)
+done
 
 lemma fd_take_below: "fd_take n d \<sqsubseteq> d"
 apply (rule fin_defl_belowI)
@@ -462,6 +611,41 @@ done
 
 interpretation cast: deflation "cast\<cdot>d"
 by (rule deflation_cast)
+
+lemma cast_approx: "cast\<cdot>(approx n\<cdot>A) = defl_approx n (cast\<cdot>A)"
+apply (rule alg_defl.principal_induct)
+apply (rule adm_eq)
+apply simp
+apply (simp add: cont2cont_defl_approx cast.below)
+apply (simp only: approx_alg_defl_principal)
+apply (simp only: cast_alg_defl_principal)
+apply (simp only: Rep_fin_defl_fd_take)
+done
+
+lemma cast_approx_fixed_iff:
+  "cast\<cdot>(approx i\<cdot>A)\<cdot>x = x \<longleftrightarrow> approx i\<cdot>x = x \<and> cast\<cdot>A\<cdot>x = x"
+apply (simp only: cast_approx)
+apply (rule defl_approx_fixed_iff)
+apply (rule deflation_cast)
+done
+
+lemma defl_approx_cast: "defl_approx i (cast\<cdot>A) = cast\<cdot>(approx i\<cdot>A)"
+by (rule cast_approx [symmetric])
+
+lemma cast_below_imp_below: "cast\<cdot>A \<sqsubseteq> cast\<cdot>B \<Longrightarrow> A \<sqsubseteq> B"
+apply (rule profinite_below_ext)
+apply (drule_tac i=i in defl_approx_below)
+apply (rule deflation_cast)
+apply (rule deflation_cast)
+apply (simp only: defl_approx_cast)
+apply (cut_tac x="approx i\<cdot>A" in alg_defl.compact_imp_principal)
+apply (rule compact_approx)
+apply (cut_tac x="approx i\<cdot>B" in alg_defl.compact_imp_principal)
+apply (rule compact_approx)
+apply clarsimp
+apply (simp add: cast_alg_defl_principal)
+apply (simp add: below_fin_defl_def)
+done
 
 lemma "cast\<cdot>(\<Squnion>i. alg_defl_principal (Abs_fin_defl (approx i)))\<cdot>x = x"
 apply (subst contlub_cfun_arg)
