@@ -1299,6 +1299,25 @@ next
   show ?case by (clarsimp simp add: Cons nth_append)
 qed
 
+lemma Skolem_list_nth:
+  "(ALL i<k. EX x. P i x) = (EX xs. size xs = k & (ALL i<k. P i (xs!i)))"
+  (is "_ = (EX xs. ?P k xs)")
+proof(induct k)
+  case 0 show ?case by simp
+next
+  case (Suc k)
+  show ?case (is "?L = ?R" is "_ = (EX xs. ?P' xs)")
+  proof
+    assume "?R" thus "?L" using Suc by auto
+  next
+    assume "?L"
+    with Suc obtain x xs where "?P k xs & P k x" by (metis less_Suc_eq)
+    hence "?P'(xs@[x])" by(simp add:nth_append less_Suc_eq)
+    thus "?R" ..
+  qed
+qed
+
+
 subsubsection {* @{text list_update} *}
 
 lemma length_list_update [simp]: "length(xs[i:=x]) = length xs"
