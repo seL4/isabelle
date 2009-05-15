@@ -20,6 +20,7 @@ sig
   val do_proofs: bool ref
   val pred_intros : theory -> string -> thm list
   val get_nparams : theory -> string -> int
+  val pred_term_of : theory -> term -> term option
 end;
 
 structure Predicate_Compile: PREDICATE_COMPILE =
@@ -1395,7 +1396,30 @@ val setup =
   val code_pred = generic_code_pred (K I);
   val code_pred_cmd = generic_code_pred Code_Unit.read_const
 
+(* transformation for code generation *)
+
+fun pred_term_of thy t = let
+   val (vars, body) = strip_abs t
+   val (pred, all_args) = strip_comb body
+   val (name, T) = dest_Const pred 
+   val (params, args) = chop (get_nparams thy name) all_args
+   val user_mode = flat (map_index
+      (fn (i, t) => case t of Bound j => if j < length vars then [] else [i+1] | _ => [i+1])
+        args)
+  val (inargs, _) = get_args user_mode args
+  val all_modes = Symtab.dest (#modes (IndCodegenData.get thy))
+  val modes = filter (fn Mode (_, is, _) => is = user_mode) (modes_of all_modes (list_comb (pred, params)))
+  fun compile m = list_comb (compile_expr thy all_modes (SOME m, list_comb (pred, params)), inargs)
+  in
+    case modes of
+      []  => (let val _ = error "No mode possible for this term" in NONE end)
+    | [m] => SOME (compile m)
+    | ms  => (let val _ = warning "Multiple modes possible for this term"
+        in SOME (compile (hd ms)) end)
+  end;
+
 end;
 
 fun pred_compile name thy = Predicate_Compile.create_def_equation
   (Sign.intern_const thy name) thy;
+
