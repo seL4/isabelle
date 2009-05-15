@@ -11,7 +11,6 @@ no_document use_thys [
   "Word",
   "Eval_Examples",
   "Quickcheck_Generators",
-  "Term_Of_Syntax",
   "Codegenerator",
   "Codegenerator_Pretty",
   "NormalForm",
