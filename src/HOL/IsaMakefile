@@ -294,6 +294,8 @@ $(OUT)/HOL: ROOT.ML $(MAIN_DEPENDENCIES) \
   RealPow.thy \
   Real.thy \
   RealVector.thy \
+  Library/Random.thy \
+  Library/Quickcheck.thy \
   Tools/float_syntax.ML \
   Tools/Qelim/ferrante_rackoff_data.ML \
   Tools/Qelim/ferrante_rackoff.ML \
@@ -338,7 +340,6 @@ $(LOG)/HOL-Library.gz: $(OUT)/HOL Library/SetsAndFunctions.thy		\
   Library/Mapping.thy Library/Numeral_Type.thy Library/Reflection.thy	\
   Library/Boolean_Algebra.thy Library/Countable.thy			\
   Library/Diagonalize.thy Library/RBT.thy Library/Univ_Poly.thy		\
-  Library/Random.thy Library/Quickcheck.thy	\
   Library/Poly_Deriv.thy \
   Library/Polynomial.thy \
   Library/Preorder.thy \
