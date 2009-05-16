@@ -69,10 +69,9 @@ text {* The subclass releation spelled out: *}
 lemma subcls1:
   "subcls1 E = (\<lambda>C D. (C, D) \<in> {(list_name,Object), (test_name,Object), (Xcpt NullPointer, Object),
                 (Xcpt ClassCast, Object), (Xcpt OutOfMemory, Object)})"
-apply (simp add: subcls1_def2)
+apply (simp add: subcls1_def2 del:singleton_conj_conv2)
 apply (simp add: name_defs class_defs system_defs E_def class_def)
-apply (auto simp: expand_fun_eq name_defs[symmetric] class_defs split:split_if_asm)
-apply(simp add:name_defs)+
+apply (auto simp: expand_fun_eq split: split_if_asm)
 done
 
 text {* The subclass relation is acyclic; hence its converse is well founded: *}
