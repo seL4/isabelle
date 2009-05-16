@@ -1034,6 +1034,29 @@ lemma rangeE [elim?]: "b \<in> range (\<lambda>x. f x) ==> (!!x. b = f x ==> P) 
 
 subsubsection {* Set reasoning tools *}
 
+text{* Elimination of @{text"{x. \<dots> & x=t & \<dots>}"}. *}
+
+lemma singleton_conj_conv[simp]: "{x. x=a & P x} = (if P a then {a} else {})"
+by auto
+
+lemma singleton_conj_conv2[simp]: "{x. a=x & P x} = (if P a then {a} else {})"
+by auto
+
+ML{*
+  local
+    val Coll_perm_tac = rtac @{thm Collect_cong} 1 THEN rtac @{thm iffI} 1 THEN
+    ALLGOALS(EVERY'[REPEAT_DETERM o (etac @{thm conjE}),
+                    DEPTH_SOLVE_1 o (ares_tac [@{thm conjI}])])
+  in
+    val defColl_regroup = Simplifier.simproc (the_context ())
+      "defined Collect" ["{x. P x & Q x}"]
+      (Quantifier1.rearrange_Coll Coll_perm_tac)
+  end;
+
+  Addsimprocs [defColl_regroup];
+
+*}
+
 text {*
   Rewrite rules for boolean case-splitting: faster than @{text
   "split_if [split]"}.
