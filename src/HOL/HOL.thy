@@ -1988,6 +1988,18 @@ method_setup normalization = {*
 
 subsubsection {* Quickcheck *}
 
+ML {*
+structure Quickcheck_RecFun_Simp_Thms = NamedThmsFun
+(
+  val name = "quickcheck_recfun_simp"
+  val description = "simplification rules of recursive functions as needed by Quickcheck"
+)
+*}
+
+setup {*
+  Quickcheck_RecFun_Simp_Thms.setup
+*}
+
 setup {*
   Quickcheck.add_generator ("SML", Codegen.test_term)
 *}

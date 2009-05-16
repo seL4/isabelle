@@ -37,7 +37,8 @@ open FundefCommon
 val simp_attribs = map (Attrib.internal o K)
     [Simplifier.simp_add,
      Code.add_default_eqn_attribute,
-     Nitpick_Const_Simp_Thms.add]
+     Nitpick_Const_Simp_Thms.add,
+     Quickcheck_RecFun_Simp_Thms.add]
 
 val psimp_attribs = map (Attrib.internal o K)
     [Simplifier.simp_add,

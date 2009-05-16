@@ -247,7 +247,7 @@ fun gen_primrec set_group prep_spec raw_fixes raw_spec lthy =
     val spec' = (map o apfst)
       (fn (b, attrs) => (qualify b, Code.add_default_eqn_attrib :: attrs)) spec;
     val simp_atts = map (Attrib.internal o K)
-      [Simplifier.simp_add, Nitpick_Const_Simp_Thms.add];
+      [Simplifier.simp_add, Nitpick_Const_Simp_Thms.add, Quickcheck_RecFun_Simp_Thms.add];
   in
     lthy
     |> set_group ? LocalTheory.set_group (serial_string ())
