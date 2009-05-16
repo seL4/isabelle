@@ -9,7 +9,6 @@ imports
   Boolean_Algebra
   Char_ord
   Code_Char_chr
-  Code_Index
   Code_Integer
   Coinductive_List
   Commutative_Ring
@@ -45,11 +44,9 @@ imports
   Preorder
   Primes
   Product_Vector
-  Quickcheck
   Quicksort
   Quotient
   Ramsey
-  Random
   Reflection
   RBT
   State_Monad

@@ -206,6 +206,7 @@ $(OUT)/HOL-Plain: plain.ML $(PLAIN_DEPENDENCIES)
 MAIN_DEPENDENCIES = $(PLAIN_DEPENDENCIES) \
   ATP_Linkup.thy \
   Code_Eval.thy \
+  Code_Index.thy \
   Equiv_Relations.thy \
   Groebner_Basis.thy \
   Hilbert_Choice.thy \
@@ -286,16 +287,16 @@ $(OUT)/HOL: ROOT.ML $(MAIN_DEPENDENCIES) \
   Transcendental.thy \
   GCD.thy \
   Parity.thy \
+  Quickcheck.thy \
   Lubs.thy \
   PReal.thy \
+  Random.thy \
   Rational.thy \
   RComplete.thy \
   RealDef.thy \
   RealPow.thy \
   Real.thy \
   RealVector.thy \
-  Library/Random.thy \
-  Library/Quickcheck.thy \
   Tools/float_syntax.ML \
   Tools/Qelim/ferrante_rackoff_data.ML \
   Tools/Qelim/ferrante_rackoff.ML \
@@ -335,7 +336,7 @@ $(LOG)/HOL-Library.gz: $(OUT)/HOL Library/SetsAndFunctions.thy		\
   Library/comm_ring.ML Library/Coinductive_List.thy			\
   Library/AssocList.thy	Library/Formal_Power_Series.thy	\
   Library/Binomial.thy Library/Eval_Witness.thy				\
-  Library/Code_Index.thy Library/Code_Char.thy				\
+  Library/Code_Char.thy				\
   Library/Code_Char_chr.thy Library/Code_Integer.thy			\
   Library/Mapping.thy Library/Numeral_Type.thy Library/Reflection.thy	\
   Library/Boolean_Algebra.thy Library/Countable.thy			\
