@@ -1050,8 +1050,7 @@ lemma simp_thms:
     "(P | False) = P"  "(False | P) = P"
     "(P | P) = P"  "(P | (P | Q)) = (P | Q)" and
     "(ALL x. P) = P"  "(EX x. P) = P"  "EX x. x=t"  "EX x. t=x"
-    -- {* needed for the one-point-rule quantifier simplification procs *}
-    -- {* essential for termination!! *} and
+  and
     "!!P. (EX x. x=t & P(x)) = P(t)"
     "!!P. (EX x. t=x & P(x)) = P(t)"
     "!!P. (ALL x. x=t --> P(x)) = P(t)"

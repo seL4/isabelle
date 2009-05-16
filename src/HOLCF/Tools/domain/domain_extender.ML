@@ -6,11 +6,13 @@ Theory extender for domain command, including theory syntax.
 
 signature DOMAIN_EXTENDER =
 sig
-  val add_domain_cmd: string -> (string list * binding * mixfix *
-    (binding * (bool * binding option * string) list * mixfix) list) list
+  val add_domain_cmd: string ->
+    ((string * string option) list * binding * mixfix *
+      (binding * (bool * binding option * string) list * mixfix) list) list
     -> theory -> theory
-  val add_domain: string -> (string list * binding * mixfix *
-    (binding * (bool * binding option * typ) list * mixfix) list) list
+  val add_domain: string ->
+    ((string * string option) list * binding * mixfix *
+      (binding * (bool * binding option * typ) list * mixfix) list) list
     -> theory -> theory
 end;
 
@@ -22,7 +24,7 @@ open Domain_Library;
 (* ----- general testing and preprocessing of constructor list -------------- *)
 fun check_and_sort_domain
   (dtnvs : (string * typ list) list)
-  (cons'' : ((binding * (bool * binding option * typ) list * mixfix) list) list)
+  (cons'' : (binding * (bool * binding option * typ) list * mixfix) list list)
   (sg : theory)
   : ((string * typ list) *
       (binding * (bool * binding option * typ) list * mixfix) list) list =
@@ -73,9 +75,15 @@ fun check_and_sort_domain
 					     quote (string_of_typ sg t) ^ 
 					    " with different arguments"))
         |   analyse indirect (TVar _) = Imposs "extender:analyse";
-	fun check_pcpo T = if pcpo_type sg T then T
-          else error("Constructor argument type is not of sort pcpo: "^string_of_typ sg T);
-	val analyse_con = upd_second (map (upd_third (check_pcpo o analyse false)));
+        fun check_pcpo lazy T =
+          let val ok = if lazy then cpo_type else pcpo_type
+          in if ok sg T then T else error
+            ("Constructor argument type is not of sort pcpo: " ^
+              string_of_typ sg T)
+          end;
+        fun analyse_arg (lazy, sel, T) =
+          (lazy, sel, check_pcpo lazy (analyse false T));
+        fun analyse_con (b, args, mx) = (b, map analyse_arg args, mx);
       in ((dname,distinct_typevars), map analyse_con cons') end; 
   in ListPair.map analyse_equation (dtnvs,cons'')
   end; (* let *)
@@ -85,12 +93,16 @@ fun check_and_sort_domain
 fun gen_add_domain
   (prep_typ : theory -> 'a -> typ)
   (comp_dnam : string)
-  (eqs''' : (string list * binding * mixfix *
+  (eqs''' : ((string * string option) list * binding * mixfix *
               (binding * (bool * binding option * 'a) list * mixfix) list) list)
   (thy''' : theory) =
   let
+    fun readS (SOME s) = Syntax.read_sort_global thy''' s
+      | readS NONE = Sign.defaultS thy''';
+    fun readTFree (a, s) = TFree (a, readS s);
+
     val dtnvs = map (fn (vs,dname:binding,mx,_) => 
-                  (dname, map (Syntax.read_typ_global thy''') vs, mx)) eqs''';
+                  (dname, map readTFree vs, mx)) eqs''';
     val cons''' = map (fn (_,_,_,cons) => cons) eqs''';
     fun thy_type  (dname,tvars,mx) = (dname, length tvars, mx);
     fun thy_arity (dname,tvars,mx) = (Sign.full_name thy''' dname, map (snd o dest_TFree) tvars, pcpoS);
@@ -148,10 +160,10 @@ val dest_decl : (bool * binding option * string) parser =
 val cons_decl =
   P.binding -- Scan.repeat dest_decl -- P.opt_mixfix;
 
-val type_var' =
-  (P.type_ident ^^ Scan.optional (P.$$$ "::" ^^ P.!!! P.sort) "");
+val type_var' : (string * string option) parser =
+  (P.type_ident -- Scan.option (P.$$$ "::" |-- P.!!! P.sort));
 
-val type_args' =
+val type_args' : (string * string option) list parser =
   type_var' >> single ||
   P.$$$ "(" |-- P.!!! (P.list1 type_var' --| P.$$$ ")") ||
   Scan.succeed [];
@@ -164,11 +176,12 @@ val domains_decl =
   Scan.option (P.$$$ "(" |-- P.name --| P.$$$ ")") --
   P.and_list1 domain_decl;
 
-fun mk_domain (opt_name : string option, doms : (((string list * binding) * mixfix) *
+fun mk_domain (opt_name : string option,
+  doms : ((((string * string option) list * binding) * mixfix) *
     ((binding * (bool * binding option * string) list) * mixfix) list) list ) =
   let
     val names = map (fn (((_, t), _), _) => Binding.name_of t) doms;
-    val specs : (string list * binding * mixfix *
+    val specs : ((string * string option) list * binding * mixfix *
       (binding * (bool * binding option * string) list * mixfix) list) list =
         map (fn (((vs, t), mx), cons) =>
           (vs, t, mx, map (fn ((c, ds), mx) => (c, ds, mx)) cons)) doms;

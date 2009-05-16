@@ -21,11 +21,21 @@ Simplification procedures for turning
         "!x. x=t --> P(x)" is covered by the congreunce rule for -->;
         "!x. t=x --> P(x)" must be taken care of by an ordinary rewrite rule.
         As must be "? x. t=x & P(x)".
-
         
      And similarly for the bounded quantifiers.
 
 Gries etc call this the "1 point rules"
+
+The above also works for !x1..xn. and ?x1..xn by moving the defined
+qunatifier inside first, but not for nested bounded quantifiers.
+
+For set comprehensions the basic permutations
+      ... & x = t & ...  ->  x = t & (... & ...)
+      ... & t = x & ...  ->  t = x & (... & ...)
+are also exported.
+
+To avoid looping, NONE is returned if the term cannot be rearranged,
+esp if x=t/t=x sits at the front already.
 *)
 
 signature QUANTIFIER1_DATA =
@@ -61,6 +71,7 @@ sig
   val rearrange_ex:  theory -> simpset -> term -> thm option
   val rearrange_ball: (simpset -> tactic) -> theory -> simpset -> term -> thm option
   val rearrange_bex:  (simpset -> tactic) -> theory -> simpset -> term -> thm option
+  val rearrange_Coll: tactic -> theory -> simpset -> term -> thm option
 end;
 
 functor Quantifier1Fun(Data: QUANTIFIER1_DATA): QUANTIFIER1 =
@@ -70,29 +81,28 @@ open Data;
 
 (* FIXME: only test! *)
 fun def xs eq =
-  let val n = length xs
-  in case dest_eq eq of
-      SOME(c,s,t) =>
-        s = Bound n andalso not(loose_bvar1(t,n)) orelse
-        t = Bound n andalso not(loose_bvar1(s,n))
-    | NONE => false
-  end;
+  (case dest_eq eq of
+     SOME(c,s,t) =>
+       let val n = length xs
+       in s = Bound n andalso not(loose_bvar1(t,n)) orelse
+          t = Bound n andalso not(loose_bvar1(s,n)) end
+   | NONE => false);
 
-fun extract_conj xs t = case dest_conj t of NONE => NONE
+fun extract_conj fst xs t = case dest_conj t of NONE => NONE
     | SOME(conj,P,Q) =>
-        (if def xs P then SOME(xs,P,Q) else
+        (if not fst andalso def xs P then SOME(xs,P,Q) else
          if def xs Q then SOME(xs,Q,P) else
-         (case extract_conj xs P of
+         (case extract_conj false xs P of
             SOME(xs,eq,P') => SOME(xs,eq, conj $ P' $ Q)
-          | NONE => (case extract_conj xs Q of
+          | NONE => (case extract_conj false xs Q of
                        SOME(xs,eq,Q') => SOME(xs,eq,conj $ P $ Q')
                      | NONE => NONE)));
 
-fun extract_imp xs t = case dest_imp t of NONE => NONE
-    | SOME(imp,P,Q) => if def xs P then SOME(xs,P,Q)
-                       else (case extract_conj xs P of
+fun extract_imp fst xs t = case dest_imp t of NONE => NONE
+    | SOME(imp,P,Q) => if not fst andalso def xs P then SOME(xs,P,Q)
+                       else (case extract_conj false xs P of
                                SOME(xs,eq,P') => SOME(xs, eq, imp $ P' $ Q)
-                             | NONE => (case extract_imp xs Q of
+                             | NONE => (case extract_imp false xs Q of
                                           NONE => NONE
                                         | SOME(xs,eq,Q') =>
                                             SOME(xs,eq,imp$P$Q')));
@@ -100,8 +110,8 @@ fun extract_imp xs t = case dest_imp t of NONE => NONE
 fun extract_quant extract q =
   let fun exqu xs ((qC as Const(qa,_)) $ Abs(x,T,Q)) =
             if qa = q then exqu ((qC,x,T)::xs) Q else NONE
-        | exqu xs P = extract xs P
-  in exqu end;
+        | exqu xs P = extract (null xs) xs P
+  in exqu [] end;
 
 fun prove_conv tac thy tu =
   Goal.prove (ProofContext.init thy) [] [] (Logic.mk_equals tu)
@@ -147,7 +157,7 @@ fun quantify qC x T xs P =
   in quant xs (qC $ Abs(x,T,Q)) end;
 
 fun rearrange_all thy _ (F as (all as Const(q,_)) $ Abs(x,T, P)) =
-     (case extract_quant extract_imp q [] P of
+     (case extract_quant extract_imp q P of
         NONE => NONE
       | SOME(xs,eq,Q) =>
           let val R = quantify all x T xs (imp $ eq $ Q)
@@ -155,7 +165,7 @@ fun rearrange_all thy _ (F as (all as Const(q,_)) $ Abs(x,T, P)) =
   | rearrange_all _ _ _ = NONE;
 
 fun rearrange_ball tac thy ss (F as Ball $ A $ Abs(x,T,P)) =
-     (case extract_imp [] P of
+     (case extract_imp true [] P of
         NONE => NONE
       | SOME(xs,eq,Q) => if not(null xs) then NONE else
           let val R = imp $ eq $ Q
@@ -163,7 +173,7 @@ fun rearrange_ball tac thy ss (F as Ball $ A $ Abs(x,T,P)) =
   | rearrange_ball _ _ _ _ = NONE;
 
 fun rearrange_ex thy _ (F as (ex as Const(q,_)) $ Abs(x,T,P)) =
-     (case extract_quant extract_conj q [] P of
+     (case extract_quant extract_conj q P of
         NONE => NONE
       | SOME(xs,eq,Q) =>
           let val R = quantify ex x T xs (conj $ eq $ Q)
@@ -171,10 +181,17 @@ fun rearrange_ex thy _ (F as (ex as Const(q,_)) $ Abs(x,T,P)) =
   | rearrange_ex _ _ _ = NONE;
 
 fun rearrange_bex tac thy ss (F as Bex $ A $ Abs(x,T,P)) =
-     (case extract_conj [] P of
+     (case extract_conj true [] P of
         NONE => NONE
       | SOME(xs,eq,Q) => if not(null xs) then NONE else
           SOME(prove_conv (tac ss) thy (F,Bex $ A $ Abs(x,T,conj$eq$Q))))
   | rearrange_bex _ _ _ _ = NONE;
+
+fun rearrange_Coll tac thy _ (F as Coll $ Abs(x,T,P)) =
+     (case extract_conj true [] P of
+        NONE => NONE
+      | SOME(_,eq,Q) =>
+          let val R = Coll $ Abs(x,T, conj $ eq $ Q)
+          in SOME(prove_conv tac thy (F,R)) end);
 
 end;
