@@ -88,9 +88,7 @@ text {*
 
 lemma card_s_0_eq_empty:
     "finite A ==> card {B. B \<subseteq> A & card B = 0} = 1"
-  apply (simp cong add: conj_cong add: finite_subset [THEN card_0_eq])
-  apply (simp cong add: rev_conj_cong)
-  done
+by (simp cong add: conj_cong add: finite_subset [THEN card_0_eq])
 
 lemma choose_deconstruct: "finite M ==> x \<notin> M
   ==> {s. s <= insert x M & card(s) = Suc k}

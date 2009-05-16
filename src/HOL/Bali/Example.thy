@@ -1075,10 +1075,7 @@ done
 lemma max_spec_Base_foo: "max_spec tprg S (ClassT Base) \<lparr>name=foo,parTs=[NT]\<rparr> = 
   {((ClassT Base, \<lparr>access=Public,static=False,pars=[z],resT=Class Base\<rparr>)
    , [Class Base])}"
-apply (unfold max_spec_def)
-apply (simp (no_asm) add: appl_methds_Base_foo)
-apply auto
-done
+by (simp (no_asm) add: max_spec_def appl_methds_Base_foo)
 
 section "well-typedness"
 
