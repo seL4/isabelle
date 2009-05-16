@@ -12,6 +12,8 @@ signature DOMAIN_THEOREMS =
 sig
   val theorems: Domain_Library.eq * Domain_Library.eq list -> theory -> thm list * theory;
   val comp_theorems: bstring * Domain_Library.eq list -> theory -> thm list * theory;
+  val quiet_mode: bool ref;
+  val trace_domain: bool ref;
 end;
 
 structure Domain_Theorems :> DOMAIN_THEOREMS =
