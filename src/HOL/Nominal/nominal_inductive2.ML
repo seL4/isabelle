@@ -461,7 +461,7 @@ fun prove_strong_ind s avoids ctxt =
             (strong_raw_induct, [ind_case_names, RuleCases.consumes 0])
           else (strong_raw_induct RSN (2, rev_mp),
             [ind_case_names, RuleCases.consumes 1]);
-        val ((_, [strong_induct']), ctxt') = LocalTheory.note Thm.theoremK
+        val ((_, [strong_induct']), ctxt') = LocalTheory.note Thm.generated_theoremK
           ((rec_qualified (Binding.name "strong_induct"),
             map (Attrib.internal o K) (#2 strong_induct)), [#1 strong_induct])
           ctxt;
@@ -469,7 +469,7 @@ fun prove_strong_ind s avoids ctxt =
           ProjectRule.projects ctxt' (1 upto length names) strong_induct'
       in
         ctxt' |>
-        LocalTheory.note Thm.theoremK
+        LocalTheory.note Thm.generated_theoremK
           ((rec_qualified (Binding.name "strong_inducts"),
             [Attrib.internal (K ind_case_names),
              Attrib.internal (K (RuleCases.consumes 1))]),

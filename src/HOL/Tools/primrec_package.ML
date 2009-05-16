@@ -253,8 +253,8 @@ fun gen_primrec set_group prep_spec raw_fixes raw_spec lthy =
     |> set_group ? LocalTheory.set_group (serial_string ())
     |> fold_map (LocalTheory.define Thm.definitionK o make_def lthy fixes fs) defs
     |-> (fn defs => `(fn ctxt => prove_spec ctxt names1 rec_rewrites defs spec'))
-    |-> (fn simps => fold_map (LocalTheory.note Thm.theoremK) simps)
-    |-> (fn simps' => LocalTheory.note Thm.theoremK
+    |-> (fn simps => fold_map (LocalTheory.note Thm.generated_theoremK) simps)
+    |-> (fn simps' => LocalTheory.note Thm.generated_theoremK
           ((qualify (Binding.qualified_name "simps"), simp_atts), maps snd simps'))
     |>> snd
   end handle PrimrecError (msg, some_eqn) =>

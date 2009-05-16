@@ -1393,7 +1393,7 @@ fun generic_code_pred prep_const raw_const lthy =
     val (predname, _) = dest_Const pred
     fun after_qed [[th]] lthy'' =
       lthy''
-      |> LocalTheory.note Thm.theoremK
+      |> LocalTheory.note Thm.generated_theoremK
            ((Binding.empty, [Attrib.internal (K add_elim_attrib)]), [th])
       |> snd
       |> LocalTheory.theory (prove_equation predname NONE)
