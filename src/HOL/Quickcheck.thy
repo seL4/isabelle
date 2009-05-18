@@ -70,27 +70,22 @@ setup {*
 
 subsection {* Fundamental types*}
 
-definition (in term_syntax)
-  "termify_bool b = (if b then termify True else termify False)"
-
 instantiation bool :: random
 begin
 
 definition
-  "random i = Random.range i o\<rightarrow> (\<lambda>k. Pair (termify_bool (k div 2 = 0)))"
+  "random i = Random.range i o\<rightarrow>
+    (\<lambda>k. Pair (if (k div 2 = 0) then Code_Eval.valtermify True else Code_Eval.valtermify False))"
 
 instance ..
 
 end
 
-definition (in term_syntax)
-  "termify_itself TYPE('a\<Colon>typerep) = termify TYPE('a)"
-
 instantiation itself :: (typerep) random
 begin
 
 definition random_itself :: "index \<Rightarrow> Random.seed \<Rightarrow> ('a itself \<times> (unit \<Rightarrow> term)) \<times> Random.seed" where
-  "random_itself _ = Pair (termify_itself TYPE('a))"
+  "random_itself _ = Pair (Code_Eval.valtermify TYPE('a))"
 
 instance ..
 
@@ -156,70 +151,55 @@ code_reserved Quickcheck Random_Engine
 
 subsection {* Numeric types *}
 
-function (in term_syntax) termify_numeral :: "index \<Rightarrow> int \<times> (unit \<Rightarrow> term)" where
-  "termify_numeral k = (if k = 0 then termify Int.Pls
-    else (if k mod 2 = 0 then termify Int.Bit0 else termify Int.Bit1) <\<cdot>> termify_numeral (k div 2))"
-  by pat_completeness auto
-
-declare (in term_syntax) termify_numeral.psimps [simp del]
-
-termination termify_numeral by (relation "measure Code_Index.nat_of")
-  (simp_all add: index)
-
-definition (in term_syntax) termify_int_number :: "index \<Rightarrow> int \<times> (unit \<Rightarrow> term)" where
-  "termify_int_number k = termify number_of <\<cdot>> termify_numeral k"
-
-definition (in term_syntax) termify_nat_number :: "index \<Rightarrow> nat \<times> (unit \<Rightarrow> term)" where
-  "termify_nat_number k = (nat \<circ> number_of, snd (termify (number_of :: int \<Rightarrow> nat))) <\<cdot>> termify_numeral k"
-
-declare termify_nat_number_def [simplified snd_conv, code]
-
 instantiation nat :: random
 begin
 
-definition random_nat :: "index \<Rightarrow> Random.seed \<Rightarrow> (nat \<times> (unit \<Rightarrow> term)) \<times> Random.seed" where
-  "random_nat i = Random.range (i + 1) o\<rightarrow> (\<lambda>k. Pair (termify_nat_number k))"
+definition random_nat :: "index \<Rightarrow> Random.seed \<Rightarrow> (nat \<times> (unit \<Rightarrow> Code_Eval.term)) \<times> Random.seed" where
+  "random_nat i = Random.range (i + 1) o\<rightarrow> (\<lambda>k. Pair (
+     let n = Code_Index.nat_of k
+     in (n, \<lambda>_. Code_Eval.term_of n)))"
 
 instance ..
 
 end
-
-definition (in term_syntax) term_uminus :: "int \<times> (unit \<Rightarrow> term) \<Rightarrow> int \<times> (unit \<Rightarrow> term)" where
-  [code inline]: "term_uminus k = termify uminus <\<cdot>> k"
 
 instantiation int :: random
 begin
 
 definition
-  "random i = Random.range (2 * i + 1) o\<rightarrow> (\<lambda>k. Pair (if k \<ge> i
-     then let j = k - i in termify_int_number j
-     else let j = i - k in term_uminus (termify_int_number j)))"
+  "random i = Random.range (2 * i + 1) o\<rightarrow> (\<lambda>k. Pair (
+     let j = (if k \<ge> i then Code_Index.int_of (k - i) else - Code_Index.int_of (i - k))
+     in (j, \<lambda>_. Code_Eval.term_of j)))"
 
 instance ..
 
 end
 
-definition (in term_syntax) term_fract :: "int \<times> (unit \<Rightarrow> term) \<Rightarrow> int \<times> (unit \<Rightarrow> term) \<Rightarrow> rat \<times> (unit \<Rightarrow> term)" where
-  [code inline]: "term_fract k l = termify Fract <\<cdot>> k <\<cdot>> l"
+definition (in term_syntax)
+  valterm_fract :: "int \<times> (unit \<Rightarrow> Code_Eval.term) \<Rightarrow> int \<times> (unit \<Rightarrow> Code_Eval.term) \<Rightarrow> rat \<times> (unit \<Rightarrow> Code_Eval.term)" where
+  [code inline]: "valterm_fract k l = Code_Eval.valtermify Fract {\<cdot>} k {\<cdot>} l"
 
 instantiation rat :: random
 begin
 
 definition
-  "random i = random i o\<rightarrow> (\<lambda>num. Random.range (i + 1) o\<rightarrow> (\<lambda>denom. Pair (term_fract num (termify_int_number denom))))"
+  "random i = random i o\<rightarrow> (\<lambda>num. Random.range i o\<rightarrow> (\<lambda>denom. Pair (
+     let j = Code_Index.int_of (denom + 1)
+     in valterm_fract num (j, \<lambda>u. Code_Eval.term_of j))))"
 
 instance ..
 
 end
 
-definition (in term_syntax) term_ratreal :: "rat \<times> (unit \<Rightarrow> term) \<Rightarrow> real \<times> (unit \<Rightarrow> term)" where
-  [code inline]: "term_ratreal k = termify Ratreal <\<cdot>> k"
+definition (in term_syntax)
+  valterm_ratreal :: "rat \<times> (unit \<Rightarrow> Code_Eval.term) \<Rightarrow> real \<times> (unit \<Rightarrow> Code_Eval.term)" where
+  [code inline]: "valterm_ratreal k = Code_Eval.valtermify Ratreal {\<cdot>} k"
 
 instantiation real :: random
 begin
 
 definition
-  "random i = random i o\<rightarrow> (\<lambda>r. Pair (term_ratreal r))"
+  "random i = random i o\<rightarrow> (\<lambda>r. Pair (valterm_ratreal r))"
 
 instance ..
 
