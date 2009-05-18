@@ -206,6 +206,7 @@ $(OUT)/HOL-Plain: plain.ML $(PLAIN_DEPENDENCIES)
 MAIN_DEPENDENCIES = $(PLAIN_DEPENDENCIES) \
   ATP_Linkup.thy \
   Code_Eval.thy \
+  Code_Index.thy \
   Equiv_Relations.thy \
   Groebner_Basis.thy \
   Hilbert_Choice.thy \
@@ -286,8 +287,10 @@ $(OUT)/HOL: ROOT.ML $(MAIN_DEPENDENCIES) \
   Transcendental.thy \
   GCD.thy \
   Parity.thy \
+  Quickcheck.thy \
   Lubs.thy \
   PReal.thy \
+  Random.thy \
   Rational.thy \
   RComplete.thy \
   RealDef.thy \
@@ -333,12 +336,11 @@ $(LOG)/HOL-Library.gz: $(OUT)/HOL Library/SetsAndFunctions.thy		\
   Library/comm_ring.ML Library/Coinductive_List.thy			\
   Library/AssocList.thy	Library/Formal_Power_Series.thy	\
   Library/Binomial.thy Library/Eval_Witness.thy				\
-  Library/Code_Index.thy Library/Code_Char.thy				\
+  Library/Code_Char.thy				\
   Library/Code_Char_chr.thy Library/Code_Integer.thy			\
   Library/Mapping.thy Library/Numeral_Type.thy Library/Reflection.thy	\
   Library/Boolean_Algebra.thy Library/Countable.thy			\
   Library/Diagonalize.thy Library/RBT.thy Library/Univ_Poly.thy		\
-  Library/Random.thy Library/Quickcheck.thy	\
   Library/Poly_Deriv.thy \
   Library/Polynomial.thy \
   Library/Preorder.thy \
@@ -851,7 +853,7 @@ $(LOG)/HOL-ex.gz: $(OUT)/HOL Library/Commutative_Ring.thy		\
   ex/Recdefs.thy ex/Records.thy ex/ReflectionEx.thy			\
   ex/Refute_Examples.thy ex/SAT_Examples.thy ex/SVC_Oracle.thy		\
   ex/Serbian.thy ex/Sqrt.thy ex/Sqrt_Script.thy \
-  ex/Sudoku.thy ex/Tarski.thy ex/Term_Of_Syntax.thy	\
+  ex/Sudoku.thy ex/Tarski.thy \
   ex/Termination.thy ex/Unification.thy ex/document/root.bib		\
   ex/document/root.tex ex/set.thy ex/svc_funcs.ML ex/svc_test.thy \
   ex/Predicate_Compile.thy ex/predicate_compile.ML ex/Predicate_Compile_ex.thy

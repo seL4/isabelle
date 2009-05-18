@@ -9,6 +9,7 @@ imports
   Ln
   Taylor
   Integration
+  Quickcheck
 begin
 
 end

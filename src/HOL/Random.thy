@@ -87,6 +87,32 @@ proof -
     by (simp add: scomp_apply split_beta select_def)
 qed
 
+primrec pick :: "(index \<times> 'a) list \<Rightarrow> index \<Rightarrow> 'a" where
+  "pick (x # xs) i = (if i < fst x then snd x else pick xs (i - fst x))"
+
+lemma pick_member:
+  "i < listsum (map fst xs) \<Longrightarrow> pick xs i \<in> set (map snd xs)"
+  by (induct xs arbitrary: i) simp_all
+
+lemma pick_drop_zero:
+  "pick (filter (\<lambda>(k, _). k > 0) xs) = pick xs"
+  by (induct xs) (auto simp add: expand_fun_eq)
+
+definition select_weight :: "(index \<times> 'a) list \<Rightarrow> seed \<Rightarrow> 'a \<times> seed" where
+  "select_weight xs = range (listsum (map fst xs))
+   o\<rightarrow> (\<lambda>k. Pair (pick xs k))"
+
+lemma select_weight_member:
+  assumes "0 < listsum (map fst xs)"
+  shows "fst (select_weight xs s) \<in> set (map snd xs)"
+proof -
+  from range assms
+    have "fst (range (listsum (map fst xs)) s) < listsum (map fst xs)" .
+  with pick_member
+    have "pick xs (fst (range (listsum (map fst xs)) s)) \<in> set (map snd xs)" .
+  then show ?thesis by (simp add: select_weight_def scomp_def split_def) 
+qed
+
 definition select_default :: "index \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> seed \<Rightarrow> 'a \<times> seed" where
   [code del]: "select_default k x y = range k
      o\<rightarrow> (\<lambda>l. Pair (if l + 1 < k then x else y))"
@@ -139,6 +165,10 @@ end;
 
 end;
 *}
+
+hide (open) type seed
+hide (open) const inc_shift minus_shift log "next" seed_invariant split_seed
+  iterate range select pick select_weight select_default
 
 no_notation fcomp (infixl "o>" 60)
 no_notation scomp (infixl "o\<rightarrow>" 60)

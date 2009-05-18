@@ -28,6 +28,14 @@ class term_of = typerep +
 lemma term_of_anything: "term_of x \<equiv> t"
   by (rule eq_reflection) (cases "term_of x", cases t, simp)
 
+definition app :: "('a \<Rightarrow> 'b) \<times> (unit \<Rightarrow> term)
+  \<Rightarrow> 'a \<times> (unit \<Rightarrow> term) \<Rightarrow> 'b \<times> (unit \<Rightarrow> term)" where
+  "app f x = (fst f (fst x), \<lambda>u. Code_Eval.App (snd f ()) (snd x ()))"
+
+lemma app_code [code, code inline]:
+  "app (f, tf) (x, tx) = (f x, \<lambda>u. Code_Eval.App (tf ()) (tx ()))"
+  by (simp only: app_def fst_conv snd_conv)
+
 
 subsubsection {* @{text term_of} instances *}
 
@@ -135,6 +143,68 @@ code_const "term_of \<Colon> message_string \<Rightarrow> term"
 code_reserved Eval HOLogic
 
 
+subsubsection {* Syntax *}
+
+definition termify :: "'a \<Rightarrow> 'a \<times> (unit \<Rightarrow> term)" where
+  [code del]: "termify x = (x, \<lambda>u. dummy_term)"
+
+setup {*
+let
+  fun map_default f xs =
+    let val ys = map f xs
+    in if exists is_some ys
+      then SOME (map2 the_default xs ys)
+      else NONE
+    end;
+  fun subst_termify_app (Const (@{const_name termify}, T), [t]) =
+        if not (Term.has_abs t)
+        then if fold_aterms (fn Const _ => I | _ => K false) t true
+          then SOME (HOLogic.mk_prod
+            (t, Abs ("u", HOLogic.unitT, HOLogic.reflect_term t)))
+          else error "Cannot termify expression containing variables"
+        else error "Cannot termify expression containing abstraction"
+    | subst_termify_app (t, ts) = case map_default subst_termify ts
+       of SOME ts' => SOME (list_comb (t, ts'))
+        | NONE => NONE
+  and subst_termify (Abs (v, T, t)) = (case subst_termify t
+       of SOME t' => SOME (Abs (v, T, t'))
+        | NONE => NONE)
+    | subst_termify t = subst_termify_app (strip_comb t) 
+  fun check_termify ts ctxt = map_default subst_termify ts
+    |> Option.map (rpair ctxt)
+in
+  Context.theory_map (Syntax.add_term_check 0 "termify" check_termify)
+end;
+*}
+
+locale term_syntax
+begin
+
+notation app (infixl "<\<cdot>>" 70) and termify ("termify")
+
+end
+
+interpretation term_syntax .
+
+no_notation app (infixl "<\<cdot>>" 70) and termify ("termify")
+
+print_translation {*
+let
+  val term = Const ("<TERM>", dummyT);
+  fun tr1' [_, _] = term;
+  fun tr2' [] = term;
+in
+  [(@{const_syntax Const}, tr1'),
+    (@{const_syntax App}, tr1'),
+    (@{const_syntax dummy_term}, tr2')]
+end
+*}
+
+hide const dummy_term termify app
+hide (open) const Const App term_of
+
+
+
 subsection {* Evaluation setup *}
 
 ML {*
@@ -158,24 +228,5 @@ end;
 setup {*
   Value.add_evaluator ("code", Eval.eval_term o ProofContext.theory_of)
 *}
-
-
-subsubsection {* Syntax *}
-
-print_translation {*
-let
-  val term = Const ("<TERM>", dummyT);
-  fun tr1' [_, _] = term;
-  fun tr2' [] = term;
-in
-  [(@{const_syntax Const}, tr1'),
-    (@{const_syntax App}, tr1'),
-    (@{const_syntax dummy_term}, tr2')]
-end
-*}
-
-hide const dummy_term
-hide (open) const Const App
-hide (open) const term_of
 
 end

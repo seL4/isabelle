@@ -349,9 +349,9 @@ instance ..
 
 end
 
-function mk_word_aux :: "nat \<Rightarrow> seed \<Rightarrow> letter list \<times> seed" where
+function mk_word_aux :: "nat \<Rightarrow> Random.seed \<Rightarrow> letter list \<times> Random.seed" where
   "mk_word_aux k = (do
-     i \<leftarrow> range 10;
+     i \<leftarrow> Random.range 10;
      (if i > 7 \<and> k > 2 \<or> k > 1000 then return []
      else do
        let l = (if i mod 2 = 0 then A else B);
@@ -362,10 +362,10 @@ function mk_word_aux :: "nat \<Rightarrow> seed \<Rightarrow> letter list \<time
 by pat_completeness auto
 termination by (relation "measure ((op -) 1001)") auto
 
-definition mk_word :: "seed \<Rightarrow> letter list \<times> seed" where
+definition mk_word :: "Random.seed \<Rightarrow> letter list \<times> Random.seed" where
   "mk_word = mk_word_aux 0"
 
-primrec mk_word_s :: "nat \<Rightarrow> seed \<Rightarrow> letter list \<times> seed" where
+primrec mk_word_s :: "nat \<Rightarrow> Random.seed \<Rightarrow> letter list \<times> Random.seed" where
   "mk_word_s 0 = mk_word"
   | "mk_word_s (Suc n) = (do
        _ \<leftarrow> mk_word;

@@ -8,27 +8,11 @@ begin
 
 subsection {* Datatypes *}
 
-definition
-  collapse :: "('a \<Rightarrow> ('a \<Rightarrow> 'b \<times> 'a) \<times> 'a) \<Rightarrow> 'a \<Rightarrow> 'b \<times> 'a" where
+definition collapse :: "('a \<Rightarrow> ('a \<Rightarrow> 'b \<times> 'a) \<times> 'a) \<Rightarrow> 'a \<Rightarrow> 'b \<times> 'a" where
   "collapse f = (do g \<leftarrow> f; g done)"
 
-ML {*
-structure StateMonad =
-struct
-
-fun liftT T sT = sT --> HOLogic.mk_prodT (T, sT);
-fun liftT' sT = sT --> sT;
-
-fun return T sT x = Const (@{const_name return}, T --> liftT T sT) $ x;
-
-fun scomp T1 T2 sT f g = Const (@{const_name scomp},
-  liftT T1 sT --> (T1 --> liftT T2 sT) --> liftT T2 sT) $ f $ g;
-
-end;
-*}
-
 lemma random'_if:
-  fixes random' :: "index \<Rightarrow> index \<Rightarrow> seed \<Rightarrow> ('a \<times> (unit \<Rightarrow> term)) \<times> seed"
+  fixes random' :: "index \<Rightarrow> index \<Rightarrow> Random.seed \<Rightarrow> ('a \<times> (unit \<Rightarrow> term)) \<times> Random.seed"
   assumes "random' 0 j = (\<lambda>s. undefined)"
     and "\<And>i. random' (Suc_index i) j = rhs2 i"
   shows "random' i j s = (if i = 0 then undefined else rhs2 (i - 1) s)"
@@ -36,15 +20,18 @@ lemma random'_if:
 
 setup {*
 let
+  fun liftT T sT = sT --> HOLogic.mk_prodT (T, sT);
+  fun scomp T1 T2 sT f g = Const (@{const_name scomp},
+    liftT T1 sT --> (T1 --> liftT T2 sT) --> liftT T2 sT) $ f $ g;
   exception REC of string;
   exception TYP of string;
   fun mk_collapse thy ty = Sign.mk_const thy
-    (@{const_name collapse}, [@{typ seed}, ty]);
+    (@{const_name collapse}, [@{typ Random.seed}, ty]);
   fun term_ty ty = HOLogic.mk_prodT (ty, @{typ "unit \<Rightarrow> term"});
   fun mk_split thy ty ty' = Sign.mk_const thy
-    (@{const_name split}, [ty, @{typ "unit \<Rightarrow> term"}, StateMonad.liftT (term_ty ty') @{typ seed}]);
+    (@{const_name split}, [ty, @{typ "unit \<Rightarrow> term"}, liftT (term_ty ty') @{typ Random.seed}]);
   fun mk_scomp_split thy ty ty' t t' =
-    StateMonad.scomp (term_ty ty) (term_ty ty') @{typ seed} t
+    scomp (term_ty ty) (term_ty ty') @{typ Random.seed} t
       (mk_split thy ty ty' $ Abs ("", ty, Abs ("", @{typ "unit \<Rightarrow> term"}, t')))
   fun mk_cons thy this_ty (c, args) =
     let
@@ -57,7 +44,7 @@ let
       val t_t = Abs ("", @{typ unit}, HOLogic.reflect_term
         (list_comb (c, map (fn k => Bound (k + 1)) t_indices))
         |> map_aterms (fn t as Bound _ => t $ @{term "()"} | t => t));
-      val return = StateMonad.return (term_ty this_ty) @{typ seed}
+      val return = HOLogic.mk_return (term_ty this_ty) @{typ Random.seed}
         (HOLogic.mk_prod (c_t, t_t));
       val t = fold_rev (fn ((ty, _), random) =>
         mk_scomp_split thy ty this_ty random)
@@ -67,21 +54,21 @@ let
   fun mk_conss thy ty [] = NONE
     | mk_conss thy ty [(_, t)] = SOME t
     | mk_conss thy ty ts = SOME (mk_collapse thy (term_ty ty) $
-          (Sign.mk_const thy (@{const_name select}, [StateMonad.liftT (term_ty ty) @{typ seed}]) $
-            HOLogic.mk_list (StateMonad.liftT (term_ty ty) @{typ seed}) (map snd ts)));
+          (Sign.mk_const thy (@{const_name Random.select}, [liftT (term_ty ty) @{typ Random.seed}]) $
+            HOLogic.mk_list (liftT (term_ty ty) @{typ Random.seed}) (map snd ts)));
   fun mk_clauses thy ty (tyco, (ts_rec, ts_atom)) = 
     let
       val SOME t_atom = mk_conss thy ty ts_atom;
     in case mk_conss thy ty ts_rec
      of SOME t_rec => mk_collapse thy (term_ty ty) $
-          (Sign.mk_const thy (@{const_name select_default}, [StateMonad.liftT (term_ty ty) @{typ seed}]) $
+          (Sign.mk_const thy (@{const_name Random.select_default}, [liftT (term_ty ty) @{typ Random.seed}]) $
              @{term "i\<Colon>index"} $ t_rec $ t_atom)
       | NONE => t_atom
     end;
   fun mk_random_eqs thy vs tycos =
     let
       val this_ty = Type (hd tycos, map TFree vs);
-      val this_ty' = StateMonad.liftT (term_ty this_ty) @{typ seed};
+      val this_ty' = liftT (term_ty this_ty) @{typ Random.seed};
       val random_name = Long_Name.base_name @{const_name random};
       val random'_name = random_name ^ "_" ^ Class.type_name (hd tycos) ^ "'";
       fun random ty = Sign.mk_const thy (@{const_name random}, [ty]);
@@ -100,8 +87,8 @@ let
         |> (map o apsnd) (List.partition fst)
         |> map (mk_clauses thy this_ty)
       val eqss = map ((apsnd o map) (HOLogic.mk_Trueprop o HOLogic.mk_eq) o (fn rhs => ((this_ty, random'), [
-          (random' $ @{term "0\<Colon>index"} $ @{term "j\<Colon>index"}, Abs ("s", @{typ seed},
-            Const (@{const_name undefined}, HOLogic.mk_prodT (term_ty this_ty, @{typ seed})))),
+          (random' $ @{term "0\<Colon>index"} $ @{term "j\<Colon>index"}, Abs ("s", @{typ Random.seed},
+            Const (@{const_name undefined}, HOLogic.mk_prodT (term_ty this_ty, @{typ Random.seed})))),
           (random' $ @{term "Suc_index i"} $ @{term "j\<Colon>index"}, rhs)
         ]))) rhss;
     in eqss end;
@@ -113,7 +100,7 @@ let
           val ((this_ty, random'), eqs') = singleton (mk_random_eqs thy vs) tyco;
           val eq = (HOLogic.mk_Trueprop o HOLogic.mk_eq)
             (Sign.mk_const thy (@{const_name random}, [this_ty]) $ @{term "i\<Colon>index"},
-               random' $ @{term "i\<Colon>index"} $ @{term "i\<Colon>index"})
+               random' $ @{term "max (i\<Colon>index) 1"} $ @{term "i\<Colon>index"})
           val del_func = Attrib.internal (fn _ => Thm.declaration_attribute
             (fn thm => Context.mapping (Code.del_eqn thm) I));
           fun add_code simps lthy =
@@ -146,30 +133,13 @@ let
         end
     | random_inst tycos thy = raise REC
         ("Will not generate random elements for mutual recursive type(s) " ^ commas (map quote tycos));
-  fun add_random_inst tycos thy = random_inst tycos thy
-     handle REC msg => (warning msg; thy)
-          | TYP msg => (warning msg; thy)
+  fun add_random_inst [@{type_name bool}] thy = thy
+    | add_random_inst [@{type_name nat}] thy = thy
+    | add_random_inst tycos thy = random_inst tycos thy
+        handle REC msg => (warning msg; thy)
+             | TYP msg => (warning msg; thy)
 in DatatypePackage.interpretation add_random_inst end
 *}
-
-
-subsection {* Type @{typ int} *}
-
-instantiation int :: random
-begin
-
-definition
-  "random n = (do
-     (b, _) \<leftarrow> random n;
-     (m, t) \<leftarrow> random n;
-     return (if b then (int m, \<lambda>u. Code_Eval.App (Code_Eval.Const (STR ''Int.int'') TYPEREP(nat \<Rightarrow> int)) (t ()))
-       else (- int m, \<lambda>u. Code_Eval.App (Code_Eval.Const (STR ''HOL.uminus_class.uminus'') TYPEREP(int \<Rightarrow> int))
-         (Code_Eval.App (Code_Eval.Const (STR ''Int.int'') TYPEREP(nat \<Rightarrow> int)) (t ()))))
-   done)"
-
-instance ..
-
-end
 
 
 subsection {* Examples *}
@@ -291,6 +261,10 @@ theorem "hd (inOrder xt) = root xt"
   oops
 
 lemma "int (f k) = k"
+  quickcheck [generator = code]
+  oops
+
+lemma "int (nat k) = k"
   quickcheck [generator = code]
   oops
 
