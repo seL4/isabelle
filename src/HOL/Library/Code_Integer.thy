@@ -5,7 +5,7 @@
 header {* Pretty integer literals for code generation *}
 
 theory Code_Integer
-imports Main
+imports Main Code_Index
 begin
 
 text {*
@@ -91,15 +91,17 @@ code_const "op < \<Colon> int \<Rightarrow> int \<Rightarrow> bool"
   (OCaml "Big'_int.lt'_big'_int")
   (Haskell infix 4 "<")
 
+code_const Code_Index.int_of
+  (SML "IntInf.fromInt")
+  (OCaml "Big'_int.big'_int'_of'_int")
+  (Haskell "toEnum")
+
 code_reserved SML IntInf
 code_reserved OCaml Big_int
 
 text {* Evaluation *}
 
-lemma [code, code del]:
-  "(Code_Eval.term_of \<Colon> int \<Rightarrow> term) = Code_Eval.term_of" ..
-
 code_const "Code_Eval.term_of \<Colon> int \<Rightarrow> term"
-  (SML "HOLogic.mk'_number/ HOLogic.intT")
+  (Eval "HOLogic.mk'_number/ HOLogic.intT")
 
 end

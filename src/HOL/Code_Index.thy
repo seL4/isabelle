@@ -256,18 +256,20 @@ lemma [code]:
   "n mod m = snd (div_mod_index n m)"
   unfolding div_mod_index_def by simp
 
-hide (open) const of_nat nat_of
+definition int_of :: "index \<Rightarrow> int" where
+  "int_of = Nat.of_nat o nat_of"
 
-subsection {* ML interface *}
+lemma int_of_code [code]:
+  "int_of k = (if k = 0 then 0
+    else (if k mod 2 = 0 then 2 * int_of (k div 2) else 2 * int_of (k div 2) + 1))"
+  by (auto simp add: int_of_def mod_div_equality')
 
-ML {*
-structure Index =
-struct
+lemma (in term_syntax) term_of_index_code [code]:
+  "Code_Eval.term_of k =
+    Code_Eval.termify (number_of :: int \<Rightarrow> int) <\<cdot>> Code_Eval.term_of_num (2::index) k"
+  by (simp only: term_of_anything)
 
-fun mk k = HOLogic.mk_number @{typ index} k;
-
-end;
-*}
+hide (open) const of_nat nat_of int_of
 
 
 subsection {* Code generator setup *}
@@ -324,13 +326,5 @@ code_const "op < \<Colon> index \<Rightarrow> index \<Rightarrow> bool"
   (SML "Int.</ ((_),/ (_))")
   (OCaml "!((_ : int) < _)")
   (Haskell infix 4 "<")
-
-text {* Evaluation *}
-
-lemma [code, code del]:
-  "(Code_Eval.term_of \<Colon> index \<Rightarrow> term) = Code_Eval.term_of" ..
-
-code_const "Code_Eval.term_of \<Colon> index \<Rightarrow> term"
-  (SML "HOLogic.mk'_number/ HOLogic.indexT/ (IntInf.fromInt/ _)")
 
 end
