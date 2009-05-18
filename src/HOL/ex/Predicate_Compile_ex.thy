@@ -12,6 +12,8 @@ code_pred even
 
 thm even.equation
 
+ML_val {* Predicate.yieldn 10 @{code even_0} *}
+
 
 inductive append :: "'a list \<Rightarrow> 'a list \<Rightarrow> 'a list \<Rightarrow> bool" where
     append_Nil: "append [] xs xs"
@@ -21,6 +23,8 @@ code_pred append
   using assms by (rule append.cases)
 
 thm append.equation
+
+ML_val {* Predicate.yieldn 10 (@{code append_3} [1, 2, 3]) *}
 
 
 inductive partition :: "('a \<Rightarrow> bool) \<Rightarrow> 'a list \<Rightarrow> 'a list \<Rightarrow> 'a list \<Rightarrow> bool"
