@@ -116,9 +116,8 @@ proof (rule card_distinct)
     by (simp add: length_n_lists)
 qed
 
-lemma map_of_zip_map:
-  fixes f :: "'a\<Colon>enum \<Rightarrow> 'b\<Colon>enum"
-  shows "map_of (zip xs (map f xs)) = (\<lambda>x. if x \<in> set xs then Some (f x) else None)"
+lemma map_of_zip_map: (*FIXME move to Map.thy*)
+  "map_of (zip xs (map f xs)) = (\<lambda>x. if x \<in> set xs then Some (f x) else None)"
   by (induct xs) (simp_all add: expand_fun_eq)
 
 lemma map_of_zip_enum_is_Some:
