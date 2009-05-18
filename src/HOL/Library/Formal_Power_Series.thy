@@ -2102,6 +2102,80 @@ proof-
   ultimately show ?thesis by (cases n, auto)
 qed
 
+lemma fps_compose_uminus: "- (a::'a::ring_1 fps) oo c = - (a oo c)"
+  by (simp add: fps_eq_iff fps_compose_nth ring_simps setsum_negf[symmetric])
+
+lemma fps_compose_sub_distrib:
+  shows "(a - b) oo (c::'a::ring_1 fps) = (a oo c) - (b oo c)"
+  unfolding diff_minus fps_compose_uminus fps_compose_add_distrib ..
+
+lemma X_fps_compose:"X oo a = Abs_fps (\<lambda>n. if n = 0 then (0::'a::comm_ring_1) else a$n)"
+  by (simp add: fps_eq_iff fps_compose_nth mult_delta_left setsum_delta power_Suc)
+
+lemma fps_inverse_compose:
+  assumes b0: "(b$0 :: 'a::field) = 0" and a0: "a$0 \<noteq> 0"
+  shows "inverse a oo b = inverse (a oo b)"
+proof-
+  let ?ia = "inverse a"
+  let ?ab = "a oo b"
+  let ?iab = "inverse ?ab"
+
+from a0 have ia0: "?ia $ 0 \<noteq> 0" by (simp )
+from a0 have ab0: "?ab $ 0 \<noteq> 0" by (simp add: fps_compose_def)
+thm inverse_mult_eq_1[OF ab0]
+have "(?ia oo b) *  (a oo b) = 1"
+unfolding fps_compose_mult_distrib[OF b0, symmetric]
+unfolding inverse_mult_eq_1[OF a0]
+fps_compose_1 ..
+
+then have "(?ia oo b) *  (a oo b) * ?iab  = 1 * ?iab" by simp
+then have "(?ia oo b) *  (?iab * (a oo b))  = ?iab" by simp
+then show ?thesis 
+  unfolding inverse_mult_eq_1[OF ab0] by simp
+qed
+
+lemma fps_divide_compose:
+  assumes c0: "(c$0 :: 'a::field) = 0" and b0: "b$0 \<noteq> 0"
+  shows "(a/b) oo c = (a oo c) / (b oo c)"
+    unfolding fps_divide_def fps_compose_mult_distrib[OF c0]
+    fps_inverse_compose[OF c0 b0] ..
+
+lemma gp: assumes a0: "a$0 = (0::'a::field)"
+  shows "(Abs_fps (\<lambda>n. 1)) oo a = 1/(1 - a)" (is "?one oo a = _")
+proof-
+  have o0: "?one $ 0 \<noteq> 0" by simp
+  have th0: "(1 - X) $ 0 \<noteq> (0::'a)" by simp  
+  from fps_inverse_gp[where ?'a = 'a]
+  have "inverse ?one = 1 - X" by (simp add: fps_eq_iff)
+  hence "inverse (inverse ?one) = inverse (1 - X)" by simp
+  hence th: "?one = 1/(1 - X)" unfolding fps_inverse_idempotent[OF o0] 
+    by (simp add: fps_divide_def)
+  show ?thesis unfolding th
+    unfolding fps_divide_compose[OF a0 th0]
+    fps_compose_1 fps_compose_sub_distrib X_fps_compose_startby0[OF a0] ..
+qed
+
+lemma fps_const_power[simp]: "fps_const (c::'a::ring_1) ^ n = fps_const (c^n)"
+by (induct n, auto)
+
+lemma fps_compose_radical:
+  assumes b0: "b$0 = (0::'a::{field, ring_char_0})"
+  and ra0: "r (Suc k) (a$0) ^ Suc k = a$0"
+  and a0: "a$0 \<noteq> 0"
+  shows "fps_radical r (Suc k)  a oo b = fps_radical r (Suc k) (a oo b)"
+proof-
+  let ?r = "fps_radical r (Suc k)"
+  let ?ab = "a oo b"
+  have ab0: "?ab $ 0 = a$0" by (simp add: fps_compose_def)
+  from ab0 a0 ra0 have rab0: "?ab $ 0 \<noteq> 0" "r (Suc k) (?ab $ 0) ^ Suc k = ?ab $ 0" by simp_all
+  have th00: "r (Suc k) ((a oo b) $ 0) = (fps_radical r (Suc k) a oo b) $ 0"
+    by (simp add: ab0 fps_compose_def)
+  have th0: "(?r a oo b) ^ (Suc k) = a  oo b"
+    unfolding fps_compose_power[OF b0]
+    unfolding iffD1[OF power_radical[of a r k], OF a0 ra0]  .. 
+  from iffD1[OF radical_unique[where r=r and k=k and b= ?ab and a = "?r a oo b", OF rab0(2) th00 rab0(1)], OF th0] show ?thesis  . 
+qed
+
 lemma fps_const_mult_apply_left:
   "fps_const c * (a oo b) = (fps_const c * a) oo b"
   by (simp add: fps_eq_iff fps_compose_nth setsum_right_distrib mult_assoc)
@@ -2249,15 +2323,6 @@ qed
 lemma E_nth_deriv[simp]: "fps_nth_deriv n (E (a::'a::{field, ring_char_0})) = (fps_const a)^n * (E a)"
   by (induct n, auto simp add: power_Suc)
 
-lemma fps_compose_uminus: "- (a::'a::ring_1 fps) oo c = - (a oo c)"
-  by (simp add: fps_eq_iff fps_compose_nth ring_simps setsum_negf[symmetric])
-
-lemma fps_compose_sub_distrib:
-  shows "(a - b) oo (c::'a::ring_1 fps) = (a oo c) - (b oo c)"
-  unfolding diff_minus fps_compose_uminus fps_compose_add_distrib ..
-
-lemma X_fps_compose:"X oo a = Abs_fps (\<lambda>n. if n = 0 then (0::'a::comm_ring_1) else a$n)"
-  by (simp add: fps_eq_iff fps_compose_nth mult_delta_left setsum_delta power_Suc)
 
 lemma X_compose_E[simp]: "X oo E (a::'a::{field}) = E a - 1"
   by (simp add: fps_eq_iff X_fps_compose)
@@ -2300,6 +2365,7 @@ definition "(L::'a::{field, ring_char_0} fps)
 lemma fps_deriv_L: "fps_deriv L = inverse (1 + X)"
   unfolding inverse_one_plus_X
   by (simp add: L_def fps_eq_iff power_Suc del: of_nat_Suc)
+
 
 lemma L_nth: "L $ n = (- 1) ^ Suc n / of_nat n"
   by (simp add: L_def)
