@@ -66,7 +66,7 @@ fun unused_thms (base_thys, thys) =
       case Thm.get_group thm of
         NONE => I | SOME grp => Symtab.update (grp, ())) thms Symtab.empty;
     val (thms', _) = fold (fn p as (s, thm) => fn q as (thms, grps') =>
-      if member (op =) [Thm.theoremK, Thm.generated_theoremK, Thm.lemmaK, Thm.corollaryK, Thm.axiomK] (Thm.get_kind thm)
+      if member (op =) [Thm.theoremK, Thm.generatedK, Thm.lemmaK, Thm.corollaryK, Thm.axiomK] (Thm.get_kind thm)
         andalso is_unused p
       then
         (case Thm.get_group thm of
