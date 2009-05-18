@@ -28,13 +28,13 @@ class term_of = typerep +
 lemma term_of_anything: "term_of x \<equiv> t"
   by (rule eq_reflection) (cases "term_of x", cases t, simp)
 
-definition app :: "('a \<Rightarrow> 'b) \<times> (unit \<Rightarrow> term)
+definition valapp :: "('a \<Rightarrow> 'b) \<times> (unit \<Rightarrow> term)
   \<Rightarrow> 'a \<times> (unit \<Rightarrow> term) \<Rightarrow> 'b \<times> (unit \<Rightarrow> term)" where
-  "app f x = (fst f (fst x), \<lambda>u. Code_Eval.App (snd f ()) (snd x ()))"
+  "valapp f x = (fst f (fst x), \<lambda>u. App (snd f ()) (snd x ()))"
 
-lemma app_code [code, code inline]:
-  "app (f, tf) (x, tx) = (f x, \<lambda>u. Code_Eval.App (tf ()) (tx ()))"
-  by (simp only: app_def fst_conv snd_conv)
+lemma valapp_code [code, code inline]:
+  "valapp (f, tf) (x, tx) = (f x, \<lambda>u. App (tf ()) (tx ()))"
+  by (simp only: valapp_def fst_conv snd_conv)
 
 
 subsubsection {* @{text term_of} instances *}
@@ -145,8 +145,11 @@ code_reserved Eval HOLogic
 
 subsubsection {* Syntax *}
 
-definition termify :: "'a \<Rightarrow> 'a \<times> (unit \<Rightarrow> term)" where
-  [code del]: "termify x = (x, \<lambda>u. dummy_term)"
+definition termify :: "'a \<Rightarrow> term" where
+  [code del]: "termify x = dummy_term"
+
+abbreviation valtermify :: "'a \<Rightarrow> 'a \<times> (unit \<Rightarrow> term)" where
+  "valtermify x \<equiv> (x, \<lambda>u. termify x)"
 
 setup {*
 let
@@ -159,8 +162,7 @@ let
   fun subst_termify_app (Const (@{const_name termify}, T), [t]) =
         if not (Term.has_abs t)
         then if fold_aterms (fn Const _ => I | _ => K false) t true
-          then SOME (HOLogic.mk_prod
-            (t, Abs ("u", HOLogic.unitT, HOLogic.reflect_term t)))
+          then SOME (HOLogic.reflect_term t)
           else error "Cannot termify expression containing variables"
         else error "Cannot termify expression containing abstraction"
     | subst_termify_app (t, ts) = case map_default subst_termify ts
@@ -180,13 +182,41 @@ end;
 locale term_syntax
 begin
 
-notation app (infixl "<\<cdot>>" 70) and termify ("termify")
+notation App (infixl "<\<cdot>>" 70)
+  and valapp (infixl "{\<cdot>}" 70)
 
 end
 
 interpretation term_syntax .
 
-no_notation app (infixl "<\<cdot>>" 70) and termify ("termify")
+no_notation App (infixl "<\<cdot>>" 70)
+  and valapp (infixl "{\<cdot>}" 70)
+
+
+subsection {* Numeric types *}
+
+definition term_of_num :: "'a\<Colon>{semiring_div} \<Rightarrow> 'a\<Colon>{semiring_div} \<Rightarrow> term" where
+  "term_of_num two = (\<lambda>_. dummy_term)"
+
+lemma (in term_syntax) term_of_num_code [code]:
+  "term_of_num two k = (if k = 0 then termify Int.Pls
+    else (if k mod two = 0
+      then termify Int.Bit0 <\<cdot>> term_of_num two (k div two)
+      else termify Int.Bit1 <\<cdot>> term_of_num two (k div two)))"
+  by (auto simp add: term_of_anything Const_def App_def term_of_num_def Let_def)
+
+lemma (in term_syntax) term_of_nat_code [code]:
+  "term_of (n::nat) = termify (number_of :: int \<Rightarrow> nat) <\<cdot>> term_of_num (2::nat) n"
+  by (simp only: term_of_anything)
+
+lemma (in term_syntax) term_of_int_code [code]:
+  "term_of (k::int) = (if k = 0 then termify (0 :: int)
+    else if k > 0 then termify (number_of :: int \<Rightarrow> int) <\<cdot>> term_of_num (2::int) k
+      else termify (uminus :: int \<Rightarrow> int) <\<cdot>> (termify (number_of :: int \<Rightarrow> int) <\<cdot>> term_of_num (2::int) (- k)))"
+  by (simp only: term_of_anything)
+
+
+subsection {* Obfuscate *}
 
 print_translation {*
 let
@@ -200,9 +230,8 @@ in
 end
 *}
 
-hide const dummy_term termify app
-hide (open) const Const App term_of
-
+hide const dummy_term App valapp
+hide (open) const Const termify valtermify term_of term_of_num
 
 
 subsection {* Evaluation setup *}
