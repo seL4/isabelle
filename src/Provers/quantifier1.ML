@@ -90,7 +90,7 @@ fun def xs eq =
 
 fun extract_conj fst xs t = case dest_conj t of NONE => NONE
     | SOME(conj,P,Q) =>
-        (if not fst andalso def xs P then SOME(xs,P,Q) else
+        (if def xs P then (if fst then NONE else SOME(xs,P,Q)) else
          if def xs Q then SOME(xs,Q,P) else
          (case extract_conj false xs P of
             SOME(xs,eq,P') => SOME(xs,eq, conj $ P' $ Q)
@@ -99,7 +99,7 @@ fun extract_conj fst xs t = case dest_conj t of NONE => NONE
                      | NONE => NONE)));
 
 fun extract_imp fst xs t = case dest_imp t of NONE => NONE
-    | SOME(imp,P,Q) => if not fst andalso def xs P then SOME(xs,P,Q)
+    | SOME(imp,P,Q) => if def xs P then (if fst then NONE else SOME(xs,P,Q))
                        else (case extract_conj false xs P of
                                SOME(xs,eq,P') => SOME(xs, eq, imp $ P' $ Q)
                              | NONE => (case extract_imp false xs Q of

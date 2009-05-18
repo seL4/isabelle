@@ -1036,11 +1036,16 @@ subsubsection {* Set reasoning tools *}
 
 text{* Elimination of @{text"{x. \<dots> & x=t & \<dots>}"}. *}
 
-lemma singleton_conj_conv[simp]: "{x. x=a & P x} = (if P a then {a} else {})"
+lemma Collect_conv_if: "{x. x=a & P x} = (if P a then {a} else {})"
 by auto
 
-lemma singleton_conj_conv2[simp]: "{x. a=x & P x} = (if P a then {a} else {})"
+lemma Collect_conv_if2: "{x. a=x & P x} = (if P a then {a} else {})"
 by auto
+
+text {*
+Simproc for pulling @{text "x=t"} in @{text "{x. \<dots> & x=t & \<dots>}"}
+to the front (and similarly for @{text "t=x"}):
+*}
 
 ML{*
   local
@@ -1054,7 +1059,6 @@ ML{*
   end;
 
   Addsimprocs [defColl_regroup];
-
 *}
 
 text {*

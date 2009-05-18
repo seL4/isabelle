@@ -382,8 +382,9 @@ qed
 (* Euler totient function.                                                   *)
 
 definition phi_def: "\<phi> n = card { m. 0 < m \<and> m <= n \<and> coprime m n }"
+
 lemma phi_0[simp]: "\<phi> 0 = 0"
-  unfolding phi_def by (auto simp add: card_eq_0_iff)
+  unfolding phi_def by auto
 
 lemma phi_finite[simp]: "finite ({ m. 0 < m \<and> m <= n \<and> coprime m n })"
 proof-
