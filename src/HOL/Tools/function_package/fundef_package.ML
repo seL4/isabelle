@@ -37,14 +37,15 @@ open FundefCommon
 val simp_attribs = map (Attrib.internal o K)
     [Simplifier.simp_add,
      Code.add_default_eqn_attribute,
-     Nitpick_Const_Simp_Thms.add]
+     Nitpick_Const_Simp_Thms.add,
+     Quickcheck_RecFun_Simp_Thms.add]
 
 val psimp_attribs = map (Attrib.internal o K)
     [Simplifier.simp_add,
      Nitpick_Const_Psimp_Thms.add]
 
 fun note_theorem ((name, atts), ths) =
-  LocalTheory.note Thm.theoremK ((Binding.qualified_name name, atts), ths)
+  LocalTheory.note Thm.generated_theoremK ((Binding.qualified_name name, atts), ths)
 
 fun mk_defname fixes = fixes |> map (fst o fst) |> space_implode "_"
 
@@ -55,7 +56,7 @@ fun add_simps fnames post sort extra_qualify label moreatts simps lthy =
                    |> map (apfst (apfst extra_qualify))
 
       val (saved_spec_simps, lthy) =
-        fold_map (LocalTheory.note Thm.theoremK) spec lthy
+        fold_map (LocalTheory.note Thm.generated_theoremK) spec lthy
 
       val saved_simps = flat (map snd saved_spec_simps)
       val simps_by_f = sort saved_simps
