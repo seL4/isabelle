@@ -87,7 +87,7 @@ sig
   val dest_nat: term -> int
   val class_size: string
   val size_const: typ -> term
-  val indexT: typ
+  val code_numeralT: typ
   val intT: typ
   val pls_const: term
   val min_const: term
@@ -116,9 +116,9 @@ sig
   val stringT: typ
   val mk_string: string -> term
   val dest_string: term -> string
-  val message_stringT: typ
-  val mk_message_string: string -> term
-  val dest_message_string: term -> string
+  val literalT: typ
+  val mk_literal: string -> term
+  val dest_literal: term -> string
   val mk_typerep: typ -> term
   val mk_term_of: typ -> term -> term
   val reflect_term: term -> term
@@ -461,9 +461,9 @@ val class_size = "Nat.size";
 fun size_const T = Const ("Nat.size_class.size", T --> natT);
 
 
-(* index *)
+(* code numeral *)
 
-val indexT = Type ("Code_Index.index", []);
+val code_numeralT = Type ("Code_Numeral.code_numeral", []);
 
 
 (* binary numerals and int -- non-unique representation due to leading zeros/ones! *)
@@ -586,15 +586,15 @@ val mk_string = mk_list charT o map (mk_char o ord) o explode;
 val dest_string = implode o map (chr o dest_char) o dest_list;
 
 
-(* message_string *)
+(* literal *)
 
-val message_stringT = Type ("String.message_string", []);
+val literalT = Type ("String.literal", []);
 
-fun mk_message_string s = Const ("String.message_string.STR", stringT --> message_stringT)
+fun mk_literal s = Const ("String.literal.STR", stringT --> literalT)
       $ mk_string s;
-fun dest_message_string (Const ("String.message_string.STR", _) $ t) =
+fun dest_literal (Const ("String.literal.STR", _) $ t) =
       dest_string t
-  | dest_message_string t = raise TERM ("dest_message_string", [t]);
+  | dest_literal t = raise TERM ("dest_literal", [t]);
 
 
 (* typerep and term *)
@@ -609,8 +609,8 @@ val termT = Type ("Code_Eval.term", []);
 fun mk_term_of T t = Const ("Code_Eval.term_of_class.term_of", T --> termT) $ t;
 
 fun reflect_term (Const (c, T)) =
-      Const ("Code_Eval.Const", message_stringT --> typerepT --> termT)
-        $ mk_message_string c $ mk_typerep T
+      Const ("Code_Eval.Const", literalT --> typerepT --> termT)
+        $ mk_literal c $ mk_typerep T
   | reflect_term (t1 $ t2) =
       Const ("Code_Eval.App", termT --> termT --> termT)
         $ reflect_term t1 $ reflect_term t2

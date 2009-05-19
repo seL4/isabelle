@@ -5,7 +5,7 @@
 header {* Term evaluation using the generic code generator *}
 
 theory Code_Eval
-imports Plain Typerep Code_Index
+imports Plain Typerep Code_Numeral
 begin
 
 subsection {* Term representation *}
@@ -14,7 +14,7 @@ subsubsection {* Terms and class @{text term_of} *}
 
 datatype "term" = dummy_term
 
-definition Const :: "message_string \<Rightarrow> typerep \<Rightarrow> term" where
+definition Const :: "String.literal \<Rightarrow> typerep \<Rightarrow> term" where
   "Const _ _ = dummy_term"
 
 definition App :: "term \<Rightarrow> term \<Rightarrow> term" where
@@ -63,10 +63,7 @@ let
     let
       val need_inst = not (can (Sorts.mg_domain (Sign.classes_of thy) tyco) @{sort term_of})
         andalso can (Sorts.mg_domain (Sign.classes_of thy) tyco) @{sort typerep};
-    in
-      thy
-      |> need_inst ? add_term_of tyco raw_vs
-    end;
+    in if need_inst then add_term_of tyco raw_vs thy else thy end;
 in
   Code.type_interpretation ensure_term_of
 end
@@ -102,10 +99,7 @@ let
   fun ensure_term_of_code (tyco, (raw_vs, cs)) thy =
     let
       val has_inst = can (Sorts.mg_domain (Sign.classes_of thy) tyco) @{sort term_of};
-    in
-      thy
-      |> has_inst ? add_term_of_code tyco raw_vs cs
-    end;
+    in if has_inst then add_term_of_code tyco raw_vs cs thy else thy end;
 in
   Code.type_interpretation ensure_term_of_code
 end
@@ -119,7 +113,7 @@ lemma [code, code del]: "eq_class.eq (t1\<Colon>term) t2 \<longleftrightarrow> e
 
 lemma [code, code del]: "(term_of \<Colon> typerep \<Rightarrow> term) = term_of" ..
 lemma [code, code del]: "(term_of \<Colon> term \<Rightarrow> term) = term_of" ..
-lemma [code, code del]: "(term_of \<Colon> message_string \<Rightarrow> term) = term_of" ..
+lemma [code, code del]: "(term_of \<Colon> String.literal \<Rightarrow> term) = term_of" ..
 lemma [code, code del]:
   "(Code_Eval.term_of \<Colon> 'a::{type, term_of} Predicate.pred \<Rightarrow> Code_Eval.term) = Code_Eval.term_of" ..
 lemma [code, code del]:
@@ -137,7 +131,7 @@ code_type "term"
 code_const Const and App
   (Eval "Term.Const/ (_, _)" and "Term.$/ (_, _)")
 
-code_const "term_of \<Colon> message_string \<Rightarrow> term"
+code_const "term_of \<Colon> String.literal \<Rightarrow> term"
   (Eval "HOLogic.mk'_message'_string")
 
 code_reserved Eval HOLogic
@@ -215,8 +209,8 @@ lemma (in term_syntax) term_of_int_code [code]:
       else termify (uminus :: int \<Rightarrow> int) <\<cdot>> (termify (number_of :: int \<Rightarrow> int) <\<cdot>> term_of_num (2::int) (- k)))"
   by (simp only: term_of_anything)
 
-lemma (in term_syntax) term_of_index_code [code]:
-  "term_of (k::index) = termify (number_of :: int \<Rightarrow> index) <\<cdot>> term_of_num (2::index) k"
+lemma (in term_syntax) term_of_code_numeral_code [code]:
+  "term_of (k::code_numeral) = termify (number_of :: int \<Rightarrow> code_numeral) <\<cdot>> term_of_num (2::code_numeral) k"
   by (simp only: term_of_anything)
 
 subsection {* Obfuscate *}

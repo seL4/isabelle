@@ -369,12 +369,12 @@ code_const int and nat
 
 text {* Conversion from and to indices. *}
 
-code_const Code_Index.of_nat
+code_const Code_Numeral.of_nat
   (SML "IntInf.toInt")
   (OCaml "Big'_int.int'_of'_big'_int")
   (Haskell "fromEnum")
 
-code_const Code_Index.nat_of
+code_const Code_Numeral.nat_of
   (SML "IntInf.fromInt")
   (OCaml "Big'_int.big'_int'_of'_int")
   (Haskell "toEnum")

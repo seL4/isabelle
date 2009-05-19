@@ -7,7 +7,7 @@ signature STRING_CODE =
 sig
   val add_literal_list_string: string -> theory -> theory
   val add_literal_char: string -> theory -> theory
-  val add_literal_message: string -> theory -> theory
+  val add_literal_string: string -> theory -> theory
 end;
 
 structure String_Code : STRING_CODE =
@@ -72,7 +72,7 @@ fun add_literal_char target =
     @{const_name Char} (SOME (2, (cs_nibbles, pretty)))
   end;
 
-fun add_literal_message target =
+fun add_literal_string target =
   let
     fun pretty literals (nil' :: cons' :: char' :: nibbles') _ thm _ _ [(t, _)] =
       case List_Code.implode_list nil' cons' t

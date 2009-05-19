@@ -127,8 +127,8 @@ text {*
        Useful for code setups which involve e.g. indexing of
        target-language arrays.
     \item[@{theory "String"}] provides an additional datatype
-       @{typ message_string} which is isomorphic to strings;
-       @{typ message_string}s are mapped to target-language strings.
+       @{typ String.literal} which is isomorphic to strings;
+       @{typ String.literal}s are mapped to target-language strings.
        Useful for code setups which involve e.g. printing (error) messages.
 
   \end{description}

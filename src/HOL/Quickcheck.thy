@@ -13,7 +13,7 @@ notation scomp (infixl "o\<rightarrow>" 60)
 subsection {* The @{text random} class *}
 
 class random = typerep +
-  fixes random :: "index \<Rightarrow> Random.seed \<Rightarrow> ('a \<times> (unit \<Rightarrow> term)) \<times> Random.seed"
+  fixes random :: "code_numeral \<Rightarrow> Random.seed \<Rightarrow> ('a \<times> (unit \<Rightarrow> term)) \<times> Random.seed"
 
 
 subsection {* Quickcheck generator *}
@@ -49,7 +49,7 @@ fun mk_generator_expr thy prop tys =
         (mk_split ty $ Abs ("", ty, Abs ("", @{typ "unit \<Rightarrow> term"}, t')));
     fun mk_bindclause (_, _, i, ty) = mk_scomp_split ty
       (Sign.mk_const thy (@{const_name random}, [ty]) $ Bound i);
-  in Abs ("n", @{typ index}, fold_rev mk_bindclause bounds (return $ check)) end;
+  in Abs ("n", @{typ code_numeral}, fold_rev mk_bindclause bounds (return $ check)) end;
 
 fun compile_generator_expr thy t =
   let
@@ -84,7 +84,7 @@ end
 instantiation itself :: (typerep) random
 begin
 
-definition random_itself :: "index \<Rightarrow> Random.seed \<Rightarrow> ('a itself \<times> (unit \<Rightarrow> term)) \<times> Random.seed" where
+definition random_itself :: "code_numeral \<Rightarrow> Random.seed \<Rightarrow> ('a itself \<times> (unit \<Rightarrow> term)) \<times> Random.seed" where
   "random_itself _ = Pair (Code_Eval.valtermify TYPE('a))"
 
 instance ..
@@ -139,7 +139,7 @@ code_const random_fun_aux (Quickcheck "Random'_Engine.random'_fun")
 instantiation "fun" :: ("{eq, term_of}", "{type, random}") random
 begin
 
-definition random_fun :: "index \<Rightarrow> Random.seed \<Rightarrow> (('a \<Rightarrow> 'b) \<times> (unit \<Rightarrow> term)) \<times> Random.seed" where
+definition random_fun :: "code_numeral \<Rightarrow> Random.seed \<Rightarrow> (('a \<Rightarrow> 'b) \<times> (unit \<Rightarrow> term)) \<times> Random.seed" where
   "random n = random_fun_aux TYPEREP('a) TYPEREP('b) (op =) Code_Eval.term_of (random n) Random.split_seed"
 
 instance ..
@@ -154,9 +154,9 @@ subsection {* Numeric types *}
 instantiation nat :: random
 begin
 
-definition random_nat :: "index \<Rightarrow> Random.seed \<Rightarrow> (nat \<times> (unit \<Rightarrow> Code_Eval.term)) \<times> Random.seed" where
+definition random_nat :: "code_numeral \<Rightarrow> Random.seed \<Rightarrow> (nat \<times> (unit \<Rightarrow> Code_Eval.term)) \<times> Random.seed" where
   "random_nat i = Random.range (i + 1) o\<rightarrow> (\<lambda>k. Pair (
-     let n = Code_Index.nat_of k
+     let n = Code_Numeral.nat_of k
      in (n, \<lambda>_. Code_Eval.term_of n)))"
 
 instance ..
@@ -168,7 +168,7 @@ begin
 
 definition
   "random i = Random.range (2 * i + 1) o\<rightarrow> (\<lambda>k. Pair (
-     let j = (if k \<ge> i then Code_Index.int_of (k - i) else - Code_Index.int_of (i - k))
+     let j = (if k \<ge> i then Code_Numeral.int_of (k - i) else - Code_Numeral.int_of (i - k))
      in (j, \<lambda>_. Code_Eval.term_of j)))"
 
 instance ..

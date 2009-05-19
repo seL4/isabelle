@@ -91,7 +91,7 @@ code_const "op < \<Colon> int \<Rightarrow> int \<Rightarrow> bool"
   (OCaml "Big'_int.lt'_big'_int")
   (Haskell infix 4 "<")
 
-code_const Code_Index.int_of
+code_const Code_Numeral.int_of
   (SML "IntInf.fromInt")
   (OCaml "Big'_int.big'_int'_of'_int")
   (Haskell "toEnum")

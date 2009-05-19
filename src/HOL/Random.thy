@@ -3,7 +3,7 @@
 header {* A HOL random engine *}
 
 theory Random
-imports Code_Index List
+imports Code_Numeral List
 begin
 
 notation fcomp (infixl "o>" 60)
@@ -12,21 +12,21 @@ notation scomp (infixl "o\<rightarrow>" 60)
 
 subsection {* Auxiliary functions *}
 
-definition inc_shift :: "index \<Rightarrow> index \<Rightarrow> index" where
+definition inc_shift :: "code_numeral \<Rightarrow> code_numeral \<Rightarrow> code_numeral" where
   "inc_shift v k = (if v = k then 1 else k + 1)"
 
-definition minus_shift :: "index \<Rightarrow> index \<Rightarrow> index \<Rightarrow> index" where
+definition minus_shift :: "code_numeral \<Rightarrow> code_numeral \<Rightarrow> code_numeral \<Rightarrow> code_numeral" where
   "minus_shift r k l = (if k < l then r + k - l else k - l)"
 
-fun log :: "index \<Rightarrow> index \<Rightarrow> index" where
+fun log :: "code_numeral \<Rightarrow> code_numeral \<Rightarrow> code_numeral" where
   "log b i = (if b \<le> 1 \<or> i < b then 1 else 1 + log b (i div b))"
 
 
 subsection {* Random seeds *}
 
-types seed = "index \<times> index"
+types seed = "code_numeral \<times> code_numeral"
 
-primrec "next" :: "seed \<Rightarrow> index \<times> seed" where
+primrec "next" :: "seed \<Rightarrow> code_numeral \<times> seed" where
   "next (v, w) = (let
      k =  v div 53668;
      v' = minus_shift 2147483563 (40014 * (v mod 53668)) (k * 12211);
@@ -55,10 +55,10 @@ definition split_seed :: "seed \<Rightarrow> seed \<times> seed" where
 
 subsection {* Base selectors *}
 
-fun iterate :: "index \<Rightarrow> ('b \<Rightarrow> 'a \<Rightarrow> 'b \<times> 'a) \<Rightarrow> 'b \<Rightarrow> 'a \<Rightarrow> 'b \<times> 'a" where
+fun iterate :: "code_numeral \<Rightarrow> ('b \<Rightarrow> 'a \<Rightarrow> 'b \<times> 'a) \<Rightarrow> 'b \<Rightarrow> 'a \<Rightarrow> 'b \<times> 'a" where
   "iterate k f x = (if k = 0 then Pair x else f x o\<rightarrow> iterate (k - 1) f)"
 
-definition range :: "index \<Rightarrow> seed \<Rightarrow> index \<times> seed" where
+definition range :: "code_numeral \<Rightarrow> seed \<Rightarrow> code_numeral \<times> seed" where
   "range k = iterate (log 2147483561 k)
       (\<lambda>l. next o\<rightarrow> (\<lambda>v. Pair (v + l * 2147483561))) 1
     o\<rightarrow> (\<lambda>v. Pair (v mod k))"
@@ -68,23 +68,23 @@ lemma range:
   by (simp add: range_def scomp_apply split_def del: log.simps iterate.simps)
 
 definition select :: "'a list \<Rightarrow> seed \<Rightarrow> 'a \<times> seed" where
-  "select xs = range (Code_Index.of_nat (length xs))
-    o\<rightarrow> (\<lambda>k. Pair (nth xs (Code_Index.nat_of k)))"
+  "select xs = range (Code_Numeral.of_nat (length xs))
+    o\<rightarrow> (\<lambda>k. Pair (nth xs (Code_Numeral.nat_of k)))"
      
 lemma select:
   assumes "xs \<noteq> []"
   shows "fst (select xs s) \<in> set xs"
 proof -
-  from assms have "Code_Index.of_nat (length xs) > 0" by simp
+  from assms have "Code_Numeral.of_nat (length xs) > 0" by simp
   with range have
-    "fst (range (Code_Index.of_nat (length xs)) s) < Code_Index.of_nat (length xs)" by best
+    "fst (range (Code_Numeral.of_nat (length xs)) s) < Code_Numeral.of_nat (length xs)" by best
   then have
-    "Code_Index.nat_of (fst (range (Code_Index.of_nat (length xs)) s)) < length xs" by simp
+    "Code_Numeral.nat_of (fst (range (Code_Numeral.of_nat (length xs)) s)) < length xs" by simp
   then show ?thesis
     by (simp add: scomp_apply split_beta select_def)
 qed
 
-primrec pick :: "(index \<times> 'a) list \<Rightarrow> index \<Rightarrow> 'a" where
+primrec pick :: "(code_numeral \<times> 'a) list \<Rightarrow> code_numeral \<Rightarrow> 'a" where
   "pick (x # xs) i = (if i < fst x then snd x else pick xs (i - fst x))"
 
 lemma pick_member:
@@ -96,14 +96,14 @@ lemma pick_drop_zero:
   by (induct xs) (auto simp add: expand_fun_eq)
 
 lemma pick_same:
-  "l < length xs \<Longrightarrow> Random.pick (map (Pair 1) xs) (Code_Index.of_nat l) = nth xs l"
+  "l < length xs \<Longrightarrow> Random.pick (map (Pair 1) xs) (Code_Numeral.of_nat l) = nth xs l"
 proof (induct xs arbitrary: l)
   case Nil then show ?case by simp
 next
   case (Cons x xs) then show ?case by (cases l) simp_all
 qed
 
-definition select_weight :: "(index \<times> 'a) list \<Rightarrow> seed \<Rightarrow> 'a \<times> seed" where
+definition select_weight :: "(code_numeral \<times> 'a) list \<Rightarrow> seed \<Rightarrow> 'a \<times> seed" where
   "select_weight xs = range (listsum (map fst xs))
    o\<rightarrow> (\<lambda>k. Pair (pick xs k))"
 
@@ -130,16 +130,16 @@ lemma select_weigth_select:
   assumes "xs \<noteq> []"
   shows "Random.select_weight (map (Pair 1) xs) = Random.select xs"
 proof -
-  have less: "\<And>s. fst (Random.range (Code_Index.of_nat (length xs)) s) < Code_Index.of_nat (length xs)"
+  have less: "\<And>s. fst (Random.range (Code_Numeral.of_nat (length xs)) s) < Code_Numeral.of_nat (length xs)"
     using assms by (intro range) simp
-  moreover have "listsum (map fst (map (Pair 1) xs)) = Code_Index.of_nat (length xs)"
+  moreover have "listsum (map fst (map (Pair 1) xs)) = Code_Numeral.of_nat (length xs)"
     by (induct xs) simp_all
   ultimately show ?thesis
     by (auto simp add: select_weight_def select_def scomp_def split_def
       expand_fun_eq pick_same [symmetric])
 qed
 
-definition select_default :: "index \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> seed \<Rightarrow> 'a \<times> seed" where
+definition select_default :: "code_numeral \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> seed \<Rightarrow> 'a \<times> seed" where
   [code del]: "select_default k x y = range k
      o\<rightarrow> (\<lambda>l. Pair (if l + 1 < k then x else y))"
 
@@ -153,7 +153,7 @@ lemma select_default_code [code]:
     else range k o\<rightarrow> (\<lambda>l. Pair (if l + 1 < k then x else y)))"
 proof
   fix s
-  have "snd (range (Code_Index.of_nat 0) s) = snd (range (Code_Index.of_nat 1) s)"
+  have "snd (range (Code_Numeral.of_nat 0) s) = snd (range (Code_Numeral.of_nat 1) s)"
     by (simp add: range_def scomp_Pair scomp_apply split_beta)
   then show "select_default k x y s = (if k = 0
     then range 1 o\<rightarrow> (\<lambda>_. Pair y)

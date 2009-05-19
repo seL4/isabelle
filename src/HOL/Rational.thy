@@ -1013,7 +1013,7 @@ begin
 
 definition
   "random i = random i o\<rightarrow> (\<lambda>num. Random.range i o\<rightarrow> (\<lambda>denom. Pair (
-     let j = Code_Index.int_of (denom + 1)
+     let j = Code_Numeral.int_of (denom + 1)
      in valterm_fract num (j, \<lambda>u. Code_Eval.term_of j))))"
 
 instance ..
