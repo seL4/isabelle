@@ -2255,6 +2255,29 @@ proof-
   show "?dia = inverse ?d" by simp
 qed
 
+lemma fps_ginv_deriv:
+  assumes a0:"a$0 = (0::'a::{field})" and a1: "a$1 \<noteq> 0"
+  shows "fps_deriv (fps_ginv b a) = (fps_deriv b / fps_deriv a) oo fps_ginv X a"
+proof-
+  let ?ia = "fps_ginv b a"
+  let ?iXa = "fps_ginv X a"
+  let ?d = "fps_deriv"
+  let ?dia = "?d ?ia"
+  have iXa0: "?iXa $ 0 = 0" by (simp add: fps_ginv_def)
+  have da0: "?d a $ 0 \<noteq> 0" using a1 by simp
+  from fps_ginv[OF a0 a1, of b] have "?d (?ia oo a) = fps_deriv b" by simp
+  then have "(?d ?ia oo a) * ?d a = ?d b" unfolding fps_compose_deriv[OF a0] .
+  then have "(?d ?ia oo a) * ?d a * inverse (?d a) = ?d b * inverse (?d a)" by simp
+  then have "(?d ?ia oo a) * (inverse (?d a) * ?d a) = ?d b / ?d a" 
+    by (simp add: fps_divide_def)
+  then have "(?d ?ia oo a) oo ?iXa =  (?d b / ?d a) oo ?iXa "
+    unfolding inverse_mult_eq_1[OF da0] by simp
+  then have "?d ?ia oo (a oo ?iXa) =  (?d b / ?d a) oo ?iXa"
+    unfolding fps_compose_assoc[OF iXa0 a0] .
+  then show ?thesis unfolding fps_inv_ginv[symmetric]
+    unfolding fps_inv_right[OF a0 a1] by simp
+qed
+
 subsection{* Elementary series *}
 
 subsubsection{* Exponential series *}
