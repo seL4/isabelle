@@ -5,7 +5,7 @@
 header {* Term evaluation using the generic code generator *}
 
 theory Code_Eval
-imports Plain Typerep
+imports Plain Typerep Code_Index
 begin
 
 subsection {* Term representation *}
@@ -215,6 +215,9 @@ lemma (in term_syntax) term_of_int_code [code]:
       else termify (uminus :: int \<Rightarrow> int) <\<cdot>> (termify (number_of :: int \<Rightarrow> int) <\<cdot>> term_of_num (2::int) (- k)))"
   by (simp only: term_of_anything)
 
+lemma (in term_syntax) term_of_index_code [code]:
+  "term_of (k::index) = termify (number_of :: int \<Rightarrow> index) <\<cdot>> term_of_num (2::index) k"
+  by (simp only: term_of_anything)
 
 subsection {* Obfuscate *}
 

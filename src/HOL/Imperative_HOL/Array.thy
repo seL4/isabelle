@@ -6,7 +6,7 @@
 header {* Monadic arrays *}
 
 theory Array
-imports Heap_Monad Code_Index
+imports Heap_Monad
 begin
 
 subsection {* Primitives *}

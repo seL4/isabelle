@@ -3,7 +3,7 @@
 header {* A simple counterexample generator *}
 
 theory Quickcheck
-imports Main Real Random
+imports Random Code_Eval
 begin
 
 notation fcomp (infixl "o>" 60)
@@ -170,36 +170,6 @@ definition
   "random i = Random.range (2 * i + 1) o\<rightarrow> (\<lambda>k. Pair (
      let j = (if k \<ge> i then Code_Index.int_of (k - i) else - Code_Index.int_of (i - k))
      in (j, \<lambda>_. Code_Eval.term_of j)))"
-
-instance ..
-
-end
-
-definition (in term_syntax)
-  valterm_fract :: "int \<times> (unit \<Rightarrow> Code_Eval.term) \<Rightarrow> int \<times> (unit \<Rightarrow> Code_Eval.term) \<Rightarrow> rat \<times> (unit \<Rightarrow> Code_Eval.term)" where
-  [code inline]: "valterm_fract k l = Code_Eval.valtermify Fract {\<cdot>} k {\<cdot>} l"
-
-instantiation rat :: random
-begin
-
-definition
-  "random i = random i o\<rightarrow> (\<lambda>num. Random.range i o\<rightarrow> (\<lambda>denom. Pair (
-     let j = Code_Index.int_of (denom + 1)
-     in valterm_fract num (j, \<lambda>u. Code_Eval.term_of j))))"
-
-instance ..
-
-end
-
-definition (in term_syntax)
-  valterm_ratreal :: "rat \<times> (unit \<Rightarrow> Code_Eval.term) \<Rightarrow> real \<times> (unit \<Rightarrow> Code_Eval.term)" where
-  [code inline]: "valterm_ratreal k = Code_Eval.valtermify Ratreal {\<cdot>} k"
-
-instantiation real :: random
-begin
-
-definition
-  "random i = random i o\<rightarrow> (\<lambda>r. Pair (valterm_ratreal r))"
 
 instance ..
 

@@ -5,7 +5,7 @@
 header {* Pretty integer literals for code generation *}
 
 theory Code_Integer
-imports Main Code_Index
+imports Main
 begin
 
 text {*

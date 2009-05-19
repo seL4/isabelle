@@ -1001,6 +1001,28 @@ lemma rat_divide_code [code]:
   "Fract a b / Fract c d = Fract_norm (a * d) (b * c)"
   by simp
 
+definition (in term_syntax)
+  valterm_fract :: "int \<times> (unit \<Rightarrow> Code_Eval.term) \<Rightarrow> int \<times> (unit \<Rightarrow> Code_Eval.term) \<Rightarrow> rat \<times> (unit \<Rightarrow> Code_Eval.term)" where
+  [code inline]: "valterm_fract k l = Code_Eval.valtermify Fract {\<cdot>} k {\<cdot>} l"
+
+notation fcomp (infixl "o>" 60)
+notation scomp (infixl "o\<rightarrow>" 60)
+
+instantiation rat :: random
+begin
+
+definition
+  "random i = random i o\<rightarrow> (\<lambda>num. Random.range i o\<rightarrow> (\<lambda>denom. Pair (
+     let j = Code_Index.int_of (denom + 1)
+     in valterm_fract num (j, \<lambda>u. Code_Eval.term_of j))))"
+
+instance ..
+
+end
+
+no_notation fcomp (infixl "o>" 60)
+no_notation scomp (infixl "o\<rightarrow>" 60)
+
 hide (open) const Fract_norm
 
 text {* Setup for SML code generator *}

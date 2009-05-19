@@ -3,7 +3,7 @@
 header {* Type of indices *}
 
 theory Code_Index
-imports Main
+imports Nat_Numeral
 begin
 
 text {*
@@ -263,11 +263,6 @@ lemma int_of_code [code]:
   "int_of k = (if k = 0 then 0
     else (if k mod 2 = 0 then 2 * int_of (k div 2) else 2 * int_of (k div 2) + 1))"
   by (auto simp add: int_of_def mod_div_equality')
-
-lemma (in term_syntax) term_of_index_code [code]:
-  "Code_Eval.term_of k =
-    Code_Eval.termify (number_of :: int \<Rightarrow> int) <\<cdot>> Code_Eval.term_of_num (2::index) k"
-  by (simp only: term_of_anything)
 
 hide (open) const of_nat nat_of int_of
 
