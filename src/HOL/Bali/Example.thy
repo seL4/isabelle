@@ -1075,7 +1075,7 @@ done
 lemma max_spec_Base_foo: "max_spec tprg S (ClassT Base) \<lparr>name=foo,parTs=[NT]\<rparr> = 
   {((ClassT Base, \<lparr>access=Public,static=False,pars=[z],resT=Class Base\<rparr>)
    , [Class Base])}"
-by (simp (no_asm) add: max_spec_def appl_methds_Base_foo)
+by (simp add: max_spec_def appl_methds_Base_foo Collect_conv_if)
 
 section "well-typedness"
 

@@ -2913,6 +2913,10 @@ lemma sorted_append:
   "sorted (xs@ys) = (sorted xs & sorted ys & (\<forall>x \<in> set xs. \<forall>y \<in> set ys. x\<le>y))"
 by (induct xs) (auto simp add:sorted_Cons)
 
+lemma sorted_nth_mono:
+  "sorted xs \<Longrightarrow> i <= j \<Longrightarrow> j < length xs \<Longrightarrow> xs!i <= xs!j"
+by (induct xs arbitrary: i j) (auto simp:nth_Cons' sorted_Cons)
+
 lemma set_insort: "set(insort x xs) = insert x (set xs)"
 by (induct xs) auto
 
