@@ -512,7 +512,7 @@ fun init_instantiation (tycos, vs, sort) thy =
     fun resort_check ts ctxt = case resort_terms pp algebra consts improve_constraints ts
      of NONE => NONE
       | SOME ts' => SOME (ts', ctxt);
-    val inst_tyco_of = AxClass.inst_tyco_of (Sign.consts_of thy);
+    val inst_tyco_of = AxClass.inst_tyco_of consts;
     val typ_instance = Type.typ_instance (Sign.tsig_of thy);
     fun improve (c, ty) = case inst_tyco_of (c, ty)
      of SOME tyco => (case AList.lookup (op =) inst_params (c, tyco)
