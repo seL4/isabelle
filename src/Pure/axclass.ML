@@ -26,9 +26,9 @@ sig
   val axiomatize_arity: arity -> theory -> theory
   val axiomatize_arity_cmd: xstring * string list * string -> theory -> theory
   val instance_name: string * class -> string
+  val inst_tyco_of: Consts.T -> string * typ -> string option
   val declare_overloaded: string * typ -> theory -> term * theory
   val define_overloaded: binding -> string * term -> theory -> thm * theory
-  val inst_tyco_of: theory -> string * typ -> string option
   val unoverload: theory -> thm -> thm
   val overload: theory -> thm -> thm
   val unoverload_conv: theory -> conv
@@ -249,7 +249,8 @@ val param_of_inst = fst oo get_inst_param;
 fun inst_thms thy = (Symtab.fold (Symtab.fold (cons o snd o snd) o snd) o fst)
   (get_inst_params thy) [];
 
-fun inst_tyco_of thy = try (fst o dest_Type o the_single o Sign.const_typargs thy);
+fun inst_tyco_of consts = try (fst o dest_Type o the_single o Consts.typargs consts);
+val inst_tyco_of' = inst_tyco_of o Sign.consts_of;
 
 fun unoverload thy = MetaSimplifier.simplify true (inst_thms thy);
 fun overload thy = MetaSimplifier.simplify true (map Thm.symmetric (inst_thms thy));
@@ -259,7 +260,7 @@ fun overload_conv thy = MetaSimplifier.rewrite true (map Thm.symmetric (inst_thm
 
 fun unoverload_const thy (c_ty as (c, _)) =
   case class_of_param thy c
-   of SOME class => (case inst_tyco_of thy c_ty
+   of SOME class => (case inst_tyco_of' thy c_ty
        of SOME tyco => try (param_of_inst thy) (c, tyco) |> the_default c
         | NONE => c)
     | NONE => c;
@@ -293,7 +294,7 @@ fun declare_overloaded (c, T) thy =
     val class = case class_of_param thy c
      of SOME class => class
       | NONE => error ("Not a class parameter: " ^ quote c);
-    val tyco = case inst_tyco_of thy (c, T)
+    val tyco = case inst_tyco_of' thy (c, T)
      of SOME tyco => tyco
       | NONE => error ("Illegal type for instantiation of class parameter: "
         ^ quote (c ^ " :: " ^ Syntax.string_of_typ_global thy T));
@@ -318,7 +319,7 @@ fun declare_overloaded (c, T) thy =
 fun define_overloaded b (c, t) thy =
   let
     val T = Term.fastype_of t;
-    val SOME tyco = inst_tyco_of thy (c, T);
+    val SOME tyco = inst_tyco_of' thy (c, T);
     val (c', eq) = get_inst_param thy (c, tyco);
     val prop = Logic.mk_equals (Const (c', T), t);
     val b' = Thm.def_binding_optional
