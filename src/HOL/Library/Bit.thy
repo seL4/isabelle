@@ -53,10 +53,10 @@ instantiation bit :: "{field, division_by_zero}"
 begin
 
 definition plus_bit_def:
-  "x + y = (case x of 0 \<Rightarrow> y | 1 \<Rightarrow> (case y of 0 \<Rightarrow> 1 | 1 \<Rightarrow> 0))"
+  "x + y = bit_case y (bit_case 1 0 y) x"
 
 definition times_bit_def:
-  "x * y = (case x of 0 \<Rightarrow> 0 | 1 \<Rightarrow> y)"
+  "x * y = bit_case 0 y x"
 
 definition uminus_bit_def [simp]:
   "- x = (x :: bit)"
