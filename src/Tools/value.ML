@@ -46,7 +46,7 @@ fun value_cmd some_name modes raw_t state =
      of NONE => value ctxt t
       | SOME name => value_select name ctxt t;
     val ty' = Term.type_of t';
-    val ctxt' = Variable.auto_fixes t ctxt;
+    val ctxt' = Variable.auto_fixes t' ctxt;
     val p = PrintMode.with_modes modes (fn () =>
       Pretty.block [Pretty.quote (Syntax.pretty_term ctxt' t'), Pretty.fbrk,
         Pretty.str "::", Pretty.brk 1, Pretty.quote (Syntax.pretty_typ ctxt' ty')]) ();
