@@ -121,8 +121,8 @@ text {*
        which in general will result in higher efficiency; pattern
        matching with @{term "0\<Colon>nat"} / @{const "Suc"}
        is eliminated;  includes @{theory "Code_Integer"}
-       and @{theory "Code_Index"}.
-    \item[@{theory "Code_Index"}] provides an additional datatype
+       and @{theory "Code_Numeral"}.
+    \item[@{theory "Code_Numeral"}] provides an additional datatype
        @{typ index} which is mapped to target-language built-in integers.
        Useful for code setups which involve e.g. indexing of
        target-language arrays.
