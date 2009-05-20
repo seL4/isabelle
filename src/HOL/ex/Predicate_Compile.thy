@@ -7,39 +7,53 @@ text {* Package setup *}
 
 setup {* Predicate_Compile.setup *}
 
-
 text {* Experimental code *}
 
-definition pred_map :: "('a \<Rightarrow> 'b) \<Rightarrow> 'a Predicate.pred \<Rightarrow> 'b Predicate.pred" where
-  "pred_map f P = Predicate.bind P (Predicate.single o f)"
-
 ML {*
-structure Predicate =
+structure Predicate_Compile =
 struct
 
-open Predicate;
+open Predicate_Compile;
 
-val pred_ref = ref (NONE : (unit -> term Predicate.pred) option);
-
-fun eval_pred thy t =
-  Code_ML.eval NONE ("Predicate.pred_ref", pred_ref) @{code pred_map} thy (HOLogic.mk_term_of (fastype_of t) t) [];
-
-fun eval_pred_elems thy t T length =
-  t |> eval_pred thy |> yieldn length |> fst |> HOLogic.mk_list T;
-
-fun analyze_compr thy t =
+fun eval thy t_compr =
   let
-    val split = case t of (Const (@{const_name Collect}, _) $ t') => t'
-      | _ => error ("Not a set comprehension: " ^ Syntax.string_of_term_global thy t);
-    val (body, Ts, fp) = HOLogic.strip_split split;
-    val (t_pred, args) = strip_comb body;
-    val pred = case t_pred of Const (pred, _) => pred
-      | _ => error ("Not a constant: " ^ Syntax.string_of_term_global thy t_pred);
-    val mode = map is_Bound args; (*FIXME what about higher-order modes?*)
-    val args' = filter_out is_Bound args;
-    val T = HOLogic.mk_tupleT fp Ts;
-    val mk = HOLogic.mk_tuple' fp T;
-  in (((pred, mode), args), (mk, T)) end;
+    val t = Predicate_Compile.analyze_compr thy t_compr;
+    val Type (@{type_name Predicate.pred}, [T]) = fastype_of t;
+    fun mk_predT T = Type (@{type_name Predicate.pred}, [T]);
+    val T1 = T --> @{typ term};
+    val T2 = T1 --> mk_predT T --> mk_predT @{typ term};
+    val t' = Const (@{const_name Predicate.map}, T2) (*FIXME*)
+      $ Const (@{const_name Code_Eval.term_of}, T1) $ t;
+  in (T, Code_ML.eval NONE ("Predicate_Compile.eval_ref", eval_ref) @{code Predicate.map} thy t' []) end;
+
+fun values ctxt k t_compr =
+  let
+    val thy = ProofContext.theory_of ctxt;
+    val (T, t') = eval thy t_compr;
+  in t' |> Predicate.yieldn k |> fst |> HOLogic.mk_list T end;
+
+fun values_cmd modes k raw_t state =
+  let
+    val ctxt = Toplevel.context_of state;
+    val t = Syntax.read_term ctxt raw_t;
+    val t' = values ctxt k t;
+    val ty' = Term.type_of t';
+    val ctxt' = Variable.auto_fixes t' ctxt;
+    val p = PrintMode.with_modes modes (fn () =>
+      Pretty.block [Pretty.quote (Syntax.pretty_term ctxt' t'), Pretty.fbrk,
+        Pretty.str "::", Pretty.brk 1, Pretty.quote (Syntax.pretty_typ ctxt' ty')]) ();
+  in Pretty.writeln p end;
+
+end;
+
+local structure P = OuterParse in
+
+val opt_modes = Scan.optional (P.$$$ "(" |-- P.!!! (Scan.repeat1 P.xname --| P.$$$ ")")) [];
+
+val _ = OuterSyntax.improper_command "values" "enumerate and print comprehensions" OuterKeyword.diag
+  (opt_modes -- Scan.optional P.nat ~1 -- P.term
+    >> (fn ((modes, k), t) => Toplevel.no_timing o Toplevel.keep
+        (Predicate_Compile.values_cmd modes k t)));
 
 end;
 *}
