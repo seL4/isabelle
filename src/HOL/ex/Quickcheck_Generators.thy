@@ -12,11 +12,11 @@ definition collapse :: "('a \<Rightarrow> ('a \<Rightarrow> 'b \<times> 'a) \<ti
   "collapse f = (do g \<leftarrow> f; g done)"
 
 lemma random'_if:
-  fixes random' :: "index \<Rightarrow> index \<Rightarrow> Random.seed \<Rightarrow> ('a \<times> (unit \<Rightarrow> term)) \<times> Random.seed"
+  fixes random' :: "code_numeral \<Rightarrow> code_numeral \<Rightarrow> Random.seed \<Rightarrow> ('a \<times> (unit \<Rightarrow> term)) \<times> Random.seed"
   assumes "random' 0 j = (\<lambda>s. undefined)"
-    and "\<And>i. random' (Suc_index i) j = rhs2 i"
+    and "\<And>i. random' (Suc_code_numeral i) j = rhs2 i"
   shows "random' i j s = (if i = 0 then undefined else rhs2 (i - 1) s)"
-  by (cases i rule: index.exhaust) (insert assms, simp_all)
+  by (cases i rule: code_numeral.exhaust) (insert assms, simp_all)
 
 setup {*
 let
@@ -62,7 +62,7 @@ let
     in case mk_conss thy ty ts_rec
      of SOME t_rec => mk_collapse thy (term_ty ty) $
           (Sign.mk_const thy (@{const_name Random.select_default}, [liftT (term_ty ty) @{typ Random.seed}]) $
-             @{term "i\<Colon>index"} $ t_rec $ t_atom)
+             @{term "i\<Colon>code_numeral"} $ t_rec $ t_atom)
       | NONE => t_atom
     end;
   fun mk_random_eqs thy vs tycos =
@@ -73,12 +73,12 @@ let
       val random'_name = random_name ^ "_" ^ Class.type_name (hd tycos) ^ "'";
       fun random ty = Sign.mk_const thy (@{const_name random}, [ty]);
       val random' = Free (random'_name,
-        @{typ index} --> @{typ index} --> this_ty');
+        @{typ code_numeral} --> @{typ code_numeral} --> this_ty');
       fun atom ty = if Sign.of_sort thy (ty, @{sort random})
-        then ((ty, false), random ty $ @{term "j\<Colon>index"})
+        then ((ty, false), random ty $ @{term "j\<Colon>code_numeral"})
         else raise TYP
           ("Will not generate random elements for type(s) " ^ quote (hd tycos));
-      fun dtyp tyco = ((this_ty, true), random' $ @{term "i\<Colon>index"} $ @{term "j\<Colon>index"});
+      fun dtyp tyco = ((this_ty, true), random' $ @{term "i\<Colon>code_numeral"} $ @{term "j\<Colon>code_numeral"});
       fun rtyp tyco tys = raise REC
         ("Will not generate random elements for mutual recursive type " ^ quote (hd tycos));
       val rhss = DatatypePackage.construction_interpretation thy
@@ -87,9 +87,9 @@ let
         |> (map o apsnd) (List.partition fst)
         |> map (mk_clauses thy this_ty)
       val eqss = map ((apsnd o map) (HOLogic.mk_Trueprop o HOLogic.mk_eq) o (fn rhs => ((this_ty, random'), [
-          (random' $ @{term "0\<Colon>index"} $ @{term "j\<Colon>index"}, Abs ("s", @{typ Random.seed},
+          (random' $ @{term "0\<Colon>code_numeral"} $ @{term "j\<Colon>code_numeral"}, Abs ("s", @{typ Random.seed},
             Const (@{const_name undefined}, HOLogic.mk_prodT (term_ty this_ty, @{typ Random.seed})))),
-          (random' $ @{term "Suc_index i"} $ @{term "j\<Colon>index"}, rhs)
+          (random' $ @{term "Suc_code_numeral i"} $ @{term "j\<Colon>code_numeral"}, rhs)
         ]))) rhss;
     in eqss end;
   fun random_inst [tyco] thy =
@@ -99,8 +99,8 @@ let
             (curry (Sorts.inter_sort (Sign.classes_of thy)) @{sort random}) raw_vs;
           val ((this_ty, random'), eqs') = singleton (mk_random_eqs thy vs) tyco;
           val eq = (HOLogic.mk_Trueprop o HOLogic.mk_eq)
-            (Sign.mk_const thy (@{const_name random}, [this_ty]) $ @{term "i\<Colon>index"},
-               random' $ @{term "max (i\<Colon>index) 1"} $ @{term "i\<Colon>index"})
+            (Sign.mk_const thy (@{const_name random}, [this_ty]) $ @{term "i\<Colon>code_numeral"},
+               random' $ @{term "max (i\<Colon>code_numeral) 1"} $ @{term "i\<Colon>code_numeral"})
           val del_func = Attrib.internal (fn _ => Thm.declaration_attribute
             (fn thm => Context.mapping (Code.del_eqn thm) I));
           fun add_code simps lthy =
