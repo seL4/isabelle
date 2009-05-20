@@ -33,11 +33,11 @@ sig
   val max_key: 'a table -> key option
   val defined: 'a table -> key -> bool
   val lookup: 'a table -> key -> 'a option
-  val update: (key * 'a) -> 'a table -> 'a table
-  val update_new: (key * 'a) -> 'a table -> 'a table                   (*exception DUP*)
+  val update: key * 'a -> 'a table -> 'a table
+  val update_new: key * 'a -> 'a table -> 'a table                     (*exception DUP*)
   val default: key * 'a -> 'a table -> 'a table
   val map_entry: key -> ('a -> 'a) -> 'a table -> 'a table
-  val map_default: (key * 'a) -> ('a -> 'a) -> 'a table -> 'a table
+  val map_default: key * 'a -> ('a -> 'a) -> 'a table -> 'a table
   val make: (key * 'a) list -> 'a table                                (*exception DUP*)
   val join: (key -> 'a * 'a -> 'a) (*exception DUP/SAME*) ->
     'a table * 'a table -> 'a table                                    (*exception DUP*)
@@ -48,7 +48,7 @@ sig
   val insert: ('a * 'a -> bool) -> key * 'a -> 'a table -> 'a table    (*exception DUP*)
   val remove: ('b * 'a -> bool) -> key * 'b -> 'a table -> 'a table
   val lookup_list: 'a list table -> key -> 'a list
-  val cons_list: (key * 'a) -> 'a list table -> 'a list table
+  val cons_list: key * 'a -> 'a list table -> 'a list table
   val insert_list: ('a * 'a -> bool) -> key * 'a -> 'a list table -> 'a list table
   val remove_list: ('b * 'a -> bool) -> key * 'b -> 'a list table -> 'a list table
   val update_list: ('a * 'a -> bool) -> key * 'a -> 'a list table -> 'a list table
