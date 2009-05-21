@@ -637,6 +637,7 @@ sig
   and 'a seq = Empty | Insert of 'a * 'a pred | Join of 'a pred * 'a seq
   val yield: 'a pred -> ('a * 'a pred) option
   val yieldn: int -> 'a pred -> 'a list * 'a pred
+  val map: ('a -> 'b) -> 'a pred -> 'b pred
 end;
 
 structure Predicate : PREDICATE =
@@ -660,6 +661,8 @@ fun anamorph f k x = (if k = 0 then ([], x)
       in (v :: vs, z) end)
 
 fun yieldn P = anamorph yield P;
+
+fun map f = @{code map} f;
 
 end;
 *}
