@@ -1,7 +1,6 @@
 (*  Title:      HOL/Tools/prop_logic.ML
-    ID:         $Id$
     Author:     Tjark Weber
-    Copyright   2004-2005
+    Copyright   2004-2009
 
 Formulas of propositional logic.
 *)
@@ -33,7 +32,6 @@ sig
 
 	val nnf    : prop_formula -> prop_formula  (* negation normal form *)
 	val cnf    : prop_formula -> prop_formula  (* conjunctive normal form *)
-	val auxcnf : prop_formula -> prop_formula  (* cnf with auxiliary variables *)
 	val defcnf : prop_formula -> prop_formula  (* definitional cnf *)
 
 	val eval : (int -> bool) -> prop_formula -> bool  (* semantics *)
@@ -156,7 +154,7 @@ struct
 	fun dot_product (xs,ys) = exists (map SAnd (xs~~ys));
 
 (* ------------------------------------------------------------------------- *)
-(* is_nnf: returns 'true' iff the formula is in negation normal form (i.e.   *)
+(* is_nnf: returns 'true' iff the formula is in negation normal form (i.e.,  *)
 (*         only variables may be negated, but not subformulas).              *)
 (* ------------------------------------------------------------------------- *)
 
@@ -178,7 +176,8 @@ struct
 
 (* ------------------------------------------------------------------------- *)
 (* is_cnf: returns 'true' iff the formula is in conjunctive normal form      *)
-(*         (i.e. a conjunction of disjunctions).                             *)
+(*         (i.e., a conjunction of disjunctions of literals). 'is_cnf'       *)
+(*         implies 'is_nnf'.                                                 *)
 (* ------------------------------------------------------------------------- *)
 
 	local
@@ -197,170 +196,90 @@ struct
 
 (* ------------------------------------------------------------------------- *)
 (* nnf: computes the negation normal form of a formula 'fm' of propositional *)
-(*      logic (i.e. only variables may be negated, but not subformulas).     *)
-(*      Simplification (c.f. 'simplify') is performed as well.               *)
+(*      logic (i.e., only variables may be negated, but not subformulas).    *)
+(*      Simplification (cf. 'simplify') is performed as well. Not            *)
+(*      surprisingly, 'is_nnf o nnf' always returns 'true'. 'nnf fm' returns *)
+(*      'fm' if (and only if) 'is_nnf fm' returns 'true'.                    *)
 (* ------------------------------------------------------------------------- *)
 
 	(* prop_formula -> prop_formula *)
 
-	fun
-	(* constants *)
-	    nnf True                   = True
-	  | nnf False                  = False
-	(* variables *)
-	  | nnf (BoolVar i)            = (BoolVar i)
-	(* 'or' and 'and' as outermost connectives are left untouched *)
-	  | nnf (Or  (fm1, fm2))       = SOr  (nnf fm1, nnf fm2)
-	  | nnf (And (fm1, fm2))       = SAnd (nnf fm1, nnf fm2)
-	(* 'not' + constant *)
-	  | nnf (Not True)             = False
-	  | nnf (Not False)            = True
-	(* 'not' + variable *)
-	  | nnf (Not (BoolVar i))      = Not (BoolVar i)
-	(* pushing 'not' inside of 'or'/'and' using de Morgan's laws *)
-	  | nnf (Not (Or  (fm1, fm2))) = SAnd (nnf (SNot fm1), nnf (SNot fm2))
-	  | nnf (Not (And (fm1, fm2))) = SOr  (nnf (SNot fm1), nnf (SNot fm2))
-	(* double-negation elimination *)
-	  | nnf (Not (Not fm))         = nnf fm;
+	fun nnf fm =
+	let
+		fun
+			(* constants *)
+			    nnf_aux True                   = True
+			  | nnf_aux False                  = False
+			(* variables *)
+			  | nnf_aux (BoolVar i)            = (BoolVar i)
+			(* 'or' and 'and' as outermost connectives are left untouched *)
+			  | nnf_aux (Or  (fm1, fm2))       = SOr  (nnf_aux fm1, nnf_aux fm2)
+			  | nnf_aux (And (fm1, fm2))       = SAnd (nnf_aux fm1, nnf_aux fm2)
+			(* 'not' + constant *)
+			  | nnf_aux (Not True)             = False
+			  | nnf_aux (Not False)            = True
+			(* 'not' + variable *)
+			  | nnf_aux (Not (BoolVar i))      = Not (BoolVar i)
+			(* pushing 'not' inside of 'or'/'and' using de Morgan's laws *)
+			  | nnf_aux (Not (Or  (fm1, fm2))) = SAnd (nnf_aux (SNot fm1), nnf_aux (SNot fm2))
+			  | nnf_aux (Not (And (fm1, fm2))) = SOr  (nnf_aux (SNot fm1), nnf_aux (SNot fm2))
+			(* double-negation elimination *)
+			  | nnf_aux (Not (Not fm))         = nnf_aux fm
+	in
+		if is_nnf fm then
+			fm
+		else
+			nnf_aux fm
+	end;
 
 (* ------------------------------------------------------------------------- *)
-(* cnf: computes the conjunctive normal form (i.e. a conjunction of          *)
-(*      disjunctions) of a formula 'fm' of propositional logic.  The result  *)
-(*      formula may be exponentially longer than 'fm'.                       *)
+(* cnf: computes the conjunctive normal form (i.e., a conjunction of         *)
+(*      disjunctions of literals) of a formula 'fm' of propositional logic.  *)
+(*      Simplification (cf. 'simplify') is performed as well. The result     *)
+(*      is equivalent to 'fm', but may be exponentially longer. Not          *)
+(*      surprisingly, 'is_cnf o cnf' always returns 'true'. 'cnf fm' returns *)
+(*      'fm' if (and only if) 'is_cnf fm' returns 'true'.                    *)
 (* ------------------------------------------------------------------------- *)
 
 	(* prop_formula -> prop_formula *)
 
 	fun cnf fm =
 	let
-		fun
-		(* constants *)
-		    cnf_from_nnf True             = True
+		(* function to push an 'Or' below 'And's, using distributive laws *)
+		fun cnf_or (And (fm11, fm12), fm2) =
+			And (cnf_or (fm11, fm2), cnf_or (fm12, fm2))
+		  | cnf_or (fm1, And (fm21, fm22)) =
+			And (cnf_or (fm1, fm21), cnf_or (fm1, fm22))
+		(* neither subformula contains 'And' *)
+		  | cnf_or (fm1, fm2) =
+			Or (fm1, fm2)
+		fun cnf_from_nnf True             = True
 		  | cnf_from_nnf False            = False
-		(* literals *)
 		  | cnf_from_nnf (BoolVar i)      = BoolVar i
-		  | cnf_from_nnf (Not fm1)        = Not fm1  (* 'fm1' must be a variable since the formula is in NNF *)
-		(* pushing 'or' inside of 'and' using distributive laws *)
+		(* 'fm' must be a variable since the formula is in NNF *)
+		  | cnf_from_nnf (Not fm)         = Not fm
+		(* 'Or' may need to be pushed below 'And' *)
 		  | cnf_from_nnf (Or (fm1, fm2))  =
-			let
-				fun cnf_or (And (fm11, fm12), fm2) =
-					And (cnf_or (fm11, fm2), cnf_or (fm12, fm2))
-				  | cnf_or (fm1, And (fm21, fm22)) =
-					And (cnf_or (fm1, fm21), cnf_or (fm1, fm22))
-				(* neither subformula contains 'and' *)
-				  | cnf_or (fm1, fm2) =
-					Or (fm1, fm2)
-			in
-				cnf_or (cnf_from_nnf fm1, cnf_from_nnf fm2)
-			end
-		(* 'and' as outermost connective is left untouched *)
-		  | cnf_from_nnf (And (fm1, fm2)) = And (cnf_from_nnf fm1, cnf_from_nnf fm2)
+		    cnf_or (cnf_from_nnf fm1, cnf_from_nnf fm2)
+		(* 'And' as outermost connective is left untouched *)
+		  | cnf_from_nnf (And (fm1, fm2)) =
+		    And (cnf_from_nnf fm1, cnf_from_nnf fm2)
 	in
-		(cnf_from_nnf o nnf) fm
+		if is_cnf fm then
+			fm
+		else
+			(cnf_from_nnf o nnf) fm
 	end;
 
 (* ------------------------------------------------------------------------- *)
-(* auxcnf: computes the definitional conjunctive normal form of a formula    *)
-(*      'fm' of propositional logic, introducing auxiliary variables if      *)
-(*      necessary to avoid an exponential blowup of the formula.  The result *)
-(*      formula is satisfiable if and only if 'fm' is satisfiable.           *)
-(*      Auxiliary variables are introduced as switches for OR-nodes, based   *)
-(*      on the observation that e.g. "fm1 OR (fm21 AND fm22)" is             *)
-(*      equisatisfiable with "(fm1 OR ~aux) AND (fm21 OR aux) AND (fm22 OR   *)
-(*      aux)".                                                               *)
-(* ------------------------------------------------------------------------- *)
-
-(* ------------------------------------------------------------------------- *)
-(* Note: 'auxcnf' tends to use fewer variables and fewer clauses than        *)
-(*      'defcnf' below, but sometimes generates much larger SAT problems     *)
-(*      overall (hence it must sometimes generate longer clauses than        *)
-(*      'defcnf' does).  It is currently not quite clear to me if one of the *)
-(*      algorithms is clearly superior to the other, but I suggest using     *)
-(*      'defcnf' instead.                                                    *)
-(* ------------------------------------------------------------------------- *)
-
-	(* prop_formula -> prop_formula *)
-
-	fun auxcnf fm =
-	let
-		(* convert formula to NNF first *)
-		val fm' = nnf fm
-		(* 'new' specifies the next index that is available to introduce an auxiliary variable *)
-		(* int ref *)
-		val new = ref (maxidx fm' + 1)
-		(* unit -> int *)
-		fun new_idx () = let val idx = !new in new := idx+1; idx end
-		(* prop_formula -> prop_formula *)
-		fun
-		(* constants *)
-		    auxcnf_from_nnf True  = True
-		  | auxcnf_from_nnf False = False
-		(* literals *)
-		  | auxcnf_from_nnf (BoolVar i) = BoolVar i
-		  | auxcnf_from_nnf (Not fm1)   = Not fm1  (* 'fm1' must be a variable since the formula is in NNF *)
-		(* pushing 'or' inside of 'and' using auxiliary variables *)
-		  | auxcnf_from_nnf (Or (fm1, fm2)) =
-			let
-				val fm1' = auxcnf_from_nnf fm1
-				val fm2' = auxcnf_from_nnf fm2
-				(* prop_formula * prop_formula -> prop_formula *)
-				fun auxcnf_or (And (fm11, fm12), fm2) =
-					(case fm2 of
-					(* do not introduce an auxiliary variable for literals *)
-					  BoolVar _ =>
-							And (auxcnf_or (fm11, fm2), auxcnf_or (fm12, fm2))
-					| Not _ =>
-							And (auxcnf_or (fm11, fm2), auxcnf_or (fm12, fm2))
-					| _ =>
-						let
-							val aux = BoolVar (new_idx ())
-						in
-							And (And (auxcnf_or (fm11, aux), auxcnf_or (fm12, aux)), auxcnf_or (fm2, Not aux))
-						end)
-				  | auxcnf_or (fm1, And (fm21, fm22)) =
-					(case fm1 of
-					(* do not introduce an auxiliary variable for literals *)
-					  BoolVar _ =>
-							And (auxcnf_or (fm1, fm21), auxcnf_or (fm1, fm22))
-					| Not _ =>
-							And (auxcnf_or (fm1, fm21), auxcnf_or (fm1, fm22))
-					| _ =>
-						let
-							val aux = BoolVar (new_idx ())
-						in
-							And (auxcnf_or (fm1, Not aux), And (auxcnf_or (fm21, aux), auxcnf_or (fm22, aux)))
-						end)
-				(* neither subformula contains 'and' *)
-				  | auxcnf_or (fm1, fm2) =
-					Or (fm1, fm2)
-			in
-				auxcnf_or (fm1', fm2')
-			end
-		(* 'and' as outermost connective is left untouched *)
-		  | auxcnf_from_nnf (And (fm1, fm2)) =
-				And (auxcnf_from_nnf fm1, auxcnf_from_nnf fm2)
-	in
-		auxcnf_from_nnf fm'
-	end;
-
-(* ------------------------------------------------------------------------- *)
-(* defcnf: computes the definitional conjunctive normal form of a formula    *)
-(*      'fm' of propositional logic, introducing auxiliary variables to      *)
-(*      avoid an exponential blowup of the formula.  The result formula is   *)
-(*      satisfiable if and only if 'fm' is satisfiable.  Auxiliary variables *)
-(*      are introduced as abbreviations for AND-, OR-, and NOT-nodes, based  *)
-(*      on the following equisatisfiabilities (+/- indicates polarity):      *)
-(*      LITERAL+       == LITERAL                                            *)
-(*      LITERAL-       == NOT LITERAL                                        *)
-(*      (NOT fm1)+     == aux AND (NOT aux OR fm1-)                          *)
-(*      (fm1 OR fm2)+  == aux AND (NOT aux OR fm1+ OR fm2+)                  *)
-(*      (fm1 AND fm2)+ == aux AND (NOT aux OR fm1+) AND (NOT aux OR fm2+)    *)
-(*      (NOT fm1)-     == aux AND (NOT aux OR fm1+)                          *)
-(*      (fm1 OR fm2)-  == aux AND (NOT aux OR fm1-) AND (NOT aux OR fm2-)    *)
-(*      (fm1 AND fm2)- == aux AND (NOT aux OR fm1- OR fm2-)                  *)
-(*      Example:                                                             *)
-(*      NOT (a AND b) == aux1 AND (NOT aux1 OR aux2)                         *)
-(*                            AND (NOT aux2 OR NOT a OR NOT b)               *)
+(* defcnf: computes a definitional conjunctive normal form of a formula 'fm' *)
+(*      of propositional logic. Simplification (cf. 'simplify') is performed *)
+(*      as well. 'defcnf' may introduce auxiliary Boolean variables to avoid *)
+(*      an exponential blowup of the formula.  The result is equisatisfiable *)
+(*      (i.e., satisfiable if and only if 'fm' is satisfiable), but not      *)
+(*      necessarily equivalent to 'fm'. Not surprisingly, 'is_cnf o defcnf'  *)
+(*      always returns 'true'. 'defcnf fm' returns 'fm' if (and only if)     *)
+(*      'is_cnf fm' returns 'true'.                                          *)
 (* ------------------------------------------------------------------------- *)
 
 	(* prop_formula -> prop_formula *)
@@ -368,93 +287,66 @@ struct
 	fun defcnf fm =
 		if is_cnf fm then
 			fm
-		else let
-			(* simplify formula first *)
-			val fm' = simplify fm
+		else
+		let
+			val fm' = nnf fm
 			(* 'new' specifies the next index that is available to introduce an auxiliary variable *)
 			(* int ref *)
 			val new = ref (maxidx fm' + 1)
 			(* unit -> int *)
 			fun new_idx () = let val idx = !new in new := idx+1; idx end
-			(* optimization for n-ary disjunction/conjunction *)
-			(* prop_formula -> prop_formula list *)
-			fun disjuncts (Or (fm1, fm2)) = (disjuncts fm1) @ (disjuncts fm2)
-			| disjuncts fm1             = [fm1]
-			(* prop_formula -> prop_formula list *)
-			fun conjuncts (And (fm1, fm2)) = (conjuncts fm1) @ (conjuncts fm2)
-			| conjuncts fm1              = [fm1]
-			(* polarity -> formula -> (defining clauses, literal) *)
-			(* bool -> prop_formula -> prop_formula * prop_formula *)
-			fun
-			(* constants *)
-				defcnf' true  True  = (True, True)
-			| defcnf' false True  = (*(True, False)*) error "formula is not simplified, True occurs with negative polarity"
-			| defcnf' true  False = (True, False)
-			| defcnf' false False = (*(True, True)*) error "formula is not simplified, False occurs with negative polarity"
-			(* literals *)
-			| defcnf' true  (BoolVar i)       = (True, BoolVar i)
-			| defcnf' false (BoolVar i)       = (True, Not (BoolVar i))
-			| defcnf' true  (Not (BoolVar i)) = (True, Not (BoolVar i))
-			| defcnf' false (Not (BoolVar i)) = (True, BoolVar i)
-			(* 'not' *)
-			| defcnf' polarity (Not fm1) =
+			(* replaces 'And' by an auxiliary variable (and its definition) *)
+			(* prop_formula -> prop_formula * prop_formula list *)
+			fun defcnf_or (And x) =
 				let
-					val (def1, aux1) = defcnf' (not polarity) fm1
-					val aux          = BoolVar (new_idx ())
-					val def          = Or (Not aux, aux1)
+					val i = new_idx ()
 				in
-					(SAnd (def1, def), aux)
+					(* Note that definitions are in NNF, but not CNF. *)
+					(BoolVar i, [Or (Not (BoolVar i), And x)])
 				end
-			(* 'or' *)
-			| defcnf' polarity (Or (fm1, fm2)) =
+			  | defcnf_or (Or (fm1, fm2)) =
 				let
-					val fms          = disjuncts (Or (fm1, fm2))
-					val (defs, auxs) = split_list (map (defcnf' polarity) fms)
-					val aux          = BoolVar (new_idx ())
-					val def          = if polarity then Or (Not aux, exists auxs) else all (map (fn a => Or (Not aux, a)) auxs)
+					val (fm1', defs1) = defcnf_or fm1
+					val (fm2', defs2) = defcnf_or fm2
 				in
-					(SAnd (all defs, def), aux)
+					(Or (fm1', fm2'), defs1 @ defs2)
 				end
-			(* 'and' *)
-			| defcnf' polarity (And (fm1, fm2)) =
+			  | defcnf_or fm =
+				(fm, [])
+			(* prop_formula -> prop_formula *)
+			fun defcnf_from_nnf True             = True
+			  | defcnf_from_nnf False            = False
+			  | defcnf_from_nnf (BoolVar i)      = BoolVar i
+			(* 'fm' must be a variable since the formula is in NNF *)
+			  | defcnf_from_nnf (Not fm)         = Not fm
+			(* 'Or' may need to be pushed below 'And' *)
+			(* 'Or' of literal and 'And': use distributivity *)
+			  | defcnf_from_nnf (Or (BoolVar i, And (fm1, fm2))) =
+				And (defcnf_from_nnf (Or (BoolVar i, fm1)),
+				     defcnf_from_nnf (Or (BoolVar i, fm2)))
+			  | defcnf_from_nnf (Or (Not (BoolVar i), And (fm1, fm2))) =
+				And (defcnf_from_nnf (Or (Not (BoolVar i), fm1)),
+				     defcnf_from_nnf (Or (Not (BoolVar i), fm2)))
+			  | defcnf_from_nnf (Or (And (fm1, fm2), BoolVar i)) =
+				And (defcnf_from_nnf (Or (fm1, BoolVar i)),
+				     defcnf_from_nnf (Or (fm2, BoolVar i)))
+			  | defcnf_from_nnf (Or (And (fm1, fm2), Not (BoolVar i))) =
+				And (defcnf_from_nnf (Or (fm1, Not (BoolVar i))),
+				     defcnf_from_nnf (Or (fm2, Not (BoolVar i))))
+			(* all other cases: turn the formula into a disjunction of literals, *)
+			(*                  adding definitions as necessary                  *)
+			  | defcnf_from_nnf (Or x) =
 				let
-					val fms          = conjuncts (And (fm1, fm2))
-					val (defs, auxs) = split_list (map (defcnf' polarity) fms)
-					val aux          = BoolVar (new_idx ())
-					val def          = if not polarity then Or (Not aux, exists auxs) else all (map (fn a => Or (Not aux, a)) auxs)
+					val (fm, defs) = defcnf_or (Or x)
+					val cnf_defs   = map defcnf_from_nnf defs
 				in
-					(SAnd (all defs, def), aux)
+					all (fm :: cnf_defs)
 				end
-			(* optimization: do not introduce auxiliary variables for parts of the formula that are in CNF already *)
-			(* prop_formula -> prop_formula * prop_formula *)
-			fun defcnf_or (Or (fm1, fm2)) =
-				let
-					val (def1, aux1) = defcnf_or fm1
-					val (def2, aux2) = defcnf_or fm2
-				in
-					(SAnd (def1, def2), Or (aux1, aux2))
-				end
-			| defcnf_or fm =
-				defcnf' true fm
-			(* prop_formula -> prop_formula * prop_formula *)
-			fun defcnf_and (And (fm1, fm2)) =
-				let
-					val (def1, aux1) = defcnf_and fm1
-					val (def2, aux2) = defcnf_and fm2
-				in
-					(SAnd (def1, def2), And (aux1, aux2))
-				end
-			| defcnf_and (Or (fm1, fm2)) =
-				let
-					val (def1, aux1) = defcnf_or fm1
-					val (def2, aux2) = defcnf_or fm2
-				in
-					(SAnd (def1, def2), Or (aux1, aux2))
-				end
-			| defcnf_and fm =
-				defcnf' true fm
+			(* 'And' as outermost connective is left untouched *)
+			  | defcnf_from_nnf (And (fm1, fm2)) =
+				And (defcnf_from_nnf fm1, defcnf_from_nnf fm2)
 		in
-			SAnd (defcnf_and fm')
+			defcnf_from_nnf fm'
 		end;
 
 (* ------------------------------------------------------------------------- *)
@@ -545,16 +437,16 @@ struct
 
 	(* prop_formula -> Term.term *)
 	fun term_of_prop_formula True             =
-			HOLogic.true_const
-		| term_of_prop_formula False            =
-			HOLogic.false_const
-		| term_of_prop_formula (BoolVar i)      =
-			Free ("v" ^ Int.toString i, HOLogic.boolT)
-		| term_of_prop_formula (Not fm)         =
-			HOLogic.mk_not (term_of_prop_formula fm)
-		| term_of_prop_formula (Or (fm1, fm2))  =
-			HOLogic.mk_disj (term_of_prop_formula fm1, term_of_prop_formula fm2)
-		| term_of_prop_formula (And (fm1, fm2)) =
-			HOLogic.mk_conj (term_of_prop_formula fm1, term_of_prop_formula fm2);
+		HOLogic.true_const
+	  | term_of_prop_formula False            =
+		HOLogic.false_const
+	  | term_of_prop_formula (BoolVar i)      =
+		Free ("v" ^ Int.toString i, HOLogic.boolT)
+	  | term_of_prop_formula (Not fm)         =
+		HOLogic.mk_not (term_of_prop_formula fm)
+	  | term_of_prop_formula (Or (fm1, fm2))  =
+		HOLogic.mk_disj (term_of_prop_formula fm1, term_of_prop_formula fm2)
+	  | term_of_prop_formula (And (fm1, fm2)) =
+		HOLogic.mk_conj (term_of_prop_formula fm1, term_of_prop_formula fm2);
 
 end;
