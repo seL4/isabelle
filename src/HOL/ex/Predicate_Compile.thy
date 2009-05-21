@@ -24,7 +24,7 @@ fun eval thy t_compr =
     val T2 = T1 --> mk_predT T --> mk_predT @{typ term};
     val t' = Const (@{const_name Predicate.map}, T2) (*FIXME*)
       $ Const (@{const_name Code_Eval.term_of}, T1) $ t;
-  in (T, Code_ML.eval NONE ("Predicate_Compile.eval_ref", eval_ref) @{code Predicate.map} thy t' []) end;
+  in (T, Code_ML.eval NONE ("Predicate_Compile.eval_ref", eval_ref) Predicate.map thy t' []) end;
 
 fun values ctxt k t_compr =
   let
