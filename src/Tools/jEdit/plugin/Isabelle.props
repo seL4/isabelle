@@ -50,3 +50,6 @@ isabelle-scroller.title=Isabelle Scroller
 sidekick.parser.isabelle.label=Isabelle
 mode.isabelle.sidekick.parser=isabelle
 mode.ml.sidekick.parser=isabelle
+
+#Hyperlinks
+mode.isabelle.hyperlink.source=isabelle

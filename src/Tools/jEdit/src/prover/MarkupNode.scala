@@ -18,7 +18,10 @@ case class RootInfo extends MarkupInfo
 case class OuterInfo(highlight: String) extends MarkupInfo {override def toString = highlight}
 case class HighlightInfo(highlight: String) extends MarkupInfo {override def toString = highlight}
 case class TypeInfo(type_kind: String) extends MarkupInfo {override def toString = type_kind}
-case class RefInfo(info: Any) extends MarkupInfo {override def toString = info.toString}
+case class RefInfo(file: Option[String], line: Option[Int],
+                   command_id: Option[String], offset: Option[Int]) extends MarkupInfo {
+  override def toString = (file, line, command_id, offset).toString
+}
 
 object MarkupNode {
 
@@ -46,7 +49,7 @@ object MarkupNode {
 
 class MarkupNode (val base: Command, val start: Int, val stop: Int,
                   val children: List[MarkupNode],
-                  val id: String, val content: String, val info: Any) {
+                  val id: String, val content: String, val info: MarkupInfo) {
 
   def swing_node(doc: ProofDocument) : DefaultMutableTreeNode = {
     val node = MarkupNode.markup2default_node (this, base, doc)

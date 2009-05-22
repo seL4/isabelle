@@ -106,4 +106,9 @@ class Command(val tokens: List[Token], val starts: Map[Token, Int])
       map(t => "\"" + t.content + "\" : " + (t.info match {case TypeInfo(i) => i case _ => ""})).
       getOrElse(null)
   }
+
+  def ref_at(pos: Int): Option[MarkupNode] =
+    markup_root.filter(_.info match {case RefInfo(_,_,_,_) => true case _ => false}).
+      flatten(_.flatten).
+      find(t => t.start <= pos && t.stop > pos)
 }

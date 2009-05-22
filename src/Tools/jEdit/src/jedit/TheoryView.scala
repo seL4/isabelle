@@ -135,6 +135,10 @@ class TheoryView (text_area: JEditTextArea, document_actor: Actor)
     _to_current(from_id, if (col == null) changes else col :: changes, pos)
   def from_current(to_id: String, pos : Int) =
     _from_current(to_id, if (col == null) changes else col :: changes, pos)
+  def to_current(document: isabelle.proofdocument.ProofDocument, pos: Int): Int =
+    to_current(document.id, pos)
+  def from_current(document: isabelle.proofdocument.ProofDocument, pos: Int): Int =
+    from_current(document.id, pos)
 
   def repaint(cmd: Command) =
   {

@@ -51,6 +51,7 @@ class Prover(isabelle_system: IsabelleSystem, logic: String) extends Actor
   private var document_versions = List(ProofDocument.empty)
   private val document_id0 = ProofDocument.empty.id
 
+  def command(id: IsarDocument.Command_ID): Option[Command] = commands.get(id)
   def document = document_versions.head
 
   private var initialized = false
@@ -190,7 +191,15 @@ class Prover(isabelle_system: IsabelleSystem, logic: String) extends Actor
                         val info = body.first.asInstanceOf[XML.Text].content
                         command.markup_root += command.markup_node(begin, end, TypeInfo(info))
                       case Markup.ML_REF =>
-                        command.markup_root += command.markup_node(begin, end, RefInfo(body))
+                        body match {
+                          case List(XML.Elem(Markup.ML_DEF, attr, _)) =>
+                            command.markup_root += command.markup_node(begin, end,
+                              RefInfo(get_attr(attr, Markup.FILE),
+                                      get_attr(attr, Markup.LINE).map(Integer.parseInt),
+                                      get_attr(attr, Markup.ID),
+                                      get_attr(attr, Markup.OFFSET).map(Integer.parseInt)))
+                          case _ =>
+                        }
                       case kind =>
                         if (!running)
                           commands.get(markup_id).map (cmd =>
