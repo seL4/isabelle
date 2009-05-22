@@ -77,12 +77,12 @@ class MarkupNode (val base : Command, val start : Int, val stop : Int,
       val filled_gaps = for {
         child <- children
         markups = if (next_x < child.start) {
-          new MarkupNode(base, next_x, child.start, Nil, id, content, "") :: child.flatten
+          new MarkupNode(base, next_x, child.start, Nil, id, content, desc) :: child.flatten
         } else child.flatten
         update = (next_x = child.stop)
         markup <- markups
       } yield markup
-      if (next_x < stop) filled_gaps + new MarkupNode(base, next_x, stop, Nil, id, content, "")
+      if (next_x < stop) filled_gaps + new MarkupNode(base, next_x, stop, Nil, id, content, desc)
       else filled_gaps
     }
   }
