@@ -13,13 +13,14 @@ import javax.swing._
 import javax.swing.text.Position
 import javax.swing.tree._
 
+abstract class MarkupInfo
+case class RootInfo extends MarkupInfo
+case class OuterInfo(highlight: String) extends MarkupInfo {override def toString = highlight}
+case class HighlightInfo(highlight: String) extends MarkupInfo {override def toString = highlight}
+case class TypeInfo(type_kind: String) extends MarkupInfo {override def toString = type_kind}
+case class RefInfo(info: Any) extends MarkupInfo {override def toString = info.toString}
+
 object MarkupNode {
-  abstract class Kind
-  case class RootNode extends Kind
-  case class OuterNode extends Kind
-  case class HighlightNode extends Kind
-  case class TypeNode extends Kind
-  case class RefNode extends Kind
 
   def markup2default_node(node: MarkupNode, cmd: Command, doc: ProofDocument) : DefaultMutableTreeNode = {
 
@@ -29,7 +30,7 @@ object MarkupNode {
     object RelativeAsset extends IAsset {
       override def getIcon : Icon = null
       override def getShortString : String = node.content
-      override def getLongString : String = node.desc
+      override def getLongString : String = node.info.toString
       override def getName : String = node.id
       override def setName (name : String) = ()
       override def setStart(start : Position) = ()
@@ -45,8 +46,7 @@ object MarkupNode {
 
 class MarkupNode (val base: Command, val start: Int, val stop: Int,
                   val children: List[MarkupNode],
-                  val id: String, val content: String, val desc: String,
-                  val kind: MarkupNode.Kind) {
+                  val id: String, val content: String, val info: Any) {
 
   def swing_node(doc: ProofDocument) : DefaultMutableTreeNode = {
     val node = MarkupNode.markup2default_node (this, base, doc)
@@ -58,7 +58,7 @@ class MarkupNode (val base: Command, val start: Int, val stop: Int,
   def abs_stop(doc: ProofDocument) = base.start(doc) + stop
 
   def set_children(newchildren: List[MarkupNode]): MarkupNode =
-    new MarkupNode(base, start, stop, newchildren, id, content, desc, kind)
+    new MarkupNode(base, start, stop, newchildren, id, content, info)
 
   def add(child : MarkupNode) = set_children ((child :: children) sort ((a, b) => a.start < b.start))
 
@@ -84,12 +84,12 @@ class MarkupNode (val base: Command, val start: Int, val stop: Int,
       val filled_gaps = for {
         child <- children
         markups = if (next_x < child.start) {
-          new MarkupNode(base, next_x, child.start, Nil, id, content, desc, kind) :: child.flatten
+          new MarkupNode(base, next_x, child.start, Nil, id, content, info) :: child.flatten
         } else child.flatten
         update = (next_x = child.stop)
         markup <- markups
       } yield markup
-      if (next_x < stop) filled_gaps + new MarkupNode(base, next_x, stop, Nil, id, content, desc, kind)
+      if (next_x < stop) filled_gaps + new MarkupNode(base, next_x, stop, Nil, id, content, info)
       else filled_gaps
     }
   }
@@ -111,7 +111,7 @@ class MarkupNode (val base: Command, val start: Int, val stop: Int,
       }
       else this set_children new_children
     } else {
-      error("ignored nonfitting markup " + new_child.id + new_child.content + new_child.desc
+      error("ignored nonfitting markup " + new_child.id + new_child.content + new_child.info.toString
                          + "(" +new_child.start + ", "+ new_child.stop + ")")
     }
   }
@@ -119,5 +119,5 @@ class MarkupNode (val base: Command, val start: Int, val stop: Int,
   // does this fit into node?
   def fitting_into(node : MarkupNode) = node.start <= this.start && node.stop >= this.stop
 
-  override def toString = "([" + start + " - " + stop + "] " + id + "( " + content + "): " + desc
+  override def toString = "([" + start + " - " + stop + "] " + id + "( " + content + "): " + info.toString
 }

@@ -53,8 +53,8 @@ class Command(val tokens: List[Token], val starts: Map[Token, Int])
     if (st == Command.Status.UNPROCESSED) {
       state_results.clear
       // delete markup
-      markup_root.filter(_.kind match {
-          case MarkupNode.RootNode() | MarkupNode.OuterNode() => true
+      markup_root.filter(_.info match {
+          case RootInfo() | OuterInfo(_) => true
           case _ => false
         })
     }
@@ -82,28 +82,28 @@ class Command(val tokens: List[Token], val starts: Map[Token, Int])
 
   val empty_root_node =
     new MarkupNode(this, 0, starts(tokens.last) - starts(tokens.first) + tokens.last.length, Nil,
-                   id, content, Markup.COMMAND_SPAN, MarkupNode.RootNode())
+                   id, content, RootInfo())
 
   var markup_root = empty_root_node
 
   def highlight_node: MarkupNode = {
     import MarkupNode._
-    markup_root.filter(_.kind match {
-      case RootNode() | OuterNode() | HighlightNode() => true
+    markup_root.filter(_.info match {
+      case RootInfo() | OuterInfo(_) | HighlightInfo(_) => true
       case _ => false
     }).head
   }
 
-  def markup_node(desc: String, begin: Int, end: Int, kind: MarkupNode.Kind) =
+  def markup_node(begin: Int, end: Int, info: MarkupInfo) =
     new MarkupNode(this, begin, end, Nil, id,
                    if (end <= content.length && begin >= 0) content.substring(begin, end) else "wrong indices??",
-                   desc, kind)
+                   info)
 
   def type_at(pos: Int): String = {
-    val types = markup_root.filter(_.kind match {case MarkupNode.TypeNode() => true case _ => false})
+    val types = markup_root.filter(_.info match {case TypeInfo(_) => true case _ => false})
     types.flatten(_.flatten).
       find(t => t.start <= pos && t.stop > pos).
-      map(t => "\"" + t.content + "\" : " + t.desc).
+      map(t => "\"" + t.content + "\" : " + (t.info match {case TypeInfo(i) => i case _ => ""})).
       getOrElse(null)
   }
 }
