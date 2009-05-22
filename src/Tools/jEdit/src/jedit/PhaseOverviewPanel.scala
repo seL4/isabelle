@@ -61,7 +61,7 @@ class PhaseOverviewPanel(prover: isabelle.prover.Prover,
 
   private def paintCommand(command : Command, buffer : JEditBuffer, doc: ProofDocument, gfx : Graphics) {
     val line1 = buffer.getLineOfOffset(to_current(doc.id, command.start(doc)))
-    val line2 = buffer.getLineOfOffset(to_current(doc.id, command.stop(doc) - 1)) + 1
+    val line2 = buffer.getLineOfOffset(to_current(doc.id, command.stop(doc))) + 1
     val y = lineToY(line1)
     val height = lineToY(line2) - y - 1
     val (light, dark) = command.status match {
