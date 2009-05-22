@@ -89,7 +89,9 @@ sig
   val mk_return : term -> term;
   val cproj : term -> 'a list -> int -> term;
   val list_ccomb : term * term list -> term;
+(*
   val con_app : string -> ('a * 'b * string) list -> term;
+*)
   val con_app2 : string -> ('a -> term) -> 'a list -> term;
   val proj : term -> 'a list -> int -> term;
   val prj : ('a -> 'b -> 'a) -> ('a -> 'b -> 'a) -> 'a -> 'b list -> int -> 'a;
@@ -123,9 +125,10 @@ sig
   val mk_All : string * term -> term;
 
   (* Domain specifications *)
-  type arg = (bool * int * DatatypeAux.dtyp) * string option * string;
+  eqtype arg;
   type cons = string * arg list;
   type eq = (string * typ list) * cons list;
+  val mk_arg : (bool * int * DatatypeAux.dtyp) * string option * string -> arg;
   val is_lazy : arg -> bool;
   val rec_of : arg -> int;
   val sel_of : arg -> string option;
@@ -142,6 +145,8 @@ sig
   val bound_arg : ''a list -> ''a -> term; (* ''a = arg or string *)
   val idx_name : 'a list -> string -> int -> string;
   val app_rec_arg : (int -> term) -> arg -> term;
+  val con_app : string -> arg list -> term;
+
 
   (* Name mangling *)
   val strip_esc : string -> string;
@@ -211,6 +216,7 @@ type eq =
    typ list) *		(* arguments of abstracted type *)
   cons list;		(* represented type, as a constructor list *)
 
+val mk_arg = I;
 fun rec_of arg  = second (first arg);
 fun is_lazy arg = first (first arg);
 val sel_of    =       second;
