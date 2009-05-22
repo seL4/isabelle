@@ -14,6 +14,12 @@ import javax.swing.text.Position
 import javax.swing.tree._
 
 object MarkupNode {
+  abstract class Kind
+  case class RootNode extends Kind
+  case class OuterNode extends Kind
+  case class HighlightNode extends Kind
+  case class TypeNode extends Kind
+  case class RefNode extends Kind
 
   def markup2default_node(node: MarkupNode, cmd: Command, doc: ProofDocument) : DefaultMutableTreeNode = {
 
@@ -37,9 +43,10 @@ object MarkupNode {
   }
 }
 
-class MarkupNode (val base : Command, val start : Int, val stop : Int,
+class MarkupNode (val base: Command, val start: Int, val stop: Int,
                   val children: List[MarkupNode],
-                  val id : String, val content : String, val desc : String) {
+                  val id: String, val content: String, val desc: String,
+                  val kind: MarkupNode.Kind) {
 
   def swing_node(doc: ProofDocument) : DefaultMutableTreeNode = {
     val node = MarkupNode.markup2default_node (this, base, doc)
@@ -51,7 +58,7 @@ class MarkupNode (val base : Command, val start : Int, val stop : Int,
   def abs_stop(doc: ProofDocument) = base.start(doc) + stop
 
   def set_children(newchildren: List[MarkupNode]): MarkupNode =
-    new MarkupNode(base, start, stop, newchildren, id, content, desc)
+    new MarkupNode(base, start, stop, newchildren, id, content, desc, kind)
 
   def add(child : MarkupNode) = set_children ((child :: children) sort ((a, b) => a.start < b.start))
 
@@ -77,12 +84,12 @@ class MarkupNode (val base : Command, val start : Int, val stop : Int,
       val filled_gaps = for {
         child <- children
         markups = if (next_x < child.start) {
-          new MarkupNode(base, next_x, child.start, Nil, id, content, desc) :: child.flatten
+          new MarkupNode(base, next_x, child.start, Nil, id, content, desc, kind) :: child.flatten
         } else child.flatten
         update = (next_x = child.stop)
         markup <- markups
       } yield markup
-      if (next_x < stop) filled_gaps + new MarkupNode(base, next_x, stop, Nil, id, content, desc)
+      if (next_x < stop) filled_gaps + new MarkupNode(base, next_x, stop, Nil, id, content, desc, kind)
       else filled_gaps
     }
   }

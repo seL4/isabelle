@@ -53,10 +53,10 @@ class Command(val tokens: List[Token], val starts: Map[Token, Int])
     if (st == Command.Status.UNPROCESSED) {
       state_results.clear
       // delete markup
-      state_markup = empty_root_node
-      highlight_markup = empty_root_node
-      types_markup = empty_root_node
-      refs_markup = empty_root_node
+      markup_root.filter(_.kind match {
+          case MarkupNode.RootNode() | MarkupNode.OuterNode() => true
+          case _ => false
+        })
     }
     _status = st
   }
@@ -81,23 +81,22 @@ class Command(val tokens: List[Token], val starts: Map[Token, Int])
   /* markup */
 
   val empty_root_node =
-    new MarkupNode(this, 0, starts(tokens.last) - starts(tokens.first) + tokens.last.length, Nil, id, content, Markup.COMMAND_SPAN)
+    new MarkupNode(this, 0, starts(tokens.last) - starts(tokens.first) + tokens.last.length, Nil,
+                   id, content, Markup.COMMAND_SPAN, MarkupNode.RootNode())
 
-  var command_markup = empty_root_node
+  var markup_root = empty_root_node
 
-  var state_markup = empty_root_node
-  var highlight_markup = empty_root_node
-  var types_markup = empty_root_node
-  var refs_markup = empty_root_node
-  var state_markups = List(state_markup, highlight_markup, types_markup, refs_markup)
+  def highlight_node: MarkupNode = {
+    import MarkupNode._
+    markup_root.filter(_.kind match {
+      case RootNode() | OuterNode() | HighlightNode() => true
+      case _ => false
+    }).head
+  }
 
-  def highlight_node = (command_markup /: highlight_markup.children) (_ + _)
-
-  def root_node = (command_markup /: state_markup.children) (_ + _)
-
-  def markup_node(desc: String, begin: Int, end: Int) =
+  def markup_node(desc: String, begin: Int, end: Int, kind: MarkupNode.Kind) =
     new MarkupNode(this, begin, end, Nil, id,
                    if (end <= content.length && begin >= 0) content.substring(begin, end) else "wrong indices??",
-                   desc)
+                   desc, kind)
 
 }

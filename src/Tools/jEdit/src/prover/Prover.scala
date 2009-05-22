@@ -188,18 +188,15 @@ class Prover(isabelle_system: IsabelleSystem, logic: String) extends Actor
                     kind match {
                       case Markup.ML_TYPING =>
                         val info = body.first.asInstanceOf[XML.Text].content
-                        command.types_markup += command.markup_node(info, begin, end)
-                        command.state_markup += command.markup_node(info, begin, end)
+                        command.markup_root += command.markup_node(info, begin, end, MarkupNode.TypeNode())
                       case Markup.ML_REF =>
-                        command.refs_markup += command.markup_node(body.toString, begin, end)
-                        command.state_markup += command.markup_node(body.toString, begin, end)
+                        command.markup_root += command.markup_node(body.toString, begin, end, MarkupNode.RefNode())
                       case kind =>
                         if (!running)
                           commands.get(markup_id).map (cmd =>
-                          cmd.command_markup += cmd.markup_node(kind, begin, end))
+                          cmd.markup_root += cmd.markup_node(kind, begin, end, MarkupNode.OuterNode()))
                         else {
-                          command.highlight_markup += command.markup_node(kind, begin, end)
-                          command.state_markup += command.markup_node(kind, begin, end)
+                          command.markup_root += command.markup_node(kind, begin, end, MarkupNode.HighlightNode())
                         }
                     }
                     command_change(command)
