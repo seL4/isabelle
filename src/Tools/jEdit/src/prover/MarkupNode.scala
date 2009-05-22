@@ -102,11 +102,12 @@ class MarkupNode (val base: Command, val start: Int, val stop: Int,
 
   def +(new_child : MarkupNode) : MarkupNode = {
     if (new_child fitting_into this) {
-      val new_children = children.map(c => if((new_child fitting_into c)) c + new_child else c)
-      if (new_children == children) {
+      var inserted = false
+      val new_children = children.map(c => if((new_child fitting_into c) && !inserted) {inserted = true; c + new_child} else c)
+      if (!inserted) {
         // new_child did not fit into children of this -> insert new_child between this and its children
-        val (fitting, nonfitting) = children span(_ fitting_into new_child)
-        this remove fitting add ((new_child /: fitting) (_ add _))
+        val fitting = children filter(_ fitting_into new_child)
+        (this remove fitting) add ((new_child /: fitting) (_ + _))
       }
       else this set_children new_children
     } else {
