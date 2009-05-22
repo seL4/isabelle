@@ -128,7 +128,7 @@ sig
   eqtype arg;
   type cons = string * arg list;
   type eq = (string * typ list) * cons list;
-  val mk_arg : (bool * int * DatatypeAux.dtyp) * string option * string -> arg;
+  val mk_arg : (bool * DatatypeAux.dtyp) * string option * string -> arg;
   val is_lazy : arg -> bool;
   val rec_of : arg -> int;
   val sel_of : arg -> string option;
@@ -203,7 +203,7 @@ fun string_of_typ sg = Syntax.string_of_typ_global sg o Sign.certify_typ sg;
 (* ----- constructor list handling ----- *)
 
 type arg =
-  (bool * int * DatatypeAux.dtyp) *	(*  (lazy,recursive element or ~1) *)
+  (bool * DatatypeAux.dtyp) *           (*  (lazy, recursive element) *)
   string option *			(*   selector name    *)
   string;				(*   argument name    *)
 
@@ -217,8 +217,12 @@ type eq =
   cons list;		(* represented type, as a constructor list *)
 
 val mk_arg = I;
-fun rec_of arg  = second (first arg);
-fun is_lazy arg = first (first arg);
+
+fun rec_of ((_,dtyp),_,_) =
+  case dtyp of DatatypeAux.DtRec i => i | _ => ~1;
+(* FIXME: what about indirect recursion? *)
+
+fun is_lazy arg = fst (first arg);
 val sel_of    =       second;
 val     vname =       third;
 val upd_vname =   upd_third;
