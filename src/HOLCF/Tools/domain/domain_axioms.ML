@@ -6,6 +6,8 @@ Syntax generator for domain command.
 
 signature DOMAIN_AXIOMS =
 sig
+    val copy_of_dtyp : (int -> term) -> DatatypeAux.dtyp -> term
+
     val calc_axioms :
         string -> Domain_Library.eq list -> int -> Domain_Library.eq ->
         string * (string * term) list * (string * term) list
@@ -24,11 +26,27 @@ infixr 0 ===>;infixr 0 ==>;infix 0 == ;
 infix 1 ===; infix 1 ~= ; infix 1 <<; infix 1 ~<<;
 infix 9 `   ; infix 9 `% ; infix 9 `%%; infixr 9 oo;
 
+(* FIXME: use theory data for this *)
+val copy_tab : string Symtab.table =
+    Symtab.make [(@{type_name "->"}, @{const_name "cfun_fun"}),
+                 (@{type_name "++"}, @{const_name "ssum_fun"}),
+                 (@{type_name "**"}, @{const_name "sprod_fun"}),
+                 (@{type_name "*"}, @{const_name "cprod_fun"}),
+                 (@{type_name "u"}, @{const_name "u_fun"})];
+
+fun copy_of_dtyp r dt = if DatatypeAux.is_rec_type dt then copy r dt else ID
+and copy r (DatatypeAux.DtRec i) = r i
+  | copy r (DatatypeAux.DtTFree a) = ID
+  | copy r (DatatypeAux.DtType (c, ds)) =
+    case Symtab.lookup copy_tab c of
+        SOME f => list_ccomb (%%:f, map (copy_of_dtyp r) ds)
+      | NONE => (warning ("copy_of_dtyp: unknown type constructor " ^ c); ID);
+
 fun calc_axioms
         (comp_dname : string)
         (eqs : eq list)
         (n : int)
-        (((dname,_),cons) : eq)
+        (eqn as ((dname,_),cons) : eq)
     : string * (string * term) list * (string * term) list =
     let
 
@@ -47,14 +65,10 @@ fun calc_axioms
                                   List.foldr (uncurry /\ ) (/\x_name'((when_body cons (fn (x,y) =>
 				                                                          Bound(1+length cons+x-y)))`(dc_rep`Bound 0))) (when_funs cons));
             
-        val copy_def = let
-            fun idxs z x arg = if is_rec arg
-                               then (cproj (Bound z) eqs (rec_of arg))`Bound(z-x)
-                               else Bound(z-x);
-            fun one_con (con,args) =
-                List.foldr /\# (list_ccomb (%%:con, mapn (idxs (length args)) 1 args)) args;
-        in ("copy_def", %%:(dname^"_copy") ==
-                        /\ "f" (list_ccomb (%%:(dname^"_when"), map one_con cons))) end;
+        val copy_def =
+          let fun r i = cproj (Bound 0) eqs i;
+          in ("copy_def", %%:(dname^"_copy") ==
+                          /\ "f" (dc_abs oo (copy_of_dtyp r (dtyp_of_eq eqn)) oo dc_rep)) end;
 
         (* -- definitions concerning the constructors, discriminators and selectors - *)
 

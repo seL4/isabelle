@@ -53,13 +53,13 @@ domain ('a, 'b) d6 = d6 "int lift" "'a \<oplus> 'b u" (lazy "('a :*: 'b) \<times
 text {*
   Indirect recusion is allowed for sums, products, lifting, and the
   continuous function space.  However, the domain package currently
-  generates induction rules that are too weak.  A fix is planned for
-  the next release.
+  cannot prove the induction rules.  A fix is planned for the next
+  release.
 *}
 
-domain 'a d7 = d7a "'a d7 \<oplus> int lift" | d7b "'a \<otimes> 'a d7" | d7c "'a d7 \<rightarrow> 'a"
+domain 'a d7 = d7a "'a d7 \<oplus> int lift" | d7b "'a \<otimes> 'a d7" | d7c (lazy "'a d7 \<rightarrow> 'a")
 
-thm d7.ind -- "note the lack of inductive hypotheses"
+thm d7.ind -- "currently replaced with dummy theorem"
 
 text {*
   Indirect recursion using previously-defined datatypes is currently

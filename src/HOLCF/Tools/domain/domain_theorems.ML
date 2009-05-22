@@ -577,21 +577,28 @@ end;
 
 val copy_strict =
   let
+    val _ = trace " Proving copy_strict...";
     val goal = mk_trp (strict (dc_copy `% "f"));
-    val tacs = [asm_simp_tac (HOLCF_ss addsimps [abs_strict, when_strict]) 1];
+    val rules = [abs_strict, rep_strict] @ @{thms domain_fun_stricts};
+    val tacs = [asm_simp_tac (HOLCF_ss addsimps rules) 1];
   in pg [ax_copy_def] goal (K tacs) end;
 
 local
   fun copy_app (con, args) =
     let
       val lhs = dc_copy`%"f"`(con_app con args);
-      val rhs = con_app2 con (app_rec_arg (cproj (%:"f") eqs)) args;
+      fun one_rhs arg =
+          if DatatypeAux.is_rec_type (dtyp_of arg)
+          then Domain_Axioms.copy_of_dtyp (cproj (%:"f") eqs) (dtyp_of arg) ` (%# arg)
+          else (%# arg);
+      val rhs = con_app2 con one_rhs args;
       val goal = lift_defined %: (nonlazy_rec args, mk_trp (lhs === rhs));
       val args' = List.filter (fn a => not (is_rec a orelse is_lazy a)) args;
-      val stricts = abs_strict::when_strict::con_stricts;
+      val stricts = abs_strict :: rep_strict :: @{thms domain_fun_stricts};
       fun tacs1 ctxt = map (case_UU_tac ctxt stricts 1 o vname) args';
-      val tacs2 = [asm_simp_tac (HOLCF_ss addsimps when_apps) 1];
-    in pg [ax_copy_def] goal (fn ctxt => (tacs1 ctxt @ tacs2)) end;
+      val rules = [ax_abs_iso] @ @{thms domain_fun_simps};
+      val tacs2 = [asm_simp_tac (HOLCF_ss addsimps rules) 1];
+    in pg (ax_copy_def::con_appls) goal (fn ctxt => (tacs1 ctxt @ tacs2)) end;
 in
   val _ = trace " Proving copy_apps...";
   val copy_apps = map copy_app cons;
@@ -706,8 +713,12 @@ local
       fun mk_eqn dn (con, args) =
         let
           fun mk_take n = dc_take (List.nth (dnames, n)) $ %:"n";
+          fun one_rhs arg =
+              if DatatypeAux.is_rec_type (dtyp_of arg)
+              then Domain_Axioms.copy_of_dtyp mk_take (dtyp_of arg) ` (%# arg)
+              else (%# arg);
           val lhs = (dc_take dn $ (%%:"Suc" $ %:"n"))`(con_app con args);
-          val rhs = con_app2 con (app_rec_arg mk_take) args;
+          val rhs = con_app2 con one_rhs args;
         in Library.foldr mk_all (map vname args, lhs === rhs) end;
       fun mk_eqns ((dn, _), cons) = map (mk_eqn dn) cons;
       val goal = mk_trp (foldr1 mk_conj (maps mk_eqns eqs));
@@ -812,7 +823,9 @@ in (* local *)
         in
           tacs1 @ maps cases_tacs (conss ~~ cases)
         end;
-    in pg'' thy [] goal tacf end;
+    in pg'' thy [] goal tacf
+       handle ERROR _ => (warning "Proof of finite_ind failed."; TrueI)
+    end;
 
   val _ = trace " Proving take_lemmas...";
   val take_lemmas =
@@ -842,6 +855,7 @@ in (* local *)
 
   val _ = trace " Proving finites, ind...";
   val (finites, ind) =
+  (
     if is_finite
     then (* finite case *)
       let 
@@ -860,8 +874,10 @@ in (* local *)
               asm_simp_tac take_ss 1,
               atac 1];
           in pg [] goal (K tacs) end;
+        val _ = trace " Proving finite_lemmas1a";
         val finite_lemmas1a = map dname_lemma dnames;
  
+        val _ = trace " Proving finite_lemma1b";
         val finite_lemma1b =
           let
             fun mk_eqn n ((dn, args), _) =
@@ -908,7 +924,9 @@ in (* local *)
               fast_tac HOL_cs 1];
           in pg axs_finite_def goal tacs end;
 
+        val _ = trace " Proving finites";
         val finites = map one_finite (dnames ~~ atomize global_ctxt finite_lemma1b);
+        val _ = trace " Proving ind";
         val ind =
           let
             fun concf n dn = %:(P_name n) $ %:(x_name n);
@@ -952,7 +970,14 @@ in (* local *)
         val ind = (pg'' thy [] goal tacf
           handle ERROR _ =>
             (warning "Cannot prove infinite induction rule"; refl));
-      in (finites, ind) end;
+      in (finites, ind) end
+  )
+      handle THM _ =>
+             (warning "Induction proofs failed (THM raised)."; ([], TrueI))
+           | ERROR _ =>
+             (warning "Induction proofs failed (ERROR raised)."; ([], TrueI));
+
+
 end; (* local *)
 
 (* ----- theorem concerning coinduction ------------------------------------- *)
@@ -1010,6 +1035,7 @@ end; (* local *)
 
 val inducts = ProjectRule.projections (ProofContext.init thy) ind;
 fun ind_rule (dname, rule) = ((Binding.empty, [rule]), [Induct.induct_type dname]);
+val induct_failed = (Thm.prop_of ind = Thm.prop_of TrueI);
 
 in thy |> Sign.add_path comp_dnam
        |> snd o PureThy.add_thmss [
@@ -1019,7 +1045,8 @@ in thy |> Sign.add_path comp_dnam
            ((Binding.name "finite_ind" , [finite_ind]), []),
            ((Binding.name "ind"        , [ind]       ), []),
            ((Binding.name "coind"      , [coind]     ), [])]
-       |> snd o PureThy.add_thmss (map ind_rule (dnames ~~ inducts))
+       |> (if induct_failed then I
+           else snd o PureThy.add_thmss (map ind_rule (dnames ~~ inducts)))
        |> Sign.parent_path |> pair take_rews
 end; (* let *)
 end; (* local *)
