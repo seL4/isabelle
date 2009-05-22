@@ -87,6 +87,12 @@ class MarkupNode (val base : Command, val start : Int, val stop : Int,
     }
   }
 
+  def filter(p: (MarkupNode => Boolean)): List[MarkupNode] = {
+    val filtered = children.flatMap(_.filter(p))
+    if (p(this)) List(this set_children(filtered))
+    else filtered
+  }
+
   def +(new_child : MarkupNode) : MarkupNode = {
     if (new_child fitting_into this) {
       val new_children = children.map(c => if((new_child fitting_into c)) c + new_child else c)
