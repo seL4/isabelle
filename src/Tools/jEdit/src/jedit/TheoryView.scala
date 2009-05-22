@@ -197,16 +197,6 @@ class TheoryView (text_area: JEditTextArea, document_actor: Actor)
       val begin = start max to_current(e.start(document))
       val finish = end - 1 min to_current(e.stop(document))
       encolor(gfx, y, metrics.getHeight, begin, finish, TheoryView.choose_color(e), true)
-
-      // paint details of command
-      for (node <- e.highlight_node.flatten) {
-        val begin = to_current(node.abs_start(document))
-        val finish = to_current(node.abs_stop(document))
-        if (finish > start && begin < end) {
-          encolor(gfx, y + metrics.getHeight - 2, 1, begin max start, finish min end - 1,
-            DynamicTokenMarker.choose_color(node.info.toString, text_area.getPainter.getStyles), true)
-        }
-      }
     }
 
     gfx.setColor(saved_color)
