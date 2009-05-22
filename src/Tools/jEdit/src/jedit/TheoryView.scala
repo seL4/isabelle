@@ -59,7 +59,7 @@ class TheoryView (text_area: JEditTextArea, document_actor: Actor)
   col_timer.setRepeats(true)
 
 
-  private val phase_overview = new PhaseOverviewPanel(prover, to_current)
+  private val phase_overview = new PhaseOverviewPanel(prover, text_area, to_current)
 
 
   /* activation */
@@ -76,11 +76,9 @@ class TheoryView (text_area: JEditTextArea, document_actor: Actor)
 
   def activate() = {
     text_area.addCaretListener(selected_state_controller)
-    phase_overview.textarea = text_area
     text_area.addLeftOfScrollBar(phase_overview)
     text_area.getPainter.addExtension(TextAreaPainter.LINE_BACKGROUND_LAYER + 1, this)
     buffer.setTokenMarker(new DynamicTokenMarker(buffer, prover))
-    document_actor ! new Text.Change(id(), 0,buffer.getText(0, buffer.getLength),0)
   }
 
   def deactivate() = {

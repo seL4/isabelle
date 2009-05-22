@@ -42,6 +42,7 @@ class ProverSetup(buffer: JEditBuffer)
     prover.set_document(theory_view.change_receiver,
       if (path.startsWith(Isabelle.VFS_PREFIX)) path.substring(Isabelle.VFS_PREFIX.length) else path)
     theory_view.activate
+    prover ! new isabelle.proofdocument.Text.Change(Isabelle.plugin.id(), 0,buffer.getText(0, buffer.getLength),0)
 
     //register output-view
     prover.output_info += (text =>

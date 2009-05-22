@@ -18,11 +18,12 @@ import org.gjt.sp.jedit.textarea.JEditTextArea;
 import org.gjt.sp.jedit.buffer.JEditBuffer;
 import org.gjt.sp.jedit._
 
-class PhaseOverviewPanel(prover: isabelle.prover.Prover, to_current: (String, Int) => Int) extends JPanel(new BorderLayout) {
+class PhaseOverviewPanel(prover: isabelle.prover.Prover,
+                         textarea: JEditTextArea,
+                         to_current: (String, Int) => Int) extends JPanel(new BorderLayout) {
 
   private val WIDTH = 10
 	private val HILITE_HEIGHT = 2
-  var textarea : JEditTextArea = null
 
   val repaint_delay = new isabelle.utils.Delay(100, () => repaint())
 
