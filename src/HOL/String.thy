@@ -85,15 +85,14 @@ setup StringSyntax.setup
 
 subsection {* Strings as dedicated datatype *}
 
-datatype message_string = STR string
+datatype literal = STR string
 
-lemmas [code del] =
-  message_string.recs message_string.cases
+lemmas [code del] = literal.recs literal.cases
 
-lemma [code]: "size (s\<Colon>message_string) = 0"
+lemma [code]: "size (s\<Colon>literal) = 0"
   by (cases s) simp_all
 
-lemma [code]: "message_string_size (s\<Colon>message_string) = 0"
+lemma [code]: "literal_size (s\<Colon>literal) = 0"
   by (cases s) simp_all
 
 
@@ -101,19 +100,19 @@ subsection {* Code generator *}
 
 use "Tools/string_code.ML"
 
-code_type message_string
+code_type literal
   (SML "string")
   (OCaml "string")
   (Haskell "String")
 
 setup {*
-  fold String_Code.add_literal_message ["SML", "OCaml", "Haskell"]
+  fold String_Code.add_literal_string ["SML", "OCaml", "Haskell"]
 *}
 
-code_instance message_string :: eq
+code_instance literal :: eq
   (Haskell -)
 
-code_const "eq_class.eq \<Colon> message_string \<Rightarrow> message_string \<Rightarrow> bool"
+code_const "eq_class.eq \<Colon> literal \<Rightarrow> literal \<Rightarrow> bool"
   (SML "!((_ : string) = _)")
   (OCaml "!((_ : string) = _)")
   (Haskell infixl 4 "==")
@@ -146,5 +145,7 @@ fun char_codegen thy defs dep thyname b t gr =
 
 in Codegen.add_codegen "char_codegen" char_codegen end
 *}
+
+hide (open) type literal
 
 end

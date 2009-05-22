@@ -1126,6 +1126,26 @@ lemma real_inverse_code [code]: "inverse (Ratreal x) = Ratreal (inverse x)"
 lemma real_divide_code [code]: "Ratreal x / Ratreal y = Ratreal (x / y)"
   by (simp add: of_rat_divide)
 
+definition (in term_syntax)
+  valterm_ratreal :: "rat \<times> (unit \<Rightarrow> Code_Eval.term) \<Rightarrow> real \<times> (unit \<Rightarrow> Code_Eval.term)" where
+  [code inline]: "valterm_ratreal k = Code_Eval.valtermify Ratreal {\<cdot>} k"
+
+notation fcomp (infixl "o>" 60)
+notation scomp (infixl "o\<rightarrow>" 60)
+
+instantiation real :: random
+begin
+
+definition
+  "random i = random i o\<rightarrow> (\<lambda>r. Pair (valterm_ratreal r))"
+
+instance ..
+
+end
+
+no_notation fcomp (infixl "o>" 60)
+no_notation scomp (infixl "o\<rightarrow>" 60)
+
 text {* Setup for SML code generator *}
 
 types_code

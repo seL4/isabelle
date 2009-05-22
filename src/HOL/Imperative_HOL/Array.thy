@@ -6,7 +6,7 @@
 header {* Monadic arrays *}
 
 theory Array
-imports Heap_Monad Code_Index
+imports Heap_Monad
 begin
 
 subsection {* Primitives *}
@@ -115,47 +115,47 @@ subsection {* Code generator setup *}
 subsubsection {* Logical intermediate layer *}
 
 definition new' where
-  [code del]: "new' = Array.new o Code_Index.nat_of"
+  [code del]: "new' = Array.new o Code_Numeral.nat_of"
 hide (open) const new'
 lemma [code]:
-  "Array.new = Array.new' o Code_Index.of_nat"
+  "Array.new = Array.new' o Code_Numeral.of_nat"
   by (simp add: new'_def o_def)
 
 definition of_list' where
-  [code del]: "of_list' i xs = Array.of_list (take (Code_Index.nat_of i) xs)"
+  [code del]: "of_list' i xs = Array.of_list (take (Code_Numeral.nat_of i) xs)"
 hide (open) const of_list'
 lemma [code]:
-  "Array.of_list xs = Array.of_list' (Code_Index.of_nat (List.length xs)) xs"
+  "Array.of_list xs = Array.of_list' (Code_Numeral.of_nat (List.length xs)) xs"
   by (simp add: of_list'_def)
 
 definition make' where
-  [code del]: "make' i f = Array.make (Code_Index.nat_of i) (f o Code_Index.of_nat)"
+  [code del]: "make' i f = Array.make (Code_Numeral.nat_of i) (f o Code_Numeral.of_nat)"
 hide (open) const make'
 lemma [code]:
-  "Array.make n f = Array.make' (Code_Index.of_nat n) (f o Code_Index.nat_of)"
+  "Array.make n f = Array.make' (Code_Numeral.of_nat n) (f o Code_Numeral.nat_of)"
   by (simp add: make'_def o_def)
 
 definition length' where
-  [code del]: "length' = Array.length \<guillemotright>== liftM Code_Index.of_nat"
+  [code del]: "length' = Array.length \<guillemotright>== liftM Code_Numeral.of_nat"
 hide (open) const length'
 lemma [code]:
-  "Array.length = Array.length' \<guillemotright>== liftM Code_Index.nat_of"
+  "Array.length = Array.length' \<guillemotright>== liftM Code_Numeral.nat_of"
   by (simp add: length'_def monad_simp',
     simp add: liftM_def comp_def monad_simp,
     simp add: monad_simp')
 
 definition nth' where
-  [code del]: "nth' a = Array.nth a o Code_Index.nat_of"
+  [code del]: "nth' a = Array.nth a o Code_Numeral.nat_of"
 hide (open) const nth'
 lemma [code]:
-  "Array.nth a n = Array.nth' a (Code_Index.of_nat n)"
+  "Array.nth a n = Array.nth' a (Code_Numeral.of_nat n)"
   by (simp add: nth'_def)
 
 definition upd' where
-  [code del]: "upd' a i x = Array.upd (Code_Index.nat_of i) x a \<guillemotright> return ()"
+  [code del]: "upd' a i x = Array.upd (Code_Numeral.nat_of i) x a \<guillemotright> return ()"
 hide (open) const upd'
 lemma [code]:
-  "Array.upd i x a = Array.upd' a (Code_Index.of_nat i) x \<guillemotright> return a"
+  "Array.upd i x a = Array.upd' a (Code_Numeral.of_nat i) x \<guillemotright> return a"
   by (simp add: upd'_def monad_simp upd_return)
 
 

@@ -12,7 +12,10 @@ code_pred even
 
 thm even.equation
 
-ML_val {* Predicate.yieldn 10 @{code even_0} *}
+values "{x. even 2}"
+values "{x. odd 2}"
+values 10 "{n. even n}"
+values 10 "{n. odd n}"
 
 
 inductive append :: "'a list \<Rightarrow> 'a list \<Rightarrow> 'a list \<Rightarrow> bool" where
@@ -24,7 +27,9 @@ code_pred append
 
 thm append.equation
 
-ML_val {* Predicate.yieldn 10 (@{code append_3} [1, 2, 3]) *}
+values "{(ys, xs). append xs ys [0, Suc 0, 2]}"
+values "{zs. append [0, Suc 0, 2] [17, 8] zs}"
+values "{ys. append [0, Suc 0, 2] ys [0, Suc 0, 2, 17, 0,5]}"
 
 
 inductive partition :: "('a \<Rightarrow> bool) \<Rightarrow> 'a list \<Rightarrow> 'a list \<Rightarrow> 'a list \<Rightarrow> bool"
@@ -38,10 +43,26 @@ code_pred partition
 
 thm partition.equation
 
+(*FIXME values 10 "{(ys, zs). partition (\<lambda>n. n mod 2 = 0)
+  [0, Suc 0, 2, 3, 4, 5, 6, 7] ys zs}"*)
+
 
 code_pred tranclp
   using assms by (rule tranclp.cases)
 
 thm tranclp.equation
+
+inductive succ :: "nat \<Rightarrow> nat \<Rightarrow> bool" where
+    "succ 0 1"
+  | "succ m n \<Longrightarrow> succ (Suc m) (Suc n)"
+
+code_pred succ
+  using assms by (rule succ.cases)
+
+thm succ.equation
+
+values 20 "{n. tranclp succ 10 n}"
+values "{n. tranclp succ n 10}"
+values 20 "{(n, m). tranclp succ n m}"
 
 end

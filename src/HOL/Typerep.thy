@@ -6,7 +6,7 @@ theory Typerep
 imports Plain String
 begin
 
-datatype typerep = Typerep message_string "typerep list"
+datatype typerep = Typerep String.literal "typerep list"
 
 class typerep =
   fixes typerep :: "'a itself \<Rightarrow> typerep"
@@ -45,7 +45,7 @@ fun add_typerep tyco thy =
     val ty = Type (tyco, map TFree vs);
     val lhs = Const (@{const_name typerep}, Term.itselfT ty --> @{typ typerep})
       $ Free ("T", Term.itselfT ty);
-    val rhs = @{term Typerep} $ HOLogic.mk_message_string tyco
+    val rhs = @{term Typerep} $ HOLogic.mk_literal tyco
       $ HOLogic.mk_list @{typ typerep} (map (HOLogic.mk_typerep o TFree) vs);
     val eq = HOLogic.mk_Trueprop (HOLogic.mk_eq (lhs, rhs));
   in

@@ -441,8 +441,8 @@ fun instantiation_param lthy b = instantiation_params lthy
 fun synchronize_inst_syntax ctxt =
   let
     val Instantiation { arities = (_, _, sort), params = params } = Instantiation.get ctxt;
-    val thy = ProofContext.theory_of ctxt;
-    fun subst (c, ty) = case AxClass.inst_tyco_of thy (c, ty)
+    val inst_tyco_of = AxClass.inst_tyco_of (Sign.consts_of (ProofContext.theory_of ctxt));
+    fun subst (c, ty) = case inst_tyco_of (c, ty)
          of SOME tyco => (case AList.lookup (op =) params (c, tyco)
              of SOME (v_ty as (_, ty)) => SOME (ty, Free v_ty)
               | NONE => NONE)
@@ -512,9 +512,11 @@ fun init_instantiation (tycos, vs, sort) thy =
     fun resort_check ts ctxt = case resort_terms pp algebra consts improve_constraints ts
      of NONE => NONE
       | SOME ts' => SOME (ts', ctxt);
-    fun improve (c, ty) = case AxClass.inst_tyco_of thy (c, ty)
+    val inst_tyco_of = AxClass.inst_tyco_of consts;
+    val typ_instance = Type.typ_instance (Sign.tsig_of thy);
+    fun improve (c, ty) = case inst_tyco_of (c, ty)
      of SOME tyco => (case AList.lookup (op =) inst_params (c, tyco)
-         of SOME (_, ty') => if Type.typ_instance (Sign.tsig_of thy) (ty', ty)
+         of SOME (_, ty') => if typ_instance (ty', ty)
               then SOME (ty, ty') else NONE
           | NONE => NONE)
       | NONE => NONE;

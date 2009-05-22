@@ -274,7 +274,7 @@ subsection {* Code generator setup *}
 subsubsection {* Logical intermediate layer *}
 
 definition
-  Fail :: "message_string \<Rightarrow> exception"
+  Fail :: "String.literal \<Rightarrow> exception"
 where
   [code del]: "Fail s = Exn"
 

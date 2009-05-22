@@ -28,11 +28,11 @@ instance option :: (heap) heap ..
 
 instance int :: heap ..
 
-instance message_string :: countable
-  by (rule countable_classI [of "message_string_case to_nat"])
-   (auto split: message_string.splits)
+instance String.literal :: countable
+  by (rule countable_classI [of "String.literal_case to_nat"])
+   (auto split: String.literal.splits)
 
-instance message_string :: heap ..
+instance String.literal :: heap ..
 
 text {* Reflected types themselves are heap-representable *}
 

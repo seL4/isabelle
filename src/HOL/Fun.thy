@@ -100,6 +100,9 @@ lemma id_fcomp [simp]: "id o> g = g"
 lemma fcomp_id [simp]: "f o> id = f"
   by (simp add: fcomp_def)
 
+code_const fcomp
+  (Eval infixl 1 "#>")
+
 no_notation fcomp (infixl "o>" 60)
 
 

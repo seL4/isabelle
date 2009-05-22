@@ -627,6 +627,9 @@ inductive eq :: "'a \<Rightarrow> 'a \<Rightarrow> bool" where "eq x x"
 lemma eq_is_eq: "eq x y \<equiv> (x = y)"
   by (rule eq_reflection) (auto intro: eq.intros elim: eq.cases)
 
+definition map :: "('a \<Rightarrow> 'b) \<Rightarrow> 'a pred \<Rightarrow> 'b pred" where
+  "map f P = P \<guillemotright>= (single o f)"
+
 ML {*
 signature PREDICATE =
 sig
@@ -634,6 +637,7 @@ sig
   and 'a seq = Empty | Insert of 'a * 'a pred | Join of 'a pred * 'a seq
   val yield: 'a pred -> ('a * 'a pred) option
   val yieldn: int -> 'a pred -> 'a list * 'a pred
+  val map: ('a -> 'b) -> 'a pred -> 'b pred
 end;
 
 structure Predicate : PREDICATE =
@@ -657,6 +661,8 @@ fun anamorph f k x = (if k = 0 then ([], x)
       in (v :: vs, z) end)
 
 fun yieldn P = anamorph yield P;
+
+fun map f = @{code map} f;
 
 end;
 *}
@@ -683,7 +689,7 @@ in
 val _ = OuterSyntax.local_theory_to_proof "code_pred" "sets up goal for cases rule from given introduction rules and compiles predicate"
   OuterKeyword.thy_goal (P.term_group >> (K (Proof.theorem_i NONE (K I) [[]])));
 
-val _ = OuterSyntax.improper_command "values" "evaluate and print enumerations"
+val _ = OuterSyntax.improper_command "values" "enumerate and print comprehensions"
   OuterKeyword.diag ((opt_modes -- P.term)
     >> (fn (modes, t) => Toplevel.no_timing o Toplevel.keep
         (K ())));
@@ -702,6 +708,6 @@ no_notation
 
 hide (open) type pred seq
 hide (open) const Pred eval single bind if_pred not_pred
-  Empty Insert Join Seq member pred_of_seq "apply" adjunct eq
+  Empty Insert Join Seq member pred_of_seq "apply" adjunct eq map
 
 end

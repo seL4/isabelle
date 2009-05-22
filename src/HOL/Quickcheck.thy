@@ -3,7 +3,7 @@
 header {* A simple counterexample generator *}
 
 theory Quickcheck
-imports Main Real Random
+imports Random Code_Eval
 begin
 
 notation fcomp (infixl "o>" 60)
@@ -13,7 +13,7 @@ notation scomp (infixl "o\<rightarrow>" 60)
 subsection {* The @{text random} class *}
 
 class random = typerep +
-  fixes random :: "index \<Rightarrow> Random.seed \<Rightarrow> ('a \<times> (unit \<Rightarrow> term)) \<times> Random.seed"
+  fixes random :: "code_numeral \<Rightarrow> Random.seed \<Rightarrow> ('a \<times> (unit \<Rightarrow> term)) \<times> Random.seed"
 
 
 subsection {* Quickcheck generator *}
@@ -49,7 +49,7 @@ fun mk_generator_expr thy prop tys =
         (mk_split ty $ Abs ("", ty, Abs ("", @{typ "unit \<Rightarrow> term"}, t')));
     fun mk_bindclause (_, _, i, ty) = mk_scomp_split ty
       (Sign.mk_const thy (@{const_name random}, [ty]) $ Bound i);
-  in Abs ("n", @{typ index}, fold_rev mk_bindclause bounds (return $ check)) end;
+  in Abs ("n", @{typ code_numeral}, fold_rev mk_bindclause bounds (return $ check)) end;
 
 fun compile_generator_expr thy t =
   let
@@ -84,7 +84,7 @@ end
 instantiation itself :: (typerep) random
 begin
 
-definition random_itself :: "index \<Rightarrow> Random.seed \<Rightarrow> ('a itself \<times> (unit \<Rightarrow> term)) \<times> Random.seed" where
+definition random_itself :: "code_numeral \<Rightarrow> Random.seed \<Rightarrow> ('a itself \<times> (unit \<Rightarrow> term)) \<times> Random.seed" where
   "random_itself _ = Pair (Code_Eval.valtermify TYPE('a))"
 
 instance ..
@@ -139,7 +139,7 @@ code_const random_fun_aux (Quickcheck "Random'_Engine.random'_fun")
 instantiation "fun" :: ("{eq, term_of}", "{type, random}") random
 begin
 
-definition random_fun :: "index \<Rightarrow> Random.seed \<Rightarrow> (('a \<Rightarrow> 'b) \<times> (unit \<Rightarrow> term)) \<times> Random.seed" where
+definition random_fun :: "code_numeral \<Rightarrow> Random.seed \<Rightarrow> (('a \<Rightarrow> 'b) \<times> (unit \<Rightarrow> term)) \<times> Random.seed" where
   "random n = random_fun_aux TYPEREP('a) TYPEREP('b) (op =) Code_Eval.term_of (random n) Random.split_seed"
 
 instance ..
@@ -154,9 +154,9 @@ subsection {* Numeric types *}
 instantiation nat :: random
 begin
 
-definition random_nat :: "index \<Rightarrow> Random.seed \<Rightarrow> (nat \<times> (unit \<Rightarrow> Code_Eval.term)) \<times> Random.seed" where
+definition random_nat :: "code_numeral \<Rightarrow> Random.seed \<Rightarrow> (nat \<times> (unit \<Rightarrow> Code_Eval.term)) \<times> Random.seed" where
   "random_nat i = Random.range (i + 1) o\<rightarrow> (\<lambda>k. Pair (
-     let n = Code_Index.nat_of k
+     let n = Code_Numeral.nat_of k
      in (n, \<lambda>_. Code_Eval.term_of n)))"
 
 instance ..
@@ -168,42 +168,66 @@ begin
 
 definition
   "random i = Random.range (2 * i + 1) o\<rightarrow> (\<lambda>k. Pair (
-     let j = (if k \<ge> i then Code_Index.int_of (k - i) else - Code_Index.int_of (i - k))
+     let j = (if k \<ge> i then Code_Numeral.int_of (k - i) else - Code_Numeral.int_of (i - k))
      in (j, \<lambda>_. Code_Eval.term_of j)))"
 
 instance ..
 
 end
 
-definition (in term_syntax)
-  valterm_fract :: "int \<times> (unit \<Rightarrow> Code_Eval.term) \<Rightarrow> int \<times> (unit \<Rightarrow> Code_Eval.term) \<Rightarrow> rat \<times> (unit \<Rightarrow> Code_Eval.term)" where
-  [code inline]: "valterm_fract k l = Code_Eval.valtermify Fract {\<cdot>} k {\<cdot>} l"
+subsection {* Type copies *}
 
-instantiation rat :: random
-begin
+setup {*
+let
 
-definition
-  "random i = random i o\<rightarrow> (\<lambda>num. Random.range i o\<rightarrow> (\<lambda>denom. Pair (
-     let j = Code_Index.int_of (denom + 1)
-     in valterm_fract num (j, \<lambda>u. Code_Eval.term_of j))))"
+fun mk_random_typecopy tyco vs constr typ thy =
+  let
+    val Ts = map TFree vs;  
+    val T = Type (tyco, Ts);
+    fun mk_termifyT T = HOLogic.mk_prodT (T, @{typ "unit \<Rightarrow> term"})
+    val Ttm = mk_termifyT T;
+    val typtm = mk_termifyT typ;
+    fun mk_const c Ts = Const (c, Sign.const_instance thy (c, Ts));
+    fun mk_random T = mk_const @{const_name random} [T];
+    val size = @{term "k\<Colon>code_numeral"};
+    val v = "x";
+    val t_v = Free (v, typtm);
+    val t_constr = mk_const constr Ts;
+    val lhs = mk_random T $ size;
+    val rhs = HOLogic.mk_ST [(((mk_random typ) $ size, @{typ Random.seed}), SOME (v, typtm))]
+      (HOLogic.mk_return Ttm @{typ Random.seed}
+      (mk_const "Code_Eval.valapp" [typ, T]
+        $ HOLogic.mk_prod (t_constr, Abs ("u", @{typ unit}, HOLogic.reflect_term t_constr)) $ t_v))
+      @{typ Random.seed} (SOME Ttm, @{typ Random.seed});
+    val eq = HOLogic.mk_Trueprop (HOLogic.mk_eq (lhs, rhs));
+  in   
+    thy
+    |> TheoryTarget.instantiation ([tyco], vs, @{sort random})
+    |> `(fn lthy => Syntax.check_term lthy eq)
+    |-> (fn eq => Specification.definition (NONE, (Attrib.empty_binding, eq)))
+    |> snd
+    |> Class.prove_instantiation_exit (K (Class.intro_classes_tac []))
+  end;
 
-instance ..
+fun ensure_random_typecopy tyco thy =
+  let
+    val SOME { vs = raw_vs, constr, typ = raw_typ, ... } =
+      TypecopyPackage.get_info thy tyco;
+    val constrain = curry (Sorts.inter_sort (Sign.classes_of thy));
+    val typ = map_atyps (fn TFree (v, sort) =>
+      TFree (v, constrain sort @{sort random})) raw_typ;
+    val vs' = Term.add_tfreesT typ [];
+    val vs = map (fn (v, sort) =>
+      (v, the_default (constrain sort @{sort typerep}) (AList.lookup (op =) vs' v))) raw_vs;
+    val do_inst = Sign.of_sort thy (typ, @{sort random});
+  in if do_inst then mk_random_typecopy tyco vs constr typ thy else thy end;
+
+in
+
+TypecopyPackage.interpretation ensure_random_typecopy
 
 end
-
-definition (in term_syntax)
-  valterm_ratreal :: "rat \<times> (unit \<Rightarrow> Code_Eval.term) \<Rightarrow> real \<times> (unit \<Rightarrow> Code_Eval.term)" where
-  [code inline]: "valterm_ratreal k = Code_Eval.valtermify Ratreal {\<cdot>} k"
-
-instantiation real :: random
-begin
-
-definition
-  "random i = random i o\<rightarrow> (\<lambda>r. Pair (valterm_ratreal r))"
-
-instance ..
-
-end
+*}
 
 
 no_notation fcomp (infixl "o>" 60)

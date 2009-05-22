@@ -1,4 +1,4 @@
-(* Author: Lukas Bulwahn
+(* Author: Lukas Bulwahn, TU Muenchen
 
 (Prototype of) A compiler from predicates specified by intro/elim rules
 to equations.
@@ -13,14 +13,15 @@ sig
   val strip_intro_concl: term -> int -> term * (term list * term list)
   val modename_of: theory -> string -> mode -> string
   val modes_of: theory -> string -> mode list
+  val pred_intros: theory -> string -> thm list
+  val get_nparams: theory -> string -> int
   val setup: theory -> theory
   val code_pred: string -> Proof.context -> Proof.state
   val code_pred_cmd: string -> Proof.context -> Proof.state
   val print_alternative_rules: theory -> theory (*FIXME diagnostic command?*)
   val do_proofs: bool ref
-  val pred_intros : theory -> string -> thm list
-  val get_nparams : theory -> string -> int
-  val pred_term_of : theory -> term -> term option
+  val analyze_compr: theory -> term -> term
+  val eval_ref: (unit -> term Predicate.pred) option ref
 end;
 
 structure Predicate_Compile : PREDICATE_COMPILE =
@@ -1425,29 +1426,37 @@ end
 
 (*FIXME
 - Naming of auxiliary rules necessary?
+- add default code equations P x y z = P_i_i_i x y z
 *)
 
 (* transformation for code generation *)
 
-fun pred_term_of thy t = let
-   val (vars, body) = strip_abs t
-   val (pred, all_args) = strip_comb body
-   val (name, T) = dest_Const pred 
-   val (params, args) = chop (get_nparams thy name) all_args
-   val user_mode = flat (map_index
-      (fn (i, t) => case t of Bound j => if j < length vars then [] else [i+1] | _ => [i+1])
-        args)
-  val (inargs, _) = get_args user_mode args
-  val all_modes = Symtab.dest (#modes (IndCodegenData.get thy))
-  val modes = filter (fn Mode (_, is, _) => is = user_mode) (modes_of_term all_modes (list_comb (pred, params)))
-  fun compile m = list_comb (compile_expr thy all_modes (SOME m, list_comb (pred, params)), inargs)
-  in
-    case modes of
-      []  => (let val _ = error "No mode possible for this term" in NONE end)
-    | [m] => SOME (compile m)
-    | ms  => (let val _ = warning "Multiple modes possible for this term"
-        in SOME (compile (hd ms)) end)
-  end;
+val eval_ref = ref (NONE : (unit -> term Predicate.pred) option);
+
+fun analyze_compr thy t_compr =
+  let
+    val split = case t_compr of (Const (@{const_name Collect}, _) $ t) => t
+      | _ => error ("Not a set comprehension: " ^ Syntax.string_of_term_global thy t_compr);
+    val (body, Ts, fp) = HOLogic.strip_split split;
+      (*FIXME former order of tuple positions must be restored*)
+    val (pred as Const (name, T), all_args) = strip_comb body
+    val (params, args) = chop (get_nparams thy name) all_args
+    val user_mode = map_filter I (map_index
+      (fn (i, t) => case t of Bound j => if j < length Ts then NONE
+        else SOME (i+1) | _ => SOME (i+1)) args) (*FIXME dangling bounds should not occur*)
+    val (inargs, _) = get_args user_mode args;
+    val all_modes = Symtab.dest (#modes (IndCodegenData.get thy));
+    val modes = filter (fn Mode (_, is, _) => is = user_mode)
+      (modes_of_term all_modes (list_comb (pred, params)));
+    val m = case modes
+     of [] => error ("No mode possible for comprehension "
+                ^ Syntax.string_of_term_global thy t_compr)
+      | [m] => m
+      | m :: _ :: _ => (warning ("Multiple modes possible for comprehension "
+                ^ Syntax.string_of_term_global thy t_compr); m);
+    val t_eval = list_comb (compile_expr thy all_modes (SOME m, list_comb (pred, params)),
+      inargs)
+  in t_eval end;
 
 end;
 

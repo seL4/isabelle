@@ -161,14 +161,14 @@ The \hyperlink{theory.HOL}{\mbox{\isa{HOL}}} \hyperlink{theory.Main}{\mbox{\isa{
        which in general will result in higher efficiency; pattern
        matching with \isa{{\isadigit{0}}} / \isa{Suc}
        is eliminated;  includes \hyperlink{theory.Code-Integer}{\mbox{\isa{Code{\isacharunderscore}Integer}}}
-       and \hyperlink{theory.Code-Index}{\mbox{\isa{Code{\isacharunderscore}Index}}}.
-    \item[\hyperlink{theory.Code-Index}{\mbox{\isa{Code{\isacharunderscore}Index}}}] provides an additional datatype
+       and \hyperlink{theory.Code-Numeral}{\mbox{\isa{Code{\isacharunderscore}Numeral}}}.
+    \item[\hyperlink{theory.Code-Numeral}{\mbox{\isa{Code{\isacharunderscore}Numeral}}}] provides an additional datatype
        \isa{index} which is mapped to target-language built-in integers.
        Useful for code setups which involve e.g. indexing of
        target-language arrays.
     \item[\hyperlink{theory.String}{\mbox{\isa{String}}}] provides an additional datatype
-       \isa{message{\isacharunderscore}string} which is isomorphic to strings;
-       \isa{message{\isacharunderscore}string}s are mapped to target-language strings.
+       \isa{String{\isachardot}literal} which is isomorphic to strings;
+       \isa{String{\isachardot}literal}s are mapped to target-language strings.
        Useful for code setups which involve e.g. printing (error) messages.
 
   \end{description}

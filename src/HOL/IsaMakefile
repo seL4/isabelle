@@ -206,21 +206,23 @@ $(OUT)/HOL-Plain: plain.ML $(PLAIN_DEPENDENCIES)
 MAIN_DEPENDENCIES = $(PLAIN_DEPENDENCIES) \
   ATP_Linkup.thy \
   Code_Eval.thy \
-  Code_Index.thy \
+  Code_Numeral.thy \
   Equiv_Relations.thy \
   Groebner_Basis.thy \
   Hilbert_Choice.thy \
   IntDiv.thy \
   Int.thy \
-  Typerep.thy \
   List.thy \
   Main.thy \
   Map.thy \
   Nat_Numeral.thy \
   Presburger.thy \
+  Quickcheck.thy \
+  Random.thy \
   Recdef.thy \
   SetInterval.thy \
   String.thy \
+  Typerep.thy \
   $(SRC)/Provers/Arith/assoc_fold.ML \
   $(SRC)/Provers/Arith/cancel_numeral_factor.ML \
   $(SRC)/Provers/Arith/cancel_numerals.ML \
@@ -287,10 +289,8 @@ $(OUT)/HOL: ROOT.ML $(MAIN_DEPENDENCIES) \
   Transcendental.thy \
   GCD.thy \
   Parity.thy \
-  Quickcheck.thy \
   Lubs.thy \
   PReal.thy \
-  Random.thy \
   Rational.thy \
   RComplete.thy \
   RealDef.thy \

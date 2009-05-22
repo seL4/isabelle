@@ -1,7 +1,7 @@
 header {* Main HOL *}
 
 theory Main
-imports Plain Code_Eval Map Recdef SAT
+imports Plain Quickcheck Map Recdef SAT
 begin
 
 text {*

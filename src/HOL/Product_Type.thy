@@ -726,6 +726,9 @@ lemma scomp_fcomp: "(f o\<rightarrow> g) o> h = f o\<rightarrow> (\<lambda>x. g 
 lemma fcomp_scomp: "(f o> g) o\<rightarrow> h = f o> (g o\<rightarrow> h)"
   by (simp add: expand_fun_eq scomp_apply fcomp_apply)
 
+code_const scomp
+  (Eval infixl 3 "#->")
+
 no_notation fcomp (infixl "o>" 60)
 no_notation scomp (infixl "o\<rightarrow>" 60)
 
