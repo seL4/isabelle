@@ -99,4 +99,11 @@ class Command(val tokens: List[Token], val starts: Map[Token, Int])
                    if (end <= content.length && begin >= 0) content.substring(begin, end) else "wrong indices??",
                    desc, kind)
 
+  def type_at(pos: Int): String = {
+    val types = markup_root.filter(_.kind match {case MarkupNode.TypeNode() => true case _ => false})
+    types.flatten(_.flatten).
+      find(t => t.start <= pos && t.stop > pos).
+      map(t => "\"" + t.content + "\" : " + t.desc).
+      getOrElse(null)
+  }
 }

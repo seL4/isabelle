@@ -212,6 +212,16 @@ class TheoryView (text_area: JEditTextArea, document_actor: Actor)
     gfx.setColor(saved_color)
   }
 
+  override def getToolTipText(x: Int, y: Int) = {
+    val document = prover.document
+    val offset = from_current(document.id, text_area.xyToOffset(x, y))
+    val cmd = document.find_command_at(offset)
+    if (cmd != null) {
+      document.token_start(cmd.tokens.first)
+      cmd.type_at(offset - cmd.start(document))
+    } else null
+  }
+
   /* BufferListener methods */
 
   private var changes: List[Text.Change] = Nil
