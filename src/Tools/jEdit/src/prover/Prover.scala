@@ -181,34 +181,43 @@ class Prover(isabelle_system: IsabelleSystem, logic: String) extends Actor
                     output_info.event(result.toString)
                     command.status = Command.Status.FAILED
                     command_change(command)
-                  case XML.Elem(kind, attr, body) =>
+                  case XML.Elem(kind, attr, body)
+                  if command != null =>
                     // TODO: assuming that begin, end, id are present in attributes
                     val begin = get_attr(attr, Markup.OFFSET).get.toInt - 1
                     val end = get_attr(attr, Markup.END_OFFSET).get.toInt - 1
                     val markup_id = get_attr(attr, Markup.ID).get
-                    kind match {
-                      case Markup.ML_TYPING =>
-                        val info = body.first.asInstanceOf[XML.Text].content
-                        command.markup_root += command.markup_node(begin, end, TypeInfo(info))
-                      case Markup.ML_REF =>
-                        body match {
-                          case List(XML.Elem(Markup.ML_DEF, attr, _)) =>
-                            command.markup_root += command.markup_node(begin, end,
-                              RefInfo(get_attr(attr, Markup.FILE),
-                                      get_attr(attr, Markup.LINE).map(Integer.parseInt),
-                                      get_attr(attr, Markup.ID),
-                                      get_attr(attr, Markup.OFFSET).map(Integer.parseInt)))
-                          case _ =>
-                        }
-                      case kind =>
-                        if (!running)
-                          commands.get(markup_id).map (cmd =>
-                          cmd.markup_root += cmd.markup_node(begin, end, OuterInfo(kind)))
-                        else {
-                          command.markup_root += command.markup_node(begin, end, HighlightInfo(kind))
-                        }
+                    if (kind == Markup.ML_TYPING) {
+                      val info = body.first.asInstanceOf[XML.Text].content
+                      command.markup_root += command.markup_node(begin, end, TypeInfo(info))
+                    } else if (kind == Markup.ML_REF) {
+                      body match {
+                        case List(XML.Elem(Markup.ML_DEF, attr, _)) =>
+                          command.markup_root += command.markup_node(begin, end,
+                            RefInfo(get_attr(attr, Markup.FILE),
+                                    get_attr(attr, Markup.LINE).map(Integer.parseInt),
+                                    get_attr(attr, Markup.ID),
+                                    get_attr(attr, Markup.OFFSET).map(Integer.parseInt)))
+                        case _ =>
+                      }
+                    } else {
+                      command.markup_root += command.markup_node(begin, end, HighlightInfo(kind))
                     }
                     command_change(command)
+                  case XML.Elem(kind, attr, body)
+                  if command == null =>
+                    // TODO: This is mostly irrelevant information on removed commands, but it can
+                    // also be outer-syntax-markup since there is no id in props (fix that?)
+                    val begin = get_attr(attr, Markup.OFFSET).map(_.toInt - 1)
+                    val end = get_attr(attr, Markup.END_OFFSET).map(_.toInt - 1)
+                    val markup_id = get_attr(attr, Markup.ID)
+                    if (!running && begin.isDefined && end.isDefined && markup_id.isDefined)
+                      commands.get(markup_id.get).map (cmd => {
+                        cmd.markup_root += cmd.markup_node(begin.get, end.get, OuterInfo(kind))
+                        command_change(cmd)
+                      })
+                    else
+                      command_change(command)
                   case _ =>
                   //}}}
                 }
