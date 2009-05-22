@@ -202,6 +202,65 @@ lemma exh_casedist3: "(P \<and> Q \<Longrightarrow> R) \<equiv> (P \<Longrightar
 lemmas exh_casedists = exh_casedist1 exh_casedist2 exh_casedist3
 
 
+subsection {* Combinators for building copy functions *}
+
+definition
+  cfun_fun :: "('b \<rightarrow> 'a) \<rightarrow> ('c \<rightarrow> 'd) \<rightarrow> ('a \<rightarrow> 'c) \<rightarrow> ('b \<rightarrow> 'd)"
+where
+  "cfun_fun = (\<Lambda> f g p. g oo p oo f)"
+
+definition
+  ssum_fun :: "('a \<rightarrow> 'b) \<rightarrow> ('c \<rightarrow> 'd) \<rightarrow> 'a \<oplus> 'c \<rightarrow> 'b \<oplus> 'd"
+where
+  "ssum_fun = (\<Lambda> f g. sscase\<cdot>(sinl oo f)\<cdot>(sinr oo g))"
+
+definition
+  sprod_fun :: "('a \<rightarrow> 'b) \<rightarrow> ('c \<rightarrow> 'd) \<rightarrow> 'a \<otimes> 'c \<rightarrow> 'b \<otimes> 'd"
+where
+  "sprod_fun = (\<Lambda> f g. ssplit\<cdot>(\<Lambda> x y. (:f\<cdot>x, g\<cdot>y:)))"
+
+definition
+  cprod_fun :: "('a \<rightarrow> 'b) \<rightarrow> ('c \<rightarrow> 'd) \<rightarrow> 'a \<times> 'c \<rightarrow> 'b \<times> 'd"
+where
+  "cprod_fun = (\<Lambda> f g. csplit\<cdot>(\<Lambda> x y. <f\<cdot>x, g\<cdot>y>))"
+
+definition
+  u_fun :: "('a \<rightarrow> 'b) \<rightarrow> 'a u \<rightarrow> 'b u"
+where
+  "u_fun = (\<Lambda> f. fup\<cdot>(up oo f))"
+
+lemma cfun_fun_strict: "b\<cdot>\<bottom> = \<bottom> \<Longrightarrow> cfun_fun\<cdot>a\<cdot>b\<cdot>\<bottom> = \<bottom>"
+unfolding cfun_fun_def expand_cfun_eq by simp
+
+lemma ssum_fun_strict: "ssum_fun\<cdot>a\<cdot>b\<cdot>\<bottom> = \<bottom>"
+unfolding ssum_fun_def by simp
+
+lemma sprod_fun_strict: "sprod_fun\<cdot>a\<cdot>b\<cdot>\<bottom> = \<bottom>"
+unfolding sprod_fun_def by simp
+
+lemma u_fun_strict: "u_fun\<cdot>a\<cdot>\<bottom> = \<bottom>"
+unfolding u_fun_def by simp
+
+lemma ssum_fun_sinl: "x \<noteq> \<bottom> \<Longrightarrow> ssum_fun\<cdot>f\<cdot>g\<cdot>(sinl\<cdot>x) = sinl\<cdot>(f\<cdot>x)"
+by (simp add: ssum_fun_def)
+
+lemma ssum_fun_sinr: "x \<noteq> \<bottom> \<Longrightarrow> ssum_fun\<cdot>f\<cdot>g\<cdot>(sinr\<cdot>x) = sinr\<cdot>(g\<cdot>x)"
+by (simp add: ssum_fun_def)
+
+lemma sprod_fun_spair:
+  "x \<noteq> \<bottom> \<Longrightarrow> y \<noteq> \<bottom> \<Longrightarrow> sprod_fun\<cdot>f\<cdot>g\<cdot>(:x, y:) = (:f\<cdot>x, g\<cdot>y:)"
+by (simp add: sprod_fun_def)
+
+lemma u_fun_up: "u_fun\<cdot>a\<cdot>(up\<cdot>x) = up\<cdot>(a\<cdot>x)"
+by (simp add: u_fun_def)
+
+lemmas domain_fun_stricts =
+  ssum_fun_strict sprod_fun_strict u_fun_strict
+
+lemmas domain_fun_simps =
+  ssum_fun_sinl ssum_fun_sinr sprod_fun_spair u_fun_up
+
+
 subsection {* Installing the domain package *}
 
 lemmas con_strict_rules =
