@@ -85,7 +85,6 @@ sig
     theory -> theory
   val simple_args: 'a parser -> ('a -> Proof.context -> method) -> src -> Proof.context -> method
   val ctxt_args: (Proof.context -> method) -> src -> Proof.context -> method
-  val no_args: method -> src -> Proof.context -> method
   type modifier = (Proof.context -> Proof.context) * attribute
   val section: modifier parser list -> thm list context_parser
   val sections: modifier parser list -> thm list list context_parser
@@ -100,12 +99,6 @@ sig
   val thms_ctxt_args: (thm list -> Proof.context -> 'a) -> src -> Proof.context -> 'a
   val thms_args: (thm list -> 'a) -> src -> Proof.context -> 'a
   val thm_args: (thm -> 'a) -> src -> Proof.context -> 'a
-  val goal_args: 'a parser -> ('a -> int -> tactic) -> src -> Proof.context -> method
-  val goal_args': 'a context_parser -> ('a -> int -> tactic) -> src -> Proof.context -> method
-  val goal_args_ctxt: 'a parser -> (Proof.context -> 'a -> int -> tactic) -> src ->
-    Proof.context -> method
-  val goal_args_ctxt': 'a context_parser -> (Proof.context -> 'a -> int -> tactic) -> src ->
-    Proof.context -> method
   val parse: text parser
 end;
 
@@ -426,8 +419,6 @@ fun simple_args scan f src ctxt : method =
 fun ctxt_args (f: Proof.context -> method) src ctxt =
   fst (syntax (Scan.succeed (f ctxt)) src ctxt);
 
-fun no_args m = ctxt_args (K m);
-
 
 (* sections *)
 
@@ -466,20 +457,6 @@ end;
 fun xrule_meth m =
   Scan.lift (Scan.optional (Args.parens OuterParse.nat) 0) -- Attrib.thms >>
   (fn (n, ths) => K (m n ths));
-
-
-(* tactic syntax *)
-
-fun goal_args' args tac src ctxt = fst (syntax (Args.goal_spec -- args >>
-  (fn (quant, s) => SIMPLE_METHOD'' quant (tac s))) src ctxt);
-
-fun goal_args args tac = goal_args' (Scan.lift args) tac;
-
-fun goal_args_ctxt' args tac src ctxt =
-  fst (syntax (Args.goal_spec -- args >>
-  (fn (quant, s) => SIMPLE_METHOD'' quant (tac ctxt s))) src ctxt);
-
-fun goal_args_ctxt args tac = goal_args_ctxt' (Scan.lift args) tac;
 
 
 (* outer parser *)
