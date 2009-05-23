@@ -27,7 +27,7 @@ class IsabelleSystem {
   }
 
   def getenv_strict(name: String) = {
-    val value = environment.get(name)
+    val value = getenv(name)
     if (value != "") value else error("Undefined environment variable: " + name)
   }
 
