@@ -4,7 +4,7 @@
 
 #identification
 plugin.isabelle.jedit.Plugin.name=Isabelle
-plugin.isabelle.jedit.Plugin.author=Johannes Hï¿½lzl, Fabian Immler, Makarius Wenzel
+plugin.isabelle.jedit.Plugin.author=Johannes Hölzl, Fabian Immler, Makarius Wenzel
 plugin.isabelle.jedit.Plugin.version=0.0.1
 plugin.isabelle.jedit.Plugin.description=Isabelle/Isar live document editing
 
