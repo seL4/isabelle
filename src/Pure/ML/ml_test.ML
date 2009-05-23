@@ -1,7 +1,7 @@
 (*  Title:      Pure/ML/ml_test.ML
     Author:     Makarius
 
-Test of advanced ML compiler invocation in Poly/ML 5.3.
+Test of advanced ML compiler invocation in Poly/ML 5.3 (SVN 719).
 *)
 
 signature ML_TEST =
@@ -101,33 +101,18 @@ fun use_text ({name_space = space, print, error, ...}: use_context) verbose pos 
     (* results *)
 
     val depth = get_print_depth ();
-    val with_struct = ! PolyML.Compiler.printTypesWithStructureName;
 
     fun apply_result {fixes, types, signatures, structures, functors, values} =
       let
-        fun add_prefix prefix (PrettyBlock (ind, consistent, context, prts)) =
-              let
-                fun make_prefix context =
-                  (case get_first (fn ContextParentStructure p => SOME p | _ => NONE) context of
-                    SOME (name, sub_context) => make_prefix sub_context ^ name ^ "."
-                  | NONE => prefix);
-                val this_prefix = make_prefix context;
-              in PrettyBlock (ind, consistent, context, map (add_prefix this_prefix) prts) end
-          | add_prefix prefix (prt as PrettyString s) =
-              if prefix = "" then prt else PrettyString (prefix ^ s)
-          | add_prefix _ (prt as PrettyBreak _) = prt;
-
         fun display disp x =
           if depth > 0 then
-            (disp x
-              |> with_struct ? add_prefix ""
-              |> pretty_ml |> Pretty.from_ML |> Pretty.string_of |> put; put "\n")
+            (disp x |> pretty_ml |> Pretty.from_ML |> Pretty.string_of |> put; put "\n")
           else ();
 
         fun apply_fix (a, b) =
           (display PolyML.NameSpace.displayFix (a, b); #enterFix space (a, b));
         fun apply_type (a, b) =
-          (display PolyML.NameSpace.displayType (b, depth); #enterType space (a, b));
+          (display PolyML.NameSpace.displayType (b, depth, space); #enterType space (a, b));
         fun apply_sig (a, b) =
           (display PolyML.NameSpace.displaySig (b, depth, space); #enterSig space (a, b));
         fun apply_struct (a, b) =
