@@ -31,7 +31,7 @@ trait IsarDocument extends IsabelleProcess
 
   def begin_document(id: Document_ID, path: String) {
     output_sync("Isar.begin_document " + IsabelleSyntax.encode_string(id) + " " +
-       IsabelleSyntax.encode_string(path))
+      IsabelleSyntax.encode_string(path))
   }
 
   def end_document(id: Document_ID) {
