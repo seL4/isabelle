@@ -16,9 +16,10 @@ sig
   val the_datatype_spec : theory -> string -> (string * sort) list * (string * typ list) list
   val get_datatype_constrs : theory -> string -> (string * typ) list option
   val construction_interpretation : theory
-    -> {atom : typ -> 'a, dtyp : string -> 'a, rtyp : string -> 'a list -> 'a}
+    -> {atom : typ -> 'a, dtyp : string -> 'a, rtyp : string * typ list -> 'a list -> 'a}
     -> (string * sort) list -> string list
     -> (string * (string * 'a list) list) list
+      * ((string * typ list) * (string * 'a list) list) list
   val distinct_simproc : simproc
   val make_case :  Proof.context -> bool -> string list -> term ->
     (term * term) list -> term * (term * (int * bool)) list
@@ -149,16 +150,24 @@ fun construction_interpretation thy { atom, dtyp, rtyp } sorts tycos =
     val descr = (#descr o the_datatype thy o hd) tycos;
     val k = length tycos;
     val descr_of = the o AList.lookup (op =) descr;
-    fun interpT (T as DtTFree _) = atom (typ_of_dtyp descr sorts T)
-      | interpT (T as DtType (tyco, Ts)) = if is_rec_type T
-          then rtyp tyco (map interpT Ts)
-          else atom (typ_of_dtyp descr sorts T)
+    val typ_of_dtyp = typ_of_dtyp descr sorts;
+    fun interpT (dT as DtTFree _) = atom (typ_of_dtyp dT)
+      | interpT (dT as DtType (tyco, dTs)) = 
+          let
+            val Ts = map typ_of_dtyp dTs;
+          in if is_rec_type dT
+            then rtyp (tyco, Ts) (map interpT dTs)
+            else atom (Type (tyco, Ts))
+          end
       | interpT (DtRec l) = if l < k then (dtyp o #1 o descr_of) l
-          else let val (tyco, Ts, _) = descr_of l
-          in rtyp tyco (map interpT Ts) end;
-    fun interpC (c, Ts) = (c, map interpT Ts);
-    fun interpK (_, (tyco, _, cs)) = (tyco, map interpC cs);
-  in map interpK (Library.take (k, descr)) end;
+          else let
+            val (tyco, dTs, _) = descr_of l;
+            val Ts = map typ_of_dtyp dTs;
+          in rtyp (tyco, Ts) (map interpT dTs) end;
+    fun interpC (c, dTs) = (c, map interpT dTs);
+    fun interpD (_, (tyco, _, cs)) = (tyco, map interpC cs);
+    fun interpR (_, (tyco, dTs, cs)) = ((tyco, map typ_of_dtyp dTs), map interpC cs);
+  in chop k descr |> (apfst o map) interpD |> (apsnd o map) interpR end;
 
 
 

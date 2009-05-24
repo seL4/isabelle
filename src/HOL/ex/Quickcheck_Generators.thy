@@ -79,10 +79,11 @@ let
         else raise TYP
           ("Will not generate random elements for type(s) " ^ quote (hd tycos));
       fun dtyp tyco = ((this_ty, true), random' $ @{term "i\<Colon>code_numeral"} $ @{term "j\<Colon>code_numeral"});
-      fun rtyp tyco tys = raise REC
+      fun rtyp (tyco, Ts) _ = raise REC
         ("Will not generate random elements for mutual recursive type " ^ quote (hd tycos));
       val rhss = DatatypePackage.construction_interpretation thy
             { atom = atom, dtyp = dtyp, rtyp = rtyp } vs tycos
+        |> fst
         |> (map o apsnd o map) (mk_cons thy this_ty) 
         |> (map o apsnd) (List.partition fst)
         |> map (mk_clauses thy this_ty)
