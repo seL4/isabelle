@@ -19,9 +19,9 @@ sig
   val dresolve_tac: thm list -> int -> tactic
   val atac: int -> tactic
   val rtac: thm -> int -> tactic
-  val dtac: thm -> int ->tactic
-  val etac: thm -> int ->tactic
-  val ftac: thm -> int ->tactic
+  val dtac: thm -> int -> tactic
+  val etac: thm -> int -> tactic
+  val ftac: thm -> int -> tactic
   val datac: thm -> int -> int -> tactic
   val eatac: thm -> int -> int -> tactic
   val fatac: thm -> int -> int -> tactic
