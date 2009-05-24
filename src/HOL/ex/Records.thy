@@ -1,5 +1,4 @@
 (*  Title:      HOL/ex/Records.thy
-    ID:         $Id$
     Author:     Wolfgang Naraschewski, Norbert Schirmer and Markus Wenzel, 
                 TU Muenchen
 *)
