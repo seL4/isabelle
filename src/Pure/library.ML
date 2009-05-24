@@ -27,6 +27,7 @@ sig
   val ooo: ('a -> 'b) * ('c -> 'd -> 'e -> 'a) -> 'c -> 'd -> 'e -> 'b
   val oooo: ('a -> 'b) * ('c -> 'd -> 'e -> 'f -> 'a) -> 'c -> 'd -> 'e -> 'f -> 'b
   val funpow: int -> ('a -> 'a) -> 'a -> 'a
+  val funpow_yield: int -> ('a -> 'b * 'a) -> 'a -> 'b list * 'a
 
   (*errors*)
   exception SYS_ERROR of string
@@ -109,6 +110,7 @@ sig
   val split_list: ('a * 'b) list -> 'a list * 'b list
   val map_product: ('a -> 'b -> 'c) -> 'a list -> 'b list -> 'c list
   val fold_product: ('a -> 'b -> 'c -> 'c) -> 'a list -> 'b list -> 'c -> 'c
+  val multiply: 'a list -> 'a list list -> 'a list list
   val separate: 'a -> 'a list -> 'a list
   val surround: 'a -> 'a list -> 'a list
   val replicate: int -> 'a -> 'a list
@@ -157,7 +159,6 @@ sig
   val unsuffix: string -> string -> string
   val replicate_string: int -> string -> string
   val translate_string: (string -> string) -> string -> string
-  val multiply: 'a list -> 'a list list -> 'a list list
   val match_string: string -> string -> bool
 
   (*lists as sets -- see also Pure/General/ord_list.ML*)
@@ -266,10 +267,12 @@ fun (f oo g) x y = f (g x y);
 fun (f ooo g) x y z = f (g x y z);
 fun (f oooo g) x y z w = f (g x y z w);
 
-(*function exponentiation: f(...(f x)...) with n applications of f*)
-fun funpow (0: int) _ x = x
-  | funpow n f x = funpow (n - 1) f (f x);
+(*function exponentiation: f (... (f x) ...) with n applications of f*)
+fun funpow (0 : int) _ = I
+  | funpow n f = f #> funpow (n - 1) f;
 
+fun funpow_yield (0 : int) _ x = ([], x)
+  | funpow_yield n f x = x |> f ||>> funpow_yield (n - 1) f |>> op ::;
 
 (* errors *)
 
@@ -552,8 +555,6 @@ fun replicate (n: int) x =
     else rep (n, [])
   end;
 
-fun translate_string f = String.translate (f o String.str);
-
 (*multiply [a, b, c, ...] * [xs, ys, zs, ...]*)
 fun multiply [] _ = []
   | multiply (x :: xs) yss = map (cons x) yss @ multiply xs yss;
@@ -789,6 +790,8 @@ fun replicate_string (0: int) _ = ""
   | replicate_string k a =
       if k mod 2 = 0 then replicate_string (k div 2) (a ^ a)
       else replicate_string (k div 2) (a ^ a) ^ a;
+
+fun translate_string f = String.translate (f o String.str);
 
 (*crude matching of str against simple glob pat*)
 fun match_string pat str =
