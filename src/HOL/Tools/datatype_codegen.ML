@@ -6,6 +6,7 @@ Code generator facilities for inductive datatypes.
 
 signature DATATYPE_CODEGEN =
 sig
+  val find_shortest_path: DatatypeAux.descr -> int -> (string * int) option
   val mk_eq_eqns: theory -> string -> (thm * bool) list
   val mk_case_cert: theory -> string -> thm
   val setup: theory -> theory
@@ -24,8 +25,9 @@ open Codegen;
 
 fun find_nonempty (descr: DatatypeAux.descr) is i =
   let
-    val (_, _, constrs) = valOf (AList.lookup (op =) descr i);
-    fun arg_nonempty (_, DatatypeAux.DtRec i) = if i mem is then NONE
+    val (_, _, constrs) = the (AList.lookup (op =) descr i);
+    fun arg_nonempty (_, DatatypeAux.DtRec i) = if member (op =) is i
+          then NONE
           else Option.map (curry op + 1 o snd) (find_nonempty descr (i::is) i)
       | arg_nonempty _ = SOME 0;
     fun max xs = Library.foldl
@@ -33,9 +35,11 @@ fun find_nonempty (descr: DatatypeAux.descr) is i =
         | (SOME i, SOME j) => SOME (Int.max (i, j))
         | (_, NONE) => NONE) (SOME 0, xs);
     val xs = sort (int_ord o pairself snd)
-      (List.mapPartial (fn (s, dts) => Option.map (pair s)
+      (map_filter (fn (s, dts) => Option.map (pair s)
         (max (map (arg_nonempty o DatatypeAux.strip_dtyp) dts))) constrs)
   in case xs of [] => NONE | x :: _ => SOME x end;
+
+fun find_shortest_path descr i = find_nonempty descr [i] i;
 
 fun add_dt_defs thy defs dep module (descr: DatatypeAux.descr) sorts gr =
   let
@@ -109,7 +113,7 @@ fun add_dt_defs thy defs dep module (descr: DatatypeAux.descr) sorts gr =
             val T = Type (tname, Us);
             val (cs1, cs2) =
               List.partition (exists DatatypeAux.is_rec_type o snd) cs;
-            val SOME (cname, _) = find_nonempty descr [i] i;
+            val SOME (cname, _) = find_shortest_path descr i;
 
             fun mk_delay p = Pretty.block
               [str "fn () =>", Pretty.brk 1, p];
