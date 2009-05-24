@@ -441,12 +441,11 @@ fun instantiation_param lthy b = instantiation_params lthy
 fun synchronize_inst_syntax ctxt =
   let
     val Instantiation { arities = (_, _, sort), params = params } = Instantiation.get ctxt;
-    val inst_tyco_of = AxClass.inst_tyco_of (Sign.consts_of (ProofContext.theory_of ctxt));
-    fun subst (c, ty) = case inst_tyco_of (c, ty)
-         of SOME tyco => (case AList.lookup (op =) params (c, tyco)
-             of SOME (v_ty as (_, ty)) => SOME (ty, Free v_ty)
-              | NONE => NONE)
-          | NONE => NONE;
+
+    val lookup_inst_param = AxClass.lookup_inst_param (Sign.consts_of (ProofContext.theory_of ctxt)) params;
+    fun subst (c, ty) = case lookup_inst_param (c, ty)
+     of SOME (v_ty as (_, ty)) => SOME (ty, Free v_ty)
+      | NONE => NONE;
     val unchecks =
       map (fn ((c, _), v_ty as (_, ty)) => (Free v_ty, Const (c, ty))) params;
   in
@@ -494,38 +493,35 @@ fun resort_terms pp algebra consts constraints ts =
 fun init_instantiation (tycos, vs, sort) thy =
   let
     val _ = if null tycos then error "At least one arity must be given" else ();
-    val params = these_params thy (filter (can (AxClass.get_info thy)) sort);
+    val class_params = these_params thy (filter (can (AxClass.get_info thy)) sort);
     fun get_param tyco (param, (_, (c, ty))) =
       if can (AxClass.param_of_inst thy) (c, tyco)
       then NONE else SOME ((c, tyco),
         (param ^ "_" ^ type_name tyco, map_atyps (K (Type (tyco, map TFree vs))) ty));
-    val inst_params = map_product get_param tycos params |> map_filter I;
+    val params = map_product get_param tycos class_params |> map_filter I;
     val primary_constraints = map (apsnd
-      (map_atyps (K (TVar ((Name.aT, 0), [])))) o snd o snd) params;
+      (map_atyps (K (TVar ((Name.aT, 0), [])))) o snd o snd) class_params;
     val pp = Syntax.pp_global thy;
     val algebra = Sign.classes_of thy
       |> fold (fn tyco => Sorts.add_arities pp
             (tyco, map (fn class => (class, map snd vs)) sort)) tycos;
     val consts = Sign.consts_of thy;
     val improve_constraints = AList.lookup (op =)
-      (map (fn (_, (class, (c, _))) => (c, [[class]])) params);
+      (map (fn (_, (class, (c, _))) => (c, [[class]])) class_params);
     fun resort_check ts ctxt = case resort_terms pp algebra consts improve_constraints ts
      of NONE => NONE
       | SOME ts' => SOME (ts', ctxt);
-    val inst_tyco_of = AxClass.inst_tyco_of consts;
+    val lookup_inst_param = AxClass.lookup_inst_param consts params;
     val typ_instance = Type.typ_instance (Sign.tsig_of thy);
-    fun improve (c, ty) = case inst_tyco_of (c, ty)
-     of SOME tyco => (case AList.lookup (op =) inst_params (c, tyco)
-         of SOME (_, ty') => if typ_instance (ty', ty)
-              then SOME (ty, ty') else NONE
-          | NONE => NONE)
+    fun improve (c, ty) = case lookup_inst_param (c, ty)
+     of SOME (_, ty') => if typ_instance (ty', ty) then SOME (ty, ty') else NONE
       | NONE => NONE;
   in
     thy
     |> ProofContext.init
-    |> Instantiation.put (mk_instantiation ((tycos, vs, sort), inst_params))
+    |> Instantiation.put (mk_instantiation ((tycos, vs, sort), params))
     |> fold (Variable.declare_typ o TFree) vs
-    |> fold (Variable.declare_names o Free o snd) inst_params
+    |> fold (Variable.declare_names o Free o snd) params
     |> (Overloading.map_improvable_syntax o apfst)
          (K ((primary_constraints, []), (((improve, K NONE), false), [])))
     |> Overloading.add_improvable_syntax
