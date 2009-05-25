@@ -31,28 +31,21 @@ class InternalHyperlink(start: Int, end: Int, line: Int, ref_offset: Int)
 class ExternalHyperlink(start: Int, end: Int, line: Int, ref_file: String, ref_line: Int)
   extends AbstractHyperlink(start, end, line, "")
 {
-  val srcs = List(new File(Isabelle.system.getenv("ISABELLE_HOME"), "src"),
-                  new File(Isabelle.system.getenv("ML_SOURCES")))
-
-  def find_file(file: File, filename: String): Option[File] =
-  {
-    if (file.getName == new File(filename).getName) Some(file)
-    else if (file.isDirectory) file.listFiles.map(find_file(_, filename)).find(_.isDefined).getOrElse(None)
-    else None
+  def subdirs(file: File): List[File] = {
+    val subs = file.listFiles.filter(_.isDirectory).toList
+    subs ::: subs.flatMap(subdirs)
   }
 
-  override def click(view: View) = {
-    srcs.find(src =>
-      find_file(src, ref_file) match {
-        case None => false
-        case Some(file) =>
-          jEdit.openFiles(view, file.getParent, Array(file.getName, "+line:" + ref_line))
-          true})
-      match {
-        case None => System.err.println("Could not find file " + ref_file)
-        case _ =>
-      }
-  }
+  val srcs = List(new File(Isabelle.system.getenv("ML_SOURCES")))
+  val rec_srcs = List(new File(Isabelle.system.getenv("ISABELLE_HOME"), "src"))
+
+  override def click(view: View) =
+    (srcs ::: rec_srcs.flatMap(subdirs)).find(new File(_, ref_file).exists) match {
+      case None => System.err.println("Could not find file " + ref_file)
+      case Some(dir) =>
+        val file = new File(dir, ref_file)
+        jEdit.openFiles(view, file.getParent, Array(file.getName, "+line:" + ref_line))
+    }
 }
 
 class IsabelleHyperlinkSource extends HyperlinkSource
