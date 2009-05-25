@@ -416,14 +416,14 @@ fun decomp_scnp orders ctxt =
 (* Method setup *)
 
 val orders =
-  (Scan.repeat1
+  Scan.repeat1
     ((Args.$$$ "max" >> K MAX) ||
      (Args.$$$ "min" >> K MIN) ||
      (Args.$$$ "ms" >> K MS))
-  || Scan.succeed [MAX, MS, MIN])
+  || Scan.succeed [MAX, MS, MIN]
 
-val setup = Method.add_method
-  ("sizechange", Method.sectioned_args (Scan.lift orders) clasimp_modifiers decomp_scnp,
-   "termination prover with graph decomposition and the NP subset of size change termination")
+val setup = Method.setup @{binding sizechange}
+  (Scan.lift orders --| Method.sections clasimp_modifiers >> decomp_scnp)
+  "termination prover with graph decomposition and the NP subset of size change termination"
 
 end
