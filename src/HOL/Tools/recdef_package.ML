@@ -170,7 +170,7 @@ fun prepare_hints thy opt_src =
     val ctxt =
       (case opt_src of
         NONE => ctxt0
-      | SOME src => Method.only_sectioned_args recdef_modifiers I src ctxt0);
+      | SOME src => #2 (Method.syntax (Method.sections recdef_modifiers) src ctxt0));
     val {simps, congs, wfs} = get_hints ctxt;
     val cs = local_claset_of ctxt;
     val ss = local_simpset_of ctxt addsimps simps;
