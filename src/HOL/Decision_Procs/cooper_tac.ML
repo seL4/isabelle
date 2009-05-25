@@ -2,7 +2,14 @@
     Author:     Amine Chaieb, TU Muenchen
 *)
 
-structure Cooper_Tac =
+signature COOPER_TAC =
+sig
+  val trace: bool ref
+  val linz_tac: Proof.context -> bool -> int -> tactic
+  val setup: theory -> theory
+end
+
+structure Cooper_Tac: COOPER_TAC =
 struct
 
 val trace = ref false;
@@ -33,7 +40,7 @@ val mod_add_eq = @{thm mod_add_eq} RS sym;
 val nat_div_add_eq = @{thm div_add1_eq} RS sym;
 val int_div_add_eq = @{thm zdiv_zadd1_eq} RS sym;
 
-fun prepare_for_linz q fm = 
+fun prepare_for_linz q fm =
   let
     val ps = Logic.strip_params fm
     val hs = map HOLogic.dest_Trueprop (Logic.strip_assums_hyp fm)
@@ -66,8 +73,8 @@ fun linz_tac ctxt q i = ObjectLogic.atomize_prems_tac i THEN (fn st =>
     (* Transform the term*)
     val (t,np,nh) = prepare_for_linz q g
     (* Some simpsets for dealing with mod div abs and nat*)
-    val mod_div_simpset = HOL_basic_ss 
-			addsimps [refl,mod_add_eq, mod_add_left_eq, 
+    val mod_div_simpset = HOL_basic_ss
+			addsimps [refl,mod_add_eq, mod_add_left_eq,
 				  mod_add_right_eq,
 				  nat_div_add_eq, int_div_add_eq,
 				  @{thm mod_self}, @{thm "zmod_self"},
@@ -105,30 +112,24 @@ fun linz_tac ctxt q i = ObjectLogic.atomize_prems_tac i THEN (fn st =>
     val (th, tac) = case (prop_of pre_thm) of
         Const ("==>", _) $ (Const ("Trueprop", _) $ t1) $ _ =>
     let val pth = linzqe_oracle (cterm_of thy (Pattern.eta_long [] t1))
-    in 
+    in
           ((pth RS iffD2) RS pre_thm,
             assm_tac (i + 1) THEN (if q then I else TRY) (rtac TrueI i))
     end
       | _ => (pre_thm, assm_tac i)
-  in (rtac (((mp_step nh) o (spec_step np)) th) i 
+  in (rtac (((mp_step nh) o (spec_step np)) th) i
       THEN tac) st
   end handle Subscript => no_tac st);
 
-fun linz_args meth =
- let val parse_flag = 
-         Args.$$$ "no_quantify" >> (K (K false));
- in
-   Method.simple_args 
-  (Scan.optional (Args.$$$ "(" |-- Scan.repeat1 parse_flag --| Args.$$$ ")") [] >>
-    curry (Library.foldl op |>) true)
-    (fn q => fn ctxt => meth ctxt q)
-  end;
-
-fun linz_method ctxt q = SIMPLE_METHOD' (linz_tac ctxt q);
-
 val setup =
-  Method.add_method ("cooper",
-     linz_args linz_method,
-     "decision procedure for linear integer arithmetic");
+  Method.setup @{binding cooper}
+    let
+      val parse_flag = Args.$$$ "no_quantify" >> K (K false)
+    in
+      Scan.lift (Scan.optional (Args.$$$ "(" |-- Scan.repeat1 parse_flag --| Args.$$$ ")") [] >>
+        curry (Library.foldl op |>) true) >>
+      (fn q => fn ctxt => SIMPLE_METHOD' (linz_tac ctxt q))
+    end
+    "decision procedure for linear integer arithmetic";
 
 end
