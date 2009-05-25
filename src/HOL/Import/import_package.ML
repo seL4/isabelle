@@ -1,13 +1,12 @@
 (*  Title:      HOL/Import/import_package.ML
-    ID:         $Id$
     Author:     Sebastian Skalberg (TU Muenchen)
 *)
 
 signature IMPORT_PACKAGE =
 sig
-    val import_meth: Method.src -> Proof.context -> Proof.method
-    val setup      : theory -> theory
     val debug      : bool ref
+    val import_tac : Proof.context -> string * string -> tactic
+    val setup      : theory -> theory
 end
 
 structure ImportData = TheoryDataFun
@@ -25,20 +24,16 @@ struct
 val debug = ref false
 fun message s = if !debug then writeln s else ()
 
-val string_of_thm = PrintMode.setmp [] Display.string_of_thm;
-val string_of_cterm = PrintMode.setmp [] Display.string_of_cterm;
-
-fun import_tac (thyname,thmname) =
+fun import_tac ctxt (thyname, thmname) =
     if ! quick_and_dirty
     then SkipProof.cheat_tac
     else
-     fn thy =>
      fn th =>
         let
-            val sg = Thm.theory_of_thm th
+            val thy = ProofContext.theory_of ctxt
             val prem = hd (prems_of th)
-            val _ = message ("Import_tac: thyname="^thyname^", thmname="^thmname)
-            val _ = message ("Import trying to prove " ^ (string_of_cterm (cterm_of sg prem)))
+            val _ = message ("Import_tac: thyname=" ^ thyname ^ ", thmname=" ^ thmname)
+            val _ = message ("Import trying to prove " ^ Syntax.string_of_term ctxt prem)
             val int_thms = case ImportData.get thy of
                                NONE => fst (Replay.setup_int_thms thyname thy)
                              | SOME a => a
@@ -49,9 +44,9 @@ fun import_tac (thyname,thmname) =
             val thm = equal_elim rew thm
             val prew = ProofKernel.rewrite_hol4_term prem thy
             val prem' = #2 (Logic.dest_equals (prop_of prew))
-            val _ = message ("Import proved " ^ (string_of_thm thm))
+            val _ = message ("Import proved " ^ Display.string_of_thm thm)
             val thm = ProofKernel.disambiguate_frees thm
-            val _ = message ("Disambiguate: " ^ (string_of_thm thm))
+            val _ = message ("Disambiguate: " ^ Display.string_of_thm thm)
         in
             case Shuffler.set_prop thy prem' [("",thm)] of
                 SOME (_,thm) =>
@@ -67,15 +62,10 @@ fun import_tac (thyname,thmname) =
               | NONE => (message "import: set_prop didn't succeed"; no_tac th)
         end
 
-val import_meth = Method.simple_args (Args.name -- Args.name)
-                  (fn arg =>
-                   fn ctxt =>
-                      let
-                          val thy = ProofContext.theory_of ctxt
-                      in
-                          SIMPLE_METHOD (import_tac arg thy)
-                      end)
+val setup = Method.setup @{binding import}
+  (Scan.lift (Args.name -- Args.name) >>
+    (fn arg => fn ctxt => SIMPLE_METHOD (import_tac ctxt arg)))
+  "import HOL4 theorem"
 
-val setup = Method.add_method("import",import_meth,"Import HOL4 theorem")
 end
 

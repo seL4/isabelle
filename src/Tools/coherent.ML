@@ -1,6 +1,6 @@
 (*  Title:      Tools/coherent.ML
     Author:     Stefan Berghofer, TU Muenchen
-    Author:     Marc Bezem, Institutt for Informatikk, Universitetet i Bergen 
+    Author:     Marc Bezem, Institutt for Informatikk, Universitetet i Bergen
 
 Prover for coherent logic, see e.g.
 
@@ -22,13 +22,14 @@ signature COHERENT =
 sig
   val verbose: bool ref
   val show_facts: bool ref
-  val coherent_tac: thm list -> Proof.context -> int -> tactic
-  val coherent_meth: thm list -> Proof.context -> Proof.method
+  val coherent_tac: Proof.context -> thm list -> int -> tactic
   val setup: theory -> theory
 end;
 
 functor CoherentFun(Data: COHERENT_DATA) : COHERENT =
 struct
+
+(** misc tools **)
 
 val verbose = ref false;
 
@@ -170,6 +171,7 @@ and valid_cases ctxt rules goal dom facts nfacts nparams [] = SOME []
           | SOME prfs => SOME ((params, prf) :: prfs))
       end;
 
+
 (** proof replaying **)
 
 fun thm_of_cl_prf thy goal asms (ClPrf (th, (tye, env), insts, is, prfs)) =
@@ -210,7 +212,7 @@ and thm_of_case_prf thy goal asms ((params, prf), (_, asms')) =
 
 (** external interface **)
 
-fun coherent_tac rules ctxt = SUBPROOF (fn {prems, concl, params, context, ...} =>
+fun coherent_tac ctxt rules = SUBPROOF (fn {prems, concl, params, context, ...} =>
   rtac (rulify_elim_conv concl RS equal_elim_rule2) 1 THEN
   SUBPROOF (fn {prems = prems', concl, context, ...} =>
     let val xs = map term_of params @
@@ -224,10 +226,9 @@ fun coherent_tac rules ctxt = SUBPROOF (fn {prems, concl, params, context, ...} 
            rtac (thm_of_cl_prf (ProofContext.theory_of context) concl [] prf) 1
     end) context 1) ctxt;
 
-fun coherent_meth rules ctxt =
-  METHOD (fn facts => coherent_tac (facts @ rules) ctxt 1);
-
-val setup = Method.add_method
-  ("coherent", Method.thms_ctxt_args coherent_meth, "prove coherent formula");
+val setup = Method.setup @{binding coherent}
+  (Attrib.thms >> (fn rules => fn ctxt =>
+      METHOD (fn facts => HEADGOAL (coherent_tac ctxt (facts @ rules)))))
+    "prove coherent formula";
 
 end;
