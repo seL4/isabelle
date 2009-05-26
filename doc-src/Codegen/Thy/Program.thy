@@ -204,7 +204,7 @@ text {*
   interface.
 
   \noindent The current setup of the preprocessor may be inspected using
-  the @{command print_codesetup} command.
+  the @{command print_codeproc} command.
   @{command code_thms} provides a convenient
   mechanism to inspect the impact of a preprocessor setup
   on code equations.

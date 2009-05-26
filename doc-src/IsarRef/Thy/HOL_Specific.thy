@@ -1065,6 +1065,7 @@ text {*
     @{command_def (HOL) "code_modulename"} & : & @{text "theory \<rightarrow> theory"} \\
     @{command_def (HOL) "code_abort"} & : & @{text "theory \<rightarrow> theory"} \\
     @{command_def (HOL) "print_codesetup"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow>"} \\
+    @{command_def (HOL) "print_codeproc"}@{text "\<^sup>*"} & : & @{text "context \<rightarrow>"} \\
     @{attribute_def (HOL) code} & : & @{text attribute} \\
   \end{matharray}
 
@@ -1228,8 +1229,10 @@ text {*
   preprocessing.
 
   \item @{command (HOL) "print_codesetup"} gives an overview on
-  selected code equations, code generator datatypes and
-  preprocessor setup.
+  selected code equations and code generator datatypes.
+
+  \item @{command (HOL) "print_codeproc"} prints the setup
+  of the code generator preprocessor.
 
   \end{description}
 *}
