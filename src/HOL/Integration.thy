@@ -66,6 +66,20 @@ apply (drule_tac x="e/2" in spec)
 apply force
 done
 
+lemma rsum_zero [simp]: "rsum (D,p) (\<lambda>x. 0) = 0"
+unfolding rsum_def by simp
+
+lemma rsum_left_distrib: "rsum (D,p) f * c = rsum (D,p) (\<lambda>x. f x * c)"
+unfolding rsum_def
+by (simp add: setsum_left_distrib setsum_right_distrib algebra_simps)
+
+lemma rsum_right_distrib: "c * rsum (D,p) f = rsum (D,p) (\<lambda>x. c * f x)"
+unfolding rsum_def
+by (simp add: setsum_left_distrib setsum_right_distrib algebra_simps)
+
+lemma rsum_add: "rsum (D, p) (%x. f x + g x) =  rsum (D, p) f + rsum(D, p) g"
+by (simp add: rsum_def setsum_addf left_distrib)
+
 lemma psize_unique:
   assumes 1: "\<forall>n < N. D(n) < D(Suc n)"
   assumes 2: "\<forall>n \<ge> N. D(n) = D(N)"
@@ -365,16 +379,15 @@ lemma Integral_mult:
      "[| a \<le> b; Integral(a,b) f k |] ==> Integral(a,b) (%x. c * f x) (c * k)"
 apply (auto simp add: order_le_less 
             dest: Integral_unique [OF order_refl Integral_zero])
-apply (auto simp add: rsum_def Integral_def setsum_right_distrib[symmetric] mult_assoc)
-apply (rule_tac a2 = c in abs_ge_zero [THEN order_le_imp_less_or_eq, THEN disjE])
- prefer 2 apply force
-apply (drule_tac x = "e/abs c" in spec, auto)
-apply (simp add: zero_less_mult_iff divide_inverse)
-apply (rule exI, auto)
-apply (drule spec)+
-apply auto
-apply (rule_tac z1 = "inverse (abs c)" in real_mult_less_iff1 [THEN iffD1])
-apply (auto simp add: abs_mult divide_inverse [symmetric] right_diff_distrib [symmetric])
+apply (auto simp add: Integral_def setsum_right_distrib[symmetric] mult_assoc)
+apply (case_tac "c = 0", force)
+apply (drule_tac x = "e/abs c" in spec)
+apply (simp add: divide_pos_pos)
+apply clarify
+apply (rule_tac x="g" in exI, clarify)
+apply (drule_tac x="D" in spec, drule_tac x="p" in spec)
+apply (simp add: pos_less_divide_eq abs_mult [symmetric]
+                 algebra_simps rsum_right_distrib)
 done
 
 text{*Fundamental theorem of calculus (Part I)*}
@@ -758,9 +771,6 @@ apply (erule partition_lt_gen [THEN order_less_imp_le])
 apply arith
 apply arith
 done
-
-lemma rsum_add: "rsum (D, p) (%x. f x + g x) =  rsum (D, p) f + rsum(D, p) g"
-by (simp add: rsum_def setsum_addf left_distrib)
 
 text{* Bartle/Sherbert: Theorem 10.1.5 p. 278 *}
 lemma Integral_add_fun:
