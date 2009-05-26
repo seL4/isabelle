@@ -32,8 +32,8 @@ definition
   --{*Gauges and gauge-fine divisions*}
 
 definition
-  gauge :: "[real => bool, real => real] => bool" where
-  [code del]:"gauge E g = (\<forall>x. E x --> 0 < g(x))"
+  gauge :: "[real set, real => real] => bool" where
+  [code del]:"gauge E g = (\<forall>x\<in>E. 0 < g(x))"
 
 definition
   fine :: "[real => real, ((nat => real)*(nat => real))] => bool" where
@@ -50,13 +50,13 @@ definition
 definition
   Integral :: "[(real*real),real=>real,real] => bool" where
   [code del]: "Integral = (%(a,b) f k. \<forall>e > 0.
-                               (\<exists>g. gauge(%x. a \<le> x & x \<le> b) g &
+                               (\<exists>g. gauge {a..b} g &
                                (\<forall>D p. tpart(a,b) (D,p) & fine(g)(D,p) -->
                                          \<bar>rsum(D,p) f - k\<bar> < e)))"
 
 
 lemma Integral_def2:
-  "Integral = (%(a,b) f k. \<forall>e>0. (\<exists>g. gauge(%x. a \<le> x & x \<le> b) g &
+  "Integral = (%(a,b) f k. \<forall>e>0. (\<exists>g. gauge {a..b} g &
                                (\<forall>D p. tpart(a,b) (D,p) & fine(g)(D,p) -->
                                          \<bar>rsum(D,p) f - k\<bar> \<le> e)))"
 unfolding Integral_def
@@ -288,7 +288,7 @@ done
 text{*We can always find a division that is fine wrt any gauge*}
 
 lemma partition_exists:
-     "[| a \<le> b; gauge(%x. a \<le> x & x \<le> b) g |]
+     "[| a \<le> b; gauge {a..b} g |]
       ==> \<exists>D p. tpart(a,b) (D,p) & fine g (D,p)"
 apply (cut_tac P = "%(u,v). a \<le> u & v \<le> b --> 
                    (\<exists>D p. tpart (u,v) (D,p) & fine (g) (D,p))" 
@@ -381,23 +381,13 @@ text{*Fundamental theorem of calculus (Part I)*}
 
 text{*"Straddle Lemma" : Swartz and Thompson: AMM 95(7) 1988 *}
 
-lemma choiceP: "\<forall>x. P(x) --> (\<exists>y. Q x y) ==> \<exists>f. (\<forall>x. P(x) --> Q x (f x))" 
-by (insert bchoice [of "Collect P" Q], simp) 
-
-(*UNUSED
-lemma choice2: "\<forall>x. (\<exists>y. R(y) & (\<exists>z. Q x y z)) ==>
-      \<exists>f fa. (\<forall>x. R(f x) & Q x (f x) (fa x))"
-*)
-
-
 lemma strad1:
        "\<lbrakk>\<forall>z::real. z \<noteq> x \<and> \<bar>z - x\<bar> < s \<longrightarrow>
              \<bar>(f z - f x) / (z - x) - f' x\<bar> < e/2;
         0 < s; 0 < e; a \<le> x; x \<le> b\<rbrakk>
        \<Longrightarrow> \<forall>z. \<bar>z - x\<bar> < s -->\<bar>f z - f x - f' x * (z - x)\<bar> \<le> e/2 * \<bar>z - x\<bar>"
 apply clarify
-apply (case_tac "0 < \<bar>z - x\<bar>")
- prefer 2 apply (simp add: zero_less_abs_iff)
+apply (case_tac "z = x", simp)
 apply (drule_tac x = z in spec)
 apply (rule_tac z1 = "\<bar>inverse (z - x)\<bar>" 
        in real_mult_le_cancel_iff2 [THEN iffD1])
@@ -415,14 +405,14 @@ done
 
 lemma lemma_straddle:
   assumes f': "\<forall>x. a \<le> x & x \<le> b --> DERIV f x :> f'(x)" and "0 < e"
-  shows "\<exists>g. gauge(%x. a \<le> x & x \<le> b) g &
+  shows "\<exists>g. gauge {a..b} g &
                 (\<forall>x u v. a \<le> u & u \<le> x & x \<le> v & v \<le> b & (v - u) < g(x)
                   --> \<bar>(f(v) - f(u)) - (f'(x) * (v - u))\<bar> \<le> e * (v - u))"
 proof -
-  have "\<forall>x. a \<le> x & x \<le> b --> 
+  have "\<forall>x\<in>{a..b}.
         (\<exists>d > 0. \<forall>u v. u \<le> x & x \<le> v & (v - u) < d --> 
                        \<bar>(f(v) - f(u)) - (f'(x) * (v - u))\<bar> \<le> e * (v - u))"
-  proof (clarify)
+  proof (clarsimp)
     fix x :: real assume "a \<le> x" and "x \<le> b"
     with f' have "DERIV f x :> f'(x)" by simp
     then have "\<forall>r>0. \<exists>s>0. \<forall>z. z \<noteq> x \<and> \<bar>z - x\<bar> < s \<longrightarrow> \<bar>(f z - f x) / (z - x) - f' x\<bar> < r"
@@ -455,7 +445,7 @@ proof -
     qed
   qed
   thus ?thesis
-    by (simp add: gauge_def) (drule choiceP, auto)
+    by (simp add: gauge_def) (drule bchoice, auto)
 qed
 
 lemma FTC1: "[|a \<le> b; \<forall>x. a \<le> x & x \<le> b --> DERIV f x :> f'(x) |]
@@ -724,7 +714,7 @@ apply (drule (1) partition_lt_cancel, arith)
 done
 
 lemma fine_left1:
-     "[| a \<le> D n; tpart (a, b) (D, p); gauge (%x. a \<le> x & x \<le> D n) g;
+     "[| a \<le> D n; tpart (a, b) (D, p); gauge {a..D n} g;
          fine (%x. if x < D n then min (g x) ((D n - x)/ 2)
                  else if x = D n then min (g (D n)) (ga (D n))
                       else min (ga x) ((x - D n)/ 2)) (D, p) |]
@@ -746,7 +736,7 @@ apply (rule_tac x = "N - n" in exI, auto)
 done
 
 lemma fine_right1:
-     "[| a \<le> D n; tpart (a, b) (D, p); gauge (%x. D n \<le> x & x \<le> b) ga;
+     "[| a \<le> D n; tpart (a, b) (D, p); gauge {D n..b} ga;
          fine (%x. if x < D n then min (g x) ((D n - x)/ 2)
                  else if x = D n then min (g (D n)) (ga (D n))
                       else min (ga x) ((x - D n)/ 2)) (D, p) |]
@@ -842,7 +832,7 @@ done
 
 lemma Integral_imp_Cauchy:
      "(\<exists>k. Integral(a,b) f k) ==>
-      (\<forall>e > 0. \<exists>g. gauge (%x. a \<le> x & x \<le> b) g &
+      (\<forall>e > 0. \<exists>g. gauge {a..b} g &
                        (\<forall>D1 D2 p1 p2.
                             tpart(a,b) (D1, p1) & fine g (D1,p1) &
                             tpart(a,b) (D2, p2) & fine g (D2,p2) -->
@@ -871,7 +861,7 @@ apply (drule_tac x = na in spec, auto)
 done
 
 lemma partition_exists2:
-     "[| a \<le> b; \<forall>n. gauge (%x. a \<le> x & x \<le> b) (fa n) |]
+     "[| a \<le> b; \<forall>n. gauge {a..b} (fa n) |]
       ==> \<forall>n. \<exists>D p. tpart (a, b) (D, p) & fine (fa n) (D, p)"
 by (blast dest: partition_exists) 
 
