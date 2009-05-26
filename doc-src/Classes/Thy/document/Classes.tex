@@ -922,15 +922,25 @@ We introduced Isar classes by analogy to type classes
 %
 \endisadelimquote
 %
+\begin{isamarkuptext}%
+\noindent This pattern is also helpful to reuse abstract
+  specifications on the \emph{same} type.  For example, think of a
+  class \isa{preorder}; for type \isa{nat}, there are at least two
+  possible instances: the natural order or the order induced by the
+  divides relation.  But only one of these instances can be used for
+  \hyperlink{command.instantiation}{\mbox{\isa{\isacommand{instantiation}}}}; using the locale behind the class \isa{preorder}, it is still possible to utilise the same abstract
+  specification again using \hyperlink{command.interpretation}{\mbox{\isa{\isacommand{interpretation}}}}.%
+\end{isamarkuptext}%
+\isamarkuptrue%
+%
 \isamarkupsubsection{Additional subclass relations%
 }
 \isamarkuptrue%
 %
 \begin{isamarkuptext}%
-Any \isa{group} is also a \isa{monoid};  this
-  can be made explicit by claiming an additional
-  subclass relation,
-  together with a proof of the logical difference:%
+Any \isa{group} is also a \isa{monoid}; this can be made
+  explicit by claiming an additional subclass relation, together with
+  a proof of the logical difference:%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %
@@ -1038,7 +1048,7 @@ The logical proof is carried out on the locale level.
 \isamarkuptrue%
 %
 \begin{isamarkuptext}%
-As a commodity, class context syntax allows to refer
+As a convenience, class context syntax allows to refer
   to local class operations and their global counterparts
   uniformly;  type inference resolves ambiguities.  For example:%
 \end{isamarkuptext}%

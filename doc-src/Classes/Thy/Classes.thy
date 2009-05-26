@@ -485,14 +485,23 @@ proof -
   qed
 qed intro_locales
 
+text {*
+  \noindent This pattern is also helpful to reuse abstract
+  specifications on the \emph{same} type.  For example, think of a
+  class @{text preorder}; for type @{typ nat}, there are at least two
+  possible instances: the natural order or the order induced by the
+  divides relation.  But only one of these instances can be used for
+  @{command instantiation}; using the locale behind the class @{text
+  preorder}, it is still possible to utilise the same abstract
+  specification again using @{command interpretation}.
+*}
 
 subsection {* Additional subclass relations *}
 
 text {*
-  Any @{text "group"} is also a @{text "monoid"};  this
-  can be made explicit by claiming an additional
-  subclass relation,
-  together with a proof of the logical difference:
+  Any @{text "group"} is also a @{text "monoid"}; this can be made
+  explicit by claiming an additional subclass relation, together with
+  a proof of the logical difference:
 *}
 
 subclass %quote (in group) monoid
@@ -559,7 +568,7 @@ text {*
 subsection {* A note on syntax *}
 
 text {*
-  As a commodity, class context syntax allows to refer
+  As a convenience, class context syntax allows to refer
   to local class operations and their global counterparts
   uniformly;  type inference resolves ambiguities.  For example:
 *}
