@@ -244,6 +244,7 @@ MAIN_DEPENDENCIES = $(PLAIN_DEPENDENCIES) \
   Tools/numeral_simprocs.ML \
   Tools/numeral_syntax.ML \
   Tools/polyhash.ML \
+  Tools/quickcheck_generators.ML \
   Tools/Qelim/cooper_data.ML \
   Tools/Qelim/cooper.ML \
   Tools/Qelim/generated_cooper.ML \
