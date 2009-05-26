@@ -119,7 +119,7 @@ proof -
 qed
 
 lemma select_weigth_drop_zero:
-  "Random.select_weight (filter (\<lambda>(k, _). k > 0) xs) = Random.select_weight xs"
+  "select_weight (filter (\<lambda>(k, _). k > 0) xs) = select_weight xs"
 proof -
   have "listsum (map fst [(k, _)\<leftarrow>xs . 0 < k]) = listsum (map fst xs)"
     by (induct xs) auto
@@ -128,9 +128,9 @@ qed
 
 lemma select_weigth_select:
   assumes "xs \<noteq> []"
-  shows "Random.select_weight (map (Pair 1) xs) = Random.select xs"
+  shows "select_weight (map (Pair 1) xs) = select xs"
 proof -
-  have less: "\<And>s. fst (Random.range (Code_Numeral.of_nat (length xs)) s) < Code_Numeral.of_nat (length xs)"
+  have less: "\<And>s. fst (range (Code_Numeral.of_nat (length xs)) s) < Code_Numeral.of_nat (length xs)"
     using assms by (intro range) simp
   moreover have "listsum (map fst (map (Pair 1) xs)) = Code_Numeral.of_nat (length xs)"
     by (induct xs) simp_all
