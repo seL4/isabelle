@@ -55,6 +55,17 @@ definition
                                          \<bar>rsum(D,p) f - k\<bar> < e)))"
 
 
+lemma Integral_def2:
+  "Integral = (%(a,b) f k. \<forall>e>0. (\<exists>g. gauge(%x. a \<le> x & x \<le> b) g &
+                               (\<forall>D p. tpart(a,b) (D,p) & fine(g)(D,p) -->
+                                         \<bar>rsum(D,p) f - k\<bar> \<le> e)))"
+unfolding Integral_def
+apply (safe intro!: ext)
+apply (fast intro: less_imp_le)
+apply (drule_tac x="e/2" in spec)
+apply force
+done
+
 lemma psize_unique:
   assumes 1: "\<forall>n < N. D(n) < D(Suc n)"
   assumes 2: "\<forall>n \<ge> N. D(n) = D(N)"
@@ -379,14 +390,12 @@ lemma choice2: "\<forall>x. (\<exists>y. R(y) & (\<exists>z. Q x y z)) ==>
 *)
 
 
-(* new simplifications e.g. (y < x/n) = (y * n < x) are a real nuisance
-   they break the original proofs and make new proofs longer!*)
 lemma strad1:
-       "\<lbrakk>\<forall>xa::real. xa \<noteq> x \<and> \<bar>xa - x\<bar> < s \<longrightarrow>
-             \<bar>(f xa - f x) / (xa - x) - f' x\<bar> * 2 < e;
-        0 < e; a \<le> x; x \<le> b; 0 < s\<rbrakk>
-       \<Longrightarrow> \<forall>z. \<bar>z - x\<bar> < s -->\<bar>f z - f x - f' x * (z - x)\<bar> * 2 \<le> e * \<bar>z - x\<bar>"
-apply auto
+       "\<lbrakk>\<forall>z::real. z \<noteq> x \<and> \<bar>z - x\<bar> < s \<longrightarrow>
+             \<bar>(f z - f x) / (z - x) - f' x\<bar> < e/2;
+        0 < s; 0 < e; a \<le> x; x \<le> b\<rbrakk>
+       \<Longrightarrow> \<forall>z. \<bar>z - x\<bar> < s -->\<bar>f z - f x - f' x * (z - x)\<bar> \<le> e/2 * \<bar>z - x\<bar>"
+apply clarify
 apply (case_tac "0 < \<bar>z - x\<bar>")
  prefer 2 apply (simp add: zero_less_abs_iff)
 apply (drule_tac x = z in spec)
@@ -405,68 +414,75 @@ apply (simp add: left_distrib)
 done
 
 lemma lemma_straddle:
-     "[| \<forall>x. a \<le> x & x \<le> b --> DERIV f x :> f'(x); 0 < e |]
-      ==> \<exists>g. gauge(%x. a \<le> x & x \<le> b) g &
+  assumes f': "\<forall>x. a \<le> x & x \<le> b --> DERIV f x :> f'(x)" and "0 < e"
+  shows "\<exists>g. gauge(%x. a \<le> x & x \<le> b) g &
                 (\<forall>x u v. a \<le> u & u \<le> x & x \<le> v & v \<le> b & (v - u) < g(x)
                   --> \<bar>(f(v) - f(u)) - (f'(x) * (v - u))\<bar> \<le> e * (v - u))"
-apply (simp add: gauge_def)
-apply (subgoal_tac "\<forall>x. a \<le> x & x \<le> b --> 
+proof -
+  have "\<forall>x. a \<le> x & x \<le> b --> 
         (\<exists>d > 0. \<forall>u v. u \<le> x & x \<le> v & (v - u) < d --> 
-                       \<bar>(f (v) - f (u)) - (f' (x) * (v - u))\<bar> \<le> e * (v - u))")
-apply (drule choiceP, auto)
-apply (drule spec, auto)
-apply (auto simp add: DERIV_iff2 LIM_def)
-apply (drule_tac x = "e/2" in spec, auto)
-apply (frule strad1, assumption+)
-apply (rule_tac x = s in exI, auto)
-apply (rule_tac x = u and y = v in linorder_cases, auto)
-apply (rule_tac y = "\<bar>(f (v) - f (x)) - (f' (x) * (v - x))\<bar> + 
-                     \<bar>(f (x) - f (u)) - (f' (x) * (x - u))\<bar>"
-       in order_trans)
-apply (rule abs_triangle_ineq [THEN [2] order_trans])
-apply (simp add: right_diff_distrib)
-apply (rule_tac t = "e* (v - u)" in real_sum_of_halves [THEN subst])
-apply (rule add_mono)
-apply (rule_tac y = "(e/2) * \<bar>v - x\<bar>" in order_trans)
- prefer 2 apply simp
-apply (erule_tac [!] V= "\<forall>x'. x' ~= x & \<bar>x' - x\<bar> < s --> ?P x'" in thin_rl)
-apply (drule_tac x = v in spec, simp add: times_divide_eq)
-apply (drule_tac x = u in spec, auto)
-apply (subgoal_tac "\<bar>f u - f x - f' x * (u - x)\<bar> = \<bar>f x - f u - f' x * (x - u)\<bar>")
-apply (rule order_trans)
-apply (auto simp add: abs_le_iff)
-apply (simp add: right_diff_distrib)
-done
+                       \<bar>(f(v) - f(u)) - (f'(x) * (v - u))\<bar> \<le> e * (v - u))"
+  proof (clarify)
+    fix x :: real assume "a \<le> x" and "x \<le> b"
+    with f' have "DERIV f x :> f'(x)" by simp
+    then have "\<forall>r>0. \<exists>s>0. \<forall>z. z \<noteq> x \<and> \<bar>z - x\<bar> < s \<longrightarrow> \<bar>(f z - f x) / (z - x) - f' x\<bar> < r"
+      by (simp add: DERIV_iff2 LIM_def)
+    with `0 < e` obtain s
+    where "\<forall>z. z \<noteq> x \<and> \<bar>z - x\<bar> < s \<longrightarrow> \<bar>(f z - f x) / (z - x) - f' x\<bar> < e/2" and "0 < s"
+      by (drule_tac x="e/2" in spec, auto)
+    then have strad [rule_format]:
+        "\<forall>z. \<bar>z - x\<bar> < s --> \<bar>f z - f x - f' x * (z - x)\<bar> \<le> e/2 * \<bar>z - x\<bar>"
+      using `0 < e` `a \<le> x` `x \<le> b` by (rule strad1)
+    show "\<exists>d>0. \<forall>u v. u \<le> x \<and> x \<le> v \<and> v - u < d \<longrightarrow> \<bar>f v - f u - f' x * (v - u)\<bar> \<le> e * (v - u)"
+    proof (safe intro!: exI)
+      show "0 < s" by fact
+    next
+      fix u v :: real assume "u \<le> x" and "x \<le> v" and "v - u < s"
+      have "\<bar>f v - f u - f' x * (v - u)\<bar> =
+            \<bar>(f v - f x - f' x * (v - x)) + (f x - f u - f' x * (x - u))\<bar>"
+        by (simp add: right_diff_distrib)
+      also have "\<dots> \<le> \<bar>f v - f x - f' x * (v - x)\<bar> + \<bar>f x - f u - f' x * (x - u)\<bar>"
+        by (rule abs_triangle_ineq)
+      also have "\<dots> = \<bar>f v - f x - f' x * (v - x)\<bar> + \<bar>f u - f x - f' x * (u - x)\<bar>"
+        by (simp add: right_diff_distrib)
+      also have "\<dots> \<le> (e/2) * \<bar>v - x\<bar> + (e/2) * \<bar>u - x\<bar>"
+        using `u \<le> x` `x \<le> v` `v - u < s` by (intro add_mono strad, simp_all)
+      also have "\<dots> \<le> e * (v - u) / 2 + e * (v - u) / 2"
+        using `u \<le> x` `x \<le> v` `0 < e` by (intro add_mono, simp_all)
+      also have "\<dots> = e * (v - u)"
+        by simp
+      finally show "\<bar>f v - f u - f' x * (v - u)\<bar> \<le> e * (v - u)" .
+    qed
+  qed
+  thus ?thesis
+    by (simp add: gauge_def) (drule choiceP, auto)
+qed
 
 lemma FTC1: "[|a \<le> b; \<forall>x. a \<le> x & x \<le> b --> DERIV f x :> f'(x) |]
              ==> Integral(a,b) f' (f(b) - f(a))"
-apply (drule order_le_imp_less_or_eq, auto) 
-apply (auto simp add: Integral_def)
-apply (rule ccontr)
-apply (subgoal_tac "\<forall>e > 0. \<exists>g. gauge (%x. a \<le> x & x \<le> b) g & (\<forall>D p. tpart (a, b) (D, p) & fine g (D, p) --> \<bar>rsum (D, p) f' - (f b - f a)\<bar> \<le> e)")
-apply (rotate_tac 3)
-apply (drule_tac x = "e/2" in spec, auto)
-apply (drule spec, auto)
-apply ((drule spec)+, auto)
-apply (drule_tac e = "ea/ (b - a)" in lemma_straddle)
-apply (auto simp add: zero_less_divide_iff)
-apply (rule exI)
-apply (auto simp add: tpart_def rsum_def)
-apply (subgoal_tac "(\<Sum>n=0..<psize D. f(D(Suc n)) - f(D n)) = f b - f a")
- prefer 2
- apply (cut_tac D = "%n. f (D n)" and m = "psize D"
+ apply (drule order_le_imp_less_or_eq, auto)
+ apply (auto simp add: Integral_def2)
+ apply (drule_tac e = "e / (b - a)" in lemma_straddle)
+  apply (simp add: divide_pos_pos)
+ apply clarify
+ apply (rule_tac x="g" in exI, clarify)
+ apply (clarsimp simp add: tpart_def rsum_def)
+ apply (subgoal_tac "(\<Sum>n=0..<psize D. f(D(Suc n)) - f(D n)) = f b - f a")
+  prefer 2
+  apply (cut_tac D = "%n. f (D n)" and m = "psize D"
         in sumr_partition_eq_diff_bounds)
+  apply (simp add: partition_lhs partition_rhs)
+ apply (erule subst)
+ apply (subst setsum_subtractf [symmetric])
+ apply (rule setsum_abs [THEN order_trans])
+ apply (subgoal_tac "e = (\<Sum>n=0..<psize D. (e / (b - a)) * (D (Suc n) - (D n)))")
+  apply (erule ssubst)
+  apply (simp add: abs_minus_commute)
+  apply (rule setsum_mono)
+  apply (simp add: partition_lb partition_ub fine_def)
+ apply (subst setsum_right_distrib [symmetric])
+ apply (subst sumr_partition_eq_diff_bounds)
  apply (simp add: partition_lhs partition_rhs)
-apply (drule sym, simp)
-apply (simp (no_asm) add: setsum_subtractf[symmetric])
-apply (rule setsum_abs [THEN order_trans])
-apply (subgoal_tac "ea = (\<Sum>n=0..<psize D. (ea / (b - a)) * (D (Suc n) - (D n)))")
-apply (simp add: abs_minus_commute)
-apply (rule_tac t = ea in ssubst, assumption)
-apply (rule setsum_mono)
-apply (rule_tac [2] setsum_right_distrib [THEN subst])
-apply (auto simp add: partition_rhs partition_lhs partition_lb partition_ub
-          fine_def)
 done
 
 
