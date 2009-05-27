@@ -14,7 +14,7 @@ import javax.swing.text.Position
 import javax.swing.tree._
 
 abstract class MarkupInfo
-case class RootInfo extends MarkupInfo
+case class RootInfo() extends MarkupInfo
 case class OuterInfo(highlight: String) extends MarkupInfo {override def toString = highlight}
 case class HighlightInfo(highlight: String) extends MarkupInfo {override def toString = highlight}
 case class TypeInfo(type_kind: String) extends MarkupInfo {override def toString = type_kind}

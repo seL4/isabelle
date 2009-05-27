@@ -53,10 +53,10 @@ class Command(val tokens: List[Token], val starts: Map[Token, Int])
     if (st == Command.Status.UNPROCESSED) {
       state_results.clear
       // delete markup
-      markup_root.filter(_.info match {
+      markup_root = markup_root.filter(_.info match {
           case RootInfo() | OuterInfo(_) => true
           case _ => false
-        })
+        }).head
     }
     _status = st
   }
