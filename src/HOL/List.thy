@@ -1365,6 +1365,13 @@ lemma list_update_length [simp]:
  "(xs @ x # ys)[length xs := y] = (xs @ y # ys)"
 by (induct xs, auto)
 
+lemma map_update: "map f (xs[k:= y]) = (map f xs)[k := f y]"
+by(induct xs arbitrary: k)(auto split:nat.splits)
+
+lemma rev_update:
+  "k < length xs \<Longrightarrow> rev (xs[k:= y]) = (rev xs)[length xs - k - 1 := y]"
+by (induct xs arbitrary: k) (auto simp: list_update_append split:nat.splits)
+
 lemma update_zip:
   "(zip xs ys)[i:=xy] = zip (xs[i:=fst xy]) (ys[i:=snd xy])"
 by (induct ys arbitrary: i xy xs) (auto, case_tac xs, auto split: nat.split)
