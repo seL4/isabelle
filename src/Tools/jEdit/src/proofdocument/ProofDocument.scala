@@ -175,7 +175,7 @@ class ProofDocument(val id: String,
       tokens match {
         case Nil => Nil
         case t::ts =>
-          val (cmd,rest) = ts.span(_.kind != Token.Kind.COMMAND_START)
+          val (cmd,rest) = ts.span(t => t.kind != Token.Kind.COMMAND_START && t.kind != Token.Kind.COMMENT)
           new Command(t::cmd, new_token_start) :: tokens_to_commands (rest)
       }
     }

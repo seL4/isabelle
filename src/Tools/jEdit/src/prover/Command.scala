@@ -38,7 +38,7 @@ class Command(val tokens: List[Token], val starts: Map[Token, Int])
   override def toString = name
 
   val name = tokens.head.content
-  val content:String = Token.string_from_tokens(tokens.takeWhile(_.kind != Token.Kind.COMMENT), starts)
+  val content:String = Token.string_from_tokens(tokens, starts)
 
   def start(doc: ProofDocument) = doc.token_start(tokens.first)
   def stop(doc: ProofDocument) = doc.token_start(tokens.last) + tokens.last.length
