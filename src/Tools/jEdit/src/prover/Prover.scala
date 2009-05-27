@@ -211,7 +211,8 @@ class Prover(isabelle_system: IsabelleSystem, logic: String) extends Actor
                     val begin = get_attr(attr, Markup.OFFSET).map(_.toInt - 1)
                     val end = get_attr(attr, Markup.END_OFFSET).map(_.toInt - 1)
                     val markup_id = get_attr(attr, Markup.ID)
-                    if (!running && begin.isDefined && end.isDefined && markup_id.isDefined)
+                    val outer = isabelle.jedit.DynamicTokenMarker.is_outer(kind)
+                    if (outer && !running && begin.isDefined && end.isDefined && markup_id.isDefined)
                       commands.get(markup_id.get).map (cmd => {
                         cmd.markup_root += cmd.markup_node(begin.get, end.get, OuterInfo(kind))
                         command_change(cmd)

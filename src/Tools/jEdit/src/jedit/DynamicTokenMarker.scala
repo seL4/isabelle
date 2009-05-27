@@ -59,6 +59,10 @@ object DynamicTokenMarker {
     }
   }
 
+  def is_outer(kind: String) =
+    List(Markup.IDENT, Markup.COMMAND, Markup.KEYWORD, Markup.VERBATIM, Markup.COMMENT,
+         Markup.CONTROL, Markup.MALFORMED, Markup.STRING, Markup.ALTSTRING).exists(kind == _)
+
   def choose_color(kind : String, styles: Array[SyntaxStyle]) : Color =
     styles((choose_byte(kind).asInstanceOf[Byte])).getForegroundColor
 
