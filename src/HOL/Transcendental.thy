@@ -1252,30 +1252,31 @@ qed
 subsection {* Sine and Cosine *}
 
 definition
+  sin_coeff :: "nat \<Rightarrow> real" where
+  "sin_coeff = (\<lambda>n. if even n then 0 else -1 ^ ((n - Suc 0) div 2) / real (fact n))"
+
+definition
+  cos_coeff :: "nat \<Rightarrow> real" where
+  "cos_coeff = (\<lambda>n. if even n then (-1 ^ (n div 2)) / real (fact n) else 0)"
+
+definition
   sin :: "real => real" where
-  "sin x = (\<Sum>n. (if even(n) then 0 else
-             (-1 ^ ((n - Suc 0) div 2))/(real (fact n))) * x ^ n)"
- 
+  "sin x = (\<Sum>n. sin_coeff n * x ^ n)"
+
 definition
   cos :: "real => real" where
-  "cos x = (\<Sum>n. (if even(n) then (-1 ^ (n div 2))/(real (fact n)) 
-                            else 0) * x ^ n)"
+  "cos x = (\<Sum>n. cos_coeff n * x ^ n)"
 
-lemma summable_sin: 
-     "summable (%n.  
-           (if even n then 0  
-           else -1 ^ ((n - Suc 0) div 2)/(real (fact n))) *  
-                x ^ n)"
+lemma summable_sin: "summable (\<lambda>n. sin_coeff n * x ^ n)"
+unfolding sin_coeff_def
 apply (rule_tac g = "(%n. inverse (real (fact n)) * \<bar>x\<bar> ^ n)" in summable_comparison_test)
 apply (rule_tac [2] summable_exp)
 apply (rule_tac x = 0 in exI)
 apply (auto simp add: divide_inverse abs_mult power_abs [symmetric] zero_le_mult_iff)
 done
 
-lemma summable_cos: 
-      "summable (%n.  
-           (if even n then  
-           -1 ^ (n div 2)/(real (fact n)) else 0) * x ^ n)"
+lemma summable_cos: "summable (\<lambda>n. cos_coeff n * x ^ n)"
+unfolding cos_coeff_def
 apply (rule_tac g = "(%n. inverse (real (fact n)) * \<bar>x\<bar> ^ n)" in summable_comparison_test)
 apply (rule_tac [2] summable_exp)
 apply (rule_tac x = 0 in exI)
@@ -1304,71 +1305,39 @@ apply (induct "n")
 apply (case_tac [2] "n", auto)
 done
 
-lemma sin_converges: 
-      "(%n. (if even n then 0  
-            else -1 ^ ((n - Suc 0) div 2)/(real (fact n))) *  
-                 x ^ n) sums sin(x)"
+lemma sin_converges: "(\<lambda>n. sin_coeff n * x ^ n) sums sin(x)"
 unfolding sin_def by (rule summable_sin [THEN summable_sums])
 
-lemma cos_converges: 
-      "(%n. (if even n then  
-           -1 ^ (n div 2)/(real (fact n))  
-           else 0) * x ^ n) sums cos(x)"
+lemma cos_converges: "(\<lambda>n. cos_coeff n * x ^ n) sums cos(x)"
 unfolding cos_def by (rule summable_cos [THEN summable_sums])
 
-lemma sin_fdiffs: 
-      "diffs(%n. if even n then 0  
-           else -1 ^ ((n - Suc 0) div 2)/(real (fact n)))  
-       = (%n. if even n then  
-                 -1 ^ (n div 2)/(real (fact n))  
-              else 0)"
+lemma sin_fdiffs: "diffs sin_coeff = cos_coeff"
+unfolding sin_coeff_def cos_coeff_def
 by (auto intro!: ext 
          simp add: diffs_def divide_inverse real_of_nat_def of_nat_mult
          simp del: mult_Suc of_nat_Suc)
 
-lemma sin_fdiffs2: 
-       "diffs(%n. if even n then 0  
-           else -1 ^ ((n - Suc 0) div 2)/(real (fact n))) n  
-       = (if even n then  
-                 -1 ^ (n div 2)/(real (fact n))  
-              else 0)"
+lemma sin_fdiffs2: "diffs sin_coeff n = cos_coeff n"
 by (simp only: sin_fdiffs)
 
-lemma cos_fdiffs: 
-      "diffs(%n. if even n then  
-                 -1 ^ (n div 2)/(real (fact n)) else 0)  
-       = (%n. - (if even n then 0  
-           else -1 ^ ((n - Suc 0)div 2)/(real (fact n))))"
+lemma cos_fdiffs: "diffs cos_coeff = (\<lambda>n. - sin_coeff n)"
+unfolding sin_coeff_def cos_coeff_def
 by (auto intro!: ext 
          simp add: diffs_def divide_inverse odd_Suc_mult_two_ex real_of_nat_def of_nat_mult
          simp del: mult_Suc of_nat_Suc)
 
-
-lemma cos_fdiffs2: 
-      "diffs(%n. if even n then  
-                 -1 ^ (n div 2)/(real (fact n)) else 0) n 
-       = - (if even n then 0  
-           else -1 ^ ((n - Suc 0)div 2)/(real (fact n)))"
+lemma cos_fdiffs2: "diffs cos_coeff n = - sin_coeff n"
 by (simp only: cos_fdiffs)
 
 text{*Now at last we can get the derivatives of exp, sin and cos*}
 
-lemma lemma_sin_minus:
-     "- sin x = (\<Sum>n. - ((if even n then 0 
-                  else -1 ^ ((n - Suc 0) div 2)/(real (fact n))) * x ^ n))"
+lemma lemma_sin_minus: "- sin x = (\<Sum>n. - (sin_coeff n * x ^ n))"
 by (auto intro!: sums_unique sums_minus sin_converges)
 
-lemma lemma_sin_ext:
-     "sin = (%x. \<Sum>n. 
-                   (if even n then 0  
-                       else -1 ^ ((n - Suc 0) div 2)/(real (fact n))) *  
-                   x ^ n)"
+lemma lemma_sin_ext: "sin = (\<lambda>x. \<Sum>n. sin_coeff n * x ^ n)"
 by (auto intro!: ext simp add: sin_def)
 
-lemma lemma_cos_ext:
-     "cos = (%x. \<Sum>n. 
-                   (if even n then -1 ^ (n div 2)/(real (fact n)) else 0) *
-                   x ^ n)"
+lemma lemma_cos_ext: "cos = (\<lambda>x. \<Sum>n. cos_coeff n * x ^ n)"
 by (auto intro!: ext simp add: cos_def)
 
 lemma DERIV_sin [simp]: "DERIV sin x :> cos(x)"
@@ -1396,10 +1365,10 @@ by (rule DERIV_cos [THEN DERIV_isCont])
 subsection {* Properties of Sine and Cosine *}
 
 lemma sin_zero [simp]: "sin 0 = 0"
-unfolding sin_def by (simp add: powser_zero)
+unfolding sin_def sin_coeff_def by (simp add: powser_zero)
 
 lemma cos_zero [simp]: "cos 0 = 1"
-unfolding cos_def by (simp add: powser_zero)
+unfolding cos_def cos_coeff_def by (simp add: powser_zero)
 
 lemma DERIV_sin_sin_mult [simp]:
      "DERIV (%x. sin(x)*sin(x)) x :> cos(x) * sin(x) + cos(x) * sin(x)"
@@ -1632,14 +1601,10 @@ lemma sin_paired:
      "(%n. -1 ^ n /(real (fact (2 * n + 1))) * x ^ (2 * n + 1)) 
       sums  sin x"
 proof -
-  have "(\<lambda>n. \<Sum>k = n * 2..<n * 2 + 2.
-            (if even k then 0
-             else -1 ^ ((k - Suc 0) div 2) / real (fact k)) *
-            x ^ k) 
-	sums sin x"
+  have "(\<lambda>n. \<Sum>k = n * 2..<n * 2 + 2. sin_coeff k * x ^ k) sums sin x"
     unfolding sin_def
     by (rule sin_converges [THEN sums_summable, THEN sums_group], simp) 
-  thus ?thesis unfolding One_nat_def by (simp add: mult_ac)
+  thus ?thesis unfolding One_nat_def sin_coeff_def by (simp add: mult_ac)
 qed
 
 text {* FIXME: This is a long, ugly proof! *}
@@ -1702,13 +1667,10 @@ done
 lemma cos_paired:
      "(%n. -1 ^ n /(real (fact (2 * n))) * x ^ (2 * n)) sums cos x"
 proof -
-  have "(\<lambda>n. \<Sum>k = n * 2..<n * 2 + 2.
-            (if even k then -1 ^ (k div 2) / real (fact k) else 0) *
-            x ^ k) 
-        sums cos x"
+  have "(\<lambda>n. \<Sum>k = n * 2..<n * 2 + 2. cos_coeff k * x ^ k) sums cos x"
     unfolding cos_def
     by (rule cos_converges [THEN sums_summable, THEN sums_group], simp) 
-  thus ?thesis by (simp add: mult_ac)
+  thus ?thesis unfolding cos_coeff_def by (simp add: mult_ac)
 qed
 
 lemma fact_lemma: "real (n::nat) * 4 = real (4 * n)"

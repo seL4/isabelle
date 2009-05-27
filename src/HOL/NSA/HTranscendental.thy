@@ -18,13 +18,11 @@ definition
 
 definition
   sinhr :: "real => hypreal" where
-  "sinhr x = st(sumhr (0, whn, %n. (if even(n) then 0 else
-             ((-1) ^ ((n - 1) div 2))/(real (fact n))) * (x ^ n)))"
+  "sinhr x = st(sumhr (0, whn, %n. sin_coeff n * x ^ n))"
   
 definition
   coshr :: "real => hypreal" where
-  "coshr x = st(sumhr (0, whn, %n. (if even(n) then
-            ((-1) ^ (n div 2))/(real (fact n)) else 0) * x ^ n))"
+  "coshr x = st(sumhr (0, whn, %n. cos_coeff n * x ^ n))"
 
 
 subsection{*Nonstandard Extension of Square Root Function*}
@@ -242,7 +240,7 @@ apply (rule st_unique, simp)
 apply (rule subst [where P="\<lambda>x. 1 \<approx> x", OF _ approx_refl])
 apply (rule rev_mp [OF hypnat_one_less_hypnat_omega])
 apply (rule_tac x="whn" in spec)
-apply (unfold sumhr_app, transfer, simp)
+apply (unfold sumhr_app, transfer, simp add: cos_coeff_def)
 done
 
 lemma STAR_exp_zero_approx_one [simp]: "( *f* exp) (0::hypreal) @= 1"
@@ -406,17 +404,14 @@ by (auto intro!: starfun_ln_gt_zero simp add: HInfinite_def)
 Goalw [NSLIM_def] "(%h. ((x powr h) - 1) / h) -- 0 --NS> ln x"
 *)
 
-lemma HFinite_sin [simp]:
-     "sumhr (0, whn, %n. (if even(n) then 0 else  
-              (-1 ^ ((n - 1) div 2))/(real (fact n))) * x ^ n)  
-              \<in> HFinite"
+lemma HFinite_sin [simp]: "sumhr (0, whn, %n. sin_coeff n * x ^ n) \<in> HFinite"
 unfolding sumhr_app
 apply (simp only: star_zero_def starfun2_star_of)
 apply (rule NSBseqD2)
 apply (rule NSconvergent_NSBseq)
 apply (rule convergent_NSconvergent_iff [THEN iffD1])
 apply (rule summable_convergent_sumr_iff [THEN iffD1])
-apply (simp only: One_nat_def summable_sin)
+apply (rule summable_sin)
 done
 
 lemma STAR_sin_zero [simp]: "( *f* sin) 0 = 0"
@@ -432,10 +427,7 @@ apply (auto intro: Infinitesimal_subset_HFinite [THEN subsetD]
            simp add: mult_assoc)
 done
 
-lemma HFinite_cos [simp]:
-     "sumhr (0, whn, %n. (if even(n) then  
-            (-1 ^ (n div 2))/(real (fact n)) else  
-            0) * x ^ n) \<in> HFinite"
+lemma HFinite_cos [simp]: "sumhr (0, whn, %n. cos_coeff n * x ^ n) \<in> HFinite"
 unfolding sumhr_app
 apply (simp only: star_zero_def starfun2_star_of)
 apply (rule NSBseqD2)
