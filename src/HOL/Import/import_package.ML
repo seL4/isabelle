@@ -26,7 +26,7 @@ fun message s = if !debug then writeln s else ()
 
 fun import_tac ctxt (thyname, thmname) =
     if ! quick_and_dirty
-    then SkipProof.cheat_tac
+    then SkipProof.cheat_tac (ProofContext.theory_of ctxt)
     else
      fn th =>
         let

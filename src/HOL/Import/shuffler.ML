@@ -646,8 +646,11 @@ fun gen_shuffle_tac ctxt search thms i st =
                                   else no_tac)) st
     end
 
-fun shuffle_tac ctxt thms = gen_shuffle_tac ctxt false (map (pair "") thms);
-fun search_tac ctxt = gen_shuffle_tac thy true (map (pair "premise") (Assumption.all_prems_of ctxt);
+fun shuffle_tac ctxt thms =
+  gen_shuffle_tac ctxt false (map (pair "") thms);
+
+fun search_tac ctxt =
+  gen_shuffle_tac ctxt true (map (pair "premise") (Assumption.all_prems_of ctxt));
 
 fun add_shuffle_rule thm thy =
     let
@@ -663,7 +666,7 @@ val shuffle_attr = Thm.declaration_attribute (fn th => Context.mapping (add_shuf
 
 val setup =
   Method.setup @{binding shuffle_tac}
-    (Attrib.thms >> (fn ths => fn ctxt => SIMPLE_METHOD' (shuffle_tac ctxt thms)))
+    (Attrib.thms >> (fn ths => fn ctxt => SIMPLE_METHOD' (shuffle_tac ctxt ths)))
     "solve goal by shuffling terms around" #>
   Method.setup @{binding search_tac}
     (Scan.succeed (SIMPLE_METHOD' o search_tac)) "search for suitable theorems" #>
