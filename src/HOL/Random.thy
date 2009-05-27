@@ -118,6 +118,10 @@ proof -
   then show ?thesis by (simp add: select_weight_def scomp_def split_def) 
 qed
 
+lemma select_weight_cons_zero:
+  "select_weight ((0, x) # xs) = select_weight xs"
+  by (simp add: select_weight_def)
+
 lemma select_weigth_drop_zero:
   "select_weight (filter (\<lambda>(k, _). k > 0) xs) = select_weight xs"
 proof -
