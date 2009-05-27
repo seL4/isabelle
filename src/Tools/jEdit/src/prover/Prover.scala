@@ -216,8 +216,6 @@ class Prover(isabelle_system: IsabelleSystem, logic: String) extends Actor
                         cmd.markup_root += cmd.markup_node(begin.get, end.get, OuterInfo(kind))
                         command_change(cmd)
                       })
-                    else
-                      command_change(command)
                   case _ =>
                   //}}}
                 }
