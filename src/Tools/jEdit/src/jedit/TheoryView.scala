@@ -26,6 +26,8 @@ import org.gjt.sp.jedit.syntax.SyntaxStyle
 
 object TheoryView {
 
+  val MAX_CHANGE_LENGTH = 1500
+  
   def choose_color(state: Command): Color = {
     if (state == null) Color.red
     else
@@ -220,8 +222,15 @@ class TheoryView (text_area: JEditTextArea, document_actor: Actor)
 
   private def commit: Unit = synchronized {
     if (col != null) {
-      changes = col :: changes
-      document_actor ! col
+      def split_changes(c: Text.Change): List[Text.Change] = {
+        val MCL = TheoryView.MAX_CHANGE_LENGTH
+        if (c.added.length <= MCL) List(c)
+        else Text.Change(c.id, c.start, c.added.substring(0, MCL), c.removed) ::
+          split_changes(new Text.Change(id(), c.start + MCL, c.added.substring(MCL), c.removed))
+      }
+      val new_changes = split_changes(col)
+      changes = new_changes.reverse ::: changes
+      new_changes map (document_actor ! _)
     }
     col = null
     if (col_timer.isRunning())
