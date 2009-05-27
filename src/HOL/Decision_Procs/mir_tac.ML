@@ -2,6 +2,13 @@
     Author:     Amine Chaieb, TU Muenchen
 *)
 
+signature MIR_TAC =
+sig
+  val trace: bool ref
+  val mir_tac: Proof.context -> bool -> int -> tactic
+  val setup: theory -> theory
+end
+
 structure Mir_Tac =
 struct
 
@@ -82,9 +89,9 @@ fun mp_step n th = if (n=0) then th else (mp_step (n-1) th) RS mp;
 
 
 fun mir_tac ctxt q i = 
-    (ObjectLogic.atomize_prems_tac i)
-        THEN (simp_tac (HOL_basic_ss addsimps [@{thm "abs_ge_zero"}] addsimps simp_thms) i)
-        THEN (REPEAT_DETERM (split_tac [@{thm "split_min"}, @{thm "split_max"},@{thm "abs_split"}] i))
+    ObjectLogic.atomize_prems_tac i
+        THEN simp_tac (HOL_basic_ss addsimps [@{thm "abs_ge_zero"}] addsimps simp_thms) i
+        THEN REPEAT_DETERM (split_tac [@{thm "split_min"}, @{thm "split_max"}, @{thm "abs_split"}] i)
         THEN (fn st =>
   let
     val g = List.nth (prems_of st, i - 1)
@@ -143,22 +150,15 @@ fun mir_tac ctxt q i =
       THEN tac) st
   end handle Subscript => no_tac st);
 
-fun mir_args meth =
- let val parse_flag = 
-         Args.$$$ "no_quantify" >> (K (K false));
- in
-   Method.simple_args 
-  (Scan.optional (Args.$$$ "(" |-- Scan.repeat1 parse_flag --| Args.$$$ ")") [] >>
-    curry (Library.foldl op |>) true)
-    (fn q => fn ctxt => meth ctxt q)
-  end;
-
-fun mir_method ctxt q = SIMPLE_METHOD' (mir_tac ctxt q);
-
 val setup =
-  Method.add_method ("mir",
-     mir_args mir_method,
-     "decision procedure for MIR arithmetic");
-
+  Method.setup @{binding mir}
+    let
+      val parse_flag = Args.$$$ "no_quantify" >> K (K false)
+    in
+      Scan.lift (Scan.optional (Args.$$$ "(" |-- Scan.repeat1 parse_flag --| Args.$$$ ")") [] >>
+        curry (Library.foldl op |>) true) >>
+      (fn q => fn ctxt => SIMPLE_METHOD' (mir_tac ctxt q))
+    end
+    "decision procedure for MIR arithmetic";
 
 end

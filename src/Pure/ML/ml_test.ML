@@ -1,7 +1,7 @@
 (*  Title:      Pure/ML/ml_test.ML
     Author:     Makarius
 
-Test of advanced ML compiler invocation in Poly/ML 5.3 (SVN 719).
+Test of advanced ML compiler invocation in Poly/ML 5.3 (SVN 744).
 *)
 
 signature ML_TEST =
@@ -44,11 +44,11 @@ fun position_of ctxt
 
 (* parse trees *)
 
-fun report_parse_tree context depth =
+fun report_parse_tree context depth space =
   let
     val pos_of = position_of (Context.proof_of context);
     fun report loc (PTtype types) =
-          PolyML.NameSpace.displayTypeExpression (types, depth)
+          PolyML.NameSpace.displayTypeExpression (types, depth, space)
           |> pretty_ml |> Pretty.from_ML |> Pretty.string_of
           |> Position.report_text Markup.ML_typing (pos_of loc)
       | report loc (PTdeclaredAt decl) =
@@ -132,7 +132,7 @@ fun use_text ({name_space = space, print, error, ...}: use_context) verbose pos 
 
     fun result_fun (phase1, phase2) () =
      (case phase1 of NONE => ()
-      | SOME parse_tree => report_parse_tree (the (Context.thread_data ())) depth parse_tree;
+      | SOME parse_tree => report_parse_tree (the (Context.thread_data ())) depth space parse_tree;
       case phase2 of NONE => error "Static Errors"
       | SOME code => apply_result (Toplevel.program code));
 

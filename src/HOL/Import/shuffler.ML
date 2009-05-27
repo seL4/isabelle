@@ -15,10 +15,9 @@ sig
 
     val find_potential: theory -> term -> (string * thm) list
 
-    val gen_shuffle_tac: theory -> bool -> (string * thm) list -> int -> tactic
-
-    val shuffle_tac: (string * thm) list -> int -> tactic
-    val search_tac : (string * thm) list -> int -> tactic
+    val gen_shuffle_tac: Proof.context -> bool -> (string * thm) list -> int -> tactic
+    val shuffle_tac: Proof.context -> thm list -> int -> tactic
+    val search_tac : Proof.context -> int -> tactic
 
     val print_shuffles: theory -> unit
 
@@ -631,8 +630,9 @@ fun find_potential thy t =
         List.filter (match_consts ignored t) all_thms
     end
 
-fun gen_shuffle_tac thy search thms i st =
+fun gen_shuffle_tac ctxt search thms i st =
     let
+        val thy = ProofContext.theory_of ctxt
         val _ = message ("Shuffling " ^ (string_of_thm st))
         val t = List.nth(prems_of st,i-1)
         val set = set_prop thy t
@@ -646,26 +646,11 @@ fun gen_shuffle_tac thy search thms i st =
                                   else no_tac)) st
     end
 
-fun shuffle_tac thms i st =
-    gen_shuffle_tac (the_context()) false thms i st
+fun shuffle_tac ctxt thms =
+  gen_shuffle_tac ctxt false (map (pair "") thms);
 
-fun search_tac thms i st =
-    gen_shuffle_tac (the_context()) true thms i st
-
-fun shuffle_meth (thms:thm list) ctxt =
-    let
-        val thy = ProofContext.theory_of ctxt
-    in
-        SIMPLE_METHOD' (gen_shuffle_tac thy false (map (pair "") thms))
-    end
-
-fun search_meth ctxt =
-    let
-        val thy = ProofContext.theory_of ctxt
-        val prems = Assumption.all_prems_of ctxt
-    in
-        SIMPLE_METHOD' (gen_shuffle_tac thy true (map (pair "premise") prems))
-    end
+fun search_tac ctxt =
+  gen_shuffle_tac ctxt true (map (pair "premise") (Assumption.all_prems_of ctxt));
 
 fun add_shuffle_rule thm thy =
     let
@@ -680,10 +665,11 @@ fun add_shuffle_rule thm thy =
 val shuffle_attr = Thm.declaration_attribute (fn th => Context.mapping (add_shuffle_rule th) I);
 
 val setup =
-  Method.add_method ("shuffle_tac",
-    Method.thms_ctxt_args shuffle_meth,"solve goal by shuffling terms around") #>
-  Method.add_method ("search_tac",
-    Method.ctxt_args search_meth,"search for suitable theorems") #>
+  Method.setup @{binding shuffle_tac}
+    (Attrib.thms >> (fn ths => fn ctxt => SIMPLE_METHOD' (shuffle_tac ctxt ths)))
+    "solve goal by shuffling terms around" #>
+  Method.setup @{binding search_tac}
+    (Scan.succeed (SIMPLE_METHOD' o search_tac)) "search for suitable theorems" #>
   add_shuffle_rule weaken #>
   add_shuffle_rule equiv_comm #>
   add_shuffle_rule imp_comm #>
