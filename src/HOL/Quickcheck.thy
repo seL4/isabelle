@@ -73,6 +73,10 @@ definition collapse :: "('a \<Rightarrow> ('a \<Rightarrow> 'b \<times> 'a) \<ti
 definition beyond :: "code_numeral \<Rightarrow> code_numeral \<Rightarrow> code_numeral" where
   "beyond k l = (if l > k then l else 0)"
 
+lemma beyond_zero:
+  "beyond k 0 = 0"
+  by (simp add: beyond_def)
+
 use "Tools/quickcheck_generators.ML"
 setup {* Quickcheck_Generators.setup *}
 
@@ -99,6 +103,8 @@ instance ..
 
 end
 
+
+hide (open) const collapse beyond
 
 no_notation fcomp (infixl "o>" 60)
 no_notation scomp (infixl "o\<rightarrow>" 60)
