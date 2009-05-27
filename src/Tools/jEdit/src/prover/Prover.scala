@@ -183,25 +183,25 @@ class Prover(isabelle_system: IsabelleSystem, logic: String) extends Actor
                     command_change(command)
                   case XML.Elem(kind, attr, body)
                   if command != null =>
-                    // TODO: assuming that begin, end, id are present in attributes
-                    val begin = get_attr(attr, Markup.OFFSET).get.toInt - 1
-                    val end = get_attr(attr, Markup.END_OFFSET).get.toInt - 1
-                    val markup_id = get_attr(attr, Markup.ID).get
-                    if (kind == Markup.ML_TYPING) {
-                      val info = body.first.asInstanceOf[XML.Text].content
-                      command.markup_root += command.markup_node(begin, end, TypeInfo(info))
-                    } else if (kind == Markup.ML_REF) {
-                      body match {
-                        case List(XML.Elem(Markup.ML_DEF, attr, _)) =>
-                          command.markup_root += command.markup_node(begin, end,
-                            RefInfo(get_attr(attr, Markup.FILE),
-                                    get_attr(attr, Markup.LINE).map(Integer.parseInt),
-                                    get_attr(attr, Markup.ID),
-                                    get_attr(attr, Markup.OFFSET).map(Integer.parseInt)))
-                        case _ =>
+                    val begin = get_attr(attr, Markup.OFFSET).map(_.toInt - 1)
+                    val end = get_attr(attr, Markup.END_OFFSET).map(_.toInt - 1)
+                    if (begin.isDefined && end.isDefined) {
+                      if (kind == Markup.ML_TYPING) {
+                        val info = body.first.asInstanceOf[XML.Text].content
+                        command.markup_root += command.markup_node(begin.get, end.get, TypeInfo(info))
+                      } else if (kind == Markup.ML_REF) {
+                        body match {
+                          case List(XML.Elem(Markup.ML_DEF, attr, _)) =>
+                            command.markup_root += command.markup_node(begin.get, end.get,
+                              RefInfo(get_attr(attr, Markup.FILE),
+                                      get_attr(attr, Markup.LINE).map(Integer.parseInt),
+                                      get_attr(attr, Markup.ID),
+                                      get_attr(attr, Markup.OFFSET).map(Integer.parseInt)))
+                          case _ =>
+                        }
+                      } else {
+                        command.markup_root += command.markup_node(begin.get, end.get, HighlightInfo(kind))
                       }
-                    } else {
-                      command.markup_root += command.markup_node(begin, end, HighlightInfo(kind))
                     }
                     command_change(command)
                   case XML.Elem(kind, attr, body)
