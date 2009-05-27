@@ -215,7 +215,13 @@ lemma less_code_numeral_code [code nbe]:
   "of_nat n < of_nat m \<longleftrightarrow> n < m"
   by simp
 
-lemma Suc_code_numeral_minus_one: "Suc_code_numeral n - 1 = n" by simp
+lemma code_numeral_zero_minus_one:
+  "(0::code_numeral) - 1 = 0"
+  by simp
+
+lemma Suc_code_numeral_minus_one:
+  "Suc_code_numeral n - 1 = n"
+  by simp
 
 lemma of_nat_code [code]:
   "of_nat = Nat.of_nat"
