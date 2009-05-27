@@ -16,7 +16,7 @@ sig
   val add_primrec_overloaded: (string * (string * typ) * bool) list ->
     (binding * typ option * mixfix) list ->
     (Attrib.binding * term) list -> theory -> thm list * theory
-  val add_primrec_simple: ((binding * typ) * mixfix) list -> (binding * term) list ->
+  val add_primrec_simple: ((binding * typ) * mixfix) list -> term list ->
     local_theory -> (string * thm list list) * local_theory
 end;
 
@@ -252,9 +252,9 @@ fun distill lthy fixes eqs =
 
 (* primrec definition *)
 
-fun add_primrec_simple fixes spec lthy =
+fun add_primrec_simple fixes ts lthy =
   let
-    val ((prefix, (fs, defs)), prove) = distill lthy fixes (map snd spec);
+    val ((prefix, (fs, defs)), prove) = distill lthy fixes ts;
   in
     lthy
     |> fold_map (LocalTheory.define Thm.definitionK) defs
@@ -274,7 +274,7 @@ fun gen_primrec set_group prep_spec raw_fixes raw_spec lthy =
   in
     lthy
     |> set_group ? LocalTheory.set_group (serial_string ())
-    |> add_primrec_simple fixes spec
+    |> add_primrec_simple fixes (map snd spec)
     |-> (fn (prefix, simps) => fold_map (LocalTheory.note Thm.generatedK)
           (attr_bindings prefix ~~ simps)
     #-> (fn simps' => LocalTheory.note Thm.generatedK
