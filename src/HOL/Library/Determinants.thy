@@ -733,7 +733,7 @@ proof-
       apply simp
       done
     from c ci
-    have thr0: "- row i A = setsum (\<lambda>j. (1/ c i) *s c j *s row j A) (?U - {i})"
+    have thr0: "- row i A = setsum (\<lambda>j. (1/ c i) *s (c j *s row j A)) (?U - {i})"
       unfolding setsum_diff1'[OF fU iU] setsum_cmul
       apply -
       apply (rule vector_mul_lcancel_imp[OF ci])
@@ -1006,7 +1006,7 @@ proof-
 	by(simp add: norm_mul field_simps)}
     moreover
     {assume z: "x \<noteq> 0" "y \<noteq> 0"
-      have th00: "x = norm x *s inverse (norm x) *s x" "y = norm y *s inverse (norm y) *s y" "norm x *s f (inverse (norm x) *s x) = norm x *s f (inverse (norm x) *s x)"
+      have th00: "x = norm x *s (inverse (norm x) *s x)" "y = norm y *s (inverse (norm y) *s y)" "norm x *s f ((inverse (norm x) *s x)) = norm x *s f (inverse (norm x) *s x)"
 	"norm y *s f (inverse (norm y) *s y) = norm y *s f (inverse (norm y) *s y)"
 	"norm (inverse (norm x) *s x) = 1"
 	"norm (f (inverse (norm x) *s x)) = 1"
