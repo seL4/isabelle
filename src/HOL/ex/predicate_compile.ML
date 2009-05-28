@@ -965,6 +965,7 @@ fun select_sup 1 1 = []
   | select_sup _ 1 = [rtac @{thm supI1}]
   | select_sup n i = (rtac @{thm supI2})::(select_sup (n - 1) (i - 1));
 
+(* FIXME: This function relies on the derivation of an induction rule *)
 fun get_nparams thy s = let
     val _ = tracing ("get_nparams: " ^ s)
   in
