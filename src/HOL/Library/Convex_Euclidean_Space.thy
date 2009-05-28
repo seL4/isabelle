@@ -4,7 +4,7 @@
 
 header {* Convex sets, functions and related things. *}
 
-theory Convex
+theory Convex_Euclidean_Space
   imports Topology_Euclidean_Space
 begin
 
