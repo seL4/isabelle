@@ -2468,6 +2468,110 @@ proof-
   finally show ?thesis .
 qed
 
+lemma fact_1 [simp]: "fact 1 = 1"
+unfolding One_nat_def fact_Suc by simp
+
+lemma divide_eq_iff: "a \<noteq> (0::'a::field) \<Longrightarrow> x / a = y \<longleftrightarrow> x = y * a"
+by auto
+
+lemma eq_divide_iff: "a \<noteq> (0::'a::field) \<Longrightarrow> x = y / a \<longleftrightarrow> x * a = y"
+by auto
+
+lemma fps_sin_nth_0 [simp]: "fps_sin c $ 0 = 0"
+unfolding fps_sin_def by simp
+
+lemma fps_sin_nth_1 [simp]: "fps_sin c $ 1 = c"
+unfolding fps_sin_def by simp
+
+lemma fps_sin_nth_add_2:
+  "fps_sin c $ (n + 2) = - (c * c * fps_sin c $ n / (of_nat(n+1) * of_nat(n+2)))"
+unfolding fps_sin_def
+apply (cases n, simp)
+apply (simp add: divide_eq_iff eq_divide_iff del: of_nat_Suc fact_Suc)
+apply (simp add: of_nat_mult del: of_nat_Suc mult_Suc)
+done
+
+lemma fps_cos_nth_0 [simp]: "fps_cos c $ 0 = 1"
+unfolding fps_cos_def by simp
+
+lemma fps_cos_nth_1 [simp]: "fps_cos c $ 1 = 0"
+unfolding fps_cos_def by simp
+
+lemma fps_cos_nth_add_2:
+  "fps_cos c $ (n + 2) = - (c * c * fps_cos c $ n / (of_nat(n+1) * of_nat(n+2)))"
+unfolding fps_cos_def
+apply (simp add: divide_eq_iff eq_divide_iff del: of_nat_Suc fact_Suc)
+apply (simp add: of_nat_mult del: of_nat_Suc mult_Suc)
+done
+
+lemma nat_induct2:
+  "\<lbrakk>P 0; P 1; \<And>n. P n \<Longrightarrow> P (n + 2)\<rbrakk> \<Longrightarrow> P (n::nat)"
+unfolding One_nat_def numeral_2_eq_2
+apply (induct n rule: nat_less_induct)
+apply (case_tac n, simp)
+apply (rename_tac m, case_tac m, simp)
+apply (rename_tac k, case_tac k, simp_all)
+done
+
+lemma nat_add_1_add_1: "(n::nat) + 1 + 1 = n + 2"
+by simp
+
+lemma eq_fps_sin:
+  assumes 0: "a $ 0 = 0" and 1: "a $ 1 = c"
+  and 2: "fps_deriv (fps_deriv a) = - (fps_const c * fps_const c * a)"
+  shows "a = fps_sin c"
+apply (rule fps_ext)
+apply (induct_tac n rule: nat_induct2)
+apply (simp add: fps_sin_nth_0 0)
+apply (simp add: fps_sin_nth_1 1 del: One_nat_def)
+apply (rename_tac m, cut_tac f="\<lambda>a. a $ m" in arg_cong [OF 2])
+apply (simp add: nat_add_1_add_1 fps_sin_nth_add_2
+            del: One_nat_def of_nat_Suc of_nat_add add_2_eq_Suc')
+apply (subst minus_divide_left)
+apply (subst eq_divide_iff)
+apply (simp del: of_nat_add of_nat_Suc)
+apply (simp only: mult_ac)
+done
+
+lemma eq_fps_cos:
+  assumes 0: "a $ 0 = 1" and 1: "a $ 1 = 0"
+  and 2: "fps_deriv (fps_deriv a) = - (fps_const c * fps_const c * a)"
+  shows "a = fps_cos c"
+apply (rule fps_ext)
+apply (induct_tac n rule: nat_induct2)
+apply (simp add: fps_cos_nth_0 0)
+apply (simp add: fps_cos_nth_1 1 del: One_nat_def)
+apply (rename_tac m, cut_tac f="\<lambda>a. a $ m" in arg_cong [OF 2])
+apply (simp add: nat_add_1_add_1 fps_cos_nth_add_2
+            del: One_nat_def of_nat_Suc of_nat_add add_2_eq_Suc')
+apply (subst minus_divide_left)
+apply (subst eq_divide_iff)
+apply (simp del: of_nat_add of_nat_Suc)
+apply (simp only: mult_ac)
+done
+
+lemma mult_nth_0 [simp]: "(a * b) $ 0 = a $ 0 * b $ 0"
+by (simp add: fps_mult_nth)
+
+lemma mult_nth_1 [simp]: "(a * b) $ 1 = a $ 0 * b $ 1 + a $ 1 * b $ 0"
+by (simp add: fps_mult_nth)
+
+lemma fps_sin_add:
+  "fps_sin (a + b) = fps_sin a * fps_cos b + fps_cos a * fps_sin b"
+apply (rule eq_fps_sin [symmetric], simp, simp del: One_nat_def)
+apply (simp del: fps_const_neg fps_const_add fps_const_mult
+            add: fps_const_add [symmetric] fps_const_neg [symmetric]
+                 fps_sin_deriv fps_cos_deriv algebra_simps)
+done
+
+lemma fps_cos_add:
+  "fps_cos (a + b) = fps_cos a * fps_cos b - fps_sin a * fps_sin b"
+apply (rule eq_fps_cos [symmetric], simp, simp del: One_nat_def)
+apply (simp del: fps_const_neg fps_const_add fps_const_mult
+            add: fps_const_add [symmetric] fps_const_neg [symmetric]
+                 fps_sin_deriv fps_cos_deriv algebra_simps)
+done
+
 definition "fps_tan c = fps_sin c / fps_cos c"
 
 lemma fps_tan_deriv: "fps_deriv(fps_tan c) = fps_const c/ (fps_cos c ^ 2)"
