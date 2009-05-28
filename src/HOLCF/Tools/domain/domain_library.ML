@@ -8,27 +8,32 @@ Library for domain command.
 (* ----- general support ---------------------------------------------------- *)
 
 fun mapn f n []      = []
-|   mapn f n (x::xs) = (f n x) :: mapn f (n+1) xs;
+  | mapn f n (x::xs) = (f n x) :: mapn f (n+1) xs;
 
-fun foldr'' f (l,f2) = let fun itr []  = raise Fail "foldr''"
-			     | itr [a] = f2 a
-			     | itr (a::l) = f(a, itr l)
-in  itr l  end;
-fun map_cumulr f start xs = List.foldr (fn (x,(ys,res))=>case f(x,res) of (y,res2) =>
-						  (y::ys,res2)) ([],start) xs;
+fun foldr'' f (l,f2) =
+    let fun itr []  = raise Fail "foldr''" 
+          | itr [a] = f2 a
+          | itr (a::l) = f(a, itr l)
+    in  itr l  end;
 
+fun map_cumulr f start xs =
+    List.foldr (fn (x,(ys,res))=>case f(x,res) of (y,res2) =>
+                                                  (y::ys,res2)) ([],start) xs;
 
 fun first  (x,_,_) = x; fun second (_,x,_) = x; fun third  (_,_,x) = x;
 fun upd_first  f (x,y,z) = (f x,   y,   z);
 fun upd_second f (x,y,z) = (  x, f y,   z);
 fun upd_third  f (x,y,z) = (  x,   y, f z);
 
-fun atomize ctxt thm = let val r_inst = read_instantiate ctxt;
-    fun at  thm = case concl_of thm of
-      _$(Const("op &",_)$_$_)       => at(thm RS conjunct1)@at(thm RS conjunct2)
-    | _$(Const("All" ,_)$Abs(s,_,_))=> at(thm RS (r_inst [(("x", 0), "?" ^ s)] spec))
-    | _				    => [thm];
-in map zero_var_indexes (at thm) end;
+fun atomize ctxt thm =
+    let
+      val r_inst = read_instantiate ctxt;
+      fun at thm =
+          case concl_of thm of
+            _$(Const("op &",_)$_$_)       => at(thm RS conjunct1)@at(thm RS conjunct2)
+          | _$(Const("All" ,_)$Abs(s,_,_))=> at(thm RS (r_inst [(("x", 0), "?" ^ s)] spec))
+          | _                             => [thm];
+    in map zero_var_indexes (at thm) end;
 
 (* infix syntax *)
 
@@ -91,9 +96,9 @@ sig
   val mk_return : term -> term;
   val cproj : term -> 'a list -> int -> term;
   val list_ccomb : term * term list -> term;
-(*
-  val con_app : string -> ('a * 'b * string) list -> term;
-*)
+  (*
+   val con_app : string -> ('a * 'b * string) list -> term;
+   *)
   val con_app2 : string -> ('a -> term) -> 'a list -> term;
   val proj : term -> 'a list -> int -> term;
   val prj : ('a -> 'b -> 'a) -> ('a -> 'b -> 'a) -> 'a -> 'b list -> int -> 'a;
@@ -126,8 +131,8 @@ sig
   val ==> : term * term -> term;
   val mk_All : string * term -> term;
 
-  (* Domain specifications *)
-  eqtype arg;
+      (* Domain specifications *)
+      eqtype arg;
   type cons = string * arg list;
   type eq = (string * typ list) * cons list;
   val mk_arg : (bool * DatatypeAux.dtyp) * string option * string -> arg;
@@ -169,15 +174,17 @@ fun Imposs msg = raise Impossible ("Domain:"^msg);
 
 (* ----- name handling ----- *)
 
-val strip_esc = let fun strip ("'" :: c :: cs) = c :: strip cs
-		    |   strip ["'"] = []
-		    |   strip (c :: cs) = c :: strip cs
-		    |   strip [] = [];
-in implode o strip o Symbol.explode end;
+val strip_esc =
+    let fun strip ("'" :: c :: cs) = c :: strip cs
+          | strip ["'"] = []
+          | strip (c :: cs) = c :: strip cs
+          | strip [] = [];
+    in implode o strip o Symbol.explode end;
 
-fun extern_name con = case Symbol.explode con of 
-		   ("o"::"p"::" "::rest) => implode rest
-		   | _ => con;
+fun extern_name con =
+    case Symbol.explode con of 
+      ("o"::"p"::" "::rest) => implode rest
+    | _ => con;
 fun dis_name  con = "is_"^ (extern_name con);
 fun dis_name_ con = "is_"^ (strip_esc   con);
 fun mat_name  con = "match_"^ (extern_name con);
@@ -186,19 +193,20 @@ fun pat_name  con = (extern_name con) ^ "_pat";
 fun pat_name_ con = (strip_esc   con) ^ "_pat";
 
 (* make distinct names out of the type list, 
-   forbidding "o","n..","x..","f..","P.." as names *)
+                                       forbidding "o","n..","x..","f..","P.." as names *)
 (* a number string is added if necessary *)
-fun mk_var_names ids : string list = let
-    fun nonreserved s = if s mem ["n","x","f","P"] then s^"'" else s;
-    fun index_vnames(vn::vns,occupied) =
+fun mk_var_names ids : string list =
+    let
+      fun nonreserved s = if s mem ["n","x","f","P"] then s^"'" else s;
+      fun index_vnames(vn::vns,occupied) =
           (case AList.lookup (op =) occupied vn of
              NONE => if vn mem vns
                      then (vn^"1") :: index_vnames(vns,(vn,1)  ::occupied)
                      else  vn      :: index_vnames(vns,          occupied)
            | SOME(i) => (vn^(string_of_int (i+1)))
-				   :: index_vnames(vns,(vn,i+1)::occupied))
-      | index_vnames([],occupied) = [];
-in index_vnames(map nonreserved ids, [("O",0),("o",0)]) end;
+                        :: index_vnames(vns,(vn,i+1)::occupied))
+        | index_vnames([],occupied) = [];
+    in index_vnames(map nonreserved ids, [("O",0),("o",0)]) end;
 
 fun cpo_type sg t = Sign.of_sort sg (Sign.certify_typ sg t, @{sort cpo});
 fun pcpo_type sg t = Sign.of_sort sg (Sign.certify_typ sg t, @{sort pcpo});
@@ -207,23 +215,23 @@ fun string_of_typ sg = Syntax.string_of_typ_global sg o Sign.certify_typ sg;
 (* ----- constructor list handling ----- *)
 
 type arg =
-  (bool * DatatypeAux.dtyp) *           (*  (lazy, recursive element) *)
-  string option *			(*   selector name    *)
-  string;				(*   argument name    *)
+     (bool * DatatypeAux.dtyp) *   (*  (lazy, recursive element) *)
+     string option *               (*   selector name    *)
+     string;                       (*   argument name    *)
 
 type cons =
-  string *				(* operator name of constr *)
-  arg list;				(* argument list      *)
+     string *         (* operator name of constr *)
+     arg list;        (* argument list      *)
 
 type eq =
-  (string *		(* name      of abstracted type *)
-   typ list) *		(* arguments of abstracted type *)
-  cons list;		(* represented type, as a constructor list *)
+     (string *        (* name      of abstracted type *)
+      typ list) *     (* arguments of abstracted type *)
+     cons list;       (* represented type, as a constructor list *)
 
 val mk_arg = I;
 
 fun rec_of ((_,dtyp),_,_) =
-  case dtyp of DatatypeAux.DtRec i => i | _ => ~1;
+    case dtyp of DatatypeAux.DtRec i => i | _ => ~1;
 (* FIXME: what about indirect recursion? *)
 
 fun is_lazy arg = fst (first arg);
@@ -333,8 +341,8 @@ fun con_app con = con_app2 con %#;
 fun if_rec  arg f y   = if is_rec arg then f (rec_of arg) else y;
 fun app_rec_arg p arg = if_rec arg (fn n => fn x => (p n)`x) I (%# arg);
 fun prj _  _  x (   _::[]) _ = x
-|   prj f1 _  x (_::y::ys) 0 = f1 x y
-|   prj f1 f2 x (y::   ys) j = prj f1 f2 (f2 x y) ys (j-1);
+  | prj f1 _  x (_::y::ys) 0 = f1 x y
+  | prj f1 f2 x (y::   ys) j = prj f1 f2 (f2 x y) ys (j-1);
 fun  proj x      = prj (fn S => K(%%:"fst" $S)) (fn S => K(%%:"snd" $S)) x;
 fun cproj x      = prj (fn S => K(mk_cfst S)) (fn S => K(mk_csnd S)) x;
 fun lift tfn = Library.foldr (fn (x,t)=> (mk_trp(tfn x) ===> t));
@@ -348,11 +356,11 @@ fun defined t = t ~= UU;
 fun cpair (t,u) = %%: @{const_name cpair}`t`u;
 fun spair (t,u) = %%: @{const_name spair}`t`u;
 fun mk_ctuple [] = HOLogic.unit (* used in match_defs *)
-|   mk_ctuple ts = foldr1 cpair ts;
+  | mk_ctuple ts = foldr1 cpair ts;
 fun mk_stuple [] = ONE
-|   mk_stuple ts = foldr1 spair ts;
+  | mk_stuple ts = foldr1 spair ts;
 fun mk_ctupleT [] = HOLogic.unitT   (* used in match_defs *)
-|   mk_ctupleT Ts = foldr1 HOLogic.mk_prodT Ts;
+  | mk_ctupleT Ts = foldr1 HOLogic.mk_prodT Ts;
 fun mk_maybeT T = Type ("Fixrec.maybe",[T]);
 fun cpair_pat (p1,p2) = %%: @{const_name cpair_pat} $ p1 $ p2;
 val mk_ctuple_pat = foldr1 cpair_pat;
@@ -360,29 +368,32 @@ fun lift_defined f = lift (fn x => defined (f x));
 fun bound_arg vns v = Bound(length vns -find_index_eq v vns -1);
 
 fun cont_eta_contract (Const("Cfun.Abs_CFun",TT) $ Abs(a,T,body)) = 
-      (case cont_eta_contract body  of
-        body' as (Const("Cfun.Rep_CFun",Ta) $ f $ Bound 0) => 
-	  if not (0 mem loose_bnos f) then incr_boundvars ~1 f 
-	  else   Const("Cfun.Abs_CFun",TT) $ Abs(a,T,body')
-      | body' => Const("Cfun.Abs_CFun",TT) $ Abs(a,T,body'))
-|   cont_eta_contract(f$t) = cont_eta_contract f $ cont_eta_contract t
-|   cont_eta_contract t    = t;
+    (case cont_eta_contract body  of
+       body' as (Const("Cfun.Rep_CFun",Ta) $ f $ Bound 0) => 
+       if not (0 mem loose_bnos f) then incr_boundvars ~1 f 
+       else   Const("Cfun.Abs_CFun",TT) $ Abs(a,T,body')
+     | body' => Const("Cfun.Abs_CFun",TT) $ Abs(a,T,body'))
+  | cont_eta_contract(f$t) = cont_eta_contract f $ cont_eta_contract t
+  | cont_eta_contract t    = t;
 
 fun idx_name dnames s n = s^(if length dnames = 1 then "" else string_of_int n);
 fun when_funs cons = if length cons = 1 then ["f"] 
                      else mapn (fn n => K("f"^(string_of_int n))) 1 cons;
-fun when_body cons funarg = let
-	fun one_fun n (_,[]  ) = /\ "dummy" (funarg(1,n))
-	|   one_fun n (_,args) = let
-		val l2 = length args;
-		fun idxs m arg = (if is_lazy arg then (fn t => mk_fup (ID, t))
-					         else I) (Bound(l2-m));
-		in cont_eta_contract (foldr'' 
-			(fn (a,t) => mk_ssplit (/\# (a,t)))
-			(args,
-			fn a=> /\#(a,(list_ccomb(funarg(l2,n),mapn idxs 1 args))))
-			) end;
-in (if length cons = 1 andalso length(snd(hd cons)) <= 1
-    then mk_strictify else I)
-     (foldr1 mk_sscase (mapn one_fun 1 cons)) end;
+fun when_body cons funarg =
+    let
+      fun one_fun n (_,[]  ) = /\ "dummy" (funarg(1,n))
+        | one_fun n (_,args) = let
+            val l2 = length args;
+            fun idxs m arg = (if is_lazy arg then (fn t => mk_fup (ID, t))
+                              else I) (Bound(l2-m));
+          in cont_eta_contract
+               (foldr'' 
+                  (fn (a,t) => mk_ssplit (/\# (a,t)))
+                  (args,
+                fn a=> /\#(a,(list_ccomb(funarg(l2,n),mapn idxs 1 args))))
+               ) end;
+    in (if length cons = 1 andalso length(snd(hd cons)) <= 1
+        then mk_strictify else I)
+         (foldr1 mk_sscase (mapn one_fun 1 cons)) end;
+
 end; (* struct *)

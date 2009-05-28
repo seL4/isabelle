@@ -539,9 +539,10 @@ val dist_eqs =
           [eq1, eq2]
       end;
     fun distincts []      = []
-      | distincts ((c,leqs)::cs) = flat
-	            (ListPair.map (distinct c) ((map #1 cs),leqs)) @
-		    distincts cs;
+      | distincts ((c,leqs)::cs) =
+        flat
+          (ListPair.map (distinct c) ((map #1 cs),leqs)) @
+        distincts cs;
   in map standard (distincts (cons ~~ distincts_le)) end;
 
 local 
