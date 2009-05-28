@@ -35,15 +35,6 @@ lemma dest_vec1_simps[simp]: fixes a::"real^1"
   "a \<le> b \<longleftrightarrow> dest_vec1 a \<le> dest_vec1 b" "dest_vec1 (1::real^1) = 1"
   by(auto simp add:vector_component_simps all_1 Cart_eq)
 
-definition 
-  "is_interval_new (s::((real^'n::finite) set)) \<longleftrightarrow>
-  (\<forall>a\<in>s. \<forall>b\<in>s. \<forall>x. (\<forall>i. ((a$i \<le> x$i \<and> x$i \<le> b$i) \<or> (b$i \<le> x$i \<and> x$i \<le> a$i)))  \<longrightarrow> x \<in> s)"
-
-lemma is_interval_interval_new: "is_interval_new {a .. b}" (is ?th1) "is_interval_new {a<..<b}" (is ?th2) proof - 
-  have *:"\<And>x y z::real. x < y \<Longrightarrow> y < z \<Longrightarrow> x < z" by auto
-  show ?th1 ?th2  unfolding is_interval_new_def mem_interval Ball_def atLeastAtMost_iff
-    by(meson real_le_trans le_less_trans less_le_trans *)+ qed
-
 lemma nequals0I:"x\<in>A \<Longrightarrow> A \<noteq> {}" by auto
 
 lemma norm_not_0:"(x::real^'n::finite)\<noteq>0 \<Longrightarrow> norm x \<noteq> 0" by auto
@@ -2178,7 +2169,7 @@ lemma convex_on:
 
 subsection {* Convexity of general and special intervals. *}
 
-lemma is_interval_convex: assumes "is_interval_new s" shows "convex s"
+lemma is_interval_convex: assumes "is_interval s" shows "convex s"
   unfolding convex_def apply(rule,rule,rule,rule,rule,rule,rule) proof-
   fix x y u v assume as:"x \<in> s" "y \<in> s" "0 \<le> u" "0 \<le> v" "u + v = (1::real)"
   hence *:"u = 1 - v" "1 - v \<ge> 0" and **:"v = 1 - u" "1 - u \<ge> 0" by auto
@@ -2191,22 +2182,22 @@ lemma is_interval_convex: assumes "is_interval_new s" shows "convex s"
     hence "v * b > (1 - u) * a" unfolding not_le using as(4) by(auto simp add: field_simps)
     hence "a < b" unfolding * using as(4) apply(rule_tac mult_left_less_imp_less) by(auto simp add: ring_simps)
     hence "u * a + v * b \<le> b" unfolding ** using **(2) as(3) by(auto simp add: field_simps intro!:mult_right_mono) }
-  ultimately show "u *s x + v *s y \<in> s" apply- apply(rule assms[unfolded is_interval_new_def, rule_format, OF as(1,2)])
+  ultimately show "u *s x + v *s y \<in> s" apply- apply(rule assms[unfolded is_interval_def, rule_format, OF as(1,2)])
     using as(3-) dimindex_ge_1 apply- by(auto simp add: vector_component) qed
 
-lemma is_interval_connected: "is_interval_new s \<Longrightarrow> connected s"
+lemma is_interval_connected: "is_interval s \<Longrightarrow> connected s"
   using is_interval_convex convex_connected by auto
 
 lemma convex_interval: "convex {a .. b}" "convex {a<..<b::real^'n::finite}"
-  apply(rule_tac[!] is_interval_convex) using is_interval_interval_new by auto
+  apply(rule_tac[!] is_interval_convex) using is_interval_interval by auto
 
 subsection {* On real^1, is_interval, convex and connected are all equivalent. *}
 
 lemma is_interval_1:
-  "is_interval_new s \<longleftrightarrow> (\<forall>a\<in>s. \<forall>b\<in>s. \<forall> x. dest_vec1 a \<le> dest_vec1 x \<and> dest_vec1 x \<le> dest_vec1 b \<longrightarrow> x \<in> s)"
-  unfolding is_interval_new_def dest_vec1_def forall_1 by auto
+  "is_interval s \<longleftrightarrow> (\<forall>a\<in>s. \<forall>b\<in>s. \<forall> x. dest_vec1 a \<le> dest_vec1 x \<and> dest_vec1 x \<le> dest_vec1 b \<longrightarrow> x \<in> s)"
+  unfolding is_interval_def dest_vec1_def forall_1 by auto
 
-lemma is_interval_connected_1: "is_interval_new s \<longleftrightarrow> connected (s::(real^1) set)"
+lemma is_interval_connected_1: "is_interval s \<longleftrightarrow> connected (s::(real^1) set)"
   apply(rule, rule is_interval_connected, assumption) unfolding is_interval_1
   apply(rule,rule,rule,rule,erule conjE,rule ccontr) proof-
   fix a b x assume as:"connected s" "a \<in> s" "b \<in> s" "dest_vec1 a \<le> dest_vec1 x" "dest_vec1 x \<le> dest_vec1 b" "x\<notin>s"
@@ -2222,7 +2213,7 @@ lemma is_interval_connected_1: "is_interval_new s \<longleftrightarrow> connecte
     by(auto simp add: basis_component field_simps) qed 
 
 lemma is_interval_convex_1:
-  "is_interval_new s \<longleftrightarrow> convex (s::(real^1) set)" 
+  "is_interval s \<longleftrightarrow> convex (s::(real^1) set)" 
   using is_interval_convex convex_connected is_interval_connected_1 by auto
 
 lemma convex_connected_1:
