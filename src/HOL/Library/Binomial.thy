@@ -6,7 +6,7 @@
 header {* Binomial Coefficients *}
 
 theory Binomial
-imports Fact SetInterval Presburger Main
+imports Fact SetInterval Presburger Main Rational
 begin
 
 text {* This development is based on the work of Andy Gordon and
@@ -290,7 +290,7 @@ lemma pochhammer_of_nat_eq_0_iff:
 
 subsection{* Generalized binomial coefficients *}
 
-definition gbinomial :: "'a::{field, ring_char_0} \<Rightarrow> nat \<Rightarrow> 'a" (infixl "gchoose" 65)
+definition gbinomial :: "'a::field_char_0 \<Rightarrow> nat \<Rightarrow> 'a" (infixl "gchoose" 65)
   where "a gchoose n = (if n = 0 then 1 else (setprod (\<lambda>i. a - of_nat i) {0 .. n - 1}) / of_nat (fact n))"
 
 lemma gbinomial_0[simp]: "a gchoose 0 = 1" "0 gchoose (Suc n) = 0"
@@ -345,7 +345,7 @@ qed
   
 lemma binomial_fact: 
   assumes kn: "k \<le> n" 
-  shows "(of_nat (n choose k) :: 'a::{field, ring_char_0}) = of_nat (fact n) / (of_nat (fact k) * of_nat (fact (n - k)))"
+  shows "(of_nat (n choose k) :: 'a::field_char_0) = of_nat (fact n) / (of_nat (fact k) * of_nat (fact (n - k)))"
   using binomial_fact_lemma[OF kn]
   by (simp add: field_simps fact_not_eq_zero of_nat_mult[symmetric])
 
@@ -418,16 +418,16 @@ lemma gbinomial_Suc: "a gchoose (Suc k) = (setprod (\<lambda>i. a - of_nat i) {0
   by (simp add: gbinomial_def)
  
 lemma gbinomial_mult_fact:
-  "(of_nat (fact (Suc k)) :: 'a) * ((a::'a::{field, ring_char_0}) gchoose (Suc k)) = (setprod (\<lambda>i. a - of_nat i) {0 .. k})"
+  "(of_nat (fact (Suc k)) :: 'a) * ((a::'a::field_char_0) gchoose (Suc k)) = (setprod (\<lambda>i. a - of_nat i) {0 .. k})"
   unfolding gbinomial_Suc
   by (simp_all add: field_simps del: fact_Suc)
 
 lemma gbinomial_mult_fact':
-  "((a::'a::{field, ring_char_0}) gchoose (Suc k)) * (of_nat (fact (Suc k)) :: 'a) = (setprod (\<lambda>i. a - of_nat i) {0 .. k})"
+  "((a::'a::field_char_0) gchoose (Suc k)) * (of_nat (fact (Suc k)) :: 'a) = (setprod (\<lambda>i. a - of_nat i) {0 .. k})"
   using gbinomial_mult_fact[of k a]
   apply (subst mult_commute) .
 
-lemma gbinomial_Suc_Suc: "((a::'a::{field, ring_char_0}) + 1) gchoose (Suc k) = a gchoose k + (a gchoose (Suc k))"
+lemma gbinomial_Suc_Suc: "((a::'a::field_char_0) + 1) gchoose (Suc k) = a gchoose k + (a gchoose (Suc k))"
 proof-
   {assume "k = 0" then have ?thesis by simp}
   moreover
