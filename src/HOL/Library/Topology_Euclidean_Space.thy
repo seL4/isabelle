@@ -3791,11 +3791,11 @@ lemma continuous_on_vec1_range:
   unfolding continuous_on_def apply (simp del: dist_sym) unfolding dist_vec1 unfolding dist_def ..
 
 lemma continuous_at_vec1_norm:
- "\<forall>x. continuous (at x) (vec1 o norm)"
+ "continuous (at x) (vec1 o norm)"
   unfolding continuous_at_vec1_range using real_abs_sub_norm order_le_less_trans by blast
 
 lemma continuous_on_vec1_norm:
- "\<forall>s. continuous_on s (vec1 o norm)"
+ "continuous_on s (vec1 o norm)"
 unfolding continuous_on_vec1_range norm_vec1[THEN sym] by (metis norm_vec1 order_le_less_trans real_abs_sub_norm)
 
 lemma continuous_at_vec1_component:
@@ -3860,7 +3860,7 @@ lemma continuous_attains_sup:
 
 lemma continuous_attains_inf:
  "compact s \<Longrightarrow> s \<noteq> {} \<Longrightarrow> continuous_on s (vec1 o f)
-        ==> (\<exists>x \<in> s. \<forall>y \<in> s. f x \<le> f y)"
+        \<Longrightarrow> (\<exists>x \<in> s. \<forall>y \<in> s. f x \<le> f y)"
   using compact_attains_inf[of "f ` s"]
   using compact_continuous_image[of s "vec1 \<circ> f"] unfolding image_compose by auto
 
@@ -4299,8 +4299,12 @@ lemma interval: fixes a :: "'a::ord^'n::finite" shows
 lemma mem_interval: fixes a :: "'a::ord^'n::finite" shows
   "x \<in> {a<..<b} \<longleftrightarrow> (\<forall>i. a$i < x$i \<and> x$i < b$i)"
   "x \<in> {a .. b} \<longleftrightarrow> (\<forall>i. a$i \<le> x$i \<and> x$i \<le> b$i)"
-  using interval[of a b]
-  by(auto simp add: expand_set_eq vector_less_def vector_less_eq_def)
+  using interval[of a b] by(auto simp add: expand_set_eq vector_less_def vector_less_eq_def)
+
+lemma mem_interval_1: fixes x :: "real^1" shows
+ "(x \<in> {a .. b} \<longleftrightarrow> dest_vec1 a \<le> dest_vec1 x \<and> dest_vec1 x \<le> dest_vec1 b)"
+ "(x \<in> {a<..<b} \<longleftrightarrow> dest_vec1 a < dest_vec1 x \<and> dest_vec1 x < dest_vec1 b)"
+by(simp_all add: Cart_eq vector_less_def vector_less_eq_def dest_vec1_def forall_1)
 
 lemma interval_eq_empty: fixes a :: "real^'n::finite" shows
  "({a <..< b} = {} \<longleftrightarrow> (\<exists>i. b$i \<le> a$i))" (is ?th1) and
@@ -4356,7 +4360,6 @@ apply(auto simp add: expand_set_eq vector_less_def vector_less_eq_def Cart_eq)
 apply (simp add: order_eq_iff)
 apply (auto simp add: not_less less_imp_le)
 done
-
 
 lemma interval_open_subset_closed:  fixes a :: "'a::preorder^'n::finite" shows
  "{a<..<b} \<subseteq> {a .. b}"
@@ -5427,7 +5430,11 @@ next
   ultimately show ?thesis using False by auto
 qed
 
-subsection{* Banach fixed point theorem (not really topological...)                    *}
+lemma image_smult_interval:"(\<lambda>x. m *s (x::real^'n::finite)) ` {a..b} =
+  (if {a..b} = {} then {} else if 0 \<le> m then {m *s a..m *s b} else {m *s b..m *s a})"
+  using image_affinity_interval[of m 0 a b] by auto
+
+subsection{* Banach fixed point theorem (not really topological...) *}
 
 lemma banach_fix:
   assumes s:"complete s" "s \<noteq> {}" and c:"0 \<le> c" "c < 1" and f:"(f ` s) \<subseteq> s" and
