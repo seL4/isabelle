@@ -169,6 +169,11 @@ lemmas scaleR_right_imp_eq = real_vector.scale_right_imp_eq
 lemmas scaleR_cancel_left = real_vector.scale_cancel_left
 lemmas scaleR_cancel_right = real_vector.scale_cancel_right
 
+lemma scaleR_minus1_left [simp]:
+  fixes x :: "'a::real_vector"
+  shows "scaleR (-1) x = - x"
+  using scaleR_minus_left [of 1 x] by simp
+
 class real_algebra = real_vector + ring +
   assumes mult_scaleR_left [simp]: "scaleR a x * y = scaleR a (x * y)"
   and mult_scaleR_right [simp]: "x * scaleR a y = scaleR a (x * y)"
@@ -631,6 +636,44 @@ lemma norm_power:
   fixes x :: "'a::{real_normed_div_algebra}"
   shows "norm (x ^ n) = norm x ^ n"
 by (induct n) (simp_all add: norm_mult)
+
+
+subsection {* Distance function *}
+
+(* TODO: There should be a metric_space class for this,
+which should be a superclass of real_normed_vector. *)
+
+definition
+  dist :: "'a::real_normed_vector \<Rightarrow> 'a \<Rightarrow> real"
+where
+  "dist x y = norm (x - y)"
+
+lemma zero_le_dist [simp]: "0 \<le> dist x y"
+unfolding dist_def by (rule norm_ge_zero)
+
+lemma dist_eq_0_iff [simp]: "dist x y = 0 \<longleftrightarrow> x = y"
+unfolding dist_def by simp
+
+lemma dist_self [simp]: "dist x x = 0"
+unfolding dist_def by simp
+
+lemma zero_less_dist_iff: "0 < dist x y \<longleftrightarrow> x \<noteq> y"
+by (simp add: less_le)
+
+lemma dist_not_less_zero [simp]: "\<not> dist x y < 0"
+by (simp add: not_less)
+
+lemma dist_le_zero_iff [simp]: "dist x y \<le> 0 \<longleftrightarrow> x = y"
+by (simp add: le_less)
+
+lemma dist_commute: "dist x y = dist y x"
+unfolding dist_def by (rule norm_minus_commute)
+
+lemma dist_triangle: "dist x z \<le> dist x y + dist y z"
+unfolding dist_def
+apply (rule ord_eq_le_trans [OF _ norm_triangle_ineq])
+apply (simp add: diff_minus)
+done
 
 
 subsection {* Sign function *}

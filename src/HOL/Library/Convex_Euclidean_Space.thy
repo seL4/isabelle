@@ -609,7 +609,7 @@ proof-
 	apply auto unfolding zero_less_divide_iff using n by simp  }  note * = this
 
     have "\<exists>x\<ge>0. x \<le> 1 \<and> (1 - x) *s x1 + x *s x2 \<notin> e1 \<and> (1 - x) *s x1 + x *s x2 \<notin> e2"
-      apply(rule connected_real_lemma) apply (simp add: `x1\<in>e1` `x2\<in>e2` dist_sym)+
+      apply(rule connected_real_lemma) apply (simp add: `x1\<in>e1` `x2\<in>e2` dist_commute)+
       using * apply(simp add: dist_def)
       using as(1,2)[unfolded open_def] apply simp
       using as(1,2)[unfolded open_def] apply simp
@@ -1357,7 +1357,9 @@ lemma finite_imp_compact_convex_hull:
 
 subsection {* Extremal points of a simplex are some vertices. *}
 
-lemma dist_increases_online: assumes "d \<noteq> 0"
+lemma dist_increases_online:
+  fixes a b d :: "real ^ 'n::finite"
+  assumes "d \<noteq> 0"
   shows "dist a (b + d) > dist a b \<or> dist a (b - d) > dist a b"
 proof(cases "a \<bullet> d - b \<bullet> d > 0")
   case True hence "0 < d \<bullet> d + (a \<bullet> d * 2 - b \<bullet> d * 2)" 
@@ -1409,7 +1411,7 @@ proof(induct_tac rule: finite_induct[of s])
  	proof(erule_tac disjE)
 	  assume "dist a y < dist a (y + w *s (x - b))"
 	  hence "norm (y - a) < norm ((u + w) *s x + (v - w) *s b - a)"
-	    unfolding dist_sym[of a] unfolding dist_def obt(5) by (simp add: ring_simps)
+	    unfolding dist_commute[of a] unfolding dist_def obt(5) by (simp add: ring_simps)
 	  moreover have "(u + w) *s x + (v - w) *s b \<in> convex hull insert x s"
 	    unfolding convex_hull_insert[OF `s\<noteq>{}`] and mem_Collect_eq
 	    apply(rule_tac x="u + w" in exI) apply rule defer 
@@ -1418,7 +1420,7 @@ proof(induct_tac rule: finite_induct[of s])
 	next
 	  assume "dist a y < dist a (y - w *s (x - b))"
 	  hence "norm (y - a) < norm ((u - w) *s x + (v + w) *s b - a)"
-	    unfolding dist_sym[of a] unfolding dist_def obt(5) by (simp add: ring_simps)
+	    unfolding dist_commute[of a] unfolding dist_def obt(5) by (simp add: ring_simps)
 	  moreover have "(u - w) *s x + (v + w) *s b \<in> convex hull insert x s"
 	    unfolding convex_hull_insert[OF `s\<noteq>{}`] and mem_Collect_eq
 	    apply(rule_tac x="u - w" in exI) apply rule defer 
@@ -1437,7 +1439,7 @@ proof-
   have "convex hull s \<noteq> {}" using hull_subset[of s convex] and assms(2) by auto
   then obtain x where x:"x\<in>convex hull s" "\<forall>y\<in>convex hull s. norm (y - a) \<le> norm (x - a)"
     using distance_attains_sup[OF finite_imp_compact_convex_hull[OF assms(1)], of a]
-    unfolding dist_sym[of a] unfolding dist_def by auto
+    unfolding dist_commute[of a] unfolding dist_def by auto
   thus ?thesis proof(cases "x\<in>s")
     case False then obtain y where "y\<in>convex hull s" "norm (x - a) < norm (y - a)"
       using simplex_furthest_lt[OF assms(1), THEN bspec[where x=x]] and x(1) by auto
@@ -1513,6 +1515,7 @@ proof- have z:"z \<bullet> z > 0" unfolding dot_pos_lt using assms by auto
   qed(rule divide_pos_pos, auto) qed
 
 lemma closer_point_lemma:
+  fixes x y z :: "real ^ 'n::finite"
   assumes "(y - x) \<bullet> (z - x) > 0"
   shows "\<exists>u>0. u \<le> 1 \<and> dist (x + u *s (z - x)) y < dist x y"
 proof- obtain u where "u>0" and u:"\<forall>v>0. v \<le> u \<longrightarrow> norm (v *s (z - x) - (y - x)) < norm (y - x)"
@@ -1526,7 +1529,7 @@ lemma any_closest_point_dot:
 proof(rule ccontr) assume "\<not> (a - x) \<bullet> (y - x) \<le> 0"
   then obtain u where u:"u>0" "u\<le>1" "dist (x + u *s (y - x)) a < dist x a" using closer_point_lemma[of a x y] by auto
   let ?z = "(1 - u) *s x + u *s y" have "?z \<in> s" using mem_convex[OF assms(1,3,4), of u] using u by auto
-  thus False using assms(5)[THEN bspec[where x="?z"]] and u(3) by (auto simp add: dist_sym field_simps) qed
+  thus False using assms(5)[THEN bspec[where x="?z"]] and u(3) by (auto simp add: dist_commute field_simps) qed
 
 lemma any_closest_point_unique:
   assumes "convex s" "closed s" "x \<in> s" "y \<in> s"
@@ -1592,7 +1595,7 @@ proof-
       using assms(1)[unfolded convex_alt] and y and `x\<in>s` and `y\<in>s` by auto
     assume "\<not> (y - z) \<bullet> y \<le> (y - z) \<bullet> x" then obtain v where
       "v>0" "v\<le>1" "dist (y + v *s (x - y)) z < dist y z" using closer_point_lemma[of z y x] by auto
-    thus False using *[THEN spec[where x=v]] by(auto simp add: dist_sym field_simps)
+    thus False using *[THEN spec[where x=v]] by(auto simp add: dist_commute field_simps)
   qed auto
 qed
 
@@ -1613,7 +1616,7 @@ next
       then obtain u where "u>0" "u\<le>1" "dist (y + u *s (x - y)) z < dist y z" by auto
       thus False using y[THEN bspec[where x="y + u *s (x - y)"]]
 	using assms(1)[unfolded convex_alt, THEN bspec[where x=y]]
-	using `x\<in>s` `y\<in>s` by (auto simp add: dist_sym field_simps) qed
+	using `x\<in>s` `y\<in>s` by (auto simp add: dist_commute field_simps) qed
     moreover have "0 < norm (y - z) ^ 2" using `y\<in>s` `z\<notin>s` by auto
     hence "0 < (y - z) \<bullet> (y - z)" unfolding norm_pow_2 by simp
     ultimately show "(y - z) \<bullet> z + (norm (y - z))\<twosuperior> / 2 < (y - z) \<bullet> x"
@@ -2092,7 +2095,7 @@ lemma homeomorphic_convex_compact_lemma: fixes s::"(real^'n::finite) set"
     unfolding centre_in_ball apply rule defer apply(rule) unfolding mem_ball proof-
     fix y assume "dist (u *s x) y < 1 - u"
     hence "inverse (1 - u) *s (y - u *s x) \<in> s"
-      using assms(3) apply(erule_tac subsetD) unfolding mem_cball dist_sym dist_def
+      using assms(3) apply(erule_tac subsetD) unfolding mem_cball dist_commute dist_def
       unfolding group_add_class.diff_0 group_add_class.diff_0_right norm_minus_cancel norm_mul      
       apply (rule mult_left_le_imp_le[of "1 - u"])
       unfolding class_semiring.mul_a using `u<1` by auto
@@ -2420,8 +2423,8 @@ lemma convex_bounds_lemma:
   thus "\<bar>f y\<bar> \<le> b + 2 * \<bar>f x\<bar>" using assms(1)[unfolded convex_on_def,rule_format, OF y z, of "1/2" "1/2"]
     using assms(2)[rule_format,OF y] assms(2)[rule_format,OF z] by(auto simp add:field_simps)
 next case False fix y assume "y\<in>cball x e" 
-  hence "dist x y < 0" using False unfolding mem_cball not_le by auto
-  thus "\<bar>f y\<bar> \<le> b + 2 * \<bar>f x\<bar>" using dist_pos_le[of x y] by auto qed
+  hence "dist x y < 0" using False unfolding mem_cball not_le by (auto simp del: dist_not_less_zero)
+  thus "\<bar>f y\<bar> \<le> b + 2 * \<bar>f x\<bar>" using zero_le_dist[of x y] by auto qed
 
 subsection {* Hence a convex function on an open set is continuous. *}
 
@@ -2498,7 +2501,7 @@ proof-
 lemma midpoint_eq_endpoint:
   "midpoint a b = a \<longleftrightarrow> a = (b::real^'n::finite)"
   "midpoint a b = b \<longleftrightarrow> a = b"
-  unfolding dist_eq_0[THEN sym] dist_midpoint by auto
+  unfolding dist_eq_0_iff[where 'a="real^'n", THEN sym] dist_midpoint by auto
 
 lemma convex_contains_segment:
   "convex s \<longleftrightarrow> (\<forall>a\<in>s. \<forall>b\<in>s. closed_segment a b \<subseteq> s)"
@@ -2544,7 +2547,7 @@ lemma between_mem_segment: "between (a,b) x \<longleftrightarrow> x \<in> closed
 lemma between:"between (a,b) (x::real^'n::finite) \<longleftrightarrow> dist a b = (dist a x) + (dist x b)"
 proof(cases "a = b")
   case True thus ?thesis unfolding between_def split_conv mem_def[of x, symmetric]
-    by(auto simp add:segment_refl dist_sym) next
+    by(auto simp add:segment_refl dist_commute) next
   case False hence Fal:"norm (a - b) \<noteq> 0" and Fal2: "norm (a - b) > 0" by auto 
   have *:"\<And>u. a - ((1 - u) *s a + u *s b) = u *s (a - b)" by auto
   show ?thesis unfolding between_def split_conv mem_def[of x, symmetric] closed_segment_def mem_Collect_eq

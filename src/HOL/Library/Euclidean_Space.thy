@@ -620,12 +620,6 @@ lemma norm_vector_1: "norm (x :: _^1) = norm (x$1)"
 lemma norm_real: "norm(x::real ^ 1) = abs(x$1)"
   by (simp add: norm_vector_1)
 
-text{* Metric *}
-
-text {* FIXME: generalize to arbitrary @{text real_normed_vector} types *}
-definition dist:: "real ^ 'n::finite \<Rightarrow> real ^ 'n \<Rightarrow> real" where
-  "dist x y = norm (x - y)"
-
 lemma dist_real: "dist(x::real ^ 1) y = abs((x$1) - (y$1))"
   by (auto simp add: norm_real dist_def)
 
@@ -959,38 +953,38 @@ method_setup norm = {* Scan.succeed (SIMPLE_METHOD' o NormArith.norm_arith_tac)
 
 text{* Hence more metric properties. *}
 
-lemma dist_refl[simp]: "dist x x = 0" by norm
+lemma dist_triangle_alt: "dist y z <= dist x y + dist x z"
+using dist_triangle [of y z x] by (simp add: dist_commute)
 
-lemma dist_sym: "dist x y = dist y x"by norm
+lemma dist_triangle2: "dist x y \<le> dist x z + dist y z"
+using dist_triangle [of x y z] by (simp add: dist_commute)
 
-lemma dist_pos_le[simp]: "0 <= dist x y" by norm
+lemma dist_pos_lt: "x \<noteq> y ==> 0 < dist x y" by (simp add: zero_less_dist_iff)
+lemma dist_nz:  "x \<noteq> y \<longleftrightarrow> 0 < dist x y" by (simp add: zero_less_dist_iff)
 
-lemma dist_triangle: "dist x z <= dist x y + dist y z" by norm
+lemma dist_triangle_le: "dist x z + dist y z <= e \<Longrightarrow> dist x y <= e"
+by (rule order_trans [OF dist_triangle2])
 
-lemma dist_triangle_alt: "dist y z <= dist x y + dist x z" by norm
+lemma dist_triangle_lt: "dist x z + dist y z < e ==> dist x y < e"
+by (rule le_less_trans [OF dist_triangle2])
 
-lemma dist_eq_0[simp]: "dist x y = 0 \<longleftrightarrow> x = y" by norm
+lemma dist_triangle_half_l:
+  "dist x1 y < e / 2 \<Longrightarrow> dist x2 y < e / 2 \<Longrightarrow> dist x1 x2 < e"
+by (rule dist_triangle_lt [where z=y], simp)
 
-lemma dist_pos_lt: "x \<noteq> y ==> 0 < dist x y" by norm
-lemma dist_nz:  "x \<noteq> y \<longleftrightarrow> 0 < dist x y" by norm
-
-lemma dist_triangle_le: "dist x z + dist y z <= e \<Longrightarrow> dist x y <= e" by norm
-
-lemma dist_triangle_lt: "dist x z + dist y z < e ==> dist x y < e" by norm
-
-lemma dist_triangle_half_l: "dist x1 y < e / 2 \<Longrightarrow> dist x2 y < e / 2 ==> dist x1 x2 < e" by norm
-
-lemma dist_triangle_half_r: "dist y x1 < e / 2 \<Longrightarrow> dist y x2 < e / 2 ==> dist x1 x2 < e" by norm
+lemma dist_triangle_half_r:
+  "dist y x1 < e / 2 \<Longrightarrow> dist y x2 < e / 2 \<Longrightarrow> dist x1 x2 < e"
+by (rule dist_triangle_half_l, simp_all add: dist_commute)
 
 lemma dist_triangle_add: "dist (x + y) (x' + y') <= dist x x' + dist y y'"
-  by norm
+unfolding dist_def by (rule norm_diff_triangle_ineq)
 
 lemma dist_mul[simp]: "dist (c *s x) (c *s y) = \<bar>c\<bar> * dist x y"
   unfolding dist_def vector_ssub_ldistrib[symmetric] norm_mul ..
 
-lemma dist_triangle_add_half: " dist x x' < e / 2 \<Longrightarrow> dist y y' < e / 2 ==> dist(x + y) (x' + y') < e" by norm
-
-lemma dist_le_0[simp]: "dist x y <= 0 \<longleftrightarrow> x = y" by norm
+lemma dist_triangle_add_half:
+  " dist x x' < e / 2 \<Longrightarrow> dist y y' < e / 2 \<Longrightarrow> dist(x + y) (x' + y') < e"
+by (rule le_less_trans [OF dist_triangle_add], simp)
 
 lemma setsum_component [simp]:
   fixes f:: " 'a \<Rightarrow> ('b::comm_monoid_add) ^'n"

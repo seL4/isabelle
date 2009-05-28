@@ -194,7 +194,9 @@ lemma subtopology_UNIV[simp]: "subtopology U UNIV = U"
   by (simp add: subtopology_superset)
 
 subsection{* The universal Euclidean versions are what we use most of the time *}
-definition "open S \<longleftrightarrow> (\<forall>x \<in> S. \<exists>e >0. \<forall>x'. dist x' x < e \<longrightarrow> x' \<in> S)"
+definition
+  "open" :: "(real ^ 'n::finite) set \<Rightarrow> bool" where
+  "open S \<longleftrightarrow> (\<forall>x \<in> S. \<exists>e >0. \<forall>x'. dist x' x < e \<longrightarrow> x' \<in> S)"
 definition "closed S \<longleftrightarrow> open(UNIV - S)"
 definition "euclidean = topology open"
 
@@ -285,8 +287,13 @@ lemma closed_Union[intro]: assumes fS: "finite S" and h: "\<forall>T\<in>S. clos
 
 subsection{* Open and closed balls. *}
 
-definition "ball x e = {y. dist x y < e}"
-definition "cball x e = {y. dist x y \<le> e}"
+definition
+  ball :: "real ^ 'n::finite \<Rightarrow> real \<Rightarrow> (real^'n) set" where
+  "ball x e = {y. dist x y < e}"
+
+definition
+  cball :: "real ^ 'n::finite \<Rightarrow> real \<Rightarrow> (real^'n) set" where
+  "cball x e = {y. dist x y \<le> e}"
 
 lemma mem_ball[simp]: "y \<in> ball x e \<longleftrightarrow> dist x y < e" by (simp add: ball_def)
 lemma mem_cball[simp]: "y \<in> cball x e \<longleftrightarrow> dist x y \<le> e" by (simp add: cball_def)
@@ -312,7 +319,7 @@ lemma diff_le_iff: "(a::real) - b \<ge> 0 \<longleftrightarrow> a \<ge> b" "(a::
 
 lemma open_ball[intro, simp]: "open (ball x e)"
   unfolding open_def ball_def Collect_def Ball_def mem_def
-  unfolding dist_sym
+  unfolding dist_commute
   apply clarify
   apply (rule_tac x="e - dist xa x" in exI)
   using dist_triangle_alt[where z=x]
@@ -322,9 +329,9 @@ lemma open_ball[intro, simp]: "open (ball x e)"
   apply (erule_tac x="xa" in allE)
   by arith
 
-lemma centre_in_ball[simp]: "x \<in> ball x e \<longleftrightarrow> e > 0" by (metis mem_ball dist_refl)
+lemma centre_in_ball[simp]: "x \<in> ball x e \<longleftrightarrow> e > 0" by (metis mem_ball dist_self)
 lemma open_contains_ball: "open S \<longleftrightarrow> (\<forall>x\<in>S. \<exists>e>0. ball x e \<subseteq> S)"
-  unfolding open_def subset_eq mem_ball Ball_def dist_sym ..
+  unfolding open_def subset_eq mem_ball Ball_def dist_commute ..
 
 lemma open_contains_ball_eq: "open S \<Longrightarrow> \<forall>x. x\<in>S \<longleftrightarrow> (\<exists>e>0. ball x e \<subseteq> S)"
   by (metis open_contains_ball subset_eq centre_in_ball)
@@ -332,7 +339,7 @@ lemma open_contains_ball_eq: "open S \<Longrightarrow> \<forall>x. x\<in>S \<lon
 lemma ball_eq_empty[simp]: "ball x e = {} \<longleftrightarrow> e \<le> 0"
   unfolding mem_ball expand_set_eq
   apply (simp add: not_less)
-  by (metis dist_pos_le order_trans dist_refl)
+  by (metis zero_le_dist order_trans dist_self)
 
 lemma ball_empty[intro]: "e \<le> 0 ==> ball x e = {}" by simp
 
@@ -380,14 +387,14 @@ proof-
     { fix x assume "x\<in>S"
       hence "x \<in> \<Union>{B. \<exists>x\<in>S. B = ball x (d x)}"
 	apply simp apply(rule_tac x="ball x(d x)" in exI) apply auto
-	unfolding dist_refl using d[of x] by auto
+        by (rule d [THEN conjunct1])
       hence "x\<in> ?T \<inter> U" using SU and `x\<in>S` by auto  }
     moreover
     { fix y assume "y\<in>?T"
       then obtain B where "y\<in>B" "B\<in>{B. \<exists>x\<in>S. B = ball x (d x)}" by auto
       then obtain x where "x\<in>S" and x:"y \<in> ball x (d x)" by auto
       assume "y\<in>U"
-      hence "y\<in>S" using d[OF `x\<in>S`] and x by(auto simp add: dist_sym) }
+      hence "y\<in>S" using d[OF `x\<in>S`] and x by(auto simp add: dist_commute) }
     ultimately have "S = ?T \<inter> U" by blast
     with oT have ?lhs unfolding openin_subtopology open_openin[symmetric] by blast}
   ultimately show ?thesis by blast
@@ -472,8 +479,8 @@ proof-
   let ?V = "ball y (dist x y / 2)"
   have th0: "\<And>d x y z. (d x z :: real) <= d x y + d y z \<Longrightarrow> d y z = d z y
                ==> ~(d x y * 2 < d x z \<and> d z y * 2 < d x z)" by arith
-  have "?P ?U ?V" using dist_pos_lt[OF xy] th0[of dist,OF dist_triangle dist_sym]
-    by (auto simp add: dist_refl expand_set_eq less_divide_eq_number_of1)
+  have "?P ?U ?V" using dist_pos_lt[OF xy] th0[of dist,OF dist_triangle dist_commute]
+    by (auto simp add: expand_set_eq less_divide_eq_number_of1)
   then show ?thesis by blast
 qed
 
@@ -500,14 +507,17 @@ lemma islimpt_approachable: "x islimpt S \<longleftrightarrow> (\<forall>e>0. \<
   unfolding islimpt_def
   apply auto
   apply(erule_tac x="ball x e" in allE)
-  apply (auto simp add: dist_refl)
-  apply(rule_tac x=y in bexI) apply (auto simp add: dist_sym)
-  by (metis open_def dist_sym open_ball centre_in_ball mem_ball)
+  apply auto
+  apply(rule_tac x=y in bexI)
+  apply (auto simp add: dist_commute)
+  apply (simp add: open_def, drule (1) bspec)
+  apply (clarify, drule spec, drule (1) mp, auto)
+  done
 
 lemma islimpt_approachable_le: "x islimpt S \<longleftrightarrow> (\<forall>e>0. \<exists>x'\<in> S. x' \<noteq> x \<and> dist x' x <= e)"
   unfolding islimpt_approachable
   using approachable_lt_le[where f="\<lambda>x'. dist x' x" and P="\<lambda>x'. \<not> (x'\<in>S \<and> x'\<noteq>x)"]
-  by metis
+  by metis (* FIXME: VERY slow! *)
 
 lemma islimpt_UNIV[simp, intro]: "(x:: real ^'n::finite) islimpt UNIV"
 proof-
@@ -546,7 +556,7 @@ proof-
 	by (rule th') auto
       have th2: "\<bar>dist x x'\<bar> \<ge> \<bar>(x' - x)$i\<bar>" using  component_le_norm[of "x'-x" i]
 	apply (simp add: dist_def) by norm
-      from th[OF th1 th2] x'(3) have False by (simp add: dist_sym dist_pos_le) }
+      from th[OF th1 th2] x'(3) have False by (simp add: dist_commute) }
   then show ?thesis unfolding closed_limpt islimpt_approachable
     unfolding not_le[symmetric] by blast
 qed
@@ -569,7 +579,7 @@ qed
 
 lemma islimpt_finite: assumes fS: "finite S" shows "\<not> a islimpt S"
   unfolding islimpt_approachable
-  using finite_set_avoid[OF fS, of a] by (metis dist_sym  not_le)
+  using finite_set_avoid[OF fS, of a] by (metis dist_commute  not_le)
 
 lemma islimpt_Un: "x islimpt (S \<union> T) \<longleftrightarrow> x islimpt S \<or> x islimpt T"
   apply (rule iffI)
@@ -591,9 +601,11 @@ proof-
     let ?m = "min (e/2) (dist x y) "
     from e2 y(2) have mp: "?m > 0" by (simp add: dist_nz[THEN sym])
     from C[rule_format, OF mp] obtain z where z: "z \<in> S" "z\<noteq>x" "dist z x < ?m" by blast
-    have th: "norm (z - y) < e" using z y by norm
+    have th: "norm (z - y) < e" using z y
+      unfolding dist_def [symmetric]
+      by (intro dist_triangle_lt [where z=x], simp)
     from d[rule_format, OF y(1) z(1) th] y z
-    have False by (auto simp add: dist_sym)}
+    have False by (auto simp add: dist_commute)}
   then show ?thesis by (metis islimpt_approachable closed_limpt)
 qed
 
@@ -642,7 +654,7 @@ proof-
     have th: "dist x y < e" "dist x y < d" unfolding y using e(1) d(1) by arith+
     have "\<exists>x'\<in>S. x'\<noteq> x \<and> dist x' x < d"
       apply (rule bexI[where x=y])
-      using e th y by (auto simp add: dist_sym)}
+      using e th y by (auto simp add: dist_commute)}
   then show ?thesis unfolding islimpt_approachable by blast
 qed
 
@@ -657,17 +669,16 @@ proof-
     {fix y assume y: "y \<in> ball x e"
       {fix d::real assume d: "d > 0"
 	let ?k = "min d (e - dist x y)"
-	have kp: "?k > 0" using d e(1) y[unfolded mem_ball] by norm
+	have kp: "?k > 0" using d e(1) y[unfolded mem_ball] by simp
 	have "?k/2 \<ge> 0" using kp by simp
 	then obtain w where w: "dist y w = ?k/ 2" by (metis vector_choose_dist)
 	from iT[unfolded expand_set_eq mem_interior]
 	have "\<not> ball w (?k/4) \<subseteq> T" using kp by (auto simp add: less_divide_eq_number_of1)
 	then obtain z where z: "dist w z < ?k/4" "z \<notin> T" by (auto simp add: subset_eq)
 	have "z \<notin> T \<and> z\<noteq> y \<and> dist z y < d \<and> dist x z < e" using z apply simp
-	  using w e(1) d apply (auto simp only: dist_sym)
+	  using w e(1) d apply (auto simp only: dist_commute)
 	  apply (auto simp add: min_def cong del: if_weak_cong)
 	  apply (cases "d \<le> e - dist x y", auto simp add: ring_simps cong del: if_weak_cong)
-	  apply norm
 	  apply (cases "d \<le> e - dist x y", auto simp add: ring_simps not_le not_less cong del: if_weak_cong)
 	  apply norm
 	  apply norm
@@ -877,9 +888,9 @@ proof
     assume "e > 0"
     let ?rhse = "(\<exists>x\<in>S. dist a x < e) \<and> (\<exists>x. x \<notin> S \<and> dist a x < e)"
     { assume "a\<in>S"
-      have "\<exists>x\<in>S. dist a x < e" using dist_refl[of a] `e>0` `a\<in>S` by(rule_tac x=a in bexI) auto
+      have "\<exists>x\<in>S. dist a x < e" using `e>0` `a\<in>S` by(rule_tac x=a in bexI) auto
       moreover have "\<exists>x. x \<notin> S \<and> dist a x < e" using `?lhs` `a\<in>S`
-	unfolding frontier_closures closure_def islimpt_def using dist_refl[of a] `e>0`
+	unfolding frontier_closures closure_def islimpt_def using `e>0`
 	by (auto, erule_tac x="ball a e" in allE, auto)
       ultimately have ?rhse by auto
     }
@@ -887,8 +898,8 @@ proof
     { assume "a\<notin>S"
       hence ?rhse using `?lhs`
 	unfolding frontier_closures closure_def islimpt_def
-	using open_ball[of a e] dist_refl[of a] `e > 0`
-	by (auto, erule_tac x = "ball a e" in allE, auto)
+	using open_ball[of a e] `e > 0`
+	by (auto, erule_tac x = "ball a e" in allE, auto) (* FIXME: VERY slow! *)
     }
     ultimately have ?rhse by auto
   }
@@ -957,7 +968,10 @@ lemma net_dilemma:
 
 subsection{* Common nets and The "within" modifier for nets. *}
 
-definition "at a = mknet(\<lambda>x y. 0 < dist x a \<and> dist x a <= dist y a)"
+definition
+  at :: "real ^ 'n::finite \<Rightarrow> (real ^ 'n) net" where
+  "at a = mknet(\<lambda>x y. 0 < dist x a \<and> dist x a <= dist y a)"
+
 definition "at_infinity = mknet(\<lambda>x y. norm x \<ge> norm y)"
 definition "sequentially = mknet(\<lambda>(m::nat) n. m >= n)"
 
@@ -982,7 +996,7 @@ method_setup net = {*
 
 lemma at: "\<And>x y. netord (at a) x y \<longleftrightarrow> 0 < dist x a \<and> dist x a <= dist y a"
   apply (net at_def)
-  by (metis dist_sym real_le_linear real_le_trans)
+  by (metis dist_commute real_le_linear real_le_trans)
 
 lemma at_infinity:
  "\<And>x y. netord at_infinity x y \<longleftrightarrow> norm x >= norm y"
@@ -1029,7 +1043,8 @@ proof-
     then have "\<not> a islimpt S"
       using bc
       unfolding within at dist_nz islimpt_approachable_le
-      by(auto simp add: dist_triangle dist_sym dist_eq_0[THEN sym]) }
+      by (auto simp add: dist_triangle dist_commute dist_eq_0_iff [symmetric]
+               simp del: dist_eq_0_iff) }
   moreover
   {assume "\<not> a islimpt S"
     then obtain e where e: "e > 0" "\<forall>x' \<in> S. x' \<noteq> a \<longrightarrow> dist x' a > e"
@@ -1038,7 +1053,7 @@ proof-
     from b e(1) have "a \<noteq> b" by (simp add: dist_nz)
     moreover have "\<forall>x. \<not> ((0 < dist x a \<and> dist x a \<le> dist a a) \<and> x \<in> S) \<and>
                  \<not> ((0 < dist x a \<and> dist x a \<le> dist b a) \<and> x \<in> S)"
-      using e(2) b by (auto simp add: dist_refl dist_sym)
+      using e(2) b by (auto simp add: dist_commute)
     ultimately have "trivial_limit (at a within S)"  unfolding trivial_limit_def within at
       by blast}
   ultimately show ?thesis unfolding trivial_limit_def by blast
@@ -1091,7 +1106,7 @@ proof-
     hence "\<forall>x\<in>S. 0 < dist x a \<and> dist x a \<le> (d/2) \<longrightarrow> P x" using order_less_imp_le by auto
   }
   thus ?thesis unfolding eventually_within_le using approachable_lt_le
-    by (auto, rule_tac x="d/2" in exI, auto)
+    apply auto  by (rule_tac x="d/2" in exI, auto)
 qed
 
 lemma eventually_at: "eventually P (at a) \<longleftrightarrow> (\<exists>d>0. \<forall>x. 0 < dist x a \<and> dist x a < d \<longrightarrow> P x)"
@@ -1185,11 +1200,11 @@ lemma Lim_sequentially:
   by (auto simp add: tendsto_def eventually_sequentially)
 
 lemma Lim_eventually: "eventually (\<lambda>x. f x = l) net \<Longrightarrow> (f ---> l) net"
-  by (auto simp add: eventually_def Lim dist_refl)
+  by (auto simp add: eventually_def Lim)
 
 text{* The expected monotonicity property. *}
 
-lemma Lim_within_empty:  "(f ---> l) (at x within {})"
+lemma Lim_within_empty: "(f ---> l) (at x within {})"
   by (simp add: Lim_within_le)
 
 lemma Lim_within_subset: "(f ---> l) (at a within S) \<Longrightarrow> T \<subseteq> S \<Longrightarrow> (f ---> l) (at a within T)"
@@ -1291,7 +1306,7 @@ next
     { fix x
       have "netord net x y \<longrightarrow> dist (h (f x)) (h l) < e"
 	using y(2) b unfolding dist_def	using linear_sub[of h "f x" l] `linear h`
-	apply auto by (metis b(1) b(2) dist_def dist_sym less_le_not_le linorder_not_le mult_imp_div_pos_le real_mult_commute xt1(7))
+	apply auto by (metis b(1) b(2) dist_def dist_commute less_le_not_le linorder_not_le mult_imp_div_pos_le real_mult_commute xt1(7)) (* FIXME: VERY slow! *)
     }
     hence " (\<exists>y. (\<exists>x. netord net x y) \<and> (\<forall>x. netord net x y \<longrightarrow> dist (h (f x)) (h l) < e))" using y
       by(rule_tac x="y" in exI) auto
@@ -1300,7 +1315,7 @@ next
 qed
 
 lemma Lim_const: "((\<lambda>x. a) ---> a) net"
-  by (auto simp add: Lim dist_refl trivial_limit_def)
+  by (auto simp add: Lim trivial_limit_def)
 
 lemma Lim_cmul: "(f ---> l) net ==> ((\<lambda>x. c *s f x) ---> c *s l) net"
   apply (rule Lim_linear[where f = f])
@@ -1359,7 +1374,7 @@ proof(simp add: tendsto_def, rule+)
   { fix x
     assume "norm (f x) \<le> g x" "dist (vec1 (g x)) 0 < e"
     hence "dist (f x) 0 < e"  unfolding vec_def using dist_vec1[of "g x" "0"]
-      by (vector dist_def norm_vec1 dist_refl real_vector_norm_def dot_def vec1_def)
+      by (vector dist_def norm_vec1 real_vector_norm_def dot_def vec1_def)
   }
   thus "eventually (\<lambda>x. dist (f x) 0 < e) net"
     using eventually_and[of "\<lambda>x. norm(f x) <= g x" "\<lambda>x. dist (vec1 (g x)) 0 < e" net]
@@ -1404,7 +1419,7 @@ proof-
     hence *:"\<forall>x. dist l x < e \<longrightarrow> x \<notin> S" by auto
     obtain y where "(\<exists>x. netord net x y) \<and> (\<forall>x. netord net x y \<longrightarrow> dist (f x) l < e)"
       using assms(3,4) `e>0` unfolding tendsto_def eventually_def by blast
-    hence "(\<exists>x. netord net x y) \<and> (\<forall>x. netord net x y \<longrightarrow> f x \<notin> S)"  using * by (auto simp add: dist_sym)
+    hence "(\<exists>x. netord net x y) \<and> (\<forall>x. netord net x y \<longrightarrow> f x \<notin> S)"  using * by (auto simp add: dist_commute)
     hence False using assms(2,3)
       using eventually_and[of "(\<lambda>x. f x \<in> S)" "(\<lambda>x. f x \<notin> S)"] not_eventually[of "(\<lambda>x. f x \<in> S \<and> f x \<notin> S)" net]
       unfolding eventually_def by blast
@@ -1546,7 +1561,7 @@ proof
     with `?lhs` obtain d where d:"d>0" "\<forall>x. 0 < dist x a \<and> dist x a < d \<longrightarrow> dist (f x) l < e" unfolding Lim_at by auto
     { fix x::"real^'a" assume "0 < dist x 0 \<and> dist x 0 < d"
       hence "dist (f (a + x)) l < e" using d
-      apply(erule_tac x="x+a" in allE) by(auto simp add: comm_monoid_add.mult_commute dist_def dist_sym)
+      apply(erule_tac x="x+a" in allE) by(auto simp add: comm_monoid_add.mult_commute dist_def dist_commute)
     }
     hence "\<exists>d>0. \<forall>x. 0 < dist x 0 \<and> dist x 0 < d \<longrightarrow> dist (f (a + x)) l < e" using d(1) by auto
   }
@@ -1558,7 +1573,7 @@ next
       unfolding Lim_at by auto
     { fix x::"real^'a" assume "0 < dist x a \<and> dist x a < d"
       hence "dist (f x) l < e" using d apply(erule_tac x="x-a" in allE)
-	by(auto simp add: comm_monoid_add.mult_commute dist_def dist_sym)
+	by(auto simp add: comm_monoid_add.mult_commute dist_def dist_commute)
     }
     hence "\<exists>d>0. \<forall>x. 0 < dist x a \<and> dist x a < d \<longrightarrow> dist (f x) l < e" using d(1) by auto
   }
@@ -1575,14 +1590,16 @@ proof-
   { fix x assume "x \<noteq> a"
     then obtain y where y:"dist y a \<le> dist a a \<and> 0 < dist y a \<and> y \<in> S \<or> dist y a \<le> dist x a \<and> 0 < dist y a \<and> y \<in> S" using assms unfolding trivial_limit_def within at by blast
     assume "\<forall>y. \<not> netord (at a within S) y x"
-    hence "x = a" using y unfolding within at by (auto simp add: dist_refl dist_nz)
+    hence "x = a" using y unfolding within at by (auto simp add: dist_nz)
   }
   moreover
-  have "\<forall>y. \<not> netord (at a within S) y a"  using assms unfolding trivial_limit_def within at by (auto simp add: dist_refl)
+  have "\<forall>y. \<not> netord (at a within S) y a"  using assms unfolding trivial_limit_def within at by auto
   ultimately show ?thesis unfolding netlimit_def using some_equality[of "\<lambda>x. \<forall>y. \<not> netord (at a within S) y x"] by blast
 qed
 
-lemma netlimit_at: "netlimit(at a) = a"
+lemma netlimit_at:
+  fixes a :: "real ^ 'n::finite"
+  shows "netlimit(at a) = a"
   apply (subst within_UNIV[symmetric])
   using netlimit_within[of a UNIV]
   by (simp add: trivial_limit_at within_UNIV)
@@ -1600,6 +1617,7 @@ lemma Lim_transform_eventually:  "eventually (\<lambda>x. f x = g x) net \<Longr
   using Lim_eventually[of "\<lambda>x. f x - g x" 0 net] Lim_transform[of f g net l] by auto
 
 lemma Lim_transform_within:
+  fixes x :: "real ^ 'n::finite"
   assumes "0 < d" "(\<forall>x'\<in>S. 0 < dist x' x \<and> dist x' x < d \<longrightarrow> f x' = g x')"
           "(f ---> l) (at x within S)"
   shows   "(g ---> l) (at x within S)"
@@ -1623,7 +1641,7 @@ lemma Lim_transform_away_within:
   shows "(g ---> l) (at a within S)"
 proof-
   have "\<forall>x'\<in>S. 0 < dist x' a \<and> dist x' a < dist a b \<longrightarrow> f x' = g x'" using assms(2)
-    apply auto apply(erule_tac x=x' in ballE) by (auto simp add: dist_sym dist_refl)
+    apply auto apply(erule_tac x=x' in ballE) by (auto simp add: dist_commute)
   thus ?thesis using Lim_transform_within[of "dist a b" S a f g l] using assms(1,3) unfolding dist_nz by auto
 qed
 
@@ -1644,7 +1662,7 @@ lemma Lim_transform_within_open:
 proof-
   from assms(1,2) obtain e::real where "e>0" and e:"ball a e \<subseteq> S" unfolding open_contains_ball by auto
   hence "\<forall>x'. 0 < dist x' a \<and> dist x' a < e \<longrightarrow> f x' = g x'" using assms(3)
-    unfolding ball_def subset_eq apply auto apply(erule_tac x=x' in allE) apply(erule_tac x=x' in ballE) by(auto simp add: dist_refl dist_sym)
+    unfolding ball_def subset_eq apply auto apply(erule_tac x=x' in allE) apply(erule_tac x=x' in ballE) by(auto simp add: dist_commute)
   thus ?thesis using Lim_transform_at[of e a f g l] `e>0` assms(4) by auto
 qed
 
@@ -1683,7 +1701,7 @@ lemma closed_sequential_limits:
 
 lemma closure_approachable: "x \<in> closure S \<longleftrightarrow> (\<forall>e>0. \<exists>y\<in>S. dist y x < e)"
   apply (auto simp add: closure_def islimpt_approachable)
-  by (metis dist_refl)
+  by (metis dist_self)
 
 lemma closed_approachable: "closed S ==> (\<forall>e>0. \<exists>y\<in>S. dist y x < e) \<longleftrightarrow> x \<in> S"
   by (metis closure_closed closure_approachable)
@@ -1765,7 +1783,7 @@ next
     proof(cases "d \<le> dist x y")
       case True thus "\<exists>x'\<in>ball x e. x' \<noteq> y \<and> dist x' y < d"
       proof(cases "x=y")
-	case True hence False using `d \<le> dist x y` `d>0` dist_refl[of x] by auto
+	case True hence False using `d \<le> dist x y` `d>0` by auto
 	thus "\<exists>x'\<in>ball x e. x' \<noteq> y \<and> dist x' y < d" by auto
       next
 	case False
@@ -1776,7 +1794,7 @@ next
 	also have "\<dots> = \<bar>- 1 + d / (2 * norm (x - y))\<bar> * norm (x - y)"
 	  using vector_sadd_rdistrib[of "- 1" "d / (2 * norm (y - x))", THEN sym, of "y - x"]
 	  unfolding vector_smult_lneg vector_smult_lid
-	  by (auto simp add: dist_sym[unfolded dist_def] norm_mul)
+	  by (auto simp add: dist_commute[unfolded dist_def] norm_mul)
 	also have "\<dots> = \<bar>- norm (x - y) + d / 2\<bar>"
 	  unfolding abs_mult_pos[of "norm (x - y)", OF norm_ge_zero[of "x - y"]]
 	  unfolding real_add_mult_distrib using `x\<noteq>y`[unfolded dist_nz, unfolded dist_def] by auto
@@ -1786,10 +1804,10 @@ next
 	moreover
 
 	have "(d / (2*dist y x)) *s (y - x) \<noteq> 0"
-	  using `x\<noteq>y`[unfolded dist_nz] `d>0` unfolding vector_mul_eq_0 by (auto simp add: dist_sym dist_refl)
+	  using `x\<noteq>y`[unfolded dist_nz] `d>0` unfolding vector_mul_eq_0 by (auto simp add: dist_commute)
 	moreover
 	have "dist (y - (d / (2 * dist y x)) *s (y - x)) y < d" unfolding dist_def apply simp unfolding norm_minus_cancel norm_mul
-	  using `d>0` `x\<noteq>y`[unfolded dist_nz] dist_sym[of x y]
+	  using `d>0` `x\<noteq>y`[unfolded dist_nz] dist_commute[of x y]
 	  unfolding dist_def by auto
 	ultimately show "\<exists>x'\<in>ball x e. x' \<noteq> y \<and> dist x' y < d" by (rule_tac  x="y - (d / (2*dist y x)) *s (y - x)" in bexI) auto
       qed
@@ -1799,12 +1817,12 @@ next
       proof(cases "x=y")
 	case True
 	obtain z where **:"dist y z = (min e d) / 2" using vector_choose_dist[of "(min e d) / 2" y]
-	  using `d > 0` `e>0` by (auto simp add: dist_refl)
+	  using `d > 0` `e>0` by auto
 	show "\<exists>x'\<in>ball x e. x' \<noteq> y \<and> dist x' y < d"
-	  apply(rule_tac x=z in bexI) unfolding `x=y` dist_sym dist_refl dist_nz using **  `d > 0` `e>0` by auto
+	  apply(rule_tac x=z in bexI) unfolding `x=y` dist_commute dist_nz using **  `d > 0` `e>0` by auto
       next
 	case False thus "\<exists>x'\<in>ball x e. x' \<noteq> y \<and> dist x' y < d"
-	  using `d>0` `d > dist x y` `?rhs` by(rule_tac x=x in bexI, auto simp add: dist_refl)
+	  using `d>0` `d > dist x y` `?rhs` by(rule_tac x=x in bexI, auto)
       qed
     qed  }
   thus "?lhs" unfolding mem_cball islimpt_approachable mem_ball by auto
@@ -1819,7 +1837,7 @@ proof(cases "e\<ge>0")
   case False note cs = this
   from cs have "ball x e = {}" using ball_empty[of e x] by auto moreover
   { fix y assume "y \<in> cball x e"
-    hence False unfolding mem_cball using dist_nz[of x y] cs by (auto simp add: dist_refl)  }
+    hence False unfolding mem_cball using dist_nz[of x y] cs by auto  }
   hence "cball x e = {}" by auto
   hence "interior (cball x e) = {}" using interior_empty by auto
   ultimately show ?thesis by blast
@@ -1831,12 +1849,12 @@ next
 
     then obtain xa where xa:"dist y xa = d / 2" using vector_choose_dist[of "d/2" y] by auto
     hence xa_y:"xa \<noteq> y" using dist_nz[of y xa] using `d>0` by auto
-    have "xa\<in>S" using d[THEN spec[where x=xa]] using xa apply(auto simp add: dist_sym) unfolding dist_nz[THEN sym] using xa_y by auto
+    have "xa\<in>S" using d[THEN spec[where x=xa]] using xa apply(auto simp add: dist_commute) unfolding dist_nz[THEN sym] using xa_y by auto
     hence xa_cball:"xa \<in> cball x e" using as(1) by auto
 
     hence "y \<in> ball x e" proof(cases "x = y")
       case True
-      hence "e>0" using xa_y[unfolded dist_nz] xa_cball[unfolded mem_cball] by (auto simp add: dist_sym)
+      hence "e>0" using xa_y[unfolded dist_nz] xa_cball[unfolded mem_cball] by (auto simp add: dist_commute)
       thus "y \<in> ball x e" using `x = y ` by simp
     next
       case False
@@ -1853,7 +1871,7 @@ next
 	by (auto simp add: vector_sadd_rdistrib vector_smult_lid ring_simps vector_sadd_rdistrib vector_ssub_ldistrib)
       also have "\<dots> = \<bar>1 + d / (2 * norm (y - x))\<bar> * norm (y - x)" using ** by auto
       also have "\<dots> = (dist y x) + d/2"using ** by (auto simp add: left_distrib dist_def)
-      finally have "e \<ge> dist x y +d/2" using *[unfolded mem_cball] by (auto simp add: dist_sym)
+      finally have "e \<ge> dist x y +d/2" using *[unfolded mem_cball] by (auto simp add: dist_commute)
       thus "y \<in> ball x e" unfolding mem_ball using `d>0` by auto
     qed  }
   hence "\<forall>S \<subseteq> cball x e. open S \<longrightarrow> S \<subseteq> ball x e" by auto
@@ -1872,17 +1890,17 @@ lemma frontier_cball: "frontier(cball a e) = {x. dist a x = e}"
 
 lemma cball_eq_empty: "(cball x e = {}) \<longleftrightarrow> e < 0"
   apply (simp add: expand_set_eq not_le)
-  by (metis dist_pos_le dist_refl order_less_le_trans)
+  by (metis zero_le_dist dist_self order_less_le_trans)
 lemma cball_empty: "e < 0 ==> cball x e = {}" by (simp add: cball_eq_empty)
 
 lemma cball_eq_sing: "(cball x e = {x}) \<longleftrightarrow> e = 0"
 proof-
   { assume as:"\<forall>xa. (dist x xa \<le> e) = (xa = x)"
-    hence "e \<ge> 0" apply (erule_tac x=x in allE) by (auto simp add: dist_pos_le dist_refl)
+    hence "e \<ge> 0" apply (erule_tac x=x in allE) by auto
     then obtain y where y:"dist x y = e" using vector_choose_dist[of e] by auto
-    hence "e = 0" using as apply(erule_tac x=y in allE) by (auto simp add: dist_pos_le dist_refl)
+    hence "e = 0" using as apply(erule_tac x=y in allE) by auto
   }
-  thus ?thesis unfolding expand_set_eq mem_cball by (auto simp add: dist_refl dist_nz dist_le_0)
+  thus ?thesis unfolding expand_set_eq mem_cball by (auto simp add: dist_nz)
 qed
 
 lemma cball_sing:  "e = 0 ==> cball x e = {x}" by (simp add: cball_eq_sing)
@@ -1894,7 +1912,7 @@ lemma eventually_within_interior: assumes "x \<in> interior S"
 proof-
   from assms obtain e where e:"e>0" "\<forall>y. dist x y < e \<longrightarrow> y \<in> S" unfolding mem_interior ball_def subset_eq by auto
   { assume "?lhs" then obtain d where "d>0" "\<forall>xa\<in>S. 0 < dist xa x \<and> dist xa x < d \<longrightarrow> P xa" unfolding eventually_within by auto
-    hence "?rhs" unfolding eventually_at using e by (auto simp add: dist_sym intro!: add exI[of _ "min e d"])
+    hence "?rhs" unfolding eventually_at using e by (auto simp add: dist_commute intro!: add exI[of _ "min e d"])
   } moreover
   { assume "?rhs" hence "?lhs" unfolding eventually_within eventually_at by auto
   } ultimately
@@ -2252,7 +2270,9 @@ subsection{* Completeness. *}
 
   (* FIXME: Unify this with Cauchy from SEQ!!!!!*)
 
-definition cauchy_def:"cauchy s \<longleftrightarrow> (\<forall>e>0. \<exists>N. \<forall>m n. m \<ge> N \<and> n \<ge> N --> dist(s m)(s n) < e)"
+definition
+  cauchy :: "(nat \<Rightarrow> real ^ 'n::finite) \<Rightarrow> bool" where
+  "cauchy s \<longleftrightarrow> (\<forall>e>0. \<exists>N. \<forall>m n. m \<ge> N \<and> n \<ge> N --> dist(s m)(s n) < e)"
 
 definition complete_def:"complete s \<longleftrightarrow> (\<forall>f::(nat=>real^'a::finite). (\<forall>n. f n \<in> s) \<and> cauchy f
                       --> (\<exists>l \<in> s. (f ---> l) sequentially))"
@@ -2297,7 +2317,7 @@ proof-
   hence N:"\<forall>n. N \<le> n \<longrightarrow> dist (s N) (s n) < 1" by auto
   { fix n::nat assume "n\<ge>N"
     hence "norm (s n) \<le> norm (s N) + 1" using N apply(erule_tac x=n in allE) unfolding dist_def
-      using norm_triangle_sub[of "s N" "s n"] by (auto, metis dist_def dist_sym le_add_right_mono norm_triangle_sub real_less_def)
+      using norm_triangle_sub[of "s N" "s n"] by (auto, metis dist_def dist_commute le_add_right_mono norm_triangle_sub real_less_def)
   }
   hence "\<forall>n\<ge>N. norm (s n) \<le> norm (s N) + 1" by auto
   moreover
@@ -2327,7 +2347,7 @@ proof-
 	have "dist ((f \<circ> r) n) l < e/2" using n M by auto
 	moreover have "r n \<ge> N" using lr'[of n] n by auto
 	hence "dist (f n) ((f \<circ> r) n) < e / 2" using N using n by auto
-	ultimately have "dist (f n) l < e" using dist_triangle_half_r[of "f (r n)" "f n" e l] by (auto simp add: dist_sym)  }
+	ultimately have "dist (f n) l < e" using dist_triangle_half_r[of "f (r n)" "f n" e l] by (auto simp add: dist_commute)  }
       hence "\<exists>N. \<forall>n\<ge>N. dist (f n) l < e" by blast  }
     hence "\<exists>l\<in>s. (f ---> l) sequentially" using `l\<in>s` unfolding Lim_sequentially by auto  }
   thus ?thesis unfolding complete_def by auto
@@ -2443,7 +2463,7 @@ proof(rule ccontr)
   then obtain y where y:"y \<in> ball x (inverse (real (r (N1 + N2) + 1)))" "y \<notin> b" by auto
 
   have "dist x l < e/2" using N1 unfolding x_def o_def by auto
-  hence "dist y l < e" using y N2' using dist_triangle[of y l x]by (auto simp add:dist_sym)
+  hence "dist y l < e" using y N2' using dist_triangle[of y l x]by (auto simp add:dist_commute)
 
   thus False using e and `y\<notin>b` by auto
 qed
@@ -2533,14 +2553,14 @@ proof(rule ccontr)
     proof(cases "m<n")
       case True
       hence "1 < norm (x n) - norm (x m)" using *[of m n] by auto
-      thus ?thesis unfolding dist_sym[of "x m" "x n"] unfolding dist_def using norm_triangle_sub[of "x n" "x m"] by auto
+      thus ?thesis unfolding dist_commute[of "x m" "x n"] unfolding dist_def using norm_triangle_sub[of "x n" "x m"] by auto
     next
       case False hence "n<m" using `m\<noteq>n` by auto
       hence "1 < norm (x m) - norm (x n)" using *[of n m] by auto
-      thus ?thesis unfolding dist_sym[of "x n" "x m"] unfolding dist_def using norm_triangle_sub[of "x m" "x n"] by auto
+      thus ?thesis unfolding dist_commute[of "x n" "x m"] unfolding dist_def using norm_triangle_sub[of "x m" "x n"] by auto
     qed  } note ** = this
   { fix a b assume "x a = x b" "a \<noteq> b"
-    hence False using **[of a b] unfolding dist_eq_0[THEN sym] by auto  }
+    hence False using **[of a b] by auto  }
   hence "inj x" unfolding inj_on_def by auto
   moreover
   { fix n::nat
@@ -2583,7 +2603,7 @@ proof(rule ccontr)
   then obtain N::nat where N:"\<forall>n\<ge>N. dist (f n) l < e / 2"
     using assms(2)[unfolded Lim_sequentially, THEN spec[where x="e/2"]] by auto
   def d \<equiv> "Min (insert (e/2) ((\<lambda>n. if dist (f n) l' = 0 then e/2 else dist (f n) l') ` {0 .. N}))"
-  have "d>0" using `e>0` unfolding d_def e_def using dist_pos_le[of _ l', unfolded order_le_less] by auto
+  have "d>0" using `e>0` unfolding d_def e_def using zero_le_dist[of _ l', unfolded order_le_less] by auto
   obtain k where k:"f k \<noteq> l'"  "dist (f k) l' < d" using `d>0` and assms(3)[unfolded islimpt_approachable, THEN spec[where x="d"]] by auto
   have "k\<ge>N" using k(1)[unfolded dist_nz] using k(2)[unfolded d_def]
     by force
@@ -2829,9 +2849,9 @@ proof-
     { fix e::real assume "e>0"
       hence "dist a b < e" using assms(4 )using b using a by blast
     }
-    hence "dist a b = 0" by (metis dist_eq_0 dist_nz real_less_def)
+    hence "dist a b = 0" by (metis dist_eq_0_iff dist_nz real_less_def)
   }
-  with a have "\<Inter>{t. \<exists>n. t = s n} = {a}"  unfolding dist_eq_0 by auto
+  with a have "\<Inter>{t. \<exists>n. t = s n} = {a}"  by auto
   thus ?thesis by auto
 qed
 
@@ -2865,12 +2885,13 @@ next
 	using l[THEN spec[where x=x], unfolded Lim_sequentially] using `e>0` by(auto elim!: allE[where x="e/2"])
       fix n::nat assume "n\<ge>N"
       hence "dist(s n x)(l x) < e"  using `P x`and N[THEN spec[where x=n], THEN spec[where x="N+M"], THEN spec[where x=x]]
-	using M[THEN spec[where x="N+M"]] and dist_triangle_half_l[of "s n x" "s (N+M) x" e "l x"] by (auto simp add: dist_sym)  }
+	using M[THEN spec[where x="N+M"]] and dist_triangle_half_l[of "s n x" "s (N+M) x" e "l x"] by (auto simp add: dist_commute)  }
     hence "\<exists>N. \<forall>n x. N \<le> n \<and> P x \<longrightarrow> dist(s n x)(l x) < e" by auto }
   thus ?lhs by auto
 qed
 
 lemma uniformly_cauchy_imp_uniformly_convergent:
+  fixes s :: "nat \<Rightarrow> 'a \<Rightarrow> real ^ 'n::finite"
   assumes "\<forall>e>0.\<exists>N. \<forall>m (n::nat) x. N \<le> m \<and> N \<le> n \<and> P x --> dist(s m x)(s n x) < e"
           "\<forall>x. P x --> (\<forall>e>0. \<exists>N. \<forall>n. N \<le> n --> dist(s n x)(l x) < e)"
   shows "\<forall>e>0. \<exists>N. \<forall>n x. N \<le> n \<and> P x --> dist(s n x)(l x) < e"
@@ -2937,32 +2958,37 @@ proof
       using `?lhs`[unfolded continuous_within Lim_within] by auto
     { fix y assume "y\<in>f ` (ball x d \<inter> s)"
       hence "y \<in> ball (f x) e" using d(2) unfolding dist_nz[THEN sym]
-	apply (auto simp add: dist_sym mem_ball) apply(erule_tac x=xa in ballE) apply auto unfolding dist_refl using `e>0` by auto
+	apply (auto simp add: dist_commute mem_ball) apply(erule_tac x=xa in ballE) apply auto using `e>0` by auto
     }
-    hence "\<exists>d>0. f ` (ball x d \<inter> s) \<subseteq> ball (f x) e" using `d>0` unfolding subset_eq ball_def by (auto simp add: dist_sym)  }
+    hence "\<exists>d>0. f ` (ball x d \<inter> s) \<subseteq> ball (f x) e" using `d>0` unfolding subset_eq ball_def by (auto simp add: dist_commute)  }
   thus ?rhs by auto
 next
   assume ?rhs thus ?lhs unfolding continuous_within Lim_within ball_def subset_eq
-    apply (auto simp add: dist_sym) apply(erule_tac x=e in allE) by auto
+    apply (auto simp add: dist_commute) apply(erule_tac x=e in allE) by auto
 qed
 
 lemma continuous_at_ball: fixes f::"real^'a::finite \<Rightarrow> real^'a"
   shows "continuous (at x) f \<longleftrightarrow> (\<forall>e>0. \<exists>d>0. f ` (ball x d) \<subseteq> ball (f x) e)" (is "?lhs = ?rhs")
 proof
   assume ?lhs thus ?rhs unfolding continuous_at Lim_at subset_eq Ball_def Bex_def image_iff mem_ball
-    apply auto apply(erule_tac x=e in allE) apply auto apply(rule_tac x=d in exI) apply auto apply(erule_tac x=xa in allE) apply (auto simp add: dist_refl dist_sym dist_nz)
-    unfolding dist_nz[THEN sym] by (auto simp add: dist_refl)
+    apply auto apply(erule_tac x=e in allE) apply auto apply(rule_tac x=d in exI) apply auto apply(erule_tac x=xa in allE) apply (auto simp add: dist_commute dist_nz)
+    unfolding dist_nz[THEN sym] by auto
 next
   assume ?rhs thus ?lhs unfolding continuous_at Lim_at subset_eq Ball_def Bex_def image_iff mem_ball
-    apply auto apply(erule_tac x=e in allE) apply auto apply(rule_tac x=d in exI) apply auto apply(erule_tac x="f xa" in allE) by (auto simp add: dist_refl dist_sym dist_nz)
+    apply auto apply(erule_tac x=e in allE) apply auto apply(rule_tac x=d in exI) apply auto apply(erule_tac x="f xa" in allE) by (auto simp add: dist_commute dist_nz)
 qed
 
 text{* For setwise continuity, just start from the epsilon-delta definitions. *}
 
-definition "continuous_on s f \<longleftrightarrow> (\<forall>x \<in> s. \<forall>e>0. \<exists>d::real>0. \<forall>x' \<in> s. dist x' x < d --> dist (f x') (f x) < e)"
+definition
+  continuous_on :: "(real ^ 'n::finite) set \<Rightarrow> (real ^ 'n \<Rightarrow> real ^ 'm::finite) \<Rightarrow> bool" where
+  "continuous_on s f \<longleftrightarrow> (\<forall>x \<in> s. \<forall>e>0. \<exists>d::real>0. \<forall>x' \<in> s. dist x' x < d --> dist (f x') (f x) < e)"
 
 
-definition "uniformly_continuous_on s f \<longleftrightarrow>
+definition
+  uniformly_continuous_on ::
+    "(real ^ 'n::finite) set \<Rightarrow> (real ^ 'n \<Rightarrow> real ^ 'm::finite) \<Rightarrow> bool" where
+  "uniformly_continuous_on s f \<longleftrightarrow>
         (\<forall>e>0. \<exists>d>0. \<forall>x\<in>s. \<forall> x'\<in>s. dist x' x < d
                            --> dist (f x') (f x) < e)"
 
@@ -2985,7 +3011,7 @@ proof(simp add: continuous_at continuous_on_def, rule, rule, rule)
   { fix x' assume "\<not> 0 < dist x' x"
     hence "x=x'"
       using dist_nz[of x' x] by auto
-    hence "dist (f x') (f x) < e" using dist_refl[of "f x'"] `e>0` by auto
+    hence "dist (f x') (f x) < e" using `e>0` by auto
   }
   thus "\<exists>d>0. \<forall>x'\<in>s. dist x' x < d \<longrightarrow> dist (f x') (f x) < e" using d by auto
 qed
@@ -2999,8 +3025,8 @@ proof
     assume "\<exists>d>0. \<forall>xa\<in>s. 0 < dist xa x \<and> dist xa x < d \<longrightarrow> dist (f xa) (f x) < e"
     then obtain d where "d>0" and d:"\<forall>xa\<in>s. 0 < dist xa x \<and> dist xa x < d \<longrightarrow> dist (f xa) (f x) < e" by auto
     { fix x' assume as:"x'\<in>s" "dist x' x < d"
-      hence "dist (f x') (f x) < e" using dist_refl[of "f x'"] `e>0` d `x'\<in>s` dist_eq_0[of x' x] dist_pos_le[of x' x] as(2) by (metis dist_eq_0 dist_nz) }
-    hence "\<exists>d>0. \<forall>x'\<in>s. dist x' x < d \<longrightarrow> dist (f x') (f x) < e" using `d>0` by (auto simp add: dist_refl)
+      hence "dist (f x') (f x) < e" using `e>0` d `x'\<in>s` dist_eq_0_iff[of x' x] zero_le_dist[of x' x] as(2) by (metis dist_eq_0_iff dist_nz) }
+    hence "\<exists>d>0. \<forall>x'\<in>s. dist x' x < d \<longrightarrow> dist (f x') (f x) < e" using `d>0` by auto
   }
   thus ?lhs using `?rhs` unfolding continuous_on_def continuous_within Lim_within by auto
 next
@@ -3051,7 +3077,7 @@ proof
     hence "\<exists>N. \<forall>n\<ge>N. dist ((f \<circ> x) n) (f a) < e"
       apply(rule_tac  x=N in exI) using N d  apply auto using x(1)
       apply(erule_tac x=n in allE) apply(erule_tac x=n in allE)
-      apply(erule_tac x="x n" in ballE)  apply auto unfolding dist_nz[THEN sym] apply auto unfolding dist_refl using `e>0` by auto
+      apply(erule_tac x="x n" in ballE)  apply auto unfolding dist_nz[THEN sym] apply auto using `e>0` by auto
   }
   thus ?rhs unfolding continuous_within unfolding Lim_sequentially by simp
 next
@@ -3106,7 +3132,7 @@ proof
       { fix n assume "n\<ge>N"
 	hence "norm (f (x n) - f (y n) - 0) < e"
 	  using N[THEN spec[where x=n]] using d[THEN bspec[where x="x n"], THEN bspec[where x="y n"]] using x and y
-	  unfolding dist_sym and dist_def by simp  }
+	  unfolding dist_commute and dist_def by simp  }
       hence "\<exists>N. \<forall>n\<ge>N. norm (f (x n) - f (y n) - 0) < e"  by auto  }
     hence "((\<lambda>n. f(x n) - f(y n)) ---> 0) sequentially" unfolding Lim_sequentially and dist_def by auto  }
   thus ?rhs by auto
@@ -3116,7 +3142,7 @@ next
     then obtain e where "e>0" "\<forall>d>0. \<exists>x\<in>s. \<exists>x'\<in>s. dist x' x < d \<and> \<not> dist (f x') (f x) < e" unfolding uniformly_continuous_on_def by auto
     then obtain fa where fa:"\<forall>x.  0 < x \<longrightarrow> fst (fa x) \<in> s \<and> snd (fa x) \<in> s \<and> dist (fst (fa x)) (snd (fa x)) < x \<and> \<not> dist (f (fst (fa x))) (f (snd (fa x))) < e"
       using choice[of "\<lambda>d x. d>0 \<longrightarrow> fst x \<in> s \<and> snd x \<in> s \<and> dist (snd x) (fst x) < d \<and> \<not> dist (f (snd x)) (f (fst x)) < e"] unfolding Bex_def
-      by (auto simp add: dist_sym)
+      by (auto simp add: dist_commute)
     def x \<equiv> "\<lambda>n::nat. fst (fa (inverse (real n + 1)))"
     def y \<equiv> "\<lambda>n::nat. snd (fa (inverse (real n + 1)))"
     have xyn:"\<forall>n. x n \<in> s \<and> y n \<in> s" and xy0:"\<forall>n. dist (x n) (y n) < inverse (real n + 1)" and fxy:"\<forall>n. \<not> dist (f (x n)) (f (y n)) < e"
@@ -3145,7 +3171,7 @@ proof-
   { fix e::real assume "e>0"
     then obtain d' where d':"d'>0" "\<forall>xa\<in>s. 0 < dist xa x \<and> dist xa x < d' \<longrightarrow> dist (f xa) (f x) < e" using assms(4) unfolding continuous_within Lim_within by auto
     { fix x' assume "x'\<in>s" "0 < dist x' x" "dist x' x < (min d d')"
-      hence "dist (f x') (g x) < e" using assms(2,3) apply(erule_tac x=x in ballE) unfolding dist_refl using d' by auto  }
+      hence "dist (f x') (g x) < e" using assms(2,3) apply(erule_tac x=x in ballE) using d' by auto  }
     hence "\<forall>xa\<in>s. 0 < dist xa x \<and> dist xa x < (min d d') \<longrightarrow> dist (f xa) (g x) < e" by blast
     hence "\<exists>d>0. \<forall>xa\<in>s. 0 < dist xa x \<and> dist xa x < d \<longrightarrow> dist (f xa) (g x) < e" using `d>0` `d'>0` by(rule_tac x="min d d'" in exI)auto  }
   hence "(f ---> g x) (at x within s)" unfolding Lim_within using assms(1) by auto
@@ -3160,7 +3186,7 @@ proof-
   { fix e::real assume "e>0"
     then obtain d' where d':"d'>0" "\<forall>xa. 0 < dist xa x \<and> dist xa x < d' \<longrightarrow> dist (f xa) (f x) < e" using assms(3) unfolding continuous_at Lim_at by auto
     { fix x' assume "0 < dist x' x" "dist x' x < (min d d')"
-      hence "dist (f x') (g x) < e" using assms(2) apply(erule_tac x=x in allE) unfolding dist_refl using d' by auto
+      hence "dist (f x') (g x) < e" using assms(2) apply(erule_tac x=x in allE) using d' by auto
     }
     hence "\<forall>xa. 0 < dist xa x \<and> dist xa x < (min d d') \<longrightarrow> dist (f xa) (g x) < e" by blast
     hence "\<exists>d>0. \<forall>xa. 0 < dist xa x \<and> dist xa x < d \<longrightarrow> dist (f xa) (g x) < e" using `d>0` `d'>0` by(rule_tac x="min d d'" in exI)auto
@@ -3287,8 +3313,8 @@ proof-
     with assms(2)[unfolded continuous_within Lim_within] obtain d  where "d>0" and d:"\<forall>xa\<in>f ` s. 0 < dist xa (f x) \<and> dist xa (f x) < d \<longrightarrow> dist (g xa) (g (f x)) < e" by auto
     from assms(1)[unfolded continuous_within Lim_within] obtain d' where "d'>0" and d':"\<forall>xa\<in>s. 0 < dist xa x \<and> dist xa x < d' \<longrightarrow> dist (f xa) (f x) < d" using `d>0` by auto
     { fix y assume as:"y\<in>s"  "0 < dist y x"  "dist y x < d'"
-      hence "dist (f y) (f x) < d" using d'[THEN bspec[where x=y]] by (auto simp add:dist_sym)
-      hence "dist (g (f y)) (g (f x)) < e" using as(1) d[THEN bspec[where x="f y"]] unfolding dist_nz[THEN sym] using `e>0` by (auto simp add: dist_refl)   }
+      hence "dist (f y) (f x) < d" using d'[THEN bspec[where x=y]] by (auto simp add:dist_commute)
+      hence "dist (g (f y)) (g (f x)) < e" using as(1) d[THEN bspec[where x="f y"]] unfolding dist_nz[THEN sym] using `e>0` by auto   }
     hence "\<exists>d>0. \<forall>xa\<in>s. 0 < dist xa x \<and> dist xa x < d \<longrightarrow> dist (g (f xa)) (g (f x)) < e" using `d'>0` by auto  }
   thus ?thesis unfolding continuous_within Lim_within by auto
 qed
@@ -3332,7 +3358,7 @@ proof
     moreover
     { fix x' assume "x'\<in>ball x d" hence "f x' \<in> t"
 	using e[unfolded subset_eq Ball_def mem_ball, THEN spec[where x="f x'"]]    d[THEN spec[where x=x']]
-	unfolding mem_ball apply (auto simp add: dist_sym)
+	unfolding mem_ball apply (auto simp add: dist_commute)
 	unfolding dist_nz[THEN sym] using as(2) by auto  }
     hence "\<forall>x'\<in>ball x d. f x' \<in> t" by auto
     ultimately have "\<exists>s. open s \<and> x \<in> s \<and> (\<forall>x'\<in>s. f x' \<in> t)"
@@ -3346,7 +3372,7 @@ next
     then obtain d where "d>0" and d:"ball x d \<subseteq> s" unfolding open_contains_ball by auto
     { fix y assume "0 < dist y x \<and> dist y x < d"
       hence "dist (f y) (f x) < e" using d[unfolded subset_eq Ball_def mem_ball, THEN spec[where x=y]]
-	using s(3)[THEN bspec[where x=y], unfolded mem_ball] by (auto simp add: dist_sym)  }
+	using s(3)[THEN bspec[where x=y], unfolded mem_ball] by (auto simp add: dist_commute)  }
     hence "\<exists>d>0. \<forall>xa. 0 < dist xa x \<and> dist xa x < d \<longrightarrow> dist (f xa) (f x) < e" using `d>0` by auto  }
   thus ?lhs unfolding continuous_at Lim_at by auto
 qed
@@ -3363,7 +3389,7 @@ proof
     { fix x assume as':"x\<in>{x \<in> s. f x \<in> t}"
       then obtain e where e: "e>0" "\<forall>x'\<in>f ` s. dist x' (f x) < e \<longrightarrow> x' \<in> t" using as[unfolded openin_euclidean_subtopology_iff, THEN conjunct2, THEN bspec[where x="f x"]] by auto
       from this(1) obtain d where d: "d>0" "\<forall>xa\<in>s. 0 < dist xa x \<and> dist xa x < d \<longrightarrow> dist (f xa) (f x) < e" using `?lhs`[unfolded continuous_on Lim_within, THEN bspec[where x=x]] using as' by auto
-      have "\<exists>e>0. \<forall>x'\<in>s. dist x' x < e \<longrightarrow> x' \<in> {x \<in> s. f x \<in> t}" using d e unfolding dist_nz[THEN sym] by (rule_tac x=d in exI, auto simp add: dist_refl)  }
+      have "\<exists>e>0. \<forall>x'\<in>s. dist x' x < e \<longrightarrow> x' \<in> {x \<in> s. f x \<in> t}" using d e unfolding dist_nz[THEN sym] by (rule_tac x=d in exI, auto)  }
     ultimately have "openin (subtopology euclidean s) {x \<in> s. f x \<in> t}" unfolding openin_euclidean_subtopology_iff by auto  }
   thus ?rhs unfolding continuous_on Lim_within using openin by auto
 next
@@ -3371,12 +3397,12 @@ next
   { fix e::real and x assume "x\<in>s" "e>0"
     { fix xa x' assume "dist (f xa) (f x) < e" "xa \<in> s" "x' \<in> s" "dist (f xa) (f x') < e - dist (f xa) (f x)"
       hence "dist (f x') (f x) < e" using dist_triangle[of "f x'" "f x" "f xa"]
-	by (auto simp add: dist_sym)  }
+	by (auto simp add: dist_commute)  }
     hence "ball (f x) e \<inter> f ` s \<subseteq> f ` s \<and> (\<forall>xa\<in>ball (f x) e \<inter> f ` s. \<exists>ea>0. \<forall>x'\<in>f ` s. dist x' xa < ea \<longrightarrow> x' \<in> ball (f x) e \<inter> f ` s)" apply auto
-      apply(rule_tac x="e - dist (f xa) (f x)" in exI) using `e>0` by (auto simp add: dist_sym)
+      apply(rule_tac x="e - dist (f xa) (f x)" in exI) using `e>0` by (auto simp add: dist_commute)
     hence "\<forall>xa\<in>{xa \<in> s. f xa \<in> ball (f x) e \<inter> f ` s}. \<exists>ea>0. \<forall>x'\<in>s. dist x' xa < ea \<longrightarrow> x' \<in> {xa \<in> s. f xa \<in> ball (f x) e \<inter> f ` s}"
       using `?rhs`[unfolded openin_euclidean_subtopology_iff, THEN spec[where x="ball (f x) e \<inter> f ` s"]] by auto
-    hence "\<exists>d>0. \<forall>xa\<in>s. 0 < dist xa x \<and> dist xa x < d \<longrightarrow> dist (f xa) (f x) < e" apply(erule_tac x=x in ballE) apply auto unfolding dist_refl using `e>0` `x\<in>s` by (auto simp add: dist_sym)  }
+    hence "\<exists>d>0. \<forall>xa\<in>s. 0 < dist xa x \<and> dist xa x < d \<longrightarrow> dist (f xa) (f x) < e" apply(erule_tac x=x in ballE) apply auto using `e>0` `x\<in>s` by (auto simp add: dist_commute)  }
   thus ?lhs unfolding continuous_on Lim_within by auto
 qed
 
@@ -3504,7 +3530,7 @@ proof-
     using assms(1)[unfolded continuous_within Lim_within, THEN spec[where x="dist (f x) a"]] assms(3)[unfolded dist_nz] by auto
   { fix y assume " y\<in>s"  "dist x y < d"
     hence "f y \<noteq> a" using d[THEN bspec[where x=y]] assms(3)[unfolded dist_nz]
-      apply auto unfolding dist_nz[THEN sym] by (auto simp add: dist_sym) }
+      apply auto unfolding dist_nz[THEN sym] by (auto simp add: dist_commute) }
   thus ?thesis using `d>0` by auto
 qed
 
@@ -3656,13 +3682,13 @@ proof-
       obtain z where "z\<in>s" and z:"ball x ea \<subseteq> ball z (d z (e / 2))" using ea[THEN bspec[where x=x]] and `x\<in>s` by auto
       hence "x\<in>ball z (d z (e / 2))" using `ea>0` unfolding subset_eq by auto
       hence "dist (f z) (f x) < e / 2" using d[THEN spec[where x="e/2"]] and `e>0` and `x\<in>s` and `z\<in>s`
-	by (auto  simp add: dist_sym)
+	by (auto  simp add: dist_commute)
       moreover have "y\<in>ball z (d z (e / 2))" using as and `ea>0` and z[unfolded subset_eq]
-	by (auto simp add: dist_sym)
+	by (auto simp add: dist_commute)
       hence "dist (f z) (f y) < e / 2" using d[THEN spec[where x="e/2"]] and `e>0` and `y\<in>s` and `z\<in>s`
-	by (auto  simp add: dist_sym)
+	by (auto  simp add: dist_commute)
       ultimately have "dist (f y) (f x) < e" using dist_triangle_half_r[of "f z" "f x" e "f y"]
-	by (auto simp add: dist_sym)  }
+	by (auto simp add: dist_commute)  }
     then have "\<exists>d>0. \<forall>x\<in>s. \<forall>x'\<in>s. dist x' x < d \<longrightarrow> dist (f x') (f x) < e" using `ea>0` by auto  }
   thus ?thesis unfolding uniformly_continuous_on_def by auto
 qed
@@ -3788,7 +3814,7 @@ lemma continuous_at_vec1_range:
 
 lemma continuous_on_vec1_range:
  " continuous_on s (vec1 o f) \<longleftrightarrow> (\<forall>x \<in> s. \<forall>e>0. \<exists>d>0. (\<forall>x' \<in> s. norm(x' - x) < d --> abs(f x' - f x) < e))"
-  unfolding continuous_on_def apply (simp del: dist_sym) unfolding dist_vec1 unfolding dist_def ..
+  unfolding continuous_on_def apply (simp del: dist_commute) unfolding dist_vec1 unfolding dist_def ..
 
 lemma continuous_at_vec1_norm:
  "\<forall>x. continuous (at x) (vec1 o norm)"
@@ -3875,7 +3901,7 @@ proof-
     hence "\<exists>d>0. \<forall>x'\<in>s. norm (x' - x) < d \<longrightarrow> \<bar>dist x' a - dist x a\<bar> < e" using `e>0` unfolding dist_def by auto }
   thus ?thesis using assms
     using continuous_attains_sup[of s "\<lambda>x. dist a x"]
-    unfolding continuous_on_vec1_range by (auto simp add: dist_sym)
+    unfolding continuous_on_vec1_range by (auto simp add: dist_commute)
 qed
 
 text{* For *minimal* distance, we only need closure, not compactness.            *}
@@ -3886,7 +3912,7 @@ lemma distance_attains_inf:
 proof-
   from assms(2) obtain b where "b\<in>s" by auto
   let ?B = "cball a (dist b a) \<inter> s"
-  have "b \<in> ?B" using `b\<in>s` by (simp add: dist_sym)
+  have "b \<in> ?B" using `b\<in>s` by (simp add: dist_commute)
   hence "?B \<noteq> {}" by auto
   moreover
   { fix x assume "x\<in>?B"
@@ -3896,7 +3922,7 @@ proof-
 	using real_abs_sub_norm[of "x' - a" "x - a"]  by auto  }
     hence "\<exists>d>0. \<forall>x'\<in>?B. norm (x' - x) < d \<longrightarrow> \<bar>dist x' a - dist x a\<bar> < e" using `e>0` unfolding dist_def by auto }
   hence "continuous_on (cball a (dist b a) \<inter> s) (vec1 \<circ> dist a)" unfolding continuous_on_vec1_range
-    by (auto  simp add: dist_sym)
+    by (auto  simp add: dist_commute)
   moreover have "compact ?B" using compact_cball[of a "dist b a"] unfolding compact_eq_bounded_closed using bounded_Int and closed_Int and assms(1) by auto
   ultimately obtain x where "x\<in>cball a (dist b a) \<inter> s" "\<forall>y\<in>cball a (dist b a) \<inter> s. dist a x \<le> dist a y" using continuous_attains_inf[of ?B "dist a"] by fastsimp
   thus ?thesis by fastsimp
@@ -4273,8 +4299,8 @@ proof-
     using separate_point_closed[OF compact_closed_differences[OF assms(1,2)], of 0] by auto
   { fix x y assume "x\<in>s" "y\<in>t"
     hence "x - y \<in> {x - y |x y. x \<in> s \<and> y \<in> t}" by auto
-    hence "d \<le> dist (x - y) 0" using d[THEN bspec[where x="x - y"]] using dist_sym
-      by (auto  simp add: dist_sym)
+    hence "d \<le> dist (x - y) 0" using d[THEN bspec[where x="x - y"]] using dist_commute
+      by (auto  simp add: dist_commute)
     hence "d \<le> dist x y" unfolding dist_def by auto  }
   thus ?thesis using `d>0` by auto
 qed
@@ -4286,7 +4312,7 @@ proof-
   have *:"t \<inter> s = {}" using assms(3) by auto
   show ?thesis using separate_compact_closed[OF assms(2,1) *]
     apply auto apply(rule_tac x=d in exI) apply auto apply (erule_tac x=y in ballE)
-    by (auto simp add: dist_sym)
+    by (auto simp add: dist_commute)
 qed
 
 (* A cute way of denoting open and closed intervals using overloading.       *)
@@ -4789,7 +4815,7 @@ next
 	pos_less_divide_eq[OF False[unfolded vec_0 zero_less_norm_iff[of a, THEN sym]]] and real_mult_commute by auto
       hence "\<bar>a \<bullet> l - a \<bullet> f z\<bar> < e" using order_le_less_trans[OF norm_cauchy_schwarz_abs[of a "l - f z"], of e] unfolding dot_rsub[symmetric] by auto  }
     hence "\<exists>y. (\<exists>x. netord net x y) \<and> (\<forall>x. netord net x y \<longrightarrow> \<bar>a \<bullet> l - a \<bullet> f x\<bar> < e)" using x by auto  }
-  thus ?thesis using assms unfolding Lim apply (auto simp add: dist_sym)
+  thus ?thesis using assms unfolding Lim apply (auto simp add: dist_commute)
     unfolding dist_vec1 by auto
 qed
 
@@ -5094,19 +5120,19 @@ proof-
   show ?th unfolding homeomorphic_minimal
     apply(rule_tac x="\<lambda>x. b + (e/d) *s (x - a)" in exI)
     apply(rule_tac x="\<lambda>x. a + (d/e) *s (x - b)" in exI)
-    apply (auto simp add: dist_sym) unfolding dist_def and vector_smult_assoc using assms apply auto
+    apply (auto simp add: dist_commute) unfolding dist_def and vector_smult_assoc using assms apply auto
     unfolding norm_minus_cancel and norm_mul
     using continuous_on_add[OF continuous_on_const continuous_on_cmul[OF continuous_on_sub[OF continuous_on_id continuous_on_const]]]
-    apply (auto simp add: dist_sym)
+    apply (auto simp add: dist_commute)
     using pos_less_divide_eq[OF *(1), THEN sym] unfolding real_mult_commute[of _ "\<bar>e / d\<bar>"]
     using pos_less_divide_eq[OF *(2), THEN sym] unfolding real_mult_commute[of _ "\<bar>d / e\<bar>"]
-    by (auto simp add: dist_sym)
+    by (auto simp add: dist_commute)
 next
   have *:"\<bar>e / d\<bar> > 0" "\<bar>d / e\<bar> >0" using assms using divide_pos_pos by auto
   show ?cth unfolding homeomorphic_minimal
     apply(rule_tac x="\<lambda>x. b + (e/d) *s (x - a)" in exI)
     apply(rule_tac x="\<lambda>x. a + (d/e) *s (x - b)" in exI)
-    apply (auto simp add: dist_sym) unfolding dist_def and vector_smult_assoc using assms apply auto
+    apply (auto simp add: dist_commute) unfolding dist_def and vector_smult_assoc using assms apply auto
     unfolding norm_minus_cancel and norm_mul
     using continuous_on_add[OF continuous_on_const continuous_on_cmul[OF continuous_on_sub[OF continuous_on_id continuous_on_const]]]
     apply auto
@@ -5479,7 +5505,7 @@ proof-
       also have "\<dots> = (c ^ m) * (d * (1 - c ^ k) + (1 - c) * c ^ k * d)"
 	unfolding power_add by (auto simp add: ring_simps)
       also have "\<dots> \<le> (c ^ m) * d * (1 - c ^ Suc k)"
-	using c by (auto simp add: ring_simps dist_pos_le)
+	using c by (auto simp add: ring_simps)
       finally show ?case by auto
     qed
   } note cf_z2 = this
@@ -5487,10 +5513,10 @@ proof-
     hence "\<exists>N. \<forall>m n. N \<le> m \<and> N \<le> n \<longrightarrow> dist (z m) (z n) < e"
     proof(cases "d = 0")
       case True
-      hence "\<And>n. z n = z0" using cf_z2[of 0] and c unfolding z_def by (auto simp add: pos_prod_le[OF `1 - c > 0`] dist_le_0)
+      hence "\<And>n. z n = z0" using cf_z2[of 0] and c unfolding z_def by (auto simp add: pos_prod_le[OF `1 - c > 0`])
       thus ?thesis using `e>0` by auto
     next
-      case False hence "d>0" unfolding d_def using dist_pos_le[of "z 0" "z 1"]
+      case False hence "d>0" unfolding d_def using zero_le_dist[of "z 0" "z 1"]
 	by (metis False d_def real_less_def)
       hence "0 < e * (1 - c) / d" using `e>0` and `1-c>0`
 	using divide_pos_pos[of "e * (1 - c)" d] and mult_pos_pos[of e "1 - c"] by auto
@@ -5505,7 +5531,7 @@ proof-
 
 	have "dist (z m) (z n) \<le> c ^ n * d * (1 - c ^ (m - n)) / (1 - c)"
 	  using cf_z2[of n "m - n"] and `m>n` unfolding pos_le_divide_eq[OF `1-c>0`]
-	  by (auto simp add: real_mult_commute dist_sym)
+	  by (auto simp add: real_mult_commute dist_commute)
 	also have "\<dots> \<le> c ^ N * d * (1 - c ^ (m - n)) / (1 - c)"
 	  using mult_right_mono[OF * order_less_imp_le[OF **]]
 	  unfolding real_mult_assoc by auto
@@ -5520,7 +5546,7 @@ proof-
 	proof(cases "n = m")
 	  case True thus ?thesis using `e>0` by auto
 	next
-	  case False thus ?thesis using as and *[of n m] *[of m n] unfolding nat_neq_iff by (auto simp add: dist_sym)
+	  case False thus ?thesis using as and *[of n m] *[of m n] unfolding nat_neq_iff by (auto simp add: dist_commute)
 	qed }
       thus ?thesis by auto
     qed
@@ -5530,15 +5556,15 @@ proof-
 
   def e \<equiv> "dist (f x) x"
   have "e = 0" proof(rule ccontr)
-    assume "e \<noteq> 0" hence "e>0" unfolding e_def using dist_pos_le[of "f x" x]
-      by (metis dist_eq_0 dist_nz dist_sym e_def)
+    assume "e \<noteq> 0" hence "e>0" unfolding e_def using zero_le_dist[of "f x" x]
+      by (metis dist_eq_0_iff dist_nz e_def)
     then obtain N where N:"\<forall>n\<ge>N. dist (z n) x < e / 2"
       using x[unfolded Lim_sequentially, THEN spec[where x="e/2"]] by auto
     hence N':"dist (z N) x < e / 2" by auto
 
     have *:"c * dist (z N) x \<le> dist (z N) x" unfolding mult_le_cancel_right2
-      using dist_pos_le[of "z N" x] and c
-      by (metis dist_eq_0 dist_nz dist_sym order_less_asym real_less_def)
+      using zero_le_dist[of "z N" x] and c
+      by (metis dist_eq_0_iff dist_nz order_less_asym real_less_def)
     have "dist (f (z N)) (f x) \<le> c * dist (z N) x" using lipschitz[THEN bspec[where x="z N"], THEN bspec[where x=x]]
       using z_in_s[of N] `x\<in>s` using c by auto
     also have "\<dots> < e / 2" using N' and c using * by auto
@@ -5546,14 +5572,14 @@ proof-
       using N[THEN spec[where x="Suc N"]] and dist_triangle_half_r[of "z (Suc N)" "f x" e x]
       unfolding e_def by auto
   qed
-  hence "f x = x" unfolding e_def and dist_eq_0 by auto
+  hence "f x = x" unfolding e_def by auto
   moreover
   { fix y assume "f y = y" "y\<in>s"
     hence "dist x y \<le> c * dist x y" using lipschitz[THEN bspec[where x=x], THEN bspec[where x=y]]
       using `x\<in>s` and `f x = x` by auto
     hence "dist x y = 0" unfolding mult_le_cancel_right1
-      using c and dist_pos_le[of x y] by auto
-    hence "y = x" unfolding dist_eq_0 by auto
+      using c and zero_le_dist[of x y] by auto
+    hence "y = x" by auto
   }
   ultimately show ?thesis unfolding Bex1_def using `x\<in>s` by blast+
 qed
@@ -5623,7 +5649,7 @@ next
     unfolding o_def and h_def a_def b_def  by auto
 
   { fix n::nat
-    have *:"\<And>fx fy x y. dist fx fy \<le> dist x y \<Longrightarrow> \<not> (dist (fx - fy) (a - b) < dist a b - dist x y)" unfolding dist_def by norm
+    have *:"\<And>fx fy (x::real^_) y. dist fx fy \<le> dist x y \<Longrightarrow> \<not> (dist (fx - fy) (a - b) < dist a b - dist x y)" unfolding dist_def by norm
     { fix x y ::"real^'a"
       have "dist (-x) (-y) = dist x y" unfolding dist_def
 	using norm_minus_cancel[of "x - y"] by (auto simp add: uminus_add_conv_diff) } note ** = this
@@ -5637,7 +5663,7 @@ next
 	apply(erule_tac x="Na+Nb+n" in allE) apply simp
 	using dist_triangle_add_half[of a "f (r (Na + Nb + n)) x" "dist a b - dist (f n x) (f n y)"
           "-b"  "- f (r (Na + Nb + n)) y"]
-	unfolding ** unfolding group_simps(12) by (auto simp add: dist_sym)
+	unfolding ** unfolding group_simps(12) by (auto simp add: dist_commute)
       moreover
       have "dist (f (r (Na + Nb + n)) x - f (r (Na + Nb + n)) y) (a - b) \<ge> dist a b - dist (f n x) (f n y)"
 	using distf[of n "r (Na+Nb+n)", OF _ `x\<in>s` `y\<in>s`]
