@@ -4751,16 +4751,12 @@ qed
 
 subsection{* Intervals in general, including infinite and mixtures of open and closed. *}
 
-definition "is_interval s \<longleftrightarrow> (\<forall>a\<in>s. \<forall>b\<in>s. \<forall>x. a \<le> x \<and> x \<le> b \<longrightarrow> x \<in> s)"
+definition "is_interval s \<longleftrightarrow> (\<forall>a\<in>s. \<forall>b\<in>s. \<forall>x. (\<forall>i. ((a$i \<le> x$i \<and> x$i \<le> b$i) \<or> (b$i \<le> x$i \<and> x$i \<le> a$i)))  \<longrightarrow> x \<in> s)"
 
-lemma is_interval_interval: fixes a::"real^'n::finite" shows
-  "is_interval {a<..<b}" "is_interval {a .. b}"
-  unfolding is_interval_def apply(auto simp add: vector_less_def vector_less_eq_def)
-  apply(erule_tac x=i in allE)+ apply simp
-  apply(erule_tac x=i in allE)+ apply simp
-  apply(erule_tac x=i in allE)+ apply simp
-  apply(erule_tac x=i in allE)+ apply simp
-  done
+lemma is_interval_interval: "is_interval {a .. b::real^'n::finite}" (is ?th1) "is_interval {a<..<b}" (is ?th2) proof - 
+  have *:"\<And>x y z::real. x < y \<Longrightarrow> y < z \<Longrightarrow> x < z" by auto
+  show ?th1 ?th2  unfolding is_interval_def mem_interval Ball_def atLeastAtMost_iff
+    by(meson real_le_trans le_less_trans less_le_trans *)+ qed
 
 lemma is_interval_empty:
  "is_interval {}"
