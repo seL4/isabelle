@@ -109,10 +109,10 @@ end
 
 text{* Also the scalar-vector multiplication. *}
 
-definition vector_scalar_mult:: "'a::times \<Rightarrow> 'a ^'n \<Rightarrow> 'a ^ 'n" (infixr "*s" 75)
+definition vector_scalar_mult:: "'a::times \<Rightarrow> 'a ^'n \<Rightarrow> 'a ^ 'n" (infixl "*s" 70)
   where "c *s x = (\<chi> i. c * (x$i))"
 
-text{* Constant Vectors *}
+text{* Constant Vectors *} 
 
 definition "vec x = (\<chi> i. x)"
 

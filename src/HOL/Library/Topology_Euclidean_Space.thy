@@ -4601,8 +4601,8 @@ proof-
     def f == "\<lambda>n::nat. x + (inverse (real n + 1)) *s (?c - x)"
     { fix n assume fn:"f n < b \<longrightarrow> a < f n \<longrightarrow> f n = x" and xc:"x \<noteq> ?c"
       have *:"0 < inverse (real n + 1)" "inverse (real n + 1) \<le> 1" unfolding inverse_le_1_iff by auto
-      have "inverse (real n + 1) *s (1 / 2) *s (a + b) + (1 - inverse (real n + 1)) *s x =
-	x + inverse (real n + 1) *s ((1 / 2) *s (a + b) - x)" by (auto simp add: vector_ssub_ldistrib vector_add_ldistrib field_simps vector_sadd_rdistrib[THEN sym])
+      have "(inverse (real n + 1)) *s ((1 / 2) *s (a + b)) + (1 - inverse (real n + 1)) *s x =
+	x + (inverse (real n + 1)) *s ((1 / 2 *s (a + b)) - x)" by (auto simp add: vector_ssub_ldistrib vector_add_ldistrib field_simps vector_sadd_rdistrib[THEN sym])
       hence "f n < b" and "a < f n" using open_closed_interval_convex[OF open_interval_midpoint[OF assms] as *] unfolding f_def by auto
       hence False using fn unfolding f_def using xc by(auto simp add: vector_mul_lcancel vector_ssub_ldistrib)  }
     moreover
