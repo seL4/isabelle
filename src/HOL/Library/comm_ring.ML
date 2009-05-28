@@ -100,13 +100,10 @@ fun comm_ring_tac ctxt = SUBGOAL (fn (g, i) =>
     THEN (simp_tac cring_ss i)
   end);
 
-val comm_ring_meth =
-  Method.ctxt_args (SIMPLE_METHOD' o comm_ring_tac);
-
 val setup =
-  Method.add_method ("comm_ring", comm_ring_meth,
-    "reflective decision procedure for equalities over commutative rings") #>
-  Method.add_method ("algebra", comm_ring_meth,
-    "method for proving algebraic properties (same as comm_ring)");
+  Method.setup @{binding comm_ring} (Scan.succeed (SIMPLE_METHOD' o comm_ring_tac))
+    "reflective decision procedure for equalities over commutative rings" #>
+  Method.setup @{binding algebra} (Scan.succeed (SIMPLE_METHOD' o comm_ring_tac))
+    "method for proving algebraic properties (same as comm_ring)";
 
 end;
