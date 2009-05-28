@@ -14,7 +14,6 @@ imports
   Commutative_Ring
   Continuity
   ContNotDenum
-  Convex_Euclidean_Space
   Countable
   Determinants
   Diagonalize
