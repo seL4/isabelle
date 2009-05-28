@@ -2568,7 +2568,7 @@ proof(cases "a = b")
 	  finally show "x $ i = ((1 - norm (a - x) / norm (a - b)) *s a + (norm (a - x) / norm (a - b)) *s b) $ i" by auto
 	qed(insert Fal2, auto) qed qed
 
-lemma between_midpoint:
+lemma between_midpoint: fixes a::"real^'n::finite" shows
   "between (a,b) (midpoint a b)" (is ?t1) 
   "between (b,a) (midpoint a b)" (is ?t2)
 proof- have *:"\<And>x y z. x = (1/2::real) *s z \<Longrightarrow> y = (1/2) *s z \<Longrightarrow> norm z = norm x + norm y" by auto
