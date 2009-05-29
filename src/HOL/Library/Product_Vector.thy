@@ -39,6 +39,38 @@ qed
 
 end
 
+subsection {* Product is a metric space *}
+
+instantiation
+  "*" :: (metric_space, metric_space) metric_space
+begin
+
+definition dist_prod_def:
+  "dist (x::'a \<times> 'b) y = sqrt ((dist (fst x) (fst y))\<twosuperior> + (dist (snd x) (snd y))\<twosuperior>)"
+
+lemma dist_Pair_Pair: "dist (a, b) (c, d) = sqrt ((dist a c)\<twosuperior> + (dist b d)\<twosuperior>)"
+  unfolding dist_prod_def by simp
+
+instance proof
+  fix x y :: "'a \<times> 'b"
+  show "dist x y = 0 \<longleftrightarrow> x = y"
+    unfolding dist_prod_def
+    by (simp add: expand_prod_eq)
+next
+  fix x y z :: "'a \<times> 'b"
+  show "dist x y \<le> dist x z + dist y z"
+    unfolding dist_prod_def
+    apply (rule order_trans [OF _ real_sqrt_sum_squares_triangle_ineq])
+    apply (rule real_sqrt_le_mono)
+    apply (rule order_trans [OF add_mono])
+    apply (rule power_mono [OF dist_triangle2 [of _ _ "fst z"] zero_le_dist])
+    apply (rule power_mono [OF dist_triangle2 [of _ _ "snd z"] zero_le_dist])
+    apply (simp only: real_sum_squared_expand)
+    done
+qed
+
+end
+
 subsection {* Product is a normed vector space *}
 
 instantiation
@@ -50,9 +82,6 @@ definition norm_prod_def:
 
 definition sgn_prod_def:
   "sgn (x::'a \<times> 'b) = scaleR (inverse (norm x)) x"
-
-definition dist_prod_def:
-  "dist (x::'a \<times> 'b) y = norm (x - y)"
 
 lemma norm_Pair: "norm (a, b) = sqrt ((norm a)\<twosuperior> + (norm b)\<twosuperior>)"
   unfolding norm_prod_def by simp
@@ -78,7 +107,8 @@ instance proof
   show "sgn x = scaleR (inverse (norm x)) x"
     by (rule sgn_prod_def)
   show "dist x y = norm (x - y)"
-    by (rule dist_prod_def)
+    unfolding dist_prod_def norm_prod_def
+    by (simp add: dist_norm)
 qed
 
 end
@@ -179,53 +209,53 @@ text {*
 lemma LIMSEQ_Pair:
   assumes "X ----> a" and "Y ----> b"
   shows "(\<lambda>n. (X n, Y n)) ----> (a, b)"
-proof (rule LIMSEQ_I)
+proof (rule metric_LIMSEQ_I)
   fix r :: real assume "0 < r"
   then have "0 < r / sqrt 2" (is "0 < ?s")
     by (simp add: divide_pos_pos)
-  obtain M where M: "\<forall>n\<ge>M. norm (X n - a) < ?s"
-    using LIMSEQ_D [OF `X ----> a` `0 < ?s`] ..
-  obtain N where N: "\<forall>n\<ge>N. norm (Y n - b) < ?s"
-    using LIMSEQ_D [OF `Y ----> b` `0 < ?s`] ..
-  have "\<forall>n\<ge>max M N. norm ((X n, Y n) - (a, b)) < r"
-    using M N by (simp add: real_sqrt_sum_squares_less norm_Pair)
-  then show "\<exists>n0. \<forall>n\<ge>n0. norm ((X n, Y n) - (a, b)) < r" ..
+  obtain M where M: "\<forall>n\<ge>M. dist (X n) a < ?s"
+    using metric_LIMSEQ_D [OF `X ----> a` `0 < ?s`] ..
+  obtain N where N: "\<forall>n\<ge>N. dist (Y n) b < ?s"
+    using metric_LIMSEQ_D [OF `Y ----> b` `0 < ?s`] ..
+  have "\<forall>n\<ge>max M N. dist (X n, Y n) (a, b) < r"
+    using M N by (simp add: real_sqrt_sum_squares_less dist_Pair_Pair)
+  then show "\<exists>n0. \<forall>n\<ge>n0. dist (X n, Y n) (a, b) < r" ..
 qed
 
 lemma Cauchy_Pair:
   assumes "Cauchy X" and "Cauchy Y"
   shows "Cauchy (\<lambda>n. (X n, Y n))"
-proof (rule CauchyI)
+proof (rule metric_CauchyI)
   fix r :: real assume "0 < r"
   then have "0 < r / sqrt 2" (is "0 < ?s")
     by (simp add: divide_pos_pos)
-  obtain M where M: "\<forall>m\<ge>M. \<forall>n\<ge>M. norm (X m - X n) < ?s"
-    using CauchyD [OF `Cauchy X` `0 < ?s`] ..
-  obtain N where N: "\<forall>m\<ge>N. \<forall>n\<ge>N. norm (Y m - Y n) < ?s"
-    using CauchyD [OF `Cauchy Y` `0 < ?s`] ..
-  have "\<forall>m\<ge>max M N. \<forall>n\<ge>max M N. norm ((X m, Y m) - (X n, Y n)) < r"
-    using M N by (simp add: real_sqrt_sum_squares_less norm_Pair)
-  then show "\<exists>n0. \<forall>m\<ge>n0. \<forall>n\<ge>n0. norm ((X m, Y m) - (X n, Y n)) < r" ..
+  obtain M where M: "\<forall>m\<ge>M. \<forall>n\<ge>M. dist (X m) (X n) < ?s"
+    using metric_CauchyD [OF `Cauchy X` `0 < ?s`] ..
+  obtain N where N: "\<forall>m\<ge>N. \<forall>n\<ge>N. dist (Y m) (Y n) < ?s"
+    using metric_CauchyD [OF `Cauchy Y` `0 < ?s`] ..
+  have "\<forall>m\<ge>max M N. \<forall>n\<ge>max M N. dist (X m, Y m) (X n, Y n) < r"
+    using M N by (simp add: real_sqrt_sum_squares_less dist_Pair_Pair)
+  then show "\<exists>n0. \<forall>m\<ge>n0. \<forall>n\<ge>n0. dist (X m, Y m) (X n, Y n) < r" ..
 qed
 
 lemma LIM_Pair:
   assumes "f -- x --> a" and "g -- x --> b"
   shows "(\<lambda>x. (f x, g x)) -- x --> (a, b)"
-proof (rule LIM_I)
+proof (rule metric_LIM_I)
   fix r :: real assume "0 < r"
   then have "0 < r / sqrt 2" (is "0 < ?e")
     by (simp add: divide_pos_pos)
   obtain s where s: "0 < s"
-    "\<forall>z. z \<noteq> x \<and> norm (z - x) < s \<longrightarrow> norm (f z - a) < ?e"
-    using LIM_D [OF `f -- x --> a` `0 < ?e`] by fast
+    "\<forall>z. z \<noteq> x \<and> dist z x < s \<longrightarrow> dist (f z) a < ?e"
+    using metric_LIM_D [OF `f -- x --> a` `0 < ?e`] by fast
   obtain t where t: "0 < t"
-    "\<forall>z. z \<noteq> x \<and> norm (z - x) < t \<longrightarrow> norm (g z - b) < ?e"
-    using LIM_D [OF `g -- x --> b` `0 < ?e`] by fast
+    "\<forall>z. z \<noteq> x \<and> dist z x < t \<longrightarrow> dist (g z) b < ?e"
+    using metric_LIM_D [OF `g -- x --> b` `0 < ?e`] by fast
   have "0 < min s t \<and>
-    (\<forall>z. z \<noteq> x \<and> norm (z - x) < min s t \<longrightarrow> norm ((f z, g z) - (a, b)) < r)"
-    using s t by (simp add: real_sqrt_sum_squares_less norm_Pair)
+    (\<forall>z. z \<noteq> x \<and> dist z x < min s t \<longrightarrow> dist (f z, g z) (a, b) < r)"
+    using s t by (simp add: real_sqrt_sum_squares_less dist_Pair_Pair)
   then show
-    "\<exists>s>0. \<forall>z. z \<noteq> x \<and> norm (z - x) < s \<longrightarrow> norm ((f z, g z) - (a, b)) < r" ..
+    "\<exists>s>0. \<forall>z. z \<noteq> x \<and> dist z x < s \<longrightarrow> dist (f z, g z) (a, b) < r" ..
 qed
 
 lemma isCont_Pair [simp]:
