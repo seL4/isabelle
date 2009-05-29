@@ -923,10 +923,10 @@ lemma scaling_linear:
   shows "linear f"
 proof-
   {fix v w
-    {fix x note fd[rule_format, of x 0, unfolded dist_def f0 diff_0_right] }
+    {fix x note fd[rule_format, of x 0, unfolded dist_norm f0 diff_0_right] }
     note th0 = this
     have "f v \<bullet> f w = c^2 * (v \<bullet> w)"
-      unfolding dot_norm_neg dist_def[symmetric]
+      unfolding dot_norm_neg dist_norm[symmetric]
       unfolding th0 fd[rule_format] by (simp add: power2_eq_square field_simps)}
   note fc = this
   show ?thesis unfolding linear_def vector_eq
@@ -947,7 +947,7 @@ lemma orthogonal_transformation_isometry:
   unfolding orthogonal_transformation
   apply (rule iffI)
   apply clarify
-  apply (clarsimp simp add: linear_0 linear_sub[symmetric] dist_def)
+  apply (clarsimp simp add: linear_0 linear_sub[symmetric] dist_norm)
   apply (rule conjI)
   apply (rule isometry_linear)
   apply simp
@@ -955,7 +955,7 @@ lemma orthogonal_transformation_isometry:
   apply clarify
   apply (erule_tac x=v in allE)
   apply (erule_tac x=0 in allE)
-  by (simp add: dist_def)
+  by (simp add: dist_norm)
 
 (* ------------------------------------------------------------------------- *)
 (* Can extend an isometry from unit sphere.                                  *)
@@ -995,13 +995,13 @@ proof-
     moreover
     {assume "x = 0" "y \<noteq> 0"
       then have "dist (?g x) (?g y) = dist x y"
-	apply (simp add: dist_def norm_mul)
+	apply (simp add: dist_norm norm_mul)
 	apply (rule f1[rule_format])
 	by(simp add: norm_mul field_simps)}
     moreover
     {assume "x \<noteq> 0" "y = 0"
       then have "dist (?g x) (?g y) = dist x y"
-	apply (simp add: dist_def norm_mul)
+	apply (simp add: dist_norm norm_mul)
 	apply (rule f1[rule_format])
 	by(simp add: norm_mul field_simps)}
     moreover
@@ -1015,9 +1015,9 @@ proof-
 	"norm (f (inverse (norm x) *s x) - f (inverse (norm y) *s y)) =
 	norm (inverse (norm x) *s x - inverse (norm y) *s y)"
 	using z
-	by (auto simp add: vector_smult_assoc field_simps norm_mul intro: f1[rule_format] fd1[rule_format, unfolded dist_def])
+	by (auto simp add: vector_smult_assoc field_simps norm_mul intro: f1[rule_format] fd1[rule_format, unfolded dist_norm])
       from z th0[OF th00] have "dist (?g x) (?g y) = dist x y"
-	by (simp add: dist_def)}
+	by (simp add: dist_norm)}
     ultimately have "dist (?g x) (?g y) = dist x y" by blast}
   note thd = this
     show ?thesis
