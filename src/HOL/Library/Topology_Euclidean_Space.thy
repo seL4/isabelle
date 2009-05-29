@@ -2270,16 +2270,14 @@ qed
 
 subsection{* Completeness. *}
 
-  (* FIXME: Unify this with Cauchy from SEQ!!!!!*)
+lemma cauchy_def:
+  "Cauchy s \<longleftrightarrow> (\<forall>e>0. \<exists>N. \<forall>m n. m \<ge> N \<and> n \<ge> N --> dist(s m)(s n) < e)"
+unfolding Cauchy_def by blast
 
-definition
-  cauchy :: "(nat \<Rightarrow> real ^ 'n::finite) \<Rightarrow> bool" where
-  "cauchy s \<longleftrightarrow> (\<forall>e>0. \<exists>N. \<forall>m n. m \<ge> N \<and> n \<ge> N --> dist(s m)(s n) < e)"
-
-definition complete_def:"complete s \<longleftrightarrow> (\<forall>f::(nat=>real^'a::finite). (\<forall>n. f n \<in> s) \<and> cauchy f
+definition complete_def:"complete s \<longleftrightarrow> (\<forall>f::(nat=>real^'a::finite). (\<forall>n. f n \<in> s) \<and> Cauchy f
                       --> (\<exists>l \<in> s. (f ---> l) sequentially))"
 
-lemma cauchy: "cauchy s \<longleftrightarrow> (\<forall>e>0.\<exists> N::nat. \<forall>n\<ge>N. dist(s n)(s N) < e)" (is "?lhs = ?rhs")
+lemma cauchy: "Cauchy s \<longleftrightarrow> (\<forall>e>0.\<exists> N::nat. \<forall>n\<ge>N. dist(s n)(s N) < e)" (is "?lhs = ?rhs")
 proof-
   { assume ?rhs
     { fix e::real
@@ -2306,14 +2304,14 @@ proof-
 qed
 
 lemma convergent_imp_cauchy:
- "(s ---> l) sequentially ==> cauchy s"
+ "(s ---> l) sequentially ==> Cauchy s"
 proof(simp only: cauchy_def, rule, rule)
   fix e::real assume "e>0" "(s ---> l) sequentially"
   then obtain N::nat where N:"\<forall>n\<ge>N. dist (s n) l < e/2" unfolding Lim_sequentially by(erule_tac x="e/2" in allE) auto
   thus "\<exists>N. \<forall>m n. N \<le> m \<and> N \<le> n \<longrightarrow> dist (s m) (s n) < e"  using dist_triangle_half_l[of _ l e _] by (rule_tac x=N in exI) auto
 qed
 
-lemma cauchy_imp_bounded: assumes "cauchy s" shows "bounded {y. (\<exists>n::nat. y = s n)}"
+lemma cauchy_imp_bounded: assumes "Cauchy s" shows "bounded {y. (\<exists>n::nat. y = s n)}"
 proof-
   from assms obtain N::nat where "\<forall>m n. N \<le> m \<and> N \<le> n \<longrightarrow> dist (s m) (s n) < 1" unfolding cauchy_def apply(erule_tac x= 1 in allE) by auto
   hence N:"\<forall>n. N \<le> n \<longrightarrow> dist (s N) (s n) < 1" by auto
@@ -2332,7 +2330,7 @@ qed
 
 lemma compact_imp_complete: assumes "compact s" shows "complete s"
 proof-
-  { fix f assume as: "(\<forall>n::nat. f n \<in> s)" "cauchy f"
+  { fix f assume as: "(\<forall>n::nat. f n \<in> s)" "Cauchy f"
     from as(1) obtain l r where lr: "l\<in>s" "(\<forall>m n. m < n \<longrightarrow> r m < r n)" "((f \<circ> r) ---> l) sequentially" using assms unfolding compact_def by blast
 
     { fix n :: nat have lr':"n \<le> r n"
@@ -2358,11 +2356,11 @@ qed
 lemma complete_univ:
  "complete UNIV"
 proof(simp add: complete_def, rule, rule)
-  fix f::"nat \<Rightarrow> real^'n::finite" assume "cauchy f"
+  fix f::"nat \<Rightarrow> real^'n::finite" assume "Cauchy f"
   hence "bounded (f`UNIV)" using cauchy_imp_bounded[of f] unfolding image_def by auto
   hence "compact (closure (f`UNIV))"  using bounded_closed_imp_compact[of "closure (range f)"] by auto
   hence "complete (closure (range f))" using compact_imp_complete by auto
-  thus "\<exists>l. (f ---> l) sequentially" unfolding complete_def[of "closure (range f)"] using `cauchy f` unfolding closure_def  by auto
+  thus "\<exists>l. (f ---> l) sequentially" unfolding complete_def[of "closure (range f)"] using `Cauchy f` unfolding closure_def  by auto
 qed
 
 lemma complete_eq_closed: "complete s \<longleftrightarrow> closed s" (is "?lhs = ?rhs")
@@ -2375,13 +2373,13 @@ proof
   thus ?rhs unfolding closed_limpt by auto
 next
   assume ?rhs
-  { fix f assume as:"\<forall>n::nat. f n \<in> s" "cauchy f"
+  { fix f assume as:"\<forall>n::nat. f n \<in> s" "Cauchy f"
     then obtain l where "(f ---> l) sequentially" using complete_univ[unfolded complete_def, THEN spec[where x=f]] by auto
     hence "\<exists>l\<in>s. (f ---> l) sequentially" using `?rhs`[unfolded closed_sequential_limits, THEN spec[where x=f], THEN spec[where x=l]] using as(1) by auto  }
   thus ?lhs unfolding complete_def by auto
 qed
 
-lemma convergent_eq_cauchy: "(\<exists>l. (s ---> l) sequentially) \<longleftrightarrow> cauchy s" (is "?lhs = ?rhs")
+lemma convergent_eq_cauchy: "(\<exists>l. (s ---> l) sequentially) \<longleftrightarrow> Cauchy s" (is "?lhs = ?rhs")
 proof
   assume ?lhs then obtain l where "(s ---> l) sequentially" by auto
   thus ?rhs using convergent_imp_cauchy by auto
@@ -2420,7 +2418,7 @@ proof(rule, rule, rule ccontr)
     qed }
   hence "\<forall>n::nat. x n \<in> s" and x:"\<forall>n. \<forall>m < n. \<not> (dist (x m) (x n) < e)" by blast+
   then obtain l r where "l\<in>s" and r:"\<forall>m n. m < n \<longrightarrow> r m < r n" and "((x \<circ> r) ---> l) sequentially" using assms(1)[unfolded compact_def, THEN spec[where x=x]] by auto
-  from this(3) have "cauchy (x \<circ> r)" using convergent_imp_cauchy by auto
+  from this(3) have "Cauchy (x \<circ> r)" using convergent_imp_cauchy by auto
   then obtain N::nat where N:"\<forall>m n. N \<le> m \<and> N \<le> n \<longrightarrow> dist ((x \<circ> r) m) ((x \<circ> r) n) < e" unfolding cauchy_def using `e>0` by auto
   show False
     using N[THEN spec[where x=N], THEN spec[where x="N+1"]]
@@ -2824,7 +2822,7 @@ proof-
     }
     hence "\<exists>N. \<forall>m n. N \<le> m \<and> N \<le> n \<longrightarrow> dist (t m) (t n) < e" by auto
   }
-  hence  "cauchy t" unfolding cauchy_def by auto
+  hence  "Cauchy t" unfolding cauchy_def by auto
   then obtain l where l:"(t ---> l) sequentially" using complete_univ unfolding complete_def by auto
   { fix n::nat
     { fix e::real assume "e>0"
@@ -2876,7 +2874,7 @@ proof(rule)
   thus ?rhs by auto
 next
   assume ?rhs
-  hence "\<forall>x. P x \<longrightarrow> cauchy (\<lambda>n. s n x)" unfolding cauchy_def apply auto by (erule_tac x=e in allE)auto
+  hence "\<forall>x. P x \<longrightarrow> Cauchy (\<lambda>n. s n x)" unfolding cauchy_def apply auto by (erule_tac x=e in allE)auto
   then obtain l where l:"\<forall>x. P x \<longrightarrow> ((\<lambda>n. s n x) ---> l x) sequentially" unfolding convergent_eq_cauchy[THEN sym]
     using choice[of "\<lambda>x l. P x \<longrightarrow> ((\<lambda>n. s n x) ---> l) sequentially"] by auto
   { fix e::real assume "e>0"
@@ -4738,7 +4736,7 @@ lemma eq_interval_1: fixes a :: "real^1" shows
 using set_eq_subset[of "{a .. b}" "{c .. d}"]
 using subset_interval_1(1)[of a b c d]
 using subset_interval_1(1)[of c d a b]
-by auto
+by auto (* FIXME: slow *)
 
 lemma disjoint_interval_1: fixes a :: "real^1" shows
   "{a .. b} \<inter> {c .. d} = {} \<longleftrightarrow> dest_vec1 b < dest_vec1 a \<or> dest_vec1 d < dest_vec1 c  \<or>  dest_vec1 b < dest_vec1 c \<or> dest_vec1 d < dest_vec1 a"
@@ -5145,8 +5143,9 @@ qed
 text{* "Isometry" (up to constant bounds) of injective linear map etc.           *}
 
 lemma cauchy_isometric:
-  assumes e:"0 < e" and s:"subspace s" and f:"linear f" and normf:"\<forall>x\<in>s. norm(f x) \<ge> e * norm(x)" and xs:"\<forall>n::nat. x n \<in> s" and cf:"cauchy(f o x)"
-  shows "cauchy x"
+  fixes x :: "nat \<Rightarrow> real ^ 'n::finite"
+  assumes e:"0 < e" and s:"subspace s" and f:"linear f" and normf:"\<forall>x\<in>s. norm(f x) \<ge> e * norm(x)" and xs:"\<forall>n::nat. x n \<in> s" and cf:"Cauchy(f o x)"
+  shows "Cauchy x"
 proof-
   { fix d::real assume "d>0"
     then obtain N where N:"\<forall>n\<ge>N. norm (f (x n) - f (x N)) < e * d"
@@ -5166,7 +5165,7 @@ lemma complete_isometric_image:
   assumes "0 < e" and s:"subspace s" and f:"linear f" and normf:"\<forall>x\<in>s. norm(f x) \<ge> e * norm(x)" and cs:"complete s"
   shows "complete(f ` s)"
 proof-
-  { fix g assume as:"\<forall>n::nat. g n \<in> f ` s" and cfg:"cauchy g"
+  { fix g assume as:"\<forall>n::nat. g n \<in> f ` s" and cfg:"Cauchy g"
     then obtain x where "\<forall>n. x n \<in> s \<and> g n = f (x n)" unfolding image_iff and Bex_def
       using choice[of "\<lambda> n xa. xa \<in> s \<and> g n = f xa"] by auto
     hence x:"\<forall>n. x n \<in> s"  "\<forall>n. g n = f (x n)" by auto
@@ -5559,7 +5558,7 @@ proof-
       thus ?thesis by auto
     qed
   }
-  hence "cauchy z" unfolding cauchy_def by auto
+  hence "Cauchy z" unfolding cauchy_def by auto
   then obtain x where "x\<in>s" and x:"(z ---> x) sequentially" using s(1)[unfolded compact_def complete_def, THEN spec[where x=z]] and z_in_s by auto
 
   def e \<equiv> "dist (f x) x"
