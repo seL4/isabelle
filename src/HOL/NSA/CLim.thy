@@ -45,17 +45,25 @@ by (simp add: NSLIM_def starfunC_approx_Re_Im_iff
               hIm_hcomplex_of_complex)
 
 (** get this result easily now **)
-lemma LIM_Re: "f -- a --> L ==> (%x. Re(f x)) -- a --> Re(L)"
+lemma LIM_Re:
+  fixes f :: "'a::real_normed_vector \<Rightarrow> complex"
+  shows "f -- a --> L ==> (%x. Re(f x)) -- a --> Re(L)"
 by (simp add: LIM_NSLIM_iff NSLIM_Re)
 
-lemma LIM_Im: "f -- a --> L ==> (%x. Im(f x)) -- a --> Im(L)"
+lemma LIM_Im:
+  fixes f :: "'a::real_normed_vector \<Rightarrow> complex"
+  shows "f -- a --> L ==> (%x. Im(f x)) -- a --> Im(L)"
 by (simp add: LIM_NSLIM_iff NSLIM_Im)
 
-lemma LIM_cnj: "f -- a --> L ==> (%x. cnj (f x)) -- a --> cnj L"
-by (simp add: LIM_def complex_cnj_diff [symmetric])
+lemma LIM_cnj:
+  fixes f :: "'a::real_normed_vector \<Rightarrow> complex"
+  shows "f -- a --> L ==> (%x. cnj (f x)) -- a --> cnj L"
+by (simp add: LIM_eq complex_cnj_diff [symmetric])
 
-lemma LIM_cnj_iff: "((%x. cnj (f x)) -- a --> cnj L) = (f -- a --> L)"
-by (simp add: LIM_def complex_cnj_diff [symmetric])
+lemma LIM_cnj_iff:
+  fixes f :: "'a::real_normed_vector \<Rightarrow> complex"
+  shows "((%x. cnj (f x)) -- a --> cnj L) = (f -- a --> L)"
+by (simp add: LIM_eq complex_cnj_diff [symmetric])
 
 lemma starfun_norm: "( *f* (\<lambda>x. norm (f x))) = (\<lambda>x. hnorm (( *f* f) x))"
 by transfer (rule refl)
@@ -74,8 +82,10 @@ by (simp add: NSLIM_def starfun_norm
     approx_approx_zero_iff [symmetric] approx_minus_iff [symmetric])
 
 (** much, much easier standard proof **)
-lemma CLIM_CRLIM_iff: "(f -- x --> L) = ((%y. cmod(f y - L)) -- x --> 0)"
-by (simp add: LIM_def)
+lemma CLIM_CRLIM_iff:
+  fixes f :: "'a::real_normed_vector \<Rightarrow> complex"
+  shows "(f -- x --> L) = ((%y. cmod(f y - L)) -- x --> 0)"
+by (simp add: LIM_eq)
 
 (* so this is nicer nonstandard proof *)
 lemma NSCLIM_NSCRLIM_iff2:
@@ -92,7 +102,8 @@ apply (simp add: hcomplex_approx_iff)
 done
 
 lemma LIM_CRLIM_Re_Im_iff:
-     "(f -- a --> L) = ((%x. Re(f x)) -- a --> Re(L) &
+  fixes f :: "'a::real_normed_vector \<Rightarrow> complex"
+  shows "(f -- a --> L) = ((%x. Re(f x)) -- a --> Re(L) &
                          (%x. Im(f x)) -- a --> Im(L))"
 by (simp add: LIM_NSLIM_iff NSLIM_NSCRLIM_Re_Im_iff)
 
@@ -113,10 +124,14 @@ by (auto intro: approx_hnorm
 lemma isContCR_cmod [simp]: "isCont cmod (a)"
 by (simp add: isNSCont_isCont_iff [symmetric])
 
-lemma isCont_Re: "isCont f a ==> isCont (%x. Re (f x)) a"
+lemma isCont_Re:
+  fixes f :: "'a::real_normed_vector \<Rightarrow> complex"
+  shows "isCont f a ==> isCont (%x. Re (f x)) a"
 by (simp add: isCont_def LIM_Re)
 
-lemma isCont_Im: "isCont f a ==> isCont (%x. Im (f x)) a"
+lemma isCont_Im:
+  fixes f :: "'a::real_normed_vector \<Rightarrow> complex"
+  shows "isCont f a ==> isCont (%x. Im (f x)) a"
 by (simp add: isCont_def LIM_Im)
 
 subsection{* Differentiation of Natural Number Powers*}

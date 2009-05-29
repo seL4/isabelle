@@ -343,7 +343,7 @@ lemma abs_ln_one_plus_x_minus_x_bound:
 done
 
 lemma DERIV_ln: "0 < x ==> DERIV ln x :> 1 / x"
-  apply (unfold deriv_def, unfold LIM_def, clarsimp)
+  apply (unfold deriv_def, unfold LIM_eq, clarsimp)
   apply (rule exI)
   apply (rule conjI)
   prefer 2

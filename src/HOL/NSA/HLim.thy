@@ -287,7 +287,7 @@ proof (unfold isNSUCont_def, safe)
     fix r::real assume r: "0 < r"
     with f obtain s where s: "0 < s" and
       less_r: "\<And>x y. norm (x - y) < s \<Longrightarrow> norm (f x - f y) < r"
-      by (auto simp add: isUCont_def)
+      by (auto simp add: isUCont_def dist_norm)
     from less_r have less_r':
        "\<And>x y. hnorm (x - y) < star_of s
         \<Longrightarrow> hnorm (starfun f x - starfun f y) < star_of r"
@@ -306,7 +306,7 @@ qed
 lemma isNSUCont_isUCont:
   fixes f :: "'a::real_normed_vector \<Rightarrow> 'b::real_normed_vector"
   assumes f: "isNSUCont f" shows "isUCont f"
-proof (unfold isUCont_def, safe)
+proof (unfold isUCont_def dist_norm, safe)
   fix r::real assume r: "0 < r"
   have "\<exists>s>0. \<forall>x y. hnorm (x - y) < s
         \<longrightarrow> hnorm (starfun f x - starfun f y) < star_of r"

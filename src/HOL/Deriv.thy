@@ -76,7 +76,7 @@ proof (unfold isCont_iff)
   hence "(\<lambda>h. f(x+h) - f(x)) -- 0 --> 0"
     by (simp cong: LIM_cong)
   thus "(\<lambda>h. f(x+h)) -- 0 --> f(x)"
-    by (simp add: LIM_def)
+    by (simp add: LIM_def dist_norm)
 qed
 
 lemma DERIV_mult_lemma:
@@ -125,6 +125,7 @@ done
 text{*Alternative definition for differentiability*}
 
 lemma DERIV_LIM_iff:
+  fixes f :: "'a::{real_normed_vector,inverse} \<Rightarrow> 'a" shows
      "((%h. (f(a + h) - f(a)) / h) -- 0 --> D) =
       ((%x. (f(x)-f(a)) / (x-a)) -- a --> D)"
 apply (rule iffI)
@@ -614,7 +615,7 @@ apply (rule contrapos_pp, assumption)
 apply (cut_tac P = "% (u,v) . a \<le> u & u \<le> v & v \<le> b --> ~ (f (u) \<le> y & y \<le> f (v))" in lemma_BOLZANO2)
 apply safe
 apply simp_all
-apply (simp add: isCont_iff LIM_def)
+apply (simp add: isCont_iff LIM_eq)
 apply (rule ccontr)
 apply (subgoal_tac "a \<le> x & x \<le> b")
  prefer 2
@@ -675,7 +676,7 @@ apply (cut_tac x = xb and y = xa in linorder_linear, force)
 apply (case_tac "a \<le> x & x \<le> b")
 apply (rule_tac [2] x = 1 in exI)
 prefer 2 apply force
-apply (simp add: LIM_def isCont_iff)
+apply (simp add: LIM_eq isCont_iff)
 apply (drule_tac x = x in spec, auto)
 apply (erule_tac V = "\<forall>M. \<exists>x. a \<le> x & x \<le> b & ~ f x \<le> M" in thin_rl)
 apply (drule_tac x = 1 in spec, auto)
@@ -1486,7 +1487,7 @@ text{*Bartle/Sherbert: Introduction to Real Analysis, Theorem 4.2.9, p. 110*}
 lemma LIM_fun_gt_zero:
      "[| f -- c --> (l::real); 0 < l |]  
          ==> \<exists>r. 0 < r & (\<forall>x::real. x \<noteq> c & \<bar>c - x\<bar> < r --> 0 < f x)"
-apply (auto simp add: LIM_def)
+apply (auto simp add: LIM_eq)
 apply (drule_tac x = "l/2" in spec, safe, force)
 apply (rule_tac x = s in exI)
 apply (auto simp only: abs_less_iff)
@@ -1495,7 +1496,7 @@ done
 lemma LIM_fun_less_zero:
      "[| f -- c --> (l::real); l < 0 |]  
       ==> \<exists>r. 0 < r & (\<forall>x::real. x \<noteq> c & \<bar>c - x\<bar> < r --> f x < 0)"
-apply (auto simp add: LIM_def)
+apply (auto simp add: LIM_eq)
 apply (drule_tac x = "-l/2" in spec, safe, force)
 apply (rule_tac x = s in exI)
 apply (auto simp only: abs_less_iff)

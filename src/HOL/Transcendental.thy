@@ -438,7 +438,7 @@ lemma lemma_termdiff4:
   assumes k: "0 < (k::real)"
   assumes le: "\<And>h. \<lbrakk>h \<noteq> 0; norm h < k\<rbrakk> \<Longrightarrow> norm (f h) \<le> K * norm h"
   shows "f -- 0 --> 0"
-unfolding LIM_def diff_0_right
+unfolding LIM_eq diff_0_right
 proof (safe)
   let ?h = "of_real (k / 2)::'a"
   have "?h \<noteq> 0" and "norm ?h < k" using k by simp_all
@@ -2145,7 +2145,7 @@ done
 
 lemma lemma_tan_total: "0 < y ==> \<exists>x. 0 < x & x < pi/2 & y < tan x"
 apply (cut_tac LIM_cos_div_sin)
-apply (simp only: LIM_def)
+apply (simp only: LIM_eq)
 apply (drule_tac x = "inverse y" in spec, safe, force)
 apply (drule_tac ?d1.0 = s in pi_half_gt_zero [THEN [2] real_lbound_gt_zero], safe)
 apply (rule_tac x = "(pi/2) - e" in exI)
