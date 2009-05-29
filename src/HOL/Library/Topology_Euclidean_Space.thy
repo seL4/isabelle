@@ -1192,6 +1192,9 @@ lemma Lim_at: "(f ---> l) (at a) \<longleftrightarrow>
         (\<forall>e >0. \<exists>d>0. \<forall>x. 0 < dist x a  \<and> dist x a  < d  \<longrightarrow> dist (f x) l < e)"
   by (auto simp add: tendsto_def eventually_at)
 
+lemma Lim_at_iff_LIM: "(f ---> l) (at a) \<longleftrightarrow> f -- a --> l"
+  unfolding Lim_at LIM_def by (simp only: zero_less_dist_iff)
+
 lemma Lim_at_infinity:
   "(f ---> l) at_infinity \<longleftrightarrow> (\<forall>e>0. \<exists>b. \<forall>x::real^'n::finite. norm x >= b \<longrightarrow> dist (f x) l < e)"
   by (auto simp add: tendsto_def eventually_at_infinity)
@@ -1200,6 +1203,9 @@ lemma Lim_sequentially:
  "(S ---> l) sequentially \<longleftrightarrow>
           (\<forall>e>0. \<exists>N. \<forall>n\<ge>N. dist (S n) l < e)"
   by (auto simp add: tendsto_def eventually_sequentially)
+
+lemma Lim_sequentially_iff_LIMSEQ: "(S ---> l) sequentially \<longleftrightarrow> S ----> l"
+  unfolding Lim_sequentially LIMSEQ_def ..
 
 lemma Lim_eventually: "eventually (\<lambda>x. f x = l) net \<Longrightarrow> (f ---> l) net"
   by (auto simp add: eventually_def Lim)
