@@ -51,6 +51,9 @@ definition norm_prod_def:
 definition sgn_prod_def:
   "sgn (x::'a \<times> 'b) = scaleR (inverse (norm x)) x"
 
+definition dist_prod_def:
+  "dist (x::'a \<times> 'b) y = norm (x - y)"
+
 lemma norm_Pair: "norm (a, b) = sqrt ((norm a)\<twosuperior> + (norm b)\<twosuperior>)"
   unfolding norm_prod_def by simp
 
@@ -74,6 +77,8 @@ instance proof
     done
   show "sgn x = scaleR (inverse (norm x)) x"
     by (rule sgn_prod_def)
+  show "dist x y = norm (x - y)"
+    by (rule dist_prod_def)
 qed
 
 end
