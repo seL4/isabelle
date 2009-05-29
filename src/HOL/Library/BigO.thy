@@ -871,7 +871,7 @@ lemma lesso_add: "f <o g =o O(h) ==>
   done
 
 lemma bigo_LIMSEQ1: "f =o O(g) ==> g ----> 0 ==> f ----> (0::real)"
-  apply (simp add: LIMSEQ_def bigo_alt_def)
+  apply (simp add: LIMSEQ_iff bigo_alt_def)
   apply clarify
   apply (drule_tac x = "r / c" in spec)
   apply (drule mp)

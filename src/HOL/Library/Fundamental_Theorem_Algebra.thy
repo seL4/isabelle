@@ -306,12 +306,12 @@ proof-
   from conv1[unfolded convergent_def] obtain x where "LIMSEQ (\<lambda>n. Re (s (f n))) x"
     by blast
   hence  x: "\<forall>r>0. \<exists>n0. \<forall>n\<ge>n0. \<bar> Re (s (f n)) - x \<bar> < r"
-    unfolding LIMSEQ_def real_norm_def .
+    unfolding LIMSEQ_iff real_norm_def .
 
   from conv2[unfolded convergent_def] obtain y where "LIMSEQ (\<lambda>n. Im (s (f (g n)))) y"
     by blast
   hence  y: "\<forall>r>0. \<exists>n0. \<forall>n\<ge>n0. \<bar> Im (s (f (g n))) - y \<bar> < r"
-    unfolding LIMSEQ_def real_norm_def .
+    unfolding LIMSEQ_iff real_norm_def .
   let ?w = "Complex x y"
   from f(1) g(1) have hs: "subseq ?h" unfolding subseq_def by auto
   {fix e assume ep: "e > (0::real)"
