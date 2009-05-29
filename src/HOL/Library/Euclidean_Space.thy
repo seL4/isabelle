@@ -509,6 +509,9 @@ definition vector_norm_def:
 definition vector_sgn_def:
   "sgn (x::'a^'b) = scaleR (inverse (norm x)) x"
 
+definition dist_vector_def:
+  "dist (x::'a^'b) y = norm (x - y)"
+
 instance proof
   fix a :: real and x y :: "'a ^ 'b"
   show "0 \<le> norm x"
@@ -527,6 +530,8 @@ instance proof
     by (simp add: norm_scaleR setL2_right_distrib)
   show "sgn x = scaleR (inverse (norm x)) x"
     by (rule vector_sgn_def)
+  show "dist x y = norm (x - y)"
+    by (rule dist_vector_def)
 qed
 
 end
@@ -621,7 +626,7 @@ lemma norm_real: "norm(x::real ^ 1) = abs(x$1)"
   by (simp add: norm_vector_1)
 
 lemma dist_real: "dist(x::real ^ 1) y = abs((x$1) - (y$1))"
-  by (auto simp add: norm_real dist_def)
+  by (auto simp add: norm_real dist_norm)
 
 subsection {* A connectedness or intermediate value lemma with several applications. *}
 
@@ -953,37 +958,52 @@ method_setup norm = {* Scan.succeed (SIMPLE_METHOD' o NormArith.norm_arith_tac)
 
 text{* Hence more metric properties. *}
 
-lemma dist_triangle_alt: "dist y z <= dist x y + dist x z"
+lemma dist_triangle_alt:
+  fixes x y z :: "'a::metric_space"
+  shows "dist y z <= dist x y + dist x z"
 using dist_triangle [of y z x] by (simp add: dist_commute)
 
-lemma dist_triangle2: "dist x y \<le> dist x z + dist y z"
-using dist_triangle [of x y z] by (simp add: dist_commute)
+lemma dist_pos_lt:
+  fixes x y :: "'a::metric_space"
+  shows "x \<noteq> y ==> 0 < dist x y"
+by (simp add: zero_less_dist_iff)
 
-lemma dist_pos_lt: "x \<noteq> y ==> 0 < dist x y" by (simp add: zero_less_dist_iff)
-lemma dist_nz:  "x \<noteq> y \<longleftrightarrow> 0 < dist x y" by (simp add: zero_less_dist_iff)
+lemma dist_nz:
+  fixes x y :: "'a::metric_space"
+  shows "x \<noteq> y \<longleftrightarrow> 0 < dist x y"
+by (simp add: zero_less_dist_iff)
 
-lemma dist_triangle_le: "dist x z + dist y z <= e \<Longrightarrow> dist x y <= e"
+lemma dist_triangle_le:
+  fixes x y z :: "'a::metric_space"
+  shows "dist x z + dist y z <= e \<Longrightarrow> dist x y <= e"
 by (rule order_trans [OF dist_triangle2])
 
-lemma dist_triangle_lt: "dist x z + dist y z < e ==> dist x y < e"
+lemma dist_triangle_lt:
+  fixes x y z :: "'a::metric_space"
+  shows "dist x z + dist y z < e ==> dist x y < e"
 by (rule le_less_trans [OF dist_triangle2])
 
 lemma dist_triangle_half_l:
-  "dist x1 y < e / 2 \<Longrightarrow> dist x2 y < e / 2 \<Longrightarrow> dist x1 x2 < e"
+  fixes x1 x2 y :: "'a::metric_space"
+  shows "dist x1 y < e / 2 \<Longrightarrow> dist x2 y < e / 2 \<Longrightarrow> dist x1 x2 < e"
 by (rule dist_triangle_lt [where z=y], simp)
 
 lemma dist_triangle_half_r:
-  "dist y x1 < e / 2 \<Longrightarrow> dist y x2 < e / 2 \<Longrightarrow> dist x1 x2 < e"
+  fixes x1 x2 y :: "'a::metric_space"
+  shows "dist y x1 < e / 2 \<Longrightarrow> dist y x2 < e / 2 \<Longrightarrow> dist x1 x2 < e"
 by (rule dist_triangle_half_l, simp_all add: dist_commute)
 
-lemma dist_triangle_add: "dist (x + y) (x' + y') <= dist x x' + dist y y'"
-unfolding dist_def by (rule norm_diff_triangle_ineq)
+lemma dist_triangle_add:
+  fixes x y x' y' :: "'a::real_normed_vector"
+  shows "dist (x + y) (x' + y') <= dist x x' + dist y y'"
+unfolding dist_norm by (rule norm_diff_triangle_ineq)
 
 lemma dist_mul[simp]: "dist (c *s x) (c *s y) = \<bar>c\<bar> * dist x y"
-  unfolding dist_def vector_ssub_ldistrib[symmetric] norm_mul ..
+  unfolding dist_norm vector_ssub_ldistrib[symmetric] norm_mul ..
 
 lemma dist_triangle_add_half:
-  " dist x x' < e / 2 \<Longrightarrow> dist y y' < e / 2 \<Longrightarrow> dist(x + y) (x' + y') < e"
+  fixes x x' y y' :: "'a::real_normed_vector"
+  shows "dist x x' < e / 2 \<Longrightarrow> dist y y' < e / 2 \<Longrightarrow> dist(x + y) (x' + y') < e"
 by (rule le_less_trans [OF dist_triangle_add], simp)
 
 lemma setsum_component [simp]:
@@ -1222,7 +1242,7 @@ lemma vector_choose_dist: assumes e: "0 <= e"
 proof-
   from vector_choose_size[OF e] obtain c:: "real ^'n"  where "norm c = e"
     by blast
-  then have "dist x (x - c) = e" by (simp add: dist_def)
+  then have "dist x (x - c) = e" by (simp add: dist_norm)
   then show ?thesis by blast
 qed
 
@@ -2546,7 +2566,7 @@ proof-
 qed
 
 lemma dist_fstcart: "dist(fstcart (x::real^_)) (fstcart y) <= dist x y"
-  by (metis dist_def fstcart_sub[symmetric] norm_fstcart)
+  by (metis dist_vector_def fstcart_sub[symmetric] norm_fstcart)
 
 lemma norm_sndcart: "norm(sndcart x) <= norm (x::real ^('n::finite + 'm::finite))"
 proof-
@@ -2561,7 +2581,7 @@ proof-
 qed
 
 lemma dist_sndcart: "dist(sndcart (x::real^_)) (sndcart y) <= dist x y"
-  by (metis dist_def sndcart_sub[symmetric] norm_sndcart)
+  by (metis dist_vector_def sndcart_sub[symmetric] norm_sndcart)
 
 lemma dot_pastecart: "(pastecart (x1::'a::{times,comm_monoid_add}^'n::finite) (x2::'a::{times,comm_monoid_add}^'m::finite)) \<bullet> (pastecart y1 y2) =  x1 \<bullet> y1 + x2 \<bullet> y2"
   by (simp add: dot_def setsum_UNIV_sum pastecart_def)
@@ -3901,7 +3921,7 @@ proof-
 qed
 
 lemma span_eq: "span S = span T \<longleftrightarrow> S \<subseteq> span T \<and> T \<subseteq> span S"
-  by (metis set_eq_subset span_mono span_span span_inc)
+  by (metis set_eq_subset span_mono span_span span_inc) (* FIXME: slow *)
 
 (* ------------------------------------------------------------------------- *)
 (* Low-dimensional subset is in a hyperplane (weak orthogonal complement).   *)
