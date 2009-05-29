@@ -278,6 +278,9 @@ abbreviation
 definition
   complex_sgn_def: "sgn x = x /\<^sub>R cmod x"
 
+definition
+  dist_complex_def: "dist x y = cmod (x - y)"
+
 lemmas cmod_def = complex_norm_def
 
 lemma complex_norm [simp]: "cmod (Complex x y) = sqrt (x\<twosuperior> + y\<twosuperior>)"
@@ -299,7 +302,10 @@ proof
   show "norm (x * y) = norm x * norm y"
     by (induct x, induct y)
        (simp add: real_sqrt_mult [symmetric] power2_eq_square algebra_simps)
-  show "sgn x = x /\<^sub>R cmod x" by(simp add: complex_sgn_def)
+  show "sgn x = x /\<^sub>R cmod x"
+    by (rule complex_sgn_def)
+  show "dist x y = cmod (x - y)"
+    by (rule dist_complex_def)
 qed
 
 end
