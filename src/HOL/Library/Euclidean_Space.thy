@@ -498,6 +498,30 @@ lemma member_le_setL2: "\<lbrakk>finite A; i \<in> A\<rbrakk> \<Longrightarrow> 
   apply simp
   done
 
+subsection {* Metric *}
+
+instantiation "^" :: (metric_space, finite) metric_space
+begin
+
+definition dist_vector_def:
+  "dist (x::'a^'b) (y::'a^'b) = setL2 (\<lambda>i. dist (x$i) (y$i)) UNIV"
+
+instance proof
+  fix x y :: "'a ^ 'b"
+  show "dist x y = 0 \<longleftrightarrow> x = y"
+    unfolding dist_vector_def
+    by (simp add: setL2_eq_0_iff Cart_eq)
+next
+  fix x y z :: "'a ^ 'b"
+  show "dist x y \<le> dist x z + dist y z"
+    unfolding dist_vector_def
+    apply (rule order_trans [OF _ setL2_triangle_ineq])
+    apply (simp add: setL2_mono dist_triangle2)
+    done
+qed
+
+end
+
 subsection {* Norms *}
 
 instantiation "^" :: (real_normed_vector, finite) real_normed_vector
@@ -508,9 +532,6 @@ definition vector_norm_def:
 
 definition vector_sgn_def:
   "sgn (x::'a^'b) = scaleR (inverse (norm x)) x"
-
-definition dist_vector_def:
-  "dist (x::'a^'b) y = norm (x - y)"
 
 instance proof
   fix a :: real and x y :: "'a ^ 'b"
@@ -531,7 +552,8 @@ instance proof
   show "sgn x = scaleR (inverse (norm x)) x"
     by (rule vector_sgn_def)
   show "dist x y = norm (x - y)"
-    by (rule dist_vector_def)
+    unfolding dist_vector_def vector_norm_def
+    by (simp add: dist_norm)
 qed
 
 end
@@ -948,6 +970,11 @@ lemma norm_pths:
   "(x::real ^'n::finite) = y \<longleftrightarrow> norm (x - y) \<le> 0"
   "x \<noteq> y \<longleftrightarrow> \<not> (norm (x - y) \<le> 0)"
   using norm_ge_zero[of "x - y"] by auto
+
+lemma vector_dist_norm:
+  fixes x y :: "real ^ _"
+  shows "dist x y = norm (x - y)"
+  by (rule dist_norm)
 
 use "normarith.ML"
 
@@ -2566,7 +2593,7 @@ proof-
 qed
 
 lemma dist_fstcart: "dist(fstcart (x::real^_)) (fstcart y) <= dist x y"
-  by (metis dist_vector_def fstcart_sub[symmetric] norm_fstcart)
+  unfolding dist_norm by (metis fstcart_sub[symmetric] norm_fstcart)
 
 lemma norm_sndcart: "norm(sndcart x) <= norm (x::real ^('n::finite + 'm::finite))"
 proof-
@@ -2581,7 +2608,7 @@ proof-
 qed
 
 lemma dist_sndcart: "dist(sndcart (x::real^_)) (sndcart y) <= dist x y"
-  by (metis dist_vector_def sndcart_sub[symmetric] norm_sndcart)
+  unfolding dist_norm by (metis sndcart_sub[symmetric] norm_sndcart)
 
 lemma dot_pastecart: "(pastecart (x1::'a::{times,comm_monoid_add}^'n::finite) (x2::'a::{times,comm_monoid_add}^'m::finite)) \<bullet> (pastecart y1 y2) =  x1 \<bullet> y1 + x2 \<bullet> y2"
   by (simp add: dot_def setsum_UNIV_sum pastecart_def)

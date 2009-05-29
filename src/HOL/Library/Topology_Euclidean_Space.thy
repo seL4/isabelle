@@ -1314,7 +1314,7 @@ next
     { fix x
       have "netord net x y \<longrightarrow> dist (h (f x)) (h l) < e"
 	using y(2) b unfolding dist_norm using linear_sub[of h "f x" l] `linear h`
-	apply auto by (metis b(1) b(2) dist_vector_def dist_commute less_le_not_le linorder_not_le mult_imp_div_pos_le real_mult_commute xt1(7)) (* FIXME: VERY slow! *)
+	apply auto by (metis b(1) b(2) less_le_not_le linorder_not_le mult_imp_div_pos_le real_mult_commute xt1(7)) (* FIXME: VERY slow! *)
     }
     hence " (\<exists>y. (\<exists>x. netord net x y) \<and> (\<forall>x. netord net x y \<longrightarrow> dist (h (f x)) (h l) < e))" using y
       by(rule_tac x="y" in exI) auto
@@ -2353,7 +2353,7 @@ proof-
   hence N:"\<forall>n. N \<le> n \<longrightarrow> dist (s N) (s n) < 1" by auto
   { fix n::nat assume "n\<ge>N"
     hence "norm (s n) \<le> norm (s N) + 1" using N apply(erule_tac x=n in allE) unfolding dist_norm
-      using norm_triangle_sub[of "s N" "s n"] by (auto, metis dist_vector_def dist_commute le_add_right_mono norm_triangle_sub real_less_def)
+      using norm_triangle_sub[of "s N" "s n"] by (auto, metis norm_minus_commute le_add_right_mono norm_triangle_sub real_less_def)
   }
   hence "\<forall>n\<ge>N. norm (s n) \<le> norm (s N) + 1" by auto
   moreover
