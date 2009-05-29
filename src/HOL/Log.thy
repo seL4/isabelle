@@ -248,7 +248,7 @@ proof -
 qed
 
 lemma LIMSEQ_neg_powr: "0 < s ==> (%x. (real x) powr - s) ----> 0"
-  apply (unfold LIMSEQ_def)
+  apply (unfold LIMSEQ_iff)
   apply clarsimp
   apply (rule_tac x = "natfloor(r powr (1 / - s)) + 1" in exI)
   apply clarify

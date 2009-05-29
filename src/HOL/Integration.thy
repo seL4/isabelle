@@ -430,7 +430,7 @@ done
 lemma Cauchy_iff2:
      "Cauchy X =
       (\<forall>j. (\<exists>M. \<forall>m \<ge> M. \<forall>n \<ge> M. \<bar>X m - X n\<bar> < inverse(real (Suc j))))"
-apply (simp add: Cauchy_def, auto)
+apply (simp add: Cauchy_iff, auto)
 apply (drule reals_Archimedean, safe)
 apply (drule_tac x = n in spec, auto)
 apply (rule_tac x = M in exI, auto)

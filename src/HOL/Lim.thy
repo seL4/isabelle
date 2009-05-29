@@ -700,7 +700,7 @@ proof (rule ccontr)
     }
     then have "(\<forall>no. \<exists>n. no \<le> n \<and> norm (X (?F n) - L) \<ge> r)" by simp
     with rdef have "\<exists>e>0. (\<forall>no. \<exists>n. no \<le> n \<and> norm (X (?F n) - L) \<ge> e)" by auto
-    thus ?thesis by (unfold LIMSEQ_def, auto simp add: linorder_not_less)
+    thus ?thesis by (unfold LIMSEQ_iff, auto simp add: linorder_not_less)
   qed
   ultimately show False by simp
 qed

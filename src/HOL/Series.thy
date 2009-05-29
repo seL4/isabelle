@@ -160,7 +160,7 @@ qed
 
 lemma series_zero: 
      "(\<forall>m. n \<le> m --> f(m) = 0) ==> f sums (setsum f {0..<n})"
-apply (simp add: sums_def LIMSEQ_def diff_minus[symmetric], safe)
+apply (simp add: sums_def LIMSEQ_iff diff_minus[symmetric], safe)
 apply (rule_tac x = n in exI)
 apply (clarsimp simp add:setsum_diff[symmetric] cong:setsum_ivl_cong)
 done
@@ -264,7 +264,7 @@ lemma sums_group:
      "[|summable f; 0 < k |] ==> (%n. setsum f {n*k..<n*k+k}) sums (suminf f)"
 apply (drule summable_sums)
 apply (simp only: sums_def sumr_group)
-apply (unfold LIMSEQ_def, safe)
+apply (unfold LIMSEQ_iff, safe)
 apply (drule_tac x="r" in spec, safe)
 apply (rule_tac x="no" in exI, safe)
 apply (drule_tac x="n*k" in spec)
@@ -361,7 +361,7 @@ by (simp add: summable_def sums_def convergent_def)
 lemma summable_LIMSEQ_zero: "summable f \<Longrightarrow> f ----> 0"
 apply (drule summable_convergent_sumr_iff [THEN iffD1])
 apply (drule convergent_Cauchy)
-apply (simp only: Cauchy_def LIMSEQ_def, safe)
+apply (simp only: Cauchy_iff LIMSEQ_iff, safe)
 apply (drule_tac x="r" in spec, safe)
 apply (rule_tac x="M" in exI, safe)
 apply (drule_tac x="Suc n" in spec, simp)
@@ -371,7 +371,7 @@ done
 lemma summable_Cauchy:
      "summable (f::nat \<Rightarrow> 'a::banach) =  
       (\<forall>e > 0. \<exists>N. \<forall>m \<ge> N. \<forall>n. norm (setsum f {m..<n}) < e)"
-apply (simp only: summable_convergent_sumr_iff Cauchy_convergent_iff [symmetric] Cauchy_def, safe)
+apply (simp only: summable_convergent_sumr_iff Cauchy_convergent_iff [symmetric] Cauchy_iff, safe)
 apply (drule spec, drule (1) mp)
 apply (erule exE, rule_tac x="M" in exI, clarify)
 apply (rule_tac x="m" and y="n" in linorder_le_cases)
