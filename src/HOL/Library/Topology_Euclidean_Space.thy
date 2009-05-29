@@ -1161,7 +1161,7 @@ lemma not_eventually: "(\<forall>x. \<not> P x ) \<Longrightarrow> ~(trivial_lim
 
 subsection{* Limits, defined as vacuously true when the limit is trivial. *}
 
-definition tendsto:: "('a \<Rightarrow> real ^'n::finite) \<Rightarrow> real ^'n \<Rightarrow> 'a net \<Rightarrow> bool" (infixr "--->" 55) where
+definition tendsto:: "('a \<Rightarrow> 'b::metric_space) \<Rightarrow> 'b \<Rightarrow> 'a net \<Rightarrow> bool" (infixr "--->" 55) where
   tendsto_def: "(f ---> l) net  \<longleftrightarrow> (\<forall>e>0. eventually (\<lambda>x. dist (f x) l < e) net)"
 
 lemma tendstoD: "(f ---> l) net \<Longrightarrow> e>0 \<Longrightarrow> eventually (\<lambda>x. dist (f x) l < e) net"
@@ -1325,19 +1325,23 @@ qed
 lemma Lim_const: "((\<lambda>x. a) ---> a) net"
   by (auto simp add: Lim trivial_limit_def)
 
-lemma Lim_cmul: "(f ---> l) net ==> ((\<lambda>x. c *s f x) ---> c *s l) net"
+lemma Lim_cmul:
+  fixes f :: "'a \<Rightarrow> real ^ 'n::finite"
+  shows "(f ---> l) net ==> ((\<lambda>x. c *s f x) ---> c *s l) net"
   apply (rule Lim_linear[where f = f])
   apply simp
   apply (rule linear_compose_cmul)
   apply (rule linear_id[unfolded id_def])
   done
 
-lemma Lim_neg: "(f ---> l) net ==> ((\<lambda>x. -(f x)) ---> -l) net"
+lemma Lim_neg:
+  fixes f :: "'a \<Rightarrow> 'b::real_normed_vector"
+  shows "(f ---> l) net ==> ((\<lambda>x. -(f x)) ---> -l) net"
   apply (simp add: Lim dist_norm  group_simps)
   apply (subst minus_diff_eq[symmetric])
   unfolding norm_minus_cancel by simp
 
-lemma Lim_add: fixes f :: "'a \<Rightarrow> real^'n::finite" shows
+lemma Lim_add: fixes f :: "'a \<Rightarrow> 'b::real_normed_vector" shows
  "(f ---> l) net \<Longrightarrow> (g ---> m) net \<Longrightarrow> ((\<lambda>x. f(x) + g(x)) ---> l + m) net"
 proof-
   assume as:"(f ---> l) net" "(g ---> m) net"
@@ -1366,15 +1370,23 @@ proof-
   thus ?thesis unfolding tendsto_def by auto
 qed
 
-lemma Lim_sub: "(f ---> l) net \<Longrightarrow> (g ---> m) net \<Longrightarrow> ((\<lambda>x. f(x) - g(x)) ---> l - m) net"
+lemma Lim_sub:
+  fixes f :: "'a \<Rightarrow> 'b::real_normed_vector"
+  shows "(f ---> l) net \<Longrightarrow> (g ---> m) net \<Longrightarrow> ((\<lambda>x. f(x) - g(x)) ---> l - m) net"
   unfolding diff_minus
   by (simp add: Lim_add Lim_neg)
 
-lemma Lim_null: "(f ---> l) net \<longleftrightarrow> ((\<lambda>x. f(x) - l) ---> 0) net" by (simp add: Lim dist_norm)
-lemma Lim_null_norm: "(f ---> 0) net \<longleftrightarrow> ((\<lambda>x. vec1(norm(f x))) ---> 0) net"
+lemma Lim_null:
+  fixes f :: "'a \<Rightarrow> 'b::real_normed_vector"
+  shows "(f ---> l) net \<longleftrightarrow> ((\<lambda>x. f(x) - l) ---> 0) net" by (simp add: Lim dist_norm)
+
+lemma Lim_null_norm:
+  fixes f :: "'a \<Rightarrow> 'b::real_normed_vector"
+  shows "(f ---> 0) net \<longleftrightarrow> ((\<lambda>x. vec1(norm(f x))) ---> 0) net"
   by (simp add: Lim dist_norm norm_vec1)
 
 lemma Lim_null_comparison:
+  fixes f :: "'a \<Rightarrow> 'b::real_normed_vector"
   assumes "eventually (\<lambda>x. norm(f x) <= g x) net" "((\<lambda>x. vec1(g x)) ---> 0) net"
   shows "(f ---> 0) net"
 proof(simp add: tendsto_def, rule+)
@@ -1403,13 +1415,15 @@ lemma Lim_component: "(f ---> l) net
   by auto
 
 lemma Lim_transform_bound:
+  fixes f :: "'a \<Rightarrow> 'b::real_normed_vector"
+  fixes g :: "'a \<Rightarrow> 'c::real_normed_vector"
   assumes "eventually (\<lambda>n. norm(f n) <= norm(g n)) net"  "(g ---> 0) net"
   shows "(f ---> 0) net"
 proof(simp add: tendsto_def, rule+)
   fix e::real assume "e>0"
   { fix x
     assume "norm (f x) \<le> norm (g x)" "dist (g x) 0 < e"
-    hence "dist (f x) 0 < e" by norm}
+    hence "dist (f x) 0 < e" by (simp add: dist_norm)}
   thus "eventually (\<lambda>x. dist (f x) 0 < e) net"
     using eventually_and[of "\<lambda>x. norm (f x) \<le> norm (g x)" "\<lambda>x. dist (g x) 0 < e" net]
     using eventually_mono[of "\<lambda>x. norm (f x) \<le> norm (g x) \<and> dist (g x) 0 < e" "\<lambda>x. dist (f x) 0 < e" net]
@@ -1438,6 +1452,7 @@ qed
 text{* Need to prove closed(cball(x,e)) before deducing this as a corollary. *}
 
 lemma Lim_norm_ubound:
+  fixes f :: "'a \<Rightarrow> 'b::real_normed_vector"
   assumes "\<not>(trivial_limit net)" "(f ---> l) net" "eventually (\<lambda>x. norm(f x) <= e) net"
   shows "norm(l) <= e"
 proof-
@@ -1449,11 +1464,15 @@ proof-
       using assms(2)[unfolded Lim] using assms(1) apply simp apply(erule_tac x="norm l - e" in allE) by auto
     obtain w where w:"netord net w z"  "netord net w y" using net[of net] using z(1) y(1) by blast
     hence "dist (f w) l < norm l - e \<and> norm (f w) <= e" using z(2) y(2) by auto
-    thus False using `\<not> norm l \<le> e` by norm
+    hence "norm (f w - l) < norm l - e" "norm (f w) \<le> e" by (simp_all add: dist_norm)
+    hence "norm (f w - l) + norm (f w) < norm l" by simp
+    hence "norm (f w - l - f w) < norm l" by (rule le_less_trans [OF norm_triangle_ineq4])
+    thus False using `\<not> norm l \<le> e` by simp
   qed
 qed
 
 lemma Lim_norm_lbound:
+  fixes f :: "'a \<Rightarrow> 'b::real_normed_vector"
   assumes "\<not> (trivial_limit net)"  "(f ---> l) net"  "eventually (\<lambda>x. e <= norm(f x)) net"
   shows "e \<le> norm l"
 proof-
@@ -1465,7 +1484,10 @@ proof-
       using assms(2)[unfolded Lim] using assms(1) apply simp apply(erule_tac x="e - norm l" in allE) by auto
     obtain w where w:"netord net w z"  "netord net w y" using net[of net] using z(1) y(1) by blast
     hence "dist (f w) l < e - norm l \<and> e \<le> norm (f w)" using z(2) y(2) by auto
-    thus False using `\<not> e \<le> norm l` by norm
+    hence "norm (f w - l) + norm l < e" "e \<le> norm (f w)" by (simp_all add: dist_norm)
+    hence "norm (f w - l) + norm l < norm (f w)" by (rule less_le_trans)
+    hence "norm (f w - l + l) < norm (f w)" by (rule le_less_trans [OF norm_triangle_ineq])
+    thus False by simp
   qed
 qed
 
@@ -1488,7 +1510,8 @@ proof-
 qed
 
 lemma tendsto_Lim:
- "~(trivial_limit (net::('b::zero_neq_one net))) \<Longrightarrow> (f ---> l) net ==> Lim net f = l"
+  fixes f :: "'a::zero_neq_one \<Rightarrow> real ^ 'n::finite"
+  shows "~(trivial_limit net) \<Longrightarrow> (f ---> l) net ==> Lim net f = l"
   unfolding Lim_def using Lim_unique[of net f] by auto
 
 text{* Limit under bilinear function (surprisingly tedious, but important) *}
@@ -1614,17 +1637,22 @@ lemma netlimit_at:
 
 text{* Transformation of limit. *}
 
-lemma Lim_transform: assumes "((\<lambda>x. f x - g x) ---> 0) net" "(f ---> l) net"
+lemma Lim_transform:
+  fixes f g :: "'a::type \<Rightarrow> 'b::real_normed_vector"
+  assumes "((\<lambda>x. f x - g x) ---> 0) net" "(f ---> l) net"
   shows "(g ---> l) net"
 proof-
   from assms have "((\<lambda>x. f x - g x - f x) ---> 0 - l) net" using Lim_sub[of "\<lambda>x. f x - g x" 0 net f l] by auto
   thus "?thesis" using Lim_neg [of "\<lambda> x. - g x" "-l" net] by auto
 qed
 
-lemma Lim_transform_eventually:  "eventually (\<lambda>x. f x = g x) net \<Longrightarrow> (f ---> l) net ==> (g ---> l) net"
+lemma Lim_transform_eventually:
+  fixes f g :: "'a::type \<Rightarrow> 'b::real_normed_vector"
+  shows "eventually (\<lambda>x. f x = g x) net \<Longrightarrow> (f ---> l) net ==> (g ---> l) net"
   using Lim_eventually[of "\<lambda>x. f x - g x" 0 net] Lim_transform[of f g net l] by auto
 
 lemma Lim_transform_within:
+  fixes f g :: "real ^ 'n::finite \<Rightarrow> 'b::real_normed_vector"
   fixes x :: "real ^ 'n::finite"
   assumes "0 < d" "(\<forall>x'\<in>S. 0 < dist x' x \<and> dist x' x < d \<longrightarrow> f x' = g x')"
           "(f ---> l) (at x within S)"
@@ -1634,7 +1662,9 @@ proof-
   thus ?thesis using Lim_transform[of f g "at x within S" l] using assms(3) by auto
 qed
 
-lemma Lim_transform_at: "0 < d \<Longrightarrow> (\<forall>x'. 0 < dist x' x \<and> dist x' x < d \<longrightarrow> f x' = g x') \<Longrightarrow>
+lemma Lim_transform_at:
+  fixes f g :: "real ^ 'n::finite \<Rightarrow> 'b::real_normed_vector"
+  shows "0 < d \<Longrightarrow> (\<forall>x'. 0 < dist x' x \<and> dist x' x < d \<longrightarrow> f x' = g x') \<Longrightarrow>
   (f ---> l) (at x) ==> (g ---> l) (at x)"
   apply (subst within_UNIV[symmetric])
   using Lim_transform_within[of d UNIV x f g l]
@@ -1643,7 +1673,7 @@ lemma Lim_transform_at: "0 < d \<Longrightarrow> (\<forall>x'. 0 < dist x' x \<a
 text{* Common case assuming being away from some crucial point like 0. *}
 
 lemma Lim_transform_away_within:
-  fixes f:: "real ^'m::finite \<Rightarrow> real ^'n::finite"
+  fixes f:: "real ^'m::finite \<Rightarrow> 'b::real_normed_vector"
   assumes "a\<noteq>b" "\<forall>x\<in> S. x \<noteq> a \<and> x \<noteq> b \<longrightarrow> f x = g x"
   and "(f ---> l) (at a within S)"
   shows "(g ---> l) (at a within S)"
@@ -1654,7 +1684,7 @@ proof-
 qed
 
 lemma Lim_transform_away_at:
-  fixes f:: "real ^'m::finite \<Rightarrow> real ^'n::finite"
+  fixes f:: "real ^'m::finite \<Rightarrow> 'b::real_normed_vector"
   assumes ab: "a\<noteq>b" and fg: "\<forall>x. x \<noteq> a \<and> x \<noteq> b \<longrightarrow> f x = g x"
   and fl: "(f ---> l) (at a)"
   shows "(g ---> l) (at a)"
@@ -1664,7 +1694,7 @@ lemma Lim_transform_away_at:
 text{* Alternatively, within an open set. *}
 
 lemma Lim_transform_within_open:
-  fixes f:: "real ^'m::finite \<Rightarrow> real ^'n::finite"
+  fixes f:: "real ^'m::finite \<Rightarrow> 'b::real_normed_vector"
   assumes "open S"  "a \<in> S"  "\<forall>x\<in>S. x \<noteq> a \<longrightarrow> f x = g x"  "(f ---> l) (at a)"
   shows "(g ---> l) (at a)"
 proof-
@@ -2385,7 +2415,9 @@ next
   thus ?lhs unfolding complete_def by auto
 qed
 
-lemma convergent_eq_cauchy: "(\<exists>l. (s ---> l) sequentially) \<longleftrightarrow> Cauchy s" (is "?lhs = ?rhs")
+lemma convergent_eq_cauchy:
+  fixes s :: "nat \<Rightarrow> real ^ 'n::finite"
+  shows "(\<exists>l. (s ---> l) sequentially) \<longleftrightarrow> Cauchy s" (is "?lhs = ?rhs")
 proof
   assume ?lhs then obtain l where "(s ---> l) sequentially" by auto
   thus ?rhs using convergent_imp_cauchy by auto
@@ -3170,6 +3202,7 @@ qed
 text{* The usual transformation theorems. *}
 
 lemma continuous_transform_within:
+  fixes f g :: "real ^ 'n::finite \<Rightarrow> 'b::real_normed_vector"
   assumes "0 < d" "x \<in> s" "\<forall>x' \<in> s. dist x' x < d --> f x' = g x'"
           "continuous (at x within s) f"
   shows "continuous (at x within s) g"
@@ -3185,6 +3218,7 @@ proof-
 qed
 
 lemma continuous_transform_at:
+  fixes f g :: "real ^ 'n::finite \<Rightarrow> 'b::real_normed_vector"
   assumes "0 < d" "\<forall>x'. dist x' x < d --> f x' = g x'"
           "continuous (at x) f"
   shows "continuous (at x) g"
@@ -3204,25 +3238,27 @@ qed
 text{* Combination results for pointwise continuity. *}
 
 lemma continuous_const: "continuous net (\<lambda>x::'a::zero_neq_one. c)"
-  by(auto simp add: continuous_def Lim_const)
+  by (auto simp add: continuous_def Lim_const)
 
 lemma continuous_cmul:
- "continuous net f ==> continuous net (\<lambda>x. c *s f x)"
- by(auto simp add: continuous_def Lim_cmul)
+  fixes f :: "'a \<Rightarrow> real ^ 'n::finite"
+  shows "continuous net f ==> continuous net (\<lambda>x. c *s f x)"
+  by (auto simp add: continuous_def Lim_cmul)
 
 lemma continuous_neg:
- "continuous net f ==> continuous net (\<lambda>x. -(f x))"
- by(auto simp add: continuous_def Lim_neg)
+  fixes f :: "'a \<Rightarrow> 'b::real_normed_vector"
+  shows "continuous net f ==> continuous net (\<lambda>x. -(f x))"
+  by (auto simp add: continuous_def Lim_neg)
 
 lemma continuous_add:
- "continuous net f \<Longrightarrow> continuous net g
-           ==> continuous net (\<lambda>x. f x + g x)"
- by(auto simp add: continuous_def Lim_add)
+  fixes f g :: "'a \<Rightarrow> 'b::real_normed_vector"
+  shows "continuous net f \<Longrightarrow> continuous net g \<Longrightarrow> continuous net (\<lambda>x. f x + g x)"
+  by (auto simp add: continuous_def Lim_add)
 
 lemma continuous_sub:
- "continuous net f \<Longrightarrow> continuous net g
-           ==> continuous net (\<lambda>x. f(x) - g(x))"
- by(auto simp add: continuous_def Lim_sub)
+  fixes f g :: "'a \<Rightarrow> 'b::real_normed_vector"
+  shows "continuous net f \<Longrightarrow> continuous net g \<Longrightarrow> continuous net (\<lambda>x. f x - g x)"
+  by (auto simp add: continuous_def Lim_sub)
 
 text{* Same thing for setwise continuity. *}
 
@@ -3776,12 +3812,14 @@ lemma linear_continuous_on:
 text{* Also bilinear functions, in composition form.                             *}
 
 lemma bilinear_continuous_at_compose:
- "continuous (at x) f \<Longrightarrow> continuous (at x) g \<Longrightarrow> bilinear h
+  fixes f :: "real ^ _ \<Rightarrow> real ^ _"
+  shows "continuous (at x) f \<Longrightarrow> continuous (at x) g \<Longrightarrow> bilinear h
         ==> continuous (at x) (\<lambda>x. h (f x) (g x))"
   unfolding continuous_at using Lim_bilinear[of f "f x" "(at x)" g "g x" h] by auto
 
 lemma bilinear_continuous_within_compose:
- "continuous (at x within s) f \<Longrightarrow> continuous (at x within s) g \<Longrightarrow> bilinear h
+  fixes f :: "real ^ _ \<Rightarrow> real ^ _"
+  shows "continuous (at x within s) f \<Longrightarrow> continuous (at x within s) g \<Longrightarrow> bilinear h
         ==> continuous (at x within s) (\<lambda>x. h (f x) (g x))"
   unfolding continuous_within using Lim_bilinear[of f "f x"] by auto
 
@@ -3812,7 +3850,8 @@ lemma closed_vec1:
   unfolding dist_vec1 vec1_in_image_vec1 abs_minus_commute by auto
 
 lemma continuous_at_vec1_range:
- "continuous (at x) (vec1 o f) \<longleftrightarrow> (\<forall>e>0. \<exists>d>0.
+  fixes f :: "real ^ _ \<Rightarrow> real"
+  shows "continuous (at x) (vec1 o f) \<longleftrightarrow> (\<forall>e>0. \<exists>d>0.
         \<forall>x'. norm(x' - x) < d --> abs(f x' - f x) < e)"
   unfolding continuous_at unfolding Lim_at apply simp unfolding dist_vec1 unfolding dist_nz[THEN sym] unfolding dist_norm apply auto
   apply(erule_tac x=e in allE) apply auto apply (rule_tac x=d in exI) apply auto apply (erule_tac x=x' in allE) apply auto
@@ -3937,6 +3976,7 @@ qed
 subsection{* We can now extend limit compositions to consider the scalar multiplier.   *}
 
 lemma Lim_mul:
+  fixes f :: "'a \<Rightarrow> real ^ _"
   assumes "((vec1 o c) ---> vec1 d) net"  "(f ---> l) net"
   shows "((\<lambda>x. c(x) *s f x) ---> (d *s l)) net"
 proof-
@@ -3947,15 +3987,18 @@ proof-
 qed
 
 lemma Lim_vmul:
- "((vec1 o c) ---> vec1 d) net ==> ((\<lambda>x. c(x) *s v) ---> d *s v) net"
+  fixes c :: "'a \<Rightarrow> real"
+  shows "((vec1 o c) ---> vec1 d) net ==> ((\<lambda>x. c(x) *s v) ---> d *s v) net"
   using Lim_mul[of c d net "\<lambda>x. v" v] using Lim_const[of v] by auto
 
 lemma continuous_vmul:
- "continuous net (vec1 o c) ==> continuous net (\<lambda>x. c(x) *s v)"
+  fixes c :: "'a \<Rightarrow> real"
+  shows "continuous net (vec1 o c) ==> continuous net (\<lambda>x. c(x) *s v)"
   unfolding continuous_def using Lim_vmul[of c] by auto
 
 lemma continuous_mul:
- "continuous net (vec1 o c) \<Longrightarrow> continuous net f
+  fixes c :: "'a \<Rightarrow> real"
+  shows "continuous net (vec1 o c) \<Longrightarrow> continuous net f
              ==> continuous net (\<lambda>x. c(x) *s f x) "
   unfolding continuous_def using Lim_mul[of c] by auto
 
@@ -3971,6 +4014,7 @@ lemma continuous_on_mul:
 text{* And so we have continuity of inverse.                                     *}
 
 lemma Lim_inv:
+  fixes f :: "'a \<Rightarrow> real"
   assumes "((vec1 o f) ---> vec1 l) (net::'a net)"  "l \<noteq> 0"
   shows "((vec1 o inverse o f) ---> vec1(inverse l)) net"
 proof(cases "trivial_limit net")
@@ -4007,11 +4051,13 @@ next
 qed
 
 lemma continuous_inv:
- "continuous net (vec1 o f) \<Longrightarrow> f(netlimit net) \<noteq> 0
+  fixes f :: "'a \<Rightarrow> real"
+  shows "continuous net (vec1 o f) \<Longrightarrow> f(netlimit net) \<noteq> 0
            ==> continuous net (vec1 o inverse o f)"
   unfolding continuous_def using Lim_inv by auto
 
 lemma continuous_at_within_inv:
+  fixes f :: "real ^ _ \<Rightarrow> real"
   assumes "continuous (at a within s) (vec1 o f)" "f a \<noteq> 0"
   shows "continuous (at a within s) (vec1 o inverse o f)"
 proof(cases "trivial_limit (at a within s)")
@@ -4022,7 +4068,8 @@ next
 qed
 
 lemma continuous_at_inv:
- "continuous (at a) (vec1 o f) \<Longrightarrow> f a \<noteq> 0
+  fixes f :: "real ^ _ \<Rightarrow> real"
+  shows "continuous (at a) (vec1 o f) \<Longrightarrow> f a \<noteq> 0
          ==> continuous (at a) (vec1 o inverse o f) "
   using within_UNIV[THEN sym, of a] using continuous_at_within_inv[of a UNIV] by auto
 
