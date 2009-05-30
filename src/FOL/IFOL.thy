@@ -610,7 +610,7 @@ use "intprover.ML"
 
 subsection {* Intuitionistic Reasoning *}
 
-setup {* Intuitionistic.method_setup "iprover" *}
+setup {* Intuitionistic.method_setup @{binding iprover} *}
 
 lemma impE':
   assumes 1: "P --> Q"

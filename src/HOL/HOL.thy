@@ -31,7 +31,7 @@ uses
   ("Tools/recfun_codegen.ML")
 begin
 
-setup {* Intuitionistic.method_setup "iprover" *}
+setup {* Intuitionistic.method_setup @{binding iprover} *}
 
 
 subsection {* Primitive logic *}
