@@ -158,11 +158,6 @@ fun eq_rrule ({thm = thm1, ...}: rrule, {thm = thm2, ...}: rrule) =
   Thm.eq_thm_prop (thm1, thm2);
 
 
-(* congruences *)
-
-val eq_cong = Thm.eq_thm_prop
-
-
 (* simplification sets, procedures, and solvers *)
 
 (*A simpset contains data required during conversion:
@@ -785,7 +780,7 @@ fun merge_ss (ss1, ss2) =
       val prems' = merge Thm.eq_thm_prop (prems1, prems2);
       val bounds' = if #1 bounds1 < #1 bounds2 then bounds2 else bounds1;
       val depth' = if #1 depth1 < #1 depth2 then depth2 else depth1;
-      val congs' = merge (eq_cong o pairself #2) (congs1, congs2);
+      val congs' = merge (Thm.eq_thm_prop o pairself #2) (congs1, congs2);
       val weak' = merge (op =) (weak1, weak2);
       val procs' = Net.merge eq_proc (procs1, procs2);
       val loop_tacs' = AList.merge (op =) (K true) (loop_tacs1, loop_tacs2);
