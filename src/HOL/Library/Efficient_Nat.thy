@@ -317,7 +317,7 @@ lemma [code inline, symmetric, code post]:
 
 setup {*
   fold (Numeral.add_code @{const_name number_nat_inst.number_of_nat}
-    true false) ["SML", "OCaml", "Haskell"]
+    false true) ["SML", "OCaml", "Haskell"]
 *}
 
 text {*
