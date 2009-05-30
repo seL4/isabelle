@@ -175,7 +175,8 @@ function getoptions()
   done
 }
 
-getoptions $ISABELLE_USEDIR_OPTIONS
+eval "OPTIONS=($ISABELLE_USEDIR_OPTIONS)"
+getoptions "${OPTIONS[@]}"
 
 getoptions "$@"
 shift $(($OPTIND - 1))
