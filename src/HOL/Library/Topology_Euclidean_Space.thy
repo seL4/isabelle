@@ -195,7 +195,7 @@ lemma subtopology_UNIV[simp]: "subtopology U UNIV = U"
 
 subsection{* The universal Euclidean versions are what we use most of the time *}
 definition
-  "open" :: "(real ^ 'n::finite) set \<Rightarrow> bool" where
+  "open" :: "'a::metric_space set \<Rightarrow> bool" where
   "open S \<longleftrightarrow> (\<forall>x \<in> S. \<exists>e >0. \<forall>x'. dist x' x < e \<longrightarrow> x' \<in> S)"
 definition "closed S \<longleftrightarrow> open(UNIV - S)"
 definition "euclidean = topology open"
@@ -288,17 +288,26 @@ lemma closed_Union[intro]: assumes fS: "finite S" and h: "\<forall>T\<in>S. clos
 subsection{* Open and closed balls. *}
 
 definition
-  ball :: "real ^ 'n::finite \<Rightarrow> real \<Rightarrow> (real^'n) set" where
+  ball :: "'a::metric_space \<Rightarrow> real \<Rightarrow> 'a set" where
   "ball x e = {y. dist x y < e}"
 
 definition
-  cball :: "real ^ 'n::finite \<Rightarrow> real \<Rightarrow> (real^'n) set" where
+  cball :: "'a::metric_space \<Rightarrow> real \<Rightarrow> 'a set" where
   "cball x e = {y. dist x y \<le> e}"
 
 lemma mem_ball[simp]: "y \<in> ball x e \<longleftrightarrow> dist x y < e" by (simp add: ball_def)
 lemma mem_cball[simp]: "y \<in> cball x e \<longleftrightarrow> dist x y \<le> e" by (simp add: cball_def)
-lemma mem_ball_0[simp]: "x \<in> ball 0 e \<longleftrightarrow> norm x < e" by (simp add: dist_norm)
-lemma mem_cball_0[simp]: "x \<in> cball 0 e \<longleftrightarrow> norm x \<le> e" by (simp add: dist_norm)
+
+lemma mem_ball_0 [simp]:
+  fixes x :: "'a::real_normed_vector"
+  shows "x \<in> ball 0 e \<longleftrightarrow> norm x < e"
+  by (simp add: dist_norm)
+
+lemma mem_cball_0 [simp]:
+  fixes x :: "'a::real_normed_vector"
+  shows "x \<in> cball 0 e \<longleftrightarrow> norm x \<le> e"
+  by (simp add: dist_norm)
+
 lemma centre_in_cball[simp]: "x \<in> cball x e \<longleftrightarrow> 0\<le> e"  by simp
 lemma ball_subset_cball[simp,intro]: "ball x e \<subseteq> cball x e" by (simp add: subset_eq)
 lemma subset_ball[intro]: "d <= e ==> ball x d \<subseteq> ball x e" by (simp add: subset_eq)
@@ -494,8 +503,9 @@ lemma separation_t0: "x \<noteq> y \<longleftrightarrow> (\<exists>U. open U \<a
 
 subsection{* Limit points *}
 
-definition islimpt:: "real ^'n::finite \<Rightarrow> (real^'n) set \<Rightarrow> bool" (infixr "islimpt" 60) where
-  islimpt_def: "x islimpt S \<longleftrightarrow> (\<forall>T. x\<in>T \<longrightarrow> open T \<longrightarrow> (\<exists>y\<in>S. y\<in>T \<and> y\<noteq>x))"
+definition
+  islimpt:: "'a::metric_space \<Rightarrow> 'a set \<Rightarrow> bool" (infixr "islimpt" 60) where
+  "x islimpt S \<longleftrightarrow> (\<forall>T. x\<in>T \<longrightarrow> open T \<longrightarrow> (\<exists>y\<in>S. y\<in>T \<and> y\<noteq>x))"
 
   (* FIXME: Sure this form is OK????*)
 lemma islimptE: assumes "x islimpt S" and "x \<in> T" and "open T"
@@ -519,17 +529,44 @@ lemma islimpt_approachable_le: "x islimpt S \<longleftrightarrow> (\<forall>e>0.
   using approachable_lt_le[where f="\<lambda>x'. dist x' x" and P="\<lambda>x'. \<not> (x'\<in>S \<and> x'\<noteq>x)"]
   by metis (* FIXME: VERY slow! *)
 
-lemma islimpt_UNIV[simp, intro]: "(x:: real ^'n::finite) islimpt UNIV"
-proof-
+axclass perfect_space \<subseteq> metric_space
+  islimpt_UNIV [simp, intro]: "x islimpt UNIV"
+
+lemma perfect_choose_dist:
+  fixes x :: "'a::perfect_space"
+  shows "0 < r \<Longrightarrow> \<exists>a. a \<noteq> x \<and> dist a x < r"
+using islimpt_UNIV [of x]
+by (simp add: islimpt_approachable)
+
+instance real :: perfect_space
+apply default
+apply (rule islimpt_approachable [THEN iffD2])
+apply (clarify, rule_tac x="x + e/2" in bexI)
+apply (auto simp add: dist_norm)
+done
+  
+instance "^" :: (perfect_space, finite) perfect_space
+proof
+  fix x :: "'a ^ 'b"
   {
-    fix e::real assume ep: "e>0"
-    from vector_choose_size[of "e/2"] ep have "\<exists>(c:: real ^'n). norm c = e/2" by auto
-    then obtain c ::"real^'n" where c: "norm c = e/2" by blast
-    let ?x = "x + c"
-    have "?x \<noteq> x" using c ep by (auto simp add: norm_eq_0_imp)
-    moreover have "dist ?x x < e" using c ep apply simp by norm
-    ultimately have "\<exists>x'. x' \<noteq> x\<and> dist x' x < e" by blast}
-  then show ?thesis unfolding islimpt_approachable by blast
+    fix e :: real assume "0 < e"
+    def a \<equiv> "x $ arbitrary"
+    have "a islimpt UNIV" by (rule islimpt_UNIV)
+    with `0 < e` obtain b where "b \<noteq> a" and "dist b a < e"
+      unfolding islimpt_approachable by auto
+    def y \<equiv> "Cart_lambda ((Cart_nth x)(arbitrary := b))"
+    from `b \<noteq> a` have "y \<noteq> x"
+      unfolding a_def y_def by (simp add: Cart_eq)
+    from `dist b a < e` have "dist y x < e"
+      unfolding dist_vector_def a_def y_def
+      apply simp
+      apply (rule le_less_trans [OF setL2_le_setsum [OF zero_le_dist]])
+      apply (subst setsum_diff1' [where a=arbitrary], simp, simp, simp)
+      done
+    from `y \<noteq> x` and `dist y x < e`
+    have "\<exists>y\<in>UNIV. y \<noteq> x \<and> dist y x < e" by auto
+  }
+  then show "x islimpt UNIV" unfolding islimpt_approachable by blast
 qed
 
 lemma closed_limpt: "closed S \<longleftrightarrow> (\<forall>x. x islimpt S \<longrightarrow> x \<in> S)"
@@ -562,7 +599,7 @@ proof-
 qed
 
 lemma finite_set_avoid:
-  fixes a :: "real ^ 'n::finite"
+  fixes a :: "'a::metric_space"
   assumes fS: "finite S" shows  "\<exists>d>0. \<forall>x\<in>S. x \<noteq> a \<longrightarrow> d <= dist a x"
 proof(induct rule: finite_induct[OF fS])
   case 1 thus ?case apply auto by ferrack
@@ -594,7 +631,7 @@ lemma islimpt_Un: "x islimpt (S \<union> T) \<longleftrightarrow> x islimpt S \<
   done
 
 lemma discrete_imp_closed:
-  assumes e: "0 < e" and d: "\<forall>x \<in> S. \<forall>y \<in> S. norm(y - x) < e \<longrightarrow> y = x"
+  assumes e: "0 < e" and d: "\<forall>x \<in> S. \<forall>y \<in> S. dist y x < e \<longrightarrow> y = x"
   shows "closed S"
 proof-
   {fix x assume C: "\<forall>e>0. \<exists>x'\<in>S. x' \<noteq> x \<and> dist x' x < e"
@@ -603,8 +640,7 @@ proof-
     let ?m = "min (e/2) (dist x y) "
     from e2 y(2) have mp: "?m > 0" by (simp add: dist_nz[THEN sym])
     from C[rule_format, OF mp] obtain z where z: "z \<in> S" "z\<noteq>x" "dist z x < ?m" by blast
-    have th: "norm (z - y) < e" using z y
-      unfolding dist_norm [symmetric]
+    have th: "dist z y < e" using z y
       by (intro dist_triangle_lt [where z=x], simp)
     from d[rule_format, OF y(1) z(1) th] y z
     have False by (auto simp add: dist_commute)}
@@ -644,23 +680,28 @@ lemma interior_inter[simp]: "interior(S \<inter> T) = interior S \<inter> interi
   apply (metis Int_lower1 Int_lower2 subset_interior)
   by (metis Int_mono interior_subset open_inter open_interior open_subset_interior)
 
-lemma interior_limit_point[intro]: assumes x: "x \<in> interior S" shows "x islimpt S"
+lemma interior_limit_point [intro]:
+  fixes x :: "'a::perfect_space"
+  assumes x: "x \<in> interior S" shows "x islimpt S"
 proof-
   from x obtain e where e: "e>0" "\<forall>x'. dist x x' < e \<longrightarrow> x' \<in> S"
     unfolding mem_interior subset_eq Ball_def mem_ball by blast
-  {fix d::real assume d: "d>0"
-    let ?m = "min d e / 2"
-    have mde2: "?m \<ge> 0" using e(1) d(1) by arith
-    from vector_choose_dist[OF mde2, of x]
-    obtain y where y: "dist x y = ?m" by blast
-    have th: "dist x y < e" "dist x y < d" unfolding y using e(1) d(1) by arith+
+  {
+    fix d::real assume d: "d>0"
+    let ?m = "min d e"
+    have mde2: "0 < ?m" using e(1) d(1) by simp
+    from perfect_choose_dist [OF mde2, of x]
+    obtain y where "y \<noteq> x" and "dist y x < ?m" by blast
+    then have "dist y x < e" "dist y x < d" by simp_all
+    from `dist y x < e` e(2) have "y \<in> S" by (simp add: dist_commute)
     have "\<exists>x'\<in>S. x'\<noteq> x \<and> dist x' x < d"
-      apply (rule bexI[where x=y])
-      using e th y by (auto simp add: dist_commute)}
+      using `y \<in> S` `y \<noteq> x` `dist y x < d` by fast
+  }
   then show ?thesis unfolding islimpt_approachable by blast
 qed
 
 lemma interior_closed_Un_empty_interior:
+  fixes S T :: "(real ^ 'n::finite) set" (* FIXME: generalize to perfect_space *)
   assumes cS: "closed S" and iT: "interior T = {}"
   shows "interior(S \<union> T) = interior S"
 proof-
@@ -690,7 +731,7 @@ proof-
 	  done
 	then have "\<exists>z. z \<notin> T \<and> z\<noteq> y \<and> dist z y < d \<and> dist x z < e" by blast
 	then have "\<exists>x' \<in>S. x'\<noteq>y \<and> dist x' y < d" using e by auto}
-      then have "y\<in>S" by (metis islimpt_approachable cS closed_limpt) }
+      then have "y\<in>S" by (metis islimpt_approachable [where 'a="real^'n"] cS closed_limpt[where 'a="real^'n"]) }
     then have "x \<in> interior S" unfolding mem_interior using e(1) by blast}
   hence "interior (S\<union>T) \<subseteq> interior S" unfolding mem_interior Ball_def subset_eq by blast
   ultimately show ?thesis by blast
@@ -766,7 +807,7 @@ proof-
     with * have "closure S \<subseteq> t"
       unfolding closure_def
       using closed_limpt[of t]
-      by blast
+      by auto
   }
   ultimately show ?thesis
     using hull_unique[of S, of "closure S", of closed]
@@ -1286,7 +1327,7 @@ proof
   ultimately show ?rhs apply (rule_tac x="(\<lambda>n::nat. f (inverse (real n + 1)))" in exI) by auto
 next
   assume ?rhs
-  then obtain f::"nat\<Rightarrow>real^'a"  where f:"(\<forall>n. f n \<in> S - {x})" "(\<forall>e>0. \<exists>N. \<forall>n\<ge>N. dist (f n) x < e)" unfolding Lim_sequentially by auto
+  then obtain f::"nat\<Rightarrow>'a"  where f:"(\<forall>n. f n \<in> S - {x})" "(\<forall>e>0. \<exists>N. \<forall>n\<ge>N. dist (f n) x < e)" unfolding Lim_sequentially by auto
   { fix e::real assume "e>0"
     then obtain N where "dist (f N) x < e" using f(2) by auto
     moreover have "f N\<in>S" "f N \<noteq> x" using f(1) by auto
@@ -1773,9 +1814,11 @@ qed
 
 text{* More properties of closed balls. *}
 
-lemma closed_cball: "closed(cball x e)"
+lemma closed_cball:
+  fixes x :: "'a::real_normed_vector" (* FIXME: generalize to metric_space *)
+  shows "closed (cball x e)"
 proof-
-  { fix xa::"nat\<Rightarrow>real^'a" and l assume as: "\<forall>n. dist x (xa n) \<le> e" "(xa ---> l) sequentially"
+  { fix xa::"nat\<Rightarrow>'a" and l assume as: "\<forall>n. dist x (xa n) \<le> e" "(xa ---> l) sequentially"
     from as(2) have "((\<lambda>n. x - xa n) ---> x - l) sequentially" using Lim_sub[of "\<lambda>n. x" x sequentially xa l] Lim_const[of x sequentially] by auto
     moreover from as(1) have "eventually (\<lambda>n. norm (x - xa n) \<le> e) sequentially" unfolding eventually_sequentially dist_norm by auto
     ultimately have "dist x l \<le> e"
@@ -1800,10 +1843,16 @@ lemma open_contains_cball_eq: "open S ==> (\<forall>x. x \<in> S \<longleftright
   by (metis open_contains_cball subset_eq order_less_imp_le centre_in_cball mem_def)
 
 lemma mem_interior_cball: "x \<in> interior S \<longleftrightarrow> (\<exists>e>0. cball x e \<subseteq> S)"
-  apply (simp add: interior_def)
-  by (metis open_contains_cball subset_trans ball_subset_cball centre_in_ball open_ball)
+  apply (simp add: interior_def, safe)
+  apply (force simp add: open_contains_cball)
+  apply (rule_tac x="ball x e" in exI)
+  apply (simp add: open_ball centre_in_ball subset_trans [OF ball_subset_cball])
+  done
 
-lemma islimpt_ball: "y islimpt ball x e \<longleftrightarrow> 0 < e \<and> y \<in> cball x e" (is "?lhs = ?rhs")
+lemma islimpt_ball:
+  fixes x y :: "'a::{real_normed_vector,perfect_space}"
+    (* FIXME: generalize to metric_space *)
+  shows "y islimpt ball x e \<longleftrightarrow> 0 < e \<and> y \<in> cball x e" (is "?lhs = ?rhs")
 proof
   assume "?lhs"
   { assume "e \<le> 0"
@@ -1826,38 +1875,41 @@ next
       next
 	case False
 
-	have "dist x (y - (d / (2 * dist y x)) *s (y - x))
-	      = norm (x - y + (d / (2 * norm (y - x))) *s (y - x))"
+	have "dist x (y - (d / (2 * dist y x)) *\<^sub>R (y - x))
+	      = norm (x - y + (d / (2 * norm (y - x))) *\<^sub>R (y - x))"
 	  unfolding mem_cball mem_ball dist_norm diff_diff_eq2 diff_add_eq[THEN sym] by auto
 	also have "\<dots> = \<bar>- 1 + d / (2 * norm (x - y))\<bar> * norm (x - y)"
-	  using vector_sadd_rdistrib[of "- 1" "d / (2 * norm (y - x))", THEN sym, of "y - x"]
-	  unfolding vector_smult_lneg vector_smult_lid
-	  by (auto simp add: norm_minus_commute)
+	  using scaleR_left_distrib[of "- 1" "d / (2 * norm (y - x))", THEN sym, of "y - x"]
+	  unfolding scaleR_minus_left scaleR_one
+	  by (auto simp add: norm_minus_commute norm_scaleR)
 	also have "\<dots> = \<bar>- norm (x - y) + d / 2\<bar>"
 	  unfolding abs_mult_pos[of "norm (x - y)", OF norm_ge_zero[of "x - y"]]
 	  unfolding real_add_mult_distrib using `x\<noteq>y`[unfolded dist_nz, unfolded dist_norm] by auto
 	also have "\<dots> \<le> e - d/2" using `d \<le> dist x y` and `d>0` and `?rhs` by(auto simp add: dist_norm)
-	finally have "y - (d / (2 * dist y x)) *s (y - x) \<in> ball x e" using `d>0` by auto
+	finally have "y - (d / (2 * dist y x)) *\<^sub>R (y - x) \<in> ball x e" using `d>0` by auto
 
 	moreover
 
-	have "(d / (2*dist y x)) *s (y - x) \<noteq> 0"
-	  using `x\<noteq>y`[unfolded dist_nz] `d>0` unfolding vector_mul_eq_0 by (auto simp add: dist_commute)
+	have "(d / (2*dist y x)) *\<^sub>R (y - x) \<noteq> 0"
+	  using `x\<noteq>y`[unfolded dist_nz] `d>0` unfolding scaleR_eq_0_iff by (auto simp add: dist_commute)
 	moreover
-	have "dist (y - (d / (2 * dist y x)) *s (y - x)) y < d" unfolding dist_norm apply simp unfolding norm_minus_cancel norm_mul
+	have "dist (y - (d / (2 * dist y x)) *\<^sub>R (y - x)) y < d" unfolding dist_norm apply simp unfolding norm_minus_cancel norm_scaleR
 	  using `d>0` `x\<noteq>y`[unfolded dist_nz] dist_commute[of x y]
 	  unfolding dist_norm by auto
-	ultimately show "\<exists>x'\<in>ball x e. x' \<noteq> y \<and> dist x' y < d" by (rule_tac  x="y - (d / (2*dist y x)) *s (y - x)" in bexI) auto
+	ultimately show "\<exists>x'\<in>ball x e. x' \<noteq> y \<and> dist x' y < d" by (rule_tac  x="y - (d / (2*dist y x)) *\<^sub>R (y - x)" in bexI) auto
       qed
     next
       case False hence "d > dist x y" by auto
       show "\<exists>x'\<in>ball x e. x' \<noteq> y \<and> dist x' y < d"
       proof(cases "x=y")
 	case True
-	obtain z where **:"dist y z = (min e d) / 2" using vector_choose_dist[of "(min e d) / 2" y]
+	obtain z where **: "z \<noteq> y" "dist z y < min e d"
+          using perfect_choose_dist[of "min e d" y]
 	  using `d > 0` `e>0` by auto
 	show "\<exists>x'\<in>ball x e. x' \<noteq> y \<and> dist x' y < d"
-	  apply(rule_tac x=z in bexI) unfolding `x=y` dist_commute dist_nz using **  `d > 0` `e>0` by auto
+          unfolding `x = y`
+          using `z \<noteq> y` **
+          by (rule_tac x=z in bexI, auto simp add: dist_commute)
       next
 	case False thus "\<exists>x'\<in>ball x e. x' \<noteq> y \<and> dist x' y < d"
 	  using `d>0` `d > dist x y` `?rhs` by(rule_tac x=x in bexI, auto)
@@ -1866,11 +1918,16 @@ next
   thus "?lhs" unfolding mem_cball islimpt_approachable mem_ball by auto
 qed
 
-lemma closure_ball: "0 < e ==> (closure(ball x e) = cball x e)"
+lemma closure_ball:
+  fixes x y :: "'a::{real_normed_vector,perfect_space}"
+    (* FIXME: generalize to metric_space *)
+  shows "0 < e ==> (closure(ball x e) = cball x e)"
   apply (simp add: closure_def islimpt_ball expand_set_eq)
   by arith
 
-lemma interior_cball: "interior(cball x e) = ball x e"
+lemma interior_cball:
+  fixes x :: "real ^ _" (* FIXME: generalize *)
+  shows "interior(cball x e) = ball x e"
 proof(cases "e\<ge>0")
   case False note cs = this
   from cs have "ball x e = {}" using ball_empty[of e x] by auto moreover
@@ -1916,12 +1973,16 @@ next
   ultimately show ?thesis using interior_unique[of "ball x e" "cball x e"] using open_ball[of x e] by auto
 qed
 
-lemma frontier_ball: "0 < e ==> frontier(ball a e) = {x. dist a x = e}"
+lemma frontier_ball:
+  fixes a :: "real ^ _" (* FIXME: generalize *)
+  shows "0 < e ==> frontier(ball a e) = {x. dist a x = e}"
   apply (simp add: frontier_def closure_ball interior_open open_ball order_less_imp_le)
   apply (simp add: expand_set_eq)
   by arith
 
-lemma frontier_cball: "frontier(cball a e) = {x. dist a x = e}"
+lemma frontier_cball:
+  fixes a :: "real ^ _" (* FIXME: generalize *)
+  shows "frontier(cball a e) = {x. dist a x = e}"
   apply (simp add: frontier_def interior_cball closed_cball closure_closed order_less_imp_le)
   apply (simp add: expand_set_eq)
   by arith
@@ -1931,7 +1992,9 @@ lemma cball_eq_empty: "(cball x e = {}) \<longleftrightarrow> e < 0"
   by (metis zero_le_dist dist_self order_less_le_trans)
 lemma cball_empty: "e < 0 ==> cball x e = {}" by (simp add: cball_eq_empty)
 
-lemma cball_eq_sing: "(cball x e = {x}) \<longleftrightarrow> e = 0"
+lemma cball_eq_sing:
+  fixes x :: "real ^ _" (* FIXME: generalize *)
+  shows "(cball x e = {x}) \<longleftrightarrow> e = 0"
 proof-
   { assume as:"\<forall>xa. (dist x xa \<le> e) = (xa = x)"
     hence "e \<ge> 0" apply (erule_tac x=x in allE) by auto
@@ -1941,7 +2004,9 @@ proof-
   thus ?thesis unfolding expand_set_eq mem_cball by (auto simp add: dist_nz)
 qed
 
-lemma cball_sing:  "e = 0 ==> cball x e = {x}" by (simp add: cball_eq_sing)
+lemma cball_sing:
+  fixes x :: "real ^ _" (* FIXME: generalize *)
+  shows "e = 0 ==> cball x e = {x}" by (simp add: cball_eq_sing)
 
 text{* For points in the interior, localization of limits makes no difference.   *}
 
@@ -2650,6 +2715,7 @@ proof(rule ccontr)
 qed
 
 lemma bolzano_weierstrass_imp_closed:
+  fixes s :: "(real ^ 'n::finite) set"
   assumes "\<forall>t. infinite t \<and> t \<subseteq> s --> (\<exists>x \<in> s. x islimpt t)"
   shows "closed s"
 proof-
@@ -2746,7 +2812,8 @@ proof-
 qed
 
 lemma finite_imp_closed:
- "finite s ==> closed s"
+  fixes s :: "(real ^ _) set" (* FIXME: generalize *)
+  shows "finite s ==> closed s"
 proof-
   assume "finite s" hence "\<not>( \<exists>t. t \<subseteq> s \<and> infinite t)" using finite_subset by auto
   thus ?thesis using bolzano_weierstrass_imp_closed[of s] by auto
@@ -2764,7 +2831,8 @@ lemma compact_sing[simp]:
   by blast
 
 lemma closed_sing[simp]:
- "closed {a}"
+  fixes a :: "real ^ _" (* FIXME: generalize *)
+  shows "closed {a}"
   using compact_eq_bounded_closed compact_sing[of a]
   by blast
 
@@ -2790,7 +2858,8 @@ lemma frontier_subset_compact:
   by blast
 
 lemma open_delete:
- "open s ==> open(s - {x})"
+  fixes s :: "(real ^ _) set" (* FIXME: generalize *)
+  shows "open s ==> open(s - {x})"
   using open_diff[of s "{x}"] closed_sing
   by blast
 
@@ -3516,11 +3585,13 @@ proof-
 qed
 
 lemma continuous_open_preimage_univ:
- "\<forall>x. continuous (at x) f \<Longrightarrow> open s \<Longrightarrow> open {x. f x \<in> s}"
+  fixes f :: "real ^ _ \<Rightarrow> real ^ _" (* FIXME: generalize *)
+  shows "\<forall>x. continuous (at x) f \<Longrightarrow> open s \<Longrightarrow> open {x. f x \<in> s}"
   using continuous_open_preimage[of UNIV f s] open_UNIV continuous_at_imp_continuous_on by auto
 
 lemma continuous_closed_preimage_univ:
- "(\<forall>x. continuous (at x) f) \<Longrightarrow> closed s ==> closed {x. f x \<in> s}"
+  fixes f :: "real ^ _ \<Rightarrow> real ^ _" (* FIXME: generalize *)
+  shows "(\<forall>x. continuous (at x) f) \<Longrightarrow> closed s ==> closed {x. f x \<in> s}"
   using continuous_closed_preimage[of UNIV f s] closed_UNIV continuous_at_imp_continuous_on by auto
 
 text{* Equality of continuous functions on closure and related results.          *}
@@ -3614,6 +3685,7 @@ using continuous_levelset_open_in[OF assms(1,2), of a, unfolded openin_open] usi
 text{* Some arithmetical combinations (more to prove).                           *}
 
 lemma open_scaling[intro]:
+  fixes s :: "(real ^ _) set"
   assumes "c \<noteq> 0"  "open s"
   shows "open((\<lambda>x. c *s x) ` s)"
 proof-
@@ -3631,9 +3703,11 @@ proof-
 qed
 
 lemma open_negations:
- "open s ==> open ((\<lambda> x. -x) ` s)" unfolding pth_3 by auto
+  fixes s :: "(real ^ _) set" (* FIXME: generalize *)
+  shows "open s ==> open ((\<lambda> x. -x) ` s)" unfolding pth_3 by auto
 
 lemma open_translation:
+  fixes s :: "(real ^ _) set" (* FIXME: generalize *)
   assumes "open s"  shows "open((\<lambda>x. a + x) ` s)"
 proof-
   { fix x have "continuous (at x) (\<lambda>x. x - a)" using continuous_sub[of "at x" "\<lambda>x. x" "\<lambda>x. a"] continuous_at_id[of x] continuous_const[of "at x" a] by auto  }
@@ -3642,6 +3716,7 @@ proof-
 qed
 
 lemma open_affinity:
+  fixes s :: "(real ^ _) set"
   assumes "open s"  "c \<noteq> 0"
   shows "open ((\<lambda>x. a + c *s x) ` s)"
 proof-
@@ -3650,7 +3725,9 @@ proof-
   thus ?thesis using assms open_translation[of "op *s c ` s" a] unfolding * by auto
 qed
 
-lemma interior_translation: "interior ((\<lambda>x. a + x) ` s) = (\<lambda>x. a + x) ` (interior s)"
+lemma interior_translation:
+  fixes s :: "'a::real_normed_vector set"
+  shows "interior ((\<lambda>x. a + x) ` s) = (\<lambda>x. a + x) ` (interior s)"
 proof (rule set_ext, rule)
   fix x assume "x \<in> interior (op + a ` s)"
   then obtain e where "e>0" and e:"ball x e \<subseteq> op + a ` s" unfolding mem_interior by auto
@@ -3833,16 +3910,19 @@ subsection{* Topological stuff lifted from and dropped to R                     
 
 
 lemma open_vec1:
+  fixes s :: "real set" shows
  "open(vec1 ` s) \<longleftrightarrow>
         (\<forall>x \<in> s. \<exists>e>0. \<forall>x'. abs(x' - x) < e --> x' \<in> s)" (is "?lhs = ?rhs")
   unfolding open_def apply simp unfolding forall_vec1 dist_vec1 vec1_in_image_vec1 by simp
 
 lemma islimpt_approachable_vec1:
+  fixes s :: "real set" shows
  "(vec1 x) islimpt (vec1 ` s) \<longleftrightarrow>
          (\<forall>e>0.  \<exists>x'\<in> s. x' \<noteq> x \<and> abs(x' - x) < e)"
   by (auto simp add: islimpt_approachable dist_vec1 vec1_eq)
 
 lemma closed_vec1:
+  fixes s :: "real set" shows
  "closed (vec1 ` s) \<longleftrightarrow>
         (\<forall>x. (\<forall>e>0.  \<exists>x' \<in> s. x' \<noteq> x \<and> abs(x' - x) < e)
             --> x \<in> s)"
@@ -3952,6 +4032,7 @@ qed
 text{* For *minimal* distance, we only need closure, not compactness.            *}
 
 lemma distance_attains_inf:
+  fixes a :: "real ^ _" (* FIXME: generalize *)
   assumes "closed s"  "s \<noteq> {}"
   shows "\<exists>x \<in> s. \<forall>y \<in> s. dist a x \<le> dist a y"
 proof-
@@ -4087,6 +4168,7 @@ proof-
 qed
 
 lemma closed_pastecart:
+  fixes s :: "(real ^ 'a::finite) set" (* FIXME: generalize *)
   assumes "closed s"  "closed t"
   shows "closed {pastecart x y | x y . x \<in> s \<and> y \<in> t}"
 proof-
@@ -4229,6 +4311,7 @@ qed
 text{* Related results with closure as the conclusion.                           *}
 
 lemma closed_scaling:
+  fixes s :: "(real ^ _) set"
   assumes "closed s" shows "closed ((\<lambda>x. c *s x) ` s)"
 proof(cases "s={}")
   case True thus ?thesis by auto
@@ -4256,6 +4339,7 @@ next
 qed
 
 lemma closed_negations:
+  fixes s :: "(real ^ _) set" (* FIXME: generalize *)
   assumes "closed s"  shows "closed ((\<lambda>x. -x) ` s)"
   using closed_scaling[OF assms, of "-1"] unfolding  pth_3 by auto
 
@@ -4306,6 +4390,7 @@ proof-
 qed
 
 lemma closed_translation:
+  fixes s :: "(real ^ _) set" (* FIXME: generalize *)
   assumes "closed s"  shows "closed ((\<lambda>x. a + x) ` s)"
 proof-
   have "{a + y |y. y \<in> s} = (op + a ` s)" by auto
@@ -4319,20 +4404,23 @@ lemma translation_UNIV:
 lemma translation_diff: "(\<lambda>x::real^'a. a + x) ` (s - t) = ((\<lambda>x. a + x) ` s) - ((\<lambda>x. a + x) ` t)" by auto
 
 lemma closure_translation:
- "closure ((\<lambda>x. a + x) ` s) = (\<lambda>x. a + x) ` (closure s)"
+  fixes s :: "(real ^ _) set" (* FIXME: generalize *)
+  shows "closure ((\<lambda>x. a + x) ` s) = (\<lambda>x. a + x) ` (closure s)"
 proof-
   have *:"op + a ` (UNIV - s) = UNIV - op + a ` s"  apply auto unfolding image_iff apply(rule_tac x="x - a" in bexI) by auto
   show ?thesis unfolding closure_interior translation_diff translation_UNIV using interior_translation[of a "UNIV - s"] unfolding * by auto
 qed
 
 lemma frontier_translation:
- "frontier((\<lambda>x. a + x) ` s) = (\<lambda>x. a + x) ` (frontier s)"
+  fixes s :: "(real ^ _) set" (* FIXME: generalize *)
+  shows "frontier((\<lambda>x. a + x) ` s) = (\<lambda>x. a + x) ` (frontier s)"
   unfolding frontier_def translation_diff interior_translation closure_translation by auto
 
 subsection{* Separation between points and sets.                                       *}
 
 lemma separate_point_closed:
- "closed s \<Longrightarrow> a \<notin> s  ==> (\<exists>d>0. \<forall>x\<in>s. d \<le> dist a x)"
+  fixes s :: "(real ^ _) set" (* FIXME: generalize *)
+  shows "closed s \<Longrightarrow> a \<notin> s  ==> (\<exists>d>0. \<forall>x\<in>s. d \<le> dist a x)"
 proof(cases "s = {}")
   case True
   thus ?thesis by(auto intro!: exI[where x=1])
@@ -4733,11 +4821,13 @@ lemma bounded_subset_closed_interval:
   using bounded_subset_closed_interval_symmetric[of s] by auto
 
 lemma frontier_closed_interval:
- "frontier {a .. b} = {a .. b} - {a<..<b}"
+  fixes a b :: "real ^ _"
+  shows "frontier {a .. b} = {a .. b} - {a<..<b}"
   unfolding frontier_def unfolding interior_closed_interval and closure_closed[OF closed_interval] ..
 
 lemma frontier_open_interval:
- "frontier {a<..<b} = (if {a<..<b} = {} then {} else {a .. b} - {a<..<b})"
+  fixes a b :: "real ^ _"
+  shows "frontier {a<..<b} = (if {a<..<b} = {} then {} else {a .. b} - {a<..<b})"
 proof(cases "{a<..<b} = {}")
   case True thus ?thesis using frontier_empty by auto
 next
@@ -4899,10 +4989,10 @@ proof-
   thus ?thesis unfolding closed_closedin[THEN sym] and * by auto
 qed
 
-lemma closed_halfspace_ge: "closed {x. a \<bullet> x \<ge> b}"
+lemma closed_halfspace_ge: "closed {x::real^_. a \<bullet> x \<ge> b}"
   using closed_halfspace_le[of "-a" "-b"] unfolding dot_lneg by auto
 
-lemma closed_hyperplane: "closed {x. a \<bullet> x = b}"
+lemma closed_hyperplane: "closed {x::real^_. a \<bullet> x = b}"
 proof-
   have "{x. a \<bullet> x = b} = {x. a \<bullet> x \<ge> b} \<inter> {x. a \<bullet> x \<le> b}" by auto
   thus ?thesis using closed_halfspace_le[of a b] and closed_halfspace_ge[of b a] using closed_Int by auto
@@ -4918,13 +5008,13 @@ lemma closed_halfspace_component_ge:
 
 text{* Openness of halfspaces.                                                   *}
 
-lemma open_halfspace_lt: "open {x. a \<bullet> x < b}"
+lemma open_halfspace_lt: "open {x::real^_. a \<bullet> x < b}"
 proof-
   have "UNIV - {x. b \<le> a \<bullet> x} = {x. a \<bullet> x < b}" by auto
   thus ?thesis using closed_halfspace_ge[unfolded closed_def, of b a] by auto
 qed
 
-lemma open_halfspace_gt: "open {x. a \<bullet> x > b}"
+lemma open_halfspace_gt: "open {x::real^_. a \<bullet> x > b}"
 proof-
   have "UNIV - {x. b \<ge> a \<bullet> x} = {x. a \<bullet> x > b}" by auto
   thus ?thesis using closed_halfspace_le[unfolded closed_def, of a b] by auto
@@ -5288,6 +5378,7 @@ next
 qed
 
 lemma closed_injective_image_subspace:
+  fixes s :: "(real ^ _) set"
   assumes "subspace s" "linear f" "\<forall>x\<in>s. f x = 0 --> x = 0" "closed s"
   shows "closed(f ` s)"
 proof-
@@ -5412,7 +5503,8 @@ lemma complete_subspace:
   by auto
 
 lemma dim_closure:
- "dim(closure s) = dim s" (is "?dc = ?d")
+  fixes s :: "(real ^ _) set"
+  shows "dim(closure s) = dim s" (is "?dc = ?d")
 proof-
   have "?dc \<le> ?d" using closure_minimal[OF span_inc, of s]
     using closed_subspace[OF subspace_span, of s]
