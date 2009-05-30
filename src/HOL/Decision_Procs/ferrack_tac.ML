@@ -2,6 +2,13 @@
     Author:     Amine Chaieb, TU Muenchen
 *)
 
+signature FERRACK_TAC =
+sig
+  val trace: bool ref
+  val linr_tac: Proof.context -> bool -> int -> tactic
+  val setup: theory -> theory
+end
+
 structure Ferrack_Tac =
 struct
 
@@ -98,12 +105,10 @@ fun linr_tac ctxt q i =
       THEN tac) st
   end handle Subscript => no_tac st);
 
-fun linr_meth src =
-  Method.syntax (Args.mode "no_quantify") src
-  #> (fn (q, ctxt) => SIMPLE_METHOD' (linr_tac ctxt (not q)));
-
 val setup =
-  Method.add_method ("rferrack", linr_meth,
-     "decision procedure for linear real arithmetic");
+  Method.setup @{binding rferrack}
+    (Args.mode "no_quantify" >> (fn q => fn ctxt =>
+      SIMPLE_METHOD' (linr_tac ctxt (not q))))
+    "decision procedure for linear real arithmetic";
 
 end
