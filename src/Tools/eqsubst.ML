@@ -20,25 +20,25 @@ sig
        * Zipper.T (* focusterm to search under *)
 
     exception eqsubst_occL_exp of
-       string * int list * Thm.thm list * int * Thm.thm
+       string * int list * thm list * int * thm
     
     (* low level substitution functions *)
     val apply_subst_in_asm :
        int ->
-       Thm.thm ->
-       Thm.thm ->
-       (Thm.cterm list * int * 'a * Thm.thm) * match -> Thm.thm Seq.seq
+       thm ->
+       thm ->
+       (cterm list * int * 'a * thm) * match -> thm Seq.seq
     val apply_subst_in_concl :
        int ->
-       Thm.thm ->
-       Thm.cterm list * Thm.thm ->
-       Thm.thm -> match -> Thm.thm Seq.seq
+       thm ->
+       cterm list * thm ->
+       thm -> match -> thm Seq.seq
 
     (* matching/unification within zippers *)
     val clean_match_z :
-       Context.theory -> Term.term -> Zipper.T -> match option
+       theory -> term -> Zipper.T -> match option
     val clean_unify_z :
-       Context.theory -> int -> Term.term -> Zipper.T -> match Seq.seq
+       theory -> int -> term -> Zipper.T -> match Seq.seq
 
     (* skipping things in seq seq's *)
 
@@ -57,65 +57,64 @@ sig
     (* tactics *)
     val eqsubst_asm_tac :
        Proof.context ->
-       int list -> Thm.thm list -> int -> Thm.thm -> Thm.thm Seq.seq
+       int list -> thm list -> int -> tactic
     val eqsubst_asm_tac' :
        Proof.context ->
-       (searchinfo -> int -> Term.term -> match skipseq) ->
-       int -> Thm.thm -> int -> Thm.thm -> Thm.thm Seq.seq
+       (searchinfo -> int -> term -> match skipseq) ->
+       int -> thm -> int -> tactic
     val eqsubst_tac :
        Proof.context ->
        int list -> (* list of occurences to rewrite, use [0] for any *)
-       Thm.thm list -> int -> Thm.thm -> Thm.thm Seq.seq
+       thm list -> int -> tactic
     val eqsubst_tac' :
        Proof.context -> (* proof context *)
-       (searchinfo -> Term.term -> match Seq.seq) (* search function *)
-       -> Thm.thm (* equation theorem to rewrite with *)
+       (searchinfo -> term -> match Seq.seq) (* search function *)
+       -> thm (* equation theorem to rewrite with *)
        -> int (* subgoal number in goal theorem *)
-       -> Thm.thm (* goal theorem *)
-       -> Thm.thm Seq.seq (* rewritten goal theorem *)
+       -> thm (* goal theorem *)
+       -> thm Seq.seq (* rewritten goal theorem *)
 
 
     val fakefree_badbounds :
-       (string * Term.typ) list ->
-       Term.term ->
-       (string * Term.typ) list * (string * Term.typ) list * Term.term
+       (string * typ) list ->
+       term ->
+       (string * typ) list * (string * typ) list * term
 
     val mk_foo_match :
-       (Term.term -> Term.term) ->
-       ('a * Term.typ) list -> Term.term -> Term.term
+       (term -> term) ->
+       ('a * typ) list -> term -> term
 
     (* preparing substitution *)
-    val prep_meta_eq : Proof.context -> Thm.thm -> Thm.thm list
+    val prep_meta_eq : Proof.context -> thm -> thm list
     val prep_concl_subst :
-       int -> Thm.thm -> (Thm.cterm list * Thm.thm) * searchinfo
+       int -> thm -> (cterm list * thm) * searchinfo
     val prep_subst_in_asm :
-       int -> Thm.thm -> int ->
-       (Thm.cterm list * int * int * Thm.thm) * searchinfo
+       int -> thm -> int ->
+       (cterm list * int * int * thm) * searchinfo
     val prep_subst_in_asms :
-       int -> Thm.thm ->
-       ((Thm.cterm list * int * int * Thm.thm) * searchinfo) list
+       int -> thm ->
+       ((cterm list * int * int * thm) * searchinfo) list
     val prep_zipper_match :
-       Zipper.T -> Term.term * ((string * Term.typ) list * (string * Term.typ) list * Term.term)
+       Zipper.T -> term * ((string * typ) list * (string * typ) list * term)
 
     (* search for substitutions *)
     val valid_match_start : Zipper.T -> bool
     val search_lr_all : Zipper.T -> Zipper.T Seq.seq
     val search_lr_valid : (Zipper.T -> bool) -> Zipper.T -> Zipper.T Seq.seq
     val searchf_lr_unify_all :
-       searchinfo -> Term.term -> match Seq.seq Seq.seq
+       searchinfo -> term -> match Seq.seq Seq.seq
     val searchf_lr_unify_valid :
-       searchinfo -> Term.term -> match Seq.seq Seq.seq
+       searchinfo -> term -> match Seq.seq Seq.seq
     val searchf_bt_unify_valid :
-       searchinfo -> Term.term -> match Seq.seq Seq.seq
+       searchinfo -> term -> match Seq.seq Seq.seq
 
     (* syntax tools *)
     val ith_syntax : int list parser
     val options_syntax : bool parser
 
     (* Isar level hooks *)
-    val eqsubst_asm_meth : Proof.context -> int list -> Thm.thm list -> Proof.method
-    val eqsubst_meth : Proof.context -> int list -> Thm.thm list -> Proof.method
-    val subst_meth : Method.src -> Proof.context -> Proof.method
+    val eqsubst_asm_meth : Proof.context -> int list -> thm list -> Proof.method
+    val eqsubst_meth : Proof.context -> int list -> thm list -> Proof.method
     val setup : theory -> theory
 
 end;
@@ -560,15 +559,13 @@ val ith_syntax =
     Scan.optional (Args.parens (Scan.repeat OuterParse.nat)) [0];
 
 (* combination method that takes a flag (true indicates that subst
-should be done to an assumption, false = apply to the conclusion of
-the goal) as well as the theorems to use *)
-fun subst_meth src =
-  Method.syntax ((Scan.lift options_syntax) -- (Scan.lift ith_syntax) -- Attrib.thms) src
-  #> (fn (((asmflag, occL), inthms), ctxt) =>
-    (if asmflag then eqsubst_asm_meth else eqsubst_meth) ctxt occL inthms);
-
-
+   should be done to an assumption, false = apply to the conclusion of
+   the goal) as well as the theorems to use *)
 val setup =
-  Method.add_method ("subst", subst_meth, "single-step substitution");
+  Method.setup @{binding subst}
+    (Scan.lift (options_syntax -- ith_syntax) -- Attrib.thms >>
+      (fn ((asmflag, occL), inthms) => fn ctxt =>
+        (if asmflag then eqsubst_asm_meth else eqsubst_meth) ctxt occL inthms))
+    "single-step substitution";
 
 end;
