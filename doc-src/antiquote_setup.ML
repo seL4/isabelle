@@ -159,9 +159,9 @@ fun entity check markup kind index =
       end);
 
 fun entity_antiqs check markup kind =
- [(entity check markup kind NONE),
-  (entity check markup kind (SOME true)),
-  (entity check markup kind (SOME false))];
+ ((entity check markup kind NONE);
+  (entity check markup kind (SOME true));
+  (entity check markup kind (SOME false)));
 
 in
 
