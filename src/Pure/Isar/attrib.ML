@@ -26,8 +26,6 @@ sig
     (('c * 'a list) * ('b * 'a list) list) list ->
     (('c * 'att list) * ('fact * 'att list) list) list
   val crude_closure: Proof.context -> src -> src
-  val add_attributes: (bstring * (src -> attribute) * string) list -> theory -> theory
-  val syntax: attribute context_parser -> src -> attribute
   val setup: Binding.binding -> attribute context_parser -> string -> theory -> theory
   val attribute_setup: bstring * Position.T -> Symbol_Pos.text * Position.T -> string ->
     theory -> theory
@@ -86,6 +84,10 @@ fun print_attributes thy =
     [Pretty.big_list "attributes:" (map prt_attr (NameSpace.extern_table attribs))]
     |> Pretty.chunks |> Pretty.writeln
   end;
+
+fun add_attribute name att comment thy = thy |> Attributes.map (fn atts =>
+  #2 (NameSpace.define (Sign.naming_of thy) (name, ((att, comment), stamp ())) atts)
+    handle Symtab.DUP dup => error ("Duplicate declaration of attribute " ^ quote dup));
 
 
 (* name space *)
@@ -147,24 +149,13 @@ fun crude_closure ctxt src =
   Args.closure src);
 
 
-(* add_attributes *)
-
-fun add_attributes raw_attrs thy =
-  let
-    val new_attrs =
-      raw_attrs |> map (fn (name, att, comment) => (Binding.name name, ((att, comment), stamp ())));
-    fun add attrs = fold (snd oo NameSpace.define (Sign.naming_of thy)) new_attrs attrs
-      handle Symtab.DUP dup => error ("Duplicate declaration of attributes " ^ quote dup);
-  in Attributes.map add thy end;
-
-
 (* attribute setup *)
 
-fun syntax scan src (context, th) =
-  let val (f: attribute, context') = Args.syntax "attribute" scan src context
-  in f (context', th) end;
+fun syntax scan = Args.syntax "attribute" scan;
 
-fun setup name scan comment = add_attributes [(Binding.name_of name, syntax scan, comment)];
+fun setup name scan =
+  add_attribute name
+    (fn src => fn (ctxt, th) => let val (a, ctxt') = syntax scan src ctxt in a (ctxt', th) end);
 
 fun attribute_setup name (txt, pos) cmt =
   Context.theory_map (ML_Context.expression pos
@@ -378,8 +369,8 @@ fun register_config config thy =
     val name = Sign.full_bname thy bname;
   in
     thy
-    |> add_attributes [(bname, syntax (Scan.lift (scan_config thy config) >> Morphism.form),
-      "configuration option")]
+    |> setup (Binding.name bname) (Scan.lift (scan_config thy config) >> Morphism.form)
+      "configuration option"
     |> Configs.map (Symtab.update (name, config))
   end;
 
