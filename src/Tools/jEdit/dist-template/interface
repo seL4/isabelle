@@ -37,14 +37,17 @@ fail()
 JEDIT_LOGIC="$ISABELLE_LOGIC"
 JEDIT_PRINT_MODE=""
 
+declare -a JAVA_OPTIONS; eval "JAVA_OPTIONS=($JEDIT_JAVA_OPTIONS)"
+declare -a OPTIONS; eval "OPTIONS=($JEDIT_OPTIONS)"
+
 while getopts "J:j:l:m:" OPT
 do
   case "$OPT" in
     J)
-      JEDIT_JAVA_OPTIONS="$JEDIT_JAVA_OPTIONS $OPTARG"
+      JAVA_OPTIONS+=("$OPTARG")
       ;;
     j)
-      JEDIT_OPTIONS="$JEDIT_OPTIONS $OPTARG"
+      OPTIONS+=("$OPTARG")
       ;;
     l)
       JEDIT_LOGIC="$OPTARG"
@@ -67,13 +70,13 @@ shift $(($OPTIND - 1))
 
 # args
 
-unset FILES; declare -a FILES
+declare -a FILES=()
 
 if [ "$#" -eq 0 ]; then
-  FILES[0]="isabelle:$HOME/Scratch.thy"
+  FILES+=("isabelle:$HOME/Scratch.thy")
 else
   while [ "$#" -gt 0 ]; do
-    FILES[${#FILES[@]}]="isabelle:$1"
+    FILES+=("isabelle:$1")
     shift
   done
 fi
@@ -91,6 +94,6 @@ esac
 
 export JEDIT_LOGIC JEDIT_PRINT_MODE
 
-exec "$ISABELLE_TOOL" java $JEDIT_JAVA_OPTIONS \
+exec "$ISABELLE_TOOL" java "${JAVA_OPTIONS[@]}" \
   -jar "$(jvmpath "$JEDIT_HOME/jedit.jar")" \
-  "-settings=$(jvmpath "$ISABELLE_HOME_USER/jedit")" $JEDIT_OPTIONS "${FILES[@]}"
+  "-settings=$(jvmpath "$ISABELLE_HOME_USER/jedit")" "${OPTIONS[@]}" "${FILES[@]}"
