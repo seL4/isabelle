@@ -83,22 +83,9 @@ sig
   val setup: binding -> (Proof.context -> method) context_parser -> string -> theory -> theory
   val method_setup: bstring * Position.T -> Symbol_Pos.text * Position.T -> string ->
     theory -> theory
-  val simple_args: 'a parser -> ('a -> Proof.context -> method) -> src -> Proof.context -> method
-  val ctxt_args: (Proof.context -> method) -> src -> Proof.context -> method
   type modifier = (Proof.context -> Proof.context) * attribute
   val section: modifier parser list -> thm list context_parser
   val sections: modifier parser list -> thm list list context_parser
-  val sectioned_args: 'a context_parser -> modifier parser list ->
-    ('a -> Proof.context -> 'b) -> src -> Proof.context -> 'b
-  val bang_sectioned_args: modifier parser list ->
-    (thm list -> Proof.context -> 'a) -> src -> Proof.context -> 'a
-  val bang_sectioned_args': modifier parser list -> 'a context_parser ->
-    ('a -> thm list -> Proof.context -> 'b) -> src -> Proof.context -> 'b
-  val only_sectioned_args: modifier parser list -> (Proof.context -> 'a) -> src ->
-    Proof.context -> 'a
-  val thms_ctxt_args: (thm list -> Proof.context -> 'a) -> src -> Proof.context -> 'a
-  val thms_args: (thm list -> 'a) -> src -> Proof.context -> 'a
-  val thm_args: (thm -> 'a) -> src -> Proof.context -> 'a
   val parse: text parser
 end;
 
@@ -411,15 +398,6 @@ fun method_setup name (txt, pos) cmt =
 structure P = OuterParse;
 
 
-(* basic *)
-
-fun simple_args scan f src ctxt : method =
-  fst (syntax (Scan.lift (scan >> (fn x => f x ctxt))) src ctxt);
-
-fun ctxt_args (f: Proof.context -> method) src ctxt =
-  fst (syntax (Scan.succeed (f ctxt)) src ctxt);
-
-
 (* sections *)
 
 type modifier = (Proof.context -> Proof.context) * attribute;
@@ -435,19 +413,6 @@ fun section ss = Scan.depend (fn context => (Scan.first ss -- Scan.pass context 
   (fn (m, ths) => Scan.succeed (app m (context, ths))));
 
 fun sections ss = Scan.repeat (section ss);
-
-fun sectioned_args args ss f src ctxt =
-  let val ((x, _), ctxt') = syntax (args -- sections ss) src ctxt
-  in f x ctxt' end;
-
-fun bang_sectioned_args ss f = sectioned_args Args.bang_facts ss f;
-fun bang_sectioned_args' ss scan f =
-  sectioned_args (Args.bang_facts -- scan >> swap) ss (uncurry f);
-fun only_sectioned_args ss f = sectioned_args (Scan.succeed ()) ss (fn () => f);
-
-fun thms_ctxt_args f = sectioned_args (thms []) [] f;
-fun thms_args f = thms_ctxt_args (K o f);
-fun thm_args f = thms_args (fn [thm] => f thm | _ => error "Single theorem expected");
 
 end;
 
