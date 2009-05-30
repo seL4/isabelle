@@ -2990,7 +2990,9 @@ lemma path_image_shiftpath:
 
 subsection {* Special case of straight-line paths. *}
 
-definition "linepath a b = (\<lambda>x. (1 - dest_vec1 x) *s a + dest_vec1 x *s b)"
+definition
+  linepath :: "real ^ 'n::finite \<Rightarrow> real ^ 'n \<Rightarrow> real ^ 1 \<Rightarrow> real ^ 'n" where
+  "linepath a b = (\<lambda>x. (1 - dest_vec1 x) *s a + dest_vec1 x *s b)"
 
 lemma pathstart_linepath[simp]: "pathstart(linepath a b) = a"
   unfolding pathstart_def linepath_def by auto

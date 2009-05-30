@@ -1012,17 +1012,24 @@ lemma net_dilemma:
 subsection{* Common nets and The "within" modifier for nets. *}
 
 definition
-  at :: "real ^ 'n::finite \<Rightarrow> (real ^ 'n) net" where
+  at :: "'a::perfect_space \<Rightarrow> 'a net" where
   "at a = mknet(\<lambda>x y. 0 < dist x a \<and> dist x a <= dist y a)"
 
-definition "at_infinity = mknet(\<lambda>x y. norm x \<ge> norm y)"
-definition "sequentially = mknet(\<lambda>(m::nat) n. m >= n)"
+definition
+  at_infinity :: "'a::real_normed_vector net" where
+  "at_infinity = mknet (\<lambda>x y. norm x \<ge> norm y)"
 
-definition within :: "'a net \<Rightarrow> 'a set \<Rightarrow> 'a net" (infixr "within" 70) where
-  within_def: "net within S = mknet (\<lambda>x y. netord net x y \<and> x \<in> S)"
+definition
+  sequentially :: "nat net" where
+  "sequentially = mknet (\<lambda>m n. n \<le> m)"
 
-definition indirection :: "real ^'n::finite \<Rightarrow> real ^'n \<Rightarrow> (real ^'n) net" (infixr "indirection" 70) where
-  indirection_def: "a indirection v = (at a) within {b. \<exists>c\<ge>0. b - a = c*s v}"
+definition
+  within :: "'a net \<Rightarrow> 'a set \<Rightarrow> 'a net" (infixr "within" 70) where
+  "net within S = mknet (\<lambda>x y. netord net x y \<and> x \<in> S)"
+
+definition
+  indirection :: "real ^'n::finite \<Rightarrow> real ^'n \<Rightarrow> (real ^'n) net" (infixr "indirection" 70) where
+  "a indirection v = (at a) within {b. \<exists>c\<ge>0. b - a = c*s v}"
 
 text{* Prove That They are all nets. *}
 
@@ -1065,19 +1072,22 @@ qed
 lemma in_direction: "netord (a indirection v) x y \<longleftrightarrow> 0 < dist x a \<and> dist x a \<le> dist y a \<and> (\<exists>c \<ge> 0. x - a = c *s v)"
   by (simp add: within at indirection_def)
 
-lemma within_UNIV: "at x within UNIV = at x"
-  by (simp add: within_def at_def netord_inverse)
+lemma within_UNIV: "net within UNIV = net"
+  by (simp add: within_def netord_inverse)
 
 subsection{* Identify Trivial limits, where we can't approach arbitrarily closely. *}
 
+definition
+  trivial_limit :: "'a net \<Rightarrow> bool" where
+  "trivial_limit (net:: 'a net) \<longleftrightarrow>
+    (\<forall>(a::'a) b. a = b) \<or>
+    (\<exists>(a::'a) b. a \<noteq> b \<and> (\<forall>x. ~(netord (net) x a) \<and> ~(netord(net) x b)))"
 
-definition "trivial_limit (net:: 'a net) \<longleftrightarrow>
-  (\<forall>(a::'a) b. a = b) \<or> (\<exists>(a::'a) b. a \<noteq> b \<and> (\<forall>x. ~(netord (net) x a) \<and> ~(netord(net) x b)))"
-
-
-lemma trivial_limit_within: "trivial_limit (at (a::real^'n::finite) within S) \<longleftrightarrow> ~(a islimpt S)"
+lemma trivial_limit_within:
+  fixes a :: "'a::perfect_space"
+  shows "trivial_limit (at a within S) \<longleftrightarrow> \<not> a islimpt S"
 proof-
-  {assume "\<forall>(a::real^'n) b. a = b" hence "\<not> a islimpt S"
+  {assume "\<forall>(a::'a) b. a = b" hence "\<not> a islimpt S"
       apply (simp add: islimpt_approachable_le)
       by (rule exI[where x=1], auto)}
   moreover
@@ -1092,30 +1102,35 @@ proof-
   {assume "\<not> a islimpt S"
     then obtain e where e: "e > 0" "\<forall>x' \<in> S. x' \<noteq> a \<longrightarrow> dist x' a > e"
       unfolding islimpt_approachable_le by (auto simp add: not_le)
-    from e vector_choose_dist[of e a] obtain b where b: "dist a b = e" by auto
-    from b e(1) have "a \<noteq> b" by (simp add: dist_nz)
+    from e perfect_choose_dist[of e a] obtain b where b: "b \<noteq> a" "dist b a < e" by auto
+    then have "a \<noteq> b" by auto
     moreover have "\<forall>x. \<not> ((0 < dist x a \<and> dist x a \<le> dist a a) \<and> x \<in> S) \<and>
                  \<not> ((0 < dist x a \<and> dist x a \<le> dist b a) \<and> x \<in> S)"
       using e(2) b by (auto simp add: dist_commute)
-    ultimately have "trivial_limit (at a within S)"  unfolding trivial_limit_def within at
+    ultimately have "trivial_limit (at a within S)"
+      unfolding trivial_limit_def within at
       by blast}
   ultimately show ?thesis unfolding trivial_limit_def by blast
 qed
 
-lemma trivial_limit_at: "~(trivial_limit (at a))"
-  apply (subst within_UNIV[symmetric])
-  by (simp add: trivial_limit_within islimpt_UNIV)
+lemma trivial_limit_at: "\<not> trivial_limit (at a)"
+  using trivial_limit_within [of a UNIV]
+  by (simp add: within_UNIV)
 
-lemma trivial_limit_at_infinity: "~(trivial_limit (at_infinity :: ('a::{norm,zero_neq_one}) net))"
+lemma trivial_limit_at_infinity:
+  "\<not> trivial_limit (at_infinity :: ('a::{real_normed_vector,zero_neq_one}) net)"
   apply (simp add: trivial_limit_def at_infinity)
   by (metis order_refl zero_neq_one)
 
-lemma trivial_limit_sequentially:  "~(trivial_limit sequentially)"
+lemma trivial_limit_sequentially: "\<not> trivial_limit sequentially"
   by (auto simp add: trivial_limit_def sequentially)
 
 subsection{* Some property holds "sufficiently close" to the limit point. *}
 
-definition "eventually P net \<longleftrightarrow> trivial_limit net \<or> (\<exists>y. (\<exists>x. netord net x y) \<and> (\<forall>x. netord net x y \<longrightarrow> P x))"
+definition
+  eventually :: "('a \<Rightarrow> bool) \<Rightarrow> 'a net \<Rightarrow> bool" where
+  "eventually P net \<longleftrightarrow> trivial_limit net \<or>
+    (\<exists>y. (\<exists>x. netord net x y) \<and> (\<forall>x. netord net x y \<longrightarrow> P x))"
 
 lemma eventually_happens: "eventually P net ==> trivial_limit net \<or> (\<exists>x. P x)"
   by (metis eventually_def)
@@ -1141,7 +1156,7 @@ next
     unfolding eventually_def trivial_limit_within islimpt_approachable_le within at unfolding dist_nz[THEN sym] by (clarsimp, rule_tac x=d in exI, auto)
 qed
 
-lemma eventually_within:  " eventually P (at a within S) \<longleftrightarrow>
+lemma eventually_within: "eventually P (at a within S) \<longleftrightarrow>
         (\<exists>d>0. \<forall>x\<in>S. 0 < dist x a \<and> dist x a < d \<longrightarrow> P x)"
 proof-
   { fix d
@@ -1273,7 +1288,7 @@ proof-
 qed
 
 lemma Lim_Un_univ:
- "(f ---> l) (at x within S) \<Longrightarrow> (f ---> l) (at x within T) \<Longrightarrow>  S \<union> T = (UNIV::(real^'n::finite) set)
+ "(f ---> l) (at x within S) \<Longrightarrow> (f ---> l) (at x within T) \<Longrightarrow>  S \<union> T = UNIV
         ==> (f ---> l) (at x)"
   by (metis Lim_Un within_UNIV)
 
@@ -1626,12 +1641,14 @@ lemma Lim_within_id: "(id ---> a) (at a within s)" by (auto simp add: Lim_within
 lemma Lim_at_id: "(id ---> a) (at a)"
 apply (subst within_UNIV[symmetric]) by (simp add: Lim_within_id)
 
-lemma Lim_at_zero: "(f ---> l) (at (a::real^'a::finite)) \<longleftrightarrow> ((\<lambda>x. f(a + x)) ---> l) (at 0)" (is "?lhs = ?rhs")
+lemma Lim_at_zero:
+  fixes a :: "'a::{real_normed_vector, perfect_space}"
+  shows "(f ---> l) (at a) \<longleftrightarrow> ((\<lambda>x. f(a + x)) ---> l) (at 0)" (is "?lhs = ?rhs")
 proof
   assume "?lhs"
   { fix e::real assume "e>0"
     with `?lhs` obtain d where d:"d>0" "\<forall>x. 0 < dist x a \<and> dist x a < d \<longrightarrow> dist (f x) l < e" unfolding Lim_at by auto
-    { fix x::"real^'a" assume "0 < dist x 0 \<and> dist x 0 < d"
+    { fix x::"'a" assume "0 < dist x 0 \<and> dist x 0 < d"
       hence "dist (f (a + x)) l < e" using d
       apply(erule_tac x="x+a" in allE) by(auto simp add: comm_monoid_add.mult_commute dist_norm dist_commute)
     }
@@ -1643,7 +1660,7 @@ next
   { fix e::real assume "e>0"
     with `?rhs` obtain d where d:"d>0" "\<forall>x. 0 < dist x 0 \<and> dist x 0 < d \<longrightarrow> dist (f (a + x)) l < e"
       unfolding Lim_at by auto
-    { fix x::"real^'a" assume "0 < dist x a \<and> dist x a < d"
+    { fix x::"'a" assume "0 < dist x a \<and> dist x a < d"
       hence "dist (f x) l < e" using d apply(erule_tac x="x-a" in allE)
 	by(auto simp add: comm_monoid_add.mult_commute dist_norm dist_commute)
     }
@@ -1669,9 +1686,7 @@ proof-
   ultimately show ?thesis unfolding netlimit_def using some_equality[of "\<lambda>x. \<forall>y. \<not> netord (at a within S) y x"] by blast
 qed
 
-lemma netlimit_at:
-  fixes a :: "real ^ 'n::finite"
-  shows "netlimit(at a) = a"
+lemma netlimit_at: "netlimit (at a) = a"
   apply (subst within_UNIV[symmetric])
   using netlimit_within[of a UNIV]
   by (simp add: trivial_limit_at within_UNIV)
@@ -1689,12 +1704,13 @@ qed
 
 lemma Lim_transform_eventually:
   fixes f g :: "'a::type \<Rightarrow> 'b::real_normed_vector"
+    (* FIXME: generalize to metric_space *)
   shows "eventually (\<lambda>x. f x = g x) net \<Longrightarrow> (f ---> l) net ==> (g ---> l) net"
   using Lim_eventually[of "\<lambda>x. f x - g x" 0 net] Lim_transform[of f g net l] by auto
 
 lemma Lim_transform_within:
-  fixes f g :: "real ^ 'n::finite \<Rightarrow> 'b::real_normed_vector"
-  fixes x :: "real ^ 'n::finite"
+  fixes f g :: "'a::perfect_space \<Rightarrow> 'b::real_normed_vector"
+    (* FIXME: generalize to metric_space *)
   assumes "0 < d" "(\<forall>x'\<in>S. 0 < dist x' x \<and> dist x' x < d \<longrightarrow> f x' = g x')"
           "(f ---> l) (at x within S)"
   shows   "(g ---> l) (at x within S)"
@@ -1704,7 +1720,8 @@ proof-
 qed
 
 lemma Lim_transform_at:
-  fixes f g :: "real ^ 'n::finite \<Rightarrow> 'b::real_normed_vector"
+  fixes f g :: "'a::perfect_space \<Rightarrow> 'b::real_normed_vector"
+    (* FIXME: generalize to metric_space *)
   shows "0 < d \<Longrightarrow> (\<forall>x'. 0 < dist x' x \<and> dist x' x < d \<longrightarrow> f x' = g x') \<Longrightarrow>
   (f ---> l) (at x) ==> (g ---> l) (at x)"
   apply (subst within_UNIV[symmetric])
@@ -1714,7 +1731,8 @@ lemma Lim_transform_at:
 text{* Common case assuming being away from some crucial point like 0. *}
 
 lemma Lim_transform_away_within:
-  fixes f:: "real ^'m::finite \<Rightarrow> 'b::real_normed_vector"
+  fixes f:: "'a::perfect_space \<Rightarrow> 'b::real_normed_vector"
+    (* FIXME: generalize to metric_space *)
   assumes "a\<noteq>b" "\<forall>x\<in> S. x \<noteq> a \<and> x \<noteq> b \<longrightarrow> f x = g x"
   and "(f ---> l) (at a within S)"
   shows "(g ---> l) (at a within S)"
@@ -1725,7 +1743,8 @@ proof-
 qed
 
 lemma Lim_transform_away_at:
-  fixes f:: "real ^'m::finite \<Rightarrow> 'b::real_normed_vector"
+  fixes f:: "'a::perfect_space \<Rightarrow> 'b::real_normed_vector"
+    (* FIXME: generalize to metric_space *)
   assumes ab: "a\<noteq>b" and fg: "\<forall>x. x \<noteq> a \<and> x \<noteq> b \<longrightarrow> f x = g x"
   and fl: "(f ---> l) (at a)"
   shows "(g ---> l) (at a)"
@@ -1735,7 +1754,8 @@ lemma Lim_transform_away_at:
 text{* Alternatively, within an open set. *}
 
 lemma Lim_transform_within_open:
-  fixes f:: "real ^'m::finite \<Rightarrow> 'b::real_normed_vector"
+  fixes f:: "'a::perfect_space \<Rightarrow> 'b::real_normed_vector"
+    (* FIXME: generalize to metric_space *)
   assumes "open S"  "a \<in> S"  "\<forall>x\<in>S. x \<noteq> a \<longrightarrow> f x = g x"  "(f ---> l) (at a)"
   shows "(g ---> l) (at a)"
 proof-
@@ -2025,7 +2045,10 @@ qed
 lemma lim_within_interior: "x \<in> interior S  ==> ((f ---> l) (at x within S) \<longleftrightarrow> (f ---> l) (at x))"
   by (simp add: tendsto_def eventually_within_interior)
 
-lemma netlimit_within_interior: assumes "x \<in> interior S"
+lemma netlimit_within_interior:
+  fixes x :: "'a::{perfect_space, real_normed_vector}"
+    (* FIXME: generalize to perfect_space *)
+  assumes "x \<in> interior S"
   shows "netlimit(at x within S) = x" (is "?lhs = ?rhs")
 proof-
   from assms obtain e::real where e:"e>0" "ball x e \<subseteq> S" using open_interior[of S] unfolding open_contains_ball using interior_subset[of S] by auto
@@ -3027,8 +3050,8 @@ lemma continuous_within: "continuous (at x within s) f \<longleftrightarrow> (f 
   unfolding eventually_def
   by (cases "trivial_limit (at x within s)") auto
 
-lemma continuous_at: "continuous (at x) f \<longleftrightarrow> (f ---> f(x)) (at x)" using within_UNIV[of x]
-  using continuous_within[of x UNIV f] by auto
+lemma continuous_at: "continuous (at x) f \<longleftrightarrow> (f ---> f(x)) (at x)"
+  using continuous_within [of x UNIV f] by (simp add: within_UNIV)
 
 lemma continuous_at_within:
   assumes "continuous (at x) f"  shows "continuous (at x within s) f"
@@ -3074,8 +3097,8 @@ next
     apply (auto simp add: dist_commute) apply(erule_tac x=e in allE) by auto
 qed
 
-lemma continuous_at_ball: fixes f::"real^'a::finite \<Rightarrow> real^'a"
-  shows "continuous (at x) f \<longleftrightarrow> (\<forall>e>0. \<exists>d>0. f ` (ball x d) \<subseteq> ball (f x) e)" (is "?lhs = ?rhs")
+lemma continuous_at_ball:
+  "continuous (at x) f \<longleftrightarrow> (\<forall>e>0. \<exists>d>0. f ` (ball x d) \<subseteq> ball (f x) e)" (is "?lhs = ?rhs")
 proof
   assume ?lhs thus ?rhs unfolding continuous_at Lim_at subset_eq Ball_def Bex_def image_iff mem_ball
     apply auto apply(erule_tac x=e in allE) apply auto apply(rule_tac x=d in exI) apply auto apply(erule_tac x=xa in allE) apply (auto simp add: dist_commute dist_nz)
@@ -3177,7 +3200,7 @@ lemma continuous_within_sequentially:
                      --> ((f o x) ---> f a) sequentially)" (is "?lhs = ?rhs")
 proof
   assume ?lhs
-  { fix x::"nat \<Rightarrow> real^'a" assume x:"\<forall>n. x n \<in> s" "\<forall>e>0. \<exists>N. \<forall>n\<ge>N. dist (x n) a < e"
+  { fix x::"nat \<Rightarrow> 'a" assume x:"\<forall>n. x n \<in> s" "\<forall>e>0. \<exists>N. \<forall>n\<ge>N. dist (x n) a < e"
     fix e::real assume "e>0"
     from `?lhs` obtain d where "d>0" and d:"\<forall>x\<in>s. 0 < dist x a \<and> dist x a < d \<longrightarrow> dist (f x) (f a) < e" unfolding continuous_within Lim_within using `e>0` by auto
     from x(2) `d>0` obtain N where N:"\<forall>n\<ge>N. dist (x n) a < d" by auto
@@ -3874,12 +3897,14 @@ proof-
 qed
 
 lemma linear_continuous_at:
+  fixes f :: "real ^ _ \<Rightarrow> real ^ _"
   assumes "linear f"  shows "continuous (at a) f"
   unfolding continuous_at Lim_at_zero[of f "f a" a] using linear_lim_0[OF assms]
   unfolding Lim_null[of "\<lambda>x. f (a + x)"] unfolding linear_sub[OF assms, THEN sym] by auto
 
 lemma linear_continuous_within:
- "linear f ==> continuous (at x within s) f"
+  fixes f :: "real ^ _ \<Rightarrow> real ^ _"
+  shows "linear f ==> continuous (at x within s) f"
   using continuous_at_imp_continuous_within[of x f s] using linear_continuous_at[of f] by auto
 
 lemma linear_continuous_on:
@@ -3942,7 +3967,8 @@ lemma continuous_on_vec1_range:
   unfolding continuous_on_def apply (simp del: dist_commute) unfolding dist_vec1 unfolding dist_norm ..
 
 lemma continuous_at_vec1_norm:
- "continuous (at x) (vec1 o norm)"
+  fixes x :: "real ^ _"
+  shows "continuous (at x) (vec1 o norm)"
   unfolding continuous_at_vec1_range using real_abs_sub_norm order_le_less_trans by blast
 
 lemma continuous_on_vec1_norm:
@@ -4152,7 +4178,7 @@ lemma continuous_at_inv:
   fixes f :: "real ^ _ \<Rightarrow> real"
   shows "continuous (at a) (vec1 o f) \<Longrightarrow> f a \<noteq> 0
          ==> continuous (at a) (vec1 o inverse o f) "
-  using within_UNIV[THEN sym, of a] using continuous_at_within_inv[of a UNIV] by auto
+  using within_UNIV[THEN sym, of "at a"] using continuous_at_within_inv[of a UNIV] by auto
 
 subsection{* Preservation properties for pasted sets.                                  *}
 
@@ -4962,7 +4988,8 @@ next
 qed
 
 lemma continuous_at_vec1_dot:
- "continuous (at x) (vec1 o (\<lambda>y. a \<bullet> y))"
+  fixes x :: "real ^ _"
+  shows "continuous (at x) (vec1 o (\<lambda>y. a \<bullet> y))"
 proof-
   have "((\<lambda>x. x) ---> x) (at x)" unfolding Lim_at by auto
   thus ?thesis unfolding continuous_at and o_def using Lim_vec1_dot[of "\<lambda>x. x" x "at x" a] by auto
