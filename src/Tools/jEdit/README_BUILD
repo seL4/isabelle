@@ -13,14 +13,10 @@ Requirements to build from sources
   http://wiki.netbeans.org/Scala
   http://plugins.netbeans.org/PluginPortal/faces/PluginDetailPage.jsp?pluginid=11854
 
-* jEdit 4.3pre16 or similar
+* jEdit 4.3pre16
   http://www.jedit.org/
 
-  Netbeans Library "jEdit" = .../jedit.jar
-
-  or
-
-  Netbeans Project "jEdit" (see below)
+  Netbeans Project "jEdit": unpack official sources in ./contrib/jEdit
 
 * Flying Saucer XHTML renderer
   https://xhtmlrenderer.dev.java.net/
@@ -28,14 +24,6 @@ Requirements to build from sources
 
 * Isabelle/Pure Scala components
   Netbeans Library "Isabelle-Pure" = ~~/lib/classes/Pure.jar
-
-
-Auxiliary projects
-==================
-
-* project "jEdit"
-  . unpack official sources .../jEdit
-  . add content of ./contrib/jEdit
 
 
 Running the application within Netbeans
