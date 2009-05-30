@@ -348,16 +348,7 @@ val _ = Context.>> (Context.map_theory
 
 
 
-(** proof methods **)
-
-(* simplification *)
-
-val simp_options =
- (Args.parens (Args.$$$ no_asmN) >> K simp_tac ||
-  Args.parens (Args.$$$ no_asm_simpN) >> K asm_simp_tac ||
-  Args.parens (Args.$$$ no_asm_useN) >> K full_simp_tac ||
-  Args.parens (Args.$$$ asm_lrN) >> K asm_lr_simp_tac ||
-  Scan.succeed asm_full_simp_tac);
+(** method syntax **)
 
 val cong_modifiers =
  [Args.$$$ congN -- Args.colon >> K ((I, cong_add): Method.modifier),
@@ -379,25 +370,33 @@ val simp_modifiers' =
     >> K (Context.proof_map (map_ss MetaSimplifier.clear_ss), simp_add)]
    @ cong_modifiers;
 
-fun simp_args more_mods =
-  Method.sectioned_args (Args.bang_facts -- Scan.lift simp_options)
-    (more_mods @ simp_modifiers');
+val simp_options =
+ (Args.parens (Args.$$$ no_asmN) >> K simp_tac ||
+  Args.parens (Args.$$$ no_asm_simpN) >> K asm_simp_tac ||
+  Args.parens (Args.$$$ no_asm_useN) >> K full_simp_tac ||
+  Args.parens (Args.$$$ asm_lrN) >> K asm_lr_simp_tac ||
+  Scan.succeed asm_full_simp_tac);
 
-fun simp_method (prems, tac) ctxt = METHOD (fn facts =>
-  ALLGOALS (Method.insert_tac (prems @ facts)) THEN
-    (CHANGED_PROP o ALLGOALS o tac) (local_simpset_of ctxt));
-
-fun simp_method' (prems, tac) ctxt = METHOD (fn facts =>
-  HEADGOAL (Method.insert_tac (prems @ facts) THEN'
-      ((CHANGED_PROP) oo tac) (local_simpset_of ctxt)));
+fun simp_method more_mods meth =
+  Args.bang_facts -- Scan.lift simp_options --|
+    Method.sections (more_mods @ simp_modifiers') >>
+    (fn (prems, tac) => fn ctxt => METHOD (fn facts => meth ctxt tac (prems @ facts)));
 
 
 
 (** setup **)
 
-fun method_setup more_mods = Method.add_methods
- [(simpN, simp_args more_mods simp_method', "simplification"),
-  ("simp_all", simp_args more_mods simp_method, "simplification (all goals)")];
+fun method_setup more_mods =
+  Method.setup (Binding.name simpN)
+    (simp_method more_mods (fn ctxt => fn tac => fn facts =>
+      HEADGOAL (Method.insert_tac facts THEN'
+        (CHANGED_PROP oo tac) (local_simpset_of ctxt))))
+    "simplification" #>
+  Method.setup (Binding.name "simp_all")
+    (simp_method more_mods (fn ctxt => fn tac => fn facts =>
+      ALLGOALS (Method.insert_tac facts) THEN
+        (CHANGED_PROP o ALLGOALS o tac) (local_simpset_of ctxt)))
+    "simplification (all goals)";
 
 fun easy_setup reflect trivs = method_setup [] #> Context.theory_map (map_ss (fn _ =>
   let
