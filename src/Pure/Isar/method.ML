@@ -75,10 +75,6 @@ sig
   val defined: theory -> string -> bool
   val method: theory -> src -> Proof.context -> method
   val method_i: theory -> src -> Proof.context -> method
-  val add_methods: (bstring * (src -> Proof.context -> method) * string) list
-    -> theory -> theory
-  val add_method: bstring * (src -> Proof.context -> method) * string
-    -> theory -> theory
   val syntax: 'a context_parser -> src -> Proof.context -> 'a * Proof.context
   val setup: binding -> (Proof.context -> method) context_parser -> string -> theory -> theory
   val method_setup: bstring * Position.T -> Symbol_Pos.text * Position.T -> string ->
@@ -343,6 +339,10 @@ fun print_methods thy =
     |> Pretty.chunks |> Pretty.writeln
   end;
 
+fun add_method name meth comment thy = thy |> Methods.map (fn meths =>
+  #2 (NameSpace.define (Sign.naming_of thy) (name, ((meth, comment), stamp ())) meths)
+    handle Symtab.DUP dup => error ("Duplicate declaration of method " ^ quote dup));
+
 
 (* get methods *)
 
@@ -363,27 +363,13 @@ fun method_i thy =
 fun method thy = method_i thy o Args.map_name (NameSpace.intern (#1 (Methods.get thy)));
 
 
-(* add method *)
-
-fun add_methods raw_meths thy =
-  let
-    val new_meths = raw_meths |> map (fn (name, f, comment) =>
-      (Binding.name name, ((f, comment), stamp ())));
-
-    fun add meths = fold (snd oo NameSpace.define (Sign.naming_of thy)) new_meths meths
-      handle Symtab.DUP dup => error ("Duplicate declaration of method " ^ quote dup);
-  in Methods.map add thy end;
-
-val add_method = add_methods o Library.single;
-
-
 (* method setup *)
 
 fun syntax scan = Args.context_syntax "method" scan;
 
-fun setup name scan comment =
-  add_methods [(Binding.name_of name,
-    fn src => fn ctxt => let val (m, ctxt') = syntax scan src ctxt in m ctxt' end, comment)];
+fun setup name scan =
+  add_method name
+    (fn src => fn ctxt => let val (m, ctxt') = syntax scan src ctxt in m ctxt' end);
 
 fun method_setup name (txt, pos) cmt =
   Context.theory_map (ML_Context.expression pos
