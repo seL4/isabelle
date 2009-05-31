@@ -1190,9 +1190,11 @@ next
   thus "?lhs" unfolding eventually_def at_infinity using b y by auto
 qed
 
-lemma always_eventually: "(\<forall>(x::'a::zero_neq_one). P x) ==> eventually P net"
-  apply (auto simp add: eventually_def trivial_limit_def )
-  by (rule exI[where x=0], rule exI[where x=1], rule zero_neq_one)
+lemma always_eventually: "(\<forall>x. P x) ==> eventually P net"
+  unfolding eventually_def trivial_limit_def by (clarify, simp)
+
+lemma eventually_True [simp]: "eventually (\<lambda>x. True) net"
+  by (simp add: always_eventually)
 
 text{* Combining theorems for "eventually" *}
 
@@ -1214,6 +1216,21 @@ lemma eventually_false: "eventually (\<lambda>x. False) net \<longleftrightarrow
 
 lemma not_eventually: "(\<forall>x. \<not> P x ) \<Longrightarrow> ~(trivial_limit net) ==> ~(eventually P net)"
   by (auto simp add: eventually_def)
+
+lemma eventually_rev_mono:
+  "eventually P net \<Longrightarrow> (\<forall>x. P x \<longrightarrow> Q x) \<Longrightarrow> eventually Q net"
+using eventually_mono [of P Q] by fast
+
+lemma eventually_rev_mp:
+  assumes 1: "eventually (\<lambda>x. P x) net"
+  assumes 2: "eventually (\<lambda>x. P x \<longrightarrow> Q x) net"
+  shows "eventually (\<lambda>x. Q x) net"
+using 2 1 by (rule eventually_mp)
+
+lemma eventually_conjI:
+  "\<lbrakk>eventually (\<lambda>x. P x) net; eventually (\<lambda>x. Q x) net\<rbrakk>
+    \<Longrightarrow> eventually (\<lambda>x. P x \<and> Q x) net"
+by (simp add: eventually_and)
 
 subsection{* Limits, defined as vacuously true when the limit is trivial. *}
 
@@ -1356,26 +1373,21 @@ text{* Basic arithmetical combining theorems for limits. *}
 lemma Lim_linear: fixes f :: "('a \<Rightarrow> real^'n::finite)" and h :: "(real^'n \<Rightarrow> real^'m::finite)"
   assumes "(f ---> l) net" "linear h"
   shows "((\<lambda>x. h (f x)) ---> h l) net"
-proof (cases "trivial_limit net")
-  case True
-  thus ?thesis unfolding tendsto_def unfolding eventually_def by auto
-next
-  case False note cas = this
-  obtain b where b: "b>0" "\<forall>x. norm (h x) \<le> b * norm x" using assms(2) using linear_bounded_pos[of h] by auto
+proof -
+  obtain b where b: "b>0" "\<forall>x. norm (h x) \<le> b * norm x"
+    using assms(2) using linear_bounded_pos[of h] by auto
   { fix e::real assume "e >0"
     hence "e/b > 0" using `b>0` by (metis divide_pos_pos)
-    then have "(\<exists>y. (\<exists>x. netord net x y) \<and> (\<forall>x. netord net x y \<longrightarrow> dist (f x) l < e/b))" using assms `e>0` cas
-      unfolding tendsto_def unfolding eventually_def by auto
-    then obtain y where y: "\<exists>x. netord net x y" "\<forall>x. netord net x y \<longrightarrow> dist (f x) l < e/b" by auto
-    { fix x
-      have "netord net x y \<longrightarrow> dist (h (f x)) (h l) < e"
-	using y(2) b unfolding dist_norm using linear_sub[of h "f x" l] `linear h`
-	apply auto by (metis b(1) b(2) less_le_not_le linorder_not_le mult_imp_div_pos_le real_mult_commute xt1(7)) (* FIXME: VERY slow! *)
-    }
-    hence " (\<exists>y. (\<exists>x. netord net x y) \<and> (\<forall>x. netord net x y \<longrightarrow> dist (h (f x)) (h l) < e))" using y
-      by(rule_tac x="y" in exI) auto
+    with `(f ---> l) net` have "eventually (\<lambda>x. dist (f x) l < e/b) net"
+      by (rule tendstoD)
+    then have "eventually (\<lambda>x. dist (h (f x)) (h l) < e) net"
+      apply (rule eventually_rev_mono [rule_format])
+      apply (simp add: dist_norm linear_sub [OF `linear h`, symmetric])
+      apply (rule le_less_trans [OF b(2) [rule_format]])
+      apply (simp add: pos_less_divide_eq `0 < b` mult_commute)
+      done
   }
-  thus ?thesis unfolding tendsto_def eventually_def using `b>0` by auto
+  thus ?thesis unfolding tendsto_def by simp
 qed
 
 lemma Lim_const: "((\<lambda>x. a) ---> a) net"
@@ -1407,23 +1419,13 @@ proof-
             "eventually (\<lambda>x. dist (g x) m < e/2) net" using as
       by (auto intro: tendstoD simp del: less_divide_eq_number_of1)
     hence "eventually (\<lambda>x. dist (f x + g x) (l + m) < e) net"
-    proof(cases "trivial_limit net")
-      case True
-      thus ?thesis unfolding eventually_def by auto
-    next
-      case False
-      hence fl:"(\<exists>y. (\<exists>x. netord net x y) \<and> (\<forall>x. netord net x y \<longrightarrow> dist (f x) l < e / 2))" and
-	    gl:"(\<exists>y. (\<exists>x. netord net x y) \<and> (\<forall>x. netord net x y \<longrightarrow> dist (g x) m < e / 2))"
-	using * unfolding eventually_def by auto
-      obtain c where c:"(\<exists>x. netord net x c)" "(\<forall>x. netord net x c \<longrightarrow> dist (f x) l < e / 2 \<and> dist (g x) m < e / 2)"
-	using net_dilemma[of net, OF fl gl] by auto
-      { fix x assume "netord net x c"
-	with c(2) have " dist (f x + g x) (l + m) < e" using dist_triangle_add[of "f x" "g x" l m] by auto
-      }
-      with c show ?thesis unfolding eventually_def by auto
-    qed
+      apply (elim eventually_rev_mp)
+      apply (rule always_eventually, clarify)
+      apply (rule le_less_trans [OF dist_triangle_add])
+      apply simp
+      done
   }
-  thus ?thesis unfolding tendsto_def by auto
+  thus ?thesis unfolding tendsto_def by simp
 qed
 
 lemma Lim_sub:
@@ -1491,18 +1493,17 @@ text{* Deducing things about the limit from the elements. *}
 lemma Lim_in_closed_set:
   assumes "closed S" "eventually (\<lambda>x. f(x) \<in> S) net"  "\<not>(trivial_limit net)" "(f ---> l) net"
   shows "l \<in> S"
-proof-
-  { assume "l \<notin> S"
-    obtain e where e:"e>0" "ball l e \<subseteq> UNIV - S" using assms(1) `l \<notin> S` unfolding closed_def open_contains_ball by auto
-    hence *:"\<forall>x. dist l x < e \<longrightarrow> x \<notin> S" by auto
-    obtain y where "(\<exists>x. netord net x y) \<and> (\<forall>x. netord net x y \<longrightarrow> dist (f x) l < e)"
-      using assms(3,4) `e>0` unfolding tendsto_def eventually_def by blast
-    hence "(\<exists>x. netord net x y) \<and> (\<forall>x. netord net x y \<longrightarrow> f x \<notin> S)"  using * by (auto simp add: dist_commute)
-    hence False using assms(2,3)
-      using eventually_and[of "(\<lambda>x. f x \<in> S)" "(\<lambda>x. f x \<notin> S)"] not_eventually[of "(\<lambda>x. f x \<in> S \<and> f x \<notin> S)" net]
-      unfolding eventually_def by blast
-  }
-  thus ?thesis by blast
+proof (rule ccontr)
+  assume "l \<notin> S"
+  obtain e where e:"e>0" "ball l e \<subseteq> UNIV - S" using assms(1) `l \<notin> S` unfolding closed_def open_contains_ball by auto
+  hence *:"\<forall>x. dist l x < e \<longrightarrow> x \<notin> S" by auto
+  have "eventually (\<lambda>x. dist (f x) l < e) net"
+    using assms(4) `e>0` by (rule tendstoD)
+  with assms(2) have "eventually (\<lambda>x. f x \<in> S \<and> dist (f x) l < e) net"
+    by (rule eventually_conjI)
+  then obtain x where "f x \<in> S" "dist (f x) l < e"
+    using assms(3) eventually_happens by auto
+  with * show "False" by (simp add: dist_commute)
 qed
 
 text{* Need to prove closed(cball(x,e)) before deducing this as a corollary. *}
@@ -1511,40 +1512,38 @@ lemma Lim_norm_ubound:
   fixes f :: "'a \<Rightarrow> 'b::real_normed_vector"
   assumes "\<not>(trivial_limit net)" "(f ---> l) net" "eventually (\<lambda>x. norm(f x) <= e) net"
   shows "norm(l) <= e"
-proof-
-  obtain y where y: "\<exists>x. netord net x y"  "\<forall>x. netord net x y \<longrightarrow> norm (f x) \<le> e" using assms(1,3) unfolding eventually_def by auto
-  show ?thesis
-  proof(rule ccontr)
-    assume "\<not> norm l \<le> e"
-    then obtain z where z: "\<exists>x. netord net x z"  "\<forall>x. netord net x z \<longrightarrow> dist (f x) l < norm l - e"
-      using assms(2)[unfolded Lim] using assms(1) apply simp apply(erule_tac x="norm l - e" in allE) by auto
-    obtain w where w:"netord net w z"  "netord net w y" using net[of net] using z(1) y(1) by blast
-    hence "dist (f w) l < norm l - e \<and> norm (f w) <= e" using z(2) y(2) by auto
-    hence "norm (f w - l) < norm l - e" "norm (f w) \<le> e" by (simp_all add: dist_norm)
-    hence "norm (f w - l) + norm (f w) < norm l" by simp
-    hence "norm (f w - l - f w) < norm l" by (rule le_less_trans [OF norm_triangle_ineq4])
-    thus False using `\<not> norm l \<le> e` by simp
-  qed
+proof (rule ccontr)
+  assume "\<not> norm l \<le> e"
+  then have "0 < norm l - e" by simp
+  with assms(2) have "eventually (\<lambda>x. dist (f x) l < norm l - e) net"
+    by (rule tendstoD)
+  with assms(3) have "eventually (\<lambda>x. norm (f x) \<le> e \<and> dist (f x) l < norm l - e) net"
+    by (rule eventually_conjI)
+  then obtain w where "norm (f w) \<le> e" "dist (f w) l < norm l - e"
+    using assms(1) eventually_happens by auto
+  hence "norm (f w - l) < norm l - e" "norm (f w) \<le> e" by (simp_all add: dist_norm)
+  hence "norm (f w - l) + norm (f w) < norm l" by simp
+  hence "norm (f w - l - f w) < norm l" by (rule le_less_trans [OF norm_triangle_ineq4])
+  thus False using `\<not> norm l \<le> e` by simp
 qed
 
 lemma Lim_norm_lbound:
   fixes f :: "'a \<Rightarrow> 'b::real_normed_vector"
   assumes "\<not> (trivial_limit net)"  "(f ---> l) net"  "eventually (\<lambda>x. e <= norm(f x)) net"
   shows "e \<le> norm l"
-proof-
-  obtain y where y: "\<exists>x. netord net x y"  "\<forall>x. netord net x y \<longrightarrow> e \<le> norm (f x)" using assms(1,3) unfolding eventually_def by auto
-  show ?thesis
-  proof(rule ccontr)
-    assume "\<not> e \<le> norm l"
-    then obtain z where z: "\<exists>x. netord net x z"  "\<forall>x. netord net x z \<longrightarrow> dist (f x) l < e - norm l"
-      using assms(2)[unfolded Lim] using assms(1) apply simp apply(erule_tac x="e - norm l" in allE) by auto
-    obtain w where w:"netord net w z"  "netord net w y" using net[of net] using z(1) y(1) by blast
-    hence "dist (f w) l < e - norm l \<and> e \<le> norm (f w)" using z(2) y(2) by auto
-    hence "norm (f w - l) + norm l < e" "e \<le> norm (f w)" by (simp_all add: dist_norm)
-    hence "norm (f w - l) + norm l < norm (f w)" by (rule less_le_trans)
-    hence "norm (f w - l + l) < norm (f w)" by (rule le_less_trans [OF norm_triangle_ineq])
-    thus False by simp
-  qed
+proof (rule ccontr)
+  assume "\<not> e \<le> norm l"
+  then have "0 < e - norm l" by simp
+  with assms(2) have "eventually (\<lambda>x. dist (f x) l < e - norm l) net"
+    by (rule tendstoD)
+  with assms(3) have "eventually (\<lambda>x. e \<le> norm (f x) \<and> dist (f x) l < e - norm l) net"
+    by (rule eventually_conjI)
+  then obtain w where "e \<le> norm (f w)" "dist (f w) l < e - norm l"
+    using assms(1) eventually_happens by auto
+  hence "norm (f w - l) + norm l < e" "e \<le> norm (f w)" by (simp_all add: dist_norm)
+  hence "norm (f w - l) + norm l < norm (f w)" by (rule less_le_trans)
+  hence "norm (f w - l + l) < norm (f w)" by (rule le_less_trans [OF norm_triangle_ineq])
+  thus False by simp
 qed
 
 text{* Uniqueness of the limit, when nontrivial. *}
@@ -1606,10 +1605,7 @@ lemma Lim_bilinear:
   fixes net :: "'a net" and h:: "real ^'m::finite \<Rightarrow> real ^'n::finite \<Rightarrow> real ^'p::finite"
   assumes "(f ---> l) net" and "(g ---> m) net" and "bilinear h"
   shows "((\<lambda>x. h (f x) (g x)) ---> (h l m)) net"
-proof(cases "trivial_limit net")
-  case True thus "((\<lambda>x. h (f x) (g x)) ---> h l m) net" unfolding Lim ..
-next
-  case False note ntriv = this
+proof -
   obtain B where "B>0" and B:"\<forall>x y. norm (h x y) \<le> B * norm x * norm y" using bilinear_bounded_pos[OF assms(3)] by auto
   { fix e::real assume "e>0"
     obtain d where "d>0" and d:"\<forall>x' y'. norm (x' - l) < d \<and> norm (y' - m) < d \<longrightarrow> norm x' * norm (y' - m) + norm (x' - l) * norm m < e / B" using `B>0` `e>0`
@@ -1619,6 +1615,15 @@ next
       unfolding bilinear_rsub[OF assms(3)]
       unfolding bilinear_lsub[OF assms(3)] by auto
 
+    have "eventually (\<lambda>x. dist (f x) l < d) net"
+      using assms(1) `d>0` by (rule tendstoD)
+    moreover
+    have "eventually (\<lambda>x. dist (g x) m < d) net"
+      using assms(2) `d>0` by (rule tendstoD)
+    ultimately
+    have "eventually (\<lambda>x. dist (f x) l < d \<and> dist (g x) m < d) net"
+      by (rule eventually_conjI)
+    moreover
     { fix x assume "dist (f x) l < d \<and> dist (g x) m < d"
       hence **:"norm (f x) * norm (g x - m) + norm (f x - l) * norm m < e / B"
 	using d[THEN spec[where x="f x"], THEN spec[where x="g x"]] unfolding dist_norm  by auto
@@ -1628,11 +1633,11 @@ next
       also have "\<dots> < e" using ** and `B>0` by(auto simp add: field_simps)
       finally have "dist (h (f x) (g x)) (h l m) < e" unfolding dist_norm and * using norm_triangle_lt by auto
     }
-    moreover
-    obtain c where "(\<exists>x. netord net x c) \<and> (\<forall>x. netord net x c \<longrightarrow> dist (f x) l < d \<and> dist (g x) m < d)"
-      using net_dilemma[of net "\<lambda>x. dist (f x) l < d" "\<lambda>x. dist (g x) m < d"] using assms(1,2) unfolding Lim using False and `d>0` by (auto elim!: allE[where x=d])
-    ultimately have "\<exists>y. (\<exists>x. netord net x y) \<and> (\<forall>x. netord net x y \<longrightarrow> dist (h (f x) (g x)) (h l m) < e)" by auto  }
-  thus "((\<lambda>x. h (f x) (g x)) ---> h l m) net" unfolding Lim by auto
+    ultimately have "eventually (\<lambda>x. dist (h (f x) (g x)) (h l m) < e) net"
+      by (auto elim: eventually_rev_mono)
+  }
+  thus "((\<lambda>x. h (f x) (g x)) ---> h l m) net"
+    unfolding tendsto_def by simp
 qed
 
 text{* These are special for limits out of the same vector space. *}
@@ -2073,9 +2078,15 @@ proof-
   from assms obtain a where a:"\<forall>x\<in>S. norm x \<le> a" unfolding bounded_def by auto
   { fix x assume "x\<in>closure S"
     then obtain xa where xa:"\<forall>n. xa n \<in> S"  "(xa ---> x) sequentially" unfolding closure_sequential by auto
-    moreover have "\<exists>y. \<exists>x. netord sequentially x y" using trivial_limit_sequentially unfolding trivial_limit_def by blast
-    hence "\<exists>y. (\<exists>x. netord sequentially x y) \<and> (\<forall>x. netord sequentially x y \<longrightarrow> norm (xa x) \<le> a)" unfolding sequentially_def using a xa(1) by auto
-    ultimately have "norm x \<le> a" using Lim_norm_ubound[of sequentially xa x a] trivial_limit_sequentially unfolding eventually_def by auto
+    have "\<forall>n. xa n \<in> S \<longrightarrow> norm (xa n) \<le> a" using a by simp
+    hence "eventually (\<lambda>n. norm (xa n) \<le> a) sequentially"
+      by (rule eventually_mono, simp add: xa(1))
+    have "norm x \<le> a"
+      apply (rule Lim_norm_ubound[of sequentially xa x a])
+      apply (rule trivial_limit_sequentially)
+      apply (rule xa(2))
+      apply fact
+      done
   }
   thus ?thesis unfolding bounded_def by auto
 qed
@@ -4124,17 +4135,15 @@ lemma Lim_inv:
   fixes f :: "'a \<Rightarrow> real"
   assumes "((vec1 o f) ---> vec1 l) (net::'a net)"  "l \<noteq> 0"
   shows "((vec1 o inverse o f) ---> vec1(inverse l)) net"
-proof(cases "trivial_limit net")
-  case True thus ?thesis unfolding tendsto_def unfolding eventually_def by auto
-next
-  case False note ntriv = this
+proof -
   { fix e::real assume "e>0"
-    hence "0 < min (\<bar>l\<bar> / 2) (l\<twosuperior> * e / 2)" using `l\<noteq>0` mult_pos_pos[of "l^2" "e/2"] by auto
-    then obtain y where y1:"\<exists>x. netord net x y" and
-      y:"\<forall>x. netord net x y \<longrightarrow> dist ((vec1 \<circ> f) x) (vec1 l) < min (\<bar>l\<bar> / 2) (l\<twosuperior> * e / 2)" using ntriv
-      using assms(1)[unfolded tendsto_def eventually_def, THEN spec[where x="min (abs l / 2) (l ^ 2 * e / 2)"]] by auto
-    { fix x assume "netord net x y"
-      hence *:"\<bar>f x - l\<bar> < min (\<bar>l\<bar> / 2) (l\<twosuperior> * e / 2)" using y[THEN spec[where x=x]] unfolding o_def dist_vec1 by auto
+    let ?d = "min (\<bar>l\<bar> / 2) (l\<twosuperior> * e / 2)"
+    have "0 < ?d" using `l\<noteq>0` `e>0` mult_pos_pos[of "l^2" "e/2"] by auto
+    with assms(1) have "eventually (\<lambda>x. dist ((vec1 o f) x) (vec1 l) < ?d) net"
+      by (rule tendstoD)
+    moreover
+    { fix x assume "dist ((vec1 o f) x) (vec1 l) < ?d"
+      hence *:"\<bar>f x - l\<bar> < min (\<bar>l\<bar> / 2) (l\<twosuperior> * e / 2)" unfolding o_def dist_vec1 by auto
       hence fx0:"f x \<noteq> 0" using `l \<noteq> 0` by auto
       hence fxl0: "(f x) * l \<noteq> 0" using `l \<noteq> 0` by auto
       from * have **:"\<bar>f x - l\<bar> < l\<twosuperior> * e / 2" by auto
@@ -4151,10 +4160,13 @@ next
 	unfolding divide_divide_eq_left
 	unfolding nonzero_abs_divide[OF fxl0]
 	using mult_less_le_imp_less[OF **, of "inverse \<bar>f x * l\<bar>", of "inverse (l^2 / 2)"] using *** using fx0 `l\<noteq>0`
-	unfolding inverse_eq_divide using `e>0` by auto   }
-    hence "(\<exists>y. (\<exists>x. netord net x y) \<and> (\<forall>x. netord net x y \<longrightarrow> dist ((vec1 \<circ> inverse \<circ> f) x) (vec1 (inverse l)) < e))"
-      using y1 by auto  }
-  thus ?thesis unfolding tendsto_def eventually_def by auto
+	unfolding inverse_eq_divide using `e>0` by auto
+    }
+    ultimately
+    have "eventually (\<lambda>x. dist ((vec1 o inverse o f) x) (vec1(inverse l)) < e) net"
+      by (auto elim: eventually_rev_mono)
+  }
+  thus ?thesis unfolding tendsto_def by auto
 qed
 
 lemma continuous_inv:
@@ -4975,16 +4987,22 @@ proof(cases "a = vec 0")
 next
   case False
   { fix e::real
-    assume "0 < e"  "\<forall>e>0. \<exists>y. (\<exists>x. netord net x y) \<and> (\<forall>x. netord net x y \<longrightarrow> dist l (f x) < e)"
-    then obtain x y where x:"netord net x y" and y:"\<forall>x. netord net x y \<longrightarrow> dist l (f x) < e / norm a" apply(erule_tac x="e / norm a" in allE) apply auto using False using norm_ge_zero[of a] apply auto
-      using divide_pos_pos[of e "norm a"] by auto
-    { fix z assume "netord net z y" hence "dist l (f z) < e / norm a" using y by blast
-      hence "norm a * norm (l - f z) < e" unfolding dist_norm and
+    assume "0 < e"
+    with `a \<noteq> vec 0` have "0 < e / norm a" by (simp add: divide_pos_pos)
+    with assms(1) have "eventually (\<lambda>x. dist (f x) l < e / norm a) net"
+      by (rule tendstoD)
+    moreover
+    { fix z assume "dist (f z) l < e / norm a"
+      hence "norm a * norm (f z - l) < e" unfolding dist_norm and
 	pos_less_divide_eq[OF False[unfolded vec_0 zero_less_norm_iff[of a, THEN sym]]] and real_mult_commute by auto
-      hence "\<bar>a \<bullet> l - a \<bullet> f z\<bar> < e" using order_le_less_trans[OF norm_cauchy_schwarz_abs[of a "l - f z"], of e] unfolding dot_rsub[symmetric] by auto  }
-    hence "\<exists>y. (\<exists>x. netord net x y) \<and> (\<forall>x. netord net x y \<longrightarrow> \<bar>a \<bullet> l - a \<bullet> f x\<bar> < e)" using x by auto  }
-  thus ?thesis using assms unfolding Lim apply (auto simp add: dist_commute)
-    unfolding dist_vec1 by auto
+      hence "\<bar>a \<bullet> f z - a \<bullet> l\<bar> < e"
+        using order_le_less_trans[OF norm_cauchy_schwarz_abs[of a "f z - l"], of e]
+        unfolding dot_rsub[symmetric] by auto  }
+    ultimately have "eventually (\<lambda>x. \<bar>a \<bullet> f x - a \<bullet> l\<bar> < e) net"
+      by (auto elim: eventually_rev_mono)
+  }
+  thus ?thesis unfolding tendsto_def
+    by (auto simp add: dist_vec1)
 qed
 
 lemma continuous_at_vec1_dot:
