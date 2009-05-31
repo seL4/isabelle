@@ -379,7 +379,11 @@ val (_, export_oracle) = Context.>>> (Context.map_theory_result
         fun has_witness s = not (null (Sign.witness_sorts thy [] [s]))
         val shyptab = fold Sorttab.delete (filter has_witness (Sorttab.keys (shyptab))) shyptab
         val shyps = if Sorttab.is_empty shyptab then [] else Sorttab.keys (fold delete_term (prop::hyps) shyptab)
-        val _ = if not (null shyps) then raise Compute ("dangling sort hypotheses: "^(makestring shyps)) else ()
+        val _ =
+          if not (null shyps) then
+            raise Compute ("dangling sort hypotheses: " ^
+              commas (map (Syntax.string_of_sort_global thy) shyps))
+          else ()
     in
         Thm.cterm_of thy (fold_rev (fn hyp => fn p => Logic.mk_implies (hyp, p)) hyps prop)
     end)));
@@ -610,7 +614,8 @@ in
             case match_aterms varsubst b' a' of
                 NONE => 
                 let
-                    fun mk s = makestring (infer_types (naming_of computer) (encoding_of computer) ty s)
+                    fun mk s = Syntax.string_of_term_global Pure.thy
+                      (infer_types (naming_of computer) (encoding_of computer) ty s)
                     val left = "computed left side: "^(mk a')
                     val right = "computed right side: "^(mk b')
                 in

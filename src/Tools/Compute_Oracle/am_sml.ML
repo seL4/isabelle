@@ -320,7 +320,7 @@ fun sml_prog name code rules =
 		val strict_args = (case toplevel_arity_of c of NONE => the (arity_of c) | SOME sa => sa)
 		val xs = map (fn n => if n < strict_args then "x"^(str n) else "x"^(str n)^"()") rightargs
 		val right = (indexed "C" c)^" "^(string_of_tuple xs)
-		val message = "(\"unresolved lazy call: "^(string_of_int c)^", \"^(makestring x"^(string_of_int (strict_args - 1))^"))"		
+		val message = "(\"unresolved lazy call: " ^ string_of_int c ^ "\")"
 		val right = if strict_args < the (arity_of c) then "raise AM_SML.Run "^message else right		
 	    in
 		(indexed "c" c)^(if gnum > 0 then "_"^(str gnum) else "")^leftargs^" = "^right
