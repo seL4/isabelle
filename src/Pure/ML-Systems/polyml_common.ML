@@ -28,13 +28,7 @@ PolyML.Compiler.maxInlineSize := 80;
 
 (* old Poly/ML emulation *)
 
-local
-  val orig_exit = exit;
-in
-  open PolyML;
-  val exit = orig_exit;
-  fun quit () = exit 0;
-end;
+fun quit () = exit 0;
 
 
 (* restore old-style character / string functions *)
@@ -82,6 +76,8 @@ in
   fun get_print_depth () = ! depth;
   fun print_depth n = (depth := n; PolyML.print_depth n);
 end;
+
+val error_depth = PolyML.error_depth;
 
 
 
@@ -134,7 +130,12 @@ fun getenv var =
   | SOME txt => txt);
 
 
-(* profile execution *)
+
+(** Runtime system **)
+
+val exception_trace = PolyML.exception_trace;
+val timing = PolyML.timing;
+val profiling = PolyML.profiling;
 
 fun profile 0 f x = f x
   | profile n f x =
