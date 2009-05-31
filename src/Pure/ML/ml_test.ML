@@ -35,7 +35,7 @@ fun register_tokens toks context =
   in (regs, context') end;
 
 fun position_of ctxt
-    ({file, startLine = line, startPosition = i, endPosition = j, ...}: location) =
+    ({file, startLine = line, startPosition = i, endPosition = j, ...}: PolyML.location) =
   (case pairself (Inttab.lookup (Extra_Env.get (Context.Proof ctxt))) (i, j) of
     (SOME pos1, SOME pos2) => Position.encode_range (pos1, pos2)
   | (SOME pos, NONE) => pos
@@ -47,15 +47,15 @@ fun position_of ctxt
 fun report_parse_tree context depth space =
   let
     val pos_of = position_of (Context.proof_of context);
-    fun report loc (PTtype types) =
+    fun report loc (PolyML.PTtype types) =
           PolyML.NameSpace.displayTypeExpression (types, depth, space)
           |> pretty_ml |> Pretty.from_ML |> Pretty.string_of
           |> Position.report_text Markup.ML_typing (pos_of loc)
-      | report loc (PTdeclaredAt decl) =
+      | report loc (PolyML.PTdeclaredAt decl) =
           Markup.markup (Markup.properties (Position.properties_of (pos_of decl)) Markup.ML_def) ""
           |> Position.report_text Markup.ML_ref (pos_of loc)
-      | report _ (PTnextSibling tree) = report_tree (tree ())
-      | report _ (PTfirstChild tree) = report_tree (tree ())
+      | report _ (PolyML.PTnextSibling tree) = report_tree (tree ())
+      | report _ (PolyML.PTfirstChild tree) = report_tree (tree ())
       | report _ _ = ()
     and report_tree (loc, props) = List.app (report loc) props;
   in report_tree end;

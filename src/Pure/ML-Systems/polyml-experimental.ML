@@ -26,34 +26,35 @@ use "ML-Systems/compiler_polyml-5.3.ML";
 
 val pretty_ml =
   let
-    fun convert len (PrettyBlock (ind, _, context, prts)) =
+    fun convert len (PolyML.PrettyBlock (ind, _, context, prts)) =
           let
             fun property name default =
-              (case List.find (fn ContextProperty (a, _) => name = a | _ => false) context of
-                SOME (ContextProperty (_, b)) => b
+              (case List.find (fn PolyML.ContextProperty (a, _) => name = a | _ => false) context of
+                SOME (PolyML.ContextProperty (_, b)) => b
               | NONE => default);
             val bg = property "begin" "";
             val en = property "end" "";
             val len' = property "length" len;
           in ML_Pretty.Block ((bg, en), map (convert len') prts, ind) end
-      | convert len (PrettyString s) =
+      | convert len (PolyML.PrettyString s) =
           ML_Pretty.String (s, case Int.fromString len of SOME i => i | NONE => size s)
-      | convert _ (PrettyBreak (wd, _)) =
+      | convert _ (PolyML.PrettyBreak (wd, _)) =
           ML_Pretty.Break (if wd < 99999 then (false, wd) else (true, 2));
   in convert "" end;
 
 fun ml_pretty (ML_Pretty.Block ((bg, en), prts, ind)) =
       let val context =
-        (if bg = "" then [] else [ContextProperty ("begin", bg)]) @
-        (if en = "" then [] else [ContextProperty ("end", en)])
-      in PrettyBlock (ind, false, context, map ml_pretty prts) end
+        (if bg = "" then [] else [PolyML.ContextProperty ("begin", bg)]) @
+        (if en = "" then [] else [PolyML.ContextProperty ("end", en)])
+      in PolyML.PrettyBlock (ind, false, context, map ml_pretty prts) end
   | ml_pretty (ML_Pretty.String (s, len)) =
-      if len = size s then PrettyString s
-      else PrettyBlock (0, false, [ContextProperty ("length", Int.toString len)], [PrettyString s])
-  | ml_pretty (ML_Pretty.Break (false, wd)) = PrettyBreak (wd, 0)
-  | ml_pretty (ML_Pretty.Break (true, _)) = PrettyBreak (99999, 0);
+      if len = size s then PolyML.PrettyString s
+      else PolyML.PrettyBlock
+        (0, false, [PolyML.ContextProperty ("length", Int.toString len)], [PolyML.PrettyString s])
+  | ml_pretty (ML_Pretty.Break (false, wd)) = PolyML.PrettyBreak (wd, 0)
+  | ml_pretty (ML_Pretty.Break (true, _)) = PolyML.PrettyBreak (99999, 0);
 
 fun toplevel_pp context (_: string list) pp =
   use_text context (1, "pp") false
-    ("addPrettyPrinter (fn _ => fn _ => ml_pretty o Pretty.to_ML o (" ^ pp ^ "))");
+    ("PolyML.addPrettyPrinter (fn _ => fn _ => ml_pretty o Pretty.to_ML o (" ^ pp ^ "))");
 
