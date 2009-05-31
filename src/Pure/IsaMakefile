@@ -22,11 +22,9 @@ LOG = $(OUT)/log
 BOOTSTRAP_FILES = ML-Systems/exn.ML ML-Systems/ml_name_space.ML		\
   ML-Systems/ml_pretty.ML ML-Systems/mosml.ML				\
   ML-Systems/multithreading.ML ML-Systems/multithreading_polyml.ML	\
-  ML-Systems/overloading_smlnj.ML ML-Systems/polyml-4.1.3.ML		\
-  ML-Systems/polyml-4.1.4.ML ML-Systems/polyml-4.2.0.ML			\
-  ML-Systems/polyml-5.0.ML ML-Systems/polyml-5.1.ML			\
-  ML-Systems/polyml-experimental.ML ML-Systems/polyml.ML		\
-  ML-Systems/polyml_common.ML ML-Systems/polyml_old_compiler4.ML	\
+  ML-Systems/overloading_smlnj.ML ML-Systems/polyml-5.0.ML		\
+  ML-Systems/polyml-5.1.ML ML-Systems/polyml-experimental.ML		\
+  ML-Systems/polyml.ML ML-Systems/polyml_common.ML			\
   ML-Systems/polyml_old_compiler5.ML ML-Systems/polyml_pp.ML		\
   ML-Systems/proper_int.ML ML-Systems/smlnj.ML				\
   ML-Systems/system_shell.ML ML-Systems/thread_dummy.ML			\

@@ -1,6 +1,6 @@
 (*  Title:      Pure/ML-Systems/polyml_common.ML
 
-Compatibility file for Poly/ML -- common part for 4.x and 5.x.
+Compatibility file for Poly/ML -- common part for 5.x.
 *)
 
 exception Interrupt = SML90.Interrupt;

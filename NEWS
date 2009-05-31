@@ -33,6 +33,11 @@ cominators for "args".  INCOMPATIBILITY, need to use simplified
 Attrib/Method.setup introduced in Isabelle2009.
 
 
+*** System ***
+
+* Discontinued support for Poly/ML 4.x versions.
+
+
 
 New in Isabelle2009 (April 2009)
 --------------------------------
