@@ -266,7 +266,6 @@ text {*
 Usage: isabelle-process [OPTIONS] [INPUT] [OUTPUT]
 
   Options are:
-    -C           tell ML system to copy output image
     -I           startup Isar interaction mode
     -P           startup Proof General interaction mode
     -S           secure mode -- disallow critical operations
@@ -325,10 +324,6 @@ text {*
   example, the image is garbage collected and all stored values are
   maximally shared, resulting in up to @{text "50%"} less disk space
   consumption.
-
-  \medskip The @{verbatim "-C"} option tells the ML system to produce
-  a completely self-contained output image, probably including a copy
-  of the ML runtime system itself.
 
   \medskip Using the @{verbatim "-e"} option, arbitrary ML code may be
   passed to the Isabelle session from the command line. Multiple

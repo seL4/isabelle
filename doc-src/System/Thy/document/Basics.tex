@@ -275,7 +275,6 @@ The \indexdef{}{executable}{isabelle-process}\hypertarget{executable.isabelle-pr
 Usage: isabelle-process [OPTIONS] [INPUT] [OUTPUT]
 
   Options are:
-    -C           tell ML system to copy output image
     -I           startup Isar interaction mode
     -P           startup Proof General interaction mode
     -S           secure mode -- disallow critical operations
@@ -336,10 +335,6 @@ If the input heap file does not have write permission bits set, or
   example, the image is garbage collected and all stored values are
   maximally shared, resulting in up to \isa{{\isachardoublequote}{\isadigit{5}}{\isadigit{0}}{\isacharpercent}{\isachardoublequote}} less disk space
   consumption.
-
-  \medskip The \verb|-C| option tells the ML system to produce
-  a completely self-contained output image, probably including a copy
-  of the ML runtime system itself.
 
   \medskip Using the \verb|-e| option, arbitrary ML code may be
   passed to the Isabelle session from the command line. Multiple
