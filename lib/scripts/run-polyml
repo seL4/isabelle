@@ -4,7 +4,7 @@
 #
 # Poly/ML 5.1/5.2 startup script.
 
-export -n INFILE OUTFILE COMPRESS MLTEXT TERMINATE NOWRITE
+export -n INFILE OUTFILE MLTEXT TERMINATE NOWRITE
 
 
 ## diagnostics
@@ -54,11 +54,7 @@ fi
 if [ -z "$OUTFILE" ]; then
   COMMIT='fun commit () = (TextIO.output (TextIO.stdErr, "Error - Database is not opened for writing.\n"); false);'
 else
-  if [ -z "$COMPRESS" ]; then
-    COMMIT="fun commit () = (TextIO.output (TextIO.stdOut, \"Exporting $OUTFILE\n\"); PolyML.SaveState.saveState \"$OUTFILE\"; true);"
-  else
-    COMMIT="fun commit () = (PolyML.shareCommonData PolyML.rootFunction; TextIO.output (TextIO.stdOut, \"Exporting $OUTFILE\n\"); PolyML.SaveState.saveState \"$OUTFILE\"; true);"
-  fi
+  COMMIT="fun commit () = (PolyML.shareCommonData PolyML.rootFunction; TextIO.output (TextIO.stdOut, \"Exporting $OUTFILE\n\"); PolyML.SaveState.saveState \"$OUTFILE\"; true);"
   [ -f "$OUTFILE" ] && { chmod +w "$OUTFILE" || fail_out; }
 fi
 

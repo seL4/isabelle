@@ -31,7 +31,6 @@ function usage()
   echo "    -S           secure mode -- disallow critical operations"
   echo "    -X           startup PGIP interaction mode"
   echo "    -W OUTPUT    startup process wrapper, with messages going to OUTPUT stream"
-  echo "    -c           tell ML system to compress output image"
   echo "    -e MLTEXT    pass MLTEXT to the ML session"
   echo "    -f           pass 'Session.finish();' to the ML session"
   echo "    -m MODE      add print mode for output"
@@ -64,14 +63,13 @@ PROOFGENERAL=""
 SECURE=""
 WRAPPER_OUTPUT=""
 PGIP=""
-COMPRESS=""
 MLTEXT=""
 MODES=""
 TERMINATE=""
 READONLY=""
 NOWRITE=""
 
-while getopts "IPSW:Xce:fm:qruw" OPT
+while getopts "IPSW:Xe:fm:qruw" OPT
 do
   case "$OPT" in
     I)
@@ -88,9 +86,6 @@ do
       ;;
     X)
       PGIP=true
-      ;;
-    c)
-      COMPRESS=true
       ;;
     e)
       MLTEXT="$MLTEXT $OPTARG"
@@ -230,7 +225,7 @@ else
   NICE=""
 fi
 
-export INFILE OUTFILE COMPRESS MLTEXT TERMINATE NOWRITE ISABELLE_PID ISABELLE_TMP
+export INFILE OUTFILE MLTEXT TERMINATE NOWRITE ISABELLE_PID ISABELLE_TMP
 
 if [ -f "$ISABELLE_HOME/lib/scripts/run-$ML_SYSTEM" ]; then
   $NICE "$ISABELLE_HOME/lib/scripts/run-$ML_SYSTEM"

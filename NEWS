@@ -37,6 +37,9 @@ Attrib/Method.setup introduced in Isabelle2009.
 
 * Discontinued support for Poly/ML 4.x versions.
 
+* Removed "compress" option from isabelle-process and isabelle usedir;
+this is always enabled.
+
 
 
 New in Isabelle2009 (April 2009)
