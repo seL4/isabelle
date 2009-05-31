@@ -1,4 +1,4 @@
-# -*- shell-script -*-
+# -*- shell-script -*- :mode=shellscript:
 
 # Standard ML of New Jersey 110 or later
 ML_SYSTEM=smlnj-110

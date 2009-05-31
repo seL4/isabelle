@@ -1,4 +1,4 @@
-# -*- shell-script -*-
+# -*- shell-script -*- :mode=shellscript:
 #
 # Author: Makarius
 #
