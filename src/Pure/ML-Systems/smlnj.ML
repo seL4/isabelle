@@ -92,12 +92,6 @@ fun profile (n: int) f x = f x;
 (*dummy implementation*)
 fun exception_trace f = f ();
 
-(*dummy implementation*)
-fun print x = x;
-
-(*dummy implementation*)
-fun makestring x = "dummy string for SML New Jersey";
-
 
 (* ML command execution *)
 
