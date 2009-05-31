@@ -1196,6 +1196,12 @@ lemma always_eventually: "(\<forall>x. P x) ==> eventually P net"
 lemma eventually_True [simp]: "eventually (\<lambda>x. True) net"
   by (simp add: always_eventually)
 
+lemma trivial_limit_eventually: "trivial_limit net \<Longrightarrow> eventually P net"
+  unfolding eventually_def by simp
+
+lemma trivial_limit_eq: "trivial_limit net \<longleftrightarrow> (\<forall>P. eventually P net)"
+  unfolding eventually_def trivial_limit_def by auto
+
 text{* Combining theorems for "eventually" *}
 
 lemma eventually_and: " eventually (\<lambda>x. P x \<and> Q x) net \<longleftrightarrow> eventually P net \<and> eventually Q net"
@@ -1246,9 +1252,8 @@ definition "Lim net f = (THE l. (f ---> l) net)"
 lemma Lim:
  "(f ---> l) net \<longleftrightarrow>
         trivial_limit net \<or>
-        (\<forall>e>0. \<exists>y. (\<exists>x. netord net x y) \<and>
-                           (\<forall>x. netord(net) x y \<longrightarrow> dist (f x) l < e))"
-  by (auto simp add: tendsto_def eventually_def)
+        (\<forall>e>0. eventually (\<lambda>x. dist (f x) l < e) net)"
+  unfolding tendsto_def trivial_limit_eq by auto
 
 
 text{* Show that they yield usual definitions in the various cases. *}
@@ -1281,7 +1286,7 @@ lemma Lim_sequentially_iff_LIMSEQ: "(S ---> l) sequentially \<longleftrightarrow
   unfolding Lim_sequentially LIMSEQ_def ..
 
 lemma Lim_eventually: "eventually (\<lambda>x. f x = l) net \<Longrightarrow> (f ---> l) net"
-  by (auto simp add: eventually_def Lim)
+  unfolding tendsto_def by (auto elim: eventually_rev_mono)
 
 text{* The expected monotonicity property. *}
 
@@ -1462,11 +1467,12 @@ qed
 
 lemma Lim_component: "(f ---> l) net
                       ==> ((\<lambda>a. vec1((f a :: real ^'n::finite)$i)) ---> vec1(l$i)) net"
-  apply (simp add: Lim dist_norm vec1_sub[symmetric] norm_vec1  vector_minus_component[symmetric] del: vector_minus_component)
+  unfolding tendsto_def
+  apply (simp add: dist_norm vec1_sub[symmetric] norm_vec1  vector_minus_component[symmetric] del: vector_minus_component)
   apply (auto simp del: vector_minus_component)
   apply (erule_tac x=e in allE)
   apply clarify
-  apply (rule_tac x=y in exI)
+  apply (erule eventually_rev_mono)
   apply (auto simp del: vector_minus_component)
   apply (rule order_le_less_trans)
   apply (rule component_le_norm)
@@ -3052,14 +3058,13 @@ definition "continuous net f \<longleftrightarrow> (f ---> f(netlimit net)) net"
 
 lemma continuous_trivial_limit:
  "trivial_limit net ==> continuous net f"
-  unfolding continuous_def tendsto_def eventually_def by auto
+  unfolding continuous_def tendsto_def trivial_limit_eq by auto
 
 lemma continuous_within: "continuous (at x within s) f \<longleftrightarrow> (f ---> f(x)) (at x within s)"
   unfolding continuous_def
   unfolding tendsto_def
   using netlimit_within[of x s]
-  unfolding eventually_def
-  by (cases "trivial_limit (at x within s)") auto
+  by (cases "trivial_limit (at x within s)") (auto simp add: trivial_limit_eventually)
 
 lemma continuous_at: "continuous (at x) f \<longleftrightarrow> (f ---> f(x)) (at x)"
   using continuous_within [of x UNIV f] by (simp add: within_UNIV)
@@ -4179,12 +4184,8 @@ lemma continuous_at_within_inv:
   fixes f :: "real ^ _ \<Rightarrow> real"
   assumes "continuous (at a within s) (vec1 o f)" "f a \<noteq> 0"
   shows "continuous (at a within s) (vec1 o inverse o f)"
-proof(cases "trivial_limit (at a within s)")
-  case True thus ?thesis unfolding continuous_def tendsto_def eventually_def by auto
-next
-  case False note cs = this
-  thus ?thesis using netlimit_within[OF cs] assms(2) continuous_inv[OF assms(1)] by auto
-qed
+  using assms unfolding continuous_within o_apply
+  by (rule Lim_inv)
 
 lemma continuous_at_inv:
   fixes f :: "real ^ _ \<Rightarrow> real"
