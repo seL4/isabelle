@@ -1,4 +1,4 @@
-(*  Title:      Pure/ML-Systems/polyml_pp.ML
+(*  Title:      Pure/ML-Systems/pp_polyml.ML
 
 Toplevel pretty printing for Poly/ML before 5.3.
 *)
@@ -16,5 +16,5 @@ fun ml_pprint (print, begin_blk, brk, end_blk) =
 
 fun toplevel_pp context (_: string list) pp =
   use_text context (1, "pp") false
-    ("install_pp (fn args => fn _ => fn _ => ml_pprint args o Pretty.to_ML o (" ^ pp ^ "))");
+    ("PolyML.install_pp (fn args => fn _ => fn _ => ml_pprint args o Pretty.to_ML o (" ^ pp ^ "))");
 
