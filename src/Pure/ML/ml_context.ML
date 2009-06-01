@@ -19,9 +19,6 @@ sig
   val the_global_context: unit -> theory
   val the_local_context: unit -> Proof.context
   val exec: (unit -> unit) -> Context.generic -> Context.generic
-  val inherit_env: Context.generic -> Context.generic -> Context.generic
-  val name_space: ML_Name_Space.T
-  val local_context: use_context
   val stored_thms: thm list ref
   val ml_store_thm: string * thm -> unit
   val ml_store_thms: string * thm list -> unit
@@ -54,78 +51,6 @@ fun exec (e: unit -> unit) context =
   | NONE => error "Missing context after execution");
 
 
-(* ML name space *)
-
-structure ML_Env = GenericDataFun
-(
-  type T =
-    ML_Name_Space.valueVal Symtab.table *
-    ML_Name_Space.typeVal Symtab.table *
-    ML_Name_Space.fixityVal Symtab.table *
-    ML_Name_Space.structureVal Symtab.table *
-    ML_Name_Space.signatureVal Symtab.table *
-    ML_Name_Space.functorVal Symtab.table;
-  val empty = (Symtab.empty, Symtab.empty, Symtab.empty, Symtab.empty, Symtab.empty, Symtab.empty);
-  val extend = I;
-  fun merge _
-   ((val1, type1, fixity1, structure1, signature1, functor1),
-    (val2, type2, fixity2, structure2, signature2, functor2)) : T =
-   (Symtab.merge (K true) (val1, val2),
-    Symtab.merge (K true) (type1, type2),
-    Symtab.merge (K true) (fixity1, fixity2),
-    Symtab.merge (K true) (structure1, structure2),
-    Symtab.merge (K true) (signature1, signature2),
-    Symtab.merge (K true) (functor1, functor2));
-);
-
-val inherit_env = ML_Env.put o ML_Env.get;
-
-val name_space: ML_Name_Space.T =
-  let
-    fun lookup sel1 sel2 name =
-      Context.thread_data ()
-      |> (fn NONE => NONE | SOME context => Symtab.lookup (sel1 (ML_Env.get context)) name)
-      |> (fn NONE => sel2 ML_Name_Space.global name | some => some);
-
-    fun all sel1 sel2 () =
-      Context.thread_data ()
-      |> (fn NONE => [] | SOME context => Symtab.dest (sel1 (ML_Env.get context)))
-      |> append (sel2 ML_Name_Space.global ())
-      |> sort_distinct (string_ord o pairself #1);
-
-    fun enter ap1 sel2 entry =
-      if is_some (Context.thread_data ()) then
-        Context.>> (ML_Env.map (ap1 (Symtab.update entry)))
-      else sel2 ML_Name_Space.global entry;
-  in
-   {lookupVal    = lookup #1 #lookupVal,
-    lookupType   = lookup #2 #lookupType,
-    lookupFix    = lookup #3 #lookupFix,
-    lookupStruct = lookup #4 #lookupStruct,
-    lookupSig    = lookup #5 #lookupSig,
-    lookupFunct  = lookup #6 #lookupFunct,
-    enterVal     = enter (fn h => fn (a, b, c, d, e, f) => (h a, b, c, d, e, f)) #enterVal,
-    enterType    = enter (fn h => fn (a, b, c, d, e, f) => (a, h b, c, d, e, f)) #enterType,
-    enterFix     = enter (fn h => fn (a, b, c, d, e, f) => (a, b, h c, d, e, f)) #enterFix,
-    enterStruct  = enter (fn h => fn (a, b, c, d, e, f) => (a, b, c, h d, e, f)) #enterStruct,
-    enterSig     = enter (fn h => fn (a, b, c, d, e, f) => (a, b, c, d, h e, f)) #enterSig,
-    enterFunct   = enter (fn h => fn (a, b, c, d, e, f) => (a, b, c, d, e, h f)) #enterFunct,
-    allVal       = all #1 #allVal,
-    allType      = all #2 #allType,
-    allFix       = all #3 #allFix,
-    allStruct    = all #4 #allStruct,
-    allSig       = all #5 #allSig,
-    allFunct     = all #6 #allFunct}
-  end;
-
-val local_context: use_context =
- {tune_source = ML_Parse.fix_ints,
-  name_space = name_space,
-  str_of_pos = Position.str_of oo Position.line_file,
-  print = writeln,
-  error = error};
-
-
 (* theorem bindings *)
 
 val stored_thms: thm list ref = ref [];
@@ -139,7 +64,7 @@ fun ml_store sel (name, ths) =
       else if not (ML_Syntax.is_identifier name) then
         error ("Cannot bind theorem(s) " ^ quote name ^ " as ML value")
       else setmp stored_thms ths' (fn () =>
-        use_text local_context (0, "") true
+        use_text ML_Env.local_context (0, "") true
           ("val " ^ name ^ " = " ^ sel ^ "(! ML_Context.stored_thms);")) ();
   in () end;
 
@@ -240,7 +165,7 @@ val trace = ref false;
 
 fun eval verbose pos txt =
   let
-    fun eval_raw p = use_text local_context
+    fun eval_raw p = use_text ML_Env.local_context
       (the_default 1 (Position.line_of p), the_default "ML" (Position.file_of p));
 
     (*prepare source text*)
@@ -253,7 +178,7 @@ fun eval verbose pos txt =
     (*prepare static ML environment*)
     val _ = Context.setmp_thread_data env_ctxt
         (fn () => (eval_raw Position.none false env; Context.thread_data ())) ()
-      |> (fn NONE => () | SOME context' => Context.>> (inherit_env context'));
+      |> (fn NONE => () | SOME context' => Context.>> (ML_Env.inherit context'));
 
     (*eval ML*)
     val _ = eval_raw pos verbose body;
