@@ -280,6 +280,7 @@ $(OUT)/HOL: ROOT.ML $(MAIN_DEPENDENCIES) \
   Fact.thy \
   Integration.thy \
   Lim.thy \
+  Limits.thy \
   Ln.thy \
   Log.thy \
   MacLaurin.thy \
