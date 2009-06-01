@@ -9,7 +9,7 @@ sig
   val inherit: Context.generic -> Context.generic -> Context.generic
   val register_tokens: ML_Lex.token list -> Context.generic ->
     (serial * ML_Lex.token) list * Context.generic
-  val token_position: Proof.context -> serial -> Position.T option
+  val token_position: Context.generic -> serial -> Position.T option
   val name_space: ML_Name_Space.T
   val local_context: use_context
 end
@@ -57,7 +57,7 @@ fun register_tokens toks context =
       |> Env.map (apfst (fold (fn (i, tok) => Inttab.update (i, ML_Lex.pos_of tok)) regs));
   in (regs, context') end;
 
-val token_position = Inttab.lookup o #1 o Env.get o Context.Proof;
+val token_position = Inttab.lookup o #1 o Env.get;
 
 
 (* results *)
