@@ -240,7 +240,7 @@ val OF_att =
 
 (* rename_abs *)
 
-val rename_abs = Scan.repeat (Args.maybe Args.name) >> (apsnd o Drule.rename_bvars');
+fun rename_abs x = (Scan.repeat (Args.maybe Args.name) >> (apsnd o Drule.rename_bvars')) x;
 
 
 (* unfold / fold definitions *)
