@@ -1,7 +1,7 @@
 (*  Title:      Pure/ML/ml_test.ML
     Author:     Makarius
 
-Test of advanced ML compiler invocation in Poly/ML 5.3 (SVN 744).
+Test of advanced ML compiler invocation in Poly/ML 5.3 (SVN 762).
 *)
 
 signature ML_TEST =
@@ -15,28 +15,9 @@ struct
 
 (* extra ML environment *)
 
-structure Extra_Env = GenericDataFun
-(
-  type T = Position.T Inttab.table;  (*position of registered tokens*)
-  val empty = Inttab.empty;
-  val extend = I;
-  fun merge _ = Inttab.merge (K true);
-);
-
-fun inherit_env context =
-  ML_Env.inherit context #>
-  Extra_Env.put (Extra_Env.get context);
-
-fun register_tokens toks context =
-  let
-    val regs = map (fn tok => (serial (), tok)) toks;
-    val context' = context
-      |> Extra_Env.map (fold (fn (i, tok) => Inttab.update (i, ML_Lex.pos_of tok)) regs);
-  in (regs, context') end;
-
 fun position_of ctxt
     ({file, startLine = line, startPosition = i, endPosition = j, ...}: PolyML.location) =
-  (case pairself (Inttab.lookup (Extra_Env.get (Context.Proof ctxt))) (i, j) of
+  (case pairself (ML_Env.token_position ctxt) (i, j) of
     (SOME pos1, SOME pos2) => Position.encode_range (pos1, pos2)
   | (SOME pos, NONE) => pos
   | _ => Position.line_file line file);
@@ -67,7 +48,7 @@ fun use_text ({name_space = space, print, error, ...}: use_context) verbose pos 
   let
     (* input *)
 
-    val input = Context.>>> (register_tokens toks);
+    val input = Context.>>> (ML_Env.register_tokens toks);
     val input_buffer = ref (map (apsnd (String.explode o ML_Lex.text_of)) input);
 
     val current_line = ref (the_default 1 (Position.line_of pos));
@@ -168,7 +149,7 @@ fun ML_test (txt, pos) =
 
     val _ = Context.setmp_thread_data env_ctxt
         (fn () => (eval false Position.none env; Context.thread_data ())) ()
-      |> (fn NONE => () | SOME context' => Context.>> (inherit_env context'));
+      |> (fn NONE => () | SOME context' => Context.>> (ML_Env.inherit context'));
     val _ = eval true pos body;
     val _ = eval false Position.none (ML_Lex.tokenize "structure Isabelle = struct end");
   in () end;
@@ -177,7 +158,7 @@ fun ML_test (txt, pos) =
 local structure P = OuterParse and K = OuterKeyword in
 
 fun propagate_env (context as Context.Proof lthy) =
-      Context.Proof (LocalTheory.map_contexts (inherit_env context) lthy)
+      Context.Proof (LocalTheory.map_contexts (ML_Env.inherit context) lthy)
   | propagate_env context = context;
 
 val _ =
