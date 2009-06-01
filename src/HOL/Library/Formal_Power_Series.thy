@@ -329,7 +329,8 @@ lemma fps_const_neg [simp]: "- (fps_const (c::'a::ring)) = fps_const (- c)"
 
 lemma fps_const_add [simp]: "fps_const (c::'a\<Colon>monoid_add) + fps_const d = fps_const (c + d)"
   by (simp add: fps_ext)
-
+lemma fps_const_sub [simp]: "fps_const (c::'a\<Colon>group_add) - fps_const d = fps_const (c - d)"
+  by (simp add: fps_ext)
 lemma fps_const_mult[simp]: "fps_const (c::'a\<Colon>ring) * fps_const d = fps_const (c * d)"
   by (simp add: fps_eq_iff fps_mult_nth setsum_0')
 
@@ -396,6 +397,18 @@ instance
 by (intro_classes, rule number_of_fps_def)
 end
 
+lemma number_of_fps_const: "(number_of k::('a::comm_ring_1) fps) = fps_const (of_int k)"
+  
+proof(induct k rule: int_induct[where k=0])
+  case base thus ?case unfolding number_of_fps_def of_int_0 by simp
+next
+  case (step1 i) thus ?case unfolding number_of_fps_def 
+    by (simp add: fps_const_add[symmetric] del: fps_const_add)
+next
+  case (step2 i) thus ?case unfolding number_of_fps_def 
+    by (simp add: fps_const_sub[symmetric] del: fps_const_sub)
+qed
+  
 subsection{* Inverses of formal power series *}
 
 declare setsum_cong[fundef_cong]
@@ -948,6 +961,9 @@ lemma fps_compose_X[simp]: "a oo X = (a :: ('a :: comm_ring_1) fps)"
 lemma fps_const_compose[simp]:
   "fps_const (a::'a::{comm_ring_1}) oo b = fps_const (a)"
   by (simp add: fps_eq_iff fps_compose_nth mult_delta_left setsum_delta)
+
+lemma number_of_compose[simp]: "(number_of k::('a::{comm_ring_1}) fps) oo b = number_of k"
+  unfolding number_of_fps_const by simp
 
 lemma X_fps_compose_startby0[simp]: "a$0 = 0 \<Longrightarrow> X oo a = (a :: ('a :: comm_ring_1) fps)"
   by (simp add: fps_eq_iff fps_compose_def mult_delta_left setsum_delta
@@ -2255,6 +2271,45 @@ proof-
   show "?dia = inverse ?d" by simp
 qed
 
+lemma fps_inv_idempotent: 
+  assumes a0: "a$0 = 0" and a1: "a$1 \<noteq> 0"
+  shows "fps_inv (fps_inv a) = a"
+proof-
+  let ?r = "fps_inv"
+  have ra0: "?r a $ 0 = 0" by (simp add: fps_inv_def)
+  from a1 have ra1: "?r a $ 1 \<noteq> 0" by (simp add: fps_inv_def field_simps)
+  have X0: "X$0 = 0" by simp
+  from fps_inv[OF ra0 ra1] have "?r (?r a) oo ?r a = X" .
+  then have "?r (?r a) oo ?r a oo a = X oo a" by simp
+  then have "?r (?r a) oo (?r a oo a) = a" 
+    unfolding X_fps_compose_startby0[OF a0]
+    unfolding fps_compose_assoc[OF a0 ra0, symmetric] .
+  then show ?thesis unfolding fps_inv[OF a0 a1] by simp
+qed
+
+lemma fps_ginv_ginv:
+  assumes a0: "a$0 = 0" and a1: "a$1 \<noteq> 0"
+  and c0: "c$0 = 0" and  c1: "c$1 \<noteq> 0"
+  shows "fps_ginv b (fps_ginv c a) = b oo a oo fps_inv c"
+proof-
+  let ?r = "fps_ginv"
+  from c0 have rca0: "?r c a $0 = 0" by (simp add: fps_ginv_def)
+  from a1 c1 have rca1: "?r c a $ 1 \<noteq> 0" by (simp add: fps_ginv_def field_simps)
+  from fps_ginv[OF rca0 rca1] 
+  have "?r b (?r c a) oo ?r c a = b" .
+  then have "?r b (?r c a) oo ?r c a oo a = b oo a" by simp
+  then have "?r b (?r c a) oo (?r c a oo a) = b oo a"
+    apply (subst fps_compose_assoc)
+    using a0 c0 by (auto simp add: fps_ginv_def)
+  then have "?r b (?r c a) oo c = b oo a"
+    unfolding fps_ginv[OF a0 a1] .
+  then have "?r b (?r c a) oo c oo fps_inv c= b oo a oo fps_inv c" by simp
+  then have "?r b (?r c a) oo (c oo fps_inv c) = b oo a oo fps_inv c"
+    apply (subst fps_compose_assoc)
+    using a0 c0 by (auto simp add: fps_inv_def)
+  then show ?thesis unfolding fps_inv_right[OF c0 c1] by simp
+qed
+
 subsection{* Elementary series *}
 
 subsubsection{* Exponential series *}
@@ -2323,7 +2378,6 @@ qed
 lemma E_nth_deriv[simp]: "fps_nth_deriv n (E (a::'a::{field, ring_char_0})) = (fps_const a)^n * (E a)"
   by (induct n, auto simp add: power_Suc)
 
-
 lemma X_compose_E[simp]: "X oo E (a::'a::{field}) = E a - 1"
   by (simp add: fps_eq_iff X_fps_compose)
 
@@ -2341,9 +2395,8 @@ qed
 
 
 lemma fps_const_inverse:
-  "inverse (fps_const (a::'a::{field, division_by_zero})) = fps_const (inverse a)"
+  "a \<noteq> 0 \<Longrightarrow> inverse (fps_const (a::'a::field)) = fps_const (inverse a)"
   apply (auto simp add: fps_eq_iff fps_inverse_def) by (case_tac "n", auto)
-
 
 lemma inverse_one_plus_X:
   "inverse (1 + X) = Abs_fps (\<lambda>n. (- 1 ::'a::{field})^n)"
@@ -2358,21 +2411,46 @@ qed
 lemma E_power_mult: "(E (c::'a::{field,ring_char_0}))^n = E (of_nat n * c)"
   by (induct n, auto simp add: ring_simps E_add_mult power_Suc)
 
+lemma assumes r: "r (Suc k) 1 = 1" 
+  shows "fps_radical r (Suc k) (E (c::'a::{field, ring_char_0})) = E (c / of_nat (Suc k))"
+proof-
+  let ?ck = "(c / of_nat (Suc k))"
+  let ?r = "fps_radical r (Suc k)"
+  have eq0[simp]: "?ck * of_nat (Suc k) = c" "of_nat (Suc k) * ?ck = c"
+    by (simp_all del: of_nat_Suc)
+  have th0: "E ?ck ^ (Suc k) = E c" unfolding E_power_mult eq0 ..
+  have th: "r (Suc k) (E c $0) ^ Suc k = E c $ 0"
+    "r (Suc k) (E c $ 0) = E ?ck $ 0" "E c $ 0 \<noteq> 0" using r by simp_all
+  from th0 radical_unique[where r=r and k=k, OF th]
+  show ?thesis by auto 
+qed
+
+lemma Ec_E1_eq: 
+  "E (1::'a::{field, ring_char_0}) oo (fps_const c * X) = E c"
+  apply (auto simp add: fps_eq_iff E_def fps_compose_def power_mult_distrib)
+  by (simp add: cond_value_iff cond_application_beta setsum_delta' cong del: if_weak_cong)
+
 subsubsection{* Logarithmic series *}
-definition "(L::'a::{field, ring_char_0} fps)
-  = Abs_fps (\<lambda>n. (- 1) ^ Suc n / of_nat n)"
 
-lemma fps_deriv_L: "fps_deriv L = inverse (1 + X)"
+
+lemma Abs_fps_if_0: 
+  "Abs_fps(%n. if n=0 then (v::'a::ring_1) else f n) = fps_const v + X * Abs_fps (%n. f (Suc n))"
+  by (auto simp add: fps_eq_iff)
+
+definition L:: "'a::{field, ring_char_0} \<Rightarrow> 'a fps" where 
+  "L c \<equiv> fps_const (1/c) * Abs_fps (\<lambda>n. if n = 0 then 0 else (- 1) ^ (n - 1) / of_nat n)"
+
+lemma fps_deriv_L: "fps_deriv (L c) = fps_const (1/c) * inverse (1 + X)"
   unfolding inverse_one_plus_X
-  by (simp add: L_def fps_eq_iff power_Suc del: of_nat_Suc)
+  by (simp add: L_def fps_eq_iff del: of_nat_Suc)
 
+lemma L_nth: "L c $ n = (if n=0 then 0 else 1/c * ((- 1) ^ (n - 1) / of_nat n))"
+  by (simp add: L_def field_simps)
 
-lemma L_nth: "L $ n = (- 1) ^ Suc n / of_nat n"
-  by (simp add: L_def)
-
+lemma L_0[simp]: "L c $ 0 = 0" by (simp add: L_def)
 lemma L_E_inv:
-  assumes a: "a\<noteq> (0::'a::{field,division_by_zero,ring_char_0})"
-  shows "L = fps_const a * fps_inv (E a - 1)" (is "?l = ?r")
+  assumes a: "a\<noteq> (0::'a::{field,ring_char_0})"
+  shows "L a = fps_inv (E a - 1)" (is "?l = ?r")
 proof-
   let ?b = "E a - 1"
   have b0: "?b $ 0 = 0" by simp
@@ -2384,13 +2462,27 @@ proof-
   finally have eq: "fps_deriv (E a - 1) oo fps_inv (E a - 1) = fps_const a * (X + 1)" .
   from fps_inv_deriv[OF b0 b1, unfolded eq]
   have "fps_deriv (fps_inv ?b) = fps_const (inverse a) / (X + 1)"
+    using a 
     by (simp add: fps_const_inverse eq fps_divide_def fps_inverse_mult)
-  hence "fps_deriv (fps_const a * fps_inv ?b) = inverse (X + 1)"
-    using a by (simp add: fps_divide_def field_simps)
   hence "fps_deriv ?l = fps_deriv ?r"
-    by (simp add: fps_deriv_L add_commute)
+    by (simp add: fps_deriv_L add_commute fps_divide_def divide_inverse)
   then show ?thesis unfolding fps_deriv_eq_iff
     by (simp add: L_nth fps_inv_def)
+qed
+
+lemma L_mult_add: 
+  assumes c0: "c\<noteq>0" and d0: "d\<noteq>0"
+  shows "L c + L d = fps_const (c+d) * L (c*d)"
+  (is "?r = ?l")
+proof-
+  from c0 d0 have eq: "1/c + 1/d = (c+d)/(c*d)" by (simp add: field_simps)
+  have "fps_deriv ?r = fps_const (1/c + 1/d) * inverse (1 + X)"
+    by (simp add: fps_deriv_L fps_const_add[symmetric] algebra_simps del: fps_const_add)
+  also have "\<dots> = fps_deriv ?l"
+    apply (simp add: fps_deriv_L)
+    by (simp add: fps_eq_iff eq)
+  finally show ?thesis
+    unfolding fps_deriv_eq_iff by simp
 qed
 
 subsubsection{* Formal trigonometric functions  *}
