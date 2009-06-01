@@ -75,30 +75,13 @@ sig
   val defined: theory -> string -> bool
   val method: theory -> src -> Proof.context -> method
   val method_i: theory -> src -> Proof.context -> method
-  val add_methods: (bstring * (src -> Proof.context -> method) * string) list
-    -> theory -> theory
-  val add_method: bstring * (src -> Proof.context -> method) * string
-    -> theory -> theory
   val syntax: 'a context_parser -> src -> Proof.context -> 'a * Proof.context
   val setup: binding -> (Proof.context -> method) context_parser -> string -> theory -> theory
   val method_setup: bstring * Position.T -> Symbol_Pos.text * Position.T -> string ->
     theory -> theory
-  val simple_args: 'a parser -> ('a -> Proof.context -> method) -> src -> Proof.context -> method
-  val ctxt_args: (Proof.context -> method) -> src -> Proof.context -> method
   type modifier = (Proof.context -> Proof.context) * attribute
   val section: modifier parser list -> thm list context_parser
   val sections: modifier parser list -> thm list list context_parser
-  val sectioned_args: 'a context_parser -> modifier parser list ->
-    ('a -> Proof.context -> 'b) -> src -> Proof.context -> 'b
-  val bang_sectioned_args: modifier parser list ->
-    (thm list -> Proof.context -> 'a) -> src -> Proof.context -> 'a
-  val bang_sectioned_args': modifier parser list -> 'a context_parser ->
-    ('a -> thm list -> Proof.context -> 'b) -> src -> Proof.context -> 'b
-  val only_sectioned_args: modifier parser list -> (Proof.context -> 'a) -> src ->
-    Proof.context -> 'a
-  val thms_ctxt_args: (thm list -> Proof.context -> 'a) -> src -> Proof.context -> 'a
-  val thms_args: (thm list -> 'a) -> src -> Proof.context -> 'a
-  val thm_args: (thm -> 'a) -> src -> Proof.context -> 'a
   val parse: text parser
 end;
 
@@ -356,6 +339,10 @@ fun print_methods thy =
     |> Pretty.chunks |> Pretty.writeln
   end;
 
+fun add_method name meth comment thy = thy |> Methods.map (fn meths =>
+  #2 (NameSpace.define (Sign.naming_of thy) (name, ((meth, comment), stamp ())) meths)
+    handle Symtab.DUP dup => error ("Duplicate declaration of method " ^ quote dup));
+
 
 (* get methods *)
 
@@ -376,27 +363,13 @@ fun method_i thy =
 fun method thy = method_i thy o Args.map_name (NameSpace.intern (#1 (Methods.get thy)));
 
 
-(* add method *)
-
-fun add_methods raw_meths thy =
-  let
-    val new_meths = raw_meths |> map (fn (name, f, comment) =>
-      (Binding.name name, ((f, comment), stamp ())));
-
-    fun add meths = fold (snd oo NameSpace.define (Sign.naming_of thy)) new_meths meths
-      handle Symtab.DUP dup => error ("Duplicate declaration of method " ^ quote dup);
-  in Methods.map add thy end;
-
-val add_method = add_methods o Library.single;
-
-
 (* method setup *)
 
 fun syntax scan = Args.context_syntax "method" scan;
 
-fun setup name scan comment =
-  add_methods [(Binding.name_of name,
-    fn src => fn ctxt => let val (m, ctxt') = syntax scan src ctxt in m ctxt' end, comment)];
+fun setup name scan =
+  add_method name
+    (fn src => fn ctxt => let val (m, ctxt') = syntax scan src ctxt in m ctxt' end);
 
 fun method_setup name (txt, pos) cmt =
   Context.theory_map (ML_Context.expression pos
@@ -409,15 +382,6 @@ fun method_setup name (txt, pos) cmt =
 (** concrete syntax **)
 
 structure P = OuterParse;
-
-
-(* basic *)
-
-fun simple_args scan f src ctxt : method =
-  fst (syntax (Scan.lift (scan >> (fn x => f x ctxt))) src ctxt);
-
-fun ctxt_args (f: Proof.context -> method) src ctxt =
-  fst (syntax (Scan.succeed (f ctxt)) src ctxt);
 
 
 (* sections *)
@@ -435,19 +399,6 @@ fun section ss = Scan.depend (fn context => (Scan.first ss -- Scan.pass context 
   (fn (m, ths) => Scan.succeed (app m (context, ths))));
 
 fun sections ss = Scan.repeat (section ss);
-
-fun sectioned_args args ss f src ctxt =
-  let val ((x, _), ctxt') = syntax (args -- sections ss) src ctxt
-  in f x ctxt' end;
-
-fun bang_sectioned_args ss f = sectioned_args Args.bang_facts ss f;
-fun bang_sectioned_args' ss scan f =
-  sectioned_args (Args.bang_facts -- scan >> swap) ss (uncurry f);
-fun only_sectioned_args ss f = sectioned_args (Scan.succeed ()) ss (fn () => f);
-
-fun thms_ctxt_args f = sectioned_args (thms []) [] f;
-fun thms_args f = thms_ctxt_args (K o f);
-fun thm_args f = thms_args (fn [thm] => f thm | _ => error "Single theorem expected");
 
 end;
 

@@ -15,7 +15,7 @@
 # not invent new ML system names unless you know what you are doing.
 # Only one of the sections below should be activated.
 
-# Poly/ML 4.x/5.x (automated settings)
+# Poly/ML 5.x (automated settings)
 POLY_HOME="$(type -p poly)"; [ -n "$POLY_HOME" ] && POLY_HOME="$(dirname "$POLY_HOME")"
 ML_PLATFORM=$("$ISABELLE_HOME/lib/scripts/polyml-platform")
 ML_HOME=$(choosefrom \
@@ -29,23 +29,17 @@ ML_SYSTEM=$("$ISABELLE_HOME/lib/scripts/polyml-version")
 ML_OPTIONS="-H 200"
 ML_DBASE=""
 
-# Poly/ML 5.1
+# Poly/ML 5.2.1
 #ML_PLATFORM=x86-linux
 #ML_HOME=/usr/local/polyml/x86-linux
-#ML_SYSTEM=polyml-5.1
+#ML_SYSTEM=polyml-5.2.1
 #ML_OPTIONS="-H 500"
 
-# Poly/ML 5.1 (64 bit)
+# Poly/ML 5.2.1 (64 bit)
 #ML_PLATFORM=x86_64-linux
 #ML_HOME=/usr/local/polyml/x86_64-linux
-#ML_SYSTEM=polyml-5.1
+#ML_SYSTEM=polyml-5.2.1
 #ML_OPTIONS="-H 1000"
-
-# Poly/ML 4.2.0
-#ML_PLATFORM=x86-linux
-#ML_HOME=/usr/local/polyml/x86-linux
-#ML_SYSTEM=polyml-4.2.0
-#ML_OPTIONS="-H 80"
 
 # Standard ML of New Jersey (slow!)
 #ML_SYSTEM=smlnj-110

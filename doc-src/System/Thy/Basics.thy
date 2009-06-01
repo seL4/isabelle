@@ -266,13 +266,11 @@ text {*
 Usage: isabelle-process [OPTIONS] [INPUT] [OUTPUT]
 
   Options are:
-    -C           tell ML system to copy output image
     -I           startup Isar interaction mode
     -P           startup Proof General interaction mode
     -S           secure mode -- disallow critical operations
     -W OUTPUT    startup process wrapper, with messages going to OUTPUT stream
     -X           startup PGIP interaction mode
-    -c           tell ML system to compress output image
     -e MLTEXT    pass MLTEXT to the ML session
     -f           pass 'Session.finish();' to the ML session
     -m MODE      add print mode for output
@@ -319,16 +317,6 @@ text {*
   \medskip The @{verbatim "-w"} option makes the output heap file
   read-only after terminating.  Thus subsequent invocations cause the
   logic image to be read-only automatically.
-
-  \medskip The @{verbatim "-c"} option tells the underlying ML system
-  to compress the output heap (fully transparently).  On Poly/ML for
-  example, the image is garbage collected and all stored values are
-  maximally shared, resulting in up to @{text "50%"} less disk space
-  consumption.
-
-  \medskip The @{verbatim "-C"} option tells the ML system to produce
-  a completely self-contained output image, probably including a copy
-  of the ML runtime system itself.
 
   \medskip Using the @{verbatim "-e"} option, arbitrary ML code may be
   passed to the Isabelle session from the command line. Multiple

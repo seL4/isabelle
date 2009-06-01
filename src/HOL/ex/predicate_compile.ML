@@ -31,6 +31,8 @@ struct
 
 (* debug stuff *)
 
+fun makestring _ = "?";   (* FIXME dummy *)
+
 fun tracing s = (if ! Toplevel.debug then Output.tracing s else ());
 
 fun print_tac s = (if ! Toplevel.debug then Tactical.print_tac s else Seq.single);

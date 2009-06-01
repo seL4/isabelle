@@ -1,3 +1,5 @@
+# -*- shell-script -*- :mode=shellscript:
+
 ML_SYSTEM=annomaly
 ML_HOME="$SMLNJ_HOME/bin"
 ML_OPTIONS="-m $SMLNJ_HOME/annomaly/annomaly.cm @SMLdebug=/dev/null"

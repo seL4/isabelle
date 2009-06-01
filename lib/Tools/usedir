@@ -23,7 +23,6 @@ function usage()
   echo "    -T LEVEL     multithreading: trace level (default 0)"
   echo "    -V VERSION   declare alternative document VERSION"
   echo "    -b           build mode (output heap image, using current dir)"
-  echo "    -c BOOL      tell ML system to compress output image (default true)"
   echo "    -d FORMAT    build document as FORMAT (default false)"
   echo "    -f NAME      use ML file NAME (default ROOT.ML)"
   echo "    -g BOOL      generate session graph image for document (default false)"
@@ -77,7 +76,6 @@ PARALLEL_PROOFS="true"
 TRACETHREADS="0"
 DOCUMENT_VERSIONS=""
 BUILD=""
-COMPRESS=true
 DOCUMENT=false
 ROOT_FILE="ROOT.ML"
 DOCUMENT_GRAPH=false
@@ -91,7 +89,7 @@ VERBOSE=false
 function getoptions()
 {
   OPTIND=1
-  while getopts "C:D:M:P:Q:T:V:bc:d:f:g:i:m:p:rs:v:" OPT
+  while getopts "C:D:M:P:Q:T:V:bd:f:g:i:m:p:rs:v:" OPT
   do
     case "$OPT" in
       C)
@@ -128,10 +126,6 @@ function getoptions()
         ;;
       b)
         BUILD=true
-        ;;
-      c)
-        check_bool "$OPTARG"
-        COMPRESS="$OPTARG"
         ;;
       d)
         DOCUMENT="$OPTARG"
@@ -175,7 +169,8 @@ function getoptions()
   done
 }
 
-getoptions $ISABELLE_USEDIR_OPTIONS
+eval "OPTIONS=($ISABELLE_USEDIR_OPTIONS)"
+getoptions "${OPTIONS[@]}"
 
 getoptions "$@"
 shift $(($OPTIND - 1))
@@ -233,12 +228,9 @@ if [ -n "$BUILD" ]; then
   echo "Building $ITEM ..." >&2
   LOG="$LOGDIR/$ITEM"
 
-  OPT_C=""
-  [ "$COMPRESS" = true ] && OPT_C="-c"
-
   "$ISABELLE_PROCESS" \
     -e "Session.use_dir \"$ROOT_FILE\" true [$MODES] $RESET $INFO \"$DOC\" $DOCUMENT_GRAPH [$DOCUMENT_VERSIONS] \"$PARENT\" \"$SESSION\" ($COPY_DUMP, \"$DUMP\") \"$RPATH\" $PROOFS $VERBOSE $MAXTHREADS $TRACETHREADS $PARALLEL_PROOFS;" \
-    $OPT_C -q -w $LOGIC $NAME > "$LOG"
+    -q -w $LOGIC $NAME > "$LOG"
   RC="$?"
 else
   ITEM=$(basename "$LOGIC")-"$SESSION"

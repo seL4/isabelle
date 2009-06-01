@@ -1,6 +1,6 @@
-(*  Title:      Pure/ML-Systems/polyml.ML
+(*  Title:      Pure/ML-Systems/polyml-experimental.ML
 
-Compatibility wrapper for experimental versions of Poly/ML after 5.2.1.
+Compatibility wrapper for Poly/ML 5.3 (SVN experimental).
 *)
 
 open Thread;
@@ -19,92 +19,42 @@ val pointer_eq = PolyML.pointerEq;
 
 fun share_common_data () = PolyML.shareCommonData PolyML.rootFunction;
 
-
-(* runtime compilation *)
-
-local
-
-fun drop_newline s =
-  if String.isSuffix "\n" s then String.substring (s, 0, size s - 1)
-  else s;
-
-in
-
-fun use_text ({tune_source, name_space, str_of_pos, print, error, ...}: use_context)
-    (start_line, name) verbose txt =
-  let
-    val current_line = ref start_line;
-    val in_buffer = ref (String.explode (tune_source txt));
-    val out_buffer = ref ([]: string list);
-    fun output () = drop_newline (implode (rev (! out_buffer)));
-
-    fun get () =
-      (case ! in_buffer of
-        [] => NONE
-      | c :: cs =>
-          (in_buffer := cs; if c = #"\n" then current_line := ! current_line + 1 else (); SOME c));
-    fun put s = out_buffer := s :: ! out_buffer;
-    fun put_message {message = msg1, hard, location = {startLine = line, ...}, context} =
-     (put (if hard then "Error: " else "Warning: ");
-      PolyML.prettyPrint (put, 76) msg1;
-      (case context of NONE => () | SOME msg2 => PolyML.prettyPrint (put, 76) msg2);
-      put ("At" ^ str_of_pos line name ^ "\n"));
-
-    val parameters =
-     [PolyML.Compiler.CPOutStream put,
-      PolyML.Compiler.CPLineNo (fn () => ! current_line),
-      PolyML.Compiler.CPErrorMessageProc put_message,
-      PolyML.Compiler.CPNameSpace name_space,
-      PolyML.Compiler.CPPrintInAlphabeticalOrder false];
-    val _ =
-      (while not (List.null (! in_buffer)) do
-        PolyML.compiler (get, parameters) ())
-      handle exn =>
-       (put ("Exception- " ^ General.exnMessage exn ^ " raised");
-        error (output ()); raise exn);
-  in if verbose then print (output ()) else () end;
-
-fun use_file context verbose name =
-  let
-    val instream = TextIO.openIn name;
-    val txt = Exn.release (Exn.capture TextIO.inputAll instream before TextIO.closeIn instream);
-  in use_text context (1, name) verbose txt end;
-
-end;
+use "ML-Systems/compiler_polyml-5.3.ML";
 
 
 (* toplevel pretty printing *)
 
 val pretty_ml =
   let
-    fun convert len (PrettyBlock (ind, _, context, prts)) =
+    fun convert len (PolyML.PrettyBlock (ind, _, context, prts)) =
           let
             fun property name default =
-              (case List.find (fn ContextProperty (a, _) => name = a | _ => false) context of
-                SOME (ContextProperty (_, b)) => b
+              (case List.find (fn PolyML.ContextProperty (a, _) => name = a | _ => false) context of
+                SOME (PolyML.ContextProperty (_, b)) => b
               | NONE => default);
             val bg = property "begin" "";
             val en = property "end" "";
             val len' = property "length" len;
           in ML_Pretty.Block ((bg, en), map (convert len') prts, ind) end
-      | convert len (PrettyString s) =
+      | convert len (PolyML.PrettyString s) =
           ML_Pretty.String (s, case Int.fromString len of SOME i => i | NONE => size s)
-      | convert _ (PrettyBreak (wd, _)) =
+      | convert _ (PolyML.PrettyBreak (wd, _)) =
           ML_Pretty.Break (if wd < 99999 then (false, wd) else (true, 2));
   in convert "" end;
 
 fun ml_pretty (ML_Pretty.Block ((bg, en), prts, ind)) =
       let val context =
-        (if bg = "" then [] else [ContextProperty ("begin", bg)]) @
-        (if en = "" then [] else [ContextProperty ("end", en)])
-      in PrettyBlock (ind, false, context, map ml_pretty prts) end
+        (if bg = "" then [] else [PolyML.ContextProperty ("begin", bg)]) @
+        (if en = "" then [] else [PolyML.ContextProperty ("end", en)])
+      in PolyML.PrettyBlock (ind, false, context, map ml_pretty prts) end
   | ml_pretty (ML_Pretty.String (s, len)) =
-      if len = size s then PrettyString s
-      else PrettyBlock (0, false, [ContextProperty ("length", Int.toString len)], [PrettyString s])
-  | ml_pretty (ML_Pretty.Break (false, wd)) = PrettyBreak (wd, 0)
-  | ml_pretty (ML_Pretty.Break (true, _)) = PrettyBreak (99999, 0);
+      if len = size s then PolyML.PrettyString s
+      else PolyML.PrettyBlock
+        (0, false, [PolyML.ContextProperty ("length", Int.toString len)], [PolyML.PrettyString s])
+  | ml_pretty (ML_Pretty.Break (false, wd)) = PolyML.PrettyBreak (wd, 0)
+  | ml_pretty (ML_Pretty.Break (true, _)) = PolyML.PrettyBreak (99999, 0);
 
 fun toplevel_pp context (_: string list) pp =
   use_text context (1, "pp") false
-    ("addPrettyPrinter (fn _ => fn _ => ml_pretty o Pretty.to_ML o (" ^ pp ^ "))");
+    ("PolyML.addPrettyPrinter (fn _ => fn _ => ml_pretty o Pretty.to_ML o (" ^ pp ^ "))");
 

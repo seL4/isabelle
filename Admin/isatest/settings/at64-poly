@@ -1,4 +1,4 @@
-# -*- shell-script -*-
+# -*- shell-script -*- :mode=shellscript:
 
   POLYML_HOME="/home/polyml/polyml-5.2"
   ML_SYSTEM="polyml-5.2"

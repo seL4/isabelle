@@ -7,7 +7,7 @@ Simple intuitionistic proof search.
 signature INTUITIONISTIC =
 sig
   val prover_tac: Proof.context -> int option -> int -> tactic
-  val method_setup: bstring -> theory -> theory
+  val method_setup: binding -> theory -> theory
 end;
 
 structure Intuitionistic: INTUITIONISTIC =
@@ -84,15 +84,16 @@ val modifiers =
   modifier introN Args.colon (Scan.succeed ()) ContextRules.intro,
   Args.del -- Args.colon >> K (I, ContextRules.rule_del)];
 
-val method =
-  Method.bang_sectioned_args' modifiers (Scan.lift (Scan.option OuterParse.nat))
-    (fn n => fn prems => fn ctxt => METHOD (fn facts =>
-      HEADGOAL (Method.insert_tac (prems @ facts) THEN'
-      ObjectLogic.atomize_prems_tac THEN' prover_tac ctxt n)));
-
 in
 
-fun method_setup name = Method.add_method (name, method, "intuitionistic proof search");
+fun method_setup name =
+  Method.setup name
+    (Args.bang_facts -- Scan.lift (Scan.option OuterParse.nat) --|
+      Method.sections modifiers >>
+      (fn (prems, n) => fn ctxt => METHOD (fn facts =>
+        HEADGOAL (Method.insert_tac (prems @ facts) THEN'
+        ObjectLogic.atomize_prems_tac THEN' prover_tac ctxt n))))
+    "intuitionistic proof search";
 
 end;
 

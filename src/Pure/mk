@@ -114,7 +114,7 @@ else
     -e "val ml_platform = \"$ML_PLATFORM\";" \
     -e "(use\"$COMPAT\"; use\"ROOT.ML\") handle _ => exit 1;" \
     -e "ml_prompts \"ML> \" \"ML# \";" \
-    -f -c -q -w RAW_ML_SYSTEM Pure > "$LOG" 2>&1
+    -f -q -w RAW_ML_SYSTEM Pure > "$LOG" 2>&1
   RC="$?"
 fi
 
