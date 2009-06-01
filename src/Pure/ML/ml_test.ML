@@ -24,7 +24,7 @@ structure Extra_Env = GenericDataFun
 );
 
 fun inherit_env context =
-  ML_Context.inherit_env context #>
+  ML_Env.inherit context #>
   Extra_Env.put (Extra_Env.get context);
 
 fun register_tokens toks context =
@@ -155,7 +155,7 @@ fun use_text ({name_space = space, print, error, ...}: use_context) verbose pos 
         error (output ()); raise exn);
   in if verbose then print (output ()) else () end;
 
-val eval = use_text ML_Context.local_context;
+val eval = use_text ML_Env.local_context;
 
 
 (* ML test command *)

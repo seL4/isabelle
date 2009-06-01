@@ -1081,7 +1081,7 @@ val _ = ML_Context.add_antiq "code_datatype" (fn _ =>
 fun isar_seri_sml module_name =
   Code_Target.parse_args (Scan.succeed ())
   #> (fn () => serialize_ml target_SML
-      (SOME (use_text ML_Context.local_context (1, "generated code") false))
+      (SOME (use_text ML_Env.local_context (1, "generated code") false))
       pr_sml_module pr_sml_stmt module_name);
 
 fun isar_seri_ocaml module_name =
