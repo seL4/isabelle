@@ -85,7 +85,7 @@ subsection {* Boundedness *}
 
 definition
   Bfun :: "('a \<Rightarrow> 'b::real_normed_vector) \<Rightarrow> 'a filter \<Rightarrow> bool" where
-  "Bfun S F = (\<exists>K>0. eventually (\<lambda>i. norm (S i) \<le> K) F)"
+  [code del]: "Bfun S F = (\<exists>K>0. eventually (\<lambda>i. norm (S i) \<le> K) F)"
 
 lemma BfunI: assumes K: "eventually (\<lambda>i. norm (X i) \<le> K) F" shows "Bfun X F"
 unfolding Bfun_def
