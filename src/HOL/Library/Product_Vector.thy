@@ -202,25 +202,40 @@ proof
 qed
 
 text {*
-  TODO: The next three proofs are nearly identical to each other.
+  TODO: The "tendsto" notion generalizes LIM and LIMSEQ.
+  But the Cauchy proof still requires a lot of duplication.
   Is there a good way to factor out the common parts?
 *}
+
+lemma tendsto_Pair:
+  assumes "tendsto X a net" and "tendsto Y b net"
+  shows "tendsto (\<lambda>i. (X i, Y i)) (a, b) net"
+proof (rule tendstoI)
+  fix r :: real assume "0 < r"
+  then have "0 < r / sqrt 2" (is "0 < ?s")
+    by (simp add: divide_pos_pos)
+  have "eventually (\<lambda>i. dist (X i) a < ?s) net"
+    using `tendsto X a net` `0 < ?s` by (rule tendstoD)
+  moreover
+  have "eventually (\<lambda>i. dist (Y i) b < ?s) net"
+    using `tendsto Y b net` `0 < ?s` by (rule tendstoD)
+  ultimately
+  show "eventually (\<lambda>i. dist (X i, Y i) (a, b) < r) net"
+    by (rule eventually_elim2)
+       (simp add: real_sqrt_sum_squares_less dist_Pair_Pair)
+qed
 
 lemma LIMSEQ_Pair:
   assumes "X ----> a" and "Y ----> b"
   shows "(\<lambda>n. (X n, Y n)) ----> (a, b)"
-proof (rule metric_LIMSEQ_I)
-  fix r :: real assume "0 < r"
-  then have "0 < r / sqrt 2" (is "0 < ?s")
-    by (simp add: divide_pos_pos)
-  obtain M where M: "\<forall>n\<ge>M. dist (X n) a < ?s"
-    using metric_LIMSEQ_D [OF `X ----> a` `0 < ?s`] ..
-  obtain N where N: "\<forall>n\<ge>N. dist (Y n) b < ?s"
-    using metric_LIMSEQ_D [OF `Y ----> b` `0 < ?s`] ..
-  have "\<forall>n\<ge>max M N. dist (X n, Y n) (a, b) < r"
-    using M N by (simp add: real_sqrt_sum_squares_less dist_Pair_Pair)
-  then show "\<exists>n0. \<forall>n\<ge>n0. dist (X n, Y n) (a, b) < r" ..
-qed
+using assms unfolding LIMSEQ_conv_tendsto
+by (rule tendsto_Pair)
+
+lemma LIM_Pair:
+  assumes "f -- x --> a" and "g -- x --> b"
+  shows "(\<lambda>x. (f x, g x)) -- x --> (a, b)"
+using assms unfolding LIM_conv_tendsto
+by (rule tendsto_Pair)
 
 lemma Cauchy_Pair:
   assumes "Cauchy X" and "Cauchy Y"
@@ -236,26 +251,6 @@ proof (rule metric_CauchyI)
   have "\<forall>m\<ge>max M N. \<forall>n\<ge>max M N. dist (X m, Y m) (X n, Y n) < r"
     using M N by (simp add: real_sqrt_sum_squares_less dist_Pair_Pair)
   then show "\<exists>n0. \<forall>m\<ge>n0. \<forall>n\<ge>n0. dist (X m, Y m) (X n, Y n) < r" ..
-qed
-
-lemma LIM_Pair:
-  assumes "f -- x --> a" and "g -- x --> b"
-  shows "(\<lambda>x. (f x, g x)) -- x --> (a, b)"
-proof (rule metric_LIM_I)
-  fix r :: real assume "0 < r"
-  then have "0 < r / sqrt 2" (is "0 < ?e")
-    by (simp add: divide_pos_pos)
-  obtain s where s: "0 < s"
-    "\<forall>z. z \<noteq> x \<and> dist z x < s \<longrightarrow> dist (f z) a < ?e"
-    using metric_LIM_D [OF `f -- x --> a` `0 < ?e`] by fast
-  obtain t where t: "0 < t"
-    "\<forall>z. z \<noteq> x \<and> dist z x < t \<longrightarrow> dist (g z) b < ?e"
-    using metric_LIM_D [OF `g -- x --> b` `0 < ?e`] by fast
-  have "0 < min s t \<and>
-    (\<forall>z. z \<noteq> x \<and> dist z x < min s t \<longrightarrow> dist (f z, g z) (a, b) < r)"
-    using s t by (simp add: real_sqrt_sum_squares_less dist_Pair_Pair)
-  then show
-    "\<exists>s>0. \<forall>z. z \<noteq> x \<and> dist z x < s \<longrightarrow> dist (f z, g z) (a, b) < r" ..
 qed
 
 lemma isCont_Pair [simp]:
