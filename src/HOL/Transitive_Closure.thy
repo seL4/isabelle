@@ -698,6 +698,9 @@ lemma rel_pow_E2:
   apply (cut_tac n=nat and R=R in rel_pow_Suc_D2', simp, blast)
   done
 
+lemma rel_pow_add: "R ^^ (m+n) = R^^n O R^^m"
+by(induct n) auto
+
 lemma rtrancl_imp_UN_rel_pow:
   assumes "p \<in> R^*"
   shows "p \<in> (\<Union>n. R ^^ n)"
