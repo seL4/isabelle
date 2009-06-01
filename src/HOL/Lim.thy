@@ -413,67 +413,16 @@ by (induct n, simp, simp add: LIM_mult f)
 
 subsubsection {* Derived theorems about @{term LIM} *}
 
-lemma LIM_inverse_lemma:
-  fixes x :: "'a::real_normed_div_algebra"
-  assumes r: "0 < r"
-  assumes x: "norm (x - 1) < min (1/2) (r/2)"
-  shows "norm (inverse x - 1) < r"
-proof -
-  from r have r2: "0 < r/2" by simp
-  from x have 0: "x \<noteq> 0" by clarsimp
-  from x have x': "norm (1 - x) < min (1/2) (r/2)"
-    by (simp only: norm_minus_commute)
-  hence less1: "norm (1 - x) < r/2" by simp
-  have "norm (1::'a) - norm x \<le> norm (1 - x)" by (rule norm_triangle_ineq2)
-  also from x' have "norm (1 - x) < 1/2" by simp
-  finally have "1/2 < norm x" by simp
-  hence "inverse (norm x) < inverse (1/2)"
-    by (rule less_imp_inverse_less, simp)
-  hence less2: "norm (inverse x) < 2"
-    by (simp add: nonzero_norm_inverse 0)
-  from less1 less2 r2 norm_ge_zero
-  have "norm (1 - x) * norm (inverse x) < (r/2) * 2"
-    by (rule mult_strict_mono)
-  thus "norm (inverse x - 1) < r"
-    by (simp only: norm_mult [symmetric] left_diff_distrib, simp add: 0)
-qed
+lemma LIM_inverse:
+  fixes L :: "'a::real_normed_div_algebra"
+  shows "\<lbrakk>f -- a --> L; L \<noteq> 0\<rbrakk> \<Longrightarrow> (\<lambda>x. inverse (f x)) -- a --> inverse L"
+unfolding LIM_conv_tendsto
+by (rule tendsto_inverse)
 
 lemma LIM_inverse_fun:
   assumes a: "a \<noteq> (0::'a::real_normed_div_algebra)"
   shows "inverse -- a --> inverse a"
-proof (rule LIM_equal2)
-  from a show "0 < norm a" by simp
-next
-  fix x assume "norm (x - a) < norm a"
-  hence "x \<noteq> 0" by auto
-  with a show "inverse x = inverse (inverse a * x) * inverse a"
-    by (simp add: nonzero_inverse_mult_distrib
-                  nonzero_imp_inverse_nonzero
-                  nonzero_inverse_inverse_eq mult_assoc)
-next
-  have 1: "inverse -- 1 --> inverse (1::'a)"
-    apply (rule LIM_I)
-    apply (rule_tac x="min (1/2) (r/2)" in exI)
-    apply (simp add: LIM_inverse_lemma)
-    done
-  have "(\<lambda>x. inverse a * x) -- a --> inverse a * a"
-    by (intro LIM_mult LIM_ident LIM_const)
-  hence "(\<lambda>x. inverse a * x) -- a --> 1"
-    by (simp add: a)
-  with 1 have "(\<lambda>x. inverse (inverse a * x)) -- a --> inverse 1"
-    by (rule LIM_compose)
-  hence "(\<lambda>x. inverse (inverse a * x)) -- a --> 1"
-    by simp
-  hence "(\<lambda>x. inverse (inverse a * x) * inverse a) -- a --> 1 * inverse a"
-    by (intro LIM_mult LIM_const)
-  thus "(\<lambda>x. inverse (inverse a * x) * inverse a) -- a --> inverse a"
-    by simp
-qed
-
-lemma LIM_inverse:
-  fixes L :: "'a::real_normed_div_algebra"
-  shows "\<lbrakk>f -- a --> L; L \<noteq> 0\<rbrakk> \<Longrightarrow> (\<lambda>x. inverse (f x)) -- a --> inverse L"
-by (rule LIM_inverse_fun [THEN LIM_compose])
+by (rule LIM_inverse [OF LIM_ident a])
 
 lemma LIM_sgn:
   fixes f :: "'a::metric_space \<Rightarrow> 'b::real_normed_vector"

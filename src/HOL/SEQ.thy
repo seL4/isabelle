@@ -132,6 +132,13 @@ apply clarify
 apply (drule_tac x="n - k" in spec, simp)
 done
 
+lemma Bseq_conv_Bfun: "Bseq X \<longleftrightarrow> Bfun X sequentially"
+unfolding Bfun_def eventually_sequentially
+apply (rule iffI)
+apply (simp add: Bseq_def, fast)
+apply (fast intro: BseqI2')
+done
+
 
 subsection {* Sequences That Converge to Zero *}
 
@@ -156,7 +163,8 @@ lemma Zseq_imp_Zseq:
   assumes X: "Zseq X"
   assumes Y: "\<And>n. norm (Y n) \<le> norm (X n) * K"
   shows "Zseq (\<lambda>n. Y n)"
-using assms unfolding Zseq_conv_Zfun by (rule Zfun_imp_Zfun)
+using X Y Zfun_imp_Zfun [of X sequentially Y K]
+unfolding Zseq_conv_Zfun by simp
 
 lemma Zseq_le: "\<lbrakk>Zseq Y; \<forall>n. norm (X n) \<le> norm (Y n)\<rbrakk> \<Longrightarrow> Zseq X"
 by (erule_tac K="1" in Zseq_imp_Zseq, simp)
@@ -180,54 +188,14 @@ lemma (in bounded_bilinear) Zseq:
 unfolding Zseq_conv_Zfun by (rule Zfun)
 
 lemma (in bounded_bilinear) Zseq_prod_Bseq:
-  assumes X: "Zseq X"
-  assumes Y: "Bseq Y"
-  shows "Zseq (\<lambda>n. X n ** Y n)"
-proof -
-  obtain K where K: "0 \<le> K"
-    and norm_le: "\<And>x y. norm (x ** y) \<le> norm x * norm y * K"
-    using nonneg_bounded by fast
-  obtain B where B: "0 < B"
-    and norm_Y: "\<And>n. norm (Y n) \<le> B"
-    using Y [unfolded Bseq_def] by fast
-  from X show ?thesis
-  proof (rule Zseq_imp_Zseq)
-    fix n::nat
-    have "norm (X n ** Y n) \<le> norm (X n) * norm (Y n) * K"
-      by (rule norm_le)
-    also have "\<dots> \<le> norm (X n) * B * K"
-      by (intro mult_mono' order_refl norm_Y norm_ge_zero
-                mult_nonneg_nonneg K)
-    also have "\<dots> = norm (X n) * (B * K)"
-      by (rule mult_assoc)
-    finally show "norm (X n ** Y n) \<le> norm (X n) * (B * K)" .
-  qed
-qed
+  "Zseq X \<Longrightarrow> Bseq Y \<Longrightarrow> Zseq (\<lambda>n. X n ** Y n)"
+unfolding Zseq_conv_Zfun Bseq_conv_Bfun
+by (rule Zfun_prod_Bfun)
 
 lemma (in bounded_bilinear) Bseq_prod_Zseq:
-  assumes X: "Bseq X"
-  assumes Y: "Zseq Y"
-  shows "Zseq (\<lambda>n. X n ** Y n)"
-proof -
-  obtain K where K: "0 \<le> K"
-    and norm_le: "\<And>x y. norm (x ** y) \<le> norm x * norm y * K"
-    using nonneg_bounded by fast
-  obtain B where B: "0 < B"
-    and norm_X: "\<And>n. norm (X n) \<le> B"
-    using X [unfolded Bseq_def] by fast
-  from Y show ?thesis
-  proof (rule Zseq_imp_Zseq)
-    fix n::nat
-    have "norm (X n ** Y n) \<le> norm (X n) * norm (Y n) * K"
-      by (rule norm_le)
-    also have "\<dots> \<le> B * norm (Y n) * K"
-      by (intro mult_mono' order_refl norm_X norm_ge_zero
-                mult_nonneg_nonneg K)
-    also have "\<dots> = norm (Y n) * (B * K)"
-      by (simp only: mult_ac)
-    finally show "norm (X n ** Y n) \<le> norm (Y n) * (B * K)" .
-  qed
-qed
+  "Bseq X \<Longrightarrow> Zseq Y \<Longrightarrow> Zseq (\<lambda>n. X n ** Y n)"
+unfolding Zseq_conv_Zfun Bseq_conv_Bfun
+by (rule Bfun_prod_Zfun)
 
 lemma (in bounded_bilinear) Zseq_left:
   "Zseq X \<Longrightarrow> Zseq (\<lambda>n. X n ** a)"
@@ -363,11 +331,6 @@ lemma LIMSEQ_mult:
   shows "[| X ----> a; Y ----> b |] ==> (%n. X n * Y n) ----> a * b"
 by (rule mult.LIMSEQ)
 
-lemma inverse_diff_inverse:
-  "\<lbrakk>(a::'a::division_ring) \<noteq> 0; b \<noteq> 0\<rbrakk>
-   \<Longrightarrow> inverse a - inverse b = - (inverse a * (a - b) * inverse b)"
-by (simp add: algebra_simps)
-
 lemma Bseq_inverse_lemma:
   fixes x :: "'a::real_normed_div_algebra"
   shows "\<lbrakk>r \<le> norm x; 0 < r\<rbrakk> \<Longrightarrow> norm (inverse x) \<le> inverse r"
@@ -377,69 +340,15 @@ done
 
 lemma Bseq_inverse:
   fixes a :: "'a::real_normed_div_algebra"
-  assumes X: "X ----> a"
-  assumes a: "a \<noteq> 0"
-  shows "Bseq (\<lambda>n. inverse (X n))"
-proof -
-  from a have "0 < norm a" by simp
-  hence "\<exists>r>0. r < norm a" by (rule dense)
-  then obtain r where r1: "0 < r" and r2: "r < norm a" by fast
-  obtain N where N: "\<And>n. N \<le> n \<Longrightarrow> norm (X n - a) < r"
-    using LIMSEQ_D [OF X r1] by fast
-  show ?thesis
-  proof (rule BseqI2' [rule_format])
-    fix n assume n: "N \<le> n"
-    hence 1: "norm (X n - a) < r" by (rule N)
-    hence 2: "X n \<noteq> 0" using r2 by auto
-    hence "norm (inverse (X n)) = inverse (norm (X n))"
-      by (rule nonzero_norm_inverse)
-    also have "\<dots> \<le> inverse (norm a - r)"
-    proof (rule le_imp_inverse_le)
-      show "0 < norm a - r" using r2 by simp
-    next
-      have "norm a - norm (X n) \<le> norm (a - X n)"
-        by (rule norm_triangle_ineq2)
-      also have "\<dots> = norm (X n - a)"
-        by (rule norm_minus_commute)
-      also have "\<dots> < r" using 1 .
-      finally show "norm a - r \<le> norm (X n)" by simp
-    qed
-    finally show "norm (inverse (X n)) \<le> inverse (norm a - r)" .
-  qed
-qed
-
-lemma LIMSEQ_inverse_lemma:
-  fixes a :: "'a::real_normed_div_algebra"
-  shows "\<lbrakk>X ----> a; a \<noteq> 0; \<forall>n. X n \<noteq> 0\<rbrakk>
-         \<Longrightarrow> (\<lambda>n. inverse (X n)) ----> inverse a"
-apply (subst LIMSEQ_Zseq_iff)
-apply (simp add: inverse_diff_inverse nonzero_imp_inverse_nonzero)
-apply (rule Zseq_minus)
-apply (rule Zseq_mult_left)
-apply (rule mult.Bseq_prod_Zseq)
-apply (erule (1) Bseq_inverse)
-apply (simp add: LIMSEQ_Zseq_iff)
-done
+  shows "\<lbrakk>X ----> a; a \<noteq> 0\<rbrakk> \<Longrightarrow> Bseq (\<lambda>n. inverse (X n))"
+unfolding LIMSEQ_conv_tendsto Bseq_conv_Bfun
+by (rule Bfun_inverse)
 
 lemma LIMSEQ_inverse:
   fixes a :: "'a::real_normed_div_algebra"
-  assumes X: "X ----> a"
-  assumes a: "a \<noteq> 0"
-  shows "(\<lambda>n. inverse (X n)) ----> inverse a"
-proof -
-  from a have "0 < norm a" by simp
-  then obtain k where "\<forall>n\<ge>k. norm (X n - a) < norm a"
-    using LIMSEQ_D [OF X] by fast
-  hence "\<forall>n\<ge>k. X n \<noteq> 0" by auto
-  hence k: "\<forall>n. X (n + k) \<noteq> 0" by simp
-
-  from X have "(\<lambda>n. X (n + k)) ----> a"
-    by (rule LIMSEQ_ignore_initial_segment)
-  hence "(\<lambda>n. inverse (X (n + k))) ----> inverse a"
-    using a k by (rule LIMSEQ_inverse_lemma)
-  thus "(\<lambda>n. inverse (X n)) ----> inverse a"
-    by (rule LIMSEQ_offset)
-qed
+  shows "\<lbrakk>X ----> a; a \<noteq> 0\<rbrakk> \<Longrightarrow> (\<lambda>n. inverse (X n)) ----> inverse a"
+unfolding LIMSEQ_conv_tendsto
+by (rule tendsto_inverse)
 
 lemma LIMSEQ_divide:
   fixes a b :: "'a::real_normed_field"
