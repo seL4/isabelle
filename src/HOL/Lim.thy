@@ -13,6 +13,10 @@ begin
 text{*Standard Definitions*}
 
 definition
+  at :: "'a::metric_space \<Rightarrow> 'a filter" where
+  "at a = Abs_filter (\<lambda>P. \<exists>r>0. \<forall>x. x \<noteq> a \<and> dist x a < r \<longrightarrow> P x)"
+
+definition
   LIM :: "['a::metric_space \<Rightarrow> 'b::metric_space, 'a, 'b] \<Rightarrow> bool"
         ("((_)/ -- (_)/ --> (_))" [60, 0, 60] 60) where
   [code del]: "f -- a --> L =
@@ -27,6 +31,20 @@ definition
   isUCont :: "['a::metric_space \<Rightarrow> 'b::metric_space] \<Rightarrow> bool" where
   [code del]: "isUCont f = (\<forall>r>0. \<exists>s>0. \<forall>x y. dist x y < s \<longrightarrow> dist (f x) (f y) < r)"
 
+subsection {* Neighborhood Filter *}
+
+lemma eventually_at:
+  "eventually P (at a) \<longleftrightarrow> (\<exists>d>0. \<forall>x. x \<noteq> a \<and> dist x a < d \<longrightarrow> P x)"
+unfolding at_def
+apply (rule eventually_Abs_filter)
+apply (rule_tac x=1 in exI, simp)
+apply (clarify, rule_tac x=r in exI, simp)
+apply (clarify, rename_tac r s)
+apply (rule_tac x="min r s" in exI, simp)
+done
+
+lemma LIM_conv_tendsto: "(f -- a --> L) \<longleftrightarrow> tendsto f L (at a)"
+unfolding LIM_def tendsto_def eventually_at ..
 
 subsection {* Limits of Functions *}
 
@@ -86,33 +104,7 @@ lemma LIM_add:
   fixes f g :: "'a::metric_space \<Rightarrow> 'b::real_normed_vector"
   assumes f: "f -- a --> L" and g: "g -- a --> M"
   shows "(\<lambda>x. f x + g x) -- a --> (L + M)"
-proof (rule metric_LIM_I)
-  fix r :: real
-  assume r: "0 < r"
-  from metric_LIM_D [OF f half_gt_zero [OF r]]
-  obtain fs
-    where fs:    "0 < fs"
-      and fs_lt: "\<forall>x. x \<noteq> a \<and> dist x a < fs \<longrightarrow> dist (f x) L < r/2"
-  by blast
-  from metric_LIM_D [OF g half_gt_zero [OF r]]
-  obtain gs
-    where gs:    "0 < gs"
-      and gs_lt: "\<forall>x. x \<noteq> a \<and> dist x a < gs \<longrightarrow> dist (g x) M < r/2"
-  by blast
-  show "\<exists>s>0. \<forall>x. x \<noteq> a \<and> dist x a < s \<longrightarrow> dist (f x + g x) (L + M) < r"
-  proof (intro exI conjI strip)
-    show "0 < min fs gs"  by (simp add: fs gs)
-    fix x :: 'a
-    assume "x \<noteq> a \<and> dist x a < min fs gs"
-    hence "x \<noteq> a \<and> dist x a < fs \<and> dist x a < gs" by simp
-    with fs_lt gs_lt
-    have "dist (f x) L < r/2" and "dist (g x) M < r/2" by blast+
-    hence "dist (f x) L + dist (g x) M < r" by arith
-    thus "dist (f x + g x) (L + M) < r"
-      unfolding dist_norm
-      by (blast intro: norm_diff_triangle_ineq order_le_less_trans)
-  qed
-qed
+using assms unfolding LIM_conv_tendsto by (rule tendsto_add)
 
 lemma LIM_add_zero:
   fixes f g :: "'a::metric_space \<Rightarrow> 'b::real_normed_vector"
@@ -127,7 +119,7 @@ by simp
 lemma LIM_minus:
   fixes f :: "'a::metric_space \<Rightarrow> 'b::real_normed_vector"
   shows "f -- a --> L \<Longrightarrow> (\<lambda>x. - f x) -- a --> - L"
-by (simp only: LIM_def dist_norm minus_diff_minus norm_minus_cancel)
+unfolding LIM_conv_tendsto by (rule tendsto_minus)
 
 (* TODO: delete *)
 lemma LIM_add_minus:
@@ -138,7 +130,7 @@ by (intro LIM_add LIM_minus)
 lemma LIM_diff:
   fixes f g :: "'a::metric_space \<Rightarrow> 'b::real_normed_vector"
   shows "\<lbrakk>f -- x --> l; g -- x --> m\<rbrakk> \<Longrightarrow> (\<lambda>x. f x - g x) -- x --> l - m"
-by (simp only: diff_minus LIM_add LIM_minus)
+unfolding LIM_conv_tendsto by (rule tendsto_diff)
 
 lemma LIM_zero:
   fixes f :: "'a::metric_space \<Rightarrow> 'b::real_normed_vector"
@@ -178,7 +170,7 @@ done
 lemma LIM_norm:
   fixes f :: "'a::metric_space \<Rightarrow> 'b::real_normed_vector"
   shows "f -- a --> l \<Longrightarrow> (\<lambda>x. norm (f x)) -- a --> norm l"
-by (erule LIM_imp_LIM, simp add: norm_triangle_ineq3)
+unfolding LIM_conv_tendsto by (rule tendsto_norm)
 
 lemma LIM_norm_zero:
   fixes f :: "'a::metric_space \<Rightarrow> 'b::real_normed_vector"
@@ -369,26 +361,12 @@ qed
 
 text {* Bounded Linear Operators *}
 
-lemma (in bounded_linear) cont: "f -- a --> f a"
-proof (rule LIM_I)
-  fix r::real assume r: "0 < r"
-  obtain K where K: "0 < K" and norm_le: "\<And>x. norm (f x) \<le> norm x * K"
-    using pos_bounded by fast
-  show "\<exists>s>0. \<forall>x. x \<noteq> a \<and> norm (x - a) < s \<longrightarrow> norm (f x - f a) < r"
-  proof (rule exI, safe)
-    from r K show "0 < r / K" by (rule divide_pos_pos)
-  next
-    fix x assume x: "norm (x - a) < r / K"
-    have "norm (f x - f a) = norm (f (x - a))" by (simp only: diff)
-    also have "\<dots> \<le> norm (x - a) * K" by (rule norm_le)
-    also from K x have "\<dots> < r" by (simp only: pos_less_divide_eq)
-    finally show "norm (f x - f a) < r" .
-  qed
-qed
-
 lemma (in bounded_linear) LIM:
   "g -- a --> l \<Longrightarrow> (\<lambda>x. f (g x)) -- a --> f l"
-by (rule LIM_compose [OF cont])
+unfolding LIM_conv_tendsto by (rule tendsto)
+
+lemma (in bounded_linear) cont: "f -- a --> f a"
+by (rule LIM [OF LIM_ident])
 
 lemma (in bounded_linear) LIM_zero:
   "g -- a --> 0 \<Longrightarrow> (\<lambda>x. f (g x)) -- a --> 0"
@@ -396,40 +374,16 @@ by (drule LIM, simp only: zero)
 
 text {* Bounded Bilinear Operators *}
 
+lemma (in bounded_bilinear) LIM:
+  "\<lbrakk>f -- a --> L; g -- a --> M\<rbrakk> \<Longrightarrow> (\<lambda>x. f x ** g x) -- a --> L ** M"
+unfolding LIM_conv_tendsto by (rule tendsto)
+
 lemma (in bounded_bilinear) LIM_prod_zero:
   fixes a :: "'d::metric_space"
   assumes f: "f -- a --> 0"
   assumes g: "g -- a --> 0"
   shows "(\<lambda>x. f x ** g x) -- a --> 0"
-proof (rule metric_LIM_I, unfold dist_norm)
-  fix r::real assume r: "0 < r"
-  obtain K where K: "0 < K"
-    and norm_le: "\<And>x y. norm (x ** y) \<le> norm x * norm y * K"
-    using pos_bounded by fast
-  from K have K': "0 < inverse K"
-    by (rule positive_imp_inverse_positive)
-  obtain s where s: "0 < s"
-    and norm_f: "\<And>x. \<lbrakk>x \<noteq> a; dist x a < s\<rbrakk> \<Longrightarrow> norm (f x) < r"
-    using metric_LIM_D [OF f r, unfolded dist_norm] by auto
-  obtain t where t: "0 < t"
-    and norm_g: "\<And>x. \<lbrakk>x \<noteq> a; dist x a < t\<rbrakk> \<Longrightarrow> norm (g x) < inverse K"
-    using metric_LIM_D [OF g K', unfolded dist_norm] by auto
-  show "\<exists>s>0. \<forall>x. x \<noteq> a \<and> dist x a < s \<longrightarrow> norm (f x ** g x - 0) < r"
-  proof (rule exI, safe)
-    from s t show "0 < min s t" by simp
-  next
-    fix x assume x: "x \<noteq> a"
-    assume "dist x a < min s t"
-    hence xs: "dist x a < s" and xt: "dist x a < t" by simp_all
-    from x xs have 1: "norm (f x) < r" by (rule norm_f)
-    from x xt have 2: "norm (g x) < inverse K" by (rule norm_g)
-    have "norm (f x ** g x) \<le> norm (f x) * norm (g x) * K" by (rule norm_le)
-    also from 1 2 K have "\<dots> < r * inverse K * K"
-      by (intro mult_strict_right_mono mult_strict_mono' norm_ge_zero)
-    also from K have "r * inverse K * K = r" by simp
-    finally show "norm (f x ** g x - 0) < r" by simp
-  qed
-qed
+using LIM [OF f g] by (simp add: zero_left)
 
 lemma (in bounded_bilinear) LIM_left_zero:
   "f -- a --> 0 \<Longrightarrow> (\<lambda>x. f x ** c) -- a --> 0"
@@ -438,19 +392,6 @@ by (rule bounded_linear.LIM_zero [OF bounded_linear_left])
 lemma (in bounded_bilinear) LIM_right_zero:
   "f -- a --> 0 \<Longrightarrow> (\<lambda>x. c ** f x) -- a --> 0"
 by (rule bounded_linear.LIM_zero [OF bounded_linear_right])
-
-lemma (in bounded_bilinear) LIM:
-  "\<lbrakk>f -- a --> L; g -- a --> M\<rbrakk> \<Longrightarrow> (\<lambda>x. f x ** g x) -- a --> L ** M"
-apply (drule LIM_zero)
-apply (drule LIM_zero)
-apply (rule LIM_zero_cancel)
-apply (subst prod_diff_prod)
-apply (rule LIM_add_zero)
-apply (rule LIM_add_zero)
-apply (erule (1) LIM_prod_zero)
-apply (erule LIM_left_zero)
-apply (erule LIM_right_zero)
-done
 
 lemmas LIM_mult = mult.LIM
 
