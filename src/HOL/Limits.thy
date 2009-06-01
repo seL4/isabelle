@@ -20,7 +20,7 @@ qed
 
 definition
   eventually :: "('a \<Rightarrow> bool) \<Rightarrow> 'a filter \<Rightarrow> bool" where
-  [simp del]: "eventually P F \<longleftrightarrow> Rep_filter F P"
+  [code del]: "eventually P F \<longleftrightarrow> Rep_filter F P"
 
 lemma eventually_True [simp]: "eventually (\<lambda>x. True) F"
 unfolding eventually_def using Rep_filter [of F] by blast
