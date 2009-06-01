@@ -64,8 +64,8 @@ fun ml_store sel (name, ths) =
       else if not (ML_Syntax.is_identifier name) then
         error ("Cannot bind theorem(s) " ^ quote name ^ " as ML value")
       else setmp stored_thms ths' (fn () =>
-        use_text ML_Env.local_context (0, "") true
-          ("val " ^ name ^ " = " ^ sel ^ "(! ML_Context.stored_thms);")) ();
+        ML_Compiler.eval true Position.none
+          (ML_Lex.tokenize ("val " ^ name ^ " = " ^ sel ^ "(! ML_Context.stored_thms);"))) ();
   in () end;
 
 val ml_store_thms = ml_store "";
@@ -124,6 +124,7 @@ val antiq =
 val struct_name = "Isabelle";
 val begin_env = ML_Lex.tokenize ("structure " ^ struct_name ^ " =\nstruct\n");
 val end_env = ML_Lex.tokenize "end;";
+val reset_env = ML_Lex.tokenize "structure Isabelle = struct end";
 
 in
 
@@ -165,26 +166,21 @@ val trace = ref false;
 
 fun eval verbose pos txt =
   let
-    fun eval_raw p = use_text ML_Env.local_context
-      (the_default 1 (Position.line_of p), the_default "ML" (Position.file_of p));
-
     (*prepare source text*)
     val _ = Position.report Markup.ML_source pos;
     val ants = ML_Lex.read_antiq (Symbol_Pos.explode (txt, pos), pos);
-    val ((env, body), env_ctxt) = eval_antiquotes (ants, pos) (Context.thread_data ())
-      |>> pairself (implode o map ML_Lex.text_of);
-    val _ = if ! trace then tracing (cat_lines [env, body]) else ();
+    val ((env, body), env_ctxt) = eval_antiquotes (ants, pos) (Context.thread_data ());
+    val _ =
+      if ! trace then tracing (cat_lines [ML_Lex.flatten env, ML_Lex.flatten body])
+      else ();
 
     (*prepare static ML environment*)
     val _ = Context.setmp_thread_data env_ctxt
-        (fn () => (eval_raw Position.none false env; Context.thread_data ())) ()
+        (fn () => (ML_Compiler.eval false Position.none env; Context.thread_data ())) ()
       |> (fn NONE => () | SOME context' => Context.>> (ML_Env.inherit context'));
 
-    (*eval ML*)
-    val _ = eval_raw pos verbose body;
-
-    (*reset static ML environment*)
-    val _ = eval_raw Position.none false "structure Isabelle = struct end";
+    val _ = ML_Compiler.eval verbose pos body;
+    val _ = ML_Compiler.eval false Position.none reset_env;
   in () end;
 
 end;
