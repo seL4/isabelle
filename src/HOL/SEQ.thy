@@ -14,7 +14,7 @@ begin
 
 definition
   sequentially :: "nat filter" where
-  "sequentially = Abs_filter (\<lambda>P. \<exists>N. \<forall>n\<ge>N. P n)"
+  [code del]: "sequentially = Abs_filter (\<lambda>P. \<exists>N. \<forall>n\<ge>N. P n)"
 
 definition
   Zseq :: "[nat \<Rightarrow> 'a::real_normed_vector] \<Rightarrow> bool" where

@@ -20,7 +20,7 @@ qed
 
 definition
   eventually :: "('a \<Rightarrow> bool) \<Rightarrow> 'a filter \<Rightarrow> bool" where
-  "eventually P F \<longleftrightarrow> Rep_filter F P"
+  [simp del]: "eventually P F \<longleftrightarrow> Rep_filter F P"
 
 lemma eventually_True [simp]: "eventually (\<lambda>x. True) F"
 unfolding eventually_def using Rep_filter [of F] by blast
@@ -85,7 +85,7 @@ subsection {* Convergence to Zero *}
 
 definition
   Zfun :: "('a \<Rightarrow> 'b::real_normed_vector) \<Rightarrow> 'a filter \<Rightarrow> bool" where
-  "Zfun S F = (\<forall>r>0. eventually (\<lambda>i. norm (S i) < r) F)"
+  [code del]: "Zfun S F = (\<forall>r>0. eventually (\<lambda>i. norm (S i) < r) F)"
 
 lemma ZfunI:
   "(\<And>r. 0 < r \<Longrightarrow> eventually (\<lambda>i. norm (S i) < r) F) \<Longrightarrow> Zfun S F"
@@ -228,7 +228,7 @@ subsection{* Limits *}
 
 definition
   tendsto :: "('a \<Rightarrow> 'b::metric_space) \<Rightarrow> 'b \<Rightarrow> 'a filter \<Rightarrow> bool" where
-  "tendsto f l net \<longleftrightarrow> (\<forall>e>0. eventually (\<lambda>x. dist (f x) l < e) net)"
+  [code del]: "tendsto f l net \<longleftrightarrow> (\<forall>e>0. eventually (\<lambda>x. dist (f x) l < e) net)"
 
 lemma tendstoI:
   "(\<And>e. 0 < e \<Longrightarrow> eventually (\<lambda>x. dist (f x) l < e) net)

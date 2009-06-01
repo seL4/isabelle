@@ -14,7 +14,7 @@ text{*Standard Definitions*}
 
 definition
   at :: "'a::metric_space \<Rightarrow> 'a filter" where
-  "at a = Abs_filter (\<lambda>P. \<exists>r>0. \<forall>x. x \<noteq> a \<and> dist x a < r \<longrightarrow> P x)"
+  [code del]: "at a = Abs_filter (\<lambda>P. \<exists>r>0. \<forall>x. x \<noteq> a \<and> dist x a < r \<longrightarrow> P x)"
 
 definition
   LIM :: "['a::metric_space \<Rightarrow> 'b::metric_space, 'a, 'b] \<Rightarrow> bool"
