@@ -108,6 +108,7 @@ sig
   val pidN: string
   val sessionN: string
   val promptN: string val prompt: T
+  val readyN: string val ready: T
   val no_output: output * output
   val default_output: T -> output * output
   val add_mode: string -> (T -> output * output) -> unit
@@ -307,6 +308,7 @@ val pidN = "pid";
 val sessionN = "session";
 
 val (promptN, prompt) = markup_elem "prompt";
+val (readyN, ready) = markup_elem "ready";
 
 
 
