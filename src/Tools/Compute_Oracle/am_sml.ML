@@ -492,7 +492,7 @@ fun get_guid () =
 
 fun writeTextFile name s = File.write (Path.explode name) s
 
-fun use_source src = use_text ML_Context.local_context (1, "") false src
+fun use_source src = use_text ML_Env.local_context (1, "") false src
     
 fun compile cache_patterns const_arity eqs = 
     let
