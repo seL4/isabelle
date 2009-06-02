@@ -279,7 +279,7 @@ text {* Implementation of indices by bounded integers *}
 
 code_type code_numeral
   (SML "int")
-  (OCaml "int")
+  (OCaml "Big'_int.big'_int")
   (Haskell "Int")
 
 code_instance code_numeral :: eq
@@ -287,45 +287,46 @@ code_instance code_numeral :: eq
 
 setup {*
   fold (Numeral.add_code @{const_name number_code_numeral_inst.number_of_code_numeral}
-    false false) ["SML", "OCaml", "Haskell"]
+    false false) ["SML", "Haskell"]
+  #> Numeral.add_code @{const_name number_code_numeral_inst.number_of_code_numeral} false true "OCaml"
 *}
 
 code_reserved SML Int int
-code_reserved OCaml Pervasives int
+code_reserved OCaml Big_int
 
 code_const "op + \<Colon> code_numeral \<Rightarrow> code_numeral \<Rightarrow> code_numeral"
   (SML "Int.+/ ((_),/ (_))")
-  (OCaml "Pervasives.( + )")
+  (OCaml "Big'_int.add'_big'_int")
   (Haskell infixl 6 "+")
 
 code_const "subtract_code_numeral \<Colon> code_numeral \<Rightarrow> code_numeral \<Rightarrow> code_numeral"
   (SML "Int.max/ (_/ -/ _,/ 0 : int)")
-  (OCaml "Pervasives.max/ (_/ -/ _)/ (0 : int) ")
+  (OCaml "Big'_int.max'_big'_int/ (Big'_int.sub'_big'_int/ _/ _)/ Big'_int.zero'_big'_int")
   (Haskell "max/ (_/ -/ _)/ (0 :: Int)")
 
 code_const "op * \<Colon> code_numeral \<Rightarrow> code_numeral \<Rightarrow> code_numeral"
   (SML "Int.*/ ((_),/ (_))")
-  (OCaml "Pervasives.( * )")
+  (OCaml "Big'_int.mult'_big'_int")
   (Haskell infixl 7 "*")
 
 code_const div_mod_code_numeral
   (SML "(fn n => fn m =>/ if m = 0/ then (0, n) else/ (n div m, n mod m))")
-  (OCaml "(fun n -> fun m ->/ if m = 0/ then (0, n) else/ (n '/ m, n mod m))")
+  (OCaml "(fun k -> fun l ->/ Big'_int.quomod'_big'_int/ (Big'_int.abs'_big'_int k)/ (Big'_int.abs'_big'_int l))")
   (Haskell "divMod")
 
 code_const "eq_class.eq \<Colon> code_numeral \<Rightarrow> code_numeral \<Rightarrow> bool"
   (SML "!((_ : Int.int) = _)")
-  (OCaml "!((_ : int) = _)")
+  (OCaml "Big'_int.eq'_big'_int")
   (Haskell infixl 4 "==")
 
 code_const "op \<le> \<Colon> code_numeral \<Rightarrow> code_numeral \<Rightarrow> bool"
   (SML "Int.<=/ ((_),/ (_))")
-  (OCaml "!((_ : int) <= _)")
+  (OCaml "Big'_int.le'_big'_int")
   (Haskell infix 4 "<=")
 
 code_const "op < \<Colon> code_numeral \<Rightarrow> code_numeral \<Rightarrow> bool"
   (SML "Int.</ ((_),/ (_))")
-  (OCaml "!((_ : int) < _)")
+  (OCaml "Big'_int.lt'_big'_int")
   (Haskell infix 4 "<")
 
 end

@@ -332,6 +332,9 @@ subsection {* @{term [source] restrict_map} *}
 lemma restrict_map_to_empty [simp]: "m|`{} = empty"
 by (simp add: restrict_map_def)
 
+lemma restrict_map_insert: "f |` (insert a A) = (f |` A)(a := f a)"
+by (auto simp add: restrict_map_def intro: ext)
+
 lemma restrict_map_empty [simp]: "empty|`D = empty"
 by (simp add: restrict_map_def)
 

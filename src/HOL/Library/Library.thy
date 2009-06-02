@@ -22,6 +22,7 @@ imports
   Enum
   Eval_Witness
   Executable_Set
+  Fin_Fun
   Float
   Formal_Power_Series
   FrechetDeriv
