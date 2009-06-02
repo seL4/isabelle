@@ -2464,6 +2464,12 @@ next
   case False with d show ?thesis by auto
 qed
 
+lemma distinct_concat:
+  assumes "distinct xs"
+  and "\<And> ys. ys \<in> set xs \<Longrightarrow> distinct ys"
+  and "\<And> ys zs. \<lbrakk> ys \<in> set xs ; zs \<in> set xs ; ys \<noteq> zs \<rbrakk> \<Longrightarrow> set ys \<inter> set zs = {}"
+  shows "distinct (concat xs)"
+  using assms by (induct xs) auto
 
 text {* It is best to avoid this indexed version of distinct, but
 sometimes it is useful. *}
@@ -2617,6 +2623,10 @@ by (induct n) auto
 lemma map_replicate [simp]: "map f (replicate n x) = replicate n (f x)"
 by (induct n) auto
 
+lemma map_replicate_const:
+  "map (\<lambda> x. k) lst = replicate (length lst) k"
+  by (induct lst) auto
+
 lemma replicate_app_Cons_same:
 "(replicate n x) @ (x # xs) = x # replicate n x @ xs"
 by (induct n) auto
@@ -2696,6 +2706,9 @@ lemma map_replicate_trivial:
   "map (\<lambda>i. x) [0..<i] = replicate i x"
   by (induct i) (simp_all add: replicate_append_same)
 
+lemma concat_replicate_trivial[simp]:
+  "concat (replicate i []) = []"
+  by (induct i) (auto simp add: map_replicate_const)
 
 lemma replicate_empty[simp]: "(replicate n x = []) \<longleftrightarrow> n=0"
 by (induct n) auto
