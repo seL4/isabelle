@@ -240,7 +240,8 @@ val OF_att =
 
 (* rename_abs *)
 
-val rename_abs = Scan.repeat (Args.maybe Args.name) >> (apsnd o Drule.rename_bvars');
+val rename_abs : (Context.generic * thm -> Context.generic * thm) parser =
+  Scan.repeat (Args.maybe Args.name) >> (apsnd o Drule.rename_bvars');
 
 
 (* unfold / fold definitions *)
