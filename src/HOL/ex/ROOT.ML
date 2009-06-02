@@ -6,7 +6,6 @@ Miscellaneous examples for Higher-Order Logic.
 no_document use_thys [
   "State_Monad",
   "Efficient_Nat_examples",
-  "ExecutableContent",
   "FuncSet",
   "Word",
   "Eval_Examples",
@@ -67,7 +66,8 @@ use_thys [
   "HarmonicSeries",
   "Refute_Examples",
   "Quickcheck_Examples",
-  "Formal_Power_Series_Examples"
+  "Formal_Power_Series_Examples",
+  "Landau"
 ];
 
 setmp Proofterm.proofs 2 use_thy "Hilbert_Classical";
