@@ -104,7 +104,7 @@ class Command(val tokens: List[Token], val starts: Map[Token, Int])
     val types = markup_root.filter(_.info match { case TypeInfo(_) => true case _ => false })
     types.flatten(_.flatten).
       find(t => t.start <= pos && t.stop > pos).
-      map(t => "\"" + t.content + "\" : " + (t.info match { case TypeInfo(i) => i case _ => "" })).
+      map(t => t.content + ": " + (t.info match { case TypeInfo(i) => i case _ => "" })).
       getOrElse(null)
   }
 
