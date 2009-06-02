@@ -24,6 +24,13 @@ use "outer_keyword.ML";
 use "outer_parse.ML";
 use "value_parse.ML";
 use "args.ML";
+
+(*ML support*)
+use "../ML/ml_syntax.ML";
+use "../ML/ml_env.ML";
+if ml_system = "polyml-experimental"
+then use "../ML/ml_compiler_polyml-5.3.ML"
+else use "../ML/ml_compiler.ML";
 use "../ML/ml_context.ML";
 
 (*theory sources*)

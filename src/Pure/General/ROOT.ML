@@ -16,6 +16,10 @@ use "seq.ML";
 use "position.ML";
 use "symbol_pos.ML";
 use "antiquote.ML";
+use "../ML/ml_lex.ML";
+use "../ML/ml_parse.ML";
+use "secure.ML";
+
 use "integer.ML";
 use "stack.ML";
 use "queue.ML";
@@ -30,6 +34,7 @@ use "lazy.ML";
 use "path.ML";
 use "url.ML";
 use "buffer.ML";
+use "file.ML";
 use "xml.ML";
 use "yxml.ML";
 

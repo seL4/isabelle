@@ -47,19 +47,6 @@ use "Syntax/syntax.ML";
 
 use "type_infer.ML";
 
-(*ML support*)
-use "ML/ml_lex.ML";
-use "ML/ml_parse.ML";
-use "ML/ml_syntax.ML";
-use "ML/ml_env.ML";
-
-use "General/secure.ML";
-use "General/file.ML";
-
-if ml_system = "polyml-experimental"
-then use "ML/ml_compiler_polyml-5.3.ML"
-else use "ML/ml_compiler.ML";
-
 (*core of tactical proof system*)
 use "net.ML";
 use "item_net.ML";
