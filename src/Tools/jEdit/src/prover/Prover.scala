@@ -113,17 +113,16 @@ class Prover(isabelle_system: IsabelleSystem, logic: String) extends Actor
           else (false, null)
       }
 
-    if (result.kind == IsabelleProcess.Kind.STDOUT || result.kind == IsabelleProcess.Kind.STDIN)
+    if (result.kind == IsabelleProcess.Kind.STDOUT ||
+        result.kind == IsabelleProcess.Kind.STDIN)
       output_info.event(result.toString)
-    else if (result.kind == IsabelleProcess.Kind.WRITELN && !initialized) {  // FIXME !?
-      initialized = true
-      Swing.now { this ! ProverEvents.Activate }
-    }
     else {
       result.kind match {
 
-        case IsabelleProcess.Kind.WRITELN | IsabelleProcess.Kind.PRIORITY
-          | IsabelleProcess.Kind.WARNING | IsabelleProcess.Kind.ERROR =>
+        case IsabelleProcess.Kind.WRITELN
+        | IsabelleProcess.Kind.PRIORITY
+        | IsabelleProcess.Kind.WARNING
+        | IsabelleProcess.Kind.ERROR =>
           if (command != null) {
             if (result.kind == IsabelleProcess.Kind.ERROR)
               command.status = Command.Status.FAILED
@@ -146,6 +145,12 @@ class Prover(isabelle_system: IsabelleSystem, logic: String) extends Actor
                     command_decls += (name -> kind)
                   case XML.Elem(Markup.KEYWORD_DECL, (Markup.NAME, name) :: _, _) =>
                     keyword_decls += name
+
+                  // process ready (after initialization)
+                  case XML.Elem(Markup.READY, _, _)
+                  if !initialized =>
+                    initialized = true
+                    Swing.now { this ! ProverEvents.Activate }
 
                   // document edits
                   case XML.Elem(Markup.EDITS, (Markup.ID, doc_id) :: _, edits)
