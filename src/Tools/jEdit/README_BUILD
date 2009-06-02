@@ -2,16 +2,16 @@
 Requirements to build from sources
 ==================================
 
-* Proper Java JRE/JDK from Sun, e.g. 1.6.0_07
+* Proper Java JRE/JDK from Sun, e.g. 1.6.0_10
   http://java.sun.com/javase/downloads/index.jsp
 
 * Netbeans 6.5
   http://www.netbeans.org/downloads/index.html
 
-* Scala for Netbeans
-  http://blogtrader.net/page/dcaoyuan/entry/new_scala_plugin_for_netbeans
+* Scala for Netbeans: version 0.15.1 for NB 6.5
+  http://sourceforge.net/project/showfiles.php?group_id=192439&package_id=256544
+  http://blogtrader.net/dcaoyuan/category/NetBeans
   http://wiki.netbeans.org/Scala
-  http://plugins.netbeans.org/PluginPortal/faces/PluginDetailPage.jsp?pluginid=11854
 
 * jEdit 4.3pre16
   http://www.jedit.org/
@@ -33,4 +33,4 @@ Running the application within Netbeans
   isabelle env netbeans ...
 
 * Project properties: add "Run" argument like
-    -settings=/home/makarius/isabelle/jedit
+    -noserver -nobackground -settings=/home/makarius/isabelle/isabelle-jedit/dist
