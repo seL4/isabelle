@@ -32,6 +32,8 @@ object Token {
 }
 
 class Token(val content: String, val kind: Token.Kind.Value) {
+  import Token.Kind._
   val length = content.length
   override def toString = content
+  val is_start = kind == COMMAND_START || kind == COMMENT
 }
