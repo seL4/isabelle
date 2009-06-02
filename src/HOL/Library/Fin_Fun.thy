@@ -17,68 +17,12 @@ text {*
   For details, see Formalising FinFuns - Generating Code for Functions as Data by A. Lochbihler in TPHOLs 2009.
 *}
 
-subsection {* Auxiliary definitions and lemmas *}
-
-(*FIXME move these to Finite_Set.thy*)
-lemma card_ge_0_finite:
-  "card A > 0 \<Longrightarrow> finite A"
-by(rule ccontr, drule card_infinite, simp)
-
-lemma finite_UNIV_card_ge_0:
-  "finite (UNIV :: 'a set) \<Longrightarrow> card (UNIV :: 'a set) > 0"
-by(rule ccontr) simp
-
-lemma card_eq_UNIV_imp_eq_UNIV:
-  assumes fin: "finite (UNIV :: 'a set)"
-  and card: "card A = card (UNIV :: 'a set)"
-  shows "A = (UNIV :: 'a set)"
-apply -
-  proof
-  show "A \<subseteq> UNIV" by simp
-  show "UNIV \<subseteq> A"
-  proof
-    fix x
-    show "x \<in> A"
-    proof(rule ccontr)
-      assume "x \<notin> A"
-      hence "A \<subset> UNIV" by auto
-      from psubset_card_mono[OF fin this] card show False by simp
-    qed
-  qed
-qed
-
-lemma finite_fun_UNIVD2: assumes fin: "finite (UNIV :: ('a \<Rightarrow> 'b) set)"
-  shows "finite (UNIV :: 'b set)"
-proof -
-  from fin have "finite (range (\<lambda>f :: 'a \<Rightarrow> 'b. f arbitrary))"
-    by(rule finite_imageI)
-  moreover have "UNIV = range (\<lambda>f :: 'a \<Rightarrow> 'b. f arbitrary)"
-    by(rule UNIV_eq_I) auto
-  ultimately show "finite (UNIV :: 'b set)" by simp
-qed
-
-lemma finite_fun_UNIVD1: assumes fin: "finite (UNIV :: ('a \<Rightarrow> 'b) set)"
-  and card: "card (UNIV :: 'b set) \<noteq> Suc 0"
-  shows "finite (UNIV :: 'a set)"
-proof -
-  from fin have finb: "finite (UNIV :: 'b set)" by(rule finite_fun_UNIVD2)
-  with card have "card (UNIV :: 'b set) \<ge> Suc (Suc 0)"
-    by(cases "card (UNIV :: 'b set)")(auto simp add: card_eq_0_iff)
-  then obtain n where "card (UNIV :: 'b set) = Suc (Suc n)" "n = card (UNIV :: 'b set) - 2" by(auto)
-  then obtain b1 b2 where b1b2: "(b1 :: 'b) \<noteq> (b2 :: 'b)" by(auto simp add: card_Suc_eq)
-  from fin have "finite (range (\<lambda>f :: 'a \<Rightarrow> 'b. inv f b1))" by(rule finite_imageI)
-  moreover have "UNIV = range (\<lambda>f :: 'a \<Rightarrow> 'b. inv f b1)"
-  proof(rule UNIV_eq_I)
-    fix x :: 'a
-    from b1b2 have "x = inv (\<lambda>y. if y = x then b1 else b2) b1" by(simp add: inv_def)
-    thus "x \<in> range (\<lambda>f\<Colon>'a \<Rightarrow> 'b. inv f b1)" by blast
-  qed
-  ultimately show "finite (UNIV :: 'a set)" by simp
-qed
-
 (*FIXME move to Map.thy*)
 lemma restrict_map_insert: "f |` (insert a A) = (f |` A)(a := f a)"
-by(auto simp add: restrict_map_def intro: ext)
+  by (auto simp add: restrict_map_def intro: ext)
+
+
+subsection {* The @{text "map_default"} operation *}
 
 definition map_default :: "'b \<Rightarrow> ('a \<rightharpoonup> 'b) \<Rightarrow> 'a \<Rightarrow> 'b"
 where "map_default b f a \<equiv> case f a of None \<Rightarrow> b | Some b' \<Rightarrow> b'"
