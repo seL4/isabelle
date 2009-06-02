@@ -141,11 +141,6 @@ class ProofDocument(val id: String,
   
   /** command view **/
 
-  def find_command_at(pos: Int): Command = {
-    for (cmd <- commands) { if (pos < cmd.stop(this)) return cmd }
-    return null
-  }
-
   private def token_changed(new_id: String,
                             before_change: Option[Token],
                             inserted_tokens: List[Token],
@@ -223,4 +218,30 @@ class ProofDocument(val id: String,
       new ProofDocument(new_id, new_tokenset, new_token_start, new_commandset, active, is_command_keyword)
     return (doc, change)
   }
+
+  val commands_offsets = {
+    var last_stop = 0
+    (for (c <- commands) yield {
+      val r = c -> (last_stop,c.stop(this))
+      last_stop = c.stop(this)
+      r
+    }).toArray
+  }
+
+  // use a binary search to find commands for a given offset
+  def find_command_at(pos: Int): Command = find_command_at(pos, 0, commands_offsets.length)
+  private def find_command_at(pos: Int, array_start: Int, array_stop: Int): Command = {
+    val middle_index = (array_start + array_stop) / 2
+    if (middle_index >= commands_offsets.length) return null
+    val (middle, (start, stop)) = commands_offsets(middle_index)
+    // does middle contain pos?
+    if (start <= pos && stop > pos)
+      middle
+    else if (start > pos)
+      find_command_at(pos, array_start, middle_index)
+    else if (stop <= pos)
+      find_command_at(pos, middle_index + 1, array_stop)
+    else error("can't be")
+  }
+
 }

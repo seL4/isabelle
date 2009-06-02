@@ -193,14 +193,14 @@ class TheoryView (text_area: JEditTextArea, document_actor: Actor)
     val saved_color = gfx.getColor
 
     val metrics = text_area.getPainter.getFontMetrics
-    var e = document.find_command_at(from_current(start))
-    val commands = document.commands.dropWhile(_.stop(document) <= from_current(start)).
-      takeWhile(c => to_current(c.start(document)) < end)
+
     // encolor phase
-    for (e <- commands) {
+    var e = document.find_command_at(from_current(start))
+    while (e != null && e.start(document) < end) {
       val begin = start max to_current(e.start(document))
       val finish = end - 1 min to_current(e.stop(document))
       encolor(gfx, y, metrics.getHeight, begin, finish, TheoryView.choose_color(e), true)
+      e = document.commands.next(e).getOrElse(null)
     }
 
     gfx.setColor(saved_color)
