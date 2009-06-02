@@ -994,38 +994,37 @@ lemma frontier_disjoint_eq: "frontier S \<inter> S = {} \<longleftrightarrow> op
 subsection{* A variant of nets (Slightly non-standard but good for our purposes). *}
 
 typedef (open) 'a net =
-  "{g :: 'a \<Rightarrow> 'a \<Rightarrow> bool. \<forall>x y. (\<forall>z. g z x \<longrightarrow> g z y) \<or> (\<forall>z. g z y \<longrightarrow> g z x)}"
-  morphisms "netord" "mknet" by blast
-lemma net: "(\<forall>z. netord n z x \<longrightarrow> netord n z y) \<or> (\<forall>z. netord n z y \<longrightarrow> netord n z x)"
-  using netord[of n] by auto
+  "{net :: 'a set set. (\<exists>A. A \<in> net)
+    \<and> (\<forall>A\<in>net. \<forall>B\<in>net. \<exists>C\<in>net. C \<subseteq> A \<and> C \<subseteq> B)}"
+proof
+  show "UNIV \<in> ?net" by auto
+qed
 
-lemma oldnet: "netord n x x \<Longrightarrow> netord n y y \<Longrightarrow>
-  \<exists>z. netord n z z \<and> (\<forall>w. netord n w z \<longrightarrow> netord n w x \<and> netord n w y)"
-  by (metis net)
+lemma Rep_net_nonempty: "\<exists>A. A \<in> Rep_net net"
+using Rep_net [of net] by simp
 
-lemma net_dilemma:
- "\<exists>a. (\<exists>x. netord net x a) \<and> (\<forall>x. netord net x a \<longrightarrow> P x) \<Longrightarrow>
-         \<exists>b. (\<exists>x. netord net x b) \<and> (\<forall>x. netord net x b \<longrightarrow> Q x)
-         \<Longrightarrow> \<exists>c. (\<exists>x. netord net x c) \<and> (\<forall>x. netord net x c \<longrightarrow> P x \<and> Q x)"
-  by (metis net)
+lemma Rep_net_directed:
+  "A \<in> Rep_net net \<Longrightarrow> B \<in> Rep_net net \<Longrightarrow> \<exists>C\<in>Rep_net net. C \<subseteq> A \<and> C \<subseteq> B"
+using Rep_net [of net] by simp
+
 
 subsection{* Common nets and The "within" modifier for nets. *}
 
 definition
   at :: "'a::perfect_space \<Rightarrow> 'a net" where
-  "at a = mknet(\<lambda>x y. 0 < dist x a \<and> dist x a <= dist y a)"
+  "at a = Abs_net ((\<lambda>r. {x. 0 < dist x a \<and> dist x a < r}) ` {r. 0 < r})"
 
 definition
   at_infinity :: "'a::real_normed_vector net" where
-  "at_infinity = mknet (\<lambda>x y. norm x \<ge> norm y)"
+  "at_infinity = Abs_net (range (\<lambda>r. {x. r \<le> norm x}))"
 
 definition
   sequentially :: "nat net" where
-  "sequentially = mknet (\<lambda>m n. n \<le> m)"
+  "sequentially = Abs_net (range (\<lambda>n. {n..}))"
 
 definition
   within :: "'a net \<Rightarrow> 'a set \<Rightarrow> 'a net" (infixr "within" 70) where
-  "net within S = mknet (\<lambda>x y. netord net x y \<and> x \<in> S)"
+  "net within S = Abs_net ((\<lambda>A. A \<inter> S) ` Rep_net net)"
 
 definition
   indirection :: "real ^'n::finite \<Rightarrow> real ^'n \<Rightarrow> (real ^'n) net" (infixr "indirection" 70) where
@@ -1033,84 +1032,84 @@ definition
 
 text{* Prove That They are all nets. *}
 
-lemma mknet_inverse': "netord (mknet r) = r \<longleftrightarrow> (\<forall>x y. (\<forall>z. r z x \<longrightarrow> r z y) \<or> (\<forall>z. r z y \<longrightarrow> r z x))"
-  using mknet_inverse[of r] apply (auto simp add: netord_inverse) by (metis net)
+lemma Abs_net_inverse':
+  assumes "\<exists>A. A \<in> net"
+  assumes "\<And>A B. A \<in> net \<Longrightarrow> B \<in> net \<Longrightarrow> \<exists>C\<in>net. C \<subseteq> A \<and> C \<subseteq> B" 
+  shows "Rep_net (Abs_net net) = net"
+using assms by (simp add: Abs_net_inverse)
 
-method_setup net = {*
- let
-  val ss1 = HOL_basic_ss addsimps [@{thm expand_fun_eq} RS sym]
-  val ss2 = HOL_basic_ss addsimps [@{thm mknet_inverse'}]
-  fun tac ths = ObjectLogic.full_atomize_tac THEN' Simplifier.simp_tac (ss1 addsimps ths) THEN' Simplifier.asm_full_simp_tac ss2
-  in Attrib.thms >> (fn ths => K (SIMPLE_METHOD' (tac ths))) end
-*} "reduces goals about net"
+lemma image_nonempty: "\<exists>x. x \<in> A \<Longrightarrow> \<exists>x. x \<in> f ` A"
+by auto
 
-lemma at: "\<And>x y. netord (at a) x y \<longleftrightarrow> 0 < dist x a \<and> dist x a <= dist y a"
-  apply (net at_def)
-  by (metis dist_commute real_le_linear real_le_trans)
+lemma Rep_net_at:
+  "Rep_net (at a) = ((\<lambda>r. {x. 0 < dist x a \<and> dist x a < r}) ` {r. 0 < r})"
+unfolding at_def
+apply (rule Abs_net_inverse')
+apply (rule image_nonempty, rule_tac x=1 in exI, simp)
+apply (clarsimp, rename_tac r s)
+apply (rule_tac x="min r s" in exI, auto)
+done
 
-lemma at_infinity:
- "\<And>x y. netord at_infinity x y \<longleftrightarrow> norm x >= norm y"
-  apply (net at_infinity_def)
-  apply (metis real_le_linear real_le_trans)
-  done
+lemma Rep_net_at_infinity:
+  "Rep_net at_infinity = range (\<lambda>r. {x. r \<le> norm x})"
+unfolding at_infinity_def
+apply (rule Abs_net_inverse')
+apply (rule image_nonempty, simp)
+apply (clarsimp, rename_tac r s)
+apply (rule_tac x="max r s" in exI, auto)
+done
 
-lemma sequentially: "\<And>m n. netord sequentially m n \<longleftrightarrow> m >= n"
-  apply (net sequentially_def)
-  apply (metis linorder_linear min_max.le_supI2 min_max.sup_absorb1)
-  done
+lemma Rep_net_sequentially:
+  "Rep_net sequentially = range (\<lambda>n. {n..})"
+unfolding sequentially_def
+apply (rule Abs_net_inverse')
+apply (rule image_nonempty, simp)
+apply (clarsimp, rename_tac m n)
+apply (rule_tac x="max m n" in exI, auto)
+done
 
-lemma within: "netord (n within S) x y \<longleftrightarrow> netord n x y \<and> x \<in> S"
-proof-
-  have "\<forall>x y. (\<forall>z. netord n z x \<and> z \<in> S \<longrightarrow> netord n z y) \<or> (\<forall>z. netord n z y \<and> z \<in> S \<longrightarrow> netord n z x)"
-    by (metis net)
-  thus ?thesis
-    unfolding within_def
-    using mknet_inverse[of "\<lambda>x y. netord n x y \<and> x \<in> S"]
-    by simp
-qed
-
-lemma in_direction: "netord (a indirection v) x y \<longleftrightarrow> 0 < dist x a \<and> dist x a \<le> dist y a \<and> (\<exists>c \<ge> 0. x - a = c *s v)"
-  by (simp add: within at indirection_def)
+lemma Rep_net_within:
+  "Rep_net (net within S) = (\<lambda>A. A \<inter> S) ` Rep_net net"
+unfolding within_def
+apply (rule Abs_net_inverse')
+apply (rule image_nonempty, rule Rep_net_nonempty)
+apply (clarsimp, rename_tac A B)
+apply (drule (1) Rep_net_directed)
+apply (clarify, rule_tac x=C in bexI, auto)
+done
 
 lemma within_UNIV: "net within UNIV = net"
-  by (simp add: within_def netord_inverse)
+  by (simp add: Rep_net_inject [symmetric] Rep_net_within)
 
 subsection{* Identify Trivial limits, where we can't approach arbitrarily closely. *}
 
 definition
   trivial_limit :: "'a net \<Rightarrow> bool" where
-  "trivial_limit (net:: 'a net) \<longleftrightarrow>
-    (\<forall>(a::'a) b. a = b) \<or>
-    (\<exists>(a::'a) b. a \<noteq> b \<and> (\<forall>x. ~(netord (net) x a) \<and> ~(netord(net) x b)))"
+  "trivial_limit net \<longleftrightarrow> {} \<in> Rep_net net"
 
 lemma trivial_limit_within:
   fixes a :: "'a::perfect_space"
   shows "trivial_limit (at a within S) \<longleftrightarrow> \<not> a islimpt S"
-proof-
-  {assume "\<forall>(a::'a) b. a = b" hence "\<not> a islimpt S"
-      apply (simp add: islimpt_approachable_le)
-      by (rule exI[where x=1], auto)}
-  moreover
-  {fix b c assume bc: "b \<noteq> c" "\<forall>x. \<not> netord (at a within S) x b \<and> \<not> netord (at a within S) x c"
-    have "dist a b > 0 \<or> dist a c > 0" using bc by (auto simp add: within at dist_nz[THEN sym])
-    then have "\<not> a islimpt S"
-      using bc
-      unfolding within at dist_nz islimpt_approachable_le
-      by (auto simp add: dist_triangle dist_commute dist_eq_0_iff [symmetric]
-               simp del: dist_eq_0_iff) }
-  moreover
-  {assume "\<not> a islimpt S"
-    then obtain e where e: "e > 0" "\<forall>x' \<in> S. x' \<noteq> a \<longrightarrow> dist x' a > e"
-      unfolding islimpt_approachable_le by (auto simp add: not_le)
-    from e perfect_choose_dist[of e a] obtain b where b: "b \<noteq> a" "dist b a < e" by auto
-    then have "a \<noteq> b" by auto
-    moreover have "\<forall>x. \<not> ((0 < dist x a \<and> dist x a \<le> dist a a) \<and> x \<in> S) \<and>
-                 \<not> ((0 < dist x a \<and> dist x a \<le> dist b a) \<and> x \<in> S)"
-      using e(2) b by (auto simp add: dist_commute)
-    ultimately have "trivial_limit (at a within S)"
-      unfolding trivial_limit_def within at
-      by blast}
-  ultimately show ?thesis unfolding trivial_limit_def by blast
+proof
+  assume "trivial_limit (at a within S)"
+  thus "\<not> a islimpt S"
+    unfolding trivial_limit_def
+    unfolding Rep_net_within Rep_net_at
+    unfolding islimpt_approachable_le dist_nz
+    apply (clarsimp simp add: not_le expand_set_eq)
+    apply (rule_tac x="r/2" in exI, clarsimp)
+    apply (drule_tac x=x' in spec, simp)
+    done
+next
+  assume "\<not> a islimpt S"
+  thus "trivial_limit (at a within S)"
+    unfolding trivial_limit_def
+    unfolding Rep_net_within Rep_net_at
+    unfolding islimpt_approachable_le dist_nz
+    apply (clarsimp simp add: image_image not_le)
+    apply (rule_tac x=e in image_eqI)
+    apply (auto simp add: expand_set_eq)
+    done
 qed
 
 lemma trivial_limit_at: "\<not> trivial_limit (at a)"
@@ -1119,98 +1118,91 @@ lemma trivial_limit_at: "\<not> trivial_limit (at a)"
 
 lemma trivial_limit_at_infinity:
   "\<not> trivial_limit (at_infinity :: ('a::{real_normed_vector,zero_neq_one}) net)"
-  apply (simp add: trivial_limit_def at_infinity)
-  by (metis order_refl zero_neq_one)
+  unfolding trivial_limit_def Rep_net_at_infinity
+  apply (clarsimp simp add: expand_set_eq)
+  apply (drule_tac x="scaleR r (sgn 1)" in spec)
+  apply (simp add: norm_scaleR norm_sgn)
+  done
 
 lemma trivial_limit_sequentially: "\<not> trivial_limit sequentially"
-  by (auto simp add: trivial_limit_def sequentially)
+  by (auto simp add: trivial_limit_def Rep_net_sequentially)
 
 subsection{* Some property holds "sufficiently close" to the limit point. *}
 
 definition
   eventually :: "('a \<Rightarrow> bool) \<Rightarrow> 'a net \<Rightarrow> bool" where
-  "eventually P net \<longleftrightarrow> trivial_limit net \<or>
-    (\<exists>y. (\<exists>x. netord net x y) \<and> (\<forall>x. netord net x y \<longrightarrow> P x))"
+  "eventually P net \<longleftrightarrow> (\<exists>A\<in>Rep_net net. \<forall>x\<in>A. P x)"
 
-lemma eventually_happens: "eventually P net ==> trivial_limit net \<or> (\<exists>x. P x)"
-  by (metis eventually_def)
+lemma eventually_at:
+  "eventually P (at a) \<longleftrightarrow> (\<exists>d>0. \<forall>x. 0 < dist x a \<and> dist x a < d \<longrightarrow> P x)"
+unfolding eventually_def Rep_net_at by auto
 
-lemma eventually_within_le: "eventually P (at a within S) \<longleftrightarrow>
-        (\<exists>d>0. \<forall>x\<in>S. 0 < dist x a \<and> dist x a <= d \<longrightarrow> P x)" (is "?lhs = ?rhs")
-proof
-  assume "?lhs"
-  moreover
-  { assume "\<not> a islimpt S"
-    then obtain e where "e>0" and e:"\<forall>x'\<in>S. \<not> (x' \<noteq> a \<and> dist x' a \<le> e)" unfolding islimpt_approachable_le by auto
-    hence  "?rhs" apply auto apply (rule_tac x=e in exI) by auto  }
-  moreover
-  { assume "\<exists>y. (\<exists>x. netord (at a within S) x y) \<and> (\<forall>x. netord (at a within S) x y \<longrightarrow> P x)"
-    then obtain x y where xy:"netord (at a within S) x y \<and> (\<forall>x. netord (at a within S) x y \<longrightarrow> P x)" by auto
-    hence "?rhs" unfolding within at by auto
-  }
-  ultimately show "?rhs" unfolding eventually_def trivial_limit_within by auto
-next
-  assume "?rhs"
-  then obtain d where "d>0" and d:"\<forall>x\<in>S. 0 < dist x a \<and> dist x a \<le> d \<longrightarrow> P x" by auto
-  thus "?lhs"
-    unfolding eventually_def trivial_limit_within islimpt_approachable_le within at unfolding dist_nz[THEN sym] by (clarsimp, rule_tac x=d in exI, auto)
-qed
+lemma eventually_at_infinity:
+  "eventually P at_infinity \<longleftrightarrow> (\<exists>b. \<forall>x. norm x >= b \<longrightarrow> P x)"
+unfolding eventually_def Rep_net_at_infinity by auto
+
+lemma eventually_sequentially:
+  "eventually P sequentially \<longleftrightarrow> (\<exists>N. \<forall>n\<ge>N. P n)"
+unfolding eventually_def Rep_net_sequentially by auto
+
+lemma eventually_within_eq:
+  "eventually P (net within S) = eventually (\<lambda>x. x \<in> S \<longrightarrow> P x) net"
+unfolding eventually_def Rep_net_within by auto
 
 lemma eventually_within: "eventually P (at a within S) \<longleftrightarrow>
         (\<exists>d>0. \<forall>x\<in>S. 0 < dist x a \<and> dist x a < d \<longrightarrow> P x)"
-proof-
-  { fix d
-    assume "d>0" "\<forall>x\<in>S. 0 < dist x a \<and> dist x a < d \<longrightarrow> P x"
-    hence "\<forall>x\<in>S. 0 < dist x a \<and> dist x a \<le> (d/2) \<longrightarrow> P x" using order_less_imp_le by auto
-  }
-  thus ?thesis unfolding eventually_within_le using approachable_lt_le
-    apply auto  by (rule_tac x="d/2" in exI, auto)
-qed
+unfolding eventually_within_eq eventually_at by auto
 
-lemma eventually_at: "eventually P (at a) \<longleftrightarrow> (\<exists>d>0. \<forall>x. 0 < dist x a \<and> dist x a < d \<longrightarrow> P x)"
-  apply (subst within_UNIV[symmetric])
-  by (simp add: eventually_within)
+lemma eventually_within_le: "eventually P (at a within S) \<longleftrightarrow>
+        (\<exists>d>0. \<forall>x\<in>S. 0 < dist x a \<and> dist x a <= d \<longrightarrow> P x)" (is "?lhs = ?rhs")
+unfolding eventually_within
+apply safe
+apply (rule_tac x="d/2" in exI, simp)
+apply (rule_tac x="d" in exI, simp)
+done
 
-lemma eventually_sequentially: "eventually P sequentially \<longleftrightarrow> (\<exists>N. \<forall>n\<ge>N. P n)"
-  apply (simp add: eventually_def sequentially trivial_limit_sequentially)
-apply (metis dlo_simps(7) dlo_simps(9) le_maxI2 min_max.le_iff_sup min_max.sup_absorb1 order_antisym_conv) done
-
-(* FIXME Declare this with P::'a::some_type \<Rightarrow> bool *)
-lemma eventually_at_infinity: "eventually (P::(real^'n::finite \<Rightarrow> bool)) at_infinity \<longleftrightarrow> (\<exists>b. \<forall>x. norm x >= b \<longrightarrow> P x)" (is "?lhs = ?rhs")
-proof
-  assume "?lhs" thus "?rhs"
-    unfolding eventually_def at_infinity
-    by (auto simp add: trivial_limit_at_infinity)
-next
-  assume "?rhs"
-  then obtain b where b:"\<forall>x. b \<le> norm x \<longrightarrow> P x" and "b\<ge>0"
-    by (metis norm_ge_zero real_le_linear real_le_trans)
-  obtain y::"real^'n" where y:"norm y = b" using `b\<ge>0`
-    using vector_choose_size[of b] by auto
-  thus "?lhs" unfolding eventually_def at_infinity using b y by auto
-qed
+lemma eventually_happens: "eventually P net ==> trivial_limit net \<or> (\<exists>x. P x)"
+  unfolding eventually_def trivial_limit_def
+  using Rep_net_nonempty [of net] by auto
 
 lemma always_eventually: "(\<forall>x. P x) ==> eventually P net"
-  unfolding eventually_def trivial_limit_def by (clarify, simp)
+  unfolding eventually_def trivial_limit_def
+  using Rep_net_nonempty [of net] by auto
 
 lemma eventually_True [simp]: "eventually (\<lambda>x. True) net"
   by (simp add: always_eventually)
 
 lemma trivial_limit_eventually: "trivial_limit net \<Longrightarrow> eventually P net"
-  unfolding eventually_def by simp
+  unfolding trivial_limit_def eventually_def by auto
+
+lemma eventually_False: "eventually (\<lambda>x. False) net \<longleftrightarrow> trivial_limit net"
+  unfolding trivial_limit_def eventually_def by auto
 
 lemma trivial_limit_eq: "trivial_limit net \<longleftrightarrow> (\<forall>P. eventually P net)"
-  unfolding eventually_def trivial_limit_def by auto
+  apply (safe elim!: trivial_limit_eventually)
+  apply (simp add: eventually_False [symmetric])
+  done
 
 text{* Combining theorems for "eventually" *}
 
-lemma eventually_and: " eventually (\<lambda>x. P x \<and> Q x) net \<longleftrightarrow> eventually P net \<and> eventually Q net"
-  apply (simp add: eventually_def)
-  apply (cases "trivial_limit net")
-  using net_dilemma[of net P Q] by auto
+lemma eventually_conjI:
+  "\<lbrakk>eventually (\<lambda>x. P x) net; eventually (\<lambda>x. Q x) net\<rbrakk>
+    \<Longrightarrow> eventually (\<lambda>x. P x \<and> Q x) net"
+unfolding eventually_def
+apply (clarify, rename_tac A B)
+apply (drule (1) Rep_net_directed, clarify)
+apply (rule_tac x=C in bexI, auto)
+done
 
 lemma eventually_mono: "(\<forall>x. P x \<longrightarrow> Q x) \<Longrightarrow> eventually P net  \<Longrightarrow> eventually Q net"
   by (metis eventually_def)
+
+lemma eventually_rev_mono:
+  "eventually P net \<Longrightarrow> (\<forall>x. P x \<longrightarrow> Q x) \<Longrightarrow> eventually Q net"
+using eventually_mono [of P Q] by fast
+
+lemma eventually_and: " eventually (\<lambda>x. P x \<and> Q x) net \<longleftrightarrow> eventually P net \<and> eventually Q net"
+  by (auto intro!: eventually_conjI elim: eventually_rev_mono)
 
 lemma eventually_mp: "eventually (\<lambda>x. P x \<longrightarrow> Q x) net \<Longrightarrow> eventually P net \<Longrightarrow> eventually Q net"
   apply (atomize(full))
@@ -1218,25 +1210,16 @@ lemma eventually_mp: "eventually (\<lambda>x. P x \<longrightarrow> Q x) net \<L
   by (auto simp add: eventually_def)
 
 lemma eventually_false: "eventually (\<lambda>x. False) net \<longleftrightarrow> trivial_limit net"
-  by (auto simp add: eventually_def)
+  by (auto simp add: eventually_False)
 
-lemma not_eventually: "(\<forall>x. \<not> P x ) \<Longrightarrow> ~(trivial_limit net) ==> ~(eventually P net)"
-  by (auto simp add: eventually_def)
-
-lemma eventually_rev_mono:
-  "eventually P net \<Longrightarrow> (\<forall>x. P x \<longrightarrow> Q x) \<Longrightarrow> eventually Q net"
-using eventually_mono [of P Q] by fast
+lemma not_eventually: "(\<forall>x. \<not> P x ) \<Longrightarrow> ~(trivial_limit net) ==> ~(eventually (\<lambda>x. P x) net)"
+  by (simp add: eventually_False)
 
 lemma eventually_rev_mp:
   assumes 1: "eventually (\<lambda>x. P x) net"
   assumes 2: "eventually (\<lambda>x. P x \<longrightarrow> Q x) net"
   shows "eventually (\<lambda>x. Q x) net"
 using 2 1 by (rule eventually_mp)
-
-lemma eventually_conjI:
-  "\<lbrakk>eventually (\<lambda>x. P x) net; eventually (\<lambda>x. Q x) net\<rbrakk>
-    \<Longrightarrow> eventually (\<lambda>x. P x \<and> Q x) net"
-by (simp add: eventually_and)
 
 subsection{* Limits, defined as vacuously true when the limit is trivial. *}
 
@@ -1682,20 +1665,36 @@ qed
 
 text{* It's also sometimes useful to extract the limit point from the net.  *}
 
-definition "netlimit net = (SOME a. \<forall>x. ~(netord net x a))"
+definition
+  netlimit :: "'a::metric_space net \<Rightarrow> 'a" where
+  "netlimit net = (SOME a. \<forall>r>0. \<exists>A\<in>Rep_net net. \<forall>x\<in>A. dist x a < r)"
 
-lemma netlimit_within: assumes"~(trivial_limit (at a within S))"
-  shows "(netlimit (at a within S) = a)"
-proof-
-  { fix x assume "x \<noteq> a"
-    then obtain y where y:"dist y a \<le> dist a a \<and> 0 < dist y a \<and> y \<in> S \<or> dist y a \<le> dist x a \<and> 0 < dist y a \<and> y \<in> S" using assms unfolding trivial_limit_def within at by blast
-    assume "\<forall>y. \<not> netord (at a within S) y x"
-    hence "x = a" using y unfolding within at by (auto simp add: dist_nz)
-  }
-  moreover
-  have "\<forall>y. \<not> netord (at a within S) y a"  using assms unfolding trivial_limit_def within at by auto
-  ultimately show ?thesis unfolding netlimit_def using some_equality[of "\<lambda>x. \<forall>y. \<not> netord (at a within S) y x"] by blast
-qed
+lemma dist_triangle3:
+  fixes x y :: "'a::metric_space"
+  shows "dist x y \<le> dist a x + dist a y"
+using dist_triangle2 [of x y a]
+by (simp add: dist_commute)
+
+lemma netlimit_within:
+  assumes "\<not> trivial_limit (at a within S)"
+  shows "netlimit (at a within S) = a"
+using assms
+apply (simp add: trivial_limit_within)
+apply (simp add: netlimit_def Rep_net_within Rep_net_at)
+apply (rule some_equality, fast)
+apply (rename_tac b)
+apply (rule ccontr)
+apply (drule_tac x="dist b a / 2" in spec, drule mp, simp add: dist_nz)
+apply (clarify, rename_tac r)
+apply (simp only: islimpt_approachable)
+apply (drule_tac x="min r (dist b a / 2)" in spec, drule mp, simp add: dist_nz)
+apply (clarify)
+apply (drule_tac x=x' in bspec, simp add: dist_nz)
+apply (subgoal_tac "dist b a < dist b a / 2 + dist b a / 2", simp)
+apply (rule le_less_trans [OF dist_triangle3])
+apply (erule add_strict_mono)
+apply simp
+done
 
 lemma netlimit_at: "netlimit (at a) = a"
   apply (subst within_UNIV[symmetric])
@@ -3345,26 +3344,26 @@ qed
 
 text{* Combination results for pointwise continuity. *}
 
-lemma continuous_const: "continuous net (\<lambda>x::'a::zero_neq_one. c)"
+lemma continuous_const: "continuous net (\<lambda>x. c)"
   by (auto simp add: continuous_def Lim_const)
 
 lemma continuous_cmul:
-  fixes f :: "'a \<Rightarrow> real ^ 'n::finite"
+  fixes f :: "'a::metric_space \<Rightarrow> real ^ 'n::finite"
   shows "continuous net f ==> continuous net (\<lambda>x. c *s f x)"
   by (auto simp add: continuous_def Lim_cmul)
 
 lemma continuous_neg:
-  fixes f :: "'a \<Rightarrow> 'b::real_normed_vector"
+  fixes f :: "'a::metric_space \<Rightarrow> 'b::real_normed_vector"
   shows "continuous net f ==> continuous net (\<lambda>x. -(f x))"
   by (auto simp add: continuous_def Lim_neg)
 
 lemma continuous_add:
-  fixes f g :: "'a \<Rightarrow> 'b::real_normed_vector"
+  fixes f g :: "'a::metric_space \<Rightarrow> 'b::real_normed_vector"
   shows "continuous net f \<Longrightarrow> continuous net g \<Longrightarrow> continuous net (\<lambda>x. f x + g x)"
   by (auto simp add: continuous_def Lim_add)
 
 lemma continuous_sub:
-  fixes f g :: "'a \<Rightarrow> 'b::real_normed_vector"
+  fixes f g :: "'a::metric_space \<Rightarrow> 'b::real_normed_vector"
   shows "continuous net f \<Longrightarrow> continuous net g \<Longrightarrow> continuous net (\<lambda>x. f x - g x)"
   by (auto simp add: continuous_def Lim_sub)
 
@@ -4115,12 +4114,12 @@ lemma Lim_vmul:
   using Lim_mul[of c d net "\<lambda>x. v" v] using Lim_const[of v] by auto
 
 lemma continuous_vmul:
-  fixes c :: "'a \<Rightarrow> real"
+  fixes c :: "'a::metric_space \<Rightarrow> real"
   shows "continuous net (vec1 o c) ==> continuous net (\<lambda>x. c(x) *s v)"
   unfolding continuous_def using Lim_vmul[of c] by auto
 
 lemma continuous_mul:
-  fixes c :: "'a \<Rightarrow> real"
+  fixes c :: "'a::metric_space \<Rightarrow> real"
   shows "continuous net (vec1 o c) \<Longrightarrow> continuous net f
              ==> continuous net (\<lambda>x. c(x) *s f x) "
   unfolding continuous_def using Lim_mul[of c] by auto
@@ -4175,7 +4174,7 @@ proof -
 qed
 
 lemma continuous_inv:
-  fixes f :: "'a \<Rightarrow> real"
+  fixes f :: "'a::metric_space \<Rightarrow> real"
   shows "continuous net (vec1 o f) \<Longrightarrow> f(netlimit net) \<noteq> 0
            ==> continuous net (vec1 o inverse o f)"
   unfolding continuous_def using Lim_inv by auto
