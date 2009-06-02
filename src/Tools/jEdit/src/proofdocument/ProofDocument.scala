@@ -122,7 +122,8 @@ class ProofDocument(val id: String,
       invalid_tokens match {
         case t::ts => if(start(t) == start(new_token) &&
                          start(t) > change.start + change.added.length) {
-          old_suffix = ts
+          old_suffix = t::ts
+          new_tokens = new_tokens.tail
           invalid_tokens = Nil
         }
         case _ =>
