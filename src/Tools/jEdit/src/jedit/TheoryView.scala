@@ -106,7 +106,7 @@ class TheoryView (text_area: JEditTextArea, document_actor: Actor)
         }
       }
     }
-  }.start
+  }
 
   def _from_current(to_id: String, changes: List[Text.Change], pos: Int): Int =
     changes match {
