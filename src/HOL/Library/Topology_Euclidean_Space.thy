@@ -1011,7 +1011,7 @@ using Rep_net [of net] by simp
 subsection{* Common nets and The "within" modifier for nets. *}
 
 definition
-  at :: "'a::perfect_space \<Rightarrow> 'a net" where
+  at :: "'a::metric_space \<Rightarrow> 'a net" where
   "at a = Abs_net ((\<lambda>r. {x. 0 < dist x a \<and> dist x a < r}) ` {r. 0 < r})"
 
 definition
@@ -1088,7 +1088,7 @@ definition
   "trivial_limit net \<longleftrightarrow> {} \<in> Rep_net net"
 
 lemma trivial_limit_within:
-  fixes a :: "'a::perfect_space"
+  fixes a :: "'a::metric_space"
   shows "trivial_limit (at a within S) \<longleftrightarrow> \<not> a islimpt S"
 proof
   assume "trivial_limit (at a within S)"
@@ -1112,12 +1112,18 @@ next
     done
 qed
 
-lemma trivial_limit_at: "\<not> trivial_limit (at a)"
+lemma trivial_limit_at_iff: "trivial_limit (at a) \<longleftrightarrow> \<not> a islimpt UNIV"
   using trivial_limit_within [of a UNIV]
   by (simp add: within_UNIV)
 
+lemma trivial_limit_at:
+  fixes a :: "'a::perfect_space"
+  shows "\<not> trivial_limit (at a)"
+  by (simp add: trivial_limit_at_iff)
+
 lemma trivial_limit_at_infinity:
   "\<not> trivial_limit (at_infinity :: ('a::{real_normed_vector,zero_neq_one}) net)"
+  (* FIXME: find a more appropriate type class *)
   unfolding trivial_limit_def Rep_net_at_infinity
   apply (clarsimp simp add: expand_set_eq)
   apply (drule_tac x="scaleR r (sgn 1)" in spec)
@@ -1636,7 +1642,7 @@ lemma Lim_at_id: "(id ---> a) (at a)"
 apply (subst within_UNIV[symmetric]) by (simp add: Lim_within_id)
 
 lemma Lim_at_zero:
-  fixes a :: "'a::{real_normed_vector, perfect_space}"
+  fixes a :: "'a::real_normed_vector"
   shows "(f ---> l) (at a) \<longleftrightarrow> ((\<lambda>x. f(a + x)) ---> l) (at 0)" (is "?lhs = ?rhs")
 proof
   assume "?lhs"
@@ -1696,7 +1702,9 @@ apply (erule add_strict_mono)
 apply simp
 done
 
-lemma netlimit_at: "netlimit (at a) = a"
+lemma netlimit_at:
+  fixes a :: "'a::perfect_space"
+  shows "netlimit (at a) = a"
   apply (subst within_UNIV[symmetric])
   using netlimit_within[of a UNIV]
   by (simp add: trivial_limit_at within_UNIV)
@@ -3069,7 +3077,9 @@ lemma continuous_at: "continuous (at x) f \<longleftrightarrow> (f ---> f(x)) (a
   using continuous_within [of x UNIV f] by (simp add: within_UNIV)
 
 lemma continuous_at_within:
+  fixes x :: "'a::perfect_space"
   assumes "continuous (at x) f"  shows "continuous (at x within s) f"
+  (* FIXME: generalize *)
 proof(cases "x islimpt s")
   case True show ?thesis using assms unfolding continuous_def and netlimit_at
     using Lim_at_within[of f "f x" x s]
