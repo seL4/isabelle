@@ -81,9 +81,9 @@ structure ThreadHeap = HeapFun
   fun ord ((a, _), (b, _)) = Time.compare (a, b);
 );
 
-val lookup_thread = AList.lookup Thread.equal;
-val delete_thread = AList.delete Thread.equal;
-val update_thread = AList.update Thread.equal;
+fun lookup_thread xs = AList.lookup Thread.equal xs;
+fun delete_thread xs = AList.delete Thread.equal xs;
+fun update_thread xs = AList.update Thread.equal xs;
 
 
 (* state of thread manager *)
@@ -103,6 +103,7 @@ fun make_state managing_thread timeout_heap oldest_heap active cancelling messag
 
 val state = Synchronized.var "atp_manager"
   (make_state NONE ThreadHeap.empty ThreadHeap.empty [] [] [] []);
+
 
 (* unregister thread *)
 

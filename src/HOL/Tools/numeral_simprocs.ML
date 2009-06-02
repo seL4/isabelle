@@ -232,7 +232,7 @@ structure CancelNumeralsCommon =
   val mk_coeff          = mk_coeff
   val dest_coeff        = dest_coeff 1
   val find_first_coeff  = find_first_coeff []
-  val trans_tac         = K Arith_Data.trans_tac
+  fun trans_tac _       = Arith_Data.trans_tac
 
   fun norm_tac ss =
     ALLGOALS (simp_tac (Simplifier.inherit_context ss norm_ss1))
@@ -310,7 +310,7 @@ structure CombineNumeralsData =
   val dest_coeff        = dest_coeff 1
   val left_distrib      = @{thm combine_common_factor} RS trans
   val prove_conv        = Arith_Data.prove_conv_nohyps
-  val trans_tac         = K Arith_Data.trans_tac
+  fun trans_tac _       = Arith_Data.trans_tac
 
   fun norm_tac ss =
     ALLGOALS (simp_tac (Simplifier.inherit_context ss norm_ss1))
@@ -336,7 +336,7 @@ structure FieldCombineNumeralsData =
   val dest_coeff        = dest_fcoeff 1
   val left_distrib      = @{thm combine_common_factor} RS trans
   val prove_conv        = Arith_Data.prove_conv_nohyps
-  val trans_tac         = K Arith_Data.trans_tac
+  fun trans_tac _       = Arith_Data.trans_tac
 
   val norm_ss1a = norm_ss1 addsimps inverse_1s @ divide_simps
   fun norm_tac ss =
@@ -387,7 +387,7 @@ structure CancelNumeralFactorCommon =
   struct
   val mk_coeff          = mk_coeff
   val dest_coeff        = dest_coeff 1
-  val trans_tac         = K Arith_Data.trans_tac
+  fun trans_tac _       = Arith_Data.trans_tac
 
   val norm_ss1 = HOL_ss addsimps minus_from_mult_simps @ mult_1s
   val norm_ss2 = HOL_ss addsimps simps @ mult_minus_simps
@@ -533,7 +533,7 @@ structure CancelFactorCommon =
   val mk_coeff          = mk_coeff
   val dest_coeff        = dest_coeff
   val find_first        = find_first_t []
-  val trans_tac         = K Arith_Data.trans_tac
+  fun trans_tac _       = Arith_Data.trans_tac
   val norm_ss = HOL_ss addsimps mult_1s @ @{thms mult_ac}
   fun norm_tac ss = ALLGOALS (simp_tac (Simplifier.inherit_context ss norm_ss))
   val simplify_meta_eq  = cancel_simplify_meta_eq 
@@ -545,7 +545,7 @@ structure EqCancelFactor = ExtractCommonTermFun
   val prove_conv = Arith_Data.prove_conv
   val mk_bal   = HOLogic.mk_eq
   val dest_bal = HOLogic.dest_bin "op =" Term.dummyT
-  val simp_conv = K (K (SOME @{thm mult_cancel_left}))
+  fun simp_conv _ _ = SOME @{thm mult_cancel_left}
 );
 
 (*for ordered rings*)
@@ -574,7 +574,7 @@ structure DivCancelFactor = ExtractCommonTermFun
   val prove_conv = Arith_Data.prove_conv
   val mk_bal   = HOLogic.mk_binop @{const_name Divides.div}
   val dest_bal = HOLogic.dest_bin @{const_name Divides.div} Term.dummyT
-  val simp_conv = K (K (SOME @{thm div_mult_mult1_if}))
+  fun simp_conv _ _ = SOME @{thm div_mult_mult1_if}
 );
 
 structure ModCancelFactor = ExtractCommonTermFun
@@ -582,7 +582,7 @@ structure ModCancelFactor = ExtractCommonTermFun
   val prove_conv = Arith_Data.prove_conv
   val mk_bal   = HOLogic.mk_binop @{const_name Divides.mod}
   val dest_bal = HOLogic.dest_bin @{const_name Divides.mod} Term.dummyT
-  val simp_conv = K (K (SOME @{thm mod_mult_mult1}))
+  fun simp_conv _ _ = SOME @{thm mod_mult_mult1}
 );
 
 (*for idoms*)
@@ -591,7 +591,7 @@ structure DvdCancelFactor = ExtractCommonTermFun
   val prove_conv = Arith_Data.prove_conv
   val mk_bal   = HOLogic.mk_binrel @{const_name Ring_and_Field.dvd}
   val dest_bal = HOLogic.dest_bin @{const_name Ring_and_Field.dvd} Term.dummyT
-  val simp_conv = K (K (SOME @{thm dvd_mult_cancel_left}))
+  fun simp_conv _ _ = SOME @{thm dvd_mult_cancel_left}
 );
 
 (*Version for all fields, including unordered ones (type complex).*)
@@ -600,7 +600,7 @@ structure DivideCancelFactor = ExtractCommonTermFun
   val prove_conv = Arith_Data.prove_conv
   val mk_bal   = HOLogic.mk_binop @{const_name HOL.divide}
   val dest_bal = HOLogic.dest_bin @{const_name HOL.divide} Term.dummyT
-  val simp_conv = K (K (SOME @{thm mult_divide_mult_cancel_left_if}))
+  fun simp_conv _ _ = SOME @{thm mult_divide_mult_cancel_left_if}
 );
 
 val cancel_factors =
