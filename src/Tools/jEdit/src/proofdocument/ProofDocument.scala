@@ -131,12 +131,11 @@ class ProofDocument(val id: String,
     }
     val insert = new_tokens.reverse
     val new_token_list = begin ::: insert ::: old_suffix
-    val new_tokenset = (LinearSet() ++ new_token_list).asInstanceOf[LinearSet[Token]]
     token_changed(change.id,
                   begin.lastOption,
                   insert,
                   old_suffix.firstOption,
-                  new_tokenset,
+                  new_token_list,
                   start)
   }
   
@@ -151,9 +150,10 @@ class ProofDocument(val id: String,
                             before_change: Option[Token],
                             inserted_tokens: List[Token],
                             after_change: Option[Token],
-                            new_tokenset: LinearSet[Token],
+                            new_tokens: List[Token],
                             new_token_start: Map[Token, Int]): (ProofDocument, StructureChange) =
   {
+    val new_tokenset = (LinearSet() ++ new_tokens).asInstanceOf[LinearSet[Token]]
     val cmd_before_change = before_change match {
       case None => None
       case Some(bc) =>
@@ -193,7 +193,7 @@ class ProofDocument(val id: String,
       if (before_change.isDefined) {
         val changed =
           if (cmd_before_change.isDefined)
-            new_tokenset.dropWhile(_ != cmd_before_change.get.tokens.last).drop(1)
+            new_tokens.dropWhile(_ != cmd_before_change.get.tokens.last).drop(1)
           else new_tokenset
         if (changed.exists(_ == before_change.get))
           changed.takeWhile(_ != before_change.get).toList ::: List(before_change.get)
@@ -202,14 +202,14 @@ class ProofDocument(val id: String,
 
     val split_end =
       if (after_change.isDefined && cmd_after_change.isDefined) {
-        val unchanged = new_tokenset.dropWhile(_ != after_change.get)
+        val unchanged = new_tokens.dropWhile(_ != after_change.get)
         if (unchanged.exists(_ == cmd_after_change.get.tokens.first))
           unchanged.takeWhile(_ != cmd_after_change.get.tokens.first).toList
         else Nil
       } else Nil
 
-    val rescan_begin = split_begin ::: before_change.map(bc => new_tokenset.dropWhile(_ != bc).drop(1)).
-      getOrElse(new_tokenset).toList
+    val rescan_begin = split_begin ::: before_change.map(bc => new_tokens.dropWhile(_ != bc).drop(1)).
+      getOrElse(new_tokens)
     val rescanning_tokens = after_change.map(ac => rescan_begin.takeWhile(_ != ac)).
       getOrElse(rescan_begin) ::: split_end
     val inserted_commands = tokens_to_commands(rescanning_tokens.toList)
