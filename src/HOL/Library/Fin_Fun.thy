@@ -17,10 +17,6 @@ text {*
   For details, see Formalising FinFuns - Generating Code for Functions as Data by A. Lochbihler in TPHOLs 2009.
 *}
 
-(*FIXME move to Map.thy*)
-lemma restrict_map_insert: "f |` (insert a A) = (f |` A)(a := f a)"
-  by (auto simp add: restrict_map_def intro: ext)
-
 
 subsection {* The @{text "map_default"} operation *}
 
