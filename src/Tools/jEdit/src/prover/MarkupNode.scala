@@ -125,8 +125,8 @@ class MarkupNode(val base: Command, val start: Int, val stop: Int,
       }
       else this set_children new_children
     } else {
-      error("ignored nonfitting markup " + new_child.id + new_child.content +
-        new_child.info.toString + "(" +new_child.start + ", "+ new_child.stop + ")")
+      System.err.println("ignored nonfitting markup: " + new_child)
+      this
     }
   }
 

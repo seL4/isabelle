@@ -43,6 +43,8 @@ class Command(val tokens: List[Token], val starts: Map[Token, Int])
   def start(doc: ProofDocument) = doc.token_start(tokens.first)
   def stop(doc: ProofDocument) = doc.token_start(tokens.last) + tokens.last.length
 
+  def contains(p: Token) = tokens.contains(p)
+
   /* command status */
 
   var state_id: IsarDocument.State_ID = null
