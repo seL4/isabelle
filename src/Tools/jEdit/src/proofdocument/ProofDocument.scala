@@ -59,7 +59,7 @@ class ProofDocument(val id: String,
     return (doc.mark_active, change)
   }
   def set_command_keyword(f: String => Boolean): ProofDocument =
-    new ProofDocument(id, tokens, token_start, commands, active, f)
+    new ProofDocument(isabelle.jedit.Isabelle.plugin.id(), tokens, token_start, commands, active, f)
 
   def content = Token.string_from_tokens(List() ++ tokens, token_start)
   /** token view **/
