@@ -108,6 +108,86 @@ proof -
   with `a \<le> b` show ?thesis by auto
 qed
 
+lemma fine_covers_all:
+  assumes "fine \<delta> (a, c) D" and "a < x" and "x \<le> c"
+  shows "\<exists> N < length D. \<forall> d t e. D ! N = (d,t,e) \<longrightarrow> d < x \<and> x \<le> e"
+  using assms
+proof (induct set: fine)
+  case (2 b c D a t)
+  thus ?case
+  proof (cases "b < x")
+    case True
+    with 2 obtain N where *: "N < length D"
+      and **: "\<And> d t e. D ! N = (d,t,e) \<Longrightarrow> d < x \<and> x \<le> e" by auto
+    hence "Suc N < length ((a,t,b)#D) \<and>
+           (\<forall> d t' e. ((a,t,b)#D) ! Suc N = (d,t',e) \<longrightarrow> d < x \<and> x \<le> e)" by auto
+    thus ?thesis by auto
+  next
+    case False with 2
+    have "0 < length ((a,t,b)#D) \<and>
+           (\<forall> d t' e. ((a,t,b)#D) ! 0 = (d,t',e) \<longrightarrow> d < x \<and> x \<le> e)" by auto
+    thus ?thesis by auto
+  qed
+qed auto
+
+lemma fine_append_split:
+  assumes "fine \<delta> (a,b) D" and "D2 \<noteq> []" and "D = D1 @ D2"
+  shows "fine \<delta> (a,fst (hd D2)) D1" (is "?fine1")
+  and "fine \<delta> (fst (hd D2), b) D2" (is "?fine2")
+proof -
+  from assms
+  have "?fine1 \<and> ?fine2"
+  proof (induct arbitrary: D1 D2)
+    case (2 b c D a' x D1 D2)
+    note induct = this
+
+    thus ?case
+    proof (cases D1)
+      case Nil
+      hence "fst (hd D2) = a'" using 2 by auto
+      with fine_Cons[OF `fine \<delta> (b,c) D` induct(3,4,5)] Nil induct
+      show ?thesis by (auto intro: fine_Nil)
+    next
+      case (Cons d1 D1')
+      with induct(2)[OF `D2 \<noteq> []`, of D1'] induct(8)
+      have "fine \<delta> (b, fst (hd D2)) D1'" and "fine \<delta> (fst (hd D2), c) D2" and
+	"d1 = (a', x, b)" by auto
+      with fine_Cons[OF this(1) induct(3,4,5), OF induct(6)] Cons
+      show ?thesis by auto
+    qed
+  qed auto
+  thus ?fine1 and ?fine2 by auto
+qed
+
+lemma fine_\<delta>_expand:
+  assumes "fine \<delta> (a,b) D"
+  and "\<And> x. \<lbrakk> a \<le> x ; x \<le> b \<rbrakk> \<Longrightarrow> \<delta> x \<le> \<delta>' x"
+  shows "fine \<delta>' (a,b) D"
+using assms proof induct
+  case 1 show ?case by (rule fine_Nil)
+next
+  case (2 b c D a x)
+  show ?case
+  proof (rule fine_Cons)
+    show "fine \<delta>' (b,c) D" using 2 by auto
+    from fine_imp_le[OF 2(1)] 2(6) `x \<le> b`
+    show "b - a < \<delta>' x"
+      using 2(7)[OF `a \<le> x`] by auto
+  qed (auto simp add: 2)
+qed
+
+lemma fine_single_boundaries:
+  assumes "fine \<delta> (a,b) D" and "D = [(d, t, e)]"
+  shows "a = d \<and> b = e"
+using assms proof induct
+  case (2 b c  D a x)
+  hence "D = []" and "a = d" and "b = e" by auto
+  moreover
+  from `fine \<delta> (b,c) D` `D = []` have "b = c"
+    by (rule empty_fine_imp_eq)
+  ultimately show ?case by simp
+qed auto
+
 
 subsection {* Riemann sum *}
 
@@ -132,6 +212,9 @@ by (induct D, auto simp add: algebra_simps)
 
 lemma rsum_add: "rsum D (\<lambda>x. f x + g x) =  rsum D f + rsum D g"
 by (induct D, auto simp add: algebra_simps)
+
+lemma rsum_append: "rsum (D1 @ D2) f = rsum D1 f + rsum D2 f"
+unfolding rsum_def map_append listsum_append ..
 
 
 subsection {* Gauge integrability (definite) *}
@@ -232,6 +315,144 @@ apply (simp add: pos_less_divide_eq abs_mult [symmetric]
                  algebra_simps rsum_right_distrib)
 done
 
+lemma Integral_add:
+  assumes "Integral (a, b) f x1"
+  assumes "Integral (b, c) f x2"
+  assumes "a \<le> b" and "b \<le> c"
+  shows "Integral (a, c) f (x1 + x2)"
+proof (cases "a < b \<and> b < c", simp only: Integral_def split_conv, rule allI, rule impI)
+  fix \<epsilon> :: real assume "0 < \<epsilon>"
+  hence "0 < \<epsilon> / 2" by auto
+
+  assume "a < b \<and> b < c"
+  hence "a < b" and "b < c" by auto
+
+  from `Integral (a, b) f x1`[simplified Integral_def split_conv,
+                              rule_format, OF `0 < \<epsilon>/2`]
+  obtain \<delta>1 where \<delta>1_gauge: "gauge {a..b} \<delta>1"
+    and I1: "\<And> D. fine \<delta>1 (a,b) D \<Longrightarrow> \<bar> rsum D f - x1 \<bar> < (\<epsilon> / 2)" by auto
+
+  from `Integral (b, c) f x2`[simplified Integral_def split_conv,
+                              rule_format, OF `0 < \<epsilon>/2`]
+  obtain \<delta>2 where \<delta>2_gauge: "gauge {b..c} \<delta>2"
+    and I2: "\<And> D. fine \<delta>2 (b,c) D \<Longrightarrow> \<bar> rsum D f - x2 \<bar> < (\<epsilon> / 2)" by auto
+
+  def \<delta> \<equiv> "\<lambda> x. if x < b then min (\<delta>1 x) (b - x)
+           else if x = b then min (\<delta>1 b) (\<delta>2 b)
+                         else min (\<delta>2 x) (x - b)"
+
+  have "gauge {a..c} \<delta>"
+    using \<delta>1_gauge \<delta>2_gauge unfolding \<delta>_def gauge_def by auto
+  moreover {
+    fix D :: "(real \<times> real \<times> real) list"
+    assume fine: "fine \<delta> (a,c) D"
+    from fine_covers_all[OF this `a < b` `b \<le> c`]
+    obtain N where "N < length D"
+      and *: "\<forall> d t e. D ! N = (d, t, e) \<longrightarrow> d < b \<and> b \<le> e"
+      by auto
+    obtain d t e where D_eq: "D ! N = (d, t, e)" by (cases "D!N", auto)
+    with * have "d < b" and "b \<le> e" by auto
+    have in_D: "(d, t, e) \<in> set D"
+      using D_eq[symmetric] using `N < length D` by auto
+
+    from mem_fine[OF fine in_D]
+    have "d < e" and "d \<le> t" and "t \<le> e" by auto
+
+    have "t = b"
+    proof (rule ccontr)
+      assume "t \<noteq> b"
+      with mem_fine3[OF fine in_D] `b \<le> e` `d \<le> t` `t \<le> e` `d < b` \<delta>_def
+      show False by (cases "t < b") auto
+    qed
+
+    let ?D1 = "take N D"
+    let ?D2 = "drop N D"
+    def D1 \<equiv> "take N D @ [(d, t, b)]"
+    def D2 \<equiv> "(if b = e then [] else [(b, t, e)]) @ drop (Suc N) D"
+
+    have "D \<noteq> []" using `N < length D` by auto
+    from hd_drop_conv_nth[OF this `N < length D`]
+    have "fst (hd ?D2) = d" using `D ! N = (d, t, e)` by auto
+    with fine_append_split[OF _ _ append_take_drop_id[symmetric]]
+    have fine1: "fine \<delta> (a,d) ?D1" and fine2: "fine \<delta> (d,c) ?D2"
+      using `N < length D` fine by auto
+
+    have "fine \<delta>1 (a,b) D1" unfolding D1_def
+    proof (rule fine_append)
+      show "fine \<delta>1 (a, d) ?D1"
+      proof (rule fine1[THEN fine_\<delta>_expand])
+	fix x assume "a \<le> x" "x \<le> d"
+	hence "x \<le> b" using `d < b` `x \<le> d` by auto
+	thus "\<delta> x \<le> \<delta>1 x" unfolding \<delta>_def by auto
+      qed
+
+      have "b - d < \<delta>1 t"
+	using mem_fine3[OF fine in_D] \<delta>_def `b \<le> e` `t = b` by auto
+      from `d < b` `d \<le> t` `t = b` this
+      show "fine \<delta>1 (d, b) [(d, t, b)]" using fine_single by auto
+    qed
+    note rsum1 = I1[OF this]
+
+    have drop_split: "drop N D = [D ! N] @ drop (Suc N) D"
+      using nth_drop'[OF `N < length D`] by simp
+
+    have fine2: "fine \<delta>2 (e,c) (drop (Suc N) D)"
+    proof (cases "drop (Suc N) D = []")
+      case True
+      note * = fine2[simplified drop_split True D_eq append_Nil2]
+      have "e = c" using fine_single_boundaries[OF * refl] by auto
+      thus ?thesis unfolding True using fine_Nil by auto
+    next
+      case False
+      note * = fine_append_split[OF fine2 False drop_split]
+      from fine_single_boundaries[OF *(1)]
+      have "fst (hd (drop (Suc N) D)) = e" using D_eq by auto
+      with *(2) have "fine \<delta> (e,c) (drop (Suc N) D)" by auto
+      thus ?thesis
+      proof (rule fine_\<delta>_expand)
+	fix x assume "e \<le> x" and "x \<le> c"
+	thus "\<delta> x \<le> \<delta>2 x" using `b \<le> e` unfolding \<delta>_def by auto
+      qed
+    qed
+
+    have "fine \<delta>2 (b, c) D2"
+    proof (cases "e = b")
+      case True thus ?thesis using fine2 by (simp add: D1_def D2_def)
+    next
+      case False
+      have "e - b < \<delta>2 b"
+	using mem_fine3[OF fine in_D] \<delta>_def `d < b` `t = b` by auto
+      with False `t = b` `b \<le> e`
+      show ?thesis using D2_def
+	by (auto intro!: fine_append[OF _ fine2] fine_single
+	       simp del: append_Cons)
+    qed
+    note rsum2 = I2[OF this]
+
+    have "rsum D f = rsum (take N D) f + rsum [D ! N] f + rsum (drop (Suc N) D) f"
+      using rsum_append[symmetric] nth_drop'[OF `N < length D`] by auto
+    also have "\<dots> = rsum D1 f + rsum D2 f"
+      by (cases "b = e", auto simp add: D1_def D2_def D_eq rsum_append ring_simps)
+    finally have "\<bar>rsum D f - (x1 + x2)\<bar> < \<epsilon>"
+      using add_strict_mono[OF rsum1 rsum2] by simp
+  }
+  ultimately show "\<exists> \<delta>. gauge {a .. c} \<delta> \<and>
+    (\<forall>D. fine \<delta> (a,c) D \<longrightarrow> \<bar>rsum D f - (x1 + x2)\<bar> < \<epsilon>)"
+    by blast
+next
+  case False
+  hence "a = b \<or> b = c" using `a \<le> b` and `b \<le> c` by auto
+  thus ?thesis
+  proof (rule disjE)
+    assume "a = b" hence "x1 = 0"
+      using `Integral (a, b) f x1` Integral_zero Integral_unique[of a b] by auto
+    thus ?thesis using `a = b` `Integral (b, c) f x2` by auto
+  next
+    assume "b = c" hence "x2 = 0"
+      using `Integral (b, c) f x2` Integral_zero Integral_unique[of b c] by auto
+    thus ?thesis using `b = c` `Integral (a, b) f x1` by auto
+  qed
+qed
 
 text{*Fundamental theorem of calculus (Part I)*}
 
@@ -338,18 +559,6 @@ done
 
 lemma Integral_subst: "[| Integral(a,b) f k1; k2=k1 |] ==> Integral(a,b) f k2"
 by simp
-
-lemma Integral_add:
-     "[| a \<le> b; b \<le> c; Integral(a,b) f' k1; Integral(b,c) f' k2;
-         \<forall>x. a \<le> x & x \<le> c --> DERIV f x :> f' x |]
-     ==> Integral(a,c) f' (k1 + k2)"
-apply (rule FTC1 [THEN Integral_subst], auto)
-apply (frule FTC1, auto)
-apply (frule_tac a = b in FTC1, auto)
-apply (drule_tac x = x in spec, auto)
-apply (drule_tac ?k2.0 = "f b - f a" in Integral_unique)
-apply (drule_tac [3] ?k2.0 = "f c - f b" in Integral_unique, auto)
-done
 
 subsection {* Additivity Theorem of Gauge Integral *}
 
