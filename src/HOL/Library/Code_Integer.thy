@@ -93,11 +93,10 @@ code_const "op < \<Colon> int \<Rightarrow> int \<Rightarrow> bool"
 
 code_const Code_Numeral.int_of
   (SML "IntInf.fromInt")
-  (OCaml "Big'_int.big'_int'_of'_int")
+  (OCaml "_")
   (Haskell "toEnum")
 
 code_reserved SML IntInf
-code_reserved OCaml Big_int
 
 text {* Evaluation *}
 
