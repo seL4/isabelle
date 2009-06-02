@@ -1,6 +1,6 @@
 (*  Title:      Pure/ML-Systems/compiler_polyml-5.0.ML
 
-Runtime compilation -- for PolyML.compilerEx in version 5.0 and 5.1.
+Runtime compilation for Poly/ML 5.0 and 5.1.
 *)
 
 fun use_text ({tune_source, print, error, ...}: use_context) (line, name) verbose txt =

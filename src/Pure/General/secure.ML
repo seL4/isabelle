@@ -9,6 +9,7 @@ sig
   val set_secure: unit -> unit
   val is_secure: unit -> bool
   val deny_secure: string -> unit
+  val secure_mltext: unit -> unit
   val use_text: use_context -> int * string -> bool -> string -> unit
   val use_file: use_context -> bool -> string -> unit
   val toplevel_pp: string list -> string -> unit

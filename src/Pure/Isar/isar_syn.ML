@@ -296,11 +296,11 @@ val _ =
 (* use ML text *)
 
 fun propagate_env (context as Context.Proof lthy) =
-      Context.Proof (LocalTheory.map_contexts (ML_Context.inherit_env context) lthy)
+      Context.Proof (LocalTheory.map_contexts (ML_Env.inherit context) lthy)
   | propagate_env context = context;
 
 fun propagate_env_prf prf = Proof.map_contexts
-  (Context.proof_map (ML_Context.inherit_env (Context.Proof (Proof.context_of prf)))) prf;
+  (Context.proof_map (ML_Env.inherit (Context.Proof (Proof.context_of prf)))) prf;
 
 val _ =
   OuterSyntax.command "use" "ML text from file" (K.tag_ml K.thy_decl)

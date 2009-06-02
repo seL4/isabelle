@@ -18,6 +18,7 @@ sig
   val kind_of: token -> token_kind
   val content_of: token -> string
   val text_of: token -> string
+  val flatten: token list -> string
   val report_token: token -> unit
   val keywords: string list
   val source: (Symbol.symbol, 'a) Source.source ->
@@ -72,6 +73,8 @@ fun text_of tok =
   (case kind_of tok of
     Error msg => error msg
   | _ => Symbol.escape (content_of tok));
+
+val flatten = implode o map text_of;
 
 fun is_regular (Token (_, (Error _, _))) = false
   | is_regular (Token (_, (EOF, _))) = false

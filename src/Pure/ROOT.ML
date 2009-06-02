@@ -46,7 +46,6 @@ use "Syntax/printer.ML";
 use "Syntax/syntax.ML";
 
 use "type_infer.ML";
-use "ML/ml_syntax.ML";
 
 (*core of tactical proof system*)
 use "net.ML";
@@ -98,6 +97,5 @@ use "codegen.ML";
 (*configuration for Proof General*)
 cd "ProofGeneral"; use "ROOT.ML"; cd "..";
 
-if ml_system = "polyml-experimental" then use "ML/ml_test.ML" else ();
 use "pure_setup.ML";
 
