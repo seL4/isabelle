@@ -386,7 +386,8 @@ fun add_datatype_def flat_names new_type_names descr sorts types_syntax constr_s
     val (weak_case_congs, thy10) = DatatypeAbsProofs.prove_weak_case_congs new_type_names
       descr sorts thy9;
 
-    val dt_infos = map (make_dt_info NONE (flat descr) sorts induct reccomb_names rec_thms)
+    val dt_infos = map
+      (make_dt_info (SOME new_type_names) (flat descr) sorts induct reccomb_names rec_thms)
       ((0 upto length (hd descr) - 1) ~~ (hd descr) ~~ case_names ~~ case_thms ~~
         casedist_thms ~~ simproc_dists ~~ inject ~~ nchotomys ~~ case_congs ~~ weak_case_congs);
 
@@ -586,7 +587,7 @@ fun gen_add_datatype prep_typ err flat_names new_type_names dts thy =
     val _ = (case duplicates (op =) (map fst new_dts) @ duplicates (op =) new_type_names of
       [] => () | dups => error ("Duplicate datatypes: " ^ commas dups));
 
-    fun prep_dt_spec (tvs, tname, mx, constrs) (dts', constr_syntax, sorts, i) =
+    fun prep_dt_spec ((tvs, tname, mx, constrs), tname') (dts', constr_syntax, sorts, i) =
       let
         fun prep_constr (cname, cargs, mx') (constrs, constr_syntax', sorts') =
           let
@@ -595,7 +596,7 @@ fun gen_add_datatype prep_typ err flat_names new_type_names dts thy =
                 [] => ()
               | vs => error ("Extra type variables on rhs: " ^ commas vs))
           in (constrs @ [((if flat_names then Sign.full_name tmp_thy else
-                Sign.full_name_path tmp_thy (Binding.name_of tname))
+                Sign.full_name_path tmp_thy tname')
                   (Binding.map_name (Syntax.const_name mx') cname),
                    map (dtyp_of_typ new_dts) cargs')],
               constr_syntax' @ [(cname, mx')], sorts'')
@@ -616,7 +617,8 @@ fun gen_add_datatype prep_typ err flat_names new_type_names dts thy =
              " in datatype " ^ quote (Binding.str_of tname))
       end;
 
-    val (dts', constr_syntax, sorts', i) = fold prep_dt_spec dts ([], [], [], 0);
+    val (dts', constr_syntax, sorts', i) =
+      fold prep_dt_spec (dts ~~ new_type_names) ([], [], [], 0);
     val sorts = sorts' @ (map (rpair (Sign.defaultS tmp_thy)) (tyvars \\ map fst sorts'));
     val dt_info = get_datatypes thy;
     val (descr, _) = unfold_datatypes tmp_thy dts' sorts dt_info dts' i;
