@@ -18,14 +18,14 @@ object Token {
     val OTHER = Value("OTHER")
   }
 
-  def string_from_tokens (tokens: List[Token], starts: Map[Token, Int]): String = {
+  def string_from_tokens(tokens: List[Token], starts: Token => Int): String = {
     def stop(t: Token) = starts(t) + t.length
     tokens match {
       case Nil => ""
-      case t::tokens => ( tokens.foldLeft
-          (t.content, stop(t))
-          ((a, token) => (a._1 + " " * (starts(token) - a._2) + token.content, stop(token)))
-        )._1
+      case t :: tokens =>
+        val (res, _) = tokens.foldLeft(t.content, stop(t))((a, token) =>
+          (a._1 + " " * (starts(token) - a._2) + token.content, stop(token)))
+        res
     }
   }
 
