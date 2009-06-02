@@ -1,8 +1,7 @@
 /*
- * IsabelleHyperlinkSource.scala
+ * Hyperlink setup for Isabelle proof documents
  *
- * To change this template, choose Tools | Template Manager
- * and open the template in the editor.
+ * @author Fabian Immler, TU Munich
  */
 
 package isabelle.jedit
@@ -19,6 +18,7 @@ import org.gjt.sp.jedit.Buffer
 import org.gjt.sp.jedit.TextUtilities
 
 import isabelle.prover.RefInfo
+
 
 class InternalHyperlink(start: Int, end: Int, line: Int, ref_offset: Int)
   extends AbstractHyperlink(start, end, line, "")

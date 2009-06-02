@@ -25,7 +25,8 @@ import org.gjt.sp.jedit.textarea.{JEditTextArea, TextAreaExtension, TextAreaPain
 import org.gjt.sp.jedit.syntax.SyntaxStyle
 
 
-object TheoryView {
+object TheoryView
+{
 
   val MAX_CHANGE_LENGTH = 1500
   
@@ -43,7 +44,8 @@ object TheoryView {
 
 
 class TheoryView (text_area: JEditTextArea, document_actor: Actor)
-    extends TextAreaExtension with BufferListener {
+    extends TextAreaExtension with BufferListener
+{
 
   def id() = Isabelle.plugin.id()
   
@@ -135,9 +137,9 @@ class TheoryView (text_area: JEditTextArea, document_actor: Actor)
       }
     }
 
-  def to_current(from_id: String, pos : Int) =
+  def to_current(from_id: String, pos: Int) =
     _to_current(from_id, if (col == null) changes else col :: changes, pos)
-  def from_current(to_id: String, pos : Int) =
+  def from_current(to_id: String, pos: Int) =
     _from_current(to_id, if (col == null) changes else col :: changes, pos)
   def to_current(document: isabelle.proofdocument.ProofDocument, pos: Int): Int =
     to_current(document.id, pos)
@@ -157,14 +159,14 @@ class TheoryView (text_area: JEditTextArea, document_actor: Actor)
     }
   }
 
-  def repaint_all() =
+  def repaint_all()
   {
     if (text_area != null)
       text_area.invalidateLineRange(text_area.getFirstPhysicalLine, text_area.getLastPhysicalLine)
   }
 
   def encolor(gfx: Graphics2D,
-    y: Int, height: Int, begin: Int, finish: Int, color: Color, fill: Boolean) =
+    y: Int, height: Int, begin: Int, finish: Int, color: Color, fill: Boolean)
   {
     val start = text_area.offsetToXY(begin)
     val stop =
@@ -187,7 +189,7 @@ class TheoryView (text_area: JEditTextArea, document_actor: Actor)
   /* TextAreaExtension methods */
 
   override def paintValidLine(gfx: Graphics2D,
-    screen_line: Int, physical_line: Int, start: Int, end: Int, y: Int) =
+    screen_line: Int, physical_line: Int, start: Int, end: Int, y: Int)
   {
     val document = prover.document
     def from_current(pos: Int) = this.from_current(document.id, pos)
@@ -254,7 +256,7 @@ class TheoryView (text_area: JEditTextArea, document_actor: Actor)
     start_line: Int, offset: Int, num_lines: Int, length: Int) { }
 
   override def preContentInserted(buffer: JEditBuffer,
-    start_line: Int, offset: Int, num_lines: Int, length: Int) =
+    start_line: Int, offset: Int, num_lines: Int, length: Int)
   {
     val text = buffer.getText(offset, length)
     if (col == null)
@@ -269,7 +271,7 @@ class TheoryView (text_area: JEditTextArea, document_actor: Actor)
   }
 
   override def preContentRemoved(buffer: JEditBuffer,
-    start_line: Int, start: Int, num_lines: Int, removed: Int) =
+    start_line: Int, start: Int, num_lines: Int, removed: Int)
   {
     if (col == null)
       col = new Text.Change(id(), start, "", removed)
@@ -296,4 +298,5 @@ class TheoryView (text_area: JEditTextArea, document_actor: Actor)
   override def foldHandlerChanged(buffer: JEditBuffer) { }
   override def foldLevelChanged(buffer: JEditBuffer, start_line: Int, end_line: Int) { }
   override def transactionComplete(buffer: JEditBuffer) { }
+
 }

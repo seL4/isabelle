@@ -17,11 +17,13 @@ import java.awt.Color
 import java.awt.Font
 import javax.swing.text.Segment;
 
-object DynamicTokenMarker {
 
-  // Mapping to jEdits token types
+object DynamicTokenMarker
+{
+
+  // Mapping to jEdit token types
   def choose_byte(kind: String): Byte = {
-    // TODO: as properties
+    // TODO: as properties or CSS style sheet
     kind match {
       // logical entities
       case Markup.TCLASS | Markup.TYCON | Markup.FIXED_DECL | Markup.FIXED | Markup.CONST_DECL
@@ -63,12 +65,13 @@ object DynamicTokenMarker {
     List(Markup.IDENT, Markup.COMMAND, Markup.KEYWORD, Markup.VERBATIM, Markup.COMMENT,
          Markup.CONTROL, Markup.MALFORMED, Markup.STRING, Markup.ALTSTRING).exists(kind == _)
 
-  def choose_color(kind : String, styles: Array[SyntaxStyle]) : Color =
+  def choose_color(kind : String, styles: Array[SyntaxStyle]): Color =
     styles((choose_byte(kind).asInstanceOf[Byte])).getForegroundColor
 
 }
 
-class DynamicTokenMarker(buffer: JEditBuffer, prover: Prover) extends TokenMarker {
+class DynamicTokenMarker(buffer: JEditBuffer, prover: Prover) extends TokenMarker
+{
 
   override def markTokens(prev: TokenMarker.LineContext,
       handler: TokenHandler, line_segment: Segment): TokenMarker.LineContext = {
