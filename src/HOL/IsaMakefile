@@ -838,11 +838,12 @@ $(LOG)/HOL-ex.gz: $(OUT)/HOL Library/Commutative_Ring.thy		\
   ex/Arith_Examples.thy				\
   ex/Arithmetic_Series_Complex.thy ex/BT.thy ex/BinEx.thy		\
   ex/Binary.thy ex/CTL.thy ex/Chinese.thy ex/Classical.thy		\
-  ex/CodegenSML_Test.thy ex/Codegenerator.thy				\
-  ex/Codegenerator_Pretty.thy ex/Coherent.thy				\
+  ex/CodegenSML_Test.thy ex/Codegenerator_Candidates.thy				\
+  ex/Codegenerator_Pretty.thy ex/Codegenerator_Test.thy \
+  ex/Codegenerator_Pretty_Test.thy ex/Coherent.thy				\
   ex/Commutative_RingEx.thy ex/Commutative_Ring_Complete.thy		\
   ex/Efficient_Nat_examples.thy		\
-  ex/Eval_Examples.thy ex/ExecutableContent.thy				\
+  ex/Eval_Examples.thy				\
   ex/Formal_Power_Series_Examples.thy ex/Fundefs.thy			\
   ex/Groebner_Examples.thy ex/Guess.thy ex/HarmonicSeries.thy		\
   ex/Hebrew.thy ex/Hex_Bin_Examples.thy ex/Higher_Order_Logic.thy	\
