@@ -432,7 +432,7 @@ proof (cases "a < b \<and> b < c", simp only: Integral_def split_conv, rule allI
     have "rsum D f = rsum (take N D) f + rsum [D ! N] f + rsum (drop (Suc N) D) f"
       using rsum_append[symmetric] nth_drop'[OF `N < length D`] by auto
     also have "\<dots> = rsum D1 f + rsum D2 f"
-      by (cases "b = e", auto simp add: D1_def D2_def D_eq rsum_append ring_simps)
+      by (cases "b = e", auto simp add: D1_def D2_def D_eq rsum_append algebra_simps)
     finally have "\<bar>rsum D f - (x1 + x2)\<bar> < \<epsilon>"
       using add_strict_mono[OF rsum1 rsum2] by simp
   }
