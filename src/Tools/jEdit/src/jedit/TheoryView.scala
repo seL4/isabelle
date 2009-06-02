@@ -9,6 +9,7 @@
 package isabelle.jedit
 
 import scala.actors.Actor
+import scala.actors.Actor._
 
 import isabelle.proofdocument.Text
 import isabelle.prover.{Prover, Command}
@@ -44,7 +45,7 @@ object TheoryView {
 class TheoryView (text_area: JEditTextArea, document_actor: Actor)
     extends TextAreaExtension with BufferListener {
 
-  def id() = Isabelle.plugin.id();
+  def id() = Isabelle.plugin.id()
   
   private val buffer = text_area.getBuffer
   private val prover = Isabelle.prover_setup(buffer).get.prover
@@ -76,14 +77,14 @@ class TheoryView (text_area: JEditTextArea, document_actor: Actor)
     }
   }
 
-  def activate() = {
+  def activate() {
     text_area.addCaretListener(selected_state_controller)
     text_area.addLeftOfScrollBar(phase_overview)
     text_area.getPainter.addExtension(TextAreaPainter.LINE_BACKGROUND_LAYER + 1, this)
     buffer.setTokenMarker(new DynamicTokenMarker(buffer, prover))
   }
 
-  def deactivate() = {
+  def deactivate() {
     text_area.getPainter.removeExtension(this)
     text_area.removeLeftOfScrollBar(phase_overview)
     text_area.removeCaretListener(selected_state_controller)
@@ -94,10 +95,10 @@ class TheoryView (text_area: JEditTextArea, document_actor: Actor)
 
   val repaint_delay = new isabelle.utils.Delay(100, () => repaint_all())
   
-  val change_receiver = scala.actors.Actor.actor {
-    scala.actors.Actor.loop {
-      scala.actors.Actor.react {
-        case _ => {
+  val change_receiver = actor {
+    loop {
+      react {
+        case _ => {       // FIXME potentially blocking within loop/react!?!?!?!
           Swing.now {
             repaint_delay.delay_or_ignore()
             phase_overview.repaint_delay.delay_or_ignore()
@@ -111,7 +112,8 @@ class TheoryView (text_area: JEditTextArea, document_actor: Actor)
     changes match {
       case Nil => pos
       case Text.Change(id, start, added, removed) :: rest_changes => {
-        val shifted = if (start <= pos)
+        val shifted =
+          if (start <= pos)
             if (pos < start + added.length) start
             else pos - added.length + removed
           else pos
@@ -223,10 +225,10 @@ class TheoryView (text_area: JEditTextArea, document_actor: Actor)
   private def commit: Unit = synchronized {
     if (col != null) {
       def split_changes(c: Text.Change): List[Text.Change] = {
-        val MCL = TheoryView.MAX_CHANGE_LENGTH
-        if (c.added.length <= MCL) List(c)
-        else Text.Change(c.id, c.start, c.added.substring(0, MCL), c.removed) ::
-          split_changes(new Text.Change(id(), c.start + MCL, c.added.substring(MCL), c.removed))
+        val MAX = TheoryView.MAX_CHANGE_LENGTH
+        if (c.added.length <= MAX) List(c)
+        else Text.Change(c.id, c.start, c.added.substring(0, MAX), c.removed) ::
+          split_changes(new Text.Change(id(), c.start + MAX, c.added.substring(MAX), c.removed))
       }
       val new_changes = split_changes(col)
       changes = new_changes.reverse ::: changes

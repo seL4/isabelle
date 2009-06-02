@@ -38,7 +38,7 @@ class Command(val tokens: List[Token], val starts: Map[Token, Int])
   override def toString = name
 
   val name = tokens.head.content
-  val content:String = Token.string_from_tokens(tokens, starts)
+  val content: String = Token.string_from_tokens(tokens, starts)
 
   def start(doc: ProofDocument) = doc.token_start(tokens.first)
   def stop(doc: ProofDocument) = doc.token_start(tokens.last) + tokens.last.length
@@ -81,8 +81,8 @@ class Command(val tokens: List[Token], val starts: Map[Token, Int])
   /* markup */
 
   val empty_root_node =
-    new MarkupNode(this, 0, starts(tokens.last) - starts(tokens.first) + tokens.last.length, Nil,
-                   id, content, RootInfo())
+    new MarkupNode(this, 0, starts(tokens.last) - starts(tokens.first) + tokens.last.length,
+      Nil, id, content, RootInfo())
 
   var markup_root = empty_root_node
 
@@ -96,19 +96,20 @@ class Command(val tokens: List[Token], val starts: Map[Token, Int])
 
   def markup_node(begin: Int, end: Int, info: MarkupInfo) =
     new MarkupNode(this, begin, end, Nil, id,
-                   if (end <= content.length && begin >= 0) content.substring(begin, end) else "wrong indices??",
-                   info)
+      if (end <= content.length && begin >= 0) content.substring(begin, end)
+      else "wrong indices??",
+      info)
 
   def type_at(pos: Int): String = {
-    val types = markup_root.filter(_.info match {case TypeInfo(_) => true case _ => false})
+    val types = markup_root.filter(_.info match { case TypeInfo(_) => true case _ => false })
     types.flatten(_.flatten).
       find(t => t.start <= pos && t.stop > pos).
-      map(t => "\"" + t.content + "\" : " + (t.info match {case TypeInfo(i) => i case _ => ""})).
+      map(t => "\"" + t.content + "\" : " + (t.info match { case TypeInfo(i) => i case _ => "" })).
       getOrElse(null)
   }
 
   def ref_at(pos: Int): Option[MarkupNode] =
-    markup_root.filter(_.info match {case RefInfo(_,_,_,_) => true case _ => false}).
+    markup_root.filter(_.info match { case RefInfo(_, _, _, _) => true case _ => false }).
       flatten(_.flatten).
       find(t => t.start <= pos && t.stop > pos)
 }

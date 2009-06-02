@@ -71,9 +71,9 @@ object DynamicTokenMarker {
 class DynamicTokenMarker(buffer: JEditBuffer, prover: Prover) extends TokenMarker {
 
   override def markTokens(prev: TokenMarker.LineContext,
-    handler: TokenHandler, line_segment: Segment): TokenMarker.LineContext = {
+      handler: TokenHandler, line_segment: Segment): TokenMarker.LineContext = {
     val previous = prev.asInstanceOf[IndexLineContext]
-    val line = if(prev == null) 0 else previous.line + 1
+    val line = if (prev == null) 0 else previous.line + 1
     val context = new IndexLineContext(line, previous)
     val start = buffer.getLineStartOffset(line)
     val stop = start + line_segment.count
@@ -85,15 +85,18 @@ class DynamicTokenMarker(buffer: JEditBuffer, prover: Prover) extends TokenMarke
 
     var next_x = start
     for {
-      command <- document.commands.dropWhile(_.stop(document) <= from(start)).takeWhile(_.start(document) < from(stop))
+      command <- document.commands.
+        dropWhile(_.stop(document) <= from(start)).
+        takeWhile(_.start(document) < from(stop))
       markup <- command.highlight_node.flatten
-      if(to(markup.abs_stop(document)) > start)
-      if(to(markup.abs_start(document)) < stop)
+      if (to(markup.abs_stop(document)) > start)
+      if (to(markup.abs_start(document)) < stop)
       byte = DynamicTokenMarker.choose_byte(markup.info.toString)
       token_start = to(markup.abs_start(document)) - start max 0
-      token_length = to(markup.abs_stop(document)) - to(markup.abs_start(document)) -
-                     (start - to(markup.abs_start(document)) max 0) -
-                     (to(markup.abs_stop(document)) - stop max 0)
+      token_length =
+        to(markup.abs_stop(document)) - to(markup.abs_start(document)) -
+          (start - to(markup.abs_start(document)) max 0) -
+          (to(markup.abs_stop(document)) - stop max 0)
     } {
       if (start + token_start > next_x)
         handler.handleToken(line_segment, 1, next_x - start, start + token_start - next_x, context)

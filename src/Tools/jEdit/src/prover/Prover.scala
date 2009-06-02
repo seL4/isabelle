@@ -88,20 +88,20 @@ class Prover(isabelle_system: IsabelleSystem, logic: String) extends Actor
     if (map(xsymb).get("abbrev").isDefined) _completions += map(xsymb)("abbrev")
   }
   */
-  decl_info += (k_v => _completions += k_v._1)
+  decl_info += (p => _completions += p._1)
 
 
   /* event handling */
 
   val activated = new EventBus[Unit]
   val output_info = new EventBus[String]
-  var change_receiver = null: Actor
+  var change_receiver: Actor = null
   
   private def handle_result(result: IsabelleProcess.Result)
   {
     // helper-function (move to XML?)
     def get_attr(attributes: List[(String, String)], attr: String): Option[String] =
-      attributes.find(kv => kv._1 == attr).map(_._2)
+      attributes.find(p => p._1 == attr).map(_._2)
 
     def command_change(c: Command) = this ! c
     val (running, command) =
@@ -149,7 +149,7 @@ class Prover(isabelle_system: IsabelleSystem, logic: String) extends Actor
 
                   // document edits
                   case XML.Elem(Markup.EDITS, (Markup.ID, doc_id) :: _, edits)
-                  if document_versions.exists(dv => doc_id == dv.id) =>
+                  if document_versions.exists(_.id == doc_id) =>
                     output_info.event(result.toString)
                     for {
                       XML.Elem(Markup.EDIT, (Markup.ID, cmd_id) :: (Markup.STATE, state_id) :: _, _)
@@ -194,9 +194,9 @@ class Prover(isabelle_system: IsabelleSystem, logic: String) extends Actor
                           case List(XML.Elem(Markup.ML_DEF, attr, _)) =>
                             command.markup_root += command.markup_node(begin.get, end.get,
                               RefInfo(get_attr(attr, Markup.FILE),
-                                      get_attr(attr, Markup.LINE).map(Integer.parseInt),
+                                      get_attr(attr, Markup.LINE).map(_.toInt),
                                       get_attr(attr, Markup.ID),
-                                      get_attr(attr, Markup.OFFSET).map(Integer.parseInt)))
+                                      get_attr(attr, Markup.OFFSET).map(_.toInt)))
                           case _ =>
                         }
                       } else {
