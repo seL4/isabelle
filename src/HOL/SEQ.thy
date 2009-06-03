@@ -1034,8 +1034,10 @@ done
 
 subsubsection {* Cauchy Sequences are Convergent *}
 
-axclass banach \<subseteq> real_normed_vector
+axclass complete_space \<subseteq> metric_space
   Cauchy_convergent: "Cauchy X \<Longrightarrow> convergent X"
+
+axclass banach \<subseteq> real_normed_vector, complete_space
 
 theorem LIMSEQ_imp_Cauchy:
   assumes X: "X ----> a" shows "Cauchy X"
@@ -1060,6 +1062,16 @@ qed
 lemma convergent_Cauchy: "convergent X \<Longrightarrow> Cauchy X"
 unfolding convergent_def
 by (erule exE, erule LIMSEQ_imp_Cauchy)
+
+lemma Cauchy_convergent_iff:
+  fixes X :: "nat \<Rightarrow> 'a::complete_space"
+  shows "Cauchy X = convergent X"
+by (fast intro: Cauchy_convergent convergent_Cauchy)
+
+lemma convergent_subseq_convergent:
+  fixes X :: "nat \<Rightarrow> 'a::complete_space"
+  shows "\<lbrakk> convergent X; subseq f \<rbrakk> \<Longrightarrow> convergent (X o f)"
+  by (simp add: Cauchy_subseq_Cauchy Cauchy_convergent_iff [symmetric])
 
 text {*
 Proof that Cauchy sequences converge based on the one from
@@ -1173,16 +1185,6 @@ by (rule real_Cauchy.LIMSEQ_ex)
 
 instance real :: banach
 by intro_classes (rule real_Cauchy_convergent)
-
-lemma Cauchy_convergent_iff:
-  fixes X :: "nat \<Rightarrow> 'a::banach"
-  shows "Cauchy X = convergent X"
-by (fast intro: Cauchy_convergent convergent_Cauchy)
-
-lemma convergent_subseq_convergent:
-  fixes X :: "nat \<Rightarrow> 'a::banach"
-  shows "\<lbrakk> convergent X; subseq f \<rbrakk> \<Longrightarrow> convergent (X o f)"
-  by (simp add: Cauchy_subseq_Cauchy Cauchy_convergent_iff [symmetric])
 
 
 subsection {* Power Sequences *}
