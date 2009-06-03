@@ -1430,23 +1430,36 @@ qed
 text{* Uniqueness of the limit, when nontrivial. *}
 
 lemma Lim_unique:
-  fixes l::"real^'a::finite" and net::"'b::zero_neq_one net"
-  assumes "\<not>(trivial_limit net)"  "(f ---> l) net"  "(f ---> l') net"
+  fixes f :: "'a \<Rightarrow> 'b::metric_space"
+  assumes "\<not> trivial_limit net"  "(f ---> l) net"  "(f ---> l') net"
   shows "l = l'"
-proof-
-  { fix e::real assume "e>0"
-    hence "eventually (\<lambda>x. norm (0::real^'a) \<le> e) net" unfolding norm_0 using always_eventually[of _ net] by auto
-    hence "norm (l - l') \<le> e" using Lim_norm_ubound[of net "\<lambda>x. 0" "l-l'"] using assms using Lim_sub[of f l net f l'] by auto
-  } note * = this
-  { assume "norm (l - l') > 0"
-    hence "norm (l - l') = 0" using *[of "(norm (l - l')) /2"] using norm_ge_zero[of "l - l'"] by simp
-  }
-  hence "l = l'" using norm_ge_zero[of "l - l'"] unfolding le_less and dist_nz[of l l', unfolded dist_norm, THEN sym] by auto
-  thus ?thesis using assms using Lim_sub[of f l net f l'] by simp
+proof (rule ccontr)
+  let ?d = "dist l l' / 2"
+  assume "l \<noteq> l'"
+  then have "0 < ?d" by (simp add: dist_nz)
+  have "eventually (\<lambda>x. dist (f x) l < ?d) net"
+    using `(f ---> l) net` `0 < ?d` by (rule tendstoD)
+  moreover
+  have "eventually (\<lambda>x. dist (f x) l' < ?d) net"
+    using `(f ---> l') net` `0 < ?d` by (rule tendstoD)
+  ultimately
+  have "eventually (\<lambda>x. False) net"
+  proof (rule eventually_elim2)
+    fix x
+    assume *: "dist (f x) l < ?d" "dist (f x) l' < ?d"
+    have "dist l l' \<le> dist (f x) l + dist (f x) l'"
+      by (rule dist_triangle_alt)
+    also from * have "\<dots> < ?d + ?d"
+      by (rule add_strict_mono)
+    also have "\<dots> = dist l l'" by simp
+    finally show "False" by simp
+  qed
+  with `\<not> trivial_limit net` show "False"
+    by (simp add: eventually_False)
 qed
 
 lemma tendsto_Lim:
-  fixes f :: "'a::zero_neq_one \<Rightarrow> real ^ 'n::finite"
+  fixes f :: "'a \<Rightarrow> 'b::metric_space"
   shows "~(trivial_limit net) \<Longrightarrow> (f ---> l) net ==> Lim net f = l"
   unfolding Lim_def using Lim_unique[of net f] by auto
 
