@@ -28,7 +28,6 @@ val nth_Cons_Suc = @{thm nth_Cons_Suc};
       [|?A1 = f ?t1 ; .. ; ?An= f ?tn |] ==> P (?A1, .., ?An) = f (Cp ?t1 .. ?tn) *)
   (*  + the a list of names of the A1 .. An, Those are fresh in the ctxt*)
 
-
 fun mk_congeq ctxt fs th =
   let
    val (f as Const(fN,fT)) = th |> prop_of |> HOLogic.dest_Trueprop |> HOLogic.dest_eq
@@ -79,6 +78,12 @@ exception REIF of string;
 
 fun dest_listT (Type ("List.list", [T])) = T;
 
+(* This modified version of divide_and_conquer allows the threading
+   of a state variable *)
+fun divide_and_conquer' decomp (s, x) =
+  let val (ys, recomb) = decomp (s, x)
+  in recomb (Library.foldl_map (divide_and_conquer' decomp) ys) end;
+
 fun rearrange congs =
   let
     fun P (_, th) =
@@ -89,23 +94,21 @@ fun rearrange congs =
 
 fun genreif ctxt raw_eqs t =
   let
-    val bds = ref ([]: (typ * ((term list) * (term list))) list);
-
-    fun index_of t =
+    fun index_of bds t =
       let
         val tt = HOLogic.listT (fastype_of t)
       in
-       (case AList.lookup Type.could_unify (!bds) tt of
+       (case AList.lookup Type.could_unify bds tt of
           NONE => error "index_of : type not found in environements!"
         | SOME (tbs,tats) =>
           let
             val i = find_index_eq t tats
             val j = find_index_eq t tbs
-          in (if j= ~1 then
-	      if i= ~1
-              then (bds := AList.update Type.could_unify (tt,(tbs,tats@[t])) (!bds) ;
+          in (if j = ~1 then
+              if i = ~1
+              then (AList.update Type.could_unify (tt,(tbs,tats@[t])) bds,
                     length tbs + length tats)
-              else i else j)
+              else (bds, i) else (bds, j))
           end)
       end;
 
@@ -118,30 +121,31 @@ fun genreif ctxt raw_eqs t =
     (* da is the decomposition for atoms, ie. it returns ([],g) where g
        returns the right instance f (AtC n) = t , where AtC is the Atoms
        constructor and n is the number of the atom corresponding to t *)
-    fun decomp_genreif da cgns (t,ctxt) =
+    fun decomp_genreif da cgns (bds, (t,ctxt)) =
       let
         val thy = ProofContext.theory_of ctxt
         val cert = cterm_of thy
-        fun tryabsdecomp (s,ctxt) =
+        fun tryabsdecomp (bds, (s,ctxt)) =
           (case s of
              Abs(xn,xT,ta) => (
                let
                  val ([xn],ctxt') = Variable.variant_fixes ["x"] ctxt
                  val (xn,ta) = variant_abs (xn,xT,ta)
                  val x = Free(xn,xT)
-                 val _ = (case AList.lookup Type.could_unify (!bds) (HOLogic.listT xT)
+                 val bds = (case AList.lookup Type.could_unify bds (HOLogic.listT xT)
 		          of NONE => error "tryabsdecomp: Type not found in the Environement"
                            | SOME (bsT,atsT) =>
-                             (bds := AList.update Type.could_unify (HOLogic.listT xT, ((x::bsT), atsT)) (!bds)))
-               in ([(ta, ctxt')] ,
-                  fn [th] => ((let val (bsT,asT) = the(AList.lookup Type.could_unify (!bds) (HOLogic.listT xT))
-		               in (bds := AList.update Type.could_unify (HOLogic.listT xT,(tl bsT,asT)) (!bds))
-		               end) ;
-                              hd (Variable.export ctxt' ctxt [(forall_intr (cert x) th) COMP allI])))
+                             (AList.update Type.could_unify (HOLogic.listT xT, ((x::bsT), atsT)) bds))
+               in ((bds, [(ta, ctxt')]),
+                  fn (bds, [th]) => (
+                    (let val (bsT,asT) = the(AList.lookup Type.could_unify bds (HOLogic.listT xT))
+		     in AList.update Type.could_unify (HOLogic.listT xT,(tl bsT,asT)) bds
+		     end),
+                    hd (Variable.export ctxt' ctxt [(forall_intr (cert x) th) COMP allI])))
                end)
-           | _ => da (s,ctxt))
+           | _ => da (bds, (s,ctxt)))
       in (case cgns of
-          [] => tryabsdecomp (t,ctxt)
+          [] => tryabsdecomp (bds, (t,ctxt))
         | ((vns,cong)::congs) => ((let
             val cert = cterm_of thy
             val certy = ctyp_of thy
@@ -154,13 +158,14 @@ fun genreif ctxt raw_eqs t =
 	      (map (snd o snd) fnvs,
                map (fn ((vn,vi),(tT,t)) => (cert(Var ((vn,vi),tT)), cert t)) invs)
 	    val ctyenv = map (fn ((vn,vi),(s,ty)) => (certy (TVar((vn,vi),s)), certy ty)) (Vartab.dest tyenv)
-          in (fts ~~ (replicate (length fts) ctxt), FWD (instantiate (ctyenv, its) cong))
+          in ((bds, fts ~~ (replicate (length fts) ctxt)),
+              Library.apsnd (FWD (instantiate (ctyenv, its) cong)))
           end)
-        handle MATCH => decomp_genreif da congs (t,ctxt)))
+        handle MATCH => decomp_genreif da congs (bds, (t,ctxt))))
       end;
 
  (* looks for the atoms equation and instantiates it with the right number *)
-    fun mk_decompatom eqs (t,ctxt) =
+    fun mk_decompatom eqs (bds, (t,ctxt)) = ((bds, []), fn (bds, _) =>
       let
         val tT = fastype_of t
         fun isat eq =
@@ -169,7 +174,7 @@ fun genreif ctxt raw_eqs t =
           in exists_Const
 	    (fn (n,ty) => n="List.nth"
                           andalso
-			  AList.defined Type.could_unify (!bds) (domain_type ty)) rhs
+			  AList.defined Type.could_unify bds (domain_type ty)) rhs
             andalso Type.could_unify (fastype_of rhs, tT)
           end
 
@@ -181,8 +186,8 @@ fun genreif ctxt raw_eqs t =
           | _ => acc
 
         fun
-           tryeqs [] = error "Can not find the atoms equation"
-         | tryeqs (eq::eqs) = ((
+           tryeqs bds [] = error "Can not find the atoms equation"
+         | tryeqs bds (eq::eqs) = ((
           let
             val rhs = eq |> prop_of |> HOLogic.dest_Trueprop  |> HOLogic.dest_eq |> snd
             val nths = get_nths rhs []
@@ -206,10 +211,12 @@ fun genreif ctxt raw_eqs t =
                                (Vartab.dest tyenv)
             val tml = Vartab.dest tmenv
             val t's = map (fn xn => snd (valOf (AList.lookup (op =) tml (xn,0)))) xns (* FIXME : Express with sbst*)
-            val subst_ns = map (fn (Const _ $ vs $ n, Var (xn0,T)) =>
-                                   (cert n, snd (valOf (AList.lookup (op =) tml xn0))
-                                      |> (index_of #> HOLogic.mk_nat #> cert)))
-                               subst
+            val (bds, subst_ns) = Library.foldl_map
+                (fn (bds, (Const _ $ vs $ n, Var (xn0,T))) =>
+                  let
+                    val name = snd (valOf (AList.lookup (op =) tml xn0))
+                    val (bds, idx) = index_of bds name
+                  in (bds, (cert n, idx |> (HOLogic.mk_nat #> cert))) end) (bds, subst)
             val subst_vs =
               let
                 fun ty (Const _ $ (vs as Var (vsn,lT)) $ n, Var (xn0,T)) = (certT T, certT (sbsT T))
@@ -217,7 +224,7 @@ fun genreif ctxt raw_eqs t =
                   let
                     val cns = sbst (Const("List.list.Cons", T --> lT --> lT))
                     val lT' = sbsT lT
-                    val (bsT,asT) = the (AList.lookup Type.could_unify (!bds) lT)
+                    val (bsT,asT) = the (AList.lookup Type.could_unify bds lT)
                     val vsn = valOf (AList.lookup (op =) vsns_map vs)
                     val cvs = cert (fold_rev (fn x => fn xs => cns$x$xs) bsT (Free (vsn, lT')))
                   in (cert vs, cvs) end
@@ -229,10 +236,9 @@ fun genreif ctxt raw_eqs t =
               let val ih = Drule.cterm_rule (Thm.instantiate (subst_ty,[]))
               in map (fn (v,t) => (ih v, ih t)) (subst_ns@subst_vs@cts)  end
             val th = (instantiate (subst_ty, substt)  eq) RS sym
-          in hd (Variable.export ctxt'' ctxt [th]) end)
-          handle MATCH => tryeqs eqs)
-      in ([], fn _ => tryeqs (filter isat eqs))
-      end;
+          in (bds, hd (Variable.export ctxt'' ctxt [th])) end)
+          handle MATCH => tryeqs bds eqs)
+      in tryeqs bds (filter isat eqs) end);
 
   (* Generic reification procedure: *)
   (* creates all needed cong rules and then just uses the theorem synthesis *)
@@ -245,7 +251,6 @@ fun genreif ctxt raw_eqs t =
                            |> fst)) raw_eqs []
         val tys = fold_rev (fn f => fold (insert (op =)) (f |> fastype_of |> binder_types |> tl)
                             ) fs []
-        val _ = bds := AList.make (fn _ => ([],[])) tys
         val (vs, ctxt') = Variable.variant_fixes (replicate (length tys) "vs") ctxt
         val thy = ProofContext.theory_of ctxt'
         val cert = cterm_of thy
@@ -259,27 +264,28 @@ fun genreif ctxt raw_eqs t =
           in Thm.instantiate ([],subst) eq
           end
 
+        val bds = AList.make (fn _ => ([],[])) tys
         val eqs = map (fn eq => eq |> prop_of |> HOLogic.dest_Trueprop
   	                           |> HOLogic.dest_eq |> fst |> strip_comb |> snd |> tl
                                    |> (insteq eq)) raw_eqs
         val (ps,congs) = split_list (map (mk_congeq ctxt' fs) eqs)
-      in ps ~~ (Variable.export ctxt' ctxt congs)
+      in (bds, ps ~~ (Variable.export ctxt' ctxt congs))
       end
 
-    val congs = rearrange (mk_congs ctxt raw_eqs)
-    val th = divide_and_conquer (decomp_genreif (mk_decompatom raw_eqs) congs) (t,ctxt)
+    val (bds, congs) = mk_congs ctxt raw_eqs
+    val congs = rearrange congs
+    val (bds, th) = divide_and_conquer' (decomp_genreif (mk_decompatom raw_eqs) congs) (bds, (t,ctxt))
     fun is_listVar (Var (_,t)) = can dest_listT t
          | is_listVar _ = false
     val vars = th |> prop_of |> HOLogic.dest_Trueprop |> HOLogic.dest_eq |> snd
 	          |> strip_comb |> snd |> filter is_listVar
     val cert = cterm_of (ProofContext.theory_of ctxt)
     val cvs = map (fn (v as Var(n,t)) => (cert v,
-                  the (AList.lookup Type.could_unify (!bds) t) |> snd |> HOLogic.mk_list (dest_listT t) |> cert)) vars
+                  the (AList.lookup Type.could_unify bds t) |> snd |> HOLogic.mk_list (dest_listT t) |> cert)) vars
     val th' = instantiate ([], cvs) th
     val t' = (fst o HOLogic.dest_eq o HOLogic.dest_Trueprop o prop_of) th'
     val th'' = Goal.prove ctxt [] [] (HOLogic.mk_Trueprop (HOLogic.mk_eq (t, t')))
 	       (fn _ => simp_tac (local_simpset_of ctxt) 1)
-    val _ = bds := []
   in FWD trans [th'',th']
   end
 

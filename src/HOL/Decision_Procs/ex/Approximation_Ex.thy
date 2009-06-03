@@ -28,7 +28,7 @@ lemma "\<bar> exp 1.626 - 5.083499996273 \<bar> < (inverse 10 ^ 10 :: real)"
 
 lemma "\<bar> sqrt 2 - 1.4142135623730951 \<bar> < inverse 10 ^ 16"
   by (approximation 80)
-   
+
 lemma "\<bar> pi - 3.1415926535897932385 \<bar> < inverse 10 ^ 18"
   by (approximation 80)
 
