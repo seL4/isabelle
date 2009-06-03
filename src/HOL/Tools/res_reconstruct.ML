@@ -528,6 +528,10 @@ fun decode_tstp_file cnfs ctxt th sgno thm_names =
     in
       get_axiom_names thm_names (get_step_nums proofextract)
     end;
+
+  (*Used to label theorems chained into the sledgehammer call*)
+  val chained_hint = "CHAINED";
+  val nochained = filter_out (fn y => y = chained_hint)
     
   (* metis-command *)
   fun metis_line [] = "apply metis"
@@ -536,13 +540,11 @@ fun decode_tstp_file cnfs ctxt th sgno thm_names =
   (* atp_minimize [atp=<prover>] <lemmas> *)
   fun minimize_line _ [] = ""
     | minimize_line name lemmas = "For minimizing the number of lemmas try this command:\n" ^
-          (Markup.markup Markup.sendback) ("atp_minimize [atp=" ^ name ^ "] " ^ space_implode " " lemmas)
+          (Markup.markup Markup.sendback) ("atp_minimize [atp=" ^ name ^ "] " ^
+                                           space_implode " " (nochained lemmas))
 
-  (*Used to label theorems chained into the sledgehammer call*)
-  val chained_hint = "CHAINED";
   fun sendback_metis_nochained lemmas =
-    let val nochained = filter_out (fn y => y = chained_hint)
-    in (Markup.markup Markup.sendback o metis_line) (nochained lemmas) end
+    (Markup.markup Markup.sendback o metis_line) (nochained lemmas)
   fun lemma_list_tstp name result =
     let val lemmas = extract_lemmas get_step_nums_tstp result
     in sendback_metis_nochained lemmas ^ "\n" ^ minimize_line name lemmas end;
