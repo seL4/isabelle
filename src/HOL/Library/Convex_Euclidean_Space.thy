@@ -1243,6 +1243,7 @@ qed
 
 
 lemma compact_convex_combinations:
+  fixes s t :: "(real ^ _) set"
   assumes "compact s" "compact t"
   shows "compact { (1 - u) *s x + u *s y | x y u. 0 \<le> u \<and> u \<le> 1 \<and> x \<in> s \<and> y \<in> t}"
 proof-
@@ -1905,6 +1906,7 @@ using convex_hull_linear_image[OF assms(1)] assms(2) by auto
 subsection {* Homeomorphism of all convex compact sets with nonempty interior. *}
 
 lemma compact_frontier_line_lemma:
+  fixes s :: "(real ^ _) set"
   assumes "compact s" "0 \<in> s" "x \<noteq> 0" 
   obtains u where "0 \<le> u" "(u *s x) \<in> frontier s" "\<forall>v>u. (v *s x) \<notin> s"
 proof-

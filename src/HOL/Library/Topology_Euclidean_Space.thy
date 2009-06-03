@@ -2183,7 +2183,7 @@ lemma inf_insert_finite: "finite S ==> rinf(insert x S) = (if S = {} then x else
 subsection{* Compactness (the definition is the one based on convegent subsequences). *}
 
 definition "compact S \<longleftrightarrow>
-   (\<forall>(f::nat \<Rightarrow> real^'n::finite). (\<forall>n. f n \<in> S) \<longrightarrow>
+   (\<forall>f. (\<forall>n::nat. f n \<in> S) \<longrightarrow>
        (\<exists>l\<in>S. \<exists>r. (\<forall>m n. m < n \<longrightarrow> r m < r n) \<and> ((f o r) ---> l) sequentially))"
 
 lemma monotone_bigger: fixes r::"nat\<Rightarrow>nat"
@@ -2455,8 +2455,8 @@ lemma convergent_imp_bounded:
 
 subsection{* Total boundedness. *}
 
-fun helper_1::"((real^'n::finite) set) \<Rightarrow> real \<Rightarrow> nat \<Rightarrow> real^'n" where
-  "helper_1 s e n = (SOME y::real^'n. y \<in> s \<and> (\<forall>m<n. \<not> (dist (helper_1 s e m) y < e)))"
+fun helper_1::"('a::metric_space set) \<Rightarrow> real \<Rightarrow> nat \<Rightarrow> 'a" where
+  "helper_1 s e n = (SOME y::'a. y \<in> s \<and> (\<forall>m<n. \<not> (dist (helper_1 s e m) y < e)))"
 declare helper_1.simps[simp del]
 
 lemma compact_imp_totally_bounded:
@@ -2488,7 +2488,7 @@ qed
 
 subsection{* Heine-Borel theorem (following Burkill \& Burkill vol. 2) *}
 
-lemma heine_borel_lemma: fixes s::"(real^'n::finite) set"
+lemma heine_borel_lemma: fixes s::"'a::metric_space set"
   assumes "compact s"  "s \<subseteq> (\<Union> t)"  "\<forall>b \<in> t. open b"
   shows "\<exists>e>0. \<forall>x \<in> s. \<exists>b \<in> t. ball x e \<subseteq> b"
 proof(rule ccontr)
@@ -2579,11 +2579,11 @@ qed
 
 subsection{* Complete the chain of compactness variants. *}
 
-primrec helper_2::"(real \<Rightarrow> real^'n::finite) \<Rightarrow> nat \<Rightarrow> real ^'n" where
+primrec helper_2::"(real \<Rightarrow> 'a::real_normed_vector) \<Rightarrow> nat \<Rightarrow> 'a" where
   "helper_2 beyond 0 = beyond 0" |
   "helper_2 beyond (Suc n) = beyond (norm (helper_2 beyond n) + 1 )"
 
-lemma bolzano_weierstrass_imp_bounded: fixes s::"(real^'n::finite) set"
+lemma bolzano_weierstrass_imp_bounded: fixes s::"'a::real_normed_vector set"
   assumes "\<forall>t. infinite t \<and> t \<subseteq> s --> (\<exists>x \<in> s. x islimpt t)"
   shows "bounded s"
 proof(rule ccontr)
@@ -2642,7 +2642,7 @@ qed
 
 lemma sequence_infinite_lemma:
   assumes "\<forall>n::nat. (f n  \<noteq> l)"  "(f ---> l) sequentially"
-  shows "infinite {y::real^'a::finite. (\<exists> n. y = f n)}"
+  shows "infinite {y. (\<exists> n. y = f n)}"
 proof(rule ccontr)
   let ?A = "(\<lambda>x. dist x l) ` {y. \<exists>n. y = f n}"
   assume "\<not> infinite {y. \<exists>n. y = f n}"
@@ -2672,7 +2672,6 @@ proof(rule ccontr)
 qed
 
 lemma bolzano_weierstrass_imp_closed:
-  fixes s :: "(real ^ 'n::finite) set"
   assumes "\<forall>t. infinite t \<and> t \<subseteq> s --> (\<exists>x \<in> s. x islimpt t)"
   shows "closed s"
 proof-
@@ -2686,24 +2685,28 @@ proof-
       then obtain l' where "l'\<in>s" "l' islimpt {y. \<exists>n. y = x n}" using assms[THEN spec[where x="{y. \<exists>n. y = x n}"]] as(1) by auto
       thus "l\<in>s" using sequence_unique_limpt[of x l l'] using as cas by auto
     qed  }
-  thus ?thesis unfolding closed_sequential_limits by auto
+  thus ?thesis unfolding closed_sequential_limits by auto (* FIXME: simp_depth_limit exceeded *)
 qed
 
 text{* Hence express everything as an equivalence.   *}
 
-lemma compact_eq_heine_borel: "compact s \<longleftrightarrow>
+lemma compact_eq_heine_borel:
+  fixes s :: "(real ^ _) set"
+  shows "compact s \<longleftrightarrow>
            (\<forall>f. (\<forall>t \<in> f. open t) \<and> s \<subseteq> (\<Union> f)
                --> (\<exists>f'. f' \<subseteq> f \<and> finite f' \<and> s \<subseteq> (\<Union> f')))" (is "?lhs = ?rhs")
 proof
   assume ?lhs thus ?rhs using compact_imp_heine_borel[of s] by blast
 next
   assume ?rhs
-  hence "\<forall>t. infinite t \<and> t \<subseteq> s \<longrightarrow> (\<exists>x\<in>s. x islimpt t)" using heine_borel_imp_bolzano_weierstrass[of s] by blast
+  hence "\<forall>t. infinite t \<and> t \<subseteq> s \<longrightarrow> (\<exists>x\<in>s. x islimpt t)"
+    by (blast intro: heine_borel_imp_bolzano_weierstrass[of s])
   thus ?lhs using bolzano_weierstrass_imp_bounded[of s] bolzano_weierstrass_imp_closed[of s] bounded_closed_imp_compact[of s] by blast
 qed
 
 lemma compact_eq_bolzano_weierstrass:
-        "compact s \<longleftrightarrow> (\<forall>t. infinite t \<and> t \<subseteq> s --> (\<exists>x \<in> s. x islimpt t))" (is "?lhs = ?rhs")
+  fixes s :: "(real ^ _) set"
+  shows "compact s \<longleftrightarrow> (\<forall>t. infinite t \<and> t \<subseteq> s --> (\<exists>x \<in> s. x islimpt t))" (is "?lhs = ?rhs")
 proof
   assume ?lhs thus ?rhs unfolding compact_eq_heine_borel using heine_borel_imp_bolzano_weierstrass[of s] by auto
 next
@@ -2711,7 +2714,8 @@ next
 qed
 
 lemma compact_eq_bounded_closed:
- "compact s \<longleftrightarrow> bounded s \<and> closed s"  (is "?lhs = ?rhs")
+  fixes s :: "(real ^ _) set"
+  shows "compact s \<longleftrightarrow> bounded s \<and> closed s"  (is "?lhs = ?rhs")
 proof
   assume ?lhs thus ?rhs unfolding compact_eq_bolzano_weierstrass using bolzano_weierstrass_imp_bounded bolzano_weierstrass_imp_closed by auto
 next
@@ -2719,12 +2723,14 @@ next
 qed
 
 lemma compact_imp_bounded:
- "compact s ==> bounded s"
+  fixes s :: "(real^ _) set"
+  shows "compact s ==> bounded s"
   unfolding compact_eq_bounded_closed
   by simp
 
 lemma compact_imp_closed:
- "compact s ==> closed s"
+  fixes s :: "(real ^ _) set"
+  shows "compact s ==> closed s"
   unfolding compact_eq_bounded_closed
   by simp
 
@@ -2737,28 +2743,32 @@ lemma compact_empty[simp]:
 
   (* FIXME : Rename *)
 lemma compact_union[intro]:
- "compact s \<Longrightarrow> compact t ==> compact (s \<union> t)"
+  fixes s t :: "(real ^ _) set"
+  shows "compact s \<Longrightarrow> compact t ==> compact (s \<union> t)"
   unfolding compact_eq_bounded_closed
   using bounded_Un[of s t]
   using closed_Un[of s t]
   by simp
 
 lemma compact_inter[intro]:
- "compact s \<Longrightarrow> compact t ==> compact (s \<inter> t)"
+  fixes s t :: "(real ^ _) set"
+  shows "compact s \<Longrightarrow> compact t ==> compact (s \<inter> t)"
   unfolding compact_eq_bounded_closed
   using bounded_Int[of s t]
   using closed_Int[of s t]
   by simp
 
 lemma compact_inter_closed[intro]:
- "compact s \<Longrightarrow> closed t ==> compact (s \<inter> t)"
+  fixes s t :: "(real ^ _) set"
+  shows "compact s \<Longrightarrow> closed t ==> compact (s \<inter> t)"
   unfolding compact_eq_bounded_closed
   using closed_Int[of s t]
   using bounded_subset[of "s \<inter> t" s]
   by blast
 
 lemma closed_inter_compact[intro]:
- "closed s \<Longrightarrow> compact t ==> compact (s \<inter> t)"
+  fixes s t :: "(real ^ _) set"
+  shows "closed s \<Longrightarrow> compact t ==> compact (s \<inter> t)"
 proof-
   assume "closed s" "compact t"
   moreover
@@ -2777,52 +2787,56 @@ proof-
 qed
 
 lemma finite_imp_compact:
- "finite s ==> compact s"
+  fixes s :: "(real ^ _) set"
+  shows "finite s ==> compact s"
   unfolding compact_eq_bounded_closed
   using finite_imp_closed finite_imp_bounded
   by blast
 
-lemma compact_sing[simp]:
- "compact {a}"
-  using finite_imp_compact[of "{a}"]
-  by blast
+lemma compact_sing [simp]: "compact {a}"
+  unfolding compact_def o_def
+  by (auto simp add: tendsto_const)
 
-lemma closed_sing[simp]:
-  fixes a :: "real ^ _" (* FIXME: generalize *)
-  shows "closed {a}"
-  using compact_eq_bounded_closed compact_sing[of a]
-  by blast
+lemma closed_sing [simp]: shows "closed {a}"
+  apply (clarsimp simp add: closed_def open_def)
+  apply (rule ccontr)
+  apply (drule_tac x="dist x a" in spec)
+  apply (simp add: dist_nz dist_commute)
+  done
 
 lemma compact_cball[simp]:
- "compact(cball x e)"
+  fixes x :: "real ^ _"
+  shows "compact(cball x e)"
   using compact_eq_bounded_closed bounded_cball closed_cball
   by blast
 
 lemma compact_frontier_bounded[intro]:
- "bounded s ==> compact(frontier s)"
+  fixes s :: "(real ^ _) set"
+  shows "bounded s ==> compact(frontier s)"
   unfolding frontier_def
   using compact_eq_bounded_closed
   by blast
 
 lemma compact_frontier[intro]:
- "compact s ==> compact (frontier s)"
+  fixes s :: "(real ^ _) set"
+  shows "compact s ==> compact (frontier s)"
   using compact_eq_bounded_closed compact_frontier_bounded
   by blast
 
 lemma frontier_subset_compact:
- "compact s ==> frontier s \<subseteq> s"
+  fixes s :: "(real ^ _) set"
+  shows "compact s ==> frontier s \<subseteq> s"
   using frontier_subset_closed compact_eq_bounded_closed
   by blast
 
-lemma open_delete:
-  fixes s :: "(real ^ _) set" (* FIXME: generalize *)
-  shows "open s ==> open(s - {x})"
+lemma open_delete: "open s ==> open(s - {x})"
   using open_diff[of s "{x}"] closed_sing
   by blast
 
 text{* Finite intersection property. I could make it an equivalence in fact. *}
 
 lemma compact_imp_fip:
+  fixes s :: "(real ^ _) set"
   assumes "compact s"  "\<forall>t \<in> f. closed t"
         "\<forall>f'. finite f' \<and> f' \<subseteq> f --> (s \<inter> (\<Inter> f') \<noteq> {})"
   shows "s \<inter> (\<Inter> f) \<noteq> {}"
@@ -3046,7 +3060,7 @@ qed
 text{* For setwise continuity, just start from the epsilon-delta definitions. *}
 
 definition
-  continuous_on :: "(real ^ 'n::finite) set \<Rightarrow> (real ^ 'n \<Rightarrow> real ^ 'm::finite) \<Rightarrow> bool" where
+  continuous_on :: "'a::metric_space set \<Rightarrow> ('a \<Rightarrow> 'b::metric_space) \<Rightarrow> bool" where
   "continuous_on s f \<longleftrightarrow> (\<forall>x \<in> s. \<forall>e>0. \<exists>d::real>0. \<forall>x' \<in> s. dist x' x < d --> dist (f x') (f x) < e)"
 
 
@@ -3294,21 +3308,25 @@ lemma continuous_on_const:
   unfolding continuous_on_eq_continuous_within using continuous_const by blast
 
 lemma continuous_on_cmul:
- "continuous_on s f ==>  continuous_on s (\<lambda>x. c *s (f x))"
+  fixes f :: "'a::metric_space \<Rightarrow> real ^ _"
+  shows "continuous_on s f ==>  continuous_on s (\<lambda>x. c *s (f x))"
   unfolding continuous_on_eq_continuous_within using continuous_cmul by blast
 
 lemma continuous_on_neg:
- "continuous_on s f ==> continuous_on s (\<lambda>x. -(f x))"
+  fixes f :: "'a::metric_space \<Rightarrow> 'b::real_normed_vector"
+  shows "continuous_on s f \<Longrightarrow> continuous_on s (\<lambda>x. - f x)"
   unfolding continuous_on_eq_continuous_within using continuous_neg by blast
 
 lemma continuous_on_add:
- "continuous_on s f \<Longrightarrow> continuous_on s g
-           ==> continuous_on s (\<lambda>x. f x + g x)"
+  fixes f g :: "'a::metric_space \<Rightarrow> 'b::real_normed_vector"
+  shows "continuous_on s f \<Longrightarrow> continuous_on s g
+           \<Longrightarrow> continuous_on s (\<lambda>x. f x + g x)"
   unfolding continuous_on_eq_continuous_within using continuous_add by blast
 
 lemma continuous_on_sub:
- "continuous_on s f \<Longrightarrow> continuous_on s g
-           ==> continuous_on s (\<lambda>x. f(x) - g(x))"
+  fixes f g :: "'a::metric_space \<Rightarrow> 'b::real_normed_vector"
+  shows "continuous_on s f \<Longrightarrow> continuous_on s g
+           \<Longrightarrow> continuous_on s (\<lambda>x. f x - g x)"
   unfolding continuous_on_eq_continuous_within using continuous_sub by blast
 
 text{* Same thing for uniform continuity, using sequential formulations. *}
@@ -3582,6 +3600,7 @@ proof-
 qed
 
 lemma continuous_on_closure_norm_le:
+  fixes f :: "'a::metric_space \<Rightarrow> 'b::real_normed_vector"
   assumes "continuous_on (closure s) f"  "\<forall>y \<in> s. norm(f y) \<le> b"  "x \<in> (closure s)"
   shows "norm(f x) \<le> b"
 proof-
@@ -3773,6 +3792,7 @@ qed
 text{* Continuity of inverse function on compact domain. *}
 
 lemma continuous_on_inverse:
+  fixes f :: "real ^ _ \<Rightarrow> real ^ _"
   assumes "continuous_on s f"  "compact s"  "\<forall>x \<in> s. g (f x) = x"
   shows "continuous_on (f ` s) g"
 proof-
@@ -3785,7 +3805,7 @@ proof-
       using assms(2) unfolding compact_eq_bounded_closed
       using bounded_subset[of s "s \<inter> T"] and T(1) by auto
     ultimately have "closed (f ` t)" using T(1) unfolding T(2)
-      using compact_continuous_image unfolding compact_eq_bounded_closed by auto
+      using compact_continuous_image [of "s \<inter> T" f] unfolding compact_eq_bounded_closed by auto
     moreover have "{x \<in> f ` s. g x \<in> t} = f ` s \<inter> f ` t" using assms(3) unfolding T(2) by auto
     ultimately have "closedin (subtopology euclidean (f ` s)) {x \<in> f ` s. g x \<in> t}"
       unfolding closedin_closed by auto  }
@@ -3794,7 +3814,13 @@ qed
 
 subsection{* A uniformly convergent limit of continuous functions is continuous.       *}
 
+lemma norm_triangle_lt:
+  fixes x y :: "'a::real_normed_vector"
+  shows "norm x + norm y < e \<Longrightarrow> norm (x + y) < e"
+by (rule le_less_trans [OF norm_triangle_ineq])
+
 lemma continuous_uniform_limit:
+  fixes f :: "'a \<Rightarrow> 'b::metric_space \<Rightarrow> 'c::real_normed_vector"
   assumes "\<not> (trivial_limit net)"  "eventually (\<lambda>n. continuous_on s (f n)) net"
   "\<forall>e>0. eventually (\<lambda>n. \<forall>x \<in> s. norm(f n x - g x) < e) net"
   shows "continuous_on s g"
@@ -3843,7 +3869,8 @@ lemma linear_continuous_within:
   using continuous_at_imp_continuous_within[of x f s] using linear_continuous_at[of f] by auto
 
 lemma linear_continuous_on:
- "linear f ==> continuous_on s f"
+  fixes f :: "real ^ _ \<Rightarrow> real ^ _"
+  shows "linear f ==> continuous_on s f"
   using continuous_at_imp_continuous_on[of s f] using linear_continuous_at[of f] by auto
 
 text{* Also bilinear functions, in composition form.                             *}
@@ -3855,13 +3882,14 @@ lemma bilinear_continuous_at_compose:
   unfolding continuous_at using Lim_bilinear[of f "f x" "(at x)" g "g x" h] by auto
 
 lemma bilinear_continuous_within_compose:
-  fixes f :: "real ^ _ \<Rightarrow> real ^ _"
+  fixes h :: "real ^ _ \<Rightarrow> real ^ _ \<Rightarrow> real ^ _"
   shows "continuous (at x within s) f \<Longrightarrow> continuous (at x within s) g \<Longrightarrow> bilinear h
         ==> continuous (at x within s) (\<lambda>x. h (f x) (g x))"
   unfolding continuous_within using Lim_bilinear[of f "f x"] by auto
 
 lemma bilinear_continuous_on_compose:
- "continuous_on s f \<Longrightarrow> continuous_on s g \<Longrightarrow> bilinear h
+  fixes h :: "real ^ _ \<Rightarrow> real ^ _ \<Rightarrow> real ^ _"
+  shows "continuous_on s f \<Longrightarrow> continuous_on s g \<Longrightarrow> bilinear h
              ==> continuous_on s (\<lambda>x. h (f x) (g x))"
   unfolding continuous_on_eq_continuous_within apply auto apply(erule_tac x=x in ballE) apply auto apply(erule_tac x=x in ballE) apply auto
   using bilinear_continuous_within_compose[of _ s f g h] by auto
@@ -3898,7 +3926,8 @@ lemma continuous_at_vec1_range:
   apply(erule_tac x=e in allE) by auto
 
 lemma continuous_on_vec1_range:
- " continuous_on s (vec1 o f) \<longleftrightarrow> (\<forall>x \<in> s. \<forall>e>0. \<exists>d>0. (\<forall>x' \<in> s. norm(x' - x) < d --> abs(f x' - f x) < e))"
+  fixes f :: "'a::real_normed_vector \<Rightarrow> real"
+  shows "continuous_on s (vec1 o f) \<longleftrightarrow> (\<forall>x \<in> s. \<forall>e>0. \<exists>d>0. (\<forall>x' \<in> s. norm(x' - x) < d --> abs(f x' - f x) < e))"
   unfolding continuous_on_def apply (simp del: dist_commute) unfolding dist_vec1 unfolding dist_norm ..
 
 lemma continuous_at_vec1_norm:
@@ -3907,7 +3936,8 @@ lemma continuous_at_vec1_norm:
   unfolding continuous_at_vec1_range using real_abs_sub_norm order_le_less_trans by blast
 
 lemma continuous_on_vec1_norm:
- "continuous_on s (vec1 o norm)"
+  fixes s :: "(real ^ _) set"
+  shows "continuous_on s (vec1 o norm)"
 unfolding continuous_on_vec1_range norm_vec1[THEN sym] by (metis norm_vec1 order_le_less_trans real_abs_sub_norm)
 
 lemma continuous_at_vec1_component:
@@ -3935,6 +3965,7 @@ lemma continuous_at_vec1_infnorm:
 text{* Hence some handy theorems on distance, diameter etc. of/from a set.       *}
 
 lemma compact_attains_sup:
+  fixes s :: "real set"
   assumes "compact (vec1 ` s)"  "s \<noteq> {}"
   shows "\<exists>x \<in> s. \<forall>y \<in> s. y \<le> x"
 proof-
@@ -3948,6 +3979,7 @@ proof-
 qed
 
 lemma compact_attains_inf:
+  fixes s :: "real set"
   assumes "compact (vec1 ` s)" "s \<noteq> {}"  shows "\<exists>x \<in> s. \<forall>y \<in> s. x \<le> y"
 proof-
   from assms(1) have a:"bounded (vec1 ` s)" "closed (vec1 ` s)" unfolding compact_eq_bounded_closed by auto
@@ -3965,18 +3997,21 @@ proof-
 qed
 
 lemma continuous_attains_sup:
- "compact s \<Longrightarrow> s \<noteq> {} \<Longrightarrow> continuous_on s (vec1 o f)
+  fixes f :: "'a::metric_space \<Rightarrow> real"
+  shows "compact s \<Longrightarrow> s \<noteq> {} \<Longrightarrow> continuous_on s (vec1 o f)
         ==> (\<exists>x \<in> s. \<forall>y \<in> s.  f y \<le> f x)"
   using compact_attains_sup[of "f ` s"]
   using compact_continuous_image[of s "vec1 \<circ> f"] unfolding image_compose by auto
 
 lemma continuous_attains_inf:
- "compact s \<Longrightarrow> s \<noteq> {} \<Longrightarrow> continuous_on s (vec1 o f)
+  fixes f :: "'a::metric_space \<Rightarrow> real"
+  shows "compact s \<Longrightarrow> s \<noteq> {} \<Longrightarrow> continuous_on s (vec1 o f)
         \<Longrightarrow> (\<exists>x \<in> s. \<forall>y \<in> s. f x \<le> f y)"
   using compact_attains_inf[of "f ` s"]
   using compact_continuous_image[of s "vec1 \<circ> f"] unfolding image_compose by auto
 
 lemma distance_attains_sup:
+  fixes s :: "(real ^ _) set"
   assumes "compact s" "s \<noteq> {}"
   shows "\<exists>x \<in> s. \<forall>y \<in> s. dist a y \<le> dist a x"
 proof-
@@ -4045,11 +4080,13 @@ lemma continuous_mul:
   unfolding continuous_def using Lim_mul[of c] by auto
 
 lemma continuous_on_vmul:
- "continuous_on s (vec1 o c) ==> continuous_on s (\<lambda>x. c(x) *s v)"
+  fixes c :: "'a::metric_space \<Rightarrow> real"
+  shows "continuous_on s (vec1 o c) ==> continuous_on s (\<lambda>x. c(x) *s v)"
   unfolding continuous_on_eq_continuous_within using continuous_vmul[of _ c] by auto
 
 lemma continuous_on_mul:
- "continuous_on s (vec1 o c) \<Longrightarrow> continuous_on s f
+  fixes c :: "'a::metric_space \<Rightarrow> real"
+  shows "continuous_on s (vec1 o c) \<Longrightarrow> continuous_on s f
              ==> continuous_on s (\<lambda>x. c(x) *s f x)"
   unfolding continuous_on_eq_continuous_within using continuous_mul[of _ c] by auto
 
@@ -4148,12 +4185,14 @@ proof-
 qed
 
 lemma compact_pastecart:
- "compact s \<Longrightarrow> compact t ==> compact {pastecart x y | x y . x \<in> s \<and> y \<in> t}"
+  fixes s t :: "(real ^ _) set"
+  shows "compact s \<Longrightarrow> compact t ==> compact {pastecart x y | x y . x \<in> s \<and> y \<in> t}"
   unfolding compact_eq_bounded_closed using bounded_pastecart[of s t] closed_pastecart[of s t] by auto
 
 text{* Hence some useful properties follow quite easily.                         *}
 
 lemma compact_scaling:
+  fixes s :: "(real ^ _) set"
   assumes "compact s"  shows "compact ((\<lambda>x. c *s x) ` s)"
 proof-
   let ?f = "\<lambda>x. c *s x"
@@ -4163,6 +4202,7 @@ proof-
 qed
 
 lemma compact_negations:
+  fixes s :: "(real ^ _) set"
   assumes "compact s"  shows "compact ((\<lambda>x. -x) ` s)"
 proof-
   have "uminus ` s = (\<lambda>x. -1 *s x) ` s" apply auto unfolding image_iff pth_3 by auto
@@ -4170,6 +4210,7 @@ proof-
 qed
 
 lemma compact_sums:
+  fixes s t :: "(real ^ _) set"
   assumes "compact s"  "compact t"  shows "compact {x + y | x y. x \<in> s \<and> y \<in> t}"
 proof-
   have *:"{x + y | x y. x \<in> s \<and> y \<in> t} =(\<lambda>z. fstcart z + sndcart z) ` {pastecart x y | x y.  x \<in> s \<and> y \<in> t}"
@@ -4183,6 +4224,7 @@ proof-
 qed
 
 lemma compact_differences:
+  fixes s t :: "(real ^ 'a::finite) set"
   assumes "compact s" "compact t"  shows "compact {x - y | x y. x \<in> s \<and> y \<in> t}"
 proof-
   have "{x - y | x y::real^'a. x\<in>s \<and> y \<in> t} =  {x + y | x y. x \<in> s \<and> y \<in> (uminus ` t)}"
@@ -4191,6 +4233,7 @@ proof-
 qed
 
 lemma compact_translation:
+  fixes s :: "(real ^ _) set"
   assumes "compact s"  shows "compact ((\<lambda>x. a + x) ` s)"
 proof-
   have "{x + y |x y. x \<in> s \<and> y \<in> {a}} = (\<lambda>x. a + x) ` s" by auto
@@ -4198,7 +4241,8 @@ proof-
 qed
 
 lemma compact_affinity:
- assumes "compact s"  shows "compact ((\<lambda>x. a + c *s x) ` s)"
+  fixes s :: "(real ^ _) set"
+  assumes "compact s"  shows "compact ((\<lambda>x. a + c *s x) ` s)"
 proof-
   have "op + a ` op *s c ` s = (\<lambda>x. a + c *s x) ` s" by auto
   thus ?thesis using compact_translation[OF compact_scaling[OF assms], of a c] by auto
@@ -4207,6 +4251,7 @@ qed
 text{* Hence we get the following.                                               *}
 
 lemma compact_sup_maxdistance:
+  fixes s :: "(real ^ _) set"
   assumes "compact s"  "s \<noteq> {}"
   shows "\<exists>x\<in>s. \<exists>y\<in>s. \<forall>u\<in>s. \<forall>v\<in>s. norm(u - v) \<le> norm(x - y)"
 proof-
@@ -4256,6 +4301,7 @@ lemma diameter_bounded_bound:
   using diameter_bounded by blast
 
 lemma diameter_compact_attained:
+  fixes s :: "(real ^ _) set"
   assumes "compact s"  "s \<noteq> {}"
   shows "\<exists>x\<in>s. \<exists>y\<in>s. (norm(x - y) = diameter s)"
 proof-
@@ -4302,6 +4348,7 @@ lemma closed_negations:
   using closed_scaling[OF assms, of "-1"] unfolding  pth_3 by auto
 
 lemma compact_closed_sums:
+  fixes s :: "(real ^ _) set"
   assumes "compact s"  "closed t"  shows "closed {x + y | x y. x \<in> s \<and> y \<in> t}"
 proof-
   let ?S = "{x + y |x y. x \<in> s \<and> y \<in> t}"
@@ -4321,6 +4368,7 @@ proof-
 qed
 
 lemma closed_compact_sums:
+  fixes s t :: "(real ^ _) set"
   assumes "closed s"  "compact t"
   shows "closed {x + y | x y. x \<in> s \<and> y \<in> t}"
 proof-
@@ -4330,6 +4378,7 @@ proof-
 qed
 
 lemma compact_closed_differences:
+  fixes s t :: "(real ^ _) set"
   assumes "compact s"  "closed t"
   shows "closed {x - y | x y. x \<in> s \<and> y \<in> t}"
 proof-
@@ -4339,6 +4388,7 @@ proof-
 qed
 
 lemma closed_compact_differences:
+  fixes s t :: "(real ^ _) set"
   assumes "closed s" "compact t"
   shows "closed {x - y | x y. x \<in> s \<and> y \<in> t}"
 proof-
@@ -4390,6 +4440,7 @@ next
 qed
 
 lemma separate_compact_closed:
+  fixes s t :: "(real ^ _) set"
   assumes "compact s" and "closed t" and "s \<inter> t = {}"
   shows "\<exists>d>0. \<forall>x\<in>s. \<forall>y\<in>t. d \<le> dist x y"
 proof-
@@ -4405,6 +4456,7 @@ proof-
 qed
 
 lemma separate_closed_compact:
+  fixes s t :: "(real ^ _) set"
   assumes "closed s" and "compact t" and "s \<inter> t = {}"
   shows "\<exists>d>0. \<forall>x\<in>s. \<forall>y\<in>t. d \<le> dist x y"
 proof-
@@ -4937,7 +4989,8 @@ proof-
 qed
 
 lemma continuous_on_vec1_dot:
- "continuous_on s (vec1 o (\<lambda>y. a \<bullet> y)) "
+  fixes s :: "(real ^ _) set"
+  shows "continuous_on s (vec1 o (\<lambda>y. a \<bullet> y)) "
   using continuous_at_imp_continuous_on[of s "vec1 o (\<lambda>y. a \<bullet> y)"]
   using continuous_at_vec1_dot
   by auto
@@ -5157,6 +5210,7 @@ lemma assumes "inj_on f s" "x\<in>s"
  using assms unfolding inj_on_def inv_on_def by auto
 
 lemma homeomorphism_compact:
+  fixes f :: "real ^ _ \<Rightarrow> real ^ _"
   assumes "compact s" "continuous_on s f"  "f ` s = t"  "inj_on f s"
   shows "\<exists>g. homeomorphism s t f g"
 proof-
@@ -5761,7 +5815,8 @@ next
   have lab:"l = pastecart a b" unfolding a_def b_def and pastecart_fst_snd by simp
   have [simp]:"a\<in>s" "b\<in>s" unfolding a_def b_def using `l\<in>?s2` by auto
 
-  have "continuous_on UNIV fstcart" and "continuous_on UNIV sndcart"
+  have "continuous_on (UNIV :: (real ^ _) set) fstcart"
+   and "continuous_on (UNIV :: (real ^ _) set) sndcart"
     using linear_continuous_on using linear_fstcart and linear_sndcart by auto
   hence lima:"((fstcart \<circ> (h \<circ> r)) ---> a) sequentially" and limb:"((sndcart \<circ> (h \<circ> r)) ---> b) sequentially"
     unfolding atomize_conj unfolding continuous_on_sequentially
