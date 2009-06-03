@@ -281,7 +281,7 @@ definition complex_sgn_def:
 definition dist_complex_def:
   "dist x y = cmod (x - y)"
 
-definition topo_complex_def:
+definition topo_complex_def [code del]:
   "topo = {S::complex set. \<forall>x\<in>S. \<exists>e>0. \<forall>y. dist y x < e \<longrightarrow> y \<in> S}"
 
 lemmas cmod_def = complex_norm_def

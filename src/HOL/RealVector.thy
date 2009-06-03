@@ -537,7 +537,7 @@ definition real_norm_def [simp]:
 definition dist_real_def:
   "dist x y = \<bar>x - y\<bar>"
 
-definition topo_real_def:
+definition topo_real_def [code del]:
   "topo = {S::real set. \<forall>x\<in>S. \<exists>e>0. \<forall>y. dist y x < e \<longrightarrow> y \<in> S}"
 
 instance
