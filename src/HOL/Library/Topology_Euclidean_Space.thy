@@ -1975,7 +1975,9 @@ qed
 subsection{* Boundedness. *}
 
   (* FIXME: This has to be unified with BSEQ!! *)
-definition "bounded S \<longleftrightarrow> (\<exists>a. \<forall>(x::real^'n::finite) \<in> S. norm x <= a)"
+definition
+  bounded :: "'a::real_normed_vector set \<Rightarrow> bool" where
+  "bounded S \<longleftrightarrow> (\<exists>a. \<forall>x\<in>S. norm x <= a)"
 
 lemma bounded_empty[simp]: "bounded {}" by (simp add: bounded_def)
 lemma bounded_subset: "bounded T \<Longrightarrow> S \<subseteq> T ==> bounded S"
@@ -2005,8 +2007,11 @@ qed
 lemma bounded_cball[simp,intro]: "bounded (cball x e)"
   apply (simp add: bounded_def)
   apply (rule exI[where x="norm x + e"])
-  apply (simp add: Ball_def)
-  by norm
+  apply (clarsimp simp add: Ball_def dist_norm, rename_tac y)
+  apply (subgoal_tac "norm y - norm x \<le> e", simp)
+  apply (rule order_trans [OF norm_triangle_ineq2])
+  apply (simp add: norm_minus_commute)
+  done
 
 lemma bounded_ball[simp,intro]: "bounded(ball x e)"
   by (metis ball_subset_cball bounded_cball bounded_subset)
@@ -2067,7 +2072,9 @@ proof-
     using b B real_mult_order[of b B] by (auto simp add: real_mult_commute)
 qed
 
-lemma bounded_scaling: "bounded S \<Longrightarrow> bounded ((\<lambda>x. c *s x) ` S)"
+lemma bounded_scaling:
+  fixes S :: "(real ^ 'n::finite) set"
+  shows "bounded S \<Longrightarrow> bounded ((\<lambda>x. c *s x) ` S)"
   apply (rule bounded_linear_image, assumption)
   by (rule linear_compose_cmul, rule linear_id[unfolded id_def])
 
@@ -2084,7 +2091,9 @@ qed
 
 text{* Some theorems on sups and infs using the notion "bounded". *}
 
-lemma bounded_vec1: "bounded(vec1 ` S) \<longleftrightarrow>  (\<exists>a. \<forall>x\<in>S. abs x <= a)"
+lemma bounded_vec1:
+  fixes S :: "real set"
+  shows "bounded(vec1 ` S) \<longleftrightarrow>  (\<exists>a. \<forall>x\<in>S. abs x <= a)"
   by (simp add: bounded_def forall_vec1 norm_vec1 vec1_in_image_vec1)
 
 lemma bounded_has_rsup: assumes "bounded(vec1 ` S)" "S \<noteq> {}"
@@ -2427,6 +2436,7 @@ qed
 
 lemma convergent_eq_cauchy:
   fixes s :: "nat \<Rightarrow> real ^ 'n::finite"
+    (* FIXME: generalize to complete metric spaces *)
   shows "(\<exists>l. (s ---> l) sequentially) \<longleftrightarrow> Cauchy s" (is "?lhs = ?rhs")
 proof
   assume ?lhs then obtain l where "(s ---> l) sequentially" by auto
@@ -2435,7 +2445,9 @@ next
   assume ?rhs thus ?lhs using complete_univ[unfolded complete_def, THEN spec[where x=s]] by auto
 qed
 
-lemma convergent_imp_bounded: "(s ---> l) sequentially ==> bounded (s ` (UNIV::(nat set)))"
+lemma convergent_imp_bounded:
+  fixes s :: "nat \<Rightarrow> real ^ 'n::finite" (* FIXME: generalize *)
+  shows "(s ---> l) sequentially ==> bounded (s ` (UNIV::(nat set)))"
   using convergent_eq_cauchy[of s]
   using cauchy_imp_bounded[of s]
   unfolding image_def
@@ -4752,10 +4764,12 @@ proof-
 qed
 
 lemma bounded_subset_open_interval:
-  "bounded s ==> (\<exists>a b. s \<subseteq> {a<..<b})"
-  by(metis bounded_subset_open_interval_symmetric)
+  fixes s :: "(real ^ 'n::finite) set"
+  shows "bounded s ==> (\<exists>a b. s \<subseteq> {a<..<b})"
+  by (auto dest!: bounded_subset_open_interval_symmetric)
 
 lemma bounded_subset_closed_interval_symmetric:
+  fixes s :: "(real ^ 'n::finite) set"
   assumes "bounded s" shows "\<exists>a. s \<subseteq> {-a .. a}"
 proof-
   obtain a where "s \<subseteq> {- a<..<a}" using bounded_subset_open_interval_symmetric[OF assms] by auto
@@ -4763,7 +4777,8 @@ proof-
 qed
 
 lemma bounded_subset_closed_interval:
-  "bounded s ==> (\<exists>a b. s \<subseteq> {a .. b})"
+  fixes s :: "(real ^ 'n::finite) set"
+  shows "bounded s ==> (\<exists>a b. s \<subseteq> {a .. b})"
   using bounded_subset_closed_interval_symmetric[of s] by auto
 
 lemma frontier_closed_interval:
