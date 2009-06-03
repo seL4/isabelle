@@ -68,13 +68,13 @@ fun external_prover relevance_filter preparer writer (cmd, args) find_failure pr
       case axiom_clauses of
           NONE => relevance_filter goal goal_cls
         | SOME axcls => axcls
-    val (thm_names, clauses) = preparer goal_cls the_axiom_clauses thy
+    val (thm_names, clauses) = preparer goal_cls chain_ths the_axiom_clauses thy
     val the_const_counts = case const_counts of
       NONE =>
         ResHolClause.count_constants(
           case axiom_clauses of
             NONE => clauses
-            | SOME axcls => #2(preparer goal_cls (relevance_filter goal goal_cls) thy)
+            | SOME axcls => #2(preparer goal_cls chain_ths (relevance_filter goal goal_cls) thy)
           )
       | SOME ccs => ccs
     val _ = writer fname the_const_counts clauses
