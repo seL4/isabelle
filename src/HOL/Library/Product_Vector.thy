@@ -39,6 +39,38 @@ qed
 
 end
 
+subsection {* Product is a topological space *}
+
+instantiation
+  "*" :: (topological_space, topological_space) topological_space
+begin
+
+definition open_prod_def:
+  "open S = (\<forall>x\<in>S. \<exists>A B. open A \<and> open B \<and> x \<in> A \<times> B \<and> A \<times> B \<subseteq> S)"
+
+instance proof
+  show "open (UNIV :: ('a \<times> 'b) set)"
+    unfolding open_prod_def by (fast intro: open_UNIV)
+next
+  fix S T :: "('a \<times> 'b) set"
+  assume "open S" "open T" thus "open (S \<inter> T)"
+    unfolding open_prod_def
+    apply clarify
+    apply (drule (1) bspec)+
+    apply (clarify, rename_tac Sa Ta Sb Tb)
+    apply (rule_tac x="Sa \<inter> Ta" in exI)
+    apply (rule_tac x="Sb \<inter> Tb" in exI)
+    apply (simp add: open_Int)
+    apply fast
+    done
+next
+  fix T :: "('a \<times> 'b) set set"
+  assume "\<forall>A\<in>T. open A" thus "open (\<Union>T)"
+    unfolding open_prod_def by fast
+qed
+
+end
+
 subsection {* Product is a metric space *}
 
 instantiation
@@ -66,6 +98,55 @@ next
     apply (rule power_mono [OF dist_triangle2 [of _ _ "fst z"] zero_le_dist])
     apply (rule power_mono [OF dist_triangle2 [of _ _ "snd z"] zero_le_dist])
     apply (simp only: real_sum_squared_expand)
+    done
+next
+  (* FIXME: long proof! *)
+  (* Maybe it would be easier to define topological spaces *)
+  (* in terms of neighborhoods instead of open sets? *)
+  fix S :: "('a \<times> 'b) set"
+  show "open S = (\<forall>x\<in>S. \<exists>e>0. \<forall>y. dist y x < e \<longrightarrow> y \<in> S)"
+    unfolding open_prod_def open_dist
+    apply safe
+    apply (drule (1) bspec)
+    apply clarify
+    apply (drule (1) bspec)+
+    apply (clarify, rename_tac r s)
+    apply (rule_tac x="min r s" in exI, simp)
+    apply (clarify, rename_tac c d)
+    apply (erule subsetD)
+    apply (simp add: dist_Pair_Pair)
+    apply (rule conjI)
+    apply (drule spec, erule mp)
+    apply (erule le_less_trans [OF real_sqrt_sum_squares_ge1])
+    apply (drule spec, erule mp)
+    apply (erule le_less_trans [OF real_sqrt_sum_squares_ge2])
+
+    apply (drule (1) bspec)
+    apply clarify
+    apply (subgoal_tac "\<exists>r>0. \<exists>s>0. e = sqrt (r\<twosuperior> + s\<twosuperior>)")
+    apply clarify
+    apply (rule_tac x="{y. dist y a < r}" in exI)
+    apply (rule_tac x="{y. dist y b < s}" in exI)
+    apply (rule conjI)
+    apply clarify
+    apply (rule_tac x="r - dist x a" in exI, rule conjI, simp)
+    apply clarify
+    apply (rule le_less_trans [OF dist_triangle])
+    apply (erule less_le_trans [OF add_strict_right_mono], simp)
+    apply (rule conjI)
+    apply clarify
+    apply (rule_tac x="s - dist x b" in exI, rule conjI, simp)
+    apply clarify
+    apply (rule le_less_trans [OF dist_triangle])
+    apply (erule less_le_trans [OF add_strict_right_mono], simp)
+    apply (rule conjI)
+    apply simp
+    apply (clarify, rename_tac c d)
+    apply (drule spec, erule mp)
+    apply (simp add: dist_Pair_Pair add_strict_mono power_strict_mono)
+    apply (rule_tac x="e / sqrt 2" in exI, simp add: divide_pos_pos)
+    apply (rule_tac x="e / sqrt 2" in exI, simp add: divide_pos_pos)
+    apply (simp add: power_divide)
     done
 qed
 
