@@ -701,40 +701,29 @@ proof-
 qed
 
 lemma interior_closed_Un_empty_interior:
-  fixes S T :: "(real ^ 'n::finite) set" (* FIXME: generalize to perfect_space *)
+  fixes S T :: "'a::metric_space set"
   assumes cS: "closed S" and iT: "interior T = {}"
   shows "interior(S \<union> T) = interior S"
-proof-
-  have "interior S \<subseteq> interior (S\<union>T)"
+proof
+  show "interior S \<subseteq> interior (S\<union>T)"
     by (rule subset_interior, blast)
-  moreover
-  {fix x e assume e: "e > 0" "\<forall>x' \<in> ball x e. x'\<in>(S\<union>T)"
-    {fix y assume y: "y \<in> ball x e"
-      {fix d::real assume d: "d > 0"
-	let ?k = "min d (e - dist x y)"
-	have kp: "?k > 0" using d e(1) y[unfolded mem_ball] by simp
-	have "?k/2 \<ge> 0" using kp by simp
-	then obtain w where w: "dist y w = ?k/ 2" by (metis vector_choose_dist)
-	from iT[unfolded expand_set_eq mem_interior]
-	have "\<not> ball w (?k/4) \<subseteq> T" using kp by (auto simp add: less_divide_eq_number_of1)
-	then obtain z where z: "dist w z < ?k/4" "z \<notin> T" by (auto simp add: subset_eq)
-	have "z \<notin> T \<and> z\<noteq> y \<and> dist z y < d \<and> dist x z < e" using z apply simp
-	  using w e(1) d apply (auto simp only: dist_commute)
-	  apply (auto simp add: min_def cong del: if_weak_cong)
-	  apply (cases "d \<le> e - dist x y", auto simp add: ring_simps cong del: if_weak_cong)
-	  apply (cases "d \<le> e - dist x y", auto simp add: ring_simps not_le not_less cong del: if_weak_cong)
-	  apply norm
-	  apply norm
-	  apply (cases "d \<le> e - dist x y", auto simp add: ring_simps not_le not_less cong del: if_weak_cong)
-	  apply norm
-	  apply norm
-	  done
-	then have "\<exists>z. z \<notin> T \<and> z\<noteq> y \<and> dist z y < d \<and> dist x z < e" by blast
-	then have "\<exists>x' \<in>S. x'\<noteq>y \<and> dist x' y < d" using e by auto}
-      then have "y\<in>S" by (metis islimpt_approachable [where 'a="real^'n"] cS closed_limpt[where 'a="real^'n"]) }
-    then have "x \<in> interior S" unfolding mem_interior using e(1) by blast}
-  hence "interior (S\<union>T) \<subseteq> interior S" unfolding mem_interior Ball_def subset_eq by blast
-  ultimately show ?thesis by blast
+next
+  show "interior (S \<union> T) \<subseteq> interior S"
+  proof
+    fix x assume "x \<in> interior (S \<union> T)"
+    then obtain R where "open R" "x \<in> R" "R \<subseteq> S \<union> T"
+      unfolding interior_def by fast
+    show "x \<in> interior S"
+    proof (rule ccontr)
+      assume "x \<notin> interior S"
+      with `x \<in> R` `open R` obtain y where "y \<in> R - S"
+        unfolding interior_def expand_set_eq by fast
+      from `open R` `closed S` have "open (R - S)" by (rule open_diff)
+      from `R \<subseteq> S \<union> T` have "R - S \<subseteq> T" by fast
+      from `y \<in> R - S` `open (R - S)` `R - S \<subseteq> T` `interior T = {}`
+      show "False" unfolding interior_def by fast
+    qed
+  qed
 qed
 
 
