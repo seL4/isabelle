@@ -515,7 +515,8 @@ lemma separation_t0:
 subsection{* Limit points *}
 
 definition
-  islimpt:: "'a::metric_space \<Rightarrow> 'a set \<Rightarrow> bool" (infixr "islimpt" 60) where
+  islimpt:: "'a::topological_space \<Rightarrow> 'a set \<Rightarrow> bool"
+    (infixr "islimpt" 60) where
   "x islimpt S \<longleftrightarrow> (\<forall>T. x\<in>T \<longrightarrow> open T \<longrightarrow> (\<exists>y\<in>S. y\<in>T \<and> y\<noteq>x))"
 
   (* FIXME: Sure this form is OK????*)
@@ -524,7 +525,10 @@ lemma islimptE: assumes "x islimpt S" and "x \<in> T" and "open T"
   using assms unfolding islimpt_def by auto
 
 lemma islimpt_subset: "x islimpt S \<Longrightarrow> S \<subseteq> T ==> x islimpt T" by (auto simp add: islimpt_def)
-lemma islimpt_approachable: "x islimpt S \<longleftrightarrow> (\<forall>e>0. \<exists>x'\<in>S. x' \<noteq> x \<and> dist x' x < e)"
+
+lemma islimpt_approachable:
+  fixes x :: "'a::metric_space"
+  shows "x islimpt S \<longleftrightarrow> (\<forall>e>0. \<exists>x'\<in>S. x' \<noteq> x \<and> dist x' x < e)"
   unfolding islimpt_def
   apply auto
   apply(erule_tac x="ball x e" in allE)
@@ -535,12 +539,15 @@ lemma islimpt_approachable: "x islimpt S \<longleftrightarrow> (\<forall>e>0. \<
   apply (clarify, drule spec, drule (1) mp, auto)
   done
 
-lemma islimpt_approachable_le: "x islimpt S \<longleftrightarrow> (\<forall>e>0. \<exists>x'\<in> S. x' \<noteq> x \<and> dist x' x <= e)"
+lemma islimpt_approachable_le:
+  fixes x :: "'a::metric_space"
+  shows "x islimpt S \<longleftrightarrow> (\<forall>e>0. \<exists>x'\<in> S. x' \<noteq> x \<and> dist x' x <= e)"
   unfolding islimpt_approachable
   using approachable_lt_le[where f="\<lambda>x'. dist x' x" and P="\<lambda>x'. \<not> (x'\<in>S \<and> x'\<noteq>x)"]
   by metis (* FIXME: VERY slow! *)
 
 axclass perfect_space \<subseteq> metric_space
+  (* FIXME: perfect_space should inherit from topological_space *)
   islimpt_UNIV [simp, intro]: "x islimpt UNIV"
 
 lemma perfect_choose_dist:
@@ -555,7 +562,7 @@ apply (rule islimpt_approachable [THEN iffD2])
 apply (clarify, rule_tac x="x + e/2" in bexI)
 apply (auto simp add: dist_norm)
 done
-  
+
 instance "^" :: (perfect_space, finite) perfect_space
 proof
   fix x :: "'a ^ 'b"
@@ -587,7 +594,7 @@ lemma closed_limpt: "closed S \<longleftrightarrow> (\<forall>x. x islimpt S \<l
   by (metis DiffE DiffI UNIV_I insertCI insert_absorb mem_def)
 
 lemma islimpt_EMPTY[simp]: "\<not> x islimpt {}"
-  unfolding islimpt_approachable apply auto by ferrack
+  unfolding islimpt_def by auto
 
 lemma closed_positive_orthant: "closed {x::real^'n::finite. \<forall>i. 0 \<le>x$i}"
 proof-
@@ -627,7 +634,9 @@ next
   ultimately show ?case by blast
 qed
 
-lemma islimpt_finite: assumes fS: "finite S" shows "\<not> a islimpt S"
+lemma islimpt_finite:
+  fixes S :: "'a::metric_space set"
+  assumes fS: "finite S" shows "\<not> a islimpt S"
   unfolding islimpt_approachable
   using finite_set_avoid[OF fS, of a] by (metis dist_commute  not_le)
 
@@ -635,10 +644,10 @@ lemma islimpt_Un: "x islimpt (S \<union> T) \<longleftrightarrow> x islimpt S \<
   apply (rule iffI)
   defer
   apply (metis Un_upper1 Un_upper2 islimpt_subset)
-  unfolding islimpt_approachable
-  apply auto
-  apply (erule_tac x="min e ea" in allE)
-  apply auto
+  unfolding islimpt_def
+  apply (rule ccontr, clarsimp, rename_tac A B)
+  apply (drule_tac x="A \<inter> B" in spec)
+  apply (auto simp add: open_inter)
   done
 
 lemma discrete_imp_closed:
@@ -656,7 +665,7 @@ proof-
       by (intro dist_triangle_lt [where z=x], simp)
     from d[rule_format, OF y(1) z(1) th] y z
     have False by (auto simp add: dist_commute)}
-  then show ?thesis by (metis islimpt_approachable closed_limpt)
+  then show ?thesis by (metis islimpt_approachable closed_limpt [where 'a='a])
 qed
 
 subsection{* Interior of a Set *}
@@ -713,7 +722,6 @@ proof-
 qed
 
 lemma interior_closed_Un_empty_interior:
-  fixes S T :: "'a::metric_space set"
   assumes cS: "closed S" and iT: "interior T = {}"
   shows "interior(S \<union> T) = interior S"
 proof
@@ -873,7 +881,10 @@ lemma open_inter_closure_eq_empty:
   unfolding closure_interior
   by auto
 
-lemma open_inter_closure_subset: "open S \<Longrightarrow> (S \<inter> (closure T)) \<subseteq> closure(S \<inter> T)"
+lemma open_inter_closure_subset:
+  fixes S :: "'a::metric_space set"
+    (* FIXME: generalize to topological_space *)
+  shows "open S \<Longrightarrow> (S \<inter> (closure T)) \<subseteq> closure(S \<inter> T)"
 proof
   fix x
   assume as: "open S" "x \<in> S \<inter> closure T"
@@ -925,7 +936,9 @@ lemma frontier_closed: "closed(frontier S)"
 lemma frontier_closures: "frontier S = (closure S) \<inter> (closure(UNIV - S))"
   by (auto simp add: frontier_def interior_closure)
 
-lemma frontier_straddle: "a \<in> frontier S \<longleftrightarrow> (\<forall>e>0. (\<exists>x\<in>S. dist a x < e) \<and> (\<exists>x. x \<notin> S \<and> dist a x < e))" (is "?lhs \<longleftrightarrow> ?rhs")
+lemma frontier_straddle:
+  fixes a :: "'a::metric_space"
+  shows "a \<in> frontier S \<longleftrightarrow> (\<forall>e>0. (\<exists>x\<in>S. dist a x < e) \<and> (\<exists>x. x \<notin> S \<and> dist a x < e))" (is "?lhs \<longleftrightarrow> ?rhs")
 proof
   assume "?lhs"
   { fix e::real
@@ -1632,7 +1645,6 @@ proof-
 qed
 
 lemma Lim_transform_eventually:
-  fixes f g :: "'a::type \<Rightarrow> 'b::metric_space"
   shows "eventually (\<lambda>x. f x = g x) net \<Longrightarrow> (f ---> l) net ==> (g ---> l) net"
   unfolding tendsto_def
   apply (clarify, drule spec, drule (1) mp)
@@ -1640,7 +1652,6 @@ lemma Lim_transform_eventually:
   done
 
 lemma Lim_transform_within:
-  fixes f g :: "'a::metric_space \<Rightarrow> 'b::metric_space"
   assumes "0 < d" "(\<forall>x'\<in>S. 0 < dist x' x \<and> dist x' x < d \<longrightarrow> f x' = g x')"
           "(f ---> l) (at x within S)"
   shows   "(g ---> l) (at x within S)"
@@ -1654,7 +1665,6 @@ lemma Lim_transform_within:
   done
 
 lemma Lim_transform_at:
-  fixes f g :: "'a::metric_space \<Rightarrow> 'b::metric_space"
   shows "0 < d \<Longrightarrow> (\<forall>x'. 0 < dist x' x \<and> dist x' x < d \<longrightarrow> f x' = g x') \<Longrightarrow>
   (f ---> l) (at x) ==> (g ---> l) (at x)"
   apply (subst within_UNIV[symmetric])
@@ -1664,7 +1674,6 @@ lemma Lim_transform_at:
 text{* Common case assuming being away from some crucial point like 0. *}
 
 lemma Lim_transform_away_within:
-  fixes f:: "'a::metric_space \<Rightarrow> 'b::metric_space"
   assumes "a\<noteq>b" "\<forall>x\<in> S. x \<noteq> a \<and> x \<noteq> b \<longrightarrow> f x = g x"
   and "(f ---> l) (at a within S)"
   shows "(g ---> l) (at a within S)"
@@ -1675,7 +1684,6 @@ proof-
 qed
 
 lemma Lim_transform_away_at:
-  fixes f:: "'a::metric_space \<Rightarrow> 'b::metric_space"
   assumes ab: "a\<noteq>b" and fg: "\<forall>x. x \<noteq> a \<and> x \<noteq> b \<longrightarrow> f x = g x"
   and fl: "(f ---> l) (at a)"
   shows "(g ---> l) (at a)"
@@ -1685,8 +1693,6 @@ lemma Lim_transform_away_at:
 text{* Alternatively, within an open set. *}
 
 lemma Lim_transform_within_open:
-  fixes f:: "'a::metric_space \<Rightarrow> 'b::metric_space"
-    (* FIXME: generalize to metric_space *)
   assumes "open S"  "a \<in> S"  "\<forall>x\<in>S. x \<noteq> a \<longrightarrow> f x = g x"  "(f ---> l) (at a)"
   shows "(g ---> l) (at a)"
 proof-
@@ -1727,11 +1733,15 @@ next
 qed
 
 lemma closed_sequential_limits:
- "closed S \<longleftrightarrow> (\<forall>x l. (\<forall>n. x n \<in> S) \<and> (x ---> l) sequentially \<longrightarrow> l \<in> S)"
+  fixes S :: "'a::metric_space set"
+  shows "closed S \<longleftrightarrow> (\<forall>x l. (\<forall>n. x n \<in> S) \<and> (x ---> l) sequentially \<longrightarrow> l \<in> S)"
   unfolding closed_limpt
-  by (metis closure_sequential closure_closed closed_limpt islimpt_sequential mem_delete)
+  using closure_sequential [where 'a='a] closure_closed [where 'a='a] closed_limpt [where 'a='a] islimpt_sequential [where 'a='a] mem_delete [where 'a='a]
+  by metis
 
-lemma closure_approachable: "x \<in> closure S \<longleftrightarrow> (\<forall>e>0. \<exists>y\<in>S. dist y x < e)"
+lemma closure_approachable:
+  fixes S :: "'a::metric_space set"
+  shows "x \<in> closure S \<longleftrightarrow> (\<forall>e>0. \<exists>y\<in>S. dist y x < e)"
   apply (auto simp add: closure_def islimpt_approachable)
   by (metis dist_self)
 
@@ -2686,6 +2696,7 @@ proof(rule ccontr)
 qed
 
 lemma bolzano_weierstrass_imp_closed:
+  fixes s :: "'a::metric_space set" (* TODO: can this be generalized? *)
   assumes "\<forall>t. infinite t \<and> t \<subseteq> s --> (\<exists>x \<in> s. x islimpt t)"
   shows "closed s"
 proof-
