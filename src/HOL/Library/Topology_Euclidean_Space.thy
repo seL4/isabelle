@@ -1607,25 +1607,29 @@ proof-
 qed
 
 lemma Lim_transform_eventually:
-  fixes f g :: "'a::type \<Rightarrow> 'b::real_normed_vector"
-    (* FIXME: generalize to metric_space *)
+  fixes f g :: "'a::type \<Rightarrow> 'b::metric_space"
   shows "eventually (\<lambda>x. f x = g x) net \<Longrightarrow> (f ---> l) net ==> (g ---> l) net"
-  using Lim_eventually[of "\<lambda>x. f x - g x" 0 net] Lim_transform[of f g net l] by auto
+  unfolding tendsto_def
+  apply (clarify, drule spec, drule (1) mp)
+  apply (erule (1) eventually_elim2, simp)
+  done
 
 lemma Lim_transform_within:
-  fixes f g :: "'a::perfect_space \<Rightarrow> 'b::real_normed_vector"
-    (* FIXME: generalize to metric_space *)
+  fixes f g :: "'a::metric_space \<Rightarrow> 'b::metric_space"
   assumes "0 < d" "(\<forall>x'\<in>S. 0 < dist x' x \<and> dist x' x < d \<longrightarrow> f x' = g x')"
           "(f ---> l) (at x within S)"
   shows   "(g ---> l) (at x within S)"
-proof-
-  have "((\<lambda>x. f x - g x) ---> 0) (at x within S)" unfolding Lim_within[of "\<lambda>x. f x - g x" 0 x S] using assms(1,2) by auto
-  thus ?thesis using Lim_transform[of f g "at x within S" l] using assms(3) by auto
-qed
+  using assms(1,3) unfolding Lim_within
+  apply -
+  apply (clarify, rename_tac e)
+  apply (drule_tac x=e in spec, clarsimp, rename_tac r)
+  apply (rule_tac x="min d r" in exI, clarsimp, rename_tac y)
+  apply (drule_tac x=y in bspec, assumption, clarsimp)
+  apply (simp add: assms(2))
+  done
 
 lemma Lim_transform_at:
-  fixes f g :: "'a::perfect_space \<Rightarrow> 'b::real_normed_vector"
-    (* FIXME: generalize to metric_space *)
+  fixes f g :: "'a::metric_space \<Rightarrow> 'b::metric_space"
   shows "0 < d \<Longrightarrow> (\<forall>x'. 0 < dist x' x \<and> dist x' x < d \<longrightarrow> f x' = g x') \<Longrightarrow>
   (f ---> l) (at x) ==> (g ---> l) (at x)"
   apply (subst within_UNIV[symmetric])
@@ -1635,8 +1639,7 @@ lemma Lim_transform_at:
 text{* Common case assuming being away from some crucial point like 0. *}
 
 lemma Lim_transform_away_within:
-  fixes f:: "'a::perfect_space \<Rightarrow> 'b::real_normed_vector"
-    (* FIXME: generalize to metric_space *)
+  fixes f:: "'a::metric_space \<Rightarrow> 'b::metric_space"
   assumes "a\<noteq>b" "\<forall>x\<in> S. x \<noteq> a \<and> x \<noteq> b \<longrightarrow> f x = g x"
   and "(f ---> l) (at a within S)"
   shows "(g ---> l) (at a within S)"
@@ -1647,8 +1650,7 @@ proof-
 qed
 
 lemma Lim_transform_away_at:
-  fixes f:: "'a::perfect_space \<Rightarrow> 'b::real_normed_vector"
-    (* FIXME: generalize to metric_space *)
+  fixes f:: "'a::metric_space \<Rightarrow> 'b::metric_space"
   assumes ab: "a\<noteq>b" and fg: "\<forall>x. x \<noteq> a \<and> x \<noteq> b \<longrightarrow> f x = g x"
   and fl: "(f ---> l) (at a)"
   shows "(g ---> l) (at a)"
@@ -1658,7 +1660,7 @@ lemma Lim_transform_away_at:
 text{* Alternatively, within an open set. *}
 
 lemma Lim_transform_within_open:
-  fixes f:: "'a::perfect_space \<Rightarrow> 'b::real_normed_vector"
+  fixes f:: "'a::metric_space \<Rightarrow> 'b::metric_space"
     (* FIXME: generalize to metric_space *)
   assumes "open S"  "a \<in> S"  "\<forall>x\<in>S. x \<noteq> a \<longrightarrow> f x = g x"  "(f ---> l) (at a)"
   shows "(g ---> l) (at a)"
@@ -1670,6 +1672,8 @@ proof-
 qed
 
 text{* A congruence rule allowing us to transform limits assuming not at point. *}
+
+(* FIXME: Only one congruence rule for tendsto can be used at a time! *)
 
 lemma Lim_cong_within[cong add]:
  "(\<And>x. x \<noteq> a \<Longrightarrow> f x = g x) ==> ((\<lambda>x. f x) ---> l) (at a within S) \<longleftrightarrow> ((g ---> l) (at a within S))"
