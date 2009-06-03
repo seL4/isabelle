@@ -1742,19 +1742,14 @@ qed
 
 text{* More properties of closed balls. *}
 
-lemma closed_cball:
-  fixes x :: "'a::real_normed_vector" (* FIXME: generalize to metric_space *)
-  shows "closed (cball x e)"
-proof-
-  { fix xa::"nat\<Rightarrow>'a" and l assume as: "\<forall>n. dist x (xa n) \<le> e" "(xa ---> l) sequentially"
-    from as(2) have "((\<lambda>n. x - xa n) ---> x - l) sequentially" using Lim_sub[of "\<lambda>n. x" x sequentially xa l] Lim_const[of x sequentially] by auto
-    moreover from as(1) have "eventually (\<lambda>n. norm (x - xa n) \<le> e) sequentially" unfolding eventually_sequentially dist_norm by auto
-    ultimately have "dist x l \<le> e"
-      unfolding dist_norm
-      using Lim_norm_ubound[of sequentially _ "x - l" e] using trivial_limit_sequentially by auto
-  }
-  thus ?thesis unfolding closed_sequential_limits by auto
-qed
+lemma closed_cball: "closed (cball x e)"
+unfolding cball_def closed_def Compl_eq_Diff_UNIV [symmetric]
+unfolding Collect_neg_eq [symmetric] not_le
+apply (clarsimp simp add: open_def, rename_tac y)
+apply (rule_tac x="dist x y - e" in exI, clarsimp)
+apply (cut_tac x=x and y=x' and z=y in dist_triangle)
+apply simp
+done
 
 lemma open_contains_cball: "open S \<longleftrightarrow> (\<forall>x\<in>S. \<exists>e>0.  cball x e \<subseteq> S)"
 proof-
