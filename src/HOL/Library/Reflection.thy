@@ -22,8 +22,8 @@ method_setup reify = {*
   (fn (eqs, to) => fn ctxt => SIMPLE_METHOD' (Reflection.genreify_tac ctxt (eqs @ (fst (Reify_Data.get ctxt))) to))
 *} "partial automatic reification"
 
-method_setup reflection = {* 
-let 
+method_setup reflection = {*
+let
   fun keyword k = Scan.lift (Args.$$$ k -- Args.colon) >> K ();
   val onlyN = "only";
   val rulesN = "rules";
@@ -35,8 +35,8 @@ in
   Scan.optional (keyword rulesN |-- thms) [] --
   Scan.option (keyword onlyN |-- Args.term) >>
   (fn ((eqs,ths),to) => fn ctxt =>
-    let 
-      val (ceqs,cths) = Reify_Data.get ctxt 
+    let
+      val (ceqs,cths) = Reify_Data.get ctxt
       val corr_thms = ths@cths
       val raw_eqs = eqs@ceqs
     in SIMPLE_METHOD' (Reflection.reflection_tac ctxt corr_thms raw_eqs to) end)
