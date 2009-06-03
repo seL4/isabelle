@@ -3066,7 +3066,7 @@ definition
 
 definition
   uniformly_continuous_on ::
-    "(real ^ 'n::finite) set \<Rightarrow> (real ^ 'n \<Rightarrow> real ^ 'm::finite) \<Rightarrow> bool" where
+    "'a::metric_space set \<Rightarrow> ('a \<Rightarrow> 'b::metric_space) \<Rightarrow> bool" where
   "uniformly_continuous_on s f \<longleftrightarrow>
         (\<forall>e>0. \<exists>d>0. \<forall>x\<in>s. \<forall> x'\<in>s. dist x' x < d
                            --> dist (f x') (f x) < e)"
@@ -3198,7 +3198,8 @@ next
 qed
 
 lemma uniformly_continuous_on_sequentially:
- "uniformly_continuous_on s f \<longleftrightarrow> (\<forall>x y. (\<forall>n. x n \<in> s) \<and> (\<forall>n. y n \<in> s) \<and>
+  fixes f :: "'a::real_normed_vector \<Rightarrow> 'b::real_normed_vector"
+  shows "uniformly_continuous_on s f \<longleftrightarrow> (\<forall>x y. (\<forall>n. x n \<in> s) \<and> (\<forall>n. y n \<in> s) \<and>
                     ((\<lambda>n. x n - y n) ---> 0) sequentially
                     \<longrightarrow> ((\<lambda>n. f(x n) - f(y n)) ---> 0) sequentially)" (is "?lhs = ?rhs")
 proof
@@ -3226,24 +3227,25 @@ next
     def y \<equiv> "\<lambda>n::nat. snd (fa (inverse (real n + 1)))"
     have xyn:"\<forall>n. x n \<in> s \<and> y n \<in> s" and xy0:"\<forall>n. dist (x n) (y n) < inverse (real n + 1)" and fxy:"\<forall>n. \<not> dist (f (x n)) (f (y n)) < e"
       unfolding x_def and y_def using fa by auto
-    have *:"\<And>x (y::real^_). dist (x - y) 0 = dist x y" unfolding dist_norm by auto
+    have 1:"\<And>(x::'a) y. dist (x - y) 0 = dist x y" unfolding dist_norm by auto
+    have 2:"\<And>(x::'b) y. dist (x - y) 0 = dist x y" unfolding dist_norm by auto
     { fix e::real assume "e>0"
       then obtain N::nat where "N \<noteq> 0" and N:"0 < inverse (real N) \<and> inverse (real N) < e" unfolding real_arch_inv[of e]   by auto
       { fix n::nat assume "n\<ge>N"
 	hence "inverse (real n + 1) < inverse (real N)" using real_of_nat_ge_zero and `N\<noteq>0` by auto
 	also have "\<dots> < e" using N by auto
 	finally have "inverse (real n + 1) < e" by auto
-	hence "dist (x n - y n) 0 < e" unfolding * using xy0[THEN spec[where x=n]] by auto  }
+	hence "dist (x n - y n) 0 < e" unfolding 1 using xy0[THEN spec[where x=n]] by auto  }
       hence "\<exists>N. \<forall>n\<ge>N. dist (x n - y n) 0 < e" by auto  }
     hence "\<forall>e>0. \<exists>N. \<forall>n\<ge>N. dist (f (x n) - f (y n)) 0 < e" using `?rhs`[THEN spec[where x=x], THEN spec[where x=y]] and xyn unfolding Lim_sequentially by auto
-    hence False unfolding * using fxy and `e>0` by auto  }
+    hence False unfolding 2 using fxy and `e>0` by auto  }
   thus ?lhs unfolding uniformly_continuous_on_def by blast
 qed
 
 text{* The usual transformation theorems. *}
 
 lemma continuous_transform_within:
-  fixes f g :: "real ^ 'n::finite \<Rightarrow> 'b::real_normed_vector"
+  fixes f g :: "'a::metric_space \<Rightarrow> 'b::metric_space"
   assumes "0 < d" "x \<in> s" "\<forall>x' \<in> s. dist x' x < d --> f x' = g x'"
           "continuous (at x within s) f"
   shows "continuous (at x within s) g"
@@ -3259,7 +3261,7 @@ proof-
 qed
 
 lemma continuous_transform_at:
-  fixes f g :: "real ^ 'n::finite \<Rightarrow> 'b::real_normed_vector"
+  fixes f g :: "'a::metric_space \<Rightarrow> 'b::metric_space"
   assumes "0 < d" "\<forall>x'. dist x' x < d --> f x' = g x'"
           "continuous (at x) f"
   shows "continuous (at x) g"
@@ -3333,9 +3335,10 @@ text{* Same thing for uniform continuity, using sequential formulations. *}
 
 lemma uniformly_continuous_on_const:
  "uniformly_continuous_on s (\<lambda>x. c)"
-  unfolding uniformly_continuous_on_sequentially using Lim_const[of 0] by auto
+  unfolding uniformly_continuous_on_def by simp
 
 lemma uniformly_continuous_on_cmul:
+  fixes f :: "'a::real_normed_vector \<Rightarrow> real ^ _"
   assumes "uniformly_continuous_on s f"
   shows "uniformly_continuous_on s (\<lambda>x. c *s f(x))"
 proof-
@@ -3348,25 +3351,27 @@ proof-
 qed
 
 lemma uniformly_continuous_on_neg:
- "uniformly_continuous_on s f
+  fixes f :: "'a::real_normed_vector \<Rightarrow> real ^ _" (* FIXME: generalize *)
+  shows "uniformly_continuous_on s f
          ==> uniformly_continuous_on s (\<lambda>x. -(f x))"
   using uniformly_continuous_on_cmul[of s f "-1"] unfolding pth_3 by auto
 
 lemma uniformly_continuous_on_add:
+  fixes f g :: "'a::real_normed_vector \<Rightarrow> 'b::real_normed_vector"
   assumes "uniformly_continuous_on s f" "uniformly_continuous_on s g"
-  shows "uniformly_continuous_on s (\<lambda>x. f(x) + g(x) ::real^'n::finite)"
+  shows "uniformly_continuous_on s (\<lambda>x. f x + g x)"
 proof-
-  have *:"\<And>fx fy gx gy::real^'n. fx - fy + (gx - gy) = fx + gx - (fy + gy)" by auto
   {  fix x y assume "((\<lambda>n. f (x n) - f (y n)) ---> 0) sequentially"
                     "((\<lambda>n. g (x n) - g (y n)) ---> 0) sequentially"
     hence "((\<lambda>xa. f (x xa) - f (y xa) + (g (x xa) - g (y xa))) ---> 0 + 0) sequentially"
       using Lim_add[of "\<lambda> n. f (x n) - f (y n)" 0  sequentially "\<lambda> n. g (x n) - g (y n)" 0] by auto
-    hence "((\<lambda>n. f (x n) + g (x n) - (f (y n) + g (y n))) ---> 0) sequentially" unfolding Lim_sequentially and * by auto  }
+    hence "((\<lambda>n. f (x n) + g (x n) - (f (y n) + g (y n))) ---> 0) sequentially" unfolding Lim_sequentially and add_diff_add [symmetric] by auto  }
   thus ?thesis using assms unfolding uniformly_continuous_on_sequentially by auto
 qed
 
 lemma uniformly_continuous_on_sub:
- "uniformly_continuous_on s f \<Longrightarrow> uniformly_continuous_on s g
+  fixes f :: "'a::real_normed_vector \<Rightarrow> real ^ _" (* FIXME: generalize *)
+  shows "uniformly_continuous_on s f \<Longrightarrow> uniformly_continuous_on s g
            ==> uniformly_continuous_on s  (\<lambda>x. f x - g x)"
   unfolding ab_diff_minus
   using uniformly_continuous_on_add[of s f "\<lambda>x. - g x"]
