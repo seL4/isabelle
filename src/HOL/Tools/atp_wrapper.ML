@@ -93,15 +93,7 @@ fun external_prover relevance_filter preparer writer (cmd, args) find_failure pr
       if is_some failure then "External prover failed."
       else if rc <> 0 then "External prover failed: " ^ proof
       else "Try this command: " ^ produce_answer name (proof, thm_names, ctxt, th, subgoalno)
-
-    val _ =
-      if is_some failure
-      then Output.debug (fn () => "Sledgehammer failure: " ^ the failure ^ "\nOutput: " ^ proof)
-      else ()
-    val _ =
-      if rc <> 0
-      then Output.debug (fn () => "Sledgehammer exited with return code " ^ string_of_int rc ^ ":\n" ^ proof)
-      else ()
+    val _ = Output.debug (fn () => "Sledgehammer response (rc = " ^ string_of_int rc ^ "):\n" ^ proof)
   in (success, message, proof, thm_names, the_const_counts) end;
 
 
