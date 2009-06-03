@@ -2746,17 +2746,19 @@ lemma dist_sndcart: "dist(sndcart (x::real^_)) (sndcart y) <= dist x y"
 lemma dot_pastecart: "(pastecart (x1::'a::{times,comm_monoid_add}^'n::finite) (x2::'a::{times,comm_monoid_add}^'m::finite)) \<bullet> (pastecart y1 y2) =  x1 \<bullet> y1 + x2 \<bullet> y2"
   by (simp add: dot_def setsum_UNIV_sum pastecart_def)
 
-lemma norm_pastecart: "norm(pastecart x y) <= norm(x :: real ^ 'm::finite) + norm(y::real^'n::finite)"
-  unfolding real_vector_norm_def dot_pastecart real_sqrt_le_iff id_def
-  apply (rule power2_le_imp_le)
-  apply (simp add: real_sqrt_pow2[OF add_nonneg_nonneg[OF dot_pos_le[of x] dot_pos_le[of y]]])
-  apply (auto simp add: power2_eq_square ring_simps)
-  apply (simp add: power2_eq_square[symmetric])
-  apply (rule mult_nonneg_nonneg)
-  apply (simp_all add: real_sqrt_pow2[OF dot_pos_le])
-  apply (rule add_nonneg_nonneg)
-  apply (simp_all add: real_sqrt_pow2[OF dot_pos_le])
-  done
+text {* TODO: move to NthRoot *}
+lemma sqrt_add_le_add_sqrt:
+  assumes x: "0 \<le> x" and y: "0 \<le> y"
+  shows "sqrt (x + y) \<le> sqrt x + sqrt y"
+apply (rule power2_le_imp_le)
+apply (simp add: real_sum_squared_expand add_nonneg_nonneg x y)
+apply (simp add: mult_nonneg_nonneg x y)
+apply (simp add: add_nonneg_nonneg x y)
+done
+
+lemma norm_pastecart: "norm (pastecart x y) <= norm x + norm y"
+  unfolding vector_norm_def setL2_def setsum_UNIV_sum
+  by (simp add: sqrt_add_le_add_sqrt setsum_nonneg)
 
 subsection {* A generic notion of "hull" (convex, affine, conic hull and closure). *}
 
