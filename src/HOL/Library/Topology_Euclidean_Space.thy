@@ -484,33 +484,55 @@ lemma connected_empty[simp, intro]: "connected {}"
 
 subsection{* Hausdorff and other separation properties *}
 
-lemma hausdorff:
-  fixes x y :: "'a::metric_space"
-  assumes xy: "x \<noteq> y"
-  shows "\<exists>U V. open U \<and> open V \<and> x\<in> U \<and> y \<in> V \<and> (U \<inter> V = {})" (is "\<exists>U V. ?P U V")
-proof-
+axclass t0_space \<subseteq> topological_space
+  t0_space:
+    "x \<noteq> y \<Longrightarrow> \<exists>U. open U \<and> \<not> (x \<in> U \<longleftrightarrow> y \<in> U)"
+
+axclass t1_space \<subseteq> topological_space
+  t1_space:
+    "x \<noteq> y \<Longrightarrow> \<exists>U V. open U \<and> open V \<and> x \<in> U \<and> y \<notin> U \<and> x \<notin> V \<and> y \<in> V"
+
+instance t1_space \<subseteq> t0_space
+by default (fast dest: t1_space)
+
+text {* T2 spaces are also known as Hausdorff spaces. *}
+
+axclass t2_space \<subseteq> topological_space
+  hausdorff:
+    "x \<noteq> y \<Longrightarrow> \<exists>U V. open U \<and> open V \<and> x \<in> U \<and> y \<in> V \<and> U \<inter> V = {}"
+
+instance t2_space \<subseteq> t1_space
+by default (fast dest: hausdorff)
+
+instance metric_space \<subseteq> t2_space
+proof
+  fix x y :: "'a::metric_space"
+  assume xy: "x \<noteq> y"
   let ?U = "ball x (dist x y / 2)"
   let ?V = "ball y (dist x y / 2)"
   have th0: "\<And>d x y z. (d x z :: real) <= d x y + d y z \<Longrightarrow> d y z = d z y
                ==> ~(d x y * 2 < d x z \<and> d z y * 2 < d x z)" by arith
-  have "?P ?U ?V" using dist_pos_lt[OF xy] th0[of dist,OF dist_triangle dist_commute]
-    by (auto simp add: expand_set_eq less_divide_eq_number_of1)
-  then show ?thesis by blast
+  have "open ?U \<and> open ?V \<and> x \<in> ?U \<and> y \<in> ?V \<and> ?U \<inter> ?V = {}"
+    using dist_pos_lt[OF xy] th0[of dist,OF dist_triangle dist_commute]
+    by (auto simp add: expand_set_eq)
+  then show "\<exists>U V. open U \<and> open V \<and> x \<in> U \<and> y \<in> V \<and> U \<inter> V = {}"
+    by blast
 qed
 
 lemma separation_t2:
-  fixes x y :: "'a::metric_space"
+  fixes x y :: "'a::t2_space"
   shows "x \<noteq> y \<longleftrightarrow> (\<exists>U V. open U \<and> open V \<and> x \<in> U \<and> y \<in> V \<and> U \<inter> V = {})"
   using hausdorff[of x y] by blast
 
 lemma separation_t1:
-  fixes x y :: "'a::metric_space"
+  fixes x y :: "'a::t1_space"
   shows "x \<noteq> y \<longleftrightarrow> (\<exists>U V. open U \<and> open V \<and> x \<in>U \<and> y\<notin> U \<and> x\<notin>V \<and> y\<in>V)"
-  using separation_t2[of x y] by blast
+  using t1_space[of x y] by blast
 
 lemma separation_t0:
-  fixes x y :: "'a::metric_space"
-  shows "x \<noteq> y \<longleftrightarrow> (\<exists>U. open U \<and> ~(x\<in>U \<longleftrightarrow> y\<in>U))" by(metis separation_t1)
+  fixes x y :: "'a::t0_space"
+  shows "x \<noteq> y \<longleftrightarrow> (\<exists>U. open U \<and> ~(x\<in>U \<longleftrightarrow> y\<in>U))"
+  using t0_space[of x y] by blast
 
 subsection{* Limit points *}
 
