@@ -457,7 +457,9 @@ apply simp
 apply (auto intro: order_trans simp add: diff_minus abs_if)
 done
 
-lemma lim_uminus: "convergent g ==> lim (%x. - g x) = - (lim g)"
+lemma lim_uminus:
+  fixes g :: "nat \<Rightarrow> 'a::real_normed_vector"
+  shows "convergent g ==> lim (%x. - g x) = - (lim g)"
 apply (rule LIMSEQ_minus [THEN limI])
 apply (simp add: convergent_LIMSEQ_iff)
 done

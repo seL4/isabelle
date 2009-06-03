@@ -24,7 +24,7 @@ definition
   [code del]: "X ----> L = (\<forall>r>0. \<exists>no. \<forall>n\<ge>no. dist (X n) L < r)"
 
 definition
-  lim :: "(nat \<Rightarrow> 'a::real_normed_vector) \<Rightarrow> 'a" where
+  lim :: "(nat \<Rightarrow> 'a::metric_space) \<Rightarrow> 'a" where
     --{*Standard definition of limit using choice operator*}
   "lim X = (THE L. X ----> L)"
 
