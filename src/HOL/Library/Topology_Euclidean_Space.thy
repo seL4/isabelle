@@ -194,35 +194,30 @@ lemma subtopology_UNIV[simp]: "subtopology U UNIV = U"
   by (simp add: subtopology_superset)
 
 subsection{* The universal Euclidean versions are what we use most of the time *}
+
 definition
-  "open" :: "'a::metric_space set \<Rightarrow> bool" where
-  "open S \<longleftrightarrow> (\<forall>x \<in> S. \<exists>e >0. \<forall>x'. dist x' x < e \<longrightarrow> x' \<in> S)"
-definition "closed S \<longleftrightarrow> open(UNIV - S)"
-definition "euclidean = topology open"
+  "open" :: "'a::topological_space set \<Rightarrow> bool" where
+  "open S \<longleftrightarrow> S \<in> topo"
 
-lemma open_empty[intro,simp]: "open {}" by (simp add: open_def)
+definition
+  closed :: "'a::topological_space set \<Rightarrow> bool" where
+  "closed S \<longleftrightarrow> open(UNIV - S)"
+
+definition
+  euclidean :: "'a::topological_space topology" where
+  "euclidean = topology open"
+
 lemma open_UNIV[intro,simp]:  "open UNIV"
-  by (simp add: open_def, rule exI[where x="1"], auto)
+  unfolding open_def by (rule topo_UNIV)
 
-lemma open_inter[intro]: assumes S: "open S" and T: "open T"
-  shows "open (S \<inter> T)"
-proof-
-  note thS = S[unfolded open_def, rule_format]
-  note thT = T[unfolded open_def, rule_format]
-  {fix x assume x: "x \<in> S\<inter>T"
-    hence xS: "x \<in> S" and xT: "x \<in> T" by simp_all
-    from thS[OF xS] obtain eS where eS: "eS > 0" "\<forall>x'. dist x' x < eS \<longrightarrow> x' \<in> S" by blast
-    from thT[OF xT] obtain eT where eT: "eT > 0" "\<forall>x'. dist x' x < eT \<longrightarrow> x' \<in> T" by blast
-    from real_lbound_gt_zero[OF eS(1) eT(1)] obtain e where e: "e > 0" "e < eS" "e < eT" by blast
-    { fix x' assume d: "dist x' x < e"
-      hence dS: "dist x' x < eS" and dT: "dist x' x < eT" using e by arith+
-      from eS(2)[rule_format, OF dS] eT(2)[rule_format, OF dT] have "x' \<in> S\<inter>T" by blast}
-    hence "\<exists>e >0. \<forall>x'. dist x' x < e \<longrightarrow> x' \<in> (S\<inter>T)" using e by blast}
-  then show ?thesis unfolding open_def by blast
-qed
+lemma open_inter[intro]: "open S \<Longrightarrow> open T \<Longrightarrow> open (S \<inter> T)"
+  unfolding open_def by (rule topo_Int)
 
 lemma open_Union[intro]: "(\<forall>S\<in>K. open S) \<Longrightarrow> open (\<Union> K)"
-  by (simp add: open_def) metis
+  unfolding open_def subset_eq [symmetric] by (rule topo_Union)
+
+lemma open_empty[intro,simp]: "open {}"
+  using open_Union [of "{}"] by simp
 
 lemma open_openin: "open S \<longleftrightarrow> openin euclidean S"
   unfolding euclidean_def
@@ -242,7 +237,9 @@ lemma topspace_euclidean_subtopology[simp]: "topspace (subtopology euclidean S) 
 lemma closed_closedin: "closed S \<longleftrightarrow> closedin euclidean S"
   by (simp add: closed_def closedin_def topspace_euclidean open_openin)
 
-lemma open_Un[intro]: "open S \<Longrightarrow> open T \<Longrightarrow> open (S\<union>T)"
+lemma open_Un[intro]:
+  fixes S T :: "'a::topological_space set"
+  shows "open S \<Longrightarrow> open T \<Longrightarrow> open (S\<union>T)"
   by (auto simp add: open_openin)
 
 lemma open_subopen: "open S \<longleftrightarrow> (\<forall>x\<in>S. \<exists>T. open T \<and> x \<in> T \<and> T \<subseteq> S)"
@@ -320,6 +317,11 @@ lemma ball_min_Int: "ball a (min r s) = ball a r \<inter> ball a s"
 
 subsection{* Topological properties of open balls *}
 
+lemma open_dist:
+  fixes S :: "'a::metric_space set"
+  shows "open S \<longleftrightarrow> (\<forall>x\<in>S. \<exists>e>0. \<forall>x'. dist x' x < e \<longrightarrow> x' \<in> S)"
+  unfolding open_def topo_dist by simp
+
 lemma diff_less_iff: "(a::real) - b > 0 \<longleftrightarrow> a > b"
   "(a::real) - b < 0 \<longleftrightarrow> a < b"
   "a - b < c \<longleftrightarrow> a < c +b" "a - b > c \<longleftrightarrow> a > c +b" by arith+
@@ -327,7 +329,7 @@ lemma diff_le_iff: "(a::real) - b \<ge> 0 \<longleftrightarrow> a \<ge> b" "(a::
   "a - b \<le> c \<longleftrightarrow> a \<le> c +b" "a - b \<ge> c \<longleftrightarrow> a \<ge> c +b"  by arith+
 
 lemma open_ball[intro, simp]: "open (ball x e)"
-  unfolding open_def ball_def Collect_def Ball_def mem_def
+  unfolding open_dist ball_def Collect_def Ball_def mem_def
   unfolding dist_commute
   apply clarify
   apply (rule_tac x="e - dist xa x" in exI)
@@ -340,7 +342,7 @@ lemma open_ball[intro, simp]: "open (ball x e)"
 
 lemma centre_in_ball[simp]: "x \<in> ball x e \<longleftrightarrow> e > 0" by (metis mem_ball dist_self)
 lemma open_contains_ball: "open S \<longleftrightarrow> (\<forall>x\<in>S. \<exists>e>0. ball x e \<subseteq> S)"
-  unfolding open_def subset_eq mem_ball Ball_def dist_commute ..
+  unfolding open_dist subset_eq mem_ball Ball_def dist_commute ..
 
 lemma open_contains_ball_eq: "open S \<Longrightarrow> \<forall>x. x\<in>S \<longleftrightarrow> (\<exists>e>0. ball x e \<subseteq> S)"
   by (metis open_contains_ball subset_eq centre_in_ball)
@@ -382,11 +384,13 @@ lemma closed_closedin_trans: "closed S \<Longrightarrow> closed T \<Longrightarr
 lemma closed_subset: "S \<subseteq> T \<Longrightarrow> closed S \<Longrightarrow> closedin (subtopology euclidean T) S"
   by (auto simp add: closedin_closed)
 
-lemma openin_euclidean_subtopology_iff: "openin (subtopology euclidean U) S
+lemma openin_euclidean_subtopology_iff:
+  fixes S U :: "'a::metric_space set"
+  shows "openin (subtopology euclidean U) S
   \<longleftrightarrow> S \<subseteq> U \<and> (\<forall>x\<in>S. \<exists>e>0. \<forall>x'\<in>U. dist x' x < e \<longrightarrow> x'\<in> S)" (is "?lhs \<longleftrightarrow> ?rhs")
 proof-
   {assume ?lhs hence ?rhs unfolding openin_subtopology open_openin[symmetric]
-      by (simp add: open_def) blast}
+      by (simp add: open_dist) blast}
   moreover
   {assume SU: "S \<subseteq> U" and H: "\<And>x. x \<in> S \<Longrightarrow> \<exists>e>0. \<forall>x'\<in>U. dist x' x < e \<longrightarrow> x' \<in> S"
     from H obtain d where d: "\<And>x . x\<in> S \<Longrightarrow> d x > 0 \<and> (\<forall>x' \<in> U. dist x' x < d x \<longrightarrow> x' \<in> S)"
@@ -441,7 +445,7 @@ lemma connected_local:
                  e1 \<inter> e2 = {} \<and>
                  ~(e1 = {}) \<and>
                  ~(e2 = {}))"
-unfolding connected_def openin_open by blast
+unfolding connected_def openin_open by (safe, blast+)
 
 lemma exists_diff: "(\<exists>S. P(UNIV - S)) \<longleftrightarrow> (\<exists>S. P S)" (is "?lhs \<longleftrightarrow> ?rhs")
 proof-
@@ -481,6 +485,7 @@ lemma connected_empty[simp, intro]: "connected {}"
 subsection{* Hausdorff and other separation properties *}
 
 lemma hausdorff:
+  fixes x y :: "'a::metric_space"
   assumes xy: "x \<noteq> y"
   shows "\<exists>U V. open U \<and> open V \<and> x\<in> U \<and> y \<in> V \<and> (U \<inter> V = {})" (is "\<exists>U V. ?P U V")
 proof-
@@ -493,13 +498,19 @@ proof-
   then show ?thesis by blast
 qed
 
-lemma separation_t2: "x \<noteq> y \<longleftrightarrow> (\<exists>U V. open U \<and> open V \<and> x \<in> U \<and> y \<in> V \<and> U \<inter> V = {})"
+lemma separation_t2:
+  fixes x y :: "'a::metric_space"
+  shows "x \<noteq> y \<longleftrightarrow> (\<exists>U V. open U \<and> open V \<and> x \<in> U \<and> y \<in> V \<and> U \<inter> V = {})"
   using hausdorff[of x y] by blast
 
-lemma separation_t1: "x \<noteq> y \<longleftrightarrow> (\<exists>U V. open U \<and> open V \<and> x \<in>U \<and> y\<notin> U \<and> x\<notin>V \<and> y\<in>V)"
+lemma separation_t1:
+  fixes x y :: "'a::metric_space"
+  shows "x \<noteq> y \<longleftrightarrow> (\<exists>U V. open U \<and> open V \<and> x \<in>U \<and> y\<notin> U \<and> x\<notin>V \<and> y\<in>V)"
   using separation_t2[of x y] by blast
 
-lemma separation_t0: "x \<noteq> y \<longleftrightarrow> (\<exists>U. open U \<and> ~(x\<in>U \<longleftrightarrow> y\<in>U))" by(metis separation_t1)
+lemma separation_t0:
+  fixes x y :: "'a::metric_space"
+  shows "x \<noteq> y \<longleftrightarrow> (\<exists>U. open U \<and> ~(x\<in>U \<longleftrightarrow> y\<in>U))" by(metis separation_t1)
 
 subsection{* Limit points *}
 
@@ -520,7 +531,7 @@ lemma islimpt_approachable: "x islimpt S \<longleftrightarrow> (\<forall>e>0. \<
   apply auto
   apply(rule_tac x=y in bexI)
   apply (auto simp add: dist_commute)
-  apply (simp add: open_def, drule (1) bspec)
+  apply (simp add: open_dist, drule (1) bspec)
   apply (clarify, drule spec, drule (1) mp, auto)
   done
 
@@ -631,6 +642,7 @@ lemma islimpt_Un: "x islimpt (S \<union> T) \<longleftrightarrow> x islimpt S \<
   done
 
 lemma discrete_imp_closed:
+  fixes S :: "'a::metric_space set"
   assumes e: "0 < e" and d: "\<forall>x \<in> S. \<forall>y \<in> S. dist y x < e \<longrightarrow> y = x"
   shows "closed S"
 proof-
@@ -652,7 +664,7 @@ definition "interior S = {x. \<exists>T. open T \<and> x \<in> T \<and> T \<subs
 
 lemma interior_eq: "interior S = S \<longleftrightarrow> open S"
   apply (simp add: expand_set_eq interior_def)
-  apply (subst (2) open_subopen) by blast
+  apply (subst (2) open_subopen) by (safe, blast+)
 
 lemma interior_open: "open S ==> (interior S = S)" by (metis interior_eq)
 
@@ -869,7 +881,7 @@ proof
     { fix e::real
       assume "e > 0"
       from as `open S` obtain e' where "e' > 0" and e':"\<forall>x'. dist x' x < e' \<longrightarrow> x' \<in> S"
-	unfolding open_def
+	unfolding open_dist
 	by auto
       let ?e = "min e e'"
       from `e>0` `e'>0` have "?e > 0"
@@ -1202,7 +1214,7 @@ proof
   assume ?lhs
   { fix e::real assume "e>0"
     obtain d  where d:  "d >0" "\<forall>x\<in>S. 0 < dist x a \<and> dist x a < d \<longrightarrow> dist (f x) l < e" using `?lhs` `e>0` unfolding Lim_within by auto
-    obtain d' where d': "d'>0" "\<forall>x. dist x a < d' \<longrightarrow> x \<in> S" using assms  unfolding open_def by auto
+    obtain d' where d': "d'>0" "\<forall>x. dist x a < d' \<longrightarrow> x \<in> S" using assms  unfolding open_dist by auto
     from d d' have "\<exists>d>0. \<forall>x. 0 < dist x a \<and> dist x a < d \<longrightarrow> dist (f x) l < e" by (rule_tac x= "min d d'" in exI)auto
   }
   thus ?rhs unfolding Lim_at by auto
@@ -1723,7 +1735,9 @@ lemma closure_approachable: "x \<in> closure S \<longleftrightarrow> (\<forall>e
   apply (auto simp add: closure_def islimpt_approachable)
   by (metis dist_self)
 
-lemma closed_approachable: "closed S ==> (\<forall>e>0. \<exists>y\<in>S. dist y x < e) \<longleftrightarrow> x \<in> S"
+lemma closed_approachable:
+  fixes S :: "'a::metric_space set"
+  shows "closed S ==> (\<forall>e>0. \<exists>y\<in>S. dist y x < e) \<longleftrightarrow> x \<in> S"
   by (metis closure_closed closure_approachable)
 
 text{* Some other lemmas about sequences. *}
@@ -1758,7 +1772,7 @@ text{* More properties of closed balls. *}
 lemma closed_cball: "closed (cball x e)"
 unfolding cball_def closed_def Compl_eq_Diff_UNIV [symmetric]
 unfolding Collect_neg_eq [symmetric] not_le
-apply (clarsimp simp add: open_def, rename_tac y)
+apply (clarsimp simp add: open_dist, rename_tac y)
 apply (rule_tac x="dist x y - e" in exI, clarsimp)
 apply (cut_tac x=x and y=x' and z=y in dist_triangle)
 apply simp
@@ -1876,7 +1890,7 @@ next
   case True note cs = this
   have "ball x e \<subseteq> cball x e" using ball_subset_cball by auto moreover
   { fix S y assume as: "S \<subseteq> cball x e" "open S" "y\<in>S"
-    then obtain d where "d>0" and d:"\<forall>x'. dist x' y < d \<longrightarrow> x' \<in> S" unfolding open_def by blast
+    then obtain d where "d>0" and d:"\<forall>x'. dist x' y < d \<longrightarrow> x' \<in> S" unfolding open_dist by blast
 
     then obtain xa where xa:"dist y xa = d / 2" using vector_choose_dist[of "d/2" y] by auto
     hence xa_y:"xa \<noteq> y" using dist_nz[of y xa] using `d>0` by auto
@@ -2506,7 +2520,7 @@ proof(rule ccontr)
 
   obtain b where "l\<in>b" "b\<in>t" using assms(2) and l by auto
   then obtain e where "e>0" and e:"\<forall>z. dist z l < e \<longrightarrow> z\<in>b"
-    using assms(3)[THEN bspec[where x=b]] unfolding open_def by auto
+    using assms(3)[THEN bspec[where x=b]] unfolding open_dist by auto
 
   then obtain N1 where N1:"\<forall>n\<ge>N1. dist ((f \<circ> r) n) l < e / 2"
     using lr[unfolded Lim_sequentially, THEN spec[where x="e/2"]] by auto
@@ -2797,8 +2811,10 @@ lemma compact_sing [simp]: "compact {a}"
   unfolding compact_def o_def
   by (auto simp add: tendsto_const)
 
-lemma closed_sing [simp]: shows "closed {a}"
-  apply (clarsimp simp add: closed_def open_def)
+lemma closed_sing [simp]:
+  fixes a :: "'a::metric_space"
+  shows "closed {a}"
+  apply (clarsimp simp add: closed_def open_dist)
   apply (rule ccontr)
   apply (drule_tac x="dist x a" in spec)
   apply (simp add: dist_nz dist_commute)
@@ -2829,7 +2845,9 @@ lemma frontier_subset_compact:
   using frontier_subset_closed compact_eq_bounded_closed
   by blast
 
-lemma open_delete: "open s ==> open(s - {x})"
+lemma open_delete:
+  fixes s :: "'a::metric_space set"
+  shows "open s ==> open(s - {x})"
   using open_diff[of s "{x}"] closed_sing
   by blast
 
@@ -3443,7 +3461,7 @@ proof
   { fix t assume as: "open t" "f x \<in> t"
     then obtain e where "e>0" and e:"ball (f x) e \<subseteq> t" unfolding open_contains_ball by auto
 
-    obtain d where "d>0" and d:"\<forall>y. 0 < dist y x \<and> dist y x < d \<longrightarrow> dist (f y) (f x) < e" using `e>0` using `?lhs`[unfolded continuous_at Lim_at open_def] by auto
+    obtain d where "d>0" and d:"\<forall>y. 0 < dist y x \<and> dist y x < d \<longrightarrow> dist (f y) (f x) < e" using `e>0` using `?lhs`[unfolded continuous_at Lim_at open_dist] by auto
 
     have "open (ball x d)" using open_ball by auto
     moreover have "x \<in> ball x d" unfolding centre_in_ball using `d>0` by simp
@@ -3672,7 +3690,7 @@ lemma open_scaling[intro]:
   shows "open((\<lambda>x. c *s x) ` s)"
 proof-
   { fix x assume "x \<in> s"
-    then obtain e where "e>0" and e:"\<forall>x'. dist x' x < e \<longrightarrow> x' \<in> s" using assms(2)[unfolded open_def, THEN bspec[where x=x]] by auto
+    then obtain e where "e>0" and e:"\<forall>x'. dist x' x < e \<longrightarrow> x' \<in> s" using assms(2)[unfolded open_dist, THEN bspec[where x=x]] by auto
     have "e * abs c > 0" using assms(1)[unfolded zero_less_abs_iff[THEN sym]] using real_mult_order[OF `e>0`] by auto
     moreover
     { fix y assume "dist y (c *s x) < e * \<bar>c\<bar>"
@@ -3681,7 +3699,7 @@ proof-
 	  assms(1)[unfolded zero_less_abs_iff[THEN sym]] by (simp del:zero_less_abs_iff)
       hence "y \<in> op *s c ` s" using rev_image_eqI[of "(1 / c) *s y" s y "op *s c"]  e[THEN spec[where x="(1 / c) *s y"]]  assms(1) unfolding dist_norm vector_smult_assoc by auto  }
     ultimately have "\<exists>e>0. \<forall>x'. dist x' (c *s x) < e \<longrightarrow> x' \<in> op *s c ` s" apply(rule_tac x="e * abs c" in exI) by auto  }
-  thus ?thesis unfolding open_def by auto
+  thus ?thesis unfolding open_dist by auto
 qed
 
 lemma open_negations:
@@ -3906,7 +3924,7 @@ lemma open_vec1:
   fixes s :: "real set" shows
  "open(vec1 ` s) \<longleftrightarrow>
         (\<forall>x \<in> s. \<exists>e>0. \<forall>x'. abs(x' - x) < e --> x' \<in> s)" (is "?lhs = ?rhs")
-  unfolding open_def apply simp unfolding forall_vec1 dist_vec1 vec1_in_image_vec1 by simp
+  unfolding open_dist apply simp unfolding forall_vec1 dist_vec1 vec1_in_image_vec1 by simp
 
 lemma islimpt_approachable_vec1:
   fixes s :: "real set" shows
@@ -4666,7 +4684,7 @@ proof-
       hence "a < x' \<and> x' < b" unfolding vector_less_def by auto  }
     ultimately have "\<exists>e>0. \<forall>x'. dist x' x < e \<longrightarrow> x' \<in> {a<..<b}" by (auto, rule_tac x="?d" in exI, simp)
   }
-  thus ?thesis unfolding open_def using open_interval_lemma by auto
+  thus ?thesis unfolding open_dist using open_interval_lemma by auto
 qed
 
 lemma closed_interval: fixes a :: "real^'n::finite" shows "closed {a .. b}"
@@ -4695,7 +4713,7 @@ proof(rule subset_antisym)
 next
   { fix x assume "\<exists>T. open T \<and> x \<in> T \<and> T \<subseteq> {a..b}"
     then obtain s where s:"open s" "x \<in> s" "s \<subseteq> {a..b}" by auto
-    then obtain e where "e>0" and e:"\<forall>x'. dist x' x < e \<longrightarrow> x' \<in> {a..b}" unfolding open_def and subset_eq by auto
+    then obtain e where "e>0" and e:"\<forall>x'. dist x' x < e \<longrightarrow> x' \<in> {a..b}" unfolding open_dist and subset_eq by auto
     { fix i
       have "dist (x - (e / 2) *s basis i) x < e"
 	   "dist (x + (e / 2) *s basis i) x < e"

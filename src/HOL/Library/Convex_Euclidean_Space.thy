@@ -602,8 +602,8 @@ proof-
     have "\<exists>x\<ge>0. x \<le> 1 \<and> (1 - x) *s x1 + x *s x2 \<notin> e1 \<and> (1 - x) *s x1 + x *s x2 \<notin> e2"
       apply(rule connected_real_lemma) apply (simp add: `x1\<in>e1` `x2\<in>e2` dist_commute)+
       using * apply(simp add: dist_norm)
-      using as(1,2)[unfolded open_def] apply simp
-      using as(1,2)[unfolded open_def] apply simp
+      using as(1,2)[unfolded open_dist] apply simp
+      using as(1,2)[unfolded open_dist] apply simp
       using assms[unfolded convex_alt, THEN bspec[where x=x1], THEN bspec[where x=x2]] using x1 x2
       using as(3) by auto
     then obtain x where "x\<ge>0" "x\<le>1" "(1 - x) *s x1 + x *s x2 \<notin> e1"  "(1 - x) *s x1 + x *s x2 \<notin> e2" by auto
