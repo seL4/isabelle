@@ -506,6 +506,9 @@ begin
 definition dist_vector_def:
   "dist (x::'a^'b) (y::'a^'b) = setL2 (\<lambda>i. dist (x$i) (y$i)) UNIV"
 
+definition open_vector_def:
+  "open S = (\<forall>x\<in>S. \<exists>e>0. \<forall>y::'a ^ 'b. dist y x < e \<longrightarrow> y \<in> S)"
+
 instance proof
   fix x y :: "'a ^ 'b"
   show "dist x y = 0 \<longleftrightarrow> x = y"
@@ -518,6 +521,10 @@ next
     apply (rule order_trans [OF _ setL2_triangle_ineq])
     apply (simp add: setL2_mono dist_triangle2)
     done
+next
+  fix S :: "('a ^ 'b) set"
+  show "open S = (\<forall>x\<in>S. \<exists>e>0. \<forall>y. dist y x < e \<longrightarrow> y \<in> S)"
+    by (rule open_vector_def)
 qed
 
 end
