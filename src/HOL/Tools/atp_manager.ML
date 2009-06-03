@@ -19,8 +19,10 @@ sig
   val kill: unit -> unit
   val info: unit -> unit
   val messages: int option -> unit
-  type prover = int -> (thm * (string * int)) list option -> string -> int ->
-    Proof.context * (thm list * thm) -> bool * string * string * string vector
+  type prover = int -> (thm * (string * int)) list option ->
+    (int Symtab.table * bool Symtab.table) option -> string -> int ->
+    Proof.context * (thm list * thm) ->
+    bool * string * string * string vector * (int Symtab.table * bool Symtab.table)
   val add_prover: string -> prover -> theory -> theory
   val print_provers: theory -> unit
   val get_prover: string -> theory -> prover option
@@ -289,8 +291,10 @@ fun messages opt_limit =
 
 (* named provers *)
 
-type prover = int -> (thm * (string * int)) list option -> string -> int ->
-  Proof.context * (thm list * thm) -> bool * string * string * string vector
+type prover = int -> (thm * (string * int)) list option ->
+  (int Symtab.table * bool Symtab.table) option -> string -> int ->
+  Proof.context * (thm list * thm) ->
+  bool * string * string * string vector * (int Symtab.table * bool Symtab.table)
 
 fun err_dup_prover name = error ("Duplicate prover: " ^ quote name);
 
@@ -330,8 +334,8 @@ fun start_prover name birthtime deadtime i proof_state =
           let
             val _ = register birthtime deadtime (Thread.self (), desc)
             val result =
-              let val (success, message, _, _) =
-                prover (get_timeout ()) NONE name i (Proof.get_goal proof_state)
+              let val (success, message, _, _, _) =
+                prover (get_timeout ()) NONE NONE name i (Proof.get_goal proof_state)
               in (success, message) end
               handle ResHolClause.TOO_TRIVIAL
                 => (true, "Empty clause: Try this command: " ^ Markup.markup Markup.sendback "apply metis")

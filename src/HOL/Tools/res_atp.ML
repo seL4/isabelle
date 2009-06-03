@@ -6,10 +6,12 @@ sig
   val tvar_classes_of_terms : term list -> string list
   val tfree_classes_of_terms : term list -> string list
   val type_consts_of_terms : theory -> term list -> string list
-  val get_relevant : int -> bool -> Proof.context * (thm list * thm) -> int
-    -> (thm * (string * int)) list
-  val write_problem_file : bool -> Path.T -> thm -> int -> (thm * (string * int)) list -> theory
-    -> string vector
+  val get_relevant : int -> bool -> Proof.context * (thm list * 'a) -> thm list ->
+    (thm * (string * int)) list
+  val prepare_clauses : bool -> thm list ->
+    (thm * (ResHolClause.axiom_name * ResHolClause.clause_id)) list -> theory ->
+    ResHolClause.axiom_name vector * (ResHolClause.clause list * ResHolClause.clause list *
+    ResHolClause.clause list * ResClause.classrelClause list * ResClause.arityClause list)
 end;
 
 structure ResAtp: RES_ATP =
@@ -516,12 +518,9 @@ fun isFO thy goal_cls = case linkup_logic_mode of
     | Fol => true
     | Hol => false
 
-fun get_relevant max_new theory_const (ctxt, (chain_ths, th)) n =
+fun get_relevant max_new theory_const (ctxt, (chain_ths, th)) goal_cls =
   let
     val thy = ProofContext.theory_of ctxt
-    val goal_cls = #1 (ResAxioms.neg_conjecture_clauses th n)
-                   handle THM ("assume: variables", _, _) =>
-                     error "Sledgehammer: Goal contains type variables (TVars)"
     val (included_thms,white_thms) = get_clasimp_atp_lemmas ctxt chain_ths
     val included_cls = included_thms |> ResAxioms.cnf_rules_pairs thy |> make_unique
                                      |> restrict_to_logic thy (isFO thy goal_cls)
@@ -532,15 +531,9 @@ fun get_relevant max_new theory_const (ctxt, (chain_ths, th)) n =
     white_cls @ relevance_filter max_new theory_const thy included_cls (map prop_of goal_cls)
   end;
 
-(* Write out problem file *)
-fun write_problem_file dfg probfile goal n axcls thy =
-  let val writer = if dfg then ResHolClause.dfg_write_file else ResHolClause.tptp_write_file
-    val fname = File.platform_path probfile
-    val axcls = make_unique axcls
-    val goal_cls = #1 (ResAxioms.neg_conjecture_clauses goal n)
-                   handle THM ("assume: variables", _, _) =>
-                     error "Sledgehammer: Goal contains type variables (TVars)"
-    val _ = app (fn th => Output.debug (fn _ => Display.string_of_thm th)) goal_cls
+(* prepare and count clauses before writing *)
+fun prepare_clauses dfg goal_cls axcls thy =
+  let
     val ccls = subtract_cls goal_cls axcls
     val _ = app (fn th => Output.debug (fn _ => Display.string_of_thm th)) ccls
     val ccltms = map prop_of ccls
@@ -549,13 +542,13 @@ fun write_problem_file dfg probfile goal n axcls thy =
     and supers = tvar_classes_of_terms axtms
     and tycons = type_consts_of_terms thy (ccltms@axtms)
     (*TFrees in conjecture clauses; TVars in axiom clauses*)
+    val (clnames, (conjectures, axiom_clauses, helper_clauses)) =
+      ResHolClause.prepare_clauses dfg thy (isFO thy goal_cls) ccls axcls []
     val (supers',arity_clauses) = ResClause.make_arity_clauses_dfg dfg thy tycons supers
     val classrel_clauses = ResClause.make_classrel_clauses thy subs supers'
-    val clnames = writer thy (isFO thy goal_cls) ccls fname (axcls,classrel_clauses,arity_clauses) []
   in
-    Vector.fromList clnames
-  end;
+    (Vector.fromList clnames, (conjectures, axiom_clauses, helper_clauses, classrel_clauses, arity_clauses))
+  end
 
 end;
-
 
