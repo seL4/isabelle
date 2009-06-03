@@ -45,28 +45,29 @@ instantiation
   "*" :: (topological_space, topological_space) topological_space
 begin
 
-definition open_prod_def:
-  "open S = (\<forall>x\<in>S. \<exists>A B. open A \<and> open B \<and> x \<in> A \<times> B \<and> A \<times> B \<subseteq> S)"
+definition topo_prod_def:
+  "topo = {S. \<forall>x\<in>S. \<exists>A\<in>topo. \<exists>B\<in>topo. x \<in> A \<times> B \<and> A \<times> B \<subseteq> S}"
 
 instance proof
-  show "open (UNIV :: ('a \<times> 'b) set)"
-    unfolding open_prod_def by (fast intro: open_UNIV)
+  show "(UNIV :: ('a \<times> 'b) set) \<in> topo"
+    unfolding topo_prod_def by (auto intro: topo_UNIV)
 next
   fix S T :: "('a \<times> 'b) set"
-  assume "open S" "open T" thus "open (S \<inter> T)"
-    unfolding open_prod_def
+  assume "S \<in> topo" "T \<in> topo" thus "S \<inter> T \<in> topo"
+    unfolding topo_prod_def
     apply clarify
     apply (drule (1) bspec)+
     apply (clarify, rename_tac Sa Ta Sb Tb)
-    apply (rule_tac x="Sa \<inter> Ta" in exI)
-    apply (rule_tac x="Sb \<inter> Tb" in exI)
-    apply (simp add: open_Int)
+    apply (rule_tac x="Sa \<inter> Ta" in rev_bexI)
+    apply (simp add: topo_Int)
+    apply (rule_tac x="Sb \<inter> Tb" in rev_bexI)
+    apply (simp add: topo_Int)
     apply fast
     done
 next
   fix T :: "('a \<times> 'b) set set"
-  assume "\<forall>A\<in>T. open A" thus "open (\<Union>T)"
-    unfolding open_prod_def by fast
+  assume "T \<subseteq> topo" thus "\<Union>T \<in> topo"
+    unfolding topo_prod_def Bex_def by fast
 qed
 
 end
@@ -103,10 +104,9 @@ next
   (* FIXME: long proof! *)
   (* Maybe it would be easier to define topological spaces *)
   (* in terms of neighborhoods instead of open sets? *)
-  fix S :: "('a \<times> 'b) set"
-  show "open S = (\<forall>x\<in>S. \<exists>e>0. \<forall>y. dist y x < e \<longrightarrow> y \<in> S)"
-    unfolding open_prod_def open_dist
-    apply safe
+  show "topo = {S::('a \<times> 'b) set. \<forall>x\<in>S. \<exists>e>0. \<forall>y. dist y x < e \<longrightarrow> y \<in> S}"
+    unfolding topo_prod_def topo_dist
+    apply (safe, rename_tac S a b)
     apply (drule (1) bspec)
     apply clarify
     apply (drule (1) bspec)+
@@ -121,19 +121,18 @@ next
     apply (drule spec, erule mp)
     apply (erule le_less_trans [OF real_sqrt_sum_squares_ge2])
 
+    apply (rename_tac S a b)
     apply (drule (1) bspec)
     apply clarify
     apply (subgoal_tac "\<exists>r>0. \<exists>s>0. e = sqrt (r\<twosuperior> + s\<twosuperior>)")
     apply clarify
-    apply (rule_tac x="{y. dist y a < r}" in exI)
-    apply (rule_tac x="{y. dist y b < s}" in exI)
-    apply (rule conjI)
+    apply (rule_tac x="{y. dist y a < r}" in rev_bexI)
     apply clarify
     apply (rule_tac x="r - dist x a" in exI, rule conjI, simp)
     apply clarify
     apply (rule le_less_trans [OF dist_triangle])
     apply (erule less_le_trans [OF add_strict_right_mono], simp)
-    apply (rule conjI)
+    apply (rule_tac x="{y. dist y b < s}" in rev_bexI)
     apply clarify
     apply (rule_tac x="s - dist x b" in exI, rule conjI, simp)
     apply clarify

@@ -10,7 +10,7 @@ begin
 
 subsection {* Real inner product spaces *}
 
-class real_inner = real_vector + sgn_div_norm + dist_norm + open_dist +
+class real_inner = real_vector + sgn_div_norm + dist_norm + topo_dist +
   fixes inner :: "'a \<Rightarrow> 'a \<Rightarrow> real"
   assumes inner_commute: "inner x y = inner y x"
   and inner_left_distrib: "inner (x + y) z = inner x z + inner y z"

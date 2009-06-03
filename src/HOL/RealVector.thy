@@ -418,13 +418,13 @@ lemma Reals_induct [case_names of_real, induct set: Reals]:
 
 subsection {* Topological spaces *}
 
-class "open" =
-  fixes "open" :: "'a set \<Rightarrow> bool"
+class topo =
+  fixes topo :: "'a set set"
 
-class topological_space = "open" +
-  assumes open_UNIV: "open UNIV"
-  assumes open_Int: "open A \<Longrightarrow> open B \<Longrightarrow> open (A \<inter> B)"
-  assumes open_Union: "\<forall>A\<in>T. open A \<Longrightarrow> open (\<Union>T)"
+class topological_space = topo +
+  assumes topo_UNIV: "UNIV \<in> topo"
+  assumes topo_Int: "A \<in> topo \<Longrightarrow> B \<in> topo \<Longrightarrow> A \<inter> B \<in> topo"
+  assumes topo_Union: "T \<subseteq> topo \<Longrightarrow> \<Union>T \<in> topo"
 
 
 subsection {* Metric spaces *}
@@ -432,10 +432,10 @@ subsection {* Metric spaces *}
 class dist =
   fixes dist :: "'a \<Rightarrow> 'a \<Rightarrow> real"
 
-class open_dist = "open" + dist +
-  assumes open_dist: "open S = (\<forall>x\<in>S. \<exists>e>0. \<forall>y. dist y x < e \<longrightarrow> y \<in> S)"
+class topo_dist = topo + dist +
+  assumes topo_dist: "topo = {S. \<forall>x\<in>S. \<exists>e>0. \<forall>y. dist y x < e \<longrightarrow> y \<in> S}"
 
-class metric_space = open_dist +
+class metric_space = topo_dist +
   assumes dist_eq_0_iff [simp]: "dist x y = 0 \<longleftrightarrow> x = y"
   assumes dist_triangle2: "dist x y \<le> dist x z + dist y z"
 begin
@@ -470,21 +470,20 @@ subclass topological_space
 proof
   have "\<exists>e::real. 0 < e"
     by (fast intro: zero_less_one)
-  then show "open UNIV"
-    unfolding open_dist by simp
+  then show "UNIV \<in> topo"
+    unfolding topo_dist by simp
 next
-  fix A B assume "open A" "open B"
-  then show "open (A \<inter> B)"
-    unfolding open_dist
+  fix A B assume "A \<in> topo" "B \<in> topo"
+  then show "A \<inter> B \<in> topo"
+    unfolding topo_dist
     apply clarify
     apply (drule (1) bspec)+
     apply (clarify, rename_tac r s)
     apply (rule_tac x="min r s" in exI, simp)
     done
 next
-  fix T assume "\<forall>A\<in>T. open A"
-  then show "open (\<Union>T)"
-    unfolding open_dist by fast
+  fix T assume "T \<subseteq> topo" thus "\<Union>T \<in> topo"
+    unfolding topo_dist by fast
 qed
 
 end
@@ -501,7 +500,7 @@ class sgn_div_norm = scaleR + norm + sgn +
 class dist_norm = dist + norm + minus +
   assumes dist_norm: "dist x y = norm (x - y)"
 
-class real_normed_vector = real_vector + sgn_div_norm + dist_norm + open_dist +
+class real_normed_vector = real_vector + sgn_div_norm + dist_norm + topo_dist +
   assumes norm_ge_zero [simp]: "0 \<le> norm x"
   and norm_eq_zero [simp]: "norm x = 0 \<longleftrightarrow> x = 0"
   and norm_triangle_ineq: "norm (x + y) \<le> norm x + norm y"
@@ -538,14 +537,14 @@ definition real_norm_def [simp]:
 definition dist_real_def:
   "dist x y = \<bar>x - y\<bar>"
 
-definition open_real_def:
-  "open S = (\<forall>x\<in>S. \<exists>e>0. \<forall>y::real. dist y x < e \<longrightarrow> y \<in> S)"
+definition topo_real_def:
+  "topo = {S::real set. \<forall>x\<in>S. \<exists>e>0. \<forall>y. dist y x < e \<longrightarrow> y \<in> S}"
 
 instance
 apply (intro_classes, unfold real_norm_def real_scaleR_def)
 apply (rule dist_real_def)
-apply (rule open_real_def)
 apply (simp add: real_sgn_def)
+apply (rule topo_real_def)
 apply (rule abs_ge_zero)
 apply (rule abs_eq_0)
 apply (rule abs_triangle_ineq)

@@ -281,8 +281,8 @@ definition complex_sgn_def:
 definition dist_complex_def:
   "dist x y = cmod (x - y)"
 
-definition open_complex_def:
-  "open S = (\<forall>x\<in>S. \<exists>e>0. \<forall>y::complex. dist y x < e \<longrightarrow> y \<in> S)"
+definition topo_complex_def:
+  "topo = {S::complex set. \<forall>x\<in>S. \<exists>e>0. \<forall>y. dist y x < e \<longrightarrow> y \<in> S}"
 
 lemmas cmod_def = complex_norm_def
 
@@ -290,7 +290,7 @@ lemma complex_norm [simp]: "cmod (Complex x y) = sqrt (x\<twosuperior> + y\<twos
   by (simp add: complex_norm_def)
 
 instance proof
-  fix r :: real and x y :: complex and S :: "complex set"
+  fix r :: real and x y :: complex
   show "0 \<le> norm x"
     by (induct x) simp
   show "(norm x = 0) = (x = 0)"
@@ -308,8 +308,8 @@ instance proof
     by (rule complex_sgn_def)
   show "dist x y = cmod (x - y)"
     by (rule dist_complex_def)
-  show "open S = (\<forall>x\<in>S. \<exists>e>0. \<forall>y. dist y x < e \<longrightarrow> y \<in> S)"
-    by (rule open_complex_def)
+  show "topo = {S::complex set. \<forall>x\<in>S. \<exists>e>0. \<forall>y. dist y x < e \<longrightarrow> y \<in> S}"
+    by (rule topo_complex_def)
 qed
 
 end
