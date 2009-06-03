@@ -553,26 +553,8 @@ lemma LIM_Cart_nth:
 unfolding LIM_conv_tendsto by (rule tendsto_Cart_nth)
 
 lemma Cauchy_Cart_nth:
-  fixes X :: "nat \<Rightarrow> 'a::metric_space ^ 'n::finite"
-  assumes "Cauchy (\<lambda>n. X n)"
-  shows "Cauchy (\<lambda>n. X n $ i)"
-proof (rule metric_CauchyI)
-  fix e :: real assume "0 < e"
-  obtain M where "\<forall>m\<ge>M. \<forall>n\<ge>M. dist (X m) (X n) < e"
-    using metric_CauchyD [OF `Cauchy X` `0 < e`] by fast
-  moreover
-  {
-    fix m n
-    assume "M \<le> m" "M \<le> n"
-    have "dist (X m $ i) (X n $ i) \<le> dist (X m) (X n)"
-      by (rule dist_nth_le)
-    also assume "dist (X m) (X n) < e"
-    finally have "dist (X m $ i) (X n $ i) < e" .
-  }
-  ultimately
-  have "\<forall>m\<ge>M. \<forall>n\<ge>M. dist (X m $ i) (X n $ i) < e" by fast
-  thus "\<exists>M. \<forall>m\<ge>M. \<forall>n\<ge>M. dist (X m $ i) (X n $ i) < e" ..
-qed
+  "Cauchy (\<lambda>n. X n) \<Longrightarrow> Cauchy (\<lambda>n. X n $ i)"
+unfolding Cauchy_def by (fast intro: le_less_trans [OF dist_nth_le])
 
 lemma LIMSEQ_vector:
   fixes X :: "nat \<Rightarrow> 'a::metric_space ^ 'n::finite"
@@ -641,6 +623,18 @@ proof (rule metric_CauchyI)
   then show "\<exists>M. \<forall>m\<ge>M. \<forall>n\<ge>M. dist (X m) (X n) < r" ..
 qed
 
+instance "^" :: (complete_space, finite) complete_space
+proof
+  fix X :: "nat \<Rightarrow> 'a ^ 'b" assume "Cauchy X"
+  have "\<And>i. (\<lambda>n. X n $ i) ----> lim (\<lambda>n. X n $ i)"
+    using Cauchy_Cart_nth [OF `Cauchy X`]
+    by (simp add: Cauchy_convergent_iff convergent_LIMSEQ_iff)
+  hence "X ----> Cart_lambda (\<lambda>i. lim (\<lambda>n. X n $ i))"
+    by (simp add: LIMSEQ_vector)
+  then show "convergent X"
+    by (rule convergentI)
+qed
+
 subsection {* Norms *}
 
 instantiation "^" :: (real_normed_vector, finite) real_normed_vector
@@ -687,6 +681,8 @@ apply (rule vector_add_component)
 apply (rule vector_scaleR_component)
 apply (rule_tac x="1" in exI, simp add: norm_nth_le)
 done
+
+instance "^" :: (banach, finite) banach ..
 
 subsection {* Inner products *}
 
