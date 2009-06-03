@@ -939,8 +939,11 @@ lemma norm_cauchy_schwarz_abs:
   using norm_cauchy_schwarz[of x y] norm_cauchy_schwarz[of x "-y"]
   by (simp add: real_abs_def dot_rneg)
 
-lemma norm_triangle_sub: "norm (x::real ^'n::finite) <= norm(y) + norm(x - y)"
+lemma norm_triangle_sub:
+  fixes x y :: "'a::real_normed_vector"
+  shows "norm x \<le> norm y  + norm (x - y)"
   using norm_triangle_ineq[of "y" "x - y"] by (simp add: ring_simps)
+
 lemma norm_triangle_le: "norm(x::real ^'n::finite) + norm y <= e ==> norm(x + y) <= e"
   by (metis order_trans norm_triangle_ineq)
 lemma norm_triangle_lt: "norm(x::real ^'n::finite) + norm(y) < e ==> norm(x + y) < e"
