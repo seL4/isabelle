@@ -163,6 +163,8 @@ object Markup {
   val SIGNAL = "signal"
   val EXIT = "exit"
 
+  val READY = "ready"
+
 
   /* content */
 

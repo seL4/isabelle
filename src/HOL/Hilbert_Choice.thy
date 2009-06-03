@@ -219,6 +219,25 @@ apply (auto simp add: bij_is_surj [THEN surj_f_inv_f])
 apply (blast intro: bij_is_inj [THEN inv_f_f, symmetric])
 done
 
+lemma finite_fun_UNIVD1:
+  assumes fin: "finite (UNIV :: ('a \<Rightarrow> 'b) set)"
+  and card: "card (UNIV :: 'b set) \<noteq> Suc 0"
+  shows "finite (UNIV :: 'a set)"
+proof -
+  from fin have finb: "finite (UNIV :: 'b set)" by (rule finite_fun_UNIVD2)
+  with card have "card (UNIV :: 'b set) \<ge> Suc (Suc 0)"
+    by (cases "card (UNIV :: 'b set)") (auto simp add: card_eq_0_iff)
+  then obtain n where "card (UNIV :: 'b set) = Suc (Suc n)" "n = card (UNIV :: 'b set) - Suc (Suc 0)" by auto
+  then obtain b1 b2 where b1b2: "(b1 :: 'b) \<noteq> (b2 :: 'b)" by (auto simp add: card_Suc_eq)
+  from fin have "finite (range (\<lambda>f :: 'a \<Rightarrow> 'b. inv f b1))" by (rule finite_imageI)
+  moreover have "UNIV = range (\<lambda>f :: 'a \<Rightarrow> 'b. inv f b1)"
+  proof (rule UNIV_eq_I)
+    fix x :: 'a
+    from b1b2 have "x = inv (\<lambda>y. if y = x then b1 else b2) b1" by (simp add: inv_def)
+    thus "x \<in> range (\<lambda>f\<Colon>'a \<Rightarrow> 'b. inv f b1)" by blast
+  qed
+  ultimately show "finite (UNIV :: 'a set)" by simp
+qed
 
 subsection {*Inverse of a PI-function (restricted domain)*}
 

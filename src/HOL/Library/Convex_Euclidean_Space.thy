@@ -1,6 +1,6 @@
-(* Title:      Convex
-   ID:         $Id: 
-   Author:     Robert Himmelmann, TU Muenchen*)
+(*  Title:      HOL/Library/Convex_Euclidean_Space.thy
+    Author:     Robert Himmelmann, TU Muenchen
+*)
 
 header {* Convex sets, functions and related things. *}
 
@@ -2196,7 +2196,7 @@ lemma is_interval_connected:
 lemma convex_interval: "convex {a .. b}" "convex {a<..<b::real^'n::finite}"
   apply(rule_tac[!] is_interval_convex) using is_interval_interval by auto
 
-subsection {* On real^1, is_interval, convex and connected are all equivalent. *}
+subsection {* On @{text "real^1"}, @{text "is_interval"}, @{text "convex"} and @{text "connected"} are all equivalent. *}
 
 lemma is_interval_1:
   "is_interval s \<longleftrightarrow> (\<forall>a\<in>s. \<forall>b\<in>s. \<forall> x. dest_vec1 a \<le> dest_vec1 x \<and> dest_vec1 x \<le> dest_vec1 b \<longrightarrow> x \<in> s)"

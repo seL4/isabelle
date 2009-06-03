@@ -17,6 +17,8 @@ use "ML-Systems/use_context.ML";
 
 val forget_structure = PolyML.Compiler.forgetStructure;
 
+val _ = PolyML.Compiler.forgetValue "print";
+
 
 (* Compiler options *)
 

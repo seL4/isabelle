@@ -444,7 +444,8 @@ fun pr_ocaml_stmt labelled_name syntax_tyco syntax_const reserved_names deresolv
               |>> (fn p => concat
                   [str "let", p, str "=", pr_term is_closure thm vars NOBR t, str "in"])
             val (ps, vars') = fold_map pr binds vars;
-          in Pretty.chunks (ps @| pr_term is_closure thm vars' NOBR body) end
+            fun mk_brack (p :: ps) = Pretty.block [str "(", p] :: ps;
+          in Pretty.chunks (mk_brack ps @| Pretty.block [pr_term is_closure thm vars' NOBR body, str ")"]) end
       | pr_case is_closure thm vars fxy (((t, ty), clause :: clauses), _) =
           let
             fun pr delim (pat, body) =
@@ -649,7 +650,7 @@ fun pr_ocaml_stmt labelled_name syntax_tyco syntax_const reserved_names deresolv
               str ("type '" ^ v),
               (str o deresolve) class,
               str "=",
-              enum_default "();;" ";" "{" "};;" (
+              enum_default "unit;;" ";" "{" "};;" (
                 map pr_superclass_field superclasses
                 @ map pr_classparam_field classparams
               )
@@ -708,17 +709,17 @@ val literals_ocaml = let
       val s = if i < 32 orelse i = 34 orelse i = 39 orelse i = 92 orelse i > 126
         then chr i else c
     in s end;
+  fun bignum_ocaml k = if k <= 1073741823
+    then "(Big_int.big_int_of_int " ^ string_of_int k ^ ")"
+    else "(Big_int.big_int_of_string " ^ quote (string_of_int k) ^ ")"
 in Literals {
   literal_char = enclose "'" "'" o char_ocaml,
   literal_string = quote o translate_string char_ocaml,
   literal_numeral = fn unbounded => fn k => if k >= 0 then
-      if unbounded then
-        "(Big_int.big_int_of_int " ^ string_of_int k ^ ")"
+      if unbounded then bignum_ocaml k
       else string_of_int k
     else
-      if unbounded then
-        "(Big_int.big_int_of_int " ^ (enclose "(" ")" o prefix "-"
-          o string_of_int o op ~) k ^ ")"
+      if unbounded then "(Big_int.minus_big_int " ^ bignum_ocaml (~ k) ^ ")"
       else (enclose "(" ")" o prefix "-" o string_of_int o op ~) k,
   literal_list = Pretty.enum ";" "[" "]",
   infix_cons = (6, "::")
@@ -1081,7 +1082,7 @@ val _ = ML_Context.add_antiq "code_datatype" (fn _ =>
 fun isar_seri_sml module_name =
   Code_Target.parse_args (Scan.succeed ())
   #> (fn () => serialize_ml target_SML
-      (SOME (use_text ML_Context.local_context (1, "generated code") false))
+      (SOME (use_text ML_Env.local_context (1, "generated code") false))
       pr_sml_module pr_sml_stmt module_name);
 
 fun isar_seri_ocaml module_name =

@@ -77,7 +77,7 @@ fun add_code number_of negative unbounded target thy =
       (Code_Printer.str o Code_Printer.literal_numeral literals unbounded
         o the_default 0 o dest_numeral pls' min' bit0' bit1' thm) t;
   in
-    thy |>  Code_Target.add_syntax_const target number_of
+    thy |> Code_Target.add_syntax_const target number_of
       (SOME (1, ([@{const_name Int.Pls}, @{const_name Int.Min}, @{const_name Int.Bit0}, @{const_name Int.Bit1}], pretty)))
   end;
 

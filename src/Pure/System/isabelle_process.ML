@@ -133,6 +133,7 @@ fun init out =
  (change print_mode (update (op =) isabelle_processN);
   setup_channels out |> init_message;
   OuterKeyword.report ();
+  Output.status (Markup.markup Markup.ready "");
   Isar.toplevel_loop {init = true, welcome = false, sync = true, secure = true});
 
 end;

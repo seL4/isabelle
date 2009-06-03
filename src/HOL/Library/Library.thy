@@ -14,6 +14,7 @@ imports
   Commutative_Ring
   Continuity
   ContNotDenum
+  Convex_Euclidean_Space
   Countable
   Determinants
   Diagonalize
@@ -21,6 +22,7 @@ imports
   Enum
   Eval_Witness
   Executable_Set
+  Fin_Fun
   Float
   Formal_Power_Series
   FrechetDeriv

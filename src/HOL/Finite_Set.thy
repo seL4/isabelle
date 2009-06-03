@@ -1926,34 +1926,40 @@ text {* This definition, although traditional, is ugly to work with:
 But now that we have @{text setsum} things are easy:
 *}
 
-definition card :: "'a set \<Rightarrow> nat"
-where "card A = setsum (\<lambda>x. 1) A"
+definition card :: "'a set \<Rightarrow> nat" where
+  "card A = setsum (\<lambda>x. 1) A"
+
+lemmas card_eq_setsum = card_def
 
 lemma card_empty [simp]: "card {} = 0"
-by (simp add: card_def)
-
-lemma card_infinite [simp]: "~ finite A ==> card A = 0"
-by (simp add: card_def)
-
-lemma card_eq_setsum: "card A = setsum (%x. 1) A"
-by (simp add: card_def)
+  by (simp add: card_def)
 
 lemma card_insert_disjoint [simp]:
   "finite A ==> x \<notin> A ==> card (insert x A) = Suc(card A)"
-by(simp add: card_def)
+  by (simp add: card_def)
 
 lemma card_insert_if:
   "finite A ==> card (insert x A) = (if x:A then card A else Suc(card(A)))"
-by (simp add: insert_absorb)
+  by (simp add: insert_absorb)
+
+lemma card_infinite [simp]: "~ finite A ==> card A = 0"
+  by (simp add: card_def)
+
+lemma card_ge_0_finite:
+  "card A > 0 \<Longrightarrow> finite A"
+  by (rule ccontr) simp
 
 lemma card_0_eq [simp,noatp]: "finite A ==> (card A = 0) = (A = {})"
-apply auto
-apply (drule_tac a = x in mk_disjoint_insert, clarify, auto)
-done
+  apply auto
+  apply (drule_tac a = x in mk_disjoint_insert, clarify, auto)
+  done
+
+lemma finite_UNIV_card_ge_0:
+  "finite (UNIV :: 'a set) \<Longrightarrow> card (UNIV :: 'a set) > 0"
+  by (rule ccontr) simp
 
 lemma card_eq_0_iff: "(card A = 0) = (A = {} | ~ finite A)"
-by auto
-
+  by auto
 
 lemma card_Suc_Diff1: "finite A ==> x: A ==> Suc (card (A - {x})) = card A"
 apply(rule_tac t = A in insert_Diff [THEN subst], assumption)
@@ -2049,6 +2055,24 @@ apply (simp add: card_insert_disjoint card_Un_disjoint insert_partition
        finite_subset [of _ "\<Union> (insert x F)"])
 done
 
+lemma card_eq_UNIV_imp_eq_UNIV:
+  assumes fin: "finite (UNIV :: 'a set)"
+  and card: "card A = card (UNIV :: 'a set)"
+  shows "A = (UNIV :: 'a set)"
+proof
+  show "A \<subseteq> UNIV" by simp
+  show "UNIV \<subseteq> A"
+  proof
+    fix x
+    show "x \<in> A"
+    proof (rule ccontr)
+      assume "x \<notin> A"
+      then have "A \<subset> UNIV" by auto
+      with fin have "card A < card (UNIV :: 'a set)" by (fact psubset_card_mono)
+      with card show False by simp
+    qed
+  qed
+qed
 
 text{*The form of a finite set of given cardinality*}
 
@@ -2077,6 +2101,17 @@ apply(auto)
 apply(subst card_insert)
  apply(auto intro:ccontr)
 done
+
+lemma finite_fun_UNIVD2:
+  assumes fin: "finite (UNIV :: ('a \<Rightarrow> 'b) set)"
+  shows "finite (UNIV :: 'b set)"
+proof -
+  from fin have "finite (range (\<lambda>f :: 'a \<Rightarrow> 'b. f arbitrary))"
+    by(rule finite_imageI)
+  moreover have "UNIV = range (\<lambda>f :: 'a \<Rightarrow> 'b. f arbitrary)"
+    by(rule UNIV_eq_I) auto
+  ultimately show "finite (UNIV :: 'b set)" by simp
+qed
 
 lemma setsum_constant [simp]: "(\<Sum>x \<in> A. y) = of_nat(card A) * y"
 apply (cases "finite A")
