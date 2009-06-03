@@ -13,10 +13,6 @@ begin
 text{*Standard Definitions*}
 
 definition
-  at :: "'a::metric_space \<Rightarrow> 'a filter" where
-  [code del]: "at a = Abs_filter (\<lambda>P. \<exists>r>0. \<forall>x. x \<noteq> a \<and> dist x a < r \<longrightarrow> P x)"
-
-definition
   LIM :: "['a::metric_space \<Rightarrow> 'b::metric_space, 'a, 'b] \<Rightarrow> bool"
         ("((_)/ -- (_)/ --> (_))" [60, 0, 60] 60) where
   [code del]: "f -- a --> L =
@@ -31,22 +27,10 @@ definition
   isUCont :: "['a::metric_space \<Rightarrow> 'b::metric_space] \<Rightarrow> bool" where
   [code del]: "isUCont f = (\<forall>r>0. \<exists>s>0. \<forall>x y. dist x y < s \<longrightarrow> dist (f x) (f y) < r)"
 
-subsection {* Neighborhood Filter *}
-
-lemma eventually_at:
-  "eventually P (at a) \<longleftrightarrow> (\<exists>d>0. \<forall>x. x \<noteq> a \<and> dist x a < d \<longrightarrow> P x)"
-unfolding at_def
-apply (rule eventually_Abs_filter)
-apply (rule_tac x=1 in exI, simp)
-apply (clarify, rule_tac x=r in exI, simp)
-apply (clarify, rename_tac r s)
-apply (rule_tac x="min r s" in exI, simp)
-done
+subsection {* Limits of Functions *}
 
 lemma LIM_conv_tendsto: "(f -- a --> L) \<longleftrightarrow> tendsto f L (at a)"
 unfolding LIM_def tendsto_def eventually_at ..
-
-subsection {* Limits of Functions *}
 
 lemma metric_LIM_I:
   "(\<And>r. 0 < r \<Longrightarrow> \<exists>s>0. \<forall>x. x \<noteq> a \<and> dist x a < s \<longrightarrow> dist (f x) L < r)
