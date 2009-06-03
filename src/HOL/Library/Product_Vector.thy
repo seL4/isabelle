@@ -71,6 +71,123 @@ qed
 
 end
 
+subsection {* Continuity of operations *}
+
+lemma dist_fst_le: "dist (fst x) (fst y) \<le> dist x y"
+unfolding dist_prod_def by simp
+
+lemma dist_snd_le: "dist (snd x) (snd y) \<le> dist x y"
+unfolding dist_prod_def by simp
+
+lemma tendsto_fst:
+  assumes "tendsto f a net"
+  shows "tendsto (\<lambda>x. fst (f x)) (fst a) net"
+proof (rule tendstoI)
+  fix r :: real assume "0 < r"
+  have "eventually (\<lambda>x. dist (f x) a < r) net"
+    using `tendsto f a net` `0 < r` by (rule tendstoD)
+  thus "eventually (\<lambda>x. dist (fst (f x)) (fst a) < r) net"
+    by (rule eventually_elim1)
+       (rule le_less_trans [OF dist_fst_le])
+qed
+
+lemma tendsto_snd:
+  assumes "tendsto f a net"
+  shows "tendsto (\<lambda>x. snd (f x)) (snd a) net"
+proof (rule tendstoI)
+  fix r :: real assume "0 < r"
+  have "eventually (\<lambda>x. dist (f x) a < r) net"
+    using `tendsto f a net` `0 < r` by (rule tendstoD)
+  thus "eventually (\<lambda>x. dist (snd (f x)) (snd a) < r) net"
+    by (rule eventually_elim1)
+       (rule le_less_trans [OF dist_snd_le])
+qed
+
+lemma tendsto_Pair:
+  assumes "tendsto X a net" and "tendsto Y b net"
+  shows "tendsto (\<lambda>i. (X i, Y i)) (a, b) net"
+proof (rule tendstoI)
+  fix r :: real assume "0 < r"
+  then have "0 < r / sqrt 2" (is "0 < ?s")
+    by (simp add: divide_pos_pos)
+  have "eventually (\<lambda>i. dist (X i) a < ?s) net"
+    using `tendsto X a net` `0 < ?s` by (rule tendstoD)
+  moreover
+  have "eventually (\<lambda>i. dist (Y i) b < ?s) net"
+    using `tendsto Y b net` `0 < ?s` by (rule tendstoD)
+  ultimately
+  show "eventually (\<lambda>i. dist (X i, Y i) (a, b) < r) net"
+    by (rule eventually_elim2)
+       (simp add: real_sqrt_sum_squares_less dist_Pair_Pair)
+qed
+
+lemma LIMSEQ_fst: "(X ----> a) \<Longrightarrow> (\<lambda>n. fst (X n)) ----> fst a"
+unfolding LIMSEQ_conv_tendsto by (rule tendsto_fst)
+
+lemma LIMSEQ_snd: "(X ----> a) \<Longrightarrow> (\<lambda>n. snd (X n)) ----> snd a"
+unfolding LIMSEQ_conv_tendsto by (rule tendsto_snd)
+
+lemma LIMSEQ_Pair:
+  assumes "X ----> a" and "Y ----> b"
+  shows "(\<lambda>n. (X n, Y n)) ----> (a, b)"
+using assms unfolding LIMSEQ_conv_tendsto
+by (rule tendsto_Pair)
+
+lemma LIM_fst: "f -- x --> a \<Longrightarrow> (\<lambda>x. fst (f x)) -- x --> fst a"
+unfolding LIM_conv_tendsto by (rule tendsto_fst)
+
+lemma LIM_snd: "f -- x --> a \<Longrightarrow> (\<lambda>x. snd (f x)) -- x --> snd a"
+unfolding LIM_conv_tendsto by (rule tendsto_snd)
+
+lemma LIM_Pair:
+  assumes "f -- x --> a" and "g -- x --> b"
+  shows "(\<lambda>x. (f x, g x)) -- x --> (a, b)"
+using assms unfolding LIM_conv_tendsto
+by (rule tendsto_Pair)
+
+lemma Cauchy_fst: "Cauchy X \<Longrightarrow> Cauchy (\<lambda>n. fst (X n))"
+unfolding Cauchy_def by (fast elim: le_less_trans [OF dist_fst_le])
+
+lemma Cauchy_snd: "Cauchy X \<Longrightarrow> Cauchy (\<lambda>n. snd (X n))"
+unfolding Cauchy_def by (fast elim: le_less_trans [OF dist_snd_le])
+
+lemma Cauchy_Pair:
+  assumes "Cauchy X" and "Cauchy Y"
+  shows "Cauchy (\<lambda>n. (X n, Y n))"
+proof (rule metric_CauchyI)
+  fix r :: real assume "0 < r"
+  then have "0 < r / sqrt 2" (is "0 < ?s")
+    by (simp add: divide_pos_pos)
+  obtain M where M: "\<forall>m\<ge>M. \<forall>n\<ge>M. dist (X m) (X n) < ?s"
+    using metric_CauchyD [OF `Cauchy X` `0 < ?s`] ..
+  obtain N where N: "\<forall>m\<ge>N. \<forall>n\<ge>N. dist (Y m) (Y n) < ?s"
+    using metric_CauchyD [OF `Cauchy Y` `0 < ?s`] ..
+  have "\<forall>m\<ge>max M N. \<forall>n\<ge>max M N. dist (X m, Y m) (X n, Y n) < r"
+    using M N by (simp add: real_sqrt_sum_squares_less dist_Pair_Pair)
+  then show "\<exists>n0. \<forall>m\<ge>n0. \<forall>n\<ge>n0. dist (X m, Y m) (X n, Y n) < r" ..
+qed
+
+lemma isCont_Pair [simp]:
+  "\<lbrakk>isCont f x; isCont g x\<rbrakk> \<Longrightarrow> isCont (\<lambda>x. (f x, g x)) x"
+  unfolding isCont_def by (rule LIM_Pair)
+
+subsection {* Product is a complete metric space *}
+
+instance "*" :: (complete_space, complete_space) complete_space
+proof
+  fix X :: "nat \<Rightarrow> 'a \<times> 'b" assume "Cauchy X"
+  have 1: "(\<lambda>n. fst (X n)) ----> lim (\<lambda>n. fst (X n))"
+    using Cauchy_fst [OF `Cauchy X`]
+    by (simp add: Cauchy_convergent_iff convergent_LIMSEQ_iff)
+  have 2: "(\<lambda>n. snd (X n)) ----> lim (\<lambda>n. snd (X n))"
+    using Cauchy_snd [OF `Cauchy X`]
+    by (simp add: Cauchy_convergent_iff convergent_LIMSEQ_iff)
+  have "X ----> (lim (\<lambda>n. fst (X n)), lim (\<lambda>n. snd (X n)))"
+    using LIMSEQ_Pair [OF 1 2] by simp
+  then show "convergent X"
+    by (rule convergentI)
+qed
+
 subsection {* Product is a normed vector space *}
 
 instantiation
@@ -113,6 +230,8 @@ qed
 
 end
 
+instance "*" :: (banach, banach) banach ..
+
 subsection {* Product is an inner product space *}
 
 instantiation "*" :: (real_inner, real_inner) real_inner
@@ -149,7 +268,7 @@ qed
 
 end
 
-subsection {* Pair operations are linear and continuous *}
+subsection {* Pair operations are linear *}
 
 interpretation fst: bounded_linear fst
   apply (unfold_locales)
@@ -199,80 +318,6 @@ proof
     apply (rule add_mono [OF norm_f norm_g])
     done
   then show "\<exists>K. \<forall>x. norm (f x, g x) \<le> norm x * K" ..
-qed
-
-text {*
-  TODO: The "tendsto" notion generalizes LIM and LIMSEQ.
-  But the Cauchy proof still requires a lot of duplication.
-  Is there a good way to factor out the common parts?
-*}
-
-lemma tendsto_Pair:
-  assumes "tendsto X a net" and "tendsto Y b net"
-  shows "tendsto (\<lambda>i. (X i, Y i)) (a, b) net"
-proof (rule tendstoI)
-  fix r :: real assume "0 < r"
-  then have "0 < r / sqrt 2" (is "0 < ?s")
-    by (simp add: divide_pos_pos)
-  have "eventually (\<lambda>i. dist (X i) a < ?s) net"
-    using `tendsto X a net` `0 < ?s` by (rule tendstoD)
-  moreover
-  have "eventually (\<lambda>i. dist (Y i) b < ?s) net"
-    using `tendsto Y b net` `0 < ?s` by (rule tendstoD)
-  ultimately
-  show "eventually (\<lambda>i. dist (X i, Y i) (a, b) < r) net"
-    by (rule eventually_elim2)
-       (simp add: real_sqrt_sum_squares_less dist_Pair_Pair)
-qed
-
-lemma LIMSEQ_Pair:
-  assumes "X ----> a" and "Y ----> b"
-  shows "(\<lambda>n. (X n, Y n)) ----> (a, b)"
-using assms unfolding LIMSEQ_conv_tendsto
-by (rule tendsto_Pair)
-
-lemma LIM_Pair:
-  assumes "f -- x --> a" and "g -- x --> b"
-  shows "(\<lambda>x. (f x, g x)) -- x --> (a, b)"
-using assms unfolding LIM_conv_tendsto
-by (rule tendsto_Pair)
-
-lemma Cauchy_Pair:
-  assumes "Cauchy X" and "Cauchy Y"
-  shows "Cauchy (\<lambda>n. (X n, Y n))"
-proof (rule metric_CauchyI)
-  fix r :: real assume "0 < r"
-  then have "0 < r / sqrt 2" (is "0 < ?s")
-    by (simp add: divide_pos_pos)
-  obtain M where M: "\<forall>m\<ge>M. \<forall>n\<ge>M. dist (X m) (X n) < ?s"
-    using metric_CauchyD [OF `Cauchy X` `0 < ?s`] ..
-  obtain N where N: "\<forall>m\<ge>N. \<forall>n\<ge>N. dist (Y m) (Y n) < ?s"
-    using metric_CauchyD [OF `Cauchy Y` `0 < ?s`] ..
-  have "\<forall>m\<ge>max M N. \<forall>n\<ge>max M N. dist (X m, Y m) (X n, Y n) < r"
-    using M N by (simp add: real_sqrt_sum_squares_less dist_Pair_Pair)
-  then show "\<exists>n0. \<forall>m\<ge>n0. \<forall>n\<ge>n0. dist (X m, Y m) (X n, Y n) < r" ..
-qed
-
-lemma isCont_Pair [simp]:
-  "\<lbrakk>isCont f x; isCont g x\<rbrakk> \<Longrightarrow> isCont (\<lambda>x. (f x, g x)) x"
-  unfolding isCont_def by (rule LIM_Pair)
-
-
-subsection {* Product is a complete vector space *}
-
-instance "*" :: (banach, banach) banach
-proof
-  fix X :: "nat \<Rightarrow> 'a \<times> 'b" assume "Cauchy X"
-  have 1: "(\<lambda>n. fst (X n)) ----> lim (\<lambda>n. fst (X n))"
-    using fst.Cauchy [OF `Cauchy X`]
-    by (simp add: Cauchy_convergent_iff convergent_LIMSEQ_iff)
-  have 2: "(\<lambda>n. snd (X n)) ----> lim (\<lambda>n. snd (X n))"
-    using snd.Cauchy [OF `Cauchy X`]
-    by (simp add: Cauchy_convergent_iff convergent_LIMSEQ_iff)
-  have "X ----> (lim (\<lambda>n. fst (X n)), lim (\<lambda>n. snd (X n)))"
-    using LIMSEQ_Pair [OF 1 2] by simp
-  then show "convergent X"
-    by (rule convergentI)
 qed
 
 subsection {* Frechet derivatives involving pairs *}
