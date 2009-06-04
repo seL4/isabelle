@@ -484,25 +484,30 @@ lemma connected_empty[simp, intro]: "connected {}"
 
 subsection{* Hausdorff and other separation properties *}
 
-axclass t0_space \<subseteq> topological_space
-  t0_space:
-    "x \<noteq> y \<Longrightarrow> \<exists>U. open U \<and> \<not> (x \<in> U \<longleftrightarrow> y \<in> U)"
+class t0_space =
+  assumes t0_space: "x \<noteq> y \<Longrightarrow> \<exists>U. open U \<and> \<not> (x \<in> U \<longleftrightarrow> y \<in> U)"
 
-axclass t1_space \<subseteq> topological_space
-  t1_space:
-    "x \<noteq> y \<Longrightarrow> \<exists>U V. open U \<and> open V \<and> x \<in> U \<and> y \<notin> U \<and> x \<notin> V \<and> y \<in> V"
+class t1_space =
+  assumes t1_space: "x \<noteq> y \<Longrightarrow> \<exists>U V. open U \<and> open V \<and> x \<in> U \<and> y \<notin> U \<and> x \<notin> V \<and> y \<in> V"
+begin
 
-instance t1_space \<subseteq> t0_space
-by default (fast dest: t1_space)
+subclass t0_space
+proof
+qed (fast dest: t1_space)
+
+end
 
 text {* T2 spaces are also known as Hausdorff spaces. *}
 
-axclass t2_space \<subseteq> topological_space
-  hausdorff:
-    "x \<noteq> y \<Longrightarrow> \<exists>U V. open U \<and> open V \<and> x \<in> U \<and> y \<in> V \<and> U \<inter> V = {}"
+class t2_space =
+  assumes hausdorff: "x \<noteq> y \<Longrightarrow> \<exists>U V. open U \<and> open V \<and> x \<in> U \<and> y \<in> V \<and> U \<inter> V = {}"
+begin
 
-instance t2_space \<subseteq> t1_space
-by default (fast dest: hausdorff)
+subclass t1_space
+proof
+qed (fast dest: hausdorff)
+
+end
 
 instance metric_space \<subseteq> t2_space
 proof
@@ -568,9 +573,9 @@ lemma islimpt_approachable_le:
   using approachable_lt_le[where f="\<lambda>x'. dist x' x" and P="\<lambda>x'. \<not> (x'\<in>S \<and> x'\<noteq>x)"]
   by metis (* FIXME: VERY slow! *)
 
-axclass perfect_space \<subseteq> metric_space
+class perfect_space =
   (* FIXME: perfect_space should inherit from topological_space *)
-  islimpt_UNIV [simp, intro]: "x islimpt UNIV"
+  assumes islimpt_UNIV [simp, intro]: "(x::'a::metric_space) islimpt UNIV"
 
 lemma perfect_choose_dist:
   fixes x :: "'a::perfect_space"
