@@ -31,7 +31,7 @@ object Command {
 
 class Command(val tokens: List[Token], val starts: Map[Token, Int])
 {
-  val id = Isabelle.plugin.id()
+  val id = Isabelle.system.id()
 
   /* content */
 

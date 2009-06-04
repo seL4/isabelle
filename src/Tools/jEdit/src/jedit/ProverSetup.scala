@@ -46,7 +46,7 @@ class ProverSetup(buffer: JEditBuffer)
     val MCL = TheoryView.MAX_CHANGE_LENGTH
     for (i <- 0 to buffer.getLength / MCL)
       prover ! new isabelle.proofdocument.Text.Change(
-        Isabelle.plugin.id(), i * MCL,
+        Isabelle.system.id(), i * MCL,
         buffer.getText(i * MCL, MCL min buffer.getLength - i * MCL),0)
 
     //register output-view

@@ -47,7 +47,7 @@ class TheoryView (text_area: JEditTextArea, document_actor: Actor)
     extends TextAreaExtension with BufferListener
 {
 
-  def id() = Isabelle.plugin.id()
+  def id() = Isabelle.system.id()
   
   private val buffer = text_area.getBuffer
   private val prover = Isabelle.prover_setup(buffer).get.prover

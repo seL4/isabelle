@@ -39,7 +39,7 @@ object ProofDocument
       "[()\\[\\]{}:;]", Pattern.MULTILINE)
 
  val empty =
-  new ProofDocument(isabelle.jedit.Isabelle.plugin.id(),
+  new ProofDocument(isabelle.jedit.Isabelle.system.id(),
     LinearSet(), Map(), LinearSet(), false, _ => false)
 
 }
@@ -57,11 +57,11 @@ class ProofDocument(
     new ProofDocument(id, tokens, token_start, commands, true, is_command_keyword)
   def activate: (ProofDocument, StructureChange) = {
     val (doc, change) =
-      text_changed(new Text.Change(isabelle.jedit.Isabelle.plugin.id(), 0, content, content.length))
+      text_changed(new Text.Change(isabelle.jedit.Isabelle.system.id(), 0, content, content.length))
     return (doc.mark_active, change)
   }
   def set_command_keyword(f: String => Boolean): ProofDocument =
-    new ProofDocument(isabelle.jedit.Isabelle.plugin.id(), tokens, token_start, commands, active, f)
+    new ProofDocument(isabelle.jedit.Isabelle.system.id(), tokens, token_start, commands, active, f)
 
   def content = Token.string_from_tokens(Nil ++ tokens, token_start)
   /** token view **/
