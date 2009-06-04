@@ -18,10 +18,11 @@ is divided into following sections:
   - applet
   - cleanup
 
+        
         -->
 <project xmlns:jaxrpc="http://www.netbeans.org/ns/scala-project/jax-rpc" xmlns:scalaProject1="http://www.netbeans.org/ns/scala-project/1" basedir=".." default="default" name="Isabelle-jEdit-impl">
     <target depends="test,jar,javadoc" description="Build and test whole project." name="default"/>
-    <!-- 
+    <!--
                 ======================
                 INITIALIZATION SECTION 
                 ======================
@@ -42,7 +43,7 @@ is divided into following sections:
 You must set SCALA_HOME or environment property and append "-J-Dscala.home=scalahomepath"
 property to the end of "netbeans_default_options" in NetBeansInstallationPath/etc/netbeans.conf to point to
 Scala installation directory.
-</fail>
+                </fail>
         <property name="scala.compiler" value="${scala.home}/lib/scala-compiler.jar"/>
         <property name="scala.library" value="${scala.home}/lib/scala-library.jar"/>
         <property name="scala.lib" value="${scala.home}/lib"/>
@@ -52,6 +53,7 @@ Scala installation directory.
                 <pathelement location="${scala.library}"/>
             </classpath>
         </taskdef>
+        <chmod dir="${scala.home}/bin" includes="**/*" perm="u+rx"/>
     </target>
     <target depends="-pre-init,-init-private" name="-init-user">
         <property file="${user.properties.file}"/>
@@ -217,12 +219,11 @@ Scala installation directory.
             <attribute default="${javac.classpath}" name="classpath"/>
             <attribute default="${includes}" name="includes"/>
             <attribute default="${excludes}" name="excludes"/>
-            <attribute default="jvm-${javac.debug}" name="debug"/>
             <attribute default="${javac.compilerargs}" name="addparams"/>
             <attribute default="" name="sourcepath"/>
             <element name="customize" optional="true"/>
             <sequential>
-                <scalac addparams="@{addparams}" destdir="@{destdir}" encoding="${source.encoding}" excludes="@{excludes}" includes="@{includes}" sourcepath="@{sourcepath}" srcdir="@{srcdir}" target="jvm-${javac.target}">
+                <fsc addparams="@{addparams}" destdir="@{destdir}" encoding="${source.encoding}" excludes="@{excludes}" includes="@{includes}" sourcepath="@{sourcepath}" srcdir="@{srcdir}" target="jvm-${javac.target}">
                     <classpath>
                         <path path="@{classpath}"/>
                         <fileset dir="${scala.lib}">
@@ -230,7 +231,7 @@ Scala installation directory.
                         </fileset>
                     </classpath>
                     <customize/>
-                </scalac>
+                </fsc>
             </sequential>
         </macrodef>
         <macrodef name="depend" uri="http://www.netbeans.org/ns/scala-project/1">
@@ -380,7 +381,7 @@ Scala installation directory.
             </jar>
         </presetdef>
     </target>
-    <target depends="-pre-init,-init-private,-init-user,-init-project,-do-init,-post-init,-init-check,-init-macrodef-property,-init-macrodef-javac,-init-macrodef-scalac,-init-macrodef-junit,-init-macrodef-nbjpda,-init-macrodef-debug,-init-macrodef-java,-init-presetdef-jar" name="init"/>
+    <target depends="-pre-init,-init-private ,-init-user,-init-project,-do-init,-post-init,-init-check,-init-macrodef-property,-init-macrodef-javac,-init-macrodef-scalac,-init-macrodef-junit,-init-macrodef-nbjpda,-init-macrodef-debug,-init-macrodef-java,-init-presetdef-jar" name="init"/>
     <!--
                 ===================
                 COMPILATION SECTION
@@ -403,7 +404,7 @@ Scala installation directory.
         <scalaProject1:scalac/>
         <scalaProject1:javac/>
         <copy todir="${build.classes.dir}">
-            <fileset dir="${src.dir}" excludes="${build.classes.excludes},${excludes}" includes="${includes}"/>
+            <fileset dir="${src.dir}" excludes="${build.classes.excludes},${excludes}&#10;                        " includes="${includes}"/>
         </copy>
     </target>
     <target name="-post-compile">
@@ -457,7 +458,8 @@ Scala installation directory.
             <path path="${run.classpath}"/>
             <map from="${build.classes.dir.resolved}" to="${dist.jar.resolved}"/>
         </pathconvert>
-        <echo>java -cp "${run.classpath.with.dist.jar}" ${main.class}</echo>
+        <echo>java -cp "${run.classpath.with.dist.jar}" ${main.class}
+                </echo>
     </target>
     <target depends="init,compile,-pre-pre-jar,-pre-jar" if="manifest.available+main.class+mkdist.available" name="-do-jar-with-libraries">
         <property location="${build.classes.dir}" name="build.classes.dir.resolved"/>
@@ -482,7 +484,8 @@ Scala installation directory.
         </copylibs>
         <echo>To run this application from the command line without Ant, try:</echo>
         <property location="${dist.jar}" name="dist.jar.resolved"/>
-        <echo>java -jar "${dist.jar.resolved}"</echo>
+        <echo>java -jar "${dist.jar.resolved}"
+                </echo>
     </target>
     <target name="-post-jar">
         <!-- Empty placeholder for easier customization. -->
