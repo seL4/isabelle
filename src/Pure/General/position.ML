@@ -7,6 +7,7 @@ Source positions: counting Isabelle symbols, starting from 1.
 signature POSITION =
 sig
   type T
+  val value: string -> int -> Properties.T
   val line_of: T -> int option
   val column_of: T -> int option
   val offset_of: T -> int option
@@ -15,6 +16,7 @@ sig
   val distance_of: T -> T -> int
   val none: T
   val start: T
+  val file_name: string -> Properties.T
   val file: string -> T
   val line: int -> T
   val line_file: int -> string -> T
