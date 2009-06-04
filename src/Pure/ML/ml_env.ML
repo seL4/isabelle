@@ -7,9 +7,6 @@ Local environment of ML sources and results.
 signature ML_ENV =
 sig
   val inherit: Context.generic -> Context.generic -> Context.generic
-  val register_tokens: ML_Lex.token list -> Context.generic ->
-    (serial * ML_Lex.token) list * Context.generic
-  val token_position: Context.generic -> serial -> Position.T option
   val name_space: ML_Name_Space.T
   val local_context: use_context
 end
@@ -22,42 +19,26 @@ struct
 structure Env = GenericDataFun
 (
   type T =
-    Position.T Inttab.table *
-     (ML_Name_Space.valueVal Symtab.table *
-      ML_Name_Space.typeVal Symtab.table *
-      ML_Name_Space.fixityVal Symtab.table *
-      ML_Name_Space.structureVal Symtab.table *
-      ML_Name_Space.signatureVal Symtab.table *
-      ML_Name_Space.functorVal Symtab.table);
-  val empty =
-    (Inttab.empty,
-      (Symtab.empty, Symtab.empty, Symtab.empty, Symtab.empty, Symtab.empty, Symtab.empty));
+    ML_Name_Space.valueVal Symtab.table *
+    ML_Name_Space.typeVal Symtab.table *
+    ML_Name_Space.fixityVal Symtab.table *
+    ML_Name_Space.structureVal Symtab.table *
+    ML_Name_Space.signatureVal Symtab.table *
+    ML_Name_Space.functorVal Symtab.table;
+  val empty = (Symtab.empty, Symtab.empty, Symtab.empty, Symtab.empty, Symtab.empty, Symtab.empty);
   val extend = I;
   fun merge _
-   ((toks1, (val1, type1, fixity1, structure1, signature1, functor1)),
-    (toks2, (val2, type2, fixity2, structure2, signature2, functor2))) : T =
-   (Inttab.merge (K true) (toks1, toks2),
+   ((val1, type1, fixity1, structure1, signature1, functor1),
+    (val2, type2, fixity2, structure2, signature2, functor2)) : T =
     (Symtab.merge (K true) (val1, val2),
      Symtab.merge (K true) (type1, type2),
      Symtab.merge (K true) (fixity1, fixity2),
      Symtab.merge (K true) (structure1, structure2),
      Symtab.merge (K true) (signature1, signature2),
-     Symtab.merge (K true) (functor1, functor2)));
+     Symtab.merge (K true) (functor1, functor2));
 );
 
 val inherit = Env.put o Env.get;
-
-
-(* source tokens *)
-
-fun register_tokens toks context =
-  let
-    val regs = map (fn tok => (serial (), tok)) toks;
-    val context' = context
-      |> Env.map (apfst (fold (fn (i, tok) => Inttab.update (i, ML_Lex.pos_of tok)) regs));
-  in (regs, context') end;
-
-val token_position = Inttab.lookup o #1 o Env.get;
 
 
 (* results *)
@@ -66,18 +47,18 @@ val name_space: ML_Name_Space.T =
   let
     fun lookup sel1 sel2 name =
       Context.thread_data ()
-      |> (fn NONE => NONE | SOME context => Symtab.lookup (sel1 (#2 (Env.get context))) name)
+      |> (fn NONE => NONE | SOME context => Symtab.lookup (sel1 (Env.get context)) name)
       |> (fn NONE => sel2 ML_Name_Space.global name | some => some);
 
     fun all sel1 sel2 () =
       Context.thread_data ()
-      |> (fn NONE => [] | SOME context => Symtab.dest (sel1 (#2 (Env.get context))))
+      |> (fn NONE => [] | SOME context => Symtab.dest (sel1 (Env.get context)))
       |> append (sel2 ML_Name_Space.global ())
       |> sort_distinct (string_ord o pairself #1);
 
     fun enter ap1 sel2 entry =
       if is_some (Context.thread_data ()) then
-        Context.>> (Env.map (apsnd (ap1 (Symtab.update entry))))
+        Context.>> (Env.map (ap1 (Symtab.update entry)))
       else sel2 ML_Name_Space.global entry;
   in
    {lookupVal    = lookup #1 #lookupVal,
