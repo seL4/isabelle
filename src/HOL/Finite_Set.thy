@@ -457,6 +457,18 @@ lemma finite_UnionD: "finite(\<Union>A) \<Longrightarrow> finite A"
 by(blast intro: finite_subset[OF subset_Pow_Union])
 
 
+lemma finite_subset_image:
+  assumes "finite B"
+  shows "B \<subseteq> f ` A \<Longrightarrow> \<exists>C\<subseteq>A. finite C \<and> B = f ` C"
+using assms proof(induct)
+  case empty thus ?case by simp
+next
+  case insert thus ?case
+    by (clarsimp simp del: image_insert simp add: image_insert[symmetric])
+       blast
+qed
+
+
 subsection {* Class @{text finite}  *}
 
 setup {* Sign.add_path "finite" *} -- {*FIXME: name tweaking*}
