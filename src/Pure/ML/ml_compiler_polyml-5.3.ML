@@ -15,23 +15,6 @@ struct
 
 (* source locations *)
 
-fun location_of pos : PolyML.location =
-  let
-    val props = Position.properties_of pos;
-    fun get k = the_default 0 (Properties.get_int props k);
-
-    val loc_props = props |> fold Properties.remove
-      [Markup.lineN, Markup.end_lineN, Markup.columnN, Markup.end_columnN,
-        Markup.offsetN, Markup.end_offsetN];
-    val text = Markup.markup (Markup.properties loc_props Markup.position) "";
-  in
-   {file = text,
-    startLine = get Markup.lineN,
-    startPosition = get Markup.offsetN,
-    endLine = get Markup.end_lineN,
-    endPosition = get Markup.end_offsetN}
-  end;
-
 fun position_of (loc: PolyML.location) =
   let
     val {file = text, startLine = line, startPosition = offset,
@@ -83,10 +66,15 @@ fun eval verbose pos toks =
 
     (* input *)
 
+    val location_props =
+      Markup.markup (Markup.position |> Markup.properties
+          (filter (member (op =) [Markup.idN, Markup.fileN] o #1) (Position.properties_of pos))) "";
+
     val input = toks |> maps (fn tok =>
       let
         val syms = Symbol.explode (ML_Lex.check_content_of tok);
-        val (ps, _) = fold_map (fn s => fn p => (p, Position.advance s p)) syms (ML_Lex.pos_of tok);
+        val (ps, _) = fold_map (fn s => fn p => (p, Position.advance s p)) syms
+          (Position.reset_range (ML_Lex.pos_of tok));
       in ps ~~ map (String.explode o Symbol.esc) syms end);
 
     val input_buffer = ref input;
@@ -164,7 +152,7 @@ fun eval verbose pos toks =
       PolyML.Compiler.CPNameSpace space,
       PolyML.Compiler.CPErrorMessageProc put_message,
       PolyML.Compiler.CPLineNo (fn () => ! line),
-      PolyML.Compiler.CPFileName (the_default "ML" (Position.file_of pos)),
+      PolyML.Compiler.CPFileName location_props,
       PolyML.Compiler.CPLineOffset get_offset,
       PolyML.Compiler.CPCompilerResultFun result_fun];
     val _ =
