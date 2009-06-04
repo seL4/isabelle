@@ -152,13 +152,13 @@ fun mk_set T ts =
   let
     val sT = mk_setT T;
     val empty = Const ("Set.empty", sT);
-    fun insert t u = Const ("insert", T --> sT --> sT) $ t $ u;
+    fun insert t u = Const ("Set.insert", T --> sT --> sT) $ t $ u;
   in fold_rev insert ts empty end;
 
 fun mk_UNIV T = Const ("Set.UNIV", mk_setT T);
 
-fun dest_set (Const ("Orderings.bot", _)) = []
-  | dest_set (Const ("insert", _) $ t $ u) = t :: dest_set u
+fun dest_set (Const ("Set.empty", _)) = []
+  | dest_set (Const ("Set.insert", _) $ t $ u) = t :: dest_set u
   | dest_set t = raise TERM ("dest_set", [t]);
 
 fun Collect_const T = Const ("Collect", (T --> boolT) --> mk_setT T);
