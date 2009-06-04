@@ -46,6 +46,19 @@ struct
 val max_clauses_default = 60;
 val (max_clauses, setup) = Attrib.config_int "max_clauses" max_clauses_default;
 
+val disj_forward = @{thm disj_forward};
+val disj_forward2 = @{thm disj_forward2};
+val make_pos_rule = @{thm make_pos_rule};
+val make_pos_rule' = @{thm make_pos_rule'};
+val make_pos_goal = @{thm make_pos_goal};
+val make_neg_rule = @{thm make_neg_rule};
+val make_neg_rule' = @{thm make_neg_rule'};
+val make_neg_goal = @{thm make_neg_goal};
+val conj_forward = @{thm conj_forward};
+val all_forward = @{thm all_forward};
+val ex_forward = @{thm ex_forward};
+val choice = @{thm choice};
+
 val not_conjD = thm "meson_not_conjD";
 val not_disjD = thm "meson_not_disjD";
 val not_notD = thm "meson_not_notD";

@@ -258,7 +258,7 @@ fun skolem_of_def def =
       val cex = Thm.cterm_of thy (HOLogic.exists_const T)
       val ex_tm = c_mkTrueprop (Thm.capply cex cabs)
       and conc =  c_mkTrueprop (Drule.beta_conv cabs (Drule.list_comb(c,frees)));
-      fun tacf [prem] = rewrite_goals_tac [def] THEN rtac (prem RS someI_ex) 1
+      fun tacf [prem] = rewrite_goals_tac [def] THEN rtac (prem RS @{thm someI_ex}) 1
   in  Goal.prove_internal [ex_tm] conc tacf
        |> forall_intr_list frees
        |> Thm.forall_elim_vars 0  (*Introduce Vars, but don't discharge defs.*)

@@ -12,9 +12,7 @@ begin
 
 subsection {* Hilbert's epsilon *}
 
-axiomatization
-  Eps :: "('a => bool) => 'a"
-where
+axiomatization Eps :: "('a => bool) => 'a" where
   someI: "P x ==> P (Eps P)"
 
 syntax (epsilon)
@@ -586,74 +584,6 @@ lemma ex_forward: "[| \<exists>x. P'(x);  !!x. P'(x) ==> P(x) |] ==> \<exists>x.
 by blast
 
 
-text{*Many of these bindings are used by the ATP linkup, and not just by
-legacy proof scripts.*}
-ML
-{*
-val inv_def = thm "inv_def";
-val Inv_def = thm "Inv_def";
-
-val someI = thm "someI";
-val someI_ex = thm "someI_ex";
-val someI2 = thm "someI2";
-val someI2_ex = thm "someI2_ex";
-val some_equality = thm "some_equality";
-val some1_equality = thm "some1_equality";
-val some_eq_ex = thm "some_eq_ex";
-val some_eq_trivial = thm "some_eq_trivial";
-val some_sym_eq_trivial = thm "some_sym_eq_trivial";
-val choice = thm "choice";
-val bchoice = thm "bchoice";
-val inv_id = thm "inv_id";
-val inv_f_f = thm "inv_f_f";
-val inv_f_eq = thm "inv_f_eq";
-val inj_imp_inv_eq = thm "inj_imp_inv_eq";
-val inj_transfer = thm "inj_transfer";
-val inj_iff = thm "inj_iff";
-val inj_imp_surj_inv = thm "inj_imp_surj_inv";
-val f_inv_f = thm "f_inv_f";
-val surj_f_inv_f = thm "surj_f_inv_f";
-val inv_injective = thm "inv_injective";
-val inj_on_inv = thm "inj_on_inv";
-val surj_imp_inj_inv = thm "surj_imp_inj_inv";
-val surj_iff = thm "surj_iff";
-val surj_imp_inv_eq = thm "surj_imp_inv_eq";
-val bij_imp_bij_inv = thm "bij_imp_bij_inv";
-val inv_equality = thm "inv_equality";
-val inv_inv_eq = thm "inv_inv_eq";
-val o_inv_distrib = thm "o_inv_distrib";
-val image_surj_f_inv_f = thm "image_surj_f_inv_f";
-val image_inv_f_f = thm "image_inv_f_f";
-val inv_image_comp = thm "inv_image_comp";
-val bij_image_Collect_eq = thm "bij_image_Collect_eq";
-val bij_vimage_eq_inv_image = thm "bij_vimage_eq_inv_image";
-val Inv_f_f = thm "Inv_f_f";
-val f_Inv_f = thm "f_Inv_f";
-val Inv_injective = thm "Inv_injective";
-val inj_on_Inv = thm "inj_on_Inv";
-val split_paired_Eps = thm "split_paired_Eps";
-val Eps_split = thm "Eps_split";
-val Eps_split_eq = thm "Eps_split_eq";
-val wf_iff_no_infinite_down_chain = thm "wf_iff_no_infinite_down_chain";
-val Inv_mem = thm "Inv_mem";
-val Inv_f_eq = thm "Inv_f_eq";
-val Inv_comp = thm "Inv_comp";
-val tfl_some = thm "tfl_some";
-val make_neg_rule = thm "make_neg_rule";
-val make_refined_neg_rule = thm "make_refined_neg_rule";
-val make_pos_rule = thm "make_pos_rule";
-val make_neg_rule' = thm "make_neg_rule'";
-val make_pos_rule' = thm "make_pos_rule'";
-val make_neg_goal = thm "make_neg_goal";
-val make_pos_goal = thm "make_pos_goal";
-val conj_forward = thm "conj_forward";
-val disj_forward = thm "disj_forward";
-val disj_forward2 = thm "disj_forward2";
-val all_forward = thm "all_forward";
-val ex_forward = thm "ex_forward";
-*}
-
-
 subsection {* Meson package *}
 
 use "Tools/meson.ML"
@@ -667,5 +597,6 @@ lemma exE_some: "[| Ex P ; c == Eps P |] ==> P c"
   by (simp only: someI_ex)
 
 use "Tools/specification_package.ML"
+
 
 end
