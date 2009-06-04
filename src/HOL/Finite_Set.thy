@@ -3251,4 +3251,109 @@ qed
 
 end
 
+
+subsection {* Expressing set operations via @{const fold} *}
+
+lemma (in fun_left_comm) fun_left_comm_apply:
+  "fun_left_comm (\<lambda>x. f (g x))"
+proof
+qed (simp_all add: fun_left_comm)
+
+lemma (in fun_left_comm_idem) fun_left_comm_idem_apply:
+  "fun_left_comm_idem (\<lambda>x. f (g x))"
+  by (rule fun_left_comm_idem.intro, rule fun_left_comm_apply, unfold_locales)
+    (simp_all add: fun_left_idem)
+
+lemma fun_left_comm_idem_insert:
+  "fun_left_comm_idem insert"
+proof
+qed auto
+
+lemma fun_left_comm_idem_remove:
+  "fun_left_comm_idem (\<lambda>x A. A - {x})"
+proof
+qed auto
+
+lemma fun_left_comm_idem_inter:
+  "fun_left_comm_idem op \<inter>"
+proof
+qed auto
+
+lemma fun_left_comm_idem_union:
+  "fun_left_comm_idem op \<union>"
+proof
+qed auto
+
+lemma union_fold_insert:
+  assumes "finite A"
+  shows "A \<union> B = fold insert B A"
+proof -
+  interpret fun_left_comm_idem insert by (fact fun_left_comm_idem_insert)
+  from `finite A` show ?thesis by (induct A arbitrary: B) simp_all
+qed
+
+lemma minus_fold_remove:
+  assumes "finite A"
+  shows "B - A = fold (\<lambda>x A. A - {x}) B A"
+proof -
+  interpret fun_left_comm_idem "\<lambda>x A. A - {x}" by (fact fun_left_comm_idem_remove)
+  from `finite A` show ?thesis by (induct A arbitrary: B) auto
+qed
+
+lemma inter_Inter_fold_inter:
+  assumes "finite A"
+  shows "B \<inter> Inter A = fold (op \<inter>) B A"
+proof -
+  interpret fun_left_comm_idem "op \<inter>" by (fact fun_left_comm_idem_inter)
+  from `finite A` show ?thesis by (induct A arbitrary: B)
+    (simp_all add: fold_fun_comm Int_commute)
+qed
+
+lemma union_Union_fold_union:
+  assumes "finite A"
+  shows "B \<union> Union A = fold (op \<union>) B A"
+proof -
+  interpret fun_left_comm_idem "op \<union>" by (fact fun_left_comm_idem_union)
+  from `finite A` show ?thesis by (induct A arbitrary: B)
+    (simp_all add: fold_fun_comm Un_commute)
+qed
+
+lemma Inter_fold_inter:
+  assumes "finite A"
+  shows "Inter A = fold (op \<inter>) UNIV A"
+  using assms inter_Inter_fold_inter [of A UNIV] by simp
+
+lemma Union_fold_union:
+  assumes "finite A"
+  shows "Union A = fold (op \<union>) {} A"
+  using assms union_Union_fold_union [of A "{}"] by simp
+
+lemma inter_INTER_fold_inter:
+  assumes "finite A"
+  shows "B \<inter> INTER A f = fold (\<lambda>A. op \<inter> (f A)) B A" (is "?inter = ?fold") 
+proof (rule sym)
+  interpret fun_left_comm_idem "op \<inter>" by (fact fun_left_comm_idem_inter)
+  interpret fun_left_comm_idem "\<lambda>A. op \<inter> (f A)" by (fact fun_left_comm_idem_apply)
+  from `finite A` show "?fold = ?inter" by (induct A arbitrary: B) auto
+qed
+
+lemma union_UNION_fold_union:
+  assumes "finite A"
+  shows "B \<union> UNION A f = fold (\<lambda>A. op \<union> (f A)) B A" (is "?union = ?fold") 
+proof (rule sym)
+  interpret fun_left_comm_idem "op \<union>" by (fact fun_left_comm_idem_union)
+  interpret fun_left_comm_idem "\<lambda>A. op \<union> (f A)" by (fact fun_left_comm_idem_apply)
+  from `finite A` show "?fold = ?union" by (induct A arbitrary: B) auto
+qed
+
+lemma INTER_fold_inter:
+  assumes "finite A"
+  shows "INTER A f = fold (\<lambda>A. op \<inter> (f A)) UNIV A"
+  using assms inter_INTER_fold_inter [of A UNIV] by simp
+
+lemma UNION_fold_union:
+  assumes "finite A"
+  shows "UNION A f = fold (\<lambda>A. op \<union> (f A)) {} A"
+  using assms union_UNION_fold_union [of A "{}"] by simp
+
 end
