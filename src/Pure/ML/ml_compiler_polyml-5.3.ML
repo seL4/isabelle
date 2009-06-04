@@ -37,9 +37,9 @@ fun position_of (loc: PolyML.location) =
     val {file = text, startLine = line, startPosition = offset,
       endLine = end_line, endPosition = end_offset} = loc;
     val loc_props =
-      (case YXML.parse_body text of
-        [(XML.Elem (e, atts, []))] => if e = Markup.positionN then atts else []
-      | _ => []);
+      (case YXML.parse text of
+        XML.Elem (e, atts, _) => if e = Markup.positionN then atts else []
+      | XML.Text s => Position.file_name s);
   in
     Position.value Markup.lineN line @
     Position.value Markup.offsetN offset @
