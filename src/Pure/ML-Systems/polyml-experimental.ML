@@ -1,6 +1,6 @@
 (*  Title:      Pure/ML-Systems/polyml-experimental.ML
 
-Compatibility wrapper for Poly/ML 5.3 (SVN experimental).
+Compatibility wrapper for Poly/ML 5.3.
 *)
 
 open Thread;
