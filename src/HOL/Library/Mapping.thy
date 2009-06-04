@@ -1,6 +1,4 @@
-(*  Title:      HOL/Library/Mapping.thy
-    Author:     Florian Haftmann, TU Muenchen
-*)
+(* Author: Florian Haftmann, TU Muenchen *)
 
 header {* An abstract view on maps for code generation. *}
 
@@ -131,5 +129,24 @@ lemma bulkload_tabulate:
   "bulkload xs = tabulate [0..<length xs] (nth xs)"
   by (rule sym)
     (auto simp add: bulkload_def tabulate_def expand_fun_eq map_of_eq_None_iff map_compose [symmetric] comp_def)
+
+
+subsection {* Some technical code lemmas *}
+
+lemma [code]:
+  "map_case f m = f (Mapping.lookup m)"
+  by (cases m) simp
+
+lemma [code]:
+  "map_rec f m = f (Mapping.lookup m)"
+  by (cases m) simp
+
+lemma [code]:
+  "Nat.size (m :: (_, _) map) = 0"
+  by (cases m) simp
+
+lemma [code]:
+  "map_size f g m = 0"
+  by (cases m) simp
 
 end

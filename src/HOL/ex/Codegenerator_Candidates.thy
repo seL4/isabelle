@@ -18,6 +18,7 @@ imports
   Primes
   Product_ord
   SetsAndFunctions
+  Tree
   While_Combinator
   Word
   "~~/src/HOL/ex/Commutative_Ring_Complete"
