@@ -10,6 +10,14 @@ begin
 
 subsection {* Real inner product spaces *}
 
+text {* Temporarily relax constraints for @{term dist} and @{term norm}. *}
+
+setup {* Sign.add_const_constraint
+  (@{const_name dist}, SOME @{typ "'a::dist \<Rightarrow> 'a \<Rightarrow> real"}) *}
+
+setup {* Sign.add_const_constraint
+  (@{const_name norm}, SOME @{typ "'a::norm \<Rightarrow> real"}) *}
+
 class real_inner = real_vector + sgn_div_norm + dist_norm + topo_dist +
   fixes inner :: "'a \<Rightarrow> 'a \<Rightarrow> real"
   assumes inner_commute: "inner x y = inner y x"
@@ -115,6 +123,14 @@ proof
 qed
 
 end
+
+text {* Re-enable constraints for @{term dist} and @{term norm}. *}
+
+setup {* Sign.add_const_constraint
+  (@{const_name dist}, SOME @{typ "'a::metric_space \<Rightarrow> 'a \<Rightarrow> real"}) *}
+
+setup {* Sign.add_const_constraint
+  (@{const_name norm}, SOME @{typ "'a::real_normed_vector \<Rightarrow> real"}) *}
 
 interpretation inner:
   bounded_bilinear "inner::'a::real_inner \<Rightarrow> 'a \<Rightarrow> real"

@@ -733,6 +733,18 @@ next
     using norm_triangle_ineq4 [of "x - z" "y - z"] by simp
 qed
 
+subsection {* Extra type constraints *}
+
+text {* Only allow @{term dist} in class @{text metric_space}. *}
+
+setup {* Sign.add_const_constraint
+  (@{const_name dist}, SOME @{typ "'a::metric_space \<Rightarrow> 'a \<Rightarrow> real"}) *}
+
+text {* Only allow @{term norm} in class @{text real_normed_vector}. *}
+
+setup {* Sign.add_const_constraint
+  (@{const_name norm}, SOME @{typ "'a::real_normed_vector \<Rightarrow> real"}) *}
+
 
 subsection {* Sign function *}
 
