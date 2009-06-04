@@ -28,7 +28,7 @@ primrec scale :: "float \<Rightarrow> int" where
   "scale (Float a b) = b"
 
 instantiation float :: zero begin
-definition zero_float where "0 = Float 0 0" 
+definition zero_float where "0 = Float 0 0"
 instance ..
 end
 
@@ -42,6 +42,10 @@ definition number_of_float where "number_of n = Float n 0"
 instance ..
 end
 
+lemma number_of_float_Float [code inline, symmetric, code post]:
+  "number_of k = Float (number_of k) 0"
+  by (simp add: number_of_float_def number_of_is_id)
+
 lemma real_of_float_simp[simp]: "real (Float a b) = real a * pow2 b"
   unfolding real_of_float_def using of_float.simps .
 
@@ -50,7 +54,7 @@ lemma real_of_float_nge0_exp: "\<not> 0 \<le> e \<Longrightarrow> real (Float m 
 lemma real_of_float_ge0_exp: "0 \<le> e \<Longrightarrow> real (Float m e) = real m * (2^nat e)" by auto
 
 lemma Float_num[simp]: shows
-   "real (Float 1 0) = 1" and "real (Float 1 1) = 2" and "real (Float 1 2) = 4" and 
+   "real (Float 1 0) = 1" and "real (Float 1 1) = 2" and "real (Float 1 2) = 4" and
    "real (Float 1 -1) = 1/2" and "real (Float 1 -2) = 1/4" and "real (Float 1 -3) = 1/8" and
    "real (Float -1 0) = -1" and "real (Float (number_of n) 0) = number_of n"
   by auto

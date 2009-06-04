@@ -142,7 +142,7 @@ lemma get_even[simp]: "even (get_even n)" unfolding get_even_def by (cases "even
 lemma get_odd_ex: "\<exists> k. Suc k = get_odd n \<and> odd (Suc k)"
 proof (cases "odd n")
   case True hence "0 < n" by (rule odd_pos)
-  from gr0_implies_Suc[OF this] obtain k where "Suc k = n" by auto 
+  from gr0_implies_Suc[OF this] obtain k where "Suc k = n" by auto
   thus ?thesis unfolding get_odd_def if_P[OF True] using True[unfolded `Suc k = n`[symmetric]] by blast
 next
   case False hence "odd (Suc n)" by auto
@@ -162,7 +162,7 @@ definition float_power_bnds :: "nat \<Rightarrow> float \<Rightarrow> float \<Ri
 lemma float_power_bnds: assumes "(l1, u1) = float_power_bnds n l u" and "x \<in> {real l .. real u}"
   shows "x ^ n \<in> {real l1..real u1}"
 proof (cases "even n")
-  case True 
+  case True
   show ?thesis
   proof (cases "0 < l")
     case True hence "odd n \<or> 0 < l" and "0 \<le> real l" unfolding less_float_def by auto
@@ -179,7 +179,7 @@ proof (cases "even n")
       moreover have u1: "u1 = l ^ n" and l1: "l1 = u ^ n" using assms unfolding float_power_bnds_def if_not_P[OF P] if_P[OF True] by auto
       ultimately show ?thesis using float_power by auto
     next
-      case False 
+      case False
       have "\<bar>x\<bar> \<le> real (max (-l) u)"
       proof (cases "-l \<le> u")
 	case True thus ?thesis unfolding max_def if_P[OF True] using assms unfolding le_float_def by auto
@@ -212,14 +212,21 @@ nearest power of two greater than the square root.
 
 fun sqrt_iteration :: "nat \<Rightarrow> nat \<Rightarrow> float \<Rightarrow> float" where
 "sqrt_iteration prec 0 (Float m e) = Float 1 ((e + bitlen m) div 2 + 1)" |
-"sqrt_iteration prec (Suc m) x = (let y = sqrt_iteration prec m x 
+"sqrt_iteration prec (Suc m) x = (let y = sqrt_iteration prec m x
                                   in Float 1 -1 * (y + float_divr prec x y))"
 
-definition ub_sqrt :: "nat \<Rightarrow> float \<Rightarrow> float option" where 
-"ub_sqrt prec x = (if 0 < x then Some (sqrt_iteration prec prec x) else if x < 0 then None else Some 0)"
+function ub_sqrt lb_sqrt :: "nat \<Rightarrow> float \<Rightarrow> float" where
+"ub_sqrt prec x = (if 0 < x then (sqrt_iteration prec prec x)
+              else if x < 0 then - lb_sqrt prec (- x)
+                            else 0)" |
+"lb_sqrt prec x = (if 0 < x then (float_divl prec x (sqrt_iteration prec prec x))
+              else if x < 0 then - ub_sqrt prec (- x)
+                            else 0)"
+by pat_completeness auto
+termination by (relation "measure (\<lambda> v. let (prec, x) = sum_case id id v in (if x < 0 then 1 else 0))", auto simp add: less_float_def)
 
-definition lb_sqrt :: "nat \<Rightarrow> float \<Rightarrow> float option" where
-"lb_sqrt prec x = (if 0 < x then Some (float_divl prec x (sqrt_iteration prec prec x)) else if x < 0 then None else Some 0)"
+declare lb_sqrt.simps[simp del]
+declare ub_sqrt.simps[simp del]
 
 lemma sqrt_ub_pos_pos_1:
   assumes "sqrt x < b" and "0 < b" and "0 < x"
@@ -250,7 +257,7 @@ proof (induct n)
       unfolding pow2_add pow2_int Float real_of_float_simp by auto
     also have "\<dots> < 1 * pow2 (e + int (nat (bitlen m)))"
     proof (rule mult_strict_right_mono, auto)
-      show "real m < 2^nat (bitlen m)" using bitlen_bounds[OF `0 < m`, THEN conjunct2] 
+      show "real m < 2^nat (bitlen m)" using bitlen_bounds[OF `0 < m`, THEN conjunct2]
 	unfolding real_of_int_less_iff[of m, symmetric] by auto
     qed
     finally have "sqrt (real x) < sqrt (pow2 (e + bitlen m))" unfolding int_nat_bl by auto
@@ -261,8 +268,8 @@ proof (induct n)
       proof (cases "?E mod 2 = 1")
 	case True thus ?thesis by auto
       next
-	case False 
-	have "0 \<le> ?E mod 2" by auto 
+	case False
+	have "0 \<le> ?E mod 2" by auto
 	have "?E mod 2 < 2" by auto
 	from this[THEN zless_imp_add1_zle]
 	have "?E mod 2 \<le> 0" using False by auto
@@ -277,12 +284,12 @@ proof (induct n)
 	unfolding E_eq unfolding pow2_add ..
       also have "\<dots> = pow2 (?E div 2) * sqrt (pow2 (?E mod 2))"
 	unfolding real_sqrt_mult[of _ "pow2 (?E mod 2)"] real_sqrt_abs2 by auto
-      also have "\<dots> < pow2 (?E div 2) * 2" 
+      also have "\<dots> < pow2 (?E div 2) * 2"
 	by (rule mult_strict_left_mono, auto intro: E_mod_pow)
       also have "\<dots> = pow2 (?E div 2 + 1)" unfolding zadd_commute[of _ 1] pow2_add1 by auto
       finally show ?thesis by auto
     qed
-    finally show ?thesis 
+    finally show ?thesis
       unfolding Float sqrt_iteration.simps real_of_float_simp by auto
   qed
 next
@@ -305,88 +312,77 @@ proof -
 qed
 
 lemma lb_sqrt_lower_bound: assumes "0 \<le> real x"
-  shows "0 \<le> real (the (lb_sqrt prec x))"
+  shows "0 \<le> real (lb_sqrt prec x)"
 proof (cases "0 < x")
   case True hence "0 < real x" and "0 \<le> x" using `0 \<le> real x` unfolding less_float_def le_float_def by auto
   hence "0 < sqrt_iteration prec prec x" unfolding less_float_def using sqrt_iteration_lower_bound by auto 
   hence "0 \<le> real (float_divl prec x (sqrt_iteration prec prec x))" using float_divl_lower_bound[OF `0 \<le> x`] unfolding le_float_def by auto
-  thus ?thesis unfolding lb_sqrt_def using True by auto
+  thus ?thesis unfolding lb_sqrt.simps using True by auto
 next
   case False with `0 \<le> real x` have "real x = 0" unfolding less_float_def by auto
-  thus ?thesis unfolding lb_sqrt_def less_float_def by auto
+  thus ?thesis unfolding lb_sqrt.simps less_float_def by auto
 qed
 
-lemma lb_sqrt_upper_bound: assumes "0 \<le> real x"
-  shows "real (the (lb_sqrt prec x)) \<le> sqrt (real x)"
-proof (cases "0 < x")
-  case True hence "0 < real x" and "0 \<le> real x" unfolding less_float_def by auto
-  hence sqrt_gt0: "0 < sqrt (real x)" by auto
-  hence sqrt_ub: "sqrt (real x) < real (sqrt_iteration prec prec x)" using sqrt_iteration_bound by auto
-  
-  have "real (float_divl prec x (sqrt_iteration prec prec x)) \<le> real x / real (sqrt_iteration prec prec x)" by (rule float_divl)
-  also have "\<dots> < real x / sqrt (real x)" 
-    by (rule divide_strict_left_mono[OF sqrt_ub `0 < real x` mult_pos_pos[OF order_less_trans[OF sqrt_gt0 sqrt_ub] sqrt_gt0]])
-  also have "\<dots> = sqrt (real x)" unfolding inverse_eq_iff_eq[of _ "sqrt (real x)", symmetric] sqrt_divide_self_eq[OF `0 \<le> real x`, symmetric] by auto
-  finally show ?thesis unfolding lb_sqrt_def if_P[OF `0 < x`] by auto
-next
-  case False with `0 \<le> real x`
-  have "\<not> x < 0" unfolding less_float_def le_float_def by auto
-  show ?thesis unfolding lb_sqrt_def if_not_P[OF False] if_not_P[OF `\<not> x < 0`] using assms by auto
-qed
-
-lemma lb_sqrt: assumes "Some y = lb_sqrt prec x"
-  shows "real y \<le> sqrt (real x)" and "0 \<le> real x"
+lemma bnds_sqrt':
+  shows "sqrt (real x) \<in> { real (lb_sqrt prec x) .. real (ub_sqrt prec x) }"
 proof -
-  show "0 \<le> real x"
-  proof (rule ccontr)
-    assume "\<not> 0 \<le> real x"
-    hence "lb_sqrt prec x = None" unfolding lb_sqrt_def less_float_def by auto
-    thus False using assms by auto
-  qed
-  from lb_sqrt_upper_bound[OF this, of prec]
-  show "real y \<le> sqrt (real x)" unfolding assms[symmetric] by auto
+  { fix x :: float assume "0 < x"
+    hence "0 < real x" and "0 \<le> real x" unfolding less_float_def by auto
+    hence sqrt_gt0: "0 < sqrt (real x)" by auto
+    hence sqrt_ub: "sqrt (real x) < real (sqrt_iteration prec prec x)" using sqrt_iteration_bound by auto
+
+    have "real (float_divl prec x (sqrt_iteration prec prec x)) \<le>
+          real x / real (sqrt_iteration prec prec x)" by (rule float_divl)
+    also have "\<dots> < real x / sqrt (real x)"
+      by (rule divide_strict_left_mono[OF sqrt_ub `0 < real x`
+               mult_pos_pos[OF order_less_trans[OF sqrt_gt0 sqrt_ub] sqrt_gt0]])
+    also have "\<dots> = sqrt (real x)" 
+      unfolding inverse_eq_iff_eq[of _ "sqrt (real x)", symmetric]
+	        sqrt_divide_self_eq[OF `0 \<le> real x`, symmetric] by auto
+    finally have "real (lb_sqrt prec x) \<le> sqrt (real x)"
+      unfolding lb_sqrt.simps if_P[OF `0 < x`] by auto }
+  note lb = this
+
+  { fix x :: float assume "0 < x"
+    hence "0 < real x" unfolding less_float_def by auto
+    hence "0 < sqrt (real x)" by auto
+    hence "sqrt (real x) < real (sqrt_iteration prec prec x)"
+      using sqrt_iteration_bound by auto
+    hence "sqrt (real x) \<le> real (ub_sqrt prec x)"
+      unfolding ub_sqrt.simps if_P[OF `0 < x`] by auto }
+  note ub = this
+
+  show ?thesis
+  proof (cases "0 < x")
+    case True with lb ub show ?thesis by auto
+  next case False show ?thesis
+  proof (cases "real x = 0")
+    case True thus ?thesis 
+      by (auto simp add: less_float_def lb_sqrt.simps ub_sqrt.simps)
+  next
+    case False with `\<not> 0 < x` have "x < 0" and "0 < -x"
+      by (auto simp add: less_float_def)
+
+    with `\<not> 0 < x`
+    show ?thesis using lb[OF `0 < -x`] ub[OF `0 < -x`]
+      by (auto simp add: real_sqrt_minus lb_sqrt.simps ub_sqrt.simps)
+  qed qed
 qed
 
-lemma ub_sqrt_lower_bound: assumes "0 \<le> real x"
-  shows "sqrt (real x) \<le> real (the (ub_sqrt prec x))"
-proof (cases "0 < x")
-  case True hence "0 < real x" unfolding less_float_def by auto
-  hence "0 < sqrt (real x)" by auto
-  hence "sqrt (real x) < real (sqrt_iteration prec prec x)" using sqrt_iteration_bound by auto
-  thus ?thesis unfolding ub_sqrt_def if_P[OF `0 < x`] by auto
-next
-  case False with `0 \<le> real x`
-  have "real x = 0" unfolding less_float_def le_float_def by auto
-  thus ?thesis unfolding ub_sqrt_def less_float_def le_float_def by auto
-qed
-
-lemma ub_sqrt: assumes "Some y = ub_sqrt prec x"
-  shows "sqrt (real x) \<le> real y" and "0 \<le> real x"
-proof -
-  show "0 \<le> real x"
-  proof (rule ccontr)
-    assume "\<not> 0 \<le> real x"
-    hence "ub_sqrt prec x = None" unfolding ub_sqrt_def less_float_def by auto
-    thus False using assms by auto
-  qed
-  from ub_sqrt_lower_bound[OF this, of prec]
-  show "sqrt (real x) \<le> real y" unfolding assms[symmetric] by auto
-qed
-
-lemma bnds_sqrt: "\<forall> x lx ux. (Some l, Some u) = (lb_sqrt prec lx, ub_sqrt prec ux) \<and> x \<in> {real lx .. real ux} \<longrightarrow> real l \<le> sqrt x \<and> sqrt x \<le> real u"
-proof (rule allI, rule allI, rule allI, rule impI)
+lemma bnds_sqrt: "\<forall> x lx ux. (l, u) = (lb_sqrt prec lx, ub_sqrt prec ux) \<and> x \<in> {real lx .. real ux} \<longrightarrow> real l \<le> sqrt x \<and> sqrt x \<le> real u"
+proof ((rule allI) +, rule impI, erule conjE, rule conjI)
   fix x lx ux
-  assume "(Some l, Some u) = (lb_sqrt prec lx, ub_sqrt prec ux) \<and> x \<in> {real lx .. real ux}"
-  hence l: "Some l = lb_sqrt prec lx " and u: "Some u = ub_sqrt prec ux" and x: "x \<in> {real lx .. real ux}" by auto
-  
-  have "real lx \<le> x" and "x \<le> real ux" using x by auto
+  assume "(l, u) = (lb_sqrt prec lx, ub_sqrt prec ux)"
+    and x: "x \<in> {real lx .. real ux}"
+  hence l: "l = lb_sqrt prec lx " and u: "u = ub_sqrt prec ux" by auto
 
-  from lb_sqrt(1)[OF l] real_sqrt_le_mono[OF `real lx \<le> x`]
-  have "real l \<le> sqrt x" by (rule order_trans)
-  moreover
-  from real_sqrt_le_mono[OF `x \<le> real ux`] ub_sqrt(1)[OF u]
-  have "sqrt x \<le> real u" by (rule order_trans)
-  ultimately show "real l \<le> sqrt x \<and> sqrt x \<le> real u" ..
+  have "sqrt (real lx) \<le> sqrt x" using x by auto
+  from order_trans[OF _ this]
+  show "real l \<le> sqrt x" unfolding l using bnds_sqrt'[of lx prec] by auto
+
+  have "sqrt x \<le> sqrt (real ux)" using x by auto
+  from order_trans[OF this]
+  show "sqrt x \<le> real u" unfolding u using bnds_sqrt'[of ux prec] by auto
 qed
 
 section "Arcus tangens and \<pi>"
@@ -545,23 +541,23 @@ qed
 
 subsection "Compute arcus tangens in the entire domain"
 
-function lb_arctan :: "nat \<Rightarrow> float \<Rightarrow> float" and ub_arctan :: "nat \<Rightarrow> float \<Rightarrow> float" where 
+function lb_arctan :: "nat \<Rightarrow> float \<Rightarrow> float" and ub_arctan :: "nat \<Rightarrow> float \<Rightarrow> float" where
   "lb_arctan prec x = (let ub_horner = \<lambda> x. x * ub_arctan_horner prec (get_odd (prec div 4 + 1)) 1 (x * x) ;
                            lb_horner = \<lambda> x. x * lb_arctan_horner prec (get_even (prec div 4 + 1)) 1 (x * x)
     in (if x < 0          then - ub_arctan prec (-x) else
         if x \<le> Float 1 -1 then lb_horner x else
-        if x \<le> Float 1 1  then Float 1 1 * lb_horner (float_divl prec x (1 + the (ub_sqrt prec (1 + x * x))))
-                          else (let inv = float_divr prec 1 x 
-                                in if inv > 1 then 0 
+        if x \<le> Float 1 1  then Float 1 1 * lb_horner (float_divl prec x (1 + ub_sqrt prec (1 + x * x)))
+                          else (let inv = float_divr prec 1 x
+                                in if inv > 1 then 0
                                               else lb_pi prec * Float 1 -1 - ub_horner inv)))"
 
 | "ub_arctan prec x = (let lb_horner = \<lambda> x. x * lb_arctan_horner prec (get_even (prec div 4 + 1)) 1 (x * x) ;
                            ub_horner = \<lambda> x. x * ub_arctan_horner prec (get_odd (prec div 4 + 1)) 1 (x * x)
     in (if x < 0          then - lb_arctan prec (-x) else
         if x \<le> Float 1 -1 then ub_horner x else
-        if x \<le> Float 1 1  then let y = float_divr prec x (1 + the (lb_sqrt prec (1 + x * x)))
-                               in if y > 1 then ub_pi prec * Float 1 -1 
-                                           else Float 1 1 * ub_horner y 
+        if x \<le> Float 1 1  then let y = float_divr prec x (1 + lb_sqrt prec (1 + x * x))
+                               in if y > 1 then ub_pi prec * Float 1 -1
+                                           else Float 1 1 * ub_horner y
                           else ub_pi prec * Float 1 -1 - lb_horner (float_divl prec 1 x)))"
 by pat_completeness auto
 termination by (relation "measure (\<lambda> v. let (prec, x) = sum_case id id v in (if x < 0 then 1 else 0))", auto simp add: less_float_def)
@@ -584,13 +580,15 @@ proof -
   next
     case False hence "0 < real x" unfolding le_float_def Float_num by auto
     let ?R = "1 + sqrt (1 + real x * real x)"
-    let ?fR = "1 + the (ub_sqrt prec (1 + x * x))"
+    let ?fR = "1 + ub_sqrt prec (1 + x * x)"
     let ?DIV = "float_divl prec x ?fR"
-    
+
     have sqr_ge0: "0 \<le> 1 + real x * real x" using sum_power2_ge_zero[of 1 "real x", unfolded numeral_2_eq_2] by auto
     hence divisor_gt0: "0 < ?R" by (auto intro: add_pos_nonneg)
 
-    have "sqrt (real (1 + x * x)) \<le> real (the (ub_sqrt prec (1 + x * x)))" by (rule ub_sqrt_lower_bound, auto simp add: sqr_ge0)
+    have "sqrt (real (1 + x * x)) \<le> real (ub_sqrt prec (1 + x * x))"
+      using bnds_sqrt'[of "1 + x * x"] by auto
+
     hence "?R \<le> real ?fR" by auto
     hence "0 < ?fR" and "0 < real ?fR" unfolding less_float_def using `0 < ?R` by auto
 
@@ -604,9 +602,10 @@ proof -
     show ?thesis
     proof (cases "x \<le> Float 1 1")
       case True
-      
+
       have "real x \<le> sqrt (real (1 + x * x))" using real_sqrt_sum_squares_ge2[where x=1, unfolded numeral_2_eq_2] by auto
-      also have "\<dots> \<le> real (the (ub_sqrt prec (1 + x * x)))" by (rule ub_sqrt_lower_bound, auto simp add: sqr_ge0)
+      also have "\<dots> \<le> real (ub_sqrt prec (1 + x * x))"
+	using bnds_sqrt'[of "1 + x * x"] by auto
       finally have "real x \<le> real ?fR" by auto
       moreover have "real ?DIV \<le> real x / real ?fR" by (rule float_divl)
       ultimately have "real ?DIV \<le> 1" unfolding divide_le_eq_1_pos[OF `0 < real ?fR`, symmetric] by auto
@@ -638,11 +637,11 @@ proof -
 	have "0 \<le> real ?invx" by (rule order_trans[OF _ float_divr], auto simp add: `0 \<le> real x`)
 
 	have "1 / real x \<noteq> 0" and "0 < 1 / real x" using `0 < real x` by auto
-	
+
 	have "arctan (1 / real x) \<le> arctan (real ?invx)" unfolding real_of_float_1[symmetric] by (rule arctan_monotone', rule float_divr)
 	also have "\<dots> \<le> real (?ub_horner ?invx)" using arctan_0_1_bounds[OF `0 \<le> real ?invx` `real ?invx \<le> 1`] by auto
-	finally have "pi / 2 - real (?ub_horner ?invx) \<le> arctan (real x)" 
-	  using `0 \<le> arctan (real x)` arctan_inverse[OF `1 / real x \<noteq> 0`] 
+	finally have "pi / 2 - real (?ub_horner ?invx) \<le> arctan (real x)"
+	  using `0 \<le> arctan (real x)` arctan_inverse[OF `1 / real x \<noteq> 0`]
 	  unfolding real_sgn_pos[OF `0 < 1 / real x`] le_diff_eq by auto
 	moreover
 	have "real (lb_pi prec * Float 1 -1) \<le> pi / 2" unfolding real_of_float_mult Float_num times_divide_eq_right real_mult_1 using pi_boundaries by auto
@@ -670,15 +669,16 @@ proof -
   next
     case False hence "0 < real x" unfolding le_float_def Float_num by auto
     let ?R = "1 + sqrt (1 + real x * real x)"
-    let ?fR = "1 + the (lb_sqrt prec (1 + x * x))"
+    let ?fR = "1 + lb_sqrt prec (1 + x * x)"
     let ?DIV = "float_divr prec x ?fR"
-    
+
     have sqr_ge0: "0 \<le> 1 + real x * real x" using sum_power2_ge_zero[of 1 "real x", unfolded numeral_2_eq_2] by auto
     hence "0 \<le> real (1 + x*x)" by auto
-    
+
     hence divisor_gt0: "0 < ?R" by (auto intro: add_pos_nonneg)
 
-    have "real (the (lb_sqrt prec (1 + x * x))) \<le> sqrt (real (1 + x * x))" by (rule lb_sqrt_upper_bound, auto simp add: sqr_ge0)
+    have "real (lb_sqrt prec (1 + x * x)) \<le> sqrt (real (1 + x * x))"
+      using bnds_sqrt'[of "1 + x * x"] by auto
     hence "real ?fR \<le> ?R" by auto
     have "0 < real ?fR" unfolding real_of_float_add real_of_float_1 by (rule order_less_le_trans[OF zero_less_one], auto simp add: lb_sqrt_lower_bound[OF `0 \<le> real (1 + x*x)`])
 
@@ -702,7 +702,7 @@ proof -
       next
 	case False
 	hence "real ?DIV \<le> 1" unfolding less_float_def by auto
-      
+
 	have "0 \<le> real x / ?R" using `0 \<le> real x` `0 < ?R` unfolding real_0_le_divide_iff by auto
 	hence "0 \<le> real ?DIV" using monotone by (rule order_trans)
 
@@ -725,9 +725,9 @@ proof -
 
       have "real ?invx \<le> 1" unfolding less_float_def by (rule order_trans[OF float_divl], auto simp add: `1 \<le> real x` divide_le_eq_1_pos[OF `0 < real x`])
       have "0 \<le> real ?invx" unfolding real_of_float_0[symmetric] by (rule float_divl_lower_bound[unfolded le_float_def], auto simp add: `0 < x`)
-	
+
       have "1 / real x \<noteq> 0" and "0 < 1 / real x" using `0 < real x` by auto
-      
+
       have "real (?lb_horner ?invx) \<le> arctan (real ?invx)" using arctan_0_1_bounds[OF `0 \<le> real ?invx` `real ?invx \<le> 1`] by auto
       also have "\<dots> \<le> arctan (1 / real x)" unfolding real_of_float_1[symmetric] by (rule arctan_monotone', rule float_divl)
       finally have "arctan (real x) \<le> pi / 2 - real (?lb_horner ?invx)"
@@ -1027,14 +1027,7 @@ definition ub_cos :: "nat \<Rightarrow> float \<Rightarrow> float" where
 else if x < 1          then half (horner (x * Float 1 -1))
                        else half (half (horner (x * Float 1 -2))))"
 
-definition bnds_cos :: "nat \<Rightarrow> float \<Rightarrow> float \<Rightarrow> float * float" where
-"bnds_cos prec lx ux = (let  lpi = lb_pi prec
-  in   if lx < -lpi \<or> ux > lpi   then (Float -1 0, Float 1 0)
-  else if ux \<le> 0                 then (lb_cos prec (-lx), ub_cos prec (-ux))
-  else if 0 \<le> lx                 then (lb_cos prec ux, ub_cos prec lx)
-                                 else (min (lb_cos prec (-lx)) (lb_cos prec ux), Float 1 0))"
-
-lemma lb_cos: assumes "0 \<le> real x" and "real x \<le> pi" 
+lemma lb_cos: assumes "0 \<le> real x" and "real x \<le> pi"
   shows "cos (real x) \<in> {real (lb_cos prec x) .. real (ub_cos prec x)}" (is "?cos x \<in> { real (?lb x) .. real (?ub x) }")
 proof -
   { fix x :: real
@@ -1058,12 +1051,11 @@ proof -
       using cos_boundaries[OF `0 \<le> real x` `real x \<le> pi / 2`] .
   next
     case False
-    
     { fix y x :: float let ?x2 = "real (x * Float 1 -1)"
       assume "real y \<le> cos ?x2" and "-pi \<le> real x" and "real x \<le> pi"
       hence "- (pi / 2) \<le> ?x2" and "?x2 \<le> pi / 2" using pi_ge_two unfolding real_of_float_mult Float_num by auto
       hence "0 \<le> cos ?x2" by (rule cos_ge_zero)
-      
+
       have "real (?lb_half y) \<le> cos (real x)"
       proof (cases "y < 0")
 	case True show ?thesis using cos_ge_minus_one unfolding if_P[OF True] by auto
@@ -1077,12 +1069,12 @@ proof -
 	thus ?thesis unfolding if_not_P[OF False] x_half Float_num real_of_float_mult real_of_float_sub by auto
       qed
     } note lb_half = this
-    
+
     { fix y x :: float let ?x2 = "real (x * Float 1 -1)"
       assume ub: "cos ?x2 \<le> real y" and "- pi \<le> real x" and "real x \<le> pi"
       hence "- (pi / 2) \<le> ?x2" and "?x2 \<le> pi / 2" using pi_ge_two unfolding real_of_float_mult Float_num by auto
       hence "0 \<le> cos ?x2" by (rule cos_ge_zero)
-      
+
       have "cos (real x) \<le> real (?ub_half y)"
       proof -
 	have "0 \<le> real y" using `0 \<le> cos ?x2` ub by (rule order_trans)
@@ -1093,19 +1085,19 @@ proof -
 	thus ?thesis unfolding x_half real_of_float_mult Float_num real_of_float_sub by auto
       qed
     } note ub_half = this
-    
+
     let ?x2 = "x * Float 1 -1"
     let ?x4 = "x * Float 1 -1 * Float 1 -1"
-    
+
     have "-pi \<le> real x" using pi_ge_zero[THEN le_imp_neg_le, unfolded minus_zero] `0 \<le> real x` by (rule order_trans)
-    
+
     show ?thesis
     proof (cases "x < 1")
       case True hence "real x \<le> 1" unfolding less_float_def by auto
       have "0 \<le> real ?x2" and "real ?x2 \<le> pi / 2" using pi_ge_two `0 \<le> real x` unfolding real_of_float_mult Float_num using assms by auto
       from cos_boundaries[OF this]
       have lb: "real (?lb_horner ?x2) \<le> ?cos ?x2" and ub: "?cos ?x2 \<le> real (?ub_horner ?x2)" by auto
-      
+
       have "real (?lb x) \<le> ?cos x"
       proof -
 	from lb_half[OF lb `-pi \<le> real x` `real x \<le> pi`]
@@ -1122,9 +1114,9 @@ proof -
       have "0 \<le> real ?x4" and "real ?x4 \<le> pi / 2" using pi_ge_two `0 \<le> real x` `real x \<le> pi` unfolding real_of_float_mult Float_num by auto
       from cos_boundaries[OF this]
       have lb: "real (?lb_horner ?x4) \<le> ?cos ?x4" and ub: "?cos ?x4 \<le> real (?ub_horner ?x4)" by auto
-      
+
       have eq_4: "?x2 * Float 1 -1 = x * Float 1 -2" by (cases x, auto simp add: times_float.simps)
-      
+
       have "real (?lb x) \<le> ?cos x"
       proof -
 	have "-pi \<le> real ?x2" and "real ?x2 \<le> pi" unfolding real_of_float_mult Float_num using pi_ge_two `0 \<le> real x` `real x \<le> pi` by auto
@@ -1142,230 +1134,229 @@ proof -
   qed
 qed
 
-lemma lb_cos_minus: assumes "-pi \<le> real x" and "real x \<le> 0" 
+lemma lb_cos_minus: assumes "-pi \<le> real x" and "real x \<le> 0"
   shows "cos (real (-x)) \<in> {real (lb_cos prec (-x)) .. real (ub_cos prec (-x))}"
 proof -
   have "0 \<le> real (-x)" and "real (-x) \<le> pi" using `-pi \<le> real x` `real x \<le> 0` by auto
   from lb_cos[OF this] show ?thesis .
 qed
 
-lemma bnds_cos: "\<forall> x lx ux. (l, u) = bnds_cos prec lx ux \<and> x \<in> {real lx .. real ux} \<longrightarrow> real l \<le> cos x \<and> cos x \<le> real u"
-proof (rule allI, rule allI, rule allI, rule impI)
-  fix x lx ux
-  assume "(l, u) = bnds_cos prec lx ux \<and> x \<in> {real lx .. real ux}"
-  hence bnds: "(l, u) = bnds_cos prec lx ux" and x: "x \<in> {real lx .. real ux}" by auto
+definition bnds_cos :: "nat \<Rightarrow> float \<Rightarrow> float \<Rightarrow> float * float" where
+"bnds_cos prec lx ux = (let
+    lpi = round_down prec (lb_pi prec) ;
+    upi = round_up prec (ub_pi prec) ;
+    k = floor_fl (float_divr prec (lx + lpi) (2 * lpi)) ;
+    lx = lx - k * 2 * (if k < 0 then lpi else upi) ;
+    ux = ux - k * 2 * (if k < 0 then upi else lpi)
+  in   if - lpi \<le> lx \<and> ux \<le> 0    then (lb_cos prec (-lx), ub_cos prec (-ux))
+  else if 0 \<le> lx \<and> ux \<le> lpi      then (lb_cos prec ux, ub_cos prec lx)
+  else if - lpi \<le> lx \<and> ux \<le> lpi  then (min (lb_cos prec (-lx)) (lb_cos prec ux), Float 1 0)
+  else if 0 \<le> lx \<and> ux \<le> 2 * lpi  then (Float -1 0, max (ub_cos prec lx) (ub_cos prec (- (ux - 2 * lpi))))
+                                 else (Float -1 0, Float 1 0))"
 
-  let ?lpi = "lb_pi prec"  
-  have [intro!]: "real lx \<le> real ux" using x by auto
-  hence "lx \<le> ux" unfolding le_float_def .
+lemma floor_int:
+  obtains k :: int where "real k = real (floor_fl f)"
+proof -
+  assume *: "\<And> k :: int. real k = real (floor_fl f) \<Longrightarrow> thesis"
+  obtain m e where fl: "Float m e = floor_fl f" by (cases "floor_fl f", auto)
+  from floor_pos_exp[OF this]
+  have "real (m* 2^(nat e)) = real (floor_fl f)"
+    by (auto simp add: fl[symmetric] real_of_float_def pow2_def)
+  from *[OF this] show thesis by blast
+qed
+
+lemma float_remove_real_numeral[simp]: "real (number_of k :: float) = number_of k"
+proof -
+  have "real (number_of k :: float) = real k"
+    unfolding number_of_float_def real_of_float_def pow2_def by auto
+  also have "\<dots> = real (number_of k :: int)"
+    by (simp add: number_of_is_id)
+  finally show ?thesis by auto
+qed
+
+lemma cos_periodic_nat[simp]: fixes n :: nat shows "cos (x + real n * 2 * pi) = cos x"
+proof (induct n arbitrary: x)
+  case (Suc n)
+  have split_pi_off: "x + real (Suc n) * 2 * pi = (x + real n * 2 * pi) + 2 * pi"
+    unfolding Suc_plus1 real_of_nat_add real_of_one real_add_mult_distrib by auto
+  show ?case unfolding split_pi_off using Suc by auto
+qed auto
+
+lemma cos_periodic_int[simp]: fixes i :: int shows "cos (x + real i * 2 * pi) = cos x"
+proof (cases "0 \<le> i")
+  case True hence i_nat: "real i = real (nat i)" by auto
+  show ?thesis unfolding i_nat by auto
+next
+  case False hence i_nat: "real i = - real (nat (-i))" by auto
+  have "cos x = cos (x + real i * 2 * pi - real i * 2 * pi)" by auto
+  also have "\<dots> = cos (x + real i * 2 * pi)"
+    unfolding i_nat mult_minus_left diff_minus_eq_add by (rule cos_periodic_nat)
+  finally show ?thesis by auto
+qed
+
+lemma bnds_cos: "\<forall> x lx ux. (l, u) = bnds_cos prec lx ux \<and> x \<in> {real lx .. real ux} \<longrightarrow> real l \<le> cos x \<and> cos x \<le> real u"
+proof ((rule allI | rule impI | erule conjE) +)
+  fix x lx ux
+  assume bnds: "(l, u) = bnds_cos prec lx ux" and x: "x \<in> {real lx .. real ux}"
+
+  let ?lpi = "round_down prec (lb_pi prec)"
+  let ?upi = "round_up prec (ub_pi prec)"
+  let ?k = "floor_fl (float_divr prec (lx + ?lpi) (2 * ?lpi))"
+  let ?lx = "lx - ?k * 2 * (if ?k < 0 then ?lpi else ?upi)"
+  let ?ux = "ux - ?k * 2 * (if ?k < 0 then ?upi else ?lpi)"
+
+  obtain k :: int where k: "real k = real ?k" using floor_int .
+
+  have upi: "pi \<le> real ?upi" and lpi: "real ?lpi \<le> pi"
+    using round_up[of "ub_pi prec" prec] pi_boundaries[of prec]
+          round_down[of prec "lb_pi prec"] by auto
+  hence "real ?lx \<le> x - real k * 2 * pi \<and> x - real k * 2 * pi \<le> real ?ux"
+    using x by (cases "k = 0") (auto intro!: add_mono
+                simp add: real_diff_def k[symmetric] less_float_def)
+  note lx = this[THEN conjunct1] and ux = this[THEN conjunct2]
+  hence lx_less_ux: "real ?lx \<le> real ?ux" by (rule order_trans)
+
+  { assume "- ?lpi \<le> ?lx" and x_le_0: "x - real k * 2 * pi \<le> 0"
+    with lpi[THEN le_imp_neg_le] lx
+    have pi_lx: "- pi \<le> real ?lx" and lx_0: "real ?lx \<le> 0"
+      by (simp_all add: le_float_def)
+
+    have "real (lb_cos prec (- ?lx)) \<le> cos (real (- ?lx))"
+      using lb_cos_minus[OF pi_lx lx_0] by simp
+    also have "\<dots> \<le> cos (x + real (-k) * 2 * pi)"
+      using cos_monotone_minus_pi_0'[OF pi_lx lx x_le_0]
+      by (simp only: real_of_float_minus real_of_int_minus
+	cos_minus real_diff_def mult_minus_left)
+    finally have "real (lb_cos prec (- ?lx)) \<le> cos x"
+      unfolding cos_periodic_int . }
+  note negative_lx = this
+
+  { assume "0 \<le> ?lx" and pi_x: "x - real k * 2 * pi \<le> pi"
+    with lx
+    have pi_lx: "real ?lx \<le> pi" and lx_0: "0 \<le> real ?lx"
+      by (auto simp add: le_float_def)
+
+    have "cos (x + real (-k) * 2 * pi) \<le> cos (real ?lx)"
+      using cos_monotone_0_pi'[OF lx_0 lx pi_x]
+      by (simp only: real_of_float_minus real_of_int_minus
+	cos_minus real_diff_def mult_minus_left)
+    also have "\<dots> \<le> real (ub_cos prec ?lx)"
+      using lb_cos[OF lx_0 pi_lx] by simp
+    finally have "cos x \<le> real (ub_cos prec ?lx)"
+      unfolding cos_periodic_int . }
+  note positive_lx = this
+
+  { assume pi_x: "- pi \<le> x - real k * 2 * pi" and "?ux \<le> 0"
+    with ux
+    have pi_ux: "- pi \<le> real ?ux" and ux_0: "real ?ux \<le> 0"
+      by (simp_all add: le_float_def)
+
+    have "cos (x + real (-k) * 2 * pi) \<le> cos (real (- ?ux))"
+      using cos_monotone_minus_pi_0'[OF pi_x ux ux_0]
+      by (simp only: real_of_float_minus real_of_int_minus
+	  cos_minus real_diff_def mult_minus_left)
+    also have "\<dots> \<le> real (ub_cos prec (- ?ux))"
+      using lb_cos_minus[OF pi_ux ux_0, of prec] by simp
+    finally have "cos x \<le> real (ub_cos prec (- ?ux))"
+      unfolding cos_periodic_int . }
+  note negative_ux = this
+
+  { assume "?ux \<le> ?lpi" and x_ge_0: "0 \<le> x - real k * 2 * pi"
+    with lpi ux
+    have pi_ux: "real ?ux \<le> pi" and ux_0: "0 \<le> real ?ux"
+      by (simp_all add: le_float_def)
+
+    have "real (lb_cos prec ?ux) \<le> cos (real ?ux)"
+      using lb_cos[OF ux_0 pi_ux] by simp
+    also have "\<dots> \<le> cos (x + real (-k) * 2 * pi)"
+      using cos_monotone_0_pi'[OF x_ge_0 ux pi_ux]
+      by (simp only: real_of_float_minus real_of_int_minus
+	cos_minus real_diff_def mult_minus_left)
+    finally have "real (lb_cos prec ?ux) \<le> cos x"
+      unfolding cos_periodic_int . }
+  note positive_ux = this
 
   show "real l \<le> cos x \<and> cos x \<le> real u"
-  proof (cases "lx < -?lpi \<or> ux > ?lpi")
-    case True
-    show ?thesis using bnds unfolding bnds_cos_def if_P[OF True] Let_def using cos_le_one cos_ge_minus_one by auto
-  next
-    case False note not_out = this
-    hence lpi_lx: "- real ?lpi \<le> real lx" and lpi_ux: "real ux \<le> real ?lpi" unfolding le_float_def less_float_def by auto
+  proof (cases "- ?lpi \<le> ?lx \<and> ?ux \<le> 0")
+    case True with bnds
+    have l: "l = lb_cos prec (-?lx)"
+      and u: "u = ub_cos prec (-?ux)"
+      by (auto simp add: bnds_cos_def Let_def)
 
-    from pi_boundaries[unfolded atLeastAtMost_iff, THEN conjunct1, THEN le_imp_neg_le] lpi_lx
-    have "- pi \<le> real lx" by (rule order_trans)
-    hence "- pi \<le> x" and "- pi \<le> real ux" and "x \<le> real ux" using x by auto
-    
-    from lpi_ux pi_boundaries[unfolded atLeastAtMost_iff, THEN conjunct1]
-    have "real ux \<le> pi" by (rule order_trans)
-    hence "x \<le> pi" and "real lx \<le> pi" and "real lx \<le> x" using x by auto
+    from True lpi[THEN le_imp_neg_le] lx ux
+    have "- pi \<le> x - real k * 2 * pi"
+      and "x - real k * 2 * pi \<le> 0"
+      by (auto simp add: le_float_def)
+    with True negative_ux negative_lx
+    show ?thesis unfolding l u by simp
+  next case False note 1 = this show ?thesis
+  proof (cases "0 \<le> ?lx \<and> ?ux \<le> ?lpi")
+    case True with bnds 1
+    have l: "l = lb_cos prec ?ux"
+      and u: "u = ub_cos prec ?lx"
+      by (auto simp add: bnds_cos_def Let_def)
 
-    note lb_cos_minus_bottom = lb_cos_minus[unfolded atLeastAtMost_iff, THEN conjunct1]
-    note lb_cos_minus_top = lb_cos_minus[unfolded atLeastAtMost_iff, THEN conjunct2]
-    note lb_cos_bottom = lb_cos[unfolded atLeastAtMost_iff, THEN conjunct1]
-    note lb_cos_top = lb_cos[unfolded atLeastAtMost_iff, THEN conjunct2]
+    from True lpi lx ux
+    have "0 \<le> x - real k * 2 * pi"
+      and "x - real k * 2 * pi \<le> pi"
+      by (auto simp add: le_float_def)
+    with True positive_ux positive_lx
+    show ?thesis unfolding l u by simp
+  next case False note 2 = this show ?thesis
+  proof (cases "- ?lpi \<le> ?lx \<and> ?ux \<le> ?lpi")
+    case True note Cond = this with bnds 1 2
+    have l: "l = min (lb_cos prec (-?lx)) (lb_cos prec ?ux)"
+      and u: "u = Float 1 0"
+      by (auto simp add: bnds_cos_def Let_def)
 
-    show ?thesis
-    proof (cases "ux \<le> 0")
-      case True hence "real ux \<le> 0" unfolding le_float_def by auto
-      hence "x \<le> 0" and "real lx \<le> 0" using x by auto
-      
-      { have "real (lb_cos prec (-lx)) \<le> cos (real (-lx))" using lb_cos_minus_bottom[OF `-pi \<le> real lx` `real lx \<le> 0`] .
-	also have "\<dots> \<le> cos x" unfolding real_of_float_minus cos_minus using cos_monotone_minus_pi_0'[OF `- pi \<le> real lx` `real lx \<le> x` `x \<le> 0`] .
-	finally have "real (lb_cos prec (-lx)) \<le> cos x" . }
-      moreover
-      { have "cos x \<le> cos (real (-ux))" unfolding real_of_float_minus cos_minus using cos_monotone_minus_pi_0'[OF `- pi \<le> x` `x \<le> real ux` `real ux \<le> 0`] .
-	also have "\<dots> \<le> real (ub_cos prec (-ux))" using lb_cos_minus_top[OF `-pi \<le> real ux` `real ux \<le> 0`] .
-	finally have "cos x \<le> real (ub_cos prec (-ux))" . }
-      ultimately show ?thesis using bnds unfolding bnds_cos_def Let_def if_not_P[OF not_out] if_P[OF True] by auto
+    show ?thesis unfolding u l using negative_lx positive_ux Cond
+      by (cases "x - real k * 2 * pi < 0", simp_all add: real_of_float_min)
+  next case False note 3 = this show ?thesis
+  proof (cases "0 \<le> ?lx \<and> ?ux \<le> 2 * ?lpi")
+    case True note Cond = this with bnds 1 2 3
+    have l: "l = Float -1 0"
+      and u: "u = max (ub_cos prec ?lx) (ub_cos prec (- (?ux - 2 * ?lpi)))"
+      by (auto simp add: bnds_cos_def Let_def)
+
+    have "cos x \<le> real u"
+    proof (cases "x - real k * 2 * pi < pi")
+      case True hence "x - real k * 2 * pi \<le> pi" by simp
+      from positive_lx[OF Cond[THEN conjunct1] this]
+      show ?thesis unfolding u by (simp add: real_of_float_max)
     next
-      case False note not_ux = this
-      
-      show ?thesis
-      proof (cases "0 \<le> lx")
-	case True hence "0 \<le> real lx" unfolding le_float_def by auto
-	hence "0 \<le> x" and "0 \<le> real ux" using x by auto
-      
-	{ have "real (lb_cos prec ux) \<le> cos (real ux)" using lb_cos_bottom[OF `0 \<le> real ux` `real ux \<le> pi`] .
-	  also have "\<dots> \<le> cos x" using cos_monotone_0_pi'[OF `0 \<le> x` `x \<le> real ux` `real ux \<le> pi`] .
-	  finally have "real (lb_cos prec ux) \<le> cos x" . }
-	moreover
-	{ have "cos x \<le> cos (real lx)" using cos_monotone_0_pi'[OF `0 \<le> real lx` `real lx \<le> x` `x \<le> pi`] .
-	  also have "\<dots> \<le> real (ub_cos prec lx)" using lb_cos_top[OF `0 \<le> real lx` `real lx \<le> pi`] .
-	  finally have "cos x \<le> real (ub_cos prec lx)" . }
-	ultimately show ?thesis using bnds unfolding bnds_cos_def Let_def if_not_P[OF not_out] if_not_P[OF not_ux] if_P[OF True] by auto
-      next
-	case False with not_ux
-	have "real lx \<le> 0" and "0 \<le> real ux" unfolding le_float_def by auto
+      case False hence "pi \<le> x - real k * 2 * pi" by simp
+      hence pi_x: "- pi \<le> x - real k * 2 * pi - 2 * pi" by simp
 
-	have "real (min (lb_cos prec (-lx)) (lb_cos prec ux)) \<le> cos x"
-	proof (cases "x \<le> 0")
-	  case True
-	  have "real (lb_cos prec (-lx)) \<le> cos (real (-lx))" using lb_cos_minus_bottom[OF `-pi \<le> real lx` `real lx \<le> 0`] .
-	  also have "\<dots> \<le> cos x" unfolding real_of_float_minus cos_minus using cos_monotone_minus_pi_0'[OF `- pi \<le> real lx` `real lx \<le> x` `x \<le> 0`] .
-	  finally show ?thesis unfolding real_of_float_min by auto
-	next
-	  case False hence "0 \<le> x" by auto
-	  have "real (lb_cos prec ux) \<le> cos (real ux)" using lb_cos_bottom[OF `0 \<le> real ux` `real ux \<le> pi`] .
-	  also have "\<dots> \<le> cos x" using cos_monotone_0_pi'[OF `0 \<le> x` `x \<le> real ux` `real ux \<le> pi`] .
-	  finally show ?thesis unfolding real_of_float_min by auto
-	qed
-	moreover have "cos x \<le> real (Float 1 0)" by auto
-	ultimately show ?thesis using bnds unfolding bnds_cos_def Let_def if_not_P[OF not_out] if_not_P[OF not_ux] if_not_P[OF False] by auto
-      qed
+      have "real ?ux \<le> 2 * pi" using Cond lpi by (auto simp add: le_float_def)
+      hence "x - real k * 2 * pi - 2 * pi \<le> 0" using ux by simp
+
+      have ux_0: "real (?ux - 2 * ?lpi) \<le> 0"
+	using Cond by (auto simp add: le_float_def)
+
+      from 2 and Cond have "\<not> ?ux \<le> ?lpi" by auto
+      hence "- ?lpi \<le> ?ux - 2 * ?lpi" by (auto simp add: le_float_def)
+      hence pi_ux: "- pi \<le> real (?ux - 2 * ?lpi)"
+	using lpi[THEN le_imp_neg_le] by (auto simp add: le_float_def)
+
+      have x_le_ux: "x - real k * 2 * pi - 2 * pi \<le> real (?ux - 2 * ?lpi)"
+	using ux lpi by auto
+
+      have "cos x = cos (x + real (-k) * 2 * pi + real (-1 :: int) * 2 * pi)"
+	unfolding cos_periodic_int ..
+      also have "\<dots> \<le> cos (real (?ux - 2 * ?lpi))"
+	using cos_monotone_minus_pi_0'[OF pi_x x_le_ux ux_0]
+	by (simp only: real_of_float_minus real_of_int_minus real_of_one
+	    number_of_Min real_diff_def mult_minus_left real_mult_1)
+      also have "\<dots> = cos (real (- (?ux - 2 * ?lpi)))"
+	unfolding real_of_float_minus cos_minus ..
+      also have "\<dots> \<le> real (ub_cos prec (- (?ux - 2 * ?lpi)))"
+	using lb_cos_minus[OF pi_ux ux_0] by simp
+      finally show ?thesis unfolding u by (simp add: real_of_float_max)
     qed
-  qed
-qed
-
-subsection "Compute the sinus in the entire domain"
-
-function lb_sin :: "nat \<Rightarrow> float \<Rightarrow> float" and ub_sin :: "nat \<Rightarrow> float \<Rightarrow> float" where
-"lb_sin prec x = (let sqr_diff = \<lambda> x. if x > 1 then 0 else 1 - x * x 
-  in if x < 0           then - ub_sin prec (- x)
-else if x \<le> Float 1 -1  then x * lb_sin_cos_aux prec (get_even (prec div 4 + 1)) 2 1 (x * x)
-                        else the (lb_sqrt prec (sqr_diff (ub_cos prec x))))" |
-
-"ub_sin prec x = (let sqr_diff = \<lambda> x. if x < 0 then 1 else 1 - x * x
-  in if x < 0           then - lb_sin prec (- x)
-else if x \<le> Float 1 -1  then x * ub_sin_cos_aux prec (get_odd (prec div 4 + 1)) 2 1 (x * x)
-                        else the (ub_sqrt prec (sqr_diff (lb_cos prec x))))"
-by pat_completeness auto
-termination by (relation "measure (\<lambda> v. let (prec, x) = sum_case id id v in (if x < 0 then 1 else 0))", auto simp add: less_float_def)
-
-definition bnds_sin :: "nat \<Rightarrow> float \<Rightarrow> float \<Rightarrow> float * float" where
-"bnds_sin prec lx ux = (let 
-    lpi = lb_pi prec ;
-    half_pi = lpi * Float 1 -1
-  in if lx \<le> - half_pi \<or> half_pi \<le> ux then (Float -1 0, Float 1 0)
-                                       else (lb_sin prec lx, ub_sin prec ux))"
-
-lemma lb_sin: assumes "- (pi / 2) \<le> real x" and "real x \<le> pi / 2"
-  shows "sin (real x) \<in> { real (lb_sin prec x) .. real (ub_sin prec x) }" (is "?sin x \<in> { ?lb x .. ?ub x}")
-proof -
-  { fix x :: float assume "0 \<le> real x" and "real x \<le> pi / 2"
-    hence "\<not> (x < 0)" and "- (pi / 2) \<le> real x" unfolding less_float_def using pi_ge_two by auto
-
-    have "real x \<le> pi" using `real x \<le> pi / 2` using pi_ge_two by auto
-
-    have "?sin x \<in> { ?lb x .. ?ub x}"
-    proof (cases "x \<le> Float 1 -1")
-      case True from sin_boundaries[OF `0 \<le> real x` `real x \<le> pi / 2`]
-      show ?thesis unfolding lb_sin.simps[of prec x] ub_sin.simps[of prec x] if_not_P[OF `\<not> (x < 0)`] if_P[OF True] Let_def .
-    next
-      case False
-      have "0 \<le> cos (real x)" using cos_ge_zero[OF _ `real x \<le> pi /2`] `0 \<le> real x` pi_ge_two by auto
-      have "0 \<le> sin (real x)" using `0 \<le> real x` and `real x \<le> pi / 2` using sin_ge_zero by auto
-      
-      have "?sin x \<le> ?ub x"
-      proof (cases "lb_cos prec x < 0")
-	case True
-	have "?sin x \<le> 1" using sin_le_one .
-	also have "\<dots> \<le> real (the (ub_sqrt prec 1))" using ub_sqrt_lower_bound[where prec=prec and x=1] unfolding real_of_float_1 by auto
-	finally show ?thesis unfolding ub_sin.simps if_not_P[OF `\<not> (x < 0)`] if_not_P[OF `\<not> x \<le> Float 1 -1`] if_P[OF True] Let_def .
-      next
-	case False hence "0 \<le> real (lb_cos prec x)" unfolding less_float_def by auto
-	
-	have "sin (real x) = sqrt (1 - cos (real x) ^ 2)" unfolding sin_squared_eq[symmetric] real_sqrt_abs using `0 \<le> sin (real x)` by auto
-	also have "\<dots> \<le> sqrt (real (1 - lb_cos prec x * lb_cos prec x))" 
-	proof (rule real_sqrt_le_mono)
-	  have "real (lb_cos prec x * lb_cos prec x) \<le> cos (real x) ^ 2" unfolding numeral_2_eq_2 power_Suc2 power_0 real_of_float_mult
-	    using `0 \<le> real (lb_cos prec x)` lb_cos[OF `0 \<le> real x` `real x \<le> pi`] `0 \<le> cos (real x)` by(auto intro!: mult_mono)
-	  thus "1 - cos (real x) ^ 2 \<le> real (1 - lb_cos prec x * lb_cos prec x)" unfolding real_of_float_sub real_of_float_1 by auto
-	qed
-	also have "\<dots> \<le> real (the (ub_sqrt prec (1 - lb_cos prec x * lb_cos prec x)))"
-	proof (rule ub_sqrt_lower_bound)
-	  have "real (lb_cos prec x) \<le> cos (real x)" using lb_cos[OF `0 \<le> real x` `real x \<le> pi`] by auto
-	  from mult_mono[OF order_trans[OF this cos_le_one] order_trans[OF this cos_le_one]]
-	  have "real (lb_cos prec x) * real (lb_cos prec x) \<le> 1" using `0 \<le> real (lb_cos prec x)` by auto
-	  thus "0 \<le> real (1 - lb_cos prec x * lb_cos prec x)" by auto
-	qed
-	finally show ?thesis unfolding ub_sin.simps if_not_P[OF `\<not> (x < 0)`] if_not_P[OF `\<not> x \<le> Float 1 -1`] if_not_P[OF False] Let_def .
-      qed
-      moreover
-      have "?lb x \<le> ?sin x"
-      proof (cases "1 < ub_cos prec x")
-	case True
-	show ?thesis unfolding lb_sin.simps if_not_P[OF `\<not> (x < 0)`] if_not_P[OF `\<not> x \<le> Float 1 -1`] if_P[OF True] Let_def 
-	  by (rule order_trans[OF _ sin_ge_zero[OF `0 \<le> real x` `real x \<le> pi`]]) 
-        (auto simp add: lb_sqrt_upper_bound[where prec=prec and x=0, unfolded real_of_float_0 real_sqrt_zero])
-      next
-	case False hence "real (ub_cos prec x) \<le> 1" unfolding less_float_def by auto
-	have "0 \<le> real (ub_cos prec x)" using order_trans[OF `0 \<le> cos (real x)`] lb_cos `0 \<le> real x` `real x \<le> pi` by auto
-	
-	have "real (the (lb_sqrt prec (1 - ub_cos prec x * ub_cos prec x))) \<le> sqrt (real (1 - ub_cos prec x * ub_cos prec x))"
-	proof (rule lb_sqrt_upper_bound)
-	  from mult_mono[OF `real (ub_cos prec x) \<le> 1` `real (ub_cos prec x) \<le> 1`] `0 \<le> real (ub_cos prec x)`
-	  have "real (ub_cos prec x) * real (ub_cos prec x) \<le> 1" by auto
-	  thus "0 \<le> real (1 - ub_cos prec x * ub_cos prec x)" by auto
-	qed
-	also have "\<dots> \<le> sqrt (1 - cos (real x) ^ 2)"
-	proof (rule real_sqrt_le_mono)
-	  have "cos (real x) ^ 2 \<le> real (ub_cos prec x * ub_cos prec x)" unfolding numeral_2_eq_2 power_Suc2 power_0 real_of_float_mult
-	    using `0 \<le> real (ub_cos prec x)` lb_cos[OF `0 \<le> real x` `real x \<le> pi`] `0 \<le> cos (real x)` by(auto intro!: mult_mono)
-	  thus "real (1 - ub_cos prec x * ub_cos prec x) \<le> 1 - cos (real x) ^ 2" unfolding real_of_float_sub real_of_float_1 by auto
-	qed
-	also have "\<dots> = sin (real x)" unfolding sin_squared_eq[symmetric] real_sqrt_abs using `0 \<le> sin (real x)` by auto
-	finally show ?thesis unfolding lb_sin.simps if_not_P[OF `\<not> (x < 0)`] if_not_P[OF `\<not> x \<le> Float 1 -1`] if_not_P[OF False] Let_def .
-      qed
-      ultimately show ?thesis by auto
-    qed
-  } note for_pos = this
-
-  show ?thesis
-  proof (cases "x < 0")
-    case True 
-    hence "0 \<le> real (-x)" and "real (- x) \<le> pi / 2" using `-(pi/2) \<le> real x` unfolding less_float_def by auto
-    from for_pos[OF this]
-    show ?thesis unfolding real_of_float_minus sin_minus lb_sin.simps[of prec x] ub_sin.simps[of prec x] if_P[OF True] Let_def atLeastAtMost_iff by auto
+    thus ?thesis unfolding l by auto
   next
-    case False hence "0 \<le> real x" unfolding less_float_def by auto
-    from for_pos[OF this `real x \<le> pi /2`]
-    show ?thesis .
-  qed
-qed
-
-lemma bnds_sin: "\<forall> x lx ux. (l, u) = bnds_sin prec lx ux \<and> x \<in> {real lx .. real ux} \<longrightarrow> real l \<le> sin x \<and> sin x \<le> real u"
-proof (rule allI, rule allI, rule allI, rule impI)
-  fix x lx ux
-  assume "(l, u) = bnds_sin prec lx ux \<and> x \<in> {real lx .. real ux}"
-  hence bnds: "(l, u) = bnds_sin prec lx ux" and x: "x \<in> {real lx .. real ux}" by auto
-  show "real l \<le> sin x \<and> sin x \<le> real u"
-  proof (cases "lx \<le> - (lb_pi prec * Float 1 -1) \<or> lb_pi prec * Float 1 -1 \<le> ux")
-    case True show ?thesis using bnds unfolding bnds_sin_def if_P[OF True] Let_def by auto
-  next
-    case False
-    hence "- lb_pi prec * Float 1 -1 \<le> lx" and "ux \<le> lb_pi prec * Float 1 -1" unfolding le_float_def by auto
-    moreover have "real (lb_pi prec * Float 1 -1) \<le> pi / 2" unfolding real_of_float_mult using pi_boundaries by auto
-    ultimately have "- (pi / 2) \<le> real lx" and "real ux \<le> pi / 2" and "real lx \<le> real ux" unfolding le_float_def using x by auto
-    hence "- (pi / 2) \<le> real ux" and "real lx \<le> pi / 2" by auto
-    
-    have "- (pi / 2) \<le> x""x \<le> pi / 2" using `real ux \<le> pi / 2` `- (pi /2) \<le> real lx` x by auto
-    
-    { have "real (lb_sin prec lx) \<le> sin (real lx)" using lb_sin[OF `- (pi / 2) \<le> real lx` `real lx \<le> pi / 2`] unfolding atLeastAtMost_iff by auto
-      also have "\<dots> \<le> sin x" using sin_monotone_2pi' `- (pi / 2) \<le> real lx` x `x \<le> pi / 2` by auto
-      finally have "real (lb_sin prec lx) \<le> sin x" . }
-    moreover
-    { have "sin x \<le> sin (real ux)" using sin_monotone_2pi' `- (pi / 2) \<le> x` x `real ux \<le> pi / 2` by auto
-      also have "\<dots> \<le> real (ub_sin prec ux)" using lb_sin[OF `- (pi / 2) \<le> real ux` `real ux \<le> pi / 2`] unfolding atLeastAtMost_iff by auto
-      finally have "sin x \<le> real (ub_sin prec ux)" . }
-    ultimately
-    show ?thesis using bnds unfolding bnds_sin_def if_not_P[OF False] Let_def by auto
-  qed
+    case False with bnds 1 2 3 show ?thesis by (auto simp add: bnds_cos_def Let_def)
+  qed qed qed qed
 qed
 
 section "Exponential function"
@@ -1384,7 +1375,7 @@ proof -
   { fix n
     have F: "\<And> m. ((\<lambda>i. i + 1) ^^ n) m = n + m" by (induct n, auto)
     have "fact (Suc n) = fact n * ((\<lambda>i. i + 1) ^^ n) 1" unfolding F by auto } note f_eq = this
-    
+
   note bounds = horner_bounds_nonpos[where f="fact" and lb="lb_exp_horner prec" and ub="ub_exp_horner prec" and j'=0 and s=1,
     OF assms f_eq lb_exp_horner.simps ub_exp_horner.simps]
 
@@ -1924,14 +1915,13 @@ proof (rule allI, rule allI, rule allI, rule impI)
   have "ln (real ux) \<le> real u" and "0 < real ux" using ub_ln u by auto
   have "real l \<le> ln (real lx)" and "0 < real lx" and "0 < x" using lb_ln[OF l] x by auto
 
-  from ln_le_cancel_iff[OF `0 < real lx` `0 < x`] `real l \<le> ln (real lx)` 
+  from ln_le_cancel_iff[OF `0 < real lx` `0 < x`] `real l \<le> ln (real lx)`
   have "real l \<le> ln x" using x unfolding atLeastAtMost_iff by auto
   moreover
-  from ln_le_cancel_iff[OF `0 < x` `0 < real ux`] `ln (real ux) \<le> real u` 
+  from ln_le_cancel_iff[OF `0 < x` `0 < real ux`] `ln (real ux) \<le> real u`
   have "ln x \<le> real u" using x unfolding atLeastAtMost_iff by auto
   ultimately show "real l \<le> ln x \<and> ln x \<le> real u" ..
 qed
-
 
 section "Implement floatarith"
 
@@ -1942,7 +1932,6 @@ datatype floatarith
   | Minus floatarith
   | Mult floatarith floatarith
   | Inverse floatarith
-  | Sin floatarith
   | Cos floatarith
   | Arctan floatarith
   | Abs floatarith
@@ -1962,7 +1951,6 @@ where
 "interpret_floatarith (Minus a) vs    = - (interpret_floatarith a vs)" |
 "interpret_floatarith (Mult a b) vs   = (interpret_floatarith a vs) * (interpret_floatarith b vs)" |
 "interpret_floatarith (Inverse a) vs  = inverse (interpret_floatarith a vs)" |
-"interpret_floatarith (Sin a) vs      = sin (interpret_floatarith a vs)" |
 "interpret_floatarith (Cos a) vs      = cos (interpret_floatarith a vs)" |
 "interpret_floatarith (Arctan a) vs   = arctan (interpret_floatarith a vs)" |
 "interpret_floatarith (Min a b) vs    = min (interpret_floatarith a vs) (interpret_floatarith b vs)" |
@@ -2027,14 +2015,13 @@ fun approx approx' :: "nat \<Rightarrow> floatarith \<Rightarrow> (float * float
                                     (\<lambda> a1 a2 b1 b2. (float_nprt a1 * float_pprt b2 + float_nprt a2 * float_nprt b2 + float_pprt a1 * float_pprt b1 + float_pprt a2 * float_nprt b1, 
                                                      float_pprt a2 * float_pprt b2 + float_pprt a1 * float_nprt b2 + float_nprt a2 * float_pprt b1 + float_nprt a1 * float_nprt b1))" |
 "approx prec (Inverse a) bs = lift_un (approx' prec a bs) (\<lambda> l u. if (0 < l \<or> u < 0) then (Some (float_divl prec 1 u), Some (float_divr prec 1 l)) else (None, None))" |
-"approx prec (Sin a) bs     = lift_un' (approx' prec a bs) (bnds_sin prec)" |
 "approx prec (Cos a) bs     = lift_un' (approx' prec a bs) (bnds_cos prec)" |
 "approx prec Pi bs          = Some (lb_pi prec, ub_pi prec)" |
 "approx prec (Min a b) bs   = lift_bin' (approx' prec a bs) (approx' prec b bs) (\<lambda> l1 u1 l2 u2. (min l1 l2, min u1 u2))" |
 "approx prec (Max a b) bs   = lift_bin' (approx' prec a bs) (approx' prec b bs) (\<lambda> l1 u1 l2 u2. (max l1 l2, max u1 u2))" |
 "approx prec (Abs a) bs     = lift_un' (approx' prec a bs) (\<lambda>l u. (if l < 0 \<and> 0 < u then 0 else min \<bar>l\<bar> \<bar>u\<bar>, max \<bar>l\<bar> \<bar>u\<bar>))" |
 "approx prec (Arctan a) bs  = lift_un' (approx' prec a bs) (\<lambda> l u. (lb_arctan prec l, ub_arctan prec u))" |
-"approx prec (Sqrt a) bs    = lift_un (approx' prec a bs) (\<lambda> l u. (lb_sqrt prec l, ub_sqrt prec u))" |
+"approx prec (Sqrt a) bs    = lift_un' (approx' prec a bs) (\<lambda> l u. (lb_sqrt prec l, ub_sqrt prec u))" |
 "approx prec (Exp a) bs     = lift_un' (approx' prec a bs) (\<lambda> l u. (lb_exp prec l, ub_exp prec u))" |
 "approx prec (Ln a) bs      = lift_un (approx' prec a bs) (\<lambda> l u. (lb_ln prec l, ub_ln prec u))" |
 "approx prec (Power a n) bs = lift_un' (approx' prec a bs) (float_power_bnds n)" |
@@ -2305,11 +2292,10 @@ next
     and l1: "real l1 \<le> interpret_floatarith a xs" and u1: "interpret_floatarith a xs \<le> real u1"
     and l1: "real l2 \<le> interpret_floatarith b xs" and u1: "interpret_floatarith b xs \<le> real u2" by blast
   thus ?case unfolding l' u' by (auto simp add: real_of_float_max)
-next case (Sin a) with lift_un'_bnds[OF bnds_sin] show ?case by auto
 next case (Cos a) with lift_un'_bnds[OF bnds_cos] show ?case by auto
 next case (Arctan a) with lift_un'_bnds[OF bnds_arctan] show ?case by auto
 next case Pi with pi_boundaries show ?case by auto
-next case (Sqrt a) with lift_un_bnds[OF bnds_sqrt] show ?case by auto
+next case (Sqrt a) with lift_un'_bnds[OF bnds_sqrt] show ?case by auto
 next case (Exp a) with lift_un'_bnds[OF bnds_exp] show ?case by auto
 next case (Ln a) with lift_un_bnds[OF bnds_ln] show ?case by auto
 next case (Power a n) with lift_un'_bnds[OF bnds_power] show ?case by auto
@@ -2391,8 +2377,17 @@ lemma interpret_floatarith_divide: "interpret_floatarith (Mult a (Inverse b)) vs
 lemma interpret_floatarith_diff: "interpret_floatarith (Add a (Minus b)) vs = (interpret_floatarith a vs) - (interpret_floatarith b vs)"
   unfolding real_diff_def interpret_floatarith.simps ..
 
-lemma interpret_floatarith_tan: "interpret_floatarith (Mult (Sin a) (Inverse (Cos a))) vs = tan (interpret_floatarith a vs)"
-  unfolding tan_def interpret_floatarith.simps real_divide_def ..
+lemma interpret_floatarith_sin: "interpret_floatarith (Cos (Add (Mult Pi (Num (Float 1 -1))) (Minus a))) vs = 
+  sin (interpret_floatarith a vs)"
+  unfolding sin_cos_eq interpret_floatarith.simps
+            interpret_floatarith_divide interpret_floatarith_diff real_diff_def
+  by auto
+
+lemma interpret_floatarith_tan:
+  "interpret_floatarith (Mult (Cos (Add (Mult Pi (Num (Float 1 -1))) (Minus a))) (Inverse (Cos a))) vs =
+   tan (interpret_floatarith a vs)"
+  unfolding interpret_floatarith.simps(3,4) interpret_floatarith_sin tan_def real_divide_def
+  by auto
 
 lemma interpret_floatarith_powr: "interpret_floatarith (Exp (Mult b (Ln a))) vs = (interpret_floatarith a vs) powr (interpret_floatarith b vs)"
   unfolding powr_def interpret_floatarith.simps ..
@@ -2420,13 +2415,14 @@ lemma bounded_num: shows "real (Float 5 1) = 10" and "real (Float 0 0) = 0" and 
 lemmas bounded_by_equations = bounded_by_Cons bounded_by_Nil float_power bounded_divl bounded_divr bounded_num HOL.simp_thms
 lemmas interpret_inequality_equations = interpret_inequality.simps interpret_floatarith.simps interpret_floatarith_num
   interpret_floatarith_divide interpret_floatarith_diff interpret_floatarith_tan interpret_floatarith_powr interpret_floatarith_log
+  interpret_floatarith_sin
 
 ML {*
 structure Float_Arith =
 struct
 
 @{code_datatype float = Float}
-@{code_datatype floatarith = Add | Minus | Mult | Inverse | Sin | Cos | Arctan 
+@{code_datatype floatarith = Add | Minus | Mult | Inverse | Cos | Arctan
                            | Abs | Max | Min | Pi | Sqrt | Exp | Ln | Power | Atom | Num }
 @{code_datatype inequality = Less | LessEqual }
 
@@ -2441,10 +2437,10 @@ code_type float (Eval "Float'_Arith.float")
 code_const Float (Eval "Float'_Arith.Float/ (_,/ _)")
 
 code_type floatarith (Eval "Float'_Arith.floatarith")
-code_const Add and Minus and Mult and Inverse and Sin and Cos and Arctan and Abs and Max and Min and
+code_const Add and Minus and Mult and Inverse and Cos and Arctan and Abs and Max and Min and
            Pi and Sqrt  and Exp and Ln and Power and Atom and Num
   (Eval "Float'_Arith.Add/ (_,/ _)" and "Float'_Arith.Minus" and "Float'_Arith.Mult/ (_,/ _)" and
-        "Float'_Arith.Inverse" and "Float'_Arith.Sin" and "Float'_Arith.Cos" and
+        "Float'_Arith.Inverse" and "Float'_Arith.Cos" and
         "Float'_Arith.Arctan" and "Float'_Arith.Abs" and "Float'_Arith.Max/ (_,/ _)" and
         "Float'_Arith.Min/ (_,/ _)" and "Float'_Arith.Pi" and "Float'_Arith.Sqrt" and
         "Float'_Arith.Exp" and "Float'_Arith.Ln" and "Float'_Arith.Power/ (_,/ _)" and
@@ -2505,9 +2501,9 @@ ML {*
 
     val goal' : term = List.nth (prems_of thm, i - 1)
 
-    fun lift_bnd (t as (Const (@{const_name "op &"}, _) $ 
-                        (Const (@{const_name "less_eq"}, _) $ 
-                         bottom $ (Free (name, _))) $ 
+    fun lift_bnd (t as (Const (@{const_name "op &"}, _) $
+                        (Const (@{const_name "less_eq"}, _) $
+                         bottom $ (Free (name, _))) $
                         (Const (@{const_name "less_eq"}, _) $ _ $ top)))
          = ((name, HOLogic.mk_prod (bot_float bottom, top_float top))
             handle TERM (txt, ts) => raise TERM ("Invalid bound number format: " ^
@@ -2542,11 +2538,9 @@ method_setup approximation = {*
     SIMPLE_METHOD' (fn i =>
      (DETERM (reify_ineq ctxt i)
       THEN rule_ineq ctxt prec i
-      THEN Simplifier.asm_full_simp_tac bounded_by_simpset i 
+      THEN Simplifier.asm_full_simp_tac bounded_by_simpset i
       THEN (TRY (filter_prems_tac (fn t => false) i))
       THEN (gen_eval_tac eval_oracle ctxt) i)))
 *} "real number approximation"
 
-lemma "sin 1 > 0" by (approximation 10)
- 
 end
