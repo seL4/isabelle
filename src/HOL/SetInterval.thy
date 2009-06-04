@@ -468,7 +468,6 @@ lemma card_greaterThanAtMost [simp]: "card {l<..u} = u - l"
 lemma card_greaterThanLessThan [simp]: "card {l<..<u} = u - Suc l"
   by (subst atLeastSucLessThan_greaterThanLessThan [THEN sym], simp)
 
-
 lemma ex_bij_betw_nat_finite:
   "finite M \<Longrightarrow> \<exists>h. bij_betw h {0..<card M} M"
 apply(drule finite_imp_nat_seg_image_inj_on)
@@ -478,6 +477,17 @@ done
 lemma ex_bij_betw_finite_nat:
   "finite M \<Longrightarrow> \<exists>h. bij_betw h M {0..<card M}"
 by (blast dest: ex_bij_betw_nat_finite bij_betw_inv)
+
+lemma finite_same_card_bij:
+  "finite A \<Longrightarrow> finite B \<Longrightarrow> card A = card B \<Longrightarrow> EX h. bij_betw h A B"
+apply(drule ex_bij_betw_finite_nat)
+apply(drule ex_bij_betw_nat_finite)
+apply(auto intro!:bij_betw_trans)
+done
+
+lemma ex_bij_betw_nat_finite_1:
+  "finite M \<Longrightarrow> \<exists>h. bij_betw h {1 .. card M} M"
+by (rule finite_same_card_bij) auto
 
 
 subsection {* Intervals of integers *}
