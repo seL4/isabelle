@@ -1333,6 +1333,10 @@ apply (erule finite_induct[where F=A and P="% A. (a \<in> A \<longrightarrow> (\
 apply (auto simp add: insert_Diff_if add_ac)
 done
 
+lemma setsum_diff1_ring: assumes "finite A" "a \<in> A"
+  shows "setsum f (A - {a}) = setsum f A - (f a::'a::ring)"
+unfolding setsum_diff1'[OF assms] by auto
+
 (* By Jeremy Siek: *)
 
 lemma setsum_diff_nat: 

@@ -250,6 +250,10 @@ by (simp add: bij_def)
 lemma bij_betw_imp_inj_on: "bij_betw f A B \<Longrightarrow> inj_on f A"
 by (simp add: bij_betw_def)
 
+lemma bij_betw_trans:
+  "bij_betw f A B \<Longrightarrow> bij_betw g B C \<Longrightarrow> bij_betw (g o f) A C"
+by(auto simp add:bij_betw_def comp_inj_on)
+
 lemma bij_betw_inv: assumes "bij_betw f A B" shows "EX g. bij_betw g B A"
 proof -
   have i: "inj_on f A" and s: "f ` A = B"
@@ -299,6 +303,9 @@ lemma vimage_subset_eq: "bij f ==> (f -` B <= A) = (B <= f ` A)"
 apply (unfold bij_def)
 apply (blast del: subsetI intro: vimage_subsetI vimage_subsetD)
 done
+
+lemma inj_on_Un_image_eq_iff: "inj_on f (A \<union> B) \<Longrightarrow> f ` A = f ` B \<longleftrightarrow> A = B"
+by(blast dest: inj_onD)
 
 lemma inj_on_image_Int:
    "[| inj_on f C;  A<=C;  B<=C |] ==> f`(A Int B) = f`A Int f`B"
