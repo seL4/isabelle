@@ -6,34 +6,66 @@ Advanced runtime compilation for Poly/ML 5.3 (SVN 762).
 
 signature ML_COMPILER =
 sig
+  val exception_position: exn -> Position.T
   val eval: bool -> Position.T -> ML_Lex.token list -> unit
 end
 
 structure ML_Compiler: ML_COMPILER =
 struct
 
-(* original source positions *)
+(* source locations *)
 
-fun position_of (SOME context) (loc: PolyML.location) =
-      (case pairself (ML_Env.token_position context) (#startPosition loc, #endPosition loc) of
-        (SOME pos1, SOME pos2) => Position.encode_range (pos1, pos2)
-      | (SOME pos, NONE) => pos
-      | _ => Position.line_file (#startLine loc) (#file loc))
-  | position_of NONE (loc: PolyML.location) = Position.line_file (#startLine loc) (#file loc);
+fun location_of pos : PolyML.location =
+  let
+    val props = Position.properties_of pos;
+    fun get k = the_default 0 (Properties.get_int props k);
+
+    val loc_props = props |> fold Properties.remove
+      [Markup.lineN, Markup.end_lineN, Markup.columnN, Markup.end_columnN,
+        Markup.offsetN, Markup.end_offsetN];
+    val text = Markup.markup (Markup.properties loc_props Markup.position) "";
+  in
+   {file = text,
+    startLine = get Markup.lineN,
+    startPosition = get Markup.offsetN,
+    endLine = get Markup.end_lineN,
+    endPosition = get Markup.end_offsetN}
+  end;
+
+fun position_of (loc: PolyML.location) =
+  let
+    val {file = text, startLine = line, startPosition = offset,
+      endLine = end_line, endPosition = end_offset} = loc;
+    val loc_props =
+      (case YXML.parse_body text of
+        [(XML.Elem (e, atts, []))] => if e = Markup.positionN then atts else []
+      | _ => []);
+  in
+    Position.value Markup.lineN line @
+    Position.value Markup.offsetN offset @
+    Position.value Markup.end_lineN end_line @
+    Position.value Markup.end_offsetN end_offset @
+    loc_props
+  end |> Position.of_properties;
+
+fun exception_position exn =
+  (case PolyML.exceptionLocation exn of
+    NONE => Position.none
+  | SOME loc => position_of loc);
 
 
 (* parse trees *)
 
-fun report_parse_tree context depth space =
+fun report_parse_tree depth space =
   let
-    val pos_of = position_of context;
     fun report loc (PolyML.PTtype types) =
           PolyML.NameSpace.displayTypeExpression (types, depth, space)
           |> pretty_ml |> Pretty.from_ML |> Pretty.string_of
-          |> Position.report_text Markup.ML_typing (pos_of loc)
+          |> Position.report_text Markup.ML_typing (position_of loc)
       | report loc (PolyML.PTdeclaredAt decl) =
-          Markup.markup (Markup.properties (Position.properties_of (pos_of decl)) Markup.ML_def) ""
-          |> Position.report_text Markup.ML_ref (pos_of loc)
+          Markup.markup
+            (Markup.properties (Position.properties_of (position_of decl)) Markup.ML_def) ""
+          |> Position.report_text Markup.ML_ref (position_of loc)
       | report _ (PolyML.PTnextSibling tree) = report_tree (tree ())
       | report _ (PolyML.PTfirstChild tree) = report_tree (tree ())
       | report _ _ = ()
@@ -51,23 +83,26 @@ fun eval verbose pos toks =
 
     (* input *)
 
-    val input =
-      if is_none (Context.thread_data ()) then map (pair 0) toks
-      else Context.>>> (ML_Env.register_tokens toks);
-    val input_buffer = ref (map (apsnd (String.explode o ML_Lex.text_of)) input);
+    val input = toks |> maps (fn tok =>
+      let
+        val syms = Symbol.explode (ML_Lex.check_content_of tok);
+        val (ps, _) = fold_map (fn s => fn p => (p, Position.advance s p)) syms (ML_Lex.pos_of tok);
+      in ps ~~ map (String.explode o Symbol.esc) syms end);
 
-    val current_line = ref (the_default 1 (Position.line_of pos));
+    val input_buffer = ref input;
+    val line = ref (the_default 1 (Position.line_of pos));
 
-    fun get_index () =
-      the_default 0 (get_first (fn (_, []) => NONE | (i, _) => SOME i) (! input_buffer));
+    fun get_offset () =
+      the_default 0
+        (get_first (fn (_, []) => NONE | (p, _) => Position.offset_of p) (! input_buffer));
 
     fun get () =
       (case ! input_buffer of
         [] => NONE
       | (_, []) :: rest => (input_buffer := rest; get ())
-      | (i, c :: cs) :: rest =>
-          (input_buffer := (i, cs) :: rest;
-           if c = #"\n" then current_line := ! current_line + 1 else ();
+      | (p, c :: cs) :: rest =>
+          (input_buffer := (p, cs) :: rest;
+           if c = #"\n" then line := ! line + 1 else ();
            SOME c));
 
 
@@ -80,7 +115,7 @@ fun eval verbose pos toks =
     fun put_message {message, hard, location, context = _} =
      (put (if hard then "Error: " else "Warning: ");
       put (Pretty.string_of (Pretty.from_ML (pretty_ml message)));
-      put (Position.str_of (position_of (Context.thread_data ()) location) ^ "\n"));
+      put (Position.str_of (position_of location) ^ "\n"));
 
 
     (* results *)
@@ -117,9 +152,9 @@ fun eval verbose pos toks =
 
     fun result_fun (phase1, phase2) () =
      (case phase1 of NONE => ()
-      | SOME parse_tree => report_parse_tree (Context.thread_data ()) depth space parse_tree;
+      | SOME parse_tree => report_parse_tree depth space parse_tree;
       case phase2 of NONE => err "Static Errors"
-      | SOME code => apply_result (code ()));  (* FIXME Toplevel.program *)
+      | SOME code => apply_result (code ()));  (* FIXME cf. Toplevel.program *)
 
 
     (* compiler invocation *)
@@ -128,9 +163,9 @@ fun eval verbose pos toks =
      [PolyML.Compiler.CPOutStream put,
       PolyML.Compiler.CPNameSpace space,
       PolyML.Compiler.CPErrorMessageProc put_message,
-      PolyML.Compiler.CPLineNo (fn () => ! current_line),
+      PolyML.Compiler.CPLineNo (fn () => ! line),
       PolyML.Compiler.CPFileName (the_default "ML" (Position.file_of pos)),
-      PolyML.Compiler.CPLineOffset get_index,
+      PolyML.Compiler.CPLineOffset get_offset,
       PolyML.Compiler.CPCompilerResultFun result_fun];
     val _ =
       (while not (List.null (! input_buffer)) do
