@@ -41,6 +41,13 @@ ML_SOURCES="$ML_HOME/../src"
 #ML_SYSTEM=polyml-5.2.1
 #ML_OPTIONS="-H 1000"
 
+# Poly/ML 5.3 (experimental)
+#ML_PLATFORM=x86-linux
+#ML_HOME=/usr/local/polyml/x86-linux
+#ML_SYSTEM=polyml-experimental
+#ML_OPTIONS="-H 500"
+#ML_SOURCES="$ML_HOME/../src"
+
 # Standard ML of New Jersey (slow!)
 #ML_SYSTEM=smlnj-110
 #ML_HOME="/usr/local/smlnj/bin"
