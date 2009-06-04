@@ -12,6 +12,8 @@ struct
   val global = PolyML.globalNameSpace;
 end;
 
+fun reraise exn = raise exn;
+
 use "ML-Systems/polyml_common.ML";
 
 if ml_system = "polyml-5.2"

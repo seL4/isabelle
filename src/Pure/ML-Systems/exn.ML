@@ -35,7 +35,7 @@ fun get_exn (Exn exn) = SOME exn
 fun capture f x = Result (f x) handle e => Exn e;
 
 fun release (Result y) = y
-  | release (Exn e) = raise e;
+  | release (Exn e) = reraise e;
 
 
 (* interrupt and nested exceptions *)
@@ -58,6 +58,6 @@ fun release_all results =
     | exns => raise EXCEPTIONS exns);
 
 fun release_first results = release_all results
-  handle EXCEPTIONS (exn :: _) => raise exn;
+  handle EXCEPTIONS (exn :: _) => reraise exn;
 
 end;
