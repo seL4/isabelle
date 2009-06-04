@@ -2144,7 +2144,7 @@ lemma foldl_invariant:
   "\<lbrakk>Q x ; \<forall> x\<in> set xs. P x; \<forall> x y. P x \<and> Q y \<longrightarrow> Q (f y x) \<rbrakk> \<Longrightarrow> Q (foldl f x xs)"
   by (induct xs arbitrary: x, simp_all)
 
-text{* @{const foldl} and @{text concat} *}
+text {* @{const foldl} and @{const concat} *}
 
 lemma foldl_conv_concat:
   "foldl (op @) xs xss = xs @ concat xss"
@@ -2157,6 +2157,13 @@ qed
 
 lemma concat_conv_foldl: "concat xss = foldl (op @) [] xss"
   by (simp add: foldl_conv_concat)
+
+text {* @{const Finite_Set.fold} and @{const foldl} *}
+
+lemma (in fun_left_comm_idem) fold_set:
+  "fold f y (set xs) = foldl (\<lambda>y x. f x y) y xs"
+  by (rule sym, induct xs arbitrary: y) (simp_all add: fold_fun_comm)
+
 
 
 subsubsection {* List summation: @{const listsum} and @{text"\<Sum>"}*}
