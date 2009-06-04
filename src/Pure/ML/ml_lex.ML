@@ -17,7 +17,7 @@ sig
   val pos_of: token -> Position.T
   val kind_of: token -> token_kind
   val content_of: token -> string
-  val text_of: token -> string
+  val check_content_of: token -> string
   val flatten: token list -> string
   val report_token: token -> unit
   val keywords: string list
@@ -64,17 +64,17 @@ val stopper =
 
 (* token content *)
 
+fun kind_of (Token (_, (k, _))) = k;
+
 fun content_of (Token (_, (_, x))) = x;
 fun token_leq (tok, tok') = content_of tok <= content_of tok';
 
-fun kind_of (Token (_, (k, _))) = k;
-
-fun text_of tok =
+fun check_content_of tok =
   (case kind_of tok of
     Error msg => error msg
-  | _ => Symbol.escape (content_of tok));
+  | _ => content_of tok);
 
-val flatten = implode o map text_of;
+val flatten = implode o map (Symbol.escape o check_content_of);
 
 fun is_regular (Token (_, (Error _, _))) = false
   | is_regular (Token (_, (EOF, _))) = false
@@ -255,7 +255,7 @@ fun read_antiq (syms, pos) =
     |> Source.exhaust
     |> tap (List.app (Antiquote.report report_token))
     |> tap Antiquote.check_nesting
-    |> tap (List.app (fn Antiquote.Text tok => ignore (text_of tok) | _ => ())))
+    |> tap (List.app (fn Antiquote.Text tok => ignore (check_content_of tok) | _ => ())))
   handle ERROR msg =>
     cat_error msg ("The error(s) above occurred in ML source" ^ Position.str_of pos);
 
