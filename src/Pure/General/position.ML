@@ -16,6 +16,7 @@ sig
   val distance_of: T -> T -> int
   val none: T
   val start: T
+  val file_name: string -> Properties.T
   val file: string -> T
   val line: int -> T
   val line_file: int -> string -> T
