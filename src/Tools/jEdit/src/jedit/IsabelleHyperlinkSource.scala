@@ -31,21 +31,13 @@ class InternalHyperlink(start: Int, end: Int, line: Int, ref_offset: Int)
 class ExternalHyperlink(start: Int, end: Int, line: Int, ref_file: String, ref_line: Int)
   extends AbstractHyperlink(start, end, line, "")
 {
-  def subdirs(file: File): List[File] = {
-    val subs = file.listFiles.filter(_.isDirectory).toList
-    subs ::: subs.flatMap(subdirs)
-  }
-
-  val srcs = List(new File(Isabelle.system.getenv("ML_SOURCES")))
-  val rec_srcs = List(new File(Isabelle.system.getenv("ISABELLE_HOME"), "src"))
-
-  override def click(view: View) =
-    (srcs ::: rec_srcs.flatMap(subdirs)).find(new File(_, ref_file).exists) match {
-      case None => System.err.println("Could not find file " + ref_file)
-      case Some(dir) =>
-        val file = new File(dir, ref_file)
+  override def click(view: View) = {
+    Isabelle.system.source_file(ref_file) match {
+      case None => System.err.println("Could not find source file " + ref_file)
+      case Some(file) =>
         jEdit.openFiles(view, file.getParent, Array(file.getName, "+line:" + ref_line))
     }
+  }
 }
 
 class IsabelleHyperlinkSource extends HyperlinkSource
