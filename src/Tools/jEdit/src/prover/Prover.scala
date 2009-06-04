@@ -31,7 +31,6 @@ class Prover(isabelle_system: IsabelleSystem, logic: String) extends Actor
 {
   /* prover process */
 
-
   private val process =
   {
     val results = new EventBus[IsabelleProcess.Result] + handle_result
@@ -100,8 +99,15 @@ class Prover(isabelle_system: IsabelleSystem, logic: String) extends Actor
   private def handle_result(result: IsabelleProcess.Result)
   {
     // helper-function (move to XML?)
-    def get_attr(attributes: List[(String, String)], attr: String): Option[String] =
-      attributes.find(p => p._1 == attr).map(_._2)
+    def get_attr(attrs: List[(String, String)], name: String): Option[String] =
+      attrs.find(p => p._1 == name).map(_._2)
+
+    def get_offsets(attrs: List[(String, String)]): (Option[Int], Option[Int]) =
+    {
+      val begin = get_attr(attrs, Markup.OFFSET).map(_.toInt - 1)
+      val end = get_attr(attrs, Markup.END_OFFSET).map(_.toInt - 1)
+      (begin, if (end.isDefined) end else begin.map(_ + 1))
+    }
 
     def command_change(c: Command) = this ! c
     val (running, command) =
@@ -188,8 +194,7 @@ class Prover(isabelle_system: IsabelleSystem, logic: String) extends Actor
                     command_change(command)
                   case XML.Elem(kind, attr, body)
                   if command != null =>
-                    val begin = get_attr(attr, Markup.OFFSET).map(_.toInt - 1)
-                    val end = get_attr(attr, Markup.END_OFFSET).map(_.toInt - 1)
+                    val (begin, end) = get_offsets(attr)
                     if (begin.isDefined && end.isDefined) {
                       if (kind == Markup.ML_TYPING) {
                         val info = body.first.asInstanceOf[XML.Text].content
@@ -213,8 +218,7 @@ class Prover(isabelle_system: IsabelleSystem, logic: String) extends Actor
                   if command == null =>
                     // TODO: This is mostly irrelevant information on removed commands, but it can
                     // also be outer-syntax-markup since there is no id in props (fix that?)
-                    val begin = get_attr(attr, Markup.OFFSET).map(_.toInt - 1)
-                    val end = get_attr(attr, Markup.END_OFFSET).map(_.toInt - 1)
+                    val (begin, end) = get_offsets(attr)
                     val markup_id = get_attr(attr, Markup.ID)
                     val outer = isabelle.jedit.DynamicTokenMarker.is_outer(kind)
                     if (outer && !running && begin.isDefined && end.isDefined && markup_id.isDefined)
@@ -268,7 +272,6 @@ class Prover(isabelle_system: IsabelleSystem, logic: String) extends Actor
   def set_document(change_receiver: Actor, path: String) {
     this.change_receiver = change_receiver
     this ! ProverEvents.SetIsCommandKeyword(command_decls.contains)
-    process.ML("()")  // FIXME force initial writeln
     process.begin_document(document_id0, path)
   }
 
