@@ -49,21 +49,23 @@ struct
  fun int_lincomb_eq l r = Intfunc.is_undefined (int_lincomb_sub l r)
 
 fun vector_lincomb t = case term_of t of 
-   Const(@{const_name plus},Type("fun",[Type("Finite_Cartesian_Product.^",_),_])) $ _ $ _ =>
+   Const(@{const_name plus}, _) $ _ $ _ =>
     cterm_lincomb_add (vector_lincomb (dest_arg1 t)) (vector_lincomb (dest_arg t))
- | Const(@{const_name minus},Type("fun",[Type("Finite_Cartesian_Product.^",_),_])) $ _ $ _ =>
+ | Const(@{const_name minus}, _) $ _ $ _ =>
     cterm_lincomb_sub (vector_lincomb (dest_arg1 t)) (vector_lincomb (dest_arg t))
- | Const(@{const_name vector_scalar_mult},Type("fun",[Type("Finite_Cartesian_Product.^",_),_]))$_$_ =>
+ | Const(@{const_name scaleR}, _)$_$_ =>
     cterm_lincomb_cmul (dest_ratconst (dest_arg1 t)) (vector_lincomb (dest_arg t))
- | Const(@{const_name uminus},Type("fun",[Type("Finite_Cartesian_Product.^",_),_]))$_ =>
+ | Const(@{const_name uminus}, _)$_ =>
      cterm_lincomb_neg (vector_lincomb (dest_arg t))
- | Const(@{const_name vec},_)$_ => 
+(* FIXME: how should we handle numerals?
+ | Const(@ {const_name vec},_)$_ => 
    let 
      val b = ((snd o HOLogic.dest_number o term_of o dest_arg) t = 0 
                handle TERM _=> false)
    in if b then Ctermfunc.onefunc (t,Rat.one)
       else Ctermfunc.undefined
    end
+*)
  | _ => Ctermfunc.onefunc (t,Rat.one)
 
  fun vector_lincombs ts =
@@ -188,7 +190,7 @@ fun botc1 conv ct =
  val apply_pth5 = rewr_conv @{thm pth_5};
  val apply_pth6 = rewr_conv @{thm pth_6};
  val apply_pth7 = rewrs_conv @{thms pth_7};
- val apply_pth8 = rewr_conv @{thm pth_8} then_conv arg1_conv field_comp_conv then_conv (try_conv (rewr_conv (mk_meta_eq @{thm vector_smult_lzero})));
+ val apply_pth8 = rewr_conv @{thm pth_8} then_conv arg1_conv field_comp_conv then_conv (try_conv (rewr_conv (mk_meta_eq @{thm scaleR_zero_left})));
  val apply_pth9 = rewrs_conv @{thms pth_9} then_conv arg1_conv (arg1_conv field_comp_conv);
  val apply_ptha = rewr_conv @{thm pth_a};
  val apply_pthb = rewrs_conv @{thms pth_b};
@@ -196,9 +198,9 @@ fun botc1 conv ct =
  val apply_pthd = try_conv (rewr_conv @{thm pth_d});
 
 fun headvector t = case t of 
-  Const(@{const_name plus}, Type("fun",[Type("Finite_Cartesian_Product.^",_),_]))$
-   (Const(@{const_name vector_scalar_mult}, _)$l$v)$r => v
- | Const(@{const_name vector_scalar_mult}, _)$l$v => v
+  Const(@{const_name plus}, _)$
+   (Const(@{const_name scaleR}, _)$l$v)$r => v
+ | Const(@{const_name scaleR}, _)$l$v => v
  | _ => error "headvector: non-canonical term"
 
 fun vector_cmul_conv ct =
@@ -234,7 +236,7 @@ fun vector_canon_conv ct = case term_of ct of
    val th = Drule.binop_cong_rule p lth rth 
   in fconv_rule (arg_conv vector_add_conv) th end
 
-| Const(@{const_name vector_scalar_mult}, _)$_$_ =>
+| Const(@{const_name scaleR}, _)$_$_ =>
   let 
    val (p,r) = Thm.dest_comb ct
    val rth = Drule.arg_cong_rule p (vector_canon_conv r) 
@@ -245,12 +247,13 @@ fun vector_canon_conv ct = case term_of ct of
 
 | Const(@{const_name uminus},_)$_ => (apply_pth3 then_conv vector_canon_conv) ct
 
+(* FIXME
 | Const(@{const_name vec},_)$n => 
   let val n = Thm.dest_arg ct
   in if is_ratconst n andalso not (dest_ratconst n =/ Rat.zero) 
      then reflexive ct else apply_pth1 ct
   end
-
+*)
 | _ => apply_pth1 ct
 
 fun norm_canon_conv ct = case term_of ct of
@@ -266,8 +269,8 @@ fun int_flip v eq =
   then Intfunc.update (v, Rat.neg (Intfunc.apply eq v)) eq else eq;
 
 local
- val pth_zero = @{thm "norm_0"}
- val tv_n = (hd o tl o dest_ctyp o ctyp_of_term o dest_arg o dest_arg1 o dest_arg o cprop_of)
+ val pth_zero = @{thm norm_zero}
+ val tv_n = (ctyp_of_term o dest_arg o dest_arg1 o dest_arg o cprop_of)
              pth_zero
  val concl = dest_arg o cprop_of 
  fun real_vector_combo_prover ctxt translator (nubs,ges,gts) = 
@@ -327,7 +330,7 @@ local
         (fn t => null (Ctermfunc.dom (vector_lincomb t))) (map snd rawdests)
 
   in RealArith.real_linear_prover translator
-        (map (fn t => instantiate ([(tv_n,(hd o tl o dest_ctyp o ctyp_of_term) t)],[]) pth_zero)
+        (map (fn t => instantiate ([(tv_n, ctyp_of_term t)],[]) pth_zero)
             zerodests,
         map (fconv_rule (once_depth_conv (norm_canon_conv) then_conv
                        arg_conv (arg_conv real_poly_conv))) ges',
@@ -391,7 +394,7 @@ end;
 
   fun init_conv ctxt = 
    Simplifier.rewrite (Simplifier.context ctxt 
-     (HOL_basic_ss addsimps ([@{thm vec_0}, @{thm vec_1}, @{thm vector_dist_norm}, @{thm diff_0_right}, @{thm right_minus}, @{thm diff_self}, @{thm norm_0}] @ @{thms arithmetic_simps} @ @{thms norm_pths})))
+     (HOL_basic_ss addsimps ([(*@{thm vec_0}, @{thm vec_1},*) @{thm vector_dist_norm}, @{thm diff_0_right}, @{thm right_minus}, @{thm diff_self}, @{thm norm_zero}] @ @{thms arithmetic_simps} @ @{thms norm_pths})))
    then_conv field_comp_conv 
    then_conv nnf_conv
 

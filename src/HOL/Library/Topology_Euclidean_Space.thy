@@ -3401,11 +3401,16 @@ proof-
   thus ?thesis using assms unfolding uniformly_continuous_on_sequentially by auto
 qed
 
+lemma dist_minus:
+  fixes x y :: "'a::real_normed_vector"
+  shows "dist (- x) (- y) = dist x y"
+  unfolding dist_norm minus_diff_minus norm_minus_cancel ..
+
 lemma uniformly_continuous_on_neg:
   fixes f :: "'a::real_normed_vector \<Rightarrow> real ^ _" (* FIXME: generalize *)
   shows "uniformly_continuous_on s f
          ==> uniformly_continuous_on s (\<lambda>x. -(f x))"
-  using uniformly_continuous_on_cmul[of s f "-1"] unfolding pth_3 by auto
+  unfolding uniformly_continuous_on_def dist_minus .
 
 lemma uniformly_continuous_on_add:
   fixes f g :: "'a::real_normed_vector \<Rightarrow> 'b::real_normed_vector"
@@ -3735,9 +3740,15 @@ proof-
   thus ?thesis unfolding open_dist by auto
 qed
 
+lemma minus_image_eq_vimage:
+  fixes A :: "'a::ab_group_add set"
+  shows "(\<lambda>x. - x) ` A = (\<lambda>x. - x) -` A"
+  by (auto intro!: image_eqI [where f="\<lambda>x. - x"])
+
 lemma open_negations:
   fixes s :: "(real ^ _) set" (* FIXME: generalize *)
-  shows "open s ==> open ((\<lambda> x. -x) ` s)" unfolding pth_3 by auto
+  shows "open s ==> open ((\<lambda> x. -x) ` s)"
+  unfolding vector_sneg_minus1 by auto
 
 lemma open_translation:
   fixes s :: "(real ^ _) set" (* FIXME: generalize *)
@@ -4261,7 +4272,8 @@ lemma compact_negations:
   fixes s :: "(real ^ _) set"
   assumes "compact s"  shows "compact ((\<lambda>x. -x) ` s)"
 proof-
-  have "uminus ` s = (\<lambda>x. -1 *s x) ` s" apply auto unfolding image_iff pth_3 by auto
+  have "(\<lambda>x. - x) ` s = (\<lambda>x. (- 1) *s x) ` s"
+    unfolding vector_sneg_minus1 ..
   thus ?thesis using compact_scaling[OF assms, of "-1"] by auto
 qed
 
@@ -4401,7 +4413,8 @@ qed
 lemma closed_negations:
   fixes s :: "(real ^ _) set" (* FIXME: generalize *)
   assumes "closed s"  shows "closed ((\<lambda>x. -x) ` s)"
-  using closed_scaling[OF assms, of "-1"] unfolding  pth_3 by auto
+  using closed_scaling[OF assms, of "- 1"]
+  unfolding vector_sneg_minus1 by auto
 
 lemma compact_closed_sums:
   fixes s :: "(real ^ _) set"

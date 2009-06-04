@@ -39,7 +39,9 @@ lemma nequals0I:"x\<in>A \<Longrightarrow> A \<noteq> {}" by auto
 
 lemma norm_not_0:"(x::real^'n::finite)\<noteq>0 \<Longrightarrow> norm x \<noteq> 0" by auto
 
-lemma vector_unminus_smult[simp]: "(-1::real) *s x = -x" unfolding pth_3[symmetric] by simp
+lemma vector_unminus_smult[simp]: "(-1::real) *s x = -x"
+  unfolding vector_sneg_minus1 by simp
+  (* TODO: move to Euclidean_Space.thy *)
 
 lemma setsum_delta_notmem: assumes "x\<notin>s"
   shows "setsum (\<lambda>y. if (y = x) then P x else Q y) s = setsum Q s"
@@ -302,7 +304,7 @@ proof-
 	apply(rule_tac x="\<lambda>x. (if x=a then v else 0) + u x" in exI)
 	unfolding setsum_clauses(2)[OF `?as`]  apply simp
 	unfolding vector_sadd_rdistrib and setsum_addf 
-	unfolding vu and * and pth_4(1)
+	unfolding vu and * and vector_smult_lzero
 	by (auto simp add: setsum_delta[OF `?as`])
     next
       case False 
@@ -1178,7 +1180,8 @@ proof(rule,rule)
       unfolding setsum_addf wv(1) setsum_right_distrib[THEN sym] obt(5) by auto
     moreover have "(\<Sum>v\<in>s. u v *s v + (t * w v) *s v) - (u a *s a + (t * w a) *s a) = y" 
       unfolding setsum_addf obt(6) vector_smult_assoc[THEN sym] setsum_cmul wv(4)
-      by (metis diff_0_right a(2) pth_5 pth_8 pth_d vector_mul_eq_0)
+      using a(2) [THEN eq_neg_iff_add_eq_0 [THEN iffD2]]
+      by (simp add: vector_smult_lneg)
     ultimately have "?P (n - 1)" apply(rule_tac x="(s - {a})" in exI)
       apply(rule_tac x="\<lambda>v. u v + t * w v" in exI) using obt(1-3) and t and a by (auto simp add: *)
     thus False using smallest[THEN spec[where x="n - 1"]] by auto qed
