@@ -225,17 +225,17 @@ JEDIT_OPTIONS="-reuseview -noserver -nobackground"
 E_HOME=$(choosefrom \
   "$ISABELLE_HOME/contrib/E/$ML_PLATFORM" \
   "$ISABELLE_HOME/../E/$ML_PLATFORM" \
-  "/usr/local/E" \
+  "/usr/local/E/$ML_PLATFORM" \
   "")
 VAMPIRE_HOME=$(choosefrom \
   "$ISABELLE_HOME/contrib/vampire/$ML_PLATFORM" \
   "$ISABELLE_HOME/../vampire/$ML_PLATFORM" \
-  "/usr/local/Vampire" \
+  "/usr/local/vampire/$ML_PLATFORM" \
   "")
 SPASS_HOME=$(choosefrom \
   "$ISABELLE_HOME/contrib/spass/$ML_PLATFORM/bin" \
   "$ISABELLE_HOME/../spass/$ML_PLATFORM/bin" \
-  "/usr/local/SPASS" \
+  "/usr/local/spass/$ML_PLATFORM" \
   "")
 
 # HOL4 proof objects (cf. Isabelle/src/HOL/Import)
