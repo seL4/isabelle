@@ -315,16 +315,16 @@ fun add_ind_realizer rsets intrs induct raw_induct elims (thy, vs) =
     fun get f = (these oo Option.map) f;
     val rec_names = distinct (op =) (map (fst o dest_Const o head_of o fst o
       HOLogic.dest_eq o HOLogic.dest_Trueprop o prop_of) (get #rec_thms dt_info));
-    val (_, constrss) = Library.foldl_map (fn ((recs, dummies), (s, rs)) =>
-      if s mem rsets then
+    val (constrss, _) = fold_map (fn (s, rs) => fn (recs, dummies) =>
+      if member (op =) rsets s then
         let
           val (d :: dummies') = dummies;
           val (recs1, recs2) = chop (length rs) (if d then tl recs else recs)
-        in ((recs2, dummies'), map (head_of o hd o rev o snd o strip_comb o
-          fst o HOLogic.dest_eq o HOLogic.dest_Trueprop o prop_of) recs1)
+        in (map (head_of o hd o rev o snd o strip_comb o fst o
+          HOLogic.dest_eq o HOLogic.dest_Trueprop o prop_of) recs1, (recs2, dummies'))
         end
-      else ((recs, dummies), replicate (length rs) Extraction.nullt))
-        ((get #rec_thms dt_info, dummies), rss);
+      else (replicate (length rs) Extraction.nullt, (recs, dummies)))
+        rss (get #rec_thms dt_info, dummies);
     val rintrs = map (fn (intr, c) => Envir.eta_contract
       (Extraction.realizes_of thy2 vs
         (if c = Extraction.nullt then c else list_comb (c, map Var (rev
@@ -360,7 +360,7 @@ fun add_ind_realizer rsets intrs induct raw_induct elims (thy, vs) =
 
     (** realizer for induction rule **)
 
-    val Ps = List.mapPartial (fn _ $ M $ P => if pred_of M mem rsets then
+    val Ps = map_filter (fn _ $ M $ P => if pred_of M mem rsets then
       SOME (fst (fst (dest_Var (head_of P)))) else NONE)
         (HOLogic.dest_conj (HOLogic.dest_Trueprop (concl_of raw_induct)));
 

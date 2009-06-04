@@ -89,10 +89,10 @@ fun add_dt_defs thy defs dep module (descr: DatatypeAux.descr) sorts gr =
             val dts' = map (DatatypeAux.typ_of_dtyp descr sorts) dts;
             val T = Type (tname, dts');
             val rest = mk_term_of_def gr "and " xs;
-            val (_, eqs) = Library.foldl_map (fn (prfx, (cname, Ts)) =>
+            val (eqs, _) = fold_map (fn (cname, Ts) => fn prfx =>
               let val args = map (fn i =>
                 str ("x" ^ string_of_int i)) (1 upto length Ts)
-              in ("  | ", Pretty.blk (4,
+              in (Pretty.blk (4,
                 [str prfx, mk_term_of gr module' false T, Pretty.brk 1,
                  if null Ts then str (snd (get_const_id gr cname))
                  else parens (Pretty.block
@@ -100,9 +100,9 @@ fun add_dt_defs thy defs dep module (descr: DatatypeAux.descr) sorts gr =
                     Pretty.brk 1, mk_tuple args]),
                  str " =", Pretty.brk 1] @
                  mk_constr_term cname Ts T
-                   (map (fn (x, U) => [Pretty.block [mk_term_of gr module' false U,
-                      Pretty.brk 1, x]]) (args ~~ Ts))))
-              end) (prfx, cs')
+                   (map2 (fn x => fn U => [Pretty.block [mk_term_of gr module' false U,
+                      Pretty.brk 1, x]]) args Ts)), "  | ")
+              end) cs' prfx
           in eqs @ rest end;
 
     fun mk_gen_of_def gr prfx [] = []

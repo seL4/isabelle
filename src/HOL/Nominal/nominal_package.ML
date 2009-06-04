@@ -732,17 +732,18 @@ fun gen_add_nominal_datatype prep_typ err flat_names new_type_names dts thy =
       let val xs = Long_Name.explode s;
       in Long_Name.implode (Library.nth_map (length xs - i) (strip_suffix 4) xs) end;
 
-    val (descr'', ndescr) = ListPair.unzip (List.mapPartial
+    val (descr'', ndescr) = ListPair.unzip (map_filter
       (fn (i, ("Nominal.noption", _, _)) => NONE
         | (i, (s, dts, constrs)) =>
              let
                val SOME index = AList.lookup op = ty_idxs i;
-               val (constrs1, constrs2) = ListPair.unzip
-                 (map (fn (cname, cargs) => apfst (pair (strip_nth_name 2 (strip_nth_name 1 cname)))
-                   (Library.foldl_map (fn (dts, dt) =>
+               val (constrs2, constrs1) =
+                 map_split (fn (cname, cargs) =>
+                   apsnd (pair (strip_nth_name 2 (strip_nth_name 1 cname)))
+                   (fold_map (fn dt => fn dts =>
                      let val (dts', dt') = strip_option dt
-                     in (dts @ dts' @ [reindex dt'], (length dts, length dts')) end)
-                       ([], cargs))) constrs)
+                     in ((length dts, length dts'), dts @ dts' @ [reindex dt']) end)
+                       cargs [])) constrs
              in SOME ((index, (strip_nth_name 1 s,  map reindex dts, constrs1)),
                (index, constrs2))
              end) descr);
