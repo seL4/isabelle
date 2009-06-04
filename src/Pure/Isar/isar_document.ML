@@ -24,7 +24,7 @@ type state_id = string;
 type command_id = string;
 type document_id = string;
 
-fun make_id () = "isabelle:" ^ serial_string ();
+fun make_id () = "i" ^ serial_string ();
 
 fun err_dup kind id = error ("Duplicate " ^ kind ^ ": " ^ quote id);
 fun err_undef kind id = error ("Unknown " ^ kind ^ ": " ^ quote id);

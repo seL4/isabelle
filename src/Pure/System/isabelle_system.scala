@@ -17,6 +17,12 @@ class IsabelleSystem {
   val charset = "UTF-8"
 
 
+  /* unique ids */
+
+  private var id_count: BigInt = 0
+  def id(): String = synchronized { id_count += 1; "j" + id_count }
+
+
   /* Isabelle environment settings */
 
   private val environment = System.getenv
