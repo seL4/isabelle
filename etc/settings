@@ -27,7 +27,7 @@ ML_HOME=$(choosefrom \
   $POLY_HOME)
 ML_SYSTEM=$("$ISABELLE_HOME/lib/scripts/polyml-version")
 ML_OPTIONS="-H 200"
-ML_DBASE=""
+ML_SOURCES="$ML_HOME/../src"
 
 # Poly/ML 5.2.1
 #ML_PLATFORM=x86-linux
