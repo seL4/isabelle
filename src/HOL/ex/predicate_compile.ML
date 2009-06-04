@@ -143,7 +143,7 @@ structure IndCodegenData = TheoryDataFun
                nparams = Symtab.empty};
   val copy = I;
   val extend = I;
-  fun merge _ r = {names = PredModetab.merge (op =) (pairself #names r),
+  fun merge _ (r : T * T) = {names = PredModetab.merge (op =) (pairself #names r),
                    modes = Symtab.merge (op =) (pairself #modes r),
                    function_defs = Symtab.merge Thm.eq_thm (pairself #function_defs r),
                    function_intros = Symtab.merge Thm.eq_thm (pairself #function_intros r),
