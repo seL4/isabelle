@@ -12,7 +12,7 @@ imports HyperDef RComplete
 begin
 
 definition
-  hnorm :: "'a::norm star \<Rightarrow> real star" where
+  hnorm :: "'a::real_normed_vector star \<Rightarrow> real star" where
   [transfer_unfold]: "hnorm = *f* norm"
 
 definition
