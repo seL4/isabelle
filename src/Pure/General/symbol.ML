@@ -59,6 +59,7 @@ sig
   val source: {do_recover: bool} -> (string, 'a) Source.source ->
     (symbol, (string, 'a) Source.source) Source.source
   val explode: string -> symbol list
+  val esc: symbol -> string
   val escape: string -> string
   val strip_blanks: string -> string
   val bump_init: string -> string
@@ -487,7 +488,8 @@ end;
 
 (* escape *)
 
-val escape = implode o map (fn s => if is_char s then s else "\\" ^ s) o sym_explode;
+val esc = fn s => if is_char s then s else "\\" ^ s;
+val escape = implode o map esc o sym_explode;
 
 
 (* blanks *)

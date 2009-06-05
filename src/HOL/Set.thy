@@ -1345,13 +1345,16 @@ lemma image_constant_conv: "(%x. c) ` A = (if A = {} then {} else {c})"
 by auto
 
 lemma image_image: "f ` (g ` A) = (\<lambda>x. f (g x)) ` A"
-  by blast
+by blast
 
 lemma insert_image [simp]: "x \<in> A ==> insert (f x) (f`A) = f`A"
-  by blast
+by blast
 
 lemma image_is_empty [iff]: "(f`A = {}) = (A = {})"
-  by blast
+by blast
+
+lemma empty_is_image[iff]: "({} = f ` A) = (A = {})"
+by blast
 
 
 lemma image_Collect [noatp]: "f ` {x. P x} = {f x | x. P x}"

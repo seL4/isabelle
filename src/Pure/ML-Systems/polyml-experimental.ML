@@ -1,6 +1,6 @@
 (*  Title:      Pure/ML-Systems/polyml-experimental.ML
 
-Compatibility wrapper for Poly/ML 5.3 (SVN experimental).
+Compatibility wrapper for Poly/ML 5.3.
 *)
 
 open Thread;
@@ -11,6 +11,11 @@ struct
   type T = PolyML.NameSpace.nameSpace;
   val global = PolyML.globalNameSpace;
 end;
+
+fun reraise exn =
+  (case PolyML.exceptionLocation exn of
+    NONE => raise exn
+  | SOME location => PolyML.raiseWithLocation (exn, location));
 
 use "ML-Systems/polyml_common.ML";
 use "ML-Systems/multithreading_polyml.ML";

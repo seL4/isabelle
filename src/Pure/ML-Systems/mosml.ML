@@ -38,6 +38,7 @@ load "IO";
 load "CharVector";
 
 exception Interrupt;
+fun reraise exn = raise exn;
 
 use "ML-Systems/exn.ML";
 use "ML-Systems/universal.ML";

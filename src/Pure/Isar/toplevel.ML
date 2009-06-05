@@ -243,9 +243,13 @@ local
 fun if_context NONE _ _ = []
   | if_context (SOME ctxt) f xs = map (f ctxt) xs;
 
-fun raised name [] = "exception " ^ name ^ " raised"
-  | raised name [msg] = "exception " ^ name ^ " raised: " ^ msg
-  | raised name msgs = cat_lines (("exception " ^ name ^ " raised:") :: msgs);
+fun raised exn name msgs =
+  let val pos = Position.str_of (ML_Compiler.exception_position exn) in
+    (case msgs of
+      [] => "exception " ^ name ^ " raised" ^ pos
+    | [msg] => "exception " ^ name ^ " raised" ^ pos ^ ": " ^ msg
+    | _ => cat_lines (("exception " ^ name ^ " raised" ^ pos ^ ":") :: msgs))
+  end;
 
 in
 
@@ -263,20 +267,20 @@ fun exn_message e =
       | exn_msg _ TOPLEVEL_ERROR = "Error."
       | exn_msg _ (SYS_ERROR msg) = "## SYSTEM ERROR ##\n" ^ msg
       | exn_msg _ (ERROR msg) = msg
-      | exn_msg _ (Fail msg) = raised "Fail" [msg]
-      | exn_msg _ (THEORY (msg, thys)) =
-          raised "THEORY" (msg :: (if detailed then map Context.str_of_thy thys else []))
-      | exn_msg _ (Syntax.AST (msg, asts)) = raised "AST" (msg ::
+      | exn_msg _ (exn as Fail msg) = raised exn "Fail" [msg]
+      | exn_msg _ (exn as THEORY (msg, thys)) =
+          raised exn "THEORY" (msg :: (if detailed then map Context.str_of_thy thys else []))
+      | exn_msg _ (exn as Syntax.AST (msg, asts)) = raised exn "AST" (msg ::
             (if detailed then map (Pretty.string_of o Syntax.pretty_ast) asts else []))
-      | exn_msg ctxt (TYPE (msg, Ts, ts)) = raised "TYPE" (msg ::
+      | exn_msg ctxt (exn as TYPE (msg, Ts, ts)) = raised exn "TYPE" (msg ::
             (if detailed then
               if_context ctxt Syntax.string_of_typ Ts @ if_context ctxt Syntax.string_of_term ts
              else []))
-      | exn_msg ctxt (TERM (msg, ts)) = raised "TERM" (msg ::
+      | exn_msg ctxt (exn as TERM (msg, ts)) = raised exn "TERM" (msg ::
             (if detailed then if_context ctxt Syntax.string_of_term ts else []))
-      | exn_msg ctxt (THM (msg, i, thms)) = raised ("THM " ^ string_of_int i) (msg ::
+      | exn_msg ctxt (exn as THM (msg, i, thms)) = raised exn ("THM " ^ string_of_int i) (msg ::
             (if detailed then if_context ctxt ProofContext.string_of_thm thms else []))
-      | exn_msg _ exn = raised (General.exnMessage exn) []
+      | exn_msg _ exn = raised exn (General.exnMessage exn) []
   in exn_msg NONE e end;
 
 end;

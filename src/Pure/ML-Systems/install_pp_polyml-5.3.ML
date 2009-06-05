@@ -1,6 +1,6 @@
-(*  Title:      Pure/ML-Systems/install_pp_polyml-experimental.ML
+(*  Title:      Pure/ML-Systems/install_pp_polyml-5.3.ML
 
-Extra toplevel pretty-printing for Poly/ML 5.3 (SVN experimental).
+Extra toplevel pretty-printing for Poly/ML 5.3.
 *)
 
 PolyML.addPrettyPrinter (fn depth => fn pretty => fn x =>

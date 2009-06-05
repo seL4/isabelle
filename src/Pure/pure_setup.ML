@@ -42,8 +42,8 @@ toplevel_pp ["Syntax", "ast"] "Syntax.pretty_ast";
 toplevel_pp ["Path", "T"] "Pretty.str o quote o Path.implode";
 toplevel_pp ["File", "ident"] "Pretty.str o quote o File.rep_ident";
 
-if File.exists (Path.explode ("ML-Systems/install_pp_" ^ ml_system ^ ".ML"))
-then use ("ML-Systems/install_pp_" ^ ml_system ^ ".ML")
+if ml_system = "polyml-experimental"
+then use "ML-Systems/install_pp_polyml-5.3.ML"
 else if String.isPrefix "polyml" ml_system
 then use "ML-Systems/install_pp_polyml.ML"
 else ();
