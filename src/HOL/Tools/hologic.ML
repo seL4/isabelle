@@ -122,8 +122,10 @@ sig
   val mk_typerep: typ -> term
   val mk_term_of: typ -> term -> term
   val reflect_term: term -> term
+  val mk_valtermify_app: string -> (string * typ) list -> typ -> term
   val mk_return: typ -> typ -> term -> term
   val mk_ST: ((term * typ) * (string * typ) option)  list -> term -> typ -> typ option * typ -> term
+  val mk_random: typ -> term -> term
 end;
 
 structure HOLogic: HOLOGIC =
@@ -617,6 +619,19 @@ fun reflect_term (Const (c, T)) =
   | reflect_term (Abs (v, _, t)) = Abs (v, termT, reflect_term t)
   | reflect_term t = t;
 
+fun mk_valtermify_app c vs T =
+  let
+    fun termifyT T = mk_prodT (T, unitT --> termT);
+    fun valapp T T' = Const ("Code_Eval.valapp",
+      termifyT (T --> T') --> termifyT T --> termifyT T');
+    fun mk_fTs [] _ = []
+      | mk_fTs (_ :: Ts) T = (Ts ---> T) :: mk_fTs Ts T;
+    val Ts = map snd vs;
+    val t = Const (c, Ts ---> T);
+    val tt = mk_prod (t, Abs ("u", unitT, reflect_term t));
+    fun app (t, (fT, (v, T))) = valapp T fT $ t $ Free (v, termifyT T);
+  in Library.foldl app (tt, mk_fTs Ts T ~~ vs) end;
+
 
 (* open state monads *)
 
@@ -632,5 +647,11 @@ fun mk_ST clauses t U (someT, V) =
           (Const ("Product_Type.fcomp", (U --> U') --> (U' --> R) --> U --> R)
             $ t $ t', U)
   in fold_rev mk_clause clauses (t, U) |> fst end;
+
+val code_numeralT = Type ("Code_Numeral.code_numeral", []);
+val random_seedT = mk_prodT (code_numeralT, code_numeralT);
+
+fun mk_random T t = Const ("Quickcheck.random_class.random", code_numeralT
+  --> random_seedT --> mk_prodT (mk_prodT (T, unitT --> termT), random_seedT)) $ t;
 
 end;
