@@ -43,8 +43,8 @@ begin
 definition
   "eq_class.eq f g \<longleftrightarrow> (\<forall>x \<in> set enum. f x = g x)"
 
-instance by default
-  (simp_all add: eq_fun_def enum_all expand_fun_eq)
+instance proof
+qed (simp_all add: eq_fun_def enum_all expand_fun_eq)
 
 end
 
@@ -185,8 +185,8 @@ begin
 definition
   "enum = [()]"
 
-instance by default
-  (simp_all add: enum_unit_def UNIV_unit)
+instance proof
+qed (simp_all add: enum_unit_def UNIV_unit)
 
 end
 
@@ -196,8 +196,8 @@ begin
 definition
   "enum = [False, True]"
 
-instance by default
-  (simp_all add: enum_bool_def UNIV_bool)
+instance proof
+qed (simp_all add: enum_bool_def UNIV_bool)
 
 end
 
@@ -275,8 +275,8 @@ definition
   "enum = [Nibble0, Nibble1, Nibble2, Nibble3, Nibble4, Nibble5, Nibble6, Nibble7,
     Nibble8, Nibble9, NibbleA, NibbleB, NibbleC, NibbleD, NibbleE, NibbleF]"
 
-instance by default
-  (simp_all add: enum_nibble_def UNIV_nibble)
+instance proof
+qed (simp_all add: enum_nibble_def UNIV_nibble)
 
 end
 
@@ -357,9 +357,9 @@ lemma enum_char [code]:
   Char NibbleF NibbleD, Char NibbleF NibbleE, Char NibbleF NibbleF]"
   unfolding enum_char_def enum_nibble_def by simp
 
-instance by default
-  (auto intro: char.exhaust injI simp add: enum_char_def product_list_set enum_all full_SetCompr_eq [symmetric]
-    distinct_map distinct_product enum_distinct)
+instance proof
+qed (auto intro: char.exhaust injI simp add: enum_char_def product_list_set enum_all full_SetCompr_eq [symmetric]
+  distinct_map distinct_product enum_distinct)
 
 end
 
@@ -369,8 +369,8 @@ begin
 definition
   "enum = None # map Some enum"
 
-instance by default
-  (auto simp add: enum_all enum_option_def, case_tac x, auto intro: inj_onI simp add: distinct_map enum_distinct)
+instance proof
+qed (auto simp add: enum_all enum_option_def, rule option.exhaust, auto intro: simp add: distinct_map enum_distinct)
 
 end
 
