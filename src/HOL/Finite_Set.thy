@@ -2228,6 +2228,9 @@ done
 lemma card_image: "inj_on f A ==> card (f ` A) = card A"
 by(simp add:card_def setsum_reindex o_def del:setsum_constant)
 
+lemma bij_betw_same_card: "bij_betw f A B \<Longrightarrow> card A = card B"
+by(auto simp: card_image bij_betw_def)
+
 lemma endo_inj_surj: "finite A ==> f ` A \<subseteq> A ==> inj_on f A ==> f ` A = A"
 by (simp add: card_seteq card_image)
 
