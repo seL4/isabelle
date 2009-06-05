@@ -4,6 +4,7 @@ Compatibility file for Standard ML of New Jersey 110 or later.
 *)
 
 exception Interrupt;
+fun reraise exn = raise exn;
 
 use "ML-Systems/proper_int.ML";
 use "ML-Systems/overloading_smlnj.ML";

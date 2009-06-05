@@ -290,7 +290,7 @@ fun create_command raw_tr =
       | NONE =>
           let val id =
             if ! Toplevel.debug then "isabelle:" ^ Toplevel.name_of raw_tr ^ serial_string ()
-            else "isabelle:" ^ serial_string ()
+            else "i" ^ serial_string ()
           in (id, Toplevel.put_id id raw_tr) end);
 
     val cmd = make_command (category_of tr, tr, Unprocessed);

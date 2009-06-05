@@ -6,11 +6,14 @@ Runtime compilation -- generic version.
 
 signature ML_COMPILER =
 sig
+  val exception_position: exn -> Position.T
   val eval: bool -> Position.T -> ML_Lex.token list -> unit
 end
 
 structure ML_Compiler: ML_COMPILER =
 struct
+
+fun exception_position _ = Position.none;
 
 fun eval verbose pos toks =
   let

@@ -17,6 +17,12 @@ class IsabelleSystem {
   val charset = "UTF-8"
 
 
+  /* unique ids */
+
+  private var id_count: BigInt = 0
+  def id(): String = synchronized { id_count += 1; "j" + id_count }
+
+
   /* Isabelle environment settings */
 
   private val environment = System.getenv
@@ -80,7 +86,25 @@ class IsabelleSystem {
     new File(platform_path(path))
 
 
-  /* processes */
+  /* source files */
+
+  private def try_file(file: File) = if (file.isFile) Some(file) else None
+
+  def source_file(path: String): Option[File] = {
+    if (path == "ML") None
+    else if (path.startsWith("/") || path == "")
+      try_file(platform_file(path))
+    else {
+      val pure_file = platform_file("~~/src/Pure/" + path)
+      if (pure_file.isFile) Some(pure_file)
+      else if (getenv("ML_SOURCES") != "")
+        try_file(platform_file("$ML_SOURCES/" + path))
+      else None
+    }
+  }
+
+
+  /* shell processes */
 
   def execute(redirect: Boolean, args: String*): Process = {
     val cmdline = new java.util.LinkedList[String]
@@ -149,7 +173,7 @@ class IsabelleSystem {
 
   private def read_symbols(path: String) = {
     val file = new File(platform_path(path))
-    if (file.canRead) Source.fromFile(file).getLines
+    if (file.isFile) Source.fromFile(file).getLines
     else Iterator.empty
   }
   val symbols = new Symbol.Interpretation(
