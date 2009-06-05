@@ -18,12 +18,6 @@ object YXML {
   private val X_string = X.toString
   private val Y_string = Y.toString
 
-  def detect(source: CharSequence) = {
-    source.length >= 2 &&
-    source.charAt(0) == X &&
-    source.charAt(1) == Y
-  }
-
 
   /* iterate over chunks (resembles space_explode in ML) */
 

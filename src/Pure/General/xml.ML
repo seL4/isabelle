@@ -11,7 +11,6 @@ sig
       Elem of string * attributes * tree list
     | Text of string
   val add_content: tree -> Buffer.T -> Buffer.T
-  val detect: string -> bool
   val header: string
   val text: string -> string
   val element: string -> attributes -> string list -> string
@@ -43,7 +42,6 @@ fun add_content (Elem (_, _, ts)) = fold add_content ts
 
 (** string representation **)
 
-val detect = String.isPrefix "<?xml";
 val header = "<?xml version=\"1.0\"?>\n";
 
 
