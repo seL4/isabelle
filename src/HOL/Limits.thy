@@ -109,12 +109,12 @@ definition
   [code del]: "sequentially = Abs_net (range (\<lambda>n. {n..}))"
 
 definition
-  at :: "'a::metric_space \<Rightarrow> 'a net" where
-  [code del]: "at a = Abs_net ((\<lambda>r. {x. x \<noteq> a \<and> dist x a < r}) ` {r. 0 < r})"
-
-definition
   within :: "'a net \<Rightarrow> 'a set \<Rightarrow> 'a net" (infixr "within" 70) where
   [code del]: "net within S = Abs_net ((\<lambda>A. A \<inter> S) ` Rep_net net)"
+
+definition
+  at :: "'a::topological_space \<Rightarrow> 'a net" where
+  [code del]: "at a = Abs_net ((\<lambda>S. S - {a}) ` {S\<in>topo. a \<in> S})"
 
 lemma Rep_net_sequentially:
   "Rep_net sequentially = range (\<lambda>n. {n..})"
@@ -123,15 +123,6 @@ apply (rule Abs_net_inverse')
 apply (rule image_nonempty, simp)
 apply (clarsimp, rename_tac m n)
 apply (rule_tac x="max m n" in exI, auto)
-done
-
-lemma Rep_net_at:
-  "Rep_net (at a) = ((\<lambda>r. {x. x \<noteq> a \<and> dist x a < r}) ` {r. 0 < r})"
-unfolding at_def
-apply (rule Abs_net_inverse')
-apply (rule image_nonempty, rule_tac x=1 in exI, simp)
-apply (clarsimp, rename_tac r s)
-apply (rule_tac x="min r s" in exI, auto)
 done
 
 lemma Rep_net_within:
@@ -144,17 +135,40 @@ apply (drule (1) Rep_net_directed)
 apply (clarify, rule_tac x=C in bexI, auto)
 done
 
+lemma Rep_net_at:
+  "Rep_net (at a) = ((\<lambda>S. S - {a}) ` {S\<in>topo. a \<in> S})"
+unfolding at_def
+apply (rule Abs_net_inverse')
+apply (rule image_nonempty)
+apply (rule_tac x="UNIV" in exI, simp add: topo_UNIV)
+apply (clarsimp, rename_tac S T)
+apply (rule_tac x="S \<inter> T" in exI, auto simp add: topo_Int)
+done
+
 lemma eventually_sequentially:
   "eventually P sequentially \<longleftrightarrow> (\<exists>N. \<forall>n\<ge>N. P n)"
 unfolding eventually_def Rep_net_sequentially by auto
 
-lemma eventually_at:
-  "eventually P (at a) \<longleftrightarrow> (\<exists>d>0. \<forall>x. x \<noteq> a \<and> dist x a < d \<longrightarrow> P x)"
-unfolding eventually_def Rep_net_at by auto
-
 lemma eventually_within:
   "eventually P (net within S) = eventually (\<lambda>x. x \<in> S \<longrightarrow> P x) net"
 unfolding eventually_def Rep_net_within by auto
+
+lemma eventually_at_topological:
+  "eventually P (at a) \<longleftrightarrow> (\<exists>S\<in>topo. a \<in> S \<and> (\<forall>x\<in>S. x \<noteq> a \<longrightarrow> P x))"
+unfolding eventually_def Rep_net_at by auto
+
+lemma eventually_at:
+  fixes a :: "'a::metric_space"
+  shows "eventually P (at a) \<longleftrightarrow> (\<exists>d>0. \<forall>x. x \<noteq> a \<and> dist x a < d \<longrightarrow> P x)"
+unfolding eventually_at_topological topo_dist
+apply safe
+apply fast
+apply (rule_tac x="{x. dist x a < d}" in bexI, simp)
+apply clarsimp
+apply (rule_tac x="d - dist x a" in exI, clarsimp)
+apply (simp only: less_diff_eq)
+apply (erule le_less_trans [OF dist_triangle])
+done
 
 
 subsection {* Boundedness *}
