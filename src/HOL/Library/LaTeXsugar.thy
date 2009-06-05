@@ -34,7 +34,7 @@ notation (latex)
 
 (* insert *)
 translations 
-  "{x} \<union> A" <= "insert x A"
+  "{x} \<union> A" <= "CONST insert x A"
   "{x,y}" <= "{x} \<union> {y}"
   "{x,y} \<union> A" <= "{x} \<union> ({y} \<union> A)"
   "{x}" <= "{x} \<union> \<emptyset>"
