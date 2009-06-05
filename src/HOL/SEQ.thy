@@ -193,7 +193,7 @@ lemmas Zseq_mult_left = mult.Zseq_left
 
 subsection {* Limits of Sequences *}
 
-lemma LIMSEQ_conv_tendsto: "(X ----> L) \<longleftrightarrow> tendsto X L sequentially"
+lemma LIMSEQ_conv_tendsto: "(X ----> L) \<longleftrightarrow> (X ---> L) sequentially"
 unfolding LIMSEQ_def tendsto_def eventually_sequentially ..
 
 lemma LIMSEQ_iff:

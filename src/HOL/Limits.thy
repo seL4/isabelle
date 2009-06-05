@@ -175,20 +175,21 @@ subsection {* Boundedness *}
 
 definition
   Bfun :: "('a \<Rightarrow> 'b::real_normed_vector) \<Rightarrow> 'a net \<Rightarrow> bool" where
-  [code del]: "Bfun S net = (\<exists>K>0. eventually (\<lambda>i. norm (S i) \<le> K) net)"
+  [code del]: "Bfun f net = (\<exists>K>0. eventually (\<lambda>x. norm (f x) \<le> K) net)"
 
-lemma BfunI: assumes K: "eventually (\<lambda>i. norm (X i) \<le> K) net" shows "Bfun X net"
+lemma BfunI:
+  assumes K: "eventually (\<lambda>x. norm (f x) \<le> K) net" shows "Bfun f net"
 unfolding Bfun_def
 proof (intro exI conjI allI)
   show "0 < max K 1" by simp
 next
-  show "eventually (\<lambda>i. norm (X i) \<le> max K 1) net"
+  show "eventually (\<lambda>x. norm (f x) \<le> max K 1) net"
     using K by (rule eventually_elim1, simp)
 qed
 
 lemma BfunE:
-  assumes "Bfun S net"
-  obtains B where "0 < B" and "eventually (\<lambda>i. norm (S i) \<le> B) net"
+  assumes "Bfun f net"
+  obtains B where "0 < B" and "eventually (\<lambda>x. norm (f x) \<le> B) net"
 using assms unfolding Bfun_def by fast
 
 
@@ -196,30 +197,30 @@ subsection {* Convergence to Zero *}
 
 definition
   Zfun :: "('a \<Rightarrow> 'b::real_normed_vector) \<Rightarrow> 'a net \<Rightarrow> bool" where
-  [code del]: "Zfun S net = (\<forall>r>0. eventually (\<lambda>i. norm (S i) < r) net)"
+  [code del]: "Zfun f net = (\<forall>r>0. eventually (\<lambda>x. norm (f x) < r) net)"
 
 lemma ZfunI:
-  "(\<And>r. 0 < r \<Longrightarrow> eventually (\<lambda>i. norm (S i) < r) net) \<Longrightarrow> Zfun S net"
+  "(\<And>r. 0 < r \<Longrightarrow> eventually (\<lambda>x. norm (f x) < r) net) \<Longrightarrow> Zfun f net"
 unfolding Zfun_def by simp
 
 lemma ZfunD:
-  "\<lbrakk>Zfun S net; 0 < r\<rbrakk> \<Longrightarrow> eventually (\<lambda>i. norm (S i) < r) net"
+  "\<lbrakk>Zfun f net; 0 < r\<rbrakk> \<Longrightarrow> eventually (\<lambda>x. norm (f x) < r) net"
 unfolding Zfun_def by simp
 
 lemma Zfun_ssubst:
-  "eventually (\<lambda>i. X i = Y i) net \<Longrightarrow> Zfun Y net \<Longrightarrow> Zfun X net"
+  "eventually (\<lambda>x. f x = g x) net \<Longrightarrow> Zfun g net \<Longrightarrow> Zfun f net"
 unfolding Zfun_def by (auto elim!: eventually_rev_mp)
 
-lemma Zfun_zero: "Zfun (\<lambda>i. 0) net"
+lemma Zfun_zero: "Zfun (\<lambda>x. 0) net"
 unfolding Zfun_def by simp
 
-lemma Zfun_norm_iff: "Zfun (\<lambda>i. norm (S i)) net = Zfun (\<lambda>i. S i) net"
+lemma Zfun_norm_iff: "Zfun (\<lambda>x. norm (f x)) net = Zfun (\<lambda>x. f x) net"
 unfolding Zfun_def by simp
 
 lemma Zfun_imp_Zfun:
-  assumes X: "Zfun X net"
-  assumes Y: "eventually (\<lambda>i. norm (Y i) \<le> norm (X i) * K) net"
-  shows "Zfun (\<lambda>n. Y n) net"
+  assumes f: "Zfun f net"
+  assumes g: "eventually (\<lambda>x. norm (g x) \<le> norm (f x) * K) net"
+  shows "Zfun (\<lambda>x. g x) net"
 proof (cases)
   assume K: "0 < K"
   show ?thesis
@@ -227,16 +228,16 @@ proof (cases)
     fix r::real assume "0 < r"
     hence "0 < r / K"
       using K by (rule divide_pos_pos)
-    then have "eventually (\<lambda>i. norm (X i) < r / K) net"
-      using ZfunD [OF X] by fast
-    with Y show "eventually (\<lambda>i. norm (Y i) < r) net"
+    then have "eventually (\<lambda>x. norm (f x) < r / K) net"
+      using ZfunD [OF f] by fast
+    with g show "eventually (\<lambda>x. norm (g x) < r) net"
     proof (rule eventually_elim2)
-      fix i
-      assume *: "norm (Y i) \<le> norm (X i) * K"
-      assume "norm (X i) < r / K"
-      hence "norm (X i) * K < r"
+      fix x
+      assume *: "norm (g x) \<le> norm (f x) * K"
+      assume "norm (f x) < r / K"
+      hence "norm (f x) * K < r"
         by (simp add: pos_less_divide_eq K)
-      thus "norm (Y i) < r"
+      thus "norm (g x) < r"
         by (simp add: order_le_less_trans [OF *])
     qed
   qed
@@ -247,68 +248,68 @@ next
   proof (rule ZfunI)
     fix r :: real
     assume "0 < r"
-    from Y show "eventually (\<lambda>i. norm (Y i) < r) net"
+    from g show "eventually (\<lambda>x. norm (g x) < r) net"
     proof (rule eventually_elim1)
-      fix i
-      assume "norm (Y i) \<le> norm (X i) * K"
-      also have "\<dots> \<le> norm (X i) * 0"
+      fix x
+      assume "norm (g x) \<le> norm (f x) * K"
+      also have "\<dots> \<le> norm (f x) * 0"
         using K norm_ge_zero by (rule mult_left_mono)
-      finally show "norm (Y i) < r"
+      finally show "norm (g x) < r"
         using `0 < r` by simp
     qed
   qed
 qed
 
-lemma Zfun_le: "\<lbrakk>Zfun Y net; \<forall>n. norm (X n) \<le> norm (Y n)\<rbrakk> \<Longrightarrow> Zfun X net"
+lemma Zfun_le: "\<lbrakk>Zfun g net; \<forall>x. norm (f x) \<le> norm (g x)\<rbrakk> \<Longrightarrow> Zfun f net"
 by (erule_tac K="1" in Zfun_imp_Zfun, simp)
 
 lemma Zfun_add:
-  assumes X: "Zfun X net" and Y: "Zfun Y net"
-  shows "Zfun (\<lambda>n. X n + Y n) net"
+  assumes f: "Zfun f net" and g: "Zfun g net"
+  shows "Zfun (\<lambda>x. f x + g x) net"
 proof (rule ZfunI)
   fix r::real assume "0 < r"
   hence r: "0 < r / 2" by simp
-  have "eventually (\<lambda>i. norm (X i) < r/2) net"
-    using X r by (rule ZfunD)
+  have "eventually (\<lambda>x. norm (f x) < r/2) net"
+    using f r by (rule ZfunD)
   moreover
-  have "eventually (\<lambda>i. norm (Y i) < r/2) net"
-    using Y r by (rule ZfunD)
+  have "eventually (\<lambda>x. norm (g x) < r/2) net"
+    using g r by (rule ZfunD)
   ultimately
-  show "eventually (\<lambda>i. norm (X i + Y i) < r) net"
+  show "eventually (\<lambda>x. norm (f x + g x) < r) net"
   proof (rule eventually_elim2)
-    fix i
-    assume *: "norm (X i) < r/2" "norm (Y i) < r/2"
-    have "norm (X i + Y i) \<le> norm (X i) + norm (Y i)"
+    fix x
+    assume *: "norm (f x) < r/2" "norm (g x) < r/2"
+    have "norm (f x + g x) \<le> norm (f x) + norm (g x)"
       by (rule norm_triangle_ineq)
     also have "\<dots> < r/2 + r/2"
       using * by (rule add_strict_mono)
-    finally show "norm (X i + Y i) < r"
+    finally show "norm (f x + g x) < r"
       by simp
   qed
 qed
 
-lemma Zfun_minus: "Zfun X net \<Longrightarrow> Zfun (\<lambda>i. - X i) net"
+lemma Zfun_minus: "Zfun f net \<Longrightarrow> Zfun (\<lambda>x. - f x) net"
 unfolding Zfun_def by simp
 
-lemma Zfun_diff: "\<lbrakk>Zfun X net; Zfun Y net\<rbrakk> \<Longrightarrow> Zfun (\<lambda>i. X i - Y i) net"
+lemma Zfun_diff: "\<lbrakk>Zfun f net; Zfun g net\<rbrakk> \<Longrightarrow> Zfun (\<lambda>x. f x - g x) net"
 by (simp only: diff_minus Zfun_add Zfun_minus)
 
 lemma (in bounded_linear) Zfun:
-  assumes X: "Zfun X net"
-  shows "Zfun (\<lambda>n. f (X n)) net"
+  assumes g: "Zfun g net"
+  shows "Zfun (\<lambda>x. f (g x)) net"
 proof -
   obtain K where "\<And>x. norm (f x) \<le> norm x * K"
     using bounded by fast
-  then have "eventually (\<lambda>i. norm (f (X i)) \<le> norm (X i) * K) net"
+  then have "eventually (\<lambda>x. norm (f (g x)) \<le> norm (g x) * K) net"
     by simp
-  with X show ?thesis
+  with g show ?thesis
     by (rule Zfun_imp_Zfun)
 qed
 
 lemma (in bounded_bilinear) Zfun:
-  assumes X: "Zfun X net"
-  assumes Y: "Zfun Y net"
-  shows "Zfun (\<lambda>n. X n ** Y n) net"
+  assumes f: "Zfun f net"
+  assumes g: "Zfun g net"
+  shows "Zfun (\<lambda>x. f x ** g x) net"
 proof (rule ZfunI)
   fix r::real assume r: "0 < r"
   obtain K where K: "0 < K"
@@ -316,32 +317,32 @@ proof (rule ZfunI)
     using pos_bounded by fast
   from K have K': "0 < inverse K"
     by (rule positive_imp_inverse_positive)
-  have "eventually (\<lambda>i. norm (X i) < r) net"
-    using X r by (rule ZfunD)
+  have "eventually (\<lambda>x. norm (f x) < r) net"
+    using f r by (rule ZfunD)
   moreover
-  have "eventually (\<lambda>i. norm (Y i) < inverse K) net"
-    using Y K' by (rule ZfunD)
+  have "eventually (\<lambda>x. norm (g x) < inverse K) net"
+    using g K' by (rule ZfunD)
   ultimately
-  show "eventually (\<lambda>i. norm (X i ** Y i) < r) net"
+  show "eventually (\<lambda>x. norm (f x ** g x) < r) net"
   proof (rule eventually_elim2)
-    fix i
-    assume *: "norm (X i) < r" "norm (Y i) < inverse K"
-    have "norm (X i ** Y i) \<le> norm (X i) * norm (Y i) * K"
+    fix x
+    assume *: "norm (f x) < r" "norm (g x) < inverse K"
+    have "norm (f x ** g x) \<le> norm (f x) * norm (g x) * K"
       by (rule norm_le)
-    also have "norm (X i) * norm (Y i) * K < r * inverse K * K"
+    also have "norm (f x) * norm (g x) * K < r * inverse K * K"
       by (intro mult_strict_right_mono mult_strict_mono' norm_ge_zero * K)
     also from K have "r * inverse K * K = r"
       by simp
-    finally show "norm (X i ** Y i) < r" .
+    finally show "norm (f x ** g x) < r" .
   qed
 qed
 
 lemma (in bounded_bilinear) Zfun_left:
-  "Zfun X net \<Longrightarrow> Zfun (\<lambda>n. X n ** a) net"
+  "Zfun f net \<Longrightarrow> Zfun (\<lambda>x. f x ** a) net"
 by (rule bounded_linear_left [THEN bounded_linear.Zfun])
 
 lemma (in bounded_bilinear) Zfun_right:
-  "Zfun X net \<Longrightarrow> Zfun (\<lambda>n. a ** X n) net"
+  "Zfun f net \<Longrightarrow> Zfun (\<lambda>x. a ** f x) net"
 by (rule bounded_linear_right [THEN bounded_linear.Zfun])
 
 lemmas Zfun_mult = mult.Zfun
@@ -352,27 +353,28 @@ lemmas Zfun_mult_left = mult.Zfun_left
 subsection{* Limits *}
 
 definition
-  tendsto :: "('a \<Rightarrow> 'b::metric_space) \<Rightarrow> 'b \<Rightarrow> 'a net \<Rightarrow> bool" where
-  [code del]: "tendsto f l net \<longleftrightarrow> (\<forall>e>0. eventually (\<lambda>x. dist (f x) l < e) net)"
+  tendsto :: "('a \<Rightarrow> 'b::metric_space) \<Rightarrow> 'b \<Rightarrow> 'a net \<Rightarrow> bool"
+    (infixr "--->" 55) where
+  [code del]: "(f ---> l) net \<longleftrightarrow> (\<forall>e>0. eventually (\<lambda>x. dist (f x) l < e) net)"
 
 lemma tendstoI:
   "(\<And>e. 0 < e \<Longrightarrow> eventually (\<lambda>x. dist (f x) l < e) net)
-    \<Longrightarrow> tendsto f l net"
+    \<Longrightarrow> (f ---> l) net"
   unfolding tendsto_def by auto
 
 lemma tendstoD:
-  "tendsto f l net \<Longrightarrow> 0 < e \<Longrightarrow> eventually (\<lambda>x. dist (f x) l < e) net"
+  "(f ---> l) net \<Longrightarrow> 0 < e \<Longrightarrow> eventually (\<lambda>x. dist (f x) l < e) net"
   unfolding tendsto_def by auto
 
-lemma tendsto_Zfun_iff: "tendsto (\<lambda>n. X n) L net = Zfun (\<lambda>n. X n - L) net"
+lemma tendsto_Zfun_iff: "(f ---> a) net = Zfun (\<lambda>x. f x - a) net"
 by (simp only: tendsto_def Zfun_def dist_norm)
 
-lemma tendsto_const: "tendsto (\<lambda>n. k) k net"
+lemma tendsto_const: "((\<lambda>x. k) ---> k) net"
 by (simp add: tendsto_def)
 
 lemma tendsto_norm:
   fixes a :: "'a::real_normed_vector"
-  shows "tendsto X a net \<Longrightarrow> tendsto (\<lambda>n. norm (X n)) (norm a) net"
+  shows "(f ---> a) net \<Longrightarrow> ((\<lambda>x. norm (f x)) ---> norm a) net"
 apply (simp add: tendsto_def dist_norm, safe)
 apply (drule_tac x="e" in spec, safe)
 apply (erule eventually_elim1)
@@ -391,30 +393,30 @@ by simp
 
 lemma tendsto_add:
   fixes a b :: "'a::real_normed_vector"
-  shows "\<lbrakk>tendsto X a net; tendsto Y b net\<rbrakk> \<Longrightarrow> tendsto (\<lambda>n. X n + Y n) (a + b) net"
+  shows "\<lbrakk>(f ---> a) net; (g ---> b) net\<rbrakk> \<Longrightarrow> ((\<lambda>x. f x + g x) ---> a + b) net"
 by (simp only: tendsto_Zfun_iff add_diff_add Zfun_add)
 
 lemma tendsto_minus:
   fixes a :: "'a::real_normed_vector"
-  shows "tendsto X a net \<Longrightarrow> tendsto (\<lambda>n. - X n) (- a) net"
+  shows "(f ---> a) net \<Longrightarrow> ((\<lambda>x. - f x) ---> - a) net"
 by (simp only: tendsto_Zfun_iff minus_diff_minus Zfun_minus)
 
 lemma tendsto_minus_cancel:
   fixes a :: "'a::real_normed_vector"
-  shows "tendsto (\<lambda>n. - X n) (- a) net \<Longrightarrow> tendsto X a net"
+  shows "((\<lambda>x. - f x) ---> - a) net \<Longrightarrow> (f ---> a) net"
 by (drule tendsto_minus, simp)
 
 lemma tendsto_diff:
   fixes a b :: "'a::real_normed_vector"
-  shows "\<lbrakk>tendsto X a net; tendsto Y b net\<rbrakk> \<Longrightarrow> tendsto (\<lambda>n. X n - Y n) (a - b) net"
+  shows "\<lbrakk>(f ---> a) net; (g ---> b) net\<rbrakk> \<Longrightarrow> ((\<lambda>x. f x - g x) ---> a - b) net"
 by (simp add: diff_minus tendsto_add tendsto_minus)
 
 lemma (in bounded_linear) tendsto:
-  "tendsto X a net \<Longrightarrow> tendsto (\<lambda>n. f (X n)) (f a) net"
+  "(g ---> a) net \<Longrightarrow> ((\<lambda>x. f (g x)) ---> f a) net"
 by (simp only: tendsto_Zfun_iff diff [symmetric] Zfun)
 
 lemma (in bounded_bilinear) tendsto:
-  "\<lbrakk>tendsto X a net; tendsto Y b net\<rbrakk> \<Longrightarrow> tendsto (\<lambda>n. X n ** Y n) (a ** b) net"
+  "\<lbrakk>(f ---> a) net; (g ---> b) net\<rbrakk> \<Longrightarrow> ((\<lambda>x. f x ** g x) ---> a ** b) net"
 by (simp only: tendsto_Zfun_iff prod_diff_prod
                Zfun_add Zfun Zfun_left Zfun_right)
 
@@ -422,31 +424,31 @@ by (simp only: tendsto_Zfun_iff prod_diff_prod
 subsection {* Continuity of Inverse *}
 
 lemma (in bounded_bilinear) Zfun_prod_Bfun:
-  assumes X: "Zfun X net"
-  assumes Y: "Bfun Y net"
-  shows "Zfun (\<lambda>n. X n ** Y n) net"
+  assumes f: "Zfun f net"
+  assumes g: "Bfun g net"
+  shows "Zfun (\<lambda>x. f x ** g x) net"
 proof -
   obtain K where K: "0 \<le> K"
     and norm_le: "\<And>x y. norm (x ** y) \<le> norm x * norm y * K"
     using nonneg_bounded by fast
   obtain B where B: "0 < B"
-    and norm_Y: "eventually (\<lambda>i. norm (Y i) \<le> B) net"
-    using Y by (rule BfunE)
-  have "eventually (\<lambda>i. norm (X i ** Y i) \<le> norm (X i) * (B * K)) net"
-  using norm_Y proof (rule eventually_elim1)
-    fix i
-    assume *: "norm (Y i) \<le> B"
-    have "norm (X i ** Y i) \<le> norm (X i) * norm (Y i) * K"
+    and norm_g: "eventually (\<lambda>x. norm (g x) \<le> B) net"
+    using g by (rule BfunE)
+  have "eventually (\<lambda>x. norm (f x ** g x) \<le> norm (f x) * (B * K)) net"
+  using norm_g proof (rule eventually_elim1)
+    fix x
+    assume *: "norm (g x) \<le> B"
+    have "norm (f x ** g x) \<le> norm (f x) * norm (g x) * K"
       by (rule norm_le)
-    also have "\<dots> \<le> norm (X i) * B * K"
-      by (intro mult_mono' order_refl norm_Y norm_ge_zero
+    also have "\<dots> \<le> norm (f x) * B * K"
+      by (intro mult_mono' order_refl norm_g norm_ge_zero
                 mult_nonneg_nonneg K *)
-    also have "\<dots> = norm (X i) * (B * K)"
+    also have "\<dots> = norm (f x) * (B * K)"
       by (rule mult_assoc)
-    finally show "norm (X i ** Y i) \<le> norm (X i) * (B * K)" .
+    finally show "norm (f x ** g x) \<le> norm (f x) * (B * K)" .
   qed
-  with X show ?thesis
-  by (rule Zfun_imp_Zfun)
+  with f show ?thesis
+    by (rule Zfun_imp_Zfun)
 qed
 
 lemma (in bounded_bilinear) flip:
@@ -460,10 +462,10 @@ apply (subst mult_commute)
 using bounded by fast
 
 lemma (in bounded_bilinear) Bfun_prod_Zfun:
-  assumes X: "Bfun X net"
-  assumes Y: "Zfun Y net"
-  shows "Zfun (\<lambda>n. X n ** Y n) net"
-using flip Y X by (rule bounded_bilinear.Zfun_prod_Bfun)
+  assumes f: "Bfun f net"
+  assumes g: "Zfun g net"
+  shows "Zfun (\<lambda>x. f x ** g x) net"
+using flip g f by (rule bounded_bilinear.Zfun_prod_Bfun)
 
 lemma inverse_diff_inverse:
   "\<lbrakk>(a::'a::division_ring) \<noteq> 0; b \<noteq> 0\<rbrakk>
@@ -479,44 +481,44 @@ done
 
 lemma Bfun_inverse:
   fixes a :: "'a::real_normed_div_algebra"
-  assumes X: "tendsto X a net"
+  assumes f: "(f ---> a) net"
   assumes a: "a \<noteq> 0"
-  shows "Bfun (\<lambda>n. inverse (X n)) net"
+  shows "Bfun (\<lambda>x. inverse (f x)) net"
 proof -
   from a have "0 < norm a" by simp
   hence "\<exists>r>0. r < norm a" by (rule dense)
   then obtain r where r1: "0 < r" and r2: "r < norm a" by fast
-  have "eventually (\<lambda>i. dist (X i) a < r) net"
-    using tendstoD [OF X r1] by fast
-  hence "eventually (\<lambda>i. norm (inverse (X i)) \<le> inverse (norm a - r)) net"
+  have "eventually (\<lambda>x. dist (f x) a < r) net"
+    using tendstoD [OF f r1] by fast
+  hence "eventually (\<lambda>x. norm (inverse (f x)) \<le> inverse (norm a - r)) net"
   proof (rule eventually_elim1)
-    fix i
-    assume "dist (X i) a < r"
-    hence 1: "norm (X i - a) < r"
+    fix x
+    assume "dist (f x) a < r"
+    hence 1: "norm (f x - a) < r"
       by (simp add: dist_norm)
-    hence 2: "X i \<noteq> 0" using r2 by auto
-    hence "norm (inverse (X i)) = inverse (norm (X i))"
+    hence 2: "f x \<noteq> 0" using r2 by auto
+    hence "norm (inverse (f x)) = inverse (norm (f x))"
       by (rule nonzero_norm_inverse)
     also have "\<dots> \<le> inverse (norm a - r)"
     proof (rule le_imp_inverse_le)
       show "0 < norm a - r" using r2 by simp
     next
-      have "norm a - norm (X i) \<le> norm (a - X i)"
+      have "norm a - norm (f x) \<le> norm (a - f x)"
         by (rule norm_triangle_ineq2)
-      also have "\<dots> = norm (X i - a)"
+      also have "\<dots> = norm (f x - a)"
         by (rule norm_minus_commute)
       also have "\<dots> < r" using 1 .
-      finally show "norm a - r \<le> norm (X i)" by simp
+      finally show "norm a - r \<le> norm (f x)" by simp
     qed
-    finally show "norm (inverse (X i)) \<le> inverse (norm a - r)" .
+    finally show "norm (inverse (f x)) \<le> inverse (norm a - r)" .
   qed
   thus ?thesis by (rule BfunI)
 qed
 
 lemma tendsto_inverse_lemma:
   fixes a :: "'a::real_normed_div_algebra"
-  shows "\<lbrakk>tendsto X a net; a \<noteq> 0; eventually (\<lambda>i. X i \<noteq> 0) net\<rbrakk>
-         \<Longrightarrow> tendsto (\<lambda>i. inverse (X i)) (inverse a) net"
+  shows "\<lbrakk>(f ---> a) net; a \<noteq> 0; eventually (\<lambda>x. f x \<noteq> 0) net\<rbrakk>
+         \<Longrightarrow> ((\<lambda>x. inverse (f x)) ---> inverse a) net"
 apply (subst tendsto_Zfun_iff)
 apply (rule Zfun_ssubst)
 apply (erule eventually_elim1)
@@ -530,23 +532,23 @@ done
 
 lemma tendsto_inverse:
   fixes a :: "'a::real_normed_div_algebra"
-  assumes X: "tendsto X a net"
+  assumes f: "(f ---> a) net"
   assumes a: "a \<noteq> 0"
-  shows "tendsto (\<lambda>i. inverse (X i)) (inverse a) net"
+  shows "((\<lambda>x. inverse (f x)) ---> inverse a) net"
 proof -
   from a have "0 < norm a" by simp
-  with X have "eventually (\<lambda>i. dist (X i) a < norm a) net"
+  with f have "eventually (\<lambda>x. dist (f x) a < norm a) net"
     by (rule tendstoD)
-  then have "eventually (\<lambda>i. X i \<noteq> 0) net"
+  then have "eventually (\<lambda>x. f x \<noteq> 0) net"
     unfolding dist_norm by (auto elim!: eventually_elim1)
-  with X a show ?thesis
+  with f a show ?thesis
     by (rule tendsto_inverse_lemma)
 qed
 
 lemma tendsto_divide:
   fixes a b :: "'a::real_normed_field"
-  shows "\<lbrakk>tendsto X a net; tendsto Y b net; b \<noteq> 0\<rbrakk>
-    \<Longrightarrow> tendsto (\<lambda>n. X n / Y n) (a / b) net"
+  shows "\<lbrakk>(f ---> a) net; (g ---> b) net; b \<noteq> 0\<rbrakk>
+    \<Longrightarrow> ((\<lambda>x. f x / g x) ---> a / b) net"
 by (simp add: mult.tendsto tendsto_inverse divide_inverse)
 
 end

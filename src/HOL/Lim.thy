@@ -29,7 +29,7 @@ definition
 
 subsection {* Limits of Functions *}
 
-lemma LIM_conv_tendsto: "(f -- a --> L) \<longleftrightarrow> tendsto f L (at a)"
+lemma LIM_conv_tendsto: "(f -- a --> L) \<longleftrightarrow> (f ---> L) (at a)"
 unfolding LIM_def tendsto_def eventually_at ..
 
 lemma metric_LIM_I:

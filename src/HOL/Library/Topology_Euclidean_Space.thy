@@ -1170,8 +1170,6 @@ lemma not_eventually: "(\<forall>x. \<not> P x ) \<Longrightarrow> ~(trivial_lim
 
 subsection{* Limits, defined as vacuously true when the limit is trivial. *}
 
-notation tendsto (infixr "--->" 55)
-
   text{* Notation Lim to avoid collition with lim defined in analysis *}
 definition "Lim net f = (THE l. (f ---> l) net)"
 
