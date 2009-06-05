@@ -1619,7 +1619,7 @@ text{* It's also sometimes useful to extract the limit point from the net.  *}
 
 definition
   netlimit :: "'a::metric_space net \<Rightarrow> 'a" where
-  "netlimit net = (SOME a. \<forall>r>0. \<exists>A\<in>Rep_net net. \<forall>x\<in>A. dist x a < r)"
+  "netlimit net = (SOME a. \<forall>r>0. eventually (\<lambda>x. dist x a < r) net)"
 
 lemma dist_triangle3:
   fixes x y :: "'a::metric_space"
@@ -1632,8 +1632,7 @@ lemma netlimit_within:
   shows "netlimit (at a within S) = a"
 using assms
 apply (simp add: trivial_limit_within)
-apply (simp add: netlimit_def eventually_def [symmetric])
-apply (simp add: eventually_within zero_less_dist_iff)
+apply (simp add: netlimit_def eventually_within zero_less_dist_iff)
 apply (rule some_equality, fast)
 apply (rename_tac b)
 apply (rule ccontr)
