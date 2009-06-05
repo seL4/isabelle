@@ -20,7 +20,6 @@ types 'a set = "'a => bool"
 consts
   Collect       :: "('a => bool) => 'a set"              -- "comprehension"
   "op :"        :: "'a => 'a set => bool"                -- "membership"
-  insert        :: "'a => 'a set => 'a set"
   Ball          :: "'a set => ('a => bool) => bool"      -- "bounded universal quantifiers"
   Bex           :: "'a set => ('a => bool) => bool"      -- "bounded existential quantifiers"
   Bex1          :: "'a set => ('a => bool) => bool"      -- "bounded unique existential quantifiers"
@@ -58,19 +57,6 @@ syntax
 translations
   "{x. P}"      == "Collect (%x. P)"
 
-definition empty :: "'a set" ("{}") where
-  "empty \<equiv> {x. False}"
-
-definition UNIV :: "'a set" where
-  "UNIV \<equiv> {x. True}"
-
-syntax
-  "@Finset"     :: "args => 'a set"                       ("{(_)}")
-
-translations
-  "{x, xs}"     == "insert x {xs}"
-  "{x}"         == "insert x {}"
-
 definition Int :: "'a set \<Rightarrow> 'a set \<Rightarrow> 'a set" (infixl "Int" 70) where
   "A Int B \<equiv> {x. x \<in> A \<and> x \<in> B}"
 
@@ -84,6 +70,22 @@ notation (xsymbols)
 notation (HTML output)
   "Int"  (infixl "\<inter>" 70) and
   "Un"  (infixl "\<union>" 65)
+
+definition empty :: "'a set" ("{}") where
+  "empty \<equiv> {x. False}"
+
+definition insert :: "'a \<Rightarrow> 'a set \<Rightarrow> 'a set" where
+  "insert a B \<equiv> {x. x = a} \<union> B"
+
+definition UNIV :: "'a set" where
+  "UNIV \<equiv> {x. True}"
+
+syntax
+  "@Finset"     :: "args => 'a set"                       ("{(_)}")
+
+translations
+  "{x, xs}"     == "CONST insert x {xs}"
+  "{x}"         == "CONST insert x {}"
 
 syntax
   "_Ball"       :: "pttrn => 'a set => bool => bool"      ("(3ALL _:_./ _)" [0, 0, 10] 10)
@@ -408,7 +410,6 @@ end
 
 defs
   Pow_def:      "Pow A          == {B. B <= A}"
-  insert_def:   "insert a B     == {x. x=a} Un B"
   image_def:    "f`A            == {y. EX x:A. y = f(x)}"
 
 
@@ -811,7 +812,7 @@ lemma Compl_eq_Diff_UNIV: "-A = (UNIV - A)"
 by blast
 
 
-subsubsection {* Augmenting a set -- insert *}
+subsubsection {* Augmenting a set -- @{const insert} *}
 
 lemma insert_iff [simp]: "(a : insert b A) = (a = b | a:A)"
   by (unfold insert_def) blast

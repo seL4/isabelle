@@ -56,17 +56,17 @@ fun make_ind sorts ({descr, rec_names, rec_rewrites, induction, ...} : datatype_
     fun mk_all i s T t =
       if i mem is then list_all_free ([(s, T)], t) else t;
 
-    val (prems, rec_fns) = split_list (List.concat (snd (Library.foldl_map
-      (fn (j, ((i, (_, _, constrs)), T)) => Library.foldl_map (fn (j, (cname, cargs)) =>
+    val (prems, rec_fns) = split_list (flat (fst (fold_map
+      (fn ((i, (_, _, constrs)), T) => fold_map (fn (cname, cargs) => fn j =>
         let
           val Ts = map (typ_of_dtyp descr sorts) cargs;
           val tnames = Name.variant_list pnames (DatatypeProp.make_tnames Ts);
-          val recs = List.filter (is_rec_type o fst o fst) (cargs ~~ tnames ~~ Ts);
+          val recs = filter (is_rec_type o fst o fst) (cargs ~~ tnames ~~ Ts);
           val frees = tnames ~~ Ts;
 
           fun mk_prems vs [] = 
                 let
-                  val rT = List.nth (rec_result_Ts, i);
+                  val rT = nth (rec_result_Ts) i;
                   val vs' = filter_out is_unit vs;
                   val f = mk_Free "f" (map fastype_of vs' ---> rT) j;
                   val f' = Envir.eta_contract (list_abs_free
@@ -80,7 +80,7 @@ fun make_ind sorts ({descr, rec_names, rec_rewrites, induction, ...} : datatype_
                   val k = body_index dt;
                   val (Us, U) = strip_type T;
                   val i = length Us;
-                  val rT = List.nth (rec_result_Ts, k);
+                  val rT = nth (rec_result_Ts) k;
                   val r = Free ("r" ^ s, Us ---> rT);
                   val (p, f) = mk_prems (vs @ [r]) ds
                 in (mk_all k ("r" ^ s) (Us ---> rT) (Logic.mk_implies
@@ -89,9 +89,8 @@ fun make_ind sorts ({descr, rec_names, rec_rewrites, induction, ...} : datatype_
                       (app_bnds (Free (s, T)) i))), p)), f)
                 end
 
-        in (j + 1,
-          apfst (curry list_all_free frees) (mk_prems (map Free frees) recs))
-        end) (j, constrs)) (1, descr ~~ recTs))));
+        in (apfst (curry list_all_free frees) (mk_prems (map Free frees) recs), j + 1) end)
+          constrs) (descr ~~ recTs) 1)));
  
     fun mk_proj j [] t = t
       | mk_proj j (i :: is) t = if null is then t else
