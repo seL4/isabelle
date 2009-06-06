@@ -173,7 +173,7 @@ fun eval verbose pos toks =
         PolyML.compiler (get, parameters) ())
       handle exn =>
        (put ("Exception- " ^ General.exnMessage exn ^ " raised");
-        err (output ()); raise exn);
+        err (output ()); reraise exn);
   in if verbose then print (output ()) else () end;
 
 end;
