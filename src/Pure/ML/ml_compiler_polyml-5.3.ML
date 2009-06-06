@@ -6,7 +6,8 @@ Advanced runtime compilation for Poly/ML 5.3 (SVN 762).
 
 signature ML_COMPILER =
 sig
-  val exception_position: exn -> Position.T
+  val exn_position: exn -> Position.T
+  val exn_message: exn -> string
   val eval: bool -> Position.T -> ML_Lex.token list -> unit
 end
 
@@ -31,10 +32,12 @@ fun position_of (loc: PolyML.location) =
     loc_props
   end |> Position.of_properties;
 
-fun exception_position exn =
+fun exn_position exn =
   (case PolyML.exceptionLocation exn of
     NONE => Position.none
   | SOME loc => position_of loc);
+
+val exn_message = Runtime.exn_message exn_position;
 
 
 (* parse trees *)
@@ -145,10 +148,13 @@ fun eval verbose pos toks =
       end;
 
     fun result_fun (phase1, phase2) () =
-     (case phase1 of NONE => ()
-      | SOME parse_tree => report_parse_tree depth space parse_tree;
-      case phase2 of NONE => err "Static Errors"
-      | SOME code => apply_result (code ()));  (* FIXME cf. Toplevel.program *)
+     ((case phase1 of
+        NONE => ()
+      | SOME parse_tree => report_parse_tree depth space parse_tree);
+      (case phase2 of
+        NONE => err "Static Errors"
+      | SOME code =>
+          apply_result ((code |> Runtime.debugging |> Runtime.toplevel_error exn_message) ())));
 
 
     (* compiler invocation *)
