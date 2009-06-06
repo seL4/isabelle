@@ -194,7 +194,7 @@ lemmas Zseq_mult_left = mult.Zseq_left
 subsection {* Limits of Sequences *}
 
 lemma LIMSEQ_conv_tendsto: "(X ----> L) \<longleftrightarrow> (X ---> L) sequentially"
-unfolding LIMSEQ_def tendsto_def eventually_sequentially ..
+unfolding LIMSEQ_def tendsto_iff eventually_sequentially ..
 
 lemma LIMSEQ_iff:
   fixes L :: "'a::real_normed_vector"

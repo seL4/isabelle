@@ -1171,46 +1171,50 @@ lemma not_eventually: "(\<forall>x. \<not> P x ) \<Longrightarrow> ~(trivial_lim
 subsection{* Limits, defined as vacuously true when the limit is trivial. *}
 
   text{* Notation Lim to avoid collition with lim defined in analysis *}
-definition "Lim net f = (THE l. (f ---> l) net)"
+definition
+  Lim :: "'a net \<Rightarrow> ('a \<Rightarrow> 'b::metric_space) \<Rightarrow> 'b" where
+  "Lim net f = (THE l. (f ---> l) net)"
 
 lemma Lim:
  "(f ---> l) net \<longleftrightarrow>
         trivial_limit net \<or>
         (\<forall>e>0. eventually (\<lambda>x. dist (f x) l < e) net)"
-  unfolding tendsto_def trivial_limit_eq by auto
+  unfolding tendsto_iff trivial_limit_eq by auto
 
 
 text{* Show that they yield usual definitions in the various cases. *}
 
 lemma Lim_within_le: "(f ---> l)(at a within S) \<longleftrightarrow>
            (\<forall>e>0. \<exists>d>0. \<forall>x\<in>S. 0 < dist x a  \<and> dist x a  <= d \<longrightarrow> dist (f x) l < e)"
-  by (auto simp add: tendsto_def eventually_within_le)
+  by (auto simp add: tendsto_iff eventually_within_le)
 
 lemma Lim_within: "(f ---> l) (at a within S) \<longleftrightarrow>
         (\<forall>e >0. \<exists>d>0. \<forall>x \<in> S. 0 < dist x a  \<and> dist x a  < d  \<longrightarrow> dist (f x) l < e)"
-  by (auto simp add: tendsto_def eventually_within)
+  by (auto simp add: tendsto_iff eventually_within)
 
 lemma Lim_at: "(f ---> l) (at a) \<longleftrightarrow>
         (\<forall>e >0. \<exists>d>0. \<forall>x. 0 < dist x a  \<and> dist x a  < d  \<longrightarrow> dist (f x) l < e)"
-  by (auto simp add: tendsto_def eventually_at)
+  by (auto simp add: tendsto_iff eventually_at)
 
 lemma Lim_at_iff_LIM: "(f ---> l) (at a) \<longleftrightarrow> f -- a --> l"
   unfolding Lim_at LIM_def by (simp only: zero_less_dist_iff)
 
 lemma Lim_at_infinity:
   "(f ---> l) at_infinity \<longleftrightarrow> (\<forall>e>0. \<exists>b. \<forall>x::real^'n::finite. norm x >= b \<longrightarrow> dist (f x) l < e)"
-  by (auto simp add: tendsto_def eventually_at_infinity)
+  by (auto simp add: tendsto_iff eventually_at_infinity)
 
 lemma Lim_sequentially:
  "(S ---> l) sequentially \<longleftrightarrow>
           (\<forall>e>0. \<exists>N. \<forall>n\<ge>N. dist (S n) l < e)"
-  by (auto simp add: tendsto_def eventually_sequentially)
+  by (auto simp add: tendsto_iff eventually_sequentially)
 
 lemma Lim_sequentially_iff_LIMSEQ: "(S ---> l) sequentially \<longleftrightarrow> S ----> l"
   unfolding Lim_sequentially LIMSEQ_def ..
 
-lemma Lim_eventually: "eventually (\<lambda>x. f x = l) net \<Longrightarrow> (f ---> l) net"
-  unfolding tendsto_def by (auto elim: eventually_rev_mono)
+lemma Lim_eventually:
+  fixes l :: "'a::metric_space" (* FIXME: generalize to t2_space *)
+  shows "eventually (\<lambda>x. f x = l) net \<Longrightarrow> (f ---> l) net"
+  unfolding tendsto_iff by (auto elim: eventually_rev_mono)
 
 text{* The expected monotonicity property. *}
 
@@ -1225,7 +1229,7 @@ lemma Lim_Un: assumes "(f ---> l) (net within S)" "(f ---> l) (net within T)"
   shows "(f ---> l) (net within (S \<union> T))"
   using assms unfolding tendsto_def Limits.eventually_within
   apply clarify
-  apply (drule spec, drule (1) mp)+
+  apply (drule (1) bspec)+
   apply (auto elim: eventually_elim2)
   done
 
@@ -1238,9 +1242,11 @@ text{* Interrelations between restricted and unrestricted limits. *}
 
 lemma Lim_at_within: "(f ---> l) net ==> (f ---> l)(net within S)"
   unfolding tendsto_def Limits.eventually_within
+  apply (clarify, drule (1) bspec)
   by (auto elim!: eventually_elim1)
 
 lemma Lim_within_open:
+  fixes l :: "'a::metric_space" (* FIXME: generalize to topological_space *)
   assumes"a \<in> S" "open S"
   shows "(f ---> l)(at a within S) \<longleftrightarrow> (f ---> l)(at a)" (is "?lhs \<longleftrightarrow> ?rhs")
 proof
@@ -1268,7 +1274,9 @@ qed
 text{* Another limit point characterization. *}
 
 lemma islimpt_sequential:
- "x islimpt S \<longleftrightarrow> (\<exists>f. (\<forall>n::nat. f n \<in> S -{x}) \<and> (f ---> x) sequentially)" (is "?lhs = ?rhs")
+  fixes x :: "'a::metric_space" (* FIXME: generalize to topological_space *)
+  shows "x islimpt S \<longleftrightarrow> (\<exists>f. (\<forall>n::nat. f n \<in> S -{x}) \<and> (f ---> x) sequentially)"
+    (is "?lhs = ?rhs")
 proof
   assume ?lhs
   then obtain f where f:"\<forall>y. y>0 \<longrightarrow> f y \<in> S \<and> f y \<noteq> x \<and> dist (f y) x < y"
@@ -1317,11 +1325,11 @@ proof -
       apply (simp add: pos_less_divide_eq `0 < b` mult_commute)
       done
   }
-  thus ?thesis unfolding tendsto_def by simp
+  thus ?thesis unfolding tendsto_iff by simp
 qed
 
 lemma Lim_const: "((\<lambda>x. a) ---> a) net"
-  by (auto simp add: Lim trivial_limit_def)
+  unfolding tendsto_def by simp
 
 lemma Lim_cmul:
   fixes f :: "'a \<Rightarrow> real ^ 'n::finite"
@@ -1355,7 +1363,7 @@ proof-
       apply simp
       done
   }
-  thus ?thesis unfolding tendsto_def by simp
+  thus ?thesis unfolding tendsto_iff by simp
 qed
 
 lemma Lim_sub:
@@ -1377,7 +1385,7 @@ lemma Lim_null_comparison:
   fixes f :: "'a \<Rightarrow> 'b::real_normed_vector"
   assumes "eventually (\<lambda>x. norm(f x) <= g x) net" "((\<lambda>x. vec1(g x)) ---> 0) net"
   shows "(f ---> 0) net"
-proof(simp add: tendsto_def, rule+)
+proof(simp add: tendsto_iff, rule+)
   fix e::real assume "0<e"
   { fix x
     assume "norm (f x) \<le> g x" "dist (vec1 (g x)) 0 < e"
@@ -1387,12 +1395,12 @@ proof(simp add: tendsto_def, rule+)
   thus "eventually (\<lambda>x. dist (f x) 0 < e) net"
     using eventually_and[of "\<lambda>x. norm(f x) <= g x" "\<lambda>x. dist (vec1 (g x)) 0 < e" net]
     using eventually_mono[of "(\<lambda>x. norm (f x) \<le> g x \<and> dist (vec1 (g x)) 0 < e)" "(\<lambda>x. dist (f x) 0 < e)" net]
-    using assms `e>0` unfolding tendsto_def by auto
+    using assms `e>0` unfolding tendsto_iff by auto
 qed
 
 lemma Lim_component: "(f ---> l) net
                       ==> ((\<lambda>a. vec1((f a :: real ^'n::finite)$i)) ---> vec1(l$i)) net"
-  unfolding tendsto_def
+  unfolding tendsto_iff
   apply (simp add: dist_norm vec1_sub[symmetric] norm_vec1  vector_minus_component[symmetric] del: vector_minus_component)
   apply (auto simp del: vector_minus_component)
   apply (erule_tac x=e in allE)
@@ -1408,7 +1416,7 @@ lemma Lim_transform_bound:
   fixes g :: "'a \<Rightarrow> 'c::real_normed_vector"
   assumes "eventually (\<lambda>n. norm(f n) <= norm(g n)) net"  "(g ---> 0) net"
   shows "(f ---> 0) net"
-proof(simp add: tendsto_def, rule+)
+proof(simp add: tendsto_iff, rule+)
   fix e::real assume "e>0"
   { fix x
     assume "norm (f x) \<le> norm (g x)" "dist (g x) 0 < e"
@@ -1416,12 +1424,13 @@ proof(simp add: tendsto_def, rule+)
   thus "eventually (\<lambda>x. dist (f x) 0 < e) net"
     using eventually_and[of "\<lambda>x. norm (f x) \<le> norm (g x)" "\<lambda>x. dist (g x) 0 < e" net]
     using eventually_mono[of "\<lambda>x. norm (f x) \<le> norm (g x) \<and> dist (g x) 0 < e" "\<lambda>x. dist (f x) 0 < e" net]
-    using assms `e>0` unfolding tendsto_def by blast
+    using assms `e>0` unfolding tendsto_iff by blast
 qed
 
 text{* Deducing things about the limit from the elements. *}
 
 lemma Lim_in_closed_set:
+  fixes l :: "'a::metric_space" (* FIXME: generalize to topological_space *)
   assumes "closed S" "eventually (\<lambda>x. f(x) \<in> S) net"  "\<not>(trivial_limit net)" "(f ---> l) net"
   shows "l \<in> S"
 proof (rule ccontr)
@@ -1581,17 +1590,21 @@ proof -
       by (auto elim: eventually_rev_mono)
   }
   thus "((\<lambda>x. h (f x) (g x)) ---> h l m) net"
-    unfolding tendsto_def by simp
+    unfolding tendsto_iff by simp
 qed
 
 text{* These are special for limits out of the same vector space. *}
 
-lemma Lim_within_id: "(id ---> a) (at a within s)" by (auto simp add: Lim_within id_def)
+lemma Lim_within_id: "(id ---> a) (at a within s)"
+  unfolding tendsto_def Limits.eventually_within eventually_at_topological
+  by auto
+
 lemma Lim_at_id: "(id ---> a) (at a)"
 apply (subst within_UNIV[symmetric]) by (simp add: Lim_within_id)
 
 lemma Lim_at_zero:
   fixes a :: "'a::real_normed_vector"
+  fixes l :: "'b::metric_space" (* FIXME: generalize to topological_space *)
   shows "(f ---> l) (at a) \<longleftrightarrow> ((\<lambda>x. f(a + x)) ---> l) (at 0)" (is "?lhs = ?rhs")
 proof
   assume "?lhs"
@@ -1671,13 +1684,15 @@ proof-
 qed
 
 lemma Lim_transform_eventually:
+  fixes l :: "'a::metric_space" (* FIXME: generalize to t2_space *)
   shows "eventually (\<lambda>x. f x = g x) net \<Longrightarrow> (f ---> l) net ==> (g ---> l) net"
-  unfolding tendsto_def
+  unfolding tendsto_iff
   apply (clarify, drule spec, drule (1) mp)
   apply (erule (1) eventually_elim2, simp)
   done
 
 lemma Lim_transform_within:
+  fixes l :: "'b::metric_space" (* TODO: generalize *)
   assumes "0 < d" "(\<forall>x'\<in>S. 0 < dist x' x \<and> dist x' x < d \<longrightarrow> f x' = g x')"
           "(f ---> l) (at x within S)"
   shows   "(g ---> l) (at x within S)"
@@ -1691,6 +1706,7 @@ lemma Lim_transform_within:
   done
 
 lemma Lim_transform_at:
+  fixes l :: "'b::metric_space" (* TODO: generalize *)
   shows "0 < d \<Longrightarrow> (\<forall>x'. 0 < dist x' x \<and> dist x' x < d \<longrightarrow> f x' = g x') \<Longrightarrow>
   (f ---> l) (at x) ==> (g ---> l) (at x)"
   apply (subst within_UNIV[symmetric])
@@ -1701,6 +1717,7 @@ text{* Common case assuming being away from some crucial point like 0. *}
 
 lemma Lim_transform_away_within:
   fixes a b :: "'a::metric_space"
+  fixes l :: "'b::metric_space" (* TODO: generalize *)
   assumes "a\<noteq>b" "\<forall>x\<in> S. x \<noteq> a \<and> x \<noteq> b \<longrightarrow> f x = g x"
   and "(f ---> l) (at a within S)"
   shows "(g ---> l) (at a within S)"
@@ -1712,6 +1729,7 @@ qed
 
 lemma Lim_transform_away_at:
   fixes a b :: "'a::metric_space"
+  fixes l :: "'b::metric_space" (* TODO: generalize *)
   assumes ab: "a\<noteq>b" and fg: "\<forall>x. x \<noteq> a \<and> x \<noteq> b \<longrightarrow> f x = g x"
   and fl: "(f ---> l) (at a)"
   shows "(g ---> l) (at a)"
@@ -1722,6 +1740,7 @@ text{* Alternatively, within an open set. *}
 
 lemma Lim_transform_within_open:
   fixes a :: "'a::metric_space"
+  fixes l :: "'b::metric_space" (* TODO: generalize *)
   assumes "open S"  "a \<in> S"  "\<forall>x\<in>S. x \<noteq> a \<longrightarrow> f x = g x"  "(f ---> l) (at a)"
   shows "(g ---> l) (at a)"
 proof-
@@ -1736,19 +1755,22 @@ text{* A congruence rule allowing us to transform limits assuming not at point. 
 (* FIXME: Only one congruence rule for tendsto can be used at a time! *)
 
 lemma Lim_cong_within[cong add]:
-  fixes a :: "'a::metric_space" shows
- "(\<And>x. x \<noteq> a \<Longrightarrow> f x = g x) ==> ((\<lambda>x. f x) ---> l) (at a within S) \<longleftrightarrow> ((g ---> l) (at a within S))"
+  fixes a :: "'a::metric_space"
+  fixes l :: "'b::metric_space" (* TODO: generalize *)
+  shows "(\<And>x. x \<noteq> a \<Longrightarrow> f x = g x) ==> ((\<lambda>x. f x) ---> l) (at a within S) \<longleftrightarrow> ((g ---> l) (at a within S))"
   by (simp add: Lim_within dist_nz[symmetric])
 
 lemma Lim_cong_at[cong add]:
-  fixes a :: "'a::metric_space" shows
- "(\<And>x. x \<noteq> a ==> f x = g x) ==> (((\<lambda>x. f x) ---> l) (at a) \<longleftrightarrow> ((g ---> l) (at a)))"
+  fixes a :: "'a::metric_space"
+  fixes l :: "'b::metric_space" (* TODO: generalize *)
+  shows "(\<And>x. x \<noteq> a ==> f x = g x) ==> (((\<lambda>x. f x) ---> l) (at a) \<longleftrightarrow> ((g ---> l) (at a)))"
   by (simp add: Lim_at dist_nz[symmetric])
 
 text{* Useful lemmas on closure and set of possible sequential limits.*}
 
 lemma closure_sequential:
- "l \<in> closure S \<longleftrightarrow> (\<exists>x. (\<forall>n. x n \<in> S) \<and> (x ---> l) sequentially)" (is "?lhs = ?rhs")
+  fixes l :: "'a::metric_space" (* TODO: generalize *)
+  shows "l \<in> closure S \<longleftrightarrow> (\<exists>x. (\<forall>n. x n \<in> S) \<and> (x ---> l) sequentially)" (is "?lhs = ?rhs")
 proof
   assume "?lhs" moreover
   { assume "l \<in> S"
@@ -1783,17 +1805,23 @@ lemma closed_approachable:
 
 text{* Some other lemmas about sequences. *}
 
-lemma seq_offset: "(f ---> l) sequentially ==> ((\<lambda>i. f( i + k)) ---> l) sequentially"
+lemma seq_offset:
+  fixes l :: "'a::metric_space" (* TODO: generalize *)
+  shows "(f ---> l) sequentially ==> ((\<lambda>i. f( i + k)) ---> l) sequentially"
   apply (auto simp add: Lim_sequentially)
   by (metis trans_le_add1 )
 
-lemma seq_offset_neg: "(f ---> l) sequentially ==> ((\<lambda>i. f(i - k)) ---> l) sequentially"
+lemma seq_offset_neg:
+  fixes l :: "'a::metric_space" (* TODO: generalize *)
+  shows "(f ---> l) sequentially ==> ((\<lambda>i. f(i - k)) ---> l) sequentially"
   apply (simp add: Lim_sequentially)
   apply (subgoal_tac "\<And>N k (n::nat). N + k <= n ==> N <= n - k")
   apply metis
   by arith
 
-lemma seq_offset_rev: "((\<lambda>i. f(i + k)) ---> l) sequentially ==> (f ---> l) sequentially"
+lemma seq_offset_rev:
+  fixes l :: "'a::metric_space" (* TODO: generalize *)
+  shows "((\<lambda>i. f(i + k)) ---> l) sequentially ==> (f ---> l) sequentially"
   apply (simp add: Lim_sequentially)
   apply (subgoal_tac "\<And>N k (n::nat). N + k <= n ==> N <= n - k \<and> (n - k) + k = n")
   by metis arith
@@ -2017,8 +2045,9 @@ qed
 
 lemma lim_within_interior:
   fixes x :: "'a::metric_space"
+  fixes l :: "'b::metric_space" (* TODO: generalize *)
   shows "x \<in> interior S  ==> ((f ---> l) (at x within S) \<longleftrightarrow> (f ---> l) (at x))"
-  by (simp add: tendsto_def eventually_within_interior)
+  by (simp add: tendsto_iff eventually_within_interior)
 
 lemma netlimit_within_interior:
   fixes x :: "'a::{perfect_space, real_normed_vector}"
@@ -2241,7 +2270,9 @@ lemma inf_insert_finite: "finite S ==> rinf(insert x S) = (if S = {} then x else
 
 subsection{* Compactness (the definition is the one based on convegent subsequences). *}
 
-definition "compact S \<longleftrightarrow>
+definition
+  compact :: "'a::metric_space set \<Rightarrow> bool" where (* TODO: generalize *)
+  "compact S \<longleftrightarrow>
    (\<forall>f. (\<forall>n::nat. f n \<in> S) \<longrightarrow>
        (\<exists>l\<in>S. \<exists>r. (\<forall>m n. m < n \<longrightarrow> r m < r n) \<and> ((f o r) ---> l) sequentially))"
 
@@ -2256,7 +2287,9 @@ next
   ultimately show "Suc n \<le> r (Suc n)" by auto
 qed
 
-lemma lim_subsequence: "\<forall>m n. m < n \<longrightarrow> r m < r n \<Longrightarrow> (s ---> l) sequentially \<Longrightarrow> ((s o r) ---> l) sequentially"
+lemma lim_subsequence:
+  fixes l :: "'a::metric_space" (* TODO: generalize *)
+  shows "\<forall>m n. m < n \<longrightarrow> r m < r n \<Longrightarrow> (s ---> l) sequentially \<Longrightarrow> ((s o r) ---> l) sequentially"
 unfolding Lim_sequentially by (simp, metis  monotone_bigger le_trans)
 
 lemma num_Axiom: "EX! g. g 0 = e \<and> (\<forall>n. g (Suc n) = f n (g n))"
@@ -2700,6 +2733,7 @@ proof(rule ccontr)
 qed
 
 lemma sequence_infinite_lemma:
+  fixes l :: "'a::metric_space" (* TODO: generalize *)
   assumes "\<forall>n::nat. (f n  \<noteq> l)"  "(f ---> l) sequentially"
   shows "infinite {y. (\<exists> n. y = f n)}"
 proof(rule ccontr)
@@ -2714,6 +2748,7 @@ proof(rule ccontr)
 qed
 
 lemma sequence_unique_limpt:
+  fixes l :: "'a::metric_space" (* TODO: generalize *)
   assumes "\<forall>n::nat. (f n \<noteq> l)"  "(f ---> l) sequentially"  "l' islimpt {y.  (\<exists>n. y = f n)}"
   shows "l' = l"
 proof(rule ccontr)
@@ -3049,15 +3084,18 @@ qed
 
 subsection{* Define continuity over a net to take in restrictions of the set. *}
 
-definition "continuous net f \<longleftrightarrow> (f ---> f(netlimit net)) net"
+definition
+  continuous :: "'a::metric_space net \<Rightarrow> ('a \<Rightarrow> 'b::metric_space) \<Rightarrow> bool" where
+  "continuous net f \<longleftrightarrow> (f ---> f(netlimit net)) net"
+  (* FIXME: generalize 'b to topological_space *)
 
 lemma continuous_trivial_limit:
  "trivial_limit net ==> continuous net f"
-  unfolding continuous_def tendsto_def trivial_limit_eq by auto
+  unfolding continuous_def tendsto_iff trivial_limit_eq by auto
 
 lemma continuous_within: "continuous (at x within s) f \<longleftrightarrow> (f ---> f(x)) (at x within s)"
   unfolding continuous_def
-  unfolding tendsto_def
+  unfolding tendsto_iff
   using netlimit_within[of x s]
   by (cases "trivial_limit (at x within s)") (auto simp add: trivial_limit_eventually)
 
@@ -3149,7 +3187,7 @@ lemma continuous_at_imp_continuous_on: assumes "(\<forall>x \<in> s. continuous 
   shows "continuous_on s f"
 proof(simp add: continuous_at continuous_on_def, rule, rule, rule)
   fix x and e::real assume "x\<in>s" "e>0"
-  hence "eventually (\<lambda>xa. dist (f xa) (f x) < e) (at x)" using assms unfolding continuous_at tendsto_def by auto
+  hence "eventually (\<lambda>xa. dist (f xa) (f x) < e) (at x)" using assms unfolding continuous_at tendsto_iff by auto
   then obtain d where d:"d>0" "\<forall>xa. 0 < dist xa x \<and> dist xa x < d \<longrightarrow> dist (f xa) (f x) < e" unfolding eventually_at by auto
   { fix x' assume "\<not> 0 < dist x' x"
     hence "x=x'"
@@ -4025,7 +4063,7 @@ lemma continuous_at_vec1_component:
 proof-
   { fix e::real and x assume "0 < dist x a" "dist x a < e" "e>0"
     hence "\<bar>x $ i - a $ i\<bar> < e" using component_le_norm[of "x - a" i] unfolding dist_norm by auto  }
-  thus ?thesis unfolding continuous_at tendsto_def eventually_at dist_vec1 by auto
+  thus ?thesis unfolding continuous_at tendsto_iff eventually_at dist_vec1 by auto
 qed
 
 lemma continuous_on_vec1_component:
@@ -4207,7 +4245,7 @@ proof -
     have "eventually (\<lambda>x. dist ((vec1 o inverse o f) x) (vec1(inverse l)) < e) net"
       by (auto elim: eventually_rev_mono)
   }
-  thus ?thesis unfolding tendsto_def by auto
+  thus ?thesis unfolding tendsto_iff by auto
 qed
 
 lemma continuous_inv:
@@ -5058,7 +5096,7 @@ next
     ultimately have "eventually (\<lambda>x. \<bar>a \<bullet> f x - a \<bullet> l\<bar> < e) net"
       by (auto elim: eventually_rev_mono)
   }
-  thus ?thesis unfolding tendsto_def
+  thus ?thesis unfolding tendsto_iff
     by (auto simp add: dist_vec1)
 qed
 
@@ -5166,11 +5204,17 @@ lemma Lim_drop_ge: fixes f :: "'a \<Rightarrow> real^1" shows
 
 text{* Limits relative to a union.                                               *}
 
+lemma eventually_within_Un:
+  "eventually P (net within (s \<union> t)) \<longleftrightarrow>
+    eventually P (net within s) \<and> eventually P (net within t)"
+  unfolding Limits.eventually_within
+  by (auto elim!: eventually_rev_mp)
+
 lemma Lim_within_union:
  "(f ---> l) (net within (s \<union> t)) \<longleftrightarrow>
   (f ---> l) (net within s) \<and> (f ---> l) (net within t)"
-  unfolding tendsto_def Limits.eventually_within
-  by (auto elim!: eventually_elim1 intro: eventually_conjI)
+  unfolding tendsto_def
+  by (auto simp add: eventually_within_Un)
 
 lemma continuous_on_union:
   assumes "closed s" "closed t" "continuous_on s f" "continuous_on t f"

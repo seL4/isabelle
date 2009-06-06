@@ -353,21 +353,47 @@ lemmas Zfun_mult_left = mult.Zfun_left
 subsection{* Limits *}
 
 definition
-  tendsto :: "('a \<Rightarrow> 'b::metric_space) \<Rightarrow> 'b \<Rightarrow> 'a net \<Rightarrow> bool"
-    (infixr "--->" 55) where
-  [code del]: "(f ---> l) net \<longleftrightarrow> (\<forall>e>0. eventually (\<lambda>x. dist (f x) l < e) net)"
+  tendsto :: "('a \<Rightarrow> 'b::topological_space) \<Rightarrow> 'b \<Rightarrow> 'a net \<Rightarrow> bool"
+    (infixr "--->" 55)
+where [code del]:
+  "(f ---> l) net \<longleftrightarrow> (\<forall>S\<in>topo. l \<in> S \<longrightarrow> eventually (\<lambda>x. f x \<in> S) net)"
 
-lemma tendstoI:
-  "(\<And>e. 0 < e \<Longrightarrow> eventually (\<lambda>x. dist (f x) l < e) net)
+lemma topological_tendstoI:
+  "(\<And>S. S \<in> topo \<Longrightarrow> l \<in> S \<Longrightarrow> eventually (\<lambda>x. f x \<in> S) net)
     \<Longrightarrow> (f ---> l) net"
   unfolding tendsto_def by auto
 
-lemma tendstoD:
-  "(f ---> l) net \<Longrightarrow> 0 < e \<Longrightarrow> eventually (\<lambda>x. dist (f x) l < e) net"
+lemma topological_tendstoD:
+  "(f ---> l) net \<Longrightarrow> S \<in> topo \<Longrightarrow> l \<in> S \<Longrightarrow> eventually (\<lambda>x. f x \<in> S) net"
   unfolding tendsto_def by auto
 
+lemma tendstoI:
+  assumes "\<And>e. 0 < e \<Longrightarrow> eventually (\<lambda>x. dist (f x) l < e) net"
+  shows "(f ---> l) net"
+apply (rule topological_tendstoI)
+apply (simp add: topo_dist)
+apply (drule (1) bspec, clarify)
+apply (drule assms)
+apply (erule eventually_elim1, simp)
+done
+
+lemma tendstoD:
+  "(f ---> l) net \<Longrightarrow> 0 < e \<Longrightarrow> eventually (\<lambda>x. dist (f x) l < e) net"
+apply (drule_tac S="{x. dist x l < e}" in topological_tendstoD)
+apply (clarsimp simp add: topo_dist)
+apply (rule_tac x="e - dist x l" in exI, clarsimp)
+apply (simp only: less_diff_eq)
+apply (erule le_less_trans [OF dist_triangle])
+apply simp
+apply simp
+done
+
+lemma tendsto_iff:
+  "(f ---> l) net \<longleftrightarrow> (\<forall>e>0. eventually (\<lambda>x. dist (f x) l < e) net)"
+using tendstoI tendstoD by fast
+
 lemma tendsto_Zfun_iff: "(f ---> a) net = Zfun (\<lambda>x. f x - a) net"
-by (simp only: tendsto_def Zfun_def dist_norm)
+by (simp only: tendsto_iff Zfun_def dist_norm)
 
 lemma tendsto_const: "((\<lambda>x. k) ---> k) net"
 by (simp add: tendsto_def)
@@ -375,7 +401,7 @@ by (simp add: tendsto_def)
 lemma tendsto_norm:
   fixes a :: "'a::real_normed_vector"
   shows "(f ---> a) net \<Longrightarrow> ((\<lambda>x. norm (f x)) ---> norm a) net"
-apply (simp add: tendsto_def dist_norm, safe)
+apply (simp add: tendsto_iff dist_norm, safe)
 apply (drule_tac x="e" in spec, safe)
 apply (erule eventually_elim1)
 apply (erule order_le_less_trans [OF norm_triangle_ineq3])
