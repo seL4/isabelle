@@ -546,9 +546,14 @@ definition
     (infixr "islimpt" 60) where
   "x islimpt S \<longleftrightarrow> (\<forall>T. x\<in>T \<longrightarrow> open T \<longrightarrow> (\<exists>y\<in>S. y\<in>T \<and> y\<noteq>x))"
 
-  (* FIXME: Sure this form is OK????*)
-lemma islimptE: assumes "x islimpt S" and "x \<in> T" and "open T"
-  obtains "(\<exists>y\<in>S. y\<in>T \<and> y\<noteq>x)"
+lemma islimptI:
+  assumes "\<And>T. x \<in> T \<Longrightarrow> open T \<Longrightarrow> \<exists>y\<in>S. y \<in> T \<and> y \<noteq> x"
+  shows "x islimpt S"
+  using assms unfolding islimpt_def by auto
+
+lemma islimptE:
+  assumes "x islimpt S" and "x \<in> T" and "open T"
+  obtains y where "y \<in> S" and "y \<in> T" and "y \<noteq> x"
   using assms unfolding islimpt_def by auto
 
 lemma islimpt_subset: "x islimpt S \<Longrightarrow> S \<subseteq> T ==> x islimpt T" by (auto simp add: islimpt_def)
@@ -909,31 +914,23 @@ lemma open_inter_closure_eq_empty:
   by auto
 
 lemma open_inter_closure_subset:
-  fixes S :: "'a::metric_space set"
-    (* FIXME: generalize to topological_space *)
-  shows "open S \<Longrightarrow> (S \<inter> (closure T)) \<subseteq> closure(S \<inter> T)"
+  "open S \<Longrightarrow> (S \<inter> (closure T)) \<subseteq> closure(S \<inter> T)"
 proof
   fix x
   assume as: "open S" "x \<in> S \<inter> closure T"
   { assume *:"x islimpt T"
-    { fix e::real
-      assume "e > 0"
-      from as `open S` obtain e' where "e' > 0" and e':"\<forall>x'. dist x' x < e' \<longrightarrow> x' \<in> S"
-	unfolding open_dist
-	by auto
-      let ?e = "min e e'"
-      from `e>0` `e'>0` have "?e > 0"
-	by simp
-      then obtain y where y:"y\<in>T" "y \<noteq> x \<and> dist y x < ?e"
-	using islimpt_approachable[of x T] using *
-	by blast
-      hence "\<exists>x'\<in>S \<inter> T. x' \<noteq> x \<and> dist x' x < e" using e'
-	using y
-	by(rule_tac x=y in bexI, simp+)
-    }
-    hence "x islimpt S \<inter> T"
-      using islimpt_approachable[of x "S \<inter> T"]
-      by blast
+    have "x islimpt (S \<inter> T)"
+    proof (rule islimptI)
+      fix A
+      assume "x \<in> A" "open A"
+      with as have "x \<in> A \<inter> S" "open (A \<inter> S)"
+        by (simp_all add: open_inter)
+      with * obtain y where "y \<in> T" "y \<in> A \<inter> S" "y \<noteq> x"
+        by (rule islimptE)
+      hence "y \<in> S \<inter> T" "y \<in> A \<and> y \<noteq> x"
+        by simp_all
+      thus "\<exists>y\<in>(S \<inter> T). y \<in> A \<and> y \<noteq> x" ..
+    qed
   }
   then show "x \<in> closure (S \<inter> T)" using as
     unfolding closure_def
