@@ -452,7 +452,7 @@ fun decode_tstp_file cnfs ctxt th sgno thm_names =
     isar_header (map #1 fixes) ^ String.concat ilines ^ "qed\n"
   end
   handle e => (*FIXME: exn handler is too general!*)
-    let val msg = "Translation of TSTP raised an exception: " ^ Toplevel.exn_message e
+    let val msg = "Translation of TSTP raised an exception: " ^ ML_Compiler.exn_message e
     in  trace msg; msg  end;
 
 
