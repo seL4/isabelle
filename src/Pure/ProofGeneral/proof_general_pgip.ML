@@ -1000,7 +1000,7 @@ and handler (e,srco) =
       | (Toplevel.UNDEF,SOME src) =>
         (Output.error_msg "No working context defined"; loop true src)
       | (e,SOME src) =>
-        (Output.error_msg (Toplevel.exn_message e); loop true src)
+        (Output.error_msg (ML_Compiler.exn_message e); loop true src)
       | (PGIP_QUIT,_) => ()
       | (_,NONE) => ()
 in

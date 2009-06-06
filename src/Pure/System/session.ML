@@ -107,6 +107,6 @@ fun use_dir root build modes reset info doc doc_graph doc_versions
     |> setmp_noncritical Multithreading.max_threads
       (if Multithreading.available then max_threads
        else (if max_threads = 1 then () else warning "Multithreading support unavailable"; 1))) ()
-  handle exn => (Output.error_msg (Toplevel.exn_message exn); exit 1);
+  handle exn => (Output.error_msg (ML_Compiler.exn_message exn); exit 1);
 
 end;
