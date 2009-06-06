@@ -41,14 +41,16 @@ fun exception_position exn =
 
 fun report_parse_tree depth space =
   let
+    fun report_decl markup loc decl =
+      Position.report_text Markup.ML_ref (position_of loc)
+        (Markup.markup (Markup.properties (Position.properties_of (position_of decl)) markup) "");
     fun report loc (PolyML.PTtype types) =
           PolyML.NameSpace.displayTypeExpression (types, depth, space)
           |> pretty_ml |> Pretty.from_ML |> Pretty.string_of
           |> Position.report_text Markup.ML_typing (position_of loc)
-      | report loc (PolyML.PTdeclaredAt decl) =
-          Markup.markup
-            (Markup.properties (Position.properties_of (position_of decl)) Markup.ML_def) ""
-          |> Position.report_text Markup.ML_ref (position_of loc)
+      | report loc (PolyML.PTdeclaredAt decl) = report_decl Markup.ML_def loc decl
+      | report loc (PolyML.PTopenedAt decl) = report_decl Markup.ML_open loc decl
+      | report loc (PolyML.PTstructureAt decl) = report_decl Markup.ML_struct loc decl
       | report _ (PolyML.PTnextSibling tree) = report_tree (tree ())
       | report _ (PolyML.PTfirstChild tree) = report_tree (tree ())
       | report _ _ = ()
@@ -77,7 +79,11 @@ fun eval verbose pos toks =
           (Position.reset_range (ML_Lex.pos_of tok));
       in ps ~~ map (String.explode o Symbol.esc) syms end);
 
-    val input_buffer = ref input;
+    val end_pos =
+      if null toks then Position.none
+      else ML_Lex.end_pos_of (List.last toks);
+
+    val input_buffer = ref (input @ [(end_pos, [#"\n"])]);
     val line = ref (the_default 1 (Position.line_of pos));
 
     fun get_offset () =
@@ -152,9 +158,10 @@ fun eval verbose pos toks =
       PolyML.Compiler.CPNameSpace space,
       PolyML.Compiler.CPErrorMessageProc put_message,
       PolyML.Compiler.CPLineNo (fn () => ! line),
-      PolyML.Compiler.CPFileName location_props,
       PolyML.Compiler.CPLineOffset get_offset,
-      PolyML.Compiler.CPCompilerResultFun result_fun];
+      PolyML.Compiler.CPFileName location_props,
+      PolyML.Compiler.CPCompilerResultFun result_fun,
+      PolyML.Compiler.CPPrintInAlphabeticalOrder false];
     val _ =
       (while not (List.null (! input_buffer)) do
         PolyML.compiler (get, parameters) ())
