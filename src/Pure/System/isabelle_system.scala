@@ -58,6 +58,18 @@ class IsabelleSystem
 
   /* Isabelle settings environment */
 
+  private val (cygdrive_pattern, cygwin_root, shell_prefix) =
+  {
+    if (IsabelleSystem.is_cygwin) {
+      val cygdrive = Cygwin.cygdrive getOrElse "/cygdrive"
+      val pattern = Pattern.compile(cygdrive + "/([a-zA-Z])($|/.*)")
+      val root = Cygwin.root getOrElse "C:\\cygwin"
+      val bash = List(root + "\\bin\\bash", "-l")
+      (Some(pattern), Some(root), bash)
+    }
+    else (None, None, Nil)
+  }
+
   private val environment: Map[String, String] =
   {
     import scala.collection.jcl.Conversions._
@@ -75,9 +87,7 @@ class IsabelleSystem
 
     val dump = File.createTempFile("isabelle", null)
     try {
-      val cmdline =
-        (if (IsabelleSystem.is_cygwin) List("C:\\cygwin\\bin\\bash", "-l") else Nil) ++
-        List(isabelle, "getenv", "-d", dump.toString)
+      val cmdline = shell_prefix ::: List(isabelle, "getenv", "-d", dump.toString)
       val proc = IsabelleSystem.raw_execute(env0, true, cmdline: _*)
       val (output, rc) = IsabelleSystem.process_output(proc)
       if (rc != 0) error(output)
@@ -107,29 +117,36 @@ class IsabelleSystem
 
   /* file path specifications */
 
-  private val cygdrive_pattern = Pattern.compile("/cygdrive/([a-zA-Z])($|/.*)")
-
   def platform_path(source_path: String): String =
   {
     val result_path = new StringBuilder
 
-    def init(path: String): String =
+    def init_plain(path: String): String =
     {
-      val cygdrive = cygdrive_pattern.matcher(path)
-      if (cygdrive.matches) {
-        result_path.length = 0
-        result_path.append(cygdrive.group(1))
-        result_path.append(":")
-        result_path.append(File.separator)
-        cygdrive.group(2)
-      }
-      else if (path.startsWith("/")) {
+      if (path.startsWith("/")) {
         result_path.length = 0
         result_path.append(getenv_strict("ISABELLE_ROOT_JVM"))
         path.substring(1)
       }
       else path
     }
+    def init(path: String): String =
+    {
+      cygdrive_pattern match {
+        case Some(pattern) =>
+          val cygdrive = pattern.matcher(path)
+          if (cygdrive.matches) {
+            result_path.length = 0
+            result_path.append(cygdrive.group(1))
+            result_path.append(":")
+            result_path.append(File.separator)
+            cygdrive.group(2)
+          }
+          else init_plain(path)
+        case None => init_plain(path)
+      }
+    }
+
     def append(path: String)
     {
       for (p <- init(path).split("/")) {
