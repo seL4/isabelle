@@ -24,8 +24,8 @@ import org.gjt.sp.jedit.io.VFSManager
 object VFS {  
   val BUFFER_SIZE = 1024
   
-  def input_converter(isabelle_system: IsabelleSystem, in: InputStream) = {
-    val reader = new InputStreamReader(in, Isabelle.system.charset)
+  def input_converter(in: InputStream) = {
+    val reader = new InputStreamReader(in, IsabelleSystem.charset)
     val buffer = new StringBuilder
     val array = new Array[Char](BUFFER_SIZE)
     
@@ -39,7 +39,7 @@ object VFS {
     }
 
     val str = Isabelle.symbols.decode(buffer.toString)
-    new ByteArrayInputStream(str.getBytes(isabelle_system.charset))
+    new ByteArrayInputStream(str.getBytes(IsabelleSystem.charset))
   }
   
   class OutputConverter(out: OutputStream) extends ByteArrayOutputStream {
@@ -163,7 +163,7 @@ class VFS extends io.VFS("isabelle", VFSManager.getVFSForProtocol("file").getCap
   
   override def _createInputStream(session: Object, path: String,
       ignoreErrors: Boolean, comp: Component) =
-    VFS.input_converter(Isabelle.system, baseVFS._createInputStream(session, cutPath(path), ignoreErrors, comp))
+    VFS.input_converter(baseVFS._createInputStream(session, cutPath(path), ignoreErrors, comp))
   
   override def _createOutputStream(session: Object, path: String, comp: Component) =
     new VFS.OutputConverter(baseVFS._createOutputStream(session, cutPath(path), comp))
