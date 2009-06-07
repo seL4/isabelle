@@ -160,45 +160,61 @@ lemma dist_snd_le: "dist (snd x) (snd y) \<le> dist x y"
 unfolding dist_prod_def by simp
 
 lemma tendsto_fst:
-  assumes "tendsto f a net"
-  shows "tendsto (\<lambda>x. fst (f x)) (fst a) net"
-proof (rule tendstoI)
-  fix r :: real assume "0 < r"
-  have "eventually (\<lambda>x. dist (f x) a < r) net"
-    using `tendsto f a net` `0 < r` by (rule tendstoD)
-  thus "eventually (\<lambda>x. dist (fst (f x)) (fst a) < r) net"
-    by (rule eventually_elim1)
-       (rule le_less_trans [OF dist_fst_le])
+  assumes "(f ---> a) net"
+  shows "((\<lambda>x. fst (f x)) ---> fst a) net"
+proof (rule topological_tendstoI)
+  fix S assume "S \<in> topo" "fst a \<in> S"
+  then have "fst -` S \<in> topo" "a \<in> fst -` S"
+    unfolding topo_prod_def
+    apply simp_all
+    apply clarify
+    apply (erule rev_bexI, simp)
+    apply (rule rev_bexI [OF topo_UNIV])
+    apply auto
+    done
+  with assms have "eventually (\<lambda>x. f x \<in> fst -` S) net"
+    by (rule topological_tendstoD)
+  then show "eventually (\<lambda>x. fst (f x) \<in> S) net"
+    by simp
 qed
 
 lemma tendsto_snd:
-  assumes "tendsto f a net"
-  shows "tendsto (\<lambda>x. snd (f x)) (snd a) net"
-proof (rule tendstoI)
-  fix r :: real assume "0 < r"
-  have "eventually (\<lambda>x. dist (f x) a < r) net"
-    using `tendsto f a net` `0 < r` by (rule tendstoD)
-  thus "eventually (\<lambda>x. dist (snd (f x)) (snd a) < r) net"
-    by (rule eventually_elim1)
-       (rule le_less_trans [OF dist_snd_le])
+  assumes "(f ---> a) net"
+  shows "((\<lambda>x. snd (f x)) ---> snd a) net"
+proof (rule topological_tendstoI)
+  fix S assume "S \<in> topo" "snd a \<in> S"
+  then have "snd -` S \<in> topo" "a \<in> snd -` S"
+    unfolding topo_prod_def
+    apply simp_all
+    apply clarify
+    apply (rule rev_bexI [OF topo_UNIV])
+    apply (erule rev_bexI)
+    apply auto
+    done
+  with assms have "eventually (\<lambda>x. f x \<in> snd -` S) net"
+    by (rule topological_tendstoD)
+  then show "eventually (\<lambda>x. snd (f x) \<in> S) net"
+    by simp
 qed
 
 lemma tendsto_Pair:
-  assumes "tendsto X a net" and "tendsto Y b net"
-  shows "tendsto (\<lambda>i. (X i, Y i)) (a, b) net"
-proof (rule tendstoI)
-  fix r :: real assume "0 < r"
-  then have "0 < r / sqrt 2" (is "0 < ?s")
-    by (simp add: divide_pos_pos)
-  have "eventually (\<lambda>i. dist (X i) a < ?s) net"
-    using `tendsto X a net` `0 < ?s` by (rule tendstoD)
+  assumes "(f ---> a) net" and "(g ---> b) net"
+  shows "((\<lambda>x. (f x, g x)) ---> (a, b)) net"
+proof (rule topological_tendstoI)
+  fix S assume "S \<in> topo" "(a, b) \<in> S"
+  then obtain A B where "A \<in> topo" "B \<in> topo" "a \<in> A" "b \<in> B" "A \<times> B \<subseteq> S"
+    unfolding topo_prod_def by auto
+  have "eventually (\<lambda>x. f x \<in> A) net"
+    using `(f ---> a) net` `A \<in> topo` `a \<in> A`
+    by (rule topological_tendstoD)
   moreover
-  have "eventually (\<lambda>i. dist (Y i) b < ?s) net"
-    using `tendsto Y b net` `0 < ?s` by (rule tendstoD)
+  have "eventually (\<lambda>x. g x \<in> B) net"
+    using `(g ---> b) net` `B \<in> topo` `b \<in> B`
+    by (rule topological_tendstoD)
   ultimately
-  show "eventually (\<lambda>i. dist (X i, Y i) (a, b) < r) net"
+  show "eventually (\<lambda>x. (f x, g x) \<in> S) net"
     by (rule eventually_elim2)
-       (simp add: real_sqrt_sum_squares_less dist_Pair_Pair)
+       (simp add: subsetD [OF `A \<times> B \<subseteq> S`])
 qed
 
 lemma LIMSEQ_fst: "(X ----> a) \<Longrightarrow> (\<lambda>n. fst (X n)) ----> fst a"
