@@ -421,10 +421,94 @@ subsection {* Topological spaces *}
 class topo =
   fixes topo :: "'a set set"
 
+text {*
+  The syntactic class uses @{term topo} instead of @{text "open"}
+  so that @{text "open"} and @{text closed} will have the same type.
+  Maybe we could use extra type constraints instead, like with
+  @{text dist} and @{text norm}?
+*}
+
 class topological_space = topo +
   assumes topo_UNIV: "UNIV \<in> topo"
   assumes topo_Int: "A \<in> topo \<Longrightarrow> B \<in> topo \<Longrightarrow> A \<inter> B \<in> topo"
   assumes topo_Union: "T \<subseteq> topo \<Longrightarrow> \<Union>T \<in> topo"
+begin
+
+definition
+  "open" :: "'a set \<Rightarrow> bool" where
+  "open S \<longleftrightarrow> S \<in> topo"
+
+definition
+  closed :: "'a set \<Rightarrow> bool" where
+  "closed S \<longleftrightarrow> open (- S)"
+
+lemma open_UNIV [intro, simp]:  "open UNIV"
+  unfolding open_def by (rule topo_UNIV)
+
+lemma open_Int [intro]: "open S \<Longrightarrow> open T \<Longrightarrow> open (S \<inter> T)"
+  unfolding open_def by (rule topo_Int)
+
+lemma open_Union [intro]: "\<forall>S\<in>K. open S \<Longrightarrow> open (\<Union> K)"
+  unfolding open_def subset_eq [symmetric] by (rule topo_Union)
+
+lemma open_empty [intro, simp]: "open {}"
+  using open_Union [of "{}"] by simp
+
+lemma open_Un [intro]: "open S \<Longrightarrow> open T \<Longrightarrow> open (S \<union> T)"
+  using open_Union [of "{S, T}"] by simp
+
+lemma open_UN [intro]: "\<forall>x\<in>A. open (B x) \<Longrightarrow> open (\<Union>x\<in>A. B x)"
+  unfolding UN_eq by (rule open_Union) auto
+
+lemma open_INT [intro]: "finite A \<Longrightarrow> \<forall>x\<in>A. open (B x) \<Longrightarrow> open (\<Inter>x\<in>A. B x)"
+  by (induct set: finite) auto
+
+lemma open_Inter [intro]: "finite S \<Longrightarrow> \<forall>T\<in>S. open T \<Longrightarrow> open (\<Inter>S)"
+  unfolding Inter_def by (rule open_INT)
+
+lemma closed_empty [intro, simp]:  "closed {}"
+  unfolding closed_def by simp
+
+lemma closed_Un [intro]: "closed S \<Longrightarrow> closed T \<Longrightarrow> closed (S \<union> T)"
+  unfolding closed_def by auto
+
+lemma closed_Inter [intro]: "\<forall>S\<in>K. closed S \<Longrightarrow> closed (\<Inter> K)"
+  unfolding closed_def Inter_def by auto
+
+lemma closed_UNIV [intro, simp]: "closed UNIV"
+  unfolding closed_def by simp
+
+lemma closed_Int [intro]: "closed S \<Longrightarrow> closed T \<Longrightarrow> closed (S \<inter> T)"
+  unfolding closed_def by auto
+
+lemma closed_INT [intro]: "\<forall>x\<in>A. closed (B x) \<Longrightarrow> closed (\<Inter>x\<in>A. B x)"
+  unfolding closed_def by auto
+
+lemma closed_UN [intro]: "finite A \<Longrightarrow> \<forall>x\<in>A. closed (B x) \<Longrightarrow> closed (\<Union>x\<in>A. B x)"
+  by (induct set: finite) auto
+
+lemma closed_Union [intro]: "finite S \<Longrightarrow> \<forall>T\<in>S. closed T \<Longrightarrow> closed (\<Union>S)"
+  unfolding Union_def by (rule closed_UN)
+
+lemma open_closed: "open S \<longleftrightarrow> closed (- S)"
+  unfolding closed_def by simp
+
+lemma closed_open: "closed S \<longleftrightarrow> open (- S)"
+  unfolding closed_def by simp
+
+lemma open_Diff [intro]: "open S \<Longrightarrow> closed T \<Longrightarrow> open (S - T)"
+  unfolding closed_open Diff_eq by (rule open_Int)
+
+lemma closed_Diff [intro]: "closed S \<Longrightarrow> open T \<Longrightarrow> closed (S - T)"
+  unfolding open_closed Diff_eq by (rule closed_Int)
+
+lemma open_Compl [intro]: "closed S \<Longrightarrow> open (- S)"
+  unfolding closed_open .
+
+lemma closed_Compl [intro]: "open S \<Longrightarrow> closed (- S)"
+  unfolding open_closed .
+
+end
 
 
 subsection {* Metric spaces *}

@@ -196,28 +196,8 @@ lemma subtopology_UNIV[simp]: "subtopology U UNIV = U"
 subsection{* The universal Euclidean versions are what we use most of the time *}
 
 definition
-  "open" :: "'a::topological_space set \<Rightarrow> bool" where
-  "open S \<longleftrightarrow> S \<in> topo"
-
-definition
-  closed :: "'a::topological_space set \<Rightarrow> bool" where
-  "closed S \<longleftrightarrow> open(UNIV - S)"
-
-definition
   euclidean :: "'a::topological_space topology" where
   "euclidean = topology open"
-
-lemma open_UNIV[intro,simp]:  "open UNIV"
-  unfolding open_def by (rule topo_UNIV)
-
-lemma open_inter[intro]: "open S \<Longrightarrow> open T \<Longrightarrow> open (S \<inter> T)"
-  unfolding open_def by (rule topo_Int)
-
-lemma open_Union[intro]: "(\<forall>S\<in>K. open S) \<Longrightarrow> open (\<Union> K)"
-  unfolding open_def subset_eq [symmetric] by (rule topo_Union)
-
-lemma open_empty[intro,simp]: "open {}"
-  using open_Union [of "{}"] by simp
 
 lemma open_openin: "open S \<longleftrightarrow> openin euclidean S"
   unfolding euclidean_def
@@ -235,52 +215,10 @@ lemma topspace_euclidean_subtopology[simp]: "topspace (subtopology euclidean S) 
   by (simp add: topspace_euclidean topspace_subtopology)
 
 lemma closed_closedin: "closed S \<longleftrightarrow> closedin euclidean S"
-  by (simp add: closed_def closedin_def topspace_euclidean open_openin)
-
-lemma open_Un[intro]:
-  fixes S T :: "'a::topological_space set"
-  shows "open S \<Longrightarrow> open T \<Longrightarrow> open (S\<union>T)"
-  by (auto simp add: open_openin)
+  by (simp add: closed_def closedin_def topspace_euclidean open_openin Compl_eq_Diff_UNIV)
 
 lemma open_subopen: "open S \<longleftrightarrow> (\<forall>x\<in>S. \<exists>T. open T \<and> x \<in> T \<and> T \<subseteq> S)"
   by (simp add: open_openin openin_subopen[symmetric])
-
-lemma closed_empty[intro, simp]: "closed {}" by (simp add: closed_closedin)
-
-lemma closed_UNIV[simp,intro]: "closed UNIV"
-  by (simp add: closed_closedin topspace_euclidean[symmetric])
-
-lemma closed_Un[intro]: "closed S \<Longrightarrow> closed T \<Longrightarrow> closed (S\<union>T)"
-  by (auto simp add: closed_closedin)
-
-lemma closed_Int[intro]: "closed S \<Longrightarrow> closed T \<Longrightarrow> closed (S\<inter>T)"
-  by (auto simp add: closed_closedin)
-
-lemma closed_Inter[intro]: assumes H: "\<forall>S \<in>K. closed S" shows "closed (\<Inter>K)"
-  using H
-  unfolding closed_closedin
-  apply (cases "K = {}")
-  apply (simp add: closed_closedin[symmetric])
-  apply (rule closedin_Inter, auto)
-  done
-
-lemma open_closed: "open S \<longleftrightarrow> closed (UNIV - S)"
-  by (simp add: open_openin closed_closedin topspace_euclidean openin_closedin_eq)
-
-lemma closed_open: "closed S \<longleftrightarrow> open(UNIV - S)"
-  by (simp add: open_openin closed_closedin topspace_euclidean closedin_def)
-
-lemma open_diff[intro]: "open S \<Longrightarrow> closed T \<Longrightarrow> open (S - T)"
-  by (auto simp add: open_openin closed_closedin)
-
-lemma closed_diff[intro]: "closed S \<Longrightarrow> open T \<Longrightarrow> closed(S-T)"
-  by (auto simp add: open_openin closed_closedin)
-
-lemma open_Inter[intro]: assumes fS: "finite S" and h: "\<forall>T\<in>S. open T" shows "open (\<Inter>S)"
-  using h by (induct rule: finite_induct[OF fS], auto)
-
-lemma closed_Union[intro]: assumes fS: "finite S" and h: "\<forall>T\<in>S. closed T" shows "closed (\<Union>S)"
-  using h by (induct rule: finite_induct[OF fS], auto)
 
 subsection{* Open and closed balls. *}
 
@@ -466,7 +404,7 @@ proof-
     unfolding connected_def openin_open closedin_closed
     apply (subst exists_diff) by blast
   hence th0: "connected S \<longleftrightarrow> \<not> (\<exists>e2 e1. closed e2 \<and> open e1 \<and> S \<subseteq> e1 \<union> (UNIV - e2) \<and> e1 \<inter> (UNIV - e2) \<inter> S = {} \<and> e1 \<inter> S \<noteq> {} \<and> (UNIV - e2) \<inter> S \<noteq> {})"
-    (is " _ \<longleftrightarrow> \<not> (\<exists>e2 e1. ?P e2 e1)") apply (simp add: closed_def) by metis
+    (is " _ \<longleftrightarrow> \<not> (\<exists>e2 e1. ?P e2 e1)") apply (simp add: closed_def Compl_eq_Diff_UNIV) by metis
 
   have th1: "?rhs \<longleftrightarrow> \<not> (\<exists>t' t. closed t'\<and>t = S\<inter>t' \<and> t\<noteq>{} \<and> t\<noteq>S \<and> (\<exists>t'. open t' \<and> t = S \<inter> t'))"
     (is "_ \<longleftrightarrow> \<not> (\<exists>t' t. ?Q t' t)")
@@ -622,7 +560,7 @@ qed
 lemma closed_limpt: "closed S \<longleftrightarrow> (\<forall>x. x islimpt S \<longrightarrow> x \<in> S)"
   unfolding closed_def
   apply (subst open_subopen)
-  apply (simp add: islimpt_def subset_eq)
+  apply (simp add: islimpt_def subset_eq Compl_eq_Diff_UNIV)
   by (metis DiffE DiffI UNIV_I insertCI insert_absorb mem_def)
 
 lemma islimpt_EMPTY[simp]: "\<not> x islimpt {}"
@@ -679,7 +617,7 @@ lemma islimpt_Un: "x islimpt (S \<union> T) \<longleftrightarrow> x islimpt S \<
   unfolding islimpt_def
   apply (rule ccontr, clarsimp, rename_tac A B)
   apply (drule_tac x="A \<inter> B" in spec)
-  apply (auto simp add: open_inter)
+  apply (auto simp add: open_Int)
   done
 
 lemma discrete_imp_closed:
@@ -731,7 +669,7 @@ lemma open_subset_interior: "open S ==> S \<subseteq> interior T \<longleftright
 lemma interior_inter[simp]: "interior(S \<inter> T) = interior S \<inter> interior T"
   apply (rule equalityI, simp)
   apply (metis Int_lower1 Int_lower2 subset_interior)
-  by (metis Int_mono interior_subset open_inter open_interior open_subset_interior)
+  by (metis Int_mono interior_subset open_Int open_interior open_subset_interior)
 
 lemma interior_limit_point [intro]:
   fixes x :: "'a::perfect_space"
@@ -770,7 +708,7 @@ next
       assume "x \<notin> interior S"
       with `x \<in> R` `open R` obtain y where "y \<in> R - S"
         unfolding interior_def expand_set_eq by fast
-      from `open R` `closed S` have "open (R - S)" by (rule open_diff)
+      from `open R` `closed S` have "open (R - S)" by (rule open_Diff)
       from `R \<subseteq> S \<union> T` have "R - S \<subseteq> T" by fast
       from `y \<in> R - S` `open (R - S)` `R - S \<subseteq> T` `interior T = {}`
       show "False" unfolding interior_def by fast
@@ -924,7 +862,7 @@ proof
       fix A
       assume "x \<in> A" "open A"
       with as have "x \<in> A \<inter> S" "open (A \<inter> S)"
-        by (simp_all add: open_inter)
+        by (simp_all add: open_Int)
       with * obtain y where "y \<in> T" "y \<in> A \<inter> S" "y \<noteq> x"
         by (rule islimptE)
       hence "y \<in> S \<inter> T" "y \<in> A \<and> y \<noteq> x"
@@ -955,7 +893,7 @@ subsection{* Frontier (aka boundary) *}
 definition "frontier S = closure S - interior S"
 
 lemma frontier_closed: "closed(frontier S)"
-  by (simp add: frontier_def closed_diff closed_closure)
+  by (simp add: frontier_def closed_Diff)
 
 lemma frontier_closures: "frontier S = (closure S) \<inter> (closure(UNIV - S))"
   by (auto simp add: frontier_def interior_closure)
@@ -1027,7 +965,7 @@ lemma frontier_complement: "frontier(UNIV - S) = frontier S"
 
 lemma frontier_disjoint_eq: "frontier S \<inter> S = {} \<longleftrightarrow> open S"
   using frontier_complement frontier_subset_eq[of "UNIV - S"]
-  unfolding open_closed by auto
+  unfolding open_closed Compl_eq_Diff_UNIV by auto
 
 subsection{* Common nets and The "within" modifier for nets. *}
 
@@ -1432,7 +1370,7 @@ lemma Lim_in_closed_set:
   shows "l \<in> S"
 proof (rule ccontr)
   assume "l \<notin> S"
-  obtain e where e:"e>0" "ball l e \<subseteq> UNIV - S" using assms(1) `l \<notin> S` unfolding closed_def open_contains_ball by auto
+  obtain e where e:"e>0" "ball l e \<subseteq> UNIV - S" using assms(1) `l \<notin> S` unfolding closed_def open_contains_ball Compl_eq_Diff_UNIV by auto
   hence *:"\<forall>x. dist l x < e \<longrightarrow> x \<notin> S" by auto
   have "eventually (\<lambda>x. dist (f x) l < e) net"
     using assms(4) `e>0` by (rule tendstoD)
@@ -2926,7 +2864,7 @@ lemma frontier_subset_compact:
 lemma open_delete:
   fixes s :: "'a::metric_space set"
   shows "open s ==> open(s - {x})"
-  using open_diff[of s "{x}"] closed_sing
+  using open_Diff[of s "{x}"] closed_sing
   by blast
 
 text{* Finite intersection property. I could make it an equivalence in fact. *}
@@ -2939,7 +2877,7 @@ lemma compact_imp_fip:
 proof
   assume as:"s \<inter> (\<Inter> f) = {}"
   hence "s \<subseteq> \<Union>op - UNIV ` f" by auto
-  moreover have "Ball (op - UNIV ` f) open" using open_diff closed_diff using assms(2) by auto
+  moreover have "Ball (op - UNIV ` f) open" using open_Diff closed_Diff using assms(2) by auto
   ultimately obtain f' where f':"f' \<subseteq> op - UNIV ` f"  "finite f'"  "s \<subseteq> \<Union>f'" using assms(1)[unfolded compact_eq_heine_borel, THEN spec[where x="(\<lambda>t. UNIV - t) ` f"]] by auto
   hence "finite (op - UNIV ` f') \<and> op - UNIV ` f' \<subseteq> f" by(auto simp add: Diff_Diff_Int)
   hence "s \<inter> \<Inter>op - UNIV ` f' \<noteq> {}" using assms(3)[THEN spec[where x="op - UNIV ` f'"]] by auto
@@ -3657,7 +3595,7 @@ lemma continuous_open_preimage:
 proof-
   obtain T where T: "open T" "{x \<in> s. f x \<in> t} = s \<inter> T"
     using continuous_open_in_preimage[OF assms(1,3)] unfolding openin_open by auto
-  thus ?thesis using open_inter[of s T, OF assms(2)] by auto
+  thus ?thesis using open_Int[of s T, OF assms(2)] by auto
 qed
 
 lemma continuous_closed_preimage:
@@ -5149,13 +5087,13 @@ text{* Openness of halfspaces.                                                  
 lemma open_halfspace_lt: "open {x::real^_. a \<bullet> x < b}"
 proof-
   have "UNIV - {x. b \<le> a \<bullet> x} = {x. a \<bullet> x < b}" by auto
-  thus ?thesis using closed_halfspace_ge[unfolded closed_def, of b a] by auto
+  thus ?thesis using closed_halfspace_ge[unfolded closed_def Compl_eq_Diff_UNIV, of b a] by auto
 qed
 
 lemma open_halfspace_gt: "open {x::real^_. a \<bullet> x > b}"
 proof-
   have "UNIV - {x. b \<ge> a \<bullet> x} = {x. a \<bullet> x > b}" by auto
-  thus ?thesis using closed_halfspace_le[unfolded closed_def, of a b] by auto
+  thus ?thesis using closed_halfspace_le[unfolded closed_def Compl_eq_Diff_UNIV, of a b] by auto
 qed
 
 lemma open_halfspace_component_lt:
