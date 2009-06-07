@@ -29,8 +29,19 @@ Requirements to build from sources
 Running the application within Netbeans
 =======================================
 
-* Proper Isabelle environment, e.g. via
-  isabelle env netbeans ...
-
 * Project properties: add "Run" argument like
     -noserver -nobackground -settings=/home/makarius/isabelle/isabelle-jedit/dist
+
+* The Isabelle environment is obtained automatically via "isabelle
+  getenv", which is determined as follows:
+
+    (1) via ISABELLE_TOOL from regular Isabelle settings,
+    	e.g. "isabelle env netbeans"
+
+    (2) or via ISABELLE_TOOL from raw process environment,
+    	e.g. "env ISABELLE_TOOL=.../bin/isabelle netbeans"
+
+    (3) or via JVM system properties (cf. "Run / VM Options")
+    	e.g. -Disabelle.tool=.../bin/isabelle
+
+    (4) or via "isabelle" found in PATH
