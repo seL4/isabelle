@@ -2546,6 +2546,7 @@ struct
 @{code_datatype inequality = Less | LessEqual }
 
 val approx_inequality = @{code approx_inequality}
+val approx' = @{code approx'}
 
 end
 *}
@@ -2569,6 +2570,7 @@ code_type inequality (Eval "Float'_Arith.inequality")
 code_const Less and LessEqual (Eval "Float'_Arith.Less/ (_,/ _)" and "Float'_Arith.LessEqual/ (_,/ _)")
 
 code_const approx_inequality (Eval "Float'_Arith.approx'_inequality")
+code_const approx' (Eval "Float'_Arith.approx''")
 
 ML {*
   val ineq_equations = PureThy.get_thms @{theory} "interpret_inequality_equations";
@@ -2661,5 +2663,90 @@ method_setup approximation = {*
       THEN (TRY (filter_prems_tac (fn t => false) i))
       THEN (gen_eval_tac eval_oracle ctxt) i)))
 *} "real number approximation"
+
+ML {*
+  fun dest_interpret (@{const "interpret_floatarith"} $ b $ xs) = (b, xs)
+  | dest_interpret t = raise TERM ("dest_interpret", [t])
+
+  fun mk_approx' prec t = (@{const "approx'"}
+                         $ HOLogic.mk_number @{typ nat} prec
+                         $ t $ @{term "[] :: (float * float) list"})
+
+  fun dest_result (Const (@{const_name "Some"}, _) $
+                   ((Const (@{const_name "Pair"}, _)) $
+                    (@{const "Float"} $ lm $ le) $
+                    (@{const "Float"} $ um $ ue)))
+                   = SOME ((snd (HOLogic.dest_number lm), snd (HOLogic.dest_number le)),
+                           (snd (HOLogic.dest_number um), snd (HOLogic.dest_number ue)))
+    | dest_result (Const (@{const_name "None"}, _)) = NONE
+    | dest_result t = raise TERM ("dest_result", [t])
+
+  fun float2_float10 prec round_down (m, e) = (
+    let
+      val (m, e) = (if e < 0 then (m,e) else (m * Integer.pow e 2, 0))
+
+      fun frac c p 0 digits cnt = (digits, cnt, 0)
+        | frac c 0 r digits cnt = (digits, cnt, r)
+        | frac c p r digits cnt = (let
+          val (d, r) = Integer.div_mod (r * 10) (Integer.pow (~e) 2)
+        in frac (c orelse d <> 0) (if d <> 0 orelse c then p - 1 else p) r
+                (digits * 10 + d) (cnt + 1)
+        end)
+
+      val sgn = Int.sign m
+      val m = abs m
+
+      val round_down = (sgn = 1 andalso round_down) orelse
+                       (sgn = ~1 andalso not round_down)
+
+      val (x, r) = Integer.div_mod m (Integer.pow (~e) 2)
+
+      val p = ((if x = 0 then prec else prec - (IntInf.log2 x + 1)) * 3) div 10 + 1
+
+      val (digits, e10, r) = if p > 0 then frac (x <> 0) p r 0 0 else (0,0,0)
+
+      val digits = if round_down orelse r = 0 then digits else digits + 1
+
+    in (sgn * (digits + x * (Integer.pow e10 10)), ~e10)
+    end)
+
+  fun mk_result prec (SOME (l, u)) = (let
+      fun mk_float10 rnd x = (let val (m, e) = float2_float10 prec rnd x
+                         in if e = 0 then HOLogic.mk_number @{typ real} m
+                       else if e = 1 then @{term "divide :: real \<Rightarrow> real \<Rightarrow> real"} $
+                                          HOLogic.mk_number @{typ real} m $
+                                          @{term "10"}
+                                     else @{term "divide :: real \<Rightarrow> real \<Rightarrow> real"} $
+                                          HOLogic.mk_number @{typ real} m $
+                                          (@{term "power 10 :: nat \<Rightarrow> real"} $
+                                           HOLogic.mk_number @{typ nat} (~e)) end)
+      in @{term "atLeastAtMost :: real \<Rightarrow> real \<Rightarrow> real set"} $
+         mk_float10 true l $ mk_float10 false u end)
+    | mk_result prec NONE = @{term "UNIV :: real set"}
+
+
+  fun realify t = let
+      val t = Logic.varify t
+      val m = map (fn (name, sort) => (name, @{typ real})) (Term.add_tvars t [])
+      val t = Term.subst_TVars m t
+    in t end
+
+  fun approx prec ctxt t = let val t = realify t in
+          t
+       |> Reflection.genreif ctxt ineq_equations
+       |> prop_of
+       |> HOLogic.dest_Trueprop
+       |> HOLogic.dest_eq |> snd
+       |> dest_interpret |> fst
+       |> mk_approx' prec
+       |> Codegen.eval_term @{theory}
+       |> dest_result
+       |> mk_result prec
+    end
+*}
+
+setup {*
+  Value.add_evaluator ("approximate", approx 30)
+*}
 
 end

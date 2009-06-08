@@ -65,6 +65,8 @@ If possible, use NewNumberTheory, not NumberTheory.
 * Abbreviation "arbitrary" of "undefined" has disappeared; use "undefined" directly.
 INCOMPATIBILITY.
 
+* New evaluator "approximate" approximates an real valued term using the same method as the
+approximation method. 
 
 *** ML ***
 

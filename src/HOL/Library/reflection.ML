@@ -10,6 +10,7 @@ sig
   val reflection_tac: Proof.context -> thm list -> thm list -> term option -> int -> tactic
   val gen_reflection_tac: Proof.context -> (cterm -> thm)
     -> thm list -> thm list -> term option -> int -> tactic
+  val genreif : Proof.context -> thm list -> term -> thm
 end;
 
 structure Reflection : REFLECTION =
