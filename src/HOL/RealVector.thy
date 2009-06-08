@@ -419,7 +419,7 @@ lemma Reals_induct [case_names of_real, induct set: Reals]:
 subsection {* Topological spaces *}
 
 class "open" =
-  fixes "open" :: "'a set set"
+  fixes "open" :: "'a set \<Rightarrow> bool"
 
 class topological_space = "open" +
   assumes open_UNIV [simp, intro]: "open UNIV"
