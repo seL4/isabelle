@@ -2720,16 +2720,30 @@ next
 qed
 
 lemma compact_imp_bounded:
-  fixes s :: "(real^ _) set"
+  fixes s :: "'a::real_normed_vector set" (* TODO: generalize to metric_space *)
   shows "compact s ==> bounded s"
-  unfolding compact_eq_bounded_closed
-  by simp
+proof -
+  assume "compact s"
+  hence "\<forall>f. (\<forall>t\<in>f. open t) \<and> s \<subseteq> \<Union>f \<longrightarrow> (\<exists>f'\<subseteq>f. finite f' \<and> s \<subseteq> \<Union>f')"
+    by (rule compact_imp_heine_borel)
+  hence "\<forall>t. infinite t \<and> t \<subseteq> s \<longrightarrow> (\<exists>x \<in> s. x islimpt t)"
+    using heine_borel_imp_bolzano_weierstrass[of s] by auto
+  thus "bounded s"
+    by (rule bolzano_weierstrass_imp_bounded)
+qed
 
 lemma compact_imp_closed:
-  fixes s :: "(real ^ _) set"
+  fixes s :: "'a::metric_space set"
   shows "compact s ==> closed s"
-  unfolding compact_eq_bounded_closed
-  by simp
+proof -
+  assume "compact s"
+  hence "\<forall>f. (\<forall>t\<in>f. open t) \<and> s \<subseteq> \<Union>f \<longrightarrow> (\<exists>f'\<subseteq>f. finite f' \<and> s \<subseteq> \<Union>f')"
+    by (rule compact_imp_heine_borel)
+  hence "\<forall>t. infinite t \<and> t \<subseteq> s \<longrightarrow> (\<exists>x \<in> s. x islimpt t)"
+    using heine_borel_imp_bolzano_weierstrass[of s] by auto
+  thus "closed s"
+    by (rule bolzano_weierstrass_imp_closed)
+qed
 
 text{* In particular, some common special cases. *}
 
