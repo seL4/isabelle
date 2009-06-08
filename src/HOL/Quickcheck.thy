@@ -40,6 +40,26 @@ instance ..
 
 end
 
+instantiation char :: random
+begin
+
+definition
+  "random _ = Random.select chars o\<rightarrow> (\<lambda>c. Pair (c, \<lambda>u. Code_Eval.term_of c))"
+
+instance ..
+
+end
+
+instantiation String.literal :: random
+begin
+
+definition 
+  "random _ = Pair (STR [], \<lambda>u. Code_Eval.term_of (STR []))"
+
+instance ..
+
+end
+
 instantiation nat :: random
 begin
 
@@ -76,6 +96,13 @@ definition beyond :: "code_numeral \<Rightarrow> code_numeral \<Rightarrow> code
 lemma beyond_zero:
   "beyond k 0 = 0"
   by (simp add: beyond_def)
+
+lemma random_aux_rec:
+  fixes random_aux :: "code_numeral \<Rightarrow> 'a"
+  assumes "random_aux 0 = rhs 0"
+    and "\<And>k. random_aux (Suc_code_numeral k) = rhs (Suc_code_numeral k)"
+  shows "random_aux k = rhs k"
+  using assms by (rule code_numeral.induct)
 
 use "Tools/quickcheck_generators.ML"
 setup {* Quickcheck_Generators.setup *}
