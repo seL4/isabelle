@@ -1,12 +1,13 @@
 (*  Title:      Pure/ML/ml_compiler_polyml-5.3.ML
     Author:     Makarius
 
-Advanced runtime compilation for Poly/ML 5.3 (SVN 762).
+Advanced runtime compilation for Poly/ML 5.3 (SVN 773).
 *)
 
 signature ML_COMPILER =
 sig
-  val exception_position: exn -> Position.T
+  val exn_position: exn -> Position.T
+  val exn_message: exn -> string
   val eval: bool -> Position.T -> ML_Lex.token list -> unit
 end
 
@@ -31,24 +32,28 @@ fun position_of (loc: PolyML.location) =
     loc_props
   end |> Position.of_properties;
 
-fun exception_position exn =
+fun exn_position exn =
   (case PolyML.exceptionLocation exn of
     NONE => Position.none
   | SOME loc => position_of loc);
+
+val exn_message = Runtime.exn_message exn_position;
 
 
 (* parse trees *)
 
 fun report_parse_tree depth space =
   let
+    fun report_decl markup loc decl =
+      Position.report_text Markup.ML_ref (position_of loc)
+        (Markup.markup (Markup.properties (Position.properties_of (position_of decl)) markup) "");
     fun report loc (PolyML.PTtype types) =
           PolyML.NameSpace.displayTypeExpression (types, depth, space)
           |> pretty_ml |> Pretty.from_ML |> Pretty.string_of
           |> Position.report_text Markup.ML_typing (position_of loc)
-      | report loc (PolyML.PTdeclaredAt decl) =
-          Markup.markup
-            (Markup.properties (Position.properties_of (position_of decl)) Markup.ML_def) ""
-          |> Position.report_text Markup.ML_ref (position_of loc)
+      | report loc (PolyML.PTdeclaredAt decl) = report_decl Markup.ML_def loc decl
+      | report loc (PolyML.PTopenedAt decl) = report_decl Markup.ML_open loc decl
+      | report loc (PolyML.PTstructureAt decl) = report_decl Markup.ML_struct loc decl
       | report _ (PolyML.PTnextSibling tree) = report_tree (tree ())
       | report _ (PolyML.PTfirstChild tree) = report_tree (tree ())
       | report _ _ = ()
@@ -77,7 +82,11 @@ fun eval verbose pos toks =
           (Position.reset_range (ML_Lex.pos_of tok));
       in ps ~~ map (String.explode o Symbol.esc) syms end);
 
-    val input_buffer = ref input;
+    val end_pos =
+      if null toks then Position.none
+      else ML_Lex.end_pos_of (List.last toks);
+
+    val input_buffer = ref (input @ [(end_pos, [#"\n"])]);
     val line = ref (the_default 1 (Position.line_of pos));
 
     fun get_offset () =
@@ -139,10 +148,13 @@ fun eval verbose pos toks =
       end;
 
     fun result_fun (phase1, phase2) () =
-     (case phase1 of NONE => ()
-      | SOME parse_tree => report_parse_tree depth space parse_tree;
-      case phase2 of NONE => err "Static Errors"
-      | SOME code => apply_result (code ()));  (* FIXME cf. Toplevel.program *)
+     ((case phase1 of
+        NONE => ()
+      | SOME parse_tree => report_parse_tree depth space parse_tree);
+      (case phase2 of
+        NONE => err "Static Errors"
+      | SOME code =>
+          apply_result ((code |> Runtime.debugging |> Runtime.toplevel_error exn_message) ())));
 
 
     (* compiler invocation *)
@@ -152,15 +164,16 @@ fun eval verbose pos toks =
       PolyML.Compiler.CPNameSpace space,
       PolyML.Compiler.CPErrorMessageProc put_message,
       PolyML.Compiler.CPLineNo (fn () => ! line),
-      PolyML.Compiler.CPFileName location_props,
       PolyML.Compiler.CPLineOffset get_offset,
-      PolyML.Compiler.CPCompilerResultFun result_fun];
+      PolyML.Compiler.CPFileName location_props,
+      PolyML.Compiler.CPCompilerResultFun result_fun,
+      PolyML.Compiler.CPPrintInAlphabeticalOrder false];
     val _ =
       (while not (List.null (! input_buffer)) do
         PolyML.compiler (get, parameters) ())
       handle exn =>
        (put ("Exception- " ^ General.exnMessage exn ^ " raised");
-        err (output ()); raise exn);
+        err (output ()); reraise exn);
   in if verbose then print (output ()) else () end;
 
 end;

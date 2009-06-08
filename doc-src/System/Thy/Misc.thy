@@ -85,6 +85,8 @@ Usage: getenv [OPTIONS] [VARNAMES ...]
   Options are:
     -a           display complete environment
     -b           print values only (doesn't work for -a)
+    -d FILE      dump complete environment to FILE
+                 (null terminated entries)
 
   Get value of VARNAMES from the Isabelle settings.
 \end{ttbox}
@@ -95,6 +97,10 @@ Usage: getenv [OPTIONS] [VARNAMES ...]
   Normally, output is a list of lines of the form @{text
   name}@{verbatim "="}@{text value}. The @{verbatim "-b"} option
   causes only the values to be printed.
+
+  Option @{verbatim "-d"} produces a dump of the complete environment
+  to the specified file.  Entries are terminated by the ASCII null
+  character, i.e.\ the C string terminator.
 *}
 
 

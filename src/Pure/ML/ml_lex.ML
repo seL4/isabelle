@@ -15,6 +15,7 @@ sig
   val is_improper: token -> bool
   val set_range: Position.range -> token -> token
   val pos_of: token -> Position.T
+  val end_pos_of: token -> Position.T
   val kind_of: token -> token_kind
   val content_of: token -> string
   val check_content_of: token -> string

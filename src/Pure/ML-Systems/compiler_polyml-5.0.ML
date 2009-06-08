@@ -21,7 +21,7 @@ fun use_text ({tune_source, print, error, ...}: use_context) (line, name) verbos
         [] => ()
       | _ => (PolyML.compilerEx (get, put, fn () => ! current_line, name) (); exec ()));
   in
-    exec () handle exn => (error (output ()); raise exn);
+    exec () handle exn => (error (output ()); reraise exn);
     if verbose then print (output ()) else ()
   end;
 

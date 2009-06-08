@@ -17,6 +17,8 @@ function usage()
   echo "  Options are:"
   echo "    -a           display complete environment"
   echo "    -b           print values only (doesn't work for -a)"
+  echo "    -d FILE      dump complete environment to FILE"
+  echo "                 (null terminated entries)"
   echo
   echo "  Get value of VARNAMES from the Isabelle settings."
   echo
@@ -30,8 +32,9 @@ function usage()
 
 ALL=""
 BASE=""
+DUMP=""
 
-while getopts "ab" OPT
+while getopts "abd:" OPT
 do
   case "$OPT" in
     a)
@@ -39,6 +42,9 @@ do
       ;;
     b)
       BASE=true
+      ;;
+    d)
+      DUMP="$OPTARG"
       ;;
     \?)
       usage
@@ -68,3 +74,8 @@ else
     fi
   done
 fi
+
+if [ -n "$DUMP" ]; then
+  exec perl -w -e 'for $key (keys %ENV) { print $key, "=", $ENV{$key}, "\x00"; }' > "$DUMP"
+fi
+

@@ -32,8 +32,6 @@ sig
   val skip_proofs: bool ref
   exception TERMINATE
   exception TOPLEVEL_ERROR
-  exception CONTEXT of Proof.context * exn
-  val exn_message: exn -> string
   val program: (unit -> 'a) -> 'a
   type transition
   val empty: transition
@@ -98,7 +96,7 @@ struct
 
 (** toplevel state **)
 
-exception UNDEF;
+exception UNDEF = Runtime.UNDEF;
 
 
 (* local theory wrappers *)
@@ -225,101 +223,19 @@ val timing = Output.timing;
 val profiling = ref 0;
 val skip_proofs = ref false;
 
-exception TERMINATE;
-exception EXCURSION_FAIL of exn * string;
-exception FAILURE of state * exn;
-exception TOPLEVEL_ERROR;
-
-
-(* print exceptions *)
-
-exception CONTEXT of Proof.context * exn;
-
-fun exn_context NONE exn = exn
-  | exn_context (SOME ctxt) exn = CONTEXT (ctxt, exn);
-
-local
-
-fun if_context NONE _ _ = []
-  | if_context (SOME ctxt) f xs = map (f ctxt) xs;
-
-fun raised exn name msgs =
-  let val pos = Position.str_of (ML_Compiler.exception_position exn) in
-    (case msgs of
-      [] => "exception " ^ name ^ " raised" ^ pos
-    | [msg] => "exception " ^ name ^ " raised" ^ pos ^ ": " ^ msg
-    | _ => cat_lines (("exception " ^ name ^ " raised" ^ pos ^ ":") :: msgs))
-  end;
-
-in
-
-fun exn_message e =
-  let
-    val detailed = ! debug;
-
-    fun exn_msg _ (CONTEXT (ctxt, exn)) = exn_msg (SOME ctxt) exn
-      | exn_msg ctxt (Exn.EXCEPTIONS exns) = cat_lines (map (exn_msg ctxt) exns)
-      | exn_msg ctxt (EXCURSION_FAIL (exn, loc)) =
-          exn_msg ctxt exn ^ Markup.markup Markup.location ("\n" ^ loc)
-      | exn_msg _ TERMINATE = "Exit."
-      | exn_msg _ Exn.Interrupt = "Interrupt."
-      | exn_msg _ TimeLimit.TimeOut = "Timeout."
-      | exn_msg _ TOPLEVEL_ERROR = "Error."
-      | exn_msg _ (SYS_ERROR msg) = "## SYSTEM ERROR ##\n" ^ msg
-      | exn_msg _ (ERROR msg) = msg
-      | exn_msg _ (exn as Fail msg) = raised exn "Fail" [msg]
-      | exn_msg _ (exn as THEORY (msg, thys)) =
-          raised exn "THEORY" (msg :: (if detailed then map Context.str_of_thy thys else []))
-      | exn_msg _ (exn as Syntax.AST (msg, asts)) = raised exn "AST" (msg ::
-            (if detailed then map (Pretty.string_of o Syntax.pretty_ast) asts else []))
-      | exn_msg ctxt (exn as TYPE (msg, Ts, ts)) = raised exn "TYPE" (msg ::
-            (if detailed then
-              if_context ctxt Syntax.string_of_typ Ts @ if_context ctxt Syntax.string_of_term ts
-             else []))
-      | exn_msg ctxt (exn as TERM (msg, ts)) = raised exn "TERM" (msg ::
-            (if detailed then if_context ctxt Syntax.string_of_term ts else []))
-      | exn_msg ctxt (exn as THM (msg, i, thms)) = raised exn ("THM " ^ string_of_int i) (msg ::
-            (if detailed then if_context ctxt ProofContext.string_of_thm thms else []))
-      | exn_msg _ exn = raised exn (General.exnMessage exn) []
-  in exn_msg NONE e end;
-
-end;
-
-
-(* controlled execution *)
-
-local
-
-fun debugging f x =
-  if ! debug then
-    Exn.release (exception_trace (fn () =>
-      Exn.Result (f x) handle
-        exn as UNDEF => Exn.Exn exn
-      | exn as EXCURSION_FAIL _ => Exn.Exn exn))
-  else f x;
-
-fun toplevel_error f x =
-  let val ctxt = try ML_Context.the_local_context () in
-    f x handle exn =>
-      (Output.error_msg (exn_message (exn_context ctxt exn)); raise TOPLEVEL_ERROR)
-  end;
-
-in
-
-fun controlled_execution f =
-  f
-  |> debugging
-  |> Future.interruptible_task;
+exception TERMINATE = Runtime.TERMINATE;
+exception EXCURSION_FAIL = Runtime.EXCURSION_FAIL;
+exception TOPLEVEL_ERROR = Runtime.TOPLEVEL_ERROR;
 
 fun program f =
  (f
-  |> controlled_execution
-  |> toplevel_error) ();
-
-end;
+  |> Runtime.controlled_execution
+  |> Runtime.toplevel_error ML_Compiler.exn_message) ();
 
 
 (* node transactions -- maintaining stable checkpoints *)
+
+exception FAILURE of state * exn;
 
 local
 
@@ -329,7 +245,7 @@ fun reset_presentation (Theory (gthy, _)) = Theory (gthy, NONE)
 fun is_draft_theory (Theory (gthy, _)) = Context.is_draft (Context.theory_of gthy)
   | is_draft_theory _ = false;
 
-fun is_stale state = Context.is_stale (theory_of state) handle UNDEF => false;
+fun is_stale state = Context.is_stale (theory_of state) handle Runtime.UNDEF => false;
 
 fun stale_error NONE = SOME (ERROR "Stale theory encountered after successful execution!")
   | stale_error some = some;
@@ -349,7 +265,7 @@ fun apply_transaction pos f g (node, exit) =
 
     val (result, err) =
       cont_node
-      |> controlled_execution f
+      |> Runtime.controlled_execution f
       |> map_theory Theory.checkpoint
       |> state_error NONE
       handle exn => state_error (SOME exn) cont_node;
@@ -382,9 +298,9 @@ fun apply_tr int _ (Init (_, f, exit)) (State (NONE, _)) =
   | apply_tr _ _ Exit (State (prev as SOME (Theory (Context.Theory _, _), _), _)) =
       State (NONE, prev)
   | apply_tr _ _ CommitExit (State (NONE, SOME (Theory (Context.Theory thy, _), exit))) =
-      (controlled_execution exit thy; toplevel)
+      (Runtime.controlled_execution exit thy; toplevel)
   | apply_tr int _ (Keep f) state =
-      controlled_execution (fn x => tap (f int) x) state
+      Runtime.controlled_execution (fn x => tap (f int) x) state
   | apply_tr int pos (Transaction (f, g)) (State (SOME state, _)) =
       apply_transaction pos (fn x => f int x) g state
   | apply_tr _ _ _ _ = raise UNDEF;
@@ -392,7 +308,7 @@ fun apply_tr int _ (Init (_, f, exit)) (State (NONE, _)) =
 fun apply_union _ _ [] state = raise FAILURE (state, UNDEF)
   | apply_union int pos (tr :: trs) state =
       apply_union int pos trs state
-        handle UNDEF => apply_tr int pos tr state
+        handle Runtime.UNDEF => apply_tr int pos tr state
           | FAILURE (alt_state, UNDEF) => apply_tr int pos tr alt_state
           | exn as FAILURE _ => raise exn
           | exn => raise FAILURE (state, exn);
@@ -628,7 +544,8 @@ fun status tr m =
   setmp_thread_position tr (fn () => Output.status (Markup.markup m "")) ();
 
 fun error_msg tr exn_info =
-  setmp_thread_position tr (fn () => Output.error_msg (exn_message (EXCURSION_FAIL exn_info))) ();
+  setmp_thread_position tr (fn () =>
+    Output.error_msg (ML_Compiler.exn_message (EXCURSION_FAIL exn_info))) ();
 
 
 (* post-transition hooks *)
@@ -671,7 +588,7 @@ fun transition int tr st =
       (case app int tr st of
         (_, SOME TERMINATE) => NONE
       | (st', SOME (EXCURSION_FAIL exn_info)) => SOME (st', SOME exn_info)
-      | (st', SOME exn) => SOME (st', SOME (exn_context ctxt exn, at_command tr))
+      | (st', SOME exn) => SOME (st', SOME (Runtime.exn_context ctxt exn, at_command tr))
       | (st', NONE) => SOME (st', NONE));
     val _ = (case res of SOME (st', NONE) => apply_hooks st' | _ => ());
   in res end;

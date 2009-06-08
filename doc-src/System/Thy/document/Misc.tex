@@ -110,6 +110,8 @@ Usage: getenv [OPTIONS] [VARNAMES ...]
   Options are:
     -a           display complete environment
     -b           print values only (doesn't work for -a)
+    -d FILE      dump complete environment to FILE
+                 (null terminated entries)
 
   Get value of VARNAMES from the Isabelle settings.
 \end{ttbox}
@@ -118,7 +120,11 @@ Usage: getenv [OPTIONS] [VARNAMES ...]
   environment that Isabelle related programs are run in. This usually
   contains much more variables than are actually Isabelle settings.
   Normally, output is a list of lines of the form \isa{name}\verb|=|\isa{value}. The \verb|-b| option
-  causes only the values to be printed.%
+  causes only the values to be printed.
+
+  Option \verb|-d| produces a dump of the complete environment
+  to the specified file.  Entries are terminated by the ASCII null
+  character, i.e.\ the C string terminator.%
 \end{isamarkuptext}%
 \isamarkuptrue%
 %

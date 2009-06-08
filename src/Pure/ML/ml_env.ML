@@ -1,7 +1,7 @@
 (*  Title:      Pure/ML/ml_env.ML
     Author:     Makarius
 
-Local environment of ML sources and results.
+Local environment of ML results.
 *)
 
 signature ML_ENV =

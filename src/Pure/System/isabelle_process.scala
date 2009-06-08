@@ -230,7 +230,7 @@ class IsabelleProcess(isabelle_system: IsabelleSystem,
 
   private class StdinThread(out_stream: OutputStream) extends Thread("isabelle: stdin") {
     override def run() = {
-      val writer = new BufferedWriter(new OutputStreamWriter(out_stream, isabelle_system.charset))
+      val writer = new BufferedWriter(new OutputStreamWriter(out_stream, IsabelleSystem.charset))
       var finished = false
       while (!finished) {
         try {
@@ -260,7 +260,7 @@ class IsabelleProcess(isabelle_system: IsabelleSystem,
 
   private class StdoutThread(in_stream: InputStream) extends Thread("isabelle: stdout") {
     override def run() = {
-      val reader = new BufferedReader(new InputStreamReader(in_stream, isabelle_system.charset))
+      val reader = new BufferedReader(new InputStreamReader(in_stream, IsabelleSystem.charset))
       var result = new StringBuilder(100)
 
       var finished = false

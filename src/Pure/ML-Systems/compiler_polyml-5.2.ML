@@ -38,7 +38,7 @@ fun use_text ({tune_source, name_space, str_of_pos, print, error, ...}: use_cont
         PolyML.compiler (get, parameters) ())
       handle exn =>
        (put ("Exception- " ^ General.exnMessage exn ^ " raised");
-        error (output ()); raise exn);
+        error (output ()); reraise exn);
   in if verbose then print (output ()) else () end;
 
 fun use_file context verbose name =
