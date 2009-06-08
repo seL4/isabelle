@@ -87,6 +87,12 @@ val fast_int_arith_simproc =
 val global_setup = Simplifier.map_simpset
   (fn simpset => simpset addsimprocs [fast_int_arith_simproc]);
 
+
+fun number_of thy T n =
+  if not (Sign.of_sort thy (T, @{sort number}))
+  then raise CTERM ("number_of", [])
+  else Numeral.mk_cnumber (Thm.ctyp_of thy T) n
+
 val setup =
   Lin_Arith.add_inj_thms [@{thm zle_int} RS iffD2, @{thm int_int_eq} RS iffD2]
   #> Lin_Arith.add_lessD @{thm zless_imp_add1_zle}
@@ -95,6 +101,7 @@ val setup =
   #> Lin_Arith.add_simprocs (Numeral_Simprocs.assoc_fold_simproc :: zero_one_idom_simproc
       :: Numeral_Simprocs.combine_numerals
       :: Numeral_Simprocs.cancel_numerals)
+  #> Lin_Arith.set_number_of number_of
   #> Lin_Arith.add_inj_const (@{const_name of_nat}, HOLogic.natT --> HOLogic.intT)
   #> Lin_Arith.add_discrete_type @{type_name Int.int}
 

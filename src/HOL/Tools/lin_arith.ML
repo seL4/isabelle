@@ -16,6 +16,8 @@ sig
   val add_simprocs: simproc list -> Context.generic -> Context.generic
   val add_inj_const: string * typ -> Context.generic -> Context.generic
   val add_discrete_type: string -> Context.generic -> Context.generic
+  val set_number_of: (theory -> typ -> int -> cterm) -> Context.generic ->
+    Context.generic
   val setup: Context.generic -> Context.generic
   val global_setup: theory -> theory
   val split_limit: int Config.T
@@ -36,6 +38,7 @@ val ccontr = ccontr;
 val conjI = conjI;
 val notI = notI;
 val sym = sym;
+val trueI = TrueI;
 val not_lessD = @{thm linorder_not_less} RS iffD1;
 val not_leD = @{thm linorder_not_le} RS iffD1;
 
@@ -274,7 +277,6 @@ fun domain_is_nat (_ $ (Const (_, T) $ _ $ _))                      = nT T
   | domain_is_nat (_ $ (Const ("Not", _) $ (Const (_, T) $ _ $ _))) = nT T
   | domain_is_nat _                                                 = false;
 
-val mk_number = HOLogic.mk_number;
 
 (*---------------------------------------------------------------------------*)
 (* the following code performs splitting of certain constants (e.g. min,     *)
@@ -752,22 +754,29 @@ structure Fast_Arith = Fast_Lin_Arith(structure LA_Logic = LA_Logic and LA_Data 
 
 val map_data = Fast_Arith.map_data;
 
-fun map_inj_thms f {add_mono_thms, mult_mono_thms, inj_thms, lessD, neqE, simpset} =
+fun map_inj_thms f {add_mono_thms, mult_mono_thms, inj_thms, lessD, neqE, simpset, number_of} =
   {add_mono_thms = add_mono_thms, mult_mono_thms = mult_mono_thms, inj_thms = f inj_thms,
-    lessD = lessD, neqE = neqE, simpset = simpset};
+    lessD = lessD, neqE = neqE, simpset = simpset, number_of = number_of};
 
-fun map_lessD f {add_mono_thms, mult_mono_thms, inj_thms, lessD, neqE, simpset} =
+fun map_lessD f {add_mono_thms, mult_mono_thms, inj_thms, lessD, neqE, simpset, number_of} =
   {add_mono_thms = add_mono_thms, mult_mono_thms = mult_mono_thms, inj_thms = inj_thms,
-    lessD = f lessD, neqE = neqE, simpset = simpset};
+    lessD = f lessD, neqE = neqE, simpset = simpset, number_of = number_of};
 
-fun map_simpset f {add_mono_thms, mult_mono_thms, inj_thms, lessD, neqE, simpset} =
+fun map_simpset f {add_mono_thms, mult_mono_thms, inj_thms, lessD, neqE, simpset, number_of} =
   {add_mono_thms = add_mono_thms, mult_mono_thms = mult_mono_thms, inj_thms = inj_thms,
-    lessD = lessD, neqE = neqE, simpset = f simpset};
+    lessD = lessD, neqE = neqE, simpset = f simpset, number_of = number_of};
+
+fun map_number_of f {add_mono_thms, mult_mono_thms, inj_thms, lessD, neqE, simpset, number_of} =
+  {add_mono_thms = add_mono_thms, mult_mono_thms = mult_mono_thms, inj_thms = inj_thms,
+    lessD = lessD, neqE = neqE, simpset = simpset, number_of = f number_of};
 
 fun add_inj_thms thms = Fast_Arith.map_data (map_inj_thms (append thms));
 fun add_lessD thm = Fast_Arith.map_data (map_lessD (fn thms => thms @ [thm]));
 fun add_simps thms = Fast_Arith.map_data (map_simpset (fn simpset => simpset addsimps thms));
 fun add_simprocs procs = Fast_Arith.map_data (map_simpset (fn simpset => simpset addsimprocs procs));
+
+fun set_number_of f = Fast_Arith.map_data (map_number_of (K (serial (), f)))
+
 
 fun simple_tac ctxt = Fast_Arith.lin_arith_tac ctxt false;
 val lin_arith_tac = Fast_Arith.lin_arith_tac;
@@ -778,13 +787,16 @@ val warning_count = Fast_Arith.warning_count;
    Most of the work is done by the cancel tactics. *)
 
 val init_arith_data =
-  Fast_Arith.map_data (fn {add_mono_thms, mult_mono_thms, inj_thms, lessD, ...} =>
+  Fast_Arith.map_data (fn {add_mono_thms, mult_mono_thms, inj_thms, lessD, number_of, ...} =>
    {add_mono_thms = @{thms add_mono_thms_ordered_semiring} @ @{thms add_mono_thms_ordered_field} @ add_mono_thms,
-    mult_mono_thms = @{thm mult_strict_left_mono} :: @{thm mult_left_mono} :: mult_mono_thms,
+    mult_mono_thms = @{thm mult_strict_left_mono} :: @{thm mult_left_mono} ::
+      @{lemma "a = b ==> c*a = c*b" by (rule arg_cong)} :: mult_mono_thms,
     inj_thms = inj_thms,
     lessD = lessD @ [@{thm "Suc_leI"}],
     neqE = [@{thm linorder_neqE_nat}, @{thm linorder_neqE_ordered_idom}],
     simpset = HOL_basic_ss
+      addsimps @{thms ring_distribs}
+      addsimps [@{thm if_True}, @{thm if_False}]
       addsimps
        [@{thm "monoid_add_class.add_0_left"},
         @{thm "monoid_add_class.add_0_right"},
@@ -795,7 +807,8 @@ val init_arith_data =
       addsimprocs [ab_group_add_cancel.sum_conv, ab_group_add_cancel.rel_conv]
        (*abel_cancel helps it work in abstract algebraic domains*)
       addsimprocs Nat_Arith.nat_cancel_sums_add
-      addcongs [if_weak_cong]}) #>
+      addcongs [if_weak_cong],
+    number_of = number_of}) #>
   add_discrete_type @{type_name nat};
 
 fun add_arith_facts ss =
