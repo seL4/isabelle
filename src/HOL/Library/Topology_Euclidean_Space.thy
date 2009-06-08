@@ -1141,10 +1141,8 @@ lemma Lim_sequentially:
 lemma Lim_sequentially_iff_LIMSEQ: "(S ---> l) sequentially \<longleftrightarrow> S ----> l"
   unfolding Lim_sequentially LIMSEQ_def ..
 
-lemma Lim_eventually:
-  fixes l :: "'a::metric_space" (* FIXME: generalize to t2_space *)
-  shows "eventually (\<lambda>x. f x = l) net \<Longrightarrow> (f ---> l) net"
-  unfolding tendsto_iff by (auto elim: eventually_rev_mono)
+lemma Lim_eventually: "eventually (\<lambda>x. f x = l) net \<Longrightarrow> (f ---> l) net"
+  by (rule topological_tendstoI, auto elim: eventually_rev_mono)
 
 text{* The expected monotonicity property. *}
 
@@ -1172,31 +1170,32 @@ lemma Lim_Un_univ:
 text{* Interrelations between restricted and unrestricted limits. *}
 
 lemma Lim_at_within: "(f ---> l) net ==> (f ---> l)(net within S)"
+  (* FIXME: rename *)
   unfolding tendsto_def Limits.eventually_within
   apply (clarify, drule spec, drule (1) mp, drule (1) mp)
   by (auto elim!: eventually_elim1)
 
 lemma Lim_within_open:
-  fixes l :: "'a::metric_space" (* FIXME: generalize to topological_space *)
+  fixes f :: "'a::topological_space \<Rightarrow> 'b::topological_space"
   assumes"a \<in> S" "open S"
   shows "(f ---> l)(at a within S) \<longleftrightarrow> (f ---> l)(at a)" (is "?lhs \<longleftrightarrow> ?rhs")
 proof
   assume ?lhs
-  { fix e::real assume "e>0"
-    have "eventually (\<lambda>x. dist (f x) l < e) (at a within S)"
-      using `?lhs` `e>0` by (rule tendstoD)
-    hence "eventually (\<lambda>x. x \<in> S \<longrightarrow> dist (f x) l < e) (at a)"
+  { fix A assume "open A" "l \<in> A"
+    with `?lhs` have "eventually (\<lambda>x. f x \<in> A) (at a within S)"
+      by (rule topological_tendstoD)
+    hence "eventually (\<lambda>x. x \<in> S \<longrightarrow> f x \<in> A) (at a)"
       unfolding Limits.eventually_within .
-    then obtain T where "open T" "a \<in> T" "\<forall>x\<in>T. x \<noteq> a \<longrightarrow> x \<in> S \<longrightarrow> dist (f x) l < e"
+    then obtain T where "open T" "a \<in> T" "\<forall>x\<in>T. x \<noteq> a \<longrightarrow> x \<in> S \<longrightarrow> f x \<in> A"
       unfolding eventually_at_topological by fast
-    hence "open (T \<inter> S)" "a \<in> T \<inter> S" "\<forall>x\<in>(T \<inter> S). x \<noteq> a \<longrightarrow> dist (f x) l < e"
+    hence "open (T \<inter> S)" "a \<in> T \<inter> S" "\<forall>x\<in>(T \<inter> S). x \<noteq> a \<longrightarrow> f x \<in> A"
       using assms by auto
-    hence "\<exists>T. open T \<and> a \<in> T \<and> (\<forall>x\<in>T. x \<noteq> a \<longrightarrow> dist (f x) l < e)"
+    hence "\<exists>T. open T \<and> a \<in> T \<and> (\<forall>x\<in>T. x \<noteq> a \<longrightarrow> f x \<in> A)"
       by fast
-    hence "eventually (\<lambda>x. dist (f x) l < e) (at a)"
+    hence "eventually (\<lambda>x. f x \<in> A) (at a)"
       unfolding eventually_at_topological .
   }
-  thus ?rhs by (rule tendstoI)
+  thus ?rhs by (rule topological_tendstoI)
 next
   assume ?rhs
   thus ?lhs by (rule Lim_at_within)
@@ -1260,7 +1259,7 @@ proof -
 qed
 
 lemma Lim_const: "((\<lambda>x. a) ---> a) net"
-  unfolding tendsto_def by simp
+  by (rule tendsto_const)
 
 lemma Lim_cmul:
   fixes f :: "'a \<Rightarrow> real ^ 'n::finite"
@@ -1274,34 +1273,16 @@ lemma Lim_cmul:
 lemma Lim_neg:
   fixes f :: "'a \<Rightarrow> 'b::real_normed_vector"
   shows "(f ---> l) net ==> ((\<lambda>x. -(f x)) ---> -l) net"
-  apply (simp add: Lim dist_norm  group_simps)
-  apply (subst minus_diff_eq[symmetric])
-  unfolding norm_minus_cancel by simp
+  by (rule tendsto_minus)
 
 lemma Lim_add: fixes f :: "'a \<Rightarrow> 'b::real_normed_vector" shows
  "(f ---> l) net \<Longrightarrow> (g ---> m) net \<Longrightarrow> ((\<lambda>x. f(x) + g(x)) ---> l + m) net"
-proof-
-  assume as:"(f ---> l) net" "(g ---> m) net"
-  { fix e::real
-    assume "e>0"
-    hence *:"eventually (\<lambda>x. dist (f x) l < e/2) net"
-            "eventually (\<lambda>x. dist (g x) m < e/2) net" using as
-      by (auto intro: tendstoD simp del: less_divide_eq_number_of1)
-    hence "eventually (\<lambda>x. dist (f x + g x) (l + m) < e) net"
-      apply (elim eventually_rev_mp)
-      apply (rule always_eventually, clarify)
-      apply (rule le_less_trans [OF dist_triangle_add])
-      apply simp
-      done
-  }
-  thus ?thesis unfolding tendsto_iff by simp
-qed
+  by (rule tendsto_add)
 
 lemma Lim_sub:
   fixes f :: "'a \<Rightarrow> 'b::real_normed_vector"
   shows "(f ---> l) net \<Longrightarrow> (g ---> m) net \<Longrightarrow> ((\<lambda>x. f(x) - g(x)) ---> l - m) net"
-  unfolding diff_minus
-  by (simp add: Lim_add Lim_neg)
+  by (rule tendsto_diff)
 
 lemma Lim_null:
   fixes f :: "'a \<Rightarrow> 'b::real_normed_vector"
@@ -1347,7 +1328,7 @@ lemma Lim_transform_bound:
   fixes g :: "'a \<Rightarrow> 'c::real_normed_vector"
   assumes "eventually (\<lambda>n. norm(f n) <= norm(g n)) net"  "(g ---> 0) net"
   shows "(f ---> 0) net"
-proof(simp add: tendsto_iff, rule+)
+proof (rule tendstoI)
   fix e::real assume "e>0"
   { fix x
     assume "norm (f x) \<le> norm (g x)" "dist (g x) 0 < e"
@@ -1361,20 +1342,18 @@ qed
 text{* Deducing things about the limit from the elements. *}
 
 lemma Lim_in_closed_set:
-  fixes l :: "'a::metric_space" (* FIXME: generalize to topological_space *)
-  assumes "closed S" "eventually (\<lambda>x. f(x) \<in> S) net"  "\<not>(trivial_limit net)" "(f ---> l) net"
+  assumes "closed S" "eventually (\<lambda>x. f(x) \<in> S) net" "\<not>(trivial_limit net)" "(f ---> l) net"
   shows "l \<in> S"
 proof (rule ccontr)
   assume "l \<notin> S"
-  obtain e where e:"e>0" "ball l e \<subseteq> UNIV - S" using assms(1) `l \<notin> S` unfolding closed_def open_contains_ball Compl_eq_Diff_UNIV by auto
-  hence *:"\<forall>x. dist l x < e \<longrightarrow> x \<notin> S" by auto
-  have "eventually (\<lambda>x. dist (f x) l < e) net"
-    using assms(4) `e>0` by (rule tendstoD)
-  with assms(2) have "eventually (\<lambda>x. f x \<in> S \<and> dist (f x) l < e) net"
-    by (rule eventually_conjI)
-  then obtain x where "f x \<in> S" "dist (f x) l < e"
-    using assms(3) eventually_happens by auto
-  with * show "False" by (simp add: dist_commute)
+  with `closed S` have "open (- S)" "l \<in> - S"
+    by (simp_all add: open_Compl)
+  with assms(4) have "eventually (\<lambda>x. f x \<in> - S) net"
+    by (rule topological_tendstoD)
+  with assms(2) have "eventually (\<lambda>x. False) net"
+    by (rule eventually_elim2) simp
+  with assms(3) show "False"
+    by (simp add: eventually_False)
 qed
 
 text{* Need to prove closed(cball(x,e)) before deducing this as a corollary. *}
