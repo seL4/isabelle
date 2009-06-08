@@ -969,8 +969,8 @@ definition
   "at_infinity = Abs_net (range (\<lambda>r. {x. r \<le> norm x}))"
 
 definition
-  indirection :: "real ^'n::finite \<Rightarrow> real ^'n \<Rightarrow> (real ^'n) net" (infixr "indirection" 70) where
-  "a indirection v = (at a) within {b. \<exists>c\<ge>0. b - a = c*s v}"
+  indirection :: "'a::real_normed_vector \<Rightarrow> 'a \<Rightarrow> 'a net" (infixr "indirection" 70) where
+  "a indirection v = (at a) within {b. \<exists>c\<ge>0. b - a = scaleR c v}"
 
 text{* Prove That They are all nets. *}
 
