@@ -2392,7 +2392,9 @@ lemma cauchy_def:
   "Cauchy s \<longleftrightarrow> (\<forall>e>0. \<exists>N. \<forall>m n. m \<ge> N \<and> n \<ge> N --> dist(s m)(s n) < e)"
 unfolding Cauchy_def by blast
 
-definition complete_def:"complete s \<longleftrightarrow> (\<forall>f::(nat=>real^'a::finite). (\<forall>n. f n \<in> s) \<and> Cauchy f
+definition
+  complete :: "'a::metric_space set \<Rightarrow> bool" where
+  "complete s \<longleftrightarrow> (\<forall>f. (\<forall>n. f n \<in> s) \<and> Cauchy f
                       --> (\<exists>l \<in> s. (f ---> l) sequentially))"
 
 lemma cauchy: "Cauchy s \<longleftrightarrow> (\<forall>e>0.\<exists> N::nat. \<forall>n\<ge>N. dist(s n)(s N) < e)" (is "?lhs = ?rhs")
@@ -2471,17 +2473,17 @@ proof-
   thus ?thesis unfolding complete_def by auto
 qed
 
-lemma complete_univ:
- "complete UNIV"
+lemma complete_univ: "complete (UNIV :: 'a::complete_space set)"
 proof(simp add: complete_def, rule, rule)
-  fix f::"nat \<Rightarrow> real^'n::finite" assume "Cauchy f"
-  hence "bounded (f`UNIV)" using cauchy_imp_bounded[of f] unfolding image_def by auto
-  hence "compact (closure (f`UNIV))"  using bounded_closed_imp_compact[of "closure (range f)"] by auto
-  hence "complete (closure (range f))" using compact_imp_complete by auto
-  thus "\<exists>l. (f ---> l) sequentially" unfolding complete_def[of "closure (range f)"] using `Cauchy f` unfolding closure_def  by auto
+  fix f :: "nat \<Rightarrow> 'a" assume "Cauchy f"
+  hence "convergent f" by (rule Cauchy_convergent)
+  hence "\<exists>l. f ----> l" unfolding convergent_def .  
+  thus "\<exists>l. (f ---> l) sequentially" unfolding LIMSEQ_conv_tendsto .
 qed
 
-lemma complete_eq_closed: "complete s \<longleftrightarrow> closed s" (is "?lhs = ?rhs")
+lemma complete_eq_closed:
+  fixes s :: "'a::complete_space set"
+  shows "complete s \<longleftrightarrow> closed s" (is "?lhs = ?rhs")
 proof
   assume ?lhs
   { fix x assume "x islimpt s"
@@ -2498,8 +2500,7 @@ next
 qed
 
 lemma convergent_eq_cauchy:
-  fixes s :: "nat \<Rightarrow> real ^ 'n::finite"
-    (* FIXME: generalize to complete metric spaces *)
+  fixes s :: "nat \<Rightarrow> 'a::complete_space"
   shows "(\<exists>l. (s ---> l) sequentially) \<longleftrightarrow> Cauchy s" (is "?lhs = ?rhs")
 proof
   assume ?lhs then obtain l where "(s ---> l) sequentially" by auto
@@ -2509,9 +2510,10 @@ next
 qed
 
 lemma convergent_imp_bounded:
-  fixes s :: "nat \<Rightarrow> real ^ 'n::finite" (* FIXME: generalize *)
+  fixes s :: "nat \<Rightarrow> 'a::real_normed_vector"
+    (* FIXME: generalize to metric_space *)
   shows "(s ---> l) sequentially ==> bounded (s ` (UNIV::(nat set)))"
-  using convergent_eq_cauchy[of s]
+  using convergent_imp_cauchy[of s]
   using cauchy_imp_bounded[of s]
   unfolding image_def
   by auto
@@ -5423,6 +5425,7 @@ proof-
 qed
 
 lemma complete_isometric_image:
+  fixes f :: "real ^ _ \<Rightarrow> real ^ _"
   assumes "0 < e" and s:"subspace s" and f:"linear f" and normf:"\<forall>x\<in>s. norm(f x) \<ge> e * norm(x)" and cs:"complete s"
   shows "complete(f ` s)"
 proof-
@@ -5616,7 +5619,7 @@ proof-
 qed
 
 lemma complete_subspace:
-  "subspace s ==> complete s"
+  fixes s :: "(real ^ _) set" shows "subspace s ==> complete s"
   using complete_eq_closed closed_subspace
   by auto
 
