@@ -331,6 +331,63 @@ lemma vector_sub_rdistrib: "((a::'a::ring) - b) *s x = a *s x - b *s x"
 lemma vec_eq[simp]: "(vec m = vec n) \<longleftrightarrow> (m = n)"
   by (simp add: Cart_eq)
 
+subsection {* Topological space *}
+
+instantiation "^" :: (topological_space, finite) topological_space
+begin
+
+definition open_vector_def:
+  "open (S :: ('a ^ 'b) set) \<longleftrightarrow>
+    (\<forall>x\<in>S. \<exists>A. (\<forall>i. open (A i) \<and> x$i \<in> A i) \<and>
+      (\<forall>y. (\<forall>i. y$i \<in> A i) \<longrightarrow> y \<in> S))"
+
+instance proof
+  show "open (UNIV :: ('a ^ 'b) set)"
+    unfolding open_vector_def by auto
+next
+  fix S T :: "('a ^ 'b) set"
+  assume "open S" "open T" thus "open (S \<inter> T)"
+    unfolding open_vector_def
+    apply clarify
+    apply (drule (1) bspec)+
+    apply (clarify, rename_tac Sa Ta)
+    apply (rule_tac x="\<lambda>i. Sa i \<inter> Ta i" in exI)
+    apply (simp add: open_Int)
+    done
+next
+  fix K :: "('a ^ 'b) set set"
+  assume "\<forall>S\<in>K. open S" thus "open (\<Union>K)"
+    unfolding open_vector_def
+    apply clarify
+    apply (drule (1) bspec)
+    apply (drule (1) bspec)
+    apply clarify
+    apply (rule_tac x=A in exI)
+    apply fast
+    done
+qed
+
+end
+
+lemma tendsto_Cart_nth:
+  fixes f :: "'a \<Rightarrow> 'b::topological_space ^ 'n::finite"
+  assumes "((\<lambda>x. f x) ---> a) net"
+  shows "((\<lambda>x. f x $ i) ---> a $ i) net"
+proof (rule topological_tendstoI)
+  fix S :: "'b set" assume "open S" "a $ i \<in> S"
+  then have "open ((\<lambda>y. y $ i) -` S)" "a \<in> ((\<lambda>y. y $ i) -` S)"
+    unfolding open_vector_def
+    apply simp_all
+    apply clarify
+    apply (rule_tac x="\<lambda>k. if k = i then S else UNIV" in exI)
+    apply simp
+    done
+  with assms have "eventually (\<lambda>x. f x \<in> (\<lambda>y. y $ i) -` S) net"
+    by (rule topological_tendstoD)
+  then show "eventually (\<lambda>x. f x $ i \<in> S) net"
+    by simp
+qed
+
 subsection {* Square root of sum of squares *}
 
 definition
@@ -361,12 +418,23 @@ lemma setL2_nonneg [simp]: "0 \<le> setL2 f A"
 lemma setL2_0': "\<forall>a\<in>A. f a = 0 \<Longrightarrow> setL2 f A = 0"
   unfolding setL2_def by simp
 
+lemma setL2_constant: "setL2 (\<lambda>x. y) A = sqrt (of_nat (card A)) * \<bar>y\<bar>"
+  unfolding setL2_def by (simp add: real_sqrt_mult)
+
 lemma setL2_mono:
   assumes "\<And>i. i \<in> K \<Longrightarrow> f i \<le> g i"
   assumes "\<And>i. i \<in> K \<Longrightarrow> 0 \<le> f i"
   shows "setL2 f K \<le> setL2 g K"
   unfolding setL2_def
   by (simp add: setsum_nonneg setsum_mono power_mono prems)
+
+lemma setL2_strict_mono:
+  assumes "finite K" and "K \<noteq> {}"
+  assumes "\<And>i. i \<in> K \<Longrightarrow> f i < g i"
+  assumes "\<And>i. i \<in> K \<Longrightarrow> 0 \<le> f i"
+  shows "setL2 f K < setL2 g K"
+  unfolding setL2_def
+  by (simp add: setsum_strict_mono power_strict_mono assms)
 
 lemma setL2_right_distrib:
   "0 \<le> r \<Longrightarrow> r * setL2 f A = setL2 (\<lambda>x. r * f x) A"
@@ -500,15 +568,22 @@ lemma member_le_setL2: "\<lbrakk>finite A; i \<in> A\<rbrakk> \<Longrightarrow> 
 
 subsection {* Metric *}
 
+(* TODO: move somewhere else *)
+lemma finite_choice: "finite A \<Longrightarrow> \<forall>x\<in>A. \<exists>y. P x y \<Longrightarrow> \<exists>f. \<forall>x\<in>A. P x (f x)"
+apply (induct set: finite, simp_all)
+apply (clarify, rename_tac y)
+apply (rule_tac x="f(x:=y)" in exI, simp)
+done
+
 instantiation "^" :: (metric_space, finite) metric_space
 begin
 
 definition dist_vector_def:
   "dist (x::'a^'b) (y::'a^'b) = setL2 (\<lambda>i. dist (x$i) (y$i)) UNIV"
 
-definition open_vector_def:
-  "open (S :: ('a ^ 'b) set) \<longleftrightarrow>
-    (\<forall>x\<in>S. \<exists>e>0. \<forall>y. dist y x < e \<longrightarrow> y \<in> S)"
+lemma dist_nth_le: "dist (x $ i) (y $ i) \<le> dist x y"
+unfolding dist_vector_def
+by (rule member_le_setL2) simp_all
 
 instance proof
   fix x y :: "'a ^ 'b"
@@ -523,34 +598,47 @@ next
     apply (simp add: setL2_mono dist_triangle2)
     done
 next
+  (* FIXME: long proof! *)
   fix S :: "('a ^ 'b) set"
   show "open S \<longleftrightarrow> (\<forall>x\<in>S. \<exists>e>0. \<forall>y. dist y x < e \<longrightarrow> y \<in> S)"
-    by (rule open_vector_def)
+    unfolding open_vector_def open_dist
+    apply safe
+     apply (drule (1) bspec)
+     apply clarify
+     apply (subgoal_tac "\<exists>e>0. \<forall>i y. dist y (x$i) < e \<longrightarrow> y \<in> A i")
+      apply clarify
+      apply (rule_tac x=e in exI, clarify)
+      apply (drule spec, erule mp, clarify)
+      apply (drule spec, drule spec, erule mp)
+      apply (erule le_less_trans [OF dist_nth_le])
+     apply (subgoal_tac "\<forall>i\<in>UNIV. \<exists>e>0. \<forall>y. dist y (x$i) < e \<longrightarrow> y \<in> A i")
+      apply (drule finite_choice [OF finite], clarify)
+      apply (rule_tac x="Min (range f)" in exI, simp)
+     apply clarify
+     apply (drule_tac x=i in spec, clarify)
+     apply (erule (1) bspec)
+    apply (drule (1) bspec, clarify)
+    apply (subgoal_tac "\<exists>r. (\<forall>i::'b. 0 < r i) \<and> e = setL2 r UNIV")
+     apply clarify
+     apply (rule_tac x="\<lambda>i. {y. dist y (x$i) < r i}" in exI)
+     apply (rule conjI)
+      apply clarify
+      apply (rule conjI)
+       apply (clarify, rename_tac y)
+       apply (rule_tac x="r i - dist y (x$i)" in exI, rule conjI, simp)
+       apply clarify
+       apply (simp only: less_diff_eq)
+       apply (erule le_less_trans [OF dist_triangle])
+      apply simp
+     apply clarify
+     apply (drule spec, erule mp)
+     apply (simp add: dist_vector_def setL2_strict_mono)
+    apply (rule_tac x="\<lambda>i. e / sqrt (of_nat CARD('b))" in exI)
+    apply (simp add: divide_pos_pos setL2_constant)
+    done
 qed
 
 end
-
-lemma dist_nth_le: "dist (x $ i) (y $ i) \<le> dist x y"
-unfolding dist_vector_def
-by (rule member_le_setL2) simp_all
-
-lemma tendsto_Cart_nth:
-  fixes X :: "'a \<Rightarrow> 'b::metric_space ^ 'n::finite"
-  assumes "tendsto (\<lambda>n. X n) a net"
-  shows "tendsto (\<lambda>n. X n $ i) (a $ i) net"
-proof (rule tendstoI)
-  fix e :: real assume "0 < e"
-  with assms have "eventually (\<lambda>n. dist (X n) a < e) net"
-    by (rule tendstoD)
-  thus "eventually (\<lambda>n. dist (X n $ i) (a $ i) < e) net"
-  proof (rule eventually_elim1)
-    fix n :: 'a
-    have "dist (X n $ i) (a $ i) \<le> dist (X n) a"
-      by (rule dist_nth_le)
-    also assume "dist (X n) a < e"
-    finally show "dist (X n $ i) (a $ i) < e" .
-  qed
-qed
 
 lemma LIMSEQ_Cart_nth:
   "(X ----> a) \<Longrightarrow> (\<lambda>n. X n $ i) ----> a $ i"
