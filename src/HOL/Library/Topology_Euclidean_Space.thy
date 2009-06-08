@@ -1514,31 +1514,41 @@ apply (subst within_UNIV[symmetric]) by (simp add: Lim_within_id)
 
 lemma Lim_at_zero:
   fixes a :: "'a::real_normed_vector"
-  fixes l :: "'b::metric_space" (* FIXME: generalize to topological_space *)
+  fixes l :: "'b::topological_space"
   shows "(f ---> l) (at a) \<longleftrightarrow> ((\<lambda>x. f(a + x)) ---> l) (at 0)" (is "?lhs = ?rhs")
 proof
   assume "?lhs"
-  { fix e::real assume "e>0"
-    with `?lhs` obtain d where d:"d>0" "\<forall>x. 0 < dist x a \<and> dist x a < d \<longrightarrow> dist (f x) l < e" unfolding Lim_at by auto
-    { fix x::"'a" assume "0 < dist x 0 \<and> dist x 0 < d"
-      hence "dist (f (a + x)) l < e" using d
-      apply(erule_tac x="x+a" in allE) by(auto simp add: comm_monoid_add.mult_commute dist_norm dist_commute)
+  { fix S assume "open S" "l \<in> S"
+    with `?lhs` have "eventually (\<lambda>x. f x \<in> S) (at a)"
+      by (rule topological_tendstoD)
+    then obtain d where d: "d>0" "\<forall>x. x \<noteq> a \<and> dist x a < d \<longrightarrow> f x \<in> S"
+      unfolding Limits.eventually_at by fast
+    { fix x::"'a" assume "x \<noteq> 0 \<and> dist x 0 < d"
+      hence "f (a + x) \<in> S" using d
+      apply(erule_tac x="x+a" in allE)
+      by(auto simp add: comm_monoid_add.mult_commute dist_norm dist_commute)
     }
-    hence "\<exists>d>0. \<forall>x. 0 < dist x 0 \<and> dist x 0 < d \<longrightarrow> dist (f (a + x)) l < e" using d(1) by auto
+    hence "\<exists>d>0. \<forall>x. x \<noteq> 0 \<and> dist x 0 < d \<longrightarrow> f (a + x) \<in> S"
+      using d(1) by auto
+    hence "eventually (\<lambda>x. f (a + x) \<in> S) (at 0)"
+      unfolding Limits.eventually_at .
   }
-  thus "?rhs" unfolding Lim_at by auto
+  thus "?rhs" by (rule topological_tendstoI)
 next
   assume "?rhs"
-  { fix e::real assume "e>0"
-    with `?rhs` obtain d where d:"d>0" "\<forall>x. 0 < dist x 0 \<and> dist x 0 < d \<longrightarrow> dist (f (a + x)) l < e"
-      unfolding Lim_at by auto
-    { fix x::"'a" assume "0 < dist x a \<and> dist x a < d"
-      hence "dist (f x) l < e" using d apply(erule_tac x="x-a" in allE)
+  { fix S assume "open S" "l \<in> S"
+    with `?rhs` have "eventually (\<lambda>x. f (a + x) \<in> S) (at 0)"
+      by (rule topological_tendstoD)
+    then obtain d where d: "d>0" "\<forall>x. x \<noteq> 0 \<and> dist x 0 < d \<longrightarrow> f (a + x) \<in> S"
+      unfolding Limits.eventually_at by fast
+    { fix x::"'a" assume "x \<noteq> a \<and> dist x a < d"
+      hence "f x \<in> S" using d apply(erule_tac x="x-a" in allE)
 	by(auto simp add: comm_monoid_add.mult_commute dist_norm dist_commute)
     }
-    hence "\<exists>d>0. \<forall>x. 0 < dist x a \<and> dist x a < d \<longrightarrow> dist (f x) l < e" using d(1) by auto
+    hence "\<exists>d>0. \<forall>x. x \<noteq> a \<and> dist x a < d \<longrightarrow> f x \<in> S" using d(1) by auto
+    hence "eventually (\<lambda>x. f x \<in> S) (at a)" unfolding Limits.eventually_at .
   }
-  thus "?lhs" unfolding Lim_at by auto
+  thus "?lhs" by (rule topological_tendstoI)
 qed
 
 text{* It's also sometimes useful to extract the limit point from the net.  *}
@@ -1594,10 +1604,9 @@ proof-
 qed
 
 lemma Lim_transform_eventually:
-  fixes l :: "'a::metric_space" (* FIXME: generalize to t2_space *)
-  shows "eventually (\<lambda>x. f x = g x) net \<Longrightarrow> (f ---> l) net ==> (g ---> l) net"
-  unfolding tendsto_iff
-  apply (clarify, drule spec, drule (1) mp)
+  "eventually (\<lambda>x. f x = g x) net \<Longrightarrow> (f ---> l) net ==> (g ---> l) net"
+  apply (rule topological_tendstoI)
+  apply (drule (2) topological_tendstoD)
   apply (erule (1) eventually_elim2, simp)
   done
 
@@ -1722,17 +1731,19 @@ lemma seq_offset:
   by (metis trans_le_add1 )
 
 lemma seq_offset_neg:
-  fixes l :: "'a::metric_space" (* TODO: generalize *)
-  shows "(f ---> l) sequentially ==> ((\<lambda>i. f(i - k)) ---> l) sequentially"
-  apply (simp add: Lim_sequentially)
+  "(f ---> l) sequentially ==> ((\<lambda>i. f(i - k)) ---> l) sequentially"
+  apply (rule topological_tendstoI)
+  apply (drule (2) topological_tendstoD)
+  apply (simp only: eventually_sequentially)
   apply (subgoal_tac "\<And>N k (n::nat). N + k <= n ==> N <= n - k")
   apply metis
   by arith
 
 lemma seq_offset_rev:
-  fixes l :: "'a::metric_space" (* TODO: generalize *)
-  shows "((\<lambda>i. f(i + k)) ---> l) sequentially ==> (f ---> l) sequentially"
-  apply (simp add: Lim_sequentially)
+  "((\<lambda>i. f(i + k)) ---> l) sequentially ==> (f ---> l) sequentially"
+  apply (rule topological_tendstoI)
+  apply (drule (2) topological_tendstoD)
+  apply (simp only: eventually_sequentially)
   apply (subgoal_tac "\<And>N k (n::nat). N + k <= n ==> N <= n - k \<and> (n - k) + k = n")
   by metis arith
 
@@ -1749,7 +1760,7 @@ qed
 text{* More properties of closed balls. *}
 
 lemma closed_cball: "closed (cball x e)"
-unfolding cball_def closed_def Compl_eq_Diff_UNIV [symmetric]
+unfolding cball_def closed_def
 unfolding Collect_neg_eq [symmetric] not_le
 apply (clarsimp simp add: open_dist, rename_tac y)
 apply (rule_tac x="dist x y - e" in exI, clarsimp)
@@ -1781,7 +1792,6 @@ lemma mem_interior_cball: "x \<in> interior S \<longleftrightarrow> (\<exists>e>
 
 lemma islimpt_ball:
   fixes x y :: "'a::{real_normed_vector,perfect_space}"
-    (* FIXME: generalize to metric_space *)
   shows "y islimpt ball x e \<longleftrightarrow> 0 < e \<and> y \<in> cball x e" (is "?lhs = ?rhs")
 proof
   assume "?lhs"
@@ -1789,7 +1799,7 @@ proof
     hence *:"ball x e = {}" using ball_eq_empty[of x e] by auto
     have False using `?lhs` unfolding * using islimpt_EMPTY[of y] by auto
   }
-  hence "e > 0" by (metis dlo_simps(3))
+  hence "e > 0" by (metis not_less)
   moreover
   have "y \<in> cball x e" using closed_cball[of x e] islimpt_subset[of y "ball x e" "cball x e"] ball_subset_cball[of x e] `?lhs` unfolding closed_limpt by auto
   ultimately show "?rhs" by auto
@@ -1848,12 +1858,56 @@ next
   thus "?lhs" unfolding mem_cball islimpt_approachable mem_ball by auto
 qed
 
+lemma closure_ball_lemma:
+  fixes x y :: "'a::real_normed_vector"
+  assumes "x \<noteq> y" shows "y islimpt ball x (dist x y)"
+proof (rule islimptI)
+  fix T assume "y \<in> T" "open T"
+  then obtain r where "0 < r" "\<forall>z. dist z y < r \<longrightarrow> z \<in> T"
+    unfolding open_dist by fast
+  (* choose point between x and y, within distance r of y. *)
+  def k \<equiv> "min 1 (r / (2 * dist x y))"
+  def z \<equiv> "y + scaleR k (x - y)"
+  have z_def2: "z = x + scaleR (1 - k) (y - x)"
+    unfolding z_def by (simp add: algebra_simps)
+  have "dist z y < r"
+    unfolding z_def k_def using `0 < r`
+    by (simp add: dist_norm norm_scaleR min_def)
+  hence "z \<in> T" using `\<forall>z. dist z y < r \<longrightarrow> z \<in> T` by simp
+  have "dist x z < dist x y"
+    unfolding z_def2 dist_norm
+    apply (simp add: norm_scaleR norm_minus_commute)
+    apply (simp only: dist_norm [symmetric])
+    apply (subgoal_tac "\<bar>1 - k\<bar> * dist x y < 1 * dist x y", simp)
+    apply (rule mult_strict_right_mono)
+    apply (simp add: k_def divide_pos_pos zero_less_dist_iff `0 < r` `x \<noteq> y`)
+    apply (simp add: zero_less_dist_iff `x \<noteq> y`)
+    done
+  hence "z \<in> ball x (dist x y)" by simp
+  have "z \<noteq> y"
+    unfolding z_def k_def using `x \<noteq> y` `0 < r`
+    by (simp add: min_def)
+  show "\<exists>z\<in>ball x (dist x y). z \<in> T \<and> z \<noteq> y"
+    using `z \<in> ball x (dist x y)` `z \<in> T` `z \<noteq> y`
+    by fast
+qed
+
 lemma closure_ball:
-  fixes x y :: "'a::{real_normed_vector,perfect_space}"
-    (* FIXME: generalize to metric_space *)
-  shows "0 < e ==> (closure(ball x e) = cball x e)"
-  apply (simp add: closure_def islimpt_ball expand_set_eq)
-  by arith
+  fixes x :: "'a::real_normed_vector"
+  shows "0 < e \<Longrightarrow> closure (ball x e) = cball x e"
+apply (rule equalityI)
+apply (rule closure_minimal)
+apply (rule ball_subset_cball)
+apply (rule closed_cball)
+apply (rule subsetI, rename_tac y)
+apply (simp add: le_less [where 'a=real])
+apply (erule disjE)
+apply (rule subsetD [OF closure_subset], simp)
+apply (simp add: closure_def)
+apply clarify
+apply (rule closure_ball_lemma)
+apply (simp add: zero_less_dist_iff)
+done
 
 lemma interior_cball:
   fixes x :: "real ^ _" (* FIXME: generalize *)
