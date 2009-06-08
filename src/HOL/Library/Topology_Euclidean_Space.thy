@@ -1995,24 +1995,30 @@ lemma cball_sing:
 text{* For points in the interior, localization of limits makes no difference.   *}
 
 lemma eventually_within_interior:
-  fixes x :: "'a::metric_space"
   assumes "x \<in> interior S"
   shows "eventually P (at x within S) \<longleftrightarrow> eventually P (at x)" (is "?lhs = ?rhs")
 proof-
-  from assms obtain e where e:"e>0" "\<forall>y. dist x y < e \<longrightarrow> y \<in> S" unfolding mem_interior ball_def subset_eq by auto
-  { assume "?lhs" then obtain d where "d>0" "\<forall>xa\<in>S. 0 < dist xa x \<and> dist xa x < d \<longrightarrow> P xa" unfolding eventually_within by auto
-    hence "?rhs" unfolding eventually_at using e by (auto simp add: dist_commute intro!: add exI[of _ "min e d"])
+  from assms obtain T where T: "open T" "x \<in> T" "T \<subseteq> S"
+    unfolding interior_def by fast
+  { assume "?lhs"
+    then obtain A where "open A" "x \<in> A" "\<forall>y\<in>A. y \<noteq> x \<longrightarrow> y \<in> S \<longrightarrow> P y"
+      unfolding Limits.eventually_within Limits.eventually_at_topological
+      by auto
+    with T have "open (A \<inter> T)" "x \<in> A \<inter> T" "\<forall>y\<in>(A \<inter> T). y \<noteq> x \<longrightarrow> P y"
+      by auto
+    then have "?rhs"
+      unfolding Limits.eventually_at_topological by auto
   } moreover
-  { assume "?rhs" hence "?lhs" unfolding eventually_within eventually_at by auto
+  { assume "?rhs" hence "?lhs"
+      unfolding Limits.eventually_within
+      by (auto elim: eventually_elim1)
   } ultimately
-  show "?thesis" by auto
+  show "?thesis" ..
 qed
 
 lemma lim_within_interior:
-  fixes x :: "'a::metric_space"
-  fixes l :: "'b::metric_space" (* TODO: generalize *)
-  shows "x \<in> interior S  ==> ((f ---> l) (at x within S) \<longleftrightarrow> (f ---> l) (at x))"
-  by (simp add: tendsto_iff eventually_within_interior)
+  "x \<in> interior S \<Longrightarrow> (f ---> l) (at x within S) \<longleftrightarrow> (f ---> l) (at x)"
+  unfolding tendsto_def by (simp add: eventually_within_interior)
 
 lemma netlimit_within_interior:
   fixes x :: "'a::{perfect_space, real_normed_vector}"
