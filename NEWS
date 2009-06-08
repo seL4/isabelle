@@ -25,6 +25,8 @@ and is now defined generic in class power.  INCOMPATIBILITY.
 * ML antiquotation @{code_datatype} inserts definition of a datatype generated
 by the code generator; see Predicate.thy for an example.
 
+* New method "linarith" invokes existing linear arithmetic decision procedure only.
+
 
 *** ML ***
 

@@ -11,6 +11,7 @@ sig
     -> (seed -> ('b * (unit -> term)) * seed) -> (seed -> seed * seed)
     -> seed -> (('a -> 'b) * (unit -> Term.term)) * seed
   val ensure_random_typecopy: string -> theory -> theory
+  val random_aux_specification: string -> term list -> local_theory -> local_theory
   val eval_ref: (unit -> int -> int * int -> term list option * (int * int)) option ref
   val setup: theory -> theory
 end;
@@ -133,7 +134,109 @@ fun ensure_random_typecopy tyco thy =
 
 (** datatypes **)
 
-(* still under construction *)
+(* definitional scheme for random instances on datatypes *)
+
+(*FIXME avoid this low-level proving*)
+val rct = Thm.cprop_of @{thm random_aux_rec} |> Thm.dest_arg |> Thm.dest_arg
+  |> Thm.dest_arg |> Thm.dest_arg1 |> Thm.dest_fun;
+fun dest_ctyp_nth k cT = nth (Thm.dest_ctyp cT) k;
+val aT = rct |> Thm.ctyp_of_term |> dest_ctyp_nth 1;
+
+fun random_aux_primrec eq lthy =
+  let
+    val thy = ProofContext.theory_of lthy;
+    val rews = map mk_meta_eq [@{thm code_numeral_zero_minus_one},
+      @{thm Suc_code_numeral_minus_one}, @{thm select_weight_cons_zero}, @{thm beyond_zero}];
+    val (rt as Free (random_aux, T)) $ (vt as Free (v, _)) =
+      (fst o HOLogic.dest_eq o HOLogic.dest_Trueprop) eq;
+    val Type (_, [_, iT]) = T;
+    val icT = Thm.ctyp_of thy iT;
+    fun subst_v t' = map_aterms (fn t as Free (w, _) => if v = w then t' else t | t => t);
+    val eqs0 = [subst_v @{term "0::code_numeral"} eq, subst_v (@{term "Suc_code_numeral"} $ vt) eq];
+    val eqs1 = map (Pattern.rewrite_term thy (map (Logic.dest_equals o Thm.prop_of) rews) []) eqs0
+    val ((_, eqs2), lthy') = PrimrecPackage.add_primrec_simple
+      [((Binding.name random_aux, T), NoSyn)] eqs1 lthy;
+    val eq_tac = ALLGOALS Goal.conjunction_tac THEN ALLGOALS (simp_tac (HOL_ss addsimps rews))
+      THEN (ALLGOALS (ProofContext.fact_tac (flat eqs2)));
+    val eqs3 = Goal.prove_multi lthy' [v] [] eqs0 (K eq_tac);
+    val rct' = Thm.instantiate_cterm ([(aT, icT)], []) rct
+    val rule = @{thm random_aux_rec}
+      |> Drule.instantiate ([(aT, icT)], [(rct', Thm.cterm_of thy rt)])
+      |> (fn thm => thm OF eqs3)
+    val tac = ALLGOALS (rtac rule);
+    val simp = Goal.prove lthy' [v] [] eq (K tac);
+  in (simp, lthy') end;
+
+fun random_aux_primrec_multi prefix [eq] lthy =
+      lthy
+      |> random_aux_primrec eq
+      |>> (fn simp => [simp])
+  | random_aux_primrec_multi prefix (eqs as _ :: _ :: _) lthy =
+      let
+        val thy = ProofContext.theory_of lthy;
+        val (lhss, rhss) = map_split (HOLogic.dest_eq o HOLogic.dest_Trueprop) eqs;
+        val (vs, (arg as Free (v, _)) :: _) = map_split (fn (t1 $ t2) => (t1, t2)) lhss;
+        val Ts = map fastype_of lhss;
+        val tupleT = foldr1 HOLogic.mk_prodT Ts;
+        val aux_lhs = Free ("mutual_" ^ prefix, fastype_of arg --> tupleT) $ arg;
+        val aux_eq = (HOLogic.mk_Trueprop o HOLogic.mk_eq)
+          (aux_lhs, foldr1 HOLogic.mk_prod rhss);
+        fun mk_proj t [T] = [t]
+          | mk_proj t (Ts as T :: (Ts' as _ :: _)) =
+              Const (@{const_name fst}, foldr1 HOLogic.mk_prodT Ts --> T) $ t
+                :: mk_proj (Const (@{const_name snd},
+                  foldr1 HOLogic.mk_prodT Ts --> foldr1 HOLogic.mk_prodT Ts') $ t) Ts';
+        val projs = mk_proj (aux_lhs) Ts;
+        val proj_eqs = map2 (fn v => fn proj => (v, lambda arg proj)) vs projs;
+        val proj_defs = map2 (fn Free (name, _) => fn (_, rhs) =>
+          ((Binding.name name, NoSyn), (Attrib.empty_binding, rhs))) vs proj_eqs;
+        val aux_eq' = Pattern.rewrite_term thy proj_eqs [] aux_eq;
+        fun prove_eqs aux_simp proj_defs lthy = 
+          let
+            val proj_simps = map (snd o snd) proj_defs;
+            fun tac { context = ctxt, ... } = ALLGOALS Goal.conjunction_tac
+              THEN ALLGOALS (simp_tac (HOL_ss addsimps proj_simps))
+              THEN ALLGOALS (EqSubst.eqsubst_tac ctxt [0] [aux_simp])
+              THEN ALLGOALS (simp_tac (HOL_ss addsimps [fst_conv, snd_conv]));
+          in (Goal.prove_multi lthy [v] [] eqs tac, lthy) end;
+      in
+        lthy
+        |> random_aux_primrec aux_eq'
+        ||>> fold_map (LocalTheory.define Thm.definitionK) proj_defs
+        |-> (fn (aux_simp, proj_defs) => prove_eqs aux_simp proj_defs)
+      end;
+
+fun random_aux_specification prefix eqs lthy =
+  let
+    val _ $ Free (v, _) $ Free (w, _) =
+      (fst o HOLogic.dest_eq o HOLogic.dest_Trueprop o hd) eqs;
+    fun mk_proto_eq eq =
+      let
+        val (head $ arg, rhs) = (HOLogic.dest_eq o HOLogic.dest_Trueprop) eq;
+      in ((HOLogic.mk_Trueprop o HOLogic.mk_eq) (head, lambda arg rhs)) end;
+    val proto_eqs = map mk_proto_eq eqs;
+    fun prove_simps proto_simps lthy =
+      let
+        val ext_simps = map (fn thm => fun_cong OF [thm]) proto_simps;
+        val tac = ALLGOALS Goal.conjunction_tac
+          THEN ALLGOALS (ProofContext.fact_tac ext_simps);
+      in (Goal.prove_multi lthy [v, w] [] eqs (K tac), lthy) end;
+    val b = Binding.qualify true prefix (Binding.name "simps");
+  in
+    lthy
+    |> random_aux_primrec_multi prefix proto_eqs
+    |-> (fn proto_simps => prove_simps proto_simps)
+    |-> (fn simps => LocalTheory.note Thm.generatedK ((b,
+           Code.add_default_eqn_attrib :: map (Attrib.internal o K)
+          [Simplifier.simp_add, Nitpick_Const_Simp_Thms.add, Quickcheck_RecFun_Simp_Thms.add]),
+            simps))
+    |> snd
+  end
+
+
+(* constructing random instances on datatypes *)
+
+(*still under construction*)
 
 
 (** setup **)
