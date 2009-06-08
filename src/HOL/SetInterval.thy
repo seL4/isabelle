@@ -853,6 +853,12 @@ using setsum_add_nat_ivl [of m n p f,symmetric]
 apply (simp add: add_ac)
 done
 
+lemma setsum_natinterval_difff:
+  fixes f:: "nat \<Rightarrow> ('a::ab_group_add)"
+  shows  "setsum (\<lambda>k. f k - f(k + 1)) {(m::nat) .. n} =
+          (if m <= n then f m - f(n + 1) else 0)"
+by (induct n, auto simp add: algebra_simps not_le le_Suc_eq)
+
 
 subsection{* Shifting bounds *}
 
