@@ -1130,7 +1130,7 @@ lemma Lim_at_iff_LIM: "(f ---> l) (at a) \<longleftrightarrow> f -- a --> l"
   unfolding Lim_at LIM_def by (simp only: zero_less_dist_iff)
 
 lemma Lim_at_infinity:
-  "(f ---> l) at_infinity \<longleftrightarrow> (\<forall>e>0. \<exists>b. \<forall>x::real^'n::finite. norm x >= b \<longrightarrow> dist (f x) l < e)"
+  "(f ---> l) at_infinity \<longleftrightarrow> (\<forall>e>0. \<exists>b. \<forall>x. norm x >= b \<longrightarrow> dist (f x) l < e)"
   by (auto simp add: tendsto_iff eventually_at_infinity)
 
 lemma Lim_sequentially:
@@ -2032,13 +2032,16 @@ done
 lemma bounded_insert[intro]:"bounded(insert x S) \<longleftrightarrow> bounded S"
   by (metis Diff_cancel Un_empty_right Un_insert_right bounded_Un bounded_subset finite.emptyI finite_imp_bounded infinite_remove subset_insertI)
 
-lemma bot_bounded_UNIV[simp, intro]: "~(bounded (UNIV:: (real^'n::finite) set))"
+lemma not_bounded_UNIV[simp, intro]:
+  "\<not> bounded (UNIV :: 'a::{real_normed_vector, perfect_space} set)"
 proof(auto simp add: bounded_pos not_le)
+  obtain x :: 'a where "x \<noteq> 0"
+    using perfect_choose_dist [OF zero_less_one] by fast
   fix b::real  assume b: "b >0"
   have b1: "b +1 \<ge> 0" using b by simp
-  then obtain x:: "real^'n" where "norm x = b + 1" using vector_choose_size[of "b+1"] by blast
-  hence "norm x > b" using b by simp
-  then show "\<exists>(x::real^'n). b < norm x"  by blast
+  with `x \<noteq> 0` have "b < norm (scaleR (b + 1) (sgn x))"
+    by (simp add: norm_scaleR norm_sgn)
+  then show "\<exists>x::'a. b < norm x" ..
 qed
 
 lemma bounded_linear_image:
@@ -3357,13 +3360,13 @@ lemma dist_minus:
   unfolding dist_norm minus_diff_minus norm_minus_cancel ..
 
 lemma uniformly_continuous_on_neg:
-  fixes f :: "'a::real_normed_vector \<Rightarrow> real ^ _" (* FIXME: generalize *)
+  fixes f :: "'a::metric_space \<Rightarrow> 'b::real_normed_vector"
   shows "uniformly_continuous_on s f
          ==> uniformly_continuous_on s (\<lambda>x. -(f x))"
   unfolding uniformly_continuous_on_def dist_minus .
 
 lemma uniformly_continuous_on_add:
-  fixes f g :: "'a::real_normed_vector \<Rightarrow> 'b::real_normed_vector"
+  fixes f g :: "'a::real_normed_vector \<Rightarrow> 'b::real_normed_vector" (* FIXME: generalize 'a *)
   assumes "uniformly_continuous_on s f" "uniformly_continuous_on s g"
   shows "uniformly_continuous_on s (\<lambda>x. f x + g x)"
 proof-
@@ -3376,7 +3379,7 @@ proof-
 qed
 
 lemma uniformly_continuous_on_sub:
-  fixes f :: "'a::real_normed_vector \<Rightarrow> real ^ _" (* FIXME: generalize *)
+  fixes f :: "'a::real_normed_vector \<Rightarrow> 'b::real_normed_vector" (* FIXME: generalize 'a *)
   shows "uniformly_continuous_on s f \<Longrightarrow> uniformly_continuous_on s g
            ==> uniformly_continuous_on s  (\<lambda>x. f x - g x)"
   unfolding ab_diff_minus
