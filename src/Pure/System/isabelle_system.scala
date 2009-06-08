@@ -6,10 +6,11 @@ Isabelle system support -- basic Cygwin/Posix compatibility.
 
 package isabelle
 
-import java.util.regex.{Pattern, Matcher}
+import java.util.regex.Pattern
 import java.io.{BufferedReader, InputStreamReader, FileInputStream, File, IOException}
 
 import scala.io.Source
+import scala.util.matching.Regex
 
 
 object IsabelleSystem
@@ -58,16 +59,15 @@ class IsabelleSystem
 
   /* Isabelle settings environment */
 
-  private val (cygdrive_pattern, cygwin_root, shell_prefix) =
+  private val (platform_root, drive_prefix, shell_prefix) =
   {
     if (IsabelleSystem.is_cygwin) {
-      val cygdrive = Cygwin.cygdrive getOrElse "/cygdrive"
-      val pattern = Pattern.compile(cygdrive + "/([a-zA-Z])($|/.*)")
-      val root = Cygwin.root getOrElse "C:\\cygwin"
-      val bash = List(root + "\\bin\\bash", "-l")
-      (Some(pattern), Some(root), bash)
+      val root = Cygwin.root() getOrElse "C:\\cygwin"
+      val drive = Cygwin.cygdrive() getOrElse "/cygdrive"
+      val shell = List(root + "\\bin\\bash", "-l")
+      (root, drive, shell)
     }
-    else (None, None, Nil)
+    else ("/", "", Nil)
   }
 
   private val environment: Map[String, String] =
@@ -117,39 +117,33 @@ class IsabelleSystem
 
   /* file path specifications */
 
+  private val Cygdrive = new Regex(
+    if (drive_prefix == "") "\0"
+    else Pattern.quote(drive_prefix) + "/([a-zA-Z])($|/.*)")
+
   def platform_path(source_path: String): String =
   {
     val result_path = new StringBuilder
 
-    def init_plain(path: String): String =
-    {
-      if (path.startsWith("/")) {
-        result_path.length = 0
-        result_path.append(getenv_strict("ISABELLE_ROOT_JVM"))
-        path.substring(1)
-      }
-      else path
-    }
     def init(path: String): String =
     {
-      cygdrive_pattern match {
-        case Some(pattern) =>
-          val cygdrive = pattern.matcher(path)
-          if (cygdrive.matches) {
-            result_path.length = 0
-            result_path.append(cygdrive.group(1))
-            result_path.append(":")
-            result_path.append(File.separator)
-            cygdrive.group(2)
-          }
-          else init_plain(path)
-        case None => init_plain(path)
+      path match {
+        case Cygdrive(drive, rest) =>
+          result_path.length = 0
+          result_path.append(drive)
+          result_path.append(":")
+          result_path.append(File.separator)
+          rest
+        case _ if (path.startsWith("/")) =>
+          result_path.length = 0
+          result_path.append(platform_root)
+          path.substring(1)
+        case _ => path
       }
     }
-
     def append(path: String)
     {
-      for (p <- init(path).split("/")) {
+      for (p <- init(path) split "/") {
         if (p != "") {
           val len = result_path.length
           if (len > 0 && result_path(len - 1) != File.separatorChar)
@@ -158,7 +152,7 @@ class IsabelleSystem
         }
       }
     }
-    for (p <- init(source_path).split("/")) {
+    for (p <- init(source_path) split "/") {
       if (p.startsWith("$")) append(getenv_strict(p.substring(1)))
       else if (p == "~") append(getenv_strict("HOME"))
       else if (p == "~~") append(getenv_strict("ISABELLE_HOME"))
