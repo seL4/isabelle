@@ -833,6 +833,13 @@ apply(insert setsum_head_Suc[of m "n - Suc 0" f])
 apply (simp add: atLeastLessThanSuc_atLeastAtMost[symmetric] algebra_simps)
 done
 
+lemma setsum_ub_add_nat: assumes "(m::nat) \<le> n + 1"
+  shows "setsum f {m..n + p} = setsum f {m..n} + setsum f {n + 1..n + p}"
+proof-
+  have "{m .. n+p} = {m..n} \<union> {n+1..n+p}" using `m \<le> n+1` by auto
+  thus ?thesis by (auto simp: ivl_disj_int setsum_Un_disjoint
+    atLeastSucAtMost_greaterThanAtMost)
+qed
 
 lemma setsum_add_nat_ivl: "\<lbrakk> m \<le> n; n \<le> p \<rbrakk> \<Longrightarrow>
   setsum f {m..<n} + setsum f {n..<p} = setsum f {m..<p::nat}"
