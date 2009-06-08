@@ -1152,6 +1152,7 @@ definition bnds_cos :: "nat \<Rightarrow> float \<Rightarrow> float \<Rightarrow
   else if 0 \<le> lx \<and> ux \<le> lpi      then (lb_cos prec ux, ub_cos prec lx)
   else if - lpi \<le> lx \<and> ux \<le> lpi  then (min (lb_cos prec (-lx)) (lb_cos prec ux), Float 1 0)
   else if 0 \<le> lx \<and> ux \<le> 2 * lpi  then (Float -1 0, max (ub_cos prec lx) (ub_cos prec (- (ux - 2 * lpi))))
+  else if -2 * lpi \<le> lx \<and> ux \<le> 0 then (Float -1 0, max (ub_cos prec (lx + 2 * lpi)) (ub_cos prec (-ux)))
                                  else (Float -1 0, Float 1 0))"
 
 lemma floor_int:
@@ -1354,9 +1355,51 @@ proof ((rule allI | rule impI | erule conjE) +)
       finally show ?thesis unfolding u by (simp add: real_of_float_max)
     qed
     thus ?thesis unfolding l by auto
+  next case False note 4 = this show ?thesis
+  proof (cases "-2 * ?lpi \<le> ?lx \<and> ?ux \<le> 0")
+    case True note Cond = this with bnds 1 2 3 4
+    have l: "l = Float -1 0"
+      and u: "u = max (ub_cos prec (?lx + 2 * ?lpi)) (ub_cos prec (-?ux))"
+      by (auto simp add: bnds_cos_def Let_def)
+
+    have "cos x \<le> real u"
+    proof (cases "-pi < x - real k * 2 * pi")
+      case True hence "-pi \<le> x - real k * 2 * pi" by simp
+      from negative_ux[OF this Cond[THEN conjunct2]]
+      show ?thesis unfolding u by (simp add: real_of_float_max)
+    next
+      case False hence "x - real k * 2 * pi \<le> -pi" by simp
+      hence pi_x: "x - real k * 2 * pi + 2 * pi \<le> pi" by simp
+
+      have "-2 * pi \<le> real ?lx" using Cond lpi by (auto simp add: le_float_def)
+
+      hence "0 \<le> x - real k * 2 * pi + 2 * pi" using lx by simp
+
+      have lx_0: "0 \<le> real (?lx + 2 * ?lpi)"
+	using Cond lpi by (auto simp add: le_float_def)
+
+      from 1 and Cond have "\<not> -?lpi \<le> ?lx" by auto
+      hence "?lx + 2 * ?lpi \<le> ?lpi" by (auto simp add: le_float_def)
+      hence pi_lx: "real (?lx + 2 * ?lpi) \<le> pi"
+	using lpi[THEN le_imp_neg_le] by (auto simp add: le_float_def)
+
+      have lx_le_x: "real (?lx + 2 * ?lpi) \<le> x - real k * 2 * pi + 2 * pi"
+	using lx lpi by auto
+
+      have "cos x = cos (x + real (-k) * 2 * pi + real (1 :: int) * 2 * pi)"
+	unfolding cos_periodic_int ..
+      also have "\<dots> \<le> cos (real (?lx + 2 * ?lpi))"
+	using cos_monotone_0_pi'[OF lx_0 lx_le_x pi_x]
+	by (simp only: real_of_float_minus real_of_int_minus real_of_one
+	  number_of_Min real_diff_def mult_minus_left real_mult_1)
+      also have "\<dots> \<le> real (ub_cos prec (?lx + 2 * ?lpi))"
+	using lb_cos[OF lx_0 pi_lx] by simp
+      finally show ?thesis unfolding u by (simp add: real_of_float_max)
+    qed
+    thus ?thesis unfolding l by auto
   next
-    case False with bnds 1 2 3 show ?thesis by (auto simp add: bnds_cos_def Let_def)
-  qed qed qed qed
+    case False with bnds 1 2 3 4 show ?thesis by (auto simp add: bnds_cos_def Let_def)
+  qed qed qed qed qed
 qed
 
 section "Exponential function"
