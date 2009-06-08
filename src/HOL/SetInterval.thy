@@ -859,6 +859,43 @@ lemma setsum_natinterval_difff:
           (if m <= n then f m - f(n + 1) else 0)"
 by (induct n, auto simp add: algebra_simps not_le le_Suc_eq)
 
+lemmas setsum_restrict_set' = setsum_restrict_set[unfolded Int_def]
+
+lemma setsum_setsum_restrict:
+  "finite S \<Longrightarrow> finite T \<Longrightarrow> setsum (\<lambda>x. setsum (\<lambda>y. f x y) {y. y\<in> T \<and> R x y}) S = setsum (\<lambda>y. setsum (\<lambda>x. f x y) {x. x \<in> S \<and> R x y}) T"
+  by (simp add: setsum_restrict_set'[unfolded mem_def] mem_def)
+     (rule setsum_commute)
+
+lemma setsum_image_gen: assumes fS: "finite S"
+  shows "setsum g S = setsum (\<lambda>y. setsum g {x. x \<in> S \<and> f x = y}) (f ` S)"
+proof-
+  { fix x assume "x \<in> S" then have "{y. y\<in> f`S \<and> f x = y} = {f x}" by auto }
+  hence "setsum g S = setsum (\<lambda>x. setsum (\<lambda>y. g x) {y. y\<in> f`S \<and> f x = y}) S"
+    by simp
+  also have "\<dots> = setsum (\<lambda>y. setsum g {x. x \<in> S \<and> f x = y}) (f ` S)"
+    by (rule setsum_setsum_restrict[OF fS finite_imageI[OF fS]])
+  finally show ?thesis .
+qed
+
+lemma setsum_multicount_gen:
+  assumes "finite s" "finite t" "\<forall>j\<in>t. (card {i\<in>s. R i j} = k j)"
+  shows "setsum (\<lambda>i. (card {j\<in>t. R i j})) s = setsum k t" (is "?l = ?r")
+proof-
+  have "?l = setsum (\<lambda>i. setsum (\<lambda>x.1) {j\<in>t. R i j}) s" by auto
+  also have "\<dots> = ?r" unfolding setsum_setsum_restrict[OF assms(1-2)]
+    using assms(3) by auto
+  finally show ?thesis .
+qed
+
+lemma setsum_multicount:
+  assumes "finite S" "finite T" "\<forall>j\<in>T. (card {i\<in>S. R i j} = k)"
+  shows "setsum (\<lambda>i. card {j\<in>T. R i j}) S = k * card T" (is "?l = ?r")
+proof-
+  have "?l = setsum (\<lambda>i. k) T" by(rule setsum_multicount_gen)(auto simp:assms)
+  also have "\<dots> = ?r" by(simp add: setsum_constant mult_commute)
+  finally show ?thesis by auto
+qed
+
 
 subsection{* Shifting bounds *}
 
