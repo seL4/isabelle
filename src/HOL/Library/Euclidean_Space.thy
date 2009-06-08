@@ -1828,6 +1828,36 @@ proof-
   then show ?thesis using Kp by blast
 qed
 
+lemma smult_conv_scaleR: "c *s x = scaleR c x"
+  unfolding vector_scalar_mult_def vector_scaleR_def by simp
+
+lemma linear_conv_bounded_linear:
+  fixes f :: "real ^ _ \<Rightarrow> real ^ _"
+  shows "linear f \<longleftrightarrow> bounded_linear f"
+proof
+  assume "linear f"
+  show "bounded_linear f"
+  proof
+    fix x y show "f (x + y) = f x + f y"
+      using `linear f` unfolding linear_def by simp
+  next
+    fix r x show "f (scaleR r x) = scaleR r (f x)"
+      using `linear f` unfolding linear_def
+      by (simp add: smult_conv_scaleR)
+  next
+    have "\<exists>B. \<forall>x. norm (f x) \<le> B * norm x"
+      using `linear f` by (rule linear_bounded)
+    thus "\<exists>K. \<forall>x. norm (f x) \<le> norm x * K"
+      by (simp add: mult_commute)
+  qed
+next
+  assume "bounded_linear f"
+  then interpret f: bounded_linear f .
+  show "linear f"
+    unfolding linear_def smult_conv_scaleR
+    by (simp add: f.add f.scaleR)
+qed
+
 subsection{* Bilinear functions. *}
 
 definition "bilinear f \<longleftrightarrow> (\<forall>x. linear(\<lambda>y. f x y)) \<and> (\<forall>y. linear(\<lambda>x. f x y))"
@@ -1929,6 +1959,41 @@ proof-
     then have "norm (h x y) \<le> ?K * norm x * norm y"
       using B[rule_format, of x y] by simp}
   with Kp show ?thesis by blast
+qed
+
+lemma bilinear_conv_bounded_bilinear:
+  fixes h :: "real ^ _ \<Rightarrow> real ^ _ \<Rightarrow> real ^ _"
+  shows "bilinear h \<longleftrightarrow> bounded_bilinear h"
+proof
+  assume "bilinear h"
+  show "bounded_bilinear h"
+  proof
+    fix x y z show "h (x + y) z = h x z + h y z"
+      using `bilinear h` unfolding bilinear_def linear_def by simp
+  next
+    fix x y z show "h x (y + z) = h x y + h x z"
+      using `bilinear h` unfolding bilinear_def linear_def by simp
+  next
+    fix r x y show "h (scaleR r x) y = scaleR r (h x y)"
+      using `bilinear h` unfolding bilinear_def linear_def
+      by (simp add: smult_conv_scaleR)
+  next
+    fix r x y show "h x (scaleR r y) = scaleR r (h x y)"
+      using `bilinear h` unfolding bilinear_def linear_def
+      by (simp add: smult_conv_scaleR)
+  next
+    have "\<exists>B. \<forall>x y. norm (h x y) \<le> B * norm x * norm y"
+      using `bilinear h` by (rule bilinear_bounded)
+    thus "\<exists>K. \<forall>x y. norm (h x y) \<le> norm x * norm y * K"
+      by (simp add: mult_ac)
+  qed
+next
+  assume "bounded_bilinear h"
+  then interpret h: bounded_bilinear h .
+  show "bilinear h"
+    unfolding bilinear_def linear_conv_bounded_linear
+    using h.bounded_linear_left h.bounded_linear_right
+    by simp
 qed
 
 subsection{* Adjoints. *}

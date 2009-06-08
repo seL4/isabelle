@@ -1241,22 +1241,9 @@ text{* Basic arithmetical combining theorems for limits. *}
 lemma Lim_linear: fixes f :: "('a \<Rightarrow> real^'n::finite)" and h :: "(real^'n \<Rightarrow> real^'m::finite)"
   assumes "(f ---> l) net" "linear h"
   shows "((\<lambda>x. h (f x)) ---> h l) net"
-proof -
-  obtain b where b: "b>0" "\<forall>x. norm (h x) \<le> b * norm x"
-    using assms(2) using linear_bounded_pos[of h] by auto
-  { fix e::real assume "e >0"
-    hence "e/b > 0" using `b>0` by (metis divide_pos_pos)
-    with `(f ---> l) net` have "eventually (\<lambda>x. dist (f x) l < e/b) net"
-      by (rule tendstoD)
-    then have "eventually (\<lambda>x. dist (h (f x)) (h l) < e) net"
-      apply (rule eventually_rev_mono [rule_format])
-      apply (simp add: dist_norm linear_sub [OF `linear h`, symmetric])
-      apply (rule le_less_trans [OF b(2) [rule_format]])
-      apply (simp add: pos_less_divide_eq `0 < b` mult_commute)
-      done
-  }
-  thus ?thesis unfolding tendsto_iff by simp
-qed
+using `linear h` `(f ---> l) net`
+unfolding linear_conv_bounded_linear
+by (rule bounded_linear.tendsto)
 
 lemma Lim_const: "((\<lambda>x. a) ---> a) net"
   by (rule tendsto_const)
@@ -1432,76 +1419,15 @@ lemma tendsto_Lim:
   shows "~(trivial_limit net) \<Longrightarrow> (f ---> l) net ==> Lim net f = l"
   unfolding Lim_def using Lim_unique[of net f] by auto
 
-text{* Limit under bilinear function (surprisingly tedious, but important) *}
-
-lemma norm_bound_lemma:
-  "0 < e \<Longrightarrow> \<exists>d>0. \<forall>(x'::real^'b::finite) y'::real^'a::finite. norm(x' - (x::real^'b)) < d \<and> norm(y' - y) < d \<longrightarrow> norm(x') * norm(y' - y) + norm(x' - x) * norm(y) < e"
-proof-
-  assume e: "0 < e"
-  have th1: "(2 * norm x + 2 * norm y + 2) > 0" using norm_ge_zero[of x] norm_ge_zero[of y] by norm
-  hence th0: "0 < e / (2 * norm x + 2 * norm y + 2)"  using `e>0` using divide_pos_pos by auto
-  moreover
-  { fix x' y'
-    assume h: "norm (x' - x) < 1" "norm (x' - x) < e / (2 * norm x + 2 * norm y + 2)"
-      "norm (y' - y) < 1" "norm (y' - y) < e / (2 * norm x + 2 * norm y + 2)"
-    have th: "\<And>a b (c::real). a \<ge> 0 \<Longrightarrow> c \<ge> 0 \<Longrightarrow> a + (b + c) < e ==> b < e " by arith
-    from h have thx: "norm (x' - x) * norm y < e / 2"
-      using th0 th1 apply (simp add: field_simps)
-      apply (rule th) defer defer apply assumption
-      by (simp_all add: norm_ge_zero zero_le_mult_iff)
-
-    have "norm x' - norm x < 1" apply(rule le_less_trans)
-      using h(1) using norm_triangle_ineq2[of x' x] by auto
-    hence *:"norm x' < 1 + norm x"  by auto
-
-    have thy: "norm (y' - y) * norm x' < e / (2 * norm x + 2 * norm y + 2) * (1 + norm x)"
-      using mult_strict_mono'[OF h(4) * norm_ge_zero norm_ge_zero] by auto
-    also have "\<dots> \<le> e/2" apply simp unfolding divide_le_eq
-      using th1 th0 `e>0` by auto
-
-    finally have "norm x' * norm (y' - y) + norm (x' - x) * norm y < e"
-      using thx and e by (simp add: field_simps)  }
-  ultimately show ?thesis apply(rule_tac x="min 1 (e / 2 / (norm x + norm y + 1))" in exI) by auto
-qed
+text{* Limit under bilinear function *}
 
 lemma Lim_bilinear:
   fixes net :: "'a net" and h:: "real ^'m::finite \<Rightarrow> real ^'n::finite \<Rightarrow> real ^'p::finite"
   assumes "(f ---> l) net" and "(g ---> m) net" and "bilinear h"
   shows "((\<lambda>x. h (f x) (g x)) ---> (h l m)) net"
-proof -
-  obtain B where "B>0" and B:"\<forall>x y. norm (h x y) \<le> B * norm x * norm y" using bilinear_bounded_pos[OF assms(3)] by auto
-  { fix e::real assume "e>0"
-    obtain d where "d>0" and d:"\<forall>x' y'. norm (x' - l) < d \<and> norm (y' - m) < d \<longrightarrow> norm x' * norm (y' - m) + norm (x' - l) * norm m < e / B" using `B>0` `e>0`
-      using norm_bound_lemma[of "e / B" l m] using divide_pos_pos by auto
-
-    have *:"\<And>x y. h (f x) (g x) - h l m = h (f x) (g x - m) + h (f x - l) m"
-      unfolding bilinear_rsub[OF assms(3)]
-      unfolding bilinear_lsub[OF assms(3)] by auto
-
-    have "eventually (\<lambda>x. dist (f x) l < d) net"
-      using assms(1) `d>0` by (rule tendstoD)
-    moreover
-    have "eventually (\<lambda>x. dist (g x) m < d) net"
-      using assms(2) `d>0` by (rule tendstoD)
-    ultimately
-    have "eventually (\<lambda>x. dist (f x) l < d \<and> dist (g x) m < d) net"
-      by (rule eventually_conjI)
-    moreover
-    { fix x assume "dist (f x) l < d \<and> dist (g x) m < d"
-      hence **:"norm (f x) * norm (g x - m) + norm (f x - l) * norm m < e / B"
-	using d[THEN spec[where x="f x"], THEN spec[where x="g x"]] unfolding dist_norm  by auto
-      have "norm (h (f x) (g x - m)) + norm (h (f x - l) m) \<le> B * norm (f x) * norm (g x - m) + B * norm (f x - l) * norm m"
-	using B[THEN spec[where x="f x"], THEN spec[where x="g x - m"]]
-	using B[THEN spec[where x="f x - l"], THEN spec[where x="m"]] by auto
-      also have "\<dots> < e" using ** and `B>0` by(auto simp add: field_simps)
-      finally have "dist (h (f x) (g x)) (h l m) < e" unfolding dist_norm and * using norm_triangle_lt by auto
-    }
-    ultimately have "eventually (\<lambda>x. dist (h (f x) (g x)) (h l m) < e) net"
-      by (auto elim: eventually_rev_mono)
-  }
-  thus "((\<lambda>x. h (f x) (g x)) ---> h l m) net"
-    unfolding tendsto_iff by simp
-qed
+using `bilinear h` `(f ---> l) net` `(g ---> m) net`
+unfolding bilinear_conv_bounded_bilinear
+by (rule bounded_bilinear.tendsto)
 
 text{* These are special for limits out of the same vector space. *}
 
