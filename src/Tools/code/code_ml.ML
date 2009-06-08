@@ -47,9 +47,6 @@ fun stmt_names_of (MLExc (name, _)) = [name]
 
 fun pr_sml_stmt labelled_name syntax_tyco syntax_const reserved_names deresolve is_cons =
   let
-    val pr_label_classrel = translate_string (fn "." => "__" | c => c)
-      o Long_Name.qualifier;
-    val pr_label_classparam = Long_Name.base_name o Long_Name.qualifier;
     fun pr_dicts fxy ds =
       let
         fun pr_dictvar (v, (_, 1)) = Code_Printer.first_upper v ^ "_"
@@ -272,11 +269,11 @@ fun pr_sml_stmt labelled_name syntax_tyco syntax_const reserved_names deresolve 
             val w = Code_Printer.first_upper v ^ "_";
             fun pr_superclass_field (class, classrel) =
               (concat o map str) [
-                pr_label_classrel classrel, ":", "'" ^ v, deresolve class
+                deresolve classrel, ":", "'" ^ v, deresolve class
               ];
             fun pr_classparam_field (classparam, ty) =
               concat [
-                (str o pr_label_classparam) classparam, str ":", pr_typ NOBR ty
+                (str o deresolve) classparam, str ":", pr_typ NOBR ty
               ];
             fun pr_classparam_proj (classparam, _) =
               semicolon [
@@ -284,7 +281,7 @@ fun pr_sml_stmt labelled_name syntax_tyco syntax_const reserved_names deresolve 
                 (str o deresolve) classparam,
                 Pretty.enclose "(" ")" [str (w ^ ":'" ^ v ^ " " ^ deresolve class)],
                 str "=",
-                str ("#" ^ pr_label_classparam classparam),
+                str ("#" ^ deresolve classparam),
                 str w
               ];
             fun pr_superclass_proj (_, classrel) =
@@ -293,7 +290,7 @@ fun pr_sml_stmt labelled_name syntax_tyco syntax_const reserved_names deresolve 
                 (str o deresolve) classrel,
                 Pretty.enclose "(" ")" [str (w ^ ":'" ^ v ^ " " ^ deresolve class)],
                 str "=",
-                str ("#" ^ pr_label_classrel classrel),
+                str ("#" ^ deresolve classrel),
                 str w
               ];
           in
@@ -314,13 +311,13 @@ fun pr_sml_stmt labelled_name syntax_tyco syntax_const reserved_names deresolve 
           let
             fun pr_superclass (_, (classrel, dss)) =
               concat [
-                (str o pr_label_classrel) classrel,
+                (str o deresolve) classrel,
                 str "=",
                 pr_dicts NOBR [DictConst dss]
               ];
             fun pr_classparam ((classparam, c_inst), (thm, _)) =
               concat [
-                (str o pr_label_classparam) classparam,
+                (str o deresolve) classparam,
                 str "=",
                 pr_app (K false) thm reserved_names NOBR (c_inst, [])
               ];

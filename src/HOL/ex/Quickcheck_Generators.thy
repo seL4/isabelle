@@ -136,6 +136,8 @@ let
         ("Will not generate random elements for mutual recursive type(s) " ^ commas (map quote tycos));
   fun add_random_inst [@{type_name bool}] thy = thy
     | add_random_inst [@{type_name nat}] thy = thy
+    | add_random_inst [@{type_name char}] thy = thy
+    | add_random_inst [@{type_name String.literal}] thy = thy
     | add_random_inst tycos thy = random_inst tycos thy
         handle REC msg => (warning msg; thy)
              | TYP msg => (warning msg; thy)
