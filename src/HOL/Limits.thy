@@ -114,7 +114,7 @@ definition
 
 definition
   at :: "'a::topological_space \<Rightarrow> 'a net" where
-  [code del]: "at a = Abs_net ((\<lambda>S. S - {a}) ` {S\<in>topo. a \<in> S})"
+  [code del]: "at a = Abs_net ((\<lambda>S. S - {a}) ` {S. open S \<and> a \<in> S})"
 
 lemma Rep_net_sequentially:
   "Rep_net sequentially = range (\<lambda>n. {n..})"
@@ -136,13 +136,13 @@ apply (clarify, rule_tac x=C in bexI, auto)
 done
 
 lemma Rep_net_at:
-  "Rep_net (at a) = ((\<lambda>S. S - {a}) ` {S\<in>topo. a \<in> S})"
+  "Rep_net (at a) = ((\<lambda>S. S - {a}) ` {S. open S \<and> a \<in> S})"
 unfolding at_def
 apply (rule Abs_net_inverse')
 apply (rule image_nonempty)
-apply (rule_tac x="UNIV" in exI, simp add: topo_UNIV)
+apply (rule_tac x="UNIV" in exI, simp)
 apply (clarsimp, rename_tac S T)
-apply (rule_tac x="S \<inter> T" in exI, auto simp add: topo_Int)
+apply (rule_tac x="S \<inter> T" in exI, auto simp add: open_Int)
 done
 
 lemma eventually_sequentially:
@@ -154,16 +154,16 @@ lemma eventually_within:
 unfolding eventually_def Rep_net_within by auto
 
 lemma eventually_at_topological:
-  "eventually P (at a) \<longleftrightarrow> (\<exists>S\<in>topo. a \<in> S \<and> (\<forall>x\<in>S. x \<noteq> a \<longrightarrow> P x))"
+  "eventually P (at a) \<longleftrightarrow> (\<exists>S. open S \<and> a \<in> S \<and> (\<forall>x\<in>S. x \<noteq> a \<longrightarrow> P x))"
 unfolding eventually_def Rep_net_at by auto
 
 lemma eventually_at:
   fixes a :: "'a::metric_space"
   shows "eventually P (at a) \<longleftrightarrow> (\<exists>d>0. \<forall>x. x \<noteq> a \<and> dist x a < d \<longrightarrow> P x)"
-unfolding eventually_at_topological topo_dist
+unfolding eventually_at_topological open_dist
 apply safe
 apply fast
-apply (rule_tac x="{x. dist x a < d}" in bexI, simp)
+apply (rule_tac x="{x. dist x a < d}" in exI, simp)
 apply clarsimp
 apply (rule_tac x="d - dist x a" in exI, clarsimp)
 apply (simp only: less_diff_eq)
@@ -356,22 +356,22 @@ definition
   tendsto :: "('a \<Rightarrow> 'b::topological_space) \<Rightarrow> 'b \<Rightarrow> 'a net \<Rightarrow> bool"
     (infixr "--->" 55)
 where [code del]:
-  "(f ---> l) net \<longleftrightarrow> (\<forall>S\<in>topo. l \<in> S \<longrightarrow> eventually (\<lambda>x. f x \<in> S) net)"
+  "(f ---> l) net \<longleftrightarrow> (\<forall>S. open S \<longrightarrow> l \<in> S \<longrightarrow> eventually (\<lambda>x. f x \<in> S) net)"
 
 lemma topological_tendstoI:
-  "(\<And>S. S \<in> topo \<Longrightarrow> l \<in> S \<Longrightarrow> eventually (\<lambda>x. f x \<in> S) net)
+  "(\<And>S. open S \<Longrightarrow> l \<in> S \<Longrightarrow> eventually (\<lambda>x. f x \<in> S) net)
     \<Longrightarrow> (f ---> l) net"
   unfolding tendsto_def by auto
 
 lemma topological_tendstoD:
-  "(f ---> l) net \<Longrightarrow> S \<in> topo \<Longrightarrow> l \<in> S \<Longrightarrow> eventually (\<lambda>x. f x \<in> S) net"
+  "(f ---> l) net \<Longrightarrow> open S \<Longrightarrow> l \<in> S \<Longrightarrow> eventually (\<lambda>x. f x \<in> S) net"
   unfolding tendsto_def by auto
 
 lemma tendstoI:
   assumes "\<And>e. 0 < e \<Longrightarrow> eventually (\<lambda>x. dist (f x) l < e) net"
   shows "(f ---> l) net"
 apply (rule topological_tendstoI)
-apply (simp add: topo_dist)
+apply (simp add: open_dist)
 apply (drule (1) bspec, clarify)
 apply (drule assms)
 apply (erule eventually_elim1, simp)
@@ -380,7 +380,7 @@ done
 lemma tendstoD:
   "(f ---> l) net \<Longrightarrow> 0 < e \<Longrightarrow> eventually (\<lambda>x. dist (f x) l < e) net"
 apply (drule_tac S="{x. dist x l < e}" in topological_tendstoD)
-apply (clarsimp simp add: topo_dist)
+apply (clarsimp simp add: open_dist)
 apply (rule_tac x="e - dist x l" in exI, clarsimp)
 apply (simp only: less_diff_eq)
 apply (erule le_less_trans [OF dist_triangle])

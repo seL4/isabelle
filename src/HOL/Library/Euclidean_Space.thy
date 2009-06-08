@@ -506,8 +506,9 @@ begin
 definition dist_vector_def:
   "dist (x::'a^'b) (y::'a^'b) = setL2 (\<lambda>i. dist (x$i) (y$i)) UNIV"
 
-definition topo_vector_def:
-  "topo = {S::('a ^ 'b) set. \<forall>x\<in>S. \<exists>e>0. \<forall>y. dist y x < e \<longrightarrow> y \<in> S}"
+definition open_vector_def:
+  "open (S :: ('a ^ 'b) set) \<longleftrightarrow>
+    (\<forall>x\<in>S. \<exists>e>0. \<forall>y. dist y x < e \<longrightarrow> y \<in> S)"
 
 instance proof
   fix x y :: "'a ^ 'b"
@@ -522,8 +523,9 @@ next
     apply (simp add: setL2_mono dist_triangle2)
     done
 next
-  show "topo = {S::('a ^ 'b) set. \<forall>x\<in>S. \<exists>e>0. \<forall>y. dist y x < e \<longrightarrow> y \<in> S}"
-    by (rule topo_vector_def)
+  fix S :: "('a ^ 'b) set"
+  show "open S \<longleftrightarrow> (\<forall>x\<in>S. \<exists>e>0. \<forall>y. dist y x < e \<longrightarrow> y \<in> S)"
+    by (rule open_vector_def)
 qed
 
 end

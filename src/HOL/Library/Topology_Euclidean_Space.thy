@@ -255,11 +255,6 @@ lemma ball_min_Int: "ball a (min r s) = ball a r \<inter> ball a s"
 
 subsection{* Topological properties of open balls *}
 
-lemma open_dist:
-  fixes S :: "'a::metric_space set"
-  shows "open S \<longleftrightarrow> (\<forall>x\<in>S. \<exists>e>0. \<forall>x'. dist x' x < e \<longrightarrow> x' \<in> S)"
-  unfolding open_def topo_dist by simp
-
 lemma diff_less_iff: "(a::real) - b > 0 \<longleftrightarrow> a > b"
   "(a::real) - b < 0 \<longleftrightarrow> a < b"
   "a - b < c \<longleftrightarrow> a < c +b" "a - b > c \<longleftrightarrow> a > c +b" by arith+
@@ -274,7 +269,7 @@ lemma open_ball[intro, simp]: "open (ball x e)"
   using dist_triangle_alt[where z=x]
   apply (clarsimp simp add: diff_less_iff)
   apply atomize
-  apply (erule_tac x="x'" in allE)
+  apply (erule_tac x="y" in allE)
   apply (erule_tac x="xa" in allE)
   by arith
 
@@ -1004,7 +999,7 @@ proof
   thus "\<not> a islimpt S"
     unfolding trivial_limit_def
     unfolding Rep_net_within Rep_net_at
-    unfolding islimpt_def open_def [symmetric]
+    unfolding islimpt_def
     apply (clarsimp simp add: expand_set_eq)
     apply (rename_tac T, rule_tac x=T in exI)
     apply (clarsimp, drule_tac x=y in spec, simp)
@@ -1014,7 +1009,7 @@ next
   thus "trivial_limit (at a within S)"
     unfolding trivial_limit_def
     unfolding Rep_net_within Rep_net_at
-    unfolding islimpt_def open_def [symmetric]
+    unfolding islimpt_def
     apply (clarsimp simp add: image_image)
     apply (rule_tac x=T in image_eqI)
     apply (auto simp add: expand_set_eq)
@@ -1164,7 +1159,8 @@ lemma Lim_Un: assumes "(f ---> l) (net within S)" "(f ---> l) (net within T)"
   shows "(f ---> l) (net within (S \<union> T))"
   using assms unfolding tendsto_def Limits.eventually_within
   apply clarify
-  apply (drule (1) bspec)+
+  apply (drule spec, drule (1) mp, drule (1) mp)
+  apply (drule spec, drule (1) mp, drule (1) mp)
   apply (auto elim: eventually_elim2)
   done
 
@@ -1177,7 +1173,7 @@ text{* Interrelations between restricted and unrestricted limits. *}
 
 lemma Lim_at_within: "(f ---> l) net ==> (f ---> l)(net within S)"
   unfolding tendsto_def Limits.eventually_within
-  apply (clarify, drule (1) bspec)
+  apply (clarify, drule spec, drule (1) mp, drule (1) mp)
   by (auto elim!: eventually_elim1)
 
 lemma Lim_within_open:
@@ -1192,13 +1188,13 @@ proof
     hence "eventually (\<lambda>x. x \<in> S \<longrightarrow> dist (f x) l < e) (at a)"
       unfolding Limits.eventually_within .
     then obtain T where "open T" "a \<in> T" "\<forall>x\<in>T. x \<noteq> a \<longrightarrow> x \<in> S \<longrightarrow> dist (f x) l < e"
-      unfolding eventually_at_topological open_def by fast
+      unfolding eventually_at_topological by fast
     hence "open (T \<inter> S)" "a \<in> T \<inter> S" "\<forall>x\<in>(T \<inter> S). x \<noteq> a \<longrightarrow> dist (f x) l < e"
       using assms by auto
     hence "\<exists>T. open T \<and> a \<in> T \<and> (\<forall>x\<in>T. x \<noteq> a \<longrightarrow> dist (f x) l < e)"
       by fast
     hence "eventually (\<lambda>x. dist (f x) l < e) (at a)"
-      unfolding eventually_at_topological open_def Bex_def .
+      unfolding eventually_at_topological .
   }
   thus ?rhs by (rule tendstoI)
 next
@@ -1778,6 +1774,7 @@ unfolding cball_def closed_def Compl_eq_Diff_UNIV [symmetric]
 unfolding Collect_neg_eq [symmetric] not_le
 apply (clarsimp simp add: open_dist, rename_tac y)
 apply (rule_tac x="dist x y - e" in exI, clarsimp)
+apply (rename_tac x')
 apply (cut_tac x=x and y=x' and z=y in dist_triangle)
 apply simp
 done
