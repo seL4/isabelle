@@ -50,9 +50,6 @@ lemma setsum_delta_notmem: assumes "x\<notin>s"
         "setsum (\<lambda>y. if (x = y) then P y else Q y) s = setsum Q s"
   apply(rule_tac [!] setsum_cong2) using assms by auto
 
-lemma setsum_diff1'':assumes "finite A" "a \<in> A"
-  shows "setsum f (A - {a}) = setsum f A - (f a::'a::ring)" unfolding setsum_diff1'[OF assms] by auto
-
 lemma setsum_delta'': fixes s::"(real^'n) set" assumes "finite s"
   shows "(\<Sum>x\<in>s. (if y = x then f x else 0) *s x) = (if y\<in>s then (f y) *s y else 0)"
 proof-
@@ -63,34 +60,6 @@ qed
 lemma not_disjointI:"x\<in>A \<Longrightarrow> x\<in>B \<Longrightarrow> A \<inter> B \<noteq> {}" by blast
 
 lemma if_smult:"(if P then x else (y::real)) *s v = (if P then x *s v else y *s v)" by auto
-
-lemma ex_bij_betw_nat_finite_1:
-  assumes "finite M"
-  shows "\<exists>h. bij_betw h {1 .. card M} M"
-proof-
-  obtain h where h:"bij_betw h {0..<card M} M" using ex_bij_betw_nat_finite[OF assms] by auto
-  let ?h = "h \<circ> (\<lambda>i. i - 1)"
-  have *:"(\<lambda>i. i - 1) ` {1..card M} = {0..<card M}" apply auto  unfolding image_iff apply(rule_tac x="Suc x" in bexI) by auto
-  hence "?h ` {1..card M} = h ` {0..<card M}" unfolding image_compose by auto 
-  hence "?h ` {1..card M} = M" unfolding image_compose using h unfolding * unfolding bij_betw_def by auto
-  moreover
-  have "inj_on (\<lambda>i. i - Suc 0) {Suc 0..card M}" unfolding inj_on_def by auto
-  hence "inj_on ?h {1..card M}" apply(rule_tac comp_inj_on) unfolding * using h[unfolded bij_betw_def] by auto
-  ultimately show ?thesis apply(rule_tac x="h \<circ> (\<lambda>i. i - 1)" in exI) unfolding o_def and bij_betw_def by auto
-qed
-
-lemma finite_subset_image:
-  assumes "B \<subseteq> f ` A" "finite B"
-  shows "\<exists>C\<subseteq>A. finite C \<and> B = f ` C"
-proof- from assms(1) have "\<forall>x\<in>B. \<exists>y\<in>A. x = f y" by auto
-  then obtain c where "\<forall>x\<in>B. c x \<in> A \<and> x = f (c x)"
-    using bchoice[of B "\<lambda>x y. y\<in>A \<and> x = f y"] by auto
-  thus ?thesis apply(rule_tac x="c ` B" in exI) using assms(2) by auto qed
-
-lemma inj_on_image_eq_iff: assumes "inj_on f (A \<union> B)"
-  shows "f ` A = f ` B \<longleftrightarrow> A = B"
-  using assms by(blast dest: inj_onD)
-
 
 lemma mem_interval_1: fixes x :: "real^1" shows
  "(x \<in> {a .. b} \<longleftrightarrow> dest_vec1 a \<le> dest_vec1 x \<and> dest_vec1 x \<le> dest_vec1 b)"
@@ -559,7 +528,7 @@ next
   have "s \<noteq> {v}" using as(3,6) by auto
   thus "\<exists>x\<in>p. \<exists>s u. finite s \<and> s \<noteq> {} \<and> s \<subseteq> p - {x} \<and> setsum u s = 1 \<and> (\<Sum>v\<in>s. u v *s v) = x" 
     apply(rule_tac x=v in bexI, rule_tac x="s - {v}" in exI, rule_tac x="\<lambda>x. - (1 / u v) * u x" in exI)
-    unfolding vector_smult_assoc[THEN sym] and setsum_cmul unfolding setsum_right_distrib[THEN sym] and setsum_diff1''[OF as(1,5)] using as by auto
+    unfolding vector_smult_assoc[THEN sym] and setsum_cmul unfolding setsum_right_distrib[THEN sym] and setsum_diff1_ring[OF as(1,5)] using as by auto
 qed
 
 lemma affine_dependent_explicit_finite:
@@ -1682,7 +1651,7 @@ proof- let ?k = "\<lambda>c. {x::real^'n. 0 \<le> c \<bullet> x}"
     apply(rule compact_imp_fip) apply(rule compact_frontier[OF compact_cball])
     defer apply(rule,rule,erule conjE) proof-
     fix f assume as:"f \<subseteq> ?k ` s" "finite f"
-    obtain c where c:"f = ?k ` c" "c\<subseteq>s" "finite c" using finite_subset_image[OF as] by auto
+    obtain c where c:"f = ?k ` c" "c\<subseteq>s" "finite c" using finite_subset_image[OF as(2,1)] by auto
     then obtain a b where ab:"a \<noteq> 0" "0 < b"  "\<forall>x\<in>convex hull c. b < a \<bullet> x"
       using separating_hyperplane_closed_0[OF convex_convex_hull, of c]
       using finite_imp_compact_convex_hull[OF c(3), THEN compact_imp_closed] and assms(2)
@@ -1867,7 +1836,7 @@ show "\<Inter> f \<noteq> {}" apply(cases "n = CARD('n)") apply(rule Suc(4)[rule
     have "m \<subseteq> X ` f" "p \<subseteq> X ` f" using mp(2) by auto
     then obtain g h where gh:"m = X ` g" "p = X ` h" "g \<subseteq> f" "h \<subseteq> f" unfolding subset_image_iff by auto 
     hence "f \<union> (g \<union> h) = f" by auto
-    hence f:"f = g \<union> h" using inj_on_image_eq_iff[of X f "g \<union> h"] and True
+    hence f:"f = g \<union> h" using inj_on_Un_image_eq_iff[of X f "g \<union> h"] and True
       unfolding mp(2)[unfolded image_Un[THEN sym] gh] by auto
     have *:"g \<inter> h = {}" using mp(1) unfolding gh using inj_on_image_Int[OF True gh(3,4)] by auto
     have "convex hull (X ` h) \<subseteq> \<Inter> g" "convex hull (X ` g) \<subseteq> \<Inter> h"

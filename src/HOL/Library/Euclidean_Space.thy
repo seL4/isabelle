@@ -1412,51 +1412,6 @@ qed
 (* FIXME : Problem thm setsum_vmul[of _ "f:: 'a \<Rightarrow> real ^'n"]  ---
  Get rid of *s and use real_vector instead! Also prove that ^ creates a real_vector !! *)
 
-lemma setsum_add_split: assumes mn: "(m::nat) \<le> n + 1"
-  shows "setsum f {m..n + p} = setsum f {m..n} + setsum f {n + 1..n + p}"
-proof-
-  let ?A = "{m .. n}"
-  let ?B = "{n + 1 .. n + p}"
-  have eq: "{m .. n+p} = ?A \<union> ?B" using mn by auto
-  have d: "?A \<inter> ?B = {}" by auto
-  from setsum_Un_disjoint[of "?A" "?B" f] eq d show ?thesis by auto
-qed
-
-lemma setsum_natinterval_left:
-  assumes mn: "(m::nat) <= n"
-  shows "setsum f {m..n} = f m + setsum f {m + 1..n}"
-proof-
-  from mn have "{m .. n} = insert m {m+1 .. n}" by auto
-  then show ?thesis by auto
-qed
-
-lemma setsum_natinterval_difff:
-  fixes f:: "nat \<Rightarrow> ('a::ab_group_add)"
-  shows  "setsum (\<lambda>k. f k - f(k + 1)) {(m::nat) .. n} =
-          (if m <= n then f m - f(n + 1) else 0)"
-by (induct n, auto simp add: ring_simps not_le le_Suc_eq)
-
-lemmas setsum_restrict_set' = setsum_restrict_set[unfolded Int_def]
-
-lemma setsum_setsum_restrict:
-  "finite S \<Longrightarrow> finite T \<Longrightarrow> setsum (\<lambda>x. setsum (\<lambda>y. f x y) {y. y\<in> T \<and> R x y}) S = setsum (\<lambda>y. setsum (\<lambda>x. f x y) {x. x \<in> S \<and> R x y}) T"
-  apply (simp add: setsum_restrict_set'[unfolded mem_def] mem_def)
-  by (rule setsum_commute)
-
-lemma setsum_image_gen: assumes fS: "finite S"
-  shows "setsum g S = setsum (\<lambda>y. setsum g {x. x \<in> S \<and> f x = y}) (f ` S)"
-proof-
-  {fix x assume "x \<in> S" then have "{y. y\<in> f`S \<and> f x = y} = {f x}" by auto}
-  note th0 = this
-  have "setsum g S = setsum (\<lambda>x. setsum (\<lambda>y. g x) {y. y\<in> f`S \<and> f x = y}) S"
-    apply (rule setsum_cong2)
-    by (simp add: th0)
-  also have "\<dots> = setsum (\<lambda>y. setsum g {x. x \<in> S \<and> f x = y}) (f ` S)"
-    apply (rule setsum_setsum_restrict[OF fS])
-    by (rule finite_imageI[OF fS])
-  finally show ?thesis .
-qed
-
     (* FIXME: Here too need stupid finiteness assumption on T!!! *)
 lemma setsum_group:
   assumes fS: "finite S" and fT: "finite T" and fST: "f ` S \<subseteq> T"
