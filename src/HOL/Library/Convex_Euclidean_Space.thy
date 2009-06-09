@@ -750,7 +750,7 @@ lemma convex_hull_eq: "(convex hull s = s) \<longleftrightarrow> convex s" apply
   using convex_Inter[unfolded Ball_def mem_def] by auto
 
 lemma bounded_convex_hull: assumes "bounded s" shows "bounded(convex hull s)"
-proof- from assms obtain B where B:"\<forall>x\<in>s. norm x \<le> B" unfolding bounded_def by auto
+proof- from assms obtain B where B:"\<forall>x\<in>s. norm x \<le> B" unfolding bounded_iff by auto
   show ?thesis apply(rule bounded_subset[OF bounded_cball, of _ 0 B])
     unfolding subset_hull[unfolded mem_def, of convex, OF convex_cball]
     unfolding subset_eq mem_cball dist_norm using B by auto qed
@@ -2018,7 +2018,7 @@ proof-
       case False thus ?thesis apply(rule_tac continuous_mul, rule_tac continuous_at_vec1_norm)
 	using cont_surfpi unfolding continuous_on_eq_continuous_at[OF open_delete[OF open_UNIV]] o_def by auto
     next guess a using UNIV_witness[where 'a = 'n] ..
-      obtain B where B:"\<forall>x\<in>s. norm x \<le> B" using compact_imp_bounded[OF assms(1)] unfolding bounded_def by auto
+      obtain B where B:"\<forall>x\<in>s. norm x \<le> B" using compact_imp_bounded[OF assms(1)] unfolding bounded_iff by auto
       hence "B > 0" using assms(2) unfolding subset_eq apply(erule_tac x="basis a" in ballE) defer apply(erule_tac x="basis a" in ballE)
 	unfolding Ball_def mem_cball dist_norm by (auto simp add: norm_basis[unfolded One_nat_def])
       case True show ?thesis unfolding True continuous_at Lim_at apply(rule,rule) apply(rule_tac x="e / B" in exI)
