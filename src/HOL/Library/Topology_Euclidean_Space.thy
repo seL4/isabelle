@@ -2451,16 +2451,23 @@ proof(simp add: complete_def, rule, rule)
   thus "\<exists>l. (f ---> l) sequentially" unfolding LIMSEQ_conv_tendsto .
 qed
 
+lemma complete_imp_closed: assumes "complete s" shows "closed s"
+proof -
+  { fix x assume "x islimpt s"
+    then obtain f where f: "\<forall>n. f n \<in> s - {x}" "(f ---> x) sequentially"
+      unfolding islimpt_sequential by auto
+    then obtain l where l: "l\<in>s" "(f ---> l) sequentially"
+      using `complete s`[unfolded complete_def] using convergent_imp_cauchy[of f x] by auto
+    hence "x \<in> s"  using Lim_unique[of sequentially f l x] trivial_limit_sequentially f(2) by auto
+  }
+  thus "closed s" unfolding closed_limpt by auto
+qed
+
 lemma complete_eq_closed:
   fixes s :: "'a::complete_space set"
   shows "complete s \<longleftrightarrow> closed s" (is "?lhs = ?rhs")
 proof
-  assume ?lhs
-  { fix x assume "x islimpt s"
-    then obtain f where f:"\<forall>n. f n \<in> s - {x}" "(f ---> x) sequentially" unfolding islimpt_sequential by auto
-    then obtain l where l: "l\<in>s" "(f ---> l) sequentially" using `?lhs`[unfolded complete_def]  using convergent_imp_cauchy[of f x] by auto
-    hence "x \<in> s"  using Lim_unique[of sequentially f l x] trivial_limit_sequentially f(2) by auto  }
-  thus ?rhs unfolding closed_limpt by auto
+  assume ?lhs thus ?rhs by (rule complete_imp_closed)
 next
   assume ?rhs
   { fix f assume as:"\<forall>n::nat. f n \<in> s" "Cauchy f"
@@ -2725,7 +2732,7 @@ proof-
       then obtain l' where "l'\<in>s" "l' islimpt {y. \<exists>n. y = x n}" using assms[THEN spec[where x="{y. \<exists>n. y = x n}"]] as(1) by auto
       thus "l\<in>s" using sequence_unique_limpt[of x l l'] using as cas by auto
     qed  }
-  thus ?thesis unfolding closed_sequential_limits by auto (* FIXME: simp_depth_limit exceeded *)
+  thus ?thesis unfolding closed_sequential_limits by fast
 qed
 
 text{* Hence express everything as an equivalence.   *}
