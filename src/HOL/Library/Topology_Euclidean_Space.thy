@@ -2483,6 +2483,23 @@ proof-
   thus ?thesis unfolding complete_def by auto
 qed
 
+instance heine_borel < complete_space
+proof
+  fix f :: "nat \<Rightarrow> 'a" assume "Cauchy f"
+  hence "bounded (range f)" unfolding image_def
+    using cauchy_imp_bounded [of f] by auto
+  hence "compact (closure (range f))"
+    using bounded_closed_imp_compact [of "closure (range f)"] by auto
+  hence "complete (closure (range f))"
+    using compact_imp_complete by auto
+  moreover have "\<forall>n. f n \<in> closure (range f)"
+    using closure_subset [of "range f"] by auto
+  ultimately have "\<exists>l\<in>closure (range f). (f ---> l) sequentially"
+    using `Cauchy f` unfolding complete_def by auto
+  then show "convergent f"
+    unfolding convergent_def LIMSEQ_conv_tendsto [symmetric] by auto
+qed
+
 lemma complete_univ: "complete (UNIV :: 'a::complete_space set)"
 proof(simp add: complete_def, rule, rule)
   fix f :: "nat \<Rightarrow> 'a" assume "Cauchy f"
@@ -2778,7 +2795,7 @@ qed
 text{* Hence express everything as an equivalence.   *}
 
 lemma compact_eq_heine_borel:
-  fixes s :: "(real ^ _) set"
+  fixes s :: "'a::heine_borel set"
   shows "compact s \<longleftrightarrow>
            (\<forall>f. (\<forall>t \<in> f. open t) \<and> s \<subseteq> (\<Union> f)
                --> (\<exists>f'. f' \<subseteq> f \<and> finite f' \<and> s \<subseteq> (\<Union> f')))" (is "?lhs = ?rhs")
@@ -2792,7 +2809,7 @@ next
 qed
 
 lemma compact_eq_bolzano_weierstrass:
-  fixes s :: "(real ^ _) set"
+  fixes s :: "'a::heine_borel set"
   shows "compact s \<longleftrightarrow> (\<forall>t. infinite t \<and> t \<subseteq> s --> (\<exists>x \<in> s. x islimpt t))" (is "?lhs = ?rhs")
 proof
   assume ?lhs thus ?rhs unfolding compact_eq_heine_borel using heine_borel_imp_bolzano_weierstrass[of s] by auto
@@ -2801,7 +2818,7 @@ next
 qed
 
 lemma compact_eq_bounded_closed:
-  fixes s :: "(real ^ _) set"
+  fixes s :: "'a::heine_borel set"
   shows "compact s \<longleftrightarrow> bounded s \<and> closed s"  (is "?lhs = ?rhs")
 proof
   assume ?lhs thus ?rhs unfolding compact_eq_bolzano_weierstrass using bolzano_weierstrass_imp_bounded bolzano_weierstrass_imp_closed by auto
@@ -2842,9 +2859,11 @@ lemma compact_empty[simp]:
   unfolding compact_def
   by simp
 
+(* TODO: can any of the next 3 lemmas be generalized to metric spaces? *)
+
   (* FIXME : Rename *)
 lemma compact_union[intro]:
-  fixes s t :: "(real ^ _) set"
+  fixes s t :: "'a::heine_borel set"
   shows "compact s \<Longrightarrow> compact t ==> compact (s \<union> t)"
   unfolding compact_eq_bounded_closed
   using bounded_Un[of s t]
@@ -2852,7 +2871,7 @@ lemma compact_union[intro]:
   by simp
 
 lemma compact_inter[intro]:
-  fixes s t :: "(real ^ _) set"
+  fixes s t :: "'a::heine_borel set"
   shows "compact s \<Longrightarrow> compact t ==> compact (s \<inter> t)"
   unfolding compact_eq_bounded_closed
   using bounded_Int[of s t]
@@ -2860,7 +2879,7 @@ lemma compact_inter[intro]:
   by simp
 
 lemma compact_inter_closed[intro]:
-  fixes s t :: "(real ^ _) set"
+  fixes s t :: "'a::heine_borel set"
   shows "compact s \<Longrightarrow> closed t ==> compact (s \<inter> t)"
   unfolding compact_eq_bounded_closed
   using closed_Int[of s t]
@@ -2868,7 +2887,7 @@ lemma compact_inter_closed[intro]:
   by blast
 
 lemma closed_inter_compact[intro]:
-  fixes s t :: "(real ^ _) set"
+  fixes s t :: "'a::heine_borel set"
   shows "closed s \<Longrightarrow> compact t ==> compact (s \<inter> t)"
 proof-
   assume "closed s" "compact t"
@@ -2879,25 +2898,6 @@ proof-
     by auto
 qed
 
-lemma finite_imp_closed:
-  fixes s :: "(real ^ _) set" (* FIXME: generalize *)
-  shows "finite s ==> closed s"
-proof-
-  assume "finite s" hence "\<not>( \<exists>t. t \<subseteq> s \<and> infinite t)" using finite_subset by auto
-  thus ?thesis using bolzano_weierstrass_imp_closed[of s] by auto
-qed
-
-lemma finite_imp_compact:
-  fixes s :: "(real ^ _) set"
-  shows "finite s ==> compact s"
-  unfolding compact_eq_bounded_closed
-  using finite_imp_closed finite_imp_bounded
-  by blast
-
-lemma compact_sing [simp]: "compact {a}"
-  unfolding compact_def o_def
-  by (auto simp add: tendsto_const)
-
 lemma closed_sing [simp]:
   fixes a :: "'a::metric_space"
   shows "closed {a}"
@@ -2907,27 +2907,49 @@ lemma closed_sing [simp]:
   apply (simp add: dist_nz dist_commute)
   done
 
+lemma finite_imp_closed:
+  fixes s :: "'a::metric_space set"
+  shows "finite s ==> closed s"
+proof (induct set: finite)
+  case empty show "closed {}" by simp
+next
+  case (insert x F)
+  hence "closed ({x} \<union> F)" by (simp only: closed_Un closed_sing)
+  thus "closed (insert x F)" by simp
+qed
+
+lemma finite_imp_compact:
+  fixes s :: "'a::heine_borel set"
+  shows "finite s ==> compact s"
+  unfolding compact_eq_bounded_closed
+  using finite_imp_closed finite_imp_bounded
+  by blast
+
+lemma compact_sing [simp]: "compact {a}"
+  unfolding compact_def o_def
+  by (auto simp add: tendsto_const)
+
 lemma compact_cball[simp]:
-  fixes x :: "real ^ _"
+  fixes x :: "'a::heine_borel"
   shows "compact(cball x e)"
   using compact_eq_bounded_closed bounded_cball closed_cball
   by blast
 
 lemma compact_frontier_bounded[intro]:
-  fixes s :: "(real ^ _) set"
+  fixes s :: "'a::heine_borel set"
   shows "bounded s ==> compact(frontier s)"
   unfolding frontier_def
   using compact_eq_bounded_closed
   by blast
 
 lemma compact_frontier[intro]:
-  fixes s :: "(real ^ _) set"
+  fixes s :: "'a::heine_borel set"
   shows "compact s ==> compact (frontier s)"
   using compact_eq_bounded_closed compact_frontier_bounded
   by blast
 
 lemma frontier_subset_compact:
-  fixes s :: "(real ^ _) set"
+  fixes s :: "'a::heine_borel set"
   shows "compact s ==> frontier s \<subseteq> s"
   using frontier_subset_closed compact_eq_bounded_closed
   by blast
@@ -2941,7 +2963,7 @@ lemma open_delete:
 text{* Finite intersection property. I could make it an equivalence in fact. *}
 
 lemma compact_imp_fip:
-  fixes s :: "(real ^ _) set"
+  fixes s :: "'a::heine_borel set"
   assumes "compact s"  "\<forall>t \<in> f. closed t"
         "\<forall>f'. finite f' \<and> f' \<subseteq> f --> (s \<inter> (\<Inter> f') \<noteq> {})"
   shows "s \<inter> (\<Inter> f) \<noteq> {}"
@@ -2960,7 +2982,7 @@ subsection{* Bounded closed nest property (proof does not use Heine-Borel).     
 lemma bounded_closed_nest:
   assumes "\<forall>n. closed(s n)" "\<forall>n. (s n \<noteq> {})"
   "(\<forall>m n. m \<le> n --> s n \<subseteq> s m)"  "bounded(s 0)"
-  shows "\<exists> a::real^'a::finite. \<forall>n::nat. a \<in> s(n)"
+  shows "\<exists>a::'a::heine_borel. \<forall>n::nat. a \<in> s(n)"
 proof-
   from assms(2) obtain x where x:"\<forall>n::nat. x n \<in> s n" using choice[of "\<lambda>n x. x\<in> s n"] by auto
   from assms(4,1) have *:"compact (s 0)" using bounded_closed_imp_compact[of "s 0"] by auto
@@ -2992,7 +3014,7 @@ lemma decreasing_closed_nest:
           "\<forall>n. (s n \<noteq> {})"
           "\<forall>m n. m \<le> n --> s n \<subseteq> s m"
           "\<forall>e>0. \<exists>n. \<forall>x \<in> (s n). \<forall> y \<in> (s n). dist x y < e"
-  shows "\<exists>a::real^'a::finite. \<forall>n::nat. a \<in> s n"
+  shows "\<exists>a::'a::heine_borel. \<forall>n::nat. a \<in> s n"
 proof-
   have "\<forall>n. \<exists> x. x\<in>s n" using assms(2) by auto
   hence "\<exists>t. \<forall>n. t n \<in> s n" using choice[of "\<lambda> n x. x \<in> s n"] by auto
@@ -3025,7 +3047,7 @@ lemma decreasing_closed_nest_sing:
           "\<forall>n. s n \<noteq> {}"
           "\<forall>m n. m \<le> n --> s n \<subseteq> s m"
           "\<forall>e>0. \<exists>n. \<forall>x \<in> (s n). \<forall> y\<in>(s n). dist x y < e"
-  shows "\<exists>a::real^'a::finite. \<Inter> {t. (\<exists>n::nat. t = s n)} = {a}"
+  shows "\<exists>a::'a::heine_borel. \<Inter> {t. (\<exists>n::nat. t = s n)} = {a}"
 proof-
   obtain a where a:"\<forall>n. a \<in> s n" using decreasing_closed_nest[of s] using assms by auto
   { fix b assume b:"b \<in> \<Inter>{t. \<exists>n. t = s n}"
@@ -3040,7 +3062,7 @@ qed
 
 text{* Cauchy-type criteria for uniform convergence. *}
 
-lemma uniformly_convergent_eq_cauchy: fixes s::"nat \<Rightarrow> 'b \<Rightarrow> real^'a::finite" shows
+lemma uniformly_convergent_eq_cauchy: fixes s::"nat \<Rightarrow> 'b \<Rightarrow> 'a::heine_borel" shows
  "(\<exists>l. \<forall>e>0. \<exists>N. \<forall>n x. N \<le> n \<and> P x --> dist(s n x)(l x) < e) \<longleftrightarrow>
   (\<forall>e>0. \<exists>N. \<forall>m n x. N \<le> m \<and> N \<le> n \<and> P x  --> dist (s m x) (s n x) < e)" (is "?lhs = ?rhs")
 proof(rule)
@@ -3074,7 +3096,7 @@ next
 qed
 
 lemma uniformly_cauchy_imp_uniformly_convergent:
-  fixes s :: "nat \<Rightarrow> 'a \<Rightarrow> real ^ 'n::finite"
+  fixes s :: "nat \<Rightarrow> 'a \<Rightarrow> 'b::heine_borel"
   assumes "\<forall>e>0.\<exists>N. \<forall>m (n::nat) x. N \<le> m \<and> N \<le> n \<and> P x --> dist(s m x)(s n x) < e"
           "\<forall>x. P x --> (\<forall>e>0. \<exists>N. \<forall>n. N \<le> n --> dist(s n x)(l x) < e)"
   shows "\<forall>e>0. \<exists>N. \<forall>n x. N \<le> n \<and> P x --> dist(s n x)(l x) < e"
