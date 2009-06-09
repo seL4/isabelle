@@ -1384,7 +1384,7 @@ fun dependencies_of (thy : theory) name =
 
 fun add_equations name thy =
   let
-    val thy' = PredData.map (Graph.extend (dependencies_of thy) [name]) thy;
+    val thy' = PredData.map (Graph.extend (dependencies_of thy) name) thy;
     (*val preds = Graph.all_preds (PredData.get thy') [name] |> filter_out (has_elim thy') *)
     fun strong_conn_of gr keys =
       Graph.strong_conn (Graph.subgraph (member (op =) (Graph.all_succs gr keys)) gr)
@@ -1413,7 +1413,7 @@ fun generic_code_pred prep_const raw_const lthy =
     val thy = (ProofContext.theory_of lthy)
     val const = prep_const thy raw_const
     val lthy' = lthy
-    val thy' = PredData.map (Graph.extend (dependencies_of thy) [const]) thy
+    val thy' = PredData.map (Graph.extend (dependencies_of thy) const) thy
     val preds = Graph.all_preds (PredData.get thy') [const] |> filter_out (has_elim thy')
     val _ = Output.tracing ("preds: " ^ commas preds)
     (*
