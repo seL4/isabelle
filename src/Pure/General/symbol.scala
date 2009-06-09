@@ -6,37 +6,49 @@ Detecting and recoding Isabelle symbols.
 
 package isabelle
 
-import java.util.regex.Pattern
 import java.io.File
+
 import scala.io.Source
-import scala.collection.jcl.HashMap
+import scala.collection.jcl
+import scala.util.matching.Regex
 
 
-object Symbol {
+object Symbol
+{
 
   /** Symbol regexps **/
 
-  private def compile(s: String) =
-    Pattern.compile(s, Pattern.COMMENTS | Pattern.DOTALL)
+  private val plain = new Regex("""(?xs)
+    [^\\ \ud800-\udfff] | [\ud800-\udbff][\udc00-\udfff] """)
 
-  private val plain_pattern = compile(""" [^\\ \ud800-\udfff] | [\ud800-\udbff][\udc00-\udfff] """)
-
-  private val symbol_pattern = compile(""" \\ \\? < (?:
+  private val symbol = new Regex("""(?xs)
+      \\ \\? < (?:
       \^? [A-Za-z][A-Za-z0-9_']* |
       \^raw: [\x20-\x7e\u0100-\uffff && [^.>]]* ) >""")
 
-  private val bad_symbol_pattern = compile("(?!" + symbol_pattern + ")" +
+  private val bad_symbol = new Regex("(?xs) (?!" + symbol + ")" +
     """ \\ \\? < (?: (?! \s | [\"`\\] | \(\* | \*\) | \{\* | \*\} ) . )*""")
 
   // total pattern
-  val pattern = compile(plain_pattern + "|" + symbol_pattern + "|" + bad_symbol_pattern + "| .")
+  val regex = new Regex(plain + "|" + symbol + "|" + bad_symbol + "| .")
 
+  // prefix of another symbol
+  def is_open(s: String): Boolean =
+  {
+    val len = s.length
+    len == 1 && Character.isHighSurrogate(s(0)) ||
+    s == "\\" ||
+    s == "\\<" ||
+    len > 2 && s(len - 1) != '>'
+  }
 
 
   /** Recoding **/
 
-  private class Recoder(list: List[(String, String)]) {
-    private val (min, max) = {
+  private class Recoder(list: List[(String, String)])
+  {
+    private val (min, max) =
+    {
       var min = '\uffff'
       var max = '\u0000'
       for ((x, _) <- list) {
@@ -46,14 +58,16 @@ object Symbol {
       }
       (min, max)
     }
-    private val table = {
-      val table = new HashMap[String, String]
+    private val table =
+    {
+      val table = new jcl.HashMap[String, String]   // reasonably efficient?
       for ((x, y) <- list) table + (x -> y)
       table
     }
-    def recode(text: String) = {
+    def recode(text: String): String =
+    {
       val len = text.length
-      val matcher = pattern.matcher(text)
+      val matcher = regex.pattern.matcher(text)
       val result = new StringBuilder(len)
       var i = 0
       while (i < len) {
@@ -62,10 +76,7 @@ object Symbol {
           matcher.region(i, len)
           matcher.lookingAt
           val x = matcher.group
-          table.get(x) match {
-            case Some(y) => result.append(y)
-            case None => result.append(x)
-          }
+          result.append(table.get(x) getOrElse x)
           i = matcher.end
         }
         else { result.append(c); i += 1 }
@@ -80,75 +91,56 @@ object Symbol {
 
   class Interpretation(symbol_decls: Iterator[String])
   {
-    private val symbols = new HashMap[String, HashMap[String, String]]
-    private var decoder: Recoder = null
-    private var encoder: Recoder = null
+    /* read symbols */
+
+    private val empty = new Regex("""(?xs) ^\s* (?: \#.* )? $ """)
+    private val key = new Regex("""(?xs) (.+): """)
+
+    private def read_decl(decl: String): (String, Map[String, String]) =
+    {
+      def err() = error("Bad symbol declaration: " + decl)
+
+      def read_props(props: List[String]): Map[String, String] =
+      {
+        props match {
+          case Nil => Map()
+          case _ :: Nil => err()
+          case key(x) :: y :: rest => read_props(rest) + (x -> y)
+          case _ => err()
+        }
+      }
+      decl.split("\\s+").toList match {
+        case Nil => err()
+        case sym :: props => (sym, read_props(props))
+      }
+    }
+
+    private val symbols: List[(String, Map[String, String])] =
+      for (decl <- symbol_decls.toList if !empty.pattern.matcher(decl).matches)
+        yield read_decl(decl)
+
+
+    /* main recoder methods */
+
+    private val (decoder, encoder) =
+    {
+      val mapping =
+        for {
+          (sym, props) <- symbols
+          val code =
+            try { Integer.decode(props("code")).intValue }
+            catch {
+              case _: NoSuchElementException => error("Missing code for symbol " + sym)
+              case _: NumberFormatException => error("Bad code for symbol " + sym)
+            }
+          val ch = new String(Character.toChars(code))
+        } yield (sym, ch)
+      (new Recoder(mapping ++ (for ((x, y) <- mapping) yield ("\\" + x, y))),
+       new Recoder(for ((x, y) <- mapping) yield (y, x)))
+    }
 
     def decode(text: String) = decoder.recode(text)
     def encode(text: String) = encoder.recode(text)
 
-
-    /* read symbols */
-
-    private val empty_pattern = compile(""" ^\s* (?: \#.* )? $ """)
-    private val blank_pattern = compile(""" \s+ """)
-    private val key_pattern = compile(""" (.+): """)
-
-    private def read_decl(decl: String) = {
-      def err() = error("Bad symbol declaration: " + decl)
-
-      def read_props(props: List[String], tab: HashMap[String, String])
-      {
-        props match {
-          case Nil => ()
-          case _ :: Nil => err()
-          case key :: value :: rest => {
-            val key_matcher = key_pattern.matcher(key)
-            if (key_matcher.matches) {
-              tab + (key_matcher.group(1) -> value)
-              read_props(rest, tab)
-            }
-            else err ()
-          }
-        }
-      }
-
-      if (!empty_pattern.matcher(decl).matches) {
-        blank_pattern.split(decl).toList match {
-          case Nil => err()
-          case symbol :: props => {
-            val tab = new HashMap[String, String]
-            read_props(props, tab)
-            symbols + (symbol -> tab)
-          }
-        }
-      }
-    }
-
-
-    /* init tables */
-
-    private def get_code(entry: (String, HashMap[String, String])) = {
-      val (symbol, props) = entry
-      val code =
-        try { Integer.decode(props("code")).intValue }
-        catch {
-          case _: NoSuchElementException => error("Missing code for symbol " + symbol)
-          case _: NumberFormatException => error("Bad code for symbol " + symbol)
-        }
-      (symbol, new String(Character.toChars(code)))
-    }
-
-    private def init_recoders() = {
-      val list = symbols.elements.toList.map(get_code)
-      decoder = new Recoder(list ++ (for ((x, y) <- list) yield ("\\" + x, y)))
-      encoder = new Recoder(for ((x, y) <- list) yield (y, x))
-    }
-
-
-    /* constructor */
-
-    symbol_decls.foreach(read_decl)
-    init_recoders()
   }
 }
