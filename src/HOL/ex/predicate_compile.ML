@@ -1389,7 +1389,10 @@ fun add_equations name thy =
     fun strong_conn_of gr keys =
       Graph.strong_conn (Graph.subgraph (member (op =) (Graph.all_succs gr keys)) gr)
     val scc = strong_conn_of (PredData.get thy') [name]
-    val thy'' = fold_rev add_equations_of scc thy'
+    val thy'' = fold_rev
+      (fn preds => fn thy =>
+        if forall (null o modes_of thy) preds then add_equations_of preds thy else thy)
+      scc thy'
   in thy'' end
 
 (** user interface **)
