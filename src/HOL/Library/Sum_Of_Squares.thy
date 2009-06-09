@@ -15,12 +15,10 @@ In order to use the method sos, install CSDP (https://projects.coin-or.org/Csdp/
 
 *)
 
-
 method_setup sos = {* Scan.succeed (SIMPLE_METHOD' o Sos.sos_tac) *} 
   "Prove universal problems over the reals using sums of squares"
 
 text{* Tests -- commented since they work only when csdp is installed -- see above *}
-
 (*
 lemma "(3::real) * x + 7 * a < 4 & 3 < 2 * x \<Longrightarrow> a < 0" by sos
 
@@ -59,8 +57,8 @@ lemma "(2::real) <= x & x <= 4 & 2 <= y & y <= 4 & 2 <= z & z <= 4 --> 0 <= 2 * 
 (* ------------------------------------------------------------------------- *)
 (*
 lemma "2 <= (x::real) & x <= 4 & 2 <= y & y <= 4 & 2 <= z & z <= 4 --> 12 <= 2 * (x * z + x * y + y * z) - (x * x + y * y + z * z)" by sos
-
 *)
+
 (* ------------------------------------------------------------------------- *)
 (* Inequality from sci.math (see "Leon-Sotelo, por favor").                  *)
 (* ------------------------------------------------------------------------- *)

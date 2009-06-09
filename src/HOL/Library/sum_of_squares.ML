@@ -1619,8 +1619,44 @@ fun strip_all ct =
 | _ => ([],ct)
 
 fun core_sos_conv ctxt t = Drule.arg_cong_rule @{cterm Trueprop} (real_sos ctxt (Thm.dest_arg t) RS @{thm Eq_TrueI})
+
+val known_sos_constants = 
+  [@{term "op ==>"}, @{term "Trueprop"}, 
+   @{term "op -->"}, @{term "op &"}, @{term "op |"}, 
+   @{term "Not"}, @{term "op = :: bool => _"}, 
+   @{term "All :: (real => _) => _"}, @{term "Ex :: (real => _) => _"}, 
+   @{term "op = :: real => _"}, @{term "op < :: real => _"}, 
+   @{term "op <= :: real => _"}, 
+   @{term "op + :: real => _"}, @{term "op - :: real => _"}, 
+   @{term "op * :: real => _"}, @{term "uminus :: real => _"}, 
+   @{term "op / :: real => _"}, @{term "inverse :: real => _"},
+   @{term "op ^ :: real => _"}, @{term "abs :: real => _"}, 
+   @{term "min :: real => _"}, @{term "max :: real => _"},
+   @{term "0::real"}, @{term "1::real"}, @{term "number_of :: int => real"},
+   @{term "number_of :: int => nat"},
+   @{term "Int.Bit0"}, @{term "Int.Bit1"}, 
+   @{term "Int.Pls"}, @{term "Int.Min"}];
+
+fun check_sos kcts ct = 
+ let
+  val t = term_of ct
+  val _ = if not (null (Term.add_tfrees t []) 
+                  andalso null (Term.add_tvars t [])) 
+          then error "SOS: not sos. Additional type varables" else ()
+  val fs = Term.add_frees t []
+  val _ = if exists (fn ((_,T)) => not (T = @{typ "real"})) fs 
+          then error "SOS: not sos. Variables with type not real" else ()
+  val vs = Term.add_vars t []
+  val _ = if exists (fn ((_,T)) => not (T = @{typ "real"})) fs 
+          then error "SOS: not sos. Variables with type not real" else ()
+  val ukcs = subtract (fn (t,p) => Const p aconv t) kcts (Term.add_consts t [])
+  val _ = if  null ukcs then () 
+              else error ("SOSO: Unknown constants in Subgoal:" ^ commas (map fst ukcs))
+in () end
+
 fun core_sos_tac ctxt = CSUBGOAL (fn (ct, i) => 
-  let val (avs, p) = strip_all ct
+  let val _ = check_sos known_sos_constants ct
+      val (avs, p) = strip_all ct
       val th = standard (fold_rev forall_intr avs (real_sos ctxt (Thm.dest_arg p)))
   in rtac th i end);
 
