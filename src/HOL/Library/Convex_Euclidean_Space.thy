@@ -1213,9 +1213,22 @@ proof(rule, rule) fix a
   qed
 qed
 
+lemma open_dest_vec1_vimage: "open S \<Longrightarrow> open (dest_vec1 -` S)"
+unfolding open_vector_def all_1
+by (auto simp add: dest_vec1_def)
+
+lemma tendsto_dest_vec1: "(f ---> l) net \<Longrightarrow> ((\<lambda>x. dest_vec1 (f x)) ---> dest_vec1 l) net"
+  unfolding tendsto_def
+  apply clarify
+  apply (drule_tac x="dest_vec1 -` S" in spec)
+  apply (simp add: open_dest_vec1_vimage)
+  done
+
+lemma continuous_dest_vec1: "continuous net f \<Longrightarrow> continuous net (\<lambda>x. dest_vec1 (f x))"
+  unfolding continuous_def by (rule tendsto_dest_vec1)
 
 lemma compact_convex_combinations:
-  fixes s t :: "(real ^ _) set"
+  fixes s t :: "(real ^ 'n::finite) set"
   assumes "compact s" "compact t"
   shows "compact { (1 - u) *s x + u *s y | x y u. 0 \<le> u \<and> u \<le> 1 \<and> x \<in> s \<and> y \<in> t}"
 proof-
@@ -1229,9 +1242,10 @@ proof-
     hence "continuous (at (pastecart u (pastecart x y)))
            (\<lambda>z. fstcart (sndcart z) - dest_vec1 (fstcart z) *s fstcart (sndcart z) +
                 dest_vec1 (fstcart z) *s sndcart (sndcart z))"
-      apply (auto intro!: continuous_add continuous_sub continuous_mul simp add: o_def vec1_dest_vec1)
+      apply (auto intro!: continuous_add continuous_sub continuous_mul continuous_dest_vec1
+                  simp add: o_def vec1_dest_vec1)
       using linear_continuous_at linear_fstcart linear_sndcart linear_sndcart
-      using linear_compose[unfolded o_def] by auto }
+      using linear_compose[unfolded o_def] by auto  }
   hence "continuous_on {pastecart u w |u w. u \<in> {vec1 0..vec1 1} \<and> w \<in> {pastecart x y |x y. x \<in> s \<and> y \<in> t}}
      (\<lambda>z. (1 - dest_vec1 (fstcart z)) *s fstcart (sndcart z) + dest_vec1 (fstcart z) *s sndcart (sndcart z))"
     apply(rule_tac continuous_at_imp_continuous_on) unfolding mem_Collect_eq
@@ -1888,7 +1902,9 @@ proof-
     unfolding image_image[of "\<lambda>u. u *s x" "\<lambda>x. dest_vec1 x", THEN sym]
     unfolding dest_vec1_inverval vec1_dest_vec1 by auto
   have "compact ?A" unfolding A apply(rule compact_continuous_image, rule continuous_at_imp_continuous_on)
-    apply(rule, rule continuous_vmul) unfolding o_def vec1_dest_vec1 apply(rule continuous_at_id) by(rule compact_interval)
+    apply(rule, rule continuous_vmul)
+    apply (rule continuous_dest_vec1)
+    apply(rule continuous_at_id) by(rule compact_interval)
   moreover have "{y. \<exists>u\<ge>0. u \<le> b / norm x \<and> y = u *s x} \<inter> s \<noteq> {}" apply(rule not_disjointI[OF _ assms(2)])
     unfolding mem_Collect_eq using `b>0` assms(3) by(auto intro!: divide_nonneg_pos)
   ultimately obtain u y where obt: "u\<ge>0" "u \<le> b / norm x" "y = u *s x"
@@ -1925,12 +1941,13 @@ proof-
   have injpi:"\<And>x y. pi x = pi y \<and> norm x = norm y \<longleftrightarrow> x = y" unfolding pi_def by auto
 
   have contpi:"continuous_on (UNIV - {0}) pi" apply(rule continuous_at_imp_continuous_on)
-    apply rule unfolding pi_def apply(rule continuous_mul) unfolding o_def
-    apply(rule continuous_at_inv[unfolded o_def]) unfolding continuous_at_vec1_range[unfolded o_def]
-    apply(rule,rule) apply(rule_tac x=e in exI) apply(rule,assumption,rule,rule)
-    proof- fix e x y assume "0 < e" "norm (y - x::real^'n) < e" 
-      thus "\<bar>norm y - norm x\<bar> < e" using norm_triangle_ineq3[of y x] by auto
-    qed(auto intro!:continuous_at_id)
+    apply rule unfolding pi_def
+    apply (rule continuous_mul)
+    apply (rule continuous_at_inv[unfolded o_def])
+    apply (rule continuous_at_norm)
+    apply simp
+    apply (rule continuous_at_id)
+    done
   def sphere \<equiv> "{x::real^'n. norm x = 1}"
   have pi:"\<And>x. x \<noteq> 0 \<Longrightarrow> pi x \<in> sphere" "\<And>x u. u>0 \<Longrightarrow> pi (u *s x) = pi x" unfolding pi_def sphere_def by auto
 
@@ -2015,7 +2032,7 @@ proof-
     prefer 4 apply(rule continuous_at_imp_continuous_on, rule) apply(rule_tac [3] hom2) proof-
     fix x::"real^'n" assume as:"x \<in> cball 0 1"
     thus "continuous (at x) (\<lambda>x. norm x *s surf (pi x))" proof(cases "x=0")
-      case False thus ?thesis apply(rule_tac continuous_mul, rule_tac continuous_at_vec1_norm)
+      case False thus ?thesis apply(rule_tac continuous_mul, rule_tac continuous_at_norm)
 	using cont_surfpi unfolding continuous_on_eq_continuous_at[OF open_delete[OF open_UNIV]] o_def by auto
     next guess a using UNIV_witness[where 'a = 'n] ..
       obtain B where B:"\<forall>x\<in>s. norm x \<le> B" using compact_imp_bounded[OF assms(1)] unfolding bounded_iff by auto
@@ -2332,8 +2349,8 @@ subsection {* Bounded convex function on open set is continuous. *}
 
 lemma convex_on_bounded_continuous:
   assumes "open s" "convex_on s f" "\<forall>x\<in>s. abs(f x) \<le> b"
-  shows "continuous_on s (vec1 o f)"
-  apply(rule continuous_at_imp_continuous_on) unfolding continuous_at_vec1_range proof(rule,rule,rule)
+  shows "continuous_on s f"
+  apply(rule continuous_at_imp_continuous_on) unfolding continuous_at_real_range proof(rule,rule,rule)
   fix x e assume "x\<in>s" "(0::real) < e"
   def B \<equiv> "abs b + 1"
   have B:"0 < B" "\<And>x. x\<in>s \<Longrightarrow> abs (f x) \<le> B"
@@ -2398,7 +2415,7 @@ subsection {* Hence a convex function on an open set is continuous. *}
 
 lemma convex_on_continuous:
   assumes "open (s::(real^'n::finite) set)" "convex_on s f" 
-  shows "continuous_on s (vec1 \<circ> f)"
+  shows "continuous_on s f"
   unfolding continuous_on_eq_continuous_at[OF assms(1)] proof
   note dimge1 = dimindex_ge_1[where 'a='n]
   fix x assume "x\<in>s"
@@ -2428,9 +2445,9 @@ lemma convex_on_continuous:
 	using order_trans[OF component_le_norm y[unfolded mem_cball dist_norm], of i] by(auto simp add: vector_component)  }
     thus "f y \<le> k" apply(rule_tac k[rule_format]) unfolding mem_cball mem_interval dist_norm 
       by(auto simp add: vector_component_simps) qed
-  hence "continuous_on (ball x d) (vec1 \<circ> f)" apply(rule_tac convex_on_bounded_continuous)
+  hence "continuous_on (ball x d) f" apply(rule_tac convex_on_bounded_continuous)
     apply(rule open_ball, rule convex_on_subset[OF conv], rule ball_subset_cball) by auto
-  thus "continuous (at x) (vec1 \<circ> f)" unfolding continuous_on_eq_continuous_at[OF open_ball] using `d>0` by auto qed
+  thus "continuous (at x) f" unfolding continuous_on_eq_continuous_at[OF open_ball] using `d>0` by auto qed
 
 subsection {* Line segments, starlike sets etc.                                         *)
 (* Use the same overloading tricks as for intervals, so that                 *)
@@ -2975,7 +2992,8 @@ lemma pathfinish_linepath[simp]: "pathfinish(linepath a b) = b"
   unfolding pathfinish_def linepath_def by auto
 
 lemma continuous_linepath_at[intro]: "continuous (at x) (linepath a b)"
-  unfolding linepath_def by(auto simp add: vec1_dest_vec1 o_def intro!: continuous_intros)
+  unfolding linepath_def
+  by (intro continuous_intros continuous_dest_vec1)
 
 lemma continuous_on_linepath[intro]: "continuous_on s (linepath a b)"
   using continuous_linepath_at by(auto intro!: continuous_at_imp_continuous_on)
@@ -3202,9 +3220,9 @@ lemma path_connected_sphere: assumes "2 \<le> CARD('n::finite)" shows "path_conn
   have ***:"\<And>xa. (if xa = 0 then 0 else 1) \<noteq> 1 \<Longrightarrow> xa = 0" apply(rule ccontr) by auto
   have **:"{x::real^'n. norm x = 1} = (\<lambda>x. (1/norm x) *s x) ` (UNIV - {0})" apply(rule set_ext,rule)
     unfolding image_iff apply(rule_tac x=x in bexI) unfolding mem_Collect_eq norm_mul by(auto intro!: ***) 
-  have "continuous_on (UNIV - {0}) (vec1 \<circ> (\<lambda>x::real^'n. 1 / norm x))" unfolding o_def continuous_on_eq_continuous_within
+  have "continuous_on (UNIV - {0}) (\<lambda>x::real^'n. 1 / norm x)" unfolding o_def continuous_on_eq_continuous_within
     apply(rule, rule continuous_at_within_inv[unfolded o_def inverse_eq_divide]) apply(rule continuous_at_within)
-    apply(rule continuous_at_vec1_norm[unfolded o_def]) by auto
+    apply(rule continuous_at_norm[unfolded o_def]) by auto
   thus ?thesis unfolding * ** using path_connected_punctured_universe[OF assms]
     by(auto intro!: path_connected_continuous_image continuous_on_intros continuous_on_mul) qed
 
