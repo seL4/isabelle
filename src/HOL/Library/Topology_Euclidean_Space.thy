@@ -2220,6 +2220,30 @@ definition
    (\<forall>f. (\<forall>n::nat. f n \<in> S) \<longrightarrow>
        (\<exists>l\<in>S. \<exists>r. (\<forall>m n. m < n \<longrightarrow> r m < r n) \<and> ((f o r) ---> l) sequentially))"
 
+text {*
+  A metric space (or topological vector space) is said to have the
+  Heine-Borel property if every closed and bounded subset is compact.
+*}
+
+class heine_borel =
+  assumes bounded_imp_convergent_subsequence:
+    "bounded s \<Longrightarrow> \<forall>n::nat. f n \<in> s
+      \<Longrightarrow> \<exists>l r. (\<forall>m n. m < n --> r m < r n) \<and> ((f \<circ> r) ---> l) sequentially"
+
+lemma bounded_closed_imp_compact:
+  fixes s::"'a::heine_borel set"
+  assumes "bounded s" and "closed s" shows "compact s"
+proof (unfold compact_def, clarify)
+  fix f :: "nat \<Rightarrow> 'a" assume f: "\<forall>n. f n \<in> s"
+  obtain l r where r: "\<forall>m n. m < n \<longrightarrow> r m < r n" and l: "((f \<circ> r) ---> l) sequentially"
+    using bounded_imp_convergent_subsequence [OF `bounded s` `\<forall>n. f n \<in> s`] by auto
+  from f have fr: "\<forall>n. (f \<circ> r) n \<in> s" by simp
+  have "l \<in> s" using `closed s` fr l
+    unfolding closed_sequential_limits by blast
+  show "\<exists>l\<in>s. \<exists>r. (\<forall>m n. m < n \<longrightarrow> r m < r n) \<and> ((f \<circ> r) ---> l) sequentially"
+    using `l \<in> s` r l by blast
+qed
+
 lemma monotone_bigger: fixes r::"nat\<Rightarrow>nat"
   assumes "\<forall>m n::nat. m < n --> r m < r n"
   shows "n \<le> r n"
@@ -2230,6 +2254,12 @@ next
   moreover have "r n < r (Suc n)" using assms by auto
   ultimately show "Suc n \<le> r (Suc n)" by auto
 qed
+
+lemma eventually_subsequence:
+  assumes r: "\<forall>m n. m < n \<longrightarrow> r m < r n"
+  shows "eventually P sequentially \<Longrightarrow> eventually (\<lambda>n. P (r n)) sequentially"
+unfolding eventually_sequentially
+by (metis monotone_bigger [OF r] le_trans)
 
 lemma lim_subsequence:
   fixes l :: "'a::metric_space" (* TODO: generalize *)
@@ -2276,87 +2306,97 @@ lemma convergent_bounded_monotone: fixes s::"nat \<Rightarrow> real"
   unfolding abs_minus_cancel by(rule_tac x="-l" in exI)auto
 
 lemma compact_real_lemma:
- assumes "\<forall>n::nat. abs(s n) \<le> b"
-  shows "\<exists>l r. (\<forall>m n::nat. m < n --> r m < r n) \<and>
-           (\<forall>e>0::real. \<exists>N. \<forall>n\<ge>N. (abs(s (r n) - l) < e))"
+  assumes "\<forall>n::nat. abs(s n) \<le> b"
+  shows "\<exists>(l::real) r. (\<forall>m n::nat. m < n --> r m < r n) \<and> ((s \<circ> r) ---> l) sequentially"
 proof-
   obtain r where r:"\<forall>m n::nat. m < n \<longrightarrow> r m < r n"
     "(\<forall>m n. m \<le> n \<longrightarrow> s (r m) \<le> s (r n)) \<or> (\<forall>m n. m \<le> n \<longrightarrow> s (r n) \<le> s (r m))"
     using seq_monosub[of s] by (auto simp add: subseq_def monoseq_def)
-  thus ?thesis using convergent_bounded_monotone[of "s o r" b] and assms by auto
+  thus ?thesis using convergent_bounded_monotone[of "s o r" b] and assms
+    unfolding tendsto_iff dist_norm eventually_sequentially by auto
 qed
+
+instance real :: heine_borel
+proof
+  fix s :: "real set" and f :: "nat \<Rightarrow> real"
+  assume s: "bounded s" and f: "\<forall>n. f n \<in> s"
+  then obtain b where b: "\<forall>n. abs (f n) \<le> b"
+    unfolding bounded_iff by auto
+  obtain l :: real and r :: "nat \<Rightarrow> nat" where
+    r: "\<forall>m n. m < n \<longrightarrow> r m < r n" and l: "((f \<circ> r) ---> l) sequentially"
+    using compact_real_lemma [OF b] by auto
+  thus "\<exists>l r. (\<forall>m n. m < n \<longrightarrow> r m < r n) \<and> ((f \<circ> r) ---> l) sequentially"
+    by auto
+qed
+
+lemma bounded_component: "bounded s \<Longrightarrow> bounded ((\<lambda>x. x $ i) ` s)"
+unfolding bounded_def
+apply clarify
+apply (rule_tac x="x $ i" in exI)
+apply (rule_tac x="e" in exI)
+apply clarify
+apply (rule order_trans [OF dist_nth_le], simp)
+done
 
 lemma compact_lemma:
-  assumes "bounded s" and "\<forall>n. (x::nat \<Rightarrow>real^'a::finite) n \<in> s"
+  fixes f :: "nat \<Rightarrow> 'a::heine_borel ^ 'n::finite"
+  assumes "bounded s" and "\<forall>n. f n \<in> s"
   shows "\<forall>d.
-        \<exists>l::(real^'a::finite). \<exists> r. (\<forall>n m::nat. m < n --> r m < r n) \<and>
-        (\<forall>e>0. \<exists>N. \<forall>n\<ge>N. \<forall>i\<in>d. \<bar>x (r n) $ i - l $ i\<bar> < e)"
-proof-
-  obtain b where b:"\<forall>x\<in>s. norm x \<le> b" using assms(1)[unfolded bounded_iff] by auto
-  { { fix i::'a
-      { fix n::nat
-	have "\<bar>x n $ i\<bar> \<le> b" using b[THEN bspec[where x="x n"]] and component_le_norm[of "x n" i] and assms(2)[THEN spec[where x=n]] by auto }
-      hence "\<forall>n. \<bar>x n $ i\<bar> \<le> b" by auto
-    } note b' = this
-
-    fix d::"'a set" have "finite d" by simp
-    hence "\<exists>l::(real^'a). \<exists> r. (\<forall>n m::nat. m < n --> r m < r n) \<and>
-        (\<forall>e>0. \<exists>N. \<forall>n\<ge>N. \<forall>i\<in>d. \<bar>x (r n) $ i - l $ i\<bar> < e)"
-    proof(induct d) case empty thus ?case by auto
-    next case (insert k d)
-	obtain l1::"real^'a" and r1 where r1:"\<forall>n m::nat. m < n \<longrightarrow> r1 m < r1 n" and lr1:"\<forall>e>0. \<exists>N. \<forall>n\<ge>N. \<forall>i\<in>d. \<bar>x (r1 n) $ i - l1 $ i\<bar> < e"
-	  using insert(3) by auto
-	obtain l2 r2 where r2:"\<forall>m n::nat. m < n \<longrightarrow> r2 m < r2 n" and lr2:"\<forall>e>0. \<exists>N. \<forall>n\<ge>N. \<bar>(x \<circ> r1) (r2 n) $ k - l2\<bar> < e"
-	  using b'[of k] and compact_real_lemma[of "\<lambda>i. ((x \<circ> r1) i)$k" b] by auto
-	def r \<equiv> "r1 \<circ> r2" have r:"\<forall>m n. m < n \<longrightarrow> r m < r n" unfolding r_def o_def using r1 and r2 by auto
-	moreover
-	def l \<equiv> "(\<chi> i. if i = k then l2 else l1$i)::real^'a"
-	{ fix e::real assume "e>0"
-	  from lr1 obtain N1 where N1:"\<forall>n\<ge>N1. \<forall>i\<in>d. \<bar>x (r1 n) $ i - l1 $ i\<bar> < e" using `e>0` by blast
-	  from lr2 obtain N2 where N2:"\<forall>n\<ge>N2. \<bar>(x \<circ> r1) (r2 n) $ k - l2\<bar> < e" using `e>0` by blast
-	  { fix n assume n:"n\<ge> N1 + N2"
-	    fix i assume i:"i\<in>(insert k d)"
-	    hence "\<bar>x (r n) $ i - l $ i\<bar> < e"
-	      using N2[THEN spec[where x="n"]] and n
- 	      using N1[THEN spec[where x="r2 n"]] and n
-	      using monotone_bigger[OF r] and i
-	      unfolding l_def and r_def
-	      using monotone_bigger[OF r2, of n] by auto  }
-	  hence "\<exists>N. \<forall>n\<ge>N. \<forall>i\<in>(insert k d). \<bar>x (r n) $ i - l $ i\<bar> < e" by blast	}
-	ultimately show ?case by auto
-    qed  }
-  thus ?thesis by auto
+        \<exists>l r. (\<forall>n m::nat. m < n --> r m < r n) \<and>
+        (\<forall>e>0. eventually (\<lambda>n. \<forall>i\<in>d. dist (f (r n) $ i) (l $ i) < e) sequentially)"
+proof
+  fix d::"'n set" have "finite d" by simp
+  thus "\<exists>l::'a ^ 'n. \<exists>r. (\<forall>n m::nat. m < n --> r m < r n) \<and>
+      (\<forall>e>0. eventually (\<lambda>n. \<forall>i\<in>d. dist (f (r n) $ i) (l $ i) < e) sequentially)"
+  proof(induct d) case empty thus ?case by auto
+  next case (insert k d)
+    have s': "bounded ((\<lambda>x. x $ k) ` s)" using `bounded s` by (rule bounded_component)
+    obtain l1::"'a^'n" and r1 where r1:"\<forall>n m::nat. m < n \<longrightarrow> r1 m < r1 n" and lr1:"\<forall>e>0. eventually (\<lambda>n. \<forall>i\<in>d. dist (f (r1 n) $ i) (l1 $ i) < e) sequentially"
+      using insert(3) by auto
+    have f': "\<forall>n. f (r1 n) $ k \<in> (\<lambda>x. x $ k) ` s" using `\<forall>n. f n \<in> s` by simp
+    obtain l2 r2 where r2:"\<forall>m n::nat. m < n \<longrightarrow> r2 m < r2 n" and lr2:"((\<lambda>i. f (r1 (r2 i)) $ k) ---> l2) sequentially"
+      using bounded_imp_convergent_subsequence[OF s' f'] unfolding o_def by auto
+    def r \<equiv> "r1 \<circ> r2" have r:"\<forall>m n. m < n \<longrightarrow> r m < r n" unfolding r_def o_def using r1 and r2 by auto
+    moreover
+    def l \<equiv> "(\<chi> i. if i = k then l2 else l1$i)::'a^'n"
+    { fix e::real assume "e>0"
+      from lr1 `e>0` have N1:"eventually (\<lambda>n. \<forall>i\<in>d. dist (f (r1 n) $ i) (l1 $ i) < e) sequentially" by blast
+      from lr2 `e>0` have N2:"eventually (\<lambda>n. dist (f (r1 (r2 n)) $ k) l2 < e) sequentially" by (rule tendstoD)
+      from r2 N1 have N1': "eventually (\<lambda>n. \<forall>i\<in>d. dist (f (r1 (r2 n)) $ i) (l1 $ i) < e) sequentially"
+        by (rule eventually_subsequence)
+      have "eventually (\<lambda>n. \<forall>i\<in>(insert k d). dist (f (r n) $ i) (l $ i) < e) sequentially"
+        using N1' N2 by (rule eventually_elim2, simp add: l_def r_def)
+    }
+    ultimately show ?case by auto
+  qed
 qed
 
-lemma bounded_closed_imp_compact: fixes s::"(real^'a::finite) set"
-  assumes "bounded s" and "closed s"
-  shows "compact s"
-proof-
-  let ?d = "UNIV::'a set"
-  { fix f assume as:"\<forall>n::nat. f n \<in> s"
-    obtain l::"real^'a" and r where r:"\<forall>n m::nat. m < n \<longrightarrow> r m < r n"
-      and lr:"\<forall>e>0. \<exists>N. \<forall>n\<ge>N. \<forall>i\<in>?d. \<bar>f (r n) $ i - l $ i\<bar> < e"
-      using compact_lemma[OF assms(1) as, THEN spec[where x="?d"]] by auto
-    { fix e::real assume "e>0"
-      hence "0 < e / (real_of_nat (card ?d))" using zero_less_card_finite using divide_pos_pos[of e, of "real_of_nat (card ?d)"] by auto
-      then obtain N::nat where N:"\<forall>n\<ge>N. \<forall>i\<in>?d. \<bar>f (r n) $ i - l $ i\<bar> < e / (real_of_nat (card ?d))" using lr[THEN spec[where x="e / (real_of_nat (card ?d))"]] by blast
-      { fix n assume n:"n\<ge>N"
-	hence "finite ?d"  "?d \<noteq> {}" by auto
-	moreover
-	{ fix i assume i:"i \<in> ?d"
-	  hence "\<bar>((f \<circ> r) n - l) $ i\<bar> < e / real_of_nat (card ?d)" using `n\<ge>N` using N[THEN spec[where x=n]]
-	    by auto  }
-	ultimately have "(\<Sum>i \<in> ?d. \<bar>((f \<circ> r) n - l) $ i\<bar>)
-	  < (\<Sum>i \<in> ?d. e / real_of_nat (card ?d))"
-	  using setsum_strict_mono[of "?d" "\<lambda>i. \<bar>((f \<circ> r) n - l) $ i\<bar>" "\<lambda>i. e / (real_of_nat (card ?d))"] by auto
-	hence "(\<Sum>i \<in> ?d. \<bar>((f \<circ> r) n - l) $ i\<bar>) < e" unfolding setsum_constant by auto
-	hence "dist ((f \<circ> r) n) l < e" unfolding dist_norm using norm_le_l1[of "(f \<circ> r) n - l"] by auto  }
-      hence "\<exists>N. \<forall>n\<ge>N. dist ((f \<circ> r) n) l < e" by auto  }
-    hence *:"((f \<circ> r) ---> l) sequentially" unfolding Lim_sequentially by auto
-    moreover have "l\<in>s"
-      using assms(2)[unfolded closed_sequential_limits, THEN spec[where x="f \<circ> r"], THEN spec[where x=l]] and * and as by auto
-    ultimately have "\<exists>l\<in>s. \<exists>r. (\<forall>m n. m < n \<longrightarrow> r m < r n) \<and> ((f \<circ> r) ---> l) sequentially" using r by auto  }
-  thus ?thesis unfolding compact_def by auto
+instance "^" :: (heine_borel, finite) heine_borel
+proof
+  fix s :: "('a ^ 'b) set" and f :: "nat \<Rightarrow> 'a ^ 'b"
+  assume s: "bounded s" and f: "\<forall>n. f n \<in> s"
+  then obtain l r where r: "\<forall>n m::nat. m < n --> r m < r n"
+    and l: "\<forall>e>0. eventually (\<lambda>n. \<forall>i\<in>UNIV. dist (f (r n) $ i) (l $ i) < e) sequentially"
+    using compact_lemma [OF s f] by blast
+  let ?d = "UNIV::'b set"
+  { fix e::real assume "e>0"
+    hence "0 < e / (real_of_nat (card ?d))"
+      using zero_less_card_finite using divide_pos_pos[of e, of "real_of_nat (card ?d)"] by auto
+    with l have "eventually (\<lambda>n. \<forall>i. dist (f (r n) $ i) (l $ i) < e / (real_of_nat (card ?d))) sequentially"
+      by simp
+    moreover
+    { fix n assume n: "\<forall>i. dist (f (r n) $ i) (l $ i) < e / (real_of_nat (card ?d))"
+      have "dist (f (r n)) l \<le> (\<Sum>i\<in>?d. dist (f (r n) $ i) (l $ i))"
+        unfolding dist_vector_def using zero_le_dist by (rule setL2_le_setsum)
+      also have "\<dots> < (\<Sum>i\<in>?d. e / (real_of_nat (card ?d)))"
+        by (rule setsum_strict_mono) (simp_all add: n)
+      finally have "dist (f (r n)) l < e" by simp
+    }
+    ultimately have "eventually (\<lambda>n. dist (f (r n)) l < e) sequentially"
+      by (rule eventually_elim1)
+  }
+  hence *:"((f \<circ> r) ---> l) sequentially" unfolding o_def tendsto_iff by simp
+  with r show "\<exists>l r. (\<forall>m n. m < n \<longrightarrow> r m < r n) \<and> ((f \<circ> r) ---> l) sequentially" by auto
 qed
 
 subsection{* Completeness. *}
