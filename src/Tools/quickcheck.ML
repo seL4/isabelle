@@ -42,13 +42,13 @@ datatype test_params = Test_Params of
 
 fun dest_test_params (Test_Params { size, iterations, default_type }) =
   ((size, iterations), default_type);
-fun mk_test_params ((size, iterations), default_type) =
+fun make_test_params ((size, iterations), default_type) =
   Test_Params { size = size, iterations = iterations, default_type = default_type };
 fun map_test_params f (Test_Params { size, iterations, default_type}) =
-  mk_test_params (f ((size, iterations), default_type));
+  make_test_params (f ((size, iterations), default_type));
 fun merge_test_params (Test_Params { size = size1, iterations = iterations1, default_type = default_type1 },
   Test_Params { size = size2, iterations = iterations2, default_type = default_type2 }) =
-  mk_test_params ((Int.max (size1, size2), Int.max (iterations1, iterations2)),
+  make_test_params ((Int.max (size1, size2), Int.max (iterations1, iterations2)),
     case default_type1 of NONE => default_type2 | _ => default_type1);
 
 structure Data = TheoryDataFun(
