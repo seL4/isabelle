@@ -1,6 +1,5 @@
 (*  Title:      HOL/Tools/typedef_codegen.ML
-    ID:         $Id$
-    Author:     Stefan Berghofer and Florian Haftmann, TU Muenchen
+    Author:     Stefan Berghofer, TU Muenchen
 
 Code generators for trivial typedefs.
 *)
