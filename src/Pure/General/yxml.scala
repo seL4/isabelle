@@ -6,8 +6,6 @@ Efficient text representation of XML trees.
 
 package isabelle
 
-import java.util.regex.Pattern
-
 
 object YXML {
 
