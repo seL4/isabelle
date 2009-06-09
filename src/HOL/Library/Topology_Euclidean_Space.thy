@@ -3941,11 +3941,18 @@ proof-
   thus ?thesis unfolding Lim_at by auto
 qed
 
+lemma bounded_linear_continuous_at:
+  assumes "bounded_linear f"  shows "continuous (at a) f"
+  unfolding continuous_at using assms
+  apply (rule bounded_linear.tendsto)
+  apply (rule Lim_at_id [unfolded id_def])
+  done
+
 lemma linear_continuous_at:
   fixes f :: "real ^ _ \<Rightarrow> real ^ _"
   assumes "linear f"  shows "continuous (at a) f"
-  unfolding continuous_at Lim_at_zero[of f "f a" a] using linear_lim_0[OF assms]
-  unfolding Lim_null[of "\<lambda>x. f (a + x)"] unfolding linear_sub[OF assms, THEN sym] by auto
+  using assms unfolding linear_conv_bounded_linear
+  by (rule bounded_linear_continuous_at)
 
 lemma linear_continuous_within:
   fixes f :: "real ^ _ \<Rightarrow> real ^ _"
@@ -4276,24 +4283,25 @@ lemma compact_pastecart:
 
 text{* Hence some useful properties follow quite easily.                         *}
 
+lemma compact_scaleR_image:
+  fixes s :: "'a::real_normed_vector set"
+  assumes "compact s"  shows "compact ((\<lambda>x. scaleR c x) ` s)"
+proof-
+  let ?f = "\<lambda>x. scaleR c x"
+  have *:"bounded_linear ?f" by (rule scaleR.bounded_linear_right)
+  show ?thesis using compact_continuous_image[of s ?f] continuous_at_imp_continuous_on[of s ?f]
+    using bounded_linear_continuous_at[OF *] assms by auto
+qed
+
 lemma compact_scaling:
   fixes s :: "(real ^ _) set"
   assumes "compact s"  shows "compact ((\<lambda>x. c *s x) ` s)"
-proof-
-  let ?f = "\<lambda>x. c *s x"
-  have *:"linear ?f" unfolding linear_def vector_smult_assoc vector_add_ldistrib real_mult_commute by auto
-  show ?thesis using compact_continuous_image[of s ?f] continuous_at_imp_continuous_on[of s ?f]
-    using linear_continuous_at[OF *] assms by auto
-qed
+  using assms unfolding smult_conv_scaleR by (rule compact_scaleR_image)
 
 lemma compact_negations:
-  fixes s :: "(real ^ _) set"
+  fixes s :: "'a::real_normed_vector set"
   assumes "compact s"  shows "compact ((\<lambda>x. -x) ` s)"
-proof-
-  have "(\<lambda>x. - x) ` s = (\<lambda>x. (- 1) *s x) ` s"
-    unfolding vector_sneg_minus1 ..
-  thus ?thesis using compact_scaling[OF assms, of "-1"] by auto
-qed
+  using compact_scaleR_image [OF assms, of "- 1"] by auto
 
 lemma compact_sums:
   fixes s t :: "(real ^ _) set"
@@ -4401,9 +4409,9 @@ qed
 
 text{* Related results with closure as the conclusion.                           *}
 
-lemma closed_scaling:
-  fixes s :: "(real ^ _) set"
-  assumes "closed s" shows "closed ((\<lambda>x. c *s x) ` s)"
+lemma closed_scaleR_image:
+  fixes s :: "'a::real_normed_vector set"
+  assumes "closed s" shows "closed ((\<lambda>x. scaleR c x) ` s)"
 proof(cases "s={}")
   case True thus ?thesis by auto
 next
@@ -4414,29 +4422,39 @@ next
     case True thus ?thesis apply auto unfolding * using closed_sing by auto
   next
     case False
-    { fix x l assume as:"\<forall>n::nat. x n \<in> op *s c ` s"  "(x ---> l) sequentially"
-      { fix n::nat have "(1 / c) *s x n \<in> s" using as(1)[THEN spec[where x=n]] using `c\<noteq>0` by (auto simp add: vector_smult_assoc) }
+    { fix x l assume as:"\<forall>n::nat. x n \<in> scaleR c ` s"  "(x ---> l) sequentially"
+      { fix n::nat have "scaleR (1 / c) (x n) \<in> s"
+          using as(1)[THEN spec[where x=n]]
+          using `c\<noteq>0` by (auto simp add: vector_smult_assoc)
+      }
       moreover
       { fix e::real assume "e>0"
 	hence "0 < e *\<bar>c\<bar>"  using `c\<noteq>0` mult_pos_pos[of e "abs c"] by auto
-	then obtain N where "\<forall>n\<ge>N. dist (x n) l < e * \<bar>c\<bar>" using as(2)[unfolded Lim_sequentially, THEN spec[where x="e * abs c"]] by auto
-	hence "\<exists>N. \<forall>n\<ge>N. dist ((1 / c) *s x n) ((1 / c) *s l) < e" unfolding dist_norm unfolding vector_ssub_ldistrib[THEN sym] norm_mul
+	then obtain N where "\<forall>n\<ge>N. dist (x n) l < e * \<bar>c\<bar>"
+          using as(2)[unfolded Lim_sequentially, THEN spec[where x="e * abs c"]] by auto
+	hence "\<exists>N. \<forall>n\<ge>N. dist (scaleR (1 / c) (x n)) (scaleR (1 / c) l) < e"
+          unfolding dist_norm unfolding scaleR_right_diff_distrib[THEN sym] norm_scaleR
 	  using mult_imp_div_pos_less[of "abs c" _ e] `c\<noteq>0` by auto  }
-      hence "((\<lambda>n. (1 / c) *s x n) ---> (1 / c) *s l) sequentially" unfolding Lim_sequentially by auto
-      ultimately have "l \<in> op *s c ` s"  using assms[unfolded closed_sequential_limits, THEN spec[where x="\<lambda>n. (1/c) *s x n"], THEN spec[where x="(1/c) *s l"]]
-	unfolding image_iff using `c\<noteq>0` apply(rule_tac x="(1 / c) *s l" in bexI) apply auto unfolding vector_smult_assoc  by auto  }
-    thus ?thesis unfolding closed_sequential_limits by auto
+      hence "((\<lambda>n. scaleR (1 / c) (x n)) ---> scaleR (1 / c) l) sequentially" unfolding Lim_sequentially by auto
+      ultimately have "l \<in> scaleR c ` s"
+        using assms[unfolded closed_sequential_limits, THEN spec[where x="\<lambda>n. scaleR (1/c) (x n)"], THEN spec[where x="scaleR (1/c) l"]]
+	unfolding image_iff using `c\<noteq>0` apply(rule_tac x="scaleR (1 / c) l" in bexI) by auto  }
+    thus ?thesis unfolding closed_sequential_limits by fast
   qed
 qed
 
+lemma closed_scaling:
+  fixes s :: "(real ^ _) set"
+  assumes "closed s" shows "closed ((\<lambda>x. c *s x) ` s)"
+  using assms unfolding smult_conv_scaleR by (rule closed_scaleR_image)
+
 lemma closed_negations:
-  fixes s :: "(real ^ _) set" (* FIXME: generalize *)
+  fixes s :: "'a::real_normed_vector set"
   assumes "closed s"  shows "closed ((\<lambda>x. -x) ` s)"
-  using closed_scaling[OF assms, of "- 1"]
-  unfolding vector_sneg_minus1 by auto
+  using closed_scaleR_image[OF assms, of "- 1"] by simp
 
 lemma compact_closed_sums:
-  fixes s :: "(real ^ _) set"
+  fixes s :: "'a::real_normed_vector set"
   assumes "compact s"  "closed t"  shows "closed {x + y | x y. x \<in> s \<and> y \<in> t}"
 proof-
   let ?S = "{x + y |x y. x \<in> s \<and> y \<in> t}"
@@ -4452,11 +4470,11 @@ proof-
       using f(3) by auto
     hence "l \<in> ?S" using `l' \<in> s` apply auto apply(rule_tac x=l' in exI) apply(rule_tac x="l - l'" in exI) by auto
   }
-  thus ?thesis unfolding closed_sequential_limits by auto
+  thus ?thesis unfolding closed_sequential_limits by fast
 qed
 
 lemma closed_compact_sums:
-  fixes s t :: "(real ^ _) set"
+  fixes s t :: "'a::real_normed_vector set"
   assumes "closed s"  "compact t"
   shows "closed {x + y | x y. x \<in> s \<and> y \<in> t}"
 proof-
@@ -4466,7 +4484,7 @@ proof-
 qed
 
 lemma compact_closed_differences:
-  fixes s t :: "(real ^ _) set"
+  fixes s t :: "'a::real_normed_vector set"
   assumes "compact s"  "closed t"
   shows "closed {x - y | x y. x \<in> s \<and> y \<in> t}"
 proof-
@@ -4476,7 +4494,7 @@ proof-
 qed
 
 lemma closed_compact_differences:
-  fixes s t :: "(real ^ _) set"
+  fixes s t :: "'a::real_normed_vector set"
   assumes "closed s" "compact t"
   shows "closed {x - y | x y. x \<in> s \<and> y \<in> t}"
 proof-
@@ -4486,7 +4504,7 @@ proof-
 qed
 
 lemma closed_translation:
-  fixes s :: "(real ^ _) set" (* FIXME: generalize *)
+  fixes a :: "'a::real_normed_vector"
   assumes "closed s"  shows "closed ((\<lambda>x. a + x) ` s)"
 proof-
   have "{a + y |y. y \<in> s} = (op + a ` s)" by auto
@@ -4494,21 +4512,26 @@ proof-
 qed
 
 lemma translation_UNIV:
- "range (\<lambda>x::real^'a. a + x) = UNIV"
+  fixes a :: "'a::ab_group_add" shows "range (\<lambda>x. a + x) = UNIV"
   apply (auto simp add: image_iff) apply(rule_tac x="x - a" in exI) by auto
 
-lemma translation_diff: "(\<lambda>x::real^'a. a + x) ` (s - t) = ((\<lambda>x. a + x) ` s) - ((\<lambda>x. a + x) ` t)" by auto
+lemma translation_diff:
+  fixes a :: "'a::ab_group_add"
+  shows "(\<lambda>x. a + x) ` (s - t) = ((\<lambda>x. a + x) ` s) - ((\<lambda>x. a + x) ` t)"
+  by auto
 
 lemma closure_translation:
-  fixes s :: "(real ^ _) set" (* FIXME: generalize *)
+  fixes a :: "'a::real_normed_vector"
   shows "closure ((\<lambda>x. a + x) ` s) = (\<lambda>x. a + x) ` (closure s)"
 proof-
-  have *:"op + a ` (UNIV - s) = UNIV - op + a ` s"  apply auto unfolding image_iff apply(rule_tac x="x - a" in bexI) by auto
-  show ?thesis unfolding closure_interior translation_diff translation_UNIV using interior_translation[of a "UNIV - s"] unfolding * by auto
+  have *:"op + a ` (UNIV - s) = UNIV - op + a ` s"
+    apply auto unfolding image_iff apply(rule_tac x="x - a" in bexI) by auto
+  show ?thesis unfolding closure_interior translation_diff translation_UNIV
+    using interior_translation[of a "UNIV - s"] unfolding * by auto
 qed
 
 lemma frontier_translation:
-  fixes s :: "(real ^ _) set" (* FIXME: generalize *)
+  fixes a :: "'a::real_normed_vector"
   shows "frontier((\<lambda>x. a + x) ` s) = (\<lambda>x. a + x) ` (frontier s)"
   unfolding frontier_def translation_diff interior_translation closure_translation by auto
 
