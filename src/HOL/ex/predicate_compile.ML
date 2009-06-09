@@ -24,7 +24,6 @@ sig
   val do_proofs: bool ref
   val analyze_compr: theory -> term -> term
   val eval_ref: (unit -> term Predicate.pred) option ref
- (* val extend : (key -> 'a * key list) -> key list -> 'a Graph.T -> 'a Graph.T *)
   val add_equations : string -> theory -> theory
 end;
 
@@ -34,9 +33,6 @@ struct
 (** auxiliary **)
 
 (* debug stuff *)
-(*
-fun makestring _ = "?"; 
-*) (* FIXME dummy *)
 
 fun tracing s = (if ! Toplevel.debug then Output.tracing s else ());
 
@@ -321,9 +317,7 @@ fun cprods xss = foldr (map op :: o cprod) [[]] xss;
 datatype hmode = Mode of mode * int list * hmode option list; (*FIXME don't understand
   why there is another mode type tmode !?*)
 
-fun string_of_term (t : term) = makestring t
-fun string_of_terms (ts : term list) =  commas (map string_of_term ts)
-
+  
 (*TODO: cleanup function and put together with modes_of_term *)
 fun modes_of_param default modes t = let
     val (vs, t') = strip_abs t
@@ -335,10 +329,8 @@ fun modes_of_param default modes t = let
               error ("Too few arguments for inductive predicate " ^ name)
             else chop (length iss) args;
           val k = length args2;
-          val _ = Output.tracing ("args2:" ^ string_of_terms args2)
           val perm = map (fn i => (find_index_eq (Bound (b - i)) args2) + 1)
-            (1 upto b)
-          val _ = Output.tracing ("perm: " ^ (makestring perm))  
+            (1 upto b)  
           val partial_mode = (1 upto k) \\ perm
         in
           if not (partial_mode subset is) then [] else
@@ -352,8 +344,6 @@ fun modes_of_param default modes t = let
               | (SOME js, arg) => map SOME (filter
                   (fn Mode (_, js', _) => js=js') (modes_of_term modes arg)))
                     (iss ~~ args1)))
-           val _ = Output.tracing ("is = " ^ (makestring is))
-           val _ = Output.tracing ("is' = " ^ (makestring is'))
           in res end
         end)) (AList.lookup op = modes name)
   in case strip_comb t' of
@@ -542,19 +532,15 @@ fun compile_param_ext thy modes (NONE, t) = t
   | compile_param_ext thy modes (m as SOME (Mode ((iss, is'), is, ms)), t) =
       let
         val (vs, u) = strip_abs t
-        val (ivs, ovs) = get_args is vs
-        val _ = Output.tracing ("ivs = " ^ (makestring ivs))
-        val _ = Output.tracing ("ovs = " ^ (makestring ovs))       
+        val (ivs, ovs) = get_args is vs    
         val (f, args) = strip_comb u
         val (params, args') = chop (length ms) args
         val (inargs, outargs) = get_args is' args'
         val b = length vs
         val perm = map (fn i => (find_index_eq (Bound (b - i)) args') + 1) (1 upto b)
-        val _ = Output.tracing ("perm (compile) = " ^ (makestring perm))
         val outp_perm =
           snd (get_args is perm)
           |> map (fn i => i - length (filter (fn x => x < i) is'))
-        val _ = Output.tracing ("outp_perm = " ^ (makestring outp_perm))
         val names = [] (* TODO *)
         val out_names = Name.variant_list names (replicate (length outargs) "x")
         val f' = case f of
@@ -564,17 +550,13 @@ fun compile_param_ext thy modes (NONE, t) = t
               else error "compile param: Not an inductive predicate with correct mode"
           | Free (name, T) => Free (name, funT_of T (SOME is'))
         val outTs = dest_tupleT (dest_pred_enumT (body_type (fastype_of f')))
-        val _ = Output.tracing ("outTs = " ^ (makestring outTs))
         val out_vs = map Free (out_names ~~ outTs)
-        val _ = Output.tracing "dipp"
         val params' = map (compile_param thy modes) (ms ~~ params)
         val f_app = list_comb (f', params' @ inargs)
         val single_t = (mk_single (mk_tuple (map (fn i => nth out_vs (i - 1)) outp_perm)))
         val match_t = compile_match thy [] [] out_vs single_t
-        val _ = Output.tracing "dupp"
       in list_abs (ivs,
         mk_bind (f_app, match_t))
-        |> tap (fn r => Output.tracing ("compile_param: " ^ (Syntax.string_of_term_global thy r)))
       end
   | compile_param_ext _ _ _ = error "compile params"
 
@@ -883,7 +865,6 @@ fun prove_param thy modes (NONE, t) = all_tac
       | Abs _ => error "TODO: implement here"
   in  
     print_tac "before simplification in prove_args:"
-    THEN debug_tac ("mode" ^ (makestring mode))
     THEN f_tac
     THEN print_tac "after simplification in prove_args"
     (* work with parameter arguments *)
@@ -901,19 +882,13 @@ fun prove_expr thy modes (SOME (Mode (mode, is, ms)), t, us) (premposition : int
             (hd (Logic.strip_imp_prems (prop_of introrule))))
           val nparams = length ms (* get_nparams thy (fst (dest_Const pred)) *)
           val (_, args) = chop nparams rargs
-          val _ = tracing ("args: " ^ (makestring args))
           val subst = map (pairself (cterm_of thy)) (args ~~ us)
-          val _ = tracing ("subst: " ^ (makestring subst))
           val inst_introrule = Drule.cterm_instantiate subst introrule*)
          (* the next line is old and probably wrong *)
           val (args1, args2) = chop (length ms) args
-          val _ = tracing ("premposition: " ^ (makestring premposition))
         in
         rtac @{thm bindI} 1
         THEN print_tac "before intro rule:"
-        THEN debug_tac ("mode" ^ (makestring mode))
-        THEN debug_tac (makestring introrule)
-        THEN debug_tac ("premposition: " ^ (makestring premposition))
         (* for the right assumption in first position *)
         THEN rotate_tac premposition 1
         THEN rtac introrule 1
@@ -940,9 +915,8 @@ fun prove_match thy (out_ts : term list) = let
   val simprules = @{thm "unit.cases"} :: @{thm "prod.cases"} :: (flat (map get_case_rewrite out_ts))
 (* replace TRY by determining if it necessary - are there equations when calling compile match? *)
 in
-  print_tac ("before prove_match rewriting: simprules = " ^ (makestring simprules))
    (* make this simpset better! *)
-  THEN asm_simp_tac (HOL_basic_ss' addsimps simprules) 1
+  asm_simp_tac (HOL_basic_ss' addsimps simprules) 1
   THEN print_tac "after prove_match:"
   THEN (DETERM (TRY (EqSubst.eqsubst_tac (ProofContext.init thy) [0] [@{thm "HOL.if_P"}] 1
          THEN (REPEAT_DETERM (rtac @{thm conjI} 1 THEN (SOLVED (asm_simp_tac HOL_basic_ss 1))))
@@ -952,26 +926,22 @@ end;
 
 (* corresponds to compile_fun -- maybe call that also compile_sidecond? *)
 
-fun prove_sidecond thy modes t = let
-  val _ = tracing ("prove_sidecond:" ^ (makestring t))
-  fun preds_of t nameTs = case strip_comb t of 
-    (f as Const (name, T), args) =>
-      if AList.defined (op =) modes name then (name, T) :: nameTs
-        else fold preds_of args nameTs
-    | _ => nameTs
-  val preds = preds_of t []
-  
-  val _ = tracing ("preds: " ^ (makestring preds))
-  val defs = map
-    (fn (pred, T) => predfun_definition_of thy pred ([], (1 upto (length (binder_types T)))))
-      preds
-  val _ = tracing ("defs: " ^ (makestring defs))
-in 
-   (* remove not_False_eq_True when simpset in prove_match is better *)
-   simp_tac (HOL_basic_ss addsimps @{thm not_False_eq_True} :: @{thm eval_pred} :: defs) 1 
-   (* need better control here! *)
-   THEN print_tac "after sidecond simplification"
-   end
+fun prove_sidecond thy modes t =
+  let
+    fun preds_of t nameTs = case strip_comb t of 
+      (f as Const (name, T), args) =>
+        if AList.defined (op =) modes name then (name, T) :: nameTs
+          else fold preds_of args nameTs
+      | _ => nameTs
+    val preds = preds_of t []
+    val defs = map
+      (fn (pred, T) => predfun_definition_of thy pred ([], (1 upto (length (binder_types T)))))
+        preds
+  in 
+    (* remove not_False_eq_True when simpset in prove_match is better *)
+    simp_tac (HOL_basic_ss addsimps @{thm not_False_eq_True} :: @{thm eval_pred} :: defs) 1 
+    (* need better control here! *)
+  end
 
 fun prove_clause thy nargs all_vs param_vs modes (iss, is) (ts, ps) = let
   val modes' = modes @ List.mapPartial
@@ -1018,13 +988,10 @@ fun prove_clause thy nargs all_vs param_vs modes (iss, is) (ts, ps) = let
             val name = (case strip_comb t of (Const (c, _), _) => SOME c | _ => NONE)
             val (_, params) = strip_comb t
           in
-            print_tac "before negated clause:"
-            THEN rtac @{thm bindI} 1
+            rtac @{thm bindI} 1
             THEN (if (is_some name) then
                 simp_tac (HOL_basic_ss addsimps [predfun_definition_of thy (the name) (iss, js)]) 1
                 THEN rtac @{thm not_predI} 1
-                THEN print_tac "after neg. intro rule"
-                THEN print_tac ("t = " ^ (makestring t))
                 (* FIXME: work with parameter arguments *)
                 THEN (EVERY (map (prove_param thy modes) (param_modes ~~ params)))
               else
@@ -1061,7 +1028,6 @@ fun prove_one_direction thy all_vs param_vs modes clauses ((pred, T), mode) = le
   val pred_case_rule = singleton (ind_set_codegen_preproc thy)
     (preprocess_elim thy nargs (the_elim_of thy pred))
   (* FIXME preprocessor |> Simplifier.full_simplify (HOL_basic_ss addsimps [@ {thm Predicate.memb_code}])*)
-  val _ = tracing ("pred_case_rule " ^ (makestring pred_case_rule))
 in
   REPEAT_DETERM (CHANGED (rewtac @{thm "split_paired_all"}))
   THEN etac (predfun_elim_of thy pred mode) 1
@@ -1088,8 +1054,7 @@ fun prove_match2 thy out_ts = let
           | _ => PureThy.get_thms thy (((fst o dest_Type o fastype_of) t) ^ ".split_asm")
         val (_, ts) = strip_comb t
       in
-        print_tac ("splitting with t = " ^ (makestring t))
-        THEN (Splitter.split_asm_tac split_rules 1)
+        (Splitter.split_asm_tac split_rules 1)
 (*        THEN (Simplifier.asm_full_simp_tac HOL_basic_ss 1)
           THEN (DETERM (TRY (etac @{thm Pair_inject} 1))) *)
         THEN (REPEAT_DETERM_N (num_of_constrs - 1) (etac @{thm botE} 1 ORELSE etac @{thm botE} 2))
@@ -1115,7 +1080,6 @@ fun prove_param2 thy modes (NONE, t) = all_tac
       | Free _ => all_tac
   in  
     print_tac "before simplification in prove_args:"
-    THEN debug_tac ("function : " ^ (makestring f) ^ " - mode" ^ (makestring mode))
     THEN f_tac
     THEN print_tac "after simplification in prove_args"
     (* work with parameter arguments *)
@@ -1135,14 +1099,12 @@ fun prove_expr2 thy modes (SOME (Mode (mode, is, ms)), t) =
   | prove_expr2 _ _ _ = error "Prove expr2 not implemented"
 
 fun prove_sidecond2 thy modes t = let
-  val _ = tracing ("prove_sidecond:" ^ (makestring t))
   fun preds_of t nameTs = case strip_comb t of 
     (f as Const (name, T), args) =>
       if AList.defined (op =) modes name then (name, T) :: nameTs
         else fold preds_of args nameTs
     | _ => nameTs
   val preds = preds_of t []
-  val _ = tracing ("preds: " ^ (makestring preds))
   val defs = map
     (fn (pred, T) => predfun_definition_of thy pred ([], (1 upto (length (binder_types T)))))
       preds
@@ -1301,7 +1263,7 @@ fun prepare_intrs thy prednames =
         (v as Free _, ts) => if v mem params then Prem (ts, v) else Sidecond t
       | (c as Const (@{const_name Not}, _), [t]) => (case dest_prem t of
           Prem (ts, t) => Negprem (ts, t)
-        | Negprem _ => error ("Double negation not allowed in premise: " ^ (makestring (c $ t))) 
+        | Negprem _ => error ("Double negation not allowed in premise: " ^ (Syntax.string_of_term_global thy (c $ t))) 
         | Sidecond t => Sidecond (c $ t))
       | (c as Const (s, _), ts) =>
         if is_pred thy s then
@@ -1420,25 +1382,9 @@ fun dependencies_of (thy : theory) name =
     (data, keys)
   end;
 
-fun extend explore keys gr =
-  let
-    fun contains_node gr key = member (op =) (Graph.keys gr) key
-    fun extend' key gr =
-      let
-        val (node, preds) = explore key
-      in
-        gr |> (not (contains_node gr key)) ?
-          (Graph.new_node (key, node)
-          #> fold extend' preds
-          #> fold (Graph.add_edge o (pair key)) preds)
-      end
-  in fold extend' keys gr end
-
-fun mk_graph explore keys = extend explore keys Graph.empty
-
 fun add_equations name thy =
   let
-    val thy' = PredData.map (extend (dependencies_of thy) [name]) thy;
+    val thy' = PredData.map (Graph.extend (dependencies_of thy) [name]) thy;
     (*val preds = Graph.all_preds (PredData.get thy') [name] |> filter_out (has_elim thy') *)
     fun strong_conn_of gr keys =
       Graph.strong_conn (Graph.subgraph (member (op =) (Graph.all_succs gr keys)) gr)
@@ -1464,7 +1410,7 @@ fun generic_code_pred prep_const raw_const lthy =
     val thy = (ProofContext.theory_of lthy)
     val const = prep_const thy raw_const
     val lthy' = lthy
-    val thy' = PredData.map (extend (dependencies_of thy) [const]) thy
+    val thy' = PredData.map (Graph.extend (dependencies_of thy) [const]) thy
     val preds = Graph.all_preds (PredData.get thy') [const] |> filter_out (has_elim thy')
     val _ = Output.tracing ("preds: " ^ commas preds)
     (*
