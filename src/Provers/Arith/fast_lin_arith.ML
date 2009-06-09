@@ -163,7 +163,6 @@ datatype injust = Asm of int
                 | NotLeD of injust
                 | NotLeDD of injust
                 | Multiplied of int * injust
-                | Multiplied2 of int * injust
                 | Added of injust * injust;
 
 datatype lineq = Lineq of int * lineq_type * int list * injust;
@@ -523,7 +522,6 @@ fun mkthm ss asms (just: injust) =
       | mk (NotLessD j)         = trace_thm "NL" (mk j RS LA_Logic.not_lessD)
       | mk (Added (j1, j2))     = simp (trace_thm "+" (add_thms (mk j1) (mk j2)))
       | mk (Multiplied (n, j))  = (trace_msg ("*" ^ string_of_int n); trace_thm "*" (mult_thm (n, mk j)))
-      | mk (Multiplied2 (n, j)) = (trace_msg ("**" ^ string_of_int n); trace_thm "**" (mult_thm (n, mk j)))
 
   in
     let
@@ -570,7 +568,7 @@ fun mklineq n atoms =
       val diff = map2 (curry (op -)) rhsa lhsa
       val c = i-j
       val just = Asm k
-      fun lineq(c,le,cs,j) = Lineq(c,le,cs, if m=1 then j else Multiplied2(m,j))
+      fun lineq(c,le,cs,j) = Lineq(c,le,cs, if m=1 then j else Multiplied(m,j))
   in case rel of
       "<="   => lineq(c,Le,diff,just)
      | "~<=" => if discrete
