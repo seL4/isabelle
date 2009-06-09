@@ -1345,6 +1345,27 @@ qed
 
 text{* Need to prove closed(cball(x,e)) before deducing this as a corollary. *}
 
+lemma Lim_dist_ubound:
+  assumes "\<not>(trivial_limit net)" "(f ---> l) net" "eventually (\<lambda>x. dist a (f x) <= e) net"
+  shows "dist a l <= e"
+proof (rule ccontr)
+  assume "\<not> dist a l \<le> e"
+  then have "0 < dist a l - e" by simp
+  with assms(2) have "eventually (\<lambda>x. dist (f x) l < dist a l - e) net"
+    by (rule tendstoD)
+  with assms(3) have "eventually (\<lambda>x. dist a (f x) \<le> e \<and> dist (f x) l < dist a l - e) net"
+    by (rule eventually_conjI)
+  then obtain w where "dist a (f w) \<le> e" "dist (f w) l < dist a l - e"
+    using assms(1) eventually_happens by auto
+  hence "dist a (f w) + dist (f w) l < e + (dist a l - e)"
+    by (rule add_le_less_mono)
+  hence "dist a (f w) + dist (f w) l < dist a l"
+    by simp
+  also have "\<dots> \<le> dist a (f w) + dist (f w) l"
+    by (rule dist_triangle)
+  finally show False by simp
+qed
+
 lemma Lim_norm_ubound:
   fixes f :: "'a \<Rightarrow> 'b::real_normed_vector"
   assumes "\<not>(trivial_limit net)" "(f ---> l) net" "eventually (\<lambda>x. norm(f x) <= e) net"
@@ -1961,8 +1982,21 @@ subsection{* Boundedness. *}
 
   (* FIXME: This has to be unified with BSEQ!! *)
 definition
-  bounded :: "'a::real_normed_vector set \<Rightarrow> bool" where
-  "bounded S \<longleftrightarrow> (\<exists>a. \<forall>x\<in>S. norm x <= a)"
+  bounded :: "'a::metric_space set \<Rightarrow> bool" where
+  "bounded S \<longleftrightarrow> (\<exists>x e. \<forall>y\<in>S. dist x y \<le> e)"
+
+lemma bounded_any_center: "bounded S \<longleftrightarrow> (\<exists>e. \<forall>y\<in>S. dist a y \<le> e)"
+unfolding bounded_def
+apply safe
+apply (rule_tac x="dist a x + e" in exI, clarify)
+apply (drule (1) bspec)
+apply (erule order_trans [OF dist_triangle add_left_mono])
+apply auto
+done
+
+lemma bounded_iff: "bounded S \<longleftrightarrow> (\<exists>a. \<forall>x\<in>S. norm x \<le> a)"
+unfolding bounded_any_center [where a=0]
+by (simp add: dist_norm)
 
 lemma bounded_empty[simp]: "bounded {}" by (simp add: bounded_def)
 lemma bounded_subset: "bounded T \<Longrightarrow> S \<subseteq> T ==> bounded S"
@@ -1973,16 +2007,17 @@ lemma bounded_interior[intro]: "bounded S ==> bounded(interior S)"
 
 lemma bounded_closure[intro]: assumes "bounded S" shows "bounded(closure S)"
 proof-
-  from assms obtain a where a:"\<forall>x\<in>S. norm x \<le> a" unfolding bounded_def by auto
-  { fix x assume "x\<in>closure S"
-    then obtain xa where xa:"\<forall>n. xa n \<in> S"  "(xa ---> x) sequentially" unfolding closure_sequential by auto
-    have "\<forall>n. xa n \<in> S \<longrightarrow> norm (xa n) \<le> a" using a by simp
-    hence "eventually (\<lambda>n. norm (xa n) \<le> a) sequentially"
-      by (rule eventually_mono, simp add: xa(1))
-    have "norm x \<le> a"
-      apply (rule Lim_norm_ubound[of sequentially xa x a])
+  from assms obtain x and a where a: "\<forall>y\<in>S. dist x y \<le> a" unfolding bounded_def by auto
+  { fix y assume "y \<in> closure S"
+    then obtain f where f: "\<forall>n. f n \<in> S"  "(f ---> y) sequentially"
+      unfolding closure_sequential by auto
+    have "\<forall>n. f n \<in> S \<longrightarrow> dist x (f n) \<le> a" using a by simp
+    hence "eventually (\<lambda>n. dist x (f n) \<le> a) sequentially"
+      by (rule eventually_mono, simp add: f(1))
+    have "dist x y \<le> a"
+      apply (rule Lim_dist_ubound [of sequentially f])
       apply (rule trivial_limit_sequentially)
-      apply (rule xa(2))
+      apply (rule f(2))
       apply fact
       done
   }
@@ -1991,11 +2026,9 @@ qed
 
 lemma bounded_cball[simp,intro]: "bounded (cball x e)"
   apply (simp add: bounded_def)
-  apply (rule exI[where x="norm x + e"])
-  apply (clarsimp simp add: Ball_def dist_norm, rename_tac y)
-  apply (subgoal_tac "norm y - norm x \<le> e", simp)
-  apply (rule order_trans [OF norm_triangle_ineq2])
-  apply (simp add: norm_minus_commute)
+  apply (rule_tac x=x in exI)
+  apply (rule_tac x=e in exI)
+  apply auto
   done
 
 lemma bounded_ball[simp,intro]: "bounded(ball x e)"
@@ -2003,22 +2036,31 @@ lemma bounded_ball[simp,intro]: "bounded(ball x e)"
 
 lemma finite_imp_bounded[intro]: assumes "finite S" shows "bounded S"
 proof-
-  { fix x F assume as:"bounded F"
-    then obtain a where "\<forall>x\<in>F. norm x \<le> a" unfolding bounded_def by auto
-    hence "bounded (insert x F)" unfolding bounded_def by(auto intro!: add exI[of _ "max a (norm x)"])
+  { fix a F assume as:"bounded F"
+    then obtain x e where "\<forall>y\<in>F. dist x y \<le> e" unfolding bounded_def by auto
+    hence "\<forall>y\<in>(insert a F). dist x y \<le> max e (dist x a)" by auto
+    hence "bounded (insert a F)" unfolding bounded_def by (intro exI)
   }
   thus ?thesis using finite_induct[of S bounded]  using bounded_empty assms by auto
 qed
 
 lemma bounded_Un[simp]: "bounded (S \<union> T) \<longleftrightarrow> bounded S \<and> bounded T"
   apply (auto simp add: bounded_def)
-  by (rule_tac x="max a aa" in exI, auto)
+  apply (rename_tac x y r s)
+  apply (rule_tac x=x in exI)
+  apply (rule_tac x="max r (dist x y + s)" in exI)
+  apply (rule ballI, rename_tac z, safe)
+  apply (drule (1) bspec, simp)
+  apply (drule (1) bspec)
+  apply (rule min_max.le_supI2)
+  apply (erule order_trans [OF dist_triangle add_left_mono])
+  done
 
 lemma bounded_Union[intro]: "finite F \<Longrightarrow> (\<forall>S\<in>F. bounded S) \<Longrightarrow> bounded(\<Union>F)"
   by (induct rule: finite_induct[of F], auto)
 
 lemma bounded_pos: "bounded S \<longleftrightarrow> (\<exists>b>0. \<forall>x\<in> S. norm x <= b)"
-  apply (simp add: bounded_def)
+  apply (simp add: bounded_iff)
   apply (subgoal_tac "\<And>x (y::real). 0 < 1 + abs y \<and> (x <= y \<longrightarrow> x <= 1 + abs y)")
   by metis arith
 
@@ -2066,7 +2108,9 @@ lemma bounded_scaling:
   apply (rule bounded_linear_image, assumption)
   by (rule linear_compose_cmul, rule linear_id[unfolded id_def])
 
-lemma bounded_translation: assumes "bounded S" shows "bounded ((\<lambda>x. a + x) ` S)"
+lemma bounded_translation:
+  fixes S :: "'a::real_normed_vector set"
+  assumes "bounded S" shows "bounded ((\<lambda>x. a + x) ` S)"
 proof-
   from assms obtain b where b:"b>0" "\<forall>x\<in>S. norm x \<le> b" unfolding bounded_pos by auto
   { fix x assume "x\<in>S"
@@ -2082,7 +2126,7 @@ text{* Some theorems on sups and infs using the notion "bounded". *}
 lemma bounded_vec1:
   fixes S :: "real set"
   shows "bounded(vec1 ` S) \<longleftrightarrow>  (\<exists>a. \<forall>x\<in>S. abs x <= a)"
-  by (simp add: bounded_def forall_vec1 norm_vec1 vec1_in_image_vec1)
+  by (simp add: bounded_iff forall_vec1 norm_vec1 vec1_in_image_vec1)
 
 lemma bounded_has_rsup: assumes "bounded(vec1 ` S)" "S \<noteq> {}"
   shows "\<forall>x\<in>S. x <= rsup S" and "\<forall>b. (\<forall>x\<in>S. x <= b) \<longrightarrow> rsup S <= b"
@@ -2248,7 +2292,7 @@ lemma compact_lemma:
         \<exists>l::(real^'a::finite). \<exists> r. (\<forall>n m::nat. m < n --> r m < r n) \<and>
         (\<forall>e>0. \<exists>N. \<forall>n\<ge>N. \<forall>i\<in>d. \<bar>x (r n) $ i - l $ i\<bar> < e)"
 proof-
-  obtain b where b:"\<forall>x\<in>s. norm x \<le> b" using assms(1)[unfolded bounded_def] by auto
+  obtain b where b:"\<forall>x\<in>s. norm x \<le> b" using assms(1)[unfolded bounded_iff] by auto
   { { fix i::'a
       { fix n::nat
 	have "\<bar>x n $ i\<bar> \<le> b" using b[THEN bspec[where x="x n"]] and component_le_norm[of "x n" i] and assms(2)[THEN spec[where x=n]] by auto }
@@ -2364,16 +2408,13 @@ lemma cauchy_imp_bounded: assumes "Cauchy s" shows "bounded {y. (\<exists>n::nat
 proof-
   from assms obtain N::nat where "\<forall>m n. N \<le> m \<and> N \<le> n \<longrightarrow> dist (s m) (s n) < 1" unfolding cauchy_def apply(erule_tac x= 1 in allE) by auto
   hence N:"\<forall>n. N \<le> n \<longrightarrow> dist (s N) (s n) < 1" by auto
-  { fix n::nat assume "n\<ge>N"
-    hence "norm (s n) \<le> norm (s N) + 1" using N apply(erule_tac x=n in allE) unfolding dist_norm
-      using norm_triangle_sub[of "s N" "s n"] by (auto, metis norm_minus_commute le_add_right_mono norm_triangle_sub real_less_def)
-  }
-  hence "\<forall>n\<ge>N. norm (s n) \<le> norm (s N) + 1" by auto
   moreover
   have "bounded (s ` {0..N})" using finite_imp_bounded[of "s ` {1..N}"] by auto
-  then obtain a where a:"\<forall>x\<in>s ` {0..N}. norm x \<le> a" unfolding bounded_def by auto
-  ultimately show "?thesis" unfolding bounded_def
-    apply(rule_tac x="max a (norm (s N) + 1)" in exI) apply auto
+  then obtain a where a:"\<forall>x\<in>s ` {0..N}. dist (s N) x \<le> a"
+    unfolding bounded_any_center [where a="s N"] by auto
+  ultimately show "?thesis"
+    unfolding bounded_any_center [where a="s N"]
+    apply(rule_tac x="max a 1" in exI) apply auto
     apply(erule_tac x=n in allE) apply(erule_tac x=n in ballE) by auto
 qed
 
@@ -2439,8 +2480,7 @@ next
 qed
 
 lemma convergent_imp_bounded:
-  fixes s :: "nat \<Rightarrow> 'a::real_normed_vector"
-    (* FIXME: generalize to metric_space *)
+  fixes s :: "nat \<Rightarrow> 'a::metric_space"
   shows "(s ---> l) sequentially ==> bounded (s ` (UNIV::(nat set)))"
   using convergent_imp_cauchy[of s]
   using cauchy_imp_bounded[of s]
@@ -2573,28 +2613,31 @@ qed
 
 subsection{* Complete the chain of compactness variants. *}
 
-primrec helper_2::"(real \<Rightarrow> 'a::real_normed_vector) \<Rightarrow> nat \<Rightarrow> 'a" where
+primrec helper_2::"(real \<Rightarrow> 'a::metric_space) \<Rightarrow> nat \<Rightarrow> 'a" where
   "helper_2 beyond 0 = beyond 0" |
-  "helper_2 beyond (Suc n) = beyond (norm (helper_2 beyond n) + 1 )"
+  "helper_2 beyond (Suc n) = beyond (dist arbitrary (helper_2 beyond n) + 1 )"
 
-lemma bolzano_weierstrass_imp_bounded: fixes s::"'a::real_normed_vector set"
+lemma bolzano_weierstrass_imp_bounded: fixes s::"'a::metric_space set"
   assumes "\<forall>t. infinite t \<and> t \<subseteq> s --> (\<exists>x \<in> s. x islimpt t)"
   shows "bounded s"
 proof(rule ccontr)
   assume "\<not> bounded s"
-  then obtain beyond where "\<forall>a. beyond a \<in>s \<and> \<not> norm (beyond a) \<le> a"
-    unfolding bounded_def apply simp using choice[of "\<lambda>a x. x\<in>s \<and> \<not> norm x \<le> a"] by auto
-  hence beyond:"\<And>a. beyond a \<in>s" "\<And>a. norm (beyond a) > a" unfolding linorder_not_le by auto
+  then obtain beyond where "\<forall>a. beyond a \<in>s \<and> \<not> dist arbitrary (beyond a) \<le> a"
+    unfolding bounded_any_center [where a=arbitrary]
+    apply simp using choice[of "\<lambda>a x. x\<in>s \<and> \<not> dist arbitrary x \<le> a"] by auto
+  hence beyond:"\<And>a. beyond a \<in>s" "\<And>a. dist arbitrary (beyond a) > a"
+    unfolding linorder_not_le by auto
   def x \<equiv> "helper_2 beyond"
 
   { fix m n ::nat assume "m<n"
-    hence "norm (x m) + 1 < norm (x n)"
+    hence "dist arbitrary (x m) + 1 < dist arbitrary (x n)"
     proof(induct n)
       case 0 thus ?case by auto
     next
       case (Suc n)
-      have *:"norm (x n) + 1 < norm (x (Suc n))" unfolding x_def and helper_2.simps
-	using beyond(2)[of "norm (helper_2 beyond n) + 1"] by auto
+      have *:"dist arbitrary (x n) + 1 < dist arbitrary (x (Suc n))"
+        unfolding x_def and helper_2.simps
+	using beyond(2)[of "dist arbitrary (helper_2 beyond n) + 1"] by auto
       thus ?case proof(cases "m < n")
 	case True thus ?thesis using Suc and * by auto
       next
@@ -2606,12 +2649,12 @@ proof(rule ccontr)
     have "1 < dist (x m) (x n)"
     proof(cases "m<n")
       case True
-      hence "1 < norm (x n) - norm (x m)" using *[of m n] by auto
-      thus ?thesis unfolding dist_commute[of "x m" "x n"] unfolding dist_norm using norm_triangle_sub[of "x n" "x m"] by auto
+      hence "1 < dist arbitrary (x n) - dist arbitrary (x m)" using *[of m n] by auto
+      thus ?thesis using dist_triangle [of arbitrary "x n" "x m"] by arith
     next
       case False hence "n<m" using `m\<noteq>n` by auto
-      hence "1 < norm (x m) - norm (x n)" using *[of n m] by auto
-      thus ?thesis unfolding dist_commute[of "x n" "x m"] unfolding dist_norm using norm_triangle_sub[of "x m" "x n"] by auto
+      hence "1 < dist arbitrary (x m) - dist arbitrary (x n)" using *[of n m] by auto
+      thus ?thesis using dist_triangle2 [of arbitrary "x m" "x n"] by arith
     qed  } note ** = this
   { fix a b assume "x a = x b" "a \<noteq> b"
     hence False using **[of a b] by auto  }
@@ -2720,7 +2763,7 @@ next
 qed
 
 lemma compact_imp_bounded:
-  fixes s :: "'a::real_normed_vector set" (* TODO: generalize to metric_space *)
+  fixes s :: "'a::metric_space set"
   shows "compact s ==> bounded s"
 proof -
   assume "compact s"
@@ -4186,14 +4229,15 @@ lemma continuous_at_inv:
 subsection{* Preservation properties for pasted sets.                                  *}
 
 lemma bounded_pastecart:
+  fixes s :: "('a::real_normed_vector ^ _) set" (* FIXME: generalize to metric_space *)
   assumes "bounded s" "bounded t"
   shows "bounded { pastecart x y | x y . (x \<in> s \<and> y \<in> t)}"
 proof-
-  obtain a b where ab:"\<forall>x\<in>s. norm x \<le> a" "\<forall>x\<in>t. norm x \<le> b" using assms[unfolded bounded_def] by auto
+  obtain a b where ab:"\<forall>x\<in>s. norm x \<le> a" "\<forall>x\<in>t. norm x \<le> b" using assms[unfolded bounded_iff] by auto
   { fix x y assume "x\<in>s" "y\<in>t"
     hence "norm x \<le> a" "norm y \<le> b" using ab by auto
     hence "norm (pastecart x y) \<le> a + b" using norm_pastecart[of x y] by auto }
-  thus ?thesis unfolding bounded_def by auto
+  thus ?thesis unfolding bounded_iff by auto
 qed
 
 lemma closed_pastecart:
@@ -4301,6 +4345,7 @@ qed
 text{* We can state this in terms of diameter of a set.                          *}
 
 definition "diameter s = (if s = {} then 0::real else rsup {norm(x - y) | x y. x \<in> s \<and> y \<in> s})"
+  (* TODO: generalize to class metric_space *)
 
 lemma diameter_bounded:
   assumes "bounded s"
@@ -4308,7 +4353,7 @@ lemma diameter_bounded:
         "\<forall>d>0. d < diameter s --> (\<exists>x\<in>s. \<exists>y\<in>s. norm(x - y) > d)"
 proof-
   let ?D = "{norm (x - y) |x y. x \<in> s \<and> y \<in> s}"
-  obtain a where a:"\<forall>x\<in>s. norm x \<le> a" using assms[unfolded bounded_def] by auto
+  obtain a where a:"\<forall>x\<in>s. norm x \<le> a" using assms[unfolded bounded_iff] by auto
   { fix x y assume "x \<in> s" "y \<in> s"
     hence "norm (x - y) \<le> 2 * a" using norm_triangle_ineq[of x "-y", unfolded norm_minus_cancel] a[THEN bspec[where x=x]] a[THEN bspec[where x=y]] by (auto simp add: ring_simps)  }
   note * = this
@@ -4753,7 +4798,7 @@ proof-
       have "\<bar>x$i\<bar> \<le> \<bar>a$i\<bar> + \<bar>b$i\<bar>" using x[THEN spec[where x=i]] by auto  }
     hence "(\<Sum>i\<in>UNIV. \<bar>x $ i\<bar>) \<le> ?b" by(rule setsum_mono)
     hence "norm x \<le> ?b" using norm_le_l1[of x] by auto  }
-  thus ?thesis unfolding interval and bounded_def by auto
+  thus ?thesis unfolding interval and bounded_iff by auto
 qed
 
 lemma bounded_interval: fixes a :: "real^'n::finite" shows
@@ -5178,7 +5223,7 @@ lemma bounded_increasing_convergent: fixes s::"nat \<Rightarrow> real^1"
   assumes "bounded {s n| n::nat. True}"  "\<forall>n. dest_vec1(s n) \<le> dest_vec1(s(Suc n))"
   shows "\<exists>l. (s ---> l) sequentially"
 proof-
-  obtain a where a:"\<forall>n. \<bar>dest_vec1 (s n)\<bar> \<le>  a" using assms(1)[unfolded bounded_def abs_dest_vec1] by auto
+  obtain a where a:"\<forall>n. \<bar>dest_vec1 (s n)\<bar> \<le>  a" using assms(1)[unfolded bounded_iff abs_dest_vec1] by auto
   { fix m::nat
     have "\<And> n. n\<ge>m \<longrightarrow> dest_vec1 (s m) \<le> dest_vec1 (s n)"
       apply(induct_tac n) apply simp using assms(2) apply(erule_tac x="na" in allE) by(auto simp add: not_less_eq_eq)  }
