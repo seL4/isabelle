@@ -37,12 +37,16 @@ struct
 fun tracing s = (if ! Toplevel.debug then Output.tracing s else ());
 
 fun print_tac s = (if ! Toplevel.debug then Tactical.print_tac s else Seq.single);
-fun debug_tac msg = (fn st => (tracing msg; Seq.single st));
+fun new_print_tac s = Tactical.print_tac s
+fun debug_tac msg = (fn st => (Output.tracing msg; Seq.single st));
 
 val do_proofs = ref true;
 
 fun mycheat_tac thy i st =
   (Tactic.rtac (SkipProof.make_thm thy (Var (("A", 0), propT))) i) st
+
+fun remove_last_goal thy st =
+  (Tactic.rtac (SkipProof.make_thm thy (Var (("A", 0), propT))) (nprems_of st)) st
 
 (* reference to preprocessing of InductiveSet package *)
 
@@ -733,21 +737,27 @@ let
   val args = map Free (argnames ~~ (Ts1' @ Ts2))
   val (params, io_args) = chop nparams args
   val (inargs, outargs) = get_args (snd mode) io_args
+  val param_names = Name.variant_list argnames
+    (map (fn i => "p" ^ string_of_int i) (1 upto nparams))
+  val param_vs = map Free (param_names ~~ Ts1)
   val (params', names) = fold_map mk_Eval_of ((params ~~ Ts1) ~~ (fst mode)) []
-  val predprop = HOLogic.mk_Trueprop (list_comb (pred, params' @ io_args))
+  val predpropI = HOLogic.mk_Trueprop (list_comb (pred, param_vs @ io_args))
+  val predpropE = HOLogic.mk_Trueprop (list_comb (pred, params' @ io_args))
+  val param_eqs = map (HOLogic.mk_Trueprop o HOLogic.mk_eq) (param_vs ~~ params')
   val funargs = params @ inargs
   val funpropE = HOLogic.mk_Trueprop (mk_Eval (list_comb (funtrm, funargs),
                   if null outargs then Free("y", HOLogic.unitT) else mk_tuple outargs))
   val funpropI = HOLogic.mk_Trueprop (mk_Eval (list_comb (funtrm, funargs),
                    mk_tuple outargs))
-  val introtrm = Logic.mk_implies (predprop, funpropI)
+  val introtrm = Logic.list_implies (predpropI :: param_eqs, funpropI)
+  val _ = Output.tracing (Syntax.string_of_term_global thy introtrm) 
   val simprules = [defthm, @{thm eval_pred},
                    @{thm "split_beta"}, @{thm "fst_conv"}, @{thm "snd_conv"}]
   val unfolddef_tac = (Simplifier.asm_full_simp_tac (HOL_basic_ss addsimps simprules) 1)
-  val introthm = Goal.prove (ProofContext.init thy) (argnames @ ["y"]) [] introtrm (fn {...} => unfolddef_tac)
+  val introthm = Goal.prove (ProofContext.init thy) (argnames @ param_names @ ["y"]) [] introtrm (fn {...} => unfolddef_tac)
   val P = HOLogic.mk_Trueprop (Free ("P", HOLogic.boolT));
-  val elimtrm = Logic.list_implies ([funpropE, Logic.mk_implies (predprop, P)], P)
-  val elimthm = Goal.prove (ProofContext.init thy) (argnames @ ["y", "P"]) [] elimtrm (fn {...} => unfolddef_tac)
+  val elimtrm = Logic.list_implies ([funpropE, Logic.mk_implies (predpropE, P)], P)
+  val elimthm = Goal.prove (ProofContext.init thy) (argnames @ param_names @ ["y", "P"]) [] elimtrm (fn {...} => unfolddef_tac)
 in 
   (introthm, elimthm)
 end;
@@ -859,7 +869,16 @@ fun is_constructor thy t =
 fun prove_param thy modes (NONE, t) =
   all_tac 
 | prove_param thy modes (m as SOME (Mode (mode, is, ms)), t) =
-  let
+  REPEAT_DETERM (etac @{thm thin_rl} 1)
+  THEN REPEAT_DETERM (rtac @{thm ext} 1)
+  THEN (rtac @{thm iffI} 1)
+  THEN new_print_tac "prove_param"
+  (* proof in one direction *)
+  THEN (atac 1)
+  (* proof in the other direction *)
+  THEN (atac 1)
+  THEN new_print_tac "after prove_param"
+(*  let
     val  (f, args) = strip_comb t
     val (params, _) = chop (length ms) args
     val f_tac = case f of
@@ -872,11 +891,10 @@ fun prove_param thy modes (NONE, t) =
     print_tac "before simplification in prove_args:"
     THEN f_tac
     THEN print_tac "after simplification in prove_args"
-    (* work with parameter arguments *)
     THEN (EVERY (map (prove_param thy modes) (ms ~~ params)))
     THEN (REPEAT_DETERM (atac 1))
   end
-
+*)
 fun prove_expr thy modes (SOME (Mode (mode, is, ms)), t, us) (premposition : int) =
   (case strip_comb t of
     (Const (name, T), args) =>
@@ -897,8 +915,10 @@ fun prove_expr thy modes (SOME (Mode (mode, is, ms)), t, us) (premposition : int
         (* for the right assumption in first position *)
         THEN rotate_tac premposition 1
         THEN rtac introrule 1
-        THEN print_tac "after intro rule"
+        THEN new_print_tac "after intro rule"
         (* work with parameter arguments *)
+        THEN (atac 1)
+        THEN (new_print_tac "parameter goal")
         THEN (EVERY (map (prove_param thy modes) (ms ~~ args1)))
         THEN (REPEAT_DETERM (atac 1)) end)
       else error "Prove expr if case not implemented"
@@ -1041,6 +1061,7 @@ in
          (fn i => EVERY' (select_sup (length clauses) i) i) 
            (1 upto (length clauses))))
   THEN (EVERY (map (prove_clause thy nargs all_vs param_vs modes mode) clauses))
+  THEN new_print_tac "proved one direction"
 end;
 
 (*******************************************************************************************************)
@@ -1073,7 +1094,8 @@ fun prove_match2 thy out_ts = let
 
 (* VERY LARGE SIMILIRATIY to function prove_param 
 -- join both functions
-*) 
+*)
+(*
 fun prove_param2 thy modes (NONE, t) = all_tac 
   | prove_param2 thy modes (m as SOME (Mode (mode, is, ms)), t) = let
     val  (f, args) = strip_comb t
@@ -1087,9 +1109,9 @@ fun prove_param2 thy modes (NONE, t) = all_tac
     print_tac "before simplification in prove_args:"
     THEN f_tac
     THEN print_tac "after simplification in prove_args"
-    (* work with parameter arguments *)
     THEN (EVERY (map (prove_param2 thy modes) (ms ~~ params)))
   end
+*)
 
 fun prove_expr2 thy modes (SOME (Mode (mode, is, ms)), t) = 
   (case strip_comb t of
@@ -1097,8 +1119,14 @@ fun prove_expr2 thy modes (SOME (Mode (mode, is, ms)), t) =
       if AList.defined op = modes name then
         etac @{thm bindE} 1
         THEN (REPEAT_DETERM (CHANGED (rewtac @{thm "split_paired_all"})))
+        THEN (debug_tac (Syntax.string_of_term_global thy
+          (prop_of (predfun_elim_of thy name mode))))
         THEN (etac (predfun_elim_of thy name mode) 1)
-        THEN (EVERY (map (prove_param2 thy modes) (ms ~~ args)))
+        THEN new_print_tac "prove_expr2"
+        (* TODO -- FIXME: replace remove_last_goal*)
+        THEN (EVERY (replicate (length args) (remove_last_goal thy)))
+        THEN new_print_tac "finished prove_expr2"
+        (* THEN (EVERY (map (prove_param thy modes) (ms ~~ args))) *)
       else error "Prove expr2 if case not implemented"
     | _ => etac @{thm bindE} 1)
   | prove_expr2 _ _ _ = error "Prove expr2 not implemented"
@@ -1177,7 +1205,7 @@ fun prove_clause2 thy all_vs param_vs modes (iss, is) (ts, ps) pred i = let
             THEN (if is_some name then
                 full_simp_tac (HOL_basic_ss addsimps [predfun_definition_of thy (the name) (iss, js)]) 1 
                 THEN etac @{thm not_predE} 1
-                THEN (EVERY (map (prove_param2 thy modes) (param_modes ~~ params)))
+                THEN (EVERY (map (prove_param thy modes) (param_modes ~~ params)))
               else
                 etac @{thm not_predE'} 1)
             THEN rec_tac
@@ -1252,6 +1280,7 @@ end
 
 fun prepare_intrs thy prednames =
   let
+    (* FIXME: preprocessing moved to fetch_pred_data *)
     val intrs = map (preprocess_intro thy) (maps (intros_of thy) prednames)
       |> ind_set_codegen_preproc thy (*FIXME preprocessor
       |> map (Simplifier.full_simplify (HOL_basic_ss addsimps [@ {thm Predicate.memb_code}]))*)
@@ -1336,7 +1365,7 @@ end
 
 (* generation of case rules from user-given introduction rules *)
 
-fun mk_casesrule introrules nparams ctxt =
+fun mk_casesrule ctxt nparams introrules =
   let
     val intros = map prop_of introrules
     val (pred, (params, args)) = strip_intro_concl nparams (hd intros)
@@ -1356,10 +1385,7 @@ fun mk_casesrule introrules nparams ctxt =
         in fold Logic.all frees (Logic.list_implies (eqprems @ prems, prop)) end
     val assm = HOLogic.mk_Trueprop (list_comb (pred, params @ argvs))
     val cases = map mk_case intros
-    val (_, ctxt3) = ProofContext.add_assms_i Assumption.assume_export
-              [((Binding.name AutoBind.assmsN, []), map (fn t => (t, [])) (assm :: cases))]
-              ctxt2
-  in (pred, prop, ctxt3) end;
+  in Logic.list_implies (assm :: cases, prop) end;
 
 (* code dependency graph *)
   
@@ -1417,38 +1443,22 @@ val add_elim_attrib = attrib set_elim;
 (* TODO: must create state to prove multiple cases *)
 fun generic_code_pred prep_const raw_const lthy =
   let
-    val thy = (ProofContext.theory_of lthy)
+    val thy = ProofContext.theory_of lthy
     val const = prep_const thy raw_const
-    val lthy' = lthy
-    val thy' = PredData.map (Graph.extend (dependencies_of thy) const) thy
+    val lthy' = LocalTheory.theory (PredData.map (Graph.extend (dependencies_of thy) const)) lthy
+    val thy' = ProofContext.theory_of lthy'
     val preds = Graph.all_preds (PredData.get thy') [const] |> filter_out (has_elim thy')
     val _ = Output.tracing ("preds: " ^ commas preds)
-    (*
-    fun mk_elim pred =
+    fun mk_cases const =
       let
-        val nparams = nparams_of thy pred 
-        val intros = intros_of thy pred
-        val (((tfrees, frees), fact), lthy'') =
-          Variable.import_thms true intros lthy';
-        val (pred, prop, lthy''') = mk_casesrule fact nparams lthy''
-      in (pred, prop, lthy''') end;
-      
-        val (predname, _) = dest_Const pred
-    *)
-    val nparams = nparams_of thy' const
-    val intros = intros_of thy' const
-    val (((tfrees, frees), fact), lthy'') =
-      Variable.import_thms true intros lthy';
-    val (pred, prop, lthy''') = mk_casesrule fact nparams lthy''
-    val (predname, _) = dest_Const pred  
-    fun after_qed [[th]] lthy''' =
-      lthy'''
-      |> LocalTheory.note Thm.generatedK
-           ((Binding.empty, []), [th])
-      |> snd
-      |> LocalTheory.theory (add_equations_of [predname])
+        val nparams = nparams_of thy' const
+        val intros = intros_of thy' const
+      in mk_casesrule lthy' nparams intros end
+    val cases_rules = map mk_cases preds
+    fun after_qed thms =
+      LocalTheory.theory (fold set_elim (map the_single thms) #> add_equations const)
   in
-    Proof.theorem_i NONE after_qed [[(prop, [])]] lthy'''
+    Proof.theorem_i NONE after_qed (map (single o (rpair [])) cases_rules) lthy'
   end;
 
 structure P = OuterParse
