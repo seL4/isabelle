@@ -330,8 +330,6 @@ fun mk_random_datatype descr vs tycos (names, auxnames) (Ts, Us) thy =
     |> Class.prove_instantiation_exit (K (Class.intro_classes_tac []))
   end;
 
-
-
 fun ensure_random_datatype raw_tycos thy =
   let
     val pp = Syntax.pp_global thy;
