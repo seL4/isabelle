@@ -134,7 +134,7 @@ object Symbol
           val ch = new String(Character.toChars(code))
         } yield (sym, ch)
       (new Recoder(mapping),
-       new Recoder(for ((x, y) <- mapping) yield (y, x)))
+       new Recoder(mapping map { case (x, y) => (y, x) }))
     }
 
     def decode(text: String) = decoder.recode(text)
