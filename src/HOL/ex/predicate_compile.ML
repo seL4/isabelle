@@ -175,7 +175,10 @@ structure PredData = TheoryDataFun
 
 (* queries *)
 
-val lookup_pred_data = try rep_pred_data oo Graph.get_node o PredData.get; 
+fun lookup_pred_data thy name =
+  case try (Graph.get_node (PredData.get thy)) name of
+    SOME pred_data => SOME (rep_pred_data pred_data)
+  | NONE => NONE
 
 fun the_pred_data thy name = case lookup_pred_data thy name
  of NONE => error ("No such predicate " ^ quote name)  
@@ -853,8 +856,10 @@ fun is_constructor thy t =
 
 (* MAJOR FIXME:  prove_params should be simple
  - different form of introrule for parameters ? *)
-fun prove_param thy modes (NONE, t) = all_tac 
-  | prove_param thy modes (m as SOME (Mode (mode, is, ms)), t) = let
+fun prove_param thy modes (NONE, t) =
+  all_tac 
+| prove_param thy modes (m as SOME (Mode (mode, is, ms)), t) =
+  let
     val  (f, args) = strip_comb t
     val (params, _) = chop (length ms) args
     val f_tac = case f of
@@ -1309,11 +1314,13 @@ let
     prepare_intrs thy prednames
   val _ = tracing "Infering modes..."
   val modes = infer_modes thy extra_modes arities param_vs clauses
+  val _ = print_modes modes
   val _ = tracing "Defining executable functions..."
   val thy' = fold (create_definitions preds nparams) modes thy
   val clauses' = map (fn (s, cls) => (s, (the (AList.lookup (op =) preds s), cls))) clauses
   val _ = tracing "Compiling equations..."
   val ts = compile_preds thy' all_vs param_vs (extra_modes @ modes) clauses'
+  val _ = map (Output.tracing o (Syntax.string_of_term_global thy')) (flat ts)
   val pred_mode =
     maps (fn (s, (T, _)) => map (pair (s, T)) ((the o AList.lookup (op =) modes) s)) clauses' 
   val _ = tracing "Proving equations..."
@@ -1364,7 +1371,7 @@ fun fetch_pred_data thy name =
           let
             val (const, _) = strip_comb (HOLogic.dest_Trueprop (concl_of intro))
           in (fst (dest_Const const) = name) end;
-        val intros =  filter is_intro_of (#intrs result)
+        val intros = map (preprocess_intro thy) (filter is_intro_of (#intrs result)) 
         val elim = nth (#elims result) (find_index (fn s => s = name) (#names (fst info)))
         val nparams = length (InductivePackage.params_of (#raw_induct result))
       in mk_pred_data ((intros, SOME elim, nparams), []) end
