@@ -2243,8 +2243,8 @@ subsection{* Compactness (the definition is the one based on convegent subsequen
 definition
   compact :: "'a::metric_space set \<Rightarrow> bool" where (* TODO: generalize *)
   "compact S \<longleftrightarrow>
-   (\<forall>f. (\<forall>n::nat. f n \<in> S) \<longrightarrow>
-       (\<exists>l\<in>S. \<exists>r. (\<forall>m n. m < n \<longrightarrow> r m < r n) \<and> ((f o r) ---> l) sequentially))"
+   (\<forall>f. (\<forall>n. f n \<in> S) \<longrightarrow>
+       (\<exists>l\<in>S. \<exists>r. subseq r \<and> ((f o r) ---> l) sequentially))"
 
 text {*
   A metric space (or topological vector space) is said to have the
@@ -2253,44 +2253,43 @@ text {*
 
 class heine_borel =
   assumes bounded_imp_convergent_subsequence:
-    "bounded s \<Longrightarrow> \<forall>n::nat. f n \<in> s
-      \<Longrightarrow> \<exists>l r. (\<forall>m n. m < n --> r m < r n) \<and> ((f \<circ> r) ---> l) sequentially"
+    "bounded s \<Longrightarrow> \<forall>n. f n \<in> s
+      \<Longrightarrow> \<exists>l r. subseq r \<and> ((f \<circ> r) ---> l) sequentially"
 
 lemma bounded_closed_imp_compact:
   fixes s::"'a::heine_borel set"
   assumes "bounded s" and "closed s" shows "compact s"
 proof (unfold compact_def, clarify)
   fix f :: "nat \<Rightarrow> 'a" assume f: "\<forall>n. f n \<in> s"
-  obtain l r where r: "\<forall>m n. m < n \<longrightarrow> r m < r n" and l: "((f \<circ> r) ---> l) sequentially"
+  obtain l r where r: "subseq r" and l: "((f \<circ> r) ---> l) sequentially"
     using bounded_imp_convergent_subsequence [OF `bounded s` `\<forall>n. f n \<in> s`] by auto
   from f have fr: "\<forall>n. (f \<circ> r) n \<in> s" by simp
   have "l \<in> s" using `closed s` fr l
     unfolding closed_sequential_limits by blast
-  show "\<exists>l\<in>s. \<exists>r. (\<forall>m n. m < n \<longrightarrow> r m < r n) \<and> ((f \<circ> r) ---> l) sequentially"
+  show "\<exists>l\<in>s. \<exists>r. subseq r \<and> ((f \<circ> r) ---> l) sequentially"
     using `l \<in> s` r l by blast
 qed
 
-lemma monotone_bigger: fixes r::"nat\<Rightarrow>nat"
-  assumes "\<forall>m n::nat. m < n --> r m < r n"
-  shows "n \<le> r n"
+lemma subseq_bigger: assumes "subseq r" shows "n \<le> r n"
 proof(induct n)
   show "0 \<le> r 0" by auto
 next
   fix n assume "n \<le> r n"
-  moreover have "r n < r (Suc n)" using assms by auto
+  moreover have "r n < r (Suc n)"
+    using assms [unfolded subseq_def] by auto
   ultimately show "Suc n \<le> r (Suc n)" by auto
 qed
 
-lemma eventually_subsequence:
-  assumes r: "\<forall>m n. m < n \<longrightarrow> r m < r n"
+lemma eventually_subseq:
+  assumes r: "subseq r"
   shows "eventually P sequentially \<Longrightarrow> eventually (\<lambda>n. P (r n)) sequentially"
 unfolding eventually_sequentially
-by (metis monotone_bigger [OF r] le_trans)
+by (metis subseq_bigger [OF r] le_trans)
 
-lemma lim_subsequence:
-  fixes l :: "'a::metric_space" (* TODO: generalize *)
-  shows "\<forall>m n. m < n \<longrightarrow> r m < r n \<Longrightarrow> (s ---> l) sequentially \<Longrightarrow> ((s o r) ---> l) sequentially"
-unfolding Lim_sequentially by (simp, metis  monotone_bigger le_trans)
+lemma lim_subseq:
+  "subseq r \<Longrightarrow> (s ---> l) sequentially \<Longrightarrow> ((s o r) ---> l) sequentially"
+unfolding tendsto_def eventually_sequentially o_def
+by (metis subseq_bigger le_trans)
 
 lemma num_Axiom: "EX! g. g 0 = e \<and> (\<forall>n. g (Suc n) = f n (g n))"
   unfolding Ex1_def
@@ -2306,9 +2305,8 @@ apply (erule_tac x="n" in allE)
 apply (simp)
 done
 
-
 lemma convergent_bounded_increasing: fixes s ::"nat\<Rightarrow>real"
-  assumes "\<forall>m n. m \<le> n --> s m \<le> s n" and "\<forall>n. abs(s n) \<le> b"
+  assumes "incseq s" and "\<forall>n. abs(s n) \<le> b"
   shows "\<exists> l. \<forall>e::real>0. \<exists> N. \<forall>n \<ge> N.  abs(s n - l) < e"
 proof-
   have "isUb UNIV (range s) b" using assms(2) and abs_le_D1 unfolding isUb_def and setle_def by auto
@@ -2318,27 +2316,27 @@ proof-
       obtain N where "N\<ge>n" and n:"\<bar>s N - t\<bar> \<ge> e" using as[THEN spec[where x=n]] by auto
       have "t \<ge> s N" using isLub_isUb[OF t, unfolded isUb_def setle_def] by auto
       with n have "s N \<le> t - e" using `e>0` by auto
-      hence "s n \<le> t - e" using assms(1)[THEN spec[where x=n], THEN spec[where x=N]] using `n\<le>N` by auto  }
+      hence "s n \<le> t - e" using assms(1)[unfolded incseq_def, THEN spec[where x=n], THEN spec[where x=N]] using `n\<le>N` by auto  }
     hence "isUb UNIV (range s) (t - e)" unfolding isUb_def and setle_def by auto
     hence False using isLub_le_isUb[OF t, of "t - e"] and `e>0` by auto  }
   thus ?thesis by blast
 qed
 
 lemma convergent_bounded_monotone: fixes s::"nat \<Rightarrow> real"
-  assumes "\<forall>n. abs(s n) \<le> b" and "(\<forall>m n. m \<le> n --> s m \<le> s n) \<or> (\<forall>m n. m \<le> n --> s n \<le> s m)"
+  assumes "\<forall>n. abs(s n) \<le> b" and "monoseq s"
   shows "\<exists>l. \<forall>e::real>0. \<exists>N. \<forall>n\<ge>N. abs(s n - l) < e"
   using convergent_bounded_increasing[of s b] assms using convergent_bounded_increasing[of "\<lambda>n. - s n" b]
+  unfolding monoseq_def incseq_def
   apply auto unfolding minus_add_distrib[THEN sym, unfolded diff_minus[THEN sym]]
   unfolding abs_minus_cancel by(rule_tac x="-l" in exI)auto
 
 lemma compact_real_lemma:
   assumes "\<forall>n::nat. abs(s n) \<le> b"
-  shows "\<exists>(l::real) r. (\<forall>m n::nat. m < n --> r m < r n) \<and> ((s \<circ> r) ---> l) sequentially"
+  shows "\<exists>(l::real) r. subseq r \<and> ((s \<circ> r) ---> l) sequentially"
 proof-
-  obtain r where r:"\<forall>m n::nat. m < n \<longrightarrow> r m < r n"
-    "(\<forall>m n. m \<le> n \<longrightarrow> s (r m) \<le> s (r n)) \<or> (\<forall>m n. m \<le> n \<longrightarrow> s (r n) \<le> s (r m))"
-    using seq_monosub[of s] by (auto simp add: subseq_def monoseq_def)
-  thus ?thesis using convergent_bounded_monotone[of "s o r" b] and assms
+  obtain r where r:"subseq r" "monoseq (\<lambda>n. s (r n))"
+    using seq_monosub[of s] by auto
+  thus ?thesis using convergent_bounded_monotone[of "\<lambda>n. s (r n)" b] and assms
     unfolding tendsto_iff dist_norm eventually_sequentially by auto
 qed
 
@@ -2349,9 +2347,9 @@ proof
   then obtain b where b: "\<forall>n. abs (f n) \<le> b"
     unfolding bounded_iff by auto
   obtain l :: real and r :: "nat \<Rightarrow> nat" where
-    r: "\<forall>m n. m < n \<longrightarrow> r m < r n" and l: "((f \<circ> r) ---> l) sequentially"
+    r: "subseq r" and l: "((f \<circ> r) ---> l) sequentially"
     using compact_real_lemma [OF b] by auto
-  thus "\<exists>l r. (\<forall>m n. m < n \<longrightarrow> r m < r n) \<and> ((f \<circ> r) ---> l) sequentially"
+  thus "\<exists>l r. subseq r \<and> ((f \<circ> r) ---> l) sequentially"
     by auto
 qed
 
@@ -2368,28 +2366,29 @@ lemma compact_lemma:
   fixes f :: "nat \<Rightarrow> 'a::heine_borel ^ 'n::finite"
   assumes "bounded s" and "\<forall>n. f n \<in> s"
   shows "\<forall>d.
-        \<exists>l r. (\<forall>n m::nat. m < n --> r m < r n) \<and>
+        \<exists>l r. subseq r \<and>
         (\<forall>e>0. eventually (\<lambda>n. \<forall>i\<in>d. dist (f (r n) $ i) (l $ i) < e) sequentially)"
 proof
   fix d::"'n set" have "finite d" by simp
-  thus "\<exists>l::'a ^ 'n. \<exists>r. (\<forall>n m::nat. m < n --> r m < r n) \<and>
+  thus "\<exists>l::'a ^ 'n. \<exists>r. subseq r \<and>
       (\<forall>e>0. eventually (\<lambda>n. \<forall>i\<in>d. dist (f (r n) $ i) (l $ i) < e) sequentially)"
-  proof(induct d) case empty thus ?case by auto
+  proof(induct d) case empty thus ?case unfolding subseq_def by auto
   next case (insert k d)
     have s': "bounded ((\<lambda>x. x $ k) ` s)" using `bounded s` by (rule bounded_component)
-    obtain l1::"'a^'n" and r1 where r1:"\<forall>n m::nat. m < n \<longrightarrow> r1 m < r1 n" and lr1:"\<forall>e>0. eventually (\<lambda>n. \<forall>i\<in>d. dist (f (r1 n) $ i) (l1 $ i) < e) sequentially"
+    obtain l1::"'a^'n" and r1 where r1:"subseq r1" and lr1:"\<forall>e>0. eventually (\<lambda>n. \<forall>i\<in>d. dist (f (r1 n) $ i) (l1 $ i) < e) sequentially"
       using insert(3) by auto
     have f': "\<forall>n. f (r1 n) $ k \<in> (\<lambda>x. x $ k) ` s" using `\<forall>n. f n \<in> s` by simp
-    obtain l2 r2 where r2:"\<forall>m n::nat. m < n \<longrightarrow> r2 m < r2 n" and lr2:"((\<lambda>i. f (r1 (r2 i)) $ k) ---> l2) sequentially"
+    obtain l2 r2 where r2:"subseq r2" and lr2:"((\<lambda>i. f (r1 (r2 i)) $ k) ---> l2) sequentially"
       using bounded_imp_convergent_subsequence[OF s' f'] unfolding o_def by auto
-    def r \<equiv> "r1 \<circ> r2" have r:"\<forall>m n. m < n \<longrightarrow> r m < r n" unfolding r_def o_def using r1 and r2 by auto
+    def r \<equiv> "r1 \<circ> r2" have r:"subseq r"
+      using r1 and r2 unfolding r_def o_def subseq_def by auto
     moreover
     def l \<equiv> "(\<chi> i. if i = k then l2 else l1$i)::'a^'n"
     { fix e::real assume "e>0"
       from lr1 `e>0` have N1:"eventually (\<lambda>n. \<forall>i\<in>d. dist (f (r1 n) $ i) (l1 $ i) < e) sequentially" by blast
       from lr2 `e>0` have N2:"eventually (\<lambda>n. dist (f (r1 (r2 n)) $ k) l2 < e) sequentially" by (rule tendstoD)
       from r2 N1 have N1': "eventually (\<lambda>n. \<forall>i\<in>d. dist (f (r1 (r2 n)) $ i) (l1 $ i) < e) sequentially"
-        by (rule eventually_subsequence)
+        by (rule eventually_subseq)
       have "eventually (\<lambda>n. \<forall>i\<in>(insert k d). dist (f (r n) $ i) (l $ i) < e) sequentially"
         using N1' N2 by (rule eventually_elim2, simp add: l_def r_def)
     }
@@ -2401,7 +2400,7 @@ instance "^" :: (heine_borel, finite) heine_borel
 proof
   fix s :: "('a ^ 'b) set" and f :: "nat \<Rightarrow> 'a ^ 'b"
   assume s: "bounded s" and f: "\<forall>n. f n \<in> s"
-  then obtain l r where r: "\<forall>n m::nat. m < n --> r m < r n"
+  then obtain l r where r: "subseq r"
     and l: "\<forall>e>0. eventually (\<lambda>n. \<forall>i\<in>UNIV. dist (f (r n) $ i) (l $ i) < e) sequentially"
     using compact_lemma [OF s f] by blast
   let ?d = "UNIV::'b set"
@@ -2422,7 +2421,7 @@ proof
       by (rule eventually_elim1)
   }
   hence *:"((f \<circ> r) ---> l) sequentially" unfolding o_def tendsto_iff by simp
-  with r show "\<exists>l r. (\<forall>m n. m < n \<longrightarrow> r m < r n) \<and> ((f \<circ> r) ---> l) sequentially" by auto
+  with r show "\<exists>l r. subseq r \<and> ((f \<circ> r) ---> l) sequentially" by auto
 qed
 
 subsection{* Completeness. *}
@@ -2487,14 +2486,9 @@ qed
 lemma compact_imp_complete: assumes "compact s" shows "complete s"
 proof-
   { fix f assume as: "(\<forall>n::nat. f n \<in> s)" "Cauchy f"
-    from as(1) obtain l r where lr: "l\<in>s" "(\<forall>m n. m < n \<longrightarrow> r m < r n)" "((f \<circ> r) ---> l) sequentially" using assms unfolding compact_def by blast
+    from as(1) obtain l r where lr: "l\<in>s" "subseq r" "((f \<circ> r) ---> l) sequentially" using assms unfolding compact_def by blast
 
-    { fix n :: nat have lr':"n \<le> r n"
-    proof (induct n)
-      show "0 \<le> r 0" using lr(2) by blast
-    next fix na assume "na \<le> r na" moreover have "na < Suc na \<longrightarrow> r na < r (Suc na)" using lr(2) by blast
-      ultimately show "Suc na \<le> r (Suc na)" by auto
-    qed } note lr' = this
+    note lr' = subseq_bigger [OF lr(2)]
 
     { fix e::real assume "e>0"
       from as(2) obtain N where N:"\<forall>m n. N \<le> m \<and> N \<le> n \<longrightarrow> dist (f m) (f n) < e/2" unfolding cauchy_def using `e>0` apply (erule_tac x="e/2" in allE) by auto
@@ -2601,12 +2595,12 @@ proof(rule, rule, rule ccontr)
       thus "x n \<in> s \<and> (\<forall>m<n. \<not> dist (x m) (x n) < e)" unfolding Q_def by auto
     qed }
   hence "\<forall>n::nat. x n \<in> s" and x:"\<forall>n. \<forall>m < n. \<not> (dist (x m) (x n) < e)" by blast+
-  then obtain l r where "l\<in>s" and r:"\<forall>m n. m < n \<longrightarrow> r m < r n" and "((x \<circ> r) ---> l) sequentially" using assms(1)[unfolded compact_def, THEN spec[where x=x]] by auto
+  then obtain l r where "l\<in>s" and r:"subseq r" and "((x \<circ> r) ---> l) sequentially" using assms(1)[unfolded compact_def, THEN spec[where x=x]] by auto
   from this(3) have "Cauchy (x \<circ> r)" using convergent_imp_cauchy by auto
   then obtain N::nat where N:"\<forall>m n. N \<le> m \<and> N \<le> n \<longrightarrow> dist ((x \<circ> r) m) ((x \<circ> r) n) < e" unfolding cauchy_def using `e>0` by auto
   show False
     using N[THEN spec[where x=N], THEN spec[where x="N+1"]]
-    using r[THEN spec[where x=N], THEN spec[where x="N+1"]]
+    using r[unfolded subseq_def, THEN spec[where x=N], THEN spec[where x="N+1"]]
     using x[THEN spec[where x="r (N+1)"], THEN spec[where x="r (N)"]] by auto
 qed
 
@@ -2625,7 +2619,7 @@ proof(rule ccontr)
   then obtain f where f:"\<forall>n::nat. f n \<in> s \<and> (\<forall>xa\<in>t. \<not> ball (f n) (inverse (real (n + 1))) \<subseteq> xa)"
     using choice[of "\<lambda>n::nat. \<lambda>x. x\<in>s \<and> (\<forall>xa\<in>t. \<not> ball x (inverse (real (n + 1))) \<subseteq> xa)"] by auto
 
-  then obtain l r where l:"l\<in>s" and r:"\<forall>m n. m < n \<longrightarrow> r m < r n" and lr:"((f \<circ> r) ---> l) sequentially"
+  then obtain l r where l:"l\<in>s" and r:"subseq r" and lr:"((f \<circ> r) ---> l) sequentially"
     using assms(1)[unfolded compact_def, THEN spec[where x=f]] by auto
 
   obtain b where "l\<in>b" "b\<in>t" using assms(2) and l by auto
@@ -2638,7 +2632,7 @@ proof(rule ccontr)
   obtain N2::nat where N2:"N2>0" "inverse (real N2) < e /2" using real_arch_inv[of "e/2"] and `e>0` by auto
   have N2':"inverse (real (r (N1 + N2) +1 )) < e/2"
     apply(rule order_less_trans) apply(rule less_imp_inverse_less) using N2
-    using monotone_bigger[OF r, of "N1 + N2"] by auto
+    using subseq_bigger[OF r, of "N1 + N2"] by auto
 
   def x \<equiv> "(f (r (N1 + N2)))"
   have x:"\<not> ball x (inverse (real (r (N1 + N2) + 1))) \<subseteq> b" unfolding x_def
@@ -2952,7 +2946,7 @@ lemma finite_imp_compact:
   by blast
 
 lemma compact_sing [simp]: "compact {a}"
-  unfolding compact_def o_def
+  unfolding compact_def o_def subseq_def
   by (auto simp add: tendsto_const)
 
 lemma compact_cball[simp]:
@@ -3013,7 +3007,7 @@ proof-
   from assms(2) obtain x where x:"\<forall>n::nat. x n \<in> s n" using choice[of "\<lambda>n x. x\<in> s n"] by auto
   from assms(4,1) have *:"compact (s 0)" using bounded_closed_imp_compact[of "s 0"] by auto
 
-  then obtain l r where lr:"l\<in>s 0" "\<forall>m n. m < n \<longrightarrow> r m < r n" "((x \<circ> r) ---> l) sequentially"
+  then obtain l r where lr:"l\<in>s 0" "subseq r" "((x \<circ> r) ---> l) sequentially"
     unfolding compact_def apply(erule_tac x=x in allE)  using x using assms(3) by blast
 
   { fix n::nat
@@ -3021,7 +3015,7 @@ proof-
       with lr(3) obtain N where N:"\<forall>m\<ge>N. dist ((x \<circ> r) m) l < e" unfolding Lim_sequentially by auto
       hence "dist ((x \<circ> r) (max N n)) l < e" by auto
       moreover
-      have "r (max N n) \<ge> n" using lr(2) using monotone_bigger[of r "max N n"] by auto
+      have "r (max N n) \<ge> n" using lr(2) using subseq_bigger[of r "max N n"] by auto
       hence "(x \<circ> r) (max N n) \<in> s n"
 	using x apply(erule_tac x=n in allE)
 	using x apply(erule_tac x="r (max N n)" in allE)
@@ -3901,13 +3895,13 @@ lemma compact_continuous_image:
 proof-
   { fix x assume x:"\<forall>n::nat. x n \<in> f ` s"
     then obtain y where y:"\<forall>n. y n \<in> s \<and> x n = f (y n)" unfolding image_iff Bex_def using choice[of "\<lambda>n xa. xa \<in> s \<and> x n = f xa"] by auto
-    then obtain l r where "l\<in>s" and r:"\<forall>m n. m < n \<longrightarrow> r m < r n" and lr:"((y \<circ> r) ---> l) sequentially" using assms(2)[unfolded compact_def, THEN spec[where x=y]] by auto
+    then obtain l r where "l\<in>s" and r:"subseq r" and lr:"((y \<circ> r) ---> l) sequentially" using assms(2)[unfolded compact_def, THEN spec[where x=y]] by auto
     { fix e::real assume "e>0"
       then obtain d where "d>0" and d:"\<forall>x'\<in>s. dist x' l < d \<longrightarrow> dist (f x') (f l) < e" using assms(1)[unfolded continuous_on_def, THEN bspec[where x=l], OF `l\<in>s`] by auto
       then obtain N::nat where N:"\<forall>n\<ge>N. dist ((y \<circ> r) n) l < d" using lr[unfolded Lim_sequentially, THEN spec[where x=d]] by auto
       { fix n::nat assume "n\<ge>N" hence "dist ((x \<circ> r) n) (f l) < e" using N[THEN spec[where x=n]] d[THEN bspec[where x="y (r n)"]] y[THEN spec[where x="r n"]] by auto  }
       hence "\<exists>N. \<forall>n\<ge>N. dist ((x \<circ> r) n) (f l) < e" by auto  }
-    hence "\<exists>l\<in>f ` s. \<exists>r. (\<forall>m n. m < n \<longrightarrow> r m < r n) \<and> ((x \<circ> r) ---> l) sequentially" unfolding Lim_sequentially using r lr `l\<in>s` by auto  }
+    hence "\<exists>l\<in>f ` s. \<exists>r. subseq r \<and> ((x \<circ> r) ---> l) sequentially" unfolding Lim_sequentially using r lr `l\<in>s` by auto  }
   thus ?thesis unfolding compact_def by auto
 qed
 
@@ -4504,10 +4498,10 @@ proof-
   { fix x l assume as:"\<forall>n. x n \<in> ?S"  "(x ---> l) sequentially"
     from as(1) obtain f where f:"\<forall>n. x n = fst (f n) + snd (f n)"  "\<forall>n. fst (f n) \<in> s"  "\<forall>n. snd (f n) \<in> t"
       using choice[of "\<lambda>n y. x n = (fst y) + (snd y) \<and> fst y \<in> s \<and> snd y \<in> t"] by auto
-    obtain l' r where "l'\<in>s" and r:"\<forall>m n. m < n \<longrightarrow> r m < r n" and lr:"(((\<lambda>n. fst (f n)) \<circ> r) ---> l') sequentially"
+    obtain l' r where "l'\<in>s" and r:"subseq r" and lr:"(((\<lambda>n. fst (f n)) \<circ> r) ---> l') sequentially"
       using assms(1)[unfolded compact_def, THEN spec[where x="\<lambda> n. fst (f n)"]] using f(2) by auto
     have "((\<lambda>n. snd (f (r n))) ---> l - l') sequentially"
-      using Lim_sub[OF lim_subsequence[OF r as(2)] lr] and f(1) unfolding o_def by auto
+      using Lim_sub[OF lim_subseq[OF r as(2)] lr] and f(1) unfolding o_def by auto
     hence "l - l' \<in> t"
       using assms(2)[unfolded closed_sequential_limits, THEN spec[where x="\<lambda> n. snd (f (r n))"], THEN spec[where x="l - l'"]]
       using f(3) by auto
@@ -5301,7 +5295,7 @@ proof-
     have "\<And> n. n\<ge>m \<longrightarrow> dest_vec1 (s m) \<le> dest_vec1 (s n)"
       apply(induct_tac n) apply simp using assms(2) apply(erule_tac x="na" in allE) by(auto simp add: not_less_eq_eq)  }
   hence "\<forall>m n. m \<le> n \<longrightarrow> dest_vec1 (s m) \<le> dest_vec1 (s n)" by auto
-  then obtain l where "\<forall>e>0. \<exists>N. \<forall>n\<ge>N. \<bar>dest_vec1 (s n) - l\<bar> < e" using convergent_bounded_monotone[OF a] by auto
+  then obtain l where "\<forall>e>0. \<exists>N. \<forall>n\<ge>N. \<bar>dest_vec1 (s n) - l\<bar> < e" using convergent_bounded_monotone[OF a] unfolding monoseq_def by auto
   thus ?thesis unfolding Lim_sequentially apply(rule_tac x="vec1 l" in exI)
     unfolding dist_norm unfolding abs_dest_vec1 and dest_vec1_sub by auto
 qed
@@ -5968,7 +5962,7 @@ next
 
   def h \<equiv> "\<lambda>n. pastecart (f n x) (f n y)"
   let ?s2 = "{pastecart x y |x y. x \<in> s \<and> y \<in> s}"
-  obtain l r where "l\<in>?s2" and r:"\<forall>m n. m < n \<longrightarrow> r m < r n" and lr:"((h \<circ> r) ---> l) sequentially"
+  obtain l r where "l\<in>?s2" and r:"subseq r" and lr:"((h \<circ> r) ---> l) sequentially"
     using compact_pastecart[OF s(1) s(1), unfolded compact_def, THEN spec[where x=h]] unfolding  h_def
     using fs[OF `x\<in>s`] and fs[OF `y\<in>s`] by blast
   def a \<equiv> "fstcart l" def b \<equiv> "sndcart l"
@@ -6002,7 +5996,7 @@ next
       moreover
       have "dist (f (r (Na + Nb + n)) x - f (r (Na + Nb + n)) y) (a - b) \<ge> dist a b - dist (f n x) (f n y)"
 	using distf[of n "r (Na+Nb+n)", OF _ `x\<in>s` `y\<in>s`]
-	using monotone_bigger[OF r, of "Na+Nb+n"]
+	using subseq_bigger[OF r, of "Na+Nb+n"]
 	using *[of "f (r (Na + Nb + n)) x" "f (r (Na + Nb + n)) y" "f n x" "f n y"] by auto
       ultimately have False by simp
     }
