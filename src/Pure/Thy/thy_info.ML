@@ -387,7 +387,7 @@ fun schedule_seq tasks =
     (case Graph.get_node tasks name of
       Task body =>
         let val after_load = body ()
-        in after_load () handle exn => (kill_thy name; raise exn) end
+        in after_load () handle exn => (kill_thy name; reraise exn) end
     | _ => ()));
 
 in
