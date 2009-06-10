@@ -6,7 +6,7 @@
 header {* Elementary topology in Euclidean space. *}
 
 theory Topology_Euclidean_Space
-imports SEQ Euclidean_Space
+imports SEQ Euclidean_Space Product_Vector
 begin
 
 declare fstcart_pastecart[simp] sndcart_pastecart[simp]
@@ -2422,6 +2422,54 @@ proof
   }
   hence *:"((f \<circ> r) ---> l) sequentially" unfolding o_def tendsto_iff by simp
   with r show "\<exists>l r. subseq r \<and> ((f \<circ> r) ---> l) sequentially" by auto
+qed
+
+lemma bounded_fst: "bounded s \<Longrightarrow> bounded (fst ` s)"
+unfolding bounded_def
+apply clarify
+apply (rule_tac x="a" in exI)
+apply (rule_tac x="e" in exI)
+apply clarsimp
+apply (drule (1) bspec)
+apply (simp add: dist_Pair_Pair)
+apply (erule order_trans [OF real_sqrt_sum_squares_ge1])
+done
+
+lemma bounded_snd: "bounded s \<Longrightarrow> bounded (snd ` s)"
+unfolding bounded_def
+apply clarify
+apply (rule_tac x="b" in exI)
+apply (rule_tac x="e" in exI)
+apply clarsimp
+apply (drule (1) bspec)
+apply (simp add: dist_Pair_Pair)
+apply (erule order_trans [OF real_sqrt_sum_squares_ge2])
+done
+
+instance "*" :: (heine_borel, heine_borel) heine_borel
+proof
+  fix s :: "('a * 'b) set" and f :: "nat \<Rightarrow> 'a * 'b"
+  assume s: "bounded s" and f: "\<forall>n. f n \<in> s"
+  from s have s1: "bounded (fst ` s)" by (rule bounded_fst)
+  from f have f1: "\<forall>n. fst (f n) \<in> fst ` s" by simp
+  obtain l1 r1 where r1: "subseq r1"
+    and l1: "((\<lambda>n. fst (f (r1 n))) ---> l1) sequentially"
+    using bounded_imp_convergent_subsequence [OF s1 f1]
+    unfolding o_def by fast
+  from s have s2: "bounded (snd ` s)" by (rule bounded_snd)
+  from f have f2: "\<forall>n. snd (f (r1 n)) \<in> snd ` s" by simp
+  obtain l2 r2 where r2: "subseq r2"
+    and l2: "((\<lambda>n. snd (f (r1 (r2 n)))) ---> l2) sequentially"
+    using bounded_imp_convergent_subsequence [OF s2 f2]
+    unfolding o_def by fast
+  have l1': "((\<lambda>n. fst (f (r1 (r2 n)))) ---> l1) sequentially"
+    using lim_subseq [OF r2 l1] unfolding o_def .
+  have l: "((f \<circ> (r1 \<circ> r2)) ---> (l1, l2)) sequentially"
+    using tendsto_Pair [OF l1' l2] unfolding o_def by simp
+  have r: "subseq (r1 \<circ> r2)"
+    using r1 r2 unfolding subseq_def by simp
+  show "\<exists>l r. subseq r \<and> ((f \<circ> r) ---> l) sequentially"
+    using l r by fast
 qed
 
 subsection{* Completeness. *}
