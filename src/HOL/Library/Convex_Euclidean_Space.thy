@@ -1227,32 +1227,68 @@ lemma tendsto_dest_vec1: "(f ---> l) net \<Longrightarrow> ((\<lambda>x. dest_ve
 lemma continuous_dest_vec1: "continuous net f \<Longrightarrow> continuous net (\<lambda>x. dest_vec1 (f x))"
   unfolding continuous_def by (rule tendsto_dest_vec1)
 
+lemma mem_Times_iff: "x \<in> A \<times> B \<longleftrightarrow> fst x \<in> A \<and> snd x \<in> B"
+by (induct x) simp
+
+(* TODO: move *)
+lemma compact_Times: "compact s \<Longrightarrow> compact t \<Longrightarrow> compact (s \<times> t)"
+unfolding compact_def
+apply clarify
+apply (drule_tac x="fst \<circ> f" in spec)
+apply (drule mp, simp add: mem_Times_iff)
+apply (clarify, rename_tac l1 r1)
+apply (drule_tac x="snd \<circ> f \<circ> r1" in spec)
+apply (drule mp, simp add: mem_Times_iff)
+apply (clarify, rename_tac l2 r2)
+apply (rule_tac x="(l1, l2)" in rev_bexI, simp)
+apply (rule_tac x="r1 \<circ> r2" in exI)
+apply (rule conjI, simp add: subseq_def)
+apply (drule_tac r=r2 in lim_subseq [COMP swap_prems_rl], assumption)
+apply (drule (1) tendsto_Pair) back
+apply (simp add: o_def)
+done
+
+(* TODO: move *)
+lemma compact_real_interval:
+  fixes a b :: real shows "compact {a..b}"
+proof -
+  have "continuous_on {vec1 a .. vec1 b} dest_vec1"
+    unfolding continuous_on
+    by (simp add: tendsto_dest_vec1 Lim_at_within Lim_ident_at)
+  moreover have "compact {vec1 a .. vec1 b}" by (rule compact_interval)
+  ultimately have "compact (dest_vec1 ` {vec1 a .. vec1 b})"
+    by (rule compact_continuous_image)
+  also have "dest_vec1 ` {vec1 a .. vec1 b} = {a..b}"
+    by (auto simp add: image_def Bex_def exists_vec1)
+  finally show ?thesis .
+qed
+
 lemma compact_convex_combinations:
   fixes s t :: "(real ^ 'n::finite) set"
   assumes "compact s" "compact t"
   shows "compact { (1 - u) *s x + u *s y | x y u. 0 \<le> u \<and> u \<le> 1 \<and> x \<in> s \<and> y \<in> t}"
 proof-
-  let ?X = "{ pastecart u w | u w. u \<in> {vec1 0 .. vec1 1} \<and> w \<in> { pastecart x y |x y. x \<in> s \<and> y \<in> t} }"
-  let ?h = "(\<lambda>z. (1 - dest_vec1(fstcart z)) *s fstcart(sndcart z) + dest_vec1(fstcart z) *s sndcart(sndcart z))"
+  let ?X = "{0..1} \<times> s \<times> t"
+  let ?h = "(\<lambda>z. (1 - fst z) *s fst (snd z) + fst z *s snd (snd z))"
   have *:"{ (1 - u) *s x + u *s y | x y u. 0 \<le> u \<and> u \<le> 1 \<and> x \<in> s \<and> y \<in> t} = ?h ` ?X"
-    apply(rule set_ext) unfolding image_iff mem_Collect_eq unfolding mem_interval_1 vec1_dest_vec1
-    apply rule apply auto apply(rule_tac x="pastecart (vec1 u) (pastecart xa y)" in exI) apply simp
-    apply(rule_tac x="vec1 u" in exI) apply(rule_tac x="pastecart xa y" in exI) by auto 
-  { fix u::"real^1" fix x y assume as:"0 \<le> dest_vec1 u" "dest_vec1 u \<le> 1" "x \<in> s" "y \<in> t"
-    hence "continuous (at (pastecart u (pastecart x y)))
-           (\<lambda>z. fstcart (sndcart z) - dest_vec1 (fstcart z) *s fstcart (sndcart z) +
-                dest_vec1 (fstcart z) *s sndcart (sndcart z))"
-      apply (auto intro!: continuous_add continuous_sub continuous_mul continuous_dest_vec1
-                  simp add: o_def vec1_dest_vec1)
-      using linear_continuous_at linear_fstcart linear_sndcart linear_sndcart
-      using linear_compose[unfolded o_def] by auto  }
-  hence "continuous_on {pastecart u w |u w. u \<in> {vec1 0..vec1 1} \<and> w \<in> {pastecart x y |x y. x \<in> s \<and> y \<in> t}}
-     (\<lambda>z. (1 - dest_vec1 (fstcart z)) *s fstcart (sndcart z) + dest_vec1 (fstcart z) *s sndcart (sndcart z))"
-    apply(rule_tac continuous_at_imp_continuous_on) unfolding mem_Collect_eq
-    unfolding mem_interval_1 vec1_dest_vec1 by auto
+    apply(rule set_ext) unfolding image_iff mem_Collect_eq
+    apply rule apply auto
+    apply (rule_tac x=u in rev_bexI, simp)
+    apply (erule rev_bexI, erule rev_bexI, simp)
+    by auto
+  { fix u::"real" fix x y assume as:"0 \<le> u" "u \<le> 1" "x \<in> s" "y \<in> t"
+    hence "continuous (at (u, x, y))
+           (\<lambda>z. fst (snd z) - fst z *s fst (snd z) + fst z *s snd (snd z))"
+      apply (auto intro!: continuous_add continuous_sub continuous_mul)
+      unfolding continuous_at
+      by (safe intro!: tendsto_fst tendsto_snd Lim_at_id [unfolded id_def])
+  }
+  hence "continuous_on ({0..1} \<times> s \<times> t)
+     (\<lambda>z. (1 - fst z) *s fst (snd z) + fst z *s snd (snd z))"
+    apply(rule_tac continuous_at_imp_continuous_on) by auto
  thus ?thesis unfolding * apply(rule compact_continuous_image)
-    defer apply(rule compact_pastecart) defer apply(rule compact_pastecart)
-    using compact_interval assms by auto
+    defer apply(rule compact_Times) defer apply(rule compact_Times)
+    using compact_real_interval assms by auto
 qed
 
 lemma compact_convex_hull: fixes s::"(real^'n::finite) set"
