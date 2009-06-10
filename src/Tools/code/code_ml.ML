@@ -311,13 +311,13 @@ fun pr_sml_stmt labelled_name syntax_tyco syntax_const reserved_names deresolve 
           let
             fun pr_superclass (_, (classrel, dss)) =
               concat [
-                (str o deresolve) classrel,
+                (str o Long_Name.base_name o deresolve) classrel,
                 str "=",
                 pr_dicts NOBR [DictConst dss]
               ];
             fun pr_classparam ((classparam, c_inst), (thm, _)) =
               concat [
-                (str o deresolve) classparam,
+                (str o Long_Name.base_name o deresolve) classparam,
                 str "=",
                 pr_app (K false) thm reserved_names NOBR (c_inst, [])
               ];
