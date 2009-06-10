@@ -58,7 +58,7 @@ fun print_option f NONE = "NONE"
   | print_option f (SOME x) = "SOME (" ^ f x ^ ")";
 
 fun print_char s =
-  if not (Symbol.is_char s) then raise Fail ("Bad character: " ^ quote s)
+  if not (Symbol.is_char s) then s
   else if s = "\"" then "\\\""
   else if s = "\\" then "\\\\"
   else
@@ -68,7 +68,7 @@ fun print_char s =
       else "\\" ^ string_of_int c
     end;
 
-val print_string = quote o translate_string print_char;
+val print_string = quote o implode o map print_char o Symbol.explode;
 val print_strings = print_list print_string;
 
 val print_properties = print_list (print_pair print_string print_string);

@@ -249,9 +249,9 @@ The key concept for understanding \isa{Isabelle}'s code generation is
 \hspace*{0pt}dequeue (AQueue [] []) = (Nothing,~AQueue [] []);\\
 \hspace*{0pt}dequeue (AQueue xs (y :~ys)) = (Just y,~AQueue xs ys);\\
 \hspace*{0pt}dequeue (AQueue (v :~va) []) =\\
-\hspace*{0pt} ~let {\char123}\\
+\hspace*{0pt} ~(let {\char123}\\
 \hspace*{0pt} ~~~(y :~ys) = rev (v :~va);\\
-\hspace*{0pt} ~{\char125}~in (Just y,~AQueue [] ys);\\
+\hspace*{0pt} ~{\char125}~in (Just y,~AQueue [] ys) );\\
 \hspace*{0pt}\\
 \hspace*{0pt}enqueue ::~forall a.~a -> Queue a -> Queue a;\\
 \hspace*{0pt}enqueue x (AQueue xs ys) = AQueue (x :~xs) ys;\\
