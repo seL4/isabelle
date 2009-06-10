@@ -129,12 +129,12 @@ lemma random_aux_rec:
 use "Tools/quickcheck_generators.ML"
 setup {* Quickcheck_Generators.setup *}
 
-code_reserved Quickcheck Quickcheck_Generators
-
 code_const random_fun_aux (Quickcheck "Quickcheck'_Generators.random'_fun")
   -- {* With enough criminal energy this can be abused to derive @{prop False};
   for this reason we use a distinguished target @{text Quickcheck}
   not spoiling the regular trusted code generation *}
+
+code_reserved Quickcheck Quickcheck_Generators
 
 
 hide (open) const collapse beyond random_fun_aux random_fun_lift
