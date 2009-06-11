@@ -12,7 +12,7 @@ uses
   ("Tools/split_rule.ML")
   ("Tools/inductive_set_package.ML")
   ("Tools/inductive_realizer.ML")
-  ("Tools/datatype_realizer.ML")
+  ("Tools/datatype_package/datatype_realizer.ML")
 begin
 
 subsection {* @{typ bool} is a datatype *}
@@ -1155,7 +1155,7 @@ setup InductiveRealizer.setup
 use "Tools/inductive_set_package.ML"
 setup InductiveSetPackage.setup
 
-use "Tools/datatype_realizer.ML"
+use "Tools/datatype_package/datatype_realizer.ML"
 setup DatatypeRealizer.setup
 
 end

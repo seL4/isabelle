@@ -1,5 +1,4 @@
-(* Author: Florian Haftmann, TU Muenchen
-*)
+(* Author: Florian Haftmann, TU Muenchen *)
 
 header {* Finite types as explicit enumerations *}
 

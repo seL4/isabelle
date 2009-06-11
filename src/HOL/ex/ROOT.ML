@@ -9,7 +9,6 @@ no_document use_thys [
   "FuncSet",
   "Word",
   "Eval_Examples",
-  "Quickcheck_Generators",
   "Codegenerator_Test",
   "Codegenerator_Pretty_Test",
   "NormalForm",

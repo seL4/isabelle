@@ -580,13 +580,11 @@ datatype spec = Spec of {
   cases: (int * (int * string list)) Symtab.table * unit Symtab.table
 };
 
-fun mk_spec ((concluded_history, eqns), (dtyps, cases)) =
+fun make_spec ((concluded_history, eqns), (dtyps, cases)) =
   Spec { concluded_history = concluded_history, eqns = eqns, dtyps = dtyps, cases = cases };
-val empty_spec =
-  mk_spec ((false, Symtab.empty), (Symtab.empty, (Symtab.empty, Symtab.empty)));
 fun map_spec f (Spec { concluded_history = concluded_history, eqns = eqns,
   dtyps = dtyps, cases = cases }) =
-  mk_spec (f ((concluded_history, eqns), (dtyps, cases)));
+  make_spec (f ((concluded_history, eqns), (dtyps, cases)));
 fun merge_spec (Spec { concluded_history = _, eqns = eqns1, dtyps = dtyps1, cases = (cases1, undefs1) },
   Spec { concluded_history = _, eqns = eqns2, dtyps = dtyps2, cases = (cases2, undefs2) }) =
   let
@@ -602,15 +600,16 @@ fun merge_spec (Spec { concluded_history = _, eqns = eqns1, dtyps = dtyps1, case
     val dtyps = Symtab.join (K (AList.merge (op =) (K true))) (dtyps1, dtyps2);
     val cases = (Symtab.merge (K true) (cases1, cases2),
       Symtab.merge (K true) (undefs1, undefs2));
-  in mk_spec ((false, eqns), (dtyps, cases)) end;
+  in make_spec ((false, eqns), (dtyps, cases)) end;
 
 
 (* code setup data *)
 
 fun the_spec (Spec x) = x;
-val the_eqns = #eqns o the_spec;
-val the_dtyps = #dtyps o the_spec;
-val the_cases = #cases o the_spec;
+fun the_eqns (Spec { eqns, ... }) = eqns;
+fun the_dtyps (Spec { dtyps, ... }) = dtyps;
+fun the_cases (Spec { cases, ... }) = cases;
+fun history_concluded (Spec { concluded_history, ... }) = concluded_history;
 val map_concluded_history = map_spec o apfst o apfst;
 val map_eqns = map_spec o apfst o apsnd;
 val map_dtyps = map_spec o apsnd o apfst;
@@ -665,7 +664,8 @@ val empty_data = Datatab.empty : data;
 structure Code_Data = TheoryDataFun
 (
   type T = spec * data ref;
-  val empty = (empty_spec, ref empty_data);
+  val empty = (make_spec ((false, Symtab.empty),
+    (Symtab.empty, (Symtab.empty, Symtab.empty))), ref empty_data);
   fun copy (spec, data) = (spec, ref (! data));
   val extend = copy;
   fun merge pp ((spec1, data1), (spec2, data2)) =
@@ -706,13 +706,13 @@ fun get_eqns thy c =
   |> Option.map (Lazy.force o snd o snd o fst)
   |> these;
 
-fun continue_history thy = if (#concluded_history o the_spec o the_exec) thy
+fun continue_history thy = if (history_concluded o the_exec) thy
   then thy
     |> (Code_Data.map o apfst o map_concluded_history) (K false)
     |> SOME
   else NONE;
 
-fun conclude_history thy = if (#concluded_history o the_spec o the_exec) thy
+fun conclude_history thy = if (history_concluded o the_exec) thy
   then NONE
   else thy
     |> (Code_Data.map o apfst)

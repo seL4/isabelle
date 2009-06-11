@@ -6,20 +6,18 @@ Datatype package for Isabelle/HOL.
 
 signature DATATYPE_PACKAGE =
 sig
-  val quiet_mode : bool ref
-  val get_datatypes : theory -> DatatypeAux.datatype_info Symtab.table
-  val print_datatypes : theory -> unit
-  val get_datatype : theory -> string -> DatatypeAux.datatype_info option
-  val the_datatype : theory -> string -> DatatypeAux.datatype_info
-  val datatype_of_constr : theory -> string -> DatatypeAux.datatype_info option
-  val datatype_of_case : theory -> string -> DatatypeAux.datatype_info option
+  type datatype_info = DatatypeAux.datatype_info
+  type descr = DatatypeAux.descr
+  val get_datatypes : theory -> datatype_info Symtab.table
+  val get_datatype : theory -> string -> datatype_info option
+  val the_datatype : theory -> string -> datatype_info
+  val datatype_of_constr : theory -> string -> datatype_info option
+  val datatype_of_case : theory -> string -> datatype_info option
   val the_datatype_spec : theory -> string -> (string * sort) list * (string * typ list) list
+  val the_datatype_descr : theory -> string list
+    -> descr * (string * sort) list * string list
+      * (string list * string list) * (typ list * typ list)
   val get_datatype_constrs : theory -> string -> (string * typ) list option
-  val construction_interpretation : theory
-    -> {atom : typ -> 'a, dtyp : string -> 'a, rtyp : string * typ list -> 'a list -> 'a}
-    -> (string * sort) list -> string list
-    -> (string * (string * 'a list) list) list
-      * ((string * typ list) * (string * 'a list) list) list
   val distinct_simproc : simproc
   val make_case :  Proof.context -> bool -> string list -> term ->
     (term * term) list -> term * (term * (int * bool)) list
@@ -58,6 +56,8 @@ sig
        induction : thm,
        simps : thm list} * theory
   val setup: theory -> theory
+  val quiet_mode : bool ref
+  val print_datatypes : theory -> unit
 end;
 
 structure DatatypePackage : DATATYPE_PACKAGE =
@@ -133,6 +133,34 @@ fun the_datatype_spec thy dtco =
       (fn (co, tys) => (co, map (DatatypeAux.typ_of_dtyp descr sorts) tys)) raw_cos;
   in (sorts, cos) end;
 
+fun the_datatype_descr thy (raw_tycos as raw_tyco :: _) =
+  let
+    val info = the_datatype thy raw_tyco;
+    val descr = #descr info;
+
+    val SOME (_, dtys, raw_cos) = AList.lookup (op =) descr (#index info);
+    val vs = map ((fn v => (v, (the o AList.lookup (op =) (#sorts info)) v))
+      o dest_DtTFree) dtys;
+
+    fun is_DtTFree (DtTFree _) = true
+      | is_DtTFree _ = false
+    val k = find_index (fn (_, (_, dTs, _)) => not (forall is_DtTFree dTs)) descr;
+    val protoTs as (dataTs, _) = chop k descr
+      |> (pairself o map) (fn (_, (tyco, dTs, _)) => (tyco, map (typ_of_dtyp descr vs) dTs));
+    
+    val tycos = map fst dataTs;
+    val _ = if gen_eq_set (op =) (tycos, raw_tycos) then ()
+      else error ("Type constructors " ^ commas (map quote raw_tycos)
+        ^ "do not belong exhaustively to one mutual recursive datatype");
+
+    val (Ts, Us) = (pairself o map) Type protoTs;
+
+    val names = map Long_Name.base_name (the_default tycos (#alt_names info));
+    val (auxnames, _) = Name.make_context names
+      |> fold_map (yield_singleton Name.variants o name_of_typ) Us
+
+  in (descr, vs, tycos, (names, auxnames), (Ts, Us)) end;
+
 fun get_datatype_constrs thy dtco =
   case try (the_datatype_spec thy) dtco
    of SOME (sorts, cos) =>
@@ -144,31 +172,6 @@ fun get_datatype_constrs thy dtco =
           fun mk_co (co, tys) = (co, map (Term.map_atyps subst_ty) tys ---> dty);
         in SOME (map mk_co cos) end
     | NONE => NONE;
-
-fun construction_interpretation thy { atom, dtyp, rtyp } sorts tycos =
-  let
-    val descr = (#descr o the_datatype thy o hd) tycos;
-    val k = length tycos;
-    val descr_of = the o AList.lookup (op =) descr;
-    val typ_of_dtyp = typ_of_dtyp descr sorts;
-    fun interpT (dT as DtTFree _) = atom (typ_of_dtyp dT)
-      | interpT (dT as DtType (tyco, dTs)) = 
-          let
-            val Ts = map typ_of_dtyp dTs;
-          in if is_rec_type dT
-            then rtyp (tyco, Ts) (map interpT dTs)
-            else atom (Type (tyco, Ts))
-          end
-      | interpT (DtRec l) = if l < k then (dtyp o #1 o descr_of) l
-          else let
-            val (tyco, dTs, _) = descr_of l;
-            val Ts = map typ_of_dtyp dTs;
-          in rtyp (tyco, Ts) (map interpT dTs) end;
-    fun interpC (c, dTs) = (c, map interpT dTs);
-    fun interpD (_, (tyco, _, cs)) = (tyco, map interpC cs);
-    fun interpR (_, (tyco, dTs, cs)) = ((tyco, map typ_of_dtyp dTs), map interpC cs);
-  in chop k descr |> (apfst o map) interpD |> (apsnd o map) interpR end;
-
 
 
 (** induct method setup **)
