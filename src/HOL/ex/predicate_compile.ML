@@ -1445,13 +1445,15 @@ val add_elim_attrib = attrib set_elim;
 (* TODO: must create state to prove multiple cases *)
 fun generic_code_pred prep_const raw_const lthy =
   let
+  
     val thy = ProofContext.theory_of lthy
     val const = prep_const thy raw_const
+    
     val lthy' = LocalTheory.theory (PredData.map (Graph.extend (dependencies_of thy) const)) lthy
       |> LocalTheory.checkpoint
     val thy' = ProofContext.theory_of lthy'
     val preds = Graph.all_preds (PredData.get thy') [const] |> filter_out (has_elim thy')
-    val _ = Output.tracing ("preds: " ^ commas preds)
+    
     fun mk_cases const =
       let
         val nparams = nparams_of thy' const
