@@ -19,16 +19,16 @@ val clean_string = translate
     | "{" => "\\{"
     | "|" => "$\\mid$"
     | "}" => "\\}"
-    | "\\<dash>" => "-"
+    | "\<dash>" => "-"
     | c => c);
 
-fun clean_name "\\<dots>" = "dots"
+fun clean_name "\<dots>" = "dots"
   | clean_name ".." = "ddot"
   | clean_name "." = "dot"
   | clean_name "_" = "underscore"
   | clean_name "{" = "braceleft"
   | clean_name "}" = "braceright"
-  | clean_name s = s |> translate (fn "_" => "-" | "\\<dash>" => "-" | c => c);
+  | clean_name s = s |> translate (fn "_" => "-" | "\<dash>" => "-" | c => c);
 
 
 (* verbatim text *)

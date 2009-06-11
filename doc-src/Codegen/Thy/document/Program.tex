@@ -346,8 +346,8 @@ Concerning type classes and code generation, let us examine an example
 \hspace*{0pt}type 'a semigroup = {\char123}mult :~'a -> 'a -> 'a{\char125};\\
 \hspace*{0pt}fun mult (A{\char95}:'a semigroup) = {\char35}mult A{\char95};\\
 \hspace*{0pt}\\
-\hspace*{0pt}type 'a monoid = {\char123}Program{\char95}{\char95}semigroup{\char95}monoid :~'a semigroup,~neutral :~'a{\char125};\\
-\hspace*{0pt}fun semigroup{\char95}monoid (A{\char95}:'a monoid) = {\char35}Program{\char95}{\char95}semigroup{\char95}monoid A{\char95};\\
+\hspace*{0pt}type 'a monoid = {\char123}semigroup{\char95}monoid :~'a semigroup,~neutral :~'a{\char125};\\
+\hspace*{0pt}fun semigroup{\char95}monoid (A{\char95}:'a monoid) = {\char35}semigroup{\char95}monoid A{\char95};\\
 \hspace*{0pt}fun neutral (A{\char95}:'a monoid) = {\char35}neutral A{\char95};\\
 \hspace*{0pt}\\
 \hspace*{0pt}fun pow A{\char95}~Zero{\char95}nat a = neutral A{\char95}\\
@@ -363,9 +363,8 @@ Concerning type classes and code generation, let us examine an example
 \hspace*{0pt}\\
 \hspace*{0pt}val semigroup{\char95}nat = {\char123}mult = mult{\char95}nat{\char125}~:~nat semigroup;\\
 \hspace*{0pt}\\
-\hspace*{0pt}val monoid{\char95}nat =\\
-\hspace*{0pt} ~{\char123}Program{\char95}{\char95}semigroup{\char95}monoid = semigroup{\char95}nat,~neutral = neutral{\char95}nat{\char125}~:\\
-\hspace*{0pt} ~nat monoid;\\
+\hspace*{0pt}val monoid{\char95}nat = {\char123}semigroup{\char95}monoid = semigroup{\char95}nat,~neutral = neutral{\char95}nat{\char125}\\
+\hspace*{0pt} ~:~nat monoid;\\
 \hspace*{0pt}\\
 \hspace*{0pt}fun bexp n = pow monoid{\char95}nat n (Suc (Suc Zero{\char95}nat));\\
 \hspace*{0pt}\\
@@ -967,9 +966,9 @@ Partiality usually enters the game by partial patterns, as
 \noindent%
 \hspace*{0pt}strict{\char95}dequeue ::~forall a.~Queue a -> (a,~Queue a);\\
 \hspace*{0pt}strict{\char95}dequeue (AQueue xs []) =\\
-\hspace*{0pt} ~let {\char123}\\
+\hspace*{0pt} ~(let {\char123}\\
 \hspace*{0pt} ~~~(y :~ys) = rev xs;\\
-\hspace*{0pt} ~{\char125}~in (y,~AQueue [] ys);\\
+\hspace*{0pt} ~{\char125}~in (y,~AQueue [] ys) );\\
 \hspace*{0pt}strict{\char95}dequeue (AQueue xs (y :~ys)) = (y,~AQueue xs ys);%
 \end{isamarkuptext}%
 \isamarkuptrue%
