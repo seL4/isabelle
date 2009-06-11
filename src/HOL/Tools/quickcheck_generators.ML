@@ -138,35 +138,52 @@ fun ensure_random_typecopy tyco thy =
 (* definitional scheme for random instances on datatypes *)
 
 (*FIXME avoid this low-level proving*)
-val rct = Thm.cprop_of @{thm random_aux_rec} |> Thm.dest_arg |> Thm.dest_arg
-  |> Thm.dest_arg |> Thm.dest_arg1 |> Thm.dest_fun;
+local
+
 fun dest_ctyp_nth k cT = nth (Thm.dest_ctyp cT) k;
-val aT = rct |> Thm.ctyp_of_term |> dest_ctyp_nth 1;
+val eq = Thm.cprop_of @{thm random_aux_rec} |> Thm.dest_arg |> Thm.dest_arg |> Thm.dest_arg;
+val lhs = eq |> Thm.dest_arg1;
+val pt_random_aux = lhs |> Thm.dest_fun;
+val ct_k = lhs |> Thm.dest_arg;
+val pt_rhs = eq |> Thm.dest_arg |> Thm.dest_fun;
+val aT = pt_random_aux |> Thm.ctyp_of_term |> dest_ctyp_nth 1;
+
+val rew_thms = map mk_meta_eq [@{thm code_numeral_zero_minus_one},
+  @{thm Suc_code_numeral_minus_one}, @{thm select_weight_cons_zero}, @{thm beyond_zero}];
+val rew_ts = map (Logic.dest_equals o Thm.prop_of) rew_thms;
+val rew_ss = HOL_ss addsimps rew_thms;
+
+in
 
 fun random_aux_primrec eq lthy =
   let
     val thy = ProofContext.theory_of lthy;
-    val rews = map mk_meta_eq [@{thm code_numeral_zero_minus_one},
-      @{thm Suc_code_numeral_minus_one}, @{thm select_weight_cons_zero}, @{thm beyond_zero}];
-    val (rt as Free (random_aux, T)) $ (vt as Free (v, _)) =
-      (fst o HOLogic.dest_eq o HOLogic.dest_Trueprop) eq;
+    val ((t_random_aux as Free (random_aux, T)) $ (t_k as Free (v, _)), proto_t_rhs) =
+      (HOLogic.dest_eq o HOLogic.dest_Trueprop) eq;
     val Type (_, [_, iT]) = T;
     val icT = Thm.ctyp_of thy iT;
+    val cert = Thm.cterm_of thy;
+    val inst = Thm.instantiate_cterm ([(aT, icT)], []);
     fun subst_v t' = map_aterms (fn t as Free (w, _) => if v = w then t' else t | t => t);
-    val eqs0 = [subst_v @{term "0::code_numeral"} eq, subst_v (@{term "Suc_code_numeral"} $ vt) eq];
-    val eqs1 = map (Pattern.rewrite_term thy (map (Logic.dest_equals o Thm.prop_of) rews) []) eqs0
+    val t_rhs = lambda t_k proto_t_rhs;
+    val eqs0 = [subst_v @{term "0::code_numeral"} eq, subst_v (@{term "Suc_code_numeral"} $ t_k) eq];
+    val eqs1 = map (Pattern.rewrite_term thy rew_ts []) eqs0;
     val ((_, eqs2), lthy') = PrimrecPackage.add_primrec_simple
       [((Binding.name random_aux, T), NoSyn)] eqs1 lthy;
-    val eq_tac = ALLGOALS Goal.conjunction_tac THEN ALLGOALS (simp_tac (HOL_ss addsimps rews))
+    val eq_tac = ALLGOALS Goal.conjunction_tac THEN ALLGOALS (simp_tac rew_ss)
       THEN (ALLGOALS (ProofContext.fact_tac (flat eqs2)));
     val eqs3 = Goal.prove_multi lthy' [v] [] eqs0 (K eq_tac);
-    val rct' = Thm.instantiate_cterm ([(aT, icT)], []) rct
+    val cT_random_aux = inst pt_random_aux;
+    val cT_rhs = inst pt_rhs;
     val rule = @{thm random_aux_rec}
-      |> Drule.instantiate ([(aT, icT)], [(rct', Thm.cterm_of thy rt)])
-      |> (fn thm => thm OF eqs3)
+      |> Drule.instantiate ([(aT, icT)],
+           [(cT_random_aux, cert t_random_aux), (cT_rhs, cert t_rhs)])
+      |> (fn thm => thm OF eqs3);
     val tac = ALLGOALS (rtac rule);
     val simp = Goal.prove lthy' [v] [] eq (K tac);
   in (simp, lthy') end;
+
+end;
 
 fun random_aux_primrec_multi prefix [eq] lthy =
       lthy
