@@ -44,13 +44,15 @@ inductive partition :: "('a \<Rightarrow> bool) \<Rightarrow> 'a list \<Rightarr
   | "f x \<Longrightarrow> partition f xs ys zs \<Longrightarrow> partition f (x # xs) (x # ys) zs"
   | "\<not> f x \<Longrightarrow> partition f xs ys zs \<Longrightarrow> partition f (x # xs) ys (x # zs)"
 
+(* FIXME: correct handling of parameters *)
+(*
 ML {* reset Predicate_Compile.do_proofs *}
-
 code_pred partition .
 
 thm partition.equation
-
 ML {* set Predicate_Compile.do_proofs *}
+*)
+
 (* TODO: requires to handle abstractions in parameter positions correctly *)
 (*FIXME values 10 "{(ys, zs). partition (\<lambda>n. n mod 2 = 0)
   [0, Suc 0, 2, 3, 4, 5, 6, 7] ys zs}" *)
@@ -63,11 +65,11 @@ lemma [code_pred_intros]:
 "r a b ==> tranclp r b c ==> tranclp r a c" 
 by auto
 *)
-
+(*
 code_pred tranclp .
 
 thm tranclp.equation
-
+*)
 inductive succ :: "nat \<Rightarrow> nat \<Rightarrow> bool" where
     "succ 0 1"
   | "succ m n \<Longrightarrow> succ (Suc m) (Suc n)"
