@@ -2931,7 +2931,7 @@ apply(case_tac ys)
 done
 
 
-subsubsection {* Infiniteness *}
+subsubsection {* (In)finiteness *}
 
 lemma finite_maxlen:
   "finite (M::'a list set) ==> EX n. ALL s:M. size s < n"
@@ -2942,6 +2942,27 @@ next
   then obtain n where "\<forall>s\<in>M. length s < n" by blast
   hence "ALL s:insert xs M. size s < max n (size xs) + 1" by auto
   thus ?case ..
+qed
+
+lemma finite_lists_length_eq:
+assumes "finite A"
+shows "finite {xs. set xs \<subseteq> A \<and> length xs = n}" (is "finite (?S n)")
+proof(induct n)
+  case 0 show ?case by simp
+next
+  case (Suc n)
+  have "?S (Suc n) = (\<Union>x\<in>A. (\<lambda>xs. x#xs) ` ?S n)"
+    by (auto simp:length_Suc_conv)
+  then show ?case using `finite A`
+    by (auto intro: finite_imageI Suc) (* FIXME metis? *)
+qed
+
+lemma finite_lists_length_le:
+  assumes "finite A" shows "finite {xs. set xs \<subseteq> A \<and> length xs \<le> n}"
+ (is "finite ?S")
+proof-
+  have "?S = (\<Union>n\<in>{0..n}. {xs. set xs \<subseteq> A \<and> length xs = n})" by auto
+  thus ?thesis by (auto intro: finite_lists_length_eq[OF `finite A`])
 qed
 
 lemma infinite_UNIV_listI: "~ finite(UNIV::'a list set)"
