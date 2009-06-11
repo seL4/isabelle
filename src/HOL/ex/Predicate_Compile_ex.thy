@@ -7,8 +7,6 @@ inductive even :: "nat \<Rightarrow> bool" and odd :: "nat \<Rightarrow> bool" w
   | "even n \<Longrightarrow> odd (Suc n)"
   | "odd n \<Longrightarrow> even (Suc n)"
 
-
-
 code_pred even .
 
 thm odd.equation
@@ -57,19 +55,42 @@ ML {* set Predicate_Compile.do_proofs *}
 (*FIXME values 10 "{(ys, zs). partition (\<lambda>n. n mod 2 = 0)
   [0, Suc 0, 2, 3, 4, 5, 6, 7] ys zs}" *)
 
-thm tranclp.intros
 
-(*
 lemma [code_pred_intros]:
 "r a b ==> tranclp r a b"
 "r a b ==> tranclp r b c ==> tranclp r a c" 
 by auto
-*)
-(*
-code_pred tranclp .
+
+
+lemma converse_tranclpE:
+  assumes "tranclp r x z "
+  assumes "r x z ==> P"
+  assumes "\<And> y. [| r x y; tranclp r y z |] ==> P"
+  shows P
+proof -
+  from tranclpD[OF assms(1)]
+  obtain y where "r x y" and "rtranclp r y z" by iprover
+  with assms(2-3) rtranclpD[OF this(2)] this(1)
+  show P by iprover
+qed  
+
+code_pred tranclp
+proof -
+  assume tranclp: "tranclp r a1 a2"
+     and step: "\<And> a c b. a1 = a ==> a2 = c ==> r a b ==> tranclp r b c ==> thesis"
+     and base: "\<And> a b. a1 = a ==> a2 = b ==> r a b ==> thesis"
+  show thesis
+  proof (cases rule: converse_tranclpE[OF tranclp])
+    case 1
+    from 1 base show thesis by auto
+  next
+    case 2
+    from 2 step show thesis by auto
+  qed
+qed
 
 thm tranclp.equation
-*)
+
 inductive succ :: "nat \<Rightarrow> nat \<Rightarrow> bool" where
     "succ 0 1"
   | "succ m n \<Longrightarrow> succ (Suc m) (Suc n)"
@@ -77,8 +98,7 @@ inductive succ :: "nat \<Rightarrow> nat \<Rightarrow> bool" where
 code_pred succ .
 
 thm succ.equation
-
-(* TODO: requires alternative rules for trancl *)
+(* FIXME: why does this not terminate? *)
 (*
 values 20 "{n. tranclp succ 10 n}"
 values "{n. tranclp succ n 10}"

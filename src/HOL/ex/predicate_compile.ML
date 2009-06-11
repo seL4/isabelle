@@ -135,6 +135,7 @@ fun print_modes modes = Output.tracing ("Inferred modes:\n" ^
   cat_lines (map (fn (s, ms) => s ^ ": " ^ commas (map
     string_of_mode ms)) modes));
 
+    
 datatype predfun_data = PredfunData of {
   name : string,
   definition : thm,
@@ -180,9 +181,7 @@ structure PredData = TheoryDataFun
 (* queries *)
 
 fun lookup_pred_data thy name =
-  case try (Graph.get_node (PredData.get thy)) name of
-    SOME pred_data => SOME (rep_pred_data pred_data)
-  | NONE => NONE
+  Option.map rep_pred_data (try (Graph.get_node (PredData.get thy)) name)
 
 fun the_pred_data thy name = case lookup_pred_data thy name
  of NONE => error ("No such predicate " ^ quote name)  
@@ -243,16 +242,73 @@ fun print_alternative_rules thy = let
  in thy end;
 *)
 
+
+fun imp_prems_conv cv ct =
+  case Thm.term_of ct of
+    Const ("==>", _) $ _ $ _ => Conv.combination_conv (Conv.arg_conv cv) (imp_prems_conv cv) ct
+  | _ => Conv.all_conv ct
+
+fun Trueprop_conv cv ct =
+  case Thm.term_of ct of
+    Const ("Trueprop", _) $ _ => Conv.arg_conv cv ct  
+  | _ => error "Trueprop_conv"
+
+fun preprocess_intro thy rule =
+  Conv.fconv_rule
+    (imp_prems_conv
+      (Trueprop_conv (Conv.try_conv (Conv.rewr_conv (Thm.symmetric @{thm Predicate.eq_is_eq})))))
+    (Thm.transfer thy rule)
+
+fun preprocess_elim thy nargs elimrule = let
+   fun replace_eqs (Const ("Trueprop", _) $ (Const ("op =", T) $ lhs $ rhs)) =
+      HOLogic.mk_Trueprop (Const (@{const_name Predicate.eq}, T) $ lhs $ rhs)
+    | replace_eqs t = t
+   fun preprocess_case t = let
+     val params = Logic.strip_params t
+     val (assums1, assums2) = chop nargs (Logic.strip_assums_hyp t)
+     val assums_hyp' = assums1 @ (map replace_eqs assums2)
+     in list_all (params, Logic.list_implies (assums_hyp', Logic.strip_assums_concl t)) end
+   val prems = Thm.prems_of elimrule
+   val cases' = map preprocess_case (tl prems)
+   val elimrule' = Logic.list_implies ((hd prems) :: cases', Thm.concl_of elimrule)
+ in
+   Thm.equal_elim
+     (Thm.symmetric (Conv.implies_concl_conv (MetaSimplifier.rewrite true [@{thm eq_is_eq}])
+        (cterm_of thy elimrule')))
+     elimrule
+ end;
+
+fun fetch_pred_data thy name =
+  case try (InductivePackage.the_inductive (ProofContext.init thy)) name of
+    SOME (info as (_, result)) => 
+      let
+        fun is_intro_of intro =
+          let
+            val (const, _) = strip_comb (HOLogic.dest_Trueprop (concl_of intro))
+          in (fst (dest_Const const) = name) end;
+        val intros = map (preprocess_intro thy) (filter is_intro_of (#intrs result)) 
+        val elim = nth (#elims result) (find_index (fn s => s = name) (#names (fst info)))
+        val nparams = length (InductivePackage.params_of (#raw_induct result))
+      in (intros, elim, nparams) end
+  | NONE => error ("No such predicate: " ^ quote name)
+  
 (* updaters *)
 
 fun add_predfun name mode data = let
     val add = apsnd (cons (mode, mk_predfun_data data))
   in PredData.map (Graph.map_node name (map_pred_data add)) end
 
-fun add_intro thm = let
+fun add_intro thm thy = let
    val (name, _) = dest_Const (fst (strip_intro_concl 0 (prop_of thm)))
-   fun set (intros, elim, nparams) = (thm::intros, elim, nparams)  
-  in PredData.map (Graph.map_node name (map_pred_data (apfst set))) end
+   fun cons_intro gr =
+     case try (Graph.get_node gr) name of
+       SOME pred_data => Graph.map_node name (map_pred_data
+         (apfst (fn (intro, elim, nparams) => (thm::intro, elim, nparams)))) gr
+     | NONE =>
+       let
+         val nparams = the_default 0 (try (#3 o fetch_pred_data thy) name)
+       in Graph.new_node (name, mk_pred_data (([thm], NONE, nparams), [])) gr end;
+  in PredData.map cons_intro thy end
 
 fun set_elim thm = let
     val (name, _) = dest_Const (fst 
@@ -813,42 +869,6 @@ fun create_definitions preds nparams (name, modes) thy =
 fun is_Type (Type _) = true
   | is_Type _ = false
 
-fun imp_prems_conv cv ct =
-  case Thm.term_of ct of
-    Const ("==>", _) $ _ $ _ => Conv.combination_conv (Conv.arg_conv cv) (imp_prems_conv cv) ct
-  | _ => Conv.all_conv ct
-
-fun Trueprop_conv cv ct =
-  case Thm.term_of ct of
-    Const ("Trueprop", _) $ _ => Conv.arg_conv cv ct  
-  | _ => error "Trueprop_conv"
-
-fun preprocess_intro thy rule =
-  Conv.fconv_rule
-    (imp_prems_conv
-      (Trueprop_conv (Conv.try_conv (Conv.rewr_conv (Thm.symmetric @{thm Predicate.eq_is_eq})))))
-    (Thm.transfer thy rule)
-
-fun preprocess_elim thy nargs elimrule = let
-   fun replace_eqs (Const ("Trueprop", _) $ (Const ("op =", T) $ lhs $ rhs)) =
-      HOLogic.mk_Trueprop (Const (@{const_name Predicate.eq}, T) $ lhs $ rhs)
-    | replace_eqs t = t
-   fun preprocess_case t = let
-     val params = Logic.strip_params t
-     val (assums1, assums2) = chop nargs (Logic.strip_assums_hyp t)
-     val assums_hyp' = assums1 @ (map replace_eqs assums2)
-     in list_all (params, Logic.list_implies (assums_hyp', Logic.strip_assums_concl t)) end
-   val prems = Thm.prems_of elimrule
-   val cases' = map preprocess_case (tl prems)
-   val elimrule' = Logic.list_implies ((hd prems) :: cases', Thm.concl_of elimrule)
- in
-   Thm.equal_elim
-     (Thm.symmetric (Conv.implies_concl_conv (MetaSimplifier.rewrite true [@{thm eq_is_eq}])
-        (cterm_of thy elimrule')))
-     elimrule
- end;
-
-
 (* returns true if t is an application of an datatype constructor *)
 (* which then consequently would be splitted *)
 (* else false *)
@@ -1367,7 +1387,7 @@ end
 
 fun mk_casesrule ctxt nparams introrules =
   let
-    val intros = map prop_of introrules
+    val intros = map (Logic.unvarify o prop_of) introrules
     val (pred, (params, args)) = strip_intro_concl nparams (hd intros)
     val ([propname], ctxt1) = Variable.variant_fixes ["thesis"] ctxt
     val prop = HOLogic.mk_Trueprop (Free (propname, HOLogic.boolT))
@@ -1388,26 +1408,13 @@ fun mk_casesrule ctxt nparams introrules =
   in Logic.list_implies (assm :: cases, prop) end;
 
 (* code dependency graph *)
-  
-fun fetch_pred_data thy name =
-  case try (InductivePackage.the_inductive (ProofContext.init thy)) name of
-    SOME (info as (_, result)) => 
-      let
-        fun is_intro_of intro =
-          let
-            val (const, _) = strip_comb (HOLogic.dest_Trueprop (concl_of intro))
-          in (fst (dest_Const const) = name) end;
-        val intros = map (preprocess_intro thy) (filter is_intro_of (#intrs result)) 
-        val elim = nth (#elims result) (find_index (fn s => s = name) (#names (fst info)))
-        val nparams = length (InductivePackage.params_of (#raw_induct result))
-      in mk_pred_data ((intros, SOME elim, nparams), []) end
-  | NONE => error ("No such predicate: " ^ quote name)
 
-fun dependencies_of (thy : theory) name =
+fun dependencies_of thy name =
   let
     fun is_inductive_predicate thy name =
       is_some (try (InductivePackage.the_inductive (ProofContext.init thy)) name)
-    val data = fetch_pred_data thy name
+    val (intro, elim, nparams) = fetch_pred_data thy name 
+    val data = mk_pred_data ((intro, SOME elim, nparams), [])
     val intros = map Thm.prop_of (#intros (rep_pred_data data))
     val keys = fold Term.add_consts intros [] |> map fst
     |> filter (is_inductive_predicate thy)
