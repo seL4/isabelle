@@ -802,6 +802,7 @@ fun create_definitions preds nparams (name, modes) thy =
       in thy' |> add_predfun name mode (mode_id, definition, intro, elim)
         |> PureThy.store_thm (Binding.name (Long_Name.base_name mode_id ^ "I"), intro) |> snd
         |> PureThy.store_thm (Binding.name (Long_Name.base_name mode_id ^ "E"), elim)  |> snd
+        |> Theory.checkpoint
       end;
   in
     fold create_definition modes thy
@@ -1052,7 +1053,7 @@ fun prove_one_direction thy all_vs param_vs modes clauses ((pred, T), mode) = le
   val nargs = length (binder_types T) - nparams_of thy pred
   val pred_case_rule = singleton (ind_set_codegen_preproc thy)
     (preprocess_elim thy nargs (the_elim_of thy pred))
-  (* FIXME preprocessor |> Simplifier.full_simplify (HOL_basic_ss addsimps [@ {thm Predicate.memb_code}])*)
+  (* FIXME preprocessor |> Simplifier.full_simplify (HOL_basic_ss addsimps [@{thm Predicate.memb_code}])*)
 in
   REPEAT_DETERM (CHANGED (rewtac @{thm "split_paired_all"}))
   THEN etac (predfun_elim_of thy pred mode) 1
@@ -1345,7 +1346,7 @@ let
   val modes = infer_modes thy extra_modes arities param_vs clauses
   val _ = print_modes modes
   val _ = tracing "Defining executable functions..."
-  val thy' = fold (create_definitions preds nparams) modes thy
+  val thy' = fold (create_definitions preds nparams) modes thy |> Theory.checkpoint
   val clauses' = map (fn (s, cls) => (s, (the (AList.lookup (op =) preds s), cls))) clauses
   val _ = tracing "Compiling equations..."
   val ts = compile_preds thy' all_vs param_vs (extra_modes @ modes) clauses'
@@ -1359,6 +1360,7 @@ let
     [((Binding.qualify true (Long_Name.base_name name) (Binding.name "equation"), result_thms),
       [Attrib.attribute_i thy Code.add_default_eqn_attrib])] thy))
     (arrange ((map (fn ((name, _), _) => name) pred_mode) ~~ result_thms)) thy'
+    |> Theory.checkpoint
 in
   thy''
 end
@@ -1417,7 +1419,7 @@ fun dependencies_of (thy : theory) name =
 
 fun add_equations name thy =
   let
-    val thy' = PredData.map (Graph.extend (dependencies_of thy) name) thy;
+    val thy' = PredData.map (Graph.extend (dependencies_of thy) name) thy |> Theory.checkpoint;
     (*val preds = Graph.all_preds (PredData.get thy') [name] |> filter_out (has_elim thy') *)
     fun strong_conn_of gr keys =
       Graph.strong_conn (Graph.subgraph (member (op =) (Graph.all_succs gr keys)) gr)
@@ -1425,7 +1427,7 @@ fun add_equations name thy =
     val thy'' = fold_rev
       (fn preds => fn thy =>
         if forall (null o modes_of thy) preds then add_equations_of preds thy else thy)
-      scc thy'
+      scc thy' |> Theory.checkpoint
   in thy'' end
 
 (** user interface **)
@@ -1446,6 +1448,7 @@ fun generic_code_pred prep_const raw_const lthy =
     val thy = ProofContext.theory_of lthy
     val const = prep_const thy raw_const
     val lthy' = LocalTheory.theory (PredData.map (Graph.extend (dependencies_of thy) const)) lthy
+      |> LocalTheory.checkpoint
     val thy' = ProofContext.theory_of lthy'
     val preds = Graph.all_preds (PredData.get thy') [const] |> filter_out (has_elim thy')
     val _ = Output.tracing ("preds: " ^ commas preds)
