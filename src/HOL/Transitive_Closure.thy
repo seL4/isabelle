@@ -478,6 +478,20 @@ lemma converse_tranclp_induct:
 
 lemmas converse_trancl_induct = converse_tranclp_induct [to_set]
 
+lemma converse_tranclpE:
+  assumes "tranclp r x z "
+  assumes "r x z ==> P"
+  assumes "\<And> y. [| r x y; tranclp r y z |] ==> P"
+  shows P
+proof -
+  from tranclpD[OF assms(1)]
+  obtain y where "r x y" and "rtranclp r y z" by iprover
+  with assms(2-3) rtranclpD[OF this(2)] this(1)
+  show P by iprover
+qed  
+
+lemmas converse_tranclE = converse_tranclpE [to_set]
+
 lemma tranclpD: "R^++ x y ==> EX z. R x z \<and> R^** z y"
   apply (erule converse_tranclp_induct)
    apply auto
