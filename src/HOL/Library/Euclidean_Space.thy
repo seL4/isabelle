@@ -378,6 +378,17 @@ apply clarify
 apply (rule_tac x="\<lambda>k. if k = i then S else UNIV" in exI, simp)
 done
 
+lemma closed_vimage_Cart_nth: "closed S \<Longrightarrow> closed ((\<lambda>x. x $ i) -` S)"
+unfolding closed_open vimage_Compl [symmetric]
+by (rule open_vimage_Cart_nth)
+
+lemma closed_vector_box: "\<forall>i. closed (S i) \<Longrightarrow> closed {x. \<forall>i. x $ i \<in> S i}"
+proof -
+  have "{x. \<forall>i. x $ i \<in> S i} = (\<Inter>i. (\<lambda>x. x $ i) -` S i)" by auto
+  thus "\<forall>i. closed (S i) \<Longrightarrow> closed {x. \<forall>i. x $ i \<in> S i}"
+    by (simp add: closed_INT closed_vimage_Cart_nth)
+qed
+
 lemma tendsto_Cart_nth [tendsto_intros]:
   assumes "((\<lambda>x. f x) ---> a) net"
   shows "((\<lambda>x. f x $ i) ---> a $ i) net"

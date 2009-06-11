@@ -87,6 +87,22 @@ by (simp add: fst_vimage_eq_Times open_Times)
 lemma open_vimage_snd: "open S \<Longrightarrow> open (snd -` S)"
 by (simp add: snd_vimage_eq_Times open_Times)
 
+lemma closed_vimage_fst: "closed S \<Longrightarrow> closed (fst -` S)"
+unfolding closed_open vimage_Compl [symmetric]
+by (rule open_vimage_fst)
+
+lemma closed_vimage_snd: "closed S \<Longrightarrow> closed (snd -` S)"
+unfolding closed_open vimage_Compl [symmetric]
+by (rule open_vimage_snd)
+
+lemma closed_Times: "closed S \<Longrightarrow> closed T \<Longrightarrow> closed (S \<times> T)"
+proof -
+  have "S \<times> T = (fst -` S) \<inter> (snd -` T)" by auto
+  thus "closed S \<Longrightarrow> closed T \<Longrightarrow> closed (S \<times> T)"
+    by (simp add: closed_vimage_fst closed_vimage_snd closed_Int)
+qed
+
+
 subsection {* Product is a metric space *}
 
 instantiation
