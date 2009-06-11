@@ -74,6 +74,8 @@ proof -
   show P by iprover
 qed  
 
+(* Setup requires quick and dirty proof *)
+(*
 code_pred tranclp
 proof -
   assume tranclp: "tranclp r a1 a2"
@@ -90,6 +92,7 @@ proof -
 qed
 
 thm tranclp.equation
+*)
 
 inductive succ :: "nat \<Rightarrow> nat \<Rightarrow> bool" where
     "succ 0 1"
