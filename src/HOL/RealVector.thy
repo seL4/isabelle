@@ -828,6 +828,21 @@ proof -
   thus "open {a<..<b}" by (simp add: open_Int)
 qed
 
+lemma closed_real_atMost [simp]: 
+  fixes a :: real shows "closed {..a}"
+unfolding closed_open by simp
+
+lemma closed_real_atLeast [simp]:
+  fixes a :: real shows "closed {a..}"
+unfolding closed_open by simp
+
+lemma closed_real_atLeastAtMost [simp]:
+  fixes a b :: real shows "closed {a..b}"
+proof -
+  have "{a..b} = {a..} \<inter> {..b}" by auto
+  thus "closed {a..b}" by (simp add: closed_Int)
+qed
+
 
 subsection {* Extra type constraints *}
 
