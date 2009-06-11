@@ -223,7 +223,7 @@ fun index_tr (*"_index"*) [t] = t
 
 fun the_struct structs i =
   if 1 <= i andalso i <= length structs then nth structs (i - 1)
-  else raise error ("Illegal reference to implicit structure #" ^ string_of_int i);
+  else error ("Illegal reference to implicit structure #" ^ string_of_int i);
 
 fun struct_tr structs (*"_struct"*) [Const ("_indexdefault", _)] =
       Lexicon.free (the_struct structs 1)
@@ -503,7 +503,7 @@ fun pts_to_asts ctxt trf pts =
     val exn_results = map (Exn.capture ast_of) pts;
     val exns = map_filter Exn.get_exn exn_results;
     val results = map_filter Exn.get_result exn_results
-  in (case (results, exns) of ([], exn :: _) => raise exn | _ => results) end;
+  in (case (results, exns) of ([], exn :: _) => reraise exn | _ => results) end;
 
 
 
@@ -534,6 +534,6 @@ fun asts_to_terms ctxt trf asts =
     val exn_results = map (Exn.capture (term_of #> free_fixed)) asts;
     val exns = map_filter Exn.get_exn exn_results;
     val results = map_filter Exn.get_result exn_results
-  in (case (results, exns) of ([], exn :: _) => raise exn | _ => results) end;
+  in (case (results, exns) of ([], exn :: _) => reraise exn | _ => results) end;
 
 end;

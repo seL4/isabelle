@@ -20,12 +20,12 @@ object Symbol
     [^\\ \ud800-\udfff] | [\ud800-\udbff][\udc00-\udfff] """)
 
   private val symbol = new Regex("""(?xs)
-      \\ \\? < (?:
+      \\ < (?:
       \^? [A-Za-z][A-Za-z0-9_']* |
       \^raw: [\x20-\x7e\u0100-\uffff && [^.>]]* ) >""")
 
   private val bad_symbol = new Regex("(?xs) (?!" + symbol + ")" +
-    """ \\ \\? < (?: (?! \s | [\"`\\] | \(\* | \*\) | \{\* | \*\} ) . )*""")
+    """ \\ < (?: (?! \s | [\"`\\] | \(\* | \*\) | \{\* | \*\} ) . )*""")
 
   // total pattern
   val regex = new Regex(plain + "|" + symbol + "|" + bad_symbol + "| .")
@@ -133,8 +133,8 @@ object Symbol
             }
           val ch = new String(Character.toChars(code))
         } yield (sym, ch)
-      (new Recoder(mapping ++ (for ((x, y) <- mapping) yield ("\\" + x, y))),
-       new Recoder(for ((x, y) <- mapping) yield (y, x)))
+      (new Recoder(mapping),
+       new Recoder(mapping map { case (x, y) => (y, x) }))
     }
 
     def decode(text: String) = decoder.recode(text)
