@@ -72,6 +72,21 @@ qed
 
 end
 
+lemma open_Times: "open S \<Longrightarrow> open T \<Longrightarrow> open (S \<times> T)"
+unfolding open_prod_def by auto
+
+lemma fst_vimage_eq_Times: "fst -` S = S \<times> UNIV"
+by auto
+
+lemma snd_vimage_eq_Times: "snd -` S = UNIV \<times> S"
+by auto
+
+lemma open_vimage_fst: "open S \<Longrightarrow> open (fst -` S)"
+by (simp add: fst_vimage_eq_Times open_Times)
+
+lemma open_vimage_snd: "open S \<Longrightarrow> open (snd -` S)"
+by (simp add: snd_vimage_eq_Times open_Times)
+
 subsection {* Product is a metric space *}
 
 instantiation
