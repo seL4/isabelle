@@ -14,9 +14,10 @@ no_document use_thys [
   "Codegenerator_Pretty_Test",
   "NormalForm",
   "../NumberTheory/Factorization",
-  "Predicate_Compile",
-  "Predicate_Compile_ex"
+  "Predicate_Compile"
 ];
+
+setmp quick_and_dirty true use_thy "Predicate_Compile_ex";
 
 use_thys [
   "Numeral",
