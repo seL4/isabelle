@@ -1274,39 +1274,6 @@ lemma Lim_sub:
   shows "(f ---> l) net \<Longrightarrow> (g ---> m) net \<Longrightarrow> ((\<lambda>x. f(x) - g(x)) ---> l - m) net"
   by (rule tendsto_diff)
 
-lemma dist_triangle3: (* TODO: move *)
-  fixes x y :: "'a::metric_space"
-  shows "dist x y \<le> dist a x + dist a y"
-using dist_triangle2 [of x y a]
-by (simp add: dist_commute)
-
-lemma tendsto_dist: (* TODO: move *)
-  assumes f: "(f ---> l) net" and g: "(g ---> m) net"
-  shows "((\<lambda>x. dist (f x) (g x)) ---> dist l m) net"
-proof (rule tendstoI)
-  fix e :: real assume "0 < e"
-  hence e2: "0 < e/2" by simp
-  from tendstoD [OF f e2] tendstoD [OF g e2]
-  show "eventually (\<lambda>x. dist (dist (f x) (g x)) (dist l m) < e) net"
-  proof (rule eventually_elim2)
-    fix x assume x: "dist (f x) l < e/2" "dist (g x) m < e/2"
-    have "dist (f x) (g x) - dist l m \<le> dist (f x) l + dist (g x) m"
-      using dist_triangle2 [of "f x" "g x" "l"]
-      using dist_triangle2 [of "g x" "l" "m"]
-      by arith
-    moreover
-    have "dist l m - dist (f x) (g x) \<le> dist (f x) l + dist (g x) m"
-      using dist_triangle3 [of "l" "m" "f x"]
-      using dist_triangle [of "f x" "m" "g x"]
-      by arith
-    ultimately
-    have "dist (dist (f x) (g x)) (dist l m) \<le> dist (f x) l + dist (g x) m"
-      unfolding dist_norm real_norm_def by arith
-    with x show "dist (dist (f x) (g x)) (dist l m) < e"
-      by arith
-  qed
-qed
-
 lemma Lim_null:
   fixes f :: "'a \<Rightarrow> 'b::real_normed_vector"
   shows "(f ---> l) net \<longleftrightarrow> ((\<lambda>x. f(x) - l) ---> 0) net" by (simp add: Lim dist_norm)
@@ -4265,7 +4232,7 @@ qed
 
 subsection{* We can now extend limit compositions to consider the scalar multiplier.   *}
 
-lemma Lim_mul:
+lemma Lim_mul [tendsto_intros]:
   fixes f :: "'a \<Rightarrow> real ^ _"
   assumes "(c ---> d) net"  "(f ---> l) net"
   shows "((\<lambda>x. c(x) *s f x) ---> (d *s l)) net"

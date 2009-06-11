@@ -530,6 +530,9 @@ qed
 lemma dist_triangle: "dist x z \<le> dist x y + dist y z"
 using dist_triangle2 [of x z y] by (simp add: dist_commute)
 
+lemma dist_triangle3: "dist x y \<le> dist a x + dist a y"
+using dist_triangle2 [of x y a] by (simp add: dist_commute)
+
 subclass topological_space
 proof
   have "\<exists>e::real. 0 < e"

@@ -177,7 +177,7 @@ unfolding dist_prod_def by simp
 lemma dist_snd_le: "dist (snd x) (snd y) \<le> dist x y"
 unfolding dist_prod_def by simp
 
-lemma tendsto_fst:
+lemma tendsto_fst [tendsto_intros]:
   assumes "(f ---> a) net"
   shows "((\<lambda>x. fst (f x)) ---> fst a) net"
 proof (rule topological_tendstoI)
@@ -196,7 +196,7 @@ proof (rule topological_tendstoI)
     by simp
 qed
 
-lemma tendsto_snd:
+lemma tendsto_snd [tendsto_intros]:
   assumes "(f ---> a) net"
   shows "((\<lambda>x. snd (f x)) ---> snd a) net"
 proof (rule topological_tendstoI)
@@ -215,7 +215,7 @@ proof (rule topological_tendstoI)
     by simp
 qed
 
-lemma tendsto_Pair:
+lemma tendsto_Pair [tendsto_intros]:
   assumes "(f ---> a) net" and "(g ---> b) net"
   shows "((\<lambda>x. (f x, g x)) ---> (a, b)) net"
 proof (rule topological_tendstoI)

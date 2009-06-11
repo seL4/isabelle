@@ -1217,7 +1217,8 @@ lemma open_dest_vec1_vimage: "open S \<Longrightarrow> open (dest_vec1 -` S)"
 unfolding open_vector_def all_1
 by (auto simp add: dest_vec1_def)
 
-lemma tendsto_dest_vec1: "(f ---> l) net \<Longrightarrow> ((\<lambda>x. dest_vec1 (f x)) ---> dest_vec1 l) net"
+lemma tendsto_dest_vec1 [tendsto_intros]:
+  "(f ---> l) net \<Longrightarrow> ((\<lambda>x. dest_vec1 (f x)) ---> dest_vec1 l) net"
   unfolding tendsto_def
   apply clarify
   apply (drule_tac x="dest_vec1 -` S" in spec)
@@ -1276,19 +1277,13 @@ proof-
     apply (rule_tac x=u in rev_bexI, simp)
     apply (erule rev_bexI, erule rev_bexI, simp)
     by auto
-  { fix u::"real" fix x y assume as:"0 \<le> u" "u \<le> 1" "x \<in> s" "y \<in> t"
-    hence "continuous (at (u, x, y))
-           (\<lambda>z. fst (snd z) - fst z *s fst (snd z) + fst z *s snd (snd z))"
-      apply (auto intro!: continuous_add continuous_sub continuous_mul)
-      unfolding continuous_at
-      by (safe intro!: tendsto_fst tendsto_snd Lim_at_id [unfolded id_def])
-  }
-  hence "continuous_on ({0..1} \<times> s \<times> t)
+  have "continuous_on ({0..1} \<times> s \<times> t)
      (\<lambda>z. (1 - fst z) *s fst (snd z) + fst z *s snd (snd z))"
-    apply(rule_tac continuous_at_imp_continuous_on) by auto
- thus ?thesis unfolding * apply(rule compact_continuous_image)
-    defer apply(rule compact_Times) defer apply(rule compact_Times)
-    using compact_real_interval assms by auto
+    unfolding continuous_on by (rule ballI) (intro tendsto_intros)
+  thus ?thesis unfolding *
+    apply (rule compact_continuous_image)
+    apply (intro compact_Times compact_real_interval assms)
+    done
 qed
 
 lemma compact_convex_hull: fixes s::"(real^'n::finite) set"
