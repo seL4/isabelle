@@ -129,7 +129,7 @@ code_type "term"
   (Eval "Term.term")
 
 code_const Const and App
-  (Eval "Term.Const/ (_, _)" and "Term.$/ (_, _)")
+  (Eval "Term.Const/ ((_), (_))" and "Term.$/ ((_), (_))")
 
 code_const "term_of \<Colon> String.literal \<Rightarrow> term"
   (Eval "HOLogic.mk'_message'_string")

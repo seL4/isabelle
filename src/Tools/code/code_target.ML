@@ -128,11 +128,11 @@ datatype target = Target of {
   module_alias: string Symtab.table
 };
 
-fun mk_target ((serial, serializer), ((reserved, includes), (name_syntax_table, module_alias))) =
+fun make_target ((serial, serializer), ((reserved, includes), (name_syntax_table, module_alias))) =
   Target { serial = serial, serializer = serializer, reserved = reserved, 
     includes = includes, name_syntax_table = name_syntax_table, module_alias = module_alias };
 fun map_target f ( Target { serial, serializer, reserved, includes, name_syntax_table, module_alias } ) =
-  mk_target (f ((serial, serializer), ((reserved, includes), (name_syntax_table, module_alias))));
+  make_target (f ((serial, serializer), ((reserved, includes), (name_syntax_table, module_alias))));
 fun merge_target strict target (Target { serial = serial1, serializer = serializer,
   reserved = reserved1, includes = includes1,
   name_syntax_table = name_syntax_table1, module_alias = module_alias1 },
@@ -140,7 +140,7 @@ fun merge_target strict target (Target { serial = serial1, serializer = serializ
       reserved = reserved2, includes = includes2,
       name_syntax_table = name_syntax_table2, module_alias = module_alias2 }) =
   if serial1 = serial2 orelse not strict then
-    mk_target ((serial1, serializer),
+    make_target ((serial1, serializer),
       ((merge (op =) (reserved1, reserved2), Symtab.merge (op =) (includes1, includes2)),
         (merge_name_syntax_table (name_syntax_table1, name_syntax_table2),
           Symtab.join (K snd) (module_alias1, module_alias2))
@@ -190,7 +190,7 @@ fun put_target (target, seri) thy =
   in
     thy
     |> (CodeTargetData.map o apfst oo Symtab.map_default)
-          (target, mk_target ((serial (), seri), (([], Symtab.empty),
+          (target, make_target ((serial (), seri), (([], Symtab.empty),
             (mk_name_syntax_table ((Symtab.empty, Symreltab.empty), (Symtab.empty, Symtab.empty)),
               Symtab.empty))))
           ((map_target o apfst o apsnd o K) seri)

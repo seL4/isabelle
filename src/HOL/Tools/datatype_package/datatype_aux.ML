@@ -55,6 +55,9 @@ sig
   val get_branching_types : descr -> (string * sort) list -> typ list
   val get_arities : descr -> int list
   val get_rec_types : descr -> (string * sort) list -> typ list
+  val interpret_construction : descr -> (string * sort) list
+    -> { atyp: typ -> 'a, dtyp: typ list -> int * bool -> string * typ list -> 'a }
+    -> ((string * Term.typ list) * (string * 'a list) list) list
   val check_nonempty : descr list -> unit
   val unfold_datatypes : 
     theory -> descr -> (string * sort) list -> datatype_info Symtab.table ->
@@ -268,6 +271,24 @@ fun get_branching_types descr sorts =
 fun get_arities descr = fold (fn (_, (_, _, constrs)) =>
   fold (fn (_, cargs) => fold (insert op =) (map (length o fst o strip_dtyp)
     (List.filter is_rec_type cargs))) constrs) descr [];
+
+(* interpret construction of datatype *)
+
+fun interpret_construction descr vs { atyp, dtyp } =
+  let
+    val typ_of_dtyp = typ_of_dtyp descr vs;
+    fun interpT dT = case strip_dtyp dT
+     of (dTs, DtRec l) =>
+          let
+            val (tyco, dTs', _) = (the o AList.lookup (op =) descr) l;
+            val Ts = map typ_of_dtyp dTs;
+            val Ts' = map typ_of_dtyp dTs';
+            val is_proper = forall (can dest_TFree) Ts';
+          in dtyp Ts (l, is_proper) (tyco, Ts') end
+      | _ => atyp (typ_of_dtyp dT);
+    fun interpC (c, dTs) = (c, map interpT dTs);
+    fun interpD (_, (tyco, dTs, cs)) = ((tyco, map typ_of_dtyp dTs), map interpC cs);
+  in map interpD descr end;
 
 (* nonemptiness check for datatypes *)
 

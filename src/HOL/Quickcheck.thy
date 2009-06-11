@@ -87,6 +87,28 @@ end
 
 subsection {* Complex generators *}
 
+text {* Towards @{typ "'a \<Rightarrow> 'b"} *}
+
+axiomatization random_fun_aux :: "typerep \<Rightarrow> typerep \<Rightarrow> ('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> ('a \<Rightarrow> term)
+  \<Rightarrow> (Random.seed \<Rightarrow> ('b \<times> (unit \<Rightarrow> term)) \<times> Random.seed) \<Rightarrow> (Random.seed \<Rightarrow> Random.seed \<times> Random.seed)
+  \<Rightarrow> Random.seed \<Rightarrow> (('a \<Rightarrow> 'b) \<times> (unit \<Rightarrow> term)) \<times> Random.seed"
+
+definition random_fun_lift :: "(code_numeral \<Rightarrow> Random.seed \<Rightarrow> ('b \<times> (unit \<Rightarrow> term)) \<times> Random.seed)
+  \<Rightarrow> code_numeral \<Rightarrow> Random.seed \<Rightarrow> (('a\<Colon>term_of \<Rightarrow> 'b\<Colon>typerep) \<times> (unit \<Rightarrow> term)) \<times> Random.seed" where
+  "random_fun_lift f i = random_fun_aux TYPEREP('a) TYPEREP('b) (op =) Code_Eval.term_of (f i) Random.split_seed"
+
+instantiation "fun" :: ("{eq, term_of}", "{type, random}") random
+begin
+
+definition random_fun :: "code_numeral \<Rightarrow> Random.seed \<Rightarrow> (('a \<Rightarrow> 'b) \<times> (unit \<Rightarrow> term)) \<times> Random.seed" where
+  "random = random_fun_lift random"
+
+instance ..
+
+end
+
+text {* Towards type copies and datatypes *}
+
 definition collapse :: "('a \<Rightarrow> ('a \<Rightarrow> 'b \<times> 'a) \<times> 'a) \<Rightarrow> 'a \<Rightarrow> 'b \<times> 'a" where
   "collapse f = (f o\<rightarrow> id)"
 
@@ -107,31 +129,15 @@ lemma random_aux_rec:
 use "Tools/quickcheck_generators.ML"
 setup {* Quickcheck_Generators.setup *}
 
-code_reserved Quickcheck Quickcheck_Generators
-
-text {* Type @{typ "'a \<Rightarrow> 'b"} *}
-
-axiomatization random_fun_aux :: "typerep \<Rightarrow> typerep \<Rightarrow> ('a \<Rightarrow> 'a \<Rightarrow> bool) \<Rightarrow> ('a \<Rightarrow> term)
-  \<Rightarrow> (Random.seed \<Rightarrow> ('b \<times> (unit \<Rightarrow> term)) \<times> Random.seed) \<Rightarrow> (Random.seed \<Rightarrow> Random.seed \<times> Random.seed)
-  \<Rightarrow> Random.seed \<Rightarrow> (('a \<Rightarrow> 'b) \<times> (unit \<Rightarrow> term)) \<times> Random.seed"
-
 code_const random_fun_aux (Quickcheck "Quickcheck'_Generators.random'_fun")
   -- {* With enough criminal energy this can be abused to derive @{prop False};
   for this reason we use a distinguished target @{text Quickcheck}
   not spoiling the regular trusted code generation *}
 
-instantiation "fun" :: ("{eq, term_of}", "{type, random}") random
-begin
-
-definition random_fun :: "code_numeral \<Rightarrow> Random.seed \<Rightarrow> (('a \<Rightarrow> 'b) \<times> (unit \<Rightarrow> term)) \<times> Random.seed" where
-  "random n = random_fun_aux TYPEREP('a) TYPEREP('b) (op =) Code_Eval.term_of (random n) Random.split_seed"
-
-instance ..
-
-end
+code_reserved Quickcheck Quickcheck_Generators
 
 
-hide (open) const collapse beyond
+hide (open) const collapse beyond random_fun_aux random_fun_lift
 
 no_notation fcomp (infixl "o>" 60)
 no_notation scomp (infixl "o\<rightarrow>" 60)

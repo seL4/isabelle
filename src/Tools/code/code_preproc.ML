@@ -44,22 +44,22 @@ datatype thmproc = Thmproc of {
   functrans: (string * (serial * (theory -> (thm * bool) list -> (thm * bool) list option))) list
 };
 
-fun mk_thmproc ((pre, post), functrans) =
+fun make_thmproc ((pre, post), functrans) =
   Thmproc { pre = pre, post = post, functrans = functrans };
 fun map_thmproc f (Thmproc { pre, post, functrans }) =
-  mk_thmproc (f ((pre, post), functrans));
+  make_thmproc (f ((pre, post), functrans));
 fun merge_thmproc (Thmproc { pre = pre1, post = post1, functrans = functrans1 },
   Thmproc { pre = pre2, post = post2, functrans = functrans2 }) =
     let
       val pre = Simplifier.merge_ss (pre1, pre2);
       val post = Simplifier.merge_ss (post1, post2);
       val functrans = AList.merge (op =) (eq_fst (op =)) (functrans1, functrans2);
-    in mk_thmproc ((pre, post), functrans) end;
+    in make_thmproc ((pre, post), functrans) end;
 
 structure Code_Preproc_Data = TheoryDataFun
 (
   type T = thmproc;
-  val empty = mk_thmproc ((Simplifier.empty_ss, Simplifier.empty_ss), []);
+  val empty = make_thmproc ((Simplifier.empty_ss, Simplifier.empty_ss), []);
   fun copy spec = spec;
   val extend = copy;
   fun merge pp = merge_thmproc;
