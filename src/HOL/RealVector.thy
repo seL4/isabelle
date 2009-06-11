@@ -592,32 +592,6 @@ next
   thus "norm (1::'a) = 1" by simp
 qed
 
-instantiation real :: real_normed_field
-begin
-
-definition real_norm_def [simp]:
-  "norm r = \<bar>r\<bar>"
-
-definition dist_real_def:
-  "dist x y = \<bar>x - y\<bar>"
-
-definition open_real_def [code del]:
-  "open (S :: real set) \<longleftrightarrow> (\<forall>x\<in>S. \<exists>e>0. \<forall>y. dist y x < e \<longrightarrow> y \<in> S)"
-
-instance
-apply (intro_classes, unfold real_norm_def real_scaleR_def)
-apply (rule dist_real_def)
-apply (rule open_real_def)
-apply (simp add: real_sgn_def)
-apply (rule abs_ge_zero)
-apply (rule abs_eq_0)
-apply (rule abs_triangle_ineq)
-apply (rule abs_mult)
-apply (rule abs_mult)
-done
-
-end
-
 lemma norm_zero [simp]: "norm (0::'a::real_normed_vector) = 0"
 by simp
 
@@ -796,6 +770,61 @@ next
     unfolding dist_norm
     using norm_triangle_ineq4 [of "x - z" "y - z"] by simp
 qed
+
+
+subsection {* Class instances for real numbers *}
+
+instantiation real :: real_normed_field
+begin
+
+definition real_norm_def [simp]:
+  "norm r = \<bar>r\<bar>"
+
+definition dist_real_def:
+  "dist x y = \<bar>x - y\<bar>"
+
+definition open_real_def [code del]:
+  "open (S :: real set) \<longleftrightarrow> (\<forall>x\<in>S. \<exists>e>0. \<forall>y. dist y x < e \<longrightarrow> y \<in> S)"
+
+instance
+apply (intro_classes, unfold real_norm_def real_scaleR_def)
+apply (rule dist_real_def)
+apply (rule open_real_def)
+apply (simp add: real_sgn_def)
+apply (rule abs_ge_zero)
+apply (rule abs_eq_0)
+apply (rule abs_triangle_ineq)
+apply (rule abs_mult)
+apply (rule abs_mult)
+done
+
+end
+
+lemma open_real_lessThan [simp]:
+  fixes a :: real shows "open {..<a}"
+unfolding open_real_def dist_real_def
+proof (clarify)
+  fix x assume "x < a"
+  hence "0 < a - x \<and> (\<forall>y. \<bar>y - x\<bar> < a - x \<longrightarrow> y \<in> {..<a})" by auto
+  thus "\<exists>e>0. \<forall>y. \<bar>y - x\<bar> < e \<longrightarrow> y \<in> {..<a}" ..
+qed
+
+lemma open_real_greaterThan [simp]:
+  fixes a :: real shows "open {a<..}"
+unfolding open_real_def dist_real_def
+proof (clarify)
+  fix x assume "a < x"
+  hence "0 < x - a \<and> (\<forall>y. \<bar>y - x\<bar> < x - a \<longrightarrow> y \<in> {a<..})" by auto
+  thus "\<exists>e>0. \<forall>y. \<bar>y - x\<bar> < e \<longrightarrow> y \<in> {a<..}" ..
+qed
+
+lemma open_real_greaterThanLessThan [simp]:
+  fixes a b :: real shows "open {a<..<b}"
+proof -
+  have "{a<..<b} = {a<..} \<inter> {..<b}" by auto
+  thus "open {a<..<b}" by (simp add: open_Int)
+qed
+
 
 subsection {* Extra type constraints *}
 
