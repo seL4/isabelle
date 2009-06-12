@@ -1228,27 +1228,6 @@ lemma tendsto_dest_vec1 [tendsto_intros]:
 lemma continuous_dest_vec1: "continuous net f \<Longrightarrow> continuous net (\<lambda>x. dest_vec1 (f x))"
   unfolding continuous_def by (rule tendsto_dest_vec1)
 
-lemma mem_Times_iff: "x \<in> A \<times> B \<longleftrightarrow> fst x \<in> A \<and> snd x \<in> B"
-by (induct x) simp
-
-(* TODO: move *)
-lemma compact_Times: "compact s \<Longrightarrow> compact t \<Longrightarrow> compact (s \<times> t)"
-unfolding compact_def
-apply clarify
-apply (drule_tac x="fst \<circ> f" in spec)
-apply (drule mp, simp add: mem_Times_iff)
-apply (clarify, rename_tac l1 r1)
-apply (drule_tac x="snd \<circ> f \<circ> r1" in spec)
-apply (drule mp, simp add: mem_Times_iff)
-apply (clarify, rename_tac l2 r2)
-apply (rule_tac x="(l1, l2)" in rev_bexI, simp)
-apply (rule_tac x="r1 \<circ> r2" in exI)
-apply (rule conjI, simp add: subseq_def)
-apply (drule_tac r=r2 in lim_subseq [COMP swap_prems_rl], assumption)
-apply (drule (1) tendsto_Pair) back
-apply (simp add: o_def)
-done
-
 (* TODO: move *)
 lemma compact_real_interval:
   fixes a b :: real shows "compact {a..b}"

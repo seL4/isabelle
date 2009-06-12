@@ -4344,11 +4344,25 @@ lemma compact_pastecart:
   shows "compact s \<Longrightarrow> compact t ==> compact {pastecart x y | x y . x \<in> s \<and> y \<in> t}"
   unfolding compact_eq_bounded_closed using bounded_pastecart[of s t] closed_pastecart[of s t] by auto
 
-lemma compact_Times:
-  fixes s t :: "'a::heine_borel set"
-  shows "compact s \<Longrightarrow> compact t \<Longrightarrow> compact (s \<times> t)"
-  unfolding compact_eq_bounded_closed
-  using bounded_Times [of s t] closed_Times [of s t] by auto
+lemma mem_Times_iff: "x \<in> A \<times> B \<longleftrightarrow> fst x \<in> A \<and> snd x \<in> B"
+by (induct x) simp
+
+lemma compact_Times: "compact s \<Longrightarrow> compact t \<Longrightarrow> compact (s \<times> t)"
+unfolding compact_def
+apply clarify
+apply (drule_tac x="fst \<circ> f" in spec)
+apply (drule mp, simp add: mem_Times_iff)
+apply (clarify, rename_tac l1 r1)
+apply (drule_tac x="snd \<circ> f \<circ> r1" in spec)
+apply (drule mp, simp add: mem_Times_iff)
+apply (clarify, rename_tac l2 r2)
+apply (rule_tac x="(l1, l2)" in rev_bexI, simp)
+apply (rule_tac x="r1 \<circ> r2" in exI)
+apply (rule conjI, simp add: subseq_def)
+apply (drule_tac r=r2 in lim_subseq [COMP swap_prems_rl], assumption)
+apply (drule (1) tendsto_Pair) back
+apply (simp add: o_def)
+done
 
 text{* Hence some useful properties follow quite easily.                         *}
 
@@ -4373,7 +4387,7 @@ lemma compact_negations:
   using compact_scaleR_image [OF assms, of "- 1"] by auto
 
 lemma compact_sums:
-  fixes s t :: "'a::{heine_borel, real_normed_vector} set"
+  fixes s t :: "'a::real_normed_vector set"
   assumes "compact s"  "compact t"  shows "compact {x + y | x y. x \<in> s \<and> y \<in> t}"
 proof-
   have *:"{x + y | x y. x \<in> s \<and> y \<in> t} = (\<lambda>z. fst z + snd z) ` (s \<times> t)"
@@ -4384,7 +4398,7 @@ proof-
 qed
 
 lemma compact_differences:
-  fixes s t :: "'a::{heine_borel, real_normed_vector} set"
+  fixes s t :: "'a::real_normed_vector set"
   assumes "compact s" "compact t"  shows "compact {x - y | x y. x \<in> s \<and> y \<in> t}"
 proof-
   have "{x - y | x y. x\<in>s \<and> y \<in> t} =  {x + y | x y. x \<in> s \<and> y \<in> (uminus ` t)}"
@@ -4393,7 +4407,7 @@ proof-
 qed
 
 lemma compact_translation:
-  fixes s :: "'a::{heine_borel, real_normed_vector} set"
+  fixes s :: "'a::real_normed_vector set"
   assumes "compact s"  shows "compact ((\<lambda>x. a + x) ` s)"
 proof-
   have "{x + y |x y. x \<in> s \<and> y \<in> {a}} = (\<lambda>x. a + x) ` s" by auto
@@ -4411,7 +4425,7 @@ qed
 text{* Hence we get the following.                                               *}
 
 lemma compact_sup_maxdistance:
-  fixes s :: "'a::{heine_borel, real_normed_vector} set"
+  fixes s :: "'a::real_normed_vector set"
   assumes "compact s"  "s \<noteq> {}"
   shows "\<exists>x\<in>s. \<exists>y\<in>s. \<forall>u\<in>s. \<forall>v\<in>s. norm(u - v) \<le> norm(x - y)"
 proof-
@@ -4462,11 +4476,11 @@ lemma diameter_bounded_bound:
   using diameter_bounded by blast
 
 lemma diameter_compact_attained:
-  fixes s :: "'a::{heine_borel, real_normed_vector} set"
+  fixes s :: "'a::real_normed_vector set"
   assumes "compact s"  "s \<noteq> {}"
   shows "\<exists>x\<in>s. \<exists>y\<in>s. (norm(x - y) = diameter s)"
 proof-
-  have b:"bounded s" using assms(1) compact_eq_bounded_closed by auto
+  have b:"bounded s" using assms(1) by (rule compact_imp_bounded)
   then obtain x y where xys:"x\<in>s" "y\<in>s" and xy:"\<forall>u\<in>s. \<forall>v\<in>s. norm (u - v) \<le> norm (x - y)" using compact_sup_maxdistance[OF assms] by auto
   hence "diameter s \<le> norm (x - y)" using rsup_le[of "{norm (x - y) |x y. x \<in> s \<and> y \<in> s}" "norm (x - y)"]
     unfolding setle_def and diameter_def by auto
@@ -5945,7 +5959,7 @@ qed
 subsection{* Edelstein fixed point theorem.                                            *}
 
 lemma edelstein_fix:
-  fixes s :: "'a::{heine_borel, real_normed_vector} set"
+  fixes s :: "'a::real_normed_vector set"
   assumes s:"compact s" "s \<noteq> {}" and gs:"(g ` s) \<subseteq> s"
       and dist:"\<forall>x\<in>s. \<forall>y\<in>s. x \<noteq> y \<longrightarrow> dist (g x) (g y) < dist x y"
   shows "\<exists>! x\<in>s. g x = x"
