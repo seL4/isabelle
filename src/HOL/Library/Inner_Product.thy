@@ -27,28 +27,28 @@ setup {* Sign.add_const_constraint
 class real_inner = real_vector + sgn_div_norm + dist_norm + open_dist +
   fixes inner :: "'a \<Rightarrow> 'a \<Rightarrow> real"
   assumes inner_commute: "inner x y = inner y x"
-  and inner_left_distrib: "inner (x + y) z = inner x z + inner y z"
-  and inner_scaleR_left: "inner (scaleR r x) y = r * (inner x y)"
+  and inner_add_left: "inner (x + y) z = inner x z + inner y z"
+  and inner_scaleR_left [simp]: "inner (scaleR r x) y = r * (inner x y)"
   and inner_ge_zero [simp]: "0 \<le> inner x x"
   and inner_eq_zero_iff [simp]: "inner x x = 0 \<longleftrightarrow> x = 0"
   and norm_eq_sqrt_inner: "norm x = sqrt (inner x x)"
 begin
 
 lemma inner_zero_left [simp]: "inner 0 x = 0"
-  using inner_left_distrib [of 0 0 x] by simp
+  using inner_add_left [of 0 0 x] by simp
 
 lemma inner_minus_left [simp]: "inner (- x) y = - inner x y"
-  using inner_left_distrib [of x "- x" y] by simp
+  using inner_add_left [of x "- x" y] by simp
 
 lemma inner_diff_left: "inner (x - y) z = inner x z - inner y z"
-  by (simp add: diff_minus inner_left_distrib)
+  by (simp add: diff_minus inner_add_left)
 
 text {* Transfer distributivity rules to right argument. *}
 
-lemma inner_right_distrib: "inner x (y + z) = inner x y + inner x z"
-  using inner_left_distrib [of y z x] by (simp only: inner_commute)
+lemma inner_add_right: "inner x (y + z) = inner x y + inner x z"
+  using inner_add_left [of y z x] by (simp only: inner_commute)
 
-lemma inner_scaleR_right: "inner x (scaleR r y) = r * (inner x y)"
+lemma inner_scaleR_right [simp]: "inner x (scaleR r y) = r * (inner x y)"
   using inner_scaleR_left [of r y x] by (simp only: inner_commute)
 
 lemma inner_zero_right [simp]: "inner x 0 = 0"
@@ -60,9 +60,14 @@ lemma inner_minus_right [simp]: "inner x (- y) = - inner x y"
 lemma inner_diff_right: "inner x (y - z) = inner x y - inner x z"
   using inner_diff_left [of y z x] by (simp only: inner_commute)
 
-lemmas inner_distrib = inner_left_distrib inner_right_distrib
-lemmas inner_diff = inner_diff_left inner_diff_right
+lemmas inner_add [algebra_simps] = inner_add_left inner_add_right
+lemmas inner_diff [algebra_simps]  = inner_diff_left inner_diff_right
 lemmas inner_scaleR = inner_scaleR_left inner_scaleR_right
+
+text {* Legacy theorem names *}
+lemmas inner_left_distrib = inner_add_left
+lemmas inner_right_distrib = inner_add_right
+lemmas inner_distrib = inner_left_distrib inner_right_distrib
 
 lemma inner_gt_zero_iff [simp]: "0 < inner x x \<longleftrightarrow> x \<noteq> 0"
   by (simp add: order_less_le)
@@ -81,7 +86,7 @@ next
   have "0 \<le> inner (x - scaleR ?r y) (x - scaleR ?r y)"
     by (rule inner_ge_zero)
   also have "\<dots> = inner x x - inner y x * ?r"
-    by (simp add: inner_diff inner_scaleR)
+    by (simp add: inner_diff)
   also have "\<dots> = inner x x - (inner x y)\<twosuperior> / inner y y"
     by (simp add: power2_eq_square inner_commute)
   finally have "0 \<le> inner x x - (inner x y)\<twosuperior> / inner y y" .
@@ -116,7 +121,7 @@ proof
         by (rule order_trans [OF abs_ge_self Cauchy_Schwarz_ineq2])
       thus "(norm (x + y))\<twosuperior> \<le> (norm x + norm y)\<twosuperior>"
         unfolding power2_sum power2_norm_eq_inner
-        by (simp add: inner_distrib inner_commute)
+        by (simp add: inner_add inner_commute)
       show "0 \<le> norm x + norm y"
         unfolding norm_eq_sqrt_inner
         by (simp add: add_nonneg_nonneg)
@@ -125,7 +130,7 @@ proof
     by (simp add: real_sqrt_mult_distrib)
   then show "norm (a *\<^sub>R x) = \<bar>a\<bar> * norm x"
     unfolding norm_eq_sqrt_inner
-    by (simp add: inner_scaleR power2_eq_square mult_assoc)
+    by (simp add: power2_eq_square mult_assoc)
 qed
 
 end
@@ -149,9 +154,9 @@ interpretation inner:
 proof
   fix x y z :: 'a and r :: real
   show "inner (x + y) z = inner x z + inner y z"
-    by (rule inner_left_distrib)
+    by (rule inner_add_left)
   show "inner x (y + z) = inner x y + inner x z"
-    by (rule inner_right_distrib)
+    by (rule inner_add_right)
   show "inner (scaleR r x) y = scaleR r (inner x y)"
     unfolding real_scaleR_def by (rule inner_scaleR_left)
   show "inner x (scaleR r y) = scaleR r (inner x y)"
@@ -244,7 +249,7 @@ lemma GDERIV_DERIV_compose:
      \<Longrightarrow> GDERIV (\<lambda>x. g (f x)) x :> scaleR dg df"
   unfolding gderiv_def deriv_fderiv
   apply (drule (1) FDERIV_compose)
-  apply (simp add: inner_scaleR_right mult_ac)
+  apply (simp add: mult_ac)
   done
 
 lemma FDERIV_subst: "\<lbrakk>FDERIV f x :> df; df = d\<rbrakk> \<Longrightarrow> FDERIV f x :> d"
@@ -286,7 +291,7 @@ lemma GDERIV_mult:
   unfolding gderiv_def
   apply (rule FDERIV_subst)
   apply (erule (1) FDERIV_mult)
-  apply (simp add: inner_distrib inner_scaleR mult_ac)
+  apply (simp add: inner_add mult_ac)
   done
 
 lemma GDERIV_inverse:
@@ -302,7 +307,7 @@ proof -
   have 1: "FDERIV (\<lambda>x. inner x x) x :> (\<lambda>h. inner x h + inner h x)"
     by (intro inner.FDERIV FDERIV_ident)
   have 2: "(\<lambda>h. inner x h + inner h x) = (\<lambda>h. inner h (scaleR 2 x))"
-    by (simp add: expand_fun_eq inner_scaleR inner_commute)
+    by (simp add: expand_fun_eq inner_commute)
   have "0 < inner x x" using `x \<noteq> 0` by simp
   then have 3: "DERIV sqrt (inner x x) :> (inverse (sqrt (inner x x)) / 2)"
     by (rule DERIV_real_sqrt)

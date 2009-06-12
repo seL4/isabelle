@@ -809,10 +809,10 @@ instance proof
     by (simp add: inner_commute)
   show "inner (x + y) z = inner x z + inner y z"
     unfolding vector_inner_def
-    by (simp add: inner_left_distrib setsum_addf)
+    by (simp add: inner_add_left setsum_addf)
   show "inner (scaleR r x) y = r * inner x y"
     unfolding vector_inner_def
-    by (simp add: inner_scaleR_left setsum_right_distrib)
+    by (simp add: setsum_right_distrib)
   show "0 \<le> inner x x"
     unfolding vector_inner_def
     by (simp add: setsum_nonneg)
