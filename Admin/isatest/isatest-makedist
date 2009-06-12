@@ -109,9 +109,11 @@ $SSH macbroy23 "$MAKEALL $HOME/settings/at-sml-dev-e"
 sleep 15
 $SSH atbroy101 "$MAKEALL $HOME/settings/at64-poly"
 sleep 15
+$SSH macbroy2 "$MAKEALL $HOME/settings/at-mac-poly-5.1-para; $MAKEALL $HOME/settings/mac-poly-M8"
+sleep 15
 $SSH macbroy5 "$MAKEALL $HOME/settings/mac-poly"
 sleep 15
-$SSH macbroy6 "/usr/stud/isatest/bin/isatest-makeall $HOME/settings/at-mac-poly-5.1-para"
+$SSH macbroy6 "$MAKEALL $HOME/settings/mac-poly-M4"
 sleep 15
 $SSH atbroy51 "$HOME/admin/isatest/isatest-annomaly"
 

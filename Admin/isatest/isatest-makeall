@@ -71,14 +71,19 @@ case $HOSTNAME in
         NICE="nice"
         ;;
 
+    macbroy2)
+        MFLAGS=""
+        NICE=""
+        ;;
+
     macbroy5)
         MFLAGS="-j 2"
         NICE=""
         ;;
 
     macbroy23)
-        MFLAGS=""
-        NICE=""
+        MFLAGS="-j 2"
+        NICE="nice"
         ;;
 
     macbroy2[0-9])
