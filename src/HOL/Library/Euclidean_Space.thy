@@ -771,7 +771,7 @@ instance proof
     done
   show "norm (scaleR a x) = \<bar>a\<bar> * norm x"
     unfolding vector_norm_def
-    by (simp add: norm_scaleR setL2_right_distrib)
+    by (simp add: setL2_right_distrib)
   show "sgn x = scaleR (inverse (norm x)) x"
     by (rule vector_sgn_def)
   show "dist x y = norm (x - y)"

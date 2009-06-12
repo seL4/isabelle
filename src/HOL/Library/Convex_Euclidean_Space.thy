@@ -573,7 +573,7 @@ proof-
           by (simp add: algebra_simps)
 	assume "\<bar>y - x\<bar> < e / norm (x1 - x2)"
 	hence "norm ((1 - x) *\<^sub>R x1 + x *\<^sub>R x2 - ((1 - y) *\<^sub>R x1 + y *\<^sub>R x2)) < e"
-	  unfolding * and scaleR_right_diff_distrib[THEN sym] and norm_scaleR 
+	  unfolding * and scaleR_right_diff_distrib[THEN sym]
 	  unfolding less_divide_eq using n by auto  }
       hence "\<exists>d>0. \<forall>y. \<bar>y - x\<bar> < d \<longrightarrow> norm ((1 - x) *\<^sub>R x1 + x *\<^sub>R x2 - ((1 - y) *\<^sub>R x1 + y *\<^sub>R x2)) < e"
 	apply(rule_tac x="e / norm (x1 - x2)" in exI) using as
@@ -669,7 +669,7 @@ proof(auto simp add: convex_on_def dist_norm)
   hence *:"a - (u *\<^sub>R x + v *\<^sub>R y) = (u *\<^sub>R (a - x)) + (v *\<^sub>R (a - y))"
     by (auto simp add: algebra_simps)
   show "norm (a - (u *\<^sub>R x + v *\<^sub>R y)) \<le> u * norm (a - x) + v * norm (a - y)"
-    unfolding * using norm_triangle_ineq[of "u *\<^sub>R (a - x)" "v *\<^sub>R (a - y)"] unfolding norm_scaleR
+    unfolding * using norm_triangle_ineq[of "u *\<^sub>R (a - x)" "v *\<^sub>R (a - y)"]
     using `0 \<le> u` `0 \<le> v` by auto
 qed
 
@@ -1694,7 +1694,7 @@ proof- let ?k = "\<lambda>c. {x::real^'n. 0 \<le> c \<bullet> x}"
     hence "\<exists>x. norm x = 1 \<and> (\<forall>y\<in>c. 0 \<le> y \<bullet> x)" apply(rule_tac x="inverse(norm a) *\<^sub>R a" in exI)
        using hull_subset[of c convex] unfolding subset_eq and dot_rmult [where 'a=real, unfolded smult_conv_scaleR]
        apply- apply rule defer apply rule apply(rule mult_nonneg_nonneg)
-       by(auto simp add: dot_sym norm_scaleR elim!: ballE) 
+       by(auto simp add: dot_sym elim!: ballE)
     thus "frontier (cball 0 1) \<inter> \<Inter>f \<noteq> {}" unfolding c(1) frontier_cball dist_norm by auto
   qed(insert closed_halfspace_ge, auto)
   then obtain x where "norm x = 1" "\<forall>y\<in>s. x\<in>?k y" unfolding frontier_cball dist_norm by auto
@@ -1934,11 +1934,11 @@ proof-
   have "norm x > 0" using assms(3)[unfolded zero_less_norm_iff[THEN sym]] by auto
   { fix v assume as:"v > u" "v *\<^sub>R x \<in> s"
     hence "v \<le> b / norm x" using b(2)[rule_format, OF as(2)] 
-      using `u\<ge>0` unfolding pos_le_divide_eq[OF `norm x > 0`] and norm_scaleR by auto
+      using `u\<ge>0` unfolding pos_le_divide_eq[OF `norm x > 0`] by auto
     hence "norm (v *\<^sub>R x) \<le> norm y" apply(rule_tac obt(6)[rule_format, unfolded dist_0_norm]) apply(rule IntI) defer 
       apply(rule as(2)) unfolding mem_Collect_eq apply(rule_tac x=v in exI) 
       using as(1) `u\<ge>0` by(auto simp add:field_simps) 
-    hence False unfolding obt(3) unfolding norm_scaleR using `u\<ge>0` `norm x > 0` `v>u` by(auto simp add:field_simps)
+    hence False unfolding obt(3) using `u\<ge>0` `norm x > 0` `v>u` by(auto simp add:field_simps)
   } note u_max = this
 
   have "u *\<^sub>R x \<in> frontier s" unfolding frontier_straddle apply(rule,rule,rule) apply(rule_tac x="u *\<^sub>R x" in bexI) unfolding obt(3)[THEN sym]
@@ -1946,7 +1946,7 @@ proof-
     fix e  assume "0 < e" and as:"(u + e / 2 / norm x) *\<^sub>R x \<in> s"
     hence "u + e / 2 / norm x > u" using`norm x > 0` by(auto simp del:zero_less_norm_iff intro!: divide_pos_pos)
     thus False using u_max[OF _ as] by auto
-  qed(insert `y\<in>s`, auto simp add: dist_norm scaleR_left_distrib obt(3) norm_scaleR)
+  qed(insert `y\<in>s`, auto simp add: dist_norm scaleR_left_distrib obt(3))
   thus ?thesis apply(rule_tac that[of u]) apply(rule obt(1), assumption)
     apply(rule,rule,rule ccontr) apply(rule u_max) by auto qed
 
@@ -1959,7 +1959,7 @@ proof-
   def pi \<equiv> "\<lambda>x::real^'n. inverse (norm x) *\<^sub>R x"
   have "0 \<notin> frontier s" unfolding frontier_straddle apply(rule ccontr) unfolding not_not apply(erule_tac x=1 in allE)
     using assms(2)[unfolded subset_eq Ball_def mem_cball] by auto
-  have injpi:"\<And>x y. pi x = pi y \<and> norm x = norm y \<longleftrightarrow> x = y" unfolding pi_def by (auto simp add: scaleR_cancel_left)
+  have injpi:"\<And>x y. pi x = pi y \<and> norm x = norm y \<longleftrightarrow> x = y" unfolding pi_def by auto
 
   have contpi:"continuous_on (UNIV - {0}) pi" apply(rule continuous_at_imp_continuous_on)
     apply rule unfolding pi_def
@@ -1970,7 +1970,7 @@ proof-
     apply (rule continuous_at_id)
     done
   def sphere \<equiv> "{x::real^'n. norm x = 1}"
-  have pi:"\<And>x. x \<noteq> 0 \<Longrightarrow> pi x \<in> sphere" "\<And>x u. u>0 \<Longrightarrow> pi (u *\<^sub>R x) = pi x" unfolding pi_def sphere_def by (auto simp add: norm_scaleR scaleR_cancel_right)
+  have pi:"\<And>x. x \<noteq> 0 \<Longrightarrow> pi x \<in> sphere" "\<And>x u. u>0 \<Longrightarrow> pi (u *\<^sub>R x) = pi x" unfolding pi_def sphere_def by auto
 
   have "0\<in>s" using assms(2) and centre_in_cball[of 0 1] by auto
   have front_smul:"\<forall>x\<in>frontier s. \<forall>u\<ge>0. u *\<^sub>R x \<in> s \<longleftrightarrow> u \<le> 1" proof(rule,rule,rule)
@@ -1995,7 +1995,7 @@ proof-
   next fix x assume "x\<in>sphere" hence "norm x = 1" "x\<noteq>0" unfolding sphere_def by auto
     then obtain u where "0 \<le> u" "u *\<^sub>R x \<in> frontier s" "\<forall>v>u. v *\<^sub>R x \<notin> s"
       using compact_frontier_line_lemma[OF assms(1) `0\<in>s`, of x] by auto
-    thus "x \<in> pi ` frontier s" unfolding image_iff le_less pi_def apply(rule_tac x="u *\<^sub>R x" in bexI) using `norm x = 1` `0\<notin>frontier s` by (auto simp add: norm_scaleR)
+    thus "x \<in> pi ` frontier s" unfolding image_iff le_less pi_def apply(rule_tac x="u *\<^sub>R x" in bexI) using `norm x = 1` `0\<notin>frontier s` by auto
   next fix x y assume as:"x \<in> frontier s" "y \<in> frontier s" "pi x = pi y"
     hence xys:"x\<in>s" "y\<in>s" using fs by auto
     from as(1,2) have nor:"norm x \<noteq> 0" "norm y \<noteq> 0" using `0\<notin>frontier s` by auto 
@@ -2042,9 +2042,9 @@ proof-
       moreover have "surf (pi x) \<in> frontier s" using surf(5) pix by auto
       hence "dist 0 (inverse (norm (surf (pi x))) *\<^sub>R x) \<le> 1" unfolding dist_norm
 	using ** and * using front_smul[THEN bspec[where x="surf (pi x)"], THEN spec[where x="norm x * ?a"]]
-	using False `x\<in>s` by(auto simp add:field_simps norm_scaleR)
+	using False `x\<in>s` by(auto simp add:field_simps)
       ultimately show ?thesis unfolding image_iff apply(rule_tac x="inverse (norm (surf(pi x))) *\<^sub>R x" in bexI)
-	apply(subst injpi[THEN sym]) unfolding norm_scaleR abs_mult abs_norm_cancel abs_of_pos[OF `?a > 0`]
+	apply(subst injpi[THEN sym]) unfolding abs_mult abs_norm_cancel abs_of_pos[OF `?a > 0`]
 	unfolding pi(2)[OF `?a > 0`] by auto
     qed } note hom2 = this
 
@@ -2085,7 +2085,7 @@ proof-
 	  using pi(2)[of "norm x" "surf (pi x)"] pi(2)[of "norm y" "surf (pi y)"] by auto
 	moreover have "pi x \<in> sphere" "pi y \<in> sphere" using pi(1) False by auto
 	ultimately have *:"pi x = pi y" using surf(4)[THEN bspec[where x="pi x"]] surf(4)[THEN bspec[where x="pi y"]] by auto 
-	moreover have "norm x = norm y" using as(3)[unfolded *] using False by(auto dest:surf_0 simp add: scaleR_cancel_right)
+	moreover have "norm x = norm y" using as(3)[unfolded *] using False by(auto dest:surf_0)
 	ultimately show ?thesis using injpi by auto qed qed
   qed auto qed
 
@@ -2100,7 +2100,7 @@ lemma homeomorphic_convex_compact_lemma: fixes s::"(real^'n::finite) set"
     fix y assume "dist (u *\<^sub>R x) y < 1 - u"
     hence "inverse (1 - u) *\<^sub>R (y - u *\<^sub>R x) \<in> s"
       using assms(3) apply(erule_tac subsetD) unfolding mem_cball dist_commute dist_norm
-      unfolding group_add_class.diff_0 group_add_class.diff_0_right norm_minus_cancel norm_scaleR      
+      unfolding group_add_class.diff_0 group_add_class.diff_0_right norm_minus_cancel norm_scaleR
       apply (rule mult_left_le_imp_le[of "1 - u"])
       unfolding class_semiring.mul_a using `u<1` by auto
     thus "y \<in> s" using assms(1)[unfolded convex_def, rule_format, of "inverse(1 - u) *\<^sub>R (y - u *\<^sub>R x)" x "1 - u" u]
@@ -2116,7 +2116,7 @@ proof- obtain a where "a\<in>interior s" using assms(3) by auto
   have "cball ?n 1 \<subseteq> (\<lambda>x. inverse d *\<^sub>R (x - a)) ` s"
     apply(rule, rule_tac x="d *\<^sub>R x + a" in image_eqI) defer
     apply(rule d[unfolded subset_eq, rule_format]) using `d>0` unfolding mem_cball dist_norm
-    by(auto simp add: mult_right_le_one_le norm_scaleR)
+    by(auto simp add: mult_right_le_one_le)
   hence "(\<lambda>x. inverse d *\<^sub>R (x - a)) ` s homeomorphic cball ?n 1"
     using homeomorphic_convex_compact_lemma[of "(\<lambda>x. ?d *\<^sub>R -a + ?d *\<^sub>R x) ` s", OF convex_affinity compact_affinity]
     using assms(1,2) by(auto simp add: uminus_add_conv_diff scaleR_right_diff_distrib)
@@ -2387,9 +2387,9 @@ lemma convex_on_bounded_continuous:
 	apply(rule order_trans[of _ "2 * norm (x - y)"]) using as by(auto simp add: field_simps norm_minus_commute) 
       { def w \<equiv> "x + t *\<^sub>R (y - x)"
 	have "w\<in>s" unfolding w_def apply(rule k[unfolded subset_eq,rule_format]) unfolding mem_cball dist_norm 
-	  unfolding t_def using `k>0` by(auto simp add: norm_scaleR simp del: scaleR_right_diff_distrib) 
+	  unfolding t_def using `k>0` by auto
 	have "(1 / t) *\<^sub>R x + - x + ((t - 1) / t) *\<^sub>R x = (1 / t - 1 + (t - 1) / t) *\<^sub>R x" by (auto simp add: algebra_simps)
-	also have "\<dots> = 0"  using `t>0` by(auto simp add:field_simps simp del:scaleR_left_distrib)
+	also have "\<dots> = 0"  using `t>0` by(auto simp add:field_simps)
 	finally have w:"(1 / t) *\<^sub>R w + ((t - 1) / t) *\<^sub>R x = y" unfolding w_def using False and `t>0` by (auto simp add: algebra_simps)
 	have  "2 * B < e * t" unfolding t_def using `0<e` `0<k` `B>0` and as and False by (auto simp add:field_simps) 
 	hence "(f w - f x) / t < e"
@@ -2400,9 +2400,9 @@ lemma convex_on_bounded_continuous:
       moreover 
       { def w \<equiv> "x - t *\<^sub>R (y - x)"
 	have "w\<in>s" unfolding w_def apply(rule k[unfolded subset_eq,rule_format]) unfolding mem_cball dist_norm 
-	  unfolding t_def using `k>0` by(auto simp add: norm_scaleR simp del: scaleR_right_diff_distrib) 
+	  unfolding t_def using `k>0` by auto
 	have "(1 / (1 + t)) *\<^sub>R x + (t / (1 + t)) *\<^sub>R x = (1 / (1 + t) + t / (1 + t)) *\<^sub>R x" by (auto simp add: algebra_simps)
-	also have "\<dots>=x" using `t>0` by (auto simp add:field_simps simp del:scaleR_left_distrib)
+	also have "\<dots>=x" using `t>0` by (auto simp add:field_simps)
 	finally have w:"(1 / (1+t)) *\<^sub>R w + (t / (1 + t)) *\<^sub>R y = x" unfolding w_def using False and `t>0` by (auto simp add: algebra_simps)
 	have  "2 * B < e * t" unfolding t_def using `0<e` `0<k` `B>0` and as and False by (auto simp add:field_simps) 
 	hence *:"(f w - f y) / t < e" using B(2)[OF `w\<in>s`] and B(2)[OF `y\<in>s`] using `t>0` by(auto simp add:field_simps) 
@@ -2503,8 +2503,8 @@ lemma dist_midpoint:
   "dist (midpoint a b) a = (dist a b) / 2" (is ?t3)
   "dist (midpoint a b) b = (dist a b) / 2" (is ?t4)
 proof-
-  have *: "\<And>x y::real^'n::finite. 2 *\<^sub>R x = - y \<Longrightarrow> norm x = (norm y) / 2" unfolding equation_minus_iff by (auto simp add: norm_scaleR)
-  have **:"\<And>x y::real^'n::finite. 2 *\<^sub>R x =   y \<Longrightarrow> norm x = (norm y) / 2" by (auto simp add: norm_scaleR)
+  have *: "\<And>x y::real^'n::finite. 2 *\<^sub>R x = - y \<Longrightarrow> norm x = (norm y) / 2" unfolding equation_minus_iff by auto
+  have **:"\<And>x y::real^'n::finite. 2 *\<^sub>R x =   y \<Longrightarrow> norm x = (norm y) / 2" by auto
   note scaleR_right_distrib [simp]
   show ?t1 unfolding midpoint_def dist_norm apply (rule **) by(auto,vector)
   show ?t2 unfolding midpoint_def dist_norm apply (rule *)  by(auto,vector)
@@ -2569,7 +2569,7 @@ proof(cases "a = b")
       hence *:"a - x = u *\<^sub>R (a - b)" "x - b = (1 - u) *\<^sub>R (a - b)"
 	unfolding as(1) by(auto simp add:algebra_simps)
       show "norm (a - x) *\<^sub>R (x - b) = norm (x - b) *\<^sub>R (a - x)"
-	unfolding norm_minus_commute[of x a] * norm_scaleR Cart_eq using as(2,3)
+	unfolding norm_minus_commute[of x a] * Cart_eq using as(2,3)
 	by(auto simp add: vector_component_simps field_simps)
     next assume as:"dist a b = dist a x + dist x b"
       have "norm (a - x) / norm (a - b) \<le> 1" unfolding divide_le_eq_1_pos[OF Fal2] unfolding as[unfolded dist_norm] norm_ge_zero by auto 
@@ -2587,7 +2587,7 @@ proof(cases "a = b")
 lemma between_midpoint: fixes a::"real^'n::finite" shows
   "between (a,b) (midpoint a b)" (is ?t1) 
   "between (b,a) (midpoint a b)" (is ?t2)
-proof- have *:"\<And>x y z. x = (1/2::real) *\<^sub>R z \<Longrightarrow> y = (1/2) *\<^sub>R z \<Longrightarrow> norm z = norm x + norm y" by (auto simp add: norm_scaleR)
+proof- have *:"\<And>x y z. x = (1/2::real) *\<^sub>R z \<Longrightarrow> y = (1/2) *\<^sub>R z \<Longrightarrow> norm z = norm x + norm y" by auto
   show ?t1 ?t2 unfolding between midpoint_def dist_norm apply(rule_tac[!] *)
     by(auto simp add:field_simps Cart_eq vector_component_simps) qed
 
@@ -2636,7 +2636,7 @@ proof- obtain d where "d>0" and d:"ball c d \<subseteq> s" using assms(2) unfold
   have *:"x - e *\<^sub>R (x - c) = y - e *\<^sub>R (y - z)" unfolding z_def using `e>0` by (auto simp add: scaleR_right_diff_distrib scaleR_right_distrib scaleR_left_diff_distrib)
   have "z\<in>interior s" apply(rule subset_interior[OF d,unfolded subset_eq,rule_format])
     unfolding interior_open[OF open_ball] mem_ball z_def dist_norm using y and assms(4,5)
-    by(auto simp del:scaleR_right_diff_distrib simp add:field_simps norm_minus_commute norm_scaleR)
+    by(auto simp add:field_simps norm_minus_commute)
   thus ?thesis unfolding * apply - apply(rule mem_interior_convex_shrink) 
     using assms(1,4-5) `y\<in>s` by auto qed
 
@@ -2678,10 +2678,10 @@ lemma interior_std_simplex:
   fix x::"real^'n" and e assume "0<e" and as:"\<forall>xa. dist x xa < e \<longrightarrow> (\<forall>x. 0 \<le> xa $ x) \<and> setsum (op $ xa) UNIV \<le> 1"
   show "(\<forall>xa. 0 < x $ xa) \<and> setsum (op $ x) UNIV < 1" apply(rule,rule) proof-
     fix i::'n show "0 < x $ i" using as[THEN spec[where x="x - (e / 2) *\<^sub>R basis i"]] and `e>0`
-      unfolding dist_norm by(auto simp add: norm_basis vector_component_simps basis_component norm_scaleR elim:allE[where x=i])
+      unfolding dist_norm by(auto simp add: norm_basis vector_component_simps basis_component elim:allE[where x=i])
   next guess a using UNIV_witness[where 'a='n] ..
     have **:"dist x (x + (e / 2) *\<^sub>R basis a) < e" using  `e>0` and norm_basis[of a]
-      unfolding dist_norm by(auto simp add: vector_component_simps basis_component norm_scaleR intro!: mult_strict_left_mono_comm)
+      unfolding dist_norm by(auto simp add: vector_component_simps basis_component intro!: mult_strict_left_mono_comm)
     have "\<And>i. (x + (e / 2) *\<^sub>R basis a) $ i = x$i + (if i = a then e/2 else 0)" by(auto simp add:vector_component_simps)
     hence *:"setsum (op $ (x + (e / 2) *\<^sub>R basis a)) UNIV = setsum (\<lambda>i. x$i + (if a = i then e/2 else 0)) UNIV" by(rule_tac setsum_cong, auto) 
     have "setsum (op $ x) UNIV < setsum (op $ (x + (e / 2) *\<^sub>R basis a)) UNIV" unfolding * setsum_addf
@@ -2892,12 +2892,12 @@ unfolding simple_path_def proof((rule ballI)+, rule impI) let ?g = "g1 +++ g2"
     hence "g1 (2 *\<^sub>R x) = g1 (2 *\<^sub>R y)" using xy(3) unfolding joinpaths_def dest_vec1_def by auto
     moreover have "2 *\<^sub>R x \<in> {0..1}" "2 *\<^sub>R y \<in> {0..1}" using xy(1,2) as
       unfolding mem_interval_1 dest_vec1_def by(auto simp add:vector_component_simps)
-    ultimately show ?thesis using inj(1)[of "2*\<^sub>R x" "2*\<^sub>R y"] by (auto simp add: scaleR_cancel_left)
+    ultimately show ?thesis using inj(1)[of "2*\<^sub>R x" "2*\<^sub>R y"] by auto
   next assume as:"x $ 1 > 1 / 2" "y $ 1 > 1 / 2"
     hence "g2 (2 *\<^sub>R x - 1) = g2 (2 *\<^sub>R y - 1)" using xy(3) unfolding joinpaths_def dest_vec1_def by auto
     moreover have "2 *\<^sub>R x - 1 \<in> {0..1}" "2 *\<^sub>R y - 1 \<in> {0..1}" using xy(1,2) as
       unfolding mem_interval_1 dest_vec1_def by(auto simp add:vector_component_simps)
-    ultimately show ?thesis using inj(2)[of "2*\<^sub>R x - 1" "2*\<^sub>R y - 1"] by (auto simp add: scaleR_cancel_left)
+    ultimately show ?thesis using inj(2)[of "2*\<^sub>R x - 1" "2*\<^sub>R y - 1"] by auto
   next assume as:"x $ 1 \<le> 1 / 2" "y $ 1 > 1 / 2"
     hence "?g x \<in> path_image g1" "?g y \<in> path_image g2" unfolding path_image_def joinpaths_def
       using xy(1,2)[unfolded mem_interval_1] by(auto simp add:vector_component_simps intro!: imageI)
@@ -2934,9 +2934,9 @@ lemma injective_path_join:
   fix x y assume xy:"x \<in> {0..1}" "y \<in> {0..1}" "(g1 +++ g2) x = (g1 +++ g2) y"
   show "x = y" proof(cases "x$1 \<le> 1/2", case_tac[!] "y$1 \<le> 1/2", unfold not_le)
     assume "x $ 1 \<le> 1 / 2" "y $ 1 \<le> 1 / 2" thus ?thesis using inj(1)[of "2*\<^sub>R x" "2*\<^sub>R y"] and xy
-      unfolding mem_interval_1 joinpaths_def by(auto simp add:vector_component_simps scaleR_cancel_left)
+      unfolding mem_interval_1 joinpaths_def by(auto simp add:vector_component_simps)
   next assume "x $ 1 > 1 / 2" "y $ 1 > 1 / 2" thus ?thesis using inj(2)[of "2*\<^sub>R x - 1" "2*\<^sub>R y - 1"] and xy
-      unfolding mem_interval_1 joinpaths_def by(auto simp add:vector_component_simps scaleR_cancel_left)
+      unfolding mem_interval_1 joinpaths_def by(auto simp add:vector_component_simps)
   next assume as:"x $ 1 \<le> 1 / 2" "y $ 1 > 1 / 2" 
     hence "?g x \<in> path_image g1" "?g y \<in> path_image g2" unfolding path_image_def joinpaths_def
       using xy(1,2)[unfolded mem_interval_1] by(auto simp add:vector_component_simps intro!: imageI)
@@ -3248,10 +3248,10 @@ lemma path_connected_sphere: assumes "2 \<le> CARD('n::finite)" shows "path_conn
     thus ?thesis using path_connected_empty by auto
   qed(auto intro!:path_connected_singleton) next
   case False hence *:"{x::real^'n. norm(x - a) = r} = (\<lambda>x. a + r *\<^sub>R x) ` {x. norm x = 1}" unfolding not_le apply -apply(rule set_ext,rule)
-    unfolding image_iff apply(rule_tac x="(1/r) *\<^sub>R (x - a)" in bexI) unfolding mem_Collect_eq norm_scaleR by (auto simp add: scaleR_right_diff_distrib norm_scaleR)
+    unfolding image_iff apply(rule_tac x="(1/r) *\<^sub>R (x - a)" in bexI) unfolding mem_Collect_eq norm_scaleR by (auto simp add: scaleR_right_diff_distrib)
   have ***:"\<And>xa. (if xa = 0 then 0 else 1) \<noteq> 1 \<Longrightarrow> xa = 0" apply(rule ccontr) by auto
   have **:"{x::real^'n. norm x = 1} = (\<lambda>x. (1/norm x) *\<^sub>R x) ` (UNIV - {0})" apply(rule set_ext,rule)
-    unfolding image_iff apply(rule_tac x=x in bexI) unfolding mem_Collect_eq norm_scaleR by(auto intro!: *** simp add: norm_scaleR)
+    unfolding image_iff apply(rule_tac x=x in bexI) unfolding mem_Collect_eq by(auto intro!: ***)
   have "continuous_on (UNIV - {0}) (\<lambda>x::real^'n. 1 / norm x)" unfolding o_def continuous_on_eq_continuous_within
     apply(rule, rule continuous_at_within_inv[unfolded o_def inverse_eq_divide]) apply(rule continuous_at_within)
     apply(rule continuous_at_norm[unfolded o_def]) by auto

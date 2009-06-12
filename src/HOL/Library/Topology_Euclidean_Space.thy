@@ -1031,7 +1031,7 @@ lemma trivial_limit_at_infinity:
   unfolding trivial_limit_def Rep_net_at_infinity
   apply (clarsimp simp add: expand_set_eq)
   apply (drule_tac x="scaleR r (sgn 1)" in spec)
-  apply (simp add: norm_scaleR norm_sgn)
+  apply (simp add: norm_sgn)
   done
 
 lemma trivial_limit_sequentially: "\<not> trivial_limit sequentially"
@@ -1757,7 +1757,7 @@ next
 	also have "\<dots> = \<bar>- 1 + d / (2 * norm (x - y))\<bar> * norm (x - y)"
 	  using scaleR_left_distrib[of "- 1" "d / (2 * norm (y - x))", THEN sym, of "y - x"]
 	  unfolding scaleR_minus_left scaleR_one
-	  by (auto simp add: norm_minus_commute norm_scaleR)
+	  by (auto simp add: norm_minus_commute)
 	also have "\<dots> = \<bar>- norm (x - y) + d / 2\<bar>"
 	  unfolding abs_mult_pos[of "norm (x - y)", OF norm_ge_zero[of "x - y"]]
 	  unfolding real_add_mult_distrib using `x\<noteq>y`[unfolded dist_nz, unfolded dist_norm] by auto
@@ -1769,7 +1769,7 @@ next
 	have "(d / (2*dist y x)) *\<^sub>R (y - x) \<noteq> 0"
 	  using `x\<noteq>y`[unfolded dist_nz] `d>0` unfolding scaleR_eq_0_iff by (auto simp add: dist_commute)
 	moreover
-	have "dist (y - (d / (2 * dist y x)) *\<^sub>R (y - x)) y < d" unfolding dist_norm apply simp unfolding norm_minus_cancel norm_scaleR
+	have "dist (y - (d / (2 * dist y x)) *\<^sub>R (y - x)) y < d" unfolding dist_norm apply simp unfolding norm_minus_cancel
 	  using `d>0` `x\<noteq>y`[unfolded dist_nz] dist_commute[of x y]
 	  unfolding dist_norm by auto
 	ultimately show "\<exists>x'\<in>ball x e. x' \<noteq> y \<and> dist x' y < d" by (rule_tac  x="y - (d / (2*dist y x)) *\<^sub>R (y - x)" in bexI) auto
@@ -1808,11 +1808,11 @@ proof (rule islimptI)
     unfolding z_def by (simp add: algebra_simps)
   have "dist z y < r"
     unfolding z_def k_def using `0 < r`
-    by (simp add: dist_norm norm_scaleR min_def)
+    by (simp add: dist_norm min_def)
   hence "z \<in> T" using `\<forall>z. dist z y < r \<longrightarrow> z \<in> T` by simp
   have "dist x z < dist x y"
     unfolding z_def2 dist_norm
-    apply (simp add: norm_scaleR norm_minus_commute)
+    apply (simp add: norm_minus_commute)
     apply (simp only: dist_norm [symmetric])
     apply (subgoal_tac "\<bar>1 - k\<bar> * dist x y < 1 * dist x y", simp)
     apply (rule mult_strict_right_mono)
@@ -1875,7 +1875,7 @@ next
     next
       case False
       have "dist (y + (d / 2 / dist y x) *\<^sub>R (y - x)) y < d" unfolding dist_norm
-	using `d>0` norm_ge_zero[of "y - x"] `x \<noteq> y` by (auto simp add: norm_scaleR)
+	using `d>0` norm_ge_zero[of "y - x"] `x \<noteq> y` by auto
       hence *:"y + (d / 2 / dist y x) *\<^sub>R (y - x) \<in> cball x e" using d as(1)[unfolded subset_eq] by blast
       have "y - x \<noteq> 0" using `x \<noteq> y` by auto
       hence **:"d / (2 * norm (y - x)) > 0" unfolding zero_less_norm_iff[THEN sym]
@@ -1886,7 +1886,7 @@ next
       also have "\<dots> = norm ((1 + d / (2 * norm (y - x))) *\<^sub>R (y - x))"
         by (auto simp add: algebra_simps)
       also have "\<dots> = \<bar>1 + d / (2 * norm (y - x))\<bar> * norm (y - x)"
-        using ** by (auto simp add: norm_scaleR)
+        using ** by auto
       also have "\<dots> = (dist y x) + d/2"using ** by (auto simp add: left_distrib dist_norm)
       finally have "e \<ge> dist x y +d/2" using *[unfolded mem_cball] by (auto simp add: dist_commute)
       thus "y \<in> ball x e" unfolding mem_ball using `d>0` by auto
@@ -2073,7 +2073,7 @@ proof(auto simp add: bounded_pos not_le)
   fix b::real  assume b: "b >0"
   have b1: "b +1 \<ge> 0" using b by simp
   with `x \<noteq> 0` have "b < norm (scaleR (b + 1) (sgn x))"
-    by (simp add: norm_scaleR norm_sgn)
+    by (simp add: norm_sgn)
   then show "\<exists>x::'a. b < norm x" ..
 qed
 
@@ -4514,7 +4514,7 @@ next
 	then obtain N where "\<forall>n\<ge>N. dist (x n) l < e * \<bar>c\<bar>"
           using as(2)[unfolded Lim_sequentially, THEN spec[where x="e * abs c"]] by auto
 	hence "\<exists>N. \<forall>n\<ge>N. dist (scaleR (1 / c) (x n)) (scaleR (1 / c) l) < e"
-          unfolding dist_norm unfolding scaleR_right_diff_distrib[THEN sym] norm_scaleR
+          unfolding dist_norm unfolding scaleR_right_diff_distrib[THEN sym]
 	  using mult_imp_div_pos_less[of "abs c" _ e] `c\<noteq>0` by auto  }
       hence "((\<lambda>n. scaleR (1 / c) (x n)) ---> scaleR (1 / c) l) sequentially" unfolding Lim_sequentially by auto
       ultimately have "l \<in> scaleR c ` s"
@@ -4888,7 +4888,7 @@ next
       have "dist (x - (e / 2) *\<^sub>R basis i) x < e"
 	   "dist (x + (e / 2) *\<^sub>R basis i) x < e"
 	unfolding dist_norm apply auto
-	unfolding norm_minus_cancel and norm_scaleR using norm_basis[of i] and `e>0` by auto
+	unfolding norm_minus_cancel using norm_basis[of i] and `e>0` by auto
       hence "a $ i \<le> (x - (e / 2) *\<^sub>R basis i) $ i"
                     "(x + (e / 2) *\<^sub>R basis i) $ i \<le> b $ i"
 	using e[THEN spec[where x="x - (e/2) *\<^sub>R basis i"]]
@@ -5485,7 +5485,7 @@ proof-
     apply(rule_tac x="\<lambda>x. a + (d/e) *\<^sub>R (x - b)" in exI)
     using assms apply (auto simp add: dist_commute)
     unfolding dist_norm
-    apply (auto simp add: norm_scaleR pos_divide_less_eq mult_strict_left_mono)
+    apply (auto simp add: pos_divide_less_eq mult_strict_left_mono)
     unfolding continuous_on
     by (intro ballI tendsto_intros, simp, assumption)+
 next
@@ -5495,7 +5495,7 @@ next
     apply(rule_tac x="\<lambda>x. a + (d/e) *\<^sub>R (x - b)" in exI)
     using assms apply (auto simp add: dist_commute)
     unfolding dist_norm
-    apply (auto simp add: norm_scaleR pos_divide_le_eq)
+    apply (auto simp add: pos_divide_le_eq)
     unfolding continuous_on
     by (intro ballI tendsto_intros, simp, assumption)+
 qed
@@ -5586,9 +5586,9 @@ next
       case False
       hence *:"0 < norm a / norm x" using `a\<noteq>0` unfolding zero_less_norm_iff[THEN sym] by(simp only: divide_pos_pos)
       have "\<forall>c. \<forall>x\<in>s. c *\<^sub>R x \<in> s" using s[unfolded subspace_def smult_conv_scaleR] by auto
-      hence "(norm a / norm x) *\<^sub>R x \<in> {x \<in> s. norm x = norm a}" using `x\<in>s` and `x\<noteq>0` by (auto simp add: norm_scaleR)
+      hence "(norm a / norm x) *\<^sub>R x \<in> {x \<in> s. norm x = norm a}" using `x\<in>s` and `x\<noteq>0` by auto
       thus "norm (f b) / norm b * norm x \<le> norm (f x)" using b[THEN bspec[where x="(norm a / norm x) *\<^sub>R x"]]
-	unfolding linear_cmul[OF f(1), unfolded smult_conv_scaleR] and norm_scaleR and ba using `x\<noteq>0` `a\<noteq>0`
+	unfolding linear_cmul[OF f(1), unfolded smult_conv_scaleR] and ba using `x\<noteq>0` `a\<noteq>0`
 	by (auto simp add: real_mult_commute pos_le_divide_eq pos_divide_le_eq)
     qed }
   ultimately
