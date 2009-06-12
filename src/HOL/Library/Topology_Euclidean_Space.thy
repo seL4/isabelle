@@ -5149,58 +5149,37 @@ lemma is_interval_univ:
 
 subsection{* Closure of halfspaces and hyperplanes.                                    *}
 
-lemma Lim_vec1_dot: fixes f :: "real^'m \<Rightarrow> real^'n::finite"
-  assumes "(f ---> l) net"  shows "((vec1 o (\<lambda>y. a \<bullet> (f y))) ---> vec1(a \<bullet> l)) net"
-proof(cases "a = vec 0")
-  case True thus ?thesis using dot_lzero and Lim_const[of 0 net] unfolding vec1_vec and o_def by auto
-next
-  case False
-  { fix e::real
-    assume "0 < e"
-    with `a \<noteq> vec 0` have "0 < e / norm a" by (simp add: divide_pos_pos)
-    with assms(1) have "eventually (\<lambda>x. dist (f x) l < e / norm a) net"
-      by (rule tendstoD)
-    moreover
-    { fix z assume "dist (f z) l < e / norm a"
-      hence "norm a * norm (f z - l) < e" unfolding dist_norm and
-	pos_less_divide_eq[OF False[unfolded vec_0 zero_less_norm_iff[of a, THEN sym]]] and real_mult_commute by auto
-      hence "\<bar>a \<bullet> f z - a \<bullet> l\<bar> < e"
-        using order_le_less_trans[OF norm_cauchy_schwarz_abs[of a "f z - l"], of e]
-        unfolding dot_rsub[symmetric] by auto  }
-    ultimately have "eventually (\<lambda>x. \<bar>a \<bullet> f x - a \<bullet> l\<bar> < e) net"
-      by (auto elim: eventually_rev_mono)
-  }
-  thus ?thesis unfolding tendsto_iff
-    by (auto simp add: dist_vec1)
-qed
+lemma Lim_dot: fixes f :: "real^'m \<Rightarrow> real^'n::finite"
+  assumes "(f ---> l) net"  shows "((\<lambda>y. a \<bullet> (f y)) ---> a \<bullet> l) net"
+  unfolding dot_def by (intro tendsto_intros assms)
 
-lemma continuous_at_vec1_dot:
+lemma continuous_at_dot:
   fixes x :: "real ^ _"
-  shows "continuous (at x) (vec1 o (\<lambda>y. a \<bullet> y))"
+  shows "continuous (at x) (\<lambda>y. a \<bullet> y)"
 proof-
   have "((\<lambda>x. x) ---> x) (at x)" unfolding Lim_at by auto
-  thus ?thesis unfolding continuous_at and o_def using Lim_vec1_dot[of "\<lambda>x. x" x "at x" a] by auto
+  thus ?thesis unfolding continuous_at and o_def using Lim_dot[of "\<lambda>x. x" x "at x" a] by auto
 qed
 
-lemma continuous_on_vec1_dot:
+lemma continuous_on_dot:
   fixes s :: "(real ^ _) set"
-  shows "continuous_on s (vec1 o (\<lambda>y. a \<bullet> y)) "
-  using continuous_at_imp_continuous_on[of s "vec1 o (\<lambda>y. a \<bullet> y)"]
-  using continuous_at_vec1_dot
+  shows "continuous_on s (\<lambda>y. a \<bullet> y)"
+  using continuous_at_imp_continuous_on[of s "\<lambda>y. a \<bullet> y"]
+  using continuous_at_dot
   by auto
 
 lemma closed_halfspace_le: fixes a::"real^'n::finite"
   shows "closed {x. a \<bullet> x \<le> b}"
 proof-
-  have *:"{x \<in> UNIV. (vec1 \<circ> op \<bullet> a) x \<in> vec1 ` {r. \<exists>x. a \<bullet> x = r \<and> r \<le> b}} = {x. a \<bullet> x \<le> b}" by auto
-  let ?T = "{x::real^1. (\<forall>i. x$i \<le> (vec1 b)$i)}"
-  have "closed ?T" using closed_interval_left[of "vec1 b"] by simp
-  moreover have "vec1 ` {r. \<exists>x. a \<bullet> x = r \<and> r \<le> b} = range (vec1 \<circ> op \<bullet> a) \<inter> ?T" unfolding all_1
+  have *:"{x \<in> UNIV. (op \<bullet> a) x \<in> {r. \<exists>x. a \<bullet> x = r \<and> r \<le> b}} = {x. a \<bullet> x \<le> b}" by auto
+  let ?T = "{..b}"
+  have "closed ?T" by (rule closed_real_atMost)
+  moreover have "{r. \<exists>x. a \<bullet> x = r \<and> r \<le> b} = range (op \<bullet> a) \<inter> ?T"
     unfolding image_def by auto
-  ultimately have "\<exists>T. closed T \<and> vec1 ` {r. \<exists>x. a \<bullet> x = r \<and> r \<le> b} = range (vec1 \<circ> op \<bullet> a) \<inter> T" by auto
-  hence "closedin euclidean {x \<in> UNIV. (vec1 \<circ> op \<bullet> a) x \<in> vec1 ` {r. \<exists>x. a \<bullet> x = r \<and> r \<le> b}}"
-    using continuous_on_vec1_dot[of UNIV a, unfolded continuous_on_closed subtopology_UNIV] unfolding closedin_closed
-    by (auto elim!: allE[where x="vec1 ` {r. (\<exists>x. a \<bullet> x = r \<and> r \<le> b)}"])
+  ultimately have "\<exists>T. closed T \<and> {r. \<exists>x. a \<bullet> x = r \<and> r \<le> b} = range (op \<bullet> a) \<inter> T" by fast
+  hence "closedin euclidean {x \<in> UNIV. (op \<bullet> a) x \<in> {r. \<exists>x. a \<bullet> x = r \<and> r \<le> b}}"
+    using continuous_on_dot[of UNIV a, unfolded continuous_on_closed subtopology_UNIV] unfolding closedin_closed
+    by (fast elim!: allE[where x="{r. (\<exists>x. a \<bullet> x = r \<and> r \<le> b)}"])
   thus ?thesis unfolding closed_closedin[THEN sym] and * by auto
 qed
 
