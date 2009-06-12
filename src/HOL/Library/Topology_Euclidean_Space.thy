@@ -1849,9 +1849,10 @@ apply (rule closure_ball_lemma)
 apply (simp add: zero_less_dist_iff)
 done
 
+(* In a trivial vector space, this fails for e = 0. *)
 lemma interior_cball:
-  fixes x :: "real ^ _" (* FIXME: generalize *)
-  shows "interior(cball x e) = ball x e"
+  fixes x :: "'a::{real_normed_vector, perfect_space}"
+  shows "interior (cball x e) = ball x e"
 proof(cases "e\<ge>0")
   case False note cs = this
   from cs have "ball x e = {}" using ball_empty[of e x] by auto moreover
@@ -1866,9 +1867,9 @@ next
   { fix S y assume as: "S \<subseteq> cball x e" "open S" "y\<in>S"
     then obtain d where "d>0" and d:"\<forall>x'. dist x' y < d \<longrightarrow> x' \<in> S" unfolding open_dist by blast
 
-    then obtain xa where xa:"dist y xa = d / 2" using vector_choose_dist[of "d/2" y] by auto
-    hence xa_y:"xa \<noteq> y" using dist_nz[of y xa] using `d>0` by auto
-    have "xa\<in>S" using d[THEN spec[where x=xa]] using xa apply(auto simp add: dist_commute) unfolding dist_nz[THEN sym] using xa_y by auto
+    then obtain xa where xa_y: "xa \<noteq> y" and xa: "dist xa y < d"
+      using perfect_choose_dist [of d] by auto
+    have "xa\<in>S" using d[THEN spec[where x=xa]] using xa by(auto simp add: dist_commute)
     hence xa_cball:"xa \<in> cball x e" using as(1) by auto
 
     hence "y \<in> ball x e" proof(cases "x = y")
@@ -1877,18 +1878,19 @@ next
       thus "y \<in> ball x e" using `x = y ` by simp
     next
       case False
-      have "dist (y + (d / 2 / dist y x) *s (y - x)) y < d" unfolding dist_norm
-	using `d>0` norm_ge_zero[of "y - x"] `x \<noteq> y` by auto
-      hence *:"y + (d / 2 / dist y x) *s (y - x) \<in> cball x e" using d as(1)[unfolded subset_eq] by blast
+      have "dist (y + (d / 2 / dist y x) *\<^sub>R (y - x)) y < d" unfolding dist_norm
+	using `d>0` norm_ge_zero[of "y - x"] `x \<noteq> y` by (auto simp add: norm_scaleR)
+      hence *:"y + (d / 2 / dist y x) *\<^sub>R (y - x) \<in> cball x e" using d as(1)[unfolded subset_eq] by blast
       have "y - x \<noteq> 0" using `x \<noteq> y` by auto
       hence **:"d / (2 * norm (y - x)) > 0" unfolding zero_less_norm_iff[THEN sym]
 	using `d>0` divide_pos_pos[of d "2*norm (y - x)"] by auto
 
-      have "dist (y + (d / 2 / dist y x) *s (y - x)) x = norm (y + (d / (2 * norm (y - x))) *s y - (d / (2 * norm (y - x))) *s x - x)"
-	by (auto simp add: dist_norm vector_ssub_ldistrib add_diff_eq)
-      also have "\<dots> = norm ((1 + d / (2 * norm (y - x))) *s (y - x))"
-	by (auto simp add: vector_sadd_rdistrib vector_smult_lid ring_simps vector_sadd_rdistrib vector_ssub_ldistrib)
-      also have "\<dots> = \<bar>1 + d / (2 * norm (y - x))\<bar> * norm (y - x)" using ** by auto
+      have "dist (y + (d / 2 / dist y x) *\<^sub>R (y - x)) x = norm (y + (d / (2 * norm (y - x))) *\<^sub>R y - (d / (2 * norm (y - x))) *\<^sub>R x - x)"
+        by (auto simp add: dist_norm algebra_simps)
+      also have "\<dots> = norm ((1 + d / (2 * norm (y - x))) *\<^sub>R (y - x))"
+        by (auto simp add: algebra_simps)
+      also have "\<dots> = \<bar>1 + d / (2 * norm (y - x))\<bar> * norm (y - x)"
+        using ** by (auto simp add: norm_scaleR)
       also have "\<dots> = (dist y x) + d/2"using ** by (auto simp add: left_distrib dist_norm)
       finally have "e \<ge> dist x y +d/2" using *[unfolded mem_cball] by (auto simp add: dist_commute)
       thus "y \<in> ball x e" unfolding mem_ball using `d>0` by auto
@@ -1898,14 +1900,14 @@ next
 qed
 
 lemma frontier_ball:
-  fixes a :: "real ^ _" (* FIXME: generalize *)
+  fixes a :: "'a::real_normed_vector"
   shows "0 < e ==> frontier(ball a e) = {x. dist a x = e}"
   apply (simp add: frontier_def closure_ball interior_open open_ball order_less_imp_le)
   apply (simp add: expand_set_eq)
   by arith
 
 lemma frontier_cball:
-  fixes a :: "real ^ _" (* FIXME: generalize *)
+  fixes a :: "'a::{real_normed_vector, perfect_space}"
   shows "frontier(cball a e) = {x. dist a x = e}"
   apply (simp add: frontier_def interior_cball closed_cball closure_closed order_less_imp_le)
   apply (simp add: expand_set_eq)
@@ -1917,20 +1919,20 @@ lemma cball_eq_empty: "(cball x e = {}) \<longleftrightarrow> e < 0"
 lemma cball_empty: "e < 0 ==> cball x e = {}" by (simp add: cball_eq_empty)
 
 lemma cball_eq_sing:
-  fixes x :: "real ^ _" (* FIXME: generalize *)
+  fixes x :: "'a::perfect_space"
   shows "(cball x e = {x}) \<longleftrightarrow> e = 0"
-proof-
-  { assume as:"\<forall>xa. (dist x xa \<le> e) = (xa = x)"
-    hence "e \<ge> 0" apply (erule_tac x=x in allE) by auto
-    then obtain y where y:"dist x y = e" using vector_choose_dist[of e] by auto
-    hence "e = 0" using as apply(erule_tac x=y in allE) by auto
-  }
-  thus ?thesis unfolding expand_set_eq mem_cball by (auto simp add: dist_nz)
-qed
+proof (rule linorder_cases)
+  assume e: "0 < e"
+  obtain a where "a \<noteq> x" "dist a x < e"
+    using perfect_choose_dist [OF e] by auto
+  hence "a \<noteq> x" "dist x a \<le> e" by (auto simp add: dist_commute)
+  with e show ?thesis by (auto simp add: expand_set_eq)
+qed auto
 
 lemma cball_sing:
-  fixes x :: "real ^ _" (* FIXME: generalize *)
-  shows "e = 0 ==> cball x e = {x}" by (simp add: cball_eq_sing)
+  fixes x :: "'a::metric_space"
+  shows "e = 0 ==> cball x e = {x}"
+  by (auto simp add: expand_set_eq)
 
 text{* For points in the interior, localization of limits makes no difference.   *}
 
@@ -3736,13 +3738,11 @@ proof-
 qed
 
 lemma continuous_open_preimage_univ:
-  fixes f :: "real ^ _ \<Rightarrow> real ^ _" (* FIXME: generalize *)
-  shows "\<forall>x. continuous (at x) f \<Longrightarrow> open s \<Longrightarrow> open {x. f x \<in> s}"
+  "\<forall>x. continuous (at x) f \<Longrightarrow> open s \<Longrightarrow> open {x. f x \<in> s}"
   using continuous_open_preimage[of UNIV f s] open_UNIV continuous_at_imp_continuous_on by auto
 
 lemma continuous_closed_preimage_univ:
-  fixes f :: "real ^ _ \<Rightarrow> real ^ _" (* FIXME: generalize *)
-  shows "(\<forall>x. continuous (at x) f) \<Longrightarrow> closed s ==> closed {x. f x \<in> s}"
+  "(\<forall>x. continuous (at x) f) \<Longrightarrow> closed s ==> closed {x. f x \<in> s}"
   using continuous_closed_preimage[of UNIV f s] closed_UNIV continuous_at_imp_continuous_on by auto
 
 text{* Equality of continuous functions on closure and related results.          *}
@@ -3865,7 +3865,7 @@ lemma open_negations:
   unfolding vector_sneg_minus1 by auto
 
 lemma open_translation:
-  fixes s :: "(real ^ _) set" (* FIXME: generalize *)
+  fixes s :: "'a::real_normed_vector set"
   assumes "open s"  shows "open((\<lambda>x. a + x) ` s)"
 proof-
   { fix x have "continuous (at x) (\<lambda>x. x - a)" using continuous_sub[of "at x" "\<lambda>x. x" "\<lambda>x. a"] continuous_at_id[of x] continuous_const[of "at x" a] by auto  }
@@ -3973,7 +3973,8 @@ qed
 text{* Continuity of inverse function on compact domain. *}
 
 lemma continuous_on_inverse:
-  fixes f :: "real ^ _ \<Rightarrow> real ^ _"
+  fixes f :: "'a::heine_borel \<Rightarrow> 'b::heine_borel"
+    (* TODO: can this be generalized more? *)
   assumes "continuous_on s f"  "compact s"  "\<forall>x \<in> s. g (f x) = x"
   shows "continuous_on (f ` s) g"
 proof-
@@ -4118,16 +4119,16 @@ lemma continuous_on_real_range:
   unfolding continuous_on_def dist_norm by simp
 
 lemma continuous_at_norm: "continuous (at x) norm"
-  unfolding continuous_at by (intro tendsto_norm Lim_ident_at)
+  unfolding continuous_at by (intro tendsto_intros)
 
 lemma continuous_on_norm: "continuous_on s norm"
-unfolding continuous_on by (intro ballI tendsto_norm Lim_at_within Lim_ident_at)
+unfolding continuous_on by (intro ballI tendsto_intros)
 
 lemma continuous_at_component: "continuous (at a) (\<lambda>x. x $ i)"
-unfolding continuous_at by (intro Lim_component Lim_ident_at)
+unfolding continuous_at by (intro tendsto_intros)
 
 lemma continuous_on_component: "continuous_on s (\<lambda>x. x $ i)"
-unfolding continuous_on by (intro ballI Lim_component Lim_at_within Lim_ident_at)
+unfolding continuous_on by (intro ballI tendsto_intros)
 
 lemma continuous_at_infnorm: "continuous (at x) infnorm"
   unfolding continuous_at Lim_at o_def unfolding dist_norm
@@ -4280,14 +4281,14 @@ lemma continuous_inv:
   unfolding continuous_def using Lim_inv by auto
 
 lemma continuous_at_within_inv:
-  fixes f :: "real ^ _ \<Rightarrow> real"
+  fixes f :: "'a::metric_space \<Rightarrow> 'b::real_normed_field"
   assumes "continuous (at a within s) f" "f a \<noteq> 0"
   shows "continuous (at a within s) (inverse o f)"
-  using assms unfolding continuous_within o_apply
-  by (rule Lim_inv)
+  using assms unfolding continuous_within o_def
+  by (intro tendsto_intros)
 
 lemma continuous_at_inv:
-  fixes f :: "real ^ _ \<Rightarrow> real"
+  fixes f :: "'a::metric_space \<Rightarrow> 'b::real_normed_field"
   shows "continuous (at a) f \<Longrightarrow> f a \<noteq> 0
          ==> continuous (at a) (inverse o f) "
   using within_UNIV[THEN sym, of "at a"] using continuous_at_within_inv[of a UNIV] by auto
@@ -4304,6 +4305,16 @@ proof-
     hence "norm x \<le> a" "norm y \<le> b" using ab by auto
     hence "norm (pastecart x y) \<le> a + b" using norm_pastecart[of x y] by auto }
   thus ?thesis unfolding bounded_iff by auto
+qed
+
+lemma bounded_Times:
+  assumes "bounded s" "bounded t" shows "bounded (s \<times> t)"
+proof-
+  obtain x y a b where "\<forall>z\<in>s. dist x z \<le> a" "\<forall>z\<in>t. dist y z \<le> b"
+    using assms [unfolded bounded_def] by auto
+  then have "\<forall>z\<in>s \<times> t. dist (x, y) z \<le> sqrt (a\<twosuperior> + b\<twosuperior>)"
+    by (auto simp add: dist_Pair_Pair real_sqrt_le_mono add_mono power_mono)
+  thus ?thesis unfolding bounded_any_center [where a="(x, y)"] by auto
 qed
 
 lemma closed_pastecart:
@@ -4333,6 +4344,12 @@ lemma compact_pastecart:
   shows "compact s \<Longrightarrow> compact t ==> compact {pastecart x y | x y . x \<in> s \<and> y \<in> t}"
   unfolding compact_eq_bounded_closed using bounded_pastecart[of s t] closed_pastecart[of s t] by auto
 
+lemma compact_Times:
+  fixes s t :: "'a::heine_borel set"
+  shows "compact s \<Longrightarrow> compact t \<Longrightarrow> compact (s \<times> t)"
+  unfolding compact_eq_bounded_closed
+  using bounded_Times [of s t] closed_Times [of s t] by auto
+
 text{* Hence some useful properties follow quite easily.                         *}
 
 lemma compact_scaleR_image:
@@ -4356,30 +4373,27 @@ lemma compact_negations:
   using compact_scaleR_image [OF assms, of "- 1"] by auto
 
 lemma compact_sums:
-  fixes s t :: "(real ^ _) set"
+  fixes s t :: "'a::{heine_borel, real_normed_vector} set"
   assumes "compact s"  "compact t"  shows "compact {x + y | x y. x \<in> s \<and> y \<in> t}"
 proof-
-  have *:"{x + y | x y. x \<in> s \<and> y \<in> t} =(\<lambda>z. fstcart z + sndcart z) ` {pastecart x y | x y.  x \<in> s \<and> y \<in> t}"
-    apply auto unfolding image_iff apply(rule_tac x="pastecart xa y" in bexI) unfolding fstcart_pastecart sndcart_pastecart by auto
-  have "linear (\<lambda>z::real^('a + 'a). fstcart z + sndcart z)" unfolding linear_def
-    unfolding fstcart_add sndcart_add apply auto
-    unfolding vector_add_ldistrib fstcart_cmul[THEN sym] sndcart_cmul[THEN sym] by auto
-  hence "continuous_on {pastecart x y |x y. x \<in> s \<and> y \<in> t} (\<lambda>z. fstcart z + sndcart z)"
-    using continuous_at_imp_continuous_on linear_continuous_at by auto
-  thus ?thesis unfolding * using compact_continuous_image compact_pastecart[OF assms] by auto
+  have *:"{x + y | x y. x \<in> s \<and> y \<in> t} = (\<lambda>z. fst z + snd z) ` (s \<times> t)"
+    apply auto unfolding image_iff apply(rule_tac x="(xa, y)" in bexI) by auto
+  have "continuous_on (s \<times> t) (\<lambda>z. fst z + snd z)"
+    unfolding continuous_on by (rule ballI) (intro tendsto_intros)
+  thus ?thesis unfolding * using compact_continuous_image compact_Times [OF assms] by auto
 qed
 
 lemma compact_differences:
-  fixes s t :: "(real ^ 'a::finite) set"
+  fixes s t :: "'a::{heine_borel, real_normed_vector} set"
   assumes "compact s" "compact t"  shows "compact {x - y | x y. x \<in> s \<and> y \<in> t}"
 proof-
-  have "{x - y | x y::real^'a. x\<in>s \<and> y \<in> t} =  {x + y | x y. x \<in> s \<and> y \<in> (uminus ` t)}"
+  have "{x - y | x y. x\<in>s \<and> y \<in> t} =  {x + y | x y. x \<in> s \<and> y \<in> (uminus ` t)}"
     apply auto apply(rule_tac x= xa in exI) apply auto apply(rule_tac x=xa in exI) by auto
   thus ?thesis using compact_sums[OF assms(1) compact_negations[OF assms(2)]] by auto
 qed
 
 lemma compact_translation:
-  fixes s :: "(real ^ _) set"
+  fixes s :: "'a::{heine_borel, real_normed_vector} set"
   assumes "compact s"  shows "compact ((\<lambda>x. a + x) ` s)"
 proof-
   have "{x + y |x y. x \<in> s \<and> y \<in> {a}} = (\<lambda>x. a + x) ` s" by auto
@@ -4397,14 +4411,14 @@ qed
 text{* Hence we get the following.                                               *}
 
 lemma compact_sup_maxdistance:
-  fixes s :: "(real ^ 'n::finite) set"
+  fixes s :: "'a::{heine_borel, real_normed_vector} set"
   assumes "compact s"  "s \<noteq> {}"
   shows "\<exists>x\<in>s. \<exists>y\<in>s. \<forall>u\<in>s. \<forall>v\<in>s. norm(u - v) \<le> norm(x - y)"
 proof-
   have "{x - y | x y . x\<in>s \<and> y\<in>s} \<noteq> {}" using `s \<noteq> {}` by auto
   then obtain x where x:"x\<in>{x - y |x y. x \<in> s \<and> y \<in> s}"  "\<forall>y\<in>{x - y |x y. x \<in> s \<and> y \<in> s}. norm y \<le> norm x"
     using compact_differences[OF assms(1) assms(1)]
-    using distance_attains_sup[where 'a="real ^ 'n", unfolded dist_norm, of "{x - y | x y . x\<in>s \<and> y\<in>s}" 0] by(auto simp add: norm_minus_cancel)
+    using distance_attains_sup[where 'a="'a", unfolded dist_norm, of "{x - y | x y . x\<in>s \<and> y\<in>s}" 0] by(auto simp add: norm_minus_cancel)
   from x(1) obtain a b where "a\<in>s" "b\<in>s" "x = a - b" by auto
   thus ?thesis using x(2)[unfolded `x = a - b`] by blast
 qed
@@ -4448,7 +4462,7 @@ lemma diameter_bounded_bound:
   using diameter_bounded by blast
 
 lemma diameter_compact_attained:
-  fixes s :: "(real ^ _) set"
+  fixes s :: "'a::{heine_borel, real_normed_vector} set"
   assumes "compact s"  "s \<noteq> {}"
   shows "\<exists>x\<in>s. \<exists>y\<in>s. (norm(x - y) = diameter s)"
 proof-
@@ -4590,7 +4604,7 @@ lemma frontier_translation:
 subsection{* Separation between points and sets.                                       *}
 
 lemma separate_point_closed:
-  fixes s :: "(real ^ _) set" (* FIXME: generalize *)
+  fixes s :: "'a::heine_borel set"
   shows "closed s \<Longrightarrow> a \<notin> s  ==> (\<exists>d>0. \<forall>x\<in>s. d \<le> dist a x)"
 proof(cases "s = {}")
   case True
@@ -4603,7 +4617,8 @@ next
 qed
 
 lemma separate_compact_closed:
-  fixes s t :: "(real ^ _) set"
+  fixes s t :: "'a::{heine_borel, real_normed_vector} set"
+    (* TODO: does this generalize to heine_borel? *)
   assumes "compact s" and "closed t" and "s \<inter> t = {}"
   shows "\<exists>d>0. \<forall>x\<in>s. \<forall>y\<in>t. d \<le> dist x y"
 proof-
@@ -4619,7 +4634,7 @@ proof-
 qed
 
 lemma separate_closed_compact:
-  fixes s t :: "(real ^ _) set"
+  fixes s t :: "'a::{heine_borel, real_normed_vector} set"
   assumes "closed s" and "compact t" and "s \<inter> t = {}"
   shows "\<exists>d>0. \<forall>x\<in>s. \<forall>y\<in>t. d \<le> dist x y"
 proof-
