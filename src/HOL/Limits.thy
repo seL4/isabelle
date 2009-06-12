@@ -471,6 +471,24 @@ lemma tendsto_diff [tendsto_intros]:
   shows "\<lbrakk>(f ---> a) net; (g ---> b) net\<rbrakk> \<Longrightarrow> ((\<lambda>x. f x - g x) ---> a - b) net"
 by (simp add: diff_minus tendsto_add tendsto_minus)
 
+lemma tendsto_setsum [tendsto_intros]:
+  fixes f :: "'a \<Rightarrow> 'b \<Rightarrow> 'c::real_normed_vector"
+  assumes "\<And>i. i \<in> S \<Longrightarrow> (f i ---> a i) net"
+  shows "((\<lambda>x. \<Sum>i\<in>S. f i x) ---> (\<Sum>i\<in>S. a i)) net"
+proof (cases "finite S")
+  assume "finite S" thus ?thesis using assms
+  proof (induct set: finite)
+    case empty show ?case
+      by (simp add: tendsto_const)
+  next
+    case (insert i F) thus ?case
+      by (simp add: tendsto_add)
+  qed
+next
+  assume "\<not> finite S" thus ?thesis
+    by (simp add: tendsto_const)
+qed
+
 lemma (in bounded_linear) tendsto [tendsto_intros]:
   "(g ---> a) net \<Longrightarrow> ((\<lambda>x. f (g x)) ---> f a) net"
 by (simp only: tendsto_Zfun_iff diff [symmetric] Zfun)

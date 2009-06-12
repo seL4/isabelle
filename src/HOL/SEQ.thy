@@ -348,23 +348,7 @@ lemma LIMSEQ_setsum:
   fixes L :: "'a \<Rightarrow> 'b::real_normed_vector"
   assumes n: "\<And>n. n \<in> S \<Longrightarrow> X n ----> L n"
   shows "(\<lambda>m. \<Sum>n\<in>S. X n m) ----> (\<Sum>n\<in>S. L n)"
-proof (cases "finite S")
-  case True
-  thus ?thesis using n
-  proof (induct)
-    case empty
-    show ?case
-      by (simp add: LIMSEQ_const)
-  next
-    case insert
-    thus ?case
-      by (simp add: LIMSEQ_add)
-  qed
-next
-  case False
-  thus ?thesis
-    by (simp add: LIMSEQ_const)
-qed
+using n unfolding LIMSEQ_conv_tendsto by (rule tendsto_setsum)
 
 lemma LIMSEQ_setprod:
   fixes L :: "'a \<Rightarrow> 'b::{real_normed_algebra,comm_ring_1}"
