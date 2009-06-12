@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 #
-# $Id$
 # Author: Gerwin Klein, NICTA
 #
 # Run IsaMakefile for every Doc/ subdirectory.

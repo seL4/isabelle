@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
 #
-# $Id$
-#
 # Create AnnoMaLy documentation for Isabelle
 #
 # Based on http://martin.von-gagern.net/projects/annomaly/

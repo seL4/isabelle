@@ -1,6 +1,5 @@
 #!/usr/bin/env perl
 #
-# $Id$
 # Author: Florian Haftmann, TUM
 #
 # Do consistency and quality checks on the isabelle sources

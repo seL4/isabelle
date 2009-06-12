@@ -1,5 +1,4 @@
 (*  Title:      Admin/isatest/annomaly.ML
-    ID:         $Id$
     Author:     Martin von Gagern <martin@von-gagern.net>
 *)
 

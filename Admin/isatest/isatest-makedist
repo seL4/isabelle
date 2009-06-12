@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 #
-# $Id$
 # Author: Gerwin Klein, TU Muenchen
 #
 # DESCRIPTION: Build distribution and run isatest-make for lots of platforms.

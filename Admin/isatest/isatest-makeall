@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 #
-# $Id$
 # Author: Gerwin Klein, TU Muenchen
 #
 # DESCRIPTION: Run isabelle makeall from specified distribution and settings.
