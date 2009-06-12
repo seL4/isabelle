@@ -5945,9 +5945,10 @@ qed
 subsection{* Edelstein fixed point theorem.                                            *}
 
 lemma edelstein_fix:
+  fixes s :: "'a::{heine_borel, real_normed_vector} set"
   assumes s:"compact s" "s \<noteq> {}" and gs:"(g ` s) \<subseteq> s"
       and dist:"\<forall>x\<in>s. \<forall>y\<in>s. x \<noteq> y \<longrightarrow> dist (g x) (g y) < dist x y"
-  shows "\<exists>! x::real^'a::finite\<in>s. g x = x"
+  shows "\<exists>! x\<in>s. g x = x"
 proof(cases "\<exists>x\<in>s. g x \<noteq> x")
   obtain x where "x\<in>s" using s(2) by auto
   case False hence g:"\<forall>x\<in>s. g x = x" by auto
@@ -5990,26 +5991,23 @@ next
       qed
     qed } note distf = this
 
-  def h \<equiv> "\<lambda>n. pastecart (f n x) (f n y)"
-  let ?s2 = "{pastecart x y |x y. x \<in> s \<and> y \<in> s}"
+  def h \<equiv> "\<lambda>n. (f n x, f n y)"
+  let ?s2 = "s \<times> s"
   obtain l r where "l\<in>?s2" and r:"subseq r" and lr:"((h \<circ> r) ---> l) sequentially"
-    using compact_pastecart[OF s(1) s(1), unfolded compact_def, THEN spec[where x=h]] unfolding  h_def
+    using compact_Times [OF s(1) s(1), unfolded compact_def, THEN spec[where x=h]] unfolding  h_def
     using fs[OF `x\<in>s`] and fs[OF `y\<in>s`] by blast
-  def a \<equiv> "fstcart l" def b \<equiv> "sndcart l"
-  have lab:"l = pastecart a b" unfolding a_def b_def and pastecart_fst_snd by simp
+  def a \<equiv> "fst l" def b \<equiv> "snd l"
+  have lab:"l = (a, b)" unfolding a_def b_def by simp
   have [simp]:"a\<in>s" "b\<in>s" unfolding a_def b_def using `l\<in>?s2` by auto
 
-  have "continuous_on (UNIV :: (real ^ _) set) fstcart"
-   and "continuous_on (UNIV :: (real ^ _) set) sndcart"
-    using linear_continuous_on using linear_fstcart and linear_sndcart by auto
-  hence lima:"((fstcart \<circ> (h \<circ> r)) ---> a) sequentially" and limb:"((sndcart \<circ> (h \<circ> r)) ---> b) sequentially"
-    unfolding atomize_conj unfolding continuous_on_sequentially
-    apply(erule_tac x="h \<circ> r" in allE) apply(erule_tac x="h \<circ> r" in allE) using lr
-    unfolding o_def and h_def a_def b_def  by auto
+  have lima:"((fst \<circ> (h \<circ> r)) ---> a) sequentially"
+   and limb:"((snd \<circ> (h \<circ> r)) ---> b) sequentially"
+    using lr
+    unfolding o_def a_def b_def by (simp_all add: tendsto_intros)
 
   { fix n::nat
-    have *:"\<And>fx fy (x::real^_) y. dist fx fy \<le> dist x y \<Longrightarrow> \<not> (dist (fx - fy) (a - b) < dist a b - dist x y)" unfolding dist_norm by norm
-    { fix x y ::"real^'a"
+    have *:"\<And>fx fy (x::'a) y. dist fx fy \<le> dist x y \<Longrightarrow> \<not> (dist (fx - fy) (a - b) < dist a b - dist x y)" unfolding dist_norm by norm
+    { fix x y :: 'a
       have "dist (-x) (-y) = dist x y" unfolding dist_norm
 	using norm_minus_cancel[of "x - y"] by (auto simp add: uminus_add_conv_diff) } note ** = this
 
@@ -6054,8 +6052,8 @@ next
     have "dist y x < e \<longrightarrow> dist (g y) (g x) < e" using dist by fastsimp }
   hence "continuous_on s g" unfolding continuous_on_def by auto
 
-  hence "((sndcart \<circ> h \<circ> r) ---> g a) sequentially" unfolding continuous_on_sequentially
-    apply (rule allE[where x="\<lambda>n. (fstcart \<circ> h \<circ> r) n"]) apply (erule ballE[where x=a])
+  hence "((snd \<circ> h \<circ> r) ---> g a) sequentially" unfolding continuous_on_sequentially
+    apply (rule allE[where x="\<lambda>n. (fst \<circ> h \<circ> r) n"]) apply (erule ballE[where x=a])
     using lima unfolding h_def o_def using fs[OF `x\<in>s`] by (auto simp add: y_def)
   hence "g a = a" using Lim_unique[OF trivial_limit_sequentially limb, of "g a"]
     unfolding `a=b` and o_assoc by auto
