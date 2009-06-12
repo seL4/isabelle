@@ -116,11 +116,11 @@ proof -
   thus "a = b" by (simp only: right_minus_eq)
 qed
 
-lemma scale_cancel_left:
+lemma scale_cancel_left [simp]:
   "scale a x = scale a y \<longleftrightarrow> x = y \<or> a = 0"
 by (auto intro: scale_left_imp_eq)
 
-lemma scale_cancel_right:
+lemma scale_cancel_right [simp]:
   "scale a x = scale b x \<longleftrightarrow> a = b \<or> x = 0"
 by (auto intro: scale_right_imp_eq)
 
@@ -571,7 +571,7 @@ class real_normed_vector = real_vector + sgn_div_norm + dist_norm + open_dist +
   assumes norm_ge_zero [simp]: "0 \<le> norm x"
   and norm_eq_zero [simp]: "norm x = 0 \<longleftrightarrow> x = 0"
   and norm_triangle_ineq: "norm (x + y) \<le> norm x + norm y"
-  and norm_scaleR: "norm (scaleR a x) = \<bar>a\<bar> * norm x"
+  and norm_scaleR [simp]: "norm (scaleR a x) = \<bar>a\<bar> * norm x"
 
 class real_normed_algebra = real_algebra + real_normed_vector +
   assumes norm_mult_ineq: "norm (x * y) \<le> norm x * norm y"
@@ -701,7 +701,7 @@ done
 
 lemma norm_of_real [simp]:
   "norm (of_real r :: 'a::real_normed_algebra_1) = \<bar>r\<bar>"
-unfolding of_real_def by (simp add: norm_scaleR)
+unfolding of_real_def by simp
 
 lemma norm_number_of [simp]:
   "norm (number_of w::'a::{number_ring,real_normed_algebra_1})
@@ -866,7 +866,7 @@ subsection {* Sign function *}
 
 lemma norm_sgn:
   "norm (sgn(x::'a::real_normed_vector)) = (if x = 0 then 0 else 1)"
-by (simp add: sgn_div_norm norm_scaleR)
+by (simp add: sgn_div_norm)
 
 lemma sgn_zero [simp]: "sgn(0::'a::real_normed_vector) = 0"
 by (simp add: sgn_div_norm)
@@ -879,7 +879,7 @@ by (simp add: sgn_div_norm)
 
 lemma sgn_scaleR:
   "sgn (scaleR r x) = scaleR (sgn r) (sgn(x::'a::real_normed_vector))"
-by (simp add: sgn_div_norm norm_scaleR mult_ac)
+by (simp add: sgn_div_norm mult_ac)
 
 lemma sgn_one [simp]: "sgn (1::'a::real_normed_algebra_1) = 1"
 by (simp add: sgn_div_norm)
@@ -1047,8 +1047,7 @@ apply (rule scaleR_left_distrib)
 apply (rule scaleR_right_distrib)
 apply simp
 apply (rule scaleR_left_commute)
-apply (rule_tac x="1" in exI)
-apply (simp add: norm_scaleR)
+apply (rule_tac x="1" in exI, simp)
 done
 
 interpretation scaleR_left: bounded_linear "\<lambda>r. scaleR r x"
