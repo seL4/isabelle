@@ -13,7 +13,6 @@ MAIL=$HOME/bin/pmail
 MAKEDIST=$HOME/bin/makedist
 MAKEALL=$HOME/bin/isatest-makeall
 TAR=tar
-CVS2CL="$HOME/bin/cvs2cl --follow-only TRUNK"
 
 SSH="ssh -f"
 
@@ -45,7 +44,6 @@ rm -f $ERRORDIR/isatest-*.log
 rm -f $RUNNING/*.runnning
 
 export DISTPREFIX
-export CVS2CL
 
 DATE=$(date "+%Y-%m-%d")
 DISTLOG=$LOGPREFIX/isatest-makedist-$DATE.log
