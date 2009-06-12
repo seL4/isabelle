@@ -8,11 +8,9 @@ inductive even :: "nat \<Rightarrow> bool" and odd :: "nat \<Rightarrow> bool" w
   | "odd n \<Longrightarrow> even (Suc n)"
 
 
-(*
-code_pred even
-  using assms by (rule even.cases)
-*)
-setup {* Predicate_Compile.add_equations @{const_name even} *}
+
+code_pred even .
+
 thm odd.equation
 thm even.equation
 
@@ -31,15 +29,7 @@ where
 "rev [] []"
 | "rev xs xs' ==> append xs' [x] ys ==> rev (x#xs) ys"
 
-setup {* Predicate_Compile.add_equations @{const_name rev} *}
-
-thm rev.equation
-thm append.equation
-
-(*
-code_pred append
-  using assms by (rule append.cases)
-*)
+code_pred rev .
 
 thm append.equation
 
@@ -54,36 +44,41 @@ inductive partition :: "('a \<Rightarrow> bool) \<Rightarrow> 'a list \<Rightarr
   | "f x \<Longrightarrow> partition f xs ys zs \<Longrightarrow> partition f (x # xs) (x # ys) zs"
   | "\<not> f x \<Longrightarrow> partition f xs ys zs \<Longrightarrow> partition f (x # xs) ys (x # zs)"
 
-setup {* Predicate_Compile.add_equations @{const_name partition} *}
+(* FIXME: correct handling of parameters *)
 (*
-code_pred partition
-  using assms by (rule partition.cases)
-*)
+ML {* reset Predicate_Compile.do_proofs *}
+code_pred partition .
 
 thm partition.equation
-
-(*FIXME values 10 "{(ys, zs). partition (\<lambda>n. n mod 2 = 0)
-  [0, Suc 0, 2, 3, 4, 5, 6, 7] ys zs}"*)
-
-setup {* Predicate_Compile.add_equations @{const_name tranclp} *}
-(*
-code_pred tranclp
-  using assms by (rule tranclp.cases)
+ML {* set Predicate_Compile.do_proofs *}
 *)
 
-thm tranclp.equation
+(* TODO: requires to handle abstractions in parameter positions correctly *)
+(*FIXME values 10 "{(ys, zs). partition (\<lambda>n. n mod 2 = 0)
+  [0, Suc 0, 2, 3, 4, 5, 6, 7] ys zs}" *)
 
+thm tranclp.intros
+
+(*
+lemma [code_pred_intros]:
+"r a b ==> tranclp r a b"
+"r a b ==> tranclp r b c ==> tranclp r a c" 
+by auto
+*)
+(*
+code_pred tranclp .
+
+thm tranclp.equation
+*)
 inductive succ :: "nat \<Rightarrow> nat \<Rightarrow> bool" where
     "succ 0 1"
   | "succ m n \<Longrightarrow> succ (Suc m) (Suc n)"
 
-setup {* Predicate_Compile.add_equations @{const_name succ} *} 
-(*
-code_pred succ
-  using assms by (rule succ.cases)
-*)
+code_pred succ .
+
 thm succ.equation
 
+(* TODO: requires alternative rules for trancl *)
 (*
 values 20 "{n. tranclp succ 10 n}"
 values "{n. tranclp succ n 10}"

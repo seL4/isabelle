@@ -48,8 +48,7 @@ sig
   val topological_order: 'a T -> key list
   val add_edge_trans_acyclic: key * key -> 'a T -> 'a T               (*exception CYCLES*)
   val merge_trans_acyclic: ('a * 'a -> bool) -> 'a T * 'a T -> 'a T   (*exception CYCLES*)
-  val extend: (key -> 'a * key list) -> key list -> 'a T -> 'a T
-  val make: (key -> 'a * key list) -> key list -> 'a T
+  val extend: (key -> 'a * key list) -> key -> 'a T -> 'a T
 end;
 
 functor GraphFun(Key: KEY): GRAPH =
@@ -277,24 +276,21 @@ fun merge_trans_acyclic eq (G1, G2) =
   |> fold add_edge_trans_acyclic (diff_edges G1 G2)
   |> fold add_edge_trans_acyclic (diff_edges G2 G1);
 
-  
+
 (* constructing graphs *)
 
 fun extend explore =
   let
-    fun contains_node gr key = member eq_key (keys gr) key
-    fun extend' key gr =
-      let
-        val (node, preds) = explore key
-      in
-        gr |> (not (contains_node gr key)) ?
-          (new_node (key, node)
-          #> fold extend' preds
-          #> fold (add_edge o (pair key)) preds)
-      end
-  in fold extend' end
-
-fun make explore keys = extend explore keys empty
+    fun ext x G =
+      if can (get_entry G) x then G
+      else
+        let val (info, ys) = explore x in
+          G
+          |> new_node (x, info)
+          |> fold ext ys
+          |> fold (fn y => add_edge (x, y)) ys
+        end
+  in ext end;
 
 
 (*final declarations of this structure!*)
